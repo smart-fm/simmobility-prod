@@ -1,7 +1,7 @@
 CXX = g++
 CXXFLAGS = -DDEBUG=1 -I.
 
-OBJS = data_mgr.o
+OBJS = data_mgr.o big_brother.o
 
 TARGETS = main
 

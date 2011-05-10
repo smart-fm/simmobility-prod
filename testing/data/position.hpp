@@ -49,6 +49,7 @@ public:
     }
 };
 
+inline
 std::ostream & operator<< (std::ostream & stream, Position const & pos)
 {
     stream << "(" << pos.x() << ", " << pos.y() << ")";

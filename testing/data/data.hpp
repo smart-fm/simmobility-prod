@@ -5,6 +5,8 @@
 #include <iosfwd>
 #include <base.hpp>
 #include <data_mgr.hpp>
+#include <observer.hpp>
+#include <set>
 
 namespace mit_sim
 {
@@ -35,6 +37,11 @@ public:
         }
     }
 
+    /* virtual */ void add (Observer * observer)
+    {
+        observers_.insert (observer);
+    }
+
 protected:
     virtual void flip()
     {
@@ -48,12 +55,17 @@ protected:
 
     void notify()
     {
-        traceln ("I've have changed");
+        for (std::set<Observer*>::iterator iter = observers_.begin(); iter != observers_.end(); ++iter)
+        {
+            Observer* observer = *iter;
+            observer->notify (this);
+        }
     }
 
     bool is_dirty_;
     T current_;
     T next_;
+    std::set<Observer*> observers_;
 };
 
 template <typename T>

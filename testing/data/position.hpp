@@ -39,15 +39,13 @@ public:
     int x() const { return get().x_; }
     int y() const { return get().y_; }
 
-    Position& operator+= (const Position_pod& delta)
+    void increment_x (int delta_x)
     {
-        set (Position_pod (x() + delta.x_, y() + delta.y_));
-        return *this;
+        set (Position_pod (x() + delta_x, y()));
     }
-    Position& operator-= (const Position_pod& delta)
+    void increment_y (int delta_y)
     {
-        set (Position_pod (x() - delta.x_, y() - delta.y_));
-        return *this;
+        set (Position_pod (x(), y() + delta_y));
     }
 };
 

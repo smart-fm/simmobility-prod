@@ -9,7 +9,7 @@ main()
     mit_sim::Integer count (8);
     traceln ("pos=" << pos << ", count=" << count);
 
-    pos += mit_sim::Position_pod (1, 0);
+    pos.increment_x (1);
     count.set (count.get() + 1);
     traceln ("pos=" << pos << ", count=" << count);
 

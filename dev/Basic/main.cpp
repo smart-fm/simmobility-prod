@@ -19,6 +19,14 @@ const unsigned int shortestPathLoopTimeStep   =    10;
 const unsigned int agentDecompositionTimeStep =   100;
 const unsigned int objectMgmtTimeStep         =  1000;
 
+//Driver modes
+enum DRIVER_MODES {
+	DRIVER,
+	PEDESTRIAN,
+	CYCLIST,
+	PASSENGER
+};
+
 
 //Class stubs
 struct Signal {
@@ -37,7 +45,18 @@ struct Region {
 };
 struct Agent {
 	unsigned int id;
-	Agent(unsigned int id=0) : id(id) {}
+	unsigned int currMode;
+	Agent(unsigned int id=0) : id(id) {
+		int currMode = id%4;
+		if (currMode==0)
+			currMode = DRIVER;
+		else if (currMdoe==1)
+			currMode = PEDESTRIAN;
+		else if (currMdoe==2)
+			currMode = CYCLIST;
+		else if (currMdoe==3)
+			currMode = PASSENGER;
+	}
 };
 struct TripChain {
 	unsigned int id;
@@ -87,6 +106,33 @@ void updateSingleRegionSignals(Region& r) {
 }
 void updateSingleShortestPath(Agent& a) {
 	a.id = a.id; //Trivial. Will update shortest path later.
+}
+void pathChoice(Agent& a) {
+	a.id = a.id; //Trivial. Will update path choice later.
+}
+void updateDriverBehavior(Agent& a) {
+	a.id = a.id; //Trivial. Will update driver behavior later.
+
+	//Trivial. Will detect "end of link" and update path choice later.
+	if (a.id%2==0) {
+		pathChoice(a);
+	}
+}
+void updatePedestrianBehavior(Agent& a) {
+	a.id = a.id; //Trivial. Will update pedestrian behavior later.
+
+	//Trivial. Will detect "end of link" and update path choice later.
+	if (a.id%2==0) {
+		pathChoice(a);
+	}
+}
+void updatePassengerBehavior(Agent& a) {
+	a.id = a.id; //Trivial. Will update passenger behavior later.
+
+	//Trivial. Will detect "end of link" and update path choice later.
+	if (a.id%2==0) {
+		pathChoice(a);  //NOTE: Do passengers need to do this?
+	}
 }
 
 
@@ -189,6 +235,68 @@ void calculateTimeDependentShortestPath(vector<Agent>& agents) {
 	}
 }
 
+void agentDecomposition(vector<Agent>& agents) {
+	//Marked as not threadable.
+	for (size_t i=0; i<agents.size(); i++) {
+		agents[i].id = agents[i].id; //Trivial. Possibly move agents later.
+	}
+}
+
+void updateVehicleQueue(vector<Vehicle>& vehicles) {
+	//Marked as not threadable.
+	for (size_t i=0; i<vehicles.size(); i++) {
+		vehicles[i].id = vehicles[i].id; //Trivial. Will update queues later.
+	}
+}
+
+void updateAndAdvancePhase(vector<Agent>& agents) {
+	//NOTE: This is marked as not threadable, but I am treating it as threadable for now.
+	vector<worker> workers;
+	for (size_t i=0; i<agents.size(); i++) {
+		if (agents[i].currMode==DRIVER) {
+			worker w = boost::bind(&updateDriverBehavior, boost::ref(agents[i]));
+			workers.push_back(w);
+		} else if (agents[i].currMode==PEDESTRIAN || agents[i].currMode==CYCLIST) {
+			worker w = boost::bind(&updatePedestrianBehavior, boost::ref(agents[i]));
+			workers.push_back(w);
+		} else if (agents[i].currMode==PASSENGER) {
+			worker w = boost::bind(&updatePassengerBehavior, boost::ref(agents[i]));
+			workers.push_back(w);
+		}
+
+		//NOTE: I added "path choice" into each of the "worker" functions.
+	}
+}
+
+
+void updateSurveillanceData(vector<Agent>& agents) {
+	//Marked as not threadable.
+	for (size_t i=0; i<agents.size(); i++) {
+		agents[i].id = agents[i].id; //Trivial. Later we will collate data and send it to surveillance systems.
+	}
+}
+
+void updateGUI(vector<Agent>& agents) {
+	//Marked as not threadable.
+	for (size_t i=0; i<agents.size(); i++) {
+		agents[i].id = agents[i].id; //Trivial. Later we will update the GUI
+	}
+}
+
+void saveStatistics(vector<Agent>& agents) {
+	//Marked as not threadable.
+	for (size_t i=0; i<agents.size(); i++) {
+		agents[i].id = agents[i].id; //Trivial. Later we will log all agent data.
+	}
+}
+
+void saveStatisticsToDB(vector<Agent>& agents) {
+	//Marked as not threadable.
+	for (size_t i=0; i<agents.size(); i++) {
+		agents[i].id = agents[i].id; //Trivial. Later we will save all statistis to the database.
+	}
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -205,7 +313,9 @@ int main(int argc, char* argv[])
 
   //Time-based cycle.
   const unsigned int TOTAL_TIME = 100; //Temp.
-  const unsigned int TIME_STEP = 10;   //Not sure what this should be.
+  //const unsigned int TIME_STEP = std::min(std::min(objectMgmtTimeStep, agentDecompositionTimeStep), shortestPathLoopTimeStep);
+  const unsigned int TIME_STEP = 1; //NOTE: Is this correct?
+  const unsigned int simulationStartTime = 10; //Temp.
   for (unsigned int currTime=0; currTime<TOTAL_TIME; currTime+=TIME_STEP) {
 	  //NOTE:
 	  //  This is supposed to be the "objectMgmtTimeStep for loop", but I am
@@ -242,143 +352,40 @@ int main(int argc, char* argv[])
 		  calculateTimeDependentShortestPath(agents);
 	  }
 
+	  //Longer Time-based cycle
+	  if (currTime%agentDecompositionTimeStep == 0) {
+		  //Thread controller / processor affinity / Load Balancer
+		  agentDecomposition(agents);
 
+		  //One Queue is created for each core
+		  updateVehicleQueue(vehicles);
+	  }
+
+	  //Agent-based cycle
+	  if (true) { //Seems to operate every time step?
+		  updateAndAdvancePhase(agents);
+	  }
+
+	  //Surveillance update
+	  updateSurveillanceData();
+
+	  //Check if the warmup period has ended.
+	  if (currTime >= simulationStartTime) {
+		  updateGUI();
+		  saveStatistics();
+	  }
+
+
+	  //Longer Time-based cycle
+	  if (currTime%objectMgmtTimeStep == 0) {
+		  saveStatisticsToDB(agents);
+	  }
   }
 
-
-
-                                //update the signal logic and plans for every intersection grouped by region
-		intersection for loop by region
-		{
-			*updateSignalStatus();      // return Signal Plan
-	}
-
-                                updateTrafficInfo();        // weather info,  traffic condition etc.
-
-                                //Longer Time-based cycle
-		shortestPathLoopTimeStep for loop
-		{
-			*calculateTime-dependentShortestPath();
-		}
-
-		//Longer Time-based cycle
-		agentDecompositionTimeStep for loop
-		{
-			agentDecomposition();   // thread controller / processor affinity / Load Balancer
-	                               	 updateVehicleQueue();   //One Queue is created for each core
-		}
-
-                                //Agent-based cycle
-                                agent-based for loop
-                                {     updateAndAdvancePhase();
-			{
-				if (Agent.CurrentMode == 'DRIVER')
-					vehiclePosition = drivingBehaviorModel();
-
-				if(Agent. CurrentMode == 'PEDESTRIAN' or 'CYCLIST' )
-					pedestrianPosition = pedestrianBehaviorModel();
-
-				if(Agent. CurrentMode == 'PASSENGER')
-					vehiclePosition = passengerModel();
-
-				if (end of Link = TRUE)
-					pathChoice();
-
-			}
-                                }
-
-                                	updateSurveillanceData();
-		// check if warm-up has ended
-                                	if (t >= simulationStartTime)
-                               	 {
-                                   		 updateGUI();
-			 saveStatistics();
-                                	}
-
-		//Longer Time-based cycle
-		objectMgmtTimeStep for loop
-		{
-			saveStatisticsToDB();
-		}
-
-
-                 }
+  cout <<"Done" <<endl;
 
   return 0;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-boost::mutex root_mutex;
-
-
-//Container for our threaded task.
-struct workerFunc {
-  int id;
-  workerFunc(int id) : id(id) {}
-
-  void operator() () {
-    int ID = pthread_self();
-
-    boost::mutex::scoped_lock temp_lock(root_mutex);
-    std::cout <<"PThread" <<std::endl;
-    std::cout <<"  ID: " <<id <<std::endl;
-    std::cout <<"  PID/TID: " <<getpid() <<"/" <<std::hex <<ID <<std::dec <<std::endl;
-    std::cout <<"  CPU: " <<sched_getcpu() <<std::endl;
-  }
-};
-
-
-//Change the CPU affinity for the current process
-void setCurrAffinity(int procID)
-{
-  cpu_set_t cpuset;
-  CPU_ZERO(&cpuset);
-  CPU_SET(procID, &cpuset);
-  sched_setaffinity(0, sizeof(cpuset), &cpuset);
-}
-
-
-int main(int argc, char* argv[])
-{
-  //Put this process onto CPU 0
-  setCurrAffinity(0);
-
-  int sz = 10;
-  boost::thread allThreads[sz];
-  for (int i=0; i<sz; i++) {
-    //Threads 5 to 10 will run on CPU 1
-    if (i==sz/2)
-      setCurrAffinity(1);
-
-    //In Linux, pthreads inherit the creator's CPU affinity mask.
-    allThreads[i] = (boost::thread(workerFunc(i)));
-  }
-
-  for (int i=0; i<sz; i++)
-    allThreads[i].join();
-
-  return 0;
-}
 
 

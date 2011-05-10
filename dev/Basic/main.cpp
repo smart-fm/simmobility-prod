@@ -1,13 +1,14 @@
 #include <iostream>
 #include <vector>
 #include <boost/thread.hpp>
+#include <boost/bind.hpp>
+#include <boost/function.hpp>
 #include <boost/date_time.hpp>
 
 using std::cout;
 using std::endl;
 using std::vector;
 using boost::thread;
-using boost::worker;
 
 /**
  * A first approximation of the basic pseudo-code in C++
@@ -26,7 +27,6 @@ enum DRIVER_MODES {
 	CYCLIST,
 	PASSENGER
 };
-
 
 //Class stubs
 struct Signal {
@@ -50,11 +50,11 @@ struct Agent {
 		int currMode = id%4;
 		if (currMode==0)
 			currMode = DRIVER;
-		else if (currMdoe==1)
+		else if (currMode==1)
 			currMode = PEDESTRIAN;
-		else if (currMdoe==2)
+		else if (currMode==2)
 			currMode = CYCLIST;
-		else if (currMdoe==3)
+		else if (currMode==3)
 			currMode = PASSENGER;
 	}
 };
@@ -72,12 +72,33 @@ struct Vehicle {
 };
 
 
+//"Trivial" function does nothing, returns a trivial condition. Used to indicate future functionality.
+bool trivial(unsigned int id) {
+	return id%2==0;
+}
+
+
+//Simple worker class. Start a thread to perform this task on construction.
+//   Ensure that function has completed upon destruction.
+class worker {
+private:
+	thread workerThread;
+
+public:
+	worker(boost::function<void()> callable) {
+		workerThread = thread(callable);
+	}
+	~worker() {
+		workerThread.join();
+	}
+};
+
 
 //Function stubs
 void loadUserConf(vector<Agent>& agents, vector<Region>& regions) {
 	for (size_t i=0; i<20; i++)
 		agents.push_back(Agent(i));
-	for (size_t i=0; i<5; i++) {
+	for (size_t i=0; i<5; i++)
 		regions.push_back(Region(i));
 	cout <<"Configuration file loaded." <<endl;
 }
@@ -91,12 +112,12 @@ void loadSingleTripChain(const Agent& ag, TripChain& tc) {
 	tc.id = ag.id;
 }
 void createSingleAgent(const Agent& ag) {
-	ag.id = ag.id; //Trivial. Presumably, we'd set an agent's other properties here.
+	trivial(ag.id); //Trivial. Presumably, we'd set an agent's other properties here.
 }
-void createSingleChoiceSet(const ChoiceSet& cs, unsigned int newID) {
+void createSingleChoiceSet(ChoiceSet& cs, unsigned int newID) {
 	cs.id = newID;
 }
-void createSingleVehicle(const Vehicle& v, unsigned int newID) {
+void createSingleVehicle(Vehicle& v, unsigned int newID) {
 	v.id = newID;
 }
 void updateSingleRegionSignals(Region& r) {
@@ -105,32 +126,32 @@ void updateSingleRegionSignals(Region& r) {
 	}
 }
 void updateSingleShortestPath(Agent& a) {
-	a.id = a.id; //Trivial. Will update shortest path later.
+	trivial(a.id); //Trivial. Will update shortest path later.
 }
 void pathChoice(Agent& a) {
-	a.id = a.id; //Trivial. Will update path choice later.
+	trivial(a.id); //Trivial. Will update path choice later.
 }
 void updateDriverBehavior(Agent& a) {
-	a.id = a.id; //Trivial. Will update driver behavior later.
+	trivial(a.id); //Trivial. Will update driver behavior later.
 
 	//Trivial. Will detect "end of link" and update path choice later.
-	if (a.id%2==0) {
+	if (trivial(a.id)) {
 		pathChoice(a);
 	}
 }
 void updatePedestrianBehavior(Agent& a) {
-	a.id = a.id; //Trivial. Will update pedestrian behavior later.
+	trivial(a.id); //Trivial. Will update pedestrian behavior later.
 
 	//Trivial. Will detect "end of link" and update path choice later.
-	if (a.id%2==0) {
+	if (trivial(a.id)) {
 		pathChoice(a);
 	}
 }
 void updatePassengerBehavior(Agent& a) {
-	a.id = a.id; //Trivial. Will update passenger behavior later.
+	trivial(a.id); //Trivial. Will update passenger behavior later.
 
 	//Trivial. Will detect "end of link" and update path choice later.
-	if (a.id%2==0) {
+	if (trivial(a.id)) {
 		pathChoice(a);  //NOTE: Do passengers need to do this?
 	}
 }

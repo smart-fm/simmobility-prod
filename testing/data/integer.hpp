@@ -2,7 +2,6 @@
 #define _integer_hpp_
 
 #include <Data.hpp>
-#include <iosfwd>
 
 namespace mit_sim
 {
@@ -15,12 +14,6 @@ public:
     {
     }
 };
-
-std::ostream & operator<< (std::ostream & stream, Integer const & integer)
-{
-    stream << integer.get();
-    return stream;
-}
 
 }
 

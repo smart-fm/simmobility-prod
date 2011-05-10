@@ -1,9 +1,13 @@
 #include <iostream>
+#include <vector>
 #include <boost/thread.hpp>
 #include <boost/date_time.hpp>
 
 using std::cout;
 using std::endl;
+using std::vector;
+using boost::thread;
+using boost::future;
 
 /**
  * A first approximation of the basic pseudo-code in C++
@@ -16,16 +20,41 @@ const unsigned int agentDecompositionTimeStep =   100;
 const unsigned int objectMgmtTimeStep         =  1000;
 
 
+//Class stubs
+struct Agent {
+	unsigned int id;
+	Agent(unsigned int id) : id(id) {}
+};
+
+struct TripChain {
+	unsigned int id;
+	TripChain(unsigned int id) : id(id) {}
+};
+
+
+
 //Function stubs
-void loadUserConf() { cout <<"Configuration file loaded." <<endl; }
-void setConfiguration() { cout <<"Server is configured." <<endl; }
-void loadNetwork() { cout <<"Network has been loaded." <<endl; }
+void loadUserConf(vector<Agent> &agents) {
+	for (size_t i=0; i<20; i++)
+		agents.push_back(Agent(i));
+	cout <<"Configuration file loaded." <<endl;
+}
+void setConfiguration() {
+	cout <<"Server is configured." <<endl;
+}
+void loadNetwork() {
+	cout <<"Network has been loaded." <<endl;
+}
+TripChain loadTripChain(Agent ag) {
+	return TripChain(ag.id);
+}
 
 
 int main(int argc, char* argv[])
 {
   //Initialization: Scenario definition
-  loadUserConf();
+  vector<Agent> agents;
+  loadUserConf(agents);
 
   //Initialization: Server configuration
   setConfiguration();
@@ -39,7 +68,14 @@ int main(int argc, char* argv[])
   for (unsigned int currTime=0; currTime<TOTAL_TIME; currTime+=TIME_STEP)
   {
 	  //Create object from DB; for long time spans objects must be created on demand.
+	  vector< future<TripChain> > trips;
+	  future<int> Fib1 = boost::bind(&calculatefib, 1);
+	  for (size_t agID=0; agID<agents.size(); agID++) {
+		  Agent currAgent = agents[agID];
+		  trips.push_back(boost::bind(&loadTripChain, currAgent));
+	  }
 
+	  //Agents, choice sets, and
 
   }
 

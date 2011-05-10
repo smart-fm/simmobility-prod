@@ -7,7 +7,7 @@ using std::cout;
 using std::endl;
 using std::vector;
 using boost::thread;
-using boost::future;
+using boost::worker;
 
 /**
  * A first approximation of the basic pseudo-code in C++
@@ -21,22 +21,45 @@ const unsigned int objectMgmtTimeStep         =  1000;
 
 
 //Class stubs
+struct Signal {
+	unsigned int id;
+	Signal(unsigned int id=0) : id(id) {}
+};
+struct Region {
+	unsigned int id;
+	vector<Signal> signals;
+
+	Region(unsigned int id=0) : id(id) {
+		for (size_t i=id*3; i<id*3+3; i++) {
+			signals.push_back(Signal(i));
+		}
+	}
+};
 struct Agent {
 	unsigned int id;
-	Agent(unsigned int id) : id(id) {}
+	Agent(unsigned int id=0) : id(id) {}
 };
-
 struct TripChain {
 	unsigned int id;
-	TripChain(unsigned int id) : id(id) {}
+	TripChain(unsigned int id=0) : id(id) {}
+};
+struct ChoiceSet {
+	unsigned int id;
+	ChoiceSet(unsigned int id=0) : id(id) {}
+};
+struct Vehicle {
+	unsigned int id;
+	Vehicle(unsigned int id=0) : id(id) {}
 };
 
 
 
 //Function stubs
-void loadUserConf(vector<Agent> &agents) {
+void loadUserConf(vector<Agent>& agents, vector<Region>& regions) {
 	for (size_t i=0; i<20; i++)
 		agents.push_back(Agent(i));
+	for (size_t i=0; i<5; i++) {
+		regions.push_back(Region(i));
 	cout <<"Configuration file loaded." <<endl;
 }
 void setConfiguration() {
@@ -45,8 +68,125 @@ void setConfiguration() {
 void loadNetwork() {
 	cout <<"Network has been loaded." <<endl;
 }
-TripChain loadTripChain(Agent ag) {
-	return TripChain(ag.id);
+void loadSingleTripChain(const Agent& ag, TripChain& tc) {
+	tc.id = ag.id;
+}
+void createSingleAgent(const Agent& ag) {
+	ag.id = ag.id; //Trivial. Presumably, we'd set an agent's other properties here.
+}
+void createSingleChoiceSet(const ChoiceSet& cs, unsigned int newID) {
+	cs.id = newID;
+}
+void createSingleVehicle(const Vehicle& v, unsigned int newID) {
+	v.id = newID;
+}
+void updateSingleRegionSignals(Region& r) {
+	for (size_t i=0; i<r.signals.size(); i++) {
+		r.signals[i].id = r.signals[i].id; //Trivial. Will update signal's other properties.
+	}
+}
+void updateSingleShortestPath(Agent& a) {
+	a.id = a.id; //Trivial. Will update shortest path later.
+}
+
+
+//Load trip chains in parallel
+void loadTripChains(const vector<Agent>& agents, vector<TripChain>& trips)
+{
+	//Fill with empty objects.
+	trips.resize(agents.size());
+
+	//Make workers. When they go out of scope, they will "join" automatically.
+	vector<worker> workers;
+	for (size_t i=0; i<agents.size(); i++) {
+		worker w = boost::bind(&loadSingleTripChain, agents[i], boost::ref(trips[i]));
+		workers.push_back(w);
+	}
+}
+
+
+//Load agents, choice sets, and vehicles in parallel
+void loadAgentsChoiceSetsAndVehicles(vector<Agent>& agents, vector<ChoiceSet>& choiceSets, vector<Vehicle>& vehicles) {
+	//Fill with empty objects.
+	choiceSets.resize(agents.size());
+	vehicles.resize(agents.size());    //Note: The number of vehicles is just assumed to be the number of agents for now.
+
+	//Make workers. When they go out of scope, they will "join" automatically.
+	vector<worker> workers;
+
+	//Create all agents
+	for (size_t i=0; i<agents.size(); i++) {
+		worker w = boost::bind(&createSingleAgent, boost::ref(agents[i]));
+		workers.push_back(w);
+	}
+
+	//Create all choice sets
+	for (size_t i=0; i<choiceSets.size(); i++) {
+		worker w = boost::bind(&createSingleChoiceSet, boost::ref(choiceSets[i]), i);
+		workers.push_back(w);
+	}
+
+	//Create all vehicles
+	for (size_t i=0; i<vehicles.size(); i++) {
+		worker w = boost::bind(&createSingleVehicle, boost::ref(vehicles[i]), i);
+		workers.push_back(w);
+	}
+}
+
+
+//Quick double-check
+bool checkIDs(const vector<Agent>& agents, const vector<TripChain>& trips, const vector<ChoiceSet>& choiceSets, const vector<Vehicle>& vehicles) {
+	std::string error = "";
+	for (size_t i=0; i<agents.size(); i++) {
+		if (agents[i].id != i)
+			error = "Agent ID";
+	}
+	for (size_t i=0; i<trips.size(); i++) {
+		if (trips[i].id != i)
+			error = "Trip Chain ID";
+	}
+	for (size_t i=0; i<choiceSets.size(); i++) {
+		if (choiceSets[i].id != i)
+			error = "Choice Set ID";
+	}
+	for (size_t i=0; i<vehicles.size(); i++) {
+		if (vehicles[i].id != i)
+			error = "Vehicle ID";
+	}
+
+	if (error.empty())
+		return true;
+	else {
+		cout <<"Error, invalid " <<error <<endl;
+		return false;
+	}
+}
+
+
+void updateSignalStatus(vector<Region>& regions) {
+	//Make workers. When they go out of scope, they will "join" automatically.
+	vector<worker> workers;
+	for (size_t i=0; i<regions.size(); i++) {
+		worker w = boost::bind(&updateSingleRegionSignals, boost::ref(regions[i]));
+		workers.push_back(w);
+	}
+}
+
+
+void updateTrafficInfo(vector<Region>& regions) {
+	//Marked as not threadable.
+	for (size_t i=0; i<regions.size(); i++) {
+		regions[i].id = regions[i].id; //Trivial. Update other properties later.
+	}
+}
+
+void calculateTimeDependentShortestPath(vector<Agent>& agents) {
+	//Make workers. When they go out of scope, they will "join" automatically.
+	vector<worker> workers;
+	for (size_t i=0; i<agents.size(); i++) {
+		worker w = boost::bind(&updateSingleShortestPath, boost::ref(agents[i]));
+		workers.push_back(w);
+	}
 }
 
 
@@ -54,7 +194,8 @@ int main(int argc, char* argv[])
 {
   //Initialization: Scenario definition
   vector<Agent> agents;
-  loadUserConf(agents);
+  vector<Region> regions;
+  loadUserConf(agents, regions);   //Note: Agent "shells" are loaded here.
 
   //Initialization: Server configuration
   setConfiguration();
@@ -65,31 +206,46 @@ int main(int argc, char* argv[])
   //Time-based cycle.
   const unsigned int TOTAL_TIME = 100; //Temp.
   const unsigned int TIME_STEP = 10;   //Not sure what this should be.
-  for (unsigned int currTime=0; currTime<TOTAL_TIME; currTime+=TIME_STEP)
-  {
-	  //Create object from DB; for long time spans objects must be created on demand.
-	  vector< future<TripChain> > trips;
-	  future<int> Fib1 = boost::bind(&calculatefib, 1);
-	  for (size_t agID=0; agID<agents.size(); agID++) {
-		  Agent currAgent = agents[agID];
-		  trips.push_back(boost::bind(&loadTripChain, currAgent));
+  for (unsigned int currTime=0; currTime<TOTAL_TIME; currTime+=TIME_STEP) {
+	  //NOTE:
+	  //  This is supposed to be the "objectMgmtTimeStep for loop", but I am
+	  //  not sure exactly how to wrap this in a loop. For now, I just checked if this
+	  //  is the first time step
+	  if (currTime==0) {
+		  //Create object from DB; for long time spans objects must be created on demand.
+		  vector<TripChain> trips;
+		  loadTripChains(agents, trips);
+
+		  //Agents, choice sets, and vehicles
+		  vector<ChoiceSet> choiceSets;
+		  vector<Vehicle> vehicles;
+		  loadAgentsChoiceSetsAndVehicles(agents, choiceSets, vehicles);
+
+		  //Sanity check (simple)
+		  if (!checkIDs(agents, trips, choiceSets, vehicles))
+			  return 1;
 	  }
 
-	  //Agents, choice sets, and
+	  //Update the signal logic and plans for every intersection grouped by region
+	  updateSignalStatus(regions);
+
+	  //Update weather, traffic conditions, etc.
+	  updateTrafficInfo();
+
+	  //NOTE:
+	  //  The "shortestPathLoopTimeStep for loop" and others are unclear to me.
+	  //  For now, I am just performing their tasks if the currTime is evenly
+	  //  divisible by the time-tick for that loop.
+
+	  //Longer Time-based cycle
+	  if (currTime%shortestPathLoopTimeStep == 0) {
+		  calculateTimeDependentShortestPath(agents);
+	  }
+
 
   }
 
 
-                	//Time-based cycle
-                *time-based for loop
-                {
-		//Create Object from DB (objects must be created on demand basis for a longer time span)
-		objectMgmtTimeStep for loop
-		{
-			// Object Manager will create the object reading from persistent database
-			*loadTripChains();
-		                *createAgents(); *choiceSetGeneration(); *createVehicles();
-		}
 
                                 //update the signal logic and plans for every intersection grouped by region
 		intersection for loop by region

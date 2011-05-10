@@ -1,6 +1,7 @@
 #include <position.hpp>
 #include <integer.hpp>
 #include <trace.hpp>
+#include <data_mgr.hpp>
 
 int
 main()
@@ -13,8 +14,7 @@ main()
     count.set (count.get() + 1);
     traceln ("pos=" << pos << ", count=" << count);
 
-    pos.flip();
-    count.flip();
+    mit_sim::DataManager::singleton().flip();
     traceln ("pos=" << pos << ", count=" << count);
 
     return 0;

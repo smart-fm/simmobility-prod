@@ -2,14 +2,15 @@
 #define _data_hpp
 
 #include <trace.hpp>
-#include <boost/utility.hpp>
 #include <iosfwd>
+#include <base.hpp>
+#include <data_mgr.hpp>
 
 namespace mit_sim
 {
 
 template <typename T>
-class Data : private boost::noncopyable
+class Data : public Base
 {
 public:
     Data (const T& value = T())
@@ -17,6 +18,7 @@ public:
       , current_ (value)
       , next_ (current_)
     {
+        DataManager::singleton().add (this);
     }
 
     T const & get() const
@@ -33,7 +35,8 @@ public:
         }
     }
 
-    void flip()
+protected:
+    virtual void flip()
     {
         if (is_dirty_)
         {
@@ -43,7 +46,6 @@ public:
         }
     }
 
-protected:
     void notify()
     {
         traceln ("I've have changed");

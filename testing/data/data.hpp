@@ -3,6 +3,7 @@
 
 #include <trace.hpp>
 #include <boost/utility.hpp>
+#include <iosfwd>
 
 namespace mit_sim
 {
@@ -52,6 +53,13 @@ protected:
     T current_;
     T next_;
 };
+
+template <typename T>
+std::ostream & operator<< (std::ostream & stream, Data<T> const & data)
+{
+    stream << data.get();
+    return stream;
+}
 
 }
 

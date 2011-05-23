@@ -10,6 +10,8 @@
 #include "stubs.h"
 #include "workers.h"
 
+#include "Worker.hpp"
+
 using std::cout;
 using std::endl;
 using std::vector;

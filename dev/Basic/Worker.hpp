@@ -1,7 +1,7 @@
 /*
  * A "worker" performs a task asynchronously.
  *    There are two ways to use a worker:
- *    1) Use the default constructor. Call "join" when you need its result.
+ *    1) Use the default constructor. Call "join" when you need its result. (NOTE: This behavior is currently disabled.)
  *    2) Create it with a non-null barrier. Best used with a "WorkGroup"
  * To customize the Worker, either subclass it and override "main_loop", or
  *    use a normal Worker and pass in a bindable function in the constructor.
@@ -19,7 +19,8 @@ public:
 
 	//Thread-style operations
 	void start();
-	void join();
+	void interrupt();
+	//void join();
 
 
 protected:
@@ -33,7 +34,7 @@ private:
 
 	//Thread management
 	boost::thread main_thread;
-	bool active;
+	//bool active;
 };
 
 

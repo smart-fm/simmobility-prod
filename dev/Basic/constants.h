@@ -5,6 +5,9 @@ const unsigned int shortestPathLoopTimeStep   =    10;
 const unsigned int agentDecompositionTimeStep =   100;
 const unsigned int objectMgmtTimeStep         =  1000;
 
+//Work Group sizes
+const unsigned int WG_AGENTS_SIZE = 5;
+
 //Driver modes
 enum DRIVER_MODES {
 	DRIVER,

@@ -11,16 +11,22 @@
 
 #pragma once
 
+#include <vector>
 #include <boost/thread.hpp>
+#include <boost/function.hpp>
 
 class Worker {
 public:
-	Worker(boost::function& action, boost::barrier* const barr =NULL);
+	Worker(boost::function<void()>* action =NULL, boost::barrier* barr =NULL);
 
 	//Thread-style operations
 	void start();
 	void interrupt();
 	//void join();
+
+	//Manage entities
+	void addEntity(void* entity);
+	void remEntity(void* entity);
 
 
 protected:
@@ -29,12 +35,15 @@ protected:
 
 private:
 	//Properties
-	boost::barrier* const barr;
-	boost::function action;
+	boost::barrier* barr;
+	boost::function<void()>* action;
 
 	//Thread management
 	boost::thread main_thread;
 	//bool active;
+
+	//Object management
+	std::vector<void*> entities;
 };
 
 

@@ -13,16 +13,23 @@
 #include <boost/thread.hpp>
 
 #include "Worker.hpp"
+#include "simple_classes.h"
 
 
 class WorkGroup {
 public:
 	WorkGroup(size_t size);
 
-	Worker& getWorker(boost::function& action);
-	void wait();
+	Worker& initWorker(boost::function<void()>& action);
+	Worker& getWorker(size_t id);
 	void interrupt();
 	size_t size();
+
+	void wait();
+	//void waitTick();   //We can have a second, "global" wait for each tick.
+	//   That way, we can call "wait", then update agent information, then call "waitTick()"
+
+	void migrate(Agent* ag, int fromID, int toID);
 
 private:
 	bool allWorkersUsed();
@@ -32,8 +39,8 @@ private:
 	boost::barrier shared_barr;
 
 	//Worker object management
-	std::vector workers;
 	size_t totalWorkers;
+	std::vector<Worker> workers;
 	size_t currID;
 
 };

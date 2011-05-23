@@ -11,6 +11,7 @@
 #include "workers.h"
 
 #include "Worker.hpp"
+#include "WorkGroup.hpp"
 
 using std::cout;
 using std::endl;
@@ -23,6 +24,9 @@ using boost::thread;
 //      forced threads to "join".
 int main(int argc, char* argv[])
 {
+  //Our work groups
+  WorkGroup agentWorkers(WG_AGENTS_SIZE);
+
   //Initialization: Scenario definition
   vector<Agent> agents;
   vector<Region> regions;
@@ -30,6 +34,17 @@ int main(int argc, char* argv[])
   vector<ChoiceSet> choiceSets;
   vector<Vehicle> vehicles;
   loadUserConf(agents, regions);   //Note: Agent "shells" are loaded here.
+
+  //Initialize our work groups
+  for (size_t i=0; i<WG_AGENTS_SIZE; i++)
+	  agentWorkers.initWorker();
+
+  //Assign agents randomly to a work group
+  for (size_t i=0; i<agents.size() i++) {
+	  agentWorkers.migrate(&agents.get(i), -1, i%WG_AGENTS_SIZE);
+  }
+
+
 
   //Initialization: Server configuration
   setConfiguration();

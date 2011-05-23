@@ -30,8 +30,10 @@ Worker& WorkGroup::initWorker(boost::function<void(Worker*)> action)
 	if (allWorkersUsed())
 		throw std::runtime_error("WorkGroup is already full!");
 
+	//TODO: "action" can easily become invalid
+	workers[currID] = new Worker(&action, &shared_barr);
 
-	workers[currID] = new Worker(&action, &shared_barr);    //TODO: "action" can easily become invalid
+
 	return *workers[currID++];
 }
 

@@ -136,7 +136,7 @@ void updateVehicleQueue(std::vector<Vehicle>& vehicles) {
 	}
 }
 
-void updateAndAdvancePhase(std::vector<Agent>& agents) {
+/*void updateAndAdvancePhase(std::vector<Agent>& agents) {
 	//NOTE: This is marked as not boost::threadable, but I am treating it as boost::threadable for now.
 	boost::thread* workers = new boost::thread[agents.size()];
 	for (size_t i=0; i<agents.size(); i++) {
@@ -155,7 +155,7 @@ void updateAndAdvancePhase(std::vector<Agent>& agents) {
 	for (size_t i=0; i<agents.size(); i++)
 		workers[i].join();
 	delete [] workers;
-}
+}*/
 
 
 void updateSurveillanceData(std::vector<Agent>& agents) {

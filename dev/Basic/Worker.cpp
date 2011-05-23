@@ -6,7 +6,7 @@ using boost::function;
 
 
 
-Worker::Worker(function& action*, barrier* barr) : barr(barr), action(action)
+Worker::Worker(function<void(Worker*)>* action, barrier* barr) : barr(barr), action(action)
 {
 	//this.active = false;
 }
@@ -15,7 +15,7 @@ Worker::Worker(function& action*, barrier* barr) : barr(barr), action(action)
 void Worker::start()
 {
 	//this.active = true;
-	this.main_thread = boost::thread(boost::bind(main_loop));
+	main_thread = boost::thread(boost::bind(&Worker::barrier_mgmt, this));
 }
 
 
@@ -41,16 +41,26 @@ void Worker::remEntity(void* entity)
 		entities.erase(it);
 }
 
+vector<void*>& Worker::getEntities() {
+	return entities;
+}
+
+
+void Worker::barrier_mgmt()
+{
+	for (;;) {
+		main_loop();
+
+		if (barr!=NULL)
+			barr->wait();
+	}
+}
 
 
 void Worker::main_loop()
 {
-	for (;;) {
-		this->action();
-
-		if (barrier!=NULL)
-			this->barr.wait();
-	}
+	if (action!=NULL)
+		(*action)(this);
 }
 
 

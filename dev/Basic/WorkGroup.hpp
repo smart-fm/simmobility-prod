@@ -19,8 +19,9 @@
 class WorkGroup {
 public:
 	WorkGroup(size_t size);
+	~WorkGroup();
 
-	Worker& initWorker(boost::function<void()>& action);
+	Worker& initWorker(boost::function<void(Worker*)> action);
 	Worker& getWorker(size_t id);
 	void interrupt();
 	size_t size();
@@ -40,7 +41,7 @@ private:
 
 	//Worker object management
 	size_t totalWorkers;
-	std::vector<Worker> workers;
+	Worker** workers;
 	size_t currID;
 
 };

@@ -17,7 +17,7 @@
 
 class Worker {
 public:
-	Worker(boost::function<void()>* action =NULL, boost::barrier* barr =NULL);
+	Worker(boost::function<void(Worker*)>* action =NULL, boost::barrier* barr =NULL);
 
 	//Thread-style operations
 	void start();
@@ -27,6 +27,7 @@ public:
 	//Manage entities
 	void addEntity(void* entity);
 	void remEntity(void* entity);
+	std::vector<void*>& getEntities();
 
 
 protected:
@@ -34,9 +35,13 @@ protected:
 
 
 private:
+	void barrier_mgmt();
+
+
+private:
 	//Properties
 	boost::barrier* barr;
-	boost::function<void()>* action;
+	boost::function<void(Worker*)>* action;
 
 	//Thread management
 	boost::thread main_thread;

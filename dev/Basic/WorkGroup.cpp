@@ -8,30 +8,38 @@ using boost::function;
 WorkGroup::WorkGroup(size_t size) : shared_barr(size+1), totalWorkers(size)
 {
 	currID = 0;
-
-	//Ensure we won't later invalidate our references
-	workers.reserve(totalWorkers);
+	workers = new Worker*[size];
 }
+
+WorkGroup::~WorkGroup()
+{
+	for (size_t i=0; i<currID; i++) {
+		delete workers[i];
+	}
+	delete [] workers;
+}
+
 
 size_t WorkGroup::size()
 {
 	return totalWorkers;
 }
 
-Worker& WorkGroup::initWorker(boost::function<void()>& action)
+Worker& WorkGroup::initWorker(boost::function<void(Worker*)> action)
 {
 	if (allWorkersUsed())
 		throw std::runtime_error("WorkGroup is already full!");
 
-	workers.push_back(Worker(&action, &shared_barr));    //TODO: "action" can easily become invalid
-	return workers[currID++];
+
+	workers[currID] = new Worker(&action, &shared_barr);    //TODO: "action" can easily become invalid
+	return *workers[currID++];
 }
 
 Worker& WorkGroup::getWorker(size_t id)
 {
 	if (id >= currID)
 		throw std::runtime_error("Invalid Worker id.");
-	return workers[id];
+	return *workers[id];
 }
 
 bool WorkGroup::allWorkersUsed()
@@ -49,8 +57,8 @@ void WorkGroup::interrupt()
 //	if (!allWorkersUsed())
 //		throw std::runtime_error("Can't join_all; WorkGroup is not full (and will not overcome the barrier).");
 
-	for (vector<Worker>::iterator it=workers.begin(); it!=workers.end(); it++)
-		it->interrupt();
+	for (size_t i=0; i<currID; i++)
+		workers[i]->interrupt();
 }
 
 

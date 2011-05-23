@@ -19,6 +19,32 @@ using std::vector;
 using boost::thread;
 
 
+//trivial defined here
+bool trivial(unsigned int id) {
+	return id%2==0;
+}
+
+
+
+void update_agents(Worker* wrk) {
+	//Update all agents you control
+	for (vector<void*>::iterator it=wrk->getEntities().begin(); it!=wrk->getEntities().end(); it++) {
+		Agent* ag = (Agent*)(*it);
+
+		//TODO: Migrate this into the agent's behavior using inheritance.
+		if (ag->currMode==DRIVER) {
+			updateDriverBehavior(*ag);
+		} else if (ag->currMode==PEDESTRIAN || ag->currMode==CYCLIST) {
+			updatePedestrianBehavior(*ag);
+		} else if (ag->currMode==PASSENGER) {
+			updatePassengerBehavior(*ag);
+		}
+	}
+}
+
+
+
+
 //NOTE: boost::thread and std::thread have a few minor differences. Boost::threads appear to
 //      "join" automatically on destruction, and std::threads don't. For now, I explicitly
 //      forced threads to "join".
@@ -36,12 +62,15 @@ int main(int argc, char* argv[])
   loadUserConf(agents, regions);   //Note: Agent "shells" are loaded here.
 
   //Initialize our work groups
-  for (size_t i=0; i<WG_AGENTS_SIZE; i++)
-	  agentWorkers.initWorker();
+  for (size_t i=0; i<WG_AGENTS_SIZE; i++) {
+	  //boost::function<void(Worker*)> f = update_agents;
+	  //agentWorkers.initWorker(f);
+	  agentWorkers.initWorker(boost::function<void(Worker*)>(update_agents));
+  }
 
   //Assign agents randomly to a work group
-  for (size_t i=0; i<agents.size() i++) {
-	  agentWorkers.migrate(&agents.get(i), -1, i%WG_AGENTS_SIZE);
+  for (size_t i=0; i<agents.size(); i++) {
+	  agentWorkers.migrate(&agents[i], -1, i%WG_AGENTS_SIZE);
   }
 
 
@@ -111,7 +140,7 @@ int main(int argc, char* argv[])
 
 	  //Agent-based cycle
 	  if (true) { //Seems to operate every time step?
-		  updateAndAdvancePhase(agents);
+		  //updateAndAdvancePhase(agents);   //Done with workers
 	  }
 
 	  //Surveillance update

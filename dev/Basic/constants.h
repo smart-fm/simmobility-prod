@@ -17,6 +17,5 @@ enum DRIVER_MODES {
 };
 
 //"Trivial" function does nothing, returns a trivial condition. Used to indicate future functionality.
-bool trivial(unsigned int id) {
-	return id%2==0;
-}
+//  Declared here
+bool trivial(unsigned int id);

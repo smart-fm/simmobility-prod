@@ -62,12 +62,15 @@ void Worker::barrier_mgmt()
 }
 
 
-void Worker::main_loop()
+void Worker::perform_main()
 {
 	if (action!=NULL)
 		(*action)(this);
 }
 
+void Worker::perform_flip()
+{
+}
 
 
 

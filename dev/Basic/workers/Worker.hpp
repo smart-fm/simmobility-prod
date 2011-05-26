@@ -42,12 +42,13 @@ private:
 	void barrier_mgmt();
 
 
-private:
+protected:
 	//Properties
 	boost::barrier* internal_barr;
 	boost::barrier* external_barr;
 	boost::function<void(Worker*)>* action;
 
+private:
 	//Thread management
 	boost::thread main_thread;
 	//bool active;

@@ -10,7 +10,8 @@
 #include "stubs.h"
 #include "workers.h"
 
-#include "Worker.hpp"
+#include "workers/Worker.hpp"
+#include "workers/AgentWorker.hpp"
 #include "WorkGroup.hpp"
 
 using std::cout;
@@ -63,7 +64,7 @@ int main(int argc, char* argv[])
 
   //Initialize our work groups
   for (size_t i=0; i<WG_AGENTS_SIZE; i++) {
-	  agentWorkers.initWorker(boost::function<void(Worker*)>(update_agents), new AgentWorker());
+	  agentWorkers.initWorker<AgentWorker>(boost::function<void(Worker*)>(update_agents));
   }
 
   //Assign agents randomly to a work group

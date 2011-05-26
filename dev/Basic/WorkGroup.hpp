@@ -15,13 +15,14 @@
 #include "workers/Worker.hpp"
 #include "simple_classes.h"
 
-template <class WorkType>
 class WorkGroup {
 public:
 	WorkGroup(size_t size);
 	~WorkGroup();
 
+	template <class WorkType>
 	Worker& initWorker(boost::function<void(Worker*)> action);
+
 	Worker& getWorker(size_t id);
 	void interrupt();
 	size_t size();

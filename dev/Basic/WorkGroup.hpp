@@ -12,10 +12,10 @@
 #include <stdexcept>
 #include <boost/thread.hpp>
 
-#include "Worker.hpp"
+#include "workers/Worker.hpp"
 #include "simple_classes.h"
 
-
+template <class WorkType>
 class WorkGroup {
 public:
 	WorkGroup(size_t size);
@@ -27,9 +27,8 @@ public:
 	size_t size();
 
 	void wait();
-	//void waitTick();   //We can have a second, "global" wait for each tick.
-	//   That way, we can call "wait", then update agent information, then call "waitTick()"
 
+	//TODO: Move this to the Worker, not the work group.
 	void migrate(Agent* ag, int fromID, int toID);
 
 private:
@@ -38,6 +37,7 @@ private:
 private:
 	//Shared barrier
 	boost::barrier shared_barr;
+	boost::barrier external_barr;
 
 	//Worker object management
 	size_t totalWorkers;

@@ -1,17 +1,17 @@
-/*
- * AgentWorker.cpp
- *
- *  Created on: May 26, 2011
- *      Author: sethhetu
- */
+#include "AgentWorker.hpp"
 
-#include "AgentWorker.h"
 
-AgentWorker::AgentWorker() {
-	// TODO Auto-generated constructor stub
 
+AgentWorker::AgentWorker(function<void(Worker*)>* action, barrier* internal_barr, barrier* external_barr)
+    : internal_barr(internal_barr), external_barr(external_barr), action(action)
+{
 }
 
-AgentWorker::~AgentWorker() {
-	// TODO Auto-generated destructor stub
+
+/**
+ * Update all agents that this Worker controls.
+ */
+AgentWorker::main_loop() {
+
+
 }

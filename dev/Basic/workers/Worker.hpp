@@ -20,7 +20,7 @@
 
 class Worker {
 public:
-	Worker(boost::function<void(Worker*)>* action =NULL, boost::barrier* barr =NULL);
+	Worker(boost::function<void(Worker*)>* action =NULL, boost::barrier* internal_barr =NULL, boost::barrier* external_barr =NULL);
 
 	//Thread-style operations
 	void start();
@@ -34,7 +34,8 @@ public:
 
 
 protected:
-	virtual void main_loop();
+	virtual void perform_main();
+	virtual void perform_flip();
 
 
 private:
@@ -43,7 +44,8 @@ private:
 
 private:
 	//Properties
-	boost::barrier* barr;
+	boost::barrier* internal_barr;
+	boost::barrier* external_barr;
 	boost::function<void(Worker*)>* action;
 
 	//Thread management

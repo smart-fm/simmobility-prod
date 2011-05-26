@@ -6,9 +6,9 @@ using boost::function;
 
 
 
-Worker::Worker(function<void(Worker*)>* action, barrier* barr) : barr(barr), action(action)
+Worker::Worker(function<void(Worker*)>* action, barrier* internal_barr, barrier* external_barr)
+    : internal_barr(internal_barr), external_barr(external_barr), action(action)
 {
-	//this.active = false;
 }
 
 
@@ -49,10 +49,15 @@ vector<void*>& Worker::getEntities() {
 void Worker::barrier_mgmt()
 {
 	for (;;) {
-		main_loop();
+		perform_main();
 
-		if (barr!=NULL)
-			barr->wait();
+		if (internal_barr!=NULL)
+			internal_barr->wait();
+
+		perform_flip();
+
+		if (external_barr!=NULL)
+			external_barr->wait();
 	}
 }
 

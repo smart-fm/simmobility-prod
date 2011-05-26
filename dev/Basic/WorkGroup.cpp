@@ -5,7 +5,7 @@ using boost::barrier;
 using boost::function;
 
 
-WorkGroup::WorkGroup(size_t size) : shared_barr(size+1), totalWorkers(size)
+WorkGroup::WorkGroup(size_t size) : shared_barr(size+1), external_barr(size+1), totalWorkers(size)
 {
 	currID = 0;
 	workers = new Worker*[size];
@@ -25,17 +25,19 @@ size_t WorkGroup::size()
 	return totalWorkers;
 }
 
+template <class WorkType>
 Worker& WorkGroup::initWorker(boost::function<void(Worker*)> action)
 {
 	if (allWorkersUsed())
 		throw std::runtime_error("WorkGroup is already full!");
 
 	//TODO: "action" can easily become invalid
-	workers[currID] = new Worker(&action, &shared_barr);
+	workers[currID] = new WorkType(&action, &shared_barr, &external_barr);
 
 
 	return *workers[currID++];
 }
+
 
 Worker& WorkGroup::getWorker(size_t id)
 {
@@ -52,6 +54,7 @@ bool WorkGroup::allWorkersUsed()
 void WorkGroup::wait()
 {
 	shared_barr.wait();
+	external_barr.wait();
 }
 
 void WorkGroup::interrupt()

@@ -63,9 +63,7 @@ int main(int argc, char* argv[])
 
   //Initialize our work groups
   for (size_t i=0; i<WG_AGENTS_SIZE; i++) {
-	  //boost::function<void(Worker*)> f = update_agents;
-	  //agentWorkers.initWorker(f);
-	  agentWorkers.initWorker(boost::function<void(Worker*)>(update_agents));
+	  agentWorkers.initWorker(boost::function<void(Worker*)>(update_agents), new AgentWorker());
   }
 
   //Assign agents randomly to a work group

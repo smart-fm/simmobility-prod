@@ -1,0 +1,3 @@
+#Ignore all files within these directories
+dev/Basic/Debug/**/* 
+dev/Basic/Release/**/* 

@@ -25,19 +25,6 @@ size_t WorkGroup::size()
 	return totalWorkers;
 }
 
-template <class WorkType>
-Worker& WorkGroup::initWorker(boost::function<void(Worker*)> action)
-{
-	if (allWorkersUsed())
-		throw std::runtime_error("WorkGroup is already full!");
-
-	//TODO: "action" can easily become invalid
-	workers[currID] = new WorkType(&action, &shared_barr, &external_barr);
-
-
-	return *workers[currID++];
-}
-
 
 Worker& WorkGroup::getWorker(size_t id)
 {

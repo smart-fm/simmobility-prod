@@ -15,13 +15,14 @@
 #include "workers/Worker.hpp"
 #include "simple_classes.h"
 
+
 class WorkGroup {
 public:
 	WorkGroup(size_t size);
 	~WorkGroup();
 
 	template <class WorkType>
-	Worker& initWorker(boost::function<void(Worker*)> action);
+	void initWorkers();
 
 	Worker& getWorker(size_t id);
 	void interrupt();
@@ -52,16 +53,12 @@ private:
  * Template function must be defined in the same translational unit as it is declared.
  */
 template <class WorkType>
-Worker& WorkGroup::initWorker(boost::function<void(Worker*)> action)
+void WorkGroup::initWorkers()
 {
-	if (allWorkersUsed())
-		throw std::runtime_error("WorkGroup is already full!");
-
-	//TODO: "action" can easily become invalid
-	workers[currID] = new WorkType(&action, &shared_barr, &external_barr);
-
-
-	return *workers[currID++];
+	for (size_t i=0; i<totalWorkers; i++) {
+		workers[currID] = new WorkType(NULL, &shared_barr, &external_barr);
+	}
+	currID = totalWorkers; //May remove later.
 }
 
 

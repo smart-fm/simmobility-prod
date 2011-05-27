@@ -63,9 +63,9 @@ int main(int argc, char* argv[])
   loadUserConf(agents, regions);   //Note: Agent "shells" are loaded here.
 
   //Initialize our work groups
-  for (size_t i=0; i<WG_AGENTS_SIZE; i++) {
-	  agentWorkers.initWorker<AgentWorker>(boost::function<void(Worker*)>(update_agents));
-  }
+  agentWorkers.initWorkers<AgentWorker>();
+  //for (size_t i=0; i<WG_AGENTS_SIZE; i++) {
+  //}
 
   //Assign agents randomly to a work group
   for (size_t i=0; i<agents.size(); i++) {

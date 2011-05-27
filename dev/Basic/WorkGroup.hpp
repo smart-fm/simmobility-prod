@@ -25,6 +25,7 @@ public:
 	void initWorkers();
 
 	Worker& getWorker(size_t id);
+	void startAll();
 	void interrupt();
 	size_t size();
 

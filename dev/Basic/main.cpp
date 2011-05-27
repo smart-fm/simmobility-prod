@@ -106,6 +106,9 @@ int main(int argc, char* argv[])
 
 		  //Output
 		  cout <<"  " <<"Initialization done" <<endl;
+
+		  //Start work groups
+		  agentWorkers.startAll();
 	  }
 
 	  //Update the signal logic and plans for every intersection grouped by region
@@ -140,6 +143,7 @@ int main(int argc, char* argv[])
 	  //Agent-based cycle
 	  if (true) { //Seems to operate every time step?
 		  //updateAndAdvancePhase(agents);   //Done with workers
+		  agentWorkers.wait();
 	  }
 
 	  //Surveillance update

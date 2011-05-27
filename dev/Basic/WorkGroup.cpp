@@ -20,6 +20,14 @@ WorkGroup::~WorkGroup()
 }
 
 
+void WorkGroup::startAll()
+{
+	for (size_t i=0; i<workers.size(); i++) {
+		workers[i]->start();
+	}
+}
+
+
 size_t WorkGroup::size()
 {
 	return workers.size();
@@ -41,15 +49,8 @@ Worker& WorkGroup::getWorker(size_t id)
 
 void WorkGroup::wait()
 {
-	std::cout <<"Work Group Start" <<std::endl;
-
 	shared_barr.wait();
-
-	std::cout <<"  barr1" <<std::endl;
-
 	external_barr.wait();
-
-	std::cout <<"  barr2" <<std::endl;
 }
 
 void WorkGroup::interrupt()

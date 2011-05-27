@@ -34,7 +34,7 @@ public:
 	void migrate(Agent* ag, int fromID, int toID);
 
 private:
-	bool allWorkersUsed();
+	//bool allWorkersUsed();
 
 private:
 	//Shared barrier
@@ -42,9 +42,11 @@ private:
 	boost::barrier external_barr;
 
 	//Worker object management
-	size_t totalWorkers;
-	Worker** workers;
-	size_t currID;
+	std::vector<Worker*> workers;
+	//Worker** workers;
+
+	//Only used once
+	size_t total_size;
 
 };
 
@@ -55,10 +57,10 @@ private:
 template <class WorkType>
 void WorkGroup::initWorkers()
 {
-	for (size_t i=0; i<totalWorkers; i++) {
-		workers[currID] = new WorkType(NULL, &shared_barr, &external_barr);
+	for (size_t i=0; i<total_size; i++) {
+		workers.push_back(new WorkType(NULL, &shared_barr, &external_barr));
 	}
-	currID = totalWorkers; //May remove later.
+	//currID = totalWorkers; //May remove later.
 }
 
 

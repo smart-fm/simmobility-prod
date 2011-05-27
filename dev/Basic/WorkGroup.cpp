@@ -41,8 +41,15 @@ Worker& WorkGroup::getWorker(size_t id)
 
 void WorkGroup::wait()
 {
+	std::cout <<"Work Group Start" <<std::endl;
+
 	shared_barr.wait();
+
+	std::cout <<"  barr1" <<std::endl;
+
 	external_barr.wait();
+
+	std::cout <<"  barr2" <<std::endl;
 }
 
 void WorkGroup::interrupt()

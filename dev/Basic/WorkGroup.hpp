@@ -13,7 +13,7 @@
 #include <boost/thread.hpp>
 
 #include "workers/Worker.hpp"
-#include "simple_classes.h"
+#include "entities/Agent.hpp"
 
 
 class WorkGroup {

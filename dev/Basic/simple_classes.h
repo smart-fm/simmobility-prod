@@ -21,21 +21,6 @@ struct Region {
 		}
 	}
 };
-struct Agent {
-	unsigned int id;
-	unsigned int currMode;
-	Agent(unsigned int id=0) : id(id) {
-		int currMode = id%4;
-		if (currMode==0)
-			currMode = DRIVER;
-		else if (currMode==1)
-			currMode = PEDESTRIAN;
-		else if (currMode==2)
-			currMode = CYCLIST;
-		else if (currMode==3)
-			currMode = PASSENGER;
-	}
-};
 struct TripChain {
 	unsigned int id;
 	TripChain(unsigned int id=0) : id(id) {}

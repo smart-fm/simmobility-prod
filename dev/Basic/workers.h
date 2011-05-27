@@ -63,7 +63,7 @@ void loadAgentsChoiceSetsAndVehicles(std::vector<Agent>& agents, std::vector<Cho
 bool checkIDs(const std::vector<Agent>& agents, const std::vector<TripChain>& trips, const std::vector<ChoiceSet>& choiceSets, const std::vector<Vehicle>& vehicles) {
 	std::string error = "";
 	for (size_t i=0; i<agents.size(); i++) {
-		if (agents[i].id != i)
+		if (agents[i].getId() != i)
 			error = "Agent ID";
 	}
 	for (size_t i=0; i<trips.size(); i++) {
@@ -125,7 +125,7 @@ void calculateTimeDependentShortestPath(std::vector<Agent>& agents) {
 void agentDecomposition(std::vector<Agent>& agents) {
 	//Marked as not boost::threadable.
 	for (size_t i=0; i<agents.size(); i++) {
-		agents[i].id = agents[i].id; //Trivial. Possibly move agents later.
+		trivial(agents[i].getId()); //Trivial. Possibly move agents later.
 	}
 }
 
@@ -161,27 +161,27 @@ void updateVehicleQueue(std::vector<Vehicle>& vehicles) {
 void updateSurveillanceData(std::vector<Agent>& agents) {
 	//Marked as not boost::threadable.
 	for (size_t i=0; i<agents.size(); i++) {
-		agents[i].id = agents[i].id; //Trivial. Later we will collate data and send it to surveillance systems.
+		trivial(agents[i].getId()); //Trivial. Later we will collate data and send it to surveillance systems.
 	}
 }
 
 void updateGUI(std::vector<Agent>& agents) {
 	//Marked as not boost::threadable.
 	for (size_t i=0; i<agents.size(); i++) {
-		agents[i].id = agents[i].id; //Trivial. Later we will update the GUI
+		trivial(agents[i].getId());  //Trivial. Later we will update the GUI
 	}
 }
 
 void saveStatistics(std::vector<Agent>& agents) {
 	//Marked as not boost::threadable.
 	for (size_t i=0; i<agents.size(); i++) {
-		agents[i].id = agents[i].id; //Trivial. Later we will log all agent data.
+		trivial(agents[i].getId());  //Trivial. Later we will log all agent data.
 	}
 }
 
 void saveStatisticsToDB(std::vector<Agent>& agents) {
 	//Marked as not boost::threadable.
 	for (size_t i=0; i<agents.size(); i++) {
-		agents[i].id = agents[i].id; //Trivial. Later we will save all statistis to the database.
+		trivial(agents[i].getId());  //Trivial. Later we will save all statistis to the database.
 	}
 }

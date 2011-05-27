@@ -27,7 +27,7 @@ bool trivial(unsigned int id) {
 
 
 
-void update_agents(Worker* wrk) {
+/*void update_agents(Worker* wrk) {
 	//Update all agents you control
 	for (vector<void*>::iterator it=wrk->getEntities().begin(); it!=wrk->getEntities().end(); it++) {
 		Agent* ag = (Agent*)(*it);
@@ -41,7 +41,7 @@ void update_agents(Worker* wrk) {
 			updatePassengerBehavior(*ag);
 		}
 	}
-}
+}*/
 
 
 

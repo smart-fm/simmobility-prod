@@ -9,6 +9,7 @@
 #include <boost/function.hpp>
 
 #include "Worker.hpp"
+#include "../entities/Agent.hpp"
 
 class AgentWorker : public Worker {
 public:

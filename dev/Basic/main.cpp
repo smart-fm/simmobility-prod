@@ -122,7 +122,6 @@ int main(int argc, char* argv[])
 
 	  //Update the signal logic and plans for every intersection grouped by region
 	  signalStatusWorkers.wait();
-	  //updateSignalStatus(regions);
 
 	  //Update weather, traffic conditions, etc.
 	  updateTrafficInfo(regions);
@@ -135,8 +134,6 @@ int main(int argc, char* argv[])
 	  //Longer Time-based cycle
 	  if (currTime%shortestPathLoopTimeStep == 0) {
 		  shortestPathWorkers.wait();
-		  //calculateTimeDependentShortestPath(agents);
-
 		  cout <<"  " <<"Longer-time cycle" <<endl;
 	  }
 
@@ -153,7 +150,6 @@ int main(int argc, char* argv[])
 
 	  //Agent-based cycle
 	  if (true) { //Seems to operate every time step?
-		  //updateAndAdvancePhase(agents);   //Done with workers
 		  agentWorkers.wait();
 	  }
 

@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "../constants.h"
+#include "Entity.hpp"
 
 //Signals
 struct Signal {
@@ -15,17 +16,12 @@ struct Signal {
 };
 
 
-class Region {
+class Region : public Entity {
 public:
 	Region(unsigned int id=0);
 
 	virtual void update();
 
 private:
-	unsigned int id;
 	std::vector<Signal> signals;
-
-//Trivial accessors/mutators. Header-implemented
-public:
-	unsigned int getId() const { return id; }
 };

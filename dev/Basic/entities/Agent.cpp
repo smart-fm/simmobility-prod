@@ -1,7 +1,7 @@
 #include "Agent.hpp"
 
 
-Agent::Agent(unsigned int id) : id(id) {
+Agent::Agent(unsigned int id) : Entity(id) {
 	int currMode = id%4;
 
 	//TODO: Inheritance, inheritance, inheritance

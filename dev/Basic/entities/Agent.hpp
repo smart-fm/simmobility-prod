@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../constants.h"
+#include "Entity.hpp"
 
 
 //Driver modes
@@ -16,19 +17,14 @@ enum DRIVER_MODES {
 };
 
 
-class Agent {
+class Agent : public Entity {
 public:
 	Agent(unsigned int id=0);
 
 	virtual void update();
 
 private:
-	unsigned int id;
 	unsigned int currMode;
-
-//Trivial accessors/mutators. Header-implemented
-public:
-	unsigned int getId() const { return id; }
 
 
 //TODO: Move these into the proper location (inheritance, for most of them)

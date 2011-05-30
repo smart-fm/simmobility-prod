@@ -74,7 +74,6 @@ int main(int argc, char* argv[])
 	  for (size_t i=0; i<trips.size(); i++) {
 		  tripChainWorkers.migrate(&trips[i], -1, i%WG_TRIPCHAINS_SIZE);
 	  }
-	  //loadTripChains(agents, trips);
 
 	  //Agents, choice sets, and vehicles
 	  boost::function<void (Worker*)> func2 = boost::bind(load_agents, _1);
@@ -92,7 +91,6 @@ int main(int argc, char* argv[])
 	  for (size_t i=0; i<vehicles.size(); i++) {
 		  vehicleWorkers.migrate(&vehicles[i], -1, i%WG_VEHICLES_SIZE);
 	  }
-	  //loadAgentsChoiceSetsAndVehicles(agents, choiceSets, vehicles);
 
 	  //Start
 	  tripChainWorkers.startAll();

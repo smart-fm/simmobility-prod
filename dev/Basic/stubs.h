@@ -5,6 +5,7 @@
 
 #include "simple_classes.h"
 #include "entities/Agent.hpp"
+#include "entities/Region.hpp"
 #include "workers/Worker.hpp"
 
 
@@ -44,11 +45,11 @@ void createSingleChoiceSet(ChoiceSet* const cs, unsigned int newID) {
 void createSingleVehicle(Vehicle* const v, unsigned int newID) {
 	v->id = newID;
 }
-void updateSingleRegionSignals(Region& r) {
+/*void updateSingleRegionSignals(Region& r) {
 	for (size_t i=0; i<r.signals.size(); i++) {
 		r.signals[i].id = r.signals[i].id; //Trivial. Will update signal's other properties.
 	}
-}
+}*/
 void updateSingleShortestPath(Agent& a) {
 	trivial(a.getId()); //Trivial. Will update shortest path later.
 }
@@ -120,7 +121,7 @@ void updateVehicleQueue(std::vector<Vehicle>& vehicles) {
 void updateTrafficInfo(std::vector<Region>& regions) {
 	//Marked as not boost::threadable.
 	for (size_t i=0; i<regions.size(); i++) {
-		regions[i].id = regions[i].id; //Trivial. Update other properties later.
+		trivial(regions[i].getId()); //Trivial. Update other properties later.
 	}
 }
 

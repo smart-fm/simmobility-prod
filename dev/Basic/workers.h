@@ -16,7 +16,7 @@ void updateSignalStatus(std::vector<Region>& regions) {
 	//Make workers; we will "join" them all later.
 	boost::thread* workers = new boost::thread[regions.size()];
 	for (size_t i=0; i<regions.size(); i++) {
-		workers[i] = boost::thread(boost::bind(&updateSingleRegionSignals, boost::ref(regions[i])));
+		//workers[i] = boost::thread(boost::bind(&updateSingleRegionSignals, boost::ref(regions[i])));
 	}
 
 	//Join, delete

@@ -26,13 +26,6 @@ void updateSignalStatus(std::vector<Region>& regions) {
 }
 
 
-void updateTrafficInfo(std::vector<Region>& regions) {
-	//Marked as not boost::threadable.
-	for (size_t i=0; i<regions.size(); i++) {
-		regions[i].id = regions[i].id; //Trivial. Update other properties later.
-	}
-}
-
 void calculateTimeDependentShortestPath(std::vector<Agent>& agents) {
 	//Make workers; we will "join" them all later.
 	boost::thread* workers = new boost::thread[agents.size()];

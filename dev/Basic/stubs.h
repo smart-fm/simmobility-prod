@@ -117,6 +117,12 @@ void updateVehicleQueue(std::vector<Vehicle>& vehicles) {
 	}
 }
 
+void updateTrafficInfo(std::vector<Region>& regions) {
+	//Marked as not boost::threadable.
+	for (size_t i=0; i<regions.size(); i++) {
+		regions[i].id = regions[i].id; //Trivial. Update other properties later.
+	}
+}
 
 void updateSurveillanceData(std::vector<Agent>& agents) {
 	//Marked as not boost::threadable.

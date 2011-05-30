@@ -18,6 +18,29 @@
 #include <boost/thread.hpp>
 #include <boost/function.hpp>
 
+
+//An example of a set-able property
+// We will most likely templatize this later, and allow a memory layout within workers
+//   for easy flipping.
+class BoolProp {
+public:
+	BoolProp(bool val=false) : val(val) {}
+	bool get() {
+		return val;
+	}
+	BoolProp& set(bool val) {
+		next = val;
+		return *this;
+	}
+	void flip() {
+		val = next;
+	}
+private:
+	bool val;
+	bool next;
+};
+
+
 class Worker {
 public:
 	Worker(boost::function<void(Worker*)>* action =NULL, boost::barrier* internal_barr =NULL, boost::barrier* external_barr =NULL);
@@ -48,10 +71,12 @@ protected:
 	boost::barrier* external_barr;
 	boost::function<void(Worker*)>* action;
 
+public:
+	BoolProp active;
+
 private:
 	//Thread management
 	boost::thread main_thread;
-	//bool active;
 
 	//Object management
 	std::vector<void*> entities;

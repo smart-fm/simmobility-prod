@@ -14,7 +14,7 @@ Worker::Worker(function<void(Worker*)>* action, barrier* internal_barr, barrier*
 
 void Worker::start()
 {
-	//this.active = true;
+	active.set(true).flip();
 	main_thread = boost::thread(boost::bind(&Worker::barrier_mgmt, this));
 }
 
@@ -44,7 +44,7 @@ vector<void*>& Worker::getEntities() {
 
 void Worker::barrier_mgmt()
 {
-	for (;;) {
+	for (;active.get();) {
 		perform_main();
 
 		if (internal_barr!=NULL)
@@ -66,6 +66,7 @@ void Worker::perform_main()
 
 void Worker::perform_flip()
 {
+	active.flip(); //TODO: Put this in a better place
 }
 
 

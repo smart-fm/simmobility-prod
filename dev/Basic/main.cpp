@@ -66,14 +66,17 @@ int main(int argc, char* argv[])
   //       no data to read.) The other option is to load all "properties" with a default
   //       value, but at the moment we don't even have a "properties class"
   ///////////////////////////////////////////////////////////////////////////////////
+  cout <<"Beginning Initialization" <<endl;
   StepZero(agents, regions, trips, choiceSets, vehicles);
+  cout <<"  " <<"Initialization done" <<endl;
 
   //Sanity check (simple)
-  if (!checkIDs(agents, trips, choiceSets, vehicles));
+  if (!checkIDs(agents, trips, choiceSets, vehicles)) {
 	  return 1;
+  }
 
   //Output
-  cout <<"  " <<"Initialization done" <<endl;
+  cout <<"  " <<"(Sanity Check Passed)" <<endl;
 
   //Start work groups
   agentWorkers.startAll();

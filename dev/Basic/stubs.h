@@ -63,6 +63,9 @@ void load_trip_chain(Worker* wk)
 		TripChain* tc = (TripChain*)(*it);
 		loadSingleTripChain(NULL, tc);   //At the moment, no way to link from agents to trip chains.
 	}
+
+	//Signal "done"
+	wk->active.set(false);
 }
 
 void load_agents(Worker* wk)
@@ -71,6 +74,9 @@ void load_agents(Worker* wk)
 		Agent* ag = (Agent*)(*it);
 		createSingleAgent(ag);   //At the moment, no way to link from agents to trip chains.
 	}
+
+	//Signal "done"
+	wk->active.set(false);
 }
 
 void load_choice_sets(Worker* wk)
@@ -79,6 +85,9 @@ void load_choice_sets(Worker* wk)
 		ChoiceSet* cs = (ChoiceSet*)(*it);
 		createSingleChoiceSet(cs, cs->id);   //At the moment, no way to link from agents to trip chains.
 	}
+
+	//Signal "done"
+	wk->active.set(false);
 }
 
 void load_vehicles(Worker* wk)
@@ -87,6 +96,9 @@ void load_vehicles(Worker* wk)
 		Vehicle* vh = (Vehicle*)(*it);
 		createSingleVehicle(vh, vh->id);   //At the moment, no way to link from agents to trip chains.
 	}
+
+	//Signal "done"
+	wk->active.set(false);
 }
 
 

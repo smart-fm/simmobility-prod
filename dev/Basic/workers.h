@@ -46,45 +46,4 @@ void calculateTimeDependentShortestPath(std::vector<Agent>& agents) {
 	delete [] workers;
 }
 
-void agentDecomposition(std::vector<Agent>& agents) {
-	//Marked as not boost::threadable.
-	for (size_t i=0; i<agents.size(); i++) {
-		trivial(agents[i].getId()); //Trivial. Possibly move agents later.
-	}
-}
 
-void updateVehicleQueue(std::vector<Vehicle>& vehicles) {
-	//Marked as not boost::threadable.
-	for (size_t i=0; i<vehicles.size(); i++) {
-		vehicles[i].id = vehicles[i].id; //Trivial. Will update queues later.
-	}
-}
-
-
-void updateSurveillanceData(std::vector<Agent>& agents) {
-	//Marked as not boost::threadable.
-	for (size_t i=0; i<agents.size(); i++) {
-		trivial(agents[i].getId()); //Trivial. Later we will collate data and send it to surveillance systems.
-	}
-}
-
-void updateGUI(std::vector<Agent>& agents) {
-	//Marked as not boost::threadable.
-	for (size_t i=0; i<agents.size(); i++) {
-		trivial(agents[i].getId());  //Trivial. Later we will update the GUI
-	}
-}
-
-void saveStatistics(std::vector<Agent>& agents) {
-	//Marked as not boost::threadable.
-	for (size_t i=0; i<agents.size(); i++) {
-		trivial(agents[i].getId());  //Trivial. Later we will log all agent data.
-	}
-}
-
-void saveStatisticsToDB(std::vector<Agent>& agents) {
-	//Marked as not boost::threadable.
-	for (size_t i=0; i<agents.size(); i++) {
-		trivial(agents[i].getId());  //Trivial. Later we will save all statistis to the database.
-	}
-}

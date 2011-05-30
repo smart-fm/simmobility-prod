@@ -103,22 +103,26 @@ int main(int argc, char* argv[])
 	  WorkGroup vehicleWorkers(WG_VEHICLES_SIZE);
 
 	  //Create object from DB; for long time spans objects must be created on demand.
-	  tripChainWorkers.initWorkers<Worker>(boost::bind<void (Worker*)>(load_trip_chain, _1));
+	  boost::function<void (Worker*)> func1 = boost::bind(load_trip_chain, _1);
+	  tripChainWorkers.initWorkers<Worker>(&func1);
 	  for (size_t i=0; i<trips.size(); i++) {
 		  tripChainWorkers.migrate(&trips[i], -1, i%WG_TRIPCHAINS_SIZE);
 	  }
 	  //loadTripChains(agents, trips);
 
 	  //Agents, choice sets, and vehicles
-	  createAgentWorkers.initWorkers<Worker>(load_agents);
+	  boost::function<void (Worker*)> func2 = boost::bind(load_agents, _1);
+	  createAgentWorkers.initWorkers<Worker>(&func2);
 	  for (size_t i=0; i<agents.size(); i++) {
 		  createAgentWorkers.migrate(&agents[i], -1, i%WG_CREATE_AGENT_SIZE);
 	  }
-	  choiceSetWorkers.initWorkers<Worker>(load_choice_sets);
+	  boost::function<void (Worker*)> func3 = boost::bind(load_choice_sets, _1);
+	  choiceSetWorkers.initWorkers<Worker>(&func3);
 	  for (size_t i=0; i<choiceSets.size(); i++) {
 		  choiceSetWorkers.migrate(&choiceSets[i], -1, i%WG_CHOICESET_SIZE);
 	  }
-	  vehicleWorkers.initWorkers<Worker>(load_vehicles);
+	  boost::function<void (Worker*)> func4 = boost::bind(load_vehicles, _1);
+	  vehicleWorkers.initWorkers<Worker>(&func4);
 	  for (size_t i=0; i<vehicles.size(); i++) {
 		  vehicleWorkers.migrate(&vehicles[i], -1, i%WG_VEHICLES_SIZE);
 	  }

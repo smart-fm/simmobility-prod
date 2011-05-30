@@ -55,7 +55,7 @@ void WorkGroup::interrupt()
 /**
  * Set "fromID" or "toID" to -1 to skip that step.
  */
-void WorkGroup::migrate(Agent* ag, int fromID, int toID)
+void WorkGroup::migrate(void* ag, int fromID, int toID)
 {
 	if (ag==NULL)
 		return;

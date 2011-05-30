@@ -32,7 +32,7 @@ public:
 	void wait();
 
 	//TODO: Move this to the Worker, not the work group.
-	void migrate(Agent* ag, int fromID, int toID);
+	void migrate(void* ag, int fromID, int toID);
 
 private:
 	//bool allWorkersUsed();

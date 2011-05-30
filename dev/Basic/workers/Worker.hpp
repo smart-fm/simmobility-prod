@@ -46,8 +46,8 @@ public:
 	Worker(boost::function<void(Worker*)>* action =NULL, boost::barrier* internal_barr =NULL, boost::barrier* external_barr =NULL);
 
 	//Thread-style operations
-	void start();
-	void interrupt();
+	virtual void start();
+	virtual void interrupt();
 	//void join();
 
 	//Manage entities

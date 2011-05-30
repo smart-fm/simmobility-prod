@@ -36,6 +36,11 @@ void StepZero(vector<Agent>& agents, vector<Region>& regions, vector<TripChain>&
 //      forced threads to "join".
 int main(int argc, char* argv[])
 {
+  //Some assumed properties
+  const unsigned int TOTAL_TIME = 21; //Temp.
+  const unsigned int TIME_STEP = 1; //NOTE: Is this correct?
+  const unsigned int simulationStartTime = 3; //Temp.
+
   //Our work groups
   WorkGroup agentWorkers(WG_AGENTS_SIZE);
 
@@ -51,6 +56,10 @@ int main(int argc, char* argv[])
   agentWorkers.initWorkers<AgentWorker>();
   for (size_t i=0; i<agents.size(); i++) {
 	  agentWorkers.migrate(&agents[i], -1, i%WG_AGENTS_SIZE);
+  }
+  for (size_t i=0; i<agentWorkers.size(); i++) {
+	  //TODO: This doesn't take multiple granularities into account. Need to fix.
+	  ((AgentWorker&)agentWorkers.getWorker(i)).setSimulationEnd(TOTAL_TIME*TIME_STEP);
   }
 
   //Initialization: Server configuration
@@ -83,9 +92,6 @@ int main(int argc, char* argv[])
 
 
   //Time-based cycle.
-  const unsigned int TOTAL_TIME = 21; //Temp.
-  const unsigned int TIME_STEP = 1; //NOTE: Is this correct?
-  const unsigned int simulationStartTime = 3; //Temp.
   for (unsigned int currTime=1; currTime<TOTAL_TIME; currTime+=TIME_STEP) {
 	  //Output
 	  cout <<"Time " <<currTime <<endl;

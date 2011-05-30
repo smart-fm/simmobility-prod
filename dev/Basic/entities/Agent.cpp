@@ -29,7 +29,7 @@ void Agent::update() {
 
 
 void Agent::updateShortestPath() {
-	trivial(id);
+	trivial(getId());
 }
 
 

@@ -11,8 +11,7 @@
 #include "workers.h"
 
 #include "workers/Worker.hpp"
-#include "workers/AgentWorker.hpp"
-#include "workers/SignalStatusWorker.hpp"
+#include "workers/EntityWorker.hpp"
 #include "WorkGroup.hpp"
 
 using std::cout;
@@ -55,23 +54,23 @@ int main(int argc, char* argv[])
   loadUserConf(agents, regions, trips, choiceSets, vehicles);   //Note: Agent "shells" are loaded here.
 
   //Initialize our work groups, assign agents randomly to these groups.
-  agentWorkers.initWorkers<AgentWorker>();
+  agentWorkers.initWorkers<EntityWorker>();
   for (size_t i=0; i<agents.size(); i++) {
 	  agentWorkers.migrate(&agents[i], -1, i%WG_AGENTS_SIZE);
   }
   for (size_t i=0; i<agentWorkers.size(); i++) {
 	  //TODO: This doesn't take multiple granularities into account. Need to fix.
-	  ((AgentWorker&)agentWorkers.getWorker(i)).setSimulationEnd(TOTAL_TIME*TIME_STEP);
+	  ((EntityWorker&)agentWorkers.getWorker(i)).setSimulationEnd(TOTAL_TIME*TIME_STEP);
   }
 
   //Initialize our signal status work groups
   //  TODO: There needs to be a more general way to do this.
-  signalStatusWorkers.initWorkers<SignalStatusWorker>();
+  signalStatusWorkers.initWorkers<EntityWorker>();
   for (size_t i=0; i<regions.size(); i++) {
 	  signalStatusWorkers.migrate(&regions[i], -1, i%WG_SIGNALS_SIZE);
   }
   for (size_t i=0; i<signalStatusWorkers.size(); i++) {
-	  ((SignalStatusWorker&)signalStatusWorkers.getWorker(i)).setSimulationEnd(TOTAL_TIME*TIME_STEP);
+	  ((EntityWorker&)signalStatusWorkers.getWorker(i)).setSimulationEnd(TOTAL_TIME*TIME_STEP);
   }
 
 

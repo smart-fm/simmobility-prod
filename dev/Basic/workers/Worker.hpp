@@ -18,6 +18,8 @@
 #include <boost/thread.hpp>
 #include <boost/function.hpp>
 
+#include "../entities/Entity.hpp"
+
 
 //An example of a set-able property
 // We will most likely templatize this later, and allow a memory layout within workers
@@ -79,7 +81,7 @@ private:
 	boost::thread main_thread;
 
 	//Object management
-	std::vector<void*> entities;
+	std::vector<void*> data;
 };
 
 

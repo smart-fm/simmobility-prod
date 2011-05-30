@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "simple_classes.h"
+#include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Region.hpp"
 #include "workers/Worker.hpp"

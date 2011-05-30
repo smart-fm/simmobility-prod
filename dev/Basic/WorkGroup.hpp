@@ -13,7 +13,7 @@
 #include <boost/thread.hpp>
 
 #include "workers/Worker.hpp"
-#include "entities/Agent.hpp"
+#include "entities/Entity.hpp"
 
 
 class WorkGroup {
@@ -32,7 +32,7 @@ public:
 	void wait();
 
 	//TODO: Move this to the Worker, not the work group.
-	void migrate(void* ag, int fromID, int toID);
+	void migrate(void * ag, int fromID, int toID);
 
 private:
 	//bool allWorkersUsed();

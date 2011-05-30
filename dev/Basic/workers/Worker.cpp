@@ -27,18 +27,18 @@ void Worker::interrupt()
 
 void Worker::addEntity(void* entity)
 {
-	entities.push_back(entity);
+	data.push_back(entity);
 }
 
 void Worker::remEntity(void* entity)
 {
-	vector<void*>::iterator it = std::find(entities.begin(), entities.end(), entity);
-	if (it!=entities.end())
-		entities.erase(it);
+	vector<void*>::iterator it = std::find(data.begin(), data.end(), entity);
+	if (it!=data.end())
+		data.erase(it);
 }
 
 vector<void*>& Worker::getEntities() {
-	return entities;
+	return data;
 }
 
 

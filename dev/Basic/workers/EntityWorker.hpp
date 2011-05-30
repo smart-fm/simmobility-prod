@@ -1,7 +1,5 @@
 /*
  * An "EntityWorker" updates any kind of Entity.
- *    TODO: We might merge this with Worker.hpp, since functionality is very similar.
- *          If we expect to have other Worker subclasses, though, it isn't really  necessary.
  */
 
 #pragma once
@@ -28,7 +26,7 @@ public:
 	void remEntity(Entity* entity);
 	std::vector<Entity*>& getEntities();
 
-private:
+protected:
 	unsigned int localTimestep;
 	unsigned int simulationEnd;
 

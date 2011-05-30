@@ -8,10 +8,10 @@
 #include "simple_classes.h"
 #include "constants.h"
 #include "stubs.h"
-#include "workers.h"
 
 #include "workers/Worker.hpp"
 #include "workers/EntityWorker.hpp"
+#include "workers/ShortestPathWorker.hpp"
 #include "WorkGroup.hpp"
 
 using std::cout;
@@ -44,6 +44,7 @@ int main(int argc, char* argv[])
   //Our work groups
   WorkGroup agentWorkers(WG_AGENTS_SIZE);
   WorkGroup signalStatusWorkers(WG_SIGNALS_SIZE);
+  WorkGroup shortestPathWorkers(WG_SHORTEST_PATH_SIZE);
 
   //Initialization: Scenario definition
   vector<Agent> agents;
@@ -73,6 +74,15 @@ int main(int argc, char* argv[])
 	  ((EntityWorker&)signalStatusWorkers.getWorker(i)).setSimulationEnd(TOTAL_TIME*TIME_STEP);
   }
 
+  //Initialize our shortest path work groups
+  //  TODO: There needs to be a more general way to do this.
+  shortestPathWorkers.initWorkers<ShortestPathWorker>();
+  for (size_t i=0; i<agents.size(); i++) {
+	  shortestPathWorkers.migrate(&agents[i], -1, i%WG_SHORTEST_PATH_SIZE);
+  }
+  for (size_t i=0; i<shortestPathWorkers.size(); i++) {
+	  ((EntityWorker&)shortestPathWorkers.getWorker(i)).setSimulationEnd((TOTAL_TIME*TIME_STEP)/shortestPathLoopTimeStep);
+  }
 
   //Initialization: Server configuration
   setConfiguration();
@@ -101,6 +111,8 @@ int main(int argc, char* argv[])
 
   //Start work groups
   agentWorkers.startAll();
+  signalStatusWorkers.startAll();
+  shortestPathWorkers.startAll();
 
 
   //Time-based cycle.
@@ -122,7 +134,8 @@ int main(int argc, char* argv[])
 
 	  //Longer Time-based cycle
 	  if (currTime%shortestPathLoopTimeStep == 0) {
-		  calculateTimeDependentShortestPath(agents);
+		  shortestPathWorkers.wait();
+		  //calculateTimeDependentShortestPath(agents);
 
 		  cout <<"  " <<"Longer-time cycle" <<endl;
 	  }

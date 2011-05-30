@@ -23,6 +23,8 @@ public:
 
 	virtual void update();
 
+	void updateShortestPath();
+
 private:
 	unsigned int currMode;
 

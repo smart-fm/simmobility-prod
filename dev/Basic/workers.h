@@ -26,7 +26,7 @@
 }*/
 
 
-void calculateTimeDependentShortestPath(std::vector<Agent>& agents) {
+/*void calculateTimeDependentShortestPath(std::vector<Agent>& agents) {
 	//Make workers; we will "join" them all later.
 	boost::thread* workers = new boost::thread[agents.size()];
 	for (size_t i=0; i<agents.size(); i++) {
@@ -37,6 +37,6 @@ void calculateTimeDependentShortestPath(std::vector<Agent>& agents) {
 	for (size_t i=0; i<agents.size(); i++)
 		workers[i].join();
 	delete [] workers;
-}
+}*/
 
 

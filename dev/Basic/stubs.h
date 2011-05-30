@@ -51,9 +51,9 @@ void createSingleVehicle(Vehicle* const v, unsigned int newID) {
 		r.signals[i].id = r.signals[i].id; //Trivial. Will update signal's other properties.
 	}
 }*/
-void updateSingleShortestPath(Agent& a) {
+/*void updateSingleShortestPath(Agent& a) {
 	trivial(a.getId()); //Trivial. Will update shortest path later.
-}
+}*/
 
 
 

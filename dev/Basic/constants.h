@@ -12,6 +12,7 @@ const unsigned int WG_CHOICESET_SIZE = 6;
 const unsigned int WG_VEHICLES_SIZE = 5;
 const unsigned int WG_AGENTS_SIZE = 5;
 const unsigned int WG_SIGNALS_SIZE = 2;
+const unsigned int WG_SHORTEST_PATH_SIZE = 10;
 
 //"Trivial" function does nothing, returns a trivial condition. Used to indicate future functionality.
 //  Declared here

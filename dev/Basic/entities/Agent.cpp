@@ -28,6 +28,10 @@ void Agent::update() {
 }
 
 
+void Agent::updateShortestPath() {
+	trivial(id);
+}
+
 
 
 ///////////////////////////////

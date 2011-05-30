@@ -10,7 +10,6 @@
 #include "workers/Worker.hpp"
 
 
-
 //Function stubs
 void loadUserConf(std::vector<Agent>& agents, std::vector<Region>& regions,
 		          std::vector<TripChain>& trips, std::vector<ChoiceSet>& chSets,
@@ -46,14 +45,6 @@ void createSingleChoiceSet(ChoiceSet* const cs, unsigned int newID) {
 void createSingleVehicle(Vehicle* const v, unsigned int newID) {
 	v->id = newID;
 }
-/*void updateSingleRegionSignals(Region& r) {
-	for (size_t i=0; i<r.signals.size(); i++) {
-		r.signals[i].id = r.signals[i].id; //Trivial. Will update signal's other properties.
-	}
-}*/
-/*void updateSingleShortestPath(Agent& a) {
-	trivial(a.getId()); //Trivial. Will update shortest path later.
-}*/
 
 
 

@@ -1,11 +1,5 @@
 #pragma once
 
-#include <vector>
-
-#include "constants.h"
-
-
-
 //Class stubs
 struct TripChain {
 	unsigned int id;

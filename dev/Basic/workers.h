@@ -12,7 +12,7 @@
 
 
 
-void updateSignalStatus(std::vector<Region>& regions) {
+/*void updateSignalStatus(std::vector<Region>& regions) {
 	//Make workers; we will "join" them all later.
 	boost::thread* workers = new boost::thread[regions.size()];
 	for (size_t i=0; i<regions.size(); i++) {
@@ -23,7 +23,7 @@ void updateSignalStatus(std::vector<Region>& regions) {
 	for (size_t i=0; i<regions.size(); i++)
 		workers[i].join();
 	delete [] workers;
-}
+}*/
 
 
 void calculateTimeDependentShortestPath(std::vector<Agent>& agents) {

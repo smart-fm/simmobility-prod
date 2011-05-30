@@ -17,6 +17,8 @@
 //      can simply subclass "Agent" (or Entity, or whatever) and then
 //      just call the "update" method. There's no need to duplicate
 //      the Worker subclasses.
+//NOTE: Instead of inheritance, we could also use templates.
+//      It shouldn't matter much in terms of performance either way.
 //////////////////////////////////////////////////////////////////////////
 
 class SignalStatusWorker : public Worker {

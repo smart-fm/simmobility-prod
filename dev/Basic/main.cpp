@@ -12,6 +12,7 @@
 
 #include "workers/Worker.hpp"
 #include "workers/AgentWorker.hpp"
+#include "workers/SignalStatusWorker.hpp"
 #include "WorkGroup.hpp"
 
 using std::cout;
@@ -43,6 +44,7 @@ int main(int argc, char* argv[])
 
   //Our work groups
   WorkGroup agentWorkers(WG_AGENTS_SIZE);
+  WorkGroup signalStatusWorkers(WG_SIGNALS_SIZE);
 
   //Initialization: Scenario definition
   vector<Agent> agents;
@@ -61,6 +63,17 @@ int main(int argc, char* argv[])
 	  //TODO: This doesn't take multiple granularities into account. Need to fix.
 	  ((AgentWorker&)agentWorkers.getWorker(i)).setSimulationEnd(TOTAL_TIME*TIME_STEP);
   }
+
+  //Initialize our signal status work groups
+  //  TODO: There needs to be a more general way to do this.
+  signalStatusWorkers.initWorkers<SignalStatusWorker>();
+  for (size_t i=0; i<regions.size(); i++) {
+	  signalStatusWorkers.migrate(&regions[i], -1, i%WG_SIGNALS_SIZE);
+  }
+  for (size_t i=0; i<signalStatusWorkers.size(); i++) {
+	  ((SignalStatusWorker&)signalStatusWorkers.getWorker(i)).setSimulationEnd(TOTAL_TIME*TIME_STEP);
+  }
+
 
   //Initialization: Server configuration
   setConfiguration();
@@ -97,7 +110,8 @@ int main(int argc, char* argv[])
 	  cout <<"Time " <<currTime <<endl;
 
 	  //Update the signal logic and plans for every intersection grouped by region
-	  updateSignalStatus(regions);
+	  signalStatusWorkers.wait();
+	  //updateSignalStatus(regions);
 
 	  //Update weather, traffic conditions, etc.
 	  updateTrafficInfo(regions);

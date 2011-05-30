@@ -19,10 +19,6 @@ void Worker::start()
 }
 
 
-//Worker::Worker(const Worker& copy) {}
-//Worker& Worker::operator=(const Worker& rhs) { return *this; }
-
-
 void Worker::interrupt()
 {
 	main_thread.interrupt();

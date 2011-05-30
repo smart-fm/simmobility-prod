@@ -22,7 +22,7 @@ public:
 	~WorkGroup();
 
 	template <class WorkType>
-	void initWorkers();
+	void initWorkers(boost::function<void(Worker*)>* action=NULL);
 
 	Worker& getWorker(size_t id);
 	void startAll();
@@ -44,7 +44,6 @@ private:
 
 	//Worker object management
 	std::vector<Worker*> workers;
-	//Worker** workers;
 
 	//Only used once
 	size_t total_size;
@@ -56,12 +55,11 @@ private:
  * Template function must be defined in the same translational unit as it is declared.
  */
 template <class WorkType>
-void WorkGroup::initWorkers()
+void WorkGroup::initWorkers(boost::function<void(Worker*)>* action)
 {
 	for (size_t i=0; i<total_size; i++) {
-		workers.push_back(new WorkType(NULL, &shared_barr, &external_barr));
+		workers.push_back(new WorkType(action, &shared_barr, &external_barr));
 	}
-	//currID = totalWorkers; //May remove later.
 }
 
 

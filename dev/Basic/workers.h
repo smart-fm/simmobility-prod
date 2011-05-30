@@ -10,7 +10,7 @@
 
 
 //Load trip chains in parallel
-void loadTripChains(const std::vector<Agent>& agents, std::vector<TripChain>& trips)
+/*void loadTripChains(const std::vector<Agent>& agents, std::vector<TripChain>& trips)
 {
 	//Fill with empty objects.
 	trips.resize(agents.size());
@@ -25,11 +25,11 @@ void loadTripChains(const std::vector<Agent>& agents, std::vector<TripChain>& tr
 	for (size_t i=0; i<agents.size(); i++)
 		workers[i].join();
 	delete [] workers;
-}
+}*/
 
 
 //Load agents, choice sets, and vehicles in parallel
-void loadAgentsChoiceSetsAndVehicles(std::vector<Agent>& agents, std::vector<ChoiceSet>& choiceSets, std::vector<Vehicle>& vehicles) {
+/*void loadAgentsChoiceSetsAndVehicles(std::vector<Agent>& agents, std::vector<ChoiceSet>& choiceSets, std::vector<Vehicle>& vehicles) {
 	//Fill with empty objects.
 	choiceSets.resize(agents.size());
 	vehicles.resize(agents.size());    //Note: The number of vehicles is just assumed to be the number of agents for now.
@@ -56,36 +56,10 @@ void loadAgentsChoiceSetsAndVehicles(std::vector<Agent>& agents, std::vector<Cho
 	for (size_t i=0; i<agents.size(); i++)
 		workers[i].join();
 	delete [] workers;
-}
+}*/
 
 
-//Quick double-check
-bool checkIDs(const std::vector<Agent>& agents, const std::vector<TripChain>& trips, const std::vector<ChoiceSet>& choiceSets, const std::vector<Vehicle>& vehicles) {
-	std::string error = "";
-	for (size_t i=0; i<agents.size(); i++) {
-		if (agents[i].getId() != i)
-			error = "Agent ID";
-	}
-	for (size_t i=0; i<trips.size(); i++) {
-		if (trips[i].id != i)
-			error = "Trip Chain ID";
-	}
-	for (size_t i=0; i<choiceSets.size(); i++) {
-		if (choiceSets[i].id != i)
-			error = "Choice Set ID";
-	}
-	for (size_t i=0; i<vehicles.size(); i++) {
-		if (vehicles[i].id != i)
-			error = "Vehicle ID";
-	}
 
-	if (error.empty())
-		return true;
-	else {
-		std::cout <<"Error, invalid " <<error <<std::endl;
-		return false;
-	}
-}
 
 
 void updateSignalStatus(std::vector<Region>& regions) {

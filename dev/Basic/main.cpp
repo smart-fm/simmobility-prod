@@ -25,40 +25,6 @@ bool trivial(unsigned int id) {
 }
 
 
-//Example of using a Worker with a functional pointer instead of sub-classing.
-void load_trip_chain(Worker* wk)
-{
-	//Using functional pointers instead of inheritance means we have to cast from void*
-	for (vector<void*>::iterator it=wk->getEntities().begin(); it!=wk->getEntities().end(); it++) {
-		TripChain* tc = (TripChain*)(*it);
-		loadSingleTripChain(NULL, tc);   //At the moment, no way to link from agents to trip chains.
-	}
-}
-
-void load_agents(Worker* wk)
-{
-	for (vector<void*>::iterator it=wk->getEntities().begin(); it!=wk->getEntities().end(); it++) {
-		Agent* ag = (Agent*)(*it);
-		createSingleAgent(ag);   //At the moment, no way to link from agents to trip chains.
-	}
-}
-
-void load_choice_sets(Worker* wk)
-{
-	for (vector<void*>::iterator it=wk->getEntities().begin(); it!=wk->getEntities().end(); it++) {
-		ChoiceSet* cs = (ChoiceSet*)(*it);
-		createSingleChoiceSet(cs, cs->id);   //At the moment, no way to link from agents to trip chains.
-	}
-}
-
-void load_vehicles(Worker* wk)
-{
-	for (vector<void*>::iterator it=wk->getEntities().begin(); it!=wk->getEntities().end(); it++) {
-		Vehicle* vh = (Vehicle*)(*it);
-		createSingleVehicle(vh, vh->id);   //At the moment, no way to link from agents to trip chains.
-	}
-}
-
 
 //NOTE: boost::thread and std::thread have a few minor differences. Boost::threads appear to
 //      "join" automatically on destruction, and std::threads don't. For now, I explicitly

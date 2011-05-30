@@ -5,6 +5,9 @@
 
 #include "simple_classes.h"
 #include "entities/Agent.hpp"
+#include "workers/Worker.hpp"
+
+
 
 //Function stubs
 void loadUserConf(std::vector<Agent>& agents, std::vector<Region>& regions,
@@ -51,6 +54,45 @@ void updateSingleShortestPath(Agent& a) {
 }
 
 
+
+//Example of using a Worker with a functional pointer instead of sub-classing.
+void load_trip_chain(Worker* wk)
+{
+	//Using functional pointers instead of inheritance means we have to cast from void*
+	for (std::vector<void*>::iterator it=wk->getEntities().begin(); it!=wk->getEntities().end(); it++) {
+		TripChain* tc = (TripChain*)(*it);
+		loadSingleTripChain(NULL, tc);   //At the moment, no way to link from agents to trip chains.
+	}
+}
+
+void load_agents(Worker* wk)
+{
+	for (std::vector<void*>::iterator it=wk->getEntities().begin(); it!=wk->getEntities().end(); it++) {
+		Agent* ag = (Agent*)(*it);
+		createSingleAgent(ag);   //At the moment, no way to link from agents to trip chains.
+	}
+}
+
+void load_choice_sets(Worker* wk)
+{
+	for (std::vector<void*>::iterator it=wk->getEntities().begin(); it!=wk->getEntities().end(); it++) {
+		ChoiceSet* cs = (ChoiceSet*)(*it);
+		createSingleChoiceSet(cs, cs->id);   //At the moment, no way to link from agents to trip chains.
+	}
+}
+
+void load_vehicles(Worker* wk)
+{
+	for (std::vector<void*>::iterator it=wk->getEntities().begin(); it!=wk->getEntities().end(); it++) {
+		Vehicle* vh = (Vehicle*)(*it);
+		createSingleVehicle(vh, vh->id);   //At the moment, no way to link from agents to trip chains.
+	}
+}
+
+
+
+
+
 //Quick double-check
 bool checkIDs(const std::vector<Agent>& agents, const std::vector<TripChain>& trips, const std::vector<ChoiceSet>& choiceSets, const std::vector<Vehicle>& vehicles) {
 	std::string error = "";
@@ -78,6 +120,8 @@ bool checkIDs(const std::vector<Agent>& agents, const std::vector<TripChain>& tr
 		return false;
 	}
 }
+
+
 
 
 

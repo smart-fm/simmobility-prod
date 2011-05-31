@@ -7,12 +7,18 @@
 namespace sim_mob
 {
 
+//! \brief The type to represent lengths and co-ordinates.
+//
+//! 32 bits unsigned ints are used to represent lengths.  For a resolution of 1 cm, then this type can
+//! represent 42949672.96 meters or 42949.67296 km.  
+typedef uint32_t length_t;
+
 struct Position_pod
 {
-    int x_;
-    int y_;
+    length_t x_;
+    length_t y_;
 
-    Position_pod (int x, int y)
+    Position_pod (length_t x, length_t y)
       : x_ (x)
       , y_ (y)
     {
@@ -31,13 +37,13 @@ struct Position_pod
 class Position : public Data<Position_pod>
 {
 public:
-    Position (int x = 0, int y = 0)
+    Position (length_t x = 0, length_t y = 0)
       : Data<Position_pod> (Position_pod (x, y))
     {
     }
 
-    int x() const { return get().x_; }
-    int y() const { return get().y_; }
+    length_t x() const { return get().x_; }
+    length_t y() const { return get().y_; }
 
     void increment_x (int delta_x)
     {

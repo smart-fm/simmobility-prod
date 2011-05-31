@@ -2,7 +2,7 @@
 #include "position.hpp"
 #include "trace.hpp"
 
-namespace mit_sim
+namespace sim_mob
 {
 
 /* static */ BigBrother * BigBrother::instance_ = 0;

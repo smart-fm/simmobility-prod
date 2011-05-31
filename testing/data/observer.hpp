@@ -3,7 +3,7 @@
 
 #include <boost/utility.hpp>
 
-namespace mit_sim
+namespace sim_mob
 {
 
 class Base;

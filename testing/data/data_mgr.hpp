@@ -3,7 +3,7 @@
 
 #include <vector>
 
-namespace mit_sim
+namespace sim_mob
 {
 
 class Base;

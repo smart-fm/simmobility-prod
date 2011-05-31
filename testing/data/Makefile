@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -DDEBUG=1 -I.
+CXXFLAGS = -DDEBUG=1 -I. -W -Wall
 
 OBJS = data_mgr.o big_brother.o
 

@@ -7,11 +7,11 @@
 int
 main()
 {
-    mit_sim::Position pos1 (3, 5);
-    mit_sim::Position pos2 (21, 47);
-    mit_sim::BigBrother::singleton().add (&pos1);
-    mit_sim::BigBrother::singleton().add (&pos2);
-    mit_sim::Integer count (8);
+    sim_mob::Position pos1 (3, 5);
+    sim_mob::Position pos2 (21, 47);
+    sim_mob::BigBrother::singleton().add (&pos1);
+    sim_mob::BigBrother::singleton().add (&pos2);
+    sim_mob::Integer count (8);
     traceln ("pos1=" << pos1 << ", pos2=" << pos2 << ", count=" << count);
 
     pos2.increment_x (4);
@@ -19,7 +19,7 @@ main()
     count.set (count.get() + 1);
     traceln ("pos1=" << pos1 << ", pos2=" << pos2 << ", count=" << count);
 
-    mit_sim::DataManager::singleton().flip();
+    sim_mob::DataManager::singleton().flip();
     traceln ("pos1=" << pos1 << ", pos2=" << pos2 << ", count=" << count);
 
     return 0;

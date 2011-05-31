@@ -8,7 +8,7 @@
 #include <observer.hpp>
 #include <set>
 
-namespace mit_sim
+namespace sim_mob
 {
 
 template <typename T>

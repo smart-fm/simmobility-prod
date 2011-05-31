@@ -4,7 +4,7 @@
 #include <observer.hpp>
 #include <map>
 
-namespace mit_sim
+namespace sim_mob
 {
 
 class BigBrother : public Observer

@@ -1,7 +1,7 @@
 #include "data_mgr.hpp"
 #include "base.hpp"
 
-namespace mit_sim
+namespace sim_mob
 {
 
 /* static */ DataManager * DataManager::instance_ = 0;
@@ -15,7 +15,7 @@ DataManager::add (Base* data)
 void
 DataManager::flip()
 {
-    for (int i = 0; i < datum_.size(); ++i)
+    for (size_t i = 0; i < datum_.size(); ++i)
     {
         datum_[i]->flip();
     }

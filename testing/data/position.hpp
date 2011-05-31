@@ -4,7 +4,7 @@
 #include <Data.hpp>
 #include <iosfwd>
 
-namespace mit_sim
+namespace sim_mob
 {
 
 struct Position_pod

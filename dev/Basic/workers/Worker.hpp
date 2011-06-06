@@ -29,7 +29,7 @@ public:
 	//Thread-style operations
 	virtual void start();
 	virtual void interrupt();
-	//void join();
+	void join();
 
 	//Manage entities
 	void addEntity(void* entity);

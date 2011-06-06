@@ -12,6 +12,7 @@ WorkGroup::WorkGroup(size_t size) : shared_barr(size+1), external_barr(size+1), 
 WorkGroup::~WorkGroup()
 {
 	for (size_t i=0; i<workers.size(); i++) {
+		workers[i]->join();  //NOTE: If we don't join all Workers, we get threading exceptions.
 		delete workers[i];
 	}
 }
@@ -23,6 +24,13 @@ void WorkGroup::startAll()
 		workers[i]->start();
 	}
 }
+
+/*void WorkGroup::joinAll()
+{
+	for (size_t i=0; i<workers.size(); i++) {
+		workers[i]->join();
+	}
+}*/
 
 
 size_t WorkGroup::size()

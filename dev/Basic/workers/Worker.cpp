@@ -18,10 +18,16 @@ void Worker::start()
 	main_thread = boost::thread(boost::bind(&Worker::barrier_mgmt, this));
 }
 
+void Worker::join()
+{
+	main_thread.join();
+}
 
 void Worker::interrupt()
 {
-	main_thread.interrupt();
+	if (main_thread.joinable()) {
+		main_thread.interrupt();
+	}
 }
 
 

@@ -214,6 +214,7 @@ void StepZero(vector<Agent>& agents, vector<Region>& regions, vector<TripChain>&
 	  }
 
 	  //Start
+	  cout <<"   Starting threads..." <<endl;
 	  tripChainWorkers.startAll();
 	  createAgentWorkers.startAll();
 	  choiceSetWorkers.startAll();

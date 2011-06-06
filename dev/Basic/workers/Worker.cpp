@@ -7,14 +7,14 @@ using boost::function;
 
 
 Worker::Worker(function<void(Worker*)>* action, barrier* internal_barr, barrier* external_barr)
-    : internal_barr(internal_barr), external_barr(external_barr), action(action)
+    : internal_barr(internal_barr), external_barr(external_barr), action(action), active(false)
 {
 }
 
 
 void Worker::start()
 {
-	active.set(true).flip();
+	active.force(true);
 	main_thread = boost::thread(boost::bind(&Worker::barrier_mgmt, this));
 }
 
@@ -66,7 +66,11 @@ void Worker::perform_main()
 
 void Worker::perform_flip()
 {
-	active.flip(); //TODO: Put this in a better place
+	//TODO: This is currently incorrect; it flips multiple times because there are
+	//      multiple workers, and BufferedDataManager is static. We need a way to
+	//      associate a BufferedDataManager with each worker, especially if we
+	//      later intend to lay these objects out in memory (for a faster flip)
+	sim_mob::BufferedDataManager::GetInstance().flip();
 }
 
 

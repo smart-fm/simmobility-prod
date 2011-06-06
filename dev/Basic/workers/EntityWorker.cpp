@@ -45,10 +45,10 @@ void EntityWorker::perform_main()
 /**
  * Flip the memory used to store each agent's properties.
  */
-void EntityWorker::perform_flip()
+/*void EntityWorker::perform_flip()
 {
 	Worker::perform_flip();
-}
+}*/
 
 
 void EntityWorker::addEntity(Entity* entity)

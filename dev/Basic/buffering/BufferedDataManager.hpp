@@ -8,10 +8,10 @@
 
 #include <boost/utility.hpp>
 
+#include <iostream>
 
 namespace sim_mob
 {
-
 
 /**
  * Avoid circular dependencies.
@@ -19,8 +19,11 @@ namespace sim_mob
 class BufferedBase : private boost::noncopyable
 {
 public:
-	virtual void flip();
+	virtual void flip() = 0;
     friend class BufferedDataManager;
+
+protected:
+    virtual ~BufferedBase() {}  //GCC complains about non-virtual destructors
 };
 
 

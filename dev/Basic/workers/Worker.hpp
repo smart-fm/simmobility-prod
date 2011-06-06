@@ -19,28 +19,7 @@
 #include <boost/function.hpp>
 
 #include "../entities/Entity.hpp"
-
-
-//An example of a set-able property
-// We will most likely templatize this later, and allow a memory layout within workers
-//   for easy flipping.
-class BoolProp {
-public:
-	BoolProp(bool val=false) : val(val) {}
-	bool get() {
-		return val;
-	}
-	BoolProp& set(bool val) {
-		next = val;
-		return *this;
-	}
-	void flip() {
-		val = next;
-	}
-private:
-	bool val;
-	bool next;
-};
+#include "../buffering/Buffered.hpp"
 
 
 class Worker {
@@ -74,7 +53,7 @@ protected:
 	boost::function<void(Worker*)>* action;
 
 public:
-	BoolProp active;
+	sim_mob::Buffered<bool> active;
 
 private:
 	//Thread management

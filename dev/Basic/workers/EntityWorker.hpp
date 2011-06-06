@@ -15,7 +15,7 @@ class EntityWorker : public Worker {
 public:
 	EntityWorker(boost::function<void(Worker*)>* action =NULL, boost::barrier* internal_barr =NULL, boost::barrier* external_barr =NULL);
 	virtual void perform_main();
-	virtual void perform_flip();
+	//virtual void perform_flip();
 	virtual void start();
 
 	void setSimulationEnd(unsigned int time);

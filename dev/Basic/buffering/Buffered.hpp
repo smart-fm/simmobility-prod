@@ -28,8 +28,12 @@ class Buffered : public BufferedBase
 public:
 	Buffered (const T& value = T());
 
-    T const & get() const;
-    void set (T const & value);
+    const T& get() const;
+    void set (const T& value);
+
+    //We need this for out-of-loop setting (e.g., reading from the config file)
+    //  The other option is to read all properties in "tick 0" then flip once.
+    void force(const T& value);
 
     //void add (Observer * observer);
 
@@ -62,20 +66,27 @@ Buffered<T>::Buffered (const T& value)
 
 
 template <typename T>
-T const & Buffered<T>::get() const
+const T& Buffered<T>::get() const
 {
     return current_;
 }
 
 
 template <typename T>
-void Buffered<T>::set (T const & value)
+void Buffered<T>::set (const T& value)
 {
     if (next_ != value)
     {
         next_ = value;
         is_dirty_ = true;
     }
+}
+
+
+template <typename T>
+void Buffered<T>::force (const T& value)
+{
+	next_ = current_ = value;
 }
 
 

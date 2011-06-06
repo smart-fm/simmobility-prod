@@ -70,8 +70,14 @@ void Worker::perform_flip()
 	//      multiple workers, and BufferedDataManager is static. We need a way to
 	//      associate a BufferedDataManager with each worker, especially if we
 	//      later intend to lay these objects out in memory (for a faster flip)
+
+	//NOTE: This mutex is temporary
+	boost::mutex::scoped_lock temp_lock(TEMP_MUTEX);
 	sim_mob::BufferedDataManager::GetInstance().flip();
 }
+
+//NOTE: This mutex is temporary
+boost::mutex Worker::TEMP_MUTEX;
 
 
 

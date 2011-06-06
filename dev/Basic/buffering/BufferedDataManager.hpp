@@ -22,7 +22,7 @@ public:
 	virtual void flip() = 0;
     friend class BufferedDataManager;
 
-protected:
+//protected:
     virtual ~BufferedBase() {}  //GCC complains about non-virtual destructors
 };
 

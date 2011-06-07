@@ -21,7 +21,9 @@ void BufferedDataManager::add(BufferedBase* datum)
 void BufferedDataManager::flip()
 {
 	for (vector<BufferedBase*>::iterator it=managedData.begin(); it!=managedData.end(); it++) {
-		(*it)->flip();
+		BufferedBool* b = (BufferedBool*)*it;
+
+		b->flip();
 	}
 }
 

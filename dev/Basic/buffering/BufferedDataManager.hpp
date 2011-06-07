@@ -5,6 +5,7 @@
 #pragma once
 
 #include <vector>
+#include <algorithm>
 
 #include <boost/utility.hpp>
 
@@ -23,7 +24,13 @@ protected:
     friend class BufferedDataManager;
 
 //protected:
-    virtual ~BufferedBase() {}  //GCC complains about non-virtual destructors
+    virtual ~BufferedBase() {
+    	//NOTE:This line should go in every sub-class; I'm not putting
+    	//     it here because we can't chain constructors, and I don't want
+    	//     "add" and "rem" in different class specifications.
+    	// ~Seth
+    	//BufferedDataManager::GetInstance().rem(this);
+    }
 };
 
 
@@ -40,6 +47,7 @@ public:
 
     //Data lifecycle management.
     void add (BufferedBase* datum);
+    void rem (BufferedBase* datum);
     void flip();
 
 private:
@@ -63,6 +71,11 @@ public:
 	  , next_ (value)
 	{
 		BufferedDataManager::GetInstance().add(this);
+	}
+
+	~BufferedBool()
+	{
+		BufferedDataManager::GetInstance().rem(this);
 	}
 
 

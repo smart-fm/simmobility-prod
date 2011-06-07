@@ -29,6 +29,7 @@ class Buffered : public BufferedBase
 {
 public:
 	Buffered (const T& value = T());
+	~Buffered();
 
     const T& get() const;
     void set (const T& value);
@@ -64,6 +65,13 @@ Buffered<T>::Buffered (const T& value)
   , next_ (value)
 {
 	BufferedDataManager::GetInstance().add(this);
+}
+
+
+template <typename T>
+Buffered<T>::~Buffered ()
+{
+	BufferedDataManager::GetInstance().rem(this);
 }
 
 

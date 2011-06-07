@@ -53,8 +53,7 @@ protected:
 	boost::function<void(Worker*)>* action;
 
 public:
-	//sim_mob::Buffered<bool> active;
-	sim_mob::BufferedBool active;
+	sim_mob::Buffered<bool> active;
 
 private:
 	//Thread management

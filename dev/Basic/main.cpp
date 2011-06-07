@@ -41,6 +41,8 @@ int main(int argc, char* argv[])
   const unsigned int TIME_STEP = 1; //NOTE: Is this correct?
   const unsigned int simulationStartTime = 3; //Temp.
 
+  { //Temporary scope; attempting to figure out why the program hangs after completing.
+
   //Our work groups
   WorkGroup agentWorkers(WG_AGENTS_SIZE);
   WorkGroup signalStatusWorkers(WG_SIGNALS_SIZE);
@@ -171,6 +173,11 @@ int main(int argc, char* argv[])
 		  cout <<"  " <<"Statistics saved" <<endl;
 	  }
   }
+
+  cout <<"Timesteps complete; closing worker threads." <<endl;
+
+  } //End of temporary scope
+
 
   cout <<"Done" <<endl;
 

@@ -14,15 +14,18 @@
 
 #pragma once
 
+#include <iostream>
+
 #include <vector>
 #include <boost/thread.hpp>
 #include <boost/function.hpp>
 
 #include "../entities/Entity.hpp"
 #include "../buffering/Buffered.hpp"
+#include "../buffering/BufferedDataManager.hpp"
 
 
-class Worker {
+class Worker : public sim_mob::BufferedDataManager {
 public:
 	Worker(boost::function<void(Worker*)>* action =NULL, boost::barrier* internal_barr =NULL, boost::barrier* external_barr =NULL);
 
@@ -61,9 +64,6 @@ private:
 
 	//Object management
 	std::vector<void*> data;
-
-	//Shared data management
-	sim_mob::BufferedDataManager dataMgr;
 };
 
 

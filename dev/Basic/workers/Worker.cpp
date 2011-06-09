@@ -7,7 +7,9 @@ using boost::function;
 
 
 Worker::Worker(function<void(Worker*)>* action, barrier* internal_barr, barrier* external_barr)
-    : internal_barr(internal_barr), external_barr(external_barr), action(action), active(dataMgr, false)
+    : BufferedDataManager(),
+      internal_barr(internal_barr), external_barr(external_barr), action(action),
+      active(*this, false)  //Passing the this pointer is probably ok, since we only use the base class (which is constructed)
 {
 }
 
@@ -73,7 +75,7 @@ void Worker::perform_main()
 void Worker::perform_flip()
 {
 	//Flip all data managed by this worker.
-	dataMgr.flip();
+	this->flip();
 }
 
 

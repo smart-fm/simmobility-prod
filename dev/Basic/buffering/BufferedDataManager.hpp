@@ -53,13 +53,14 @@ class BufferedDataManager
 public:
 	//No longer singleton...
 	BufferedDataManager();
+	~BufferedDataManager();
 
     //Data lifecycle management.
     void add (BufferedBase* datum);
     void rem (BufferedBase* datum);
     void flip();
 
-private:
+//private:
     std::vector<BufferedBase*> managedData;
 };
 

@@ -6,6 +6,24 @@ namespace sim_mob
 using std::vector;
 
 
+////////////////////////////////////////////////////
+// Implementation of our simple BufferedBase class
+////////////////////////////////////////////////////
+BufferedBase::BufferedBase(BufferedDataManager& mgr) : mgr(mgr) {
+	mgr.add(this);
+}
+
+BufferedBase::~BufferedBase() {
+	mgr.rem(this);
+}
+
+
+
+
+////////////////////////////////////////////////////
+// Implementation of our BufferedDataManager
+////////////////////////////////////////////////////
+
 BufferedDataManager::BufferedDataManager()
 {
 }

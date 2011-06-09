@@ -29,7 +29,7 @@ class Buffered : public BufferedBase
 {
 public:
 	Buffered (BufferedDataManager& mgr, const T& value = T());
-	virtual ~Buffered();
+	//virtual ~Buffered();
 
     const T& get() const;
     void set (const T& value);
@@ -59,17 +59,11 @@ private:
 
 
 template <typename T>
-Buffered<T>::Buffered (BufferedDataManager& mgr, const T& value) : BufferedBase(mgr),
+Buffered<T>::Buffered (BufferedDataManager& mgr, const T& value) :
+    BufferedBase(mgr),
     is_dirty_ (false), current_ (value), next_ (value)
 {
-	mgr.add(this);
-}
 
-
-template <typename T>
-Buffered<T>::~Buffered ()
-{
-	mgr.rem(this);
 }
 
 

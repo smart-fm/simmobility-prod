@@ -50,15 +50,64 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext)
 	}
 
     //Perform a series of XPath evaluations
-	std::string basGranVal = evaluateXPath(xpContext, "/config/system/simulation/base_granularity/@value");
-	std::string basGranUnits = evaluateXPath(xpContext, "/config/system/simulation/base_granularity/@units");
+	unsigned int baseGranVal;
+	std::string baseGranValStr = evaluateXPath(xpContext, "/config/system/simulation/base_granularity/@value");
+	std::string baseGranUnits = evaluateXPath(xpContext, "/config/system/simulation/base_granularity/@units");
+	if (!baseGranValStr.empty()) {
+		std::istringstream(baseGranValStr) >> baseGranVal;
+	}
+	unsigned int totalRuntimeVal;
+	std::string totalRuntimeValStr = evaluateXPath(xpContext, "/config/system/simulation/total_runtime/@value");
+	std::string totalRuntimeUnits = evaluateXPath(xpContext, "/config/system/simulation/total_runtime/@units");
+	if (!totalRuntimeValStr.empty()) {
+		std::istringstream(totalRuntimeValStr) >> totalRuntimeVal;
+	}
+	unsigned int totalWarmupVal;
+	std::string totalWarmupValStr = evaluateXPath(xpContext, "/config/system/simulation/total_warmup/@value");
+	std::string totalWarmupUnits = evaluateXPath(xpContext, "/config/system/simulation/total_warmup/@units");
+	if (!totalWarmupValStr.empty()) {
+		std::istringstream(totalWarmupValStr) >> totalWarmupVal;
+	}
 
 	//Check
-    if(basGranVal.empty() || basGranUnits.empty()) {
+    if(		baseGranValStr.empty() || baseGranUnits.empty()
+    	 || totalRuntimeValStr.empty() || totalRuntimeUnits.empty()
+    	 || totalWarmupValStr.empty() || totalWarmupUnits.empty()) {
         return "Unable to evaluate xpath expression";
     }
 
-    std::cout <<"Base granularity: " <<basGranVal <<" " <<basGranUnits <<"\n";
+    //Convert to seconds
+    if (baseGranUnits == "minutes") {
+    	baseGranVal *= 60;
+    	baseGranUnits = "seconds";
+    }
+    if (totalRuntimeUnits == "minutes") {
+    	totalRuntimeVal *= 60;
+    	totalRuntimeUnits = "seconds";
+    }
+    if (totalWarmupUnits == "minutes") {
+    	totalWarmupVal *= 60;
+    	totalWarmupUnits = "seconds";
+    }
+
+    //Double-check
+    if (baseGranUnits!="seconds" || totalRuntimeUnits!="seconds" || totalWarmupUnits!="seconds") {
+    	return "Unable unit specifier: " + baseGranUnits;
+    }
+
+    //Display
+    std::cout <<"Config parameters:\n";
+    std::cout <<"------------------\n";
+    std::cout <<"  Base Granularity: " <<baseGranVal <<" " <<baseGranUnits <<"\n";
+    std::cout <<"  Total Runtime: " <<totalRuntimeVal <<" " <<totalRuntimeUnits <<"\n";
+    if (totalRuntimeVal%baseGranVal != 0) {
+    	std::cout <<"    Warning! This value will be truncated to "<<totalRuntimeVal-(totalRuntimeVal/baseGranVal) <<" " <<totalRuntimeUnits <<"\n";
+    }
+    std::cout <<"  Total Warmup: " <<totalWarmupVal <<" " <<totalWarmupUnits <<"\n";
+    if (totalWarmupVal%baseGranVal != 0) {
+    	std::cout <<"    Warning! This value will be truncated to "<<totalWarmupVal-(totalWarmupVal%baseGranVal) <<" " <<totalRuntimeUnits <<"\n";
+    }
+    std::cout <<"------------------\n";
 
 	//No error
 	return "";

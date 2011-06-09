@@ -24,9 +24,9 @@ BufferedBase::~BufferedBase() {
 // Implementation of our BufferedDataManager
 ////////////////////////////////////////////////////
 
-BufferedDataManager::BufferedDataManager()
+/*BufferedDataManager::BufferedDataManager()
 {
-}
+}*/
 
 /*BufferedDataManager::~BufferedDataManager()
 {

@@ -5,11 +5,9 @@ namespace sim_mob
 
 using std::vector;
 
-BufferedDataManager BufferedDataManager::instance_;
 
-BufferedDataManager& BufferedDataManager::GetInstance()
+BufferedDataManager::BufferedDataManager()
 {
-	return instance_;
 }
 
 

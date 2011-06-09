@@ -14,6 +14,10 @@
 namespace sim_mob
 {
 
+
+class BufferedDataManager;
+
+
 /**
  * Avoid circular dependencies.
  */
@@ -22,7 +26,10 @@ class BufferedBase : private boost::noncopyable
 protected:
 	virtual void flip() = 0;
 
-//protected:
+	BufferedBase(BufferedDataManager& mgr) : mgr(mgr) {
+
+	}
+
     virtual ~BufferedBase() {
     	//NOTE:This line should go in every sub-class; I'm not putting
     	//     it here because we can't chain constructors, and I don't want
@@ -30,6 +37,8 @@ protected:
     	// ~Seth
     	//BufferedDataManager::GetInstance().rem(this);
     }
+
+    BufferedDataManager& mgr;
 
     //Allow access to protected methods by BufferedDataManager.
     friend class BufferedDataManager;
@@ -42,10 +51,8 @@ protected:
 class BufferedDataManager
 {
 public:
-	/**
-	 * The original singleton design pattern recommends naming this "GetInstance()"
-	 */
-    static BufferedDataManager& GetInstance();
+	//No longer singleton...
+	BufferedDataManager();
 
     //Data lifecycle management.
     void add (BufferedBase* datum);
@@ -53,11 +60,6 @@ public:
     void flip();
 
 private:
-    //Ensure our class cannot be instantiated directly.
-    BufferedDataManager() {}
-
-    static BufferedDataManager instance_;
-
     std::vector<BufferedBase*> managedData;
 };
 

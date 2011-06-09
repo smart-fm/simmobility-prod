@@ -62,8 +62,8 @@ private:
 	//Object management
 	std::vector<void*> data;
 
-	//TEMP: Needed for a workaround.
-	 static boost::mutex TEMP_MUTEX;
+	//Shared data management
+	sim_mob::BufferedDataManager dataMgr;
 };
 
 

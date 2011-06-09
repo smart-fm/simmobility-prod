@@ -7,7 +7,7 @@ using boost::function;
 
 
 Worker::Worker(function<void(Worker*)>* action, barrier* internal_barr, barrier* external_barr)
-    : internal_barr(internal_barr), external_barr(external_barr), action(action), active(false)
+    : internal_barr(internal_barr), external_barr(external_barr), action(action), active(dataMgr, false)
 {
 }
 
@@ -72,18 +72,10 @@ void Worker::perform_main()
 
 void Worker::perform_flip()
 {
-	//TODO: This is currently incorrect; it flips multiple times because there are
-	//      multiple workers, and BufferedDataManager is static. We need a way to
-	//      associate a BufferedDataManager with each worker, especially if we
-	//      later intend to lay these objects out in memory (for a faster flip)
-
-	//NOTE: This mutex is temporary
-	boost::mutex::scoped_lock temp_lock(TEMP_MUTEX);
-	sim_mob::BufferedDataManager::GetInstance().flip();
+	//Flip all data managed by this worker.
+	dataMgr.flip();
 }
 
-//NOTE: This mutex is temporary
-boost::mutex Worker::TEMP_MUTEX;
 
 
 

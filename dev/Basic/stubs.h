@@ -11,22 +11,6 @@
 
 
 //Function stubs
-void loadUserConf(std::vector<Agent>& agents, std::vector<Region>& regions,
-		          std::vector<TripChain>& trips, std::vector<ChoiceSet>& chSets,
-		          std::vector<Vehicle>& vehicles)
-{
-	for (size_t i=0; i<20; i++)
-		agents.push_back(Agent(i));
-	for (size_t i=0; i<5; i++)
-		regions.push_back(Region(i));
-	for (size_t i=0; i<6; i++)
-		trips.push_back(TripChain(i));
-	for (size_t i=0; i<15; i++)
-		chSets.push_back(ChoiceSet(i));
-	for (size_t i=0; i<10; i++)
-		vehicles.push_back(Vehicle(i));
-	std::cout <<"Configuration file loaded." <<std::endl;
-}
 void setConfiguration() {
 	std::cout <<"Server is configured." <<std::endl;
 }

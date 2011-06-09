@@ -3,6 +3,7 @@
  */
 #include <iostream>
 #include <vector>
+#include <string>
 #include <boost/thread.hpp>
 
 #include "simple_classes.h"
@@ -13,6 +14,8 @@
 #include "workers/EntityWorker.hpp"
 #include "workers/ShortestPathWorker.hpp"
 #include "WorkGroup.hpp"
+
+#include "conf/simpleconf.hpp"
 
 using std::cout;
 using std::endl;
@@ -54,7 +57,9 @@ int main(int argc, char* argv[])
   vector<TripChain> trips;
   vector<ChoiceSet> choiceSets;
   vector<Vehicle> vehicles;
-  loadUserConf(agents, regions, trips, choiceSets, vehicles);   //Note: Agent "shells" are loaded here.
+  if (!loadUserConf(agents, regions, trips, choiceSets, vehicles)) {   //Note: Agent "shells" are loaded here.
+	  return 1;
+  }
 
   //Initialize our work groups, assign agents randomly to these groups.
   agentWorkers.initWorkers<EntityWorker>();

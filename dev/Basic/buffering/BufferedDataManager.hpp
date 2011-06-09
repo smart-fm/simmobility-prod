@@ -53,7 +53,7 @@ class BufferedDataManager
 public:
 	//No longer singleton...
 	BufferedDataManager();
-	~BufferedDataManager();
+	//~BufferedDataManager();
 
     //Data lifecycle management.
     void add (BufferedBase* datum);

@@ -10,11 +10,12 @@ BufferedDataManager::BufferedDataManager()
 {
 }
 
-BufferedDataManager::~BufferedDataManager()
+/*BufferedDataManager::~BufferedDataManager()
 {
 	//Avoid possible invalid pointers
+	//EDIT: That didn't actually make any sense.
 	managedData.clear();
-}
+}*/
 
 
 void BufferedDataManager::add(BufferedBase* datum)

@@ -14,11 +14,21 @@ namespace {
 std::string evaluateXPath(xmlXPathContext* xpContext, const std::string& expression)
 {
 	xmlXPathObject* xpObject = xmlXPathEvalExpression((xmlChar*)expression.c_str(), xpContext);
-	if (xpObject==NULL || xpObject->stringval==NULL) {
+	if (xpObject==NULL) {
 		return "";
 	}
 
-	std::string res = (char*)xpObject->stringval;
+	//Ensure there's only one attribute result
+	if (xpObject->nodesetval->nodeNr!=1) {
+		return "";
+	}
+
+	//Get it.
+	xmlNode* curr = *xpObject->nodesetval->nodeTab;
+
+	//Get its content
+	// TODO: Something tells me curr->children->content isn't the right way to do things with XPath
+	std::string res = (char*)curr->children->content;
 	if (xpObject != NULL) {
 		xmlXPathFreeObject(xpObject);
 	}

@@ -23,10 +23,23 @@ BufferedBase::~BufferedBase() {
 
 BufferedBase& BufferedBase::operator=(const BufferedBase& rhs)
 {
+	//If we were being managed, we're not any more.
+	if (this->mgr!=NULL) {
+		mgr->rem(this);
+	}
+
 	this->mgr = rhs.mgr;
+
+	//Need to register this class with the new maanger.
+	if (this->mgr!=NULL) {
+		mgr->add(this);
+	}
+
 	return *this;
 }
 
+
+//This function might be named wrongly, since it only accomplishes half of the migration.
 void BufferedBase::migrate(sim_mob::BufferedDataManager* newMgr)
 {
 	mgr = newMgr;

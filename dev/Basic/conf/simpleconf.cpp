@@ -20,6 +20,7 @@ std::string evaluateXPath(xmlXPathContext* xpContext, const std::string& express
 
 	//Ensure there's only one attribute result
 	if (xpObject->nodesetval->nodeNr!=1) {
+		xmlXPathFreeObject(xpObject);
 		return "";
 	}
 
@@ -29,9 +30,7 @@ std::string evaluateXPath(xmlXPathContext* xpContext, const std::string& express
 	//Get its content
 	// TODO: Something tells me curr->children->content isn't the right way to do things with XPath
 	std::string res = (char*)curr->children->content;
-	if (xpObject != NULL) {
-		xmlXPathFreeObject(xpObject);
-	}
+	xmlXPathFreeObject(xpObject);
 	return res;
 }
 
@@ -69,7 +68,63 @@ int getValueInMS(const std::string& valueStr, const std::string& unitsStr)
 
 
 
-std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext)
+bool loadXMLAgents(xmlXPathContext* xpContext, std::vector<Agent>& agents)
+{
+	std::string expression = "/config/pedestrians/pedestrian";
+	xmlXPathObject* xpObject = xmlXPathEvalExpression((xmlChar*)expression.c_str(), xpContext);
+	if (xpObject==NULL) {
+		return false;
+	}
+
+	//Move through results
+	agents.clear();
+	for (xmlNode** it=xpObject->nodesetval->nodeTab; it!=NULL; it++) {
+		xmlNode* curr = *it;
+		Agent agent;
+		unsigned int flagCheck = 0;
+		for (xmlAttr* attrs=curr->properties; attrs!=NULL; attrs=attrs->next) {
+			//Read each attribute.
+			std::string name = (char*)attrs->name;
+			std::string value = (char*)attrs->children->content;
+			if (name.empty() || value.empty()) {
+				return false;
+			}
+			int valueI;
+			std::istringstream(value) >> valueI;
+
+			//Assign it.
+			if (name=="id") {
+				agent = Agent(valueI);
+				flagCheck |= 1;
+			} else if (name=="xPos") {
+				agent.xPos.force(valueI);
+				flagCheck |= 2;
+			} else if (name=="yPos") {
+				agent.yPos.force(valueI);
+				flagCheck |= 4;
+			} else {
+				return false;
+			}
+		}
+
+		if (flagCheck!=7) {
+			return false;
+		}
+
+		//Save it.
+		agents.push_back(agent);
+	}
+
+
+
+
+	xmlXPathFreeObject(xpObject);
+	return true;
+}
+
+
+
+std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vector<Agent>& agents)
 {
 	//Ensure we loaded a real document
 	if (document==NULL) {
@@ -126,6 +181,11 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext)
     	return "Decomposition granularity not a multiple of base granularity.";
     }
 
+    //Load agents
+    if (!loadXMLAgents(xpContext, agents)) {
+    	return "Couldn't load agents";
+    }
+
     //Display
     std::cout <<"Config parameters:\n";
     std::cout <<"------------------\n";
@@ -142,6 +202,7 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext)
     std::cout <<"  Signal Granularity: " <<granSignal <<" " <<"ms" <<"\n";
     std::cout <<"  Paths Granularity: " <<granPaths <<" " <<"ms" <<"\n";
     std::cout <<"  Decomp Granularity: " <<granDecomp <<" " <<"ms" <<"\n";
+    std::cout <<"  Agents Initialized: " <<agents.size() <<"\n";
     std::cout <<"------------------\n";
 
 	//No error
@@ -163,7 +224,7 @@ bool loadUserConf(std::vector<Agent>& agents, std::vector<Region>& regions,
 
 	//Load an XML document containing our config file.
 	document = xmlParseFile("data/config.xml");
-	std::string errorMsg = loadXMLConf(document, xpContext);
+	std::string errorMsg = loadXMLConf(document, xpContext, agents);
 	if (errorMsg.empty()) {
 		std::cout <<"XML config file loaded." <<std::endl;
 	} else {
@@ -180,8 +241,8 @@ bool loadUserConf(std::vector<Agent>& agents, std::vector<Region>& regions,
 
 
 	//TEMP:
-	for (size_t i=0; i<20; i++)
-		agents.push_back(Agent(i));
+	//for (size_t i=0; i<20; i++)
+	//	agents.push_back(Agent(i));
 	for (size_t i=0; i<5; i++)
 		regions.push_back(Region(i));
 	for (size_t i=0; i<6; i++)

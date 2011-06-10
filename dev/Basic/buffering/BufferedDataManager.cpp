@@ -9,12 +9,21 @@ using std::vector;
 ////////////////////////////////////////////////////
 // Implementation of our simple BufferedBase class
 ////////////////////////////////////////////////////
-BufferedBase::BufferedBase(BufferedDataManager& mgr) : mgr(mgr) {
-	mgr.add(this);
+BufferedBase::BufferedBase(BufferedDataManager* mgr) : mgr(mgr) {
+	if (mgr!=NULL) {
+		mgr.add(this);
+	}
 }
 
 BufferedBase::~BufferedBase() {
-	mgr.rem(this);
+	if (mgr!=NULL) {
+		mgr.rem(this);
+	}
+}
+
+void BufferedBase::migrate(sim_mob::BufferedDataManager* newMgr)
+{
+	mgr = newMgr;
 }
 
 

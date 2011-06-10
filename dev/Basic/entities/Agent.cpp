@@ -1,7 +1,7 @@
 #include "Agent.hpp"
 
 
-Agent::Agent(unsigned int id) : Entity(id) {
+Agent::Agent(unsigned int id) : Entity(id), xPos(NULL, 0), yPos(NULL, 0) {
 	int currMode = id%4;
 
 	//TODO: Inheritance, inheritance, inheritance
@@ -25,6 +25,19 @@ void Agent::update() {
 	} else if (currMode==PASSENGER) {
 		updatePassengerBehavior(*this);
 	}
+}
+
+
+void Agent::subscribe(sim_mob::BufferedDataManager* mgr, bool isNew)
+{
+	if (isNew) {
+		xPos.migrate(mgr);
+		yPos.migrate(mgr);
+	} else {
+		xPos.migrate(NULL);
+		yPos.migrate(NULL);
+	}
+
 }
 
 

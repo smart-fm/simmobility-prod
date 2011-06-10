@@ -9,7 +9,7 @@ using boost::function;
 Worker::Worker(function<void(Worker*)>* action, barrier* internal_barr, barrier* external_barr)
     : BufferedDataManager(),
       internal_barr(internal_barr), external_barr(external_barr), action(action),
-      active(*this, false)  //Passing the this pointer is probably ok, since we only use the base class (which is constructed)
+      active(this, false)  //Passing the "this" pointer is probably ok, since we only use the base class (which is constructed)
 {
 }
 

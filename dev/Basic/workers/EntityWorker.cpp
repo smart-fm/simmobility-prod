@@ -54,13 +54,16 @@ void EntityWorker::perform_main()
 void EntityWorker::addEntity(Entity* entity)
 {
 	entities.push_back(entity);
+	entity->subscribe(this, true);
 }
 
 void EntityWorker::remEntity(Entity* entity)
 {
 	vector<Entity*>::iterator it = std::find(entities.begin(), entities.end(), entity);
-	if (it!=entities.end())
+	if (it!=entities.end()) {
 		entities.erase(it);
+	}
+	entity->subscribe(this, false);
 }
 
 vector<Entity*>& EntityWorker::getEntities() {

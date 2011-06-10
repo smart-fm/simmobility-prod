@@ -28,7 +28,7 @@ template <typename T>
 class Buffered : public BufferedBase
 {
 public:
-	Buffered (BufferedDataManager& mgr, const T& value = T());
+	Buffered (BufferedDataManager* mgr, const T& value = T());
 	//virtual ~Buffered();
 
     const T& get() const;
@@ -59,7 +59,7 @@ private:
 
 
 template <typename T>
-Buffered<T>::Buffered (BufferedDataManager& mgr, const T& value) :
+Buffered<T>::Buffered (BufferedDataManager* mgr, const T& value) :
     BufferedBase(mgr),
     is_dirty_ (false), current_ (value), next_ (value)
 {

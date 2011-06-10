@@ -21,6 +21,7 @@ public:
 	Region(unsigned int id=0);
 
 	virtual void update();
+	virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew) {} //Nothing for now.
 
 private:
 	std::vector<Signal> signals;

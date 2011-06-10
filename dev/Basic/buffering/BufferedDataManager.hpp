@@ -23,8 +23,11 @@ class BufferedDataManager;
  */
 class BufferedBase : private boost::noncopyable
 {
+public:
+	void migrate(sim_mob::BufferedDataManager* newMgr);
+
 protected:
-	BufferedBase(BufferedDataManager& mgr);
+	BufferedBase(BufferedDataManager* mgr);
     virtual ~BufferedBase();
 
 	virtual void flip() = 0;
@@ -33,7 +36,7 @@ protected:
     friend class BufferedDataManager;
 
 private:
-    BufferedDataManager& mgr;
+    BufferedDataManager* mgr;
 
 };
 

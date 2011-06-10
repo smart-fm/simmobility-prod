@@ -6,6 +6,8 @@
 
 #include "../constants.h"
 #include "Entity.hpp"
+#include "../buffering/Buffered.hpp"
+#include "../buffering/BufferedDataManager.hpp"
 
 
 //Driver modes
@@ -22,8 +24,13 @@ public:
 	Agent(unsigned int id=0);
 
 	virtual void update();
+	virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew);
 
 	void updateShortestPath();
+
+public:
+	sim_mob::Buffered<unsigned int> xPos;
+	sim_mob::Buffered<unsigned int> yPos;
 
 private:
 	unsigned int currMode;

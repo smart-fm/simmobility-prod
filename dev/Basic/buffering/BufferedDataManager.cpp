@@ -11,14 +11,20 @@ using std::vector;
 ////////////////////////////////////////////////////
 BufferedBase::BufferedBase(BufferedDataManager* mgr) : mgr(mgr) {
 	if (mgr!=NULL) {
-		mgr.add(this);
+		mgr->add(this);
 	}
 }
 
 BufferedBase::~BufferedBase() {
 	if (mgr!=NULL) {
-		mgr.rem(this);
+		mgr->rem(this);
 	}
+}
+
+BufferedBase& BufferedBase::operator=(const BufferedBase& rhs)
+{
+	this->mgr = rhs.mgr;
+	return *this;
 }
 
 void BufferedBase::migrate(sim_mob::BufferedDataManager* newMgr)

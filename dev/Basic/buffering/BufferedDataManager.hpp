@@ -21,7 +21,10 @@ class BufferedDataManager;
 /**
  * Avoid circular dependencies.
  */
-class BufferedBase : private boost::noncopyable
+//NOTE: This used to be non-copyable, but we are allowing subclasses to access the constructor/destructor
+//      and we are defining an "equals" function which is relatively safe. So there's no reason to make it
+//      uncopyable....
+class BufferedBase /*: private boost::noncopyable*/
 {
 public:
 	void migrate(sim_mob::BufferedDataManager* newMgr);
@@ -29,6 +32,7 @@ public:
 protected:
 	BufferedBase(BufferedDataManager* mgr);
     virtual ~BufferedBase();
+    virtual BufferedBase& operator=(const BufferedBase& rhs);
 
 	virtual void flip() = 0;
 

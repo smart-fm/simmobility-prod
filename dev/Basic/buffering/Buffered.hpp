@@ -29,7 +29,7 @@ class Buffered : public BufferedBase
 {
 public:
 	Buffered (BufferedDataManager* mgr, const T& value = T());
-	//virtual ~Buffered();
+	virtual Buffered& operator=(const Buffered& rhs);
 
     const T& get() const;
     void set (const T& value);
@@ -64,6 +64,17 @@ Buffered<T>::Buffered (BufferedDataManager* mgr, const T& value) :
     is_dirty_ (false), current_ (value), next_ (value)
 {
 
+}
+
+template <typename T>
+Buffered<T>& Buffered<T>::operator=(const Buffered<T>& rhs)
+{
+	BufferedBase::operator =(rhs);
+	this->is_dirty_ = rhs.is_dirty_;
+	this->current_ = rhs.current_;
+	this->next_ = rhs.next_;
+
+	return *this;
 }
 
 

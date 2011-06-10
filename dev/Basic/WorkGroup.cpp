@@ -25,13 +25,6 @@ void WorkGroup::startAll()
 	}
 }
 
-/*void WorkGroup::joinAll()
-{
-	for (size_t i=0; i<workers.size(); i++) {
-		workers[i]->join();
-	}
-}*/
-
 
 size_t WorkGroup::size()
 {

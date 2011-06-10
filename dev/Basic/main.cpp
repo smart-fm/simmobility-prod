@@ -55,10 +55,6 @@ bool performMain()
   for (size_t i=0; i<agents.size(); i++) {
 	  agentWorkers.migrate(&agents[i], -1, i%WG_AGENTS_SIZE);
   }
-  /*for (size_t i=0; i<agentWorkers.size(); i++) {
-	  //TODO: This doesn't take multiple granularities into account. Need to fix.
-	  ((EntityWorker&)agentWorkers.getWorker(i)).setSimulationEnd(TOTAL_TIME*TIME_STEP);
-  }*/
 
   //Initialize our signal status work groups
   //  TODO: There needs to be a more general way to do this.
@@ -67,9 +63,6 @@ bool performMain()
   for (size_t i=0; i<regions.size(); i++) {
 	  signalStatusWorkers.migrate(&regions[i], -1, i%WG_SIGNALS_SIZE);
   }
-  /*for (size_t i=0; i<signalStatusWorkers.size(); i++) {
-	  ((EntityWorker&)signalStatusWorkers.getWorker(i)).setSimulationEnd(TOTAL_TIME*TIME_STEP);
-  }*/
 
   //Initialize our shortest path work groups
   //  TODO: There needs to be a more general way to do this.
@@ -78,9 +71,6 @@ bool performMain()
   for (size_t i=0; i<agents.size(); i++) {
 	  shortestPathWorkers.migrate(&agents[i], -1, i%WG_SHORTEST_PATH_SIZE);
   }
-  /*for (size_t i=0; i<shortestPathWorkers.size(); i++) {
-	  ((EntityWorker&)shortestPathWorkers.getWorker(i)).setSimulationEnd((TOTAL_TIME*TIME_STEP)/shortestPathLoopTimeStep);
-  }*/
 
   //Initialization: Server configuration
   setConfiguration();
@@ -136,16 +126,10 @@ bool performMain()
 
 	  //Longer Time-based cycle
 	  //TODO: Put these on Worker threads too.
+	  agentDecomposition(agents);
 
-	  //if (currTime%agentDecom`positionTimeStep == 0) {
-		  //Thread controller / processor affinity / Load Balancer
-		  agentDecomposition(agents);
-
-		  //One Queue is created for each core
-		  updateVehicleQueue(vehicles);
-
-		  //cout <<"  " <<"Longer-time cycle" <<endl;
-	  //}
+	  //One Queue is created for each core
+	  updateVehicleQueue(vehicles);
 
 	  //Agent-based cycle
 	  agentWorkers.wait();
@@ -161,16 +145,10 @@ bool performMain()
 		  cout <<"  " <<"(Warmup, output ignored)" <<endl;
 	  }
 
-	  //Longer Time-based cycle
-	  //TODO: Put this on a worker thread
-	  //if (currTime%objectMgmtTimeStep == 0) {
-		  saveStatisticsToDB(agents);
-
-	//	  cout <<"  " <<"Statistics saved" <<endl;
-	 // }
+	  saveStatisticsToDB(agents);
   }
 
-  cout <<"Timesteps complete; closing worker threads." <<endl;
+  cout <<"Simulation complete; closing worker threads." <<endl;
   return true;
 }
 

@@ -78,7 +78,7 @@ bool loadXMLAgents(xmlXPathContext* xpContext, std::vector<Agent>& agents)
 
 	//Move through results
 	agents.clear();
-	for (xmlNode** it=xpObject->nodesetval->nodeTab; it!=NULL; it++) {
+	for (xmlNode** it=xpObject->nodesetval->nodeTab; *it!=NULL; it++) {
 		xmlNode* curr = *it;
 		Agent agent;
 		unsigned int flagCheck = 0;
@@ -203,6 +203,9 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vecto
     std::cout <<"  Paths Granularity: " <<granPaths <<" " <<"ms" <<"\n";
     std::cout <<"  Decomp Granularity: " <<granDecomp <<" " <<"ms" <<"\n";
     std::cout <<"  Agents Initialized: " <<agents.size() <<"\n";
+    for (size_t i=0; i<agents.size(); i++) {
+    	std::cout <<"    Agents[" <<agents[i].getId() <<"] = " <<agents[i].xPos.get() <<"," <<agents[i].yPos.get() <<"\n";
+    }
     std::cout <<"------------------\n";
 
 	//No error

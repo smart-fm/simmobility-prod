@@ -34,16 +34,8 @@ void StepZero(vector<Agent>& agents, vector<Region>& regions, vector<TripChain>&
 
 
 
-
-int main(int argc, char* argv[])
+bool performMain()
 {
-  //Some assumed properties
-  //const unsigned int TOTAL_TIME = 21; //Temp.
-  //const unsigned int TIME_STEP = 1; //NOTE: Is this correct?
-  //const unsigned int simulationStartTime = 3; //Temp.
-
-  { //Temporary scope; attempting to figure out why the program hangs after completing.
-
   //Initialization: Scenario definition
   vector<Agent> agents;
   vector<Region> regions;
@@ -53,7 +45,7 @@ int main(int argc, char* argv[])
 
   //Load our user config file; save a handle to the shared definition of it.
   if (!ConfigParams::InitUserConf(agents, regions, trips, choiceSets, vehicles)) {   //Note: Agent "shells" are loaded here.
-	  return 1;
+	  return false;
   }
   const ConfigParams& config = ConfigParams::GetInstance();
 
@@ -111,7 +103,7 @@ int main(int argc, char* argv[])
 
   //Sanity check (simple)
   if (!checkIDs(agents, trips, choiceSets, vehicles)) {
-	  return 1;
+	  return false;
   }
 
   //Output
@@ -179,13 +171,17 @@ int main(int argc, char* argv[])
   }
 
   cout <<"Timesteps complete; closing worker threads." <<endl;
+  return true;
+}
 
-  } //End of temporary scope
 
+int main(int argc, char* argv[])
+{
+  int returnVal = performMain() ? 0 : 1;
 
   cout <<"Done" <<endl;
 
-  return 0;
+  return returnVal;
 }
 
 

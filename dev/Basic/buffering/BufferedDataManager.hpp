@@ -24,7 +24,7 @@ class BufferedDataManager;
 //NOTE: This used to be non-copyable, but we are allowing subclasses to access the constructor/destructor
 //      and we are defining an "equals" function which is relatively safe. So there's no reason to make it
 //      uncopyable....
-class BufferedBase /*: private boost::noncopyable*/
+class BufferedBase
 {
 public:
 	void migrate(sim_mob::BufferedDataManager* newMgr);
@@ -49,16 +49,12 @@ private:
 class BufferedDataManager
 {
 public:
-	//No longer singleton...
-	//BufferedDataManager();
-	//~BufferedDataManager();
-
     //Data lifecycle management.
     void add (BufferedBase* datum);
     void rem (BufferedBase* datum);
     void flip();
 
-//private:
+private:
     std::vector<BufferedBase*> managedData;
 };
 

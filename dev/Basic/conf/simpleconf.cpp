@@ -186,22 +186,34 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vecto
     	return "Couldn't load agents";
     }
 
+    //Save
+    {
+    	ConfigParams& config = ConfigParams::GetInstance();
+    	config.baseGranMS = baseGran;
+    	config.totalRuntimeMS = totalRuntime-(totalRuntime%baseGran);
+    	config.totalWarmupMS = totalWarmup-(totalWarmup%baseGran);
+    	config.granAgentsMS = granAgent;
+    	config.granSignalsMS = granSignal;
+    	config.granPathsMS = granPaths;
+    	config.granDecompMS = granDecomp;
+    }
+
     //Display
     std::cout <<"Config parameters:\n";
     std::cout <<"------------------\n";
-    std::cout <<"  Base Granularity: " <<baseGran <<" " <<"ms" <<"\n";
-    std::cout <<"  Total Runtime: " <<totalRuntime <<" " <<"ms" <<"\n";
-    if (totalRuntime%baseGran != 0) {
-    	std::cout <<"    Warning! This value will be truncated to "<<totalRuntime-(totalRuntime/baseGran) <<" " <<"ms" <<"\n";
+    std::cout <<"  Base Granularity: " <<ConfigParams::GetInstance().baseGranMS <<" " <<"ms" <<"\n";
+    std::cout <<"  Total Runtime: " <<ConfigParams::GetInstance().totalRuntimeMS <<" " <<"ms" <<"\n";
+    if (ConfigParams::GetInstance().totalRuntimeMS != (unsigned int)totalRuntime) {
+    	std::cout <<"    Warning! This value was truncated from "<<totalRuntime <<" " <<"ms" <<"\n";
     }
-    std::cout <<"  Total Warmup: " <<totalWarmup <<" " <<"ms" <<"\n";
-    if (totalWarmup%baseGran != 0) {
-    	std::cout <<"    Warning! This value will be truncated to "<<totalWarmup-(totalWarmup%baseGran) <<" " <<"ms" <<"\n";
+    std::cout <<"  Total Warmup: " <<ConfigParams::GetInstance().totalWarmupMS <<" " <<"ms" <<"\n";
+    if (ConfigParams::GetInstance().totalWarmupMS != (unsigned int)totalWarmup) {
+    	std::cout <<"    Warning! This value was truncated from "<<totalWarmup <<" " <<"ms" <<"\n";
     }
-    std::cout <<"  Agent Granularity: " <<granAgent <<" " <<"ms" <<"\n";
-    std::cout <<"  Signal Granularity: " <<granSignal <<" " <<"ms" <<"\n";
-    std::cout <<"  Paths Granularity: " <<granPaths <<" " <<"ms" <<"\n";
-    std::cout <<"  Decomp Granularity: " <<granDecomp <<" " <<"ms" <<"\n";
+    std::cout <<"  Agent Granularity: " <<ConfigParams::GetInstance().granAgentsMS <<" " <<"ms" <<"\n";
+    std::cout <<"  Signal Granularity: " <<ConfigParams::GetInstance().granSignalsMS <<" " <<"ms" <<"\n";
+    std::cout <<"  Paths Granularity: " <<ConfigParams::GetInstance().granPathsMS <<" " <<"ms" <<"\n";
+    std::cout <<"  Decomp Granularity: " <<ConfigParams::GetInstance().granDecompMS <<" " <<"ms" <<"\n";
     std::cout <<"  Agents Initialized: " <<agents.size() <<"\n";
     for (size_t i=0; i<agents.size(); i++) {
     	std::cout <<"    Agent(" <<agents[i].getId() <<") = " <<agents[i].xPos.get() <<"," <<agents[i].yPos.get() <<"\n";
@@ -215,8 +227,26 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vecto
 }
 
 
+//////////////////////////////////////////
+// Simple singleton implementation
+//////////////////////////////////////////
+ConfigParams ConfigParams::instance;
+ConfigParams::ConfigParams() {
 
-bool loadUserConf(std::vector<Agent>& agents, std::vector<Region>& regions,
+}
+ConfigParams& ConfigParams::GetInstance() {
+	return ConfigParams::instance;
+}
+
+
+
+
+
+//////////////////////////////////////////
+// Main external method
+//////////////////////////////////////////
+
+bool ConfigParams::InitUserConf(std::vector<Agent>& agents, std::vector<Region>& regions,
 		          std::vector<TripChain>& trips, std::vector<ChoiceSet>& chSets,
 		          std::vector<Vehicle>& vehicles)
 {
@@ -244,8 +274,6 @@ bool loadUserConf(std::vector<Agent>& agents, std::vector<Region>& regions,
 
 
 	//TEMP:
-	//for (size_t i=0; i<20; i++)
-	//	agents.push_back(Agent(i));
 	for (size_t i=0; i<5; i++)
 		regions.push_back(Region(i));
 	for (size_t i=0; i<6; i++)

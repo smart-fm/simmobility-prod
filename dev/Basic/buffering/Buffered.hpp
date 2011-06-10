@@ -132,12 +132,13 @@ void Buffered<T>::notify()
 }*/
 
 
-//Should this also output the "to be set" value?
-// ~Seth
 template <typename T>
 std::ostream & operator<< (std::ostream & stream, Buffered<T> const & data)
 {
     stream << data.get();
+    if (data.current_ != data.next_) {
+    	stream <<"(" <<data.next_ <<")";
+    }
     return stream;
 }
 

@@ -26,7 +26,6 @@ public:
 
 	Worker& getWorker(size_t id);
 	void startAll();
-	//void joinAll();
 	void interrupt();
 	size_t size();
 
@@ -35,8 +34,6 @@ public:
 	//TODO: Move this to the Worker, not the work group.
 	void migrate(void * ag, int fromID, int toID);
 
-private:
-	//bool allWorkersUsed();
 
 private:
 	//Shared barrier

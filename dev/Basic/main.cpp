@@ -34,9 +34,7 @@ void StepZero(vector<Agent>& agents, vector<Region>& regions, vector<TripChain>&
 
 
 
-//NOTE: boost::thread and std::thread have a few minor differences. Boost::threads appear to
-//      "join" automatically on destruction, and std::threads don't. For now, I explicitly
-//      forced threads to "join".
+
 int main(int argc, char* argv[])
 {
   //Some assumed properties
@@ -57,9 +55,12 @@ int main(int argc, char* argv[])
   vector<TripChain> trips;
   vector<ChoiceSet> choiceSets;
   vector<Vehicle> vehicles;
-  if (!loadUserConf(agents, regions, trips, choiceSets, vehicles)) {   //Note: Agent "shells" are loaded here.
+
+  //Load our user config file; save a handle to the shared definition of it.
+  if (!ConfigParams::InitUserConf(agents, regions, trips, choiceSets, vehicles)) {   //Note: Agent "shells" are loaded here.
 	  return 1;
   }
+  const ConfigParams& config = ConfigParams::GetInstance();
 
   //Initialize our work groups, assign agents randomly to these groups.
   agentWorkers.initWorkers<EntityWorker>();

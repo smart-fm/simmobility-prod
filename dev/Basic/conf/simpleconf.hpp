@@ -24,13 +24,13 @@
 class ConfigParams : private boost::noncopyable {
 public:
 	unsigned int baseGranMS;
-	unsigned int totalRuntimeMS;
-	unsigned int totalWarmupMS;
+	unsigned int totalRuntimeTicks;
+	unsigned int totalWarmupTicks;
 
-	unsigned int granAgentsMS;
-	unsigned int granSignalsMS;
-	unsigned int granPathsMS;
-	unsigned int granDecompMS;
+	unsigned int granAgentsTicks;
+	unsigned int granSignalsTicks;
+	unsigned int granPathsTicks;
+	unsigned int granDecompTicks;
 
 public:
 	static ConfigParams& GetInstance();

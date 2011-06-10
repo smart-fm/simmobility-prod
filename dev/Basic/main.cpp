@@ -38,16 +38,11 @@ void StepZero(vector<Agent>& agents, vector<Region>& regions, vector<TripChain>&
 int main(int argc, char* argv[])
 {
   //Some assumed properties
-  const unsigned int TOTAL_TIME = 21; //Temp.
-  const unsigned int TIME_STEP = 1; //NOTE: Is this correct?
-  const unsigned int simulationStartTime = 3; //Temp.
+  //const unsigned int TOTAL_TIME = 21; //Temp.
+  //const unsigned int TIME_STEP = 1; //NOTE: Is this correct?
+  //const unsigned int simulationStartTime = 3; //Temp.
 
   { //Temporary scope; attempting to figure out why the program hangs after completing.
-
-  //Our work groups
-  WorkGroup agentWorkers(WG_AGENTS_SIZE);
-  WorkGroup signalStatusWorkers(WG_SIGNALS_SIZE);
-  WorkGroup shortestPathWorkers(WG_SHORTEST_PATH_SIZE);
 
   //Initialization: Scenario definition
   vector<Agent> agents;
@@ -63,34 +58,37 @@ int main(int argc, char* argv[])
   const ConfigParams& config = ConfigParams::GetInstance();
 
   //Initialize our work groups, assign agents randomly to these groups.
+  WorkGroup agentWorkers(WG_AGENTS_SIZE, config.totalRuntimeTicks, config.granAgentsTicks);
   agentWorkers.initWorkers<EntityWorker>();
   for (size_t i=0; i<agents.size(); i++) {
 	  agentWorkers.migrate(&agents[i], -1, i%WG_AGENTS_SIZE);
   }
-  for (size_t i=0; i<agentWorkers.size(); i++) {
+  /*for (size_t i=0; i<agentWorkers.size(); i++) {
 	  //TODO: This doesn't take multiple granularities into account. Need to fix.
 	  ((EntityWorker&)agentWorkers.getWorker(i)).setSimulationEnd(TOTAL_TIME*TIME_STEP);
-  }
+  }*/
 
   //Initialize our signal status work groups
   //  TODO: There needs to be a more general way to do this.
+  WorkGroup signalStatusWorkers(WG_SIGNALS_SIZE, config.totalRuntimeTicks, config.granSignalsTicks);
   signalStatusWorkers.initWorkers<EntityWorker>();
   for (size_t i=0; i<regions.size(); i++) {
 	  signalStatusWorkers.migrate(&regions[i], -1, i%WG_SIGNALS_SIZE);
   }
-  for (size_t i=0; i<signalStatusWorkers.size(); i++) {
+  /*for (size_t i=0; i<signalStatusWorkers.size(); i++) {
 	  ((EntityWorker&)signalStatusWorkers.getWorker(i)).setSimulationEnd(TOTAL_TIME*TIME_STEP);
-  }
+  }*/
 
   //Initialize our shortest path work groups
   //  TODO: There needs to be a more general way to do this.
+  WorkGroup shortestPathWorkers(WG_SHORTEST_PATH_SIZE, config.totalRuntimeTicks, config.granPathsTicks);
   shortestPathWorkers.initWorkers<ShortestPathWorker>();
   for (size_t i=0; i<agents.size(); i++) {
 	  shortestPathWorkers.migrate(&agents[i], -1, i%WG_SHORTEST_PATH_SIZE);
   }
-  for (size_t i=0; i<shortestPathWorkers.size(); i++) {
+  /*for (size_t i=0; i<shortestPathWorkers.size(); i++) {
 	  ((EntityWorker&)shortestPathWorkers.getWorker(i)).setSimulationEnd((TOTAL_TIME*TIME_STEP)/shortestPathLoopTimeStep);
-  }
+  }*/
 
   //Initialization: Server configuration
   setConfiguration();
@@ -104,6 +102,8 @@ int main(int argc, char* argv[])
   //       initialization workers and then flip their values (otherwise there will be
   //       no data to read.) The other option is to load all "properties" with a default
   //       value, but at the moment we don't even have a "properties class"
+  // NOTE: For counting reasons, although we call this "Step Zero", it's essentially
+  //       Step -1. So our main loop still starts at time T=0
   ///////////////////////////////////////////////////////////////////////////////////
   cout <<"Beginning Initialization" <<endl;
   StepZero(agents, regions, trips, choiceSets, vehicles);
@@ -123,10 +123,15 @@ int main(int argc, char* argv[])
   shortestPathWorkers.startAll();
 
 
-  //Time-based cycle.
-  for (unsigned int currTime=1; currTime<TOTAL_TIME; currTime+=TIME_STEP) {
+  /////////////////////////////////////////////////////////////////
+  // NOTE: WorkGroups are able to handle skipping steps by themselves.
+  //       So, we simply call "wait()" on every tick, and on non-divisible
+  //       time ticks, the WorkGroups will return without performing
+  //       a barrier sync.
+  /////////////////////////////////////////////////////////////////
+  for (unsigned int currTick=0; currTick<config.totalRuntimeTicks; currTick++) {
 	  //Output
-	  cout <<"Time " <<currTime <<endl;
+	  cout <<"Tick " <<currTick <<", " <<(currTick*config.baseGranMS) <<" ms" <<endl;
 
 	  //Update the signal logic and plans for every intersection grouped by region
 	  signalStatusWorkers.wait();
@@ -134,38 +139,30 @@ int main(int argc, char* argv[])
 	  //Update weather, traffic conditions, etc.
 	  updateTrafficInfo(regions);
 
-	  //NOTE:
-	  //  The "shortestPathLoopTimeStep for loop" and others are unclear to me.
-	  //  For now, I am just performing their tasks if the currTime is evenly
-	  //  divisible by the time-tick for that loop.
+	  //Longer Time-based cycle
+	  shortestPathWorkers.wait();
 
 	  //Longer Time-based cycle
-	  if (currTime%shortestPathLoopTimeStep == 0) {
-		  shortestPathWorkers.wait();
-		  cout <<"  " <<"Longer-time cycle" <<endl;
-	  }
+	  //TODO: Put these on Worker threads too.
 
-	  //Longer Time-based cycle
-	  if (currTime%agentDecompositionTimeStep == 0) {
+	  //if (currTime%agentDecom`positionTimeStep == 0) {
 		  //Thread controller / processor affinity / Load Balancer
 		  agentDecomposition(agents);
 
 		  //One Queue is created for each core
 		  updateVehicleQueue(vehicles);
 
-		  cout <<"  " <<"Longer-time cycle" <<endl;
-	  }
+		  //cout <<"  " <<"Longer-time cycle" <<endl;
+	  //}
 
 	  //Agent-based cycle
-	  if (true) { //Seems to operate every time step?
-		  agentWorkers.wait();
-	  }
+	  agentWorkers.wait();
 
 	  //Surveillance update
 	  updateSurveillanceData(agents);
 
 	  //Check if the warmup period has ended.
-	  if (currTime >= simulationStartTime) {
+	  if (currTick >= config.totalWarmupTicks) {
 		  updateGUI(agents);
 		  saveStatistics(agents);
 	  } else {
@@ -173,11 +170,12 @@ int main(int argc, char* argv[])
 	  }
 
 	  //Longer Time-based cycle
-	  if (currTime%objectMgmtTimeStep == 0) {
+	  //TODO: Put this on a worker thread
+	  //if (currTime%objectMgmtTimeStep == 0) {
 		  saveStatisticsToDB(agents);
 
-		  cout <<"  " <<"Statistics saved" <<endl;
-	  }
+	//	  cout <<"  " <<"Statistics saved" <<endl;
+	 // }
   }
 
   cout <<"Timesteps complete; closing worker threads." <<endl;
@@ -197,10 +195,10 @@ void StepZero(vector<Agent>& agents, vector<Region>& regions, vector<TripChain>&
 	      vector<ChoiceSet>& choiceSets, vector<Vehicle>& vehicles)
 {
 	  //Our work groups. Will be disposed after this time tick.
-	  WorkGroup tripChainWorkers(WG_TRIPCHAINS_SIZE);
-	  WorkGroup createAgentWorkers(WG_CREATE_AGENT_SIZE);
-	  WorkGroup choiceSetWorkers(WG_CHOICESET_SIZE);
-	  WorkGroup vehicleWorkers(WG_VEHICLES_SIZE);
+	  WorkGroup tripChainWorkers(WG_TRIPCHAINS_SIZE, 1);
+	  WorkGroup createAgentWorkers(WG_CREATE_AGENT_SIZE, 1);
+	  WorkGroup choiceSetWorkers(WG_CHOICESET_SIZE, 1);
+	  WorkGroup vehicleWorkers(WG_VEHICLES_SIZE, 1);
 
 	  //Create object from DB; for long time spans objects must be created on demand.
 	  boost::function<void (Worker*)> func1 = boost::bind(load_trip_chain, _1);

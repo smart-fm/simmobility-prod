@@ -4,23 +4,23 @@ using std::vector;
 using boost::function;
 using boost::barrier;
 
-EntityWorker::EntityWorker(function<void(Worker*)>* action, barrier* internal_barr, barrier* external_barr)
-    : Worker(action, internal_barr, external_barr)
+EntityWorker::EntityWorker(function<void(Worker*)>* action, barrier* internal_barr, barrier* external_barr, unsigned int endTick)
+    : Worker(action, internal_barr, external_barr, endTick)
 {
 }
 
 
 //TODO: This should be part of Worker, not EntityWorker
-void EntityWorker::start()
+/*void EntityWorker::start()
 {
-	localTimestep = 0;
+	//localTimestep = 0;
 	Worker::start();
-}
+}*/
 
-void EntityWorker::setSimulationEnd(unsigned int time)
+/*void EntityWorker::setSimulationEnd(unsigned int time)
 {
 	simulationEnd = time;
-}
+}*/
 
 
 /**
@@ -35,10 +35,6 @@ void EntityWorker::perform_main()
 		ag->update();
 	}
 
-	//Advance local time-step
-	if (++localTimestep>=simulationEnd) {
-		this->active.set(false);
-	}
 }
 
 

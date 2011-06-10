@@ -42,7 +42,7 @@ void load_trip_chain(Worker* wk)
 	}
 
 	//Signal "done"
-	wk->active.set(false);
+	//wk->active.set(false);
 }
 
 void load_agents(Worker* wk)
@@ -53,7 +53,7 @@ void load_agents(Worker* wk)
 	}
 
 	//Signal "done"
-	wk->active.set(false);
+	//wk->active.set(false);
 }
 
 void load_choice_sets(Worker* wk)
@@ -64,7 +64,7 @@ void load_choice_sets(Worker* wk)
 	}
 
 	//Signal "done"
-	wk->active.set(false);
+	//wk->active.set(false);
 }
 
 void load_vehicles(Worker* wk)
@@ -75,7 +75,7 @@ void load_vehicles(Worker* wk)
 	}
 
 	//Signal "done"
-	wk->active.set(false);
+	//wk->active.set(false);
 }
 
 

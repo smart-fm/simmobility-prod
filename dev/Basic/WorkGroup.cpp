@@ -5,7 +5,8 @@ using boost::barrier;
 using boost::function;
 
 
-WorkGroup::WorkGroup(size_t size) : shared_barr(size+1), external_barr(size+1), total_size(size)
+WorkGroup::WorkGroup(size_t size, unsigned int endTick, unsigned int tickStep) :
+		shared_barr(size+1), external_barr(size+1), endTick(endTick), tickStep(tickStep), total_size(size)
 {
 }
 
@@ -20,6 +21,7 @@ WorkGroup::~WorkGroup()
 
 void WorkGroup::startAll()
 {
+	tickOffset = tickStep;
 	for (size_t i=0; i<workers.size(); i++) {
 		workers[i]->start();
 	}
@@ -42,6 +44,11 @@ Worker& WorkGroup::getWorker(size_t id)
 
 void WorkGroup::wait()
 {
+	if (--tickOffset>0) {
+		return;
+	}
+	tickOffset = tickStep;
+
 	shared_barr.wait();
 	external_barr.wait();
 }

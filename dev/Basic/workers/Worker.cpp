@@ -32,7 +32,6 @@ void Worker::interrupt()
 	}
 }
 
-
 void Worker::addEntity(void* entity)
 {
 	data.push_back(entity);

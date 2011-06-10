@@ -1,11 +1,3 @@
-/*
- * A templatized data type, copied from "testing/data/data.hpp".
- * Renamed, since "data" is likely going to come up elsewhere.
- * The following also makes sense linguistically:
- *    Buffered<int>
- * NOTE: The "Base" class is included here in BufferedDataManager, since its only purpose is to allow
- *       storage of Buffered templatized types.
- */
 
 #pragma once
 
@@ -17,9 +9,18 @@ namespace sim_mob
 {
 
 
-
-
 /**
+ * \brief Templatized wrapper for buffered objects.
+ *
+ * A Buffered data-type can handle multiple readers and a single writer without
+ * locking. The "flip" method is used to update the current value after calling "set".
+ *
+ * The spoken semantics of this template are sensible; for example:
+ *   Buffered<int>
+ * ...is a "Buffered int".
+ *
+ * Based on the file "testing/data/data.hpp"
+ *
  * NOTE: I removed most virtual functions; trying to make this class as simple as possible.
  *       Re-enable features as you need them.
  *  ~Seth
@@ -28,17 +29,34 @@ template <typename T>
 class Buffered : public BufferedBase
 {
 public:
+	/**
+	 * Create a new Buffered data type.
+	 * @param mgr The data manager which will call "flip". Can be NULL.
+	 * @param value The initial value. You can also set an initial value using "force"
+	 */
 	Buffered (BufferedDataManager* mgr, const T& value = T());
+
 	virtual Buffered& operator=(const Buffered& rhs);
 
+
+	/**
+	 * Retrieve the current value. Get the current value of the data type. This can
+	 * also be thought of as being one flip "behind" the actual value.
+	 */
     const T& get() const;
+
+	/**
+	 * Set the next value. Set the next value of the data type. This value will
+	 * only take effect when "flip" is called.
+	 */
     void set (const T& value);
 
-    //We need this for out-of-loop setting (e.g., reading from the config file)
-    //  The other option is to read all properties in "tick 0" then flip once.
+	/**
+	 * Force a new value into effect. Set the current and next value without a call to flip().
+	 * This is usually only needed when loading values from a config file.
+	 */
     void force(const T& value);
 
-    //void add (Observer * observer);
 
 protected:
     void flip();

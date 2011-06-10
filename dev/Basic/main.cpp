@@ -33,7 +33,16 @@ void StepZero(vector<Agent>& agents, vector<Region>& regions, vector<TripChain>&
 		      vector<ChoiceSet>& choiceSets, vector<Vehicle>& vehicles);
 
 
-
+///////////////////////////////////////////////////////////////////////////////////
+// NOTE: For doxygen, I'd like to have the variable JAVADOC AUTOBRIEF set to "true"
+//       This isn't necessary for class-level documentation, but if we want
+//       documentation for a short method (like "get" or "set") then it makes sense to
+//       have a few lines containing brief/full comments. (See the manual's description
+//       of JAVADOC AUTOBRIEF). Of course, we can discuss this first.
+//  See Buffered.hpp for an example of this.
+//
+// ~Seth
+///////////////////////////////////////////////////////////////////////////////////
 bool performMain()
 {
   //Initialization: Scenario definition

@@ -12,5 +12,7 @@ void Region::update() {
 	for (std::vector<Signal>::iterator it=signals.begin(); it!=signals.end(); it++) {
 		trivial(it->id);
 	}
+
+	std::cout<<"Test Changes"<<std::endl; //Seth, Fun;
 }
 

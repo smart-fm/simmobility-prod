@@ -18,7 +18,11 @@
 
 class WorkGroup {
 public:
-	WorkGroup(size_t size);
+	//These are passed along to the Workers:
+	//  endTick=0 means run forever.
+	//  tickStep is used to allow Workers to skip ticks; no barriers are locked.
+	WorkGroup(size_t size, unsigned int endTick=0, unsigned int tickStep=1);
+
 	~WorkGroup();
 
 	template <class WorkType>
@@ -43,6 +47,13 @@ private:
 	//Worker object management
 	std::vector<Worker*> workers;
 
+	//Passed along to Workers
+	unsigned int endTick;
+	unsigned int tickStep;
+
+	//Maintain an offset. When it reaches zero, reset to tickStep and sync barriers
+	unsigned int tickOffset;
+
 	//Only used once
 	size_t total_size;
 
@@ -56,7 +67,7 @@ template <class WorkType>
 void WorkGroup::initWorkers(boost::function<void(Worker*)>* action)
 {
 	for (size_t i=0; i<total_size; i++) {
-		workers.push_back(new WorkType(action, &shared_barr, &external_barr));
+		workers.push_back(new WorkType(action, &shared_barr, &external_barr, endTick/tickStep));
 	}
 }
 

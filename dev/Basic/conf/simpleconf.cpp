@@ -180,6 +180,12 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vecto
     if (granDecomp%baseGran != 0) {
     	return "Decomposition granularity not a multiple of base granularity.";
     }
+    if (totalRuntime%baseGran != 0) {
+    	std::cout <<"  Warning! Total Runtime will be truncated.\n";
+    }
+    if (totalWarmup%baseGran != 0) {
+    	std::cout <<"  Warning! Total Warmup will be truncated.\n";
+    }
 
     //Load agents
     if (!loadXMLAgents(xpContext, agents)) {
@@ -190,30 +196,24 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vecto
     {
     	ConfigParams& config = ConfigParams::GetInstance();
     	config.baseGranMS = baseGran;
-    	config.totalRuntimeMS = totalRuntime-(totalRuntime%baseGran);
-    	config.totalWarmupMS = totalWarmup-(totalWarmup%baseGran);
-    	config.granAgentsMS = granAgent;
-    	config.granSignalsMS = granSignal;
-    	config.granPathsMS = granPaths;
-    	config.granDecompMS = granDecomp;
+    	config.totalRuntimeTicks = totalRuntime/baseGran;
+    	config.totalWarmupTicks = totalWarmup/baseGran;
+    	config.granAgentsTicks = granAgent/baseGran;
+    	config.granSignalsTicks = granSignal/baseGran;
+    	config.granPathsTicks = granPaths/baseGran;
+    	config.granDecompTicks = granDecomp/baseGran;
     }
 
     //Display
     std::cout <<"Config parameters:\n";
     std::cout <<"------------------\n";
     std::cout <<"  Base Granularity: " <<ConfigParams::GetInstance().baseGranMS <<" " <<"ms" <<"\n";
-    std::cout <<"  Total Runtime: " <<ConfigParams::GetInstance().totalRuntimeMS <<" " <<"ms" <<"\n";
-    if (ConfigParams::GetInstance().totalRuntimeMS != (unsigned int)totalRuntime) {
-    	std::cout <<"    Warning! This value was truncated from "<<totalRuntime <<" " <<"ms" <<"\n";
-    }
-    std::cout <<"  Total Warmup: " <<ConfigParams::GetInstance().totalWarmupMS <<" " <<"ms" <<"\n";
-    if (ConfigParams::GetInstance().totalWarmupMS != (unsigned int)totalWarmup) {
-    	std::cout <<"    Warning! This value was truncated from "<<totalWarmup <<" " <<"ms" <<"\n";
-    }
-    std::cout <<"  Agent Granularity: " <<ConfigParams::GetInstance().granAgentsMS <<" " <<"ms" <<"\n";
-    std::cout <<"  Signal Granularity: " <<ConfigParams::GetInstance().granSignalsMS <<" " <<"ms" <<"\n";
-    std::cout <<"  Paths Granularity: " <<ConfigParams::GetInstance().granPathsMS <<" " <<"ms" <<"\n";
-    std::cout <<"  Decomp Granularity: " <<ConfigParams::GetInstance().granDecompMS <<" " <<"ms" <<"\n";
+    std::cout <<"  Total Runtime: " <<ConfigParams::GetInstance().totalRuntimeTicks <<" " <<"ticks" <<"\n";
+    std::cout <<"  Total Warmup: " <<ConfigParams::GetInstance().totalWarmupTicks <<" " <<"ticks" <<"\n";
+    std::cout <<"  Agent Granularity: " <<ConfigParams::GetInstance().granAgentsTicks <<" " <<"ticks" <<"\n";
+    std::cout <<"  Signal Granularity: " <<ConfigParams::GetInstance().granSignalsTicks <<" " <<"ticks" <<"\n";
+    std::cout <<"  Paths Granularity: " <<ConfigParams::GetInstance().granPathsTicks <<" " <<"ticks" <<"\n";
+    std::cout <<"  Decomp Granularity: " <<ConfigParams::GetInstance().granDecompTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Agents Initialized: " <<agents.size() <<"\n";
     for (size_t i=0; i<agents.size(); i++) {
     	std::cout <<"    Agent(" <<agents[i].getId() <<") = " <<agents[i].xPos.get() <<"," <<agents[i].yPos.get() <<"\n";

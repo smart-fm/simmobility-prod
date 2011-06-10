@@ -4,8 +4,8 @@ using std::vector;
 using boost::function;
 using boost::barrier;
 
-ShortestPathWorker::ShortestPathWorker(function<void(Worker*)>* action, barrier* internal_barr, barrier* external_barr)
-    : EntityWorker(action, internal_barr, external_barr)
+ShortestPathWorker::ShortestPathWorker(function<void(Worker*)>* action, barrier* internal_barr, barrier* external_barr, unsigned int endTick)
+    : EntityWorker(action, internal_barr, external_barr, endTick)
 {
 }
 
@@ -23,8 +23,8 @@ void ShortestPathWorker::perform_main()
 	}
 
 	//Advance local time-step
-	if (++localTimestep>=simulationEnd) {
+	/*if (++localTimestep>=simulationEnd) {
 		this->active.set(false);
-	}
+	}*/
 }
 

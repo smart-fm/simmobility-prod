@@ -27,11 +27,11 @@
 
 class Worker : public sim_mob::BufferedDataManager {
 public:
-	Worker(boost::function<void(Worker*)>* action =NULL, boost::barrier* internal_barr =NULL, boost::barrier* external_barr =NULL);
+	Worker(boost::function<void(Worker*)>* action =NULL, boost::barrier* internal_barr =NULL, boost::barrier* external_barr =NULL, unsigned int endTick=0);
 
 	//Thread-style operations
-	virtual void start();
-	virtual void interrupt();
+	void start();
+	void interrupt();
 	void join();
 
 	//Manage entities
@@ -54,6 +54,11 @@ protected:
 	boost::barrier* internal_barr;
 	boost::barrier* external_barr;
 	boost::function<void(Worker*)>* action;
+
+	//Time management
+	unsigned int currTick;
+	unsigned int endTick;
+
 
 public:
 	sim_mob::Buffered<bool> active;

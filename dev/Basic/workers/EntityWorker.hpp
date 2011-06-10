@@ -13,12 +13,12 @@
 
 class EntityWorker : public Worker {
 public:
-	EntityWorker(boost::function<void(Worker*)>* action =NULL, boost::barrier* internal_barr =NULL, boost::barrier* external_barr =NULL);
+	EntityWorker(boost::function<void(Worker*)>* action =NULL, boost::barrier* internal_barr =NULL, boost::barrier* external_barr =NULL, unsigned int endTick=0);
 	virtual void perform_main();
 	//virtual void perform_flip();
-	virtual void start();
+	//virtual void start();
 
-	void setSimulationEnd(unsigned int time);
+	//void setSimulationEnd(unsigned int time);
 
 	//These behave something like overrides.
 	// TODO: Again, need a better way of doing this... (template maybe)
@@ -27,9 +27,6 @@ public:
 	std::vector<Entity*>& getEntities();
 
 protected:
-	unsigned int localTimestep;
-	unsigned int simulationEnd;
-
 	std::vector<Entity*> entities;
 
 

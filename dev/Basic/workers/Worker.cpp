@@ -6,9 +6,10 @@ using boost::function;
 
 
 
-Worker::Worker(function<void(Worker*)>* action, barrier* internal_barr, barrier* external_barr)
+Worker::Worker(function<void(Worker*)>* action, barrier* internal_barr, barrier* external_barr, unsigned int endTick)
     : BufferedDataManager(),
       internal_barr(internal_barr), external_barr(external_barr), action(action),
+      endTick(endTick),
       active(this, false)  //Passing the "this" pointer is probably ok, since we only use the base class (which is constructed)
 {
 }
@@ -17,6 +18,7 @@ Worker::Worker(function<void(Worker*)>* action, barrier* internal_barr, barrier*
 void Worker::start()
 {
 	active.force(true);
+	currTick = 0;
 	main_thread = boost::thread(boost::bind(&Worker::barrier_mgmt, this));
 }
 
@@ -56,6 +58,11 @@ void Worker::barrier_mgmt()
 
 		if (internal_barr!=NULL)
 			internal_barr->wait();
+
+		//Advance local time-step
+		if (endTick>0 && ++currTick>=endTick) {
+			this->active.set(false);
+		}
 
 		perform_flip();
 

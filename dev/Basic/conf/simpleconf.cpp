@@ -92,11 +92,38 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext)
 	int totalWarmup = getValueInMS(
 			evaluateXPath(xpContext, "/config/system/simulation/total_warmup/@value"),
 			evaluateXPath(xpContext, "/config/system/simulation/total_warmup/@units"));
+	int granAgent = getValueInMS(
+			evaluateXPath(xpContext, "/config/system/granularities/agent/@value"),
+			evaluateXPath(xpContext, "/config/system/granularities/agent/@units"));
+	int granSignal = getValueInMS(
+			evaluateXPath(xpContext, "/config/system/granularities/signal/@value"),
+			evaluateXPath(xpContext, "/config/system/granularities/signal/@units"));
+	int granPaths = getValueInMS(
+			evaluateXPath(xpContext, "/config/system/granularities/paths/@value"),
+			evaluateXPath(xpContext, "/config/system/granularities/paths/@units"));
+	int granDecomp = getValueInMS(
+			evaluateXPath(xpContext, "/config/system/granularities/decomp/@value"),
+			evaluateXPath(xpContext, "/config/system/granularities/decomp/@units"));
 
 
 	//Check
-    if(baseGran==-1 || totalRuntime==-1 || totalWarmup==-1) {
+    if(    baseGran==-1 || totalRuntime==-1 || totalWarmup==-1
+    	|| granAgent==-1 || granSignal==-1 || granPaths==-1 || granDecomp==-1) {
         return "Unable to read config file.";
+    }
+
+    //Granularity check
+    if (granAgent%baseGran != 0) {
+    	return "Agent granularity not a multiple of base granularity.";
+    }
+    if (granSignal%baseGran != 0) {
+    	return "Signal granularity not a multiple of base granularity.";
+    }
+    if (granPaths%baseGran != 0) {
+    	return "Path granularity not a multiple of base granularity.";
+    }
+    if (granDecomp%baseGran != 0) {
+    	return "Decomposition granularity not a multiple of base granularity.";
     }
 
     //Display
@@ -111,6 +138,10 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext)
     if (totalWarmup%baseGran != 0) {
     	std::cout <<"    Warning! This value will be truncated to "<<totalWarmup-(totalWarmup%baseGran) <<" " <<"ms" <<"\n";
     }
+    std::cout <<"  Agent Granularity: " <<granAgent <<" " <<"ms" <<"\n";
+    std::cout <<"  Signal Granularity: " <<granSignal <<" " <<"ms" <<"\n";
+    std::cout <<"  Paths Granularity: " <<granPaths <<" " <<"ms" <<"\n";
+    std::cout <<"  Decomp Granularity: " <<granDecomp <<" " <<"ms" <<"\n";
     std::cout <<"------------------\n";
 
 	//No error

@@ -204,7 +204,7 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vecto
     std::cout <<"  Decomp Granularity: " <<granDecomp <<" " <<"ms" <<"\n";
     std::cout <<"  Agents Initialized: " <<agents.size() <<"\n";
     for (size_t i=0; i<agents.size(); i++) {
-    	std::cout <<"    Agents[" <<agents[i].getId() <<"] = " <<agents[i].xPos.get() <<"," <<agents[i].yPos.get() <<"\n";
+    	std::cout <<"    Agent(" <<agents[i].getId() <<") = " <<agents[i].xPos.get() <<"," <<agents[i].yPos.get() <<"\n";
     }
     std::cout <<"------------------\n";
 

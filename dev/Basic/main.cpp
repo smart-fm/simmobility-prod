@@ -1,5 +1,8 @@
 /**
- * A first approximation of the basic pseudo-code in C++
+ * \file main.cpp
+ * A first approximation of the basic pseudo-code in C++. The main file loads several
+ * properties from data/config.xml, and attempts a simulation run. Currently, the various
+ * granularities and pedestrian starting locations are loaded.
  */
 #include <iostream>
 #include <vector>
@@ -28,21 +31,30 @@ bool trivial(unsigned int id) {
 }
 
 
-//First "loading" step is special.
-void StepZero(vector<Agent>& agents, vector<Region>& regions, vector<TripChain>& trips,
+/**
+ * First "loading" step is special. Initialize all agents using work groups in parallel.
+ */
+void InitializeAll(vector<Agent>& agents, vector<Region>& regions, vector<TripChain>& trips,
 		      vector<ChoiceSet>& choiceSets, vector<Vehicle>& vehicles);
 
 
-///////////////////////////////////////////////////////////////////////////////////
-// NOTE: For doxygen, I'd like to have the variable JAVADOC AUTOBRIEF set to "true"
-//       This isn't necessary for class-level documentation, but if we want
-//       documentation for a short method (like "get" or "set") then it makes sense to
-//       have a few lines containing brief/full comments. (See the manual's description
-//       of JAVADOC AUTOBRIEF). Of course, we can discuss this first.
-//  See Buffered.hpp for an example of this.
-//
-// ~Seth
-///////////////////////////////////////////////////////////////////////////////////
+/**
+ * Main simulation loop.
+ * \note
+ * For doxygen, I'd like to have the variable JAVADOC AUTOBRIEF set to "true"
+ * This isn't necessary for class-level documentation, but if we want
+ * documentation for a short method (like "get" or "set") then it makes sense to
+ * have a few lines containing brief/full comments. (See the manual's description
+ * of JAVADOC AUTOBRIEF). Of course, we can discuss this first.
+ *
+ * \par
+ * See Buffered.hpp for an example of this in action.
+ *
+ * \par
+ * ~Seth
+ *
+ * This function is separate from main() to allow for easy scoping of WorkGroup objects.
+ */
 bool performMain()
 {
   //Initialization: Scenario definition
@@ -93,11 +105,9 @@ bool performMain()
   //       initialization workers and then flip their values (otherwise there will be
   //       no data to read.) The other option is to load all "properties" with a default
   //       value, but at the moment we don't even have a "properties class"
-  // NOTE: For counting reasons, although we call this "Step Zero", it's essentially
-  //       Step -1. So our main loop still starts at time T=0
   ///////////////////////////////////////////////////////////////////////////////////
   cout <<"Beginning Initialization" <<endl;
-  StepZero(agents, regions, trips, choiceSets, vehicles);
+  InitializeAll(agents, regions, trips, choiceSets, vehicles);
   cout <<"  " <<"Initialization done" <<endl;
 
   //Sanity check (simple)
@@ -174,7 +184,7 @@ int main(int argc, char* argv[])
 
 
 //Time tick zero is essentially a parallelized "initialization" step. Leaving in Main for now...
-void StepZero(vector<Agent>& agents, vector<Region>& regions, vector<TripChain>& trips,
+void InitializeAll(vector<Agent>& agents, vector<Region>& regions, vector<TripChain>& trips,
 	      vector<ChoiceSet>& choiceSets, vector<Vehicle>& vehicles)
 {
 	  //Our work groups. Will be disposed after this time tick.

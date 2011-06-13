@@ -172,6 +172,7 @@ bool performMain()
 }
 
 
+
 int main(int argc, char* argv[])
 {
   int returnVal = performMain() ? 0 : 1;
@@ -183,7 +184,9 @@ int main(int argc, char* argv[])
 
 
 
-//Time tick zero is essentially a parallelized "initialization" step. Leaving in Main for now...
+/**
+ * Parallel initialization step.
+ */
 void InitializeAll(vector<Agent>& agents, vector<Region>& regions, vector<TripChain>& trips,
 	      vector<ChoiceSet>& choiceSets, vector<Vehicle>& vehicles)
 {
@@ -232,9 +235,6 @@ void InitializeAll(vector<Agent>& agents, vector<Region>& regions, vector<TripCh
 
 	  cout <<"  Closing all work groups..." <<endl;
 }
-
-
-
 
 
 

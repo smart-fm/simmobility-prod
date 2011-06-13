@@ -1,10 +1,4 @@
-/*
- * Basic Agent class
- */
-
 #pragma once
-
-
 
 #include "../constants.h"
 #include "Entity.hpp"
@@ -15,8 +9,13 @@
 namespace sim_mob
 {
 
-//Driver modes
-enum DRIVER_MODES {
+/**
+ * Possible agent behaviors.
+ *
+ * \todo
+ * Represent agent behavior using inheritance, instead.
+ */
+enum AGENT_MODES {
 	DRIVER,
 	PEDESTRIAN,
 	CYCLIST,
@@ -24,18 +23,26 @@ enum DRIVER_MODES {
 };
 
 
+
+/**
+ * Basic Agent class. Agents maintain an x and a y position. They may have different
+ * behavioral models.
+ */
 class Agent : public sim_mob::Entity {
 public:
 	Agent(unsigned int id=0);
 
-	virtual void update();
+	virtual void update();  ///<Update agent behvaior
+
+	///Subscribe this agent to a data manager.
 	virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew);
 
+	///Update the agent's shortest path. (Currently does nothing; might not even belong here)
 	void updateShortestPath();
 
 public:
-	sim_mob::Buffered<unsigned int> xPos;
-	sim_mob::Buffered<unsigned int> yPos;
+	sim_mob::Buffered<unsigned int> xPos;  ///<The agent's position, X
+	sim_mob::Buffered<unsigned int> yPos;  ///<The agent's position, Y
 
 private:
 	unsigned int currMode;

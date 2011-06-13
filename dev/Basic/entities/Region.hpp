@@ -1,7 +1,3 @@
-/*
- * Basic Region class
- */
-
 #pragma once
 
 #include <vector>
@@ -12,13 +8,19 @@
 namespace sim_mob
 {
 
-//Signals
+/**
+ * Traffic signal.
+ */
 struct Signal {
 	unsigned int id;
 	Signal(unsigned int id=0) : id(id) {}
 };
 
 
+
+/**
+ * Basic Region class. Currently does nothing.
+ */
 class Region : public Entity {
 public:
 	Region(unsigned int id=0);

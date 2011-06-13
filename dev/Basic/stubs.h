@@ -26,10 +26,10 @@ void setConfiguration() {
 void loadNetwork() {
 	std::cout <<"Network has been loaded." <<std::endl;
 }
-void loadSingleTripChain(const Agent* const ag, const TripChain* const tc) {
+void loadSingleTripChain(const sim_mob::Agent* const ag, const TripChain* const tc) {
 	trivial(tc->id);
 }
-void createSingleAgent(const Agent* const ag) {
+void createSingleAgent(const sim_mob::Agent* const ag) {
 	trivial(ag->getId()); //Trivial. Presumably, we'd set an agent's other properties here.
 }
 void createSingleChoiceSet(ChoiceSet* const cs, unsigned int newID) {
@@ -42,7 +42,7 @@ void createSingleVehicle(Vehicle* const v, unsigned int newID) {
 
 
 //Example of using a Worker with a functional pointer instead of sub-classing.
-void load_trip_chain(Worker* wk)
+void load_trip_chain(sim_mob::Worker* wk)
 {
 	//Using functional pointers instead of inheritance means we have to cast from void*
 	for (std::vector<void*>::iterator it=wk->getEntities().begin(); it!=wk->getEntities().end(); it++) {
@@ -51,15 +51,15 @@ void load_trip_chain(Worker* wk)
 	}
 }
 
-void load_agents(Worker* wk)
+void load_agents(sim_mob::Worker* wk)
 {
 	for (std::vector<void*>::iterator it=wk->getEntities().begin(); it!=wk->getEntities().end(); it++) {
-		Agent* ag = (Agent*)(*it);
+		sim_mob::Agent* ag = (sim_mob::Agent*)(*it);
 		createSingleAgent(ag);   //At the moment, no way to link from agents to trip chains.
 	}
 }
 
-void load_choice_sets(Worker* wk)
+void load_choice_sets(sim_mob::Worker* wk)
 {
 	for (std::vector<void*>::iterator it=wk->getEntities().begin(); it!=wk->getEntities().end(); it++) {
 		ChoiceSet* cs = (ChoiceSet*)(*it);
@@ -67,7 +67,7 @@ void load_choice_sets(Worker* wk)
 	}
 }
 
-void load_vehicles(Worker* wk)
+void load_vehicles(sim_mob::Worker* wk)
 {
 	for (std::vector<void*>::iterator it=wk->getEntities().begin(); it!=wk->getEntities().end(); it++) {
 		Vehicle* vh = (Vehicle*)(*it);
@@ -77,7 +77,7 @@ void load_vehicles(Worker* wk)
 
 
 
-void agentDecomposition(std::vector<Agent>& agents) {
+void agentDecomposition(std::vector<sim_mob::Agent>& agents) {
 	//Marked as not boost::threadable.
 	for (size_t i=0; i<agents.size(); i++) {
 		trivial(agents[i].getId()); //Trivial. Possibly move agents later.
@@ -91,35 +91,35 @@ void updateVehicleQueue(std::vector<Vehicle>& vehicles) {
 	}
 }
 
-void updateTrafficInfo(std::vector<Region>& regions) {
+void updateTrafficInfo(std::vector<sim_mob::Region>& regions) {
 	//Marked as not boost::threadable.
 	for (size_t i=0; i<regions.size(); i++) {
 		trivial(regions[i].getId()); //Trivial. Update other properties later.
 	}
 }
 
-void updateSurveillanceData(std::vector<Agent>& agents) {
+void updateSurveillanceData(std::vector<sim_mob::Agent>& agents) {
 	//Marked as not boost::threadable.
 	for (size_t i=0; i<agents.size(); i++) {
 		trivial(agents[i].getId()); //Trivial. Later we will collate data and send it to surveillance systems.
 	}
 }
 
-void updateGUI(std::vector<Agent>& agents) {
+void updateGUI(std::vector<sim_mob::Agent>& agents) {
 	//Marked as not boost::threadable.
 	for (size_t i=0; i<agents.size(); i++) {
 		trivial(agents[i].getId());  //Trivial. Later we will update the GUI
 	}
 }
 
-void saveStatistics(std::vector<Agent>& agents) {
+void saveStatistics(std::vector<sim_mob::Agent>& agents) {
 	//Marked as not boost::threadable.
 	for (size_t i=0; i<agents.size(); i++) {
 		trivial(agents[i].getId());  //Trivial. Later we will log all agent data.
 	}
 }
 
-void saveStatisticsToDB(std::vector<Agent>& agents) {
+void saveStatisticsToDB(std::vector<sim_mob::Agent>& agents) {
 	//Marked as not boost::threadable.
 	for (size_t i=0; i<agents.size(); i++) {
 		trivial(agents[i].getId());  //Trivial. Later we will save all statistis to the database.
@@ -130,7 +130,7 @@ void saveStatisticsToDB(std::vector<Agent>& agents) {
 
 
 //Quick double-check
-bool checkIDs(const std::vector<Agent>& agents, const std::vector<TripChain>& trips, const std::vector<ChoiceSet>& choiceSets, const std::vector<Vehicle>& vehicles) {
+bool checkIDs(const std::vector<sim_mob::Agent>& agents, const std::vector<TripChain>& trips, const std::vector<ChoiceSet>& choiceSets, const std::vector<Vehicle>& vehicles) {
 	std::string error = "";
 	for (size_t i=0; i<agents.size(); i++) {
 		if (agents[i].getId() != i)

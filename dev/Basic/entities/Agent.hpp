@@ -5,15 +5,15 @@
 #pragma once
 
 
-namespace sim_mob
-{
-
 
 #include "../constants.h"
 #include "Entity.hpp"
 #include "../buffering/Buffered.hpp"
 #include "../buffering/BufferedDataManager.hpp"
 
+
+namespace sim_mob
+{
 
 //Driver modes
 enum DRIVER_MODES {

@@ -4,6 +4,11 @@
 
 #pragma once
 
+
+namespace sim_mob
+{
+
+
 #include "../constants.h"
 #include "Entity.hpp"
 #include "../buffering/Buffered.hpp"
@@ -19,7 +24,7 @@ enum DRIVER_MODES {
 };
 
 
-class Agent : public Entity {
+class Agent : public sim_mob::Entity {
 public:
 	Agent(unsigned int id=0);
 
@@ -43,3 +48,6 @@ public:
 	static void updatePedestrianBehavior(Agent& a);
 	static void updatePassengerBehavior(Agent& a);
 };
+
+}
+

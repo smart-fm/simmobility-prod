@@ -1,7 +1,6 @@
 #include "BufferedDataManager.hpp"
 
-namespace sim_mob
-{
+using namespace sim_mob;
 
 using std::vector;
 
@@ -9,19 +8,19 @@ using std::vector;
 ////////////////////////////////////////////////////
 // Implementation of our simple BufferedBase class
 ////////////////////////////////////////////////////
-BufferedBase::BufferedBase(BufferedDataManager* mgr) : mgr(mgr) {
+sim_mob::BufferedBase::BufferedBase(BufferedDataManager* mgr) : mgr(mgr) {
 	if (mgr!=NULL) {
 		mgr->add(this);
 	}
 }
 
-BufferedBase::~BufferedBase() {
+sim_mob::BufferedBase::~BufferedBase() {
 	if (mgr!=NULL) {
 		mgr->rem(this);
 	}
 }
 
-BufferedBase& BufferedBase::operator=(const BufferedBase& rhs)
+BufferedBase& sim_mob::BufferedBase::operator=(const BufferedBase& rhs)
 {
 	//If we were being managed, we're not any more.
 	if (this->mgr!=NULL) {
@@ -40,7 +39,7 @@ BufferedBase& BufferedBase::operator=(const BufferedBase& rhs)
 
 
 //This function might be named wrongly, since it only accomplishes half of the migration.
-void BufferedBase::migrate(sim_mob::BufferedDataManager* newMgr)
+void sim_mob::BufferedBase::migrate(sim_mob::BufferedDataManager* newMgr)
 {
 	mgr = newMgr;
 }
@@ -54,12 +53,12 @@ void BufferedBase::migrate(sim_mob::BufferedDataManager* newMgr)
 
 
 
-void BufferedDataManager::add(BufferedBase* datum)
+void sim_mob::BufferedDataManager::add(BufferedBase* datum)
 {
 	managedData.push_back(datum);
 }
 
-void BufferedDataManager::rem(BufferedBase* datum)
+void sim_mob::BufferedDataManager::rem(BufferedBase* datum)
 {
 	std::vector<BufferedBase*>::iterator it = std::find(managedData.begin(), managedData.end(), datum);
 	if (it!=managedData.end()) {
@@ -67,7 +66,7 @@ void BufferedDataManager::rem(BufferedBase* datum)
 	}
 }
 
-void BufferedDataManager::flip()
+void sim_mob::BufferedDataManager::flip()
 {
 	for (vector<BufferedBase*>::iterator it=managedData.begin(); it!=managedData.end(); it++) {
 		(*it)->flip();
@@ -75,4 +74,4 @@ void BufferedDataManager::flip()
 }
 
 
-}
+

@@ -1,4 +1,14 @@
+/**
+ * \file simple_classes.h
+ * Simple class definitions. If you find a class here, it will be moved to its own *.cpp,*.hpp
+ * files later (or even removed).
+ */
 #pragma once
+
+namespace sim_mob
+{
+
+
 
 //Class stubs
 struct TripChain {
@@ -13,3 +23,6 @@ struct Vehicle {
 	unsigned int id;
 	Vehicle(unsigned int id=0) : id(id) {}
 };
+
+
+}

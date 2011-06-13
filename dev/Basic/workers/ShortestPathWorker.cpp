@@ -4,7 +4,11 @@ using std::vector;
 using boost::function;
 using boost::barrier;
 
-ShortestPathWorker::ShortestPathWorker(function<void(Worker*)>* action, barrier* internal_barr, barrier* external_barr, unsigned int endTick)
+
+using namespace sim_mob;
+
+
+sim_mob::ShortestPathWorker::ShortestPathWorker(function<void(Worker*)>* action, barrier* internal_barr, barrier* external_barr, unsigned int endTick)
     : EntityWorker(action, internal_barr, external_barr, endTick)
 {
 }
@@ -13,7 +17,7 @@ ShortestPathWorker::ShortestPathWorker(function<void(Worker*)>* action, barrier*
 /**
  * Update all entities that this Worker controls.
  */
-void ShortestPathWorker::perform_main()
+void sim_mob::ShortestPathWorker::perform_main()
 {
 	for (vector<Entity*>::iterator it=getEntities().begin(); it!=getEntities().end(); it++) {
 		//TODO: Either use templates or make a base class of "entities" (items with flip-able properties)
@@ -27,4 +31,6 @@ void ShortestPathWorker::perform_main()
 		this->active.set(false);
 	}*/
 }
+
+
 

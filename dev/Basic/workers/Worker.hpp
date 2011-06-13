@@ -25,7 +25,11 @@
 #include "../buffering/BufferedDataManager.hpp"
 
 
-class Worker : public sim_mob::BufferedDataManager {
+namespace sim_mob
+{
+
+
+class Worker : public BufferedDataManager {
 public:
 	Worker(boost::function<void(Worker*)>* action =NULL, boost::barrier* internal_barr =NULL, boost::barrier* external_barr =NULL, unsigned int endTick=0);
 
@@ -71,4 +75,6 @@ private:
 	std::vector<void*> data;
 };
 
+
+}
 

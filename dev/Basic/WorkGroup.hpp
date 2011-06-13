@@ -1,4 +1,5 @@
-/*
+/**
+ * Worker wrapper, similar to thread_group but using barriers.
  * A WorkGroup provides a convenient wrapper for Workers, similarly to
  *   how a ThreadGroup manages threads. The main difference is that the number of
  *   worker threads cannot be changed once the object has been constructed.
@@ -14,6 +15,10 @@
 
 #include "workers/Worker.hpp"
 #include "entities/Entity.hpp"
+
+
+namespace sim_mob
+{
 
 
 class WorkGroup {
@@ -59,12 +64,14 @@ private:
 
 };
 
+}
+
 
 /**
  * Template function must be defined in the same translational unit as it is declared.
  */
 template <class WorkType>
-void WorkGroup::initWorkers(boost::function<void(Worker*)>* action)
+void sim_mob::WorkGroup::initWorkers(boost::function<void(sim_mob::Worker*)>* action)
 {
 	for (size_t i=0; i<total_size; i++) {
 		workers.push_back(new WorkType(action, &shared_barr, &external_barr, endTick/tickStep));

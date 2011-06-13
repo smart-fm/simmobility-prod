@@ -4,6 +4,9 @@
 #include "simpleconf.hpp"
 
 
+using namespace sim_mob;
+
+
 namespace {
 
 
@@ -227,14 +230,15 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vecto
 }
 
 
+
 //////////////////////////////////////////
 // Simple singleton implementation
 //////////////////////////////////////////
-ConfigParams ConfigParams::instance;
-ConfigParams::ConfigParams() {
+ConfigParams sim_mob::ConfigParams::instance;
+sim_mob::ConfigParams::ConfigParams() {
 
 }
-ConfigParams& ConfigParams::GetInstance() {
+ConfigParams& sim_mob::ConfigParams::GetInstance() {
 	return ConfigParams::instance;
 }
 
@@ -246,7 +250,7 @@ ConfigParams& ConfigParams::GetInstance() {
 // Main external method
 //////////////////////////////////////////
 
-bool ConfigParams::InitUserConf(std::vector<Agent>& agents, std::vector<Region>& regions,
+bool sim_mob::ConfigParams::InitUserConf(std::vector<Agent>& agents, std::vector<Region>& regions,
 		          std::vector<TripChain>& trips, std::vector<ChoiceSet>& chSets,
 		          std::vector<Vehicle>& vehicles)
 {
@@ -288,6 +292,4 @@ bool ConfigParams::InitUserConf(std::vector<Agent>& agents, std::vector<Region>&
 	return errorMsg.empty();
 
 }
-
-
 

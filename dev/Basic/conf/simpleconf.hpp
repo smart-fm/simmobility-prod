@@ -21,6 +21,10 @@
 #include "../workers/Worker.hpp"
 
 
+namespace sim_mob
+{
+
+
 class ConfigParams : private boost::noncopyable {
 public:
 	unsigned int baseGranMS;
@@ -43,4 +47,4 @@ private:
 	static ConfigParams instance;
 };
 
-
+}

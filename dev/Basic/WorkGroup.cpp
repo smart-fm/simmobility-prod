@@ -4,13 +4,14 @@ using std::vector;
 using boost::barrier;
 using boost::function;
 
+using namespace sim_mob;
 
-WorkGroup::WorkGroup(size_t size, unsigned int endTick, unsigned int tickStep) :
+sim_mob::WorkGroup::WorkGroup(size_t size, unsigned int endTick, unsigned int tickStep) :
 		shared_barr(size+1), external_barr(size+1), endTick(endTick), tickStep(tickStep), total_size(size)
 {
 }
 
-WorkGroup::~WorkGroup()
+sim_mob::WorkGroup::~WorkGroup()
 {
 	for (size_t i=0; i<workers.size(); i++) {
 		workers[i]->join();  //NOTE: If we don't join all Workers, we get threading exceptions.
@@ -19,7 +20,7 @@ WorkGroup::~WorkGroup()
 }
 
 
-void WorkGroup::startAll()
+void sim_mob::WorkGroup::startAll()
 {
 	tickOffset = tickStep;
 	for (size_t i=0; i<workers.size(); i++) {
@@ -28,13 +29,13 @@ void WorkGroup::startAll()
 }
 
 
-size_t WorkGroup::size()
+size_t sim_mob::WorkGroup::size()
 {
 	return workers.size();
 }
 
 
-Worker& WorkGroup::getWorker(size_t id)
+Worker& sim_mob::WorkGroup::getWorker(size_t id)
 {
 	if (id >= workers.size())
 		throw std::runtime_error("Invalid Worker id.");
@@ -42,7 +43,7 @@ Worker& WorkGroup::getWorker(size_t id)
 }
 
 
-void WorkGroup::wait()
+void sim_mob::WorkGroup::wait()
 {
 	if (--tickOffset>0) {
 		return;
@@ -53,7 +54,7 @@ void WorkGroup::wait()
 	external_barr.wait();
 }
 
-void WorkGroup::interrupt()
+void sim_mob::WorkGroup::interrupt()
 {
 	for (size_t i=0; i<workers.size(); i++)
 		workers[i]->interrupt();
@@ -63,7 +64,7 @@ void WorkGroup::interrupt()
 /**
  * Set "fromID" or "toID" to -1 to skip that step.
  */
-void WorkGroup::migrate(void* ag, int fromID, int toID)
+void sim_mob::WorkGroup::migrate(void* ag, int fromID, int toID)
 {
 	if (ag==NULL)
 		return;
@@ -78,13 +79,6 @@ void WorkGroup::migrate(void* ag, int fromID, int toID)
 		getWorker(toID).addEntity(ag);
 	}
 }
-
-
-
-
-
-
-
 
 
 

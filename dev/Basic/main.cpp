@@ -25,6 +25,10 @@ using std::endl;
 using std::vector;
 using boost::thread;
 
+using namespace sim_mob;
+
+
+
 //trivial defined here
 bool trivial(unsigned int id) {
 	return id%2==0;

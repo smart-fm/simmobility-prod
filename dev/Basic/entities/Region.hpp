@@ -9,6 +9,9 @@
 #include "../constants.h"
 #include "Entity.hpp"
 
+namespace sim_mob
+{
+
 //Signals
 struct Signal {
 	unsigned int id;
@@ -21,8 +24,10 @@ public:
 	Region(unsigned int id=0);
 
 	virtual void update();
-	virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew) {} //Nothing for now.
+	virtual void subscribe(BufferedDataManager* mgr, bool isNew) {} //Nothing for now.
 
 private:
 	std::vector<Signal> signals;
 };
+
+}

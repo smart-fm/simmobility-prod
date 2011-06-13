@@ -1,7 +1,3 @@
-/*
- * Manager for buffered data, copied from "testing/data/data_mgr.hpp".
- */
-
 #pragma once
 
 #include <vector>
@@ -19,11 +15,16 @@ class BufferedDataManager;
 
 
 /**
- * Avoid circular dependencies.
+ * Base class for all buffered data. The class Buffered extends this class and allows a template
+ * parameter to be passed along.
+ *
+ * \note This used to be non-copyable, but we are allowing subclasses to access the constructor and
+ * destructor, and we are defining an "equals" function which is relatively safe. So there's no
+ * reason to prohibit copying.
+ *
+ * \par
+ * ~Seth
  */
-//NOTE: This used to be non-copyable, but we are allowing subclasses to access the constructor/destructor
-//      and we are defining an "equals" function which is relatively safe. So there's no reason to make it
-//      uncopyable....
 class BufferedBase
 {
 public:
@@ -45,7 +46,9 @@ private:
 };
 
 
-
+/**
+ * Manager for buffered data. Original source based on "data_mgr.hpp".
+ */
 class BufferedDataManager
 {
 public:
@@ -60,5 +63,4 @@ private:
 
 
 }
-
 

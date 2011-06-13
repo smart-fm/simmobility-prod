@@ -11,6 +11,10 @@
 #include "Worker.hpp"
 #include "../entities/Entity.hpp"
 
+namespace sim_mob
+{
+
+
 class EntityWorker : public Worker {
 public:
 	EntityWorker(boost::function<void(Worker*)>* action =NULL, boost::barrier* internal_barr =NULL, boost::barrier* external_barr =NULL, unsigned int endTick=0);
@@ -31,3 +35,6 @@ protected:
 
 
 };
+
+
+}

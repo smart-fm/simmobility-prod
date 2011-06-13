@@ -4,7 +4,11 @@ using std::vector;
 using boost::function;
 using boost::barrier;
 
-EntityWorker::EntityWorker(function<void(Worker*)>* action, barrier* internal_barr, barrier* external_barr, unsigned int endTick)
+
+using namespace sim_mob;
+
+
+sim_mob::EntityWorker::EntityWorker(function<void(Worker*)>* action, barrier* internal_barr, barrier* external_barr, unsigned int endTick)
     : Worker(action, internal_barr, external_barr, endTick)
 {
 }
@@ -26,7 +30,7 @@ EntityWorker::EntityWorker(function<void(Worker*)>* action, barrier* internal_ba
 /**
  * Update all entities that this Worker controls.
  */
-void EntityWorker::perform_main()
+void sim_mob::EntityWorker::perform_main()
 {
 	for (vector<Entity*>::iterator it=getEntities().begin(); it!=getEntities().end(); it++) {
 		//TODO: Either use templates or make a base class of "entities" (items with flip-able properties)
@@ -47,13 +51,13 @@ void EntityWorker::perform_main()
 }*/
 
 
-void EntityWorker::addEntity(Entity* entity)
+void sim_mob::EntityWorker::addEntity(Entity* entity)
 {
 	entities.push_back(entity);
 	entity->subscribe(this, true);
 }
 
-void EntityWorker::remEntity(Entity* entity)
+void sim_mob::EntityWorker::remEntity(Entity* entity)
 {
 	vector<Entity*>::iterator it = std::find(entities.begin(), entities.end(), entity);
 	if (it!=entities.end()) {
@@ -62,7 +66,10 @@ void EntityWorker::remEntity(Entity* entity)
 	entity->subscribe(this, false);
 }
 
-vector<Entity*>& EntityWorker::getEntities() {
+vector<Entity*>& sim_mob::EntityWorker::getEntities() {
 	return entities;
 }
+
+
+
 

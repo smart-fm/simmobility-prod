@@ -74,9 +74,11 @@ private:
     T next_;
 };
 
+}
+
 
 template <typename T>
-Buffered<T>::Buffered (BufferedDataManager* mgr, const T& value) :
+sim_mob::Buffered<T>::Buffered (BufferedDataManager* mgr, const T& value) :
     BufferedBase(mgr),
     is_dirty_ (false), current_ (value), next_ (value)
 {
@@ -84,7 +86,7 @@ Buffered<T>::Buffered (BufferedDataManager* mgr, const T& value) :
 }
 
 template <typename T>
-Buffered<T>& Buffered<T>::operator=(const Buffered<T>& rhs)
+sim_mob::Buffered<T>& sim_mob::Buffered<T>::operator=(const sim_mob::Buffered<T>& rhs)
 {
 	BufferedBase::operator =(rhs);
 	this->is_dirty_ = rhs.is_dirty_;
@@ -96,14 +98,14 @@ Buffered<T>& Buffered<T>::operator=(const Buffered<T>& rhs)
 
 
 template <typename T>
-const T& Buffered<T>::get() const
+const T& sim_mob::Buffered<T>::get() const
 {
     return current_;
 }
 
 
 template <typename T>
-void Buffered<T>::set (const T& value)
+void sim_mob::Buffered<T>::set (const T& value)
 {
     if (next_ != value)
     {
@@ -114,7 +116,7 @@ void Buffered<T>::set (const T& value)
 
 
 template <typename T>
-void Buffered<T>::force (const T& value)
+void sim_mob::Buffered<T>::force (const T& value)
 {
 	next_ = current_ = value;
 }
@@ -123,7 +125,7 @@ void Buffered<T>::force (const T& value)
 
 
 template <typename T>
-void Buffered<T>::flip()
+void sim_mob::Buffered<T>::flip()
 {
     if (is_dirty_)
     {
@@ -133,7 +135,7 @@ void Buffered<T>::flip()
 }
 
 template <typename T>
-std::ostream & operator<< (std::ostream & stream, Buffered<T> const & data)
+std::ostream & operator<< (std::ostream & stream, sim_mob::Buffered<T> const & data)
 {
     stream << data.get();
     if (data.current_ != data.next_) {
@@ -142,5 +144,5 @@ std::ostream & operator<< (std::ostream & stream, Buffered<T> const & data)
     return stream;
 }
 
-}
+
 

@@ -9,6 +9,10 @@
 #include "../buffering/BufferedDataManager.hpp"
 
 
+namespace sim_mob
+{
+
+
 class Entity {
 public:
 	Entity(unsigned int id) : id(id) {}
@@ -26,4 +30,7 @@ private:
 public:
 	unsigned int getId() const { return id; }
 };
+
+
+}
 

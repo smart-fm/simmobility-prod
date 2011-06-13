@@ -10,7 +10,7 @@ namespace sim_mob
 
 
 /**
- * \brief Templatized wrapper for buffered objects.
+ * Templatized wrapper for buffered objects.
  *
  * A Buffered data-type can handle multiple readers and a single writer without
  * locking. The "flip" method is used to update the current value after calling "set".
@@ -21,9 +21,16 @@ namespace sim_mob
  *
  * Based on the file "testing/data/data.hpp"
  *
- * NOTE: I removed most virtual functions; trying to make this class as simple as possible.
+ * \note I removed most virtual functions; trying to make this class as simple as possible.
  *       Re-enable features as you need them.
+ *  \par
  *  ~Seth
+ *
+ *  \note I left notify() out, because at the moment I'm not sure if we should have Buffered
+ *  types acting as listeners; it seems like this might slow down data that one doesn't want
+ *  to be notified of, and is not really the right place for this anyway.
+ *   \par
+ *   ~Seth
  */
 template <typename T>
 class Buffered : public BufferedBase
@@ -61,18 +68,10 @@ public:
 protected:
     void flip();
 
-    //NOTE: I left notify() out (the implementation is left commented out a few dozen lines below)
-    //      because at the moment I'm not sure if we should have Buffered types acting as listeners;
-    //      it seems like this might slow down data that one doesn't want to be notified of.
-    // ~Seth
-    //void notify();
-
 private:
     bool is_dirty_;
     T current_;
     T next_;
-
-    //std::set<Observer*> observers_;
 };
 
 
@@ -121,11 +120,6 @@ void Buffered<T>::force (const T& value)
 }
 
 
-/*template <typename T>
-void Buffered<T>::add (Observer* observer)
-{
-    observers_.insert (observer);
-}*/
 
 
 template <typename T>
@@ -134,21 +128,9 @@ void Buffered<T>::flip()
     if (is_dirty_)
     {
         current_ = next_;
-        //notify();
         is_dirty_ = false;
     }
 }
-
-/*template <typename T>
-void Buffered<T>::notify()
-{
-    for (std::set<Observer*>::iterator iter = observers_.begin(); iter != observers_.end(); ++iter)
-    {
-        Observer* observer = *iter;
-        observer->notify (this);
-    }
-}*/
-
 
 template <typename T>
 std::ostream & operator<< (std::ostream & stream, Buffered<T> const & data)

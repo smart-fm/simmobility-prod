@@ -38,7 +38,6 @@ BufferedBase& sim_mob::BufferedBase::operator=(const BufferedBase& rhs)
 }
 
 
-//This function might be named wrongly, since it only accomplishes half of the migration.
 void sim_mob::BufferedBase::migrate(sim_mob::BufferedDataManager* newMgr)
 {
 	mgr = newMgr;

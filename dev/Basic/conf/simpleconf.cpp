@@ -1,6 +1,3 @@
-//Placeholder file while we figure out how config files will work.
-
-
 #include "simpleconf.hpp"
 
 

@@ -28,6 +28,13 @@ class BufferedDataManager;
 class BufferedBase
 {
 public:
+	/**
+	 * Migrate this buffered type to a new data manager.
+	 * \param newMgr The manager now responsible for flipping this buffered datum. Can be NULL.
+	 *
+	 * \todo
+	 * This function might be named wrongly, since it only accomplishes half of the migration.
+	 */
 	void migrate(sim_mob::BufferedDataManager* newMgr);
 
 protected:
@@ -52,10 +59,14 @@ private:
 class BufferedDataManager
 {
 public:
-    //Data lifecycle management.
-    void add (BufferedBase* datum);
-    void rem (BufferedBase* datum);
+    void add (BufferedBase* datum);  ///<Become responsible for a buffered data item.
+    void rem (BufferedBase* datum);  ///<Stop tracking a buffered data item.
+
+    /**
+     * Flip (update the current value of) all buffered data items under your control.
+     */
     void flip();
+
 
 private:
     std::vector<BufferedBase*> managedData;

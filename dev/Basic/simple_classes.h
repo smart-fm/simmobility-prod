@@ -5,10 +5,7 @@
  */
 #pragma once
 
-namespace sim_mob
-{
-
-
+//namespace sim_mob {} //This is a temporary file, so it exists outside the namespace
 
 //Class stubs
 struct TripChain {
@@ -25,4 +22,4 @@ struct Vehicle {
 };
 
 
-}
+

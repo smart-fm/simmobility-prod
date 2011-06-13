@@ -11,7 +11,7 @@
 
 #pragma once
 
-//namespace sim_mob {} //Currently outside the namespace
+//namespace sim_mob {} //This is a temporary file, so it exists outside the namespace
 
 const unsigned int WG_TRIPCHAINS_SIZE = 4;       ///<Number of trip chain workers in group.
 const unsigned int WG_CREATE_AGENT_SIZE = 3;     ///<Number of agent creation workers in group.

@@ -16,8 +16,7 @@
 #include "workers/Worker.hpp"
 
 
-namespace sim_mob
-{
+//namespace sim_mob {} //This is a temporary file, so it exists outside the namespace
 
 
 //Function stubs
@@ -160,5 +159,4 @@ bool checkIDs(const std::vector<Agent>& agents, const std::vector<TripChain>& tr
 
 
 
-}
 

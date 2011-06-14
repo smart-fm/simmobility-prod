@@ -1,5 +1,12 @@
-/*
- * An "EntityWorker" updates any kind of Entity.
+/**
+ * Handles groups of Entities; calls their "update" functions in the main loop.
+ *
+ * \todo
+ * The add/remEntity and related functions should be expressed through templates.
+ *
+ * \todo
+ * Perhaps we can specialize this template when we extend it? Then we could use it exactly
+ * the same way we're using it now.
  */
 
 #pragma once

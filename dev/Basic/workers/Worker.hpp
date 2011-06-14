@@ -1,15 +1,15 @@
-/*
+/**
  * A "worker" performs a task asynchronously.
  *    There are two ways to use a worker:
- *    1) Use the default constructor. Call "join" when you need its result. (NOTE: This behavior is currently disabled.)
- *    2) Create it with a non-null barrier. Best used with a "WorkGroup"
+ *    - Use the default constructor. Call "wait" once. (See: WorkGroup)
+ *    - Create it with a non-null barrier. (Again, see: WorkGroup)
+ *
  * To customize the Worker, either subclass it and override "main_loop", or
+ * use a normal Worker and pass in a bindable function in the constructor.
  *
- *    use a normal Worker and pass in a bindable function in the constructor.
- *        ---NOTE: Haven't tested using a bindable function.
- *
- *    In this case, the "main_loop" will wrap "action" in a "while(active)" loop; calling
- *    "join" will set "active" to false and wait for the thread to terminate.
+ * \todo
+ * Need to re-write, combine this with EntityWorker. Basically, the AddEntity function
+ * should be templatized with void* or Entity*, instead of having 2 classes.
  */
 
 #pragma once

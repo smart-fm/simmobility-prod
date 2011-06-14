@@ -1,6 +1,9 @@
-/*
- * A "ShortestPathWorker" operates directly on Agents, but instead of calling "update",
- *     it performs its own function.
+/**
+ * Operates directly on Agents, but instead of calling "update",
+ * it performs its own function.
+ *
+ * \todo
+ * This should extend Worker, not EntityWorker.
  */
 
 #pragma once

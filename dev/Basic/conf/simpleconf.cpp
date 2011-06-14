@@ -1,5 +1,7 @@
 #include "simpleconf.hpp"
 
+using std::map;
+using std::string;
 
 using namespace sim_mob;
 
@@ -124,6 +126,64 @@ bool loadXMLAgents(xmlXPathContext* xpContext, std::vector<Agent>& agents)
 
 
 
+bool loadXMLBoundariesCrossings(xmlXPathContext* xpContext, const string& expression, map<string, Point>& result)
+{
+	xmlXPathObject* xpObject = xmlXPathEvalExpression((xmlChar*)expression.c_str(), xpContext);
+	if (xpObject==NULL) {
+		return false;
+	}
+
+	//Move through results
+	result.clear();
+	for (xmlNode** it=xpObject->nodesetval->nodeTab; *it!=NULL; it++) {
+		xmlNode* curr = *it;
+		string key;
+		Point val;
+		unsigned int flagCheck = 0;
+		for (xmlAttr* attrs=curr->properties; attrs!=NULL; attrs=attrs->next) {
+			//Read each attribute.
+			std::string name = (char*)attrs->name;
+			std::string value = (char*)attrs->children->content;
+			if (name.empty() || value.empty()) {
+				return false;
+			}
+
+			//Assign it.
+			if (name=="position") {
+				key = value;
+				flagCheck |= 1;
+			} else {
+				int valueI;
+				std::istringstream(value) >> valueI;
+				if (name=="xPos") {
+					val.xPos = valueI;
+					flagCheck |= 2;
+				} else if (name=="yPos") {
+					val.yPos = valueI;
+					flagCheck |= 4;
+				} else {
+					return false;
+				}
+			}
+		}
+
+		if (flagCheck!=7) {
+			return false;
+		}
+
+		//Save it.
+		result[key] = val;
+	}
+
+
+
+
+	xmlXPathFreeObject(xpObject);
+	return true;
+}
+
+
+
 std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vector<Agent>& agents)
 {
 	//Ensure we loaded a real document
@@ -192,6 +252,16 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vecto
     	return "Couldn't load agents";
     }
 
+    //Load boundaries
+    if (!loadXMLBoundariesCrossings(xpContext, "/config/boundaries/boundary", ConfigParams::GetInstance().boundaries)) {
+    	return "Couldn't load boundaries";
+    }
+
+    //Load crossings
+    if (!loadXMLBoundariesCrossings(xpContext, "/config/crossings/crossing", ConfigParams::GetInstance().crossings)) {
+    	return "Couldn't load crossings";
+    }
+
     //Save
     {
     	ConfigParams& config = ConfigParams::GetInstance();
@@ -214,6 +284,14 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vecto
     std::cout <<"  Signal Granularity: " <<ConfigParams::GetInstance().granSignalsTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Paths Granularity: " <<ConfigParams::GetInstance().granPathsTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Decomp Granularity: " <<ConfigParams::GetInstance().granDecompTicks <<" " <<"ticks" <<"\n";
+    std::cout <<"  Boundaries Found: " <<ConfigParams::GetInstance().boundaries.size() <<"\n";
+    for (map<string, Point>::iterator it=ConfigParams::GetInstance().boundaries.begin(); it!=ConfigParams::GetInstance().boundaries.end(); it++) {
+    	std::cout <<"    Boundary[" <<it->first <<"] = (" <<it->second.xPos <<"," <<it->second.yPos <<")\n";
+    }
+    std::cout <<"  Crossings Found: " <<ConfigParams::GetInstance().crossings.size() <<"\n";
+    for (map<string, Point>::iterator it=ConfigParams::GetInstance().crossings.begin(); it!=ConfigParams::GetInstance().crossings.end(); it++) {
+    	std::cout <<"    Crossing[" <<it->first <<"] = (" <<it->second.xPos <<"," <<it->second.yPos <<")\n";
+    }
     std::cout <<"  Agents Initialized: " <<agents.size() <<"\n";
     for (size_t i=0; i<agents.size(); i++) {
     	std::cout <<"    Agent(" <<agents[i].getId() <<") = " <<agents[i].xPos.get() <<"," <<agents[i].yPos.get() <<"\n";

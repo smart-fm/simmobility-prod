@@ -37,6 +37,9 @@ public:
 	unsigned int granPathsTicks;      ///<Number of ticks to wait before updating all paths.
 	unsigned int granDecompTicks;     ///<Number of ticks to wait before updating agent decomposition.
 
+	std::map<std::string, Point> boundaries;  ///<Indexed by position, e.g., "bottomright"
+	std::map<std::string, Point> crossings;   ///<Indexed by position, e.g., "bottomright"
+
 public:
 	/***
 	 * Singleton. Retrieve an instance of the ConfigParams object.

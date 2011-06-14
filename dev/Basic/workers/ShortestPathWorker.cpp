@@ -9,7 +9,7 @@ using namespace sim_mob;
 
 
 sim_mob::ShortestPathWorker::ShortestPathWorker(function<void(Worker*)>* action, barrier* internal_barr, barrier* external_barr, unsigned int endTick)
-    : EntityWorker(action, internal_barr, external_barr, endTick)
+    : Worker(action, internal_barr, external_barr, endTick)
 {
 }
 
@@ -19,17 +19,9 @@ sim_mob::ShortestPathWorker::ShortestPathWorker(function<void(Worker*)>* action,
  */
 void sim_mob::ShortestPathWorker::perform_main()
 {
-	for (vector<Entity*>::iterator it=getEntities().begin(); it!=getEntities().end(); it++) {
-		//TODO: Either use templates or make a base class of "entities" (items with flip-able properties)
-		//TODO: Use a dynamic_cast if there's a common base object.
-		Agent* ag = (Agent*)(*it);
-		ag->updateShortestPath();
+	for (vector<Agent*>::iterator it=getEntities().begin(); it!=getEntities().end(); it++) {
+		(*it)->updateShortestPath();
 	}
-
-	//Advance local time-step
-	/*if (++localTimestep>=simulationEnd) {
-		this->active.set(false);
-	}*/
 }
 
 

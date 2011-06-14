@@ -89,14 +89,17 @@ template <class EntityType>
 void sim_mob::Worker<EntityType>::addEntity(EntityType* entity)
 {
 	data.push_back(entity);
+	entity->subscribe(this, true);
 }
 
 template <class EntityType>
 void sim_mob::Worker<EntityType>::remEntity(EntityType* entity)
 {
 	typename std::vector<EntityType*>::iterator it = std::find(data.begin(), data.end(), entity);
-	if (it!=data.end())
+	if (it!=data.end()) {
 		data.erase(it);
+	}
+	entity->subscribe(this, false);
 }
 
 template <class EntityType>

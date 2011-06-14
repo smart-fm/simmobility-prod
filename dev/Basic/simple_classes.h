@@ -7,18 +7,30 @@
 
 //namespace sim_mob {} //This is a temporary file, so it exists outside the namespace
 
+#include "buffering/BufferedDataManager.hpp"
+
+
 //Class stubs
 struct TripChain {
 	unsigned int id;
 	TripChain(unsigned int id=0) : id(id) {}
+
+	//TEMP fix: WorkGroups manage subscriptions; perhaps we can delegate this to agents?
+	void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew) {}
 };
 struct ChoiceSet {
 	unsigned int id;
 	ChoiceSet(unsigned int id=0) : id(id) {}
+
+	//TEMP fix: WorkGroups manage subscriptions; perhaps we can delegate this to agents?
+	void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew) {}
 };
 struct Vehicle {
 	unsigned int id;
 	Vehicle(unsigned int id=0) : id(id) {}
+
+	//TEMP fix: WorkGroups manage subscriptions; perhaps we can delegate this to agents?
+	void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew) {}
 };
 
 

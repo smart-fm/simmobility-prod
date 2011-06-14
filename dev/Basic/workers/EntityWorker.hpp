@@ -22,9 +22,9 @@ namespace sim_mob
 {
 
 
-class EntityWorker : public Worker {
+class EntityWorker : public Worker<Entity> {
 public:
-	EntityWorker(boost::function<void(Worker*)>* action =NULL, boost::barrier* internal_barr =NULL, boost::barrier* external_barr =NULL, unsigned int endTick=0);
+	EntityWorker(boost::function<void(Worker<Entity>*)>* action =NULL, boost::barrier* internal_barr =NULL, boost::barrier* external_barr =NULL, unsigned int endTick=0);
 	virtual void perform_main();
 	//virtual void perform_flip();
 	//virtual void start();
@@ -33,12 +33,12 @@ public:
 
 	//These behave something like overrides.
 	// TODO: Again, need a better way of doing this... (template maybe)
-	void addEntity(Entity* entity);
-	void remEntity(Entity* entity);
-	std::vector<Entity*>& getEntities();
+	//void addEntity(Entity* entity);
+	//void remEntity(Entity* entity);
+	//std::vector<Entity*>& getEntities();
 
-protected:
-	std::vector<Entity*> entities;
+//protected:
+	//std::vector<Entity*> entities;
 
 
 };

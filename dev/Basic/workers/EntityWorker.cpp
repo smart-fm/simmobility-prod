@@ -53,7 +53,7 @@ void sim_mob::EntityWorker::perform_main()
 }*/
 
 
-void sim_mob::EntityWorker::addEntity(Entity* entity)
+/*void sim_mob::EntityWorker::addEntity(Entity* entity)
 {
 	entities.push_back(entity);
 	entity->subscribe(this, true);
@@ -70,7 +70,7 @@ void sim_mob::EntityWorker::remEntity(Entity* entity)
 
 vector<Entity*>& sim_mob::EntityWorker::getEntities() {
 	return entities;
-}
+}*/
 
 
 

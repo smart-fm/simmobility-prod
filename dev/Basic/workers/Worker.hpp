@@ -33,6 +33,7 @@ template <class EntityType>
 class Worker : public BufferedDataManager {
 public:
 	Worker(boost::function<void(sim_mob::Worker<EntityType>*)>* action =NULL, boost::barrier* internal_barr =NULL, boost::barrier* external_barr =NULL, unsigned int endTick=0);
+	~Worker();
 
 	//Thread-style operations
 	void start();
@@ -122,6 +123,15 @@ sim_mob::Worker<EntityType>::Worker(boost::function<void(sim_mob::Worker<EntityT
       endTick(endTick),
       active(this, false)  //Passing the "this" pointer is probably ok, since we only use the base class (which is constructed)
 {
+}
+
+template <class EntityType>
+sim_mob::Worker<EntityType>::~Worker()
+{
+	//Clear all tracked entitites
+	while (!data.empty()) {
+		remEntity(data[0]);
+	}
 }
 
 template <class EntityType>

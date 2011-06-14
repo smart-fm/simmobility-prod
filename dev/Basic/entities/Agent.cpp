@@ -32,12 +32,20 @@ void sim_mob::Agent::update() {
 		updatePassengerBehavior(*this);
 	}*/
 
+	//Compute
 	unsigned int newX = this->xPos.get()+10;
 	unsigned int newY = this->yPos.get()+10;
 
+	//Constrain to boundaries.
+	newX = std::max(std::min(newX, lowerRight.xPos), topLeft.xPos);
+	newY = std::max(std::min(newY, lowerRight.yPos), topLeft.yPos);
+
+
+	//Set
 	this->xPos.set(newX);
 	this->yPos.set(newY);
 
+	//Output (temp)
 	{
 		boost::mutex::scoped_lock local_lock(global_mutex);
 		std::cout <<"(" <<this->getId() <<"," <<newX <<"," <<newY <<")" <<std::endl;

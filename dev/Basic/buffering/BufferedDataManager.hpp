@@ -38,7 +38,7 @@ public:
 	void migrate(sim_mob::BufferedDataManager* newMgr);
 
 protected:
-	BufferedBase(BufferedDataManager* mgr);
+	BufferedBase(BufferedDataManager* mgr=NULL);
     virtual ~BufferedBase();
     virtual BufferedBase& operator=(const BufferedBase& rhs);
 

@@ -6,10 +6,12 @@
 #include "Entity.hpp"
 #include "../buffering/Buffered.hpp"
 #include "../buffering/BufferedDataManager.hpp"
+#include "../simple_classes.h"
 
 
 namespace sim_mob
 {
+
 
 /**
  * Possible agent behaviors.
@@ -45,6 +47,10 @@ public:
 public:
 	sim_mob::Buffered<unsigned int> xPos;  ///<The agent's position, X
 	sim_mob::Buffered<unsigned int> yPos;  ///<The agent's position, Y
+
+	//TEMP; we can't link to the config file directly or we get a circular dependency.
+	Point topLeft;
+	Point lowerRight;
 
 private:
 	unsigned int currMode;

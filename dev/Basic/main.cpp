@@ -96,6 +96,31 @@ bool performMain()
   }
   const ConfigParams& config = ConfigParams::GetInstance();
 
+  //Initialization: Server configuration
+  setConfiguration();
+
+  //Initialization: Network decomposition among multiple machines.
+  loadNetwork();
+
+
+
+  ///////////////////////////////////////////////////////////////////////////////////
+  // NOTE: Because of the way we cache the old values of agents, we need to run our
+  //       initialization workers and then flip their values (otherwise there will be
+  //       no data to read.) The other option is to load all "properties" with a default
+  //       value, but at the moment we don't even have a "properties class"
+  ///////////////////////////////////////////////////////////////////////////////////
+  cout <<"Beginning Initialization" <<endl;
+  InitializeAll(agents, regions, trips, choiceSets, vehicles);
+  cout <<"  " <<"Initialization done" <<endl;
+
+  //Sanity check (simple)
+  if (!checkIDs(agents, trips, choiceSets, vehicles)) {
+	  return false;
+  }
+
+  //Output
+  cout <<"  " <<"(Sanity Check Passed)" <<endl;
 
   //Initialize our work groups, assign agents randomly to these groups.
   EntityWorkGroup agentWorkers(WG_AGENTS_SIZE, config.totalRuntimeTicks, config.granAgentsTicks);
@@ -118,34 +143,15 @@ bool performMain()
   //  TODO: There needs to be a more general way to do this.
   EntityWorkGroup shortestPathWorkers(WG_SHORTEST_PATH_SIZE, config.totalRuntimeTicks, config.granPathsTicks);
   shortestPathWorkers.initWorkers();
-  for (size_t i=0; i<agents.size(); i++) {
+  /////////////////////////////////////////////////////////////////////////////
+  // NOTE: Currently, an Agent can only be "managed" by one Worker. We need a way to
+  //       say that the agent is the data object of a worker, but WON'T be managed by it.
+  // For example, shortest-path-worker only needs to read X/Y, but will update "shortestPath"
+  //        (which the EntityWorker won't touch).
+  /////////////////////////////////////////////////////////////////////////////
+  /*for (size_t i=0; i<agents.size(); i++) {
 	  shortestPathWorkers.migrate(&agents[i], -1, i%WG_SHORTEST_PATH_SIZE);
-  }
-
-  //Initialization: Server configuration
-  setConfiguration();
-
-  //Initialization: Network decomposition among multiple machines.
-  loadNetwork();
-
-
-  ///////////////////////////////////////////////////////////////////////////////////
-  // NOTE: Because of the way we cache the old values of agents, we need to run our
-  //       initialization workers and then flip their values (otherwise there will be
-  //       no data to read.) The other option is to load all "properties" with a default
-  //       value, but at the moment we don't even have a "properties class"
-  ///////////////////////////////////////////////////////////////////////////////////
-  cout <<"Beginning Initialization" <<endl;
-  InitializeAll(agents, regions, trips, choiceSets, vehicles);
-  cout <<"  " <<"Initialization done" <<endl;
-
-  //Sanity check (simple)
-  if (!checkIDs(agents, trips, choiceSets, vehicles)) {
-	  return false;
-  }
-
-  //Output
-  cout <<"  " <<"(Sanity Check Passed)" <<endl;
+  }*/
 
   //Start work groups
   agentWorkers.startAll();

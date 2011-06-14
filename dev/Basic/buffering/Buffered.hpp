@@ -82,7 +82,6 @@ sim_mob::Buffered<T>::Buffered (BufferedDataManager* mgr, const T& value) :
     BufferedBase(mgr),
     is_dirty_ (false), current_ (value), next_ (value)
 {
-
 }
 
 template <typename T>

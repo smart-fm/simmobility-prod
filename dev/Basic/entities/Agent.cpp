@@ -3,6 +3,9 @@
 using namespace sim_mob;
 
 
+//TEMP
+boost::mutex sim_mob::Agent::global_mutex;
+
 
 sim_mob::Agent::Agent(unsigned int id) : Entity(id), xPos(NULL, 0), yPos(NULL, 0) {
 	int currMode = id%4;
@@ -21,12 +24,23 @@ sim_mob::Agent::Agent(unsigned int id) : Entity(id), xPos(NULL, 0), yPos(NULL, 0
 
 void sim_mob::Agent::update() {
 	//TODO: Migrate this into the agent's behavior using inheritance.
-	if (currMode==DRIVER) {
+	/*if (currMode==DRIVER) {
 		updateDriverBehavior(*this);
 	} else if (currMode==PEDESTRIAN || currMode==CYCLIST) {
 		updatePedestrianBehavior(*this);
 	} else if (currMode==PASSENGER) {
 		updatePassengerBehavior(*this);
+	}*/
+
+	unsigned int newX = this->xPos.get()+10;
+	unsigned int newY = this->yPos.get()+10;
+
+	this->xPos.set(newX);
+	this->yPos.set(newY);
+
+	{
+		boost::mutex::scoped_lock local_lock(global_mutex);
+		std::cout <<"(" <<this->getId() <<"," <<newX <<"," <<newY <<")" <<std::endl;
 	}
 }
 

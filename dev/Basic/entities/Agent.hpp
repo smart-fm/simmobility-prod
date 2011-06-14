@@ -1,5 +1,7 @@
 #pragma once
 
+#include <boost/thread.hpp>
+
 #include "../constants.h"
 #include "Entity.hpp"
 #include "../buffering/Buffered.hpp"
@@ -46,6 +48,9 @@ public:
 
 private:
 	unsigned int currMode;
+
+	//TEMP
+	static boost::mutex global_mutex;
 
 
 //TODO: Move these into the proper location (inheritance, for most of them)

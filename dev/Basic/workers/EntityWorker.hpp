@@ -1,7 +1,3 @@
-/**
- * Handles groups of Entities; calls their "update" functions in the main loop.
- */
-
 #pragma once
 
 #include <vector>
@@ -15,6 +11,13 @@ namespace sim_mob
 {
 
 
+/**
+ * Handles groups of Entities; calls their "update" functions in the main loop.
+ *
+ * \note
+ * This class currently does nothing; everything is done with functional pointers
+ * in the Worker class.
+ */
 class EntityWorker : public Worker<Entity> {
 public:
 	EntityWorker(boost::function<void(Worker<Entity>*)>* action =NULL, boost::barrier* internal_barr =NULL, boost::barrier* external_barr =NULL, unsigned int endTick=0);

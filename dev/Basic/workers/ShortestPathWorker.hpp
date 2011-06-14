@@ -1,8 +1,3 @@
-/**
- * Operates directly on Agents, but instead of calling "update",
- * it performs its own function.
- */
-
 #pragma once
 
 #include <vector>
@@ -16,6 +11,14 @@
 namespace sim_mob
 {
 
+/**
+ * Operates directly on Agents, but instead of calling "update",
+ * it performs its own function.
+ *
+ * \note
+ * This class currently does nothing; everything is done with functional pointers
+ * in the Worker class.
+ */
 class ShortestPathWorker : public Worker<Agent> {
 public:
 	ShortestPathWorker(boost::function<void(Worker*)>* action =NULL, boost::barrier* internal_barr =NULL, boost::barrier* external_barr =NULL, unsigned int endTick=0);

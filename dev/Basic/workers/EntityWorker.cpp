@@ -8,8 +8,8 @@ using boost::barrier;
 using namespace sim_mob;
 
 
-sim_mob::EntityWorker::EntityWorker(function<void(Worker*)>* action, barrier* internal_barr, barrier* external_barr, unsigned int endTick)
-    : Worker(action, internal_barr, external_barr, endTick)
+sim_mob::EntityWorker::EntityWorker(function<void(Worker<Entity>*)>* action, barrier* internal_barr, barrier* external_barr, unsigned int endTick)
+    : Worker<Entity>(action, internal_barr, external_barr, endTick)
 {
 }
 

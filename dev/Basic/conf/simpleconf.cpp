@@ -80,8 +80,8 @@ bool loadXMLAgents(xmlXPathContext* xpContext, std::vector<Agent>& agents)
 
 	//Move through results
 	agents.clear();
-	for (xmlNode** it=xpObject->nodesetval->nodeTab; *it!=NULL; it++) {
-		xmlNode* curr = *it;
+	for (int i = 0; i < xpObject->nodesetval->nodeNr; ++i) {
+		xmlNode* curr = xpObject->nodesetval->nodeTab[i];
 		Agent agent;
 		unsigned int flagCheck = 0;
 		for (xmlAttr* attrs=curr->properties; attrs!=NULL; attrs=attrs->next) {

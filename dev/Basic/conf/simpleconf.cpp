@@ -262,13 +262,17 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vecto
     	return "Couldn't load crossings";
     }
 
-    //TEMP fix: save boundaries in agents
+    //TEMP fix: save boundaries and crossing in agents
 	//ConfigParams& config = ConfigParams::GetInstance();
-    Point topLeft = ConfigParams::GetInstance().boundaries["bottomleft"];
-    Point lowerRight = ConfigParams::GetInstance().boundaries["topright"];
+    Point topLeft = ConfigParams::GetInstance().boundaries["topleft"];
+    Point lowerRight = ConfigParams::GetInstance().boundaries["bottomright"];
+    Point topLeftC = ConfigParams::GetInstance().crossings["topleft"];
+    Point lowerRightC = ConfigParams::GetInstance().crossings["bottomright"];
     for (size_t i=0; i<agents.size(); i++) {
     	agents[i].topLeft = topLeft;
     	agents[i].lowerRight = lowerRight;
+    	agents[i].topLeftCrossing = topLeftC;
+    	agents[i].lowerRightCrossing = lowerRightC;
     }
 
 

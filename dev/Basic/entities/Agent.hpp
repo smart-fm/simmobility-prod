@@ -44,16 +44,32 @@ public:
 	///Update the agent's shortest path. (Currently does nothing; might not even belong here)
 	void updateShortestPath();
 
+	//The following methods are to be moved to agent's sub-systems in future
+	bool isGoalReached();
+	void setGoal();
+	void updateVelocity();
+	void updatePosition();
+
 public:
-	sim_mob::Buffered<unsigned int> xPos;  ///<The agent's position, X
-	sim_mob::Buffered<unsigned int> yPos;  ///<The agent's position, Y
+//	sim_mob::Buffered<unsigned int> xPos;  ///<The agent's position, X
+//	sim_mob::Buffered<unsigned int> yPos;  ///<The agent's position, Y
+	sim_mob::Buffered<double> xPos;  ///<The agent's position, X
+	sim_mob::Buffered<double> yPos;  ///<The agent's position, Y
 
 	//TEMP; we can't link to the config file directly or we get a circular dependency.
 	Point topLeft;
 	Point lowerRight;
+	Point topLeftCrossing;
+	Point lowerRightCrossing;
 
 private:
 	unsigned int currMode;
+	double speed;
+	double xVel;
+	double yVel;
+	Point goal;
+	bool isGoalSet;
+	bool toRemoved;
 
 	//TEMP
 	static boost::mutex global_mutex;

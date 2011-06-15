@@ -36,8 +36,10 @@ struct Vehicle {
 
 //Temp config file classes
 struct Point {
-	unsigned int xPos;
-	unsigned int yPos;
+//	unsigned int xPos;
+//	unsigned int yPos;
+	double xPos;
+	double yPos;
 };
 
 

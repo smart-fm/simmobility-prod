@@ -1,4 +1,7 @@
 #include "Agent.hpp"
+#include <stdlib.h>
+#include <time.h>
+#include <math.h>
 
 using namespace sim_mob;
 
@@ -8,8 +11,10 @@ boost::mutex sim_mob::Agent::global_mutex;
 
 
 sim_mob::Agent::Agent(unsigned int id) : Entity(id), xPos(NULL, 0), yPos(NULL, 0) {
-	int currMode = id%4;
+//	int currMode = id%4;
 
+	//Set to pedestrian for testing only
+	int currMode = 1;
 	//TODO: Inheritance, inheritance, inheritance
 	if (currMode==0)
 		currMode = DRIVER;
@@ -19,6 +24,19 @@ sim_mob::Agent::Agent(unsigned int id) : Entity(id), xPos(NULL, 0), yPos(NULL, 0
 		currMode = CYCLIST;
 	else if (currMode==3)
 		currMode = PASSENGER;
+
+	//Set random seed
+	srand(id);
+
+	//Set default speed in the range of 1m/s to 1.4m/s
+	speed = 1+(double(rand()%5))/10;
+
+	xVel = 0;
+	yVel = 0;
+
+	isGoalSet = false;
+	toRemoved = false;
+
 }
 
 
@@ -32,23 +50,35 @@ void sim_mob::Agent::update() {
 		updatePassengerBehavior(*this);
 	}*/
 
-	//Compute
-	unsigned int newX = this->xPos.get()+10;
-	unsigned int newY = this->yPos.get()+10;
+	//Set the goal of agent
+	if(!isGoalSet){
+		setGoal();
+		isGoalSet = true;
+	}
 
-	//Constrain to boundaries.
-	newX = std::max(std::min(newX, lowerRight.xPos), topLeft.xPos);
-	newY = std::max(std::min(newY, lowerRight.yPos), topLeft.yPos);
+	//Check if the agent has reached the goal
+	if(isGoalReached()){
 
+		if(!toRemoved){
+			//Output (temp)
+			{
+				boost::mutex::scoped_lock local_lock(global_mutex);
+				std::cout <<"(" <<this->getId() <<" has reached the goal)" <<std::endl;
+			}
+			toRemoved = true;
+		}
+	}
 
-	//Set
-	this->xPos.set(newX);
-	this->yPos.set(newY);
+	else{
 
-	//Output (temp)
-	{
-		boost::mutex::scoped_lock local_lock(global_mutex);
-		std::cout <<"(" <<this->getId() <<"," <<newX <<"," <<newY <<")" <<std::endl;
+		updateVelocity();
+		updatePosition();
+		//Output (temp)
+		{
+			boost::mutex::scoped_lock local_lock(global_mutex);
+			std::cout <<"(" <<this->getId() <<"," <<this->xPos.get()<<"," <<this->yPos.get()<<")" <<std::endl;
+		}
+
 	}
 }
 
@@ -102,4 +132,39 @@ void sim_mob::Agent::updatePassengerBehavior(Agent& a) {
 		pathChoice(a);  //NOTE: Do passengers need to do this?
 	}
 }
+
+//Simple implementations for testing
+
+void sim_mob::Agent::setGoal() {
+	goal.xPos = this->xPos.get();
+	goal.yPos = topLeftCrossing.yPos + double(rand()%5) + 1;;
+}
+
+bool sim_mob::Agent::isGoalReached() {
+	return (this->yPos.get()>=goal.yPos);
+}
+
+void sim_mob::Agent::updateVelocity() {
+	//Set direction (towards the goal)
+	xVel = goal.xPos - this->xPos.get();
+	yVel = goal.yPos - this->yPos.get();
+	//Normalize
+	double length = sqrt(xVel*xVel + yVel*yVel);
+	xVel = xVel/length;
+	yVel = yVel/length;
+	//Set actual velocity
+	xVel = xVel*speed;
+	yVel = yVel*speed;
+}
+
+void sim_mob::Agent::updatePosition(){
+	//Compute
+	double newX = this->xPos.get()+xVel*1; //Time step is 1 second
+	double newY = this->yPos.get()+yVel*1;
+	//Set
+	this->xPos.set(newX);
+	this->yPos.set(newY);
+}
+
+
 

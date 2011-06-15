@@ -32,7 +32,7 @@ public:
 	~WorkGroup();
 
 	//template <typename WorkType>  //For now, just assume Workers
-	void initWorkers(boost::function<void(Worker<EntityType>*)>* action=NULL);
+	void initWorkers(typename Worker<EntityType>::actionFunction* action=NULL);
 
 	Worker<EntityType>& getWorker(size_t id);
 	void startAll();
@@ -72,7 +72,7 @@ private:
  * Template function must be defined in the same translational unit as it is declared.
  */
 template <class EntityType>
-void sim_mob::WorkGroup<EntityType>::initWorkers(boost::function<void(sim_mob::Worker<EntityType>*)>* action)
+void sim_mob::WorkGroup<EntityType>::initWorkers(typename Worker<EntityType>::actionFunction* action)
 {
 	for (size_t i=0; i<total_size; i++) {
 		workers.push_back(new Worker<EntityType>(action, &shared_barr, &external_barr, endTick/tickStep));

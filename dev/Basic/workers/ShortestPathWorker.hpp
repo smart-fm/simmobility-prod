@@ -21,7 +21,7 @@ namespace sim_mob
  */
 class ShortestPathWorker : public Worker<Agent> {
 public:
-	ShortestPathWorker(boost::function<void(Worker<Agent>*)>* action =NULL, boost::barrier* internal_barr =NULL, boost::barrier* external_barr =NULL, unsigned int endTick=0);
+	ShortestPathWorker(Worker<Agent>::actionFunction* action =NULL, boost::barrier* internal_barr =NULL, boost::barrier* external_barr =NULL, unsigned int endTick=0);
 	virtual void perform_main();
 
 };

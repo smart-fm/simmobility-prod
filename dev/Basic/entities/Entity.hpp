@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../frame.hpp"
 #include "../buffering/BufferedDataManager.hpp"
 
 
@@ -20,7 +21,7 @@ public:
 	 * the entity may call any Buffered data type's "get" method, but may only "set" its own
 	 * Buffered data. Flip is called after each update phase.
 	 */
-	virtual void update() = 0;
+	virtual void update(frame_t frameNumber) = 0;
 
 	/**
 	 * Set a new data manager for this entity. This function is called when an entity migrates

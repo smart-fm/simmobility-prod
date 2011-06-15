@@ -22,7 +22,7 @@ sim_mob::Agent::Agent(unsigned int id) : Entity(id), xPos(NULL, 0), yPos(NULL, 0
 }
 
 
-void sim_mob::Agent::update() {
+void sim_mob::Agent::update(frame_t frameNumber) {
 	//TODO: Migrate this into the agent's behavior using inheritance.
 	/*if (currMode==DRIVER) {
 		updateDriverBehavior(*this);
@@ -48,7 +48,7 @@ void sim_mob::Agent::update() {
 	//Output (temp)
 	{
 		boost::mutex::scoped_lock local_lock(global_mutex);
-		std::cout <<"(" <<this->getId() <<"," <<newX <<"," <<newY <<")" <<std::endl;
+		std::cout <<"(" <<this->getId() <<"," <<frameNumber <<"," <<newX <<"," <<newY <<")" <<std::endl;
 	}
 }
 

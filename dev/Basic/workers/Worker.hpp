@@ -20,6 +20,7 @@
 #include <boost/thread.hpp>
 #include <boost/function.hpp>
 
+#include "../frame.hpp"
 #include "../entities/Entity.hpp"
 #include "../buffering/Buffered.hpp"
 #include "../buffering/BufferedDataManager.hpp"
@@ -32,7 +33,14 @@ namespace sim_mob
 template <class EntityType>
 class Worker : public BufferedDataManager {
 public:
-	Worker(boost::function<void(sim_mob::Worker<EntityType>*)>* action =NULL, boost::barrier* internal_barr =NULL, boost::barrier* external_barr =NULL, unsigned int endTick=0);
+	//! The function type for the 1st parameter to the Worker constructor.
+	//!
+	//! Any procedure that takes a Worker object and an unsigned integer can be used
+	//! to construct a Worker object.  This procedure will be called repeatedly; the 1st
+	//! argument will a reference to the constructed Worker object and the 2nd argument
+	//! will be a strictly monotonic increasing number which represent the time-step.
+	typedef boost::function<void(Worker<EntityType>& worker, frame_t frameNumber)> actionFunction;
+	Worker(actionFunction* action =NULL, boost::barrier* internal_barr =NULL, boost::barrier* external_barr =NULL, unsigned int endTick=0);
 	~Worker();
 
 	//Thread-style operations
@@ -47,7 +55,7 @@ public:
 
 
 protected:
-	virtual void perform_main();
+	virtual void perform_main(frame_t frameNumber);
 	virtual void perform_flip();
 
 
@@ -59,11 +67,11 @@ protected:
 	//Properties
 	boost::barrier* internal_barr;
 	boost::barrier* external_barr;
-	boost::function<void(Worker<EntityType>*)>* action;
+	actionFunction* action;
 
 	//Time management
-	unsigned int currTick;
-	unsigned int endTick;
+	frame_t currTick;
+	frame_t endTick;
 
 
 public:
@@ -117,7 +125,7 @@ std::vector<EntityType*>& sim_mob::Worker<EntityType>::getEntities() {
 
 
 template <class EntityType>
-sim_mob::Worker<EntityType>::Worker(boost::function<void(sim_mob::Worker<EntityType>*)>* action, boost::barrier* internal_barr, boost::barrier* external_barr, unsigned int endTick)
+sim_mob::Worker<EntityType>::Worker(actionFunction* action, boost::barrier* internal_barr, boost::barrier* external_barr, unsigned int endTick)
     : BufferedDataManager(),
       internal_barr(internal_barr), external_barr(external_barr), action(action),
       endTick(endTick),
@@ -161,7 +169,7 @@ template <class EntityType>
 void sim_mob::Worker<EntityType>::barrier_mgmt()
 {
 	for (;active.get();) {
-		perform_main();
+		perform_main(currTick);
 
 		if (internal_barr!=NULL)
 			internal_barr->wait();
@@ -180,10 +188,10 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 
 
 template <class EntityType>
-void sim_mob::Worker<EntityType>::perform_main()
+void sim_mob::Worker<EntityType>::perform_main(frame_t frameNumber)
 {
 	if (action!=NULL)
-		(*action)(this);
+		(*action)(*this, frameNumber);
 }
 
 template <class EntityType>

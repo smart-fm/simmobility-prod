@@ -10,7 +10,7 @@ sim_mob::Region::Region(unsigned int id) : Entity(id) {
 }
 
 
-void sim_mob::Region::update() {
+void sim_mob::Region::update(frame_t frameNumber) {
 	//Trivial. Todo: Update signals
 	for (std::vector<Signal>::iterator it=signals.begin(); it!=signals.end(); it++) {
 		trivial(it->id);

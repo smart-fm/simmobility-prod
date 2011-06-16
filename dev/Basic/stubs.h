@@ -42,31 +42,31 @@ void createSingleVehicle(Vehicle* const v, unsigned int newID) {
 
 
 //Example of using a Worker with a functional pointer instead of sub-classing.
-void load_trip_chain(sim_mob::Worker<TripChain>* wk)
+void load_trip_chain(sim_mob::Worker<TripChain>& wk, frame_t frameNumber)
 {
 	//Using functional pointers instead of inheritance means we have to cast from void*
-	for (std::vector<TripChain*>::iterator it=wk->getEntities().begin(); it!=wk->getEntities().end(); it++) {
+	for (std::vector<TripChain*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
 		loadSingleTripChain(NULL, *it);   //At the moment, no way to link from agents to trip chains.
 	}
 }
 
-void load_agents(sim_mob::Worker<sim_mob::Agent>* wk)
+void load_agents(sim_mob::Worker<sim_mob::Agent>& wk, frame_t frameNumber)
 {
-	for (std::vector<sim_mob::Agent*>::iterator it=wk->getEntities().begin(); it!=wk->getEntities().end(); it++) {
+	for (std::vector<sim_mob::Agent*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
 		createSingleAgent(*it);   //At the moment, no way to link from agents to trip chains.
 	}
 }
 
-void load_choice_sets(sim_mob::Worker<ChoiceSet>* wk)
+void load_choice_sets(sim_mob::Worker<ChoiceSet>& wk, frame_t frameNumber)
 {
-	for (std::vector<ChoiceSet*>::iterator it=wk->getEntities().begin(); it!=wk->getEntities().end(); it++) {
+	for (std::vector<ChoiceSet*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
 		createSingleChoiceSet(*it, (*it)->id);   //At the moment, no way to link from agents to trip chains.
 	}
 }
 
-void load_vehicles(sim_mob::Worker<Vehicle>* wk)
+void load_vehicles(sim_mob::Worker<Vehicle>& wk, frame_t frameNumber)
 {
-	for (std::vector<Vehicle*>::iterator it=wk->getEntities().begin(); it!=wk->getEntities().end(); it++) {
+	for (std::vector<Vehicle*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
 		createSingleVehicle(*it, (*it)->id);   //At the moment, no way to link from agents to trip chains.
 	}
 }

@@ -47,15 +47,15 @@ void InitializeAll(vector<Agent>& agents, vector<Region>& regions, vector<TripCh
 
 
 //TEST
-void entity_worker(sim_mob::Worker<sim_mob::Entity>* wk)
+void entity_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
 {
-	for (std::vector<sim_mob::Entity*>::iterator it=wk->getEntities().begin(); it!=wk->getEntities().end(); it++) {
-		(*it)->update();
+	for (std::vector<sim_mob::Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
+		(*it)->update(frameNumber);
 	}
 }
-void shortest_path_worker(sim_mob::Worker<sim_mob::Entity>* wk)
+void shortest_path_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
 {
-	for (std::vector<sim_mob::Entity*>::iterator it=wk->getEntities().begin(); it!=wk->getEntities().end(); it++) {
+	for (std::vector<sim_mob::Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
 		((Agent*)(*it))->updateShortestPath();
 	}
 }
@@ -124,7 +124,7 @@ bool performMain()
 
   //Initialize our work groups, assign agents randomly to these groups.
   EntityWorkGroup agentWorkers(WG_AGENTS_SIZE, config.totalRuntimeTicks, config.granAgentsTicks);
-  boost::function<void (Worker<sim_mob::Entity>*)> entityWork = boost::bind(entity_worker, _1);
+  Worker<sim_mob::Entity>::actionFunction entityWork = boost::bind(entity_worker, _1, _2);
   agentWorkers.initWorkers(&entityWork);
   for (size_t i=0; i<agents.size(); i++) {
 	  agentWorkers.migrate(&agents[i], -1, i%WG_AGENTS_SIZE);
@@ -133,7 +133,7 @@ bool performMain()
   //Initialize our signal status work groups
   //  TODO: There needs to be a more general way to do this.
   EntityWorkGroup signalStatusWorkers(WG_SIGNALS_SIZE, config.totalRuntimeTicks, config.granSignalsTicks);
-  boost::function<void (Worker<sim_mob::Entity>*)> spWork = boost::bind(shortest_path_worker, _1);
+  Worker<sim_mob::Entity>::actionFunction spWork = boost::bind(shortest_path_worker, _1, _2);
   signalStatusWorkers.initWorkers(&spWork);
   for (size_t i=0; i<regions.size(); i++) {
 	  signalStatusWorkers.migrate(&regions[i], -1, i%WG_SIGNALS_SIZE);
@@ -233,24 +233,24 @@ void InitializeAll(vector<Agent>& agents, vector<Region>& regions, vector<TripCh
 	  WorkGroup<Vehicle> vehicleWorkers(WG_VEHICLES_SIZE, 1);
 
 	  //Create object from DB; for long time spans objects must be created on demand.
-	  boost::function<void (Worker<TripChain>*)> func1 = boost::bind(load_trip_chain, _1);
+	  Worker<TripChain>::actionFunction func1 = boost::bind(load_trip_chain, _1, _2);
 	  tripChainWorkers.initWorkers(&func1);
 	  for (size_t i=0; i<trips.size(); i++) {
 		  tripChainWorkers.migrate(&trips[i], -1, i%WG_TRIPCHAINS_SIZE);
 	  }
 
 	  //Agents, choice sets, and vehicles
-	  boost::function<void (Worker<sim_mob::Agent>*)> func2 = boost::bind(load_agents, _1);
+	  Worker<sim_mob::Agent>::actionFunction func2 = boost::bind(load_agents, _1, _2);
 	  createAgentWorkers.initWorkers(&func2);
 	  for (size_t i=0; i<agents.size(); i++) {
 		  createAgentWorkers.migrate(&agents[i], -1, i%WG_CREATE_AGENT_SIZE);
 	  }
-	  boost::function<void (Worker<ChoiceSet>*)> func3 = boost::bind(load_choice_sets, _1);
+	  Worker<ChoiceSet>::actionFunction func3 = boost::bind(load_choice_sets, _1, _2);
 	  choiceSetWorkers.initWorkers(&func3);
 	  for (size_t i=0; i<choiceSets.size(); i++) {
 		  choiceSetWorkers.migrate(&choiceSets[i], -1, i%WG_CHOICESET_SIZE);
 	  }
-	  boost::function<void (Worker<Vehicle>*)> func4 = boost::bind(load_vehicles, _1);
+	  Worker<Vehicle>::actionFunction func4 = boost::bind(load_vehicles, _1, _2);
 	  vehicleWorkers.initWorkers(&func4);
 	  for (size_t i=0; i<vehicles.size(); i++) {
 		  vehicleWorkers.migrate(&vehicles[i], -1, i%WG_VEHICLES_SIZE);

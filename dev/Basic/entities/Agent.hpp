@@ -44,12 +44,6 @@ public:
 	///Update the agent's shortest path. (Currently does nothing; might not even belong here)
 	void updateShortestPath();
 
-	//The following methods are to be moved to agent's sub-systems in future
-	bool isGoalReached();
-	void setGoal();
-	void updateVelocity();
-	void updatePosition();
-
 public:
 //	sim_mob::Buffered<unsigned int> xPos;  ///<The agent's position, X
 //	sim_mob::Buffered<unsigned int> yPos;  ///<The agent's position, Y
@@ -70,6 +64,16 @@ private:
 	Point goal;
 	bool isGoalSet;
 	bool toRemoved;
+	unsigned int currPhase; //Current pedestrian signal phase: 0-green, 1-red
+	unsigned int phaseCounter; //To be replaced by traffic management system
+
+	//The following methods are to be moved to agent's sub-systems in future
+	bool isGoalReached();
+	void setGoal();
+	void updateVelocity();
+	void updatePosition();
+	void updatePedestrianSignal();
+	bool reachStartOfCrossing();
 
 	//TEMP
 	static boost::mutex global_mutex;

@@ -25,6 +25,9 @@ sim_mob::Agent::Agent(unsigned int id) : Entity(id), xPos(NULL, 0), yPos(NULL, 0
 	else if (currMode==3)
 		currMode = PASSENGER;
 
+	currPhase = 0; //Green phase by default
+	phaseCounter = 0;
+
 	//Set random seed
 	srand(id);
 
@@ -56,6 +59,8 @@ void sim_mob::Agent::update(frame_t frameNumber) {
 		isGoalSet = true;
 	}
 
+	updatePedestrianSignal();
+
 	//Check if the agent has reached the goal
 	if(isGoalReached()){
 
@@ -63,7 +68,7 @@ void sim_mob::Agent::update(frame_t frameNumber) {
 			//Output (temp)
 			{
 				boost::mutex::scoped_lock local_lock(global_mutex);
-				std::cout <<"(" <<this->getId() <<" has reached the goal)" <<std::endl;
+				std::cout <<"(Agent " <<this->getId() <<" has reached the goal)" <<std::endl;
 			}
 			toRemoved = true;
 		}
@@ -71,12 +76,29 @@ void sim_mob::Agent::update(frame_t frameNumber) {
 
 	else{
 
-		updateVelocity();
-		updatePosition();
+		if(reachStartOfCrossing()){
+			if(currPhase == 0){ //Green phase
+				updateVelocity();
+				updatePosition();
+			}
+			else if (currPhase == 1) { //Red phase
+				//Waiting, do nothing now
+				//Output (temp)
+				{
+					boost::mutex::scoped_lock local_lock(global_mutex);
+					std::cout <<"(Agent " <<this->getId() <<" is waiting at crossing at frame "<<frameNumber<<")" <<std::endl;
+				}
+			}
+		}
+		else {
+			updateVelocity();
+			updatePosition();
+		}
+
 		//Output (temp)
 		{
 			boost::mutex::scoped_lock local_lock(global_mutex);
-			std::cout <<"(" <<this->getId() <<"," <<frameNumber<<","<<this->xPos.get()<<"," <<this->yPos.get()<<")" <<std::endl;
+			std::cout <<"(" <<this->getId() <<"," <<frameNumber<<","<<this->xPos.get()<<"," <<this->yPos.get()<<","<<currPhase<<")" <<std::endl;
 		}
 	}
 }
@@ -163,6 +185,32 @@ void sim_mob::Agent::updatePosition(){
 	//Set
 	this->xPos.set(newX);
 	this->yPos.set(newY);
+}
+
+void sim_mob::Agent::updatePedestrianSignal(){
+
+	if(phaseCounter==60){ //1 minute period for switching phases (testing only)
+		phaseCounter=0;
+		if(currPhase==0)
+			currPhase = 1;
+		else
+			currPhase = 0;
+	}
+	else
+		phaseCounter++;
+}
+
+bool sim_mob::Agent::reachStartOfCrossing(){
+
+	if(this->yPos.get()<=lowerRightCrossing.yPos){
+		double dist = lowerRightCrossing.yPos - this->yPos.get();
+		if(dist<speed*1)
+			return true;
+		else
+			return false;
+	}
+	else
+		return false;
 }
 
 

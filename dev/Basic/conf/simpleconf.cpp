@@ -113,6 +113,7 @@ bool loadXMLAgents(xmlXPathContext* xpContext, std::vector<Agent*>& agents)
 			return false;
 		}
 
+
 		//Save it.
 		agents.push_back(agent);
 	}

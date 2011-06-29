@@ -171,15 +171,17 @@ bool sim_mob::Agent::isGoalReached() {
 
 void sim_mob::Agent::updateVelocity() {
 	//Set direction (towards the goal)
-	xVel = goal.xPos - this->xPos.get();
-	yVel = goal.yPos - this->yPos.get();
+	double xDirection = goal.xPos - this->xPos.get();
+	double yDirection = goal.yPos - this->yPos.get();
+
 	//Normalize
-	double length = sqrt(xVel*xVel + yVel*yVel);
-	xVel = xVel/length;
-	yVel = yVel/length;
+	double magnitude = sqrt(xVel*xVel + yVel*yVel);
+	xDirection = xDirection/magnitude;
+	yDirection = yDirection/magnitude;
+
 	//Set actual velocity
-	xVel = xVel*speed;
-	yVel = yVel*speed;
+	xVel = xDirection*speed;
+	yVel = yDirection*speed;
 }
 
 void sim_mob::Agent::updatePosition(){

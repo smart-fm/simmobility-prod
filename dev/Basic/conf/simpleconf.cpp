@@ -70,7 +70,7 @@ int getValueInMS(const std::string& valueStr, const std::string& unitsStr)
 
 
 
-bool loadXMLAgents(xmlXPathContext* xpContext, std::vector<Agent>& agents)
+bool loadXMLAgents(xmlXPathContext* xpContext, std::vector<Agent*>& agents)
 {
 	std::string expression = "/config/pedestrians/pedestrian";
 	xmlXPathObject* xpObject = xmlXPathEvalExpression((xmlChar*)expression.c_str(), xpContext);
@@ -82,7 +82,7 @@ bool loadXMLAgents(xmlXPathContext* xpContext, std::vector<Agent>& agents)
 	agents.clear();
 	for (int i = 0; i < xpObject->nodesetval->nodeNr; ++i) {
 		xmlNode* curr = xpObject->nodesetval->nodeTab[i];
-		Agent agent;
+		Agent* agent = NULL;
 		unsigned int flagCheck = 0;
 		for (xmlAttr* attrs=curr->properties; attrs!=NULL; attrs=attrs->next) {
 			//Read each attribute.
@@ -96,13 +96,13 @@ bool loadXMLAgents(xmlXPathContext* xpContext, std::vector<Agent>& agents)
 
 			//Assign it.
 			if (name=="id") {
-				agent = Agent(valueI);
+				agent = new Agent(valueI);
 				flagCheck |= 1;
 			} else if (name=="xPos") {
-				agent.xPos.force(valueI);
+				agent->xPos.force(valueI);
 				flagCheck |= 2;
 			} else if (name=="yPos") {
-				agent.yPos.force(valueI);
+				agent->yPos.force(valueI);
 				flagCheck |= 4;
 			} else {
 				return false;
@@ -112,6 +112,7 @@ bool loadXMLAgents(xmlXPathContext* xpContext, std::vector<Agent>& agents)
 		if (flagCheck!=7) {
 			return false;
 		}
+
 
 		//Save it.
 		agents.push_back(agent);
@@ -184,7 +185,7 @@ bool loadXMLBoundariesCrossings(xmlXPathContext* xpContext, const string& expres
 
 
 
-std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vector<Agent>& agents)
+std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vector<Agent*>& agents)
 {
 	//Ensure we loaded a real document
 	if (document==NULL) {
@@ -269,10 +270,10 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vecto
     Point topLeftC = ConfigParams::GetInstance().crossings["topleft"];
     Point lowerRightC = ConfigParams::GetInstance().crossings["bottomright"];
     for (size_t i=0; i<agents.size(); i++) {
-    	agents[i].topLeft = topLeft;
-    	agents[i].lowerRight = lowerRight;
-    	agents[i].topLeftCrossing = topLeftC;
-    	agents[i].lowerRightCrossing = lowerRightC;
+    	agents[i]->topLeft = topLeft;
+    	agents[i]->lowerRight = lowerRight;
+    	agents[i]->topLeftCrossing = topLeftC;
+    	agents[i]->lowerRightCrossing = lowerRightC;
     }
 
 
@@ -308,7 +309,7 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vecto
     }
     std::cout <<"  Agents Initialized: " <<agents.size() <<"\n";
     for (size_t i=0; i<agents.size(); i++) {
-    	std::cout <<"    Agent(" <<agents[i].getId() <<") = " <<agents[i].xPos.get() <<"," <<agents[i].yPos.get() <<"\n";
+    	std::cout <<"    Agent(" <<agents[i]->getId() <<") = " <<agents[i]->xPos.get() <<"," <<agents[i]->yPos.get() <<"\n";
     }
     std::cout <<"------------------\n";
 
@@ -339,7 +340,7 @@ ConfigParams& sim_mob::ConfigParams::GetInstance() {
 // Main external method
 //////////////////////////////////////////
 
-bool sim_mob::ConfigParams::InitUserConf(std::vector<Agent>& agents, std::vector<Region>& regions,
+bool sim_mob::ConfigParams::InitUserConf(std::vector<Agent*>& agents, std::vector<Region>& regions,
 		          std::vector<TripChain>& trips, std::vector<ChoiceSet>& chSets,
 		          std::vector<Vehicle>& vehicles)
 {

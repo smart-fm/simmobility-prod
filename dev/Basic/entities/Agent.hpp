@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include <boost/thread.hpp>
 
 #include "../constants.h"
@@ -50,6 +52,9 @@ public:
 	sim_mob::Buffered<double> xPos;  ///<The agent's position, X
 	sim_mob::Buffered<double> yPos;  ///<The agent's position, Y
 
+	//Agents can access all other agents (although they usually do not access by ID)
+	static std::vector<Agent*> all_agents;
+
 	//TEMP; we can't link to the config file directly or we get a circular dependency.
 	Point topLeft;
 	Point lowerRight;
@@ -67,14 +72,22 @@ private:
 	unsigned int currPhase; //Current pedestrian signal phase: 0-green, 1-red
 	unsigned int phaseCounter; //To be replaced by traffic management system
 
+	//For collisions
+	double xCollisionVector;
+	double yCollisionVector;
+	static double collisionForce;
+	static double agentRadius;
+
 	//The following methods are to be moved to agent's sub-systems in future
 	bool isGoalReached();
 	void setGoal();
 	void updateVelocity();
 	void updatePosition();
 	void updatePedestrianSignal();
+	void checkForCollisions();
 	bool reachStartOfCrossing();
 
+public:
 	//TEMP
 	static boost::mutex global_mutex;
 

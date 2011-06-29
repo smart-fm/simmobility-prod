@@ -73,10 +73,10 @@ void load_vehicles(sim_mob::Worker<Vehicle>& wk, frame_t frameNumber)
 
 
 
-void agentDecomposition(std::vector<sim_mob::Agent>& agents) {
+void agentDecomposition(std::vector<sim_mob::Agent*>& agents) {
 	//Marked as not boost::threadable.
 	for (size_t i=0; i<agents.size(); i++) {
-		trivial(agents[i].getId()); //Trivial. Possibly move agents later.
+		trivial(agents[i]->getId()); //Trivial. Possibly move agents later.
 	}
 }
 
@@ -94,31 +94,31 @@ void updateTrafficInfo(std::vector<sim_mob::Region>& regions) {
 	}
 }
 
-void updateSurveillanceData(std::vector<sim_mob::Agent>& agents) {
+void updateSurveillanceData(std::vector<sim_mob::Agent*>& agents) {
 	//Marked as not boost::threadable.
 	for (size_t i=0; i<agents.size(); i++) {
-		trivial(agents[i].getId()); //Trivial. Later we will collate data and send it to surveillance systems.
+		trivial(agents[i]->getId()); //Trivial. Later we will collate data and send it to surveillance systems.
 	}
 }
 
-void updateGUI(std::vector<sim_mob::Agent>& agents) {
+void updateGUI(std::vector<sim_mob::Agent*>& agents) {
 	//Marked as not boost::threadable.
 	for (size_t i=0; i<agents.size(); i++) {
-		trivial(agents[i].getId());  //Trivial. Later we will update the GUI
+		trivial(agents[i]->getId());  //Trivial. Later we will update the GUI
 	}
 }
 
-void saveStatistics(std::vector<sim_mob::Agent>& agents) {
+void saveStatistics(std::vector<sim_mob::Agent*>& agents) {
 	//Marked as not boost::threadable.
 	for (size_t i=0; i<agents.size(); i++) {
-		trivial(agents[i].getId());  //Trivial. Later we will log all agent data.
+		trivial(agents[i]->getId());  //Trivial. Later we will log all agent data.
 	}
 }
 
-void saveStatisticsToDB(std::vector<sim_mob::Agent>& agents) {
+void saveStatisticsToDB(std::vector<sim_mob::Agent*>& agents) {
 	//Marked as not boost::threadable.
 	for (size_t i=0; i<agents.size(); i++) {
-		trivial(agents[i].getId());  //Trivial. Later we will save all statistis to the database.
+		trivial(agents[i]->getId());  //Trivial. Later we will save all statistis to the database.
 	}
 }
 
@@ -126,10 +126,10 @@ void saveStatisticsToDB(std::vector<sim_mob::Agent>& agents) {
 
 
 //Quick double-check
-bool checkIDs(const std::vector<sim_mob::Agent>& agents, const std::vector<TripChain>& trips, const std::vector<ChoiceSet>& choiceSets, const std::vector<Vehicle>& vehicles) {
+bool checkIDs(const std::vector<sim_mob::Agent*>& agents, const std::vector<TripChain>& trips, const std::vector<ChoiceSet>& choiceSets, const std::vector<Vehicle>& vehicles) {
 	std::string error = "";
 	for (size_t i=0; i<agents.size(); i++) {
-		if (agents[i].getId() != i)
+		if (agents[i]->getId() != i)
 			error = "Agent ID";
 	}
 	for (size_t i=0; i<trips.size(); i++) {

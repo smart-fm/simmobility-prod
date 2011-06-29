@@ -10,6 +10,7 @@ using std::vector;
 
 vector<Agent*> sim_mob::Agent::all_agents;
 double Agent::collisionForce = 20;
+double Agent::agentRadius = 10;
 
 //TEMP
 boost::mutex sim_mob::Agent::global_mutex;
@@ -68,6 +69,8 @@ void sim_mob::Agent::update(frame_t frameNumber) {
 	}
 
 	updatePedestrianSignal();
+
+	checkForCollisions();
 
 	//Check if the agent has reached the goal
 	if(isGoalReached()){
@@ -164,6 +167,55 @@ void sim_mob::Agent::updatePassengerBehavior(Agent& a) {
 
 //Simple implementations for testing
 
+void sim_mob::Agent::checkForCollisions() {
+	//For now, just check all agents and get the first positive collision. Very basic.
+	Agent* other = NULL;
+	for (size_t i=0; i<Agent::all_agents.size(); i++) {
+		//Skip self
+		other = Agent::all_agents[i];
+		if (other->getId()==this->getId()) {
+			other = NULL;
+			continue;
+		}
+
+		//Check.
+		double dx = other->xPos.get() - this->xPos.get();
+		double dy = other->yPos.get() - this->yPos.get();
+		double distance = sqrt(dx*dx + dy*dy);
+		if (distance < 2*agentRadius) {
+			break; //Collision
+		}
+		other = NULL;
+	}
+
+	//Set collision vector. Overrides previous setting, if any.
+	if (other!=NULL) {
+		//Get a heading.
+		double dx = other->xPos.get() - this->xPos.get();
+		double dy = other->yPos.get() - this->yPos.get();
+
+		//If the two agents are directly on top of each other, set
+		//  their distances to something non-crashable.
+		if (dx==0 && dy==0) {
+			dx = other->getId() - this->getId();
+			dy = this->getId() - other->getId();
+		}
+
+		//Normalize
+		double magnitude = sqrt(dx*dx + dy*dy);
+		if (magnitude==0) {
+			dx = dy;
+			dy = dx;
+		}
+		dx = dx/magnitude;
+		dy = dy/magnitude;
+
+		//Set collision vector to the inverse
+		xCollisionVector = -dx * collisionForce;
+		yCollisionVector = -dy * collisionForce;
+	}
+}
+
 void sim_mob::Agent::setGoal() {
 	goal.xPos = this->xPos.get();
 	goal.yPos = topLeftCrossing.yPos + double(rand()%5) + 1;;
@@ -179,7 +231,7 @@ void sim_mob::Agent::updateVelocity() {
 	double yDirection = goal.yPos - this->yPos.get();
 
 	//Normalize
-	double magnitude = sqrt(xVel*xVel + yVel*yVel);
+	double magnitude = sqrt(xDirection*xDirection + yDirection*yDirection);
 	xDirection = xDirection/magnitude;
 	yDirection = yDirection/magnitude;
 

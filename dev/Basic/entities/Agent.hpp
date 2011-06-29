@@ -76,6 +76,7 @@ private:
 	double xCollisionVector;
 	double yCollisionVector;
 	static double collisionForce;
+	static double agentRadius;
 
 	//The following methods are to be moved to agent's sub-systems in future
 	bool isGoalReached();
@@ -83,6 +84,7 @@ private:
 	void updateVelocity();
 	void updatePosition();
 	void updatePedestrianSignal();
+	void checkForCollisions();
 	bool reachStartOfCrossing();
 
 	//TEMP

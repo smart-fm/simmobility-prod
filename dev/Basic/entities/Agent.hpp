@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include <boost/thread.hpp>
 
 #include "../constants.h"
@@ -49,6 +51,9 @@ public:
 //	sim_mob::Buffered<unsigned int> yPos;  ///<The agent's position, Y
 	sim_mob::Buffered<double> xPos;  ///<The agent's position, X
 	sim_mob::Buffered<double> yPos;  ///<The agent's position, Y
+
+	//Agents can access all other agents (although they usually do not access by ID)
+	static std::vector<Agent*> all_agents;
 
 	//TEMP; we can't link to the config file directly or we get a circular dependency.
 	Point topLeft;

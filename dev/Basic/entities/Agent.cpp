@@ -5,6 +5,10 @@
 
 using namespace sim_mob;
 
+using std::vector;
+
+
+vector<Agent*> sim_mob::Agent::all_agents;
 
 //TEMP
 boost::mutex sim_mob::Agent::global_mutex;

@@ -41,7 +41,7 @@ bool trivial(unsigned int id) {
 /**
  * First "loading" step is special. Initialize all agents using work groups in parallel.
  */
-void InitializeAll(vector<Agent>& agents, vector<Region>& regions, vector<TripChain>& trips,
+void InitializeAll(vector<Agent*>& agents, vector<Region>& regions, vector<TripChain>& trips,
 		      vector<ChoiceSet>& choiceSets, vector<Vehicle>& vehicles);
 
 
@@ -84,7 +84,7 @@ void shortest_path_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNum
 bool performMain()
 {
   //Initialization: Scenario definition
-  vector<Agent> agents;
+  vector<Agent*>& agents = Agent::all_agents;
   vector<Region> regions;
   vector<TripChain> trips;
   vector<ChoiceSet> choiceSets;
@@ -127,7 +127,7 @@ bool performMain()
   Worker<sim_mob::Entity>::actionFunction entityWork = boost::bind(entity_worker, _1, _2);
   agentWorkers.initWorkers(&entityWork);
   for (size_t i=0; i<agents.size(); i++) {
-	  agentWorkers.migrate(&agents[i], -1, i%WG_AGENTS_SIZE);
+	  agentWorkers.migrate(agents[i], -1, i%WG_AGENTS_SIZE);
   }
 
   //Initialize our signal status work groups
@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
 /**
  * Parallel initialization step.
  */
-void InitializeAll(vector<Agent>& agents, vector<Region>& regions, vector<TripChain>& trips,
+void InitializeAll(vector<Agent*>& agents, vector<Region>& regions, vector<TripChain>& trips,
 	      vector<ChoiceSet>& choiceSets, vector<Vehicle>& vehicles)
 {
 	  //Our work groups. Will be disposed after this time tick.
@@ -243,7 +243,7 @@ void InitializeAll(vector<Agent>& agents, vector<Region>& regions, vector<TripCh
 	  Worker<sim_mob::Agent>::actionFunction func2 = boost::bind(load_agents, _1, _2);
 	  createAgentWorkers.initWorkers(&func2);
 	  for (size_t i=0; i<agents.size(); i++) {
-		  createAgentWorkers.migrate(&agents[i], -1, i%WG_CREATE_AGENT_SIZE);
+		  createAgentWorkers.migrate(agents[i], -1, i%WG_CREATE_AGENT_SIZE);
 	  }
 	  Worker<ChoiceSet>::actionFunction func3 = boost::bind(load_choice_sets, _1, _2);
 	  choiceSetWorkers.initWorkers(&func3);

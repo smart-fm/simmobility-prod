@@ -72,6 +72,11 @@ private:
 	unsigned int currPhase; //Current pedestrian signal phase: 0-green, 1-red
 	unsigned int phaseCounter; //To be replaced by traffic management system
 
+	//For collisions
+	double xCollisionVector;
+	double yCollisionVector;
+	static double collisionForce;
+
 	//The following methods are to be moved to agent's sub-systems in future
 	bool isGoalReached();
 	void setGoal();

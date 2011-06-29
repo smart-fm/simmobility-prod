@@ -9,6 +9,7 @@ using std::vector;
 
 
 vector<Agent*> sim_mob::Agent::all_agents;
+double Agent::collisionForce = 20;
 
 //TEMP
 boost::mutex sim_mob::Agent::global_mutex;
@@ -40,6 +41,9 @@ sim_mob::Agent::Agent(unsigned int id) : Entity(id), xPos(NULL, 0), yPos(NULL, 0
 
 	xVel = 0;
 	yVel = 0;
+
+	xCollisionVector = 0;
+	yCollisionVector = 0;
 
 	isGoalSet = false;
 	toRemoved = false;
@@ -185,9 +189,22 @@ void sim_mob::Agent::updateVelocity() {
 }
 
 void sim_mob::Agent::updatePosition(){
+	//Factor in collisions
+	double xVelCombined = xVel + xCollisionVector;
+	double yVelCombined = yVel + yCollisionVector;
+
 	//Compute
-	double newX = this->xPos.get()+xVel*1; //Time step is 1 second
-	double newY = this->yPos.get()+yVel*1;
+	double newX = this->xPos.get()+xVelCombined*1; //Time step is 1 second
+	double newY = this->yPos.get()+yVelCombined*1;
+
+	//Decrement collision velocity
+	if (xCollisionVector != 0) {
+		xCollisionVector -= ((0.1*collisionForce) / (xCollisionVector/abs(xCollisionVector)) );
+	}
+	if (yCollisionVector != 0) {
+		yCollisionVector -= ((0.1*collisionForce) / (yCollisionVector/abs(yCollisionVector)) );
+	}
+
 	//Set
 	this->xPos.set(newX);
 	this->yPos.set(newY);

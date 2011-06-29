@@ -87,6 +87,7 @@ private:
 	void checkForCollisions();
 	bool reachStartOfCrossing();
 
+public:
 	//TEMP
 	static boost::mutex global_mutex;
 

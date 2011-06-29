@@ -40,6 +40,9 @@ sim_mob::Agent::Agent(unsigned int id) : Entity(id), xPos(NULL, 0), yPos(NULL, 0
 	//Set default speed in the range of 1m/s to 1.4m/s
 	speed = 1+(double(rand()%5))/10;
 
+	//TEMP: Needed to speed things up a little:
+	speed *= 5;
+
 	xVel = 0;
 	yVel = 0;
 
@@ -217,8 +220,12 @@ void sim_mob::Agent::checkForCollisions() {
 }
 
 void sim_mob::Agent::setGoal() {
-	goal.xPos = this->xPos.get();
-	goal.yPos = topLeftCrossing.yPos + double(rand()%5) + 1;;
+	//goal.xPos = this->xPos.get();
+	//goal.yPos = topLeftCrossing.yPos + double(rand()%5) + 1;;
+
+	//Give every agent the same goal.
+	goal.xPos = 1100;
+	goal.yPos = 200;
 }
 
 bool sim_mob::Agent::isGoalReached() {

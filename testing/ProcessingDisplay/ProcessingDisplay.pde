@@ -1,7 +1,4 @@
-//Imports
-import java.io.*;
-
-
+//Constants, etc.
 int NUM_AGENTS = 11;
 int AGENT_RADIUS = 10;
 int currTick = 0;
@@ -54,6 +51,13 @@ void draw()
   fill(0x00);
   text(("Tick: " + currTick) ,10, 30); 
   
+  //Draw the goal
+  stroke(0x99);
+  fill(0x00, 0xCC, 0x00);
+  ellipse(1010, 200, 100, 100);
+  fill(0x99);
+  text("Goal", 960, 150); 
+  
   //Each agent for the current tick
   for (int agentID=0; agentID<ticks.get(currTick).size(); agentID++) {
     //Retrieve position
@@ -82,13 +86,12 @@ void draw()
 
 void readInput(String inFileName) throws IOException
 { 
-  BufferedReader br = new BufferedReader(new FileReader(dataPath(inFileName)));
+  String lines[] = loadStrings(dataPath(inFileName));
   boolean skip = true;
     
   //Read line-by-line
-  String nextLine;
-  while ((nextLine = br.readLine()) != null) {
-    nextLine = nextLine.trim();
+  for (int lineID=0; lineID<lines.length; lineID++) {
+    String nextLine = lines[lineID].trim();
     
     //Skip this line?
     if (skip) {
@@ -131,8 +134,6 @@ void readInput(String inFileName) throws IOException
     ticks.get(tickID).get(agentID)[0] = xPos;
     ticks.get(tickID).get(agentID)[1] = yPos;
   }
-    
-  br.close();
 }
 
 

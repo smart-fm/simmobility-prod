@@ -1,3 +1,22 @@
+import processing.core.*; 
+import processing.xml.*; 
+
+import java.applet.*; 
+import java.awt.Dimension; 
+import java.awt.Frame; 
+import java.awt.event.MouseEvent; 
+import java.awt.event.KeyEvent; 
+import java.awt.event.FocusEvent; 
+import java.awt.Image; 
+import java.io.*; 
+import java.net.*; 
+import java.text.*; 
+import java.util.*; 
+import java.util.zip.*; 
+import java.util.regex.*; 
+
+public class ProcessingDisplay extends PApplet {
+
 //Constants, etc.
 int NUM_AGENTS = 11;
 int AGENT_RADIUS = 10;
@@ -21,7 +40,7 @@ float[][] colors = {
 };
 
 
-void setup() 
+public void setup() 
 {
   //Windows are always 1000x400
   size(1000, 400);
@@ -40,7 +59,7 @@ void setup()
 }
 
 
-void draw()
+public void draw()
 {
   smooth();
   background(255);
@@ -84,7 +103,7 @@ void draw()
 }
 
 
-void readInput(String inFileName) throws IOException
+public void readInput(String inFileName) throws IOException
 { 
   String lines[] = loadStrings(inFileName);
   boolean skip = true;
@@ -144,3 +163,7 @@ void readInput(String inFileName) throws IOException
 
 
 
+  static public void main(String args[]) {
+    PApplet.main(new String[] { "--bgcolor=#DFDFDF", "ProcessingDisplay" });
+  }
+}

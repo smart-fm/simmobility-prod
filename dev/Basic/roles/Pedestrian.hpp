@@ -13,9 +13,9 @@ namespace sim_mob
  */
 class Pedestrian : public sim_mob::Role {
 public:
-	Pedestrian();
+	Pedestrian(Agent* parent);
 
-	virtual void update();
+	virtual void update(frame_t frameNumber);
 
 private:
 	//Movement-related variables

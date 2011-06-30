@@ -3,13 +3,24 @@
 using namespace sim_mob;
 
 
-void sim_mob::Pedestrian::Pedestrian() : Role()
+double Pedestrian::collisionForce = 20;
+double Pedestrian::agentRadius = 10;
+
+
+sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent)
 {
+	//Check non-null parent. Perhaps references may be of use here?
+	if (parent==NULL) {
+		std::cout <<"Role constructed with no parent Agent." <<std::endl;
+		throw 1;
+	}
+
+	//Defaults
 	currPhase = 0; //Green phase by default
 	phaseCounter = 0;
 
 	//Set random seed
-	srand(id);
+	srand(parent->getId());
 
 	//Set default speed in the range of 1m/s to 1.4m/s
 	speed = 1+(double(rand()%5))/10;
@@ -29,7 +40,7 @@ void sim_mob::Pedestrian::Pedestrian() : Role()
 
 
 //Main update functionality
-void sim_mob::Pedestrian::update()
+void sim_mob::Pedestrian::update(frame_t frameNumber)
 {
 	//Set the goal of agent
 	if(!isGoalSet){
@@ -44,44 +55,36 @@ void sim_mob::Pedestrian::update()
 	//Check if the agent has reached the goal
 	if(isGoalReached()){
 
-		if(!toRemoved){
+		if(!parent->isToBeRemoved()){
 			//Output (temp)
 			{
-				boost::mutex::scoped_lock local_lock(global_mutex);
-				std::cout <<"(Agent " <<this->getId() <<" has reached the goal)" <<std::endl;
+				boost::mutex::scoped_lock local_lock(Agent::global_mutex);
+				std::cout <<"(Agent " <<parent->getId() <<" has reached the goal)" <<std::endl;
 			}
-			toRemoved = true;
+			parent->setToBeRemoved(true);
 		}
+		return;
 	}
 
-	else{
-
-		if(reachStartOfCrossing()){
-			if(currPhase == 0){ //Green phase
-				updateVelocity();
-				updatePosition();
-			}
-			else if (currPhase == 1) { //Red phase
-				//Waiting, do nothing now
-				//Output (temp)
-				{
-					boost::mutex::scoped_lock local_lock(global_mutex);
-					std::cout <<"(Agent " <<this->getId() <<" is waiting at crossing at frame "<<frameNumber<<")" <<std::endl;
-				}
-			}
-		}
-		else {
+	//Continue checking if the goal has not been reached.
+	if(reachStartOfCrossing()) {
+		if(currPhase == 0){ //Green phase
 			updateVelocity();
 			updatePosition();
+		} else if (currPhase == 1) { //Red phase
+			//Waiting, do nothing now
+			//Output (temp)
+			{
+				boost::mutex::scoped_lock local_lock(Agent::global_mutex);
+				std::cout <<"(Agent " <<parent->getId() <<" is waiting at crossing at frame "<<frameNumber<<")" <<std::endl;
+			}
 		}
-
-		//Output (temp)
-		{
-			boost::mutex::scoped_lock local_lock(global_mutex);
-			std::cout <<"(" <<this->getId() <<"," <<frameNumber<<","<<this->xPos.get()<<"," <<this->yPos.get()<<","<<currPhase<<")" <<std::endl;
-		}
+	} else {
+		updateVelocity();
+		updatePosition();
 	}
 }
+
 
 
 

@@ -15,12 +15,16 @@ namespace sim_mob
 class Role {
 public:
 	//NOTE: Don't forget to call this from sub-classes!
-	Role() : parent(NULL) {
+	Role(Agent* parent=NULL) : parent(parent) {
 	}
 
 	/// TODO: Think through what kind of data this function might need.
 	/// Frame number? Elapsed time?
-	virtual void update() = 0;
+	virtual void update(frame_t frameNumber) = 0;
+
+	Agent* getParent() {
+		return parent;
+	}
 
 	void setParent(Agent* parent) {
 		this->parent = parent;

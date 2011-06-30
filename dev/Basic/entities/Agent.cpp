@@ -6,8 +6,7 @@ using std::vector;
 
 
 vector<Agent*> sim_mob::Agent::all_agents;
-double Agent::collisionForce = 20;
-double Agent::agentRadius = 10;
+
 
 //TEMP
 boost::mutex sim_mob::Agent::global_mutex;
@@ -36,9 +35,30 @@ void sim_mob::Agent::subscribe(BufferedDataManager* mgr, bool isNew)
 }
 
 
-/*void sim_mob::Agent::updateShortestPath() {
-	trivial(getId());
-}*/
+bool sim_mob::Agent::isToBeRemoved()
+{
+	return toRemoved;
+}
+
+
+void sim_mob::Agent::setToBeRemoved(bool value)
+{
+	//Do nothing?
+	if (value==toRemoved) {
+		return;
+	}
+
+	toRemoved = value;
+
+	//Allowed?
+	/*if (callerParent->getId() == this->getId()) {
+		toRemoved = value;
+	}*/
+
+	//If not, fail.
+	/*std::cout <<"Error: Role tried to modify Agent it wasn't responsible for.";
+	throw 1;*/
+}
 
 
 

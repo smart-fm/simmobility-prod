@@ -12,6 +12,12 @@ void sim_mob::Person::update(frame_t frameNumber) {
 	if (currRole!=NULL) {
 		currRole->update();
 	}
+
+	//Output (temp)
+	{
+		boost::mutex::scoped_lock local_lock(Agent::global_mutex);
+		std::cout <<"(" <<this->getId() <<"," <<frameNumber<<","<<this->xPos.get()<<"," <<this->yPos.get() /*<<","<<currPhase*/ <<")" <<std::endl;
+	}
 }
 
 void sim_mob::Person::subscribe(sim_mob::BufferedDataManager* mgr, bool isNew) {

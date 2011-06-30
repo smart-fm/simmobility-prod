@@ -32,6 +32,10 @@ public:
 	///Update the agent's shortest path. (Currently does nothing; might not even belong here)
 	//void updateShortestPath();
 
+	//Removal methods
+	bool isToBeRemoved();
+	void setToBeRemoved(bool value);
+
 public:
 //	sim_mob::Buffered<unsigned int> xPos;  ///<The agent's position, X
 //	sim_mob::Buffered<unsigned int> yPos;  ///<The agent's position, Y

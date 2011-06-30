@@ -15,7 +15,7 @@ namespace sim_mob
  */
 class Driver : public sim_mob::Role {
 public:
-	virtual void update() {
+	virtual void update(frame_t frameNumber) {
 
 	}
 

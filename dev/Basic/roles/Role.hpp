@@ -14,10 +14,9 @@ namespace sim_mob
  */
 class Role {
 public:
-	//NOTE: We will probably need chained constructors at some point. For now, parent should be set
-	// to NULL by the default constructor (I think)
-	/*Role() : parent(NULL) {
-	}*/
+	//NOTE: Don't forget to call this from sub-classes!
+	Role() : parent(NULL) {
+	}
 
 	/// TODO: Think through what kind of data this function might need.
 	/// Frame number? Elapsed time?

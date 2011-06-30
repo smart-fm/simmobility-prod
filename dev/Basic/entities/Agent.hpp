@@ -2,8 +2,6 @@
 
 #include <vector>
 #include <stdlib.h>
-#include <time.h>
-#include <math.h>
 
 #include <boost/thread.hpp>
 
@@ -50,30 +48,8 @@ public:
 	Point lowerRightCrossing;
 
 private:
-	unsigned int currMode;
-	double speed;
-	double xVel;
-	double yVel;
-	Point goal;
-	bool isGoalSet;
+	//unsigned int currMode;
 	bool toRemoved;
-	unsigned int currPhase; //Current pedestrian signal phase: 0-green, 1-red
-	unsigned int phaseCounter; //To be replaced by traffic management system
-
-	//For collisions
-	double xCollisionVector;
-	double yCollisionVector;
-	static double collisionForce;
-	static double agentRadius;
-
-	//The following methods are to be moved to agent's sub-systems in future
-	bool isGoalReached();
-	void setGoal();
-	void updateVelocity();
-	void updatePosition();
-	void updatePedestrianSignal();
-	void checkForCollisions();
-	bool reachStartOfCrossing();
 
 public:
 	//TEMP
@@ -81,11 +57,11 @@ public:
 
 
 //TODO: Move these into the proper location (inheritance, for most of them)
-public:
+/*public:
 	static void pathChoice(Agent& a);
 	static void updateDriverBehavior(Agent& a);
 	static void updatePedestrianBehavior(Agent& a);
-	static void updatePassengerBehavior(Agent& a);
+	static void updatePassengerBehavior(Agent& a);*/
 };
 
 }

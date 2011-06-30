@@ -97,14 +97,14 @@ void sim_mob::Pedestrian::checkForCollisions()
 	for (size_t i=0; i<Agent::all_agents.size(); i++) {
 		//Skip self
 		other = Agent::all_agents[i];
-		if (other->getId()==this->getId()) {
+		if (other->getId()==parent->getId()) {
 			other = NULL;
 			continue;
 		}
 
 		//Check.
-		double dx = other->xPos.get() - this->xPos.get();
-		double dy = other->yPos.get() - this->yPos.get();
+		double dx = other->xPos.get() - parent->xPos.get();
+		double dy = other->yPos.get() - parent->yPos.get();
 		double distance = sqrt(dx*dx + dy*dy);
 		if (distance < 2*agentRadius) {
 			break; //Collision
@@ -115,14 +115,14 @@ void sim_mob::Pedestrian::checkForCollisions()
 	//Set collision vector. Overrides previous setting, if any.
 	if (other!=NULL) {
 		//Get a heading.
-		double dx = other->xPos.get() - this->xPos.get();
-		double dy = other->yPos.get() - this->yPos.get();
+		double dx = other->xPos.get() - parent->xPos.get();
+		double dy = other->yPos.get() - parent->yPos.get();
 
 		//If the two agents are directly on top of each other, set
 		//  their distances to something non-crashable.
 		if (dx==0 && dy==0) {
-			dx = other->getId() - this->getId();
-			dy = this->getId() - other->getId();
+			dx = other->getId() - parent->getId();
+			dy = parent->getId() - other->getId();
 		}
 
 		//Normalize
@@ -152,14 +152,19 @@ void sim_mob::Pedestrian::setGoal()
 
 bool sim_mob::Pedestrian::isGoalReached()
 {
-	return (this->yPos.get()>=goal.yPos);
+	//Simple manhatten distance check
+	int dX = abs(goal.xPos - parent->xPos.get());
+	int dY = abs(goal.yPos - parent->yPos.get());
+	return dX+dY < agentRadius;
+
+	//return (parent->yPos.get()>=goal.yPos);
 }
 
 void sim_mob::Pedestrian::updateVelocity()
 {
 	//Set direction (towards the goal)
-	double xDirection = goal.xPos - this->xPos.get();
-	double yDirection = goal.yPos - this->yPos.get();
+	double xDirection = goal.xPos - parent->xPos.get();
+	double yDirection = goal.yPos - parent->yPos.get();
 
 	//Normalize
 	double magnitude = sqrt(xDirection*xDirection + yDirection*yDirection);
@@ -178,8 +183,8 @@ void sim_mob::Pedestrian::updatePosition()
 	double yVelCombined = yVel + yCollisionVector;
 
 	//Compute
-	double newX = this->xPos.get()+xVelCombined*1; //Time step is 1 second
-	double newY = this->yPos.get()+yVelCombined*1;
+	double newX = parent->xPos.get()+xVelCombined*1; //Time step is 1 second
+	double newY = parent->yPos.get()+yVelCombined*1;
 
 	//Decrement collision velocity
 	if (xCollisionVector != 0) {
@@ -190,8 +195,8 @@ void sim_mob::Pedestrian::updatePosition()
 	}
 
 	//Set
-	this->xPos.set(newX);
-	this->yPos.set(newY);
+	parent->xPos.set(newX);
+	parent->yPos.set(newY);
 }
 
 void sim_mob::Pedestrian::updatePedestrianSignal()
@@ -211,8 +216,8 @@ void sim_mob::Pedestrian::updatePedestrianSignal()
 bool sim_mob::Pedestrian::reachStartOfCrossing()
 {
 
-	if(this->yPos.get()<=lowerRightCrossing.yPos){
-		double dist = lowerRightCrossing.yPos - this->yPos.get();
+	if(parent->yPos.get()<=parent->lowerRightCrossing.yPos){
+		double dist = parent->lowerRightCrossing.yPos - parent->yPos.get();
 		if(dist<speed*1)
 			return true;
 		else

@@ -17,9 +17,9 @@ sim_mob::Agent::Agent(unsigned int id) : Entity(id), xPos(NULL, 0), yPos(NULL, 0
 }
 
 
-void sim_mob::Agent::update(frame_t frameNumber) {
+/*void sim_mob::Agent::update(frame_t frameNumber) {
 
-}
+}*/
 
 
 void sim_mob::Agent::subscribe(BufferedDataManager* mgr, bool isNew)

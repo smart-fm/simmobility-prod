@@ -24,7 +24,7 @@ class Agent : public sim_mob::Entity {
 public:
 	Agent(unsigned int id=0);
 
-	virtual void update(frame_t frameNumber);  ///<Update agent behvaior
+	virtual void update(frame_t frameNumber) = 0;  ///<Update agent behvaior
 
 	///Subscribe this agent to a data manager.
 	virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew);

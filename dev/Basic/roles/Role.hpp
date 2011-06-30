@@ -13,7 +13,7 @@ namespace sim_mob
  * For now, this class is very simplistic.
  */
 class Role {
-
+public:
 	/// TODO: Think through what kind of data this function might need.
 	/// Frame number? Elapsed time?
 	virtual void update() = 0;

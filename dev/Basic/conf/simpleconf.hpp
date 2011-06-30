@@ -14,7 +14,9 @@
 
 #include "../entities/Entity.hpp"
 #include "../entities/Agent.hpp"
+#include "../entities/Person.hpp"
 #include "../entities/Region.hpp"
+#include "../roles/Pedestrian.hpp"
 #include "../workers/Worker.hpp"
 
 

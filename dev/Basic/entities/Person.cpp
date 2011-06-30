@@ -21,7 +21,7 @@ void sim_mob::Person::update(frame_t frameNumber) {
 }
 
 void sim_mob::Person::subscribe(sim_mob::BufferedDataManager* mgr, bool isNew) {
-
+	Agent::subscribe(mgr, isNew); //Get x/y subscribed.
 }
 
 void sim_mob::Person::changeRole(sim_mob::Role* newRole) {

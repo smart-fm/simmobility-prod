@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "Agent.hpp"
+#include "../roles/Role.hpp"
 
 namespace sim_mob
 {
@@ -37,7 +38,15 @@ public:
 	}
 
 	void changeRole(sim_mob::Role* newRole) {
+		if (this->currRole!=NULL) {
+			this->currRole->parent = NULL;
+		}
+
 		this->currRole = newRole;
+
+		if (this->currRole!=NULL) {
+			this->currRole->parent = this;
+		}
 	}
 
 private:

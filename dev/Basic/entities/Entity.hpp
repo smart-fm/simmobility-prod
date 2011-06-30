@@ -2,6 +2,7 @@
 
 #include "../frame.hpp"
 #include "../buffering/BufferedDataManager.hpp"
+#include "../roles/Role.hpp"
 
 
 namespace sim_mob

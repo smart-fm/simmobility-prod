@@ -23,13 +23,13 @@ sim_mob::Agent::Agent(unsigned int id) : Entity(id), xPos(NULL, 0), yPos(NULL, 0
 	int currMode = 1;
 	//TODO: Inheritance, inheritance, inheritance
 	if (currMode==0)
-		currMode = DRIVER;
+		currMode = 0;//DRIVER;
 	else if (currMode==1)
-		currMode = PEDESTRIAN;
+		currMode = 0;//PEDESTRIAN;
 	else if (currMode==2)
-		currMode = CYCLIST;
+		currMode = 0;//CYCLIST;
 	else if (currMode==3)
-		currMode = PASSENGER;
+		currMode = 0;//PASSENGER;
 
 	currPhase = 0; //Green phase by default
 	phaseCounter = 0;

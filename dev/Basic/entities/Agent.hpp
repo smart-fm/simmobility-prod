@@ -21,12 +21,12 @@ namespace sim_mob
  * \todo
  * Represent agent behavior using inheritance, instead.
  */
-enum AGENT_MODES {
+/*enum AGENT_MODES {
 	DRIVER,
 	PEDESTRIAN,
 	CYCLIST,
 	PASSENGER
-};
+};*/
 
 
 

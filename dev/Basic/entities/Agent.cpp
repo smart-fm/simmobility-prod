@@ -128,9 +128,9 @@ void sim_mob::Agent::subscribe(BufferedDataManager* mgr, bool isNew)
 }
 
 
-void sim_mob::Agent::updateShortestPath() {
+/*void sim_mob::Agent::updateShortestPath() {
 	trivial(getId());
-}
+}*/
 
 
 

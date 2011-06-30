@@ -20,7 +20,8 @@ sim_mob::ShortestPathWorker::ShortestPathWorker(Worker<Agent>::actionFunction* a
 void sim_mob::ShortestPathWorker::perform_main()
 {
 	for (vector<Agent*>::iterator it=getEntities().begin(); it!=getEntities().end(); it++) {
-		(*it)->updateShortestPath();
+		//(*it)->updateShortestPath();
+		//TEMP: We don't really use this class at the moment.
 	}
 }
 

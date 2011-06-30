@@ -1,7 +1,4 @@
 #include "Agent.hpp"
-#include <stdlib.h>
-#include <time.h>
-#include <math.h>
 
 using namespace sim_mob;
 

@@ -23,6 +23,10 @@ public:
 	/// Frame number? Elapsed time?
 	virtual void update() = 0;
 
+	void setParent(Agent* parent) {
+		this->parent = parent;
+	}
+
 protected:
 	Agent* parent; ///<The owner of this role. Usually a Person, but I could see it possibly being another Agent.
 };

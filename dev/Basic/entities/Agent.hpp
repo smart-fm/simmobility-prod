@@ -1,6 +1,9 @@
 #pragma once
 
 #include <vector>
+#include <stdlib.h>
+#include <time.h>
+#include <math.h>
 
 #include <boost/thread.hpp>
 

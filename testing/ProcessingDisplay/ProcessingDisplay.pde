@@ -111,7 +111,7 @@ void readInput(String inFileName) throws IOException
     
     //Parse: (agentID, tickID, xPos, yPos, phase)
     String[] points = nextLine.substring(1, nextLine.length()-1).split(",");
-    if (points.length != 5) {
+    if (points.length <4) {
       throw new RuntimeException("Bad line: " + nextLine);
     }
     

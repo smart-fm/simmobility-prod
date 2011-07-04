@@ -70,7 +70,7 @@ int getValueInMS(const std::string& valueStr, const std::string& unitsStr)
 
 
 
-bool loadXMLAgents(xmlXPathContext* xpContext, std::vector<Agent*>& agents)
+bool loadXMLPedestrians(xmlXPathContext* xpContext, std::vector<Agent*>& agents)
 {
 	std::string expression = "/config/pedestrians/pedestrian";
 	xmlXPathObject* xpObject = xmlXPathEvalExpression((xmlChar*)expression.c_str(), xpContext);
@@ -82,7 +82,7 @@ bool loadXMLAgents(xmlXPathContext* xpContext, std::vector<Agent*>& agents)
 	agents.clear();
 	for (int i = 0; i < xpObject->nodesetval->nodeNr; ++i) {
 		xmlNode* curr = xpObject->nodesetval->nodeTab[i];
-		Agent* agent = NULL;
+		Person* agent = NULL;
 		unsigned int flagCheck = 0;
 		for (xmlAttr* attrs=curr->properties; attrs!=NULL; attrs=attrs->next) {
 			//Read each attribute.
@@ -96,7 +96,8 @@ bool loadXMLAgents(xmlXPathContext* xpContext, std::vector<Agent*>& agents)
 
 			//Assign it.
 			if (name=="id") {
-				agent = new Agent(valueI);
+				agent = new Person(valueI);
+				agent->changeRole(new Pedestrian(agent));
 				flagCheck |= 1;
 			} else if (name=="xPos") {
 				agent->xPos.force(valueI);
@@ -249,7 +250,7 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vecto
     }
 
     //Load agents
-    if (!loadXMLAgents(xpContext, agents)) {
+    if (!loadXMLPedestrians(xpContext, agents)) {
     	return "Couldn't load agents";
     }
 

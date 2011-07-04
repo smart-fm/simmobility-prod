@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <stdlib.h>
 
 #include <boost/thread.hpp>
 
@@ -16,21 +17,6 @@ namespace sim_mob
 
 
 /**
- * Possible agent behaviors.
- *
- * \todo
- * Represent agent behavior using inheritance, instead.
- */
-/*enum AGENT_MODES {
-	DRIVER,
-	PEDESTRIAN,
-	CYCLIST,
-	PASSENGER
-};*/
-
-
-
-/**
  * Basic Agent class. Agents maintain an x and a y position. They may have different
  * behavioral models.
  */
@@ -38,13 +24,17 @@ class Agent : public sim_mob::Entity {
 public:
 	Agent(unsigned int id=0);
 
-	virtual void update(frame_t frameNumber);  ///<Update agent behvaior
+	virtual void update(frame_t frameNumber) = 0;  ///<Update agent behvaior
 
 	///Subscribe this agent to a data manager.
 	virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew);
 
 	///Update the agent's shortest path. (Currently does nothing; might not even belong here)
-	void updateShortestPath();
+	//void updateShortestPath();
+
+	//Removal methods
+	bool isToBeRemoved();
+	void setToBeRemoved(bool value);
 
 public:
 //	sim_mob::Buffered<unsigned int> xPos;  ///<The agent's position, X
@@ -62,30 +52,8 @@ public:
 	Point lowerRightCrossing;
 
 private:
-	unsigned int currMode;
-	double speed;
-	double xVel;
-	double yVel;
-	Point goal;
-	bool isGoalSet;
+	//unsigned int currMode;
 	bool toRemoved;
-	unsigned int currPhase; //Current pedestrian signal phase: 0-green, 1-red
-	unsigned int phaseCounter; //To be replaced by traffic management system
-
-	//For collisions
-	double xCollisionVector;
-	double yCollisionVector;
-	static double collisionForce;
-	static double agentRadius;
-
-	//The following methods are to be moved to agent's sub-systems in future
-	bool isGoalReached();
-	void setGoal();
-	void updateVelocity();
-	void updatePosition();
-	void updatePedestrianSignal();
-	void checkForCollisions();
-	bool reachStartOfCrossing();
 
 public:
 	//TEMP
@@ -93,11 +61,11 @@ public:
 
 
 //TODO: Move these into the proper location (inheritance, for most of them)
-public:
+/*public:
 	static void pathChoice(Agent& a);
 	static void updateDriverBehavior(Agent& a);
 	static void updatePedestrianBehavior(Agent& a);
-	static void updatePassengerBehavior(Agent& a);
+	static void updatePassengerBehavior(Agent& a);*/
 };
 
 }

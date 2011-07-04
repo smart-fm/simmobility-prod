@@ -53,10 +53,10 @@ void entity_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
 		(*it)->update(frameNumber);
 	}
 }
-void shortest_path_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
+void signal_status_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
 {
 	for (std::vector<sim_mob::Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
-		((Agent*)(*it))->updateShortestPath();
+		//((Region*)(*it))->updateSignalStatus(); //TODO
 	}
 }
 
@@ -133,7 +133,7 @@ bool performMain()
   //Initialize our signal status work groups
   //  TODO: There needs to be a more general way to do this.
   EntityWorkGroup signalStatusWorkers(WG_SIGNALS_SIZE, config.totalRuntimeTicks, config.granSignalsTicks);
-  Worker<sim_mob::Entity>::actionFunction spWork = boost::bind(shortest_path_worker, _1, _2);
+  Worker<sim_mob::Entity>::actionFunction spWork = boost::bind(signal_status_worker, _1, _2);
   signalStatusWorkers.initWorkers(&spWork);
   for (size_t i=0; i<regions.size(); i++) {
 	  signalStatusWorkers.migrate(&regions[i], -1, i%WG_SIGNALS_SIZE);
@@ -141,8 +141,8 @@ bool performMain()
 
   //Initialize our shortest path work groups
   //  TODO: There needs to be a more general way to do this.
-  EntityWorkGroup shortestPathWorkers(WG_SHORTEST_PATH_SIZE, config.totalRuntimeTicks, config.granPathsTicks);
-  shortestPathWorkers.initWorkers();
+  //EntityWorkGroup shortestPathWorkers(WG_SHORTEST_PATH_SIZE, config.totalRuntimeTicks, config.granPathsTicks);
+  //shortestPathWorkers.initWorkers();
   /////////////////////////////////////////////////////////////////////////////
   // NOTE: Currently, an Agent can only be "managed" by one Worker. We need a way to
   //       say that the agent is the data object of a worker, but WON'T be managed by it.
@@ -156,7 +156,7 @@ bool performMain()
   //Start work groups
   agentWorkers.startAll();
   signalStatusWorkers.startAll();
-  shortestPathWorkers.startAll();
+  //shortestPathWorkers.startAll();
 
 
   /////////////////////////////////////////////////////////////////
@@ -180,7 +180,7 @@ bool performMain()
 	  updateTrafficInfo(regions);
 
 	  //Longer Time-based cycle
-	  shortestPathWorkers.wait();
+	  //shortestPathWorkers.wait();
 
 	  //Longer Time-based cycle
 	  //TODO: Put these on Worker threads too.

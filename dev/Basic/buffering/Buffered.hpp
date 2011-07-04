@@ -58,6 +58,37 @@ public:
 	 */
     void set (const T& value);
 
+    /**
+     * Evaluates as the current value.
+     *
+     * Used in an expression, the object will be evaluated as its current value.  Example:
+     *     \code
+     *     enum Color { GREEN, YELLOW, RED };
+     *     Buffered<Color> color;
+     *     ...
+     *     switch (color)
+     *     {
+     *     case GREEN: ... break;
+     *     case YELLOW: ... break;
+     *     case RED: ... break;
+     *     }
+     *     \endcode
+     *
+     * Another example:
+     *     \code
+     *     Buffered<uint32_t> passenger_count;
+     *     ...
+     *     if (passenger_count == 10) ...
+     *     std::cout << "There are " << passenger_count << " passengers on the bus\n";
+     *     \endcode
+     *
+     *  Take care that this conversion is not called when \p T is big struct.
+     */
+    operator T() const
+    {
+        return current_;
+    }
+
 	/**
 	 * Force a new value into effect. Set the current and next value without a call to flip().
 	 * This is usually only needed when loading values from a config file.

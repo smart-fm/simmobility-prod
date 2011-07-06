@@ -41,7 +41,7 @@ public:
 	//! will be a strictly monotonic increasing number which represent the time-step.
 	typedef boost::function<void(Worker<EntityType>& worker, frame_t frameNumber)> actionFunction;
 	Worker(actionFunction* action =NULL, boost::barrier* internal_barr =NULL, boost::barrier* external_barr =NULL, unsigned int endTick=0);
-	~Worker();
+	virtual ~Worker();
 
 	//Thread-style operations
 	void start();

@@ -13,6 +13,11 @@ namespace sim_mob
 /**
  * A location on a map where other elements interact. Nodes build off of the Point2D class
  * to include information on the Lane Connectors and RoadSegments at that particular location.
+ *
+ * \note
+ * This is a skeleton class. All functions are defined in this header file.
+ * When this class's full functionality is added, these header-defined functions should
+ * be moved into a separate cpp file.
  */
 class Node : public sim_mob::Point2D {
 public:

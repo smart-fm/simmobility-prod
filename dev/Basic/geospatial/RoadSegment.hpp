@@ -39,6 +39,8 @@ public:
 	///Maximum speed of this road segment.
 	unsigned int maxSpeed;
 
+	void* roadBulge; ///<Currently haven't decided how to represent bulge.
+
 
 private:
 	///Collection of lanes. All road segments must have at least one lane.

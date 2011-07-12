@@ -26,7 +26,8 @@ public:
 	Region(unsigned int id=0);
 
 	virtual void update(frame_t frameNumber);
-	virtual void subscribe(BufferedDataManager* mgr, bool isNew) {} //Nothing for now.
+	//virtual void subscribe(BufferedDataManager* mgr, bool isNew) {} //Nothing for now.
+	virtual void buildSubscriptionList() {} //Nothing for now
 
 private:
 	std::vector<Signal> signals;

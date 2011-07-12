@@ -23,7 +23,8 @@ public:
 	///Update this person's subscribed data members.
 	/// \todo
 	/// It might make more sense to generalize this somehow.
-	virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew);
+	//virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew);
+	virtual void buildSubscriptionList();
 
 	void changeRole(sim_mob::Role* newRole);
 

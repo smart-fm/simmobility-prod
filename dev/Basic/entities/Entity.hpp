@@ -13,7 +13,10 @@ namespace sim_mob
  */
 class Entity {
 public:
-	Entity(unsigned int id) : id(id) {}  ///<Construct an entity with an immutable ID
+	///Construct an entity with an immutable ID
+	Entity(unsigned int id) : id(id), isSubscriptionListBuilt(false)
+	{
+	}
 
 	/**
 	 * Update function. This will be called each time tick (at the entity type's granularity; see
@@ -24,17 +27,29 @@ public:
 	virtual void update(frame_t frameNumber) = 0;
 
 	/**
-	 * Set a new data manager for this entity. This function is called when an entity migrates
-	 * to a new worker thread, and should add (or remove, if isNew is false) all Buffered types
-	 * that this entity manages.
-	 *
-	 * \param mgr The new or old data manager.
-	 * \param isNew If true, add all Buffered types to the manager. If false, remove them.
+	 * Returns a list of pointers to each Buffered<> type that this entity managed.
 	 */
-	virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew) = 0;
+	std::vector<sim_mob::BufferedBase*>& getSubscriptionList()
+	{
+		if (!isSubscriptionListBuilt) {
+			subscriptionList_cached.clear();
+			buildSubscriptionList();
+			isSubscriptionListBuilt = true;
+		}
+		return subscriptionList_cached;
+	}
+
+	/**
+	 * Build the list of Buffered<> types this entity subscribes to. Used by sub-classes
+	 */
+	virtual void buildSubscriptionList() = 0;
 
 private:
 	unsigned int id;
+	bool isSubscriptionListBuilt;
+
+protected:
+	std::vector<sim_mob::BufferedBase*> subscriptionList_cached;
 
 //Trivial accessors/mutators. Header-implemented
 public:

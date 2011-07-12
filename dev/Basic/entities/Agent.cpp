@@ -22,7 +22,7 @@ sim_mob::Agent::Agent(unsigned int id) : Entity(id), xPos(NULL, 0), yPos(NULL, 0
 }*/
 
 
-void sim_mob::Agent::subscribe(BufferedDataManager* mgr, bool isNew)
+/*void sim_mob::Agent::subscribe(BufferedDataManager* mgr, bool isNew)
 {
 	if (isNew) {
 		xPos.migrate(mgr);
@@ -32,6 +32,12 @@ void sim_mob::Agent::subscribe(BufferedDataManager* mgr, bool isNew)
 		yPos.migrate(NULL);
 	}
 
+}*/
+
+void sim_mob::Agent::buildSubscriptionList()
+{
+	subscriptionList_cached.push_back(&xPos);
+	subscriptionList_cached.push_back(&yPos);
 }
 
 

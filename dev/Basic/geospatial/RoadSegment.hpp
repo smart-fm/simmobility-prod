@@ -35,9 +35,22 @@ public:
 	std::pair<int, const Lane&> translateRawLaneID(unsigned int ID) { return std::pair<int, const Lane&>; }
 
 
+public:
+	///Maximum speed of this road segment.
+	unsigned int maxSpeed;
+
+
 private:
+	///Collection of lanes. All road segments must have at least one lane.
 	std::vector<const sim_mob::Lane*> lanes;
-	unsigned int lanesLeftOfDivider; //We count lanes from the LHS, so this doesn't change with drivingSide
+
+	///Helps to identify road segments which are bi-directional.
+	///We count lanes from the LHS, so this doesn't change with drivingSide
+	unsigned int lanesLeftOfDivider;
+
+	///Widths of each lane. If this vector is empty, each lane's width is an even division of
+	///Pavement::width() / lanes.size()
+	std::vector<unsigned int> laneWidths;
 
 
 };

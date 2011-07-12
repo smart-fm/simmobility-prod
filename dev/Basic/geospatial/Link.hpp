@@ -29,6 +29,14 @@ public:
 	std::vector<sim_mob::RoadSegment*> GetPath(bool isFwd) { return std::vector<sim_mob::RoadSegment*>; }
 
 
+	//The name of the particular segment. E.g., "Main Street 01".
+	//Useful for debugging by location. May be auto-numbered.
+	std::string getSegmentName(const sim_mob::RoadSegment* segment);
+
+public:
+	///The road link's name. E.g., "Main Street"
+	const std::string roadName;
+
 protected:
 	std::vector<sim_mob::RoadSegment*> segments;
 

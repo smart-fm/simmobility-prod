@@ -99,11 +99,6 @@ void sim_mob::Worker<EntityType>::addEntity(EntityType* entity)
 {
 	//Save this entity in the data vector.
 	data.push_back(entity);
-
-	//Add this entity's Buffered<> types to our list
-	for (std::vector<sim_mob::BufferedBase*>::iterator it=entity->getSubscriptionList().begin(); it!=entity->getSubscriptionList().end(); it++) {
-		(*it)->migrate(this);
-	}
 }
 
 template <class EntityType>
@@ -113,11 +108,6 @@ void sim_mob::Worker<EntityType>::remEntity(EntityType* entity)
 	typename std::vector<EntityType*>::iterator it = std::find(data.begin(), data.end(), entity);
 	if (it!=data.end()) {
 		data.erase(it);
-	}
-
-	//Remove this entity's Buffered<> types from our list
-	for (std::vector<sim_mob::BufferedBase*>::iterator it=entity->getSubscriptionList().begin(); it!=entity->getSubscriptionList().end(); it++) {
-		(*it)->migrate(NULL);
 	}
 }
 

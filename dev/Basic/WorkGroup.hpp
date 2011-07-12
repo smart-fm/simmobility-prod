@@ -34,7 +34,7 @@ public:
 	//template <typename WorkType>  //For now, just assume Workers
 	void initWorkers(typename Worker<EntityType>::actionFunction* action=NULL);
 
-	Worker<EntityType>& getWorker(size_t id);
+	Worker<EntityType>* const getWorker(size_t id);
 	void startAll();
 	void interrupt();
 	size_t size();
@@ -81,11 +81,11 @@ void sim_mob::WorkGroup<EntityType>::initWorkers(typename Worker<EntityType>::ac
 
 
 template <class EntityType>
-sim_mob::Worker<EntityType>& sim_mob::WorkGroup<EntityType>::getWorker(size_t id)
+sim_mob::Worker<EntityType>* const sim_mob::WorkGroup<EntityType>::getWorker(size_t id)
 {
 	if (id >= workers.size())
 		throw std::runtime_error("Invalid Worker id.");
-	return *workers[id];
+	return workers[id];
 }
 
 
@@ -160,14 +160,26 @@ void sim_mob::WorkGroup<EntityType>::migrate(EntityType* ag, int fromID, int toI
 	if (ag==NULL)
 		return;
 
-	//Remove from the old location
 	if (fromID >= 0) {
-		getWorker(fromID).remEntity(ag);
+		//Remove from the old location
+		sim_mob::Worker<EntityType>* const from = getWorker(fromID);
+		from->remEntity(ag);
+
+		//Remove this entity's Buffered<> types from our list
+		for (std::vector<sim_mob::BufferedBase*>::iterator it=ag->getSubscriptionList().begin(); it!=ag->getSubscriptionList().end(); it++) {
+			(*it)->migrate(NULL);
+		}
 	}
 
-	//Add to the new location
 	if (toID >= 0) {
-		getWorker(toID).addEntity(ag);
+		//Add to the new location
+		sim_mob::Worker<EntityType>* const to = getWorker(toID);
+		to->addEntity(ag);
+
+		//Add this entity's Buffered<> types to our list
+		for (std::vector<sim_mob::BufferedBase*>::iterator it=ag->getSubscriptionList().begin(); it!=ag->getSubscriptionList().end(); it++) {
+			(*it)->migrate(to);
+		}
 	}
 }
 

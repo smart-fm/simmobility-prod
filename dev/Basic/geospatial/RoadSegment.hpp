@@ -3,14 +3,14 @@
 #include <vector>
 
 #include "Pavement.hpp"
-//#include "Lane.hpp"
+#include "Lane.hpp"
 
 namespace sim_mob
 {
 
 
 //Forward declarations
-class Lane;
+//class Lane;
 
 
 
@@ -32,7 +32,7 @@ public:
 	}
 
 	//Translate an array index into a useful lane ID and a set of properties.
-	std::pair<int, const Lane&> translateRawLaneID(unsigned int ID) { return std::pair<int, const Lane&>; }
+	std::pair<int, const Lane&> translateRawLaneID(unsigned int ID) { Lane l; return std::pair<int, const Lane&>(1, l); }
 
 
 public:

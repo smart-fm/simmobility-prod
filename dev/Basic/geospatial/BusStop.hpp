@@ -17,7 +17,6 @@ namespace sim_mob
 class BusStop : public sim_mob::RoadItem {
 public:
 
-
 private:
 
 

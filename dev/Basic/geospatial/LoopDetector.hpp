@@ -14,7 +14,7 @@ namespace sim_mob
  * When this class's full functionality is added, these header-defined functions should
  * be moved into a separate cpp file.
  */
-class BusStop : public sim_mob::RoadItem {
+class LoopDetector : public sim_mob::RoadItem {
 public:
 
 

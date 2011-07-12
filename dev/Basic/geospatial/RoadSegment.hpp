@@ -31,8 +31,11 @@ public:
 		return !isSingleDirectional();
 	}
 
-	//Translate an array index into a useful lane ID and a set of properties.
+	///Translate an array index into a useful lane ID and a set of properties.
 	std::pair<int, const Lane&> translateRawLaneID(unsigned int ID) { Lane l; return std::pair<int, const Lane&>(1, l); }
+
+	///Return the polyline of an individual lane. May be cached in lanePolylines_cached. May also be precomputed, and stored in lanePolylines_cached.
+	std::vector<sim_mob::Point2D>& getLanePolyline(unsigned int laneID) { std::vector<sim_mob::Point2D> res; return res; }
 
 
 public:
@@ -45,6 +48,9 @@ public:
 private:
 	///Collection of lanes. All road segments must have at least one lane.
 	std::vector<const sim_mob::Lane*> lanes;
+
+	///Computed polylines are cached here.
+	std::vector< std::vector<sim_mob::Point2D> > lanePolylines_cached;
 
 	///Helps to identify road segments which are bi-directional.
 	///We count lanes from the LHS, so this doesn't change with drivingSide

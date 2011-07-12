@@ -27,8 +27,8 @@ enum LANE_MOVEMENT_RULES {
 	LANE_CAN_TURN_ON_RED    = 0x0040,
 
 	//Parking rules
-	LANE_STOP_ALLOWED       = 0x0080,
-	LANE_PARK_ALLOWED       = 0x0100,
+	LANE_STOP_ALLOWED                 = 0x0080,
+	LANE_FREELY_PARKING_ALLOWED       = 0x0100,
 
 	//General driving restrictions
 	LANE_STANDARD_BUS_LANE           = 0x0200,
@@ -64,7 +64,7 @@ public:
 	bool is_pedestrian_lane() { return false; }
 	bool is_vehicles_lane() { return false; }
 	bool is_high_occ_vehicle_lane() { return false; }
-	bool can_park_here() { return false; }
+	bool can_freely_park_here() { return false; }
 	bool can_stop_here() { return false; }
 
 	//Should probably not be part of the "Lane" class...

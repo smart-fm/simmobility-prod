@@ -2,11 +2,17 @@
 
 #include <vector>
 
-#include "Node.hpp"
-#include "Lane.hpp"
+#include "Pavement.hpp"
+//#include "Lane.hpp"
 
 namespace sim_mob
 {
+
+
+//Forward declarations
+class Lane;
+
+
 
 /**
  * Part of a Link with consistent lane numbering. RoadSegments may be bidirectional
@@ -16,7 +22,7 @@ namespace sim_mob
  * When this class's full functionality is added, these header-defined functions should
  * be moved into a separate cpp file.
  */
-class RoadSegment : public Pavement {
+class RoadSegment : public sim_mob::Pavement {
 public:
 	bool isSingleDirectional() {
 		return lanesLeftOfDivider==0 || lanesLeftOfDivider==lanes.size()-1;

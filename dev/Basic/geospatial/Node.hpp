@@ -3,12 +3,19 @@
 #include <vector>
 
 #include "Point2D.hpp"
-#include "Link.hpp"
-#include "LaneConnector.hpp"
-#include "RoadSegment.hpp"
+//#include "Link.hpp"
+//#include "LaneConnector.hpp"
+//#include "RoadSegment.hpp"
 
 namespace sim_mob
 {
+
+
+//Forward declarations
+class Link;
+class RoadSegment;
+class LaneConnector;
+
 
 /**
  * A location on a map where other elements interact. Nodes build off of the Point2D class

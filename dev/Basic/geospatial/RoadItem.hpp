@@ -1,10 +1,15 @@
 #pragma once
 
-#include "Node.hpp"
+//#include "Node.hpp"
 
 
 namespace sim_mob
 {
+
+
+//Forward declarations
+class Node;
+
 
 /**
  * Base class for geospatial items which take up physical space. (Contrast with Nodes, which

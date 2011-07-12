@@ -1,11 +1,15 @@
 #pragma once
 
 #include "Lane.hpp"
-#include "RoadItem.hpp"
+//#include "RoadItem.hpp"
 
 
 namespace sim_mob
 {
+
+
+//Forward declarations
+class RoadSegment;
 
 
 /**
@@ -18,8 +22,8 @@ namespace sim_mob
  */
 class LaneConnector {
 public:
-	const std::pair<const RoadSegment, unsigned int> laneFrom;
-	const std::pair<const RoadSegment, unsigned int> laneTo;
+	const std::pair<const sim_mob::RoadSegment, unsigned int> laneFrom;
+	const std::pair<const sim_mob::RoadSegment, unsigned int> laneTo;
 
 
 private:

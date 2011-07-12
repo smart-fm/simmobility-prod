@@ -4,11 +4,17 @@
 #include <vector>
 
 #include "RoadItem.hpp"
-#include "Point2D.hpp"
+//#include "Point2D.hpp"
 
 
 namespace sim_mob
 {
+
+
+//Forward declarations
+class Point2D;
+
+
 
 /**
  * Represents RoadItems that may contain obstacles and have a complex geometry.

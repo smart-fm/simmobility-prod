@@ -2,8 +2,7 @@
 
 #include <vector>
 
-#include "Node.hpp"
-#include "Lane.hpp"
+#include "Pavement.hpp"
 
 namespace sim_mob
 {
@@ -18,7 +17,7 @@ namespace sim_mob
  * When this class's full functionality is added, these header-defined functions should
  * be moved into a separate cpp file.
  */
-class Sidewalk : public Pavement {
+class Sidewalk : public sim_mob::Pavement {
 public:
 
 

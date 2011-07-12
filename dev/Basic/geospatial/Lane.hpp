@@ -1,5 +1,7 @@
 #pragma once
 
+#include <bitset>
+
 
 namespace sim_mob
 {
@@ -66,7 +68,7 @@ public:
 
 
 private:
-	LANE_MOVEMENT_RULES movementRuleBitflag;
+	std::bitset<0xFF> movementRules;
 
 
 

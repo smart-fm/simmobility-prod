@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include "Node.hpp"
 
 namespace sim_mob
 {

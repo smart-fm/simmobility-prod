@@ -2,11 +2,17 @@
 
 #include <vector>
 
-#include "RoadSegment.hpp"
-#include "RoadItem.hpp"
+//#include "RoadSegment.hpp"
+//#include "RoadItem.hpp"
 
 namespace sim_mob
 {
+
+
+//Forward declarations
+class RoadSegment;
+class RoadItem;
+
 
 /**
  * A road or sidewalk. Generalized movement rules apply for agents inside a link,

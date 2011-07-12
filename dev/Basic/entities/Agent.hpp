@@ -56,9 +56,6 @@ private:
 	//unsigned int currMode;
 	bool toRemoved;
 
-public:
-	//TEMP
-	static boost::mutex global_mutex;
 
 
 //TODO: Move these into the proper location (inheritance, for most of them)

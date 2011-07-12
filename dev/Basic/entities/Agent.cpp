@@ -8,11 +8,8 @@ using std::vector;
 vector<Agent*> sim_mob::Agent::all_agents;
 
 
-//TEMP
-boost::mutex sim_mob::Agent::global_mutex;
 
-
-sim_mob::Agent::Agent(unsigned int id) : Entity(id), xPos(NULL, 0), yPos(NULL, 0) {
+sim_mob::Agent::Agent(unsigned int id) : Entity(id), xPos(0), yPos(0) {
 	toRemoved = false;
 }
 

@@ -100,7 +100,6 @@ public:
 protected:
     void flip();
 
-private:
     bool is_dirty_;
     T current_;
     T next_;

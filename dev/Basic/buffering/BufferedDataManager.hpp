@@ -16,42 +16,41 @@ class BufferedDataManager;
 
 
 /**
- * Base class for all buffered data. The class Buffered extends this class and allows a template
- * parameter to be passed along.
+ * Base class for all buffered data. It is recommended to use the templatized sub-class Buffered
+ * for actual data. This base class exists to allow the BufferedDataManager to store a vector of
+ * non-templatized pointers and perform "flip" operations on them.
  *
- * \note This used to be non-copyable, but we are allowing subclasses to access the constructor and
- * destructor, and we are defining an "equals" function which is relatively safe. So there's no
- * reason to prohibit copying.
+ * A BufferedBase must be associate with a BufferedDataManager; otherwise, its current value will never
+ * be updated.
+ *
+ * \note
+ * This class is non-copyable; it is not clear semantically what happens when a Buffered data
+ * item is copied. In particular, who should now manage this class? If a copy is needed, consider
+ * implementing a "clone" function in BufferedDataManager, since this will allow exact control
+ * over data management (and BufferedDataManager is already a friend class).
  *
  * \par
  * ~Seth
  */
-class BufferedBase : public boost::noncopyable
+class BufferedBase : private boost::noncopyable
 {
-public:
-	/**
-	 * Migrate this buffered type to a new data manager.
-	 * \param newMgr The manager now responsible for flipping this buffered datum. Can be NULL.
-	 *
-	 * \todo
-	 * This function might be named wrongly, since it only accomplishes half of the migration.
-	 */
-	//void migrate(sim_mob::BufferedDataManager* newMgr);
-
 protected:
-	BufferedBase(/*BufferedDataManager* mgr=NULL*/);
-    virtual ~BufferedBase();
-    //virtual BufferedBase& operator=(const BufferedBase& rhs);
+	BufferedBase() : refCount(0) {}
+    virtual ~BufferedBase() {
+    	assert(refCount==0);   //Error if refCount's not zero.
+    }
 
+    ///Update the current data value with the old value. Makes no guarantees about
+    ///  what happens to the old value; e.g., calling flip() twice without a set() in
+    ///  between has undefined behavior.
 	virtual void flip() = 0;
 
     //Allow access to protected methods by BufferedDataManager.
     friend class BufferedDataManager;
 
 private:
-//    BufferedDataManager* mgr;
-
-    //To help with debugging:
+    ///Count of BufferedDataManagers accessing this Buffered type.
+    ///Helps catch harder-to-debug errors further down the line.
     unsigned int refCount;
 
 public:

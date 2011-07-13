@@ -167,7 +167,7 @@ void sim_mob::WorkGroup<EntityType>::migrate(EntityType* ag, int fromID, int toI
 
 		//Remove this entity's Buffered<> types from our list
 		for (std::vector<sim_mob::BufferedBase*>::iterator it=ag->getSubscriptionList().begin(); it!=ag->getSubscriptionList().end(); it++) {
-			dynamic_cast<BufferedDataManager*>(from)->rem(*it);
+			dynamic_cast<BufferedDataManager*>(from)->stopManaging(*it);
 			//(*it)->migrate(NULL);
 		}
 	}
@@ -179,7 +179,7 @@ void sim_mob::WorkGroup<EntityType>::migrate(EntityType* ag, int fromID, int toI
 
 		//Add this entity's Buffered<> types to our list
 		for (std::vector<sim_mob::BufferedBase*>::iterator it=ag->getSubscriptionList().begin(); it!=ag->getSubscriptionList().end(); it++) {
-			dynamic_cast<BufferedDataManager*>(to)->add(*it);
+			dynamic_cast<BufferedDataManager*>(to)->beginManaging(*it);
 			//(*it)->migrate(to);
 		}
 	}

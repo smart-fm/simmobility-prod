@@ -31,6 +31,7 @@ class BufferedDataManager;
  *
  * \par
  * ~Seth
+ *
  */
 class BufferedBase : private boost::noncopyable
 {
@@ -40,9 +41,11 @@ protected:
     	assert(refCount==0);   //Error if refCount's not zero.
     }
 
-    ///Update the current data value with the old value. Makes no guarantees about
-    ///  what happens to the old value; e.g., calling flip() twice without a set() in
-    ///  between has undefined behavior.
+    /**
+     * Update the current data value with the old value. Makes no guarantees about
+     * what happens to the old value; e.g., calling flip() twice without a set() in
+     * between has undefined behavior.
+     */
 	virtual void flip() = 0;
 
     //Allow access to protected methods by BufferedDataManager.
@@ -61,19 +64,31 @@ public:
 
 
 /**
- * Manager for buffered data. Original source based on "data_mgr.hpp".
+ * Manager for buffered data. Maintains a list of which buffered types it is managing, and
+ * updates their current values each time flip() is called. Calling flip() multiple times
+ * in a row (without calling each datum's "set()" method in between) has undefined behavior.
+ *
+ * \todo
+ * It seems sensible to have beginManaging() add the datum to a static array of raw "data", using
+ * the "size" of the buffered type. The next_ and current_ values can then be represented by two
+ * large static arrays, which can be flipped with a single pointer swap. Care should be taken to
+ * update the arrays when they grow too big. In addition, internal segmentation will develop
+ * when an item is removed through a call to stopManaging(). So, it's not a trivial feature, but
+ * then again there's plenty of existing research (for dealing with general memory allocation).
+ *
+ * \par
+ * ~Seth
  */
 class BufferedDataManager
 {
 public:
-	~BufferedDataManager();          ///<Remove all items when this manager is deleted.
+	///Become responsible for a buffered data item.
+    void beginManaging(BufferedBase* datum);
 
-    void add (BufferedBase* datum);  ///<Become responsible for a buffered data item.
-    void rem (BufferedBase* datum);  ///<Stop tracking a buffered data item.
+    ///Stop tracking a buffered data item.
+    void stopManaging(BufferedBase* datum);
 
-    /**
-     * Flip (update the current value of) all buffered data items under your control.
-     */
+    ///Flip (update the current value of) all buffered data items under your control.
     void flip();
 
 

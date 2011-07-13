@@ -9,7 +9,9 @@
 #include "Entity.hpp"
 #include "../buffering/Buffered.hpp"
 #include "../buffering/BufferedDataManager.hpp"
-#include "../simple_classes.h"
+#include "../geospatial/Point2D.hpp"
+
+#include "../conf/simpleconf.hpp"
 
 
 namespace sim_mob
@@ -38,8 +40,6 @@ public:
 	void setToBeRemoved(bool value);
 
 public:
-//	sim_mob::Buffered<unsigned int> xPos;  ///<The agent's position, X
-//	sim_mob::Buffered<unsigned int> yPos;  ///<The agent's position, Y
 	sim_mob::Buffered<double> xPos;  ///<The agent's position, X
 	sim_mob::Buffered<double> yPos;  ///<The agent's position, Y
 
@@ -47,23 +47,16 @@ public:
 	static std::vector<Agent*> all_agents;
 
 	//TEMP; we can't link to the config file directly or we get a circular dependency.
-	Point topLeft;
-	Point lowerRight;
-	Point topLeftCrossing;
-	Point lowerRightCrossing;
+	// No longer needed; we can link to it now.
+	//sim_mob::Point2D topLeft;
+	//sim_mob::Point2D lowerRight;
+	//sim_mob::Point2D topLeftCrossing;
+	//sim_mob::Point2D lowerRightCrossing;
 
 private:
 	//unsigned int currMode;
 	bool toRemoved;
 
-
-
-//TODO: Move these into the proper location (inheritance, for most of them)
-/*public:
-	static void pathChoice(Agent& a);
-	static void updateDriverBehavior(Agent& a);
-	static void updatePedestrianBehavior(Agent& a);
-	static void updatePassengerBehavior(Agent& a);*/
 };
 
 }

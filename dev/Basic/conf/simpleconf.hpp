@@ -9,19 +9,24 @@
 #include <libxml/xpath.h>
 #include <libxml/xpathInternals.h>
 
-
+#include "../geospatial/Point2D.hpp"
 #include "../simple_classes.h"
-
-#include "../entities/Entity.hpp"
-#include "../entities/Agent.hpp"
-#include "../entities/Person.hpp"
-#include "../entities/Region.hpp"
-#include "../roles/Pedestrian.hpp"
-#include "../workers/Worker.hpp"
 
 
 namespace sim_mob
 {
+
+//Forward declarations
+class Agent;
+class Person;
+class Pedestrian;
+class Region;
+
+//Doesn't work for some reason.
+//class ChoiceSet;
+//class TripChain;
+//class Vehicle;
+
 
 
 /**
@@ -39,8 +44,8 @@ public:
 	unsigned int granPathsTicks;      ///<Number of ticks to wait before updating all paths.
 	unsigned int granDecompTicks;     ///<Number of ticks to wait before updating agent decomposition.
 
-	std::map<std::string, Point> boundaries;  ///<Indexed by position, e.g., "bottomright"
-	std::map<std::string, Point> crossings;   ///<Indexed by position, e.g., "bottomright"
+	std::map<std::string, Point2D> boundaries;  ///<Indexed by position, e.g., "bottomright"
+	std::map<std::string, Point2D> crossings;   ///<Indexed by position, e.g., "bottomright"
 
 public:
 	/***
@@ -52,9 +57,9 @@ public:
 	 * Load the defualt user config file; initialize all vectors. This function must be called
 	 * once before GetInstance() will return meaningful data.
 	 */
-	static bool InitUserConf(std::vector<Agent*>& agents, std::vector<Region>& regions,
-	          std::vector<TripChain>& trips, std::vector<ChoiceSet>& chSets,
-	          std::vector<Vehicle>& vehicles);
+	static bool InitUserConf(std::vector<Agent*>& agents, std::vector<Region*>& regions,
+	          std::vector<TripChain*>& trips, std::vector<ChoiceSet*>& chSets,
+	          std::vector<Vehicle*>& vehicles);
 
 private:
 	ConfigParams();

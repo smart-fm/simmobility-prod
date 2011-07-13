@@ -1,9 +1,12 @@
 #pragma once
 
-#include "Role.hpp"
-
 #include <time.h>
 #include <math.h>
+
+#include "Role.hpp"
+#include "../geospatial/Point2D.hpp"
+
+#include "../conf/simpleconf.hpp"
 
 namespace sim_mob
 {
@@ -22,7 +25,7 @@ private:
 	double speed;
 	double xVel;
 	double yVel;
-	Point goal;
+	Point2D goal;
 	bool isGoalSet;
 	unsigned int currPhase; //Current pedestrian signal phase: 0-green, 1-red
 	unsigned int phaseCounter; //To be replaced by traffic management system

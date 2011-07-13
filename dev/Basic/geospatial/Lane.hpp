@@ -1,5 +1,7 @@
 #pragma once
 
+#include <bitset>
+
 
 namespace sim_mob
 {
@@ -11,27 +13,28 @@ namespace sim_mob
  * We need a utility function for checking bitflags easily.
  */
 enum LANE_MOVEMENT_RULES {
-	//Turning rules
-	//LANE_MOVE_STRAIGHT      = 0x0001,
-	//LANE_TURN_LEFT          = 0x0002,
-	//LANE_TURN_RIGHT         = 0x0004,
-	LANE_MAKE_U_TURN        = 0x0008,   //Will likely be moved to Intersection or Link
+	//Who can drive here.
+	LANE_ALLOW_VEHICLES     = 0x0001,
+	LANE_ALLOW_BICYCLES     = 0x0002,
+	LANE_ALLOW_PEDESTRIANS  = 0x0004,
 
-	LANE_CAN_TURN_ON_RED    = 0x0001,
+	//Will likely be moved to Intersection or Link
+	LANE_MAKE_U_TURN        = 0x0008,
 
-	//Lane changing rules
+	//Lane changing rules, traffic light turning
 	LANE_LEFT_LC            = 0x0010,
 	LANE_RIGHT_LC           = 0x0020,
+	LANE_CAN_TURN_ON_RED    = 0x0040,
 
 	//Parking rules
-	LANE_STOP_ALLOWED       = 0x0040,
-	LANE_PARK_ALLOWED       = 0x0080,
+	LANE_STOP_ALLOWED                 = 0x0080,
+	LANE_FREELY_PARKING_ALLOWED       = 0x0100,
 
 	//General driving restrictions
-	LANE_STANDARD_BUS_LANE           = 0x0100,
-	LANE_WHOLE_DAY_BUS_LANE          = 0x0200,
-	LANE_IS_SHOULDER        = 0x0400,
-	LANE_BICYCLE_LANE       = 0x0800,
+	LANE_STANDARD_BUS_LANE           = 0x0200,
+	LANE_WHOLE_DAY_BUS_LANE          = 0x0400,
+	LANE_IS_SHOULDER                 = 0x0800,
+	LANE_ALLOW_HIGH_OCC_VEHICLES     = 0x1000,
 };
 
 
@@ -58,7 +61,10 @@ public:
 	bool can_change_lane_right() { return false; }
 	bool is_road_shoulder() { return false; }
 	bool is_bicycle_lane() { return false; }
-	bool can_park_here() { return false; }
+	bool is_pedestrian_lane() { return false; }
+	bool is_vehicles_lane() { return false; }
+	bool is_high_occ_vehicle_lane() { return false; }
+	bool can_freely_park_here() { return false; }
 	bool can_stop_here() { return false; }
 
 	//Should probably not be part of the "Lane" class...
@@ -66,7 +72,7 @@ public:
 
 
 private:
-	LANE_MOVEMENT_RULES movementRuleBitflag;
+	std::bitset<0xFF> movementRules;
 
 
 

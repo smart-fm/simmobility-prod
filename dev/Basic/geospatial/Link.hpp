@@ -1,9 +1,10 @@
 #pragma once
 
 #include <vector>
+#include <string>
 
 //#include "RoadSegment.hpp"
-//#include "RoadItem.hpp"
+#include "RoadItem.hpp"
 
 namespace sim_mob
 {
@@ -11,7 +12,6 @@ namespace sim_mob
 
 //Forward declarations
 class RoadSegment;
-class RoadItem;
 
 
 /**
@@ -26,8 +26,16 @@ class RoadItem;
 class Link : public sim_mob::RoadItem {
 public:
 	int GetLength(bool isFwd) { return 0; }
-	std::vector<sim_mob::RoadSegment*> GetPath(bool isFwd) { return std::vector<sim_mob::RoadSegment*>; }
+	std::vector<sim_mob::RoadSegment*> GetPath(bool isFwd) { return std::vector<sim_mob::RoadSegment*>(); }
 
+
+	//The name of the particular segment. E.g., "Main Street 01".
+	//Useful for debugging by location. May be auto-numbered.
+	std::string getSegmentName(const sim_mob::RoadSegment* segment) { return NULL; }
+
+public:
+	///The road link's name. E.g., "Main Street"
+	std::string roadName;
 
 protected:
 	std::vector<sim_mob::RoadSegment*> segments;

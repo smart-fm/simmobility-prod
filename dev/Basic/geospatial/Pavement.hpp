@@ -4,15 +4,11 @@
 #include <vector>
 
 #include "RoadItem.hpp"
-//#include "Point2D.hpp"
+#include "Point2D.hpp"
 
 
 namespace sim_mob
 {
-
-
-//Forward declarations
-class Point2D;
 
 
 
@@ -36,8 +32,8 @@ public:
 	std::vector<sim_mob::Point2D> polyline;
 	std::map<unsigned int, const RoadItem*> obstacles;
 
-	std::pair<unsigned int, const RoadItem*> nextObstacle(const Point2D& pos, bool isForward) { return std::pair<unsigned int, const RoadItem*>; }
-	std::pair<unsigned int, const RoadItem*> nextObstacle(unsigned int offset, bool isForward) { return std::pair<unsigned int, const RoadItem*>; }
+	std::pair<unsigned int, const RoadItem*> nextObstacle(const Point2D& pos, bool isForward) { return std::pair<unsigned int, const RoadItem*>(); }
+	std::pair<unsigned int, const RoadItem*> nextObstacle(unsigned int offset, bool isForward) { return std::pair<unsigned int, const RoadItem*>(); }
 
 private:
 

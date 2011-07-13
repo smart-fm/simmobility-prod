@@ -25,7 +25,6 @@ protected:
 	std::vector<float> roadAngles;
 
 
-
 };
 
 

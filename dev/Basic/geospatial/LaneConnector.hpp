@@ -22,8 +22,8 @@ class RoadSegment;
  */
 class LaneConnector {
 public:
-	const std::pair<const sim_mob::RoadSegment, unsigned int> laneFrom;
-	const std::pair<const sim_mob::RoadSegment, unsigned int> laneTo;
+	const std::pair<const sim_mob::RoadSegment*, unsigned int> laneFrom;
+	const std::pair<const sim_mob::RoadSegment*, unsigned int> laneTo;
 
 
 private:

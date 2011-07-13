@@ -58,7 +58,7 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 		if(!parent->isToBeRemoved()){
 			//Output (temp)
 			{
-				boost::mutex::scoped_lock local_lock(Agent::global_mutex);
+				boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
 				std::cout <<"(Agent " <<parent->getId() <<" has reached the goal)" <<std::endl;
 			}
 			parent->setToBeRemoved(true);
@@ -75,7 +75,7 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 			//Waiting, do nothing now
 			//Output (temp)
 			{
-				boost::mutex::scoped_lock local_lock(Agent::global_mutex);
+				boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
 				std::cout <<"(Agent " <<parent->getId() <<" is waiting at crossing at frame "<<frameNumber<<")" <<std::endl;
 			}
 		}

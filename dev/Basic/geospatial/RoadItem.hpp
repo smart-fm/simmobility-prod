@@ -27,8 +27,8 @@ public:
 
 
 protected:
-	const Node* start;
-	const Node* end;
+	const sim_mob::Node* start;
+	const sim_mob::Node* end;
 
 
 

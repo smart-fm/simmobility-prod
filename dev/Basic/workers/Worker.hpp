@@ -97,18 +97,18 @@ private:
 template <class EntityType>
 void sim_mob::Worker<EntityType>::addEntity(EntityType* entity)
 {
+	//Save this entity in the data vector.
 	data.push_back(entity);
-	entity->subscribe(this, true);
 }
 
 template <class EntityType>
 void sim_mob::Worker<EntityType>::remEntity(EntityType* entity)
 {
+	//Remove this entity from the data vector.
 	typename std::vector<EntityType*>::iterator it = std::find(data.begin(), data.end(), entity);
 	if (it!=data.end()) {
 		data.erase(it);
 	}
-	entity->subscribe(this, false);
 }
 
 template <class EntityType>
@@ -129,8 +129,9 @@ sim_mob::Worker<EntityType>::Worker(actionFunction* action, boost::barrier* inte
     : BufferedDataManager(),
       internal_barr(internal_barr), external_barr(external_barr), action(action),
       endTick(endTick),
-      active(this, false)  //Passing the "this" pointer is probably ok, since we only use the base class (which is constructed)
+      active(/*this, */false)  //Passing the "this" pointer is probably ok, since we only use the base class (which is constructed)
 {
+	this->add(&active);
 }
 
 template <class EntityType>
@@ -139,6 +140,11 @@ sim_mob::Worker<EntityType>::~Worker()
 	//Clear all tracked entitites
 	while (!data.empty()) {
 		remEntity(data[0]);
+	}
+
+	//Clear all tracked data
+	while (!managedData.empty()) {
+		rem(managedData[0]);
 	}
 }
 

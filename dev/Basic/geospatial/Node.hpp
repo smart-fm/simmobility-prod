@@ -28,8 +28,8 @@ class LaneConnector;
  */
 class Node : public sim_mob::Point2D {
 public:
-	std::vector<sim_mob::LaneConnector*> getConnectors(const Link* from) { return std::vector<sim_mob::LaneConnector*>;};
-	std::vector<sim_mob::RoadSegment*> getItemsAt() { return std::vector<sim_mob::RoadSegment*>; }
+	std::vector<sim_mob::LaneConnector*> getConnectors(const sim_mob::Link* from) { return std::vector<sim_mob::LaneConnector*>();}
+	std::vector<sim_mob::RoadSegment*> getItemsAt() { return std::vector<sim_mob::RoadSegment*>(); }
 
 
 

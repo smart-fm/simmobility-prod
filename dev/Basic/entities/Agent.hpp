@@ -27,7 +27,8 @@ public:
 	virtual void update(frame_t frameNumber) = 0;  ///<Update agent behvaior
 
 	///Subscribe this agent to a data manager.
-	virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew);
+	//virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew);
+	virtual void buildSubscriptionList();
 
 	///Update the agent's shortest path. (Currently does nothing; might not even belong here)
 	//void updateShortestPath();
@@ -55,9 +56,6 @@ private:
 	//unsigned int currMode;
 	bool toRemoved;
 
-public:
-	//TEMP
-	static boost::mutex global_mutex;
 
 
 //TODO: Move these into the proper location (inheritance, for most of them)

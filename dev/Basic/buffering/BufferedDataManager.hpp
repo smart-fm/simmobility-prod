@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include <boost/utility.hpp>
+#include <boost/thread.hpp>
 
 #include <iostream>
 
@@ -25,7 +26,7 @@ class BufferedDataManager;
  * \par
  * ~Seth
  */
-class BufferedBase
+class BufferedBase : public boost::noncopyable
 {
 public:
 	/**
@@ -35,12 +36,12 @@ public:
 	 * \todo
 	 * This function might be named wrongly, since it only accomplishes half of the migration.
 	 */
-	void migrate(sim_mob::BufferedDataManager* newMgr);
+	//void migrate(sim_mob::BufferedDataManager* newMgr);
 
 protected:
-	BufferedBase(BufferedDataManager* mgr=NULL);
+	BufferedBase(/*BufferedDataManager* mgr=NULL*/);
     virtual ~BufferedBase();
-    virtual BufferedBase& operator=(const BufferedBase& rhs);
+    //virtual BufferedBase& operator=(const BufferedBase& rhs);
 
 	virtual void flip() = 0;
 
@@ -48,7 +49,14 @@ protected:
     friend class BufferedDataManager;
 
 private:
-    BufferedDataManager* mgr;
+//    BufferedDataManager* mgr;
+
+    //To help with debugging:
+    unsigned int refCount;
+
+public:
+	//TEMP
+	static boost::mutex global_mutex;
 
 };
 
@@ -59,6 +67,8 @@ private:
 class BufferedDataManager
 {
 public:
+	~BufferedDataManager();          ///<Remove all items when this manager is deleted.
+
     void add (BufferedBase* datum);  ///<Become responsible for a buffered data item.
     void rem (BufferedBase* datum);  ///<Stop tracking a buffered data item.
 
@@ -68,7 +78,7 @@ public:
     void flip();
 
 
-private:
+protected:
     std::vector<BufferedBase*> managedData;
 };
 

@@ -16,21 +16,24 @@ struct TripChain {
 	TripChain(unsigned int id=0) : id(id) {}
 
 	//TEMP fix: WorkGroups manage subscriptions; perhaps we can delegate this to agents?
-	void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew) {}
+	std::vector<sim_mob::BufferedBase*> tmp_list;
+	std::vector<sim_mob::BufferedBase*>& getSubscriptionList() { return tmp_list; }
 };
 struct ChoiceSet {
 	unsigned int id;
 	ChoiceSet(unsigned int id=0) : id(id) {}
 
 	//TEMP fix: WorkGroups manage subscriptions; perhaps we can delegate this to agents?
-	void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew) {}
+	std::vector<sim_mob::BufferedBase*> tmp_list;
+	std::vector<sim_mob::BufferedBase*>& getSubscriptionList() { return tmp_list; }
 };
 struct Vehicle {
 	unsigned int id;
 	Vehicle(unsigned int id=0) : id(id) {}
 
 	//TEMP fix: WorkGroups manage subscriptions; perhaps we can delegate this to agents?
-	void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew) {}
+	std::vector<sim_mob::BufferedBase*> tmp_list;
+	std::vector<sim_mob::BufferedBase*>& getSubscriptionList() { return tmp_list; }
 };
 
 

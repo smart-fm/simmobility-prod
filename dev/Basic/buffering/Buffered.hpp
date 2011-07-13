@@ -41,9 +41,10 @@ public:
 	 * @param mgr The data manager which will call "flip". Can be NULL.
 	 * @param value The initial value. You can also set an initial value using "force"
 	 */
-	Buffered (BufferedDataManager* mgr, const T& value = T());
+	Buffered (/*BufferedDataManager* mgr, */const T& value = T());
+	virtual ~Buffered();
 
-	virtual Buffered& operator=(const Buffered& rhs);
+	//virtual Buffered& operator=(const Buffered& rhs);
 
 
 	/**
@@ -109,13 +110,18 @@ private:
 
 
 template <typename T>
-sim_mob::Buffered<T>::Buffered (BufferedDataManager* mgr, const T& value) :
-    BufferedBase(mgr),
+sim_mob::Buffered<T>::Buffered (/*BufferedDataManager* mgr, */const T& value) :
+    BufferedBase(/*mgr*/),
     is_dirty_ (false), current_ (value), next_ (value)
 {
 }
 
 template <typename T>
+sim_mob::Buffered<T>::~Buffered ()
+{
+}
+
+/*template <typename T>
 sim_mob::Buffered<T>& sim_mob::Buffered<T>::operator=(const sim_mob::Buffered<T>& rhs)
 {
 	BufferedBase::operator =(rhs);
@@ -124,7 +130,7 @@ sim_mob::Buffered<T>& sim_mob::Buffered<T>::operator=(const sim_mob::Buffered<T>
 	this->next_ = rhs.next_;
 
 	return *this;
-}
+}*/
 
 
 template <typename T>

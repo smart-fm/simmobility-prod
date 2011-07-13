@@ -1,5 +1,5 @@
 INCLUDES = -I. -I..
-CXXFLAGS = -O2 -g -Wall -Wextra -fmessage-length=0 $(INCLUDES)
+CXXFLAGS = -g -Wall -Wextra -fmessage-length=0 $(INCLUDES)
 
 OBJS = BufferedUnitTests.o main.o
 
@@ -22,7 +22,8 @@ BufferedUnitTests.o: \
     BufferedUnitTests.hpp \
     BufferedUnitTests.cpp \
     ../BufferedDataManager.hpp \
-    ../Buffered.hpp
+    ../Buffered.hpp \
+    ../Buffered_uint32.hpp
 
 main.o: main.cpp
 

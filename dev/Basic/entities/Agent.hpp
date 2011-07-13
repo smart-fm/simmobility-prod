@@ -32,9 +32,6 @@ public:
 	//virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew);
 	virtual void buildSubscriptionList();
 
-	///Update the agent's shortest path. (Currently does nothing; might not even belong here)
-	//void updateShortestPath();
-
 	//Removal methods
 	bool isToBeRemoved();
 	void setToBeRemoved(bool value);
@@ -45,13 +42,6 @@ public:
 
 	//Agents can access all other agents (although they usually do not access by ID)
 	static std::vector<Agent*> all_agents;
-
-	//TEMP; we can't link to the config file directly or we get a circular dependency.
-	// No longer needed; we can link to it now.
-	//sim_mob::Point2D topLeft;
-	//sim_mob::Point2D lowerRight;
-	//sim_mob::Point2D topLeftCrossing;
-	//sim_mob::Point2D lowerRightCrossing;
 
 private:
 	//unsigned int currMode;

@@ -17,15 +17,13 @@ class Person : public sim_mob::Agent {
 public:
 	Person(unsigned int id=0);
 
-	///Update person behavior
+	///Update Person behavior
 	virtual void update(frame_t frameNumber);
 
-	///Update this person's subscribed data members.
-	/// \todo
-	/// It might make more sense to generalize this somehow.
-	//virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew);
+	///Update a Person's subscription list.
 	virtual void buildSubscriptionList();
 
+	///Change the role of this person: Driver, Passenger, Pedestrian
 	void changeRole(sim_mob::Role* newRole);
 
 private:

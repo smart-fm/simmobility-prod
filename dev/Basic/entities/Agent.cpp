@@ -11,9 +11,6 @@ vector<Agent*> sim_mob::Agent::all_agents;
 
 sim_mob::Agent::Agent(unsigned int id) : Entity(id), xPos(0), yPos(0) {
 	toRemoved = false;
-
-	//Test: ConfigParams works fine now.
-	//int x = ConfigParams::GetInstance().boundaries["topleft"].xPos;
 }
 
 

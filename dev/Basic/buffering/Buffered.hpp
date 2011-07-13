@@ -25,12 +25,6 @@ namespace sim_mob
  *       Re-enable features as you need them.
  *  \par
  *  ~Seth
- *
- *  \note I left notify() out, because at the moment I'm not sure if we should have Buffered
- *  types acting as listeners; it seems like this might slow down data that one doesn't want
- *  to be notified of, and is not really the right place for this anyway.
- *   \par
- *   ~Seth
  */
 template <typename T>
 class Buffered : public BufferedBase
@@ -100,7 +94,6 @@ public:
 protected:
     void flip();
 
-    bool is_dirty_;
     T current_;
     T next_;
 };
@@ -111,7 +104,7 @@ protected:
 template <typename T>
 sim_mob::Buffered<T>::Buffered (/*BufferedDataManager* mgr, */const T& value) :
     BufferedBase(/*mgr*/),
-    is_dirty_ (false), current_ (value), next_ (value)
+    current_ (value), next_ (value)
 {
 }
 
@@ -124,7 +117,6 @@ sim_mob::Buffered<T>::~Buffered ()
 sim_mob::Buffered<T>& sim_mob::Buffered<T>::operator=(const sim_mob::Buffered<T>& rhs)
 {
 	BufferedBase::operator =(rhs);
-	this->is_dirty_ = rhs.is_dirty_;
 	this->current_ = rhs.current_;
 	this->next_ = rhs.next_;
 
@@ -142,11 +134,7 @@ const T& sim_mob::Buffered<T>::get() const
 template <typename T>
 void sim_mob::Buffered<T>::set (const T& value)
 {
-    if (next_ != value)
-    {
-        next_ = value;
-        is_dirty_ = true;
-    }
+    next_ = value;
 }
 
 
@@ -162,11 +150,7 @@ void sim_mob::Buffered<T>::force (const T& value)
 template <typename T>
 void sim_mob::Buffered<T>::flip()
 {
-    if (is_dirty_)
-    {
-        current_ = next_;
-        is_dirty_ = false;
-    }
+    current_ = next_;
 }
 
 template <typename T>

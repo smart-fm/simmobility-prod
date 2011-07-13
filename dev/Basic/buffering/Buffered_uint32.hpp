@@ -35,7 +35,6 @@ public:
     void operator++()
     {
         ++next_;
-        is_dirty_ = true;
     }
 
     /**
@@ -47,7 +46,6 @@ public:
     void operator++(int)
     {
         ++next_;
-        is_dirty_ = true;
     }
 
     /**
@@ -59,7 +57,6 @@ public:
     void operator--()
     {
         --next_;
-        is_dirty_ = true;
     }
 
     /**
@@ -71,7 +68,6 @@ public:
     void operator--(int)
     {
         --next_;
-        is_dirty_ = true;
     }
 
     /**
@@ -83,7 +79,6 @@ public:
     void operator+=(int delta)
     {
         next_ += delta;
-        is_dirty_ = true;
     }
 
     /**
@@ -95,7 +90,6 @@ public:
     void operator-=(int delta)
     {
         next_ -= delta;
-        is_dirty_ = true;
     }
 };
 

@@ -38,9 +38,7 @@ class BufferedBase : private boost::noncopyable
 protected:
 	BufferedBase() : refCount(0) {}
     virtual ~BufferedBase() {
-    	if (refCount != 0) { //For debugging...
-    		assert(refCount==0);   //Error if refCount's not zero.
-    	}
+    	assert(refCount==0);   //Error if refCount's not zero.
     }
 
     /**

@@ -241,6 +241,8 @@ namespace
     public:
         static GlobalDataManager& singleton();
 
+        size_t managed_data_count() const { return managedData.size(); }
+
     private:
         friend void BufferedUnitTests::test_Agent_with_Buffered_T_objects();
 
@@ -259,7 +261,7 @@ namespace
     {
         if (0 == instance_)
         {
-            instance_ = new GlobalDataManager;
+            instance_ = new GlobalDataManager();
         }
         return *instance_;
     }
@@ -358,6 +360,7 @@ void BufferedUnitTests::test_Agent_with_Buffered_T_objects()
     CPPUNIT_ASSERT(bus.passengers_count() == 7);
     CPPUNIT_ASSERT(bus.gas_tank_level() == 0.5);
     CPPUNIT_ASSERT(bus.color() == red);
+    CPPUNIT_ASSERT(GlobalDataManager::singleton().managed_data_count()==3);
 
     bus.update(1);
     GlobalDataManager::singleton().flip();
@@ -404,6 +407,35 @@ void BufferedUnitTests::test_Buffered_T_reference_count()
     // delete must come after stopManaging().  If the lines are swapped, this test will fail.
     delete integer;
 }
+
+
+void BufferedUnitTests::test_BufferedDataManager_doubleBeginManage()
+{
+    sim_mob::Buffered_uint32 var(42);
+
+    DataManager mgr1;
+    mgr1.beginManaging(&var);
+    mgr1.beginManaging(&var);
+    CPPUNIT_ASSERT(1 == mgr1.managed_data_count());
+
+    mgr1.stopManaging(&var);
+    CPPUNIT_ASSERT(0 == mgr1.managed_data_count());
+}
+
+void BufferedUnitTests::test_BufferedDataManager_doubleStopManaging()
+{
+    sim_mob::Buffered_uint32 var(42);
+
+    DataManager mgr1;
+    mgr1.beginManaging(&var);
+    CPPUNIT_ASSERT(1 == mgr1.managed_data_count());
+
+    mgr1.stopManaging(&var);
+    mgr1.stopManaging(&var);
+    CPPUNIT_ASSERT(0 == mgr1.managed_data_count());
+}
+
+
 
 void BufferedUnitTests::test_BufferedDataManager_stopManaging()
 {

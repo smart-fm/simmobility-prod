@@ -128,6 +128,19 @@ public:
      */
     void test_Buffered_T_reference_count();
 
+
+    /**
+     * Tests that managing a variable twice won't lead to an error.
+     */
+    void test_BufferedDataManager_doubleBeginManage();
+
+
+    /**
+     * Tests that unmanaging a variable twice won't lead to an error.
+     */
+    void test_BufferedDataManager_doubleStopManaging();
+
+
     /**
      * Tests BufferedDataManager::stopManaging() works correctly.
      *

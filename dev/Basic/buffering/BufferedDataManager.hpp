@@ -38,7 +38,9 @@ class BufferedBase : private boost::noncopyable
 protected:
 	BufferedBase() : refCount(0) {}
     virtual ~BufferedBase() {
-    	assert(refCount==0);   //Error if refCount's not zero.
+    	if (refCount != 0) { //For debugging...
+    		assert(refCount==0);   //Error if refCount's not zero.
+    	}
     }
 
     /**
@@ -82,6 +84,8 @@ public:
 class BufferedDataManager
 {
 public:
+	virtual ~BufferedDataManager();
+
 	///Become responsible for a buffered data item.
     void beginManaging(BufferedBase* datum);
 

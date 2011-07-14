@@ -9,6 +9,16 @@ using std::vector;
 boost::mutex sim_mob::BufferedBase::global_mutex;
 
 
+sim_mob::BufferedDataManager::~BufferedDataManager()
+{
+	//Stop managing all items
+	while (!managedData.empty()) {
+		stopManaging(managedData[0]);
+	}
+
+}
+
+
 
 void sim_mob::BufferedDataManager::beginManaging(BufferedBase* datum)
 {

@@ -27,8 +27,8 @@ namespace sim_mob
  */
 class Pavement : public sim_mob::RoadItem {
 public:
-	int length;
-	int width;
+	unsigned int length;
+	unsigned int width;
 	std::vector<sim_mob::Point2D> polyline;
 	std::map<unsigned int, const RoadItem*> obstacles;
 

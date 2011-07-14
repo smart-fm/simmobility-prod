@@ -164,6 +164,8 @@ private:
         CPPUNIT_TEST(test_migrating_to_another_BufferedDataManager);
         CPPUNIT_TEST(test_Agent_with_Buffered_T_objects);
         CPPUNIT_TEST(test_Buffered_T_reference_count);
+        CPPUNIT_TEST(test_BufferedDataManager_doubleBeginManage);
+        CPPUNIT_TEST(test_BufferedDataManager_doubleStopManaging);
         CPPUNIT_TEST(test_BufferedDataManager_stopManaging);
     CPPUNIT_TEST_SUITE_END();
 };

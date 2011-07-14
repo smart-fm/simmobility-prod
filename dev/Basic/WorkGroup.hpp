@@ -46,8 +46,11 @@ public:
 	//TODO: Move this to the Worker, not the work group.
 	void migrate(EntityType * ag, int fromID, int toID);
 
+protected:
+	virtual void manageData(sim_mob::BufferedDataManager* mgr, EntityType* ag, bool takeControl);
 
-private:
+
+protected:
 	//Shared barrier
 	boost::barrier shared_barr;
 	boost::barrier external_barr;
@@ -153,6 +156,19 @@ void sim_mob::WorkGroup<EntityType>::interrupt()
 }
 
 
+template <class EntityType>
+void sim_mob::WorkGroup<EntityType>::manageData(sim_mob::BufferedDataManager* mgr, EntityType* ag, bool takeControl)
+{
+	for (std::vector<sim_mob::BufferedBase*>::iterator it=ag->getSubscriptionList().begin(); it!=ag->getSubscriptionList().end(); it++) {
+		if (takeControl) {
+			mgr->beginManaging(*it);
+		} else {
+			mgr->stopManaging(*it);
+		}
+	}
+}
+
+
 /**
  * Set "fromID" or "toID" to -1 to skip that step.
  */
@@ -168,10 +184,7 @@ void sim_mob::WorkGroup<EntityType>::migrate(EntityType* ag, int fromID, int toI
 		from->remEntity(ag);
 
 		//Remove this entity's Buffered<> types from our list
-		for (std::vector<sim_mob::BufferedBase*>::iterator it=ag->getSubscriptionList().begin(); it!=ag->getSubscriptionList().end(); it++) {
-			dynamic_cast<BufferedDataManager*>(from)->stopManaging(*it);
-			//(*it)->migrate(nullptr);
-		}
+		manageData(dynamic_cast<BufferedDataManager*>(from), ag, false);
 	}
 
 	if (toID >= 0) {
@@ -180,10 +193,7 @@ void sim_mob::WorkGroup<EntityType>::migrate(EntityType* ag, int fromID, int toI
 		to->addEntity(ag);
 
 		//Add this entity's Buffered<> types to our list
-		for (std::vector<sim_mob::BufferedBase*>::iterator it=ag->getSubscriptionList().begin(); it!=ag->getSubscriptionList().end(); it++) {
-			dynamic_cast<BufferedDataManager*>(to)->beginManaging(*it);
-			//(*it)->migrate(to);
-		}
+		manageData(dynamic_cast<BufferedDataManager*>(to), ag, true);
 	}
 }
 

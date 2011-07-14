@@ -35,3 +35,31 @@ bool trivial(unsigned int id);
 
 
 
+/**
+ * Temporary definition of nullptr. The new standard (C++11) will have "nullptr" as a builtin
+ * keyword with special properties. So, I'm defining a class here with some of "nullptr"'s properties.
+ * If we use, e.g.:
+ *    #include "constants.h"
+ *    in* x = nullptr;
+ *
+ * ...then when Tile-GCC supports nullptr, we can simply delete this temporary class and
+ * recompile with _no_ other code changes.
+ *
+ * \note
+ * Feel free to use "NULL" or "0" if you're not comfortable with nullptr.
+ */
+const class {                // nullptr is a const object.
+public:
+	//Convertible to any type of null non-member pointer.
+	template<class T> operator T*() const { return 0; }
+
+	//Covnertible to any type of null member pointer.
+	template<class C, class T> operator T C::*() const { return 0; }
+
+private:
+	//Cannot take the address of nullptr.
+	void operator&() const;
+
+} nullptr = {};  //Single instance, named "nullptr"
+
+

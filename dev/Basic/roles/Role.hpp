@@ -15,7 +15,7 @@ namespace sim_mob
 class Role {
 public:
 	//NOTE: Don't forget to call this from sub-classes!
-	Role(Agent* parent=NULL) : parent(parent) {
+	Role(Agent* parent=nullptr) : parent(parent) {
 	}
 
 	/// TODO: Think through what kind of data this function might need.

@@ -6,6 +6,8 @@
 //#include "RoadSegment.hpp"
 #include "RoadItem.hpp"
 
+#include "../constants.h"
+
 namespace sim_mob
 {
 
@@ -31,7 +33,7 @@ public:
 
 	//The name of the particular segment. E.g., "Main Street 01".
 	//Useful for debugging by location. May be auto-numbered.
-	std::string getSegmentName(const sim_mob::RoadSegment* segment) { return NULL; }
+	std::string getSegmentName(const sim_mob::RoadSegment* segment) { return ""; }
 
 public:
 	///The road link's name. E.g., "Main Street"

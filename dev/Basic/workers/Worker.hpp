@@ -21,6 +21,7 @@
 #include <boost/function.hpp>
 
 #include "../frame.hpp"
+#include "../constants.h"
 #include "../entities/Entity.hpp"
 #include "../buffering/Buffered.hpp"
 #include "../buffering/BufferedDataManager.hpp"
@@ -40,7 +41,7 @@ public:
 	//! argument will a reference to the constructed Worker object and the 2nd argument
 	//! will be a strictly monotonic increasing number which represent the time-step.
 	typedef boost::function<void(Worker<EntityType>& worker, frame_t frameNumber)> actionFunction;
-	Worker(actionFunction* action =NULL, boost::barrier* internal_barr =NULL, boost::barrier* external_barr =NULL, unsigned int endTick=0);
+	Worker(actionFunction* action =nullptr, boost::barrier* internal_barr =nullptr, boost::barrier* external_barr =nullptr, unsigned int endTick=0);
 	virtual ~Worker();
 
 	//Thread-style operations
@@ -177,7 +178,7 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 	for (;active.get();) {
 		perform_main(currTick);
 
-		if (internal_barr!=NULL)
+		if (internal_barr!=nullptr)
 			internal_barr->wait();
 
 		//Advance local time-step
@@ -187,7 +188,7 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 
 		perform_flip();
 
-		if (external_barr!=NULL)
+		if (external_barr!=nullptr)
 			external_barr->wait();
 	}
 }
@@ -196,7 +197,7 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 template <class EntityType>
 void sim_mob::Worker<EntityType>::perform_main(frame_t frameNumber)
 {
-	if (action!=NULL)
+	if (action!=nullptr)
 		(*action)(*this, frameNumber);
 }
 

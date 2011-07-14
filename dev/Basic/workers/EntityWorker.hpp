@@ -20,7 +20,7 @@ namespace sim_mob
  */
 class EntityWorker : public Worker<Entity> {
 public:
-	EntityWorker(Worker<Entity>::actionFunction* action =NULL, boost::barrier* internal_barr =NULL, boost::barrier* external_barr =NULL, unsigned int endTick=0);
+	EntityWorker(Worker<Entity>::actionFunction* action =nullptr, boost::barrier* internal_barr =nullptr, boost::barrier* external_barr =nullptr, unsigned int endTick=0);
 	virtual ~EntityWorker() {}
 
 	virtual void perform_main(frame_t frameNumber);

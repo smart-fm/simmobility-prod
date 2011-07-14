@@ -22,7 +22,7 @@ namespace {
 std::string evaluateXPath(xmlXPathContext* xpContext, const std::string& expression)
 {
 	xmlXPathObject* xpObject = xmlXPathEvalExpression((xmlChar*)expression.c_str(), xpContext);
-	if (xpObject==NULL) {
+	if (xpObject==nullptr) {
 		return "";
 	}
 
@@ -80,7 +80,7 @@ bool loadXMLPedestrians(xmlXPathContext* xpContext, std::vector<Agent*>& agents)
 {
 	std::string expression = "/config/pedestrians/pedestrian";
 	xmlXPathObject* xpObject = xmlXPathEvalExpression((xmlChar*)expression.c_str(), xpContext);
-	if (xpObject==NULL) {
+	if (xpObject==nullptr) {
 		return false;
 	}
 
@@ -88,9 +88,9 @@ bool loadXMLPedestrians(xmlXPathContext* xpContext, std::vector<Agent*>& agents)
 	agents.clear();
 	for (int i = 0; i < xpObject->nodesetval->nodeNr; ++i) {
 		xmlNode* curr = xpObject->nodesetval->nodeTab[i];
-		Person* agent = NULL;
+		Person* agent = nullptr;
 		unsigned int flagCheck = 0;
-		for (xmlAttr* attrs=curr->properties; attrs!=NULL; attrs=attrs->next) {
+		for (xmlAttr* attrs=curr->properties; attrs!=nullptr; attrs=attrs->next) {
 			//Read each attribute.
 			std::string name = (char*)attrs->name;
 			std::string value = (char*)attrs->children->content;
@@ -137,18 +137,18 @@ bool loadXMLPedestrians(xmlXPathContext* xpContext, std::vector<Agent*>& agents)
 bool loadXMLBoundariesCrossings(xmlXPathContext* xpContext, const string& expression, map<string, Point2D>& result)
 {
 	xmlXPathObject* xpObject = xmlXPathEvalExpression((xmlChar*)expression.c_str(), xpContext);
-	if (xpObject==NULL) {
+	if (xpObject==nullptr) {
 		return false;
 	}
 
 	//Move through results
 	result.clear();
-	for (xmlNode** it=xpObject->nodesetval->nodeTab; *it!=NULL; it++) {
+	for (xmlNode** it=xpObject->nodesetval->nodeTab; *it!=nullptr; it++) {
 		xmlNode* curr = *it;
 		string key;
 		Point2D val;
 		unsigned int flagCheck = 0;
-		for (xmlAttr* attrs=curr->properties; attrs!=NULL; attrs=attrs->next) {
+		for (xmlAttr* attrs=curr->properties; attrs!=nullptr; attrs=attrs->next) {
 			//Read each attribute.
 			std::string name = (char*)attrs->name;
 			std::string value = (char*)attrs->children->content;
@@ -195,13 +195,13 @@ bool loadXMLBoundariesCrossings(xmlXPathContext* xpContext, const string& expres
 std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vector<Agent*>& agents)
 {
 	//Ensure we loaded a real document
-	if (document==NULL) {
+	if (document==nullptr) {
 		return "Couldn't load XML config file.";
 	}
 
 	//Create an X-Path evaluation context
 	xpContext = xmlXPathNewContext(document);
-	if (xpContext==NULL) {
+	if (xpContext==nullptr) {
 		return "Couldn't get an X-Path context.";
 	}
 
@@ -338,8 +338,8 @@ bool sim_mob::ConfigParams::InitUserConf(std::vector<Agent*>& agents, std::vecto
 		          std::vector<Vehicle*>& vehicles)
 {
 	//Data
-	xmlDoc* document = NULL;
-	xmlXPathContext* xpContext = NULL;
+	xmlDoc* document = nullptr;
+	xmlXPathContext* xpContext = nullptr;
 
 
 	//Load an XML document containing our config file.
@@ -352,10 +352,10 @@ bool sim_mob::ConfigParams::InitUserConf(std::vector<Agent*>& agents, std::vecto
 	}
 
 	//Clean up data
-	if (document != NULL) {
+	if (document != nullptr) {
 		xmlFreeDoc(document);
 	}
-	if (xpContext != NULL) {
+	if (xpContext != nullptr) {
 		xmlXPathFreeContext(xpContext);
 	}
 

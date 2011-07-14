@@ -10,7 +10,7 @@ double Pedestrian::agentRadius = 10;
 sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent)
 {
 	//Check non-null parent. Perhaps references may be of use here?
-	if (parent==NULL) {
+	if (parent==nullptr) {
 		std::cout <<"Role constructed with no parent Agent." <<std::endl;
 		throw 1;
 	}
@@ -93,12 +93,12 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 void sim_mob::Pedestrian::checkForCollisions()
 {
 	//For now, just check all agents and get the first positive collision. Very basic.
-	Agent* other = NULL;
+	Agent* other = nullptr;
 	for (size_t i=0; i<Agent::all_agents.size(); i++) {
 		//Skip self
 		other = Agent::all_agents[i];
 		if (other->getId()==parent->getId()) {
-			other = NULL;
+			other = nullptr;
 			continue;
 		}
 
@@ -109,11 +109,11 @@ void sim_mob::Pedestrian::checkForCollisions()
 		if (distance < 2*agentRadius) {
 			break; //Collision
 		}
-		other = NULL;
+		other = nullptr;
 	}
 
 	//Set collision vector. Overrides previous setting, if any.
-	if (other!=NULL) {
+	if (other!=nullptr) {
 		//Get a heading.
 		double dx = other->xPos.get() - parent->xPos.get();
 		double dy = other->yPos.get() - parent->yPos.get();

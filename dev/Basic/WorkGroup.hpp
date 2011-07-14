@@ -16,6 +16,8 @@
 #include "workers/Worker.hpp"
 #include "entities/Entity.hpp"
 
+#include "constants.h"
+
 
 namespace sim_mob
 {
@@ -32,7 +34,7 @@ public:
 	~WorkGroup();
 
 	//template <typename WorkType>  //For now, just assume Workers
-	void initWorkers(typename Worker<EntityType>::actionFunction* action=NULL);
+	void initWorkers(typename Worker<EntityType>::actionFunction* action = nullptr);
 
 	Worker<EntityType>* const getWorker(size_t id);
 	void startAll();
@@ -157,7 +159,7 @@ void sim_mob::WorkGroup<EntityType>::interrupt()
 template <class EntityType>
 void sim_mob::WorkGroup<EntityType>::migrate(EntityType* ag, int fromID, int toID)
 {
-	if (ag==NULL)
+	if (ag==nullptr)
 		return;
 
 	if (fromID >= 0) {
@@ -168,7 +170,7 @@ void sim_mob::WorkGroup<EntityType>::migrate(EntityType* ag, int fromID, int toI
 		//Remove this entity's Buffered<> types from our list
 		for (std::vector<sim_mob::BufferedBase*>::iterator it=ag->getSubscriptionList().begin(); it!=ag->getSubscriptionList().end(); it++) {
 			dynamic_cast<BufferedDataManager*>(from)->stopManaging(*it);
-			//(*it)->migrate(NULL);
+			//(*it)->migrate(nullptr);
 		}
 	}
 

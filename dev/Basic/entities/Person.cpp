@@ -3,14 +3,14 @@
 using namespace sim_mob;
 
 
-sim_mob::Person::Person(unsigned int id) : Agent(id), currRole(NULL)
+sim_mob::Person::Person(unsigned int id) : Agent(id), currRole(nullptr)
 {
 
 }
 
 void sim_mob::Person::update(frame_t frameNumber)
 {
-	if (currRole!=NULL) {
+	if (currRole!=nullptr) {
 		currRole->update(frameNumber);
 	}
 
@@ -35,13 +35,13 @@ void sim_mob::Person::buildSubscriptionList()
 
 void sim_mob::Person::changeRole(sim_mob::Role* newRole)
 {
-	if (this->currRole!=NULL) {
-		this->currRole->setParent(NULL);
+	if (this->currRole!=nullptr) {
+		this->currRole->setParent(nullptr);
 	}
 
 	this->currRole = newRole;
 
-	if (this->currRole!=NULL) {
+	if (this->currRole!=nullptr) {
 		this->currRole->setParent(this);
 	}
 }

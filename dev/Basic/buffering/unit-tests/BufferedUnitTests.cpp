@@ -42,7 +42,7 @@ void BufferedUnitTests::test_flipping_after_single_change_to_Buffered_uint32()
     sim_mob::Buffered_uint32 integer(42);
 
     sim_mob::BufferedDataManager mgr;
-    mgr.add(&integer);
+    mgr.beginManaging(&integer);
 
     integer.set(1);
     CPPUNIT_ASSERT(42 == integer);
@@ -50,7 +50,7 @@ void BufferedUnitTests::test_flipping_after_single_change_to_Buffered_uint32()
     mgr.flip();
     CPPUNIT_ASSERT(1 == integer);
 
-    mgr.rem(&integer);
+    mgr.stopManaging(&integer);
 }
 
 void BufferedUnitTests::test_flipping_after_single_change_to_Buffered_float()
@@ -58,7 +58,7 @@ void BufferedUnitTests::test_flipping_after_single_change_to_Buffered_float()
     sim_mob::Buffered<float> floater(3.14159f);
 
     sim_mob::BufferedDataManager mgr;
-    mgr.add(&floater);
+    mgr.beginManaging(&floater);
 
     floater.set(2.71828f);
     CPPUNIT_ASSERT(3.14159f == floater);
@@ -66,7 +66,7 @@ void BufferedUnitTests::test_flipping_after_single_change_to_Buffered_float()
     mgr.flip();
     CPPUNIT_ASSERT(2.71828f == floater);
 
-    mgr.rem(&floater);
+    mgr.stopManaging(&floater);
 }
 
 void BufferedUnitTests::test_flipping_after_multiple_changes()
@@ -74,7 +74,7 @@ void BufferedUnitTests::test_flipping_after_multiple_changes()
     sim_mob::Buffered_uint32 integer(42);
 
     sim_mob::BufferedDataManager mgr;
-    mgr.add(&integer);
+    mgr.beginManaging(&integer);
 
     integer.set(100);
     CPPUNIT_ASSERT(42 == integer);
@@ -94,7 +94,7 @@ void BufferedUnitTests::test_flipping_after_multiple_changes()
     mgr.flip();
     CPPUNIT_ASSERT(100 + 1 + 1 - 3 - 1 - 1 + 6 == integer);
 
-    mgr.rem(&integer);
+    mgr.stopManaging(&integer);
 }
 
 void BufferedUnitTests::test_multiple_changes_back_to_original_value()
@@ -102,7 +102,7 @@ void BufferedUnitTests::test_multiple_changes_back_to_original_value()
     sim_mob::Buffered_uint32 integer(42);
 
     sim_mob::BufferedDataManager mgr;
-    mgr.add(&integer);
+    mgr.beginManaging(&integer);
 
     ++integer;
     CPPUNIT_ASSERT(42 == integer);
@@ -112,7 +112,7 @@ void BufferedUnitTests::test_multiple_changes_back_to_original_value()
     mgr.flip();
     CPPUNIT_ASSERT(42 == integer);
 
-    mgr.rem(&integer);
+    mgr.stopManaging(&integer);
 }
 
 namespace
@@ -134,7 +134,7 @@ void BufferedUnitTests::test_flipping_single_change_to_Buffered_enum()
     BufferedColor color(red);
 
     sim_mob::BufferedDataManager mgr;
-    mgr.add(&color);
+    mgr.beginManaging(&color);
 
     CPPUNIT_ASSERT(red == color);
     color.set(green);
@@ -143,7 +143,7 @@ void BufferedUnitTests::test_flipping_single_change_to_Buffered_enum()
     mgr.flip();
     CPPUNIT_ASSERT(green == color);
 
-    mgr.rem(&color);
+    mgr.stopManaging(&color);
 }
 
 }

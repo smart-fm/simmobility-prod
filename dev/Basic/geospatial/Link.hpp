@@ -27,8 +27,8 @@ class RoadSegment;
  */
 class Link : public sim_mob::RoadItem {
 public:
-	int GetLength(bool isFwd) { return 0; }
-	std::vector<sim_mob::RoadSegment*> GetPath(bool isFwd) { return std::vector<sim_mob::RoadSegment*>(); }
+	int GetLength(bool isForward) { return 0; }
+	std::vector<sim_mob::RoadSegment*> GetPath(bool isForward) { return std::vector<sim_mob::RoadSegment*>(); }
 
 
 	//The name of the particular segment. E.g., "Main Street 01".

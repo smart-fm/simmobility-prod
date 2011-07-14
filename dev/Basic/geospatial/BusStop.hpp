@@ -8,6 +8,10 @@
 namespace sim_mob
 {
 
+//Forward declarations
+class RoadSegment;
+
+
 /**
  * Representation of a Bus Stop.
  *
@@ -19,7 +23,7 @@ namespace sim_mob
 class BusStop : public sim_mob::RoadItem {
 public:
 	///Which RoadItem and lane is this bus stop located at?
-	std::pair<const RoadItem*, unsigned int> location;
+	std::pair<const RoadSegment*, unsigned int> location;
 
 	///Is this a bus bay, or does it take up space on the lane?
 	///Bus bays are always to the dominant position away from the lane.

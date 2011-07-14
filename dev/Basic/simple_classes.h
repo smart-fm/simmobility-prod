@@ -15,38 +15,16 @@ class TripChain {
 public:
 	unsigned int id;
 	TripChain(unsigned int id=0) : id(id) {}
-
-	//TEMP fix: WorkGroups manage subscriptions; perhaps we can delegate this to agents?
-	std::vector<sim_mob::BufferedBase*> tmp_list;
-	std::vector<sim_mob::BufferedBase*>& getSubscriptionList() { return tmp_list; }
 };
 class ChoiceSet {
 public:
 	unsigned int id;
 	ChoiceSet(unsigned int id=0) : id(id) {}
-
-	//TEMP fix: WorkGroups manage subscriptions; perhaps we can delegate this to agents?
-	std::vector<sim_mob::BufferedBase*> tmp_list;
-	std::vector<sim_mob::BufferedBase*>& getSubscriptionList() { return tmp_list; }
 };
 class Vehicle {
 public:
 	unsigned int id;
 	Vehicle(unsigned int id=0) : id(id) {}
-
-	//TEMP fix: WorkGroups manage subscriptions; perhaps we can delegate this to agents?
-	std::vector<sim_mob::BufferedBase*> tmp_list;
-	std::vector<sim_mob::BufferedBase*>& getSubscriptionList() { return tmp_list; }
 };
-
-
-//Temp config file classes
-/*struct Point {
-//	unsigned int xPos;
-//	unsigned int yPos;
-	double xPos;
-	double yPos;
-};*/
-
 
 

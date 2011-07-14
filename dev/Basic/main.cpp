@@ -235,10 +235,10 @@ void InitializeAll(vector<Agent*>& agents, vector<Region*>& regions, vector<Trip
 	      vector<ChoiceSet*>& choiceSets, vector<Vehicle*>& vehicles)
 {
 	  //Our work groups. Will be disposed after this time tick.
-	  WorkGroup<TripChain> tripChainWorkers(WG_TRIPCHAINS_SIZE, 1);
+	  SimpleWorkGroup<TripChain> tripChainWorkers(WG_TRIPCHAINS_SIZE, 1);
 	  WorkGroup<sim_mob::Agent> createAgentWorkers(WG_CREATE_AGENT_SIZE, 1);
-	  WorkGroup<ChoiceSet> choiceSetWorkers(WG_CHOICESET_SIZE, 1);
-	  WorkGroup<Vehicle> vehicleWorkers(WG_VEHICLES_SIZE, 1);
+	  SimpleWorkGroup<ChoiceSet> choiceSetWorkers(WG_CHOICESET_SIZE, 1);
+	  SimpleWorkGroup<Vehicle> vehicleWorkers(WG_VEHICLES_SIZE, 1);
 
 	  //Create object from DB; for long time spans objects must be created on demand.
 	  Worker<TripChain>::actionFunction func1 = boost::bind(load_trip_chain, _1, _2);

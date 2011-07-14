@@ -19,15 +19,9 @@ public:
 	}
 
 	/**
-	 * Update function. This will be called each time tick (at the entity type's granularity; see
-	 * simpleconf.hpp for more information), and will update the entity's state. During this phase,
-	 * the entity may call any Buffered data type's "get" method, but may only "set" its own
-	 * Buffered data. Flip is called after each update phase.
-	 */
-	virtual void update(frame_t frameNumber) = 0;
-
-	/**
 	 * Returns a list of pointers to each Buffered<> type that this entity managed.
+	 * Entity sub-classes should override buildSubscriptionList() to help with
+	 * this process.
 	 */
 	std::vector<sim_mob::BufferedBase*>& getSubscriptionList()
 	{
@@ -40,16 +34,27 @@ public:
 	}
 
 	/**
-	 * Build the list of Buffered<> types this entity subscribes to. Used by sub-classes
+	 * Update function. This will be called each time tick (at the entity type's granularity; see
+	 * simpleconf.hpp for more information), and will update the entity's state. During this phase,
+	 * the entity may call any Buffered data type's "get" method, but may only "set" its own
+	 * Buffered data. Flip is called after each update phase.
+	 */
+	virtual void update(frame_t frameNumber) = 0;
+
+
+protected:
+	/**
+	 * Build the list of Buffered<> types this entity subscribes to. Any subclass of
+	 * Entity should override this method. The first thing to do is call the immediate base
+	 * class's buildSubscriptionList() method, which will construct the subscription list up to
+	 * this point. Then, any Buffered types in the current class should be added to subscriptionList_cached.
 	 */
 	virtual void buildSubscriptionList() = 0;
+	std::vector<sim_mob::BufferedBase*> subscriptionList_cached;
 
 private:
 	unsigned int id;
 	bool isSubscriptionListBuilt;
-
-protected:
-	std::vector<sim_mob::BufferedBase*> subscriptionList_cached;
 
 //Trivial accessors/mutators. Header-implemented
 public:

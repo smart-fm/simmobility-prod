@@ -28,11 +28,8 @@ namespace sim_mob
  */
 class Point2D {
 public:
-
-
-protected:
-	int xPos;
-	int yPos;
+	double xPos;
+	double yPos;
 
 
 

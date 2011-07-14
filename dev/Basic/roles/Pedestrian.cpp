@@ -146,8 +146,10 @@ void sim_mob::Pedestrian::setGoal()
 	//goal.yPos = topLeftCrossing.yPos + double(rand()%5) + 1;;
 
 	//Give every agent the same goal.
-	goal.xPos = 1100;
-	goal.yPos = 200;
+	//goal.xPos = 1100;
+	goal.xPos = ConfigParams::GetInstance().boundaries["topright"].xPos + 100;
+	//goal.yPos = 200;
+	goal.yPos = ConfigParams::GetInstance().boundaries["topright"].yPos / 2;
 }
 
 bool sim_mob::Pedestrian::isGoalReached()
@@ -215,9 +217,10 @@ void sim_mob::Pedestrian::updatePedestrianSignal()
 
 bool sim_mob::Pedestrian::reachStartOfCrossing()
 {
+	int lowerRightCrossingY = ConfigParams::GetInstance().crossings["lowerright"].yPos;
 
-	if(parent->yPos.get()<=parent->lowerRightCrossing.yPos){
-		double dist = parent->lowerRightCrossing.yPos - parent->yPos.get();
+	if(parent->yPos.get()<=lowerRightCrossingY){
+		double dist = lowerRightCrossingY - parent->yPos.get();
 		if(dist<speed*1)
 			return true;
 		else

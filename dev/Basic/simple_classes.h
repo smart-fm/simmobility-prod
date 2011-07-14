@@ -11,7 +11,8 @@
 
 
 //Class stubs
-struct TripChain {
+class TripChain {
+public:
 	unsigned int id;
 	TripChain(unsigned int id=0) : id(id) {}
 
@@ -19,7 +20,8 @@ struct TripChain {
 	std::vector<sim_mob::BufferedBase*> tmp_list;
 	std::vector<sim_mob::BufferedBase*>& getSubscriptionList() { return tmp_list; }
 };
-struct ChoiceSet {
+class ChoiceSet {
+public:
 	unsigned int id;
 	ChoiceSet(unsigned int id=0) : id(id) {}
 
@@ -27,7 +29,8 @@ struct ChoiceSet {
 	std::vector<sim_mob::BufferedBase*> tmp_list;
 	std::vector<sim_mob::BufferedBase*>& getSubscriptionList() { return tmp_list; }
 };
-struct Vehicle {
+class Vehicle {
+public:
 	unsigned int id;
 	Vehicle(unsigned int id=0) : id(id) {}
 
@@ -38,12 +41,12 @@ struct Vehicle {
 
 
 //Temp config file classes
-struct Point {
+/*struct Point {
 //	unsigned int xPos;
 //	unsigned int yPos;
 	double xPos;
 	double yPos;
-};
+};*/
 
 
 

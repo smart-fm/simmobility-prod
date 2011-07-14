@@ -1,5 +1,11 @@
 #include "simpleconf.hpp"
 
+//Include here (forward-declared earlier) to avoid include-cycles.
+#include "../entities/Agent.hpp"
+#include "../entities/Person.hpp"
+#include "../entities/Region.hpp"
+#include "../roles/Pedestrian.hpp"
+
 using std::map;
 using std::string;
 
@@ -128,7 +134,7 @@ bool loadXMLPedestrians(xmlXPathContext* xpContext, std::vector<Agent*>& agents)
 
 
 
-bool loadXMLBoundariesCrossings(xmlXPathContext* xpContext, const string& expression, map<string, Point>& result)
+bool loadXMLBoundariesCrossings(xmlXPathContext* xpContext, const string& expression, map<string, Point2D>& result)
 {
 	xmlXPathObject* xpObject = xmlXPathEvalExpression((xmlChar*)expression.c_str(), xpContext);
 	if (xpObject==NULL) {
@@ -140,7 +146,7 @@ bool loadXMLBoundariesCrossings(xmlXPathContext* xpContext, const string& expres
 	for (xmlNode** it=xpObject->nodesetval->nodeTab; *it!=NULL; it++) {
 		xmlNode* curr = *it;
 		string key;
-		Point val;
+		Point2D val;
 		unsigned int flagCheck = 0;
 		for (xmlAttr* attrs=curr->properties; attrs!=NULL; attrs=attrs->next) {
 			//Read each attribute.
@@ -264,20 +270,6 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vecto
     	return "Couldn't load crossings";
     }
 
-    //TEMP fix: save boundaries and crossing in agents
-	//ConfigParams& config = ConfigParams::GetInstance();
-    Point topLeft = ConfigParams::GetInstance().boundaries["topleft"];
-    Point lowerRight = ConfigParams::GetInstance().boundaries["bottomright"];
-    Point topLeftC = ConfigParams::GetInstance().crossings["topleft"];
-    Point lowerRightC = ConfigParams::GetInstance().crossings["bottomright"];
-    for (size_t i=0; i<agents.size(); i++) {
-    	agents[i]->topLeft = topLeft;
-    	agents[i]->lowerRight = lowerRight;
-    	agents[i]->topLeftCrossing = topLeftC;
-    	agents[i]->lowerRightCrossing = lowerRightC;
-    }
-
-
     //Save
     {
     	ConfigParams& config = ConfigParams::GetInstance();
@@ -301,11 +293,11 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vecto
     std::cout <<"  Paths Granularity: " <<ConfigParams::GetInstance().granPathsTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Decomp Granularity: " <<ConfigParams::GetInstance().granDecompTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Boundaries Found: " <<ConfigParams::GetInstance().boundaries.size() <<"\n";
-    for (map<string, Point>::iterator it=ConfigParams::GetInstance().boundaries.begin(); it!=ConfigParams::GetInstance().boundaries.end(); it++) {
+    for (map<string, Point2D>::iterator it=ConfigParams::GetInstance().boundaries.begin(); it!=ConfigParams::GetInstance().boundaries.end(); it++) {
     	std::cout <<"    Boundary[" <<it->first <<"] = (" <<it->second.xPos <<"," <<it->second.yPos <<")\n";
     }
     std::cout <<"  Crossings Found: " <<ConfigParams::GetInstance().crossings.size() <<"\n";
-    for (map<string, Point>::iterator it=ConfigParams::GetInstance().crossings.begin(); it!=ConfigParams::GetInstance().crossings.end(); it++) {
+    for (map<string, Point2D>::iterator it=ConfigParams::GetInstance().crossings.begin(); it!=ConfigParams::GetInstance().crossings.end(); it++) {
     	std::cout <<"    Crossing[" <<it->first <<"] = (" <<it->second.xPos <<"," <<it->second.yPos <<")\n";
     }
     std::cout <<"  Agents Initialized: " <<agents.size() <<"\n";
@@ -341,9 +333,9 @@ ConfigParams& sim_mob::ConfigParams::GetInstance() {
 // Main external method
 //////////////////////////////////////////
 
-bool sim_mob::ConfigParams::InitUserConf(std::vector<Agent*>& agents, std::vector<Region>& regions,
-		          std::vector<TripChain>& trips, std::vector<ChoiceSet>& chSets,
-		          std::vector<Vehicle>& vehicles)
+bool sim_mob::ConfigParams::InitUserConf(std::vector<Agent*>& agents, std::vector<Region*>& regions,
+		          std::vector<TripChain*>& trips, std::vector<ChoiceSet*>& chSets,
+		          std::vector<Vehicle*>& vehicles)
 {
 	//Data
 	xmlDoc* document = NULL;
@@ -370,13 +362,13 @@ bool sim_mob::ConfigParams::InitUserConf(std::vector<Agent*>& agents, std::vecto
 
 	//TEMP:
 	for (size_t i=0; i<5; i++)
-		regions.push_back(Region(i));
+		regions.push_back(new Region(i));
 	for (size_t i=0; i<6; i++)
-		trips.push_back(TripChain(i));
+		trips.push_back(new TripChain(i));
 	for (size_t i=0; i<15; i++)
-		chSets.push_back(ChoiceSet(i));
+		chSets.push_back(new ChoiceSet(i));
 	for (size_t i=0; i<10; i++)
-		vehicles.push_back(Vehicle(i));
+		vehicles.push_back(new Vehicle(i));
 	std::cout <<"Configuration complete." <<std::endl;
 
 

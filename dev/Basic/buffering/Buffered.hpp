@@ -12,19 +12,27 @@ namespace sim_mob
 /**
  * Templatized wrapper for buffered objects.
  *
- * A Buffered data-type can handle multiple readers and a single writer without
+ * A Buffered datum handle multiple readers and a single writer without
  * locking. The "flip" method is used to update the current value after calling "set".
  *
  * The spoken semantics of this template are sensible; for example:
  *   Buffered<int>
  * ...is a "Buffered int".
  *
- * Based on the file "testing/data/data.hpp"
+ *  \todo Currently, Buffered types don't work well with classes. For example, if
+ *  we have a "Buffered<Point2D> pos", then calling "pos.get().xPos = 10" will
+ *  not work. You need to do something like "Point2D newPos(10, 20); pos.set(newPos)", which
+ *  is pretty arbitrary and counter-intuitive. One option is to make a BufferedPoint2D class
+ *  which extends BufferedBase, and give it "setXPos()" and "setYPos()" methods.
  *
- * \note I removed most virtual functions; trying to make this class as simple as possible.
- *       Re-enable features as you need them.
- *  \par
- *  ~Seth
+ *   \par
+ *   However, I think there must be a better way to do this without sacraficing the Buffered class's
+ *   nice template syntax. This will only really become an issue later, when we release the API, so
+ *   I'd rather think about a good solution for a while, instead of creating tons of customized BufferedXYZ
+ *   pseudo-wrappers.
+ *
+ *   \par
+ *   ~Seth
  */
 template <typename T>
 class Buffered : public BufferedBase
@@ -32,13 +40,11 @@ class Buffered : public BufferedBase
 public:
 	/**
 	 * Create a new Buffered data type.
-	 * @param mgr The data manager which will call "flip". Can be NULL.
-	 * @param value The initial value. You can also set an initial value using "force"
+	 *
+	 * @param value The initial value. You can also set an initial value using "force".
 	 */
-	Buffered (/*BufferedDataManager* mgr, */const T& value = T());
-	virtual ~Buffered();
-
-	//virtual Buffered& operator=(const Buffered& rhs);
+	Buffered (const T& value = T()) : BufferedBase(), current_ (value), next_ (value) {}
+	virtual ~Buffered() {}
 
 
 	/**
@@ -96,33 +102,20 @@ protected:
 
     T current_;
     T next_;
+
+
+    //
+    // Note: I'm removing this; we don't gain much by checking if the value has
+    //       changed, and the BufferedDataManager will flip all elements anyway.
+    //       If we had Buffered<SomeBigClass>, and SomeBigClass was very expensive to
+    //       copy, then it might be useful, but currently classes are troublesome as
+    //       buffered types. So, I'm leaving this out until it's actually needed.
+    // ~Seth
+    //
+    //bool is_dirty_;
 };
 
 }
-
-
-template <typename T>
-sim_mob::Buffered<T>::Buffered (/*BufferedDataManager* mgr, */const T& value) :
-    BufferedBase(/*mgr*/),
-    current_ (value), next_ (value)
-{
-}
-
-template <typename T>
-sim_mob::Buffered<T>::~Buffered ()
-{
-}
-
-/*template <typename T>
-sim_mob::Buffered<T>& sim_mob::Buffered<T>::operator=(const sim_mob::Buffered<T>& rhs)
-{
-	BufferedBase::operator =(rhs);
-	this->current_ = rhs.current_;
-	this->next_ = rhs.next_;
-
-	return *this;
-}*/
-
 
 template <typename T>
 const T& sim_mob::Buffered<T>::get() const
@@ -134,7 +127,7 @@ const T& sim_mob::Buffered<T>::get() const
 template <typename T>
 void sim_mob::Buffered<T>::set (const T& value)
 {
-    next_ = value;
+	next_ = value;
 }
 
 
@@ -150,10 +143,14 @@ void sim_mob::Buffered<T>::force (const T& value)
 template <typename T>
 void sim_mob::Buffered<T>::flip()
 {
-    current_ = next_;
+	current_ = next_;
 }
 
-template <typename T>
+
+//
+//May be needed later for debugging. For now, just cout <<datum.get()
+//
+/*template <typename T>
 std::ostream & operator<< (std::ostream & stream, sim_mob::Buffered<T> const & data)
 {
     stream << data.get();
@@ -161,7 +158,7 @@ std::ostream & operator<< (std::ostream & stream, sim_mob::Buffered<T> const & d
     	stream <<"(" <<data.next_ <<")";
     }
     return stream;
-}
+}*/
 
 
 

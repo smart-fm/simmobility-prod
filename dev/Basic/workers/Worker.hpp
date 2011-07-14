@@ -131,7 +131,7 @@ sim_mob::Worker<EntityType>::Worker(actionFunction* action, boost::barrier* inte
       endTick(endTick),
       active(/*this, */false)  //Passing the "this" pointer is probably ok, since we only use the base class (which is constructed)
 {
-	this->add(&active);
+	this->beginManaging(&active);
 }
 
 template <class EntityType>
@@ -144,7 +144,7 @@ sim_mob::Worker<EntityType>::~Worker()
 
 	//Clear all tracked data
 	while (!managedData.empty()) {
-		rem(managedData[0]);
+		stopManaging(managedData[0]);
 	}
 }
 

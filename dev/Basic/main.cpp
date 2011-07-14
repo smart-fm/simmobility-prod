@@ -26,6 +26,7 @@ using std::endl;
 using std::vector;
 using boost::thread;
 
+
 using namespace sim_mob;
 
 
@@ -42,8 +43,8 @@ bool trivial(unsigned int id) {
 /**
  * First "loading" step is special. Initialize all agents using work groups in parallel.
  */
-void InitializeAll(vector<Agent*>& agents, vector<Region>& regions, vector<TripChain>& trips,
-		      vector<ChoiceSet>& choiceSets, vector<Vehicle>& vehicles);
+void InitializeAll(vector<Agent*>& agents, vector<Region*>& regions, vector<TripChain*>& trips,
+		      vector<ChoiceSet*>& choiceSets, vector<Vehicle*>& vehicles);
 
 
 
@@ -86,10 +87,10 @@ bool performMain()
 {
   //Initialization: Scenario definition
   vector<Agent*>& agents = Agent::all_agents;
-  vector<Region> regions;
-  vector<TripChain> trips;
-  vector<ChoiceSet> choiceSets;
-  vector<Vehicle> vehicles;
+  vector<Region*> regions;
+  vector<TripChain*> trips;
+  vector<ChoiceSet*> choiceSets;
+  vector<Vehicle*> vehicles;
 
   //Load our user config file; save a handle to the shared definition of it.
   if (!ConfigParams::InitUserConf(agents, regions, trips, choiceSets, vehicles)) {   //Note: Agent "shells" are loaded here.
@@ -137,7 +138,7 @@ bool performMain()
   Worker<sim_mob::Entity>::actionFunction spWork = boost::bind(signal_status_worker, _1, _2);
   signalStatusWorkers.initWorkers(&spWork);
   for (size_t i=0; i<regions.size(); i++) {
-	  signalStatusWorkers.migrate(&regions[i], -1, i%WG_SIGNALS_SIZE);
+	  signalStatusWorkers.migrate(regions[i], -1, i%WG_SIGNALS_SIZE);
   }
 
   //Initialize our shortest path work groups
@@ -230,8 +231,8 @@ int main(int argc, char* argv[])
 /**
  * Parallel initialization step.
  */
-void InitializeAll(vector<Agent*>& agents, vector<Region>& regions, vector<TripChain>& trips,
-	      vector<ChoiceSet>& choiceSets, vector<Vehicle>& vehicles)
+void InitializeAll(vector<Agent*>& agents, vector<Region*>& regions, vector<TripChain*>& trips,
+	      vector<ChoiceSet*>& choiceSets, vector<Vehicle*>& vehicles)
 {
 	  //Our work groups. Will be disposed after this time tick.
 	  WorkGroup<TripChain> tripChainWorkers(WG_TRIPCHAINS_SIZE, 1);
@@ -243,7 +244,7 @@ void InitializeAll(vector<Agent*>& agents, vector<Region>& regions, vector<TripC
 	  Worker<TripChain>::actionFunction func1 = boost::bind(load_trip_chain, _1, _2);
 	  tripChainWorkers.initWorkers(&func1);
 	  for (size_t i=0; i<trips.size(); i++) {
-		  tripChainWorkers.migrate(&trips[i], -1, i%WG_TRIPCHAINS_SIZE);
+		  tripChainWorkers.migrate(trips[i], -1, i%WG_TRIPCHAINS_SIZE);
 	  }
 
 	  //Agents, choice sets, and vehicles
@@ -255,12 +256,12 @@ void InitializeAll(vector<Agent*>& agents, vector<Region>& regions, vector<TripC
 	  Worker<ChoiceSet>::actionFunction func3 = boost::bind(load_choice_sets, _1, _2);
 	  choiceSetWorkers.initWorkers(&func3);
 	  for (size_t i=0; i<choiceSets.size(); i++) {
-		  choiceSetWorkers.migrate(&choiceSets[i], -1, i%WG_CHOICESET_SIZE);
+		  choiceSetWorkers.migrate(choiceSets[i], -1, i%WG_CHOICESET_SIZE);
 	  }
 	  Worker<Vehicle>::actionFunction func4 = boost::bind(load_vehicles, _1, _2);
 	  vehicleWorkers.initWorkers(&func4);
 	  for (size_t i=0; i<vehicles.size(); i++) {
-		  vehicleWorkers.migrate(&vehicles[i], -1, i%WG_VEHICLES_SIZE);
+		  vehicleWorkers.migrate(vehicles[i], -1, i%WG_VEHICLES_SIZE);
 	  }
 
 	  //Start

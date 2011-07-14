@@ -126,7 +126,7 @@ namespace
     {
     public:
         BufferedColor(enum Color color)
-          : Buffered<Color>(color)
+          : sim_mob::Buffered<Color>(color)
         {
         }
     };

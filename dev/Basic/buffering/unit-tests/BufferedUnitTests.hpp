@@ -94,6 +94,48 @@ public:
      */
     void test_flipping_single_change_to_Buffered_enum();
 
+    /**
+     * Tests the BufferedDataManager flipping all of its managed data.
+     *
+     * This test confirms that the BufferedDataManager will flip all Buffered<T> objects
+     * that it is managing, even if some of the objects have not changed their values.
+     */
+    void test_BufferedDataManager_with_several_Buffered_T_objects();
+
+    /**
+     * Tests the migration of Buffered<T> objects from one BufferedDataManager to another manager.
+     *
+     * This test confirms that beginManaging() and stopManaging() work correctly.
+     */
+    void test_migrating_to_another_BufferedDataManager();
+
+    /**
+     * Tests an Agent class with Buffered<T> objects that are managed by a BufferedDataManager.
+     *
+     * This test confirms that an Agent can own several Buffered<T> objects and delegates the
+     * task of flipping its Buffered<T> objects to a BufferedDataManager.  The agent changes
+     * the values of its Buffered<T> objects in its update() method and the BufferedDataManager's
+     * flip() method is called after each call to update().  This test calls update() and flip()
+     * twice.
+     */
+    void test_Agent_with_Buffered_T_objects();
+
+    /**
+     * Tests that a Buffered_T object must not be managed by any BufferedDataManager when it dies.
+     *
+     * This test confirms that a Buffered_T object must not be managed by any BufferedDataManager
+     * when its destructor is called.
+     */
+    void test_Buffered_T_reference_count();
+
+    /**
+     * Tests BufferedDataManager::stopManaging() works correctly.
+     *
+     * This test confirms that BufferedDataManager::stopManaging() works even if the argument
+     * is a Buffered<T> object that it is not managing.
+     */
+    void test_BufferedDataManager_stopManaging();
+
 private:
     CPPUNIT_TEST_SUITE(BufferedUnitTests);
         CPPUNIT_TEST(test_default_Buffered_uint32_constructor);
@@ -105,6 +147,11 @@ private:
         CPPUNIT_TEST(test_flipping_after_multiple_changes);
         CPPUNIT_TEST(test_multiple_changes_back_to_original_value);
         CPPUNIT_TEST(test_flipping_single_change_to_Buffered_enum);
+        CPPUNIT_TEST(test_BufferedDataManager_with_several_Buffered_T_objects);
+        CPPUNIT_TEST(test_migrating_to_another_BufferedDataManager);
+        CPPUNIT_TEST(test_Agent_with_Buffered_T_objects);
+        CPPUNIT_TEST(test_Buffered_T_reference_count);
+        CPPUNIT_TEST(test_BufferedDataManager_stopManaging);
     CPPUNIT_TEST_SUITE_END();
 };
 

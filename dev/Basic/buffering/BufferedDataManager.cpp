@@ -12,21 +12,26 @@ boost::mutex sim_mob::BufferedBase::global_mutex;
 
 void sim_mob::BufferedDataManager::beginManaging(BufferedBase* datum)
 {
-	managedData.push_back(datum);
+	//Only add if we're not managing it already.
+	std::vector<BufferedBase*>::iterator it = std::find(managedData.begin(), managedData.end(), datum);
+	if (it==managedData.end()) {
+		managedData.push_back(datum);
 
-	//Helps with debugging.
-	datum->refCount++;
+		//Helps with debugging.
+		datum->refCount++;
+	}
 }
 
 void sim_mob::BufferedDataManager::stopManaging(BufferedBase* datum)
 {
+	//Only remove if we are actually managing it.
 	std::vector<BufferedBase*>::iterator it = std::find(managedData.begin(), managedData.end(), datum);
 	if (it!=managedData.end()) {
 		managedData.erase(it);
-	}
 
-	//Helps with debugging.
-	datum->refCount--;
+		//Helps with debugging.
+		datum->refCount--;
+	}
 }
 
 void sim_mob::BufferedDataManager::flip()

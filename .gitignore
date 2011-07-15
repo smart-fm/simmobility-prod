@@ -2,3 +2,10 @@
 dev/Basic/Debug/
 dev/Basic/Release/
 dev/Basic/doxy/output/
+
+#Ignore object files
+*.o
+
+#Ignore gedit backup files
+*~
+

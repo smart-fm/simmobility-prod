@@ -5,6 +5,7 @@
 #include "../entities/Person.hpp"
 #include "../entities/Region.hpp"
 #include "../roles/Pedestrian.hpp"
+#include "../roles/Driver.hpp"
 
 using std::map;
 using std::string;
@@ -126,6 +127,60 @@ bool loadXMLPedestrians(xmlXPathContext* xpContext, std::vector<Agent*>& agents)
 	}
 
 
+
+
+	xmlXPathFreeObject(xpObject);
+	return true;
+}
+
+bool loadXMLDrivers(xmlXPathContext* xpContext, std::vector<Agent*>& agents)
+{
+	std::string expression = "/config/drivers/driver";
+	xmlXPathObject* xpObject = xmlXPathEvalExpression((xmlChar*)expression.c_str(), xpContext);
+	if (xpObject==nullptr) {
+		return false;
+	}
+
+	//Move through results
+	agents.clear();
+	for (int i = 0; i < xpObject->nodesetval->nodeNr; ++i) {
+		xmlNode* curr = xpObject->nodesetval->nodeTab[i];
+		Person* agent = nullptr;
+		unsigned int flagCheck = 0;
+		for (xmlAttr* attrs=curr->properties; attrs!=nullptr; attrs=attrs->next) {
+			//Read each attribute.
+			std::string name = (char*)attrs->name;
+			std::string value = (char*)attrs->children->content;
+			if (name.empty() || value.empty()) {
+				return false;
+			}
+			int valueI;
+			std::istringstream(value) >> valueI;
+
+			//Assign it.
+			if (name=="id") {
+				agent = new Person(valueI);
+				agent->changeRole(new Driver(agent));
+				flagCheck |= 1;
+			} else if (name=="xPos") {
+				agent->xPos.force(valueI);
+				flagCheck |= 2;
+			} else if (name=="yPos") {
+				agent->yPos.force(valueI);
+				flagCheck |= 4;
+			} else {
+				return false;
+			}
+		}
+
+		if (flagCheck!=7) {
+			return false;
+		}
+
+
+		//Save it.
+		agents.push_back(agent);
+	}
 
 
 	xmlXPathFreeObject(xpObject);
@@ -256,9 +311,15 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vecto
     }
 
     //Load agents
-    if (!loadXMLPedestrians(xpContext, agents)) {
-    	return "Couldn't load agents";
+    //if (!loadXMLPedestrians(xpContext, agents)) {
+    //	return "Couldn't load agents";
+    //}
+
+
+    if (!loadXMLDrivers(xpContext, agents)) {
+   	return	 "Couldn't load agents";
     }
+
 
     //Load boundaries
     if (!loadXMLBoundariesCrossings(xpContext, "/config/boundaries/boundary", ConfigParams::GetInstance().boundaries)) {
@@ -375,4 +436,3 @@ bool sim_mob::ConfigParams::InitUserConf(std::vector<Agent*>& agents, std::vecto
 	return errorMsg.empty();
 
 }
-

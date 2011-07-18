@@ -170,9 +170,9 @@ bool performMain()
   for (unsigned int currTick=0; currTick<config.totalRuntimeTicks; currTick++) {
 	  //Output
 	  {
-		boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-	    cout <<"Tick " <<currTick <<", " <<(currTick*config.baseGranMS) <<" ms" <<endl;
-	    cout <<"  NOTE: Ticks provide only a rough guideline when using cout; do not expect all agents to finish exactly when this tick is displayed." <<endl;
+		//boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
+	    //cout <<"Tick " <<currTick <<", " <<(currTick*config.baseGranMS) <<" ms" <<endl;
+	    //cout <<"  NOTE: Ticks provide only a rough guideline when using cout; do not expect all agents to finish exactly when this tick is displayed." <<endl;
 	  }
 
 	  //Update the signal logic and plans for every intersection grouped by region
@@ -203,8 +203,8 @@ bool performMain()
 		  saveStatistics(agents);
 	  } else {
 		  {
-			boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-		    cout <<"  " <<"(Warmup, output ignored)" <<endl;
+			//boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
+		    //cout <<"  " <<"(Warmup, output ignored)" <<endl;
 		  }
 	  }
 

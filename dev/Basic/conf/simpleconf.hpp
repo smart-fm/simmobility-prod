@@ -20,6 +20,7 @@ namespace sim_mob
 class Agent;
 class Person;
 class Pedestrian;
+class Driver;
 class Region;
 
 //Doesn't work for some reason.

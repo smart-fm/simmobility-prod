@@ -424,7 +424,7 @@ Agent* sim_mob::Driver::getNextForBDriver(bool isLeft,bool isFront)
 	}
 }
 
-int sim_mob::Driver::gapAcceptance()
+unsigned int sim_mob::Driver::gapAcceptance()
 {
 	int border[2]={0,2};				//[0] for left, [1] for right
 	LF=getNextForBDriver(true,true);
@@ -476,13 +476,13 @@ int sim_mob::Driver::gapAcceptance()
 	bool canR = (flagF[1]&&flagB[1]);
 
 	if(canL && canR) {
-		return 2;
+		return LSIDE_LEFT | LSIDE_RIGHT;
 	}
 	if(canL && !canR) {
-		return -1;
+		return LSIDE_LEFT;
 	}
 	if(!canL && canR) {
-		return 1;
+		return LSIDE_RIGHT;
 	}
 
 	return 0;
@@ -491,7 +491,10 @@ int sim_mob::Driver::gapAcceptance()
 double sim_mob::Driver::makeLaneChangingDecision()
 {
 	// for available gaps(including current gap between leading vehicle and itself), vehicle will choose the longest
-	int i=gapAcceptance();
+	unsigned int freeLanes = gapAcceptance();
+	bool freeLeft = (freeLanes&LSIDE_LEFT);
+	bool freeRight = (freeLanes&LSIDE_RIGHT);
+
 	//bool left,right;
 	double s=getDistance();
 	double sl,sr;
@@ -522,13 +525,13 @@ double sim_mob::Driver::makeLaneChangingDecision()
 		left=false;
 	}*/
 
-	if(i==1 && right) {
+	if(freeRight && !freeLeft && right) {
 		return 1;
 	}
-	if(i==-1 && left) {
+	if(freeLeft && !freeRight && left) {
 		return -1;
 	}
-	if(i==2){
+	if(freeLeft && freeRight){
 		if(right && left){
 			if(sr>sl) {
 				return 1;

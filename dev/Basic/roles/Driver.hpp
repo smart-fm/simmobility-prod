@@ -7,6 +7,10 @@
 namespace sim_mob
 {
 
+enum LANE_SIDE {
+	LSIDE_LEFT = 1,
+	LSIDE_RIGHT = 2
+};
 
 
 /**
@@ -143,8 +147,8 @@ private:
 	int toLane;				//during lane changing, the lane the vehicle approaches
 public:
 	Agent* getNextForBDriver(bool isLeft,bool isFront);	//for updating LF LB RF RB
-	int gapAcceptance();				//check if the gap of the left lane and the right lane is available
-										//return 2 for both, 1 for right, -1 for right, 0 for neither
+	unsigned int gapAcceptance();			//check if the gap of the left lane and the right lane is available
+											//returns a bitflag of the LANE_SIDE enum
 	double makeLaneChangingDecision();		//to decide which lane to move, the returns are same as above
 	void excuteLaneChanging();			//to execute the lane changing, meanwhile, check if crash will happen and avoid it
 	bool checkForCrash();				//to check if the crash may happen

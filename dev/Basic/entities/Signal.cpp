@@ -44,10 +44,11 @@ void sim_mob :: Signal :: startSplitPlan()
 {
 	//CurrSplitPlan
 	currSplitPlanID=1;
-	for(int i = 0; i < 4; i++)
-	{
-		currSplitPlan[i] = SplitPlan1[i];
-	}
+	/*for(int i = 0; i < 4; i++) {
+		currSplitPlan.push_back(SplitPlan1[i]);
+	}*/
+	currSplitPlan.assign(SplitPlan1, SplitPlan1+4);  //This does the same thing as the for loop
+	nextSplitPlan.assign(4, 0); //Initialize to the number 0, four times.
 
 	//initialize votes for choosing SplitPlan
 	vote1 = 0;

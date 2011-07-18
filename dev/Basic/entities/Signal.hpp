@@ -96,7 +96,9 @@ private:
 	static const double SplitPlan1[], SplitPlan2[], SplitPlan3[], SplitPlan4[], SplitPlan5[];
 
 	//current and next SplitPlan
-	double currSplitPlan[4],nextSplitPlan[4];
+	std::vector<double>currSplitPlan;
+	std::vector<double>nextSplitPlan;
+	//double currSplitPlan[4],nextSplitPlan[4];
 
 
 	int currSplitPlanID,nextSplitPlanID;

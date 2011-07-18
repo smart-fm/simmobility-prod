@@ -5,9 +5,6 @@
  *      Author: xrm
  */
 
-#ifndef SIGNAL_HPP_
-#define SIGNAL_HPP_
-
 #pragma once
 
 #include <vector>
@@ -115,4 +112,4 @@ private:
 }
 
 
-#endif /* SIGNAL_HPP_ */
+

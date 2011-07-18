@@ -81,9 +81,9 @@ public:
 	double getnextOffset() {return nextOffset;}
 
 
-	double fmax(double proDS[]);
-	int fmin_ID(double maxproDS[]);
-	int calvote(int vote1, int vote2, int vote3, int vote4, int vote5);
+	static double fmax(const double proDS[]);
+	static int fmin_ID(const double maxproDS[]);
+	static int calvote(int vote1, int vote2, int vote3, int vote4, int vote5);
 
 private:
 	//previous,current and next cycle length

@@ -268,7 +268,7 @@ void sim_mob :: Signal :: updateOffset(){
 
 
 //find the max projected DS in each SplitPlan
-double sim_mob :: Signal :: fmax(double proDS[])
+double sim_mob :: Signal :: fmax(const double proDS[])
 {
 	double max;
 	max = proDS[0];
@@ -282,7 +282,7 @@ double sim_mob :: Signal :: fmax(double proDS[])
 
 
 //find the minimum among the max projected DS
-int sim_mob :: Signal :: fmin_ID(double maxproDS[])
+int sim_mob :: Signal :: fmin_ID(const double maxproDS[])
 {
 	int min;
 	min=1;

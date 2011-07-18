@@ -12,13 +12,16 @@ using namespace sim_mob;
 
 double DS_all;
 
-//parameters for calculating next cycle length
-double DSmax = 0.9, DSmed = 0.5, DSmin = 0.3;
-double CLmax = 140, CLmed = 100, CLmin = 60;
+//Private namespace
+namespace {
+	//parameters for calculating next cycle length
+	const double  DSmax = 0.9, DSmed = 0.5, DSmin = 0.3;
+	const double CLmax = 140, CLmed = 100, CLmin = 60;
 
-//parameters for calculating next Offset
-double CL_low = 70, CL_up = 120;
-double Off_low = 5, Off_up = 26;
+	//parameters for calculating next Offset
+	const double CL_low = 70, CL_up = 120;
+	const double Off_low = 5, Off_up = 26;
+}
 
 
 const double sim_mob::Signal::SplitPlan1[] = {0.30, 0.30, 0.20, 0.20};
@@ -39,13 +42,7 @@ sim_mob :: Signal :: Signal(unsigned int id) : sim_mob::Entity(id)
 //initialize SplitPlan
 void sim_mob :: Signal :: startSplitPlan()
 {
-	//SplitPlans
-//	SplitPlan1 = {0.30, 0.30, 0.20, 0.20};
-//	SplitPlan2 = {0.20, 0.35, 0.20, 0.25};
-//	SplitPlan3 = {0.35, 0.35, 0.20, 0.10};
-//	SplitPlan4 = {0.35, 0.30, 0.10, 0.25};
-//	SplitPlan5 = {0.20, 0.35, 0.25, 0.20};
-
+	//CurrSplitPlan
 	currSplitPlanID=1;
 	for(int i = 0; i < 4; i++)
 	{

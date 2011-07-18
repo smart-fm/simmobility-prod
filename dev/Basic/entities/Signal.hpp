@@ -80,6 +80,10 @@ public:
 	double getcurrOffset() {return currOffset;}
 	double getnextOffset() {return nextOffset;}
 
+	//Abstract methods. You will have to implement these eventually.
+	virtual void update(frame_t frameNumber) = 0;
+	virtual void buildSubscriptionList() = 0;
+
 
 	static double fmax(const double proDS[]);
 	static int fmin_ID(const double maxproDS[]);

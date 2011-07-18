@@ -29,7 +29,7 @@ const double sim_mob::Signal::SplitPlan5[] = {0.20, 0.35, 0.25, 0.20};
 
 
 
-sim_mob :: Signal :: Signal()
+sim_mob :: Signal :: Signal(unsigned int id) : sim_mob::Entity(id)
 {
 	setCL(60,60,60);//default initial cycle length for SCATS
 	setRL(60,60);//default initial RL for SCATS

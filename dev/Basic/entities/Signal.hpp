@@ -34,12 +34,12 @@ namespace sim_mob
  *  updated and every agent should be able to get its information.
  *
  */
-class Signal {
+class Signal : public Entity {
 
 
 
 public:
-	Signal();
+	Signal(unsigned int id);
 
 	//DS:degree of saturation
 	void updateSignal(double DS[4]);

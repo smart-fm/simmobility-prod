@@ -9,12 +9,15 @@
 #include "Driver.hpp"
 
 using namespace sim_mob;
+using std::numeric_limits;
 
 
 
 //Some static properties require initialization in the CPP file. ~Seth
 const double sim_mob::Driver::maxLaneSpeed[] = {120,140,180};
 const double sim_mob::Driver::lane[] = {300,320,340};
+const double sim_mob::Driver::MAX_NUM = numeric_limits<double>::max();
+const double sim_mob::Driver::laneWidth = 20;
 
 
 //initiate
@@ -321,8 +324,15 @@ Agent* sim_mob::Driver::getNextForBDriver(bool isLeft,bool isFront)
 {
 	int border;
 	double offset;
-	if(isLeft){border=0;offset=laneWidth;}
-	else{border=2;offset=-laneWidth;}
+
+	if(isLeft) {
+		border = 0;
+		offset = Driver::laneWidth;
+	} else{
+		border = 2;
+		offset = -Driver::laneWidth;
+	}
+
 	double NFBDistance;
 	if(isFront)NFBDistance=MAX_NUM;
 	else NFBDistance=-MAX_NUM;

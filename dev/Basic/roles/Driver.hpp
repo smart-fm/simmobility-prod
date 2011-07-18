@@ -1,5 +1,7 @@
 #pragma once
 
+#include <limits>
+
 #include "Role.hpp"
 
 namespace sim_mob
@@ -49,14 +51,14 @@ private:
 	//Something I have to define
 	static const double maxLaneSpeed[];
 	static const double FLT_EPSILON			=	0.0001;		//the smallest double
-	static const double MAX_NUM				=	30000;			//regard as infinity
-	static const double hBufferUpper			=	1;				//upper threshold of headway
-	static const double hBufferLower			=	0.5;			//lower threshold of headway
+	static const double MAX_NUM;							//regard as infinity
+	static const double hBufferUpper			=	1;		//upper threshold of headway
+	static const double hBufferLower			=	0.5;	//lower threshold of headway
 
 	//Parameters represent the location of the vehicle on the road
 	//Since the classes of the network haven't be finished, I will use simple type of parameters instead to represent the networks.
 	static const double lane[];	//the y position of 3 lanes
-	static const double laneWidth				=	20;
+	static const double laneWidth;
 	static const double VelOfLaneChanging		=	4;				//assume that each car use the same speed to move in y direction to change lane
 
 

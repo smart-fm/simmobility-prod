@@ -10,6 +10,13 @@
 
 using namespace sim_mob;
 
+
+
+//Some static properties require initialization in the CPP file. ~Seth
+const double sim_mob::Driver::maxLaneSpeed[] = {120,140,180};
+const double sim_mob::Driver::lane[] = {300,320,340};
+
+
 //initiate
 sim_mob::Driver::Driver(Agent* parent) : Role(parent)
 {

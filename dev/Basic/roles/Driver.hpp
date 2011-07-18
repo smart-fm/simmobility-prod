@@ -5,38 +5,14 @@
 namespace sim_mob
 {
 
+
+
 /**
  * A Person in the Driver role is navigating roads and intersections.
- */
-
-/**
- * First of all, I'd like to introduce some constant parameters here for the class to use.
- * Maybe many of them will be moved to the database later.
- * So Just don't be surprised of so many constant parameters below:
+ *
  *
  * - wangxy
- */
-
-namespace {  //Private namespace
-	//Something defined in the MITSIMLab documents
-	const double MAX_ACCELERATION		=	+10.0;
-	const double MAX_DECELERATION		=	-10.0;
-
-	//Something I have to define
-	const double maxLaneSpeed[]			=	{120,140,180};
-	const double FLT_EPSILON			=	0.0001;		//the smallest double
-	const double MAX_NUM				=	30000;			//regard as infinity
-	const double hBufferUpper			=	1;				//upper threshold of headway
-	const double hBufferLower			=	0.5;			//lower threshold of headway
-
-	//Parameters represent the location of the vehicle on the road
-	//Since the classes of the network haven't be finished, I will use simple type of parameters instead to represent the networks.
-	const double lane[]					=	{300,320,340};	//the y position of 3 lanes
-	const double laneWidth				=	20;
-	const double VelOfLaneChanging		=	4;				//assume that each car use the same speed to move in y direction to change lane
-}
-
-/**
+ *
  * Till now, the vehicle can make acceleration decision and do simple lane changing decision.
  * When it changes lane, it will slowly move to the adjacent lane and can avoid crash,
  * which is different from the model of MITSIMLab(just directly move to the adjacent lane in next time step).
@@ -57,6 +33,32 @@ class Driver : public sim_mob::Role {
 public:
 	Driver (Agent* parent);			//to initiate
 	virtual void update(frame_t frameNumber);
+
+
+/**
+ * First of all, I'd like to introduce some constant parameters here for the class to use.
+ * Maybe many of them will be moved to the database later.
+ * So Just don't be surprised of so many constant parameters below:
+ *
+ * NOTE: I made these static. ~Seth
+ */
+private:
+	static const double MAX_ACCELERATION		=	+10.0;
+	static const double MAX_DECELERATION		=	-10.0;
+
+	//Something I have to define
+	static const double maxLaneSpeed[];
+	static const double FLT_EPSILON			=	0.0001;		//the smallest double
+	static const double MAX_NUM				=	30000;			//regard as infinity
+	static const double hBufferUpper			=	1;				//upper threshold of headway
+	static const double hBufferLower			=	0.5;			//lower threshold of headway
+
+	//Parameters represent the location of the vehicle on the road
+	//Since the classes of the network haven't be finished, I will use simple type of parameters instead to represent the networks.
+	static const double lane[];	//the y position of 3 lanes
+	static const double laneWidth				=	20;
+	static const double VelOfLaneChanging		=	4;				//assume that each car use the same speed to move in y direction to change lane
+
 
 	/**********BASIC DATA*************/
 private:

@@ -499,25 +499,13 @@ double sim_mob::Driver::makeLaneChangingDecision()
 	}
 
 	bool right = (s<sr);
-	/*if(s<sr) {
-		right=true;
-	} else {
-		right=false;
-	}*/
-
-	if(LF!=NULL) {
+	if(LF!=nullptr) {
 		sl=LF->xPos.get()-parent->xPos.get()-length;
 	} else {
 		sl=MAX_NUM;
 	}
 
 	bool left = (s<sl);
-	/*if(s<sl) {
-		left=true;
-	} else {
-		left=false;
-	}*/
-
 	if(freeRight && !freeLeft && right) {
 		return 1;
 	}

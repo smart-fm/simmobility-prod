@@ -469,31 +469,24 @@ unsigned int sim_mob::Driver::gapAcceptance()
 		}
 	}
 
-	/*bool canL=false,canR=false;
-	if(flagF[0]&&flagB[0])canL=true;
-	if(flagF[1]&&flagB[1])canR=true;*/
-	bool canL = (flagF[0]&&flagB[0]);
-	bool canR = (flagF[1]&&flagB[1]);
-
-	if(canL && canR) {
-		return LSIDE_LEFT | LSIDE_RIGHT;
+	//Build up a return value.
+	unsigned int returnVal = 0;
+	if (flagF[0]&&flagB[0]) {
+		returnVal |= LSIDE_LEFT;
 	}
-	if(canL && !canR) {
-		return LSIDE_LEFT;
-	}
-	if(!canL && canR) {
-		return LSIDE_RIGHT;
+	if (flagF[1]&&flagB[1]) {
+		returnVal |= LSIDE_RIGHT;
 	}
 
-	return 0;
+	return returnVal;
 }
 
 double sim_mob::Driver::makeLaneChangingDecision()
 {
 	// for available gaps(including current gap between leading vehicle and itself), vehicle will choose the longest
 	unsigned int freeLanes = gapAcceptance();
-	bool freeLeft = (freeLanes&LSIDE_LEFT);
-	bool freeRight = (freeLanes&LSIDE_RIGHT);
+	bool freeLeft = ((freeLanes&LSIDE_LEFT)!=0);
+	bool freeRight = ((freeLanes&LSIDE_RIGHT)!=0);
 
 	//bool left,right;
 	double s=getDistance();

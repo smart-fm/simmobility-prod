@@ -136,6 +136,23 @@ void sim_mob :: Signal :: setnextCL (double DS)
 }
 
 
+void sim_mob :: Signal :: updateprevCL() {
+	prevCL=currCL;
+}
+
+void sim_mob :: Signal :: updatecurrCL() {
+	currCL=nextCL;
+}
+
+void sim_mob :: Signal :: updateprevRL1 (double RL1){
+	prevRL1=RL1;
+}
+
+void sim_mob :: Signal :: updateprevRL2 (double RL2){
+	prevRL2=RL2;
+}
+
+
 
 //use DS to choose SplitPlan for next cycle
 void sim_mob :: Signal :: setnextSplitPlan (double DS[4])
@@ -225,6 +242,17 @@ void sim_mob :: Signal :: setnextSplitPlan (double DS[4])
 }
 
 
+void sim_mob :: Signal :: updatecurrSplitPlanID() {
+	currSplitPlanID = nextSplitPlanID;
+}
+
+void sim_mob :: Signal :: updatecurrSplitPlan() {
+	for(int i = 0; i < 4; i++) {
+		currSplitPlan[i] = nextSplitPlan[i];
+	}
+}
+
+
 //use next cycle length to calculate next Offset
 void sim_mob :: Signal :: setnextOffset(double nextCL)
 {
@@ -233,6 +261,10 @@ void sim_mob :: Signal :: setnextOffset(double nextCL)
 	else nextOffset = Off_up;
 }
 
+
+void sim_mob :: Signal :: updateOffset(){
+	currOffset=nextOffset;
+}
 
 
 //find the max projected DS in each SplitPlan

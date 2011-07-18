@@ -45,29 +45,31 @@ public:
 	void updateSignal(double DS[4]);
 
 	//set for the parameters in SCATS
-	void updateprevCL() {prevCL=currCL;}
-	void updatecurrCL() {currCL=nextCL;}
-	void updateprevRL1 (double RL1){prevRL1=RL1;}
-	void updateprevRL2 (double RL2){prevRL2=RL2;}
+	void updateprevCL();
+	void updatecurrCL();
+	void updateprevRL1 (double RL1);
+	void updateprevRL2 (double RL2);
 	void setnextCL (double DS);
 
-	void setCL (double prevCL1, double currCL1, double nextCL1)
-	{prevCL = prevCL1; currCL = currCL1; nextCL = nextCL1;}
-	void setRL (double RL1, double RL2)
-	{prevRL1 = RL1; prevRL2 = RL2;}
+	void setCL (double prevCL1, double currCL1, double nextCL1) {
+		prevCL = prevCL1;
+		currCL = currCL1;
+		nextCL = nextCL1;
+	}
+	void setRL (double RL1, double RL2) {
+		prevRL1 = RL1;
+		prevRL2 = RL2;
+	}
 
 	//initialize the SplitPlan for SCATS
 	void startSplitPlan();
 	void setnextSplitPlan(double DS[4]);
-	void updatecurrSplitPlanID(){currSplitPlanID = nextSplitPlanID;}
-	void updatecurrSplitPlan()
-	{
-		for(int i = 0; i < 4; i++)currSplitPlan[i] = nextSplitPlan[i];
-	}
+	void updatecurrSplitPlanID();
+	void updatecurrSplitPlan();
 
 	//Offset
 	void setnextOffset(double nextCL);
-	void updateOffset(){currOffset=nextOffset;}
+	void updateOffset();
 
 
 	//get the parameters in SCATS

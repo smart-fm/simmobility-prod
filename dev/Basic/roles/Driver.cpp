@@ -244,7 +244,9 @@ void sim_mob::Driver::updateLeadingDriver()
 int sim_mob::Driver::getLane()
 {
 	for (int i=0;i<3;i++){
-		if(parent->yPos.get()==lane[i])return i;
+		if(parent->yPos.get()==lane[i]) {
+			return i;
+		}
 	}
 	return -1;
 }
@@ -252,10 +254,12 @@ int sim_mob::Driver::getLane()
 
 double sim_mob::Driver::getDistance()
 {
-	if(leader == nullptr) return MAX_NUM;
-	else {
+	if(leader == nullptr) {
+		return MAX_NUM;
+	} else {
 		double temp=leader->xPos.get()-parent->xPos.get()-length;
-		return (temp<0)?0:temp;
+		//return (temp<0)?0:temp;
+		return max(0.0, temp); //Equivalent. ~Seth
 	}
 }
 
@@ -263,33 +267,46 @@ double sim_mob::Driver::getDistance()
 void sim_mob::Driver::makeAcceleratingDecision()
 {
 	space = getDistance();
-	if (speed == 0)headway = 2 * space * 100000;
-	else headway = space / speed;
+	if (speed == 0) {
+		headway = 2 * space * 100000;
+	} else {
+		headway = space / speed;
+	}
+
 	if(leader == nullptr){
 		v_lead		=	MAX_NUM;
 		a_lead		=	MAX_NUM;
 		space_star	=	MAX_NUM;
-	}
-	else{
+	} else{
 		v_lead 		=	leader->xVel.get();
 		a_lead		=	leader->xAcc.get();
+
 		double dt	=	timeStep;
 		space_star	=	space + v_lead * dt + 0.5 * a_lead * dt * dt;
 	}
-	if(headway < hBufferLower) acc = accOfEmergencyDecelerating();
-	if(headway > hBufferUpper) acc = accOfMixOfCFandFF();
-	if(headway <= hBufferUpper && headway >= hBufferLower) acc = accOfCarFollowing();
+
+	if(headway < hBufferLower) {
+		acc = accOfEmergencyDecelerating();
+	}
+	if(headway > hBufferUpper) {
+		acc = accOfMixOfCFandFF();
+	}
+	if(headway <= hBufferUpper && headway >= hBufferLower) {
+		acc = accOfCarFollowing();
+	}
 }
 
 double sim_mob::Driver::breakToTargetSpeed()
 {
 	double v 			=	parent->xVel.get();
 	double dt			=	timeStep;
-	if( space_star > FLT_EPSILON)
+	if( space_star > FLT_EPSILON) {
 		return (( v_lead + a_lead * dt ) * ( v_lead + a_lead * dt) - v * v) / 2 / space_star;
-	else if ( dt <= 0 )
+	} else if ( dt <= 0 ) {
 		return MAX_ACCELERATION;
-	else return ( v_lead + a_lead * dt - v ) / dt;
+	} else {
+		return ( v_lead + a_lead * dt - v ) / dt;
+	}
 }
 
 double sim_mob::Driver::accOfEmergencyDecelerating()
@@ -299,18 +316,23 @@ double sim_mob::Driver::accOfEmergencyDecelerating()
 	double epsilon_v	=	0.001;
 	double aNormalDec	=	-getNormalDeceleration();
 
-	if( dv < epsilon_v ) return a_lead + 0.25*aNormalDec;
-	else if ( space > 0.01 ) return a_lead - dv * dv / 2 / space;
-	else return breakToTargetSpeed();
+	if( dv < epsilon_v ) {
+		return a_lead + 0.25*aNormalDec;
+	} else if ( space > 0.01 ) {
+		return a_lead - dv * dv / 2 / space;
+	} else {
+		return breakToTargetSpeed();
+	}
 }
 
 double sim_mob::Driver::accOfCarFollowing()
 {
-	double alpha[2] 	=	{1,1};		//[0] for positive   [1] for negative
-	double beta[2] 		=	{1,1};
-	double gama[2]		=	{1,1};
+	double alpha[] 	=	{1,1};		//[0] for positive   [1] for negative
+	double beta[] 		=	{1,1};
+	double gama[]		=	{1,1};
 	double v			=	parent->xVel.get();
 	int i = (v > v_lead) ? 1 : 0;
+
 	double acc_ = alpha[i] * pow(v , beta[i]) /pow(space , gama[i]) * (v_lead - v);
 	return acc_;
 }
@@ -319,14 +341,22 @@ double sim_mob::Driver::accOfFreeFlowing()
 {
 	double vn			=	speed;
 	double acc_;
-	if ( vn < getTargetSpeed()){
-		if( vn < maxLaneSpeed[getLane()]) acc_=getMaxAcceleration();
-		else acc_ = getNormalDeceleration();
+	if ( vn < getTargetSpeed()) {
+		if( vn < maxLaneSpeed[getLane()]) {
+			acc_=getMaxAcceleration();
+		} else {
+			acc_ = getNormalDeceleration();
+		}
 	}
-	if ( vn > getTargetSpeed())acc_ = getNormalDeceleration();
-	if ( vn == getTargetSpeed()){
-		if( vn < maxLaneSpeed[getLane()]) acc_=getMaxAcceleration();
-		else acc_ = 0;
+	if ( vn > getTargetSpeed()) {
+		acc_ = getNormalDeceleration();
+	}
+	if ( vn == getTargetSpeed()) {
+		if( vn < maxLaneSpeed[getLane()]) {
+			acc_=getMaxAcceleration();
+		} else {
+			acc_ = 0;
+		}
 	}
 	return acc_;
 }
@@ -334,8 +364,11 @@ double sim_mob::Driver::accOfFreeFlowing()
 double sim_mob::Driver::accOfMixOfCFandFF()
 {
 	distanceToNormalStop = speed * speed / 2 /getNormalDeceleration();
-	if( space > distanceToNormalStop ) return accOfFreeFlowing();
-	else return breakToTargetSpeed();
+	if( space > distanceToNormalStop ) {
+		return accOfFreeFlowing();
+	} else {
+		return breakToTargetSpeed();
+	}
 }
 
 
@@ -353,17 +386,22 @@ Agent* sim_mob::Driver::getNextForBDriver(bool isLeft,bool isFront)
 	}
 
 	double NFBDistance;
-	if(isFront)NFBDistance=MAX_NUM;
-	else NFBDistance=-MAX_NUM;
+	if(isFront) {
+		NFBDistance=MAX_NUM;
+	} else {
+		NFBDistance=-MAX_NUM;
+	}
+
 	size_t NFBID=Agent::all_agents.size();
-	if(getLane()==border)return nullptr;		//has no left side or right side
-	else {
-		Agent* other = nullptr;
+	if(getLane()==border) {
+		return nullptr;		//has no left side or right side
+	} else {
+		const Agent* other = nullptr;
 		for (size_t i=0; i<Agent::all_agents.size(); i++) {
 			//Skip self
 			other = Agent::all_agents[i];
 			if (other->getId()==parent->getId()) {
-				other = nullptr;
+				//other = nullptr;
 				continue;
 			}
 			//Check.
@@ -372,14 +410,18 @@ Agent* sim_mob::Driver::getNextForBDriver(bool isLeft,bool isFront)
 				if(
 						(isFront && forward>0 && forward < NFBDistance)||
 						((!isFront) && forward<0 && forward > NFBDistance)
-						){
+						) {
 					NFBDistance=forward;NFBID=i;
 				}
 			}
 		}
 	}
-	if(NFBID == Agent::all_agents.size())return nullptr;
-	else return Agent::all_agents[NFBID];
+
+	if(NFBID == Agent::all_agents.size()) {
+		return nullptr;
+	} else {
+		return Agent::all_agents[NFBID];
+	}
 }
 
 int sim_mob::Driver::gapAcceptance()
@@ -391,32 +433,58 @@ int sim_mob::Driver::gapAcceptance()
 	RB=getNextForBDriver(false,false);
 	Agent* F;
 	Agent* B;
+
 	bool flagF[2]={false,false},flagB[2]={false,false};
 	for(int i=0;i<2;i++){
-		if(i==0){F=LF;B=LB;}
-		else{F=RF;B=RB;}
-		if(getLane()!=border[i]){		//if it has left lane or right lane
-			if(F!=NULL){
-				double gna=F->xPos.get()-parent->xPos.get()-length;
-				if(gna > getTimeStep()*(parent->xVel.get()-F->xVel.get())) flagF[i]=true;
-				else flagF[i]=false;
-			}
-			else flagF[i]=true;
+		if(i==0) {
+			F=LF;
+			B=LB;
+		} else{
+			F=RF;
+			B=RB;
+		}
 
-			if(B!=NULL){
-				double gnb=parent->xPos.get()-B->xPos.get()-length;
-				if(gnb > getTimeStep()*(B->xVel.get()-parent->xVel.get())) flagB[i]=true;
-				else flagB[i]=false;
+		if(getLane()!=border[i]) {		//if it has left lane or right lane
+			if(F!=nullptr){
+				double gna=F->xPos.get()-parent->xPos.get()-length;
+				if(gna > getTimeStep()*(parent->xVel.get()-F->xVel.get())) {
+					flagF[i]=true;
+				} else {
+					flagF[i]=false;
+				}
+			} else {
+				flagF[i]=true;
 			}
-			else flagB[i]=true;
+
+			if(B!=nullptr) {
+				double gnb=parent->xPos.get()-B->xPos.get()-length;
+				if(gnb > getTimeStep()*(B->xVel.get()-parent->xVel.get())){
+					flagB[i]=true;
+				} else {
+					flagB[i]=false;
+				}
+			} else {
+				flagB[i]=true;
+			}
 		}
 	}
-	bool canL=false,canR=false;
+
+	/*bool canL=false,canR=false;
 	if(flagF[0]&&flagB[0])canL=true;
-	if(flagF[1]&&flagB[1])canR=true;
-	if(canL && canR)return 2;
-	if(canL && !canR)return -1;
-	if(!canL && canR)return 1;
+	if(flagF[1]&&flagB[1])canR=true;*/
+	bool canL = (flagF[0]&&flagB[0]);
+	bool canR = (flagF[1]&&flagB[1]);
+
+	if(canL && canR) {
+		return 2;
+	}
+	if(canL && !canR) {
+		return -1;
+	}
+	if(!canL && canR) {
+		return 1;
+	}
+
 	return 0;
 }
 

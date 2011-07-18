@@ -62,7 +62,7 @@ void sim_mob :: Signal :: startSplitPlan()
 
 
 //Update Signal Light
-void sim_mob :: Signal :: updateSignal (double DS[4])
+void sim_mob :: Signal :: updateSignal (double DS[])
 {
 	//find the maximum DS
 	DS_all = fmax(DS);
@@ -155,7 +155,7 @@ void sim_mob :: Signal :: updateprevRL2 (double RL2){
 
 
 //use DS to choose SplitPlan for next cycle
-void sim_mob :: Signal :: setnextSplitPlan (double DS[4])
+void sim_mob :: Signal :: setnextSplitPlan (double DS[])
 {
 	double proDS[4];// projected DS
 	double maxproDS[6];// max projected DS of each SplitPlan
@@ -268,7 +268,7 @@ void sim_mob :: Signal :: updateOffset(){
 
 
 //find the max projected DS in each SplitPlan
-double sim_mob :: Signal :: fmax(double proDS[4])
+double sim_mob :: Signal :: fmax(double proDS[])
 {
 	double max;
 	max = proDS[0];
@@ -282,7 +282,7 @@ double sim_mob :: Signal :: fmax(double proDS[4])
 
 
 //find the minimum among the max projected DS
-int sim_mob :: Signal :: fmin_ID(double maxproDS[6])
+int sim_mob :: Signal :: fmin_ID(double maxproDS[])
 {
 	int min;
 	min=1;

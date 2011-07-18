@@ -39,7 +39,7 @@ public:
 	Signal(unsigned int id);
 
 	//DS:degree of saturation
-	void updateSignal(double DS[4]);
+	void updateSignal(double DS[]);
 
 	//set for the parameters in SCATS
 	void updateprevCL();
@@ -60,7 +60,7 @@ public:
 
 	//initialize the SplitPlan for SCATS
 	void startSplitPlan();
-	void setnextSplitPlan(double DS[4]);
+	void setnextSplitPlan(double DS[]);
 	void updatecurrSplitPlanID();
 	void updatecurrSplitPlan();
 
@@ -81,8 +81,8 @@ public:
 	double getnextOffset() {return nextOffset;}
 
 
-	double fmax(double proDS[4]);
-	int fmin_ID(double maxproDS[6]);
+	double fmax(double proDS[]);
+	int fmin_ID(double maxproDS[]);
 	int calvote(int vote1, int vote2, int vote3, int vote4, int vote5);
 
 private:

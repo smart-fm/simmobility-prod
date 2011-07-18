@@ -23,7 +23,7 @@ namespace {  //Private namespace
 	const double MAX_DECELERATION		=	-10.0;
 
 	//Something I have to define
-	const double maxLaneSpeed[3]		=	{120,140,180};
+	const double maxLaneSpeed[]			=	{120,140,180};
 	const double FLT_EPSILON			=	0.0001;		//the smallest double
 	const double MAX_NUM				=	30000;			//regard as infinity
 	const double hBufferUpper			=	1;				//upper threshold of headway
@@ -31,7 +31,7 @@ namespace {  //Private namespace
 
 	//Parameters represent the location of the vehicle on the road
 	//Since the classes of the network haven't be finished, I will use simple type of parameters instead to represent the networks.
-	const double lane[3]				=	{300,320,340};	//the y position of 3 lanes
+	const double lane[]					=	{300,320,340};	//the y position of 3 lanes
 	const double laneWidth				=	20;
 	const double VelOfLaneChanging		=	4;				//assume that each car use the same speed to move in y direction to change lane
 }

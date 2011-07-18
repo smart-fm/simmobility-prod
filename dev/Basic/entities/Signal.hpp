@@ -87,7 +87,7 @@ public:
 
 	static double fmax(const double proDS[]);
 	static int fmin_ID(const double maxproDS[]);
-	static int calvote(int vote1, int vote2, int vote3, int vote4, int vote5);
+	static int calvote(unsigned int vote1, unsigned int vote2, unsigned int vote3, unsigned int vote4, unsigned int vote5);
 
 private:
 	//previous,current and next cycle length

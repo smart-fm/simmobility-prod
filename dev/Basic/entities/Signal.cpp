@@ -270,9 +270,13 @@ void sim_mob :: Signal :: updatecurrSplitPlan() {
 //use next cycle length to calculate next Offset
 void sim_mob :: Signal :: setnextOffset(double nextCL)
 {
-	if(nextCL <= CL_low) nextOffset = Off_low;
-	else if(nextCL > CL_low && nextCL <= CL_up) nextOffset = Off_low + (nextCL - CL_low)*(Off_up - Off_low)/(CL_up - CL_low);
-	else nextOffset = Off_up;
+	if(nextCL <= CL_low) {
+		nextOffset = Off_low;
+	} else if(nextCL > CL_low && nextCL <= CL_up) {
+		nextOffset = Off_low + (nextCL - CL_low)*(Off_up - Off_low)/(CL_up - CL_low);
+	} else {
+		nextOffset = Off_up;
+	}
 }
 
 
@@ -284,12 +288,13 @@ void sim_mob :: Signal :: updateOffset(){
 //find the max projected DS in each SplitPlan
 double sim_mob :: Signal :: fmax(const double proDS[])
 {
-	double max;
-	max = proDS[0];
+	double max = proDS[0];
 	for(int i = 1; i < 4; i++)
 	{
-		if(proDS[i] > max)max = proDS[i];
-		else{}
+		if(proDS[i] > max) {
+			max = proDS[i];
+		}
+		//else{}
 	}
 	return max;
 }
@@ -298,30 +303,41 @@ double sim_mob :: Signal :: fmax(const double proDS[])
 //find the minimum among the max projected DS
 int sim_mob :: Signal :: fmin_ID(const double maxproDS[])
 {
-	int min;
-	min=1;
+	int min=1;
 	for (int i = 2; i <= 5; i++)
 	{
-		if(maxproDS[i] < maxproDS[min])min = i;
-		else{}
+		if(maxproDS[i] < maxproDS[min]) {
+			min = i;
+		}
+		//else{}
 	}
 	return min;
 }
 
 //determine next SplitPlan according to the votes in last 5 cycle
-int sim_mob :: Signal :: calvote(int vote1,int vote2, int vote3, int vote4, int vote5)
+int sim_mob :: Signal :: calvote(unsigned int vote1,unsigned int vote2, unsigned int vote3, unsigned int vote4, unsigned int vote5)
 {
+	assert(vote1<6);
+	assert(vote2<6);
+	assert(vote3<6);
+	assert(vote4<6);
+	assert(vote5<6);
+
 	int vote_num[6] = {0,0,0,0,0,0};
 	int ID = 1;
+
 	vote_num[vote1]++;
 	vote_num[vote2]++;
 	vote_num[vote3]++;
 	vote_num[vote4]++;
 	vote_num[vote5]++;
-	for(int i = 1; i <= 5; i++)
-	{
-		if(vote_num[i] > vote_num[ID])ID=i;
-		else{}
+	for(int i = 1; i <= 5; i++) {
+		if(vote_num[i] > vote_num[ID]) {
+			ID=i;
+		}
+		//else{}
 	}
 	return ID;
 }
+
+

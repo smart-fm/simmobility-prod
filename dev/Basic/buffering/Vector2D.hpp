@@ -5,8 +5,7 @@
  *      Author: linbo
  */
 
-#ifndef VECTOR2D_HPP_
-#define VECTOR2D_HPP_
+#pragma once
 
 #include <cmath>
 
@@ -89,6 +88,3 @@ namespace sim_mob{
 	}
 
 }
-
-
-#endif /* VECTOR2D_HPP_ */

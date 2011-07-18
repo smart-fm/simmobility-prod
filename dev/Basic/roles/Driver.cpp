@@ -492,7 +492,7 @@ double sim_mob::Driver::makeLaneChangingDecision()
 {
 	// for available gaps(including current gap between leading vehicle and itself), vehicle will choose the longest
 	int i=gapAcceptance();
-	bool left,right;
+	//bool left,right;
 	double s=getDistance();
 	double sl,sr;
 
@@ -501,21 +501,27 @@ double sim_mob::Driver::makeLaneChangingDecision()
 	} else {
 		sr=MAX_NUM;
 	}
-	if(s<sr) {
+
+	bool right = (s<sr);
+	/*if(s<sr) {
 		right=true;
 	} else {
 		right=false;
-	}
+	}*/
+
 	if(LF!=NULL) {
 		sl=LF->xPos.get()-parent->xPos.get()-length;
 	} else {
 		sl=MAX_NUM;
 	}
-	if(s<sl) {
+
+	bool left = (s<sl);
+	/*if(s<sl) {
 		left=true;
 	} else {
 		left=false;
-	}
+	}*/
+
 	if(i==1 && right) {
 		return 1;
 	}

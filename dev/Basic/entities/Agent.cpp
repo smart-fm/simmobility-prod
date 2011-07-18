@@ -20,6 +20,10 @@ void sim_mob::Agent::buildSubscriptionList()
 {
 	subscriptionList_cached.push_back(&xPos);
 	subscriptionList_cached.push_back(&yPos);
+	subscriptionList_cached.push_back(&xVel);
+	subscriptionList_cached.push_back(&yVel);
+	subscriptionList_cached.push_back(&xAcc);
+	subscriptionList_cached.push_back(&yAcc);
 }
 
 

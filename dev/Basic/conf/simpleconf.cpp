@@ -132,7 +132,7 @@ bool loadXMLPedestrians(xmlXPathContext* xpContext, std::vector<Agent*>& agents)
 	xmlXPathFreeObject(xpObject);
 	return true;
 }
-/*
+
 bool loadXMLDrivers(xmlXPathContext* xpContext, std::vector<Agent*>& agents)
 {
 	std::string expression = "/config/drivers/driver";
@@ -186,7 +186,7 @@ bool loadXMLDrivers(xmlXPathContext* xpContext, std::vector<Agent*>& agents)
 	xmlXPathFreeObject(xpObject);
 	return true;
 }
-*/
+
 
 
 bool loadXMLBoundariesCrossings(xmlXPathContext* xpContext, const string& expression, map<string, Point2D>& result)
@@ -311,14 +311,14 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vecto
     }
 
     //Load agents
-    if (!loadXMLPedestrians(xpContext, agents)) {
-    	return "Couldn't load agents";
+    //if (!loadXMLPedestrians(xpContext, agents)) {
+    //	return "Couldn't load agents";
+    //}
+
+
+    if (!loadXMLDrivers(xpContext, agents)) {
+   	return	 "Couldn't load agents";
     }
-
-
-    //if (!loadXMLDrivers(xpContext, agents)) {
-  //  	return "Couldn't load agents";
-  //  }
 
 
     //Load boundaries

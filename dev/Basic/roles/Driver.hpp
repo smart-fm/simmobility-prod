@@ -28,7 +28,7 @@ const double MAX_DECELERATION		=	-10.0;
 
 //Something I have to define
 const double maxLaneSpeed[3]		=	{120,140,180};
-const double FLT_EPSILON			=	0.0000001;		//the smallest double
+const double FLT_EPSILON			=	0.0001;		//the smallest double
 const double MAX_NUM				=	30000;			//regard as infinity
 const double hBufferUpper			=	1;				//upper threshold of headway
 const double hBufferLower			=	0.5;			//lower threshold of headway
@@ -36,7 +36,7 @@ const double hBufferLower			=	0.5;			//lower threshold of headway
 //Since the classes of the network haven't be finished, I will use simple type of parameters instead to represent the networks.
 const double lane[3]				=	{300,320,340};	//the y position of 3 lanes
 const double laneWidth				=	20;
-const double VelOfLaneChanging		=	5;				//assume that each car use the same speed to move in y direction to change lane
+const double VelOfLaneChanging		=	4;				//assume that each car use the same speed to move in y direction to change lane
 
 /**
  * Till now, the vehicle can make acceleration decision and do simple lane changing decision.
@@ -133,11 +133,12 @@ private:
 	Agent* RF;				//right lane, front, closest
 	Agent* RB;				//right lane, behind, closest
 	double changeDecision;	//1 for right, -1 for left, 0 for current
-	bool ischanging;		//if the vehicle is changing the lane
+	bool ischanging;		//is the vehicle is changing the lane
+	bool isback;			//is the vehicle get back to the lane to avoid crash
 	int fromLane;			//during lane changing, the lane the vehicle leaves
 	int toLane;				//during lane changing, the lane the vehicle approaches
 public:
-	Agent* getNextForBDriver(bool isLeft,bool isFront);
+	Agent* getNextForBDriver(bool isLeft,bool isFront);	//for updating LF LB RF RB
 	int gapAcceptance();				//check if the gap of the left lane and the right lane is available
 										//return 2 for both, 1 for right, -1 for right, 0 for neither
 	double makeLaneChangingDecision();		//to decide which lane to move, the returns are same as above

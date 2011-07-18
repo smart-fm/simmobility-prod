@@ -85,33 +85,44 @@ void sim_mob :: Signal :: updateSignal (double DS[])
 void sim_mob :: Signal :: setnextCL (double DS)
 {
 	//parameters in SCATS
-	double RL,RL0,RL1;
-	double diff_CL,diff_CL0;
+	double RL0;
+	//double diff_CL,diff_CL0;
 	double w1 = 0.45, w2 = 0.33, w3 = 0.22;
-	int sign;
+
 
 	//calculate RL0
-	if (DS <= DSmed)
+	if (DS <= DSmed) {
 		RL0 = CLmin + (DS - DSmin)*(CLmed - CLmin)/(DSmed - DSmin);
-	else if (DS>DSmed)
+	} else { //if (DS>DSmed)
 		RL0=CLmed + (DS - DSmed)*(CLmax - CLmed)/(DSmax - DSmed);
-	else {}
+	}
+	//else {}
 
 
-	if(RL0-currCL >= 0){diff_CL = RL0 - currCL; sign = 1;}
-	else {diff_CL = currCL - RL0; sign = -1;}
+	int sign;
+	double diff_CL;
+	if(RL0-currCL >= 0) {
+		diff_CL = RL0 - currCL; sign = 1;
+	} else {
+		diff_CL = currCL - RL0; sign = -1;
+	}
 
 
 
 	//modify the diff_CL0
-	if (diff_CL <= 4)diff_CL0 = diff_CL;
-	else if (diff_CL > 4 && diff_CL <= 8) diff_CL0 = 0.5*diff_CL + 2;
-	else diff_CL0 = 0.25*diff_CL + 4;
+	double diff_CL0;
+	if (diff_CL <= 4) {
+		diff_CL0 = diff_CL;
+	} else if (diff_CL > 4 && diff_CL <= 8) {
+		diff_CL0 = 0.5*diff_CL + 2;
+	} else {
+		diff_CL0 = 0.25*diff_CL + 4;
+	}
 
-	RL1 = currCL + sign*diff_CL0;
+	double RL1 = currCL + sign*diff_CL0;
 
 	//RL is partly determined by its previous values
-	RL=w1*RL1 + w2*prevRL1 + w3*prevRL2;
+	double RL = w1*RL1 + w2*prevRL1 + w3*prevRL2;
 
 	//update previous RL
 	prevRL2 = prevRL1;
@@ -122,14 +133,19 @@ void sim_mob :: Signal :: setnextCL (double DS)
 	else sign = -1;
 
 	//set the maximum change as 6s
-	if (abs(RL - currCL) <= 6)nextCL = RL;
-	else nextCL = currCL + sign*6;
+	if (abs(RL - currCL) <= 6) {
+		nextCL = RL;
+	} else {
+		nextCL = currCL + sign*6;
+	}
 
 	//when the maximum changes in last two cycle are both larger than 6s, the value can be set as 9s
-	if ( ((nextCL - currCL) >= 6 && (currCL - prevCL) >= 6) || ((nextCL - currCL) <= -6 && (currCL - prevCL) <= -6) )
-	{
-		if (abs(RL-currCL) <= 9)nextCL = RL;
-		else nextCL = currCL + sign*9;
+	if ( ((nextCL - currCL) >= 6 && (currCL - prevCL) >= 6) || ((nextCL - currCL) <= -6 && (currCL - prevCL) <= -6) ) {
+		if (abs(RL-currCL) <= 9) {
+			nextCL = RL;
+		} else {
+			nextCL = currCL + sign*9;
+		}
 	}
 }
 

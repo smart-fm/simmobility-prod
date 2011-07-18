@@ -22,7 +22,7 @@ const double sim_mob::Driver::laneWidth = 20;
 
 
 //initiate
-sim_mob::Driver::Driver(Agent* parent) : Role(parent)
+sim_mob::Driver::Driver(Agent* parent) : Role(parent), leader(nullptr)
 {
 	//Set random seed
 	srand(parent->getId());
@@ -163,10 +163,10 @@ void sim_mob::Driver::updateVelocity()
 	}
 	//if(!ischanging){
 		double foward;
-		if(parent->leader==nullptr) {
+		if(leader==nullptr) {
 			foward=MAX_NUM;
 		} else {
-			foward=parent->leader->xPos.get()-parent->xPos.get()-length;
+			foward=leader->xPos.get()-parent->xPos.get()-length;
 		}
 		if(foward<0) {
 			xVel=0;
@@ -218,7 +218,7 @@ void sim_mob::Driver::updateLeadingDriver()
 		//Skip self
 		other = Agent::all_agents[i];
 		if (other->getId()==parent->getId()) {
-			other = nullptr;
+			//other = nullptr;
 			continue;
 		}
 		//Check.
@@ -232,9 +232,13 @@ void sim_mob::Driver::updateLeadingDriver()
 			}
 		}
 	}
-	if(leadingID == Agent::all_agents.size())leadingDriver=nullptr;
-	else leadingDriver=Agent::all_agents[leadingID];
-	parent->leader=leadingDriver;
+
+	if(leadingID == Agent::all_agents.size()) {
+		leadingDriver=nullptr;
+	} else {
+		leadingDriver=Agent::all_agents[leadingID];
+	}
+	leader=leadingDriver;
 }
 
 int sim_mob::Driver::getLane()
@@ -248,9 +252,9 @@ int sim_mob::Driver::getLane()
 
 double sim_mob::Driver::getDistance()
 {
-	if(parent->leader == nullptr) return MAX_NUM;
+	if(leader == nullptr) return MAX_NUM;
 	else {
-		double temp=parent->leader->xPos.get()-parent->xPos.get()-length;
+		double temp=leader->xPos.get()-parent->xPos.get()-length;
 		return (temp<0)?0:temp;
 	}
 }
@@ -261,14 +265,14 @@ void sim_mob::Driver::makeAcceleratingDecision()
 	space = getDistance();
 	if (speed == 0)headway = 2 * space * 100000;
 	else headway = space / speed;
-	if(parent->leader == nullptr){
+	if(leader == nullptr){
 		v_lead		=	MAX_NUM;
 		a_lead		=	MAX_NUM;
 		space_star	=	MAX_NUM;
 	}
 	else{
-		v_lead 		=	parent->leader->xVel.get();
-		a_lead		=	parent->leader->xAcc.get();
+		v_lead 		=	leader->xVel.get();
+		a_lead		=	leader->xAcc.get();
 		double dt	=	timeStep;
 		space_star	=	space + v_lead * dt + 0.5 * a_lead * dt * dt;
 	}

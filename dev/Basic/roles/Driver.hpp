@@ -81,6 +81,8 @@ private:
 	double length;				//length of the vehicle
 	double width;				//width of the vehicle
 
+	Agent* leader;	///<Pointer pointing to leading vehicle
+
 	double maxAcceleration;
 	double normalDeceleration;
 	double maxDeceleration;

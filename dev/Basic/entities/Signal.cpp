@@ -223,40 +223,36 @@ void sim_mob :: Signal :: setnextSplitPlan (double DS[])
 	//update votes;
 	vote5=vote4;vote4=vote3;vote3=vote2;vote2=vote1;
 
-	//set next SplitPlan
+	//Get a reference to the SplitPlan array
+	const double* SplitPlan = nullptr;
+
+	//Retrieve the pointer
 	switch(nextSplitPlanID)
 	{
 		case 1:
-			nextSplitPlan[0] = SplitPlan1[0];
-			nextSplitPlan[1] = SplitPlan1[1];
-			nextSplitPlan[2] = SplitPlan1[2];
-			nextSplitPlan[3] = SplitPlan1[3];
+			SplitPlan = SplitPlan1;
 			break;
 		case 2:
-			nextSplitPlan[0] = SplitPlan2[0];
-			nextSplitPlan[1] = SplitPlan2[1];
-			nextSplitPlan[2] = SplitPlan2[2];
-			nextSplitPlan[3] = SplitPlan2[3];
+			SplitPlan = SplitPlan2;
 			break;
 		case 3:
-			nextSplitPlan[0] = SplitPlan3[0];
-			nextSplitPlan[1] = SplitPlan3[1];
-			nextSplitPlan[2] = SplitPlan3[2];
-			nextSplitPlan[3] = SplitPlan3[3];
+			SplitPlan = SplitPlan3;
 			break;
 		case 4:
-			nextSplitPlan[0] = SplitPlan4[0];
-			nextSplitPlan[1] = SplitPlan4[1];
-			nextSplitPlan[2] = SplitPlan4[2];
-			nextSplitPlan[3] = SplitPlan4[3];
+			SplitPlan = SplitPlan4;
 			break;
 		case 5:
-			nextSplitPlan[0] = SplitPlan5[0];
-			nextSplitPlan[1] = SplitPlan5[1];
-			nextSplitPlan[2] = SplitPlan5[2];
-			nextSplitPlan[3] = SplitPlan5[3];
+			SplitPlan = SplitPlan5;
 			break;
+		default:
+			assert(false);
 	}
+
+	//Set the next split plan
+	nextSplitPlan[0] = SplitPlan[0];
+	nextSplitPlan[1] = SplitPlan[1];
+	nextSplitPlan[2] = SplitPlan[2];
+	nextSplitPlan[3] = SplitPlan[3];
 }
 
 

@@ -10,6 +10,7 @@
 
 using namespace sim_mob;
 using std::numeric_limits;
+using std::max;
 
 
 
@@ -54,7 +55,7 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent)
 	timeStep=0.1;			//assume that time step is constant
 	isGoalSet = false;
 	isOriginSet = false;
-	LF=NULL;LB=NULL;RF=NULL;RB=NULL;
+	LF=nullptr;LB=nullptr;RF=nullptr;RB=nullptr;
 
 	ischanging=false;
 	isback=false;
@@ -107,14 +108,17 @@ void sim_mob::Driver::setGoal()
 
 bool sim_mob::Driver::isGoalReached()
 {
-	if( (goal.xPos - parent->xPos.get())<0) return true;
-	else return false;
+	/*if( (goal.xPos - parent->xPos.get())<0) return true;
+	else return false;*/
+
+	return (goal.xPos - parent->xPos.get())<0;  //This is equivalent. ~Seth
 }
 
 
 void sim_mob::Driver::updateAcceleration()
 {
 	makeAcceleratingDecision();
+
 	//Set direction (towards the goal)
 	double xDirection = goal.xPos - parent->xPos.get();
 	double yDirection = 0;
@@ -144,21 +148,29 @@ void sim_mob::Driver::updateVelocity()
 	yDirection = yDirection/magnitude;
 
 	//when vehicle just gets back to the origin, help them to speed up
-	if(parent->xPos.get()<0){
+	if(parent->xPos.get()<0) {
 		xVel=(0.2+((double)(rand()%10))/30)*getTargetSpeed();
 		yVel=0;
-	}
-	else{
-	xVel = xDirection*speed+xAcc*timeStep;
-	yVel = yDirection*speed+yAcc*timeStep;
-	if(xVel<0)xVel=0;
-	if(yVel<0)yVel=0;
+	} else{
+		xVel = max(0.0, xDirection*speed+xAcc*timeStep);
+		yVel = max(0.0, yDirection*speed+yAcc*timeStep);
+		/*if(xVel<0) {
+			xVel=0;
+		}
+		if(yVel<0) {
+			yVel=0;
+		}*/
 	}
 	//if(!ischanging){
 		double foward;
-		if(parent->leader==NULL)foward=MAX_NUM;
-		else foward=parent->leader->xPos.get()-parent->xPos.get()-length;
-		if(foward<0)xVel=0;
+		if(parent->leader==nullptr) {
+			foward=MAX_NUM;
+		} else {
+			foward=parent->leader->xPos.get()-parent->xPos.get()-length;
+		}
+		if(foward<0) {
+			xVel=0;
+		}
 		yVel=0;
 	//}
 	//Set actual velocity
@@ -171,9 +183,11 @@ void sim_mob::Driver::updateVelocity()
 void sim_mob::Driver::updatePosition()
 {
 	//Compute
-	if(xVel==0)xPos=parent->xPos.get();			//when speed is zero, stop in the same position
-	else
+	if(xVel==0) {
+		xPos=parent->xPos.get();			//when speed is zero, stop in the same position
+	} else {
 		xPos = parent->xPos.get()+xVel*timeStep+0.5*xAcc*timeStep*timeStep;
+	}
 	yPos=parent->yPos.get();
 
 	//Set
@@ -193,7 +207,8 @@ void sim_mob::Driver::updatePosition()
 
 void sim_mob::Driver::updateLeadingDriver()
 {
-	Agent* other = NULL;
+	const Agent* other = nullptr;
+
 	// In fact the so-called big brother can return the leading driver.
 	// Since now there is no such big brother, so I assume that each driver can know information of other vehicles
 	// It will find it's leading vehicle itself.
@@ -203,7 +218,7 @@ void sim_mob::Driver::updateLeadingDriver()
 		//Skip self
 		other = Agent::all_agents[i];
 		if (other->getId()==parent->getId()) {
-			other = NULL;
+			other = nullptr;
 			continue;
 		}
 		//Check.
@@ -217,7 +232,7 @@ void sim_mob::Driver::updateLeadingDriver()
 			}
 		}
 	}
-	if(leadingID == Agent::all_agents.size())leadingDriver=NULL;
+	if(leadingID == Agent::all_agents.size())leadingDriver=nullptr;
 	else leadingDriver=Agent::all_agents[leadingID];
 	parent->leader=leadingDriver;
 }
@@ -233,7 +248,7 @@ int sim_mob::Driver::getLane()
 
 double sim_mob::Driver::getDistance()
 {
-	if(parent->leader == NULL) return MAX_NUM;
+	if(parent->leader == nullptr) return MAX_NUM;
 	else {
 		double temp=parent->leader->xPos.get()-parent->xPos.get()-length;
 		return (temp<0)?0:temp;
@@ -246,7 +261,7 @@ void sim_mob::Driver::makeAcceleratingDecision()
 	space = getDistance();
 	if (speed == 0)headway = 2 * space * 100000;
 	else headway = space / speed;
-	if(parent->leader == NULL){
+	if(parent->leader == nullptr){
 		v_lead		=	MAX_NUM;
 		a_lead		=	MAX_NUM;
 		space_star	=	MAX_NUM;
@@ -337,14 +352,14 @@ Agent* sim_mob::Driver::getNextForBDriver(bool isLeft,bool isFront)
 	if(isFront)NFBDistance=MAX_NUM;
 	else NFBDistance=-MAX_NUM;
 	size_t NFBID=Agent::all_agents.size();
-	if(getLane()==border)return NULL;		//has no left side or right side
+	if(getLane()==border)return nullptr;		//has no left side or right side
 	else {
-		Agent* other = NULL;
+		Agent* other = nullptr;
 		for (size_t i=0; i<Agent::all_agents.size(); i++) {
 			//Skip self
 			other = Agent::all_agents[i];
 			if (other->getId()==parent->getId()) {
-				other = NULL;
+				other = nullptr;
 				continue;
 			}
 			//Check.
@@ -359,7 +374,7 @@ Agent* sim_mob::Driver::getNextForBDriver(bool isLeft,bool isFront)
 			}
 		}
 	}
-	if(NFBID == Agent::all_agents.size())return NULL;
+	if(NFBID == Agent::all_agents.size())return nullptr;
 	else return Agent::all_agents[NFBID];
 }
 

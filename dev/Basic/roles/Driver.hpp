@@ -126,12 +126,12 @@ private:
 
 	//for acceleration decision
 public:
-	void makeAcceleratingDecision();				//decide acc
-	double breakToTargetSpeed();					//return the acc to a target speed within a specific distance
-	double accOfEmergencyDecelerating();			//when headway < lower threshold, use this function
-	double accOfCarFollowing();						//when lower threshold < headway < upper threshold, use this function
-	double accOfMixOfCFandFF();						//when upper threshold < headway, use this funcion
-	double accOfFreeFlowing();						//is a part of accofMixOfCFandFF
+	void makeAcceleratingDecision();				///<decide acc
+	double breakToTargetSpeed();					///<return the acc to a target speed within a specific distance
+	double accOfEmergencyDecelerating();			///<when headway < lower threshold, use this function
+	double accOfCarFollowing();						///<when lower threshold < headway < upper threshold, use this function
+	double accOfMixOfCFandFF();						///<when upper threshold < headway, use this funcion
+	double accOfFreeFlowing();						///<is a part of accofMixOfCFandFF
 	double getTargetSpeed(){return targetSpeed;}
 
 	//for lane changing decision
@@ -146,12 +146,15 @@ private:
 	int fromLane;			//during lane changing, the lane the vehicle leaves
 	int toLane;				//during lane changing, the lane the vehicle approaches
 public:
-	Agent* getNextForBDriver(bool isLeft,bool isFront);	//for updating LF LB RF RB
-	unsigned int gapAcceptance();			//check if the gap of the left lane and the right lane is available
-											//returns a bitflag of the LANE_SIDE enum
-	double makeLaneChangingDecision();		//to decide which lane to move, the returns are same as above
-	void excuteLaneChanging();			//to execute the lane changing, meanwhile, check if crash will happen and avoid it
-	bool checkForCrash();				//to check if the crash may happen
+	Agent* getNextForBDriver(bool isLeft,bool isFront);	///<for updating LF LB RF RB
+
+	///check if the gap of the left lane and the right lane is available
+    ///returns a bitflag of the LANE_SIDE enum
+	unsigned int gapAcceptance();
+
+	double makeLaneChangingDecision();		///<to decide which lane to move. Returns 1 for Right, -1 for Left, and 0 for neither.
+	void excuteLaneChanging();			///<to execute the lane changing, meanwhile, check if crash will happen and avoid it
+	bool checkForCrash();				///<to check if the crash may happen
 
 
 	/*****************FUNCTIONS FOR UPDATING****************/

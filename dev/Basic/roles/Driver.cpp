@@ -257,9 +257,7 @@ double sim_mob::Driver::getDistance()
 	if(leader == nullptr) {
 		return MAX_NUM;
 	} else {
-		double temp=leader->xPos.get()-parent->xPos.get()-length;
-		//return (temp<0)?0:temp;
-		return max(0.0, temp); //Equivalent. ~Seth
+		return max(0.0, leader->xPos.get()-parent->xPos.get()-length);
 	}
 }
 
@@ -327,10 +325,11 @@ double sim_mob::Driver::accOfEmergencyDecelerating()
 
 double sim_mob::Driver::accOfCarFollowing()
 {
-	double alpha[] 	=	{1,1};		//[0] for positive   [1] for negative
-	double beta[] 		=	{1,1};
-	double gama[]		=	{1,1};
+	const double alpha[] 	=	{1,1};		//[0] for positive   [1] for negative
+	const double beta[] 		=	{1,1};
+	const double gama[]		=	{1,1};
 	double v			=	parent->xVel.get();
+
 	int i = (v > v_lead) ? 1 : 0;
 
 	double acc_ = alpha[i] * pow(v , beta[i]) /pow(space , gama[i]) * (v_lead - v);
@@ -426,7 +425,7 @@ Agent* sim_mob::Driver::getNextForBDriver(bool isLeft,bool isFront)
 
 unsigned int sim_mob::Driver::gapAcceptance()
 {
-	int border[2]={0,2};				//[0] for left, [1] for right
+	const int border[2]={0,2};				//[0] for left, [1] for right
 	LF=getNextForBDriver(true,true);
 	LB=getNextForBDriver(true,false);
 	RF=getNextForBDriver(false,true);
@@ -490,20 +489,23 @@ double sim_mob::Driver::makeLaneChangingDecision()
 
 	//bool left,right;
 	double s=getDistance();
-	double sl,sr;
+	//double sl,sr;
 
+	double sr = MAX_NUM;
 	if(RF!=nullptr) {
 		sr=RF->xPos.get()-parent->xPos.get()-length;
-	} else {
+	} /*else {
 		sr=MAX_NUM;
-	}
+	}*/
 
 	bool right = (s<sr);
+
+	double sl = MAX_NUM;
 	if(LF!=nullptr) {
 		sl=LF->xPos.get()-parent->xPos.get()-length;
-	} else {
+	} /*else {
 		sl=MAX_NUM;
-	}
+	}*/
 
 	bool left = (s<sl);
 	if(freeRight && !freeLeft && right) {

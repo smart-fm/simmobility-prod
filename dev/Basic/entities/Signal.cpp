@@ -129,8 +129,12 @@ void sim_mob :: Signal :: setnextCL (double DS)
 	prevRL1 = RL1;
 
 
-	if(RL >= currCL)sign = 1;
-	else sign = -1;
+	sign = (RL >= currCL) ? 1 : -1;  //This is equivalent.
+	/*if(RL >= currCL) {
+		sign = 1;
+	} else {
+		sign = -1;
+	}*/
 
 	//set the maximum change as 6s
 	if (abs(RL - currCL) <= 6) {

@@ -94,7 +94,7 @@ private:
 	double prevRL1,prevRL2;
 
 	//SplitPlan that can be chosen to use
-	double SplitPlan1[4], SplitPlan2[4], SplitPlan3[4], SplitPlan4[4], SplitPlan5[4];
+	static const double SplitPlan1[], SplitPlan2[], SplitPlan3[], SplitPlan4[], SplitPlan5[];
 
 	//current and next SplitPlan
 	double currSplitPlan[4],nextSplitPlan[4];

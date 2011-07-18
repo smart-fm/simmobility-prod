@@ -21,6 +21,13 @@ double CL_low = 70, CL_up = 120;
 double Off_low = 5, Off_up = 26;
 
 
+const double sim_mob::Signal::SplitPlan1[] = {0.30, 0.30, 0.20, 0.20};
+const double sim_mob::Signal::SplitPlan2[] = {0.20, 0.35, 0.20, 0.25};
+const double sim_mob::Signal::SplitPlan3[] = {0.35, 0.35, 0.20, 0.10};
+const double sim_mob::Signal::SplitPlan4[] = {0.35, 0.30, 0.10, 0.25};
+const double sim_mob::Signal::SplitPlan5[] = {0.20, 0.35, 0.25, 0.20};
+
+
 
 sim_mob :: Signal :: Signal()
 {
@@ -33,11 +40,11 @@ sim_mob :: Signal :: Signal()
 void sim_mob :: Signal :: startSplitPlan()
 {
 	//SplitPlans
-	SplitPlan1 = {0.30, 0.30, 0.20, 0.20};
-	SplitPlan2 = {0.20, 0.35, 0.20, 0.25};
-	SplitPlan3 = {0.35, 0.35, 0.20, 0.10};
-	SplitPlan4 = {0.35, 0.30, 0.10, 0.25};
-	SplitPlan5 = {0.20, 0.35, 0.25, 0.20};
+//	SplitPlan1 = {0.30, 0.30, 0.20, 0.20};
+//	SplitPlan2 = {0.20, 0.35, 0.20, 0.25};
+//	SplitPlan3 = {0.35, 0.35, 0.20, 0.10};
+//	SplitPlan4 = {0.35, 0.30, 0.10, 0.25};
+//	SplitPlan5 = {0.20, 0.35, 0.25, 0.20};
 
 	currSplitPlanID=1;
 	for(int i = 0; i < 4; i++)
@@ -135,7 +142,8 @@ void sim_mob :: Signal :: setnextSplitPlan (double DS[4])
 {
 	double proDS[4];// projected DS
 	double maxproDS[6];// max projected DS of each SplitPlan
-	int i;
+	//int i;
+
 	//Calculate max proDS of SplitPlan1
 	proDS[0] = DS[0] * currSplitPlan[0] / SplitPlan1[0];
 	proDS[1] = DS[1] * currSplitPlan[1] / SplitPlan1[1];

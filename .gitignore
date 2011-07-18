@@ -9,3 +9,6 @@ dev/Basic/doxy/output/
 #Ignore gedit backup files
 *~
 
+#Ignore vim .swp files.
+.*.swp
+.*.swo

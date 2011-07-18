@@ -495,26 +495,53 @@ double sim_mob::Driver::makeLaneChangingDecision()
 	bool left,right;
 	double s=getDistance();
 	double sl,sr;
-	if(RF!=NULL)sr=RF->xPos.get()-parent->xPos.get()-length;
-	else sr=MAX_NUM;
-	if(s<sr)right=true;
-	else right=false;
-	if(LF!=NULL)sl=LF->xPos.get()-parent->xPos.get()-length;
-	else sl=MAX_NUM;
-	if(s<sl)left=true;
-	else left=false;
-	if(i==1 && right)return 1;
-	if(i==-1 && left)return -1;
+
+	if(RF!=nullptr) {
+		sr=RF->xPos.get()-parent->xPos.get()-length;
+	} else {
+		sr=MAX_NUM;
+	}
+	if(s<sr) {
+		right=true;
+	} else {
+		right=false;
+	}
+	if(LF!=NULL) {
+		sl=LF->xPos.get()-parent->xPos.get()-length;
+	} else {
+		sl=MAX_NUM;
+	}
+	if(s<sl) {
+		left=true;
+	} else {
+		left=false;
+	}
+	if(i==1 && right) {
+		return 1;
+	}
+	if(i==-1 && left) {
+		return -1;
+	}
 	if(i==2){
 		if(right && left){
-			if(sr>sl)return 1;
-			else if(sr<sl)return -1;
-			else return 2*rand()%2-1;
+			if(sr>sl) {
+				return 1;
+			} else if(sr<sl){
+				return -1;
+			} else {
+				return 2*rand()%2-1;
+			}
 			//else return 1;
 		}
-		if(right && !left)return 1;
-		if(!right && left)return -1;
-		if(!right && !left)return 0;
+		if(right && !left) {
+			return 1;
+		}
+		if(!right && left) {
+			return -1;
+		}
+		if(!right && !left) {
+			return 0;
+		}
 	}
 	return 0;
 }
@@ -527,10 +554,12 @@ void sim_mob::Driver::excuteLaneChanging()
 		fromLane=getLane();
 		toLane=getLane()+change;
 	}
-	if(changeDecision==0)yPos=parent->yPos.get();
-	else{
+
+	if(changeDecision==0) {
+		yPos=parent->yPos.get();
+	} else {
 		// when crash will happen, exchange the leaving lane and target lane
-		if(checkForCrash() && !isback){
+		if(checkForCrash() && !isback) {
 			int tmp;
 			tmp=fromLane;
 			fromLane=toLane;
@@ -546,13 +575,16 @@ void sim_mob::Driver::excuteLaneChanging()
 
 bool sim_mob::Driver::checkForCrash()
 {
-	if(!ischanging)return false;
-	Agent* other = NULL;
+	if(!ischanging) {
+		return false;
+	}
+	const Agent* other = nullptr;
+
 	for (size_t i=0; i<Agent::all_agents.size(); i++) {
 		//Skip self
 		other = Agent::all_agents[i];
 		if (other->getId()==parent->getId()) {
-			other = NULL;
+			//other = NULL;
 			continue;
 		}
 		//Check. when other vehicle is too close to subject vehicle, crash will happen

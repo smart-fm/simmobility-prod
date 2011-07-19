@@ -48,6 +48,15 @@ Node getNode(int id) {
   throw new RuntimeException("No node with id: " + id);
 }
 
+class DPoint {
+  double x;
+  double y;
+  DPoint(double x, double y) {
+    this.x = x;
+    this.y = y;
+  }
+}
+
 
 
 ArrayList<Section> sections = new ArrayList<Section>();
@@ -60,8 +69,7 @@ class Section {
 
   Node from;
   Node to;
-  ArrayList<Double> polyLineX = new ArrayList<Double>();
-  ArrayList<Double> polyLineY = new ArrayList<Double>();
+  ArrayList<DPoint> polyline = new ArrayList<DPoint>();
 };
 Section getSection(int id) {
   for (int i=0; i<sections.size(); i++) {
@@ -144,12 +152,12 @@ void draw()
     //Polyline
     stroke(0x00, 0x00, 0x99);
     strokeWeight(0.5);
-    if (s.polyLineX.size()>2 && s.polyLineX.size() == s.polyLineY.size()) {
-      for (int i=1; i<s.polyLineX.size(); i++) {
+    if (s.polyline.size()>2) {
+      for (int i=1; i<s.polyline.size(); i++) {
         //Draw from X to Xprev
-        int[] from = new int[]{scaleX(s.polyLineX.get(i-1)), scaleY(s.polyLineY.get(i-1))};
-        int[] to = new int[]{scaleX(s.polyLineX.get(i)), scaleY(s.polyLineY.get(i))};
-        line(from[0], from[1], to[0], to[1]); 
+        DPoint from = s.polyline.get(i-1);
+        DPoint to = s.polyline.get(i);
+        line(scaleX(from.x), scaleY(from.y), scaleX(to.x), scaleY(to.y)); 
       }
     }
     
@@ -265,8 +273,7 @@ void readPolylines(String polylinesFile) throws IOException
   //Initialize polylines
   for (int i=0; i<sections.size(); i++) {
     Section s = sections.get(i);
-    s.polyLineX.add(s.from.xPos);
-    s.polyLineY.add(s.from.yPos);
+    s.polyline.add(new DPoint(s.from.xPos, s.from.yPos));
   }
     
   //Read line-by-line
@@ -289,8 +296,7 @@ void readPolylines(String polylinesFile) throws IOException
       Section s = getSection(Integer.parseInt(items[0]));
       double x = Double.parseDouble(items[1]);
       double y = Double.parseDouble(items[2]);
-      s.polyLineX.add(x);
-      s.polyLineY.add(y);
+      s.polyline.add(new DPoint(x, y));
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }
@@ -299,8 +305,7 @@ void readPolylines(String polylinesFile) throws IOException
   //Finalize polylines
   for (int i=0; i<sections.size(); i++) {
     Section s = sections.get(i);
-    s.polyLineX.add(s.to.xPos);
-    s.polyLineY.add(s.to.yPos);
+    s.polyline.add(new DPoint(s.to.xPos, s.to.yPos));
   }
 }
 

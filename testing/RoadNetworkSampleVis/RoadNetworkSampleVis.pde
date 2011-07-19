@@ -60,7 +60,17 @@ class Section {
 
   Node from;
   Node to;
+  ArrayList<Double> polyLineX = new ArrayList<Double>();
+  ArrayList<Double> polyLineY = new ArrayList<Double>();
 };
+Section getSection(int id) {
+  for (int i=0; i<sections.size(); i++) {
+    if (sections.get(i).id == id) {
+      return sections.get(i);
+    }
+  }
+  throw new RuntimeException("No section with id: " + id);
+}
 
 
 
@@ -78,6 +88,7 @@ void setup()
   try {
     readNodes("nodes.txt");
     readSections("sections.txt");
+    readPolylines("polylines.txt");
   } catch (IOException ex) {
     throw new RuntimeException(ex);
   }
@@ -117,11 +128,12 @@ void draw()
   textFont(f2);
   textAlign(CENTER);
   Set<String> alreadyDrawn = new HashSet<String>();
-  for (int i=0; i<sections.size(); i++) {
-    Section s = sections.get(i);
+  for (int secID=0; secID<sections.size(); secID++) {
+    Section s = sections.get(secID);
     
     //Draw the Euclidean line representing this section.
     stroke(0x00, 0x99, 0x00);
+    strokeWeight(2.0);
     fill(0x00, 0xCC, 0x00);
     int fromX = s.from.getX();
     int fromY = s.from.getY();
@@ -129,8 +141,21 @@ void draw()
     int toY = s.to.getY();
     line(fromX, fromY, toX, toY);
     
+    //Polyline
+    stroke(0x00, 0x00, 0x99);
+    strokeWeight(0.5);
+    if (s.polyLineX.size()>2 && s.polyLineX.size() == s.polyLineY.size()) {
+      for (int i=1; i<s.polyLineX.size(); i++) {
+        //Draw from X to Xprev
+        int[] from = new int[]{scaleX(s.polyLineX.get(i-1)), scaleY(s.polyLineY.get(i-1))};
+        int[] to = new int[]{scaleX(s.polyLineX.get(i)), scaleY(s.polyLineY.get(i))};
+        line(from[0], from[1], to[0], to[1]); 
+      }
+    }
+    
     //Write the road name. Only do this once for each section, unless there's a conflict.
     String key = Math.min(s.from.id,s.to.id) + ":" + Math.max(s.from.id,s.to.id) + ":" + s.name; 
+    strokeWeight(1);
     if (!alreadyDrawn.contains(key)) {
       fill(0x33);
       text(s.name, fromX+(toX-fromX)/2, fromY+(toY-fromY)/2); 
@@ -213,7 +238,7 @@ void readSections(String sectionsFile) throws IOException
       throw new RuntimeException("Bad line in sections file: " + nextLine);
     }
     
-    //Create a Node, populate it.
+    //Create a Section, populate it.
     Section s = new Section();
     try {
       s.id = Integer.parseInt(items[0]);
@@ -230,6 +255,55 @@ void readSections(String sectionsFile) throws IOException
     sections.add(s);
   }
 }
+
+
+
+void readPolylines(String polylinesFile) throws IOException
+{ 
+  String lines[] = loadStrings(polylinesFile);
+  
+  //Initialize polylines
+  for (int i=0; i<sections.size(); i++) {
+    Section s = sections.get(i);
+    s.polyLineX.add(s.from.xPos);
+    s.polyLineY.add(s.from.yPos);
+  }
+    
+  //Read line-by-line
+  for (int lineID=0; lineID<lines.length; lineID++) {
+    String nextLine = lines[lineID].trim();
+    
+    //Skip this line?
+    if (nextLine.startsWith("#") || nextLine.isEmpty()) {
+      continue;
+    }
+    
+    //Parse: (agentID, tickID, xPos, yPos, phase)
+    String[] items = nextLine.split("\t");
+    if (items.length != 3) {
+      throw new RuntimeException("Bad line in polylines file: " + nextLine);
+    }
+    
+    //Tie this polyline to a segment.
+    try {
+      Section s = getSection(Integer.parseInt(items[0]));
+      double x = Double.parseDouble(items[1]);
+      double y = Double.parseDouble(items[2]);
+      s.polyLineX.add(x);
+      s.polyLineY.add(y);
+    } catch (Exception ex) {
+      throw new RuntimeException(ex);
+    }
+  }
+  
+  //Finalize polylines
+  for (int i=0; i<sections.size(); i++) {
+    Section s = sections.get(i);
+    s.polyLineX.add(s.to.xPos);
+    s.polyLineY.add(s.to.yPos);
+  }
+}
+
 
 
 

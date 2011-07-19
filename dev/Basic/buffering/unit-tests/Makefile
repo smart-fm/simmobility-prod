@@ -23,7 +23,8 @@ BufferedUnitTests.o: \
     BufferedUnitTests.cpp \
     ../BufferedDataManager.hpp \
     ../Buffered.hpp \
-    ../Buffered_uint32.hpp
+    ../Buffered_uint32.hpp \
+    ../Vector2D.hpp
 
 main.o: main.cpp
 

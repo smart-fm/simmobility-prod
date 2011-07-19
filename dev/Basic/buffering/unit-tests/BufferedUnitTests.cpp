@@ -471,7 +471,7 @@ void BufferedUnitTests::test_BufferedDataManager_stopManaging()
     CPPUNIT_ASSERT(0 == mgr2.managed_data_count());
 }
 
-void BufferedUnitTests::test_the_Vector2D_class()
+void BufferedUnitTests::test_the_Vector2D_float_class()
 {
     // This is lazy: the better approach is to have a separate method of the BufferedUnitTests
     // class for each of the test-cases below.  If any of the test-cases fail, cppunit doesn't
@@ -479,30 +479,30 @@ void BufferedUnitTests::test_the_Vector2D_class()
 
     {
         // Testing the default constructor.
-        sim_mob::Vector2D origin;
+        sim_mob::Vector2D<float> origin;
         CPPUNIT_ASSERT(0.0f == origin.getX());
         CPPUNIT_ASSERT(0.0f == origin.getY());
     }
 
     {
         // Testing the constructor.
-        sim_mob::Vector2D vec(3, 4);
+        sim_mob::Vector2D<float> vec(3, 4);
         CPPUNIT_ASSERT(3.0f == vec.getX());
         CPPUNIT_ASSERT(4.0f == vec.getY());
     }
 
     {
         // Testing the copy constructor.
-        sim_mob::Vector2D vec1(3, 4);
-        sim_mob::Vector2D vec2(vec1);
+        sim_mob::Vector2D<float> vec1(3, 4);
+        sim_mob::Vector2D<float> vec2(vec1);
         CPPUNIT_ASSERT(3.0f == vec2.getX());
         CPPUNIT_ASSERT(4.0f == vec2.getY());
     }
 
     {
         // Testing the copy assignment.
-        sim_mob::Vector2D vec1(3, 4);
-        sim_mob::Vector2D vec2(5, 12);
+        sim_mob::Vector2D<float> vec1(3, 4);
+        sim_mob::Vector2D<float> vec2(5, 12);
         CPPUNIT_ASSERT(5.0f == vec2.getX());
         CPPUNIT_ASSERT(12.0f == vec2.getY());
         vec2 = vec1;
@@ -510,14 +510,14 @@ void BufferedUnitTests::test_the_Vector2D_class()
         CPPUNIT_ASSERT(4.0f == vec2.getY());
 
         // Yet another assignment to the 0 vector (the origin).
-        vec2 = sim_mob::Vector2D();
+        vec2 = sim_mob::Vector2D<float>();
         CPPUNIT_ASSERT(0.0f == vec2.getX());
         CPPUNIT_ASSERT(0.0f == vec2.getY());
     }
 
     {
         // Testing setX() and setY().
-        sim_mob::Vector2D vec(3, 4);
+        sim_mob::Vector2D<float> vec(3, 4);
         CPPUNIT_ASSERT(3.0f == vec.getX());
         CPPUNIT_ASSERT(4.0f == vec.getY());
         vec.setX(5.0f);
@@ -530,16 +530,16 @@ void BufferedUnitTests::test_the_Vector2D_class()
 
     {
         // Testing the += operator.
-        sim_mob::Vector2D vec1(3, 4);
+        sim_mob::Vector2D<float> vec1(3, 4);
         CPPUNIT_ASSERT(3.0f == vec1.getX());
         CPPUNIT_ASSERT(4.0f == vec1.getY());
-        sim_mob::Vector2D vec2(5, 12);
+        sim_mob::Vector2D<float> vec2(5, 12);
         vec1 += vec2;
         CPPUNIT_ASSERT(8.0f == vec1.getX());
         CPPUNIT_ASSERT(16.0f == vec1.getY());
 
         // Adding the 0 vector will not change anything.
-        vec1 += sim_mob::Vector2D();
+        vec1 += sim_mob::Vector2D<float>();
         CPPUNIT_ASSERT(8.0f == vec1.getX());
         CPPUNIT_ASSERT(16.0f == vec1.getY());
 
@@ -549,33 +549,33 @@ void BufferedUnitTests::test_the_Vector2D_class()
         CPPUNIT_ASSERT(2 * 16.0f == vec1.getY());
 
         // Adding the inverse should result in the 0 vector.
-        vec1 += sim_mob::Vector2D(-16, -32);
+        vec1 += sim_mob::Vector2D<float>(-16, -32);
         CPPUNIT_ASSERT(0.0f == vec1.getX());
         CPPUNIT_ASSERT(0.0f == vec1.getY());
     }
 
     {
         // Testing the -= operator.
-        sim_mob::Vector2D vec1(3, 4);
+        sim_mob::Vector2D<float> vec1(3, 4);
         CPPUNIT_ASSERT(3.0f == vec1.getX());
         CPPUNIT_ASSERT(4.0f == vec1.getY());
-        sim_mob::Vector2D vec2(5, 12);
+        sim_mob::Vector2D<float> vec2(5, 12);
         vec1 -= vec2;
         CPPUNIT_ASSERT(-2.0f == vec1.getX());
         CPPUNIT_ASSERT(-8.0f == vec1.getY());
 
         // Subtracting the 0 vector will not change anything.
-        vec1 -= sim_mob::Vector2D();
+        vec1 -= sim_mob::Vector2D<float>();
         CPPUNIT_ASSERT(-2.0f == vec1.getX());
         CPPUNIT_ASSERT(-8.0f == vec1.getY());
 
         // Subtracting the inverse should result in the 0 vector.
-        vec1 -= sim_mob::Vector2D(-2, -8);
+        vec1 -= sim_mob::Vector2D<float>(-2, -8);
         CPPUNIT_ASSERT(0.0f == vec1.getX());
         CPPUNIT_ASSERT(0.0f == vec1.getY());
 
         // Subtracting itself will also result in the 0 vector.
-        vec1 = sim_mob::Vector2D(3, 4);
+        vec1 = sim_mob::Vector2D<float>(3, 4);
         vec1 -= vec1;
         CPPUNIT_ASSERT(0.0f == vec1.getX());
         CPPUNIT_ASSERT(0.0f == vec1.getY());
@@ -583,10 +583,10 @@ void BufferedUnitTests::test_the_Vector2D_class()
 
     {
         // Testing the += and -= operators.
-        sim_mob::Vector2D vec(3, 4);
+        sim_mob::Vector2D<float> vec(3, 4);
         CPPUNIT_ASSERT(3.0f == vec.getX());
         CPPUNIT_ASSERT(4.0f == vec.getY());
-        sim_mob::Vector2D delta(0.1, 0.3);
+        sim_mob::Vector2D<float> delta(0.1, 0.3);
         vec += delta;
         CPPUNIT_ASSERT(3 + 0.1f == vec.getX());
         CPPUNIT_ASSERT(4 + 0.3f == vec.getY());
@@ -595,7 +595,7 @@ void BufferedUnitTests::test_the_Vector2D_class()
         CPPUNIT_ASSERT(4.0f == vec.getY());
 
         // Reverse order: -= first before +=
-        delta = sim_mob::Vector2D(3.14159f, 2.71828f);
+        delta = sim_mob::Vector2D<float>(3.14159f, 2.71828f);
         vec -= delta;
         CPPUNIT_ASSERT(3 - 3.14159f == vec.getX());
         CPPUNIT_ASSERT(4 - 2.71828f == vec.getY());
@@ -606,7 +606,7 @@ void BufferedUnitTests::test_the_Vector2D_class()
 
     {
         // Testing the *= operator.
-        sim_mob::Vector2D vec(3, 4);
+        sim_mob::Vector2D<float> vec(3, 4);
         CPPUNIT_ASSERT(3.0f == vec.getX());
         CPPUNIT_ASSERT(4.0f == vec.getY());
         vec *= 2;
@@ -626,7 +626,7 @@ void BufferedUnitTests::test_the_Vector2D_class()
 
     {
         // Testing the /= operator.
-        sim_mob::Vector2D vec(3, 4);
+        sim_mob::Vector2D<float> vec(3, 4);
         CPPUNIT_ASSERT(3.0f == vec.getX());
         CPPUNIT_ASSERT(4.0f == vec.getY());
         vec /= 2;
@@ -641,7 +641,7 @@ void BufferedUnitTests::test_the_Vector2D_class()
 
     {
         // Testing the *= and /= operators.
-        sim_mob::Vector2D vec(3, 4);
+        sim_mob::Vector2D<float> vec(3, 4);
         CPPUNIT_ASSERT(3.0f == vec.getX());
         CPPUNIT_ASSERT(4.0f == vec.getY());
         vec *= 3.14159f;
@@ -662,28 +662,28 @@ void BufferedUnitTests::test_the_Vector2D_class()
 
     {
         // Testing the == and != operators.
-        sim_mob::Vector2D vec1(2, 4);
-        sim_mob::Vector2D vec2(vec1);
+        sim_mob::Vector2D<float> vec1(2, 4);
+        sim_mob::Vector2D<float> vec2(vec1);
         CPPUNIT_ASSERT(vec1 == vec2);
 
-        vec1 += sim_mob::Vector2D(0.1, -0.3);
+        vec1 += sim_mob::Vector2D<float>(0.1, -0.3);
         CPPUNIT_ASSERT(vec1 != vec2);
 
         vec2.setX(vec1.getX());
         vec2.setY(vec1.getY());
         CPPUNIT_ASSERT(vec1 == vec2);
 
-        CPPUNIT_ASSERT(vec1 != sim_mob::Vector2D());
+        CPPUNIT_ASSERT(vec1 != sim_mob::Vector2D<float>());
 
         vec1 -= vec2;
-        CPPUNIT_ASSERT(vec1 == sim_mob::Vector2D());
+        CPPUNIT_ASSERT(vec1 == sim_mob::Vector2D<float>());
     }
 
     {
         // Testing the + and - operators.
-        const sim_mob::Vector2D vec1(3, 4);
-        const sim_mob::Vector2D vec2(5, 12);
-        sim_mob::Vector2D vec3;
+        const sim_mob::Vector2D<float> vec1(3, 4);
+        const sim_mob::Vector2D<float> vec2(5, 12);
+        sim_mob::Vector2D<float> vec3;
         CPPUNIT_ASSERT(0.0f == vec3.getX());
         CPPUNIT_ASSERT(0.0f == vec3.getY());
 
@@ -691,7 +691,7 @@ void BufferedUnitTests::test_the_Vector2D_class()
         CPPUNIT_ASSERT(8.0f == vec3.getX());
         CPPUNIT_ASSERT(16.0f == vec3.getY());
 
-        vec3 = vec1 + vec2 + sim_mob::Vector2D(3.14159f, 2.71828f);
+        vec3 = vec1 + vec2 + sim_mob::Vector2D<float>(3.14159f, 2.71828f);
         CPPUNIT_ASSERT(8 + 3.14159f == vec3.getX());
         CPPUNIT_ASSERT(16 + 2.71828f == vec3.getY());
 
@@ -699,21 +699,21 @@ void BufferedUnitTests::test_the_Vector2D_class()
         CPPUNIT_ASSERT(-2.0f == vec3.getX());
         CPPUNIT_ASSERT(-8.0f == vec3.getY());
 
-        vec3 = vec1 + sim_mob::Vector2D(3.14159f, 2.71828f) - vec2;
+        vec3 = vec1 + sim_mob::Vector2D<float>(3.14159f, 2.71828f) - vec2;
         CPPUNIT_ASSERT(-2 + 3.14159f == vec3.getX());
         CPPUNIT_ASSERT(-8 + 2.71828f == vec3.getY());
 
-        CPPUNIT_ASSERT((vec3 - vec3) == sim_mob::Vector2D());
+        CPPUNIT_ASSERT((vec3 - vec3) == sim_mob::Vector2D<float>());
     }
 
     {
         // Testing the * and / operators.
-        const sim_mob::Vector2D vec1(3, 4);
-        CPPUNIT_ASSERT((3.14159f * vec1) == sim_mob::Vector2D(3 * 3.14159f, 4 * 3.14159f));
-        CPPUNIT_ASSERT((vec1 * 3.14159f) == sim_mob::Vector2D(3 * 3.14159f, 4 * 3.14159f));
-        CPPUNIT_ASSERT((vec1 / 3.14159f) == sim_mob::Vector2D(3 / 3.14159f, 4 / 3.14159f));
+        const sim_mob::Vector2D<float> vec1(3, 4);
+        CPPUNIT_ASSERT((3.14159f * vec1) == sim_mob::Vector2D<float>(3 * 3.14159f, 4 * 3.14159f));
+        CPPUNIT_ASSERT((vec1 * 3.14159f) == sim_mob::Vector2D<float>(3 * 3.14159f, 4 * 3.14159f));
+        CPPUNIT_ASSERT((vec1 / 3.14159f) == sim_mob::Vector2D<float>(3 / 3.14159f, 4 / 3.14159f));
 
-        sim_mob::Vector2D vec2;
+        sim_mob::Vector2D<float> vec2;
         CPPUNIT_ASSERT(0.0f == vec2.getX());
         CPPUNIT_ASSERT(0.0f == vec2.getY());
         // Hope that the compiler will not optimize the next line to "vec1 * 1.15572f"
@@ -727,7 +727,7 @@ void BufferedUnitTests::test_the_Vector2D_class()
 
     {
         // Testing length().
-        sim_mob::Vector2D vec(3, 4);
+        sim_mob::Vector2D<float> vec(3, 4);
         CPPUNIT_ASSERT(length(vec) == 5.0f);
 
         vec.setX(5);
@@ -740,12 +740,12 @@ void BufferedUnitTests::test_the_Vector2D_class()
 
     {
         // Testing normalize().
-        sim_mob::Vector2D vec1(3, 4);
-        CPPUNIT_ASSERT(normalize(vec1) == sim_mob::Vector2D(0.6f, 0.8f));
+        sim_mob::Vector2D<float> vec1(3, 4);
+        CPPUNIT_ASSERT(normalize(vec1) == sim_mob::Vector2D<float>(0.6f, 0.8f));
 
         vec1.setX(5);
         vec1.setY(12);
-        sim_mob::Vector2D vec2 = normalize(vec1);
+        sim_mob::Vector2D<float> vec2 = normalize(vec1);
         CPPUNIT_ASSERT(5 / 13.0f == vec2.getX());
         CPPUNIT_ASSERT(12 / 13.0f == vec2.getY());
         CPPUNIT_ASSERT(length(vec2) == 1.0f);
@@ -753,20 +753,20 @@ void BufferedUnitTests::test_the_Vector2D_class()
 
     {
         // Testing the unary - operator.
-        const sim_mob::Vector2D vec1(3, 4);
-        sim_mob::Vector2D vec2(-vec1);
+        const sim_mob::Vector2D<float> vec1(3, 4);
+        sim_mob::Vector2D<float> vec2(-vec1);
         CPPUNIT_ASSERT(-3.0f == vec2.getX());
         CPPUNIT_ASSERT(-4.0f == vec2.getY());
 
         // The inverse of the 0 vector is itself.
-        vec2 = -sim_mob::Vector2D();
-        CPPUNIT_ASSERT(vec2 == sim_mob::Vector2D());
+        vec2 = -sim_mob::Vector2D<float>();
+        CPPUNIT_ASSERT(vec2 == sim_mob::Vector2D<float>());
     }
 
     {
         // Testing the dot product.
-        const sim_mob::Vector2D vec1(3, 4);
-        const sim_mob::Vector2D vec2(5, 12);
+        const sim_mob::Vector2D<float> vec1(3, 4);
+        const sim_mob::Vector2D<float> vec2(5, 12);
         // The inner product remains the same when the order is reversed.
         CPPUNIT_ASSERT((vec1 * vec2) == (vec2 * vec1));
 
@@ -779,7 +779,7 @@ void BufferedUnitTests::test_the_Vector2D_class()
 
         // The dot product of a vector and its normal is 0.  The normal, the vector that
         // is perpendicular to vec(x, y), can be simply calcuated as vec(-y, x) or vec(y, -x).
-        const sim_mob::Vector2D vec3(-vec1.getY(), vec1.getX());
+        const sim_mob::Vector2D<float> vec3(-vec1.getY(), vec1.getX());
         CPPUNIT_ASSERT((vec1 * vec3) == 0.0f);
         CPPUNIT_ASSERT((vec1 * -vec3) == 0.0f);
 
@@ -787,7 +787,7 @@ void BufferedUnitTests::test_the_Vector2D_class()
         // the 2 vectors are in opposite directions.
         float len1 = length(vec1);
         CPPUNIT_ASSERT((vec1 * -vec1) == -(len1 * len1));
-        const sim_mob::Vector2D vec4(vec1 / 2);
+        const sim_mob::Vector2D<float> vec4(vec1 / 2);
         CPPUNIT_ASSERT((vec1 * vec4) == (len1 * len1/2));
     }
 }

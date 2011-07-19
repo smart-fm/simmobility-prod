@@ -154,7 +154,7 @@ public:
      *
      * This test confirms that all methods of the Vector2D class work correctly.
      */
-    void test_the_Vector2D_class();
+    void test_the_Vector2D_float_class();
 
 private:
     CPPUNIT_TEST_SUITE(BufferedUnitTests);
@@ -174,7 +174,7 @@ private:
         CPPUNIT_TEST(test_BufferedDataManager_doubleBeginManage);
         CPPUNIT_TEST(test_BufferedDataManager_doubleStopManaging);
         CPPUNIT_TEST(test_BufferedDataManager_stopManaging);
-        CPPUNIT_TEST(test_the_Vector2D_class);
+        CPPUNIT_TEST(test_the_Vector2D_float_class);
     CPPUNIT_TEST_SUITE_END();
 };
 

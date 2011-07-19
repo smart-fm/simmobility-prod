@@ -123,6 +123,7 @@ void setup()
     readNodes("nodes.txt");
     readSections("sections.txt");
     readPolylines("polylines.txt");
+    readConnectors("connectors.txt");
   } catch (IOException ex) {
     throw new RuntimeException(ex);
   }
@@ -154,7 +155,7 @@ void draw()
     //Intersection?
     if (n.isIntersection) {
       fill(0x99, 0x00, 0x00);
-      text("*I*", x, y+NODE_SIZE);
+      text("+", x, y+NODE_SIZE);
     }
   }
   
@@ -338,6 +339,44 @@ void readPolylines(String polylinesFile) throws IOException
   }
 }
 
+
+
+void readConnectors(String connectorsFile) throws IOException
+{ 
+  String lines[] = loadStrings(connectorsFile);
+    
+  //Read line-by-line
+  for (int lineID=0; lineID<lines.length; lineID++) {
+    String nextLine = lines[lineID].trim();
+    
+    //Skip this line?
+    if (nextLine.startsWith("#") || nextLine.isEmpty()) {
+      continue;
+    }
+    
+    //Parse: (agentID, tickID, xPos, yPos, phase)
+    String[] items = nextLine.split("\t");
+    if (items.length != 7) {
+      throw new RuntimeException("Bad line in connectors file: " + nextLine);
+    }
+    
+    //Create a Connector, populate it, add it to the right section.
+/*    Section s = new Section();
+    try {
+      s.id = Integer.parseInt(items[0]);
+      s.name = items[1].trim();
+      s.numLanes = Integer.parseInt(items[2]);
+      s.speed = Integer.parseInt(items[3]);
+      s.capacity = Integer.parseInt(items[4]);
+      s.from = getNode(Integer.parseInt(items[5]));
+      s.to = getNode(Integer.parseInt(items[6]));
+    } catch (Exception ex) {
+      throw new RuntimeException(ex);
+    }*/
+
+
+  }
+}
 
 
 

@@ -163,18 +163,16 @@ void draw()
     
     //Draw the circle
     stroke(0x99);
-    fill(0x00, 0xCC, 0xCC);
+    if (n.isIntersection) {
+      fill(0x99, 0x00, 0x00);
+    } else {
+      fill(0x00, 0xCC, 0xCC);
+    }
     ellipse(x, y, NODE_SIZE, NODE_SIZE);
     
     //Write its ID
     fill(0x33);
     text(""+(n.id), x, y); 
-    
-    //Intersection?
-    if (n.isIntersection) {
-      fill(0x99, 0x00, 0x00);
-      text("+", x, y+NODE_SIZE);
-    }
   }
   
   //Draw all sections

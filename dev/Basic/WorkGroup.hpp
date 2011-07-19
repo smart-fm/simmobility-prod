@@ -29,7 +29,7 @@ public:
 	//  tickStep is used to allow Workers to skip ticks; no barriers are locked.
 	SimpleWorkGroup(size_t size, unsigned int endTick=0, unsigned int tickStep=1);
 
-	~SimpleWorkGroup();
+	virtual ~SimpleWorkGroup();
 
 	//template <typename WorkType>  //For now, just assume Workers
 	void initWorkers(typename Worker<EntityType>::actionFunction* action = nullptr);

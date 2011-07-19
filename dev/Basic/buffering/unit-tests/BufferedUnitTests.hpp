@@ -149,6 +149,13 @@ public:
      */
     void test_BufferedDataManager_stopManaging();
 
+    /**
+     * Tests the Vector2D class.
+     *
+     * This test confirms that all methods of the Vector2D class work correctly.
+     */
+    void test_the_Vector2D_class();
+
 private:
     CPPUNIT_TEST_SUITE(BufferedUnitTests);
         CPPUNIT_TEST(test_default_Buffered_uint32_constructor);
@@ -167,6 +174,7 @@ private:
         CPPUNIT_TEST(test_BufferedDataManager_doubleBeginManage);
         CPPUNIT_TEST(test_BufferedDataManager_doubleStopManaging);
         CPPUNIT_TEST(test_BufferedDataManager_stopManaging);
+        CPPUNIT_TEST(test_the_Vector2D_class);
     CPPUNIT_TEST_SUITE_END();
 };
 

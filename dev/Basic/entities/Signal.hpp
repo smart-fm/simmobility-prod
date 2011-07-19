@@ -5,9 +5,6 @@
  *      Author: xrm
  */
 
-#ifndef SIGNAL_HPP_
-#define SIGNAL_HPP_
-
 #pragma once
 
 #include <vector>
@@ -34,40 +31,42 @@ namespace sim_mob
  *  updated and every agent should be able to get its information.
  *
  */
-class Signal {
+class Signal : public Entity {
 
 
 
 public:
-	Signal();
+	Signal(unsigned int id);
 
 	//DS:degree of saturation
-	void updateSignal(double DS[4]);
+	void updateSignal(double DS[]);
 
 	//set for the parameters in SCATS
-	void updateprevCL() {prevCL=currCL;}
-	void updatecurrCL() {currCL=nextCL;}
-	void updateprevRL1 (double RL1){prevRL1=RL1;}
-	void updateprevRL2 (double RL2){prevRL2=RL2;}
+	void updateprevCL();
+	void updatecurrCL();
+	void updateprevRL1 (double RL1);
+	void updateprevRL2 (double RL2);
 	void setnextCL (double DS);
 
-	void setCL (double prevCL1, double currCL1, double nextCL1)
-	{prevCL = prevCL1; currCL = currCL1; nextCL = nextCL1;}
-	void setRL (double RL1, double RL2)
-	{prevRL1 = RL1; prevRL2 = RL2;}
+	void setCL (double prevCL1, double currCL1, double nextCL1) {
+		prevCL = prevCL1;
+		currCL = currCL1;
+		nextCL = nextCL1;
+	}
+	void setRL (double RL1, double RL2) {
+		prevRL1 = RL1;
+		prevRL2 = RL2;
+	}
 
 	//initialize the SplitPlan for SCATS
 	void startSplitPlan();
-	void setnextSplitPlan(double DS[4]);
-	void updatecurrSplitPlanID(){currSplitPlanID = nextSplitPlanID;}
-	void updatecurrSplitPlan()
-	{
-		for(int i = 0; i < 4; i++)currSplitPlan[i] = nextSplitPlan[i];
-	}
+	void setnextSplitPlan(double DS[]);
+	void updatecurrSplitPlanID();
+	void updatecurrSplitPlan();
 
 	//Offset
 	void setnextOffset(double nextCL);
-	void updateOffset(){currOffset=nextOffset;}
+	void updateOffset();
 
 
 	//get the parameters in SCATS
@@ -81,10 +80,14 @@ public:
 	double getcurrOffset() {return currOffset;}
 	double getnextOffset() {return nextOffset;}
 
+	//Abstract methods. You will have to implement these eventually.
+	virtual void update(frame_t frameNumber) = 0;
+	virtual void buildSubscriptionList() = 0;
 
-	double fmax(double proDS[4]);
-	int fmin_ID(double maxproDS[6]);
-	int calvote(int vote1, int vote2, int vote3, int vote4, int vote5);
+
+	static double fmax(const double proDS[]);
+	static int fmin_ID(const double maxproDS[]);
+	static int calvote(unsigned int vote1, unsigned int vote2, unsigned int vote3, unsigned int vote4, unsigned int vote5);
 
 private:
 	//previous,current and next cycle length
@@ -94,10 +97,12 @@ private:
 	double prevRL1,prevRL2;
 
 	//SplitPlan that can be chosen to use
-	double SplitPlan1[4], SplitPlan2[4], SplitPlan3[4], SplitPlan4[4], SplitPlan5[4];
+	static const double SplitPlan1[], SplitPlan2[], SplitPlan3[], SplitPlan4[], SplitPlan5[];
 
 	//current and next SplitPlan
-	double currSplitPlan[4],nextSplitPlan[4];
+	std::vector<double>currSplitPlan;
+	std::vector<double>nextSplitPlan;
+	//double currSplitPlan[4],nextSplitPlan[4];
 
 
 	int currSplitPlanID,nextSplitPlanID;
@@ -113,4 +118,4 @@ private:
 }
 
 
-#endif /* SIGNAL_HPP_ */
+

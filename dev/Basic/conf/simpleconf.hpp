@@ -19,8 +19,8 @@ namespace sim_mob
 //Forward declarations
 class Agent;
 class Person;
-class Pedestrian;
-class Driver;
+//class Pedestrian;
+//class Driver;
 class Region;
 
 //Doesn't work for some reason.

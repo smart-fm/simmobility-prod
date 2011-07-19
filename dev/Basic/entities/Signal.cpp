@@ -12,17 +12,27 @@ using namespace sim_mob;
 
 double DS_all;
 
-//parameters for calculating next cycle length
-double DSmax = 0.9, DSmed = 0.5, DSmin = 0.3;
-double CLmax = 140, CLmed = 100, CLmin = 60;
+//Private namespace
+namespace {
+	//parameters for calculating next cycle length
+	const double  DSmax = 0.9, DSmed = 0.5, DSmin = 0.3;
+	const double CLmax = 140, CLmed = 100, CLmin = 60;
 
-//parameters for calculating next Offset
-double CL_low = 70, CL_up = 120;
-double Off_low = 5, Off_up = 26;
+	//parameters for calculating next Offset
+	const double CL_low = 70, CL_up = 120;
+	const double Off_low = 5, Off_up = 26;
+}
+
+
+const double sim_mob::Signal::SplitPlan1[] = {0.30, 0.30, 0.20, 0.20};
+const double sim_mob::Signal::SplitPlan2[] = {0.20, 0.35, 0.20, 0.25};
+const double sim_mob::Signal::SplitPlan3[] = {0.35, 0.35, 0.20, 0.10};
+const double sim_mob::Signal::SplitPlan4[] = {0.35, 0.30, 0.10, 0.25};
+const double sim_mob::Signal::SplitPlan5[] = {0.20, 0.35, 0.25, 0.20};
 
 
 
-sim_mob :: Signal :: Signal()
+sim_mob :: Signal :: Signal(unsigned int id) : sim_mob::Entity(id)
 {
 	setCL(60,60,60);//default initial cycle length for SCATS
 	setRL(60,60);//default initial RL for SCATS
@@ -32,18 +42,13 @@ sim_mob :: Signal :: Signal()
 //initialize SplitPlan
 void sim_mob :: Signal :: startSplitPlan()
 {
-	//SplitPlans
-	SplitPlan1 = {0.30, 0.30, 0.20, 0.20};
-	SplitPlan2 = {0.20, 0.35, 0.20, 0.25};
-	SplitPlan3 = {0.35, 0.35, 0.20, 0.10};
-	SplitPlan4 = {0.35, 0.30, 0.10, 0.25};
-	SplitPlan5 = {0.20, 0.35, 0.25, 0.20};
-
+	//CurrSplitPlan
 	currSplitPlanID=1;
-	for(int i = 0; i < 4; i++)
-	{
-		currSplitPlan[i] = SplitPlan1[i];
-	}
+	/*for(int i = 0; i < 4; i++) {
+		currSplitPlan.push_back(SplitPlan1[i]);
+	}*/
+	currSplitPlan.assign(SplitPlan1, SplitPlan1+4);  //This does the same thing as the for loop
+	nextSplitPlan.assign(4, 0); //Initialize to the number 0, four times.
 
 	//initialize votes for choosing SplitPlan
 	vote1 = 0;
@@ -55,7 +60,7 @@ void sim_mob :: Signal :: startSplitPlan()
 
 
 //Update Signal Light
-void sim_mob :: Signal :: updateSignal (double DS[4])
+void sim_mob :: Signal :: updateSignal (double DS[])
 {
 	//find the maximum DS
 	DS_all = fmax(DS);
@@ -80,62 +85,100 @@ void sim_mob :: Signal :: updateSignal (double DS[4])
 void sim_mob :: Signal :: setnextCL (double DS)
 {
 	//parameters in SCATS
-	double RL,RL0,RL1;
-	double diff_CL,diff_CL0;
+	double RL0;
+	//double diff_CL,diff_CL0;
 	double w1 = 0.45, w2 = 0.33, w3 = 0.22;
-	int sign;
+
 
 	//calculate RL0
-	if (DS <= DSmed)
+	if (DS <= DSmed) {
 		RL0 = CLmin + (DS - DSmin)*(CLmed - CLmin)/(DSmed - DSmin);
-	else if (DS>DSmed)
+	} else { //if (DS>DSmed)
 		RL0=CLmed + (DS - DSmed)*(CLmax - CLmed)/(DSmax - DSmed);
-	else {}
+	}
+	//else {}
 
 
-	if(RL0-currCL >= 0){diff_CL = RL0 - currCL; sign = 1;}
-	else {diff_CL = currCL - RL0; sign = -1;}
+	int sign;
+	double diff_CL;
+	if(RL0-currCL >= 0) {
+		diff_CL = RL0 - currCL; sign = 1;
+	} else {
+		diff_CL = currCL - RL0; sign = -1;
+	}
 
 
 
 	//modify the diff_CL0
-	if (diff_CL <= 4)diff_CL0 = diff_CL;
-	else if (diff_CL > 4 && diff_CL <= 8) diff_CL0 = 0.5*diff_CL + 2;
-	else diff_CL0 = 0.25*diff_CL + 4;
+	double diff_CL0;
+	if (diff_CL <= 4) {
+		diff_CL0 = diff_CL;
+	} else if (diff_CL > 4 && diff_CL <= 8) {
+		diff_CL0 = 0.5*diff_CL + 2;
+	} else {
+		diff_CL0 = 0.25*diff_CL + 4;
+	}
 
-	RL1 = currCL + sign*diff_CL0;
+	double RL1 = currCL + sign*diff_CL0;
 
 	//RL is partly determined by its previous values
-	RL=w1*RL1 + w2*prevRL1 + w3*prevRL2;
+	double RL = w1*RL1 + w2*prevRL1 + w3*prevRL2;
 
 	//update previous RL
 	prevRL2 = prevRL1;
 	prevRL1 = RL1;
 
 
-	if(RL >= currCL)sign = 1;
-	else sign = -1;
+	sign = (RL >= currCL) ? 1 : -1;  //This is equivalent.
+	/*if(RL >= currCL) {
+		sign = 1;
+	} else {
+		sign = -1;
+	}*/
 
 	//set the maximum change as 6s
-	if (abs(RL - currCL) <= 6)nextCL = RL;
-	else nextCL = currCL + sign*6;
+	if (abs(RL - currCL) <= 6) {
+		nextCL = RL;
+	} else {
+		nextCL = currCL + sign*6;
+	}
 
 	//when the maximum changes in last two cycle are both larger than 6s, the value can be set as 9s
-	if ( ((nextCL - currCL) >= 6 && (currCL - prevCL) >= 6) || ((nextCL - currCL) <= -6 && (currCL - prevCL) <= -6) )
-	{
-		if (abs(RL-currCL) <= 9)nextCL = RL;
-		else nextCL = currCL + sign*9;
+	if ( ((nextCL - currCL) >= 6 && (currCL - prevCL) >= 6) || ((nextCL - currCL) <= -6 && (currCL - prevCL) <= -6) ) {
+		if (abs(RL-currCL) <= 9) {
+			nextCL = RL;
+		} else {
+			nextCL = currCL + sign*9;
+		}
 	}
+}
+
+
+void sim_mob :: Signal :: updateprevCL() {
+	prevCL=currCL;
+}
+
+void sim_mob :: Signal :: updatecurrCL() {
+	currCL=nextCL;
+}
+
+void sim_mob :: Signal :: updateprevRL1 (double RL1){
+	prevRL1=RL1;
+}
+
+void sim_mob :: Signal :: updateprevRL2 (double RL2){
+	prevRL2=RL2;
 }
 
 
 
 //use DS to choose SplitPlan for next cycle
-void sim_mob :: Signal :: setnextSplitPlan (double DS[4])
+void sim_mob :: Signal :: setnextSplitPlan (double DS[])
 {
 	double proDS[4];// projected DS
 	double maxproDS[6];// max projected DS of each SplitPlan
-	int i;
+	//int i;
+
 	//Calculate max proDS of SplitPlan1
 	proDS[0] = DS[0] * currSplitPlan[0] / SplitPlan1[0];
 	proDS[1] = DS[1] * currSplitPlan[1] / SplitPlan1[1];
@@ -180,39 +223,46 @@ void sim_mob :: Signal :: setnextSplitPlan (double DS[4])
 	//update votes;
 	vote5=vote4;vote4=vote3;vote3=vote2;vote2=vote1;
 
-	//set next SplitPlan
+	//Get a reference to the SplitPlan array
+	const double* SplitPlan = nullptr;
+
+	//Retrieve the pointer
 	switch(nextSplitPlanID)
 	{
 		case 1:
-			nextSplitPlan[0] = SplitPlan1[0];
-			nextSplitPlan[1] = SplitPlan1[1];
-			nextSplitPlan[2] = SplitPlan1[2];
-			nextSplitPlan[3] = SplitPlan1[3];
+			SplitPlan = SplitPlan1;
 			break;
 		case 2:
-			nextSplitPlan[0] = SplitPlan2[0];
-			nextSplitPlan[1] = SplitPlan2[1];
-			nextSplitPlan[2] = SplitPlan2[2];
-			nextSplitPlan[3] = SplitPlan2[3];
+			SplitPlan = SplitPlan2;
 			break;
 		case 3:
-			nextSplitPlan[0] = SplitPlan3[0];
-			nextSplitPlan[1] = SplitPlan3[1];
-			nextSplitPlan[2] = SplitPlan3[2];
-			nextSplitPlan[3] = SplitPlan3[3];
+			SplitPlan = SplitPlan3;
 			break;
 		case 4:
-			nextSplitPlan[0] = SplitPlan4[0];
-			nextSplitPlan[1] = SplitPlan4[1];
-			nextSplitPlan[2] = SplitPlan4[2];
-			nextSplitPlan[3] = SplitPlan4[3];
+			SplitPlan = SplitPlan4;
 			break;
 		case 5:
-			nextSplitPlan[0] = SplitPlan5[0];
-			nextSplitPlan[1] = SplitPlan5[1];
-			nextSplitPlan[2] = SplitPlan5[2];
-			nextSplitPlan[3] = SplitPlan5[3];
+			SplitPlan = SplitPlan5;
 			break;
+		default:
+			assert(false);
+	}
+
+	//Set the next split plan
+	nextSplitPlan[0] = SplitPlan[0];
+	nextSplitPlan[1] = SplitPlan[1];
+	nextSplitPlan[2] = SplitPlan[2];
+	nextSplitPlan[3] = SplitPlan[3];
+}
+
+
+void sim_mob :: Signal :: updatecurrSplitPlanID() {
+	currSplitPlanID = nextSplitPlanID;
+}
+
+void sim_mob :: Signal :: updatecurrSplitPlan() {
+	for(int i = 0; i < 4; i++) {
+		currSplitPlan[i] = nextSplitPlan[i];
 	}
 }
 
@@ -220,54 +270,74 @@ void sim_mob :: Signal :: setnextSplitPlan (double DS[4])
 //use next cycle length to calculate next Offset
 void sim_mob :: Signal :: setnextOffset(double nextCL)
 {
-	if(nextCL <= CL_low) nextOffset = Off_low;
-	else if(nextCL > CL_low && nextCL <= CL_up) nextOffset = Off_low + (nextCL - CL_low)*(Off_up - Off_low)/(CL_up - CL_low);
-	else nextOffset = Off_up;
+	if(nextCL <= CL_low) {
+		nextOffset = Off_low;
+	} else if(nextCL > CL_low && nextCL <= CL_up) {
+		nextOffset = Off_low + (nextCL - CL_low)*(Off_up - Off_low)/(CL_up - CL_low);
+	} else {
+		nextOffset = Off_up;
+	}
 }
 
 
+void sim_mob :: Signal :: updateOffset(){
+	currOffset=nextOffset;
+}
+
 
 //find the max projected DS in each SplitPlan
-double sim_mob :: Signal :: fmax(double proDS[4])
+double sim_mob :: Signal :: fmax(const double proDS[])
 {
-	double max;
-	max = proDS[0];
+	double max = proDS[0];
 	for(int i = 1; i < 4; i++)
 	{
-		if(proDS[i] > max)max = proDS[i];
-		else{}
+		if(proDS[i] > max) {
+			max = proDS[i];
+		}
+		//else{}
 	}
 	return max;
 }
 
 
 //find the minimum among the max projected DS
-int sim_mob :: Signal :: fmin_ID(double maxproDS[6])
+int sim_mob :: Signal :: fmin_ID(const double maxproDS[])
 {
-	int min;
-	min=1;
+	int min=1;
 	for (int i = 2; i <= 5; i++)
 	{
-		if(maxproDS[i] < maxproDS[min])min = i;
-		else{}
+		if(maxproDS[i] < maxproDS[min]) {
+			min = i;
+		}
+		//else{}
 	}
 	return min;
 }
 
 //determine next SplitPlan according to the votes in last 5 cycle
-int sim_mob :: Signal :: calvote(int vote1,int vote2, int vote3, int vote4, int vote5)
+int sim_mob :: Signal :: calvote(unsigned int vote1,unsigned int vote2, unsigned int vote3, unsigned int vote4, unsigned int vote5)
 {
+	assert(vote1<6);
+	assert(vote2<6);
+	assert(vote3<6);
+	assert(vote4<6);
+	assert(vote5<6);
+
 	int vote_num[6] = {0,0,0,0,0,0};
 	int ID = 1;
+
 	vote_num[vote1]++;
 	vote_num[vote2]++;
 	vote_num[vote3]++;
 	vote_num[vote4]++;
 	vote_num[vote5]++;
-	for(int i = 1; i <= 5; i++)
-	{
-		if(vote_num[i] > vote_num[ID])ID=i;
-		else{}
+	for(int i = 1; i <= 5; i++) {
+		if(vote_num[i] > vote_num[ID]) {
+			ID=i;
+		}
+		//else{}
 	}
 	return ID;
 }
+
+

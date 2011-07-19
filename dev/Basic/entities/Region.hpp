@@ -11,10 +11,14 @@ namespace sim_mob
 /**
  * Traffic signal.
  */
+/*
 struct Signal {
 	unsigned int id;
 	Signal(unsigned int id=0) : id(id) {}
-};
+};*/
+
+//Forward declaration
+class Signal;
 
 
 
@@ -30,7 +34,7 @@ public:
 	virtual void buildSubscriptionList() {} //Nothing for now
 
 private:
-	std::vector<Signal> signals;
+	std::vector<sim_mob::Signal*> signals;
 };
 
 }

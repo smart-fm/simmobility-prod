@@ -31,6 +31,13 @@ class Node {
   double yPos;
   boolean isIntersection;
   
+  //For easy lookup
+  Set<Section> segmentsFrom = new HashSet<Section>();
+  Set<Section> segmentsTo = new HashSet<Section>();
+  
+  //Individual connectors (for now)
+  ArrayList<LaneConnector> connectors = new ArrayList<LaneConnector>();
+  
   //Scale
   int getX() {
     return scaleX(this.xPos);
@@ -105,6 +112,17 @@ Section getSection(int id) {
   }
   throw new RuntimeException("No section with id: " + id);
 }
+
+
+class LaneConnector {
+  //int id; //Turning IDs aren't the same as connector IDs.
+  
+  Section fromSec;
+  int fromLane;
+  
+  Section toSec;
+  int toLane;
+};
 
 
 
@@ -282,7 +300,9 @@ void readSections(String sectionsFile) throws IOException
       s.speed = Integer.parseInt(items[3]);
       s.capacity = Integer.parseInt(items[4]);
       s.from = getNode(Integer.parseInt(items[5]));
+      s.from.segmentsFrom.add(s);
       s.to = getNode(Integer.parseInt(items[6]));
+      s.to.segmentsTo.add(s);
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }
@@ -360,21 +380,40 @@ void readConnectors(String connectorsFile) throws IOException
       throw new RuntimeException("Bad line in connectors file: " + nextLine);
     }
     
-    //Create a Connector, populate it, add it to the right section.
-/*    Section s = new Section();
+    //We'll need a double for-loop to generate these
     try {
-      s.id = Integer.parseInt(items[0]);
-      s.name = items[1].trim();
-      s.numLanes = Integer.parseInt(items[2]);
-      s.speed = Integer.parseInt(items[3]);
-      s.capacity = Integer.parseInt(items[4]);
-      s.from = getNode(Integer.parseInt(items[5]));
-      s.to = getNode(Integer.parseInt(items[6]));
+      //Double-check the nodes.
+      Section fromSect = getSection(Integer.parseInt(items[1]));
+      Section toSect = getSection(Integer.parseInt(items[2]));
+      Node atNode = fromSect.to;
+      if (fromSect.to != toSect.from) {
+        throw new RuntimeException("Bad lane connector: " + nextLine);
+      }
+      
+      //Get lane generators.
+      int fromLaneStart = Integer.parseInt(items[3]);
+      int fromLaneEnd = Integer.parseInt(items[4]);
+      int toLaneStart = Integer.parseInt(items[5]);
+      int toLaneEnd = Integer.parseInt(items[6]);
+      
+      //Generate all connectors.
+      for (int fromLane=fromLaneStart; fromLane!=fromLaneEnd; fromLane++) {
+        for (int toLane=toLaneStart; toLane!=toLaneEnd; toLane++) {
+          //Create a Connector, populate it, add it to the right section.
+          LaneConnector lc = new LaneConnector();
+          //lc.id = Integer.parseInt(items[0]); //id isn't used.
+          lc.fromSec = fromSect;
+          lc.fromLane = fromLane;
+          lc.toSec = toSect;
+          lc.toLane = toLane;
+          
+          //Assign it
+          atNode.connectors.add(lc);
+        }
+      }
     } catch (Exception ex) {
       throw new RuntimeException(ex);
-    }*/
-
-
+    }
   }
 }
 

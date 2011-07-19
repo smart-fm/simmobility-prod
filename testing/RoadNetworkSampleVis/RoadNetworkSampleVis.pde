@@ -1,4 +1,4 @@
-import java.awt.geom.Ellipse2D;
+import java.awt.geom.*;
 
 PFont f;
 PFont f2;
@@ -6,30 +6,32 @@ PFont f2;
 //Constants
 int BUFFER = 95;
 int NODE_SIZE = 16;
+
+//Flag; make into a checkbox later
+boolean drawDetailedIntersections = true;
+
+//Node zoom level; make into a set of sliders later.
 int NODE_ZOOM = 64;
 int NODE_ZOOM_INNER = 24;
-
-//Flag
-boolean drawDetailedIntersections = true;
 
 //Globally managed max/min on all x/y positions (for scaling)
 static double[] xBounds = null;
 static double[] yBounds = null;
 
 
-int scaleX(double orig) {
-    double percent = (orig - xBounds[0]) / (xBounds[1] - xBounds[0]);
-    int scaledWidth = (width * BUFFER) / 100;
-    int newX = (int)(percent * scaledWidth) + (width-scaledWidth)/2; //Slightly easier to view.
-    return newX;
+int scalePointForDisplay(double orig, double[] bounds) {
+    double percent = (orig - bounds[0]) / (bounds[1] - bounds[0]);
+    int scaledMagnitude = ((int)bounds[2] * BUFFER) / 100;
+    int newVal = (int)(percent * scaledMagnitude) + ((int)bounds[2]-scaledMagnitude)/2; //Slightly easier to view.
+    return newVal;
 }
 
-int scaleY(double orig) {
+/*int scaleY(double orig) {
     double percent = (orig - yBounds[0]) / (yBounds[1] - yBounds[0]);
     int scaledHeight = (height * BUFFER) / 100;
     int newY = (int)(percent * scaledHeight) + (height-scaledHeight)/2; //Slightly easier to view.
     return newY;
-}
+}*/
 
 
 ArrayList<Node> nodes = new ArrayList<Node>();
@@ -49,14 +51,7 @@ class Node {
   //For drawing
   Ellipse2D.Double bounds;
   Ellipse2D.Double inner;
-  
-  //Scale
-  int getX() {
-    return scaleX(this.xPos);
-  }
-  int getY() {
-    return scaleY(this.yPos);
-  }
+  Hashtable<Section, DPoint> edgePoints = new Hashtable<Section, DPoint>(); //Edges on the "bounds" circle.
 };
 Node getNode(int id) {
   for (int i=0; i<nodes.size(); i++) {
@@ -179,7 +174,7 @@ void draw()
       } else {
         fill(0x00, 0xCC, 0xCC);
       }
-      ellipse(n.getX(), n.getY(), NODE_SIZE, NODE_SIZE);
+      ellipse((float)n.xPos, (float)n.yPos, NODE_SIZE, NODE_SIZE);
     }
   }
   
@@ -191,7 +186,7 @@ void draw()
     stroke(0x00, 0x99, 0x00);
     strokeWeight(2.0);
     fill(0x00, 0xCC, 0x00);
-    line(s.from.getX(), s.from.getY(), s.to.getX(), s.to.getY());
+    line((float)s.from.xPos, (float)s.from.yPos, (float)s.to.xPos, (float)s.to.yPos);
     
     //Polyline
     stroke(0x00, 0x00, 0x99);
@@ -201,7 +196,7 @@ void draw()
         //Draw from X to Xprev
         DPoint from = s.polyline.get(i-1);
         DPoint to = s.polyline.get(i);
-        line(scaleX(from.x), scaleY(from.y), scaleX(to.x), scaleY(to.y)); 
+        line((float)from.x, (float)from.y, (float)to.x, (float)to.y); 
       }
     }
     
@@ -210,22 +205,34 @@ void draw()
   
   
   //Draw "detailed" nodes on top of road lines
-  strokeWeight(1.5);
   if (drawDetailedIntersections) {
     for (int i=0; i<nodes.size(); i++) {
       Node n = nodes.get(i);
     
       //Draw the circle
+      strokeWeight(1.5);
       fill(0x00);
       if (n.isIntersection) {
         stroke(0xFF, 0x00, 0x00);
       } else {
         stroke(0x00);
       }
-      ellipse(scaleX(n.bounds.getCenterX()), scaleY(n.bounds.getCenterY()), (int)n.bounds.getWidth(), (int)n.bounds.getHeight());
+      ellipse((float)n.bounds.getCenterX(), (float)n.bounds.getCenterY(), (int)n.bounds.getWidth(), (int)n.bounds.getHeight());
       fill(0x33);
       stroke(0x33);
-      ellipse(scaleX(n.inner.getCenterX()), scaleY(n.inner.getCenterY()), (int)n.inner.getWidth(), (int)n.inner.getHeight());
+      ellipse((float)n.inner.getCenterX(), (float)n.inner.getCenterY(), (int)n.inner.getWidth(), (int)n.inner.getHeight());
+      
+      //Draw lines to all "edge" points.
+      strokeWeight(1.0);
+      stroke(0xFF, 0xFF, 0x00);
+      for (DPoint edge : n.edgePoints.values()) {
+        line((float)n.bounds.getCenterX(), (float)n.bounds.getCenterY(), (float)edge.x, (float)edge.y);
+      }
+
+
+
+
+
     }
   }
   
@@ -237,7 +244,7 @@ void draw()
     for (int i=0; i<nodes.size(); i++) {
       Node n = nodes.get(i);
       fill(0x33);
-      text(""+(n.id), n.getX(), n.getY()); 
+      text(""+(n.id), (float)n.xPos, (float)n.yPos); 
     }
   }
   
@@ -254,7 +261,7 @@ void draw()
     strokeWeight(1);
     if (!alreadyDrawn.contains(key)) {
       fill(0x33);
-      text(s.name, s.from.getX()+(s.to.getX()-s.from.getX())/2, s.from.getY()+(s.to.getY()-s.from.getY())/2); 
+      text(s.name, (float)(s.from.xPos+(s.to.xPos-s.from.xPos)/2), (float)(s.from.yPos+(s.to.yPos-s.from.yPos)/2)); 
       alreadyDrawn.add(key);
     }
     
@@ -290,28 +297,36 @@ void readNodes(String nodesFile) throws IOException
       n.xPos = Double.parseDouble(items[1]);
       n.yPos = Double.parseDouble(items[2]);
       n.isIntersection = myParseBool(items[3]);
-      
-      n.bounds = new Ellipse2D.Double(n.xPos-NODE_ZOOM/2, n.yPos-NODE_ZOOM/2, NODE_ZOOM, NODE_ZOOM);
-      n.inner = new Ellipse2D.Double(n.xPos-NODE_ZOOM_INNER/2, n.yPos-NODE_ZOOM_INNER/2, NODE_ZOOM_INNER, NODE_ZOOM_INNER);
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }
     
     //Check
     if (xBounds == null) {
-      xBounds = new double[] {n.xPos, n.xPos};
+      xBounds = new double[] {n.xPos, n.xPos, width};
     } else {
       xBounds[0] = Math.min(xBounds[0], n.xPos);
       xBounds[1] = Math.max(xBounds[1], n.xPos);
     }
     if (yBounds == null) {
-      yBounds = new double[] {n.yPos, n.yPos};
+      yBounds = new double[] {n.yPos, n.yPos, height};
     } else {
       yBounds[0] = Math.min(yBounds[0], n.yPos);
       yBounds[1] = Math.max(yBounds[1], n.yPos);
     }
     
     nodes.add(n);
+  }
+  
+  //The nodes define the canvas, so scale them all now!
+  for (int i=0; i<nodes.size(); i++) {
+    Node n = nodes.get(i);
+    n.xPos = scalePointForDisplay(n.xPos, xBounds);
+    n.yPos = scalePointForDisplay(n.yPos, yBounds);
+    
+    //While we're at it....
+    n.bounds = new Ellipse2D.Double(n.xPos-NODE_ZOOM/2, n.yPos-NODE_ZOOM/2, NODE_ZOOM, NODE_ZOOM);
+    n.inner = new Ellipse2D.Double(n.xPos-NODE_ZOOM_INNER/2, n.yPos-NODE_ZOOM_INNER/2, NODE_ZOOM_INNER, NODE_ZOOM_INNER);
   }
 }
 
@@ -358,6 +373,46 @@ void readSections(String sectionsFile) throws IOException
 }
 
 
+void makeUnit(DPoint vect) 
+{
+  double magnitude = Math.sqrt(vect.x*vect.x + vect.y*vect.y);
+  scaleVect(vect, 1/magnitude);
+}
+
+void scaleVect(DPoint vect, double value) 
+{
+  vect.x *= value;
+  vect.y *= value;
+}
+
+
+DPoint getEdgePoint(Node cent, Node outer) 
+{
+  //Make a vector from the center to the "outer" node, scale it down to the unit vector, then 
+  //   scale it back up to the radius of the center.
+  DPoint vect = new DPoint(outer.xPos-cent.xPos, outer.yPos-cent.yPos);
+  makeUnit(vect);
+  scaleVect(vect, cent.bounds.getWidth()/2);
+  
+  return new DPoint(cent.xPos+vect.x, cent.yPos+vect.y);
+  
+  
+  //Get the possible intersection of these two.
+/*  double a = cent.bounds.getWidth() / 2.0;
+  double b = cent.bounds.getHeight() / 2.0;
+  double x0 = edge.xPos - cent.xPos;
+  double y0 = edge.yPos - cent.yPos;
+  double ABOverSqrtAYBX = (a*b) / Math.sqrt(a*a * y0*y0  +  b*b * x0*x0);
+  DPoint p1 = new DPoint(ABOverSqrtAYBX*x0 + cent.xPos, ABOverSqrtAYBX*y0 + cent.yPos);
+  DPoint p2 = new DPoint(-ABOverSqrtAYBX*x0 + cent.xPos, -ABOverSqrtAYBX*y0 + cent.yPos);
+  
+  //Return the point closest to the "edge", since this is likely the one we want
+  if (dist((float)p1.x, (float)p1.y, (float)edge.xPos, (float)edge.yPos) < dist((float)p2.x, (float)p2.y, (float)edge.xPos, (float)edge.yPos)) {
+    return p1;
+  }
+  return p2;*/
+}
+
 
 void readPolylines(String polylinesFile) throws IOException
 { 
@@ -387,8 +442,8 @@ void readPolylines(String polylinesFile) throws IOException
     //Tie this polyline to a segment.
     try {
       Section s = getSection(Integer.parseInt(items[0]));
-      double x = Double.parseDouble(items[1]);
-      double y = Double.parseDouble(items[2]);
+      double x = scalePointForDisplay(Double.parseDouble(items[1]), xBounds);
+      double y = scalePointForDisplay(Double.parseDouble(items[2]), yBounds);
       s.polyline.add(new DPoint(x, y));
     } catch (Exception ex) {
       throw new RuntimeException(ex);
@@ -402,6 +457,17 @@ void readPolylines(String polylinesFile) throws IOException
     
     //We need to sort it.
     Collections.sort(s.polyline, new SectionPolylineComparator(s.from));
+  }
+  
+  //Finalize all edge points
+  for (int i=0; i<sections.size(); i++) {
+    Section s = sections.get(i);
+    if (!s.from.edgePoints.containsKey(s)) {
+      s.from.edgePoints.put(s, getEdgePoint(s.from, s.to));
+    }
+    if (!s.to.edgePoints.containsKey(s)) {
+      s.to.edgePoints.put(s, getEdgePoint(s.to, s.from));
+    }
   }
 }
 

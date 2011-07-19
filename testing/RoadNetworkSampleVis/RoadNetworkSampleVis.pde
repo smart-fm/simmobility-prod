@@ -58,6 +58,32 @@ class DPoint {
 }
 
 
+class SectionPolylineComparator implements Comparator<DPoint> {
+  Node source;
+  
+  SectionPolylineComparator(Node source) {
+    this.source = source;
+  }
+
+  int compare(DPoint o1, DPoint o2) {
+    //Equal is easy.
+    if (o1.x==o2.x && o1.y==o2.y) {
+      return 0;
+    }
+    
+    //Less then: for now, just a simple check of distance-from-the-source.
+    // To be more accurate, we would first find the point on the line (from, to)
+    // that this point intersects at and compare those. 
+    double d1 = dist((float)source.xPos, (float)source.yPos, (float)o1.x, (float)o1.y);
+    double d2 = dist((float)source.xPos, (float)source.yPos, (float)o2.x, (float)o2.y);
+    if (d1 < d2) {
+      return -1;
+    }
+    return 1;
+  }
+}
+
+
 
 ArrayList<Section> sections = new ArrayList<Section>();
 class Section {
@@ -306,6 +332,9 @@ void readPolylines(String polylinesFile) throws IOException
   for (int i=0; i<sections.size(); i++) {
     Section s = sections.get(i);
     s.polyline.add(new DPoint(s.to.xPos, s.to.yPos));
+    
+    //We need to sort it.
+    Collections.sort(s.polyline, new SectionPolylineComparator(s.from));
   }
 }
 

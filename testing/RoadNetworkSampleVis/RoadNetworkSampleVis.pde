@@ -154,8 +154,6 @@ void draw()
   background(255);
   
   //Draw all nodes
-  //textFont(f);
-  //textAlign(CENTER);
   for (int i=0; i<nodes.size(); i++) {
     Node n = nodes.get(i);
     
@@ -167,16 +165,9 @@ void draw()
       fill(0x00, 0xCC, 0xCC);
     }
     ellipse(n.getX(), n.getY(), NODE_SIZE, NODE_SIZE);
-    
-    //Write its ID
-    //fill(0x33);
-    //text(""+(n.id), x, y); 
   }
   
   //Draw all sections
-  //textFont(f2);
-  //textAlign(CENTER);
-  //Set<String> alreadyDrawn = new HashSet<String>();
   for (int secID=0; secID<sections.size(); secID++) {
     Section s = sections.get(secID);
     
@@ -184,10 +175,6 @@ void draw()
     stroke(0x00, 0x99, 0x00);
     strokeWeight(2.0);
     fill(0x00, 0xCC, 0x00);
-    //int fromX = s.from.getX();
-    //int fromY = s.from.getY();
-    //int toX = s.to.getX();
-    //int toY = s.to.getY();
     line(s.from.getX(), s.from.getY(), s.to.getX(), s.to.getY());
     
     //Polyline
@@ -201,15 +188,6 @@ void draw()
         line(scaleX(from.x), scaleY(from.y), scaleX(to.x), scaleY(to.y)); 
       }
     }
-    
-    //Write the road name. Only do this once for each section, unless there's a conflict.
-    /*String key = Math.min(s.from.id,s.to.id) + ":" + Math.max(s.from.id,s.to.id) + ":" + s.name; 
-    strokeWeight(1);
-    if (!alreadyDrawn.contains(key)) {
-      fill(0x33);
-      text(s.name, fromX+(toX-fromX)/2, fromY+(toY-fromY)/2); 
-      alreadyDrawn.add(key);
-    }*/
     
     //Not drawing speed limit or capacity for now...
   }

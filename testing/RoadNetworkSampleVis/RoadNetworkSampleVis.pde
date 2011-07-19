@@ -51,7 +51,7 @@ class Node {
   //For drawing
   Ellipse2D.Double bounds;
   Ellipse2D.Double inner;
-  Hashtable<Section, DPoint> edgePoints = new Hashtable<Section, DPoint>(); //Edges on the "bounds" circle.
+  Hashtable<Section, LaneInfo> edgePoints = new Hashtable<Section, LaneInfo>(); 
 };
 Node getNode(int id) {
   for (int i=0; i<nodes.size(); i++) {
@@ -69,6 +69,13 @@ class DPoint {
     this.x = x;
     this.y = y;
   }
+}
+
+
+class LaneInfo {
+  Line2D medianLine;   //Line in between left and right lanes.
+  ArrayList<Line2D> lanesLeft = new ArrayList<Line2D>();  //Left-most line of each lane.
+  ArrayList<Line2D> lanesRight = new ArrayList<Line2D>(); //Right-most line of each lane.
 }
 
 
@@ -225,8 +232,9 @@ void draw()
       //Draw lines to all "edge" points.
       strokeWeight(1.0);
       stroke(0xFF, 0xFF, 0x00);
-      for (DPoint edge : n.edgePoints.values()) {
-        line((float)n.bounds.getCenterX(), (float)n.bounds.getCenterY(), (float)edge.x, (float)edge.y);
+      for (LaneInfo edge : n.edgePoints.values()) {
+        Line2D med = edge.medianLine;
+        line((float)med.getX1(), (float)med.getY1(), (float)med.getX2(), (float)med.getY2());
       }
 
 
@@ -386,31 +394,20 @@ void scaleVect(DPoint vect, double value)
 }
 
 
-DPoint getEdgePoint(Node cent, Node outer) 
-{
+LaneInfo getEdgePoint(Node cent, Node outer) 
+{  
+  LaneInfo res = new LaneInfo();
+  
   //Make a vector from the center to the "outer" node, scale it down to the unit vector, then 
   //   scale it back up to the radius of the center.
   DPoint vect = new DPoint(outer.xPos-cent.xPos, outer.yPos-cent.yPos);
   makeUnit(vect);
   scaleVect(vect, cent.bounds.getWidth()/2);
+  res.medianLine = new Line2D.Double(cent.xPos, cent.yPos, cent.xPos+vect.x, cent.yPos+vect.y);
   
-  return new DPoint(cent.xPos+vect.x, cent.yPos+vect.y);
+  //Now figure out the rest of its lane lines.
   
-  
-  //Get the possible intersection of these two.
-/*  double a = cent.bounds.getWidth() / 2.0;
-  double b = cent.bounds.getHeight() / 2.0;
-  double x0 = edge.xPos - cent.xPos;
-  double y0 = edge.yPos - cent.yPos;
-  double ABOverSqrtAYBX = (a*b) / Math.sqrt(a*a * y0*y0  +  b*b * x0*x0);
-  DPoint p1 = new DPoint(ABOverSqrtAYBX*x0 + cent.xPos, ABOverSqrtAYBX*y0 + cent.yPos);
-  DPoint p2 = new DPoint(-ABOverSqrtAYBX*x0 + cent.xPos, -ABOverSqrtAYBX*y0 + cent.yPos);
-  
-  //Return the point closest to the "edge", since this is likely the one we want
-  if (dist((float)p1.x, (float)p1.y, (float)edge.xPos, (float)edge.yPos) < dist((float)p2.x, (float)p2.y, (float)edge.xPos, (float)edge.yPos)) {
-    return p1;
-  }
-  return p2;*/
+  return res;
 }
 
 

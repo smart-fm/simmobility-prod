@@ -8,7 +8,7 @@ int BUFFER = 95;
 int NODE_SIZE = 16;
 
 //Flag; make into a checkbox later
-boolean drawDetailedIntersections = true;
+boolean drawDetailedIntersections = false;
 
 //Node zoom level; make into a set of sliders later.
 int NODE_ZOOM = 64;
@@ -174,11 +174,18 @@ Line2D getLaneLine(Node from, Node to, int laneID)
 
 
 
+//Our button
+Rectangle2D button = null;
+
+
 void setup() 
 {
   //Windows are always 800 X 600
   size(800, 600);
-  frameRate(1);
+  frameRate(4);
+  
+  DPoint btnSize = new DPoint(100, 30);
+  button = new Rectangle2D.Double(width-btnSize.x - 10, 10, btnSize.x, btnSize.y);
   
   //Font
   f = createFont("Arial",16,true); 
@@ -361,6 +368,37 @@ void draw()
     }
     
     //Not drawing speed limit or capacity for now...
+  }
+  
+  
+  //Draw the button
+  strokeWeight(2.0);
+  textFont(f);
+  textAlign(CENTER);  
+  if (drawDetailedIntersections) {
+    stroke(0xFF);
+    fill(0x33, 0x00, 0x00);
+  } else {
+    stroke(0x00);
+    fill(0x99, 0x66, 0x66);
+  }
+  rect((float)button.getX(), (float)button.getY(), (float)button.getWidth(), (float)button.getHeight());
+  String msg = "";
+  if (drawDetailedIntersections) {
+    msg = "Lane Mode";
+    fill(0xFF);
+  } else {
+    msg = "Shape Mode";
+    fill(0x00);
+  }  
+  text(msg, (float)button.getCenterX(), (float)(button.getCenterY() + 6));
+}
+
+
+
+void mousePressed() {
+  if (button.contains(mouseX, mouseY)) {
+    drawDetailedIntersections = !drawDetailedIntersections;
   }
 }
 

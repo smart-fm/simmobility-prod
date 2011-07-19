@@ -1,8 +1,16 @@
+import java.awt.geom.Ellipse2D;
+
 PFont f;
 PFont f2;
 
 //Constants
+int BUFFER = 95;
 int NODE_SIZE = 16;
+int NODE_ZOOM = 64;
+int NODE_ZOOM_INNER = 24;
+
+//Flag
+boolean drawDetailedIntersections = true;
 
 //Globally managed max/min on all x/y positions (for scaling)
 static double[] xBounds = null;
@@ -11,14 +19,14 @@ static double[] yBounds = null;
 
 int scaleX(double orig) {
     double percent = (orig - xBounds[0]) / (xBounds[1] - xBounds[0]);
-    int scaledWidth = (width * 90) / 100;
+    int scaledWidth = (width * BUFFER) / 100;
     int newX = (int)(percent * scaledWidth) + (width-scaledWidth)/2; //Slightly easier to view.
     return newX;
 }
 
 int scaleY(double orig) {
     double percent = (orig - yBounds[0]) / (yBounds[1] - yBounds[0]);
-    int scaledHeight = (height * 90) / 100;
+    int scaledHeight = (height * BUFFER) / 100;
     int newY = (int)(percent * scaledHeight) + (height-scaledHeight)/2; //Slightly easier to view.
     return newY;
 }
@@ -37,6 +45,10 @@ class Node {
   
   //Individual connectors (for now)
   ArrayList<LaneConnector> connectors = new ArrayList<LaneConnector>();
+  
+  //For drawing
+  Ellipse2D.Double bounds;
+  Ellipse2D.Double inner;
   
   //Scale
   int getX() {
@@ -115,13 +127,14 @@ Section getSection(int id) {
 
 
 class LaneConnector {
-  //int id; //Turning IDs aren't the same as connector IDs.
-  
+  //Logical data
   Section fromSec;
   int fromLane;
-  
   Section toSec;
   int toLane;
+  
+  //Data for drawing this connector.
+  
 };
 
 
@@ -152,19 +165,22 @@ void draw()
 {
   smooth();
   background(255);
+  strokeWeight(1.0);
   
   //Draw all nodes
-  for (int i=0; i<nodes.size(); i++) {
-    Node n = nodes.get(i);
+  if (!drawDetailedIntersections) {
+    for (int i=0; i<nodes.size(); i++) {
+      Node n = nodes.get(i);
     
-    //Draw the circle
-    stroke(0x99);
-    if (n.isIntersection) {
-      fill(0x99, 0x00, 0x00);
-    } else {
-      fill(0x00, 0xCC, 0xCC);
+      //Draw the circle
+      stroke(0x99);
+      if (n.isIntersection) {
+        fill(0x99, 0x00, 0x00);
+      } else {
+        fill(0x00, 0xCC, 0xCC);
+      }
+      ellipse(n.getX(), n.getY(), NODE_SIZE, NODE_SIZE);
     }
-    ellipse(n.getX(), n.getY(), NODE_SIZE, NODE_SIZE);
   }
   
   //Draw all sections
@@ -193,14 +209,36 @@ void draw()
   }
   
   
+  //Draw "detailed" nodes on top of road lines
+  strokeWeight(1.5);
+  if (drawDetailedIntersections) {
+    for (int i=0; i<nodes.size(); i++) {
+      Node n = nodes.get(i);
+    
+      //Draw the circle
+      fill(0x00);
+      if (n.isIntersection) {
+        stroke(0xFF, 0x00, 0x00);
+      } else {
+        stroke(0x00);
+      }
+      ellipse(scaleX(n.bounds.getCenterX()), scaleY(n.bounds.getCenterY()), (int)n.bounds.getWidth(), (int)n.bounds.getHeight());
+      fill(0x33);
+      stroke(0x33);
+      ellipse(scaleX(n.inner.getCenterX()), scaleY(n.inner.getCenterY()), (int)n.inner.getWidth(), (int)n.inner.getHeight());
+    }
+  }
+  
   
   //Label nodes
-  textFont(f);
-  textAlign(CENTER);
-  for (int i=0; i<nodes.size(); i++) {
-    Node n = nodes.get(i);
-    fill(0x33);
-    text(""+(n.id), n.getX(), n.getY()); 
+  if (!drawDetailedIntersections) {
+    textFont(f);
+    textAlign(CENTER);
+    for (int i=0; i<nodes.size(); i++) {
+      Node n = nodes.get(i);
+      fill(0x33);
+      text(""+(n.id), n.getX(), n.getY()); 
+    }
   }
   
   //Label sections
@@ -252,6 +290,9 @@ void readNodes(String nodesFile) throws IOException
       n.xPos = Double.parseDouble(items[1]);
       n.yPos = Double.parseDouble(items[2]);
       n.isIntersection = myParseBool(items[3]);
+      
+      n.bounds = new Ellipse2D.Double(n.xPos-NODE_ZOOM/2, n.yPos-NODE_ZOOM/2, NODE_ZOOM, NODE_ZOOM);
+      n.inner = new Ellipse2D.Double(n.xPos-NODE_ZOOM_INNER/2, n.yPos-NODE_ZOOM_INNER/2, NODE_ZOOM_INNER, NODE_ZOOM_INNER);
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }

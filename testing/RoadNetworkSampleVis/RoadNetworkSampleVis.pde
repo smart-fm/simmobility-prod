@@ -14,6 +14,9 @@ boolean drawDetailedIntersections = true;
 int NODE_ZOOM = 64;
 int NODE_ZOOM_INNER = 24;
 
+//Derived
+int NODE_LANE_WIDTH = NODE_ZOOM / 8; //Max: 4 lanes per side
+
 //Globally managed max/min on all x/y positions (for scaling)
 static double[] xBounds = null;
 static double[] yBounds = null;
@@ -51,7 +54,7 @@ class Node {
   //For drawing
   Ellipse2D.Double bounds;
   Ellipse2D.Double inner;
-  Hashtable<Section, LaneInfo> edgePoints = new Hashtable<Section, LaneInfo>(); 
+  Hashtable<Node, LaneInfo> edgePoints = new Hashtable<Node, LaneInfo>(); 
 };
 Node getNode(int id) {
   for (int i=0; i<nodes.size(); i++) {
@@ -126,6 +129,14 @@ Section getSection(int id) {
   }
   throw new RuntimeException("No section with id: " + id);
 }
+Section getSection(Node from, Node to) {
+  for (Section s : to.segmentsTo) {
+    if (s.from.equals(from) && s.to.equals(to)) {
+      return s;
+    }
+  }
+  return null; //It might not exist...
+}
 
 
 class LaneConnector {
@@ -138,6 +149,28 @@ class LaneConnector {
   //Data for drawing this connector.
   
 };
+
+
+
+Line2D getLaneLine(Node from, Node to, int laneID) 
+{
+  //First, retrieve the line in reverse(laneID) at node "from" on the RHS
+  LaneInfo li = from.edgePoints.get(to);
+  if (li==null) {
+    return new Line2D.Double(0, 0, 0, 0);
+  }
+  Line2D start = li.lanesRight.get(li.lanesRight.size()-1 - laneID);
+  
+  //Next, retrieve the line in reverse(laneID) at node "to" on the LHS
+  li = to.edgePoints.get(from);
+  if (li==null) {
+    return new Line2D.Double(0, 0, 0, 0);
+  }
+  Line2D end = li.lanesLeft.get(li.lanesLeft.size()-1 - laneID);
+  
+  //Now, just make a line from Point2 to Point2 of each Line (since lines always come FROM the center TO the outer edge.)
+  return new Line2D.Double(start.getX2(), start.getY2(), end.getX2(), end.getY2());
+}
 
 
 
@@ -166,7 +199,11 @@ void setup()
 void draw()
 {
   smooth();
-  background(255);
+  if (drawDetailedIntersections) {
+    background(0x00);
+  } else {
+    background(0xFF);
+  }
   strokeWeight(1.0);
   
   //Draw all nodes
@@ -190,20 +227,29 @@ void draw()
     Section s = sections.get(secID);
     
     //Draw the Euclidean line representing this section.
-    stroke(0x00, 0x99, 0x00);
-    strokeWeight(2.0);
-    fill(0x00, 0xCC, 0x00);
-    line((float)s.from.xPos, (float)s.from.yPos, (float)s.to.xPos, (float)s.to.yPos);
+    //if (!drawDetailedIntersections) {
+      if (drawDetailedIntersections) {
+        stroke(0xFF, 0xFF, 0x00);
+        strokeWeight(1.0);
+      } else {
+        stroke(0x00, 0x99, 0x00);
+        strokeWeight(2.0);
+      }
+      fill(0x00, 0xCC, 0x00);
+      line((float)s.from.xPos, (float)s.from.yPos, (float)s.to.xPos, (float)s.to.yPos);
+    //}
     
     //Polyline
-    stroke(0x00, 0x00, 0x99);
-    strokeWeight(0.5);
-    if (s.polyline.size()>2) {
-      for (int i=1; i<s.polyline.size(); i++) {
-        //Draw from X to Xprev
-        DPoint from = s.polyline.get(i-1);
-        DPoint to = s.polyline.get(i);
-        line((float)from.x, (float)from.y, (float)to.x, (float)to.y); 
+    if (!drawDetailedIntersections) {
+      stroke(0x00, 0x00, 0x99);
+      strokeWeight(0.5);
+      if (s.polyline.size()>2) {
+        for (int i=1; i<s.polyline.size(); i++) {
+          //Draw from X to Xprev
+          DPoint from = s.polyline.get(i-1);
+          DPoint to = s.polyline.get(i);
+          line((float)from.x, (float)from.y, (float)to.x, (float)to.y); 
+        }
       }
     }
     
@@ -212,6 +258,7 @@ void draw()
   
   
   //Draw "detailed" nodes on top of road lines
+  Set<String> hasDrawnEdge = new HashSet<String>();
   if (drawDetailedIntersections) {
     for (int i=0; i<nodes.size(); i++) {
       Node n = nodes.get(i);
@@ -222,7 +269,7 @@ void draw()
       if (n.isIntersection) {
         stroke(0xFF, 0x00, 0x00);
       } else {
-        stroke(0x00);
+        stroke(0x99, 0x99, 0x99);
       }
       ellipse((float)n.bounds.getCenterX(), (float)n.bounds.getCenterY(), (int)n.bounds.getWidth(), (int)n.bounds.getHeight());
       fill(0x33);
@@ -231,10 +278,46 @@ void draw()
       
       //Draw lines to all "edge" points.
       strokeWeight(1.0);
-      stroke(0xFF, 0xFF, 0x00);
       for (LaneInfo edge : n.edgePoints.values()) {
+        //Draw the median.
         Line2D med = edge.medianLine;
+        stroke(0xFF, 0xFF, 0x00);
         line((float)med.getX1(), (float)med.getY1(), (float)med.getX2(), (float)med.getY2());
+        
+        //Draw all lanes to the left
+        //stroke(0xFF, 0x00, 0x00);
+        stroke(0xFF);
+        for (Line2D laneEdge : edge.lanesLeft) {
+          line((float)laneEdge.getX1(), (float)laneEdge.getY1(), (float)laneEdge.getX2(), (float)laneEdge.getY2());
+        }
+        
+        //Draw all lanes to the right
+        //stroke(0x00, 0xFF, 0x00);
+        stroke(0xFF);
+        for (Line2D laneEdge : edge.lanesRight) {
+          line((float)laneEdge.getX1(), (float)laneEdge.getY1(), (float)laneEdge.getX2(), (float)laneEdge.getY2());
+        }
+      }
+      
+      //Draw lines from this node to another, but only once.
+      for (Section s : n.segmentsFrom) {
+        String keyVal = s.from.id + ":" + s.to.id;
+        if (!hasDrawnEdge.contains(keyVal)) {
+          //First, the center line  //No need; it's done already
+          //stroke(0xFF, 0xFF, 0x00);
+          //Line2D cent = getCenterLine(s.from, s.to);
+          //line((float)cent.getX1(), (float)cent.getY1(), (float)cent.getX2(), (float)cent.getY2());
+          
+          //Now, draw all lanes (these will be "left" on one node and "right" on the other)
+          stroke(0xFF);
+          for (int laneID=0; laneID<s.numLanes; laneID++) {
+            Line2D cent = getLaneLine(s.from, s.to, laneID);
+            line((float)cent.getX1(), (float)cent.getY1(), (float)cent.getX2(), (float)cent.getY2());
+          }
+          
+          
+          hasDrawnEdge.add(keyVal);
+        }
       }
 
 
@@ -268,7 +351,11 @@ void draw()
     String key = Math.min(s.from.id,s.to.id) + ":" + Math.max(s.from.id,s.to.id) + ":" + s.name; 
     strokeWeight(1);
     if (!alreadyDrawn.contains(key)) {
-      fill(0x33);
+      if (drawDetailedIntersections) {
+        fill(0x00, 0x99, 0x99);
+      } else {
+        fill(0x33);
+      }
       text(s.name, (float)(s.from.xPos+(s.to.xPos-s.from.xPos)/2), (float)(s.from.yPos+(s.to.yPos-s.from.yPos)/2)); 
       alreadyDrawn.add(key);
     }
@@ -400,12 +487,51 @@ LaneInfo getEdgePoint(Node cent, Node outer)
   
   //Make a vector from the center to the "outer" node, scale it down to the unit vector, then 
   //   scale it back up to the radius of the center.
-  DPoint vect = new DPoint(outer.xPos-cent.xPos, outer.yPos-cent.yPos);
-  makeUnit(vect);
+  DPoint unitVect = new DPoint(outer.xPos-cent.xPos, outer.yPos-cent.yPos);
+  makeUnit(unitVect);
+  DPoint vect = new DPoint(unitVect.x, unitVect.y);
   scaleVect(vect, cent.bounds.getWidth()/2);
-  res.medianLine = new Line2D.Double(cent.xPos, cent.yPos, cent.xPos+vect.x, cent.yPos+vect.y);
+  DPoint edge = new DPoint(cent.xPos+vect.x, cent.yPos+vect.y);
   
-  //Now figure out the rest of its lane lines.
+  //Compute the inner edge too; save that as the median line.
+  vect = new DPoint(unitVect.x, unitVect.y);
+  scaleVect(vect, cent.inner.getWidth()/2);
+  DPoint inner = new DPoint(cent.xPos+vect.x, cent.yPos+vect.y);
+  res.medianLine = new Line2D.Double(inner.x, inner.y, edge.x, edge.y);
+  
+
+    
+  //Find the segment that goes "to" the center node. That determines all "left" lanes.
+  Section s = getSection(outer, cent);
+  if (s!=null) {
+    //Rotate the unit vector to the left. (I love unit vectors)
+    vect = new DPoint(-unitVect.y, unitVect.x);
+              
+    //Add all lanes left of the median. (We're numbering them backwards, but it won't matter.)
+    for (int i=0; i<s.numLanes; i++) {
+      DPoint vect2 = new DPoint(vect.x, vect.y);
+      scaleVect(vect2, NODE_LANE_WIDTH*(i+1));
+      res.lanesLeft.add(
+        new Line2D.Double(inner.x+vect2.x, inner.y+vect2.y, edge.x+vect2.x, edge.y+vect2.y)
+      );
+    }
+  }  
+  
+  //Find the segment that goes "from" the center node. That determines all "right" lanes.
+  s = getSection(cent, outer);
+  if (s!=null) {
+    //Rotate the unit vector to the right. (I stilllove unit vectors)
+    vect = new DPoint(unitVect.y, -unitVect.x);
+              
+    //Add all lanes left of the median. (We're numbering them backwards, but it won't matter.)
+    for (int i=0; i<s.numLanes; i++) {
+      DPoint vect2 = new DPoint(vect.x, vect.y);
+      scaleVect(vect2, NODE_LANE_WIDTH*(i+1));
+      res.lanesRight.add(
+        new Line2D.Double(inner.x+vect2.x, inner.y+vect2.y, edge.x+vect2.x, edge.y+vect2.y)
+      );
+    }
+  }  
   
   return res;
 }
@@ -459,12 +585,12 @@ void readPolylines(String polylinesFile) throws IOException
   //Finalize all edge points
   for (int i=0; i<sections.size(); i++) {
     Section s = sections.get(i);
-    if (!s.from.edgePoints.containsKey(s)) {
-      s.from.edgePoints.put(s, getEdgePoint(s.from, s.to));
+    if (!s.from.edgePoints.containsKey(s.to)) {
+      s.from.edgePoints.put(s.to, getEdgePoint(s.from, s.to));
     }
-    if (!s.to.edgePoints.containsKey(s)) {
+    /*if (!s.to.edgePoints.containsKey(s)) {
       s.to.edgePoints.put(s, getEdgePoint(s.to, s.from));
-    }
+    }*/
   }
 }
 

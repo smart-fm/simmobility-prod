@@ -8,7 +8,8 @@ int BUFFER = 95;
 int NODE_SIZE = 16;
 
 //Flag; make into a checkbox later
-boolean drawDetailedIntersections = true;
+boolean drawDetailedIntersections = false;
+boolean debugDraw = false;
 
 //Node zoom level; make into a set of sliders later.
 int NODE_ZOOM = 90;
@@ -161,6 +162,11 @@ LaneArrow makeArrow(LaneConnector lc) {
   //Now create and scale the anchor points
   res.arrowStartAnchor = getAndScaleNormalVector(midLHS, res.arrowStart, !flipParam, ARROW_CURVE);
   res.arrowEndAnchor = getAndScaleNormalVector(midRHS, res.arrowEnd, flipParam, ARROW_CURVE);
+  
+  //The "wings" are easy; they are simply the 1st points of each end line
+  for (int i=0; i<2; i++) {
+    res.arrowWings[i] = new DPoint(end[i].getX1(), end[i].getY1());
+  }
   
   return res;
 }
@@ -388,39 +394,43 @@ void draw()
       Node n = nodes.get(i);
     
       //Draw the circle
-      strokeWeight(1.5);
-      fill(0x00);
-      if (n.isIntersection) {
-        stroke(0xFF, 0x00, 0x00);
-      } else {
-        stroke(0x99, 0x99, 0x99);
+      if (debugDraw) {
+        strokeWeight(1.5);
+        fill(0x00);
+        if (n.isIntersection) {
+          stroke(0xFF, 0x00, 0x00);
+        } else {
+          stroke(0x99, 0x99, 0x99);
+        }
+        ellipse((float)n.bounds.getCenterX(), (float)n.bounds.getCenterY(), (int)n.bounds.getWidth(), (int)n.bounds.getHeight());
+        fill(0x33);
+        stroke(0x33);
+        ellipse((float)n.inner.getCenterX(), (float)n.inner.getCenterY(), (int)n.inner.getWidth(), (int)n.inner.getHeight());
       }
-      ellipse((float)n.bounds.getCenterX(), (float)n.bounds.getCenterY(), (int)n.bounds.getWidth(), (int)n.bounds.getHeight());
-      fill(0x33);
-      stroke(0x33);
-      ellipse((float)n.inner.getCenterX(), (float)n.inner.getCenterY(), (int)n.inner.getWidth(), (int)n.inner.getHeight());
       
       //Draw lines to all "edge" points.
-      strokeWeight(1.0);
-      for (LaneInfo edge : n.edgePoints.values()) {
-        //Draw the median.
-        Line2D med = edge.medianLine;
-        stroke(0xFF, 0x00, 0xFF);
-        //stroke(0xFF, 0xFF, 0x00);
-        line((float)med.getX1(), (float)med.getY1(), (float)med.getX2(), (float)med.getY2());
-        
-        //Draw all lanes to the left
-        stroke(0xFF, 0x00, 0xFF);
-        //stroke(0xFF);
-        for (Line2D laneEdge : edge.lanesLeft) {
-          line((float)laneEdge.getX1(), (float)laneEdge.getY1(), (float)laneEdge.getX2(), (float)laneEdge.getY2());
-        }
-        
-        //Draw all lanes to the right
-        stroke(0xFF, 0x00, 0xFF);
-        //stroke(0xFF);
-        for (Line2D laneEdge : edge.lanesRight) {
-          line((float)laneEdge.getX1(), (float)laneEdge.getY1(), (float)laneEdge.getX2(), (float)laneEdge.getY2());
+      if (debugDraw) {
+        strokeWeight(1.0);
+        for (LaneInfo edge : n.edgePoints.values()) {
+          //Draw the median.
+          Line2D med = edge.medianLine;
+          stroke(0xFF, 0x00, 0xFF);
+          //stroke(0xFF, 0xFF, 0x00);
+          line((float)med.getX1(), (float)med.getY1(), (float)med.getX2(), (float)med.getY2());
+          
+          //Draw all lanes to the left
+          stroke(0xFF, 0x00, 0xFF);
+          //stroke(0xFF);
+          for (Line2D laneEdge : edge.lanesLeft) {
+            line((float)laneEdge.getX1(), (float)laneEdge.getY1(), (float)laneEdge.getX2(), (float)laneEdge.getY2());
+          }
+          
+          //Draw all lanes to the right
+          stroke(0xFF, 0x00, 0xFF);
+          //stroke(0xFF);
+          for (Line2D laneEdge : edge.lanesRight) {
+            line((float)laneEdge.getX1(), (float)laneEdge.getY1(), (float)laneEdge.getX2(), (float)laneEdge.getY2());
+          }
         }
       }
       
@@ -452,17 +462,22 @@ void draw()
   //Draw lane connectors
   if (drawDetailedIntersections) {
     strokeWeight(1.0);
-    stroke(0x00, 0xFF, 0x00);
     noFill();
     for (Node n : nodes) {
       for (LaneConnector lc : n.connectors) {
         LaneArrow la = lc.arrowMarking;        
+        stroke(0xFF, 0x00, 0xFF);
         bezier(
           (float)la.arrowStart.x, (float)la.arrowStart.y, 
           (float)la.arrowStartAnchor.x, (float)la.arrowStartAnchor.y, 
           (float)la.arrowEndAnchor.x, (float)la.arrowEndAnchor.y,
           (float)la.arrowEnd.x, (float)la.arrowEnd.y
         );
+        
+        stroke(0x00, 0xFF, 0x00);
+        for (int i=0; i<2; i++) {
+          line((float)la.arrowEnd.x, (float)la.arrowEnd.y, (float)la.arrowWings[i].x, (float)la.arrowWings[i].y);
+        }
       }
     }
   }

@@ -13,7 +13,7 @@ boolean debugDraw = false;
 
 //Node zoom level; make into a set of sliders later.
 int NODE_ZOOM = 90;
-int NODE_ZOOM_INNER = 50;
+int NODE_ZOOM_INNER = 60;
 
 //Derived
 int NODE_LANE_WIDTH = NODE_ZOOM / 8; //Max: 4 lanes per side
@@ -163,10 +163,18 @@ LaneArrow makeArrow(LaneConnector lc) {
   res.arrowStartAnchor = getAndScaleNormalVector(midLHS, res.arrowStart, !flipParam, ARROW_CURVE);
   res.arrowEndAnchor = getAndScaleNormalVector(midRHS, res.arrowEnd, flipParam, ARROW_CURVE);
   
-  //The "wings" are easy; they are simply the 1st points of each end line
-  for (int i=0; i<2; i++) {
-    res.arrowWings[i] = new DPoint(end[i].getX1(), end[i].getY1());
-  }
+  //To make the "wings", we first need to get a unit vector from the end anchor to the end point. 
+  DPoint nextUnitVect = new DPoint(res.arrowEnd.x-res.arrowEndAnchor.x, res.arrowEnd.y-res.arrowEndAnchor.y);
+  makeUnit(nextUnitVect);
+   
+  //We then scale this vector by origLength - laneWidth
+  double origLen = dist((float)res.arrowEndAnchor.x, (float)res.arrowEndAnchor.y, (float)res.arrowEnd.x, (float)res.arrowEnd.y);
+  scaleVect(nextUnitVect, origLen - NODE_LANE_WIDTH/2);
+  DPoint newPoint = new DPoint(res.arrowEndAnchor.x+nextUnitVect.x, res.arrowEndAnchor.y+nextUnitVect.y);
+  
+  //Now our two wing points are just the two normals of this new point, scaed to the lane width.
+  res.arrowWings[0] = getAndScaleNormalVector(newPoint, res.arrowEnd, true, NODE_LANE_WIDTH/2);
+  res.arrowWings[1] = getAndScaleNormalVector(newPoint, res.arrowEnd, false, NODE_LANE_WIDTH/2);
   
   return res;
 }
@@ -409,25 +417,23 @@ void draw()
       }
       
       //Draw lines to all "edge" points.
-      if (debugDraw) {
+//      if (debugDraw) {
+      if (true) {
         strokeWeight(1.0);
         for (LaneInfo edge : n.edgePoints.values()) {
           //Draw the median.
           Line2D med = edge.medianLine;
-          stroke(0xFF, 0x00, 0xFF);
-          //stroke(0xFF, 0xFF, 0x00);
+          stroke(0xFF, 0xFF, 0x00);
           line((float)med.getX1(), (float)med.getY1(), (float)med.getX2(), (float)med.getY2());
           
           //Draw all lanes to the left
-          stroke(0xFF, 0x00, 0xFF);
-          //stroke(0xFF);
+          stroke(0xFF);
           for (Line2D laneEdge : edge.lanesLeft) {
             line((float)laneEdge.getX1(), (float)laneEdge.getY1(), (float)laneEdge.getX2(), (float)laneEdge.getY2());
           }
           
           //Draw all lanes to the right
-          stroke(0xFF, 0x00, 0xFF);
-          //stroke(0xFF);
+          stroke(0xFF);
           for (Line2D laneEdge : edge.lanesRight) {
             line((float)laneEdge.getX1(), (float)laneEdge.getY1(), (float)laneEdge.getX2(), (float)laneEdge.getY2());
           }

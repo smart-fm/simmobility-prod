@@ -8,7 +8,7 @@ int BUFFER = 95;
 int NODE_SIZE = 16;
 
 //Flag; make into a checkbox later
-boolean drawDetailedIntersections = false;
+boolean drawDetailedIntersections = true;
 
 //Node zoom level; make into a set of sliders later.
 int NODE_ZOOM = 64;
@@ -626,9 +626,9 @@ void readPolylines(String polylinesFile) throws IOException
     if (!s.from.edgePoints.containsKey(s.to)) {
       s.from.edgePoints.put(s.to, getEdgePoint(s.from, s.to));
     }
-    /*if (!s.to.edgePoints.containsKey(s)) {
-      s.to.edgePoints.put(s, getEdgePoint(s.to, s.from));
-    }*/
+    if (!s.to.edgePoints.containsKey(s.from)) {
+      s.to.edgePoints.put(s.from, getEdgePoint(s.to, s.from));
+    }
   }
 }
 

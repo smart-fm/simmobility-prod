@@ -11,11 +11,12 @@ int NODE_SIZE = 16;
 boolean drawDetailedIntersections = true;
 
 //Node zoom level; make into a set of sliders later.
-int NODE_ZOOM = 64;
-int NODE_ZOOM_INNER = 24;
+int NODE_ZOOM = 90;
+int NODE_ZOOM_INNER = 50;
 
 //Derived
 int NODE_LANE_WIDTH = NODE_ZOOM / 8; //Max: 4 lanes per side
+int ARROW_CURVE = (NODE_LANE_WIDTH*3)/4;
 
 //Globally managed max/min on all x/y positions (for scaling)
 static double[] xBounds = null;
@@ -72,6 +73,96 @@ class DPoint {
     this.x = x;
     this.y = y;
   }
+}
+
+class LaneArrow {
+  DPoint arrowStart;
+  DPoint arrowEnd;
+  DPoint arrowStartAnchor;
+  DPoint arrowEndAnchor;
+  DPoint[] arrowWings = new DPoint[2];
+}
+
+
+DPoint getLanesCenter(Line2D[] arr) {
+  //Proper naming
+  double x1 = arr[0].getX1();
+  double y1 = arr[0].getY1();
+  double x2 = arr[1].getX2();
+  double y2 = arr[1].getY2();
+  double x3 = arr[1].getX1();
+  double y3 = arr[1].getY1();
+  double x4 = arr[0].getX2();
+  double y4 = arr[0].getY2();
+    
+  //Result, segmented
+  double d1 = (x1*y2 - y1*x2);
+  double d2 = (x3*y4 - y3*x4);
+  double den = (x1-x2)*(y3-y4) - (y1-y2)*(x3-x4);
+  double xResNum = d1*(x3-x4) - (x1-x2)*d2;
+  double yResNum = d1*(y3-y4) - (y1-y2)*d2;
+
+
+  //Temp
+/*  println("Get center:");
+  println("    L1: " + arr[0].getX1() + "," + arr[0].getY1() + "," + arr[0].getX2() + "," + arr[0].getY2());
+  println("    L2: " + arr[1].getX1() + "," + arr[1].getY1() + "," + arr[1].getX2() + "," + arr[1].getY2());
+  println("    Res: " + (xResNum/den) + "," + (yResNum/den));*/
+
+
+  return new DPoint(xResNum/den, yResNum/den);
+}
+
+
+DPoint getAndScaleNormalVector(DPoint pCenter, DPoint p2, boolean flip, int scaleBy) {
+  //Create a unit vector
+  DPoint unitVect = new DPoint(p2.x-pCenter.x, p2.y-pCenter.y);
+  makeUnit(unitVect);
+  
+  //Now, Flip the unit vector
+  int sign = flip ? 1 : -1;
+  DPoint normVect = new DPoint(-unitVect.y*sign, unitVect.x*sign);
+  
+  //Now scale the normal vector, and apply it to the midpoint.
+  scaleVect(normVect, scaleBy);
+  return new DPoint(pCenter.x+normVect.x, pCenter.y+normVect.y);
+}
+
+
+LaneArrow makeArrow(LaneConnector lc) {
+  LaneArrow res = new LaneArrow();
+  
+  //First, get the pair of line segments for each lane.
+  Line2D[] start = new Line2D[2];
+  Line2D[] end = new Line2D[2];
+  
+  start[0] = getLaneSegmentLine(lc.fromSec.from, lc.fromSec.to, lc.fromLane, false);
+  start[1] = getLaneSegmentLine(lc.fromSec.from, lc.fromSec.to, lc.fromLane+1, false);
+  
+  end[0] = getLaneSegmentLine(lc.toSec.from, lc.toSec.to, lc.toLane, true);
+  end[1] = getLaneSegmentLine(lc.toSec.from, lc.toSec.to, lc.toLane+1, true);
+  
+  //Get the intersection between the lines formed by each segment's endponits, swapped.
+  res.arrowStart = getLanesCenter(start);
+  res.arrowEnd = getLanesCenter(end);
+  
+  //Now, get the two points normal to this line at a certain distance.
+  DPoint mid = new DPoint((res.arrowStart.x+res.arrowEnd.x)/2, (res.arrowStart.y+res.arrowEnd.y)/2);
+  DPoint p1 = getAndScaleNormalVector(mid, res.arrowEnd, true, ARROW_CURVE);
+  DPoint p2 = getAndScaleNormalVector(mid, res.arrowEnd, false, ARROW_CURVE);
+  
+  //Find out which direction the normal vector should face:
+  boolean flipParam = (dist((float)p1.x, (float)p1.y, (float)lc.fromSec.to.xPos, (float)lc.fromSec.to.yPos) < dist((float)p2.x, (float)p2.y, (float)lc.fromSec.to.xPos, (float)lc.fromSec.to.yPos));
+
+  //Get the 1/4 and 3/4 points
+  DPoint midLHS = new DPoint((res.arrowStart.x+mid.x)/2, (res.arrowStart.y+mid.y)/2);
+  DPoint midRHS = new DPoint((res.arrowEnd.x+mid.x)/2, (res.arrowEnd.y+mid.y)/2);
+
+  //Now create and scale the anchor points
+  res.arrowStartAnchor = getAndScaleNormalVector(midLHS, res.arrowStart, !flipParam, ARROW_CURVE);
+  res.arrowEndAnchor = getAndScaleNormalVector(midRHS, res.arrowEnd, flipParam, ARROW_CURVE);
+  
+  return res;
 }
 
 
@@ -147,9 +238,35 @@ class LaneConnector {
   int toLane;
   
   //Data for drawing this connector.
-  
+  LaneArrow arrowMarking;
 };
 
+
+//Get segments of lines
+Line2D getLaneSegmentLine(Node from, Node to, int laneID, boolean atFrom) 
+{
+  if (atFrom) {  
+    //Retrive the segment in reverse(laneID) at node "from" on the RHS
+    LaneInfo li = from.edgePoints.get(to);
+    if (li==null) {
+      return new Line2D.Double(0, 0, 0, 0);
+    }
+    if (laneID==li.lanesRight.size()) { //Special case: center line
+      return li.medianLine;
+    }
+    return li.lanesRight.get(li.lanesRight.size()-1 - laneID);
+  } else {
+    //Retrive the segment in reverse(laneID) at node "to" on the LHS
+    LaneInfo li = to.edgePoints.get(from);
+    if (li==null) {
+      return new Line2D.Double(0, 0, 0, 0);
+    }
+    if (laneID==li.lanesLeft.size()) { //Special case: center line
+      return li.medianLine;
+    }
+    return li.lanesLeft.get(li.lanesLeft.size()-1 - laneID);
+  }
+}
 
 
 Line2D getLaneLine(Node from, Node to, int laneID) 
@@ -288,19 +405,20 @@ void draw()
       for (LaneInfo edge : n.edgePoints.values()) {
         //Draw the median.
         Line2D med = edge.medianLine;
-        stroke(0xFF, 0xFF, 0x00);
+        stroke(0xFF, 0x00, 0xFF);
+        //stroke(0xFF, 0xFF, 0x00);
         line((float)med.getX1(), (float)med.getY1(), (float)med.getX2(), (float)med.getY2());
         
         //Draw all lanes to the left
-        //stroke(0xFF, 0x00, 0x00);
-        stroke(0xFF);
+        stroke(0xFF, 0x00, 0xFF);
+        //stroke(0xFF);
         for (Line2D laneEdge : edge.lanesLeft) {
           line((float)laneEdge.getX1(), (float)laneEdge.getY1(), (float)laneEdge.getX2(), (float)laneEdge.getY2());
         }
         
         //Draw all lanes to the right
-        //stroke(0x00, 0xFF, 0x00);
-        stroke(0xFF);
+        stroke(0xFF, 0x00, 0xFF);
+        //stroke(0xFF);
         for (Line2D laneEdge : edge.lanesRight) {
           line((float)laneEdge.getX1(), (float)laneEdge.getY1(), (float)laneEdge.getX2(), (float)laneEdge.getY2());
         }
@@ -326,11 +444,26 @@ void draw()
           hasDrawnEdge.add(keyVal);
         }
       }
-
-
-
-
-
+    }
+  }
+  
+  
+  
+  //Draw lane connectors
+  if (drawDetailedIntersections) {
+    strokeWeight(1.0);
+    stroke(0x00, 0xFF, 0x00);
+    noFill();
+    for (Node n : nodes) {
+      for (LaneConnector lc : n.connectors) {
+        LaneArrow la = lc.arrowMarking;        
+        bezier(
+          (float)la.arrowStart.x, (float)la.arrowStart.y, 
+          (float)la.arrowStartAnchor.x, (float)la.arrowStartAnchor.y, 
+          (float)la.arrowEndAnchor.x, (float)la.arrowEndAnchor.y,
+          (float)la.arrowEnd.x, (float)la.arrowEnd.y
+        );
+      }
     }
   }
   
@@ -537,7 +670,6 @@ LaneInfo getEdgePoint(Node cent, Node outer)
   DPoint inner = new DPoint(cent.xPos+vect.x, cent.yPos+vect.y);
   res.medianLine = new Line2D.Double(inner.x, inner.y, edge.x, edge.y);
   
-
     
   //Find the segment that goes "to" the center node. That determines all "left" lanes.
   Section s = getSection(outer, cent);
@@ -670,8 +802,8 @@ void readConnectors(String connectorsFile) throws IOException
       int toLaneEnd = Integer.parseInt(items[6]);
       
       //Generate all connectors.
-      for (int fromLane=fromLaneStart; fromLane!=fromLaneEnd; fromLane++) {
-        for (int toLane=toLaneStart; toLane!=toLaneEnd; toLane++) {
+      for (int fromLane=fromLaneStart; fromLane<=fromLaneEnd; fromLane++) {
+        for (int toLane=toLaneStart; toLane<=toLaneEnd; toLane++) {
           //Create a Connector, populate it, add it to the right section.
           LaneConnector lc = new LaneConnector();
           //lc.id = Integer.parseInt(items[0]); //id isn't used.
@@ -679,6 +811,7 @@ void readConnectors(String connectorsFile) throws IOException
           lc.fromLane = fromLane;
           lc.toSec = toSect;
           lc.toLane = toLane;
+          lc.arrowMarking = makeArrow(lc);
           
           //Assign it
           atNode.connectors.add(lc);

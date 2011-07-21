@@ -56,9 +56,15 @@ public:
 	//Covnertible to any type of null member pointer.
 	template<class C, class T> operator T C::*() const { return 0; }
 
+	//Workaround for GCC 4.5 equality bug.
+	template<class C, class T> bool operator == (C (T::*p)()) const { return  p == 0; }
+
 private:
 	//Cannot take the address of nullptr.
 	void operator&() const;
+
+	//Side-effect of equality bug: need to make == private
+	bool operator == (long) const;
 
 } nullptr = {};  //Single instance, named "nullptr"
 

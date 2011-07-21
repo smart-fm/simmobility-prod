@@ -33,6 +33,9 @@ namespace sim_mob
  *
  *   \par
  *   ~Seth
+ *
+ *   \note
+ *   Since get returns a constant ref, pos.get().xPos = 10 won't compile anyway. But we may still need a solution.
  */
 template <typename T>
 class Buffered : public BufferedBase
@@ -58,6 +61,18 @@ public:
 	 * only take effect when "flip" is called.
 	 */
     void set (const T& value);
+
+
+	/**
+	 * Skips processing for this time tick. If an agent won't be updating a particular
+	 * Buffered type during its time tick, it should call skip() on that type.
+	 *
+	 * \note
+	 * This is intended for later, when we have pointers to arrays of data to update.
+	 * But modelers should definitely respect the limitations of Buffere<> types now.
+	 */
+    void skip();
+
 
     /**
      * Evaluates as the current value.
@@ -128,6 +143,13 @@ template <typename T>
 void sim_mob::Buffered<T>::set (const T& value)
 {
 	next_ = value;
+}
+
+
+template <typename T>
+void sim_mob::Buffered<T>::skip ()
+{
+	this->set(this->get());
 }
 
 

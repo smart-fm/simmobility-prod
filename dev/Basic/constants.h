@@ -53,7 +53,7 @@ public:
 	//Convertible to any type of null non-member pointer.
 	template<class T> operator T*() const { return 0; }
 
-	//Covnertible to any type of null member pointer.
+	//Convertible to any type of null member pointer.
 	template<class C, class T> operator T C::*() const { return 0; }
 
 	//Workaround for GCC 4.5 equality bug.

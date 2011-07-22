@@ -207,7 +207,7 @@ void sim_mob::WorkGroup<EntityType>::manageData(sim_mob::BufferedDataManager* mg
 template <class EntityType>
 void sim_mob::SimpleWorkGroup<EntityType>::migrate(EntityType* ag, int fromID, int toID)
 {
-	if (ag==nullptr)
+	if (!ag)
 		return;
 
 	if (fromID >= 0) {

@@ -163,10 +163,10 @@ void sim_mob::Driver::updateVelocity()
 	}
 	//if(!ischanging){
 		double foward;
-		if(leader==nullptr) {
-			foward=MAX_NUM;
-		} else {
+		if(leader) {
 			foward=leader->xPos.get()-parent->xPos.get()-length;
+		} else {
+			foward=MAX_NUM;
 		}
 		if(foward<0) {
 			xVel=0;
@@ -254,10 +254,10 @@ int sim_mob::Driver::getLane()
 
 double sim_mob::Driver::getDistance()
 {
-	if(leader == nullptr) {
-		return MAX_NUM;
-	} else {
+	if(leader) {
 		return max(0.0, leader->xPos.get()-parent->xPos.get()-length);
+	} else {
+		return MAX_NUM;
 	}
 }
 
@@ -271,7 +271,7 @@ void sim_mob::Driver::makeAcceleratingDecision()
 		headway = space / speed;
 	}
 
-	if(leader == nullptr){
+	if(!leader){
 		v_lead		=	MAX_NUM;
 		a_lead		=	MAX_NUM;
 		space_star	=	MAX_NUM;
@@ -444,7 +444,7 @@ unsigned int sim_mob::Driver::gapAcceptance()
 		}
 
 		if(getLane()!=border[i]) {		//if it has left lane or right lane
-			if(F!=nullptr){
+			if(F){
 				double gna=F->xPos.get()-parent->xPos.get()-length;
 				if(gna > getTimeStep()*(parent->xVel.get()-F->xVel.get())) {
 					flagF[i]=true;
@@ -455,7 +455,7 @@ unsigned int sim_mob::Driver::gapAcceptance()
 				flagF[i]=true;
 			}
 
-			if(B!=nullptr) {
+			if(B) {
 				double gnb=parent->xPos.get()-B->xPos.get()-length;
 				if(gnb > getTimeStep()*(B->xVel.get()-parent->xVel.get())){
 					flagB[i]=true;
@@ -492,7 +492,7 @@ double sim_mob::Driver::makeLaneChangingDecision()
 	//double sl,sr;
 
 	double sr = MAX_NUM;
-	if(RF!=nullptr) {
+	if(RF) {
 		sr=RF->xPos.get()-parent->xPos.get()-length;
 	} /*else {
 		sr=MAX_NUM;
@@ -501,7 +501,7 @@ double sim_mob::Driver::makeLaneChangingDecision()
 	bool right = (s<sr);
 
 	double sl = MAX_NUM;
-	if(LF!=nullptr) {
+	if(LF) {
 		sl=LF->xPos.get()-parent->xPos.get()-length;
 	} /*else {
 		sl=MAX_NUM;

@@ -178,7 +178,7 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 	for (;active.get();) {
 		perform_main(currTick);
 
-		if (internal_barr!=nullptr)
+		if (internal_barr)
 			internal_barr->wait();
 
 		//Advance local time-step
@@ -188,7 +188,7 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 
 		perform_flip();
 
-		if (external_barr!=nullptr)
+		if (external_barr)
 			external_barr->wait();
 	}
 }
@@ -197,7 +197,7 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 template <class EntityType>
 void sim_mob::Worker<EntityType>::perform_main(frame_t frameNumber)
 {
-	if (action!=nullptr)
+	if (action)
 		(*action)(*this, frameNumber);
 }
 

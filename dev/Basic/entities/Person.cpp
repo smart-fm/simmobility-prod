@@ -10,7 +10,7 @@ sim_mob::Person::Person(unsigned int id) : Agent(id), currRole(nullptr)
 
 void sim_mob::Person::update(frame_t frameNumber)
 {
-	if (currRole!=nullptr) {
+	if (currRole) {
 		currRole->update(frameNumber);
 	}
 
@@ -38,13 +38,13 @@ void sim_mob::Person::buildSubscriptionList()
 
 void sim_mob::Person::changeRole(sim_mob::Role* newRole)
 {
-	if (this->currRole!=nullptr) {
+	if (this->currRole) {
 		this->currRole->setParent(nullptr);
 	}
 
 	this->currRole = newRole;
 
-	if (this->currRole!=nullptr) {
+	if (this->currRole) {
 		this->currRole->setParent(this);
 	}
 }

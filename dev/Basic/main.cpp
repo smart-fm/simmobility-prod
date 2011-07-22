@@ -124,6 +124,12 @@ bool performMain()
 	  return false;
   }
 
+  //Sanity check (nullptr)
+  void* x = nullptr;
+  if (x) {
+	  return false;
+  }
+
   //Output
   cout <<"  " <<"(Sanity Check Passed)" <<endl;
 

@@ -1,3 +1,5 @@
+package sim_mob;
+
 import java.awt.*; 
 
 import javax.swing.*; 
@@ -49,6 +51,13 @@ public class TrafficPanel extends JPanel implements ActionListener{
 	private double[] carDirection = new double[numAgents];
 	
 	BufferedImage image; 	// Declare the image variable
+	
+	
+	//Helper method
+	public static BufferedImage LoadImgResource(String path) throws IOException {
+		InputStream input = TrafficFrame.class.getClassLoader().getResourceAsStream(path);
+		return ImageIO.read(input);
+	}
 	
 	
 	// Set the frame speed
@@ -128,33 +137,30 @@ public class TrafficPanel extends JPanel implements ActionListener{
 		// Image name
 		String imageName[] = new String[16];
 		
-		imageName[0] = "car20.png";
-		imageName[1] = "car45.png";
-		imageName[2] = "car70.png";
-		imageName[3] = "car90.png";
-		imageName[4] = "car110.png";
-		imageName[5] = "car135.png";
-		imageName[6] = "car160.png";
-		imageName[7] = "car180.png";
-		imageName[8] = "car200.png";
-		imageName[9] = "car225.png";
-		imageName[10] = "car250.png";
-		imageName[11] = "car270.png";
-		imageName[12] = "car290.png";
-		imageName[13] = "car315.png";
-		imageName[14] = "car340.png";
-		imageName[15] = "car360.png";
+		imageName[0] = "res/car20.png";
+		imageName[1] = "res/car45.png";
+		imageName[2] = "res/car70.png";
+		imageName[3] = "res/car90.png";
+		imageName[4] = "res/car110.png";
+		imageName[5] = "res/car135.png";
+		imageName[6] = "res/car160.png";
+		imageName[7] = "res/car180.png";
+		imageName[8] = "res/car200.png";
+		imageName[9] = "res/car225.png";
+		imageName[10] = "res/car250.png";
+		imageName[11] = "res/car270.png";
+		imageName[12] = "res/car290.png";
+		imageName[13] = "res/car315.png";
+		imageName[14] = "res/car340.png";
+		imageName[15] = "res/car360.png";
 		
 		
 		for(int i = 0;i<16;i++)
 		{
 			
 			
-			try {
-				
-				File input = new File(imageName[i]);
-				
-				BufferedImage car = ImageIO.read(input);
+			try {			
+				BufferedImage car = LoadImgResource(imageName[i]);
 								
 				imageList.add(car);
 				  

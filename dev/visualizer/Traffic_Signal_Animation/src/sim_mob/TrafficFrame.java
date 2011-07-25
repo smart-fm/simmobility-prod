@@ -1,5 +1,6 @@
-import java.awt.*; 
+package sim_mob;
 
+import java.awt.*; 
 import javax.swing.*; 
 
 public class TrafficFrame extends JFrame{
@@ -13,7 +14,8 @@ public class TrafficFrame extends JFrame{
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); 
 		
 		frame.setVisible(true); 
-	} 
+	}
+	
 	
 	// Constructor
 	public TrafficFrame() { 

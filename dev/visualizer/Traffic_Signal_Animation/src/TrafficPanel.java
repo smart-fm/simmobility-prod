@@ -128,22 +128,22 @@ public class TrafficPanel extends JPanel implements ActionListener{
 		// Image name
 		String imageName[] = new String[16];
 		
-		imageName[0] = "car20.gif";
-		imageName[1] = "car45.gif";
-		imageName[2] = "car70.gif";
-		imageName[3] = "car90.gif";
-		imageName[4] = "car110.gif";
-		imageName[5] = "car135.gif";
-		imageName[6] = "car160.gif";
-		imageName[7] = "car180.gif";
-		imageName[8] = "car200.gif";
-		imageName[9] = "car225.gif";
-		imageName[10] = "car250.gif";
-		imageName[11] = "car270.gif";
-		imageName[12] = "car290.gif";
-		imageName[13] = "car315.gif";
-		imageName[14] = "car340.gif";
-		imageName[15] = "car360.gif";
+		imageName[0] = "car20.png";
+		imageName[1] = "car45.png";
+		imageName[2] = "car70.png";
+		imageName[3] = "car90.png";
+		imageName[4] = "car110.png";
+		imageName[5] = "car135.png";
+		imageName[6] = "car160.png";
+		imageName[7] = "car180.png";
+		imageName[8] = "car200.png";
+		imageName[9] = "car225.png";
+		imageName[10] = "car250.png";
+		imageName[11] = "car270.png";
+		imageName[12] = "car290.png";
+		imageName[13] = "car315.png";
+		imageName[14] = "car340.png";
+		imageName[15] = "car360.png";
 		
 		
 		for(int i = 0;i<16;i++)

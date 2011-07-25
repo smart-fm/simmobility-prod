@@ -64,7 +64,7 @@ public class TrafficPanel extends JPanel implements ActionListener{
 	Timer timer = new Timer(timerSpeed, this);
 	
 	// Constructor
-	public TrafficPanel(){ 	
+	public TrafficPanel(String inFileName){ 	
 		JPanel bottomPanel = new JPanel(); 
 		JPanel topPanel = new JPanel();
 		
@@ -106,18 +106,18 @@ public class TrafficPanel extends JPanel implements ActionListener{
 		resetButton.addActionListener(this);
 		
 		// Read the data from log file
-		readFile();
+		readFile(inFileName);
 	
 	}
 	
 	// Read the input from the log file
-	public void readFile() {
+	public void readFile(String filename) {
 		//@SuppressWarnings("unused")
 		//char[] boundaryBottomLeft, boundaryBottomRight, boundaryTopLeft, boundaryTopRight;
 		
 		
 		try {
-			FileReader fin = new FileReader("log4.out");
+			FileReader fin = new FileReader(filename);
 			BufferedReader b = new BufferedReader(fin);
 			
 			String currentLine = "";

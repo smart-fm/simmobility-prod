@@ -135,40 +135,18 @@ public class TrafficPanel extends JPanel implements ActionListener{
 		}
 		
 		// Image name
-		String imageName[] = new String[16];
+		String imageNames[] = new String[] {
+			"20", "45", "70", "90", "110", "135", "160", "180", 
+			"200", "225", "250", "270", "290", "315", "340", "360"          
+		};
 		
-		imageName[0] = "res/car20.png";
-		imageName[1] = "res/car45.png";
-		imageName[2] = "res/car70.png";
-		imageName[3] = "res/car90.png";
-		imageName[4] = "res/car110.png";
-		imageName[5] = "res/car135.png";
-		imageName[6] = "res/car160.png";
-		imageName[7] = "res/car180.png";
-		imageName[8] = "res/car200.png";
-		imageName[9] = "res/car225.png";
-		imageName[10] = "res/car250.png";
-		imageName[11] = "res/car270.png";
-		imageName[12] = "res/car290.png";
-		imageName[13] = "res/car315.png";
-		imageName[14] = "res/car340.png";
-		imageName[15] = "res/car360.png";
-		
-		
-		for(int i = 0;i<16;i++)
-		{
-			
-			
+		for(String name : imageNames) {
 			try {			
-				BufferedImage car = LoadImgResource(imageName[i]);
-								
+				BufferedImage car = LoadImgResource("res/car" + name + ".png");
 				imageList.add(car);
-				  
 			} catch (IOException ie) {
 				System.out.println("Error:"+ie.getMessage()); 
-			
 			}
-			
 		}
 		
 	}

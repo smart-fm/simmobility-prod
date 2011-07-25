@@ -136,7 +136,7 @@ public class TrafficPanel extends JPanel implements ActionListener{
 			String currentLine = "";
 			while((currentLine = b.readLine()) != null) {
 				if (TIME_TICK_LINE_REGEX.matcher(currentLine).matches()) {
-					arl.add(currentLine);
+					arl.add(currentLine.substring(1, currentLine.length()-1));
 				} else {
 					System.out.println("Skipped line: " + currentLine);
 				}
@@ -648,12 +648,12 @@ public class TrafficPanel extends JPanel implements ActionListener{
 		
 		// Iterate thru all the lines(agents) read from log.out
 		for(int i=0; i<arl.size(); i++) {	
-			String temp;
-			temp = arl.get(i);
-			temp = temp.substring(1, temp.length()-1);
+			//String temp;
+			//temp = arl.get(i);
+			//temp = temp.substring(1, temp.length()-1);
 			
 			String[] temp2;
-			temp2 = temp.split(",");
+			temp2 = arl.get(i).split(",");
 			
 			
 			// Agent ID

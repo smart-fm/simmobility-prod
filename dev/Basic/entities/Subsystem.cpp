@@ -57,7 +57,7 @@ void sim_mob :: Subsystem :: updateSubsystem(double DS_C[],double DS_S1[], doubl
 	currCycleLength = (int) Critical->getnextCL();
 	currSplitPlan_C.assign(Critical->getnextSplitPlan(),Critical->getnextSplitPlan()+3);
 
-	//update SplitPlan of two slaved interseciton
+	//update SplitPlan of two slaved intersection
 	updateSplitPlan(DS_S1, DS_S2);
 
 	//update offset of two slaved intersection

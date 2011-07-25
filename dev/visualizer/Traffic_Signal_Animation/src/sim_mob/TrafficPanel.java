@@ -29,6 +29,9 @@ public class TrafficPanel extends JPanel implements ActionListener{
 		+ "\\)"
 	);
 	
+	//Saved data
+	private ArrayList<TimeTick> ticks;
+	
 	// Add buttons and labels
 	private JButton startButton, stopButton, stepForwardButton, stepBackButton, resetButton; 
 	private JLabel frameNumLabel, cycleNumLabel, blanks, DSLabel, PhaseCounterLabel;
@@ -49,9 +52,6 @@ public class TrafficPanel extends JPanel implements ActionListener{
 	private int scaledCrossingX2 = 730;	
 	private int scaledCrossingY1 = 245;
 	private int scaledCrossingY2 = 465;
-	
-	//Array list for each vehicle output in log.out
-	private ArrayList<String> arl = new ArrayList<String>();
 	
 	// Array list for vehicle image
 	private ArrayList<BufferedImage> imageList = new ArrayList<BufferedImage>();
@@ -119,12 +119,13 @@ public class TrafficPanel extends JPanel implements ActionListener{
 		resetButton.addActionListener(this);
 		
 		// Read the data from log file
-		readFile(inFileName);
-	
+		ArrayList<String> arl = new ArrayList<String>();
+		readFile(inFileName, arl);
+		readTicks(arl);
 	}
 	
 	// Read the input from the log file
-	public void readFile(String filename) {
+	public void readFile(String filename, ArrayList<String> arl) {
 		//@SuppressWarnings("unused")
 		//char[] boundaryBottomLeft, boundaryBottomRight, boundaryTopLeft, boundaryTopRight;
 		
@@ -640,68 +641,77 @@ public class TrafficPanel extends JPanel implements ActionListener{
 			}
 			else{}
 		}
-		
-		
 	}
 	
-	public void setAgentPosition(){  
-		
-		// Iterate thru all the lines(agents) read from log.out
-		for(int i=0; i<arl.size(); i++) {	
-			//String temp;
-			//temp = arl.get(i);
-			//temp = temp.substring(1, temp.length()-1);
+	
+	//Parse the agent data array. 
+	private void readTicks(ArrayList<String> lines)  {
+		ticks = new ArrayList<TimeTick>();
+		for (String line : lines) {
+			String[] items = line.split(",");
 			
-			String[] temp2;
-			temp2 = arl.get(i).split(",");
+			//Create an agent representing this set of data.
+			int frameNum = Integer.parseInt(items[1]);
+			AgentTick agent = new AgentTick();
+			agent.agentID = Integer.parseInt(items[0]);
+			agent.agentX = Double.parseDouble(items[2]);
+			agent.agentY = Double.parseDouble(items[3]);
+			agent.phaseSignal = Integer.parseInt(items[4]);
+			agent.ds = Double.parseDouble(items[5]);
+			agent.cycleLen = Double.parseDouble(items[6]);
+			agent.phaseCount = Integer.parseInt(items[7]);
+			agent.carDir = Double.parseDouble(items[8]);
 			
-			
-			// Agent ID
-			int tempId = Integer.parseInt(temp2[0]);
-			// frame number
-			int tempFrameNum = Integer.parseInt(temp2[1]);
-			// Agent Position X
-			int tempX = (int)Double.parseDouble(temp2[2]);
-			// Agent Position Y
-			int tempY = (int)Double.parseDouble(temp2[3]);
-			// Phase Signal
-			int tempPhase = Integer.parseInt(temp2[4]);
-			// DS
-			double tempDS = Double.parseDouble(temp2[5]);
-			// Cycle Length
-			double tempCycleLength = Double.parseDouble(temp2[6]);
-			//Phase Counter
-			int tempPhaseCounter = Integer.parseInt(temp2[7]);
-			// Car direction
-			double tempDirection = Double.parseDouble(temp2[8]);
-			
-			// System.out.println(tempPhaseCounter);
-			
-			double[] intArray = new double[2];
-			intArray = scaleCoord(tempX, tempY);
-						
-			if(tempFrameNum == curFrameNum) {
-				
-				agentXCoord[tempId] = (int)intArray[0];
-				agentYCoord[tempId] = (int)intArray[1];
-				
-				signalPhase = tempPhase;
-				cycleLength  = tempCycleLength;
-				DS = Math.floor(tempDS*1000)/10;
-				PhaseCounter = tempPhaseCounter;
-				
-				carDirection[tempId] = tempDirection;
-//				System.out.println(carDirection[tempId]);
-				
+			//Ensure we have a spot to put the agent.
+			while (ticks.size()<=frameNum) {
+				ticks.add(new TimeTick());
+			}
+			TimeTick currTick = ticks.get(frameNum);
+			if (currTick.agentTicks==null) {
+				currTick.agentTicks = new Hashtable<Integer, AgentTick>();
 			}
 			
+			//Put this agent in the right place
+			currTick.agentTicks.put(agent.agentID, agent);
+		}
+	}
+	
+	
+	public void setAgentPosition(){
+		//Stop
+		if(curFrameNum >= ticks.size()) {
+			timer.stop();
+		}
+		
+		//Iterate through all agents in this tick
+		TimeTick tick = ticks.get(curFrameNum);
+		for (AgentTick agent : tick.agentTicks.values()) {		
+			//Scale the agent position
+			double[] intArray = new double[2];
+			intArray = scaleCoord((int)agent.agentX, (int)agent.agentY);
+						
+			//if(tempFrameNum == curFrameNum) { //This is always true
+				
+				agentXCoord[agent.agentID] = (int)intArray[0];
+				agentYCoord[agent.agentID] = (int)intArray[1];
+				
+				signalPhase = agent.phaseSignal;
+				cycleLength  = agent.cycleLen;
+				DS = Math.floor(agent.ds*1000)/10;
+				PhaseCounter = agent.phaseCount;
+				
+				carDirection[agent.agentID] = agent.carDir;
+//				System.out.println(carDirection[tempId]);
+				
+			//}
+			
 			// Stop if no frame available
-			if(curFrameNum > arl.size())
+			/*if(curFrameNum > arl.size())
 			{
 				timer.stop();
 				
-			}
-		
+			}*/
+				
 			frameNumLabel.setText("Frame #: " + curFrameNum);	
 	
 		}

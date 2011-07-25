@@ -681,6 +681,7 @@ public class TrafficPanel extends JPanel implements ActionListener{
 		//Stop
 		if(curFrameNum >= ticks.size()) {
 			timer.stop();
+			return;
 		}
 		
 		//Iterate through all agents in this tick

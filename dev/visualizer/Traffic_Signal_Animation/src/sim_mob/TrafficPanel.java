@@ -8,13 +8,24 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import javax.swing.Timer;
 import javax.imageio.ImageIO;
 
 public class TrafficPanel extends JPanel implements ActionListener{
-	
 	private static final long serialVersionUID = 1L;
+	
+	//Regex matching actual time tick lines.
+	private static final String RG_INT = "-?\\d+";
+	private static final String RG_DOUBLE = "-?\\d+(?:\\.\\d+)?";
+	private static final Pattern TIME_TICK_LINE_REGEX = Pattern.compile(
+		  "\\(" 
+	    + RG_INT + "," + RG_INT + ","       //Agent ID, Time Tick 
+		+ RG_DOUBLE + "," + RG_DOUBLE + "," //Agent X, Y
+		+ RG_INT + "," + RG_DOUBLE + "," + RG_INT + "," + RG_INT + "," + RG_DOUBLE  //Not sure...  
+		+ "\\)"
+	);
 	
 	// Add buttons and labels
 	private JButton startButton, stopButton, stepForwardButton, stepBackButton, resetButton; 
@@ -122,8 +133,11 @@ public class TrafficPanel extends JPanel implements ActionListener{
 			
 			String currentLine = "";
 			while((currentLine = b.readLine()) != null) {
-
-				arl.add(currentLine);
+				if (TIME_TICK_LINE_REGEX.matcher(currentLine).matches()) {
+					arl.add(currentLine);
+				} else {
+					System.out.println("Skipped line: " + currentLine);
+				}
 			}
 			fin.close();
 		}

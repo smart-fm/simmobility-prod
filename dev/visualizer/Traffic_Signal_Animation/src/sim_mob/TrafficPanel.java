@@ -679,10 +679,10 @@ public class TrafficPanel extends JPanel implements ActionListener{
 	
 	public void setAgentPosition(){
 		//Stop
-		if(curFrameNum >= ticks.size()) {
-			timer.stop();
-			return;
-		}
+		//if(curFrameNum >= ticks.size()) {
+		//	timer.stop();
+		//	return;
+		//}
 		
 		//Iterate through all agents in this tick
 		TimeTick tick = ticks.get(curFrameNum);
@@ -690,28 +690,16 @@ public class TrafficPanel extends JPanel implements ActionListener{
 			//Scale the agent position
 			double[] intArray = new double[2];
 			intArray = scaleCoord((int)agent.agentX, (int)agent.agentY);
-						
-			//if(tempFrameNum == curFrameNum) { //This is always true
+									
+			agentXCoord[agent.agentID] = (int)intArray[0];
+			agentYCoord[agent.agentID] = (int)intArray[1];
 				
-				agentXCoord[agent.agentID] = (int)intArray[0];
-				agentYCoord[agent.agentID] = (int)intArray[1];
+			signalPhase = agent.phaseSignal;
+			cycleLength  = agent.cycleLen;
+			DS = Math.floor(agent.ds*1000)/10;
+			PhaseCounter = agent.phaseCount;
 				
-				signalPhase = agent.phaseSignal;
-				cycleLength  = agent.cycleLen;
-				DS = Math.floor(agent.ds*1000)/10;
-				PhaseCounter = agent.phaseCount;
-				
-				carDirection[agent.agentID] = agent.carDir;
-//				System.out.println(carDirection[tempId]);
-				
-			//}
-			
-			// Stop if no frame available
-			/*if(curFrameNum > arl.size())
-			{
-				timer.stop();
-				
-			}*/
+			carDirection[agent.agentID] = agent.carDir;
 				
 			frameNumLabel.setText("Frame #: " + curFrameNum);	
 	
@@ -726,23 +714,34 @@ public class TrafficPanel extends JPanel implements ActionListener{
 			timer.stop();
 		}
 		else if(e.getSource().equals(timer)) {
+			//Done?
+			if (curFrameNum==ticks.size()-1) {
+				timer.stop();
+				return;
+			}
+			
+			//Increment, paint
 			curFrameNum++;
 			setAgentPosition();
 			repaint();
 		}
 		else if(e.getSource().equals(stepForwardButton)) {
-			curFrameNum++;
-			setAgentPosition();
-			repaint();
+			if (curFrameNum<ticks.size()-1) {
+				curFrameNum++;
+				setAgentPosition();
+				repaint();
+			}
 		}
 		else if(e.getSource().equals(stepBackButton)) {
-			curFrameNum--;
-			setAgentPosition();
-			repaint();
+			if (curFrameNum>1) {
+				curFrameNum--;
+				setAgentPosition();
+				repaint();
+			}
 		}
 		else if(e.getSource().equals(resetButton)) {
 			timer.stop();
-			curFrameNum = 1;
+			curFrameNum = 1;  //NOTE: The first tick is actually tick 0. ~Seth
 			setAgentPosition();
 			repaint();
 		}

@@ -11,9 +11,11 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import javax.swing.Timer;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.imageio.ImageIO;
 
-public class TrafficPanel extends JPanel implements ActionListener{
+public class TrafficPanel extends JPanel implements ActionListener, ChangeListener {
 	private static final long serialVersionUID = 1L;
 	
 	//Regex matching actual time tick lines.
@@ -35,6 +37,7 @@ public class TrafficPanel extends JPanel implements ActionListener{
 	// Add buttons and labels
 	private JButton startButton, stopButton, stepForwardButton, stepBackButton, resetButton; 
 	private JLabel frameNumLabel, cycleNumLabel, blanks, DSLabel, PhaseCounterLabel;
+	private JSlider frameSlider;
 	
 	
 	private int numAgents = 60;		// Set number of agents
@@ -79,6 +82,7 @@ public class TrafficPanel extends JPanel implements ActionListener{
 	// Constructor
 	public TrafficPanel(String inFileName){ 	
 		JPanel bottomPanel = new JPanel(); 
+		JPanel bottomContainer = new JPanel();
 		JPanel topPanel = new JPanel();
 		
 		startButton = new JButton("Start");
@@ -89,6 +93,7 @@ public class TrafficPanel extends JPanel implements ActionListener{
 		frameNumLabel = new JLabel("Frame #: " + curFrameNum);	//frame number
 		blanks =  new JLabel("                                                                                        " +
 				"                                                        ");
+		frameSlider = new JSlider(JSlider.HORIZONTAL);
 		
 		cycleNumLabel = new JLabel("Cycle Length: " + cycleLength);
 		DSLabel = new JLabel("  DS: " + DS);
@@ -100,6 +105,10 @@ public class TrafficPanel extends JPanel implements ActionListener{
 		bottomPanel.add(stepBackButton);
 		bottomPanel.add(resetButton);
 		
+		bottomContainer.setLayout(new BorderLayout());
+		bottomContainer.add(frameSlider, BorderLayout.NORTH);
+		bottomContainer.add(bottomPanel, BorderLayout.SOUTH);
+		
 		topPanel.add(frameNumLabel);
 		topPanel.add(blanks);
 		topPanel.add(cycleNumLabel);
@@ -107,7 +116,7 @@ public class TrafficPanel extends JPanel implements ActionListener{
 		topPanel.add(PhaseCounterLabel);
 		
 		setLayout(new BorderLayout()); 
-		add(bottomPanel, BorderLayout.SOUTH);
+		add(bottomContainer, BorderLayout.SOUTH);
 		add(topPanel, BorderLayout.NORTH);
 		//add(bottomPanel, BorderLayout.EAST);
 		
@@ -122,6 +131,14 @@ public class TrafficPanel extends JPanel implements ActionListener{
 		ArrayList<String> arl = new ArrayList<String>();
 		readFile(inFileName, arl);
 		readTicks(arl);
+		
+		//Now, set the Slider's value
+		frameSlider.setMinimum(1);
+		frameSlider.setMaximum(ticks.size()-1);
+		frameSlider.setMajorTickSpacing(ticks.size()/10);
+		frameSlider.setMinorTickSpacing(ticks.size()/50);
+		frameSlider.setValue(1);
+		frameSlider.addChangeListener(this);
 	}
 	
 	// Read the input from the log file
@@ -704,7 +721,16 @@ public class TrafficPanel extends JPanel implements ActionListener{
 			frameNumLabel.setText("Frame #: " + curFrameNum);	
 	
 		}
-	} 
+	}
+	
+	public void stateChanged(ChangeEvent e) {
+		if (e.getSource().equals(frameSlider)) {
+			//Paint
+			curFrameNum = frameSlider.getValue();
+			setAgentPosition();
+			repaint();
+		}
+	}
 	
 	public void actionPerformed(ActionEvent e) { 
 		if(e.getSource().equals(startButton)) {
@@ -722,12 +748,14 @@ public class TrafficPanel extends JPanel implements ActionListener{
 			
 			//Increment, paint
 			curFrameNum++;
+			frameSlider.setValue(curFrameNum); //This should really be done with a listener.
 			setAgentPosition();
 			repaint();
 		}
 		else if(e.getSource().equals(stepForwardButton)) {
 			if (curFrameNum<ticks.size()-1) {
 				curFrameNum++;
+				frameSlider.setValue(curFrameNum); //This should really be done with a listener.
 				setAgentPosition();
 				repaint();
 			}
@@ -735,6 +763,7 @@ public class TrafficPanel extends JPanel implements ActionListener{
 		else if(e.getSource().equals(stepBackButton)) {
 			if (curFrameNum>1) {
 				curFrameNum--;
+				frameSlider.setValue(curFrameNum); //This should really be done with a listener.
 				setAgentPosition();
 				repaint();
 			}
@@ -742,6 +771,7 @@ public class TrafficPanel extends JPanel implements ActionListener{
 		else if(e.getSource().equals(resetButton)) {
 			timer.stop();
 			curFrameNum = 1;  //NOTE: The first tick is actually tick 0. ~Seth
+			frameSlider.setValue(curFrameNum); //This should really be done with a listener.
 			setAgentPosition();
 			repaint();
 		}

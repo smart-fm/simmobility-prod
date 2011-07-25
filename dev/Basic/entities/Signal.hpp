@@ -31,6 +31,8 @@ namespace sim_mob
  *  updated and every agent should be able to get its information.
  *
  */
+
+
 class Signal : public Entity {
 
 
@@ -61,7 +63,6 @@ public:
 	//initialize the SplitPlan for SCATS
 	void startSplitPlan();
 	void setnextSplitPlan(double DS[]);
-	void updatecurrSplitPlanID();
 	void updatecurrSplitPlan();
 
 	//Offset
@@ -77,6 +78,7 @@ public:
 	double getpreRL2() {return prevRL2;}
 	int getcurrSplitPlanID() {return currSplitPlanID;}
 	int getnextSplitPlanID() {return nextSplitPlanID;}
+	double * getnextSplitPlan() {return &nextSplitPlan[0];}
 	double getcurrOffset() {return currOffset;}
 	double getnextOffset() {return nextOffset;}
 

@@ -75,7 +75,6 @@ void sim_mob :: Signal :: updateSignal (double DS[])
 	updateprevCL();
 	updatecurrCL();
 	setnextSplitPlan(DS);
-	updatecurrSplitPlanID();
 	updatecurrSplitPlan();
 
 }
@@ -256,11 +255,9 @@ void sim_mob :: Signal :: setnextSplitPlan (double DS[])
 }
 
 
-void sim_mob :: Signal :: updatecurrSplitPlanID() {
-	currSplitPlanID = nextSplitPlanID;
-}
 
 void sim_mob :: Signal :: updatecurrSplitPlan() {
+	currSplitPlanID = nextSplitPlanID;
 	for(int i = 0; i < 4; i++) {
 		currSplitPlan[i] = nextSplitPlan[i];
 	}

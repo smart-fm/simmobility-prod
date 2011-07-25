@@ -3,6 +3,11 @@ dev/Basic/Debug/
 dev/Basic/Release/
 dev/Basic/doxy/output/
 
+#Java project built files
+dev/visualizer/Traffic_Signal_Animation/.settings/
+dev/visualizer/Traffic_Signal_Animation/bin/
+
+
 #Ignore object files
 *.o
 

@@ -23,7 +23,9 @@ public class TrafficPanel extends JPanel implements ActionListener{
 		  "\\(" 
 	    + RG_INT + "," + RG_INT + ","       //Agent ID, Time Tick 
 		+ RG_DOUBLE + "," + RG_DOUBLE + "," //Agent X, Y
-		+ RG_INT + "," + RG_DOUBLE + "," + RG_INT + "," + RG_INT + "," + RG_DOUBLE  //Not sure...  
+		+ RG_INT + "," + RG_DOUBLE + ","    //Phase signal, DS 
+		+ RG_DOUBLE + "," + RG_INT + ","    //Cycle length, phase counter 
+		+ RG_DOUBLE                         //Car direction
 		+ "\\)"
 	);
 	

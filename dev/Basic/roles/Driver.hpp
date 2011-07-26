@@ -95,8 +95,9 @@ private:
 	//Parameters represent the location of the vehicle on the road
 	//Since the classes of the network haven't be finished, I will use simple type of parameters instead to represent the networks.
 	static const link_ testLinks[];
-	static const int numOfBadAreas				=	3;
+	static const int numOfBadAreas				=	0;//3;
 	static const badArea badareas[];				//bad areas, just to check if MLC model can function
+	static const int numOfLinks					=	8;
 
 
 	/**********BASIC DATA*************/
@@ -160,6 +161,7 @@ private:
 	double leader_yVel_;
 	double leader_xAcc_;
 	double leader_yAcc_;
+	int originLink;					//using when reach the goal and go back to origin
 	int currentLink;				//current link ID
 	int currentLane;				//current lane ID
 	Agent* LF;				//pointer pointing to the vehicle in the left lane and in front of the vehicle in the smallest distance
@@ -168,12 +170,16 @@ private:
 	Agent* RB;				//right lane, behind, closest
 
 public:
+	void updateCurrentLink();
+	bool isOnTheLink(int linkid);
 	void updateLeadingDriver();				///<this may be a function of big brother later
 	Agent* getLeadingDriver(){return leader;}
 	int getLink();							//return the ID of current link
 	int getLane();							//return the ID of the lane where the vehicle is on
 	Agent* getNextForBDriver(bool isLeft,bool isFront);	///<for updating LF LB RF RB
 	bool checkIfOnTheLane(double y);		///<give y position, check if it is a lane's y position
+	double getLinkLength();
+	bool isReachSignal();
 
 
 	/***********FOR DRIVING BEHAVIOR MODEL**************/
@@ -229,6 +235,7 @@ public:
 	double makeMandatoryLaneChangingDecision();			///<MLC model, vehicles must change lane, Returns 1 for Right, -1 for Left.
 	void excuteLaneChanging();			///<to execute the lane changing, meanwhile, check if crash will happen and avoid it
 	bool checkForCrash();				///<to check if the crash may happen
+
 	/*
 	 * Now I assume that vehicles must make lane changing when they face "bad area" ahead of them.
 	 * The so called bad area is where vehicles can not go.

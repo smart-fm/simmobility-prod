@@ -51,14 +51,20 @@ double unit2Feet(double unit)
 }
 
 const badArea sim_mob::Driver::badareas[] = {
-		{200,350,0},
-		{750,800,1},
-		{200,350,2}
+		//{200,350,0},
+		//{750,800,1},
+		//{200,350,2}
 };
 
 const link_ sim_mob::Driver::testLinks[] = {
-		{0,0,310,1200,310,10,3},
-		//{0,500,0,500,1000,10,3}
+		{ 0,   0, 270, 460, 270,10,3},
+		{ 1, 530,   0, 530, 260,10,3},
+		{ 2,1000, 330, 540, 330,10,3},
+		{ 3, 470, 600, 470, 340,10,3},
+		{ 4, 460, 330,   0, 330,10,3},
+		{ 5, 470, 260, 470,   0,10,3},
+		{ 6, 540, 270,1000, 270,10,3},
+		{ 7, 530, 340, 530, 600,10,3}
 };
 
 //initiate
@@ -101,7 +107,7 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), leader(nullptr)
 	LF=nullptr;LB=nullptr;RF=nullptr;RB=nullptr;
 
 	//Need to init
-	currentLink = 0;
+	currentLink = parent->getId()/3;
 
 	ischanging=false;
 	isback=false;
@@ -117,8 +123,6 @@ void sim_mob::Driver::update(frame_t frameNumber)
 {
 	getFromParent();
 	abs2relat();
-	VelOfLaneChanging=	testLinks[currentLink].laneWidth/5;		//assume that 5 time steps is need when changing lane
-
 	//Set the goal of agent
 	if(!isGoalSet){
 		setGoal();
@@ -138,11 +142,15 @@ void sim_mob::Driver::update(frame_t frameNumber)
 		changeDecision=0;
 	}
 
+	updateCurrentLink();
+	VelOfLaneChanging=	testLinks[currentLink].laneWidth/5;		//assume that 5 time steps is need when changing lane
+
 	//update information
 	updateLeadingDriver();
 
 	//accelerating part
 	makeAcceleratingDecision();
+
 
 	//lane changing part
 	excuteLaneChanging();
@@ -174,6 +182,7 @@ void sim_mob::Driver::setToParent()
 	parent->yVel.set(yVel);
 	parent->xAcc.set(xAcc);
 	parent->yAcc.set(yAcc);
+	parent->currentLink.set(currentLink);
 }
 
 void sim_mob::Driver::abs2relat()
@@ -210,13 +219,19 @@ void sim_mob::Driver::relat2abs()
 
 void sim_mob::Driver::setOrigin()
 {
-	origin.xPos = -150;
+	originLink = currentLink;
+	origin.xPos = 0;
 	origin.yPos = yPos_;
 }
 
 void sim_mob::Driver::setGoal()
 {
-	goal.xPos = 1000;			//all the cars move in x direction to reach the goal
+	if(currentLink%2==0){
+		goal.xPos = 460;			//all the cars move in x direction to reach the goal
+	}
+	else{
+		goal.xPos = 260;
+	}
 }
 
 bool sim_mob::Driver::isGoalReached()
@@ -224,6 +239,40 @@ bool sim_mob::Driver::isGoalReached()
 	return (goal.xPos - xPos_)<0;  //This is equivalent. ~Seth
 }
 
+bool sim_mob::Driver::isReachSignal()
+{
+	return (getLinkLength()-xPos_ < length);
+}
+
+void sim_mob::Driver::updateCurrentLink()
+{
+	currentLink=-1;
+	for(int i=0;i<numOfLinks;i++){
+		if(isOnTheLink(i)){
+			currentLink=i;
+		}
+	}
+}
+
+bool sim_mob::Driver::isOnTheLink(int linkid)
+{
+	double xDir=testLinks[linkid].endX-testLinks[linkid].startX;
+	double yDir=testLinks[linkid].endY-testLinks[linkid].startY;
+	double xOffset=xPos-testLinks[linkid].startX;
+	double yOffset=yPos-testLinks[linkid].startY;
+	double magnitude=sqrt(xDir*xDir+yDir*yDir);
+	double xD=xDir/magnitude;
+	double yD=yDir/magnitude;
+	double xP= xOffset*xD+yOffset*yD;
+	double yP=-xOffset*yD+yOffset*xD;
+	if(xP>=0 && xP <= magnitude && yP >= 0
+			&& yP <=testLinks[linkid].laneWidth*((double)testLinks[linkid].laneNum-1)){
+			return true;
+	}
+	else{
+		return false;
+	}
+}
 
 void sim_mob::Driver::updateAcceleration()
 {
@@ -235,32 +284,43 @@ void sim_mob::Driver::updateAcceleration()
 
 void sim_mob::Driver::updateVelocity()
 {
-
-	//when vehicle just gets back to the origin, help them to speed up
-	if(xPos_<0) {
-		xVel_=(0.2+((double)(rand()%10))/30)*getTargetSpeed();
-		yVel_=0;
-	} else{
-		xVel_ = max(0.0, speed_+xAcc_*timeStep);
-		yVel_ = 0;//max(0.0, yDirection*speed_+yAcc*timeStep);
-		/*if(xVel<0) {
-			xVel=0;
-		}
-		if(yVel<0) {
-			yVel=0;
-		}*/
-	}
-	if(!ischanging){
-		double foward;
-		if(leader==nullptr) {
-			foward=MAX_NUM;
-		} else {
-			foward=leader_xPos_-xPos_-length;
-		}
-		if(foward<0) {
+	if(isReachSignal()){
+		//if(signalisred){
 			xVel_=0;
-		}
+			yVel_=0;
+		//}
+	}
+	else if(leader!=nullptr && leader_xVel_ == 0 && getDistance()<0.2*length){
+		xVel_=0;
 		yVel_=0;
+	}
+	//when vehicle just gets back to the origin, help them to speed up
+	else {
+		if(xPos_<0) {
+				xVel_=(0.2+((double)(rand()%10))/30)*getTargetSpeed();
+				yVel_=0;
+			} else{
+				xVel_ = max(0.0, speed_+xAcc_*timeStep);
+				yVel_ = 0;//max(0.0, yDirection*speed_+yAcc*timeStep);
+				/*if(xVel<0) {
+					xVel=0;
+				}
+				if(yVel<0) {
+					yVel=0;
+				}*/
+			}
+			if(!ischanging){
+				double foward;
+				if(leader==nullptr) {
+					foward=MAX_NUM;
+				} else {
+					foward=leader_xPos_-xPos_-length;
+				}
+				if(foward<0) {
+					xVel_=0;
+				}
+				yVel_=0;
+			}
 	}
 	speed_=sqrt(xVel_*xVel_+yVel_*yVel_);
 }
@@ -277,9 +337,12 @@ void sim_mob::Driver::updatePosition()
 
 	//if reach the goal, get back to the origin
 	if(isGoalReached()){
+		currentLink=originLink;
+		//currentLink=(currentLink+1)%8;
 		double fallback=0;
 		xPos_=origin.xPos-fallback*50;;
 		yPos_=origin.yPos;
+		//isGoalSet=false;
 	}
 }
 
@@ -297,8 +360,9 @@ void sim_mob::Driver::updateLeadingDriver()
 	for (size_t i=0; i<Agent::all_agents.size(); i++) {
 		//Skip self
 		other = Agent::all_agents[i];
-		if (other->getId()==parent->getId()) {
-			//other = nullptr;
+		if (other->getId()==parent->getId()
+				||other->currentLink.get()!=currentLink)
+		{
 			continue;
 		}
 
@@ -342,6 +406,13 @@ int sim_mob::Driver::getLane()
 		}
 	}
 	return -1;
+}
+
+double sim_mob::Driver::getLinkLength()
+{
+	double dx=testLinks[currentLink].endX-testLinks[currentLink].startX;
+	double dy=testLinks[currentLink].endY-testLinks[currentLink].startY;
+	return sqrt(dx*dx+dy*dy);
 }
 
 int sim_mob::Driver::checkIfBadAreaAhead()
@@ -562,7 +633,8 @@ Agent* sim_mob::Driver::getNextForBDriver(bool isLeft,bool isFront)
 		for (size_t i=0; i<Agent::all_agents.size(); i++) {
 			//Skip self
 			other = Agent::all_agents[i];
-			if (other->getId()==parent->getId()) {
+			if (other->getId()==parent->getId()
+					||other->currentLink.get()!=currentLink) {
 				//other = nullptr;
 				continue;
 			}
@@ -913,6 +985,10 @@ void sim_mob::Driver::excuteLaneChanging()
 {
 	// when vehicle is on the lane, make decision
 	if(!ischanging){
+
+		if(getLinkLength()-xPos_ < 50){
+			return;			//when close to link end, do not change lane
+		}
 		//check if MLC is needed(vehicle has probability=checkIfMandatory() to be tagged in to MLC mode)
 		double p=(double)(rand()%1000)/1000;
 		if(p<checkIfMandatory()){
@@ -996,7 +1072,8 @@ bool sim_mob::Driver::checkForCrash()
 	for (size_t i=0; i<Agent::all_agents.size(); i++) {
 		//Skip self
 		other = Agent::all_agents[i];
-		if (other->getId()==parent->getId()) {
+		if (other->getId()==parent->getId()
+				||other->currentLink.get()!=currentLink) {
 			//other = NULL;
 			continue;
 		}

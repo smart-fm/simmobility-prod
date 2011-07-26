@@ -100,6 +100,9 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), leader(nullptr)
 	isOriginSet = false;
 	LF=nullptr;LB=nullptr;RF=nullptr;RB=nullptr;
 
+	//Need to init
+	currentLink = 0;
+
 	ischanging=false;
 	isback=false;
 	isWaiting=false;
@@ -267,7 +270,7 @@ void sim_mob::Driver::updatePosition()
 {
 	//Compute
 	if(xVel_==0) {
-		xPos_=xPos_;			//when speed is zero, stop in the same position
+		//xPos_= xPos_;			//when speed is zero, stop in the same position //Don't assign to self; it's an error in some compilers. ~Seth
 	} else {
 		xPos_ = xPos_+xVel_*timeStep+0.5*xAcc_*timeStep*timeStep;
 	}

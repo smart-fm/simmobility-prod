@@ -10,6 +10,7 @@ sim_mob::Person::Person(unsigned int id) : Agent(id), currRole(nullptr)
 
 void sim_mob::Person::update(frame_t frameNumber)
 {
+	//Update this agent's role
 	if (currRole) {
 		currRole->update(frameNumber);
 	}

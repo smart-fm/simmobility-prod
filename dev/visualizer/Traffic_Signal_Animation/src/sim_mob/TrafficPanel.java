@@ -30,6 +30,20 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		+ RG_DOUBLE                         //Car direction
 		+ "\\)"
 	);
+	private static final Pattern LEGACY_TIME_TICK_LINE_REGEX = Pattern.compile(
+		  "\\(" 
+	    + RG_INT + "," + RG_INT + ","       //Agent ID, Time Tick 
+		+ RG_DOUBLE + "," + RG_DOUBLE + "," //Agent X, Y
+		+ RG_INT                            //Signal; unused.
+		+ "\\)"
+	);
+	
+	//Which type of model are we reading?
+	enum OutputTypes {
+		STANDARD,
+		LEGACY
+	}
+	OutputTypes mode; 
 	
 	//Saved data
 	private ArrayList<TimeTick> ticks;
@@ -146,7 +160,7 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		//@SuppressWarnings("unused")
 		//char[] boundaryBottomLeft, boundaryBottomRight, boundaryTopLeft, boundaryTopRight;
 		
-		
+		boolean modeFound = false;
 		try {
 			FileReader fin = new FileReader(filename);
 			BufferedReader b = new BufferedReader(fin);
@@ -154,7 +168,19 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 			String currentLine = "";
 			while((currentLine = b.readLine()) != null) {
 				if (TIME_TICK_LINE_REGEX.matcher(currentLine).matches()) {
+					if (modeFound && mode==OutputTypes.LEGACY) {
+						throw new RuntimeException("Mixed modes: " + currentLine);
+					}
 					arl.add(currentLine.substring(1, currentLine.length()-1));
+					mode = OutputTypes.STANDARD;
+					modeFound = true;
+				} else if (LEGACY_TIME_TICK_LINE_REGEX.matcher(currentLine).matches()) {
+					if (modeFound && mode==OutputTypes.STANDARD) {
+						throw new RuntimeException("Mixed modes: " + currentLine);
+					}
+					arl.add(currentLine.substring(1, currentLine.length()-1));
+					mode = OutputTypes.LEGACY;
+					modeFound = true;
 				} else {
 					System.out.println("Skipped line: " + currentLine);
 				}
@@ -162,11 +188,16 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 			fin.close();
 		}
 		catch(FileNotFoundException ef) {
-			System.out.println("File not found");
+			throw new RuntimeException("File not found");
 		}
 		catch(IOException io) {
-			System.out.println("IO Exception");
+			throw new RuntimeException("IO Exception");
 		}
+		
+		if (!modeFound) {
+			throw new RuntimeException("Couldn't match any reasonable lines.");
+		}
+		System.out.println("Current mode is: " + (mode==OutputTypes.LEGACY ? "Standard" : "Legacy"));
 		
 		// Image name
 		String imageNames[] = new String[] {
@@ -674,10 +705,12 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 			agent.agentX = Double.parseDouble(items[2]);
 			agent.agentY = Double.parseDouble(items[3]);
 			agent.phaseSignal = Integer.parseInt(items[4]);
-			agent.ds = Double.parseDouble(items[5]);
-			agent.cycleLen = Double.parseDouble(items[6]);
-			agent.phaseCount = Integer.parseInt(items[7]);
-			agent.carDir = Double.parseDouble(items[8]);
+			if (mode==OutputTypes.STANDARD) {
+				agent.ds = Double.parseDouble(items[5]);
+				agent.cycleLen = Double.parseDouble(items[6]);
+				agent.phaseCount = Integer.parseInt(items[7]);
+				agent.carDir = Double.parseDouble(items[8]);
+			}
 			
 			//Ensure we have a spot to put the agent.
 			while (ticks.size()<=frameNum) {

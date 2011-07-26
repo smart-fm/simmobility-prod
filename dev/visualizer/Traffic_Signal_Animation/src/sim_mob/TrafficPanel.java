@@ -146,6 +146,14 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		readFile(inFileName, arl);
 		readTicks(arl);
 		
+		//Some properties change in legacy mode
+		if (mode==OutputTypes.LEGACY) {
+			scaledCrossingX1 = 360;
+			scaledCrossingX2 = 440;
+			scaledCrossingY1 = 304;
+			scaledCrossingY2 = 336;
+		}
+		
 		//Now, set the Slider's value
 		frameSlider.setMinimum(1);
 		frameSlider.setMaximum(ticks.size()-1);
@@ -197,7 +205,7 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		if (!modeFound) {
 			throw new RuntimeException("Couldn't match any reasonable lines.");
 		}
-		System.out.println("Current mode is: " + (mode==OutputTypes.LEGACY ? "Standard" : "Legacy"));
+		System.out.println("Current mode is: " + (mode==OutputTypes.STANDARD ? "Standard" : "Legacy"));
 		
 		// Image name
 		String imageNames[] = new String[] {
@@ -231,11 +239,116 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		return dblArray;
 	}
 	
+	public double[] scaleCoordLegacy(int x, int y) {
+		double[] dblArray = new double[2];
+		dblArray[0] = (double)(x);
+		dblArray[1] = (double)(y);
+		return dblArray;
+	}
+	
 	// Draw all the components on the panel
 	public void paintComponent(Graphics g) {
-		
 		super.paintComponent(g); 
 		
+		if (mode==OutputTypes.STANDARD) {
+			paintComponentStandard(g);
+		} else {
+			paintComponentLegacy(g);
+		}
+	}
+	
+	
+	private void paintComponentLegacy(Graphics g) {
+		// Draw road
+		int roadSideWidth = 2;
+		g.setColor(Color.BLACK);
+		g.drawRect(0, scaledCrossingY1 - roadSideWidth, 1200, roadSideWidth);
+		g.fillRect(0, scaledCrossingY1 - roadSideWidth, 1200, roadSideWidth);
+		g.drawRect(0, scaledCrossingY2, 1200, roadSideWidth);
+		g.fillRect(0, scaledCrossingY2, 1200, roadSideWidth);
+		
+		// bad area
+		int badAreaStart = 200;
+		int badAreaEnd = 350;
+		int badAreaLane = 0;
+		g.drawRect(badAreaStart, scaledCrossingY1
+				+ ((scaledCrossingY2 - scaledCrossingY1) * badAreaLane / 3),
+				badAreaEnd - badAreaStart,
+				(scaledCrossingY2 - scaledCrossingY1) / 3 + roadSideWidth);
+		g.fillRect(badAreaStart, scaledCrossingY1
+				+ ((scaledCrossingY2 - scaledCrossingY1) * badAreaLane / 3),
+				badAreaEnd - badAreaStart,
+				(scaledCrossingY2 - scaledCrossingY1) / 3 + roadSideWidth);
+		badAreaStart = 200;
+		badAreaEnd = 350;
+		badAreaLane = 2;
+		g.drawRect(badAreaStart, scaledCrossingY1
+				+ ((scaledCrossingY2 - scaledCrossingY1) * badAreaLane / 3),
+				badAreaEnd - badAreaStart,
+				(scaledCrossingY2 - scaledCrossingY1) / 3 + roadSideWidth);
+		g.fillRect(badAreaStart, scaledCrossingY1
+				+ ((scaledCrossingY2 - scaledCrossingY1) * badAreaLane / 3),
+				badAreaEnd - badAreaStart,
+				(scaledCrossingY2 - scaledCrossingY1) / 3 + roadSideWidth);
+		badAreaStart = 750;
+		badAreaEnd = 800;
+		badAreaLane = 1;
+		g.drawRect(badAreaStart, scaledCrossingY1
+				+ ((scaledCrossingY2 - scaledCrossingY1) * badAreaLane / 3),
+				badAreaEnd - badAreaStart,
+				(scaledCrossingY2 - scaledCrossingY1) / 3 + roadSideWidth);
+		g.fillRect(badAreaStart, scaledCrossingY1
+				+ ((scaledCrossingY2 - scaledCrossingY1) * badAreaLane / 3),
+				badAreaEnd - badAreaStart,
+				(scaledCrossingY2 - scaledCrossingY1) / 3 + roadSideWidth);
+
+		for (int i = 0; i < 10; i++) {
+			g.drawRect(i * 100, 200, 2, 2);
+			g.fillRect(i * 100, 200, 2, 2);
+		}
+
+		// Draw road divider
+		int dividerWidth = 40;
+		for (int i = 0; i < 20; i++) {
+			g.drawRect(dividerWidth * 2 * i, scaledCrossingY1
+					+ ((scaledCrossingY2 - scaledCrossingY1) * 2 / 3),
+					dividerWidth, roadSideWidth / 2);
+			g.setColor(Color.BLACK);
+			g.fillRect(dividerWidth * 2 * i, scaledCrossingY1
+					+ ((scaledCrossingY2 - scaledCrossingY1) * 2 / 3),
+					dividerWidth, roadSideWidth / 2);
+		}
+		for (int i = 0; i < 20; i++) {
+			g.drawRect(dividerWidth * 2 * i, scaledCrossingY1
+					+ ((scaledCrossingY2 - scaledCrossingY1) / 3),
+					dividerWidth, roadSideWidth / 2);
+			g.setColor(Color.BLACK);
+			g.fillRect(dividerWidth * 2 * i, scaledCrossingY1
+					+ ((scaledCrossingY2 - scaledCrossingY1) / 3),
+					dividerWidth, roadSideWidth / 2);
+		}
+
+		//Set positions
+		setAgentPosition();
+
+		//Draw cars
+		int carlength = 10;
+		int carwidth  = 6;
+		for (int i = 0; i < numAgents; i++) {
+			g.setColor(Color.BLACK);
+			g.drawRect(agentXCoord[i] - (carlength / 2), agentYCoord[i]
+					- (carwidth / 2), carlength, carwidth);
+			// g.drawString(Integer.toString(i),
+			// agentXCoord[i]+pedestrianOvalSize,
+			// agentYCoord[i]+pedestrianOvalSize);
+			g.setColor(Color.PINK);
+			g.fillRect(agentXCoord[i] - (carlength / 2), agentYCoord[i]
+					- (carwidth / 2), carlength, carwidth);
+		}
+	}
+	
+	
+	private void paintComponentStandard(Graphics g) {
 		// Labels on the panel
 		cycleNumLabel.setText("Cycle Length: " + cycleLength);
 		DSLabel.setText("  DS: " + DS + "%");	
@@ -727,19 +840,18 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 	}
 	
 	
-	public void setAgentPosition(){
-		//Stop
-		//if(curFrameNum >= ticks.size()) {
-		//	timer.stop();
-		//	return;
-		//}
-		
+	
+	private void setAgentPosition() {
 		//Iterate through all agents in this tick
 		TimeTick tick = ticks.get(curFrameNum);
 		for (AgentTick agent : tick.agentTicks.values()) {		
 			//Scale the agent position
-			double[] intArray = new double[2];
-			intArray = scaleCoord((int)agent.agentX, (int)agent.agentY);
+			double[] intArray = null;
+			if (mode==OutputTypes.LEGACY) {
+				intArray = scaleCoordLegacy((int)agent.agentX, (int)agent.agentY);
+			} else {
+				intArray = scaleCoord((int)agent.agentX, (int)agent.agentY);
+			}
 									
 			agentXCoord[agent.agentID] = (int)intArray[0];
 			agentYCoord[agent.agentID] = (int)intArray[1];

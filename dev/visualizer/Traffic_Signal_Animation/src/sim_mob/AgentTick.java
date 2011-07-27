@@ -10,11 +10,11 @@ public class AgentTick {
 	public int agentScaledX;
 	public int agentScaledY;
 	
+	public double carDir;
+	
+	//Do these properties belong here? 
 	public int phaseSignal;
 	public double ds;
-	
 	public double cycleLen;
 	public int phaseCount;
-	
-	public double carDir;
 }

@@ -53,13 +53,8 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 	private JLabel frameNumLabel, cycleNumLabel, blanks, DSLabel, PhaseCounterLabel;
 	private JSlider frameSlider;
 	
-	
 	private int numAgents = 60;		// Set number of agents
 	private int curFrameNum = 1;	// Set the default current frame number
-	private int signalPhase = 0;	// Set the default traffic signal phase
-	private double cycleLength = 0; // Set the default cycle length
-	private double DS = 0;  		// Set the default DS
-	private int PhaseCounter = 0; 	// Set the default phase counter
 	private int vehicleOvalSize = 7; // Set the vehicle size
 	private int timerSpeed = 100; // Define frame speed:  default 10 frames/second
 	
@@ -110,9 +105,9 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 				"                                                        ");
 		frameSlider = new JSlider(JSlider.HORIZONTAL);
 		
-		cycleNumLabel = new JLabel("Cycle Length: " + cycleLength);
-		DSLabel = new JLabel("  DS: " + DS);
-		PhaseCounterLabel = new JLabel("  Phase Counter: " + PhaseCounter);
+		cycleNumLabel = new JLabel("Cycle Length: " + 0);
+		DSLabel = new JLabel("  DS: " + 0);
+		PhaseCounterLabel = new JLabel("  Phase Counter: " + 0);
 				
 		bottomPanel.add(startButton);
 		bottomPanel.add(stopButton);
@@ -344,7 +339,7 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		}
 
 		//Set positions
-		setAgentPosition();
+		//setAgentPosition();
 
 		//Draw cars
 		int carlength = 10;
@@ -362,16 +357,21 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 	
 	
 	private void paintComponentStandard(Graphics g) {
+		//Request a sample agent.
+		//NOTE: Why does each agent have a copy of the cycle length, DS, and Phase Counter variables?
+		Iterator<AgentTick> it = ticks.get(curFrameNum).agentTicks.values().iterator();
+		AgentTick ag = it.hasNext() ? it.next() : null;
+		
 		// Labels on the panel
-		cycleNumLabel.setText("Cycle Length: " + cycleLength);
-		DSLabel.setText("  DS: " + DS + "%");	
-		PhaseCounterLabel.setText("  Phase Counter: " + PhaseCounter);
+		cycleNumLabel.setText("Cycle Length: " + (ag!=null?ag.cycleLen:0));
+		DSLabel.setText("  DS: " + (ag!=null?ag.ds:0) + "%");	
+		PhaseCounterLabel.setText("  Phase Counter: " + (ag!=null?ag.phaseCount:0));
 		
 		// Draw Road
 		drawRoad(g);
 
 		// Determine vehicle position
-		setAgentPosition();
+		//setAgentPosition();
 		
 		// Display vehicles
 		displayAgents(g);
@@ -505,6 +505,14 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		g.drawOval(light_31_X,light_31_Y,size, size);
 		g.drawOval(light_32_X,light_32_Y,size, size);
 		g.drawOval(light_33_X,light_33_Y,size, size);		
+		
+		
+		//Retrive a sample agent.
+		//NOTE: Why does each agent maintain a copy of the signal phase?
+		Iterator<AgentTick> it = ticks.get(curFrameNum).agentTicks.values().iterator();
+		AgentTick ag = it.hasNext() ? it.next() : null;
+		int signalPhase = ag!=null ? ag.phaseSignal : 0;
+		
 		
 		switch (signalPhase){
 		case 0:
@@ -857,11 +865,11 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 	
 	
 	
-	private void setAgentPosition() {
+	/*private void setAgentPosition() {
 		//Iterate through all agents in this tick
 		TimeTick tick = ticks.get(curFrameNum);
 		for (AgentTick agent : tick.agentTicks.values()) {		
-			//Scale the agent position
+			//Scale the agent position*/
 			/*double[] intArray = null;
 			if (mode==OutputTypes.LEGACY) {
 				intArray = scaleCoordLegacy((int)agent.agentX, (int)agent.agentY);
@@ -871,7 +879,7 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 									
 			/*agentXCoord[agent.agentID] = (int)intArray[0];
 			agentYCoord[agent.agentID] = (int)intArray[1];*/
-				
+			/*	
 			signalPhase = agent.phaseSignal;
 			cycleLength  = agent.cycleLen;
 			DS = Math.floor(agent.ds*1000)/10;
@@ -882,13 +890,13 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 			frameNumLabel.setText("Frame #: " + curFrameNum);	
 	
 		}
-	}
+	}*/
 	
 	public void stateChanged(ChangeEvent e) {
 		if (e.getSource().equals(frameSlider)) {
 			//Paint
 			curFrameNum = frameSlider.getValue();
-			setAgentPosition();
+			//setAgentPosition();
 			repaint();
 		}
 	}
@@ -910,14 +918,14 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 			//Increment, paint
 			curFrameNum++;
 			frameSlider.setValue(curFrameNum); //This should really be done with a listener.
-			setAgentPosition();
+			//setAgentPosition();
 			repaint();
 		}
 		else if(e.getSource().equals(stepForwardButton)) {
 			if (curFrameNum<ticks.size()-1) {
 				curFrameNum++;
 				frameSlider.setValue(curFrameNum); //This should really be done with a listener.
-				setAgentPosition();
+				//setAgentPosition();
 				repaint();
 			}
 		}
@@ -925,7 +933,7 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 			if (curFrameNum>1) {
 				curFrameNum--;
 				frameSlider.setValue(curFrameNum); //This should really be done with a listener.
-				setAgentPosition();
+				//setAgentPosition();
 				repaint();
 			}
 		}
@@ -933,7 +941,7 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 			timer.stop();
 			curFrameNum = 1;  //NOTE: The first tick is actually tick 0. ~Seth
 			frameSlider.setValue(curFrameNum); //This should really be done with a listener.
-			setAgentPosition();
+			//setAgentPosition();
 			repaint();
 		}
 		else {  // Reset button

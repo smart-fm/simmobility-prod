@@ -6,6 +6,9 @@ public class AgentTick {
 	
 	public double agentX;
 	public double agentY;
+
+	public int agentScaledX;
+	public int agentScaledY;
 	
 	public int phaseSignal;
 	public double ds;

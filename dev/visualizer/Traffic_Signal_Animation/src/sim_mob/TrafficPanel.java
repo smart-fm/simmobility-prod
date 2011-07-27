@@ -73,12 +73,13 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 	// Array list for vehicle image
 	private ArrayList<BufferedImage> imageList = new ArrayList<BufferedImage>();
 	
+	//NOTE: We have an array of agents at all given time ticks, so there's no need to 
+	//      cache the data here. 
 	//X, Y coord of agents
-	private int[] agentXCoord = new int[numAgents];
-	private int[] agentYCoord = new int[numAgents];
-	
+	//private int[] agentXCoord = new int[numAgents];
+	//private int[] agentYCoord = new int[numAgents];
 	//direction
-	private double[] carDirection = new double[numAgents];
+	//private double[] carDirection = new double[numAgents];
 	
 	BufferedImage image; 	// Declare the image variable
 	
@@ -225,7 +226,7 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 	}
 	
 	// Re-adjust vehicles' position to accommodate x-axis scaling
-	public double[] scaleCoord(int x, int y) {
+	/*public double[] scaleCoord(int x, int y) {
 		
 		double[] dblArray = new double[2];
 		double newX, newY;
@@ -244,7 +245,21 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		dblArray[0] = (double)(x);
 		dblArray[1] = (double)(y);
 		return dblArray;
+	}*/
+	
+	
+	//Set the agent's "scaled" coordinates
+	private void scaleCoordinates(AgentTick ag, boolean isLegacy)
+	{
+		if (isLegacy) {
+			ag.agentScaledX = (int)ag.agentX;
+			ag.agentScaledY = (int)ag.agentY;
+		} else {
+			ag.agentScaledX = (int)(500 + (ag.agentX-500)*3.2) +90;
+			ag.agentScaledY = (int)(300 + (ag.agentY-300)*2.6) +50;
+		}
 	}
+	
 	
 	// Draw all the components on the panel
 	public void paintComponent(Graphics g) {
@@ -334,16 +349,14 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		//Draw cars
 		int carlength = 10;
 		int carwidth  = 6;
-		for (int i = 0; i < numAgents; i++) {
+		for (AgentTick ag : ticks.get(curFrameNum).agentTicks.values()) {
 			g.setColor(Color.BLACK);
-			g.drawRect(agentXCoord[i] - (carlength / 2), agentYCoord[i]
-					- (carwidth / 2), carlength, carwidth);
+			g.drawRect(ag.agentScaledX - (carlength / 2), ag.agentScaledY - (carwidth / 2), carlength, carwidth);
 			// g.drawString(Integer.toString(i),
-			// agentXCoord[i]+pedestrianOvalSize,
-			// agentYCoord[i]+pedestrianOvalSize);
+			// ag.agentScaledX+pedestrianOvalSize,
+			// ag.agentScaledY+pedestrianOvalSize);
 			g.setColor(Color.PINK);
-			g.fillRect(agentXCoord[i] - (carlength / 2), agentYCoord[i]
-					- (carwidth / 2), carlength, carwidth);
+			g.fillRect(ag.agentScaledX - (carlength / 2), ag.agentScaledY - (carwidth / 2), carlength, carwidth);
 		}
 	}
 	
@@ -693,111 +706,111 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 	
 	public void displayAgents(Graphics g){
 		
-		for(int i=0; i<numAgents; i++) {
+		for(AgentTick ag : ticks.get(curFrameNum).agentTicks.values()) {
 			
-			if(carDirection[i] > 0 && carDirection[i] <=30)
+			if(ag.carDir > 0 && ag.carDir <=30)
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(0), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(0), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 
 			}
-			else if (carDirection[i] > 30 && carDirection[i] <= 60 )
+			else if (ag.carDir > 30 && ag.carDir <= 60 )
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(1), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(1), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 
 			}
-			else if (carDirection[i] > 60 && carDirection[i] < 90 )
+			else if (ag.carDir > 60 && ag.carDir < 90 )
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(2), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(2), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 
 			}
-		    else if(carDirection[i] == 90 )
+		    else if(ag.carDir == 90 )
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(3), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(3), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 			}
 			
 			
-		    else if(carDirection[i] > 90 && carDirection[i] <=120)
+		    else if(ag.carDir > 90 && ag.carDir <=120)
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(4), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(4), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 
 			}
-			else if (carDirection[i] > 120 && carDirection[i] <= 150 )
+			else if (ag.carDir > 120 && ag.carDir <= 150 )
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(5), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(5), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 
 			}
-			else if (carDirection[i] > 150 && carDirection[i] < 180 )
+			else if (ag.carDir > 150 && ag.carDir < 180 )
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(6), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(6), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 
 			}			
-			else if (carDirection[i] == 180)
+			else if (ag.carDir == 180)
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(7), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(7), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 
 			}
 			
 			
 			
-			else if(carDirection[i] > 180 && carDirection[i] <=210)
+			else if(ag.carDir > 180 && ag.carDir <=210)
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(8), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(8), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 
 			}
-			else if (carDirection[i] > 210 && carDirection[i] <= 240 )
+			else if (ag.carDir > 210 && ag.carDir <= 240 )
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(9), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(9), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 
 			}
-			else if (carDirection[i] > 240 && carDirection[i] < 270 )
+			else if (ag.carDir > 240 && ag.carDir < 270 )
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(10), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(10), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 
 			}
-			else if (carDirection[i] == 270)
+			else if (ag.carDir == 270)
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(11), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
-
-			}
-			
-			
-			
-			
-			else if(carDirection[i] > 270 && carDirection[i] <=300)
-			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(12), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
-
-			}
-			else if (carDirection[i] > 300 && carDirection[i] <= 330 )
-			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(13), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
-
-			}
-			else if (carDirection[i] > 330 && carDirection[i] < 360 )
-			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(14), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(11), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 
 			}
 			
-			else if (carDirection[i] == 360)
+			
+			
+			
+			else if(ag.carDir > 270 && ag.carDir <=300)
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(15), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(12), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
+
+			}
+			else if (ag.carDir > 300 && ag.carDir <= 330 )
+			{
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(13), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
+
+			}
+			else if (ag.carDir > 330 && ag.carDir < 360 )
+			{
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(14), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
+
+			}
+			
+			else if (ag.carDir == 360)
+			{
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(15), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 
 			}
 			else{}
@@ -825,6 +838,9 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 				agent.carDir = Double.parseDouble(items[8]);
 			}
 			
+			//Scale the agent's x/y positions
+			scaleCoordinates(agent, mode==OutputTypes.LEGACY);
+			
 			//Ensure we have a spot to put the agent.
 			while (ticks.size()<=frameNum) {
 				ticks.add(new TimeTick());
@@ -846,22 +862,22 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		TimeTick tick = ticks.get(curFrameNum);
 		for (AgentTick agent : tick.agentTicks.values()) {		
 			//Scale the agent position
-			double[] intArray = null;
+			/*double[] intArray = null;
 			if (mode==OutputTypes.LEGACY) {
 				intArray = scaleCoordLegacy((int)agent.agentX, (int)agent.agentY);
 			} else {
 				intArray = scaleCoord((int)agent.agentX, (int)agent.agentY);
-			}
+			}*/
 									
-			agentXCoord[agent.agentID] = (int)intArray[0];
-			agentYCoord[agent.agentID] = (int)intArray[1];
+			/*agentXCoord[agent.agentID] = (int)intArray[0];
+			agentYCoord[agent.agentID] = (int)intArray[1];*/
 				
 			signalPhase = agent.phaseSignal;
 			cycleLength  = agent.cycleLen;
 			DS = Math.floor(agent.ds*1000)/10;
 			PhaseCounter = agent.phaseCount;
 				
-			carDirection[agent.agentID] = agent.carDir;
+			//carDirection[agent.agentID] = agent.carDir;
 				
 			frameNumLabel.setText("Frame #: " + curFrameNum);	
 	

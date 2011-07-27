@@ -68,17 +68,6 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 	// Array list for vehicle image
 	private ArrayList<BufferedImage> imageList = new ArrayList<BufferedImage>();
 	
-	//NOTE: We have an array of agents at all given time ticks, so there's no need to 
-	//      cache the data here. 
-	//X, Y coord of agents
-	//private int[] agentXCoord = new int[numAgents];
-	//private int[] agentYCoord = new int[numAgents];
-	//direction
-	//private double[] carDirection = new double[numAgents];
-	
-	BufferedImage image; 	// Declare the image variable
-	
-	
 	//Helper method
 	public static BufferedImage LoadImgResource(String path) throws IOException {
 		InputStream input = TrafficFrame.class.getClassLoader().getResourceAsStream(path);
@@ -220,28 +209,6 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		
 	}
 	
-	// Re-adjust vehicles' position to accommodate x-axis scaling
-	/*public double[] scaleCoord(int x, int y) {
-		
-		double[] dblArray = new double[2];
-		double newX, newY;
-
-		newX = (500 + (x-500)*3.2) +90;
-		newY = (300 + (y-300)*2.6) +50;
-		
-		dblArray[0] = newX;
-		dblArray[1] = newY;
-
-		return dblArray;
-	}
-	
-	public double[] scaleCoordLegacy(int x, int y) {
-		double[] dblArray = new double[2];
-		dblArray[0] = (double)(x);
-		dblArray[1] = (double)(y);
-		return dblArray;
-	}*/
-	
 	
 	//Set the agent's "scaled" coordinates
 	private void scaleCoordinates(AgentTick ag, boolean isLegacy)
@@ -369,9 +336,6 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		
 		// Draw Road
 		drawRoad(g);
-
-		// Determine vehicle position
-		//setAgentPosition();
 		
 		// Display vehicles
 		displayAgents(g);
@@ -862,35 +826,6 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 			currTick.agentTicks.put(agent.agentID, agent);
 		}
 	}
-	
-	
-	
-	/*private void setAgentPosition() {
-		//Iterate through all agents in this tick
-		TimeTick tick = ticks.get(curFrameNum);
-		for (AgentTick agent : tick.agentTicks.values()) {		
-			//Scale the agent position*/
-			/*double[] intArray = null;
-			if (mode==OutputTypes.LEGACY) {
-				intArray = scaleCoordLegacy((int)agent.agentX, (int)agent.agentY);
-			} else {
-				intArray = scaleCoord((int)agent.agentX, (int)agent.agentY);
-			}*/
-									
-			/*agentXCoord[agent.agentID] = (int)intArray[0];
-			agentYCoord[agent.agentID] = (int)intArray[1];*/
-			/*	
-			signalPhase = agent.phaseSignal;
-			cycleLength  = agent.cycleLen;
-			DS = Math.floor(agent.ds*1000)/10;
-			PhaseCounter = agent.phaseCount;
-				
-			//carDirection[agent.agentID] = agent.carDir;
-				
-			frameNumLabel.setText("Frame #: " + curFrameNum);	
-	
-		}
-	}*/
 	
 	public void stateChanged(ChangeEvent e) {
 		if (e.getSource().equals(frameSlider)) {

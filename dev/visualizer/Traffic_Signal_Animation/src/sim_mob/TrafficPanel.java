@@ -458,60 +458,7 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 	}
 	
 	
-	
-	public void displaySingalPhase(Graphics2D g) {
-
-		
-        // light zero
-		/*int light_01_X = 460;
-		int light_01_Y = 250;
-     
-		int light_02_X = light_01_X;
-		int light_02_Y = light_01_Y + size;
-
-		int light_03_X = light_01_X;
-		int light_03_Y = light_02_Y + size;
-     
-		// light one
-		int light_11_X = 680;
-		int light_11_Y = 245;
-     
-		int light_12_X = light_11_X + size;
-		int light_12_Y = light_11_Y;
-
-		int light_13_X = light_12_X + size;	
-		int light_13_Y = light_11_Y;
-
-		// light two 
-		int light_21_X = 720;	
-		int light_21_Y = 415;
-     
-		int light_22_X = light_21_X;
-		int light_22_Y = light_21_Y + size;
-
-		int light_23_X = light_21_X;
-		int light_23_Y = light_22_Y + size;
-
-		// light three
-		int light_31_X = 470;
-		int light_31_Y = 455;
-     
-		int light_32_X = light_31_X + size;
-		int light_32_Y = light_31_Y;
-
-		int light_33_X = light_32_X + size;
-		int light_33_Y = light_31_Y;*/
-
-		
-		
-		
-		//Retrive a sample agent.
-		//NOTE: Why does each agent maintain a copy of the signal phase?
-		Iterator<AgentTick> it = ticks.get(curFrameNum).agentTicks.values().iterator();
-		AgentTick ag = it.hasNext() ? it.next() : null;
-		int signalPhase = ag!=null ? ag.phaseSignal : 0;
-		
-		
+	private void setLightColors(int signalPhase) {
 		switch (signalPhase){
 		case 0:
 			//g.setColor(Color.GREEN);
@@ -551,177 +498,307 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 			
 			break;
 		
-		/*case 1:
-			g.setColor(Color.RED);
+		case 1:
+			//g.setColor(Color.RED);
 			
-			g.fillOval(light_01_X,light_01_Y,size, size);
+			lights.get(0)[1-1].lightColor = Color.RED;
+			lights.get(0)[2-1].lightColor = Color.RED;
+			lights.get(2)[2-1].lightColor = Color.RED;
+			lights.get(2)[3-1].lightColor = Color.RED;
+			
+			/*g.fillOval(light_01_X,light_01_Y,size, size);
 			g.fillOval(light_02_X,light_02_Y,size, size);
 			g.fillOval(light_22_X,light_22_Y,size, size);
-			g.fillOval(light_23_X,light_23_Y,size, size);
+			g.fillOval(light_23_X,light_23_Y,size, size);*/
 
-			g.setColor(Color.GREEN);
-			g.fillOval(light_03_X,light_03_Y,size, size);
-			g.fillOval(light_21_X,light_21_Y,size, size);
+			//g.setColor(Color.GREEN);
+			
+			lights.get(0)[3-1].lightColor = Color.GREEN;
+			lights.get(2)[1-1].lightColor = Color.GREEN;
+			
+			/*g.fillOval(light_03_X,light_03_Y,size, size);
+			g.fillOval(light_21_X,light_21_Y,size, size);*/
 
-			g.setColor(Color.RED);
-			g.fillOval(light_11_X,light_11_Y,size, size);
+			//g.setColor(Color.RED);
+			
+			lights.get(1)[1-1].lightColor = Color.RED;
+			lights.get(1)[2-1].lightColor = Color.RED;
+			lights.get(1)[3-1].lightColor = Color.RED;
+			lights.get(3)[1-1].lightColor = Color.RED;
+			lights.get(3)[2-1].lightColor = Color.RED;
+			lights.get(3)[3-1].lightColor = Color.RED;
+			
+			/*g.fillOval(light_11_X,light_11_Y,size, size);
 			g.fillOval(light_12_X,light_12_Y,size, size);
 			g.fillOval(light_13_X,light_13_Y,size, size);
 
 			g.fillOval(light_31_X,light_31_Y,size, size);
 			g.fillOval(light_32_X,light_32_Y,size, size);
-			g.fillOval(light_33_X,light_33_Y,size, size);		
+			g.fillOval(light_33_X,light_33_Y,size, size);*/		
 			
 			
 			break;
 
 		case 2:
-
-			g.setColor(Color.GREEN);
+			//g.setColor(Color.GREEN);
 			
-			g.fillOval(light_12_X,light_12_Y,size, size);
+			lights.get(1)[2-1].lightColor = Color.GREEN;
+			lights.get(1)[3-1].lightColor = Color.GREEN;
+			lights.get(3)[1-1].lightColor = Color.GREEN;
+			lights.get(3)[2-1].lightColor = Color.GREEN;
+			
+			/*g.fillOval(light_12_X,light_12_Y,size, size);
 			g.fillOval(light_13_X,light_13_Y,size, size);
 			g.fillOval(light_31_X,light_31_Y,size, size);
-			g.fillOval(light_32_X,light_32_Y,size, size);
+			g.fillOval(light_32_X,light_32_Y,size, size);*/
 
-			g.setColor(Color.RED);
-			g.fillOval(light_11_X,light_11_Y,size, size);
-			g.fillOval(light_33_X,light_33_Y,size, size);
+			//g.setColor(Color.RED);
+			
+			lights.get(1)[1-1].lightColor = Color.RED;
+			lights.get(3)[3-1].lightColor = Color.RED;
+			
+			/*g.fillOval(light_11_X,light_11_Y,size, size);
+			g.fillOval(light_33_X,light_33_Y,size, size);*/
 						
-			g.setColor(Color.RED);
-			g.fillOval(light_01_X,light_01_Y,size, size);
+			//g.setColor(Color.RED);
+			
+			lights.get(0)[1-1].lightColor = Color.RED;
+			lights.get(0)[2-1].lightColor = Color.RED;
+			lights.get(0)[3-1].lightColor = Color.RED;
+			lights.get(2)[1-1].lightColor = Color.RED;
+			lights.get(2)[2-1].lightColor = Color.RED;
+			lights.get(2)[3-1].lightColor = Color.RED;
+			
+			/*g.fillOval(light_01_X,light_01_Y,size, size);
 			g.fillOval(light_02_X,light_02_Y,size, size);
 			g.fillOval(light_03_X,light_03_Y,size, size);
 
 			g.fillOval(light_21_X,light_21_Y,size, size);
 			g.fillOval(light_22_X,light_22_Y,size, size);
-			g.fillOval(light_23_X,light_23_Y,size, size);		
+			g.fillOval(light_23_X,light_23_Y,size, size);*/		
 			
 			
 			break;
 		
 		case 3:
-			g.setColor(Color.RED);
+			//g.setColor(Color.RED);
 			
-			g.fillOval(light_12_X,light_12_Y,size, size);
+			lights.get(1)[2-1].lightColor = Color.RED;
+			lights.get(1)[3-1].lightColor = Color.RED;
+			lights.get(3)[1-1].lightColor = Color.RED;
+			lights.get(3)[2-1].lightColor = Color.RED;
+			
+			/*g.fillOval(light_12_X,light_12_Y,size, size);
 			g.fillOval(light_13_X,light_13_Y,size, size);
 			g.fillOval(light_31_X,light_31_Y,size, size);
-			g.fillOval(light_32_X,light_32_Y,size, size);
+			g.fillOval(light_32_X,light_32_Y,size, size);*/
 
-			g.setColor(Color.GREEN);
-			g.fillOval(light_11_X,light_11_Y,size, size);
-			g.fillOval(light_33_X,light_33_Y,size, size);
+			//g.setColor(Color.GREEN);
+			
+			lights.get(1)[1-1].lightColor = Color.GREEN;
+			lights.get(3)[3-1].lightColor = Color.GREEN;
+			
+			/*g.fillOval(light_11_X,light_11_Y,size, size);
+			g.fillOval(light_33_X,light_33_Y,size, size);*/
 
-			g.setColor(Color.RED);
-			g.fillOval(light_01_X,light_01_Y,size, size);
+			//g.setColor(Color.RED);
+			
+			lights.get(0)[1-1].lightColor = Color.RED;
+			lights.get(0)[2-1].lightColor = Color.RED;
+			lights.get(0)[3-1].lightColor = Color.RED;
+			lights.get(2)[1-1].lightColor = Color.RED;
+			lights.get(2)[2-1].lightColor = Color.RED;
+			lights.get(2)[3-1].lightColor = Color.RED;
+			
+			
+			/*g.fillOval(light_01_X,light_01_Y,size, size);
 			g.fillOval(light_02_X,light_02_Y,size, size);
 			g.fillOval(light_03_X,light_03_Y,size, size);
 
 			g.fillOval(light_21_X,light_21_Y,size, size);
 			g.fillOval(light_22_X,light_22_Y,size, size);
-			g.fillOval(light_23_X,light_23_Y,size, size);		
+			g.fillOval(light_23_X,light_23_Y,size, size);*/		
 			
 			break;
 			
 		case 10:
+			//g.setColor(Color.YELLOW);
 			
-			g.setColor(Color.YELLOW);
+			lights.get(0)[1-1].lightColor = Color.YELLOW;
+			lights.get(0)[2-1].lightColor = Color.YELLOW;
+			lights.get(2)[2-1].lightColor = Color.YELLOW;
+			lights.get(2)[3-1].lightColor = Color.YELLOW;
 			
-			g.fillOval(light_01_X,light_01_Y,size, size);
+			/*g.fillOval(light_01_X,light_01_Y,size, size);
 			g.fillOval(light_02_X,light_02_Y,size, size);
 			g.fillOval(light_22_X,light_22_Y,size, size);
-			g.fillOval(light_23_X,light_23_Y,size, size);
+			g.fillOval(light_23_X,light_23_Y,size, size);*/
 
-			g.setColor(Color.RED);
-			g.fillOval(light_03_X,light_03_Y,size, size);
-			g.fillOval(light_21_X,light_21_Y,size, size);
+			//g.setColor(Color.RED);
 			
-			g.setColor(Color.RED);
-			g.fillOval(light_11_X,light_11_Y,size, size);
+			lights.get(0)[3-1].lightColor = Color.RED;
+			lights.get(2)[1-1].lightColor = Color.RED;
+			
+			/*g.fillOval(light_03_X,light_03_Y,size, size);
+			g.fillOval(light_21_X,light_21_Y,size, size);*/
+			
+			//g.setColor(Color.RED);
+			
+			lights.get(1)[1-1].lightColor = Color.RED;
+			lights.get(1)[2-1].lightColor = Color.RED;
+			lights.get(1)[3-1].lightColor = Color.RED;
+			lights.get(3)[1-1].lightColor = Color.RED;
+			lights.get(3)[2-1].lightColor = Color.RED;
+			lights.get(3)[3-1].lightColor = Color.RED;
+			
+			/*g.fillOval(light_11_X,light_11_Y,size, size);
 			g.fillOval(light_12_X,light_12_Y,size, size);
 			g.fillOval(light_13_X,light_13_Y,size, size);
 
 			g.fillOval(light_31_X,light_31_Y,size, size);
 			g.fillOval(light_32_X,light_32_Y,size, size);
-			g.fillOval(light_33_X,light_33_Y,size, size);	
+			g.fillOval(light_33_X,light_33_Y,size, size);*/	
 			
 			break;
 		case 11:
-			g.setColor(Color.RED);
+			//g.setColor(Color.RED);
 			
-			g.fillOval(light_01_X,light_01_Y,size, size);
+			lights.get(0)[1-1].lightColor = Color.RED;
+			lights.get(0)[2-1].lightColor = Color.RED;
+			lights.get(2)[2-1].lightColor = Color.RED;
+			lights.get(2)[3-1].lightColor = Color.RED;
+			
+			/*g.fillOval(light_01_X,light_01_Y,size, size);
 			g.fillOval(light_02_X,light_02_Y,size, size);
 			g.fillOval(light_22_X,light_22_Y,size, size);
-			g.fillOval(light_23_X,light_23_Y,size, size);
+			g.fillOval(light_23_X,light_23_Y,size, size);*/
 
-			g.setColor(Color.YELLOW);
-			g.fillOval(light_03_X,light_03_Y,size, size);
-			g.fillOval(light_21_X,light_21_Y,size, size);
+			//g.setColor(Color.YELLOW);
+			
+			lights.get(0)[3-1].lightColor = Color.YELLOW;
+			lights.get(2)[1-1].lightColor = Color.YELLOW;
+			
+			/*g.fillOval(light_03_X,light_03_Y,size, size);
+			g.fillOval(light_21_X,light_21_Y,size, size);*/
 
-			g.setColor(Color.RED);
-			g.fillOval(light_11_X,light_11_Y,size, size);
+			//g.setColor(Color.RED);
+			
+			lights.get(1)[1-1].lightColor = Color.RED;
+			lights.get(1)[2-1].lightColor = Color.RED;
+			lights.get(1)[3-1].lightColor = Color.RED;
+			
+			lights.get(3)[1-1].lightColor = Color.RED;
+			lights.get(3)[2-1].lightColor = Color.RED;
+			lights.get(3)[3-1].lightColor = Color.RED;
+			
+			/*g.fillOval(light_11_X,light_11_Y,size, size);
 			g.fillOval(light_12_X,light_12_Y,size, size);
 			g.fillOval(light_13_X,light_13_Y,size, size);
 
 			g.fillOval(light_31_X,light_31_Y,size, size);
 			g.fillOval(light_32_X,light_32_Y,size, size);
-			g.fillOval(light_33_X,light_33_Y,size, size);		
+			g.fillOval(light_33_X,light_33_Y,size, size);*/		
 			
 			
 			break;
 			
 		case 12:
-			g.setColor(Color.RED);
+			//g.setColor(Color.RED);
 			
-			g.fillOval(light_12_X,light_12_Y,size, size);
+			lights.get(1)[2-1].lightColor = Color.RED;
+			lights.get(1)[3-1].lightColor = Color.RED;
+			lights.get(3)[1-1].lightColor = Color.RED;
+			lights.get(3)[2-1].lightColor = Color.RED;
+			
+			/*g.fillOval(light_12_X,light_12_Y,size, size);
 			g.fillOval(light_13_X,light_13_Y,size, size);
 			g.fillOval(light_31_X,light_31_Y,size, size);
-			g.fillOval(light_32_X,light_32_Y,size, size);
+			g.fillOval(light_32_X,light_32_Y,size, size);*/
 
-			g.setColor(Color.YELLOW);
-			g.fillOval(light_11_X,light_11_Y,size, size);
-			g.fillOval(light_33_X,light_33_Y,size, size);
+			//g.setColor(Color.YELLOW);
+			
+			lights.get(1)[1-1].lightColor = Color.YELLOW;
+			lights.get(3)[3-1].lightColor = Color.YELLOW;
+			
+			/*g.fillOval(light_11_X,light_11_Y,size, size);
+			g.fillOval(light_33_X,light_33_Y,size, size);*/
 
-			g.setColor(Color.RED);
-			g.fillOval(light_01_X,light_01_Y,size, size);
+			//g.setColor(Color.RED);
+			
+			lights.get(0)[1-1].lightColor = Color.RED;
+			lights.get(0)[2-1].lightColor = Color.RED;
+			lights.get(0)[3-1].lightColor = Color.RED;
+			lights.get(2)[1-1].lightColor = Color.RED;
+			lights.get(2)[2-1].lightColor = Color.RED;
+			lights.get(2)[3-1].lightColor = Color.RED;
+			
+			/*g.fillOval(light_01_X,light_01_Y,size, size);
 			g.fillOval(light_02_X,light_02_Y,size, size);
 			g.fillOval(light_03_X,light_03_Y,size, size);
 
 			g.fillOval(light_21_X,light_21_Y,size, size);
 			g.fillOval(light_22_X,light_22_Y,size, size);
-			g.fillOval(light_23_X,light_23_Y,size, size);		
+			g.fillOval(light_23_X,light_23_Y,size, size);*/		
 			
 			break;
 			
 		case 13:
 			
-			g.setColor(Color.RED);
+			//g.setColor(Color.RED);
 			
-			g.fillOval(light_12_X,light_12_Y,size, size);
+			lights.get(1)[2-1].lightColor = Color.RED;
+			lights.get(1)[3-1].lightColor = Color.RED;
+			lights.get(3)[1-1].lightColor = Color.RED;
+			lights.get(3)[2-1].lightColor = Color.RED;
+			
+			/*g.fillOval(light_12_X,light_12_Y,size, size);
 			g.fillOval(light_13_X,light_13_Y,size, size);
 			g.fillOval(light_31_X,light_31_Y,size, size);
-			g.fillOval(light_32_X,light_32_Y,size, size);
+			g.fillOval(light_32_X,light_32_Y,size, size);*/
 
-			g.setColor(Color.YELLOW);
-			g.fillOval(light_11_X,light_11_Y,size, size);
-			g.fillOval(light_33_X,light_33_Y,size, size);
+			//g.setColor(Color.YELLOW);
+			
+			lights.get(1)[1-1].lightColor = Color.YELLOW;
+			lights.get(3)[3-1].lightColor = Color.YELLOW;
+			
+			/*g.fillOval(light_11_X,light_11_Y,size, size);
+			g.fillOval(light_33_X,light_33_Y,size, size);*/
 
-			g.setColor(Color.RED);
-			g.fillOval(light_01_X,light_01_Y,size, size);
+			//g.setColor(Color.RED);
+			
+			lights.get(0)[1-1].lightColor = Color.RED;
+			lights.get(0)[2-1].lightColor = Color.RED;
+			lights.get(0)[3-1].lightColor = Color.RED;
+			lights.get(2)[1-1].lightColor = Color.RED;
+			lights.get(2)[2-1].lightColor = Color.RED;
+			lights.get(2)[3-1].lightColor = Color.RED;
+			
+			/*g.fillOval(light_01_X,light_01_Y,size, size);
 			g.fillOval(light_02_X,light_02_Y,size, size);
 			g.fillOval(light_03_X,light_03_Y,size, size);
 
 			g.fillOval(light_21_X,light_21_Y,size, size);
 			g.fillOval(light_22_X,light_22_Y,size, size);
-			g.fillOval(light_23_X,light_23_Y,size, size);		
+			g.fillOval(light_23_X,light_23_Y,size, size);*/		
 			
 			break;
 			
 		default:
 			
-			System.out.println("None of signals are correct");*/
+			System.out.println("None of signals are correct");
 		}
+	}
+	
+	
+	public void displaySingalPhase(Graphics2D g) {	
+		//Retrive a sample agent.
+		//NOTE: Why does each agent maintain a copy of the signal phase?
+		Iterator<AgentTick> it = ticks.get(curFrameNum).agentTicks.values().iterator();
+		AgentTick ag = it.hasNext() ? it.next() : null;
+		int signalPhase = ag!=null ? ag.phaseSignal : 0;
 		
+		//Convert this signal phase into R/Y/B values for each light set
+		setLightColors(signalPhase);
 		
 		//Now that their colors are properly set, draw all lights
 		for (TrafficLight[] lightArr : lights) {

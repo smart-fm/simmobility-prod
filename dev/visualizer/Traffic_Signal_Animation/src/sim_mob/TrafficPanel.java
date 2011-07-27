@@ -461,65 +461,30 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 	private void setLightColors(int signalPhase) {
 		switch (signalPhase){
 		case 0:
-			//g.setColor(Color.GREEN);
 			lights.get(0)[1-1].lightColor = Color.GREEN;
 			lights.get(0)[2-1].lightColor = Color.GREEN;
 			lights.get(2)[2-1].lightColor = Color.GREEN;
 			lights.get(2)[3-1].lightColor = Color.GREEN;
 			
-			/*g.fillOval(light_01_X,light_01_Y,size, size);
-			g.fillOval(light_02_X,light_02_Y,size, size);
-			g.fillOval(light_22_X,light_22_Y,size, size);
-			g.fillOval(light_23_X,light_23_Y,size, size);*/
-
-			//g.setColor(Color.RED);
 			lights.get(0)[3-1].lightColor = Color.RED;
 			lights.get(2)[1-1].lightColor = Color.RED;
-			
-			/*g.fillOval(light_03_X,light_03_Y,size, size);
-			g.fillOval(light_21_X,light_21_Y,size, size);*/
-			
-			//g.setColor(Color.RED);
+
 			lights.get(1)[1-1].lightColor = Color.RED;
 			lights.get(1)[2-1].lightColor = Color.RED;
 			lights.get(1)[3-1].lightColor = Color.RED;
 			lights.get(3)[1-1].lightColor = Color.RED;
 			lights.get(3)[2-1].lightColor = Color.RED;
 			lights.get(3)[3-1].lightColor = Color.RED;
-			
-			
-			/*g.fillOval(light_11_X,light_11_Y,size, size);
-			g.fillOval(light_12_X,light_12_Y,size, size);
-			g.fillOval(light_13_X,light_13_Y,size, size);
-
-			g.fillOval(light_31_X,light_31_Y,size, size);
-			g.fillOval(light_32_X,light_32_Y,size, size);
-			g.fillOval(light_33_X,light_33_Y,size, size);*/		
-			
-			break;
 		
+			break;
 		case 1:
-			//g.setColor(Color.RED);
-			
 			lights.get(0)[1-1].lightColor = Color.RED;
 			lights.get(0)[2-1].lightColor = Color.RED;
 			lights.get(2)[2-1].lightColor = Color.RED;
 			lights.get(2)[3-1].lightColor = Color.RED;
 			
-			/*g.fillOval(light_01_X,light_01_Y,size, size);
-			g.fillOval(light_02_X,light_02_Y,size, size);
-			g.fillOval(light_22_X,light_22_Y,size, size);
-			g.fillOval(light_23_X,light_23_Y,size, size);*/
-
-			//g.setColor(Color.GREEN);
-			
 			lights.get(0)[3-1].lightColor = Color.GREEN;
 			lights.get(2)[1-1].lightColor = Color.GREEN;
-			
-			/*g.fillOval(light_03_X,light_03_Y,size, size);
-			g.fillOval(light_21_X,light_21_Y,size, size);*/
-
-			//g.setColor(Color.RED);
 			
 			lights.get(1)[1-1].lightColor = Color.RED;
 			lights.get(1)[2-1].lightColor = Color.RED;
@@ -528,39 +493,15 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 			lights.get(3)[2-1].lightColor = Color.RED;
 			lights.get(3)[3-1].lightColor = Color.RED;
 			
-			/*g.fillOval(light_11_X,light_11_Y,size, size);
-			g.fillOval(light_12_X,light_12_Y,size, size);
-			g.fillOval(light_13_X,light_13_Y,size, size);
-
-			g.fillOval(light_31_X,light_31_Y,size, size);
-			g.fillOval(light_32_X,light_32_Y,size, size);
-			g.fillOval(light_33_X,light_33_Y,size, size);*/		
-			
-			
 			break;
-
 		case 2:
-			//g.setColor(Color.GREEN);
-			
 			lights.get(1)[2-1].lightColor = Color.GREEN;
 			lights.get(1)[3-1].lightColor = Color.GREEN;
 			lights.get(3)[1-1].lightColor = Color.GREEN;
 			lights.get(3)[2-1].lightColor = Color.GREEN;
 			
-			/*g.fillOval(light_12_X,light_12_Y,size, size);
-			g.fillOval(light_13_X,light_13_Y,size, size);
-			g.fillOval(light_31_X,light_31_Y,size, size);
-			g.fillOval(light_32_X,light_32_Y,size, size);*/
-
-			//g.setColor(Color.RED);
-			
 			lights.get(1)[1-1].lightColor = Color.RED;
 			lights.get(3)[3-1].lightColor = Color.RED;
-			
-			/*g.fillOval(light_11_X,light_11_Y,size, size);
-			g.fillOval(light_33_X,light_33_Y,size, size);*/
-						
-			//g.setColor(Color.RED);
 			
 			lights.get(0)[1-1].lightColor = Color.RED;
 			lights.get(0)[2-1].lightColor = Color.RED;
@@ -568,40 +509,16 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 			lights.get(2)[1-1].lightColor = Color.RED;
 			lights.get(2)[2-1].lightColor = Color.RED;
 			lights.get(2)[3-1].lightColor = Color.RED;
-			
-			/*g.fillOval(light_01_X,light_01_Y,size, size);
-			g.fillOval(light_02_X,light_02_Y,size, size);
-			g.fillOval(light_03_X,light_03_Y,size, size);
 
-			g.fillOval(light_21_X,light_21_Y,size, size);
-			g.fillOval(light_22_X,light_22_Y,size, size);
-			g.fillOval(light_23_X,light_23_Y,size, size);*/		
-			
-			
 			break;
-		
 		case 3:
-			//g.setColor(Color.RED);
-			
 			lights.get(1)[2-1].lightColor = Color.RED;
 			lights.get(1)[3-1].lightColor = Color.RED;
 			lights.get(3)[1-1].lightColor = Color.RED;
 			lights.get(3)[2-1].lightColor = Color.RED;
 			
-			/*g.fillOval(light_12_X,light_12_Y,size, size);
-			g.fillOval(light_13_X,light_13_Y,size, size);
-			g.fillOval(light_31_X,light_31_Y,size, size);
-			g.fillOval(light_32_X,light_32_Y,size, size);*/
-
-			//g.setColor(Color.GREEN);
-			
 			lights.get(1)[1-1].lightColor = Color.GREEN;
 			lights.get(3)[3-1].lightColor = Color.GREEN;
-			
-			/*g.fillOval(light_11_X,light_11_Y,size, size);
-			g.fillOval(light_33_X,light_33_Y,size, size);*/
-
-			//g.setColor(Color.RED);
 			
 			lights.get(0)[1-1].lightColor = Color.RED;
 			lights.get(0)[2-1].lightColor = Color.RED;
@@ -609,41 +526,17 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 			lights.get(2)[1-1].lightColor = Color.RED;
 			lights.get(2)[2-1].lightColor = Color.RED;
 			lights.get(2)[3-1].lightColor = Color.RED;
-			
-			
-			/*g.fillOval(light_01_X,light_01_Y,size, size);
-			g.fillOval(light_02_X,light_02_Y,size, size);
-			g.fillOval(light_03_X,light_03_Y,size, size);
 
-			g.fillOval(light_21_X,light_21_Y,size, size);
-			g.fillOval(light_22_X,light_22_Y,size, size);
-			g.fillOval(light_23_X,light_23_Y,size, size);*/		
-			
 			break;
-			
 		case 10:
-			//g.setColor(Color.YELLOW);
-			
 			lights.get(0)[1-1].lightColor = Color.YELLOW;
 			lights.get(0)[2-1].lightColor = Color.YELLOW;
 			lights.get(2)[2-1].lightColor = Color.YELLOW;
 			lights.get(2)[3-1].lightColor = Color.YELLOW;
 			
-			/*g.fillOval(light_01_X,light_01_Y,size, size);
-			g.fillOval(light_02_X,light_02_Y,size, size);
-			g.fillOval(light_22_X,light_22_Y,size, size);
-			g.fillOval(light_23_X,light_23_Y,size, size);*/
-
-			//g.setColor(Color.RED);
-			
 			lights.get(0)[3-1].lightColor = Color.RED;
 			lights.get(2)[1-1].lightColor = Color.RED;
-			
-			/*g.fillOval(light_03_X,light_03_Y,size, size);
-			g.fillOval(light_21_X,light_21_Y,size, size);*/
-			
-			//g.setColor(Color.RED);
-			
+					
 			lights.get(1)[1-1].lightColor = Color.RED;
 			lights.get(1)[2-1].lightColor = Color.RED;
 			lights.get(1)[3-1].lightColor = Color.RED;
@@ -651,38 +544,16 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 			lights.get(3)[2-1].lightColor = Color.RED;
 			lights.get(3)[3-1].lightColor = Color.RED;
 			
-			/*g.fillOval(light_11_X,light_11_Y,size, size);
-			g.fillOval(light_12_X,light_12_Y,size, size);
-			g.fillOval(light_13_X,light_13_Y,size, size);
-
-			g.fillOval(light_31_X,light_31_Y,size, size);
-			g.fillOval(light_32_X,light_32_Y,size, size);
-			g.fillOval(light_33_X,light_33_Y,size, size);*/	
-			
 			break;
 		case 11:
-			//g.setColor(Color.RED);
-			
 			lights.get(0)[1-1].lightColor = Color.RED;
 			lights.get(0)[2-1].lightColor = Color.RED;
 			lights.get(2)[2-1].lightColor = Color.RED;
 			lights.get(2)[3-1].lightColor = Color.RED;
-			
-			/*g.fillOval(light_01_X,light_01_Y,size, size);
-			g.fillOval(light_02_X,light_02_Y,size, size);
-			g.fillOval(light_22_X,light_22_Y,size, size);
-			g.fillOval(light_23_X,light_23_Y,size, size);*/
-
-			//g.setColor(Color.YELLOW);
 			
 			lights.get(0)[3-1].lightColor = Color.YELLOW;
 			lights.get(2)[1-1].lightColor = Color.YELLOW;
 			
-			/*g.fillOval(light_03_X,light_03_Y,size, size);
-			g.fillOval(light_21_X,light_21_Y,size, size);*/
-
-			//g.setColor(Color.RED);
-			
 			lights.get(1)[1-1].lightColor = Color.RED;
 			lights.get(1)[2-1].lightColor = Color.RED;
 			lights.get(1)[3-1].lightColor = Color.RED;
@@ -691,39 +562,32 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 			lights.get(3)[2-1].lightColor = Color.RED;
 			lights.get(3)[3-1].lightColor = Color.RED;
 			
-			/*g.fillOval(light_11_X,light_11_Y,size, size);
-			g.fillOval(light_12_X,light_12_Y,size, size);
-			g.fillOval(light_13_X,light_13_Y,size, size);
-
-			g.fillOval(light_31_X,light_31_Y,size, size);
-			g.fillOval(light_32_X,light_32_Y,size, size);
-			g.fillOval(light_33_X,light_33_Y,size, size);*/		
-			
-			
 			break;
-			
 		case 12:
-			//g.setColor(Color.RED);
-			
 			lights.get(1)[2-1].lightColor = Color.RED;
 			lights.get(1)[3-1].lightColor = Color.RED;
 			lights.get(3)[1-1].lightColor = Color.RED;
 			lights.get(3)[2-1].lightColor = Color.RED;
 			
-			/*g.fillOval(light_12_X,light_12_Y,size, size);
-			g.fillOval(light_13_X,light_13_Y,size, size);
-			g.fillOval(light_31_X,light_31_Y,size, size);
-			g.fillOval(light_32_X,light_32_Y,size, size);*/
-
-			//g.setColor(Color.YELLOW);
-			
 			lights.get(1)[1-1].lightColor = Color.YELLOW;
 			lights.get(3)[3-1].lightColor = Color.YELLOW;
 			
-			/*g.fillOval(light_11_X,light_11_Y,size, size);
-			g.fillOval(light_33_X,light_33_Y,size, size);*/
+			lights.get(0)[1-1].lightColor = Color.RED;
+			lights.get(0)[2-1].lightColor = Color.RED;
+			lights.get(0)[3-1].lightColor = Color.RED;
+			lights.get(2)[1-1].lightColor = Color.RED;
+			lights.get(2)[2-1].lightColor = Color.RED;
+			lights.get(2)[3-1].lightColor = Color.RED;
 
-			//g.setColor(Color.RED);
+			break;	
+		case 13:		
+			lights.get(1)[2-1].lightColor = Color.RED;
+			lights.get(1)[3-1].lightColor = Color.RED;
+			lights.get(3)[1-1].lightColor = Color.RED;
+			lights.get(3)[2-1].lightColor = Color.RED;
+			
+			lights.get(1)[1-1].lightColor = Color.YELLOW;
+			lights.get(3)[3-1].lightColor = Color.YELLOW;
 			
 			lights.get(0)[1-1].lightColor = Color.RED;
 			lights.get(0)[2-1].lightColor = Color.RED;
@@ -732,59 +596,8 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 			lights.get(2)[2-1].lightColor = Color.RED;
 			lights.get(2)[3-1].lightColor = Color.RED;
 			
-			/*g.fillOval(light_01_X,light_01_Y,size, size);
-			g.fillOval(light_02_X,light_02_Y,size, size);
-			g.fillOval(light_03_X,light_03_Y,size, size);
-
-			g.fillOval(light_21_X,light_21_Y,size, size);
-			g.fillOval(light_22_X,light_22_Y,size, size);
-			g.fillOval(light_23_X,light_23_Y,size, size);*/		
-			
 			break;
-			
-		case 13:
-			
-			//g.setColor(Color.RED);
-			
-			lights.get(1)[2-1].lightColor = Color.RED;
-			lights.get(1)[3-1].lightColor = Color.RED;
-			lights.get(3)[1-1].lightColor = Color.RED;
-			lights.get(3)[2-1].lightColor = Color.RED;
-			
-			/*g.fillOval(light_12_X,light_12_Y,size, size);
-			g.fillOval(light_13_X,light_13_Y,size, size);
-			g.fillOval(light_31_X,light_31_Y,size, size);
-			g.fillOval(light_32_X,light_32_Y,size, size);*/
-
-			//g.setColor(Color.YELLOW);
-			
-			lights.get(1)[1-1].lightColor = Color.YELLOW;
-			lights.get(3)[3-1].lightColor = Color.YELLOW;
-			
-			/*g.fillOval(light_11_X,light_11_Y,size, size);
-			g.fillOval(light_33_X,light_33_Y,size, size);*/
-
-			//g.setColor(Color.RED);
-			
-			lights.get(0)[1-1].lightColor = Color.RED;
-			lights.get(0)[2-1].lightColor = Color.RED;
-			lights.get(0)[3-1].lightColor = Color.RED;
-			lights.get(2)[1-1].lightColor = Color.RED;
-			lights.get(2)[2-1].lightColor = Color.RED;
-			lights.get(2)[3-1].lightColor = Color.RED;
-			
-			/*g.fillOval(light_01_X,light_01_Y,size, size);
-			g.fillOval(light_02_X,light_02_Y,size, size);
-			g.fillOval(light_03_X,light_03_Y,size, size);
-
-			g.fillOval(light_21_X,light_21_Y,size, size);
-			g.fillOval(light_22_X,light_22_Y,size, size);
-			g.fillOval(light_23_X,light_23_Y,size, size);*/		
-			
-			break;
-			
 		default:
-			
 			System.out.println("None of signals are correct");
 		}
 	}

@@ -224,9 +224,15 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 	
 	
 	// Draw all the components on the panel
-	public void paintComponent(Graphics g) {
+	public void paintComponent(Graphics gContext) {
+		//Turn on anti-aliasing.
+		Graphics2D g = (Graphics2D)gContext;
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		
+		//Paint the parent component
 		super.paintComponent(g); 
 		
+		//Paint self
 		if (mode==OutputTypes.STANDARD) {
 			paintComponentStandard(g);
 		} else {
@@ -235,7 +241,7 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 	}
 	
 	
-	private void paintComponentLegacy(Graphics g) {
+	private void paintComponentLegacy(Graphics2D g) {
 		// Draw road
 		int roadSideWidth = 2;
 		g.setColor(Color.BLACK);
@@ -312,18 +318,19 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		int carlength = 10;
 		int carwidth  = 6;
 		for (AgentTick ag : ticks.get(curFrameNum).agentTicks.values()) {
-			g.setColor(Color.BLACK);
-			g.drawRect(ag.agentScaledX - (carlength / 2), ag.agentScaledY - (carwidth / 2), carlength, carwidth);
 			// g.drawString(Integer.toString(i),
 			// ag.agentScaledX+pedestrianOvalSize,
 			// ag.agentScaledY+pedestrianOvalSize);
 			g.setColor(Color.PINK);
 			g.fillRect(ag.agentScaledX - (carlength / 2), ag.agentScaledY - (carwidth / 2), carlength, carwidth);
+			
+			g.setColor(Color.BLACK);
+			g.drawRect(ag.agentScaledX - (carlength / 2), ag.agentScaledY - (carwidth / 2), carlength, carwidth);
 		}
 	}
 	
 	
-	private void paintComponentStandard(Graphics g) {
+	private void paintComponentStandard(Graphics2D g) {	
 		//Request a sample agent.
 		//NOTE: Why does each agent have a copy of the cycle length, DS, and Phase Counter variables?
 		Iterator<AgentTick> it = ticks.get(curFrameNum).agentTicks.values().iterator();
@@ -347,7 +354,7 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 	
 	
 	// Draw road segment
-	public void drawRoad(Graphics g){
+	public void drawRoad(Graphics2D g){
 		//Draw road
 		
 		int roadSideWidth = 5;
@@ -407,7 +414,7 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		
 	}
 	
-	public void displaySingalPhase(Graphics g){
+	public void displaySingalPhase(Graphics2D g){
 		
 		// Draw traffic light
 		int size = 15;  //light size
@@ -453,22 +460,6 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		int light_33_Y = light_31_Y;
 
 		
-		g.drawOval(light_01_X,light_01_Y,size, size);
-		g.drawOval(light_02_X,light_02_Y,size, size);
-		g.drawOval(light_03_X,light_03_Y,size, size);
-
-		g.drawOval(light_11_X,light_11_Y,size, size);
-		g.drawOval(light_12_X,light_12_Y,size, size);
-		g.drawOval(light_13_X,light_13_Y,size, size);		
-		
-
-		g.drawOval(light_21_X,light_21_Y,size, size);
-		g.drawOval(light_22_X,light_22_Y,size, size);
-		g.drawOval(light_23_X,light_23_Y,size, size);		
-		
-		g.drawOval(light_31_X,light_31_Y,size, size);
-		g.drawOval(light_32_X,light_32_Y,size, size);
-		g.drawOval(light_33_X,light_33_Y,size, size);		
 		
 		
 		//Retrive a sample agent.
@@ -674,9 +665,29 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		}
 		
 		
+		g.setColor(Color.BLACK);
+		
+		g.drawOval(light_01_X,light_01_Y,size, size);
+		g.drawOval(light_02_X,light_02_Y,size, size);
+		g.drawOval(light_03_X,light_03_Y,size, size);
+
+		g.drawOval(light_11_X,light_11_Y,size, size);
+		g.drawOval(light_12_X,light_12_Y,size, size);
+		g.drawOval(light_13_X,light_13_Y,size, size);		
+		
+
+		g.drawOval(light_21_X,light_21_Y,size, size);
+		g.drawOval(light_22_X,light_22_Y,size, size);
+		g.drawOval(light_23_X,light_23_Y,size, size);		
+		
+		g.drawOval(light_31_X,light_31_Y,size, size);
+		g.drawOval(light_32_X,light_32_Y,size, size);
+		g.drawOval(light_33_X,light_33_Y,size, size);
+		
+		
 	} 
 	
-	public void displayAgents(Graphics g){
+	public void displayAgents(Graphics2D g){
 		
 		for(AgentTick ag : ticks.get(curFrameNum).agentTicks.values()) {
 			

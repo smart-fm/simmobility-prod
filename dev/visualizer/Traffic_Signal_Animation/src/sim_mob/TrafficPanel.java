@@ -5,6 +5,7 @@ import java.awt.*;
 import javax.swing.*; 
 
 import java.awt.event.*; 
+import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
@@ -64,6 +65,9 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 	private int scaledCrossingX2 = 730;	
 	private int scaledCrossingY1 = 245;
 	private int scaledCrossingY2 = 465;
+	
+	//Light sets. Each set contains 3 lights. 
+	ArrayList<TrafficLight[]> lights;
 	
 	// Array list for vehicle image
 	private ArrayList<BufferedImage> imageList = new ArrayList<BufferedImage>();
@@ -138,6 +142,9 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 			scaledCrossingY1 = 304;
 			scaledCrossingY2 = 336;
 		}
+		
+		//Pre-calculate our traffic light locations
+		initLights();
 		
 		//Now, set the Slider's value
 		frameSlider.setMinimum(1);
@@ -408,19 +415,55 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 			g.drawRect(590, dividerWidth*2*i + scaledCrossingY2, roadSideWidth, dividerWidth);
 			g.fillRect(590, dividerWidth*2*i + scaledCrossingY2, roadSideWidth, dividerWidth);
 		}
-		
-		
-		
-		
 	}
 	
-	public void displaySingalPhase(Graphics2D g){
+	
+	private void initLights() {
+		lights = new ArrayList<TrafficLight[]>();
 		
 		// Draw traffic light
 		int size = 15;  //light size
 		
+		//Light set zero
+		TrafficLight[] thisSet = new TrafficLight[3];
+		lights.add(thisSet);
+		
+		thisSet[0] = new TrafficLight(460, 250, size);
+		thisSet[1] = new TrafficLight(thisSet[0].getX(), thisSet[0].getY()+size, size);
+		thisSet[2] = new TrafficLight(thisSet[1].getX(), thisSet[1].getY()+size, size);
+		
+		//Light set one
+		thisSet = new TrafficLight[3];
+		lights.add(thisSet);
+		
+		thisSet[0] = new TrafficLight(680, 245, size);
+		thisSet[1] = new TrafficLight(thisSet[0].getX()+size, thisSet[0].getY(), size);
+		thisSet[2] = new TrafficLight(thisSet[1].getX()+size, thisSet[1].getY(), size);
+		
+		//Light set two
+		thisSet = new TrafficLight[3];
+		lights.add(thisSet);
+		
+		thisSet[0] = new TrafficLight(720, 415, size);
+		thisSet[1] = new TrafficLight(thisSet[0].getX(), thisSet[0].getY()+size, size);
+		thisSet[2] = new TrafficLight(thisSet[1].getX(), thisSet[1].getY()+size, size);
+		
+		//Light set three
+		thisSet = new TrafficLight[3];
+		lights.add(thisSet);
+		
+		thisSet[0] = new TrafficLight(470, 455, size);
+		thisSet[1] = new TrafficLight(thisSet[0].getX()+size, thisSet[0].getY(), size);
+		thisSet[2] = new TrafficLight(thisSet[1].getX()+size, thisSet[1].getY(), size);
+	}
+	
+	
+	
+	public void displaySingalPhase(Graphics2D g) {
+
+		
         // light zero
-		int light_01_X = 460;
+		/*int light_01_X = 460;
 		int light_01_Y = 250;
      
 		int light_02_X = light_01_X;
@@ -457,7 +500,7 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		int light_32_Y = light_31_Y;
 
 		int light_33_X = light_32_X + size;
-		int light_33_Y = light_31_Y;
+		int light_33_Y = light_31_Y;*/
 
 		
 		
@@ -471,29 +514,44 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		
 		switch (signalPhase){
 		case 0:
-			g.setColor(Color.GREEN);
+			//g.setColor(Color.GREEN);
+			lights.get(0)[1-1].lightColor = Color.GREEN;
+			lights.get(0)[2-1].lightColor = Color.GREEN;
+			lights.get(2)[2-1].lightColor = Color.GREEN;
+			lights.get(2)[3-1].lightColor = Color.GREEN;
 			
-			g.fillOval(light_01_X,light_01_Y,size, size);
+			/*g.fillOval(light_01_X,light_01_Y,size, size);
 			g.fillOval(light_02_X,light_02_Y,size, size);
 			g.fillOval(light_22_X,light_22_Y,size, size);
-			g.fillOval(light_23_X,light_23_Y,size, size);
+			g.fillOval(light_23_X,light_23_Y,size, size);*/
 
-			g.setColor(Color.RED);
-			g.fillOval(light_03_X,light_03_Y,size, size);
-			g.fillOval(light_21_X,light_21_Y,size, size);
+			//g.setColor(Color.RED);
+			lights.get(0)[3-1].lightColor = Color.RED;
+			lights.get(2)[1-1].lightColor = Color.RED;
 			
-			g.setColor(Color.RED);
-			g.fillOval(light_11_X,light_11_Y,size, size);
+			/*g.fillOval(light_03_X,light_03_Y,size, size);
+			g.fillOval(light_21_X,light_21_Y,size, size);*/
+			
+			//g.setColor(Color.RED);
+			lights.get(1)[1-1].lightColor = Color.RED;
+			lights.get(1)[2-1].lightColor = Color.RED;
+			lights.get(1)[3-1].lightColor = Color.RED;
+			lights.get(3)[1-1].lightColor = Color.RED;
+			lights.get(3)[2-1].lightColor = Color.RED;
+			lights.get(3)[3-1].lightColor = Color.RED;
+			
+			
+			/*g.fillOval(light_11_X,light_11_Y,size, size);
 			g.fillOval(light_12_X,light_12_Y,size, size);
 			g.fillOval(light_13_X,light_13_Y,size, size);
 
 			g.fillOval(light_31_X,light_31_Y,size, size);
 			g.fillOval(light_32_X,light_32_Y,size, size);
-			g.fillOval(light_33_X,light_33_Y,size, size);		
+			g.fillOval(light_33_X,light_33_Y,size, size);*/		
 			
 			break;
 		
-		case 1:
+		/*case 1:
 			g.setColor(Color.RED);
 			
 			g.fillOval(light_01_X,light_01_Y,size, size);
@@ -661,11 +719,23 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 			
 		default:
 			
-			System.out.println("None of signals are correct");
+			System.out.println("None of signals are correct");*/
 		}
 		
 		
-		g.setColor(Color.BLACK);
+		//Now that their colors are properly set, draw all lights
+		for (TrafficLight[] lightArr : lights) {
+			for (TrafficLight light : lightArr) {
+				g.setColor(light.lightColor);
+				g.fill(light);
+				g.setColor(Color.BLACK);
+				g.draw(light);
+			}
+		}
+		
+		
+		
+		/*g.setColor(Color.BLACK);
 		
 		g.drawOval(light_01_X,light_01_Y,size, size);
 		g.drawOval(light_02_X,light_02_Y,size, size);
@@ -682,7 +752,7 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		
 		g.drawOval(light_31_X,light_31_Y,size, size);
 		g.drawOval(light_32_X,light_32_Y,size, size);
-		g.drawOval(light_33_X,light_33_Y,size, size);
+		g.drawOval(light_33_X,light_33_Y,size, size);*/
 		
 		
 	} 

@@ -10,6 +10,7 @@ dev/visualizer/Traffic_Signal_Animation/bin/
 
 #Ignore object files
 *.o
+*.class
 
 #Ignore gedit backup files
 *~

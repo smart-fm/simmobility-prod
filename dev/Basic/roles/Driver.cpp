@@ -1180,29 +1180,21 @@ bool sim_mob :: Driver :: reachSignalDecision()
 	//Phase A, drivers on Lane 0 and Lane 1 of Link 0 and Link 2 can move forward
 	if(currPhase == 0 || currPhase == 10){
 		return (currentLink == 0 && currentLane == 0) || (currentLink == 0 && currentLane == 1)|| (currentLink == 2 && currentLane == 0) || (currentLink == 2 && currentLane == 1);
-		/*if( (currentLink == 0 && currentLane == 0) || (currentLink == 0 && currentLane == 1)|| (currentLink == 2 && currentLane == 0) || (currentLink == 2 && currentLane == 1) ){return true;}
-		else{ return false; }*/
 	}
 
 	//Phase B, drivers on Lane 2 of Link 0 and Link 2 can move forward
 	else if(currPhase == 1 || currPhase == 11){
 		return (currentLink == 0 && currentLane == 2) || (currentLink == 2 && currentLane == 2);
-		/*if( (currentLink == 0 && currentLane == 2) || (currentLink == 2 && currentLane == 2) ){return true;}
-		else{ return false;  }*/
 	}
 
 	//Phase C, drivers on Lane 0 and Lane 1 of Link 1 and Link 3 can move forward
 	else if(currPhase == 2 || currPhase == 12){
 		return (currentLink == 1 && currentLane == 0) || (currentLink == 1 && currentLane == 1)|| (currentLink == 3 && currentLane == 0) || (currentLink == 3 && currentLane == 1);
-		/*if( (currentLink == 1 && currentLane == 0) || (currentLink == 1 && currentLane == 1)|| (currentLink == 3 && currentLane == 0) || (currentLink == 3 && currentLane == 1) ){return true;}
-		else{ return false;  }*/
 	}
 
 	//Phase D, drivers on Lane 2 of Link 1 and Link 3 can move forward
 	else if(currPhase == 3 || currPhase == 13){
 		return (currentLink == 1 && currentLane == 2) || (currentLink == 3 && currentLane == 2);
-		/*if( (currentLink == 1 && currentLane == 2) || (currentLink == 3 && currentLane == 2) ){return true;}
-		else{ return false;  }*/
 	}
 
 	else {
@@ -1215,83 +1207,85 @@ void sim_mob :: Driver :: IntersectionVelocityUpdate()
 {
 	double speed = 36;
 
-	//vehicles that are going to go straight
-	if( currentLink==0 && currentLane==1) {
-		xVel = speed;yVel = 0;
-	} else if( currentLink==1 && currentLane==1) {
-		xVel = 0;yVel = speed;
-	} else if( currentLink==2 && currentLane==1) {
-		xVel = -speed;yVel = 0;
-	} else if( currentLink==3 && currentLane==1) {
-		xVel = 0;yVel = -speed;
-	}
+	switch (currentLane) {
+		case 1:
+			//vehicles that are going to go straight
+			if( currentLink==0) {
+				xVel = speed;yVel = 0;
+			} else if( currentLink==1) {
+				xVel = 0;yVel = speed;
+			} else if( currentLink==2) {
+				xVel = -speed;yVel = 0;
+			} else if( currentLink==3) {
+				xVel = 0;yVel = -speed;
+			}
+			break;
 
+		case 2:
+			//vehicles that are going to turn right, their routes are based on circles
+			if( currentLink==0) {
+				//the center of circle are (450,350)
+				double xD = 450- parent->xPos.get();
+				double yD = 350 - parent->yPos.get();
+				double magnitude = sqrt(xD*xD + yD*yD);
 
-	//vehicles that are going to turn right, their routes are based on circles
-	else if( currentLink==0 && currentLane==2)
-	{
-		//the center of circle are (450,350)
-		double xD = 450- parent->xPos.get();
-		double yD = 350 - parent->yPos.get();
-		double magnitude = sqrt(xD*xD + yD*yD);
+				double xDirection = yD/magnitude;
+				double yDirection = - xD/magnitude;
 
-		double xDirection = yD/magnitude;
-		double yDirection = - xD/magnitude;
+				xVel = xDirection*speed*0.7;
+				yVel = yDirection*speed*0.7;
+			} else if( currentLink==1) {
+				//the center of circle are (450,250)
+				double xD = 450 - parent->xPos.get();
+				double yD = 250 - parent->yPos.get();
+				double magnitude = sqrt(xD*xD + yD*yD);
 
-		xVel = xDirection*speed*0.7;
-		yVel = yDirection*speed*0.7;
-	}
+				double xDirection = yD/magnitude;
+				double yDirection = - xD/magnitude;
 
-	else if( currentLink==1 && currentLane==2)
-	{
-		//the center of circle are (450,250)
-		double xD = 450 - parent->xPos.get();
-		double yD = 250 - parent->yPos.get();
-		double magnitude = sqrt(xD*xD + yD*yD);
+				xVel = xDirection*speed*0.7;
+				yVel = yDirection*speed*0.7;
+			} else if( currentLink==2) {
+				//the center of circle are (550,250)
+				double xD = 550 - parent->xPos.get();
+				double yD = 250 - parent->yPos.get();
+				double magnitude = sqrt(xD*xD + yD*yD);
 
-		double xDirection = yD/magnitude;
-		double yDirection = - xD/magnitude;
+				double xDirection =  yD/magnitude;
+				double yDirection =  - xD/magnitude;
 
-		xVel = xDirection*speed*0.7;
-		yVel = yDirection*speed*0.7;
-	}
+				xVel = xDirection*speed*0.7;
+				yVel = yDirection*speed*0.7;
+			} else if( currentLink==3) {
+				//the center of circle are (550,350)
+				double xD = 550- parent->xPos.get();
+				double yD = 350 - parent->yPos.get();
+				double magnitude = sqrt(xD*xD + yD*yD);
 
-	else if( currentLink==2 && currentLane==2)
-	{
-		//the center of circle are (550,250)
-		double xD = 550 - parent->xPos.get();
-		double yD = 250 - parent->yPos.get();
-		double magnitude = sqrt(xD*xD + yD*yD);
+				double xDirection = yD/magnitude;
+				double yDirection = - xD/magnitude;
 
-		double xDirection =  yD/magnitude;
-		double yDirection =  - xD/magnitude;
+				xVel = xDirection*speed*0.7;
+				yVel = yDirection*speed*0.7;
+			}
+			break;
 
-		xVel = xDirection*speed*0.7;
-		yVel = yDirection*speed*0.7;
-	}
+		case 0:
+			//Vehicles that are going to turn left
+			if(currentLink==0) {
+				xVel = 0.5*speed;yVel = -0.5*speed;
+			} else if(currentLink==1) {
+				xVel = 0.5*speed;yVel = 0.5*speed;
+			} else if(currentLink==2) {
+				xVel = -0.5*speed;yVel = 0.5*speed;
+			} else if(currentLink==3) {
+				xVel = -0.5*speed;yVel = -0.5*speed;
+			}
+			break;
 
-	else if( currentLink==3 && currentLane==2)
-	{
-		//the center of circle are (550,350)
-		double xD = 550- parent->xPos.get();
-		double yD = 350 - parent->yPos.get();
-		double magnitude = sqrt(xD*xD + yD*yD);
-
-		double xDirection = yD/magnitude;
-		double yDirection = - xD/magnitude;
-
-		xVel = xDirection*speed*0.7;
-		yVel = yDirection*speed*0.7;
-	}
-
-	//Vehicles that are going to turn left
-	else if( currentLink==0 && currentLane==0){xVel = 0.5*speed;yVel = -0.5*speed;}
-	else if( currentLink==1 && currentLane==0){xVel = 0.5*speed;yVel = 0.5*speed;}
-	else if( currentLink==2 && currentLane==0){xVel = -0.5*speed;yVel = 0.5*speed;}
-	else if( currentLink==3 && currentLane==0){xVel = -0.5*speed;yVel = -0.5*speed;}
-
-	else {
-		//Does this represent an error condition? ~Seth
+		default:
+			//Does this represent an error condition? ~Seth
+			return;
 	}
 }
 

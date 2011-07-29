@@ -17,8 +17,8 @@ void sim_mob::Person::update(frame_t frameNumber)
 
 	//Output (temp)
 	{
-		boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-		std::cout <<"(" <<this->getId() <<"," <<frameNumber<<","<<this->xPos.get()<<"," <<this->yPos.get() <<",1)"<<std::endl;
+		//boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
+		//std::cout <<"(" <<this->getId() <<"," <<frameNumber<<","<<this->xPos.get()<<"," <<this->yPos.get() <<",1)"<<std::endl;
 	}
 }
 

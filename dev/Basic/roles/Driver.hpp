@@ -3,6 +3,7 @@
 #include <limits>
 
 #include "Role.hpp"
+#include "../entities/Signal.hpp"
 
 namespace sim_mob
 {
@@ -164,6 +165,8 @@ private:
 	int originLink;					//using when reach the goal and go back to origin
 	int currentLink;				//current link ID
 	int currentLane;				//current lane ID
+	int nextLink;
+	int nextLane;
 	Agent* LF;				//pointer pointing to the vehicle in the left lane and in front of the vehicle in the smallest distance
 	Agent* LB;				//left lane, behind, closest
 	Agent* RF;				//right lane, front, closest
@@ -171,6 +174,7 @@ private:
 
 public:
 	void updateCurrentLink();
+	void updateCurrentLane();
 	bool isOnTheLink(int linkid);
 	void updateLeadingDriver();				///<this may be a function of big brother later
 	Agent* getLeadingDriver(){return leader;}
@@ -180,6 +184,7 @@ public:
 	bool checkIfOnTheLane(double y);		///<give y position, check if it is a lane's y position
 	double getLinkLength();
 	bool isReachSignal();
+	bool isInTheIntersection();
 
 
 	/***********FOR DRIVING BEHAVIOR MODEL**************/
@@ -253,6 +258,19 @@ private:
 	void updateAcceleration();
 	void updateVelocity();
 	void updatePosition();
+
+public:
+	bool reachSignalDecision();
+	void updateSignalInfo();
+	void updateAngel();
+	void IntersectionVelocityUpdate();
+	void modifyPosition();
+private:
+	Signal sig;
+	int phaseCounter;
+	int currPhase;
+	double Angel;
+	bool inIntersection;
 
 };
 

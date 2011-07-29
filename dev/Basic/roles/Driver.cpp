@@ -7,11 +7,15 @@
 
 
 #include "Driver.hpp"
+#include "../entities/Signal.hpp"
+#include <math.h>
 
 using namespace sim_mob;
 using std::numeric_limits;
 using std::max;
 
+double DS[] = {0.6, 0.5, 0.4, 0.7};
+double DS_av = (DS[0]+DS[1]+DS[2]+DS[3])/4;
 
 //Some static properties require initialization in the CPP file. ~Seth
 const double sim_mob::Driver::maxLaneSpeed[] = {120,140,180};
@@ -68,7 +72,7 @@ const link_ sim_mob::Driver::testLinks[] = {
 };
 
 //initiate
-sim_mob::Driver::Driver(Agent* parent) : Role(parent), leader(nullptr)
+sim_mob::Driver::Driver(Agent* parent) : Role(parent), leader(nullptr), sig(0)
 {
 	//Set random seed
 	srand(parent->getId());
@@ -76,7 +80,7 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), leader(nullptr)
 	//Set default speed in the range of 1m/s to 1.4m/s
 	speed_ = 1+((double)(rand()%10))/10;
 	//speed up
-	speed_ *= 80;
+	speed_ *= 16;
 
 	//Set default data for acceleration
 	acc_ = 0;
@@ -107,7 +111,9 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), leader(nullptr)
 	LF=nullptr;LB=nullptr;RF=nullptr;RB=nullptr;
 
 	//Need to init
-	currentLink = parent->getId()/3;
+	currentLink = (parent->getId()/3)%4;
+	nextLane=-1;
+	nextLink=-1;
 
 	ischanging=false;
 	isback=false;
@@ -115,6 +121,14 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), leader(nullptr)
 	fromLane=getLane();
 	toLane=getLane();
 	changeDecision=0;
+
+
+	currPhase = 0;
+	phaseCounter = 0;
+	sig.initializeSignal();
+	Angel = 0;
+	inIntersection=false;
+
 }
 
 
@@ -122,7 +136,10 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), leader(nullptr)
 void sim_mob::Driver::update(frame_t frameNumber)
 {
 	getFromParent();
+	updateCurrentLink();
 	abs2relat();
+	updateCurrentLane();
+
 	//Set the goal of agent
 	if(!isGoalSet){
 		setGoal();
@@ -133,6 +150,20 @@ void sim_mob::Driver::update(frame_t frameNumber)
 		setOrigin();
 		isOriginSet=true;
 	}
+
+	//if reach the goal, get back to the origin
+	if(isGoalReached()){
+		currentLink=originLink;
+		//currentLink=(currentLink+1)%8;
+		//double fallback=0;
+		xPos_=origin.xPos;
+		yPos_=origin.yPos;
+		//isGoalSet=false;
+		relat2abs();
+		setToParent();
+		return;
+	}
+
 	//To check if the vehicle reaches the lane it wants to move to
 	if(getLane()==toLane){
 		ischanging=false;
@@ -142,7 +173,11 @@ void sim_mob::Driver::update(frame_t frameNumber)
 		changeDecision=0;
 	}
 
-	updateCurrentLink();
+	//update signal information
+	updateSignalInfo();
+
+
+
 	VelOfLaneChanging=	testLinks[currentLink].laneWidth/5;		//assume that 5 time steps is need when changing lane
 
 	//update information
@@ -153,15 +188,27 @@ void sim_mob::Driver::update(frame_t frameNumber)
 
 
 	//lane changing part
-	excuteLaneChanging();
+	if(!isInTheIntersection() && xPos_ > 50){
+		excuteLaneChanging();
+	}
 
 	//update
 	updateAcceleration();
 	updateVelocity();
 	updatePosition();
 
-	relat2abs();
+	modifyPosition();
+
+	if(!isInTheIntersection()){
+		relat2abs();
+	}
+
 	setToParent();
+
+	updateAngel();
+
+	boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
+	std::cout <<"(" <<parent->getId() <<"," <<frameNumber<<","<<parent->xPos.get()<<"," <<parent->yPos.get() <<","<<sig.getcurrPhase()<<","<<DS_av<<","<<floor(sig.getnextCL())<<","<<sig.getphaseCounter()<<","<<Angel<<")"<<std::endl;
 }
 
 void sim_mob::Driver::getFromParent()
@@ -236,21 +283,39 @@ void sim_mob::Driver::setGoal()
 
 bool sim_mob::Driver::isGoalReached()
 {
-	return (goal.xPos - xPos_)<0;  //This is equivalent. ~Seth
+	//return (goal.xPos - xPos_)<0;  //This is equivalent. ~Seth
+	return (xPos < 0 || xPos > 1000 || yPos < 0 || yPos >600);
+	std::cout<<"reachgoal"<<std::endl;
 }
 
 bool sim_mob::Driver::isReachSignal()
 {
-	return (getLinkLength()-xPos_ < length);
+	return (!isInTheIntersection() && getLinkLength()-xPos_ < length
+			&& currentLink<4);
 }
 
 void sim_mob::Driver::updateCurrentLink()
 {
-	currentLink=-1;
+//	currentLink=-1;
 	for(int i=0;i<numOfLinks;i++){
 		if(isOnTheLink(i)){
 			currentLink=i;
 		}
+	}
+}
+
+bool sim_mob::Driver::isInTheIntersection()
+{
+	//return (parent->xPos.get()>=460 && parent->xPos.get() <= 540
+	//		&& parent->yPos.get() >= 260 && parent->yPos.get() <= 340);
+	return (parent->xPos.get()>460 && parent->xPos.get() < 540
+				&& parent->yPos.get() > 260 && parent->yPos.get() < 340);
+}
+
+void sim_mob::Driver::updateCurrentLane()
+{
+	if(!isInTheIntersection()){
+		currentLane=getLane();
 	}
 }
 
@@ -284,11 +349,22 @@ void sim_mob::Driver::updateAcceleration()
 
 void sim_mob::Driver::updateVelocity()
 {
+	if(isInTheIntersection()){
+		IntersectionVelocityUpdate();
+		//std::cout<<"intersection "<<xVel<<" "<<yVel<<std::endl;
+	}
+
+	else {
 	if(isReachSignal()){
-		//if(signalisred){
-			xVel_=0;
-			yVel_=0;
-		//}
+		nextLink=(currentLane+currentLink+1)%4+4;
+		nextLane=currentLane;
+//		std::cout<<"hhahahhahhah"<<std::endl;
+		if(!reachSignalDecision()){
+			xVel_ = 0 ; yVel_ =0;
+		}
+		else{
+			xVel_= targetSpeed/2;yVel_=0;
+		}
 	}
 	else if(leader!=nullptr && leader_xVel_ == 0 && getDistance()<0.2*length){
 		xVel_=0;
@@ -322,27 +398,21 @@ void sim_mob::Driver::updateVelocity()
 				yVel_=0;
 			}
 	}
+	}
 	speed_=sqrt(xVel_*xVel_+yVel_*yVel_);
 }
 
 
 void sim_mob::Driver::updatePosition()
 {
-	//Compute
-	if(xVel_==0) {
+	if(isInTheIntersection()){
+		xPos = xPos + xVel*timeStep;
+		yPos = yPos + yVel*timeStep;
+	}
+	else if(xVel_==0) {
 		//xPos_= xPos_;			//when speed is zero, stop in the same position //Don't assign to self; it's an error in some compilers. ~Seth
 	} else {
 		xPos_ = xPos_+xVel_*timeStep+0.5*xAcc_*timeStep*timeStep;
-	}
-
-	//if reach the goal, get back to the origin
-	if(isGoalReached()){
-		currentLink=originLink;
-		//currentLink=(currentLink+1)%8;
-		double fallback=0;
-		xPos_=origin.xPos-fallback*50;;
-		yPos_=origin.yPos;
-		//isGoalSet=false;
 	}
 }
 
@@ -1119,4 +1189,158 @@ bool sim_mob::Driver::checkForCrash()
 		) return true;
 	}
 	return false;
+}
+
+void sim_mob :: Driver :: updateSignalInfo()
+{
+	//update signal information
+	sig.updateSignal(DS);
+
+	//currPhase is the order for drivers
+	currPhase = sig.getcurrPhase();
+
+}
+
+//Angel shows the velocity direction of vehicles
+void sim_mob::Driver::updateAngel()
+{
+	if(xVel==0 && yVel==0){}
+    else if(xVel>=0 && yVel>=0)Angel = 360 - atan(yVel/xVel)/3.1415926*180;
+	else if(xVel>=0 && yVel<0)Angel = - atan(yVel/xVel)/3.1415926*180;
+	else if(xVel<0 && yVel>=0)Angel = 180 - atan(yVel/xVel)/3.1415926*180;
+	else if(xVel<0 && yVel<0)Angel = 180 - atan(yVel/xVel)/3.1415926*180;
+	else{}
+}
+
+
+
+bool sim_mob :: Driver :: reachSignalDecision()
+{
+	//Phase A, drivers on Lane 0 and Lane 1 of Link 0 and Link 2 can move forward
+	if(currPhase == 0 || currPhase == 10){
+		if( (currentLink == 0 && currentLane == 0) || (currentLink == 0 && currentLane == 1)|| (currentLink == 2 && currentLane == 0) || (currentLink == 2 && currentLane == 1) ){return true;}
+		else{ return false; }
+	}
+
+	//Phase B, drivers on Lane 2 of Link 0 and Link 2 can move forward
+	else if(currPhase == 1 || currPhase == 11){
+		if( (currentLink == 0 && currentLane == 2) || (currentLink == 2 && currentLane == 2) ){return true;}
+		else{ return false;  }
+	}
+
+	//Phase C, drivers on Lane 0 and Lane 1 of Link 1 and Link 3 can move forward
+	else if(currPhase == 2 || currPhase == 12){
+		if( (currentLink == 1 && currentLane == 0) || (currentLink == 1 && currentLane == 1)|| (currentLink == 3 && currentLane == 0) || (currentLink == 3 && currentLane == 1) ){return true;}
+		else{ return false;  }
+	}
+
+	//Phase D, drivers on Lane 2 of Link 1 and Link 3 can move forward
+	else if(currPhase == 3 || currPhase == 13){
+		if( (currentLink == 1 && currentLane == 2) || (currentLink == 3 && currentLane == 2) ){return true;}
+		else{ return false;  }
+	}
+
+	else{return true;}
+}
+
+void sim_mob :: Driver :: IntersectionVelocityUpdate()
+{
+	double speed = 36;
+
+	//vehicles that are going to go straight
+	if( currentLink==0 && currentLane==1){xVel = speed;yVel = 0;}
+	else if( currentLink==1 && currentLane==1){xVel = 0;yVel = speed;}
+	else if( currentLink==2 && currentLane==1){xVel = -speed;yVel = 0;}
+	else if( currentLink==3 && currentLane==1){xVel = 0;yVel = -speed;}
+
+
+	//vehicles that are going to turn right, their routes are based on circles
+	else if( currentLink==0 && currentLane==2)
+	{
+		//the center of circle are (450,350)
+		double xD = 450- parent->xPos.get();
+		double yD = 350 - parent->yPos.get();
+		double magnitude = sqrt(xD*xD + yD*yD);
+
+		double xDirection = yD/magnitude;
+		double yDirection = - xD/magnitude;
+
+		xVel = xDirection*speed*0.7;
+		yVel = yDirection*speed*0.7;
+	}
+
+	else if( currentLink==1 && currentLane==2)
+	{
+		//the center of circle are (450,250)
+		double xD = 450 - parent->xPos.get();
+		double yD = 250 - parent->yPos.get();
+		double magnitude = sqrt(xD*xD + yD*yD);
+
+		double xDirection = yD/magnitude;
+		double yDirection = - xD/magnitude;
+
+		xVel = xDirection*speed*0.7;
+		yVel = yDirection*speed*0.7;
+	}
+
+	else if( currentLink==2 && currentLane==2)
+	{
+		//the center of circle are (550,250)
+		double xD = 550 - parent->xPos.get();
+		double yD = 250 - parent->yPos.get();
+		double magnitude = sqrt(xD*xD + yD*yD);
+
+		double xDirection =  yD/magnitude;
+		double yDirection =  - xD/magnitude;
+
+		xVel = xDirection*speed*0.7;
+		yVel = yDirection*speed*0.7;
+	}
+
+	else if( currentLink==3 && currentLane==2)
+	{
+		//the center of circle are (550,350)
+		double xD = 550- parent->xPos.get();
+		double yD = 350 - parent->yPos.get();
+		double magnitude = sqrt(xD*xD + yD*yD);
+
+		double xDirection = yD/magnitude;
+		double yDirection = - xD/magnitude;
+
+		xVel = xDirection*speed*0.7;
+		yVel = yDirection*speed*0.7;
+	}
+
+	//Vehicles that are going to turn left
+	else if( currentLink==0 && currentLane==0){xVel = 0.5*speed;yVel = -0.5*speed;}
+	else if( currentLink==1 && currentLane==0){xVel = 0.5*speed;yVel = 0.5*speed;}
+	else if( currentLink==2 && currentLane==0){xVel = -0.5*speed;yVel = 0.5*speed;}
+	else if( currentLink==3 && currentLane==0){xVel = -0.5*speed;yVel = -0.5*speed;}
+
+	else {}
+}
+
+//modify vehicles' positions when they just finishing crossing intersection,
+//make sure they are on one of the 3 lanes inside link.
+void sim_mob::Driver::modifyPosition()
+{
+	//it is in the intersection last frame, but not in the intersection now
+	if(!isInTheIntersection()){
+		if(inIntersection){
+			currentLink=nextLink;
+			currentLane=nextLane;
+			xPos_=5;
+			yPos_=currentLane*testLinks[currentLink].laneWidth;
+			xVel_=targetSpeed/2;
+			yVel_=0;
+			xAcc_=0;
+			yAcc_=0;
+			nextLane=-1;
+			nextLink=-1;
+			inIntersection=false;
+		}
+	}
+	else{
+		inIntersection=true;
+	}
 }

@@ -1,11 +1,9 @@
 package sim_mob;
 
-import java.awt.*; 
-
+import java.awt.*;
+ 
 import javax.swing.*; 
-
 import java.awt.event.*; 
-import java.awt.geom.Ellipse2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
@@ -55,10 +53,9 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 	private JSlider frameSlider;
 	
 	private int numAgents = 60;		// Set number of agents
-	private int curFrameNum = 1;	// Set the default current frame number
+	private ObsInteger currFrameNum;	// Set the default current frame number
 	private int vehicleOvalSize = 7; // Set the vehicle size
 	private int timerSpeed = 100; // Define frame speed:  default 10 frames/second
-	
 	
 	// The (x, y) position for the road 
 	private int scaledCrossingX1 = 460;
@@ -78,6 +75,42 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		return ImageIO.read(input);
 	}
 	
+	//Helper method
+	public static String StringRepeat(String s, int times) {
+		StringBuilder sb = new StringBuilder(times);
+		for (int i=0; i<times; i++) {
+			sb.append(s);
+		}
+		return sb.toString();
+	}
+	
+	//Helper class: Frame number should be updated whenever it's changed.
+	class ObsInteger extends Observable {
+		private Integer val;
+		
+		public ObsInteger(int value) {
+			this.val = value;
+		}
+		
+		public int get() {
+			return this.val;
+		}
+		
+		public void set(int value) {
+			this.val = value;
+			setChanged();
+			notifyObservers(new Integer(val));
+		}
+		
+		public void add(int amount) {
+			set(this.val+amount);
+		}
+		
+		public String toString() {
+			return ""+this.val;
+		}
+	}
+	
 	
 	// Set the frame speed
 	Timer timer = new Timer(timerSpeed, this);
@@ -87,15 +120,22 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		JPanel bottomPanel = new JPanel(); 
 		JPanel bottomContainer = new JPanel();
 		JPanel topPanel = new JPanel();
+
+		//Update the Frame label automatically when the value changes.
+		currFrameNum = new ObsInteger(1);
+		currFrameNum.addObserver(new Observer() {
+			public void update(Observable arg0, Object arg1) {
+				frameNumLabel.setText("Frame #: " + (Integer)arg1);
+			}
+		});
 		
 		startButton = new JButton("Start");
 		stopButton = new JButton("Stop");
 		stepForwardButton = new JButton("Step Forward");
 		stepBackButton = new JButton("Step Backward");
 		resetButton = new JButton("Reset");    
-		frameNumLabel = new JLabel("Frame #: " + curFrameNum);	//frame number
-		blanks =  new JLabel("                                                                                        " +
-				"                                                        ");
+		frameNumLabel = new JLabel("Frame #: " + currFrameNum);	//frame number
+		blanks =  new JLabel(StringRepeat(" ", 144));
 		frameSlider = new JSlider(JSlider.HORIZONTAL);
 		
 		cycleNumLabel = new JLabel("Cycle Length: " + 0);
@@ -159,7 +199,6 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 	public void readFile(String filename, ArrayList<String> arl) {
 		//@SuppressWarnings("unused")
 		//char[] boundaryBottomLeft, boundaryBottomRight, boundaryTopLeft, boundaryTopRight;
-		
 		boolean modeFound = false;
 		try {
 			FileReader fin = new FileReader(filename);
@@ -324,7 +363,7 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		//Draw cars
 		int carlength = 10;
 		int carwidth  = 6;
-		for (AgentTick ag : ticks.get(curFrameNum).agentTicks.values()) {
+		for (AgentTick ag : ticks.get(currFrameNum.get()).agentTicks.values()) {
 			// g.drawString(Integer.toString(i),
 			// ag.agentScaledX+pedestrianOvalSize,
 			// ag.agentScaledY+pedestrianOvalSize);
@@ -340,7 +379,7 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 	private void paintComponentStandard(Graphics2D g) {	
 		//Request a sample agent.
 		//NOTE: Why does each agent have a copy of the cycle length, DS, and Phase Counter variables?
-		Iterator<AgentTick> it = ticks.get(curFrameNum).agentTicks.values().iterator();
+		Iterator<AgentTick> it = ticks.get(currFrameNum.get()).agentTicks.values().iterator();
 		AgentTick ag = it.hasNext() ? it.next() : null;
 		
 		// Labels on the panel
@@ -606,7 +645,7 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 	public void displaySingalPhase(Graphics2D g) {	
 		//Retrive a sample agent.
 		//NOTE: Why does each agent maintain a copy of the signal phase?
-		Iterator<AgentTick> it = ticks.get(curFrameNum).agentTicks.values().iterator();
+		Iterator<AgentTick> it = ticks.get(currFrameNum.get()).agentTicks.values().iterator();
 		AgentTick ag = it.hasNext() ? it.next() : null;
 		int signalPhase = ag!=null ? ag.phaseSignal : 0;
 		
@@ -649,7 +688,7 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 	
 	public void displayAgents(Graphics2D g){
 		
-		for(AgentTick ag : ticks.get(curFrameNum).agentTicks.values()) {
+		for(AgentTick ag : ticks.get(currFrameNum.get()).agentTicks.values()) {
 			
 			if(ag.carDir > 0 && ag.carDir <=30)
 			{
@@ -801,7 +840,7 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 	public void stateChanged(ChangeEvent e) {
 		if (e.getSource().equals(frameSlider)) {
 			//Paint
-			curFrameNum = frameSlider.getValue();
+			currFrameNum.set(frameSlider.getValue());
 			//setAgentPosition();
 			repaint();
 		}
@@ -816,37 +855,37 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		}
 		else if(e.getSource().equals(timer)) {
 			//Done?
-			if (curFrameNum==ticks.size()-1) {
+			if (currFrameNum.get()==ticks.size()-1) {
 				timer.stop();
 				return;
 			}
 			
 			//Increment, paint
-			curFrameNum++;
-			frameSlider.setValue(curFrameNum); //This should really be done with a listener.
+			currFrameNum.add(1);
+			frameSlider.setValue(currFrameNum.get()); //This should really be done with a listener.
 			//setAgentPosition();
 			repaint();
 		}
 		else if(e.getSource().equals(stepForwardButton)) {
-			if (curFrameNum<ticks.size()-1) {
-				curFrameNum++;
-				frameSlider.setValue(curFrameNum); //This should really be done with a listener.
+			if (currFrameNum.get()<ticks.size()-1) {
+				currFrameNum.add(1);
+				frameSlider.setValue(currFrameNum.get()); //This should really be done with a listener.
 				//setAgentPosition();
 				repaint();
 			}
 		}
 		else if(e.getSource().equals(stepBackButton)) {
-			if (curFrameNum>1) {
-				curFrameNum--;
-				frameSlider.setValue(curFrameNum); //This should really be done with a listener.
+			if (currFrameNum.get()>1) {
+				currFrameNum.add(-1);
+				frameSlider.setValue(currFrameNum.get()); //This should really be done with a listener.
 				//setAgentPosition();
 				repaint();
 			}
 		}
 		else if(e.getSource().equals(resetButton)) {
 			timer.stop();
-			curFrameNum = 1;  //NOTE: The first tick is actually tick 0. ~Seth
-			frameSlider.setValue(curFrameNum); //This should really be done with a listener.
+			currFrameNum.set(1);  //NOTE: The first tick is actually tick 0. ~Seth
+			frameSlider.setValue(currFrameNum.get()); //This should really be done with a listener.
 			//setAgentPosition();
 			repaint();
 		}

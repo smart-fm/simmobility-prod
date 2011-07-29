@@ -228,6 +228,12 @@ bool performMain()
 
 int main(int argc, char* argv[])
 {
+  //This should be moved later, but we'll likely need to manage random numbers
+  //ourselves anyway, to make simulations as repeatable as possible.
+  time_t t = time(NULL);
+  srand (t);
+  cout <<"Random Seed Init: " <<t <<endl;
+
   int returnVal = performMain() ? 0 : 1;
 
   cout <<"Done" <<endl;

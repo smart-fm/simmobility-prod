@@ -75,7 +75,10 @@ const link_ sim_mob::Driver::testLinks[] = {
 sim_mob::Driver::Driver(Agent* parent) : Role(parent), leader(nullptr), sig(0)
 {
 	//Set random seed
-	srand(parent->getId());
+	//NOTE: This will reset the sequence returned by rand(); it's not a good idea.
+	//      I moved srand() initialization into main.cpp; we'll need to make our own
+	//      random data management classes later.
+	//srand(parent->getId());
 
 	//Set default speed in the range of 1m/s to 1.4m/s
 	speed_ = 1+((double)(rand()%10))/10;

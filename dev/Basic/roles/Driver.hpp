@@ -262,14 +262,14 @@ private:
 public:
 	bool reachSignalDecision();
 	void updateSignalInfo();
-	void updateAngel();
+	void updateAngle();
 	void IntersectionVelocityUpdate();
 	void modifyPosition();
 private:
 	Signal sig;
 	int phaseCounter;
 	int currPhase;
-	double Angel;
+	double angle;
 	bool inIntersection;
 
 };

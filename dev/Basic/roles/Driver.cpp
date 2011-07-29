@@ -126,7 +126,7 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), leader(nullptr), sig(0)
 	currPhase = 0;
 	phaseCounter = 0;
 	sig.initializeSignal();
-	Angel = 0;
+	angle = 0;
 	inIntersection=false;
 
 }
@@ -205,10 +205,10 @@ void sim_mob::Driver::update(frame_t frameNumber)
 
 	setToParent();
 
-	updateAngel();
+	updateAngle();
 
 	boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-	std::cout <<"(" <<parent->getId() <<"," <<frameNumber<<","<<parent->xPos.get()<<"," <<parent->yPos.get() <<","<<sig.getcurrPhase()<<","<<DS_av<<","<<floor(sig.getnextCL())<<","<<sig.getphaseCounter()<<","<<Angel<<")"<<std::endl;
+	std::cout <<"(" <<parent->getId() <<"," <<frameNumber<<","<<parent->xPos.get()<<"," <<parent->yPos.get() <<","<<sig.getcurrPhase()<<","<<DS_av<<","<<floor(sig.getnextCL())<<","<<sig.getphaseCounter()<<","<<angle <<")" <<std::endl;
 }
 
 void sim_mob::Driver::getFromParent()
@@ -1201,14 +1201,14 @@ void sim_mob :: Driver :: updateSignalInfo()
 
 }
 
-//Angel shows the velocity direction of vehicles
-void sim_mob::Driver::updateAngel()
+//Angle shows the velocity direction of vehicles
+void sim_mob::Driver::updateAngle()
 {
 	if(xVel==0 && yVel==0){}
-    else if(xVel>=0 && yVel>=0)Angel = 360 - atan(yVel/xVel)/3.1415926*180;
-	else if(xVel>=0 && yVel<0)Angel = - atan(yVel/xVel)/3.1415926*180;
-	else if(xVel<0 && yVel>=0)Angel = 180 - atan(yVel/xVel)/3.1415926*180;
-	else if(xVel<0 && yVel<0)Angel = 180 - atan(yVel/xVel)/3.1415926*180;
+    else if(xVel>=0 && yVel>=0)angle = 360 - atan(yVel/xVel)/3.1415926*180;
+	else if(xVel>=0 && yVel<0)angle = - atan(yVel/xVel)/3.1415926*180;
+	else if(xVel<0 && yVel>=0)angle = 180 - atan(yVel/xVel)/3.1415926*180;
+	else if(xVel<0 && yVel<0)angle = 180 - atan(yVel/xVel)/3.1415926*180;
 	else{}
 }
 

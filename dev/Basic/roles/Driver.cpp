@@ -273,19 +273,16 @@ void sim_mob::Driver::setOrigin()
 
 void sim_mob::Driver::setGoal()
 {
-	if(currentLink%2==0){
+	if(currentLink%2==0) {
 		goal.xPos = 460;			//all the cars move in x direction to reach the goal
-	}
-	else{
+	} else{
 		goal.xPos = 260;
 	}
 }
 
 bool sim_mob::Driver::isGoalReached()
 {
-	//return (goal.xPos - xPos_)<0;  //This is equivalent. ~Seth
 	return (xPos < 0 || xPos > 1000 || yPos < 0 || yPos >600);
-	std::cout<<"reachgoal"<<std::endl;
 }
 
 bool sim_mob::Driver::isReachSignal()
@@ -296,7 +293,6 @@ bool sim_mob::Driver::isReachSignal()
 
 void sim_mob::Driver::updateCurrentLink()
 {
-//	currentLink=-1;
 	for(int i=0;i<numOfLinks;i++){
 		if(isOnTheLink(i)){
 			currentLink=i;
@@ -306,8 +302,6 @@ void sim_mob::Driver::updateCurrentLink()
 
 bool sim_mob::Driver::isInTheIntersection()
 {
-	//return (parent->xPos.get()>=460 && parent->xPos.get() <= 540
-	//		&& parent->yPos.get() >= 260 && parent->yPos.get() <= 340);
 	return (parent->xPos.get()>460 && parent->xPos.get() < 540
 				&& parent->yPos.get() > 260 && parent->yPos.get() < 340);
 }
@@ -333,8 +327,7 @@ bool sim_mob::Driver::isOnTheLink(int linkid)
 	if(xP>=0 && xP <= magnitude && yP >= 0
 			&& yP <=testLinks[linkid].laneWidth*((double)testLinks[linkid].laneNum-1)){
 			return true;
-	}
-	else{
+	} else {
 		return false;
 	}
 }
@@ -349,42 +342,29 @@ void sim_mob::Driver::updateAcceleration()
 
 void sim_mob::Driver::updateVelocity()
 {
-	if(isInTheIntersection()){
+	if(isInTheIntersection()) {
 		IntersectionVelocityUpdate();
-		//std::cout<<"intersection "<<xVel<<" "<<yVel<<std::endl;
-	}
-
-	else {
-	if(isReachSignal()){
-		nextLink=(currentLane+currentLink+1)%4+4;
-		nextLane=currentLane;
-//		std::cout<<"hhahahhahhah"<<std::endl;
-		if(!reachSignalDecision()){
-			xVel_ = 0 ; yVel_ =0;
-		}
-		else{
+	} else {
+		if(isReachSignal()){
+			nextLink=(currentLane+currentLink+1)%4+4;
+			nextLane=currentLane;
+			if(!reachSignalDecision()){
+				xVel_ = 0 ; yVel_ =0;
+			} else {
 			xVel_= targetSpeed/2;yVel_=0;
-		}
-	}
-	else if(leader!=nullptr && leader_xVel_ == 0 && getDistance()<0.2*length){
-		xVel_=0;
-		yVel_=0;
-	}
-	//when vehicle just gets back to the origin, help them to speed up
-	else {
-		if(xPos_<0) {
+			}
+		} else if(leader!=nullptr && leader_xVel_ == 0 && getDistance()<0.2*length) {
+			xVel_=0;
+			yVel_=0;
+		} else { //when vehicle just gets back to the origin, help them to speed up
+			if(xPos_<0) {
 				xVel_=(0.2+((double)(rand()%10))/30)*getTargetSpeed();
 				yVel_=0;
 			} else{
 				xVel_ = max(0.0, speed_+xAcc_*timeStep);
 				yVel_ = 0;//max(0.0, yDirection*speed_+yAcc*timeStep);
-				/*if(xVel<0) {
-					xVel=0;
-				}
-				if(yVel<0) {
-					yVel=0;
-				}*/
 			}
+
 			if(!ischanging){
 				double foward;
 				if(leader==nullptr) {
@@ -397,7 +377,7 @@ void sim_mob::Driver::updateVelocity()
 				}
 				yVel_=0;
 			}
-	}
+		}
 	}
 	speed_=sqrt(xVel_*xVel_+yVel_*yVel_);
 }
@@ -408,10 +388,7 @@ void sim_mob::Driver::updatePosition()
 	if(isInTheIntersection()){
 		xPos = xPos + xVel*timeStep;
 		yPos = yPos + yVel*timeStep;
-	}
-	else if(xVel_==0) {
-		//xPos_= xPos_;			//when speed is zero, stop in the same position //Don't assign to self; it's an error in some compilers. ~Seth
-	} else {
+	} else if(xVel_!=0) { //Only update if velocity is non-zero.
 		xPos_ = xPos_+xVel_*timeStep+0.5*xAcc_*timeStep*timeStep;
 	}
 }
@@ -499,8 +476,9 @@ int sim_mob::Driver::checkIfBadAreaAhead()
 		){
 			if(badareas[i].startX - xPos_-length < disToBA)
 				{disToBA=badareas[i].startX - xPos_-length/2;BA=i;}
-			}
+		}
 	}
+
 	/*
 	 * If the subject vehicle has no leading vehicle, it will return BA+1, the sequence number of it in the array
 	 * 0 and -1 means no such bad area.
@@ -512,12 +490,10 @@ int sim_mob::Driver::checkIfBadAreaAhead()
 	 * */
 	if(leader==nullptr){
 		return BA+1;
-	}
-	else{
-		if(BA==-1){
+	} else {
+		if(BA==-1) {
 			return -1;
-		}
-		else{
+		} else {
 			double temp1=badareas[BA].startX-xPos_-length/2;
 			double temp2=leader_xPos_-xPos_-length;
 			return (temp1<temp2)?(BA+1):-(BA+2);
@@ -528,13 +504,11 @@ int sim_mob::Driver::checkIfBadAreaAhead()
 double sim_mob::Driver::getDistance()
 {
 	int BA=checkIfBadAreaAhead();
-	if( BA > 0 ){ 		//There is bad area ahead and no leading vehicle ahead.
+	if( BA > 0 ) { 		//There is bad area ahead and no leading vehicle ahead.
 		return badareas[BA-1].startX-xPos_-length/2;
-	}
-	else if( BA < 0 ){ 	//Leading vehicle is closer(maybe there is no bad area ahead)
+	} else if( BA < 0 ) { 	//Leading vehicle is closer(maybe there is no bad area ahead)
 		return max(0.001,leader_xPos_-xPos_-length);
-	}
-	else {				//Nothing ahead, just go as fast as it can.
+	} else {				//Nothing ahead, just go as fast as it can.
 		return MAX_NUM;
 	}
 }
@@ -545,21 +519,18 @@ void sim_mob::Driver::makeAcceleratingDecision()
 	int i=checkIfBadAreaAhead();
 	if(space <= 0) {
 		acc_=0;
-	}
-	else{
+	} else {
 		if (speed_ == 0)headway = 2 * space * 100000;
 		else headway = space / speed_;
 		if( i > 0 ){
 			v_lead		=	0;
 			a_lead		=	0;
 			space_star	=	0;
-		}
-		else if( i == 0 ){
+		} else if( i == 0 ) {
 			v_lead		=	MAX_NUM;
 			a_lead		=	MAX_NUM;
 			space_star	=	MAX_NUM;
-		}
-		else{
+		} else {
 			v_lead 		=	leader_xVel_;
 			a_lead		=	leader_xAcc_;
 			double dt	=	timeStep;
@@ -816,42 +787,38 @@ unsigned int sim_mob::Driver::gapAcceptance(int type)
 		if(i==0){
 			F=LF;
 			B=LB;
-		}
-		else{
+		} else {
 			F=RF;
 			B=RB;
 		}
 		if(getLane()!=border[i] && badarea[i]!=true){	//the left/right side exists
 		int BA=findClosestBadAreaAhead(getLane()+offset[i]);
-			if(F==nullptr){		//no vehicle ahead
-				if(BA==-1){		//also no bad area ahead
+			if(F==nullptr) {		//no vehicle ahead
+				if(BA==-1) {		//also no bad area ahead
 					otherSpeed[i][0]=MAX_NUM;
 					otherDistance[i][0]=MAX_NUM;
-				}
-				else{			//bad area ahead, check the gap between subject vehicle and bad area
+				} else {			//bad area ahead, check the gap between subject vehicle and bad area
 					otherSpeed[i][0]=0;
 					otherDistance[i][0]=badareas[BA].startX-xPos_-length/2;
 				}
-			}
-			else{				//has vehicle ahead
+			} else {				//has vehicle ahead
 				other_xOffset	= F->xPos.get()	- testLinks[currentLink].startX;
 				other_yOffset	= F->yPos.get()	- testLinks[currentLink].startY;
 				other_xPos_		= other_xOffset	* xDirection	+ other_yOffset	* yDirection;
 				other_xVel_		= F->xVel.get()	* xDirection	+ F->yVel.get()	* yDirection;
 
 				double gna1=other_xPos_-xPos_-length;
-				if(BA==-1){		//no bad area, just check the gap
+				if(BA==-1) {		//no bad area, just check the gap
 					otherSpeed[i][0]=other_xVel_;
 					otherDistance[i][0]=gna1;
-				}
-				else{			//bad area ahead, use the smallest gap to compute
+				} else {			//bad area ahead, use the smallest gap to compute
 					double gna2=badareas[BA].startX-xPos_-length/2;
 					otherSpeed[i][0]=( gna1 < gna2 )?other_xVel_:0;
 					otherDistance[i][0]=( gna1 < gna2 )?gna1:gna2;
 				}
 			}
 
-			if(B!=nullptr){		//has vehicle behind, check the gap
+			if(B!=nullptr) {		//has vehicle behind, check the gap
 				other_xOffset	= B->xPos.get()	- testLinks[currentLink].startX;
 				other_yOffset	= B->yPos.get()	- testLinks[currentLink].startY;
 				other_xPos_		= other_xOffset	* xDirection	+ other_yOffset	* yDirection;
@@ -859,13 +826,11 @@ unsigned int sim_mob::Driver::gapAcceptance(int type)
 
 				otherSpeed[i][1]=other_xVel_;
 				otherDistance[i][1]=xPos_-other_xPos_-length;
-			}
-			else{		//no vehicle behind
+			} else {		//no vehicle behind
 				otherSpeed[i][1]=-MAX_NUM;
 				otherDistance[i][1]=MAX_NUM;
 			}
-		}
-		else {			// no left/right side exists
+		} else {			// no left/right side exists
 			otherSpeed[i][0]=-MAX_NUM;
 			otherDistance[i][0]=0;
 			otherSpeed[i][1]=MAX_NUM;
@@ -902,37 +867,32 @@ double sim_mob::Driver::calcSideLaneUtility(bool isLeft){
 	double other_xOffset;
 	double other_yOffset;
 	double other_xPos_;
-	if(getLane()==border){
+	if(getLane()==border) {
 		return -MAX_NUM;	//has no left/right side
-	}
-	else{
+	} else {
 		int BA=findClosestBadAreaAhead(getLane()+offset);
-		if(BA==-1){			//no bad area ahead
+		if(BA==-1) {			//no bad area ahead
 			if(F!=nullptr)	{	//has vehicle ahead
 				other_xOffset	= F->xPos.get()	- testLinks[currentLink].startX;
 				other_yOffset	= F->yPos.get()	- testLinks[currentLink].startY;
 				other_xPos_		= other_xOffset	* xDirection	+ other_yOffset	* yDirection;
 				//other_xPos_=F->xPos.get();
 				return other_xPos_-xPos_-length;
-			}
-			else {			//no vehicle ahead neither
+			} else {			//no vehicle ahead neither
 				return MAX_NUM;
-				}
 			}
-		else if(badareas[BA].startX-xPos_-length < avoidBadAreaDistance) {
+		} else if(badareas[BA].startX-xPos_-length < avoidBadAreaDistance) {
 			return -MAX_NUM;	//bad area is to close, won't choose that side
-		}
-		else {				//has bad area but is not too close
+		} else {				//has bad area but is not too close
 			double slr1=badareas[BA].startX-xPos_-length/2;
-			if(F!=nullptr){	//has vehicle ahead
+			if(F!=nullptr) {	//has vehicle ahead
 				other_xOffset	= F->xPos.get()	- testLinks[currentLink].startX;
 				other_yOffset	= F->yPos.get()	- testLinks[currentLink].startY;
 				other_xPos_		= other_xOffset	* xDirection	+ other_yOffset	* yDirection;
 				//other_xPos_=F->xPos.get();
 				double slr2=other_xPos_-xPos_-length;
 				return ( slr1 < slr2 ) ? slr1 : slr2;		//check the smaller gap
-			}
-			else {
+			} else {
 				return slr1;	//has no vehicle ahead,just check the gap to the bad area
 			}
 		}
@@ -993,8 +953,12 @@ double sim_mob::Driver::checkIfMandatory()
 	else{
 		dis2stop=badareas[BA].startX-xPos_-length/2;
 		//we first use simple rule to decide lane changing mode
-		if(dis2stop < satisfiedDistance)return 1;
-		else return 0;
+		return (dis2stop < satisfiedDistance) ? 1 : 0;  //This is equivalent to the if statement below. ~Seth
+		/*if(dis2stop < satisfiedDistance) {
+			return 1;
+		} else {
+			return 0;
+		}*/
 
 		//the code below is MITSIMLab model
 		/*double num		=	1;		//now we just assume that MLC only need to change to the adjacent lane
@@ -1027,16 +991,13 @@ double sim_mob::Driver::makeMandatoryLaneChangingDecision()
 	if(freeRight && !freeLeft) {
 		isWaiting=false;
 		return 1;
-	}
-	else if(freeLeft && !freeRight) {
+	} else if(freeLeft && !freeRight) {
 		isWaiting=false;
 		return -1;
-	}
-	else if(freeLeft && freeRight){
+	} else if(freeLeft && freeRight) {
 		isWaiting=false;
 		return (leftUtility < rightUtility) ? 1 : -1;
-	}
-	else{			//when neither side is available,vehicle will decelerate to wait a proper gap.
+	} else {			//when neither side is available,vehicle will decelerate to wait a proper gap.
 		isWaiting=true;
 		return 0;
 	}
@@ -1063,17 +1024,15 @@ void sim_mob::Driver::excuteLaneChanging()
 		double p=(double)(rand()%1000)/1000;
 		if(p<checkIfMandatory()){
 			changeMode = MLC;
-		}
-		else {
+		} else {
 			changeMode = DLC;
 			dis2stop=MAX_NUM;		//no crucial point ahead
 		}
 
 		//make decision depending on current lane changing mode
-		if(changeMode==DLC){
+		if(changeMode==DLC) {
 			changeDecision=makeDiscretionaryLaneChangingDecision();
-		}
-		else{
+		} else {
 			changeDecision=makeMandatoryLaneChangingDecision();
 		}
 
@@ -1087,8 +1046,7 @@ void sim_mob::Driver::excuteLaneChanging()
 		fromLane=getLane();
 		toLane=getLane()+changeDecision;
 		acc_=MAX_DECELERATION;	//decelerate in max rate to wait for acceptable gap
-	}
-	else{			//when changing lane
+	} else{			//when changing lane
 		if(changeDecision!=0) {
 			double change=1;		//for MLC
 
@@ -1158,35 +1116,36 @@ bool sim_mob::Driver::checkForCrash()
 				&& (other_yPos_ > yPos_-width*1.1)
 				&& (other_xPos_ < xPos_+length*0.9)
 				&& (other_xPos_ > xPos_-length*0.9)
-				){
+				)
+		{
 			//but some kind of crash can be ignored. Cases below must be regard as crash.
 			if(
 					((fromLane>toLane && other_yPos_ < yPos_)
 				||(fromLane<toLane && other_yPos_ > yPos_))
-						){		//the other vehicle is on the position where subject vehicle is approaching
+						)
+			{		//the other vehicle is on the position where subject vehicle is approaching
 				if(checkIfOnTheLane(other_yPos_)){		//if other vehicle is on the lane
 					return true;								//subject vehicle should avoid it
-				}
-				else if(other_xPos_>xPos_){	//if both vehicle is changing lane
+				} else if(other_xPos_>xPos_){	//if both vehicle is changing lane
 					return true;		//one has bigger ID will not be affected
-				}
-				else {
+				} else {
 					return false;
 				}
-			}
-			else{
+			} else{
 				return false;
 			}
 		}
 	}
 	//check bad areas
-	for(int i=0;i<numOfBadAreas;i++){
+	for(int i=0;i<numOfBadAreas;i++) {
 		if(
 				badareas[i].startX < xPos_-length
 				&& badareas[i].endX > xPos_+length
 				&& testLinks[currentLink].laneWidth*badareas[i].lane + testLinks[currentLink].laneWidth/2+width/2 > yPos_
 				&& testLinks[currentLink].laneWidth*badareas[i].lane - testLinks[currentLink].laneWidth/2-width/2 < yPos_
-		) return true;
+		) {
+			return true;
+		}
 	}
 	return false;
 }
@@ -1216,31 +1175,40 @@ void sim_mob::Driver::updateAngle()
 
 bool sim_mob :: Driver :: reachSignalDecision()
 {
+	//NOTE: I replaced the if statements with simple "returns", which are more concise. ~Seth
+
 	//Phase A, drivers on Lane 0 and Lane 1 of Link 0 and Link 2 can move forward
 	if(currPhase == 0 || currPhase == 10){
-		if( (currentLink == 0 && currentLane == 0) || (currentLink == 0 && currentLane == 1)|| (currentLink == 2 && currentLane == 0) || (currentLink == 2 && currentLane == 1) ){return true;}
-		else{ return false; }
+		return (currentLink == 0 && currentLane == 0) || (currentLink == 0 && currentLane == 1)|| (currentLink == 2 && currentLane == 0) || (currentLink == 2 && currentLane == 1);
+		/*if( (currentLink == 0 && currentLane == 0) || (currentLink == 0 && currentLane == 1)|| (currentLink == 2 && currentLane == 0) || (currentLink == 2 && currentLane == 1) ){return true;}
+		else{ return false; }*/
 	}
 
 	//Phase B, drivers on Lane 2 of Link 0 and Link 2 can move forward
 	else if(currPhase == 1 || currPhase == 11){
-		if( (currentLink == 0 && currentLane == 2) || (currentLink == 2 && currentLane == 2) ){return true;}
-		else{ return false;  }
+		return (currentLink == 0 && currentLane == 2) || (currentLink == 2 && currentLane == 2);
+		/*if( (currentLink == 0 && currentLane == 2) || (currentLink == 2 && currentLane == 2) ){return true;}
+		else{ return false;  }*/
 	}
 
 	//Phase C, drivers on Lane 0 and Lane 1 of Link 1 and Link 3 can move forward
 	else if(currPhase == 2 || currPhase == 12){
-		if( (currentLink == 1 && currentLane == 0) || (currentLink == 1 && currentLane == 1)|| (currentLink == 3 && currentLane == 0) || (currentLink == 3 && currentLane == 1) ){return true;}
-		else{ return false;  }
+		return (currentLink == 1 && currentLane == 0) || (currentLink == 1 && currentLane == 1)|| (currentLink == 3 && currentLane == 0) || (currentLink == 3 && currentLane == 1);
+		/*if( (currentLink == 1 && currentLane == 0) || (currentLink == 1 && currentLane == 1)|| (currentLink == 3 && currentLane == 0) || (currentLink == 3 && currentLane == 1) ){return true;}
+		else{ return false;  }*/
 	}
 
 	//Phase D, drivers on Lane 2 of Link 1 and Link 3 can move forward
 	else if(currPhase == 3 || currPhase == 13){
-		if( (currentLink == 1 && currentLane == 2) || (currentLink == 3 && currentLane == 2) ){return true;}
-		else{ return false;  }
+		return (currentLink == 1 && currentLane == 2) || (currentLink == 3 && currentLane == 2);
+		/*if( (currentLink == 1 && currentLane == 2) || (currentLink == 3 && currentLane == 2) ){return true;}
+		else{ return false;  }*/
 	}
 
-	else{return true;}
+	else {
+		//Does this represent an error? ~Seth
+		return true;
+	}
 }
 
 void sim_mob :: Driver :: IntersectionVelocityUpdate()
@@ -1248,10 +1216,15 @@ void sim_mob :: Driver :: IntersectionVelocityUpdate()
 	double speed = 36;
 
 	//vehicles that are going to go straight
-	if( currentLink==0 && currentLane==1){xVel = speed;yVel = 0;}
-	else if( currentLink==1 && currentLane==1){xVel = 0;yVel = speed;}
-	else if( currentLink==2 && currentLane==1){xVel = -speed;yVel = 0;}
-	else if( currentLink==3 && currentLane==1){xVel = 0;yVel = -speed;}
+	if( currentLink==0 && currentLane==1) {
+		xVel = speed;yVel = 0;
+	} else if( currentLink==1 && currentLane==1) {
+		xVel = 0;yVel = speed;
+	} else if( currentLink==2 && currentLane==1) {
+		xVel = -speed;yVel = 0;
+	} else if( currentLink==3 && currentLane==1) {
+		xVel = 0;yVel = -speed;
+	}
 
 
 	//vehicles that are going to turn right, their routes are based on circles
@@ -1317,7 +1290,9 @@ void sim_mob :: Driver :: IntersectionVelocityUpdate()
 	else if( currentLink==2 && currentLane==0){xVel = -0.5*speed;yVel = 0.5*speed;}
 	else if( currentLink==3 && currentLane==0){xVel = -0.5*speed;yVel = -0.5*speed;}
 
-	else {}
+	else {
+		//Does this represent an error condition? ~Seth
+	}
 }
 
 //modify vehicles' positions when they just finishing crossing intersection,
@@ -1325,8 +1300,8 @@ void sim_mob :: Driver :: IntersectionVelocityUpdate()
 void sim_mob::Driver::modifyPosition()
 {
 	//it is in the intersection last frame, but not in the intersection now
-	if(!isInTheIntersection()){
-		if(inIntersection){
+	if(!isInTheIntersection()) {
+		if(inIntersection) {
 			currentLink=nextLink;
 			currentLane=nextLane;
 			xPos_=5;
@@ -1339,8 +1314,7 @@ void sim_mob::Driver::modifyPosition()
 			nextLink=-1;
 			inIntersection=false;
 		}
-	}
-	else{
+	} else {
 		inIntersection=true;
 	}
 }

@@ -28,11 +28,21 @@ void LoadNodes(std::vector<Node>& nodelist)
 } //End anon namespace
 
 
-void sim_mob::aimsun::Loader::LoadNetwork(sim_mob::RoadNetwork& rn)
+bool sim_mob::aimsun::Loader::LoadNetwork(sim_mob::RoadNetwork& rn)
 {
-	//Load all nodes
-	std::vector<Node> nodelist;
-	LoadNodes(nodelist);
+	try {
+		//Load all nodes
+		std::vector<Node> nodelist;
+		LoadNodes(nodelist);
 
+
+
+	} catch (std::exception& ex) {
+		//TODO: We can provide ex.what() (the message) to the developer once
+		//      we decide if our library will throw exceptions, use error codes,
+		//      return pair<bool, string>, etc.
+		return false;
+	}
+	return true;
 }
 

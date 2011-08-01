@@ -24,7 +24,9 @@ public:
 	///    some kind of persistence framework later.)
 	/// 2) Transform these classes into the Sim Mobility format, logging any irregularities.
 	/// 3) Discard the AIMSUN classes; return the Sim Mobility classes.
-	static void LoadNetwork(sim_mob::RoadNetwork& rn);
+	///Returns false if an exception was thrown or if something else unexpected occurred
+	//  (e.g., Node ID reference that doesn't exist).
+	static bool LoadNetwork(sim_mob::RoadNetwork& rn);
 };
 
 

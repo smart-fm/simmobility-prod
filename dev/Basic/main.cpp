@@ -17,6 +17,8 @@
 #include "workers/EntityWorker.hpp"
 #include "workers/ShortestPathWorker.hpp"
 #include "WorkGroup.hpp"
+#include "geospatial/aimsun/Loader.hpp"
+#include "geospatial/RoadNetwork.hpp"
 
 //Just temporarily, so we know it compiles:
 #include "entities/Signal.hpp"
@@ -233,6 +235,14 @@ int main(int argc, char* argv[])
   time_t t = time(NULL);
   srand (t);
   cout <<"Random Seed Init: " <<t <<endl;
+
+
+  //TEMP
+  RoadNetwork rn;
+  aimsun::Loader::LoadNetwork(rn);
+  return 1;
+  //END TEMP
+
 
   int returnVal = performMain() ? 0 : 1;
 

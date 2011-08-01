@@ -26,6 +26,8 @@
 <option id="gnu.cpp.compiler.exe.debug.option.debugging.level.30333493" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.include.paths.713038468" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="/usr/include/libxml2"/>
+<listOptionValue builtIn="false" value="/usr/include/soci"/>
+<listOptionValue builtIn="false" value="/usr/include/postgresql"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1868378277" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 </tool>
@@ -39,6 +41,8 @@
 <option id="gnu.cpp.link.option.libs.924075316" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="boost_thread"/>
 <listOptionValue builtIn="false" value="xml2"/>
+<listOptionValue builtIn="false" value="soci_core-gcc-3_0"/>
+<listOptionValue builtIn="false" value="soci_postgresql-gcc-3_0"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.847779846" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 <additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -83,6 +87,8 @@
 <option id="gnu.cpp.compiler.exe.release.option.debugging.level.493493670" name="Debug Level" superClass="gnu.cpp.compiler.exe.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.include.paths.1239688373" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="/usr/include/libxml2"/>
+<listOptionValue builtIn="false" value="/usr/include/soci"/>
+<listOptionValue builtIn="false" value="/usr/include/postgresql"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.203728829" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 </tool>
@@ -96,6 +102,8 @@
 <option id="gnu.cpp.link.option.libs.1568656880" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="boost_thread"/>
 <listOptionValue builtIn="false" value="xml2"/>
+<listOptionValue builtIn="false" value="soci_core-gcc-3_0"/>
+<listOptionValue builtIn="false" value="soci_postgresql-gcc-3_0"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.303870699" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 <additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>

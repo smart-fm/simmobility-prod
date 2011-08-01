@@ -33,7 +33,7 @@ class RoadNetwork {
 public:
 	DRIVING_SIDE drivingSide;
 
-	const std::vector<sim_mob::Node*>& getNodes();
+	const std::vector<sim_mob::Node*>& getNodes() { return nodes; }
 
 private:
 	//Temp: All nodes in a network.

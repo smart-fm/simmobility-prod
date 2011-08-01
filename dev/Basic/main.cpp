@@ -238,9 +238,9 @@ int main(int argc, char* argv[])
 
 
   //TEMP
-  RoadNetwork rn;
-  aimsun::Loader::LoadNetwork(rn);
-  return 1;
+  //RoadNetwork rn;
+  //aimsun::Loader::LoadNetwork(rn);
+  //return 1;
   //END TEMP
 
 

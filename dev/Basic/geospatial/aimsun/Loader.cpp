@@ -19,16 +19,13 @@ void LoadNodes(std::vector<Node>& nodelist)
 	//NOTE: Our git repository is private (SSH-only) for now, so just storing the password to the DB here.
 	soci::session sql(soci::postgresql, "host=localhost port=5432 dbname=SimMobility_DB user=postgres password=S!Mm0bility");
 
-	//Statement
-	Node newNode;
-	sql <<"select * from get_node();", soci::into(newNode);
+	//Our SQL statement
+	soci::rowset<Node> rs = (sql.prepare <<"select * from get_node()");
 
-
-
-	std::streamsize orig = std::cout.precision();
-	std::cout.precision(10);
-	std::cout <<"Found: " <<newNode.id <<"," <<newNode.xPos <<"," <<newNode.yPos <<"," <<newNode.isIntersection <<"\n";
-	std::cout.precision(orig);
+	//Exectue as a rowset to avoid repeatedly building the query.
+	for (soci::rowset<Node>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+	     std::cout <<it->id << '\n';
+	}
 }
 
 

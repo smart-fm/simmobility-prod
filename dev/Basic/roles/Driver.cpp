@@ -356,7 +356,7 @@ void sim_mob::Driver::updateVelocity()
 			} else {
 			xVel_= targetSpeed/2;yVel_=0;
 			}
-		} else if(leader!=nullptr && leader_xVel_ == 0 && getDistance()<0.2*length) {
+		} else if(leader && leader_xVel_ == 0 && getDistance()<0.2*length) {
 			xVel_=0;
 			yVel_=0;
 		} else { //when vehicle just gets back to the origin, help them to speed up
@@ -370,7 +370,7 @@ void sim_mob::Driver::updateVelocity()
 
 			if(!ischanging){
 				double foward;
-				if(leader==nullptr) {
+				if(!leader) {
 					foward=MAX_NUM;
 				} else {
 					foward=leader_xPos_-xPos_-length;
@@ -491,7 +491,7 @@ int sim_mob::Driver::checkIfBadAreaAhead()
 	 *   while the positive return means bad area is closer and the sequence number will be return-1
 	 *   and negative return means leading vehicle is closer and the sequence number will be -return-2.
 	 * */
-	if(leader==nullptr){
+	if(!leader){
 		return BA+1;
 	} else {
 		if(BA==-1) {
@@ -796,7 +796,7 @@ unsigned int sim_mob::Driver::gapAcceptance(int type)
 		}
 		if(getLane()!=border[i] && badarea[i]!=true){	//the left/right side exists
 		int BA=findClosestBadAreaAhead(getLane()+offset[i]);
-			if(F==nullptr) {		//no vehicle ahead
+			if(!F) {		//no vehicle ahead
 				if(BA==-1) {		//also no bad area ahead
 					otherSpeed[i][0]=MAX_NUM;
 					otherDistance[i][0]=MAX_NUM;
@@ -821,7 +821,7 @@ unsigned int sim_mob::Driver::gapAcceptance(int type)
 				}
 			}
 
-			if(B!=nullptr) {		//has vehicle behind, check the gap
+			if(B) {		//has vehicle behind, check the gap
 				other_xOffset	= B->xPos.get()	- testLinks[currentLink].startX;
 				other_yOffset	= B->yPos.get()	- testLinks[currentLink].startY;
 				other_xPos_		= other_xOffset	* xDirection	+ other_yOffset	* yDirection;
@@ -875,7 +875,7 @@ double sim_mob::Driver::calcSideLaneUtility(bool isLeft){
 	} else {
 		int BA=findClosestBadAreaAhead(getLane()+offset);
 		if(BA==-1) {			//no bad area ahead
-			if(F!=nullptr)	{	//has vehicle ahead
+			if(F)	{	//has vehicle ahead
 				other_xOffset	= F->xPos.get()	- testLinks[currentLink].startX;
 				other_yOffset	= F->yPos.get()	- testLinks[currentLink].startY;
 				other_xPos_		= other_xOffset	* xDirection	+ other_yOffset	* yDirection;
@@ -888,7 +888,7 @@ double sim_mob::Driver::calcSideLaneUtility(bool isLeft){
 			return -MAX_NUM;	//bad area is to close, won't choose that side
 		} else {				//has bad area but is not too close
 			double slr1=badareas[BA].startX-xPos_-length/2;
-			if(F!=nullptr) {	//has vehicle ahead
+			if(F) {	//has vehicle ahead
 				other_xOffset	= F->xPos.get()	- testLinks[currentLink].startX;
 				other_yOffset	= F->yPos.get()	- testLinks[currentLink].startY;
 				other_xPos_		= other_xOffset	* xDirection	+ other_yOffset	* yDirection;

@@ -1,7 +1,14 @@
 #pragma once
 
+#include <vector>
+
+
 namespace sim_mob
 {
+
+//Forward declarations
+class Node;
+
 
 /**
  * The side of the road on which cars drive. For the USA, this is DRIVES_ON_RIGHT;
@@ -26,7 +33,11 @@ class RoadNetwork {
 public:
 	DRIVING_SIDE drivingSide;
 
+	const std::vector<sim_mob::Node*>& getNodes();
+
 private:
+	//Temp: All nodes in a network.
+	std::vector<sim_mob::Node*> nodes;
 
 
 

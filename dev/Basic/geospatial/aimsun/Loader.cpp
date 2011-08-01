@@ -4,16 +4,18 @@
 #include "soci/postgresql/soci-postgresql.h"
 
 #include "Node.hpp"
+#include "Section.hpp"
 #include "SOCI_Converters.hpp"
 
 
 using namespace sim_mob::aimsun;
 using std::vector;
+using std::map;
 
 
 namespace {
 
-void LoadNodes(soci::session& sql, std::vector<Node>& nodelist)
+void LoadNodes(soci::session& sql, map<int, Node>& nodelist)
 {
 	//Our SQL statement
 	soci::rowset<Node> rs = (sql.prepare <<"select * from get_node()");
@@ -21,8 +23,31 @@ void LoadNodes(soci::session& sql, std::vector<Node>& nodelist)
 	//Exectue as a rowset to avoid repeatedly building the query.
 	nodelist.clear();
 	for (soci::rowset<Node>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
-		nodelist.push_back(*it);
-	    std::cout <<it->id << '\n';
+		if (nodelist.count(it->id)>0) {
+			throw std::runtime_error("Duplicate AIMSUN node.");
+		}
+		nodelist[it->id] = *it;
+	}
+}
+
+
+void LoadSections(soci::session& sql, map<int, Section> sectionlist, map<int, Node>& nodelist)
+{
+	//Our SQL statement
+	soci::rowset<Section> rs = (sql.prepare <<"select * from get_section()");
+
+	//Exectue as a rowset to avoid repeatedly building the query.
+	sectionlist.clear();
+	for (soci::rowset<Section>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+		//Check nodes
+		if(nodelist.count(it->TMP_FromNodeID)==0 || nodelist.count(it->TMP_ToNodeID)==0) {
+			throw std::runtime_error("Invalid From or To node.");
+		}
+
+		//Note: Make sure not to resize the Node map after referencing its elements.
+		it->fromNode = &nodelist[it->TMP_FromNodeID];
+		it->toNode = &nodelist[it->TMP_ToNodeID];
+		sectionlist[it->id] = *it;
 	}
 }
 
@@ -35,10 +60,12 @@ void LoadBasicAimsunObjects(sim_mob::RoadNetwork& rn)
 	soci::session sql(soci::postgresql, "host=localhost port=5432 dbname=SimMobility_DB user=postgres password=S!Mm0bility");
 
 	//Load all nodes
-	std::vector<Node> nodelist;
+	map<int, Node> nodelist;
 	LoadNodes(sql, nodelist);
 
 	//Load all sections
+	map<int, Section> sectionlist;
+	LoadSections(sql, sectionlist, nodelist);
 }
 
 

@@ -34,7 +34,33 @@ template<> struct type_conversion<Node>
 };
 
 
-
+template<> struct type_conversion<Section>
+{
+    typedef values base_type;
+    static void from_base(const soci::values& vals, soci::indicator& ind, Section &res)
+    {
+    	res.id = vals.get<int>("id", 0);
+    	res.roadName = vals.get<string>("road_name", "");
+    	res.numLanes = vals.get<int>("nb_lanes", 1);
+    	res.speed = vals.get<double>("speed", 0);
+    	res.capacity = vals.get<double>("capacity", 0);
+    	res.length = vals.get<double>("length", 0);
+    	res.TMP_FromNodeID = vals.get<int>("fnode", 0);
+    	res.TMP_ToNodeID = vals.get<int>("tnode", 0);
+    }
+    static void to_base(const Section& src, soci::values& vals, soci::indicator& ind)
+    {
+    	vals.set("id", src.id);
+        vals.set("road_name", src.roadName);
+        vals.set("nb_lanes", src.numLanes);
+        vals.set("speed", src.speed);
+        vals.set("capacity", src.capacity);
+        vals.set("length", src.length);
+        vals.set("fnode", src.fromNode->id);
+        vals.set("tnode", src.toNode->id);
+        ind = i_ok;
+    }
+};
 
 
 

@@ -70,7 +70,7 @@ void LoadTurnings(soci::session& sql, map<int, Turning>& turninglist, map<int, S
 		bool fromMissing = sectionlist.count(it->TMP_FromSection)==0;
 		bool toMissing = sectionlist.count(it->TMP_ToSection)==0;
 		if(fromMissing || toMissing) {
-			std::cout <<"Turning " <<it->id <<" skipped, missing node" <<(fromMissing&&toMissing?"s:  ":":  ");
+			std::cout <<"Turning " <<it->id <<" skipped, missing section" <<(fromMissing&&toMissing?"s:  ":":  ");
 			if (fromMissing) {
 				std::cout <<it->TMP_FromSection <<(toMissing?", ":"\n");
 			}
@@ -110,27 +110,35 @@ void LoadPolylines(soci::session& sql, multimap<int, Polyline>& polylinelist, ma
 
 
 
-void LoadBasicAimsunObjects(sim_mob::RoadNetwork& rn)
+void LoadBasicAimsunObjects(map<int, Node>& nodes, map<int, Section>& sections, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
 {
 	//Connect
 	//NOTE: Our git repository is private (SSH-only) for now, so just storing the password to the DB here.
 	soci::session sql(soci::postgresql, "host=localhost port=5432 dbname=SimMobility_DB user=postgres password=S!Mm0bility");
 
 	//Load all nodes
-	map<int, Node> nodes;
 	LoadNodes(sql, nodes);
 
 	//Load all sections
-	map<int, Section> sections;
 	LoadSections(sql, sections, nodes);
 
 	//Load all turnings
-	map<int, Turning> turnings;
 	LoadTurnings(sql, turnings, sections);
 
 	//Load all polylines
-	multimap<int, Polyline> polylines;
 	LoadPolylines(sql, polylines, sections);
+}
+
+
+void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& sections, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
+{
+
+}
+
+
+void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, map<int, Node>& nodes, map<int, Section>& sections, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
+{
+
 }
 
 
@@ -141,7 +149,20 @@ void LoadBasicAimsunObjects(sim_mob::RoadNetwork& rn)
 bool sim_mob::aimsun::Loader::LoadNetwork(sim_mob::RoadNetwork& rn)
 {
 	//try {
-		LoadBasicAimsunObjects(rn);
+		//Temporary AIMSUN data structures
+		map<int, Node> nodes;
+		map<int, Section> sections;
+		map<int, Turning> turnings;
+		multimap<int, Polyline> polylines;
+
+		//Step One: Load
+		LoadBasicAimsunObjects(nodes, sections, turnings, polylines);
+
+		//Step Two: Translate
+		DecorateAndTranslateObjects(nodes, sections, turnings, polylines);
+
+		//Step Three: Save
+		SaveSimMobilityNetwork(rn, nodes, sections, turnings, polylines);
 
 
 

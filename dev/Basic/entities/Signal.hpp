@@ -33,12 +33,17 @@ namespace sim_mob
  */
 
 
-class Signal : public Entity {
+class Signal  : public Entity {
 
 
 
 public:
-	Signal(unsigned int id);
+//	Signal();
+
+	void initializeSignal();
+
+	//static Signal* GetInstance();
+
 
 	//DS:degree of saturation
 	void updateSignal(double DS[]);
@@ -83,15 +88,21 @@ public:
 	double getnextOffset() {return nextOffset;}
 
 	//Abstract methods. You will have to implement these eventually.
-	virtual void update(frame_t frameNumber) = 0;
-	virtual void buildSubscriptionList() = 0;
+	virtual void update(frame_t frameNumber) {}
+	virtual void buildSubscriptionList() {}
 
 
 	static double fmax(const double proDS[]);
 	static int fmin_ID(const double maxproDS[]);
 	static int calvote(unsigned int vote1, unsigned int vote2, unsigned int vote3, unsigned int vote4, unsigned int vote5);
 
+public:
+	Signal(unsigned int id) : Entity(id) {}
+	int getcurrPhase();
+	int getphaseCounter(){return phaseCounter;}
+
 private:
+	//static Signal* instance_ ;
 	//previous,current and next cycle length
 	double prevCL,currCL,nextCL;
 
@@ -115,9 +126,10 @@ private:
 	//current and next Offset
 	double currOffset,nextOffset;
 
+	int phaseCounter;
+	int currPhase;
+
 };
 
 }
-
-
 

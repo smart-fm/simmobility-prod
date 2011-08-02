@@ -30,14 +30,34 @@ const double sim_mob::Signal::SplitPlan3[] = {0.35, 0.35, 0.20, 0.10};
 const double sim_mob::Signal::SplitPlan4[] = {0.35, 0.30, 0.10, 0.25};
 const double sim_mob::Signal::SplitPlan5[] = {0.20, 0.35, 0.25, 0.20};
 
+//Signal* sim_mob::Signal::instance_ = NULL;
 
-
-sim_mob :: Signal :: Signal(unsigned int id) : sim_mob::Entity(id)
+/*
+sim_mob :: Signal :: Signal(): sim_mob::Entity(id)
 {
 	setCL(60,60,60);//default initial cycle length for SCATS
 	setRL(60,60);//default initial RL for SCATS
 	startSplitPlan();
 }
+*/
+
+void sim_mob :: Signal :: initializeSignal()
+{
+	setCL(60,60,60);//default initial cycle length for SCATS
+	setRL(60,60);//default initial RL for SCATS
+	startSplitPlan();
+	currPhase = 0;
+	phaseCounter = 0;
+}
+
+
+/*Signal* sim_mob :: Signal :: GetInstance()
+{
+	if(!instance_){
+		instance_ = new Signal();
+	}
+	return instance_;
+}*/
 
 //initialize SplitPlan
 void sim_mob :: Signal :: startSplitPlan()
@@ -62,6 +82,7 @@ void sim_mob :: Signal :: startSplitPlan()
 //Update Signal Light
 void sim_mob :: Signal :: updateSignal (double DS[])
 {
+	if(phaseCounter == 0){
 	//find the maximum DS
 	DS_all = fmax(DS);
 
@@ -76,7 +97,38 @@ void sim_mob :: Signal :: updateSignal (double DS[])
 	updatecurrCL();
 	setnextSplitPlan(DS);
 	updatecurrSplitPlan();
+	}
 
+
+	if(phaseCounter<nextCL*nextSplitPlan[0])
+	{
+		if(phaseCounter <= (nextCL*nextSplitPlan[0] - 3) )currPhase=0;
+		else currPhase=10;
+	}
+	else if(phaseCounter<nextCL*(nextSplitPlan[0]+nextSplitPlan[1]))
+	{
+		if(phaseCounter <= (nextCL*(nextSplitPlan[0]+nextSplitPlan[1]) - 3) )currPhase=1;
+		else currPhase=11;
+	}
+	else if(phaseCounter<nextCL*(nextSplitPlan[0]+nextSplitPlan[1]+nextSplitPlan[2]))
+	{
+		if(phaseCounter <= (nextCL*(nextSplitPlan[0]+nextSplitPlan[1]+nextSplitPlan[2]) - 3) )currPhase=2;
+		else currPhase=12;
+	}
+	else if(phaseCounter <= (nextCL-3))currPhase=3;
+	else currPhase=13;
+
+
+	if(phaseCounter == floor(nextCL)){
+		phaseCounter = 0;
+	}else{}
+
+	phaseCounter++;
+}
+
+int sim_mob :: Signal :: getcurrPhase()
+{
+	return currPhase;
 }
 
 
@@ -336,5 +388,3 @@ int sim_mob :: Signal :: calvote(unsigned int vote1,unsigned int vote2, unsigned
 	}
 	return ID;
 }
-
-

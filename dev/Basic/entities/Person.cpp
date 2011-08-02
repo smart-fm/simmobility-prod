@@ -10,17 +10,15 @@ sim_mob::Person::Person(unsigned int id) : Agent(id), currRole(nullptr)
 
 void sim_mob::Person::update(frame_t frameNumber)
 {
+	//Update this agent's role
 	if (currRole) {
 		currRole->update(frameNumber);
 	}
 
 	//Output (temp)
 	{
-		boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
+		//boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
 		//std::cout <<"(" <<this->getId() <<"," <<frameNumber<<","<<this->xPos.get()<<"," <<this->yPos.get() <<",1)"<<std::endl;
-		//std::cout<<"           ["<<this->xVel.get()<<","<<this->xAcc.get()<<"]"<<std::endl;
-		//if(this->leader==NULL)std::cout<<"   [leading:NULL]"<<std::endl;
-		//else std::cout<<"   [leading:" << this->leader->getId()<<"]"<<std::endl;
 	}
 }
 

@@ -17,6 +17,8 @@
 #include "workers/EntityWorker.hpp"
 #include "workers/ShortestPathWorker.hpp"
 #include "WorkGroup.hpp"
+#include "geospatial/aimsun/Loader.hpp"
+#include "geospatial/RoadNetwork.hpp"
 
 //Just temporarily, so we know it compiles:
 #include "entities/Signal.hpp"
@@ -228,6 +230,20 @@ bool performMain()
 
 int main(int argc, char* argv[])
 {
+  //This should be moved later, but we'll likely need to manage random numbers
+  //ourselves anyway, to make simulations as repeatable as possible.
+  time_t t = time(NULL);
+  srand (t);
+  cout <<"Random Seed Init: " <<t <<endl;
+
+
+  //TEMP
+  //RoadNetwork rn;
+  //aimsun::Loader::LoadNetwork(rn);
+  //return 1;
+  //END TEMP
+
+
   int returnVal = performMain() ? 0 : 1;
 
   cout <<"Done" <<endl;

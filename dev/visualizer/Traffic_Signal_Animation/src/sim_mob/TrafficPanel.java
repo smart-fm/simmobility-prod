@@ -1,9 +1,8 @@
 package sim_mob;
 
-import java.awt.*; 
-
+import java.awt.*;
+ 
 import javax.swing.*; 
-
 import java.awt.event.*; 
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -30,6 +29,20 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		+ RG_DOUBLE                         //Car direction
 		+ "\\)"
 	);
+	private static final Pattern LEGACY_TIME_TICK_LINE_REGEX = Pattern.compile(
+		  "\\(" 
+	    + RG_INT + "," + RG_INT + ","       //Agent ID, Time Tick 
+		+ RG_DOUBLE + "," + RG_DOUBLE + "," //Agent X, Y
+		+ RG_INT                            //Signal; unused.
+		+ "\\)"
+	);
+	
+	//Which type of model are we reading?
+	enum OutputTypes {
+		STANDARD,
+		LEGACY
+	}
+	OutputTypes mode; 
 	
 	//Saved data
 	private ArrayList<TimeTick> ticks;
@@ -39,16 +52,10 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 	private JLabel frameNumLabel, cycleNumLabel, blanks, DSLabel, PhaseCounterLabel;
 	private JSlider frameSlider;
 	
-	
 	private int numAgents = 60;		// Set number of agents
-	private int curFrameNum = 1;	// Set the default current frame number
-	private int signalPhase = 0;	// Set the default traffic signal phase
-	private double cycleLength = 0; // Set the default cycle length
-	private double DS = 0;  		// Set the default DS
-	private int PhaseCounter = 0; 	// Set the default phase counter
+	private ObsInteger currFrameNum;	// Set the default current frame number
 	private int vehicleOvalSize = 7; // Set the vehicle size
 	private int timerSpeed = 100; // Define frame speed:  default 10 frames/second
-	
 	
 	// The (x, y) position for the road 
 	private int scaledCrossingX1 = 460;
@@ -56,23 +63,52 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 	private int scaledCrossingY1 = 245;
 	private int scaledCrossingY2 = 465;
 	
+	//Light sets. Each set contains 3 lights. 
+	ArrayList<TrafficLight[]> lights;
+	
 	// Array list for vehicle image
 	private ArrayList<BufferedImage> imageList = new ArrayList<BufferedImage>();
-	
-	//X, Y coord of agents
-	private int[] agentXCoord = new int[numAgents];
-	private int[] agentYCoord = new int[numAgents];
-	
-	//direction
-	private double[] carDirection = new double[numAgents];
-	
-	BufferedImage image; 	// Declare the image variable
-	
 	
 	//Helper method
 	public static BufferedImage LoadImgResource(String path) throws IOException {
 		InputStream input = TrafficFrame.class.getClassLoader().getResourceAsStream(path);
 		return ImageIO.read(input);
+	}
+	
+	//Helper method
+	public static String StringRepeat(String s, int times) {
+		StringBuilder sb = new StringBuilder(times);
+		for (int i=0; i<times; i++) {
+			sb.append(s);
+		}
+		return sb.toString();
+	}
+	
+	//Helper class: Frame number should be updated whenever it's changed.
+	class ObsInteger extends Observable {
+		private Integer val;
+		
+		public ObsInteger(int value) {
+			this.val = value;
+		}
+		
+		public int get() {
+			return this.val;
+		}
+		
+		public void set(int value) {
+			this.val = value;
+			setChanged();
+			notifyObservers(new Integer(val));
+		}
+		
+		public void add(int amount) {
+			set(this.val+amount);
+		}
+		
+		public String toString() {
+			return ""+this.val;
+		}
 	}
 	
 	
@@ -84,20 +120,27 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		JPanel bottomPanel = new JPanel(); 
 		JPanel bottomContainer = new JPanel();
 		JPanel topPanel = new JPanel();
+
+		//Update the Frame label automatically when the value changes.
+		currFrameNum = new ObsInteger(1);
+		currFrameNum.addObserver(new Observer() {
+			public void update(Observable arg0, Object arg1) {
+				frameNumLabel.setText("Frame #: " + (Integer)arg1);
+			}
+		});
 		
 		startButton = new JButton("Start");
 		stopButton = new JButton("Stop");
 		stepForwardButton = new JButton("Step Forward");
 		stepBackButton = new JButton("Step Backward");
 		resetButton = new JButton("Reset");    
-		frameNumLabel = new JLabel("Frame #: " + curFrameNum);	//frame number
-		blanks =  new JLabel("                                                                                        " +
-				"                                                        ");
+		frameNumLabel = new JLabel("Frame #: " + currFrameNum);	//frame number
+		blanks =  new JLabel(StringRepeat(" ", 144));
 		frameSlider = new JSlider(JSlider.HORIZONTAL);
 		
-		cycleNumLabel = new JLabel("Cycle Length: " + cycleLength);
-		DSLabel = new JLabel("  DS: " + DS);
-		PhaseCounterLabel = new JLabel("  Phase Counter: " + PhaseCounter);
+		cycleNumLabel = new JLabel("Cycle Length: " + 0);
+		DSLabel = new JLabel("  DS: " + 0);
+		PhaseCounterLabel = new JLabel("  Phase Counter: " + 0);
 				
 		bottomPanel.add(startButton);
 		bottomPanel.add(stopButton);
@@ -132,6 +175,17 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		readFile(inFileName, arl);
 		readTicks(arl);
 		
+		//Some properties change in legacy mode
+		if (mode==OutputTypes.LEGACY) {
+			scaledCrossingX1 = 360;
+			scaledCrossingX2 = 440;
+			scaledCrossingY1 = 304;
+			scaledCrossingY2 = 336;
+		}
+		
+		//Pre-calculate our traffic light locations
+		initLights();
+		
 		//Now, set the Slider's value
 		frameSlider.setMinimum(1);
 		frameSlider.setMaximum(ticks.size()-1);
@@ -145,8 +199,7 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 	public void readFile(String filename, ArrayList<String> arl) {
 		//@SuppressWarnings("unused")
 		//char[] boundaryBottomLeft, boundaryBottomRight, boundaryTopLeft, boundaryTopRight;
-		
-		
+		boolean modeFound = false;
 		try {
 			FileReader fin = new FileReader(filename);
 			BufferedReader b = new BufferedReader(fin);
@@ -154,7 +207,19 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 			String currentLine = "";
 			while((currentLine = b.readLine()) != null) {
 				if (TIME_TICK_LINE_REGEX.matcher(currentLine).matches()) {
+					if (modeFound && mode==OutputTypes.LEGACY) {
+						throw new RuntimeException("Mixed modes: " + currentLine);
+					}
 					arl.add(currentLine.substring(1, currentLine.length()-1));
+					mode = OutputTypes.STANDARD;
+					modeFound = true;
+				} else if (LEGACY_TIME_TICK_LINE_REGEX.matcher(currentLine).matches()) {
+					if (modeFound && mode==OutputTypes.STANDARD) {
+						throw new RuntimeException("Mixed modes: " + currentLine);
+					}
+					arl.add(currentLine.substring(1, currentLine.length()-1));
+					mode = OutputTypes.LEGACY;
+					modeFound = true;
 				} else {
 					System.out.println("Skipped line: " + currentLine);
 				}
@@ -162,11 +227,16 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 			fin.close();
 		}
 		catch(FileNotFoundException ef) {
-			System.out.println("File not found");
+			throw new RuntimeException("File not found");
 		}
 		catch(IOException io) {
-			System.out.println("IO Exception");
+			throw new RuntimeException("IO Exception");
 		}
+		
+		if (!modeFound) {
+			throw new RuntimeException("Couldn't match any reasonable lines.");
+		}
+		System.out.println("Current mode is: " + (mode==OutputTypes.STANDARD ? "Standard" : "Legacy"));
 		
 		// Image name
 		String imageNames[] = new String[] {
@@ -185,36 +255,140 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		
 	}
 	
-	// Re-adjust vehicles' position to accommodate x-axis scaling
-	public double[] scaleCoord(int x, int y) {
-		
-		double[] dblArray = new double[2];
-		double newX, newY;
-
-		newX = (500 + (x-500)*3.2) +90;
-		newY = (300 + (y-300)*2.6) +50;
-		
-		dblArray[0] = newX;
-		dblArray[1] = newY;
-
-		return dblArray;
+	
+	//Set the agent's "scaled" coordinates
+	private void scaleCoordinates(AgentTick ag, boolean isLegacy)
+	{
+		if (isLegacy) {
+			ag.agentScaledX = (int)ag.agentX;
+			ag.agentScaledY = (int)ag.agentY;
+		} else {
+			ag.agentScaledX = (int)(500 + (ag.agentX-500)*3.2) +90;
+			ag.agentScaledY = (int)(300 + (ag.agentY-300)*2.6) +50;
+		}
 	}
 	
+	
 	// Draw all the components on the panel
-	public void paintComponent(Graphics g) {
+	public void paintComponent(Graphics gContext) {
+		//Turn on anti-aliasing.
+		Graphics2D g = (Graphics2D)gContext;
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		
+		//Paint the parent component
 		super.paintComponent(g); 
 		
+		//Paint self
+		if (mode==OutputTypes.STANDARD) {
+			paintComponentStandard(g);
+		} else {
+			paintComponentLegacy(g);
+		}
+	}
+	
+	
+	private void paintComponentLegacy(Graphics2D g) {
+		// Draw road
+		int roadSideWidth = 2;
+		g.setColor(Color.BLACK);
+		g.drawRect(0, scaledCrossingY1 - roadSideWidth, 1200, roadSideWidth);
+		g.fillRect(0, scaledCrossingY1 - roadSideWidth, 1200, roadSideWidth);
+		g.drawRect(0, scaledCrossingY2, 1200, roadSideWidth);
+		g.fillRect(0, scaledCrossingY2, 1200, roadSideWidth);
+		
+		// bad area
+		int badAreaStart = 200;
+		int badAreaEnd = 350;
+		int badAreaLane = 0;
+		g.drawRect(badAreaStart, scaledCrossingY1
+				+ ((scaledCrossingY2 - scaledCrossingY1) * badAreaLane / 3),
+				badAreaEnd - badAreaStart,
+				(scaledCrossingY2 - scaledCrossingY1) / 3 + roadSideWidth);
+		g.fillRect(badAreaStart, scaledCrossingY1
+				+ ((scaledCrossingY2 - scaledCrossingY1) * badAreaLane / 3),
+				badAreaEnd - badAreaStart,
+				(scaledCrossingY2 - scaledCrossingY1) / 3 + roadSideWidth);
+		badAreaStart = 200;
+		badAreaEnd = 350;
+		badAreaLane = 2;
+		g.drawRect(badAreaStart, scaledCrossingY1
+				+ ((scaledCrossingY2 - scaledCrossingY1) * badAreaLane / 3),
+				badAreaEnd - badAreaStart,
+				(scaledCrossingY2 - scaledCrossingY1) / 3 + roadSideWidth);
+		g.fillRect(badAreaStart, scaledCrossingY1
+				+ ((scaledCrossingY2 - scaledCrossingY1) * badAreaLane / 3),
+				badAreaEnd - badAreaStart,
+				(scaledCrossingY2 - scaledCrossingY1) / 3 + roadSideWidth);
+		badAreaStart = 750;
+		badAreaEnd = 800;
+		badAreaLane = 1;
+		g.drawRect(badAreaStart, scaledCrossingY1
+				+ ((scaledCrossingY2 - scaledCrossingY1) * badAreaLane / 3),
+				badAreaEnd - badAreaStart,
+				(scaledCrossingY2 - scaledCrossingY1) / 3 + roadSideWidth);
+		g.fillRect(badAreaStart, scaledCrossingY1
+				+ ((scaledCrossingY2 - scaledCrossingY1) * badAreaLane / 3),
+				badAreaEnd - badAreaStart,
+				(scaledCrossingY2 - scaledCrossingY1) / 3 + roadSideWidth);
+
+		for (int i = 0; i < 10; i++) {
+			g.drawRect(i * 100, 200, 2, 2);
+			g.fillRect(i * 100, 200, 2, 2);
+		}
+
+		// Draw road divider
+		int dividerWidth = 40;
+		for (int i = 0; i < 20; i++) {
+			g.drawRect(dividerWidth * 2 * i, scaledCrossingY1
+					+ ((scaledCrossingY2 - scaledCrossingY1) * 2 / 3),
+					dividerWidth, roadSideWidth / 2);
+			g.setColor(Color.BLACK);
+			g.fillRect(dividerWidth * 2 * i, scaledCrossingY1
+					+ ((scaledCrossingY2 - scaledCrossingY1) * 2 / 3),
+					dividerWidth, roadSideWidth / 2);
+		}
+		for (int i = 0; i < 20; i++) {
+			g.drawRect(dividerWidth * 2 * i, scaledCrossingY1
+					+ ((scaledCrossingY2 - scaledCrossingY1) / 3),
+					dividerWidth, roadSideWidth / 2);
+			g.setColor(Color.BLACK);
+			g.fillRect(dividerWidth * 2 * i, scaledCrossingY1
+					+ ((scaledCrossingY2 - scaledCrossingY1) / 3),
+					dividerWidth, roadSideWidth / 2);
+		}
+
+		//Set positions
+		//setAgentPosition();
+
+		//Draw cars
+		int carlength = 10;
+		int carwidth  = 6;
+		for (AgentTick ag : ticks.get(currFrameNum.get()).agentTicks.values()) {
+			// g.drawString(Integer.toString(i),
+			// ag.agentScaledX+pedestrianOvalSize,
+			// ag.agentScaledY+pedestrianOvalSize);
+			g.setColor(Color.PINK);
+			g.fillRect(ag.agentScaledX - (carlength / 2), ag.agentScaledY - (carwidth / 2), carlength, carwidth);
+			
+			g.setColor(Color.BLACK);
+			g.drawRect(ag.agentScaledX - (carlength / 2), ag.agentScaledY - (carwidth / 2), carlength, carwidth);
+		}
+	}
+	
+	
+	private void paintComponentStandard(Graphics2D g) {	
+		//Request a sample agent.
+		//NOTE: Why does each agent have a copy of the cycle length, DS, and Phase Counter variables?
+		Iterator<AgentTick> it = ticks.get(currFrameNum.get()).agentTicks.values().iterator();
+		AgentTick ag = it.hasNext() ? it.next() : null;
+		
 		// Labels on the panel
-		cycleNumLabel.setText("Cycle Length: " + cycleLength);
-		DSLabel.setText("  DS: " + DS + "%");	
-		PhaseCounterLabel.setText("  Phase Counter: " + PhaseCounter);
+		cycleNumLabel.setText("Cycle Length: " + (ag!=null?ag.cycleLen:0));
+		DSLabel.setText("  DS: " + (ag!=null?ag.ds:0) + "%");	
+		PhaseCounterLabel.setText("  Phase Counter: " + (ag!=null?ag.phaseCount:0));
 		
 		// Draw Road
 		drawRoad(g);
-
-		// Determine vehicle position
-		setAgentPosition();
 		
 		// Display vehicles
 		displayAgents(g);
@@ -226,7 +400,7 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 	
 	
 	// Draw road segment
-	public void drawRoad(Graphics g){
+	public void drawRoad(Graphics2D g){
 		//Draw road
 		
 		int roadSideWidth = 5;
@@ -280,57 +454,217 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 			g.drawRect(590, dividerWidth*2*i + scaledCrossingY2, roadSideWidth, dividerWidth);
 			g.fillRect(590, dividerWidth*2*i + scaledCrossingY2, roadSideWidth, dividerWidth);
 		}
-		
-		
-		
-		
 	}
 	
-	public void displaySingalPhase(Graphics g){
+	
+	private void initLights() {
+		lights = new ArrayList<TrafficLight[]>();
 		
 		// Draw traffic light
 		int size = 15;  //light size
 		
-        // light zero
-		int light_01_X = 460;
-		int light_01_Y = 250;
-     
-		int light_02_X = light_01_X;
-		int light_02_Y = light_01_Y + size;
+		//Light set zero
+		TrafficLight[] thisSet = new TrafficLight[3];
+		lights.add(thisSet);
+		
+		thisSet[0] = new TrafficLight(460, 250, size);
+		thisSet[1] = new TrafficLight(thisSet[0].getX(), thisSet[0].getY()+size, size);
+		thisSet[2] = new TrafficLight(thisSet[1].getX(), thisSet[1].getY()+size, size);
+		
+		//Light set one
+		thisSet = new TrafficLight[3];
+		lights.add(thisSet);
+		
+		thisSet[0] = new TrafficLight(680, 245, size);
+		thisSet[1] = new TrafficLight(thisSet[0].getX()+size, thisSet[0].getY(), size);
+		thisSet[2] = new TrafficLight(thisSet[1].getX()+size, thisSet[1].getY(), size);
+		
+		//Light set two
+		thisSet = new TrafficLight[3];
+		lights.add(thisSet);
+		
+		thisSet[0] = new TrafficLight(720, 415, size);
+		thisSet[1] = new TrafficLight(thisSet[0].getX(), thisSet[0].getY()+size, size);
+		thisSet[2] = new TrafficLight(thisSet[1].getX(), thisSet[1].getY()+size, size);
+		
+		//Light set three
+		thisSet = new TrafficLight[3];
+		lights.add(thisSet);
+		
+		thisSet[0] = new TrafficLight(470, 455, size);
+		thisSet[1] = new TrafficLight(thisSet[0].getX()+size, thisSet[0].getY(), size);
+		thisSet[2] = new TrafficLight(thisSet[1].getX()+size, thisSet[1].getY(), size);
+	}
+	
+	
+	private void setLightColors(int signalPhase) {
+		switch (signalPhase){
+		case 0:
+			lights.get(0)[1-1].lightColor = Color.GREEN;
+			lights.get(0)[2-1].lightColor = Color.GREEN;
+			lights.get(2)[2-1].lightColor = Color.GREEN;
+			lights.get(2)[3-1].lightColor = Color.GREEN;
+			
+			lights.get(0)[3-1].lightColor = Color.RED;
+			lights.get(2)[1-1].lightColor = Color.RED;
 
-		int light_03_X = light_01_X;
-		int light_03_Y = light_02_Y + size;
-     
-		// light one
-		int light_11_X = 680;
-		int light_11_Y = 245;
-     
-		int light_12_X = light_11_X + size;
-		int light_12_Y = light_11_Y;
+			lights.get(1)[1-1].lightColor = Color.RED;
+			lights.get(1)[2-1].lightColor = Color.RED;
+			lights.get(1)[3-1].lightColor = Color.RED;
+			lights.get(3)[1-1].lightColor = Color.RED;
+			lights.get(3)[2-1].lightColor = Color.RED;
+			lights.get(3)[3-1].lightColor = Color.RED;
+		
+			break;
+		case 1:
+			lights.get(0)[1-1].lightColor = Color.RED;
+			lights.get(0)[2-1].lightColor = Color.RED;
+			lights.get(2)[2-1].lightColor = Color.RED;
+			lights.get(2)[3-1].lightColor = Color.RED;
+			
+			lights.get(0)[3-1].lightColor = Color.GREEN;
+			lights.get(2)[1-1].lightColor = Color.GREEN;
+			
+			lights.get(1)[1-1].lightColor = Color.RED;
+			lights.get(1)[2-1].lightColor = Color.RED;
+			lights.get(1)[3-1].lightColor = Color.RED;
+			lights.get(3)[1-1].lightColor = Color.RED;
+			lights.get(3)[2-1].lightColor = Color.RED;
+			lights.get(3)[3-1].lightColor = Color.RED;
+			
+			break;
+		case 2:
+			lights.get(1)[2-1].lightColor = Color.GREEN;
+			lights.get(1)[3-1].lightColor = Color.GREEN;
+			lights.get(3)[1-1].lightColor = Color.GREEN;
+			lights.get(3)[2-1].lightColor = Color.GREEN;
+			
+			lights.get(1)[1-1].lightColor = Color.RED;
+			lights.get(3)[3-1].lightColor = Color.RED;
+			
+			lights.get(0)[1-1].lightColor = Color.RED;
+			lights.get(0)[2-1].lightColor = Color.RED;
+			lights.get(0)[3-1].lightColor = Color.RED;
+			lights.get(2)[1-1].lightColor = Color.RED;
+			lights.get(2)[2-1].lightColor = Color.RED;
+			lights.get(2)[3-1].lightColor = Color.RED;
 
-		int light_13_X = light_12_X + size;	
-		int light_13_Y = light_11_Y;
+			break;
+		case 3:
+			lights.get(1)[2-1].lightColor = Color.RED;
+			lights.get(1)[3-1].lightColor = Color.RED;
+			lights.get(3)[1-1].lightColor = Color.RED;
+			lights.get(3)[2-1].lightColor = Color.RED;
+			
+			lights.get(1)[1-1].lightColor = Color.GREEN;
+			lights.get(3)[3-1].lightColor = Color.GREEN;
+			
+			lights.get(0)[1-1].lightColor = Color.RED;
+			lights.get(0)[2-1].lightColor = Color.RED;
+			lights.get(0)[3-1].lightColor = Color.RED;
+			lights.get(2)[1-1].lightColor = Color.RED;
+			lights.get(2)[2-1].lightColor = Color.RED;
+			lights.get(2)[3-1].lightColor = Color.RED;
 
-		// light two 
-		int light_21_X = 720;	
-		int light_21_Y = 415;
-     
-		int light_22_X = light_21_X;
-		int light_22_Y = light_21_Y + size;
+			break;
+		case 10:
+			lights.get(0)[1-1].lightColor = Color.YELLOW;
+			lights.get(0)[2-1].lightColor = Color.YELLOW;
+			lights.get(2)[2-1].lightColor = Color.YELLOW;
+			lights.get(2)[3-1].lightColor = Color.YELLOW;
+			
+			lights.get(0)[3-1].lightColor = Color.RED;
+			lights.get(2)[1-1].lightColor = Color.RED;
+					
+			lights.get(1)[1-1].lightColor = Color.RED;
+			lights.get(1)[2-1].lightColor = Color.RED;
+			lights.get(1)[3-1].lightColor = Color.RED;
+			lights.get(3)[1-1].lightColor = Color.RED;
+			lights.get(3)[2-1].lightColor = Color.RED;
+			lights.get(3)[3-1].lightColor = Color.RED;
+			
+			break;
+		case 11:
+			lights.get(0)[1-1].lightColor = Color.RED;
+			lights.get(0)[2-1].lightColor = Color.RED;
+			lights.get(2)[2-1].lightColor = Color.RED;
+			lights.get(2)[3-1].lightColor = Color.RED;
+			
+			lights.get(0)[3-1].lightColor = Color.YELLOW;
+			lights.get(2)[1-1].lightColor = Color.YELLOW;
+			
+			lights.get(1)[1-1].lightColor = Color.RED;
+			lights.get(1)[2-1].lightColor = Color.RED;
+			lights.get(1)[3-1].lightColor = Color.RED;
+			
+			lights.get(3)[1-1].lightColor = Color.RED;
+			lights.get(3)[2-1].lightColor = Color.RED;
+			lights.get(3)[3-1].lightColor = Color.RED;
+			
+			break;
+		case 12:
+			lights.get(1)[2-1].lightColor = Color.RED;
+			lights.get(1)[3-1].lightColor = Color.RED;
+			lights.get(3)[1-1].lightColor = Color.RED;
+			lights.get(3)[2-1].lightColor = Color.RED;
+			
+			lights.get(1)[1-1].lightColor = Color.YELLOW;
+			lights.get(3)[3-1].lightColor = Color.YELLOW;
+			
+			lights.get(0)[1-1].lightColor = Color.RED;
+			lights.get(0)[2-1].lightColor = Color.RED;
+			lights.get(0)[3-1].lightColor = Color.RED;
+			lights.get(2)[1-1].lightColor = Color.RED;
+			lights.get(2)[2-1].lightColor = Color.RED;
+			lights.get(2)[3-1].lightColor = Color.RED;
 
-		int light_23_X = light_21_X;
-		int light_23_Y = light_22_Y + size;
-
-		// light three
-		int light_31_X = 470;
-		int light_31_Y = 455;
-     
-		int light_32_X = light_31_X + size;
-		int light_32_Y = light_31_Y;
-
-		int light_33_X = light_32_X + size;
-		int light_33_Y = light_31_Y;
-
+			break;	
+		case 13:		
+			lights.get(1)[2-1].lightColor = Color.RED;
+			lights.get(1)[3-1].lightColor = Color.RED;
+			lights.get(3)[1-1].lightColor = Color.RED;
+			lights.get(3)[2-1].lightColor = Color.RED;
+			
+			lights.get(1)[1-1].lightColor = Color.YELLOW;
+			lights.get(3)[3-1].lightColor = Color.YELLOW;
+			
+			lights.get(0)[1-1].lightColor = Color.RED;
+			lights.get(0)[2-1].lightColor = Color.RED;
+			lights.get(0)[3-1].lightColor = Color.RED;
+			lights.get(2)[1-1].lightColor = Color.RED;
+			lights.get(2)[2-1].lightColor = Color.RED;
+			lights.get(2)[3-1].lightColor = Color.RED;
+			
+			break;
+		default:
+			System.out.println("None of signals are correct");
+		}
+	}
+	
+	
+	public void displaySingalPhase(Graphics2D g) {	
+		//Retrive a sample agent.
+		//NOTE: Why does each agent maintain a copy of the signal phase?
+		Iterator<AgentTick> it = ticks.get(currFrameNum.get()).agentTicks.values().iterator();
+		AgentTick ag = it.hasNext() ? it.next() : null;
+		int signalPhase = ag!=null ? ag.phaseSignal : 0;
+		
+		//Convert this signal phase into R/Y/B values for each light set
+		setLightColors(signalPhase);
+		
+		//Now that their colors are properly set, draw all lights
+		for (TrafficLight[] lightArr : lights) {
+			for (TrafficLight light : lightArr) {
+				g.setColor(light.lightColor);
+				g.fill(light);
+				g.setColor(Color.BLACK);
+				g.draw(light);
+			}
+		}
+		
+		
+		
+		/*g.setColor(Color.BLACK);
 		
 		g.drawOval(light_01_X,light_01_Y,size, size);
 		g.drawOval(light_02_X,light_02_Y,size, size);
@@ -347,313 +681,118 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		
 		g.drawOval(light_31_X,light_31_Y,size, size);
 		g.drawOval(light_32_X,light_32_Y,size, size);
-		g.drawOval(light_33_X,light_33_Y,size, size);		
-		
-		switch (signalPhase){
-		case 0:
-			g.setColor(Color.GREEN);
-			
-			g.fillOval(light_01_X,light_01_Y,size, size);
-			g.fillOval(light_02_X,light_02_Y,size, size);
-			g.fillOval(light_22_X,light_22_Y,size, size);
-			g.fillOval(light_23_X,light_23_Y,size, size);
-
-			g.setColor(Color.RED);
-			g.fillOval(light_03_X,light_03_Y,size, size);
-			g.fillOval(light_21_X,light_21_Y,size, size);
-			
-			g.setColor(Color.RED);
-			g.fillOval(light_11_X,light_11_Y,size, size);
-			g.fillOval(light_12_X,light_12_Y,size, size);
-			g.fillOval(light_13_X,light_13_Y,size, size);
-
-			g.fillOval(light_31_X,light_31_Y,size, size);
-			g.fillOval(light_32_X,light_32_Y,size, size);
-			g.fillOval(light_33_X,light_33_Y,size, size);		
-			
-			break;
-		
-		case 1:
-			g.setColor(Color.RED);
-			
-			g.fillOval(light_01_X,light_01_Y,size, size);
-			g.fillOval(light_02_X,light_02_Y,size, size);
-			g.fillOval(light_22_X,light_22_Y,size, size);
-			g.fillOval(light_23_X,light_23_Y,size, size);
-
-			g.setColor(Color.GREEN);
-			g.fillOval(light_03_X,light_03_Y,size, size);
-			g.fillOval(light_21_X,light_21_Y,size, size);
-
-			g.setColor(Color.RED);
-			g.fillOval(light_11_X,light_11_Y,size, size);
-			g.fillOval(light_12_X,light_12_Y,size, size);
-			g.fillOval(light_13_X,light_13_Y,size, size);
-
-			g.fillOval(light_31_X,light_31_Y,size, size);
-			g.fillOval(light_32_X,light_32_Y,size, size);
-			g.fillOval(light_33_X,light_33_Y,size, size);		
-			
-			
-			break;
-
-		case 2:
-
-			g.setColor(Color.GREEN);
-			
-			g.fillOval(light_12_X,light_12_Y,size, size);
-			g.fillOval(light_13_X,light_13_Y,size, size);
-			g.fillOval(light_31_X,light_31_Y,size, size);
-			g.fillOval(light_32_X,light_32_Y,size, size);
-
-			g.setColor(Color.RED);
-			g.fillOval(light_11_X,light_11_Y,size, size);
-			g.fillOval(light_33_X,light_33_Y,size, size);
-						
-			g.setColor(Color.RED);
-			g.fillOval(light_01_X,light_01_Y,size, size);
-			g.fillOval(light_02_X,light_02_Y,size, size);
-			g.fillOval(light_03_X,light_03_Y,size, size);
-
-			g.fillOval(light_21_X,light_21_Y,size, size);
-			g.fillOval(light_22_X,light_22_Y,size, size);
-			g.fillOval(light_23_X,light_23_Y,size, size);		
-			
-			
-			break;
-		
-		case 3:
-			g.setColor(Color.RED);
-			
-			g.fillOval(light_12_X,light_12_Y,size, size);
-			g.fillOval(light_13_X,light_13_Y,size, size);
-			g.fillOval(light_31_X,light_31_Y,size, size);
-			g.fillOval(light_32_X,light_32_Y,size, size);
-
-			g.setColor(Color.GREEN);
-			g.fillOval(light_11_X,light_11_Y,size, size);
-			g.fillOval(light_33_X,light_33_Y,size, size);
-
-			g.setColor(Color.RED);
-			g.fillOval(light_01_X,light_01_Y,size, size);
-			g.fillOval(light_02_X,light_02_Y,size, size);
-			g.fillOval(light_03_X,light_03_Y,size, size);
-
-			g.fillOval(light_21_X,light_21_Y,size, size);
-			g.fillOval(light_22_X,light_22_Y,size, size);
-			g.fillOval(light_23_X,light_23_Y,size, size);		
-			
-			break;
-			
-		case 10:
-			
-			g.setColor(Color.YELLOW);
-			
-			g.fillOval(light_01_X,light_01_Y,size, size);
-			g.fillOval(light_02_X,light_02_Y,size, size);
-			g.fillOval(light_22_X,light_22_Y,size, size);
-			g.fillOval(light_23_X,light_23_Y,size, size);
-
-			g.setColor(Color.RED);
-			g.fillOval(light_03_X,light_03_Y,size, size);
-			g.fillOval(light_21_X,light_21_Y,size, size);
-			
-			g.setColor(Color.RED);
-			g.fillOval(light_11_X,light_11_Y,size, size);
-			g.fillOval(light_12_X,light_12_Y,size, size);
-			g.fillOval(light_13_X,light_13_Y,size, size);
-
-			g.fillOval(light_31_X,light_31_Y,size, size);
-			g.fillOval(light_32_X,light_32_Y,size, size);
-			g.fillOval(light_33_X,light_33_Y,size, size);	
-			
-			break;
-		case 11:
-			g.setColor(Color.RED);
-			
-			g.fillOval(light_01_X,light_01_Y,size, size);
-			g.fillOval(light_02_X,light_02_Y,size, size);
-			g.fillOval(light_22_X,light_22_Y,size, size);
-			g.fillOval(light_23_X,light_23_Y,size, size);
-
-			g.setColor(Color.YELLOW);
-			g.fillOval(light_03_X,light_03_Y,size, size);
-			g.fillOval(light_21_X,light_21_Y,size, size);
-
-			g.setColor(Color.RED);
-			g.fillOval(light_11_X,light_11_Y,size, size);
-			g.fillOval(light_12_X,light_12_Y,size, size);
-			g.fillOval(light_13_X,light_13_Y,size, size);
-
-			g.fillOval(light_31_X,light_31_Y,size, size);
-			g.fillOval(light_32_X,light_32_Y,size, size);
-			g.fillOval(light_33_X,light_33_Y,size, size);		
-			
-			
-			break;
-			
-		case 12:
-			g.setColor(Color.RED);
-			
-			g.fillOval(light_12_X,light_12_Y,size, size);
-			g.fillOval(light_13_X,light_13_Y,size, size);
-			g.fillOval(light_31_X,light_31_Y,size, size);
-			g.fillOval(light_32_X,light_32_Y,size, size);
-
-			g.setColor(Color.YELLOW);
-			g.fillOval(light_11_X,light_11_Y,size, size);
-			g.fillOval(light_33_X,light_33_Y,size, size);
-
-			g.setColor(Color.RED);
-			g.fillOval(light_01_X,light_01_Y,size, size);
-			g.fillOval(light_02_X,light_02_Y,size, size);
-			g.fillOval(light_03_X,light_03_Y,size, size);
-
-			g.fillOval(light_21_X,light_21_Y,size, size);
-			g.fillOval(light_22_X,light_22_Y,size, size);
-			g.fillOval(light_23_X,light_23_Y,size, size);		
-			
-			break;
-			
-		case 13:
-			
-			g.setColor(Color.RED);
-			
-			g.fillOval(light_12_X,light_12_Y,size, size);
-			g.fillOval(light_13_X,light_13_Y,size, size);
-			g.fillOval(light_31_X,light_31_Y,size, size);
-			g.fillOval(light_32_X,light_32_Y,size, size);
-
-			g.setColor(Color.YELLOW);
-			g.fillOval(light_11_X,light_11_Y,size, size);
-			g.fillOval(light_33_X,light_33_Y,size, size);
-
-			g.setColor(Color.RED);
-			g.fillOval(light_01_X,light_01_Y,size, size);
-			g.fillOval(light_02_X,light_02_Y,size, size);
-			g.fillOval(light_03_X,light_03_Y,size, size);
-
-			g.fillOval(light_21_X,light_21_Y,size, size);
-			g.fillOval(light_22_X,light_22_Y,size, size);
-			g.fillOval(light_23_X,light_23_Y,size, size);		
-			
-			break;
-			
-		default:
-			
-			System.out.println("None of signals are correct");
-		}
+		g.drawOval(light_33_X,light_33_Y,size, size);*/
 		
 		
 	} 
 	
-	public void displayAgents(Graphics g){
+	public void displayAgents(Graphics2D g){
 		
-		for(int i=0; i<numAgents; i++) {
+		for(AgentTick ag : ticks.get(currFrameNum.get()).agentTicks.values()) {
 			
-			if(carDirection[i] > 0 && carDirection[i] <=30)
+			if(ag.carDir > 0 && ag.carDir <=30)
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(0), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(0), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 
 			}
-			else if (carDirection[i] > 30 && carDirection[i] <= 60 )
+			else if (ag.carDir > 30 && ag.carDir <= 60 )
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(1), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(1), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 
 			}
-			else if (carDirection[i] > 60 && carDirection[i] < 90 )
+			else if (ag.carDir > 60 && ag.carDir < 90 )
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(2), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(2), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 
 			}
-		    else if(carDirection[i] == 90 )
+		    else if(ag.carDir == 90 )
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(3), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(3), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 			}
 			
 			
-		    else if(carDirection[i] > 90 && carDirection[i] <=120)
+		    else if(ag.carDir > 90 && ag.carDir <=120)
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(4), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(4), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 
 			}
-			else if (carDirection[i] > 120 && carDirection[i] <= 150 )
+			else if (ag.carDir > 120 && ag.carDir <= 150 )
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(5), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(5), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 
 			}
-			else if (carDirection[i] > 150 && carDirection[i] < 180 )
+			else if (ag.carDir > 150 && ag.carDir < 180 )
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(6), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(6), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 
 			}			
-			else if (carDirection[i] == 180)
+			else if (ag.carDir == 180)
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(7), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(7), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 
 			}
 			
 			
 			
-			else if(carDirection[i] > 180 && carDirection[i] <=210)
+			else if(ag.carDir > 180 && ag.carDir <=210)
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(8), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(8), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 
 			}
-			else if (carDirection[i] > 210 && carDirection[i] <= 240 )
+			else if (ag.carDir > 210 && ag.carDir <= 240 )
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(9), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(9), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 
 			}
-			else if (carDirection[i] > 240 && carDirection[i] < 270 )
+			else if (ag.carDir > 240 && ag.carDir < 270 )
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(10), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(10), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 
 			}
-			else if (carDirection[i] == 270)
+			else if (ag.carDir == 270)
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(11), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
-
-			}
-			
-			
-			
-			
-			else if(carDirection[i] > 270 && carDirection[i] <=300)
-			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(12), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
-
-			}
-			else if (carDirection[i] > 300 && carDirection[i] <= 330 )
-			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(13), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
-
-			}
-			else if (carDirection[i] > 330 && carDirection[i] < 360 )
-			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(14), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(11), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 
 			}
 			
-			else if (carDirection[i] == 360)
+			
+			
+			
+			else if(ag.carDir > 270 && ag.carDir <=300)
 			{
-//				System.out.println(carDirection[i]);
-				g.drawImage( imageList.get(15), agentXCoord[i]-(vehicleOvalSize/2), agentYCoord[i]-(vehicleOvalSize/2), null);
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(12), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
+
+			}
+			else if (ag.carDir > 300 && ag.carDir <= 330 )
+			{
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(13), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
+
+			}
+			else if (ag.carDir > 330 && ag.carDir < 360 )
+			{
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(14), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
+
+			}
+			
+			else if (ag.carDir == 360)
+			{
+//				System.out.println(ag.carDir);
+				g.drawImage( imageList.get(15), ag.agentScaledX-(vehicleOvalSize/2), ag.agentScaledY-(vehicleOvalSize/2), null);
 
 			}
 			else{}
@@ -674,10 +813,15 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 			agent.agentX = Double.parseDouble(items[2]);
 			agent.agentY = Double.parseDouble(items[3]);
 			agent.phaseSignal = Integer.parseInt(items[4]);
-			agent.ds = Double.parseDouble(items[5]);
-			agent.cycleLen = Double.parseDouble(items[6]);
-			agent.phaseCount = Integer.parseInt(items[7]);
-			agent.carDir = Double.parseDouble(items[8]);
+			if (mode==OutputTypes.STANDARD) {
+				agent.ds = Double.parseDouble(items[5]);
+				agent.cycleLen = Double.parseDouble(items[6]);
+				agent.phaseCount = Integer.parseInt(items[7]);
+				agent.carDir = Double.parseDouble(items[8]);
+			}
+			
+			//Scale the agent's x/y positions
+			scaleCoordinates(agent, mode==OutputTypes.LEGACY);
 			
 			//Ensure we have a spot to put the agent.
 			while (ticks.size()<=frameNum) {
@@ -693,41 +837,11 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		}
 	}
 	
-	
-	public void setAgentPosition(){
-		//Stop
-		//if(curFrameNum >= ticks.size()) {
-		//	timer.stop();
-		//	return;
-		//}
-		
-		//Iterate through all agents in this tick
-		TimeTick tick = ticks.get(curFrameNum);
-		for (AgentTick agent : tick.agentTicks.values()) {		
-			//Scale the agent position
-			double[] intArray = new double[2];
-			intArray = scaleCoord((int)agent.agentX, (int)agent.agentY);
-									
-			agentXCoord[agent.agentID] = (int)intArray[0];
-			agentYCoord[agent.agentID] = (int)intArray[1];
-				
-			signalPhase = agent.phaseSignal;
-			cycleLength  = agent.cycleLen;
-			DS = Math.floor(agent.ds*1000)/10;
-			PhaseCounter = agent.phaseCount;
-				
-			carDirection[agent.agentID] = agent.carDir;
-				
-			frameNumLabel.setText("Frame #: " + curFrameNum);	
-	
-		}
-	}
-	
 	public void stateChanged(ChangeEvent e) {
 		if (e.getSource().equals(frameSlider)) {
 			//Paint
-			curFrameNum = frameSlider.getValue();
-			setAgentPosition();
+			currFrameNum.set(frameSlider.getValue());
+			//setAgentPosition();
 			repaint();
 		}
 	}
@@ -741,38 +855,38 @@ public class TrafficPanel extends JPanel implements ActionListener, ChangeListen
 		}
 		else if(e.getSource().equals(timer)) {
 			//Done?
-			if (curFrameNum==ticks.size()-1) {
+			if (currFrameNum.get()==ticks.size()-1) {
 				timer.stop();
 				return;
 			}
 			
 			//Increment, paint
-			curFrameNum++;
-			frameSlider.setValue(curFrameNum); //This should really be done with a listener.
-			setAgentPosition();
+			currFrameNum.add(1);
+			frameSlider.setValue(currFrameNum.get()); //This should really be done with a listener.
+			//setAgentPosition();
 			repaint();
 		}
 		else if(e.getSource().equals(stepForwardButton)) {
-			if (curFrameNum<ticks.size()-1) {
-				curFrameNum++;
-				frameSlider.setValue(curFrameNum); //This should really be done with a listener.
-				setAgentPosition();
+			if (currFrameNum.get()<ticks.size()-1) {
+				currFrameNum.add(1);
+				frameSlider.setValue(currFrameNum.get()); //This should really be done with a listener.
+				//setAgentPosition();
 				repaint();
 			}
 		}
 		else if(e.getSource().equals(stepBackButton)) {
-			if (curFrameNum>1) {
-				curFrameNum--;
-				frameSlider.setValue(curFrameNum); //This should really be done with a listener.
-				setAgentPosition();
+			if (currFrameNum.get()>1) {
+				currFrameNum.add(-1);
+				frameSlider.setValue(currFrameNum.get()); //This should really be done with a listener.
+				//setAgentPosition();
 				repaint();
 			}
 		}
 		else if(e.getSource().equals(resetButton)) {
 			timer.stop();
-			curFrameNum = 1;  //NOTE: The first tick is actually tick 0. ~Seth
-			frameSlider.setValue(curFrameNum); //This should really be done with a listener.
-			setAgentPosition();
+			currFrameNum.set(1);  //NOTE: The first tick is actually tick 0. ~Seth
+			frameSlider.setValue(currFrameNum.get()); //This should really be done with a listener.
+			//setAgentPosition();
 			repaint();
 		}
 		else {  // Reset button

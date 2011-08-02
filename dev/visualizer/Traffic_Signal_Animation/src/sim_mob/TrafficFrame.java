@@ -8,7 +8,7 @@ public class TrafficFrame extends JFrame{
 	private static final long serialVersionUID = 1L;
 
 	public static void main(String[] args) {
-		String inputFile = args.length>0 ? args[0] : "log4.out";
+		String inputFile = args.length>0 ? args[0] : "input.txt";
 		
 		TrafficFrame frame = new TrafficFrame(inputFile);
 		

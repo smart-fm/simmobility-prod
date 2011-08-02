@@ -317,7 +317,7 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vecto
 
 
     if (!loadXMLDrivers(xpContext, agents)) {
-   	return	 "Couldn't load agents";
+    	return	 "Couldn't load agents";
     }
 
 

@@ -38,13 +38,10 @@ public:
 	//  (e.g., Node ID reference that doesn't exist).
 	static bool LoadNetwork(sim_mob::RoadNetwork& rn);
 
-private:
+	//Semi-private functions
+	static void ProcessNode(sim_mob::RoadNetwork& res, Node& src);
+	static void ProcessSection(sim_mob::RoadNetwork& res, Section& src);
 
-	///Private function for saving data. Required to take advantage of Loader's "friend" status with the
-	///   RoadNetwork class.
-	static void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<int, sim_mob::aimsun::Node>& nodes,
-			std::map<int, sim_mob::aimsun::Section>& sections, std::map<int, sim_mob::aimsun::Turning>& turnings,
-			std::multimap<int, sim_mob::aimsun::Polyline>& polylines);
 };
 
 

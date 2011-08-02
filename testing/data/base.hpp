@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 #ifndef _base_hpp_
 #define _base_hpp_
 

@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 #ifndef _big_brother_hpp_
 #define _big_brother_hpp_
 

@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 import java.awt.geom.*;
 
 PFont f;

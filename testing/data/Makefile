@@ -1,3 +1,5 @@
+# Copyright Singapore-MIT Alliance for Research and Technology
+
 CXX = g++
 CXXFLAGS = -DDEBUG=1 -I. -W -Wall
 

@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 #ifndef _trace_hpp_
 #define _trace_hpp_
 

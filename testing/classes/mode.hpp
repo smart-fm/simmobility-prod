@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 #pragma once
 
 #include <boost/utility.hpp>

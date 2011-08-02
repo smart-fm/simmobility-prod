@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 #include "person.hpp"
 #include "pedestrian.hpp"
 #include "driver.hpp"

@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 #include <position.hpp>
 #include <integer.hpp>
 #include <trace.hpp>

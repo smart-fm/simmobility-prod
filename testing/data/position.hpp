@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 #ifndef _position_hpp_
 #define _position_hpp_
 

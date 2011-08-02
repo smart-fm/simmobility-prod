@@ -10,6 +10,7 @@ namespace sim_mob
 
 //Forward declarations
 class Node;
+class Link;
 
 
 namespace aimsun
@@ -47,6 +48,9 @@ public:
 private:
 	//Temp: All nodes in a network.
 	std::vector<sim_mob::Node*> nodes;
+
+	//Temp: All Links in a network
+	std::vector<sim_mob::Link*> links;
 
 
 friend class sim_mob::aimsun::Loader;

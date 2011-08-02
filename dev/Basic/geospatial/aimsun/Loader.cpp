@@ -203,6 +203,8 @@ void sim_mob::aimsun::Loader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, 
 		//Process this section, and continue processing Sections along the direction of
 		// travel until one of these ends on an intersection.
 		Section* currSection = &(it->second);
+		sim_mob::Link* ln = new sim_mob::Link();
+		ln->roadName = currSection->roadName;
 		Node* linkEnd;
 		do {
 			//Update
@@ -212,12 +214,18 @@ void sim_mob::aimsun::Loader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, 
 			}
 			currSection->hasBeenSaved = true;
 
+			//Check name
+			if (ln->roadName != currSection->roadName) {
+				throw std::runtime_error("Road names don't match up on RoadSegments in the same Link.");
+			}
+
 			//Process
 			sim_mob::RoadSegment* rs = new sim_mob::RoadSegment();
 			rs->maxSpeed = currSection->speed;
 			rs->length = currSection->length;
 			currSection->fromNode->generatedNode->itemsAt.push_back(rs);
 			currSection->toNode->generatedNode->itemsAt.push_back(rs);
+			ln->segments.push_back(rs);
 
 
 			//Increment.
@@ -233,6 +241,10 @@ void sim_mob::aimsun::Loader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, 
 			}
 			currSection = nextSection;
 		} while (currSection->toNode->candidateForSegmentNode);
+
+		//Now add the link
+		res.links.push_back(ln);
+
 	}
 	//Scan the vector to see if any skipped Sections were not filled in later.
 	for (map<int,Section>::iterator it=sections.begin(); it!=sections.end(); it++) {

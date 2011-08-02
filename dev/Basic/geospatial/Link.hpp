@@ -13,9 +13,16 @@
 namespace sim_mob
 {
 
-
 //Forward declarations
 class RoadSegment;
+
+
+namespace aimsun
+{
+//Forward declaration
+class Loader;
+} //End aimsun namespace
+
 
 
 /**
@@ -43,6 +50,9 @@ public:
 
 protected:
 	std::vector<sim_mob::RoadSegment*> segments;
+
+
+friend class sim_mob::aimsun::Loader;
 
 
 };

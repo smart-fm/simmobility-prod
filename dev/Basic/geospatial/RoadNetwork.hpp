@@ -12,6 +12,13 @@ namespace sim_mob
 class Node;
 
 
+namespace aimsun
+{
+//Forward declaration
+class Loader;
+}
+
+
 /**
  * The side of the road on which cars drive. For the USA, this is DRIVES_ON_RIGHT;
  * for Singapore it is DRIVES_ON_LEFT. This affects the context of "can_turn_right_on_red",
@@ -42,6 +49,7 @@ private:
 	std::vector<sim_mob::Node*> nodes;
 
 
+friend class sim_mob::aimsun::Loader;
 
 };
 

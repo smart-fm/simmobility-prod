@@ -3,13 +3,16 @@
 #include <string>
 
 #include "Base.hpp"
-#include "Section.hpp"
 #include "../../constants.h"
 
 namespace sim_mob
 {
 namespace aimsun
 {
+
+//Forward declarations
+class Section;
+
 
 ///An AIMSUN polyline (applies to a Section)
 //   Polylines don't have an ID

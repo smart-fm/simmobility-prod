@@ -3,6 +3,7 @@
 #pragma once
 
 #include <vector>
+#include <map>
 #include <iostream>
 
 
@@ -14,6 +15,13 @@ class RoadNetwork;
 
 namespace aimsun
 {
+
+//Forward declarations
+class Node;
+class Section;
+class Turning;
+class Polyline;
+
 
 
 /**
@@ -29,6 +37,14 @@ public:
 	///Returns false if an exception was thrown or if something else unexpected occurred
 	//  (e.g., Node ID reference that doesn't exist).
 	static bool LoadNetwork(sim_mob::RoadNetwork& rn);
+
+private:
+
+	///Private function for saving data. Required to take advantage of Loader's "friend" status with the
+	///   RoadNetwork class.
+	static void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<int, sim_mob::aimsun::Node>& nodes,
+			std::map<int, sim_mob::aimsun::Section>& sections, std::map<int, sim_mob::aimsun::Turning>& turnings,
+			std::multimap<int, sim_mob::aimsun::Polyline>& polylines);
 };
 
 

@@ -10,6 +10,9 @@
 #include "soci/soci.h"
 #include "soci-postgresql.h"
 
+#include "../Node.hpp"
+#include "../RoadNetwork.hpp"
+
 #include "Node.hpp"
 #include "Section.hpp"
 #include "Turning.hpp"
@@ -137,18 +140,48 @@ void LoadBasicAimsunObjects(map<int, Node>& nodes, map<int, Section>& sections, 
 
 void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& sections, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
 {
+	//Step 1: Tag all Nodes with the Sections that meet there.
+	for (map<int,Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
+		it->second.fromNode->sectionsAtNode.push_back(&(it->second));
+		it->second.toNode->sectionsAtNode.push_back(&(it->second));
+	}
 
+	//Step 2: Tag all Nodes that have only two Sections; these may become RoadSegmentNodes.
+	for (map<int,Node>::iterator it=nodes.begin(); it!=nodes.end(); it++) {
+		it->second.candidateForSegmentNode = it->second.sectionsAtNode.size()==2;
+	}
+
+	//Step 3: Tag all Sections with Turnings that apply to that Section
+	for (map<int,Turning>::iterator it=turnings.begin(); it!=turnings.end(); it++) {
+		it->second.fromSection->connectedTurnings.push_back(&(it->second));
+		it->second.toSection->connectedTurnings.push_back(&(it->second));
+	}
+
+	//Step 4: Add polyline entries to Sections.
+	for (map<int,Polyline>::iterator it=polylines.begin(); it!=polylines.end(); it++) {
+		it->second.section->polylineEntries.push_back(&(it->second));
+	}
 }
-
-
-void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, map<int, Node>& nodes, map<int, Section>& sections, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
-{
-
-}
-
 
 
 } //End anon namespace
+
+
+
+void sim_mob::aimsun::Loader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, map<int, Node>& nodes, map<int, Section>& sections, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
+{
+	//First, Nodes. These match cleanly to the Sim Mobility data structures
+	std::cout <<"Warning: Units are not considered when converting AIMSUN data.\n";
+	for (map<int,Node>::iterator it=nodes.begin(); it!=nodes.end(); it++) {
+		sim_mob::Node* newNode = new sim_mob::Node();
+		newNode->xPos = it->second.xPos;
+		newNode->yPos = it->second.yPos;
+		res.nodes.push_back(newNode);
+	}
+
+
+}
+
 
 
 bool sim_mob::aimsun::Loader::LoadNetwork(sim_mob::RoadNetwork& rn)

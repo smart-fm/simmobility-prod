@@ -3,13 +3,16 @@
 #include <string>
 
 #include "Base.hpp"
-#include "Section.hpp"
 #include "../../constants.h"
 
 namespace sim_mob
 {
 namespace aimsun
 {
+
+//Forward declarations
+class Section;
+
 
 ///An AIMSUN "turning" (aggregate of Lane Connectors)
 class Turning : public Base {

@@ -7,10 +7,15 @@ namespace sim_mob
 namespace aimsun
 {
 
-///All AIMSUN items have IDs.
+///Nearly all AIMSUN items have IDs.
 class Base {
 public:
 	int id;
+
+	Base() : id(0), hasBeenSaved(false) {}
+
+	//Write flag
+	bool hasBeenSaved;
 };
 
 

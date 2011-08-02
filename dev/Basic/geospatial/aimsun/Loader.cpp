@@ -11,6 +11,9 @@
 #include "soci-postgresql.h"
 
 #include "../Node.hpp"
+#include "../Link.hpp"
+#include "../RoadSegment.hpp"
+#include "../LaneConnector.hpp"
 #include "../RoadNetwork.hpp"
 
 #include "Node.hpp"
@@ -149,6 +152,9 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 	//Step 2: Tag all Nodes that have only two Sections; these may become RoadSegmentNodes.
 	for (map<int,Node>::iterator it=nodes.begin(); it!=nodes.end(); it++) {
 		it->second.candidateForSegmentNode = it->second.sectionsAtNode.size()==2;
+		if (it->second.candidateForSegmentNode && it->second.isIntersection) {
+			throw std::runtime_error("Apparent RoadSegmentNode is tagged as an Intersection.");
+		}
 	}
 
 	//Step 3: Tag all Sections with Turnings that apply to that Section
@@ -173,10 +179,66 @@ void sim_mob::aimsun::Loader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, 
 	//First, Nodes. These match cleanly to the Sim Mobility data structures
 	std::cout <<"Warning: Units are not considered when converting AIMSUN data.\n";
 	for (map<int,Node>::iterator it=nodes.begin(); it!=nodes.end(); it++) {
+		it->second.hasBeenSaved = true;
+
 		sim_mob::Node* newNode = new sim_mob::Node();
 		newNode->xPos = it->second.xPos;
 		newNode->yPos = it->second.yPos;
 		res.nodes.push_back(newNode);
+
+		//For future reference
+		it->second.generatedNode = newNode;
+
+		//TODO: "SegmentNodes" should be built separately. They're still a type of Node.
+	}
+
+	//Next, Links and RoadSegments. See comments for our approach.
+	for (map<int,Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
+		//Skip Sections which start at a non-intersection. These will be filled in later.
+		Node* linkStart = it->second.fromNode;
+		if (linkStart->candidateForSegmentNode) {
+			continue;
+		}
+
+		//Process this section, and continue processing Sections along the direction of
+		// travel until one of these ends on an intersection.
+		Section* currSection = &(it->second);
+		Node* linkEnd;
+		do {
+			//Update
+			linkEnd = currSection->toNode;
+			if (currSection->hasBeenSaved) {
+				throw std::runtime_error("Section processed twice.");
+			}
+			currSection->hasBeenSaved = true;
+
+			//Process
+			sim_mob::RoadSegment* rs = new sim_mob::RoadSegment();
+			rs->maxSpeed = currSection->speed;
+			rs->length = currSection->length;
+			currSection->fromNode->generatedNode->itemsAt.push_back(rs);
+			currSection->toNode->generatedNode->itemsAt.push_back(rs);
+
+
+			//Increment.
+			Section* nextSection = nullptr;
+			for (vector<Section*>::iterator it2=currSection->toNode->sectionsAtNode.begin(); it2!=currSection->toNode->sectionsAtNode.end(); it2++) {
+				if ((*it2)->id!=currSection->id) {
+					nextSection = *it2;
+					break;
+				}
+			}
+			if (!nextSection) {
+				throw std::runtime_error("No path reachable from RoadSegment.");
+			}
+			currSection = nextSection;
+		} while (currSection->toNode->candidateForSegmentNode);
+	}
+	//Scan the vector to see if any skipped Sections were not filled in later.
+	for (map<int,Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
+		if (!it->second.hasBeenSaved) {
+			throw std::runtime_error("Section was skipped.");
+		}
 	}
 
 

@@ -22,7 +22,7 @@ public:
 	sim_mob::aimsun::Section* fromSection;
 	sim_mob::aimsun::Section* toSection;
 
-	Turning() : fromSection(nullptr), toSection(nullptr) {}
+	Turning() : Base(), fromSection(nullptr), toSection(nullptr) {}
 
 	//Temporaries
 	int TMP_FromSection;

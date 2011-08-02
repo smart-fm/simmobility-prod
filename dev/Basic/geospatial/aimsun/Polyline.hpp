@@ -15,14 +15,14 @@ class Section;
 
 
 ///An AIMSUN polyline (applies to a Section)
-//   Polylines don't have an ID
-class Polyline {//: public Base {
+//   Polylines don't have an ID, but they still extend Base() to get access to the write flag.
+class Polyline : public Base {
 public:
 	double xPos;
 	double yPos;
 	Section* section;
 
-	Polyline() : section(NULL) {}
+	Polyline() : Base(), section(NULL) {}
 
 	//Temporaries
 	int TMP_SectionId;

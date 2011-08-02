@@ -18,6 +18,12 @@ class Link;
 class RoadSegment;
 class LaneConnector;
 
+namespace aimsun
+{
+//Forward declarations
+class Loader;
+}
+
 
 /**
  * A location on a map where other elements interact. Nodes build off of the Point2D class
@@ -40,6 +46,7 @@ protected:
 	std::vector<sim_mob::RoadSegment*> itemsAt;
 
 
+friend class sim_mob::aimsun::Loader;
 
 };
 

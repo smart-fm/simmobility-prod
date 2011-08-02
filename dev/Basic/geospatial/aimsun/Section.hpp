@@ -26,12 +26,11 @@ public:
 	Node* fromNode;
 	Node* toNode;
 
-	Section() : fromNode(nullptr), toNode(nullptr) {}
+	Section() : Base(), fromNode(nullptr), toNode(nullptr) {}
 
 	//Placeholders
 	int TMP_FromNodeID;
 	int TMP_ToNodeID;
-
 
 	//Decorated data
 	std::vector<Turning*> connectedTurnings;

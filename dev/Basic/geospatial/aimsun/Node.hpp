@@ -8,6 +8,11 @@
 
 namespace sim_mob
 {
+
+//Forward declarations
+class Node;
+
+
 namespace aimsun
 {
 
@@ -22,9 +27,14 @@ public:
 	double yPos;
 	bool isIntersection;
 
+	Node() : Base() {}
+
 	//Decorated data
 	std::vector<Section*> sectionsAtNode;
 	bool candidateForSegmentNode;
+
+	//Reference to saved object
+	sim_mob::Node* generatedNode;
 
 };
 

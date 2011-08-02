@@ -206,7 +206,7 @@ void sim_mob::aimsun::Loader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, 
 		sim_mob::Link* ln = new sim_mob::Link();
 		ln->roadName = currSection->roadName;
 		Node* linkEnd;
-		do {
+		for (;;) {
 			//Update
 			linkEnd = currSection->toNode;
 			if (currSection->hasBeenSaved) {
@@ -228,6 +228,12 @@ void sim_mob::aimsun::Loader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, 
 			ln->segments.push_back(rs);
 
 
+			//Break?
+			if (!currSection->toNode->candidateForSegmentNode) {
+				break;
+			}
+
+
 			//Increment.
 			Section* nextSection = nullptr;
 			for (vector<Section*>::iterator it2=currSection->toNode->sectionsAtNode.begin(); it2!=currSection->toNode->sectionsAtNode.end(); it2++) {
@@ -237,10 +243,13 @@ void sim_mob::aimsun::Loader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, 
 				}
 			}
 			if (!nextSection) {
+				std::cout <<"PATH ERROR:\n";
+				std::cout <<"  Starting at Node: " <<linkStart->id <<"\n";
+				std::cout <<"  Currently at Node: " <<currSection->toNode->id <<"\n";
 				throw std::runtime_error("No path reachable from RoadSegment.");
 			}
 			currSection = nextSection;
-		} while (currSection->toNode->candidateForSegmentNode);
+		}
 
 		//Now add the link
 		res.links.push_back(ln);

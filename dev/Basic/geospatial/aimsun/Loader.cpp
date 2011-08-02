@@ -2,8 +2,13 @@
 
 #include "Loader.hpp"
 
+//NOTE: Ubuntu is pretty bad about where it puts the SOCI headers.
+//      "soci-postgresql.h" is supposed to be in "$INC/soci", but Ubuntu puts it in
+//      "$INC/soci/postgresql". For now, I'm just referencing it manually, but
+//      we might want to use something like pkg-config to manage header file directories
+//      eventually.
 #include "soci/soci.h"
-#include "soci/postgresql/soci-postgresql.h"
+#include "soci-postgresql.h"
 
 #include "Node.hpp"
 #include "Section.hpp"

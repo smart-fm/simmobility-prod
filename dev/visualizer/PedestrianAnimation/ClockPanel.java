@@ -31,10 +31,12 @@ public class ClockPanel extends JPanel implements ActionListener {
 	private int readCrossingTopRightX = 0;
 	private int readCrossingTopRightY = 0;
 	
-	private int initialCrossingX1 = 498;
-	private int initialCrossingX2 = 502;
-	private int initialCrossingY1 = 190;
-	private int initialCrossingY2 = 240;
+	private int initialCrossingX1 = readCrossingBottomLeftX;
+	private int initialCrossingX2 = readCrossingBottomRightX;
+	private int initialCrossingY1 = readCrossingBottomRightY;
+	private int initialCrossingY2 = readCrossingTopLeftY;
+	
+	//Currently value is hard coded. Does not dynamically change to fit screen size of user.
 	private int scaledCrossingX1 = 360;
 	private int scaledCrossingX2 = 440;
 	private int scaledCrossingY1 = 115;
@@ -44,13 +46,17 @@ public class ClockPanel extends JPanel implements ActionListener {
 	private ArrayList<String> arl = new ArrayList<String>();
 	
 	//int array of (x,y) coordinates of pedestrians
-	private int[] agentXCoord = new int[numAgents];
-	private int[] agentYCoord = new int[numAgents];
+	
+	private int[] agentXCoord;
+	//= new int[numAgents];
+	private int[] agentYCoord;
+	//= new int[numAgents];
 	
 	//Timer for speed adjustment of visualizer refresh rate
 	Timer timer = new Timer(timerSpeed, this);
 	
 	public ClockPanel(){ 	
+		
 		JPanel bottomPanel = new JPanel(); 
 		JPanel topPanel = new JPanel();
 		
@@ -75,9 +81,7 @@ public class ClockPanel extends JPanel implements ActionListener {
 		setLayout(new BorderLayout()); 
 		add(bottomPanel, BorderLayout.SOUTH);
 		add(topPanel, BorderLayout.NORTH);
-		//add(bottomPanel, BorderLayout.EAST);
 		
-		// Who will listen to the button events? Your code here 
 		startButton.addActionListener(this);
 		stopButton.addActionListener(this);
 		stepForwardButton.addActionListener(this);
@@ -86,6 +90,7 @@ public class ClockPanel extends JPanel implements ActionListener {
 		timerSpeedInput.addActionListener(this);
 		
 		readFile();
+		System.out.println("File Read Done!");
 	}
 
 	public void readFile() {
@@ -198,10 +203,16 @@ public class ClockPanel extends JPanel implements ActionListener {
 					
 					System.out.println("Crossing[topright]: " + readCrossingTopRightX + ", " + readCrossingTopRightY);
 				}
-				else if(currentLine.startsWith("(Agent")) {
+				else if(currentLine.contains("Agents Initialized:")) {
+					numAgents = Integer.parseInt(currentLine.substring(22));
+					agentXCoord = new int[numAgents];
+					agentYCoord = new int[numAgents];
+				}
+				else if(currentLine.startsWith("(Agent")) {		//Adding Agent Finish Message to array list
 					//System.out.println(currentLine);
 					
-					
+					arl.add(currentLine);
+					System.out.println(currentLine);
 					
 				}
 				else if(currentLine.startsWith("(")) {
@@ -244,13 +255,12 @@ public class ClockPanel extends JPanel implements ActionListener {
 		//System.out.println(arl);
 	}
 	
-	//Re-adjust pedestrian's position to accommodate x-axis scaling
+	//Scale (x,y) of pedestrian to fit into screen size
 	public double[] scaleCoord(int x, int y) {
 		double[] dblArray = new double[2];
 		double newX, newY;
 		double fractionX, fractionY;
 		
-		//What if x-initialCrossingX1 == 0?
 		fractionX = (double)(x-initialCrossingX1) / (initialCrossingX2-initialCrossingX1);
 		newX = scaledCrossingX1 + (fractionX*(double)(scaledCrossingX2-scaledCrossingX1));
 		
@@ -265,18 +275,10 @@ public class ClockPanel extends JPanel implements ActionListener {
 	
 	public void paintComponent(Graphics g) { 
 		super.paintComponent(g); 
-		//g.drawRect(50, 50, 650, 650);	//x, y, width, height
-		
-		//Draw world boundary
-		//g.drawRect(100, 50, 600, 550);
 		
 		//Draw crossing boundaries
 		g.drawLine(scaledCrossingX1, scaledCrossingY1, scaledCrossingX1, scaledCrossingY2);	//(x1,y1), (x2,y2)
 		g.drawLine(scaledCrossingX2, scaledCrossingY1, scaledCrossingX2, scaledCrossingY2);
-		//g.drawLine(400, 240, 500, 240);
-		//g.drawLine(400, 290, 500, 290);
-		//g.drawLine(400, 240, 500, 290);
-		//g.drawLine(400, 290, 500, 240);
 		
 		//Draw road
 		int roadSideWidth = 5;
@@ -309,11 +311,10 @@ public class ClockPanel extends JPanel implements ActionListener {
 		//Draw pedestrians
 		setAgentPosition();
 		
-		
 		for(int i=0; i<numAgents; i++) {
 			g.setColor(Color.BLACK);
 			g.drawOval(agentXCoord[i]-(pedestrianOvalSize/2), agentYCoord[i]-(pedestrianOvalSize/2), pedestrianOvalSize, pedestrianOvalSize);
-			//g.drawString(Integer.toString(i), agentXCoord[i]+pedestrianOvalSize, agentYCoord[i]+pedestrianOvalSize);
+			g.drawString(Integer.toString(i), agentXCoord[i]+pedestrianOvalSize, agentYCoord[i]+pedestrianOvalSize);
 			g.setColor(Color.PINK);
 			g.fillOval(agentXCoord[i]-(pedestrianOvalSize/2), agentYCoord[i]-(pedestrianOvalSize/2), pedestrianOvalSize, pedestrianOvalSize);
 		}
@@ -321,37 +322,50 @@ public class ClockPanel extends JPanel implements ActionListener {
 
 	public void setAgentPosition(){  
 		
-		//Iterate thru all the lines(agents) read from log.out
-		for(int i=0; i<arl.size(); i++) {	
+		//1. Check whether it is a Position Update Vector or Agent Finish Message
+		//2. If Position Update Vector, check whether Frame Number == Current Frame Number for updating position coord
+				
+		//Iterate thru all the output log lines
+		for(int i=0; i<arl.size(); i++) {			
 			String temp;
 			temp = arl.get(i);
-			temp = temp.substring(1, temp.length()-1);
-			//System.out.println(temp);
+			temp = temp.substring(1, temp.length()-1);	//strip brackets from read line
 			
-			String[] temp2;
-			temp2 = temp.split(",");
-			//System.out.println(temp2[4]);
-		
-			int tempId = Integer.parseInt(temp2[0]);
-			int tempFrameNum = Integer.parseInt(temp2[1]);
-			//int tempX = Integer.parseInt(temp2[2]);
-			//int tempY = Integer.parseInt(temp2[3]);
-			int tempX = (int)Double.parseDouble(temp2[2]);
-			int tempY = (int)Double.parseDouble(temp2[3]);
-			//signalPhase = Integer.parseInt(temp2[4]);
-			
-			double[] intArray = new double[2];
-			intArray = scaleCoord(tempX, tempY);
+			if(temp.startsWith("Agent")) {	//if it's "Agent X has reached goal" message
+			/*
+				int agentNum;
+				String[] temp3;
+				temp3 = temp.split(" ");	//tokenize by white space
+								
+				agentNum = Integer.parseInt(temp3[1]);	//convert agent number to integer
 				
-			if(tempFrameNum == curFrameNum) {
-				signalPhase = Integer.parseInt(temp2[4]);
-				
-				agentXCoord[tempId] = (int)intArray[0];
-				agentYCoord[tempId] = (int)intArray[1];
+				System.out.println("Test agent " + i);
+				//System.out.println("Agent " + agentNum + " has finished!");
+			*/
 			}
-		
+			else {	//normal position update message
+				for(int j=0; j<numAgents; j++) {		
+					String[] temp2;
+					temp2 = temp.split(",");	//tokenize numbers separated by colon					
+					
+					int tempId = Integer.parseInt(temp2[0]);
+					int tempFrameNum = Integer.parseInt(temp2[1]);
+					int tempX = (int)Double.parseDouble(temp2[2]);
+					int tempY = (int)Double.parseDouble(temp2[3]);
+					
+					double[] intArray = new double[2];
+					intArray = scaleCoord(tempX, tempY);
+						
+					if(tempFrameNum == curFrameNum) {	//might be redundant to check for this
+						signalPhase = Integer.parseInt(temp2[4]);
+						
+						agentXCoord[tempId] = (int)intArray[0];
+						agentYCoord[tempId] = (int)intArray[1];					
+					}
+				}//end for
+			}//end else
+						
 		frameNumLabel.setText("Frame #: " + curFrameNum);
-		
 		}
 	} 
 	
@@ -390,11 +404,8 @@ public class ClockPanel extends JPanel implements ActionListener {
 		else if(e.getSource().equals(timerSpeedInput)) {
 			timerSpeed = Integer.parseInt(timerSpeedInput.getText());
 			timer.setDelay(timerSpeed);
-			//scaleFactor = Double.parseDouble(scaleFactorTextField.getText());
-			//System.out.println("Scale Factor: " + scaleFactor);
 		}
-		else {  // Reset button
-		// Complete this code: update clock and labels 
+		else {
 			repaint();}
 	}
 }	

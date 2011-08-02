@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 //Constants, etc.
 int NUM_AGENTS = 11;
 int AGENT_RADIUS = 10;

@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 /**
  * \file main.cpp
  * A first approximation of the basic pseudo-code in C++. The main file loads several

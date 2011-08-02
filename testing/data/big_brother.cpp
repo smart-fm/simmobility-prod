@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 #include "big_brother.hpp"
 #include "position.hpp"
 #include "trace.hpp"

@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 #include "Region.hpp"
 
 using namespace sim_mob;

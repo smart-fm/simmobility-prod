@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 #include "driver.hpp"
 #include "vehicle.hpp"  // TODO
 

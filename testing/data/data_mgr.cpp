@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 #include "data_mgr.hpp"
 #include "base.hpp"
 

@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 #ifndef _integer_hpp_
 #define _integer_hpp_
 

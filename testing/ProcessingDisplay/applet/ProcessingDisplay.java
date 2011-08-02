@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 import processing.core.*; 
 import processing.xml.*; 
 

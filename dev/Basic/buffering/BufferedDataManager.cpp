@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 #include "BufferedDataManager.hpp"
 
 using namespace sim_mob;

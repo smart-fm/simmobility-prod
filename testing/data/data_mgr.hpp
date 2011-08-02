@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 #ifndef _data_mgr_hpp_
 #define _data_mgr_hpp_
 

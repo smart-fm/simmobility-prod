@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 /**
  * \file constants.h
  * Constant definitions. Most of these will become configurable parameters later.

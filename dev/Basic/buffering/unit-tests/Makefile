@@ -1,3 +1,5 @@
+# Copyright Singapore-MIT Alliance for Research and Technology
+
 INCLUDES = -I. -I..
 CXXFLAGS = -g -Wall -Wextra -fmessage-length=0 $(INCLUDES)
 

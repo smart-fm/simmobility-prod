@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 /**
  * \file stubs.h
  * Placeholder functions. If you find a function here, it will certainly be replaced

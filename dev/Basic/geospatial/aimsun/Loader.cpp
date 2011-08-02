@@ -8,12 +8,15 @@
 #include "Node.hpp"
 #include "Section.hpp"
 #include "Turning.hpp"
+#include "Polyline.hpp"
 #include "SOCI_Converters.hpp"
 
 
 using namespace sim_mob::aimsun;
 using std::vector;
 using std::map;
+using std::pair;
+using std::multimap;
 
 
 namespace {
@@ -75,6 +78,26 @@ void LoadTurnings(soci::session& sql, map<int, Turning>& turninglist, map<int, S
 	}
 }
 
+void LoadPolylines(soci::session& sql, multimap<int, Polyline>& polylinelist, map<int, Section>& sectionlist)
+{
+	//Our SQL statement
+	soci::rowset<Polyline> rs = (sql.prepare <<"select * from get_section_polyline()");
+
+	//Exectue as a rowset to avoid repeatedly building the query.
+	polylinelist.clear();
+	for (soci::rowset<Polyline>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+		//Check nodes
+		if(sectionlist.count(it->TMP_SectionId)==0) {
+			throw std::runtime_error("Invalid polyline section reference.");
+		}
+
+		//Note: Make sure not to resize the Section map after referencing its elements.
+		it->section = &sectionlist[it->TMP_SectionId];
+		polylinelist.insert(std::make_pair(it->section->id, *it));
+		//polylinelist[it->id] = *it;
+	}
+}
+
 
 
 void LoadBasicAimsunObjects(sim_mob::RoadNetwork& rn)
@@ -84,16 +107,20 @@ void LoadBasicAimsunObjects(sim_mob::RoadNetwork& rn)
 	soci::session sql(soci::postgresql, "host=localhost port=5432 dbname=SimMobility_DB user=postgres password=S!Mm0bility");
 
 	//Load all nodes
-	map<int, Node> nodelist;
-	LoadNodes(sql, nodelist);
+	map<int, Node> nodes;
+	LoadNodes(sql, nodes);
 
 	//Load all sections
-	map<int, Section> sectionlist;
-	LoadSections(sql, sectionlist, nodelist);
+	map<int, Section> sections;
+	LoadSections(sql, sections, nodes);
 
 	//Load all turnings
-	map<int, Turning> turninglist;
-	LoadTurnings(sql, turninglist, sectionlist);
+	map<int, Turning> turnings;
+	LoadTurnings(sql, turnings, sections);
+
+	//Load all polylines
+	multimap<int, Polyline> polylines;
+	LoadPolylines(sql, polylines, sections);
 }
 
 

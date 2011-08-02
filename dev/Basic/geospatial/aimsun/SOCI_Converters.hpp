@@ -96,6 +96,24 @@ template<> struct type_conversion<Turning>
 };
 
 
+template<> struct type_conversion<Polyline>
+{
+    typedef values base_type;
+    static void from_base(const soci::values& vals, soci::indicator& ind, Polyline &res)
+    {
+    	res.xPos = vals.get<double>("xpos", 0.0);
+    	res.yPos = vals.get<double>("ypos", 0.0);
+    	res.TMP_SectionId = vals.get<int>("section_id", 0);
+    }
+    static void to_base(const Polyline& src, soci::values& vals, soci::indicator& ind)
+    {
+    	vals.set("section_id", src.section->id);
+        vals.set("xpos", src.xPos);
+        vals.set("ypos", src.yPos);
+        ind = i_ok;
+    }
+};
+
 
 
 }

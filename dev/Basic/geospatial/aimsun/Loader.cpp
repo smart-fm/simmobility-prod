@@ -67,8 +67,18 @@ void LoadTurnings(soci::session& sql, map<int, Turning>& turninglist, map<int, S
 	turninglist.clear();
 	for (soci::rowset<Turning>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//Check nodes
-		if(sectionlist.count(it->TMP_FromSection)==0 || sectionlist.count(it->TMP_ToSection)==0) {
-			throw std::runtime_error("Invalid From or To section.");
+		bool fromMissing = sectionlist.count(it->TMP_FromSection)==0;
+		bool toMissing = sectionlist.count(it->TMP_ToSection)==0;
+		if(fromMissing || toMissing) {
+			std::cout <<"Turning " <<it->id <<" skipped, missing node" <<(fromMissing&&toMissing?"s:  ":":  ");
+			if (fromMissing) {
+				std::cout <<it->TMP_FromSection <<(toMissing?", ":"\n");
+			}
+			if (toMissing) {
+				std::cout <<it->TMP_ToSection <<"\n";
+			}
+			continue;
+			//throw std::runtime_error("Invalid From or To section.");
 		}
 
 		//Note: Make sure not to resize the Section map after referencing its elements.

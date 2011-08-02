@@ -14,6 +14,12 @@ namespace sim_mob
 //Forward declarations
 //class Lane;
 
+namespace aimsun
+{
+//Forward declaration
+class Loader;
+} //End aimsun namespace
+
 
 
 /**
@@ -61,6 +67,9 @@ private:
 	///Widths of each lane. If this vector is empty, each lane's width is an even division of
 	///Pavement::width() / lanes.size()
 	std::vector<unsigned int> laneWidths;
+
+
+friend class sim_mob::aimsun::Loader;
 
 
 };

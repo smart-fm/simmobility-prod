@@ -27,7 +27,7 @@ public:
 	double yPos;
 	bool isIntersection;
 
-	Node() : Base() {}
+	Node() : Base(), generatedNode(nullptr) {}
 
 	//Decorated data
 	std::vector<Section*> sectionsAtNode;

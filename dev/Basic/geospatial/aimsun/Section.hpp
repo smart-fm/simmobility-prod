@@ -7,6 +7,10 @@
 
 namespace sim_mob
 {
+
+//Forward declarations
+class RoadSegment;
+
 namespace aimsun
 {
 
@@ -26,7 +30,7 @@ public:
 	Node* fromNode;
 	Node* toNode;
 
-	Section() : Base(), fromNode(nullptr), toNode(nullptr) {}
+	Section() : Base(), fromNode(nullptr), toNode(nullptr), generatedSegment(nullptr) {}
 
 	//Placeholders
 	int TMP_FromNodeID;
@@ -35,6 +39,9 @@ public:
 	//Decorated data
 	std::vector<Turning*> connectedTurnings;
 	std::vector<Polyline*> polylineEntries;
+
+	//Reference to saved object
+	sim_mob::RoadSegment* generatedSegment;
 };
 
 

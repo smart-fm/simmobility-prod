@@ -189,6 +189,11 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, map<int, Node>& nodes, ma
 		}
 	}
 
+	//Next, Turnings. These generally match up.
+	std::cout <<"Warning: Lanes-Left-of-Divider incorrect when converting AIMSUN data.\n";
+	for (map<int,Turning>::iterator it=turnings.begin(); it!=turnings.end(); it++) {
+		sim_mob::aimsun::Loader::ProcessTurning(res, it->second);
+	}
 
 }
 
@@ -245,10 +250,21 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		sim_mob::RoadSegment* rs = new sim_mob::RoadSegment();
 		rs->maxSpeed = currSection->speed;
 		rs->length = currSection->length;
+		for (size_t laneID=0; laneID<currSection->numLanes; laneID++) {
+			rs->lanes.push_back(new sim_mob::Lane());
+		}
+
+		//TODO: How do we determine if lanesLeftOfDivider should be 0 or lanes.size()
+		//      In other words, how do we apply driving direction?
+		//      For now, setting to a clearly incorrect value.
+		rs->lanesLeftOfDivider = 0xFF;
+
 		currSection->fromNode->generatedNode->itemsAt.push_back(rs);
 		currSection->toNode->generatedNode->itemsAt.push_back(rs);
 		ln->segments.push_back(rs);
 
+		//Save for later
+		currSection->generatedSegment = rs;
 
 		//Break?
 		if (!currSection->toNode->candidateForSegmentNode) {
@@ -275,6 +291,33 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 
 	//Now add the link
 	res.links.push_back(ln);
+}
+
+
+
+
+void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning& src)
+{
+	//Check
+	if (src.fromSection->toNode->id != src.toSection->fromNode->id) {
+		throw std::runtime_error("Turning doesn't match with Sections and Nodes.");
+	}
+
+	//Essentially, just expand each turning into a set of LaneConnectors.
+	//TODO: This becomes slightly more complex at RoadSegmentNodes, since these
+	//      only feature one primary connector per Segment pair.
+	for (int fromLaneID=src.fromLane.first; fromLaneID<=src.fromLane.second; fromLaneID++) {
+		for (int toLaneID=src.toLane.first; toLaneID<=src.toLane.second; toLaneID++) {
+			sim_mob::LaneConnector* lc = new sim_mob::LaneConnector();
+			lc->laneFrom.first = src.fromSection->generatedSegment;
+			lc->laneFrom.second = fromLaneID;
+			lc->laneTo.first = src.toSection->generatedSegment;
+			lc->laneTo.second = toLaneID;
+			src.fromSection->toNode->generatedNode->connectors.push_back(lc);
+		}
+	}
+
+
 }
 
 

@@ -14,6 +14,13 @@ namespace sim_mob
 class RoadSegment;
 
 
+namespace aimsun
+{
+//Forward declaration
+class Loader;
+} //End namespace aimsun
+
+
 /**
  * A lane for motorized vehicles. Links one Road Segment to another, by Lane ID.
  *
@@ -24,13 +31,15 @@ class RoadSegment;
  */
 class LaneConnector {
 public:
-	const std::pair<const sim_mob::RoadSegment*, unsigned int> laneFrom;
-	const std::pair<const sim_mob::RoadSegment*, unsigned int> laneTo;
-
 
 private:
+	//TODO: These items used to be const, but it's easier to declare them private and just
+	//      return a const item.
+	std::pair<sim_mob::RoadSegment*, unsigned int> laneFrom;
+	std::pair<sim_mob::RoadSegment*, unsigned int> laneTo;
 
 
+friend class sim_mob::aimsun::Loader;
 
 };
 

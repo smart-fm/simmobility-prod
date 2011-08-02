@@ -41,6 +41,7 @@ public:
 	//Semi-private functions
 	static void ProcessNode(sim_mob::RoadNetwork& res, Node& src);
 	static void ProcessSection(sim_mob::RoadNetwork& res, Section& src);
+	static void ProcessTurning(sim_mob::RoadNetwork& res, Turning& src);
 
 };
 

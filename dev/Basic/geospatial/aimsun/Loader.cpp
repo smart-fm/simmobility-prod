@@ -2,6 +2,9 @@
 
 #include "Loader.hpp"
 
+#include <cmath>
+#include <algorithm>
+
 //NOTE: Ubuntu is pretty bad about where it puts the SOCI headers.
 //      "soci-postgresql.h" is supposed to be in "$INC/soci", but Ubuntu puts it in
 //      "$INC/soci/postgresql". For now, I'm just referencing it manually, but
@@ -10,6 +13,7 @@
 #include "soci/soci.h"
 #include "soci-postgresql.h"
 
+#include "../Point2D.hpp"
 #include "../Node.hpp"
 #include "../Link.hpp"
 #include "../RoadSegment.hpp"
@@ -31,6 +35,14 @@ using std::multimap;
 
 
 namespace {
+
+
+//Sorting function for polylines
+bool polyline_sorter (const Polyline* const p1, const Polyline* const p2)
+{
+	return p1->distanceFromSrc < p2->distanceFromSrc;
+}
+
 
 void LoadNodes(soci::session& sql, map<int, Node>& nodelist)
 {
@@ -141,6 +153,42 @@ void LoadBasicAimsunObjects(map<int, Node>& nodes, map<int, Section>& sections, 
 }
 
 
+
+//Compute the distance from the source node of the polyline to a
+// point on the line from the source to the destination nodes which
+// is normal to the Poly-point.
+void ComputePolypointDistance(Polyline& pt)
+{
+	//Our method is (fairly) simple.
+	//First, compute the distance from the point to the polyline at a perpendicular angle.
+	double dx2x1 = pt.section->toNode->xPos - pt.section->fromNode->xPos;
+	double dy2y1 = pt.section->toNode->yPos - pt.section->fromNode->yPos;
+	double dx1x0 = pt.section->fromNode->xPos - pt.xPos;
+	double dy1y0 = pt.section->fromNode->yPos - pt.yPos;
+	double numerator = dx2x1*dy1y0 - dx1x0*dy2y1;
+	double denominator = sqrt(dx2x1*dx2x1 + dy2y1*dy2y1);
+	double perpenDist = numerator/denominator;
+	if (perpenDist<0.0) {
+		//We simplify all the quadratic math to just a sign change, since
+		//   it's known that this polypoint has a positive distance to the line.
+		perpenDist *= -1;
+	}
+
+	//Second, compute the distance from the source point to the polypoint
+	double realDist = sqrt(dx1x0*dx1x0 + dy1y0*dy1y0);
+
+	//Finally, apply the Pythagorean theorum
+	pt.distanceFromSrc = sqrt(realDist*realDist - perpenDist*perpenDist);
+
+	//NOTE: There simplest method would be to just take the x-component of the vector
+	//      from pt.x/y to pt.section.fromNode.x/y, but you'd have to factor in
+	//      the fact that this vector is rotated with respect to pt.section.from->pt.section.to.
+	//      I can't remember enough vector math to handle this, but if anyone wants to
+	//      replace it the vector version would certainly be faster. ~Seth
+}
+
+
+
 void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& sections, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
 {
 	//Step 1: Tag all Nodes with the Sections that meet there.
@@ -163,11 +211,14 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 		it->second.toSection->connectedTurnings.push_back(&(it->second));
 	}
 
-	//Step 4: Add polyline entries to Sections.
+	//Step 4: Add polyline entries to Sections. As you do this, compute their distance
+	//        from the origin ("from" node)
 	for (map<int,Polyline>::iterator it=polylines.begin(); it!=polylines.end(); it++) {
 		it->second.section->polylineEntries.push_back(&(it->second));
+		ComputePolypointDistance(it->second);
 	}
 }
+
 
 
 void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, map<int, Node>& nodes, map<int, Section>& sections, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
@@ -195,6 +246,10 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, map<int, Node>& nodes, ma
 		sim_mob::aimsun::Loader::ProcessTurning(res, it->second);
 	}
 
+	//Next, save the Polylines. This is best done at the Section level
+	for (map<int,Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
+		sim_mob::aimsun::Loader::ProcessSectionPolylines(res, it->second);
+	}
 }
 
 
@@ -250,7 +305,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		sim_mob::RoadSegment* rs = new sim_mob::RoadSegment();
 		rs->maxSpeed = currSection->speed;
 		rs->length = currSection->length;
-		for (size_t laneID=0; laneID<currSection->numLanes; laneID++) {
+		for (int laneID=0; laneID<currSection->numLanes; laneID++) {
 			rs->lanes.push_back(new sim_mob::Lane());
 		}
 
@@ -322,6 +377,20 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 
 
 
+void sim_mob::aimsun::Loader::ProcessSectionPolylines(sim_mob::RoadNetwork& res, Section& src)
+{
+	//Polyline points are sorted by their "distance from source" and then added.
+	std::sort(src.polylineEntries.begin(), src.polylineEntries.end(), polyline_sorter);
+	for (std::vector<Polyline*>::iterator it=src.polylineEntries.begin(); it!=src.polylineEntries.end(); it++) {
+		//TODO: This might not trace the median, and the start/end points are definitely not included.
+		sim_mob::Point2D pt;
+		pt.xPos = (*it)->xPos;
+		pt.yPos = (*it)->yPos;
+		src.generatedSegment->polyline.push_back(pt);
+	}
+}
+
+
 
 
 bool sim_mob::aimsun::Loader::LoadNetwork(sim_mob::RoadNetwork& rn)
@@ -352,6 +421,9 @@ bool sim_mob::aimsun::Loader::LoadNetwork(sim_mob::RoadNetwork& rn)
 
 		return false;
 	}*/
+
+	std::cout <<"AIMSUN Network successfully imported.\n";
+
 	return true;
 }
 

@@ -27,6 +27,9 @@ public:
 	//Temporaries
 	int TMP_SectionId;
 
+	//Decorated data
+	double distanceFromSrc;
+
 
 };
 

@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 #include "simpleconf.hpp"
 
 //Include here (forward-declared earlier) to avoid include-cycles.

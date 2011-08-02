@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 #include "Pedestrian.hpp"
 
 using namespace sim_mob;

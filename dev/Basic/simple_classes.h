@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 /**
  * \file simple_classes.h
  * Simple class definitions. If you find a class here, it will be moved to its own *.cpp,*.hpp

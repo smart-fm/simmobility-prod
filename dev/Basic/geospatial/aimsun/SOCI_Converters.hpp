@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 #pragma once
 
 //This file contains several Type converters for SOCI object-mapping

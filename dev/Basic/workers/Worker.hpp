@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 /**
  * A "worker" performs a task asynchronously.
  *    There are two ways to use a worker:

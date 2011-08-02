@@ -6,6 +6,9 @@
 
 #include "soci/soci.h"
 #include "Node.hpp"
+#include "Section.hpp"
+#include "Turning.hpp"
+#include "Polyline.hpp"
 
 
 using namespace sim_mob::aimsun;
@@ -66,7 +69,33 @@ template<> struct type_conversion<Section>
 
 
 
+template<> struct type_conversion<Turning>
+{
+    typedef values base_type;
+    static void from_base(const soci::values& vals, soci::indicator& ind, Turning &res)
+    {
+    	res.id = vals.get<int>("turning_id", 0);
+    	res.fromLane.first = vals.get<int>("from_lane_a", 0);
+    	res.fromLane.second = vals.get<int>("from_lane_b", 0);
+    	res.toLane.first = vals.get<int>("to_lane_a", 0);
+    	res.toLane.second = vals.get<int>("to_lane_b", 0);
+    	res.TMP_FromSection = vals.get<int>("from_section", 0);
+    	res.TMP_ToSection = vals.get<int>("to_section", 0);
+    }
+    static void to_base(const Turning& src, soci::values& vals, soci::indicator& ind)
+    {
+    	vals.set("turning_id", src.id);
+    	vals.set("from_lane_a", src.fromLane.first);
+    	vals.set("from_lane_b", src.fromLane.second);
+    	vals.set("to_lane_a", src.toLane.first);
+    	vals.set("to_lane_b", src.toLane.second);
+    	vals.set("from_section", src.fromSection->id);
+    	vals.set("to_section", src.toSection->id);
+        ind = i_ok;
+    }
+};
+
+
+
+
 }
-
-
-

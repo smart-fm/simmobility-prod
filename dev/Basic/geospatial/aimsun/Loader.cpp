@@ -7,6 +7,7 @@
 
 #include "Node.hpp"
 #include "Section.hpp"
+#include "Turning.hpp"
 #include "SOCI_Converters.hpp"
 
 
@@ -33,7 +34,7 @@ void LoadNodes(soci::session& sql, map<int, Node>& nodelist)
 }
 
 
-void LoadSections(soci::session& sql, map<int, Section> sectionlist, map<int, Node>& nodelist)
+void LoadSections(soci::session& sql, map<int, Section>& sectionlist, map<int, Node>& nodelist)
 {
 	//Our SQL statement
 	soci::rowset<Section> rs = (sql.prepare <<"select * from get_section()");
@@ -54,6 +55,27 @@ void LoadSections(soci::session& sql, map<int, Section> sectionlist, map<int, No
 }
 
 
+void LoadTurnings(soci::session& sql, map<int, Turning>& turninglist, map<int, Section>& sectionlist)
+{
+	//Our SQL statement
+	soci::rowset<Turning> rs = (sql.prepare <<"select * from get_lane_connector()");
+
+	//Exectue as a rowset to avoid repeatedly building the query.
+	turninglist.clear();
+	for (soci::rowset<Turning>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+		//Check nodes
+		if(sectionlist.count(it->TMP_FromSection)==0 || sectionlist.count(it->TMP_ToSection)==0) {
+			throw std::runtime_error("Invalid From or To section.");
+		}
+
+		//Note: Make sure not to resize the Section map after referencing its elements.
+		it->fromSection = &sectionlist[it->TMP_FromSection];
+		it->toSection = &sectionlist[it->TMP_ToSection];
+		turninglist[it->id] = *it;
+	}
+}
+
+
 
 void LoadBasicAimsunObjects(sim_mob::RoadNetwork& rn)
 {
@@ -68,6 +90,10 @@ void LoadBasicAimsunObjects(sim_mob::RoadNetwork& rn)
 	//Load all sections
 	map<int, Section> sectionlist;
 	LoadSections(sql, sectionlist, nodelist);
+
+	//Load all turnings
+	map<int, Turning> turninglist;
+	LoadTurnings(sql, turninglist, sectionlist);
 }
 
 

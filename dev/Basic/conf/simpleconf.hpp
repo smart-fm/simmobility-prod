@@ -2,16 +2,14 @@
 
 #pragma once
 
+#include <map>
+#include <string>
 #include <sstream>
 
 #include <boost/utility.hpp>
 
-/*#include <libxml/tree.h>
-#include <libxml/parser.h>
-#include <libxml/xpath.h>
-#include <libxml/xpathInternals.h>*/
-
 #include "../geospatial/Point2D.hpp"
+#include "../geospatial/RoadNetwork.hpp"
 #include "../simple_classes.h"
 
 
@@ -21,15 +19,7 @@ namespace sim_mob
 //Forward declarations
 class Agent;
 class Person;
-//class Pedestrian;
-//class Driver;
 class Region;
-
-//Doesn't work for some reason.
-//class ChoiceSet;
-//class TripChain;
-//class Vehicle;
-
 
 
 /**
@@ -49,6 +39,9 @@ public:
 
 	std::map<std::string, Point2D> boundaries;  ///<Indexed by position, e.g., "bottomright"
 	std::map<std::string, Point2D> crossings;   ///<Indexed by position, e.g., "bottomright"
+
+	std::string connectionString;
+	sim_mob::RoadNetwork network;
 
 public:
 	/***

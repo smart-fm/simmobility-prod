@@ -44,10 +44,10 @@ bool polyline_sorter (const Polyline* const p1, const Polyline* const p2)
 }
 
 
-void LoadNodes(soci::session& sql, map<int, Node>& nodelist)
+void LoadNodes(soci::session& sql, const std::string& storedProc, map<int, Node>& nodelist)
 {
 	//Our SQL statement
-	soci::rowset<Node> rs = (sql.prepare <<"select * from get_node()");
+	soci::rowset<Node> rs = (sql.prepare <<"select * from " + storedProc);
 
 	//Exectue as a rowset to avoid repeatedly building the query.
 	nodelist.clear();
@@ -60,10 +60,10 @@ void LoadNodes(soci::session& sql, map<int, Node>& nodelist)
 }
 
 
-void LoadSections(soci::session& sql, map<int, Section>& sectionlist, map<int, Node>& nodelist)
+void LoadSections(soci::session& sql, const std::string& storedProc, map<int, Section>& sectionlist, map<int, Node>& nodelist)
 {
 	//Our SQL statement
-	soci::rowset<Section> rs = (sql.prepare <<"select * from get_section()");
+	soci::rowset<Section> rs = (sql.prepare <<"select * from " + storedProc);
 
 	//Exectue as a rowset to avoid repeatedly building the query.
 	sectionlist.clear();
@@ -81,10 +81,10 @@ void LoadSections(soci::session& sql, map<int, Section>& sectionlist, map<int, N
 }
 
 
-void LoadTurnings(soci::session& sql, map<int, Turning>& turninglist, map<int, Section>& sectionlist)
+void LoadTurnings(soci::session& sql, const std::string& storedProc, map<int, Turning>& turninglist, map<int, Section>& sectionlist)
 {
 	//Our SQL statement
-	soci::rowset<Turning> rs = (sql.prepare <<"select * from get_lane_connector()");
+	soci::rowset<Turning> rs = (sql.prepare <<"select * from " + storedProc);
 
 	//Exectue as a rowset to avoid repeatedly building the query.
 	turninglist.clear();
@@ -111,10 +111,10 @@ void LoadTurnings(soci::session& sql, map<int, Turning>& turninglist, map<int, S
 	}
 }
 
-void LoadPolylines(soci::session& sql, multimap<int, Polyline>& polylinelist, map<int, Section>& sectionlist)
+void LoadPolylines(soci::session& sql, const std::string& storedProc, multimap<int, Polyline>& polylinelist, map<int, Section>& sectionlist)
 {
 	//Our SQL statement
-	soci::rowset<Polyline> rs = (sql.prepare <<"select * from get_section_polyline()");
+	soci::rowset<Polyline> rs = (sql.prepare <<"select * from " + storedProc);
 
 	//Exectue as a rowset to avoid repeatedly building the query.
 	polylinelist.clear();
@@ -133,23 +133,24 @@ void LoadPolylines(soci::session& sql, multimap<int, Polyline>& polylinelist, ma
 
 
 
-void LoadBasicAimsunObjects(map<int, Node>& nodes, map<int, Section>& sections, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
+void LoadBasicAimsunObjects(const string& connectionStr, map<string, string>& storedProcs, map<int, Node>& nodes, map<int, Section>& sections, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
 {
 	//Connect
-	//NOTE: Our git repository is private (SSH-only) for now, so just storing the password to the DB here.
-	soci::session sql(soci::postgresql, "host=localhost port=5432 dbname=SimMobility_DB user=postgres password=S!Mm0bility");
+	//Connection string will look something like this:
+	//"host=localhost port=5432 dbname=SimMobility_DB user=postgres password=XXXXX"
+	soci::session sql(soci::postgresql, connectionStr);
 
 	//Load all nodes
-	LoadNodes(sql, nodes);
+	LoadNodes(sql, storedProcs["node"], nodes);
 
 	//Load all sections
-	LoadSections(sql, sections, nodes);
+	LoadSections(sql, storedProcs["section"], sections, nodes);
 
 	//Load all turnings
-	LoadTurnings(sql, turnings, sections);
+	LoadTurnings(sql, storedProcs["turning"], turnings, sections);
 
 	//Load all polylines
-	LoadPolylines(sql, polylines, sections);
+	LoadPolylines(sql, storedProcs["polyline"], polylines, sections);
 }
 
 
@@ -393,7 +394,7 @@ void sim_mob::aimsun::Loader::ProcessSectionPolylines(sim_mob::RoadNetwork& res,
 
 
 
-bool sim_mob::aimsun::Loader::LoadNetwork(sim_mob::RoadNetwork& rn)
+bool sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, map<string, string>& storedProcs, sim_mob::RoadNetwork& rn)
 {
 	//try {
 		//Temporary AIMSUN data structures
@@ -403,7 +404,7 @@ bool sim_mob::aimsun::Loader::LoadNetwork(sim_mob::RoadNetwork& rn)
 		multimap<int, Polyline> polylines;
 
 		//Step One: Load
-		LoadBasicAimsunObjects(nodes, sections, turnings, polylines);
+		LoadBasicAimsunObjects(connectionStr, storedProcs, nodes, sections, turnings, polylines);
 
 		//Step Two: Translate
 		DecorateAndTranslateObjects(nodes, sections, turnings, polylines);

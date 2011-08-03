@@ -10,6 +10,7 @@
 #include "../entities/Region.hpp"
 #include "../entities/roles/Pedestrian.hpp"
 #include "../entities/roles/Driver.hpp"
+#include "../geospatial/aimsun/Loader.hpp"
 
 using std::map;
 using std::string;
@@ -20,34 +21,6 @@ using namespace sim_mob;
 namespace {
 
 
-/**
- * NOTE: LibXML apparently likes to use casting to get from char* to xmlChar* (which is really of
- *       type unsigned char*). This seems wrong; perhaps there is a better way of doing it?
- */
-/*std::string evaluateXPath(xmlXPathContext* xpContext, const std::string& expression)
-{
-	xmlXPathObject* xpObject = xmlXPathEvalExpression((xmlChar*)expression.c_str(), xpContext);
-	if (!xpObject) {
-		return "";
-	}
-
-	//Ensure there's only one attribute result
-	if (xpObject->nodesetval->nodeNr!=1) {
-		xmlXPathFreeObject(xpObject);
-		return "";
-	}
-
-	//Get it.
-	xmlNode* curr = *xpObject->nodesetval->nodeTab;
-
-	//Get its content
-	// TODO: Something tells me curr->children->content isn't the right way to do things with XPath
-	std::string res = (char*)curr->children->content;
-	xmlXPathFreeObject(xpObject);
-	return res;
-}*/
-
-
 
 int getValueInMS(int value, const std::string& units)
 {
@@ -55,11 +28,6 @@ int getValueInMS(int value, const std::string& units)
 	if (units.empty() || (units!="minutes" && units!="seconds" && units!="ms")) {
 		return -1;
 	}
-
-	//Convert to integer.
-	//int value;
-	//std::string units = unitsStr;
-	//std::istringstream(valueStr) >> value;
 
 	//Reduce to ms
     if (units == "minutes") {
@@ -153,7 +121,15 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 }
 
 
-bool loadXMLBoundariesCrossings(TiXmlDocument& document, const string& parentStr, const string& childStr, map<string, Point2D>& result)
+
+bool LoadNetworkFromDB(TiXmlElement& parentElem, string& connectionString, map<string, string>& storedProcedures)
+{
+
+}
+
+
+
+bool LoadXMLBoundariesCrossings(TiXmlDocument& document, const string& parentStr, const string& childStr, map<string, Point2D>& result)
 {
 	//Quick check.
 	if (parentStr!="boundaries" && parentStr!="crossings") {
@@ -219,18 +195,6 @@ bool loadXMLBoundariesCrossings(TiXmlDocument& document, const string& parentStr
 //Returns the error message, or an empty string if no error.
 std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
 {
-	//Ensure we loaded a real document
-	/*if (!document) {
-		return "Couldn't load XML config file.";
-	}*/
-
-	//Create an X-Path evaluation context
-	/*xpContext = xmlXPathNewContext(document);
-	if (!xpContext) {
-		return "Couldn't get an X-Path context.";
-	}*/
-
-
 	//Save granularities: system
 	TiXmlHandle handle(&document);
 	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation");
@@ -245,30 +209,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
 	int granSignal = ReadGranularity(handle, "signal");
 	int granPaths = ReadGranularity(handle, "paths");
 	int granDecomp = ReadGranularity(handle, "decomp");
-
-    //Perform a series of XPath evaluations
-	/*int baseGran = getValueInMS(
-			evaluateXPath(xpContext, "/config/system/simulation/base_granularity/@value"),
-			evaluateXPath(xpContext, "/config/system/simulation/base_granularity/@units"));
-	int totalRuntime = getValueInMS(
-			evaluateXPath(xpContext, "/config/system/simulation/total_runtime/@value"),
-			evaluateXPath(xpContext, "/config/system/simulation/total_runtime/@units"));
-	int totalWarmup = getValueInMS(
-			evaluateXPath(xpContext, "/config/system/simulation/total_warmup/@value"),
-			evaluateXPath(xpContext, "/config/system/simulation/total_warmup/@units"));
-	int granAgent = getValueInMS(
-			evaluateXPath(xpContext, "/config/system/granularities/agent/@value"),
-			evaluateXPath(xpContext, "/config/system/granularities/agent/@units"));
-	int granSignal = getValueInMS(
-			evaluateXPath(xpContext, "/config/system/granularities/signal/@value"),
-			evaluateXPath(xpContext, "/config/system/granularities/signal/@units"));
-	int granPaths = getValueInMS(
-			evaluateXPath(xpContext, "/config/system/granularities/paths/@value"),
-			evaluateXPath(xpContext, "/config/system/granularities/paths/@units"));
-	int granDecomp = getValueInMS(
-			evaluateXPath(xpContext, "/config/system/granularities/decomp/@value"),
-			evaluateXPath(xpContext, "/config/system/granularities/decomp/@units"));*/
-
 
 	//Check
     if(    baseGran==-1 || totalRuntime==-1 || totalWarmup==-1
@@ -310,21 +250,42 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     handle = TiXmlHandle(&document);
     TiXmlElement* geomElem = handle.FirstChild("config").FirstChild("geometry").ToElement();
     if (geomElem) {
-    	string geomType = geomElem->Attribute("type");
-    	if (geomType == "simple") {
+    	const char* geomType = geomElem->Attribute("type");
+    	if (geomType && string(geomType) == "simple") {
     		//Load boundaries
-    		if (!loadXMLBoundariesCrossings(document, "boundaries", "boundary", ConfigParams::GetInstance().boundaries)) {
+    		if (!LoadXMLBoundariesCrossings(document, "boundaries", "boundary", ConfigParams::GetInstance().boundaries)) {
     			return "Couldn't load boundaries";
     		}
 
     		//Load crossings
-    		if (!loadXMLBoundariesCrossings(document, "crossings", "crossing", ConfigParams::GetInstance().crossings)) {
+    		if (!LoadXMLBoundariesCrossings(document, "crossings", "crossing", ConfigParams::GetInstance().crossings)) {
     			return "Couldn't load crossings";
     		}
-    	} else if (geomType == "aimsun") {
-    		//TODO: Load AIMSUN network
+    	} else if (geomType && string(geomType) == "aimsun") {
+    		//Ensure we're loading from a database
+    		const char* geomSrc = geomElem->Attribute("source");
+    		if (!geomSrc || "database" != string(geomSrc)) {
+    			return "Unknown geometry source: " + (geomSrc?string(geomSrc):"");
+    		}
+
+    		//Load the AIMSUM network details
+    		map<string, string> storedProcedures; //Of the form "node" -> "get_node()"
+    		if (!LoadNetworkFromDB(*geomElem, ConfigParams::GetInstance().connectionString, storedProcedures)) {
+    			return "Unable to load database connection settings.";
+    		}
+
+    		//Confirm that all stored procedures have been set.
+    		if (
+    			   storedProcedures.count("node")==0 || storedProcedures.count("section")==0
+    			|| storedProcedures.count("turning")==0 || storedProcedures.count("polyline")==0
+    		) {
+    			return "Not all stored procedures were specified.";
+    		}
+
+    		//Actually load it
+    		sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().network);
     	} else {
-    		return "Unknown geometry type: " + geomType;
+    		return "Unknown geometry type: " + (geomType?string(geomType):"");
     	}
     }
 
@@ -406,15 +367,6 @@ bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<A
 		return false;
 	}
 
-	//Load an XML document containing our config file.
-	/*document = xmlParseFile(configPath.c_str());
-	std::string errorMsg = loadXMLConf(document, xpContext, agents);
-	if (errorMsg.empty()) {
-		std::cout <<"XML config file loaded." <<std::endl;
-	} else {
-		std::cout <<"Aborting on Config Error: " <<errorMsg <<std::endl;
-	}*/
-
 	//Parse it
 	string errorMsg = loadXMLConf(doc, agents);
 	if (errorMsg.empty()) {
@@ -422,15 +374,6 @@ bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<A
 	} else {
 		std::cout <<"Aborting on Config Error: " <<errorMsg <<std::endl;
 	}
-
-	//Clean up data
-	/*if (document) {
-		xmlFreeDoc(document);
-	}
-	if (xpContext) {
-		xmlXPathFreeContext(xpContext);
-	}*/
-
 
 	//TEMP:
 	for (size_t i=0; i<5; i++)

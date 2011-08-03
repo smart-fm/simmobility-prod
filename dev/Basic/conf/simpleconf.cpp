@@ -200,8 +200,8 @@ bool loadXMLBoundariesCrossings(xmlXPathContext* xpContext, const string& expres
 
 	//Move through results
 	result.clear();
-	for (xmlNode** it=xpObject->nodesetval->nodeTab; *it; it++) {
-		xmlNode* curr = *it;
+	for (int i = 0; i < xpObject->nodesetval->nodeNr; ++i) {
+		xmlNode* curr = xpObject->nodesetval->nodeTab[i];
 		string key;
 		Point2D val;
 		unsigned int flagCheck = 0;
@@ -239,7 +239,6 @@ bool loadXMLBoundariesCrossings(xmlXPathContext* xpContext, const string& expres
 		//Save it.
 		result[key] = val;
 	}
-
 
 
 

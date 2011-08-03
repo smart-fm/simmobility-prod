@@ -230,6 +230,14 @@ bool LoadXMLBoundariesCrossings(TiXmlDocument& document, const string& parentStr
 }
 
 
+
+void PrintDB_Network()
+{
+	std::cout <<" TODO: Print network\n";
+}
+
+
+
 //Returns the error message, or an empty string if no error.
 std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
 {
@@ -325,6 +333,16 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     		if (!dbErrorMsg.empty()) {
     			return "Database loading error: " + dbErrorMsg;
     		}
+
+    		//Finally, mask the password
+    		string& s = ConfigParams::GetInstance().connectionString;
+    		size_t check = s.find("password=");
+    		if (check!=string::npos) {
+    			size_t start = s.find("=", check) + 1;
+    			size_t end = s.find(" ", start);
+    			size_t amt = ((end==string::npos) ? s.size() : end) - start;
+    			s = s.replace(start, amt, amt, '*');
+    		}
     	} else {
     		return "Unknown geometry type: " + (geomType?string(geomType):"");
     	}
@@ -363,7 +381,12 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
 			std::cout <<"    Crossing[" <<it->first <<"] = (" <<it->second.xPos <<"," <<it->second.yPos <<")\n";
 		}
     }
-    //TODO: Output AIMSUN network.
+    if (!ConfigParams::GetInstance().connectionString.empty()) {
+    	//Output AIMSUN data
+    	std::cout <<"Network details loaded from connection: " <<ConfigParams::GetInstance().connectionString <<"\n";
+    	PrintDB_Network();
+    	std::cout <<"------------------\n";
+    }
     std::cout <<"  Agents Initialized: " <<agents.size() <<"\n";
     for (size_t i=0; i<agents.size(); i++) {
     	std::cout <<"    Agent(" <<agents[i]->getId() <<") = " <<agents[i]->xPos.get() <<"," <<agents[i]->yPos.get() <<"\n";
@@ -374,7 +397,9 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
 	return "";
 }
 
-}
+
+
+} //End anon namespace
 
 
 

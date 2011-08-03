@@ -122,9 +122,47 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 
 
 
-bool LoadNetworkFromDB(TiXmlElement& parentElem, string& connectionString, map<string, string>& storedProcedures)
+bool LoadDatabaseDetails(TiXmlElement& parentElem, string& connectionString, map<string, string>& storedProcedures)
 {
+	TiXmlHandle handle(&parentElem);
+	TiXmlElement* elem = handle.FirstChild("connection").FirstChild("param").ToElement();
+	if (!elem) {
+		return false;
+	}
 
+	//Loop through each parameter; add it to the connection string
+	for (;elem;elem=elem->NextSiblingElement()) {
+		const char* name = elem->Attribute("name");
+		const char* value = elem->Attribute("value");
+		if (!name || !value) {
+			return false;
+		}
+		string pair = (connectionString.empty()?"":" ") + string(name) + "=" + string(value);
+		connectionString += pair;
+	}
+
+	//Now, load the stored procedure mappings
+	elem = handle.FirstChild("mappings").FirstChild().ToElement();
+	if (!elem) {
+		return false;
+	}
+
+	//Loop through and add them.
+	for (;elem;elem=elem->NextSiblingElement()) {
+		string name = elem->ValueStr();
+		const char* value = elem->Attribute("procedure");
+		if (!value) {
+			return false;
+		}
+		if (storedProcedures.count(name)!=0) {
+			return false;
+		}
+
+		storedProcedures[name] = string(value);
+	}
+
+	//Done; we'll check the storedProcedures in detail later.
+	return !connectionString.empty() && storedProcedures.size()==4;
 }
 
 
@@ -270,7 +308,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
 
     		//Load the AIMSUM network details
     		map<string, string> storedProcedures; //Of the form "node" -> "get_node()"
-    		if (!LoadNetworkFromDB(*geomElem, ConfigParams::GetInstance().connectionString, storedProcedures)) {
+    		if (!LoadDatabaseDetails(*geomElem, ConfigParams::GetInstance().connectionString, storedProcedures)) {
     			return "Unable to load database connection settings.";
     		}
 
@@ -283,7 +321,10 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     		}
 
     		//Actually load it
-    		sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().network);
+    		string dbErrorMsg = sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().network);
+    		if (!dbErrorMsg.empty()) {
+    			return "Database loading error: " + dbErrorMsg;
+    		}
     	} else {
     		return "Unknown geometry type: " + (geomType?string(geomType):"");
     	}

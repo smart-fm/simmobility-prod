@@ -394,9 +394,9 @@ void sim_mob::aimsun::Loader::ProcessSectionPolylines(sim_mob::RoadNetwork& res,
 
 
 
-bool sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, map<string, string>& storedProcs, sim_mob::RoadNetwork& rn)
+string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, map<string, string>& storedProcs, sim_mob::RoadNetwork& rn)
 {
-	//try {
+	try {
 		//Temporary AIMSUN data structures
 		map<int, Node> nodes;
 		map<int, Section> sections;
@@ -414,17 +414,11 @@ bool sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, map<strin
 
 
 
-	/*} catch (std::exception& ex) {
-		//TODO: We can provide ex.what() (the message) to the developer once
-		//      we decide if our library will throw exceptions, use error codes,
-		//      return pair<bool, string>, etc.
-		std::cout <<"Error: " <<ex.what() <<std::endl;
-
-		return false;
-	}*/
+	} catch (std::exception& ex) {
+		return string(ex.what());
+	}
 
 	std::cout <<"AIMSUN Network successfully imported.\n";
-
-	return true;
+	return "";
 }
 

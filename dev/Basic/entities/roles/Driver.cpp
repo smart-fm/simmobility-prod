@@ -9,7 +9,6 @@
 
 
 #include "Driver.hpp"
-#include "../entities/Signal.hpp"
 #include <math.h>
 
 using namespace sim_mob;

@@ -6,9 +6,9 @@
 #include <math.h>
 
 #include "Role.hpp"
-#include "../geospatial/Point2D.hpp"
+#include "../../geospatial/Point2D.hpp"
 
-#include "../conf/simpleconf.hpp"
+#include "../../conf/simpleconf.hpp"
 
 namespace sim_mob
 {

@@ -5,10 +5,12 @@
 #include <limits>
 
 #include "Role.hpp"
-#include "../entities/Signal.hpp"
+#include "../Signal.hpp"
+
 
 namespace sim_mob
 {
+
 
 enum LANE_SIDE {
 	LSIDE_LEFT = 1,

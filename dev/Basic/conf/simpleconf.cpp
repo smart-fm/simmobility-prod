@@ -2,12 +2,14 @@
 
 #include "simpleconf.hpp"
 
+#include <tinyxml.h>
+
 //Include here (forward-declared earlier) to avoid include-cycles.
 #include "../entities/Agent.hpp"
 #include "../entities/Person.hpp"
 #include "../entities/Region.hpp"
-#include "../roles/Pedestrian.hpp"
-#include "../roles/Driver.hpp"
+#include "../entities/roles/Pedestrian.hpp"
+#include "../entities/roles/Driver.hpp"
 
 using std::map;
 using std::string;
@@ -143,60 +145,6 @@ bool loadXMLAgents(xmlXPathContext* xpContext, std::vector<Agent*>& agents, cons
 	xmlXPathFreeObject(xpObject);
 	return true;
 }
-
-/*bool loadXMLDrivers(xmlXPathContext* xpContext, std::vector<Agent*>& agents)
-{
-	std::string expression = "/config/drivers/driver";
-	xmlXPathObject* xpObject = xmlXPathEvalExpression((xmlChar*)expression.c_str(), xpContext);
-	if (!xpObject) {
-		return false;
-	}
-
-	//Move through results
-	for (int i = 0; i < xpObject->nodesetval->nodeNr; ++i) {
-		xmlNode* curr = xpObject->nodesetval->nodeTab[i];
-		Person* agent = nullptr;
-		unsigned int flagCheck = 0;
-		for (xmlAttr* attrs=curr->properties; attrs; attrs=attrs->next) {
-			//Read each attribute.
-			std::string name = (char*)attrs->name;
-			std::string value = (char*)attrs->children->content;
-			if (name.empty() || value.empty()) {
-				return false;
-			}
-			int valueI;
-			std::istringstream(value) >> valueI;
-
-			//Assign it.
-			if (name=="id") {
-				agent = new Person(valueI);
-				agent->changeRole(new Driver(agent));
-				flagCheck |= 1;
-			} else if (name=="xPos") {
-				agent->xPos.force(valueI);
-				flagCheck |= 2;
-			} else if (name=="yPos") {
-				agent->yPos.force(valueI);
-				flagCheck |= 4;
-			} else {
-				return false;
-			}
-		}
-
-		if (flagCheck!=7) {
-			return false;
-		}
-
-
-		//Save it.
-		agents.push_back(agent);
-	}
-
-
-	xmlXPathFreeObject(xpObject);
-	return true;
-}*/
-
 
 
 bool loadXMLBoundariesCrossings(xmlXPathContext* xpContext, const string& expression, map<string, Point2D>& result)

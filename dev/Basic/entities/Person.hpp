@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "Agent.hpp"
-#include "../roles/Role.hpp"
+#include "roles/Role.hpp"
 
 namespace sim_mob
 {

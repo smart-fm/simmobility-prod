@@ -24,7 +24,7 @@ namespace {
  * NOTE: LibXML apparently likes to use casting to get from char* to xmlChar* (which is really of
  *       type unsigned char*). This seems wrong; perhaps there is a better way of doing it?
  */
-std::string evaluateXPath(xmlXPathContext* xpContext, const std::string& expression)
+/*std::string evaluateXPath(xmlXPathContext* xpContext, const std::string& expression)
 {
 	xmlXPathObject* xpObject = xmlXPathEvalExpression((xmlChar*)expression.c_str(), xpContext);
 	if (!xpObject) {
@@ -45,43 +45,52 @@ std::string evaluateXPath(xmlXPathContext* xpContext, const std::string& express
 	std::string res = (char*)curr->children->content;
 	xmlXPathFreeObject(xpObject);
 	return res;
-}
+}*/
 
 
 
-int getValueInMS(const std::string& valueStr, const std::string& unitsStr)
+int getValueInMS(int value, const std::string& units)
 {
 	//Detect errors
-	if (valueStr.empty() || unitsStr.empty()) {
+	if (units.empty() || (units!="minutes" && units!="seconds" && units!="ms")) {
 		return -1;
 	}
 
 	//Convert to integer.
-	int value;
-	std::string units = unitsStr;
-	std::istringstream(valueStr) >> value;
+	//int value;
+	//std::string units = unitsStr;
+	//std::istringstream(valueStr) >> value;
 
 	//Reduce to ms
     if (units == "minutes") {
-    	value *= 60;
-    	units = "seconds";
+    	value *= 60*1000;
     }
     if (units == "seconds") {
     	value *= 1000;
-    	units = "ms";
-    }
-
-    //Final check
-    if (units != "ms") {
-    	return -1;
     }
 
     return value;
 }
 
 
+int ReadGranularity(TiXmlHandle& handle, const std::string& granName)
+{
+	TiXmlElement* node = handle.FirstChild(granName).ToElement();
+	if (!node) {
+		return -1;
+	}
 
-bool loadXMLAgents(xmlXPathContext* xpContext, std::vector<Agent*>& agents, const std::string& agentType)
+	int value;
+	const char* units = node->Attribute("units");
+	if (!node->Attribute("value", &value) || !units) {
+		return -1;
+	}
+
+	return getValueInMS(value, units);
+}
+
+
+bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const std::string& agentType)
 {
 	//Quick check.
 	if (agentType!="pedestrian" && agentType!="driver") {
@@ -89,21 +98,22 @@ bool loadXMLAgents(xmlXPathContext* xpContext, std::vector<Agent*>& agents, cons
 	}
 
 	//Build the expression dynamically.
-	std::string expression = "/config/" + agentType + "s/" + agentType;
-	xmlXPathObject* xpObject = xmlXPathEvalExpression((xmlChar*)expression.c_str(), xpContext);
-	if (!xpObject) {
-		return false;
+	TiXmlHandle handle(&document);
+	TiXmlElement* node = handle.FirstChild("config").FirstChild(agentType+"s").FirstChild(agentType).ToElement();
+	if (!node) {
+		//Agents are optional
+		return true;
 	}
 
-	//Move through results
-	for (int i = 0; i < xpObject->nodesetval->nodeNr; ++i) {
-		xmlNode* curr = xpObject->nodesetval->nodeTab[i];
+	//Loop through all agents of this type
+	for (;node;node=node->NextSiblingElement()) {
+		//xmlNode* curr = xpObject->nodesetval->nodeTab[i];
 		Person* agent = nullptr;
 		unsigned int flagCheck = 0;
-		for (xmlAttr* attrs=curr->properties; attrs; attrs=attrs->next) {
+		for (TiXmlAttribute* attr=node->FirstAttribute(); attr; attr=attr->Next()) {
 			//Read each attribute.
-			std::string name = (char*)attrs->name;
-			std::string value = (char*)attrs->children->content;
+			std::string name = attr->NameTStr();
+			std::string value = attr->ValueStr();
 			if (name.empty() || value.empty()) {
 				return false;
 			}
@@ -139,31 +149,38 @@ bool loadXMLAgents(xmlXPathContext* xpContext, std::vector<Agent*>& agents, cons
 		agents.push_back(agent);
 	}
 
-
-
-
-	xmlXPathFreeObject(xpObject);
 	return true;
 }
 
 
-bool loadXMLBoundariesCrossings(xmlXPathContext* xpContext, const string& expression, map<string, Point2D>& result)
+bool loadXMLBoundariesCrossings(TiXmlDocument& document, const string& parentStr, const string& childStr, map<string, Point2D>& result)
 {
-	xmlXPathObject* xpObject = xmlXPathEvalExpression((xmlChar*)expression.c_str(), xpContext);
-	if (!xpObject) {
+	//Quick check.
+	if (parentStr!="boundaries" && parentStr!="crossings") {
+		return false;
+	}
+	if (childStr!="boundary" && childStr!="crossing") {
 		return false;
 	}
 
+	//Build the expression dynamically.
+	TiXmlHandle handle(&document);
+	TiXmlElement* node = handle.FirstChild("config").FirstChild(parentStr).FirstChild(childStr).ToElement();
+	if (!node) {
+		//Boundaries/crossings are optional
+		return true;
+	}
+
 	//Move through results
-	for (int i = 0; i < xpObject->nodesetval->nodeNr; ++i) {
-		xmlNode* curr = xpObject->nodesetval->nodeTab[i];
+	for (;node; node=node->NextSiblingElement()) {
+		//xmlNode* curr = xpObject->nodesetval->nodeTab[i];
 		string key;
 		Point2D val;
 		unsigned int flagCheck = 0;
-		for (xmlAttr* attrs=curr->properties; attrs; attrs=attrs->next) {
+		for (TiXmlAttribute* attr=node->FirstAttribute(); attr; attr=attr->Next()) {
 			//Read each attribute.
-			std::string name = (char*)attrs->name;
-			std::string value = (char*)attrs->children->content;
+			std::string name = attr->NameTStr();
+			std::string value = attr->ValueStr();
 			if (name.empty() || value.empty()) {
 				return false;
 			}
@@ -195,29 +212,42 @@ bool loadXMLBoundariesCrossings(xmlXPathContext* xpContext, const string& expres
 		result[key] = val;
 	}
 
-
-
-	xmlXPathFreeObject(xpObject);
 	return true;
 }
 
 
-
-std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vector<Agent*>& agents)
+//Returns the error message, or an empty string if no error.
+std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
 {
 	//Ensure we loaded a real document
-	if (!document) {
+	/*if (!document) {
 		return "Couldn't load XML config file.";
-	}
+	}*/
 
 	//Create an X-Path evaluation context
-	xpContext = xmlXPathNewContext(document);
+	/*xpContext = xmlXPathNewContext(document);
 	if (!xpContext) {
 		return "Couldn't get an X-Path context.";
-	}
+	}*/
+
+
+	//Save granularities: system
+	TiXmlHandle handle(&document);
+	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation");
+	int baseGran = ReadGranularity(handle, "base_granularity");
+	int totalRuntime = ReadGranularity(handle, "total_runtime");
+	int totalWarmup = ReadGranularity(handle, "total_warmup");
+
+	//Save more granularities
+	handle = TiXmlHandle(&document);
+	handle = handle.FirstChild("config").FirstChild("system").FirstChild("granularities");
+	int granAgent = ReadGranularity(handle, "agent");
+	int granSignal = ReadGranularity(handle, "signal");
+	int granPaths = ReadGranularity(handle, "paths");
+	int granDecomp = ReadGranularity(handle, "decomp");
 
     //Perform a series of XPath evaluations
-	int baseGran = getValueInMS(
+	/*int baseGran = getValueInMS(
 			evaluateXPath(xpContext, "/config/system/simulation/base_granularity/@value"),
 			evaluateXPath(xpContext, "/config/system/simulation/base_granularity/@units"));
 	int totalRuntime = getValueInMS(
@@ -237,7 +267,7 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vecto
 			evaluateXPath(xpContext, "/config/system/granularities/paths/@units"));
 	int granDecomp = getValueInMS(
 			evaluateXPath(xpContext, "/config/system/granularities/decomp/@value"),
-			evaluateXPath(xpContext, "/config/system/granularities/decomp/@units"));
+			evaluateXPath(xpContext, "/config/system/granularities/decomp/@units"));*/
 
 
 	//Check
@@ -268,22 +298,36 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vecto
 
     //Load ALL agents: drivers and pedestrians.
     //  (Note: Use separate config files if you just want to test one kind of agent.)
-    if (!loadXMLAgents(xpContext, agents, "pedestrian")) {
+    if (!loadXMLAgents(document, agents, "pedestrian")) {
     	return "Couldn't load pedestrians";
     }
-    if (!loadXMLAgents(xpContext, agents, "driver")) {
+    if (!loadXMLAgents(document, agents, "driver")) {
     	return	 "Couldn't load drivers";
     }
 
-    //Load boundaries
-    if (!loadXMLBoundariesCrossings(xpContext, "/config/boundaries/boundary", ConfigParams::GetInstance().boundaries)) {
-    	return "Couldn't load boundaries";
+
+    //Check the type of geometry
+    handle = TiXmlHandle(&document);
+    TiXmlElement* geomElem = handle.FirstChild("config").FirstChild("geometry").ToElement();
+    if (geomElem) {
+    	string geomType = geomElem->Attribute("type");
+    	if (geomType == "simple") {
+    		//Load boundaries
+    		if (!loadXMLBoundariesCrossings(document, "boundaries", "boundary", ConfigParams::GetInstance().boundaries)) {
+    			return "Couldn't load boundaries";
+    		}
+
+    		//Load crossings
+    		if (!loadXMLBoundariesCrossings(document, "crossings", "crossing", ConfigParams::GetInstance().crossings)) {
+    			return "Couldn't load crossings";
+    		}
+    	} else if (geomType == "aimsun") {
+    		//TODO: Load AIMSUN network
+    	} else {
+    		return "Unknown geometry type: " + geomType;
+    	}
     }
 
-    //Load crossings
-    if (!loadXMLBoundariesCrossings(xpContext, "/config/crossings/crossing", ConfigParams::GetInstance().crossings)) {
-    	return "Couldn't load crossings";
-    }
 
     //Save
     {
@@ -307,14 +351,17 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vecto
     std::cout <<"  Signal Granularity: " <<ConfigParams::GetInstance().granSignalsTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Paths Granularity: " <<ConfigParams::GetInstance().granPathsTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Decomp Granularity: " <<ConfigParams::GetInstance().granDecompTicks <<" " <<"ticks" <<"\n";
-    std::cout <<"  Boundaries Found: " <<ConfigParams::GetInstance().boundaries.size() <<"\n";
-    for (map<string, Point2D>::iterator it=ConfigParams::GetInstance().boundaries.begin(); it!=ConfigParams::GetInstance().boundaries.end(); it++) {
-    	std::cout <<"    Boundary[" <<it->first <<"] = (" <<it->second.xPos <<"," <<it->second.yPos <<")\n";
+    if (!ConfigParams::GetInstance().boundaries.empty() || !ConfigParams::GetInstance().crossings.empty()) {
+    	std::cout <<"  Boundaries Found: " <<ConfigParams::GetInstance().boundaries.size() <<"\n";
+		for (map<string, Point2D>::iterator it=ConfigParams::GetInstance().boundaries.begin(); it!=ConfigParams::GetInstance().boundaries.end(); it++) {
+			std::cout <<"    Boundary[" <<it->first <<"] = (" <<it->second.xPos <<"," <<it->second.yPos <<")\n";
+		}
+		std::cout <<"  Crossings Found: " <<ConfigParams::GetInstance().crossings.size() <<"\n";
+		for (map<string, Point2D>::iterator it=ConfigParams::GetInstance().crossings.begin(); it!=ConfigParams::GetInstance().crossings.end(); it++) {
+			std::cout <<"    Crossing[" <<it->first <<"] = (" <<it->second.xPos <<"," <<it->second.yPos <<")\n";
+		}
     }
-    std::cout <<"  Crossings Found: " <<ConfigParams::GetInstance().crossings.size() <<"\n";
-    for (map<string, Point2D>::iterator it=ConfigParams::GetInstance().crossings.begin(); it!=ConfigParams::GetInstance().crossings.end(); it++) {
-    	std::cout <<"    Crossing[" <<it->first <<"] = (" <<it->second.xPos <<"," <<it->second.yPos <<")\n";
-    }
+    //TODO: Output AIMSUN network.
     std::cout <<"  Agents Initialized: " <<agents.size() <<"\n";
     for (size_t i=0; i<agents.size(); i++) {
     	std::cout <<"    Agent(" <<agents[i]->getId() <<") = " <<agents[i]->xPos.get() <<"," <<agents[i]->yPos.get() <<"\n";
@@ -352,14 +399,24 @@ bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<A
 		          std::vector<TripChain*>& trips, std::vector<ChoiceSet*>& chSets,
 		          std::vector<Vehicle*>& vehicles)
 {
-	//Data
-	xmlDoc* document = nullptr;
-	xmlXPathContext* xpContext = nullptr;
-
+	//Load our config file into an XML document object.
+	TiXmlDocument doc(configPath);
+	if (!doc.LoadFile()) {
+		std::cout <<"Error loading config file: " <<doc.ErrorDesc() <<std::endl;
+		return false;
+	}
 
 	//Load an XML document containing our config file.
-	document = xmlParseFile(configPath.c_str());
+	/*document = xmlParseFile(configPath.c_str());
 	std::string errorMsg = loadXMLConf(document, xpContext, agents);
+	if (errorMsg.empty()) {
+		std::cout <<"XML config file loaded." <<std::endl;
+	} else {
+		std::cout <<"Aborting on Config Error: " <<errorMsg <<std::endl;
+	}*/
+
+	//Parse it
+	string errorMsg = loadXMLConf(doc, agents);
 	if (errorMsg.empty()) {
 		std::cout <<"XML config file loaded." <<std::endl;
 	} else {
@@ -367,12 +424,12 @@ bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<A
 	}
 
 	//Clean up data
-	if (document) {
+	/*if (document) {
 		xmlFreeDoc(document);
 	}
 	if (xpContext) {
 		xmlXPathFreeContext(xpContext);
-	}
+	}*/
 
 
 	//TEMP:

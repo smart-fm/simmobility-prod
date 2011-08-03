@@ -90,7 +90,7 @@ void signal_status_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNum
  *
  * This function is separate from main() to allow for easy scoping of WorkGroup objects.
  */
-bool performMain()
+bool performMain(const std::string& configFileName)
 {
   //Initialization: Scenario definition
   vector<Agent*>& agents = Agent::all_agents;
@@ -100,7 +100,7 @@ bool performMain()
   vector<Vehicle*> vehicles;
 
   //Load our user config file; save a handle to the shared definition of it.
-  if (!ConfigParams::InitUserConf(agents, regions, trips, choiceSets, vehicles)) {   //Note: Agent "shells" are loaded here.
+  if (!ConfigParams::InitUserConf(configFileName, agents, regions, trips, choiceSets, vehicles)) {   //Note: Agent "shells" are loaded here.
 	  return false;
   }
   const ConfigParams& config = ConfigParams::GetInstance();
@@ -225,6 +225,9 @@ bool performMain()
   }
 
   cout <<"Simulation complete; closing worker threads." <<endl;
+  if (Agent::all_agents.empty()) {
+	  cout <<"NOTE: No agents were processed." <<endl;
+  }
   return true;
 }
 
@@ -232,25 +235,24 @@ bool performMain()
 
 int main(int argc, char* argv[])
 {
-  //This should be moved later, but we'll likely need to manage random numbers
-  //ourselves anyway, to make simulations as repeatable as possible.
-  time_t t = time(NULL);
-  srand (t);
-  cout <<"Random Seed Init: " <<t <<endl;
+	//Argument 1: Config file
+	std::string configFileName = "data/config.xml";
+	if (argc>1) {
+		configFileName = argv[1];
+	} else {
+		cout <<"No config file specified; using default." <<endl;
+	}
+	cout <<"Using config file: " <<configFileName <<endl;
 
+	//This should be moved later, but we'll likely need to manage random numbers
+	//ourselves anyway, to make simulations as repeatable as possible.
+	time_t t = time(NULL);
+	srand (t);
+	cout <<"Random Seed Init: " <<t <<endl;
 
-  //TEMP
-  //RoadNetwork rn;
-  //aimsun::Loader::LoadNetwork(rn);
-  //return 1;
-  //END TEMP
-
-
-  int returnVal = performMain() ? 0 : 1;
-
-  cout <<"Done" <<endl;
-
-  return returnVal;
+	int returnVal = performMain(configFileName) ? 0 : 1;
+	cout <<"Done" <<endl;
+	return returnVal;
 }
 
 

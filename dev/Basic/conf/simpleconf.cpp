@@ -79,16 +79,21 @@ int getValueInMS(const std::string& valueStr, const std::string& unitsStr)
 
 
 
-bool loadXMLPedestrians(xmlXPathContext* xpContext, std::vector<Agent*>& agents)
+bool loadXMLAgents(xmlXPathContext* xpContext, std::vector<Agent*>& agents, const std::string& agentType)
 {
-	std::string expression = "/config/pedestrians/pedestrian";
+	//Quick check.
+	if (agentType!="pedestrian" && agentType!="driver") {
+		return false;
+	}
+
+	//Build the expression dynamically.
+	std::string expression = "/config/" + agentType + "s/" + agentType;
 	xmlXPathObject* xpObject = xmlXPathEvalExpression((xmlChar*)expression.c_str(), xpContext);
 	if (!xpObject) {
 		return false;
 	}
 
 	//Move through results
-	agents.clear();
 	for (int i = 0; i < xpObject->nodesetval->nodeNr; ++i) {
 		xmlNode* curr = xpObject->nodesetval->nodeTab[i];
 		Person* agent = nullptr;
@@ -106,7 +111,11 @@ bool loadXMLPedestrians(xmlXPathContext* xpContext, std::vector<Agent*>& agents)
 			//Assign it.
 			if (name=="id") {
 				agent = new Person(valueI);
-				agent->changeRole(new Pedestrian(agent));
+				if (agentType=="pedestrian") {
+					agent->changeRole(new Pedestrian(agent));
+				} else if (agentType=="driver") {
+					agent->changeRole(new Driver(agent));
+				}
 				flagCheck |= 1;
 			} else if (name=="xPos") {
 				agent->xPos.force(valueI);
@@ -135,7 +144,7 @@ bool loadXMLPedestrians(xmlXPathContext* xpContext, std::vector<Agent*>& agents)
 	return true;
 }
 
-bool loadXMLDrivers(xmlXPathContext* xpContext, std::vector<Agent*>& agents)
+/*bool loadXMLDrivers(xmlXPathContext* xpContext, std::vector<Agent*>& agents)
 {
 	std::string expression = "/config/drivers/driver";
 	xmlXPathObject* xpObject = xmlXPathEvalExpression((xmlChar*)expression.c_str(), xpContext);
@@ -144,7 +153,6 @@ bool loadXMLDrivers(xmlXPathContext* xpContext, std::vector<Agent*>& agents)
 	}
 
 	//Move through results
-	agents.clear();
 	for (int i = 0; i < xpObject->nodesetval->nodeNr; ++i) {
 		xmlNode* curr = xpObject->nodesetval->nodeTab[i];
 		Person* agent = nullptr;
@@ -187,7 +195,7 @@ bool loadXMLDrivers(xmlXPathContext* xpContext, std::vector<Agent*>& agents)
 
 	xmlXPathFreeObject(xpObject);
 	return true;
-}
+}*/
 
 
 
@@ -199,7 +207,6 @@ bool loadXMLBoundariesCrossings(xmlXPathContext* xpContext, const string& expres
 	}
 
 	//Move through results
-	result.clear();
 	for (int i = 0; i < xpObject->nodesetval->nodeNr; ++i) {
 		xmlNode* curr = xpObject->nodesetval->nodeTab[i];
 		string key;
@@ -311,16 +318,14 @@ std::string loadXMLConf(xmlDoc* document, xmlXPathContext* xpContext, std::vecto
     	std::cout <<"  Warning! Total Warmup will be truncated.\n";
     }
 
-    //Load agents
-    //if (!loadXMLPedestrians(xpContext, agents)) {
-    //	return "Couldn't load agents";
-    //}
-
-
-    if (!loadXMLDrivers(xpContext, agents)) {
-    	return	 "Couldn't load agents";
+    //Load ALL agents: drivers and pedestrians.
+    //  (Note: Use separate config files if you just want to test one kind of agent.)
+    if (!loadXMLAgents(xpContext, agents, "pedestrian")) {
+    	return "Couldn't load pedestrians";
     }
-
+    if (!loadXMLAgents(xpContext, agents, "driver")) {
+    	return	 "Couldn't load drivers";
+    }
 
     //Load boundaries
     if (!loadXMLBoundariesCrossings(xpContext, "/config/boundaries/boundary", ConfigParams::GetInstance().boundaries)) {
@@ -395,7 +400,7 @@ ConfigParams& sim_mob::ConfigParams::GetInstance() {
 // Main external method
 //////////////////////////////////////////
 
-bool sim_mob::ConfigParams::InitUserConf(std::vector<Agent*>& agents, std::vector<Region*>& regions,
+bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Agent*>& agents, std::vector<Region*>& regions,
 		          std::vector<TripChain*>& trips, std::vector<ChoiceSet*>& chSets,
 		          std::vector<Vehicle*>& vehicles)
 {
@@ -405,12 +410,12 @@ bool sim_mob::ConfigParams::InitUserConf(std::vector<Agent*>& agents, std::vecto
 
 
 	//Load an XML document containing our config file.
-	document = xmlParseFile("data/config.xml");
+	document = xmlParseFile(configPath.c_str());
 	std::string errorMsg = loadXMLConf(document, xpContext, agents);
 	if (errorMsg.empty()) {
 		std::cout <<"XML config file loaded." <<std::endl;
 	} else {
-		std::cout <<"Error: " <<errorMsg <<std::endl;
+		std::cout <<"Aborting on Config Error: " <<errorMsg <<std::endl;
 	}
 
 	//Clean up data
@@ -431,7 +436,9 @@ bool sim_mob::ConfigParams::InitUserConf(std::vector<Agent*>& agents, std::vecto
 		chSets.push_back(new ChoiceSet(i));
 	for (size_t i=0; i<10; i++)
 		vehicles.push_back(new Vehicle(i));
-	std::cout <<"Configuration complete." <<std::endl;
+	if (errorMsg.empty()) {
+		std::cout <<"Configuration complete." <<std::endl;
+	}
 
 
 	return errorMsg.empty();

@@ -244,7 +244,10 @@ void PrintDB_Network()
 	//Start by printing nodes.
 	RoadNetwork& rn = ConfigParams::GetInstance().network;
 	for (vector<Node*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
+		std::streamsize oldSz = std::cout.precision();
+		std::cout.precision(10);
 		std::cout <<"Node: " <<(*it)->xPos <<"," <<(*it)->yPos <<"\n";
+		std::cout.precision(oldSz);
 
 		//Now print all lane connectors at this node
 		vector<LaneConnector*> connectors = (*it)->getConnectors(nullptr);
@@ -275,7 +278,10 @@ void PrintDB_Network()
 		if (!seg->polyline.empty()) {
 			std::cout <<"    Polyline: ";
 			for (vector<Point2D>::const_iterator it=seg->polyline.begin(); it!=seg->polyline.end(); it++) {
+				std::streamsize oldSz = std::cout.precision();
+				std::cout.precision(10);
 				std::cout <<"(" <<it->xPos <<"," <<it->yPos <<") ";
+				std::cout.precision(oldSz);
 			}
 			std::cout <<"\n";
 		}

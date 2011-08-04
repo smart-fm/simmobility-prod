@@ -98,11 +98,12 @@ public:
         /**
          * Return true if vehicles can move to the adjacent lane on the left.
          *
-         * Vehicles may not move to the adjacent left lane for several reasons:
+         * Vehicles are unable to move to the adjacent left lane for several reasons:
          *   - there is no lane on the left.
          *   - the adjacent left lane is a raised pavement road divider.
          *   - the adjacent left lane is a road divider with railings.
          *   - the adjacent left lane is a sidewalk.
+         *
          * Even if vehicles are allowed to move to the adjacent left lane, the lane could be
          * a designated bus lane or road shoulder.
          */
@@ -111,11 +112,12 @@ public:
         /**
          * Return true if vehicles can move to the adjacent lane on the right.
          *
-         * Vehicles may not move to the adjacent right lane for several reasons:
+         * Vehicles are unable to move to the adjacent right lane for several reasons:
          *   - there is no lane on the right.
          *   - the adjacent right lane is a raised pavement road divider.
          *   - the adjacent right lane is a road divider with railings.
          *   - the adjacent right lane is a sidewalk.
+         *
          * Even if vehicles are allowed to move to the adjacent right lane, the lane could be
          * a designated bus lane or road shoulder.
          */

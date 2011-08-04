@@ -3,9 +3,11 @@
 #pragma once
 
 #include <vector>
+#include <stdexcept>
 
 #include "Pavement.hpp"
 #include "Lane.hpp"
+#include "Link.hpp"
 
 namespace sim_mob
 {
@@ -32,6 +34,8 @@ class Loader;
  */
 class RoadSegment : public sim_mob::Pavement {
 public:
+	RoadSegment(sim_mob::Link* parent) : parentLink(parent) {}
+
 	bool isSingleDirectional() {
 		return lanesLeftOfDivider==0 || lanesLeftOfDivider==lanes.size()-1;
 	}
@@ -39,11 +43,13 @@ public:
 		return !isSingleDirectional();
 	}
 
+	sim_mob::Link* getLink() { return parentLink; }
+
 	///Translate an array index into a useful lane ID and a set of properties.
 	std::pair<int, const Lane&> translateRawLaneID(unsigned int ID) { Lane l; return std::pair<int, const Lane&>(1, l); }
 
 	///Return the polyline of an individual lane. May be cached in lanePolylines_cached. May also be precomputed, and stored in lanePolylines_cached.
-	std::vector<sim_mob::Point2D>& getLanePolyline(unsigned int laneID) { std::vector<sim_mob::Point2D> res; return res; }
+	std::vector<sim_mob::Point2D>& getLanePolyline(unsigned int laneID) { throw std::runtime_error("not_implemented"); }
 
 
 public:
@@ -68,6 +74,8 @@ private:
 	///Pavement::width() / lanes.size()
 	std::vector<unsigned int> laneWidths;
 
+	///Which link this appears in
+	sim_mob::Link* parentLink;
 
 friend class sim_mob::aimsun::Loader;
 

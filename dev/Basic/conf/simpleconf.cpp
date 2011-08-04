@@ -11,9 +11,13 @@
 #include "../entities/roles/Pedestrian.hpp"
 #include "../entities/roles/Driver.hpp"
 #include "../geospatial/aimsun/Loader.hpp"
+#include "../geospatial/Node.hpp"
+#include "../geospatial/RoadSegment.hpp"
+#include "../geospatial/LaneConnector.hpp"
 
 using std::map;
 using std::string;
+using std::vector;
 
 using namespace sim_mob;
 
@@ -233,7 +237,51 @@ bool LoadXMLBoundariesCrossings(TiXmlDocument& document, const string& parentStr
 
 void PrintDB_Network()
 {
-	std::cout <<" TODO: Print network\n";
+	//Road Segments need a temporary ID value (for display)
+	map<RoadSegment*, int> segIDs;
+	map<int, RoadSegment*> revSegIDs;
+
+	//Start by printing nodes.
+	RoadNetwork& rn = ConfigParams::GetInstance().network;
+	for (vector<Node*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
+		std::cout <<"Node: " <<(*it)->xPos <<"," <<(*it)->yPos <<"\n";
+
+		//Now print all lane connectors at this node
+		vector<LaneConnector*> connectors = (*it)->getConnectors(nullptr);
+		for (vector<LaneConnector*>::iterator i2=connectors.begin(); i2!=connectors.end(); i2++) {
+			//For now, just assigning a temporary segment id.
+			RoadSegment* fromSeg = (*i2)->getLaneFrom().first;
+			unsigned int fromLane = (*i2)->getLaneFrom().second;
+			RoadSegment* toSeg = (*i2)->getLaneTo().first;
+			unsigned int toLane = (*i2)->getLaneTo().second;
+			if (segIDs.count(fromSeg)==0) {
+				segIDs[fromSeg] = segIDs.size();
+				revSegIDs[revSegIDs.size()] = fromSeg;
+			}
+			if (segIDs.count(toSeg)==0) {
+				segIDs[toSeg] = segIDs.size();
+				revSegIDs[revSegIDs.size()] = toSeg;
+			}
+
+			//Output
+			std::cout <<"    Connector, from segment " <<segIDs[fromSeg] <<", lane " <<fromLane <<"  to segment " <<segIDs[toSeg] <<", lane " <<toLane <<"\n";
+		}
+	}
+
+	//Now print all Segments
+	for (size_t i=0; i<segIDs.size(); i++) {
+		RoadSegment* seg = revSegIDs[i];
+		std::cout <<"Segment[" <<i <<"], length: " <<seg->length <<", speed: " <<seg->maxSpeed <<", width: " <<seg->width <<"\n";
+		if (!seg->polyline.empty()) {
+			std::cout <<"    Polyline: ";
+			for (vector<Point2D>::const_iterator it=seg->polyline.begin(); it!=seg->polyline.end(); it++) {
+				std::cout <<"(" <<it->xPos <<"," <<it->yPos <<") ";
+			}
+			std::cout <<"\n";
+		}
+	}
+
+	//TODO: Print links and RoadSegmentNodes in a sensible fashion.
 }
 
 
@@ -384,6 +432,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     if (!ConfigParams::GetInstance().connectionString.empty()) {
     	//Output AIMSUN data
     	std::cout <<"Network details loaded from connection: " <<ConfigParams::GetInstance().connectionString <<"\n";
+    	std::cout <<"------------------\n";
     	PrintDB_Network();
     	std::cout <<"------------------\n";
     }

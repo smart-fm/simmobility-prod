@@ -303,7 +303,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		}
 
 		//Process
-		sim_mob::RoadSegment* rs = new sim_mob::RoadSegment();
+		sim_mob::RoadSegment* rs = new sim_mob::RoadSegment(ln);
 		rs->maxSpeed = currSection->speed;
 		rs->length = currSection->length;
 		for (int laneID=0; laneID<currSection->numLanes; laneID++) {

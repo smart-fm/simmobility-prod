@@ -31,6 +31,8 @@ class Loader;
  */
 class LaneConnector {
 public:
+	const std::pair<sim_mob::RoadSegment*, unsigned int>& getLaneFrom() const;
+	const std::pair<sim_mob::RoadSegment*, unsigned int>& getLaneTo() const;
 
 private:
 	//TODO: These items used to be const, but it's easier to declare them private and just

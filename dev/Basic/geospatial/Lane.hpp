@@ -111,16 +111,16 @@ private:
 
 public:
         /** Return true if vehicles can go straight on this lane.  */
-	bool can_go_straight() const { return rules_.test(CAN_GO_STRAIGHT); }
+	bool can_go_straight() const { return rules_[CAN_GO_STRAIGHT]; }
 
         /** Return true if vehicles can turn left from this lane.  */
-	bool can_turn_left() const { return rules_.test(CAN_TURN_LEFT); }
+	bool can_turn_left() const { return rules_[CAN_TURN_LEFT]; }
 
         /** Return true if vehicles can turn right from this lane.  */
-	bool can_turn_right() const { return rules_.test(CAN_TURN_RIGHT); }
+	bool can_turn_right() const { return rules_[CAN_TURN_RIGHT]; }
 
         /** Return true if vehicles can turn from this lane even when the signal is red.  */
-	bool can_turn_on_red_signal() const { return rules_.test(CAN_TURN_ON_RED_SIGNAL); }
+	bool can_turn_on_red_signal() const { return rules_[CAN_TURN_ON_RED_SIGNAL]; }
 
         /**
          * Return true if vehicles can move to the adjacent lane on the left.
@@ -134,7 +134,7 @@ public:
          * Even if vehicles are allowed to move to the adjacent left lane, the lane could be
          * a designated bus lane or road shoulder.
          */
-	bool can_change_lane_left() const { return rules_.test(CAN_CHANGE_LANE_LEFT); }
+	bool can_change_lane_left() const { return rules_[CAN_CHANGE_LANE_LEFT]; }
 
         /**
          * Return true if vehicles can move to the adjacent lane on the right.
@@ -148,39 +148,39 @@ public:
          * Even if vehicles are allowed to move to the adjacent right lane, the lane could be
          * a designated bus lane or road shoulder.
          */
-	bool can_change_lane_right() const { return rules_.test(CAN_CHANGE_LANE_RIGHT); }
+	bool can_change_lane_right() const { return rules_[CAN_CHANGE_LANE_RIGHT]; }
 
         /** Return true if this lane is a designated road shoulder.  */
-	bool is_road_shoulder() const { return rules_.test(IS_ROAD_SHOULDER); }
+	bool is_road_shoulder() const { return rules_[IS_ROAD_SHOULDER]; }
 
         /** Return true if this lane is reserved for cyclists.  */
-	bool is_bicycle_lane() const { return rules_.test(IS_BICYCLE_LANE); }
+	bool is_bicycle_lane() const { return rules_[IS_BICYCLE_LANE]; }
 
         /** Return true if this lane is reserved for pedestrians.  Duh, it's a sidewalk.  */
-	bool is_pedestrian_lane() const { return rules_.test(IS_PEDESTRIAN_LANE); }
+	bool is_pedestrian_lane() const { return rules_[IS_PEDESTRIAN_LANE]; }
 
         /** Return true if this lane is reserved for vehicle traffic.  */
-	bool is_vehicle_lane() const { return rules_.test(IS_VEHICLE_LANE); }
+	bool is_vehicle_lane() const { return rules_[IS_VEHICLE_LANE]; }
 
 	/** Return true if this lane is reserved for buses during bus lane operation hours.  */
-	bool is_standard_bus_lane() const { return rules_.test(IS_STANDARD_BUS_LANE); }
+	bool is_standard_bus_lane() const { return rules_[IS_STANDARD_BUS_LANE]; }
 
         /** Return true if this lane is reserved for buses for the whole day.  */
-	bool is_whole_day_bus_lane() const { return rules_.test(IS_WHOLE_DAY_BUS_LANE); }
+	bool is_whole_day_bus_lane() const { return rules_[IS_WHOLE_DAY_BUS_LANE]; }
 
         /**
          * Return true if this lane is reserved for high-occupancy vehicles.
          *
          * A bus lane (standard or whole-day) is reserved for buses.  But a high-occupancy-vehicle
          * lane can be used by both buses and car-pools.  */
-	bool is_high_occupancy_vehicle_lane() const { return rules_.test(IS_HIGH_OCCUPANCY_VEHICLE_LANE); }
+	bool is_high_occupancy_vehicle_lane() const { return rules_[IS_HIGH_OCCUPANCY_VEHICLE_LANE]; }
 
         /**
          * Return true if agents can park their vehicles on this lane.
          *
          * The agent may have to pay to park on this lane.
          */
-	bool can_freely_park_here() const { return rules_.test(CAN_FREELY_PARK_HERE); }
+	bool can_freely_park_here() const { return rules_[CAN_FREELY_PARK_HERE]; }
 
         /**
          * Return true if agents can stop their vehicles on this lane temporarily.
@@ -188,10 +188,10 @@ public:
          * The agent may stop their vehicles for passengers to board or alight the vehicle
          * or for loading and unloading purposes.
          */
-	bool can_stop_here() const { return rules_.test(CAN_STOP_HERE); }
+	bool can_stop_here() const { return rules_[CAN_STOP_HERE]; }
 
 	/** Return true if vehicles can make a U-turn on this lane.  */
-	bool is_u_turn_allowed() const { return rules_.test(IS_U_TURN_ALLOWED); }
+	bool is_u_turn_allowed() const { return rules_[IS_U_TURN_ALLOWED]; }
 
 
         // The following should be private; only the StreetDirectory is allowed to call it.

@@ -3,6 +3,7 @@
 #pragma once
 
 #include <bitset>
+#include <sstream>
 
 
 namespace sim_mob
@@ -39,6 +40,32 @@ namespace sim_mob
  *   rightLane.can_turn_right(true);
  *   rightLane.can_change_lane_left(true);
  *   rightLane.can_turn_on_red_signal(true);
+ *   \endcode
+ *
+ * In reality, the above example would entail additional code.  The StreetDirectory would need
+ * to query the GIS database to confirm, for example, that the 3rd lane is indeed a vehicle lane,
+ * that vehicles must turn right and cannot go straight, that vehicles can turn even though on a
+ * red signal, that drivers are not allowed to stop or park their vehicles, etc.
+ *
+ * Such initialization code would increase the simulator's startup time.  For this reason, the
+ * simulator should have two initialization procedures; a command-line option flag would determine
+ * which procedure is called.  The first procedure is based on the above discussion; at the end
+ * the procedure saves the lane's rules as a bit-pattern to the database:
+ *   \code
+ *   save_to_database(lane.ID(), lane.to_string());
+ *   \endcode
+ *
+ * The faster alternative initialization procedure initializes the lane's rules based on the
+ * bit pattern that was saved in the database:
+ *   \code
+ *   const std::string bit_pattern = read_database(lane_ID);
+ *   Lane* lane = new Lane;
+ *   lane.set(bit_pattern);
+ *   \endcode
+ * or simply:
+ *   \code
+ *   const std::string bit_pattern = read_database(lane_ID);
+ *   Lane* lane = new Lane(bit_pattern);
  *   \endcode
  */
 class Lane {
@@ -167,8 +194,27 @@ public:
 	bool is_u_turn_allowed() const { return rules_.test(IS_U_TURN_ALLOWED); }
 
 
+        // The following should be private; only the StreetDirectory is allowed to call it.
+        // It is public now so that RoadSegment::translateRawLaneID() (as of 5 August 2011)
+        // can compile.
+        /** Create a Lane whose rules are all false.  */
+        Lane() {}
+
 private:
         friend class StreetDirectory;
+
+        /** Create a Lane using the \c bit_pattern to initialize the lane's rules.  */
+        explicit Lane(const std::string& bit_pattern) : rules_(bit_pattern) {}
+
+        /** Set the lane's rules using the \c bit_pattern.  */
+        void set(const std::string& bit_pattern)
+        {
+            std::istringstream stream(bit_pattern);
+            stream >> rules_;
+        }
+
+        /** Return the lane's rules as a string containing a bit pattern of '0' and '1'.  */
+        std::string to_string() const { return rules_.to_string(); }
 
         /** If \c value is true, vehicles can go straight on this lane.  */
         void can_go_straight(bool value) { rules_.set(CAN_GO_STRAIGHT, value); }

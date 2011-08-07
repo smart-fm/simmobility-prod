@@ -316,8 +316,8 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		//      For now, setting to a clearly incorrect value.
 		rs->lanesLeftOfDivider = 0xFF;
 
-		currSection->fromNode->generatedNode->itemsAt.push_back(rs);
-		currSection->toNode->generatedNode->itemsAt.push_back(rs);
+		currSection->fromNode->generatedNode->itemsAt.insert(rs);
+		currSection->toNode->generatedNode->itemsAt.insert(rs);
 		ln->segments.push_back(rs);
 
 		//Save for later

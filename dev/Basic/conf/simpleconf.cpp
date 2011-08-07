@@ -16,6 +16,7 @@
 #include "../geospatial/LaneConnector.hpp"
 
 using std::map;
+using std::set;
 using std::string;
 using std::vector;
 
@@ -248,6 +249,11 @@ void PrintDB_Network()
 		std::cout.precision(10);
 		std::cout <<"Node: " <<(*it)->xPos <<"," <<(*it)->yPos <<"\n";
 		std::cout.precision(oldSz);
+
+		//Print all segments
+		for (set<RoadSegment*>::iterator i2=(*it)->getItemsAt().begin(); i2!=(*it)->getItemsAt().end(); i2++) {
+			std::cout <<"   Has segement: " <<segIDs[*i2] <<"\n";
+		}
 
 		//Now print all lane connectors at this node
 		vector<LaneConnector*> connectors = (*it)->getConnectors(nullptr);

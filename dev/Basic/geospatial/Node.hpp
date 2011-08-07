@@ -3,6 +3,7 @@
 #pragma once
 
 #include <vector>
+#include <set>
 
 #include "Point2D.hpp"
 //#include "Link.hpp"
@@ -37,12 +38,12 @@ class Loader;
 class Node : public sim_mob::Point2D {
 public:
 	std::vector<sim_mob::LaneConnector*> getConnectors(const sim_mob::Link* from) const;
-	std::vector<sim_mob::RoadSegment*> getItemsAt() const;
+	std::set<sim_mob::RoadSegment*> getItemsAt() const;
 
 
 protected:
 	std::vector<sim_mob::LaneConnector*> connectors;
-	std::vector<sim_mob::RoadSegment*> itemsAt;
+	std::set<sim_mob::RoadSegment*> itemsAt;
 
 
 friend class sim_mob::aimsun::Loader;

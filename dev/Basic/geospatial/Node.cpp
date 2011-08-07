@@ -5,6 +5,7 @@
 #include "RoadSegment.hpp"
 
 using std::vector;
+using std::set;
 using namespace sim_mob;
 
 
@@ -26,7 +27,7 @@ vector<LaneConnector*> sim_mob::Node::getConnectors(const Link* from) const
 }
 
 
-vector<RoadSegment*> sim_mob::Node::getItemsAt() const
+set<RoadSegment*> sim_mob::Node::getItemsAt() const
 {
 	return itemsAt;
 }

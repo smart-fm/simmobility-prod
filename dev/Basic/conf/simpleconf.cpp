@@ -258,12 +258,14 @@ void PrintDB_Network()
 			RoadSegment* toSeg = (*i2)->getLaneTo().first;
 			unsigned int toLane = (*i2)->getLaneTo().second;
 			if (segIDs.count(fromSeg)==0) {
-				segIDs[fromSeg] = segIDs.size();
-				revSegIDs[revSegIDs.size()] = fromSeg;
+				int newID = segIDs.size();
+				segIDs[fromSeg] = newID;
+				revSegIDs[newID] = fromSeg;
 			}
 			if (segIDs.count(toSeg)==0) {
-				segIDs[toSeg] = segIDs.size();
-				revSegIDs[revSegIDs.size()] = toSeg;
+				int newID = segIDs.size();
+				segIDs[toSeg] = newID;
+				revSegIDs[newID] = toSeg;
 			}
 
 			//Output
@@ -274,7 +276,7 @@ void PrintDB_Network()
 	//Now print all Segments
 	for (size_t i=0; i<segIDs.size(); i++) {
 		RoadSegment* seg = revSegIDs[i];
-		std::cout <<"Segment[" <<i+1;
+		std::cout <<"Segment[" <<i;
 		std::streamsize oldSz = std::cout.precision();
 		std::cout.precision(10);
 		std::cout <<"], length: " <<seg->length;

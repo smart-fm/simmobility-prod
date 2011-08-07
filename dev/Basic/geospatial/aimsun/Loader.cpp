@@ -55,6 +55,7 @@ void LoadNodes(soci::session& sql, const std::string& storedProc, map<int, Node>
 		if (nodelist.count(it->id)>0) {
 			throw std::runtime_error("Duplicate AIMSUN node.");
 		}
+
 		nodelist[it->id] = *it;
 	}
 }
@@ -70,6 +71,8 @@ void LoadSections(soci::session& sql, const std::string& storedProc, map<int, Se
 	for (soci::rowset<Section>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//Check nodes
 		if(nodelist.count(it->TMP_FromNodeID)==0 || nodelist.count(it->TMP_ToNodeID)==0) {
+			std::cout <<"From node: " <<it->TMP_FromNodeID  <<"  " <<nodelist.count(it->TMP_FromNodeID) <<"\n";
+			std::cout <<"To node: " <<it->TMP_ToNodeID  <<"  " <<nodelist.count(it->TMP_ToNodeID) <<"\n";
 			throw std::runtime_error("Invalid From or To node.");
 		}
 
@@ -288,7 +291,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	sim_mob::Link* ln = new sim_mob::Link();
 	ln->roadName = currSection->roadName;
 	ln->start = src.fromNode->generatedNode;
-	//ln->end = nullptr;
+
 	for (;;) {
 		//Update
 		ln->end = currSection->toNode->generatedNode;
@@ -302,8 +305,11 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 			throw std::runtime_error("Road names don't match up on RoadSegments in the same Link.");
 		}
 
-		//Process
+		//Prepare a new segment, and save it for later reference
 		sim_mob::RoadSegment* rs = new sim_mob::RoadSegment(ln);
+		currSection->generatedSegment = rs;
+
+		//Process
 		rs->maxSpeed = currSection->speed;
 		rs->length = currSection->length;
 		for (int laneID=0; laneID<currSection->numLanes; laneID++) {
@@ -320,8 +326,20 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		currSection->toNode->generatedNode->itemsAt.insert(rs);
 		ln->segments.push_back(rs);
 
-		//Save for later
-		currSection->generatedSegment = rs;
+		//TEMP
+		/*if (currSection->fromNode->id==60896 || currSection->toNode->id==60896) {
+			std::cout <<"Road: " <<currSection->roadName <<"  " <<currSection->generatedSegment <<"\n";
+			std::cout <<"   from: " <<currSection->fromNode->generatedNode <<"\n";
+			std::cout <<"     to: " <<currSection->toNode->generatedNode <<"\n";
+
+			std::cout <<"  size: ";
+			if (currSection->fromNode->id==60896) {
+				std::cout <<currSection->fromNode->generatedNode->itemsAt.size();
+			} else {
+				std::cout <<currSection->toNode->generatedNode->itemsAt.size();
+			}
+			std::cout <<"\n";
+		}*/
 
 		//Break?
 		if (!currSection->toNode->candidateForSegmentNode) {

@@ -262,7 +262,7 @@ void PrintDB_Network()
 		std::cout.precision(oldSz);
 
 		//Print all segments
-		for (set<RoadSegment*>::iterator i2=(*it)->getItemsAt().begin(); i2!=(*it)->getItemsAt().end(); i2++) {
+		for (set<RoadSegment*>::const_iterator i2=(*it)->getItemsAt().begin(); i2!=(*it)->getItemsAt().end(); ++i2) {
 			ensureID(segIDs, revSegIDs, *i2);
 
 			std::cout <<"   Has segement: " <<segIDs[*i2] <<"\n";

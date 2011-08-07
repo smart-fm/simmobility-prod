@@ -38,7 +38,7 @@ class Loader;
 class Node : public sim_mob::Point2D {
 public:
 	std::vector<sim_mob::LaneConnector*> getConnectors(const sim_mob::Link* from) const;
-	std::set<sim_mob::RoadSegment*> getItemsAt() const;
+	const std::set<sim_mob::RoadSegment*>& getItemsAt() const;
 
 
 protected:

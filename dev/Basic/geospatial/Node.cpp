@@ -27,7 +27,7 @@ vector<LaneConnector*> sim_mob::Node::getConnectors(const Link* from) const
 }
 
 
-set<RoadSegment*> sim_mob::Node::getItemsAt() const
+const set<RoadSegment*>& sim_mob::Node::getItemsAt() const
 {
 	return itemsAt;
 }

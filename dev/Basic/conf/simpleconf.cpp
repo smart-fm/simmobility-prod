@@ -235,6 +235,17 @@ bool LoadXMLBoundariesCrossings(TiXmlDocument& document, const string& parentStr
 }
 
 
+void ensureID(map<RoadSegment*, int>& segIDs, map<int, RoadSegment*>& revSegIDs, RoadSegment* item)
+{
+	if (segIDs.count(item)>0) {
+		return;
+	}
+
+	int newID = segIDs.size();
+	segIDs[item] = newID;
+	revSegIDs[newID] = item;
+}
+
 
 void PrintDB_Network()
 {
@@ -252,6 +263,8 @@ void PrintDB_Network()
 
 		//Print all segments
 		for (set<RoadSegment*>::iterator i2=(*it)->getItemsAt().begin(); i2!=(*it)->getItemsAt().end(); i2++) {
+			ensureID(segIDs, revSegIDs, *i2);
+
 			std::cout <<"   Has segement: " <<segIDs[*i2] <<"\n";
 		}
 
@@ -263,16 +276,10 @@ void PrintDB_Network()
 			unsigned int fromLane = (*i2)->getLaneFrom().second;
 			RoadSegment* toSeg = (*i2)->getLaneTo().first;
 			unsigned int toLane = (*i2)->getLaneTo().second;
-			if (segIDs.count(fromSeg)==0) {
-				int newID = segIDs.size();
-				segIDs[fromSeg] = newID;
-				revSegIDs[newID] = fromSeg;
-			}
-			if (segIDs.count(toSeg)==0) {
-				int newID = segIDs.size();
-				segIDs[toSeg] = newID;
-				revSegIDs[newID] = toSeg;
-			}
+
+			//Make sure they have IDs
+			ensureID(segIDs, revSegIDs, fromSeg);
+			ensureID(segIDs, revSegIDs, toSeg);
 
 			//Output
 			std::cout <<"    Connector, from segment " <<segIDs[fromSeg] <<", lane " <<fromLane <<"  to segment " <<segIDs[toSeg] <<", lane " <<toLane <<"\n";

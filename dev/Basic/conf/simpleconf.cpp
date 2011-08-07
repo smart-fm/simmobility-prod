@@ -274,13 +274,13 @@ void PrintDB_Network()
 	//Now print all Segments
 	for (size_t i=0; i<segIDs.size(); i++) {
 		RoadSegment* seg = revSegIDs[i];
-		std::cout <<"Segment[" <<i+1 <<"], length: ";
-
+		std::cout <<"Segment[" <<i+1;
 		std::streamsize oldSz = std::cout.precision();
 		std::cout.precision(10);
-		std::cout <<seg->length <<", speed: " <<seg->maxSpeed <<", width: ";
+		std::cout <<"], length: " <<seg->length;
 		std::cout.precision(oldSz);
-		std::cout <<seg->width <<"\n";
+		std::cout <<", speed: " <<seg->maxSpeed;
+		std::cout <<", width: " <<seg->width <<"\n";
 
 		if (!seg->polyline.empty()) {
 			std::cout <<"    Polyline: ";

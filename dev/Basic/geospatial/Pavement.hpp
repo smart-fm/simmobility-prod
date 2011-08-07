@@ -29,7 +29,9 @@ namespace sim_mob
  */
 class Pavement : public sim_mob::RoadItem {
 public:
-	unsigned int length;
+	//NOTE: I'm importing AIMSUN data which has length as a double. Will need to consider why later. ~Seth
+	double length;
+
 	unsigned int width;
 	std::vector<sim_mob::Point2D> polyline;
 	std::map<unsigned int, const RoadItem*> obstacles;

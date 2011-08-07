@@ -54,8 +54,7 @@ public:
 
 public:
 	///Maximum speed of this road segment.
-	//NOTE: I'm importing AIMSUN data which has speed as a double. Will need to consider why later. ~Seth
-	double maxSpeed;
+	int maxSpeed;
 
 	void* roadBulge; ///<Currently haven't decided how to represent bulge.
 

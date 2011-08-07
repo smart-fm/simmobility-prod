@@ -309,6 +309,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		for (int laneID=0; laneID<currSection->numLanes; laneID++) {
 			rs->lanes.push_back(new sim_mob::Lane());
 		}
+		rs->width = 0;
 
 		//TODO: How do we determine if lanesLeftOfDivider should be 0 or lanes.size()
 		//      In other words, how do we apply driving direction?

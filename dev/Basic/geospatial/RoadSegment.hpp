@@ -45,6 +45,9 @@ public:
 
 	sim_mob::Link* getLink() { return parentLink; }
 
+	//Get all lanes
+	const std::vector<const sim_mob::Lane*>& getLanes() const { return lanes; }
+
 	///Translate an array index into a useful lane ID and a set of properties.
 	std::pair<int, const Lane&> translateRawLaneID(unsigned int ID) { Lane l; return std::pair<int, const Lane&>(1, l); }
 

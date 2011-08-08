@@ -25,34 +25,25 @@ class Loader;
 
 
 /**
- * Part of a Link with consistent lane numbering. RoadSegments may be bidirectional
- *
- * \note
- * This is a skeleton class. All functions are defined in this header file.
- * When this class's full functionality is added, these header-defined functions should
- * be moved into a separate cpp file.
+ * Part of a Link with consistent lane numbering. RoadSegments may be bidirectional.
  */
 class RoadSegment : public sim_mob::Pavement {
 public:
-	RoadSegment(sim_mob::Link* parent) : parentLink(parent) {}
+	RoadSegment(sim_mob::Link* parent);
 
-	bool isSingleDirectional() {
-		return lanesLeftOfDivider==0 || lanesLeftOfDivider==lanes.size()-1;
-	}
-	bool isBiDirectional() {
-		return !isSingleDirectional();
-	}
-
+	///Return the Link this RoadSegment is part of.
 	sim_mob::Link* getLink() { return parentLink; }
 
-	//Get all lanes
 	const std::vector<const sim_mob::Lane*>& getLanes() const { return lanes; }
 
+	bool isSingleDirectional();
+	bool isBiDirectional();
+
 	///Translate an array index into a useful lane ID and a set of properties.
-	std::pair<int, const Lane&> translateRawLaneID(unsigned int ID) { Lane l; return std::pair<int, const Lane&>(1, l); }
+	std::pair<int, const sim_mob::Lane*> translateRawLaneID(unsigned int rawID);
 
 	///Return the polyline of an individual lane. May be cached in lanePolylines_cached. May also be precomputed, and stored in lanePolylines_cached.
-	std::vector<sim_mob::Point2D>& getLanePolyline(unsigned int laneID) { throw std::runtime_error("not_implemented"); }
+	const std::vector<sim_mob::Point2D>& getLanePolyline(unsigned int laneID);
 
 
 public:

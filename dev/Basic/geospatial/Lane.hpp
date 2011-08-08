@@ -13,8 +13,15 @@ namespace sim_mob
 class RoadSegment;
 
 
+namespace aimsun
+{
+//Forward declaration
+class Loader;
+} //End aimsun namespace
+
+
 /**
- * A lane ...
+ * A lane, including its movement rules and its parent segment.
  *
  * When the StreetDirectory creates a Lane, it needs to set up the rules for that lane.  Since
  * the bitset constructor will set the bits to false, the StreetDirectory would only need to
@@ -79,7 +86,7 @@ private:
      *
      */
     enum LANE_MOVEMENT_RULES {
-        // Let the compiler assigns value to each enum item.
+    // Let the compiler assigns value to each enum item.
 
 	//Who can drive here.
 	IS_BICYCLE_LANE,
@@ -91,9 +98,9 @@ private:
 	IS_U_TURN_ALLOWED,
 
 	//Lane changing rules, traffic light turning
-        CAN_GO_STRAIGHT,
-        CAN_TURN_LEFT,
-        CAN_TURN_RIGHT,
+    CAN_GO_STRAIGHT,
+    CAN_TURN_LEFT,
+    CAN_TURN_RIGHT,
 	CAN_CHANGE_LANE_LEFT,
 	CAN_CHANGE_LANE_RIGHT,
 	CAN_TURN_ON_RED_SIGNAL,
@@ -107,170 +114,167 @@ private:
 	IS_WHOLE_DAY_BUS_LANE,
 	IS_ROAD_SHOULDER,
 
-        // Leave this as the last item, it is used as the template parameter of the
-        // rules_ data member.
-        MAX_LANE_MOVEMENT_RULES
+    // Leave this as the last item, it is used as the template parameter of the
+    // rules_ data member.
+    MAX_LANE_MOVEMENT_RULES
     };
 
 
 public:
-        /** Return true if vehicles can go straight on this lane.  */
+    /** Return true if vehicles can go straight on this lane.  */
 	bool can_go_straight() const { return rules_[CAN_GO_STRAIGHT]; }
 
-        /** Return true if vehicles can turn left from this lane.  */
+    /** Return true if vehicles can turn left from this lane.  */
 	bool can_turn_left() const { return rules_[CAN_TURN_LEFT]; }
 
-        /** Return true if vehicles can turn right from this lane.  */
+    /** Return true if vehicles can turn right from this lane.  */
 	bool can_turn_right() const { return rules_[CAN_TURN_RIGHT]; }
 
-        /** Return true if vehicles can turn from this lane even when the signal is red.  */
+    /** Return true if vehicles can turn from this lane even when the signal is red.  */
 	bool can_turn_on_red_signal() const { return rules_[CAN_TURN_ON_RED_SIGNAL]; }
 
-        /**
-         * Return true if vehicles can move to the adjacent lane on the left.
-         *
-         * Vehicles are unable to move to the adjacent left lane for several reasons:
-         *   - there is no lane on the left.
-         *   - the adjacent left lane is a raised pavement road divider.
-         *   - the adjacent left lane is a road divider with railings.
-         *   - the adjacent left lane is a sidewalk.
-         *
-         * Even if vehicles are allowed to move to the adjacent left lane, the lane could be
-         * a designated bus lane or road shoulder.
-         */
+    /**
+     * Return true if vehicles can move to the adjacent lane on the left.
+     *
+     * Vehicles are unable to move to the adjacent left lane for several reasons:
+     *   - there is no lane on the left.
+     *   - the adjacent left lane is a raised pavement road divider.
+     *   - the adjacent left lane is a road divider with railings.
+     *   - the adjacent left lane is a sidewalk.
+     *
+     * Even if vehicles are allowed to move to the adjacent left lane, the lane could be
+     * a designated bus lane or road shoulder.
+     */
 	bool can_change_lane_left() const { return rules_[CAN_CHANGE_LANE_LEFT]; }
 
-        /**
-         * Return true if vehicles can move to the adjacent lane on the right.
-         *
-         * Vehicles are unable to move to the adjacent right lane for several reasons:
-         *   - there is no lane on the right.
-         *   - the adjacent right lane is a raised pavement road divider.
-         *   - the adjacent right lane is a road divider with railings.
-         *   - the adjacent right lane is a sidewalk.
-         *
-         * Even if vehicles are allowed to move to the adjacent right lane, the lane could be
-         * a designated bus lane or road shoulder.
-         */
+    /**
+     * Return true if vehicles can move to the adjacent lane on the right.
+     *
+     * Vehicles are unable to move to the adjacent right lane for several reasons:
+     *   - there is no lane on the right.
+     *   - the adjacent right lane is a raised pavement road divider.
+     *   - the adjacent right lane is a road divider with railings.
+     *   - the adjacent right lane is a sidewalk.
+     *
+     * Even if vehicles are allowed to move to the adjacent right lane, the lane could be
+     * a designated bus lane or road shoulder.
+     */
 	bool can_change_lane_right() const { return rules_[CAN_CHANGE_LANE_RIGHT]; }
 
-        /** Return true if this lane is a designated road shoulder.  */
+	/** Return true if this lane is a designated road shoulder.  */
 	bool is_road_shoulder() const { return rules_[IS_ROAD_SHOULDER]; }
 
-        /** Return true if this lane is reserved for cyclists.  */
-	bool is_bicycle_lane() const { return rules_[IS_BICYCLE_LANE]; }
+    /** Return true if this lane is reserved for cyclists.  */
+    bool is_bicycle_lane() const { return rules_[IS_BICYCLE_LANE]; }
 
-        /** Return true if this lane is reserved for pedestrians.  Duh, it's a sidewalk.  */
+    /** Return true if this lane is reserved for pedestrians.  Duh, it's a sidewalk.  */
 	bool is_pedestrian_lane() const { return rules_[IS_PEDESTRIAN_LANE]; }
 
-        /** Return true if this lane is reserved for vehicle traffic.  */
+    /** Return true if this lane is reserved for vehicle traffic.  */
 	bool is_vehicle_lane() const { return rules_[IS_VEHICLE_LANE]; }
 
 	/** Return true if this lane is reserved for buses during bus lane operation hours.  */
 	bool is_standard_bus_lane() const { return rules_[IS_STANDARD_BUS_LANE]; }
 
-        /** Return true if this lane is reserved for buses for the whole day.  */
+    /** Return true if this lane is reserved for buses for the whole day.  */
 	bool is_whole_day_bus_lane() const { return rules_[IS_WHOLE_DAY_BUS_LANE]; }
 
-        /**
-         * Return true if this lane is reserved for high-occupancy vehicles.
-         *
-         * A bus lane (standard or whole-day) is reserved for buses.  But a high-occupancy-vehicle
-         * lane can be used by both buses and car-pools.  */
+    /**
+     * Return true if this lane is reserved for high-occupancy vehicles.
+     *
+     * A bus lane (standard or whole-day) is reserved for buses.  But a high-occupancy-vehicle
+     * lane can be used by both buses and car-pools.
+     */
 	bool is_high_occupancy_vehicle_lane() const { return rules_[IS_HIGH_OCCUPANCY_VEHICLE_LANE]; }
 
-        /**
-         * Return true if agents can park their vehicles on this lane.
-         *
-         * The agent may have to pay to park on this lane.
-         */
+    /**
+     * Return true if agents can park their vehicles on this lane.
+     *
+     * The agent may have to pay to park on this lane.
+     */
 	bool can_freely_park_here() const { return rules_[CAN_FREELY_PARK_HERE]; }
 
-        /**
-         * Return true if agents can stop their vehicles on this lane temporarily.
-         *
-         * The agent may stop their vehicles for passengers to board or alight the vehicle
-         * or for loading and unloading purposes.
-         */
+    /**
+     * Return true if agents can stop their vehicles on this lane temporarily.
+     *
+     * The agent may stop their vehicles for passengers to board or alight the vehicle
+     * or for loading and unloading purposes.
+     */
 	bool can_stop_here() const { return rules_[CAN_STOP_HERE]; }
 
 	/** Return true if vehicles can make a U-turn on this lane.  */
 	bool is_u_turn_allowed() const { return rules_[IS_U_TURN_ALLOWED]; }
 
-
-        // The following should be private; only the StreetDirectory is allowed to call it.
-        // It is public now so that RoadSegment::translateRawLaneID() (as of 5 August 2011)
-        // can compile.
-        /** Create a Lane whose rules are all false.  */
-        Lane() {}
-
 private:
-        friend class StreetDirectory;
+    /** Create a Lane whose rules are all false.  */
+    Lane() {}
 
-        /** Create a Lane using the \c bit_pattern to initialize the lane's rules.  */
-        explicit Lane(sim_mob::RoadSegment* segment, const std::string& bit_pattern) : parentSegment_(segment), rules_(bit_pattern) {}
+    friend class StreetDirectory;
+    friend class sim_mob::aimsun::Loader;
 
-        /** Return the RoadSegment this Lane is in. */
-        sim_mob::RoadSegment* getRoadSegment() const {
-        	return parentSegment_;
-        }
+    /** Create a Lane using the \c bit_pattern to initialize the lane's rules.  */
+    explicit Lane(sim_mob::RoadSegment* segment, const std::string& bit_pattern) : parentSegment_(segment), rules_(bit_pattern) {}
 
-        /** Set the lane's rules using the \c bit_pattern.  */
-        void set(const std::string& bit_pattern)
-        {
-            std::istringstream stream(bit_pattern);
-            stream >> rules_;
-        }
+    /** Return the RoadSegment this Lane is in. */
+    sim_mob::RoadSegment* getRoadSegment() const {
+        return parentSegment_;
+    }
 
-        /** Return the lane's rules as a string containing a bit pattern of '0' and '1'.  */
-        std::string to_string() const { return rules_.to_string(); }
+    /** Set the lane's rules using the \c bit_pattern.  */
+    void set(const std::string& bit_pattern) {
+        std::istringstream stream(bit_pattern);
+        stream >> rules_;
+   }
 
-        /** If \c value is true, vehicles can go straight on this lane.  */
-        void can_go_straight(bool value) { rules_.set(CAN_GO_STRAIGHT, value); }
+   /** Return the lane's rules as a string containing a bit pattern of '0' and '1'.  */
+    std::string to_string() const { return rules_.to_string(); }
 
-        /** If \c value is true, vehicles can turn left from this lane.  */
-        void can_turn_left(bool value) { rules_.set(CAN_TURN_LEFT, value); }
+    /** If \c value is true, vehicles can go straight on this lane.  */
+    void can_go_straight(bool value) { rules_.set(CAN_GO_STRAIGHT, value); }
 
-        /** If \c value is true, vehicles can turn right from this lane.  */
-        void can_turn_right(bool value) { rules_.set(CAN_TURN_RIGHT, value); }
+    /** If \c value is true, vehicles can turn left from this lane.  */
+    void can_turn_left(bool value) { rules_.set(CAN_TURN_LEFT, value); }
 
-        /** If \c value is true, vehicles can turn from this lane even when the signal is red.  */
+   /** If \c value is true, vehicles can turn right from this lane.  */
+   void can_turn_right(bool value) { rules_.set(CAN_TURN_RIGHT, value); }
+
+    /** If \c value is true, vehicles can turn from this lane even when the signal is red.  */
 	void can_turn_on_red_signal(bool value) { rules_.set(CAN_TURN_ON_RED_SIGNAL, value); }
 
-        /** If \c value is true, vehicles can move to the adjacent lane on the left.  */
+    /** If \c value is true, vehicles can move to the adjacent lane on the left.  */
 	void can_change_lane_left(bool value) { rules_.set(CAN_CHANGE_LANE_LEFT, value); }
 
-        /** If \c value is true, vehicles can move to the adjacent lane on the right.  */
+    /** If \c value is true, vehicles can move to the adjacent lane on the right.  */
 	void can_change_lane_right(bool value) { rules_.set(CAN_CHANGE_LANE_RIGHT, value); }
 
-        /** If \c value is true, this lane is a designated road shoulder.  */
+    /** If \c value is true, this lane is a designated road shoulder.  */
 	void is_road_shoulder(bool value) { rules_.set(IS_ROAD_SHOULDER, value); }
 
-        /** If \c value is true, this lane is reserved for cyclists.  */
+    /** If \c value is true, this lane is reserved for cyclists.  */
 	void is_bicycle_lane(bool value) { rules_.set(IS_BICYCLE_LANE, value); }
 
-        /** If \c value is true, this lane is reserved for pedestrians.  */
+    /** If \c value is true, this lane is reserved for pedestrians.  */
 	void is_pedestrian_lane(bool value) { rules_.set(IS_PEDESTRIAN_LANE, value); }
 
-        /** If \c value is true, this lane is reserved for vehicle traffic.  */
+    /** If \c value is true, this lane is reserved for vehicle traffic.  */
 	void is_vehicle_lane(bool value) { rules_.set(IS_VEHICLE_LANE, value); }
 
-        /** If \c value is true, this lane is reserved for buses during bus lane operation hours.  */
+    /** If \c value is true, this lane is reserved for buses during bus lane operation hours.  */
 	void is_standard_bus_lane(bool value) { rules_.set(IS_STANDARD_BUS_LANE, value); }
 
-        /** If \c value is true, this lane is reserved for buses for the whole day.  */
+    /** If \c value is true, this lane is reserved for buses for the whole day.  */
 	void is_whole_day_bus_lane(bool value) { rules_.set(IS_WHOLE_DAY_BUS_LANE, value); }
 
-        /** If \c value is true, this lane is reserved for high-occupancy vehicles.  */
+    /** If \c value is true, this lane is reserved for high-occupancy vehicles.  */
 	void is_high_occupancy_vehicle_lane(bool value) { rules_.set(IS_HIGH_OCCUPANCY_VEHICLE_LANE, value); }
 
-        /** If \c value is true, agents can park their vehicles on this lane.  */
+    /** If \c value is true, agents can park their vehicles on this lane.  */
 	void can_freely_park_here(bool value) { rules_.set(CAN_FREELY_PARK_HERE, value); }
 
-        /** If \c value is true, agents can stop their vehicles on this lane temporarily.  */
+    /** If \c value is true, agents can stop their vehicles on this lane temporarily.  */
 	void can_stop_here(bool value) { rules_.set(CAN_STOP_HERE, value); }
 
-        /** If \c value is true, vehicles can make a U-turn on this lane.  */ 
+    /** If \c value is true, vehicles can make a U-turn on this lane.  */
 	void is_u_turn_allowed(bool value) { rules_.set(IS_U_TURN_ALLOWED, value); }
 
 private:

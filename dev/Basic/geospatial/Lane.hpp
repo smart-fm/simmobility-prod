@@ -9,6 +9,10 @@
 namespace sim_mob
 {
 
+//Forward declarations
+class RoadSegment;
+
+
 /**
  * A lane ...
  *
@@ -204,7 +208,12 @@ private:
         friend class StreetDirectory;
 
         /** Create a Lane using the \c bit_pattern to initialize the lane's rules.  */
-        explicit Lane(const std::string& bit_pattern) : rules_(bit_pattern) {}
+        explicit Lane(sim_mob::RoadSegment* segment, const std::string& bit_pattern) : parentSegment_(segment), rules_(bit_pattern) {}
+
+        /** Return the RoadSegment this Lane is in. */
+        sim_mob::RoadSegment* getRoadSegment() const {
+        	return parentSegment_;
+        }
 
         /** Set the lane's rules using the \c bit_pattern.  */
         void set(const std::string& bit_pattern)
@@ -265,6 +274,7 @@ private:
 	void is_u_turn_allowed(bool value) { rules_.set(IS_U_TURN_ALLOWED, value); }
 
 private:
+	sim_mob::RoadSegment* parentSegment_;
 	std::bitset<MAX_LANE_MOVEMENT_RULES> rules_;
 
 

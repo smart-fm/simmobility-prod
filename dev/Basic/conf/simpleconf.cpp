@@ -194,7 +194,8 @@ bool LoadXMLBoundariesCrossings(TiXmlDocument& document, const string& parentStr
 	for (;node; node=node->NextSiblingElement()) {
 		//xmlNode* curr = xpObject->nodesetval->nodeTab[i];
 		string key;
-		Point2D val;
+		double xPos;
+		double yPos;
 		unsigned int flagCheck = 0;
 		for (TiXmlAttribute* attr=node->FirstAttribute(); attr; attr=attr->Next()) {
 			//Read each attribute.
@@ -212,10 +213,10 @@ bool LoadXMLBoundariesCrossings(TiXmlDocument& document, const string& parentStr
 				int valueI;
 				std::istringstream(value) >> valueI;
 				if (name=="xPos") {
-					val.xPos = valueI;
+					xPos = valueI;
 					flagCheck |= 2;
 				} else if (name=="yPos") {
-					val.yPos = valueI;
+					yPos = valueI;
 					flagCheck |= 4;
 				} else {
 					return false;
@@ -228,7 +229,7 @@ bool LoadXMLBoundariesCrossings(TiXmlDocument& document, const string& parentStr
 		}
 
 		//Save it.
-		result[key] = val;
+		result[key] = Point2D(xPos, yPos);
 	}
 
 	return true;
@@ -258,11 +259,11 @@ void PrintDB_Network()
 	for (vector<Node*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
 		std::streamsize oldSz = std::cout.precision();
 		std::cout.precision(10);
-		std::cout <<"Node: " <<(*it)->xPos <<"," <<(*it)->yPos <<"\n";
+		std::cout <<"Node: " <<(*it)->location->getX() <<"," <<(*it)->location->getY() <<"\n";
 		std::cout.precision(oldSz);
 
 		//Print all segments
-		for (set<RoadSegment*>::const_iterator i2=(*it)->getItemsAt().begin(); i2!=(*it)->getItemsAt().end(); ++i2) {
+		for (set<RoadSegment*>::const_iterator i2=(*it)->getRoadSegments().begin(); i2!=(*it)->getRoadSegments().end(); ++i2) {
 			ensureID(segIDs, revSegIDs, *i2);
 
 			std::cout <<"   Has segement: " <<segIDs[*i2] <<"\n";
@@ -303,7 +304,7 @@ void PrintDB_Network()
 			for (vector<Point2D>::const_iterator it=seg->polyline.begin(); it!=seg->polyline.end(); it++) {
 				std::streamsize oldSz = std::cout.precision();
 				std::cout.precision(10);
-				std::cout <<"(" <<it->xPos <<"," <<it->yPos <<") ";
+				std::cout <<"(" <<it->getX() <<"," <<it->getY() <<") ";
 				std::cout.precision(oldSz);
 			}
 			std::cout <<"\n";
@@ -451,11 +452,11 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     if (!ConfigParams::GetInstance().boundaries.empty() || !ConfigParams::GetInstance().crossings.empty()) {
     	std::cout <<"  Boundaries Found: " <<ConfigParams::GetInstance().boundaries.size() <<"\n";
 		for (map<string, Point2D>::iterator it=ConfigParams::GetInstance().boundaries.begin(); it!=ConfigParams::GetInstance().boundaries.end(); it++) {
-			std::cout <<"    Boundary[" <<it->first <<"] = (" <<it->second.xPos <<"," <<it->second.yPos <<")\n";
+			std::cout <<"    Boundary[" <<it->first <<"] = (" <<it->second.getX() <<"," <<it->second.getY() <<")\n";
 		}
 		std::cout <<"  Crossings Found: " <<ConfigParams::GetInstance().crossings.size() <<"\n";
 		for (map<string, Point2D>::iterator it=ConfigParams::GetInstance().crossings.begin(); it!=ConfigParams::GetInstance().crossings.end(); it++) {
-			std::cout <<"    Crossing[" <<it->first <<"] = (" <<it->second.xPos <<"," <<it->second.yPos <<")\n";
+			std::cout <<"    Crossing[" <<it->first <<"] = (" <<it->second.getX() <<"," <<it->second.getY() <<")\n";
 		}
     }
     if (!ConfigParams::GetInstance().connectionString.empty()) {

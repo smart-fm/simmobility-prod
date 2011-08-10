@@ -160,8 +160,8 @@ void sim_mob::Driver::update(frame_t frameNumber)
 		currentLink=originLink;
 		//currentLink=(currentLink+1)%8;
 		//double fallback=0;
-		xPos_=origin.xPos;
-		yPos_=origin.yPos;
+		xPos_=origin.getX();
+		yPos_=origin.getY();
 		//isGoalSet=false;
 		relat2abs();
 		setToParent();
@@ -271,16 +271,15 @@ void sim_mob::Driver::relat2abs()
 void sim_mob::Driver::setOrigin()
 {
 	originLink = currentLink;
-	origin.xPos = 0;
-	origin.yPos = yPos_;
+	origin = Point2D(0, yPos_);
 }
 
 void sim_mob::Driver::setGoal()
 {
 	if(currentLink%2==0) {
-		goal.xPos = 460;			//all the cars move in x direction to reach the goal
+		goal = Point2D(460, 0);			//all the cars move in x direction to reach the goal
 	} else{
-		goal.xPos = 260;
+		goal = Point2D(260, 0);
 	}
 }
 

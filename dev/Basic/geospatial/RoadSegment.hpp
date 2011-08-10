@@ -33,7 +33,8 @@ public:
 	///Return the Link this RoadSegment is part of.
 	sim_mob::Link* getLink() { return parentLink; }
 
-	const std::vector<const sim_mob::Lane*>& getLanes() const { return lanes; }
+	//TEMP: For now, returning a const vector of non-const lanes. Will fix later. ~Seth
+	const std::vector<sim_mob::Lane*>& getLanes() const { return lanes; }
 
 	bool isSingleDirectional();
 	bool isBiDirectional();
@@ -54,7 +55,7 @@ public:
 
 private:
 	///Collection of lanes. All road segments must have at least one lane.
-	std::vector<const sim_mob::Lane*> lanes;
+	std::vector<sim_mob::Lane*> lanes;
 
 	///Computed polylines are cached here.
 	std::vector< std::vector<sim_mob::Point2D> > lanePolylines_cached;

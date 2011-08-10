@@ -19,7 +19,7 @@ vector<LaneConnector*> sim_mob::Node::getConnectors(const Link* from) const
 	//Else, search.
 	vector<LaneConnector*> res;
 	for (vector<LaneConnector*>::const_iterator it=connectors.begin(); it!=connectors.end(); it++) {
-		if ((*it)->getLaneFrom().first->getLink()==from) {
+		if ((*it)->getLaneFrom()->getRoadSegment()->getLink()==from) {
 			res.push_back(*it);
 		}
 	}

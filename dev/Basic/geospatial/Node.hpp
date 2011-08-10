@@ -41,6 +41,7 @@ public:
 
 
 protected:
+	//std::multimap<sim_mob::RoadSegment*, sim_mob::LaneConnector*> connectors;
 	std::vector<sim_mob::LaneConnector*> connectors;
 	std::set<sim_mob::RoadSegment*> itemsAt;
 

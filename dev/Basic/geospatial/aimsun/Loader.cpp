@@ -312,7 +312,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		rs->maxSpeed = currSection->speed;
 		rs->length = currSection->length;
 		for (int laneID=0; laneID<currSection->numLanes; laneID++) {
-			rs->lanes.push_back(new sim_mob::Lane());
+			rs->lanes.push_back(new sim_mob::Lane(rs, laneID));
 		}
 		rs->width = 0;
 
@@ -383,10 +383,8 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 	for (int fromLaneID=src.fromLane.first; fromLaneID<=src.fromLane.second; fromLaneID++) {
 		for (int toLaneID=src.toLane.first; toLaneID<=src.toLane.second; toLaneID++) {
 			sim_mob::LaneConnector* lc = new sim_mob::LaneConnector();
-			lc->laneFrom.first = src.fromSection->generatedSegment;
-			lc->laneFrom.second = fromLaneID;
-			lc->laneTo.first = src.toSection->generatedSegment;
-			lc->laneTo.second = toLaneID;
+			lc->laneFrom = src.fromSection->generatedSegment->lanes[fromLaneID];
+			lc->laneTo = src.toSection->generatedSegment->lanes[toLaneID];
 			src.fromSection->toNode->generatedNode->connectors.push_back(lc);
 		}
 	}

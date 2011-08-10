@@ -221,16 +221,23 @@ public:
     	return width_;
     }
 
+    ///Return the laneID.
+    ///NOTE: This will probably end up being the "tranlated" lane ID, instead of the "raw" lane ID.
+    unsigned int getLaneID() const {
+    	return laneID_;
+    }
+
 
 private:
-    /** Create a Lane whose rules are all false.  */
-    Lane() : parentSegment_(nullptr), rules_(0), width_(0) {}
+    /* Create a Lane whose rules are all false.  */
+    //I'm commenting this out; making a Lane without a parent segment or LaneID is likely to cause problems later.
+    //Lane() : parentSegment_(nullptr), rules_(0), width_(0) {}
 
     friend class StreetDirectory;
     friend class sim_mob::aimsun::Loader;
 
     /** Create a Lane using the \c bit_pattern to initialize the lane's rules.  */
-    explicit Lane(sim_mob::RoadSegment* segment, const std::string& bit_pattern) : parentSegment_(segment), rules_(bit_pattern), width_(0) {}
+    explicit Lane(sim_mob::RoadSegment* segment, unsigned int laneID, const std::string& bit_pattern="") : parentSegment_(segment), rules_(bit_pattern), width_(0), laneID_(laneID) {}
 
     /** Set the lane's rules using the \c bit_pattern.  */
     void set(const std::string& bit_pattern) {
@@ -293,6 +300,7 @@ private:
 	sim_mob::RoadSegment* parentSegment_;
 	std::bitset<MAX_LANE_MOVEMENT_RULES> rules_;
 	unsigned int width_;
+	unsigned int laneID_;
 
 
 

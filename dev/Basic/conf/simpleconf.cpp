@@ -273,10 +273,10 @@ void PrintDB_Network()
 		vector<LaneConnector*> connectors = (*it)->getConnectors(nullptr);
 		for (vector<LaneConnector*>::iterator i2=connectors.begin(); i2!=connectors.end(); i2++) {
 			//For now, just assigning a temporary segment id.
-			RoadSegment* fromSeg = (*i2)->getLaneFrom().first;
-			unsigned int fromLane = (*i2)->getLaneFrom().second;
-			RoadSegment* toSeg = (*i2)->getLaneTo().first;
-			unsigned int toLane = (*i2)->getLaneTo().second;
+			RoadSegment* fromSeg = (*i2)->getLaneFrom()->getRoadSegment();
+			unsigned int fromLane = (*i2)->getLaneFrom()->getLaneID();
+			RoadSegment* toSeg = (*i2)->getLaneTo()->getRoadSegment();
+			unsigned int toLane = (*i2)->getLaneTo()->getLaneID();
 
 			//Make sure they have IDs
 			ensureID(segIDs, revSegIDs, fromSeg);

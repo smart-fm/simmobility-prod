@@ -26,14 +26,18 @@ class Loader;
  */
 class LaneConnector {
 public:
-	const std::pair<sim_mob::RoadSegment*, unsigned int>& getLaneFrom() const;
-	const std::pair<sim_mob::RoadSegment*, unsigned int>& getLaneTo() const;
+	const sim_mob::Lane* getLaneFrom() const {
+		return laneFrom;
+	}
+	const sim_mob::Lane* getLaneTo() const {
+		return laneTo;
+	}
 
 private:
 	//NOTE: These items used to be const, but it's easier to declare them private and just
 	//      return a const item.
-	std::pair<sim_mob::RoadSegment*, unsigned int> laneFrom;
-	std::pair<sim_mob::RoadSegment*, unsigned int> laneTo;
+	sim_mob::Lane* laneFrom;
+	sim_mob::Lane* laneTo;
 
 
 friend class sim_mob::aimsun::Loader;

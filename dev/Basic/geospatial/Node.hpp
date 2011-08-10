@@ -5,16 +5,12 @@
 #include <vector>
 #include <set>
 
-#include "Point2D.hpp"
-//#include "Link.hpp"
-//#include "LaneConnector.hpp"
-//#include "RoadSegment.hpp"
-
 namespace sim_mob
 {
 
 
 //Forward declarations
+class Point2D;
 class Link;
 class RoadSegment;
 class LaneConnector;
@@ -27,18 +23,21 @@ class Loader;
 
 
 /**
- * A location on a map where other elements interact. Nodes build off of the Point2D class
- * to include information on the Lane Connectors and RoadSegments at that particular location.
- *
- * \note
- * This is a skeleton class. All functions are defined in this header file.
- * When this class's full functionality is added, these header-defined functions should
- * be moved into a separate cpp file.
+ * A location on a map where other elements interact. Nodes contain a Point2D representing their location,
+ * and include information on the Lane Connectors and RoadSegments at that particular location.
  */
-class Node : public sim_mob::Point2D {
+class Node {
 public:
+
+	///Query the list of connectors at the current node, restricting the results to
+	//   those which originate at the "from" Link.
 	std::vector<sim_mob::LaneConnector*> getConnectors(const sim_mob::Link* from) const;
-	const std::set<sim_mob::RoadSegment*>& getItemsAt() const;
+
+	///Retrieve a list of all RoadSegments at this node.
+	const std::set<sim_mob::RoadSegment*>& getRoadSegments() const { return itemsAt; }
+
+	//This node's location.
+	sim_mob::Point2D* location;
 
 
 protected:

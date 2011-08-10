@@ -149,16 +149,17 @@ void sim_mob::Pedestrian::setGoal()
 
 	//Give every agent the same goal.
 	//goal.xPos = 1100;
-	goal.xPos = ConfigParams::GetInstance().boundaries["topright"].xPos + 100;
-	//goal.yPos = 200;
-	goal.yPos = ConfigParams::GetInstance().boundaries["topright"].yPos / 2;
+	goal = Point2D(
+		ConfigParams::GetInstance().boundaries["topright"].getX() + 100,
+		ConfigParams::GetInstance().boundaries["topright"].getY() / 2
+	);
 }
 
 bool sim_mob::Pedestrian::isGoalReached()
 {
 	//Simple manhatten distance check
-	int dX = abs(goal.xPos - parent->xPos.get());
-	int dY = abs(goal.yPos - parent->yPos.get());
+	int dX = abs(goal.getX() - parent->xPos.get());
+	int dY = abs(goal.getY() - parent->yPos.get());
 	return dX+dY < agentRadius;
 
 	//return (parent->yPos.get()>=goal.yPos);
@@ -167,8 +168,8 @@ bool sim_mob::Pedestrian::isGoalReached()
 void sim_mob::Pedestrian::updateVelocity()
 {
 	//Set direction (towards the goal)
-	double xDirection = goal.xPos - parent->xPos.get();
-	double yDirection = goal.yPos - parent->yPos.get();
+	double xDirection = goal.getX() - parent->xPos.get();
+	double yDirection = goal.getY() - parent->yPos.get();
 
 	//Normalize
 	double magnitude = sqrt(xDirection*xDirection + yDirection*yDirection);
@@ -219,7 +220,7 @@ void sim_mob::Pedestrian::updatePedestrianSignal()
 
 bool sim_mob::Pedestrian::reachStartOfCrossing()
 {
-	int lowerRightCrossingY = ConfigParams::GetInstance().crossings["lowerright"].yPos;
+	int lowerRightCrossingY = ConfigParams::GetInstance().crossings["lowerright"].getY();
 
 	if(parent->yPos.get()<=lowerRightCrossingY){
 		double dist = lowerRightCrossingY - parent->yPos.get();

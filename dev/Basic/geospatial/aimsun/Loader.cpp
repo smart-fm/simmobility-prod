@@ -267,8 +267,7 @@ void sim_mob::aimsun::Loader::ProcessNode(sim_mob::RoadNetwork& res, Node& src)
 	src.hasBeenSaved = true;
 
 	sim_mob::Node* newNode = new sim_mob::Node();
-	newNode->xPos = src.xPos;
-	newNode->yPos = src.yPos;
+	newNode->location = new Point2D(src.xPos, src.yPos);
 	res.nodes.push_back(newNode);
 
 	//For future reference
@@ -401,23 +400,21 @@ void sim_mob::aimsun::Loader::ProcessSectionPolylines(sim_mob::RoadNetwork& res,
 {
 	//The start point is first
 	// NOTE: We agreed earlier to include the start/end points; I think this was because it makes lane polylines consistent. ~Seth
-	sim_mob::Point2D pt;
-	pt.xPos = src.fromNode->generatedNode->xPos;
-	pt.yPos = src.fromNode->generatedNode->yPos;
-	src.generatedSegment->polyline.push_back(pt);
+	{
+		sim_mob::Point2D pt(src.fromNode->generatedNode->location->getX(), src.fromNode->generatedNode->location->getY());
+		src.generatedSegment->polyline.push_back(pt);
+	}
 
 	//Polyline points are sorted by their "distance from source" and then added.
 	std::sort(src.polylineEntries.begin(), src.polylineEntries.end(), polyline_sorter);
 	for (std::vector<Polyline*>::iterator it=src.polylineEntries.begin(); it!=src.polylineEntries.end(); it++) {
 		//TODO: This might not trace the median, and the start/end points are definitely not included.
-		pt.xPos = (*it)->xPos;
-		pt.yPos = (*it)->yPos;
+		sim_mob::Point2D pt((*it)->xPos, (*it)->yPos);
 		src.generatedSegment->polyline.push_back(pt);
 	}
 
 	//The ending point is last
-	pt.xPos = src.toNode->generatedNode->xPos;
-	pt.yPos = src.toNode->generatedNode->yPos;
+	sim_mob::Point2D pt(src.toNode->generatedNode->location->getX(), src.toNode->generatedNode->location->getY());
 	src.generatedSegment->polyline.push_back(pt);
 }
 

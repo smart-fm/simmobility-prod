@@ -46,12 +46,12 @@ public:
 
 private:
 	///Get the bus lines available at this stop. Used for route planning.
-	///NOTE: the void* is obviously temporary
-	void* getBusLines() { return (void*)0; }
+	///NOTE: Placeholder method; will obviously not be returning void.
+	void getBusLines() {  }
 
 	///Get a list of bus arrival times. Pedestrians can consult this (assuming the bus stop is VMS-enabled).
-	///NOTE: the void* is obviously temporary
-	void* getBusArrivalVMS() { return (void*)0; }
+	///NOTE: Placeholder method; will obviously not be returning void.
+	void getBusArrivalVMS() {  }
 
 
 };

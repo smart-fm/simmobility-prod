@@ -33,23 +33,20 @@ enum DRIVING_SIDE {
 
 /**
  * The main Road Network. (Currently, this class only contains the "drivingSide" variable)
- *
- * \note
- * This is a skeleton class. All functions are defined in this header file.
- * When this class's full functionality is added, these header-defined functions should
- * be moved into a separate cpp file.
  */
 class RoadNetwork {
 public:
 	DRIVING_SIDE drivingSide;
 
+	///Retrieve list of all Nodes in this Road Network.
+	///
+	///\todo This needs to eventually have some structure; see the wiki for an example.
 	const std::vector<sim_mob::Node*>& getNodes() { return nodes; }
 
 private:
-	//Temp: All nodes in a network.
 	std::vector<sim_mob::Node*> nodes;
 
-	//Temp: All Links in a network
+	//Temporary: Geometry will eventually make specifying nodes easier.
 	std::vector<sim_mob::Link*> links;
 
 

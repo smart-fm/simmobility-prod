@@ -2,6 +2,8 @@
 
 #include "RoadSegment.hpp"
 
+#include "Lane.hpp"
+
 using namespace sim_mob;
 
 using std::pair;

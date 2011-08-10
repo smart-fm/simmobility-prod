@@ -6,7 +6,6 @@
 #include <stdexcept>
 
 #include "Pavement.hpp"
-#include "Lane.hpp"
 #include "Link.hpp"
 
 namespace sim_mob
@@ -14,7 +13,7 @@ namespace sim_mob
 
 
 //Forward declarations
-//class Lane;
+class Lane;
 
 namespace aimsun
 {
@@ -66,7 +65,7 @@ private:
 
 	///Widths of each lane. If this vector is empty, each lane's width is an even division of
 	///Pavement::width() / lanes.size()
-	std::vector<unsigned int> laneWidths;
+	//std::vector<unsigned int> laneWidths;
 
 	///Which link this appears in
 	sim_mob::Link* parentLink;

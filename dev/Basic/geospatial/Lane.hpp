@@ -5,12 +5,14 @@
 #include <bitset>
 #include <sstream>
 
+#include "RoadSegment.hpp"
+
 
 namespace sim_mob
 {
 
 //Forward declarations
-class RoadSegment;
+//class RoadSegment;
 
 
 namespace aimsun
@@ -83,7 +85,6 @@ class Lane {
 private:
     /**
      * Lane movement rules.
-     *
      */
     enum LANE_MOVEMENT_RULES {
     // Let the compiler assigns value to each enum item.
@@ -205,20 +206,31 @@ public:
 	/** Return true if vehicles can make a U-turn on this lane.  */
 	bool is_u_turn_allowed() const { return rules_[IS_U_TURN_ALLOWED]; }
 
+public:
+    /** Return the RoadSegment this Lane is in. */
+    sim_mob::RoadSegment* getRoadSegment() const {
+        return parentSegment_;
+    }
+
+    ///Retrieve this lane's width. If 0, then this width is an even division of the
+    /// road segment's total width.
+    unsigned int getWidth() const {
+    	if (width_==0) {
+    		return parentSegment_->width / parentSegment_->getLanes().size();
+    	}
+    	return width_;
+    }
+
+
 private:
     /** Create a Lane whose rules are all false.  */
-    Lane() {}
+    Lane() : parentSegment_(nullptr), rules_(0), width_(0) {}
 
     friend class StreetDirectory;
     friend class sim_mob::aimsun::Loader;
 
     /** Create a Lane using the \c bit_pattern to initialize the lane's rules.  */
-    explicit Lane(sim_mob::RoadSegment* segment, const std::string& bit_pattern) : parentSegment_(segment), rules_(bit_pattern) {}
-
-    /** Return the RoadSegment this Lane is in. */
-    sim_mob::RoadSegment* getRoadSegment() const {
-        return parentSegment_;
-    }
+    explicit Lane(sim_mob::RoadSegment* segment, const std::string& bit_pattern) : parentSegment_(segment), rules_(bit_pattern), width_(0) {}
 
     /** Set the lane's rules using the \c bit_pattern.  */
     void set(const std::string& bit_pattern) {
@@ -280,6 +292,7 @@ private:
 private:
 	sim_mob::RoadSegment* parentSegment_;
 	std::bitset<MAX_LANE_MOVEMENT_RULES> rules_;
+	unsigned int width_;
 
 
 

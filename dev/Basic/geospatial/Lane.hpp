@@ -231,6 +231,7 @@ public:
 private:
     /* Create a Lane whose rules are all false.  */
     //I'm commenting this out; making a Lane without a parent segment or LaneID is likely to cause problems later.
+    // ~Seth
     //Lane() : parentSegment_(nullptr), rules_(0), width_(0) {}
 
     friend class StreetDirectory;

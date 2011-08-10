@@ -270,20 +270,23 @@ void PrintDB_Network()
 		}
 
 		//Now print all lane connectors at this node
-		vector<LaneConnector*> connectors = (*it)->getConnectors(nullptr);
-		for (vector<LaneConnector*>::iterator i2=connectors.begin(); i2!=connectors.end(); i2++) {
-			//For now, just assigning a temporary segment id.
-			RoadSegment* fromSeg = (*i2)->getLaneFrom()->getRoadSegment();
-			unsigned int fromLane = (*i2)->getLaneFrom()->getLaneID();
-			RoadSegment* toSeg = (*i2)->getLaneTo()->getRoadSegment();
-			unsigned int toLane = (*i2)->getLaneTo()->getLaneID();
+		for (set<RoadSegment*>::iterator rsIt=(*it)->getRoadSegments().begin(); rsIt!=(*it)->getRoadSegments().end(); rsIt++) {
+			if ((*it)->hasOutgoingLanes(**rsIt)) {
+				for (set<LaneConnector*>::iterator i2=(*it)->getOutgoingLanes(**rsIt).begin(); i2!=(*it)->getOutgoingLanes(**rsIt).end(); i2++) {
+					//For now, just assigning a temporary segment id.
+					RoadSegment* fromSeg = (*i2)->getLaneFrom()->getRoadSegment();
+					unsigned int fromLane = (*i2)->getLaneFrom()->getLaneID();
+					RoadSegment* toSeg = (*i2)->getLaneTo()->getRoadSegment();
+					unsigned int toLane = (*i2)->getLaneTo()->getLaneID();
 
-			//Make sure they have IDs
-			ensureID(segIDs, revSegIDs, fromSeg);
-			ensureID(segIDs, revSegIDs, toSeg);
+					//Make sure they have IDs
+					ensureID(segIDs, revSegIDs, fromSeg);
+					ensureID(segIDs, revSegIDs, toSeg);
 
-			//Output
-			std::cout <<"    Connector, from segment " <<segIDs[fromSeg] <<", lane " <<fromLane <<"  to segment " <<segIDs[toSeg] <<", lane " <<toLane <<"\n";
+					//Output
+					std::cout <<"    Connector, from segment " <<segIDs[fromSeg] <<", lane " <<fromLane <<"  to segment " <<segIDs[toSeg] <<", lane " <<toLane <<"\n";
+				}
+			}
 		}
 	}
 

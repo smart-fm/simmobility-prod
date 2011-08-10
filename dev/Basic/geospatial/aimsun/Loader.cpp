@@ -321,24 +321,10 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		//      For now, setting to a clearly incorrect value.
 		rs->lanesLeftOfDivider = 0xFF;
 
-		currSection->fromNode->generatedNode->itemsAt.insert(rs);
-		currSection->toNode->generatedNode->itemsAt.insert(rs);
+		//Ensure this RoadSegment is represented, even if no lane connectors are defined.
+		currSection->fromNode->generatedNode->roadSegmentsAt.insert(rs);
+		currSection->toNode->generatedNode->roadSegmentsAt.insert(rs);
 		ln->segments.push_back(rs);
-
-		//TEMP
-		/*if (currSection->fromNode->id==60896 || currSection->toNode->id==60896) {
-			std::cout <<"Road: " <<currSection->roadName <<"  " <<currSection->generatedSegment <<"\n";
-			std::cout <<"   from: " <<currSection->fromNode->generatedNode <<"\n";
-			std::cout <<"     to: " <<currSection->toNode->generatedNode <<"\n";
-
-			std::cout <<"  size: ";
-			if (currSection->fromNode->id==60896) {
-				std::cout <<currSection->fromNode->generatedNode->itemsAt.size();
-			} else {
-				std::cout <<currSection->toNode->generatedNode->itemsAt.size();
-			}
-			std::cout <<"\n";
-		}*/
 
 		//Break?
 		if (!currSection->toNode->candidateForSegmentNode) {
@@ -385,7 +371,7 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 			sim_mob::LaneConnector* lc = new sim_mob::LaneConnector();
 			lc->laneFrom = src.fromSection->generatedSegment->lanes[fromLaneID];
 			lc->laneTo = src.toSection->generatedSegment->lanes[toLaneID];
-			src.fromSection->toNode->generatedNode->connectors.push_back(lc);
+			src.fromSection->toNode->generatedNode->connectors[lc->laneFrom->getRoadSegment()].insert(lc);
 		}
 	}
 

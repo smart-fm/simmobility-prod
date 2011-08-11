@@ -28,6 +28,9 @@ namespace aimsun
  * A location on a map where other elements interact. Nodes contain a Point2D representing their
  * location. Additional information (such as lane connectors) are located in other classes (e.g.,
  * Intersections, Roundabouts, and SegmentNodes.
+ *
+ * The constructor of a node is protected, since there's never a need to use a Node directly (if only
+ * the location is needed, a Point2D will do).
  */
 class Node {
 public:
@@ -36,6 +39,7 @@ public:
 
 
 protected:
+	Node() {}
 
 //friend class sim_mob::aimsun::Loader;
 

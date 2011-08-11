@@ -1,6 +1,6 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
-#include "SegmentNode.hpp"
+#include "UniNode.hpp"
 
 #include "Lane.hpp"
 
@@ -12,12 +12,12 @@ using std::max;
 using std::min;
 
 
-sim_mob::SegmentNode::SegmentNode(const RoadSegment* from, const RoadSegment* to) : segmentFrom(from), segmentTo(to)
+sim_mob::UniNode::UniNode(const RoadSegment* from, const RoadSegment* to) : segmentFrom(from), segmentTo(to)
 {
 }
 
 
-const Lane* sim_mob::SegmentNode::getOutgoingLane(const Lane& from) const
+const Lane* sim_mob::UniNode::getOutgoingLane(const Lane& from) const
 {
 	if (connectors.count(&from)>0) {
 		return connectors.find(&from)->second;
@@ -27,14 +27,14 @@ const Lane* sim_mob::SegmentNode::getOutgoingLane(const Lane& from) const
 
 
 
-pair<const RoadSegment*, const RoadSegment*> sim_mob::SegmentNode::getRoadSegments() const
+pair<const RoadSegment*, const RoadSegment*> sim_mob::UniNode::getRoadSegments() const
 {
 	return pair<const RoadSegment*, const RoadSegment*>(segmentFrom, segmentTo);
 }
 
 
 
-void sim_mob::SegmentNode::buildConnectorsFromAlignedLanes(unsigned int fromLaneID, unsigned int toLaneID)
+void sim_mob::UniNode::buildConnectorsFromAlignedLanes(unsigned int fromLaneID, unsigned int toLaneID)
 {
 	connectors.clear();
 

@@ -33,10 +33,10 @@ class Loader;
  * a change in the number of lanes (or sometimes just the lane rules that are in effect).
  * Each lane from the first segment connects directly to one Lane in the second segment.
  */
-class SegmentNode : public sim_mob::Node {
+class UniNode : public sim_mob::Node {
 public:
 	///Construct this SegmentNode with the given Road Segments
-	SegmentNode(const sim_mob::RoadSegment* from=nullptr, const sim_mob::RoadSegment* to=nullptr);
+	UniNode(const sim_mob::RoadSegment* from=nullptr, const sim_mob::RoadSegment* to=nullptr);
 
 	///Retrieve the outgoing Lane at this Node.
 	const sim_mob::Lane* getOutgoingLane(const sim_mob::Lane& from) const;

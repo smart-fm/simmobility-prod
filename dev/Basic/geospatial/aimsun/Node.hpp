@@ -11,6 +11,7 @@ namespace sim_mob
 
 //Forward declarations
 class Node;
+class Intersection;
 
 
 namespace aimsun
@@ -34,7 +35,7 @@ public:
 	bool candidateForSegmentNode;
 
 	//Reference to saved object
-	sim_mob::Node* generatedNode;
+	sim_mob::Intersection* generatedNode;
 
 };
 

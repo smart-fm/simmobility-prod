@@ -12,6 +12,7 @@
 #include "../entities/roles/Driver.hpp"
 #include "../geospatial/aimsun/Loader.hpp"
 #include "../geospatial/Node.hpp"
+#include "../geospatial/Intersection.hpp"
 #include "../geospatial/RoadSegment.hpp"
 #include "../geospatial/LaneConnector.hpp"
 
@@ -262,17 +263,21 @@ void PrintDB_Network()
 		std::cout <<"Node: " <<(*it)->location->getX() <<"," <<(*it)->location->getY() <<"\n";
 		std::cout.precision(oldSz);
 
+		//NOTE: This is temporary; later we'll ensure that the RoadNetwork only stores Intersections,
+		//      and RoadSegments will have to be extracted.
+		const Intersection* nodeInt = static_cast<const Intersection*>((*it));
+
 		//Print all segments
-		for (set<RoadSegment*>::const_iterator i2=(*it)->getRoadSegments().begin(); i2!=(*it)->getRoadSegments().end(); ++i2) {
+		for (set<RoadSegment*>::const_iterator i2=nodeInt->getRoadSegments().begin(); i2!=nodeInt->getRoadSegments().end(); ++i2) {
 			ensureID(segIDs, revSegIDs, *i2);
 
 			std::cout <<"   Has segement: " <<segIDs[*i2] <<"\n";
 		}
 
 		//Now print all lane connectors at this node
-		for (set<RoadSegment*>::iterator rsIt=(*it)->getRoadSegments().begin(); rsIt!=(*it)->getRoadSegments().end(); rsIt++) {
-			if ((*it)->hasOutgoingLanes(**rsIt)) {
-				for (set<LaneConnector*>::iterator i2=(*it)->getOutgoingLanes(**rsIt).begin(); i2!=(*it)->getOutgoingLanes(**rsIt).end(); i2++) {
+		for (set<RoadSegment*>::iterator rsIt=nodeInt->getRoadSegments().begin(); rsIt!=nodeInt->getRoadSegments().end(); rsIt++) {
+			if (nodeInt->hasOutgoingLanes(**rsIt)) {
+				for (set<LaneConnector*>::iterator i2=nodeInt->getOutgoingLanes(**rsIt).begin(); i2!=nodeInt->getOutgoingLanes(**rsIt).end(); i2++) {
 					//For now, just assigning a temporary segment id.
 					RoadSegment* fromSeg = (*i2)->getLaneFrom()->getRoadSegment();
 					unsigned int fromLane = (*i2)->getLaneFrom()->getLaneID();

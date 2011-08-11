@@ -15,6 +15,7 @@
 
 #include "../Point2D.hpp"
 #include "../Node.hpp"
+#include "../Intersection.hpp"
 #include "../Link.hpp"
 #include "../RoadSegment.hpp"
 #include "../LaneConnector.hpp"
@@ -266,7 +267,7 @@ void sim_mob::aimsun::Loader::ProcessNode(sim_mob::RoadNetwork& res, Node& src)
 {
 	src.hasBeenSaved = true;
 
-	sim_mob::Node* newNode = new sim_mob::Node();
+	sim_mob::Intersection* newNode = new sim_mob::Intersection();
 	newNode->location = new Point2D(src.xPos, src.yPos);
 	res.nodes.push_back(newNode);
 

@@ -25,8 +25,9 @@ class Loader;
 
 
 /**
- * A location on a map where other elements interact. Nodes contain a Point2D representing their location,
- * and include information on the Lane Connectors and RoadSegments at that particular location.
+ * A location on a map where other elements interact. Nodes contain a Point2D representing their
+ * location. Additional information (such as lane connectors) are located in other classes (e.g.,
+ * Intersections, Roundabouts, and SegmentNodes.
  */
 class Node {
 public:

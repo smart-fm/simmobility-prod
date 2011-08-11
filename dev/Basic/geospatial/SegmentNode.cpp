@@ -56,7 +56,7 @@ void sim_mob::SegmentNode::buildConnectorsFromAlignedLanes(unsigned int fromLane
 		connectors[segmentFrom->getLanes()[0]] = segmentTo->getLanes()[i];
 	}
 	size_t numFrom = segmentFrom->getLanes().size();
-	for (int i=numFrom+toOffset; i<segmentTo->getLanes().size(); i++) {
+	for (int i=numFrom+toOffset; i<(int)segmentTo->getLanes().size(); i++) {
 		connectors[segmentFrom->getLanes()[numFrom]] = segmentTo->getLanes()[i];
 	}
 }

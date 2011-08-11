@@ -20,8 +20,8 @@ class RoadSegment;
 namespace aimsun
 {
 //Forward declarations
-class Loader;
-}
+//class Loader;
+} //End aimsun namespace
 
 
 /**
@@ -37,7 +37,7 @@ public:
 
 protected:
 
-friend class sim_mob::aimsun::Loader;
+//friend class sim_mob::aimsun::Loader;
 
 };
 

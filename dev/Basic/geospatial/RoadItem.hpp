@@ -2,7 +2,7 @@
 
 #pragma once
 
-//#include "Node.hpp"
+#include "../constants.h"
 
 
 namespace sim_mob
@@ -21,11 +21,15 @@ class Node;
  */
 class RoadItem {
 public:
+	RoadItem(sim_mob::Node* start=nullptr, sim_mob::Node* end=nullptr) : start(start), end(end) {}
+
+	const sim_mob::Node* getStart() { return start; }
+	const sim_mob::Node* getEnd() { return end; }
 
 
 protected:
-	const sim_mob::Node* start;
-	const sim_mob::Node* end;
+	sim_mob::Node* start;
+	sim_mob::Node* end;
 
 
 

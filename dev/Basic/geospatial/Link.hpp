@@ -3,6 +3,7 @@
 #pragma once
 
 #include <vector>
+#include <set>
 #include <string>
 
 //#include "RoadSegment.hpp"
@@ -32,6 +33,13 @@ class Loader;
  */
 class Link : public sim_mob::RoadItem {
 public:
+	//TEMPORARY
+	Link(){}
+
+
+	///Construct a link with the given segments. All segments must be consistent.
+	Link(sim_mob::Node* start, sim_mob::Node* end, const std::set<sim_mob::RoadSegment*>& segments);
+
 	///Return the length of this Link, which is the sum of all RoadSegments
 	/// in the forward (if isForward is true) direction.
 	int GetLength(bool isForward);
@@ -49,9 +57,10 @@ public:
 	std::string roadName;
 
 protected:
-	//TODO: This should probably be stored with some structure (to help with the
-	//      single/bi-directional RoadSegment problem, and with naming).
-	std::vector<sim_mob::RoadSegment*> segments;
+	//List of pointers to RoadSegments in each direction
+	std::vector<sim_mob::RoadSegment*> fwdSegments;
+	std::vector<sim_mob::RoadSegment*> revSegments;
+
 
 
 friend class sim_mob::aimsun::Loader;

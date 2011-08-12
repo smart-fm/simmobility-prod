@@ -351,7 +351,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		//      In other words, how do we apply driving direction?
 		//      For now, setting to a clearly incorrect value.
 		rs->lanesLeftOfDivider = 0xFF;
-		ln->segments.push_back(rs);
+		//ln->segments.push_back(rs); //TODO: Fix!
 
 		//Break?
 		if (!currSection->toNode->candidateForSegmentNode) {

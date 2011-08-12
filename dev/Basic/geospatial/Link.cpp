@@ -8,7 +8,44 @@
 
 using namespace sim_mob;
 using std::vector;
+using std::set;
 using std::string;
+
+
+namespace {
+
+RoadSegment* findSegment(const set<RoadSegment*>& segments, Node* startsAt) {
+	for (set<RoadSegment*>::const_iterator it=segments.begin(); it!=segments.end(); it++) {
+		//Simple case.
+		if ((*it)->getStart()==startsAt) {
+			return *it;
+		}
+
+		//Special case for bidirectional roads
+		if ((*it)->isBiDirectional() && (*it)->getEnd()==startsAt) {
+			return *it;
+		}
+	}
+}
+
+} //End anon namespace
+
+
+
+sim_mob::Link::Link(Node* start, Node* end, const set<RoadSegment*>& segments) : RoadItem(start, end)
+{
+	//We build in two directions; forward and backwards. We also maintain a list of which
+	// road segments are used, to catch cases where RoadSegments are skipped.
+	set<RoadSegment*> usedSegments;
+	for (const Node* fwd=start; fwd!=end;) {
+		//Retrieve the
+
+
+	}
+
+}
+
+
 
 
 int sim_mob::Link::GetLength(bool isForward)

@@ -3,6 +3,7 @@
 #include "Link.hpp"
 
 #include <stdexcept>
+#include <algorithm>
 
 #include "RoadSegment.hpp"
 

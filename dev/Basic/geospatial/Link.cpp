@@ -14,7 +14,7 @@ using std::string;
 
 namespace {
 
-RoadSegment* findSegment(const set<RoadSegment*>& segments, Node* startsAt) {
+RoadSegment* findSegment(const set<RoadSegment*>& segments, const Node* startsAt) {
 	for (set<RoadSegment*>::const_iterator it=segments.begin(); it!=segments.end(); it++) {
 		//Simple case.
 		if ((*it)->getStart()==startsAt) {
@@ -26,23 +26,46 @@ RoadSegment* findSegment(const set<RoadSegment*>& segments, Node* startsAt) {
 			return *it;
 		}
 	}
+	return nullptr;
 }
+
+
+void buildLinkList(const set<RoadSegment*>& segments, vector<RoadSegment*> res, set<RoadSegment*> usedSegments, const Node* start, const Node* end) {
+	for (const Node* fwd=start; fwd!=end;) {
+		//Retrieve the next segment
+		RoadSegment* nextSeg = findSegment(segments, fwd);
+		if (!nextSeg) {
+			throw std::runtime_error("Incomplete link; missing RoadSegment.");
+		}
+
+		//Add it, track it, increment
+		res.push_back(nextSeg);
+		usedSegments.insert(nextSeg);
+		if (fwd!=nextSeg->getEnd()) {
+			fwd = nextSeg->getEnd();
+		} else {
+			fwd = nextSeg->getStart();
+		}
+	}
+}
+
 
 } //End anon namespace
 
 
 
-sim_mob::Link::Link(Node* start, Node* end, const set<RoadSegment*>& segments) : RoadItem(start, end)
+void sim_mob::Link::initializeLinkSegments(const std::set<sim_mob::RoadSegment*>& segments)
 {
 	//We build in two directions; forward and backwards. We also maintain a list of which
 	// road segments are used, to catch cases where RoadSegments are skipped.
 	set<RoadSegment*> usedSegments;
-	for (const Node* fwd=start; fwd!=end;) {
-		//Retrieve the
+	buildLinkList(segments, fwdSegments, usedSegments, start, end);
+	buildLinkList(segments, revSegments, usedSegments, end, start);
 
-
+	//Double-check that everything's been read at least once.
+	if (usedSegments.size() < segments.size()) {
+		throw std::runtime_error("Link constructed without the use of all its segments.");
 	}
-
 }
 
 

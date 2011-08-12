@@ -21,7 +21,7 @@ class Node;
  */
 class RoadItem {
 public:
-	RoadItem(sim_mob::Node* start=nullptr, sim_mob::Node* end=nullptr) : start(start), end(end) {}
+	//RoadItem(sim_mob::Node* start=nullptr, sim_mob::Node* end=nullptr) : start(start), end(end) {}
 
 	const sim_mob::Node* getStart() { return start; }
 	const sim_mob::Node* getEnd() { return end; }

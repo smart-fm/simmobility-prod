@@ -32,6 +32,7 @@
 
 using namespace sim_mob::aimsun;
 using std::vector;
+using std::set;
 using std::map;
 using std::pair;
 using std::multimap;
@@ -317,6 +318,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	sim_mob::Link* ln = new sim_mob::Link();
 	ln->roadName = currSection->roadName;
 	ln->start = src.fromNode->generatedNode;
+	set<RoadSegment*> linkSegments;
 
 	//Make sure the link's start node is represented at the Node level.
 	//TODO: Try to avoid dynamic casting if possible.
@@ -351,13 +353,16 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		//      In other words, how do we apply driving direction?
 		//      For now, setting to a clearly incorrect value.
 		rs->lanesLeftOfDivider = 0xFF;
-		//ln->segments.push_back(rs); //TODO: Fix!
+		linkSegments.insert(rs);
 
 		//Break?
 		if (!currSection->toNode->candidateForSegmentNode) {
 			//Make sure the link's end node is represented at the Node level.
 			//TODO: Try to avoid dynamic casting if possible.
 			dynamic_cast<MultiNode*>(currSection->toNode->generatedNode)->roadSegmentsAt.insert(currSection->generatedSegment);
+
+			//Save it.
+			ln->initializeLinkSegments(linkSegments);
 
 			break;
 		}

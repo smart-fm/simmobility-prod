@@ -33,12 +33,8 @@ class Loader;
  */
 class Link : public sim_mob::RoadItem {
 public:
-	//TEMPORARY
-	Link(){}
-
-
-	///Construct a link with the given segments. All segments must be consistent.
-	Link(sim_mob::Node* start, sim_mob::Node* end, const std::set<sim_mob::RoadSegment*>& segments);
+	//Initialize a link with the given set of segments
+	void initializeLinkSegments(const std::set<sim_mob::RoadSegment*>& segments);
 
 	///Return the length of this Link, which is the sum of all RoadSegments
 	/// in the forward (if isForward is true) direction.

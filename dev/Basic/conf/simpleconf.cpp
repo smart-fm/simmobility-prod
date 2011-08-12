@@ -257,7 +257,7 @@ void PrintDB_Network()
 
 	//Start by printing nodes.
 	RoadNetwork& rn = ConfigParams::GetInstance().network;
-	for (vector<Node*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
+	for (vector<MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
 		std::streamsize oldSz = std::cout.precision();
 		std::cout.precision(10);
 		std::cout <<"Node: " <<(*it)->location->getX() <<"," <<(*it)->location->getY() <<"\n";

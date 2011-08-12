@@ -34,6 +34,8 @@ namespace aimsun
  */
 class Node {
 public:
+	virtual ~Node() {} //A virtual destructor allows dynamic casting
+
 	//This node's location.
 	sim_mob::Point2D* location;
 

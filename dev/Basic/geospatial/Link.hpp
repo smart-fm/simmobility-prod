@@ -15,6 +15,7 @@ namespace sim_mob
 
 //Forward declarations
 class RoadSegment;
+class MultiNode;
 
 
 namespace aimsun

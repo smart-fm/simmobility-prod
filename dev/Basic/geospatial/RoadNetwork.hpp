@@ -9,7 +9,7 @@ namespace sim_mob
 {
 
 //Forward declarations
-class Node;
+class MultiNode;
 class Link;
 
 
@@ -38,13 +38,13 @@ class RoadNetwork {
 public:
 	DRIVING_SIDE drivingSide;
 
-	///Retrieve list of all Nodes in this Road Network.
+	///Retrieve list of all MultiNodes (intersections & roundabouts) in this Road Network.
 	///
 	///\todo This needs to eventually have some structure; see the wiki for an example.
-	const std::vector<sim_mob::Node*>& getNodes() { return nodes; }
+	const std::vector<sim_mob::MultiNode*>& getNodes() { return nodes; }
 
 private:
-	std::vector<sim_mob::Node*> nodes;
+	std::vector<sim_mob::MultiNode*> nodes;
 
 	//Temporary: Geometry will eventually make specifying nodes easier.
 	std::vector<sim_mob::Link*> links;

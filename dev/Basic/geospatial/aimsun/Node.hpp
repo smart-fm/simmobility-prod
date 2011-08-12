@@ -34,8 +34,8 @@ public:
 	std::vector<Section*> sectionsAtNode;
 	bool candidateForSegmentNode;
 
-	//Reference to saved object
-	sim_mob::Intersection* generatedNode;
+	//Reference to saved object (Maybe be UniNode or MultiNode, of course)
+	sim_mob::Node* generatedNode;
 
 };
 

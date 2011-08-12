@@ -15,6 +15,8 @@
 
 #include "../Point2D.hpp"
 #include "../Node.hpp"
+#include "../UniNode.hpp"
+#include "../MultiNode.hpp"
 #include "../Intersection.hpp"
 #include "../Link.hpp"
 #include "../RoadSegment.hpp"
@@ -267,14 +269,38 @@ void sim_mob::aimsun::Loader::ProcessNode(sim_mob::RoadNetwork& res, Node& src)
 {
 	src.hasBeenSaved = true;
 
-	sim_mob::Intersection* newNode = new sim_mob::Intersection();
-	newNode->location = new Point2D(src.xPos, src.yPos);
-	res.nodes.push_back(newNode);
+	if (!src.candidateForSegmentNode) {
+		//This is an Intersection
+		sim_mob::Intersection* newNode = new sim_mob::Intersection();
+		newNode->location = new Point2D(src.xPos, src.yPos);
 
-	//For future reference
-	src.generatedNode = newNode;
+		//Store it in the global nodes array
+		res.nodes.push_back(newNode);
 
-	//TODO: "SegmentNodes" should be built separately. They're still a type of Node.
+		//For future reference
+		src.generatedNode = newNode;
+	} else {
+		//Which RoadSegment leads here?
+		if (src.sectionsAtNode.size()==2) {
+			throw std::runtime_error("Unexpected Section count."); //Should already be checked.
+		}
+		Section* fromSec = (src.sectionsAtNode[0]->TMP_ToNodeID==src.id) ? src.sectionsAtNode[0] : src.sectionsAtNode[1];
+		Section* toSec = (fromSec->id==src.sectionsAtNode[0]->id) ? src.sectionsAtNode[1] : src.sectionsAtNode[1];
+		std::cout <<"From sec: " <<fromSec->id <<" to sec: " <<toSec->id <<"\n";
+
+
+		//This is a simple Road Segment joint
+		UniNode* newNode = new UniNode(fromSec->generatedSegment, toSec->generatedSegment);
+		newNode->location = new Point2D(src.xPos, src.yPos);
+
+		//TODO: Actual connector alignment (requires map checking)
+		newNode->buildConnectorsFromAlignedLanes(0, 0);
+
+		//This UniNode can later be accessed by the RoadSegment itself.
+
+		//For future reference
+		src.generatedNode = newNode;
+	}
 }
 
 
@@ -291,6 +317,10 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	sim_mob::Link* ln = new sim_mob::Link();
 	ln->roadName = currSection->roadName;
 	ln->start = src.fromNode->generatedNode;
+
+	//Make sure the link's start node is represented at the Node level.
+	//TODO: Try to avoid dynamic casting if possible.
+	dynamic_cast<MultiNode*>(src.fromNode->generatedNode)->roadSegmentsAt.insert(src.generatedSegment);
 
 	for (;;) {
 		//Update
@@ -321,14 +351,14 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		//      In other words, how do we apply driving direction?
 		//      For now, setting to a clearly incorrect value.
 		rs->lanesLeftOfDivider = 0xFF;
-
-		//Ensure this RoadSegment is represented, even if no lane connectors are defined.
-		currSection->fromNode->generatedNode->roadSegmentsAt.insert(rs);
-		currSection->toNode->generatedNode->roadSegmentsAt.insert(rs);
 		ln->segments.push_back(rs);
 
 		//Break?
 		if (!currSection->toNode->candidateForSegmentNode) {
+			//Make sure the link's end node is represented at the Node level.
+			//TODO: Try to avoid dynamic casting if possible.
+			dynamic_cast<MultiNode*>(currSection->toNode->generatedNode)->roadSegmentsAt.insert(currSection->generatedSegment);
+
 			break;
 		}
 
@@ -352,6 +382,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 
 	//Now add the link
 	res.links.push_back(ln);
+
 }
 
 
@@ -372,7 +403,7 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 			sim_mob::LaneConnector* lc = new sim_mob::LaneConnector();
 			lc->laneFrom = src.fromSection->generatedSegment->lanes[fromLaneID];
 			lc->laneTo = src.toSection->generatedSegment->lanes[toLaneID];
-			src.fromSection->toNode->generatedNode->connectors[lc->laneFrom->getRoadSegment()].insert(lc);
+			dynamic_cast<MultiNode*>(src.fromSection->toNode->generatedNode)->connectors[lc->laneFrom->getRoadSegment()].insert(lc);
 		}
 	}
 

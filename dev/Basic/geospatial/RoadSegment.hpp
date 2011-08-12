@@ -50,8 +50,6 @@ public:
 	///Maximum speed of this road segment.
 	int maxSpeed;
 
-	void* roadBulge; ///<Currently haven't decided how to represent bulge.
-
 
 private:
 	///Collection of lanes. All road segments must have at least one lane.
@@ -63,10 +61,6 @@ private:
 	///Helps to identify road segments which are bi-directional.
 	///We count lanes from the LHS, so this doesn't change with drivingSide
 	unsigned int lanesLeftOfDivider;
-
-	///Widths of each lane. If this vector is empty, each lane's width is an even division of
-	///Pavement::width() / lanes.size()
-	//std::vector<unsigned int> laneWidths;
 
 	///Which link this appears in
 	sim_mob::Link* parentLink;

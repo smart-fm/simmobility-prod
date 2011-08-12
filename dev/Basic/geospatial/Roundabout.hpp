@@ -15,7 +15,7 @@ namespace sim_mob
  * Roundabout class, however, adds a much-needed layer of context by specifying exactly
  * how the roundabout actually looks and behaves.
  */
-class Roundabout : public sim_mob::Node {
+class Roundabout : public sim_mob::MultiNode {
 public:
 
 protected:

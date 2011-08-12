@@ -54,6 +54,9 @@ public:
 	///Return the next obstacle from a given offset along the current Pavement.
 	sim_mob::RoadItemAndOffsetPair nextObstacle(unsigned int offset, bool isForward);
 
+	///Helper method: build a polyline given a bulge and a center
+	static void GeneratePolyline(Pavement* p, Point2D center, double bulge);
+
 private:
 
 

@@ -7,15 +7,18 @@
 using namespace sim_mob;
 
 
-RoadItemAndOffsetPair Pavement::nextObstacle(const Point2D& pos, bool isForward)
+RoadItemAndOffsetPair sim_mob::Pavement::nextObstacle(const Point2D& pos, bool isForward)
 {
 	throw std::runtime_error("Not implemented yet.");
 }
 
 
-RoadItemAndOffsetPair nextObstacle(unsigned int offset, bool isForward)
+RoadItemAndOffsetPair sim_mob::Pavement::nextObstacle(unsigned int offset, bool isForward)
 {
 	throw std::runtime_error("Not implemented yet.");
 }
 
-
+void sim_mob::Pavement::GeneratePolyline(Pavement* p, Point2D center, double bulge)
+{
+	throw std::runtime_error("Not implemented yet.");
+}

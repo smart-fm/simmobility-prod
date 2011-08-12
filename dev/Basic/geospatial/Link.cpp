@@ -71,7 +71,7 @@ void sim_mob::Link::initializeLinkSegments(const std::set<sim_mob::RoadSegment*>
 
 
 
-int sim_mob::Link::GetLength(bool isForward)
+int sim_mob::Link::GetLength(bool isForward) const
 {
 	vector<RoadSegment*> segments = GetPath(isForward);
 	double totalLen = 0.0;
@@ -82,16 +82,32 @@ int sim_mob::Link::GetLength(bool isForward)
 }
 
 
-vector<RoadSegment*> sim_mob::Link::GetPath(bool isForward)
+const vector<RoadSegment*>& sim_mob::Link::GetPath(bool isForward) const
 {
-	//TODO: Currently un-implemented; we need a policy for bi-directional road segments.
-	throw std::runtime_error("Not yet implemented.");
+	if (isForward) {
+		return fwdSegments;
+	} else {
+		return revSegments;
+	}
 }
 
 string sim_mob::Link::getSegmentName(const RoadSegment* segment)
 {
-	//TODO: Currently un-implemented; we need a naming policy.
-	throw std::runtime_error("Not yet implemented.");
+	//Return something like RoadName-10F, which means it's the 10th item in a forward-directional segment.
+	// Could also be RoadName-10F-9R for bi-directional.
+	std::stringstream res;
+	res <<roadName;
+
+	vector<RoadSegment*>::iterator it = std::find(fwdSegments.begin(), fwdSegments.end(), segment);
+	if (it!=fwdSegments.end()) {
+		res <<"-" <<(it-fwdSegments.begin()+1) <<"F";
+	}
+	it = std::find(revSegments.begin(), revSegments.end(), segment);
+	if (it!=revSegments.end()) {
+		res <<"-" <<(it-revSegments.begin()+1) <<"R";
+	}
+
+	return res.str();
 }
 
 

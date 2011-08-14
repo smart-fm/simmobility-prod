@@ -14,18 +14,17 @@ class RoadSegment;
 
 
 /**
- * A simple parking lot.
+ * A simple parking lot. All parking lots must have their own (small) RoadSegments which lead off
+ * from an Intersection and then to the center of this ParkingLot. This allows cars leaving the lot
+ * to be queued up while waiting to exit. Small ParkingLots will have one RoadSegment which
+ * functions as both the entrance and the exit.
  */
 class ParkingLot {
 public:
 	///Retrieve entrances to this ParkingLot.
-	///Note that all parking lots must have their own (small) RoadSegments which
-	///  lead off from an Intersection and then to the center of this ParkingLot. This allows
-	///  cars leaving the lot to be queued up while waiting to exit.
-	///Small ParkingLots will have one RoadSegment* which functions as both the entrance and the exit.
 	const std::vector<const RoadSegment*>& getEntrances() { return entrances; }
 
-	///Retrieve exits to this ParkingLot. See also: entrances.
+	///Retrieve exits to this ParkingLot.
 	const std::vector<const RoadSegment*>& getExits() { return exits; }
 
 

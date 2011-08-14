@@ -9,7 +9,7 @@
 #include <iostream>
 
 //#include "RoadSegment.hpp"
-#include "RoadItem.hpp"
+#include "Traversable.hpp"
 
 #include "../constants.h"
 
@@ -33,7 +33,7 @@ class Loader;
  * A road or sidewalk. Generalized movement rules apply for agents inside a link,
  * which is itself composed of segments.
  */
-class Link : public sim_mob::RoadItem {
+class Link : public sim_mob::Traversable {
 public:
 	//Initialize a link with the given set of segments
 	void initializeLinkSegments(const std::set<sim_mob::RoadSegment*>& segments);

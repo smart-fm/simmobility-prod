@@ -5,12 +5,15 @@
 #include <map>
 #include <vector>
 
-#include "RoadItem.hpp"
+#include "Traversable.hpp"
 #include "Point2D.hpp"
 
 
 namespace sim_mob
 {
+
+//Forward declarations
+class RoadItem;
 
 
 
@@ -39,7 +42,7 @@ struct RoadItemAndOffsetPair
  * and end nodes, but rather the total length of the polyline. An Agent's position
  * along a Pavement object is specified in relation to that Pavement's length.
  */
-class Pavement : public sim_mob::RoadItem {
+class Pavement : public sim_mob::Traversable {
 public:
 	//NOTE: I'm importing AIMSUN data which has length as a double. Will need to consider why later. ~Seth
 	double length;

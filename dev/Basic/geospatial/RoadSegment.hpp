@@ -28,14 +28,17 @@ class Loader;
  */
 class RoadSegment : public sim_mob::Pavement {
 public:
+	///Create a RoadSegment as part of a given Link.
 	RoadSegment(sim_mob::Link* parent);
 
 	///Return the Link this RoadSegment is part of.
 	sim_mob::Link* getLink() { return parentLink; }
 
+	///Retrieve the Lanes within this segment.
 	//TEMP: For now, returning a const vector of non-const lanes. Will fix later. ~Seth
 	const std::vector<sim_mob::Lane*>& getLanes() const { return lanes; }
 
+	///Retrieve whether this is a single or bidirectional Road Segment.
 	bool isSingleDirectional();
 	bool isBiDirectional();
 
@@ -48,7 +51,7 @@ public:
 
 public:
 	///Maximum speed of this road segment.
-	int maxSpeed;
+	unsigned int maxSpeed;
 
 
 private:

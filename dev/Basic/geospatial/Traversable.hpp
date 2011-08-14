@@ -24,6 +24,7 @@ class Node;
  */
 class Traversable {
 public:
+	//NOTE: Shouldn't these return const Node* const ?
 	const sim_mob::Node* getStart() { return start; }
 	const sim_mob::Node* getEnd() { return end; }
 

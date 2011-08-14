@@ -11,21 +11,16 @@ namespace sim_mob
 {
 
 //Forward declarations
-class RoadSegment;
+class Lane;
 
 
 /**
  * Representation of a Bus Stop.
- *
- * \note
- * This is a skeleton class. All functions are defined in this header file.
- * When this class's full functionality is added, these header-defined functions should
- * be moved into a separate cpp file.
  */
 class BusStop : public sim_mob::RoadItem {
 public:
 	///Which RoadItem and lane is this bus stop located at?
-	std::pair<const RoadSegment*, unsigned int> location;
+	Lane* location;
 
 	///Is this a bus bay, or does it take up space on the lane?
 	///Bus bays are always to the dominant position away from the lane.

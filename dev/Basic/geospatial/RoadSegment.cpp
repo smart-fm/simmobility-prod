@@ -32,7 +32,7 @@ pair<int, const Lane*> sim_mob::RoadSegment::translateRawLaneID(unsigned int raw
 {
 	//TODO: Need to convert the ID into an "effective" lane ID based on road direction
 	//      (including bidirectional segments).
-	return pair<int, const Lane*>(rawID, lanes[rawID]);
+	throw std::runtime_error("Not yet defined.");
 }
 
 

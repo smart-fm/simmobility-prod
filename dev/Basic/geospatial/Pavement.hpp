@@ -35,27 +35,58 @@ struct RoadItemAndOffsetPair
 
 
 /**
- * Represents RoadItems that may contain obstacles and have a complex geometry.
- *
- * \note
- * The length of a Pavement object is NOT the Euclidean distance between its start
- * and end nodes, but rather the total length of the polyline. An Agent's position
- * along a Pavement object is specified in relation to that Pavement's length.
+ * Represents a traversable area that may contain obstacles and have a complex geometry.
+ * Intended for things like Roadways (car, bike, pedestrian) and (eventually) the interiors
+ * of parking structures.
  */
 class Pavement : public sim_mob::Traversable {
 public:
-	//NOTE: I'm importing AIMSUN data which has length as a double. Will need to consider why later. ~Seth
+	///The length of this Pavement.
+	///
+	/// \note
+	/// The length of a Pavement object is NOT the Euclidean distance between its start
+	/// and end nodes, but rather the total length of the polyline. An Agent's position
+	/// along a Pavement object is alyways given with respect to that Pavement's length,
+	/// not to the Euclidean distance between start and end.
+	///
+	/// \note
+	/// This should be named properly; e.g., lengthM, lengthKM.
+	///
 	double length;
 
-	unsigned int width;
+
+	///The total width of this Pavement. If the width is zero, then it is assumed that
+	///  one can determine the width through some other means (e.g., this is a RoadSegment
+	///  where the Lanes have their own individual widths) or that the width is irrelevant.
+	///
+	/// \note
+	/// This should be named properly; e.g., widthM.
+	double width;
+
+
+	///The polyline of this Pavement. In the case of RoadSegments, the polyline is assumed to
+	///   go down the middle of the median, from start to end, including the start and end points.
+	///The polyline must trace the median so that bidirectional roads' polylines line up with
+	///   single-directional ones even when zoomed out.
+	///The start and end points must be included so that lane polylines are consistent with the
+	///   median polyline.
 	std::vector<sim_mob::Point2D> polyline;
-	std::map<unsigned int, const RoadItem*> obstacles;
+
+	///The obstacles on this Pavement. Obstacles generally include things like RoadBumps and possibly
+	///   bus stops (still under discussion), and are stored in a map with their position down the
+	///   road segment as the key.
+	///
+	/// \note
+	/// Currently, there can be only one obstacle at any given point on the Pavement. We may have to
+	/// revisit this problem if length is represented as an integer, but if length remains represented
+	/// as a double then we can simply inch the obstacle slightly further down the road.
+	std::map<double, const RoadItem*> obstacles;
 
 	///Return the next obstacle from a given point on this Pavement.
 	sim_mob::RoadItemAndOffsetPair nextObstacle(const sim_mob::Point2D& pos, bool isForward);
 
 	///Return the next obstacle from a given offset along the current Pavement.
-	sim_mob::RoadItemAndOffsetPair nextObstacle(unsigned int offset, bool isForward);
+	sim_mob::RoadItemAndOffsetPair nextObstacle(double offset, bool isForward);
 
 	///Helper method: build a polyline given a bulge and a center. Segments are generated
 	///   of length segmentLength.

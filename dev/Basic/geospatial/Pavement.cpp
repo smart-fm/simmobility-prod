@@ -13,7 +13,7 @@ RoadItemAndOffsetPair sim_mob::Pavement::nextObstacle(const Point2D& pos, bool i
 }
 
 
-RoadItemAndOffsetPair sim_mob::Pavement::nextObstacle(unsigned int offset, bool isForward)
+RoadItemAndOffsetPair sim_mob::Pavement::nextObstacle(double offset, bool isForward)
 {
 	throw std::runtime_error("Not implemented yet.");
 }

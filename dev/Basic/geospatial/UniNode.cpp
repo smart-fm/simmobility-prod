@@ -12,11 +12,6 @@ using std::max;
 using std::min;
 
 
-sim_mob::UniNode::UniNode(const RoadSegment* from, const RoadSegment* to) : segmentFrom(from), segmentTo(to)
-{
-}
-
-
 const Lane* sim_mob::UniNode::getOutgoingLane(const Lane& from) const
 {
 	if (connectors.count(&from)>0) {
@@ -34,30 +29,30 @@ pair<const RoadSegment*, const RoadSegment*> sim_mob::UniNode::getRoadSegments()
 
 
 
-void sim_mob::UniNode::buildConnectorsFromAlignedLanes(unsigned int fromLaneID, unsigned int toLaneID)
+void sim_mob::UniNode::buildConnectorsFromAlignedLanes(UniNode* node, unsigned int fromLaneID, unsigned int toLaneID)
 {
-	connectors.clear();
+	node->connectors.clear();
 
 	//Get the "to" lane offset.
 	int toOffset = static_cast<int>(toLaneID) - fromLaneID;
 
 	//Line up each lane. Handles merges.
-	for (size_t fromID=0; fromID<segmentFrom->getLanes().size(); fromID++) {
+	for (size_t fromID=0; fromID<node->segmentFrom->getLanes().size(); fromID++) {
 		//Convert the lane ID, but bound it to "to"'s actual number of available lanes.
 		int toID = fromID + toOffset;
-		toID = min<int>(max<int>(toID, 0), segmentTo->getLanes().size());
+		toID = min<int>(max<int>(toID, 0), node->segmentTo->getLanes().size());
 
 		//Link the two
-		connectors[segmentFrom->getLanes()[fromID]] = segmentTo->getLanes()[toID];
+		node->connectors[node->segmentFrom->getLanes()[fromID]] = node->segmentTo->getLanes()[toID];
 	}
 
 	//Check for and handle branches.
 	for (int i=0; i<toOffset; i++) {
-		connectors[segmentFrom->getLanes()[0]] = segmentTo->getLanes()[i];
+		node->connectors[node->segmentFrom->getLanes()[0]] = node->segmentTo->getLanes()[i];
 	}
-	size_t numFrom = segmentFrom->getLanes().size();
-	for (int i=numFrom+toOffset; i<(int)segmentTo->getLanes().size(); i++) {
-		connectors[segmentFrom->getLanes()[numFrom]] = segmentTo->getLanes()[i];
+	size_t numFrom = node->segmentFrom->getLanes().size();
+	for (int i=numFrom+toOffset; i<(int)node->segmentTo->getLanes().size(); i++) {
+		node->connectors[node->segmentFrom->getLanes()[numFrom]] = node->segmentTo->getLanes()[i];
 	}
 }
 

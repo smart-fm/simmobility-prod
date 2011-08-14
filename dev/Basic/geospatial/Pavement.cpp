@@ -18,7 +18,7 @@ RoadItemAndOffsetPair sim_mob::Pavement::nextObstacle(unsigned int offset, bool 
 	throw std::runtime_error("Not implemented yet.");
 }
 
-void sim_mob::Pavement::GeneratePolyline(Pavement* p, Point2D center, double bulge)
+void sim_mob::Pavement::GeneratePolyline(Pavement* p, Point2D center, double bulge, int segmentLength)
 {
 	throw std::runtime_error("Not implemented yet.");
 }

@@ -17,37 +17,28 @@ class Lane;
 class LaneConnector;
 class RoadSegment;
 
-namespace aimsun
-{
-//Forward declarations
-//class Loader;
-} //End aimsun namespace
-
 
 /**
  * A location on a map where other elements interact. Nodes contain a Point2D representing their
  * location. Additional information (such as lane connectors) are located in other classes (e.g.,
  * Intersections, Roundabouts, and SegmentNodes.
  *
- * The constructor of a node is protected, since there's never a need to use a Node directly (if only
- * the location is needed, a Point2D will do).
+ * Nodes should not be constructed directly. Instead, they exist to provide a uniform interface
+ * to define locations in a RoadNetwork. UniNodes and MultiNodes (and their subclasses) provide
+ * more comprehensive functionality, and their sub-classes provide even more.
  */
 class Node {
 public:
 	virtual ~Node() {} //A virtual destructor allows dynamic casting
 
-	//This node's location.
+	///The location of this Node.
 	sim_mob::Point2D* location;
 
 
 protected:
 	Node() {}
 
-//friend class sim_mob::aimsun::Loader;
-
 };
-
-
 
 
 

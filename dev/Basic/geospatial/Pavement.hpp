@@ -54,8 +54,12 @@ public:
 	///Return the next obstacle from a given offset along the current Pavement.
 	sim_mob::RoadItemAndOffsetPair nextObstacle(unsigned int offset, bool isForward);
 
-	///Helper method: build a polyline given a bulge and a center
-	static void GeneratePolyline(Pavement* p, Point2D center, double bulge);
+	///Helper method: build a polyline given a bulge and a center. Segments are generated
+	///   of length segmentLength.
+	///
+	/// \todo segmentLength might be better represented as something like "maxAngle", which
+	///       would allow for long non-curving segments and short curving ones.
+	static void GeneratePolyline(Pavement* p, Point2D center, double bulge, int segmentLength);
 
 private:
 

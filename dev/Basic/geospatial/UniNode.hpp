@@ -35,9 +35,6 @@ class Loader;
  */
 class UniNode : public sim_mob::Node {
 public:
-	///Construct this SegmentNode with the given Road Segments
-	UniNode(const sim_mob::RoadSegment* from=nullptr, const sim_mob::RoadSegment* to=nullptr);
-
 	///Retrieve the outgoing Lane at this Node.
 	const sim_mob::Lane* getOutgoingLane(const sim_mob::Lane& from) const;
 
@@ -48,9 +45,10 @@ public:
 	///      goes "to" the node.
 	std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> getRoadSegments() const;
 
+
 	///Helper method: Build the connectors vector dynamically by aligning a lane in the "from" Road Segment with one
 	/// in the "to" Road Segment.
-	void buildConnectorsFromAlignedLanes(unsigned int fromLaneID, unsigned int toLaneID);
+	static void buildConnectorsFromAlignedLanes(UniNode* node, unsigned int fromLaneID, unsigned int toLaneID);
 
 protected:
 	std::map<const sim_mob::Lane*, sim_mob::Lane* > connectors;
@@ -63,8 +61,6 @@ protected:
 friend class sim_mob::aimsun::Loader;
 
 };
-
-
 
 
 

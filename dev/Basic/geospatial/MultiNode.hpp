@@ -29,9 +29,9 @@ class Loader;
 
 
 /**
- * A Node where exactly two RoadSegments from within the same Link meet. This usually represents
- * a change in the number of lanes (or sometimes just the lane rules that are in effect).
- * Each lane from the first segment connects directly to one Lane in the second segment.
+ * A Node where any number of Links meet, usually representing an Interserction or Roundabout.
+ * Each Link contributes one RoadSegment to this MultiNode, and each Lane of each RoadSegment
+ * may connect to any number of lanes from any number of other RoadSegments.
  */
 class MultiNode : public sim_mob::Node {
 public:

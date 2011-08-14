@@ -320,7 +320,7 @@ void sim_mob::aimsun::Loader::ProcessUniNode(sim_mob::RoadNetwork& res, Node& sr
 	newNode->location = new Point2D(src.xPos, src.yPos);
 
 	//TODO: Actual connector alignment (requires map checking)
-	newNode->buildConnectorsFromAlignedLanes(0, 0);
+	sim_mob::UniNode::buildConnectorsFromAlignedLanes(newNode, 0, 0);
 
 	//This UniNode can later be accessed by the RoadSegment itself.
 }

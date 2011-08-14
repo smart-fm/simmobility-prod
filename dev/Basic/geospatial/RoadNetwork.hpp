@@ -43,10 +43,12 @@ public:
 	///\todo This needs to eventually have some structure; see the wiki for an example.
 	const std::vector<sim_mob::MultiNode*>& getNodes() { return nodes; }
 
-private:
-	std::vector<sim_mob::MultiNode*> nodes;
+	///Retrieve a list of all Links (high-level paths between MultiNodes) in this Road Network.
+	const std::vector<sim_mob::Link*>& getLinks() { return links; }
 
-	//Temporary: Geometry will eventually make specifying nodes easier.
+private:
+	//Temporary: Geometry will eventually make specifying nodes and linkseasier.
+	std::vector<sim_mob::MultiNode*> nodes;
 	std::vector<sim_mob::Link*> links;
 
 

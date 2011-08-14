@@ -206,10 +206,20 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 	}
 
 	//Step 2: Tag all Nodes that have only two Sections; these may become RoadSegmentNodes.
+	//        NOTE: It's slightly more complex; the two Sections must not loop at that node.
 	for (map<int,Node>::iterator it=nodes.begin(); it!=nodes.end(); it++) {
-		it->second.candidateForSegmentNode = it->second.sectionsAtNode.size()==2;
-		if (it->second.candidateForSegmentNode && it->second.isIntersection) {
-			throw std::runtime_error("Apparent RoadSegmentNode is tagged as an Intersection.");
+		Node& n = it->second;
+		n.candidateForSegmentNode = false;
+		if (n.sectionsAtNode.size()==2) {
+			if ( (n.sectionsAtNode[0]->toNode->id!=n.sectionsAtNode[1]->fromNode->id)
+			  && (n.sectionsAtNode[0]->fromNode->id!=n.sectionsAtNode[1]->toNode->id))
+			{
+				n.candidateForSegmentNode = true;
+			}
+		}
+		if (n.candidateForSegmentNode == n.isIntersection) {
+			//Not an error; probably a result of a network being cropped.
+			std::cout <<"Warning: Node " <<n.id <<" mismatch. IsIntersection(" <<n.isIntersection <<")  CandidateRoadSegment(" <<n.candidateForSegmentNode <<")\n";
 		}
 	}
 
@@ -234,7 +244,7 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, map<int, Node>& nodes, ma
 	//First, Nodes. These match cleanly to the Sim Mobility data structures
 	std::cout <<"Warning: Units are not considered when converting AIMSUN data.\n";
 	for (map<int,Node>::iterator it=nodes.begin(); it!=nodes.end(); it++) {
-		sim_mob::aimsun::Loader::ProcessNode(res, it->second);
+		sim_mob::aimsun::Loader::ProcessGeneralNode(res, it->second);
 	}
 
 	//Next, Links and RoadSegments. See comments for our approach.
@@ -245,6 +255,13 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, map<int, Node>& nodes, ma
 	for (map<int,Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
 		if (!it->second.hasBeenSaved) {
 			throw std::runtime_error("Section was skipped.");
+		}
+	}
+
+	//Next, SegmentNodes (UniNodes), which are only partially initialized in the general case.
+	for (map<int,Node>::iterator it=nodes.begin(); it!=nodes.end(); it++) {
+		if (it->second.candidateForSegmentNode) {
+			sim_mob::aimsun::Loader::ProcessUniNode(res, it->second);
 		}
 	}
 
@@ -266,7 +283,7 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, map<int, Node>& nodes, ma
 
 
 
-void sim_mob::aimsun::Loader::ProcessNode(sim_mob::RoadNetwork& res, Node& src)
+void sim_mob::aimsun::Loader::ProcessGeneralNode(sim_mob::RoadNetwork& res, Node& src)
 {
 	src.hasBeenSaved = true;
 
@@ -281,27 +298,31 @@ void sim_mob::aimsun::Loader::ProcessNode(sim_mob::RoadNetwork& res, Node& src)
 		//For future reference
 		src.generatedNode = newNode;
 	} else {
-		//Which RoadSegment leads here?
-		if (src.sectionsAtNode.size()==2) {
-			throw std::runtime_error("Unexpected Section count."); //Should already be checked.
-		}
-		Section* fromSec = (src.sectionsAtNode[0]->TMP_ToNodeID==src.id) ? src.sectionsAtNode[0] : src.sectionsAtNode[1];
-		Section* toSec = (fromSec->id==src.sectionsAtNode[0]->id) ? src.sectionsAtNode[1] : src.sectionsAtNode[1];
-		std::cout <<"From sec: " <<fromSec->id <<" to sec: " <<toSec->id <<"\n";
-
-
-		//This is a simple Road Segment joint
-		UniNode* newNode = new UniNode(fromSec->generatedSegment, toSec->generatedSegment);
-		newNode->location = new Point2D(src.xPos, src.yPos);
-
-		//TODO: Actual connector alignment (requires map checking)
-		newNode->buildConnectorsFromAlignedLanes(0, 0);
-
-		//This UniNode can later be accessed by the RoadSegment itself.
-
-		//For future reference
-		src.generatedNode = newNode;
+		//Just save for later so the pointer isn't invalid
+		src.generatedNode = new UniNode();
 	}
+}
+
+
+void sim_mob::aimsun::Loader::ProcessUniNode(sim_mob::RoadNetwork& res, Node& src)
+{
+	//Which RoadSegment leads here?
+	if (src.sectionsAtNode.size()!=2) {
+		throw std::runtime_error("Unexpected Section count."); //Should already be checked.
+	}
+	Section* fromSec = (src.sectionsAtNode[0]->TMP_ToNodeID==src.id) ? src.sectionsAtNode[0] : src.sectionsAtNode[1];
+	Section* toSec = (fromSec->id==src.sectionsAtNode[0]->id) ? src.sectionsAtNode[1] : src.sectionsAtNode[1];
+
+	//This is a simple Road Segment joint
+	UniNode* newNode = dynamic_cast<UniNode*>(src.generatedNode);
+	newNode->segmentFrom = fromSec->generatedSegment;
+	newNode->segmentTo = toSec->generatedSegment;
+	newNode->location = new Point2D(src.xPos, src.yPos);
+
+	//TODO: Actual connector alignment (requires map checking)
+	newNode->buildConnectorsFromAlignedLanes(0, 0);
+
+	//This UniNode can later be accessed by the RoadSegment itself.
 }
 
 
@@ -317,7 +338,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	Section* currSection = &src;
 	sim_mob::Link* ln = new sim_mob::Link();
 	ln->roadName = currSection->roadName;
-	ln->start = src.fromNode->generatedNode;
+	ln->start = currSection->fromNode->generatedNode;
 	set<RoadSegment*> linkSegments;
 
 	//Make sure the link's start node is represented at the Node level.
@@ -341,6 +362,10 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		sim_mob::RoadSegment* rs = new sim_mob::RoadSegment(ln);
 		currSection->generatedSegment = rs;
 
+		//Start/end need to be added properly
+		rs->start = currSection->fromNode->generatedNode;
+		rs->end = currSection->toNode->generatedNode;
+
 		//Process
 		rs->maxSpeed = currSection->speed;
 		rs->length = currSection->length;
@@ -352,6 +377,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		//TODO: How do we determine if lanesLeftOfDivider should be 0 or lanes.size()
 		//      In other words, how do we apply driving direction?
 		//      For now, setting to a clearly incorrect value.
+		//NOTE: This can be done easily later from the Link's point-of-view.
 		rs->lanesLeftOfDivider = 0xFF;
 		linkSegments.insert(rs);
 
@@ -371,9 +397,22 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		//Increment.
 		Section* nextSection = nullptr;
 		for (vector<Section*>::iterator it2=currSection->toNode->sectionsAtNode.begin(); it2!=currSection->toNode->sectionsAtNode.end(); it2++) {
-			if ((*it2)->id!=currSection->id) {
+			//Skip nodes of the same id.
+			if ((*it2)->id==currSection->id) {
+				continue;
+			}
+
+			//Skip a node which leads immediately back to the same node.
+			if ((*it2)->toNode->id==currSection->fromNode->id) {
+				continue;
+			}
+
+			//If there are multiple options, prefer one with the same road name.
+			if (!nextSection || (*it2)->roadName==currSection->roadName) {
 				nextSection = *it2;
-				break;
+				if (nextSection->roadName==currSection->roadName) {
+					break;
+				}
 			}
 		}
 		if (!nextSection) {

@@ -6,6 +6,7 @@
 #include <set>
 #include <string>
 #include <sstream>
+#include <iostream>
 
 //#include "RoadSegment.hpp"
 #include "RoadItem.hpp"

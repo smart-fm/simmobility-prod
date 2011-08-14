@@ -40,7 +40,8 @@ public:
 	static std::string LoadNetwork(const std::string& connectionStr, std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn);
 
 	//Semi-private functions
-	static void ProcessNode(sim_mob::RoadNetwork& res, Node& src);
+	static void ProcessGeneralNode(sim_mob::RoadNetwork& res, Node& src);
+	static void ProcessUniNode(sim_mob::RoadNetwork& res, Node& src);
 	static void ProcessSection(sim_mob::RoadNetwork& res, Section& src);
 	static void ProcessTurning(sim_mob::RoadNetwork& res, Turning& src);
 	static void ProcessSectionPolylines(sim_mob::RoadNetwork& res, Section& src);

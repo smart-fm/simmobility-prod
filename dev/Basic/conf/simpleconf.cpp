@@ -9,7 +9,7 @@
 #include "../entities/Person.hpp"
 #include "../entities/Region.hpp"
 #include "../entities/roles/Pedestrian.hpp"
-#include "../entities/roles/Driver/Driver.hpp"
+#include "../entities/roles/driver/Driver.hpp"
 #include "../geospatial/aimsun/Loader.hpp"
 #include "../geospatial/Node.hpp"
 #include "../geospatial/Intersection.hpp"

@@ -237,6 +237,7 @@ int main(int argc, char* argv[])
 {
 	//Argument 1: Config file
 	std::string configFileName = "data/config.xml";
+	//std::string configFileName = "data/driver_study.xml";
 	if (argc>1) {
 		configFileName = argv[1];
 	} else {

@@ -3,9 +3,9 @@
 #pragma once
 
 #include <limits>
-
-#include "Role.hpp"
-#include "../Signal.hpp"
+#include <math.h>
+#include "../Role.hpp"
+#include "../../Signal.hpp"
 
 
 namespace sim_mob
@@ -269,6 +269,8 @@ public:
 	void updateAngle();
 	void IntersectionVelocityUpdate();
 	void modifyPosition();
+	double feet2Unit(double feet);
+	double unit2Feet(double unit);
 private:
 	Signal sig;
 	int phaseCounter;

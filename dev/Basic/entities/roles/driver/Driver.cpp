@@ -14,7 +14,7 @@ using namespace sim_mob;
 using std::numeric_limits;
 using std::max;
 
-double DS[] = {0.6, 0.5, 0.4, 0.7};
+double DS[] = {1, 1, 1, 1};
 double DS_av = (DS[0]+DS[1]+DS[2]+DS[3])/4;
 
 //Some static properties require initialization in the CPP file. ~Seth
@@ -673,30 +673,7 @@ bool sim_mob :: Driver :: reachSignalDecision()
 {
 	//NOTE: I replaced the if statements with simple "returns", which are more concise. ~Seth
 
-	//Phase A, drivers on Lane 0 and Lane 1 of Link 0 and Link 2 can move forward
-	if(currPhase == 0 || currPhase == 10){
-		return (currentLink == 0 && currentLane == 0) || (currentLink == 0 && currentLane == 1)|| (currentLink == 2 && currentLane == 0) || (currentLink == 2 && currentLane == 1);
-	}
-
-	//Phase B, drivers on Lane 2 of Link 0 and Link 2 can move forward
-	else if(currPhase == 1 || currPhase == 11){
-		return (currentLink == 0 && currentLane == 2) || (currentLink == 2 && currentLane == 2);
-	}
-
-	//Phase C, drivers on Lane 0 and Lane 1 of Link 1 and Link 3 can move forward
-	else if(currPhase == 2 || currPhase == 12){
-		return (currentLink == 1 && currentLane == 0) || (currentLink == 1 && currentLane == 1)|| (currentLink == 3 && currentLane == 0) || (currentLink == 3 && currentLane == 1);
-	}
-
-	//Phase D, drivers on Lane 2 of Link 1 and Link 3 can move forward
-	else if(currPhase == 3 || currPhase == 13){
-		return (currentLink == 1 && currentLane == 2) || (currentLink == 3 && currentLane == 2);
-	}
-
-	else {
-		//Does this represent an error? ~Seth
-		return true;
-	}
+	return sig.get_Driver_Light(currentLink,currentLane)!=1;
 }
 
 void sim_mob :: Driver :: IntersectionVelocityUpdate()

@@ -50,6 +50,8 @@ void sim_mob :: Signal :: initializeSignal()
 	startSplitPlan();
 	currPhase = 0;
 	phaseCounter = 0;
+	updateTrafficLights();
+
 }
 
 
@@ -126,6 +128,18 @@ void sim_mob :: Signal :: updateSignal (double DS[])
 	}else{}
 
 	phaseCounter++;
+
+	updateTrafficLights();
+/*
+	std::cout<<currPhase<<std::endl;
+	for(int i=0;i<4;i++)std::cout<<" "<<TC_for_Pedestrian[i];
+	std::cout<<std::endl;
+	for(int a=0;a<4;a++)
+	{
+		for(int b=0;b<3;b++){std::cout<<" "<<TC_for_Driver[a][b];}
+		std::cout<<std::endl;
+	}
+*/
 }
 
 int sim_mob :: Signal :: getcurrPhase()
@@ -333,6 +347,89 @@ void sim_mob :: Signal :: setnextOffset(double nextCL)
 
 void sim_mob :: Signal :: updateOffset(){
 	currOffset=nextOffset;
+}
+
+//updata traffic lights information in a way that can be easily
+//recognized by driver and pedestrian
+void sim_mob :: Signal :: updateTrafficLights(){
+	switch(currPhase)
+	{
+		case 0:
+			TC_for_Driver[0] = {3,3,1};
+			TC_for_Driver[1] = {1,1,1};
+			TC_for_Driver[2] = {3,3,1};
+			TC_for_Driver[3] = {1,1,1};
+			TC_for_Pedestrian = {1,3,1,3};
+			break;
+
+		case 10:
+			TC_for_Driver[0] = {2,2,1};
+			TC_for_Driver[1] = {1,1,1};
+			TC_for_Driver[2] = {2,2,1};
+			TC_for_Driver[3] = {1,1,1};
+			TC_for_Pedestrian = {1,3,1,3};
+			break;
+
+		case 1:
+			TC_for_Driver[0] = {1,1,3};
+			TC_for_Driver[1] = {1,1,1};
+			TC_for_Driver[2] = {1,1,3};
+			TC_for_Driver[3] = {1,1,1};
+			TC_for_Pedestrian = {1,1,1,1};
+			break;
+
+		case 11:
+			TC_for_Driver[0] = {1,1,2};
+			TC_for_Driver[1] = {1,1,1};
+			TC_for_Driver[2] = {1,1,2};
+			TC_for_Driver[3] = {1,1,1};
+			TC_for_Pedestrian = {1,1,1,1};
+			break;
+
+		case 2:
+			TC_for_Driver[0] = {1,1,1};
+			TC_for_Driver[1] = {3,3,1};
+			TC_for_Driver[2] = {1,1,1};
+			TC_for_Driver[3] = {3,3,1};
+			TC_for_Pedestrian = {3,1,3,1};
+			break;
+
+		case 12:
+			TC_for_Driver[0] = {1,1,1};
+			TC_for_Driver[1] = {2,2,1};
+			TC_for_Driver[2] = {1,1,1};
+			TC_for_Driver[3] = {2,2,1};
+			TC_for_Pedestrian = {3,1,3,1};
+
+		case 3:
+			TC_for_Driver[0] = {1,1,1};
+			TC_for_Driver[1] = {1,1,3};
+			TC_for_Driver[2] = {1,1,1};
+			TC_for_Driver[3] = {1,1,3};
+			TC_for_Pedestrian = {1,1,1,1};
+
+		case 13:
+			TC_for_Driver[0] = {1,1,1};
+			TC_for_Driver[1] = {1,1,2};
+			TC_for_Driver[2] = {1,1,1};
+			TC_for_Driver[3] = {1,1,2};
+			TC_for_Pedestrian = {1,1,1,1};
+
+		default:
+			break;
+	}
+}
+
+//To get traffic lights information for driver
+int sim_mob :: Signal :: get_Driver_Light(int LinkID, int LaneID)
+{
+	return TC_for_Driver[LinkID][LaneID];
+}
+
+//To get traffic lights information for pedestrian
+int sim_mob :: Signal :: get_Pedestrian_Light(int CrossingID)
+{
+	return TC_for_Pedestrian[CrossingID];
 }
 
 

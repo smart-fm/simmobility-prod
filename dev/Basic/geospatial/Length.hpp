@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <cstdint>
+#include <stdint.h>
 
 namespace sim_mob
 {
@@ -44,7 +44,7 @@ typedef int32_t centimeter_t;
 typedef int32_t centimeterPerSecond_t;
 
 /** Convert from miles to centimeters.  */
-centimeter_t mileToCentimeter(float mile)
+inline centimeter_t mileToCentimeter(float mile)
 {
     // Wikipedia (http://en.wikipedia.org/wiki/Mile) states that one international mile is
     // equal to 1609.344 metres.
@@ -52,31 +52,31 @@ centimeter_t mileToCentimeter(float mile)
 }
 
 /** Convert from centimeters to miles.  */
-float centimeterToMile(centimeter_t length)
+inline float centimeterToMile(centimeter_t length)
 {
     return length / (1609.344 * 100);
 }
 
 /** Return the distance moved in one second if traveling at \c s km per hour.  */
-centimeterPerSecond_t kmPerHourToCentimeterPerSecond(float s)
+inline centimeterPerSecond_t kmPerHourToCentimeterPerSecond(float s)
 {
     return s * 1000 * 100 / 3600;
 }
 
 /** Return the speed in km / hr if traveling at \c s centimeter per second.  */
-float centimeterPerSecondToKmPerHour(centimeterPerSecond_t s)
+inline float centimeterPerSecondToKmPerHour(centimeterPerSecond_t s)
 {
     return s * 3600.0F / (1000 * 100);
 }
 
 /** Return the distance moved in one second if traveling at \c s mile per hour.  */
-centimeterPerSecond_t milePerHourToCentimeterPerSecond(float s)
+inline centimeterPerSecond_t milePerHourToCentimeterPerSecond(float s)
 {
     return mileToCentimeter(s) / 3600.0F;
 }
 
 /** Return the speed in mile / hr if traveling at \c s centimeter per second.  */
-float centimeterPerSecondToMilePerHour(centimeterPerSecond_t s)
+inline float centimeterPerSecondToMilePerHour(centimeterPerSecond_t s)
 {
     return centimeterToMile(s * 3600);
 }

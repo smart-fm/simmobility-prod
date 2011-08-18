@@ -48,7 +48,6 @@ public:
 	sim_mob::Buffered<double> xAcc;  ///<The agent's acceleration, X
 	sim_mob::Buffered<double> yAcc;  ///<The agent's acceleration, Y
 
-	sim_mob::Buffered<int> currentLink;
 
 	//Agents can access all other agents (although they usually do not access by ID)
 	static std::vector<Agent*> all_agents;

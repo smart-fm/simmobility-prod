@@ -5,6 +5,7 @@
 #include <limits>
 #include <math.h>
 #include "../Role.hpp"
+#include "../../Person.hpp"
 #include "../../Signal.hpp"
 
 
@@ -182,7 +183,7 @@ public:
 	bool isOnTheLink(int linkid);
 	void updateLeadingDriver();				///<this may be a function of big brother later
 	Agent* getLeadingDriver(){return leader;}
-	int getLink();							//return the ID of current link
+	int getLink(){return currentLink;}		//return the ID of current link
 	int getLane();							//return the ID of the lane where the vehicle is on
 	Agent* getNextForBDriver(bool isLeft,bool isFront);	///<for updating LF LB RF RB
 	bool checkIfOnTheLane(double y);		///<give y position, check if it is a lane's y position

@@ -209,7 +209,6 @@ void sim_mob::Driver::setToParent()
 	parent->yVel.set(yVel);
 	parent->xAcc.set(xAcc);
 	parent->yAcc.set(yAcc);
-	parent->currentLink.set(currentLink);
 }
 
 void sim_mob::Driver::abs2relat()
@@ -380,14 +379,16 @@ void sim_mob::Driver::updateLeadingDriver()
 	 * Since now there is no such big brother, so I assume that each driver can know information of other vehicles.
 	 * It will find it's leading vehicle itself.
 	 * */
-	const Agent* other = nullptr;
+	Agent* other = nullptr;
 	double leadingDistance=MAX_NUM;
 	size_t leadingID=Agent::all_agents.size();
 	for (size_t i=0; i<Agent::all_agents.size(); i++) {
 		//Skip self
 		other = Agent::all_agents[i];
+		Person* p = dynamic_cast<Person*>(other);
+		Driver* d = dynamic_cast<Driver*>(p->getRole());
 		if (other->getId()==parent->getId()
-				||other->currentLink.get()!=currentLink)
+				|| d==nullptr || d->getLink()!=currentLink)
 		{
 			continue;
 		}
@@ -516,13 +517,15 @@ Agent* sim_mob::Driver::getNextForBDriver(bool isLeft,bool isFront)
 	if(getLane()==border) {
 		return nullptr;		//has no left side or right side
 	} else {
-		const Agent* other = nullptr;
+		Agent* other = nullptr;
 		for (size_t i=0; i<Agent::all_agents.size(); i++) {
 			//Skip self
 			other = Agent::all_agents[i];
+			Person* p = dynamic_cast<Person*>(other);
+			Driver* d = dynamic_cast<Driver*>(p->getRole());
 			if (other->getId()==parent->getId()
-					||other->currentLink.get()!=currentLink) {
-				//other = nullptr;
+					|| d==nullptr || d->getLink()!=currentLink)
+			{
 				continue;
 			}
 			//Check. Find the closest one
@@ -592,13 +595,15 @@ bool sim_mob::Driver::checkForCrash()
 		return false;
 	}
 	//check other vehicles
-	const Agent* other = nullptr;
+	Agent* other = nullptr;
 	for (size_t i=0; i<Agent::all_agents.size(); i++) {
 		//Skip self
 		other = Agent::all_agents[i];
+		Person* p = dynamic_cast<Person*>(other);
+		Driver* d = dynamic_cast<Driver*>(p->getRole());
 		if (other->getId()==parent->getId()
-				||other->currentLink.get()!=currentLink) {
-			//other = NULL;
+				|| d==nullptr || d->getLink()!=currentLink)
+		{
 			continue;
 		}
 		double other_xOffset	= other->xPos.get()	- testLinks[currentLink].startX;

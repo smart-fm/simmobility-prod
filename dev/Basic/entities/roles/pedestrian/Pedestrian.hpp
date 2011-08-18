@@ -7,8 +7,8 @@
 
 #include "../Role.hpp"
 #include "../../../geospatial/Point2D.hpp"
-
 #include "../../../conf/simpleconf.hpp"
+#include "../../Signal.hpp"
 
 namespace sim_mob
 {
@@ -29,8 +29,10 @@ private:
 	double yVel;
 	Point2D goal;
 	bool isGoalSet;
+	Signal sig;
 	unsigned int currPhase; //Current pedestrian signal phase: 0-green, 1-red
-	unsigned int phaseCounter; //To be replaced by traffic management system
+//	unsigned int phaseCounter; //To be replaced by traffic management system
+	int curCrossingID;
 
 	//For collisions
 	double xCollisionVector;
@@ -41,12 +43,14 @@ private:
 	//The following methods are to be moved to agent's sub-systems in future
 	bool isGoalReached();
 	void setGoal();
-	void updateVelocity();
+	void updateVelocity(double);
 	void updatePosition();
 	void updatePedestrianSignal();
 	void checkForCollisions();
 	bool reachStartOfCrossing();
+	bool onCrossing();
 	bool checkGapAcceptance();
+	int getCurrentCrossing();
 
 };
 

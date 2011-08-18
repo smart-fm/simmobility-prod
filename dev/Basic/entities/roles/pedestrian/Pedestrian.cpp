@@ -9,10 +9,10 @@ using namespace sim_mob;
 
 
 double Pedestrian::collisionForce = 20;
-double Pedestrian::agentRadius = 10;
+double Pedestrian::agentRadius = 0.25; //Shoulder width of a person is about 0.5 meter
 
 
-sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent)
+sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent),sig(0)
 {
 	//Check non-null parent. Perhaps references may be of use here?
 	if (!parent) {
@@ -21,17 +21,18 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent)
 	}
 
 	//Defaults
-	currPhase = 0; //Green phase by default
-	phaseCounter = 0;
+	currPhase = 3; //Green phase by default
+//	phaseCounter = 0;
+	sig.initializeSignal();
 
 	//Set random seed
 	srand(parent->getId());
 
-	//Set default speed in the range of 1m/s to 1.4m/s
-	speed = 1+(double(rand()%5))/10;
+	//Set default speed in the range of 0.9m/s to 1.4m/s
+	speed = 0.9+(double(rand()%5))/10;
 
 	//TEMP: Needed to speed things up a little:
-	speed *= 5;
+//	speed *= 5;
 
 	xVel = 0;
 	yVel = 0;
@@ -53,9 +54,10 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 		isGoalSet = true;
 	}
 
+	//update signal information
 	updatePedestrianSignal();
 
-	checkForCollisions();
+//	checkForCollisions();
 
 	//Check if the agent has reached the goal
 	if(isGoalReached()){
@@ -73,8 +75,8 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 
 	//Continue checking if the goal has not been reached.
 	if(reachStartOfCrossing()) {
-		if(currPhase == 0){ //Green phase
-			updateVelocity();
+		if(currPhase == 3){ //Green phase
+			updateVelocity(1);
 			updatePosition();
 		} else if (currPhase == 1) { //Red phase
 			//Waiting, do nothing now
@@ -86,7 +88,10 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 			}
 		}
 	} else {
-		updateVelocity();
+		if(currPhase==1&&onCrossing())
+			updateVelocity(1.8);
+		else
+			updateVelocity(1);
 		updatePosition();
 	}
 }
@@ -169,39 +174,52 @@ bool sim_mob::Pedestrian::isGoalReached()
 	//return (parent->yPos.get()>=goal.yPos);
 }
 
-void sim_mob::Pedestrian::updateVelocity()
+void sim_mob::Pedestrian::updateVelocity(double scale)
 {
 	//Set direction (towards the goal)
-	double xDirection = goal.getX() - parent->xPos.get();
-	double yDirection = goal.getY() - parent->yPos.get();
-
+	xVel = goal.getX() - parent->xPos.get();
+	yVel = goal.getY() - parent->yPos.get();
 	//Normalize
-	double magnitude = sqrt(xDirection*xDirection + yDirection*yDirection);
-	xDirection = xDirection/magnitude;
-	yDirection = yDirection/magnitude;
-
+	double length = sqrt(xVel*xVel + yVel*yVel);
+	xVel = xVel/length;
+	yVel = yVel/length;
 	//Set actual velocity
-	xVel = xDirection*speed;
-	yVel = yDirection*speed;
+	xVel = xVel*speed*scale;
+	yVel = yVel*speed*scale;
+
+//	//Set direction (towards the goal)
+//	double xDirection = goal.getX() - parent->xPos.get();
+//	double yDirection = goal.getY() - parent->yPos.get();
+//
+//	//Normalize
+//	double magnitude = sqrt(xDirection*xDirection + yDirection*yDirection);
+//	xDirection = xDirection/magnitude;
+//	yDirection = yDirection/magnitude;
+//
+//	//Set actual velocity
+//	xVel = xDirection*speed;
+//	yVel = yDirection*speed;
 }
 
 void sim_mob::Pedestrian::updatePosition()
 {
-	//Factor in collisions
-	double xVelCombined = xVel + xCollisionVector;
-	double yVelCombined = yVel + yCollisionVector;
+//	//Factor in collisions
+//	double xVelCombined = xVel + xCollisionVector;
+//	double yVelCombined = yVel + yCollisionVector;
 
 	//Compute
-	double newX = parent->xPos.get()+xVelCombined*1; //Time step is 1 second
-	double newY = parent->yPos.get()+yVelCombined*1;
+//	double newX = parent->xPos.get()+xVelCombined*1; //Time step is 1 second
+//	double newY = parent->yPos.get()+yVelCombined*1;
+	double newX = parent->xPos.get()+xVel*1; //Time step is 1 second
+	double newY = parent->yPos.get()+yVel*1;
 
 	//Decrement collision velocity
-	if (xCollisionVector != 0) {
-		xCollisionVector -= ((0.1*collisionForce) / (xCollisionVector/abs(xCollisionVector)) );
-	}
-	if (yCollisionVector != 0) {
-		yCollisionVector -= ((0.1*collisionForce) / (yCollisionVector/abs(yCollisionVector)) );
-	}
+//	if (xCollisionVector != 0) {
+//		xCollisionVector -= ((0.1*collisionForce) / (xCollisionVector/abs(xCollisionVector)) );
+//	}
+//	if (yCollisionVector != 0) {
+//		yCollisionVector -= ((0.1*collisionForce) / (yCollisionVector/abs(yCollisionVector)) );
+//	}
 
 	//Set
 	parent->xPos.set(newX);
@@ -211,15 +229,16 @@ void sim_mob::Pedestrian::updatePosition()
 void sim_mob::Pedestrian::updatePedestrianSignal()
 {
 
-	if(phaseCounter==60){ //1 minute period for switching phases (testing only)
-		phaseCounter=0;
-		if(currPhase==0)
-			currPhase = 1;
-		else
-			currPhase = 0;
-	}
-	else
-		phaseCounter++;
+	currPhase = sig.get_Pedestrian_Light(0);
+//	if(phaseCounter==60){ //1 minute period for switching phases (testing only)
+//		phaseCounter=0;
+//		if(currPhase==0)
+//			currPhase = 1;
+//		else
+//			currPhase = 0;
+//	}
+//	else
+//		phaseCounter++;
 }
 
 bool sim_mob::Pedestrian::reachStartOfCrossing()
@@ -237,8 +256,24 @@ bool sim_mob::Pedestrian::reachStartOfCrossing()
 		return false;
 }
 
+bool sim_mob::Pedestrian::onCrossing()
+{
+
+		return false;
+}
+
+int sim_mob::Pedestrian::getCurrentCrossing()
+{
+
+	if(onCrossing())
+		return curCrossingID;
+	else
+		return -1;
+}
+
 bool sim_mob::Pedestrian::checkGapAcceptance(){
 
+	//Search for the nearest driver on the current link
 	Agent* a = nullptr;
 	for (size_t i=0; i<Agent::all_agents.size(); i++) {
 		//Skip self

@@ -236,8 +236,9 @@ bool performMain(const std::string& configFileName)
 int main(int argc, char* argv[])
 {
 	//Argument 1: Config file
-//	std::string configFileName = "data/config.xml";
-	std::string configFileName = "data/driver_study.xml";
+	//Note: Don't chnage this here; change it by supplying an argument on the
+	//      command line, or through Eclipse's "Run Configurations" dialog.
+	std::string configFileName = "data/config.xml";
 	if (argc>1) {
 		configFileName = argv[1];
 	} else {

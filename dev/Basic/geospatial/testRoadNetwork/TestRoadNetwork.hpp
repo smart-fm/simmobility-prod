@@ -12,8 +12,7 @@
  *      Author: mavswinwxy
  */
 
-#ifndef TESTROADNETWORK_HPP_
-#define TESTROADNETWORK_HPP_
+#pragma once
 
 #include <vector>
 #include <stdlib.h>
@@ -112,4 +111,3 @@ public:
 
 }
 
-#endif /* TESTROADNETWORK_HPP_ */

@@ -1,8 +1,8 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "Pedestrian.hpp"
-#include "../Person.hpp"
-#include "Driver.hpp"
+#include "../../Person.hpp"
+#include "../driver/Driver.hpp"
 
 
 using namespace sim_mob;

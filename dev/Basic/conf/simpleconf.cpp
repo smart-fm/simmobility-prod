@@ -8,7 +8,7 @@
 #include "../entities/Agent.hpp"
 #include "../entities/Person.hpp"
 #include "../entities/Region.hpp"
-#include "../entities/roles/Pedestrian.hpp"
+#include "../entities/roles/pedestrian/Pedestrian.hpp"
 #include "../entities/roles/driver/Driver.hpp"
 #include "../geospatial/aimsun/Loader.hpp"
 #include "../geospatial/Node.hpp"

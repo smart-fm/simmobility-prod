@@ -102,6 +102,9 @@ public:
 	Signal(unsigned int id) : Entity(id) {}
 	int getcurrPhase();
 	int getphaseCounter(){return phaseCounter;}
+	void updateTrafficLights();
+	int get_Driver_Light(int LinkID, int LaneID);
+	int get_Pedestrian_Light(int CrossingID);
 
 private:
 	//static Signal* instance_ ;
@@ -130,6 +133,11 @@ private:
 
 	int phaseCounter;
 	int currPhase;
+
+	int TC_for_Driver[4][3];
+	int TC_for_Pedestrian[4];
+
+
 
 };
 

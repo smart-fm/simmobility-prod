@@ -48,3 +48,7 @@ void sim_mob::Person::changeRole(sim_mob::Role* newRole)
 		this->currRole->setParent(this);
 	}
 }
+
+sim_mob::Role* sim_mob::Person::getRole(){
+	return currRole;
+}

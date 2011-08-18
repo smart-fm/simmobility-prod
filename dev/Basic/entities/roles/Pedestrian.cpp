@@ -1,6 +1,9 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "Pedestrian.hpp"
+#include "../Person.hpp"
+#include "Driver.hpp"
+
 
 using namespace sim_mob;
 
@@ -76,6 +79,7 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 		} else if (currPhase == 1) { //Red phase
 			//Waiting, do nothing now
 			//Output (temp)
+			checkGapAcceptance();
 			{
 				boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
 				std::cout <<"(Agent " <<parent->getId() <<" is waiting at crossing at frame "<<frameNumber<<")" <<std::endl;
@@ -232,3 +236,30 @@ bool sim_mob::Pedestrian::reachStartOfCrossing()
 	else
 		return false;
 }
+
+bool sim_mob::Pedestrian::checkGapAcceptance(){
+
+	Agent* a = nullptr;
+	for (size_t i=0; i<Agent::all_agents.size(); i++) {
+		//Skip self
+		a = Agent::all_agents[i];
+		if (a->getId()==parent->getId()) {
+			a = nullptr;
+			continue;
+		}
+
+	   Person* p = dynamic_cast<Person*>(a);
+	   if (dynamic_cast<Driver*>(p->getRole())) {
+//		   (dynamic_cast<Driver*>(p->getRole()))->
+			//It's a driver
+	   } else if (dynamic_cast<Pedestrian*>(p->getRole())) {
+		   //It's a pedestrian
+		   //etc.
+	   }
+	   p = nullptr;
+	   a = nullptr;
+	}
+
+	return false;
+}
+

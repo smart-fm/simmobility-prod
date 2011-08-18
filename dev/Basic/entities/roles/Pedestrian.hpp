@@ -46,6 +46,7 @@ private:
 	void updatePedestrianSignal();
 	void checkForCollisions();
 	bool reachStartOfCrossing();
+	bool checkGapAcceptance();
 
 };
 

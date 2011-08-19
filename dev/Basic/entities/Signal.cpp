@@ -383,75 +383,37 @@ const int TC_for_DriverTemplate[][4][3] = {
 //updata traffic lights information in a way that can be easily
 //recognized by driver and pedestrian
 void sim_mob :: Signal :: updateTrafficLights(){
-	switch(currPhase)
-	{
+	//Get a relative ID into the TS arrays.
+	size_t relID = 0;
+	switch(currPhase) {
 		case 0:
-			TC_for_Driver[0] = TC_for_DriverTemplate[0][0];
-			TC_for_Driver[1] = TC_for_DriverTemplate[0][1];
-			TC_for_Driver[2] = TC_for_DriverTemplate[0][2];
-			TC_for_Driver[3] = TC_for_DriverTemplate[0][3];
-			TC_for_Pedestrian = TC_for_PedestrianTemplate[0];
-			break;
-
+			relID=0; break;
 		case 10:
-			TC_for_Driver[0] = TC_for_DriverTemplate[1][0];
-			TC_for_Driver[1] = TC_for_DriverTemplate[1][1];
-			TC_for_Driver[2] = TC_for_DriverTemplate[1][2];
-			TC_for_Driver[3] = TC_for_DriverTemplate[1][3];
-			TC_for_Pedestrian = TC_for_PedestrianTemplate[1];
-			break;
-
+			relID=1; break;
 		case 1:
-			TC_for_Driver[0] = TC_for_DriverTemplate[2][0];
-			TC_for_Driver[1] = TC_for_DriverTemplate[2][1];
-			TC_for_Driver[2] = TC_for_DriverTemplate[2][2];
-			TC_for_Driver[3] = TC_for_DriverTemplate[2][3];
-			TC_for_Pedestrian = TC_for_PedestrianTemplate[2];
-			break;
-
+			relID=2; break;
 		case 11:
-			TC_for_Driver[0] = TC_for_DriverTemplate[3][0];
-			TC_for_Driver[1] = TC_for_DriverTemplate[3][1];
-			TC_for_Driver[2] = TC_for_DriverTemplate[3][2];
-			TC_for_Driver[3] = TC_for_DriverTemplate[3][3];
-			TC_for_Pedestrian = TC_for_PedestrianTemplate[3];
-			break;
-
+			relID=3; break;
 		case 2:
-			TC_for_Driver[0] = TC_for_DriverTemplate[4][0];
-			TC_for_Driver[1] = TC_for_DriverTemplate[4][1];
-			TC_for_Driver[2] = TC_for_DriverTemplate[4][2];
-			TC_for_Driver[3] = TC_for_DriverTemplate[4][3];
-			TC_for_Pedestrian = TC_for_PedestrianTemplate[4];
-			break;
-
+			relID=4; break;
 		case 12:
-			TC_for_Driver[0] = TC_for_DriverTemplate[5][0];
-			TC_for_Driver[1] = TC_for_DriverTemplate[5][1];
-			TC_for_Driver[2] = TC_for_DriverTemplate[5][2];
-			TC_for_Driver[3] = TC_for_DriverTemplate[5][3];
-			TC_for_Pedestrian = TC_for_PedestrianTemplate[5];
-			break;
-
+			relID=5; break;
 		case 3:
-			TC_for_Driver[0] = TC_for_DriverTemplate[6][0];
-			TC_for_Driver[1] = TC_for_DriverTemplate[6][1];
-			TC_for_Driver[2] = TC_for_DriverTemplate[6][2];
-			TC_for_Driver[3] = TC_for_DriverTemplate[6][3];
-			TC_for_Pedestrian = TC_for_PedestrianTemplate[6];
-			break;
-
+			relID=6; break;
 		case 13:
-			TC_for_Driver[0] = TC_for_DriverTemplate[7][0];
-			TC_for_Driver[1] = TC_for_DriverTemplate[7][1];
-			TC_for_Driver[2] = TC_for_DriverTemplate[7][2];
-			TC_for_Driver[3] = TC_for_DriverTemplate[7][3];
-			TC_for_Pedestrian = TC_for_PedestrianTemplate[7];
-			break;
-
+			relID=7; break;
 		default:
+			//What to do in case of an error? ~Seth
 			break;
 	}
+
+
+	//Update
+	for (size_t i=0; i<4; i++) {
+		TC_for_Driver[i] = TC_for_DriverTemplate[relID][i];
+	}
+	TC_for_Pedestrian = TC_for_PedestrianTemplate[relID];
+
 }
 
 //To get traffic lights information for driver

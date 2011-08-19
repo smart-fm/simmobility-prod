@@ -337,6 +337,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	// travel until one of these ends on an intersection.
 	Section* currSection = &src;
 	sim_mob::Link* ln = new sim_mob::Link();
+	src.generatedSegment = new sim_mob::RoadSegment(ln);
 	ln->roadName = currSection->roadName;
 	ln->start = currSection->fromNode->generatedNode;
 	set<RoadSegment*> linkSegments;
@@ -358,9 +359,11 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 			throw std::runtime_error("Road names don't match up on RoadSegments in the same Link.");
 		}
 
-		//Prepare a new segment, and save it for later reference
-		sim_mob::RoadSegment* rs = new sim_mob::RoadSegment(ln);
-		currSection->generatedSegment = rs;
+		//Prepare a new segment IF required, and save it for later reference (or load from past ref.)
+		if (!currSection->generatedSegment) {
+			currSection->generatedSegment = new sim_mob::RoadSegment(ln);
+		}
+		sim_mob::RoadSegment* rs = currSection->generatedSegment;
 
 		//Start/end need to be added properly
 		rs->start = currSection->fromNode->generatedNode;

@@ -246,6 +246,8 @@ void ensureID(map<RoadSegment*, int>& segIDs, map<int, RoadSegment*>& revSegIDs,
 	int newID = segIDs.size();
 	segIDs[item] = newID;
 	revSegIDs[newID] = item;
+
+	std::cout <<"Adding new Segment ID: " <<newID <<" with item: " << item <<"\n";
 }
 
 
@@ -270,8 +272,7 @@ void PrintDB_Network()
 		//Print all segments
 		for (set<RoadSegment*>::const_iterator i2=nodeInt->getRoadSegments().begin(); i2!=nodeInt->getRoadSegments().end(); ++i2) {
 			ensureID(segIDs, revSegIDs, *i2);
-
-			std::cout <<"   Has segement: " <<segIDs[*i2] <<"\n";
+			std::cout <<"   Has segement: " <<segIDs[*i2] <<" for memory location " <<*i2 <<"\n";
 		}
 
 		//Now print all lane connectors at this node
@@ -298,6 +299,9 @@ void PrintDB_Network()
 	//Now print all Segments
 	for (size_t i=0; i<segIDs.size(); i++) {
 		RoadSegment* seg = revSegIDs[i];
+		if (!seg) {
+			std::cout <<"Error: No segment lookup (or is null) for ID: " <<i <<std::endl;
+		}
 		std::cout <<"Segment[" <<i <<"]  name: " <<seg->getLink()->roadName;
 		std::streamsize oldSz = std::cout.precision();
 		std::cout.precision(10);

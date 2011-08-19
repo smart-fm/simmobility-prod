@@ -349,71 +349,105 @@ void sim_mob :: Signal :: updateOffset(){
 	currOffset=nextOffset;
 }
 
+
+//NOTE: Helper arrays for setting TC_* data (in an anonymous namespace).
+namespace {
+//Pedestrian template
+const int TC_for_PedestrianTemplate[][4] = {
+	{1,3,1,3},   //Case  0
+	{1,3,1,3},   //Case 10
+	{1,1,1,1},   //Case  1
+	{1,1,1,1},   //Case 11
+	{3,1,3,1},   //Case  2
+	{3,1,3,1},   //Case 12
+	{1,1,1,1},   //Case  3
+	{1,1,1,1},   //Case 13
+};
+
+//Driver template
+const int TC_for_DriverTemplate[][4][3] = {
+	{{3,3,1}, {1,1,1}, {3,3,1}, {1,1,1}},   //Case  0
+	{{2,2,1}, {1,1,1}, {2,2,1}, {1,1,1}},   //Case 10
+	{{1,1,3}, {1,1,1}, {1,1,3}, {1,1,1}},   //Case  1
+	{{1,1,2}, {1,1,1}, {1,1,2}, {1,1,1}},   //Case 11
+	{{1,1,1}, {3,3,1}, {1,1,1}, {3,3,1}},   //Case  2
+	{{1,1,1}, {2,2,1}, {1,1,1}, {2,2,1}},   //Case 12
+	{{1,1,1}, {1,1,3}, {1,1,1}, {1,1,3}},   //Case  3
+	{{1,1,1}, {1,1,2}, {1,1,1}, {1,1,2}},   //Case 13
+};
+
+} //End anon namespace
+
+
+
 //updata traffic lights information in a way that can be easily
 //recognized by driver and pedestrian
 void sim_mob :: Signal :: updateTrafficLights(){
 	switch(currPhase)
 	{
 		case 0:
-			TC_for_Driver[0] = {3,3,1};
-			TC_for_Driver[1] = {1,1,1};
-			TC_for_Driver[2] = {3,3,1};
-			TC_for_Driver[3] = {1,1,1};
-			TC_for_Pedestrian = {1,3,1,3};
+			TC_for_Driver[0] = TC_for_DriverTemplate[0][0];
+			TC_for_Driver[1] = TC_for_DriverTemplate[0][1];
+			TC_for_Driver[2] = TC_for_DriverTemplate[0][2];
+			TC_for_Driver[3] = TC_for_DriverTemplate[0][3];
+			TC_for_Pedestrian = TC_for_PedestrianTemplate[0];
 			break;
 
 		case 10:
-			TC_for_Driver[0] = {2,2,1};
-			TC_for_Driver[1] = {1,1,1};
-			TC_for_Driver[2] = {2,2,1};
-			TC_for_Driver[3] = {1,1,1};
-			TC_for_Pedestrian = {1,3,1,3};
+			TC_for_Driver[0] = TC_for_DriverTemplate[1][0];
+			TC_for_Driver[1] = TC_for_DriverTemplate[1][1];
+			TC_for_Driver[2] = TC_for_DriverTemplate[1][2];
+			TC_for_Driver[3] = TC_for_DriverTemplate[1][3];
+			TC_for_Pedestrian = TC_for_PedestrianTemplate[1];
 			break;
 
 		case 1:
-			TC_for_Driver[0] = {1,1,3};
-			TC_for_Driver[1] = {1,1,1};
-			TC_for_Driver[2] = {1,1,3};
-			TC_for_Driver[3] = {1,1,1};
-			TC_for_Pedestrian = {1,1,1,1};
+			TC_for_Driver[0] = TC_for_DriverTemplate[2][0];
+			TC_for_Driver[1] = TC_for_DriverTemplate[2][1];
+			TC_for_Driver[2] = TC_for_DriverTemplate[2][2];
+			TC_for_Driver[3] = TC_for_DriverTemplate[2][3];
+			TC_for_Pedestrian = TC_for_PedestrianTemplate[2];
 			break;
 
 		case 11:
-			TC_for_Driver[0] = {1,1,2};
-			TC_for_Driver[1] = {1,1,1};
-			TC_for_Driver[2] = {1,1,2};
-			TC_for_Driver[3] = {1,1,1};
-			TC_for_Pedestrian = {1,1,1,1};
+			TC_for_Driver[0] = TC_for_DriverTemplate[3][0];
+			TC_for_Driver[1] = TC_for_DriverTemplate[3][1];
+			TC_for_Driver[2] = TC_for_DriverTemplate[3][2];
+			TC_for_Driver[3] = TC_for_DriverTemplate[3][3];
+			TC_for_Pedestrian = TC_for_PedestrianTemplate[3];
 			break;
 
 		case 2:
-			TC_for_Driver[0] = {1,1,1};
-			TC_for_Driver[1] = {3,3,1};
-			TC_for_Driver[2] = {1,1,1};
-			TC_for_Driver[3] = {3,3,1};
-			TC_for_Pedestrian = {3,1,3,1};
+			TC_for_Driver[0] = TC_for_DriverTemplate[4][0];
+			TC_for_Driver[1] = TC_for_DriverTemplate[4][1];
+			TC_for_Driver[2] = TC_for_DriverTemplate[4][2];
+			TC_for_Driver[3] = TC_for_DriverTemplate[4][3];
+			TC_for_Pedestrian = TC_for_PedestrianTemplate[4];
 			break;
 
 		case 12:
-			TC_for_Driver[0] = {1,1,1};
-			TC_for_Driver[1] = {2,2,1};
-			TC_for_Driver[2] = {1,1,1};
-			TC_for_Driver[3] = {2,2,1};
-			TC_for_Pedestrian = {3,1,3,1};
+			TC_for_Driver[0] = TC_for_DriverTemplate[5][0];
+			TC_for_Driver[1] = TC_for_DriverTemplate[5][1];
+			TC_for_Driver[2] = TC_for_DriverTemplate[5][2];
+			TC_for_Driver[3] = TC_for_DriverTemplate[5][3];
+			TC_for_Pedestrian = TC_for_PedestrianTemplate[5];
+			break;
 
 		case 3:
-			TC_for_Driver[0] = {1,1,1};
-			TC_for_Driver[1] = {1,1,3};
-			TC_for_Driver[2] = {1,1,1};
-			TC_for_Driver[3] = {1,1,3};
-			TC_for_Pedestrian = {1,1,1,1};
+			TC_for_Driver[0] = TC_for_DriverTemplate[6][0];
+			TC_for_Driver[1] = TC_for_DriverTemplate[6][1];
+			TC_for_Driver[2] = TC_for_DriverTemplate[6][2];
+			TC_for_Driver[3] = TC_for_DriverTemplate[6][3];
+			TC_for_Pedestrian = TC_for_PedestrianTemplate[6];
+			break;
 
 		case 13:
-			TC_for_Driver[0] = {1,1,1};
-			TC_for_Driver[1] = {1,1,2};
-			TC_for_Driver[2] = {1,1,1};
-			TC_for_Driver[3] = {1,1,2};
-			TC_for_Pedestrian = {1,1,1,1};
+			TC_for_Driver[0] = TC_for_DriverTemplate[7][0];
+			TC_for_Driver[1] = TC_for_DriverTemplate[7][1];
+			TC_for_Driver[2] = TC_for_DriverTemplate[7][2];
+			TC_for_Driver[3] = TC_for_DriverTemplate[7][3];
+			TC_for_Pedestrian = TC_for_PedestrianTemplate[7];
+			break;
 
 		default:
 			break;

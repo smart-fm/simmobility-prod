@@ -134,8 +134,10 @@ private:
 	int phaseCounter;
 	int currPhase;
 
-	int TC_for_Driver[4][3];
-	int TC_for_Pedestrian[4];
+	//int TC_for_Driver[4][3];
+	//Note: Making const* to make re-assigning easier. ~Seth
+	const int* TC_for_Driver[4];
+	const int* TC_for_Pedestrian;
 
 
 

@@ -3,6 +3,7 @@
 #pragma once
 
 #include <vector>
+#include <cmath>
 
 #include "Base.hpp"
 
@@ -29,6 +30,13 @@ public:
 	bool isIntersection;
 
 	Node() : Base(), generatedNode(nullptr) {}
+
+	int getXPosAsInt() {
+		return round(xPos);
+	}
+	int getYPosAsInt() {
+		return round(yPos);
+	}
 
 	//Decorated data
 	std::vector<Section*> sectionsAtNode;

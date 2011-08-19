@@ -4,6 +4,8 @@
 
 #include <tinyxml.h>
 
+#include <algorithm>
+
 //Include here (forward-declared earlier) to avoid include-cycles.
 #include "../entities/Agent.hpp"
 #include "../entities/Person.hpp"
@@ -25,6 +27,29 @@ using namespace sim_mob;
 
 
 namespace {
+
+
+//Helper sort
+bool agent_sort_by_id (Agent* i, Agent* j) { return (i->getId()<j->getId()); }
+
+
+//Of the form xxxx,yyyyy, with optional signs
+bool readPoint(const string& str, Point2D& res)
+{
+	//Does it match the pattern?
+	size_t commaPos = str.find(',');
+	if (commaPos==string::npos) {
+		return false;
+	}
+
+	//Try to parse its substrings
+	int xPos, yPos;
+	std::istringstream(str.substr(0, commaPos)) >> xPos;
+	std::istringstream(str.substr(commaPos+1, string::npos)) >> yPos;
+
+	res = Point2D(xPos, yPos);
+	return true;
+}
 
 
 
@@ -83,7 +108,11 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 	for (;node;node=node->NextSiblingElement()) {
 		//xmlNode* curr = xpObject->nodesetval->nodeTab[i];
 		Person* agent = nullptr;
-		unsigned int flagCheck = 0;
+		bool foundID = false;
+		bool foundXPos = false;
+		bool foundYPos = false;
+		bool foundOrigPos = false;
+		bool foundDestPos = false;
 		for (TiXmlAttribute* attr=node->FirstAttribute(); attr; attr=attr->Next()) {
 			//Read each attribute.
 			std::string name = attr->NameTStr();
@@ -91,8 +120,10 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 			if (name.empty() || value.empty()) {
 				return false;
 			}
-			int valueI;
-			std::istringstream(value) >> valueI;
+			int valueI=-1;
+			if (name=="id" || name=="xPos" || name=="yPos") {
+				std::istringstream(value) >> valueI;
+			}
 
 			//Assign it.
 			if (name=="id") {
@@ -102,19 +133,56 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 				} else if (agentType=="driver") {
 					agent->changeRole(new Driver(agent));
 				}
-				flagCheck |= 1;
+				foundID = true;
 			} else if (name=="xPos") {
 				agent->xPos.force(valueI);
-				flagCheck |= 2;
+				foundXPos = true;
 			} else if (name=="yPos") {
 				agent->yPos.force(valueI);
-				flagCheck |= 4;
+				foundYPos = true;
+			} else if (name=="originPos") {
+				Point2D pt;
+				if (!readPoint(value, pt)) {
+					std::cout <<"Couldn't read point from value: " <<value <<"\n";
+					return false;
+				}
+				agent->originNode = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);
+				if (!agent->originNode) {
+					std::cout <<"Couldn't find position: " <<pt.getX() <<"," <<pt.getY() <<"\n";
+					return false;
+				}
+				foundOrigPos = true;
+			} else if (name=="destPos") {
+				Point2D pt;
+				if (!readPoint(value, pt)) {
+					std::cout <<"Couldn't read point from value: " <<value <<"\n";
+					return false;
+				}
+				agent->destNode = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);
+				if (!agent->destNode) {
+					std::cout <<"Couldn't find position: " <<pt.getX() <<"," <<pt.getY() <<"\n";
+					return false;
+				}
+				foundDestPos = true;
 			} else {
 				return false;
 			}
 		}
 
-		if (flagCheck!=7) {
+		//Simple checks
+		bool foundOldPos = foundXPos && foundYPos;
+		if (!foundID) {
+			std::cout <<"id attribute not found.\n";
+			return false;
+		}
+		if (!foundOldPos && !foundOrigPos && !foundDestPos) {
+			std::cout <<"agent position information not found.\n";
+			return false;
+		}
+
+		//Slightly more complex checks
+		if (foundOldPos && (foundOrigPos || foundDestPos)) {
+			std::cout <<"agent contains both old and new-style position information.\n";
 			return false;
 		}
 
@@ -258,7 +326,7 @@ void PrintDB_Network()
 	map<int, RoadSegment*> revSegIDs;
 
 	//Start by printing nodes.
-	RoadNetwork& rn = ConfigParams::GetInstance().network;
+	RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
 	for (vector<MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
 		std::streamsize oldSz = std::cout.precision();
 		std::cout.precision(10);
@@ -372,13 +440,16 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     	std::cout <<"  Warning! Total Warmup will be truncated.\n";
     }
 
-    //Load ALL agents: drivers and pedestrians.
-    //  (Note: Use separate config files if you just want to test one kind of agent.)
-    if (!loadXMLAgents(document, agents, "pedestrian")) {
-    	return "Couldn't load pedestrians";
-    }
-    if (!loadXMLAgents(document, agents, "driver")) {
-    	return	 "Couldn't load drivers";
+    //Save params
+    {
+    	ConfigParams& config = ConfigParams::GetInstance();
+    	config.baseGranMS = baseGran;
+    	config.totalRuntimeTicks = totalRuntime/baseGran;
+    	config.totalWarmupTicks = totalWarmup/baseGran;
+    	config.granAgentsTicks = granAgent/baseGran;
+    	config.granSignalsTicks = granSignal/baseGran;
+    	config.granPathsTicks = granPaths/baseGran;
+    	config.granDecompTicks = granDecomp/baseGran;
     }
 
 
@@ -419,7 +490,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     		}
 
     		//Actually load it
-    		string dbErrorMsg = sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().network);
+    		string dbErrorMsg = sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetwork());
     		if (!dbErrorMsg.empty()) {
     			return "Database loading error: " + dbErrorMsg;
     		}
@@ -439,17 +510,19 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     }
 
 
-    //Save
-    {
-    	ConfigParams& config = ConfigParams::GetInstance();
-    	config.baseGranMS = baseGran;
-    	config.totalRuntimeTicks = totalRuntime/baseGran;
-    	config.totalWarmupTicks = totalWarmup/baseGran;
-    	config.granAgentsTicks = granAgent/baseGran;
-    	config.granSignalsTicks = granSignal/baseGran;
-    	config.granPathsTicks = granPaths/baseGran;
-    	config.granDecompTicks = granDecomp/baseGran;
+    //Load ALL agents: drivers and pedestrians.
+    //  (Note: Use separate config files if you just want to test one kind of agent.)
+    if (!loadXMLAgents(document, agents, "pedestrian")) {
+    	return "Couldn't load pedestrians";
     }
+    if (!loadXMLAgents(document, agents, "driver")) {
+    	return	 "Couldn't load drivers";
+    }
+
+    //Sort agents by id.
+    //TEMP: Eventually, we'll need a more sane way to deal with agent IDs.
+    std::sort(agents.begin(), agents.end(), agent_sort_by_id);
+
 
     //Display
     std::cout <<"Config parameters:\n";

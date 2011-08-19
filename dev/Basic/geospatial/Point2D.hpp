@@ -17,15 +17,15 @@ namespace sim_mob
  */
 class Point2D {
 public:
-	Point2D(double xPos=0.0, double yPos=0.0) : xPos(xPos), yPos(yPos) {}
+	Point2D(int xPos=0, int yPos=0) : xPos(xPos), yPos(yPos) {}
 
-	double getX() const { return xPos; }
-	double getY() const { return yPos; }
+	int getX() const { return xPos; }
+	int getY() const { return yPos; }
 
 
 private:
-	double xPos;
-	double yPos;
+	int xPos;
+	int yPos;
 
 };
 

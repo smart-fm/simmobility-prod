@@ -3,13 +3,17 @@
 #pragma once
 
 #include <vector>
+#include <set>
 
 
 namespace sim_mob
 {
 
 //Forward declarations
+class Node;
+class UniNode;
 class MultiNode;
+class Point2D;
 class Link;
 
 
@@ -46,10 +50,18 @@ public:
 	///Retrieve a list of all Links (high-level paths between MultiNodes) in this Road Network.
 	const std::vector<sim_mob::Link*>& getLinks() { return links; }
 
+	///Find the closest Node.
+	///If includeUniNodes is false, then only Intersections and Roundabouts are searched.
+	///If no node is found within maxDistCM, the match fails and nullptr is returned.
+	sim_mob::Node* locateNode(const sim_mob::Point2D& position, bool includeUniNodes=false, int maxDistCM=100) const;
+
 private:
-	//Temporary: Geometry will eventually make specifying nodes and linkseasier.
+	//Temporary: Geometry will eventually make specifying nodes and links easier.
 	std::vector<sim_mob::MultiNode*> nodes;
 	std::vector<sim_mob::Link*> links;
+
+	//Temporary: Not exposed publicly
+	std::set<sim_mob::UniNode*> segmentnodes;
 
 
 friend class sim_mob::aimsun::Loader;

@@ -42,7 +42,6 @@ public:
 	std::map<std::string, Point2D> crossings;   ///<Indexed by position, e.g., "bottomright"
 
 	std::string connectionString;
-	sim_mob::RoadNetwork network;
 
 public:
 	/***
@@ -58,9 +57,17 @@ public:
 	          std::vector<TripChain*>& trips, std::vector<ChoiceSet*>& chSets,
 	          std::vector<Vehicle*>& vehicles);
 
+	/**
+	 * Retrive a reference to the current RoadNetwork.
+	 */
+	sim_mob::RoadNetwork& getNetwork() { return network; }
+
+
 private:
 	ConfigParams();
 	static ConfigParams instance;
+
+	sim_mob::RoadNetwork network;
 };
 
 }

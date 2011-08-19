@@ -60,6 +60,10 @@ void LoadNodes(soci::session& sql, const std::string& storedProc, map<int, Node>
 			throw std::runtime_error("Duplicate AIMSUN node.");
 		}
 
+		//Convert meters to cm
+		it->xPos *= 100;
+		it->yPos *= 100;
+
 		nodelist[it->id] = *it;
 	}
 }
@@ -130,6 +134,10 @@ void LoadPolylines(soci::session& sql, const std::string& storedProc, multimap<i
 		if(sectionlist.count(it->TMP_SectionId)==0) {
 			throw std::runtime_error("Invalid polyline section reference.");
 		}
+
+		//Convert meters to cm
+		it->xPos *= 100;
+		it->yPos *= 100;
 
 		//Note: Make sure not to resize the Section map after referencing its elements.
 		it->section = &sectionlist[it->TMP_SectionId];
@@ -290,7 +298,7 @@ void sim_mob::aimsun::Loader::ProcessGeneralNode(sim_mob::RoadNetwork& res, Node
 	if (!src.candidateForSegmentNode) {
 		//This is an Intersection
 		sim_mob::Intersection* newNode = new sim_mob::Intersection();
-		newNode->location = new Point2D(src.xPos, src.yPos);
+		newNode->location = new Point2D(src.getXPosAsInt(), src.getYPosAsInt());
 
 		//Store it in the global nodes array
 		res.nodes.push_back(newNode);
@@ -317,7 +325,10 @@ void sim_mob::aimsun::Loader::ProcessUniNode(sim_mob::RoadNetwork& res, Node& sr
 	UniNode* newNode = dynamic_cast<UniNode*>(src.generatedNode);
 	newNode->segmentFrom = fromSec->generatedSegment;
 	newNode->segmentTo = toSec->generatedSegment;
-	newNode->location = new Point2D(src.xPos, src.yPos);
+	newNode->location = new Point2D(src.getXPosAsInt(), src.getYPosAsInt());
+
+	//Save it for later reference
+	res.segmentnodes.insert(newNode);
 
 	//TODO: Actual connector alignment (requires map checking)
 	sim_mob::UniNode::buildConnectorsFromAlignedLanes(newNode, 0, 0);

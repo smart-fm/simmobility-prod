@@ -7,7 +7,8 @@ PFont f2;
 
 //Some drawing constants
 static final int BUFFER = 95;
-static final int NODE_SIZE = 10;
+static final int NODE_SIZE = 12;
+static final int CROSS_POINT_SIZE = 8;
 
 //Colors
 color nodeStroke = color(0xFF, 0x88, 0x22);
@@ -99,8 +100,12 @@ class Crossing {
 
 
 void scaleNode(Node n, double[] xBounds, double[] yBounds)  {
+  println("x,y: " + n.xPos + "," + n.yPos);
+  
   n.xPos = scalePointForDisplay(n.xPos, xBounds);
   n.yPos = scalePointForDisplay(n.yPos, yBounds);
+  
+  println("  to: " + n.xPos + "," + n.yPos);
 }
 
 void scaleCrossing(Crossing c, double[] xBounds, double[] yBounds)  {
@@ -134,6 +139,10 @@ void setup()
   }
   
   //Scale all points
+  
+  println("scaling: " + xBounds[0] + "," + xBounds[1] + " to " + xBounds[2] );
+  println("scaling: " + yBounds[0] + "," + yBounds[1] + " to " + yBounds[2]);
+  
   for (Node n : nodes) {
     scaleNode(n, xBounds, yBounds);
   }
@@ -179,9 +188,10 @@ void draw()
     for (int keyID : s.crossings.keySet()) {
       ArrayList<Crossing> crs = s.crossings.get(keyID);
       stroke(crossingColors[crsID%crossingColors.length]);
+      fill(crossingColors[crsID%crossingColors.length]);
       strokeWeight(1.0);
       for (Crossing cr : crs) {
-        point((float)cr.getX(), (float)cr.getY());
+        ellipse((float)cr.getX(), (float)cr.getY(), CROSS_POINT_SIZE, CROSS_POINT_SIZE);
       }
       crsID++;
     }
@@ -194,7 +204,7 @@ void draw()
   for (int i=0; i<nodes.size(); i++) {
     Node n = nodes.get(i);
     fill(0x33);
-    text(""+(n.id), (float)n.xPos, (float)n.yPos); 
+    text(""+(n.id), (float)n.getX(), (float)n.getY()); 
   }
   
   //Label sections
@@ -209,7 +219,7 @@ void draw()
     strokeWeight(1);
     if (!alreadyDrawn.contains(key)) {
       fill(0x33);
-      text(s.name, (float)(s.from.xPos+(s.to.xPos-s.from.xPos)/2), (float)(s.from.yPos+(s.to.yPos-s.from.yPos)/2)); 
+      text(s.name, (float)(s.from.getX()+(s.to.getX()-s.from.getX())/2), (float)(s.from.getY()+(s.to.getY()-s.from.getY())/2)); 
       alreadyDrawn.add(key);
     }
   }
@@ -298,7 +308,6 @@ void readSections(String sectionsFile) throws IOException {
 
 void readCrossings(String crossingsFile, double[] xBounds, double[] yBounds) throws IOException { 
   String lines[] = loadStrings(crossingsFile);
-  nodes.clear();
     
   //Read line-by-line
   for (int lineID=0; lineID<lines.length; lineID++) {

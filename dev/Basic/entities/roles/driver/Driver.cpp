@@ -387,11 +387,11 @@ void sim_mob::Driver::updateLeadingDriver()
 		other = Agent::all_agents[i];
 		Person* p = dynamic_cast<Person*>(other);
 		Driver* d = dynamic_cast<Driver*>(p->getRole());
-		if (other->getId()==parent->getId()
+/*		if (other->getId()==parent->getId()
 				|| d==nullptr || d->getLink()!=currentLink)
 		{
 			continue;
-		}
+		}*/
 
 		double other_xOffset	= other->xPos.get()	- testLinks[currentLink].startX;
 		double other_yOffset	= other->yPos.get()	- testLinks[currentLink].startY;
@@ -523,11 +523,11 @@ Agent* sim_mob::Driver::getNextForBDriver(bool isLeft,bool isFront)
 			other = Agent::all_agents[i];
 			Person* p = dynamic_cast<Person*>(other);
 			Driver* d = dynamic_cast<Driver*>(p->getRole());
-			if (other->getId()==parent->getId()
+/*			if (other->getId()==parent->getId()
 					|| d==nullptr || d->getLink()!=currentLink)
 			{
 				continue;
-			}
+			}*/
 			//Check. Find the closest one
 			double other_xOffset	= other->xPos.get()	- testLinks[currentLink].startX;
 			double other_yOffset	= other->yPos.get()	- testLinks[currentLink].startY;
@@ -601,11 +601,11 @@ bool sim_mob::Driver::checkForCrash()
 		other = Agent::all_agents[i];
 		Person* p = dynamic_cast<Person*>(other);
 		Driver* d = dynamic_cast<Driver*>(p->getRole());
-		if (other->getId()==parent->getId()
+/*		if (other->getId()==parent->getId()
 				|| d==nullptr || d->getLink()!=currentLink)
 		{
 			continue;
-		}
+		}*/
 		double other_xOffset	= other->xPos.get()	- testLinks[currentLink].startX;
 		double other_yOffset	= other->yPos.get()	- testLinks[currentLink].startY;
 		double other_xPos_		= other_xOffset	* xDirection	+ other_yOffset	* yDirection;

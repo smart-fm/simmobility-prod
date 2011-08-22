@@ -34,7 +34,7 @@ const double sim_mob::Signal::SplitPlan5[] = {0.20, 0.35, 0.25, 0.20};
 
 //Signal* sim_mob::Signal::instance_ = NULL;
 
-sim_mob :: Signal :: Signal(Agent* parent): Role(parent)
+sim_mob :: Signal :: Signal(unsigned int id): Agent(id)
 {
 	setCL(60,60,60);//default initial cycle length for SCATS
 	setRL(60,60);//default initial RL for SCATS
@@ -83,6 +83,11 @@ void sim_mob :: Signal :: startSplitPlan()
 
 void sim_mob :: Signal ::update(frame_t frameNumber)
 {
+	{
+		boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
+		std::cout <<"SIGNAL UPDATE"<<std::endl;
+	}
+
 	updateSignal (Density);
 }
 

@@ -469,9 +469,12 @@ void sim_mob::Driver::updateLeadingDriver()
 		//Skip self
 		other = Agent::all_agents[i];
 		Person* p = dynamic_cast<Person*>(other);
+		if (!p) {
+			continue;
+		}
 		Driver* d = dynamic_cast<Driver*>(p->getRole());
 		if (other->getId()==parent->getId()
-				|| d==nullptr || d->getLink()!=currentLink)
+				|| !d || d->getLink()!=currentLink)
 		{
 			continue;
 		}
@@ -605,9 +608,12 @@ Agent* sim_mob::Driver::getNextForBDriver(bool isLeft,bool isFront)
 			//Skip self
 			other = Agent::all_agents[i];
 			Person* p = dynamic_cast<Person*>(other);
+			if (!p) {
+				continue;
+			}
 			Driver* d = dynamic_cast<Driver*>(p->getRole());
 			if (other->getId()==parent->getId()
-					|| d==nullptr || d->getLink()!=currentLink)
+					|| !d || d->getLink()!=currentLink)
 			{
 				continue;
 			}
@@ -683,9 +689,12 @@ bool sim_mob::Driver::checkForCrash()
 		//Skip self
 		other = Agent::all_agents[i];
 		Person* p = dynamic_cast<Person*>(other);
+		if (!p) {
+			continue;
+		}
 		Driver* d = dynamic_cast<Driver*>(p->getRole());
 		if (other->getId()==parent->getId()
-				|| d==nullptr || d->getLink()!=currentLink)
+				|| !d || d->getLink()!=currentLink)
 		{
 			continue;
 		}

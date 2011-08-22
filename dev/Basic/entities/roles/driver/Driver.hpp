@@ -273,7 +273,7 @@ public:
 	double feet2Unit(double feet);
 	double unit2Feet(double unit);
 private:
-	Signal sig;
+//	Signal sig;
 	int phaseCounter;
 	int currPhase;
 	double angle;

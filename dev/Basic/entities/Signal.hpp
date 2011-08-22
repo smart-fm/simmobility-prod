@@ -13,6 +13,7 @@
 
 #include "../constants.h"
 #include "Entity.hpp"
+#include "roles/driver/Driver.hpp"
 
 
 namespace sim_mob
@@ -32,12 +33,12 @@ namespace sim_mob
  *  such as which folder to put it in, entities or roles? It needs to be
  *  updated and every agent should be able to get its information.
  *
+ *4.According to MITSIMLab Definition, "1" means "red", "2" means yellow, "3" means "green"
+ *
  */
 
 
-class Signal  : public Entity {
-
-
+class Signal  : public Role {
 
 public:
 //	Signal();
@@ -90,7 +91,7 @@ public:
 	double getnextOffset() {return nextOffset;}
 
 	//Abstract methods. You will have to implement these eventually.
-	virtual void update(frame_t frameNumber) {}
+	virtual void update(frame_t frameNumber);
 	virtual void buildSubscriptionList() {}
 
 
@@ -99,7 +100,7 @@ public:
 	static int calvote(unsigned int vote1, unsigned int vote2, unsigned int vote3, unsigned int vote4, unsigned int vote5);
 
 public:
-	Signal(unsigned int id) : Entity(id) {}
+	Signal(Agent* parent);
 	int getcurrPhase();
 	int getphaseCounter(){return phaseCounter;}
 	void updateTrafficLights();
@@ -144,4 +145,3 @@ private:
 };
 
 }
-

@@ -11,7 +11,7 @@
 #include <math.h>
 using namespace sim_mob;
 
-
+double Density[] = {1, 1, 1, 1};
 double DS_all;
 
 //Private namespace
@@ -34,14 +34,13 @@ const double sim_mob::Signal::SplitPlan5[] = {0.20, 0.35, 0.25, 0.20};
 
 //Signal* sim_mob::Signal::instance_ = NULL;
 
-/*
-sim_mob :: Signal :: Signal(): sim_mob::Entity(id)
+sim_mob :: Signal :: Signal(Agent* parent): Role(parent)
 {
 	setCL(60,60,60);//default initial cycle length for SCATS
 	setRL(60,60);//default initial RL for SCATS
 	startSplitPlan();
 }
-*/
+
 
 void sim_mob :: Signal :: initializeSignal()
 {
@@ -82,6 +81,10 @@ void sim_mob :: Signal :: startSplitPlan()
 	vote5 = 0;
 }
 
+void sim_mob :: Signal ::update(frame_t frameNumber)
+{
+	updateSignal (Density);
+}
 
 //Update Signal Light
 void sim_mob :: Signal :: updateSignal (double DS[])
@@ -130,16 +133,6 @@ void sim_mob :: Signal :: updateSignal (double DS[])
 	phaseCounter++;
 
 	updateTrafficLights();
-/*
-	std::cout<<currPhase<<std::endl;
-	for(int i=0;i<4;i++)std::cout<<" "<<TC_for_Pedestrian[i];
-	std::cout<<std::endl;
-	for(int a=0;a<4;a++)
-	{
-		for(int b=0;b<3;b++){std::cout<<" "<<TC_for_Driver[a][b];}
-		std::cout<<std::endl;
-	}
-*/
 }
 
 int sim_mob :: Signal :: getcurrPhase()
@@ -403,8 +396,8 @@ void sim_mob :: Signal :: updateTrafficLights(){
 		case 13:
 			relID=7; break;
 		default:
-			//What to do in case of an error? ~Seth
-			break;
+			assert(false);
+
 	}
 
 

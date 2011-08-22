@@ -49,7 +49,7 @@ const link_ sim_mob::Driver::testLinks[] = {
 };
 
 //initiate
-sim_mob::Driver::Driver(Agent* parent) : Role(parent), leader(nullptr), sig(0)
+sim_mob::Driver::Driver(Agent* parent) : Role(parent), leader(nullptr)
 {
 	//Set random seed
 	//NOTE: This will reset the sequence returned by rand(); it's not a good idea.
@@ -105,7 +105,7 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), leader(nullptr), sig(0)
 
 	currPhase = 0;
 	phaseCounter = 0;
-	sig.initializeSignal();
+//	sig.initializeSignal();
 	angle = 0;
 	inIntersection=false;
 
@@ -188,7 +188,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	updateAngle();
 
 	boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-	std::cout <<"(" <<parent->getId() <<"," <<frameNumber<<","<<parent->xPos.get()<<"," <<parent->yPos.get() <<","<<sig.getcurrPhase()<<","<<DS_av<<","<<floor(sig.getnextCL())<<","<<sig.getphaseCounter()<<","<<angle <<")" <<std::endl;
+//	std::cout <<"(" <<parent->getId() <<"," <<frameNumber<<","<<parent->xPos.get()<<"," <<parent->yPos.get() <<","<<sig.getcurrPhase()<<","<<DS_av<<","<<floor(sig.getnextCL())<<","<<sig.getphaseCounter()<<","<<angle <<")" <<std::endl;
 }
 
 void sim_mob::Driver::getFromParent()
@@ -387,11 +387,11 @@ void sim_mob::Driver::updateLeadingDriver()
 		other = Agent::all_agents[i];
 		Person* p = dynamic_cast<Person*>(other);
 		Driver* d = dynamic_cast<Driver*>(p->getRole());
-		if (other->getId()==parent->getId()
+/*		if (other->getId()==parent->getId()
 				|| d==nullptr || d->getLink()!=currentLink)
 		{
 			continue;
-		}
+		}*/
 
 		double other_xOffset	= other->xPos.get()	- testLinks[currentLink].startX;
 		double other_yOffset	= other->yPos.get()	- testLinks[currentLink].startY;
@@ -523,11 +523,11 @@ Agent* sim_mob::Driver::getNextForBDriver(bool isLeft,bool isFront)
 			other = Agent::all_agents[i];
 			Person* p = dynamic_cast<Person*>(other);
 			Driver* d = dynamic_cast<Driver*>(p->getRole());
-			if (other->getId()==parent->getId()
+/*			if (other->getId()==parent->getId()
 					|| d==nullptr || d->getLink()!=currentLink)
 			{
 				continue;
-			}
+			}*/
 			//Check. Find the closest one
 			double other_xOffset	= other->xPos.get()	- testLinks[currentLink].startX;
 			double other_yOffset	= other->yPos.get()	- testLinks[currentLink].startY;
@@ -601,11 +601,11 @@ bool sim_mob::Driver::checkForCrash()
 		other = Agent::all_agents[i];
 		Person* p = dynamic_cast<Person*>(other);
 		Driver* d = dynamic_cast<Driver*>(p->getRole());
-		if (other->getId()==parent->getId()
+/*		if (other->getId()==parent->getId()
 				|| d==nullptr || d->getLink()!=currentLink)
 		{
 			continue;
-		}
+		}*/
 		double other_xOffset	= other->xPos.get()	- testLinks[currentLink].startX;
 		double other_yOffset	= other->yPos.get()	- testLinks[currentLink].startY;
 		double other_xPos_		= other_xOffset	* xDirection	+ other_yOffset	* yDirection;
@@ -654,10 +654,10 @@ bool sim_mob::Driver::checkForCrash()
 void sim_mob :: Driver :: updateSignalInfo()
 {
 	//update signal information
-	sig.updateSignal(DS);
+//	sig.updateSignal(DS);
 
 	//currPhase is the order for drivers
-	currPhase = sig.getcurrPhase();
+//	currPhase = sig.getcurrPhase();
 
 }
 
@@ -678,7 +678,7 @@ bool sim_mob :: Driver :: reachSignalDecision()
 {
 	//NOTE: I replaced the if statements with simple "returns", which are more concise. ~Seth
 
-	return sig.get_Driver_Light(currentLink,currentLane)!=1;
+//	return sig.get_Driver_Light(currentLink,currentLane)!=1;
 }
 
 void sim_mob :: Driver :: IntersectionVelocityUpdate()

@@ -49,7 +49,7 @@ const link_ sim_mob::Driver::testLinks[] = {
 };
 
 //initiate
-sim_mob::Driver::Driver(Agent* parent) : Role(parent), leader(nullptr), sig(0)
+sim_mob::Driver::Driver(Agent* parent) : Role(parent), leader(nullptr)
 {
 	//Set random seed
 	//NOTE: This will reset the sequence returned by rand(); it's not a good idea.
@@ -105,7 +105,7 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), leader(nullptr), sig(0)
 
 	currPhase = 0;
 	phaseCounter = 0;
-	sig.initializeSignal();
+//	sig.initializeSignal();
 	angle = 0;
 	inIntersection=false;
 
@@ -188,7 +188,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	updateAngle();
 
 	boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-	std::cout <<"(" <<parent->getId() <<"," <<frameNumber<<","<<parent->xPos.get()<<"," <<parent->yPos.get() <<","<<sig.getcurrPhase()<<","<<DS_av<<","<<floor(sig.getnextCL())<<","<<sig.getphaseCounter()<<","<<angle <<")" <<std::endl;
+//	std::cout <<"(" <<parent->getId() <<"," <<frameNumber<<","<<parent->xPos.get()<<"," <<parent->yPos.get() <<","<<sig.getcurrPhase()<<","<<DS_av<<","<<floor(sig.getnextCL())<<","<<sig.getphaseCounter()<<","<<angle <<")" <<std::endl;
 }
 
 void sim_mob::Driver::getFromParent()
@@ -654,10 +654,10 @@ bool sim_mob::Driver::checkForCrash()
 void sim_mob :: Driver :: updateSignalInfo()
 {
 	//update signal information
-	sig.updateSignal(DS);
+//	sig.updateSignal(DS);
 
 	//currPhase is the order for drivers
-	currPhase = sig.getcurrPhase();
+//	currPhase = sig.getcurrPhase();
 
 }
 
@@ -678,7 +678,7 @@ bool sim_mob :: Driver :: reachSignalDecision()
 {
 	//NOTE: I replaced the if statements with simple "returns", which are more concise. ~Seth
 
-	return sig.get_Driver_Light(currentLink,currentLane)!=1;
+//	return sig.get_Driver_Light(currentLink,currentLane)!=1;
 }
 
 void sim_mob :: Driver :: IntersectionVelocityUpdate()

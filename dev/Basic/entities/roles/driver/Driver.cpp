@@ -323,6 +323,8 @@ Lane* sim_mob::Driver::getTargetLane(Link* nextlink)
 			}
 		}
 	}
+
+	//NOTE: You're not returning anything!
 }
 
 

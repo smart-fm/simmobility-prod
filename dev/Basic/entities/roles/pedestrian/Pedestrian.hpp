@@ -29,6 +29,7 @@ private:
 	double yVel;
 	Point2D goal;
 	bool isGoalSet;
+
 	Signal sig;
 	unsigned int currPhase; //Current pedestrian signal phase: 0-green, 1-red
 //	unsigned int phaseCounter; //To be replaced by traffic management system

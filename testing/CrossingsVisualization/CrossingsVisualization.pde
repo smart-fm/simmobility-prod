@@ -5,6 +5,10 @@ import java.awt.geom.*;
 PFont f;
 PFont f2;
 
+//Some drawing constants
+static final int BUFFER = 95;
+static final int NODE_SIZE = 10;
+
 //Colors
 color nodeStroke = color(0xFF, 0x88, 0x22);
 color nodeFill = color(0xFF, 0xFF, 0xFF);
@@ -63,7 +67,7 @@ class Section {
   Node from;
   Node to;
   
-  Hastable<Integer, ArrayList<Crossing>> crossings = new Hashtable<Integer, ArrayList<Crossing>>();
+  Hashtable<Integer, ArrayList<Crossing>> crossings = new Hashtable<Integer, ArrayList<Crossing>>();
 };
 Section getSection(int id) {
   for (int i=0; i<sections.size(); i++) {
@@ -77,7 +81,7 @@ Section getSection(int id) {
 
 class Crossing {
   int laneID;
-  String type;
+  String laneType;
 
   double getX() {
     return xPos;
@@ -100,8 +104,8 @@ void scaleNode(Node n, double[] xBounds, double[] yBounds)  {
 }
 
 void scaleCrossing(Crossing c, double[] xBounds, double[] yBounds)  {
-  c.xPos = scalePointForDisplay(n.xPos, xBounds);
-  c.yPos = scalePointForDisplay(n.yPos, yBounds);
+  c.xPos = scalePointForDisplay(c.xPos, xBounds);
+  c.yPos = scalePointForDisplay(c.yPos, yBounds);
 }
 
 
@@ -117,14 +121,14 @@ void setup()
   f2 = createFont("Arial",12,true); 
   
   //Bounds
-  double[] xBounds = new double[] {Double.MAX_VALUE, Double.MIN_VALUE};
-  double[] yBounds = new double[] {Double.MAX_VALUE, Double.MIN_VALUE};
+  double[] xBounds = new double[] {Double.MAX_VALUE, Double.MIN_VALUE, width};
+  double[] yBounds = new double[] {Double.MAX_VALUE, Double.MIN_VALUE, height};
   
   //Load sample input
   try {
-    readNodes("nodes.txt", xBounds, yBounds;
+    readNodes("nodes.txt", xBounds, yBounds);
     readSections("sections.txt");
-    readCrossings("crossings.txt", xBounds, yBounds;
+    readCrossings("crossings.txt", xBounds, yBounds);
   } catch (IOException ex) {
     throw new RuntimeException(ex);
   }
@@ -134,8 +138,11 @@ void setup()
     scaleNode(n, xBounds, yBounds);
   }
   for (Section s : sections) {
-    for (Crossing c : s.crossings) {
-      scaleCrossing(c, xBounds, yBounds);
+    for (int i : s.crossings.keySet()) {
+      ArrayList<Crossing> crossings = s.crossings.get(i);
+      for (Crossing c : crossings) {
+        scaleCrossing(c, xBounds, yBounds);
+      }
     }
   }
 }
@@ -168,13 +175,15 @@ void draw()
     line((float)s.from.getX(), (float)s.from.getY(), (float)s.to.getX(), (float)s.to.getY());
     
     //Draw crossings
-    for (int crsID=0; crsID<s.crossings.size(); crsID++) {
-      ArrayList<Crossing> crs = s.crossings.get(crsID);
+    int crsID=0;
+    for (int keyID : s.crossings.keySet()) {
+      ArrayList<Crossing> crs = s.crossings.get(keyID);
       stroke(crossingColors[crsID%crossingColors.length]);
       strokeWeight(1.0);
       for (Crossing cr : crs) {
-        point(cr.getX(), cr.getY());
+        point((float)cr.getX(), (float)cr.getY());
       }
+      crsID++;
     }
   }
   
@@ -199,11 +208,7 @@ void draw()
     String key = Math.min(s.from.id,s.to.id) + ":" + Math.max(s.from.id,s.to.id) + ":" + s.name; 
     strokeWeight(1);
     if (!alreadyDrawn.contains(key)) {
-      if (drawDetailedIntersections) {
-        fill(0x00, 0x99, 0x99);
-      } else {
-        fill(0x33);
-      }
+      fill(0x33);
       text(s.name, (float)(s.from.xPos+(s.to.xPos-s.from.xPos)/2), (float)(s.from.yPos+(s.to.yPos-s.from.yPos)/2)); 
       alreadyDrawn.add(key);
     }
@@ -213,8 +218,7 @@ void draw()
 
 
 
-void readNodes(String nodesFile, double[] xBounds, double[] yBounds) throws IOException
-{ 
+void readNodes(String nodesFile, double[] xBounds, double[] yBounds) throws IOException { 
   String lines[] = loadStrings(nodesFile);
   nodes.clear();
     
@@ -254,8 +258,7 @@ void readNodes(String nodesFile, double[] xBounds, double[] yBounds) throws IOEx
 
 
 
-void readSections(String sectionsFile) throws IOException
-{ 
+void readSections(String sectionsFile) throws IOException { 
   String lines[] = loadStrings(sectionsFile);
   sections.clear();
     
@@ -268,9 +271,9 @@ void readSections(String sectionsFile) throws IOException
       continue;
     }
     
-    //Parse: (agentID, tickID, xPos, yPos, phase)
+    //Parse: (id, name, numLanes, speed, capactity, from, to, length)
     String[] items = nextLine.split("\t");
-    if (items.length != 7) {
+    if (items.length != 8) {
       throw new RuntimeException("Bad line in sections file: " + nextLine);
     }
     
@@ -283,9 +286,7 @@ void readSections(String sectionsFile) throws IOException
       s.speed = Integer.parseInt(items[3]);
       s.capacity = Integer.parseInt(items[4]);
       s.from = getNode(Integer.parseInt(items[5]));
-      s.from.segmentsFrom.add(s);
       s.to = getNode(Integer.parseInt(items[6]));
-      s.to.segmentsTo.add(s);
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }
@@ -295,83 +296,9 @@ void readSections(String sectionsFile) throws IOException
 }
 
 
-void makeUnit(DPoint vect) 
-{
-  double magnitude = Math.sqrt(vect.x*vect.x + vect.y*vect.y);
-  scaleVect(vect, 1/magnitude);
-}
-
-void scaleVect(DPoint vect, double value) 
-{
-  vect.x *= value;
-  vect.y *= value;
-}
-
-
-LaneInfo getEdgePoint(Node cent, Node outer) 
-{  
-  LaneInfo res = new LaneInfo();
-  
-  //Make a vector from the center to the "outer" node, scale it down to the unit vector, then 
-  //   scale it back up to the radius of the center.
-  DPoint unitVect = new DPoint(outer.xPos-cent.xPos, outer.yPos-cent.yPos);
-  makeUnit(unitVect);
-  DPoint vect = new DPoint(unitVect.x, unitVect.y);
-  scaleVect(vect, cent.bounds.getWidth()/2);
-  DPoint edge = new DPoint(cent.xPos+vect.x, cent.yPos+vect.y);
-  
-  //Compute the inner edge too; save that as the median line.
-  vect = new DPoint(unitVect.x, unitVect.y);
-  scaleVect(vect, cent.inner.getWidth()/2);
-  DPoint inner = new DPoint(cent.xPos+vect.x, cent.yPos+vect.y);
-  res.medianLine = new Line2D.Double(inner.x, inner.y, edge.x, edge.y);
-  
-    
-  //Find the segment that goes "to" the center node. That determines all "left" lanes.
-  Section s = getSection(outer, cent);
-  if (s!=null) {
-    //Rotate the unit vector to the left. (I love unit vectors)
-    vect = new DPoint(-unitVect.y, unitVect.x);
-              
-    //Add all lanes left of the median. (We're numbering them backwards, but it won't matter.)
-    for (int i=0; i<s.numLanes; i++) {
-      DPoint vect2 = new DPoint(vect.x, vect.y);
-      scaleVect(vect2, NODE_LANE_WIDTH*(i+1));
-      res.lanesLeft.add(
-        new Line2D.Double(inner.x+vect2.x, inner.y+vect2.y, edge.x+vect2.x, edge.y+vect2.y)
-      );
-    }
-  }  
-  
-  //Find the segment that goes "from" the center node. That determines all "right" lanes.
-  s = getSection(cent, outer);
-  if (s!=null) {
-    //Rotate the unit vector to the right. (I stilllove unit vectors)
-    vect = new DPoint(unitVect.y, -unitVect.x);
-              
-    //Add all lanes left of the median. (We're numbering them backwards, but it won't matter.)
-    for (int i=0; i<s.numLanes; i++) {
-      DPoint vect2 = new DPoint(vect.x, vect.y);
-      scaleVect(vect2, NODE_LANE_WIDTH*(i+1));
-      res.lanesRight.add(
-        new Line2D.Double(inner.x+vect2.x, inner.y+vect2.y, edge.x+vect2.x, edge.y+vect2.y)
-      );
-    }
-  }  
-  
-  return res;
-}
-
-
-void readPolylines(String polylinesFile) throws IOException
-{ 
-  String lines[] = loadStrings(polylinesFile);
-  
-  //Initialize polylines
-  for (int i=0; i<sections.size(); i++) {
-    Section s = sections.get(i);
-    s.polyline.add(new DPoint(s.from.xPos, s.from.yPos));
-  }
+void readCrossings(String crossingsFile, double[] xBounds, double[] yBounds) throws IOException { 
+  String lines[] = loadStrings(crossingsFile);
+  nodes.clear();
     
   //Read line-by-line
   for (int lineID=0; lineID<lines.length; lineID++) {
@@ -382,100 +309,37 @@ void readPolylines(String polylinesFile) throws IOException
       continue;
     }
     
-    //Parse: (agentID, tickID, xPos, yPos, phase)
-    String[] items = nextLine.split("\t");
-    if (items.length != 3) {
-      throw new RuntimeException("Bad line in polylines file: " + nextLine);
-    }
-    
-    //Tie this polyline to a segment.
-    try {
-      Section s = getSection(Integer.parseInt(items[0]));
-      double x = scalePointForDisplay(Double.parseDouble(items[1]), xBounds);
-      double y = scalePointForDisplay(Double.parseDouble(items[2]), yBounds);
-      s.polyline.add(new DPoint(x, y));
-    } catch (Exception ex) {
-      throw new RuntimeException(ex);
-    }
-  }
-  
-  //Finalize polylines
-  for (int i=0; i<sections.size(); i++) {
-    Section s = sections.get(i);
-    s.polyline.add(new DPoint(s.to.xPos, s.to.yPos));
-    
-    //We need to sort it.
-    Collections.sort(s.polyline, new SectionPolylineComparator(s.from));
-  }
-  
-  //Finalize all edge points
-  for (int i=0; i<sections.size(); i++) {
-    Section s = sections.get(i);
-    if (!s.from.edgePoints.containsKey(s.to)) {
-      s.from.edgePoints.put(s.to, getEdgePoint(s.from, s.to));
-    }
-    if (!s.to.edgePoints.containsKey(s.from)) {
-      s.to.edgePoints.put(s.from, getEdgePoint(s.to, s.from));
-    }
-  }
-}
-
-
-
-void readConnectors(String connectorsFile) throws IOException
-{ 
-  String lines[] = loadStrings(connectorsFile);
-    
-  //Read line-by-line
-  for (int lineID=0; lineID<lines.length; lineID++) {
-    String nextLine = lines[lineID].trim();
-    
-    //Skip this line?
-    if (nextLine.startsWith("#") || nextLine.isEmpty()) {
-      continue;
-    }
-    
-    //Parse: (agentID, tickID, xPos, yPos, phase)
+    //Parse: (lane_id, lane_type, lane_type_desc, section, road_name, xpos, ypos)
     String[] items = nextLine.split("\t");
     if (items.length != 7) {
-      throw new RuntimeException("Bad line in connectors file: " + nextLine);
+      throw new RuntimeException("Bad line in crossings file: " + nextLine);
     }
     
-    //We'll need a double for-loop to generate these
+    //Create a Crossing, populate it.
+    Crossing c = new Crossing();
     try {
-      //Double-check the nodes.
-      Section fromSect = getSection(Integer.parseInt(items[1]));
-      Section toSect = getSection(Integer.parseInt(items[2]));
-      Node atNode = fromSect.to;
-      if (fromSect.to != toSect.from) {
-        throw new RuntimeException("Bad lane connector: " + nextLine);
+      c.laneID = Integer.parseInt(items[0]);
+      c.laneType = items[1].trim();
+      if (!c.laneType.equals("J") && !c.laneType.equals("A4")) {
+        throw new RuntimeException("Unknown crossing laneType: " + c.laneType);
       }
+      c.xPos = Double.parseDouble(items[5]);
+      c.yPos = Double.parseDouble(items[6]);
       
-      //Get lane generators.
-      int fromLaneStart = Integer.parseInt(items[3]);
-      int fromLaneEnd = Integer.parseInt(items[4]);
-      int toLaneStart = Integer.parseInt(items[5]);
-      int toLaneEnd = Integer.parseInt(items[6]);
-      
-      //Generate all connectors.
-      for (int fromLane=fromLaneStart; fromLane<=fromLaneEnd; fromLane++) {
-        for (int toLane=toLaneStart; toLane<=toLaneEnd; toLane++) {
-          //Create a Connector, populate it, add it to the right section.
-          LaneConnector lc = new LaneConnector();
-          //lc.id = Integer.parseInt(items[0]); //id isn't used.
-          lc.fromSec = fromSect;
-          lc.fromLane = fromLane;
-          lc.toSec = toSect;
-          lc.toLane = toLane;
-          lc.arrowMarking = makeArrow(lc);
-          
-          //Assign it
-          atNode.connectors.add(lc);
-        }
-      }
+      c.section = getSection(Integer.parseInt(items[3]));
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }
+    
+    //Expand bounds as necessary
+    checkBounds(xBounds, c.xPos);
+    checkBounds(yBounds, c.yPos);
+    
+    //Add it
+    if (!c.section.crossings.containsKey(c.laneID)) {
+        c.section.crossings.put(c.laneID, new ArrayList<Crossing>());
+    }
+    c.section.crossings.get(c.laneID).add(c);
   }
 }
 
@@ -492,10 +356,5 @@ boolean myParseBool(String input) {
     }
   throw new RuntimeException("Bad boolean input: " + input);
 }
-
-
-
-
-
 
 

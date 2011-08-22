@@ -3,11 +3,20 @@
 #pragma once
 
 #include <limits>
+#include <vector>
 #include <math.h>
+#include <set>
 #include "../Role.hpp"
 #include "../../Person.hpp"
 #include "../../Signal.hpp"
-
+#include "../../../buffering/Buffered.hpp"
+#include "../../../buffering/BufferedDataManager.hpp"
+#include "../../../geospatial/Link.hpp"
+#include "../../../geospatial/RoadSegment.hpp"
+#include "../../../geospatial/Lane.hpp"
+#include "../../../geospatial/Node.hpp"
+#include "../../../geospatial/MultiNode.hpp"
+#include "../../../geospatial/LaneConnector.hpp"
 
 namespace sim_mob
 {
@@ -40,6 +49,7 @@ struct link_{
 	double laneWidth;
 	int laneNum;
 };
+
 
 /**
  * A Person in the Driver role is navigating roads and intersections.
@@ -190,6 +200,41 @@ public:
 	double getLinkLength();
 	bool isReachSignal();
 	bool isInTheIntersection();
+
+
+	/****************IN REAL NETWORK****************/
+private:
+	std::vector<Link*> linkPath;
+	Link* currLink_;
+	RoadSegment* currRoadSegment_;
+	Lane* currLane_;
+	size_t polylineIndex_;
+	double offsetInPolyline_;
+	double moveAlong;
+	double movePerpendicular;
+	size_t linkIndex;
+	size_t roadSegmentIndex;
+	bool isReachGoal;
+	std::vector<const Lane*> targetLane;
+
+public:
+	Buffered<Link*> currLink;
+	Buffered<RoadSegment*> currRoadSegment;
+	Buffered<Lane*> currLane;
+	Buffered<size_t> polylineIndex;
+	Buffered<double> offsetInPolyline;
+
+public:
+	Link* getCurrLink(){return currLink;}
+	RoadSegment* getCurrRoadSegment(){return currRoadSegment;}
+	Lane* getCurrLane(){return currLane;}
+	size_t getPoylineIndex(){return polylineIndex;}
+	double getOffsetInPolyline(){return offsetInPolyline;}
+	void updateCurrentPositionInRoadNetwork();
+	void road2Map();
+	Link* getNextLink();
+	RoadSegment* getNextRoadSegment();
+	Lane* getTargetLane(Link* nextlink);
 
 
 	/***********FOR DRIVING BEHAVIOR MODEL**************/

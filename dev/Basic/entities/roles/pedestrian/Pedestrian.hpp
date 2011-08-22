@@ -28,12 +28,13 @@ private:
 	double xVel;
 	double yVel;
 	Point2D goal;
-	bool isGoalSet;
+	int currentStage;
 
-	Signal sig;
+//	Signal sig;
 	unsigned int currPhase; //Current pedestrian signal phase: 0-green, 1-red
 //	unsigned int phaseCounter; //To be replaced by traffic management system
 	int curCrossingID;
+	bool startToCross;
 
 	//For collisions
 	double xCollisionVector;
@@ -43,8 +44,9 @@ private:
 
 	//The following methods are to be moved to agent's sub-systems in future
 	bool isGoalReached();
-	void setGoal();
-	void updateVelocity(double);
+	bool isDestReached();
+	void setGoal(int);
+	void updateVelocity(int);
 	void updatePosition();
 	void updatePedestrianSignal();
 	void checkForCollisions();

@@ -38,7 +38,7 @@ namespace sim_mob
 class Subsystem : public sim_mob::Signal {
 
 public:
-	Subsystem(unsigned int id);
+	Subsystem(Agent* parent);
 
 	//update Subsystem
 	void updateSubsystem(double DS_C[],double DS_S1[], double DS_S2[], int flow1[], int flow2[]);
@@ -82,4 +82,3 @@ private:
 };
 
 }
-

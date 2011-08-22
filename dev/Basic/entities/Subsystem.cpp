@@ -38,7 +38,7 @@ const int sim_mob::Subsystem::DB_Link4[] = {0, 0, 0, 1};
 
 
 
-sim_mob :: Subsystem :: Subsystem(unsigned int id) : sim_mob::Signal(id)
+sim_mob :: Subsystem :: Subsystem(Agent* parent) : sim_mob::Signal(parent)
 {
 	Critical->setCL(60,60,60);//default initial cycle length for SCATS
 	Critical->setRL(60,60);//default initial RL for SCATS

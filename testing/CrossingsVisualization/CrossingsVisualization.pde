@@ -19,10 +19,10 @@ static double[] forceZoomY = null;
 //Set
 static {
   //For more scaling
-  //static final double[] forceZoomX = new double[]{372455.0595, 372549.8827};
-  //static final double[] forceZoomY = new double[]{143518.2025, 143594.3131};
-  forceZoomX = new double[]{372369.5087, 372455.0595};
-  forceZoomY = new double[]{143594.3131, 143663.9532};
+  forceZoomX = new double[]{372455.0595, 372549.8827};
+  forceZoomY = new double[]{143518.2025, 143594.3131};
+  //forceZoomX = new double[]{372369.5087, 372455.0595};
+  //forceZoomY = new double[]{143594.3131, 143663.9532};
 
   //Restrict which road names have crossings drawn
   //restrictRoadName = "QUEEN STREET";

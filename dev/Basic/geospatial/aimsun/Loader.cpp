@@ -196,6 +196,16 @@ void LoadBasicAimsunObjects(const string& connectionStr, map<string, string>& st
 
 
 
+//Simple distance formula
+double dist(double x1, double y1, double x2, double y2)
+{
+	double dx = x2 - x1;
+	double dy = y2 - y1;
+	return sqrt(dx*dx + dy*dy);
+}
+
+
+
 //Compute the distance from the source node of the polyline to a
 // point on the line from the source to the destination nodes which
 // is normal to the Poly-point.
@@ -231,7 +241,7 @@ void ComputePolypointDistance(Polyline& pt)
 
 
 
-void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& sections, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
+void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& sections, vector<Crossing>& crossings, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
 {
 	//Step 1: Tag all Nodes with the Sections that meet there.
 	for (map<int,Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
@@ -268,6 +278,17 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 	for (map<int,Polyline>::iterator it=polylines.begin(); it!=polylines.end(); it++) {
 		it->second.section->polylineEntries.push_back(&(it->second));
 		ComputePolypointDistance(it->second);
+	}
+
+	//Step 5: Tag all Nodes with the crossings that are near to these nodes.
+	for (vector<Crossing>::iterator it=crossings.begin(); it!=crossings.end(); it++) {
+		//Given the section this crossing is on, find which node on the section it is closest to.
+		double dFrom = dist(it->xPos, it->yPos, it->atSection->fromNode->xPos, it->atSection->fromNode->yPos);
+		double dTo = dist(it->xPos, it->yPos, it->atSection->toNode->xPos, it->atSection->toNode->yPos);
+		Node* atNode = (dFrom<dTo) ? it->atSection->fromNode : it->atSection->toNode;
+
+		//Now, store by laneID
+		atNode->crossingsAtNode[it->laneID].push_back(&(*it));
 	}
 }
 
@@ -535,7 +556,7 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, map<str
 		LoadBasicAimsunObjects(connectionStr, storedProcs, nodes, sections, crossings, turnings, polylines);
 
 		//Step Two: Translate
-		DecorateAndTranslateObjects(nodes, sections, turnings, polylines);
+		DecorateAndTranslateObjects(nodes, sections, crossings, turnings, polylines);
 
 		//Step Three: Save
 		SaveSimMobilityNetwork(rn, nodes, sections, turnings, polylines);

@@ -160,6 +160,8 @@ public:
 	void setToParent();			///<set next data to parent buffer data
 	void abs2relat();			///<transform absolute coordinate to relative coordinate
 	void relat2abs();			///<transform relative coordinate to absolute coordinate
+	double feet2Unit(double feet);
+	double unit2Feet(double unit);
 
 	double getMaxAcceleration(){return maxAcceleration;}
 	double getNormalDeceleration(){return normalDeceleration;}
@@ -198,8 +200,7 @@ public:
 	Agent* getNextForBDriver(bool isLeft,bool isFront);	///<for updating LF LB RF RB
 	bool checkIfOnTheLane(double y);		///<give y position, check if it is a lane's y position
 	double getLinkLength();
-	bool isReachSignal();
-	bool isInTheIntersection();
+
 
 
 	/****************IN REAL NETWORK****************/
@@ -234,7 +235,7 @@ public:
 	void road2Map();
 	Link* getNextLink();
 	RoadSegment* getNextRoadSegment();
-	Lane* getTargetLane(Link* nextlink);
+	void getTargetLane(Link* nextlink);
 
 
 	/***********FOR DRIVING BEHAVIOR MODEL**************/
@@ -309,18 +310,19 @@ private:
 	void updateVelocity();
 	void updatePosition();
 
+
+	/**************BEHAVIOR WHEN APPROACHING A INTERSECTION***************/
 public:
 	bool reachSignalDecision();
-	void updateSignalInfo();
 	void updateAngle();
 	void IntersectionVelocityUpdate();
 	void modifyPosition();
-	double feet2Unit(double feet);
-	double unit2Feet(double unit);
+	bool isReachSignal();
+	bool isInTheIntersection();
+	void updateTrafficSignal();
+
 private:
-//	Signal sig;
-	int phaseCounter;
-	int currPhase;
+	Signal* trafficSignal;
 	double angle;
 	bool inIntersection;
 

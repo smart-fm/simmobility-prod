@@ -16,9 +16,6 @@ using std::max;
 using std::vector;
 using std::set;
 
-double DS[] = {1, 1, 1, 1};
-double DS_av = (DS[0]+DS[1]+DS[2]+DS[3])/4;
-
 //Some static properties require initialization in the CPP file. ~Seth
 const double sim_mob::Driver::maxLaneSpeed[] = {120,140,180};
 const double sim_mob::Driver::MAX_NUM = numeric_limits<double>::max();
@@ -40,6 +37,15 @@ const badArea sim_mob::Driver::badareas[] = {
 };
 
 const link_ sim_mob::Driver::testLinks[] = {
+		//ID	startX		startY		endX		endY		laneWidth	laneNum
+		/*{ 0,	 372073.27,	 143216.05,	 372183.51,	 143352.55,	10,			3},
+		{ 1, 	 372271.39,	 143278.75,	 372183.51,	 143352.55,	10,			3},
+		{ 2,	 372287.14,	 143477.88,	 372183.51,	 143352.55,	10,			3},
+		{ 3, 	 372096.05,	 143429.34,	 372183.51,	 143352.55,	10,			3},
+		{ 4, 	 372183.51,	 143352.55,	 372073.27,	 143216.05,	10,			3},
+		{ 5,	 372183.51,	 143352.55,	 372271.39,	 143278.75,	10,			3},
+		{ 6, 	 372183.51,	 143352.55,	 372287.14,	 143477.88,	10,			3},
+		{ 7, 	 372183.51,	 143352.55,	 372096.05,	 143429.34,	10,			3}*/
 		{ 0,   0, 270, 460, 270,10,3},
 		{ 1, 530,   0, 530, 260,10,3},
 		{ 2,1000, 330, 540, 330,10,3},
@@ -92,10 +98,14 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), leader(nullptr)
 	isOriginSet = false;
 	LF=nullptr;LB=nullptr;RF=nullptr;RB=nullptr;
 
-	//Need to init
+	//specify the link
 	currentLink = (parent->getId()/3)%4;
+	/*if(currentLink==0)currentLink=3;
+	if(currentLink==2)currentLink=0;
+	if(currentLink==3)currentLink=2;*/
+
 	nextLane=-1;
-	nextLink=-1;
+	nextLink=((parent->getId()+1)%3+currentLink+5)%4+4;
 
 	ischanging=false;
 	isback=false;
@@ -104,12 +114,10 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), leader(nullptr)
 	toLane=getLane();
 	changeDecision=0;
 
-
-	currPhase = 0;
-	phaseCounter = 0;
-//	sig.initializeSignal();
 	angle = 0;
 	inIntersection=false;
+
+	trafficSignal=nullptr;
 
 }
 
@@ -132,6 +140,9 @@ void sim_mob::Driver::update(frame_t frameNumber)
 		setOrigin();
 		isOriginSet=true;
 	}
+	if(trafficSignal==nullptr){
+		updateTrafficSignal();
+	}
 
 	//if reach the goal, get back to the origin
 	if(isGoalReached()){
@@ -140,6 +151,8 @@ void sim_mob::Driver::update(frame_t frameNumber)
 		//double fallback=0;
 		xPos_=origin.getX();
 		yPos_=origin.getY();
+		nextLane=-1;
+		nextLink=((parent->getId()+1)%3+currentLink+5)%4+4;
 		//isGoalSet=false;
 		relat2abs();
 		setToParent();
@@ -155,11 +168,6 @@ void sim_mob::Driver::update(frame_t frameNumber)
 		changeDecision=0;
 	}
 
-	//update signal information
-	updateSignalInfo();
-
-
-
 	VelOfLaneChanging=	testLinks[currentLink].laneWidth/5;		//assume that 5 time steps is need when changing lane
 
 	//update information
@@ -170,7 +178,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 
 
 	//lane changing part
-	if(!isInTheIntersection() && xPos_ > 50){
+	if(!isInTheIntersection() && xPos_ > 10.){
 		excuteLaneChanging();
 	}
 
@@ -190,7 +198,17 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	updateAngle();
 
 	boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-//	std::cout <<"(" <<parent->getId() <<"," <<frameNumber<<","<<parent->xPos.get()<<"," <<parent->yPos.get() <<","<<sig.getcurrPhase()<<","<<DS_av<<","<<floor(sig.getnextCL())<<","<<sig.getphaseCounter()<<","<<angle <<")" <<std::endl;
+	std::cout <<"("
+			<<parent->getId()
+			<<"," <<frameNumber
+			<<"," <<parent->xPos.get()
+			<<"," <<parent->yPos.get()
+			<<"," <<trafficSignal->getcurrPhase()
+			<<"," <<"0.95"
+			<<"," <<floor(trafficSignal->getnextCL())
+			<<"," <<trafficSignal->getphaseCounter()
+			<<"," <<angle
+			<<")"<<std::endl;
 }
 
 void sim_mob::Driver::getFromParent()
@@ -211,6 +229,7 @@ void sim_mob::Driver::setToParent()
 	parent->yVel.set(yVel);
 	parent->xAcc.set(xAcc);
 	parent->yAcc.set(yAcc);
+	parent->currentLink.set(currentLink);
 }
 
 void sim_mob::Driver::abs2relat()
@@ -305,13 +324,13 @@ void sim_mob::Driver::updateCurrentPositionInRoadNetwork(){		//TODO:road network
 	offsetInPolyline.set(offsetInPolyline_);
 }
 
-Lane* sim_mob::Driver::getTargetLane(Link* nextlink)
+void sim_mob::Driver::getTargetLane(Link* nextlink)
 {
 	targetLane.erase(targetLane.begin(),targetLane.end());
 	const MultiNode* mNode=dynamic_cast<const MultiNode*>(currLink_->getEnd());
 	if(mNode){			//end of link is a intersection
 		if(linkIndex==linkPath.size()){		//last link, no lane changing is needed
-			return nullptr;
+			return;
 		}
 		Link* nextLink=linkPath[linkIndex+1];
 		set<LaneConnector*>::const_iterator i;
@@ -323,8 +342,6 @@ Lane* sim_mob::Driver::getTargetLane(Link* nextlink)
 			}
 		}
 	}
-
-	//NOTE: You're not returning anything!
 }
 
 
@@ -409,7 +426,7 @@ void sim_mob::Driver::updateVelocity()
 		IntersectionVelocityUpdate();
 	} else {
 		if(isReachSignal()){
-			nextLink=(currentLane+currentLink+1)%4+4;
+			//nextLink=(currentLane+currentLink+1)%4+4;
 			nextLane=currentLane;
 			if(!reachSignalDecision()){
 				xVel_ = 0 ; yVel_ =0;
@@ -745,16 +762,6 @@ bool sim_mob::Driver::checkForCrash()
 	return false;
 }
 
-void sim_mob :: Driver :: updateSignalInfo()
-{
-	//update signal information
-//	sig.updateSignal(DS);
-
-	//currPhase is the order for drivers
-//	currPhase = sig.getcurrPhase();
-
-}
-
 //Angle shows the velocity direction of vehicles
 void sim_mob::Driver::updateAngle()
 {
@@ -770,10 +777,7 @@ void sim_mob::Driver::updateAngle()
 
 bool sim_mob :: Driver :: reachSignalDecision()
 {
-	//NOTE: I replaced the if statements with simple "returns", which are more concise. ~Seth
-
-//	return sig.get_Driver_Light(currentLink,currentLane)!=1;
-	return true;
+	return trafficSignal->get_Driver_Light(currentLink,currentLane)!=1;
 }
 
 void sim_mob :: Driver :: IntersectionVelocityUpdate()
@@ -884,4 +888,18 @@ void sim_mob::Driver::modifyPosition()
 	} else {
 		inIntersection=true;
 	}
+}
+
+void sim_mob::Driver::updateTrafficSignal()
+{
+	Agent* other = nullptr;
+	for (size_t i=0; i<Agent::all_agents.size(); i++) {
+		other = Agent::all_agents[i];
+		Signal* s = dynamic_cast<Signal*>(other);
+		if (s!=nullptr) {
+			trafficSignal=s;	//since there is only 1 traffic signal
+			return;
+		}
+	}
+	trafficSignal=nullptr;
 }

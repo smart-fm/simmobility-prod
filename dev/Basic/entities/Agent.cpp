@@ -26,6 +26,7 @@ void sim_mob::Agent::buildSubscriptionList()
 	subscriptionList_cached.push_back(&yVel);
 	subscriptionList_cached.push_back(&xAcc);
 	subscriptionList_cached.push_back(&yAcc);
+	subscriptionList_cached.push_back(&currentLink);
 }
 
 

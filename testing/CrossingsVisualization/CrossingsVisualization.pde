@@ -10,11 +10,24 @@ static final int BUFFER = 95;
 static final int NODE_SIZE = 12;
 static final int CROSS_POINT_SIZE = 4;
 
-//For more scaling
-static final double[] forceZoomX = new double[]{372455.0595, 372549.8827};
-static final double[] forceZoomY = new double[]{143518.2025, 143594.3131};
-//static final String restrictRoadName = "VICTORIA STREET";
-//static final String restrictRoadName = "MIDDLE ROAD";
+//Defaults
+static String restrictRoadName = null;
+static double[] forceZoomX = null;
+static double[] forceZoomY = null;
+
+
+//Set
+static {
+  //For more scaling
+  //static final double[] forceZoomX = new double[]{372455.0595, 372549.8827};
+  //static final double[] forceZoomY = new double[]{143518.2025, 143594.3131};
+  forceZoomX = new double[]{372369.5087, 372455.0595};
+  forceZoomY = new double[]{143594.3131, 143663.9532};
+
+  //Restrict which road names have crossings drawn
+  //restrictRoadName = "QUEEN STREET";
+  //restrictRoadName = "MIDDLE ROAD";
+}
 
 //Colors
 color nodeStroke = color(0xFF, 0x88, 0x22);
@@ -109,12 +122,12 @@ class Crossing {
 
 
 void scaleNode(Node n, double[] xBounds, double[] yBounds)  {
-  println("x,y: " + n.xPos + "," + n.yPos);
+//  println("x,y: " + n.xPos + "," + n.yPos);
   
   n.xPos = scalePointForDisplay(n.xPos, xBounds);
   n.yPos = scalePointForDisplay(n.yPos, yBounds);
   
-  println("  to: " + n.xPos + "," + n.yPos);
+//  println("  to: " + n.xPos + "," + n.yPos);
 }
 
 void scaleCrossing(Crossing c, double[] xBounds, double[] yBounds)  {
@@ -202,7 +215,7 @@ void draw()
     
     //Draw crossings
     int crsID=0;
-    for (int keyID : s.crossings.keySet()) {
+    for (int keyID : s.crossings.keySet()) {      
       ArrayList<Crossing> crs = s.crossings.get(keyID);
       stroke(crossingColors[crsID%crossingColors.length]);
       fill(crossingColors[crsID%crossingColors.length]);

@@ -229,7 +229,7 @@ void sim_mob::Driver::setToParent()
 	parent->yVel.set(yVel);
 	parent->xAcc.set(xAcc);
 	parent->yAcc.set(yAcc);
-	parent->currentLink.set(currentLink);
+	//parent->currentLink.set(currentLink);
 }
 
 void sim_mob::Driver::abs2relat()

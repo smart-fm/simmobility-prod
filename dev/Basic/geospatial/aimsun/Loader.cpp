@@ -361,7 +361,8 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 
 			//Double-check that we found at least one.
 			if (!found) {
-				throw std::runtime_error("Couldn't find any nearby Nodes for the given Crossing.");
+				std::cout <<"Warning: Crossing with lane ID " <<it->first <<" skipped near position: " <<n.xPos <<"," <<n.yPos <<"\n";
+				//throw std::runtime_error("Couldn't find any nearby Nodes for the given Crossing.");
 			}
 		}
 	}

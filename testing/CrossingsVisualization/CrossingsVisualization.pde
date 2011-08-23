@@ -14,15 +14,18 @@ static final int CROSS_POINT_SIZE = 4;
 static String restrictRoadName = null;
 static double[] forceZoomX = null;
 static double[] forceZoomY = null;
-
+static int tagLaneID = 0;
 
 //Set
 static {
   //For more scaling
-  forceZoomX = new double[]{372455.0595, 372549.8827};
-  forceZoomY = new double[]{143518.2025, 143594.3131};
+  //forceZoomX = new double[]{372455.0595, 372549.8827};
+  //forceZoomY = new double[]{143518.2025, 143594.3131};
   //forceZoomX = new double[]{372369.5087, 372455.0595};
   //forceZoomY = new double[]{143594.3131, 143663.9532};
+  forceZoomX = new double[]{372121-150, 372121+150};
+  forceZoomY = new double[]{143107-150, 143107+150};
+  tagLaneID = 4235;
 
   //Restrict which road names have crossings drawn
   //restrictRoadName = "QUEEN STREET";
@@ -30,12 +33,13 @@ static {
 }
 
 //Colors
+color taggedLaneColor = color(0xFF, 0x00, 0x00);
 color nodeStroke = color(0xFF, 0x88, 0x22);
 color nodeFill = color(0xFF, 0xFF, 0xFF);
 color[] crossingColors = new color[] {
-  color(0xFF, 0x00, 0x00),
-  color(0x00, 0xFF, 0x00),
   color(0x00, 0x00, 0xFF),
+  color(0x00, 0xFF, 0xFF),
+  color(0x00, 0xFF, 0x00),
   color(0xFF, 0x00, 0xFF),
   color(0xFF, 0xFF, 0x00),
 };
@@ -220,6 +224,13 @@ void draw()
       stroke(crossingColors[crsID%crossingColors.length]);
       fill(crossingColors[crsID%crossingColors.length]);
       strokeWeight(1.0);
+      
+      //Over-rides for "tagged" lane IDs
+      if (keyID==tagLaneID) {
+        stroke(taggedLaneColor);
+        strokeWeight(2.5);
+      }
+
       double[] lastPoint = null;
       for (Crossing cr : crs) {
         //Skip?

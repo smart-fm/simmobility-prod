@@ -13,6 +13,8 @@
 using namespace sim_mob;
 using std::numeric_limits;
 using std::max;
+using std::vector;
+using std::set;
 
 double DS[] = {1, 1, 1, 1};
 double DS_av = (DS[0]+DS[1]+DS[2]+DS[3])/4;
@@ -243,6 +245,89 @@ void sim_mob::Driver::relat2abs()
 	yAcc=xAcc_*yDirection+yAcc_*xDirection;
 }
 
+void sim_mob::Driver::road2Map(){
+	Point2D start=currRoadSegment_->getLanePolyline(currLane_->getLaneID())[polylineIndex_];
+	Point2D end=currRoadSegment_->getLanePolyline(currLane_->getLaneID())[polylineIndex_+1];
+	double lengthOfPolyline=sqrt((start.getX()-end.getX())*(start.getX()-end.getX())
+			+(start.getY()-end.getY())*(start.getY()-end.getY()));
+	double persentage=offsetInPolyline_/lengthOfPolyline;
+	xPos=start.getX()+persentage*(end.getX()-start.getX());
+	yPos=start.getY()+persentage*(end.getY()-start.getY());
+}
+
+void sim_mob::Driver::updateCurrentPositionInRoadNetwork(){		//TODO:road network problems
+	Point2D start=currRoadSegment_->getLanePolyline(currLane_->getLaneID())[polylineIndex_];
+	Point2D end=currRoadSegment_->getLanePolyline(currLane_->getLaneID())[polylineIndex_+1];
+	double lengthOfPolyline=sqrt((start.getX()-end.getX())*(start.getX()-end.getX())
+			+(start.getY()-end.getY())*(start.getY()-end.getY()));
+	offsetInPolyline_+=moveAlong;
+	while(offsetInPolyline_>=lengthOfPolyline){
+		offsetInPolyline_ -= lengthOfPolyline;
+		if(currRoadSegment_->getLanePolyline(currLane_->getLaneID()).size()==polylineIndex_+2)//the last polyline
+		{
+			if(dynamic_cast<const MultiNode*>(currRoadSegment_->getEnd())){	//is the last road segment
+				if(currLink==linkPath.back()) {		//is the last link in the link path
+					//set the flag, end the road trip
+					isReachGoal=true;
+					return;
+				}
+				else{								//still has links to go
+					//get to the next link, the first road segment,the first segment of polyline
+					currLink_=linkPath[linkIndex+1];
+					linkIndex++;
+					currRoadSegment_=currLink_->getPath(true)[0];
+					roadSegmentIndex=0;
+					polylineIndex_=0;
+				}
+			}
+			else{			//not the last road segment
+				//get to next road segment
+				currRoadSegment_=currLink_->getPath(true)[roadSegmentIndex+1];
+				roadSegmentIndex++;
+				polylineIndex_=0;
+			}
+		}
+		else{		//not the last polyline segment
+			//get to next polyline segment
+			polylineIndex_++;
+		}
+		start=currRoadSegment_->getLanePolyline(currLane_->getLaneID())[polylineIndex_];
+		end=currRoadSegment_->getLanePolyline(currLane_->getLaneID())[polylineIndex_+1];
+		lengthOfPolyline=sqrt((start.getX()-end.getX())*(start.getX()-end.getX())
+				+(start.getY()-end.getY())*(start.getY()-end.getY()));
+		offsetInPolyline_+=moveAlong;
+	}
+	//set to buffer data
+	currLink.set(currLink_);
+	currRoadSegment.set(currRoadSegment_);
+	currLane.set(currLane_);
+	polylineIndex.set(polylineIndex_);
+	offsetInPolyline.set(offsetInPolyline_);
+}
+
+Lane* sim_mob::Driver::getTargetLane(Link* nextlink)
+{
+	targetLane.erase(targetLane.begin(),targetLane.end());
+	const MultiNode* mNode=dynamic_cast<const MultiNode*>(currLink_->getEnd());
+	if(mNode){			//end of link is a intersection
+		if(linkIndex==linkPath.size()){		//last link, no lane changing is needed
+			return nullptr;
+		}
+		Link* nextLink=linkPath[linkIndex+1];
+		set<LaneConnector*>::const_iterator i;
+		set<LaneConnector*> lcs=mNode->getOutgoingLanes(*currRoadSegment_);
+		for(i=lcs.begin();i!=lcs.end();i++){
+			if((*i)->getLaneTo()->getRoadSegment()->getLink()==nextLink
+					&& (*i)->getLaneFrom()->getRoadSegment()==currRoadSegment_){
+				targetLane.push_back((*i)->getLaneFrom());
+			}
+		}
+	}
+
+	//NOTE: You're not returning anything!
+}
+
+
 void sim_mob::Driver::setOrigin()
 {
 	originLink = currentLink;
@@ -386,12 +471,15 @@ void sim_mob::Driver::updateLeadingDriver()
 		//Skip self
 		other = Agent::all_agents[i];
 		Person* p = dynamic_cast<Person*>(other);
+		if (!p) {
+			continue;
+		}
 		Driver* d = dynamic_cast<Driver*>(p->getRole());
-/*		if (other->getId()==parent->getId()
-				|| d==nullptr || d->getLink()!=currentLink)
+		if (other->getId()==parent->getId()
+				|| !d || d->getLink()!=currentLink)
 		{
 			continue;
-		}*/
+		}
 
 		double other_xOffset	= other->xPos.get()	- testLinks[currentLink].startX;
 		double other_yOffset	= other->yPos.get()	- testLinks[currentLink].startY;
@@ -522,12 +610,15 @@ Agent* sim_mob::Driver::getNextForBDriver(bool isLeft,bool isFront)
 			//Skip self
 			other = Agent::all_agents[i];
 			Person* p = dynamic_cast<Person*>(other);
+			if (!p) {
+				continue;
+			}
 			Driver* d = dynamic_cast<Driver*>(p->getRole());
-/*			if (other->getId()==parent->getId()
-					|| d==nullptr || d->getLink()!=currentLink)
+			if (other->getId()==parent->getId()
+					|| !d || d->getLink()!=currentLink)
 			{
 				continue;
-			}*/
+			}
 			//Check. Find the closest one
 			double other_xOffset	= other->xPos.get()	- testLinks[currentLink].startX;
 			double other_yOffset	= other->yPos.get()	- testLinks[currentLink].startY;
@@ -600,12 +691,15 @@ bool sim_mob::Driver::checkForCrash()
 		//Skip self
 		other = Agent::all_agents[i];
 		Person* p = dynamic_cast<Person*>(other);
+		if (!p) {
+			continue;
+		}
 		Driver* d = dynamic_cast<Driver*>(p->getRole());
-/*		if (other->getId()==parent->getId()
-				|| d==nullptr || d->getLink()!=currentLink)
+		if (other->getId()==parent->getId()
+				|| !d || d->getLink()!=currentLink)
 		{
 			continue;
-		}*/
+		}
 		double other_xOffset	= other->xPos.get()	- testLinks[currentLink].startX;
 		double other_yOffset	= other->yPos.get()	- testLinks[currentLink].startY;
 		double other_xPos_		= other_xOffset	* xDirection	+ other_yOffset	* yDirection;
@@ -679,6 +773,7 @@ bool sim_mob :: Driver :: reachSignalDecision()
 	//NOTE: I replaced the if statements with simple "returns", which are more concise. ~Seth
 
 //	return sig.get_Driver_Light(currentLink,currentLane)!=1;
+	return true;
 }
 
 void sim_mob :: Driver :: IntersectionVelocityUpdate()

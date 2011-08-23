@@ -25,6 +25,7 @@
 
 #include "Node.hpp"
 #include "Section.hpp"
+#include "Crossing.hpp"
 #include "Turning.hpp"
 #include "Polyline.hpp"
 #include "SOCI_Converters.hpp"
@@ -92,6 +93,28 @@ void LoadSections(soci::session& sql, const std::string& storedProc, map<int, Se
 }
 
 
+void LoadCrossings(soci::session& sql, const std::string& storedProc, vector<Crossing>& crossings, map<int, Section>& sectionlist)
+{
+	//Our SQL statement
+	soci::rowset<Crossing> rs = (sql.prepare <<"select * from " + storedProc);
+
+	//Exectue as a rowset to avoid repeatedly building the query.
+	crossings.clear();
+	for (soci::rowset<Crossing>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+		//Check sections
+		if(sectionlist.count(it->TMP_AtSectionID)==0) {
+			throw std::runtime_error("Crossing at Invalid Section");
+		}
+
+		//std::cout <<"Crossing: " <<it->laneID <<" : " <<it->TMP_AtSectionID <<"\n";
+
+		//Note: Make sure not to resize the Section vector after referencing its elements.
+		it->atSection = &sectionlist[it->TMP_AtSectionID];
+		crossings.push_back(*it);
+	}
+}
+
+
 void LoadTurnings(soci::session& sql, const std::string& storedProc, map<int, Turning>& turninglist, map<int, Section>& sectionlist)
 {
 	//Our SQL statement
@@ -148,7 +171,7 @@ void LoadPolylines(soci::session& sql, const std::string& storedProc, multimap<i
 
 
 
-void LoadBasicAimsunObjects(const string& connectionStr, map<string, string>& storedProcs, map<int, Node>& nodes, map<int, Section>& sections, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
+void LoadBasicAimsunObjects(const string& connectionStr, map<string, string>& storedProcs, map<int, Node>& nodes, map<int, Section>& sections, vector<Crossing>& crossings, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
 {
 	//Connect
 	//Connection string will look something like this:
@@ -160,6 +183,9 @@ void LoadBasicAimsunObjects(const string& connectionStr, map<string, string>& st
 
 	//Load all sections
 	LoadSections(sql, storedProcs["section"], sections, nodes);
+
+	//Load all crossings
+	LoadCrossings(sql, storedProcs["crossing"], crossings, sections);
 
 	//Load all turnings
 	LoadTurnings(sql, storedProcs["turning"], turnings, sections);
@@ -501,11 +527,12 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, map<str
 		//Temporary AIMSUN data structures
 		map<int, Node> nodes;
 		map<int, Section> sections;
+		vector<Crossing> crossings;
 		map<int, Turning> turnings;
 		multimap<int, Polyline> polylines;
 
 		//Step One: Load
-		LoadBasicAimsunObjects(connectionStr, storedProcs, nodes, sections, turnings, polylines);
+		LoadBasicAimsunObjects(connectionStr, storedProcs, nodes, sections, crossings, turnings, polylines);
 
 		//Step Two: Translate
 		DecorateAndTranslateObjects(nodes, sections, turnings, polylines);

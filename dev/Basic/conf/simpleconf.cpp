@@ -199,6 +199,55 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 }
 
 
+bool loadXMLSignals(TiXmlDocument& document, std::vector<Agent*>& agents, const std::string& signalKeyID)
+{
+	//Quick check.
+	if (signalKeyID!="signal") {
+		return false;
+	}
+
+	//Build the expression dynamically.
+	TiXmlHandle handle(&document);
+	TiXmlElement* node = handle.FirstChild("config").FirstChild(signalKeyID+"s").FirstChild(signalKeyID).ToElement();
+	if (!node) {
+		//Signals are optional
+		return true;
+	}
+
+	//Loop through all agents of this type
+	for (;node;node=node->NextSiblingElement()) {
+		Signal* sig = nullptr;
+		bool foundID = false;
+		for (TiXmlAttribute* attr=node->FirstAttribute(); attr; attr=attr->Next()) {
+			std::string name = attr->NameTStr();
+			std::string value = attr->ValueStr();
+			if (name.empty() || value.empty()) {
+				return false;
+			}
+			int valueI=-1;
+			if (name=="id" || name=="xPos" || name=="yPos") {
+				std::istringstream(value) >> valueI;
+			}
+
+			//Assign it.
+			if (name=="id") {
+				sig = new Signal(valueI);
+				foundID = true;
+			} else {
+				return false;
+			}
+		}
+		if (!foundID) {
+			return false;
+		}
+
+		agents.push_back(sig);
+	}
+
+	return true;
+}
+
+
 
 bool LoadDatabaseDetails(TiXmlElement& parentElem, string& connectionString, map<string, string>& storedProcedures)
 {
@@ -240,7 +289,7 @@ bool LoadDatabaseDetails(TiXmlElement& parentElem, string& connectionString, map
 	}
 
 	//Done; we'll check the storedProcedures in detail later.
-	return !connectionString.empty() && storedProcedures.size()==4;
+	return !connectionString.empty() && storedProcedures.size()==5;
 }
 
 
@@ -489,6 +538,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     		if (
     			   storedProcedures.count("node")==0 || storedProcedures.count("section")==0
     			|| storedProcedures.count("turning")==0 || storedProcedures.count("polyline")==0
+    			|| storedProcedures.count("crossing")==0
     		) {
     			return "Not all stored procedures were specified.";
     		}
@@ -521,6 +571,11 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     }
     if (!loadXMLAgents(document, agents, "driver")) {
     	return	 "Couldn't load drivers";
+    }
+
+    //Load signals, which are currently agents
+    if (!loadXMLSignals(document, agents, "signal")) {
+    	return	 "Couldn't load signals";
     }
 
     //Sort agents by id.

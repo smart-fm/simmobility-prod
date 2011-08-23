@@ -6,6 +6,7 @@
 
 #include "Agent.hpp"
 #include "roles/Role.hpp"
+#include "roles/driver/Driver.hpp"
 
 namespace sim_mob
 {

@@ -12,8 +12,7 @@
 #include <vector>
 
 #include "../constants.h"
-#include "Entity.hpp"
-#include "roles/driver/Driver.hpp"
+#include "Agent.hpp"
 
 
 namespace sim_mob
@@ -38,7 +37,7 @@ namespace sim_mob
  */
 
 
-class Signal  : public Role {
+class Signal  : public sim_mob::Agent {
 
 public:
 //	Signal();
@@ -100,7 +99,7 @@ public:
 	static int calvote(unsigned int vote1, unsigned int vote2, unsigned int vote3, unsigned int vote4, unsigned int vote5);
 
 public:
-	Signal(Agent* parent);
+	Signal(unsigned int id);
 	int getcurrPhase();
 	int getphaseCounter(){return phaseCounter;}
 	void updateTrafficLights();

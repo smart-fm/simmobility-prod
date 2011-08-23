@@ -50,87 +50,90 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent)
 //Main update functionality
 void sim_mob::Pedestrian::update(frame_t frameNumber)
 {
-	//Set the initial goal of agent (next intersection)
-//	if(!isGoalSet){
-//		setGoal(0);
-//		isGoalSet = true;
-//	}
 
-	//update signal information
-//	updatePedestrianSignal();
+	if(frameNumber>=parent->startTime){
 
-//	checkForCollisions();
+		//Set the initial goal of agent (next intersection)
+	//	if(!isGoalSet){
+	//		setGoal(0);
+	//		isGoalSet = true;
+	//	}
 
-	//Check if the agent has reached the destination
-	if(isDestReached()){
+		//update signal information
+	//	updatePedestrianSignal();
 
-		if(!parent->isToBeRemoved()){
-			//Output (temp)
-			{
-				boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-				std::cout <<"(Agent " <<parent->getId() <<" has reached the destination)" <<std::endl;
+	//	checkForCollisions();
+		//Check if the agent has reached the destination
+		if(isDestReached()){
+
+			if(!parent->isToBeRemoved()){
+				//Output (temp)
+				{
+					boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
+					std::cout <<"(Agent " <<parent->getId() <<" has reached the destination)" <<std::endl;
+				}
+				parent->setToBeRemoved(true);
 			}
-			parent->setToBeRemoved(true);
-		}
-		return;
-	}
-
-	if(isGoalReached()){
-		currentStage++;
-		setGoal(currentStage); //Set next goal
-	}
-
-	if(currentStage==0||currentStage==2){
-		updateVelocity(1);
-		updatePosition();
-	}
-	else if(currentStage==1){
-
-		//Check whether to start to cross or not
-		if(!startToCross){
-			if(currPhase == 3)  //Green phase
-				startToCross = true;
-			else if(currPhase == 1){ //Red phase
-				if(checkGapAcceptance()==true)
-					startToCross=true;
-			}
+			return;
 		}
 
-		if(startToCross){
-			if(currPhase==3)
-				updateVelocity(1);
-			else if (currPhase ==1)
-				updateVelocity(2);
+		if(isGoalReached()){
+			currentStage++;
+			setGoal(currentStage); //Set next goal
+		}
+
+		if(currentStage==0||currentStage==2){
+			updateVelocity(1);
 			updatePosition();
 		}
-	}
+		else if(currentStage==1){
 
-//	//Continue checking if the goal has not been reached.
-//	if(reachStartOfCrossing()) {
-//		if(currPhase == 3){ //Green phase
-//			updateVelocity(1);
-//			updatePosition();
-//		} else if (currPhase == 1) { //Red phase
-//			//Waiting, do nothing now
-//			//Output (temp)
-//			checkGapAcceptance();
-//			{
-//				boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-//				std::cout <<"(Agent " <<parent->getId() <<" is waiting at crossing at frame "<<frameNumber<<")" <<std::endl;
-//			}
-//		}
-//	} else {
-//		if(currPhase==1&&onCrossing())
-//			updateVelocity(2);
-//		else
-//			updateVelocity(1);
-//		updatePosition();
-//	}
+			//Check whether to start to cross or not
+			if(!startToCross){
+				if(currPhase == 3)  //Green phase
+					startToCross = true;
+				else if(currPhase == 1){ //Red phase
+					if(checkGapAcceptance()==true)
+						startToCross=true;
+				}
+			}
 
-	//Output (temp)
-	{
-		boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-		std::cout <<"(" <<parent->getId() <<"," <<frameNumber<<","<<parent->xPos.get()<<"," <<this->parent->yPos.get()<<","<<currPhase<<")" <<std::endl;
+			if(startToCross){
+				if(currPhase==3)
+					updateVelocity(1);
+				else if (currPhase ==1)
+					updateVelocity(2);
+				updatePosition();
+			}
+		}
+
+	//	//Continue checking if the goal has not been reached.
+	//	if(reachStartOfCrossing()) {
+	//		if(currPhase == 3){ //Green phase
+	//			updateVelocity(1);
+	//			updatePosition();
+	//		} else if (currPhase == 1) { //Red phase
+	//			//Waiting, do nothing now
+	//			//Output (temp)
+	//			checkGapAcceptance();
+	//			{
+	//				boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
+	//				std::cout <<"(Agent " <<parent->getId() <<" is waiting at crossing at frame "<<frameNumber<<")" <<std::endl;
+	//			}
+	//		}
+	//	} else {
+	//		if(currPhase==1&&onCrossing())
+	//			updateVelocity(2);
+	//		else
+	//			updateVelocity(1);
+	//		updatePosition();
+	//	}
+
+		//Output (temp)
+		{
+			boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
+			std::cout <<"(" <<parent->getId() <<"," <<frameNumber<<","<<parent->xPos.get()<<"," <<this->parent->yPos.get()<<","<<currPhase<<")" <<std::endl;
+		}
 	}
 }
 
@@ -219,6 +222,24 @@ int sim_mob::Pedestrian::getCurrentCrossing()
 
 void sim_mob::Pedestrian::updatePedestrianSignal()
 {
+
+	Agent* a = nullptr;
+	for (size_t i=0; i<Agent::all_agents.size(); i++) {
+		//Skip self
+		a = Agent::all_agents[i];
+		if (a->getId()==parent->getId()) {
+			a = nullptr;
+			continue;
+		}
+
+	   Person* p = dynamic_cast<Person*>(a);
+	   if (dynamic_cast<Signal*>(p->getRole())) {
+		   currPhase=(dynamic_cast<Signal*>(p->getRole()))->get_Pedestrian_Light(0);
+			//It's a signal
+	   }
+	   p = nullptr;
+	   a = nullptr;
+	}
 
 //	currPhase = sig.get_Pedestrian_Light(0);
 //	if(phaseCounter==60){ //1 minute period for switching phases (testing only)

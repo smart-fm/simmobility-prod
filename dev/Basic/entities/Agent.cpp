@@ -11,8 +11,8 @@ vector<Agent*> sim_mob::Agent::all_agents;
 
 
 
-sim_mob::Agent::Agent(unsigned int id) : Entity(id), originNode(nullptr), destNode(nullptr), xPos(0), yPos(0),
-		xVel(0), yVel(0),xAcc(0), yAcc(0) {
+sim_mob::Agent::Agent(unsigned int id) : Entity(id), originNode(nullptr), destNode(nullptr), startTime(0), xPos(0), yPos(0),
+		xVel(0), yVel(0),xAcc(0), yAcc(0){
 	toRemoved = false;
 }
 

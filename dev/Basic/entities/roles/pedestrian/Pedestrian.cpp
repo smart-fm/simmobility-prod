@@ -39,8 +39,8 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent)
 	//TEMP: Needed to speed things up a little:
 //	speed *= 5;
 
-	parent->xPos.set(parent->originNode->location->getX());
-	parent->yPos.set(parent->originNode->location->getY());
+//	parent->xPos.set(parent->originNode->location->getX());
+//	parent->yPos.set(parent->originNode->location->getY());
 	xVel = 0;
 	yVel = 0;
 
@@ -142,10 +142,10 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 	}
 
 	//Output (temp)
-	{
-		boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-		std::cout <<"("<<"'pedestrian',"<<frameNumber<<","<<parent->getId()<<","<<"{xPos:"<<parent->xPos.get()<<"," <<"yPos:"<<this->parent->yPos.get()<<","<<"})"<<std::endl;
-	}
+//	{
+//		boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
+//		std::cout <<"("<<"'pedestrian',"<<frameNumber<<","<<parent->getId()<<","<<"{xPos:"<<parent->xPos.get()<<"," <<"yPos:"<<this->parent->yPos.get()<<","<<"})"<<std::endl;
+//	}
 }
 
 /*---------------------Perception-related functions----------------------*/
@@ -235,23 +235,23 @@ int sim_mob::Pedestrian::getCurrentCrossing()
 void sim_mob::Pedestrian::updatePedestrianSignal()
 {
 
-	Agent* a = nullptr;
-	for (size_t i=0; i<Agent::all_agents.size(); i++) {
-		//Skip self
-		a = Agent::all_agents[i];
-		if (a->getId()==parent->getId()) {
-			a = nullptr;
-			continue;
-		}
-
-	   Person* p = dynamic_cast<Person*>(a);
-	   if (dynamic_cast<Signal*>(p->getRole())) {
-		   currPhase=(dynamic_cast<Signal*>(p->getRole()))->get_Pedestrian_Light(0);
-			//It's a signal
-	   }
-	   p = nullptr;
-	   a = nullptr;
-	}
+//	Agent* a = nullptr;
+//	for (size_t i=0; i<Agent::all_agents.size(); i++) {
+//		//Skip self
+//		a = Agent::all_agents[i];
+//		if (a->getId()==parent->getId()) {
+//			a = nullptr;
+//			continue;
+//		}
+//
+//	   Person* p = dynamic_cast<Person*>(a);
+//	   if (dynamic_cast<Signal*>(p->getRole())) {
+//		   currPhase=(dynamic_cast<Signal*>(p->getRole()))->get_Pedestrian_Light(0);
+//			//It's a signal
+//	   }
+//	   p = nullptr;
+//	   a = nullptr;
+//	}
 
 //	currPhase = sig.get_Pedestrian_Light(0);
 //	if(phaseCounter==60){ //1 minute period for switching phases (testing only)
@@ -263,6 +263,7 @@ void sim_mob::Pedestrian::updatePedestrianSignal()
 //	}
 //	else
 //		phaseCounter++;
+	currPhase=1 ;
 }
 
 /*---------------------Decision-related functions------------------------*/
@@ -270,26 +271,26 @@ void sim_mob::Pedestrian::updatePedestrianSignal()
 bool sim_mob::Pedestrian::checkGapAcceptance(){
 
 	//Search for the nearest driver on the current link
-	Agent* a = nullptr;
-	for (size_t i=0; i<Agent::all_agents.size(); i++) {
-		//Skip self
-		a = Agent::all_agents[i];
-		if (a->getId()==parent->getId()) {
-			a = nullptr;
-			continue;
-		}
-
-	   Person* p = dynamic_cast<Person*>(a);
-	   if (dynamic_cast<Driver*>(p->getRole())) {
-//		   (dynamic_cast<Driver*>(p->getRole()))->
-			//It's a driver
-	   } else if (dynamic_cast<Pedestrian*>(p->getRole())) {
-		   //It's a pedestrian
-		   //etc.
-	   }
-	   p = nullptr;
-	   a = nullptr;
-	}
+//	Agent* a = nullptr;
+//	for (size_t i=0; i<Agent::all_agents.size(); i++) {
+//		//Skip self
+//		a = Agent::all_agents[i];
+//		if (a->getId()==parent->getId()) {
+//			a = nullptr;
+//			continue;
+//		}
+//
+//	   Person* p = dynamic_cast<Person*>(a);
+//	   if (dynamic_cast<Driver*>(p->getRole())) {
+////		   (dynamic_cast<Driver*>(p->getRole()))->
+//			//It's a driver
+//	   } else if (dynamic_cast<Pedestrian*>(p->getRole())) {
+//		   //It's a pedestrian
+//		   //etc.
+//	   }
+//	   p = nullptr;
+//	   a = nullptr;
+//	}
 
 	return false;
 }

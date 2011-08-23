@@ -13,6 +13,8 @@ static final int CROSS_POINT_SIZE = 4;
 //For more scaling
 static final double[] forceZoomX = new double[]{372455.0595, 372549.8827};
 static final double[] forceZoomY = new double[]{143518.2025, 143594.3131};
+//static final String restrictRoadName = "VICTORIA STREET";
+//static final String restrictRoadName = "MIDDLE ROAD";
 
 //Colors
 color nodeStroke = color(0xFF, 0x88, 0x22);
@@ -89,6 +91,7 @@ Section getSection(int id) {
 class Crossing {
   int laneID;
   String laneType;
+  String roadName;
 
   double getX() {
     return xPos;
@@ -204,8 +207,21 @@ void draw()
       stroke(crossingColors[crsID%crossingColors.length]);
       fill(crossingColors[crsID%crossingColors.length]);
       strokeWeight(1.0);
+      double[] lastPoint = null;
       for (Crossing cr : crs) {
+        //Skip?
+        if (restrictRoadName!=null && !restrictRoadName.equals(cr.roadName)) {
+          continue;
+        }
         ellipse((float)cr.getX(), (float)cr.getY(), CROSS_POINT_SIZE, CROSS_POINT_SIZE);
+        
+        //Connect?
+        if (lastPoint!=null) {
+          line((float)cr.getX(), (float)cr.getY(), (float)lastPoint[0], (float)lastPoint[1]);
+        }
+        
+        //Save
+        lastPoint = new double[] {cr.getX(), cr.getY()};
       }
       crsID++;
     }
@@ -343,6 +359,7 @@ void readCrossings(String crossingsFile, double[] xBounds, double[] yBounds) thr
     try {
       c.laneID = Integer.parseInt(items[0]);
       c.laneType = items[1].trim();
+      c.roadName = items[4].trim();
       if (!c.laneType.equals("J") && !c.laneType.equals("A4")) {
         throw new RuntimeException("Unknown crossing laneType: " + c.laneType);
       }

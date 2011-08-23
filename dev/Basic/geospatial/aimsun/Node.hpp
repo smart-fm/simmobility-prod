@@ -42,6 +42,7 @@ public:
 	//Decorated data
 	std::vector<Section*> sectionsAtNode;
 	std::map<int, std::vector<Crossing*> > crossingsAtNode; //Arranged by laneID
+	std::map<int, Node*> crossingLaneIdsByOutgoingNode;
 	bool candidateForSegmentNode;
 
 	//Reference to saved object (Maybe be UniNode or MultiNode, of course)

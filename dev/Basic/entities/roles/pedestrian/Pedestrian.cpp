@@ -33,12 +33,14 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent)
 	//Set random seed
 	srand(parent->getId());
 
-	//Set default speed in the range of 0.9m/s to 1.4m/s
+	//Set default speed in the range of 0.9m/s to 1.3m/s
 	speed = 0.9+(double(rand()%5))/10;
 
 	//TEMP: Needed to speed things up a little:
 //	speed *= 5;
 
+//	parent->xPos.set(parent->originNode->location->getX());
+//	parent->yPos.set(parent->originNode->location->getY());
 	xVel = 0;
 	yVel = 0;
 
@@ -50,88 +52,100 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent)
 //Main update functionality
 void sim_mob::Pedestrian::update(frame_t frameNumber)
 {
-	//Set the initial goal of agent (next intersection)
-//	if(!isGoalSet){
-//		setGoal(0);
-//		isGoalSet = true;
-//	}
 
-	//update signal information
-//	updatePedestrianSignal();
+	if(frameNumber>=parent->startTime){
 
-//	checkForCollisions();
+		//Set the initial goal of agent (next intersection)
+	//	if(!isGoalSet){
+	//		setGoal(0);
+	//		isGoalSet = true;
+	//	}
 
-	//Check if the agent has reached the destination
-	if(isDestReached()){
+		//update signal information
+		updatePedestrianSignal();
 
-		if(!parent->isToBeRemoved()){
-			//Output (temp)
-			{
-				boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-				std::cout <<"(Agent " <<parent->getId() <<" has reached the destination)" <<std::endl;
+	//	checkForCollisions();
+		//Check if the agent has reached the destination
+		if(isDestReached()){
+
+			if(!parent->isToBeRemoved()){
+				//Output (temp)
+				{
+					boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
+					std::cout <<"Pedestrian " <<parent->getId() <<" has reached the destination" <<std::endl;
+				}
+				parent->setToBeRemoved(true);
 			}
-			parent->setToBeRemoved(true);
-		}
-		return;
-	}
-
-	if(isGoalReached()){
-		currentStage++;
-		setGoal(currentStage); //Set next goal
-	}
-
-	if(currentStage==0||currentStage==2){
-		updateVelocity(1);
-		updatePosition();
-	}
-	else if(currentStage==1){
-
-		//Check whether to start to cross or not
-		if(!startToCross){
-			if(currPhase == 3)  //Green phase
-				startToCross = true;
-			else if(currPhase == 1){ //Red phase
-				if(checkGapAcceptance()==true)
-					startToCross=true;
-			}
+			return;
 		}
 
-		if(startToCross){
-			if(currPhase==3)
-				updateVelocity(1);
-			else if (currPhase ==1)
-				updateVelocity(2);
+		if(isGoalReached()){
+			currentStage++;
+			setGoal(currentStage); //Set next goal
+		}
+
+		if(currentStage==0||currentStage==2){
+			updateVelocity(0);
 			updatePosition();
 		}
-	}
+		else if(currentStage==1){
 
-//	//Continue checking if the goal has not been reached.
-//	if(reachStartOfCrossing()) {
-//		if(currPhase == 3){ //Green phase
-//			updateVelocity(1);
-//			updatePosition();
-//		} else if (currPhase == 1) { //Red phase
-//			//Waiting, do nothing now
-//			//Output (temp)
-//			checkGapAcceptance();
-//			{
-//				boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-//				std::cout <<"(Agent " <<parent->getId() <<" is waiting at crossing at frame "<<frameNumber<<")" <<std::endl;
-//			}
-//		}
-//	} else {
-//		if(currPhase==1&&onCrossing())
-//			updateVelocity(2);
-//		else
-//			updateVelocity(1);
-//		updatePosition();
-//	}
+			//Check whether to start to cross or not
+			if(!startToCross){
+				if(currPhase == 3)  //Green phase
+					startToCross = true;
+				else if(currPhase == 1){ //Red phase
+					if(checkGapAcceptance()==true)
+						startToCross=true;
+				}
+			}
+
+			if(startToCross){
+				if(currPhase==3) //Green phase
+					updateVelocity(1);
+				else if (currPhase ==1) //Red phase
+					updateVelocity(2);
+				updatePosition();
+			}
+			else{
+				//Output (temp)
+				{
+					boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
+					std::cout <<"Pedestrian " <<parent->getId() <<" is waiting at the crossing" <<std::endl;
+				}
+			}
+
+		}
+
+	//	//Continue checking if the goal has not been reached.
+	//	if(reachStartOfCrossing()) {
+	//		if(currPhase == 3){ //Green phase
+	//			updateVelocity(1);
+	//			updatePosition();
+	//		} else if (currPhase == 1) { //Red phase
+	//			//Waiting, do nothing now
+	//			//Output (temp)
+	//			checkGapAcceptance();
+	//			{
+	//				boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
+	//				std::cout <<"(Agent " <<parent->getId() <<" is waiting at crossing at frame "<<frameNumber<<")" <<std::endl;
+	//			}
+	//		}
+	//	} else {
+	//		if(currPhase==1&&onCrossing())
+	//			updateVelocity(2);
+	//		else
+	//			updateVelocity(1);
+	//		updatePosition();
+	//	}
+
+	}
 
 	//Output (temp)
-	{
-		boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-		std::cout <<"(" <<parent->getId() <<"," <<frameNumber<<","<<parent->xPos.get()<<"," <<this->parent->yPos.get()<<","<<currPhase<<")" <<std::endl;
-	}
+//	{
+//		boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
+//		std::cout <<"("<<"'pedestrian',"<<frameNumber<<","<<parent->getId()<<","<<"{xPos:"<<parent->xPos.get()<<"," <<"yPos:"<<this->parent->yPos.get()<<","<<"})"<<std::endl;
+//	}
 }
 
 /*---------------------Perception-related functions----------------------*/
@@ -144,15 +158,16 @@ void sim_mob::Pedestrian::setGoal(int flag) //0-to the next intersection, 1-to t
 	//Give every agent the same goal.
 	//goal.xPos = 1100;
 	if(flag==0){
-		//To be changed
+		//To be changed-Hard code now
 		goal = Point2D(37218351,14335255);
 	}
 	else if(flag==1){
 
 		//???? How to get position of crossings
 		//Set the agent's position at the start of crossing and set the goal to the end of crossing
-		RoadNetwork& network = ConfigParams::GetInstance().getNetwork();
+//		RoadNetwork& network = ConfigParams::GetInstance().getNetwork();
 		startToCross=false;
+		setCrossingPos();
 
 	}
 	else if(flag==2){
@@ -164,8 +179,8 @@ void sim_mob::Pedestrian::setGoal(int flag) //0-to the next intersection, 1-to t
 bool sim_mob::Pedestrian::isDestReached()
 {
 	//Simple manhatten distance check
-	double dX = abs((double)(parent->destNode->location->getX()/100) - parent->xPos.get());
-	double dY = abs((double)(parent->destNode->location->getY()/100) - parent->yPos.get());
+	double dX = abs(((double)parent->destNode->location->getX())/100 - parent->xPos.get());
+	double dY = abs(((double)parent->destNode->location->getY())/100 - parent->yPos.get());
 //	int dX = abs(goal.getX() - parent->xPos.get());
 //	int dY = abs(goal.getY() - parent->yPos.get());
 	return dX+dY < agentRadius;
@@ -176,8 +191,8 @@ bool sim_mob::Pedestrian::isDestReached()
 bool sim_mob::Pedestrian::isGoalReached()
 {
 	//Simple manhatten distance check
-	int dX = abs(goal.getX()/100 - parent->xPos.get());
-	int dY = abs(goal.getY()/100 - parent->yPos.get());
+	int dX = abs(((double)goal.getX())/100 - parent->xPos.get());
+	int dY = abs(((double)goal.getY())/100 - parent->yPos.get());
 	return dX+dY < agentRadius;
 
 	//return (parent->yPos.get()>=goal.yPos);
@@ -220,6 +235,24 @@ int sim_mob::Pedestrian::getCurrentCrossing()
 void sim_mob::Pedestrian::updatePedestrianSignal()
 {
 
+//	Agent* a = nullptr;
+//	for (size_t i=0; i<Agent::all_agents.size(); i++) {
+//		//Skip self
+//		a = Agent::all_agents[i];
+//		if (a->getId()==parent->getId()) {
+//			a = nullptr;
+//			continue;
+//		}
+//
+//	   Person* p = dynamic_cast<Person*>(a);
+//	   if (dynamic_cast<Signal*>(p->getRole())) {
+//		   currPhase=(dynamic_cast<Signal*>(p->getRole()))->get_Pedestrian_Light(0);
+//			//It's a signal
+//	   }
+//	   p = nullptr;
+//	   a = nullptr;
+//	}
+
 //	currPhase = sig.get_Pedestrian_Light(0);
 //	if(phaseCounter==60){ //1 minute period for switching phases (testing only)
 //		phaseCounter=0;
@@ -230,6 +263,7 @@ void sim_mob::Pedestrian::updatePedestrianSignal()
 //	}
 //	else
 //		phaseCounter++;
+	currPhase=1 ;
 }
 
 /*---------------------Decision-related functions------------------------*/
@@ -237,26 +271,26 @@ void sim_mob::Pedestrian::updatePedestrianSignal()
 bool sim_mob::Pedestrian::checkGapAcceptance(){
 
 	//Search for the nearest driver on the current link
-	Agent* a = nullptr;
-	for (size_t i=0; i<Agent::all_agents.size(); i++) {
-		//Skip self
-		a = Agent::all_agents[i];
-		if (a->getId()==parent->getId()) {
-			a = nullptr;
-			continue;
-		}
-
-	   Person* p = dynamic_cast<Person*>(a);
-	   if (dynamic_cast<Driver*>(p->getRole())) {
-//		   (dynamic_cast<Driver*>(p->getRole()))->
-			//It's a driver
-	   } else if (dynamic_cast<Pedestrian*>(p->getRole())) {
-		   //It's a pedestrian
-		   //etc.
-	   }
-	   p = nullptr;
-	   a = nullptr;
-	}
+//	Agent* a = nullptr;
+//	for (size_t i=0; i<Agent::all_agents.size(); i++) {
+//		//Skip self
+//		a = Agent::all_agents[i];
+//		if (a->getId()==parent->getId()) {
+//			a = nullptr;
+//			continue;
+//		}
+//
+//	   Person* p = dynamic_cast<Person*>(a);
+//	   if (dynamic_cast<Driver*>(p->getRole())) {
+////		   (dynamic_cast<Driver*>(p->getRole()))->
+//			//It's a driver
+//	   } else if (dynamic_cast<Pedestrian*>(p->getRole())) {
+//		   //It's a pedestrian
+//		   //etc.
+//	   }
+//	   p = nullptr;
+//	   a = nullptr;
+//	}
 
 	return false;
 }
@@ -267,14 +301,16 @@ void sim_mob::Pedestrian::updateVelocity(int flag) //0-on sidewalk, 1-on crossin
 {
 	//Set direction (towards the goal)
 	double scale;
-	xVel = goal.getX() - parent->xPos.get();
-	yVel = goal.getY() - parent->yPos.get();
+	xVel = ((double)goal.getX())/100 - parent->xPos.get();
+	yVel = ((double)goal.getY())/100 - parent->yPos.get();
 	//Normalize
 	double length = sqrt(xVel*xVel + yVel*yVel);
 	xVel = xVel/length;
 	yVel = yVel/length;
 	//Set actual velocity
-	if(flag==0||flag==1)
+	if(flag==0)
+		scale = 2;
+	else if(flag==1)
 		scale = 1;
 	else if (flag==2)
 		scale = 1.8;
@@ -374,6 +410,26 @@ void sim_mob::Pedestrian::checkForCollisions()
 
 /*---------------------Other helper functions----------------------------*/
 
+void sim_mob::Pedestrian::setCrossingPos(){
+
+	double xDir=((double)parent->destNode->location->getX())/100-((double)goal.getX())/100;
+	double yDir=((double)parent->destNode->location->getY())/100-((double)goal.getY())/100;
+	double magnitude=sqrt(xDir*xDir+yDir*yDir);
+	double xDirection=xDir/magnitude;
+	double yDirection=yDir/magnitude;
+	//Set agents' start crossing locations
+	double xRel = -30;
+	double yRel = 30+(double)(rand()%6);
+	double xAbs=xRel*xDirection-yRel*yDirection+((double)goal.getX())/100;
+	double yAbs=xRel*yDirection+yRel*xDirection+((double)goal.getY())/100;
+	parent->xPos.set(xAbs);
+	parent->yPos.set(yAbs);
+	//Set agents' end crossing locations
+	xRel=30;
+	xAbs=xRel*xDirection-yRel*yDirection+((double)goal.getX())/100;
+	yAbs=xRel*yDirection+yRel*xDirection+((double)goal.getY())/100;
+	goal = Point2D(int(xAbs*100),int(yAbs*100));
+}
 
 
 

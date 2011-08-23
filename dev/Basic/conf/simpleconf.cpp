@@ -121,7 +121,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 				return false;
 			}
 			int valueI=-1;
-			if (name=="id" || name=="xPos" || name=="yPos") {
+			if (name=="id" || name=="xPos" || name=="yPos"||name=="time") {
 				std::istringstream(value) >> valueI;
 			}
 
@@ -164,7 +164,11 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 					return false;
 				}
 				foundDestPos = true;
-			} else {
+			}
+			else if (name=="time"){
+				agent->startTime=valueI;
+			}
+			else {
 				return false;
 			}
 		}

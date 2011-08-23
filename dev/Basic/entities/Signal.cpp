@@ -39,6 +39,9 @@ sim_mob :: Signal :: Signal(unsigned int id): Agent(id)
 	setCL(60,60,60);//default initial cycle length for SCATS
 	setRL(60,60);//default initial RL for SCATS
 	startSplitPlan();
+	currPhase = 0;
+	phaseCounter = 0;
+	updateTrafficLights();
 }
 
 
@@ -130,12 +133,11 @@ void sim_mob :: Signal :: updateSignal (double DS[])
 	else if(phaseCounter <= (nextCL-3))currPhase=3;
 	else currPhase=13;
 
+	phaseCounter++;
 
 	if(phaseCounter == floor(nextCL)){
 		phaseCounter = 0;
 	}else{}
-
-	phaseCounter++;
 
 	updateTrafficLights();
 }

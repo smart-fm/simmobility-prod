@@ -8,7 +8,11 @@ PFont f2;
 //Some drawing constants
 static final int BUFFER = 95;
 static final int NODE_SIZE = 12;
-static final int CROSS_POINT_SIZE = 8;
+static final int CROSS_POINT_SIZE = 4;
+
+//For more scaling
+static final double[] forceZoomX = new double[]{372455.0595, 372549.8827};
+static final double[] forceZoomY = new double[]{143518.2025, 143594.3131};
 
 //Colors
 color nodeStroke = color(0xFF, 0x88, 0x22);
@@ -17,6 +21,8 @@ color[] crossingColors = new color[] {
   color(0xFF, 0x00, 0x00),
   color(0x00, 0xFF, 0x00),
   color(0x00, 0x00, 0xFF),
+  color(0xFF, 0x00, 0xFF),
+  color(0xFF, 0xFF, 0x00),
 };
 
 void checkBounds(double[] bounds, double newVal) {
@@ -136,6 +142,14 @@ void setup()
     readCrossings("crossings.txt", xBounds, yBounds);
   } catch (IOException ex) {
     throw new RuntimeException(ex);
+  }
+  
+  //Force?
+  if (forceZoomX!=null && forceZoomY!=null) {
+    xBounds[0] = forceZoomX[0];
+    xBounds[1] = forceZoomX[1];
+    yBounds[0] = forceZoomY[0];
+    yBounds[1] = forceZoomY[1];
   }
   
   //Scale all points

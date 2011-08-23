@@ -54,6 +54,7 @@ private:
 	bool onCrossing();
 	bool checkGapAcceptance();
 	int getCurrentCrossing();
+	void setCrossingPos(); //Temp helper function
 
 };
 

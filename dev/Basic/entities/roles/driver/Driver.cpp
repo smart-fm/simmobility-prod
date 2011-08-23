@@ -140,7 +140,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 		setOrigin();
 		isOriginSet=true;
 	}
-	if(trafficSignal==nullptr){
+	if(!trafficSignal){
 		updateTrafficSignal();
 	}
 
@@ -896,7 +896,7 @@ void sim_mob::Driver::updateTrafficSignal()
 	for (size_t i=0; i<Agent::all_agents.size(); i++) {
 		other = Agent::all_agents[i];
 		Signal* s = dynamic_cast<Signal*>(other);
-		if (s!=nullptr) {
+		if (s) {
 			trafficSignal=s;	//since there is only 1 traffic signal
 			return;
 		}

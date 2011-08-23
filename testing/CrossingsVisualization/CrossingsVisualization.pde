@@ -25,6 +25,8 @@ static {
   //forceZoomY = new double[]{143594.3131, 143663.9532};
   forceZoomX = new double[]{372121-150, 372121+150};
   forceZoomY = new double[]{143107-150, 143107+150};
+//  tagLaneID = 4550;
+//  tagLaneID = 4215;
   tagLaneID = 4235;
 
   //Restrict which road names have crossings drawn

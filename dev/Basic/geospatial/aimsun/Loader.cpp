@@ -334,6 +334,13 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 			bool found = false;
 			for (size_t i=0; i<it->second.size()&&!found; i++) {
 				for (size_t j=i+1; j<it->second.size()&&!found; j++) {
+					//NOTE:The following are OVERRIDES; they should be set somewhere else eventually.
+					if (it->first==4550 || it->first==4215) {
+						std::cout <<"OVERRIDE: Manually skipping laneID: " <<it->first <<"\n";
+						i = j = it->second.size();
+						continue;
+					}
+
 					//Calculate the midpoint
 					double midPointX = (it->second[j]->xPos-it->second[i]->xPos)/2 + it->second[i]->xPos;
 					double midPointY = (it->second[j]->yPos-it->second[i]->yPos)/2 + it->second[i]->yPos;
@@ -366,9 +373,6 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 			}
 		}
 	}
-
-
-
 }
 
 

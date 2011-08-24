@@ -382,11 +382,30 @@ void PrintDB_Network()
 	std::set<LaneConnector*> cachedConnectors;
 
 	//Initial message
+	RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
 	cout <<"Printing node network\n";
 	cout <<"NOTE: All IDs in this section are consistent for THIS simulation run, but will change if you run the simulation again.\n";
 
-	//Start by printing nodes.
-	RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
+	//Print Links first
+	for (vector<Link*>::const_iterator it=rn.getLinks().begin(); it!=rn.getLinks().end(); it++) {
+		cout <<"(\"link\", 0, " <<*it <<", {";
+		cout <<"\"road-name\":\"" <<(*it)->roadName <<"\",";
+		cout <<"\"start-node\":\"" <<(*it)->getStart() <<"\",";
+		cout <<"\"end-node\":\"" <<(*it)->getEnd() <<"\",";
+		cout <<"\"fwd-path\":\"[";
+		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath(true).begin(); segIt!=(*it)->getPath(true).end(); segIt++) {
+			cout <<*segIt <<",";
+		}
+		cout <<"]\",";
+		cout <<"\"rev-path\":\"[";
+		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath(false).begin(); segIt!=(*it)->getPath(false).end(); segIt++) {
+			cout <<*segIt <<",";
+		}
+		cout <<"]\",";
+		cout <<"})\n";
+	}
+
+	//Then print Nodes
 	for (set<UniNode*>::const_iterator it=rn.getUniNodes().begin(); it!=rn.getUniNodes().end(); it++) {
 		cout <<"(\"uni-node\", 0, " <<*it <<", {";
 		cout <<"\"xPos\":\"" <<(*it)->location->getX() <<"\",";
@@ -454,12 +473,13 @@ void PrintDB_Network()
 		unsigned int toLane = (*it)->getLaneTo()->getLaneID();
 
 		//Output
-		std::cout <<"    Connector, from segment " <<fromSeg <<", lane " <<fromLane <<"  to segment " <<toSeg <<", lane " <<toLane <<"\n";
+		cout <<"(\"lane-connector\", 0, " <<*it <<", {";
+		cout <<"\"from-segment\":\"" <<fromSeg <<"\",";
+		cout <<"\"from-lane\":\"" <<fromLane <<"\",";
+		cout <<"\"to-segment\":\"" <<toSeg <<"\",";
+		cout <<"\"to-lane\":\"" <<toLane <<"\",";
+		cout <<"})\n";
 	}
-
-
-
-	//TODO: Print links and RoadSegmentNodes in a sensible fashion.
 }
 
 

@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <iostream>
 #include <vector>
 #include <set>
 
@@ -42,10 +43,11 @@ class RoadNetwork {
 public:
 	DRIVING_SIDE drivingSide;
 
-	///Retrieve list of all MultiNodes (intersections & roundabouts) in this Road Network.
+	///Retrieve list of all Uni/MultiNodes (intersections & roundabouts) in this Road Network.
 	///
 	///\todo This needs to eventually have some structure; see the wiki for an example.
 	const std::vector<sim_mob::MultiNode*>& getNodes() { return nodes; }
+	const std::set<sim_mob::UniNode*>& getUniNodes() { return segmentnodes; }
 
 	///Retrieve a list of all Links (high-level paths between MultiNodes) in this Road Network.
 	const std::vector<sim_mob::Link*>& getLinks() { return links; }

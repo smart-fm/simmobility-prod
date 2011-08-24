@@ -14,6 +14,8 @@
 #include "../entities/roles/driver/Driver.hpp"
 #include "../geospatial/aimsun/Loader.hpp"
 #include "../geospatial/Node.hpp"
+#include "../geospatial/UniNode.hpp"
+#include "../geospatial/MultiNode.hpp"
 #include "../geospatial/Intersection.hpp"
 #include "../geospatial/RoadSegment.hpp"
 #include "../geospatial/LaneConnector.hpp"
@@ -385,6 +387,12 @@ void PrintDB_Network()
 
 	//Start by printing nodes.
 	RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
+	for (set<UniNode*>::const_iterator it=rn.getUniNodes().begin(); it!=rn.getUniNodes().end(); it++) {
+		cout <<"(\"uni-node\", 0, " <<*it <<", {";
+		cout <<"\"xPos\":\"" <<(*it)->location->getX() <<"\",";
+		cout <<"\"yPos\":\"" <<(*it)->location->getY() <<"\",";
+		cout <<"})\n";
+	}
 	for (vector<MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
 		cout <<"(\"multi-node\", 0, " <<*it <<", {";
 		cout <<"\"xPos\":\"" <<(*it)->location->getX() <<"\",";

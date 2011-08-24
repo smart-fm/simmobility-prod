@@ -119,6 +119,7 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), leader(nullptr)
 
 	trafficSignal=nullptr;
 
+
 }
 
 
@@ -140,9 +141,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 		setOrigin();
 		isOriginSet=true;
 	}
-	if(trafficSignal==nullptr){
-		updateTrafficSignal();
-	}
+	updateTrafficSignal();
 
 	//if reach the goal, get back to the origin
 	if(isGoalReached()){
@@ -159,37 +158,35 @@ void sim_mob::Driver::update(frame_t frameNumber)
 		return;
 	}
 
-	//To check if the vehicle reaches the lane it wants to move to
-	if(getLane()==toLane){
-		ischanging=false;
-		isWaiting=false;
-		isback=false;
-		fromLane=toLane=getLane();
-		changeDecision=0;
+	if(isInTheIntersection()){
+		IntersectionVelocityUpdate();
+		xPos = xPos + xVel*timeStep;
+		yPos = yPos + yVel*timeStep;
+		modifyPosition();
 	}
+	else {
+		//To check if the vehicle reaches the lane it wants to move to
+		if(getLane()==toLane){
+			ischanging=false;
+			isWaiting=false;
+			isback=false;
+			fromLane=toLane=getLane();
+			changeDecision=0;
+		}
+		VelOfLaneChanging=	testLinks[currentLink].laneWidth/5;		//assume that 5 time steps is need when changing lane
 
-	VelOfLaneChanging=	testLinks[currentLink].laneWidth/5;		//assume that 5 time steps is need when changing lane
-
-	//update information
-	updateLeadingDriver();
-
-	//accelerating part
-	makeAcceleratingDecision();
-
-
-	//lane changing part
-	if(!isInTheIntersection() && xPos_ > 10.){
-		excuteLaneChanging();
-	}
-
-	//update
-	updateAcceleration();
-	updateVelocity();
-	updatePosition();
-
-	modifyPosition();
-
-	if(!isInTheIntersection()){
+		//update information
+		updateLeadingDriver();
+		if(xPos_ > 10.){		//at the beginning of the link,no lane changing
+			excuteLaneChanging();
+		}
+		//accelerating part
+		makeAcceleratingDecision();
+		//update
+		updateAcceleration();
+		updateVelocity();
+		updatePosition();
+		modifyPosition();
 		relat2abs();
 	}
 
@@ -203,12 +200,12 @@ void sim_mob::Driver::update(frame_t frameNumber)
 			<<"," <<frameNumber
 			<<"," <<parent->xPos.get()
 			<<"," <<parent->yPos.get()
-			<<"," <<trafficSignal->getcurrPhase()
-			<<"," <<"0.95"
-			<<"," <<floor(trafficSignal->getnextCL())
-			<<"," <<trafficSignal->getphaseCounter()
-			<<"," <<angle
-			<<")"<<std::endl;
+			//<<"," <<trafficSignal->getcurrPhase()
+			//<<"," <<"0.95"
+			//<<"," <<floor(trafficSignal->getnextCL())
+			//<<"," <<trafficSignal->getphaseCounter()
+			//<<"," <<angle
+			<<",1)"<<std::endl;
 }
 
 void sim_mob::Driver::getFromParent()
@@ -416,47 +413,44 @@ void sim_mob::Driver::updateAcceleration()
 {
 	//Set actual acceleration
 	xAcc_ = acc_;
-	yAcc_ = 0;//yDirection*acc_;
+	yAcc_ = 0;
 }
 
 
 void sim_mob::Driver::updateVelocity()
 {
-	if(isInTheIntersection()) {
-		IntersectionVelocityUpdate();
-	} else {
-		if(isReachSignal()){
-			//nextLink=(currentLane+currentLink+1)%4+4;
-			nextLane=currentLane;
-			if(!reachSignalDecision()){
-				xVel_ = 0 ; yVel_ =0;
-			} else {
-			xVel_= targetSpeed/2;yVel_=0;
-			}
-		} else if(leader && leader_xVel_ == 0 && getDistance()<0.2*length) {
-			xVel_=0;
+	if(isReachSignal()){
+		//nextLink=(currentLane+currentLink+1)%4+4;
+		//updateTrafficSignal();
+		nextLane=currentLane;
+		if(!reachSignalDecision()){
+			xVel_ = 0 ; yVel_ =0;
+		} else {
+		xVel_= targetSpeed/2;yVel_=0;
+		}
+	} else if(leader && leader_xVel_ == 0 && getDistance()<0.2*length) {
+		xVel_=0;
+		yVel_=0;
+	} else { //when vehicle just gets back to the origin, help them to speed up
+		if(xPos_<0) {
+			xVel_=(0.2+((double)(rand()%10))/30)*getTargetSpeed();
 			yVel_=0;
-		} else { //when vehicle just gets back to the origin, help them to speed up
-			if(xPos_<0) {
-				xVel_=(0.2+((double)(rand()%10))/30)*getTargetSpeed();
-				yVel_=0;
-			} else{
-				xVel_ = max(0.0, speed_+xAcc_*timeStep);
-				yVel_ = 0;//max(0.0, yDirection*speed_+yAcc*timeStep);
-			}
+		} else{
+			xVel_ = max(0.0, speed_+xAcc_*timeStep);
+			yVel_ = 0;//max(0.0, yDirection*speed_+yAcc*timeStep);
+		}
 
-			if(!ischanging){
-				double foward;
-				if(!leader) {
-					foward=MAX_NUM;
-				} else {
-					foward=leader_xPos_-xPos_-length;
-				}
-				if(foward<0) {
-					xVel_=0;
-				}
-				yVel_=0;
+		if(!ischanging){
+			double foward;
+			if(!leader) {
+				foward=MAX_NUM;
+			} else {
+				foward=leader_xPos_-xPos_-length;
 			}
+			if(foward<0) {
+				xVel_=0;
+			}
+			yVel_=0;
 		}
 	}
 	speed_=sqrt(xVel_*xVel_+yVel_*yVel_);
@@ -465,10 +459,7 @@ void sim_mob::Driver::updateVelocity()
 
 void sim_mob::Driver::updatePosition()
 {
-	if(isInTheIntersection()){
-		xPos = xPos + xVel*timeStep;
-		yPos = yPos + yVel*timeStep;
-	} else if(xVel_!=0) { //Only update if velocity is non-zero.
+	if(xVel_!=0) { //Only update if velocity is non-zero.
 		xPos_ = xPos_+xVel_*timeStep+0.5*xAcc_*timeStep*timeStep;
 	}
 }
@@ -739,7 +730,12 @@ bool sim_mob::Driver::checkForCrash()
 				if(checkIfOnTheLane(other_yPos_)){		//if other vehicle is on the lane
 					return true;								//subject vehicle should avoid it
 				} else if(other_xPos_>xPos_){	//if both vehicle is changing lane
-					return true;		//one has bigger ID will not be affected
+					if(parent->getId()<other->getId()){
+						return true;		//one has bigger ID will not be affected
+					}
+					else{
+						return false;
+					}
 				} else {
 					return false;
 				}
@@ -901,5 +897,4 @@ void sim_mob::Driver::updateTrafficSignal()
 			return;
 		}
 	}
-	trafficSignal=nullptr;
 }

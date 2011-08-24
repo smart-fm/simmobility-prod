@@ -20,6 +20,7 @@ namespace aimsun
 
 //Forward declarations
 class Section;
+class Crossing;
 
 
 ///An AIMSUN road intersection or segment intersection.
@@ -40,6 +41,8 @@ public:
 
 	//Decorated data
 	std::vector<Section*> sectionsAtNode;
+	std::map<int, std::vector<Crossing*> > crossingsAtNode; //Arranged by laneID
+	std::map<int, Node*> crossingLaneIdsByOutgoingNode;
 	bool candidateForSegmentNode;
 
 	//Reference to saved object (Maybe be UniNode or MultiNode, of course)

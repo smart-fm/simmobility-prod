@@ -37,6 +37,8 @@ public:
 	//Placeholders
 	int TMP_AtSectionID;
 
+	//Decorated data
+	Node* atNode; //Which Node this crossing is relevant for.
 };
 
 

@@ -141,6 +141,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 		setOrigin();
 		isOriginSet=true;
 	}
+
 	updateTrafficSignal();
 
 	//if reach the goal, get back to the origin
@@ -200,12 +201,12 @@ void sim_mob::Driver::update(frame_t frameNumber)
 			<<"," <<frameNumber
 			<<"," <<parent->xPos.get()
 			<<"," <<parent->yPos.get()
-			//<<"," <<trafficSignal->getcurrPhase()
-			//<<"," <<"0.95"
-			//<<"," <<floor(trafficSignal->getnextCL())
-			//<<"," <<trafficSignal->getphaseCounter()
-			//<<"," <<angle
-			<<",1)"<<std::endl;
+			<<"," <<trafficSignal->getcurrPhase()
+			<<"," <<"0.95"
+			<<"," <<floor(trafficSignal->getnextCL())
+			<<"," <<trafficSignal->getphaseCounter()
+			<<"," <<angle
+			<<")"<<std::endl;
 }
 
 void sim_mob::Driver::getFromParent()
@@ -892,7 +893,7 @@ void sim_mob::Driver::updateTrafficSignal()
 	for (size_t i=0; i<Agent::all_agents.size(); i++) {
 		other = Agent::all_agents[i];
 		Signal* s = dynamic_cast<Signal*>(other);
-		if (s!=nullptr) {
+		if (s) {
 			trafficSignal=s;	//since there is only 1 traffic signal
 			return;
 		}

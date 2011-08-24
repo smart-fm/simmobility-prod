@@ -106,7 +106,9 @@ void LoadCrossings(soci::session& sql, const std::string& storedProc, vector<Cro
 			throw std::runtime_error("Crossing at Invalid Section");
 		}
 
-		//std::cout <<"Crossing: " <<it->laneID <<" : " <<it->TMP_AtSectionID <<"\n";
+		//Convert meters to cm
+		it->xPos *= 100;
+		it->yPos *= 100;
 
 		//Note: Make sure not to resize the Section vector after referencing its elements.
 		it->atSection = &sectionlist[it->TMP_AtSectionID];
@@ -196,6 +198,43 @@ void LoadBasicAimsunObjects(const string& connectionStr, map<string, string>& st
 
 
 
+//Simple distance formula
+double dist(double x1, double y1, double x2, double y2)
+{
+	double dx = x2 - x1;
+	double dy = y2 - y1;
+	return sqrt(dx*dx + dy*dy);
+}
+
+
+//Compute line intersection
+bool calculateIntersection(const Crossing* const p1, const Crossing* p2, const Section* sec, double& xRes, double& yRes)
+{
+	//Step 1: shorthand!
+	double x1 = p1->xPos;
+	double y1 = p1->yPos;
+	double x2 = p2->xPos;
+	double y2 = p2->yPos;
+	double x3 = sec->fromNode->xPos;
+	double y3 = sec->fromNode->yPos;
+	double x4 = sec->toNode->xPos;
+	double y4 = sec->toNode->yPos;
+
+	//Step 2: Check if we're doomed to failure (parallel lines) Compute some intermediate values too.
+	double denom = (x1-x2)*(y3-y4) - (y1-y2)*(x3-x4);
+	if (denom==0) {
+		return false;
+	}
+	double co1 = x1*y2 - y1*x2;
+	double co2 = x3*y4 - y3*x4;
+
+	//Step 3: Results!
+	xRes = (co1*(x3-x4) - co2*(x1-x2)) / denom;
+	yRes = (co1*(y3-y4) - co2*(y1-y2)) / denom;
+	return true;
+}
+
+
 //Compute the distance from the source node of the polyline to a
 // point on the line from the source to the destination nodes which
 // is normal to the Poly-point.
@@ -231,7 +270,7 @@ void ComputePolypointDistance(Polyline& pt)
 
 
 
-void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& sections, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
+void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& sections, vector<Crossing>& crossings, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
 {
 	//Step 1: Tag all Nodes with the Sections that meet there.
 	for (map<int,Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
@@ -268,6 +307,71 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 	for (map<int,Polyline>::iterator it=polylines.begin(); it!=polylines.end(); it++) {
 		it->second.section->polylineEntries.push_back(&(it->second));
 		ComputePolypointDistance(it->second);
+	}
+
+	//Step 5: Tag all Nodes with the crossings that are near to these nodes.
+	for (vector<Crossing>::iterator it=crossings.begin(); it!=crossings.end(); it++) {
+		//Given the section this crossing is on, find which node on the section it is closest to.
+		double dFrom = dist(it->xPos, it->yPos, it->atSection->fromNode->xPos, it->atSection->fromNode->yPos);
+		double dTo = dist(it->xPos, it->yPos, it->atSection->toNode->xPos, it->atSection->toNode->yPos);
+		Node* atNode = (dFrom<dTo) ? it->atSection->fromNode : it->atSection->toNode;
+
+		//Now, store by laneID
+		it->atNode = atNode;
+		atNode->crossingsAtNode[it->laneID].push_back(&(*it));
+	}
+
+	//Step 6: Tag all laneIDs for Crossings in a Node with the Node they lead to. Do this by
+	//        forming a line between pairs of points for that lane, and take the intersection of
+	//        that line (extended to infinity) with each candidate Section. If the midpoint
+	//        of the Crossing line is closer to that intersection than it is to the "atNode", then
+	//        it is considered tied to that Section, and thus to whichever Node in that Section is
+	//        not the "atNode".
+	for (map<int, Node>::iterator itN=nodes.begin(); itN!=nodes.end(); itN++) {
+		Node& n = itN->second;
+		for (map<int, std::vector<Crossing*> >::iterator it=n.crossingsAtNode.begin(); it!=n.crossingsAtNode.end(); it++) {
+			//Search through pairs of points
+			bool found = false;
+			for (size_t i=0; i<it->second.size()&&!found; i++) {
+				for (size_t j=i+1; j<it->second.size()&&!found; j++) {
+					//NOTE:The following are OVERRIDES; they should be set somewhere else eventually.
+					if (it->first==4550 || it->first==4215) {
+						std::cout <<"OVERRIDE: Manually skipping laneID: " <<it->first <<"\n";
+						i = j = it->second.size();
+						continue;
+					}
+
+					//Calculate the midpoint
+					double midPointX = (it->second[j]->xPos-it->second[i]->xPos)/2 + it->second[i]->xPos;
+					double midPointY = (it->second[j]->yPos-it->second[i]->yPos)/2 + it->second[i]->yPos;
+					double distOrigin = dist(midPointX, midPointY, n.xPos, n.yPos);
+
+					//And search through all RoadSegments
+					for (vector<Section*>::iterator itSec=n.sectionsAtNode.begin(); itSec!=n.sectionsAtNode.end(); itSec++) {
+						//Get the intersection between the two Points, and the Section we are considering
+						double xRes, yRes;
+						if (!calculateIntersection(it->second[i], it->second[j], *itSec, xRes, yRes)) {
+							//Lines are parallel
+							continue;
+						}
+
+						//Check if that intersection is closer to the midpoint than the origin node.
+						double distSect = dist(midPointX, midPointY, xRes, yRes);
+						if (distSect<distOrigin) {
+							Node* other = ((*itSec)->fromNode!=&n) ? (*itSec)->fromNode : (*itSec)->toNode;
+							n.crossingLaneIdsByOutgoingNode[it->first] = other;
+							found = true;
+						}
+					}
+				}
+			}
+
+			//Double-check that we found at least one.
+			if (!found) {
+				std::cout <<"Warning: Crossing with lane ID " <<it->first <<" skipped near position: " <<n.xPos <<"," <<n.yPos <<"\n";
+				//throw std::runtime_error("Couldn't find any nearby Nodes for the given Crossing.");
+			}
+		}
 	}
 }
 
@@ -535,7 +639,7 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, map<str
 		LoadBasicAimsunObjects(connectionStr, storedProcs, nodes, sections, crossings, turnings, polylines);
 
 		//Step Two: Translate
-		DecorateAndTranslateObjects(nodes, sections, turnings, polylines);
+		DecorateAndTranslateObjects(nodes, sections, crossings, turnings, polylines);
 
 		//Step Three: Save
 		SaveSimMobilityNetwork(rn, nodes, sections, turnings, polylines);

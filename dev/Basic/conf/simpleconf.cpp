@@ -375,8 +375,9 @@ bool LoadXMLBoundariesCrossings(TiXmlDocument& document, const string& parentStr
 
 void PrintDB_Network()
 {
-	//Save RoadSegments to make output simpler
+	//Save RoadSegments/Connectors to make output simpler
 	std::set<RoadSegment*> cachedSegments;
+	std::set<LaneConnector*> cachedConnectors;
 
 	//Initial message
 	cout <<"Printing node network\n";
@@ -385,37 +386,31 @@ void PrintDB_Network()
 	//Start by printing nodes.
 	RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
 	for (vector<MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
-		cout <<"(\"node\", 0, " <<*it <<", {";
+		cout <<"(\"multi-node\", 0, " <<*it <<", {";
 		cout <<"\"xPos\":\"" <<(*it)->location->getX() <<"\",";
 		cout <<"\"yPos\":\"" <<(*it)->location->getY() <<"\",";
-		cout <<"}\n";
+		cout <<"})\n";
 
 		//NOTE: This is temporary; later we'll ensure that the RoadNetwork only stores Intersections,
 		//      and RoadSegments will have to be extracted.
 		const Intersection* nodeInt = static_cast<const Intersection*>((*it));
 
-		//Print all segments
+		//Cache all segments
 		for (set<RoadSegment*>::const_iterator i2=nodeInt->getRoadSegments().begin(); i2!=nodeInt->getRoadSegments().end(); ++i2) {
 			cachedSegments.insert(*i2);
-			std::cout <<"   Has segement: " <<*i2 <<"\n";
+			//std::cout <<"   Has segement: " <<*i2 <<"\n";
 		}
 
-		//Now print all lane connectors at this node
+		//Now cache all lane connectors at this node
 		for (set<RoadSegment*>::iterator rsIt=nodeInt->getRoadSegments().begin(); rsIt!=nodeInt->getRoadSegments().end(); rsIt++) {
 			if (nodeInt->hasOutgoingLanes(**rsIt)) {
 				for (set<LaneConnector*>::iterator i2=nodeInt->getOutgoingLanes(**rsIt).begin(); i2!=nodeInt->getOutgoingLanes(**rsIt).end(); i2++) {
-					//For now, just assigning a temporary segment id.
-					RoadSegment* fromSeg = (*i2)->getLaneFrom()->getRoadSegment();
-					unsigned int fromLane = (*i2)->getLaneFrom()->getLaneID();
-					RoadSegment* toSeg = (*i2)->getLaneTo()->getRoadSegment();
-					unsigned int toLane = (*i2)->getLaneTo()->getLaneID();
+					//Shouldn't be necessary; all Segments should be listed with a Node.
+					//cachedSegments.insert(fromSeg);
+					//cachedSegments.insert(toSeg);
 
-					//Save for later
-					cachedSegments.insert(fromSeg);
-					cachedSegments.insert(toSeg);
-
-					//Output
-					std::cout <<"    Connector, from segment " <<fromSeg <<", lane " <<fromLane <<"  to segment " <<toSeg <<", lane " <<toLane <<"\n";
+					//Cache the connector
+					cachedConnectors.insert(*i2);
 				}
 			}
 		}
@@ -423,27 +418,38 @@ void PrintDB_Network()
 
 	//Now print all Segments
 	for (std::set<RoadSegment*>::const_iterator it=cachedSegments.begin(); it!=cachedSegments.end(); it++) {
-		RoadSegment* seg = *it;;
-		std::cout <<"Segment[" <<seg <<"]  name: " <<seg->getLink()->roadName;
-		std::streamsize oldSz = std::cout.precision();
-		std::cout.precision(10);
-		std::cout <<", length: " <<seg->length;
-		std::cout.precision(oldSz);
-		std::cout <<", speed: " <<seg->maxSpeed;
-		std::cout <<", width: " <<seg->width;
-		std::cout <<", lanes: " <<seg->getLanes().size() <<"\n";
+		cout <<"(\"road-segment\", 0, " <<*it <<", {";
+		cout <<"\"parent-link\":\"" <<(*it)->getLink() <<"\",";
+		cout <<"\"max-speed\":\"" <<(*it)->maxSpeed <<"\",";
+		cout <<"\"lanes\":\"" <<(*it)->getLanes().size() <<"\",";
+		cout <<"})\n";
 
-		if (!seg->polyline.empty()) {
-			std::cout <<"    Polyline: ";
-			for (vector<Point2D>::const_iterator it=seg->polyline.begin(); it!=seg->polyline.end(); it++) {
-				std::streamsize oldSz = std::cout.precision();
-				std::cout.precision(10);
-				std::cout <<"(" <<it->getX() <<"," <<it->getY() <<") ";
-				std::cout.precision(oldSz);
+		if (!(*it)->polyline.empty()) {
+			cout <<"(\"polyline\", 0, " <<&((*it)->polyline) <<", {";
+			cout <<"\"parent-segment\":\"" <<*it <<"\",";
+			cout <<"\"points\":\"[";
+			for (vector<Point2D>::const_iterator ptIt=(*it)->polyline.begin(); ptIt!=(*it)->polyline.end(); ptIt++) {
+				cout <<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
 			}
-			std::cout <<"\n";
+			cout <<"]\",";
+			cout <<"})\n";
 		}
 	}
+
+
+	//Now print all Connectors
+	for (std::set<LaneConnector*>::const_iterator it=cachedConnectors.begin(); it!=cachedConnectors.end(); it++) {
+		//Retrieve relevant information
+		RoadSegment* fromSeg = (*it)->getLaneFrom()->getRoadSegment();
+		unsigned int fromLane = (*it)->getLaneFrom()->getLaneID();
+		RoadSegment* toSeg = (*it)->getLaneTo()->getRoadSegment();
+		unsigned int toLane = (*it)->getLaneTo()->getLaneID();
+
+		//Output
+		std::cout <<"    Connector, from segment " <<fromSeg <<", lane " <<fromLane <<"  to segment " <<toSeg <<", lane " <<toLane <<"\n";
+	}
+
+
 
 	//TODO: Print links and RoadSegmentNodes in a sensible fashion.
 }

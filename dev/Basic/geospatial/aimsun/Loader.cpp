@@ -123,27 +123,46 @@ void LoadTurnings(soci::session& sql, const std::string& storedProc, map<int, Tu
 	soci::rowset<Turning> rs = (sql.prepare <<"select * from " + storedProc);
 
 	//Exectue as a rowset to avoid repeatedly building the query.
+	vector<int> skippedTurningIDs;
 	turninglist.clear();
 	for (soci::rowset<Turning>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//Check nodes
 		bool fromMissing = sectionlist.count(it->TMP_FromSection)==0;
 		bool toMissing = sectionlist.count(it->TMP_ToSection)==0;
 		if(fromMissing || toMissing) {
-			std::cout <<"Turning " <<it->id <<" skipped, missing section" <<(fromMissing&&toMissing?"s:  ":":  ");
-			if (fromMissing) {
-				std::cout <<it->TMP_FromSection <<(toMissing?", ":"\n");
-			}
-			if (toMissing) {
-				std::cout <<it->TMP_ToSection <<"\n";
-			}
+			skippedTurningIDs.push_back(it->id);
 			continue;
-			//throw std::runtime_error("Invalid From or To section.");
 		}
 
 		//Note: Make sure not to resize the Section map after referencing its elements.
 		it->fromSection = &sectionlist[it->TMP_FromSection];
 		it->toSection = &sectionlist[it->TMP_ToSection];
 		turninglist[it->id] = *it;
+	}
+
+	//Print skipped turnings all at once.
+	if (!skippedTurningIDs.empty()) {
+		std::stringstream out;
+		int lastSize = 0;
+		out <<"Turnings skipped: [";
+		for (size_t i=0; i<skippedTurningIDs.size(); i++) {
+			//Output the number
+			out <<skippedTurningIDs[i];
+
+			//Output a comma, or the closing brace.
+			if (i<skippedTurningIDs.size()-1) {
+				out <<", ";
+
+				//Avoid getting anyway near default terminal limits
+				if (out.str().size()-lastSize>75) {
+					out <<"\n    ";
+					lastSize += (out.str().size()-lastSize)-1;
+				}
+			} else {
+				out <<"]\n";
+			}
+		}
+		std::cout <<out.str();
 	}
 }
 

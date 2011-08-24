@@ -18,6 +18,7 @@
 #include "../geospatial/RoadSegment.hpp"
 #include "../geospatial/LaneConnector.hpp"
 
+using std::cout;
 using std::map;
 using std::set;
 using std::string;
@@ -358,7 +359,7 @@ bool LoadXMLBoundariesCrossings(TiXmlDocument& document, const string& parentStr
 }
 
 
-void ensureID(map<RoadSegment*, int>& segIDs, map<int, RoadSegment*>& revSegIDs, RoadSegment* item)
+/*void ensureID(map<RoadSegment*, int>& segIDs, map<int, RoadSegment*>& revSegIDs, RoadSegment* item)
 {
 	if (segIDs.count(item)>0) {
 		return;
@@ -369,22 +370,25 @@ void ensureID(map<RoadSegment*, int>& segIDs, map<int, RoadSegment*>& revSegIDs,
 	revSegIDs[newID] = item;
 
 	std::cout <<"Adding new Segment ID: " <<newID <<" with item: " << item <<"\n";
-}
+}*/
 
 
 void PrintDB_Network()
 {
-	//Road Segments need a temporary ID value (for display)
-	map<RoadSegment*, int> segIDs;
-	map<int, RoadSegment*> revSegIDs;
+	//Save RoadSegments to make output simpler
+	std::set<RoadSegment*> cachedSegments;
+
+	//Initial message
+	cout <<"Printing node network\n";
+	cout <<"NOTE: All IDs in this section are consistent for THIS simulation run, but will change if you run the simulation again.\n";
 
 	//Start by printing nodes.
 	RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
 	for (vector<MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
-		std::streamsize oldSz = std::cout.precision();
-		std::cout.precision(10);
-		std::cout <<"Node: " <<(*it)->location->getX() <<"," <<(*it)->location->getY() <<"\n";
-		std::cout.precision(oldSz);
+		cout <<"(\"node\", 0, " <<*it <<", {";
+		cout <<"\"xPos\":\"" <<(*it)->location->getX() <<"\",";
+		cout <<"\"yPos\":\"" <<(*it)->location->getY() <<"\",";
+		cout <<"}\n";
 
 		//NOTE: This is temporary; later we'll ensure that the RoadNetwork only stores Intersections,
 		//      and RoadSegments will have to be extracted.
@@ -392,8 +396,8 @@ void PrintDB_Network()
 
 		//Print all segments
 		for (set<RoadSegment*>::const_iterator i2=nodeInt->getRoadSegments().begin(); i2!=nodeInt->getRoadSegments().end(); ++i2) {
-			ensureID(segIDs, revSegIDs, *i2);
-			std::cout <<"   Has segement: " <<segIDs[*i2] <<" for memory location " <<*i2 <<"\n";
+			cachedSegments.insert(*i2);
+			std::cout <<"   Has segement: " <<*i2 <<"\n";
 		}
 
 		//Now print all lane connectors at this node
@@ -406,24 +410,21 @@ void PrintDB_Network()
 					RoadSegment* toSeg = (*i2)->getLaneTo()->getRoadSegment();
 					unsigned int toLane = (*i2)->getLaneTo()->getLaneID();
 
-					//Make sure they have IDs
-					ensureID(segIDs, revSegIDs, fromSeg);
-					ensureID(segIDs, revSegIDs, toSeg);
+					//Save for later
+					cachedSegments.insert(fromSeg);
+					cachedSegments.insert(toSeg);
 
 					//Output
-					std::cout <<"    Connector, from segment " <<segIDs[fromSeg] <<", lane " <<fromLane <<"  to segment " <<segIDs[toSeg] <<", lane " <<toLane <<"\n";
+					std::cout <<"    Connector, from segment " <<fromSeg <<", lane " <<fromLane <<"  to segment " <<toSeg <<", lane " <<toLane <<"\n";
 				}
 			}
 		}
 	}
 
 	//Now print all Segments
-	for (size_t i=0; i<segIDs.size(); i++) {
-		RoadSegment* seg = revSegIDs[i];
-		if (!seg) {
-			std::cout <<"Error: No segment lookup (or is null) for ID: " <<i <<std::endl;
-		}
-		std::cout <<"Segment[" <<i <<"]  name: " <<seg->getLink()->roadName;
+	for (std::set<RoadSegment*>::const_iterator it=cachedSegments.begin(); it!=cachedSegments.end(); it++) {
+		RoadSegment* seg = *it;;
+		std::cout <<"Segment[" <<seg <<"]  name: " <<seg->getLink()->roadName;
 		std::streamsize oldSz = std::cout.precision();
 		std::cout.precision(10);
 		std::cout <<", length: " <<seg->length;

@@ -36,6 +36,25 @@ double AngleBetween(const Node* const center, const Node* const first, const Nod
 }
 
 
+//Helper to manage bi-directional segments
+void InsertIntoVector(vector< pair<RoadSegment*, bool> >& vec, vector< pair<RoadSegment*, bool> >::iterator pos, RoadSegment* item, const Node* const centerNode)
+{
+	//Insert it
+	bool isFwd = item->getEnd()==centerNode;
+	vector< pair<RoadSegment*, bool> >::iterator resIt = vec.insert(pos, std::make_pair(item, isFwd));
+
+	//If it's bi-directional, insert the reverse segment.
+	if (item->isBiDirectional()) {
+		if (isFwd) {
+			vec.insert(resIt, std::make_pair(item, !isFwd));
+		} else {
+			vec.insert(resIt+1, std::make_pair(item, !isFwd));
+		}
+	}
+}
+
+
+
 
 } //End unnamed namespace
 
@@ -73,9 +92,11 @@ void sim_mob::MultiNode::BuildClockwiseLinks(const RoadNetwork& rn, MultiNode* n
 				// Of course, this is all driving-side dependent, but since this array is always searched in two directions,
 				// then "clockwise" doesn't matter much.
 				if (checkIt->second) {
-					node->roadSegmentsCircular.insert(checkIt, std::make_pair(*it, !checkIt->second));
+					InsertIntoVector(node->roadSegmentsCircular, checkIt, *it, node);
+					//node->roadSegmentsCircular.insert(checkIt, std::make_pair(*it, !checkIt->second));
 				} else {
-					node->roadSegmentsCircular.insert(checkIt+1, std::make_pair(*it, !checkIt->second));
+					InsertIntoVector(node->roadSegmentsCircular, checkIt+1, *it, node);
+					//node->roadSegmentsCircular.insert(checkIt+1, std::make_pair(*it, !checkIt->second));
 				}
 
 				continue;
@@ -91,14 +112,16 @@ void sim_mob::MultiNode::BuildClockwiseLinks(const RoadNetwork& rn, MultiNode* n
 				//Compute the angle between the first iterator and this iterator. If that angle is bigger than the angle of the Segment we're searching for, add it.
 				double oldSegAngle = AngleBetween(node, firstSegNode, (checkIt->first->getStart()!=node?checkIt->first->getStart():checkIt->first->getEnd()), rn.drivingSide==DRIVES_ON_LEFT);
 				if (oldSegAngle!=0.0 && oldSegAngle>newSegAngle) {
-					node->roadSegmentsCircular.insert(checkIt, std::make_pair(*it, (*it)->getEnd()==node));
+					InsertIntoVector(node->roadSegmentsCircular, checkIt, *it, node);
+					//node->roadSegmentsCircular.insert(checkIt, std::make_pair(*it, (*it)->getEnd()==node));
 					continue;
 				}
 			}
 		}
 
 		//If nothing worked, just add it to the back of the array.
-		node->roadSegmentsCircular.push_back(std::make_pair(*it, (*it)->getEnd()==node));
+		InsertIntoVector(node->roadSegmentsCircular, node->roadSegmentsCircular.end(), *it, node);
+		//node->roadSegmentsCircular.push_back(std::make_pair(*it, (*it)->getEnd()==node));
 	}
 
 

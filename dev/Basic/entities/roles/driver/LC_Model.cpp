@@ -22,7 +22,6 @@ const double sim_mob::Driver::MLC_parameters[5] = {
 		   1.0		//minimum time in lane
 };
 
-
 double sim_mob::Driver::lcCriticalGap(int type,	double dis_, double spd_, double dv_)
 {
 	double k=( type < 2 ) ? 1 : 5;
@@ -203,6 +202,9 @@ double sim_mob::Driver::calcSideLaneUtility(bool isLeft){
 
 double sim_mob::Driver::makeDiscretionaryLaneChangingDecision()
 {
+	if(getLinkLength()-xPos_ < 80 || xVel_ >= targetSpeed){
+		return 0;			//when close to link end, do not make discretionary lane changing
+	}
 	// for available gaps(including current gap between leading vehicle and itself), vehicle will choose the longest
 	unsigned int freeLanes = gapAcceptance(DLC);
 	bool freeLeft = ((freeLanes&LSIDE_LEFT)!=0);
@@ -247,8 +249,16 @@ double sim_mob::Driver::makeDiscretionaryLaneChangingDecision()
 
 double sim_mob::Driver::checkIfMandatory()
 {
-	double possible=1-(getLinkLength()-xPos_-length/2-70)/70;
-	return possible;
+	int targetLane=(nextLink-currentLink+4)%4-1;	//based on this specific network
+	double num=(double)(targetLane-getLane());
+	num=(num<0)?-num:num;
+	/*if(direction!=0){
+		double possible=1-(getLinkLength()-xPos_-length/2-50)/50;
+		return possible;
+	}
+	else {
+		return 0;
+	}*/
 	/*if(dis2stop < satisfiedDistance) {
 		return 1;
 	} else {
@@ -256,13 +266,14 @@ double sim_mob::Driver::checkIfMandatory()
 	}*/
 
 	//the code below is MITSIMLab model
-	/*double num		=	1;		//now we just assume that MLC only need to change to the adjacent lane
+	dis2stop=getLinkLength()-xPos_-length/2;
+	//double num		=	1;		//now we just assume that MLC only need to change to the adjacent lane
 	double y		=	0.5;		//segment density/jam density, now assume that it is 0.5
 	double delta0	=	feet2Unit(MLC_parameters[0]);
 	double dis		=	dis2stop - delta0;
 	double delta	=	1.0 + MLC_parameters[2] * num + MLC_parameters[3] * y;
 	delta *= MLC_parameters[1];
-	return exp(-dis * dis / (delta * delta));*/
+	return exp(-dis * dis / (delta * delta));
 }
 
 double sim_mob::Driver::makeMandatoryLaneChangingDecision()

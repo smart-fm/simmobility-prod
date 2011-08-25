@@ -33,6 +33,7 @@
 
 using namespace sim_mob::aimsun;
 using std::vector;
+using std::string;
 using std::set;
 using std::map;
 using std::pair;
@@ -40,6 +41,39 @@ using std::multimap;
 
 
 namespace {
+
+
+//Print an array of integers with separators and auto-line breaks.
+void PrintArray(const vector<int>& ids, const string& label, const string& brL, const string& brR, const string& comma, int lineIndent)
+{
+	//Easy
+	if (ids.empty()) {
+		return;
+	}
+
+	//Buffer in a stringstream
+	std::stringstream out;
+	int lastSize = 0;
+	out <<label <<brL;
+	for (size_t i=0; i<ids.size(); i++) {
+		//Output the number
+		out <<ids[i];
+
+		//Output a comma, or the closing brace.
+		if (i<ids.size()-1) {
+			out <<comma;
+
+			//Avoid getting anyway near default terminal limits
+			if (out.str().size()-lastSize>75) {
+				out <<"\n" <<string(lineIndent, ' ');
+				lastSize += (out.str().size()-lastSize)-1;
+			}
+		} else {
+			out <<brR <<"\n";
+		}
+	}
+	std::cout <<out.str();
+}
 
 
 //Sorting function for polylines
@@ -123,21 +157,15 @@ void LoadTurnings(soci::session& sql, const std::string& storedProc, map<int, Tu
 	soci::rowset<Turning> rs = (sql.prepare <<"select * from " + storedProc);
 
 	//Exectue as a rowset to avoid repeatedly building the query.
+	vector<int> skippedTurningIDs;
 	turninglist.clear();
 	for (soci::rowset<Turning>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//Check nodes
 		bool fromMissing = sectionlist.count(it->TMP_FromSection)==0;
 		bool toMissing = sectionlist.count(it->TMP_ToSection)==0;
 		if(fromMissing || toMissing) {
-			std::cout <<"Turning " <<it->id <<" skipped, missing section" <<(fromMissing&&toMissing?"s:  ":":  ");
-			if (fromMissing) {
-				std::cout <<it->TMP_FromSection <<(toMissing?", ":"\n");
-			}
-			if (toMissing) {
-				std::cout <<it->TMP_ToSection <<"\n";
-			}
+			skippedTurningIDs.push_back(it->id);
 			continue;
-			//throw std::runtime_error("Invalid From or To section.");
 		}
 
 		//Note: Make sure not to resize the Section map after referencing its elements.
@@ -145,6 +173,9 @@ void LoadTurnings(soci::session& sql, const std::string& storedProc, map<int, Tu
 		it->toSection = &sectionlist[it->TMP_ToSection];
 		turninglist[it->id] = *it;
 	}
+
+	//Print skipped turnings all at once.
+	PrintArray(skippedTurningIDs, "Turnings skipped: ", "[", "]", ", ", 4);
 }
 
 void LoadPolylines(soci::session& sql, const std::string& storedProc, multimap<int, Polyline>& polylinelist, map<int, Section>& sectionlist)
@@ -280,6 +311,7 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 
 	//Step 2: Tag all Nodes that have only two Sections; these may become RoadSegmentNodes.
 	//        NOTE: It's slightly more complex; the two Sections must not loop at that node.
+	vector<int> nodeMismatchIDs;
 	for (map<int,Node>::iterator it=nodes.begin(); it!=nodes.end(); it++) {
 		Node& n = it->second;
 		n.candidateForSegmentNode = false;
@@ -292,9 +324,12 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 		}
 		if (n.candidateForSegmentNode == n.isIntersection) {
 			//Not an error; probably a result of a network being cropped.
-			std::cout <<"Warning: Node " <<n.id <<" mismatch. IsIntersection(" <<n.isIntersection <<")  CandidateRoadSegment(" <<n.candidateForSegmentNode <<")\n";
+			nodeMismatchIDs.push_back(n.id);
 		}
 	}
+
+	//Print all node mismatches at once
+	PrintArray(nodeMismatchIDs, "UniNode/Intersection mismatches: ", "[", "]", ", ", 4);
 
 	//Step 3: Tag all Sections with Turnings that apply to that Section
 	for (map<int,Turning>::iterator it=turnings.begin(); it!=turnings.end(); it++) {
@@ -327,6 +362,7 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 	//        of the Crossing line is closer to that intersection than it is to the "atNode", then
 	//        it is considered tied to that Section, and thus to whichever Node in that Section is
 	//        not the "atNode".
+	vector<int> skippedCrossingLaneIDs;
 	for (map<int, Node>::iterator itN=nodes.begin(); itN!=nodes.end(); itN++) {
 		Node& n = itN->second;
 		for (map<int, std::vector<Crossing*> >::iterator it=n.crossingsAtNode.begin(); it!=n.crossingsAtNode.end(); it++) {
@@ -368,11 +404,13 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 
 			//Double-check that we found at least one.
 			if (!found) {
-				std::cout <<"Warning: Crossing with lane ID " <<it->first <<" skipped near position: " <<n.xPos <<"," <<n.yPos <<"\n";
-				//throw std::runtime_error("Couldn't find any nearby Nodes for the given Crossing.");
+				skippedCrossingLaneIDs.push_back(it->first);
 			}
 		}
 	}
+
+	//Print all skipped lane-crossing IDs:
+	PrintArray(skippedCrossingLaneIDs, "Skipped \"crossing\" laneIDs: ", "[", "]", ", ", 4);
 }
 
 

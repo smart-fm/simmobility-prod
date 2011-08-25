@@ -13,6 +13,7 @@ using namespace sim_mob;
 
 double Density[] = {1, 1, 1, 1};
 double DS_all;
+int ID;
 
 //Private namespace
 namespace {
@@ -36,6 +37,7 @@ const double sim_mob::Signal::SplitPlan5[] = {0.20, 0.35, 0.25, 0.20};
 
 sim_mob :: Signal :: Signal(unsigned int id): Agent(id)
 {
+	ID=id;
 	setCL(60,60,60);//default initial cycle length for SCATS
 	setRL(60,60);//default initial RL for SCATS
 	startSplitPlan();
@@ -88,7 +90,19 @@ void sim_mob :: Signal ::update(frame_t frameNumber)
 {
 	{
 		boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-		std::cout <<"SIGNAL UPDATE"<<std::endl;
+		std::cout <<"("<<ID<<","<<frameNumber<<",Signal,{va:";
+		for(int i = 0; i<3; i++)std::cout<<TC_for_Driver[0][i]<<",";
+		std::cout <<"vb:";
+		for(int i = 0; i<3; i++)std::cout<<TC_for_Driver[1][i]<<",";
+		std::cout <<"vc:";
+		for(int i = 0; i<3; i++)std::cout<<TC_for_Driver[2][i]<<",";
+		std::cout <<"vd:";
+		for(int i = 0; i<3; i++)std::cout<<TC_for_Driver[3][i]<<",";
+
+		std::cout <<"pa:"<<TC_for_Pedestrian[0]<<",";
+		std::cout <<"pb:"<<TC_for_Pedestrian[1]<<",";
+		std::cout <<"pc:"<<TC_for_Pedestrian[2]<<",";
+		std::cout <<"pd:"<<TC_for_Pedestrian[3]<<"})"<<std::endl;
 	}
 
 	updateSignal (Density);

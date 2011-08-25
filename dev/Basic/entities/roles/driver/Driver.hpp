@@ -168,6 +168,7 @@ public:
 	double getMaxDeceleration(){return maxDeceleration;}
 	double getDistanceToNormalStop(){return distanceToNormalStop;}
 	double getDistance();
+	void output(frame_t frameNumber);
 
 
 	/***********SOMETHING BIG BROTHER CAN RETURN*************/

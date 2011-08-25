@@ -56,7 +56,7 @@ double sim_mob::Driver::lcCriticalGap(int type,	double dis_, double spd_, double
 
 unsigned int sim_mob::Driver::gapAcceptance(int type)
 {
-	int border[2]={0,2};
+	int border[2]={2,0};
 	int offset[2]={-1,1};
 	bool badarea[2]={false,false};
 	//check if there is bad area on the left/right side
@@ -162,8 +162,8 @@ unsigned int sim_mob::Driver::gapAcceptance(int type)
 }
 
 double sim_mob::Driver::calcSideLaneUtility(bool isLeft){
-	int border = (isLeft) ? 0 : 2;
-	int offset = (isLeft) ? -1 : 1;
+	int border = (isLeft) ?  2 :  0;
+	int offset = (isLeft) ? -1 :  1;
 	Agent* F = (isLeft) ? LF : RF;
 	double other_xOffset;
 	double other_yOffset;
@@ -202,7 +202,7 @@ double sim_mob::Driver::calcSideLaneUtility(bool isLeft){
 
 double sim_mob::Driver::makeDiscretionaryLaneChangingDecision()
 {
-	if(getLinkLength()-xPos_ < 80 || xVel_ >= targetSpeed){
+	if(getLinkLength()-xPos_ < 120 || xVel_ >= targetSpeed){
 		return 0;			//when close to link end, do not make discretionary lane changing
 	}
 	// for available gaps(including current gap between leading vehicle and itself), vehicle will choose the longest
@@ -232,13 +232,13 @@ double sim_mob::Driver::makeDiscretionaryLaneChangingDecision()
 	}
 	if(freeLeft && freeRight){
 		if(right && left){
-			return (leftUtility < rightUtility) ? 1 : -1;	//both side is available, choose the better one
+			return (leftUtility < rightUtility) ? -1 : 1;	//both side is available, choose the better one
 		}
 		if(right && !left) {
-			return 1;
+			return -1;
 		}
 		if(!right && left) {
-			return -1;
+			return 1;
 		}
 		if(!right && !left) {
 			return 0;
@@ -249,7 +249,7 @@ double sim_mob::Driver::makeDiscretionaryLaneChangingDecision()
 
 double sim_mob::Driver::checkIfMandatory()
 {
-	int targetLane=(nextLink-currentLink+4)%4-1;	//based on this specific network
+	int targetLane=2-(nextLink-currentLink+4)%4+1;	//based on this specific network
 	double num=(double)(targetLane-getLane());
 	num=(num<0)?-num:num;
 	/*if(direction!=0){
@@ -266,7 +266,7 @@ double sim_mob::Driver::checkIfMandatory()
 	}*/
 
 	//the code below is MITSIMLab model
-	dis2stop=getLinkLength()-xPos_-length/2;
+	dis2stop=getLinkLength()-xPos_-length/2-30;
 	//double num		=	1;		//now we just assume that MLC only need to change to the adjacent lane
 	double y		=	0.5;		//segment density/jam density, now assume that it is 0.5
 	double delta0	=	feet2Unit(MLC_parameters[0]);
@@ -283,19 +283,19 @@ double sim_mob::Driver::makeMandatoryLaneChangingDecision()
 	bool freeRight = ((freeLanes&LSIDE_RIGHT)!=0);
 
 	//find which lane it should get to and choose which side to change
-	int targetLane=(nextLink-currentLink+4)%4-1;	//based on this specific network
+	int targetLane=2-(nextLink-currentLink+4)%4+1;	//based on this specific network
 	int direction=targetLane-getLane();
 
 	//current lane is target lane
 	if(direction==0)return 0;
 
 	//current lane isn't target lane
-	if(freeRight && direction>0) {		//target lane on the right and is accessable
-		isWaiting=false;
-		return 1;
-	} else if(freeLeft && direction<0) {	//target lane on the left and is accessable
+	if(freeRight && direction<0) {		//target lane on the right and is accessable
 		isWaiting=false;
 		return -1;
+	} else if(freeLeft && direction>0) {	//target lane on the left and is accessable
+		isWaiting=false;
+		return 1;
 	} else {			//when target side isn't available,vehicle will decelerate to wait a proper gap.
 		isWaiting=true;
 		return 0;
@@ -316,7 +316,7 @@ void sim_mob::Driver::excuteLaneChanging()
 	// when vehicle is on the lane, make decision
 	if(!ischanging){
 
-		if(getLinkLength()-xPos_ < 20){
+		if(getLinkLength()-xPos_ < 20+30){
 			return;			//when close to link end, do not change lane
 		}
 		//check if MLC is needed(vehicle has probability=checkIfMandatory() to be tagged in to MLC mode)

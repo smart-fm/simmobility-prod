@@ -41,6 +41,8 @@ enum DRIVING_SIDE {
  */
 class RoadNetwork {
 public:
+	RoadNetwork() { drivingSide=DRIVES_ON_LEFT; } //TEMP
+
 	DRIVING_SIDE drivingSide;
 
 	///Retrieve list of all Uni/MultiNodes (intersections & roundabouts) in this Road Network.

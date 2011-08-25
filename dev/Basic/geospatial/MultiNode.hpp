@@ -20,6 +20,7 @@ class Link;
 class Lane;
 class LaneConnector;
 class RoadSegment;
+class RoadNetwork;
 
 namespace aimsun
 {
@@ -48,6 +49,9 @@ public:
 	///Retrieve a list of all RoadSegments at this node.
 	const std::set<sim_mob::RoadSegment*>& getRoadSegments() const { return roadSegmentsAt; }
 
+	//Helper: Build it
+	static void BuildClockwiseLinks(const sim_mob::RoadNetwork& rn, sim_mob::MultiNode* node);
+
 protected:
 	///Mapping from RoadSegment* -> set<LaneConnector*> representing lane connectors.
 	///Currently allows one to make quick requests upon arriving at a Node of which
@@ -60,6 +64,11 @@ protected:
 
 	///Bookkeeping: which RoadSegments meet at this Node?
 	std::set<sim_mob::RoadSegment*> roadSegmentsAt;
+
+	//Bookkeeping: Store a list of RoadSegments in "clockwise" (can be counter-clockwise for rhs) order,
+	//             along with a flag of whether or not this segment is "forward". Used to determine which
+	//             Segments pedestrians must cross when approaching the intersection.
+	std::vector< std::pair<RoadSegment*, bool> > roadSegmentsCircular;
 
 
 friend class sim_mob::aimsun::Loader;

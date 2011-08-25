@@ -109,7 +109,6 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 
 	//Loop through all agents of this type
 	for (;node;node=node->NextSiblingElement()) {
-		//xmlNode* curr = xpObject->nodesetval->nodeTab[i];
 		Person* agent = nullptr;
 		bool foundID = false;
 		bool foundXPos = false;
@@ -361,19 +360,6 @@ bool LoadXMLBoundariesCrossings(TiXmlDocument& document, const string& parentStr
 }
 
 
-/*void ensureID(map<RoadSegment*, int>& segIDs, map<int, RoadSegment*>& revSegIDs, RoadSegment* item)
-{
-	if (segIDs.count(item)>0) {
-		return;
-	}
-
-	int newID = segIDs.size();
-	segIDs[item] = newID;
-	revSegIDs[newID] = item;
-
-	std::cout <<"Adding new Segment ID: " <<newID <<" with item: " << item <<"\n";
-}*/
-
 
 void PrintDB_Network()
 {
@@ -432,10 +418,6 @@ void PrintDB_Network()
 		for (set<RoadSegment*>::iterator rsIt=nodeInt->getRoadSegments().begin(); rsIt!=nodeInt->getRoadSegments().end(); rsIt++) {
 			if (nodeInt->hasOutgoingLanes(**rsIt)) {
 				for (set<LaneConnector*>::iterator i2=nodeInt->getOutgoingLanes(**rsIt).begin(); i2!=nodeInt->getOutgoingLanes(**rsIt).end(); i2++) {
-					//Shouldn't be necessary; all Segments should be listed with a Node.
-					//cachedSegments.insert(fromSeg);
-					//cachedSegments.insert(toSeg);
-
 					//Cache the connector
 					cachedConnectors.insert(*i2);
 				}

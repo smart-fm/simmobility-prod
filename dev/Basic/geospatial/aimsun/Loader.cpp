@@ -451,6 +451,11 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, map<int, Node>& nodes, ma
 	for (map<int,Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
 		sim_mob::aimsun::Loader::ProcessSectionPolylines(res, it->second);
 	}
+
+	//Finalize our MultiNodes' circular arrays
+	for (vector<sim_mob::MultiNode*>::const_iterator it=res.getNodes().begin(); it!=res.getNodes().end(); it++) {
+		sim_mob::MultiNode::BuildClockwiseLinks(res, *it);
+	}
 }
 
 

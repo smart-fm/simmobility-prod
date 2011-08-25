@@ -156,7 +156,8 @@ void sim_mob::Driver::update(frame_t frameNumber)
 		xPos_=origin.getX();
 		yPos_=origin.getY();
 		nextLane=-1;
-		nextLink=((parent->getId()+1)%3+currentLink+5)%4+4;
+		nextLink=currentLink+3;
+		if(nextLink<4)nextLink+=4;
 		//isGoalSet=false;
 		relat2abs();
 		setToParent();
@@ -206,7 +207,16 @@ void sim_mob::Driver::update(frame_t frameNumber)
 void sim_mob::Driver::output(frame_t frameNumber)
 {
 	boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-	std::cout <<"("
+	std::cout<<"(Driver"
+			<<","<<frameNumber
+			<<","<<parent->getId()
+			<<",{"
+			<<"xPos:"<<parent->xPos.get()
+			<<",yPos:"<<parent->yPos.get()
+			<<",angle:"<<angle
+			<<"})"<<std::endl;
+
+	/*std::cout <<"("
 			<<parent->getId()
 			<<"," <<frameNumber
 			<<"," <<parent->xPos.get()
@@ -216,7 +226,7 @@ void sim_mob::Driver::output(frame_t frameNumber)
 			<<"," <<floor(trafficSignal->getnextCL())
 			<<"," <<trafficSignal->getphaseCounter()
 			<<"," <<angle
-			<<")"<<std::endl;
+			<<")"<<std::endl;*/
 }
 
 void sim_mob::Driver::getFromParent()
@@ -237,6 +247,7 @@ void sim_mob::Driver::setToParent()
 	parent->yVel.set(yVel);
 	parent->xAcc.set(xAcc);
 	parent->yAcc.set(yAcc);
+	parent->currentLink.set(currentLink);
 }
 
 void sim_mob::Driver::abs2relat()
@@ -434,10 +445,13 @@ void sim_mob::Driver::updateAcceleration()
 
 void sim_mob::Driver::updateVelocity()
 {
+	if(isPedestrianAhead()){		//if a pedestrian is ahead, stop
+		xVel_ = 0 ; yVel_ =0;
+		return;
+	}
 	if(isReachSignal()){
 		//nextLink=(currentLane+currentLink+1)%4+4;
 		//updateTrafficSignal();
-		nextLane=currentLane;
 		if(!reachSignalDecision()){
 			xVel_ = 0 ; yVel_ =0;
 		} else {
@@ -796,8 +810,8 @@ void sim_mob :: Driver :: IntersectionVelocityUpdate()
 	if(currentLink<4){
 		currentLink+=3-currentLane;
 		if(currentLink<4)currentLink+=4;
-		currentLane=nextLane;
-		nextLane=-1;
+		//currentLane=nextLane;
+		//nextLane=-1;
 		xPos_=30+5+length/2+20;
 		yPos_=-currentLane*testLinks[currentLink].laneWidth-testLinks[currentLink].laneWidth*0.5;
 		xVel_=targetSpeed/2;
@@ -926,4 +940,34 @@ void sim_mob::Driver::updateTrafficSignal()
 			return;
 		}
 	}
+}
+
+bool sim_mob::Driver::isPedestrianAhead()
+{
+	Agent* other = nullptr;
+	for (size_t i=0; i<Agent::all_agents.size(); i++) {
+		other = Agent::all_agents[i];
+		Person* p = dynamic_cast<Person*>(other);
+		if (!p) {
+			continue;
+		}
+		Pedestrian* pd = dynamic_cast<Pedestrian*>(p->getRole());
+		if (other->getId()==parent->getId()|| !pd
+				|| other->currentCrossing.get()!=currentLink)//only check pedestrian on crossing of this link
+		{
+			continue;
+		}
+
+		double other_xOffset	= other->xPos.get()	- testLinks[currentLink].startX;
+		double other_yOffset	= other->yPos.get()	- testLinks[currentLink].startY;
+		double other_xPos_		= other_xOffset	* xDirection	+ other_yOffset	* yDirection;
+		double other_yPos_		=-other_xOffset	* yDirection	+ other_yOffset	* xDirection;
+
+		//Check. If pedestrian is right ahead the vehicle, return true
+		if(other_yPos_ < yPos_+width && other_yPos_ > yPos_-width
+				&& other_xPos_>xPos_ && other_xPos_ < leader_xPos_){
+			return true;
+			}
+		}
+	return false;
 }

@@ -7,6 +7,7 @@
 #include <math.h>
 #include <set>
 #include "../Role.hpp"
+#include "../pedestrian/Pedestrian.hpp"
 #include "../../Person.hpp"
 #include "../../Signal.hpp"
 #include "../../../buffering/Buffered.hpp"
@@ -326,6 +327,10 @@ private:
 	Signal* trafficSignal;
 	double angle;
 	bool inIntersection;
+
+	/**************COOPERATION WITH PEDESTRIAN***************/
+public:
+	bool isPedestrianAhead();
 
 };
 

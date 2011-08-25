@@ -316,7 +316,8 @@ void sim_mob::Driver::excuteLaneChanging()
 	// when vehicle is on the lane, make decision
 	if(!ischanging){
 
-		if(getLinkLength()-xPos_ < 20+30){
+		if(getLinkLength()-xPos_ < 40+30){
+			//nextLane=currentLane;
 			return;			//when close to link end, do not change lane
 		}
 		//check if MLC is needed(vehicle has probability=checkIfMandatory() to be tagged in to MLC mode)

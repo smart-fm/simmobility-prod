@@ -9,7 +9,7 @@ using namespace sim_mob;
 
 
 double Pedestrian::collisionForce = 20;
-double Pedestrian::agentRadius = 0.25; //Shoulder width of a person is about 0.5 meter
+double Pedestrian::agentRadius = 0.5; //Shoulder width of a person is about 0.5 meter
 
 
 sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent)
@@ -55,11 +55,17 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 
 	if(frameNumber>=parent->startTime){
 
-		//Set the initial goal of agent (next intersection)
-	//	if(!isGoalSet){
-	//		setGoal(0);
-	//		isGoalSet = true;
-	//	}
+		//Set the initial position of agent
+		if(!isStartPosSet()){
+			parent->xPos.set(((double)parent->originNode->location->getX())/100);
+			parent->yPos.set(((double)parent->originNode->location->getY())/100);
+			cStartX=372183.51;
+			cStartY=143352.55;
+			cEndX=((double)parent->destNode->location->getX())/100;
+			cEndX=((double)parent->destNode->location->getY())/100;
+		}
+		else{
+
 
 		//update signal information
 		updatePedestrianSignal();
@@ -82,40 +88,52 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 		if(isGoalReached()){
 			currentStage++;
 			setGoal(currentStage); //Set next goal
-		}
-
-		if(currentStage==0||currentStage==2){
-			updateVelocity(0);
-			updatePosition();
-		}
-		else if(currentStage==1){
-
-			//Check whether to start to cross or not
-			if(!startToCross){
-				if(currPhase == 3)  //Green phase
-					startToCross = true;
-				else if(currPhase == 1){ //Red phase
-					if(checkGapAcceptance()==true)
-						startToCross=true;
-				}
+			{
+				boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
+				std::cout <<"Pedestrian " <<parent->getId() <<" has reached goal " <<currentStage<<std::endl;
 			}
+		}
+		else{
 
-			if(startToCross){
-				if(currPhase==3) //Green phase
-					updateVelocity(1);
-				else if (currPhase ==1) //Red phase
-					updateVelocity(2);
+			if(currentStage==0||currentStage==2){
+				updateVelocity(0);
 				updatePosition();
 			}
-			else{
+			else if(currentStage==1){
+
+				//Check whether to start to cross or not
+				if(!startToCross){
+					if(currPhase == 3)  //Green phase
+						startToCross = true;
+					else if(currPhase == 1){ //Red phase
+						if(checkGapAcceptance()==true)
+							startToCross=true;
+					}
+				}
+
+				if(startToCross){
+					if(currPhase==3) //Green phase
+						updateVelocity(1);
+					else if (currPhase ==1) //Red phase
+						updateVelocity(2);
+					updatePosition();
+				}
+				else{
+					//Output (temp)
+					{
+						boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
+						std::cout <<"Pedestrian " <<parent->getId() <<" is waiting at the crossing" <<std::endl;
+					}
+				}
 				//Output (temp)
 				{
 					boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-					std::cout <<"Pedestrian " <<parent->getId() <<" is waiting at the crossing" <<std::endl;
+					std::cout <<"("<<"'pedestrian',"<<frameNumber<<","<<parent->getId()<<","<<"{xPos:"<<parent->xPos.get()<<"," <<"yPos:"<<this->parent->yPos.get()<<","<<"pedSig:"<<currPhase<<",})"<<std::endl;
 				}
 			}
 
 		}
+
 
 	//	//Continue checking if the goal has not been reached.
 	//	if(reachStartOfCrossing()) {
@@ -138,14 +156,11 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 	//			updateVelocity(1);
 	//		updatePosition();
 	//	}
+		}
+		parent->currentCrossing.set(getCurrentCrossing());
 
 	}
 
-	//Output (temp)
-//	{
-//		boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-//		std::cout <<"("<<"'pedestrian',"<<frameNumber<<","<<parent->getId()<<","<<"{xPos:"<<parent->xPos.get()<<"," <<"yPos:"<<this->parent->yPos.get()<<","<<"})"<<std::endl;
-//	}
 }
 
 /*---------------------Perception-related functions----------------------*/
@@ -183,7 +198,8 @@ bool sim_mob::Pedestrian::isDestReached()
 	double dY = abs(((double)parent->destNode->location->getY())/100 - parent->yPos.get());
 //	int dX = abs(goal.getX() - parent->xPos.get());
 //	int dY = abs(goal.getY() - parent->yPos.get());
-	return dX+dY < agentRadius;
+	double dis = sqrt(dX*dX+dY*dY);
+	return dis < agentRadius;
 
 	//return (parent->yPos.get()>=goal.yPos);
 }
@@ -191,35 +207,38 @@ bool sim_mob::Pedestrian::isDestReached()
 bool sim_mob::Pedestrian::isGoalReached()
 {
 	//Simple manhatten distance check
-	int dX = abs(((double)goal.getX())/100 - parent->xPos.get());
-	int dY = abs(((double)goal.getY())/100 - parent->yPos.get());
-	return dX+dY < agentRadius;
+	double dX = abs(((double)goal.getX())/100 - parent->xPos.get());
+	double dY = abs(((double)goal.getY())/100 - parent->yPos.get());
+	double dis = sqrt(dX*dX+dY*dY);
+	return dis < agentRadius;
 
 	//return (parent->yPos.get()>=goal.yPos);
 }
 
-bool sim_mob::Pedestrian::reachStartOfCrossing()
-{
-
-
-	return false;
-
-//	int lowerRightCrossingY = ConfigParams::GetInstance().crossings["lowerright"].getY();
+//bool sim_mob::Pedestrian::reachStartOfCrossing()
+//{
 //
-//	if(parent->yPos.get()<=lowerRightCrossingY){
-//		double dist = lowerRightCrossingY - parent->yPos.get();
-//		if(dist<speed*1)
-//			return true;
-//		else
-//			return false;
-//	}
-//	else
-//		return false;
-}
+//
+//	return false;
+//
+////	int lowerRightCrossingY = ConfigParams::GetInstance().crossings["lowerright"].getY();
+////
+////	if(parent->yPos.get()<=lowerRightCrossingY){
+////		double dist = lowerRightCrossingY - parent->yPos.get();
+////		if(dist<speed*1)
+////			return true;
+////		else
+////			return false;
+////	}
+////	else
+////		return false;
+//}
 
 bool sim_mob::Pedestrian::onCrossing()
 {
-
+	if(currentStage==1&&startToCross)
+		return true;
+	else
 		return false;
 }
 
@@ -227,7 +246,7 @@ int sim_mob::Pedestrian::getCurrentCrossing()
 {
 
 	if(onCrossing())
-		return curCrossingID;
+		return 0;
 	else
 		return -1;
 }
@@ -235,23 +254,26 @@ int sim_mob::Pedestrian::getCurrentCrossing()
 void sim_mob::Pedestrian::updatePedestrianSignal()
 {
 
-//	Agent* a = nullptr;
-//	for (size_t i=0; i<Agent::all_agents.size(); i++) {
-//		//Skip self
-//		a = Agent::all_agents[i];
-//		if (a->getId()==parent->getId()) {
-//			a = nullptr;
-//			continue;
-//		}
-//
-//	   Person* p = dynamic_cast<Person*>(a);
-//	   if (dynamic_cast<Signal*>(p->getRole())) {
-//		   currPhase=(dynamic_cast<Signal*>(p->getRole()))->get_Pedestrian_Light(0);
-//			//It's a signal
-//	   }
-//	   p = nullptr;
-//	   a = nullptr;
-//	}
+	Agent* a = nullptr;
+	Signal* s = nullptr;
+	for (size_t i=0; i<Agent::all_agents.size(); i++) {
+		//Skip self
+		a = Agent::all_agents[i];
+		if (a->getId()==parent->getId()) {
+			a = nullptr;
+			continue;
+		}
+
+		if (dynamic_cast<Signal*>(a)) {
+		   s = dynamic_cast<Signal*>(a);
+		   currPhase=s->get_Pedestrian_Light(0);
+			//It's a signal
+		}
+		s = nullptr;
+		a = nullptr;
+	}
+	s = nullptr;
+	a = nullptr;
 
 //	currPhase = sig.get_Pedestrian_Light(0);
 //	if(phaseCounter==60){ //1 minute period for switching phases (testing only)
@@ -263,7 +285,7 @@ void sim_mob::Pedestrian::updatePedestrianSignal()
 //	}
 //	else
 //		phaseCounter++;
-	currPhase=1 ;
+//	currPhase=1 ;
 }
 
 /*---------------------Decision-related functions------------------------*/
@@ -271,26 +293,39 @@ void sim_mob::Pedestrian::updatePedestrianSignal()
 bool sim_mob::Pedestrian::checkGapAcceptance(){
 
 	//Search for the nearest driver on the current link
-//	Agent* a = nullptr;
-//	for (size_t i=0; i<Agent::all_agents.size(); i++) {
-//		//Skip self
-//		a = Agent::all_agents[i];
-//		if (a->getId()==parent->getId()) {
-//			a = nullptr;
-//			continue;
-//		}
-//
-//	   Person* p = dynamic_cast<Person*>(a);
-//	   if (dynamic_cast<Driver*>(p->getRole())) {
-////		   (dynamic_cast<Driver*>(p->getRole()))->
-//			//It's a driver
-//	   } else if (dynamic_cast<Pedestrian*>(p->getRole())) {
-//		   //It's a pedestrian
-//		   //etc.
-//	   }
-//	   p = nullptr;
-//	   a = nullptr;
-//	}
+	Agent* a = nullptr;
+	Person* p = nullptr;
+	double pedRelX, pedRelY, drvRelX, drvRelY;
+	double minDist=1000000;
+	for (size_t i=0; i<Agent::all_agents.size(); i++) {
+		//Skip self
+		a = Agent::all_agents[i];
+		if (a->getId()==parent->getId()) {
+			a = nullptr;
+			continue;
+		}
+
+		if(dynamic_cast<Person*>(a)){
+			p=dynamic_cast<Person*>(a);
+			if(dynamic_cast<Driver*>(p->getRole())){
+				if(p->currentLink.get()==0){
+					absToRel(p->xPos.get(),p->yPos.get(),drvRelX,drvRelY);
+					absToRel(parent->xPos.get(),parent->xPos.get(),pedRelX,pedRelY);
+					if(minDist>abs(drvRelY-pedRelY))
+						minDist = abs(drvRelY-pedRelY);
+				}
+			}
+		}
+		p = nullptr;
+		a = nullptr;
+	}
+	p = nullptr;
+	a = nullptr;
+
+//	if((minDist/10-30/speed)>2)
+//		return true;
+//	else
+//		return false;
 
 	return false;
 }
@@ -309,7 +344,7 @@ void sim_mob::Pedestrian::updateVelocity(int flag) //0-on sidewalk, 1-on crossin
 	yVel = yVel/length;
 	//Set actual velocity
 	if(flag==0)
-		scale = 2;
+		scale = 1.5;
 	else if(flag==1)
 		scale = 1;
 	else if (flag==2)
@@ -412,23 +447,48 @@ void sim_mob::Pedestrian::checkForCollisions()
 
 void sim_mob::Pedestrian::setCrossingPos(){
 
-	double xDir=((double)parent->destNode->location->getX())/100-((double)goal.getX())/100;
-	double yDir=((double)parent->destNode->location->getY())/100-((double)goal.getY())/100;
-	double magnitude=sqrt(xDir*xDir+yDir*yDir);
-	double xDirection=xDir/magnitude;
-	double yDirection=yDir/magnitude;
 	//Set agents' start crossing locations
 	double xRel = -30;
 	double yRel = 30+(double)(rand()%6);
-	double xAbs=xRel*xDirection-yRel*yDirection+((double)goal.getX())/100;
-	double yAbs=xRel*yDirection+yRel*xDirection+((double)goal.getY())/100;
+	double xAbs=0;
+	double yAbs=0;
+	relToAbs(xRel,yRel,xAbs,yAbs);
 	parent->xPos.set(xAbs);
 	parent->yPos.set(yAbs);
 	//Set agents' end crossing locations
 	xRel=30;
+	relToAbs(xRel,yRel,xAbs,yAbs);
+	goal = Point2D(int(xAbs*100),int(yAbs*100));
+}
+
+bool sim_mob::Pedestrian::isStartPosSet(){
+	if(parent->xPos.get()==0 && parent->yPos.get()==0)
+		return false;
+	else
+		return true;
+}
+
+void sim_mob::Pedestrian::absToRel(double xAbs, double yAbs, double & xRel, double & yRel){
+
+	double xDir=cEndX-cStartX;
+	double yDir=cEndY-cStartY;
+	double xOffset=xAbs-cStartX;
+	double yOffset=yAbs-cStartY;
+	double magnitude=sqrt(xDir*xDir+yDir*yDir);
+	double xDirection=xDir/magnitude;
+	double yDirection=yDir/magnitude;
+	xRel = xOffset*xDirection+yOffset*yDirection;
+	yRel =-xOffset*yDirection+yOffset*xDirection;
+}
+
+void sim_mob::Pedestrian::relToAbs(double xRel, double yRel, double & xAbs, double & yAbs){
+	double xDir=cEndX-cStartX;
+	double yDir=cEndY-cStartY;
+	double magnitude=sqrt(xDir*xDir+yDir*yDir);
+	double xDirection=xDir/magnitude;
+	double yDirection=yDir/magnitude;
 	xAbs=xRel*xDirection-yRel*yDirection+((double)goal.getX())/100;
 	yAbs=xRel*yDirection+yRel*xDirection+((double)goal.getY())/100;
-	goal = Point2D(int(xAbs*100),int(yAbs*100));
 }
 
 

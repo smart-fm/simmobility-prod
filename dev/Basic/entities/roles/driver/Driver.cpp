@@ -197,18 +197,18 @@ void sim_mob::Driver::update(frame_t frameNumber)
 
 	updateAngle();
 
-	boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-	std::cout <<"("
-			<<parent->getId()
-			<<"," <<frameNumber
-			<<"," <<parent->xPos.get()
-			<<"," <<parent->yPos.get()
-			<<"," <<trafficSignal->getcurrPhase()
-			<<"," <<"0.95"
-			<<"," <<floor(trafficSignal->getnextCL())
-			<<"," <<trafficSignal->getphaseCounter()
-			<<"," <<angle
-			<<")"<<std::endl;
+//	boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
+//	std::cout <<"("
+//			<<parent->getId()
+//			<<"," <<frameNumber
+//			<<"," <<parent->xPos.get()
+//			<<"," <<parent->yPos.get()
+//			<<"," <<trafficSignal->getcurrPhase()
+//			<<"," <<"0.95"
+//			<<"," <<floor(trafficSignal->getnextCL())
+//			<<"," <<trafficSignal->getphaseCounter()
+//			<<"," <<angle
+//			<<")"<<std::endl;
 }
 
 void sim_mob::Driver::getFromParent()

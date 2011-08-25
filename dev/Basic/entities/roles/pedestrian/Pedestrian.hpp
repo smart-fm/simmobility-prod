@@ -35,6 +35,7 @@ private:
 //	unsigned int phaseCounter; //To be replaced by traffic management system
 	int curCrossingID;
 	bool startToCross;
+	double cStartX, cStartY, cEndX, cEndY;
 
 	//For collisions
 	double xCollisionVector;
@@ -50,11 +51,14 @@ private:
 	void updatePosition();
 	void updatePedestrianSignal();
 	void checkForCollisions();
-	bool reachStartOfCrossing();
+//	bool reachStartOfCrossing();
 	bool onCrossing();
 	bool checkGapAcceptance();
 	int getCurrentCrossing();
 	void setCrossingPos(); //Temp helper function
+	bool isStartPosSet(); //Temp helper function
+	void absToRel(double, double, double &, double &);
+	void relToAbs(double, double, double &, double &);
 
 };
 

@@ -86,11 +86,6 @@ void sim_mob :: Signal :: startSplitPlan()
 
 void sim_mob :: Signal ::update(frame_t frameNumber)
 {
-//	{
-//		boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-//		std::cout <<"SIGNAL UPDATE"<<std::endl;
-//	}
-
 	updateSignal (Density);
 }
 

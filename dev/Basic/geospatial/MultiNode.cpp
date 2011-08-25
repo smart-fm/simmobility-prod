@@ -29,6 +29,7 @@ double AngleBetween(const Node* const center, const Node* const first, const Nod
 	//Calculate the clockwise angle.
 	double res = 0.0;
 	//TODO
+	throw std::runtime_error("Angle not computed yet...");
 
 
 	//Reverse it if requested
@@ -123,10 +124,22 @@ void sim_mob::MultiNode::BuildClockwiseLinks(const RoadNetwork& rn, MultiNode* n
 		InsertIntoVector(node->roadSegmentsCircular, node->roadSegmentsCircular.end(), *it, node);
 		//node->roadSegmentsCircular.push_back(std::make_pair(*it, (*it)->getEnd()==node));
 	}
-
-
-
 }
+
+
+pair< vector< pair<RoadSegment*, bool> >, vector< pair<RoadSegment*, bool> > >
+	sim_mob::MultiNode::getPedestrianPaths(const Node* const nodeBefore, const Node* const nodeAfter) const
+{
+	//TODO: Alone, this information is not sufficient: Pedestrians can (probably) walk "backwards"
+	//      down the sidewalk on a single-directional RoadSegment. Perhaps we can use RoadSegment*, bool
+	//      input/outputs?
+
+	//TODO: Scan the circular array, build two result arrays. The Agent can then decide which
+	//      of these two paths to take, and can then request Crossing information for each
+	//      RoadSegment he needs to cross.
+	throw std::runtime_error("Not implemented yet.");
+}
+
 
 
 

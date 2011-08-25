@@ -49,6 +49,12 @@ public:
 	///Retrieve a list of all RoadSegments at this node.
 	const std::set<sim_mob::RoadSegment*>& getRoadSegments() const { return roadSegmentsAt; }
 
+	//Determine which RoadSegments (and in which direction) you have to cross as a pedestrian approaching this
+	//  MultiNode
+	//TODO: The return value will _definitely_ be a class.
+	std::pair< std::vector< std::pair<sim_mob::RoadSegment*, bool> >, std::vector< std::pair<sim_mob::RoadSegment*, bool> > >
+		getPedestrianPaths(const sim_mob::Node* const nodeBefore, const sim_mob::Node* const nodeAfter) const;
+
 	//Helper: Build it
 	static void BuildClockwiseLinks(const sim_mob::RoadNetwork& rn, sim_mob::MultiNode* node);
 

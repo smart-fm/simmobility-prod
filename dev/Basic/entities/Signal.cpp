@@ -90,7 +90,7 @@ void sim_mob :: Signal ::update(frame_t frameNumber)
 {
 	{
 		boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-		std::cout <<"("<<ID<<","<<frameNumber<<",Signal,{va:";
+		std::cout <<"(Signal,"<<frameNumber<<","<<ID<<",{va:";
 		for(int i = 0; i<3; i++)std::cout<<TC_for_Driver[0][i]<<",";
 		std::cout <<"vb:";
 		for(int i = 0; i<3; i++)std::cout<<TC_for_Driver[1][i]<<",";

@@ -26,15 +26,44 @@ double AngleBetween(const Node* const center, const Node* const first, const Nod
 		return 0.0;
 	}
 
-	//Calculate the clockwise angle.
-	double res = 0.0;
-	//TODO
-	//throw std::runtime_error("Angle not computed yet...");
+	//Subtract the vectors
+	double v1x = first->location->getX() - center->location->getX();
+	double v1y = first->location->getY() - center->location->getY();
+	double v2x = second->location->getX() - center->location->getX();
+	double v2y = second->location->getY() - center->location->getY();
+
+	//Calculate the interior angle using atan2 & the dot-product
+	double res = -(180.0/M_PI) * atan2(v1x*v2y - v1y*v2x, v1x*v2x+v1y*v2y);
 
 	//0 is always 0
 	if (res==0) {
 		return res;
 	}
+
+	//If the cross-product is anti-parallel to the plane, we need to subtract this angle from 2PI
+	//TODO: I'm bad with vectors. ~Seth
+	bool isAntiparallel = false;
+	if (isAntiparallel) { //TODO: Check! This will be much faster than using a rotational matrix, below.
+		//res = 2*M_PI - res;
+	}
+
+	//TEMP: Sine our anti-parallel solution isn't ready, another way to handle this is to use a roational
+	//      matrix to rotate the first vector by A and 2PI-A radians, and pick whichever result is closer
+	//      to the second vector's end point. (Note: Rotational matrices rotate counter-clockwise)
+	{
+	double resRev = 2*M_PI - res;
+	double res1X = first->location->getX()*cos(resRev) - first->location->getY()*sin(resRev);
+	double res1Y = first->location->getX()*sin(resRev) - first->location->getY()*cos(resRev);
+	double res1Dist = dist(second->location->getX(), second->location->getY(), res1X, res1Y);
+	double res2X = first->location->getX()*cos(res) - first->location->getY()*sin(res);
+	double res2Y = first->location->getX()*sin(res) - first->location->getY()*cos(res);
+	double res2Dist = dist(second->location->getX(), second->location->getY(), res2X, res2Y);
+	if (res2Dist<res1Dist) {
+		res = 2*M_PI - res;
+	}
+	}
+
+
 
 	//Reverse the result if requested
 	return readClockwise ? res : (2*M_PI-res);

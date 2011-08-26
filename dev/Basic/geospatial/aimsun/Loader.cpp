@@ -229,15 +229,6 @@ void LoadBasicAimsunObjects(const string& connectionStr, map<string, string>& st
 
 
 
-//Simple distance formula
-double dist(double x1, double y1, double x2, double y2)
-{
-	double dx = x2 - x1;
-	double dy = y2 - y1;
-	return sqrt(dx*dx + dy*dy);
-}
-
-
 //Compute line intersection
 bool calculateIntersection(const Crossing* const p1, const Crossing* p2, const Section* sec, double& xRes, double& yRes)
 {

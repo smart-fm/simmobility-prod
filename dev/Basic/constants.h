@@ -13,6 +13,8 @@
 
 #pragma once
 
+#include <cmath>
+
 //namespace sim_mob {} //This is a temporary file, so it exists outside the namespace
 
 
@@ -28,14 +30,31 @@ enum WORKGROUP_SIZES {
 };
 
 
+//Note: Un-named namespace used to avoid multiple definitions error.
+//      Of course, these functions need a common place eventually, like a "utils" hpp/cpp
+namespace {
+
 
 /**
  * Declaration of a "trivial" function, which does nothing and returns a trivial conditional.
  * Used to indicate future functionality.
  */
-bool trivial(unsigned int id);
+inline bool trivial(unsigned int id)
+{
+	return id%2==0;
+}
 
 
+///Simple distance formula.
+inline double dist(double x1, double y1, double x2, double y2)
+{
+	double dx = x2 - x1;
+	double dy = y2 - y1;
+	return sqrt(dx*dx + dy*dy);
+}
+
+
+}
 
 /**
  * Temporary definition of nullptr. The new standard (C++11) will have "nullptr" as a builtin

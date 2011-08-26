@@ -41,12 +41,6 @@ using namespace sim_mob;
 typedef WorkGroup<Entity> EntityWorkGroup;
 
 
-//trivial defined here
-bool trivial(unsigned int id) {
-	return id%2==0;
-}
-
-
 /**
  * First "loading" step is special. Initialize all agents using work groups in parallel.
  */

@@ -78,7 +78,7 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 				//Output (temp)
 				{
 					boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-					std::cout <<"Pedestrian " <<parent->getId() <<" has reached the destination" <<std::endl;
+					BufferedBase::log_file() <<"Pedestrian " <<parent->getId() <<" has reached the destination" <<std::endl;
 				}
 				parent->setToBeRemoved(true);
 			}
@@ -90,7 +90,7 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 			setGoal(currentStage); //Set next goal
 			{
 				boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-				std::cout <<"Pedestrian " <<parent->getId() <<" has reached goal " <<currentStage<<std::endl;
+				BufferedBase::log_file() <<"Pedestrian " <<parent->getId() <<" has reached goal " <<currentStage<<std::endl;
 			}
 		}
 		else{
@@ -122,13 +122,13 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 					//Output (temp)
 					{
 						boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-						std::cout <<"Pedestrian " <<parent->getId() <<" is waiting at the crossing" <<std::endl;
+						BufferedBase::log_file() <<"Pedestrian " <<parent->getId() <<" is waiting at the crossing" <<std::endl;
 					}
 				}
 				//Output (temp)
 				{
 					boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-					std::cout <<"("<<"'pedestrian',"<<frameNumber<<","<<parent->getId()<<","<<"{xPos:"<<parent->xPos.get()<<"," <<"yPos:"<<this->parent->yPos.get()<<","<<"pedSig:"<<currPhase<<",})"<<std::endl;
+					BufferedBase::log_file() <<"("<<"'pedestrian',"<<frameNumber<<","<<parent->getId()<<","<<"{xPos:"<<parent->xPos.get()<<"," <<"yPos:"<<this->parent->yPos.get()<<","<<"pedSig:"<<currPhase<<",})"<<std::endl;
 				}
 			}
 

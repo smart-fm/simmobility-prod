@@ -31,8 +31,12 @@ double AngleBetween(const Node* const center, const Node* const first, const Nod
 	//TODO
 	//throw std::runtime_error("Angle not computed yet...");
 
+	//0 is always 0
+	if (res==0) {
+		return res;
+	}
 
-	//Reverse it if requested
+	//Reverse the result if requested
 	return readClockwise ? res : (2*M_PI-res);
 }
 
@@ -83,11 +87,9 @@ void sim_mob::MultiNode::BuildClockwiseLinks(const RoadNetwork& rn, MultiNode* n
 	//Reset
 	node->roadSegmentsCircular.clear();
 
-	//TEMP
-	return;
-
 	//Insert links one-by-one
 	for (set<RoadSegment*>::const_iterator it=node->roadSegmentsAt.begin(); it!=node->roadSegmentsAt.end(); it++) {
+		bool found = false;
 		if (!node->roadSegmentsCircular.empty()) {
 
 			//Simple case 1: Is there already a RoadSegment with opposing start/end Nodes? If so, put it
@@ -105,29 +107,35 @@ void sim_mob::MultiNode::BuildClockwiseLinks(const RoadNetwork& rn, MultiNode* n
 						//node->roadSegmentsCircular.insert(checkIt+1, std::make_pair(*it, !checkIt->second));
 					}
 
-					continue;
+					found = true;
+					break;
 				}
 			}
 
 			//Slightly more complex case: Search clockwise (counterclockwise on RHS roads) for the next available free slot.
 			//Note that we specifically check for angle 0 to avoid potentially unexpected behavior.
-			const Node* firstSegNode = (node->roadSegmentsCircular.begin()->first->getStart()!=node) ? node->roadSegmentsCircular.begin()->first->getStart() : node->roadSegmentsCircular.begin()->first->getEnd();
-			double newSegAngle = AngleBetween(node, firstSegNode, ((*it)->getStart()!=node?(*it)->getStart():(*it)->getEnd()), rn.drivingSide==DRIVES_ON_LEFT);
-			if (newSegAngle!=0.0) {
-				for (vector< pair<RoadSegment*, bool> >::iterator checkIt=node->roadSegmentsCircular.begin()+1; checkIt!=node->roadSegmentsCircular.end(); checkIt++) {
-					//Compute the angle between the first iterator and this iterator. If that angle is bigger than the angle of the Segment we're searching for, add it.
-					double oldSegAngle = AngleBetween(node, firstSegNode, (checkIt->first->getStart()!=node?checkIt->first->getStart():checkIt->first->getEnd()), rn.drivingSide==DRIVES_ON_LEFT);
-					if (oldSegAngle!=0.0 && oldSegAngle>newSegAngle) {
-						InsertIntoVector(node->roadSegmentsCircular, checkIt, *it, node);
-						//node->roadSegmentsCircular.insert(checkIt, std::make_pair(*it, (*it)->getEnd()==node));
-						continue;
+			if (!found) {
+				const Node* firstSegNode = (node->roadSegmentsCircular.begin()->first->getStart()!=node) ? node->roadSegmentsCircular.begin()->first->getStart() : node->roadSegmentsCircular.begin()->first->getEnd();
+				double newSegAngle = AngleBetween(node, firstSegNode, ((*it)->getStart()!=node?(*it)->getStart():(*it)->getEnd()), rn.drivingSide==DRIVES_ON_LEFT);
+				if (newSegAngle!=0.0) {
+					for (vector< pair<RoadSegment*, bool> >::iterator checkIt=node->roadSegmentsCircular.begin()+1; checkIt!=node->roadSegmentsCircular.end(); checkIt++) {
+						//Compute the angle between the first iterator and this iterator. If that angle is bigger than the angle of the Segment we're searching for, add it.
+						double oldSegAngle = AngleBetween(node, firstSegNode, (checkIt->first->getStart()!=node?checkIt->first->getStart():checkIt->first->getEnd()), rn.drivingSide==DRIVES_ON_LEFT);
+						if (oldSegAngle!=0.0 && oldSegAngle>newSegAngle) {
+							InsertIntoVector(node->roadSegmentsCircular, checkIt, *it, node);
+							//node->roadSegmentsCircular.insert(checkIt, std::make_pair(*it, (*it)->getEnd()==node));
+							found = true;
+							break;
+						}
 					}
 				}
 			}
 		}
 
 		//If nothing worked (or if the array is empty), just add it to the back of the array.
-		InsertIntoVector(node->roadSegmentsCircular, node->roadSegmentsCircular.end(), *it, node);
+		if (!found) {
+			InsertIntoVector(node->roadSegmentsCircular, node->roadSegmentsCircular.end(), *it, node);
+		}
 		//node->roadSegmentsCircular.push_back(std::make_pair(*it, (*it)->getEnd()==node));
 	}
 }

@@ -21,6 +21,7 @@
 #include "../geospatial/LaneConnector.hpp"
 
 using std::cout;
+using std::endl;
 using std::map;
 using std::set;
 using std::string;
@@ -369,40 +370,41 @@ void PrintDB_Network()
 
 	//Initial message
 	RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
-	cout <<"Printing node network\n";
-	cout <<"NOTE: All IDs in this section are consistent for THIS simulation run, but will change if you run the simulation again.\n";
+	std::ostream& logout = BufferedBase::log_file();
+	logout <<"Printing node network" <<endl;
+	logout <<"NOTE: All IDs in this section are consistent for THIS simulation run, but will change if you run the simulation again." <<endl;
 
 	//Print Links first
 	for (vector<Link*>::const_iterator it=rn.getLinks().begin(); it!=rn.getLinks().end(); it++) {
-		cout <<"(\"link\", 0, " <<*it <<", {";
-		cout <<"\"road-name\":\"" <<(*it)->roadName <<"\",";
-		cout <<"\"start-node\":\"" <<(*it)->getStart() <<"\",";
-		cout <<"\"end-node\":\"" <<(*it)->getEnd() <<"\",";
-		cout <<"\"fwd-path\":\"[";
+		logout <<"(\"link\", 0, " <<*it <<", {";
+		logout <<"\"road-name\":\"" <<(*it)->roadName <<"\",";
+		logout <<"\"start-node\":\"" <<(*it)->getStart() <<"\",";
+		logout <<"\"end-node\":\"" <<(*it)->getEnd() <<"\",";
+		logout <<"\"fwd-path\":\"[";
 		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath(true).begin(); segIt!=(*it)->getPath(true).end(); segIt++) {
-			cout <<*segIt <<",";
+			logout <<*segIt <<",";
 		}
-		cout <<"]\",";
-		cout <<"\"rev-path\":\"[";
+		logout <<"]\",";
+		logout <<"\"rev-path\":\"[";
 		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath(false).begin(); segIt!=(*it)->getPath(false).end(); segIt++) {
-			cout <<*segIt <<",";
+			logout <<*segIt <<",";
 		}
-		cout <<"]\",";
-		cout <<"})\n";
+		logout <<"]\",";
+		logout <<"})" <<endl;
 	}
 
 	//Then print Nodes
 	for (set<UniNode*>::const_iterator it=rn.getUniNodes().begin(); it!=rn.getUniNodes().end(); it++) {
-		cout <<"(\"uni-node\", 0, " <<*it <<", {";
-		cout <<"\"xPos\":\"" <<(*it)->location->getX() <<"\",";
-		cout <<"\"yPos\":\"" <<(*it)->location->getY() <<"\",";
-		cout <<"})\n";
+		logout <<"(\"uni-node\", 0, " <<*it <<", {";
+		logout <<"\"xPos\":\"" <<(*it)->location->getX() <<"\",";
+		logout <<"\"yPos\":\"" <<(*it)->location->getY() <<"\",";
+		logout <<"})" <<endl;
 	}
 	for (vector<MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
-		cout <<"(\"multi-node\", 0, " <<*it <<", {";
-		cout <<"\"xPos\":\"" <<(*it)->location->getX() <<"\",";
-		cout <<"\"yPos\":\"" <<(*it)->location->getY() <<"\",";
-		cout <<"})\n";
+		logout <<"(\"multi-node\", 0, " <<*it <<", {";
+		logout <<"\"xPos\":\"" <<(*it)->location->getX() <<"\",";
+		logout <<"\"yPos\":\"" <<(*it)->location->getY() <<"\",";
+		logout <<"})" <<endl;
 
 		//NOTE: This is temporary; later we'll ensure that the RoadNetwork only stores Intersections,
 		//      and RoadSegments will have to be extracted.
@@ -427,21 +429,21 @@ void PrintDB_Network()
 
 	//Now print all Segments
 	for (std::set<RoadSegment*>::const_iterator it=cachedSegments.begin(); it!=cachedSegments.end(); it++) {
-		cout <<"(\"road-segment\", 0, " <<*it <<", {";
-		cout <<"\"parent-link\":\"" <<(*it)->getLink() <<"\",";
-		cout <<"\"max-speed\":\"" <<(*it)->maxSpeed <<"\",";
-		cout <<"\"lanes\":\"" <<(*it)->getLanes().size() <<"\",";
-		cout <<"})\n";
+		logout <<"(\"road-segment\", 0, " <<*it <<", {";
+		logout <<"\"parent-link\":\"" <<(*it)->getLink() <<"\",";
+		logout <<"\"max-speed\":\"" <<(*it)->maxSpeed <<"\",";
+		logout <<"\"lanes\":\"" <<(*it)->getLanes().size() <<"\",";
+		logout <<"})" <<endl;
 
 		if (!(*it)->polyline.empty()) {
-			cout <<"(\"polyline\", 0, " <<&((*it)->polyline) <<", {";
-			cout <<"\"parent-segment\":\"" <<*it <<"\",";
-			cout <<"\"points\":\"[";
+			logout <<"(\"polyline\", 0, " <<&((*it)->polyline) <<", {";
+			logout <<"\"parent-segment\":\"" <<*it <<"\",";
+			logout <<"\"points\":\"[";
 			for (vector<Point2D>::const_iterator ptIt=(*it)->polyline.begin(); ptIt!=(*it)->polyline.end(); ptIt++) {
-				cout <<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
+				logout <<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
 			}
-			cout <<"]\",";
-			cout <<"})\n";
+			logout <<"]\",";
+			logout <<"})" <<endl;
 		}
 	}
 
@@ -455,12 +457,12 @@ void PrintDB_Network()
 		unsigned int toLane = (*it)->getLaneTo()->getLaneID();
 
 		//Output
-		cout <<"(\"lane-connector\", 0, " <<*it <<", {";
-		cout <<"\"from-segment\":\"" <<fromSeg <<"\",";
-		cout <<"\"from-lane\":\"" <<fromLane <<"\",";
-		cout <<"\"to-segment\":\"" <<toSeg <<"\",";
-		cout <<"\"to-lane\":\"" <<toLane <<"\",";
-		cout <<"})\n";
+		logout <<"(\"lane-connector\", 0, " <<*it <<", {";
+		logout <<"\"from-segment\":\"" <<fromSeg <<"\",";
+		logout <<"\"from-lane\":\"" <<fromLane <<"\",";
+		logout <<"\"to-segment\":\"" <<toSeg <<"\",";
+		logout <<"\"to-lane\":\"" <<toLane <<"\",";
+		logout <<"})" <<endl;
 	}
 }
 

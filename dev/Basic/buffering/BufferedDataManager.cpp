@@ -9,6 +9,8 @@ using std::vector;
 
 //TEMP
 boost::mutex sim_mob::BufferedBase::global_mutex;
+std::ostream* sim_mob::BufferedBase::log_file_or_cout;
+std::ofstream sim_mob::BufferedBase::file_output;
 
 
 sim_mob::BufferedDataManager::~BufferedDataManager()

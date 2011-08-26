@@ -18,6 +18,7 @@
 #include "workers/Worker.hpp"
 #include "workers/EntityWorker.hpp"
 #include "workers/ShortestPathWorker.hpp"
+#include "buffering/BufferedDataManager.hpp"
 #include "WorkGroup.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/RoadNetwork.hpp"
@@ -240,13 +241,28 @@ int main(int argc, char* argv[])
 	}
 	cout <<"Using config file: " <<configFileName <<endl;
 
+	//Argument 2: Log file
+	if (argc>2) {
+		if (!BufferedBase::log_init(argv[2])) {
+			cout <<"Loading output file failed; using cout" <<endl;
+			cout <<argv[2] <<endl;
+		}
+	} else {
+		BufferedBase::log_init("");
+		cout <<"No output file specified; using cout." <<endl;
+	}
+
 	//This should be moved later, but we'll likely need to manage random numbers
 	//ourselves anyway, to make simulations as repeatable as possible.
 	time_t t = time(NULL);
 	srand (t);
 	cout <<"Random Seed Init: " <<t <<endl;
 
+	//Perform main loop
 	int returnVal = performMain(configFileName) ? 0 : 1;
+
+	//Close log file, return.
+	BufferedBase::log_done();
 	cout <<"Done" <<endl;
 	return returnVal;
 }

@@ -25,6 +25,10 @@ static final int BUFFER = 95;
 static final int NODE_SIZE = 12;
 static final int CROSS_POINT_SIZE = 4;
 
+//Current scale matrix.
+double[] scaleMatrix;   //CenterX, CenterY, WidthOfWindow_M, HeightOfWindow_M
+double[] zoomAmounts;   //Width_M, Height_M to subtract/add on zoom in/out
+
 //Defaults
 static String restrictRoadName = null;
 static double[] forceZoomX = null;
@@ -38,8 +42,8 @@ static {
   //forceZoomY = new double[]{143518.2025, 143594.3131};
   //forceZoomX = new double[]{372369.5087, 372455.0595};
   //forceZoomY = new double[]{143594.3131, 143663.9532};
-  forceZoomX = new double[]{372121-150, 372121+150};
-  forceZoomY = new double[]{143107-150, 143107+150};
+  //forceZoomX = new double[]{372121-150, 372121+150};
+  //forceZoomY = new double[]{143107-150, 143107+150};
 //  tagLaneID = 4550;
 //  tagLaneID = 4215;
   tagLaneID = 4235;
@@ -66,26 +70,11 @@ void checkBounds(double[] bounds, double newVal) {
   bounds[1] = Math.max(bounds[1], newVal);
 }
 
-int scalePointForDisplay(double orig, double[] bounds) {
-    double percent = (orig - bounds[0]) / (bounds[1] - bounds[0]);
-    int scaledMagnitude = ((int)bounds[2] * BUFFER) / 100;
-    int newVal = (int)(percent * scaledMagnitude) + ((int)bounds[2]-scaledMagnitude)/2; //Slightly easier to view.
-    return newVal;
-}
-
 ArrayList<Node> nodes = new ArrayList<Node>();
 class Node {
   int id;
   
-  double getX() {
-    return xPos;
-  }
-  double getY() {
-    return height - yPos;
-  }
-  
-  double xPos;
-  double yPos;
+  ScaledPoint pos;
   
   boolean isIntersection;
 };
@@ -127,33 +116,38 @@ class Crossing {
   String laneType;
   String roadName;
 
-  double getX() {
-    return xPos;
-  }
-  double getY() {
-    return height - yPos;
-  }
-
-  double xPos;
-  double yPos;
+  ScaledPoint pos;
 
   Section section;
 };
 
 
 
-void scaleNode(Node n, double[] xBounds, double[] yBounds)  {
-//  println("x,y: " + n.xPos + "," + n.yPos);
+void scaleAndZoom(double centerX, double centerY, double widthInM, double heightInM) {
+  //Save for later.
+  scaleMatrix = new double[]{centerX, centerY, widthInM, heightInM};
   
-  n.xPos = scalePointForDisplay(n.xPos, xBounds);
-  n.yPos = scalePointForDisplay(n.yPos, yBounds);
+  //Prepare a simpler min-max scaling matrix
+  double[] xBounds = new double[]{centerX-widthInM, centerX+widthInM, width};
+  double[] yBounds = new double[]{centerY-heightInM, centerY+heightInM, height};
   
-//  println("  to: " + n.xPos + "," + n.yPos);
-}
-
-void scaleCrossing(Crossing c, double[] xBounds, double[] yBounds)  {
-  c.xPos = scalePointForDisplay(c.xPos, xBounds);
-  c.yPos = scalePointForDisplay(c.yPos, yBounds);
+  //Scale all nodes
+  for (Node n : nodes) {
+    n.pos.scaleTo(xBounds, yBounds);
+  }
+  
+  //Scale all crossings (which are saved by section)
+  for (Section s : sections) {
+    for (int i : s.crossings.keySet()) {
+      ArrayList<Crossing> crossings = s.crossings.get(i);
+      for (Crossing c : crossings) {
+        c.pos.scaleTo(xBounds, yBounds);
+      }
+    }
+  }
+  
+  //Repaint
+  doRepaint = true;
 }
 
 
@@ -223,6 +217,9 @@ void setup()
     throw new RuntimeException(ex);
   }
   
+  //Save zoom amounts
+  zoomAmounts = new double[]{(xBounds[1]-xBounds[0])/10, (yBounds[1]-yBounds[0])/10};
+  
   //Force?
   if (forceZoomX!=null && forceZoomY!=null) {
     xBounds[0] = forceZoomX[0];
@@ -232,21 +229,11 @@ void setup()
   }
   
   //Scale all points
-  
-  println("scaling: " + xBounds[0] + "," + xBounds[1] + " to " + xBounds[2] );
-  println("scaling: " + yBounds[0] + "," + yBounds[1] + " to " + yBounds[2]);
-  
-  for (Node n : nodes) {
-    scaleNode(n, xBounds, yBounds);
-  }
-  for (Section s : sections) {
-    for (int i : s.crossings.keySet()) {
-      ArrayList<Crossing> crossings = s.crossings.get(i);
-      for (Crossing c : crossings) {
-        scaleCrossing(c, xBounds, yBounds);
-      }
-    }
-  }
+  double scaleWidth = xBounds[1]-xBounds[0];
+  double scaleHeight = yBounds[1]-yBounds[0];
+  double centerX = xBounds[0] + scaleWidth/2;
+  double centerY = yBounds[0] + scaleHeight/2;
+  scaleAndZoom(centerX, centerY, scaleWidth, scaleHeight);
 }
 
 
@@ -270,7 +257,7 @@ void draw()
     //Draw the node
     stroke(nodeStroke);
     fill(nodeFill);
-    ellipse((float)n.getX(), (float)n.getY(), NODE_SIZE, NODE_SIZE);
+    ellipse((float)n.pos.getX(), (float)n.pos.getY(), NODE_SIZE, NODE_SIZE);
   }
   
   //Draw all sections
@@ -281,7 +268,7 @@ void draw()
     //Draw a simple line
     stroke(nodeStroke);
     strokeWeight(2.0);
-    line((float)s.from.getX(), (float)s.from.getY(), (float)s.to.getX(), (float)s.to.getY());
+    line((float)s.from.pos.getX(), (float)s.from.pos.getY(), (float)s.to.pos.getX(), (float)s.to.pos.getY());
     
     //Draw crossings
     int crsID=0;
@@ -303,15 +290,15 @@ void draw()
         if (restrictRoadName!=null && !restrictRoadName.equals(cr.roadName)) {
           continue;
         }
-        ellipse((float)cr.getX(), (float)cr.getY(), CROSS_POINT_SIZE, CROSS_POINT_SIZE);
+        ellipse((float)cr.pos.getX(), (float)cr.pos.getY(), CROSS_POINT_SIZE, CROSS_POINT_SIZE);
         
         //Connect?
         if (lastPoint!=null) {
-          line((float)cr.getX(), (float)cr.getY(), (float)lastPoint[0], (float)lastPoint[1]);
+          line((float)cr.pos.getX(), (float)cr.pos.getY(), (float)lastPoint[0], (float)lastPoint[1]);
         }
         
         //Save
-        lastPoint = new double[] {cr.getX(), cr.getY()};
+        lastPoint = new double[] {cr.pos.getX(), cr.pos.getY()};
       }
       crsID++;
     }
@@ -324,7 +311,7 @@ void draw()
   for (int i=0; i<nodes.size(); i++) {
     Node n = nodes.get(i);
     fill(0x33);
-    text(""+(n.id), (float)n.getX(), (float)n.getY()); 
+    text(""+(n.id), (float)n.pos.getX(), (float)n.pos.getY()); 
   }
   
   //Label sections
@@ -339,7 +326,7 @@ void draw()
     strokeWeight(1);
     if (!alreadyDrawn.contains(key)) {
       fill(0x33);
-      text(s.name, (float)(s.from.getX()+(s.to.getX()-s.from.getX())/2), (float)(s.from.getY()+(s.to.getY()-s.from.getY())/2)); 
+      text(s.name, (float)(s.from.pos.getX()+(s.to.pos.getX()-s.from.pos.getX())/2), (float)(s.from.pos.getY()+(s.to.pos.getY()-s.from.pos.getY())/2)); 
       alreadyDrawn.add(key);
     }
   }
@@ -407,18 +394,20 @@ void readNodes(String nodesFile, double[] xBounds, double[] yBounds) throws IOEx
     
     //Create a Node, populate it.
     Node n = new Node();
+    double xPos, yPos;
     try {
       n.id = Integer.parseInt(items[0]);
-      n.xPos = Double.parseDouble(items[1]);
-      n.yPos = Double.parseDouble(items[2]);
+      xPos = Double.parseDouble(items[1]);
+      yPos = Double.parseDouble(items[2]);
+      n.pos = new ScaledPoint(xPos, yPos);
       n.isIntersection = myParseBool(items[3]);
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }
     
     //Expand bounds as necessary
-    checkBounds(xBounds, n.xPos);
-    checkBounds(yBounds, n.yPos);
+    checkBounds(xBounds, xPos);
+    checkBounds(yBounds, yPos);
     
     nodes.add(n);
   }
@@ -484,6 +473,7 @@ void readCrossings(String crossingsFile, double[] xBounds, double[] yBounds) thr
     
     //Create a Crossing, populate it.
     Crossing c = new Crossing();
+    double xPos, yPos;
     try {
       c.laneID = Integer.parseInt(items[0]);
       c.laneType = items[1].trim();
@@ -491,8 +481,9 @@ void readCrossings(String crossingsFile, double[] xBounds, double[] yBounds) thr
       if (!c.laneType.equals("J") && !c.laneType.equals("A4")) {
         throw new RuntimeException("Unknown crossing laneType: " + c.laneType);
       }
-      c.xPos = Double.parseDouble(items[5]);
-      c.yPos = Double.parseDouble(items[6]);
+      xPos = Double.parseDouble(items[5]);
+      yPos = Double.parseDouble(items[6]);
+      c.pos = new ScaledPoint(xPos, yPos);
       
       c.section = getSection(Integer.parseInt(items[3]));
     } catch (Exception ex) {
@@ -500,8 +491,8 @@ void readCrossings(String crossingsFile, double[] xBounds, double[] yBounds) thr
     }
     
     //Expand bounds as necessary
-    checkBounds(xBounds, c.xPos);
-    checkBounds(yBounds, c.yPos);
+    checkBounds(xBounds, xPos);
+    checkBounds(yBounds, yPos);
     
     //Add it
     if (!c.section.crossings.containsKey(c.laneID)) {
@@ -527,6 +518,41 @@ boolean myParseBool(String input) {
 
 
 //////
+
+
+class ScaledPoint {
+  double origX;
+  double origY;
+  double scaledX;
+  double scaledY;
+  
+  ScaledPoint(double x, double y) {
+    origX = x;
+    origY = y;
+  }
+  
+  double getX() {
+    return scaledX;
+  }
+  double getY() {
+    return height - scaledY;
+  }
+ 
+  void scaleTo(double[] xBounds, double[] yBounds) {
+    scaledX = scalePointForDisplay(origX, xBounds);
+    scaledY = scalePointForDisplay(origY, yBounds);
+  }
+
+  int scalePointForDisplay(double orig, double[] bounds) {
+    double percent = (orig - bounds[0]) / (bounds[1] - bounds[0]);
+    int scaledMagnitude = ((int)bounds[2] * BUFFER) / 100;
+    int newVal = (int)(percent * scaledMagnitude) + ((int)bounds[2]-scaledMagnitude)/2; //Slightly easier to view.
+    return newVal;
+  }
+  
+}
+
+
 
 interface ToggleAction {
   public void doAction(ToggleButton src);

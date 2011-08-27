@@ -15,6 +15,9 @@ boolean skipAction = false;
 //Button background area
 float[] btnBackgroundRect;
 
+//Indicator
+PImage zoomFitInd;
+
 //Buttons
 ToggleButton btnZoomIn;
 ToggleButton btnZoomOut;
@@ -26,8 +29,9 @@ static final int NODE_SIZE = 12;
 static final int CROSS_POINT_SIZE = 4;
 
 //Current scale matrix.
-double[] scaleMatrix;   //CenterX, CenterY, WidthOfWindow_M, HeightOfWindow_M
-double[] zoomAmounts;   //Width_M, Height_M to subtract/add on zoom in/out
+double[] scaleMatrix;    //CenterX, CenterY, WidthOfWindow_M, HeightOfWindow_M
+double[] zoomAmounts;    //Width_M, Height_M to subtract/add on zoom in/out
+double[] zoomFitULPoint; //For zoom fit. Upper-left point
 
 //Defaults
 static String restrictRoadName = null;
@@ -123,13 +127,38 @@ class Crossing {
 
 
 
+double[] convertDispToM(double x, double y) {
+  double tlX = scaleMatrix[0] - scaleMatrix[2]/2;
+  double tlY = scaleMatrix[1] - scaleMatrix[3]/2;
+  double normX = x / width;
+  double normY = (height-y) / height;
+  double newX = normX*scaleMatrix[2] + tlX;
+  double newY = normY*scaleMatrix[3] + tlY;
+  return new double[]{newX, newY};
+}
+
+
+double[] getScaleRect(double x1, double y1, double x2, double y2) {
+  double minX = Math.min(x1, x2);
+  double maxX = Math.max(x1, x2);
+  double minY = Math.min(y1, y2);
+  double maxY = Math.max(y1, y2);
+  
+  double scaleWidth = maxX-minX;
+  double scaleHeight = maxY-minY;
+  double centerX = minX + scaleWidth/2;
+  double centerY = minY + scaleHeight/2;
+  return new double[]{centerX, centerY, scaleWidth, scaleHeight};
+}
+
+
 void scaleAndZoom(double centerX, double centerY, double widthInM, double heightInM) {
   //Save for later.
   scaleMatrix = new double[]{centerX, centerY, widthInM, heightInM};
   
   //Prepare a simpler min-max scaling matrix
-  double[] xBounds = new double[]{centerX-widthInM, centerX+widthInM, width};
-  double[] yBounds = new double[]{centerY-heightInM, centerY+heightInM, height};
+  double[] xBounds = new double[]{centerX-widthInM/2, centerX+widthInM/2, width};
+  double[] yBounds = new double[]{centerY-heightInM/2, centerY+heightInM/2, height};
   
   //Scale all nodes
   for (Node n : nodes) {
@@ -145,9 +174,6 @@ void scaleAndZoom(double centerX, double centerY, double widthInM, double height
       }
     }
   }
-  
-  //Repaint
-  doRepaint = true;
 }
 
 
@@ -157,6 +183,9 @@ void setup()
   //Windows are always 800 X 600
   size(800, 600);
   frameRate(30);
+  
+  //Indicator
+  zoomFitInd = loadImage("zoom_indicator.png");
     
   //Fonts
   f = createFont("Arial",16,true); 
@@ -169,6 +198,9 @@ void setup()
         return;
       }
       skipAction = true;
+      
+      //Reset zoom fit icon
+      zoomFitULPoint = null;
       
       //Two possibilities: 1) This button is now un-pressed; 2) This button is now pressed. Only the second can generate inconsistencies.
       if (src.getIsDown()) {
@@ -229,11 +261,8 @@ void setup()
   }
   
   //Scale all points
-  double scaleWidth = xBounds[1]-xBounds[0];
-  double scaleHeight = yBounds[1]-yBounds[0];
-  double centerX = xBounds[0] + scaleWidth/2;
-  double centerY = yBounds[0] + scaleHeight/2;
-  scaleAndZoom(centerX, centerY, scaleWidth, scaleHeight);
+  double[] scaleRect = getScaleRect(xBounds[0], yBounds[0], xBounds[1], yBounds[1]);
+  scaleAndZoom(scaleRect[0], scaleRect[1], scaleRect[2], scaleRect[3]);
 }
 
 
@@ -336,7 +365,14 @@ void draw()
   stroke(0x33);
   strokeWeight(2.5);
   rect(btnBackgroundRect[0], btnBackgroundRect[1], btnBackgroundRect[2], btnBackgroundRect[3]);
-  
+
+  //Draw "zoom fit" indicator
+  if (zoomFitULPoint!=null) {
+    double screenPosX = zoomFitULPoint[2];
+    double screenPosY = zoomFitULPoint[3];
+    imageMode(CENTER);
+    image(zoomFitInd, (float)screenPosX+12, (float)screenPosY-13); //TODO: Image offsets shouldn't be hard-coded....
+  }  
 
   //Draw buttons
   btnZoomOut.display();
@@ -354,18 +390,28 @@ void mousePressed() {
     return;
   }
   
+  //Convert screen co-ordinates to meters
+  double[] mousePos_M = convertDispToM(mouseX, mouseY);
+  
   //If we're clicking on the client area, perform the relevant zoom action
   if (btnZoomIn.getIsDown()) {
-    println("Zoom in");
+    scaleAndZoom(mousePos_M[0], mousePos_M[1], scaleMatrix[2]-zoomAmounts[0], scaleMatrix[3]-zoomAmounts[1]);
     doRepaint = true;
   } else if (btnZoomOut.getIsDown()) {
-    println("Zoom out");
+    scaleAndZoom(mousePos_M[0], mousePos_M[1], scaleMatrix[2]+zoomAmounts[0], scaleMatrix[3]+zoomAmounts[1]);
     doRepaint = true;
   } else if (btnZoomFit.getIsDown()) {
-    println("Zoom fit");
+    if (zoomFitULPoint==null) {
+      zoomFitULPoint = new double[]{mousePos_M[0], mousePos_M[1], mouseX, mouseY};
+    } else {
+      double[] scaleRect = getScaleRect(zoomFitULPoint[0], zoomFitULPoint[1], mousePos_M[0], mousePos_M[1]);
+      scaleAndZoom(scaleRect[0], scaleRect[1], scaleRect[2], scaleRect[3]);
+      zoomFitULPoint = null;
+      mousePos_M = null;
+    }
     doRepaint = true;
   } else if (true) {    //Note: Any time when we don't want this behavior?
-    println("Translate canvas");
+    scaleAndZoom(mousePos_M[0], mousePos_M[1], scaleMatrix[2], scaleMatrix[3]);
     doRepaint = true;
   }
    
@@ -609,6 +655,7 @@ class ToggleButton
     
   void display() 
   {
+    imageMode(CORNER);
     image(currentimage, x, y);
   }
   

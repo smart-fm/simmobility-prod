@@ -2,8 +2,14 @@
 
 import java.awt.geom.*;
 
+//Fonts
 PFont f;
 PFont f2;
+
+//Buttons
+ImageButtons btnZoomIn;
+ImageButtons btnZoomOut;
+ImageButtons btnZoomFit;
 
 //Some drawing constants
 static final int BUFFER = 95;
@@ -151,7 +157,24 @@ void setup()
     
   //Fonts
   f = createFont("Arial",16,true); 
-  f2 = createFont("Arial",12,true); 
+  f2 = createFont("Arial",12,true);
+ 
+  //Button images
+  // Should be of the form "base, rollover, pressed_down", but we can start with the same image for all 3.
+  PImage[] imgsZoomIn = new PImage[]{loadImage("zoom_in.png"), loadImage("zoom_in.png"), loadImage("zoom_in.png")};
+  PImage[] imgsZoomOut = new PImage[]{loadImage("zoom_out.png"), loadImage("zoom_out.png"), loadImage("zoom_out.png")}; 
+  PImage[] imgsZoomFit = new PImage[]{loadImage("zoom_fit.png"), loadImage("zoom_fit.png"), loadImage("zoom_fit.png")}; 
+  
+  //Buttons
+  int btnX = 10;
+  int btnY = 10;
+  int btnSize = 50;
+  int margin = 10;
+  btnZoomOut = new ImageButtons(width-btnX-btnSize, btnY, btnSize, btnSize, imgsZoomOut[0], imgsZoomOut[1], imgsZoomOut[2]);
+  btnX += btnSize + margin;
+  btnZoomIn = new ImageButtons(width-btnX-btnSize, btnY, btnSize, btnSize, imgsZoomIn[0], imgsZoomIn[1], imgsZoomIn[2]);
+  btnX += btnSize + margin;
+  btnZoomFit = new ImageButtons(width-btnX-btnSize, btnY, btnSize, btnSize, imgsZoomFit[0], imgsZoomFit[1], imgsZoomFit[2]);
   
   //Bounds
   double[] xBounds = new double[] {Double.MAX_VALUE, Double.MIN_VALUE, width};
@@ -280,6 +303,16 @@ void draw()
     }
   }
   
+  
+  //Update buttons
+  btnZoomOut.update();
+  btnZoomIn.update();
+  btnZoomFit.update();
+
+  //Draw buttons
+  btnZoomOut.display();
+  btnZoomIn.display();
+  btnZoomFit.display();  
 }
 
 
@@ -422,5 +455,81 @@ boolean myParseBool(String input) {
     }
   throw new RuntimeException("Bad boolean input: " + input);
 }
+
+
+//////
+class Button
+{
+  int x, y;
+  int w, h;
+  color basecolor, highlightcolor;
+  color currentcolor;
+  boolean over = false;
+  boolean pressed = false;   
+  
+  void pressed() {
+    if(over && mousePressed) {
+      pressed = true;
+    } else {
+      pressed = false;
+    }    
+  }
+  
+  boolean overRect(int x, int y, int width, int height) {
+  if (mouseX >= x && mouseX <= x+width && mouseY >= y && mouseY <= y+height) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+}
+
+class ImageButtons extends Button 
+{
+  PImage base;
+  PImage roll;
+  PImage down;
+  PImage currentimage;
+
+  ImageButtons(int ix, int iy, int iw, int ih, PImage ibase, PImage iroll, PImage idown) 
+  {
+    x = ix;
+    y = iy;
+    w = iw;
+    h = ih;
+    base = ibase;
+    roll = iroll;
+    down = idown;
+    currentimage = base;
+  }
+  
+  void update() 
+  {
+    over();
+    pressed();
+    if(pressed) {
+      currentimage = down;
+    } else if (over){
+      currentimage = roll;
+    } else {
+      currentimage = base;
+    }
+  }
+  
+  void over() 
+  {
+    if( overRect(x, y, w, h) ) {
+      over = true;
+    } else {
+      over = false;
+    }
+  }
+  
+  void display() 
+  {
+    image(currentimage, x, y);
+  }
+}
+
 
 

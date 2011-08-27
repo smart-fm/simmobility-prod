@@ -153,7 +153,7 @@ void setup()
 {
   //Windows are always 800 X 600
   size(800, 600);
-  frameRate(4);
+  frameRate(5);
     
   //Fonts
   f = createFont("Arial",16,true); 
@@ -161,20 +161,32 @@ void setup()
  
   //Button images
   // Should be of the form "base, rollover, pressed_down", but we can start with the same image for all 3.
-  PImage[] imgsZoomIn = new PImage[]{loadImage("zoom_in.png"), loadImage("zoom_in.png"), loadImage("zoom_in.png")};
-  PImage[] imgsZoomOut = new PImage[]{loadImage("zoom_out.png"), loadImage("zoom_out.png"), loadImage("zoom_out.png")}; 
-  PImage[] imgsZoomFit = new PImage[]{loadImage("zoom_fit.png"), loadImage("zoom_fit.png"), loadImage("zoom_fit.png")}; 
+  PImage[] imgsZoomIn = new PImage[]{loadImage("zoom_in.png"), loadImage("zoom_in_glow.png"), loadImage("zoom_in_press.png")};
+  PImage[] imgsZoomOut = new PImage[]{loadImage("zoom_out.png"), loadImage("zoom_out_glow.png"), loadImage("zoom_out_press.png")}; 
+  PImage[] imgsZoomFit = new PImage[]{loadImage("zoom_fit.png"), loadImage("zoom_fit_glow.png"), loadImage("zoom_fit_press.png")}; 
   
   //Buttons
   int btnX = 10;
   int btnY = 10;
-  int btnSize = 50;
-  int margin = 10;
-  btnZoomOut = new ImageButtons(width-btnX-btnSize, btnY, btnSize, btnSize, imgsZoomOut[0], imgsZoomOut[1], imgsZoomOut[2]);
+  int btnSize = 48;
+  int margin = 20;
+  btnZoomOut = new ImageButtons(width-btnX-btnSize, btnY, btnSize, btnSize, imgsZoomOut[0], imgsZoomOut[1], imgsZoomOut[2], new Action() {
+    public void doAction() {
+      println("Zoom out");
+    }
+  });
   btnX += btnSize + margin;
-  btnZoomIn = new ImageButtons(width-btnX-btnSize, btnY, btnSize, btnSize, imgsZoomIn[0], imgsZoomIn[1], imgsZoomIn[2]);
+  btnZoomIn = new ImageButtons(width-btnX-btnSize, btnY, btnSize, btnSize, imgsZoomIn[0], imgsZoomIn[1], imgsZoomIn[2], new Action() {
+    public void doAction() {
+      println("Zoom In");
+    }
+  });
   btnX += btnSize + margin;
-  btnZoomFit = new ImageButtons(width-btnX-btnSize, btnY, btnSize, btnSize, imgsZoomFit[0], imgsZoomFit[1], imgsZoomFit[2]);
+  btnZoomFit = new ImageButtons(width-btnX-btnSize, btnY, btnSize, btnSize, imgsZoomFit[0], imgsZoomFit[1], imgsZoomFit[2], new Action() {
+    public void doAction() {
+      println("Zoom fit");
+    }
+  });
   
   //Bounds
   double[] xBounds = new double[] {Double.MAX_VALUE, Double.MIN_VALUE, width};
@@ -458,6 +470,11 @@ boolean myParseBool(String input) {
 
 
 //////
+
+interface Action {
+  public void doAction();
+}
+
 class Button
 {
   int x, y;
@@ -490,13 +507,15 @@ class ImageButtons extends Button
   PImage roll;
   PImage down;
   PImage currentimage;
+  Action performPressed;
 
-  ImageButtons(int ix, int iy, int iw, int ih, PImage ibase, PImage iroll, PImage idown) 
+  ImageButtons(int ix, int iy, int iw, int ih, PImage ibase, PImage iroll, PImage idown, Action performPressed_i) 
   {
     x = ix;
     y = iy;
     w = iw;
     h = ih;
+    performPressed = performPressed_i;
     base = ibase;
     roll = iroll;
     down = idown;
@@ -508,6 +527,9 @@ class ImageButtons extends Button
     over();
     pressed();
     if(pressed) {
+      if (performPressed!=null) {
+        performPressed.doAction();
+      }
       currentimage = down;
     } else if (over){
       currentimage = roll;

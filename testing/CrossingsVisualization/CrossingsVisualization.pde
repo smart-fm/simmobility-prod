@@ -360,9 +360,28 @@ void draw()
 
 void mousePressed() {
   //Update buttons
-  btnZoomOut.update();
-  btnZoomIn.update();
-  btnZoomFit.update();
+  // NOTE: Unless buttons overlap, the short-circuiting behavior doesn't matter.
+  boolean btnPressed = btnZoomOut.update() || btnZoomIn.update()|| btnZoomFit.update();
+  if (btnPressed) {
+    doRepaint = true;
+    return;
+  }
+  
+  //If we're clicking on the client area, perform the relevant zoom action
+  if (btnZoomIn.getIsDown()) {
+    println("Zoom in");
+    doRepaint = true;
+  } else if (btnZoomOut.getIsDown()) {
+    println("Zoom out");
+    doRepaint = true;
+  } else if (btnZoomFit.getIsDown()) {
+    println("Zoom fit");
+    doRepaint = true;
+  } else if (true) {    //Note: Any time when we don't want this behavior?
+    println("Translate canvas");
+    doRepaint = true;
+  }
+   
 }
 
 
@@ -540,14 +559,13 @@ class ToggleButton
   void setIsDown(boolean value) {
     isDown = value;
     currentimage = isDown?down:up;
-    doRepaint = true;
   }
   
   boolean getIsDown() {
     return isDown;
   }
   
-  void update() 
+  boolean update() 
   {
     //Should we react
     if(overRect(x, y, w, h)) {
@@ -558,7 +576,9 @@ class ToggleButton
       if (onButtonDown!=null) {
         onButtonDown.doAction(this);
       }
+      return true;
     }
+    return false;
   }
     
   void display() 

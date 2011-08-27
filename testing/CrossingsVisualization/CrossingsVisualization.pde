@@ -398,7 +398,7 @@ void mousePressed() {
     scaleAndZoom(mousePos_M[0], mousePos_M[1], scaleMatrix[2]-zoomAmounts[0], scaleMatrix[3]-zoomAmounts[1]);
     doRepaint = true;
   } else if (btnZoomOut.getIsDown()) {
-    scaleAndZoom(mousePos_M[0], mousePos_M[1], scaleMatrix[2]+zoomAmounts[0], scaleMatrix[3]+zoomAmounts[1]);
+    scaleAndZoom(scaleMatrix[0], scaleMatrix[1], scaleMatrix[2]+zoomAmounts[0], scaleMatrix[3]+zoomAmounts[1]);
     doRepaint = true;
   } else if (btnZoomFit.getIsDown()) {
     if (zoomFitULPoint==null) {

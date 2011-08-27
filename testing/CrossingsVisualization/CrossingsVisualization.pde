@@ -6,10 +6,16 @@ import java.awt.geom.*;
 PFont f;
 PFont f2;
 
+//Bit of a painting hack
+boolean doRepaint = true;
+
+//Bit of an action hack
+boolean skipAction = false;
+
 //Buttons
-ImageButtons btnZoomIn;
-ImageButtons btnZoomOut;
-ImageButtons btnZoomFit;
+ToggleButton btnZoomIn;
+ToggleButton btnZoomOut;
+ToggleButton btnZoomFit;
 
 //Some drawing constants
 static final int BUFFER = 95;
@@ -158,35 +164,42 @@ void setup()
   //Fonts
   f = createFont("Arial",16,true); 
   f2 = createFont("Arial",12,true);
- 
-  //Button images
-  // Should be of the form "base, rollover, pressed_down", but we can start with the same image for all 3.
-  PImage[] imgsZoomIn = new PImage[]{loadImage("zoom_in.png"), loadImage("zoom_in_glow.png"), loadImage("zoom_in_press.png")};
-  PImage[] imgsZoomOut = new PImage[]{loadImage("zoom_out.png"), loadImage("zoom_out_glow.png"), loadImage("zoom_out_press.png")}; 
-  PImage[] imgsZoomFit = new PImage[]{loadImage("zoom_fit.png"), loadImage("zoom_fit_glow.png"), loadImage("zoom_fit_press.png")}; 
+  
+  //Handle button consistency
+  ToggleAction keepButtonsConsistent = new ToggleAction() {
+    public void doAction(ToggleButton src) {
+      if (skipAction) {
+        return;
+      }
+      skipAction = true;
+      
+      //Two possibilities: 1) This button is now un-pressed; 2) This button is now pressed. Only the second can generate inconsistencies.
+      if (src.getIsDown()) {
+        //Essentially, just un-press the other buttons
+        ToggleButton[] allButtons = new ToggleButton[]{btnZoomOut, btnZoomIn, btnZoomFit};
+        for (ToggleButton btn : allButtons) {
+          if (btn != src) {
+            btn.setIsDown(false);
+          }
+        }
+      }
+      
+      println("Consistency check.");
+      
+      skipAction = false;
+    }
+  };
   
   //Buttons
   int btnX = 10;
   int btnY = 10;
-  int btnSize = 48;
+  int btnSize = 40;
   int margin = 20;
-  btnZoomOut = new ImageButtons(width-btnX-btnSize, btnY, btnSize, btnSize, imgsZoomOut[0], imgsZoomOut[1], imgsZoomOut[2], new Action() {
-    public void doAction() {
-      println("Zoom out");
-    }
-  });
+  btnZoomOut = new ToggleButton(width-btnX-btnSize, btnY, btnSize, "zoom_out.png", "zoom_out_gray.png", keepButtonsConsistent);
   btnX += btnSize + margin;
-  btnZoomIn = new ImageButtons(width-btnX-btnSize, btnY, btnSize, btnSize, imgsZoomIn[0], imgsZoomIn[1], imgsZoomIn[2], new Action() {
-    public void doAction() {
-      println("Zoom In");
-    }
-  });
+  btnZoomIn = new ToggleButton(width-btnX-btnSize, btnY, btnSize, "zoom_in.png", "zoom_in_gray.png", keepButtonsConsistent);
   btnX += btnSize + margin;
-  btnZoomFit = new ImageButtons(width-btnX-btnSize, btnY, btnSize, btnSize, imgsZoomFit[0], imgsZoomFit[1], imgsZoomFit[2], new Action() {
-    public void doAction() {
-      println("Zoom fit");
-    }
-  });
+  btnZoomFit = new ToggleButton(width-btnX-btnSize, btnY, btnSize, "zoom_fit.png", "zoom_fit_gray.png", keepButtonsConsistent);
   
   //Bounds
   double[] xBounds = new double[] {Double.MAX_VALUE, Double.MIN_VALUE, width};
@@ -314,17 +327,19 @@ void draw()
       alreadyDrawn.add(key);
     }
   }
-  
-  
-  //Update buttons
-  btnZoomOut.update();
-  btnZoomIn.update();
-  btnZoomFit.update();
 
   //Draw buttons
   btnZoomOut.display();
   btnZoomIn.display();
   btnZoomFit.display();  
+}
+
+
+void mousePressed() {
+  //Update buttons
+  btnZoomOut.update();
+  btnZoomIn.update();
+  btnZoomFit.update();
 }
 
 
@@ -471,25 +486,61 @@ boolean myParseBool(String input) {
 
 //////
 
-interface Action {
-  public void doAction();
+interface ToggleAction {
+  public void doAction(ToggleButton src);
 }
 
-class Button
+
+class ToggleButton 
 {
-  int x, y;
-  int w, h;
-  color basecolor, highlightcolor;
-  color currentcolor;
-  boolean over = false;
-  boolean pressed = false;   
+  int x, y, w, h;
   
-  void pressed() {
-    if(over && mousePressed) {
-      pressed = true;
-    } else {
-      pressed = false;
-    }    
+  boolean isDown;
+  PImage up;
+  PImage down;
+  PImage currentimage;
+  ToggleAction onButtonDown;
+
+  ToggleButton(int ix, int iy, int isz, String downPath, String upPath, ToggleAction onButtonDown_i) 
+  {
+    x = ix;
+    y = iy;
+    w = isz;
+    h = isz;
+    up = loadImage(upPath);
+    down = loadImage(downPath);
+    onButtonDown = onButtonDown_i;
+    
+    setIsDown(false);
+  }
+  
+  void setIsDown(boolean value) {
+    isDown = value;
+    currentimage = isDown?down:up;
+    doRepaint = true;
+  }
+  
+  boolean getIsDown() {
+    return isDown;
+  }
+  
+  void update() 
+  {
+    //Should we react
+    if(overRect(x, y, w, h)) {
+      //Button down/up state change
+      setIsDown(!isDown);
+        
+      //Allow the user to react
+      if (onButtonDown!=null) {
+        onButtonDown.doAction(this);
+      }
+    }
+  }
+    
+  void display() 
+  {
+    image(currentimage, x, y);
   }
   
   boolean overRect(int x, int y, int width, int height) {
@@ -498,58 +549,6 @@ class Button
     } else {
       return false;
     }
-  }
-}
-
-class ImageButtons extends Button 
-{
-  PImage base;
-  PImage roll;
-  PImage down;
-  PImage currentimage;
-  Action performPressed;
-
-  ImageButtons(int ix, int iy, int iw, int ih, PImage ibase, PImage iroll, PImage idown, Action performPressed_i) 
-  {
-    x = ix;
-    y = iy;
-    w = iw;
-    h = ih;
-    performPressed = performPressed_i;
-    base = ibase;
-    roll = iroll;
-    down = idown;
-    currentimage = base;
-  }
-  
-  void update() 
-  {
-    over();
-    pressed();
-    if(pressed) {
-      if (performPressed!=null) {
-        performPressed.doAction();
-      }
-      currentimage = down;
-    } else if (over){
-      currentimage = roll;
-    } else {
-      currentimage = base;
-    }
-  }
-  
-  void over() 
-  {
-    if( overRect(x, y, w, h) ) {
-      over = true;
-    } else {
-      over = false;
-    }
-  }
-  
-  void display() 
-  {
-    image(currentimage, x, y);
   }
 }
 

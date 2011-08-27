@@ -12,6 +12,9 @@ boolean doRepaint = true;
 //Bit of an action hack
 boolean skipAction = false;
 
+//Button background area
+float[] btnBackgroundRect;
+
 //Buttons
 ToggleButton btnZoomIn;
 ToggleButton btnZoomOut;
@@ -199,6 +202,14 @@ void setup()
   btnX += btnSize + margin;
   btnZoomFit = new ToggleButton(width-btnX-btnSize, btnY, btnSize, "zoom_fit.png", "zoom_fit_gray.png", keepButtonsConsistent);
   
+  //Save the buttons' background rectangle.
+  btnBackgroundRect = new float[]{width-btnX-btnSize, btnY, btnSize*3+margin*2, btnSize};
+  margin = 5;
+  btnBackgroundRect[0] -= margin;
+  btnBackgroundRect[1] -= margin;
+  btnBackgroundRect[2] += 2*margin;
+  btnBackgroundRect[3] += 2*margin;
+  
   //Bounds
   double[] xBounds = new double[] {Double.MAX_VALUE, Double.MIN_VALUE, width};
   double[] yBounds = new double[] {Double.MAX_VALUE, Double.MIN_VALUE, height};
@@ -332,6 +343,13 @@ void draw()
       alreadyDrawn.add(key);
     }
   }
+  
+  //Draw button background
+  fill(0x99);
+  stroke(0x33);
+  strokeWeight(2.5);
+  rect(btnBackgroundRect[0], btnBackgroundRect[1], btnBackgroundRect[2], btnBackgroundRect[3]);
+  
 
   //Draw buttons
   btnZoomOut.display();

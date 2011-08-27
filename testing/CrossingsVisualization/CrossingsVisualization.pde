@@ -159,7 +159,7 @@ void setup()
 {
   //Windows are always 800 X 600
   size(800, 600);
-  frameRate(5);
+  frameRate(30);
     
   //Fonts
   f = createFont("Arial",16,true); 
@@ -183,8 +183,6 @@ void setup()
           }
         }
       }
-      
-      println("Consistency check.");
       
       skipAction = false;
     }
@@ -243,6 +241,13 @@ void setup()
 
 void draw()
 {
+  //Bit of a hack; we only repaint when something's changed. Should get decent performance, but a double-buffered mapping surface would of course be better.
+  if (!doRepaint) {
+    return;
+  }
+  doRepaint = false;
+  
+  //Turn on smooth-scaling. Paint the background.
   smooth();
   background(0xFF);
   

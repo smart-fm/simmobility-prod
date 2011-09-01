@@ -146,6 +146,18 @@ class Crossing {
 };
 
 
+ArrayList<Circular> circs = new ArrayList<Circular>();
+class Circular {
+  ScaledPoint pos;
+  String label;
+  
+  Circular(double xOrig, double yOrig, String lbl) {
+    pos = new ScaledPoint(xOrig, yOrig);
+    label = lbl;
+  }
+};
+
+
 
 double[] convertDispToM(double x, double y) {
   double tlX = scaleMatrix[0] - scaleMatrix[2]/2;
@@ -194,6 +206,12 @@ void scaleAndZoom(double centerX, double centerY, double widthInM, double height
       }
     }
   }
+  
+  //Scale all circulars
+  for (Circular c : circs) {
+    c.pos.scaleTo(xBounds, yBounds);
+  }
+
 }
 
 
@@ -379,6 +397,12 @@ void draw()
       text(s.name, (float)(s.from.pos.getX()+(s.to.pos.getX()-s.from.pos.getX())/2), (float)(s.from.pos.getY()+(s.to.pos.getY()-s.from.pos.getY())/2)); 
       alreadyDrawn.add(key);
     }
+  }
+  
+  //Label circulars
+  for (Circular c : circs) {
+    fill(0x33);
+    text(c.label, (float)c.pos.getX(), (float)c.pos.getY()); 
   }
   
   //Draw button background
@@ -689,13 +713,9 @@ void readDecoratedData(String path) {
         throw new RuntimeException("Segment doesn't exist: " + Integer.toHexString(atSegmentID) );
       }
 
-      
       //Save
-      //TODO
+      circs.add(scaleAndMakeCirc(decoratedNodes.get(atNodeID), decoratedSegments.get(atSegmentID), isFwd, printNumber));
     }
-    
-    
-
     
   }
 }
@@ -829,6 +849,100 @@ class ToggleButton
     }
   }
 }
+
+
+//Turn our circulars into simple-to-display labels.
+Circular scaleAndMakeCirc(ScaledPoint from, MySeg seg, boolean isFwd, int printNumber) {
+  //Constants
+  int DIST_FROM_SRC = 10; //In Meters
+  int DIST_FROM_LINE = 5; //In Meters
+  
+  //First, get the "other" point.
+  ScaledPoint to = isFwd ? decoratedNodes.get(seg.fromNodeID) : decoratedNodes.get(seg.toNodeID);
+  
+  //Now create a vector between them, make a unit vector, and scale it to a certain distance.
+  Vec ray = new Vec(from.origX, from.origY, to.origX, to.origY);
+  ray.makeUnit();
+  ray.scaleVect(DIST_FROM_SRC);
+
+  //Now, get a vector normal to this one (the direction depends on "isFwd")
+  ray.translateVect(ray);
+  ray.flipVecNormal(isFwd);
+  ray.makeUnit();
+  ray.scaleVect(DIST_FROM_LINE); 
+
+  return new Circular(ray.getEndX(), ray.getEndY(), ""+printNumber+(isFwd?"F":"R"));
+}
+
+
+//Vector-related classes/methods
+class Vec {
+  double posX;
+  double posY;
+  double magX;
+  double magY;
+  Vec(double posX, double posY, double magX, double magY) {
+    this.posX = posX;
+    this.posY = posY;
+    this.magX = magX;
+    this.magY = magY;
+  }
+  
+  Vec(double magX, double magY) {
+    this(0, 0, magX, magY);
+  }
+  
+  Vec(Vec other) {
+    this(other.posX, other.posY, other.magX, other.magY);
+  }
+  
+  double getEndX() {
+    return posX + magX;
+  }
+  
+  double getEndY() {
+    return posY + magY;
+  }
+  
+  double getMagnitude() {
+    return Math.sqrt(magX*magX + magY*magY);
+  }
+  
+  void makeUnit()  {
+    scaleVect(1/getMagnitude());
+  }
+  
+  void scaleVect(double val) {
+    magX *= val;
+    magY *= val;
+  }
+
+  void translateVect(double dX, double dY) {
+    posX += dX;
+    posY += dY;
+  }
+  
+  void translateVect(Vec magnitude) {
+    translateVect(magnitude.magX, magnitude.magY);
+  }
+  
+  void flipVecNormal(boolean direction) {
+    int sign = direction ? 1 : -1;
+    double newX = -magY*sign;
+    double newY = magX*sign;
+    magX = newX;
+    magY = newY;
+  }
+}
+
+
+
+
+
+
+
+
+
 
 
 

@@ -9,6 +9,7 @@ String strn = "\"([^\"]+)\"";
 String num = "([0-9]+)";
 String numH = "((?:0x)?[0-9a-fA-F]+)";
 Pattern logLHS = Pattern.compile("\\(" + strn + sep + num + sep + numH + sep  + RHS + "\\)");
+Pattern logRHS = Pattern.compile(strn + ":" + strn + ",?");
 
 //Fonts
 PFont f;
@@ -571,7 +572,7 @@ void readDecoratedData(String path) {
       continue;
     }
     
-    //Known fields
+    //"Type"
     Matcher m = logLHS.matcher(nextLine);
     if (!m.matches()) {
       throw new RuntimeException("Invalid line: " + nextLine);
@@ -579,7 +580,14 @@ void readDecoratedData(String path) {
     if (m.groupCount()!=4) {
       throw new RuntimeException("Unexpected group count (" + m.groupCount() + ") for: " + nextLine);
     }
-    String name = m.group(1);
+    String type = m.group(1);
+    
+    //No need to continue?
+    if (!type.equals("multi-node") && !type.equals("tmp-circular")) {
+      continue;
+    }
+    
+    //Known fields
     if (Integer.parseInt(m.group(2))!=0) {
       throw new RuntimeException("Unexpected frame ID, should be zero: " + nextLine);
     }
@@ -587,6 +595,29 @@ void readDecoratedData(String path) {
     String rhs = m.group(4);
     
     //Json-esque matching
+    Hashtable<String, String> properties = new Hashtable<String, String>();
+    m = logRHS.matcher(rhs);
+    while (m.find()) {
+      if (m.groupCount()!=2) {
+        throw new RuntimeException("Unexpected group count (" + m.groupCount() + ") for: " + rhs);
+      }
+      
+      String keyStr = m.group(1);
+      String value = m.group(2);
+      if (properties.containsKey(keyStr)) {
+        throw new RuntimeException("Duplicate key: " + keyStr);
+      }
+      
+      properties.put(keyStr, value);
+    }
+    
+    
+    //Now, deal with it:
+    if (type.equals("multi-node")) {
+      //TODO: Save this node's position
+    } else if (type.equals("tmp-circular")) {
+      //TODO: Save annotation information .
+    }
     
     
 

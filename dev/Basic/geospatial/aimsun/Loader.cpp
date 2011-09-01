@@ -418,7 +418,9 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, map<int, Node>& nodes, ma
 
 	//Next, Links and RoadSegments. See comments for our approach.
 	for (map<int,Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
-		sim_mob::aimsun::Loader::ProcessSection(res, it->second);
+		if (!it->second.hasBeenSaved) {  //Workaround...
+			sim_mob::aimsun::Loader::ProcessSection(res, it->second);
+		}
 	}
 	//Scan the vector to see if any skipped Sections were not filled in later.
 	for (map<int,Section>::iterator it=sections.begin(); it!=sections.end(); it++) {

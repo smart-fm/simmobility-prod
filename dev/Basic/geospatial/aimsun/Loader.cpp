@@ -307,9 +307,11 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 		Node& n = it->second;
 		n.candidateForSegmentNode = false;
 		if (n.sectionsAtNode.size()==2) {
+			std::cout <<"Candidate match 1...\n";
 			if ( (n.sectionsAtNode[0]->toNode->id!=n.sectionsAtNode[1]->fromNode->id)
-			  && (n.sectionsAtNode[0]->fromNode->id!=n.sectionsAtNode[1]->toNode->id))
+			  || (n.sectionsAtNode[0]->fromNode->id!=n.sectionsAtNode[1]->toNode->id))
 			{
+				std::cout <<"  Candidate match 2...\n";
 				n.candidateForSegmentNode = true;
 			}
 		}
@@ -517,6 +519,9 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	ln->start = currSection->fromNode->generatedNode;
 	set<RoadSegment*> linkSegments;
 
+	std::cout <<"Link: " <<currSection->roadName <<"\n";
+	std::cout <<"  Link start node: " <<currSection->TMP_FromNodeID <<"  " <<currSection->fromNode->generatedNode <<"\n";
+
 	//Make sure the link's start node is represented at the Node level.
 	//TODO: Try to avoid dynamic casting if possible.
 	dynamic_cast<MultiNode*>(src.fromNode->generatedNode)->roadSegmentsAt.insert(src.generatedSegment);
@@ -528,6 +533,8 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 			throw std::runtime_error("Section processed twice.");
 		}
 		currSection->hasBeenSaved = true;
+
+		std::cout <<"    At node: " <<currSection->TMP_ToNodeID <<"\n";
 
 		//Check name
 		if (ln->roadName != currSection->roadName) {
@@ -562,12 +569,18 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 
 		//Break?
 		if (!currSection->toNode->candidateForSegmentNode) {
+			std::cout <<"      break\n";
+
 			//Make sure the link's end node is represented at the Node level.
 			//TODO: Try to avoid dynamic casting if possible.
 			dynamic_cast<MultiNode*>(currSection->toNode->generatedNode)->roadSegmentsAt.insert(currSection->generatedSegment);
 
+			std::cout <<"  Link end node: " <<currSection->TMP_ToNodeID <<"    " <<currSection->toNode->generatedNode <<"\n";
+
 			//Save it.
 			ln->initializeLinkSegments(linkSegments);
+
+			std::cout <<"Segments done.\n";
 
 			break;
 		}

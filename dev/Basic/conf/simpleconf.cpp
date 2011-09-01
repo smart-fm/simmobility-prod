@@ -464,6 +464,20 @@ void PrintDB_Network()
 		logout <<"\"to-lane\":\"" <<toLane <<"\",";
 		logout <<"})" <<endl;
 	}
+
+	//Temp: Print ordering of output Links
+	for (vector<MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
+		size_t count = 1;
+		std::vector< std::pair<RoadSegment*, bool> >& vec = (*it)->roadSegmentsCircular;
+		for (std::vector< std::pair<RoadSegment*, bool> >::iterator it2=vec.begin(); it2!=vec.end(); it2++) {
+			logout <<"(\"tmp-circular\", 0, " <<*it <<", {";
+			logout <<"\"from-node\":\"" <<*it <<"\",";
+			logout <<"\"to-node\":\"" <<it2->first <<"\",";
+			logout <<"\"fwd\":\"" <<it2->second <<"\",";
+			logout <<"\"number\":\"" <<count++ <<"\",";
+			logout <<"})" <<endl;
+		}
+	}
 }
 
 

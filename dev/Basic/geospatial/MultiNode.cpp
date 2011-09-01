@@ -117,8 +117,10 @@ void sim_mob::MultiNode::BuildClockwiseLinks(const RoadNetwork& rn, MultiNode* n
 	node->roadSegmentsCircular.clear();
 
 	//Insert links one-by-one
+	std::cout <<"Test: ";
 	for (set<RoadSegment*>::const_iterator it=node->roadSegmentsAt.begin(); it!=node->roadSegmentsAt.end(); it++) {
 		bool found = false;
+		std::cout <<"X";
 		if (!node->roadSegmentsCircular.empty()) {
 
 			//Simple case 1: Is there already a RoadSegment with opposing start/end Nodes? If so, put it
@@ -167,6 +169,8 @@ void sim_mob::MultiNode::BuildClockwiseLinks(const RoadNetwork& rn, MultiNode* n
 		}
 		//node->roadSegmentsCircular.push_back(std::make_pair(*it, (*it)->getEnd()==node));
 	}
+
+	std::cout <<" => " <<node->roadSegmentsCircular.size() <<"\n";
 }
 
 

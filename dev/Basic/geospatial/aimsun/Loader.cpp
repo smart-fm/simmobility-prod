@@ -302,22 +302,66 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 
 	//Step 2: Tag all Nodes that have only two Sections; these may become RoadSegmentNodes.
 	//        NOTE: It's slightly more complex; the two Sections must not loop at that node.
+
+
+	//Step 2: Tag all Nodes that might be "UniNodes". These fit the following criteria:
+	//        1) In ALL sections that meet at this node, there are only two distinct nodes.
+	//        2) Each of these distinct nodes has exactly ONE Segment leading "from->to" and one leading "to->from".
+	//           This should take bi-directional Segments into account.
+	//        3) Optionally, there can be a single link in ONE direction, representing a one-way road.
 	vector<int> nodeMismatchIDs;
 	for (map<int,Node>::iterator it=nodes.begin(); it!=nodes.end(); it++) {
-		Node& n = it->second;
-		n.candidateForSegmentNode = false;
-		if (n.sectionsAtNode.size()==2) {
-			std::cout <<"Candidate match 1...\n";
-			if ( (n.sectionsAtNode[0]->toNode->id!=n.sectionsAtNode[1]->fromNode->id)
-			  || (n.sectionsAtNode[0]->fromNode->id!=n.sectionsAtNode[1]->toNode->id))
-			{
-				std::cout <<"  Candidate match 2...\n";
-				n.candidateForSegmentNode = true;
+		Node* n = &it->second;
+		n->candidateForSegmentNode = true; //Conditional pass
+
+		//Perform both checks at the same time.
+		pair<Node*, Node*> others(nullptr, nullptr);
+		pair<unsigned int, unsigned int> flags(0, 0);  //1="from->to", 2="to->from"
+		for (vector<Section*>::iterator it=n->sectionsAtNode.begin(); it!=n->sectionsAtNode.end(); it++) {
+			//Get "other" node
+			Node* otherNode = ((*it)->fromNode!=n) ? (*it)->fromNode : (*it)->toNode;
+
+			//Manage property one.
+			unsigned int* flagPtr;
+			if (!others.first || others.first==otherNode) {
+				others.first = otherNode;
+				flagPtr = &flags.first;
+			} else if (!others.second || others.second==otherNode) {
+				others.second = otherNode;
+				flagPtr = &flags.second;
+			} else {
+				n->candidateForSegmentNode = false; //Fail
+				break;
+			}
+
+			//Manage property two.
+			unsigned int toFlag = ((*it)->toNode==n) ? 1 : 2;
+			if (((*flagPtr)&toFlag)==0) {
+				*flagPtr = (*flagPtr) | toFlag;
+			} else {
+				n->candidateForSegmentNode = false; //Fail
+				break;
 			}
 		}
-		if (n.candidateForSegmentNode == n.isIntersection) {
-			//Not an error; probably a result of a network being cropped.
-			nodeMismatchIDs.push_back(n.id);
+
+		//One final check
+		if (n->candidateForSegmentNode) {
+			bool flagMatch =   (flags.first==3 && flags.second==3)  //Bidirectional
+							|| (flags.first==1 && flags.second==2)  //One-way
+							|| (flags.first==2 && flags.second==1); //One-way
+
+			n->candidateForSegmentNode = others.first && others.second && flagMatch;
+
+			//TEMP
+			if (n->candidateForSegmentNode) {
+				std::cout <<"Candidate: " <<n->id <<"\n";
+			}
+		}
+
+		//Generate warnings if this value doesn't match the expected "is intersection" value.
+		//This is usually a result of a network being cropped.
+		if (n->candidateForSegmentNode == n->isIntersection) {
+			nodeMismatchIDs.push_back(n->id);
 		}
 	}
 

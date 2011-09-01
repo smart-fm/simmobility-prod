@@ -2,6 +2,14 @@
 
 import java.awt.geom.*;
 
+//Regexes
+String RHS = "\\{([^}]*)\\}"; //NOTE: Contains a capture group
+String sep = ", *";
+String strn = "\"([^\"]+)\"";
+String num = "([0-9]+)";
+String numH = "((?:0x)?[0-9a-fA-F]+)";
+Pattern logLHS = Pattern.compile("\\(" + strn + sep + num + sep + numH + sep  + RHS + "\\)");
+
 //Fonts
 PFont f;
 PFont f2;
@@ -245,6 +253,7 @@ void setup()
     readNodes("nodes.txt", xBounds, yBounds);
     readSections("sections.txt");
     readCrossings("crossings.txt", xBounds, yBounds);
+    readDecoratedData("runtime_annotations.txt");
   } catch (IOException ex) {
     throw new RuntimeException(ex);
   }
@@ -550,6 +559,43 @@ void readCrossings(String crossingsFile, double[] xBounds, double[] yBounds) thr
 
 
 
+void readDecoratedData(String path) {
+  String lines[] = loadStrings(path);
+    
+  //Read line-by-line
+  for (int lineID=0; lineID<lines.length; lineID++) {
+    String nextLine = lines[lineID].trim();
+    
+    //Skip this line?
+    if (nextLine.isEmpty() || !nextLine.startsWith("(") || !nextLine.endsWith(")")) {
+      continue;
+    }
+    
+    //Known fields
+    Matcher m = logLHS.matcher(nextLine);
+    if (!m.matches()) {
+      throw new RuntimeException("Invalid line: " + nextLine);
+    }
+    if (m.groupCount()!=4) {
+      throw new RuntimeException("Unexpected group count (" + m.groupCount() + ") for: " + nextLine);
+    }
+    String name = m.group(1);
+    if (Integer.parseInt(m.group(2))!=0) {
+      throw new RuntimeException("Unexpected frame ID, should be zero: " + nextLine);
+    }
+    int objID = myParseOptionalHex(m.group(3));
+    String rhs = m.group(4);
+    
+    //Json-esque matching
+    
+    
+
+    
+  }
+}
+
+
+
 boolean myParseBool(String input) {
     if (input.length()!=1) {
       throw new RuntimeException("Bad boolean input: " + input);
@@ -561,6 +607,16 @@ boolean myParseBool(String input) {
     }
   throw new RuntimeException("Bad boolean input: " + input);
 }
+
+int myParseOptionalHex(String input) {
+  int radix = 10;
+  if (input.startsWith("0x")) {
+    input = input.substring(2);
+    radix = 0x10;
+  }
+  return Integer.parseInt(input, radix);
+}
+
 
 
 //////

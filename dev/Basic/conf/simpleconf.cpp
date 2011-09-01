@@ -471,8 +471,8 @@ void PrintDB_Network()
 		std::vector< std::pair<RoadSegment*, bool> >& vec = (*it)->roadSegmentsCircular;
 		for (std::vector< std::pair<RoadSegment*, bool> >::iterator it2=vec.begin(); it2!=vec.end(); it2++) {
 			logout <<"(\"tmp-circular\", 0, " <<*it <<", {";
-			logout <<"\"from-node\":\"" <<*it <<"\",";
-			logout <<"\"to-node\":\"" <<it2->first <<"\",";
+			logout <<"\"at-node\":\"" <<*it <<"\",";
+			logout <<"\"at-segment\":\"" <<it2->first <<"\",";
 			logout <<"\"fwd\":\"" <<it2->second <<"\",";
 			logout <<"\"number\":\"" <<count++ <<"\",";
 			logout <<"})" <<endl;

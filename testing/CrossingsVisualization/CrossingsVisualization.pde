@@ -84,6 +84,7 @@ void checkBounds(double[] bounds, double newVal) {
 }
 
 ArrayList<Node> nodes = new ArrayList<Node>();
+Hashtable<Integer, ScaledPoint> decoratedNodes = new Hashtable<Integer, ScaledPoint>();
 class Node {
   int id;
   
@@ -102,6 +103,11 @@ Node getNode(int id) {
 
 
 ArrayList<Section> sections = new ArrayList<Section>();
+Hashtable<Integer, MySeg> decoratedSegments = new Hashtable<Integer, MySeg>();
+class MySeg {
+  int fromNodeID;
+  int toNodeID;
+};
 class Section {
   int id;
   String name;
@@ -583,7 +589,7 @@ void readDecoratedData(String path) {
     String type = m.group(1);
     
     //No need to continue?
-    if (!type.equals("multi-node") && !type.equals("tmp-circular")) {
+    if (!type.equals("multi-node") && !type.equals("tmp-circular") && !type.equals("road-segment")) {
       continue;
     }
     
@@ -613,10 +619,55 @@ void readDecoratedData(String path) {
     
     
     //Now, deal with it:
+    String[] nodeReqKeys = new String[]{"xPos", "yPos"};
+    String[] circReqKeys = new String[]{"at-node", "at-segment", "fwd", "number"};
     if (type.equals("multi-node")) {
-      //TODO: Save this node's position
+      //Check.
+      for (String reqKey : nodeReqKeys) {
+        if (!properties.containsKey(reqKey)) {
+          throw new RuntimeException("Missing key: " + reqKey + " in: " + rhs);
+        }
+      }
+      
+      //Retrieve
+      double x = Double.parseDouble(properties.get("xPos"));
+      double y = Double.parseDouble(properties.get("yPos"));
+      
+      //Scale
+      x /= 100;
+      y /= 100;
+      
+      //Save
+      decoratedNodes.put(objID, new ScaledPoint(x, y));
+    } else if (type.equals("road-segment")) {
+      
+      
+//      decoratedSegments
     } else if (type.equals("tmp-circular")) {
-      //TODO: Save annotation information .
+      //Check.
+      for (String reqKey : circReqKeys) {
+        if (!properties.containsKey(reqKey)) {
+          throw new RuntimeException("Missing key: " + reqKey + " in: " + rhs);
+        }
+      }
+      
+      //Retrieve
+      int atNodeID = myParseOptionalHex(properties.get("at-node"));
+      int atSegmentID = myParseOptionalHex(properties.get("at-segment"));
+      boolean isFwd = properties.get("fwd").charAt(0)=='0'?false:true;
+      int printNumber = Integer.parseInt(properties.get("number"));
+      
+      //Check
+      if (!decoratedNodes.containsKey(atNodeID)) {
+        throw new RuntimeException("Node doesn't exist: " + Integer.toHexString(atNodeID));
+      }
+      if (!decoratedSegments.containsKey(atSegmentID)) {
+        throw new RuntimeException("Segment doesn't exist: " + Integer.toHexString(atSegmentID) );
+      }
+
+      
+      //Save
+      //TODO
     }
     
     

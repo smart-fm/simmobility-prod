@@ -107,6 +107,11 @@ Hashtable<Integer, MySeg> decoratedSegments = new Hashtable<Integer, MySeg>();
 class MySeg {
   int fromNodeID;
   int toNodeID;
+  
+  MySeg(int fromNode, int toNode) {
+    fromNodeID = fromNode;
+    toNodeID = toNode;
+  }
 };
 class Section {
   int id;
@@ -589,7 +594,7 @@ void readDecoratedData(String path) {
     String type = m.group(1);
     
     //No need to continue?
-    if (!type.equals("multi-node") && !type.equals("tmp-circular") && !type.equals("road-segment")) {
+    if (!type.equals("multi-node") && !type.equals("uni-node") && !type.equals("tmp-circular") && !type.equals("road-segment")) {
       continue;
     }
     
@@ -621,7 +626,8 @@ void readDecoratedData(String path) {
     //Now, deal with it:
     String[] nodeReqKeys = new String[]{"xPos", "yPos"};
     String[] circReqKeys = new String[]{"at-node", "at-segment", "fwd", "number"};
-    if (type.equals("multi-node")) {
+    String[] segReqKeys = new String[]{"from-node", "to-node"};
+    if (type.equals("multi-node") || type.equals("uni-node")) {
       //Check.
       for (String reqKey : nodeReqKeys) {
         if (!properties.containsKey(reqKey)) {
@@ -640,9 +646,27 @@ void readDecoratedData(String path) {
       //Save
       decoratedNodes.put(objID, new ScaledPoint(x, y));
     } else if (type.equals("road-segment")) {
+      //Check.
+      for (String reqKey : segReqKeys) {
+        if (!properties.containsKey(reqKey)) {
+          throw new RuntimeException("Missing key: " + reqKey + " in: " + rhs);
+        }
+      }
       
+      //Retrieve
+      int fromNodeID = myParseOptionalHex(properties.get("from-node"));
+      int toNodeID = myParseOptionalHex(properties.get("to-node"));
       
-//      decoratedSegments
+      //Check
+      if (!decoratedNodes.containsKey(fromNodeID)) {
+        throw new RuntimeException("Node doesn't exist: " + Integer.toHexString(fromNodeID));
+      }
+      if (!decoratedNodes.containsKey(toNodeID)) {
+        throw new RuntimeException("Node doesn't exist: " + Integer.toHexString(toNodeID));
+      }
+
+      //Save      
+      decoratedSegments.put(objID, new MySeg(fromNodeID, toNodeID));
     } else if (type.equals("tmp-circular")) {
       //Check.
       for (String reqKey : circReqKeys) {

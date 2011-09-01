@@ -433,6 +433,8 @@ void PrintDB_Network()
 		logout <<"\"parent-link\":\"" <<(*it)->getLink() <<"\",";
 		logout <<"\"max-speed\":\"" <<(*it)->maxSpeed <<"\",";
 		logout <<"\"lanes\":\"" <<(*it)->getLanes().size() <<"\",";
+		logout <<"\"from-node\":\"" <<(*it)->getStart() <<"\",";
+		logout <<"\"to-node\":\"" <<(*it)->getEnd() <<"\",";
 		logout <<"})" <<endl;
 
 		if (!(*it)->polyline.empty()) {

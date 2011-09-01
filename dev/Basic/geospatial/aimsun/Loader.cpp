@@ -545,27 +545,62 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		if (!currSection->generatedSegment) {
 			currSection->generatedSegment = new sim_mob::RoadSegment(ln);
 		}
-		sim_mob::RoadSegment* rs = currSection->generatedSegment;
+		{
+			sim_mob::RoadSegment* rs = currSection->generatedSegment;
 
-		//Start/end need to be added properly
-		rs->start = currSection->fromNode->generatedNode;
-		rs->end = currSection->toNode->generatedNode;
+			//Start/end need to be added properly
+			rs->start = currSection->fromNode->generatedNode;
+			rs->end = currSection->toNode->generatedNode;
 
-		//Process
-		rs->maxSpeed = currSection->speed;
-		rs->length = currSection->length;
-		for (int laneID=0; laneID<currSection->numLanes; laneID++) {
-			rs->lanes.push_back(new sim_mob::Lane(rs, laneID));
+			//Process
+			rs->maxSpeed = currSection->speed;
+			rs->length = currSection->length;
+			for (int laneID=0; laneID<currSection->numLanes; laneID++) {
+				rs->lanes.push_back(new sim_mob::Lane(rs, laneID));
+			}
+			rs->width = 0;
+
+			//TODO: How do we determine if lanesLeftOfDivider should be 0 or lanes.size()
+			//      In other words, how do we apply driving direction?
+			//      For now, setting to a clearly incorrect value.
+			//NOTE: This can be done easily later from the Link's point-of-view.
+			//rs->lanesLeftOfDivider = 0xFF;
+			rs->lanesLeftOfDivider = 0;
+			linkSegments.insert(rs);
 		}
-		rs->width = 0;
 
-		//TODO: How do we determine if lanesLeftOfDivider should be 0 or lanes.size()
-		//      In other words, how do we apply driving direction?
-		//      For now, setting to a clearly incorrect value.
-		//NOTE: This can be done easily later from the Link's point-of-view.
-		//rs->lanesLeftOfDivider = 0xFF;
-		rs->lanesLeftOfDivider = 0;
-		linkSegments.insert(rs);
+		//TEMP: This needs to be handled more cleanly
+		//      Basically, if a RoadSegment is part of a Link, then any RoadSegment in reverse is also part
+		//      of that link:
+		for (vector<Section*>::iterator iSec=currSection->toNode->sectionsAtNode.begin(); iSec!=currSection->toNode->sectionsAtNode.end(); iSec++) {
+			Section* newSec = *iSec;
+			if (newSec->fromNode==currSection->toNode && newSec->toNode==currSection->fromNode) {
+				//Make another Section
+				if (newSec->hasBeenSaved) {
+					throw std::runtime_error("Section processed twice.");
+				}
+				newSec->hasBeenSaved = true;
+				if (ln->roadName != newSec->roadName) {
+					throw std::runtime_error("Road names don't match up on RoadSegments in the same Link.");
+				}
+				if (!newSec->generatedSegment) {
+					newSec->generatedSegment = new sim_mob::RoadSegment(ln);
+				}
+				sim_mob::RoadSegment* rs = newSec->generatedSegment;
+				rs->start = newSec->fromNode->generatedNode;
+				rs->end = newSec->toNode->generatedNode;
+				rs->maxSpeed = newSec->speed;
+				rs->length = newSec->length;
+				for (int laneID=0; laneID<newSec->numLanes; laneID++) {
+					rs->lanes.push_back(new sim_mob::Lane(rs, laneID));
+				}
+				rs->width = 0;
+				rs->lanesLeftOfDivider = 0;
+				linkSegments.insert(rs);
+
+				break;
+			}
+		}
 
 		//Break?
 		if (!currSection->toNode->candidateForSegmentNode) {

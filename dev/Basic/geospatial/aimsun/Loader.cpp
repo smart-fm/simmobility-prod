@@ -595,7 +595,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 			}
 
 			//Check: No reverse segment
-			if (found==nullptr) {
+			if (!found) {
 				break;
 			}
 

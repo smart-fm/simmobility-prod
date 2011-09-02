@@ -311,7 +311,6 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 	//        3) All Segments share the same Road Name
 	//        4) Optionally, there can be a single link in ONE direction, representing a one-way road.
 	vector<int> nodeMismatchIDs;
-	string expectedName;
 	for (map<int,Node>::iterator it=nodes.begin(); it!=nodes.end(); it++) {
 		Node* n = &it->second;
 		n->candidateForSegmentNode = true; //Conditional pass
@@ -319,6 +318,7 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 		//Perform both checks at the same time.
 		pair<Node*, Node*> others(nullptr, nullptr);
 		pair<unsigned int, unsigned int> flags(0, 0);  //1="from->to", 2="to->from"
+		string expectedName;
 		for (vector<Section*>::iterator it=n->sectionsAtNode.begin(); it!=n->sectionsAtNode.end(); it++) {
 			//Get "other" node
 			Node* otherNode = ((*it)->fromNode!=n) ? (*it)->fromNode : (*it)->toNode;
@@ -531,6 +531,8 @@ void sim_mob::aimsun::Loader::ProcessGeneralNode(sim_mob::RoadNetwork& res, Node
 
 void sim_mob::aimsun::Loader::ProcessUniNode(sim_mob::RoadNetwork& res, Node& src)
 {
+	//TODO: UniNodes don't quite fit this definition any more.
+
 	//Which RoadSegment leads here?
 	if (src.sectionsAtNode.size()!=2) {
 		throw std::runtime_error("Unexpected Section count."); //Should already be checked.

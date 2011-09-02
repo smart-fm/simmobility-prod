@@ -16,11 +16,8 @@ using std::string;
 namespace {
 
 RoadSegment* findSegment(const set<RoadSegment*>& segments, const Node* const startsAt, const Node* const prevNode) {
-	std::cout <<"    Searching from: " <<startsAt <<"\n";
 	RoadSegment* res = nullptr;
 	for (set<RoadSegment*>::const_iterator it=segments.begin(); it!=segments.end(); it++) {
-		std::cout <<"    Comparing to: " <<(*it)->getStart() <<"  " <<(*it)->getEnd() <<"\n";
-
 		//Simple case.
 		if ((*it)->getStart()==startsAt) {
 			res = *it;
@@ -46,12 +43,8 @@ RoadSegment* findSegment(const set<RoadSegment*>& segments, const Node* const st
 
 
 bool buildLinkList(const set<RoadSegment*>& segments, vector<RoadSegment*> res, set<RoadSegment*>& usedSegments, const Node* start, const Node* end) {
-	std::cout <<"Building list of segments: " <<segments.size() <<"\n";
-
 	const Node* prev = nullptr;
 	for (const Node* fwd=start; fwd!=end;) {
-		std::cout <<"  searching: " <<fwd <<" from: " <<start <<" to " <<end <<"\n";
-
 		//Retrieve the next segment
 		RoadSegment* nextSeg = findSegment(segments, fwd, prev);
 		if (!nextSeg) {

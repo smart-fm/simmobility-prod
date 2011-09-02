@@ -570,9 +570,6 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	ln->start = currSect->fromNode->generatedNode;
 	set<RoadSegment*> linkSegments;
 
-	std::cout <<"Link: " <<currSect->roadName <<"  " <<currSect->id <<"  " <<currSect->numLanes <<"\n";
-	std::cout <<"  Link start node: " <<currSect->TMP_FromNodeID <<"  " <<currSect->fromNode->generatedNode <<"\n";
-
 	//Make sure the link's start node is represented at the Node level.
 	//TODO: Try to avoid dynamic casting if possible.
 	dynamic_cast<MultiNode*>(src.fromNode->generatedNode)->roadSegmentsAt.insert(src.generatedSegment);
@@ -580,8 +577,6 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	for (;;) {
 		//Update
 		ln->end = currSect->toNode->generatedNode;
-
-		std::cout <<"    At node: " <<currSect->TMP_ToNodeID <<"\n";
 
 		//Now, check for segments going both forwards and backwards. Add both.
 		for (size_t i=0; i<2; i++) {
@@ -602,11 +597,6 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 			//Check: No reverse segment
 			if (found==nullptr) {
 				break;
-			}
-
-			//TMP
-			if (i==1) {
-				std::cout <<"    (Rev. Sect. found)\n";
 			}
 
 			//Check: not processing an existing segment
@@ -651,19 +641,12 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 
 		//Break?
 		if (!currSect->toNode->candidateForSegmentNode) {
-			std::cout <<"      break\n";
-
 			//Make sure the link's end node is represented at the Node level.
 			//TODO: Try to avoid dynamic casting if possible.
 			dynamic_cast<MultiNode*>(currSect->toNode->generatedNode)->roadSegmentsAt.insert(currSect->generatedSegment);
 
-			std::cout <<"  Link end node: " <<currSect->TMP_ToNodeID <<"    " <<currSect->toNode->generatedNode <<"\n";
-
 			//Save it.
 			ln->initializeLinkSegments(linkSegments);
-
-			std::cout <<"Segments done.\n";
-
 			break;
 		}
 
@@ -707,11 +690,6 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 	//Essentially, just expand each turning into a set of LaneConnectors.
 	//TODO: This becomes slightly more complex at RoadSegmentNodes, since these
 	//      only feature one primary connector per Segment pair.
-
-	std::cout <<"Processing turning: " <<src.TMP_FromSection <<" to " <<src.TMP_ToSection <<"\n";
-	std::cout <<"  Counts: " <<src.fromLane.first <<" to " <<src.fromLane.second <<"  within " <<src.fromSection->generatedSegment->lanes.size() <<"\n";
-	std::cout <<"  Counts: " <<src.toLane.first <<" to " <<src.toLane.second <<"  within " <<src.toSection->generatedSegment->lanes.size() <<"\n";
-
 	for (int fromLaneID=src.fromLane.first; fromLaneID<=src.fromLane.second; fromLaneID++) {
 		for (int toLaneID=src.toLane.first; toLaneID<=src.toLane.second; toLaneID++) {
 			sim_mob::LaneConnector* lc = new sim_mob::LaneConnector();

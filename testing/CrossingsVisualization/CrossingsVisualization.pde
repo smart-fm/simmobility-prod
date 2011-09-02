@@ -854,8 +854,8 @@ class ToggleButton
 //Turn our circulars into simple-to-display labels.
 Circular scaleAndMakeCirc(ScaledPoint from, MySeg seg, boolean isFwd, int printNumber) {
   //Constants
-  int DIST_FROM_SRC = 5; //In Meters
-  int DIST_FROM_LINE = 1; //In Meters
+  double DIST_FROM_SRC = 3.0; //In Meters
+  double DIST_FROM_LINE = 0.2; //In Meters
   
   //First, get the "other" point.
   ScaledPoint to = isFwd ? decoratedNodes.get(seg.fromNodeID) : decoratedNodes.get(seg.toNodeID);

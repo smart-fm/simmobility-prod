@@ -165,7 +165,6 @@ void sim_mob::MultiNode::BuildClockwiseLinks(const RoadNetwork& rn, MultiNode* n
 		if (!found) {
 			InsertIntoVector(node->roadSegmentsCircular, node->roadSegmentsCircular.end(), *it, node);
 		}
-		//node->roadSegmentsCircular.push_back(std::make_pair(*it, (*it)->getEnd()==node));
 	}
 }
 

@@ -302,20 +302,71 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 
 	//Step 2: Tag all Nodes that have only two Sections; these may become RoadSegmentNodes.
 	//        NOTE: It's slightly more complex; the two Sections must not loop at that node.
+
+
+	//Step 2: Tag all Nodes that might be "UniNodes". These fit the following criteria:
+	//        1) In ALL sections that meet at this node, there are only two distinct nodes.
+	//        2) Each of these distinct nodes has exactly ONE Segment leading "from->to" and one leading "to->from".
+	//           This should take bi-directional Segments into account.
+	//        3) All Segments share the same Road Name
+	//        4) Optionally, there can be a single link in ONE direction, representing a one-way road.
 	vector<int> nodeMismatchIDs;
+	string expectedName;
 	for (map<int,Node>::iterator it=nodes.begin(); it!=nodes.end(); it++) {
-		Node& n = it->second;
-		n.candidateForSegmentNode = false;
-		if (n.sectionsAtNode.size()==2) {
-			if ( (n.sectionsAtNode[0]->toNode->id!=n.sectionsAtNode[1]->fromNode->id)
-			  && (n.sectionsAtNode[0]->fromNode->id!=n.sectionsAtNode[1]->toNode->id))
-			{
-				n.candidateForSegmentNode = true;
+		Node* n = &it->second;
+		n->candidateForSegmentNode = true; //Conditional pass
+
+		//Perform both checks at the same time.
+		pair<Node*, Node*> others(nullptr, nullptr);
+		pair<unsigned int, unsigned int> flags(0, 0);  //1="from->to", 2="to->from"
+		for (vector<Section*>::iterator it=n->sectionsAtNode.begin(); it!=n->sectionsAtNode.end(); it++) {
+			//Get "other" node
+			Node* otherNode = ((*it)->fromNode!=n) ? (*it)->fromNode : (*it)->toNode;
+
+			//Manage property one.
+			unsigned int* flagPtr;
+			if (!others.first || others.first==otherNode) {
+				others.first = otherNode;
+				flagPtr = &flags.first;
+			} else if (!others.second || others.second==otherNode) {
+				others.second = otherNode;
+				flagPtr = &flags.second;
+			} else {
+				n->candidateForSegmentNode = false; //Fail
+				break;
+			}
+
+			//Manage property two.
+			unsigned int toFlag = ((*it)->toNode==n) ? 1 : 2;
+			if (((*flagPtr)&toFlag)==0) {
+				*flagPtr = (*flagPtr) | toFlag;
+			} else {
+				n->candidateForSegmentNode = false; //Fail
+				break;
+			}
+
+			//Manage property three.
+			if (expectedName.empty()) {
+				expectedName = (*it)->roadName;
+			} else if (expectedName != (*it)->roadName) {
+				n->candidateForSegmentNode = false; //Fail
+				break;
 			}
 		}
-		if (n.candidateForSegmentNode == n.isIntersection) {
-			//Not an error; probably a result of a network being cropped.
-			nodeMismatchIDs.push_back(n.id);
+
+		//One final check
+		if (n->candidateForSegmentNode) {
+			bool flagMatch =   (flags.first==3 && flags.second==3)  //Bidirectional
+							|| (flags.first==1 && flags.second==2)  //One-way
+							|| (flags.first==2 && flags.second==1); //One-way
+
+			n->candidateForSegmentNode = others.first && others.second && flagMatch;
+		}
+
+		//Generate warnings if this value doesn't match the expected "is intersection" value.
+		//This is usually a result of a network being cropped.
+		if (n->candidateForSegmentNode == n->isIntersection) {
+			nodeMismatchIDs.push_back(n->id);
 		}
 	}
 
@@ -416,7 +467,9 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, map<int, Node>& nodes, ma
 
 	//Next, Links and RoadSegments. See comments for our approach.
 	for (map<int,Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
-		sim_mob::aimsun::Loader::ProcessSection(res, it->second);
+		if (!it->second.hasBeenSaved) {  //Workaround...
+			sim_mob::aimsun::Loader::ProcessSection(res, it->second);
+		}
 	}
 	//Scan the vector to see if any skipped Sections were not filled in later.
 	for (map<int,Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
@@ -510,11 +563,11 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 
 	//Process this section, and continue processing Sections along the direction of
 	// travel until one of these ends on an intersection.
-	Section* currSection = &src;
+	Section* currSect = &src;
 	sim_mob::Link* ln = new sim_mob::Link();
 	src.generatedSegment = new sim_mob::RoadSegment(ln);
-	ln->roadName = currSection->roadName;
-	ln->start = currSection->fromNode->generatedNode;
+	ln->roadName = currSect->roadName;
+	ln->start = currSect->fromNode->generatedNode;
 	set<RoadSegment*> linkSegments;
 
 	//Make sure the link's start node is represented at the Node level.
@@ -523,83 +576,100 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 
 	for (;;) {
 		//Update
-		ln->end = currSection->toNode->generatedNode;
-		if (currSection->hasBeenSaved) {
-			throw std::runtime_error("Section processed twice.");
+		ln->end = currSect->toNode->generatedNode;
+
+		//Now, check for segments going both forwards and backwards. Add both.
+		for (size_t i=0; i<2; i++) {
+			//Phase 1 = find a reverse segment
+			Section* found = nullptr;
+			if (i==0) {
+				found = currSect;
+			} else {
+				for (vector<Section*>::iterator iSec=currSect->toNode->sectionsAtNode.begin(); iSec!=currSect->toNode->sectionsAtNode.end(); iSec++) {
+					Section* newSec = *iSec;
+					if (newSec->fromNode==currSect->toNode && newSec->toNode==currSect->fromNode) {
+						found = newSec;
+						break;
+					}
+				}
+			}
+
+			//Check: No reverse segment
+			if (!found) {
+				break;
+			}
+
+			//Check: not processing an existing segment
+			if (found->hasBeenSaved) {
+				throw std::runtime_error("Section processed twice.");
+			}
+
+			//Mark saved
+			found->hasBeenSaved = true;
+
+			//Check name
+			if (ln->roadName != found->roadName) {
+				throw std::runtime_error("Road names don't match up on RoadSegments in the same Link.");
+			}
+
+			//Prepare a new segment IF required, and save it for later reference (or load from past ref.)
+			if (!found->generatedSegment) {
+				found->generatedSegment = new sim_mob::RoadSegment(ln);
+			}
+
+			//Retrieve the generated segment
+			sim_mob::RoadSegment* rs = found->generatedSegment;
+
+			//Start/end need to be added properly
+			rs->start = found->fromNode->generatedNode;
+			rs->end = found->toNode->generatedNode;
+
+			//Process
+			rs->maxSpeed = found->speed;
+			rs->length = found->length;
+			for (int laneID=0; laneID<found->numLanes; laneID++) {
+				rs->lanes.push_back(new sim_mob::Lane(rs, laneID));
+			}
+			rs->width = 0;
+
+			//TODO: How do we determine if lanesLeftOfDivider should be 0 or lanes.size()
+			//      In other words, how do we apply driving direction?
+			//NOTE: This can be done easily later from the Link's point-of-view.
+			rs->lanesLeftOfDivider = 0;
+			linkSegments.insert(rs);
 		}
-		currSection->hasBeenSaved = true;
-
-		//Check name
-		if (ln->roadName != currSection->roadName) {
-			throw std::runtime_error("Road names don't match up on RoadSegments in the same Link.");
-		}
-
-		//Prepare a new segment IF required, and save it for later reference (or load from past ref.)
-		if (!currSection->generatedSegment) {
-			currSection->generatedSegment = new sim_mob::RoadSegment(ln);
-		}
-		sim_mob::RoadSegment* rs = currSection->generatedSegment;
-
-		//Start/end need to be added properly
-		rs->start = currSection->fromNode->generatedNode;
-		rs->end = currSection->toNode->generatedNode;
-
-		//Process
-		rs->maxSpeed = currSection->speed;
-		rs->length = currSection->length;
-		for (int laneID=0; laneID<currSection->numLanes; laneID++) {
-			rs->lanes.push_back(new sim_mob::Lane(rs, laneID));
-		}
-		rs->width = 0;
-
-		//TODO: How do we determine if lanesLeftOfDivider should be 0 or lanes.size()
-		//      In other words, how do we apply driving direction?
-		//      For now, setting to a clearly incorrect value.
-		//NOTE: This can be done easily later from the Link's point-of-view.
-		rs->lanesLeftOfDivider = 0xFF;
-		linkSegments.insert(rs);
 
 		//Break?
-		if (!currSection->toNode->candidateForSegmentNode) {
+		if (!currSect->toNode->candidateForSegmentNode) {
 			//Make sure the link's end node is represented at the Node level.
 			//TODO: Try to avoid dynamic casting if possible.
-			dynamic_cast<MultiNode*>(currSection->toNode->generatedNode)->roadSegmentsAt.insert(currSection->generatedSegment);
+			dynamic_cast<MultiNode*>(currSect->toNode->generatedNode)->roadSegmentsAt.insert(currSect->generatedSegment);
 
 			//Save it.
 			ln->initializeLinkSegments(linkSegments);
-
 			break;
 		}
 
 
 		//Increment.
 		Section* nextSection = nullptr;
-		for (vector<Section*>::iterator it2=currSection->toNode->sectionsAtNode.begin(); it2!=currSection->toNode->sectionsAtNode.end(); it2++) {
-			//Skip nodes of the same id.
-			if ((*it2)->id==currSection->id) {
-				continue;
-			}
-
-			//Skip a node which leads immediately back to the same node.
-			if ((*it2)->toNode->id==currSection->fromNode->id) {
-				continue;
-			}
-
-			//If there are multiple options, prefer one with the same road name.
-			if (!nextSection || (*it2)->roadName==currSection->roadName) {
-				nextSection = *it2;
-				if (nextSection->roadName==currSection->roadName) {
-					break;
+		for (vector<Section*>::iterator it2=currSect->toNode->sectionsAtNode.begin(); it2!=currSect->toNode->sectionsAtNode.end(); it2++) {
+			//Our eariler check guarantees that there will be only ONE node which leads "from" the given segment "to" a node which is not the
+			//  same node.
+			if ((*it2)->fromNode==currSect->toNode && (*it2)->toNode!=currSect->fromNode) {
+				if (nextSection) {
+					throw std::runtime_error("UniNode has competing outgoing Sections.");
 				}
+				nextSection = *it2;
 			}
 		}
 		if (!nextSection) {
 			std::cout <<"PATH ERROR:\n";
 			std::cout <<"  Starting at Node: " <<src.fromNode->id <<"\n";
-			std::cout <<"  Currently at Node: " <<currSection->toNode->id <<"\n";
+			std::cout <<"  Currently at Node: " <<currSect->toNode->id <<"\n";
 			throw std::runtime_error("No path reachable from RoadSegment.");
 		}
-		currSection = nextSection;
+		currSect = nextSection;
 	}
 
 	//Now add the link
@@ -625,10 +695,13 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 			sim_mob::LaneConnector* lc = new sim_mob::LaneConnector();
 			lc->laneFrom = src.fromSection->generatedSegment->lanes[fromLaneID];
 			lc->laneTo = src.toSection->generatedSegment->lanes[toLaneID];
-			dynamic_cast<MultiNode*>(src.fromSection->toNode->generatedNode)->connectors[lc->laneFrom->getRoadSegment()].insert(lc);
+
+			//Expanded a bit...
+			RoadSegment* key = lc->laneFrom->getRoadSegment();
+			map<const RoadSegment*, set<LaneConnector*> >& connectors = dynamic_cast<MultiNode*>(src.fromSection->toNode->generatedNode)->connectors;
+			connectors[key].insert(lc);
 		}
 	}
-
 
 }
 

@@ -15,39 +15,53 @@ using std::string;
 
 namespace {
 
-RoadSegment* findSegment(const set<RoadSegment*>& segments, const Node* startsAt) {
+RoadSegment* findSegment(const set<RoadSegment*>& segments, const Node* const startsAt, const Node* const prevNode) {
+	RoadSegment* res = nullptr;
 	for (set<RoadSegment*>::const_iterator it=segments.begin(); it!=segments.end(); it++) {
 		//Simple case.
 		if ((*it)->getStart()==startsAt) {
-			return *it;
+			res = *it;
 		}
 
 		//Special case for bidirectional roads
 		if ((*it)->isBiDirectional() && (*it)->getEnd()==startsAt) {
-			return *it;
+			res = *it;
+		}
+
+		//Quality control; are we going back the way we came?
+		if (res) {
+			if (res->getStart()!=prevNode && res->getEnd()!=prevNode) {
+				return res;
+			}
+			res = nullptr; //Keep searching.
 		}
 	}
-	return nullptr;
+
+	//Failure
+	return res;
 }
 
 
-void buildLinkList(const set<RoadSegment*>& segments, vector<RoadSegment*> res, set<RoadSegment*>& usedSegments, const Node* start, const Node* end) {
+bool buildLinkList(const set<RoadSegment*>& segments, vector<RoadSegment*> res, set<RoadSegment*>& usedSegments, const Node* start, const Node* end) {
+	const Node* prev = nullptr;
 	for (const Node* fwd=start; fwd!=end;) {
 		//Retrieve the next segment
-		RoadSegment* nextSeg = findSegment(segments, fwd);
+		RoadSegment* nextSeg = findSegment(segments, fwd, prev);
 		if (!nextSeg) {
-			throw std::runtime_error("Incomplete link; missing RoadSegment.");
+			return false;
 		}
 
 		//Add it, track it, increment
 		res.push_back(nextSeg);
 		usedSegments.insert(nextSeg);
+		prev = fwd;
 		if (fwd!=nextSeg->getEnd()) {
 			fwd = nextSeg->getEnd();
 		} else {
 			fwd = nextSeg->getStart();
 		}
 	}
+	return true;
 }
 
 
@@ -60,8 +74,13 @@ void sim_mob::Link::initializeLinkSegments(const std::set<sim_mob::RoadSegment*>
 	//We build in two directions; forward and backwards. We also maintain a list of which
 	// road segments are used, to catch cases where RoadSegments are skipped.
 	set<RoadSegment*> usedSegments;
-	buildLinkList(segments, fwdSegments, usedSegments, start, end);
-	buildLinkList(segments, revSegments, usedSegments, end, start);
+	bool res1 = buildLinkList(segments, fwdSegments, usedSegments, start, end);
+	bool res2 = buildLinkList(segments, revSegments, usedSegments, end, start);
+
+	//Ensure we have at least ONE path (for one-way Links)
+	if (!res1 && !res2) {
+		throw std::runtime_error("Incomplete link; missing RoadSegment.");
+	}
 
 	//Double-check that everything's been read at least once.
 	if (usedSegments.size() < segments.size()) {

@@ -12,7 +12,7 @@ import sim_mob.vis.util.IntGetter;
  * This position also flips the Y axis to be consistent with Cartesian co-ordiates.
  */
 public class ScaledPoint {
-	public static IntGetter CanvasHeight;
+	private static double LastScaledHeight;
 	private static HashSet<WeakReference<ScaledPoint>> allPoints = new HashSet<WeakReference<ScaledPoint>>();
 	
 	private DPoint orig;
@@ -28,6 +28,8 @@ public class ScaledPoint {
 	
 	//Helper: Rescale all known points
 	public static void ScaleAllPoints(DPoint origin, DPoint farthestPoint, double canvasWidth, double canvasHeight) {
+		LastScaledHeight = canvasHeight;
+		
 		ArrayList<WeakReference<ScaledPoint>> retired = new ArrayList<WeakReference<ScaledPoint>>();
 		for (WeakReference<ScaledPoint> pt : allPoints) {
 			if (pt.get()!=null) {
@@ -47,7 +49,7 @@ public class ScaledPoint {
 	}
 	
 	public double getY() {
-		return CanvasHeight.get() - scaled.y;
+		return LastScaledHeight - scaled.y;
 	}
 	 
 	private void scaleVia(DPoint topLeft, DPoint lowerRight, double newWidth, double newHeight) {

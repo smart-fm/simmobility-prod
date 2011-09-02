@@ -49,14 +49,28 @@ public class NetworkPanel extends JPanel implements ComponentListener {
 	}
 
 	
+	//Helper
+	private static int CenterIfSmaller(int origValue, int srcValue, int destValue) {
+		if (srcValue<=destValue) {
+			origValue = destValue/2 - srcValue/2;
+		}
+		return origValue;
+	}
+	
+	
 	//Draw the map
 	public void drawMap(NetworkVisualizer nv, int offsetX, int offsetY) {
 		//Get 2D graphics obj.
 		Graphics2D g = (Graphics2D)buffer.getGraphics();
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		
+		//If the image is smaller than the canvas to draw it on, always center it.
+		BufferedImage toDraw = nv.getImage();
+		offsetX = CenterIfSmaller(offsetX, toDraw.getWidth(), buffer.getWidth());
+		offsetY = CenterIfSmaller(offsetY, toDraw.getHeight(), buffer.getHeight());
+		
 		//Draw the network at the given offset; repaint
-		g.drawImage(nv.getImage(), offsetX, offsetY, null);
+		g.drawImage(toDraw, offsetX, offsetY, null);
 		this.repaint();
 	}
 	

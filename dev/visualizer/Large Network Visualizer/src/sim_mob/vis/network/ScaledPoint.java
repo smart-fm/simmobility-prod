@@ -1,5 +1,6 @@
 package sim_mob.vis.network;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashSet;
 
@@ -15,7 +16,7 @@ public class ScaledPoint {
 	public static IntGetter CanvasWidth;
 	public static IntGetter CanvasHeight;
 	
-	private static HashSet<ScaledPoint> allPoints = new HashSet<ScaledPoint>();
+	private static HashSet<WeakReference<ScaledPoint>> allPoints = new HashSet<WeakReference<ScaledPoint>>();
 	
 	private DPoint orig;
 	private DPoint scaled;
@@ -25,23 +26,25 @@ public class ScaledPoint {
 		scaled = new DPoint();
 		
 		//Bookkeeping
-		allPoints.add(this);
+		allPoints.add(new WeakReference<ScaledPoint>(this));
 	}
-	
-	//NOTE: This will never happen; we need a better way to deal with "old" ScaledPoints
-	//      For now, just avoid creating scaled points that you will then throw away.
-	/*protected void finalize() throws Throwable {
-		//Bookkeeping
-		allPoints.remove(this);
-	}*/
 	
 	//Helper: Rescale all known points
 	//NOTE: xScale.x=min, xScale.y=max. Not very intuitive, I know.
 	public static void ScaleAllPoints(DPoint xScale, DPoint yScale) {
 		int width = CanvasWidth.get();
 		int height = CanvasHeight.get();
-		for (ScaledPoint pt : allPoints) {
-			pt.scaleTo(xScale, yScale, width,  height);
+		ArrayList<WeakReference<ScaledPoint>> retired = new ArrayList<WeakReference<ScaledPoint>>();
+		for (WeakReference<ScaledPoint> pt : allPoints) {
+			if (pt.get()!=null) {
+				pt.get().scaleTo(xScale, yScale, width,  height); 
+			} else {
+				retired.add(pt);
+			}
+		}
+		
+		for (WeakReference<ScaledPoint> pt : retired) {
+			allPoints.remove(pt);
 		}
 	}
 	  

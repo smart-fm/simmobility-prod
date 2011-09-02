@@ -36,6 +36,8 @@ private:
 	int curCrossingID;
 	bool startToCross;
 	double cStartX, cStartY, cEndX, cEndY;
+	bool startPosSet;
+	Point2D destPos;
 
 	//For collisions
 	double xCollisionVector;

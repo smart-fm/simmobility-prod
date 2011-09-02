@@ -136,10 +136,10 @@ public class MainFrame extends JFrame {
 				
 				//Add a visualizer
 				NetworkVisualizer vis = new NetworkVisualizer();
-				vis.setSource(rn, 1.0);
+				vis.setSource(rn, 1.0, newViewPnl.getWidth(), newViewPnl.getHeight());
 				
 				//Update the map
-				newViewPnl.drawMap(vis, 10, 10);
+				newViewPnl.drawMap(vis, 0, 0);
 			}
 		});
 	}

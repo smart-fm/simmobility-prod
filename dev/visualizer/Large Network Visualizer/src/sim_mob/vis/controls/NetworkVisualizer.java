@@ -8,6 +8,7 @@ import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.image.BufferedImage;
 
+import sim_mob.vis.network.DPoint;
 import sim_mob.vis.network.Node;
 import sim_mob.vis.network.RoadNetwork;
 import sim_mob.vis.network.ScaledPoint;
@@ -20,6 +21,8 @@ import sim_mob.vis.network.ScaledPoint;
 public class NetworkVisualizer {
 	private RoadNetwork source;
 	private BufferedImage buffer;
+	private int width100Percent;
+	private int height100Percent;
 	
 	//Constants
 	private static final int NODE_SIZE = 12;
@@ -47,16 +50,30 @@ public class NetworkVisualizer {
 		return buffer;
 	}
 	
-	public void setSource(RoadNetwork source, double initialZoom) {
+	public void setSource(RoadNetwork source, double initialZoom, int width100Percent, int height100Percent) {
+		//Save
 		this.source = source;
+		this.width100Percent = width100Percent;
+		this.height100Percent = height100Percent;
+		
+		//Recalc
 		redrawAtScale(initialZoom);
 	}
 	
 	public void redrawAtScale(double percent) {
 		//Determine the width and height of our canvas.
-		int width = (int)Math.abs(source.getLowerRight().getX() - source.getTopLeft().getX());
-		int height = (int)Math.abs(source.getLowerRight().getY() - source.getTopLeft().getY());
+		int width = (int)(width100Percent * percent);
+		int height = (int)(height100Percent * percent);
 		buffer = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+		
+		//Make sure our canvas is always slightly bigger than the original size...
+		double width5Percent = 0.05 * (source.getLowerRight().x - source.getTopLeft().x);
+		double height5Percent = 0.05 * (source.getLowerRight().y - source.getTopLeft().y);
+		DPoint newTL = new DPoint(source.getTopLeft().x-width5Percent, source.getTopLeft().y-height5Percent);
+		DPoint newLR = new DPoint(source.getLowerRight().x+width5Percent, source.getLowerRight().y+height5Percent);
+		
+		//Scale all points
+		ScaledPoint.ScaleAllPoints(newTL, newLR, width, height);
 		
 		//Retrieve a graphics object; ensure it'll anti-alias
 		Graphics2D g = (Graphics2D)buffer.getGraphics();
@@ -85,3 +102,4 @@ public class NetworkVisualizer {
 	
 
 }
+

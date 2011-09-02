@@ -16,13 +16,13 @@ import sim_mob.vis.util.Utility;
  * static RoadNetwork.
  */
 public class RoadNetwork {
-	private ScaledPoint cornerTL;
-	private ScaledPoint cornerLR;
+	private DPoint cornerTL;
+	private DPoint cornerLR;
 	
 	private ArrayList<Node> nodes;
 	
-	public ScaledPoint getTopLeft() { return cornerTL; }
-	public ScaledPoint getLowerRight() { return cornerLR; }
+	public DPoint getTopLeft() { return cornerTL; }
+	public DPoint getLowerRight() { return cornerLR; }
 	public ArrayList<Node> getNodes() { return nodes; }
 	
 	
@@ -69,14 +69,14 @@ public class RoadNetwork {
 		}
 		
 		//Save bounds
-		cornerTL = new ScaledPoint(xBounds[0], yBounds[0]);
-		cornerLR = new ScaledPoint(xBounds[1], yBounds[1]);
+		cornerTL = new DPoint(xBounds[0], yBounds[0]);
+		cornerLR = new DPoint(xBounds[1], yBounds[1]);
 		
 		//Scale (to 95%, allows better viewing)
-		double fivePercW = (xBounds[1]-xBounds[0])*5 / 100;
-		double fivePercH = (yBounds[1]-yBounds[0])*5 / 100;
+		//double fivePercW = (xBounds[1]-xBounds[0])*5 / 100;
+		//double fivePercH = (yBounds[1]-yBounds[0])*5 / 100;
 		
-		ScaledPoint.ScaleAllPoints(new DPoint(xBounds[0]-fivePercW, xBounds[1]+fivePercW), new DPoint(yBounds[0]-fivePercH, yBounds[1]+fivePercH));
+		//ScaledPoint.ScaleAllPoints(new DPoint(xBounds[0]-fivePercW, xBounds[1]+fivePercW), new DPoint(yBounds[0]-fivePercH, yBounds[1]+fivePercH));
 	}
 	
 	

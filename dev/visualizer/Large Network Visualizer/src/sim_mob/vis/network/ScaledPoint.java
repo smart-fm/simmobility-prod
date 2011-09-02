@@ -12,10 +12,7 @@ import sim_mob.vis.util.IntGetter;
  * This position also flips the Y axis to be consistent with Cartesian co-ordiates.
  */
 public class ScaledPoint {
-	//private static final int BUFFER = 95; //NOTE: Do this yourself!
-	public static IntGetter CanvasWidth;
 	public static IntGetter CanvasHeight;
-	
 	private static HashSet<WeakReference<ScaledPoint>> allPoints = new HashSet<WeakReference<ScaledPoint>>();
 	
 	private DPoint orig;
@@ -30,14 +27,11 @@ public class ScaledPoint {
 	}
 	
 	//Helper: Rescale all known points
-	//NOTE: xScale.x=min, xScale.y=max. Not very intuitive, I know.
-	public static void ScaleAllPoints(DPoint xScale, DPoint yScale) {
-		int width = CanvasWidth.get();
-		int height = CanvasHeight.get();
+	public static void ScaleAllPoints(DPoint origin, DPoint farthestPoint, double canvasWidth, double canvasHeight) {
 		ArrayList<WeakReference<ScaledPoint>> retired = new ArrayList<WeakReference<ScaledPoint>>();
 		for (WeakReference<ScaledPoint> pt : allPoints) {
 			if (pt.get()!=null) {
-				pt.get().scaleTo(xScale, yScale, width,  height); 
+				pt.get().scaleVia(origin, farthestPoint, canvasWidth, canvasHeight); 
 			} else {
 				retired.add(pt);
 			}
@@ -56,16 +50,15 @@ public class ScaledPoint {
 		return CanvasHeight.get() - scaled.y;
 	}
 	 
-	public void scaleTo(DPoint xBounds, DPoint yBounds, int width, int height) {
-		scaled.x = scalePointForDisplay(orig.x, xBounds.x, xBounds.y, width);
-		scaled.y = scalePointForDisplay(orig.y, yBounds.x, yBounds.y, height);
+	private void scaleVia(DPoint topLeft, DPoint lowerRight, double newWidth, double newHeight) {
+		scaled.x = scaleValue(orig.x, topLeft.x, lowerRight.x-topLeft.x, newWidth);
+		scaled.y = scaleValue(orig.y, topLeft.y, lowerRight.y-topLeft.y, newHeight);
 	}
-
-	public int scalePointForDisplay(double orig, double min, double max, int scaleArea) {
-		double percent = (orig - min) / (max - min);
-		//int scaledMagnitude = ((int)scaleArea * ScaledPoint.BUFFER) / 100;
-		int newVal = (int)(percent * scaleArea) + ((int)scaleArea-scaleArea)/2;
-		return newVal;
+	
+	private static double scaleValue(double value, double min, double extent, double newExtent) {
+		//What percent of the original size are we taking up?
+		double percent = (value-min)/extent;
+		return percent * newExtent;
 	}
 }
 

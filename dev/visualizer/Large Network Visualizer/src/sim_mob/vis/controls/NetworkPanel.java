@@ -27,10 +27,7 @@ public class NetworkPanel extends JPanel implements ComponentListener {
 		this.setIgnoreRepaint(true);
 		this.setPreferredSize(new Dimension(300, 300));
 		
-		//Manage ScaledPoint
-		if (ScaledPoint.CanvasWidth==null) {
-			ScaledPoint.CanvasWidth = new WidthGetter(this);
-		}
+		//ScaledPoint needs to know the height of the canvas.
 		if (ScaledPoint.CanvasHeight==null) {
 			ScaledPoint.CanvasHeight = new HeightGetter(this);
 		}

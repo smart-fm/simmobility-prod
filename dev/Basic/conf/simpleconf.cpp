@@ -362,6 +362,8 @@ bool LoadXMLBoundariesCrossings(TiXmlDocument& document, const string& parentStr
 
 
 
+//NOTE: We guarantee that the log file contains data in the order it will be needed. So, Nodes are listed
+//      first because Links need Nodes. Otherwise, the output will be in no guaranteed order.
 void PrintDB_Network()
 {
 	//Save RoadSegments/Connectors to make output simpler
@@ -374,26 +376,7 @@ void PrintDB_Network()
 	logout <<"Printing node network" <<endl;
 	logout <<"NOTE: All IDs in this section are consistent for THIS simulation run, but will change if you run the simulation again." <<endl;
 
-	//Print Links first
-	for (vector<Link*>::const_iterator it=rn.getLinks().begin(); it!=rn.getLinks().end(); it++) {
-		logout <<"(\"link\", 0, " <<*it <<", {";
-		logout <<"\"road-name\":\"" <<(*it)->roadName <<"\",";
-		logout <<"\"start-node\":\"" <<(*it)->getStart() <<"\",";
-		logout <<"\"end-node\":\"" <<(*it)->getEnd() <<"\",";
-		logout <<"\"fwd-path\":\"[";
-		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath(true).begin(); segIt!=(*it)->getPath(true).end(); segIt++) {
-			logout <<*segIt <<",";
-		}
-		logout <<"]\",";
-		logout <<"\"rev-path\":\"[";
-		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath(false).begin(); segIt!=(*it)->getPath(false).end(); segIt++) {
-			logout <<*segIt <<",";
-		}
-		logout <<"]\",";
-		logout <<"})" <<endl;
-	}
-
-	//Then print Nodes
+	//Print nodes first
 	for (set<UniNode*>::const_iterator it=rn.getUniNodes().begin(); it!=rn.getUniNodes().end(); it++) {
 		logout <<"(\"uni-node\", 0, " <<*it <<", {";
 		logout <<"\"xPos\":\"" <<(*it)->location->getX() <<"\",";
@@ -425,6 +408,25 @@ void PrintDB_Network()
 				}
 			}
 		}
+	}
+
+	//Links can go next.
+	for (vector<Link*>::const_iterator it=rn.getLinks().begin(); it!=rn.getLinks().end(); it++) {
+		logout <<"(\"link\", 0, " <<*it <<", {";
+		logout <<"\"road-name\":\"" <<(*it)->roadName <<"\",";
+		logout <<"\"start-node\":\"" <<(*it)->getStart() <<"\",";
+		logout <<"\"end-node\":\"" <<(*it)->getEnd() <<"\",";
+		logout <<"\"fwd-path\":\"[";
+		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath(true).begin(); segIt!=(*it)->getPath(true).end(); segIt++) {
+			logout <<*segIt <<",";
+		}
+		logout <<"]\",";
+		logout <<"\"rev-path\":\"[";
+		for (vector<RoadSegment*>::const_iterator segIt=(*it)->getPath(false).begin(); segIt!=(*it)->getPath(false).end(); segIt++) {
+			logout <<*segIt <<",";
+		}
+		logout <<"]\",";
+		logout <<"})" <<endl;
 	}
 
 	//Now print all Segments

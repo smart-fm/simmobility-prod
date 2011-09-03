@@ -20,18 +20,21 @@ public class RoadNetwork {
 	private DPoint cornerTL;
 	private DPoint cornerLR;
 	
-	private ArrayList<Node> nodes;
+	private Hashtable<Integer, Node> nodes;
+	private Hashtable<Integer, Link> links;
 	
 	public DPoint getTopLeft() { return cornerTL; }
 	public DPoint getLowerRight() { return cornerLR; }
-	public ArrayList<Node> getNodes() { return nodes; }
+	public Hashtable<Integer, Node> getNodes() { return nodes; }
+	public Hashtable<Integer, Link> getLinks() { return links; }
 	
 	
 	/**
 	 * Load the network from a filestream.
 	 */
 	public RoadNetwork(BufferedReader inFile) throws IOException {
-		nodes = new ArrayList<Node>();
+		nodes = new Hashtable<Integer, Node>();
+		links = new Hashtable<Integer, Link>();
 		
 		//Also track min/max x/y pos
 		double[] xBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
@@ -85,6 +88,8 @@ public class RoadNetwork {
 		//Nodes are displayed the same
 		if (objType.equals("multi-node") || objType.equals("uni-node")) {
 			parseNode(frameID, objID, rhs, objType.equals("uni-node"), xBounds, yBounds);
+		} else if (objType.equals("link")) {
+			parseLink(frameID, objID, rhs);
 		}
 	}
 	
@@ -117,6 +122,35 @@ public class RoadNetwork {
 	}
 	
 	
+	private void parseLink(int frameID, int objID, String rhs) throws IOException {
+	    //Check frameID
+	    if (frameID!=0) {
+	    	throw new IOException("Unexpected frame ID, should be zero");
+	    }
+	    
+	    //Check and parse properties.
+	    Hashtable<String, String> props = parseRHS(rhs, new String[]{"road-name", "start-node", "end-node", "fwd-path", "rev-path"});
+	    
+	    //Now save the relevant information
+	    String name = props.get("road-name");
+	    int startNodeKEY = Utility.ParseIntOptionalHex(props.get("start-node"));
+	    int endNodeKEY = Utility.ParseIntOptionalHex(props.get("end-node"));
+	    Node startNode = nodes.get(startNodeKEY);
+	    Node endNode = nodes.get(endNodeKEY);
+	    
+	    //Ensure nodes exist
+	    if (startNode==null) {
+	    	throw new IOException("Unknown node id: " + Integer.toHexString(startNodeKEY));
+	    }
+	    if (endNode==null) {
+	    	throw new IOException("Unknown node id: " + Integer.toHexString(endNodeKEY));
+	    }
+	    
+	    //Create a new Link, save it
+	    links.put(objID, new Link(name, startNode, endNode));
+	}
+	
+	
 	
 	private void parseNode(int frameID, int objID, String rhs, boolean isUni, double[] xBounds, double[] yBounds) throws IOException {
 	    //Check frameID
@@ -134,7 +168,7 @@ public class RoadNetwork {
 	    Utility.CheckBounds(xBounds, x);
 	    Utility.CheckBounds(yBounds, y);
 	    
-	    nodes.add(new Node(x, y, isUni));
+	    nodes.put(objID, new Node(x, y, isUni));
 	}
 	
 	

@@ -10,6 +10,7 @@ import java.awt.Stroke;
 import java.awt.image.BufferedImage;
 
 import sim_mob.vis.network.basic.DPoint;
+import sim_mob.vis.network.Link;
 import sim_mob.vis.network.Node;
 import sim_mob.vis.network.RoadNetwork;
 import sim_mob.vis.network.basic.ScaledPoint;
@@ -25,17 +26,12 @@ public class NetworkVisualizer {
 	private int width100Percent;
 	private int height100Percent;
 	
-	//Resources
-	private Font roadNameFont;
-	
 	//More generic resources
 	private Stroke pt1Stroke;
 	private Stroke pt2Stroke;
 	
 	
 	public NetworkVisualizer() {
-		roadNameFont = new Font("Arial", Font.PLAIN, 16);
-		
 		pt1Stroke = new BasicStroke(1.0F);
 		pt2Stroke = new BasicStroke(2.0F);
 	}
@@ -78,8 +74,13 @@ public class NetworkVisualizer {
 		g.clearRect(0, 0, width, height);
 		
 		//Draw nodes
-		for (Node n : source.getNodes()) {
+		for (Node n : source.getNodes().values()) {
 			n.draw(g);
+		}
+		
+		//Draw links:
+		for (Link ln : source.getLinks().values()) {
+			ln.draw(g);
 		}
 		
 	}

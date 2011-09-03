@@ -29,13 +29,29 @@ public class Link implements DrawableItem {
 		this.end = end;
 	}
 	
+	public String getName() { return name; }
+	public Node getStart() { return start; }
+	public Node getEnd() { return end; }
+	
 	public void draw(Graphics2D g) {
 		g.setColor(roadColor);
 		g.setStroke(roadStroke);
-		g.drawLine((int)start.getPos().getX(), (int)start.getPos().getY(), (int)end.getPos().getX(), (int)end.getPos().getY());
+		g.drawLine((int)start.getPos().getX(), (int)start.getPos().getY(), (int)end.getPos().getX(), (int)end.getPos().getY()); 
+	}
+	
+	public void drawName(Graphics2D g) {
+		g.setColor(roadNameColor);
+		g.setFont(roadNameFont);
+		float targetX = (float)(start.getPos().getX()+(end.getPos().getX()-start.getPos().getX())/2);
+		float targetY = (float)(start.getPos().getY()+(end.getPos().getY()-start.getPos().getY())/2);
 		
+		//Move the center left
+		int strWidth = g.getFontMetrics().stringWidth(name);
+		targetX -= strWidth / 2.0F;
 		
+		//NOTE: We might want to center the font vertically too using getAscent(). 
 		
-		//TODO: Where to put the name? Here, or on the individual Road Segments? 
+		//Draw it.
+		g.drawString(name, targetX, targetY);
 	}
 }

@@ -47,4 +47,8 @@ public class Node implements DrawableItem {
 		}
 		g.drawOval(coords[0], coords[1], NODE_SIZE, NODE_SIZE);
 	}
+	
+	public String toString() {
+		return "(" + pos.getUnscaledX() + "," + pos.getUnscaledY() + ")"; 
+	}
 }

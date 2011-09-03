@@ -8,10 +8,13 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.image.BufferedImage;
+import java.util.HashSet;
+import java.util.Set;
 
 import sim_mob.vis.network.basic.DPoint;
 import sim_mob.vis.network.Link;
 import sim_mob.vis.network.Node;
+import sim_mob.vis.network.Segment;
 import sim_mob.vis.network.RoadNetwork;
 import sim_mob.vis.network.basic.ScaledPoint;
 
@@ -78,9 +81,27 @@ public class NetworkVisualizer {
 			n.draw(g);
 		}
 		
-		//Draw links:
+		//Draw segments
+		for (Segment sn : source.getSegments().values()) {
+			sn.draw(g);
+		}
+		
+		//Draw links
 		for (Link ln : source.getLinks().values()) {
 			ln.draw(g);
+		}
+		
+		//Names go on last; make sure we don't draw them twice...
+		Set<String> alreadyDrawn = new HashSet<String>();
+		for (Link ln : source.getLinks().values()) {
+			String key1 = ln.getName() + ln.getStart().toString() + ":" + ln.getEnd().toString();
+			String key2 = ln.getName() + ln.getEnd().toString() + ":" + ln.getStart().toString();
+			if (alreadyDrawn.contains(key1) || alreadyDrawn.contains(key2)) {
+				continue;
+			}
+			alreadyDrawn.add(key1);
+
+			ln.drawName(g);
 		}
 		
 	}

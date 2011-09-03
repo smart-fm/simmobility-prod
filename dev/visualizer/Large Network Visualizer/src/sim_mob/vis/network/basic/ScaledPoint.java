@@ -51,6 +51,14 @@ public class ScaledPoint {
 	public double getY() {
 		return LastScaledHeight - scaled.y;
 	}
+	
+	public double getUnscaledX() {
+		return orig.x;
+	}
+	
+	public double getUnscaledY() {
+		return orig.y;
+	}
 	 
 	private void scaleVia(DPoint topLeft, DPoint lowerRight, double newWidth, double newHeight) {
 		scaled.x = scaleValue(orig.x, topLeft.x, lowerRight.x-topLeft.x, newWidth);

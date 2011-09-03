@@ -22,11 +22,13 @@ public class RoadNetwork {
 	
 	private Hashtable<Integer, Node> nodes;
 	private Hashtable<Integer, Link> links;
+	private Hashtable<Integer, Segment> segments;
 	
 	public DPoint getTopLeft() { return cornerTL; }
 	public DPoint getLowerRight() { return cornerLR; }
 	public Hashtable<Integer, Node> getNodes() { return nodes; }
 	public Hashtable<Integer, Link> getLinks() { return links; }
+	public Hashtable<Integer, Segment> getSegments() { return segments; }
 	
 	
 	/**
@@ -35,6 +37,7 @@ public class RoadNetwork {
 	public RoadNetwork(BufferedReader inFile) throws IOException {
 		nodes = new Hashtable<Integer, Node>();
 		links = new Hashtable<Integer, Link>();
+		segments = new Hashtable<Integer, Segment>();
 		
 		//Also track min/max x/y pos
 		double[] xBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
@@ -90,6 +93,8 @@ public class RoadNetwork {
 			parseNode(frameID, objID, rhs, objType.equals("uni-node"), xBounds, yBounds);
 		} else if (objType.equals("link")) {
 			parseLink(frameID, objID, rhs);
+		} else if (objType.equals("road-segment")) {
+			parseSegment(frameID, objID, rhs);
 		}
 	}
 	
@@ -148,6 +153,39 @@ public class RoadNetwork {
 	    
 	    //Create a new Link, save it
 	    links.put(objID, new Link(name, startNode, endNode));
+	}
+	
+	
+	private void parseSegment(int frameID, int objID, String rhs) throws IOException {
+	    //Check frameID
+	    if (frameID!=0) {
+	    	throw new IOException("Unexpected frame ID, should be zero");
+	    }
+	    
+	    //Check and parse properties.
+	    Hashtable<String, String> props = parseRHS(rhs, new String[]{"parent-link", "max-speed", "lanes", "from-node", "to-node"});
+	    
+	    //Now save the relevant information
+	    int parentKEY = Utility.ParseIntOptionalHex(props.get("parent-link"));
+	    Link parent = links.get(parentKEY);
+	    int fromNodeKEY = Utility.ParseIntOptionalHex(props.get("from-node"));
+	    int toNodeKEY = Utility.ParseIntOptionalHex(props.get("to-node"));
+	    Node fromNode = nodes.get(fromNodeKEY);
+	    Node toNode = nodes.get(toNodeKEY);
+	    
+	    //Ensure nodes exist
+	    if (parent==null) {
+	    	throw new IOException("Unknown Link id: " + Integer.toHexString(parentKEY));
+	    }
+	    if (fromNode==null) {
+	    	throw new IOException("Unknown node id: " + Integer.toHexString(fromNodeKEY));
+	    }
+	    if (toNode==null) {
+	    	throw new IOException("Unknown node id: " + Integer.toHexString(toNodeKEY));
+	    }
+	    
+	    //Create a new Link, save it
+	    segments.put(objID, new Segment(parent, fromNode, toNode));
 	}
 	
 	

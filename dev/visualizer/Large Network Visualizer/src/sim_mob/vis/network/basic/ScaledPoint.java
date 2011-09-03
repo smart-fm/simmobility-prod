@@ -1,4 +1,4 @@
-package sim_mob.vis.network;
+package sim_mob.vis.network.basic;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;

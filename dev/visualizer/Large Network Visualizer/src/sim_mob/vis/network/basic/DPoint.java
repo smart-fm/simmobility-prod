@@ -1,4 +1,4 @@
-package sim_mob.vis.network;
+package sim_mob.vis.network.basic;
 
 /** 
  * Very simply double-point class.

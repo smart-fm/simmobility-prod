@@ -1,6 +1,7 @@
 package sim_mob.vis.controls;
 
 import java.awt.BasicStroke;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -8,10 +9,10 @@ import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.image.BufferedImage;
 
-import sim_mob.vis.network.DPoint;
+import sim_mob.vis.network.basic.DPoint;
 import sim_mob.vis.network.Node;
 import sim_mob.vis.network.RoadNetwork;
-import sim_mob.vis.network.ScaledPoint;
+import sim_mob.vis.network.basic.ScaledPoint;
 
 
 /**
@@ -24,12 +25,7 @@ public class NetworkVisualizer {
 	private int width100Percent;
 	private int height100Percent;
 	
-	//Constants
-	private static final int NODE_SIZE = 12;
-	
 	//Resources
-	private Color linkColor;
-	private Stroke linkStroke;
 	private Font roadNameFont;
 	
 	//More generic resources
@@ -39,8 +35,6 @@ public class NetworkVisualizer {
 	
 	public NetworkVisualizer() {
 		roadNameFont = new Font("Arial", Font.PLAIN, 16);
-		linkColor = new Color(0xFF, 0x88, 0x22);
-		linkStroke = new BasicStroke(3.0F);
 		
 		pt1Stroke = new BasicStroke(1.0F);
 		pt2Stroke = new BasicStroke(2.0F);
@@ -85,17 +79,7 @@ public class NetworkVisualizer {
 		
 		//Draw nodes
 		for (Node n : source.getNodes()) {
-			int[] coords = new int[]{(int)n.getPos().getX()-NODE_SIZE/2, (int)n.getPos().getY()-NODE_SIZE/2};
-			g.setColor(linkColor);
-			g.fillOval(coords[0], coords[1], NODE_SIZE, NODE_SIZE);
-			if (n.getIsUni()) {
-				g.setStroke(pt1Stroke);
-				g.setColor(Color.BLUE);
-			} else {
-				g.setStroke(linkStroke);
-				g.setColor(Color.BLACK);
-			}
-			g.drawOval(coords[0], coords[1], NODE_SIZE, NODE_SIZE);
+			n.draw(g);
 		}
 		
 	}

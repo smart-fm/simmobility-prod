@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.regex.Matcher;
 
+import sim_mob.vis.network.basic.DPoint;
 import sim_mob.vis.util.Utility;
 
 /**

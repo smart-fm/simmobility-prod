@@ -92,7 +92,7 @@ void sim_mob :: Signal ::update(frame_t frameNumber)
 	{
 		boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
 		std::ostream& logout = BufferedBase::log_file();
-		logout <<"(Signal,"<<frameNumber<<","<<ID<<",{va:";
+		logout <<"(\"Signal\","<<frameNumber<<","<<ID<<",{va:";
 		for(int i = 0; i<3; i++) {
 			logout<<TC_for_Driver[0][i]<<",";
 		}

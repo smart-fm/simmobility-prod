@@ -531,26 +531,58 @@ void sim_mob::aimsun::Loader::ProcessGeneralNode(sim_mob::RoadNetwork& res, Node
 
 void sim_mob::aimsun::Loader::ProcessUniNode(sim_mob::RoadNetwork& res, Node& src)
 {
-	//TODO: UniNodes don't quite fit this definition any more.
-
-	//Which RoadSegment leads here?
-	if (src.sectionsAtNode.size()!=2) {
-		throw std::runtime_error("Unexpected Section count."); //Should already be checked.
+	//Find 2 sections "from" and 2 sections "to".
+	//(Bi-directional segments will complicate this eventually)
+	//Most of the checks done here are already done earlier in the Loading process, but it doesn't hurt to check again.
+	pair<Section*, Section*> fromSecs(nullptr, nullptr);
+	pair<Section*, Section*> toSecs(nullptr, nullptr);
+	for (vector<Section*>::iterator it=src.sectionsAtNode.begin(); it!=src.sectionsAtNode.end(); it++) {
+		if ((*it)->TMP_ToNodeID==src.id) {
+			if (!fromSecs.first) {
+				fromSecs.first = *it;
+			} else if (!fromSecs.second) {
+				fromSecs.second = *it;
+			} else {
+				throw std::runtime_error("UniNode contains unexpected additional Sections leading TO.");
+			}
+		} else if ((*it)->TMP_FromNodeID==src.id) {
+			if (!toSecs.first) {
+				toSecs.first = *it;
+			} else if (!toSecs.second) {
+				toSecs.second = *it;
+			} else {
+				throw std::runtime_error("UniNode contains unexpected additional Sections leading FROM.");
+			}
+		} else {
+			throw std::runtime_error("UniNode contains a Section which actually does not lead to/from that Node.");
+		}
 	}
-	Section* fromSec = (src.sectionsAtNode[0]->TMP_ToNodeID==src.id) ? src.sectionsAtNode[0] : src.sectionsAtNode[1];
-	Section* toSec = (fromSec->id==src.sectionsAtNode[0]->id) ? src.sectionsAtNode[1] : src.sectionsAtNode[1];
+
+	//Ensure at least one path was found, and a non-partial second path.
+	if (!(fromSecs.first && toSecs.first)) {
+		throw std::runtime_error("UniNode contains no primary path.");
+	}
+	if ((fromSecs.second && !toSecs.second) || (!fromSecs.second && toSecs.second)) {
+		throw std::runtime_error("UniNode contains partial secondary path.");
+	}
 
 	//This is a simple Road Segment joint
 	UniNode* newNode = dynamic_cast<UniNode*>(src.generatedNode);
-	newNode->segmentFrom = fromSec->generatedSegment;
-	newNode->segmentTo = toSec->generatedSegment;
 	newNode->location = new Point2D(src.getXPosAsInt(), src.getYPosAsInt());
+
+	//Set locations (ensure unset locations are null)
+	newNode->firstPair = pair<RoadSegment*, RoadSegment*>(fromSecs.first->generatedSegment, toSecs.first->generatedSegment);
+	if (fromSecs.second && toSecs.second) {
+		newNode->secondPair = pair<RoadSegment*, RoadSegment*>(fromSecs.second->generatedSegment, toSecs.second->generatedSegment);
+	} else {
+		newNode->secondPair = pair<RoadSegment*, RoadSegment*>(nullptr, nullptr);
+	}
 
 	//Save it for later reference
 	res.segmentnodes.insert(newNode);
 
 	//TODO: Actual connector alignment (requires map checking)
-	sim_mob::UniNode::buildConnectorsFromAlignedLanes(newNode, 0, 0);
+	sim_mob::UniNode::buildConnectorsFromAlignedLanes(newNode, std::make_pair(0, 0), std::make_pair(0, 0));
 
 	//This UniNode can later be accessed by the RoadSegment itself.
 }
@@ -565,6 +597,9 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 
 	//Process this section, and continue processing Sections along the direction of
 	// travel until one of these ends on an intersection.
+	//NOTE: This approach is far from foolproof; for example, if a Link contains single-directional
+	//      Road segments that fail to match at every UniNode. Need to find a better way to
+	//      group RoadSegments into Links, but at least this works for our test network.
 	Section* currSect = &src;
 	sim_mob::Link* ln = new sim_mob::Link();
 	src.generatedSegment = new sim_mob::RoadSegment(ln);
@@ -687,6 +722,12 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 	//Check
 	if (src.fromSection->toNode->id != src.toSection->fromNode->id) {
 		throw std::runtime_error("Turning doesn't match with Sections and Nodes.");
+	}
+
+	//Skip Turnings which meet at UniNodes; these will be handled elsewhere.
+	sim_mob::Node* meetingNode = src.fromSection->toNode->generatedNode;
+	if (dynamic_cast<UniNode*>(meetingNode)) {
+		return;
 	}
 
 	//Essentially, just expand each turning into a set of LaneConnectors.

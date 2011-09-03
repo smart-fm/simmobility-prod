@@ -207,7 +207,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 void sim_mob::Driver::output(frame_t frameNumber)
 {
 	boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-	BufferedBase::log_file()<<"(Driver"
+	BufferedBase::log_file()<<"(\"Driver\""
 			<<","<<frameNumber
 			<<","<<parent->getId()
 			<<",{"

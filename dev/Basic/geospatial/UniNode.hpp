@@ -29,9 +29,17 @@ class Loader;
 
 
 /**
- * A Node where exactly two RoadSegments from within the same Link meet. This usually represents
- * a change in the number of lanes (or sometimes just the lane rules that are in effect).
- * Each lane from the first segment connects directly to one Lane in the second segment.
+ * A Node where two to four RoadSegments from within the same Link meet. This usually occurs
+ *   because lane rules (or the actual number of lanes) change.
+ *
+ * \note
+ * Currently, UniNodes are slightly restricted: They MUST always contain either ONE or TWO
+ *   paths through them, one in the forward direction and another in the reverse. See the note
+ *   in Loader::ProcessSection() about this limitation. In the general case, we can say that a
+ *   UniNode should simply be a Node that occurs between RoadSegments in the same Link.
+ *
+ * Each lane from an incoming segment connects directly to one Lane in an outgoing segment which
+ *   is NOTE heading back to the same source node.
  */
 class UniNode : public sim_mob::Node {
 public:
@@ -43,19 +51,23 @@ public:
 	///      simply separate this out into a "getRoadSegmentFrom", "getRoadSegmentTo"
 	///      ---although, be careful with the second approach, since the "from" segment actually
 	///      goes "to" the node.
-	std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> getRoadSegments() const;
+	//std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> getRoadSegments() const;
 
 
 	///Helper method: Build the connectors vector dynamically by aligning a lane in the "from" Road Segment with one
 	/// in the "to" Road Segment.
-	static void buildConnectorsFromAlignedLanes(UniNode* node, unsigned int fromLaneID, unsigned int toLaneID);
+	///NOTE: The "from/to" laneID pairs will definitely be cleaned up later; for now I'm just trying
+	//       to get them to output something decent. At the moment they MUST correspond to "firstPair", "secondPair". ~Seth
+	static void buildConnectorsFromAlignedLanes(UniNode* node, std::pair<unsigned int, unsigned int> fromToLaneIDs1, std::pair<unsigned int, unsigned int> fromToLaneIDs2);
 
 protected:
 	std::map<const sim_mob::Lane*, sim_mob::Lane* > connectors;
 
 	///Bookkeeping: which RoadSegments meet at this Node?
-	const sim_mob::RoadSegment* segmentFrom;
-	const sim_mob::RoadSegment* segmentTo;
+	//  NOTE: If the RoadSegments in secondPair are null; then this is a one-way UniNode.
+	//  As "from->to"
+	std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> firstPair;
+	std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> secondPair;
 
 
 friend class sim_mob::aimsun::Loader;

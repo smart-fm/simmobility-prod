@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
+import java.awt.geom.AffineTransform;
 
 import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.network.basic.ScaledPoint;
@@ -49,9 +50,21 @@ public class Link implements DrawableItem {
 		int strWidth = g.getFontMetrics().stringWidth(name);
 		targetX -= strWidth / 2.0F;
 		
-		//NOTE: We might want to center the font vertically too using getAscent(). 
+		//NOTE: We might want to center the font vertically too using getAscent().
+		
+		//TEMP: Try rotating it
+		AffineTransform trans = AffineTransform.getTranslateInstance(targetX, targetY);
+		AffineTransform oldTrans = g.getTransform();
+		trans.rotate(-Math.PI/20);
+		//trans.setToRotation(Math.PI/4); //45 deg.
+		g.setTransform(trans);
 		
 		//Draw it.
-		g.drawString(name, targetX, targetY);
+		//g.drawString(name, targetX, targetY);
+		g.drawString(name, 0, 0);
+		
+		g.setTransform(oldTrans);
 	}
 }
+
+

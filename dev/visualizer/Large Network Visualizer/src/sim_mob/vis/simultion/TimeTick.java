@@ -7,4 +7,5 @@ import java.util.Hashtable;
  */
 public class TimeTick {
 	public Hashtable<Integer, AgentTick> agentTicks;
+	public Hashtable<Integer, SignalTick> signalTicks;
 }

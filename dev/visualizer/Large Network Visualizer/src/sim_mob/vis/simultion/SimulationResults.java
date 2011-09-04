@@ -1,6 +1,7 @@
 package sim_mob.vis.simultion;
 
 
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -92,10 +93,58 @@ public class SimulationResults {
 		if (objType.equals("Driver")) {
 			parseDriver(frameID, objID, rhs);
 		} else if (objType.equals("Signal")) {
-			//parseSignal(frameID, objID, rhs);
+			parseSignal(frameID, objID, rhs);
 		} else if (objType.equals("pedestrian")) {
 			parsePedestrian(frameID, objID, rhs);
 		}
+	}
+	
+	
+	private static Color ReadColor(int id) {
+		if (id==1) {
+			return Color.RED;
+		} else if (id==2) {
+			return Color.YELLOW;
+		} else if (id==3) {
+			return new Color(0x00, 0x99, 0x00);
+		}
+		throw new RuntimeException("Invalid traffic light color: " + id);
+	}
+	
+	
+	private void parseSignal(int frameID, int objID, String rhs) throws IOException {
+	    //Check and parse properties.
+	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"va", "vb", "vc", "vd", "pa", "pb", "pc", "pd"});
+	    
+	    //Now save the relevant information.
+	    Color[] vehicleLights = new Color[4];
+	    Color[] pedestrianLights = new Color[4];
+	    for (int i=0; i<4; i++) {
+	    	String c = Character.toString((char)('a'+i));
+	    	
+	    	//NOTE: We are ignoring the other 2 signals in each TrafficLight; right now we just
+	    	//      need to see if they roughly work.
+	    	String tmp = props.get("v"+c);
+	    	tmp = Character.toString(tmp.charAt(0));
+	    	
+	    	vehicleLights[i] = ReadColor(Integer.parseInt(tmp));
+	    	pedestrianLights[i] = ReadColor(Integer.parseInt(props.get("p"+c)));
+	    }
+
+	    //Ensure the frame has been created
+	    while (ticks.size()<=frameID) {
+	    	TimeTick t = new TimeTick();
+	    	t.agentTicks = new Hashtable<Integer, AgentTick>();
+	    	t.signalTicks = new Hashtable<Integer, SignalTick>();
+	    	ticks.add(t);
+	    }
+	    
+	    //For now, just push multiple signals further in on the X axis
+	    int xPos = (10+SignalTick.EstVisualSize())*ticks.get(frameID).signalTicks.size() + 10;
+	    int yPos = 50;
+
+	    //Add this Signal to the array
+	    ticks.get(frameID).signalTicks.put(objID, new SignalTick(xPos, yPos, vehicleLights, pedestrianLights));
 	}
 	
 	
@@ -121,6 +170,7 @@ public class SimulationResults {
 	    while (ticks.size()<=frameID) {
 	    	TimeTick t = new TimeTick();
 	    	t.agentTicks = new Hashtable<Integer, AgentTick>();
+	    	t.signalTicks = new Hashtable<Integer, SignalTick>();
 	    	ticks.add(t);
 	    }
 	    
@@ -141,6 +191,7 @@ public class SimulationResults {
 	    while (ticks.size()<=frameID) {
 	    	TimeTick t = new TimeTick();
 	    	t.agentTicks = new Hashtable<Integer, AgentTick>();
+	    	t.signalTicks = new Hashtable<Integer, SignalTick>();
 	    	ticks.add(t);
 	    }
 	    

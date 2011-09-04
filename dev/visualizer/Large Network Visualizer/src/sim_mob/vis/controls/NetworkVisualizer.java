@@ -7,6 +7,7 @@ import java.util.*;
 import sim_mob.vis.network.basic.*;
 import sim_mob.vis.network.*;
 import sim_mob.vis.simultion.AgentTick;
+import sim_mob.vis.simultion.SignalTick;
 import sim_mob.vis.simultion.SimulationResults;
 
 
@@ -129,6 +130,14 @@ public class NetworkVisualizer {
 			at.draw(g);
 		}
 		
+	}
+	
+	
+	//Hackish
+	void drawTrafficLights(Graphics2D g) {
+		for (SignalTick sg : simRes.ticks.get(currFrameTick).signalTicks.values()) {
+			sg.draw(g);
+		}
 	}
 	
 

@@ -132,7 +132,7 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 				//Output (temp)
 				{
 					boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-					BufferedBase::log_file() <<"("<<"Pedestrian,"<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl;
+					BufferedBase::log_file() <<"("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl;
 				}
 			}
 

@@ -180,12 +180,12 @@ public class SimulationResults {
 	
 	private void parsePedestrian(int frameID, int objID, String rhs) throws IOException {
 	    //Check and parse properties.
-	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"xPos", "yPos", "pedSig"});
+	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"xPos", "yPos"});
 	    
 	    //Now save the relevant information
 	    double xPos = Double.parseDouble(props.get("xPos"));
 	    double yPos = Double.parseDouble(props.get("yPos"));
-	    Integer.parseInt(props.get("pedSig")); //Currently not used
+	    //Integer.parseInt(props.get("pedSig")); //Currently not used
 	    
 	    //Ensure the frame has been created
 	    while (ticks.size()<=frameID) {

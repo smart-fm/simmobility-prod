@@ -2,6 +2,8 @@ package sim_mob.vis.util;
 
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.util.Hashtable;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import sim_mob.vis.Main;
@@ -47,6 +49,36 @@ public class Utility {
 		bounds[0] = Math.min(bounds[0], newVal);
 		bounds[1] = Math.max(bounds[1], newVal);
 	}
+	
+	
+	
+	public static Hashtable<String, String> ParseLogRHS(String rhs, String[] ensure) throws IOException {
+		//Json-esque matching
+		Hashtable<String, String> properties = new Hashtable<String, String>();
+		Matcher m = Utility.LOG_RHS_REGEX.matcher(rhs);
+		while (m.find()) {
+			if (m.groupCount()!=2) {
+				throw new IOException("Unexpected group count (" + m.groupCount() + ") for: " + rhs);
+			}
+			
+			String keyStr = m.group(1);
+			String value = m.group(2);
+			if (properties.containsKey(keyStr)) {
+				throw new IOException("Duplicate key: " + keyStr);
+			}
+			properties.put(keyStr, value);
+		}
+		
+		//Now confirm
+		for (String reqKey : ensure) {
+			if (!properties.containsKey(reqKey)) {
+				throw new IOException("Missing key: " + reqKey + " in: " + rhs);
+			}
+		}
+		
+		return properties;
+	}
+	
 	
 	
 	//regex-related

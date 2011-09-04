@@ -3,9 +3,12 @@ package sim_mob.vis;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+
+import java.io.BufferedReader;
 import java.io.IOException;
 import sim_mob.vis.controls.*;
 import sim_mob.vis.network.RoadNetwork;
+import sim_mob.vis.simultion.SimulationResults;
 import sim_mob.vis.util.Utility;
 
 
@@ -14,6 +17,7 @@ public class MainFrame extends JFrame {
 	
 	//Center (main) panel
 	private NetworkPanel newViewPnl;
+	private SimulationResults simData;
 	
 	//LHS panel
 	private JButton openLogFile;
@@ -117,14 +121,25 @@ public class MainFrame extends JFrame {
 				//Load the default visualization
 				RoadNetwork rn = null;
 				try {
-					rn = new RoadNetwork(Utility.LoadFileResource("res/data/default.log.txt"));
+					BufferedReader br = Utility.LoadFileResource("res/data/default.log.txt");
+					rn = new RoadNetwork(br);
+					br.close();
+				} catch (IOException ex) {
+					throw new RuntimeException(ex);
+				}
+				
+				//Load the simulation's results
+				try {
+					BufferedReader br = Utility.LoadFileResource("res/data/default.log.txt");
+					simData = new SimulationResults(br);
+					br.close();
 				} catch (IOException ex) {
 					throw new RuntimeException(ex);
 				}
 				
 				//Add a visualizer
 				NetworkVisualizer vis = new NetworkVisualizer();
-				vis.setSource(rn, 2.0, newViewPnl.getWidth(), newViewPnl.getHeight());
+				vis.setSource(rn, simData, 1.0, newViewPnl.getWidth(), newViewPnl.getHeight());
 				
 				//Update the map
 				newViewPnl.drawMap(vis, 0, 0);

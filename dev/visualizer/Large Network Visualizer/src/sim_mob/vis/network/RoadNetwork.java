@@ -72,12 +72,6 @@ public class RoadNetwork {
 		//Save bounds
 		cornerTL = new DPoint(xBounds[0], yBounds[0]);
 		cornerLR = new DPoint(xBounds[1], yBounds[1]);
-		
-		//Scale (to 95%, allows better viewing)
-		//double fivePercW = (xBounds[1]-xBounds[0])*5 / 100;
-		//double fivePercH = (yBounds[1]-yBounds[0])*5 / 100;
-		
-		//ScaledPoint.ScaleAllPoints(new DPoint(xBounds[0]-fivePercW, xBounds[1]+fivePercW), new DPoint(yBounds[0]-fivePercH, yBounds[1]+fivePercH));
 	}
 	
 	
@@ -93,34 +87,6 @@ public class RoadNetwork {
 	}
 	
 	
-	private Hashtable<String, String> parseRHS(String rhs, String[] ensure) throws IOException {
-		//Json-esque matching
-		Hashtable<String, String> properties = new Hashtable<String, String>();
-		Matcher m = Utility.LOG_RHS_REGEX.matcher(rhs);
-		while (m.find()) {
-			if (m.groupCount()!=2) {
-				throw new IOException("Unexpected group count (" + m.groupCount() + ") for: " + rhs);
-			}
-			
-			String keyStr = m.group(1);
-			String value = m.group(2);
-			if (properties.containsKey(keyStr)) {
-				throw new IOException("Duplicate key: " + keyStr);
-			}
-			properties.put(keyStr, value);
-		}
-		
-		//Now confirm
-		for (String reqKey : ensure) {
-			if (!properties.containsKey(reqKey)) {
-				throw new IOException("Missing key: " + reqKey + " in: " + rhs);
-			}
-		}
-		
-		return properties;
-	}
-	
-	
 	private void parseLink(int frameID, int objID, String rhs) throws IOException {
 	    //Check frameID
 	    if (frameID!=0) {
@@ -128,7 +94,7 @@ public class RoadNetwork {
 	    }
 	    
 	    //Check and parse properties.
-	    Hashtable<String, String> props = parseRHS(rhs, new String[]{"road-name", "start-node", "end-node", "fwd-path", "rev-path"});
+	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"road-name", "start-node", "end-node", "fwd-path", "rev-path"});
 	    
 	    //Now save the relevant information
 	    String name = props.get("road-name");
@@ -157,7 +123,7 @@ public class RoadNetwork {
 	    }
 	    
 	    //Check and parse properties.
-	    Hashtable<String, String> props = parseRHS(rhs, new String[]{"parent-link", "max-speed", "lanes", "from-node", "to-node"});
+	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"parent-link", "max-speed", "lanes", "from-node", "to-node"});
 	    
 	    //Now save the relevant information
 	    int parentKEY = Utility.ParseIntOptionalHex(props.get("parent-link"));
@@ -191,7 +157,7 @@ public class RoadNetwork {
 	    }
 	    
 	    //Check and parse properties.
-	    Hashtable<String, String> props = parseRHS(rhs, new String[]{"xPos", "yPos"});
+	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"xPos", "yPos"});
 	    
 	    //Now save the position information
 	    double x = Double.parseDouble(props.get("xPos"));

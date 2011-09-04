@@ -211,10 +211,10 @@ void sim_mob::Driver::output(frame_t frameNumber)
 			<<","<<frameNumber
 			<<","<<parent->getId()
 			<<",{"
-			<<"xPos:"<<parent->xPos.get()
-			<<",yPos:"<<parent->yPos.get()
-			<<",angle:"<<angle
-			<<"})"<<std::endl;
+			<<"\"xPos\":\""<<parent->xPos.get()
+			<<"\",\"yPos\":\""<<parent->yPos.get()
+			<<"\",\"angle\":\""<<angle
+			<<"\"})"<<std::endl;
 
 	/*std::cout <<"("
 			<<parent->getId()

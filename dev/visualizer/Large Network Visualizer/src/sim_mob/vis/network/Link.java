@@ -9,6 +9,7 @@ import java.awt.geom.AffineTransform;
 
 import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.network.basic.ScaledPoint;
+import sim_mob.vis.network.basic.Vect;
 
 /**
  * Links join Intersections and consist of Segments. 
@@ -47,22 +48,27 @@ public class Link implements DrawableItem {
 		float targetY = (float)(start.getPos().getY()+(end.getPos().getY()-start.getPos().getY())/2);
 		
 		//Move the center left
-		int strWidth = g.getFontMetrics().stringWidth(name);
-		targetX -= strWidth / 2.0F;
+		float halfStrWidth = g.getFontMetrics().stringWidth(name) / 2.0F;
+		//targetX -= strWidth / 2.0F;
 		
-		//NOTE: We might want to center the font vertically too using getAscent().
-		
-		//TEMP: Try rotating it
-		AffineTransform trans = AffineTransform.getTranslateInstance(targetX, targetY);
+		//Save the old translation matrix
 		AffineTransform oldTrans = g.getTransform();
-		trans.rotate(-Math.PI/20);
-		//trans.setToRotation(Math.PI/4); //45 deg.
+		
+		//Create a new translation matrix which is located at the center of the string.
+		AffineTransform trans = AffineTransform.getTranslateInstance(targetX, targetY);
+		
+		//Figure out the rotational matrix of this line, from start to end.
+		Vect line = new Vect(start.getPos().getX(), start.getPos().getY(), end.getPos().getX(), end.getPos().getY());
+		trans.rotate(line.getMagX(), line.getMagY());
+		
+		//Next, translate X backwards by half the string width, and move it up slightly.
+		trans.translate(-halfStrWidth, -3);
+		
+		//Apply the transformation, draw the string at the origin.
 		g.setTransform(trans);
-		
-		//Draw it.
-		//g.drawString(name, targetX, targetY);
 		g.drawString(name, 0, 0);
-		
+
+		//Restore AffineTransform matrix.
 		g.setTransform(oldTrans);
 	}
 }

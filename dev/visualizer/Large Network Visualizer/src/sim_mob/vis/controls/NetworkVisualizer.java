@@ -23,6 +23,8 @@ public class NetworkVisualizer {
 	private int height100Percent;
 	double currPercentZoom;
 	
+	public int getCurrFrameTick() { return currFrameTick; }
+	
 	//More generic resources
 	//private Stroke pt1Stroke;
 	//private Stroke pt2Stroke;
@@ -41,7 +43,7 @@ public class NetworkVisualizer {
 		//Save
 		this.network = network;
 		this.simRes = simRes;
-		this.currFrameTick = 88;
+		this.currFrameTick = 0;
 		this.width100Percent = width100Percent;
 		this.height100Percent = height100Percent;
 		

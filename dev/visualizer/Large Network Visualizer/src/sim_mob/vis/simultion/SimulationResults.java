@@ -64,6 +64,11 @@ public class SimulationResults {
 		//  see something.)
 		for (TimeTick tt : ticks) {
 			for (AgentTick at : tt.agentTicks.values()) {
+				//Skip pedestrians; they're already using the right coordinates
+				if (at.getClass().equals(PedestrianTick.class)) {
+					continue;
+				}
+				
 				//Get percent
 				double percX = at.pos.getUnscaledX()/(xBounds[1]-xBounds[0]);
 				double percY = at.pos.getUnscaledY()/(yBounds[1]-yBounds[0]);

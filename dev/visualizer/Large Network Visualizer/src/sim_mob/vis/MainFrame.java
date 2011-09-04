@@ -5,6 +5,8 @@ import java.awt.event.*;
 import javax.swing.*;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import sim_mob.vis.controls.*;
 import sim_mob.vis.network.RoadNetwork;
@@ -116,12 +118,19 @@ public class MainFrame extends JFrame {
 	 */
 	private void createListeners() {
 		openLogFile.addActionListener(new ActionListener() {
-			//Temporary, obviously
 			public void actionPerformed(ActionEvent arg0) {
+				//Use a FileChooser
+				final JFileChooser fc = new JFileChooser("src/res/data");
+				if (fc.showOpenDialog(MainFrame.this)!=JFileChooser.APPROVE_OPTION) {
+					return;
+				}
+				File f = fc.getSelectedFile();
+
 				//Load the default visualization
 				RoadNetwork rn = null;
 				try {
-					BufferedReader br = Utility.LoadFileResource("res/data/default.log.txt");
+					//BufferedReader br = Utility.LoadFileResource("res/data/default.log.txt");
+					BufferedReader br = new BufferedReader(new FileReader(f));
 					rn = new RoadNetwork(br);
 					br.close();
 				} catch (IOException ex) {
@@ -130,7 +139,8 @@ public class MainFrame extends JFrame {
 				
 				//Load the simulation's results
 				try {
-					BufferedReader br = Utility.LoadFileResource("res/data/default.log.txt");
+					//BufferedReader br = Utility.LoadFileResource("res/data/default.log.txt");
+					BufferedReader br = new BufferedReader(new FileReader(f));
 					simData = new SimulationResults(br, rn);
 					br.close();
 				} catch (IOException ex) {

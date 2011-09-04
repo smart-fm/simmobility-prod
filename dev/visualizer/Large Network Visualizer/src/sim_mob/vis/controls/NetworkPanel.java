@@ -13,6 +13,9 @@ import sim_mob.vis.util.IntGetter;
 public class NetworkPanel extends JPanel implements ComponentListener, MouseListener, MouseMotionListener, MouseWheelListener {
 	public static final long serialVersionUID = 1L;
 	
+	//Final display
+	private static Font FrameFont = new Font("Arial", Font.PLAIN, 18);
+	
 	//Double-buffered to prevent flickering.
 	private BufferedImage buffer;
 	
@@ -43,6 +46,12 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 					
 		//Paint the bufer
 		g.drawImage(buffer, 0, 0, null);
+		
+		//Draw the current frame
+		if (netViewCache!=null) {
+			g.setFont(FrameFont);
+			g.drawString("Frame: "+netViewCache.getCurrFrameTick() , 15, 10+g.getFontMetrics().getAscent());
+		}
 	}
 
 	

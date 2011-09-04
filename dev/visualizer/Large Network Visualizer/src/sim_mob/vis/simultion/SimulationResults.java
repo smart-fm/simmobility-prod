@@ -6,6 +6,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.regex.Matcher;
+
+import sim_mob.vis.network.RoadNetwork;
+import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.util.Utility;
 
 
@@ -15,8 +18,15 @@ import sim_mob.vis.util.Utility;
 public class SimulationResults {
 	public ArrayList<TimeTick> ticks;
 	
-	public SimulationResults(BufferedReader inFile) throws IOException {
+	private static double[] xBounds;
+	private static double[] yBounds;
+	
+	public SimulationResults(BufferedReader inFile, RoadNetwork rn) throws IOException {
 		ticks = new ArrayList<TimeTick>();
+		
+		//TEMP: Hack for drivers
+		xBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
+		yBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
 		
 		//Read
 		String line;
@@ -49,6 +59,27 @@ public class SimulationResults {
 		    	throw new IOException(ex.getMessage() + "\n...on line: " + line);
 		    }
 		}
+		
+		//Now that the file has been loaded, scale driver positions to the RoadNetwork (so we can at least
+		//  see something.)
+		for (TimeTick tt : ticks) {
+			for (AgentTick at : tt.agentTicks.values()) {
+				//Get percent
+				double percX = at.pos.getUnscaledX()/(xBounds[1]-xBounds[0]);
+				double percY = at.pos.getUnscaledY()/(yBounds[1]-yBounds[0]);
+				
+				//Scale to RN
+				double amtX = percX * (rn.getLowerRight().x - rn.getTopLeft().x);
+				double amtY = percY * (rn.getLowerRight().y - rn.getTopLeft().y);
+				
+				//Translate to RN
+				double resX = amtX + rn.getTopLeft().x;
+				double resY = amtY + rn.getTopLeft().y;
+				
+				//Save
+				at.pos = new ScaledPoint(resX, resY);
+			}
+		}
 	}
 	
 	//We assume the x/y bounds will be within those saved by the RoadNetwork.
@@ -71,6 +102,10 @@ public class SimulationResults {
 	    double xPos = Double.parseDouble(props.get("xPos"));
 	    double yPos = Double.parseDouble(props.get("yPos"));
 	    int angle = Integer.parseInt(props.get("angle"));
+	    
+	    //TEMP: Hack for drivers
+	    Utility.CheckBounds(xBounds, xPos);
+	    Utility.CheckBounds(yBounds, yPos);
 	    
 	    //Double-check angle
 	    if (angle<0 || angle>360) {

@@ -131,7 +131,7 @@ public class MainFrame extends JFrame {
 				//Load the simulation's results
 				try {
 					BufferedReader br = Utility.LoadFileResource("res/data/default.log.txt");
-					simData = new SimulationResults(br);
+					simData = new SimulationResults(br, rn);
 					br.close();
 				} catch (IOException ex) {
 					throw new RuntimeException(ex);

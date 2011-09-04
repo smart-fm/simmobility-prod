@@ -148,7 +148,26 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	
 	//Zooming with the mouse wheel
 	public void mouseWheelMoved(MouseWheelEvent e) {
+		//Get the old width/height for comparison
+		double oldW = netViewCache.getImage().getWidth();
+		double oldH = netViewCache.getImage().getHeight();
+		
+		//Zoom
 		netViewCache.zoomIn(-e.getWheelRotation());
+		
+		//NOTE: The math isn't quite right for scaling; will fix this later.
+		//      A correct fix will create a temporary "ScaledPoint" that represents the center
+		//      of the canvas (offset.x+width/2, offset.y+height/2) as an actual point on the map
+		//      After scaling, just translate this point back to screen co-ordinates and subtract
+		//      width/2, height/2 to get the correct new offset. 
+		//      For now, just "nudging" the value slightly.
+		double modAmtX = netViewCache.getImage().getWidth()>oldW ? 1.1 : 0.9;
+		double modAmtY = netViewCache.getImage().getHeight()>oldH ? 1.1 : 0.9;
+		
+		//Modify the offset accordingly
+		offset.x = (int)((modAmtX*offset.x*netViewCache.getImage().getWidth())/oldW);
+		offset.y = (int)((modAmtY*offset.y*netViewCache.getImage().getHeight())/oldH);
+		
 		updateMap();
 	}
 	

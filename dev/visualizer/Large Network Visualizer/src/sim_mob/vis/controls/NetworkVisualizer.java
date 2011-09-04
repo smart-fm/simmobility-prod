@@ -24,6 +24,16 @@ public class NetworkVisualizer {
 	double currPercentZoom;
 	
 	public int getCurrFrameTick() { return currFrameTick; }
+	public boolean incrementCurrFrameTick(int amt) {
+		return setCurrFrameTick(currFrameTick+amt);
+	}
+	public boolean setCurrFrameTick(int newVal) {
+		if (newVal<0 || simRes==null || newVal>=simRes.ticks.size()) {
+			return false;
+		}
+		currFrameTick = newVal;
+		return true;
+	}
 	
 	//More generic resources
 	//private Stroke pt1Stroke;
@@ -74,14 +84,17 @@ public class NetworkVisualizer {
 		
 		//Scale all points
 		ScaledPoint.ScaleAllPoints(newTL, newLR, width, height);
-		
+		redrawAtCurrScale();
+	}
+	
+	public void redrawAtCurrScale() {
 		//Retrieve a graphics object; ensure it'll anti-alias
 		Graphics2D g = (Graphics2D)buffer.getGraphics();
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		
 		//Fill the background
 		g.setBackground(Color.WHITE);
-		g.clearRect(0, 0, width, height);
+		g.clearRect(0, 0, buffer.getWidth(), buffer.getHeight());
 		
 		//Draw nodes
 		for (Node n : network.getNodes().values()) {

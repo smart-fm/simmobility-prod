@@ -2,7 +2,10 @@ package sim_mob.vis;
 
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,9 +28,13 @@ public class MainFrame extends JFrame {
 	private JButton openLogFile;
 	
 	//Lower panel
+	private Timer animTimer;
+	private JSlider frameTickSlider;
 	private JButton revBtn;
 	private JButton playBtn;
 	private JButton fwdBtn;
+	private ImageIcon playIcon;
+	private ImageIcon pauseIcon;
 
 	
 	public MainFrame() {
@@ -53,9 +60,13 @@ public class MainFrame extends JFrame {
 	 * Load all components and initialize them properly.
 	 */
 	private void loadComponents() throws IOException {
+		playIcon = new ImageIcon(Utility.LoadImgResource("res/icons/play.png"));
+		pauseIcon = new ImageIcon(Utility.LoadImgResource("res/icons/pause.png"));
+		
 		openLogFile = new JButton("Open Logfile", new ImageIcon(Utility.LoadImgResource("res/icons/open.png")));
+		frameTickSlider = new JSlider(JSlider.HORIZONTAL);
 		revBtn = new JButton(new ImageIcon(Utility.LoadImgResource("res/icons/rev.png")));
-		playBtn = new JButton(new ImageIcon(Utility.LoadImgResource("res/icons/play.png")));
+		playBtn = new JButton(playIcon);
 		fwdBtn = new JButton(new ImageIcon(Utility.LoadImgResource("res/icons/fwd.png")));
 		
 		newViewPnl = new NetworkPanel();
@@ -71,10 +82,13 @@ public class MainFrame extends JFrame {
 		jpLeft.add(openLogFile);
 		
 		//Bottom panel
-		JPanel jpLower = new JPanel(new GridLayout(1, 0, 10, 0));
-		jpLower.add(revBtn);
-		jpLower.add(playBtn);
-		jpLower.add(fwdBtn);
+		JPanel jpLower = new JPanel(new BorderLayout());
+		jpLower.add(BorderLayout.NORTH, frameTickSlider);
+		JPanel jpLower2 = new JPanel(new GridLayout(1, 0, 10, 0));
+		jpLower2.add(revBtn);
+		jpLower2.add(playBtn);
+		jpLower2.add(fwdBtn);
+		jpLower.add(BorderLayout.CENTER, jpLower2);
 		
 		//Main Frame uses a grid bag layout
 		GridBagConstraints gbc;
@@ -117,8 +131,53 @@ public class MainFrame extends JFrame {
 	 * Create all Listeners and hook them up to callback functions.
 	 */
 	private void createListeners() {
+		//Frame tick slider
+		frameTickSlider.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent arg0) {
+				if (simData==null) {
+					return;
+				}
+				newViewPnl.jumpAnim(frameTickSlider.getValue(), frameTickSlider);
+			}
+		});
+		
+		//Play/pause
+		playBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				//Anything to play?
+				if (simData==null) {
+					return;
+				}
+				
+				if (!animTimer.isRunning()) {
+					animTimer.start();
+					playBtn.setIcon(pauseIcon);
+				} else {
+					animTimer.stop();
+					playBtn.setIcon(playIcon);
+				}
+			}
+		});
+		
+		//20 FPS, update anim
+		animTimer = new Timer(50, new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (!newViewPnl.advanceAnim(1, frameTickSlider)) {
+					animTimer.stop();
+					playBtn.setIcon(playIcon);
+					return;
+				}
+			}
+		}); 
+		
 		openLogFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				//Pause the animation
+				if (animTimer.isRunning()) {
+					animTimer.stop();
+					playBtn.setIcon(playIcon);
+				}
+				
 				//Use a FileChooser
 				final JFileChooser fc = new JFileChooser("src/res/data");
 				if (fc.showOpenDialog(MainFrame.this)!=JFileChooser.APPROVE_OPTION) {
@@ -146,6 +205,13 @@ public class MainFrame extends JFrame {
 				} catch (IOException ex) {
 					throw new RuntimeException(ex);
 				}
+				
+				//Update the slider
+				frameTickSlider.setMinimum(0);
+				frameTickSlider.setMaximum(simData.ticks.size()-1);
+				frameTickSlider.setMajorTickSpacing(simData.ticks.size()/10);
+				frameTickSlider.setMinorTickSpacing(simData.ticks.size()/50);
+				frameTickSlider.setValue(0);
 				
 				//Add a visualizer
 				NetworkVisualizer vis = new NetworkVisualizer();

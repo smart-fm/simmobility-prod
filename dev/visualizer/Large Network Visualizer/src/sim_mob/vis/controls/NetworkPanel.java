@@ -4,6 +4,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import javax.swing.JPanel;
+import javax.swing.JSlider;
+
 import sim_mob.vis.util.IntGetter;
 
 
@@ -46,12 +48,6 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 					
 		//Paint the bufer
 		g.drawImage(buffer, 0, 0, null);
-		
-		//Draw the current frame
-		if (netViewCache!=null) {
-			g.setFont(FrameFont);
-			g.drawString("Frame: "+netViewCache.getCurrFrameTick() , 15, 10+g.getFontMetrics().getAscent());
-		}
 	}
 
 	
@@ -66,6 +62,33 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 			origValue = -Math.min(Math.max(0,origValue), srcValue-destValue);
 		}
 		return origValue;
+	}
+	
+	
+	public boolean jumpAnim(int toTick, JSlider slider) {
+		//Set
+		if (netViewCache==null || !netViewCache.setCurrFrameTick(toTick)) {
+			return false;
+		}
+		
+		//Update the slider, if it exists
+		if (slider!=null) {
+			slider.setValue(netViewCache.getCurrFrameTick());
+		}
+
+		netViewCache.redrawAtCurrScale();
+		updateMap();
+		return true;
+	}
+	
+	
+	public boolean advanceAnim(int ticks, JSlider slider) {
+		//Increment
+		if (netViewCache==null || !netViewCache.incrementCurrFrameTick(1)) {
+			return false;
+		}
+		
+		return jumpAnim(netViewCache.getCurrFrameTick(), slider);
 	}
 	
 	
@@ -102,8 +125,17 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 			g.clearRect(0, 0, buffer.getWidth(), buffer.getHeight());
 		}
 		
-		//Draw the network at the given offset; repaint
+		//Draw the network at the given offset
 		g.drawImage(drawImg, offset.x, offset.y, null);
+		
+		//Draw the current frame
+		if (netViewCache!=null) {
+			g.setFont(FrameFont);
+			g.setColor(Color.black);
+			g.drawString("Frame: "+netViewCache.getCurrFrameTick() , 15, 10+g.getFontMetrics().getAscent());
+		}
+		
+		//Repaint
 		this.repaint();
 	}
 	

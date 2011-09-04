@@ -6,6 +6,12 @@ dev/Basic/doxy/output/
 #Java project built files
 dev/visualizer/Traffic_Signal_Animation/.settings/
 dev/visualizer/Traffic_Signal_Animation/bin/
+dev/visualizer/Large Network Visualizer/.settings/
+dev/visualizer/Large Network Visualizer/bin/
+
+#Processing applet directories (except the original)
+testing/CrossingsVisualization/applet/
+testing/RoadNetworkSampleVis/applet/
 
 
 #Ignore object files

@@ -17,6 +17,7 @@ public class NetworkVisualizer {
 	private BufferedImage buffer;
 	private int width100Percent;
 	private int height100Percent;
+	double currPercentZoom;
 	
 	//More generic resources
 	//private Stroke pt1Stroke;
@@ -42,7 +43,16 @@ public class NetworkVisualizer {
 		redrawAtScale(initialZoom);
 	}
 	
+	//Negative numbers mean zoom out that many times.
+	public void zoomIn(int number) {
+		//Each tick increases zoom by 10%
+		redrawAtScale(currPercentZoom + currPercentZoom*number*0.10);
+	}
+	
 	public void redrawAtScale(double percent) {
+		//Save
+		currPercentZoom = percent;
+		
 		//Determine the width and height of our canvas.
 		int width = (int)(width100Percent * percent);
 		int height = (int)(height100Percent * percent);

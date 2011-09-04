@@ -21,7 +21,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	
 	//TEMP: This is actually better off somewhere else.
 	private Point offset = new Point(0, 0);
-	private BufferedImage drawImg;
+	private NetworkVisualizer netViewCache;
 	
 	public NetworkPanel() {
 		this.setIgnoreRepaint(true);
@@ -65,7 +65,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		//Save for later.
 		offset.x = offsetX;
 		offset.y = offsetY;
-		drawImg = nv.getImage();
+		netViewCache = nv;
 		
 		updateMap();
 	}
@@ -73,9 +73,10 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	
 	private void updateMap() {
 		//Anything?
-		if (drawImg==null) {
+		if (netViewCache==null) {
 			return;
 		}
+		BufferedImage drawImg = netViewCache.getImage();
 		
 		//Get 2D graphics obj.
 		Graphics2D g = (Graphics2D)buffer.getGraphics();
@@ -85,6 +86,12 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		//Check bounds too; we don't want to scroll the map off the screen.
 		offset.x = CenterAndBoundsCheck(offset.x, drawImg.getWidth(), buffer.getWidth());
 		offset.y = CenterAndBoundsCheck(offset.y, drawImg.getHeight(), buffer.getHeight());
+		
+		//If the image is smaller in at least one dimension;we should re-fill the background with light-gray.
+		if ((drawImg.getWidth()<buffer.getWidth()) || (drawImg.getHeight()<buffer.getHeight())) {
+			g.setBackground(Color.lightGray);
+			g.clearRect(0, 0, buffer.getWidth(), buffer.getHeight());
+		}
 		
 		//Draw the network at the given offset; repaint
 		g.drawImage(drawImg, offset.x, offset.y, null);
@@ -139,6 +146,14 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	}
 	
 	
+	//Zooming with the mouse wheel
+	public void mouseWheelMoved(MouseWheelEvent e) {
+		netViewCache.zoomIn(-e.getWheelRotation());
+		updateMap();
+	}
+	
+	
+	
 	//Component method stubs
 	public void componentHidden(ComponentEvent e) {}
 	public void componentMoved(ComponentEvent e) {}
@@ -152,9 +167,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	
 	//Mouse motion method stubs
 	public void mouseMoved(MouseEvent e) {}
-	
-	//Mouse wheel listener stubs
-	public void mouseWheelMoved(MouseWheelEvent e) {}
+
 	
 }
 

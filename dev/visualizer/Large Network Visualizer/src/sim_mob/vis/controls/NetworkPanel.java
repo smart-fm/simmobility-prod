@@ -1,17 +1,9 @@
 package sim_mob.vis.controls;
 
-import java.awt.Dimension;
-
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
+import java.awt.*;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
-
 import javax.swing.JPanel;
-
-import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.util.IntGetter;
 
 

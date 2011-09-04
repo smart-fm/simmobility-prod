@@ -1,14 +1,8 @@
 package sim_mob.vis.network;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.Stroke;
+import java.awt.*;
 import java.awt.geom.AffineTransform;
-
 import sim_mob.vis.controls.DrawableItem;
-import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.network.basic.Vect;
 
 /**

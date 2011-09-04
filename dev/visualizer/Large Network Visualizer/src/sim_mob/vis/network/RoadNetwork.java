@@ -1,14 +1,8 @@
 package sim_mob.vis.network;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Hashtable;
+import java.io.*;
+import java.util.*;
 import java.util.regex.Matcher;
-
 import sim_mob.vis.network.basic.DPoint;
 import sim_mob.vis.util.Utility;
 

@@ -1,10 +1,8 @@
 package sim_mob.vis.network.basic;
 
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.HashSet;
 
-import sim_mob.vis.util.IntGetter;
+import java.util.*;
+import java.lang.ref.WeakReference;
 
 
 /**

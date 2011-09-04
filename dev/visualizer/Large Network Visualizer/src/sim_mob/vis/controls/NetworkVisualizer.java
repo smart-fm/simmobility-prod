@@ -1,22 +1,11 @@
 package sim_mob.vis.controls;
 
-import java.awt.BasicStroke;
-
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.Stroke;
+import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
-import sim_mob.vis.network.basic.DPoint;
-import sim_mob.vis.network.Link;
-import sim_mob.vis.network.Node;
-import sim_mob.vis.network.Segment;
-import sim_mob.vis.network.RoadNetwork;
-import sim_mob.vis.network.basic.ScaledPoint;
+import sim_mob.vis.network.basic.*;
+import sim_mob.vis.network.*;
 
 
 /**
@@ -30,13 +19,13 @@ public class NetworkVisualizer {
 	private int height100Percent;
 	
 	//More generic resources
-	private Stroke pt1Stroke;
-	private Stroke pt2Stroke;
+	//private Stroke pt1Stroke;
+	//private Stroke pt2Stroke;
 	
 	
 	public NetworkVisualizer() {
-		pt1Stroke = new BasicStroke(1.0F);
-		pt2Stroke = new BasicStroke(2.0F);
+		//pt1Stroke = new BasicStroke(1.0F);
+		//pt2Stroke = new BasicStroke(2.0F);
 	}
 	
 	public BufferedImage getImage() {

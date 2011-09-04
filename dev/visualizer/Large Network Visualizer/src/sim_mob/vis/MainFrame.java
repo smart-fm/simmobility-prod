@@ -1,25 +1,13 @@
 package sim_mob.vis;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Container;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.GridLayout;
-import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
 import java.io.IOException;
-
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-
-import sim_mob.vis.controls.NetworkPanel;
-import sim_mob.vis.controls.NetworkVisualizer;
+import sim_mob.vis.controls.*;
 import sim_mob.vis.network.RoadNetwork;
 import sim_mob.vis.util.Utility;
+
 
 public class MainFrame extends JFrame {
 	public static final long serialVersionUID = 1L;

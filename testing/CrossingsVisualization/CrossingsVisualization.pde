@@ -854,8 +854,8 @@ class ToggleButton
 //Turn our circulars into simple-to-display labels.
 Circular scaleAndMakeCirc(ScaledPoint from, MySeg seg, boolean isFwd, int printNumber) {
   //Constants
-  int DIST_FROM_SRC = 10; //In Meters
-  int DIST_FROM_LINE = 5; //In Meters
+  double DIST_FROM_SRC = 3.0; //In Meters
+  double DIST_FROM_LINE = 0.2; //In Meters
   
   //First, get the "other" point.
   ScaledPoint to = isFwd ? decoratedNodes.get(seg.fromNodeID) : decoratedNodes.get(seg.toNodeID);
@@ -868,10 +868,11 @@ Circular scaleAndMakeCirc(ScaledPoint from, MySeg seg, boolean isFwd, int printN
   //Now, get a vector normal to this one (the direction depends on "isFwd")
   ray.translateVect(ray);
   ray.flipVecNormal(isFwd);
-  ray.makeUnit();
   ray.scaleVect(DIST_FROM_LINE); 
 
-  return new Circular(ray.getEndX(), ray.getEndY(), ""+printNumber+(isFwd?"F":"R"));
+//  String sp = printNumber%2==0?"          ":"";
+  String sp = "";
+  return new Circular(ray.getEndX(), ray.getEndY(), sp+printNumber+(isFwd?"F":"R"));
 }
 
 
@@ -881,11 +882,11 @@ class Vec {
   double posY;
   double magX;
   double magY;
-  Vec(double posX, double posY, double magX, double magY) {
-    this.posX = posX;
-    this.posY = posY;
-    this.magX = magX;
-    this.magY = magY;
+  Vec(double fromX, double fromY, double toX, double toY) {
+    this.posX = fromX;
+    this.posY = fromY;
+    this.magX = toX-fromX;
+    this.magY = toY-fromY;
   }
   
   Vec(double magX, double magY) {

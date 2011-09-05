@@ -207,36 +207,26 @@ void sim_mob::Driver::update(frame_t frameNumber)
 void sim_mob::Driver::output(frame_t frameNumber)
 {
 	boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
+	        BufferedBase::log_file()<<"(\"Driver\""
+	                        <<","<<frameNumber
+	                        <<","<<parent->getId()
+	                        <<",{"
+	                        <<"\"xPos\":\""<<parent->xPos.get()
+	                        <<"\",\"yPos\":\""<<parent->yPos.get()
+	                        <<"\",\"angle\":\""<<angle
+	                        <<"\"})"<<std::endl;
 
-	/*
-	BufferedBase::log_file()<<"(Driver"
-			<<","<<frameNumber
-			<<" current link "<<currentLink
-			<<" current lan "<<currentLane
-			<<","<<parent->getId()
-			<<",{"
-			<<"xPos:"<<parent->xPos.get()
-			<<",yPos:"<<parent->yPos.get()
-			<<",angle:"<<angle
-			<<"})"<<std::endl;
-			*/
-
-
-	//if(currentLink==3&&xVel_==0){
-	std::cout <<"("
-			<<parent->getId()
-			<<"," <<frameNumber
-			<<"," <<parent->xPos.get()
-			<<"," <<parent->yPos.get()
-			<<"," <<trafficSignal->getcurrPhase()
-			<<"," <<"0.95"
-			<<"," <<floor(trafficSignal->getnextCL())
-			<<"," <<trafficSignal->getphaseCounter()
-			<<"," <<angle
-			//<<",link"<<currentLink
-			//<<",v"<<xVel_
-			<<")"<<std::endl;
-	//}
+//	std::cout <<"("
+//			<<parent->getId()
+//			<<"," <<frameNumber
+//			<<"," <<parent->xPos.get()
+//			<<"," <<parent->yPos.get()
+//			<<"," <<trafficSignal->getcurrPhase()
+//			<<"," <<"0.95"
+//			<<"," <<floor(trafficSignal->getnextCL())
+//			<<"," <<trafficSignal->getphaseCounter()
+//			<<"," <<angle
+//			<<")"<<std::endl;
 
 }
 

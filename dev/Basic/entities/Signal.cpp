@@ -91,28 +91,30 @@ void sim_mob :: Signal ::update(frame_t frameNumber)
 
 	{
 		boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-		std::ostream& logout = BufferedBase::log_file();
-		logout <<"(Signal,"<<frameNumber<<","<<ID<<",{va:";
+		//std::ostream& logout = BufferedBase::log_file();
+		//logout <<"(Signal,"<<frameNumber<<","<<ID<<",{va:";
 		for(int i = 0; i<3; i++) {
-			logout<<TC_for_Driver[0][i]<<",";
+			//logout<<TC_for_Driver[0][i]<<",";
 		}
-		logout <<"vb:";
+		//logout <<"vb:";
 		for(int i = 0; i<3; i++) {
-			logout<<TC_for_Driver[1][i]<<",";
+			//logout<<TC_for_Driver[1][i]<<",";
 		}
-		logout <<"vc:";
+		//logout <<"vc:";
 		for(int i = 0; i<3; i++) {
-			logout<<TC_for_Driver[2][i]<<",";
+			//logout<<TC_for_Driver[2][i]<<",";
 		}
-		logout <<"vd:";
+		//logout <<"vd:";
 		for(int i = 0; i<3; i++) {
-			logout<<TC_for_Driver[3][i]<<",";
+			//logout<<TC_for_Driver[3][i]<<",";
 		}
 
+		/*
 		logout <<"pa:"<<TC_for_Pedestrian[0]<<",";
 		logout <<"pb:"<<TC_for_Pedestrian[1]<<",";
 		logout <<"pc:"<<TC_for_Pedestrian[2]<<",";
 		logout <<"pd:"<<TC_for_Pedestrian[3]<<"})"<<std::endl;
+		*/
 	}
 
 	updateSignal (Density);

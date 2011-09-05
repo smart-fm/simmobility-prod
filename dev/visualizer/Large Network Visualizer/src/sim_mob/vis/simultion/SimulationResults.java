@@ -22,10 +22,15 @@ public class SimulationResults {
 	private static double[] xBounds;
 	private static double[] yBounds;
 	
+	private static boolean OutOfBounds(double x, double y, RoadNetwork rn) {
+		return     (x < rn.getTopLeft().x) || (x > rn.getLowerRight().x)
+				|| (y < rn.getTopLeft().y) || (y > rn.getLowerRight().y);
+	}
+	
 	public SimulationResults(BufferedReader inFile, RoadNetwork rn) throws IOException {
 		ticks = new ArrayList<TimeTick>();
 		
-		//TEMP: Hack for drivers
+		//TEMP: Hack for agents which are out of bounds
 		xBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
 		yBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
 		
@@ -55,18 +60,18 @@ public class SimulationResults {
 		    
 		    //Pass this off to a different function based on the type
 		    try {
-		    	dispatchConstructionRequest(type, frameID, objID, rhs);
+		    	dispatchConstructionRequest(type, frameID, objID, rhs, rn);
 		    } catch (IOException ex) {
 		    	throw new IOException(ex.getMessage() + "\n...on line: " + line);
 		    }
 		}
 		
-		//Now that the file has been loaded, scale driver positions to the RoadNetwork (so we can at least
+		//Now that the file has been loaded, scale agent positions to the RoadNetwork (so we can at least
 		//  see something.)
 		for (TimeTick tt : ticks) {
 			for (AgentTick at : tt.agentTicks.values()) {
 				//Skip pedestrians; they're already using the right coordinates
-				if (at.getClass().equals(PedestrianTick.class)) {
+				if (!OutOfBounds(at.getPos().getUnscaledX(), at.getPos().getUnscaledY(), rn)) {
 					continue;
 				}
 				
@@ -89,13 +94,13 @@ public class SimulationResults {
 	}
 	
 	//We assume the x/y bounds will be within those saved by the RoadNetwork.
-	private void dispatchConstructionRequest(String objType, int frameID, int objID, String rhs) throws IOException {
+	private void dispatchConstructionRequest(String objType, int frameID, int objID, String rhs, RoadNetwork rn) throws IOException {
 		if (objType.equals("Driver")) {
-			parseDriver(frameID, objID, rhs);
+			parseDriver(frameID, objID, rhs, rn);
 		} else if (objType.equals("Signal")) {
 			parseSignal(frameID, objID, rhs);
 		} else if (objType.equals("pedestrian")) {
-			parsePedestrian(frameID, objID, rhs);
+			parsePedestrian(frameID, objID, rhs, rn);
 		}
 	}
 	
@@ -148,7 +153,7 @@ public class SimulationResults {
 	}
 	
 	
-	private void parseDriver(int frameID, int objID, String rhs) throws IOException {
+	private void parseDriver(int frameID, int objID, String rhs, RoadNetwork rn) throws IOException {
 	    //Check and parse properties.
 	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"xPos", "yPos", "angle"});
 	    
@@ -157,9 +162,11 @@ public class SimulationResults {
 	    double yPos = Double.parseDouble(props.get("yPos"));
 	    int angle = Integer.parseInt(props.get("angle"));
 	    
-	    //TEMP: Hack for drivers
-	    Utility.CheckBounds(xBounds, xPos);
-	    Utility.CheckBounds(yBounds, yPos);
+	    //TEMP: Hack for out-of-bounds agents
+	    if (OutOfBounds(xPos, yPos, rn)) {
+	    	Utility.CheckBounds(xBounds, xPos);
+	    	Utility.CheckBounds(yBounds, yPos);
+	    }
 	    
 	    //Double-check angle
 	    if (angle<0 || angle>360) {
@@ -178,7 +185,7 @@ public class SimulationResults {
 	    ticks.get(frameID).agentTicks.put(objID, new DriverTick(xPos, yPos, angle));
 	}
 	
-	private void parsePedestrian(int frameID, int objID, String rhs) throws IOException {
+	private void parsePedestrian(int frameID, int objID, String rhs, RoadNetwork rn) throws IOException {
 	    //Check and parse properties.
 	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"xPos", "yPos"});
 	    
@@ -186,6 +193,12 @@ public class SimulationResults {
 	    double xPos = Double.parseDouble(props.get("xPos"));
 	    double yPos = Double.parseDouble(props.get("yPos"));
 	    //Integer.parseInt(props.get("pedSig")); //Currently not used
+	    
+	    //TEMP: Hack for out-of-bounds agents
+	    if (OutOfBounds(xPos, yPos, rn)) {
+	    	Utility.CheckBounds(xBounds, xPos);
+	    	Utility.CheckBounds(yBounds, yPos);
+	    }
 	    
 	    //Ensure the frame has been created
 	    while (ticks.size()<=frameID) {

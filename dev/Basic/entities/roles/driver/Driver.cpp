@@ -970,7 +970,8 @@ bool sim_mob::Driver::isPedestrianAhead()
 		//Check. If pedestrian is right ahead the vehicle, return true
 		if(other_yPos_ < yPos_+width && other_yPos_ > yPos_-width
 				&& other_xPos_>xPos_ && other_xPos_ < leader_xPos_){
-			return true;
+			if((other_xPos_-xPos_)/xVel_<=5)
+				return true;
 			}
 		}
 	return false;

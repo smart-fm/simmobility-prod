@@ -207,26 +207,27 @@ void sim_mob::Driver::update(frame_t frameNumber)
 void sim_mob::Driver::output(frame_t frameNumber)
 {
 	boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-	BufferedBase::log_file()<<"(\"Driver\""
-			<<","<<frameNumber
-			<<","<<parent->getId()
-			<<",{"
-			<<"\"xPos\":\""<<parent->xPos.get()
-			<<"\",\"yPos\":\""<<parent->yPos.get()
-			<<"\",\"angle\":\""<<angle
-			<<"\"})"<<std::endl;
+	        BufferedBase::log_file()<<"(\"Driver\""
+	                        <<","<<frameNumber
+	                        <<","<<parent->getId()
+	                        <<",{"
+	                        <<"\"xPos\":\""<<parent->xPos.get()
+	                        <<"\",\"yPos\":\""<<parent->yPos.get()
+	                        <<"\",\"angle\":\""<<angle
+	                        <<"\"})"<<std::endl;
 
-	/*std::cout <<"("
-			<<parent->getId()
-			<<"," <<frameNumber
-			<<"," <<parent->xPos.get()
-			<<"," <<parent->yPos.get()
-			<<"," <<trafficSignal->getcurrPhase()
-			<<"," <<"0.95"
-			<<"," <<floor(trafficSignal->getnextCL())
-			<<"," <<trafficSignal->getphaseCounter()
-			<<"," <<angle
-			<<")"<<std::endl;*/
+//	std::cout <<"("
+//			<<parent->getId()
+//			<<"," <<frameNumber
+//			<<"," <<parent->xPos.get()
+//			<<"," <<parent->yPos.get()
+//			<<"," <<trafficSignal->getcurrPhase()
+//			<<"," <<"0.95"
+//			<<"," <<floor(trafficSignal->getnextCL())
+//			<<"," <<trafficSignal->getphaseCounter()
+//			<<"," <<angle
+//			<<")"<<std::endl;
+
 }
 
 void sim_mob::Driver::getFromParent()
@@ -390,7 +391,7 @@ bool sim_mob::Driver::isGoalReached()
 
 bool sim_mob::Driver::isReachSignal()
 {
-	return (!isInTheIntersection() && getLinkLength()-xPos_ < (length/2+30+10)
+	return (!isInTheIntersection() && getLinkLength()-xPos_ < (length/2+30+10+10)
 			&& currentLink<4);
 }
 
@@ -405,8 +406,8 @@ void sim_mob::Driver::updateCurrentLink()
 
 bool sim_mob::Driver::isInTheIntersection()
 {
-	return (currentLink<4 && xPos_>getLinkLength()-(30+length/2+5))
-			||(currentLink>3 && xPos_<(30+length/2+5));
+	return (currentLink<4 && xPos_>getLinkLength()-(30+length/2+10))
+			||(currentLink>3 && xPos_<(30+length/2+10));
 }
 
 void sim_mob::Driver::updateCurrentLane()
@@ -445,10 +446,12 @@ void sim_mob::Driver::updateAcceleration()
 
 void sim_mob::Driver::updateVelocity()
 {
+
 	if(isPedestrianAhead()){		//if a pedestrian is ahead, stop
 		xVel_ = 0 ; yVel_ =0;
 		return;
 	}
+
 	if(isReachSignal()){
 		//nextLink=(currentLane+currentLink+1)%4+4;
 		//updateTrafficSignal();
@@ -944,6 +947,7 @@ void sim_mob::Driver::updateTrafficSignal()
 
 bool sim_mob::Driver::isPedestrianAhead()
 {
+
 	Agent* other = nullptr;
 	for (size_t i=0; i<Agent::all_agents.size(); i++) {
 		other = Agent::all_agents[i];
@@ -966,7 +970,8 @@ bool sim_mob::Driver::isPedestrianAhead()
 		//Check. If pedestrian is right ahead the vehicle, return true
 		if(other_yPos_ < yPos_+width && other_yPos_ > yPos_-width
 				&& other_xPos_>xPos_ && other_xPos_ < leader_xPos_){
-			return true;
+			if((other_xPos_-xPos_)/xVel_<=5)
+				return true;
 			}
 		}
 	return false;

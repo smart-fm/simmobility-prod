@@ -26,6 +26,7 @@ public class MainFrame extends JFrame {
 	
 	//LHS panel
 	private JButton openLogFile;
+	private JButton openEmbeddedFile;
 	
 	//Lower panel
 	private Timer animTimer;
@@ -64,6 +65,7 @@ public class MainFrame extends JFrame {
 		pauseIcon = new ImageIcon(Utility.LoadImgResource("res/icons/pause.png"));
 		
 		openLogFile = new JButton("Open Logfile", new ImageIcon(Utility.LoadImgResource("res/icons/open.png")));
+		openEmbeddedFile = new JButton("Open Default", new ImageIcon(Utility.LoadImgResource("res/icons/embed.png")));
 		frameTickSlider = new JSlider(JSlider.HORIZONTAL);
 		revBtn = new JButton(new ImageIcon(Utility.LoadImgResource("res/icons/rev.png")));
 		playBtn = new JButton(playIcon);
@@ -80,6 +82,7 @@ public class MainFrame extends JFrame {
 		//Left panel
 		JPanel jpLeft = new JPanel(new GridLayout(0, 1, 0, 10));
 		jpLeft.add(openLogFile);
+		jpLeft.add(openEmbeddedFile);
 		
 		//Bottom panel
 		JPanel jpLower = new JPanel(new BorderLayout());
@@ -168,59 +171,84 @@ public class MainFrame extends JFrame {
 					return;
 				}
 			}
-		}); 
+		});
+		
+		
+		openEmbeddedFile.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				openAFile(true);
+			}
+		});
+		
 		
 		openLogFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				//Pause the animation
-				if (animTimer.isRunning()) {
-					animTimer.stop();
-					playBtn.setIcon(playIcon);
-				}
-				
-				//Use a FileChooser
-				final JFileChooser fc = new JFileChooser("src/res/data");
-				if (fc.showOpenDialog(MainFrame.this)!=JFileChooser.APPROVE_OPTION) {
-					return;
-				}
-				File f = fc.getSelectedFile();
-
-				//Load the default visualization
-				RoadNetwork rn = null;
-				try {
-					//BufferedReader br = Utility.LoadFileResource("res/data/default.log.txt");
-					BufferedReader br = new BufferedReader(new FileReader(f));
-					rn = new RoadNetwork(br);
-					br.close();
-				} catch (IOException ex) {
-					throw new RuntimeException(ex);
-				}
-				
-				//Load the simulation's results
-				try {
-					//BufferedReader br = Utility.LoadFileResource("res/data/default.log.txt");
-					BufferedReader br = new BufferedReader(new FileReader(f));
-					simData = new SimulationResults(br, rn);
-					br.close();
-				} catch (IOException ex) {
-					throw new RuntimeException(ex);
-				}
-				
-				//Update the slider
-				frameTickSlider.setMinimum(0);
-				frameTickSlider.setMaximum(simData.ticks.size()-1);
-				frameTickSlider.setMajorTickSpacing(simData.ticks.size()/10);
-				frameTickSlider.setMinorTickSpacing(simData.ticks.size()/50);
-				frameTickSlider.setValue(0);
-				
-				//Add a visualizer
-				NetworkVisualizer vis = new NetworkVisualizer();
-				vis.setSource(rn, simData, 1.0, newViewPnl.getWidth(), newViewPnl.getHeight());
-				
-				//Update the map
-				newViewPnl.drawMap(vis, 0, 0);
+				openAFile(false);
 			}
 		});
+	}
+	
+	
+	private void openAFile(boolean isEmbedded) {
+		//Pause the animation
+		if (animTimer.isRunning()) {
+			animTimer.stop();
+			playBtn.setIcon(playIcon);
+		}
+		
+		//Use a FileChooser
+		File f = null;
+		if (!isEmbedded) {
+			final JFileChooser fc = new JFileChooser("src/res/data");
+			if (fc.showOpenDialog(MainFrame.this)!=JFileChooser.APPROVE_OPTION) {
+				return;
+			}
+			f = fc.getSelectedFile();
+		}
+
+		//Load the default visualization
+		RoadNetwork rn = null;
+		try {
+			BufferedReader br = null;
+			if (isEmbedded) {
+				br = Utility.LoadFileResource("res/data/default.log.txt");
+			} else {
+				br = new BufferedReader(new FileReader(f));
+			}
+ 
+			rn = new RoadNetwork(br);
+			br.close();
+		} catch (IOException ex) {
+			throw new RuntimeException(ex);
+		}
+		
+		//Load the simulation's results
+		try {
+			BufferedReader br = null;
+			if (isEmbedded) {
+				br = Utility.LoadFileResource("res/data/default.log.txt");
+			} else {
+				br = new BufferedReader(new FileReader(f));
+			}
+			simData = new SimulationResults(br, rn);
+			br.close();
+		} catch (IOException ex) {
+			throw new RuntimeException(ex);
+		}
+		
+		//Update the slider
+		frameTickSlider.setMinimum(0);
+		frameTickSlider.setMaximum(simData.ticks.size()-1);
+		frameTickSlider.setMajorTickSpacing(simData.ticks.size()/10);
+		frameTickSlider.setMinorTickSpacing(simData.ticks.size()/50);
+		frameTickSlider.setValue(0);
+		
+		//Add a visualizer
+		NetworkVisualizer vis = new NetworkVisualizer();
+		vis.setSource(rn, simData, 1.0, newViewPnl.getWidth(), newViewPnl.getHeight());
+		
+		//Update the map
+		newViewPnl.drawMap(vis, 0, 0);
 	}
 }
 

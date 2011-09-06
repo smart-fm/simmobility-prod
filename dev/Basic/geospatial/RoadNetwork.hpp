@@ -48,11 +48,11 @@ public:
 	///Retrieve list of all Uni/MultiNodes (intersections & roundabouts) in this Road Network.
 	///
 	///\todo This needs to eventually have some structure; see the wiki for an example.
-	const std::vector<sim_mob::MultiNode*>& getNodes() { return nodes; }
-	const std::set<sim_mob::UniNode*>& getUniNodes() { return segmentnodes; }
+	const std::vector<sim_mob::MultiNode*>& getNodes() const { return nodes; }
+	const std::set<sim_mob::UniNode*>& getUniNodes() const { return segmentnodes; }
 
 	///Retrieve a list of all Links (high-level paths between MultiNodes) in this Road Network.
-	const std::vector<sim_mob::Link*>& getLinks() { return links; }
+	const std::vector<sim_mob::Link*>& getLinks() const { return links; }
 
 	///Find the closest Node.
 	///If includeUniNodes is false, then only Intersections and Roundabouts are searched.

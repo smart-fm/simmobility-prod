@@ -321,6 +321,7 @@ public:
 	void modifyPosition();
 	bool isReachSignal();
 	bool isInTheIntersection();
+	bool isReachEnd();
 	void updateTrafficSignal();
 
 private:

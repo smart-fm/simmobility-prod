@@ -322,6 +322,7 @@ bool sim_mob::Pedestrian::checkGapAcceptance(){
 			p=dynamic_cast<Person*>(a);
 			if(dynamic_cast<Driver*>(p->getRole())){
 				if(p->currentLink.get()==0){
+					//std::cout<<"dsahf"<<std::endl;
 					absToRel(p->xPos.get(),p->yPos.get(),drvRelX,drvRelY);
 					absToRel(parent->xPos.get(),parent->xPos.get(),pedRelX,pedRelY);
 					if(minDist>abs(drvRelY-pedRelY))
@@ -335,12 +336,15 @@ bool sim_mob::Pedestrian::checkGapAcceptance(){
 	p = nullptr;
 	a = nullptr;
 
-//	if((minDist/10-30/speed)>2)
-//		return true;
-//	else
-//		return false;
+	if((minDist/5-30/speed)>1)
+	{
 
-	return false;
+		return true;
+	}
+	else
+		return false;
+
+	//return false;
 }
 
 /*---------------------Action-related functions--------------------------*/

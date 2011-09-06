@@ -215,7 +215,7 @@ void sim_mob::Driver::output(frame_t frameNumber)
 	                        <<"\",\"yPos\":\""<<parent->yPos.get()
 	                        <<"\",\"angle\":\""<<angle
 	                        <<"\"})"<<std::endl;
-
+//if(xVel_==0&&currentLink==1)
 //	std::cout <<"("
 //			<<parent->getId()
 //			<<"," <<frameNumber
@@ -225,6 +225,8 @@ void sim_mob::Driver::output(frame_t frameNumber)
 //			<<"," <<"0.95"
 //			<<"," <<floor(trafficSignal->getnextCL())
 //			<<"," <<trafficSignal->getphaseCounter()
+//			<<",current lane"<<currentLink
+//			<<",current x"<<xPos_
 //			<<"," <<angle
 //			<<")"<<std::endl;
 
@@ -391,7 +393,7 @@ bool sim_mob::Driver::isGoalReached()
 
 bool sim_mob::Driver::isReachSignal()
 {
-	return (!isInTheIntersection() && getLinkLength()-xPos_ < (length/2+30+10+10)
+	return (!isReachEnd() && getLinkLength()-xPos_ < (length/2+30+10+10)
 			&& currentLink<4);
 }
 
@@ -404,10 +406,16 @@ void sim_mob::Driver::updateCurrentLink()
 	}
 }
 
-bool sim_mob::Driver::isInTheIntersection()
+bool sim_mob::Driver::isReachEnd()
 {
 	return (currentLink<4 && xPos_>getLinkLength()-(30+length/2+10))
 			||(currentLink>3 && xPos_<(30+length/2+10));
+}
+
+bool sim_mob::Driver::isInTheIntersection()
+{
+	return (currentLink<4 && xPos_>getLinkLength()-(30+length/2))
+			||(currentLink>3 && xPos_<(30+length/2));
 }
 
 void sim_mob::Driver::updateCurrentLane()
@@ -448,7 +456,9 @@ void sim_mob::Driver::updateVelocity()
 {
 
 	if(isPedestrianAhead()){		//if a pedestrian is ahead, stop
+		//std::cout<<"stop"<<std::endl;
 		xVel_ = 0 ; yVel_ =0;
+		speed_ = 0;
 		return;
 	}
 
@@ -968,11 +978,27 @@ bool sim_mob::Driver::isPedestrianAhead()
 		double other_yPos_		=-other_xOffset	* yDirection	+ other_yOffset	* xDirection;
 
 		//Check. If pedestrian is right ahead the vehicle, return true
-		if(other_yPos_ < yPos_+width && other_yPos_ > yPos_-width
-				&& other_xPos_>xPos_ && other_xPos_ < leader_xPos_){
-			if((other_xPos_-xPos_)/xVel_<=5)
+
+		bool is_right_ahead = false;
+		if(leader_xPos_>xPos_)
+			is_right_ahead = other_xPos_>xPos_&&other_xPos_<leader_xPos_;
+		else
+			is_right_ahead = other_xPos_>xPos_;
+		if(is_right_ahead){
+			if((other_xPos_-xPos_)<=10)
+			{
+
 				return true;
 			}
+		}
+//		if(//other_yPos_ < yPos_+width && other_yPos_ > yPos_-width&&
+//				other_xPos_>xPos_ ){//&& other_xPos_ < leader_xPos_){
+//			//if((other_xPos_-xPos_)/xVel_<=5){
+//				std::cout<<"xPos_ "<<xPos_<<" other_xPos_ "<<other_xPos_
+//						<<" leader_xPos_ "<<leader_xPos_<<std::endl;
+//				return true;
+//			//}
+//			}
 		}
 	return false;
 }

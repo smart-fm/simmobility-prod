@@ -19,6 +19,7 @@
 #include "../geospatial/Intersection.hpp"
 #include "../geospatial/RoadSegment.hpp"
 #include "../geospatial/LaneConnector.hpp"
+#include "../geospatial/StreetDirectory.hpp"
 
 using std::cout;
 using std::endl;
@@ -585,6 +586,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     		if (!dbErrorMsg.empty()) {
     			return "Database loading error: " + dbErrorMsg;
     		}
+                StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
 
     		//Finally, mask the password
     		string& s = ConfigParams::GetInstance().connectionString;

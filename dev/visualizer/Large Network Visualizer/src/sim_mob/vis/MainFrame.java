@@ -17,7 +17,7 @@ import sim_mob.vis.simultion.SimulationResults;
 import sim_mob.vis.util.Utility;
 
 
-public class MainFrame extends JFrame {
+public class MainFrame extends JApplet {
 	public static final long serialVersionUID = 1L;
 	
 	//Center (main) panel
@@ -40,9 +40,9 @@ public class MainFrame extends JFrame {
 	
 	public MainFrame() {
 		//Initial setup
-		super("Sim Mobility Visualization");
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		this.setLocation(150, 100);
+		//super("Sim Mobility Visualization");
+		//this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		//this.setLocation(150, 100);
 		this.setSize(1024, 768);
 		
 		//Components and layout
@@ -250,6 +250,7 @@ public class MainFrame extends JFrame {
 		//Update the map
 		newViewPnl.drawMap(vis, 0, 0);
 	}
+	
 }
 
 

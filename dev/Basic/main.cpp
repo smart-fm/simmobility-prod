@@ -25,7 +25,6 @@
 
 //Just temporarily, so we know it compiles:
 #include "entities/Signal.hpp"
-
 #include "conf/simpleconf.hpp"
 
 

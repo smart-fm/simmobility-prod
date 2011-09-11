@@ -101,9 +101,8 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), leader(nullptr)
 	//specify the link
 	currentLink = (parent->getId()/3);
 
-	nextLane=-1;
-	nextLink=currentLink+3;
-	if(nextLink<4)nextLink+=4;
+
+	//if(nextLink<4)nextLink+=4;
 
 	ischanging=false;
 	isback=false;
@@ -165,14 +164,26 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	}
 
 	if(isInTheIntersection()){
+		if(!inIntersection)
+		{
+			inIntersection = true;
+			UpdateNextLinkLane();
+			IntersectionDirectionUpdate();
+		}
 		IntersectionVelocityUpdate();
-		//xPos = xPos + xVel*timeStep;
-		//yPos = yPos + yVel*timeStep;
+		xPos = xPos + xVel*timeStep;
+		yPos = yPos + yVel*timeStep;
 		//modifyPosition();
-		relat2abs();
+		//relat2abs();
+		//abs2relat();
 		VelOfLaneChanging=	testLinks[currentLink].laneWidth/5;		//assume that 5 time steps is need when changing lane
 	}
 	else {
+		if(inIntersection)
+		{
+			inIntersection = false;
+			EnterNextLink();
+		}
 		//To check if the vehicle reaches the lane it wants to move to
 		if(getLane()==toLane){
 			ischanging=false;
@@ -215,21 +226,6 @@ void sim_mob::Driver::output(frame_t frameNumber)
 	                        <<"\",\"yPos\":\""<<parent->yPos.get()
 	                        <<"\",\"angle\":\""<<angle
 	                        <<"\"})"<<std::endl;
-//if(xVel_==0&&currentLink==1)
-//	std::cout <<"("
-//			<<parent->getId()
-//			<<"," <<frameNumber
-//			<<"," <<parent->xPos.get()
-//			<<"," <<parent->yPos.get()
-//			<<"," <<trafficSignal->getcurrPhase()
-//			<<"," <<"0.95"
-//			<<"," <<floor(trafficSignal->getnextCL())
-//			<<"," <<trafficSignal->getphaseCounter()
-//			<<",current lane"<<currentLink
-//			<<",current x"<<xPos_
-//			<<"," <<angle
-//			<<")"<<std::endl;
-
 }
 
 void sim_mob::Driver::getFromParent()
@@ -393,7 +389,7 @@ bool sim_mob::Driver::isGoalReached()
 
 bool sim_mob::Driver::isReachSignal()
 {
-	return (!isReachEnd() && getLinkLength()-xPos_ < (length/2+30+10+10)
+	return (!isReachCrosswalk() && getLinkLength()-xPos_ < (length/2+30+10+5)
 			&& currentLink<4);
 }
 
@@ -406,7 +402,7 @@ void sim_mob::Driver::updateCurrentLink()
 	}
 }
 
-bool sim_mob::Driver::isReachEnd()
+bool sim_mob::Driver::isReachCrosswalk()
 {
 	return (currentLink<4 && xPos_>getLinkLength()-(30+length/2+10))
 			||(currentLink>3 && xPos_<(30+length/2+10));
@@ -414,9 +410,12 @@ bool sim_mob::Driver::isReachEnd()
 
 bool sim_mob::Driver::isInTheIntersection()
 {
-	return (currentLink<4 && xPos_>getLinkLength()-(30+length/2))
-			||(currentLink>3 && xPos_<(30+length/2));
+//	return (currentLink<4 && xPos_>getLinkLength()-(30+length/2))
+//			||(currentLink>3 && xPos_<(30+length/2));
+	return (xPos>=470&&xPos<=530&&yPos>=270&&yPos<=330);
 }
+
+
 
 void sim_mob::Driver::updateCurrentLane()
 {
@@ -456,7 +455,6 @@ void sim_mob::Driver::updateVelocity()
 {
 
 	if(isPedestrianAhead()){		//if a pedestrian is ahead, stop
-		//std::cout<<"stop"<<std::endl;
 		xVel_ = 0 ; yVel_ =0;
 		speed_ = 0;
 		return;
@@ -818,104 +816,87 @@ bool sim_mob :: Driver :: reachSignalDecision()
 	return trafficSignal->get_Driver_Light(currentLink,2-currentLane)!=1;
 }
 
+void sim_mob :: Driver :: UpdateNextLinkLane()
+{
+	nextLane=currentLane;
+	nextLink=currentLink + 3-currentLane;
+	if(nextLink<4)nextLink+=4;
+
+
+}
+void sim_mob :: Driver :: IntersectionDirectionUpdate()
+{
+
+	switch(nextLink){
+	case 4:
+		xPos_nextLink = testLinks[nextLink].startX - 30;
+		yPos_nextLink = testLinks[nextLink].startY + testLinks[nextLink].laneWidth*(0.5 + nextLane);
+		break;
+	case 5:
+		xPos_nextLink = testLinks[nextLink].startX - testLinks[nextLink].laneWidth*(0.5 + nextLane);
+		yPos_nextLink = testLinks[nextLink].startY - 30;
+		break;
+	case 6:
+		xPos_nextLink = testLinks[nextLink].startX + 30;
+		yPos_nextLink = testLinks[nextLink].startY - testLinks[nextLink].laneWidth*(0.5 + nextLane);
+		break;
+	case 7:
+		xPos_nextLink = testLinks[nextLink].startX + testLinks[nextLink].laneWidth*(0.5 + nextLane);
+		yPos_nextLink = testLinks[nextLink].startY + 30;
+		break;
+	default:
+		break;
+	}
+	double xDir = xPos_nextLink - xPos;
+	double yDir = yPos_nextLink - yPos;
+	double magnitude = sqrt(xDir*xDir+yDir*yDir);
+	xDirection_nextLink = xDir/magnitude;
+	yDirection_nextLink = yDir/magnitude;
+}
+
 void sim_mob :: Driver :: IntersectionVelocityUpdate()
 {
-	if(currentLink<4){
-		currentLink+=3-currentLane;
-		if(currentLink<4)currentLink+=4;
-		//currentLane=nextLane;
-		//nextLane=-1;
-		xPos_=30+5+length/2+20;
-		yPos_=-currentLane*testLinks[currentLink].laneWidth-testLinks[currentLink].laneWidth*0.5;
-		xVel_=targetSpeed/2;
-		yVel_=0;
-		xAcc_=0;
-		yAcc_=0;
-	}
+	xAcc_=0;
+	yAcc_=0;
+	double speed = 36;
+	xVel = speed * xDirection_nextLink;
+	yVel = speed * yDirection_nextLink;
+}
 
-
-	/*double speed = 36;
-
-	switch (currentLane) {
-		case 1:
-			//vehicles that are going to go straight
-			if( currentLink==0) {
-				xVel = speed;yVel = 0;
-			} else if( currentLink==1) {
-				xVel = 0;yVel = speed;
-			} else if( currentLink==2) {
-				xVel = -speed;yVel = 0;
-			} else if( currentLink==3) {
-				xVel = 0;yVel = -speed;
-			}
+void sim_mob :: Driver :: EnterNextLink()
+{
+	double speed = 36;
+	switch(nextLink){
+		case 4:
+			xPos = testLinks[nextLink].startX - 30;
+			yPos = testLinks[nextLink].startY + testLinks[nextLink].laneWidth*(0.5 + nextLane);
+			xVel = -speed;
+			yVel = 0;
 			break;
-
-		case 2:
-			//vehicles that are going to turn right, their routes are based on circles
-			if( currentLink==0) {
-				//the center of circle are (450,350)
-				double xD = 450- parent->xPos.get();
-				double yD = 350 - parent->yPos.get();
-				double magnitude = sqrt(xD*xD + yD*yD);
-
-				double xDirection = yD/magnitude;
-				double yDirection = - xD/magnitude;
-
-				xVel = xDirection*speed*0.7;
-				yVel = yDirection*speed*0.7;
-			} else if( currentLink==1) {
-				//the center of circle are (450,250)
-				double xD = 450 - parent->xPos.get();
-				double yD = 250 - parent->yPos.get();
-				double magnitude = sqrt(xD*xD + yD*yD);
-
-				double xDirection = yD/magnitude;
-				double yDirection = - xD/magnitude;
-
-				xVel = xDirection*speed*0.7;
-				yVel = yDirection*speed*0.7;
-			} else if( currentLink==2) {
-				//the center of circle are (550,250)
-				double xD = 550 - parent->xPos.get();
-				double yD = 250 - parent->yPos.get();
-				double magnitude = sqrt(xD*xD + yD*yD);
-
-				double xDirection =  yD/magnitude;
-				double yDirection =  - xD/magnitude;
-
-				xVel = xDirection*speed*0.7;
-				yVel = yDirection*speed*0.7;
-			} else if( currentLink==3) {
-				//the center of circle are (550,350)
-				double xD = 550- parent->xPos.get();
-				double yD = 350 - parent->yPos.get();
-				double magnitude = sqrt(xD*xD + yD*yD);
-
-				double xDirection = yD/magnitude;
-				double yDirection = - xD/magnitude;
-
-				xVel = xDirection*speed*0.7;
-				yVel = yDirection*speed*0.7;
-			}
+		case 5:
+			xPos = testLinks[nextLink].startX - testLinks[nextLink].laneWidth*(0.5 + nextLane);
+			yPos = testLinks[nextLink].startY - 30;
+			xVel = 0;
+			yVel = -speed;
 			break;
-
-		case 0:
-			//Vehicles that are going to turn left
-			if(currentLink==0) {
-				xVel = 0.5*speed;yVel = -0.5*speed;
-			} else if(currentLink==1) {
-				xVel = 0.5*speed;yVel = 0.5*speed;
-			} else if(currentLink==2) {
-				xVel = -0.5*speed;yVel = 0.5*speed;
-			} else if(currentLink==3) {
-				xVel = -0.5*speed;yVel = -0.5*speed;
-			}
+		case 6:
+			xPos = testLinks[nextLink].startX + 30;
+			yPos = testLinks[nextLink].startY - testLinks[nextLink].laneWidth*(0.5 + nextLane);
+			xVel = speed;
+			yVel = 0;
 			break;
-
+		case 7:
+			xPos = testLinks[nextLink].startX + testLinks[nextLink].laneWidth*(0.5 + nextLane);
+			yPos = testLinks[nextLink].startY + 30;
+			xVel = 0;
+			yVel = speed;
+			break;
 		default:
-			//Does this represent an error condition? ~Seth
-			return;
-	}*/
+			break;
+		}
+	currentLink = nextLink;
+	currentLane = nextLane;
+	abs2relat();
 }
 
 //modify vehicles' positions when they just finishing crossing intersection,
@@ -975,7 +956,6 @@ bool sim_mob::Driver::isPedestrianAhead()
 		double other_xOffset	= other->xPos.get()	- testLinks[currentLink].startX;
 		double other_yOffset	= other->yPos.get()	- testLinks[currentLink].startY;
 		double other_xPos_		= other_xOffset	* xDirection	+ other_yOffset	* yDirection;
-		double other_yPos_		=-other_xOffset	* yDirection	+ other_yOffset	* xDirection;
 
 		//Check. If pedestrian is right ahead the vehicle, return true
 
@@ -991,14 +971,6 @@ bool sim_mob::Driver::isPedestrianAhead()
 				return true;
 			}
 		}
-//		if(//other_yPos_ < yPos_+width && other_yPos_ > yPos_-width&&
-//				other_xPos_>xPos_ ){//&& other_xPos_ < leader_xPos_){
-//			//if((other_xPos_-xPos_)/xVel_<=5){
-//				std::cout<<"xPos_ "<<xPos_<<" other_xPos_ "<<other_xPos_
-//						<<" leader_xPos_ "<<leader_xPos_<<std::endl;
-//				return true;
-//			//}
-//			}
-		}
+	}
 	return false;
 }

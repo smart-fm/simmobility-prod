@@ -128,6 +128,13 @@ private:
 	double xAcc;
 	double yAcc;
 
+	//absolute position of the target start point on the next link
+	//used for intersection driving behavior
+	double xPos_nextLink;
+	double yPos_nextLink;
+	double xDirection_nextLink;
+	double yDirection_nextLink;
+
 	//relative Movement-related variables in link
 	double xPos_;
 	double yPos_;
@@ -320,8 +327,11 @@ public:
 	void IntersectionVelocityUpdate();
 	void modifyPosition();
 	bool isReachSignal();
+	void IntersectionDirectionUpdate();
+	void UpdateNextLinkLane();
+	void EnterNextLink();
 	bool isInTheIntersection();
-	bool isReachEnd();
+	bool isReachCrosswalk();
 	void updateTrafficSignal();
 
 private:

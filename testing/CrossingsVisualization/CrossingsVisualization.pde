@@ -70,6 +70,8 @@ static {
 color taggedLaneColor = color(0xFF, 0x00, 0x00);
 color nodeStroke = color(0xFF, 0x88, 0x22);
 color nodeFill = color(0xFF, 0xFF, 0xFF);
+color csStroke = color(0x00, 0x77, 0x00);
+color csFill = color(0xAA, 0xFF, 0xAA);
 color[] crossingColors = new color[] {
   color(0x00, 0x00, 0xFF),
   color(0x00, 0xFF, 0xFF),
@@ -158,6 +160,22 @@ class Circular {
 };
 
 
+ArrayList<CrossShape> crossshapes = new ArrayList<CrossShape>();
+class CrossShape {
+  ScaledPoint near1;
+  ScaledPoint near2;
+  ScaledPoint far1;
+  ScaledPoint far2;
+  
+  CrossShape(ScaledPoint near1, ScaledPoint near2, ScaledPoint far1, ScaledPoint far2) {
+    this.near1 = near1; 
+    this.near2 = near2; 
+    this.far1 = far1;
+    this.far2 = far2;
+  }
+};
+
+
 
 double[] convertDispToM(double x, double y) {
   double tlX = scaleMatrix[0] - scaleMatrix[2]/2;
@@ -205,6 +223,14 @@ void scaleAndZoom(double centerX, double centerY, double widthInM, double height
         c.pos.scaleTo(xBounds, yBounds);
       }
     }
+  }
+  
+  //Scale all CrossShapes
+  for (CrossShape s : crossshapes) {
+    s.near1.scaleTo(xBounds, yBounds);
+    s.near2.scaleTo(xBounds, yBounds);
+    s.far1.scaleTo(xBounds, yBounds);
+    s.far2.scaleTo(xBounds, yBounds);
   }
   
   //Scale all circulars
@@ -326,6 +352,19 @@ void draw()
     stroke(nodeStroke);
     fill(nodeFill);
     ellipse((float)n.pos.getX(), (float)n.pos.getY(), NODE_SIZE, NODE_SIZE);
+  }
+  
+  //Draw all Cross Shapes
+  strokeWeight(2.0);
+  stroke(csStroke);
+  fill(csFill);
+  for (CrossShape cs : crossshapes) {
+    beginShape();
+    vertex((float)cs.near1.getX(), (float)cs.near1.getY());
+    vertex((float)cs.near2.getX(), (float)cs.near2.getY());
+    vertex((float)cs.far2.getX(), (float)cs.far2.getY());
+    vertex((float)cs.far1.getX(), (float)cs.far1.getY());
+    endShape(CLOSE);
   }
   
   //Draw all sections
@@ -618,7 +657,7 @@ void readDecoratedData(String path) {
     String type = m.group(1);
     
     //No need to continue?
-    if (!type.equals("multi-node") && !type.equals("uni-node") && !type.equals("tmp-circular") && !type.equals("road-segment")) {
+    if (!type.equals("multi-node") && !type.equals("uni-node") && !type.equals("tmp-circular") && !type.equals("road-segment") && !type.equals("crossing")) {
       continue;
     }
     
@@ -651,6 +690,7 @@ void readDecoratedData(String path) {
     String[] nodeReqKeys = new String[]{"xPos", "yPos"};
     String[] circReqKeys = new String[]{"at-node", "at-segment", "fwd", "number"};
     String[] segReqKeys = new String[]{"from-node", "to-node"};
+    String[] crossReqKeys = new String[]{"near-1", "near-2", "far-1", "far-2"};
     if (type.equals("multi-node") || type.equals("uni-node")) {
       //Check.
       for (String reqKey : nodeReqKeys) {
@@ -715,9 +755,43 @@ void readDecoratedData(String path) {
 
       //Save
       circs.add(scaleAndMakeCirc(decoratedNodes.get(atNodeID), decoratedSegments.get(atSegmentID), isFwd, printNumber));
+    } else if (type.equals("crossing")) {
+      //Check.
+      for (String reqKey : crossReqKeys) {
+        if (!properties.containsKey(reqKey)) {
+          throw new RuntimeException("Missing key: " + reqKey + " in: " + rhs);
+        }
+      }
+      
+      //Retrieve
+      ScaledPoint near1 = myParseScaled(properties.get("near-1"));
+      ScaledPoint near2 = myParseScaled(properties.get("near-2"));
+      ScaledPoint far1 = myParseScaled(properties.get("far-1"));
+      ScaledPoint far2 = myParseScaled(properties.get("far-2"));
+      
+      //Scale
+      near1.origX /= 100;  near1.origY /= 100;
+      near2.origX /= 100;  near2.origY /= 100;
+      far1.origX /= 100;  far1.origY /= 100;
+      far2.origX /= 100;  far2.origY /= 100;
+
+      //Save
+      crossshapes.add(new CrossShape(near1, near2, far1, far2));
     }
     
   }
+}
+
+
+ScaledPoint myParseScaled(String combined)  {
+  String[] xy = combined.split(",");
+  if (xy.length!=2) {
+    throw new RuntimeException("Bad Point input: " + combined);
+  }
+  
+  double x = Double.parseDouble(xy[0]);
+  double y = Double.parseDouble(xy[1]);
+  return new ScaledPoint(x, y);
 }
 
 

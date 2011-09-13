@@ -160,7 +160,7 @@ public class SimulationResults {
 	    //Now save the relevant information
 	    double xPos = Double.parseDouble(props.get("xPos"));
 	    double yPos = Double.parseDouble(props.get("yPos"));
-	    int angle = Integer.parseInt(props.get("angle"));
+	    double angle = Double.parseDouble(props.get("angle"));
 	    
 	    //TEMP: Hack for out-of-bounds agents
 	    if (OutOfBounds(xPos, yPos, rn)) {

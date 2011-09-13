@@ -17,7 +17,7 @@ import sim_mob.vis.simultion.SimulationResults;
 import sim_mob.vis.util.Utility;
 
 
-public class MainFrame extends JApplet {
+public class MainFrame extends JFrame {
 	public static final long serialVersionUID = 1L;
 	
 	//Center (main) panel
@@ -38,11 +38,17 @@ public class MainFrame extends JApplet {
 	private ImageIcon pauseIcon;
 
 	
+	/**
+	 * NOTE: Currently, I haven't found a good way to switch between MainFrame as a JFrame and MainFrame as an Applet.
+	 *       Basically, it requires changing 4 lines of code.
+	 */
 	public MainFrame() {
-		//Initial setup
-		//super("Sim Mobility Visualization");
-		//this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		//this.setLocation(150, 100);
+		//Initial setup: FRAME
+		super("Sim Mobility Visualization");
+		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.setLocation(150, 100);
+		
+		//Initial setup: FRAME AND APPLET
 		this.setSize(1024, 768);
 		
 		//Components and layout

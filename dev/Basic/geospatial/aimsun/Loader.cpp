@@ -592,7 +592,7 @@ void sim_mob::aimsun::Loader::GenerateACrossing(sim_mob::RoadNetwork& resNW, Nod
 			vector<double> dists;
 			dists.push_back(distCrossing(candidates[0], candidates[1]) + distCrossing(candidates[0], candidates[2]));
 			dists.push_back(distCrossing(candidates[1], candidates[0]) + distCrossing(candidates[1], candidates[2]));
-			dists.push_back(distCrossing(candidates[2], candidates[1]) + distCrossing(candidates[2], candidates[1]));
+			dists.push_back(distCrossing(candidates[2], candidates[0]) + distCrossing(candidates[2], candidates[1]));
 			int pMin = minID(dists);
 			if (pMin==-1) {
 				std::cout <<"ERROR: No minimum point.\n";

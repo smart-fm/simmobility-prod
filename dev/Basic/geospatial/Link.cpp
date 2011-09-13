@@ -42,7 +42,7 @@ RoadSegment* findSegment(const set<RoadSegment*>& segments, const Node* const st
 }
 
 
-bool buildLinkList(const set<RoadSegment*>& segments, vector<RoadSegment*> res, set<RoadSegment*>& usedSegments, const Node* start, const Node* end) {
+bool buildLinkList(const set<RoadSegment*>& segments, vector<RoadSegment*>& res, set<RoadSegment*>& usedSegments, const Node* start, const Node* end) {
 	const Node* prev = nullptr;
 	for (const Node* fwd=start; fwd!=end;) {
 		//Retrieve the next segment

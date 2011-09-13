@@ -32,7 +32,7 @@ public:
 	RoadSegment(sim_mob::Link* parent);
 
 	///Return the Link this RoadSegment is part of.
-	sim_mob::Link* getLink() { return parentLink; }
+	sim_mob::Link* getLink() const { return parentLink; }
 
 	///Retrieve the Lanes within this segment.
 	//TEMP: For now, returning a const vector of non-const lanes. Will fix later. ~Seth

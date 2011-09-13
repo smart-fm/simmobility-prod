@@ -368,7 +368,7 @@ bool LoadXMLBoundariesCrossings(TiXmlDocument& document, const string& parentStr
 void PrintDB_Network()
 {
 	//Save RoadSegments/Connectors to make output simpler
-	std::set<RoadSegment*> cachedSegments;
+	std::set<const RoadSegment*> cachedSegments;
 	std::set<LaneConnector*> cachedConnectors;
 
 	//Initial message
@@ -383,6 +383,12 @@ void PrintDB_Network()
 		logout <<"\"xPos\":\"" <<(*it)->location->getX() <<"\",";
 		logout <<"\"yPos\":\"" <<(*it)->location->getY() <<"\",";
 		logout <<"})" <<endl;
+
+		//Cache all segments
+		vector<const RoadSegment*> segs = (*it)->getRoadSegments();
+		for (vector<const RoadSegment*>::const_iterator i2=segs.begin(); i2!=segs.end(); ++i2) {
+			cachedSegments.insert(*i2);
+		}
 	}
 	for (vector<MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
 		logout <<"(\"multi-node\", 0, " <<*it <<", {";
@@ -431,7 +437,7 @@ void PrintDB_Network()
 	}
 
 	//Now print all Segments
-	for (std::set<RoadSegment*>::const_iterator it=cachedSegments.begin(); it!=cachedSegments.end(); it++) {
+	for (std::set<const RoadSegment*>::const_iterator it=cachedSegments.begin(); it!=cachedSegments.end(); it++) {
 		logout <<"(\"road-segment\", 0, " <<*it <<", {";
 		logout <<"\"parent-link\":\"" <<(*it)->getLink() <<"\",";
 		logout <<"\"max-speed\":\"" <<(*it)->maxSpeed <<"\",";

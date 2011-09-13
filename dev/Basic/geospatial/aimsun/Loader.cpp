@@ -22,6 +22,7 @@
 #include "../RoadSegment.hpp"
 #include "../LaneConnector.hpp"
 #include "../RoadNetwork.hpp"
+#include "../Crossing.hpp"
 
 #include "Node.hpp"
 #include "Section.hpp"
@@ -83,6 +84,24 @@ bool polyline_sorter (const Polyline* const p1, const Polyline* const p2)
 }
 
 
+//Helper dist function
+double distCrossing(const Crossing* c1, const Crossing* c2) {
+	return dist(c1->xPos, c1->yPos, c2->xPos, c2->yPos);
+}
+
+
+int minID(const vector<double>& vals)
+{
+	int res = -1;
+	for (size_t i=0; i<vals.size(); i++) {
+		if (res==-1 || (vals[i]<vals[res])) {
+			res = i;
+		}
+	}
+	return res;
+}
+
+
 void LoadNodes(soci::session& sql, const std::string& storedProc, map<int, Node>& nodelist)
 {
 	//Our SQL statement
@@ -118,6 +137,9 @@ void LoadSections(soci::session& sql, const std::string& storedProc, map<int, Se
 			std::cout <<"To node: " <<it->TMP_ToNodeID  <<"  " <<nodelist.count(it->TMP_ToNodeID) <<"\n";
 			throw std::runtime_error("Invalid From or To node.");
 		}
+
+		//Convert meters to cm
+		it->length *= 100;
 
 		//Note: Make sure not to resize the Node map after referencing its elements.
 		it->fromNode = &nodelist[it->TMP_FromNodeID];
@@ -536,20 +558,95 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, map<int, Node>& nodes, ma
 } //End anon namespace
 
 
-void sim_mob::aimsun::Loader::GenerateACrossing(sim_mob::RoadNetwork& res, Node& origin, Node& dest, vector<int>& laneIDs)
+void sim_mob::aimsun::Loader::GenerateACrossing(sim_mob::RoadNetwork& resNW, Node& origin, Node& dest, vector<int>& laneIDs)
 {
-	//Collect all the points and put them into a "farthest-distance" algorithm.
-	std::vector<Crossing*> allPoints;
-	for (std::vector<int>::iterator it=laneIDs.begin(); it!=laneIDs.end(); it++) {
-		if (origin.crossingsAtNode.count(*it)==0) {
-			std::cout <<"Error: Origin node does not manage this crossing.\n";
-			continue;
-		}
-		std::vector<Crossing*> found = origin.crossingsAtNode.find(*it)->second;
-		allPoints.insert(allPoints.end(), found.begin(), found.end());
+	//Nothing to do here?
+	if (laneIDs.empty()) {
+		return;
 	}
 
-	std::cout <<"Node " <<&origin <<" contains " <<allPoints.size() <<" crossing points.\n";
+	//Check errors
+	if (laneIDs.size()!=2) {
+		//TODO: Later, we can probably reduce the number of "Lanes" by automatically merging them.
+		std::cout <<"ERROR: Crossing contains " <<laneIDs.size() <<" lane(s) instead of 2\n";
+		return;
+	}
+
+	//Reduce the number of points on each "Lane" to 2. Also record the distance of the midpoint of the final
+	// line from the origin node.
+	std::vector<double> lineDistsFromOrigin;
+	std::vector<Point2D> midPoints;
+	std::vector< std::pair<Point2D, Point2D> > lineMinMaxes;
+	for (std::vector<int>::iterator it=laneIDs.begin(); it!=laneIDs.end(); it++) {
+		//Quick check
+		std::vector<Crossing*> candidates = origin.crossingsAtNode.find(*it)->second;
+		if (candidates.empty() || candidates.size()==1){
+			std::cout <<"ERROR: Unexpected Crossing candidates size.\n";
+			return;
+		}
+
+		//Reduce to 2 points
+		while (candidates.size()>2) {
+			//Our method is pretty simple; compute the combined distance from each point to each other. The one
+			//  with the smallest combined distance is in the middle of the other 2, and can be removed.
+			vector<double> dists;
+			dists.push_back(distCrossing(candidates[0], candidates[1]) + distCrossing(candidates[0], candidates[2]));
+			dists.push_back(distCrossing(candidates[1], candidates[0]) + distCrossing(candidates[1], candidates[2]));
+			dists.push_back(distCrossing(candidates[2], candidates[1]) + distCrossing(candidates[2], candidates[1]));
+			int pMin = minID(dists);
+			if (pMin==-1) {
+				std::cout <<"ERROR: No minimum point.\n";
+				return;
+			}
+
+			candidates.erase(candidates.begin()+pMin);
+		}
+
+		//Now save these two points and their combined distance.
+		pair<Point2D, Point2D> res = std::make_pair(Point2D(candidates[0]->xPos, candidates[0]->yPos), Point2D(candidates[1]->xPos, candidates[1]->yPos));
+		lineMinMaxes.push_back(res);
+		Point2D midPoint((res.second.getX()-res.first.getX())/2 + res.first.getX(),(res.second.getY()-res.first.getY())/2 + res.first.getY());
+		double distOrigin = dist(midPoint.getX(), midPoint.getY(), origin.xPos, origin.yPos);
+		lineDistsFromOrigin.push_back(distOrigin);
+		midPoints.push_back(midPoint);
+	}
+
+	//Create a sim_mob Crossing object.
+	sim_mob::Crossing* res = new sim_mob::Crossing();
+	if (lineDistsFromOrigin[0] < lineDistsFromOrigin[1]) {
+		res->nearLine = lineMinMaxes[0];
+		res->farLine = lineMinMaxes[1];
+	} else {
+		res->nearLine = lineMinMaxes[1];
+		res->farLine = lineMinMaxes[0];
+	}
+
+	//This crossing will now be listed as an obstacle in all Segments which share the same two nodes. Its "offset" will be determined from the "start"
+	//   of the given segment to the "midpoint" of the two midpoints of the near/far lines.
+	Point2D midPoint((midPoints[1].getX()-midPoints[0].getX())/2 + midPoints[0].getX(),(midPoints[1].getY()-midPoints[0].getY())/2 + midPoints[0].getY());
+	for (vector<Section*>::iterator it=origin.sectionsAtNode.begin(); it!=origin.sectionsAtNode.end(); it++) {
+		bool match =    ((*it)->generatedSegment->start==origin.generatedNode && (*it)->generatedSegment->end==dest.generatedNode)
+					 || ((*it)->generatedSegment->end==origin.generatedNode && (*it)->generatedSegment->start==dest.generatedNode);
+		if (match) {
+			//Fortunately, this is always in the "forward" direction.
+			double distOrigin = dist(midPoint.getX(), midPoint.getY(), (*it)->fromNode->xPos, (*it)->fromNode->yPos);
+			if (distOrigin > (*it)->length) {
+				//If the reported distance is too short, double-check the Euclidean distance...
+				//TODO: Why would the reported distance ever be shorter? (It'd be longer if polylines were involved...)
+				double euclideanCheck = dist((*it)->toNode->xPos, (*it)->toNode->yPos, (*it)->fromNode->xPos, (*it)->fromNode->yPos);
+				if (distOrigin > euclideanCheck) {
+					std::cout <<"ERROR: Crossing appears after the maximum length of its parent Segment.\n";
+					std::cout <<"  Requested offset is: " <<distOrigin/100000 <<"\n";
+					std::cout <<"  Segment reports its length as: " <<(*it)->length/100000 <<"\n";
+					std::cout <<"  Euclidean check: " <<euclideanCheck/100000 <<"\n";
+					return;
+				}
+			}
+
+			//Add it. Note that it is perfectly ok (and expected) for multiple Segments to reference the same Crossing.
+			(*it)->generatedSegment->obstacles[distOrigin] = res;
+		}
+	}
 }
 
 

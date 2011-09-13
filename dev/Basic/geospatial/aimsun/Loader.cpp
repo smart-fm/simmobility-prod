@@ -611,6 +611,15 @@ void sim_mob::aimsun::Loader::GenerateACrossing(sim_mob::RoadNetwork& resNW, Nod
 		midPoints.push_back(midPoint);
 	}
 
+
+	//We guarantee that the "first" and "second" points are nearest to each other (e.g., "near" and "far" point in the same direction)
+	double d1 = dist(lineMinMaxes[0].first.getX(), lineMinMaxes[0].first.getY(), lineMinMaxes[1].first.getX(), lineMinMaxes[1].first.getY());
+	double d2 = dist(lineMinMaxes[0].first.getX(), lineMinMaxes[0].first.getY(), lineMinMaxes[1].second.getX(), lineMinMaxes[1].second.getY());
+	if (d2<d1) {
+		std::swap(lineMinMaxes[1].first, lineMinMaxes[1].second);
+	}
+
+
 	//Create a sim_mob Crossing object.
 	sim_mob::Crossing* res = new sim_mob::Crossing();
 	if (lineDistsFromOrigin[0] < lineDistsFromOrigin[1]) {

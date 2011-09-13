@@ -227,6 +227,8 @@ public:
     	return laneID_;
     }
 
+    /** Return the polyline of the Lane, which traces the middle of the lane.  */
+    const std::vector<sim_mob::Point2D>& getPolyline() const;
 
 private:
     /* Create a Lane whose rules are all false.  */
@@ -303,6 +305,8 @@ private:
 	unsigned int width_;
 	unsigned int laneID_;
 
+        // polyline_ is mutable so that getPolyline() can be a const method.
+	mutable std::vector<Point2D> polyline_;
 
 
 };

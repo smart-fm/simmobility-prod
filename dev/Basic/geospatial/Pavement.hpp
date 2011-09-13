@@ -83,10 +83,10 @@ public:
 	std::map<double, const RoadItem*> obstacles;
 
 	///Return the next obstacle from a given point on this Pavement.
-	sim_mob::RoadItemAndOffsetPair nextObstacle(const sim_mob::Point2D& pos, bool isForward);
+	sim_mob::RoadItemAndOffsetPair nextObstacle(const sim_mob::Point2D& pos, bool isForward) const;
 
 	///Return the next obstacle from a given offset along the current Pavement.
-	sim_mob::RoadItemAndOffsetPair nextObstacle(double offset, bool isForward);
+	sim_mob::RoadItemAndOffsetPair nextObstacle(double offset, bool isForward) const;
 
 	///Helper method: build a polyline given a bulge and a center. Segments are generated
 	///   of length segmentLength.

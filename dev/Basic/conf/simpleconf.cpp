@@ -17,6 +17,7 @@
 #include "../geospatial/UniNode.hpp"
 #include "../geospatial/MultiNode.hpp"
 #include "../geospatial/Intersection.hpp"
+#include "../geospatial/Crossing.hpp"
 #include "../geospatial/RoadSegment.hpp"
 #include "../geospatial/LaneConnector.hpp"
 #include "../geospatial/StreetDirectory.hpp"
@@ -437,6 +438,7 @@ void PrintDB_Network()
 	}
 
 	//Now print all Segments
+	std::set<const Crossing*> cachedCrossings;
 	for (std::set<const RoadSegment*>::const_iterator it=cachedSegments.begin(); it!=cachedSegments.end(); it++) {
 		logout <<"(\"road-segment\", 0, " <<*it <<", {";
 		logout <<"\"parent-link\":\"" <<(*it)->getLink() <<"\",";
@@ -456,6 +458,27 @@ void PrintDB_Network()
 			logout <<"]\",";
 			logout <<"})" <<endl;
 		}
+
+		//Save crossing info for later
+		RoadItemAndOffsetPair res = (*it)->nextObstacle(0, true);
+		if (res.item) {
+			const Crossing* resC  = dynamic_cast<const Crossing*>(res.item);
+			if (resC) {
+				cachedCrossings.insert(resC);
+			} else {
+				std::cout <<"NOTE: Unknown obstacle!\n";
+			}
+		}
+	}
+
+	//Crossings are part of Segments
+	for (std::set<const Crossing*>::iterator it=cachedCrossings.begin(); it!=cachedCrossings.end(); it++) {
+		logout <<"(\"crossing\", 0, " <<*it <<", {";
+		logout <<"\"near-1\":\"" <<(*it)->nearLine.first.getX() <<"," <<(*it)->nearLine.first.getY() <<"\",";
+		logout <<"\"near-2\":\"" <<(*it)->nearLine.second.getX() <<"," <<(*it)->nearLine.second.getY() <<"\",";
+		logout <<"\"far-1\":\"" <<(*it)->farLine.first.getX() <<"," <<(*it)->farLine.first.getY() <<"\",";
+		logout <<"\"far-2\":\"" <<(*it)->farLine.second.getX() <<"," <<(*it)->farLine.second.getY() <<"\",";
+		logout <<"})" <<endl;
 	}
 
 

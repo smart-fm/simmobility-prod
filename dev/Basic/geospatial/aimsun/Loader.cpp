@@ -257,6 +257,28 @@ bool calculateIntersection(const Crossing* const p1, const Crossing* p2, const S
 }
 
 
+
+//Check if an intersection point is actually on a line segment
+bool lineContains(double ax, double ay, double bx, double by, double cx, double cy)
+{
+	//Check if the dot-product is >=0 and <= the squared distance
+	double dotProd = (cx - ax) * (bx - ax) + (cy - ay)*(by - ay);
+	double sqLen = (bx - ax)*(bx - ax) + (by - ay)*(by - ay);
+	return dotProd>=0 && dotProd<=sqLen;
+
+}
+bool lineContains(const Crossing* p1, const Crossing* p2, double xPos, double yPos)
+{
+	return lineContains(p1->xPos, p1->yPos, p2->xPos, p2->yPos, xPos, yPos);
+}
+bool lineContains(const Section* sec, double xPos, double yPos)
+{
+	return lineContains(sec->fromNode->xPos, sec->fromNode->yPos, sec->toNode->xPos, sec->toNode->yPos, xPos, yPos);
+}
+
+
+
+
 //Compute the distance from the source node of the polyline to a
 // point on the line from the source to the destination nodes which
 // is normal to the Poly-point.
@@ -299,9 +321,6 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 		it->second.fromNode->sectionsAtNode.push_back(&(it->second));
 		it->second.toNode->sectionsAtNode.push_back(&(it->second));
 	}
-
-	//Step 2: Tag all Nodes that have only two Sections; these may become RoadSegmentNodes.
-	//        NOTE: It's slightly more complex; the two Sections must not loop at that node.
 
 
 	//Step 2: Tag all Nodes that might be "UniNodes". These fit the following criteria:
@@ -404,6 +423,12 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 	//        of the Crossing line is closer to that intersection than it is to the "atNode", then
 	//        it is considered tied to that Section, and thus to whichever Node in that Section is
 	//        not the "atNode".
+	//(see below)
+
+
+	//Step 6: Tag all laneIDs for Crossings in a Node with the Node they lead to. Do this in the most obvious
+	//        way possible: simply construct pairs of points, and see if one of these intersects an outgoing
+	//        Section from that Node.
 	vector<int> skippedCrossingLaneIDs;
 	for (map<int, Node>::iterator itN=nodes.begin(); itN!=nodes.end(); itN++) {
 		Node& n = itN->second;
@@ -419,13 +444,8 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 						continue;
 					}
 
-					//Calculate the midpoint
-					double midPointX = (it->second[j]->xPos-it->second[i]->xPos)/2 + it->second[i]->xPos;
-					double midPointY = (it->second[j]->yPos-it->second[i]->yPos)/2 + it->second[i]->yPos;
-					double distOrigin = dist(midPointX, midPointY, n.xPos, n.yPos);
-
 					//And search through all RoadSegments
-					for (vector<Section*>::iterator itSec=n.sectionsAtNode.begin(); itSec!=n.sectionsAtNode.end(); itSec++) {
+					for (vector<Section*>::iterator itSec=n.sectionsAtNode.begin(); itSec!=n.sectionsAtNode.end()&&!found; itSec++) {
 						//Get the intersection between the two Points, and the Section we are considering
 						double xRes, yRes;
 						if (!calculateIntersection(it->second[i], it->second[j], *itSec, xRes, yRes)) {
@@ -433,9 +453,9 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 							continue;
 						}
 
-						//Check if that intersection is closer to the midpoint than the origin node.
-						double distSect = dist(midPointX, midPointY, xRes, yRes);
-						if (distSect<distOrigin) {
+						//Check if this Intersection is actually ON both lines
+						bool actuallyIntersects = lineContains(it->second[i], it->second[j], xRes, yRes) && lineContains(*itSec, xRes, yRes);
+						if (actuallyIntersects) {
 							Node* other = ((*itSec)->fromNode!=&n) ? (*itSec)->fromNode : (*itSec)->toNode;
 							n.crossingLaneIdsByOutgoingNode[it->first] = other;
 							found = true;
@@ -453,6 +473,7 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 
 	//Print all skipped lane-crossing IDs:
 	PrintArray(skippedCrossingLaneIDs, "Skipped \"crossing\" laneIDs: ", "[", "]", ", ", 4);
+
 }
 
 
@@ -499,6 +520,18 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, map<int, Node>& nodes, ma
 	//Finalize our MultiNodes' circular arrays
 	for (vector<sim_mob::MultiNode*>::const_iterator it=res.getNodes().begin(); it!=res.getNodes().end(); it++) {
 		sim_mob::MultiNode::BuildClockwiseLinks(res, *it);
+	}
+
+	//Prune Crossings and convert to the "near" and "far" syntax of Sim Mobility. Also give it a "position", defined
+	//   as halfway between the midpoints of the near/far lines, and then assign it as an Obstacle to both the incoming and
+	//   outgoing RoadSegment that it crosses.
+	for (map<int,Node>::iterator it=nodes.begin(); it!=nodes.end(); it++) {
+		for (map<int, Node*>::iterator i2=it->second.crossingLaneIdsByOutgoingNode.begin(); i2!=it->second.crossingLaneIdsByOutgoingNode.end(); i2++) {
+			std::cout <<"Node: " <<it->second.id <<"  has lane ID: " <<i2->first <<" going to node: " <<i2->second->id <<"  of size: " <<it->second.crossingsAtNode[i2->first].size() <<"\n";
+		}
+
+
+		//sim_mob::aimsun::Loader::ProcessGeneralNode(res, it->second);
 	}
 }
 

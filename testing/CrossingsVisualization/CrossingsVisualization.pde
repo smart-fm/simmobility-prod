@@ -16,7 +16,7 @@ PFont f;
 PFont f2;
 
 //Bit of a painting hack
-boolean doRepaint = true;
+boolean doRepaint = true;  
 
 //Bit of an action hack
 boolean skipAction = false;
@@ -59,7 +59,7 @@ static {
   //forceZoomY = new double[]{143107-150, 143107+150};
 //  tagLaneID = 4550;
 //  tagLaneID = 4215;
-  tagLaneID = 4235;
+  tagLaneID = 839;
 
   //Restrict which road names have crossings drawn
   //restrictRoadName = "QUEEN STREET";

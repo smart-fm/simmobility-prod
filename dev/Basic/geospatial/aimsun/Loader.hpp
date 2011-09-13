@@ -46,6 +46,7 @@ public:
 	static void ProcessSection(sim_mob::RoadNetwork& res, Section& src);
 	static void ProcessTurning(sim_mob::RoadNetwork& res, Turning& src);
 	static void ProcessSectionPolylines(sim_mob::RoadNetwork& res, Section& src);
+	static void GenerateACrossing(sim_mob::RoadNetwork& res, Node& origin, Node& dest, std::vector<int>& laneIDs);
 
 };
 

@@ -457,7 +457,7 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 						bool actuallyIntersects = lineContains(it->second[i], it->second[j], xRes, yRes) && lineContains(*itSec, xRes, yRes);
 						if (actuallyIntersects) {
 							Node* other = ((*itSec)->fromNode!=&n) ? (*itSec)->fromNode : (*itSec)->toNode;
-							n.crossingLaneIdsByOutgoingNode[it->first] = other;
+							n.crossingLaneIdsByOutgoingNode[other].push_back(it->first);
 							found = true;
 						}
 					}
@@ -526,12 +526,9 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, map<int, Node>& nodes, ma
 	//   as halfway between the midpoints of the near/far lines, and then assign it as an Obstacle to both the incoming and
 	//   outgoing RoadSegment that it crosses.
 	for (map<int,Node>::iterator it=nodes.begin(); it!=nodes.end(); it++) {
-		for (map<int, Node*>::iterator i2=it->second.crossingLaneIdsByOutgoingNode.begin(); i2!=it->second.crossingLaneIdsByOutgoingNode.end(); i2++) {
-			std::cout <<"Node: " <<it->second.id <<"  has lane ID: " <<i2->first <<" going to node: " <<i2->second->id <<"  of size: " <<it->second.crossingsAtNode[i2->first].size() <<"\n";
+		for (map<Node*, std::vector<int> >::iterator i2=it->second.crossingLaneIdsByOutgoingNode.begin(); i2!=it->second.crossingLaneIdsByOutgoingNode.end(); i2++) {
+			sim_mob::aimsun::Loader::GenerateACrossing(res, it->second, *i2->first, i2->second);
 		}
-
-
-		//sim_mob::aimsun::Loader::ProcessGeneralNode(res, it->second);
 	}
 }
 
@@ -539,6 +536,21 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, map<int, Node>& nodes, ma
 } //End anon namespace
 
 
+void sim_mob::aimsun::Loader::GenerateACrossing(sim_mob::RoadNetwork& res, Node& origin, Node& dest, vector<int>& laneIDs)
+{
+	//Collect all the points and put them into a "farthest-distance" algorithm.
+	std::vector<Crossing*> allPoints;
+	for (std::vector<int>::iterator it=laneIDs.begin(); it!=laneIDs.end(); it++) {
+		if (origin.crossingsAtNode.count(*it)==0) {
+			std::cout <<"Error: Origin node does not manage this crossing.\n";
+			continue;
+		}
+		std::vector<Crossing*> found = origin.crossingsAtNode.find(*it)->second;
+		allPoints.insert(allPoints.end(), found.begin(), found.end());
+	}
+
+	std::cout <<"Node " <<&origin <<" contains " <<allPoints.size() <<" crossing points.\n";
+}
 
 
 void sim_mob::aimsun::Loader::ProcessGeneralNode(sim_mob::RoadNetwork& res, Node& src)

@@ -36,19 +36,30 @@ public class NetworkVisualizer {
 		return true;
 	}
 	
-	//More generic resources
-	//private Stroke pt1Stroke;
-	//private Stroke pt2Stroke;
+	//For clicking
+	private static final double NEAR_THRESHHOLD = 20;
 	
 	
 	public NetworkVisualizer() {
-		//pt1Stroke = new BasicStroke(1.0F);
-		//pt2Stroke = new BasicStroke(2.0F);
 	}
 	
 	public BufferedImage getImage() {
 		return buffer;
 	}
+	
+	
+	//Retrieve the node at the given screen position, or null if there's none.
+	public Node getNodeAt(Point screenPos) {
+		//First, convert the screen coordinates to centimeters
+		//DPoint realPos = new DPoint();  //Note: Might be needed later; for now, we can just use ScaledPoints
+		for (Node n : network.getNodes().values()) {
+			if (screenPos.distance(n.getPos().getX(), n.getPos().getY()) <= NEAR_THRESHHOLD) {
+				return n;
+			}
+		}
+		return null;
+	}
+	
 	
 	public void setSource(RoadNetwork network, SimulationResults simRes, double initialZoom, int width100Percent, int height100Percent) {
 		//Save

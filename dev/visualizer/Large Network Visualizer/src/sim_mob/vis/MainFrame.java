@@ -14,6 +14,7 @@ import java.io.IOException;
 import sim_mob.vis.controls.*;
 import sim_mob.vis.network.RoadNetwork;
 import sim_mob.vis.simultion.SimulationResults;
+import sim_mob.vis.util.StringSetter;
 import sim_mob.vis.util.Utility;
 
 
@@ -23,6 +24,7 @@ public class MainFrame extends JFrame {
 	//Center (main) panel
 	private NetworkPanel newViewPnl;
 	private SimulationResults simData;
+	private JTextField console;
 	
 	//LHS panel
 	private JButton openLogFile;
@@ -69,6 +71,7 @@ public class MainFrame extends JFrame {
 	private void loadComponents() throws IOException {
 		playIcon = new ImageIcon(Utility.LoadImgResource("res/icons/play.png"));
 		pauseIcon = new ImageIcon(Utility.LoadImgResource("res/icons/pause.png"));
+		console = new JTextField();
 		
 		openLogFile = new JButton("Open Logfile", new ImageIcon(Utility.LoadImgResource("res/icons/open.png")));
 		openEmbeddedFile = new JButton("Open Default", new ImageIcon(Utility.LoadImgResource("res/icons/embed.png")));
@@ -77,7 +80,12 @@ public class MainFrame extends JFrame {
 		playBtn = new JButton(playIcon);
 		fwdBtn = new JButton(new ImageIcon(Utility.LoadImgResource("res/icons/fwd.png")));
 		
-		newViewPnl = new NetworkPanel();
+		newViewPnl = new NetworkPanel(new StringSetter() {
+			public void set(String str) {
+				//Update the status bar
+				console.setText(str);
+			}
+		});
 	}
 	
 	/**
@@ -115,10 +123,19 @@ public class MainFrame extends JFrame {
 		gbc.insets = new Insets(10, 5, 10, 5);
 		cp.add(jpLeft, gbc);
 		
-		//Add to the main controller: center panel
+		//Add (and stretch) the console
 		gbc = new GridBagConstraints();
 		gbc.gridx = 1;
 		gbc.gridy = 0;
+		gbc.weightx = 0.1;
+		gbc.weighty = 0.1;
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		cp.add(console, gbc);
+		
+		//Add to the main controller: center panel
+		gbc = new GridBagConstraints();
+		gbc.gridx = 1;
+		gbc.gridy = 1;
 		gbc.ipadx = 800;
 		gbc.ipady = 600;
 		gbc.weightx = 0.9;
@@ -129,7 +146,7 @@ public class MainFrame extends JFrame {
 		//Add to the main controller: right panel
 		gbc = new GridBagConstraints();
 		gbc.gridx = 1;
-		gbc.gridy = 1;
+		gbc.gridy = 2;
 		gbc.weightx = 0.1;
 		gbc.weighty = 0.1;
 		gbc.anchor = GridBagConstraints.PAGE_END;

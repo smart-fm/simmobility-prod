@@ -6,7 +6,11 @@ import java.awt.image.BufferedImage;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 
+import sim_mob.vis.network.Node;
+import sim_mob.vis.network.basic.DPoint;
 import sim_mob.vis.util.IntGetter;
+import sim_mob.vis.util.StringSetter;
+import sim_mob.vis.util.Utility;
 
 
 /**
@@ -21,20 +25,28 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	//Double-buffered to prevent flickering.
 	private BufferedImage buffer;
 	
+	//Callbacks to the parent
+	private StringSetter statusBarUpdate;
+	
 	//For dragging
 	private Point mouseDown = new Point(0, 0);
+	private Point mouseFirstDown = new Point(0, 0);
+	private static final double DRAG_THRESHOLD = 45;
 	
 	//TEMP: This is actually better off somewhere else.
 	private Point offset = new Point(0, 0);
 	private NetworkVisualizer netViewCache;
 	
-	public NetworkPanel() {
+	
+	public NetworkPanel(StringSetter statusBarUpdate) {
 		this.setIgnoreRepaint(true);
 		this.setPreferredSize(new Dimension(300, 300));
 		this.addComponentListener(this);
 		this.addMouseListener(this);
 		this.addMouseMotionListener(this);
 		this.addMouseWheelListener(this);
+		
+		this.statusBarUpdate = statusBarUpdate;
 	}
 	
 	public void swapBuffer(int[] newRGB, int scanSize) {
@@ -100,6 +112,27 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		netViewCache = nv;
 		
 		updateMap();
+	}
+	
+	
+	private void clickMap(Point pos) {
+		//Anything?
+		if (netViewCache==null) {
+			return;
+		}
+		
+		//First, add the offset
+		pos.x += offset.x;
+		pos.y += offset.y;
+		
+		//Now scale it to the map's co-ordinate system and get
+		//  whichever object is at that location
+		Node n = netViewCache.getNodeAt(pos);
+		if (n!=null) {
+			String str = String.format("NODE: %.0f , %.0f", n.getPos().getUnscaledX(), n.getPos().getUnscaledY());
+			statusBarUpdate.set(str);
+		}
+		
 	}
 	
 	
@@ -177,7 +210,16 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		mouseDown.y = e.getY();
 	}
 	public void mousePressed(MouseEvent e) {
+		mouseFirstDown.x = e.getX();
+		mouseFirstDown.y = e.getY();
 		updateMouseDownPos(e);
+	}
+	public void mouseReleased(MouseEvent e) {
+		double diff = mouseFirstDown.distance(e.getX(), e.getY());
+		if (diff<=DRAG_THRESHOLD) {
+			//This "drag" was probably a mouse click.
+			clickMap(new Point(e.getX(), e.getY()));
+		}
 	}
 	public void mouseDragged(MouseEvent e) {
 		//Update mouse's position; get offset 
@@ -226,7 +268,6 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	public void mouseClicked(MouseEvent e) {}
 	public void mouseEntered(MouseEvent e) {}
 	public void mouseExited(MouseEvent e) {}
-	public void mouseReleased(MouseEvent e) {}
 	
 	//Mouse motion method stubs
 	public void mouseMoved(MouseEvent e) {}

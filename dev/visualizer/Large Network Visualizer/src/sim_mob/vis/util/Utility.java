@@ -1,5 +1,6 @@
 package sim_mob.vis.util;
 
+import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.Hashtable;
@@ -78,6 +79,15 @@ public class Utility {
 		
 		return properties;
 	}
+	
+	
+	
+	public static double Distance(double x1, double y1, double x2, double y2) { 
+		double dx   = x2 - x1;
+		double dy   = y2 - y1;
+		return Math.sqrt(dx*dx + dy*dy);
+	}
+
 	
 	
 	

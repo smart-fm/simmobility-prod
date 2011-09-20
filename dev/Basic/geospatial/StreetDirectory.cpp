@@ -157,8 +157,8 @@ namespace
     inline bool
     isPointInsideAABB(Point2D const & point, AABB const & aabb)
     {
-        return    aabb.left() < point.getX() && point.getX() < aabb.right() 
-               && aabb.bottom() < point.getY() && point.getY() < aabb.top();
+        return    aabb.left() <= point.getX() && point.getX() <= aabb.right() 
+               && aabb.bottom() <= point.getY() && point.getY() <= aabb.top();
     }
 
     // Return the lane where <point> is located, 0 if the point is outside of the stretch of
@@ -459,7 +459,22 @@ namespace
         if (dist < 0)
             return 0;
 
-        centimeter_t halfWidth = segment.width / 2;
+        centimeter_t halfWidth;
+        if (segment.width != 0)
+        {
+            halfWidth = segment.width / 2;
+        }
+        else
+        {
+            centimeter_t width = 0;
+            std::vector<Lane*> const & lanes = segment.getLanes();
+            for (size_t i = 0; i < lanes.size(); i++)
+            {
+                width += lanes[i]->getWidth();
+            }
+            halfWidth = width / 2;
+        }
+
         if (dist > halfWidth)
         {
             // although <point> is between the start and end points, it is outside of

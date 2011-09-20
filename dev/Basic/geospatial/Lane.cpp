@@ -159,14 +159,6 @@ const std::vector<sim_mob::Point2D>& Lane::getPolyline() const
             Point2D p = getSidePoint(p1, dx, dy, w);
             polyline_.push_back(p);
         }
-        else if (parentSegment_->polyline.size() - 1 == i)
-        {
-            // See the comment in the previous block for i == 0.
-            int dx = p2.getX() - p1.getX();
-            int dy = p2.getY() - p1.getY();
-            Point2D p = getSidePoint(p2, dx, dy, w);
-            polyline_.push_back(p);
-        }
         else
         {
             const Point2D& p0 = parentSegment_->polyline[i - 1];
@@ -181,6 +173,13 @@ const std::vector<sim_mob::Point2D>& Lane::getPolyline() const
             Point2D point2 = getSidePoint(p2, dx2, dy2, w);
             Point2D p = intersection(point1, dx1, dy1, point2, dx2, dy2);
             polyline_.push_back(p);
+
+            // If this is the last line, then we add the end point as well.
+            if (parentSegment_->polyline.size() - 2 == i)
+            {
+                // See the comment in the previous block for i == 0.
+                polyline_.push_back(point2);
+            }
         }
     }
 

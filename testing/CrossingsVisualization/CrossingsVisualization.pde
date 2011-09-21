@@ -366,6 +366,75 @@ void scaleAndZoom(double centerX, double centerY, double widthInM, double height
 
 
 
+//We sort "In order", which consists of picking a "first" point and then 
+//  progressively choosing the next-closest point. 
+//The "first" point is the hardest to pick; we basically pick either 
+//  the point nearest to the "start" node or the point nearest to the "end"
+//  node, whichever has a lesser distance. 
+void ArrayProgressiveSort(Section s, ArrayList<Lane> toBeSorted) {
+  //Pick the first point.
+  int oldSize = toBeSorted.size();
+  double minDist = Double.MAX_VALUE;
+  Lane minLane = null;
+  for (Lane ln : toBeSorted) {
+    double newDist1 = distPoints(ln.pos, ln.section.from.pos);
+    double newDist2 = distPoints(ln.pos, ln.section.to.pos);
+    if (newDist1<minDist) {
+      minDist = newDist1;
+      minLane = ln;
+    }
+    if (newDist2<minDist) {
+      minDist = newDist2;
+      minLane = ln;
+    }
+  }
+  
+  //Prepare a result set; add the first point.
+  ArrayList<Lane> res = new ArrayList<Lane>();
+  res.add(minLane);
+  toBeSorted.remove(minLane);
+  
+  //Continue picking points
+  Lane lastPoint = minLane;
+  while(!toBeSorted.isEmpty()) {
+    minDist = Double.MAX_VALUE;
+    for (Lane ln : toBeSorted) {
+      double newDist = distPoints(ln.pos, lastPoint.pos);
+      if (newDist<minDist) {
+        if (newDist==0.0) {
+          if ((ln.pos.getUnscaledX()==lastPoint.pos.getUnscaledX()) && (ln.pos.getUnscaledY()==lastPoint.pos.getUnscaledY())) {
+            println("Error: Duplicate point");
+            println("    " + ln.pos.getUnscaledX() + " , " + ln.pos.getUnscaledY());
+            println("    " + lastPoint.pos.getUnscaledX() + " , " + lastPoint.pos.getUnscaledY());
+          }
+        }
+        
+        minDist = newDist;
+        minLane = ln;
+      }
+    }
+    
+    res.add(minLane);
+    toBeSorted.remove(minLane);
+  }
+  
+  //Save it
+  toBeSorted.addAll(res);
+  if (oldSize != toBeSorted.size()) {
+    println("Error: Array resize.");
+  }
+}
+
+
+
+
+double distPoints(ScaledPoint p1, ScaledPoint p2) {
+  return dist((float)p1.getUnscaledX(), (float)p1.getUnscaledY(), (float)p2.getUnscaledX(), (float)p2.getUnscaledY());
+}
+
+
+
+
 void setup() 
 {
   //Windows are always 800 X 600
@@ -851,15 +920,11 @@ void readLanes(String lanesFile, double[] xBounds, double[] yBounds) throws IOEx
   
   
   //Each section's array of lanes should really be sorted. 
-/*  for (Section s : sections) {
+  for (Section s : sections) {
     for (int i : s.lanes.keySet()) {
-      Collections.sort(s.lanes.get(i), new Comparator<Lane>() {
-        public int compare(Lane l1, Lane l2) {
-          return (int)(l1.distanceFromSrc-l2.distanceFromSrc);
-        }
-      });
+      ArrayProgressiveSort(s, s.lanes.get(i));
     }
-  }*/
+  }
 }
 
 

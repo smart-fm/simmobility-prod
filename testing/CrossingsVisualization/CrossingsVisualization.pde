@@ -225,8 +225,31 @@ class Lane {
   String roadName;
 
   ScaledPoint pos;
+  double distanceFromSrc;
 
   Section section;
+  
+  //Note: Copied from our C++ loader code; please read the comments there for problems with this approach.
+  void computeDistFromSrc() {
+    double dx2x1 = section.to.pos.getUnscaledX() - section.from.pos.getUnscaledX();
+    double dy2y1 = section.to.pos.getUnscaledY() - section.from.pos.getUnscaledY();
+    double dx1x0 = section.from.pos.getUnscaledX() - pos.getUnscaledX();
+    double dy1y0 = section.from.pos.getUnscaledY() - pos.getUnscaledY();
+    double numerator = dx2x1*dy1y0 - dx1x0*dy2y1;
+    double denominator = sqrt((float)(dx2x1*dx2x1 + dy2y1*dy2y1));
+    double perpenDist = numerator/denominator;
+    if (perpenDist<0.0) {
+      //We simplify all the quadratic math to just a sign change, since
+      //   it's known that this polypoint has a positive distance to the line.
+      perpenDist *= -1;
+    }
+
+    //Second, compute the distance from the source point to the polypoint
+    double realDist = sqrt((float)(dx1x0*dx1x0 + dy1y0*dy1y0));
+
+    //Finally, apply the Pythagorean theorum
+    distanceFromSrc = sqrt((float)(realDist*realDist - perpenDist*perpenDist));
+  }
 };
 
 class Crossing {
@@ -808,6 +831,9 @@ void readLanes(String lanesFile, double[] xBounds, double[] yBounds) throws IOEx
       yPos = Double.parseDouble(items[6]);
       ln.pos = new ScaledPoint(xPos, yPos);
       ln.section = getSection(Integer.parseInt(items[3]));
+      
+      //Compute the distance to the source node.
+      ln.computeDistFromSrc();
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }
@@ -822,6 +848,18 @@ void readLanes(String lanesFile, double[] xBounds, double[] yBounds) throws IOEx
     }
     ln.section.lanes.get(ln.laneID).add(ln);
   }
+  
+  
+  //Each section's array of lanes should really be sorted. 
+/*  for (Section s : sections) {
+    for (int i : s.lanes.keySet()) {
+      Collections.sort(s.lanes.get(i), new Comparator<Lane>() {
+        public int compare(Lane l1, Lane l2) {
+          return (int)(l1.distanceFromSrc-l2.distanceFromSrc);
+        }
+      });
+    }
+  }*/
 }
 
 
@@ -1023,6 +1061,13 @@ class ScaledPoint {
   ScaledPoint(double x, double y) {
     origX = x;
     origY = y;
+  }
+
+  double getUnscaledX() {
+    return origX;
+  }
+  double getUnscaledY() {
+    return origY;
   }
   
   double getX() {

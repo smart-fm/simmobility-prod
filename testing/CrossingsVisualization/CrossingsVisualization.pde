@@ -20,7 +20,7 @@ boolean paintCrossings = false;
 
 //Turn on/off lanes
 boolean paintLanes = true;
-ArrayList<String> ignoreLaneTypes = new ArrayList<String>(Arrays.asList(new String[]{"R", "M", "D", "N", "Q", "T", "G", "O", "A1", "A3", "S1", "S", "L", "H", "\\N"}));
+ArrayList<String> ignoreLaneTypes = new ArrayList<String>(Arrays.asList(new String[]{"R", "M", "D", "N", "Q", "T", "G", "O", "A1", "A3", /*"S1", "S",*/ "L", "H", "\\N"}));
 
 //Bit of a painting hack
 boolean doRepaint = true;  
@@ -89,9 +89,11 @@ color[] crossingColors = new color[] {
 Hashtable<String, Integer> laneColors = new Hashtable<String, Integer>();
 void populateLaneColorsTable() {
   //Yellow lines on the side of the road. 
+  //These can form strange shapes, but are often necessary for estimating the "end" of the road.
   laneColors.put("I", color(0x66, 0x66, 0x00));
   
   //Various internal lane lines
+  //These are rarely a problem.
   laneColors.put("F", color(0x33)); 
   laneColors.put("B", color(0x99));
   laneColors.put("C", color(0x99)); 
@@ -104,6 +106,10 @@ void populateLaneColorsTable() {
   //Represents zig-zags; used on parts of Queen St. (but that's messed up to begin with).
   laneColors.put("P", color(0x66, 0x66, 0x00)); 
   laneColors.put("K", color(0x66, 0x66, 0x00)); 
+  
+  //Bus lines; sometimes needed on side streets.
+  laneColors.put("S1", color(0x99, 0x33, 0x33));
+  laneColors.put("S", color(0x99, 0x33, 0x33));
 
   //Bus lines; will be needed later.
   laneColors.put("R", color(0x33, 0xAA, 0x33)); 
@@ -130,8 +136,6 @@ void populateLaneColorsTable() {
   //Always seems to follow "I" lines; not needed.
   laneColors.put("A1", color(0x66, 0x66, 0x00));
   laneColors.put("A3", color(0x66, 0x66, 0x00));
-  laneColors.put("S1", color(0x99, 0x33, 0x33)); //Represents full-day bus lane.
-  laneColors.put("S", color(0x99, 0x33, 0x33)); //Represents bus lane.
   laneColors.put("L", color(0x99, 0x33, 0x33)); //Represents bus lane.
   laneColors.put("H", color(0x99, 0x33, 0x33));  //Only a few; nothing important
   laneColors.put("\\N", color(0x99, 0x33, 0x33)); //Strange circular area, already covered elsewhere.

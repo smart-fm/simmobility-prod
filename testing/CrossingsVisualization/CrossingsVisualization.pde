@@ -402,8 +402,9 @@ ArrayList<Lane> ArrayProgressiveSort(Section s, ArrayList<Lane> toBeSorted) {
       double newDist = distPoints(ln.pos, lastPoint.pos);
       if (newDist<minDist) {
         if (newDist==0.0) {
+          println("Warning, possible loss of precision. (An error may appear below)");
           if ((ln.pos.getUnscaledX()==lastPoint.pos.getUnscaledX()) && (ln.pos.getUnscaledY()==lastPoint.pos.getUnscaledY())) {
-            println("Error: Duplicate point");
+            println("  Error: Duplicate point");
             println("    " + ln.pos.getUnscaledX() + " , " + ln.pos.getUnscaledY());
             println("    " + lastPoint.pos.getUnscaledX() + " , " + lastPoint.pos.getUnscaledY());
           }
@@ -427,10 +428,12 @@ ArrayList<Lane> ArrayProgressiveSort(Section s, ArrayList<Lane> toBeSorted) {
 }
 
 
-
-
+//The Processing "distance" calculation returns float, which is 
+// sometimes bad for our purposes.
 double distPoints(ScaledPoint p1, ScaledPoint p2) {
-  return dist((float)p1.getUnscaledX(), (float)p1.getUnscaledY(), (float)p2.getUnscaledX(), (float)p2.getUnscaledY());
+  double d1 = p2.getUnscaledX() - p1.getUnscaledX();
+  double d2 = p2.getUnscaledY() - p1.getUnscaledY();
+  return Math.sqrt(d1*d1 + d2*d2);
 }
 
 

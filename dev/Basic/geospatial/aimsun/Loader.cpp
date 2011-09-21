@@ -23,6 +23,7 @@
 #include "../LaneConnector.hpp"
 #include "../RoadNetwork.hpp"
 #include "../Crossing.hpp"
+#include "../Lane.hpp"
 
 #include "Node.hpp"
 #include "Section.hpp"
@@ -172,6 +173,43 @@ void LoadCrossings(soci::session& sql, const std::string& storedProc, vector<Cro
 	}
 }
 
+void LoadLanes(soci::session& sql, const std::string& storedProc, vector<Lane>& lanes, map<int, Section>& sectionlist)
+{
+	//Our SQL statement
+	soci::rowset<Lane> rs = (sql.prepare <<"select * from " + storedProc);
+
+	//Exectue as a rowset to avoid repeatedly building the query.
+	lanes.clear();
+	for (soci::rowset<Lane>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+		//Check sections
+		if(sectionlist.count(it->TMP_AtSectionID)==0) {
+			throw std::runtime_error("Crossing at Invalid Section");
+		}
+
+		//Convert meters to cm
+		it->xPos *= 100;
+		it->yPos *= 100;
+
+		//Exclude "crossing" types
+		if (it->laneType=="J" || it->laneType=="A4") {
+			continue;
+		}
+
+		//Exclude lane markings which are not relevant to actual lane geometry
+		if (it->laneType=="R" || it->laneType=="M" || it->laneType=="D" || it->laneType=="N"
+			|| it->laneType=="Q" || it->laneType=="T" || it->laneType=="G" || it->laneType=="O"
+			|| it->laneType=="A1" || it->laneType=="A3" || it->laneType=="L" || it->laneType=="H"
+			|| it->laneType=="\\N"
+			) {
+			continue;
+		}
+
+		//Note: Make sure not to resize the Section vector after referencing its elements.
+		it->atSection = &sectionlist[it->TMP_AtSectionID];
+		lanes.push_back(*it);
+	}
+}
+
 
 void LoadTurnings(soci::session& sql, const std::string& storedProc, map<int, Turning>& turninglist, map<int, Section>& sectionlist)
 {
@@ -226,7 +264,7 @@ void LoadPolylines(soci::session& sql, const std::string& storedProc, multimap<i
 
 
 
-void LoadBasicAimsunObjects(const string& connectionStr, map<string, string>& storedProcs, map<int, Node>& nodes, map<int, Section>& sections, vector<Crossing>& crossings, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
+void LoadBasicAimsunObjects(const string& connectionStr, map<string, string>& storedProcs, map<int, Node>& nodes, map<int, Section>& sections, vector<Crossing>& crossings, vector<Lane>& lanes, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
 {
 	//Connect
 	//Connection string will look something like this:
@@ -241,6 +279,9 @@ void LoadBasicAimsunObjects(const string& connectionStr, map<string, string>& st
 
 	//Load all crossings
 	LoadCrossings(sql, storedProcs["crossing"], crossings, sections);
+
+	//Load all lanes
+	LoadLanes(sql, storedProcs["lane"], lanes, sections);
 
 	//Load all turnings
 	LoadTurnings(sql, storedProcs["turning"], turnings, sections);
@@ -933,11 +974,12 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, map<str
 		map<int, Node> nodes;
 		map<int, Section> sections;
 		vector<Crossing> crossings;
+		vector<Lane> lanes;
 		map<int, Turning> turnings;
 		multimap<int, Polyline> polylines;
 
 		//Step One: Load
-		LoadBasicAimsunObjects(connectionStr, storedProcs, nodes, sections, crossings, turnings, polylines);
+		LoadBasicAimsunObjects(connectionStr, storedProcs, nodes, sections, crossings, lanes, turnings, polylines);
 
 		//Step Two: Translate
 		DecorateAndTranslateObjects(nodes, sections, crossings, turnings, polylines);

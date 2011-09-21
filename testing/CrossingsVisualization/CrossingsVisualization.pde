@@ -20,6 +20,7 @@ boolean paintCrossings = false;
 
 //Turn on/off lanes
 boolean paintLanes = true;
+ArrayList<String> ignoreLaneTypes = new ArrayList<String>(Arrays.asList(new String[]{"R", "M", "D", "N", "Q", "T", "G", "O", "A1", "A3", "S1", "S", "L", "H", "\\N"}));
 
 //Bit of a painting hack
 boolean doRepaint = true;  
@@ -136,8 +137,15 @@ void populateLaneColorsTable() {
   laneColors.put("\\N", color(0x99, 0x33, 0x33)); //Strange circular area, already covered elsewhere.
  
   laneColors.put("Unknown", color(0x00));
+  laneColors.put("Warning", color(0xFF, 0x00, 0x00));
 }
 int getLaneColor(String laneMarking) {
+  //Override
+  if (ignoreLaneTypes.contains(laneMarking)) {
+    println("Ignored lane present.");
+    return laneColors.get("Warning");
+  }
+  
   if (laneColors.containsKey(laneMarking)) {
     return laneColors.get(laneMarking);
   }
@@ -777,6 +785,11 @@ void readLanes(String lanesFile, double[] xBounds, double[] yBounds) throws IOEx
     
     //Skip things which were processed in the "crossings" section
     if (items[1].trim().equals("J") || items[1].trim().equals("A4")) {
+      continue;
+    }
+    
+    //Skip lanes that we know we don't want
+    if (ignoreLaneTypes.contains(items[1].trim())) {
       continue;
     }
     

@@ -318,6 +318,8 @@ double[] getScaleRect(double x1, double y1, double x2, double y2) {
 
 
 void scaleAndZoom(double centerX, double centerY, double widthInM, double heightInM) {
+//  println("Scaling to: " + (centerX-widthInM/2) + "," + (centerY-heightInM/2) + " : " + (centerX+widthInM/2) + "," + (centerY+heightInM/2));
+  
   //Save for later.
   scaleMatrix = new double[]{centerX, centerY, widthInM, heightInM};
   
@@ -578,6 +580,10 @@ void draw()
     strokeWeight(2.0);
     line((float)s.from.pos.getX(), (float)s.from.pos.getY(), (float)s.to.pos.getX(), (float)s.to.pos.getY());
     
+    //TEMP: Override
+    double[] xTest = new double[]{372085.8040246281, 372099.25630020624};
+    double[] yTest = new double[]{143252.47716252,143268.37087827997};
+    
     //Draw lanes
     if (paintLanes) {
       for (int keyID : s.lanes.keySet()) {      
@@ -587,10 +593,35 @@ void draw()
           stroke(clr);
           fill(clr);
           strokeWeight(1.0);
+          
+          //Override
+          /*if (lanes.get(0).pos.getUnscaledX()>xTest[0] && lanes.get(0).pos.getUnscaledX()<xTest[1] && lanes.get(0).pos.getUnscaledY()>yTest[0] && lanes.get(0).pos.getUnscaledY()<yTest[1]) {
+            if (lanes.get(lanes.size()-1).pos.getUnscaledX()>xTest[0] && lanes.get(lanes.size()-1).pos.getUnscaledX()<xTest[1] && lanes.get(lanes.size()-1).pos.getUnscaledY()>yTest[0] && lanes.get(lanes.size()-1).pos.getUnscaledY()<yTest[1]) {
+              stroke(0xFF, 0x00, 0x00);
+              fill(0xFF, 0x00, 0x00);
+            }
+          }*/
+          if (keyID==2677) {
+          } else if (keyID==4133) {
+              stroke(0xFF, 0x00, 0x00);
+              fill(0xFF, 0x00, 0x00);
+          } else if (keyID==1237) {
+              stroke(0x00, 0xFF, 0x00);
+              fill(0x00, 0xFF, 0x00);
+          } else if (keyID==61) {
+              stroke(0x00, 0x00, 0xFF);
+              fill(0x00, 0x00, 0xFF);
+          }
         }
-        
+                
         double[] lastPoint = null;
         for (Lane lane : lanes) {
+          //Override
+          if (lane.pos.getUnscaledX()>xTest[0] && lane.pos.getUnscaledX()<xTest[1] && lane.pos.getUnscaledY()>yTest[0] && lane.pos.getUnscaledY()<yTest[1]) {
+            //Print some debug info
+            //println("Lane id: " + keyID);
+          }
+          
           ellipse((float)lane.pos.getX(), (float)lane.pos.getY(), CROSS_POINT_SIZE, CROSS_POINT_SIZE);
           
           //Connect?

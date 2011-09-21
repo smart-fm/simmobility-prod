@@ -20,6 +20,7 @@ boolean paintCrossings = false;
 
 //Turn on/off lanes
 boolean paintLanes = true;
+boolean displayIgnoredLines = true;
 ArrayList<String> ignoreLaneTypes = new ArrayList<String>(Arrays.asList(new String[]{"R", "M", "D", "N", "Q", "T", "G", "O", "A1", "A3", /*"S1", "S",*/ "L", "H", "\\N"}));
 
 //Bit of a painting hack
@@ -601,7 +602,7 @@ void draw()
               fill(0xFF, 0x00, 0x00);
             }
           }*/
-          if (keyID==2677) {
+          /*if (keyID==2677) {
           } else if (keyID==4133) {
               stroke(0xFF, 0x00, 0x00);
               fill(0xFF, 0x00, 0x00);
@@ -611,7 +612,7 @@ void draw()
           } else if (keyID==61) {
               stroke(0x00, 0x00, 0xFF);
               fill(0x00, 0x00, 0xFF);
-          }
+          }*/
         }
                 
         double[] lastPoint = null;
@@ -921,7 +922,9 @@ void readLanes(String lanesFile, double[] xBounds, double[] yBounds) throws IOEx
     
     //Skip lanes that we know we don't want
     if (ignoreLaneTypes.contains(items[1].trim())) {
-      continue;
+      if (!displayIgnoredLines) {
+        continue;
+      }
     }
     
     //Create a Lane, populate it.

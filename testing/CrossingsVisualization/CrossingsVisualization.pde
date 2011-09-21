@@ -20,7 +20,8 @@ boolean paintCrossings = false;
 
 //Turn on/off lanes
 boolean paintLanes = true;
-boolean displayIgnoredLines = true;
+boolean paintWraparound = false;
+boolean displayIgnoredLines = false;
 ArrayList<String> ignoreLaneTypes = new ArrayList<String>(Arrays.asList(new String[]{"R", "M", "D", "N", "Q", "T", "G", "O", "A1", "A3", /*"S1", "S",*/ "L", "H", "\\N"}));
 
 //Bit of a painting hack
@@ -98,7 +99,7 @@ void populateLaneColorsTable() {
   laneColors.put("F", color(0x33)); 
   laneColors.put("B", color(0x99));
   laneColors.put("C", color(0x99)); 
-  laneColors.put("A", color(0x99)); 
+  laneColors.put("A", color(0x99)); //These are usually "median"-ish lines, but it's not perfect.
   laneColors.put("A2", color(0x99)); 
   
   //Central line for a small side street.
@@ -632,6 +633,12 @@ void draw()
           
           //Save
           lastPoint = new double[] {lane.pos.getX(), lane.pos.getY()};
+        }
+        
+        //For fun debugging
+        if (paintWraparound) {
+          stroke(0xFF, 0x00, 0xFF);
+          line((float)lanes.get(0).pos.getX(), (float)lanes.get(0).pos.getY(), (float)lastPoint[0], (float)lastPoint[1]);
         }
       }
     }

@@ -371,7 +371,7 @@ void scaleAndZoom(double centerX, double centerY, double widthInM, double height
 //The "first" point is the hardest to pick; we basically pick either 
 //  the point nearest to the "start" node or the point nearest to the "end"
 //  node, whichever has a lesser distance. 
-void ArrayProgressiveSort(Section s, ArrayList<Lane> toBeSorted) {
+ArrayList<Lane> ArrayProgressiveSort(Section s, ArrayList<Lane> toBeSorted) {
   //Pick the first point.
   int oldSize = toBeSorted.size();
   double minDist = Double.MAX_VALUE;
@@ -418,11 +418,12 @@ void ArrayProgressiveSort(Section s, ArrayList<Lane> toBeSorted) {
     toBeSorted.remove(minLane);
   }
   
-  //Save it
-  toBeSorted.addAll(res);
-  if (oldSize != toBeSorted.size()) {
+  //Check, return.
+  if (oldSize != res.size()) {
     println("Error: Array resize.");
   }
+  
+  return res;
 }
 
 
@@ -922,7 +923,7 @@ void readLanes(String lanesFile, double[] xBounds, double[] yBounds) throws IOEx
   //Each section's array of lanes should really be sorted. 
   for (Section s : sections) {
     for (int i : s.lanes.keySet()) {
-      ArrayProgressiveSort(s, s.lanes.get(i));
+      s.lanes.put(i, ArrayProgressiveSort(s, s.lanes.get(i)));
     }
   }
 }

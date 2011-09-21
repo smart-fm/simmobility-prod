@@ -15,6 +15,12 @@ Pattern logRHS = Pattern.compile(strn + ":" + strn + ",?");
 PFont f;
 PFont f2;
 
+//Turn on/off crossings
+boolean paintCrossings = false;
+
+//Turn on/off lanes
+boolean paintLanes = true;
+
 //Bit of a painting hack
 boolean doRepaint = true;  
 
@@ -79,6 +85,67 @@ color[] crossingColors = new color[] {
   color(0xFF, 0x00, 0xFF),
   color(0xFF, 0xFF, 0x00),
 };
+Hashtable<String, Integer> laneColors = new Hashtable<String, Integer>();
+void populateLaneColorsTable() {
+  //Yellow lines on the side of the road. 
+  laneColors.put("I", color(0x66, 0x66, 0x00));
+  
+  //Various internal lane lines
+  laneColors.put("F", color(0x33)); 
+  laneColors.put("B", color(0x99));
+  laneColors.put("C", color(0x99)); 
+  laneColors.put("A", color(0x99)); 
+  laneColors.put("A2", color(0x99)); 
+  
+  //Central line for a small side street.
+  laneColors.put("E", color(0x33, 0x33, 0xFF)); 
+
+  //Represents zig-zags; used on parts of Queen St. (but that's messed up to begin with).
+  laneColors.put("P", color(0x66, 0x66, 0x00)); 
+  laneColors.put("K", color(0x66, 0x66, 0x00)); 
+
+  //Bus lines; will be needed later.
+  laneColors.put("R", color(0x33, 0xAA, 0x33)); 
+
+  //Stop line; not needed.
+  laneColors.put("M", color(0xCC, 0x33, 0xCC)); 
+  
+  //Rare, seems to represent some kind of temporary side-lane, like a taxi lane. Not needed.
+  laneColors.put("D", color(0xCC, 0x33, 0xCC)); 
+  
+  //Represents intersection box; not needed.
+  laneColors.put("N", color(0x66, 0x66, 0x00));
+  
+  //Represents turning arrows/pockets in intersections; not needed.
+  laneColors.put("Q", color(0xAA, 0xAA, 0xAA));
+  laneColors.put("T", color(0xAA, 0xAA, 0xAA));
+  
+  //"Side" lines; seems to trace various miscellaneous points that are (usually) not needed.
+  laneColors.put("G", color(0xAA, 0xAA, 0xAA));
+  
+  //Represents yellow zig-zag on side streets; not needed.
+  laneColors.put("O", color(0x66, 0x66, 0x00)); 
+  
+  //Always seems to follow "I" lines; not needed.
+  laneColors.put("A1", color(0x66, 0x66, 0x00));
+  laneColors.put("A3", color(0x66, 0x66, 0x00));
+  laneColors.put("S1", color(0x99, 0x33, 0x33)); //Represents full-day bus lane.
+  laneColors.put("S", color(0x99, 0x33, 0x33)); //Represents bus lane.
+  laneColors.put("L", color(0x99, 0x33, 0x33)); //Represents bus lane.
+  laneColors.put("H", color(0x99, 0x33, 0x33));  //Only a few; nothing important
+  laneColors.put("\\N", color(0x99, 0x33, 0x33)); //Strange circular area, already covered elsewhere.
+ 
+  laneColors.put("Unknown", color(0x00));
+}
+int getLaneColor(String laneMarking) {
+  if (laneColors.containsKey(laneMarking)) {
+    return laneColors.get(laneMarking);
+  }
+  println("Unknown lane marking: " + laneMarking);
+  return laneColors.get("Unknown");
+}
+
+
 
 void checkBounds(double[] bounds, double newVal) {
   bounds[0] = Math.min(bounds[0], newVal);
@@ -126,6 +193,7 @@ class Section {
   Node to;
   
   Hashtable<Integer, ArrayList<Crossing>> crossings = new Hashtable<Integer, ArrayList<Crossing>>();
+  Hashtable<Integer, ArrayList<Lane>> lanes = new Hashtable<Integer, ArrayList<Lane>>();
 };
 Section getSection(int id) {
   for (int i=0; i<sections.size(); i++) {
@@ -136,6 +204,18 @@ Section getSection(int id) {
   throw new RuntimeException("No section with id: " + id);
 }
 
+
+//Lanes are similar to crossings, but we store them in distinct classes for better
+// type-checking. 
+class Lane {
+  int laneID;
+  String laneType;
+  String roadName;
+
+  ScaledPoint pos;
+
+  Section section;
+};
 
 class Crossing {
   int laneID;
@@ -215,12 +295,21 @@ void scaleAndZoom(double centerX, double centerY, double widthInM, double height
     n.pos.scaleTo(xBounds, yBounds);
   }
   
-  //Scale all crossings (which are saved by section)
+  //Scale all crossings/lanes (which are saved by section)
   for (Section s : sections) {
+    //Crossings
     for (int i : s.crossings.keySet()) {
       ArrayList<Crossing> crossings = s.crossings.get(i);
       for (Crossing c : crossings) {
         c.pos.scaleTo(xBounds, yBounds);
+      }
+    }
+    
+    //Lanes
+    for (int i : s.lanes.keySet()) {
+      ArrayList<Lane> lanes = s.lanes.get(i);
+      for (Lane l : lanes) {
+        l.pos.scaleTo(xBounds, yBounds);
       }
     }
   }
@@ -247,6 +336,7 @@ void setup()
   //Windows are always 800 X 600
   size(800, 600);
   frameRate(30);
+  populateLaneColorsTable();
   
   //Indicator
   zoomFitInd = loadImage("zoom_indicator.png");
@@ -309,6 +399,7 @@ void setup()
     readNodes("nodes.txt", xBounds, yBounds);
     readSections("sections.txt");
     readCrossings("crossings.txt", xBounds, yBounds);
+    readLanes("lanes.txt", xBounds, yBounds);
     readDecoratedData("runtime_annotations.txt");
   } catch (IOException ex) {
     throw new RuntimeException(ex);
@@ -355,16 +446,18 @@ void draw()
   }
   
   //Draw all Cross Shapes
-  strokeWeight(2.0);
-  stroke(csStroke);
-  fill(csFill);
-  for (CrossShape cs : crossshapes) {
-    beginShape();
-    vertex((float)cs.near1.getX(), (float)cs.near1.getY());
-    vertex((float)cs.near2.getX(), (float)cs.near2.getY());
-    vertex((float)cs.far2.getX(), (float)cs.far2.getY());
-    vertex((float)cs.far1.getX(), (float)cs.far1.getY());
-    endShape(CLOSE);
+  if (paintCrossings) {
+    strokeWeight(2.0);
+    stroke(csStroke);
+    fill(csFill);
+    for (CrossShape cs : crossshapes) {
+      beginShape();
+      vertex((float)cs.near1.getX(), (float)cs.near1.getY());
+      vertex((float)cs.near2.getX(), (float)cs.near2.getY());
+      vertex((float)cs.far2.getX(), (float)cs.far2.getY());
+      vertex((float)cs.far1.getX(), (float)cs.far1.getY());
+      endShape(CLOSE);
+    }
   }
   
   //Draw all sections
@@ -377,37 +470,65 @@ void draw()
     strokeWeight(2.0);
     line((float)s.from.pos.getX(), (float)s.from.pos.getY(), (float)s.to.pos.getX(), (float)s.to.pos.getY());
     
+    //Draw lanes
+    if (paintLanes) {
+      for (int keyID : s.lanes.keySet()) {      
+        ArrayList<Lane> lanes = s.lanes.get(keyID);
+        if (!lanes.isEmpty()) {
+          int clr = getLaneColor(lanes.get(0).laneType);
+          stroke(clr);
+          fill(clr);
+          strokeWeight(1.0);
+        }
+        
+        double[] lastPoint = null;
+        for (Lane lane : lanes) {
+          ellipse((float)lane.pos.getX(), (float)lane.pos.getY(), CROSS_POINT_SIZE, CROSS_POINT_SIZE);
+          
+          //Connect?
+          if (lastPoint!=null) {
+            line((float)lane.pos.getX(), (float)lane.pos.getY(), (float)lastPoint[0], (float)lastPoint[1]);
+          }
+          
+          //Save
+          lastPoint = new double[] {lane.pos.getX(), lane.pos.getY()};
+        }
+      }
+    }
+    
     //Draw crossings
-    int crsID=0;
-    for (int keyID : s.crossings.keySet()) {      
-      ArrayList<Crossing> crs = s.crossings.get(keyID);
-      stroke(crossingColors[crsID%crossingColors.length]);
-      fill(crossingColors[crsID%crossingColors.length]);
-      strokeWeight(1.0);
-      
-      //Over-rides for "tagged" lane IDs
-      if (keyID==tagLaneID) {
-        stroke(taggedLaneColor);
-        strokeWeight(2.5);
-      }
-
-      double[] lastPoint = null;
-      for (Crossing cr : crs) {
-        //Skip?
-        if (restrictRoadName!=null && !restrictRoadName.equals(cr.roadName)) {
-          continue;
-        }
-        ellipse((float)cr.pos.getX(), (float)cr.pos.getY(), CROSS_POINT_SIZE, CROSS_POINT_SIZE);
+    if (paintCrossings) {
+      int crsID=0;
+      for (int keyID : s.crossings.keySet()) {      
+        ArrayList<Crossing> crs = s.crossings.get(keyID);
+        stroke(crossingColors[crsID%crossingColors.length]);
+        fill(crossingColors[crsID%crossingColors.length]);
+        strokeWeight(1.0);
         
-        //Connect?
-        if (lastPoint!=null) {
-          line((float)cr.pos.getX(), (float)cr.pos.getY(), (float)lastPoint[0], (float)lastPoint[1]);
+        //Over-rides for "tagged" lane IDs
+        if (keyID==tagLaneID) {
+          stroke(taggedLaneColor);
+          strokeWeight(2.5);
         }
-        
-        //Save
-        lastPoint = new double[] {cr.pos.getX(), cr.pos.getY()};
+  
+        double[] lastPoint = null;
+        for (Crossing cr : crs) {
+          //Skip?
+          if (restrictRoadName!=null && !restrictRoadName.equals(cr.roadName)) {
+            continue;
+          }
+          ellipse((float)cr.pos.getX(), (float)cr.pos.getY(), CROSS_POINT_SIZE, CROSS_POINT_SIZE);
+          
+          //Connect?
+          if (lastPoint!=null) {
+            line((float)cr.pos.getX(), (float)cr.pos.getY(), (float)lastPoint[0], (float)lastPoint[1]);
+          }
+          
+          //Save
+          lastPoint = new double[] {cr.pos.getX(), cr.pos.getY()};
+        }
+        crsID++;
       }
-      crsID++;
     }
   }
   
@@ -439,9 +560,11 @@ void draw()
   }
   
   //Label circulars
-  for (Circular c : circs) {
-    fill(0x33);
-    text(c.label, (float)c.pos.getX(), (float)c.pos.getY()); 
+  if (paintCrossings) {
+    for (Circular c : circs) {
+      fill(0x33);
+      text(c.label, (float)c.pos.getX(), (float)c.pos.getY()); 
+    }
   }
   
   //Draw button background
@@ -629,6 +752,58 @@ void readCrossings(String crossingsFile, double[] xBounds, double[] yBounds) thr
         c.section.crossings.put(c.laneID, new ArrayList<Crossing>());
     }
     c.section.crossings.get(c.laneID).add(c);
+  }
+}
+
+
+
+void readLanes(String lanesFile, double[] xBounds, double[] yBounds) throws IOException { 
+  String lines[] = loadStrings(lanesFile);
+    
+  //Read line-by-line
+  for (int lineID=0; lineID<lines.length; lineID++) {
+    String nextLine = lines[lineID].trim();
+    
+    //Skip this line?
+    if (nextLine.startsWith("#") || nextLine.isEmpty()) {
+      continue;
+    }
+    
+    //Parse: (lane_id, lane_type, lane_type_desc, section, road_name, xpos, ypos)
+    String[] items = nextLine.split("\t");
+    if (items.length != 7) {
+      throw new RuntimeException("Bad line in crossings file: " + nextLine);
+    }
+    
+    //Skip things which were processed in the "crossings" section
+    if (items[1].trim().equals("J") || items[1].trim().equals("A4")) {
+      continue;
+    }
+    
+    //Create a Lane, populate it.
+    Lane ln = new Lane();
+    double xPos, yPos;
+    try {
+      ln.laneID = Integer.parseInt(items[0]);
+      ln.laneType = items[1].trim();
+      ln.roadName = items[4].trim();
+      xPos = Double.parseDouble(items[5]);
+      yPos = Double.parseDouble(items[6]);
+      ln.pos = new ScaledPoint(xPos, yPos);
+      ln.section = getSection(Integer.parseInt(items[3]));
+    } catch (Exception ex) {
+      throw new RuntimeException(ex);
+    }
+    
+    //Expand bounds as necessary
+    checkBounds(xBounds, xPos);
+    checkBounds(yBounds, yPos);
+    
+    //Add it
+    if (!ln.section.lanes.containsKey(ln.laneID)) {
+        ln.section.lanes.put(ln.laneID, new ArrayList<Lane>());
+    }
+    ln.section.lanes.get(ln.laneID).add(ln);
   }
 }
 

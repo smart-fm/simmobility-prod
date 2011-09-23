@@ -616,13 +616,14 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 //Helpers for Lane construction
 struct LaneSingleLine { //Used to represent a set of Lanes by id.
 	vector<Lane*> points;
-	LaneSingleLine() : angle(0.0) {}
-	LaneSingleLine(const vector<Lane*>& mypoints) : angle(0.0) {
+	LaneSingleLine() {}
+	LaneSingleLine(const vector<Lane*>& mypoints) {
 		points.insert(points.begin(), mypoints.begin(), mypoints.end());
 	}
 
 	//For sorting, later
 	double angle;
+	double minDist;
 };
 struct LinkHelperStruct {
 	Node* start;
@@ -752,12 +753,11 @@ pair<double, Lane*> getClosestPoint(const vector<Lane*>& candidates, double xPos
 void TrimCandidateList(vector<LaneSingleLine>& candidates, size_t maxSize)
 {
 	//Need to do anything?
-	if (candidates.size()<=maxSize) {
+	if (candidates.size()<=maxSize || candidates.empty()) {
 		return;
 	}
 
 	//Simple strategy: Compute the angle for each of these long segments.
-	std::cout <<"Segment angle check.\n";
 	for (vector<LaneSingleLine>::iterator it=candidates.begin(); it!=candidates.end(); it++) {
 		double maxLen = 0.0;
 		Lane* pastLane = nullptr;
@@ -772,11 +772,53 @@ void TrimCandidateList(vector<LaneSingleLine>& candidates, size_t maxSize)
 			//Save
 			pastLane = *currLane;
 		}
+	}
 
-		std::cout <<"   angle: " <<it->angle <<" for max length: " <<maxLen <<"\n";
+	//Normalize the angles
+	double minVal = candidates.front().angle;
+	double maxVal = candidates.front().angle;
+	for (vector<LaneSingleLine>::iterator it=candidates.begin(); it!=candidates.end(); it++) {
+		if (it->angle < minVal) {
+			minVal = it->angle;
+		}
+		if (it->angle > maxVal) {
+			maxVal = it->angle;
+		}
+	}
+	for (vector<LaneSingleLine>::iterator it=candidates.begin(); it!=candidates.end(); it++) {
+		it->angle = (it->angle-minVal) / (maxVal-minVal);
 	}
 
 
+	//Now find the set of size MaxSize with the minimum max-distance-between-any-2-points
+	//The set of candidates is always quite small, so any brute-force algorithm will work.
+	while (candidates.size()>maxSize) {
+		//Step one: For each LaneLine, find the LaneLine with the closest angle.
+		for (vector<LaneSingleLine>::iterator it=candidates.begin(); it!=candidates.end(); it++) {
+			it->minDist = 10; //Distance will never be more than 2PI
+			for (vector<LaneSingleLine>::iterator other=candidates.begin(); other!=candidates.end(); other++) {
+				//Skip self.
+				if (&(*it) == &(*other)) {
+					continue;
+				}
+				double currDist = fabs(other->angle - it->angle);
+				if (currDist < it->minDist) {
+					it->minDist = currDist;
+				}
+			}
+		}
+
+		//Step two: Find the candidate with the greatest min distance and remove it.
+		vector<LaneSingleLine>::iterator maxIt;
+		double maxDist = -1;
+		for (vector<LaneSingleLine>::iterator it=candidates.begin(); it!=candidates.end(); it++) {
+			if (it->minDist > maxDist) {
+				maxIt = it;
+				maxDist = it->minDist;
+			}
+		}
+		candidates.erase(maxIt);
+	}
 }
 
 

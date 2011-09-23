@@ -600,6 +600,42 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 }
 
 
+//Helpers for Lane construction
+struct LinkHelperStruct {
+	Node* start;
+	Node* end;
+	set<Section*> sections;
+	LinkHelperStruct() : start(nullptr), end(nullptr) {}
+};
+map<sim_mob::Link*, LinkHelperStruct> buildLinkHelperStruct(map<int, Node>& nodes, map<int, Section>& sections)
+{
+	map<sim_mob::Link*, LinkHelperStruct> res;
+	for (map<int, Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
+		//Always add the section
+		sim_mob::Link* parent = it->second.generatedSegment->getLink();
+		res[parent].sections.insert(&(it->second));
+
+		//Conditionally add the start/end
+		if (!res[parent].start) {
+			if (it->second.fromNode->generatedNode == parent->getStart()) {
+				res[parent].start = it->second.fromNode;
+			} else if (it->second.toNode->generatedNode == parent->getStart()) {
+				res[parent].start = it->second.toNode;
+			}
+		}
+		if (!res[parent].end) {
+			if (it->second.fromNode->generatedNode == parent->getEnd()) {
+				res[parent].end = it->second.fromNode;
+			} else if (it->second.toNode->generatedNode == parent->getEnd()) {
+				res[parent].end = it->second.toNode;
+			}
+		}
+	}
+
+	return res;
+}
+
+
 
 void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, map<int, Node>& nodes, map<int, Section>& sections, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
 {
@@ -653,10 +689,102 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, map<int, Node>& nodes, ma
 			sim_mob::aimsun::Loader::GenerateACrossing(res, it->second, *i2->first, i2->second);
 		}
 	}
+
+	//Prune lanes and figure out where the median is.
+	// TODO: This should eventually allow other lanes to be designated too.
+	map<sim_mob::Link*, LinkHelperStruct> lhs = buildLinkHelperStruct(nodes, sections);
+	for (map<sim_mob::Link*, LinkHelperStruct>::iterator it=lhs.begin(); it!=lhs.end(); it++) {
+		sim_mob::aimsun::Loader::GenerateLinkLaneZero(it->second.start, it->second.end, it->second.sections);
+	}
 }
 
 
+pair<double, Lane*> getClosestPoint(const vector<Lane*>& candidates, double xPos, double yPos)
+{
+	//Make searching slightly easier.
+	Lane origin;
+	origin.xPos = xPos;
+	origin.yPos = yPos;
+
+	//Search
+	pair<double, Lane*> res(0.0, nullptr);
+	for (vector<Lane*>::const_iterator it=candidates.begin(); it!=candidates.end(); it++) {
+		double currDist = distLaneLane(&origin, *it);
+		if (!res.second || currDist<res.first) {
+			res.first = currDist;
+			res.second = *it;
+		}
+	}
+
+	return res;
+}
+
+
+
 } //End anon namespace
+
+
+
+//Somewhat complex algorithm for filtering our swirling vortex of Lane data down into a single
+//  polyline for each Segment representing the median.
+void sim_mob::aimsun::Loader::GenerateLinkLaneZero(Node* start, Node* end, set<Section*> linkSections)
+{
+	//Step 1: Retrieve candidate endpoints. For each Lane_Id in all Segments within this Link,
+	//        get the point closest to the segment's start or end node. If this point is within X
+	//        cm of the start/end, it becomes a candidate point.
+	const double minCM = (75 * 100)/2; //75 meter diameter
+	pair< vector<Lane*>, vector<Lane*> > candidates; //Start, End
+	for (set<Section*>::const_iterator it=linkSections.begin(); it!=linkSections.end(); it++) {
+		for (map<int, vector<Lane*> >::iterator laneIt=(*it)->laneLinesAtNode.begin(); laneIt!=(*it)->laneLinesAtNode.end(); laneIt++) {
+			//We need at least one candidate
+			if (laneIt->second.empty()) {
+				continue;
+			}
+
+			pair<double, Lane*> ptStart = getClosestPoint(laneIt->second, start->xPos, start->yPos);
+			pair<double, Lane*> ptEnd = getClosestPoint(laneIt->second, end->xPos, end->yPos);
+			pair<double, Lane*>& minPt = ptStart.first<ptEnd.first ? ptStart : ptEnd;
+			vector<Lane*>& minVect = ptStart.first<ptEnd.first ? candidates.first : candidates.second;
+			if (minPt.first <= minCM) {
+				minVect.push_back(minPt.second);
+			}
+		}
+	}
+
+
+	//Step 2: We now have to narrow these points down to NumLanes + 1 + 1 total points.
+	//        NumLanes is calculated based on the number of lanes in the incoming and outgoing
+	//        Section, +1 since each lane shares 2 points. The additional +1 is for Links
+	//        with a median. Note that one-way Links only have NumLanes+1.
+	//        Each Link may, of course, have less than the total number of points, which usually
+	//        indicates missing data.
+	pair< size_t, size_t > maxCandidates(0, 0); //start, end
+	for (set<Section*>::const_iterator it=linkSections.begin(); it!=linkSections.end(); it++) {
+		//"from" or "to" the start?
+		if ((*it)->fromNode==start) {
+			maxCandidates.first += (*it)->numLanes + 1;
+		} else if ((*it)->toNode==start) {
+			maxCandidates.first += (*it)->numLanes + 1;
+		}
+
+		//"from" or "to" the end?
+		if ((*it)->fromNode==end) {
+			maxCandidates.second += (*it)->numLanes + 1;
+		} else if ((*it)->toNode==end) {
+			maxCandidates.second += (*it)->numLanes + 1;
+		}
+	}
+
+	//Perform the trimming
+	if (candidates.first.size() > maxCandidates.first) {
+
+	}
+	if (candidates.second.size() > maxCandidates.second) {
+
+	}
+}
+
+
 
 
 void sim_mob::aimsun::Loader::GenerateACrossing(sim_mob::RoadNetwork& resNW, Node& origin, Node& dest, vector<int>& laneIDs)

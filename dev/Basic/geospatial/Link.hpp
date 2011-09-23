@@ -62,6 +62,7 @@ protected:
 	//List of pointers to RoadSegments in each direction
 	std::vector<sim_mob::RoadSegment*> fwdSegments;
 	std::vector<sim_mob::RoadSegment*> revSegments;
+	std::set<sim_mob::RoadSegment*> uniqueSegments;
 
 
 

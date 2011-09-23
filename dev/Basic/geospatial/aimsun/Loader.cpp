@@ -725,7 +725,7 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, map<int, Node>& nodes, ma
 	// TODO: This should eventually allow other lanes to be designated too.
 	map<sim_mob::Link*, LinkHelperStruct> lhs = buildLinkHelperStruct(nodes, sections);
 	for (map<sim_mob::Link*, LinkHelperStruct>::iterator it=lhs.begin(); it!=lhs.end(); it++) {
-		sim_mob::aimsun::Loader::GenerateLinkLaneZero(it->second.start, it->second.end, it->second.sections);
+		sim_mob::aimsun::Loader::GenerateLinkLaneZero(res, it->second.start, it->second.end, it->second.sections);
 	}
 }
 
@@ -828,7 +828,7 @@ void TrimCandidateList(vector<LaneSingleLine>& candidates, size_t maxSize)
 void OrganizePointsInDrivingDirection(bool drivesOnLHS, Node* start, Node* end, vector<Lane*>& points)
 {
 	//TODO: Normalize, flip, etc.
-	throw std::runtime_error("Not implemented yet.");
+	//throw std::runtime_error("Not implemented yet.");
 }
 
 
@@ -836,7 +836,7 @@ void OrganizePointsInDrivingDirection(bool drivesOnLHS, Node* start, Node* end, 
 Lane DetermineNormalMedian(const vector<Lane*>& orderedPoints, Section fwdSec, Section revSec)
 {
 	//If we have exactly the right number of lanes...
-	if (orderedPoints.size() = fwdSec.numLanes + revSec.numLanes + 1) {
+	if (orderedPoints.size() == fwdSec.numLanes + revSec.numLanes + 1) {
 		//...then return the lane which both Sections consider the median.
 		return *orderedPoints[fwdSec.numLanes];
 	} else {
@@ -878,7 +878,7 @@ pair<Lane, Lane> ComputeMedianEndpoints(bool drivesOnLHS, Node* start, Node* end
 
 
 	//If this is a single directional road segment...
-	if () {
+	/*if () {
 		//...then the median is the FIRST point if we are going from start->end
 		//   or the LAST point if we are going from end->start
 		if () {
@@ -892,7 +892,7 @@ pair<Lane, Lane> ComputeMedianEndpoints(bool drivesOnLHS, Node* start, Node* end
 		//...otherwise, we deal with each point separately.
 		startPoint = DetermineNormalMedian(originPoints);
 		endPoint = DetermineNormalMedian(endingPoints);
-	}
+	}*/
 
 
 	return std::make_pair(startPoint, endPoint);
@@ -908,7 +908,7 @@ pair<Lane, Lane> ComputeMedianEndpoints(bool drivesOnLHS, Node* start, Node* end
 
 //Somewhat complex algorithm for filtering our swirling vortex of Lane data down into a single
 //  polyline for each Segment representing the median.
-void sim_mob::aimsun::Loader::GenerateLinkLaneZero(Node* start, Node* end, set<Section*> linkSections)
+void sim_mob::aimsun::Loader::GenerateLinkLaneZero(const sim_mob::RoadNetwork& rn, Node* start, Node* end, set<Section*> linkSections)
 {
 	//Step 1: Retrieve candidate endpoints. For each Lane_Id in all Segments within this Link,
 	//        get the point closest to the segment's start or end node. If this point is within X
@@ -978,7 +978,7 @@ void sim_mob::aimsun::Loader::GenerateLinkLaneZero(Node* start, Node* end, set<S
 	// NOTE:  The algorithm described above has to be performed for each Section, and then saved in the
 	//        generated RoadSegment.
 	// NOTE:  We also update the segment width.
-	pair<Lane, Lane> medianEndpoints = ComputeMedianEndpoints(start, end, candidates, maxCandidates); //Start, end
+	pair<Lane, Lane> medianEndpoints = ComputeMedianEndpoints(rn.drivingSide==DRIVES_ON_LEFT, start, end, candidates, maxCandidates); //Start, end
 
 
 	//Step 4: Now that we have the median endpoints, travel to each Segment Node and update this median information.

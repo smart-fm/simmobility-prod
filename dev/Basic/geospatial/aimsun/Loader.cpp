@@ -616,10 +616,13 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 //Helpers for Lane construction
 struct LaneSingleLine { //Used to represent a set of Lanes by id.
 	vector<Lane*> points;
-	LaneSingleLine();
-	LaneSingleLine(const vector<Lane*>& mypoints) {
+	LaneSingleLine() : angle(0.0) {}
+	LaneSingleLine(const vector<Lane*>& mypoints) : angle(0.0) {
 		points.insert(points.begin(), mypoints.begin(), mypoints.end());
 	}
+
+	//For sorting, later
+	double angle;
 };
 struct LinkHelperStruct {
 	Node* start;
@@ -627,6 +630,11 @@ struct LinkHelperStruct {
 	set<Section*> sections;
 	LinkHelperStruct() : start(nullptr), end(nullptr) {}
 };
+double ComputeAngle(Lane* start, Lane* end) {
+	double dx = end->xPos - start->xPos;
+	double dy = end->yPos - start->yPos;
+	return atan2(dy, dx);
+}
 map<sim_mob::Link*, LinkHelperStruct> buildLinkHelperStruct(map<int, Node>& nodes, map<int, Section>& sections)
 {
 	map<sim_mob::Link*, LinkHelperStruct> res;
@@ -748,8 +756,26 @@ void TrimCandidateList(vector<LaneSingleLine>& candidates, size_t maxSize)
 		return;
 	}
 
-	//Simple strategy: create unit vectors for the longest segment in each candidate.
-	//  Save the angle of each of these segments.
+	//Simple strategy: Compute the angle for each of these long segments.
+	std::cout <<"Segment angle check.\n";
+	for (vector<LaneSingleLine>::iterator it=candidates.begin(); it!=candidates.end(); it++) {
+		double maxLen = 0.0;
+		Lane* pastLane = nullptr;
+		for (vector<Lane*>::iterator currLane=it->points.begin(); currLane!=it->points.end(); currLane++) {
+			if (pastLane) {
+				double currLen = distLaneLane(pastLane, *currLane);
+				if (currLen > maxLen) {
+					maxLen = currLen;
+					it->angle = ComputeAngle(pastLane, *currLane);
+				}
+			}
+			//Save
+			pastLane = *currLane;
+		}
+
+		std::cout <<"   angle: " <<it->angle <<" for max length: " <<maxLen <<"\n";
+	}
+
 
 }
 

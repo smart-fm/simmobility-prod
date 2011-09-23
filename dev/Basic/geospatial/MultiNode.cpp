@@ -18,7 +18,7 @@ using std::set;
 namespace {
 
 //Compute the clockwise angle between two vectors with a common center point.
-// Returns the angle from "first" to "second", in the range 0 <= res < 2PI
+// Returns the angle from "first" to "second", in the range 0 <= res < 2PI (NOTE: That might not be right)
 double AngleBetween(const Node* const center, const Node* const first, const Node* const second, bool readClockwise)
 {
 	//Quick check: Force 0 if the two points are the same (we wouldn't want them to appear as 2PI)
@@ -31,6 +31,13 @@ double AngleBetween(const Node* const center, const Node* const first, const Nod
 	double v1y = first->location->getY() - center->location->getY();
 	double v2x = second->location->getX() - center->location->getX();
 	double v2y = second->location->getY() - center->location->getY();
+
+	//NOTE: I'm pretty sure atan2 already handles this... but do we have to bound it to 0<=res,+2PI?
+	double res = atan2(v2x, v2y) - atan2(v1x, v1y);
+	return res;
+
+
+/*
 
 	//Calculate the interior angle using atan2 & the dot-product
 	double res = -(180.0/M_PI) * atan2(v1x*v2y - v1y*v2x, v1x*v2x+v1y*v2y);
@@ -66,7 +73,7 @@ double AngleBetween(const Node* const center, const Node* const first, const Nod
 
 
 	//Reverse the result if requested
-	return readClockwise ? res : (2*M_PI-res);
+	return readClockwise ? res : (2*M_PI-res);*/
 }
 
 

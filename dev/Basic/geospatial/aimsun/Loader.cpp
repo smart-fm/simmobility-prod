@@ -601,6 +601,13 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 
 
 //Helpers for Lane construction
+struct LaneSingleLine { //Used to represent a set of Lanes by id.
+	vector<Lane*> points;
+	LaneSingleLine();
+	LaneSingleLine(const vector<Lane*>& mypoints) {
+		points.insert(points.begin(), mypoints.begin(), mypoints.end());
+	}
+};
 struct LinkHelperStruct {
 	Node* start;
 	Node* end;
@@ -721,6 +728,20 @@ pair<double, Lane*> getClosestPoint(const vector<Lane*>& candidates, double xPos
 
 
 
+void TrimCandidateList(vector<LaneSingleLine>& candidates, size_t maxSize)
+{
+	//Need to do anything?
+	if (candidates.size()<=maxSize) {
+		return;
+	}
+
+	//Simple strategy: create unit vectors
+
+}
+
+
+
+
 } //End anon namespace
 
 
@@ -733,7 +754,7 @@ void sim_mob::aimsun::Loader::GenerateLinkLaneZero(Node* start, Node* end, set<S
 	//        get the point closest to the segment's start or end node. If this point is within X
 	//        cm of the start/end, it becomes a candidate point.
 	const double minCM = (75 * 100)/2; //75 meter diameter
-	pair< vector<Lane*>, vector<Lane*> > candidates; //Start, End
+	pair< vector<LaneSingleLine>, vector<LaneSingleLine> > candidates; //Start, End
 	for (set<Section*>::const_iterator it=linkSections.begin(); it!=linkSections.end(); it++) {
 		for (map<int, vector<Lane*> >::iterator laneIt=(*it)->laneLinesAtNode.begin(); laneIt!=(*it)->laneLinesAtNode.end(); laneIt++) {
 			//We need at least one candidate
@@ -744,9 +765,9 @@ void sim_mob::aimsun::Loader::GenerateLinkLaneZero(Node* start, Node* end, set<S
 			pair<double, Lane*> ptStart = getClosestPoint(laneIt->second, start->xPos, start->yPos);
 			pair<double, Lane*> ptEnd = getClosestPoint(laneIt->second, end->xPos, end->yPos);
 			pair<double, Lane*>& minPt = ptStart.first<ptEnd.first ? ptStart : ptEnd;
-			vector<Lane*>& minVect = ptStart.first<ptEnd.first ? candidates.first : candidates.second;
+			vector<LaneSingleLine>& minVect = ptStart.first<ptEnd.first ? candidates.first : candidates.second;
 			if (minPt.first <= minCM) {
-				minVect.push_back(minPt.second);
+				minVect.push_back(LaneSingleLine(laneIt->second));
 			}
 		}
 	}
@@ -776,12 +797,8 @@ void sim_mob::aimsun::Loader::GenerateLinkLaneZero(Node* start, Node* end, set<S
 	}
 
 	//Perform the trimming
-	if (candidates.first.size() > maxCandidates.first) {
-
-	}
-	if (candidates.second.size() > maxCandidates.second) {
-
-	}
+	TrimCandidateList(candidates.first, maxCandidates.first);
+	TrimCandidateList(candidates.second, maxCandidates.second);
 }
 
 

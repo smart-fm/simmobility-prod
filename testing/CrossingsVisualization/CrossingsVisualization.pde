@@ -16,13 +16,13 @@ PFont f;
 PFont f2;
 
 //Turn on/off crossings
-boolean paintCrossings = false;
+boolean paintCrossings = true;
 
 //Turn on/off lanes
-boolean paintLanes = true;
+boolean paintLanes = false;
 boolean paintWraparound = false;
 boolean displayIgnoredLines = false;
-int nodeHalo = 75; //meters
+int nodeHalo = 0; //meters
 ScaledPoint edge1;
 ScaledPoint edge2;
 double[] currEdgeSize = new double[2];
@@ -87,13 +87,7 @@ color nodeHaloStroke = color(0xFF, 0xCC, 0x55);
 color nodeHaloFill = color(0xFF, 0xCC, 0x55);
 color csStroke = color(0x00, 0x77, 0x00);
 color csFill = color(0xAA, 0xFF, 0xAA);
-color[] crossingColors = new color[] {
-  color(0x00, 0x00, 0xFF),
-  color(0x00, 0xFF, 0xFF),
-  color(0x00, 0xFF, 0x00),
-  color(0xFF, 0x00, 0xFF),
-  color(0xFF, 0xFF, 0x00),
-};
+color crossingLines = color(0x99, 0x00, 0x99);
 Hashtable<String, Integer> laneColors = new Hashtable<String, Integer>();
 void populateLaneColorsTable() {
   //Yellow lines on the side of the road. 
@@ -668,11 +662,10 @@ void draw()
     
     //Draw crossings
     if (paintCrossings) {
-      int crsID=0;
       for (int keyID : s.crossings.keySet()) {      
         ArrayList<Crossing> crs = s.crossings.get(keyID);
-        stroke(crossingColors[crsID%crossingColors.length]);
-        fill(crossingColors[crsID%crossingColors.length]);
+        stroke(crossingLines);
+        fill(crossingLines);
         strokeWeight(1.0);
         
         //Over-rides for "tagged" lane IDs
@@ -697,7 +690,6 @@ void draw()
           //Save
           lastPoint = new double[] {cr.pos.getX(), cr.pos.getY()};
         }
-        crsID++;
       }
     }
   }

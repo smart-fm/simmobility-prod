@@ -25,6 +25,8 @@
 #include "../Crossing.hpp"
 #include "../Lane.hpp"
 
+#include "../../util/DynamicVector.hpp"
+
 #include "Node.hpp"
 #include "Section.hpp"
 #include "Crossing.hpp"
@@ -823,6 +825,82 @@ void TrimCandidateList(vector<LaneSingleLine>& candidates, size_t maxSize)
 
 
 
+void OrganizePointsInDrivingDirection(bool drivesOnLHS, Node* start, Node* end, vector<Lane*>& points)
+{
+	//TODO: Normalize, flip, etc.
+	throw std::runtime_error("Not implemented yet.");
+}
+
+
+//Determine the median when we know there are two Sections here.
+Lane DetermineNormalMedian(const vector<Lane*>& orderedPoints, Section fwdSec, Section revSec)
+{
+	//If we have exactly the right number of lanes...
+	if (orderedPoints.size() = fwdSec.numLanes + revSec.numLanes + 1) {
+		//...then return the lane which both Sections consider the median.
+		return *orderedPoints[fwdSec.numLanes];
+	} else {
+		//...otherwise, form a vector from the first point to the last point, scale it
+		//   back by half, and take that as your point.
+		sim_mob::DynamicVector halfway(orderedPoints.front()->xPos, orderedPoints.front()->yPos, orderedPoints.back()->xPos, orderedPoints.back()->yPos);
+		double scaleFactor = halfway.getMagnitude() / 2.0;
+		halfway.makeUnit();
+		halfway.scaleVect(scaleFactor);
+		halfway.translateVect();
+
+		Lane res;
+		res.xPos = halfway.getX();
+		res.yPos = halfway.getY();
+		return Lane(res);
+	}
+}
+
+
+pair<Lane, Lane> ComputeMedianEndpoints(bool drivesOnLHS, Node* start, Node* end, const pair< vector<LaneSingleLine>, vector<LaneSingleLine> >& candidates, const pair< size_t, size_t >& maxCandidates)
+{
+	Lane startPoint;
+	Lane endPoint;
+
+	//Create our vectors of points
+	vector<Lane*> originPoints;
+	for (vector<LaneSingleLine>::const_iterator it=candidates.first.begin(); it!=candidates.first.end(); it++) {
+		originPoints.push_back(it->points[0]);
+	}
+	vector<Lane*> endingPoints;
+	for (vector<LaneSingleLine>::const_iterator it=candidates.second.begin(); it!=candidates.second.end(); it++) {
+		endingPoints.push_back(it->points[it->points.size()-1]);
+	}
+
+	//Sort the candidate lists so that, standing at "start" and looking at "end",
+	//  they run left-to-right (or right-to-left if we are driving on the right)
+	OrganizePointsInDrivingDirection(drivesOnLHS, start, end, originPoints);
+	OrganizePointsInDrivingDirection(drivesOnLHS, start, end, endingPoints);
+
+
+	//If this is a single directional road segment...
+	if () {
+		//...then the median is the FIRST point if we are going from start->end
+		//   or the LAST point if we are going from end->start
+		if () {
+			startPoint = originPoints.front();
+			endPoint = endingPoints.front();
+		} else {
+			startPoint = originPoints.back();
+			endPoint = endingPoints.back();
+		}
+	} else {
+		//...otherwise, we deal with each point separately.
+		startPoint = DetermineNormalMedian(originPoints);
+		endPoint = DetermineNormalMedian(endingPoints);
+	}
+
+
+	return std::make_pair(startPoint, endPoint);
+}
+
+
+
+
 
 } //End anon namespace
 
@@ -862,19 +940,25 @@ void sim_mob::aimsun::Loader::GenerateLinkLaneZero(Node* start, Node* end, set<S
 	//        Each Link may, of course, have less than the total number of points, which usually
 	//        indicates missing data.
 	pair< size_t, size_t > maxCandidates(0, 0); //start, end
+	int extra1 = 1; //We will disable the +2 by default
+	int extra2 = 1; //We will disable the +2 by default
 	for (set<Section*>::const_iterator it=linkSections.begin(); it!=linkSections.end(); it++) {
 		//"from" or "to" the start?
 		if ((*it)->fromNode==start) {
-			maxCandidates.first += (*it)->numLanes + 1;
+			maxCandidates.first += (*it)->numLanes + extra1;
+			extra1 = 0;
 		} else if ((*it)->toNode==start) {
-			maxCandidates.first += (*it)->numLanes + 1;
+			maxCandidates.first += (*it)->numLanes + extra1;
+			extra1 = 0;
 		}
 
 		//"from" or "to" the end?
 		if ((*it)->fromNode==end) {
-			maxCandidates.second += (*it)->numLanes + 1;
+			maxCandidates.second += (*it)->numLanes + extra2;
+			extra2 = 0;
 		} else if ((*it)->toNode==end) {
-			maxCandidates.second += (*it)->numLanes + 1;
+			maxCandidates.second += (*it)->numLanes + extra2;
+			extra2 = 0;
 		}
 	}
 
@@ -884,7 +968,21 @@ void sim_mob::aimsun::Loader::GenerateLinkLaneZero(Node* start, Node* end, set<S
 
 
 	//Step 3: Take the first point on each of the "start" candidates, and the last point on each
-	//        of the "end" candidates. These are the major points.
+	//        of the "end" candidates. These are the major points. If this number is equal to
+	//        the maximum number of lines, then we take the center line as the median. Otherwise
+	//        we take the average distance between the nearest and the farthest line. Of course,
+	//        if there is only one segment outgoing/incoming, then we take the farthest line(s)
+	//        since the median is not shared.
+	// NOTE:  Currently, actually specifying a median with 2 lines is disabled, since too many lines
+	//        has extra segments which would have registered as double-line medians.
+	// NOTE:  The algorithm described above has to be performed for each Section, and then saved in the
+	//        generated RoadSegment.
+	// NOTE:  We also update the segment width.
+	pair<Lane, Lane> medianEndpoints = ComputeMedianEndpoints(start, end, candidates, maxCandidates); //Start, end
+
+
+	//Step 4: Now that we have the median endpoints, travel to each Segment Node and update this median information.
+	//        This is made mildly confusing by the fact that each SegmentNode may represent a one-way or bi-directional street.
 }
 
 

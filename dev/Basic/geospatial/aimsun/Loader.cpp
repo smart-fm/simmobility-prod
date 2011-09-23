@@ -85,10 +85,17 @@ bool polyline_sorter (const Polyline* const p1, const Polyline* const p2)
 }
 
 
-//Helper dist function
+//Helper dist functions
 double distCrossing(const Crossing* c1, const Crossing* c2) {
 	return dist(c1->xPos, c1->yPos, c2->xPos, c2->yPos);
 }
+double distLaneNode(const Lane* ln, const Node* nd) {
+	return dist(ln->xPos, ln->yPos, nd->xPos, nd->yPos);
+}
+double distLaneLane(const Lane* ln1, const Lane* ln2) {
+	return dist(ln1->xPos, ln1->yPos, ln2->xPos, ln2->yPos);
+}
+
 
 
 int minID(const vector<double>& vals)
@@ -341,6 +348,58 @@ bool lineContains(const Section* sec, double xPos, double yPos)
 
 
 
+/**
+ * Given a set of points that make up a lane line, sort them as follows:
+ * 1) Pick the "first" point. This one is the closest to either Node1 or Node2 in the nodes pair.
+ * 2) Set "last" = "first"
+ * 2) Continue picking the point which is closest to "last", adding it, then setting "last" equal to that point.
+ */
+void SortLaneLine(vector<Lane*>& laneLine, std::pair<Node*, Node*> nodes)
+{
+	//Quality control
+	size_t oldSize = laneLine.size();
+
+	//Pick the first point.
+	double currDist = 0.0;
+	vector<Lane*>::iterator currLane = laneLine.end();
+	for (vector<Lane*>::iterator it=laneLine.begin(); it!=laneLine.end(); it++) {
+		double newDist = std::min(distLaneNode(*it, nodes.first), distLaneNode(*it, nodes.second));
+		if (currLane==laneLine.end() || newDist<currDist) {
+			currDist = newDist;
+			currLane = it;
+		}
+	}
+
+	//Continue adding points and selecting candidates
+	vector<Lane*> res;
+	while (currLane!=laneLine.end()) {
+		//Add it, remove it, null it.
+		res.push_back(*currLane);
+		laneLine.erase(currLane);
+		currLane = laneLine.end();
+
+		//Pick the next lane
+		for (vector<Lane*>::iterator it=laneLine.begin(); it!=laneLine.end(); it++) {
+			double newDist = distLaneLane(res.back(), *it);
+			if (currLane==laneLine.end() || newDist<currDist) {
+				currDist = newDist;
+				currLane = it;
+
+				//TODO: We might want to see what happens here if newDist is zero...
+			}
+		}
+	}
+
+	//Check, insert
+	laneLine.clear();
+	if (oldSize != res.size()) {
+		std::cout <<"ERROR: Couldn't sort Lanes array, zeroing out.\n";
+	}
+	laneLine.insert(laneLine.begin(), res.begin(), res.end());
+}
+
+
+
 
 //Compute the distance from the source node of the polyline to a
 // point on the line from the source to the destination nodes which
@@ -377,7 +436,7 @@ void ComputePolypointDistance(Polyline& pt)
 
 
 
-void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& sections, vector<Crossing>& crossings, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
+void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& sections, vector<Crossing>& crossings, vector<Lane>& lanes, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
 {
 	//Step 1: Tag all Nodes with the Sections that meet there.
 	for (map<int,Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
@@ -468,6 +527,16 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 		ComputePolypointDistance(it->second);
 	}
 
+	//Step 4.5: Add all Lanes to their respective Sections. Then sort each line segment
+	for (vector<Lane>::iterator it=lanes.begin(); it!=lanes.end(); it++) {
+		it->atSection->laneLinesAtNode[it->laneID].push_back(&(*it));
+	}
+	for (map<int,Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
+		for (map<int, vector<Lane*> >::iterator laneIt=it->second.laneLinesAtNode.begin(); laneIt!=it->second.laneLinesAtNode.end(); laneIt++) {
+			SortLaneLine(laneIt->second, std::make_pair(it->second.fromNode, it->second.toNode));
+		}
+	}
+
 	//Step 5: Tag all Nodes with the crossings that are near to these nodes.
 	for (vector<Crossing>::iterator it=crossings.begin(); it!=crossings.end(); it++) {
 		//Given the section this crossing is on, find which node on the section it is closest to.
@@ -479,15 +548,6 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 		it->atNode = atNode;
 		atNode->crossingsAtNode[it->laneID].push_back(&(*it));
 	}
-
-	//Step 6: Tag all laneIDs for Crossings in a Node with the Node they lead to. Do this by
-	//        forming a line between pairs of points for that lane, and take the intersection of
-	//        that line (extended to infinity) with each candidate Section. If the midpoint
-	//        of the Crossing line is closer to that intersection than it is to the "atNode", then
-	//        it is considered tied to that Section, and thus to whichever Node in that Section is
-	//        not the "atNode".
-	//(see below)
-
 
 	//Step 6: Tag all laneIDs for Crossings in a Node with the Node they lead to. Do this in the most obvious
 	//        way possible: simply construct pairs of points, and see if one of these intersects an outgoing
@@ -982,7 +1042,7 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, map<str
 		LoadBasicAimsunObjects(connectionStr, storedProcs, nodes, sections, crossings, lanes, turnings, polylines);
 
 		//Step Two: Translate
-		DecorateAndTranslateObjects(nodes, sections, crossings, turnings, polylines);
+		DecorateAndTranslateObjects(nodes, sections, crossings, lanes, turnings, polylines);
 
 		//Step Three: Save
 		SaveSimMobilityNetwork(rn, nodes, sections, turnings, polylines);

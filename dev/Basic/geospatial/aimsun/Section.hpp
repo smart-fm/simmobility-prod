@@ -15,6 +15,7 @@ namespace aimsun
 {
 
 //Forward declarations
+class Lane;
 class Node;
 class Turning;
 class Polyline;
@@ -39,6 +40,7 @@ public:
 	//Decorated data
 	std::vector<Turning*> connectedTurnings;
 	std::vector<Polyline*> polylineEntries;
+	std::map<int, std::vector<Lane*> > laneLinesAtNode; //Arranged by laneID
 
 	//Reference to saved object
 	sim_mob::RoadSegment* generatedSegment;

@@ -728,7 +728,7 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, map<int, Node>& nodes, ma
 }
 
 
-pair<double, Lane*> getClosestPoint(const vector<Lane*>& candidates, double xPos, double yPos)
+double getClosestPoint(const vector<Lane*>& candidates, double xPos, double yPos)
 {
 	//Make searching slightly easier.
 	Lane origin;
@@ -745,7 +745,7 @@ pair<double, Lane*> getClosestPoint(const vector<Lane*>& candidates, double xPos
 		}
 	}
 
-	return res;
+	return res.first;
 }
 
 
@@ -844,11 +844,11 @@ void sim_mob::aimsun::Loader::GenerateLinkLaneZero(Node* start, Node* end, set<S
 				continue;
 			}
 
-			pair<double, Lane*> ptStart = getClosestPoint(laneIt->second, start->xPos, start->yPos);
-			pair<double, Lane*> ptEnd = getClosestPoint(laneIt->second, end->xPos, end->yPos);
-			pair<double, Lane*>& minPt = ptStart.first<ptEnd.first ? ptStart : ptEnd;
-			vector<LaneSingleLine>& minVect = ptStart.first<ptEnd.first ? candidates.first : candidates.second;
-			if (minPt.first <= minCM) {
+			double ptStart = getClosestPoint(laneIt->second, start->xPos, start->yPos);
+			double ptEnd = getClosestPoint(laneIt->second, end->xPos, end->yPos);
+			double minPt = ptStart<ptEnd ? ptStart : ptEnd;
+			vector<LaneSingleLine>& minVect = ptStart<ptEnd ? candidates.first : candidates.second;
+			if (minPt <= minCM) {
 				minVect.push_back(LaneSingleLine(laneIt->second));
 			}
 		}
@@ -881,6 +881,10 @@ void sim_mob::aimsun::Loader::GenerateLinkLaneZero(Node* start, Node* end, set<S
 	//Perform the trimming
 	TrimCandidateList(candidates.first, maxCandidates.first);
 	TrimCandidateList(candidates.second, maxCandidates.second);
+
+
+	//Step 3: Take the first point on each of the "start" candidates, and the last point on each
+	//        of the "end" candidates. These are the major points.
 }
 
 

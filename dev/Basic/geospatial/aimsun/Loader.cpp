@@ -361,12 +361,16 @@ void SortLaneLine(vector<Lane*>& laneLine, std::pair<Node*, Node*> nodes)
 
 	//Pick the first point.
 	double currDist = 0.0;
+	bool flipLater = false;
 	vector<Lane*>::iterator currLane = laneLine.end();
 	for (vector<Lane*>::iterator it=laneLine.begin(); it!=laneLine.end(); it++) {
-		double newDist = std::min(distLaneNode(*it, nodes.first), distLaneNode(*it, nodes.second));
+		double distFwd = distLaneNode(*it, nodes.first);
+		double distRev = distLaneNode(*it, nodes.second);
+		double newDist = std::min(distFwd, distRev);
 		if (currLane==laneLine.end() || newDist<currDist) {
 			currDist = newDist;
 			currLane = it;
+			flipLater = distRev<distFwd;
 		}
 	}
 
@@ -390,12 +394,21 @@ void SortLaneLine(vector<Lane*>& laneLine, std::pair<Node*, Node*> nodes)
 		}
 	}
 
-	//Check, insert
+	//Check
 	laneLine.clear();
 	if (oldSize != res.size()) {
 		std::cout <<"ERROR: Couldn't sort Lanes array, zeroing out.\n";
 	}
-	laneLine.insert(laneLine.begin(), res.begin(), res.end());
+
+
+	//Finally, if the "end" is closer to the start node than the "start", reverse the vector as you insert it
+	if (flipLater) {
+		for (vector<Lane*>::reverse_iterator it=res.rbegin(); it!=res.rend(); it++) {
+			laneLine.push_back(*it);
+		}
+	} else {
+		laneLine.insert(laneLine.begin(), res.begin(), res.end());
+	}
 }
 
 
@@ -735,7 +748,8 @@ void TrimCandidateList(vector<LaneSingleLine>& candidates, size_t maxSize)
 		return;
 	}
 
-	//Simple strategy: create unit vectors
+	//Simple strategy: create unit vectors for the longest segment in each candidate.
+	//  Save the angle of each of these segments.
 
 }
 

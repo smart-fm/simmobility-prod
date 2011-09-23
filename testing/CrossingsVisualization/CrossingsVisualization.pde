@@ -22,6 +22,10 @@ boolean paintCrossings = false;
 boolean paintLanes = true;
 boolean paintWraparound = false;
 boolean displayIgnoredLines = false;
+int nodeHalo = 75; //meters
+ScaledPoint edge1;
+ScaledPoint edge2;
+double[] currEdgeSize = new double[2];
 ArrayList<String> ignoreLaneTypes = new ArrayList<String>(Arrays.asList(new String[]{"R", "M", "D", "N", "Q", "T", "G", "O", "A1", "A3", /*"S1", "S",*/ "L", "H", "\\N"}));
 
 //Bit of a painting hack
@@ -79,6 +83,8 @@ static {
 color taggedLaneColor = color(0xFF, 0x00, 0x00);
 color nodeStroke = color(0xFF, 0x88, 0x22);
 color nodeFill = color(0xFF, 0xFF, 0xFF);
+color nodeHaloStroke = color(0xFF, 0xCC, 0x55);
+color nodeHaloFill = color(0xFF, 0xCC, 0x55);
 color csStroke = color(0x00, 0x77, 0x00);
 color csFill = color(0xAA, 0xFF, 0xAA);
 color[] crossingColors = new color[] {
@@ -174,6 +180,7 @@ class Node {
   ScaledPoint pos;
   
   boolean isIntersection;
+  HashSet<String> fromToDistinctSections = new HashSet<String>();
 };
 Node getNode(int id) {
   for (int i=0; i<nodes.size(); i++) {
@@ -329,6 +336,12 @@ void scaleAndZoom(double centerX, double centerY, double widthInM, double height
   double[] xBounds = new double[]{centerX-widthInM/2, centerX+widthInM/2, width};
   double[] yBounds = new double[]{centerY-heightInM/2, centerY+heightInM/2, height};
   
+  //Scale our special "edge" node
+  edge1.scaleTo(xBounds, yBounds);
+  edge2.scaleTo(xBounds, yBounds);
+  currEdgeSize[0] = Math.abs(edge1.getX() - edge2.getX());
+  currEdgeSize[1] = Math.abs(edge1.getY() - edge2.getY());
+  
   //Scale all nodes
   for (Node n : nodes) {
     n.pos.scaleTo(xBounds, yBounds);
@@ -450,6 +463,9 @@ void setup()
   frameRate(30);
   populateLaneColorsTable();
   
+  edge1 = new ScaledPoint(0, nodeHalo);
+  edge2 = new ScaledPoint(nodeHalo, 0);
+  
   //Indicator
   zoomFitInd = loadImage("zoom_indicator.png");
     
@@ -550,6 +566,13 @@ void draw()
   strokeWeight(3.0);
   for (int i=0; i<nodes.size(); i++) {
     Node n = nodes.get(i);
+    
+    //Draw a halo
+    if (n.fromToDistinctSections.size()>2 && nodeHalo > 0) {
+      stroke(nodeHaloStroke);
+      fill(nodeHaloFill);      
+      ellipse((float)n.pos.getX(), (float)n.pos.getY(), (float)currEdgeSize[0], (float)currEdgeSize[1]);
+    }
     
     //Draw the node
     stroke(nodeStroke);
@@ -842,8 +865,16 @@ void readSections(String sectionsFile) throws IOException {
       s.numLanes = Integer.parseInt(items[2]);
       s.speed = Integer.parseInt(items[3]);
       s.capacity = Integer.parseInt(items[4]);
-      s.from = getNode(Integer.parseInt(items[5]));
-      s.to = getNode(Integer.parseInt(items[6]));
+      int fromID = Integer.parseInt(items[5]);
+      int toID = Integer.parseInt(items[6]);
+      s.from = getNode(fromID);
+      s.to = getNode(toID);
+      
+      //Update
+      String fromToID = Math.min(fromID, toID) + ":" + Math.max(fromID, toID);
+      
+      s.from.fromToDistinctSections.add(fromToID);
+      s.to.fromToDistinctSections.add(fromToID);
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }

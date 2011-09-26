@@ -12,19 +12,20 @@ namespace
 {
     // Return the distance between the middle of the lane specified by <thisLane> and the middle
     // of the road-segment specified by <segment>; <thisLane> is one of the lanes in <segment>.
-    float middle(const Lane& thisLane, const RoadSegment& segment)
+    double middle(const Lane& thisLane, const RoadSegment& segment)
     {
-        float w = segment.width / 2.0f;
+        double w = segment.width / 2.0;
         if (segment.width == 0)
         {
-            int width = 0;
+            double width = 0;
             const std::vector<Lane*>& lanes = segment.getLanes();
             for (size_t i = 0; i < lanes.size(); i++)
             {
                 width += lanes[i]->getWidth();
             }
-            w = width / 2.0f;
+            w = width / 2.0;
         }
+
         const std::vector<Lane*>& lanes = segment.getLanes();
         for (size_t i = 0; i < lanes.size(); i++)
         {
@@ -33,7 +34,7 @@ namespace
                 w -= lane->getWidth();
             else
             {
-                w -= (lane->getWidth() / 2.0f);
+                w -= (lane->getWidth() / 2.0);
                 return w;
             }
         }
@@ -45,7 +46,7 @@ namespace
     // is sloping <dx> horizontally and <dy> vertically.  The distance between <p> and the
     // returned point is <w>.  If <w> is negative, the returned point is "above" the line;
     // otherwise it is below the line.
-    Point2D getSidePoint(const Point2D& p, int dx, int dy, float w)
+    Point2D getSidePoint(const Point2D& p, int dx, int dy, double w)
     {
         // The parameterized equation of the line L is given by
         //     X = x + t * dx
@@ -72,19 +73,19 @@ namespace
         // Solving, we have
         //     X = x + w / sqrt(m*m + 1)
 
-        float m = static_cast<float>(dx) / -dy;
+        double m = static_cast<double>(dx) / -dy;
         if (w > 0)
         {
             if (dy > 0)
             {
-                float x = p.getX() + w / sqrt(m*m + 1);
-                float y = m*x + p.getY() - m*p.getX();
+                double x = p.getX() + w / sqrt(m*m + 1);
+                double y = m*x + p.getY() - m*p.getX();
                 return Point2D(x, y);
             }
             else
             {
-                float x = p.getX() - w / sqrt(m*m + 1);
-                float y = m*x + p.getY() - m*p.getX();
+                double x = p.getX() - w / sqrt(m*m + 1);
+                double y = m*x + p.getY() - m*p.getX();
                 return Point2D(x, y);
             }
         }
@@ -92,14 +93,14 @@ namespace
         {
             if (dy > 0)
             {
-                float x = p.getX() - w / sqrt(m*m + 1);
-                float y = m*x + p.getY() - m*p.getX();
+                double x = p.getX() - w / sqrt(m*m + 1);
+                double y = m*x + p.getY() - m*p.getX();
                 return Point2D(x, y);
             }
             else
             {
-                float x = p.getX() + w / sqrt(m*m + 1);
-                float y = m*x + p.getY() - m*p.getX();
+                double x = p.getX() + w / sqrt(m*m + 1);
+                double y = m*x + p.getY() - m*p.getX();
                 return Point2D(x, y);
             }
         }
@@ -137,9 +138,9 @@ namespace
         int y1 = p1.getY();
         int x2 = p2.getX();
         int y2 = p2.getY();
-        float t = static_cast<float>(-dy2) * (x2 - x1);
-        t += static_cast<float>(dx2) * (y2 - y1);
-        t /= (static_cast<float>(-dx1) * dy2 + static_cast<float>(dx2) * dy1);
+        double t = static_cast<double>(-dy2) * (x2 - x1);
+        t += static_cast<double>(dx2) * (y2 - y1);
+        t /= (static_cast<double>(-dx1) * dy2 + static_cast<double>(dx2) * dy1);
 
         int x = x1 + t * dx1;
         int y = y1 + t * dy1;
@@ -153,7 +154,7 @@ const std::vector<sim_mob::Point2D>& Lane::getPolyline() const
     if (!polyline_.empty())
         return polyline_;
 
-    float w = middle(*this, *parentSegment_);
+    double w = middle(*this, *parentSegment_);
 
     for (size_t i = 0; i < parentSegment_->polyline.size() - 1; i++)
     {

@@ -14,6 +14,7 @@ namespace sim_mob
 
 //Forward declarations
 class RoadNetwork;
+class Link;
 
 namespace aimsun
 {
@@ -47,6 +48,7 @@ public:
 	static void ProcessTurning(sim_mob::RoadNetwork& res, Turning& src);
 	static void ProcessSectionPolylines(sim_mob::RoadNetwork& res, Section& src);
 	static void GenerateACrossing(sim_mob::RoadNetwork& resNW, Node& origin, Node& dest, std::vector<int>& laneIDs);
+	static void GenerateLinkLaneZero(const sim_mob::RoadNetwork& rn, Node* start, Node* end, std::set<Section*> linkSections);
 
 };
 

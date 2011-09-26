@@ -15,6 +15,16 @@ namespace
     float middle(const Lane& thisLane, const RoadSegment& segment)
     {
         float w = segment.width / 2.0f;
+        if (segment.width == 0)
+        {
+            int width = 0;
+            const std::vector<Lane*>& lanes = segment.getLanes();
+            for (size_t i = 0; i < lanes.size(); i++)
+            {
+                width += lanes[i]->getWidth();
+            }
+            w = width / 2.0f;
+        }
         const std::vector<Lane*>& lanes = segment.getLanes();
         for (size_t i = 0; i < lanes.size(); i++)
         {
@@ -67,14 +77,14 @@ namespace
         {
             if (dy > 0)
             {
-                int x = p.getX() + w / sqrtf(m*m + 1);
-                int y = m*x + p.getY() - m*p.getX();
+                float x = p.getX() + w / sqrt(m*m + 1);
+                float y = m*x + p.getY() - m*p.getX();
                 return Point2D(x, y);
             }
             else
             {
-                int x = p.getX() - w / sqrtf(m*m + 1);
-                int y = m*x + p.getY() - m*p.getX();
+                float x = p.getX() - w / sqrt(m*m + 1);
+                float y = m*x + p.getY() - m*p.getX();
                 return Point2D(x, y);
             }
         }
@@ -82,14 +92,14 @@ namespace
         {
             if (dy > 0)
             {
-                int x = p.getX() - w / sqrtf(m*m + 1);
-                int y = m*x + p.getY() - m*p.getX();
+                float x = p.getX() - w / sqrt(m*m + 1);
+                float y = m*x + p.getY() - m*p.getX();
                 return Point2D(x, y);
             }
             else
             {
-                int x = p.getX() + w / sqrtf(m*m + 1);
-                int y = m*x + p.getY() - m*p.getX();
+                float x = p.getX() + w / sqrt(m*m + 1);
+                float y = m*x + p.getY() - m*p.getX();
                 return Point2D(x, y);
             }
         }
@@ -132,7 +142,7 @@ namespace
         t /= (static_cast<float>(-dx1) * dy2 + static_cast<float>(dx2) * dy1);
 
         int x = x1 + t * dx1;
-        int y = y1 + t * dx2;
+        int y = y1 + t * dy1;
         return Point2D(x, y);
     }
 }
@@ -169,7 +179,7 @@ const std::vector<sim_mob::Point2D>& Lane::getPolyline() const
 
             // p0, p1, and p2 are in the middle of the road segment, not in the lane.
             // point1 and point2 below are in the middle of the lane.  So will be <p>.
-            const Point2D& point1 = polyline_[i - 1];
+            Point2D point1 = getSidePoint(p0, dx1, dy1, w);
             Point2D point2 = getSidePoint(p2, dx2, dy2, w);
             Point2D p = intersection(point1, dx1, dy1, point2, dx2, dy2);
             polyline_.push_back(p);

@@ -16,8 +16,11 @@
 #include "../../../geospatial/RoadSegment.hpp"
 #include "../../../geospatial/Lane.hpp"
 #include "../../../geospatial/Node.hpp"
+#include "../../../geospatial/UniNode.hpp"
 #include "../../../geospatial/MultiNode.hpp"
 #include "../../../geospatial/LaneConnector.hpp"
+#include "../../../geospatial/StreetDirectory.hpp"
+#include "../../../geospatial/Crossing.hpp"
 
 namespace sim_mob
 {
@@ -33,23 +36,7 @@ enum LANE_CHANGE_MODE {	//as a mask
 	MLC = 2
 };
 
-//bad area where vehicle can not go
-struct badArea{
-	double startX;
-	double endX;
-	int lane;
-};
 
-//simple link structure
-struct link_{
-	int ID;
-	double startX;
-	double startY;
-	double endX;
-	double endY;
-	double laneWidth;
-	int laneNum;
-};
 
 
 /**
@@ -109,74 +96,153 @@ private:
 	static const double GA_parameters[4][9];	//Gap Acceptance model parameters
 	static const double MLC_parameters[5];		//Mandatory Lane Changing parameters
 
-	//Parameters represent the location of the vehicle on the road
-	//Since the classes of the network haven't be finished, I will use simple type of parameters instead to represent the networks.
-	static const link_ testLinks[];
-	static const int numOfBadAreas				=	0;//3;
-	static const badArea badareas[];				//bad areas, just to check if MLC model can function
-	static const int numOfLinks					=	8;
+
 
 
 	/**********BASIC DATA*************/
 private:
 	//absolute Movement-related variables
 	double timeStep;			//time step size of simulation
-	double xPos;
-	double yPos;
-	double xVel;
-	double yVel;
-	double xAcc;
-	double yAcc;
+	int xPos;
+	int yPos;
+	int xVel;
+	int yVel;
+	int xAcc;
+	int yAcc;
 
 	//absolute position of the target start point on the next link
 	//used for intersection driving behavior
-	double xPos_nextLink;
-	double yPos_nextLink;
-	double xDirection_nextLink;
-	double yDirection_nextLink;
+	int xPos_nextLink;
+	int yPos_nextLink;
+
 
 	//relative Movement-related variables in link
-	double xPos_;
-	double yPos_;
-	double xVel_;
-	double yVel_;
-	double speed_;
-	double acc_;
-	double xAcc_;
-	double yAcc_;
+	int xPos_;
+	int yPos_;
+	int xPosCrossing_; //relative x coordinate for crossing, the intersection point of crossing's front line and current polyline
+	int xVel_;
+	int yVel_;
+	int speed;
+	int acc_;
+	int xAcc_;
+	int yAcc_;
 	double xDirection;			//x direction of the current link
 	double yDirection;			//y direction of the current link
 
-	Point2D goal;				//first, assume that each vehicle moves towards a goal
-	Point2D origin;				//when a vehicle reaches its goal, it will return to origin and moves to the goal again
+
+	Point2D origin;
+	Point2D goal;
+	const Node* destNode;				//first, assume that each vehicle moves towards a goal
+	const Node* originNode;				//when a vehicle reaches its goal, it will return to origin and moves to the goal again
 	bool isGoalSet;				//to check if the goal has been set
 	bool isOriginSet;			//to check if the origin has been set
-	double length;				//length of the vehicle
-	double width;				//width of the vehicle
+	int length;				//length of the vehicle
+	int width;				//width of the vehicle
 
-	double maxAcceleration;
-	double normalDeceleration;
-	double maxDeceleration;
-	double distanceToNormalStop;
+	int maxAcceleration;
+	int normalDeceleration;
+	int maxDeceleration;
+	int distanceToNormalStop;
 
 public:
-	double getTimeStep(){return timeStep;}
-	double getLength(){return length;}
+	int getTimeStep(){return timeStep;}
+	int getLength(){return length;}
 
 	//for coordinate transform
 	void getFromParent();		///<get current data from parent buffer data
 	void setToParent();			///<set next data to parent buffer data
+	void abs_relat();           ///<compute transformation vectors
 	void abs2relat();			///<transform absolute coordinate to relative coordinate
 	void relat2abs();			///<transform relative coordinate to absolute coordinate
 	double feet2Unit(double feet);
 	double unit2Feet(double unit);
 
-	double getMaxAcceleration(){return maxAcceleration;}
-	double getNormalDeceleration(){return normalDeceleration;}
-	double getMaxDeceleration(){return maxDeceleration;}
-	double getDistanceToNormalStop(){return distanceToNormalStop;}
-	double getDistance();
+	int getMaxAcceleration(){return maxAcceleration;}
+	int getNormalDeceleration(){return normalDeceleration;}
+	int getMaxDeceleration(){return maxDeceleration;}
+	int getDistanceToNormalStop(){return distanceToNormalStop;}
+	int getDistance();
 	void output(frame_t frameNumber);
+
+	/****************IN REAL NETWORK****************/
+private:
+	std::vector<const Link*> linkPath;
+	const Link* currLink_;
+	const Link* nextLink;
+	const RoadSegment* currRoadSegment_;
+	const Lane* currLane_;
+	const Lane* nextLane_;
+	const Node* currNode;
+	unsigned int currLaneID;
+	const Link* desLink_;
+	RoadSegment* desRoadSegment;
+	const Lane* desLane;
+	unsigned int desLaneID;
+	size_t polylineIndex_;
+	double offsetInPolyline_;
+	double moveAlong;
+	double movePerpendicular;
+	size_t linkIndex;
+	size_t RSIndex;
+	size_t roadSegmentIndex;
+	size_t startIndex;
+	size_t endIndex;
+	size_t desStartIndex;
+	size_t desEndIndex;
+	bool isReachGoal;
+	std::vector<const Lane*> targetLane;
+	StreetDirectory::LaneAndIndexPair laneAndIndexPair;
+	const std::vector<sim_mob::Point2D>* currLanePolyLine;
+	const std::vector<sim_mob::Point2D>* desLanePolyLine;
+	const std::vector<sim_mob::RoadSegment*>* roadSegments;
+	Point2D currPolyLineSegStart;
+	Point2D currPolyLineSegEnd;
+	Point2D desPolyLineStart;
+	Point2D desPolyLineEnd;
+	Point2D entryPoint; //entry point for crossing intersection
+	int xTurningStart;
+	int yTurningStart;
+	int polyLineSegLength;
+	int disToCrossing; //in the range of this distance(5m), the vehicle can aware of a crossing in front.
+	double xDirection_entryPoint;
+	double yDirection_entryPoint;
+	int disToEntryPoint;
+	bool isCrossingAhead;
+	bool closeToCrossing;
+	bool isForward;
+
+
+public:
+	Buffered<Link*> currLink;
+	Buffered<RoadSegment*> currRoadSegment;
+	Buffered<Lane*> currLane;
+	Buffered<size_t> polylineIndex;
+	Buffered<double> offsetInPolyline;
+
+public:
+	const Link* getCurrLink(){return currLink_;}
+	const RoadSegment* getCurrRoadSegment(){return currRoadSegment_;}
+	const Lane* getCurrLane(){return currLane_;}
+	size_t getPoylineIndex(){return polylineIndex_;}
+	double getOffsetInPolyline(){return offsetInPolyline_;}
+	void updateCurrentPositionInRoadNetwork();
+	void road2Map();
+	Link* getNextLink();
+	RoadSegment* getNextRoadSegment();
+	void getTargetLane();
+	void updatePolyLineSeg();
+	bool isReachPolyLineSegEnd();
+	bool isReachLastPolyLineSeg();
+	bool isReachLastRS();
+	void updateCurrInfo(unsigned int mode);
+	void crossRSinCurrLink();
+	void findCrossing();
+	bool isCloseToCrossing();
+	bool isEnterIntersection();
+	bool isLeaveIntersection();
+	void chooseNextLaneIntersection();
+	int disToObstacle(unsigned obstacle_offset);
+	const Link* findLink(const MultiNode* start, const MultiNode* end);
 
 
 	/***********SOMETHING BIG BROTHER CAN RETURN*************/
@@ -188,63 +254,16 @@ private:
 	double leader_yVel_;
 	double leader_xAcc_;
 	double leader_yAcc_;
-	int originLink;					//using when reach the goal and go back to origin
-	int currentLink;				//current link ID
-	int currentLane;				//current lane ID
-	int nextLink;
-	int nextLane;
 	Agent* LF;				//pointer pointing to the vehicle in the left lane and in front of the vehicle in the smallest distance
 	Agent* LB;				//left lane, behind, closest
 	Agent* RF;				//right lane, front, closest
 	Agent* RB;				//right lane, behind, closest
 
-public:
-	void updateCurrentLink();
-	void updateCurrentLane();
-	bool isOnTheLink(int linkid);
-	void updateLeadingDriver();				///<this may be a function of big brother later
-	Agent* getLeadingDriver(){return leader;}
-	int getLink(){return currentLink;}		//return the ID of current link
-	int getLane();							//return the ID of the lane where the vehicle is on
-	Agent* getNextForBDriver(bool isLeft,bool isFront);	///<for updating LF LB RF RB
-	bool checkIfOnTheLane(double y);		///<give y position, check if it is a lane's y position
-	double getLinkLength();
 
 
 
-	/****************IN REAL NETWORK****************/
-private:
-	std::vector<Link*> linkPath;
-	Link* currLink_;
-	RoadSegment* currRoadSegment_;
-	Lane* currLane_;
-	size_t polylineIndex_;
-	double offsetInPolyline_;
-	double moveAlong;
-	double movePerpendicular;
-	size_t linkIndex;
-	size_t roadSegmentIndex;
-	bool isReachGoal;
-	std::vector<const Lane*> targetLane;
 
-public:
-	Buffered<Link*> currLink;
-	Buffered<RoadSegment*> currRoadSegment;
-	Buffered<Lane*> currLane;
-	Buffered<size_t> polylineIndex;
-	Buffered<double> offsetInPolyline;
 
-public:
-	Link* getCurrLink(){return currLink;}
-	RoadSegment* getCurrRoadSegment(){return currRoadSegment;}
-	Lane* getCurrLane(){return currLane;}
-	size_t getPoylineIndex(){return polylineIndex;}
-	double getOffsetInPolyline(){return offsetInPolyline;}
-	void updateCurrentPositionInRoadNetwork();
-	void road2Map();
-	Link* getNextLink();
-	RoadSegment* getNextRoadSegment();
-	void getTargetLane(Link* nextlink);
 
 
 	/***********FOR DRIVING BEHAVIOR MODEL**************/
@@ -329,7 +348,7 @@ public:
 	bool isReachSignal();
 	void IntersectionDirectionUpdate();
 	void UpdateNextLinkLane();
-	void EnterNextLink();
+	void enterNextLink();
 	bool isInTheIntersection();
 	bool isReachCrosswalk();
 	void updateTrafficSignal();

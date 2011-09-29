@@ -486,7 +486,8 @@ void sim_mob::Driver::setGoal()
 	{
 		desLink_ = findLink(multiDestNode,end);
 	}
-	linkPath.push_back(desLink_);
+	if(desLink_)
+		linkPath.push_back(desLink_);
 }
 
 

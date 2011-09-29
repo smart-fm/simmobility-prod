@@ -135,29 +135,6 @@ bool performMain(const std::string& configFileName)
   cout <<"  " <<"...Sanity Check Passed" <<endl;
 
 
-
-  //TEMP: Node test
-  RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
-  for (std::set<UniNode*>::const_iterator it=rn.getUniNodes().begin(); it!=rn.getUniNodes().end(); it++) {
-	  UniNode* n = *it;
-	  if (n->location->getX()==37265277 && n->location->getY()==14372270) {
-		  for (vector<const RoadSegment*>::const_iterator i2=n->getRoadSegments().begin(); i2!=n->getRoadSegments().end(); i2++) {
-			  const RoadSegment* rs = *i2;
-			  const Node* start = rs->getStart();
-			  if (start->location->getX()==37270984 && start->location->getY()==14378959) {
-				  //This is our incoming segment.
-				  const Lane* ln = n->getOutgoingLane(*rs->getLanes()[0]);
-				  std::cout <<"Found outgoing lane\n";
-				  std::cout <<"   From: " <<ln->getRoadSegment()->getStart()->location->getX() <<"," <<ln->getRoadSegment()->getStart()->location->getY() <<"\n";
-				  std::cout <<"     To: " <<ln->getRoadSegment()->getEnd()->location->getX() <<"," <<ln->getRoadSegment()->getEnd()->location->getY() <<"\n";
-			  }
-		  }
-	  }
-  }
-  //END_TEMP
-
-
-
   //Initialize our work groups, assign agents randomly to these groups.
   EntityWorkGroup agentWorkers(WG_AGENTS_SIZE, config.totalRuntimeTicks, config.granAgentsTicks);
   Worker<sim_mob::Entity>::actionFunction entityWork = boost::bind(entity_worker, _1, _2);

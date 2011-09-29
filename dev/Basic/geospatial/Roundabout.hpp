@@ -26,6 +26,7 @@ namespace sim_mob
  */
 class Roundabout : public sim_mob::MultiNode {
 public:
+	Roundabout() : MultiNode() {}
 
 protected:
 	///List of which RoadSegments approaching a roundabout have a separator in the median.

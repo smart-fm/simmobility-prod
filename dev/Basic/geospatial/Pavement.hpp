@@ -41,6 +41,8 @@ struct RoadItemAndOffsetPair
  */
 class Pavement : public sim_mob::Traversable {
 public:
+	Pavement() : Traversable() {}
+
 	///The length of this Pavement.
 	///
 	/// \note

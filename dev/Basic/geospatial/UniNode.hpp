@@ -43,6 +43,8 @@ class Loader;
  */
 class UniNode : public sim_mob::Node {
 public:
+	UniNode() : Node() {}
+
 	///Retrieve the outgoing Lane at this Node.
 	const sim_mob::Lane* getOutgoingLane(const sim_mob::Lane& from) const;
 

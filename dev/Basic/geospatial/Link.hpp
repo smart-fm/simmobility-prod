@@ -35,6 +35,8 @@ class Loader;
  */
 class Link : public sim_mob::Traversable {
 public:
+	Link() : Traversable() {}
+
 	//Initialize a link with the given set of segments
 	void initializeLinkSegments(const std::set<sim_mob::RoadSegment*>& segments);
 

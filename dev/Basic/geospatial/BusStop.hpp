@@ -19,6 +19,8 @@ class Lane;
  */
 class BusStop : public sim_mob::RoadItem {
 public:
+	BusStop() : RoadItem(), location(nullptr) {}
+
 	///Which RoadItem and lane is this bus stop located at?
 	Lane* location;
 

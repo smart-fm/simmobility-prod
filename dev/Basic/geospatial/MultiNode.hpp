@@ -36,6 +36,8 @@ class Loader;
  */
 class MultiNode : public sim_mob::Node {
 public:
+	MultiNode() : Node() {}
+
 	///Query the list of connectors at the current node, restricting the results to
 	///   those which originate at the "from" segment.
 	///Fails if no outgoing Lanes exist.

@@ -10,7 +10,7 @@ using std::pair;
 using std::vector;
 
 
-sim_mob::RoadSegment::RoadSegment(Link* parent) : parentLink(parent)
+sim_mob::RoadSegment::RoadSegment(Link* parent) : Pavement(), parentLink(parent)
 {
 
 }

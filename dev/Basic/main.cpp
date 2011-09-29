@@ -22,6 +22,9 @@
 #include "WorkGroup.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/RoadNetwork.hpp"
+#include "geospatial/UniNode.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "geospatial/Lane.hpp"
 
 //Just temporarily, so we know it compiles:
 #include "entities/Signal.hpp"
@@ -130,6 +133,30 @@ bool performMain(const std::string& configFileName)
 
   //Output
   cout <<"  " <<"...Sanity Check Passed" <<endl;
+
+
+
+  //TEMP: Node test
+  RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
+  for (std::set<UniNode*>::const_iterator it=rn.getUniNodes().begin(); it!=rn.getUniNodes().end(); it++) {
+	  UniNode* n = *it;
+	  if (n->location->getX()==37265277 && n->location->getY()==14372270) {
+		  for (vector<const RoadSegment*>::iterator i2=n->getRoadSegments().begin(); i2!=n->getRoadSegments().end(); i2++) {
+			  const RoadSegment* rs = *i2;
+			  const Node* start = rs->getStart();
+			  if (start->location->getX()==37270984 && start->location->getY()==14378959) {
+				  //This is our incoming segment.
+				  const Lane* ln = n->getOutgoingLane(*rs->getLanes()[0]);
+				  std::cout <<"Found outgoing lane\n";
+				  std::cout <<"   From: " <<ln->getRoadSegment()->getStart()->location->getX() <<"," <<ln->getRoadSegment()->getStart()->location->getY() <<"\n";
+				  std::cout <<"     To: " <<ln->getRoadSegment()->getEnd()->location->getX() <<"," <<ln->getRoadSegment()->getEnd()->location->getY() <<"\n";
+			  }
+		  }
+	  }
+  }
+  //END_TEMP
+
+
 
   //Initialize our work groups, assign agents randomly to these groups.
   EntityWorkGroup agentWorkers(WG_AGENTS_SIZE, config.totalRuntimeTicks, config.granAgentsTicks);

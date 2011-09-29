@@ -1093,20 +1093,24 @@ void sim_mob::aimsun::Loader::ProcessGeneralNode(sim_mob::RoadNetwork& res, Node
 {
 	src.hasBeenSaved = true;
 
+	sim_mob::Node* newNode = nullptr;
 	if (!src.candidateForSegmentNode) {
 		//This is an Intersection
-		sim_mob::Intersection* newNode = new sim_mob::Intersection();
-		newNode->location = new Point2D(src.getXPosAsInt(), src.getYPosAsInt());
+		newNode = new sim_mob::Intersection();
 
 		//Store it in the global nodes array
-		res.nodes.push_back(newNode);
-
-		//For future reference
-		src.generatedNode = newNode;
+		res.nodes.push_back(dynamic_cast<MultiNode*>(newNode));
 	} else {
 		//Just save for later so the pointer isn't invalid
-		src.generatedNode = new UniNode();
+		newNode = new UniNode();
+		res.segmentnodes.insert(dynamic_cast<UniNode*>(newNode));
 	}
+
+	//Always save the location
+	newNode->location = new Point2D(src.getXPosAsInt(), src.getYPosAsInt());
+
+	//For future reference
+	src.generatedNode = newNode;
 }
 
 
@@ -1149,7 +1153,7 @@ void sim_mob::aimsun::Loader::ProcessUniNode(sim_mob::RoadNetwork& res, Node& sr
 
 	//This is a simple Road Segment joint
 	UniNode* newNode = dynamic_cast<UniNode*>(src.generatedNode);
-	newNode->location = new Point2D(src.getXPosAsInt(), src.getYPosAsInt());
+	//newNode->location = new Point2D(src.getXPosAsInt(), src.getYPosAsInt());
 
 	//Set locations (ensure unset locations are null)
 	newNode->firstPair = pair<RoadSegment*, RoadSegment*>(fromSecs.first->generatedSegment, toSecs.first->generatedSegment);
@@ -1160,7 +1164,7 @@ void sim_mob::aimsun::Loader::ProcessUniNode(sim_mob::RoadNetwork& res, Node& sr
 	}
 
 	//Save it for later reference
-	res.segmentnodes.insert(newNode);
+	//res.segmentnodes.insert(newNode);
 
 	//TODO: Actual connector alignment (requires map checking)
 	sim_mob::UniNode::buildConnectorsFromAlignedLanes(newNode, std::make_pair(0, 0), std::make_pair(0, 0));

@@ -17,11 +17,11 @@ using std::min;
 const Lane* sim_mob::UniNode::getOutgoingLane(const Lane& from) const
 {
 	//TEMP
-	/*for (std::map<const Lane*, Lane*>::const_iterator it=connectors.begin(); it!=connectors.end(); it++) {
+	for (std::map<const Lane*, Lane*>::const_iterator it=connectors.begin(); it!=connectors.end(); it++) {
 		const Lane* from = it->first;
 		const Lane* to = it->second;
 		int test = from->getRoadSegment()->getStart()->location->getX();
-	}*/
+	}
 	//END TEMP
 
 	if (connectors.count(&from)>0) {
@@ -81,17 +81,19 @@ void sim_mob::UniNode::buildConnectorsFromAlignedLanes(UniNode* node, pair<unsig
 		for (size_t fromID=0; fromID<segPair.first->getLanes().size(); fromID++) {
 			//Convert the lane ID, but bound it to "to"'s actual number of available lanes.
 			int toID = fromID + toOffset;
-			toID = min<int>(max<int>(toID, 0), segPair.second->getLanes().size());
+			toID = min<int>(max<int>(toID, 0), segPair.second->getLanes().size()-1);
 
 			//Link the two
-			node->connectors[segPair.first->getLanes()[fromID]] = segPair.second->getLanes()[toID];
+			Lane* from = segPair.first->getLanes()[fromID];
+			Lane* to = segPair.second->getLanes()[toID];
+			node->connectors[from] = to;
 		}
 
 		//Check for and handle branches.
 		for (int i=0; i<toOffset; i++) {
 			node->connectors[segPair.first->getLanes()[0]] = segPair.second->getLanes()[i];
 		}
-		size_t numFrom = segPair.first->getLanes().size();
+		size_t numFrom = segPair.first->getLanes().size()-1;
 		for (int i=numFrom+toOffset; i<(int)segPair.second->getLanes().size(); i++) {
 			node->connectors[segPair.first->getLanes()[numFrom]] = segPair.second->getLanes()[i];
 		}

@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <stdexcept>
 
 //NOTE: Ubuntu is pretty bad about where it puts the SOCI headers.
 //      "soci-postgresql.h" is supposed to be in "$INC/soci", but Ubuntu puts it in

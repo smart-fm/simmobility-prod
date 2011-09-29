@@ -24,30 +24,32 @@ const Lane* sim_mob::UniNode::getOutgoingLane(const Lane& from) const
 
 
 
-vector<const RoadSegment*> sim_mob::UniNode::getRoadSegments() const
+const vector<const RoadSegment*>& sim_mob::UniNode::getRoadSegments() const
 {
 	//A little wordy, but it works.
-	vector<const RoadSegment*> res;
-	if (firstPair.first) {
-		res.push_back(firstPair.first);
-	}
-	if (firstPair.second) {
-		res.push_back(firstPair.second);
-	}
-	if (secondPair.first) {
-		res.push_back(secondPair.first);
-	}
-	if (secondPair.second) {
-		res.push_back(secondPair.second);
+	if (cachedSegmentsList.empty()) {
+		if (firstPair.first) {
+			cachedSegmentsList.push_back(firstPair.first);
+		}
+		if (firstPair.second) {
+			cachedSegmentsList.push_back(firstPair.second);
+		}
+		if (secondPair.first) {
+			cachedSegmentsList.push_back(secondPair.first);
+		}
+		if (secondPair.second) {
+			cachedSegmentsList.push_back(secondPair.second);
+		}
 	}
 
-	return res;
+	return cachedSegmentsList;
 }
 
 
 
 void sim_mob::UniNode::buildConnectorsFromAlignedLanes(UniNode* node, pair<unsigned int, unsigned int> fromToLaneIDs1, pair<unsigned int, unsigned int> fromToLaneIDs2)
 {
+	node->cachedSegmentsList.clear();
 	node->connectors.clear();
 
 	//Compute for each pair of Segments at this node

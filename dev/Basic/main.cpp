@@ -141,7 +141,7 @@ bool performMain(const std::string& configFileName)
   for (std::set<UniNode*>::const_iterator it=rn.getUniNodes().begin(); it!=rn.getUniNodes().end(); it++) {
 	  UniNode* n = *it;
 	  if (n->location->getX()==37265277 && n->location->getY()==14372270) {
-		  for (vector<const RoadSegment*>::iterator i2=n->getRoadSegments().begin(); i2!=n->getRoadSegments().end(); i2++) {
+		  for (vector<const RoadSegment*>::const_iterator i2=n->getRoadSegments().begin(); i2!=n->getRoadSegments().end(); i2++) {
 			  const RoadSegment* rs = *i2;
 			  const Node* start = rs->getStart();
 			  if (start->location->getX()==37270984 && start->location->getY()==14378959) {

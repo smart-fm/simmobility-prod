@@ -82,6 +82,12 @@ void sim_mob::Driver::update(frame_t frameNumber)
 		isOriginSet=true;
 		setToParent();
 	}
+
+	//Avoid crashing
+	if (!currLink_) {
+		return;
+	}
+
 	if(!isGoalSet){
 		setGoal();
 		isGoalSet = true;
@@ -447,6 +453,11 @@ void sim_mob::Driver::setOrigin()
 		else
 			isForward = false;
 	}
+
+	//TEMP: Always return.
+	currLink_ = nullptr;
+	return;
+	//END TEMP
 
 	roadSegments = &(currLink_->getPath(isForward));
 	RSIndex = 0;

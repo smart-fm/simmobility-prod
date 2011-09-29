@@ -129,7 +129,7 @@ bool performMain(const std::string& configFileName)
   }
 
   //Output
-  cout <<"  " <<"(Sanity Check Passed)" <<endl;
+  cout <<"  " <<"...Sanity Check Passed" <<endl;
 
   //Initialize our work groups, assign agents randomly to these groups.
   EntityWorkGroup agentWorkers(WG_AGENTS_SIZE, config.totalRuntimeTicks, config.granAgentsTicks);

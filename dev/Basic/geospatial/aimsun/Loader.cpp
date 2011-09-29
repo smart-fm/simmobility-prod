@@ -1157,9 +1157,13 @@ void sim_mob::aimsun::Loader::ProcessUniNode(sim_mob::RoadNetwork& res, Node& sr
 	//newNode->location = new Point2D(src.getXPosAsInt(), src.getYPosAsInt());
 
 	//Set locations (ensure unset locations are null)
-	newNode->firstPair = pair<RoadSegment*, RoadSegment*>(fromSecs.first->generatedSegment, toSecs.first->generatedSegment);
+	//Also ensure that we don't point backwards from the same segment.
+	bool parallel = fromSecs.first->fromNode->id == toSecs.first->toNode->id;
+	newNode->firstPair.first = fromSecs.first->generatedSegment;
+	newNode->firstPair.second = parallel ? toSecs.second->generatedSegment : toSecs.first->generatedSegment;
 	if (fromSecs.second && toSecs.second) {
-		newNode->secondPair = pair<RoadSegment*, RoadSegment*>(fromSecs.second->generatedSegment, toSecs.second->generatedSegment);
+		newNode->secondPair.first = fromSecs.second->generatedSegment;
+		newNode->secondPair.second = parallel ? toSecs.first->generatedSegment : toSecs.second->generatedSegment;
 	} else {
 		newNode->secondPair = pair<RoadSegment*, RoadSegment*>(nullptr, nullptr);
 	}

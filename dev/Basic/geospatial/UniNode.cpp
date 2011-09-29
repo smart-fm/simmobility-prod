@@ -16,14 +16,6 @@ using std::min;
 
 const Lane* sim_mob::UniNode::getOutgoingLane(const Lane& from) const
 {
-	//TEMP
-	for (std::map<const Lane*, Lane*>::const_iterator it=connectors.begin(); it!=connectors.end(); it++) {
-		const Lane* from = it->first;
-		const Lane* to = it->second;
-		int test = from->getRoadSegment()->getStart()->location->getX();
-	}
-	//END TEMP
-
 	if (connectors.count(&from)>0) {
 		return connectors.find(&from)->second;
 	}

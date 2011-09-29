@@ -445,13 +445,12 @@ void sim_mob::Driver::setOrigin()
 	if(multiOriginNode)
 	{
 		currLink_ = findLink(multiOriginNode,end);
-		if (!currLink_) {
-			return;
+		if (currLink_) {
+			if(currLink_->getEnd()==end)
+				isForward = true;
+			else
+				isForward = false;
 		}
-		if(currLink_->getEnd()==end)
-			isForward = true;
-		else
-			isForward = false;
 	}
 
 	//TEMP: Always return.

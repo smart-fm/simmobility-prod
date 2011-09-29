@@ -424,7 +424,11 @@ const Link* sim_mob::Driver::findLink(const MultiNode* start, const MultiNode* e
 		else if(link->getEnd()==end)
 			return link;
 	}
-	return NULL;
+
+	//boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
+	//std::cout <<start->location->getX() <<"," <<start->location->getY() <<" => " <<end->location->getX() <<"," <<end->location->getY() <<"\n";
+
+	return nullptr;
 }
 
 void sim_mob::Driver::setOrigin()
@@ -435,6 +439,9 @@ void sim_mob::Driver::setOrigin()
 	if(multiOriginNode)
 	{
 		currLink_ = findLink(multiOriginNode,end);
+		if (!currLink_) {
+			return;
+		}
 		if(currLink_->getEnd()==end)
 			isForward = true;
 		else

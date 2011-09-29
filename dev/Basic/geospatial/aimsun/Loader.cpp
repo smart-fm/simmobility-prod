@@ -828,10 +828,64 @@ void TrimCandidateList(vector<LaneSingleLine>& candidates, size_t maxSize)
 
 
 
+bool PointIsLeftOfVector(Node* vecStart, Node* vecEnd, Lane* point)
+{
+	//Via cross-product
+	return ((vecEnd->xPos - vecStart->xPos)*(point->yPos - vecStart->yPos)
+			- (vecEnd->yPos - vecStart->yPos)*(point->xPos - vecStart->xPos)) > 0;
+}
+
+
+
+Lane* GetX_EstPoint(Lane* from, const vector<Lane*>& points, int sign)
+{
+	pair<Lane*, double> res(nullptr, 0.0);
+	for (vector<Lane*>::const_iterator it=points.begin(); it!=points.end(); it++) {
+		double currDist = distLaneLane(from, *it);
+		if (!res.first || currDist*sign < res.second*sign) {
+			res.first = *it;
+			res.second = currDist;
+		}
+	}
+	return res.first;
+}
+
+
+Lane* GetNearestPoint(Lane* from, const vector<Lane*>& points)
+{
+	return GetX_EstPoint(from, points, 1);
+}
+Lane* GetFarthestPoint(Lane* from, const vector<Lane*>& points)
+{
+	return GetX_EstPoint(from, points, -1);
+}
+
+
 void OrganizePointsInDrivingDirection(bool drivesOnLHS, Node* start, Node* end, vector<Lane*>& points)
 {
-	//TODO: Normalize, flip, etc.
-	//throw std::runtime_error("Not implemented yet.");
+	//Step 1: retrieve the two endpoints
+	pair<Lane*, Lane*> endpoints;
+	endpoints.first = GetFarthestPoint(points[0], points);
+	endpoints.second = GetFarthestPoint(endpoints.first, points);
+	endpoints.first = GetFarthestPoint(endpoints.second, points);
+
+	//Step 2: Figure out which of these is "left of" the line
+	bool firstIsLeft = PointIsLeftOfVector(start, end, endpoints.first);
+
+	//Step 3: Star from the first (or last, depending on drivesOnLHS and firstIsLeft) point to the result vector.
+	vector<Lane*> res;
+	Lane* curr = firstIsLeft==drivesOnLHS ? endpoints.first : endpoints.second;
+
+	//Step 4: Continue adding points until the old vector is empty, then restore it
+	while (!points.empty()) {
+		//Add, remove
+		res.push_back(curr);
+		points.erase(std::find(points.begin(), points.end(), curr));
+
+		//Get the next nearest point
+		curr = GetNearestPoint(curr, points);
+	}
+	points.insert(points.begin(), res.begin(), res.end());
 }
 
 

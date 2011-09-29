@@ -392,7 +392,9 @@ void SortLaneLine(vector<Lane*>& laneLine, std::pair<Node*, Node*> nodes)
 				currDist = newDist;
 				currLane = it;
 
-				//TODO: We might want to see what happens here if newDist is zero...
+				//TODO: We might want to see what happens here if newDist is zero.
+				//      In the previous tests I ran, there is only ONE pair of points with the exact
+				//      same coordinates, but about 5 other pairs are very very close together.
 			}
 		}
 	}
@@ -834,12 +836,12 @@ void OrganizePointsInDrivingDirection(bool drivesOnLHS, Node* start, Node* end, 
 
 
 //Determine the median when we know there are two Sections here.
-Lane DetermineNormalMedian(const vector<Lane*>& orderedPoints, Section fwdSec, Section revSec)
+Lane DetermineNormalMedian(const vector<Lane*>& orderedPoints, Section* fwdSec, Section* revSec)
 {
 	//If we have exactly the right number of lanes...
-	if (orderedPoints.size() == fwdSec.numLanes + revSec.numLanes + 1) {
+	if ((int)orderedPoints.size() == fwdSec->numLanes + revSec->numLanes + 1) {
 		//...then return the lane which both Sections consider the median.
-		return *orderedPoints[fwdSec.numLanes];
+		return *orderedPoints[fwdSec->numLanes];
 	} else {
 		//...otherwise, form a vector from the first point to the last point, scale it
 		//   back by half, and take that as your point.
@@ -857,7 +859,7 @@ Lane DetermineNormalMedian(const vector<Lane*>& orderedPoints, Section fwdSec, S
 }
 
 
-pair<Lane, Lane> ComputeMedianEndpoints(bool drivesOnLHS, Node* start, Node* end, const pair< vector<LaneSingleLine>, vector<LaneSingleLine> >& candidates, const pair< size_t, size_t >& maxCandidates)
+pair<Lane, Lane> ComputeMedianEndpoints(bool drivesOnLHS, Node* start, Node* end, const pair< vector<LaneSingleLine>, vector<LaneSingleLine> >& candidates, const pair< size_t, size_t >& maxCandidates, const std::set<Section*>& allSections)
 {
 	Lane startPoint;
 	Lane endPoint;
@@ -877,24 +879,38 @@ pair<Lane, Lane> ComputeMedianEndpoints(bool drivesOnLHS, Node* start, Node* end
 	OrganizePointsInDrivingDirection(drivesOnLHS, start, end, originPoints);
 	OrganizePointsInDrivingDirection(drivesOnLHS, start, end, endingPoints);
 
-
-	//If this is a single directional road segment...
-	/*if () {
-		//...then the median is the FIRST point if we are going from start->end
-		//   or the LAST point if we are going from end->start
-		if () {
-			startPoint = originPoints.front();
-			endPoint = endingPoints.front();
-		} else {
-			startPoint = originPoints.back();
-			endPoint = endingPoints.back();
+	//Determine if this is a single-diretional link
+	std::pair<Section*, Section*> fwdFirstLastSection(nullptr, nullptr);
+	std::pair<Section*, Section*> revFirstLastSection(nullptr, nullptr);
+	for (std::set<Section*>::const_iterator it=allSections.begin(); it!=allSections.end(); it++) {
+		if ((*it)->fromNode->id==start->id) {
+			fwdFirstLastSection.first = *it;
 		}
+		if ((*it)->fromNode->id==end->id) {
+			revFirstLastSection.first = *it;
+		}
+		if ((*it)->toNode->id==start->id) {
+			revFirstLastSection.second = *it;
+		}
+		 if ((*it)->toNode->id==end->id) {
+			 fwdFirstLastSection.second = *it;
+		}
+	}
+	if (!(fwdFirstLastSection.first && fwdFirstLastSection.second)) {
+		throw std::runtime_error("Unexpected: Link has no forward path.");
+	}
+
+	//If this is a single directional Link...
+	if (!(revFirstLastSection.first && revFirstLastSection.second)) {
+		//...then the median is the last point in the driving direction (e.g., the median).
+		// Note that Links always have a forward path, but may not have a reverse path.
+		startPoint = *originPoints.back();
+		endPoint = *endingPoints.back();
 	} else {
 		//...otherwise, we deal with each point separately.
-		startPoint = DetermineNormalMedian(originPoints);
-		endPoint = DetermineNormalMedian(endingPoints);
-	}*/
-
+		startPoint = DetermineNormalMedian(originPoints, fwdFirstLastSection.first, revFirstLastSection.second);
+		endPoint = DetermineNormalMedian(endingPoints, revFirstLastSection.first, fwdFirstLastSection.second);
+	}
 
 	return std::make_pair(startPoint, endPoint);
 }
@@ -968,6 +984,12 @@ void sim_mob::aimsun::Loader::GenerateLinkLaneZero(const sim_mob::RoadNetwork& r
 	TrimCandidateList(candidates.second, maxCandidates.second);
 
 
+	//Step 2.5: If we don't have any candidates to work with, just use the RoadSegment polyline to generate the Lane geometry
+	if (candidates.first.empty() || candidates.second.empty()) {
+		return;
+	}
+
+
 	//Step 3: Take the first point on each of the "start" candidates, and the last point on each
 	//        of the "end" candidates. These are the major points. If this number is equal to
 	//        the maximum number of lines, then we take the center line as the median. Otherwise
@@ -979,7 +1001,7 @@ void sim_mob::aimsun::Loader::GenerateLinkLaneZero(const sim_mob::RoadNetwork& r
 	// NOTE:  The algorithm described above has to be performed for each Section, and then saved in the
 	//        generated RoadSegment.
 	// NOTE:  We also update the segment width.
-	pair<Lane, Lane> medianEndpoints = ComputeMedianEndpoints(rn.drivingSide==DRIVES_ON_LEFT, start, end, candidates, maxCandidates); //Start, end
+	pair<Lane, Lane> medianEndpoints = ComputeMedianEndpoints(rn.drivingSide==DRIVES_ON_LEFT, start, end, candidates, maxCandidates, linkSections); //Start, end
 
 
 	//Step 4: Now that we have the median endpoints, travel to each Segment Node and update this median information.

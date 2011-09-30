@@ -29,6 +29,7 @@
 //Just temporarily, so we know it compiles:
 #include "entities/Signal.hpp"
 #include "conf/simpleconf.hpp"
+#include "entities/AuraManager.hpp"
 
 
 using std::cout;
@@ -171,6 +172,8 @@ bool performMain(const std::string& configFileName)
   signalStatusWorkers.startAll();
   //shortestPathWorkers.startAll();
 
+  AuraManager& auraMgr = AuraManager::instance();
+  auraMgr.init();
 
   /////////////////////////////////////////////////////////////////
   // NOTE: WorkGroups are able to handle skipping steps by themselves.
@@ -203,6 +206,9 @@ bool performMain(const std::string& configFileName)
 
 	  //Agent-based cycle
 	  agentWorkers.wait();
+
+          auraMgr.update(currTick);
+	  agentWorkers.wait(); // The workers wait on the AuraManager.
 
 	  //Surveillance update
 	  updateSurveillanceData(agents);

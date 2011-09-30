@@ -37,6 +37,7 @@
 
 
 using namespace sim_mob::aimsun;
+using sim_mob::DynamicVector;
 using std::vector;
 using std::string;
 using std::set;
@@ -899,7 +900,7 @@ Lane DetermineNormalMedian(const vector<Lane*>& orderedPoints, Section* fwdSec, 
 	} else {
 		//...otherwise, form a vector from the first point to the last point, scale it
 		//   back by half, and take that as your point.
-		sim_mob::DynamicVector halfway(orderedPoints.front()->xPos, orderedPoints.front()->yPos, orderedPoints.back()->xPos, orderedPoints.back()->yPos);
+		DynamicVector halfway(orderedPoints.front()->xPos, orderedPoints.front()->yPos, orderedPoints.back()->xPos, orderedPoints.back()->yPos);
 		double scaleFactor = halfway.getMagnitude() / 2.0;
 		halfway.makeUnit();
 		halfway.scaleVect(scaleFactor);
@@ -967,6 +968,57 @@ pair<Lane, Lane> ComputeMedianEndpoints(bool drivesOnLHS, Node* start, Node* end
 	}
 
 	return std::make_pair(startPoint, endPoint);
+}
+
+
+
+double CalculateSectionGeneralAngle(const pair<Section*, Section*>& currSectPair, double totalWidth, double threshhold)
+{
+	//Create some helpers for our Section.
+	int numLanes = currSectPair.first->numLanes + (currSectPair.second?currSectPair.second->numLanes:0);
+	double laneWidth = totalWidth / numLanes;
+	double bufferSz = 1.1;
+
+	//Create a midline vector, scale it out by a certain amount so that we catch stray points.
+	DynamicVector midLine(currSectPair.first->fromNode->xPos, currSectPair.first->fromNode->yPos, currSectPair.first->toNode->xPos, currSectPair.first->toNode->yPos);
+	double totalMag = midLine.getMagnitude()*bufferSz;
+	double hwDiff = (totalMag-midLine.getMagnitude())/2;
+	midLine.makeUnit().flipMirror().scaleVect((hwDiff)/2).translateVect();
+	midLine.flipMirror().scaleVect(totalMag).translateVect();
+
+	//Now, create a bounding box for our Section
+	// We first create two vectors pointing "down" from our fwd section to/past our "rev" section (if it exists). These are scaled by a small amount.
+	std::pair<DynamicVector, DynamicVector> startEndEdges;
+	startEndEdges.first = DynamicVector(midLine);
+	startEndEdges.second = DynamicVector(midLine);
+	startEndEdges.second.translateVect().flipMirror();
+	for (size_t id=0; id<2; id++) {
+		DynamicVector& currEdge = id==0?startEndEdges.first:startEndEdges.second;
+		currEdge.makeUnit();
+		currEdge.flipNormal(id==1);
+		currEdge.scaleVect( (bufferSz/2)*(currSectPair.first->numLanes*laneWidth) );
+		currEdge.translateVect();
+		currEdge.flipMirror();
+		if (currSectPair.second) {
+			totalMag = currEdge.getMagnitude() + (bufferSz/2)*(currSectPair.second->numLanes*laneWidth);
+			currEdge.makeUnit();
+			currEdge.scaleVect(totalMag);
+		}
+	}
+
+
+
+	//TEMP
+	return 0.0;
+}
+
+
+
+void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const pair<Lane, Lane>& medianEndpoints)
+{
+	//First, we need a general idea of the angles in this Section.
+	//double theta = CalculateSectionGeneralAngle(currSectPair, 0.034906585); //Within about 2 degrees
+
 }
 
 
@@ -1060,6 +1112,44 @@ void sim_mob::aimsun::Loader::GenerateLinkLaneZero(const sim_mob::RoadNetwork& r
 
 	//Step 4: Now that we have the median endpoints, travel to each Segment Node and update this median information.
 	//        This is made mildly confusing by the fact that each SegmentNode may represent a one-way or bi-directional street.
+	pair<Section*, Section*> currSectPair(nullptr, nullptr); //Fwd/Reverse
+	for (std::set<Section*>::const_iterator it=linkSections.begin(); it!=linkSections.end(); it++) {
+		if ((*it)->fromNode->id==start->id) {
+			currSectPair.first = *it;
+		}
+		if ((*it)->toNode->id==start->id) {
+			currSectPair.second = *it;
+		}
+	}
+	size_t maxLoops = linkSections.size() + 1;
+	for (; currSectPair.first || currSectPair.second ;) { //Loop as long as we have data to operate on.
+		//Compute and save lanes for this Section and its reverse
+		CalculateSectionLanes(currSectPair, medianEndpoints);
+
+		//Get the next Section
+		Section* prevFwd = currSectPair.first;
+		currSectPair.first = nullptr;
+		currSectPair.second = nullptr;
+		for (std::set<Section*>::const_iterator it=linkSections.begin(); it!=linkSections.end(); it++) {
+			//"Fwd" section is predefined.
+			if ((*it)->fromNode->id==prevFwd->toNode->id && (*it)->toNode->id!=prevFwd->fromNode->id) {
+				currSectPair.first = *it;
+			}
+		}
+		if (currSectPair.first) {
+			for (std::set<Section*>::const_iterator it=linkSections.begin(); it!=linkSections.end(); it++) {
+				//"Rev" section is just fwd in reverse. We'll have to tidy this up later for roads that diverge.
+				if ((*it)->toNode->id==currSectPair.first->fromNode->id && (*it)->fromNode->id==currSectPair.first->toNode->id) {
+					currSectPair.second = *it;
+				}
+			}
+		}
+
+		//Avoid looping forever
+		if (maxLoops-- == 0) {
+			throw std::runtime_error("Error: Network contains RoadSegment loop.");
+		}
+	}
 }
 
 

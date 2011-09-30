@@ -25,6 +25,8 @@ private:
 public:
 	DynamicVector(double fromX=0.0, double fromY=0.0, double toX=0.0, double toY=0.0)
 		: pos(fromX, fromY), mag(toX-fromX, toY-fromY) {}
+	DynamicVector(const DynamicVector& copyFrom)
+		: pos(copyFrom.pos.x, copyFrom.pos.y), mag(copyFrom.mag.x, copyFrom.mag.y) {}
 
 	//Basic retrieval
 	double getX() { return pos.x; }
@@ -34,10 +36,21 @@ public:
 	double getMagnitude() { return sqrt(mag.x*mag.x + mag.y+mag.y); }
 
 	//Basic utility functions
-	void makeUnit()  { scaleVect(1/getMagnitude()); }
-	void scaleVect(double val) { mag.x *= val; mag.y *= val; }
-	void translateVect(double dX, double dY) { pos.x += dX; pos.y += dY; }
-	void translateVect() { translateVect(mag.x, mag.y); }
+	DynamicVector& makeUnit()  { return scaleVect(1/getMagnitude()); }
+	DynamicVector& scaleVect(double val) { mag.x *= val; mag.y *= val; return *this; }
+	DynamicVector& translateVect(double dX, double dY) { pos.x += dX; pos.y += dY; return *this; }
+	DynamicVector& translateVect() { return translateVect(mag.x, mag.y); }
+
+	//Slightly more complex
+	DynamicVector& flipMirror(){ mag.x=-mag.x; mag.y=-mag.y; return *this;}
+	DynamicVector& flipNormal(bool toRight) {
+		int sign = toRight ? 1 : -1;
+		double newX = mag.y*sign;
+		double newY = -mag.x*sign;
+		mag.x = newX;
+		mag.y = newY;
+		return *this;
+	}
 };
 
 

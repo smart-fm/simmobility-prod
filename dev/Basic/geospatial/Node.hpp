@@ -6,6 +6,8 @@
 #include <map>
 #include <set>
 
+#include "../constants.h"
+
 namespace sim_mob
 {
 
@@ -36,7 +38,7 @@ public:
 
 
 protected:
-	Node() {}
+	Node() : location(nullptr) {}
 
 };
 

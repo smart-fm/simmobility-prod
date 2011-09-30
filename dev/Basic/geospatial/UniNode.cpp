@@ -2,7 +2,9 @@
 
 #include "UniNode.hpp"
 
+#include <boost/thread.hpp>
 #include "Lane.hpp"
+#include "../buffering/BufferedDataManager.hpp"
 
 using namespace sim_mob;
 
@@ -22,30 +24,32 @@ const Lane* sim_mob::UniNode::getOutgoingLane(const Lane& from) const
 
 
 
-vector<const RoadSegment*> sim_mob::UniNode::getRoadSegments() const
+const vector<const RoadSegment*>& sim_mob::UniNode::getRoadSegments() const
 {
 	//A little wordy, but it works.
-	vector<const RoadSegment*> res;
-	if (firstPair.first) {
-		res.push_back(firstPair.first);
-	}
-	if (firstPair.second) {
-		res.push_back(firstPair.second);
-	}
-	if (secondPair.first) {
-		res.push_back(secondPair.first);
-	}
-	if (secondPair.second) {
-		res.push_back(secondPair.second);
+	if (cachedSegmentsList.empty()) {
+		if (firstPair.first) {
+			cachedSegmentsList.push_back(firstPair.first);
+		}
+		if (firstPair.second) {
+			cachedSegmentsList.push_back(firstPair.second);
+		}
+		if (secondPair.first) {
+			cachedSegmentsList.push_back(secondPair.first);
+		}
+		if (secondPair.second) {
+			cachedSegmentsList.push_back(secondPair.second);
+		}
 	}
 
-	return res;
+	return cachedSegmentsList;
 }
 
 
 
 void sim_mob::UniNode::buildConnectorsFromAlignedLanes(UniNode* node, pair<unsigned int, unsigned int> fromToLaneIDs1, pair<unsigned int, unsigned int> fromToLaneIDs2)
 {
+	node->cachedSegmentsList.clear();
 	node->connectors.clear();
 
 	//Compute for each pair of Segments at this node
@@ -69,17 +73,19 @@ void sim_mob::UniNode::buildConnectorsFromAlignedLanes(UniNode* node, pair<unsig
 		for (size_t fromID=0; fromID<segPair.first->getLanes().size(); fromID++) {
 			//Convert the lane ID, but bound it to "to"'s actual number of available lanes.
 			int toID = fromID + toOffset;
-			toID = min<int>(max<int>(toID, 0), segPair.second->getLanes().size());
+			toID = min<int>(max<int>(toID, 0), segPair.second->getLanes().size()-1);
 
 			//Link the two
-			node->connectors[segPair.first->getLanes()[fromID]] = segPair.second->getLanes()[toID];
+			Lane* from = segPair.first->getLanes()[fromID];
+			Lane* to = segPair.second->getLanes()[toID];
+			node->connectors[from] = to;
 		}
 
 		//Check for and handle branches.
 		for (int i=0; i<toOffset; i++) {
 			node->connectors[segPair.first->getLanes()[0]] = segPair.second->getLanes()[i];
 		}
-		size_t numFrom = segPair.first->getLanes().size();
+		size_t numFrom = segPair.first->getLanes().size()-1;
 		for (int i=numFrom+toOffset; i<(int)segPair.second->getLanes().size(); i++) {
 			node->connectors[segPair.first->getLanes()[numFrom]] = segPair.second->getLanes()[i];
 		}

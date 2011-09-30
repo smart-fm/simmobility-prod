@@ -139,8 +139,8 @@ public:
 
 private:
     StreetDirectory()
-      : pimpl_(0)
-      , stats_(0)
+      : pimpl_(nullptr)
+      , stats_(nullptr)
     {
     }
 

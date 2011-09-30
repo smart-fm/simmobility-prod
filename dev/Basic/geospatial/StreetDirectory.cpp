@@ -157,8 +157,28 @@ namespace
     inline bool
     isPointInsideAABB(Point2D const & point, AABB const & aabb)
     {
-        return    aabb.left() < point.getX() && point.getX() < aabb.right() 
-               && aabb.bottom() < point.getY() && point.getY() < aabb.top();
+        return    aabb.left() <= point.getX() && point.getX() <= aabb.right() 
+               && aabb.bottom() <= point.getY() && point.getY() <= aabb.top();
+    }
+
+    // Return the width of the specified road segment.
+    inline centimeter_t
+    getWidth(RoadSegment const & segment)
+    {
+        if (segment.width != 0)
+        {
+            return segment.width;
+        }
+        else
+        {
+            centimeter_t width = 0;
+            std::vector<Lane*> const & lanes = segment.getLanes();
+            for (size_t i = 0; i < lanes.size(); i++)
+            {
+                width += lanes[i]->getWidth();
+            }
+            return width;
+        }
     }
 
     // Return the lane where <point> is located, 0 if the point is outside of the stretch of
@@ -226,7 +246,7 @@ StreetDirectory::Impl::checkGrid(int m, int n, Point2D const & p1, Point2D const
 void
 StreetDirectory::Impl::partition(RoadSegment const & segment, bool isForward)
 {
-    centimeter_t halfWidth = segment.width / 2;
+    centimeter_t halfWidth = getWidth(segment) / 2;
 
     for (size_t i = 0; i < segment.polyline.size() - 1; i++)
     {
@@ -297,7 +317,7 @@ StreetDirectory::Impl::getLane(Point2D const & point) const
         size_t start = pair.startIndex_;
         size_t end = pair.endIndex_;
 
-        centimeter_t halfWidth = segment->width / 2;
+        centimeter_t halfWidth = getWidth(*segment) / 2;
         Point2D const & p1 = segment->polyline[start];
         Point2D const & p2 = segment->polyline[end];
         AABB aabb = getBoundingBox(p1, p2, halfWidth);
@@ -358,7 +378,7 @@ StreetDirectory::Impl::closestRoadSegments(Point2D const & point,
 
                         Point2D const & p1 = segment->polyline[start];
                         Point2D const & p2 = segment->polyline[end];
-                        centimeter_t halfWidth = segment->width / 2;
+                        centimeter_t halfWidth = getWidth(*segment) / 2;
                         if (didRoadIntersectAABB(p1, p2, halfWidth, aabb))
                         {
                             result.push_back(pair);
@@ -459,7 +479,7 @@ namespace
         if (dist < 0)
             return 0;
 
-        centimeter_t halfWidth = segment.width / 2;
+        centimeter_t halfWidth = getWidth(segment) / 2;
         if (dist > halfWidth)
         {
             // although <point> is between the start and end points, it is outside of

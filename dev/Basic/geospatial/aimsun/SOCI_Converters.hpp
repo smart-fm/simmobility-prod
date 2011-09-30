@@ -7,6 +7,7 @@
 #include "soci/soci.h"
 #include "Node.hpp"
 #include "Section.hpp"
+#include "Lane.hpp"
 #include "Crossing.hpp"
 #include "Turning.hpp"
 #include "Polyline.hpp"
@@ -127,6 +128,29 @@ template<> struct type_conversion<Crossing>
     	res.yPos = vals.get<double>("ypos", 0.0);
     }
     static void to_base(const Crossing& src, soci::values& vals, soci::indicator& ind)
+    {
+    	vals.set("lane_id", src.laneID);
+    	vals.set("lane_type", src.laneType);
+    	vals.set("section", src.atSection->id);
+    	vals.set("xpos", src.xPos);
+    	vals.set("ypos", src.yPos);
+        ind = i_ok;
+    }
+};
+
+
+template<> struct type_conversion<Lane>
+{
+    typedef values base_type;
+    static void from_base(const soci::values& vals, soci::indicator& ind, Lane &res)
+    {
+    	res.laneID = vals.get<int>("lane_id", 0);
+    	res.laneType = vals.get<std::string>("lane_type", "");
+    	res.TMP_AtSectionID = vals.get<int>("section", 0);
+    	res.xPos = vals.get<double>("xpos", 0.0);
+    	res.yPos = vals.get<double>("ypos", 0.0);
+    }
+    static void to_base(const Lane& src, soci::values& vals, soci::indicator& ind)
     {
     	vals.set("lane_id", src.laneID);
     	vals.set("lane_type", src.laneType);

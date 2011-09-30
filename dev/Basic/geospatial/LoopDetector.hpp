@@ -13,6 +13,7 @@ namespace sim_mob
  */
 class LoopDetector : public sim_mob::RoadItem {
 public:
+	LoopDetector() : RoatItem() {}
 
 
 private:

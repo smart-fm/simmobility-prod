@@ -21,6 +21,7 @@ namespace sim_mob
  */
 class Crossing : public RoadItem {
 public:
+	Crossing() : RoadItem() {}
 
 
 //protected:

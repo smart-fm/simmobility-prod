@@ -38,6 +38,7 @@ class Loader;
  */
 class Intersection : public sim_mob::MultiNode {
 public:
+	Intersection() : MultiNode() {}
 
 protected:
 	///The length of each chunk. As each RoadSegment approaches an Intersection, a "chunk" of

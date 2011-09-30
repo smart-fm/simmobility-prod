@@ -13,6 +13,8 @@ namespace sim_mob
  */
 class ParkingSlot : public sim_mob::RoadItem {
 public:
+	ParkingSlot() : RoatItem() {}
+
 	///TODO: Should represent "vertical" or "horizontal"
 	unsigned int orientation;
 

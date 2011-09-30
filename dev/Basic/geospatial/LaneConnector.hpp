@@ -26,6 +26,8 @@ class Loader;
  */
 class LaneConnector {
 public:
+	LaneConnector() : laneFrom(nullptr), laneTo(nullptr) {}
+
 	const sim_mob::Lane* getLaneFrom() const {
 		return laneFrom;
 	}

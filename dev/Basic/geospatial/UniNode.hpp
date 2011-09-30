@@ -43,6 +43,8 @@ class Loader;
  */
 class UniNode : public sim_mob::Node {
 public:
+	UniNode() : Node() {}
+
 	///Retrieve the outgoing Lane at this Node.
 	const sim_mob::Lane* getOutgoingLane(const sim_mob::Lane& from) const;
 
@@ -60,7 +62,7 @@ public:
 	//       to get them to output something decent. At the moment they MUST correspond to "firstPair", "secondPair". ~Seth
 	static void buildConnectorsFromAlignedLanes(UniNode* node, std::pair<unsigned int, unsigned int> fromToLaneIDs1, std::pair<unsigned int, unsigned int> fromToLaneIDs2);
 
-	std::vector<const sim_mob::RoadSegment*> getRoadSegments() const;
+	const std::vector<const sim_mob::RoadSegment*>& getRoadSegments() const;
 
 protected:
 	std::map<const sim_mob::Lane*, sim_mob::Lane* > connectors;
@@ -70,6 +72,9 @@ protected:
 	//  As "from->to"
 	std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> firstPair;
 	std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> secondPair;
+
+	//Avoid iterating confusion
+	mutable std::vector<const sim_mob::RoadSegment*> cachedSegmentsList;
 
 
 friend class sim_mob::aimsun::Loader;

@@ -29,11 +29,11 @@ public:
 		: pos(copyFrom.pos.x, copyFrom.pos.y), mag(copyFrom.mag.x, copyFrom.mag.y) {}
 
 	//Basic retrieval
-	double getX() { return pos.x; }
-	double getY() { return pos.y; }
-	double getEndX() { return pos.x + mag.x; }
-	double getEndY() { return pos.y + mag.y; }
-	double getMagnitude() { return sqrt(mag.x*mag.x + mag.y+mag.y); }
+	double getX() const { return pos.x; }
+	double getY() const { return pos.y; }
+	double getEndX() const { return pos.x + mag.x; }
+	double getEndY() const { return pos.y + mag.y; }
+	double getMagnitude() const { return sqrt(mag.x*mag.x + mag.y+mag.y); }
 
 	//Basic utility functions
 	DynamicVector& makeUnit()  { return scaleVect(1/getMagnitude()); }

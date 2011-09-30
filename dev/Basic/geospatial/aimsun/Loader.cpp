@@ -627,6 +627,28 @@ struct LaneSingleLine { //Used to represent a set of Lanes by id.
 		points.insert(points.begin(), mypoints.begin(), mypoints.end());
 	}
 
+	double ComputeAngle(Lane* start, Lane* end) {
+		double dx = end->xPos - start->xPos;
+		double dy = end->yPos - start->yPos;
+		return atan2(dy, dx);
+	}
+
+	void computeAndSaveAngle() {
+		double maxLen = 0.0;
+		Lane* pastLane = nullptr;
+		for (vector<Lane*>::iterator currLane=points.begin(); currLane!=points.end(); currLane++) {
+			if (pastLane) {
+				double currLen = distLaneLane(pastLane, *currLane);
+				if (currLen > maxLen) {
+					maxLen = currLen;
+					angle = ComputeAngle(pastLane, *currLane);
+				}
+			}
+			//Save
+			pastLane = *currLane;
+		}
+	}
+
 	//For sorting, later
 	double angle;
 	double minDist;
@@ -637,11 +659,6 @@ struct LinkHelperStruct {
 	set<Section*> sections;
 	LinkHelperStruct() : start(nullptr), end(nullptr) {}
 };
-double ComputeAngle(Lane* start, Lane* end) {
-	double dx = end->xPos - start->xPos;
-	double dy = end->yPos - start->yPos;
-	return atan2(dy, dx);
-}
 map<sim_mob::Link*, LinkHelperStruct> buildLinkHelperStruct(map<int, Node>& nodes, map<int, Section>& sections)
 {
 	map<sim_mob::Link*, LinkHelperStruct> res;
@@ -756,7 +773,8 @@ double getClosestPoint(const vector<Lane*>& candidates, double xPos, double yPos
 
 
 
-void TrimCandidateList(vector<LaneSingleLine>& candidates, size_t maxSize)
+//Remove candidates until either maxSize remain, or their total difference in angles is maxAngleDelta
+void TrimCandidateList(vector<LaneSingleLine>& candidates, size_t maxSize, double maxAngleDelta)
 {
 	//Need to do anything?
 	if (candidates.size()<=maxSize || candidates.empty()) {
@@ -765,19 +783,7 @@ void TrimCandidateList(vector<LaneSingleLine>& candidates, size_t maxSize)
 
 	//Simple strategy: Compute the angle for each of these long segments.
 	for (vector<LaneSingleLine>::iterator it=candidates.begin(); it!=candidates.end(); it++) {
-		double maxLen = 0.0;
-		Lane* pastLane = nullptr;
-		for (vector<Lane*>::iterator currLane=it->points.begin(); currLane!=it->points.end(); currLane++) {
-			if (pastLane) {
-				double currLen = distLaneLane(pastLane, *currLane);
-				if (currLen > maxLen) {
-					maxLen = currLen;
-					it->angle = ComputeAngle(pastLane, *currLane);
-				}
-			}
-			//Save
-			pastLane = *currLane;
-		}
+		it->computeAndSaveAngle();
 	}
 
 	//Normalize the angles
@@ -798,7 +804,8 @@ void TrimCandidateList(vector<LaneSingleLine>& candidates, size_t maxSize)
 
 	//Now find the set of size MaxSize with the minimum max-distance-between-any-2-points
 	//The set of candidates is always quite small, so any brute-force algorithm will work.
-	while (candidates.size()>maxSize) {
+	//while (candidates.size()>maxSize) {
+	for (;;) {
 		//Step one: For each LaneLine, find the LaneLine with the closest angle.
 		for (vector<LaneSingleLine>::iterator it=candidates.begin(); it!=candidates.end(); it++) {
 			it->minDist = 10; //Distance will never be more than 2PI
@@ -823,17 +830,34 @@ void TrimCandidateList(vector<LaneSingleLine>& candidates, size_t maxSize)
 				maxDist = it->minDist;
 			}
 		}
+
+		//Before we erase it, check if it is below our theta threshold
+		double actualTheta = maxDist*(maxVal-minVal);
+		if (actualTheta<=maxAngleDelta) {
+			break;
+		}
 		candidates.erase(maxIt);
+
+		//Step three: Check if we're done
+		if (candidates.size()<=maxSize || candidates.empty()) {
+			break;
+		}
 	}
 }
 
 
-
-bool PointIsLeftOfVector(Node* vecStart, Node* vecEnd, Lane* point)
+bool PointIsLeftOfVector(double ax, double ay, double bx, double by, double cx, double cy)
 {
 	//Via cross-product
-	return ((vecEnd->xPos - vecStart->xPos)*(point->yPos - vecStart->yPos)
-			- (vecEnd->yPos - vecStart->yPos)*(point->xPos - vecStart->xPos)) > 0;
+	return ((bx - ax)*(cy - ay) - (by - ay)*(cx - ax)) > 0;
+}
+bool PointIsLeftOfVector(const Node* vecStart, const Node* vecEnd, const Lane* point)
+{
+	return PointIsLeftOfVector(vecStart->xPos, vecStart->yPos, vecEnd->xPos, vecEnd->yPos, point->xPos, point->yPos);
+}
+bool PointIsLeftOfVector(const DynamicVector& vec, const Lane* point)
+{
+	return PointIsLeftOfVector(vec.getX(), vec.getY(), vec.getEndX(), vec.getEndY(), point->xPos, point->yPos);
 }
 
 
@@ -972,11 +996,36 @@ pair<Lane, Lane> ComputeMedianEndpoints(bool drivesOnLHS, Node* start, Node* end
 
 
 
-double CalculateSectionGeneralAngle(const pair<Section*, Section*>& currSectPair, double totalWidth, double threshhold)
+bool LanesWithinBounds(const vector<Lane*>& lanes, const pair<DynamicVector, DynamicVector>& bounds)
+{
+	pair<DynamicVector, DynamicVector> bounds2;
+	bounds2.first = DynamicVector(bounds.first.getX(), bounds.first.getY(), bounds.second.getX(), bounds.second.getY());
+	bounds2.second = DynamicVector(bounds.first.getEndX(), bounds.first.getEndY(), bounds.second.getEndX(), bounds.second.getEndY());
+	for (vector<Lane*>::const_iterator it=lanes.begin(); it!=lanes.end(); it++) {
+		const Lane* ln = *it;
+
+		//Check first pair of bounds
+		if (!PointIsLeftOfVector(bounds.first, ln) || PointIsLeftOfVector(bounds.second, ln)) {
+			return false;
+		}
+
+		//Check second pair of bounds
+		if (PointIsLeftOfVector(bounds2.first, ln) || !PointIsLeftOfVector(bounds2.second, ln)) {
+			return false;
+		}
+	}
+
+	//All points are within the bounds.
+	return true;
+}
+
+
+
+vector<LaneSingleLine> CalculateSectionGeneralAngleCandidateList(const pair<Section*, Section*>& currSectPair, double singleLaneWidth, double threshhold)
 {
 	//Create some helpers for our Section.
-	int numLanes = currSectPair.first->numLanes + (currSectPair.second?currSectPair.second->numLanes:0);
-	double laneWidth = totalWidth / numLanes;
+	//int numLanes = currSectPair.first->numLanes + (currSectPair.second?currSectPair.second->numLanes:0);
+	//double laneWidth = totalWidth / numLanes;
 	double bufferSz = 1.1;
 
 	//Create a midline vector, scale it out by a certain amount so that we catch stray points.
@@ -996,29 +1045,61 @@ double CalculateSectionGeneralAngle(const pair<Section*, Section*>& currSectPair
 		DynamicVector& currEdge = id==0?startEndEdges.first:startEndEdges.second;
 		currEdge.makeUnit();
 		currEdge.flipNormal(id==1);
-		currEdge.scaleVect( (bufferSz/2)*(currSectPair.first->numLanes*laneWidth) );
+		currEdge.scaleVect( (bufferSz/2)*(currSectPair.first->numLanes*singleLaneWidth) );
 		currEdge.translateVect();
 		currEdge.flipMirror();
 		if (currSectPair.second) {
-			totalMag = currEdge.getMagnitude() + (bufferSz/2)*(currSectPair.second->numLanes*laneWidth);
+			totalMag = currEdge.getMagnitude() + (bufferSz/2)*(currSectPair.second->numLanes*singleLaneWidth);
 			currEdge.makeUnit();
 			currEdge.scaleVect(totalMag);
 		}
 	}
 
+	//Build a list of all LaneLines belonging to either section which are within this bounding box.
+	vector<LaneSingleLine> candidateLines;
+	for (size_t id=0; id<2; id++) {
+		Section* currSect = id==0?currSectPair.first:currSectPair.second;
+		if (currSect) {
+			for (map<int, vector<Lane*> >::iterator laneIt=currSect->laneLinesAtNode.begin(); laneIt!=currSect->laneLinesAtNode.end(); laneIt++) {
+				if (LanesWithinBounds(laneIt->second, startEndEdges)) {
+					candidateLines.push_back(LaneSingleLine(laneIt->second));
+				}
+			}
+		}
+	}
 
-
-	//TEMP
-	return 0.0;
+	//Prune this list until all angles are within a certain threshold of each other
+	//std::cout <<"Before trim: " <<candidateLines.size() <<"\n";
+	TrimCandidateList(candidateLines, 0, threshhold);
+	//std::cout <<"  After trim: " <<candidateLines.size() <<"\n";
+	return candidateLines;
 }
 
 
 
-void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const pair<Lane, Lane>& medianEndpoints)
+void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const pair<Lane, Lane>& medianEndpoints, int singleLaneWidth)
 {
 	//First, we need a general idea of the angles in this Section.
-	//double theta = CalculateSectionGeneralAngle(currSectPair, 0.034906585); //Within about 2 degrees
+	vector<LaneSingleLine> candidateLines = CalculateSectionGeneralAngleCandidateList(currSectPair, singleLaneWidth, 0.034906585); //Within about 2 degrees
+	if (candidateLines.empty()) {
+		return;
+	}
 
+	//Average over all angles
+	double theta = 0.0;
+	for (vector<LaneSingleLine>::iterator it=candidateLines.begin(); it!=candidateLines.end(); it++) {
+		it->computeAndSaveAngle();
+		theta += it->angle/candidateLines.size();
+	}
+
+
+	//Next, we simply draw lines from the previous node's lanes through this node's lanes.
+	// All lines stop when they cross the line normal to this Section's angle (which is slightly
+	// inaccurate if the lane rounds a corner, but we use different functionality to import accurate Lanes.)
+	//For the start/end nodes, we use the medianEndpoints provided, since these lanes won't end on the node exactly.
+	//Note that adding/removing lanes complicates our algorithm slightly.
+
+	//TODO
 }
 
 
@@ -1086,14 +1167,19 @@ void sim_mob::aimsun::Loader::GenerateLinkLaneZero(const sim_mob::RoadNetwork& r
 	}
 
 	//Perform the trimming
-	TrimCandidateList(candidates.first, maxCandidates.first);
-	TrimCandidateList(candidates.second, maxCandidates.second);
+	TrimCandidateList(candidates.first, maxCandidates.first, 0.0);
+	TrimCandidateList(candidates.second, maxCandidates.second, 0.0);
 
 
 	//Step 2.5: If we don't have any candidates to work with, just use the RoadSegment polyline to generate the Lane geometry
 	if (candidates.first.empty() || candidates.second.empty()) {
 		return;
 	}
+
+
+	//TEMP: Lane width
+	//TODO: Calculate dynamically, or pull from the database
+	int singleLaneWidth = 300; //3m
 
 
 	//Step 3: Take the first point on each of the "start" candidates, and the last point on each
@@ -1124,7 +1210,7 @@ void sim_mob::aimsun::Loader::GenerateLinkLaneZero(const sim_mob::RoadNetwork& r
 	size_t maxLoops = linkSections.size() + 1;
 	for (; currSectPair.first || currSectPair.second ;) { //Loop as long as we have data to operate on.
 		//Compute and save lanes for this Section and its reverse
-		CalculateSectionLanes(currSectPair, medianEndpoints);
+		CalculateSectionLanes(currSectPair, medianEndpoints, singleLaneWidth);
 
 		//Get the next Section
 		Section* prevFwd = currSectPair.first;

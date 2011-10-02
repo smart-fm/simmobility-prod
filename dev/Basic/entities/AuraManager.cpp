@@ -254,7 +254,8 @@ private:
 void
 AuraManager::Impl::update()
 {
-    tree_.~R_tree();    // cleanup the tree because we are going to rebuild it.
+    //tree_.~R_tree();    // cleanup the tree because we are going to rebuild it.
+    tree_.Remove(RStarTree<Agent const *, 2, 12, 16>::AcceptAny(), RStarTree<Agent const *, 2, 12, 16>::RemoveLeaf());
     assert(tree_.GetSize() == 0);
 
     boost::unordered_set<Agent const *> agents(Agent::all_agents.begin(), Agent::all_agents.end());

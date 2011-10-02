@@ -43,7 +43,7 @@ public:
 	//! argument will a reference to the constructed Worker object and the 2nd argument
 	//! will be a strictly monotonic increasing number which represent the time-step.
 	typedef boost::function<void(Worker<EntityType>& worker, frame_t frameNumber)> actionFunction;
-	Worker(actionFunction* action =nullptr, boost::barrier* internal_barr =nullptr, boost::barrier* external_barr =nullptr, unsigned int endTick=0);
+	Worker(actionFunction* action =nullptr, boost::barrier* internal_barr =nullptr, boost::barrier* external_barr =nullptr, unsigned int endTick=0, bool auraManagerActive=false);
 	virtual ~Worker();
 
 	//Thread-style operations
@@ -75,6 +75,8 @@ protected:
 	//Time management
 	frame_t currTick;
 	frame_t endTick;
+
+	bool auraManagerActive;
 
 
 public:
@@ -128,11 +130,12 @@ std::vector<EntityType*>& sim_mob::Worker<EntityType>::getEntities() {
 
 
 template <class EntityType>
-sim_mob::Worker<EntityType>::Worker(actionFunction* action, boost::barrier* internal_barr, boost::barrier* external_barr, unsigned int endTick)
+sim_mob::Worker<EntityType>::Worker(actionFunction* action, boost::barrier* internal_barr, boost::barrier* external_barr, unsigned int endTick, bool auraManagerActive)
     : BufferedDataManager(),
       internal_barr(internal_barr), external_barr(external_barr), action(action),
       endTick(endTick),
-      active(/*this, */false)  //Passing the "this" pointer is probably ok, since we only use the base class (which is constructed)
+      active(/*this, */false),  //Passing the "this" pointer is probably ok, since we only use the base class (which is constructed)
+      auraManagerActive(auraManagerActive)
 {
 	this->beginManaging(&active);
 }
@@ -193,9 +196,11 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 		if (external_barr)
 			external_barr->wait();
 
-                // Wait for the AuraManager
-		if (external_barr)
-			external_barr->wait();
+        // Wait for the AuraManager
+		if (auraManagerActive) {
+			if (external_barr)
+				external_barr->wait();
+		}
 	}
 }
 

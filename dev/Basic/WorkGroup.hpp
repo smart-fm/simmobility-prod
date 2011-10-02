@@ -29,7 +29,7 @@ public:
 	//These are passed along to the Workers:
 	//  endTick=0 means run forever.
 	//  tickStep is used to allow Workers to skip ticks; no barriers are locked.
-	SimpleWorkGroup(size_t size, unsigned int endTick=0, unsigned int tickStep=1);
+	SimpleWorkGroup(size_t size, unsigned int endTick=0, unsigned int tickStep=1, bool auraManagerActive=false);
 
 	virtual ~SimpleWorkGroup();
 
@@ -42,6 +42,7 @@ public:
 	size_t size();
 
 	void wait();
+	void waitExternAgain();
 
 	//TODO: Move this to the Worker, not the work group. Maybe?
 	void migrate(EntityType * ag, int fromID, int toID);
@@ -69,6 +70,8 @@ protected:
 	//Only used once
 	size_t total_size;
 
+	bool auraManagerActive;
+
 };
 
 
@@ -80,8 +83,8 @@ protected:
 template <class EntityType>
 class WorkGroup : public sim_mob::SimpleWorkGroup<EntityType> {
 public:
-	WorkGroup(size_t size, unsigned int endTick=0, unsigned int tickStep=1)
-	: SimpleWorkGroup<EntityType>(size, endTick, tickStep) {}
+	WorkGroup(size_t size, unsigned int endTick=0, unsigned int tickStep=1, bool auraManagerActive=false)
+	: SimpleWorkGroup<EntityType>(size, endTick, tickStep, auraManagerActive) {}
 
 protected:
 	//Migrates all subscribed types.
@@ -100,7 +103,7 @@ template <class EntityType>
 void sim_mob::SimpleWorkGroup<EntityType>::initWorkers(typename Worker<EntityType>::actionFunction* action)
 {
 	for (size_t i=0; i<total_size; i++) {
-		workers.push_back(new Worker<EntityType>(action, &shared_barr, &external_barr, endTick/tickStep));
+		workers.push_back(new Worker<EntityType>(action, &shared_barr, &external_barr, endTick/tickStep, auraManagerActive));
 	}
 }
 
@@ -121,8 +124,8 @@ sim_mob::Worker<EntityType>* const sim_mob::SimpleWorkGroup<EntityType>::getWork
 
 
 template <class EntityType>
-sim_mob::SimpleWorkGroup<EntityType>::SimpleWorkGroup(size_t size, unsigned int endTick, unsigned int tickStep) :
-		shared_barr(size+1), external_barr(size+1), endTick(endTick), tickStep(tickStep), total_size(size)
+sim_mob::SimpleWorkGroup<EntityType>::SimpleWorkGroup(size_t size, unsigned int endTick, unsigned int tickStep, bool auraManagerActive) :
+		shared_barr(size+1), external_barr(size+1), endTick(endTick), tickStep(tickStep), total_size(size), auraManagerActive(auraManagerActive)
 {
 }
 
@@ -164,6 +167,13 @@ void sim_mob::SimpleWorkGroup<EntityType>::wait()
 	tickOffset = tickStep;
 
 	shared_barr.wait();
+	external_barr.wait();
+}
+
+
+template <class EntityType>
+void sim_mob::SimpleWorkGroup<EntityType>::waitExternAgain()
+{
 	external_barr.wait();
 }
 

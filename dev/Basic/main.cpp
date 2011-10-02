@@ -137,7 +137,7 @@ bool performMain(const std::string& configFileName)
 
 
   //Initialize our work groups, assign agents randomly to these groups.
-  EntityWorkGroup agentWorkers(WG_AGENTS_SIZE, config.totalRuntimeTicks, config.granAgentsTicks);
+  EntityWorkGroup agentWorkers(WG_AGENTS_SIZE, config.totalRuntimeTicks, config.granAgentsTicks, true);
   Worker<sim_mob::Entity>::actionFunction entityWork = boost::bind(entity_worker, _1, _2);
   agentWorkers.initWorkers(&entityWork);
   for (size_t i=0; i<agents.size(); i++) {
@@ -208,7 +208,7 @@ bool performMain(const std::string& configFileName)
 	  agentWorkers.wait();
 
           auraMgr.update(currTick);
-	  agentWorkers.wait(); // The workers wait on the AuraManager.
+	  agentWorkers.waitExternAgain(); // The workers wait on the AuraManager.
 
 	  //Surveillance update
 	  updateSurveillanceData(agents);

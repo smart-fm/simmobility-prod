@@ -258,6 +258,9 @@ AuraManager::Impl::update()
     tree_.Remove(R_tree::AcceptAny(), R_tree::RemoveLeaf());
     assert(tree_.GetSize() == 0);
 
+    if (Agent::all_agents.empty())
+        return;
+
     boost::unordered_set<Agent const *> agents(Agent::all_agents.begin(), Agent::all_agents.end());
 
     // We populate the tree incrementally by finding the agent that was nearest to the agent
@@ -265,13 +268,12 @@ AuraManager::Impl::update()
     // agents in non-leaf nodes are close to each other, and therefore the overlaps of non-leaf
     // nodes are not large.  Querying will be faster if the overlaps is small.
     Agent const * agent = *agents.begin();
-    do
+    while (agents.size() > 1)
     {
         agents.erase(agent);
         tree_.insert(agent);
         agent = nearest_agent(agent, agents);
     }
-    while (agents.size() > 1);
     tree_.insert(agent);    // insert the last agent into the tree.
     assert(tree_.GetSize() == Agent::all_agents.size());
 }

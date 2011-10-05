@@ -41,6 +41,7 @@ public:
 	std::vector<Turning*> connectedTurnings;
 	std::vector<Polyline*> polylineEntries;
 	std::map<int, std::vector<Lane*> > laneLinesAtNode; //Arranged by laneID
+	std::vector< std::vector<sim_mob::Point2D> > lanePolylinesForGenNode;
 
 	//Reference to saved object
 	sim_mob::RoadSegment* generatedSegment;

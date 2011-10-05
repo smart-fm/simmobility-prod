@@ -1090,14 +1090,56 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const pair<Lan
 		theta += it->angle/candidateLines.size();
 	}
 
+	//Get the distance between these two nodes.
+	double sectDist = dist(currSectPair.first->fromNode->xPos, currSectPair.first->fromNode->yPos, currSectPair.first->toNode->xPos, currSectPair.first->toNode->yPos);
 
 	//Next, we simply draw lines from the previous node's lanes through this node's lanes.
 	// All lines stop when they cross the line normal to this Section's angle (which is slightly
 	// inaccurate if the lane rounds a corner, but we use different functionality to import accurate Lanes.)
-	//For the start/end nodes, we use the medianEndpoints provided, since these lanes won't end on the node exactly.
+	//TODO: For the start/end nodes, we should use the medianEndpoints provided, since these lanes won't end on the node exactly.
 	//Note that adding/removing lanes complicates our algorithm slightly.
+	//NOTE: This function is a bit coarse, since we're only hoping to rely on it for initial data.
+	for (size_t i=0; i<2; i++) {
+		//Create a vector going "left" from lane zero. We will use this to build new starting points.
+		Section* currSect = i==0 ? currSectPair.first : currSectPair.second;
+		if (!currSect) {
+			continue;
+		}
+		double magX = cos(theta);
+		double magY = sin(theta);
+		if (i==1) {
+			magX = -magX;
+			magY = -magY;
+		}
+		DynamicVector originPt(currSect->fromNode->xPos, currSect->fromNode->yPos, currSect->fromNode->xPos+magX, currSect->fromNode->yPos+magY);
+		originPt.flipNormal(false);
 
-	//TODO
+		//For each laneID, scale the originPt and go from there
+		for (size_t laneID=0; laneID<=currSect->numLanes; laneID++) {
+			//Scale our vector
+			originPt.makeUnit().scaleVect(singleLaneWidth);
+
+			if (currSect) {
+				//Ensure our vector is sized properly
+				while (currSect->lanePolylinesForGenNode.size()<=i) {
+					currSect->lanePolylinesForGenNode.push_back(std::vector<sim_mob::Point2D>());
+				}
+
+				//Create a vector to the ending point
+				DynamicVector laneVect(originPt.getX(), originPt.getY(), originPt.getX()+magX, originPt.getY()+magY);
+				laneVect.makeUnit().scaleVect(sectDist);
+
+				//Add the starting point, ending point
+				sim_mob::Point2D startPt((int)laneVect.getX(), (int)laneVect.getY());
+				sim_mob::Point2D endPt((int)laneVect.getEndX(), (int)laneVect.getEndY());
+				currSect->lanePolylinesForGenNode[i].push_back(startPt);
+				currSect->lanePolylinesForGenNode[i].push_back(endPt);
+			}
+
+			//Scale the starting vector
+			originPt.translateVect();
+		}
+	}
 }
 
 
@@ -1209,6 +1251,12 @@ void sim_mob::aimsun::Loader::GenerateLinkLaneZero(const sim_mob::RoadNetwork& r
 	for (; currSectPair.first || currSectPair.second ;) { //Loop as long as we have data to operate on.
 		//Compute and save lanes for this Section and its reverse
 		CalculateSectionLanes(currSectPair, medianEndpoints, singleLaneWidth);
+		if (currSectPair.first) {
+			currSectPair.first->generatedSegment->lanePolylines_cached = currSectPair.first->lanePolylinesForGenNode;
+		}
+		if (currSectPair.second) {
+			currSectPair.second->generatedSegment->lanePolylines_cached = currSectPair.second->lanePolylinesForGenNode;
+		}
 
 		//Get the next Section
 		Section* prevFwd = currSectPair.first;

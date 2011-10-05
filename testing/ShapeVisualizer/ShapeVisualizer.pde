@@ -1,6 +1,8 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
+import java.awt.datatransfer.*;
 import java.awt.geom.*;
+import java.awt.Toolkit;
 
 //Super simple visualizer that just prompts you for a shape and then displays it. Also zooms the viewport to match.
 float[] minMaxX;
@@ -10,6 +12,7 @@ int BAR_HEIGHT = 50;
 int selectedItem = 0;
 String[] currStrs = {"", "", ""};
 PFont strFont;
+ClipHelper clip;
 
 
 //Everything we draw is called an "Item"
@@ -29,6 +32,7 @@ void setup()
   size(800, 600);
   
   strFont = createFont("Trebuchet MS", 16, true);
+  clip = new ClipHelper();
     
   //Track the global zoom stuff
   minMaxX = new float[]{Float.MAX_VALUE, Float.MIN_VALUE, width};
@@ -126,7 +130,11 @@ void keyPressed() {
   } else if (key==CODED) {
     //???
   } else {
-    currStrs[selectedItem] += key;
+    if (key=='p' || key=='P') {
+      currStrs[selectedItem] += clip.pasteString();
+    } else {
+      currStrs[selectedItem] += key;
+    }
   }
 }
 
@@ -210,6 +218,65 @@ class ScaledPoint {
   }
   
 }
+
+
+class ClipHelper {
+ Clipboard clipboard;
+ ClipHelper() {
+   getClipboard();  
+ }
+  
+ void getClipboard () {
+   Thread clipThread = new Thread() {
+     public void run() {
+       clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+     }
+   };
+
+   if (clipboard == null) {
+     try {
+       clipThread.setDaemon(true);
+       clipThread.start();
+       clipThread.join();
+     }  catch (Exception e) { println("Error getting clipboard"); }
+   }
+ }
+
+ void copyString (String data) {
+   copyTransferableObject(new StringSelection(data));
+ }
+
+ void copyTransferableObject (Transferable contents) {
+   getClipboard();
+   clipboard.setContents(contents, null);
+ }
+
+ String pasteString ()
+ {
+   String data = null;
+   try {
+     data = (String)pasteObject(DataFlavor.stringFlavor);
+   }  
+   catch (Exception e) {
+     println("Error getting data from clipboard");
+   }
+
+   return data;
+ }
+
+ Object pasteObject (DataFlavor flavor)   throws UnsupportedFlavorException, IOException {
+   Object obj = null;
+   getClipboard();
+
+   Transferable content = clipboard.getContents(null);
+   if (content != null) {
+     obj = content.getTransferData(flavor);
+   }
+
+   return obj;
+ }
+}
+
 
 
 

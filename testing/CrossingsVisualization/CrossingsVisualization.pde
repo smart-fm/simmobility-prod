@@ -10,6 +10,7 @@ String num = "([0-9]+)";
 String numH = "((?:0x)?[0-9a-fA-F]+)";
 Pattern logLHS = Pattern.compile("\\(" + strn + sep + num + sep + numH + sep  + RHS + "\\)");
 Pattern logRHS = Pattern.compile(strn + ":" + strn + ",?");
+Pattern pointPair = Pattern.compile("\\((" + "-?" + "(?:[0-9]+)" + ")\\)");
 
 //Fonts
 PFont f;
@@ -295,6 +296,14 @@ class CrossShape {
 
 
 
+Hashtable<MySeg, LaneShape> laneshapes = new Hashtable<MySeg, LaneShape>();
+class LaneShape {
+  ArrayList< ArrayList<ScaledPoint> > laneLines = new ArrayList< ArrayList<ScaledPoint> >(); //0 is the median, size()-1 is the outer-most lane.
+};
+
+
+
+
 double[] convertDispToM(double x, double y) {
   double tlX = scaleMatrix[0] - scaleMatrix[2]/2;
   double tlY = scaleMatrix[1] - scaleMatrix[3]/2;
@@ -371,6 +380,15 @@ void scaleAndZoom(double centerX, double centerY, double widthInM, double height
   //Scale all circulars
   for (Circular c : circs) {
     c.pos.scaleTo(xBounds, yBounds);
+  }
+  
+  //Scale all lane shapes
+  for (LaneShape ls : laneshapes.values()) {
+    for (ArrayList<ScaledPoint> lineSh : ls.laneLines) {
+      for (ScaledPoint sp : lineSh) {
+        sp.scaleTo(xBounds, yBounds);
+      }
+    }
   }
 
 }
@@ -1020,7 +1038,7 @@ void readDecoratedData(String path) {
     String type = m.group(1);
     
     //No need to continue?
-    if (!type.equals("multi-node") && !type.equals("uni-node") && !type.equals("tmp-circular") && !type.equals("road-segment") && !type.equals("crossing")) {
+    if (!type.equals("multi-node") && !type.equals("uni-node") && !type.equals("tmp-circular") && !type.equals("road-segment") && !type.equals("crossing") && !type.equals("tmp-lane")) {
       continue;
     }
     
@@ -1054,6 +1072,7 @@ void readDecoratedData(String path) {
     String[] circReqKeys = new String[]{"at-node", "at-segment", "fwd", "number"};
     String[] segReqKeys = new String[]{"from-node", "to-node"};
     String[] crossReqKeys = new String[]{"near-1", "near-2", "far-1", "far-2"};
+    String[] laneReqKeys = new String[]{"parent-segment", "line-0"};
     if (type.equals("multi-node") || type.equals("uni-node")) {
       //Check.
       for (String reqKey : nodeReqKeys) {
@@ -1125,7 +1144,7 @@ void readDecoratedData(String path) {
           throw new RuntimeException("Missing key: " + reqKey + " in: " + rhs);
         }
       }
-      
+        
       //Retrieve
       ScaledPoint near1 = myParseScaled(properties.get("near-1"));
       ScaledPoint near2 = myParseScaled(properties.get("near-2"));
@@ -1140,6 +1159,34 @@ void readDecoratedData(String path) {
 
       //Save
       crossshapes.add(new CrossShape(near1, near2, far1, far2));
+    } else if (type.equals("tmp-lane")) {
+      //Check.
+      for (String reqKey : laneReqKeys) {
+        if (!properties.containsKey(reqKey)) {
+          throw new RuntimeException("Missing key: " + reqKey + " in: " + rhs);
+        }
+      }
+      
+      //Retrieve, build
+      int segmentID = myParseOptionalHex(properties.get("parent-segment"));
+      MySeg parentSeg = decoratedSegments.get(segmentID);
+      if (parentSeg==null) {
+          throw new RuntimeException("No parent segment with ID: " + segmentID);
+      }
+      LaneShape ls = new LaneShape();
+      for (int laneLineID=0; properties.containsKey("line-"+laneLineID); laneLineID++) {
+        ls.laneLines.add(new ArrayList<ScaledPoint>());
+        String laneLineStr = properties.get("line-"+laneLineID);
+        Matcher m2 = pointPair.matcher(laneLineStr);
+        while (m2.find()) {
+          String ptStr = m2.group(1);
+          ScaledPoint pt = myParseScaled(ptStr);
+          ls.laneLines.get(laneLineID).add(pt);
+        }
+      }
+      
+      //Add it
+      laneshapes.put(parentSeg, ls);
     }
     
   }

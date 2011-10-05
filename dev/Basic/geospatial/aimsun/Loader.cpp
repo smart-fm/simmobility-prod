@@ -1115,13 +1115,13 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const pair<Lan
 		originPt.flipNormal(false);
 
 		//For each laneID, scale the originPt and go from there
-		for (size_t laneID=0; laneID<=currSect->numLanes; laneID++) {
+		for (size_t laneID=0; laneID<=(size_t)currSect->numLanes; laneID++) {
 			//Scale our vector
 			originPt.makeUnit().scaleVect(singleLaneWidth);
 
 			if (currSect) {
 				//Ensure our vector is sized properly
-				while (currSect->lanePolylinesForGenNode.size()<=i) {
+				while (currSect->lanePolylinesForGenNode.size()<=laneID) {
 					currSect->lanePolylinesForGenNode.push_back(std::vector<sim_mob::Point2D>());
 				}
 
@@ -1132,8 +1132,8 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const pair<Lan
 				//Add the starting point, ending point
 				sim_mob::Point2D startPt((int)laneVect.getX(), (int)laneVect.getY());
 				sim_mob::Point2D endPt((int)laneVect.getEndX(), (int)laneVect.getEndY());
-				currSect->lanePolylinesForGenNode[i].push_back(startPt);
-				currSect->lanePolylinesForGenNode[i].push_back(endPt);
+				currSect->lanePolylinesForGenNode[laneID].push_back(startPt);
+				currSect->lanePolylinesForGenNode[laneID].push_back(endPt);
 			}
 
 			//Scale the starting vector
@@ -1247,6 +1247,7 @@ void sim_mob::aimsun::Loader::GenerateLinkLaneZero(const sim_mob::RoadNetwork& r
 			currSectPair.second = *it;
 		}
 	}
+
 	size_t maxLoops = linkSections.size() + 1;
 	for (; currSectPair.first || currSectPair.second ;) { //Loop as long as we have data to operate on.
 		//Compute and save lanes for this Section and its reverse

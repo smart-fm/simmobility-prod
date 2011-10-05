@@ -46,7 +46,7 @@ public:
 	std::pair<int, const sim_mob::Lane*> translateRawLaneID(unsigned int rawID);
 
 	///Return the polyline of an individual lane. May be cached in lanePolylines_cached. May also be precomputed, and stored in lanePolylines_cached.
-	const std::vector<sim_mob::Point2D>& getLanePolyline(unsigned int laneID);
+	const std::vector<sim_mob::Point2D>& getLanePolyline(unsigned int laneID) const;
 
 
 public:
@@ -59,7 +59,7 @@ private:
 	std::vector<sim_mob::Lane*> lanes;
 
 	///Computed polylines are cached here.
-	std::vector< std::vector<sim_mob::Point2D> > lanePolylines_cached;
+	mutable std::vector< std::vector<sim_mob::Point2D> > lanePolylines_cached;
 
 	///Helps to identify road segments which are bi-directional.
 	///We count lanes from the LHS, so this doesn't change with drivingSide

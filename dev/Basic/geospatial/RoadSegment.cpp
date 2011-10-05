@@ -36,10 +36,8 @@ pair<int, const Lane*> sim_mob::RoadSegment::translateRawLaneID(unsigned int raw
 }
 
 
-const vector<Point2D>& sim_mob::RoadSegment::getLanePolyline(unsigned int laneID)
+const vector<Point2D>& sim_mob::RoadSegment::getLanePolyline(unsigned int laneID) const
 {
-	std::cout <<"TEST: " <<lanePolylines_cached.size() <<" , " <<lanes.size() <<"\n";
-
 	//Expand the cached vector. Only do this ONCE, so that references are never invalidated.
 	if (lanePolylines_cached.size() != lanes.size()+1) {
 		if (!lanePolylines_cached.empty()) {

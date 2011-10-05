@@ -471,12 +471,24 @@ void PrintDB_Network()
 		}
 
 		//Save Lane info for later
+		//NOTE: For now this relies on somewhat sketchy behavior, which is why we output a "tmp-*"
+		//      flag. Once we add auto-polyline generation, that tmp- output will be meaningless
+		//      and we can switch to a full "lane" output type.
 		try {
-			const_cast<RoadSegment*>(*it)->getLanePolyline(0);
-			std::cout <<"LANE EXISTS\n";
-		} catch (std::runtime_error& ex) {
-			std::cout <<"No lane here.\n";
-		}
+			std::stringstream laneBuffer; //Put it in its own buffer since getLanePolyline() can throw.
+			laneBuffer <<"(\"tmp-lane\", 0, " <<&((*it)->getLanes()) <<", {";
+			laneBuffer <<"\"parent-segment\":\"" <<*it <<"\",";
+			for (size_t laneID=0; laneID<=(*it)->getLanes().size(); laneID++) {
+				const vector<Point2D>& points = (*it)->getLanePolyline(laneID);
+				laneBuffer <<"\"line-" <<laneID <<"\":\"[";
+				for (vector<Point2D>::const_iterator ptIt=points.begin(); ptIt!=points.end(); ptIt++) {
+					laneBuffer <<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
+				}
+				laneBuffer <<"]\",";
+			}
+			laneBuffer <<"})" <<endl;
+			logout <<laneBuffer.str();
+		} catch (std::runtime_error& ex) {}
 	}
 
 	//Crossings are part of Segments

@@ -7,10 +7,11 @@ String RHS = "\\{([^}]*)\\}"; //NOTE: Contains a capture group
 String sep = ", *";
 String strn = "\"([^\"]+)\"";
 String num = "([0-9]+)";
+String numNonCapt = "-?(?:[0-9]+)";
 String numH = "((?:0x)?[0-9a-fA-F]+)";
 Pattern logLHS = Pattern.compile("\\(" + strn + sep + num + sep + numH + sep  + RHS + "\\)");
 Pattern logRHS = Pattern.compile(strn + ":" + strn + ",?");
-Pattern pointPair = Pattern.compile("\\((" + "-?" + "(?:[0-9]+)" + ")\\)");
+Pattern pointPair = Pattern.compile("[^(]*\\(("  + numNonCapt + "," + numNonCapt + ")\\)");
 
 //Fonts
 PFont f;
@@ -20,7 +21,8 @@ PFont f2;
 boolean paintCrossings = true;
 
 //Turn on/off lanes
-boolean paintLanes = false;
+boolean paintLanes = true;
+boolean paintLaneShapes = true;
 boolean paintWraparound = false;
 boolean displayIgnoredLines = false;
 int nodeHalo = 0; //meters
@@ -87,7 +89,9 @@ color nodeFill = color(0xFF, 0xFF, 0xFF);
 color nodeHaloStroke = color(0xFF, 0xCC, 0x55);
 color nodeHaloFill = color(0xFF, 0xCC, 0x55);
 color csStroke = color(0x00, 0x77, 0x00);
-color csFill = color(0xAA, 0xFF, 0xAA);
+color csFill   = color(0xAA, 0xFF, 0xAA);
+color lsStroke = color(0x00, 0x00, 0x55);
+color lsFill   = color(0xAA, 0xAA, 0xFF);
 color crossingLines = color(0x99, 0x00, 0x99);
 Hashtable<String, Integer> laneColors = new Hashtable<String, Integer>();
 void populateLaneColorsTable() {
@@ -604,6 +608,38 @@ void draw()
       vertex((float)cs.far2.getX(), (float)cs.far2.getY());
       vertex((float)cs.far1.getX(), (float)cs.far1.getY());
       endShape(CLOSE);
+    }
+  }
+  
+  //Draw all Lane Shapes
+  if (paintLaneShapes) {
+    stroke(lsStroke);
+    fill(lsFill);
+    for (LaneShape ls : laneshapes.values()) {
+      ArrayList<ScaledPoint> medianLine = ls.laneLines.get(0);
+      ArrayList<ScaledPoint> outerLine = ls.laneLines.get(ls.laneLines.size()-1);
+      
+      strokeWeight(2.0);
+      beginShape();
+      //Add the median line
+      for (int i=0; i<medianLine.size(); i++) {
+        vertex((float)medianLine.get(i).getX(), (float)medianLine.get(i).getY());
+      }
+      //Add the outer line
+      for (int i=outerLine.size()-1; i>=0; i--) {
+        vertex((float)outerLine.get(i).getX(), (float)outerLine.get(i).getY());
+      }
+      endShape(CLOSE);
+      
+      strokeWeight(1.0);
+      for (int laneID=1; laneID<ls.laneLines.size()-1; laneID++) {
+        ArrayList<ScaledPoint> innerLine = ls.laneLines.get(laneID);
+        beginShape();
+        for (int i=0; i<innerLine.size(); i++) {
+          vertex((float)innerLine.get(i).getX(), (float)innerLine.get(i).getY());
+        }
+        endShape();
+      }
     }
   }
   
@@ -1174,6 +1210,7 @@ void readDecoratedData(String path) {
           throw new RuntimeException("No parent segment with ID: " + segmentID);
       }
       LaneShape ls = new LaneShape();
+      boolean hasNeg = false;
       for (int laneLineID=0; properties.containsKey("line-"+laneLineID); laneLineID++) {
         ls.laneLines.add(new ArrayList<ScaledPoint>());
         String laneLineStr = properties.get("line-"+laneLineID);
@@ -1181,12 +1218,23 @@ void readDecoratedData(String path) {
         while (m2.find()) {
           String ptStr = m2.group(1);
           ScaledPoint pt = myParseScaled(ptStr);
+          pt.origX /= 100; pt.origY /= 100;
+          if (pt.origX<0 || pt.origY<0) {
+            hasNeg = true;
+          }
+          
           ls.laneLines.get(laneLineID).add(pt);
         }
       }
       
       //Add it
-      laneshapes.put(parentSeg, ls);
+      if (ls.laneLines.size()==1) {
+        throw new RuntimeException("Can't have just the median line: " + rhs);
+      } else if (hasNeg) {
+        println("ERROR: lane shape has negative points: " + rhs);
+      } else {
+        laneshapes.put(parentSeg, ls);
+      }
     }
     
   }

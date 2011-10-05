@@ -1055,11 +1055,6 @@ vector<LaneSingleLine> CalculateSectionGeneralAngleCandidateList(const pair<Sect
 		}
 	}
 
-	std::cout <<"Bounding line 1: " <<startEndEdges.first.getX()/100 <<"," <<startEndEdges.first.getY()/100 <<" ==> " <<startEndEdges.first.getEndX()/100 <<"," <<startEndEdges.first.getEndY()/100 <<"\n";
-	std::cout <<"Bounding line 2: " <<startEndEdges.second.getX()/100 <<"," <<startEndEdges.second.getY()/100 <<" ==> " <<startEndEdges.second.getEndX()/100 <<"," <<startEndEdges.second.getEndY()/100 <<"\n";
-	std::cout <<"From Node: " <<currSectPair.first->fromNode->generatedNode->location->getX()/100 <<"," <<currSectPair.first->fromNode->generatedNode->location->getY()/100 <<"\n";
-	std::cout <<"To Node: " <<currSectPair.first->toNode->generatedNode->location->getX()/100 <<"," <<currSectPair.first->toNode->generatedNode->location->getY()/100 <<"\n";
-
 	//Build a list of all LaneLines belonging to either section which are within this bounding box.
 	vector<LaneSingleLine> candidateLines;
 	for (size_t id=0; id<2; id++) {
@@ -1074,9 +1069,7 @@ vector<LaneSingleLine> CalculateSectionGeneralAngleCandidateList(const pair<Sect
 	}
 
 	//Prune this list until all angles are within a certain threshold of each other
-	std::cout <<"Before trim: " <<candidateLines.size() <<"\n";
 	TrimCandidateList(candidateLines, 0, threshhold);
-	std::cout <<"  After trim: " <<candidateLines.size() <<"\n";
 	return candidateLines;
 }
 

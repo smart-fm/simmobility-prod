@@ -469,6 +469,14 @@ void PrintDB_Network()
 				std::cout <<"NOTE: Unknown obstacle!\n";
 			}
 		}
+
+		//Save Lane info for later
+		try {
+			const_cast<RoadSegment*>(*it)->getLanePolyline(0);
+			std::cout <<"LANE EXISTS\n";
+		} catch (std::runtime_error& ex) {
+			std::cout <<"No lane here.\n";
+		}
 	}
 
 	//Crossings are part of Segments

@@ -38,10 +38,18 @@ public:
 	double getMagnitude() const { return sqrt(mag.x*mag.x + mag.y+mag.y); }
 
 	//Basic utility functions
-	DynamicVector& makeUnit()  { return scaleVect(1/getMagnitude()); }
-	DynamicVector& scaleVect(double val) { mag.x *= val; mag.y *= val; return *this; }
+	//DynamicVector& makeUnit()  { return scaleVect(1/getMagnitude()); }
 	DynamicVector& translateVect(double dX, double dY) { pos.x += dX; pos.y += dY; return *this; }
 	DynamicVector& translateVect() { return translateVect(mag.x, mag.y); }
+	DynamicVector& scaleVectTo(double val) { //Scale any (non-unit) vector
+		//Note: The old way (converting to a unit vector then scaling) is very likely
+		//      to introduce accuracy errors, since 1 "unit" is a very small number of centimeters.
+		//      That is why this function factors in the unit vector in the same step.
+		double currMag = getMagnitude();
+		mag.x = val*mag.x / currMag;
+		mag.y = val*mag.y / currMag;
+		return *this;
+	}
 
 	//Slightly more complex
 	DynamicVector& flipMirror(){ mag.x=-mag.x; mag.y=-mag.y; return *this;}

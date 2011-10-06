@@ -313,8 +313,7 @@ Lane DetermineNormalMedian(const vector<Lane*>& orderedPoints, Section* fwdSec, 
 		//   back by half, and take that as your point.
 		DynamicVector halfway(orderedPoints.front()->xPos, orderedPoints.front()->yPos, orderedPoints.back()->xPos, orderedPoints.back()->yPos);
 		double scaleFactor = halfway.getMagnitude() / 2.0;
-		halfway.makeUnit();
-		halfway.scaleVect(scaleFactor);
+		halfway.scaleVectTo(scaleFactor);
 		halfway.translateVect();
 
 		Lane res;
@@ -420,8 +419,8 @@ vector<LaneSingleLine> CalculateSectionGeneralAngleCandidateList(const pair<Sect
 	DynamicVector midLine(currSectPair.first->fromNode->xPos, currSectPair.first->fromNode->yPos, currSectPair.first->toNode->xPos, currSectPair.first->toNode->yPos);
 	double totalMag = midLine.getMagnitude()*bufferSz;
 	double hwDiff = (totalMag-midLine.getMagnitude())/2;
-	midLine.makeUnit().flipMirror().scaleVect(hwDiff).translateVect();
-	midLine.makeUnit().flipMirror().scaleVect(totalMag);
+	midLine.flipMirror().scaleVectTo(hwDiff).translateVect();
+	midLine.flipMirror().scaleVectTo(totalMag);
 
 	//Now, create a bounding box for our Section
 	// We first create two vectors pointing "down" from our fwd section to/past our "rev" section (if it exists). These are scaled by a small amount.
@@ -431,15 +430,13 @@ vector<LaneSingleLine> CalculateSectionGeneralAngleCandidateList(const pair<Sect
 	startEndEdges.second.translateVect().flipMirror();
 	for (size_t id=0; id<2; id++) {
 		DynamicVector& currEdge = id==0?startEndEdges.first:startEndEdges.second;
-		currEdge.makeUnit();
 		currEdge.flipNormal(id==1);
-		currEdge.scaleVect( (bufferSz/2)*(currSectPair.first->numLanes*singleLaneWidth) );
+		currEdge.scaleVectTo( (bufferSz/2)*(currSectPair.first->numLanes*singleLaneWidth) );
 		currEdge.translateVect();
 		currEdge.flipMirror();
 		if (currSectPair.second) {
 			totalMag = currEdge.getMagnitude() + (bufferSz/2)*(currSectPair.second->numLanes*singleLaneWidth);
-			currEdge.makeUnit();
-			currEdge.scaleVect(totalMag);
+			currEdge.scaleVectTo(totalMag);
 		}
 	}
 
@@ -495,7 +492,16 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const pair<Lan
 	}
 
 	//Get the distance between these two nodes.
-	double sectDist = sim_mob::dist(currSectPair.first->fromNode->xPos, currSectPair.first->fromNode->yPos, currSectPair.first->toNode->xPos, currSectPair.first->toNode->yPos);
+	//double sectDist = sim_mob::dist(currSectPair.first->fromNode->xPos, currSectPair.first->fromNode->yPos, currSectPair.first->toNode->xPos, currSectPair.first->toNode->yPos);
+
+
+	//TMP:
+	bool TMP_OUTPUT = (currSectPair.first->toNode->xPos>currSectPair.first->fromNode->xPos) && (currSectPair.first->toNode->yPos>currSectPair.first->fromNode->yPos);
+	if (TMP_OUTPUT) {
+		std::cout <<"From: " <<(int)currSectPair.first->fromNode->xPos/100 <<"," <<(int)currSectPair.first->fromNode->yPos/100 <<"\n";
+		std::cout <<"To: " <<(int)currSectPair.first->toNode->xPos/100 <<"," <<(int)currSectPair.first->toNode->yPos/100 <<"\n";
+	}
+
 
 	//Next, we simply draw lines from the previous node's lanes through this node's lanes.
 	// All lines stop when they cross the line normal to this Section's angle (which is slightly
@@ -509,21 +515,33 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const pair<Lan
 		if (!currSect) {
 			continue;
 		}
-		double magX = cos(theta);
-		double magY = sin(theta);
-		if (i==1) {
+		double magX = currSect->toNode->xPos - currSect->fromNode->xPos;
+		double magY = currSect->toNode->yPos - currSect->fromNode->yPos;
+		double magSect = sqrt(magX*magX + magY*magY);
+		/*if (i==1) {
 			magX = -magX;
 			magY = -magY;
+		}*/
+
+		//TMP
+		if (TMP_OUTPUT) {
+			std::cout <<"  theta: " <<theta <<"\n";
+			std::cout <<"  magX: " <<magX <<" , magY: " <<magY << " , total: " <<magSect <<"\n";
 		}
+
+
 		DynamicVector originPt(currSect->fromNode->xPos, currSect->fromNode->yPos, currSect->fromNode->xPos+magX, currSect->fromNode->yPos+magY);
 		originPt.flipNormal(false);
 
-		//For each laneID, scale the originPt and go from there
-		for (size_t laneID=0; laneID<=(size_t)currSect->numLanes; laneID++) {
-			//Scale our vector
-			originPt.makeUnit().scaleVect(singleLaneWidth);
 
-			if (currSect) {
+		//For each laneID, scale the originPt and go from there
+		if (currSect) {
+			for (size_t laneID=0; laneID<=(size_t)currSect->numLanes; laneID++) {
+				//TMP
+				if (TMP_OUTPUT) {
+					std::cout <<"  origin now at: " <<(int)originPt.getX()/100 <<"," <<(int)originPt.getY()/100 <<"\n";
+				}
+
 				//Ensure our vector is sized properly
 				while (currSect->lanePolylinesForGenNode.size()<=laneID) {
 					currSect->lanePolylinesForGenNode.push_back(std::vector<sim_mob::Point2D>());
@@ -531,17 +549,18 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const pair<Lan
 
 				//Create a vector to the ending point
 				DynamicVector laneVect(originPt.getX(), originPt.getY(), originPt.getX()+magX, originPt.getY()+magY);
-				laneVect.makeUnit().scaleVect(sectDist);
+				laneVect.scaleVectTo(magSect);
 
 				//Add the starting point, ending point
 				sim_mob::Point2D startPt((int)laneVect.getX(), (int)laneVect.getY());
 				sim_mob::Point2D endPt((int)laneVect.getEndX(), (int)laneVect.getEndY());
 				currSect->lanePolylinesForGenNode[laneID].push_back(startPt);
 				currSect->lanePolylinesForGenNode[laneID].push_back(endPt);
-			}
 
-			//Scale the starting vector
-			originPt.translateVect();
+				//Scale the starting vector
+				originPt.scaleVectTo(singleLaneWidth);
+				originPt.translateVect();
+			}
 		}
 	}
 }

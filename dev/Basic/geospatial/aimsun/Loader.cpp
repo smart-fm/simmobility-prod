@@ -14,6 +14,8 @@
 #include "soci/soci.h"
 #include "soci-postgresql.h"
 
+#include "CrossingLoader.hpp"
+
 #include "../Point2D.hpp"
 #include "../Node.hpp"
 #include "../UniNode.hpp"
@@ -28,6 +30,7 @@
 
 #include "../../util/DynamicVector.hpp"
 #include "../../util/OutputUtil.hpp"
+#include "../../util/GeomHelpers.hpp"
 
 #include "Node.hpp"
 #include "Section.hpp"
@@ -264,8 +267,8 @@ void SortLaneLine(vector<Lane*>& laneLine, std::pair<Node*, Node*> nodes)
 	bool flipLater = false;
 	vector<Lane*>::iterator currLane = laneLine.end();
 	for (vector<Lane*>::iterator it=laneLine.begin(); it!=laneLine.end(); it++) {
-		double distFwd = distLaneNode(*it, nodes.first);
-		double distRev = distLaneNode(*it, nodes.second);
+		double distFwd = sim_mob::dist(*it, nodes.first);
+		double distRev = sim_mob::dist(*it, nodes.second);
 		double newDist = std::min(distFwd, distRev);
 		if (currLane==laneLine.end() || newDist<currDist) {
 			currDist = newDist;
@@ -284,7 +287,7 @@ void SortLaneLine(vector<Lane*>& laneLine, std::pair<Node*, Node*> nodes)
 
 		//Pick the next lane
 		for (vector<Lane*>::iterator it=laneLine.begin(); it!=laneLine.end(); it++) {
-			double newDist = distLaneLane(res.back(), *it);
+			double newDist = sim_mob::dist(res.back(), *it);
 			if (currLane==laneLine.end() || newDist<currDist) {
 				currDist = newDist;
 				currLane = it;
@@ -478,7 +481,7 @@ struct LaneSingleLine { //Used to represent a set of Lanes by id.
 		Lane* pastLane = nullptr;
 		for (vector<Lane*>::iterator currLane=points.begin(); currLane!=points.end(); currLane++) {
 			if (pastLane) {
-				double currLen = distLaneLane(pastLane, *currLane);
+				double currLen = sim_mob::dist(pastLane, *currLane);
 				if (currLen > maxLen) {
 					maxLen = currLen;
 					angle = ComputeAngle(pastLane, *currLane);
@@ -601,7 +604,7 @@ double getClosestPoint(const vector<Lane*>& candidates, double xPos, double yPos
 	//Search
 	pair<double, Lane*> res(0.0, nullptr);
 	for (vector<Lane*>::const_iterator it=candidates.begin(); it!=candidates.end(); it++) {
-		double currDist = distLaneLane(&origin, *it);
+		double currDist = sim_mob::dist(&origin, *it);
 		if (!res.second || currDist<res.first) {
 			res.first = currDist;
 			res.second = *it;
@@ -706,7 +709,7 @@ Lane* GetX_EstPoint(Lane* from, const vector<Lane*>& points, int sign)
 {
 	pair<Lane*, double> res(nullptr, 0.0);
 	for (vector<Lane*>::const_iterator it=points.begin(); it!=points.end(); it++) {
-		double currDist = distLaneLane(from, *it);
+		double currDist = sim_mob::dist(from, *it);
 		if (!res.first || currDist*sign < res.second*sign) {
 			res.first = *it;
 			res.second = currDist;
@@ -931,7 +934,7 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const pair<Lan
 	}
 
 	//Get the distance between these two nodes.
-	double sectDist = dist(currSectPair.first->fromNode->xPos, currSectPair.first->fromNode->yPos, currSectPair.first->toNode->xPos, currSectPair.first->toNode->yPos);
+	double sectDist = sim_mob::dist(currSectPair.first->fromNode->xPos, currSectPair.first->fromNode->yPos, currSectPair.first->toNode->xPos, currSectPair.first->toNode->yPos);
 
 	//Next, we simply draw lines from the previous node's lanes through this node's lanes.
 	// All lines stop when they cross the line normal to this Section's angle (which is slightly

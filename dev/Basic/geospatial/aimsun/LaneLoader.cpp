@@ -463,6 +463,14 @@ vector<LaneSingleLine> CalculateSectionGeneralAngleCandidateList(const pair<Sect
 
 
 
+double ComputeAngle(Node* start, Node* end) {
+	double dx = end->xPos - start->xPos;
+	double dy = end->yPos - start->yPos;
+	return atan2(dy, dx);
+}
+
+
+
 void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const pair<Lane, Lane>& medianEndpoints, int singleLaneWidth)
 {
 	//First, we need a general idea of the angles in this Section.
@@ -476,6 +484,14 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const pair<Lan
 	for (vector<LaneSingleLine>::iterator it=candidateLines.begin(); it!=candidateLines.end(); it++) {
 		it->computeAndSaveAngle();
 		theta += it->angle/candidateLines.size();
+	}
+
+	//Get the fwd-direction start=>end angle for comparison. If it differs by more than 15 degrees, don't bother adding it.
+	double mundaneTheta = ComputeAngle(currSectPair.first->fromNode, currSectPair.first->toNode);
+	double angleDiff = std::min(2*M_PI - fabs(mundaneTheta-theta), fabs(mundaneTheta-theta));
+	if (angleDiff>0.261799388) {
+		//TODO: For now, we keep all output. Re-enable later.
+		//return;
 	}
 
 	//Get the distance between these two nodes.

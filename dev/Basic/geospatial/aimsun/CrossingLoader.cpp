@@ -7,8 +7,10 @@
 #include "../../util/GeomHelpers.hpp"
 #include "Section.hpp"
 #include "../RoadSegment.hpp"
+#include "../Crossing.hpp"
 
 
+using std::pair;
 using std::map;
 using std::vector;
 using namespace sim_mob::aimsun;
@@ -42,6 +44,19 @@ bool calculateIntersection(const Crossing* const p1, const Crossing* p2, const S
 	yRes = (co1*(y3-y4) - co2*(y1-y2)) / denom;
 	return true;
 }
+
+//Retrieve the minimum value in a list of IDs
+int minID(const vector<double>& vals)
+{
+	int res = -1;
+	for (size_t i=0; i<vals.size(); i++) {
+		if (res==-1 || (vals[i]<vals[res])) {
+			res = i;
+		}
+	}
+	return res;
+}
+
 
 } //End anon namespace
 
@@ -144,9 +159,9 @@ void sim_mob::aimsun::CrossingLoader::GenerateACrossing(sim_mob::RoadNetwork& re
 			//Our method is pretty simple; compute the combined distance from each point to each other. The one
 			//  with the smallest combined distance is in the middle of the other 2, and can be removed.
 			vector<double> dists;
-			dists.push_back(distCrossing(candidates[0], candidates[1]) + distCrossing(candidates[0], candidates[2]));
-			dists.push_back(distCrossing(candidates[1], candidates[0]) + distCrossing(candidates[1], candidates[2]));
-			dists.push_back(distCrossing(candidates[2], candidates[0]) + distCrossing(candidates[2], candidates[1]));
+			dists.push_back(sim_mob::dist(candidates[0], candidates[1]) + sim_mob::dist(candidates[0], candidates[2]));
+			dists.push_back(sim_mob::dist(candidates[1], candidates[0]) + sim_mob::dist(candidates[1], candidates[2]));
+			dists.push_back(sim_mob::dist(candidates[2], candidates[0]) + sim_mob::dist(candidates[2], candidates[1]));
 			int pMin = minID(dists);
 			if (pMin==-1) {
 				std::cout <<"ERROR: No minimum point.\n";

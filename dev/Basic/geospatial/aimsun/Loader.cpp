@@ -59,18 +59,6 @@ bool polyline_sorter (const Polyline* const p1, const Polyline* const p2)
 
 
 
-int minID(const vector<double>& vals)
-{
-	int res = -1;
-	for (size_t i=0; i<vals.size(); i++) {
-		if (res==-1 || (vals[i]<vals[res])) {
-			res = i;
-		}
-	}
-	return res;
-}
-
-
 void LoadNodes(soci::session& sql, const std::string& storedProc, map<int, Node>& nodelist)
 {
 	//Our SQL statement

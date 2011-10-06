@@ -134,8 +134,8 @@ sim_mob::Worker<EntityType>::Worker(actionFunction* action, boost::barrier* inte
     : BufferedDataManager(),
       internal_barr(internal_barr), external_barr(external_barr), action(action),
       endTick(endTick),
-      active(/*this, */false),  //Passing the "this" pointer is probably ok, since we only use the base class (which is constructed)
-      auraManagerActive(auraManagerActive)
+      auraManagerActive(auraManagerActive),
+      active(/*this, */false)  //Passing the "this" pointer is probably ok, since we only use the base class (which is constructed)
 {
 	this->beginManaging(&active);
 }

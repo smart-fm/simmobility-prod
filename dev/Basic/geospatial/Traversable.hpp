@@ -12,6 +12,10 @@ namespace sim_mob
 //Forward declarations
 class Node;
 
+namespace aimsun {
+class CrossingLoader;
+}
+
 
 /**
  * Base class for geospatial items which take up physical space and can be traversed.
@@ -34,6 +38,8 @@ public:
 protected:
 	sim_mob::Node* start;
 	sim_mob::Node* end;
+
+	friend class sim_mob::aimsun::CrossingLoader;
 
 
 

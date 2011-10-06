@@ -3,6 +3,7 @@
 #include <string>
 
 #include "Base.hpp"
+#include "../Point2D.hpp"
 #include "../../constants.h"
 
 namespace sim_mob

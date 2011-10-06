@@ -4,8 +4,10 @@
 
 #include <vector>
 #include <cmath>
+#include <map>
 
 #include "Base.hpp"
+#include "../../constants.h"
 
 namespace sim_mob
 {

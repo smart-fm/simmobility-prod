@@ -21,7 +21,7 @@ PFont f2;
 boolean paintCrossings = true;
 
 //Turn on/off lanes
-boolean paintLanes = true;
+boolean paintLanes = false;
 boolean paintLaneShapes = true;
 boolean paintWraparound = false;
 boolean displayIgnoredLines = false;

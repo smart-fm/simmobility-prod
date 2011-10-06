@@ -19,6 +19,7 @@ namespace aimsun
 {
 //Forward declaration
 class Loader;
+class LaneLoader;
 } //End aimsun namespace
 
 
@@ -69,6 +70,7 @@ private:
 	sim_mob::Link* parentLink;
 
 friend class sim_mob::aimsun::Loader;
+friend class sim_mob::aimsun::LaneLoader;
 
 
 };

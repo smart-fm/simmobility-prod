@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 
+#include "DynamicVector.hpp"
+
 
 //Helper functions for geometric calculations
 
@@ -30,6 +32,12 @@ double dist(const sim_mob::aimsun::Lane* ln1, const sim_mob::aimsun::Lane* ln2);
 bool lineContains(double ax, double ay, double bx, double by, double cx, double cy);
 bool lineContains(const sim_mob::aimsun::Crossing* p1, const sim_mob::aimsun::Crossing* p2, double xPos, double yPos);
 bool lineContains(const sim_mob::aimsun::Section* sec, double xPos, double yPos);
+
+
+//Check if a point is left or right of a vector.
+bool PointIsLeftOfVector(double ax, double ay, double bx, double by, double cx, double cy);
+bool PointIsLeftOfVector(const sim_mob::aimsun::Node* vecStart, const sim_mob::aimsun::Node* vecEnd, const sim_mob::aimsun::Lane* point);
+bool PointIsLeftOfVector(const sim_mob::DynamicVector& vec, const sim_mob::aimsun::Lane* point);
 
 
 

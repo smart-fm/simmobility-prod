@@ -43,3 +43,21 @@ bool sim_mob::lineContains(const aimsun::Section* sec, double xPos, double yPos)
 {
 	return lineContains(sec->fromNode->xPos, sec->fromNode->yPos, sec->toNode->xPos, sec->toNode->yPos, xPos, yPos);
 }
+
+
+
+bool sim_mob::PointIsLeftOfVector(double ax, double ay, double bx, double by, double cx, double cy)
+{
+	//Via cross-product
+	return ((bx - ax)*(cy - ay) - (by - ay)*(cx - ax)) > 0;
+}
+bool sim_mob::PointIsLeftOfVector(const aimsun::Node* vecStart, const aimsun::Node* vecEnd, const aimsun::Lane* point)
+{
+	return PointIsLeftOfVector(vecStart->xPos, vecStart->yPos, vecEnd->xPos, vecEnd->yPos, point->xPos, point->yPos);
+}
+bool sim_mob::PointIsLeftOfVector(const DynamicVector& vec, const aimsun::Lane* point)
+{
+	return PointIsLeftOfVector(vec.getX(), vec.getY(), vec.getEndX(), vec.getEndY(), point->xPos, point->yPos);
+}
+
+

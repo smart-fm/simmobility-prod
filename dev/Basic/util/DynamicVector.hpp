@@ -2,8 +2,6 @@
 
 #include <cmath>
 
-#include <iostream>
-
 namespace sim_mob
 {
 
@@ -52,13 +50,6 @@ public:
 		//      to introduce accuracy errors, since 1 "unit" is a very small number of centimeters.
 		//      That is why this function factors in the unit vector in the same step.
 		double factor = val/getMagnitude(); //Dividing first is usually slightly more accurate
-
-		if (fabs(val-11821.5)<1.0) {
-			std::cout <<"     mags: " <<mag.x <<"," <<mag.y <<"\n";
-			std::cout <<"     factor_comp: " <<val <<"," <<getMagnitude() <<"\n";
-			std::cout <<"     factor: " <<factor <<"\n";
-		}
-
 		mag.x = factor*mag.x;
 		mag.y = factor*mag.y;
 		return *this;

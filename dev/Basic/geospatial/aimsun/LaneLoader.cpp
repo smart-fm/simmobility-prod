@@ -491,17 +491,6 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const pair<Lan
 		//return;
 	}
 
-	//Get the distance between these two nodes.
-	//double sectDist = sim_mob::dist(currSectPair.first->fromNode->xPos, currSectPair.first->fromNode->yPos, currSectPair.first->toNode->xPos, currSectPair.first->toNode->yPos);
-
-
-	//TMP:
-	bool TMP_OUTPUT = currSectPair.first->fromNode->id==48718 && currSectPair.first->toNode->id==90616;
-	if (TMP_OUTPUT) {
-		std::cout <<"From: " <<(int)currSectPair.first->fromNode->xPos/100 <<"," <<(int)currSectPair.first->fromNode->yPos/100 <<"\n";
-		std::cout <<"To: " <<(int)currSectPair.first->toNode->xPos/100 <<"," <<(int)currSectPair.first->toNode->yPos/100 <<"\n";
-	}
-
 
 	//Next, we simply draw lines from the previous node's lanes through this node's lanes.
 	// All lines stop when they cross the line normal to this Section's angle (which is slightly
@@ -519,12 +508,6 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const pair<Lan
 		double magY = currSect->toNode->yPos - currSect->fromNode->yPos;
 		double magSect = sqrt(magX*magX + magY*magY);
 
-		//TMP
-		if (TMP_OUTPUT) {
-			std::cout <<"  theta: " <<theta <<"\n";
-			std::cout <<"  magX: " <<magX <<" , magY: " <<magY << " , total: " <<magSect <<"\n";
-		}
-
 
 		DynamicVector originPt(currSect->fromNode->xPos, currSect->fromNode->yPos, currSect->fromNode->xPos+magX, currSect->fromNode->yPos+magY);
 		originPt.flipNormal(false);
@@ -533,12 +516,6 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const pair<Lan
 		//For each laneID, scale the originPt and go from there
 		if (currSect) {
 			for (size_t laneID=0; laneID<=(size_t)currSect->numLanes; laneID++) {
-				//TMP
-				TMP_OUTPUT = TMP_OUTPUT && i==0;
-				if (TMP_OUTPUT) {
-					std::cout <<"  origin now at: " <<(int)originPt.getX()/100 <<"," <<(int)originPt.getY()/100 <<"\n";
-				}
-
 				//Ensure our vector is sized properly
 				while (currSect->lanePolylinesForGenNode.size()<=laneID) {
 					currSect->lanePolylinesForGenNode.push_back(std::vector<sim_mob::Point2D>());
@@ -547,10 +524,6 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const pair<Lan
 				//Create a vector to the ending point
 				DynamicVector laneVect(originPt.getX(), originPt.getY(), originPt.getX()+magX, originPt.getY()+magY);
 				laneVect.scaleVectTo(magSect);
-
-				if (TMP_OUTPUT) {
-					std::cout <<"  lane vector: " <<(int)laneVect.getX()/100 <<"," <<(int)laneVect.getY()/100 <<" ==> " <<(int)laneVect.getEndX()/100 <<"," <<(int)laneVect.getEndY()/100 <<"\n";
-				}
 
 				//Add the starting point, ending point
 				sim_mob::Point2D startPt((int)laneVect.getX(), (int)laneVect.getY());

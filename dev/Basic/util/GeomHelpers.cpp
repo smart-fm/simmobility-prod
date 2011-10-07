@@ -25,6 +25,9 @@ double sim_mob::dist(const aimsun::Lane* ln, const aimsun::Node* nd) {
 double sim_mob::dist(const aimsun::Lane* ln1, const aimsun::Lane* ln2) {
 	return dist(ln1->xPos, ln1->yPos, ln2->xPos, ln2->yPos);
 }
+double sim_mob::dist(const aimsun::Node* n1, const aimsun::Node* n2) {
+	return dist(n1->xPos, n1->yPos, n2->xPos, n2->yPos);
+}
 
 
 bool sim_mob::lineContains(double ax, double ay, double bx, double by, double cx, double cy)

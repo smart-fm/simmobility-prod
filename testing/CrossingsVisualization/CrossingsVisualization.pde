@@ -596,21 +596,7 @@ void draw()
     ellipse((float)n.pos.getX(), (float)n.pos.getY(), NODE_SIZE, NODE_SIZE);
   }
   
-  //Draw all Cross Shapes
-  if (paintCrossings) {
-    strokeWeight(2.0);
-    stroke(csStroke);
-    fill(csFill);
-    for (CrossShape cs : crossshapes) {
-      beginShape();
-      vertex((float)cs.near1.getX(), (float)cs.near1.getY());
-      vertex((float)cs.near2.getX(), (float)cs.near2.getY());
-      vertex((float)cs.far2.getX(), (float)cs.far2.getY());
-      vertex((float)cs.far1.getX(), (float)cs.far1.getY());
-      endShape(CLOSE);
-    }
-  }
-  
+
   //Draw all Lane Shapes
   if (paintLaneShapes) {
     stroke(lsStroke);
@@ -642,6 +628,22 @@ void draw()
       }
     }
   }
+  
+  //Draw all Cross Shapes
+  if (paintCrossings) {
+    strokeWeight(2.0);
+    stroke(csStroke);
+    fill(csFill);
+    for (CrossShape cs : crossshapes) {
+      beginShape();
+      vertex((float)cs.near1.getX(), (float)cs.near1.getY());
+      vertex((float)cs.near2.getX(), (float)cs.near2.getY());
+      vertex((float)cs.far2.getX(), (float)cs.far2.getY());
+      vertex((float)cs.far1.getX(), (float)cs.far1.getY());
+      endShape(CLOSE);
+    }
+  }
+  
   
   //Draw all sections
   strokeWeight(2.0);

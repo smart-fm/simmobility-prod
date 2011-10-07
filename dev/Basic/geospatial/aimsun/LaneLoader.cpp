@@ -468,7 +468,7 @@ double ComputeAngle(Node* start, Node* end) {
 
 
 
-void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const pair<Lane, Lane>& medianEndpoints, int singleLaneWidth)
+void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const Node* const startNode, const Node* const endNode, const pair<Lane, Lane>& medianEndpoints, int singleLaneWidth)
 {
 	//First, we need a general idea of the angles in this Section.
 	vector<LaneSingleLine> candidateLines = CalculateSectionGeneralAngleCandidateList(currSectPair, singleLaneWidth, 0.034906585); //Within about 2 degrees
@@ -487,7 +487,7 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const pair<Lan
 	double mundaneTheta = ComputeAngle(currSectPair.first->fromNode, currSectPair.first->toNode);
 	double angleDiff = std::min(2*M_PI - fabs(mundaneTheta-theta), fabs(mundaneTheta-theta));
 	if (angleDiff>0.261799388) {
-		//TODO: For now, we keep all output. Re-enable later.
+		//TODO: For now, we have no misbehaving output. May want to re-enable later.
 		//return;
 	}
 
@@ -504,14 +504,35 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const pair<Lan
 		if (!currSect) {
 			continue;
 		}
-		double magX = currSect->toNode->xPos - currSect->fromNode->xPos;
-		double magY = currSect->toNode->yPos - currSect->fromNode->yPos;
-		double magSect = sqrt(magX*magX + magY*magY);
+		const double magX = currSect->toNode->xPos - currSect->fromNode->xPos;
+		const double magY = currSect->toNode->yPos - currSect->fromNode->yPos;
+		const double magSect = sqrt(magX*magX + magY*magY);
 
-
+		//Create the "origin" point, which goes "from"=>"to" the current section.
 		DynamicVector originPt(currSect->fromNode->xPos, currSect->fromNode->yPos, currSect->fromNode->xPos+magX, currSect->fromNode->yPos+magY);
 		originPt.flipNormal(false);
 
+		//Calculate "offsets" for the origin. This occurs if either the start or end is a MultiNode start/end.
+		//The offset is the distance from the node's center to the median point.
+		pair<double, double> originOffsets(0.0, 0.0);
+		if (currSect->fromNode==startNode) {
+			originOffsets.first = sim_mob::dist(&medianEndpoints.first, startNode);
+		} else if (currSect->fromNode==endNode) {
+			originOffsets.first = sim_mob::dist(&medianEndpoints.first, startNode);
+		}
+		if (currSect->toNode==startNode) {
+			originOffsets.second = sim_mob::dist(&medianEndpoints.second, endNode);
+		} else if (currSect->toNode==endNode) {
+			originOffsets.second = sim_mob::dist(&medianEndpoints.second, endNode);
+		}
+
+		//TEMP: For now, our "median" point is somewhat in error, so we manually scale it back to 20m
+		if (originOffsets.first) {
+			originOffsets.first = 20 *100;
+		}
+		if (originOffsets.second) {
+			originOffsets.second = 20 *100;
+		}
 
 		//For each laneID, scale the originPt and go from there
 		if (currSect) {
@@ -521,9 +542,19 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const pair<Lan
 					currSect->lanePolylinesForGenNode.push_back(std::vector<sim_mob::Point2D>());
 				}
 
-				//Create a vector to the ending point
+				//Create a vector in the direction of the ending point.
 				DynamicVector laneVect(originPt.getX(), originPt.getY(), originPt.getX()+magX, originPt.getY()+magY);
-				laneVect.scaleVectTo(magSect);
+
+				//Scale the starting point.
+				double remMag = magSect;
+				if (originOffsets.first>0.0) {
+					laneVect.scaleVectTo(originOffsets.first).translateVect();
+					remMag -= originOffsets.first;
+				}
+				if (originOffsets.second>0.0) {
+					remMag -= originOffsets.second;
+				}
+				laneVect.scaleVectTo(remMag);
 
 				//Add the starting point, ending point
 				sim_mob::Point2D startPt((int)laneVect.getX(), (int)laneVect.getY());
@@ -672,7 +703,7 @@ void sim_mob::aimsun::LaneLoader::GenerateLinkLaneZero(const sim_mob::RoadNetwor
 	size_t maxLoops = linkSections.size() + 1;
 	for (; currSectPair.first || currSectPair.second ;) { //Loop as long as we have data to operate on.
 		//Compute and save lanes for this Section and its reverse
-		CalculateSectionLanes(currSectPair, medianEndpoints, singleLaneWidth);
+		CalculateSectionLanes(currSectPair, start, end, medianEndpoints, singleLaneWidth);
 		if (currSectPair.first) {
 			currSectPair.first->generatedSegment->lanePolylines_cached = currSectPair.first->lanePolylinesForGenNode;
 		}

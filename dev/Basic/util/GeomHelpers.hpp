@@ -26,6 +26,7 @@ double dist(double x1, double y1, double x2, double y2);
 double dist(const sim_mob::aimsun::Crossing* c1, const sim_mob::aimsun::Crossing* c2);
 double dist(const sim_mob::aimsun::Lane* ln, const sim_mob::aimsun::Node* nd);
 double dist(const sim_mob::aimsun::Lane* ln1, const sim_mob::aimsun::Lane* ln2);
+double dist(const sim_mob::aimsun::Node* n1, const sim_mob::aimsun::Node* n2);
 
 
 //Check if an intersection point is actually on a line segment

@@ -705,10 +705,10 @@ void sim_mob::aimsun::LaneLoader::GenerateLinkLaneZero(const sim_mob::RoadNetwor
 		//Compute and save lanes for this Section and its reverse
 		CalculateSectionLanes(currSectPair, start, end, medianEndpoints, singleLaneWidth);
 		if (currSectPair.first) {
-			currSectPair.first->generatedSegment->lanePolylines_cached = currSectPair.first->lanePolylinesForGenNode;
+			currSectPair.first->generatedSegment->specifyEdgePolylines(currSectPair.first->lanePolylinesForGenNode);
 		}
 		if (currSectPair.second) {
-			currSectPair.second->generatedSegment->lanePolylines_cached = currSectPair.second->lanePolylinesForGenNode;
+			currSectPair.second->generatedSegment->specifyEdgePolylines(currSectPair.second->lanePolylinesForGenNode);
 		}
 
 		//Get the next Section

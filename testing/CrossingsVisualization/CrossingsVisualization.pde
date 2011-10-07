@@ -92,6 +92,8 @@ color csStroke = color(0x00, 0x77, 0x00);
 color csFill   = color(0xAA, 0xFF, 0xAA);
 color lsStroke = color(0x00, 0x00, 0x55);
 color lsFill   = color(0xAA, 0xAA, 0xFF);
+color lsStrokeSW = color(0x55, 0x00, 0x00);
+color lsFillSW   = color(0xFF, 0xAA, 0xAA);
 color crossingLines = color(0x99, 0x00, 0x99);
 Hashtable<String, Integer> laneColors = new Hashtable<String, Integer>();
 void populateLaneColorsTable() {
@@ -303,6 +305,7 @@ class CrossShape {
 Hashtable<MySeg, LaneShape> laneshapes = new Hashtable<MySeg, LaneShape>();
 class LaneShape {
   ArrayList< ArrayList<ScaledPoint> > laneLines = new ArrayList< ArrayList<ScaledPoint> >(); //0 is the median, size()-1 is the outer-most lane.
+  boolean isSidewalk;
 };
 
 
@@ -599,11 +602,17 @@ void draw()
 
   //Draw all Lane Shapes
   if (paintLaneShapes) {
-    stroke(lsStroke);
-    fill(lsFill);
     for (LaneShape ls : laneshapes.values()) {
       ArrayList<ScaledPoint> medianLine = ls.laneLines.get(0);
       ArrayList<ScaledPoint> outerLine = ls.laneLines.get(ls.laneLines.size()-1);
+      
+      if (ls.isSidewalk) {
+        stroke(lsStrokeSW);
+        fill(lsFillSW);
+      } else {
+        stroke(lsStroke);
+        fill(lsFill);
+      }
       
       strokeWeight(2.0);
       beginShape();
@@ -1076,7 +1085,7 @@ void readDecoratedData(String path) {
     String type = m.group(1);
     
     //No need to continue?
-    if (!type.equals("multi-node") && !type.equals("uni-node") && !type.equals("tmp-circular") && !type.equals("road-segment") && !type.equals("crossing") && !type.equals("tmp-lane")) {
+    if (!type.equals("multi-node") && !type.equals("uni-node") && !type.equals("tmp-circular") && !type.equals("road-segment") && !type.equals("crossing") && !type.equals("lane")) {
       continue;
     }
     
@@ -1110,7 +1119,7 @@ void readDecoratedData(String path) {
     String[] circReqKeys = new String[]{"at-node", "at-segment", "fwd", "number"};
     String[] segReqKeys = new String[]{"from-node", "to-node"};
     String[] crossReqKeys = new String[]{"near-1", "near-2", "far-1", "far-2"};
-    String[] laneReqKeys = new String[]{"parent-segment", "line-0"};
+    String[] laneReqKeys = new String[]{"parent-segment", "is-sidewalk", "line-0"};
     if (type.equals("multi-node") || type.equals("uni-node")) {
       //Check.
       for (String reqKey : nodeReqKeys) {
@@ -1197,7 +1206,7 @@ void readDecoratedData(String path) {
 
       //Save
       crossshapes.add(new CrossShape(near1, near2, far1, far2));
-    } else if (type.equals("tmp-lane")) {
+    } else if (type.equals("lane")) {
       //Check.
       for (String reqKey : laneReqKeys) {
         if (!properties.containsKey(reqKey)) {
@@ -1212,6 +1221,7 @@ void readDecoratedData(String path) {
           throw new RuntimeException("No parent segment with ID: " + segmentID);
       }
       LaneShape ls = new LaneShape();
+      ls.isSidewalk = myParseBool(properties.get("is-sidewalk"));
       boolean hasNeg = false;
       for (int laneLineID=0; properties.containsKey("line-"+laneLineID); laneLineID++) {
         ls.laneLines.add(new ArrayList<ScaledPoint>());
@@ -1257,12 +1267,9 @@ ScaledPoint myParseScaled(String combined)  {
 
 
 boolean myParseBool(String input) {
-    if (input.length()!=1) {
-      throw new RuntimeException("Bad boolean input: " + input);
-    }
-    if (input.charAt(0) == 't') {
+    if (input.equals("true") || input.equals("t")) {
       return true;
-    } else if (input.charAt(0) == 'f') {
+    } else if (input.equals("false") || input.equals("f"))  {
       return false;
     }
   throw new RuntimeException("Bad boolean input: " + input);

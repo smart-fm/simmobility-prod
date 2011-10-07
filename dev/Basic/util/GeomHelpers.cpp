@@ -1,6 +1,7 @@
 #include "GeomHelpers.hpp"
 
 
+#include "../geospatial/Point2D.hpp"
 #include "../geospatial/aimsun/Lane.hpp"
 #include "../geospatial/aimsun/Node.hpp"
 #include "../geospatial/aimsun/Section.hpp"
@@ -27,6 +28,9 @@ double sim_mob::dist(const aimsun::Lane* ln1, const aimsun::Lane* ln2) {
 }
 double sim_mob::dist(const aimsun::Node* n1, const aimsun::Node* n2) {
 	return dist(n1->xPos, n1->yPos, n2->xPos, n2->yPos);
+}
+double sim_mob::dist(const Point2D* p1, const Point2D* p2) {
+	return dist(p1->getX(), p1->getY(), p2->getX(), p2->getY());
 }
 
 

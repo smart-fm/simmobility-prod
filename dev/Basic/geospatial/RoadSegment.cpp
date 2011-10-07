@@ -3,6 +3,8 @@
 #include "RoadSegment.hpp"
 
 #include "Lane.hpp"
+#include "../util/DynamicVector.hpp"
+#include "../util/GeomHelpers.hpp"
 
 using namespace sim_mob;
 
@@ -36,26 +38,122 @@ pair<int, const Lane*> sim_mob::RoadSegment::translateRawLaneID(unsigned int raw
 }
 
 
-const vector<Point2D>& sim_mob::RoadSegment::getLanePolyline(unsigned int laneID) const
+
+void sim_mob::RoadSegment::specifyEdgePolylines(const vector< vector<Point2D> >& calcdPolylines)
 {
-	//Expand the cached vector. Only do this ONCE, so that references are never invalidated.
-	if (lanePolylines_cached.size() != lanes.size()+1) {
-		if (!lanePolylines_cached.empty()) {
-			//NOTE: I'm throwing an exception for now. We need to decide error handling in our framework
-			//      sometime soon. ~Seth
-			throw std::runtime_error("Attempting to resize active polyline cache.");
+	//Save the edge polylines.
+	laneEdgePolylines_cached = calcdPolylines;
+
+	//TODO: Optionally reset this Segment's own polyline to laneEdge[0].
+}
+
+
+///This function forces a rebuild of all Lane and LaneEdge polylines.
+///There are two ways to calculate the polyline. First, if the parent RoadSegment's "laneEdgePolylines_cached"
+/// is non-empty, we can simply take the left lane line and continuously project it onto the right lane line
+/// (then scale it back halfway). If these data points are not available, we have to compute it based on the
+/// RoadSegment's polyline, which might be less accurate.
+///We compute all points at once, since calling getLanePolyline() and then getLaneEdgePolyline() might
+/// leave the system in a questionable state.
+void sim_mob::RoadSegment::syncLanePolylines() const
+{
+	//First, rebuild the Lane polylines; these will never be specified in advance.
+	bool edgesExist = !laneEdgePolylines_cached.empty();
+	if (!edgesExist) {
+		//TODO: The segment width should be saved in the DB somehow? It shouldn't be stored here, that's for sure.
+		width = 300 * lanes.size();
+	}
+
+	for (size_t i=0; i<lanes.size(); i++) {
+		if (edgesExist) {
+			makeLanePolylineFromEdges(lanes[i], laneEdgePolylines_cached[i], laneEdgePolylines_cached[i+1]);
+		} else {
+			lanes[i]->makePolylineFromParentSegment();
 		}
-		lanePolylines_cached.resize(lanes.size(), vector<Point2D>());
 	}
 
-	//Now, rebuild the polylines as needed. We are guaranteed that the minimum number of points
-	//     in a polyline will be 2 (start and end).
-	if (lanePolylines_cached[laneID].empty()) {
-		//TODO: Offset and build the polyline.
-		throw std::runtime_error("not_implemented");
+	//Next, if our edges array doesn't exist, re-generate it from the computed lanes.
+	if (!edgesExist) {
+		for (size_t i=0; i<=lanes.size(); i++) {
+			bool edgeIsRight = i<lanes.size();
+			laneEdgePolylines_cached.push_back(makeLaneEdgeFromPolyline(lanes[edgeIsRight?i:i-1], edgeIsRight));
+		}
+	}
+}
+
+
+vector<Point2D> sim_mob::RoadSegment::makeLaneEdgeFromPolyline(Lane* refLane, bool edgeIsRight) const
+{
+	//Sanity check
+	if (refLane->polyline_.size()<=1) {
+		throw std::runtime_error("Can't manage with a Lane polyline of 0 or 1 points.");
+	}
+	if (refLane->width_==0) {
+		throw std::runtime_error("Can't manage with a Segment/Lane with zero width.");
 	}
 
-	return lanePolylines_cached[laneID];
+	//Create a vector from start to end
+	DynamicVector fullLine(refLane->polyline_.front().getX(), refLane->polyline_.front().getY(), refLane->polyline_.back().getX(), refLane->polyline_.back().getY());
+
+	//Iterate over every point on the midline
+	vector<Point2D> res;
+	const Point2D* lastPt = nullptr;
+	for (vector<Point2D>::const_iterator it=refLane->polyline_.begin(); it!=refLane->polyline_.end(); it++) {
+		//Scale and translate the primary vector?
+		if (lastPt) {
+			double segDist = sim_mob::dist(lastPt, &(*it));
+			fullLine.scaleVectTo(segDist).translateVect();
+		}
+
+		//Make another vector, rotate right/left, scale half the width and add it to our result.
+		DynamicVector currLine(fullLine);
+		currLine.flipNormal(edgeIsRight).scaleVectTo(refLane->width_/2.0).translateVect();
+		res.push_back(Point2D(currLine.getX(), currLine.getY()));
+
+		//Save for the next round
+		lastPt = &(*it);
+	}
+
+	//TEMP:
+	/*std::cout <<"Line: " <<edgeIsRight <<"\n";
+	std::cout <<"  Median:" <<refLane->polyline_.front().getX() <<"," <<refLane->polyline_.front().getY() <<" => " <<refLane->polyline_.back().getX() <<"," <<refLane->polyline_.back().getY()  <<"\n";
+	std::cout <<"  Edge:" <<res.front().getX() <<"," <<res.front().getY() <<" => " <<res.back().getX() <<"," <<res.back().getY()  <<"\n";*/
+
+	return res;
+}
+
+
+
+void sim_mob::RoadSegment::makeLanePolylineFromEdges(Lane* lane, const vector<Point2D>& inner, const vector<Point2D>& outer) const
+{
+	//Sanity check
+	if (outer.size()<=1 || inner.size()<=1) {
+		throw std::runtime_error("Can't manage with a Lane Edge polyline of 0 or 1 points.");
+	}
+
+	//Get the offset of inner[0] to outer[0]
+	double magX = outer.front().getX() - inner.front().getX();
+	double magY = outer.front().getY() - inner.front().getY();
+	double magTotal = sqrt(magX*magX + magY*magY);
+
+	//Travel along the inner path. Essentially, the inner and outer paths should line up, but if there's an extra point
+	// or two, we don't want our algorithm to go crazy.
+	lane->polyline_.clear();
+	for (vector<Point2D>::const_iterator it=inner.begin(); it!=inner.end(); it++) {
+		DynamicVector line(it->getX(), it->getY(), it->getX()+magX, it->getY()+magY);
+		line.scaleVectTo(magTotal/2.0).translateVect();
+		lane->polyline_.push_back(Point2D(line.getX(), line.getY()));
+	}
+}
+
+
+const vector<Point2D>& sim_mob::RoadSegment::getLaneEdgePolyline(unsigned int laneID) const
+{
+	//Rebuild if needed
+	if (laneEdgePolylines_cached.empty()) {
+		syncLanePolylines();
+	}
+	return laneEdgePolylines_cached[laneID];
 }
 
 

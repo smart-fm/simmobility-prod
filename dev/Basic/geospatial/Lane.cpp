@@ -148,52 +148,66 @@ namespace
     }
 }
 
+
+
+//This contains most of the functionality from getPolyline(). It is called if there
+// is no way to determine the polyline from the lane edges (i.e., they don't exist).
+void Lane::makePolylineFromParentSegment()
+{
+	double w = middle(*this, *parentSegment_);
+
+	//Set the width if it hasn't been set
+	if (width_==0) {
+		width_ = parentSegment_->width/parentSegment_->getLanes().size();
+	}
+
+	for (size_t i = 0; i < parentSegment_->polyline.size() - 1; i++)
+	{
+		const Point2D& p1 = parentSegment_->polyline[i];
+		const Point2D& p2 = parentSegment_->polyline[i + 1];
+		if (0 == i)
+		{
+			// We assume that the lanes at the start and end points of the road segments
+			// are "aligned", that is, first and last point in the lane's polyline are
+			// perpendicular to the road-segment polyline at the start and end points.
+			int dx = p2.getX() - p1.getX();
+			int dy = p2.getY() - p1.getY();
+			Point2D p = getSidePoint(p1, dx, dy, w);
+			polyline_.push_back(p);
+		}
+		else
+		{
+			const Point2D& p0 = parentSegment_->polyline[i - 1];
+			int dx1 = p1.getX() - p0.getX();
+			int dy1 = p1.getY() - p0.getY();
+			int dx2 = p2.getX() - p1.getX();
+			int dy2 = p2.getY() - p1.getY();
+
+			// p0, p1, and p2 are in the middle of the road segment, not in the lane.
+			// point1 and point2 below are in the middle of the lane.  So will be <p>.
+			Point2D point1 = getSidePoint(p0, dx1, dy1, w);
+			Point2D point2 = getSidePoint(p2, dx2, dy2, w);
+			Point2D p = intersection(point1, dx1, dy1, point2, dx2, dy2);
+			polyline_.push_back(p);
+
+			// If this is the last line, then we add the end point as well.
+			if (parentSegment_->polyline.size() - 2 == i)
+			{
+				// See the comment in the previous block for i == 0.
+				polyline_.push_back(point2);
+			}
+		}
+	}
+}
+
+
+
 const std::vector<sim_mob::Point2D>& Lane::getPolyline() const
 {
-    // The polyline has been calculated, return immediately.
-    if (!polyline_.empty())
-        return polyline_;
-
-    double w = middle(*this, *parentSegment_);
-
-    for (size_t i = 0; i < parentSegment_->polyline.size() - 1; i++)
-    {
-        const Point2D& p1 = parentSegment_->polyline[i];
-        const Point2D& p2 = parentSegment_->polyline[i + 1];
-        if (0 == i)
-        {
-            // We assume that the lanes at the start and end points of the road segments
-            // are "aligned", that is, first and last point in the lane's polyline are
-            // perpendicular to the road-segment polyline at the start and end points.
-            int dx = p2.getX() - p1.getX();
-            int dy = p2.getY() - p1.getY();
-            Point2D p = getSidePoint(p1, dx, dy, w);
-            polyline_.push_back(p);
-        }
-        else
-        {
-            const Point2D& p0 = parentSegment_->polyline[i - 1];
-            int dx1 = p1.getX() - p0.getX();
-            int dy1 = p1.getY() - p0.getY();
-            int dx2 = p2.getX() - p1.getX();
-            int dy2 = p2.getY() - p1.getY();
-
-            // p0, p1, and p2 are in the middle of the road segment, not in the lane.
-            // point1 and point2 below are in the middle of the lane.  So will be <p>.
-            Point2D point1 = getSidePoint(p0, dx1, dy1, w);
-            Point2D point2 = getSidePoint(p2, dx2, dy2, w);
-            Point2D p = intersection(point1, dx1, dy1, point2, dx2, dy2);
-            polyline_.push_back(p);
-
-            // If this is the last line, then we add the end point as well.
-            if (parentSegment_->polyline.size() - 2 == i)
-            {
-                // See the comment in the previous block for i == 0.
-                polyline_.push_back(point2);
-            }
-        }
+    //Recompute the polyline if needed
+    if (polyline_.empty()) {
+    	parentSegment_->syncLanePolylines();
     }
-
     return polyline_;
 }
 

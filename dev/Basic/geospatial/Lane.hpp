@@ -231,10 +231,7 @@ public:
     const std::vector<sim_mob::Point2D>& getPolyline() const;
 
 private:
-    /* Create a Lane whose rules are all false.  */
-    //I'm commenting this out; making a Lane without a parent segment or LaneID is likely to cause problems later.
-    // ~Seth
-    //Lane() : parentSegment_(nullptr), rules_(0), width_(0) {}
+    void makePolylineFromParentSegment();
 
     friend class StreetDirectory;
     friend class sim_mob::aimsun::Loader;
@@ -307,6 +304,8 @@ private:
 
         // polyline_ is mutable so that getPolyline() can be a const method.
 	mutable std::vector<Point2D> polyline_;
+
+	friend class RoadSegment;
 
 
 };

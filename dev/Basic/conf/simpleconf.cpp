@@ -474,21 +474,20 @@ void PrintDB_Network()
 		//NOTE: For now this relies on somewhat sketchy behavior, which is why we output a "tmp-*"
 		//      flag. Once we add auto-polyline generation, that tmp- output will be meaningless
 		//      and we can switch to a full "lane" output type.
-		try {
-			std::stringstream laneBuffer; //Put it in its own buffer since getLanePolyline() can throw.
-			laneBuffer <<"(\"tmp-lane\", 0, " <<&((*it)->getLanes()) <<", {";
-			laneBuffer <<"\"parent-segment\":\"" <<*it <<"\",";
-			for (size_t laneID=0; laneID<=(*it)->getLanes().size(); laneID++) {
-				const vector<Point2D>& points = (*it)->getLanePolyline(laneID);
-				laneBuffer <<"\"line-" <<laneID <<"\":\"[";
-				for (vector<Point2D>::const_iterator ptIt=points.begin(); ptIt!=points.end(); ptIt++) {
-					laneBuffer <<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
-				}
-				laneBuffer <<"]\",";
+		std::stringstream laneBuffer; //Put it in its own buffer since getLanePolyline() can throw.
+		laneBuffer <<"(\"lane\", 0, " <<&((*it)->getLanes()) <<", {";
+		laneBuffer <<"\"parent-segment\":\"" <<*it <<"\",";
+		laneBuffer <<"\"is-sidewalk\":\"" <<"false" <<"\",";
+		for (size_t laneID=0; laneID<=(*it)->getLanes().size(); laneID++) {
+			const vector<Point2D>& points = (*it)->getLaneEdgePolyline(laneID);
+			laneBuffer <<"\"line-" <<laneID <<"\":\"[";
+			for (vector<Point2D>::const_iterator ptIt=points.begin(); ptIt!=points.end(); ptIt++) {
+				laneBuffer <<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
 			}
-			laneBuffer <<"})" <<endl;
-			logout <<laneBuffer.str();
-		} catch (std::runtime_error& ex) {}
+			laneBuffer <<"]\",";
+		}
+		laneBuffer <<"})" <<endl;
+		logout <<laneBuffer.str();
 	}
 
 	//Crossings are part of Segments

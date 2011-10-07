@@ -63,7 +63,7 @@ public:
 	///
 	/// \note
 	/// This should be named properly; e.g., widthM.
-	double width;
+	mutable double width; //NOTE: This shouldn't be mutable, but for now I'm trying to get it to work...
 
 
 	///The polyline of this Pavement. In the case of RoadSegments, the polyline is assumed to

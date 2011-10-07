@@ -2,6 +2,7 @@
 
 #include <cmath>
 
+#include <iostream>
 
 namespace sim_mob
 {
@@ -35,19 +36,31 @@ public:
 	double getY() const { return pos.y; }
 	double getEndX() const { return pos.x + mag.x; }
 	double getEndY() const { return pos.y + mag.y; }
-	double getMagnitude() const { return sqrt(mag.x*mag.x + mag.y+mag.y); }
+	double getMagnitude() const { return sqrt(mag.x*mag.x + mag.y*mag.y); }
 
 	//Basic utility functions
 	//DynamicVector& makeUnit()  { return scaleVect(1/getMagnitude()); }
 	DynamicVector& translateVect(double dX, double dY) { pos.x += dX; pos.y += dY; return *this; }
 	DynamicVector& translateVect() { return translateVect(mag.x, mag.y); }
 	DynamicVector& scaleVectTo(double val) { //Scale any (non-unit) vector
+		if (mag.x==0 && mag.y==0) {
+			//Nothing to do; avoid dividing by NaN
+			return *this;
+		}
+
 		//Note: The old way (converting to a unit vector then scaling) is very likely
 		//      to introduce accuracy errors, since 1 "unit" is a very small number of centimeters.
 		//      That is why this function factors in the unit vector in the same step.
-		double currMag = getMagnitude();
-		mag.x = val*mag.x / currMag;
-		mag.y = val*mag.y / currMag;
+		double factor = val/getMagnitude(); //Dividing first is usually slightly more accurate
+
+		if (fabs(val-11821.5)<1.0) {
+			std::cout <<"     mags: " <<mag.x <<"," <<mag.y <<"\n";
+			std::cout <<"     factor_comp: " <<val <<"," <<getMagnitude() <<"\n";
+			std::cout <<"     factor: " <<factor <<"\n";
+		}
+
+		mag.x = factor*mag.x;
+		mag.y = factor*mag.y;
 		return *this;
 	}
 

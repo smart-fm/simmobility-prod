@@ -47,10 +47,10 @@ public:
 	std::pair<int, const sim_mob::Lane*> translateRawLaneID(unsigned int rawID);
 
 	///Return the polyline of an individual lane. May be cached in lanePolylines_cached. May also be precomputed, and stored in lanePolylines_cached.
-	const std::vector<sim_mob::Point2D>& getLaneEdgePolyline(unsigned int laneID) const;
+	const std::vector<sim_mob::Point2D>& getLaneEdgePolyline(unsigned int laneID) /*const*/;
 
 	//Force expansion of all Lane and LaneEdge polylines
-	void syncLanePolylines() const;
+	void syncLanePolylines();/* const;*/
 
 
 public:

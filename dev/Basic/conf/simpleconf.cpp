@@ -477,14 +477,18 @@ void PrintDB_Network()
 		std::stringstream laneBuffer; //Put it in its own buffer since getLanePolyline() can throw.
 		laneBuffer <<"(\"lane\", 0, " <<&((*it)->getLanes()) <<", {";
 		laneBuffer <<"\"parent-segment\":\"" <<*it <<"\",";
-		laneBuffer <<"\"is-sidewalk\":\"" <<"false" <<"\",";
 		for (size_t laneID=0; laneID<=(*it)->getLanes().size(); laneID++) {
-			const vector<Point2D>& points = (*it)->getLaneEdgePolyline(laneID);
+			const vector<Point2D>& points = const_cast<RoadSegment*>(*it)->getLaneEdgePolyline(laneID);
 			laneBuffer <<"\"line-" <<laneID <<"\":\"[";
 			for (vector<Point2D>::const_iterator ptIt=points.begin(); ptIt!=points.end(); ptIt++) {
 				laneBuffer <<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
 			}
 			laneBuffer <<"]\",";
+
+			if (laneID<(*it)->getLanes().size() && (*it)->getLanes()[laneID]->is_pedestrian_lane()) {
+				laneBuffer <<"\"line-" <<laneID <<"is-sidewalk\":\"true\",";
+			}
+
 		}
 		laneBuffer <<"})" <<endl;
 		logout <<laneBuffer.str();

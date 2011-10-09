@@ -2,6 +2,7 @@
 
 
 #include <iostream>
+#include <limits>
 
 #include "../../util/OutputUtil.hpp"
 #include "../../util/GeomHelpers.hpp"
@@ -18,32 +19,7 @@ using namespace sim_mob::aimsun;
 
 namespace {
 
-//Compute line intersection
-bool calculateIntersection(const Crossing* const p1, const Crossing* p2, const Section* sec, double& xRes, double& yRes)
-{
-	//Step 1: shorthand!
-	double x1 = p1->xPos;
-	double y1 = p1->yPos;
-	double x2 = p2->xPos;
-	double y2 = p2->yPos;
-	double x3 = sec->fromNode->xPos;
-	double y3 = sec->fromNode->yPos;
-	double x4 = sec->toNode->xPos;
-	double y4 = sec->toNode->yPos;
 
-	//Step 2: Check if we're doomed to failure (parallel lines) Compute some intermediate values too.
-	double denom = (x1-x2)*(y3-y4) - (y1-y2)*(x3-x4);
-	if (denom==0) {
-		return false;
-	}
-	double co1 = x1*y2 - y1*x2;
-	double co2 = x3*y4 - y3*x4;
-
-	//Step 3: Results!
-	xRes = (co1*(x3-x4) - co2*(x1-x2)) / denom;
-	yRes = (co1*(y3-y4) - co2*(y1-y2)) / denom;
-	return true;
-}
 
 //Retrieve the minimum value in a list of IDs
 int minID(const vector<double>& vals)
@@ -98,14 +74,14 @@ void sim_mob::aimsun::CrossingLoader::DecorateCrossings(map<int, Node>& nodes, v
 					//And search through all RoadSegments
 					for (vector<Section*>::iterator itSec=n.sectionsAtNode.begin(); itSec!=n.sectionsAtNode.end()&&!found; itSec++) {
 						//Get the intersection between the two Points, and the Section we are considering
-						double xRes, yRes;
-						if (!calculateIntersection(it->second[i], it->second[j], *itSec, xRes, yRes)) {
+						Point2D intRes = sim_mob::LineLineIntersect(it->second[i], it->second[j], *itSec);
+						if (intRes.getX()==std::numeric_limits<double>::max()) {
 							//Lines are parallel
 							continue;
 						}
 
 						//Check if this Intersection is actually ON both lines
-						bool actuallyIntersects = sim_mob::lineContains(it->second[i], it->second[j], xRes, yRes) && lineContains(*itSec, xRes, yRes);
+						bool actuallyIntersects = sim_mob::lineContains(it->second[i], it->second[j], intRes.getX(), intRes.getY()) && lineContains(*itSec, intRes.getX(), intRes.getY());
 						if (actuallyIntersects) {
 							Node* other = ((*itSec)->fromNode!=&n) ? (*itSec)->fromNode : (*itSec)->toNode;
 							n.crossingLaneIdsByOutgoingNode[other].push_back(it->first);

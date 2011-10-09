@@ -1,5 +1,7 @@
 #include "GeomHelpers.hpp"
 
+#include <stdexcept>
+#include <limits>
 
 #include "../geospatial/Point2D.hpp"
 #include "../geospatial/aimsun/Lane.hpp"
@@ -66,5 +68,45 @@ bool sim_mob::PointIsLeftOfVector(const DynamicVector& vec, const aimsun::Lane* 
 {
 	return PointIsLeftOfVector(vec.getX(), vec.getY(), vec.getEndX(), vec.getEndY(), point->xPos, point->yPos);
 }
+
+
+
+Point2D sim_mob::LineLineIntersect(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
+{
+	//If the points are all on top of each other, return any pair of points
+	if ((x1==x2 && x2==x3 && x3==x4) && (y1==y2 && y2==y3 && y3==y4)) {
+		return Point2D(x1, y1);
+	}
+
+	//Check if we're doomed to failure (parallel lines) Compute some intermediate values too.
+	double denom = (x1-x2)*(y3-y4) - (y1-y2)*(x3-x4);
+	if (denom==0) {
+		//NOTE: For now, I return Double.MAX,Double.MAX. C++11 will introduce some help for this,
+		//      or we could find a better way to do it....
+		return Point2D(std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
+		//throw std::runtime_error("Can't compute line-line intersection: division by zero.");
+	}
+	double co1 = x1*y2 - y1*x2;
+	double co2 = x3*y4 - y3*x4;
+
+	//Results!
+	double xRes = (co1*(x3-x4) - co2*(x1-x2)) / denom;
+	double yRes = (co1*(y3-y4) - co2*(y1-y2)) / denom;
+	return Point2D(xRes, yRes);
+}
+Point2D sim_mob::LineLineIntersect(const aimsun::Crossing* const p1, const aimsun::Crossing* p2, const aimsun::Section* sec)
+{
+	return LineLineIntersect(p1->xPos,p1->yPos, p2->xPos,p2->yPos, sec->fromNode->xPos,sec->fromNode->yPos, sec->toNode->xPos,sec->toNode->yPos);
+}
+Point2D sim_mob::LineLineIntersect(const DynamicVector& v1, const DynamicVector& v2)
+{
+	return LineLineIntersect(v1.getX(), v1.getY(), v1.getEndX(), v1.getEndY(), v2.getX(), v2.getY(), v2.getEndX(), v2.getEndY());
+}
+Point2D sim_mob::LineLineIntersect(const Point2D& p1, const Point2D& p2, const Point2D& p3, const Point2D& p4)
+{
+	return LineLineIntersect(p1.getX(),p1.getY(), p2.getX(),p2.getY(), p3.getX(),p3.getY(), p4.getX(),p4.getY());
+}
+
+
 
 

@@ -5,6 +5,7 @@
 
 #include "Lane.hpp"
 #include "../util/DynamicVector.hpp"
+#include "../util/GeomHelpers.hpp"
 
 using std::vector;
 
@@ -59,14 +60,11 @@ namespace
     // is sloping <dx> horizontally and <dy> vertically.  The distance between <p> and the
     // returned point is <w>.  If <w> is negative, the returned point is "above" the line;
     // otherwise it is below the line.
-    Point2D getSidePoint(const Point2D& p, int dx, int dy, double w) {
+    Point2D getSidePoint(const Point2D& origin, const Point2D& direction, double magnitude) {
     	//NOTE: The original equation returned values that were slightly off (re-enable to see).
     	//      I'm replacing this with a simple vector computation. ~Seth
-    	if (w==0) {
-    		throw std::runtime_error("No side point for line with zero width.");
-    	}
-    	DynamicVector dv(p.getX(), p.getY(), p.getX()+dx, p.getY()+dy);
-    	dv.flipNormal(w<0).scaleVectTo(w).translateVect();
+    	DynamicVector dv(origin.getX(), origin.getY(), direction.getX(), direction.getY());
+    	dv.flipNormal(false).scaleVectTo(magnitude).translateVect();
     	return Point2D(dv.getX(), dv.getY());
     }
 
@@ -134,7 +132,32 @@ namespace
     // Return the intersection of the line passing through <p1> and sloping <dx1> horizontally
     // and <dy1> vertically with the line passing through <p2> and sloping <dx2> horizontally
     // and <dy2> vertically.
-    Point2D
+
+    //NOTE: The use of getSidePoint() and intersection() does a lot of math which I think is unnecessary.
+    //      Normally, I wouldn't change anything if I knew it worked, but as the Server is currently down
+    //      I'm just going to write my own intersection function and use that.   ~Seth
+
+    Point2D calcCurveIntersection(const Point2D& pPrev, const Point2D& pCurr, const Point2D& pNext, double magnitude) {
+    	//Get an estimate on the maximum distance. This isn't strictly needed, since we use the line-line intersection formula later.
+    	double maxDist = sim_mob::dist(&pPrev, &pNext);
+
+    	//Get vector 1.
+    	DynamicVector dvPrev(pPrev.getX(), pPrev.getY(), pCurr.getX(), pCurr.getY());
+    	dvPrev.translateVect().flipNormal(false).scaleVectTo(magnitude).translateVect();
+    	dvPrev.flipNormal(true).scaleVectTo(maxDist);
+
+    	//Get vector 2
+    	DynamicVector dvNext(pNext.getX(), pNext.getY(), pCurr.getX(), pCurr.getY());
+    	dvNext.translateVect().flipNormal(true).scaleVectTo(magnitude).translateVect();
+    	dvNext.flipNormal(false).scaleVectTo(maxDist);
+
+    	//Compute their intersection. We use the line-line intersection formula because the vectors
+    	// won't intersect for acute angles.
+    	return LineLineIntersect(dvPrev, dvNext);
+    }
+
+
+    /*Point2D
     intersection(const Point2D& p1, int dx1, int dy1, const Point2D& p2, int dx2, int dy2)
     {
         // The parameterized equations for the two lines are
@@ -170,7 +193,7 @@ namespace
         int x = x1 + t * dx1;
         int y = y1 + t * dy1;
         return Point2D(x, y);
-    }
+    }*/
 }
 
 
@@ -180,50 +203,55 @@ namespace
 void Lane::makePolylineFromParentSegment()
 {
 	double distToMidline = middle(*this, *parentSegment_);
+	if (distToMidline==0) {
+		throw std::runtime_error("No side point for line with zero magnitude.");
+	}
 
 	//Set the width if it hasn't been set
 	if (width_==0) {
 		width_ = parentSegment_->width/parentSegment_->getLanes().size();
 	}
 
-	//Iterate through pairs of points in the polyline.
-	for (size_t i=0; i<parentSegment_->polyline.size()-1; i++)
-	{
-		const Point2D& p1 = parentSegment_->polyline[i];
-		const Point2D& p2 = parentSegment_->polyline[i + 1];
-		if (0 == i)
-		{
-			// We assume that the lanes at the start and end points of the road segments
-			// are "aligned", that is, first and last point in the lane's polyline are
-			// perpendicular to the road-segment polyline at the start and end points.
-			int dx = p2.getX() - p1.getX();
-			int dy = p2.getY() - p1.getY();
-			Point2D p = getSidePoint(p1, dx, dy, distToMidline);
-			polyline_.push_back(p);
-		}
-		else
-		{
-			const Point2D& p0 = parentSegment_->polyline[i - 1];
-			int dx1 = p1.getX() - p0.getX();
-			int dy1 = p1.getY() - p0.getY();
-			int dx2 = p2.getX() - p1.getX();
-			int dy2 = p2.getY() - p1.getY();
-
-			// p0, p1, and p2 are in the middle of the road segment, not in the lane.
-			// point1 and point2 below are in the middle of the lane.  So will be <p>.
-			Point2D point1 = getSidePoint(p0, dx1, dy1, distToMidline);
-			Point2D point2 = getSidePoint(p2, dx2, dy2, distToMidline);
-			Point2D p = intersection(point1, dx1, dy1, point2, dx2, dy2);
-			polyline_.push_back(p);
-
-			// If this is the last line, then we add the end point as well.
-			if (parentSegment_->polyline.size() - 2 == i)
-			{
-				// See the comment in the previous block for i == 0.
-				polyline_.push_back(point2);
-			}
-		}
+	//Sanity check.
+	if (polyline_.size()<2) {
+		throw std::runtime_error("Can't extend a polyline of size 0 or 1.");
 	}
+
+	//Push back the first point
+	// We assume that the lanes at the start and end points of the road segments
+	// are "aligned", that is, first and last point in the lane's polyline are
+	// perpendicular to the road-segment polyline at the start and end points.
+	const vector<Point2D>& poly = parentSegment_->polyline;
+	polyline_.push_back(getSidePoint(poly.at(0), poly.at(1), distToMidline));
+
+	//Iterate through pairs of points in the polyline.
+	for (size_t i=1; i<poly.size()-1; i++) {
+		//If the road segment pivots, we need to extend the relevant vectors and find their intersection.
+		// That is the point which we intend to add.
+		polyline_.push_back(calcCurveIntersection(poly[i-1], poly[i], poly[i+1], distToMidline));
+
+		/*int dx1 = p1.getX() - p0.getX();
+		int dy1 = p1.getY() - p0.getY();
+		int dx2 = p2.getX() - p1.getX();
+		int dy2 = p2.getY() - p1.getY();
+
+		// p0, p1, and p2 are in the middle of the road segment, not in the lane.
+		// point1 and point2 below are in the middle of the lane.  So will be <p>.
+		Point2D point1 = getSidePoint(p0, dx1, dy1, distToMidline);
+		Point2D point2 = getSidePoint(p2, dx2, dy2, distToMidline);
+		Point2D p = intersection(point1, dx1, dy1, point2, dx2, dy2);*/
+
+		// If this is the last line, then we add the end point as well.
+		/*if (parentSegment_->polyline.size() - 2 == i)
+		{
+			// See the comment in the previous block for i == 0.
+
+		}*/
+	}
+
+	//Push back the last point
+	//NOTE: Check that this is correct; negating the distance should work just fine with our algorithm.
+	polyline_.push_back(getSidePoint(poly.at(poly.size()-1), poly.at(poly.size()-2), -distToMidline));
 }
 
 

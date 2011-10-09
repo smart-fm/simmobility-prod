@@ -1,7 +1,8 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
-#include <math.h>
-#include <assert.h>
+#include <cmath>
+#include <cassert>
+#include <limits>
 
 #include "Lane.hpp"
 #include "../util/DynamicVector.hpp"
@@ -116,7 +117,13 @@ void Lane::makePolylineFromParentSegment()
 	for (size_t i=1; i<poly.size()-1; i++) {
 		//If the road segment pivots, we need to extend the relevant vectors and find their intersection.
 		// That is the point which we intend to add.
-		polyline_.push_back(calcCurveIntersection(poly[i-1], poly[i], poly[i+1], distToMidline));
+		Point2D p = calcCurveIntersection(poly[i-1], poly[i], poly[i+1], distToMidline);
+		if (p.getX()==std::numeric_limits<double>::max()) {
+			//The lines are parallel; just extend them like normal.
+			p = getSidePoint(poly[i], poly[i+1], distToMidline);
+		}
+
+		polyline_.push_back(p);
 	}
 
 	//Push back the last point

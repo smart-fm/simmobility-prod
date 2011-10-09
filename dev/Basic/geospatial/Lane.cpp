@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "Lane.hpp"
+#include "../util/DynamicVector.hpp"
 
 using std::vector;
 
@@ -58,7 +59,19 @@ namespace
     // is sloping <dx> horizontally and <dy> vertically.  The distance between <p> and the
     // returned point is <w>.  If <w> is negative, the returned point is "above" the line;
     // otherwise it is below the line.
-    Point2D getSidePoint(const Point2D& p, int dx, int dy, double w)
+    Point2D getSidePoint(const Point2D& p, int dx, int dy, double w) {
+    	//NOTE: The original equation returned values that were slightly off (re-enable to see).
+    	//      I'm replacing this with a simple vector computation. ~Seth
+    	if (w==0) {
+    		throw std::runtime_error("No side point for line with zero width.");
+    	}
+    	DynamicVector dv(p.getX(), p.getY(), p.getX()+dx, p.getY()+dy);
+    	dv.flipNormal(w<0).scaleVectTo(w).translateVect();
+    	return Point2D(dv.getX(), dv.getY());
+    }
+
+
+    /*Point2D getSidePoint(const Point2D& p, int dx, int dy, double w)
     {
         // The parameterized equation of the line L is given by
         //     X = x + t * dx
@@ -116,7 +129,7 @@ namespace
                 return Point2D(x, y);
             }
         }
-    }
+    }*/
 
     // Return the intersection of the line passing through <p1> and sloping <dx1> horizontally
     // and <dy1> vertically with the line passing through <p2> and sloping <dx2> horizontally
@@ -166,7 +179,7 @@ namespace
 // is no way to determine the polyline from the lane edges (i.e., they don't exist).
 void Lane::makePolylineFromParentSegment()
 {
-	double w = middle(*this, *parentSegment_);
+	double distToMidline = middle(*this, *parentSegment_);
 
 	//Set the width if it hasn't been set
 	if (width_==0) {
@@ -185,7 +198,7 @@ void Lane::makePolylineFromParentSegment()
 			// perpendicular to the road-segment polyline at the start and end points.
 			int dx = p2.getX() - p1.getX();
 			int dy = p2.getY() - p1.getY();
-			Point2D p = getSidePoint(p1, dx, dy, w);
+			Point2D p = getSidePoint(p1, dx, dy, distToMidline);
 			polyline_.push_back(p);
 		}
 		else
@@ -198,8 +211,8 @@ void Lane::makePolylineFromParentSegment()
 
 			// p0, p1, and p2 are in the middle of the road segment, not in the lane.
 			// point1 and point2 below are in the middle of the lane.  So will be <p>.
-			Point2D point1 = getSidePoint(p0, dx1, dy1, w);
-			Point2D point2 = getSidePoint(p2, dx2, dy2, w);
+			Point2D point1 = getSidePoint(p0, dx1, dy1, distToMidline);
+			Point2D point2 = getSidePoint(p2, dx2, dy2, distToMidline);
 			Point2D p = intersection(point1, dx1, dy1, point2, dx2, dy2);
 			polyline_.push_back(p);
 

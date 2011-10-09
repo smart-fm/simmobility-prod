@@ -229,7 +229,10 @@ void LoadBasicAimsunObjects(const string& connectionStr, map<string, string>& st
 	//Connect
 	//Connection string will look something like this:
 	//"host=localhost port=5432 dbname=SimMobility_DB user=postgres password=XXXXX"
+	std::cout <<"Attempting to connect to remote database...";
+	std::cout.flush();
 	soci::session sql(soci::postgresql, connectionStr);
+	std::cout <<" Success." <<std::endl;
 
 	//Load all nodes
 	LoadNodes(sql, storedProcs["node"], nodes);

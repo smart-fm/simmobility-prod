@@ -51,92 +51,18 @@ namespace
         //Exceptions don't require a fake return.
         //But we still need to figure out whether we're using assert() or exceptions for errors! ~Seth
         throw std::runtime_error("middle() called on a Lane not in this Segment.");
-
-        //assert(false); // We shouldn't reach here.
-        //return w;
     }
 
-    // Return the point that is perpendicular to the line that passes through <p> and 
-    // is sloping <dx> horizontally and <dy> vertically.  The distance between <p> and the
-    // returned point is <w>.  If <w> is negative, the returned point is "above" the line;
-    // otherwise it is below the line.
+    // Return the point that is perpendicular (with magnitude <magnitude>) to the vector that begins at <origin> and
+    // passes through <direction>. This point is left of the vector if <magnitude> is positive.
     Point2D getSidePoint(const Point2D& origin, const Point2D& direction, double magnitude) {
-    	//NOTE: The original equation returned values that were slightly off (re-enable to see).
-    	//      I'm replacing this with a simple vector computation. ~Seth
     	DynamicVector dv(origin.getX(), origin.getY(), direction.getX(), direction.getY());
     	dv.flipNormal(false).scaleVectTo(magnitude).translateVect();
     	return Point2D(dv.getX(), dv.getY());
     }
 
 
-    /*Point2D getSidePoint(const Point2D& p, int dx, int dy, double w)
-    {
-        // The parameterized equation of the line L is given by
-        //     X = x + t * dx
-        //     Y = y + t * dy
-        // The line passes through p = (x, y) at t = 0.
-        //
-        // The parameterized equation for the line perpendicular to L is
-        //     X = x + t * -dy
-        //     Y = y + t * dx
-        // This perpendicular line is above L for t > 0, and below L for t < 0.
-        // Solving for t in terms of X, we have
-        //     t = (X - x) / -dy
-        // Substituting this into the Y equation, we get
-        //     Y = y + (X - x) * dx / -dy
-        //       = m*X + c
-        // where m = dx / -dy and c = y - m*x
-        //
-        // Since the distance between (X, Y) and p is w, we have
-        //     (X-x)*(X-x) + (Y-y)*(Y-y) = w*w
-        //     (X-x)*(X-x) + (m*X + c-y)*(m*X + c-y) = w*w
-        //     (X-x)*(X-x) + (m*X - m*x)*(m*X - m*x) = w*w
-        //     (X-x)*(X-x) + m(X-x)m(X-x) = w*w
-        //     (m*m + 1)(X -x)^2 = w^2
-        // Solving, we have
-        //     X = x + w / sqrt(m*m + 1)
-
-        double m = static_cast<double>(dx) / -dy;
-        if (w > 0)
-        {
-            if (dy > 0)
-            {
-                double x = p.getX() + w / sqrt(m*m + 1);
-                double y = m*x + p.getY() - m*p.getX();
-                return Point2D(x, y);
-            }
-            else
-            {
-                double x = p.getX() - w / sqrt(m*m + 1);
-                double y = m*x + p.getY() - m*p.getX();
-                return Point2D(x, y);
-            }
-        }
-        else
-        {
-            if (dy > 0)
-            {
-                double x = p.getX() - w / sqrt(m*m + 1);
-                double y = m*x + p.getY() - m*p.getX();
-                return Point2D(x, y);
-            }
-            else
-            {
-                double x = p.getX() + w / sqrt(m*m + 1);
-                double y = m*x + p.getY() - m*p.getX();
-                return Point2D(x, y);
-            }
-        }
-    }*/
-
-    // Return the intersection of the line passing through <p1> and sloping <dx1> horizontally
-    // and <dy1> vertically with the line passing through <p2> and sloping <dx2> horizontally
-    // and <dy2> vertically.
-
-    //NOTE: The use of getSidePoint() and intersection() does a lot of math which I think is unnecessary.
-    //      Normally, I wouldn't change anything if I knew it worked, but as the Server is currently down
-    //      I'm just going to write my own intersection function and use that.   ~Seth
-
+    // Return the intersection of the vectors (pPrev->pCurr) and (pNext->pCurr) when extended by "magnitude"
     Point2D calcCurveIntersection(const Point2D& pPrev, const Point2D& pCurr, const Point2D& pNext, double magnitude) {
     	//Get an estimate on the maximum distance. This isn't strictly needed, since we use the line-line intersection formula later.
     	double maxDist = sim_mob::dist(&pPrev, &pNext);
@@ -156,45 +82,7 @@ namespace
     	return LineLineIntersect(dvPrev, dvNext);
     }
 
-
-    /*Point2D
-    intersection(const Point2D& p1, int dx1, int dy1, const Point2D& p2, int dx2, int dy2)
-    {
-        // The parameterized equations for the two lines are
-        //     x = x1 + t1 * dx1
-        //     y = y1 + t1 * dy1
-        // and
-        //     x = x2 + t2 * dx2
-        //     y = y2 + t2 * dy2
-        //
-        // At the intersection point, we have
-        //     x1 + t1 * dx1 = x2 + t2 * dx2
-        //     y1 + t1 * dy1 = y2 + t2 * dy2
-        // Re-arranging
-        //     dx1*t1 - dx2*t2 = x2-x1
-        //     dy1*t1 - dy2*t2 = y2-y1
-        // In matrix form, we have
-        //     (dx1  -dx2) (t1) = (x2-x1)
-        //     (dy1  -dy2) (t2) = (y2-y1)
-        // Solving, we have
-        //     (t1) = (-dy2  dx2) (x2-x1) / (-dx1*dy2 + dx2*dy1)
-        //     (t2) = (-dy1  dx1) (y2-y1) / (-dx1*dy2 + dx2*dy1)
-        // Therefore
-        //     t1 = (-dy2*(x2-x1) + dx2*(y2-y1)) / (-dx1*dy2 + dx2*dy1)
-
-        int x1 = p1.getX();
-        int y1 = p1.getY();
-        int x2 = p2.getX();
-        int y2 = p2.getY();
-        double t = static_cast<double>(-dy2) * (x2 - x1);
-        t += static_cast<double>(dx2) * (y2 - y1);
-        t /= (static_cast<double>(-dx1) * dy2 + static_cast<double>(dx2) * dy1);
-
-        int x = x1 + t * dx1;
-        int y = y1 + t * dy1;
-        return Point2D(x, y);
-    }*/
-}
+}  //End anonymous namespace.
 
 
 
@@ -229,24 +117,6 @@ void Lane::makePolylineFromParentSegment()
 		//If the road segment pivots, we need to extend the relevant vectors and find their intersection.
 		// That is the point which we intend to add.
 		polyline_.push_back(calcCurveIntersection(poly[i-1], poly[i], poly[i+1], distToMidline));
-
-		/*int dx1 = p1.getX() - p0.getX();
-		int dy1 = p1.getY() - p0.getY();
-		int dx2 = p2.getX() - p1.getX();
-		int dy2 = p2.getY() - p1.getY();
-
-		// p0, p1, and p2 are in the middle of the road segment, not in the lane.
-		// point1 and point2 below are in the middle of the lane.  So will be <p>.
-		Point2D point1 = getSidePoint(p0, dx1, dy1, distToMidline);
-		Point2D point2 = getSidePoint(p2, dx2, dy2, distToMidline);
-		Point2D p = intersection(point1, dx1, dy1, point2, dx2, dy2);*/
-
-		// If this is the last line, then we add the end point as well.
-		/*if (parentSegment_->polyline.size() - 2 == i)
-		{
-			// See the comment in the previous block for i == 0.
-
-		}*/
 	}
 
 	//Push back the last point

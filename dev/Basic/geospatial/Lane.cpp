@@ -5,6 +5,8 @@
 
 #include "Lane.hpp"
 
+using std::vector;
+
 namespace sim_mob
 {
 
@@ -14,32 +16,42 @@ namespace
     // of the road-segment specified by <segment>; <thisLane> is one of the lanes in <segment>.
     double middle(const Lane& thisLane, const RoadSegment& segment)
     {
-        double w = segment.width / 2.0;
-        if (segment.width == 0)
-        {
-            double width = 0;
-            const std::vector<Lane*>& lanes = segment.getLanes();
-            for (size_t i = 0; i < lanes.size(); i++)
-            {
-                width += lanes[i]->getWidth();
+    	//If the segment width is unset, calculate it from the lane widths
+        if (segment.width == 0) {
+            for (vector<Lane*>::const_iterator it=segment.getLanes().begin(); it!=segment.getLanes().end(); it++) {
+            	segment.width += (*it)->getWidth();
             }
-            w = width / 2.0;
         }
 
-        const std::vector<Lane*>& lanes = segment.getLanes();
-        for (size_t i = 0; i < lanes.size(); i++)
-        {
-            const Lane* lane = lanes[i];
-            if (lane != &thisLane)
-                w -= lane->getWidth();
-            else
-            {
-                w -= (lane->getWidth() / 2.0);
+        //Retrieve half the segment width
+        double w = segment.width / 2.0;
+        if (w==0) {
+        	//We can use default values here, but I've already hardcoded 300cm into too many places. ~Seth
+        	throw std::runtime_error("Both the segment and all its lanes have a width of zero.");
+        }
+        w = 0; //Note: We should be incrementing, right? ~Seth
+
+        //Maintain a default lane width
+        double defaultLaneWidth = segment.width / segment.getLanes().size();
+
+        //Iterate through each lane, reducing the return value by each lane's width until you reach the current lane.
+        // At that point, reduce by half the lane's width and return.
+        for (vector<Lane*>::const_iterator it=segment.getLanes().begin(); it!=segment.getLanes().end(); it++) {
+        	double thisLaneWidth = (*it)->getWidth()>0 ? (*it)->getWidth() : defaultLaneWidth;
+            if (*it != &thisLane) {
+                w += thisLaneWidth;
+            } else {
+                w += (thisLaneWidth / 2.0);
                 return w;
             }
         }
-        assert(false); // We shouldn't reach here.
-        return w;
+
+        //Exceptions don't require a fake return.
+        //But we still need to figure out whether we're using assert() or exceptions for errors! ~Seth
+        throw std::runtime_error("middle() called on a Lane not in this Segment.");
+
+        //assert(false); // We shouldn't reach here.
+        //return w;
     }
 
     // Return the point that is perpendicular to the line that passes through <p> and 
@@ -161,7 +173,8 @@ void Lane::makePolylineFromParentSegment()
 		width_ = parentSegment_->width/parentSegment_->getLanes().size();
 	}
 
-	for (size_t i = 0; i < parentSegment_->polyline.size() - 1; i++)
+	//Iterate through pairs of points in the polyline.
+	for (size_t i=0; i<parentSegment_->polyline.size()-1; i++)
 	{
 		const Point2D& p1 = parentSegment_->polyline[i];
 		const Point2D& p2 = parentSegment_->polyline[i + 1];

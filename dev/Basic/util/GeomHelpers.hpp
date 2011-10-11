@@ -41,6 +41,7 @@ bool lineContains(const sim_mob::aimsun::Section* sec, double xPos, double yPos)
 bool PointIsLeftOfVector(double ax, double ay, double bx, double by, double cx, double cy);
 bool PointIsLeftOfVector(const sim_mob::aimsun::Node* vecStart, const sim_mob::aimsun::Node* vecEnd, const sim_mob::aimsun::Lane* point);
 bool PointIsLeftOfVector(const sim_mob::DynamicVector& vec, const sim_mob::aimsun::Lane* point);
+bool PointIsLeftOfVector(const sim_mob::DynamicVector& vec, double x, double y);
 
 
 //Geometric line-line intersection formula.

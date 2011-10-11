@@ -1,6 +1,7 @@
 #include "GeomHelpers.hpp"
 
 #include <stdexcept>
+#include <iostream>
 #include <limits>
 
 #include "../geospatial/Point2D.hpp"
@@ -69,6 +70,10 @@ bool sim_mob::PointIsLeftOfVector(const DynamicVector& vec, const aimsun::Lane* 
 {
 	return PointIsLeftOfVector(vec.getX(), vec.getY(), vec.getEndX(), vec.getEndY(), point->xPos, point->yPos);
 }
+bool sim_mob::PointIsLeftOfVector(const DynamicVector& vec, double x, double y)
+{
+	return PointIsLeftOfVector(vec.getX(), vec.getY(), vec.getEndX(), vec.getEndY(), x, y);
+}
 
 
 
@@ -118,6 +123,26 @@ namespace {
 		dv.flipNormal(false).scaleVectTo(magnitude).translateVect();
 		return Point2D(dv.getX(), dv.getY());
 	}
+
+    // Return the intersection of the vectors (pPrev->pCurr) and (pNext->pCurr) when extended by "magnitude"
+    Point2D calcCurveIntersection(const Point2D& pPrev, const Point2D& pCurr, const Point2D& pNext, double magnitude) {
+    	//Get an estimate on the maximum distance. This isn't strictly needed, since we use the line-line intersection formula later.
+    	double maxDist = sim_mob::dist(&pPrev, &pNext);
+
+    	//Get vector 1.
+    	DynamicVector dvPrev(pPrev.getX(), pPrev.getY(), pCurr.getX(), pCurr.getY());
+    	dvPrev.translateVect().flipNormal(false).scaleVectTo(magnitude).translateVect();
+    	dvPrev.flipNormal(true).scaleVectTo(maxDist);
+
+    	//Get vector 2
+    	DynamicVector dvNext(pNext.getX(), pNext.getY(), pCurr.getX(), pCurr.getY());
+    	dvNext.translateVect().flipNormal(true).scaleVectTo(magnitude).translateVect();
+    	dvNext.flipNormal(false).scaleVectTo(maxDist);
+
+    	//Compute their intersection. We use the line-line intersection formula because the vectors
+    	// won't intersect for acute angles.
+    	return LineLineIntersect(dvPrev, dvNext);
+    }
 } //End anon namespace
 
 
@@ -144,23 +169,22 @@ vector<Point2D> sim_mob::ShiftPolyline(const vector<Point2D>& orig, double shift
 	res.push_back(getSidePoint(orig.front(), orig.back(), shiftAmt));
 
 	//Iterate through pairs of points in the polyline.
-	/*for (size_t i=1; i<poly.size()-1; i++) {
-		//If the road segment pivots, we need to extend the relevant vectors and find their intersection.
-		// That is the point which we intend to add.
-		Point2D p = calcCurveIntersection(poly[i-1], poly[i], poly[i+1], distToMidline);
+	/*for (size_t i=1; i<orig.size()-1; i++) {
+		//Each point has the potential to represent a pivot. We need to extend the relevant vectors
+		//  and find their intersection. That is the point which we intend to add.
+		Point2D p = calcCurveIntersection(orig[i-1], orig[i], orig[i+1], shiftAmt);
 		if (p.getX()==std::numeric_limits<double>::max()) {
 			//The lines are parallel; just extend them like normal.
-			p = getSidePoint(poly[i], poly[i+1], distToMidline);
+			p = getSidePoint(orig[i], orig[i+1], shiftAmt);
 		}
 
-		polyline_.push_back(p);
+		res.push_back(p);
 	}*/
 
 	//Push back the last point
 	res.push_back(getSidePoint(orig.back(), orig.front(), -shiftAmt));
 	return res;
 }
-
 
 
 

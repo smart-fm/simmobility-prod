@@ -48,26 +48,6 @@ namespace
     }
 
 
-    // Return the intersection of the vectors (pPrev->pCurr) and (pNext->pCurr) when extended by "magnitude"
-    Point2D calcCurveIntersection(const Point2D& pPrev, const Point2D& pCurr, const Point2D& pNext, double magnitude) {
-    	//Get an estimate on the maximum distance. This isn't strictly needed, since we use the line-line intersection formula later.
-    	double maxDist = sim_mob::dist(&pPrev, &pNext);
-
-    	//Get vector 1.
-    	DynamicVector dvPrev(pPrev.getX(), pPrev.getY(), pCurr.getX(), pCurr.getY());
-    	dvPrev.translateVect().flipNormal(false).scaleVectTo(magnitude).translateVect();
-    	dvPrev.flipNormal(true).scaleVectTo(maxDist);
-
-    	//Get vector 2
-    	DynamicVector dvNext(pNext.getX(), pNext.getY(), pCurr.getX(), pCurr.getY());
-    	dvNext.translateVect().flipNormal(true).scaleVectTo(magnitude).translateVect();
-    	dvNext.flipNormal(false).scaleVectTo(maxDist);
-
-    	//Compute their intersection. We use the line-line intersection formula because the vectors
-    	// won't intersect for acute angles.
-    	return LineLineIntersect(dvPrev, dvNext);
-    }
-
 }  //End anonymous namespace.
 
 

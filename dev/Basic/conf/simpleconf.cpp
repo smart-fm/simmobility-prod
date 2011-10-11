@@ -220,6 +220,8 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Agent*>& agents, const 
 		return true;
 	}
 
+        StreetDirectory& streetDirectory = StreetDirectory::instance();
+
 	//Loop through all agents of this type
 	for (;node;node=node->NextSiblingElement()) {
             char const * idAttr = node->Attribute("id");
@@ -247,6 +249,7 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Agent*>& agents, const 
 
                 Signal* sig = new Signal(id, *road_node);
                 agents.push_back(sig);
+                streetDirectory.registerSignal(*sig);
             }
             catch (boost::bad_lexical_cast &)
             {

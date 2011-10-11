@@ -8,6 +8,7 @@
 #include "RoadNetwork.hpp"
 #include "StreetDirectory.hpp"
 #include "../buffering/Vector2D.hpp"
+#include "../entities/Signal.hpp"
 
 namespace sim_mob
 {
@@ -651,6 +652,16 @@ StreetDirectory::printStatistics() const
     else
     {
         std::cout << "No statistics was collected by the StreetDirectory singleton." << std::endl;
+    }
+}
+
+void
+StreetDirectory::registerSignal(Signal const & signal)
+{
+    Node const * node = &(signal.getNode());
+    if (signals_.count(node) == 0)
+    {
+        signals_.insert(std::make_pair(node, &signal));
     }
 }
 

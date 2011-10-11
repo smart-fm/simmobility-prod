@@ -18,6 +18,9 @@
 namespace sim_mob
 {
 
+// Forwared declarations.
+class Node;
+
 /**
  * Basic Signal class.
  *
@@ -40,12 +43,7 @@ namespace sim_mob
 class Signal  : public sim_mob::Agent {
 
 public:
-//	Signal();
-
 	void initializeSignal();
-
-	//static Signal* GetInstance();
-
 
 	//DS:degree of saturation
 	void updateSignal(double DS[]);
@@ -99,7 +97,8 @@ public:
 	static int calvote(unsigned int vote1, unsigned int vote2, unsigned int vote3, unsigned int vote4, unsigned int vote5);
 
 public:
-	Signal(unsigned int id);
+	Signal(unsigned int id, Node const & node);
+        Node const & getNode() const { return node_; }
 	int getcurrPhase();
 	int getphaseCounter(){return phaseCounter;}
 	void updateTrafficLights();
@@ -107,6 +106,8 @@ public:
 	int get_Pedestrian_Light(int CrossingID);
 
 private:
+        Node const & node_;
+
 	//static Signal* instance_ ;
 	//previous,current and next cycle length
 	double prevCL,currCL,nextCL;

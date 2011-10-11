@@ -5,6 +5,7 @@
 #include <tinyxml.h>
 
 #include <algorithm>
+#include <boost/lexical_cast.hpp>
 
 //Include here (forward-declared earlier) to avoid include-cycles.
 #include "../entities/Agent.hpp"
@@ -221,32 +222,37 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Agent*>& agents, const 
 
 	//Loop through all agents of this type
 	for (;node;node=node->NextSiblingElement()) {
-		Signal* sig = nullptr;
-		bool foundID = false;
-		for (TiXmlAttribute* attr=node->FirstAttribute(); attr; attr=attr->Next()) {
-			std::string name = attr->NameTStr();
-			std::string value = attr->ValueStr();
-			if (name.empty() || value.empty()) {
-				return false;
-			}
-			int valueI=-1;
-			if (name=="id" || name=="xPos" || name=="yPos") {
-				std::istringstream(value) >> valueI;
-			}
+            char const * idAttr = node->Attribute("id");
+            char const * xPosAttr = node->Attribute("xpos");
+            char const * yPosAttr = node->Attribute("ypos");
+            if (0 == idAttr || 0 == xPosAttr || 0 == yPosAttr)
+            {
+                std::cerr << "signals must have 'id', 'xpos', and 'ypos' attributes in the config file." << std::endl;
+                return false;
+            }
 
-			//Assign it.
-			if (name=="id") {
-				sig = new Signal(valueI);
-				foundID = true;
-			} else {
-				return false;
-			}
-		}
-		if (!foundID) {
-			return false;
-		}
+            try
+            {
+                unsigned int id = boost::lexical_cast<unsigned int>(idAttr);
+                int xpos = boost::lexical_cast<int>(xPosAttr);
+                int ypos = boost::lexical_cast<int>(xPosAttr);
 
-		agents.push_back(sig);
+                const Point2D pt(xpos, ypos);
+                Node* road_node = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);
+                if (0 == road_node)
+                {
+                    std::cerr << "Signal " << id << " is not located at a node, please check the 'xpos' and 'ypos' attributes in the config file." << std::endl;
+                    continue;
+                }
+
+                Signal* sig = new Signal(id, *road_node);
+                agents.push_back(sig);
+            }
+            catch (boost::bad_lexical_cast &)
+            {
+                std::cerr << "signals must have 'id', 'xpos', and 'ypos' attributes with numerical values in the config file." << std::endl;
+                return false;
+            }
 	}
 
 	return true;

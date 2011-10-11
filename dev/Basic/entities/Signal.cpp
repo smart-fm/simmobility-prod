@@ -35,7 +35,7 @@ const double sim_mob::Signal::SplitPlan5[] = {0.20, 0.35, 0.25, 0.20};
 
 //Signal* sim_mob::Signal::instance_ = NULL;
 
-sim_mob :: Signal :: Signal(unsigned int id): Agent(id)
+sim_mob :: Signal :: Signal(unsigned int id, Node const & node): Agent(id), node_(node)
 {
 	ID=id;
 	setCL(60,60,60);//default initial cycle length for SCATS

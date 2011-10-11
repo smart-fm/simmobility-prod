@@ -84,14 +84,14 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 	//Now, add one more edge and one more lane representing the sidewalk.
 	//TODO: This requires our function (and several others) to be declared non-const.
 	//      Re-enable const correctness when we remove this code.
-	lanes.push_back(new Lane(this, lanes.size()));
+	/*lanes.push_back(new Lane(this, lanes.size()));
 	lanes.back()->is_pedestrian_lane(true);
 	lanes.back()->width_ = lanes[lanes.size()-2]->width_/2; //half normal width
 
 	//TEMP: For now, we just add the outer lane as a sidewalk. This won't quite work for bi-directional
 	//      segments or for one-way Links. But it should be sufficient for the demo.
 	lanes.back()->makePolylineFromParentSegment();
-	laneEdgePolylines_cached.push_back(makeLaneEdgeFromPolyline(lanes.back(), false));
+	laneEdgePolylines_cached.push_back(makeLaneEdgeFromPolyline(lanes.back(), false));*/
 
 }
 
@@ -150,6 +150,9 @@ void sim_mob::RoadSegment::makeLanePolylineFromEdges(Lane* lane, const vector<Po
 	double magY = outer.front().getY() - inner.front().getY();
 	double magTotal = sqrt(magX*magX + magY*magY);
 
+	//Update the lane's width
+	lane->width_ = magTotal;
+
 	//Travel along the inner path. Essentially, the inner and outer paths should line up, but if there's an extra point
 	// or two, we don't want our algorithm to go crazy.
 	lane->polyline_.clear();
@@ -164,8 +167,17 @@ void sim_mob::RoadSegment::makeLanePolylineFromEdges(Lane* lane, const vector<Po
 //TODO: Restore const-correctness after cleaning up sidewalks.
 const vector<Point2D>& sim_mob::RoadSegment::getLaneEdgePolyline(unsigned int laneID) /*const*/
 {
+	//TEMP: Due to the way we manually insert sidewalks, this is needed for now.
+	bool syncNeeded = false;
+	for (size_t i=0; i<lanes.size(); i++) {
+		if (lanes.at(i)->polyline_.empty()) {
+			syncNeeded = true;
+			break;
+		}
+	}
+
 	//Rebuild if needed
-	if (laneEdgePolylines_cached.empty()) {
+	if (laneEdgePolylines_cached.empty() || syncNeeded) {
 		syncLanePolylines();
 	}
 	return laneEdgePolylines_cached[laneID];

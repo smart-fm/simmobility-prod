@@ -27,12 +27,12 @@ namespace
         }
 
         //Retrieve half the segment width
-        double w = segment.width / 2.0;
-        if (w==0) {
+        //double w = segment.width / 2.0;
+        if (segment.width==0) {
         	//We can use default values here, but I've already hardcoded 300cm into too many places. ~Seth
         	throw std::runtime_error("Both the segment and all its lanes have a width of zero.");
         }
-        w = 0; //Note: We should be incrementing, right? ~Seth
+        double w = 0; //Note: We should be incrementing, right? ~Seth
 
         //Maintain a default lane width
         double defaultLaneWidth = segment.width / segment.getLanes().size();
@@ -111,10 +111,10 @@ void Lane::makePolylineFromParentSegment()
 	// We assume that the lanes at the start and end points of the road segments
 	// are "aligned", that is, first and last point in the lane's polyline are
 	// perpendicular to the road-segment polyline at the start and end points.
-	polyline_.push_back(getSidePoint(poly.at(0), poly.at(1), distToMidline));
+	polyline_.push_back(getSidePoint(poly.front(), poly.back(), distToMidline));
 
 	//Iterate through pairs of points in the polyline.
-	for (size_t i=1; i<poly.size()-1; i++) {
+	/*for (size_t i=1; i<poly.size()-1; i++) {
 		//If the road segment pivots, we need to extend the relevant vectors and find their intersection.
 		// That is the point which we intend to add.
 		Point2D p = calcCurveIntersection(poly[i-1], poly[i], poly[i+1], distToMidline);
@@ -124,11 +124,11 @@ void Lane::makePolylineFromParentSegment()
 		}
 
 		polyline_.push_back(p);
-	}
+	}*/
 
 	//Push back the last point
 	//NOTE: Check that this is correct; negating the distance should work just fine with our algorithm.
-	polyline_.push_back(getSidePoint(poly.at(poly.size()-1), poly.at(poly.size()-2), -distToMidline));
+	polyline_.push_back(getSidePoint(poly.back(), poly.front(), -distToMidline));
 }
 
 

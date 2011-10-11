@@ -102,7 +102,8 @@ void Lane::makePolylineFromParentSegment()
 	}
 
 	//Sanity check.
-	if (polyline_.size()<2) {
+	const vector<Point2D>& poly = parentSegment_->polyline;
+	if (poly.size()<2) {
 		throw std::runtime_error("Can't extend a polyline of size 0 or 1.");
 	}
 
@@ -110,7 +111,6 @@ void Lane::makePolylineFromParentSegment()
 	// We assume that the lanes at the start and end points of the road segments
 	// are "aligned", that is, first and last point in the lane's polyline are
 	// perpendicular to the road-segment polyline at the start and end points.
-	const vector<Point2D>& poly = parentSegment_->polyline;
 	polyline_.push_back(getSidePoint(poly.at(0), poly.at(1), distToMidline));
 
 	//Iterate through pairs of points in the polyline.

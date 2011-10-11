@@ -51,6 +51,9 @@ sim_mob::Point2D LineLineIntersect(const sim_mob::DynamicVector& v1, const sim_m
 sim_mob::Point2D LineLineIntersect(const sim_mob::Point2D& p1, const sim_mob::Point2D& p2, const sim_mob::Point2D& p3, const sim_mob::Point2D& p4);
 
 
+//Generic functionality from the Lane class
+std::vector<sim_mob::Point2D> ShiftPolyline(const std::vector<sim_mob::Point2D>& orig, double shiftAmt, bool shiftLeft=true);
+
 
 
 }

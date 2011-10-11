@@ -57,12 +57,24 @@ void sim_mob::RoadSegment::specifyEdgePolylines(const vector< vector<Point2D> >&
 /// leave the system in a questionable state.
 void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 {
+	//Check our width (and all lane widths) are up-to-date:
+	double totalWidth = 0.0;
+    for (vector<Lane*>::const_iterator it=lanes.begin(); it!=lanes.end(); it++) {
+    	if ((*it)->getWidth()==0) {
+    		(*it)->width_ = 300; //TEMP: Hardcoded. TODO: Put in DB somewhere.
+    	}
+    	totalWidth += (*it)->getWidth();
+    }
+    if (width == 0) {
+    	width = totalWidth;
+    }
+
 	//First, rebuild the Lane polylines; these will never be specified in advance.
 	bool edgesExist = !laneEdgePolylines_cached.empty();
-	if (!edgesExist) {
+	/*if (!edgesExist) {
 		//TODO: The segment width should be saved in the DB somehow? It shouldn't be stored here, that's for sure.
 		width = 300 * lanes.size();
-	}
+	}*/
 
 	for (size_t i=0; i<lanes.size(); i++) {
 		if (edgesExist) {
@@ -84,13 +96,16 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 	//Now, add one more edge and one more lane representing the sidewalk.
 	//TODO: This requires our function (and several others) to be declared non-const.
 	//      Re-enable const correctness when we remove this code.
-	lanes.push_back(new Lane(this, lanes.size()));
-	lanes.back()->is_pedestrian_lane(true);
-	lanes.back()->width_ = lanes[lanes.size()-2]->width_/2; //half normal width
-
 	//TEMP: For now, we just add the outer lane as a sidewalk. This won't quite work for bi-directional
 	//      segments or for one-way Links. But it should be sufficient for the demo.
-	lanes.back()->makePolylineFromParentSegment();
+	Lane* swLane = new Lane(this, lanes.size());
+	swLane->is_pedestrian_lane(true);
+	swLane->width_ = lanes.back()->width_/2;
+	swLane->polyline_ = sim_mob::ShiftPolyline(lanes.back()->polyline_, lanes.back()->getWidth()/2+swLane->getWidth()/2);
+
+	//Add it, update
+	lanes.push_back(swLane);
+	width += swLane->width_;
 	laneEdgePolylines_cached.push_back(makeLaneEdgeFromPolyline(lanes.back(), false));
 
 }

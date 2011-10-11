@@ -10,6 +10,7 @@
 #include "../geospatial/aimsun/Crossing.hpp"
 
 using namespace sim_mob;
+using std::vector;
 
 
 double sim_mob::dist(double x1, double y1, double x2, double y2)
@@ -106,6 +107,60 @@ Point2D sim_mob::LineLineIntersect(const Point2D& p1, const Point2D& p2, const P
 {
 	return LineLineIntersect(p1.getX(),p1.getY(), p2.getX(),p2.getY(), p3.getX(),p3.getY(), p4.getX(),p4.getY());
 }
+
+
+
+namespace {
+	// Return the point that is perpendicular (with magnitude <magnitude>) to the vector that begins at <origin> and
+	// passes through <direction>. This point is left of the vector if <magnitude> is positive.
+	Point2D getSidePoint(const Point2D& origin, const Point2D& direction, double magnitude) {
+		DynamicVector dv(origin.getX(), origin.getY(), direction.getX(), direction.getY());
+		dv.flipNormal(false).scaleVectTo(magnitude).translateVect();
+		return Point2D(dv.getX(), dv.getY());
+	}
+} //End anon namespace
+
+
+
+/**
+ * Shift a polyline to the left/right by a certain amount. It is assumed that all shifted polylines
+ * are aligned on their start and end points, and all interior points are found by approimating an angle
+ * of intersection.
+ */
+vector<Point2D> sim_mob::ShiftPolyline(const vector<Point2D>& orig, double shiftAmt, bool shiftLeft)
+{
+	//Deal with right-shifts in advance.
+	if (!shiftLeft) {
+		shiftAmt *= -1;
+	}
+
+	//Sanity check
+	if (orig.size()<2) {
+		throw std::runtime_error("Can't shift an empty polyline or one of size 1.");
+	}
+
+	//Push back the first point.
+	vector<Point2D> res;
+	res.push_back(getSidePoint(orig.front(), orig.back(), shiftAmt));
+
+	//Iterate through pairs of points in the polyline.
+	/*for (size_t i=1; i<poly.size()-1; i++) {
+		//If the road segment pivots, we need to extend the relevant vectors and find their intersection.
+		// That is the point which we intend to add.
+		Point2D p = calcCurveIntersection(poly[i-1], poly[i], poly[i+1], distToMidline);
+		if (p.getX()==std::numeric_limits<double>::max()) {
+			//The lines are parallel; just extend them like normal.
+			p = getSidePoint(poly[i], poly[i+1], distToMidline);
+		}
+
+		polyline_.push_back(p);
+	}*/
+
+	//Push back the last point
+	res.push_back(getSidePoint(orig.back(), orig.front(), -shiftAmt));
+	return res;
+}
+
 
 
 

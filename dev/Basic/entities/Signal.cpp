@@ -13,7 +13,6 @@ using namespace sim_mob;
 
 double Density[] = {1, 1, 1, 1};
 double DS_all;
-int ID;
 
 //Private namespace
 namespace {
@@ -37,7 +36,6 @@ const double sim_mob::Signal::SplitPlan5[] = {0.20, 0.35, 0.25, 0.20};
 
 sim_mob :: Signal :: Signal(unsigned int id, Node const & node): Agent(id), node_(node)
 {
-	ID=id;
 	setCL(60,60,60);//default initial cycle length for SCATS
 	setRL(60,60);//default initial RL for SCATS
 	startSplitPlan();
@@ -57,15 +55,6 @@ void sim_mob :: Signal :: initializeSignal()
 	updateTrafficLights();
 
 }
-
-
-/*Signal* sim_mob :: Signal :: GetInstance()
-{
-	if(!instance_){
-		instance_ = new Signal();
-	}
-	return instance_;
-}*/
 
 //initialize SplitPlan
 void sim_mob :: Signal :: startSplitPlan()
@@ -92,7 +81,7 @@ void sim_mob :: Signal ::update(frame_t frameNumber)
 	{
 	                boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
 	                std::ostream& logout = BufferedBase::log_file();
-	                logout <<"(\"Signal\","<<frameNumber<<","<<ID<<",{\"va\":\"";
+	                logout <<"(\"Signal\","<<frameNumber<<","<<getId()<<",{\"va\":\"";
 	                for(int i = 0; i<3; i++) {
 	                        logout<<TC_for_Driver[0][i];
 	                        if (i==2) {

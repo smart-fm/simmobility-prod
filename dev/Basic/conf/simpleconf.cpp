@@ -237,7 +237,7 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Agent*>& agents, const 
             {
                 unsigned int id = boost::lexical_cast<unsigned int>(idAttr);
                 int xpos = boost::lexical_cast<int>(xPosAttr);
-                int ypos = boost::lexical_cast<int>(xPosAttr);
+                int ypos = boost::lexical_cast<int>(yPosAttr);
 
                 const Point2D pt(xpos, ypos);
                 Node* road_node = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);

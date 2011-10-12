@@ -55,14 +55,26 @@ void sim_mob::RoadSegment::specifyEdgePolylines(const vector< vector<Point2D> >&
 /// RoadSegment's polyline, which might be less accurate.
 ///We compute all points at once, since calling getLanePolyline() and then getLaneEdgePolyline() might
 /// leave the system in a questionable state.
-void sim_mob::RoadSegment::syncLanePolylines() const
+void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 {
+	//Check our width (and all lane widths) are up-to-date:
+	double totalWidth = 0.0;
+    for (vector<Lane*>::const_iterator it=lanes.begin(); it!=lanes.end(); it++) {
+    	if ((*it)->getWidth()==0) {
+    		(*it)->width_ = 300; //TEMP: Hardcoded. TODO: Put in DB somewhere.
+    	}
+    	totalWidth += (*it)->getWidth();
+    }
+    if (width == 0) {
+    	width = totalWidth;
+    }
+
 	//First, rebuild the Lane polylines; these will never be specified in advance.
 	bool edgesExist = !laneEdgePolylines_cached.empty();
-	if (!edgesExist) {
+	/*if (!edgesExist) {
 		//TODO: The segment width should be saved in the DB somehow? It shouldn't be stored here, that's for sure.
 		width = 300 * lanes.size();
-	}
+	}*/
 
 	for (size_t i=0; i<lanes.size(); i++) {
 		if (edgesExist) {
@@ -79,6 +91,23 @@ void sim_mob::RoadSegment::syncLanePolylines() const
 			laneEdgePolylines_cached.push_back(makeLaneEdgeFromPolyline(lanes[edgeIsRight?i:i-1], edgeIsRight));
 		}
 	}
+
+	//TEMP FIX
+	//Now, add one more edge and one more lane representing the sidewalk.
+	//TODO: This requires our function (and several others) to be declared non-const.
+	//      Re-enable const correctness when we remove this code.
+	//TEMP: For now, we just add the outer lane as a sidewalk. This won't quite work for bi-directional
+	//      segments or for one-way Links. But it should be sufficient for the demo.
+	Lane* swLane = new Lane(this, lanes.size());
+	swLane->is_pedestrian_lane(true);
+	swLane->width_ = lanes.back()->width_/2;
+	swLane->polyline_ = sim_mob::ShiftPolyline(lanes.back()->polyline_, lanes.back()->getWidth()/2+swLane->getWidth()/2);
+
+	//Add it, update
+	lanes.push_back(swLane);
+	width += swLane->width_;
+	laneEdgePolylines_cached.push_back(makeLaneEdgeFromPolyline(lanes.back(), false));
+
 }
 
 
@@ -136,6 +165,9 @@ void sim_mob::RoadSegment::makeLanePolylineFromEdges(Lane* lane, const vector<Po
 	double magY = outer.front().getY() - inner.front().getY();
 	double magTotal = sqrt(magX*magX + magY*magY);
 
+	//Update the lane's width
+	lane->width_ = magTotal;
+
 	//Travel along the inner path. Essentially, the inner and outer paths should line up, but if there's an extra point
 	// or two, we don't want our algorithm to go crazy.
 	lane->polyline_.clear();
@@ -147,10 +179,20 @@ void sim_mob::RoadSegment::makeLanePolylineFromEdges(Lane* lane, const vector<Po
 }
 
 
-const vector<Point2D>& sim_mob::RoadSegment::getLaneEdgePolyline(unsigned int laneID) const
+//TODO: Restore const-correctness after cleaning up sidewalks.
+const vector<Point2D>& sim_mob::RoadSegment::getLaneEdgePolyline(unsigned int laneID) /*const*/
 {
+	//TEMP: Due to the way we manually insert sidewalks, this is needed for now.
+	bool syncNeeded = false;
+	for (size_t i=0; i<lanes.size(); i++) {
+		if (lanes.at(i)->polyline_.empty()) {
+			syncNeeded = true;
+			break;
+		}
+	}
+
 	//Rebuild if needed
-	if (laneEdgePolylines_cached.empty()) {
+	if (laneEdgePolylines_cached.empty() || syncNeeded) {
 		syncLanePolylines();
 	}
 	return laneEdgePolylines_cached[laneID];

@@ -305,7 +305,7 @@ class CrossShape {
 Hashtable<MySeg, LaneShape> laneshapes = new Hashtable<MySeg, LaneShape>();
 class LaneShape {
   ArrayList< ArrayList<ScaledPoint> > laneLines = new ArrayList< ArrayList<ScaledPoint> >(); //0 is the median, size()-1 is the outer-most lane.
-  boolean isSidewalk;
+  int sidewalkID = -1; //Which lane to highlight as a sidewalk.
 };
 
 
@@ -605,15 +605,11 @@ void draw()
     for (LaneShape ls : laneshapes.values()) {
       ArrayList<ScaledPoint> medianLine = ls.laneLines.get(0);
       ArrayList<ScaledPoint> outerLine = ls.laneLines.get(ls.laneLines.size()-1);
+
+      stroke(lsStroke);
+      fill(lsFill);
       
-      if (ls.isSidewalk) {
-        stroke(lsStrokeSW);
-        fill(lsFillSW);
-      } else {
-        stroke(lsStroke);
-        fill(lsFill);
-      }
-      
+      //Draw the main background
       strokeWeight(2.0);
       beginShape();
       //Add the median line
@@ -626,6 +622,24 @@ void draw()
       }
       endShape(CLOSE);
       
+      //Draw the sidewalk shape, if any
+      if (ls.sidewalkID!=-1) {
+        stroke(lsStrokeSW);
+        fill(lsFillSW);
+        medianLine = ls.laneLines.get(ls.sidewalkID+1);
+        outerLine = ls.laneLines.get(ls.sidewalkID);
+        beginShape();
+        for (int i=0; i<medianLine.size(); i++) {
+          vertex((float)medianLine.get(i).getX(), (float)medianLine.get(i).getY());
+        }
+        for (int i=outerLine.size()-1; i>=0; i--) {
+          vertex((float)outerLine.get(i).getX(), (float)outerLine.get(i).getY());
+        }
+        endShape(CLOSE);
+      }
+      
+      //Draw remaining lines
+      stroke(lsStroke);
       strokeWeight(1.0);
       for (int laneID=1; laneID<ls.laneLines.size()-1; laneID++) {
         ArrayList<ScaledPoint> innerLine = ls.laneLines.get(laneID);
@@ -1119,7 +1133,7 @@ void readDecoratedData(String path) {
     String[] circReqKeys = new String[]{"at-node", "at-segment", "fwd", "number"};
     String[] segReqKeys = new String[]{"from-node", "to-node"};
     String[] crossReqKeys = new String[]{"near-1", "near-2", "far-1", "far-2"};
-    String[] laneReqKeys = new String[]{"parent-segment", "is-sidewalk", "line-0"};
+    String[] laneReqKeys = new String[]{"parent-segment", "line-0"};
     if (type.equals("multi-node") || type.equals("uni-node")) {
       //Check.
       for (String reqKey : nodeReqKeys) {
@@ -1221,9 +1235,15 @@ void readDecoratedData(String path) {
           throw new RuntimeException("No parent segment with ID: " + segmentID);
       }
       LaneShape ls = new LaneShape();
-      ls.isSidewalk = myParseBool(properties.get("is-sidewalk"));
+      //ls.isSidewalk = myParseBool(properties.get("is-sidewalk"));
       boolean hasNeg = false;
       for (int laneLineID=0; properties.containsKey("line-"+laneLineID); laneLineID++) {
+        //Is this a sidewalk?
+        if (properties.containsKey("line-"+laneLineID+"is-sidewalk")) {
+          ls.sidewalkID = laneLineID;
+        }
+        
+        //Add points
         ls.laneLines.add(new ArrayList<ScaledPoint>());
         String laneLineStr = properties.get("line-"+laneLineID);
         Matcher m2 = pointPair.matcher(laneLineStr);

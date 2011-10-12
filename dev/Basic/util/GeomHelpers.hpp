@@ -41,7 +41,19 @@ bool lineContains(const sim_mob::aimsun::Section* sec, double xPos, double yPos)
 bool PointIsLeftOfVector(double ax, double ay, double bx, double by, double cx, double cy);
 bool PointIsLeftOfVector(const sim_mob::aimsun::Node* vecStart, const sim_mob::aimsun::Node* vecEnd, const sim_mob::aimsun::Lane* point);
 bool PointIsLeftOfVector(const sim_mob::DynamicVector& vec, const sim_mob::aimsun::Lane* point);
+bool PointIsLeftOfVector(const sim_mob::DynamicVector& vec, double x, double y);
 
+
+//Geometric line-line intersection formula.
+//(x1,y1)->(x2, y2) and (x3,y3)->(x4,y4) are the two lines in question.
+sim_mob::Point2D LineLineIntersect(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4);
+sim_mob::Point2D LineLineIntersect(const sim_mob::aimsun::Crossing* const p1, const sim_mob::aimsun::Crossing* p2, const sim_mob::aimsun::Section* sec);
+sim_mob::Point2D LineLineIntersect(const sim_mob::DynamicVector& v1, const sim_mob::DynamicVector& v2);
+sim_mob::Point2D LineLineIntersect(const sim_mob::Point2D& p1, const sim_mob::Point2D& p2, const sim_mob::Point2D& p3, const sim_mob::Point2D& p4);
+
+
+//Generic functionality from the Lane class
+std::vector<sim_mob::Point2D> ShiftPolyline(const std::vector<sim_mob::Point2D>& orig, double shiftAmt, bool shiftLeft=true);
 
 
 

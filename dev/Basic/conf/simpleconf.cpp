@@ -224,18 +224,16 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Agent*>& agents, const 
 
 	//Loop through all agents of this type
 	for (;node;node=node->NextSiblingElement()) {
-            char const * idAttr = node->Attribute("id");
             char const * xPosAttr = node->Attribute("xpos");
             char const * yPosAttr = node->Attribute("ypos");
-            if (0 == idAttr || 0 == xPosAttr || 0 == yPosAttr)
+            if (0 == xPosAttr || 0 == yPosAttr)
             {
-                std::cerr << "signals must have 'id', 'xpos', and 'ypos' attributes in the config file." << std::endl;
+                std::cerr << "signals must have 'xpos', and 'ypos' attributes in the config file." << std::endl;
                 return false;
             }
 
             try
             {
-                unsigned int id = boost::lexical_cast<unsigned int>(idAttr);
                 int xpos = boost::lexical_cast<int>(xPosAttr);
                 int ypos = boost::lexical_cast<int>(yPosAttr);
 
@@ -243,10 +241,13 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Agent*>& agents, const 
                 Node* road_node = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);
                 if (0 == road_node)
                 {
-                    std::cerr << "Signal " << id << " is not located at a node, please check the 'xpos' and 'ypos' attributes in the config file." << std::endl;
+                    std::cerr << "xpos=\"" << xPosAttr << "\" and ypos=\"" << yPosAttr
+                              << "\" are not suitable attributes for Signal because there is no node there; correct the config file."
+                              << std::endl; 
                     continue;
                 }
 
+                size_t id = agents.size();
                 Signal* sig = new Signal(id, *road_node);
                 agents.push_back(sig);
                 streetDirectory.registerSignal(*sig);

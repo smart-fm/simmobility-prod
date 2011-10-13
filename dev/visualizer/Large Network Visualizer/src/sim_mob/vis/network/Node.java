@@ -32,6 +32,7 @@ public class Node implements DrawableItem {
 	
 	public void draw(Graphics2D g) {
 		int[] coords = new int[]{(int)pos.getX()-NODE_SIZE/2, (int)pos.getY()-NODE_SIZE/2};
+		
 		g.setColor(nodeColor);
 		g.fillOval(coords[0], coords[1], NODE_SIZE, NODE_SIZE);
 		if (isUni) {

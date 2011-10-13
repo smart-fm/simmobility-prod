@@ -136,6 +136,17 @@ public class NetworkVisualizer {
 			ln.drawName(g);
 		}
 		
+		//Draw Lanes
+		for (Hashtable<Integer,Lane> laneTable : network.getLanes().values()) {
+			for(Lane lane : laneTable.values()){
+				
+				lane.draw(g);
+				
+			}
+			
+		}
+		
+		
 		//Now draw simulation data: cars, etc.
 		for (AgentTick at : simRes.ticks.get(currFrameTick).agentTicks.values()) {
 			at.draw(g);

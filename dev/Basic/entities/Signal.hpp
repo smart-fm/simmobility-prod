@@ -161,6 +161,7 @@ public:
          */
 	struct VehicleTrafficColors getDriverLight(Lane const & lane) const;
 
+#if 0   // not implemented yet.
         /**
          * Return the traffic light color for vehicles travelling from one lane to another.
          *   \param fromLane The current lane.
@@ -171,6 +172,7 @@ public:
          * or fromLane::can_turn_right() as well as the returned color.
          */
         TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const;
+#endif
 
         /**
          * Return the traffic light color for pedestrians wishing to walk on the specified crossing.

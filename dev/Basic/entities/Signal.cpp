@@ -653,12 +653,11 @@ const
     return VehicleTrafficColors(left, forward, right);
 }
 
+#if 0   // not implemented yet.
 sim_mob::Signal::TrafficColor
 sim_mob::Signal::getDriverLight(Lane const & fromLane, Lane const & toLane)
 const
 {
-    throw std::string("Signal::getDriverLight(fromLane, toLane) not implemented yet.");
-
     RoadSegment const * fromRoad = fromLane.getRoadSegment();
     Link const * fromLink = fromRoad->getLink();
     std::map<Link const *, size_t>::const_iterator iter = links_map_.find(fromLink);
@@ -682,6 +681,7 @@ const
 
     return Red;
 }
+#endif
 
 sim_mob::Signal::TrafficColor
 sim_mob::Signal::getPedestrianLight(Crossing const & crossing)

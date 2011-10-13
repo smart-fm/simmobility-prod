@@ -52,7 +52,7 @@ public class Utility {
 		bounds[1] = Math.max(bounds[1], newVal);
 	}
 	
-	public static ArrayList<Integer> ParseLaneNodePos(String input) throws IOException{
+	public static ArrayList<Integer> ParseLaneNodePos(String input){
 		ArrayList<Integer> pos = new ArrayList<Integer>();
 		//System.out.println(input);
 		Matcher m = NUM_REGEX.matcher(input);
@@ -61,8 +61,7 @@ public class Utility {
 		}
 		
 		if(pos.size()!=4){
-		
-			throw new IOException("Unexpected number of lane coordinates, should be 4 " + "now is  " + pos.size());
+			System.out.println("Unexpected number of lane coordinates, should be 4 " + "now is  " + pos.size());
 		}
 		return pos;
 	}

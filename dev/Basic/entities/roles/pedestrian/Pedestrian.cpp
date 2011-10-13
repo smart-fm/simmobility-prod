@@ -278,7 +278,7 @@ void sim_mob::Pedestrian::updatePedestrianSignal()
 
 		if (dynamic_cast<Signal*>(a)) {
 		   s = dynamic_cast<Signal*>(a);
-		   currPhase=s->get_Pedestrian_Light(0);
+		   currPhase=1;//s->get_Pedestrian_Light(0);
 			//It's a signal
 		}
 		s = nullptr;

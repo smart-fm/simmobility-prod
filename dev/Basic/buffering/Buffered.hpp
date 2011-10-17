@@ -45,7 +45,7 @@ public:
 	/**
 	 * Create a new Buffered data type.
 	 *
-	 * @param value The initial value. You can also set an initial value using "force".
+	 * \param value The initial value. You can also set an initial value using "force".
 	 */
 	Buffered (const T& value = T()) : BufferedBase(), current_ (value), next_ (value) {}
 	virtual ~Buffered() {}

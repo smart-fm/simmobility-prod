@@ -125,24 +125,33 @@ namespace
     Crossing const *
     getCrossing(RoadSegment const * road)
     {
-        Crossing const * result = 0;
+        //Crossing const * result = 0;
         double offset = std::numeric_limits<double>::max();
 
-        std::map<int, RoadItem const *> const & obstacles = road->obstacles;
-        std::map<int, RoadItem const *>::const_iterator iter;
-        for (iter = obstacles.begin(); iter != obstacles.end(); ++iter)
-        {
-            RoadItem const * item = iter->second;
-            if (Crossing const * crossing = dynamic_cast<Crossing const *>(item))
-            {
-                if (offset > iter->first)
-                {
-                    offset = iter->first;
-                    result = crossing;
-                }
-            }
+        //std::map<int, RoadItem const *> const & obstacles = road->obstacles;
+        //std::map<int, RoadItem const *>::const_iterator iter;
+
+        int currOffset = static_cast<int>(offset);
+        for (;;) {
+        	//Get the next item, if any.
+        	RoadItemAndOffsetPair res = road->nextObstacle(currOffset, true);
+        	if (!res.item) {
+        		break;
+        	}
+
+        	//Check if it's a Crossing.
+        	if (Crossing const * crossing = dynamic_cast<Crossing const *>(res.item))
+        	{
+        		//Success
+        		return crossing;
+        	}
+
+        	//Increment
+        	currOffset += res.offset;
         }
-        return result;
+
+        //Failure.
+        return nullptr;
     }
 }
 

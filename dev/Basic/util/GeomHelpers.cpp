@@ -147,11 +147,6 @@ namespace {
 
 
 
-/**
- * Shift a polyline to the left/right by a certain amount. It is assumed that all shifted polylines
- * are aligned on their start and end points, and all interior points are found by approimating an angle
- * of intersection.
- */
 vector<Point2D> sim_mob::ShiftPolyline(const vector<Point2D>& orig, double shiftAmt, bool shiftLeft)
 {
 	//Deal with right-shifts in advance.

@@ -86,6 +86,13 @@ sim_mob::Point2D LineLineIntersect(const sim_mob::Point2D& p1, const sim_mob::Po
  * \param orig The original polyline.
  * \param shiftAmt The distance in CM to shift the polyline.
  * \param shiftLeft Whether to shift this polyline left (true) or right (false). If a vector goes from (0,0) to (1,0), then the point (0,1) is defined as "left".
+ *
+ * \note
+ * It is assumed that all shifted polylines are aligned on their start and end points, and all interior points
+ * are found by approximating an angle of intersection.
+ *
+ * \note
+ * This function currently does not operate as intended, due to some strangeness discovered with polylines.
  */
 std::vector<sim_mob::Point2D> ShiftPolyline(const std::vector<sim_mob::Point2D>& orig, double shiftAmt, bool shiftLeft=true);
 

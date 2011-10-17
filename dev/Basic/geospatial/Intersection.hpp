@@ -45,7 +45,7 @@ protected:
 	///   this distance is taken from the end of that RoadSegment and is used to model details
 	///   specific to this intersection. A chunkLength of zero means that no special processing
 	///   is done for that RoadSegment at this Intersection.
-	std::vector<float> chunkLengths;
+	std::vector<int> chunkLengths;
 
 	///List of which RoadSegments approaching an intersection have a separator in the median.
 	///
@@ -57,15 +57,15 @@ protected:
 	///
 	/// \note
 	/// I'm not clear on how offsets differ from chunks. ~Seth
-	std::vector<float> offsets;
+	std::vector<int> offsets;
 
 	///Vector of additional lanes on the dominant ("driving") side.
 	/// These lanes begin at a distance of chunkLength from the Intersection.
-	std::vector<sim_mob::Lane> additionalDominantLanes;
+	std::vector<sim_mob::Lane*> additionalDominantLanes;
 
 	///Vector of additional lanes on the sub-dominant (opposite of "driving") side.
 	/// These lanes begin at a distance of chunkLength from the Intersection.
-	std::vector<sim_mob::Lane> additionalSubdominantLanes;
+	std::vector<sim_mob::Lane*> additionalSubdominantLanes;
 
 	///Vector of flags; if true, then there is an island on the dominant ("driving") side
 	std::vector<bool> dominantIslands;

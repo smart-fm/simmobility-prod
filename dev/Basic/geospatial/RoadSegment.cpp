@@ -58,7 +58,7 @@ void sim_mob::RoadSegment::specifyEdgePolylines(const vector< vector<Point2D> >&
 void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 {
 	//Check our width (and all lane widths) are up-to-date:
-	double totalWidth = 0.0;
+	int totalWidth = 0;
     for (vector<Lane*>::const_iterator it=lanes.begin(); it!=lanes.end(); it++) {
     	if ((*it)->getWidth()==0) {
     		(*it)->width_ = 300; //TEMP: Hardcoded. TODO: Put in DB somewhere.

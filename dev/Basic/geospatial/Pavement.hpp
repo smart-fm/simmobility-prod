@@ -54,7 +54,7 @@ public:
 	/// \note
 	/// This should be named properly; e.g., lengthM, lengthKM.
 	///
-	double length;
+	int length;
 
 
 	///The total width of this Pavement. If the width is zero, then it is assumed that
@@ -63,7 +63,7 @@ public:
 	///
 	/// \note
 	/// This should be named properly; e.g., widthM.
-	mutable double width; //NOTE: This shouldn't be mutable, but for now I'm trying to get it to work...
+	mutable int width; //NOTE: This shouldn't be mutable, but for now I'm trying to get it to work...
 
 
 	///The polyline of this Pavement. In the case of RoadSegments, the polyline is assumed to
@@ -82,13 +82,13 @@ public:
 	/// Currently, there can be only one obstacle at any given point on the Pavement. We may have to
 	/// revisit this problem if length is represented as an integer, but if length remains represented
 	/// as a double then we can simply inch the obstacle slightly further down the road.
-	std::map<double, const RoadItem*> obstacles;
+	std::map<int, const RoadItem*> obstacles;
 
 	///Return the next obstacle from a given point on this Pavement.
 	sim_mob::RoadItemAndOffsetPair nextObstacle(const sim_mob::Point2D& pos, bool isForward) const;
 
 	///Return the next obstacle from a given offset along the current Pavement.
-	sim_mob::RoadItemAndOffsetPair nextObstacle(double offset, bool isForward) const;
+	sim_mob::RoadItemAndOffsetPair nextObstacle(int offset, bool isForward) const;
 
 	///Helper method: build a polyline given a bulge and a center. Segments are generated
 	///   of length segmentLength.

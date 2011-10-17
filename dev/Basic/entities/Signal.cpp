@@ -128,8 +128,8 @@ namespace
         Crossing const * result = 0;
         double offset = std::numeric_limits<double>::max();
 
-        std::map<double, RoadItem const *> const & obstacles = road->obstacles;
-        std::map<double, RoadItem const *>::const_iterator iter;
+        std::map<int, RoadItem const *> const & obstacles = road->obstacles;
+        std::map<int, RoadItem const *>::const_iterator iter;
         for (iter = obstacles.begin(); iter != obstacles.end(); ++iter)
         {
             RoadItem const * item = iter->second;

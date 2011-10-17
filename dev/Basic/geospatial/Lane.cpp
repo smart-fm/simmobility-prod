@@ -28,7 +28,7 @@ namespace
         double w = 0; //Note: We should be incrementing, right? ~Seth
 
         //Maintain a default lane width
-        double defaultLaneWidth = segment.width / segment.getLanes().size();
+        double defaultLaneWidth = static_cast<double>(segment.width) / segment.getLanes().size();
 
         //Iterate through each lane, reducing the return value by each lane's width until you reach the current lane.
         // At that point, reduce by half the lane's width and return.

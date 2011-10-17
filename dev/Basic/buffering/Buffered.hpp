@@ -27,7 +27,7 @@ namespace sim_mob
  *  which extends BufferedBase, and give it "setXPos()" and "setYPos()" methods.
  *
  *   \par
- *   However, I think there must be a better way to do this without sacraficing the Buffered class's
+ *   However, I think there must be a better way to do this without sacrificing the Buffered class's
  *   nice template syntax. This will only really become an issue later, when we release the API, so
  *   I'd rather think about a good solution for a while, instead of creating tons of customized BufferedXYZ
  *   pseudo-wrappers.
@@ -55,13 +55,17 @@ public:
 	 * Retrieve the current value. Get the current value of the data type. This can
 	 * also be thought of as being one flip "behind" the actual value.
 	 */
-    const T& get() const;
+    const T& get() const {
+    	return current_;
+    }
 
 	/**
 	 * Set the next value. Set the next value of the data type. This value will
 	 * only take effect when "flip" is called.
 	 */
-    void set (const T& value);
+    void set (const T& value) {
+    	next_ = value;
+    }
 
 
 	/**
@@ -72,7 +76,9 @@ public:
 	 * This is intended for later, when we have pointers to arrays of data to update.
 	 * But modelers should definitely respect the limitations of Buffere<> types now.
 	 */
-    void skip();
+    void skip() {
+    	this->set(this->get());
+    }
 
 
     /**
@@ -110,78 +116,23 @@ public:
 	 * Force a new value into effect. Set the current and next value without a call to flip().
 	 * This is usually only needed when loading values from a config file.
 	 */
-    void force(const T& value);
+    void force(const T& value) {
+    	next_ = current_ = value;
+    }
 
 
 protected:
-    void flip();
+    void flip() {
+    	current_ = next_;
+    }
 
     T current_;
     T next_;
 
-
-    //
-    // Note: I'm removing this; we don't gain much by checking if the value has
-    //       changed, and the BufferedDataManager will flip all elements anyway.
-    //       If we had Buffered<SomeBigClass>, and SomeBigClass was very expensive to
-    //       copy, then it might be useful, but currently classes are troublesome as
-    //       buffered types. So, I'm leaving this out until it's actually needed.
-    // ~Seth
-    //
-    //bool is_dirty_;
 };
 
 }
 
-template <typename T>
-const T& sim_mob::Buffered<T>::get() const
-{
-    return current_;
-}
-
-
-template <typename T>
-void sim_mob::Buffered<T>::set (const T& value)
-{
-	next_ = value;
-}
-
-
-template <typename T>
-void sim_mob::Buffered<T>::skip ()
-{
-	this->set(this->get());
-}
-
-
-template <typename T>
-void sim_mob::Buffered<T>::force (const T& value)
-{
-	next_ = current_ = value;
-}
-
-
-
-
-template <typename T>
-void sim_mob::Buffered<T>::flip()
-{
-	current_ = next_;
-}
-
-
-//
-//May be needed later for debugging. For now, just cout <<datum.get()
-//
-/*template <typename T>
-std::ostream & operator<< (std::ostream & stream, sim_mob::Buffered<T> const & data)
-{
-    stream << data.get();
-    if (data.current_ != data.next_) {
-    	stream <<"(" <<data.next_ <<")";
-    }
-    return stream;
-}*/
 
 
 

@@ -7,6 +7,7 @@
 
 #include "Traversable.hpp"
 #include "Point2D.hpp"
+#include "Length.hpp"
 
 
 namespace sim_mob
@@ -23,13 +24,13 @@ class RoadItem;
  */
 struct RoadItemAndOffsetPair
 {
-	RoadItemAndOffsetPair(const sim_mob::RoadItem* item, unsigned int offset) : item(item), offset(offset) {}
+	RoadItemAndOffsetPair(const sim_mob::RoadItem* item, centimeter_t offset) : item(item), offset(offset) {}
 
 	///The next RoadItem
     const sim_mob::RoadItem* item;
 
     /// The offset from the Pavement::start where \c item is located.
-    unsigned int offset;
+    centimeter_t offset;
 };
 
 
@@ -54,7 +55,7 @@ public:
 	/// \note
 	/// This should be named properly; e.g., lengthM, lengthKM.
 	///
-	int length;
+	centimeter_t length;
 
 
 	///The total width of this Pavement. If the width is zero, then it is assumed that
@@ -63,7 +64,7 @@ public:
 	///
 	/// \note
 	/// This should be named properly; e.g., widthM.
-	mutable int width; //NOTE: This shouldn't be mutable, but for now I'm trying to get it to work...
+	mutable centimeter_t width; //NOTE: This shouldn't be mutable, but for now I'm trying to get it to work...
 
 
 	///The polyline of this Pavement. In the case of RoadSegments, the polyline is assumed to
@@ -82,13 +83,13 @@ public:
 	/// Currently, there can be only one obstacle at any given point on the Pavement. We may have to
 	/// revisit this problem if length is represented as an integer, but if length remains represented
 	/// as a double then we can simply inch the obstacle slightly further down the road.
-	std::map<int, const RoadItem*> obstacles;
+	std::map<centimeter_t, const RoadItem*> obstacles;
 
 	///Return the next obstacle from a given point on this Pavement.
 	sim_mob::RoadItemAndOffsetPair nextObstacle(const sim_mob::Point2D& pos, bool isForward) const;
 
 	///Return the next obstacle from a given offset along the current Pavement.
-	sim_mob::RoadItemAndOffsetPair nextObstacle(int offset, bool isForward) const;
+	sim_mob::RoadItemAndOffsetPair nextObstacle(centimeter_t offset, bool isForward) const;
 
 	///Helper method: build a polyline given a bulge and a center. Segments are generated
 	///   of length segmentLength.

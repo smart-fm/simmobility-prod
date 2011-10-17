@@ -653,7 +653,6 @@ const
     return VehicleTrafficColors(left, forward, right);
 }
 
-#if 0   // not implemented yet.
 sim_mob::Signal::TrafficColor
 sim_mob::Signal::getDriverLight(Lane const & fromLane, Lane const & toLane)
 const
@@ -672,16 +671,36 @@ const
         return Red;
     size_t toIndex = iter->second;
 
-    if (fromIndex < toIndex)
+    // When links_map was populated in setupIndexMaps(), the links were numbered in anti-clockwise
+    // direction.  The following switches are based on this fact.
+    VehicleTrafficColors colors = getDriverLight(fromLane);
+    if (fromIndex > toIndex)
     {
+        int diff = fromIndex - toIndex;
+        switch (diff)
+        {
+        case 0: return Red; // U-turn is not supported currently.
+        case 1: return colors.left;
+        case 2: return colors.forward;
+        case 3: return colors.right;
+        default: return Red;
+        }
     }
     else
     {
+        int diff = toIndex - fromIndex;
+        switch (diff)
+        {
+        case 0: return Red; // U-turn is not supported currently.
+        case 1: return colors.right;
+        case 2: return colors.forward;
+        case 3: return colors.left;
+        default: return Red;
+        }
     }
 
     return Red;
 }
-#endif
 
 sim_mob::Signal::TrafficColor
 sim_mob::Signal::getPedestrianLight(Crossing const & crossing)

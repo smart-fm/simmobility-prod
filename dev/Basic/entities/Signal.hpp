@@ -161,18 +161,20 @@ public:
          */
 	struct VehicleTrafficColors getDriverLight(Lane const & lane) const;
 
-#if 0   // not implemented yet.
         /**
          * Return the traffic light color for vehicles travelling from one lane to another.
          *   \param fromLane The current lane.
          *   \param toLane The intended lane.
          *
-         * This method returns the color for driving from \c fromLane to \c toLane.  Modellers
+         * This method returns the color for driving from \c fromLane to \c toLane.  Since the
+         * movement entails travelling in either the forward, turn-left, or turn-right direction,
+         * modellers
          * should check fromLane.can_go_straight(), fromLane.can_turn_left(),
          * or fromLane::can_turn_right() as well as the returned color.
+         *
+         * Currently the method does not handle U-turn at signalized intersections.
          */
         TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const;
-#endif
 
         /**
          * Return the traffic light color for pedestrians wishing to walk on the specified crossing.

@@ -21,6 +21,7 @@
 #include "../../../geospatial/LaneConnector.hpp"
 #include "../../../geospatial/StreetDirectory.hpp"
 #include "../../../geospatial/Crossing.hpp"
+#include "../../../perception/FixedDelayed.hpp"
 
 namespace sim_mob
 {
@@ -101,6 +102,13 @@ private:
 
 	/**********BASIC DATA*************/
 private:
+	//Sample stored data which takes reaction time into account.
+	const static size_t reactTime = 1500; //1.5 seconds
+	FixedDelayed<Point2D*> perceivedVelocity;
+	FixedDelayed<Point2D*> perceivedVelocityOfFwdCar;
+	FixedDelayed<centimeter_t> perceivedDistToFwdCar;
+
+
 	//absolute Movement-related variables
 	double timeStep;			//time step size of simulation
 	int xPos;

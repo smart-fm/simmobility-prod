@@ -33,8 +33,9 @@ public:
 	/**
 	 * Construct a new FixedDelayed item with the given delay in ms.
 	 * \param delayMS The time to delay each sensation.
+	 * \param reclaimPtrs If true, any item discarded by this history list is deleted. Does nothing if the template type is not a pointer.
 	 */
-	FixedDelayed(size_t delayMS) : delayMS(delayMS) {}
+	FixedDelayed(size_t delayMS, bool reclaimPtrs=true) : delayMS(delayMS), reclaimPtrs(reclaimPtrs) {}
 
 
 	/**
@@ -90,14 +91,17 @@ public:
 	 */
 	bool can_sense(uint32_t currTimeMS) {
 		//Loop while the first value is "sense"-able.
-		while (!history.empty() && history.front().canObserve(currTimeMS)) {
+		while (!history.empty() && history.front().canObserve(currTimeMS, delayMS)) {
 			//If the second element in the list is non-sensable, we're done.
-			if (history.size()==1 || !history.at(1).canObserve(currTimeMS)) {
+			if (history.size()==1 || !(++history.begin())->canObserve(currTimeMS, delayMS)) {
 				return true;
 			}
 
 			//Otherwise, remove the first element.
-			history.pop_front();
+			if (reclaimPtrs) {
+				delete_item(history.front().item);
+				history.pop_front();
+			}
 		}
 
 		//In this case, nothing can be observed
@@ -106,17 +110,27 @@ public:
 
 
 private:
+	//Internal class to store an item and its observed time.
 	struct HistItem {
 		T item;
 		uint32_t observedTime;
 
-		bool canObserve(uint32_t currTimeMS){
+		HistItem(T item, uint32_t observedTime) : item(item), observedTime(observedTime) {}
+
+		bool canObserve(uint32_t currTimeMS, size_t delayMS){
 			return observedTime + delayMS <= currTimeMS;
 		}
 	};
 
+	//Private data
 	std::list<HistItem> history;
 	const size_t delayMS;
+	const bool reclaimPtrs;
+
+	//This allows us to delete pointers without getting compiler errors on value-types.
+	//NOTE: Untested.
+	void delete_item(T& item) {}
+	void delete_item(T* item) { delete item; }
 
 };
 

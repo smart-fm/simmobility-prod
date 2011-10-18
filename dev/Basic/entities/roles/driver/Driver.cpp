@@ -31,7 +31,9 @@ double sim_mob::Driver::unit2Feet(double unit)
 }
 
 //initiate
-sim_mob::Driver::Driver(Agent* parent) : Role(parent), leader(nullptr)
+sim_mob::Driver::Driver(Agent* parent) : Role(parent), perceivedVelocity(reactTime, true),
+	perceivedVelocityOfFwdCar(reactTime, true), perceivedDistToFwdCar(reactTime, false),
+	leader(nullptr)
 {
 	//Set random seed
 	//NOTE: This will reset the sequence returned by rand(); it's not a good idea.
@@ -77,6 +79,40 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), leader(nullptr)
 //Main update functionality
 void sim_mob::Driver::update(frame_t frameNumber)
 {
+	//Retrieve the current time in ms
+	unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
+
+	//Update your perceptions.
+	//NOTE: This should be done as perceptions arrive, but the following code kind of "mixes"
+	//      input and decision-making. ~Seth
+	perceivedVelocity.delay(new Point2D(xVel, yVel), currTimeMS);
+	//perceivedVelocityOfFwdCar.delay(new Point2D(otherCarXVel, otherCarYVel), currTimeMS);
+	//perceivedDistToFwdCar.delay(distToOtherCar, currTimeMS);
+
+	//Now, retrieve your sensed velocity, distance, etc.
+	double perceivedXVelocity = 0;  //Choose sensible defaults.
+	double perceivedYVelocity = 0;
+	if (perceivedVelocity.can_sense(currTimeMS)) {
+		perceivedXVelocity = perceivedVelocity.sense(currTimeMS)->getX();
+		perceivedYVelocity = perceivedVelocity.sense(currTimeMS)->getY();
+	}
+
+	//Here, you can use the "perceived" velocity to perform decision-making. Just be
+	// careful about how you're saving the velocity values. ~Seth
+	if (parent->getId()==0) {
+		/*boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
+		std::cout <<"At time " <<currTimeMS <<"ms, with a perception delay of " <<reactTime
+				  <<"ms, my actual velocity is (" <<xVel <<"," <<yVel <<"), and my perceived velocity is ("
+				  <<perceivedXVelocity <<"," <<perceivedYVelocity <<")\n";*/
+	}
+
+
+	//Also, in case you're wondering, the Point2D that you "new"'d in the FixedDelayed objects is
+	// automatically reclaimed. This behavior can be turned off, if the object you are storing is shared.
+	//~Seth
+
+
+	//Continue with the update.
 	if(!isOriginSet){
 		setOrigin();
 		isOriginSet=true;
@@ -156,6 +192,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 			}
 		}
 	}
+
 
 	setToParent();
 	updateAngle();

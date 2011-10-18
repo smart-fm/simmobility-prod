@@ -34,6 +34,7 @@
 #include "geospatial/BusStop.hpp"
 #include "geospatial/Route.hpp"
 #include "geospatial/BusRoute.hpp"
+#include "perception/FixedDelayed.hpp"
 
 
 using std::cout;

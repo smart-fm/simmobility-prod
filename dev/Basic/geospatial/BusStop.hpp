@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "RoadItem.hpp"
+#include "Length.hpp"
 
 
 namespace sim_mob
@@ -12,15 +13,17 @@ namespace sim_mob
 
 //Forward declarations
 class Lane;
+class BusRoute;
 
 
 /**
  * Representation of a Bus Stop.
  */
 class BusStop : public sim_mob::RoadItem {
-public:
-	BusStop() : RoadItem(), location(nullptr) {}
 
+public:
+	BusStop(unsigned int id=0, std::vector<BusRoute*> busroutes=std::vector<BusRoute*>());
+public:
 	///Which RoadItem and lane is this bus stop located at?
 	Lane* location;
 
@@ -33,9 +36,9 @@ public:
 	///   requiring a bus to wait for the bus in front of it to leave.
 	bool is_terminal;
 
-	///How many meters of "bus" can park in the bus lane/bay to pick up pedestrians.
+	///How many centimeters of "bus" can park in the bus lane/bay to pick up pedestrians.
 	///  Used to more easily represent double-length or mini-buses.
-	unsigned int busCapacityAsLength;
+	centimeter_t busCapacityAsLength;
 
 	///Is the pedestrian waiting area sheltered? Currently does not affect anything.
 	bool has_shelter;
@@ -44,7 +47,7 @@ public:
 private:
 	///Get the bus lines available at this stop. Used for route planning.
 	///NOTE: Placeholder method; will obviously not be returning void.
-	void getBusLines() {  }
+	std::vector <BusRoute*> getBusLines() { std::vector <BusRoute*> res; return res;  }
 
 	///Get a list of bus arrival times. Pedestrians can consult this (assuming the bus stop is VMS-enabled).
 	///NOTE: Placeholder method; will obviously not be returning void.

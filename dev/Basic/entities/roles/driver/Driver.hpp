@@ -10,6 +10,7 @@
 #include "../pedestrian/Pedestrian.hpp"
 #include "../../Person.hpp"
 #include "../../Signal.hpp"
+#include "../../AuraManager.hpp"
 #include "../../../buffering/Buffered.hpp"
 #include "../../../buffering/BufferedDataManager.hpp"
 #include "../../../geospatial/Link.hpp"
@@ -22,6 +23,7 @@
 #include "../../../geospatial/StreetDirectory.hpp"
 #include "../../../geospatial/Crossing.hpp"
 #include "../../../perception/FixedDelayed.hpp"
+
 
 namespace sim_mob
 {
@@ -82,13 +84,14 @@ public:
  * NOTE: I made these static. ~Seth
  */
 private:
-	static const double MAX_ACCELERATION		=	+150.0;
-	static const double MAX_DECELERATION		=	-150.0;
+	static const double MAX_ACCELERATION		=	+10.0;//10m/s*s
+	static const double MAX_DECELERATION		=	-10.0;
 
 	//Something I have to define
-	static const double maxLaneSpeed[];
-	static const double FLT_EPSILON				=	0.0001;	//the smallest double
+
+	static const double FLT_EPSILON				=	0.01;	//the smallest double
 	static const double MAX_NUM;							//regard as infinity
+	static const int MAX_NUM_INT;
 	static const double hBufferUpper			=	1.6;	//upper threshold of headway
 	static const double hBufferLower			=	0.8;	//lower threshold of headway
 
@@ -102,21 +105,19 @@ private:
 
 	/**********BASIC DATA*************/
 private:
-	//Sample stored data which takes reaction time into account.
+        //Sample stored data which takes reaction time into account.
 	const static size_t reactTime = 1500; //1.5 seconds
 	FixedDelayed<Point2D*> perceivedVelocity;
 	FixedDelayed<Point2D*> perceivedVelocityOfFwdCar;
 	FixedDelayed<centimeter_t> perceivedDistToFwdCar;
-
-
 	//absolute Movement-related variables
 	double timeStep;			//time step size of simulation
 	int xPos;
 	int yPos;
-	int xVel;
-	int yVel;
-	int xAcc;
-	int yAcc;
+	double xVel;
+	double yVel;
+	double xAcc;
+	double yAcc;
 
 	//absolute position of the target start point on the next link
 	//used for intersection driving behavior
@@ -128,14 +129,19 @@ private:
 	int xPos_;
 	int yPos_;
 	int xPosCrossing_; //relative x coordinate for crossing, the intersection point of crossing's front line and current polyline
-	int xVel_;
-	int yVel_;
-	int speed;
-	int acc_;
-	int xAcc_;
-	int yAcc_;
-	double xDirection;			//x direction of the current link
-	double yDirection;			//y direction of the current link
+	double xVel_;
+	double yVel_;
+	double speed;
+	double speed_;
+	double acc_;
+	double xAcc_;
+	double yAcc_;
+	double xDirection;			//x direction of the current polyline segment
+	double yDirection;			//y direction of the current polyline segment
+	double crossingFarX;
+	double crossingFarY;
+	double crossingNearX;
+	double crossingNearY;
 
 
 	Point2D origin;
@@ -144,17 +150,18 @@ private:
 	const Node* originNode;				//when a vehicle reaches its goal, it will return to origin and moves to the goal again
 	bool isGoalSet;				//to check if the goal has been set
 	bool isOriginSet;			//to check if the origin has been set
-	int length;				//length of the vehicle
-	int width;				//width of the vehicle
+	double length;				//length of the vehicle
+	double width;				//width of the vehicle
 
-	int maxAcceleration;
-	int normalDeceleration;
-	int maxDeceleration;
-	int distanceToNormalStop;
+	double maxAcceleration;
+	double normalDeceleration;
+	double maxDeceleration;
+	double distanceToNormalStop;
+	double maxLaneSpeed;
 
 public:
-	int getTimeStep(){return timeStep;}
-	int getLength(){return length;}
+	int getTimeStep() const {return timeStep;}
+	double getLength() const {return length;}
 
 	//for coordinate transform
 	void getFromParent();		///<get current data from parent buffer data
@@ -165,39 +172,36 @@ public:
 	double feet2Unit(double feet);
 	double unit2Feet(double unit);
 
-	int getMaxAcceleration(){return maxAcceleration;}
-	int getNormalDeceleration(){return normalDeceleration;}
-	int getMaxDeceleration(){return maxDeceleration;}
-	int getDistanceToNormalStop(){return distanceToNormalStop;}
-	int getDistance();
+	double getMaxAcceleration() const {return maxAcceleration;}
+	double getNormalDeceleration() const {return normalDeceleration;}
+	double getMaxDeceleration() const {return maxDeceleration;}
+	double getDistanceToNormalStop() const {return distanceToNormalStop;}
 	void output(frame_t frameNumber);
 
 	/****************IN REAL NETWORK****************/
 private:
 	std::vector<const Link*> linkPath;
 	const Link* currLink_;
-	const Link* nextLink;
+	const Link* nextLink_;
 	const RoadSegment* currRoadSegment_;
 	const Lane* currLane_;
 	const Lane* nextLane_;
-	const Node* currNode;
-	unsigned int currLaneID;
+	const Lane* leftLane_;
+	const Lane* rightLane_;
+	const Node* currNode_;
 	const Link* desLink_;
-	RoadSegment* desRoadSegment;
-	const Lane* desLane;
-	unsigned int desLaneID;
-	size_t polylineIndex_;
-	double offsetInPolyline_;
-	double moveAlong;
-	double movePerpendicular;
+	double currLaneOffset_;
+    double currLinkOffset_;
+	double traveledDis_; //the distance traveled within current time step
 	size_t linkIndex;
 	size_t RSIndex;
-	size_t roadSegmentIndex;
 	size_t startIndex;
 	size_t endIndex;
 	size_t desStartIndex;
 	size_t desEndIndex;
-	bool isReachGoal;
+	size_t currLaneID_;
+	size_t currLaneIndex_;
+	size_t polylineIndex_;
 	std::vector<const Lane*> targetLane;
 	StreetDirectory::LaneAndIndexPair laneAndIndexPair;
 	const std::vector<sim_mob::Point2D>* currLanePolyLine;
@@ -211,6 +215,7 @@ private:
 	int xTurningStart;
 	int yTurningStart;
 	int polyLineSegLength;
+	double currLaneLength;
 	int disToCrossing; //in the range of this distance(5m), the vehicle can aware of a crossing in front.
 	double xDirection_entryPoint;
 	double yDirection_entryPoint;
@@ -218,7 +223,11 @@ private:
 	bool isCrossingAhead;
 	bool closeToCrossing;
 	bool isForward;
-
+	bool isReachGoal;
+	bool lrEnterNewLane;
+	std::vector<const Agent*> nearby_agents;
+	int distanceInFront;
+	int distanceBehind;
 
 public:
 	Buffered<Link*> currLink;
@@ -232,53 +241,70 @@ public:
 	const RoadSegment* getCurrRoadSegment(){return currRoadSegment_;}
 	const Lane* getCurrLane(){return currLane_;}
 	size_t getPoylineIndex(){return polylineIndex_;}
-	double getOffsetInPolyline(){return offsetInPolyline_;}
-	void updateCurrentPositionInRoadNetwork();
-	void road2Map();
-	Link* getNextLink();
-	RoadSegment* getNextRoadSegment();
+	double getCurrLaneOffset(){return currLaneOffset_;}
+	double getCurrLinkOffset(){return currLinkOffset_;}
+	double getCurrLaneLength(){return currLaneLength;}
+	double getRelatXvel() const{return xVel_;}
+	double getRelatXacc() const{return xAcc_;}
+	size_t getLane() const {return currLaneID_;}
+
+
+private:
 	void getTargetLane();
-	void updatePolyLineSeg();
 	bool isReachPolyLineSegEnd();
 	bool isReachLastPolyLineSeg();
 	bool isReachLastRS();
 	void updateCurrInfo(unsigned int mode);
-	void crossRSinCurrLink();
+	void updateAdjacentLanes();
+	void updateRSInCurrLink();
 	void findCrossing();
 	bool isCloseToCrossing();
-	bool isEnterIntersection();
+	bool isReachLinkEnd();
 	bool isLeaveIntersection();
 	void chooseNextLaneIntersection();
 	int disToObstacle(unsigned obstacle_offset);
 	const Link* findLink(const MultiNode* start, const MultiNode* end);
+	void setBackToOrigin();
+	void updateNearbyAgents();
+	void updateCurrLaneLength();
+	void updateDisToLaneEnd();
+	bool isGoalReached();
+	void setGoal();
+	void setOrigin();
+	void updateAcceleration();
+	void updateVelocity();
+	void updatePosition();
+	void updatePolyLineSeg();
+	void lcPosUpdate();
+	void updateStartEndIndex();
+	size_t getLaneIndex(const Lane* l,const RoadSegment* r);
 
 
 	/***********SOMETHING BIG BROTHER CAN RETURN*************/
 private:
 	Agent* leader;				///<Pointer pointing to leading vehicle
-	double leader_xPos_;		//parameters of leading vehicle in relative coordinate
-	double leader_yPos_;
-	double leader_xVel_;
-	double leader_yVel_;
-	double leader_xAcc_;
-	double leader_yAcc_;
-	Agent* LF;				//pointer pointing to the vehicle in the left lane and in front of the vehicle in the smallest distance
-	Agent* LB;				//left lane, behind, closest
-	Agent* RF;				//right lane, front, closest
-	Agent* RB;				//right lane, behind, closest
 
-
-
-
-
-
+	const Driver* CFD;
+	const Driver* CBD;
+	const Driver* LFD;
+	const Driver* LBD;
+	const Driver* RFD;
+	const Driver* RBD;
+	const Pedestrian* CFP;
+	const Pedestrian* LFP;
+	const Pedestrian* RFP;
 
 
 	/***********FOR DRIVING BEHAVIOR MODEL**************/
 	//parameters
 private:
 	double targetSpeed;			//the speed which the vehicle is going to achieve
-	double space;				//the distance between subject vehicle to leading vehicle
+	double minCFDistance;				//the distance between subject vehicle to leading vehicle
+	double minCBDistance;
+	double minLFDistance;
+	double minLBDistance;
+	double minRFDistance;
+	double minRBDistance;
 	double headway;				//distance/speed
 	double space_star;			//the distance which leading vehicle will move in next time step
 	double dv;					//the difference of subject vehicle's speed and leading vehicle's speed
@@ -293,13 +319,13 @@ public:
 	double accOfCarFollowing();						///<when lower threshold < headway < upper threshold, use this function
 	double accOfMixOfCFandFF();						///<when upper threshold < headway, use this funcion
 	double accOfFreeFlowing();						///<is a part of accofMixOfCFandFF
-	double getTargetSpeed(){return targetSpeed;}
+	double getTargetSpeed() const {return targetSpeed;}
 
 	//for lane changing decision
 private:
 	double VelOfLaneChanging;	//perpendicular with the lane's direction
 	int changeMode;				//DLC or MLC
-	double changeDecision;		//1 for right, -1 for left, 0 for current
+	int changeDecision;		//1 for right, -1 for left, 0 for current
 	bool ischanging;			//is the vehicle is changing the lane
 	bool isback;				//in DLC: is the vehicle get back to the lane to avoid crash
 	bool isWaiting;				//in MLC: is the vehicle waiting acceptable gap to change lane
@@ -337,14 +363,6 @@ public:
 	 * */
 
 
-	/*****************FUNCTIONS FOR UPDATING****************/
-private:
-	bool isGoalReached();
-	void setGoal();
-	void setOrigin();
-	void updateAcceleration();
-	void updateVelocity();
-	void updatePosition();
 
 
 	/**************BEHAVIOR WHEN APPROACHING A INTERSECTION***************/

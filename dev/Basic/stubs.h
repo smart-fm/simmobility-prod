@@ -37,9 +37,6 @@ void createSingleAgent(const sim_mob::Agent* const ag) {
 void createSingleChoiceSet(ChoiceSet* const cs, unsigned int newID) {
 	cs->id = newID;
 }
-void createSingleVehicle(Vehicle* const v, unsigned int newID) {
-	v->id = newID;
-}
 
 
 
@@ -66,26 +63,12 @@ void load_choice_sets(sim_mob::Worker<ChoiceSet>& wk, frame_t frameNumber)
 	}
 }
 
-void load_vehicles(sim_mob::Worker<Vehicle>& wk, frame_t frameNumber)
-{
-	for (std::vector<Vehicle*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
-		createSingleVehicle(*it, (*it)->id);   //At the moment, no way to link from agents to trip chains.
-	}
-}
-
 
 
 void agentDecomposition(std::vector<sim_mob::Agent*>& agents) {
 	//Marked as not boost::threadable.
 	for (size_t i=0; i<agents.size(); i++) {
 		trivial(agents[i]->getId()); //Trivial. Possibly move agents later.
-	}
-}
-
-void updateVehicleQueue(std::vector<Vehicle*>& vehicles) {
-	//Marked as not boost::threadable.
-	for (size_t i=0; i<vehicles.size(); i++) {
-		trivial(vehicles[i]->id); //Trivial. Will update queues later.
 	}
 }
 
@@ -128,7 +111,7 @@ void saveStatisticsToDB(std::vector<sim_mob::Agent*>& agents) {
 
 
 //Quick double-check
-bool checkIDs(const std::vector<sim_mob::Agent*>& agents, const std::vector<TripChain*>& trips, const std::vector<ChoiceSet*>& choiceSets, const std::vector<Vehicle*>& vehicles) {
+bool checkIDs(const std::vector<sim_mob::Agent*>& agents, const std::vector<TripChain*>& trips, const std::vector<ChoiceSet*>& choiceSets) {
 	std::string error = "";
 	for (size_t i=0; i<agents.size(); i++) {
 		if (agents[i]->getId() != i)
@@ -141,10 +124,6 @@ bool checkIDs(const std::vector<sim_mob::Agent*>& agents, const std::vector<Trip
 	for (size_t i=0; i<choiceSets.size(); i++) {
 		if (choiceSets[i]->id != i)
 			error = "Choice Set ID";
-	}
-	for (size_t i=0; i<vehicles.size(); i++) {
-		if (vehicles[i]->id != i)
-			error = "Vehicle ID";
 	}
 
 	if (error.empty())

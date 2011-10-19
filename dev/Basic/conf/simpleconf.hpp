@@ -54,8 +54,7 @@ public:
 	 * once before GetInstance() will return meaningful data.
 	 */
 	static bool InitUserConf(const std::string& configPath, std::vector<Agent*>& agents, std::vector<Region*>& regions,
-	          std::vector<TripChain*>& trips, std::vector<ChoiceSet*>& chSets,
-	          std::vector<Vehicle*>& vehicles);
+	          std::vector<TripChain*>& trips, std::vector<ChoiceSet*>& chSets);
 
 	/**
 	 * Retrive a reference to the current RoadNetwork.

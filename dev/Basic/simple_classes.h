@@ -23,10 +23,3 @@ public:
 	unsigned int id;
 	ChoiceSet(unsigned int id=0) : id(id) {}
 };
-class Vehicle {
-public:
-	unsigned int id;
-	Vehicle(unsigned int id=0) : id(id) {}
-};
-
-

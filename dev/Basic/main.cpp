@@ -54,7 +54,7 @@ typedef WorkGroup<Entity> EntityWorkGroup;
  * First "loading" step is special. Initialize all agents using work groups in parallel.
  */
 void InitializeAll(vector<Agent*>& agents, vector<Region*>& regions, vector<TripChain*>& trips,
-		      vector<ChoiceSet*>& choiceSets, vector<Vehicle*>& vehicles);
+		      vector<ChoiceSet*>& choiceSets);
 
 
 
@@ -100,10 +100,9 @@ bool performMain(const std::string& configFileName)
   vector<Region*> regions;
   vector<TripChain*> trips;
   vector<ChoiceSet*> choiceSets;
-  vector<Vehicle*> vehicles;
 
   //Load our user config file; save a handle to the shared definition of it.
-  if (!ConfigParams::InitUserConf(configFileName, agents, regions, trips, choiceSets, vehicles)) {   //Note: Agent "shells" are loaded here.
+  if (!ConfigParams::InitUserConf(configFileName, agents, regions, trips, choiceSets)) {   //Note: Agent "shells" are loaded here.
 	  return false;
   }
   const ConfigParams& config = ConfigParams::GetInstance();
@@ -123,11 +122,11 @@ bool performMain(const std::string& configFileName)
   //       value, but at the moment we don't even have a "properties class"
   ///////////////////////////////////////////////////////////////////////////////////
   cout <<"Beginning Initialization" <<endl;
-  InitializeAll(agents, regions, trips, choiceSets, vehicles);
+  InitializeAll(agents, regions, trips, choiceSets);
   cout <<"  " <<"Initialization done" <<endl;
 
   //Sanity check (simple)
-  if (!checkIDs(agents, trips, choiceSets, vehicles)) {
+  if (!checkIDs(agents, trips, choiceSets)) {
 	  return false;
   }
 
@@ -206,9 +205,6 @@ bool performMain(const std::string& configFileName)
 	  //TODO: Put these on Worker threads too.
 	  agentDecomposition(agents);
 
-	  //One Queue is created for each core
-	  updateVehicleQueue(vehicles);
-
 	  //Agent-based cycle
 	  agentWorkers.wait();
 
@@ -286,13 +282,12 @@ int main(int argc, char* argv[])
  * Parallel initialization step.
  */
 void InitializeAll(vector<Agent*>& agents, vector<Region*>& regions, vector<TripChain*>& trips,
-	      vector<ChoiceSet*>& choiceSets, vector<Vehicle*>& vehicles)
+	      vector<ChoiceSet*>& choiceSets)
 {
 	  //Our work groups. Will be disposed after this time tick.
 	  SimpleWorkGroup<TripChain> tripChainWorkers(WG_TRIPCHAINS_SIZE, 1);
 	  WorkGroup<sim_mob::Agent> createAgentWorkers(WG_CREATE_AGENT_SIZE, 1);
 	  SimpleWorkGroup<ChoiceSet> choiceSetWorkers(WG_CHOICESET_SIZE, 1);
-	  SimpleWorkGroup<Vehicle> vehicleWorkers(WG_VEHICLES_SIZE, 1);
 
 	  //Create object from DB; for long time spans objects must be created on demand.
 	  Worker<TripChain>::actionFunction func1 = boost::bind(load_trip_chain, _1, _2);
@@ -301,7 +296,7 @@ void InitializeAll(vector<Agent*>& agents, vector<Region*>& regions, vector<Trip
 		  tripChainWorkers.migrate(trips[i], -1, i%WG_TRIPCHAINS_SIZE);
 	  }
 
-	  //Agents, choice sets, and vehicles
+	  //Agents and choice sets
 	  Worker<sim_mob::Agent>::actionFunction func2 = boost::bind(load_agents, _1, _2);
 	  createAgentWorkers.initWorkers(&func2);
 	  for (size_t i=0; i<agents.size(); i++) {
@@ -312,24 +307,17 @@ void InitializeAll(vector<Agent*>& agents, vector<Region*>& regions, vector<Trip
 	  for (size_t i=0; i<choiceSets.size(); i++) {
 		  choiceSetWorkers.migrate(choiceSets[i], -1, i%WG_CHOICESET_SIZE);
 	  }
-	  Worker<Vehicle>::actionFunction func4 = boost::bind(load_vehicles, _1, _2);
-	  vehicleWorkers.initWorkers(&func4);
-	  for (size_t i=0; i<vehicles.size(); i++) {
-		  vehicleWorkers.migrate(vehicles[i], -1, i%WG_VEHICLES_SIZE);
-	  }
 
 	  //Start
 	  cout <<"  Starting threads..." <<endl;
 	  tripChainWorkers.startAll();
 	  createAgentWorkers.startAll();
 	  choiceSetWorkers.startAll();
-	  vehicleWorkers.startAll();
 
 	  //Flip once
 	  tripChainWorkers.wait();
 	  createAgentWorkers.wait();
 	  choiceSetWorkers.wait();
-	  vehicleWorkers.wait();
 
 	  cout <<"  Closing all work groups..." <<endl;
 }

@@ -51,19 +51,12 @@ public:
 	/// and end nodes, but rather the total length of the polyline. An Agent's position
 	/// along a Pavement object is alyways given with respect to that Pavement's length,
 	/// not to the Euclidean distance between start and end.
-	///
-	/// \note
-	/// This should be named properly; e.g., lengthM, lengthKM.
-	///
 	centimeter_t length;
 
 
 	///The total width of this Pavement. If the width is zero, then it is assumed that
 	///  one can determine the width through some other means (e.g., this is a RoadSegment
 	///  where the Lanes have their own individual widths) or that the width is irrelevant.
-	///
-	/// \note
-	/// This should be named properly; e.g., widthM.
 	mutable centimeter_t width; //NOTE: This shouldn't be mutable, but for now I'm trying to get it to work...
 
 

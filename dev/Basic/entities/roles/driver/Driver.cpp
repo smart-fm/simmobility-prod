@@ -99,6 +99,8 @@ leader(nullptr)
 	disToCrossing = 500;
 	angle = 0;
 
+	desLink_ = nullptr;
+
 }
 
 
@@ -139,20 +141,22 @@ void sim_mob::Driver::update(frame_t frameNumber)
 
 	traveledDis_ = 0;
 	if(!isOriginSet){
-		setOrigin();
-		isOriginSet=true;
+		if(setOrigin())
+			isOriginSet=true;
+		else
+			return;
 	}
 
 	//Avoid crashing
 	if (!currLane_) {
 		return;
 	}
-
 	if(!isGoalSet){
 		setGoal();
 		isGoalSet = true;
 	}
-
+	if(linkPath.size()==0)
+		return;
 	//still need to be modified.
 	//if reach the goal, get back to the origin
 	if(isGoalReached()){
@@ -160,7 +164,6 @@ void sim_mob::Driver::update(frame_t frameNumber)
 		setBackToOrigin();
 		return;
 	}
-
 	updateNearbyAgents();
 
 	//inside intersection
@@ -216,10 +219,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 			updateAcceleration();
 			updatePosition();
 			//yPos_ = 0;
-
 			xVel_ = xVel_ + xAcc_ * timeStep;
-			if(xVel_<0)
-				std::cout<<"abc"<<xAcc_<<std::endl;
 			yVel_ = 0;
 			relat2abs();
 		}
@@ -318,9 +318,7 @@ void sim_mob::Driver::updateRSInCurrLink()
 	const MultiNode* mNode=dynamic_cast<const MultiNode*>(currNode_);
 	if(mNode){			//end of link is a intersection
 		set<LaneConnector*>::const_iterator i;
-		std::cout<<"abc1"<<std::endl;
 		set<LaneConnector*> lcs=mNode->getOutgoingLanes(*currRoadSegment_);
-		std::cout<<"abc2"<<std::endl;
 		for(i=lcs.begin();i!=lcs.end();i++){
 			if((*i)->getLaneTo()->getRoadSegment()->getLink()==currLink_
 					&& (*i)->getLaneFrom()==currLane_){
@@ -546,14 +544,14 @@ void sim_mob::Driver::setBackToOrigin()
 	yAcc = 0;
 	setToParent();
 }
-void sim_mob::Driver::setOrigin()
+bool sim_mob::Driver::setOrigin()
 {
 	originNode = parent->originNode;
 	const MultiNode* multiOriginNode=dynamic_cast<const MultiNode*>(originNode);
 	const MultiNode* end = dynamic_cast<const MultiNode*>(ConfigParams::GetInstance().getNetwork().locateNode(Point2D(37250760,14355120), true));
-
-	if(multiOriginNode)
-	{
+	if(!multiOriginNode)
+		return false;
+	else{
 		currLink_ = findLink(multiOriginNode,end);
 		if (currLink_) {
 			if(currLink_->getEnd()==end)
@@ -561,8 +559,9 @@ void sim_mob::Driver::setOrigin()
 			else
 				isForward = false;
 		}
+		else
+			return false;
 	}
-
 	currLinkOffset_ = 0;
 	roadSegments = &(currLink_->getPath(isForward));
 	RSIndex = 0;
@@ -577,7 +576,6 @@ void sim_mob::Driver::setOrigin()
 		currLane_ = currRoadSegment_->getLanes().at(2);
 	startIndex = 0;
 	endIndex = 1;
-
 	targetSpeed = currRoadSegment_->maxSpeed;
 	currLaneID_ = currLane_->getLaneID();
 	currLaneIndex_ = getLaneIndex(currLane_,currRoadSegment_);
@@ -596,6 +594,7 @@ void sim_mob::Driver::setOrigin()
 	yAcc_=0;
 	updateAdjacentLanes();
 	updateCurrLaneLength();
+	return true;
 }
 
 
@@ -604,12 +603,15 @@ void sim_mob::Driver::setGoal()
 	destNode = parent->destNode;
 	const MultiNode* multiDestNode=dynamic_cast<const MultiNode*>(destNode);
 	const MultiNode* end = dynamic_cast<const MultiNode*>(ConfigParams::GetInstance().getNetwork().locateNode(Point2D(37250760,14355120), true));
-	if(destNode)
+	if(multiDestNode && end)
 	{
 		desLink_ = findLink(multiDestNode,end);
 	}
 	if(desLink_)
+	{
+		std::cout<<"ad"<<std::endl;
 		linkPath.push_back(desLink_);
+	}
 }
 
 
@@ -760,8 +762,8 @@ void sim_mob::Driver::updateNearbyAgents()
 	Point2D myPos(xPos,yPos);
 	distanceInFront = 1000;
 	distanceBehind = 500;
-	nearby_agents = AuraManager::instance().nearbyAgents(myPos, *currLane_,  distanceInFront, distanceBehind);
 
+	nearby_agents = AuraManager::instance().nearbyAgents(myPos, *currLane_,  distanceInFront, distanceBehind);
 
 	minCFDistance = 5000;
 	minCBDistance = 5000;
@@ -769,6 +771,7 @@ void sim_mob::Driver::updateNearbyAgents()
 	minLBDistance = 5000;
 	minRFDistance = 5000;
 	minRBDistance = 5000;
+
 	for(unsigned int i=0;i<nearby_agents.size();i++)
 	{
 		const Person *person = dynamic_cast<const Person *>(nearby_agents.at(i));

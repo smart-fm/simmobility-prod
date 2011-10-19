@@ -267,7 +267,7 @@ private:
 	void updateDisToLaneEnd();
 	bool isGoalReached();
 	void setGoal();
-	void setOrigin();
+	bool setOrigin();
 	void updateAcceleration();
 	void updateVelocity();
 	void updatePosition();

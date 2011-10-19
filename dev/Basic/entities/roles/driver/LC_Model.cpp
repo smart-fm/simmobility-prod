@@ -6,6 +6,11 @@
  */
 
 #include "Driver.hpp"
+
+
+#include "geospatial/Link.hpp"
+
+
 using namespace sim_mob;
 const double sim_mob::Driver::GA_parameters[4][9] = {
 //	    scale alpha lambda beta0  beta1  beta2  beta3  beta4  stddev

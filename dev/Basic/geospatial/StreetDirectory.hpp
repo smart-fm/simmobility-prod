@@ -13,6 +13,7 @@ namespace sim_mob
 class Lane;
 class Point2D;
 class RoadNetwork;
+class RoadSegment;
 class Node;
 class Signal;
 

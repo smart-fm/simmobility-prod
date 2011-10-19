@@ -10,6 +10,22 @@
 
 #include "Driver.hpp"
 
+
+#include "entities/roles/pedestrian/Pedestrian.hpp"
+#include "entities/Person.hpp"
+#include "entities/Signal.hpp"
+#include "entities/AuraManager.hpp"
+#include "buffering/BufferedDataManager.hpp"
+#include "geospatial/Link.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "geospatial/Lane.hpp"
+#include "geospatial/Node.hpp"
+#include "geospatial/UniNode.hpp"
+#include "geospatial/MultiNode.hpp"
+#include "geospatial/LaneConnector.hpp"
+#include "geospatial/Crossing.hpp"
+
+
 using namespace sim_mob;
 using std::numeric_limits;
 using std::max;

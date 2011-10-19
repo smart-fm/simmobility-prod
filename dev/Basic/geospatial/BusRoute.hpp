@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../util/DynamicVector.hpp"
+#include "util/DynamicVector.hpp"
 
 #include "Route.hpp"
 #include <vector>

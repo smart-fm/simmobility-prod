@@ -7,8 +7,8 @@
 #include <boost/function.hpp>
 
 #include "EntityWorker.hpp"
-#include "../entities/Entity.hpp"
-#include "../entities/Agent.hpp"
+#include "entities/Entity.hpp"
+#include "entities/Agent.hpp"
 
 namespace sim_mob
 {

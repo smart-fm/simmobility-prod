@@ -3,7 +3,7 @@
 #pragma once
 
 #include <boost/utility.hpp>
-#include "../geospatial/Length.hpp"
+#include "geospatial/Length.hpp"
 
 namespace sim_mob
 {

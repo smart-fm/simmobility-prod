@@ -22,11 +22,11 @@
 #include <boost/thread.hpp>
 #include <boost/function.hpp>
 
-#include "../frame.hpp"
-#include "../constants.h"
-#include "../entities/Entity.hpp"
-#include "../buffering/Buffered.hpp"
-#include "../buffering/BufferedDataManager.hpp"
+#include "frame.hpp"
+#include "constants.h"
+#include "entities/Entity.hpp"
+#include "buffering/Buffered.hpp"
+#include "buffering/BufferedDataManager.hpp"
 
 
 namespace sim_mob

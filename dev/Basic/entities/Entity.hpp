@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "../frame.hpp"
-#include "../buffering/BufferedDataManager.hpp"
+#include "frame.hpp"
+#include "buffering/BufferedDataManager.hpp"
 
 
 namespace sim_mob

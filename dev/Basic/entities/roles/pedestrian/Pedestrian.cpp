@@ -1,9 +1,9 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "Pedestrian.hpp"
-#include "../../Person.hpp"
-#include "../driver/Driver.hpp"
-#include "../../../geospatial/Node.hpp"
+#include "entities/Person.hpp"
+#include "entities/roles/driver/Driver.hpp"
+#include "geospatial/Node.hpp"
 
 using namespace sim_mob;
 

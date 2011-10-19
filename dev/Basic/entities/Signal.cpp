@@ -9,10 +9,10 @@
 
 #include "Signal.hpp"
 #include <math.h>
-#include "../geospatial/Lane.hpp"
-#include "../geospatial/Crossing.hpp"
-#include "../geospatial/MultiNode.hpp"
-#include "../geospatial/RoadSegment.hpp"
+#include "geospatial/Lane.hpp"
+#include "geospatial/Crossing.hpp"
+#include "geospatial/MultiNode.hpp"
+#include "geospatial/RoadSegment.hpp"
 using namespace sim_mob;
 
 double Density[] = {1, 1, 1, 1};

@@ -4,10 +4,10 @@
 #include <iostream>
 #include <algorithm>
 
-#include "../../util/OutputUtil.hpp"
-#include "../../util/GeomHelpers.hpp"
-#include "../../util/DynamicVector.hpp"
-#include "../RoadSegment.hpp"
+#include "util/OutputUtil.hpp"
+#include "util/GeomHelpers.hpp"
+#include "util/DynamicVector.hpp"
+#include "geospatial/RoadSegment.hpp"
 
 
 using std::pair;

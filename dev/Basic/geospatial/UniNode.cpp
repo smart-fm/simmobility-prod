@@ -4,7 +4,7 @@
 
 #include <boost/thread.hpp>
 #include "Lane.hpp"
-#include "../buffering/BufferedDataManager.hpp"
+#include "buffering/BufferedDataManager.hpp"
 
 using namespace sim_mob;
 

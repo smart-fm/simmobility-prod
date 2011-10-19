@@ -9,9 +9,9 @@
 
 #include <boost/utility.hpp>
 
-#include "../geospatial/Point2D.hpp"
-#include "../geospatial/RoadNetwork.hpp"
-#include "../simple_classes.h"
+#include "geospatial/Point2D.hpp"
+#include "geospatial/RoadNetwork.hpp"
+#include "simple_classes.h"
 
 
 namespace sim_mob

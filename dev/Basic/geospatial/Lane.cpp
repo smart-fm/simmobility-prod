@@ -5,8 +5,8 @@
 #include <limits>
 
 #include "Lane.hpp"
-#include "../util/DynamicVector.hpp"
-#include "../util/GeomHelpers.hpp"
+#include "util/DynamicVector.hpp"
+#include "util/GeomHelpers.hpp"
 
 using std::vector;
 

@@ -7,7 +7,7 @@
 #include <cmath>
 
 #include "Base.hpp"
-#include "../../constants.h"
+#include "constants.h"
 
 namespace sim_mob
 {

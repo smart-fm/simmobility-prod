@@ -8,20 +8,20 @@
 #include <boost/lexical_cast.hpp>
 
 //Include here (forward-declared earlier) to avoid include-cycles.
-#include "../entities/Agent.hpp"
-#include "../entities/Person.hpp"
-#include "../entities/Region.hpp"
-#include "../entities/roles/pedestrian/Pedestrian.hpp"
-#include "../entities/roles/driver/Driver.hpp"
-#include "../geospatial/aimsun/Loader.hpp"
-#include "../geospatial/Node.hpp"
-#include "../geospatial/UniNode.hpp"
-#include "../geospatial/MultiNode.hpp"
-#include "../geospatial/Intersection.hpp"
-#include "../geospatial/Crossing.hpp"
-#include "../geospatial/RoadSegment.hpp"
-#include "../geospatial/LaneConnector.hpp"
-#include "../geospatial/StreetDirectory.hpp"
+#include "entities/Agent.hpp"
+#include "entities/Person.hpp"
+#include "entities/Region.hpp"
+#include "entities/roles/pedestrian/Pedestrian.hpp"
+#include "entities/roles/driver/Driver.hpp"
+#include "geospatial/aimsun/Loader.hpp"
+#include "geospatial/Node.hpp"
+#include "geospatial/UniNode.hpp"
+#include "geospatial/MultiNode.hpp"
+#include "geospatial/Intersection.hpp"
+#include "geospatial/Crossing.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "geospatial/LaneConnector.hpp"
+#include "geospatial/StreetDirectory.hpp"
 
 using std::cout;
 using std::endl;

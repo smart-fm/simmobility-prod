@@ -3,12 +3,12 @@
 #include <limits>
 #include <algorithm>
 #include <boost/unordered_set.hpp>
-#include "../3rd-party/RStarTree.h"
+#include "3rd-party/RStarTree.h"
 
 #include "Agent.hpp"
 #include "AuraManager.hpp"
-#include "../geospatial/Lane.hpp"
-#include "../buffering/Vector2D.hpp"
+#include "geospatial/Lane.hpp"
+#include "buffering/Vector2D.hpp"
 
 namespace sim_mob
 {

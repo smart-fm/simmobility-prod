@@ -4,11 +4,12 @@
 #include <iostream>
 #include <limits>
 
-#include "../../util/OutputUtil.hpp"
-#include "../../util/GeomHelpers.hpp"
+#include "util/OutputUtil.hpp"
+#include "util/GeomHelpers.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "geospatial/Crossing.hpp"
+
 #include "Section.hpp"
-#include "../RoadSegment.hpp"
-#include "../Crossing.hpp"
 
 
 using std::pair;

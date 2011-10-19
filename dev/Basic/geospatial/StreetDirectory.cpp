@@ -7,8 +7,8 @@
 #include "Lane.hpp"
 #include "RoadNetwork.hpp"
 #include "StreetDirectory.hpp"
-#include "../buffering/Vector2D.hpp"
-#include "../entities/Signal.hpp"
+#include "buffering/Vector2D.hpp"
+#include "entities/Signal.hpp"
 
 namespace sim_mob
 {

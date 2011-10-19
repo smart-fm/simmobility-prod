@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "../Agent.hpp"
+#include "entities/Agent.hpp"
 
 namespace sim_mob
 {

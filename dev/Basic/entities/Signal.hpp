@@ -12,7 +12,7 @@
 #include <map>
 #include <vector>
 
-#include "../constants.h"
+#include "constants.h"
 #include "Agent.hpp"
 
 

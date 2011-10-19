@@ -7,7 +7,7 @@
 #include "Node.hpp"
 #include "Lane.hpp"
 
-#include "../RoadNetwork.hpp"
+#include "geospatial/RoadNetwork.hpp"
 
 
 namespace sim_mob {

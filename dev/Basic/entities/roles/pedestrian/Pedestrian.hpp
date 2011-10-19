@@ -5,10 +5,10 @@
 #include <time.h>
 #include <math.h>
 
-#include "../Role.hpp"
-#include "../../../geospatial/Point2D.hpp"
-#include "../../../conf/simpleconf.hpp"
-#include "../../Signal.hpp"
+#include "entities/roles/Role.hpp"
+#include "geospatial/Point2D.hpp"
+#include "conf/simpleconf.hpp"
+#include "entities/Signal.hpp"
 
 namespace sim_mob
 {

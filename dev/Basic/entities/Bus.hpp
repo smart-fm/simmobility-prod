@@ -2,9 +2,9 @@
 
 #include <vector>
 #include "Agent.hpp"
-#include "../geospatial/Length.hpp"
-#include "../util/DynamicVector.hpp"
-#include "../constants.h"
+#include "geospatial/Length.hpp"
+#include "util/DynamicVector.hpp"
+#include "constants.h"
 
 namespace sim_mob{
 

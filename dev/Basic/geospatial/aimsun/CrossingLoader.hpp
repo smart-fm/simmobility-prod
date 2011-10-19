@@ -4,7 +4,7 @@
 #include "Node.hpp"
 #include "Crossing.hpp"
 
-#include "../RoadNetwork.hpp"
+#include "geospatial/RoadNetwork.hpp"
 
 
 namespace sim_mob {

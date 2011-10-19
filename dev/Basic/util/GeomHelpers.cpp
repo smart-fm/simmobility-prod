@@ -4,11 +4,11 @@
 #include <iostream>
 #include <limits>
 
-#include "../geospatial/Point2D.hpp"
-#include "../geospatial/aimsun/Lane.hpp"
-#include "../geospatial/aimsun/Node.hpp"
-#include "../geospatial/aimsun/Section.hpp"
-#include "../geospatial/aimsun/Crossing.hpp"
+#include "geospatial/Point2D.hpp"
+#include "geospatial/aimsun/Lane.hpp"
+#include "geospatial/aimsun/Node.hpp"
+#include "geospatial/aimsun/Section.hpp"
+#include "geospatial/aimsun/Crossing.hpp"
 
 using namespace sim_mob;
 using std::vector;

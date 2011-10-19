@@ -3,7 +3,8 @@
 #pragma once
 
 #include <list>
-#include "constants.h"
+
+#include "util/LangHelpers.hpp"
 
 
 namespace sim_mob
@@ -99,7 +100,7 @@ public:
 
 			//Otherwise, remove the first element.
 			if (reclaimPtrs) {
-				delete_item(history.front().item);
+				delete_possible_pointer(history.front().item);
 				history.pop_front();
 			}
 		}
@@ -126,11 +127,6 @@ private:
 	std::list<HistItem> history;
 	const size_t delayMS;
 	const bool reclaimPtrs;
-
-	//This allows us to delete pointers without getting compiler errors on value-types.
-	//NOTE: Untested.
-	void delete_item(T& item) {}
-	void delete_item(T* item) { delete item; }
 
 };
 

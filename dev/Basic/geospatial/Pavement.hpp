@@ -7,7 +7,7 @@
 
 #include "Traversable.hpp"
 #include "Point2D.hpp"
-#include "Length.hpp"
+#include "metrics/Length.hpp"
 
 
 namespace sim_mob

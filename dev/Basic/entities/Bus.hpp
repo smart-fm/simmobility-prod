@@ -2,7 +2,7 @@
 
 #include <vector>
 #include "Agent.hpp"
-#include "geospatial/Length.hpp"
+#include "metrics/Length.hpp"
 #include "util/DynamicVector.hpp"
 #include "constants.h"
 

@@ -9,7 +9,7 @@
 #include "workers/Worker.hpp"
 #include "entities/Entity.hpp"
 
-#include "constants.h"
+#include "util/LangHelpers.hpp"
 
 
 namespace sim_mob

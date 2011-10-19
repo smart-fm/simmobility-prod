@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "util/LangHelpers.hpp"
 #include "entities/Agent.hpp"
 
 namespace sim_mob

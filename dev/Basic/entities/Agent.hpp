@@ -7,13 +7,13 @@
 
 #include <boost/thread.hpp>
 
-#include "constants.h"
-#include "Entity.hpp"
+#include "util/LangHelpers.hpp"
 #include "buffering/Buffered.hpp"
 #include "buffering/BufferedDataManager.hpp"
 #include "geospatial/Point2D.hpp"
-
 #include "conf/simpleconf.hpp"
+
+#include "Entity.hpp"
 
 
 namespace sim_mob

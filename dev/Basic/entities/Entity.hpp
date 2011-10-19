@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "frame.hpp"
+#include "metrics/Frame.hpp"
 #include "buffering/BufferedDataManager.hpp"
 
 

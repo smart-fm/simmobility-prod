@@ -6,8 +6,9 @@
 #include <string>
 #include <cmath>
 
+#include "util/LangHelpers.hpp"
+
 #include "Base.hpp"
-#include "constants.h"
 
 namespace sim_mob
 {

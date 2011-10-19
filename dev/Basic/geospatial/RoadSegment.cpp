@@ -2,9 +2,10 @@
 
 #include "RoadSegment.hpp"
 
+#include "util/DynamicVector.hpp"
+#include "util/GeomHelpers.hpp"
+
 #include "Lane.hpp"
-#include "../util/DynamicVector.hpp"
-#include "../util/GeomHelpers.hpp"
 
 using namespace sim_mob;
 

@@ -8,10 +8,9 @@
 #include <sstream>
 #include <iostream>
 
-//#include "RoadSegment.hpp"
-#include "Traversable.hpp"
+#include "constants.h"
 
-#include "../constants.h"
+#include "Traversable.hpp"
 
 namespace sim_mob
 {

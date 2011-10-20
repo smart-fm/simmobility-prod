@@ -7,6 +7,11 @@ using std::vector;
 using std::string;
 
 
+boost::mutex sim_mob::Logger::global_mutex;
+std::ostream* sim_mob::Logger::log_file_or_cout;
+std::ofstream sim_mob::Logger::file_output;
+
+
 void sim_mob::PrintArray(const vector<int>& ids, const string& label, const string& brL, const string& brR, const string& comma, int lineIndent)
 {
 	//Easy

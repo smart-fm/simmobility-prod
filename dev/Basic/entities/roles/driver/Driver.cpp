@@ -24,6 +24,7 @@
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Crossing.hpp"
+#include "util/OutputUtil.hpp"
 
 
 using namespace sim_mob;
@@ -128,10 +129,10 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	//Here, you can use the "perceived" velocity to perform decision-making. Just be
 	// careful about how you're saving the velocity values. ~Seth
 	if (parent->getId()==0) {
-		/*boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-		std::cout <<"At time " <<currTimeMS <<"ms, with a perception delay of " <<reactTime
+		/*
+		LogOut("At time " <<currTimeMS <<"ms, with a perception delay of " <<reactTime
 				  <<"ms, my actual velocity is (" <<xVel <<"," <<yVel <<"), and my perceived velocity is ("
-				  <<perceivedXVelocity <<"," <<perceivedYVelocity <<")\n";*/
+				  <<perceivedXVelocity <<"," <<perceivedYVelocity <<")\n");*/
 	}
 
 
@@ -232,15 +233,14 @@ void sim_mob::Driver::update(frame_t frameNumber)
 
 void sim_mob::Driver::output(frame_t frameNumber)
 {
-	boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-	BufferedBase::log_file()<<"(\"Driver\""
+	LogOut("(\"Driver\""
 			<<","<<frameNumber
 			<<","<<parent->getId()
 			<<",{"
 			<<"\"xPos\":\""<<xPos
 			<<"\",\"yPos\":\""<<yPos
 			<<"\",\"angle\":\""<<angle
-			<<"\"})"<<std::endl;
+			<<"\"})"<<std::endl);
 }
 
 void sim_mob::Driver::getFromParent()

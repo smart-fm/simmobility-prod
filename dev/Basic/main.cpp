@@ -25,6 +25,7 @@
 #include "geospatial/UniNode.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
+#include "util/OutputUtil.hpp"
 
 //Just temporarily, so we know it compiles:
 #include "entities/Signal.hpp"
@@ -187,10 +188,7 @@ bool performMain(const std::string& configFileName)
   /////////////////////////////////////////////////////////////////
   for (unsigned int currTick=0; currTick<config.totalRuntimeTicks; currTick++) {
 	  //Output
-	  {
-		boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-	    cout <<"Approximate Tick Boundary: " <<currTick <<", " <<(currTick*config.baseGranMS) <<" ms" <<endl;
-	  }
+          LogOut("Approximate Tick Boundary: " <<currTick <<", " <<(currTick*config.baseGranMS) <<" ms" <<endl);
 
 	  //Update the signal logic and plans for every intersection grouped by region
 	  signalStatusWorkers.wait();
@@ -219,10 +217,7 @@ bool performMain(const std::string& configFileName)
 		  updateGUI(agents);
 		  saveStatistics(agents);
 	  } else {
-		  {
-			boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-		    cout <<"  Warmup; output ignored." <<endl;
-		  }
+                  LogOut("  Warmup; output ignored." <<endl);
 	  }
 
 	  saveStatisticsToDB(agents);
@@ -252,12 +247,12 @@ int main(int argc, char* argv[])
 
 	//Argument 2: Log file
 	if (argc>2) {
-		if (!BufferedBase::log_init(argv[2])) {
+		if (!Logger::log_init(argv[2])) {
 			cout <<"Loading output file failed; using cout" <<endl;
 			cout <<argv[2] <<endl;
 		}
 	} else {
-		BufferedBase::log_init("");
+		Logger::log_init("");
 		cout <<"No output file specified; using cout." <<endl;
 	}
 
@@ -271,7 +266,7 @@ int main(int argc, char* argv[])
 	int returnVal = performMain(configFileName) ? 0 : 1;
 
 	//Close log file, return.
-	BufferedBase::log_done();
+	Logger::log_done();
 	cout <<"Done" <<endl;
 	return returnVal;
 }

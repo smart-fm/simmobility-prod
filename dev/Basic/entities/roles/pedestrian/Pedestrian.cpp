@@ -4,6 +4,7 @@
 #include "entities/Person.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "geospatial/Node.hpp"
+#include "util/OutputUtil.hpp"
 
 using namespace sim_mob;
 
@@ -74,10 +75,7 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 
 			if(!parent->isToBeRemoved()){
 				//Output (temp)
-				{
-					boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-					BufferedBase::log_file() <<"Pedestrian " <<parent->getId() <<" has reached the destination" <<std::endl;
-				}
+                                LogOut("Pedestrian " <<parent->getId() <<" has reached the destination" <<std::endl);
 				parent->setToBeRemoved(true);
 			}
 			return;
@@ -87,9 +85,9 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 			currentStage++;
 			setGoal(currentStage); //Set next goal
 //			{
-//				boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-//				BufferedBase::log_file() <<"Pedestrian " <<parent->getId() <<" has reached goal " <<currentStage<<std::endl;
-//				BufferedBase::log_file() <<"("<<"Pedestrian,"<<frameNumber<<","<<parent->getId()<<","<<"{xPos:"<<parent->xPos.get()<<"," <<"yPos:"<<this->parent->yPos.get()<<","<<"pedSig:"<<currPhase<<",})"<<std::endl;
+//				boost::mutex::scoped_lock local_lock(Logger::global_mutex);
+//				LogOutNotSync("Pedestrian " <<parent->getId() <<" has reached goal " <<currentStage<<std::endl);
+//				LogOutNotSync("("<<"Pedestrian,"<<frameNumber<<","<<parent->getId()<<","<<"{xPos:"<<parent->xPos.get()<<"," <<"yPos:"<<this->parent->yPos.get()<<","<<"pedSig:"<<currPhase<<",})"<<std::endl);
 //			}
 		}
 		else{
@@ -98,10 +96,7 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 				updateVelocity(0);
 				updatePosition();
 //				//Output (temp)
-//				{
-//					boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-//					BufferedBase::log_file() <<"("<<"Pedestrian,"<<frameNumber<<","<<parent->getId()<<","<<"{xPos:"<<parent->xPos.get()<<"," <<"yPos:"<<this->parent->yPos.get()<<","<<"pedSig:"<<currPhase<<",})"<<std::endl;
-//				}
+//				LogOut("("<<"Pedestrian,"<<frameNumber<<","<<parent->getId()<<","<<"{xPos:"<<parent->xPos.get()<<"," <<"yPos:"<<this->parent->yPos.get()<<","<<"pedSig:"<<currPhase<<",})"<<std::endl);
 			}
 			else if(currentStage==1){
 
@@ -124,16 +119,10 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 				}
 				else{
 					//Output (temp)
-					{
-						boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-						BufferedBase::log_file() <<"Pedestrian " <<parent->getId() <<" is waiting at the crossing" <<std::endl;
-					}
+                                        LogOut("Pedestrian " <<parent->getId() <<" is waiting at the crossing" <<std::endl);
 				}
 				//Output (temp)
-				{
-					boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-					BufferedBase::log_file() <<"("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl;
-				}
+                                LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
 			}
 
 		}
@@ -148,10 +137,7 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 	//			//Waiting, do nothing now
 	//			//Output (temp)
 	//			checkGapAcceptance();
-	//			{
-	//				boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-	//				std::cout <<"(Agent " <<parent->getId() <<" is waiting at crossing at frame "<<frameNumber<<")" <<std::endl;
-	//			}
+        //			LogOut("(Agent " <<parent->getId() <<" is waiting at crossing at frame "<<frameNumber<<")" <<std::endl);
 	//		}
 	//	} else {
 	//		if(currPhase==1&&onCrossing())

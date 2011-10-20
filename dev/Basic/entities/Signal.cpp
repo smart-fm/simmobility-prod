@@ -13,6 +13,7 @@
 #include "geospatial/Crossing.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/RoadSegment.hpp"
+#include "util/OutputUtil.hpp"
 using namespace sim_mob;
 
 double Density[] = {1, 1, 1, 1};
@@ -205,8 +206,8 @@ sim_mob::Signal::setupIndexMaps()
     }
 
     // Phase 2: populate the maps.
-    std::cout << "Signal id=" << getId() << " at multi-node(" << &node_ << " "
-              << node_.location->getX() << ", " << node_.location->getY() << ")" << std::endl; 
+    LogOutNotSync("Signal id=" << getId() << " at multi-node(" << &node_ << " "
+                  << node_.location->getX() << ", " << node_.location->getY() << ")" << std::endl); 
     size_t i;
     std::set<Tuple, Compare>::const_iterator iter2;
     for (i = 0, iter2 = bag.begin(); iter2 != bag.end(); ++i, ++iter2)
@@ -224,10 +225,10 @@ sim_mob::Signal::setupIndexMaps()
         {
             point = tuple.link->getStart()->location;
         }
-        std::cout << "    v" << "abcd"[i] << "=" << tuple.link << " link to multi-node("
-                  << point->getX() << ", " << point->getY() << ") at angle of "
-                  << 180 * (tuple.angle / M_PI) << " degrees" << std::endl;
-        std::cout << "    p" << "abcd"[i] << "=" << tuple.crossing << std::endl;
+        LogOutNotSync("    v" << "abcd"[i] << "=" << tuple.link << " link to multi-node("
+                      << point->getX() << ", " << point->getY() << ") at angle of "
+                      << 180 * (tuple.angle / M_PI) << " degrees" << std::endl);
+        LogOutNotSync("    p" << "abcd"[i] << "=" << tuple.crossing << std::endl);
     }
 }
 
@@ -253,9 +254,7 @@ void sim_mob :: Signal :: startSplitPlan()
 void sim_mob :: Signal ::update(frame_t frameNumber)
 {
 
-	{
-	                boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-	                std::ostream& logout = BufferedBase::log_file();
+                        std::stringstream logout;
 	                logout <<"(\"Signal\","<<frameNumber<<","<<getId()<<",{\"va\":\"";
 	                for(int i = 0; i<3; i++) {
 	                        logout<<TC_for_Driver[0][i];
@@ -297,7 +296,7 @@ void sim_mob :: Signal ::update(frame_t frameNumber)
 	                logout <<"\"pb\":\""<<TC_for_Pedestrian[1]<<"\",";
 	                logout <<"\"pc\":\""<<TC_for_Pedestrian[2]<<"\",";
 	                logout <<"\"pd\":\""<<TC_for_Pedestrian[3]<<"\"})"<<std::endl;
-	        }
+                        LogOut(logout.str());
 
 
 	updateSignal (Density);

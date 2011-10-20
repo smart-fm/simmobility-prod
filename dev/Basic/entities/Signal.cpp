@@ -206,8 +206,9 @@ sim_mob::Signal::setupIndexMaps()
     }
 
     // Phase 2: populate the maps.
-    LogOutNotSync("Signal id=" << getId() << " at multi-node(" << &node_ << " "
-                  << node_.location->getX() << ", " << node_.location->getY() << ")" << std::endl); 
+    std::ostringstream output;
+    output << "(\"Signal-location\", 0, " << getId() << ", " << this << ", {\"node\":\""
+           << &node_ << "\",";
     size_t i;
     std::set<Tuple, Compare>::const_iterator iter2;
     for (i = 0, iter2 = bag.begin(); iter2 != bag.end(); ++i, ++iter2)
@@ -225,11 +226,14 @@ sim_mob::Signal::setupIndexMaps()
         {
             point = tuple.link->getStart()->location;
         }
-        LogOutNotSync("    v" << "abcd"[i] << "=" << tuple.link << " link to multi-node("
-                      << point->getX() << ", " << point->getY() << ") at angle of "
-                      << 180 * (tuple.angle / M_PI) << " degrees" << std::endl);
-        LogOutNotSync("    p" << "abcd"[i] << "=" << tuple.crossing << std::endl);
+        if (i)
+            output << ",";
+        output << "\"v" << i["abcd"] << "\":\"" << tuple.link
+               << "\",\"a" << "abcd"[i] << "\":\"" << 180 * (tuple.angle / M_PI)
+               << "\",\"p" << i["abcd"] << "\":\"" << tuple.crossing << "\"";
     }
+    output << "})" << std::endl;
+    LogOut(output.str());
 }
 
 //initialize SplitPlan

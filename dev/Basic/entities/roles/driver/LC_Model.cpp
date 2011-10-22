@@ -6,10 +6,7 @@
  */
 
 #include "Driver.hpp"
-
-
 #include "geospatial/Link.hpp"
-
 
 using namespace sim_mob;
 const double sim_mob::Driver::GA_parameters[4][9] = {
@@ -61,21 +58,11 @@ double sim_mob::Driver::lcCriticalGap(int type,	double dis_, double spd_, double
 
 unsigned int sim_mob::Driver::gapAcceptance(int type)
 {
-	int border[2]={2,0};
-	int offset[2]={-1,1};
-	bool badarea[2]={false,false};
-
 	//[0:left,1:right][0:lead,1:lag]
 	double otherSpeed[2][2];		//the speed of the closest vehicle in adjacent lane
 	double otherDistance[2][2];		//the distance to the closest vehicle in adjacent lane
 
-	double other_xOffset;
-	double other_yOffset;
-	double other_xPos_;
-	double other_xVel_;
-
-
-	const Lane* adjacentLanes[2] = {leftLane_,rightLane_};
+	const Lane* adjacentLanes[2] = {leftLane,rightLane};
 	const Driver* F;
 	const Driver* B;
 	for(int i=0;i<2;i++){
@@ -133,10 +120,10 @@ unsigned int sim_mob::Driver::gapAcceptance(int type)
 }
 
 double sim_mob::Driver::calcSideLaneUtility(bool isLeft){
-	if(isLeft && !leftLane_) {
+	if(isLeft && !leftLane) {
 		return -MAX_NUM;	//has no left side
 	}
-	else if(!isLeft && !rightLane_){
+	else if(!isLeft && !rightLane){
 		return -MAX_NUM;    //has no right side
 	}
 	else
@@ -145,9 +132,6 @@ double sim_mob::Driver::calcSideLaneUtility(bool isLeft){
 
 double sim_mob::Driver::makeDiscretionaryLaneChangingDecision()
 {
-//	if(getLinkLength()-xPos_ < 120 || xVel_ >= targetSpeed){
-//		return 0;			//when close to link end, do not make discretionary lane changing
-//	}
 	// for available gaps(including current gap between leading vehicle and itself), vehicle will choose the longest
 	unsigned int freeLanes = gapAcceptance(DLC);
 	bool freeLeft = ((freeLanes&LSIDE_LEFT)!=0);
@@ -193,12 +177,10 @@ double sim_mob::Driver::makeDiscretionaryLaneChangingDecision()
 
 double sim_mob::Driver::checkIfMandatory()
 {
-	double num=1;
-
 	//the code below is MITSIMLab model
-	dis2stop = currLink_->getLength(isForward) - currLinkOffset_ - length/2 - 300;
+	dis2stop = currLink->getLength(isForward) - currLinkOffset - length/2 - 300;
 	dis2stop = dis2stop/100;
-	//double num		=	1;		//now we just assume that MLC only need to change to the adjacent lane
+	double num		=	1;		//now we just assume that MLC only need to change to the adjacent lane
 	double y		=	0.5;		//segment density/jam density, now assume that it is 0.5
 	double delta0	=	feet2Unit(MLC_parameters[0]);
 	double dis		=	dis2stop - delta0;
@@ -214,7 +196,7 @@ double sim_mob::Driver::makeMandatoryLaneChangingDecision()
 	bool freeRight = ((freeLanes&LSIDE_RIGHT)!=0);
 
 	//find which lane it should get to and choose which side to change
-	int direction=1-currLaneIndex_;
+	int direction=1-currLaneIndex;
 
 	//current lane is target lane
 	if(direction==0)return 0;
@@ -244,14 +226,12 @@ double sim_mob::Driver::makeMandatoryLaneChangingDecision()
 void sim_mob::Driver::excuteLaneChanging()
 {
 	VelOfLaneChanging = 100;
-	//if too close to node, don't do lane changing
-
 
 	// when vehicle is on the lane, make decision
-	if(!ischanging){
-		if(currLaneLength - currLaneOffset_ - length/2 <= 300/VelOfLaneChanging*xVel_)
+	if(!isLaneChanging){
+		//if too close to node, don't do lane changing, distance should be larger than 3m
+		if(currLaneLength - currLaneOffset - length/2 <= 300)
 				return;
-
 		double p=(double)(rand()%1000)/1000;
 		if(p<checkIfMandatory()){
 			changeMode = MLC;
@@ -259,50 +239,21 @@ void sim_mob::Driver::excuteLaneChanging()
 			changeMode = DLC;
 			dis2stop=MAX_NUM;		//no crucial point ahead
 		}
-
 		//make decision depending on current lane changing mode
 		if(changeMode==DLC) {
 			changeDecision=makeDiscretionaryLaneChangingDecision();
 		} else {
 			changeDecision=makeMandatoryLaneChangingDecision();
 		}
-
-		//set original lane and target lane
-		fromLane=getLane();
-		toLane=getLane()+changeDecision;
 		if(changeDecision!=0)
 		{
-			ischanging = true;
-			lrEnterNewLane = false;
+			isLaneChanging = true;
+			lcEnterNewLane = false;
 		}
 	}
-	if(isWaiting){			//when waiting proper gap
-		ischanging=true;		//vehicle is actually changing lane
-		changeDecision=makeMandatoryLaneChangingDecision();		//to make decision again
-		fromLane=getLane();
-		toLane=getLane()+changeDecision;
-		acc_=MAX_DECELERATION;	//decelerate in max rate to wait for acceptable gap
-	} else{			//when changing lane
+	else{			//when changing lane
 		if(changeDecision!=0) {
 			double change=1;		//for MLC
-
-//			if(checkForCrash() ) {	//if get crashed
-//				if(changeMode==DLC && !isback){		// in DLC mode
-//					//exchange the leaving lane and target lane to get back
-//					int tmp;
-//					tmp=fromLane;
-//					fromLane=toLane;
-//					toLane=tmp;
-//					changeDecision=-changeDecision;
-//					isback=true;
-//				}
-//				if(changeMode==MLC){	//in MLC mode
-//					change=0;			//do not change in this time step
-//					acc_=MAX_DECELERATION;	//decelerate to let other vehicle go
-//				}
-//			}
-
-
 			yPos_ += -changeDecision*VelOfLaneChanging*change;	//change y position according to decision
 		}
 	}

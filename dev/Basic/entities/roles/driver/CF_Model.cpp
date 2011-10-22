@@ -52,7 +52,7 @@ double sim_mob::Driver::breakToTargetSpeed()
 	double v 			=	speed_;
 	double dt			=	timeStep;
 	if( space_star > FLT_EPSILON) {
-		return MAX_ACCELERATION;//(( v_lead + a_lead * dt ) * ( v_lead + a_lead * dt) - v * v) / 2 / space_star;
+		return  ((v_lead + a_lead * dt ) * ( v_lead + a_lead * dt) - v * v) / 2 / space_star;
 	} else if ( dt <= 0 ) {
 		return MAX_ACCELERATION;
 	} else {
@@ -67,20 +67,20 @@ double sim_mob::Driver::accOfEmergencyDecelerating()
 	double epsilon_v	=	0.001;
 	double aNormalDec	=	getNormalDeceleration();
 
-	double r;
+	double a;
 	if( dv < epsilon_v ) {
-		r=a_lead + 0.25*aNormalDec;
+		a=a_lead + 0.25*aNormalDec;
 	} else if ( minCFDistance/100 > 0.01 ) {
-		r=a_lead - dv * dv / 2 / (minCFDistance/100);
+		a=a_lead - dv * dv / 2 / (minCFDistance/100);
 	} else {
-		r= breakToTargetSpeed();
+		a= breakToTargetSpeed();
 	}
-	if(r<maxDeceleration)
+	if(a<maxDeceleration)
 		return maxDeceleration;
-	else if(r>maxAcceleration)
+	else if(a>maxAcceleration)
 		return maxAcceleration;
 	else
-		return r;
+		return a;
 }
 
 double uRandom()
@@ -120,7 +120,7 @@ double sim_mob::Driver::accOfCarFollowing()
 
 double sim_mob::Driver::accOfFreeFlowing()
 {
-	double vn			=	speed_;
+	double vn =	speed_;
 	double acc_;
 
 	if ( vn < getTargetSpeed()) {

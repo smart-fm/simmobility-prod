@@ -135,7 +135,7 @@ private:
 	const Link* nextLink;
 	const RoadSegment* currRoadSegment;
 	const Lane* currLane;
-	const Lane* nextLane;
+	const Lane* nextLaneInNextLink;
 	const Lane* leftLane;
 	const Lane* rightLane;
 	const Node* currNode;
@@ -221,6 +221,7 @@ private:
 
 	void trafficSignalDriving();
 	void intersectionDriving();
+	void pedestrianAheadDriving();
 	void linkDriving();
 
 	void makeLinkPath();
@@ -256,6 +257,7 @@ private:
 	double minLBDistance;
 	double minRFDistance;
 	double minRBDistance;
+	double minPedestrianDis;
 	double headway;				//distance/speed
 	double space_star;			//the distance which leading vehicle will move in next time step
 	double dv;					//the difference of subject vehicle's speed and leading vehicle's speed
@@ -334,7 +336,7 @@ private:
 
 	/**************COOPERATION WITH PEDESTRIAN***************/
 public:
-	bool isPedestrianAhead();
+	bool isPedestrianAhead;
 
 };
 

@@ -79,12 +79,15 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), perceivedVelocity(reactTi
 	isOriginSet = false;
 	inIntersection=false;
 	isLaneChanging = false;
+	isPedestrianAhead = false;
 	angle = 0;
+	nextLaneInNextLink = nullptr;
 }
 
 //Main update functionality
 void sim_mob::Driver::update(frame_t frameNumber)
 {
+
 	if(frameNumber<parent->startTime)
 		return;
 	traveledDis = 0;
@@ -172,7 +175,12 @@ void sim_mob::Driver::update(frame_t frameNumber)
 			}
 
 			if(isCloseToLinkEnd())
-				trafficSignalDriving();
+			{
+				if(isPedestrianAhead)
+					pedestrianAheadDriving();
+				else
+					trafficSignalDriving();
+			}
 			else
 				linkDriving();
 		}
@@ -456,11 +464,11 @@ void sim_mob::Driver::updateCurrInfo(unsigned int mode)
 		currPolyLineSegStart = currLanePolyLine->at(polylineSegIndex);
 		currPolyLineSegEnd = currLanePolyLine->at(polylineSegIndex+1);
 		RSIndex ++;
-		if(isReachLastRS()&&linkIndex<linkPath.size()-1)
+		if(isReachLastRS())
 		{
 			updateTrafficSignal();
-			chooseNextLaneIntersection();
-
+			if(linkIndex<linkPath.size()-1)
+				chooseNextLaneIntersection();
 		}
 		break;
 	case 2:
@@ -496,13 +504,13 @@ void sim_mob::Driver::chooseNextLaneIntersection()
 	if(linkPath[linkIndex+1]->getStart()!=linkPath[linkIndex]->getEnd())
 		isForward = !isForward;
 
-	nextLane = linkPath[linkIndex+1]->getPath(isForward).at(0)->getLanes().at(currLaneIndex);
+	nextLaneInNextLink = linkPath[linkIndex+1]->getPath(isForward).at(0)->getLanes().at(currLaneIndex);
 	//if there is no lane with same index in the new road segment
 	//set the next lane as lane 0
-	if(!nextLane)
-		nextLane = linkPath[linkIndex+1]->getPath(isForward).at(0)->getLanes().at(0);
+	if(!nextLaneInNextLink)
+		nextLaneInNextLink = linkPath[linkIndex+1]->getPath(isForward).at(0)->getLanes().at(0);
 
-	entryPoint = nextLane->getPolyline().at(0);
+	entryPoint = nextLaneInNextLink->getPolyline().at(0);
 	double xDir = entryPoint.getX() - vehicle->xPos;
 	double yDir = entryPoint.getY() - vehicle->yPos;
 	disToEntryPoint = sqrt(xDir*xDir+yDir*yDir);
@@ -653,6 +661,7 @@ void sim_mob::Driver::updatePositionOnLink()
 
 void sim_mob::Driver::updateNearbyAgents()
 {
+	isPedestrianAhead = false;
 	CFD = nullptr;
 	CBD = nullptr;
 	LFD = nullptr;
@@ -672,6 +681,7 @@ void sim_mob::Driver::updateNearbyAgents()
 	minLBDistance = 5000;
 	minRFDistance = 5000;
 	minRBDistance = 5000;
+	minPedestrianDis = 5000;
 
 	for(unsigned int i=0;i<nearby_agents.size();i++)
 	{
@@ -680,6 +690,7 @@ void sim_mob::Driver::updateNearbyAgents()
 			continue;
 		Person* p = const_cast<Person*>(person);
 		Driver* other_driver = dynamic_cast<Driver*>(p->getRole());
+		Pedestrian* pedestrian = dynamic_cast<Pedestrian*>(p->getRole());
 		if(other_driver == this)
 			continue;
 		if(other_driver)
@@ -888,6 +899,22 @@ void sim_mob::Driver::updateNearbyAgents()
 				}
 			}
 		}
+//		else if(pedestrian)
+//		{
+//			int px = pedestrian->getParent()->xPos;
+//			int py = pedestrian->getParent()->yPos;
+//			double xOffset=px-currPolyLineSegStart.getX();
+//			double yOffset=py-currPolyLineSegStart.getY();
+//
+//			int px_ = xOffset*xDirection+yOffset*yDirection;
+//
+//			if(px_>=vehicle->xPos_)
+//			{
+//				isPedestrianAhead = true;
+//				if(px_ - vehicle->xPos_ < minPedestrianDis)
+//					minPedestrianDis = px_ - vehicle->xPos_;
+//			}
+//		}
 	}
 }
 
@@ -913,7 +940,7 @@ void sim_mob :: Driver :: intersectionVelocityUpdate()
 
 void sim_mob :: Driver :: enterNextLink()
 {
-	currLane = nextLane;
+	currLane = nextLaneInNextLink;
 	updateCurrInfo(2);
 	abs2relat();
 	vehicle->yVel_ = 0;
@@ -974,13 +1001,30 @@ void sim_mob::Driver::updateTrafficSignal()
 		trafficSignal = nullptr;
 }
 
+void sim_mob::Driver::pedestrianAheadDriving()
+{
+	if(perceivedXVelocity_>0)
+		vehicle->xAcc_ = -0.5*perceivedXVelocity_*perceivedXVelocity_/minPedestrianDis;
+	else
+	{
+		vehicle->xAcc_ = 0;
+		vehicle->xVel_ = 0;
+	}
+	updatePositionOnLink();
+}
+
 void sim_mob::Driver::trafficSignalDriving()
 {
 	if(!trafficSignal)
 		linkDriving();
 	else
 	{
-		int color = trafficSignal->getDriverLight(*currLane,*nextLane);
+		int color;
+		if(nextLaneInNextLink)
+			color = trafficSignal->getDriverLight(*currLane,*nextLaneInNextLink);
+		else
+			color = trafficSignal->getDriverLight(*currLane).forward;
+
 		switch(color)
 		{
 		//red yellow
@@ -994,10 +1038,11 @@ void sim_mob::Driver::trafficSignalDriving()
 			}
 			updatePositionOnLink();
 			break;
-		//green
+			//green
 		case 2:
 			linkDriving();
 			break;
 		}
 	}
 }
+

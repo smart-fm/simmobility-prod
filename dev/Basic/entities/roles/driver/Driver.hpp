@@ -12,6 +12,7 @@
 #include "geospatial/StreetDirectory.hpp"
 #include "perception/FixedDelayed.hpp"
 #include "entities/Signal.hpp"
+#include "entities/vehicle/Vehicle.hpp"
 
 
 namespace sim_mob
@@ -41,6 +42,7 @@ class Driver : public sim_mob::Role {
 public:
 	Driver (Agent* parent);			//to initiate
 	virtual void update(frame_t frameNumber);
+	void assignVehicle(Vehicle* v) {vehicle = v;}
 
 private:
 	static const double MAX_ACCELERATION		=	+10.0;//10m/s*s
@@ -63,6 +65,8 @@ private:
 
 	/**********BASIC DATA*************/
 private:
+
+	Vehicle* vehicle;
         //Sample stored data which takes reaction time into account.
 	const static size_t reactTime = 1500; //1.5 seconds
 	FixedDelayed<Point2D*> perceivedVelocity;
@@ -70,31 +74,21 @@ private:
 	FixedDelayed<centimeter_t> perceivedDistToFwdCar;
 	//absolute Movement-related variables
 	double timeStep;			//time step size of simulation
-	int xPos;
-	int yPos;
-	double xVel;
-	double yVel;
-	double xAcc;
-	double yAcc;
 	double speed;
+
+	double perceivedXVelocity;
+	double perceivedYVelocity;
+	double perceivedXVelocity_;
+	double perceivedYVelocity_;
 
 	//absolute position of the target start point on the next link
 	//used for intersection driving behavior
 	int xPos_nextLink;
 	int yPos_nextLink;
 
-
-	//relative Movement-related variables in link
-	int xPos_;
-	int yPos_;
 	int xPosCrossing_; //relative x coordinate for crossing, the intersection point of crossing's front line and current polyline
-	double xVel_;
-	double yVel_;
 	double speed_;
 	double acc_;
-	double xAcc_;
-	double yAcc_;
-
 	double xDirection;			//x direction of the current polyline segment
 	double yDirection;			//y direction of the current polyline segment
 
@@ -110,8 +104,6 @@ private:
 	const Node* originNode;				//when a vehicle reaches its goal, it will return to origin and moves to the goal again
 	bool isGoalSet;				//to check if the goal has been set
 	bool isOriginSet;			//to check if the origin has been set
-	double length;				//length of the vehicle
-	double width;				//width of the vehicle
 
 	double maxAcceleration;
 	double normalDeceleration;
@@ -121,11 +113,8 @@ private:
 
 public:
 	int getTimeStep() const {return timeStep;}
-	double getWidth() const {return width;}
-	double getLength() const {return length;}
 
 	//for coordinate transform
-	void getFromParent();		///<get current data from parent buffer data
 	void setToParent();			///<set next data to parent buffer data
 	void abs_relat();           ///<compute transformation vectors
 	void abs2relat();			///<transform absolute coordinate to relative coordinate
@@ -198,8 +187,7 @@ public:
 	double getCurrLaneOffset() const {return currLaneOffset;}
 	double getCurrLinkOffset() const {return currLinkOffset;}
 	double getCurrLaneLength() const {return currLaneLength;}
-	double getRelatXvel() const {return xVel_;}
-	double getRelatXacc() const {return xAcc_;}
+	const Vehicle* getVehicle() const {return vehicle;}
 
 private:
 	bool isReachPolyLineSegEnd();
@@ -240,6 +228,7 @@ private:
 
 	//helper function, to find the lane index in current road segment
 	size_t getLaneIndex(const Lane* l,const RoadSegment* r);
+
 
 
 	/***********SOMETHING BIG BROTHER CAN RETURN*************/
@@ -330,7 +319,7 @@ public:
 	/**************BEHAVIOR WHEN APPROACHING A INTERSECTION***************/
 public:
 	void updateAngle();
-	void IntersectionVelocityUpdate();
+	void intersectionVelocityUpdate();
 	void modifyPosition();
 	bool isReachSignal();
 	void IntersectionDirectionUpdate();

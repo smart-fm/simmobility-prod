@@ -18,7 +18,7 @@ const double sim_mob::Driver::CF_parameters[2][6] = {
 void sim_mob::Driver::makeAcceleratingDecision()
 {
 	//currently convert back to m/s
-	speed_ = xVel_/100;
+	speed_ = perceivedXVelocity_/100;
 	double space = minCFDistance/100.0;
 	if(space <= 0) {
 		acc_=0;
@@ -28,8 +28,8 @@ void sim_mob::Driver::makeAcceleratingDecision()
 			acc_ = accOfFreeFlowing();
 			return;
 		} else {
-			v_lead 		=	CFD->getRelatXacc()/100;
-			a_lead		=	CFD->getRelatXacc()/100;
+			v_lead 		=	CFD->getVehicle()->xVel_/100;
+			a_lead		=	CFD->getVehicle()->xAcc_/100;
 			double dt	=	timeStep;
 			if (speed_ == 0)headway = 2 * space * 100000;
 			else headway = space / speed_;

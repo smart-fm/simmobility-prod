@@ -18,7 +18,7 @@ const double sim_mob::Driver::CF_parameters[2][6] = {
 void sim_mob::Driver::makeAcceleratingDecision()
 {
 	//currently convert back to m/s
-	speed_ = xVel_/100;
+	speed_ = perceivedXVelocity_/100;
 	double space = minCFDistance/100.0;
 	if(space <= 0) {
 		acc_=0;
@@ -28,8 +28,8 @@ void sim_mob::Driver::makeAcceleratingDecision()
 			acc_ = accOfFreeFlowing();
 			return;
 		} else {
-			v_lead 		=	CFD->getRelatXacc()/100;
-			a_lead		=	CFD->getRelatXacc()/100;
+			v_lead 		=	CFD->getVehicle()->xVel_/100;
+			a_lead		=	CFD->getVehicle()->xAcc_/100;
 			double dt	=	timeStep;
 			if (speed_ == 0)headway = 2 * space * 100000;
 			else headway = space / speed_;
@@ -52,7 +52,7 @@ double sim_mob::Driver::breakToTargetSpeed()
 	double v 			=	speed_;
 	double dt			=	timeStep;
 	if( space_star > FLT_EPSILON) {
-		return MAX_ACCELERATION;//(( v_lead + a_lead * dt ) * ( v_lead + a_lead * dt) - v * v) / 2 / space_star;
+		return  ((v_lead + a_lead * dt ) * ( v_lead + a_lead * dt) - v * v) / 2 / space_star;
 	} else if ( dt <= 0 ) {
 		return MAX_ACCELERATION;
 	} else {
@@ -67,20 +67,20 @@ double sim_mob::Driver::accOfEmergencyDecelerating()
 	double epsilon_v	=	0.001;
 	double aNormalDec	=	getNormalDeceleration();
 
-	double r;
+	double a;
 	if( dv < epsilon_v ) {
-		r=a_lead + 0.25*aNormalDec;
+		a=a_lead + 0.25*aNormalDec;
 	} else if ( minCFDistance/100 > 0.01 ) {
-		r=a_lead - dv * dv / 2 / (minCFDistance/100);
+		a=a_lead - dv * dv / 2 / (minCFDistance/100);
 	} else {
-		r= breakToTargetSpeed();
+		a= breakToTargetSpeed();
 	}
-	if(r<maxDeceleration)
+	if(a<maxDeceleration)
 		return maxDeceleration;
-	else if(r>maxAcceleration)
+	else if(a>maxAcceleration)
 		return maxAcceleration;
 	else
-		return r;
+		return a;
 }
 
 double uRandom()
@@ -120,7 +120,7 @@ double sim_mob::Driver::accOfCarFollowing()
 
 double sim_mob::Driver::accOfFreeFlowing()
 {
-	double vn			=	speed_;
+	double vn =	speed_;
 	double acc_;
 
 	if ( vn < getTargetSpeed()) {

@@ -43,7 +43,7 @@ public:
 	//! argument will a reference to the constructed Worker object and the 2nd argument
 	//! will be a strictly monotonic increasing number which represent the time-step.
 	typedef boost::function<void(Worker<EntityType>& worker, frame_t frameNumber)> actionFunction;
-	Worker(actionFunction* action =nullptr, boost::barrier* internal_barr =nullptr, boost::barrier* external_barr =nullptr, frame_t endTick=0, frame_t timeStep=0, bool auraManagerActive=false);
+	Worker(actionFunction* action =nullptr, boost::barrier* internal_barr =nullptr, boost::barrier* external_barr =nullptr, frame_t endTick=0, frame_t tickStep=0, bool auraManagerActive=false);
 	virtual ~Worker();
 
 	//Thread-style operations
@@ -75,7 +75,7 @@ protected:
 	//Time management
 	frame_t currTick;
 	frame_t endTick;
-        frame_t timeStep;
+        frame_t tickStep;
 
 	bool auraManagerActive;
 
@@ -131,11 +131,11 @@ std::vector<EntityType*>& sim_mob::Worker<EntityType>::getEntities() {
 
 
 template <class EntityType>
-sim_mob::Worker<EntityType>::Worker(actionFunction* action, boost::barrier* internal_barr, boost::barrier* external_barr, frame_t endTick, frame_t timeStep, bool auraManagerActive)
+sim_mob::Worker<EntityType>::Worker(actionFunction* action, boost::barrier* internal_barr, boost::barrier* external_barr, frame_t endTick, frame_t tickStep, bool auraManagerActive)
     : BufferedDataManager(),
       internal_barr(internal_barr), external_barr(external_barr), action(action),
       endTick(endTick),
-      timeStep(timeStep),
+      tickStep(tickStep),
       auraManagerActive(auraManagerActive),
       active(/*this, */false)  //Passing the "this" pointer is probably ok, since we only use the base class (which is constructed)
 {
@@ -189,7 +189,7 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 			internal_barr->wait();
 
 		//Advance local time-step
-                currTick += timeStep;
+                currTick += tickStep;
 		if (endTick>0 && currTick>=endTick) {
 			this->active.set(false);
 		}

@@ -74,7 +74,7 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), perceivedVelocity(reactTi
 	currLaneOffset = 0;
 
 
-	timeStep=0.1;			//assume that time step is constant
+	timeStep = ConfigParams::GetInstance().baseGranMS/1000.0;
 	isGoalSet = false;
 	isOriginSet = false;
 	inIntersection=false;
@@ -142,7 +142,9 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	updateNearbyAgents();
 	//inside intersection
 	if(inIntersection)
+	{
 		intersectionDriving();
+	}
 	else
 	{
 		//the first time vehicle pass the end of current link and enter intersection
@@ -175,12 +177,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 			}
 
 			if(isCloseToLinkEnd())
-			{
-				if(isPedestrianAhead)
-					pedestrianAheadDriving();
-				else
-					trafficSignalDriving();
-			}
+				trafficSignalDriving();
 			else
 				linkDriving();
 		}
@@ -646,13 +643,22 @@ void sim_mob::Driver::findCrossing()
 
 void sim_mob::Driver::updateAcceleration()
 {
+
 	vehicle->xAcc_ = acc_ * 100;
 }
 
 void sim_mob::Driver::updatePositionOnLink()
 {
+
 	traveledDis = vehicle->xVel_*timeStep+0.5*vehicle->xAcc_*timeStep*timeStep;
+	if(traveledDis<0)
+		traveledDis = 0;
 	vehicle->xVel_ += vehicle->xAcc_*timeStep;
+	if(vehicle->xVel_<0)
+	{
+		vehicle->xVel_ = 0.1;
+		vehicle->xAcc_ = 0;
+	}
 	vehicle->xPos_ += traveledDis;
 	vehicle->yPos_ += vehicle->yVel_*timeStep;
 	currLaneOffset += traveledDis;
@@ -670,7 +676,7 @@ void sim_mob::Driver::updateNearbyAgents()
 	RBD = nullptr;
 
 	Point2D myPos(vehicle->xPos,vehicle->yPos);
-	distanceInFront = 1000;
+	distanceInFront = 2000;
 	distanceBehind = 500;
 
 	nearby_agents = AuraManager::instance().nearbyAgents(myPos, *currLane,  distanceInFront, distanceBehind);
@@ -691,17 +697,22 @@ void sim_mob::Driver::updateNearbyAgents()
 		Person* p = const_cast<Person*>(person);
 		Driver* other_driver = dynamic_cast<Driver*>(p->getRole());
 		Pedestrian* pedestrian = dynamic_cast<Pedestrian*>(p->getRole());
+		int otherX = person->xPos;
+		int otherY = person->yPos;
+		double xOffset=otherX-currPolyLineSegStart.getX();
+		double yOffset=otherY-currPolyLineSegStart.getY();
+
+		int otherX_ = xOffset*xDirection+yOffset*yDirection;
+		int distance = otherX_ - vehicle->xPos_;
 		if(other_driver == this)
 			continue;
 		if(other_driver)
 		{
 			const Lane* other_lane = other_driver->getCurrLane();
 			const RoadSegment* otherRoadSegment = other_lane->getRoadSegment();
-			int other_offset = other_driver->getCurrLaneOffset();
 			//the vehicle is in the current road segment
 			if(currRoadSegment == otherRoadSegment)
 			{
-				int distance = other_offset - currLaneOffset;
 				//the vehicle is on the current lane
 				if(other_lane == currLane)
 				{
@@ -800,8 +811,6 @@ void sim_mob::Driver::updateNearbyAgents()
 						nextRightLane = otherRoadSegment->getLanes().at(nextLaneIndex+1);
 				}
 
-				int distance = other_offset + currLaneLength - currLaneOffset -
-						vehicle->length/2 - other_driver->getVehicle()->length/2;
 				//the vehicle is on the current lane
 				if(other_lane == nextLane)
 				{
@@ -867,8 +876,6 @@ void sim_mob::Driver::updateNearbyAgents()
 						preRightLane = otherRoadSegment->getLanes().at(preLaneIndex+1);
 				}
 
-				int distance = other_driver->getCurrLaneLength() - other_offset + currLaneOffset -
-						vehicle->length/2 - other_driver->getVehicle()->length/2;
 				//the vehicle is on the current lane
 				if(other_lane == preLane)
 				{
@@ -899,22 +906,16 @@ void sim_mob::Driver::updateNearbyAgents()
 				}
 			}
 		}
-//		else if(pedestrian)
-//		{
-//			int px = pedestrian->getParent()->xPos;
-//			int py = pedestrian->getParent()->yPos;
-//			double xOffset=px-currPolyLineSegStart.getX();
-//			double yOffset=py-currPolyLineSegStart.getY();
-//
-//			int px_ = xOffset*xDirection+yOffset*yDirection;
-//
-//			if(px_>=vehicle->xPos_)
-//			{
-//				isPedestrianAhead = true;
-//				if(px_ - vehicle->xPos_ < minPedestrianDis)
-//					minPedestrianDis = px_ - vehicle->xPos_;
-//			}
-//		}
+		else if(pedestrian)
+		{
+			if(distance>=0)
+			{
+				isPedestrianAhead = true;
+//				if(distance-vehicle->length/2 < minPedestrianDis)
+//					minPedestrianDis = distance-vehicle->length/2;
+				minPedestrianDis = polyLineSegLength - vehicle->xPos_ - vehicle->length/2;
+			}
+		}
 	}
 }
 
@@ -1004,7 +1005,7 @@ void sim_mob::Driver::updateTrafficSignal()
 void sim_mob::Driver::pedestrianAheadDriving()
 {
 	if(perceivedXVelocity_>0)
-		vehicle->xAcc_ = -0.5*perceivedXVelocity_*perceivedXVelocity_/minPedestrianDis;
+		vehicle->xAcc_ = -0.5*perceivedXVelocity_*perceivedXVelocity_/(0.5*minPedestrianDis);//make sure the vehicle can stop before pedestrian, so distance should be shorter, now I use 0.5*dis
 	else
 	{
 		vehicle->xAcc_ = 0;
@@ -1029,6 +1030,7 @@ void sim_mob::Driver::trafficSignalDriving()
 		{
 		//red yellow
 		case 0:case 1:
+			std::cout<<"red,yellow"<<std::endl;
 			if(perceivedXVelocity_>0)
 				vehicle->xAcc_ = -0.5*perceivedXVelocity_*perceivedXVelocity_/(currLaneLength-currLaneOffset);
 			else
@@ -1040,9 +1042,9 @@ void sim_mob::Driver::trafficSignalDriving()
 			break;
 			//green
 		case 2:
+			std::cout<<"green"<<std::endl;
 			linkDriving();
 			break;
 		}
 	}
 }
-

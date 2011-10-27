@@ -258,6 +258,7 @@ private:
 	double minRFDistance;
 	double minRBDistance;
 	double minPedestrianDis;
+	double space;
 	double headway;				//distance/speed
 	double space_star;			//the distance which leading vehicle will move in next time step
 	double dv;					//the difference of subject vehicle's speed and leading vehicle's speed

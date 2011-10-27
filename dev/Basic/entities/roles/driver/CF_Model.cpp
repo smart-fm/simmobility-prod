@@ -19,17 +19,44 @@ void sim_mob::Driver::makeAcceleratingDecision()
 {
 	//currently convert back to m/s
 	speed_ = perceivedXVelocity_/100;
-	double space = minCFDistance/100.0;
+	//only has vehicle ahead
+	if(CFD&&!isPedestrianAhead)
+		space = minCFDistance/100.0;
+	else if(!CFD&&isPedestrianAhead)
+		space = minPedestrianDis/100.0;
+	else
+		space = (minPedestrianDis<minCFDistance)? minPedestrianDis/100:minCFDistance/100;
 	if(space <= 0) {
 		acc_=0;
 	}
 	else{
-		if(!CFD) {
+		if(!CFD&&!isPedestrianAhead) {
 			acc_ = accOfFreeFlowing();
 			return;
-		} else {
-			v_lead 		=	CFD->getVehicle()->xVel_/100;
-			a_lead		=	CFD->getVehicle()->xAcc_/100;
+		} else{
+			if(CFD&&!isPedestrianAhead)
+			{
+				v_lead 		=	CFD->getVehicle()->xVel_/100;
+				a_lead		=	CFD->getVehicle()->xAcc_/100;
+			}
+			else if(!CFD&&isPedestrianAhead)
+			{
+				v_lead = 0;
+				a_lead = 0;
+			}
+			else
+			{
+				if(minPedestrianDis>minCFDistance)
+				{
+					v_lead 		=	CFD->getVehicle()->xVel_/100;
+					a_lead		=	CFD->getVehicle()->xAcc_/100;
+				}
+				else
+				{
+					v_lead = 0;
+					a_lead = 0;
+				}
+			}
 			double dt	=	timeStep;
 			if (speed_ == 0)headway = 2 * space * 100000;
 			else headway = space / speed_;
@@ -70,16 +97,16 @@ double sim_mob::Driver::accOfEmergencyDecelerating()
 	double a;
 	if( dv < epsilon_v ) {
 		a=a_lead + 0.25*aNormalDec;
-	} else if ( minCFDistance/100 > 0.01 ) {
-		a=a_lead - dv * dv / 2 / (minCFDistance/100);
+	} else if ( space > 0.01 ) {
+		a=a_lead - dv * dv / 2 / (space);
 	} else {
 		a= breakToTargetSpeed();
 	}
-	if(a<maxDeceleration)
-		return maxDeceleration;
-	else if(a>maxAcceleration)
-		return maxAcceleration;
-	else
+//	if(a<maxDeceleration)
+//		return maxDeceleration;
+//	else if(a>maxAcceleration)
+//		return maxAcceleration;
+//	else
 		return a;
 }
 
@@ -146,7 +173,7 @@ double sim_mob::Driver::accOfFreeFlowing()
 double sim_mob::Driver::accOfMixOfCFandFF()		//mix of car following and free flowing
 {
 	distanceToNormalStop = speed_ * speed_ / 2 /(-getNormalDeceleration());
-	if( minCFDistance/100 > distanceToNormalStop ) {
+	if( space > distanceToNormalStop ) {
 		return accOfFreeFlowing();
 	} else {
 		return breakToTargetSpeed();

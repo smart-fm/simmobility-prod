@@ -19,6 +19,8 @@ using namespace sim_mob;
 double Density[] = {1, 1, 1, 1};
 double DS_all;
 
+/* static */ std::vector<Signal const *> Signal::all_signals_;
+
 //Private namespace
 namespace {
 	//parameters for calculating next cycle length

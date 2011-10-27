@@ -206,7 +206,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 }
 
 
-bool loadXMLSignals(TiXmlDocument& document, std::vector<Agent*>& agents, const std::string& signalKeyID)
+bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal const *>& all_signals, const std::string& signalKeyID)
 {
 	//Quick check.
 	if (signalKeyID!="signal") {
@@ -248,9 +248,9 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Agent*>& agents, const 
                     continue;
                 }
 
-                size_t id = agents.size();
+                size_t id = all_signals.size();
                 Signal* sig = new Signal(id, *road_node);
-                agents.push_back(sig);
+                all_signals.push_back(sig);
                 streetDirectory.registerSignal(*sig);
             }
             catch (boost::bad_lexical_cast &)
@@ -675,7 +675,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     }
 
     //Load signals, which are currently agents
-    if (!loadXMLSignals(document, agents, "signal")) {
+    if (!loadXMLSignals(document, Signal::all_signals_, "signal")) {
     	return	 "Couldn't load signals";
     }
 

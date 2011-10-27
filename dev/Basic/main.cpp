@@ -69,7 +69,7 @@ void entity_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
 void signal_status_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
 {
 	for (std::vector<sim_mob::Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
-		//((Region*)(*it))->updateSignalStatus(); //TODO
+            (*it)->update(frameNumber);
 	}
 }
 
@@ -154,8 +154,8 @@ bool performMain(const std::string& configFileName)
   EntityWorkGroup signalStatusWorkers(WG_SIGNALS_SIZE, config.totalRuntimeTicks, config.granSignalsTicks);
   Worker<sim_mob::Entity>::actionFunction spWork = boost::bind(signal_status_worker, _1, _2);
   signalStatusWorkers.initWorkers(&spWork);
-  for (size_t i=0; i<regions.size(); i++) {
-	  signalStatusWorkers.migrate(regions[i], -1, i%WG_SIGNALS_SIZE);
+  for (size_t i=0; i<Signal::all_signals_.size(); i++) {
+	  signalStatusWorkers.migrate(const_cast<Signal*>(Signal::all_signals_[i]), -1, i%WG_SIGNALS_SIZE);
   }
 
   //Initialize our shortest path work groups

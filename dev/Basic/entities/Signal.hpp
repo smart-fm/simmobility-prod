@@ -181,6 +181,8 @@ public:
          */
 	TrafficColor getPedestrianLight(Crossing const & crossing) const;
 
+        static std::vector<Signal const *> all_signals_;
+
 private:
         Node const & node_;
 

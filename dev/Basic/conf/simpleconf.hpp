@@ -43,6 +43,13 @@ public:
 
 	std::string connectionString;
 
+        unsigned int totalRuntimeInMilliSeconds() const { return totalRuntimeTicks * baseGranMS; }
+        unsigned int warmupTimeInMilliSeconds() const { return totalWarmupTicks * baseGranMS; }
+        unsigned int agentTimeStepInMilliSeconds() const { return granAgentsTicks * baseGranMS; }
+        unsigned int signalTimeStepInMilliSeconds() const { return granSignalsTicks * baseGranMS; }
+        unsigned int pathsTimeStepInMilliSeconds() const { return granPathsTicks * baseGranMS; }
+        unsigned int DecompTimeStepInMilliSeconds() const { return granDecompTicks * baseGranMS; }
+
 public:
 	/***
 	 * Singleton. Retrieve an instance of the ConfigParams object.

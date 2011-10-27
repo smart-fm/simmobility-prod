@@ -1030,7 +1030,6 @@ void sim_mob::Driver::trafficSignalDriving()
 		{
 		//red yellow
 		case 0:case 1:
-			std::cout<<"red,yellow"<<std::endl;
 			if(perceivedXVelocity_>0)
 				vehicle->xAcc_ = -0.5*perceivedXVelocity_*perceivedXVelocity_/(currLaneLength-currLaneOffset);
 			else
@@ -1042,7 +1041,6 @@ void sim_mob::Driver::trafficSignalDriving()
 			break;
 			//green
 		case 2:
-			std::cout<<"green"<<std::endl;
 			linkDriving();
 			break;
 		}

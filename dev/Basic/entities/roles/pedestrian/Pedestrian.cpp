@@ -5,6 +5,14 @@
 #include "entities/roles/driver/Driver.hpp"
 #include "geospatial/Node.hpp"
 #include "util/OutputUtil.hpp"
+#include "geospatial/Link.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "geospatial/Lane.hpp"
+#include "geospatial/Node.hpp"
+#include "geospatial/UniNode.hpp"
+#include "geospatial/MultiNode.hpp"
+#include "geospatial/LaneConnector.hpp"
+#include "geospatial/Crossing.hpp"
 
 using namespace sim_mob;
 
@@ -50,23 +58,23 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 
 		//Set the initial position of agent
 		if(!isStartPosSet()){
-//			parent->xPos.set(((double)parent->originNode->location->getX())/100);
-//			parent->yPos.set(((double)parent->originNode->location->getY())/100);
-//			cStartX=372183.51;
-//			cStartY=143352.55;
+			parent->xPos.set(parent->originNode->location->getX());
+			parent->yPos.set(parent->originNode->location->getY());
+//			cStartX=372507.60;
+//			cStartY=143551.20;
 //			cEndX=((double)parent->destNode->location->getX())/100;
 //			cEndX=((double)parent->destNode->location->getY())/100;
 
 			//TEMP: for testing on self-created network only
-			cStartX=500;
-			cStartY=300;
-			cEndX=500;
-			cEndY=600;
+//			cStartX=500;
+//			cStartY=300;
+//			cEndX=500;
+//			cEndY=600;
 
 		}
 		else{
 		//update signal information
-		updatePedestrianSignal();
+//		updatePedestrianSignal();
 
 	    //checkForCollisions();
 
@@ -75,7 +83,7 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 
 			if(!parent->isToBeRemoved()){
 				//Output (temp)
-                                LogOut("Pedestrian " <<parent->getId() <<" has reached the destination" <<std::endl);
+				LogOut("Pedestrian " <<parent->getId() <<" has reached the destination" <<std::endl);
 				parent->setToBeRemoved(true);
 			}
 			return;
@@ -97,6 +105,7 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 				updatePosition();
 //				//Output (temp)
 //				LogOut("("<<"Pedestrian,"<<frameNumber<<","<<parent->getId()<<","<<"{xPos:"<<parent->xPos.get()<<"," <<"yPos:"<<this->parent->yPos.get()<<","<<"pedSig:"<<currPhase<<",})"<<std::endl);
+//				LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
 			}
 			else if(currentStage==1){
 
@@ -119,10 +128,10 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 				}
 				else{
 					//Output (temp)
-                                        LogOut("Pedestrian " <<parent->getId() <<" is waiting at the crossing" <<std::endl);
+                    LogOut("Pedestrian " <<parent->getId() <<" is waiting at the crossing" <<std::endl);
 				}
 				//Output (temp)
-                                LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
+                    LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
 			}
 
 		}
@@ -163,11 +172,11 @@ void sim_mob::Pedestrian::setGoal(int stage) //0-to the next intersection, 1-to 
 	//Give every agent the same goal.
 	//goal.xPos = 1100;
 	if(stage==0){
-//		goal = Point2D(37218351,14335255);
+		goal = Point2D(37250760,14355120); //Hard-code now, need to be replaced once route choicer is done
 
 		//TEMP: for testing on self-created network only
-		goal = Point2D(50000,30000);
-		destPos = Point2D(50000,60000);
+//		goal = Point2D(50000,30000);
+//		destPos = Point2D(50000,60000);
 
 	}
 	else if(stage==1){
@@ -181,11 +190,10 @@ void sim_mob::Pedestrian::setGoal(int stage) //0-to the next intersection, 1-to 
 	}
 	else if(stage==2){
 
-		//TEMP: for testing on self-created network only
-		parent->xPos.set(500);
-		parent->yPos.set(300);
-//		goal = Point2D(parent->destNode->location->getX(),parent->destNode->location->getY());
-		goal = Point2D(destPos.getX(),destPos.getY());
+		parent->xPos.set(37250760);  //Hard-code now, to be changed
+		parent->yPos.set(14355120);
+		goal = Point2D(parent->destNode->location->getX(),parent->destNode->location->getY());
+//		goal = Point2D(destPos.getX(),destPos.getY());
 	}
 
 }
@@ -193,10 +201,10 @@ void sim_mob::Pedestrian::setGoal(int stage) //0-to the next intersection, 1-to 
 bool sim_mob::Pedestrian::isDestReached()
 {
 
-//	double dX = abs(((double)parent->destNode->location->getX())/100 - parent->xPos.get());
-//	double dY = abs(((double)parent->destNode->location->getY())/100 - parent->yPos.get());
-	double dX = abs(((double)destPos.getX())/100 - parent->xPos.get());
-	double dY = abs(((double)destPos.getY())/100 - parent->yPos.get());
+	double dX = ((double)abs(parent->destNode->location->getX() - parent->xPos.get()))/100;
+	double dY = ((double)abs(parent->destNode->location->getY() - parent->yPos.get()))/100;
+//	double dX = abs(((double)destPos.getX())/100 - parent->xPos.get());
+//	double dY = abs(((double)destPos.getY())/100 - parent->yPos.get());
 	double dis = sqrt(dX*dX+dY*dY);
 	return dis < agentRadius*4;
 
@@ -205,8 +213,8 @@ bool sim_mob::Pedestrian::isDestReached()
 
 bool sim_mob::Pedestrian::isGoalReached()
 {
-	double dX = abs(((double)goal.getX())/100 - parent->xPos.get());
-	double dY = abs(((double)goal.getY())/100 - parent->yPos.get());
+	double dX = ((double)abs(goal.getX() - parent->xPos.get()))/100;
+	double dY = ((double)abs(goal.getY() - parent->yPos.get()))/100;
 	double dis = sqrt(dX*dX+dY*dY);
 	return dis < agentRadius*4;
 
@@ -339,15 +347,15 @@ void sim_mob::Pedestrian::updateVelocity(int flag) //0-on sidewalk, 1-on crossin
 {
 	//Set direction (towards the goal)
 	double scale;
-	xVel = ((double)goal.getX())/100 - parent->xPos.get();
-	yVel = ((double)goal.getY())/100 - parent->yPos.get();
+	xVel = ((double)(goal.getX() - parent->xPos.get()))/100;
+	yVel = ((double)(goal.getY() - parent->yPos.get()))/100;
 	//Normalize
 	double length = sqrt(xVel*xVel + yVel*yVel);
 	xVel = xVel/length;
 	yVel = yVel/length;
 	//Set actual velocity
 	if(flag==0)
-		scale = 1.5;
+		scale = 2.5;
 	else if(flag==1)
 		scale = 1;
 	else if (flag==2)
@@ -378,8 +386,8 @@ void sim_mob::Pedestrian::updatePosition()
 	//Compute
 //	double newX = parent->xPos.get()+xVelCombined*1; //Time step is 1 second
 //	double newY = parent->yPos.get()+yVelCombined*1;
-	double newX = parent->xPos.get()+xVel*1; //Time step is 1 second
-	double newY = parent->yPos.get()+yVel*1;
+	int newX = (int)(parent->xPos.get()+ xVel*100*1); //Time step is 1 second
+	int newY = (int)(parent->yPos.get()+ yVel*100*1);
 
 	//Decrement collision velocity
 //	if (xCollisionVector != 0) {
@@ -453,18 +461,95 @@ void sim_mob::Pedestrian::setCrossingPos(){
 	//TEMP: for testing on self-created network only
 
 	//Set agents' start crossing locations
-	double xRel = -30;
-//	double yRel = 30+(double)(rand()%6);
-	double yRel = 30+(double)(rand()%6)+(double)(rand()%6);
-	double xAbs=0;
-	double yAbs=0;
-	relToAbs(xRel,yRel,xAbs,yAbs);
-	parent->xPos.set(xAbs);
-	parent->yPos.set(yAbs);
-	//Set agents' end crossing locations
-	xRel=30;
-	relToAbs(xRel,yRel,xAbs,yAbs);
-	goal = Point2D(int(xAbs*100),int(yAbs*100));
+//	double xRel = -30;
+////	double yRel = 30+(double)(rand()%6);
+//	double yRel = 30+(double)(rand()%6)+(double)(rand()%6);
+//	double xAbs=0;
+//	double yAbs=0;
+//	double width, length, tmp;
+//	relToAbs(xRel,yRel,xAbs,yAbs);
+//	parent->xPos.set(xAbs);
+//	parent->yPos.set(yAbs);
+//	//Set agents' end crossing locations
+//	xRel=30;
+//	relToAbs(xRel,yRel,xAbs,yAbs);
+//	goal = Point2D(int(xAbs*100),int(yAbs*100));
+
+
+	double xRel, yRel;
+	double xAbs, yAbs;
+	double width, length, tmp;
+
+	const RoadSegment* segToCross;
+	const Crossing* crossing;
+	std::set<sim_mob::RoadSegment*>::const_iterator i;
+	const MultiNode* start=dynamic_cast<const MultiNode*>(ConfigParams::GetInstance().getNetwork().locateNode(goal, true));
+	const MultiNode* end=dynamic_cast<const MultiNode*>(ConfigParams::GetInstance().getNetwork().locateNode(Point2D(37270984,14378959), true));
+	const std::set<sim_mob::RoadSegment*>& roadsegments=start->getRoadSegments();
+
+	for(i=roadsegments.begin();i!=roadsegments.end();i++){
+		if((*i)->getLink()->getStart()==end){
+			segToCross = (*i);
+			break;
+		}
+		else if((*i)->getLink()->getEnd()==end){
+			segToCross = (*i);
+			break;
+		}
+	}
+
+	if(segToCross->getStart()==start){
+		 crossing=dynamic_cast<const Crossing*>(segToCross->nextObstacle(0,true).item);
+	}
+	else{
+		 crossing=dynamic_cast<const Crossing*>(segToCross->nextObstacle(segToCross->length,true).item);
+	}
+
+	if(crossing)
+	{
+		Point2D far1 = crossing->farLine.first;
+		Point2D far2 = crossing->farLine.second;
+		Point2D near1 = crossing->nearLine.first;
+		Point2D near2 = crossing->nearLine.second;
+
+		//Determine the direction of two points
+		if((far1.getY()>far2.getY()&&goal.getY()>parent->originNode->location->getY())||(far1.getY()<far2.getY()&&goal.getY()<parent->originNode->location->getY())){
+			cStartX=(double)far2.getX();
+			cStartY=(double)far2.getY();
+			cEndX=(double)far1.getX();
+			cEndY=(double)far1.getY();
+			absToRel(cEndX,cEndY,length,tmp);
+			absToRel((double)near2.getX(),(double)near2.getY(),tmp,width);
+		}
+		else{
+			cStartX=(double)far1.getX();
+			cStartY=(double)far1.getY();
+			cEndX=(double)far2.getX();
+			cEndY=(double)far2.getY();
+			absToRel(cEndX,cEndY,length,tmp);
+			absToRel((double)near1.getX(),(double)near1.getY(),tmp,width);
+		}
+
+		xRel = 0;
+		if(width<0)
+			yRel = -((double)(rand()%(int(abs(width)/2+1)))+(double)(rand()%(int(abs(width)/2+1))));
+		else
+			yRel = (double)(rand()%(int(width/2+1)))+(double)(rand()%(int(width/2+1)));
+		relToAbs(xRel,yRel,xAbs,yAbs);
+		parent->xPos.set((int)xAbs);
+		parent->yPos.set((int)yAbs);
+		xRel = length;
+		relToAbs(xRel,yRel,xAbs,yAbs);
+		goal = Point2D((int)xAbs,(int)yAbs);
+
+//		double slope1, slope2;
+//		slope1 = (double)(far2.getY()-far1.getY())/(far2.getX()-far1.getX());
+
+	}
+	else
+		std::cout<<"Crossing not found!"<<std::endl;
+
+
 }
 
 bool sim_mob::Pedestrian::isStartPosSet(){

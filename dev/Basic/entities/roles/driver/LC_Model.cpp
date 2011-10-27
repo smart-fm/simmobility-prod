@@ -78,7 +78,7 @@ unsigned int sim_mob::Driver::gapAcceptance(int type)
 				otherSpeed[i][0]=MAX_NUM;
 				otherDistance[i][0]=MAX_NUM;
 			} else {				//has vehicle ahead
-				otherSpeed[i][0]=F->getRelatXvel();
+				otherSpeed[i][0]=F->getVehicle()->xVel_;
 				otherDistance[i][0]=(i==0)? minLFDistance:minRFDistance;
 			}
 			if(!B){//no vehicle behind
@@ -86,7 +86,7 @@ unsigned int sim_mob::Driver::gapAcceptance(int type)
 				otherDistance[i][1]=MAX_NUM;
 			}
 			else{		//has vehicle behind, check the gap
-				otherSpeed[i][1]=B->getRelatXvel();;
+				otherSpeed[i][1]=B->getVehicle()->xVel_;
 				otherDistance[i][1]=(i==0)? minLBDistance:minRBDistance;
 			}
 		} else {			// no left/right side exists
@@ -101,8 +101,8 @@ unsigned int sim_mob::Driver::gapAcceptance(int type)
 	bool flags[2][2];
 	for(int i=0;i<2;i++){	//i for left / right
 		for(int j=0;j<2;j++){	//j for lead / lag
-			double v 	= ( j == 0 ) ? xVel_ : otherSpeed[i][1];
-			double dv 	= ( j == 0 ) ? otherSpeed[i][0] - xVel_ : xVel_-otherSpeed[i][1];
+			double v 	= ( j == 0 ) ? perceivedXVelocity_ : otherSpeed[i][1];
+			double dv 	= ( j == 0 ) ? otherSpeed[i][0] - perceivedXVelocity_ : perceivedXVelocity_-otherSpeed[i][1];
 			flags[i][j]= otherDistance[i][j] > lcCriticalGap(j+type,dis2stop,v,dv);
 		}
 	}
@@ -178,7 +178,7 @@ double sim_mob::Driver::makeDiscretionaryLaneChangingDecision()
 double sim_mob::Driver::checkIfMandatory()
 {
 	//the code below is MITSIMLab model
-	dis2stop = currLink->getLength(isForward) - currLinkOffset - length/2 - 300;
+	dis2stop = currLink->getLength(isForward) - currLinkOffset - vehicle->length/2 - 300;
 	dis2stop = dis2stop/100;
 	double num		=	1;		//now we just assume that MLC only need to change to the adjacent lane
 	double y		=	0.5;		//segment density/jam density, now assume that it is 0.5
@@ -230,7 +230,7 @@ void sim_mob::Driver::excuteLaneChanging()
 	// when vehicle is on the lane, make decision
 	if(!isLaneChanging){
 		//if too close to node, don't do lane changing, distance should be larger than 3m
-		if(currLaneLength - currLaneOffset - length/2 <= 300)
+		if(currLaneLength - currLaneOffset - vehicle->length/2 <= 300)
 				return;
 		double p=(double)(rand()%1000)/1000;
 		if(p<checkIfMandatory()){
@@ -253,8 +253,7 @@ void sim_mob::Driver::excuteLaneChanging()
 	}
 	else{			//when changing lane
 		if(changeDecision!=0) {
-			double change=1;		//for MLC
-			yPos_ += -changeDecision*VelOfLaneChanging*change;	//change y position according to decision
+			vehicle->yVel_ = -changeDecision*VelOfLaneChanging;
 		}
 	}
 }

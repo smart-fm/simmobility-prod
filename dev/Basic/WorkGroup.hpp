@@ -103,7 +103,7 @@ template <class EntityType>
 void sim_mob::SimpleWorkGroup<EntityType>::initWorkers(typename Worker<EntityType>::actionFunction* action)
 {
 	for (size_t i=0; i<total_size; i++) {
-		workers.push_back(new Worker<EntityType>(action, &shared_barr, &external_barr, endTick/tickStep, auraManagerActive));
+		workers.push_back(new Worker<EntityType>(action, &shared_barr, &external_barr, endTick, tickStep, auraManagerActive));
 	}
 }
 

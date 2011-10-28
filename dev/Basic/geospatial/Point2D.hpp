@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <iosfwd>
 
 namespace sim_mob
 {
@@ -31,6 +32,13 @@ private:
 	int yPos;
 
 };
+
+std::ostream&
+operator<<(std::ostream& stream, Point2D const & point)
+{
+    stream << "(" << point.getX() << ", " << point.getY() << ")";
+    return stream;
+}
 
 
 

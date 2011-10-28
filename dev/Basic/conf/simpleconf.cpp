@@ -388,6 +388,12 @@ void PrintDB_Network()
 	LogOutNotSync("Printing node network" <<endl);
 	LogOutNotSync("NOTE: All IDs in this section are consistent for THIS simulation run, but will change if you run the simulation again." <<endl);
 
+	//Print some properties of the simulation itself
+	LogOutNotSync("(\"simulation\", 0, 0, {");
+	LogOutNotSync("\"frame-time-ms\":\"" <<ConfigParams::GetInstance().baseGranMS <<"\",");
+	LogOutNotSync("})" <<endl);
+
+
 	//Print the Signal representation.
 	for (vector<Signal const *>::const_iterator it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++) {
 		LogOutNotSync((*it)->toString() <<endl);

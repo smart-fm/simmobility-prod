@@ -1,6 +1,5 @@
 package sim_mob.vis.util;
 
-import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;

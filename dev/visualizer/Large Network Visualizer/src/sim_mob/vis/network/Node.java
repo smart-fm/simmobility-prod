@@ -18,7 +18,7 @@ public class Node implements DrawableItem {
 	private boolean isUni;   //Rather than having multiple classes....
 	
 	public Node(double x, double y, boolean isUni) {
-		pos = new ScaledPoint(x, y);
+		pos = new ScaledPoint(x, y, null);
 		this.isUni = isUni;
 	}
 	

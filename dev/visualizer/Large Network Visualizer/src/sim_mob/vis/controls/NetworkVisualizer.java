@@ -23,6 +23,7 @@ public class NetworkVisualizer {
 	private int width100Percent;
 	private int height100Percent;
 	double currPercentZoom;
+	private static final double  ZOOM_IN_CRITICAL = 1.6;
 	
 	public int getCurrFrameTick() { return currFrameTick; }
 	public boolean incrementCurrFrameTick(int amt) {
@@ -77,11 +78,17 @@ public class NetworkVisualizer {
 	public void zoomIn(int number) {
 		//Each tick increases zoom by 10%
 		redrawAtScale(currPercentZoom + currPercentZoom*number*0.10);
+		
+		//System.out.println("zoom number: "+number);
+		//System.out.println("current percent zoom: " + currPercentZoom);
 	}
 	
 	public void redrawAtScale(double percent) {
 		//Save
 		currPercentZoom = percent;
+		
+//		System.out.println("percent: "+percent);
+
 		
 		//Determine the width and height of our canvas.
 		int width = (int)(width100Percent * percent);
@@ -93,6 +100,8 @@ public class NetworkVisualizer {
 		double height5Percent = 0.05 * (network.getLowerRight().y - network.getTopLeft().y);
 		DPoint newTL = new DPoint(network.getTopLeft().x-width5Percent, network.getTopLeft().y-height5Percent);
 		DPoint newLR = new DPoint(network.getLowerRight().x+width5Percent, network.getLowerRight().y+height5Percent);
+		
+		
 		
 		//Scale all points
 		ScaledPoint.ScaleAllPoints(newTL, newLR, width, height);
@@ -110,14 +119,25 @@ public class NetworkVisualizer {
 		
 		//Draw nodes
 		for (Node n : network.getNodes().values()) {
-			n.draw(g);
+			if(currPercentZoom<=ZOOM_IN_CRITICAL){
+				n.draw(g);
+			}
+			else{
+				if(n.getIsUni()){
+					continue;
+				}
+				else{
+					n.draw(g);
+				}		
+			}
 		}
 		
-		//Draw segments
-		for (Segment sn : network.getSegments().values()) {
-			sn.draw(g);
+		if(currPercentZoom <= ZOOM_IN_CRITICAL){
+			//Draw segments
+			for (Segment sn : network.getSegments().values()) {
+				sn.draw(g);
+			}
 		}
-		
 		//Draw links
 		for (Link ln : network.getLinks().values()) {
 			ln.draw(g);
@@ -126,26 +146,32 @@ public class NetworkVisualizer {
 		//Names go on last; make sure we don't draw them twice...
 		Set<String> alreadyDrawn = new HashSet<String>();
 		for (Link ln : network.getLinks().values()) {
+			
 			String key1 = ln.getName() + ln.getStart().toString() + ":" + ln.getEnd().toString();
 			String key2 = ln.getName() + ln.getEnd().toString() + ":" + ln.getStart().toString();
+			
 			if (alreadyDrawn.contains(key1) || alreadyDrawn.contains(key2)) {
 				continue;
 			}
 			alreadyDrawn.add(key1);
-
 			ln.drawName(g);
 		}
 		
-		//Draw Lanes
-		for (Hashtable<Integer,Lane> laneTable : network.getLanes().values()) {
-			for(Lane lane : laneTable.values()){
-				
-				lane.draw(g);
-				
+		//Draw out lanes only it is zoom to certain scale
+		if(currPercentZoom>ZOOM_IN_CRITICAL){
+			//Draw Lanes
+			for (Hashtable<Integer,Lane> laneTable : network.getLanes().values()) {
+				for(Lane lane : laneTable.values()){
+					lane.draw(g);
+				}
 			}
 			
+			//Draw Perdestrain Crossing
+			for(Crossing crossing : network.getCrossings().values()){
+				crossing.draw(g);
+			
+			}
 		}
-		
 		
 		//Now draw simulation data: cars, etc.
 		for (AgentTick at : simRes.ticks.get(currFrameTick).agentTicks.values()) {
@@ -158,7 +184,7 @@ public class NetworkVisualizer {
 	//Hackish
 	void drawTrafficLights(Graphics2D g) {
 		for (SignalTick sg : simRes.ticks.get(currFrameTick).signalTicks.values()) {
-			sg.draw(g);
+			//sg.draw(g);
 		}
 	}
 	

@@ -102,7 +102,8 @@ public class NetworkVisualizer {
 		
 		
 		//Scale all points
-		ScaledPoint.ScaleAllPoints(newTL, newLR, width, height);
+		ScaledPointGroup.SetNewScaleContext(new ScaleContext(percent, newTL, newLR, width, height));
+		//ScaledPoint.ScaleAllPoints(percent, newTL, newLR, width, height);
 		redrawAtCurrScale();
 	}
 	

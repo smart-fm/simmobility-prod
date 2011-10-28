@@ -88,7 +88,7 @@ public class SimulationResults {
 				double resY = amtY + rn.getTopLeft().y;
 				
 				//Save
-				at.pos = new ScaledPoint(resX, resY);
+				at.pos = new ScaledPoint(resX, resY, tt.tickScaleGroup);
 			}
 		}
 	}
@@ -182,7 +182,7 @@ public class SimulationResults {
 	    }
 	    
 	    //Add this agent to the proper frame.
-	    ticks.get(frameID).agentTicks.put(objID, new DriverTick(xPos, yPos, angle));
+	    ticks.get(frameID).agentTicks.put(objID, new DriverTick(xPos, yPos, angle, ticks.get(frameID).tickScaleGroup));
 	}
 	
 	private void parsePedestrian(int frameID, int objID, String rhs, RoadNetwork rn) throws IOException {
@@ -209,7 +209,7 @@ public class SimulationResults {
 	    }
 	    
 	    //Add this agent to the proper frame.
-	    ticks.get(frameID).agentTicks.put(objID, new PedestrianTick(xPos, yPos));
+	    ticks.get(frameID).agentTicks.put(objID, new PedestrianTick(xPos, yPos, ticks.get(frameID).tickScaleGroup));
 	}
 }
 

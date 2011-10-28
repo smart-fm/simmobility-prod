@@ -1,31 +1,39 @@
 package sim_mob.vis.network.basic;
 
 
-import java.util.*;
-import java.lang.ref.WeakReference;
-
-
 /**
  * A position which can be dynamically rescaled. By default, the "scaled" position is always returned.
  * This position also flips the Y axis to be consistent with Cartesian co-ordiates.
  */
 public class ScaledPoint {
-	private static double LastScaledHeight;
-	private static HashSet<WeakReference<ScaledPoint>> allPoints = new HashSet<WeakReference<ScaledPoint>>();
+	//private static double LastScaledHeight;
+	//private static HashSet<WeakReference<ScaledPoint>> allPoints = new HashSet<WeakReference<ScaledPoint>>();
+	private static ScaledPointGroup GlobalGroup = new ScaledPointGroup();
 	
 	private DPoint orig;
 	private DPoint scaled;
+	private ScaledPointGroup group;
 	  
-	public ScaledPoint(double x, double y) {
+	/**
+	 * Create a new ScaledPoint at the given x and y coordinates, belonging to a given ScaledPointGroup. If null, use the glboal group. 
+	 */
+	public ScaledPoint(double x, double y, ScaledPointGroup scaleGroup) {
 		orig = new DPoint(x, y);
 		scaled = new DPoint();
+		group = scaleGroup;
+		
+		//Manage the global group.
+		if (group==null) {
+			group = GlobalGroup;
+		}
 		
 		//Bookkeeping
-		allPoints.add(new WeakReference<ScaledPoint>(this));
+		group.addPoint(this);
+		//allPoints.add(new WeakReference<ScaledPoint>(this));
 	}
 	
 	//Helper: Rescale all known points
-	public static void ScaleAllPoints(DPoint origin, DPoint farthestPoint, double canvasWidth, double canvasHeight) {
+	/*public static void ScaleAllPoints(DPoint origin, DPoint farthestPoint, double canvasWidth, double canvasHeight) {
 		LastScaledHeight = canvasHeight;
 		
 		ArrayList<WeakReference<ScaledPoint>> retired = new ArrayList<WeakReference<ScaledPoint>>();
@@ -41,14 +49,16 @@ public class ScaledPoint {
 		for (WeakReference<ScaledPoint> pt : retired) {
 			allPoints.remove(pt);
 		}
-	}
+	}*/
 	  
 	public double getX() {
+		group.synchScale();
 		return scaled.x;
 	}
 	
 	public double getY() {
-		return LastScaledHeight - scaled.y;
+		group.synchScale();
+		return group.getLastScaledHeight() - scaled.y;
 	}
 	
 	public double getUnscaledX() {
@@ -59,7 +69,10 @@ public class ScaledPoint {
 		return orig.y;
 	}
 	 
-	private void scaleVia(DPoint topLeft, DPoint lowerRight, double newWidth, double newHeight) {
+	/**
+	 * Actually perform the scale. This method is called by ScaledPointGroup
+	 */
+	/*Package-protected*/ void scaleVia(DPoint topLeft, DPoint lowerRight, double newWidth, double newHeight) {
 		scaled.x = scaleValue(orig.x, topLeft.x, lowerRight.x-topLeft.x, newWidth);
 		scaled.y = scaleValue(orig.y, topLeft.y, lowerRight.y-topLeft.y, newHeight);
 	}

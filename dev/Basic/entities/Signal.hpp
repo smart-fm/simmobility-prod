@@ -68,6 +68,9 @@ public:
 		prevRL2 = RL2;
 	}
 
+	///Return the loggable representation of this Signal.
+	std::string toString() const;
+
 	//initialize the SplitPlan for SCATS
 	void startSplitPlan();
 	void setnextSplitPlan(double DS[]);
@@ -216,6 +219,9 @@ private:
 	//Note: Making const* to make re-assigning easier. ~Seth
 	const int* TC_for_Driver[4];
 	const int* TC_for_Pedestrian;
+
+	//String representation, so that we can retrieve this information at any time.
+	std::string strRepr;
 
 protected:
         std::map<Link const *, size_t> links_map_;

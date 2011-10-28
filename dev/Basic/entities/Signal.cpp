@@ -16,6 +16,9 @@
 #include "util/OutputUtil.hpp"
 using namespace sim_mob;
 
+using std::map;
+using std::string;
+
 double Density[] = {1, 1, 1, 1};
 double DS_all;
 
@@ -207,13 +210,15 @@ sim_mob::Signal::setupIndexMaps()
         }
     }
 
-    // Phase 2: populate the maps.
+    //Prepare output
     std::ostringstream output;
-    output << "(\"Signal-location\", 0, " << getId() << ", " << this << ", {\"node\":\""
-           << &node_ << "\",";
-    size_t i;
-    std::set<Tuple, Compare>::const_iterator iter2;
-    for (i = 0, iter2 = bag.begin(); iter2 != bag.end(); ++i, ++iter2)
+    output << "(\"Signal-location\", 0, " << getId() << ", " << this << ", {";
+    output <<"\"node\":\"" << &node_ << "\"";
+
+    // Phase 2: populate the maps.
+    std::set<Tuple, Compare>::const_iterator iter2 = bag.begin();
+    size_t i = 0;
+    for (; iter2 != bag.end(); ++i, ++iter2)
     {
         Tuple const & tuple = *iter2;
         links_map_.insert(std::make_pair(tuple.link, i));
@@ -228,15 +233,23 @@ sim_mob::Signal::setupIndexMaps()
         {
             point = tuple.link->getStart()->location;
         }
-        if (i)
-            output << ",";
-        output << "\"v" << i["abcd"] << "\":\"" << tuple.link
+        output << ",\"v" << i["abcd"] << "\":\"" << tuple.link
                << "\",\"a" << "abcd"[i] << "\":\"" << 180 * (tuple.angle / M_PI)
                << "\",\"p" << i["abcd"] << "\":\"" << tuple.crossing << "\"";
     }
-    output << "})" << std::endl;
-    LogOut(output.str());
+
+    //Close off and save the string representation.
+    output << "})";
+    strRepr = output.str();
 }
+
+
+string sim_mob::Signal::toString() const
+{
+	return strRepr;
+}
+
+
 
 //initialize SplitPlan
 void sim_mob :: Signal :: startSplitPlan()

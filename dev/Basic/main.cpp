@@ -209,7 +209,7 @@ bool performMain(const std::string& configFileName)
 	  //Agent-based cycle
 	  agentWorkers.wait();
 
-          auraMgr.update(currTick);
+      auraMgr.update(currTick);
 	  agentWorkers.waitExternAgain(); // The workers wait on the AuraManager.
 
 	  //Surveillance update

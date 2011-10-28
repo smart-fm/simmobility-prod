@@ -219,15 +219,6 @@ sim_mob::Signal::setupIndexMaps()
         links_map_.insert(std::make_pair(tuple.link, i));
         crossings_map_.insert(std::make_pair(tuple.crossing, i));
 
-        Point2D* point;
-        if (tuple.link->getStart() == &node_)
-        {
-            point = tuple.link->getEnd()->location;
-        }
-        else
-        {
-            point = tuple.link->getStart()->location;
-        }
         if (i)
             output << ",";
         output << "\"v" << i["abcd"] << "\":\"" << tuple.link

@@ -233,9 +233,12 @@ sim_mob::Signal::setupIndexMaps()
         {
             point = tuple.link->getStart()->location;
         }
-        output << ",\"v" << i["abcd"] << "\":\"" << tuple.link
-               << "\",\"a" << "abcd"[i] << "\":\"" << 180 * (tuple.angle / M_PI)
-               << "\",\"p" << i["abcd"] << "\":\"" << tuple.crossing << "\"";
+
+        //Append to output
+        char letter = static_cast<char>('a' + i);
+        output << ",\"v"   <<letter << "\":\"" << tuple.link
+               << "\",\"a" <<letter << "\":\"" << 180 * (tuple.angle / M_PI)
+               << "\",\"p" <<letter << "\":\"" << tuple.crossing << "\"";
     }
 
     //Close off and save the string representation.

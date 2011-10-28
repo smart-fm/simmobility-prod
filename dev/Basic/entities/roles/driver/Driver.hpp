@@ -45,8 +45,8 @@ public:
 	void assignVehicle(Vehicle* v) {vehicle = v;}
 
 private:
-	static const double MAX_ACCELERATION		=	+10.0;//10m/s*s
-	static const double MAX_DECELERATION		=	-10.0;
+	static const double MAX_ACCELERATION		=	+5.0;//10m/s*s
+	static const double MAX_DECELERATION		=	-5.0;
 
 	//Something I have to define
 
@@ -169,6 +169,7 @@ private:
 	bool isForward;
 	bool isReachGoal;
 	bool lcEnterNewLane;
+	bool isTrafficLightStop;
 	std::vector<const Agent*> nearby_agents;
 	int distanceInFront;
 	int distanceBehind;
@@ -228,7 +229,7 @@ private:
 	void findCrossing();
 
 	//helper function, to find the lane index in current road segment
-	size_t getLaneIndex(const Lane* l,const RoadSegment* r);
+	size_t getLaneIndex(const Lane* l);
 
 
 
@@ -258,6 +259,7 @@ private:
 	double minRFDistance;
 	double minRBDistance;
 	double minPedestrianDis;
+	double tsStopDistance;     // distance to stop line
 	double space;
 	double headway;				//distance/speed
 	double space_star;			//the distance which leading vehicle will move in next time step
@@ -329,6 +331,7 @@ public:
 	void UpdateNextLinkLane();
 	void enterNextLink();
 	bool isReachCrosswalk();
+	bool isInIntersection() const {return inIntersection;}
 
 private:
 	const Signal* trafficSignal;

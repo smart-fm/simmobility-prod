@@ -1,13 +1,14 @@
 package sim_mob.vis.util;
 
-import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import sim_mob.vis.Main;
+import sim_mob.vis.network.Node;
 
 public class Utility {
 	/**
@@ -42,6 +43,11 @@ public class Utility {
 			input = input.substring(2);
 			radix = 0x10;
 		}
+		Integer temp=Integer.parseInt(input, radix);
+		if(temp == 157065152){
+			System.out.println(input);
+		}
+		
 		return Integer.parseInt(input, radix);
 	}
 	
@@ -51,6 +57,32 @@ public class Utility {
 		bounds[1] = Math.max(bounds[1], newVal);
 	}
 	
+	public static ArrayList<Integer> ParseLaneNodePos(String input){
+		ArrayList<Integer> pos = new ArrayList<Integer>();
+		//System.out.println(input);
+		Matcher m = NUM_REGEX.matcher(input);
+		while(m.find()){	
+			pos.add(Integer.parseInt(m.group(1)));
+		}
+		
+		if(pos.size()!=4){
+			System.out.println("Unexpected number of lane coordinates, should be 4 " + "now is  " + pos.size());
+		}
+		return pos;
+	}
+	public static Node ParseCrossingNodePos(String input)throws IOException{
+		
+		String[] items = input.split(",");
+		
+		if(items.length!=2){
+			throw new IOException("Error! Unexpected input information in ParseCrossingNodePos()");
+		}
+		Double xPos = Double.parseDouble(items[0]);
+		Double yPos = Double.parseDouble(items[1]);
+		
+		Node tempNode = new Node(xPos,yPos,false); 
+		return tempNode;
+	}
 	
 	
 	public static Hashtable<String, String> ParseLogRHS(String rhs, String[] ensure) throws IOException {
@@ -89,8 +121,6 @@ public class Utility {
 	}
 
 	
-	
-	
 	//regex-related
 	private static final String rhs = "\\{([^}]*)\\}"; //NOTE: Contains a capture group
 	private static final String sep = ", *";
@@ -99,6 +129,6 @@ public class Utility {
 	private static final String numH = "((?:0x)?[0-9a-fA-F]+)";
 	public static final Pattern LOG_LHS_REGEX = Pattern.compile("\\(" + strn + sep + num + sep + numH + sep  + rhs + "\\)");
 	public static final Pattern LOG_RHS_REGEX = Pattern.compile(strn + ":" + strn + ",?");
-
+	public static final Pattern NUM_REGEX = Pattern.compile(num);
 }
 

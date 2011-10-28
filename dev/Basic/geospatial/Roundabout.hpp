@@ -29,20 +29,20 @@ public:
 	Roundabout() : MultiNode() {}
 
 protected:
-	///List of which RoadSegments approaching a roundabout have a separator in the median.
-	std::vector<bool> separator;
-
 	///The length of each chunk. As each RoadSegment approaches a Roundabout, a "chunk" of
 	///   this distance is taken from the end of that RoadSegment and is used to model details
 	///   specific to this intersection. A chunkLength of zero means that no special processing
 	///   is done for that RoadSegment at this Intersection.
-	std::vector<float> chunkLengths;
+	std::vector<int> chunkLengths;
+
+	///List of which RoadSegments approaching a roundabout have a separator in the median.
+	std::vector<bool> separator;
 
 	///Vector of offsets
 	///
 	/// \note
 	/// I'm not clear on how offsets differ from chunks. ~Seth
-	std::vector<float> offsets;
+	std::vector<int> offsets;
 
 	///Angle of this RoadSegment's entrance into the Roundabout.
 	///
@@ -54,7 +54,7 @@ protected:
 	///  dominant ("driving") side to allow for greater throughput on the Roundabout.
 	///Any additional lanes will end as soon as they reach the Roundabout, at which point
 	//   roundaboutNumberOfLanes remain.
-	std::vector<int> addDominantLane;
+	std::vector<sim_mob::Lane*> addDominantLane;
 
 	///Islands....
 	///

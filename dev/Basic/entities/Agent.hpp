@@ -7,13 +7,13 @@
 
 #include <boost/thread.hpp>
 
-#include "../constants.h"
-#include "Entity.hpp"
-#include "../buffering/Buffered.hpp"
-#include "../buffering/BufferedDataManager.hpp"
-#include "../geospatial/Point2D.hpp"
+#include "util/LangHelpers.hpp"
+#include "buffering/Buffered.hpp"
+#include "buffering/BufferedDataManager.hpp"
+#include "geospatial/Point2D.hpp"
+#include "conf/simpleconf.hpp"
 
-#include "../conf/simpleconf.hpp"
+#include "Entity.hpp"
 
 
 namespace sim_mob
@@ -44,8 +44,11 @@ public:
 	Node* destNode;
 	unsigned int startTime;
 
-	sim_mob::Buffered<double> xPos;  ///<The agent's position, X
-	sim_mob::Buffered<double> yPos;  ///<The agent's position, Y
+//	sim_mob::Buffered<double> xPos;  ///<The agent's position, X
+//	sim_mob::Buffered<double> yPos;  ///<The agent's position, Y
+
+	sim_mob::Buffered<int> xPos;  ///<The agent's position, X
+	sim_mob::Buffered<int> yPos;  ///<The agent's position, Y
 
 	sim_mob::Buffered<double> xVel;  ///<The agent's velocity, X
 	sim_mob::Buffered<double> yVel;  ///<The agent's velocity, Y

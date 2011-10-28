@@ -13,10 +13,10 @@ RoadItemAndOffsetPair sim_mob::Pavement::nextObstacle(const Point2D& pos, bool i
 }
 
 
-RoadItemAndOffsetPair sim_mob::Pavement::nextObstacle(double offset, bool isForward) const
+RoadItemAndOffsetPair sim_mob::Pavement::nextObstacle(centimeter_t offset, bool isForward) const
 {
 	//Simple!
-	for (std::map<double, const RoadItem*>::const_iterator it=obstacles.begin(); it!=obstacles.end(); it++) {
+	for (std::map<int, const RoadItem*>::const_iterator it=obstacles.begin(); it!=obstacles.end(); it++) {
 		if (it->first >= offset) {
 			return RoadItemAndOffsetPair(it->second, it->first);
 		}

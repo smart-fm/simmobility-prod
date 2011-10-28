@@ -9,9 +9,9 @@
 
 #include <boost/utility.hpp>
 
-#include "../geospatial/Point2D.hpp"
-#include "../geospatial/RoadNetwork.hpp"
-#include "../simple_classes.h"
+#include "geospatial/Point2D.hpp"
+#include "geospatial/RoadNetwork.hpp"
+#include "simple_classes.h"
 
 
 namespace sim_mob
@@ -43,6 +43,13 @@ public:
 
 	std::string connectionString;
 
+        unsigned int totalRuntimeInMilliSeconds() const { return totalRuntimeTicks * baseGranMS; }
+        unsigned int warmupTimeInMilliSeconds() const { return totalWarmupTicks * baseGranMS; }
+        unsigned int agentTimeStepInMilliSeconds() const { return granAgentsTicks * baseGranMS; }
+        unsigned int signalTimeStepInMilliSeconds() const { return granSignalsTicks * baseGranMS; }
+        unsigned int pathsTimeStepInMilliSeconds() const { return granPathsTicks * baseGranMS; }
+        unsigned int DecompTimeStepInMilliSeconds() const { return granDecompTicks * baseGranMS; }
+
 public:
 	/***
 	 * Singleton. Retrieve an instance of the ConfigParams object.
@@ -54,8 +61,7 @@ public:
 	 * once before GetInstance() will return meaningful data.
 	 */
 	static bool InitUserConf(const std::string& configPath, std::vector<Agent*>& agents, std::vector<Region*>& regions,
-	          std::vector<TripChain*>& trips, std::vector<ChoiceSet*>& chSets,
-	          std::vector<Vehicle*>& vehicles);
+	          std::vector<TripChain*>& trips, std::vector<ChoiceSet*>& chSets);
 
 	/**
 	 * Retrive a reference to the current RoadNetwork.

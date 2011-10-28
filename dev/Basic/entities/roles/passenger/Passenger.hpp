@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "../Role.hpp"
+#include "entities/roles/Role.hpp"
 
 namespace sim_mob
 {

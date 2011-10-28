@@ -1,14 +1,22 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
+/*
+ * Pedestrian.hpp
+ *
+ *  Created on: 2011-6-20
+ *      Author: Linbo
+ */
+
 #pragma once
 
 #include <time.h>
 #include <math.h>
 
-#include "../Role.hpp"
-#include "../../../geospatial/Point2D.hpp"
-#include "../../../conf/simpleconf.hpp"
-#include "../../Signal.hpp"
+#include "entities/roles/Role.hpp"
+#include "geospatial/Point2D.hpp"
+#include "conf/simpleconf.hpp"
+#include "entities/Signal.hpp"
+#include "geospatial/Crossing.hpp"
 
 namespace sim_mob
 {
@@ -31,13 +39,15 @@ private:
 	int currentStage;
 
 //	Signal sig;
-	unsigned int currPhase; //Current pedestrian signal phase: 0-green, 1-red
+	const Signal* trafficSignal;
+	const Crossing* currCrossing;
+	int sigColor; //0-red, 1-yellow, 2-green
 //	unsigned int phaseCounter; //To be replaced by traffic management system
 	int curCrossingID;
 	bool startToCross;
 	double cStartX, cStartY, cEndX, cEndY;
 	bool startPosSet;
-	Point2D destPos;
+//	Point2D destPos;
 
 	//For collisions
 	double xCollisionVector;
@@ -54,10 +64,8 @@ private:
 	void updatePedestrianSignal();
 	void checkForCollisions();
 //	bool reachStartOfCrossing();
-	bool onCrossing();
 	bool checkGapAcceptance();
-	int getCurrentCrossing();
-	void setCrossingPos(); //Temp helper function
+	void setCrossingParas(); //Temp helper function
 	bool isStartPosSet(); //Temp helper function
 	void absToRel(double, double, double &, double &);
 	void relToAbs(double, double, double &, double &);

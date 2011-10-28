@@ -3,12 +3,12 @@
 #include <limits>
 #include <algorithm>
 #include <boost/unordered_set.hpp>
-#include "../3rd-party/RStarTree.h"
+#include "3rd-party/RStarTree.h"
 
 #include "Agent.hpp"
 #include "AuraManager.hpp"
-#include "../geospatial/Lane.hpp"
-#include "../buffering/Vector2D.hpp"
+#include "geospatial/Lane.hpp"
+#include "buffering/Vector2D.hpp"
 
 namespace sim_mob
 {
@@ -40,8 +40,8 @@ AuraManager::Stats::printStatistics() const
 namespace
 {
     // The AuraManager uses a 2-D R*-tree to create a spatial indexing of the agents.
-    // Each node (both non-leaf and leaf) in the R*-tree holds 12 to 16 items.
-    class R_tree : public RStarTree<Agent const *, 2, 12, 16>
+    // Each node (both non-leaf and leaf) in the R*-tree holds 8 to 16 items.
+    class R_tree : public RStarTree<Agent const *, 2, 8, 16>
     {
     public:
         // No need to define the ctor and dtor.
@@ -254,8 +254,12 @@ private:
 void
 AuraManager::Impl::update()
 {
-    tree_.~R_tree();    // cleanup the tree because we are going to rebuild it.
+    // cleanup the tree because we are going to rebuild it.
+    tree_.Remove(R_tree::AcceptAny(), R_tree::RemoveLeaf());
     assert(tree_.GetSize() == 0);
+
+    if (Agent::all_agents.empty())
+        return;
 
     boost::unordered_set<Agent const *> agents(Agent::all_agents.begin(), Agent::all_agents.end());
 
@@ -264,13 +268,12 @@ AuraManager::Impl::update()
     // agents in non-leaf nodes are close to each other, and therefore the overlaps of non-leaf
     // nodes are not large.  Querying will be faster if the overlaps is small.
     Agent const * agent = *agents.begin();
-    do
+    while (agents.size() > 1)
     {
         agents.erase(agent);
         tree_.insert(agent);
         agent = nearest_agent(agent, agents);
     }
-    while (agents.size() > 1);
     tree_.insert(agent);    // insert the last agent into the tree.
     assert(tree_.GetSize() == Agent::all_agents.size());
 }

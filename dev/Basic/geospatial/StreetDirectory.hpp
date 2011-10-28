@@ -2,9 +2,12 @@
 
 #pragma once
 
+#include <boost/unordered_map.hpp>
 #include <boost/utility.hpp>
 
-#include "Length.hpp"
+#include "util/LangHelpers.hpp"
+
+#include "metrics/Length.hpp"
 
 namespace sim_mob
 {
@@ -12,6 +15,9 @@ namespace sim_mob
 class Lane;
 class Point2D;
 class RoadNetwork;
+class RoadSegment;
+class Node;
+class Signal;
 
 /**
  * A singleton that provides street-directory information.
@@ -113,6 +119,15 @@ public:
     closestRoadSegments(Point2D const & point, centimeter_t halfWidth, centimeter_t halfHeight) const;
 
     /**
+     * Return the Signal object, possibly none, located at the specified node.
+     *
+     * It is possible that the intersection, specified by \c node, is an unsignalized junction.
+     * All road users must observe the highway code.
+     */
+    Signal const *
+    signalAt(Node const & node) const;
+
+    /**
      * Initialize the StreetDirectory object (to be invoked by the simulator kernel).
      *
      * The StreetDirectory partitions the road network into a rectangular grid for fast lookup.
@@ -128,6 +143,12 @@ public:
     void
     init(RoadNetwork const & network, bool keepStats = false,
          centimeter_t gridWidth = 100000, centimeter_t gridHeight = 80000);
+
+    /**
+     * Register the Signal object with the StreetDirectory (to be invoked by the simulator kernel).
+     */
+    void
+    registerSignal(Signal const & signal);
 
     /**
      * Print statistics collected on internal operationss.
@@ -155,6 +176,18 @@ private:
 
     class Stats;
     Stats* stats_;
+
+    boost::unordered_map<const Node *, Signal const *> signals_;
 };
+
+inline Signal const *
+StreetDirectory::signalAt(Node const & node)
+const
+{
+    boost::unordered_map<const Node *, Signal const *>::const_iterator iter = signals_.find(&node);
+    if (signals_.end() == iter)
+        return 0;
+    return iter->second;
+}
 
 }

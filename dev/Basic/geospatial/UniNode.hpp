@@ -6,7 +6,7 @@
 #include <map>
 #include <set>
 
-#include "../constants.h"
+#include "constants.h"
 
 #include "Node.hpp"
 
@@ -47,14 +47,6 @@ public:
 
 	///Retrieve the outgoing Lane at this Node.
 	const sim_mob::Lane* getOutgoingLane(const sim_mob::Lane& from) const;
-
-	///Retrieve a pair of Road Segments representing the two Segments which meet at this node.
-	///NOTE: We may choose to turn the pair into a class (see wiki notes on this), or we may
-	///      simply separate this out into a "getRoadSegmentFrom", "getRoadSegmentTo"
-	///      ---although, be careful with the second approach, since the "from" segment actually
-	///      goes "to" the node.
-	//std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> getRoadSegments() const;
-
 
 	///Helper method: Build the connectors vector dynamically by aligning a lane in the "from" Road Segment with one
 	/// in the "to" Road Segment.

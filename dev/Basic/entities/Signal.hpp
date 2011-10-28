@@ -9,14 +9,20 @@
 
 #pragma once
 
+#include <map>
 #include <vector>
 
-#include "../constants.h"
+#include "constants.h"
 #include "Agent.hpp"
 
 
 namespace sim_mob
 {
+
+// Forwared declarations.
+class Node;
+class Lane;
+class Crossing;
 
 /**
  * Basic Signal class.
@@ -40,12 +46,7 @@ namespace sim_mob
 class Signal  : public sim_mob::Agent {
 
 public:
-//	Signal();
-
 	void initializeSignal();
-
-	//static Signal* GetInstance();
-
 
 	//DS:degree of saturation
 	void updateSignal(double DS[]);
@@ -66,6 +67,9 @@ public:
 		prevRL1 = RL1;
 		prevRL2 = RL2;
 	}
+
+	///Return the loggable representation of this Signal.
+	std::string toString() const;
 
 	//initialize the SplitPlan for SCATS
 	void startSplitPlan();
@@ -99,15 +103,92 @@ public:
 	static int calvote(unsigned int vote1, unsigned int vote2, unsigned int vote3, unsigned int vote4, unsigned int vote5);
 
 public:
-	Signal(unsigned int id);
+        /**
+         * Traffic light colors for both vehicles and pedestrians.
+         *
+         * Amber would not appear as a color to the pedestrians.  For modellers who are not
+         * familiar with the Amber color, it is the same as Yellow.
+         */
+        enum TrafficColor
+        {
+            Red,    ///< Stop, do not go beyond the stop line.
+            Amber,  ///< Slow-down, prepare to stop before the stop line.
+            Green   ///< Proceed either in the forward, left, or right direction.
+        };
+
+        /**
+         * Traffic light colors for vehicles in the forward, turn-left, and turn-right directions.
+         *
+         * Note that even if the color for the turn-left (or turn-right) direction is Red,
+         * vehicles can still proceed to turn if Lane::can_turn_on_red_signal() returns true.
+         * Vehicles must execute the turn carefully, giving way to crossing pedestrians and
+         * oncoming traffic.
+         *
+         * Similarly even if the color is Green or Amber, vehicles cannot proceed if
+         * Lane::can_go_straight(), Lane::can_turn_left(), Lane::can_turn_right() is false.
+         * Modellers should check these functions first and execute lane-changing if needed.
+         */
+        struct VehicleTrafficColors
+        {
+            TrafficColor left;     ///< Traffic-color for the left direction.
+            TrafficColor forward;  ///< Traffic-color for the forward direction.
+            TrafficColor right;    ///< Traffic-color for the right direction.
+
+            /// Constructor.
+            VehicleTrafficColors(TrafficColor l, TrafficColor f, TrafficColor r)
+              : left(l)
+              , forward(f)
+              , right(r)
+            {
+            }
+        };
+
+	Signal(unsigned int id, Node const & node);
+
+        /**
+         * Return the road-network node where this Signal is located.
+         */
+        Node const & getNode() const { return node_; }
+
 	int getcurrPhase();
 	int getphaseCounter(){return phaseCounter;}
 	void updateTrafficLights();
-	int get_Driver_Light(int LinkID, int LaneID);
-	int get_Pedestrian_Light(int CrossingID);
+
+        /**
+         * Return the traffic light colors for vehicles driving in the specified lane.
+         *
+         * This method returns the colors for the 3 directions (turn-left, forward, turn-right).
+         * Modellers should check Lane::can_go_straight(), Lane::can_turn_left(), or
+         * Lane::can_turn_right() as well as the corresponding color to decide whether to proceed,
+         * slow down, or stop.
+         */
+	struct VehicleTrafficColors getDriverLight(Lane const & lane) const;
+
+        /**
+         * Return the traffic light color for vehicles travelling from one lane to another.
+         *   \param fromLane The current lane.
+         *   \param toLane The intended lane.
+         *
+         * This method returns the color for driving from \c fromLane to \c toLane.  Since the
+         * movement entails travelling in either the forward, turn-left, or turn-right direction,
+         * modellers
+         * should check fromLane.can_go_straight(), fromLane.can_turn_left(),
+         * or fromLane::can_turn_right() as well as the returned color.
+         *
+         * Currently the method does not handle U-turn at signalized intersections.
+         */
+        TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const;
+
+        /**
+         * Return the traffic light color for pedestrians wishing to walk on the specified crossing.
+         */
+	TrafficColor getPedestrianLight(Crossing const & crossing) const;
+
+        static std::vector<Signal const *> all_signals_;
 
 private:
-	//static Signal* instance_ ;
+        Node const & node_;
+
 	//previous,current and next cycle length
 	double prevCL,currCL,nextCL;
 
@@ -139,6 +220,15 @@ private:
 	const int* TC_for_Driver[4];
 	const int* TC_for_Pedestrian;
 
+	//String representation, so that we can retrieve this information at any time.
+	std::string strRepr;
+
+protected:
+        std::map<Link const *, size_t> links_map_;
+        std::map<Crossing const *, size_t> crossings_map_;
+
+protected:
+        void setupIndexMaps();
 
 
 };

@@ -25,11 +25,17 @@
 #include "geospatial/UniNode.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
+#include "util/OutputUtil.hpp"
 
 //Just temporarily, so we know it compiles:
 #include "entities/Signal.hpp"
 #include "conf/simpleconf.hpp"
 #include "entities/AuraManager.hpp"
+#include "entities/Bus.hpp"
+#include "geospatial/BusStop.hpp"
+#include "geospatial/Route.hpp"
+#include "geospatial/BusRoute.hpp"
+#include "perception/FixedDelayed.hpp"
 
 
 using std::cout;
@@ -49,7 +55,7 @@ typedef WorkGroup<Entity> EntityWorkGroup;
  * First "loading" step is special. Initialize all agents using work groups in parallel.
  */
 void InitializeAll(vector<Agent*>& agents, vector<Region*>& regions, vector<TripChain*>& trips,
-		      vector<ChoiceSet*>& choiceSets, vector<Vehicle*>& vehicles);
+		      vector<ChoiceSet*>& choiceSets);
 
 
 
@@ -63,7 +69,7 @@ void entity_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
 void signal_status_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
 {
 	for (std::vector<sim_mob::Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
-		//((Region*)(*it))->updateSignalStatus(); //TODO
+            (*it)->update(frameNumber);
 	}
 }
 
@@ -95,10 +101,9 @@ bool performMain(const std::string& configFileName)
   vector<Region*> regions;
   vector<TripChain*> trips;
   vector<ChoiceSet*> choiceSets;
-  vector<Vehicle*> vehicles;
 
   //Load our user config file; save a handle to the shared definition of it.
-  if (!ConfigParams::InitUserConf(configFileName, agents, regions, trips, choiceSets, vehicles)) {   //Note: Agent "shells" are loaded here.
+  if (!ConfigParams::InitUserConf(configFileName, agents, regions, trips, choiceSets)) {   //Note: Agent "shells" are loaded here.
 	  return false;
   }
   const ConfigParams& config = ConfigParams::GetInstance();
@@ -118,11 +123,11 @@ bool performMain(const std::string& configFileName)
   //       value, but at the moment we don't even have a "properties class"
   ///////////////////////////////////////////////////////////////////////////////////
   cout <<"Beginning Initialization" <<endl;
-  InitializeAll(agents, regions, trips, choiceSets, vehicles);
+  InitializeAll(agents, regions, trips, choiceSets);
   cout <<"  " <<"Initialization done" <<endl;
 
   //Sanity check (simple)
-  if (!checkIDs(agents, trips, choiceSets, vehicles)) {
+  if (!checkIDs(agents, trips, choiceSets)) {
 	  return false;
   }
 
@@ -137,7 +142,7 @@ bool performMain(const std::string& configFileName)
 
 
   //Initialize our work groups, assign agents randomly to these groups.
-  EntityWorkGroup agentWorkers(WG_AGENTS_SIZE, config.totalRuntimeTicks, config.granAgentsTicks);
+  EntityWorkGroup agentWorkers(WG_AGENTS_SIZE, config.totalRuntimeTicks, config.granAgentsTicks, true);
   Worker<sim_mob::Entity>::actionFunction entityWork = boost::bind(entity_worker, _1, _2);
   agentWorkers.initWorkers(&entityWork);
   for (size_t i=0; i<agents.size(); i++) {
@@ -149,8 +154,8 @@ bool performMain(const std::string& configFileName)
   EntityWorkGroup signalStatusWorkers(WG_SIGNALS_SIZE, config.totalRuntimeTicks, config.granSignalsTicks);
   Worker<sim_mob::Entity>::actionFunction spWork = boost::bind(signal_status_worker, _1, _2);
   signalStatusWorkers.initWorkers(&spWork);
-  for (size_t i=0; i<regions.size(); i++) {
-	  signalStatusWorkers.migrate(regions[i], -1, i%WG_SIGNALS_SIZE);
+  for (size_t i=0; i<Signal::all_signals_.size(); i++) {
+	  signalStatusWorkers.migrate(const_cast<Signal*>(Signal::all_signals_[i]), -1, i%WG_SIGNALS_SIZE);
   }
 
   //Initialize our shortest path work groups
@@ -184,8 +189,8 @@ bool performMain(const std::string& configFileName)
   for (unsigned int currTick=0; currTick<config.totalRuntimeTicks; currTick++) {
 	  //Output
 	  {
-		boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-	    cout <<"Approximate Tick Boundary: " <<currTick <<", " <<(currTick*config.baseGranMS) <<" ms" <<endl;
+		  boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+          cout <<"Approximate Tick Boundary: " <<currTick <<", " <<(currTick*config.baseGranMS) <<" ms" <<endl;
 	  }
 
 	  //Update the signal logic and plans for every intersection grouped by region
@@ -201,14 +206,11 @@ bool performMain(const std::string& configFileName)
 	  //TODO: Put these on Worker threads too.
 	  agentDecomposition(agents);
 
-	  //One Queue is created for each core
-	  updateVehicleQueue(vehicles);
-
 	  //Agent-based cycle
 	  agentWorkers.wait();
 
-          auraMgr.update(currTick);
-	  agentWorkers.wait(); // The workers wait on the AuraManager.
+      auraMgr.update(currTick);
+	  agentWorkers.waitExternAgain(); // The workers wait on the AuraManager.
 
 	  //Surveillance update
 	  updateSurveillanceData(agents);
@@ -218,10 +220,8 @@ bool performMain(const std::string& configFileName)
 		  updateGUI(agents);
 		  saveStatistics(agents);
 	  } else {
-		  {
-			boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-		    cout <<"  Warmup; output ignored." <<endl;
-		  }
+		  boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+		  cout <<"  Warmup; output ignored." <<endl;
 	  }
 
 	  saveStatisticsToDB(agents);
@@ -251,12 +251,12 @@ int main(int argc, char* argv[])
 
 	//Argument 2: Log file
 	if (argc>2) {
-		if (!BufferedBase::log_init(argv[2])) {
+		if (!Logger::log_init(argv[2])) {
 			cout <<"Loading output file failed; using cout" <<endl;
 			cout <<argv[2] <<endl;
 		}
 	} else {
-		BufferedBase::log_init("");
+		Logger::log_init("");
 		cout <<"No output file specified; using cout." <<endl;
 	}
 
@@ -270,7 +270,7 @@ int main(int argc, char* argv[])
 	int returnVal = performMain(configFileName) ? 0 : 1;
 
 	//Close log file, return.
-	BufferedBase::log_done();
+	Logger::log_done();
 	cout <<"Done" <<endl;
 	return returnVal;
 }
@@ -281,13 +281,12 @@ int main(int argc, char* argv[])
  * Parallel initialization step.
  */
 void InitializeAll(vector<Agent*>& agents, vector<Region*>& regions, vector<TripChain*>& trips,
-	      vector<ChoiceSet*>& choiceSets, vector<Vehicle*>& vehicles)
+	      vector<ChoiceSet*>& choiceSets)
 {
 	  //Our work groups. Will be disposed after this time tick.
 	  SimpleWorkGroup<TripChain> tripChainWorkers(WG_TRIPCHAINS_SIZE, 1);
 	  WorkGroup<sim_mob::Agent> createAgentWorkers(WG_CREATE_AGENT_SIZE, 1);
 	  SimpleWorkGroup<ChoiceSet> choiceSetWorkers(WG_CHOICESET_SIZE, 1);
-	  SimpleWorkGroup<Vehicle> vehicleWorkers(WG_VEHICLES_SIZE, 1);
 
 	  //Create object from DB; for long time spans objects must be created on demand.
 	  Worker<TripChain>::actionFunction func1 = boost::bind(load_trip_chain, _1, _2);
@@ -296,7 +295,7 @@ void InitializeAll(vector<Agent*>& agents, vector<Region*>& regions, vector<Trip
 		  tripChainWorkers.migrate(trips[i], -1, i%WG_TRIPCHAINS_SIZE);
 	  }
 
-	  //Agents, choice sets, and vehicles
+	  //Agents and choice sets
 	  Worker<sim_mob::Agent>::actionFunction func2 = boost::bind(load_agents, _1, _2);
 	  createAgentWorkers.initWorkers(&func2);
 	  for (size_t i=0; i<agents.size(); i++) {
@@ -307,24 +306,17 @@ void InitializeAll(vector<Agent*>& agents, vector<Region*>& regions, vector<Trip
 	  for (size_t i=0; i<choiceSets.size(); i++) {
 		  choiceSetWorkers.migrate(choiceSets[i], -1, i%WG_CHOICESET_SIZE);
 	  }
-	  Worker<Vehicle>::actionFunction func4 = boost::bind(load_vehicles, _1, _2);
-	  vehicleWorkers.initWorkers(&func4);
-	  for (size_t i=0; i<vehicles.size(); i++) {
-		  vehicleWorkers.migrate(vehicles[i], -1, i%WG_VEHICLES_SIZE);
-	  }
 
 	  //Start
 	  cout <<"  Starting threads..." <<endl;
 	  tripChainWorkers.startAll();
 	  createAgentWorkers.startAll();
 	  choiceSetWorkers.startAll();
-	  vehicleWorkers.startAll();
 
 	  //Flip once
 	  tripChainWorkers.wait();
 	  createAgentWorkers.wait();
 	  choiceSetWorkers.wait();
-	  vehicleWorkers.wait();
 
 	  cout <<"  Closing all work groups..." <<endl;
 }

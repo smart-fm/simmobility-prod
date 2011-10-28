@@ -8,10 +8,9 @@
 #include <sstream>
 #include <iostream>
 
-//#include "RoadSegment.hpp"
-#include "Traversable.hpp"
+#include "constants.h"
 
-#include "../constants.h"
+#include "Traversable.hpp"
 
 namespace sim_mob
 {
@@ -42,7 +41,7 @@ public:
 
 	///Return the length of this Link, which is the sum of all RoadSegments
 	/// in the forward (if isForward is true) direction.
-	double getLength(bool isForward) const;
+	int getLength(bool isForward) const;
 
 	///Return the RoadSegments which make up this Link, in either the forward
 	/// (if isForward is true) or reverse direction.

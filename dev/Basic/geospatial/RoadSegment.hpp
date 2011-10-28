@@ -19,6 +19,7 @@ namespace aimsun
 {
 //Forward declaration
 class Loader;
+class LaneLoader;
 } //End aimsun namespace
 
 
@@ -46,7 +47,10 @@ public:
 	std::pair<int, const sim_mob::Lane*> translateRawLaneID(unsigned int rawID);
 
 	///Return the polyline of an individual lane. May be cached in lanePolylines_cached. May also be precomputed, and stored in lanePolylines_cached.
-	const std::vector<sim_mob::Point2D>& getLanePolyline(unsigned int laneID);
+	const std::vector<sim_mob::Point2D>& getLaneEdgePolyline(unsigned int laneID) /*const*/;
+
+	//Force expansion of all Lane and LaneEdge polylines
+	void syncLanePolylines();/* const;*/
 
 
 public:
@@ -59,7 +63,11 @@ private:
 	std::vector<sim_mob::Lane*> lanes;
 
 	///Computed polylines are cached here.
-	std::vector< std::vector<sim_mob::Point2D> > lanePolylines_cached;
+	///These run from 0 (for the median) to lanes.size()+1 (for the outer edge).
+	void specifyEdgePolylines(const std::vector< std::vector<sim_mob::Point2D> >& calcdPolylines);
+	void makeLanePolylineFromEdges(sim_mob::Lane* lane, const std::vector<sim_mob::Point2D>& inner, const std::vector<sim_mob::Point2D>& outer) const;
+	std::vector<sim_mob::Point2D> makeLaneEdgeFromPolyline(sim_mob::Lane* refLane, bool edgeIsRight) const;
+	mutable std::vector< std::vector<sim_mob::Point2D> > laneEdgePolylines_cached;
 
 	///Helps to identify road segments which are bi-directional.
 	///We count lanes from the LHS, so this doesn't change with drivingSide
@@ -69,6 +77,7 @@ private:
 	sim_mob::Link* parentLink;
 
 friend class sim_mob::aimsun::Loader;
+friend class sim_mob::aimsun::LaneLoader;
 
 
 };

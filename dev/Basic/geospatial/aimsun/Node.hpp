@@ -4,6 +4,9 @@
 
 #include <vector>
 #include <cmath>
+#include <map>
+
+#include "util/LangHelpers.hpp"
 
 #include "Base.hpp"
 

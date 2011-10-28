@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "../constants.h"
+#include "util/LangHelpers.hpp"
 
 
 namespace sim_mob
@@ -11,6 +11,10 @@ namespace sim_mob
 
 //Forward declarations
 class Node;
+
+namespace aimsun {
+class CrossingLoader;
+}
 
 
 /**
@@ -34,6 +38,8 @@ public:
 protected:
 	sim_mob::Node* start;
 	sim_mob::Node* end;
+
+	friend class sim_mob::aimsun::CrossingLoader;
 
 
 

@@ -94,10 +94,10 @@ void sim_mob::Link::initializeLinkSegments(const std::set<sim_mob::RoadSegment*>
 
 
 
-double sim_mob::Link::getLength(bool isForward) const
+int sim_mob::Link::getLength(bool isForward) const
 {
 	vector<RoadSegment*> segments = getPath(isForward);
-	double totalLen = 0.0;
+	int totalLen = 0;
 	for (vector<RoadSegment*>::iterator it=segments.begin(); it!=segments.end(); it++) {
 		totalLen += (*it)->length;
 	}

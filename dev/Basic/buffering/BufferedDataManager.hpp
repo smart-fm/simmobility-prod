@@ -4,12 +4,9 @@
 
 #include <vector>
 #include <algorithm>
+#include <cassert>
 
 #include <boost/utility.hpp>
-#include <boost/thread.hpp>
-
-#include <iostream>
-#include <fstream>
 
 namespace sim_mob
 {
@@ -58,33 +55,6 @@ private:
     ///Count of BufferedDataManagers accessing this Buffered type.
     ///Helps catch harder-to-debug errors further down the line.
     unsigned int refCount;
-
-public:
-	//TEMP
-	static boost::mutex global_mutex;
-	static bool log_init(const std::string& path) {
-		if (!path.empty()) {
-			file_output.open(path.c_str());
-			if (file_output.good()) {
-				log_file_or_cout = &file_output;
-				return true;
-			}
-		}
-
-		log_file_or_cout = &std::cout;
-		return false;
-	}
-	static void log_done() {
-		if (file_output.is_open()) {
-			file_output.close();
-		}
-	}
-	static std::ostream& log_file() { return *log_file_or_cout; }
-
-private:
-	static std::ostream* log_file_or_cout;
-	static std::ofstream file_output;
-
 };
 
 

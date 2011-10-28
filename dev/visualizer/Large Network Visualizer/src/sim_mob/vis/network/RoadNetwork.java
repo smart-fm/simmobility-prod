@@ -2,7 +2,8 @@ package sim_mob.vis.network;
 
 import java.io.*;
 import java.util.*;
-import java.util.regex.Matcher;
+import java.util.regex.*;
+
 import sim_mob.vis.network.basic.DPoint;
 import sim_mob.vis.util.Utility;
 
@@ -17,13 +18,16 @@ public class RoadNetwork {
 	private Hashtable<Integer, Node> nodes;
 	private Hashtable<Integer, Link> links;
 	private Hashtable<Integer, Segment> segments;
+	private Hashtable<Integer,Hashtable<Integer,Lane>> lanes;
+	private Hashtable<Integer, Crossing> crossings;
 	
 	public DPoint getTopLeft() { return cornerTL; }
 	public DPoint getLowerRight() { return cornerLR; }
 	public Hashtable<Integer, Node> getNodes() { return nodes; }
 	public Hashtable<Integer, Link> getLinks() { return links; }
 	public Hashtable<Integer, Segment> getSegments() { return segments; }
-	
+	public Hashtable<Integer,Hashtable<Integer,Lane>> getLanes(){ return lanes; }
+	public Hashtable<Integer, Crossing> getCrossings() { return crossings; }
 	
 	/**
 	 * Load the network from a filestream.
@@ -32,6 +36,8 @@ public class RoadNetwork {
 		nodes = new Hashtable<Integer, Node>();
 		links = new Hashtable<Integer, Link>();
 		segments = new Hashtable<Integer, Segment>();
+		lanes = new Hashtable<Integer,Hashtable<Integer,Lane>>();
+		crossings = new Hashtable<Integer, Crossing>();
 		
 		//Also track min/max x/y pos
 		double[] xBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
@@ -83,6 +89,10 @@ public class RoadNetwork {
 			parseLink(frameID, objID, rhs);
 		} else if (objType.equals("road-segment")) {
 			parseSegment(frameID, objID, rhs);
+		} else if (objType.equals("lane")){
+			parseLane(frameID, objID, rhs);
+		} else if(objType.equals("crossing")){
+			parseCrossing(frameID, objID, rhs);
 		}
 	}
 	
@@ -115,6 +125,66 @@ public class RoadNetwork {
 	    links.put(objID, new Link(name, startNode, endNode));
 	}
 	
+	private void parseLane(int frameID, int objID, String rhs) throws IOException {
+	 
+		//Check frameID
+	    if (frameID!=0) {
+	    	throw new IOException("Unexpected frame ID, should be zero");
+	    }
+	    
+	    //Check and parse properties. for lanes, it checks only parent-segment only as the number of lanes is not fixed
+	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"parent-segment"});
+	    
+	    Enumeration<String> keys = props.keys();
+	   
+	    Hashtable<Integer,Lane> tempLaneTable = new Hashtable<Integer,Lane>();
+	    
+	    int sideWalkLane = -1;
+	    
+	    while(keys.hasMoreElements()){
+	    	
+	    	String key = keys.nextElement().toString();
+	    	//Skip the unintended key
+	    	if(key.contains("parent-segment")){
+	    		continue;
+	    	}
+	    	
+	    	//Check whether the lane is a sidewalk
+	    	Matcher m = Utility.NUM_REGEX.matcher(key);
+	    	Integer laneNumber = null;
+	    	while(m.find()){
+	    		laneNumber = Integer.parseInt(m.group());
+	    	}
+	    
+	    	//Extract node information
+	    	if(key.contains("sidewalk")){
+	    		//keep track the side walk lane number
+	    		sideWalkLane = laneNumber;
+	    	}else{
+	    		ArrayList<Integer> pos = new ArrayList<Integer>();
+	    		pos = Utility.ParseLaneNodePos(props.get(key));
+	    		Node startNode = new Node(pos.get(0), pos.get(1), false);
+	    		Node endNode = new Node(pos.get(2), pos.get(3), false);
+	    		tempLaneTable.put(laneNumber, new Lane(startNode,endNode,false));
+	    		
+	    		//System.out.println("pos.get(0) " + pos.get(0)+" pos.get(1) " + pos.get(1)
+		    			//+" pos.get(2) " + pos.get(2)+" pos.get(3) " + pos.get(3));
+	    		
+	    	}
+	   
+	    } 
+	    //Find the sidewalk lane and mark it 
+	    if(sideWalkLane!=-1){
+	    	tempLaneTable.get(sideWalkLane).setSideWalk(true);
+	    	tempLaneTable.get((sideWalkLane+1)).setSideWalk(true);
+	    }
+	    
+	    //Now save the relevant information
+	    //int parentSegmentName = Utility.ParseIntOptionalHex(props.get("parent-segment"));
+	    
+	    //Create a new Link, save it
+	    lanes.put(objID, tempLaneTable);
+	}
 	
 	private void parseSegment(int frameID, int objID, String rhs) throws IOException {
 	    //Check frameID
@@ -148,8 +218,6 @@ public class RoadNetwork {
 	    segments.put(objID, new Segment(parent, fromNode, toNode));
 	}
 	
-	
-	
 	private void parseNode(int frameID, int objID, String rhs, boolean isUni, double[] xBounds, double[] yBounds) throws IOException {
 	    //Check frameID
 	    if (frameID!=0) {
@@ -170,6 +238,27 @@ public class RoadNetwork {
 	}
 	
 	
+	private void parseCrossing(int frameID, int objID, String rhs) throws IOException {
+	    //Check frameID
+	    if (frameID!=0) {
+	    	throw new IOException("Unexpected frame ID, should be zero");
+	    }
+	    
+	    //Check and parse properties.
+	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"near-1", "near-2", "far-1", "far-2"});
+	    
+	    //Now save the relevant information
+	    Node nearOneNode = Utility.ParseCrossingNodePos(props.get("near-1"));
+	    Node nearTwoNode = Utility.ParseCrossingNodePos(props.get("near-2"));
+	    Node farOneNode = Utility.ParseCrossingNodePos(props.get("far-1"));
+	    Node farTwoNode = Utility.ParseCrossingNodePos(props.get("far-2"));
+	   
+	    
+	    
+	    //Create a new Crossing, save it
+	    crossings.put(objID, new Crossing(nearOneNode,nearTwoNode,farOneNode,farTwoNode,objID));
+	}
+
 }
 
 

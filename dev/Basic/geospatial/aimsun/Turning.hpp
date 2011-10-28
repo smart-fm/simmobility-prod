@@ -1,9 +1,11 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 #pragma once
 
 #include <string>
 
 #include "Base.hpp"
-#include "../../constants.h"
+#include "constants.h"
 
 namespace sim_mob
 {

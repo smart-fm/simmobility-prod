@@ -18,7 +18,7 @@ public class Node implements DrawableItem {
 	private boolean isUni;   //Rather than having multiple classes....
 	
 	public Node(double x, double y, boolean isUni) {
-		pos = new ScaledPoint(x, y);
+		pos = new ScaledPoint(x, y, null);
 		this.isUni = isUni;
 	}
 	
@@ -41,7 +41,9 @@ public class Node implements DrawableItem {
 			g.setStroke(nodeStroke);
 			g.setColor(Color.BLACK);
 		}
+		
 		g.drawOval(coords[0], coords[1], NODE_SIZE, NODE_SIZE);
+		
 	}
 	
 	public String toString() {

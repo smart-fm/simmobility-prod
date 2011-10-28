@@ -7,9 +7,11 @@ String RHS = "\\{([^}]*)\\}"; //NOTE: Contains a capture group
 String sep = ", *";
 String strn = "\"([^\"]+)\"";
 String num = "([0-9]+)";
+String numNonCapt = "-?(?:[0-9]+)";
 String numH = "((?:0x)?[0-9a-fA-F]+)";
 Pattern logLHS = Pattern.compile("\\(" + strn + sep + num + sep + numH + sep  + RHS + "\\)");
 Pattern logRHS = Pattern.compile(strn + ":" + strn + ",?");
+Pattern pointPair = Pattern.compile("[^(]*\\(("  + numNonCapt + "," + numNonCapt + ")\\)");
 
 //Fonts
 PFont f;
@@ -20,6 +22,7 @@ boolean paintCrossings = true;
 
 //Turn on/off lanes
 boolean paintLanes = false;
+boolean paintLaneShapes = true;
 boolean paintWraparound = false;
 boolean displayIgnoredLines = false;
 int nodeHalo = 0; //meters
@@ -86,7 +89,11 @@ color nodeFill = color(0xFF, 0xFF, 0xFF);
 color nodeHaloStroke = color(0xFF, 0xCC, 0x55);
 color nodeHaloFill = color(0xFF, 0xCC, 0x55);
 color csStroke = color(0x00, 0x77, 0x00);
-color csFill = color(0xAA, 0xFF, 0xAA);
+color csFill   = color(0xAA, 0xFF, 0xAA);
+color lsStroke = color(0x00, 0x00, 0x55);
+color lsFill   = color(0xAA, 0xAA, 0xFF);
+color lsStrokeSW = color(0x55, 0x00, 0x00);
+color lsFillSW   = color(0xFF, 0xAA, 0xAA);
 color crossingLines = color(0x99, 0x00, 0x99);
 Hashtable<String, Integer> laneColors = new Hashtable<String, Integer>();
 void populateLaneColorsTable() {
@@ -295,6 +302,15 @@ class CrossShape {
 
 
 
+Hashtable<MySeg, LaneShape> laneshapes = new Hashtable<MySeg, LaneShape>();
+class LaneShape {
+  ArrayList< ArrayList<ScaledPoint> > laneLines = new ArrayList< ArrayList<ScaledPoint> >(); //0 is the median, size()-1 is the outer-most lane.
+  int sidewalkID = -1; //Which lane to highlight as a sidewalk.
+};
+
+
+
+
 double[] convertDispToM(double x, double y) {
   double tlX = scaleMatrix[0] - scaleMatrix[2]/2;
   double tlY = scaleMatrix[1] - scaleMatrix[3]/2;
@@ -371,6 +387,15 @@ void scaleAndZoom(double centerX, double centerY, double widthInM, double height
   //Scale all circulars
   for (Circular c : circs) {
     c.pos.scaleTo(xBounds, yBounds);
+  }
+  
+  //Scale all lane shapes
+  for (LaneShape ls : laneshapes.values()) {
+    for (ArrayList<ScaledPoint> lineSh : ls.laneLines) {
+      for (ScaledPoint sp : lineSh) {
+        sp.scaleTo(xBounds, yBounds);
+      }
+    }
   }
 
 }
@@ -574,6 +599,59 @@ void draw()
     ellipse((float)n.pos.getX(), (float)n.pos.getY(), NODE_SIZE, NODE_SIZE);
   }
   
+
+  //Draw all Lane Shapes
+  if (paintLaneShapes) {
+    for (LaneShape ls : laneshapes.values()) {
+      ArrayList<ScaledPoint> medianLine = ls.laneLines.get(0);
+      ArrayList<ScaledPoint> outerLine = ls.laneLines.get(ls.laneLines.size()-1);
+
+      stroke(lsStroke);
+      fill(lsFill);
+      
+      //Draw the main background
+      strokeWeight(2.0);
+      beginShape();
+      //Add the median line
+      for (int i=0; i<medianLine.size(); i++) {
+        vertex((float)medianLine.get(i).getX(), (float)medianLine.get(i).getY());
+      }
+      //Add the outer line
+      for (int i=outerLine.size()-1; i>=0; i--) {
+        vertex((float)outerLine.get(i).getX(), (float)outerLine.get(i).getY());
+      }
+      endShape(CLOSE);
+      
+      //Draw the sidewalk shape, if any
+      if (ls.sidewalkID!=-1) {
+        stroke(lsStrokeSW);
+        fill(lsFillSW);
+        medianLine = ls.laneLines.get(ls.sidewalkID+1);
+        outerLine = ls.laneLines.get(ls.sidewalkID);
+        beginShape();
+        for (int i=0; i<medianLine.size(); i++) {
+          vertex((float)medianLine.get(i).getX(), (float)medianLine.get(i).getY());
+        }
+        for (int i=outerLine.size()-1; i>=0; i--) {
+          vertex((float)outerLine.get(i).getX(), (float)outerLine.get(i).getY());
+        }
+        endShape(CLOSE);
+      }
+      
+      //Draw remaining lines
+      stroke(lsStroke);
+      strokeWeight(1.0);
+      for (int laneID=1; laneID<ls.laneLines.size()-1; laneID++) {
+        ArrayList<ScaledPoint> innerLine = ls.laneLines.get(laneID);
+        beginShape();
+        for (int i=0; i<innerLine.size(); i++) {
+          vertex((float)innerLine.get(i).getX(), (float)innerLine.get(i).getY());
+        }
+        endShape();
+      }
+    }
+  }
+  
   //Draw all Cross Shapes
   if (paintCrossings) {
     strokeWeight(2.0);
@@ -588,6 +666,7 @@ void draw()
       endShape(CLOSE);
     }
   }
+  
   
   //Draw all sections
   strokeWeight(2.0);
@@ -1020,7 +1099,7 @@ void readDecoratedData(String path) {
     String type = m.group(1);
     
     //No need to continue?
-    if (!type.equals("multi-node") && !type.equals("uni-node") && !type.equals("tmp-circular") && !type.equals("road-segment") && !type.equals("crossing")) {
+    if (!type.equals("multi-node") && !type.equals("uni-node") && !type.equals("tmp-circular") && !type.equals("road-segment") && !type.equals("crossing") && !type.equals("lane")) {
       continue;
     }
     
@@ -1054,6 +1133,7 @@ void readDecoratedData(String path) {
     String[] circReqKeys = new String[]{"at-node", "at-segment", "fwd", "number"};
     String[] segReqKeys = new String[]{"from-node", "to-node"};
     String[] crossReqKeys = new String[]{"near-1", "near-2", "far-1", "far-2"};
+    String[] laneReqKeys = new String[]{"parent-segment", "line-0"};
     if (type.equals("multi-node") || type.equals("uni-node")) {
       //Check.
       for (String reqKey : nodeReqKeys) {
@@ -1125,7 +1205,7 @@ void readDecoratedData(String path) {
           throw new RuntimeException("Missing key: " + reqKey + " in: " + rhs);
         }
       }
-      
+        
       //Retrieve
       ScaledPoint near1 = myParseScaled(properties.get("near-1"));
       ScaledPoint near2 = myParseScaled(properties.get("near-2"));
@@ -1140,6 +1220,53 @@ void readDecoratedData(String path) {
 
       //Save
       crossshapes.add(new CrossShape(near1, near2, far1, far2));
+    } else if (type.equals("lane")) {
+      //Check.
+      for (String reqKey : laneReqKeys) {
+        if (!properties.containsKey(reqKey)) {
+          throw new RuntimeException("Missing key: " + reqKey + " in: " + rhs);
+        }
+      }
+      
+      //Retrieve, build
+      int segmentID = myParseOptionalHex(properties.get("parent-segment"));
+      MySeg parentSeg = decoratedSegments.get(segmentID);
+      if (parentSeg==null) {
+          throw new RuntimeException("No parent segment with ID: " + segmentID);
+      }
+      LaneShape ls = new LaneShape();
+      //ls.isSidewalk = myParseBool(properties.get("is-sidewalk"));
+      boolean hasNeg = false;
+      for (int laneLineID=0; properties.containsKey("line-"+laneLineID); laneLineID++) {
+        //Is this a sidewalk?
+        if (properties.containsKey("line-"+laneLineID+"is-sidewalk")) {
+          ls.sidewalkID = laneLineID;
+        }
+        
+        //Add points
+        ls.laneLines.add(new ArrayList<ScaledPoint>());
+        String laneLineStr = properties.get("line-"+laneLineID);
+        Matcher m2 = pointPair.matcher(laneLineStr);
+        while (m2.find()) {
+          String ptStr = m2.group(1);
+          ScaledPoint pt = myParseScaled(ptStr);
+          pt.origX /= 100; pt.origY /= 100;
+          if (pt.origX<0 || pt.origY<0) {
+            hasNeg = true;
+          }
+          
+          ls.laneLines.get(laneLineID).add(pt);
+        }
+      }
+      
+      //Add it
+      if (ls.laneLines.size()==1) {
+        throw new RuntimeException("Can't have just the median line: " + rhs);
+      } else if (hasNeg) {
+        println("ERROR: lane shape has negative points: " + rhs);
+      } else {
+        laneshapes.put(parentSeg, ls);
+      }
     }
     
   }
@@ -1160,12 +1287,9 @@ ScaledPoint myParseScaled(String combined)  {
 
 
 boolean myParseBool(String input) {
-    if (input.length()!=1) {
-      throw new RuntimeException("Bad boolean input: " + input);
-    }
-    if (input.charAt(0) == 't') {
+    if (input.equals("true") || input.equals("t")) {
       return true;
-    } else if (input.charAt(0) == 'f') {
+    } else if (input.equals("false") || input.equals("f"))  {
       return false;
     }
   throw new RuntimeException("Bad boolean input: " + input);

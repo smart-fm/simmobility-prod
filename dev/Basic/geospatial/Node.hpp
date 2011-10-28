@@ -6,7 +6,7 @@
 #include <map>
 #include <set>
 
-#include "../constants.h"
+#include "util/LangHelpers.hpp"
 
 namespace sim_mob
 {

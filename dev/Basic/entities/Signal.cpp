@@ -9,11 +9,20 @@
 
 #include "Signal.hpp"
 #include <math.h>
+#include "geospatial/Lane.hpp"
+#include "geospatial/Crossing.hpp"
+#include "geospatial/MultiNode.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "util/OutputUtil.hpp"
 using namespace sim_mob;
+
+using std::map;
+using std::string;
 
 double Density[] = {1, 1, 1, 1};
 double DS_all;
-int ID;
+
+/* static */ std::vector<Signal const *> Signal::all_signals_;
 
 //Private namespace
 namespace {
@@ -35,15 +44,10 @@ const double sim_mob::Signal::SplitPlan5[] = {0.20, 0.35, 0.25, 0.20};
 
 //Signal* sim_mob::Signal::instance_ = NULL;
 
-sim_mob :: Signal :: Signal(unsigned int id): Agent(id)
+sim_mob :: Signal :: Signal(unsigned int id, Node const & node): Agent(id), node_(node)
 {
-	ID=id;
-	setCL(60,60,60);//default initial cycle length for SCATS
-	setRL(60,60);//default initial RL for SCATS
-	startSplitPlan();
-	currPhase = 0;
-	phaseCounter = 0;
-	updateTrafficLights();
+	initializeSignal();
+        setupIndexMaps();
 }
 
 
@@ -58,14 +62,187 @@ void sim_mob :: Signal :: initializeSignal()
 
 }
 
-
-/*Signal* sim_mob :: Signal :: GetInstance()
+namespace
 {
-	if(!instance_){
-		instance_ = new Signal();
-	}
-	return instance_;
-}*/
+    struct Tuple
+    {
+        Link const * link;
+        double angle;
+        Crossing const * crossing;
+
+        Tuple(Link const * link, double angle, Crossing const * crossing)
+          : link(link)
+          , angle(angle)
+          , crossing(crossing)
+        {
+        }
+    };
+
+    // This functor is used as the sorting criteria in Signal::setupIndexMaps().
+    struct Compare
+    {
+        bool operator()(Tuple const & t1, Tuple const & t2) const
+        {
+            return t1.angle < t2.angle;
+        }
+    };
+
+    // This functor calculates the angle between a link and a reference link, which have a node
+    // in common.
+    struct AngleCalculator
+    {
+        // <node> is the node in common and <refLink> is the reference link.  Therefore <node>
+        // must be one of the ends of <refLink>.
+        AngleCalculator(Node const & node, Link const * refLink)
+          : center_(node)
+        {
+            assert(refLink->getStart() == &center_ || refLink->getEnd() == &center_);
+            // <refAngle_> is the angle that the <refLink> makes with the X-axis.
+            refAngle_ = angle(refLink);
+        }
+
+        // Calculates the angle between <link> and <refLink>, which have <node> in common.
+        // Therefore <node> must be one of the ends of <link>.
+        double operator()(Link const * link) const
+        {
+            assert(link->getStart() == &center_ || link->getEnd() == &center_);
+            return angle(link) - refAngle_;
+        }
+
+        Node const & center_;
+        double refAngle_;
+
+        // Caculates the angle that <link> with respect to the X-axis.
+        double angle(Link const * link) const
+        {
+            Point2D point;
+            if (link->getStart() == &center_)
+                point = *(link->getEnd()->location);
+            else
+                point = *(link->getStart()->location);
+            double xDiff = point.getX() - center_.location->getX();
+            double yDiff = point.getY() - center_.location->getY();
+            return atan2(yDiff, xDiff);
+        }
+    };
+
+    // Return the Crossing object, if any, in the specified road segment.  If there are more
+    // than one Crossing objects, return the one that has the least offset.
+    Crossing const *
+    getCrossing(RoadSegment const * road)
+    {
+        //Crossing const * result = 0;
+        double offset = std::numeric_limits<double>::max();
+
+        //std::map<int, RoadItem const *> const & obstacles = road->obstacles;
+        //std::map<int, RoadItem const *>::const_iterator iter;
+
+        int currOffset = static_cast<int>(offset);
+        for (;;) {
+        	//Get the next item, if any.
+        	RoadItemAndOffsetPair res = road->nextObstacle(currOffset, true);
+        	if (!res.item) {
+        		break;
+        	}
+
+        	//Check if it's a Crossing.
+        	if (Crossing const * crossing = dynamic_cast<Crossing const *>(res.item))
+        	{
+        		//Success
+        		return crossing;
+        	}
+
+        	//Increment
+        	currOffset += res.offset;
+        }
+
+        //Failure.
+        return nullptr;
+    }
+}
+
+// Populate the links_map_ and crossing_map_
+//
+// Currently the Signal class is designed for 4-way traffic at intersections with 4 links.
+// As such, it uses arrays of size 4 for the traffic color for vehicle and pedestrian traffic
+// in each link.  The order of the array follows the geospatial layout of the links -- array[n]
+// and array[n+1] are for adjacent lanes.
+//
+// The links_map_ and crossing_map_ are intended to translate from the Link and Crossing classes
+// to indexes into the abovementioned arrays in the getDriverLight() and getPedestrianLight()
+// methods.
+void
+sim_mob::Signal::setupIndexMaps()
+{
+    // Currently, we assume Signals are located at Multinodes.  We need to handle the cases
+    // where Signals are located at Uninodes or even at obstacle locations (the obstacle being
+    // a Crossing).
+    MultiNode const & multinode = dynamic_cast<MultiNode const &>(node_);
+    std::set<RoadSegment*> const & roads = multinode.getRoadSegments();
+
+    // The algorithm implemented here arbitrarily selects a link to use as a reference link. 
+    // It calculates the angle between this reference link and the other links.  When the links
+    // are inserted into <bag>, <Compare> will sort them accordingly to their angle.  Thus links
+    // that are geospatially adjacent will also be "adjacent" inside <bag>.
+    std::set<Tuple, Compare> bag;
+    std::set<Link const *> links;   // used to filter out duplicate links.
+
+    // Push the first link into <bag>, and use that link as the ref-link.  Being the ref-link,
+    // this item has an angle of 0.
+    std::set<RoadSegment*>::const_iterator iter = roads.begin();
+    RoadSegment const * road = *iter;
+    Crossing const * crossing = getCrossing(road);
+    Link const * link = road->getLink();
+    links.insert(link);
+    bag.insert(Tuple(link, 0, crossing));
+    ++iter;
+
+    AngleCalculator angle(node_, link);
+    for (; iter != roads.end(); ++iter)
+    {
+        road = *iter;
+        crossing = getCrossing(road);
+        link = road->getLink();
+        if (0 == links.count(link))  // check if link is not a duplicate.
+        {
+            bag.insert(Tuple(link, angle(link), crossing));
+            links.insert(link);
+        }
+    }
+
+    //Prepare output
+    std::ostringstream output;
+    output << "(\"Signal-location\", 0, "  << this << ", {";
+    output <<"\"node\":\"" << &node_ << "\"";
+
+    // Phase 2: populate the maps.
+    std::set<Tuple, Compare>::const_iterator iter2 = bag.begin();
+    size_t i = 0;
+    for (; iter2 != bag.end(); ++i, ++iter2)
+    {
+        Tuple const & tuple = *iter2;
+        links_map_.insert(std::make_pair(tuple.link, i));
+        crossings_map_.insert(std::make_pair(tuple.crossing, i));
+
+        //Append to output
+        char letter = static_cast<char>('a' + i);
+        output << ",\"v"   <<letter << "\":\"" << tuple.link
+               << "\",\"a" <<letter << "\":\"" << 180 * (tuple.angle / M_PI)
+               << "\",\"p" <<letter << "\":\"" << tuple.crossing << "\"";
+    }
+
+    //Close off and save the string representation.
+    output << "})";
+    strRepr = output.str();
+}
+
+
+string sim_mob::Signal::toString() const
+{
+	return strRepr;
+}
+
+
 
 //initialize SplitPlan
 void sim_mob :: Signal :: startSplitPlan()
@@ -89,10 +266,8 @@ void sim_mob :: Signal :: startSplitPlan()
 void sim_mob :: Signal ::update(frame_t frameNumber)
 {
 
-	{
-	                boost::mutex::scoped_lock local_lock(BufferedBase::global_mutex);
-	                std::ostream& logout = BufferedBase::log_file();
-	                logout <<"(\"Signal\","<<frameNumber<<","<<ID<<",{\"va\":\"";
+                        std::stringstream logout;
+	                logout <<"(\"Signal\","<<frameNumber<<","<< this <<",{\"va\":\"";
 	                for(int i = 0; i<3; i++) {
 	                        logout<<TC_for_Driver[0][i];
 	                        if (i==2) {
@@ -133,7 +308,7 @@ void sim_mob :: Signal ::update(frame_t frameNumber)
 	                logout <<"\"pb\":\""<<TC_for_Pedestrian[1]<<"\",";
 	                logout <<"\"pc\":\""<<TC_for_Pedestrian[2]<<"\",";
 	                logout <<"\"pd\":\""<<TC_for_Pedestrian[3]<<"\"})"<<std::endl;
-	        }
+                        LogOut(logout.str());
 
 
 	updateSignal (Density);
@@ -461,16 +636,130 @@ void sim_mob :: Signal :: updateTrafficLights(){
 
 }
 
-//To get traffic lights information for driver
-int sim_mob :: Signal :: get_Driver_Light(int LinkID, int LaneID)
+namespace
 {
-	return TC_for_Driver[LinkID][LaneID];
+    sim_mob::Signal::TrafficColor
+    convertToTrafficColor(int i)
+    {
+        switch (i)
+        {
+        case 1:
+            return sim_mob::Signal::Red;
+        case 2:
+            return sim_mob::Signal::Amber;
+        case 3:
+            return sim_mob::Signal::Green;
+        default:
+            return sim_mob::Signal::Red;
+        }
+    }
 }
 
-//To get traffic lights information for pedestrian
-int sim_mob :: Signal :: get_Pedestrian_Light(int CrossingID)
+namespace
 {
-	return TC_for_Pedestrian[CrossingID];
+    std::string
+    mismatchError(char const * const func_name, Signal const & signal, RoadSegment const & road)
+    {
+        std::ostringstream stream;
+        stream << func_name << ": mismatch in Signal and Lane; Details as follows" << std::endl;
+        stream << "    Signal is located at (" << *signal.getNode().location << std::endl; 
+        stream << "    Lane is part of RoadSegment going from " << *road.getStart()->location << " to "
+               << *road.getEnd()->location << std::endl;
+        return stream.str();
+    }
+}
+
+sim_mob::Signal::VehicleTrafficColors
+sim_mob::Signal::getDriverLight(Lane const & lane)
+const
+{
+    RoadSegment const * road = lane.getRoadSegment();
+    Link const * link = road->getLink();
+    std::map<Link const *, size_t>::const_iterator iter = links_map_.find(link);
+    if (iter == links_map_.end())
+    {
+        throw mismatchError("Signal::getDriverLight(lane)", *this, *road);
+    }
+
+    size_t index = iter->second;
+    const int* threeIntegers = TC_for_Driver[index];
+    TrafficColor left = convertToTrafficColor(threeIntegers[0]);
+    TrafficColor forward = convertToTrafficColor(threeIntegers[1]);
+    TrafficColor right = convertToTrafficColor(threeIntegers[2]);
+    return VehicleTrafficColors(left, forward, right);
+}
+
+sim_mob::Signal::TrafficColor
+sim_mob::Signal::getDriverLight(Lane const & fromLane, Lane const & toLane)
+const
+{
+    RoadSegment const * fromRoad = fromLane.getRoadSegment();
+    Link const * fromLink = fromRoad->getLink();
+    std::map<Link const *, size_t>::const_iterator iter = links_map_.find(fromLink);
+    if (iter == links_map_.end())
+    {
+        throw mismatchError("Signal::getDriverLight(fromLane, toLane)", *this, *fromRoad);
+    }
+    size_t fromIndex = iter->second;
+
+    RoadSegment const * toRoad = toLane.getRoadSegment();
+    Link const * toLink = toRoad->getLink();
+    iter = links_map_.find(toLink);
+    if (iter == links_map_.end())
+    {
+        throw mismatchError("Signal::getDriverLight(fromLane, toLane)", *this, *toRoad);
+    }
+    size_t toIndex = iter->second;
+
+    // When links_map was populated in setupIndexMaps(), the links were numbered in anti-clockwise
+    // direction.  The following switches are based on this fact.
+    VehicleTrafficColors colors = getDriverLight(fromLane);
+    if (fromIndex > toIndex)
+    {
+        int diff = fromIndex - toIndex;
+        switch (diff)
+        {
+        case 0: return Red; // U-turn is not supported currently.
+        case 1: return colors.left;
+        case 2: return colors.forward;
+        case 3: return colors.right;
+        default: return Red;
+        }
+    }
+    else
+    {
+        int diff = toIndex - fromIndex;
+        switch (diff)
+        {
+        case 0: return Red; // U-turn is not supported currently.
+        case 1: return colors.right;
+        case 2: return colors.forward;
+        case 3: return colors.left;
+        default: return Red;
+        }
+    }
+
+    return Red;
+}
+
+sim_mob::Signal::TrafficColor
+sim_mob::Signal::getPedestrianLight(Crossing const & crossing)
+const
+{
+    std::map<Crossing const *, size_t>::const_iterator iter = crossings_map_.find(&crossing);
+    if (iter == crossings_map_.end())
+    {
+        std::ostringstream stream;
+        stream << "Signal::getPedestrianLight: Mismatch in Signal and Crossing; Details as follows" << std::endl;
+        stream << "    Signal is located at " << *node_.location << std::endl; 
+        stream << "    Crossing near-line is " << crossing.nearLine.first << " to "
+               << crossing.nearLine.second << std::endl;
+        stream << "    Crossing far-line is " << crossing.farLine.first << " to "
+               << crossing.farLine.second << std::endl;
+        throw stream.str();
+    }
+    size_t index = iter->second;
+    return convertToTrafficColor(TC_for_Pedestrian[index]);
 }
 
 

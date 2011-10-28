@@ -6,7 +6,11 @@
 #include <string>
 #include <cmath>
 
+
+#include "util/LangHelpers.hpp"
+
 #include "Base.hpp"
+
 
 namespace sim_mob
 {

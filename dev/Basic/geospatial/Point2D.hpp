@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <iostream>
 
 namespace sim_mob
 {
@@ -14,6 +15,9 @@ namespace sim_mob
  *
  * The Point2D location of any item should be accurate enough to generate a reasonable visualization
  * of that item using its Point(s) alone.
+ *
+ * X and Y position are defined in centimeters. Due to the current projection of any given zone, it
+ * is perfectly normal for x/y to be negative.
  */
 class Point2D {
 public:
@@ -28,6 +32,13 @@ private:
 	int yPos;
 
 };
+
+inline std::ostream&
+operator<<(std::ostream& stream, Point2D const & point)
+{
+    stream << "(" << point.getX() << ", " << point.getY() << ")";
+    return stream;
+}
 
 
 

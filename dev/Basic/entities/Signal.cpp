@@ -649,6 +649,20 @@ namespace
     }
 }
 
+namespace
+{
+    std::string
+    mismatchError(char const * const func_name, Signal const & signal, RoadSegment const & road)
+    {
+        std::ostringstream stream;
+        stream << func_name << ": mismatch in Signal and Lane; Details as follows" << std::endl;
+        stream << "    Signal is located at (" << *signal.getNode().location << std::endl; 
+        stream << "    Lane is part of RoadSegment going from " << *road.getStart()->location << " to "
+               << *road.getEnd()->location << std::endl;
+        return stream.str();
+    }
+}
+
 sim_mob::Signal::VehicleTrafficColors
 sim_mob::Signal::getDriverLight(Lane const & lane)
 const
@@ -657,7 +671,9 @@ const
     Link const * link = road->getLink();
     std::map<Link const *, size_t>::const_iterator iter = links_map_.find(link);
     if (iter == links_map_.end())
-        return VehicleTrafficColors(Red, Red, Red);
+    {
+        throw mismatchError("Signal::getDriverLight(lane)", *this, *road);
+    }
 
     size_t index = iter->second;
     const int* threeIntegers = TC_for_Driver[index];
@@ -675,14 +691,18 @@ const
     Link const * fromLink = fromRoad->getLink();
     std::map<Link const *, size_t>::const_iterator iter = links_map_.find(fromLink);
     if (iter == links_map_.end())
-        return Red;
+    {
+        throw mismatchError("Signal::getDriverLight(fromLane, toLane)", *this, *fromRoad);
+    }
     size_t fromIndex = iter->second;
 
     RoadSegment const * toRoad = toLane.getRoadSegment();
     Link const * toLink = toRoad->getLink();
     iter = links_map_.find(toLink);
     if (iter == links_map_.end())
-        return Red;
+    {
+        throw mismatchError("Signal::getDriverLight(fromLane, toLane)", *this, *toRoad);
+    }
     size_t toIndex = iter->second;
 
     // When links_map was populated in setupIndexMaps(), the links were numbered in anti-clockwise
@@ -722,7 +742,16 @@ const
 {
     std::map<Crossing const *, size_t>::const_iterator iter = crossings_map_.find(&crossing);
     if (iter == crossings_map_.end())
-        return Red;
+    {
+        std::ostringstream stream;
+        stream << "Signal::getPedestrianLight: Mismatch in Signal and Crossing; Details as follows" << std::endl;
+        stream << "    Signal is located at " << *node_.location << std::endl; 
+        stream << "    Crossing near-line is " << crossing.nearLine.first << " to "
+               << crossing.nearLine.second << std::endl;
+        stream << "    Crossing far-line is " << crossing.farLine.first << " to "
+               << crossing.farLine.second << std::endl;
+        throw stream.str();
+    }
     size_t index = iter->second;
     return convertToTrafficColor(TC_for_Pedestrian[index]);
 }

@@ -9,6 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import sim_mob.vis.Main;
+import sim_mob.vis.network.Node;
 
 public class Utility {
 	/**
@@ -43,6 +44,11 @@ public class Utility {
 			input = input.substring(2);
 			radix = 0x10;
 		}
+		Integer temp=Integer.parseInt(input, radix);
+		if(temp == 157065152){
+			System.out.println(input);
+		}
+		
 		return Integer.parseInt(input, radix);
 	}
 	
@@ -64,6 +70,19 @@ public class Utility {
 			System.out.println("Unexpected number of lane coordinates, should be 4 " + "now is  " + pos.size());
 		}
 		return pos;
+	}
+	public static Node ParseCrossingNodePos(String input)throws IOException{
+		
+		String[] items = input.split(",");
+		
+		if(items.length!=2){
+			throw new IOException("Error! Unexpected input information in ParseCrossingNodePos()");
+		}
+		Double xPos = Double.parseDouble(items[0]);
+		Double yPos = Double.parseDouble(items[1]);
+		
+		Node tempNode = new Node(xPos,yPos,false); 
+		return tempNode;
 	}
 	
 	

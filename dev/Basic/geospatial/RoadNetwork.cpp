@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 #include "RoadNetwork.hpp"
 
 #include "Node.hpp"

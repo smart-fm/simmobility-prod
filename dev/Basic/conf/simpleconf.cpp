@@ -574,21 +574,27 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     }
 
     //Granularity check
+    if (granAgent < baseGran) return "Agent granularity cannot be smaller than base granularity.";
     if (granAgent%baseGran != 0) {
     	return "Agent granularity not a multiple of base granularity.";
     }
+    if (granSignal < baseGran) return "Signal granularity cannot be smaller than base granularity.";
     if (granSignal%baseGran != 0) {
     	return "Signal granularity not a multiple of base granularity.";
     }
+    if (granPaths < baseGran) return "Path granularity cannot be smaller than base granularity.";
     if (granPaths%baseGran != 0) {
     	return "Path granularity not a multiple of base granularity.";
     }
+    if (granDecomp < baseGran) return "Decomposition granularity cannot be smaller than base granularity.";
     if (granDecomp%baseGran != 0) {
     	return "Decomposition granularity not a multiple of base granularity.";
     }
+    if (totalRuntime < baseGran) return "Total Runtime cannot be smaller than base granularity.";
     if (totalRuntime%baseGran != 0) {
     	std::cout <<"  Warning! Total Runtime will be truncated.\n";
     }
+    if (totalWarmup != 0 && totalWarmup < baseGran) std::cout << "Warning! Total Warmup is smaller than base granularity.\n";
     if (totalWarmup%baseGran != 0) {
     	std::cout <<"  Warning! Total Warmup will be truncated.\n";
     }

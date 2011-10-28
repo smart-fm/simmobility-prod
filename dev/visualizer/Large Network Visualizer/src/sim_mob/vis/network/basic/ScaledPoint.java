@@ -29,6 +29,7 @@ public class ScaledPoint {
 		LastScaledHeight = canvasHeight;
 		
 		ArrayList<WeakReference<ScaledPoint>> retired = new ArrayList<WeakReference<ScaledPoint>>();
+	
 		for (WeakReference<ScaledPoint> pt : allPoints) {
 			if (pt.get()!=null) {
 				pt.get().scaleVia(origin, farthestPoint, canvasWidth, canvasHeight); 

@@ -25,7 +25,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	//Double-buffered to prevent flickering.
 	private BufferedImage buffer;
 	
-	//Callbacks to the parent
+	//Call backs to the parent
 	private StringSetter statusBarUpdate;
 	
 	//For dragging

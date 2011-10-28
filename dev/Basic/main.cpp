@@ -188,7 +188,10 @@ bool performMain(const std::string& configFileName)
   /////////////////////////////////////////////////////////////////
   for (unsigned int currTick=0; currTick<config.totalRuntimeTicks; currTick++) {
 	  //Output
-          LogOut("Approximate Tick Boundary: " <<currTick <<", " <<(currTick*config.baseGranMS) <<" ms" <<endl);
+	  {
+		  boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+          cout <<"Approximate Tick Boundary: " <<currTick <<", " <<(currTick*config.baseGranMS) <<" ms" <<endl;
+	  }
 
 	  //Update the signal logic and plans for every intersection grouped by region
 	  signalStatusWorkers.wait();
@@ -217,7 +220,8 @@ bool performMain(const std::string& configFileName)
 		  updateGUI(agents);
 		  saveStatistics(agents);
 	  } else {
-                  LogOut("  Warmup; output ignored." <<endl);
+		  boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+		  cout <<"  Warmup; output ignored." <<endl;
 	  }
 
 	  saveStatisticsToDB(agents);

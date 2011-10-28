@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <iosfwd>
+#include <iostream>
 
 namespace sim_mob
 {
@@ -33,7 +33,7 @@ private:
 
 };
 
-std::ostream&
+inline std::ostream&
 operator<<(std::ostream& stream, Point2D const & point)
 {
     stream << "(" << point.getX() << ", " << point.getY() << ")";

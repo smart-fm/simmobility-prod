@@ -388,6 +388,12 @@ void PrintDB_Network()
 	LogOutNotSync("Printing node network" <<endl);
 	LogOutNotSync("NOTE: All IDs in this section are consistent for THIS simulation run, but will change if you run the simulation again." <<endl);
 
+	//Print the Signal representation.
+	for (vector<Signal const *>::const_iterator it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++) {
+		LogOutNotSync((*it)->toString() <<endl);
+	}
+
+
 	//Print nodes first
 	for (set<UniNode*>::const_iterator it=rn.getUniNodes().begin(); it!=rn.getUniNodes().end(); it++) {
 		LogOutNotSync("(\"uni-node\", 0, " <<*it <<", {");

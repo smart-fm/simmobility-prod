@@ -96,3 +96,4 @@ private:
         LogOutNotSync(strm); \
     } \
     while (0)
+

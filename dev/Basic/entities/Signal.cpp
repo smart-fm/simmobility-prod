@@ -267,7 +267,7 @@ void sim_mob :: Signal ::update(frame_t frameNumber)
 {
 
                         std::stringstream logout;
-	                logout <<"(\"Signal\","<<frameNumber<<","<<getId()<<",{\"va\":\"";
+	                logout <<"(\"Signal\","<<frameNumber<<","<< this <<",{\"va\":\"";
 	                for(int i = 0; i<3; i++) {
 	                        logout<<TC_for_Driver[0][i];
 	                        if (i==2) {

@@ -212,7 +212,7 @@ sim_mob::Signal::setupIndexMaps()
 
     //Prepare output
     std::ostringstream output;
-    output << "(\"Signal-location\", 0, " << getId() << ", " << this << ", {";
+    output << "(\"Signal-location\", 0, "  << this << ", {";
     output <<"\"node\":\"" << &node_ << "\"";
 
     // Phase 2: populate the maps.

@@ -1,15 +1,8 @@
 package sim_mob.vis.network;
 
-import java.awt.AlphaComposite;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Polygon;
-import java.awt.Stroke;
-import java.awt.geom.AffineTransform;
+import java.awt.*;
 
 import sim_mob.vis.controls.DrawableItem;
-import sim_mob.vis.network.basic.Vect;
 
 public class Crossing implements DrawableItem{
 	//Constants/Resources
@@ -36,6 +29,7 @@ public class Crossing implements DrawableItem{
 	public Node getNearTwo() { return nearTwo; }
 	public Node getFarOne() { return farOne; }
 	public Node getFarTwo() { return farTwo; }
+	public int getId() { return id; }
 	
 	public void draw(Graphics2D g) {
 		g.setColor(crossingColor);

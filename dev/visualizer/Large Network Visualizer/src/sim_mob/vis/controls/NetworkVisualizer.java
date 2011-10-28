@@ -1,14 +1,12 @@
 package sim_mob.vis.controls;
 
 import java.awt.*;
+
 import java.awt.image.BufferedImage;
 import java.util.*;
-
 import sim_mob.vis.network.basic.*;
 import sim_mob.vis.network.*;
-import sim_mob.vis.simultion.AgentTick;
-import sim_mob.vis.simultion.SignalTick;
-import sim_mob.vis.simultion.SimulationResults;
+import sim_mob.vis.simultion.*;
 
 
 /**
@@ -183,9 +181,9 @@ public class NetworkVisualizer {
 	
 	//Hackish
 	void drawTrafficLights(Graphics2D g) {
-		for (SignalTick sg : simRes.ticks.get(currFrameTick).signalTicks.values()) {
-			//sg.draw(g);
-		}
+		/*for (SignalTick sg : simRes.ticks.get(currFrameTick).signalTicks.values()) {
+			sg.draw(g);
+		}*/
 	}
 	
 

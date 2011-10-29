@@ -38,6 +38,7 @@
 #include "Crossing.hpp"
 #include "Turning.hpp"
 #include "Polyline.hpp"
+#include "TripChain.hpp"
 #include "SOCI_Converters.hpp"
 
 
@@ -223,14 +224,32 @@ void LoadPolylines(soci::session& sql, const std::string& storedProc, multimap<i
 }
 
 
-void LoadTripchains(soci::session& sql, const std::string& storedProc)
+void LoadTripchains(soci::session& sql, const std::string& storedProc, vector<TripChain>& tripchainlist, map<int, Node>& nodelist)
 {
+	//Our SQL statement
+	soci::rowset<TripChain> rs = (sql.prepare <<"select * from " + storedProc);
 
+	//Exectue as a rowset to avoid repeatedly building the query.
+	tripchainlist.clear();
+	for (soci::rowset<TripChain>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+		//Check nodes
+		if(nodelist.count(it->from.TMP_locationNodeID)==0) {
+			throw std::runtime_error("Invalid trip chain from node reference.");
+		}
+		if(nodelist.count(it->to.TMP_locationNodeID)==0) {
+			throw std::runtime_error("Invalid trip chain to node reference.");
+		}
+
+		//Note: Make sure not to resize the Node map after referencing its elements.
+		it->from.location = &nodelist[it->from.TMP_locationNodeID];
+		it->to.location = &nodelist[it->to.TMP_locationNodeID];
+		tripchainlist.push_back(*it);
+	}
 }
 
 
 
-void LoadBasicAimsunObjects(const string& connectionStr, map<string, string>& storedProcs, map<int, Node>& nodes, map<int, Section>& sections, vector<Crossing>& crossings, vector<Lane>& lanes, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
+void LoadBasicAimsunObjects(const string& connectionStr, map<string, string>& storedProcs, map<int, Node>& nodes, map<int, Section>& sections, vector<Crossing>& crossings, vector<Lane>& lanes, map<int, Turning>& turnings, multimap<int, Polyline>& polylines, vector<TripChain>& tripchains)
 {
 	//Connect
 	//Connection string will look something like this:
@@ -259,7 +278,16 @@ void LoadBasicAimsunObjects(const string& connectionStr, map<string, string>& st
 	LoadPolylines(sql, storedProcs["polyline"], polylines, sections);
 
 	//Load all trip chains
-	LoadTripchains(sql, storedProcs["tripchain"]);
+	LoadTripchains(sql, storedProcs["tripchain"], tripchains, nodes);
+
+	//TEMP:
+	/*for (vector<TripChain>::const_iterator it=tripchains.begin(); it!=tripchains.end(); it++) {
+		std::cout <<"Trip chain: " <<it->id;
+		std::cout <<" from: " <<it->from.description <<"(" <<it->from.location->id <<")";
+		std::cout <<" to: " <<it->to.description <<"(" <<it->to.location->id <<")";
+		std::cout <<" primary: " <<it->primary <<" flexible: " <<it->flexible;
+		std::cout <<" startTime: " <<it->startTime <<" mode: " <<it->mode <<std::endl;
+	}*/
 }
 
 
@@ -750,9 +778,10 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, map<str
 		vector<Lane> lanes;
 		map<int, Turning> turnings;
 		multimap<int, Polyline> polylines;
+		vector<TripChain> tripchains;
 
 		//Step One: Load
-		LoadBasicAimsunObjects(connectionStr, storedProcs, nodes, sections, crossings, lanes, turnings, polylines);
+		LoadBasicAimsunObjects(connectionStr, storedProcs, nodes, sections, crossings, lanes, turnings, polylines, tripchains);
 
 		//Step Two: Translate
 		DecorateAndTranslateObjects(nodes, sections, crossings, lanes, turnings, polylines);

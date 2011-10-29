@@ -223,6 +223,12 @@ void LoadPolylines(soci::session& sql, const std::string& storedProc, multimap<i
 }
 
 
+void LoadTripchains(soci::session& sql, const std::string& storedProc)
+{
+
+}
+
+
 
 void LoadBasicAimsunObjects(const string& connectionStr, map<string, string>& storedProcs, map<int, Node>& nodes, map<int, Section>& sections, vector<Crossing>& crossings, vector<Lane>& lanes, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
 {
@@ -251,6 +257,9 @@ void LoadBasicAimsunObjects(const string& connectionStr, map<string, string>& st
 
 	//Load all polylines
 	LoadPolylines(sql, storedProcs["polyline"], polylines, sections);
+
+	//Load all trip chains
+	LoadTripchains(sql, storedProcs["tripchain"]);
 }
 
 

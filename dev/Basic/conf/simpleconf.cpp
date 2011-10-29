@@ -305,7 +305,7 @@ bool LoadDatabaseDetails(TiXmlElement& parentElem, string& connectionString, map
 	}
 
 	//Done; we'll check the storedProcedures in detail later.
-	return !connectionString.empty() && storedProcedures.size()==6;
+	return !connectionString.empty() && storedProcedures.size()==7;
 }
 
 
@@ -657,6 +657,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     			   storedProcedures.count("node")==0 || storedProcedures.count("section")==0
     			|| storedProcedures.count("turning")==0 || storedProcedures.count("polyline")==0
     			|| storedProcedures.count("crossing")==0 || storedProcedures.count("lane")==0
+    			|| storedProcedures.count("tripchain")==0
     		) {
     			return "Not all stored procedures were specified.";
     		}

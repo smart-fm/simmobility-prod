@@ -36,6 +36,7 @@ class RoadSegment;
 class Lane;
 class Node;
 class MultiNode;
+struct DPoint;
 
 
 class Driver : public sim_mob::Role {
@@ -69,8 +70,8 @@ private:
 	Vehicle* vehicle;
         //Sample stored data which takes reaction time into account.
 	const static size_t reactTime = 1500; //1.5 seconds
-	FixedDelayed<Point2D*> perceivedVelocity;
-	FixedDelayed<Point2D*> perceivedVelocityOfFwdCar;
+	FixedDelayed<DPoint*> perceivedVelocity;
+	FixedDelayed<DPoint*> perceivedVelocityOfFwdCar;
 	FixedDelayed<centimeter_t> perceivedDistToFwdCar;
 	//absolute Movement-related variables
 	double timeStep;			//time step size of simulation

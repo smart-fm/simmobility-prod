@@ -24,6 +24,7 @@
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Crossing.hpp"
+#include "util/DynamicVector.hpp"
 #include "util/OutputUtil.hpp"
 
 
@@ -114,29 +115,29 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	//Update your perceptions.
 	//NOTE: This should be done as perceptions arrive, but the following code kind of "mixes"
 	//      input and decision-making. ~Seth
-	perceivedVelocity.delay(new Point2D(vehicle->xVel_, vehicle->yVel_), currTimeMS);
+	perceivedVelocity.delay(new DPoint(vehicle->xVel_, vehicle->yVel_), currTimeMS);
 	//perceivedVelocityOfFwdCar.delay(new Point2D(otherCarXVel, otherCarYVel), currTimeMS);
 	//perceivedDistToFwdCar.delay(distToOtherCar, currTimeMS);
 
 	//Now, retrieve your sensed velocity, distance, etc.
 	if (perceivedVelocity.can_sense(currTimeMS)) {
-		perceivedXVelocity_ = perceivedVelocity.sense(currTimeMS)->getX();
-		perceivedYVelocity_ = perceivedVelocity.sense(currTimeMS)->getY();
+		perceivedXVelocity_ = perceivedVelocity.sense(currTimeMS)->x;
+		perceivedYVelocity_ = perceivedVelocity.sense(currTimeMS)->y;
 	}
 
 	//Here, you can use the "perceived" velocity to perform decision-making. Just be
 	// careful about how you're saving the velocity values. ~Seth
 	if (parent->getId()==0) {
-		/*
-		LogOut("At time " <<currTimeMS <<"ms, with a perception delay of " <<reactTime
-				  <<"ms, my actual velocity is (" <<xVel <<"," <<yVel <<"), and my perceived velocity is ("
-				  <<perceivedXVelocity <<"," <<perceivedYVelocity <<")\n");*/
+		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+		std::cout <<"At time " <<currTimeMS <<"ms, with a perception delay of " <<reactTime
+				  <<"ms, my actual velocity is (" <<vehicle->xVel_ <<"," <<vehicle->yVel_ <<"), and my perceived velocity is (";
+		if (perceivedVelocity.can_sense(currTimeMS)) {
+			std::cout <<perceivedXVelocity_ <<"," <<perceivedYVelocity_;
+		} else {
+			std::cout <<"N/A";
+		}
+		std::cout <<")\n";
 	}
-
-
-	//Also, in case you're wondering, the Point2D that you "new"'d in the FixedDelayed objects is
-	// automatically reclaimed. This behavior can be turned off, if the object you are storing is shared.
-	//~Seth
 
 	//perceivedXVelocity = vehicle->xVel;
 	//perceivedYVelocity = vehicle->yVel;

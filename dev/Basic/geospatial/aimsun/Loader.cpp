@@ -490,6 +490,7 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::Trip
 		tcs.back()->to.location = it->to.location->generatedNode;
 		tcs.back()->mode = it->mode;
 		tcs.back()->primary = it->primary;
+		tcs.back()->flexible = it->flexible;
 		tcs.back()->startTime = it->startTime;
 	}
 }

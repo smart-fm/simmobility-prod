@@ -125,9 +125,8 @@ void sim_mob::Driver::update(frame_t frameNumber)
 		perceivedYVelocity_ = perceivedVelocity.sense(currTimeMS)->y;
 	}
 
-	//Here, you can use the "perceived" velocity to perform decision-making. Just be
-	// careful about how you're saving the velocity values. ~Seth
-	if (parent->getId()==0) {
+	//Test code. NOTE: I have not tested a perceived velocity of 0 or 1 time tick, or fractional time ticks. ~Seth
+	/*if (parent->getId()==0) {
 		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 		std::cout <<"At time " <<currTimeMS <<"ms, with a perception delay of " <<reactTime
 				  <<"ms, my actual velocity is (" <<vehicle->xVel_ <<"," <<vehicle->yVel_ <<"), and my perceived velocity is (";
@@ -137,7 +136,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 			std::cout <<"N/A";
 		}
 		std::cout <<")\n";
-	}
+	}*/
 
 	//perceivedXVelocity = vehicle->xVel;
 	//perceivedYVelocity = vehicle->yVel;

@@ -2,38 +2,35 @@
 
 #pragma once
 
-#include <string>
-//#include <cmath>
-//#include <map>
+#include <vector>
+#include <map>
+#include <set>
 
-//#include "util/LangHelpers.hpp"
-
-#include "Base.hpp"
+#include "util/LangHelpers.hpp"
 
 namespace sim_mob
 {
 
-namespace aimsun
-{
 
 //Forward declarations
 class Node;
 
 
 
-///An activity within a trip chain
+/**
+ * An activity within a trip chain. Has a location and a description.
+ */
 struct TripActivity {
 	std::string description;
-	Node* location;
-
-	//Placeholder
-	int TMP_locationNodeID;
+	sim_mob::Node* location;
 };
 
 
 
-///A trip chain. Not technically part of AIMSUN; we may have to rename this folder later.
-class TripChain : public Base {
+/**
+ * A chain of activities.
+ */
+class TripChain {
 public:
 	TripActivity from;
 	TripActivity to;
@@ -45,16 +42,13 @@ public:
 
 	std::string mode;
 
-	TripChain() : Base() {
+	TripChain() {
 		from.location = nullptr;
 		to.location = nullptr;
 	}
 
-	//Reference to saved object
-	//sim_mob::TripChain* generatedTC;
-
 };
 
 
-}
+
 }

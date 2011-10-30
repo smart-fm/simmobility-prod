@@ -24,6 +24,8 @@
 #include "geospatial/StreetDirectory.hpp"
 #include "util/OutputUtil.hpp"
 
+#include "entities/misc/TripChain.hpp"
+
 using std::cout;
 using std::endl;
 using std::map;
@@ -663,7 +665,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     		}
 
     		//Actually load it
-    		string dbErrorMsg = sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetwork());
+    		string dbErrorMsg = sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetwork(), ConfigParams::GetInstance().getTripChains());
     		if (!dbErrorMsg.empty()) {
     			return "Database loading error: " + dbErrorMsg;
     		}
@@ -766,7 +768,7 @@ ConfigParams& sim_mob::ConfigParams::GetInstance() {
 //////////////////////////////////////////
 
 bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Agent*>& agents, std::vector<Region*>& regions,
-		          std::vector<TripChain*>& trips, std::vector<ChoiceSet*>& chSets)
+		          /*std::vector<TripChain*>& trips,*/ std::vector<ChoiceSet*>& chSets)
 {
 	//Load our config file into an XML document object.
 	TiXmlDocument doc(configPath);
@@ -786,8 +788,8 @@ bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<A
 	//TEMP:
 	for (size_t i=0; i<5; i++)
 		regions.push_back(new Region(i));
-	for (size_t i=0; i<6; i++)
-		trips.push_back(new TripChain(i));
+	/*for (size_t i=0; i<6; i++)
+		trips.push_back(new TripChain(i));*/
 	for (size_t i=0; i<15; i++)
 		chSets.push_back(new ChoiceSet(i));
 	if (errorMsg.empty()) {

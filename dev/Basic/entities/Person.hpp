@@ -11,6 +11,9 @@
 namespace sim_mob
 {
 
+class TripChain;
+
+
 /**
  * Basic Person class. A person may perform one of several roles which
  *  change over time. For example: Drivers, Pedestrians, and Passengers are
@@ -33,6 +36,7 @@ public:
 private:
 	//Properties
 	sim_mob::Role* currRole;
+	sim_mob::TripChain* currTripChain;
 
 
 };

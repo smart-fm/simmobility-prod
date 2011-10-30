@@ -38,8 +38,12 @@
 #include "Crossing.hpp"
 #include "Turning.hpp"
 #include "Polyline.hpp"
-#include "TripChain.hpp"
 #include "SOCI_Converters.hpp"
+
+//Note: These will eventually have to be put into a separate Loader for non-AIMSUN data.
+#include "entities/misc/TripChain.hpp"
+#include "entities/misc/aimsun/TripChain.hpp"
+#include "entities/misc/aimsun/SOCI_Converters.hpp"
 
 
 using namespace sim_mob::aimsun;
@@ -279,15 +283,6 @@ void LoadBasicAimsunObjects(const string& connectionStr, map<string, string>& st
 
 	//Load all trip chains
 	LoadTripchains(sql, storedProcs["tripchain"], tripchains, nodes);
-
-	//TEMP:
-	/*for (vector<TripChain>::const_iterator it=tripchains.begin(); it!=tripchains.end(); it++) {
-		std::cout <<"Trip chain: " <<it->id;
-		std::cout <<" from: " <<it->from.description <<"(" <<it->from.location->id <<")";
-		std::cout <<" to: " <<it->to.description <<"(" <<it->to.location->id <<")";
-		std::cout <<" primary: " <<it->primary <<" flexible: " <<it->flexible;
-		std::cout <<" startTime: " <<it->startTime <<" mode: " <<it->mode <<std::endl;
-	}*/
 }
 
 
@@ -428,7 +423,7 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 
 
 
-void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, map<int, Node>& nodes, map<int, Section>& sections, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
+void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::TripChain*>& tcs, map<int, Node>& nodes, map<int, Section>& sections, map<int, Turning>& turnings, multimap<int, Polyline>& polylines, vector<TripChain>& tripchains)
 {
 	//First, Nodes. These match cleanly to the Sim Mobility data structures
 	std::cout <<"Warning: Units are not considered when converting AIMSUN data.\n";
@@ -484,6 +479,19 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, map<int, Node>& nodes, ma
 	//Prune lanes and figure out where the median is.
 	// TODO: This should eventually allow other lanes to be designated too.
 	LaneLoader::GenerateLinkLanes(res, nodes, sections);
+
+
+	//Save all trip chains
+	for (vector<TripChain>::iterator it=tripchains.begin(); it!=tripchains.end(); it++) {
+		tcs.push_back(new sim_mob::TripChain());
+		tcs.back()->from.description = it->from.description;
+		tcs.back()->from.location = it->from.location->generatedNode;
+		tcs.back()->to.description = it->to.description;
+		tcs.back()->to.location = it->to.location->generatedNode;
+		tcs.back()->mode = it->mode;
+		tcs.back()->primary = it->primary;
+		tcs.back()->startTime = it->startTime;
+	}
 }
 
 
@@ -768,7 +776,7 @@ void sim_mob::aimsun::Loader::ProcessSectionPolylines(sim_mob::RoadNetwork& res,
 
 
 
-string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, map<string, string>& storedProcs, sim_mob::RoadNetwork& rn)
+string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::vector<sim_mob::TripChain*>& tcs)
 {
 	try {
 		//Temporary AIMSUN data structures
@@ -787,7 +795,7 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, map<str
 		DecorateAndTranslateObjects(nodes, sections, crossings, lanes, turnings, polylines);
 
 		//Step Three: Save
-		SaveSimMobilityNetwork(rn, nodes, sections, turnings, polylines);
+		SaveSimMobilityNetwork(rn, tcs, nodes, sections, turnings, polylines, tripchains);
 
 
 

@@ -33,6 +33,10 @@ public:
 	void changeRole(sim_mob::Role* newRole);
 	sim_mob::Role* getRole();
 
+	///Set this person's trip chain
+	void setTripChain(sim_mob::TripChain* newTripChain) { currTripChain = newTripChain; }
+	sim_mob::TripChain* getTripChain() { return currTripChain; }
+
 private:
 	//Properties
 	sim_mob::Role* currRole;

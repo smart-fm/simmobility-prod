@@ -704,6 +704,16 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     //TEMP: Eventually, we'll need a more sane way to deal with agent IDs.
     std::sort(agents.begin(), agents.end(), agent_sort_by_id);
 
+    //Assign each agent an arbitrary trip chain
+    for (vector<Agent*>::iterator it=agents.begin(); it!=agents.end(); it++) {
+    	Person* p = dynamic_cast<Person*>(*it);
+    	if (p) {
+    		int nextID = rand() % ConfigParams::GetInstance().getTripChains().size();
+    		TripChain* tc = ConfigParams::GetInstance().getTripChains().at(nextID);
+    		p->setTripChain(tc);
+    	}
+    }
+
 
     //Display
     std::cout <<"Config parameters:\n";
@@ -735,6 +745,12 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     std::cout <<"  Agents Initialized: " <<agents.size() <<"\n";
     for (size_t i=0; i<agents.size(); i++) {
     	std::cout <<"    Agent(" <<agents[i]->getId() <<") = " <<agents[i]->xPos.get() <<"," <<agents[i]->yPos.get() <<"\n";
+
+    	Person* p = dynamic_cast<Person*>(agents[i]);
+    	if (p) {
+    		const TripChain* const tc = p->getTripChain();
+    		std::cout <<"      Trip Chain start time: " <<tc->startTime  <<" from: " <<tc->from.description <<"(" <<tc->from.location <<") to: " <<tc->to.description <<"(" <<tc->to.location <<") mode: " <<tc->mode <<" primary: " <<tc->primary  <<" flexible: " <<tc->flexible <<"\n";
+    	}
     }
     std::cout <<"------------------\n";
 

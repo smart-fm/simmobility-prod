@@ -163,7 +163,9 @@ public class MainFrame extends JFrame {
 				if (simData==null) {
 					return;
 				}
-				newViewPnl.jumpAnim(frameTickSlider.getValue(), frameTickSlider);
+				if (frameTickSlider.isEnabled()) {
+					newViewPnl.jumpAnim(frameTickSlider.getValue(), frameTickSlider);
+				}
 			}
 		});
 		

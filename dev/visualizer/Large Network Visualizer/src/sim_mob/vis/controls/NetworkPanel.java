@@ -83,7 +83,9 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		
 		//Update the slider, if it exists
 		if (slider!=null) {
+			slider.setEnabled(false);
 			slider.setValue(netViewCache.getCurrFrameTick());
+			slider.setEnabled(true);
 		}
 
 		netViewCache.redrawAtCurrScale();

@@ -602,6 +602,13 @@ void sim_mob::Pedestrian::relToAbs(double xRel, double yRel, double & xAbs, doub
 	yAbs=xRel*yDirection+yRel*xDirection+cStartY;
 }
 
+bool sim_mob::Pedestrian::isOnCrossing(){
+	if(currentStage==1&&startToCross==true)
+		return true;
+	else
+		return false;
+}
+
 
 
 

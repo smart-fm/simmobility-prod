@@ -29,6 +29,7 @@ public:
 	Pedestrian(Agent* parent);
 
 	virtual void update(frame_t frameNumber);
+	bool isOnCrossing();
 
 private:
 	//Movement-related variables

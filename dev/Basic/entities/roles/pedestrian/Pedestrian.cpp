@@ -496,22 +496,47 @@ void sim_mob::Pedestrian::setCrossingParas(){
 	const RoadSegment* segToCross;
 //	const Crossing* crossing;
 	std::set<sim_mob::RoadSegment*>::const_iterator i;
-	const MultiNode* start=dynamic_cast<const MultiNode*>(ConfigParams::GetInstance().getNetwork().locateNode(goal, true));
-	const MultiNode* end=dynamic_cast<const MultiNode*>(ConfigParams::GetInstance().getNetwork().locateNode(Point2D(37270984,14378959), true));
-	const std::set<sim_mob::RoadSegment*>& roadsegments=start->getRoadSegments();
+	const MultiNode* currNode=dynamic_cast<const MultiNode*>(ConfigParams::GetInstance().getNetwork().locateNode(goal, true));
+//	const MultiNode* end=dynamic_cast<const MultiNode*>(ConfigParams::GetInstance().getNetwork().locateNode(Point2D(37270984,14378959), true));
+	const std::set<sim_mob::RoadSegment*>& roadsegments=currNode->getRoadSegments();
+
+//	for(i=roadsegments.begin();i!=roadsegments.end();i++){
+//		if((*i)->getLink()->getStart()==end){
+//			segToCross = (*i);
+//			break;
+//		}
+//		else if((*i)->getLink()->getEnd()==end){
+//			segToCross = (*i);
+//			break;
+//		}
+//	}
 
 	for(i=roadsegments.begin();i!=roadsegments.end();i++){
-		if((*i)->getLink()->getStart()==end){
-			segToCross = (*i);
-			break;
-		}
-		else if((*i)->getLink()->getEnd()==end){
-			segToCross = (*i);
-			break;
+		if((*i)->getLink()->getStart()!=parent->originNode&&(*i)->getLink()->getEnd()!=parent->originNode&&(*i)->getLink()->getStart()!=parent->destNode&&(*i)->getLink()->getEnd()!=parent->destNode){
+			cStartX=(double)goal.getX();
+			cStartY=(double)goal.getY();
+			cEndX=(double)parent->destNode->location->getX();
+			cEndY=(double)parent->destNode->location->getY();
+			if((*i)->getStart()==currNode){
+				absToRel((*i)->getEnd()->location->getX(),(*i)->getEnd()->location->getY(),xRel,yRel);
+				if(yRel<0){
+					segToCross=(*i);
+					break;
+				}
+			}
+			else{
+				absToRel((*i)->getStart()->location->getX(),(*i)->getStart()->location->getY(),xRel,yRel);
+				if(yRel<0){
+					segToCross=(*i);
+					break;
+				}
+			}
+//			segToCross=(*i);
+//			break;
 		}
 	}
 
-	if(segToCross->getStart()==start){
+	if(segToCross->getStart()==currNode){
 		 currCrossing=dynamic_cast<const Crossing*>(segToCross->nextObstacle(0,true).item);
 	}
 	else{

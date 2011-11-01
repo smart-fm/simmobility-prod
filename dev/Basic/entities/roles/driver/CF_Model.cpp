@@ -25,17 +25,17 @@ void sim_mob::Driver::makeAcceleratingDecision()
 //	if(speed_<0||speed_>50)
 	speed_ = vehicle->xVel_/100;
 	size_t mode;// 0 for vehicle, 1 for pedestrian, 2 for traffic light, 3 for null
-	if(minCFDistance < tsStopDistance && minCFDistance < minPedestrianDis)
+	if(minCFDistance != 5000 && minCFDistance <= tsStopDistance && minCFDistance <= minPedestrianDis)
 	{
-		space = minCFDistance/100 - 0.5;
+		space = minCFDistance/100;
 		mode = 0;
 	}
-	else if(minPedestrianDis < minCFDistance && minPedestrianDis < tsStopDistance)
+	else if(minPedestrianDis != 5000 && minPedestrianDis <= minCFDistance && minPedestrianDis <= tsStopDistance)
 	{
 		space = minPedestrianDis/100;
 		mode = 1;
 	}
-	else if(tsStopDistance < minPedestrianDis && tsStopDistance < minCFDistance)
+	else if(tsStopDistance != 5000 && tsStopDistance <= minPedestrianDis && tsStopDistance <= minCFDistance)
 	{
 		space = tsStopDistance/100;
 		mode = 2;
@@ -47,7 +47,6 @@ void sim_mob::Driver::makeAcceleratingDecision()
 	}
 	if(space <= 0) {
 		acc_=0;
-		vehicle->xVel_ = 0;
 	}
 	else{
 		if(mode == 3) {
@@ -104,7 +103,7 @@ double sim_mob::Driver::accOfEmergencyDecelerating()
 	if( dv < epsilon_v ) {
 		a=a_lead + 0.25*aNormalDec;
 	} else if ( space > 0.01 ) {
-		a=a_lead - dv * dv / 2 / (space);
+		a=a_lead - dv * dv / 2 / (space-0.5);
 	} else {
 		a= breakToTargetSpeed();
 	}

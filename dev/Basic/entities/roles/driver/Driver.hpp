@@ -36,7 +36,6 @@ class RoadSegment;
 class Lane;
 class Node;
 class MultiNode;
-struct DPoint;
 
 
 class Driver : public sim_mob::Role {
@@ -46,8 +45,8 @@ public:
 	void assignVehicle(Vehicle* v) {vehicle = v;}
 
 private:
-	static const double MAX_ACCELERATION		=	+5.0;//10m/s*s
-	static const double MAX_DECELERATION		=	-5.0;
+	static const double MAX_ACCELERATION		=	20.0;//10m/s*s
+	static const double MAX_DECELERATION		=	-20.0;
 
 	//Something I have to define
 
@@ -70,8 +69,8 @@ private:
 	Vehicle* vehicle;
         //Sample stored data which takes reaction time into account.
 	const static size_t reactTime = 1500; //1.5 seconds
-	FixedDelayed<DPoint*> perceivedVelocity;
-	FixedDelayed<DPoint*> perceivedVelocityOfFwdCar;
+	FixedDelayed<Point2D*> perceivedVelocity;
+	FixedDelayed<Point2D*> perceivedVelocityOfFwdCar;
 	FixedDelayed<centimeter_t> perceivedDistToFwdCar;
 	//absolute Movement-related variables
 	double timeStep;			//time step size of simulation
@@ -139,7 +138,6 @@ private:
 	const Lane* nextLaneInNextLink;
 	const Lane* leftLane;
 	const Lane* rightLane;
-	const Node* currNode;
 	const Link* desLink;
 	double currLaneOffset;
     double currLinkOffset;
@@ -148,7 +146,7 @@ private:
 	size_t RSIndex;
 	size_t polylineSegIndex;
 	size_t currLaneIndex;
-	std::vector<const Lane*> targetLane;
+	size_t targetLaneIndex;
 	StreetDirectory::LaneAndIndexPair laneAndIndexPair;
 	const std::vector<sim_mob::Point2D>* currLanePolyLine;
 	const std::vector<sim_mob::Point2D>* desLanePolyLine;
@@ -168,6 +166,7 @@ private:
 	bool isCrossingAhead;
 	bool closeToCrossing;
 	bool isForward;
+	bool nextIsForward;
 	bool isReachGoal;
 	bool lcEnterNewLane;
 	bool isTrafficLightStop;
@@ -200,7 +199,8 @@ private:
 	bool isLeaveIntersection();
 	bool isGoalReached();
 	bool isCloseToLinkEnd();
-	void chooseNextLaneIntersection();
+	void chooseNextLaneForNextLink();
+	void directionIntersection();
 	int disToObstacle(unsigned obstacle_offset);
 	const Link* findLink(const MultiNode* start, const MultiNode* end);
 

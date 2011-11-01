@@ -24,7 +24,6 @@
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Crossing.hpp"
-#include "util/DynamicVector.hpp"
 #include "util/OutputUtil.hpp"
 
 
@@ -59,7 +58,7 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), perceivedVelocity(reactTi
 	//srand(parent->getId());
 
 	//Set default speed in the range of 10m/s to 19m/s
-	speed = 500*(1+((double)(rand()%10))/10);
+	speed = 0;//1000*(1+((double)(rand()%10))/10);
 
 	//Set default data for acceleration
 	acc_ = 0;
@@ -115,28 +114,29 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	//Update your perceptions.
 	//NOTE: This should be done as perceptions arrive, but the following code kind of "mixes"
 	//      input and decision-making. ~Seth
-	perceivedVelocity.delay(new DPoint(vehicle->xVel_, vehicle->yVel_), currTimeMS);
+	perceivedVelocity.delay(new Point2D(vehicle->xVel_, vehicle->yVel_), currTimeMS);
 	//perceivedVelocityOfFwdCar.delay(new Point2D(otherCarXVel, otherCarYVel), currTimeMS);
 	//perceivedDistToFwdCar.delay(distToOtherCar, currTimeMS);
 
 	//Now, retrieve your sensed velocity, distance, etc.
 	if (perceivedVelocity.can_sense(currTimeMS)) {
-		perceivedXVelocity_ = perceivedVelocity.sense(currTimeMS)->x;
-		perceivedYVelocity_ = perceivedVelocity.sense(currTimeMS)->y;
+		perceivedXVelocity_ = perceivedVelocity.sense(currTimeMS)->getX();
+		perceivedYVelocity_ = perceivedVelocity.sense(currTimeMS)->getY();
 	}
 
-	//Test code. NOTE: I have not tested a perceived velocity of 0 or 1 time tick, or fractional time ticks. ~Seth
-	/*if (parent->getId()==0) {
-		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-		std::cout <<"At time " <<currTimeMS <<"ms, with a perception delay of " <<reactTime
-				  <<"ms, my actual velocity is (" <<vehicle->xVel_ <<"," <<vehicle->yVel_ <<"), and my perceived velocity is (";
-		if (perceivedVelocity.can_sense(currTimeMS)) {
-			std::cout <<perceivedXVelocity_ <<"," <<perceivedYVelocity_;
-		} else {
-			std::cout <<"N/A";
-		}
-		std::cout <<")\n";
-	}*/
+	//Here, you can use the "perceived" velocity to perform decision-making. Just be
+	// careful about how you're saving the velocity values. ~Seth
+	if (parent->getId()==0) {
+		/*
+		LogOut("At time " <<currTimeMS <<"ms, with a perception delay of " <<reactTime
+				  <<"ms, my actual velocity is (" <<xVel <<"," <<yVel <<"), and my perceived velocity is ("
+				  <<perceivedXVelocity <<"," <<perceivedYVelocity <<")\n");*/
+	}
+
+
+	//Also, in case you're wondering, the Point2D that you "new"'d in the FixedDelayed objects is
+	// automatically reclaimed. This behavior can be turned off, if the object you are storing is shared.
+	//~Seth
 
 	//perceivedXVelocity = vehicle->xVel;
 	//perceivedYVelocity = vehicle->yVel;
@@ -155,7 +155,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 		if(isReachLinkEnd())
 		{
 			inIntersection = true;
-			chooseNextLaneIntersection();
+			directionIntersection();
 			intersectionVelocityUpdate();
 			intersectionDriving();
 		}
@@ -223,10 +223,10 @@ void sim_mob::Driver::intersectionDriving()
 //the movement is based on relative position
 void sim_mob::Driver::linkDriving()
 {
-	if(isLaneChanging)
-		updatePosLC();
-	excuteLaneChanging();
-	if(isTrafficLightStop && vehicle->xVel_ < 0.1)
+//	if(isLaneChanging)
+//		updatePosLC();
+//	excuteLaneChanging();
+	if(isTrafficLightStop && vehicle->xVel_ < 50)
 	{
 		vehicle->xVel_ = 0;
 		vehicle->xAcc_ = 0;
@@ -354,8 +354,7 @@ bool sim_mob::Driver::isLeaveIntersection()
 
 void sim_mob::Driver::updateRSInCurrLink()
 {
-	targetLane.erase(targetLane.begin(),targetLane.end());
-	currNode = currRoadSegment->getEnd();
+	const Node * currNode = currRoadSegment->getEnd();
 	const MultiNode* mNode=dynamic_cast<const MultiNode*>(currNode);
 	if(mNode){
 		set<LaneConnector*>::const_iterator i;
@@ -363,17 +362,12 @@ void sim_mob::Driver::updateRSInCurrLink()
 		for(i=lcs.begin();i!=lcs.end();i++){
 			if((*i)->getLaneTo()->getRoadSegment()->getLink()==currLink
 					&& (*i)->getLaneFrom()==currLane){
-				targetLane.push_back((*i)->getLaneTo());
+				currLane = (*i)->getLaneTo();
+				updateCurrInfo(1);
+				return;
 			}
 		}
-		if(targetLane.size()>0)
-		{
-			currLane = targetLane.at(0);
-			updateCurrInfo(1);
-		}
-		//if can't find next lane, set current lane to null
-		else
-			currLane = nullptr;
+		currLane = nullptr;
 		return;
 	}
 
@@ -403,7 +397,7 @@ void sim_mob::Driver::updateCurrLaneLength()
 size_t sim_mob::Driver::getLaneIndex(const Lane* l)
 {
 	const RoadSegment* r = l->getRoadSegment();
-	for(int i=0;i<r->getLanes().size();i++)
+	for(size_t i=0;i<r->getLanes().size();i++)
 	{
 		if(r->getLanes().at(i)==l)
 			return i;
@@ -453,7 +447,7 @@ void sim_mob::Driver::updateCurrInfo(unsigned int mode)
 	updateAdjacentLanes();
 	currLanePolyLine = &(currLane->getPolyline());
 	updateCurrLaneLength();
-	maxLaneSpeed = currRoadSegment->maxSpeed/(3.6*2);//slow down
+	maxLaneSpeed = currRoadSegment->maxSpeed/3.6;//slow down
 	targetSpeed = maxLaneSpeed;
 
 	switch(mode)
@@ -473,7 +467,7 @@ void sim_mob::Driver::updateCurrInfo(unsigned int mode)
 		{
 			updateTrafficSignal();
 			if(linkIndex<linkPath.size()-1)
-				chooseNextLaneIntersection();
+				chooseNextLaneForNextLink();
 		}
 		break;
 	case 2:
@@ -486,6 +480,13 @@ void sim_mob::Driver::updateCurrInfo(unsigned int mode)
 		linkIndex ++;
 		RSIndex = 0;
 		roadSegments = &(currLink->getPath(isForward));
+		targetLaneIndex = currLaneIndex;
+		if(isReachLastRS())
+		{
+			updateTrafficSignal();
+			if(linkIndex<linkPath.size()-1)
+				chooseNextLaneForNextLink();
+		}
 		break;
 	default:
 		break;
@@ -504,17 +505,47 @@ void sim_mob::Driver::updatePolyLineSeg()
 
 
 //currently it just chooses the first lane from the targetLane
-void sim_mob::Driver::chooseNextLaneIntersection()
+void sim_mob::Driver::chooseNextLaneForNextLink()
 {
-	if(linkPath[linkIndex+1]->getStart()!=linkPath[linkIndex]->getEnd())
-		isForward = !isForward;
+	nextIsForward = isForward;
+	if(isForward)
+	{
+		if(currLink->getEnd()==linkPath[linkIndex+1]->getEnd())
+			nextIsForward = !isForward;
+	}
+	else
+	{
+		if(currLink->getStart()==linkPath[linkIndex+1]->getStart())
+			nextIsForward = !isForward;
+	}
+	const Node* currNode;
+	if(isForward)
+		currNode = currLink->getEnd();
+	else
+		currNode = currLink->getStart();
+	const MultiNode* mNode=dynamic_cast<const MultiNode*>(currNode);
+	if(mNode){
+		set<LaneConnector*>::const_iterator i;
+		set<LaneConnector*> lcs=mNode->getOutgoingLanes(*currRoadSegment);
+		for(i=lcs.begin();i!=lcs.end();i++){
+			if((*i)->getLaneTo()->getRoadSegment()->getLink()==linkPath[linkIndex+1]
+					&& (*i)->getLaneFrom()->getRoadSegment()==currRoadSegment){
+				nextLaneInNextLink = (*i)->getLaneTo();
+				targetLaneIndex = getLaneIndex((*i)->getLaneFrom());
+				return;
+			}
+		}
+	}
 
-	nextLaneInNextLink = linkPath[linkIndex+1]->getPath(isForward).at(0)->getLanes().at(currLaneIndex);
-	//if there is no lane with same index in the new road segment
-	//set the next lane as lane 0
-	if(!nextLaneInNextLink)
-		nextLaneInNextLink = linkPath[linkIndex+1]->getPath(isForward).at(0)->getLanes().at(0);
+	//if can't find next lane, make this link as the last link
+	//this should be an error, because the path is not connected.
+	nextLaneInNextLink = currLane;
+	targetLaneIndex = currLaneIndex;
+	linkIndex = linkPath.size()-1;
+}
 
+void sim_mob::Driver::directionIntersection()
+{
 	entryPoint = nextLaneInNextLink->getPolyline().at(0);
 	double xDir = entryPoint.getX() - vehicle->xPos;
 	double yDir = entryPoint.getY() - vehicle->yPos;
@@ -594,11 +625,12 @@ void sim_mob::Driver::setOrigin()
 	RSIndex = 0;
 	currRoadSegment = roadSegments->at(RSIndex);
 
-	maxLaneSpeed = currRoadSegment->maxSpeed/(3.6*2);//slow down
+	maxLaneSpeed = currRoadSegment->maxSpeed/3.6;//slow down
 	targetSpeed = maxLaneSpeed;
 
 	currLaneIndex = 0;
 	currLane = currRoadSegment->getLanes().at(currLaneIndex);
+	targetLaneIndex = currLaneIndex;
 
 	polylineSegIndex = 0;
 	currLanePolyLine = &(currLane->getPolyline());
@@ -916,7 +948,7 @@ void sim_mob::Driver::updateNearbyAgents()
 				}
 			}
 		}
-		else if(pedestrian)
+		else if(pedestrian&&pedestrian->isOnCrossing())
 		{
 			int otherX = person->xPos;
 			int otherY = person->yPos;
@@ -956,12 +988,14 @@ void sim_mob :: Driver :: intersectionVelocityUpdate()
 
 void sim_mob :: Driver :: enterNextLink()
 {
+	isForward = nextIsForward;
 	currLane = nextLaneInNextLink;
 	updateCurrInfo(2);
 	abs2relat();
 	vehicle->yVel_ = 0;
 	vehicle->yPos_ = 0;
 	vehicle->yAcc_ = 0;
+	linkDriving();
 	relat2abs();
 }
 
@@ -1043,6 +1077,7 @@ void sim_mob::Driver::trafficSignalDriving()
 			color = trafficSignal->getDriverLight(*currLane,*nextLaneInNextLink);
 		else
 			color = trafficSignal->getDriverLight(*currLane).forward;
+
 		switch(color)
 		{
 		//red yellow

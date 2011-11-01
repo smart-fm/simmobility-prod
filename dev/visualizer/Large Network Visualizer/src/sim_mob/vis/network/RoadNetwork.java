@@ -233,12 +233,12 @@ public class RoadNetwork {
 	    
 
 	    //Gathering Intersection Information
-	    int tempKEY= Utility.ParseIntOptionalHex("0x95b3fd0");
+/*	    int tempKEY= Utility.ParseIntOptionalHex("0x95b3fd0");
 
 	    if(fromNodeKEY == tempKEY || toNodeKEY == tempKEY){
 	    	System.out.println("objID: "+ objID);
 	    	tempIntersection.intersectionSegmentsID.add(objID);
-	    }
+	    }*/
 	    
 	}
 	

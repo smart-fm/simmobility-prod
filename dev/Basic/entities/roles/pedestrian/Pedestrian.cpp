@@ -551,21 +551,21 @@ void sim_mob::Pedestrian::setCrossingParas(){
 		Point2D near2 = currCrossing->nearLine.second;
 
 		//Determine the direction of two points
-		if((far1.getY()>far2.getY()&&goal.getY()>parent->originNode->location->getY())||(far1.getY()<far2.getY()&&goal.getY()<parent->originNode->location->getY())){
-			cStartX=(double)far2.getX();
-			cStartY=(double)far2.getY();
-			cEndX=(double)far1.getX();
-			cEndY=(double)far1.getY();
+		if((near1.getY()>near2.getY()&&goal.getY()>parent->originNode->location->getY())||(near1.getY()<near2.getY()&&goal.getY()<parent->originNode->location->getY())){
+			cStartX=(double)near2.getX();
+			cStartY=(double)near2.getY();
+			cEndX=(double)near1.getX();
+			cEndY=(double)near1.getY();
 			absToRel(cEndX,cEndY,length,tmp);
-			absToRel((double)near2.getX(),(double)near2.getY(),tmp,width);
+			absToRel((double)far2.getX(),(double)far2.getY(),tmp,width);
 		}
 		else{
-			cStartX=(double)far1.getX();
-			cStartY=(double)far1.getY();
-			cEndX=(double)far2.getX();
-			cEndY=(double)far2.getY();
+			cStartX=(double)near1.getX();
+			cStartY=(double)near1.getY();
+			cEndX=(double)near2.getX();
+			cEndY=(double)near2.getY();
 			absToRel(cEndX,cEndY,length,tmp);
-			absToRel((double)near1.getX(),(double)near1.getY(),tmp,width);
+			absToRel((double)far1.getX(),(double)far1.getY(),tmp,width);
 		}
 
 		xRel = 0;

@@ -24,6 +24,8 @@
 #include "geospatial/StreetDirectory.hpp"
 #include "util/OutputUtil.hpp"
 
+#include "entities/misc/TripChain.hpp"
+
 using std::cout;
 using std::endl;
 using std::map;
@@ -305,7 +307,7 @@ bool LoadDatabaseDetails(TiXmlElement& parentElem, string& connectionString, map
 	}
 
 	//Done; we'll check the storedProcedures in detail later.
-	return !connectionString.empty() && storedProcedures.size()==6;
+	return !connectionString.empty() && storedProcedures.size()==7;
 }
 
 
@@ -387,6 +389,18 @@ void PrintDB_Network()
 	RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
 	LogOutNotSync("Printing node network" <<endl);
 	LogOutNotSync("NOTE: All IDs in this section are consistent for THIS simulation run, but will change if you run the simulation again." <<endl);
+
+	//Print some properties of the simulation itself
+	LogOutNotSync("(\"simulation\", 0, 0, {");
+	LogOutNotSync("\"frame-time-ms\":\"" <<ConfigParams::GetInstance().baseGranMS <<"\",");
+	LogOutNotSync("})" <<endl);
+
+
+	//Print the Signal representation.
+	for (vector<Signal const *>::const_iterator it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++) {
+		LogOutNotSync((*it)->toString() <<endl);
+	}
+
 
 	//Print nodes first
 	for (set<UniNode*>::const_iterator it=rn.getUniNodes().begin(); it!=rn.getUniNodes().end(); it++) {
@@ -574,21 +588,27 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     }
 
     //Granularity check
+    if (granAgent < baseGran) return "Agent granularity cannot be smaller than base granularity.";
     if (granAgent%baseGran != 0) {
     	return "Agent granularity not a multiple of base granularity.";
     }
+    if (granSignal < baseGran) return "Signal granularity cannot be smaller than base granularity.";
     if (granSignal%baseGran != 0) {
     	return "Signal granularity not a multiple of base granularity.";
     }
+    if (granPaths < baseGran) return "Path granularity cannot be smaller than base granularity.";
     if (granPaths%baseGran != 0) {
     	return "Path granularity not a multiple of base granularity.";
     }
+    if (granDecomp < baseGran) return "Decomposition granularity cannot be smaller than base granularity.";
     if (granDecomp%baseGran != 0) {
     	return "Decomposition granularity not a multiple of base granularity.";
     }
+    if (totalRuntime < baseGran) return "Total Runtime cannot be smaller than base granularity.";
     if (totalRuntime%baseGran != 0) {
     	std::cout <<"  Warning! Total Runtime will be truncated.\n";
     }
+    if (totalWarmup != 0 && totalWarmup < baseGran) std::cout << "Warning! Total Warmup is smaller than base granularity.\n";
     if (totalWarmup%baseGran != 0) {
     	std::cout <<"  Warning! Total Warmup will be truncated.\n";
     }
@@ -639,12 +659,13 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     			   storedProcedures.count("node")==0 || storedProcedures.count("section")==0
     			|| storedProcedures.count("turning")==0 || storedProcedures.count("polyline")==0
     			|| storedProcedures.count("crossing")==0 || storedProcedures.count("lane")==0
+    			|| storedProcedures.count("tripchain")==0
     		) {
     			return "Not all stored procedures were specified.";
     		}
 
     		//Actually load it
-    		string dbErrorMsg = sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetwork());
+    		string dbErrorMsg = sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetwork(), ConfigParams::GetInstance().getTripChains());
     		if (!dbErrorMsg.empty()) {
     			return "Database loading error: " + dbErrorMsg;
     		}
@@ -683,6 +704,16 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     //TEMP: Eventually, we'll need a more sane way to deal with agent IDs.
     std::sort(agents.begin(), agents.end(), agent_sort_by_id);
 
+    //Assign each agent an arbitrary trip chain
+    for (vector<Agent*>::iterator it=agents.begin(); it!=agents.end(); it++) {
+    	Person* p = dynamic_cast<Person*>(*it);
+    	if (p) {
+    		int nextID = rand() % ConfigParams::GetInstance().getTripChains().size();
+    		TripChain* tc = ConfigParams::GetInstance().getTripChains().at(nextID);
+    		p->setTripChain(tc);
+    	}
+    }
+
 
     //Display
     std::cout <<"Config parameters:\n";
@@ -714,6 +745,12 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     std::cout <<"  Agents Initialized: " <<agents.size() <<"\n";
     for (size_t i=0; i<agents.size(); i++) {
     	std::cout <<"    Agent(" <<agents[i]->getId() <<") = " <<agents[i]->xPos.get() <<"," <<agents[i]->yPos.get() <<"\n";
+
+    	Person* p = dynamic_cast<Person*>(agents[i]);
+    	if (p) {
+    		const TripChain* const tc = p->getTripChain();
+    		std::cout <<"      Trip Chain start time: " <<tc->startTime  <<" from: " <<tc->from.description <<"(" <<tc->from.location <<") to: " <<tc->to.description <<"(" <<tc->to.location <<") mode: " <<tc->mode <<" primary: " <<tc->primary  <<" flexible: " <<tc->flexible <<"\n";
+    	}
     }
     std::cout <<"------------------\n";
 
@@ -747,7 +784,7 @@ ConfigParams& sim_mob::ConfigParams::GetInstance() {
 //////////////////////////////////////////
 
 bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Agent*>& agents, std::vector<Region*>& regions,
-		          std::vector<TripChain*>& trips, std::vector<ChoiceSet*>& chSets)
+		          /*std::vector<TripChain*>& trips,*/ std::vector<ChoiceSet*>& chSets)
 {
 	//Load our config file into an XML document object.
 	TiXmlDocument doc(configPath);
@@ -767,8 +804,8 @@ bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<A
 	//TEMP:
 	for (size_t i=0; i<5; i++)
 		regions.push_back(new Region(i));
-	for (size_t i=0; i<6; i++)
-		trips.push_back(new TripChain(i));
+	/*for (size_t i=0; i<6; i++)
+		trips.push_back(new TripChain(i));*/
 	for (size_t i=0; i<15; i++)
 		chSets.push_back(new ChoiceSet(i));
 	if (errorMsg.empty()) {

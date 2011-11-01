@@ -28,9 +28,9 @@ void setConfiguration() {
 void loadNetwork() {
 	std::cout <<"Network has been loaded." <<std::endl;
 }
-void loadSingleTripChain(const sim_mob::Agent* const ag, const TripChain* const tc) {
+/*void loadSingleTripChain(const sim_mob::Agent* const ag, const TripChain* const tc) {
 	trivial(tc->id);
-}
+}*/
 void createSingleAgent(const sim_mob::Agent* const ag) {
 	trivial(ag->getId()); //Trivial. Presumably, we'd set an agent's other properties here.
 }
@@ -41,13 +41,13 @@ void createSingleChoiceSet(ChoiceSet* const cs, unsigned int newID) {
 
 
 //Example of using a Worker with a functional pointer instead of sub-classing.
-void load_trip_chain(sim_mob::Worker<TripChain>& wk, frame_t frameNumber)
+/*void load_trip_chain(sim_mob::Worker<TripChain>& wk, frame_t frameNumber)
 {
 	//Using functional pointers instead of inheritance means we have to cast from void*
 	for (std::vector<TripChain*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
 		loadSingleTripChain(NULL, *it);   //At the moment, no way to link from agents to trip chains.
 	}
-}
+}*/
 
 void load_agents(sim_mob::Worker<sim_mob::Agent>& wk, frame_t frameNumber)
 {
@@ -111,16 +111,16 @@ void saveStatisticsToDB(std::vector<sim_mob::Agent*>& agents) {
 
 
 //Quick double-check
-bool checkIDs(const std::vector<sim_mob::Agent*>& agents, const std::vector<TripChain*>& trips, const std::vector<ChoiceSet*>& choiceSets) {
+bool checkIDs(const std::vector<sim_mob::Agent*>& agents, /*const std::vector<TripChain*>& trips,*/ const std::vector<ChoiceSet*>& choiceSets) {
 	std::string error = "";
 	for (size_t i=0; i<agents.size(); i++) {
 		if (agents[i]->getId() != i)
 			error = "Agent ID";
 	}
-	for (size_t i=0; i<trips.size(); i++) {
+	/*for (size_t i=0; i<trips.size(); i++) {
 		if (trips[i]->id != i)
 			error = "Trip Chain ID";
-	}
+	}*/
 	for (size_t i=0; i<choiceSets.size(); i++) {
 		if (choiceSets[i]->id != i)
 			error = "Choice Set ID";

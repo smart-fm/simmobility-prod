@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 #pragma once
 
 /**
@@ -94,3 +96,4 @@ private:
         LogOutNotSync(strm); \
     } \
     while (0)
+

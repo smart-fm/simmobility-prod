@@ -16,6 +16,9 @@
 #include "util/OutputUtil.hpp"
 using namespace sim_mob;
 
+using std::map;
+using std::string;
+
 double Density[] = {1, 1, 1, 1};
 double DS_all;
 
@@ -207,36 +210,39 @@ sim_mob::Signal::setupIndexMaps()
         }
     }
 
-    // Phase 2: populate the maps.
+    //Prepare output
     std::ostringstream output;
-    output << "(\"Signal-location\", 0, " << getId() << ", " << this << ", {\"node\":\""
-           << &node_ << "\",";
-    size_t i;
-    std::set<Tuple, Compare>::const_iterator iter2;
-    for (i = 0, iter2 = bag.begin(); iter2 != bag.end(); ++i, ++iter2)
+    output << "(\"Signal-location\", 0, "  << this << ", {";
+    output <<"\"node\":\"" << &node_ << "\"";
+
+    // Phase 2: populate the maps.
+    std::set<Tuple, Compare>::const_iterator iter2 = bag.begin();
+    size_t i = 0;
+    for (; iter2 != bag.end(); ++i, ++iter2)
     {
         Tuple const & tuple = *iter2;
         links_map_.insert(std::make_pair(tuple.link, i));
         crossings_map_.insert(std::make_pair(tuple.crossing, i));
 
-        Point2D* point;
-        if (tuple.link->getStart() == &node_)
-        {
-            point = tuple.link->getEnd()->location;
-        }
-        else
-        {
-            point = tuple.link->getStart()->location;
-        }
-        if (i)
-            output << ",";
-        output << "\"v" << i["abcd"] << "\":\"" << tuple.link
-               << "\",\"a" << "abcd"[i] << "\":\"" << 180 * (tuple.angle / M_PI)
-               << "\",\"p" << i["abcd"] << "\":\"" << tuple.crossing << "\"";
+        //Append to output
+        char letter = static_cast<char>('a' + i);
+        output << ",\"v"   <<letter << "\":\"" << tuple.link
+               << "\",\"a" <<letter << "\":\"" << 180 * (tuple.angle / M_PI)
+               << "\",\"p" <<letter << "\":\"" << tuple.crossing << "\"";
     }
-    output << "})" << std::endl;
-    LogOut(output.str());
+
+    //Close off and save the string representation.
+    output << "})";
+    strRepr = output.str();
 }
+
+
+string sim_mob::Signal::toString() const
+{
+	return strRepr;
+}
+
+
 
 //initialize SplitPlan
 void sim_mob :: Signal :: startSplitPlan()
@@ -261,7 +267,7 @@ void sim_mob :: Signal ::update(frame_t frameNumber)
 {
 
                         std::stringstream logout;
-	                logout <<"(\"Signal\","<<frameNumber<<","<<getId()<<",{\"va\":\"";
+	                logout <<"(\"Signal\","<<frameNumber<<","<< this <<",{\"va\":\"";
 	                for(int i = 0; i<3; i++) {
 	                        logout<<TC_for_Driver[0][i];
 	                        if (i==2) {
@@ -649,6 +655,20 @@ namespace
     }
 }
 
+namespace
+{
+    std::string
+    mismatchError(char const * const func_name, Signal const & signal, RoadSegment const & road)
+    {
+        std::ostringstream stream;
+        stream << func_name << ": mismatch in Signal and Lane; Details as follows" << std::endl;
+        stream << "    Signal is located at (" << *signal.getNode().location << std::endl; 
+        stream << "    Lane is part of RoadSegment going from " << *road.getStart()->location << " to "
+               << *road.getEnd()->location << std::endl;
+        return stream.str();
+    }
+}
+
 sim_mob::Signal::VehicleTrafficColors
 sim_mob::Signal::getDriverLight(Lane const & lane)
 const
@@ -657,7 +677,9 @@ const
     Link const * link = road->getLink();
     std::map<Link const *, size_t>::const_iterator iter = links_map_.find(link);
     if (iter == links_map_.end())
-        return VehicleTrafficColors(Red, Red, Red);
+    {
+        throw mismatchError("Signal::getDriverLight(lane)", *this, *road);
+    }
 
     size_t index = iter->second;
     const int* threeIntegers = TC_for_Driver[index];
@@ -675,14 +697,18 @@ const
     Link const * fromLink = fromRoad->getLink();
     std::map<Link const *, size_t>::const_iterator iter = links_map_.find(fromLink);
     if (iter == links_map_.end())
-        return Red;
+    {
+        throw mismatchError("Signal::getDriverLight(fromLane, toLane)", *this, *fromRoad);
+    }
     size_t fromIndex = iter->second;
 
     RoadSegment const * toRoad = toLane.getRoadSegment();
     Link const * toLink = toRoad->getLink();
     iter = links_map_.find(toLink);
     if (iter == links_map_.end())
-        return Red;
+    {
+        throw mismatchError("Signal::getDriverLight(fromLane, toLane)", *this, *toRoad);
+    }
     size_t toIndex = iter->second;
 
     // When links_map was populated in setupIndexMaps(), the links were numbered in anti-clockwise
@@ -722,7 +748,16 @@ const
 {
     std::map<Crossing const *, size_t>::const_iterator iter = crossings_map_.find(&crossing);
     if (iter == crossings_map_.end())
-        return Red;
+    {
+        std::ostringstream stream;
+        stream << "Signal::getPedestrianLight: Mismatch in Signal and Crossing; Details as follows" << std::endl;
+        stream << "    Signal is located at " << *node_.location << std::endl; 
+        stream << "    Crossing near-line is " << crossing.nearLine.first << " to "
+               << crossing.nearLine.second << std::endl;
+        stream << "    Crossing far-line is " << crossing.farLine.first << " to "
+               << crossing.farLine.second << std::endl;
+        throw stream.str();
+    }
     size_t index = iter->second;
     return convertToTrafficColor(TC_for_Pedestrian[index]);
 }

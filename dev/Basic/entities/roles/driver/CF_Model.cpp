@@ -1,3 +1,5 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
 /*
  * CF_Model.cpp
  *
@@ -18,50 +20,54 @@ const double sim_mob::Driver::CF_parameters[2][6] = {
 void sim_mob::Driver::makeAcceleratingDecision()
 {
 	//currently convert back to m/s
-	speed_ = perceivedXVelocity_/100;
-	//only has vehicle ahead
-	if(CFD&&!isPedestrianAhead)
-		space = minCFDistance/100.0;
-	else if(!CFD&&isPedestrianAhead)
-		space = minPedestrianDis/100.0;
+//	speed_ = perceivedXVelocity_/100;
+//	//in the case that perceivedXVelocity is not defined
+//	if(speed_<0||speed_>50)
+	speed_ = vehicle->xVel_/100;
+	size_t mode;// 0 for vehicle, 1 for pedestrian, 2 for traffic light, 3 for null
+	if(minCFDistance < tsStopDistance && minCFDistance < minPedestrianDis)
+	{
+		space = minCFDistance/100 - 0.5;
+		mode = 0;
+	}
+	else if(minPedestrianDis < minCFDistance && minPedestrianDis < tsStopDistance)
+	{
+		space = minPedestrianDis/100;
+		mode = 1;
+	}
+	else if(tsStopDistance < minPedestrianDis && tsStopDistance < minCFDistance)
+	{
+		space = tsStopDistance/100;
+		mode = 2;
+	}
 	else
-		space = (minPedestrianDis<minCFDistance)? minPedestrianDis/100:minCFDistance/100;
+	{
+		space = tsStopDistance/100;//which should be default value 50m
+		mode = 3;
+	}
 	if(space <= 0) {
 		acc_=0;
+		vehicle->xVel_ = 0;
 	}
 	else{
-		if(!CFD&&!isPedestrianAhead) {
+		if(mode == 3) {
 			acc_ = accOfFreeFlowing();
 			return;
-		} else{
-			if(CFD&&!isPedestrianAhead)
-			{
-				v_lead 		=	CFD->getVehicle()->xVel_/100;
-				a_lead		=	CFD->getVehicle()->xAcc_/100;
-			}
-			else if(!CFD&&isPedestrianAhead)
-			{
-				v_lead = 0;
-				a_lead = 0;
-			}
-			else
-			{
-				if(minPedestrianDis>minCFDistance)
-				{
-					v_lead 		=	CFD->getVehicle()->xVel_/100;
-					a_lead		=	CFD->getVehicle()->xAcc_/100;
-				}
-				else
-				{
-					v_lead = 0;
-					a_lead = 0;
-				}
-			}
-			double dt	=	timeStep;
-			if (speed_ == 0)headway = 2 * space * 100000;
-			else headway = space / speed_;
-			space_star	=	space + v_lead * dt + 0.5 * a_lead * dt * dt;
+		} else if(mode == 0)
+		{
+			v_lead 		=	CFD->getVehicle()->xVel_/100;
+			a_lead		=	CFD->getVehicle()->xAcc_/100;
 		}
+		else
+		{
+			v_lead = 0;
+			a_lead = 0;
+		}
+		double dt	=	timeStep;
+		if (speed_ == 0)headway = 2 * space * 100000;
+		else headway = 2*space / (speed_+speed_+timeStep*getMaxAcceleration());
+		space_star	=	space + v_lead * dt + 0.5 * a_lead * dt * dt;
+
 		if(headway < hBufferLower) {
 			acc_ = accOfEmergencyDecelerating();
 		}
@@ -102,11 +108,11 @@ double sim_mob::Driver::accOfEmergencyDecelerating()
 	} else {
 		a= breakToTargetSpeed();
 	}
-//	if(a<maxDeceleration)
-//		return maxDeceleration;
-//	else if(a>maxAcceleration)
-//		return maxAcceleration;
-//	else
+	if(a<maxDeceleration)
+		return maxDeceleration;
+	else if(a>maxAcceleration)
+		return maxAcceleration;
+	else
 		return a;
 }
 
@@ -149,7 +155,6 @@ double sim_mob::Driver::accOfFreeFlowing()
 {
 	double vn =	speed_;
 	double acc_;
-
 	if ( vn < getTargetSpeed()) {
 		if( vn < maxLaneSpeed) {
 			acc_=getMaxAcceleration();

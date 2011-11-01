@@ -36,6 +36,7 @@ class RoadSegment;
 class Lane;
 class Node;
 class MultiNode;
+struct DPoint;
 
 
 class Driver : public sim_mob::Role {
@@ -45,8 +46,8 @@ public:
 	void assignVehicle(Vehicle* v) {vehicle = v;}
 
 private:
-	static const double MAX_ACCELERATION		=	+10.0;//10m/s*s
-	static const double MAX_DECELERATION		=	-10.0;
+	static const double MAX_ACCELERATION		=	+5.0;//10m/s*s
+	static const double MAX_DECELERATION		=	-5.0;
 
 	//Something I have to define
 
@@ -69,8 +70,8 @@ private:
 	Vehicle* vehicle;
         //Sample stored data which takes reaction time into account.
 	const static size_t reactTime = 1500; //1.5 seconds
-	FixedDelayed<Point2D*> perceivedVelocity;
-	FixedDelayed<Point2D*> perceivedVelocityOfFwdCar;
+	FixedDelayed<DPoint*> perceivedVelocity;
+	FixedDelayed<DPoint*> perceivedVelocityOfFwdCar;
 	FixedDelayed<centimeter_t> perceivedDistToFwdCar;
 	//absolute Movement-related variables
 	double timeStep;			//time step size of simulation
@@ -169,6 +170,7 @@ private:
 	bool isForward;
 	bool isReachGoal;
 	bool lcEnterNewLane;
+	bool isTrafficLightStop;
 	std::vector<const Agent*> nearby_agents;
 	int distanceInFront;
 	int distanceBehind;
@@ -228,7 +230,7 @@ private:
 	void findCrossing();
 
 	//helper function, to find the lane index in current road segment
-	size_t getLaneIndex(const Lane* l,const RoadSegment* r);
+	size_t getLaneIndex(const Lane* l);
 
 
 
@@ -258,6 +260,7 @@ private:
 	double minRFDistance;
 	double minRBDistance;
 	double minPedestrianDis;
+	double tsStopDistance;     // distance to stop line
 	double space;
 	double headway;				//distance/speed
 	double space_star;			//the distance which leading vehicle will move in next time step
@@ -329,6 +332,7 @@ public:
 	void UpdateNextLinkLane();
 	void enterNextLink();
 	bool isReachCrosswalk();
+	bool isInIntersection() const {return inIntersection;}
 
 private:
 	const Signal* trafficSignal;

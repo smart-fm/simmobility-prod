@@ -5,6 +5,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import sim_mob.vis.network.basic.ScaledPoint;
+import sim_mob.vis.network.basic.ScaledPointGroup;
 import sim_mob.vis.util.Utility;
 
 
@@ -26,8 +27,8 @@ public class PedestrianTick extends AgentTick {
 	 *       When we re-scale, every car on every time tick has its position scaled. We should 
 	 *       limit this to the current frame, and then continue to scale frames as they arrive. 
 	 */
-	public PedestrianTick(double posX, double posY) {
-		this.pos = new ScaledPoint(posX, posY);
+	public PedestrianTick(double posX, double posY, ScaledPointGroup spg) {
+		this.pos = new ScaledPoint(posX, posY, spg);
 	}
 	
 	public void draw(Graphics2D g, double scale) {

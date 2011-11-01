@@ -13,11 +13,11 @@
 
 
 //Class stubs
-class TripChain {
+/*class TripChain {
 public:
 	unsigned int id;
 	TripChain(unsigned int id=0) : id(id) {}
-};
+};*/
 class ChoiceSet {
 public:
 	unsigned int id;

@@ -54,7 +54,7 @@ typedef WorkGroup<Entity> EntityWorkGroup;
 /**
  * First "loading" step is special. Initialize all agents using work groups in parallel.
  */
-void InitializeAll(vector<Agent*>& agents, vector<Region*>& regions, vector<TripChain*>& trips,
+void InitializeAll(vector<Agent*>& agents, vector<Region*>& regions, /*vector<TripChain*>& trips,*/
 		      vector<ChoiceSet*>& choiceSets);
 
 
@@ -99,11 +99,11 @@ bool performMain(const std::string& configFileName)
   //Initialization: Scenario definition
   vector<Agent*>& agents = Agent::all_agents;
   vector<Region*> regions;
-  vector<TripChain*> trips;
+  //vector<TripChain*> trips;
   vector<ChoiceSet*> choiceSets;
 
   //Load our user config file; save a handle to the shared definition of it.
-  if (!ConfigParams::InitUserConf(configFileName, agents, regions, trips, choiceSets)) {   //Note: Agent "shells" are loaded here.
+  if (!ConfigParams::InitUserConf(configFileName, agents, regions,/* trips,*/ choiceSets)) {   //Note: Agent "shells" are loaded here.
 	  return false;
   }
   const ConfigParams& config = ConfigParams::GetInstance();
@@ -123,11 +123,11 @@ bool performMain(const std::string& configFileName)
   //       value, but at the moment we don't even have a "properties class"
   ///////////////////////////////////////////////////////////////////////////////////
   cout <<"Beginning Initialization" <<endl;
-  InitializeAll(agents, regions, trips, choiceSets);
+  InitializeAll(agents, regions, /*trips,*/ choiceSets);
   cout <<"  " <<"Initialization done" <<endl;
 
   //Sanity check (simple)
-  if (!checkIDs(agents, trips, choiceSets)) {
+  if (!checkIDs(agents, /*trips,*/ choiceSets)) {
 	  return false;
   }
 
@@ -188,7 +188,10 @@ bool performMain(const std::string& configFileName)
   /////////////////////////////////////////////////////////////////
   for (unsigned int currTick=0; currTick<config.totalRuntimeTicks; currTick++) {
 	  //Output
-          LogOut("Approximate Tick Boundary: " <<currTick <<", " <<(currTick*config.baseGranMS) <<" ms" <<endl);
+	  {
+		  boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+          cout <<"Approximate Tick Boundary: " <<currTick <<", " <<(currTick*config.baseGranMS) <<" ms" <<endl;
+	  }
 
 	  //Update the signal logic and plans for every intersection grouped by region
 	  signalStatusWorkers.wait();
@@ -206,7 +209,7 @@ bool performMain(const std::string& configFileName)
 	  //Agent-based cycle
 	  agentWorkers.wait();
 
-          auraMgr.update(currTick);
+      auraMgr.update(currTick);
 	  agentWorkers.waitExternAgain(); // The workers wait on the AuraManager.
 
 	  //Surveillance update
@@ -217,7 +220,8 @@ bool performMain(const std::string& configFileName)
 		  updateGUI(agents);
 		  saveStatistics(agents);
 	  } else {
-                  LogOut("  Warmup; output ignored." <<endl);
+		  boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+		  cout <<"  Warmup; output ignored." <<endl;
 	  }
 
 	  saveStatisticsToDB(agents);
@@ -276,20 +280,20 @@ int main(int argc, char* argv[])
 /**
  * Parallel initialization step.
  */
-void InitializeAll(vector<Agent*>& agents, vector<Region*>& regions, vector<TripChain*>& trips,
+void InitializeAll(vector<Agent*>& agents, vector<Region*>& regions, /*vector<TripChain*>& trips,*/
 	      vector<ChoiceSet*>& choiceSets)
 {
 	  //Our work groups. Will be disposed after this time tick.
-	  SimpleWorkGroup<TripChain> tripChainWorkers(WG_TRIPCHAINS_SIZE, 1);
+	  //SimpleWorkGroup<TripChain> tripChainWorkers(WG_TRIPCHAINS_SIZE, 1);
 	  WorkGroup<sim_mob::Agent> createAgentWorkers(WG_CREATE_AGENT_SIZE, 1);
 	  SimpleWorkGroup<ChoiceSet> choiceSetWorkers(WG_CHOICESET_SIZE, 1);
 
 	  //Create object from DB; for long time spans objects must be created on demand.
-	  Worker<TripChain>::actionFunction func1 = boost::bind(load_trip_chain, _1, _2);
+	  /*Worker<TripChain>::actionFunction func1 = boost::bind(load_trip_chain, _1, _2);
 	  tripChainWorkers.initWorkers(&func1);
 	  for (size_t i=0; i<trips.size(); i++) {
 		  tripChainWorkers.migrate(trips[i], -1, i%WG_TRIPCHAINS_SIZE);
-	  }
+	  }*/
 
 	  //Agents and choice sets
 	  Worker<sim_mob::Agent>::actionFunction func2 = boost::bind(load_agents, _1, _2);
@@ -305,12 +309,12 @@ void InitializeAll(vector<Agent*>& agents, vector<Region*>& regions, vector<Trip
 
 	  //Start
 	  cout <<"  Starting threads..." <<endl;
-	  tripChainWorkers.startAll();
+	  //tripChainWorkers.startAll();
 	  createAgentWorkers.startAll();
 	  choiceSetWorkers.startAll();
 
 	  //Flip once
-	  tripChainWorkers.wait();
+	  //tripChainWorkers.wait();
 	  createAgentWorkers.wait();
 	  choiceSetWorkers.wait();
 

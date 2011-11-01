@@ -1,16 +1,14 @@
 package sim_mob.vis.controls;
 
 import java.awt.*;
+
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import javax.swing.JPanel;
-import javax.swing.JSlider;
+import javax.swing.*;
 
 import sim_mob.vis.network.Node;
-import sim_mob.vis.network.basic.DPoint;
-import sim_mob.vis.util.IntGetter;
-import sim_mob.vis.util.StringSetter;
-import sim_mob.vis.util.Utility;
+import sim_mob.vis.util.*;
+
 
 
 /**
@@ -85,7 +83,9 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		
 		//Update the slider, if it exists
 		if (slider!=null) {
+			slider.setEnabled(false);
 			slider.setValue(netViewCache.getCurrFrameTick());
+			slider.setEnabled(true);
 		}
 
 		netViewCache.redrawAtCurrScale();

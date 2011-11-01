@@ -1,14 +1,12 @@
 package sim_mob.vis.controls;
 
 import java.awt.*;
+
 import java.awt.image.BufferedImage;
 import java.util.*;
-
 import sim_mob.vis.network.basic.*;
 import sim_mob.vis.network.*;
-import sim_mob.vis.simultion.AgentTick;
-import sim_mob.vis.simultion.SignalTick;
-import sim_mob.vis.simultion.SimulationResults;
+import sim_mob.vis.simultion.*;
 
 
 /**
@@ -87,7 +85,7 @@ public class NetworkVisualizer {
 		//Save
 		currPercentZoom = percent;
 		
-//		System.out.println("percent: "+percent);
+		//System.out.println("percent: "+percent);
 
 		
 		//Determine the width and height of our canvas.
@@ -104,11 +102,14 @@ public class NetworkVisualizer {
 		
 		
 		//Scale all points
-		ScaledPoint.ScaleAllPoints(newTL, newLR, width, height);
+		ScaledPointGroup.SetNewScaleContext(new ScaleContext(percent, newTL, newLR, width, height));
+		//ScaledPoint.ScaleAllPoints(percent, newTL, newLR, width, height);
 		redrawAtCurrScale();
 	}
 	
 	public void redrawAtCurrScale() {
+		//System.out.println(" refresh");
+		
 		//Retrieve a graphics object; ensure it'll anti-alias
 		Graphics2D g = (Graphics2D)buffer.getGraphics();
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -184,9 +185,9 @@ public class NetworkVisualizer {
 	
 	//Hackish
 	void drawTrafficLights(Graphics2D g) {
-		for (SignalTick sg : simRes.ticks.get(currFrameTick).signalTicks.values()) {
-			//sg.draw(g);
-		}
+		/*for (SignalTick sg : simRes.ticks.get(currFrameTick).signalTicks.values()) {
+			sg.draw(g);
+		}*/
 	}
 	
 

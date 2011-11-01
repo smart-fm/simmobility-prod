@@ -2,8 +2,7 @@ package sim_mob.vis.network;
 
 import java.io.*;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.regex.*;
 
 import sim_mob.vis.network.basic.DPoint;
 import sim_mob.vis.util.Utility;
@@ -141,7 +140,7 @@ public class RoadNetwork {
 	    //Check and parse properties. for lanes, it checks only parent-segment only as the number of lanes is not fixed
 	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"parent-segment"});
 	    
-	    Enumeration keys = props.keys();
+	    Enumeration<String> keys = props.keys();
 	   
 	    Hashtable<Integer,Lane> tempLaneTable = new Hashtable<Integer,Lane>();
 	    

@@ -31,31 +31,41 @@ public class DriverTick extends AgentTick {
 	 *       When we re-scale, every car on every time tick has its position scaled. We should 
 	 *       limit this to the current frame, and then continue to scale frames as they arrive. 
 	 */
+
 	public DriverTick(double posX, double posY, double angle) {
 		this.pos = new ScaledPoint(posX, posY);
 		this.angle = angle;
+	
 	}
 	
-	public void draw(Graphics2D g) {
+	public void draw(Graphics2D g,double scale) {
 		//Save old transformation.
 		AffineTransform oldAT = g.getTransform();
-		
-		//Translate
+
 		AffineTransform at = AffineTransform.getTranslateInstance(pos.getX(), pos.getY());
 		
 		//Rotate
 		at.rotate((Math.PI*angle)/180);
 		
+		//Scale
+		at.scale(1/scale + 0.2, 1/scale + 0.2);
+		
 		//Translate to top-left corner
 		at.translate(-CarImg.getWidth()/2, -CarImg.getHeight()/2);
-		
-		//Draw
+
+		//Set new transformation matrix
 		g.setTransform(at);
-		g.drawImage(CarImg, 0, 0, null);
+
+		//Draw
+		g.drawImage(CarImg, 0, 0, null);		
 		
 		//Restore old transformation matrix
 		g.setTransform(oldAT);
+		
+		
 	}
+	
+	
 }
 
 

@@ -175,7 +175,8 @@ public class NetworkVisualizer {
 		
 		//Now draw simulation data: cars, etc.
 		for (AgentTick at : simRes.ticks.get(currFrameTick).agentTicks.values()) {
-			at.draw(g);
+			
+			at.draw(g,currPercentZoom);
 		}
 		
 	}

@@ -48,7 +48,9 @@ public class Lane implements DrawableItem{
 			g.setStroke(laneStroke);
 			g.drawLine((int)start.getPos().getX(), (int)start.getPos().getY(), (int)end.getPos().getX(), (int)end.getPos().getY()); 
 		
-		} else if(laneNumber == 0){
+		} 
+		/*
+		else if(laneNumber == 0){
 
 			g.setColor(Color.red);
 			g.setStroke(laneStroke);
@@ -62,7 +64,7 @@ public class Lane implements DrawableItem{
 			g.drawLine((int)start.getPos().getX(), (int)start.getPos().getY(), (int)end.getPos().getX(), (int)end.getPos().getY()); 	
 			
 		}
-		else {
+*/		else {
 			g.drawLine((int)start.getPos().getX(), (int)start.getPos().getY(), (int)end.getPos().getX(), (int)end.getPos().getY());
 				
 		}

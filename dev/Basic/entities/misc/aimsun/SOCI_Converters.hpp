@@ -28,7 +28,7 @@ template<> struct type_conversion<TripChain>
     	res.to.TMP_locationNodeID = vals.get<int>("to_location", 0);
     	res.primary = vals.get<int>("primary_activity", 0);
     	res.flexible = vals.get<int>("flexible_activity", 0);
-    	res.startTime = vals.get<double>("trip_start", 0);
+    	res.TMP_startTimeStr = vals.get<std::string>("trip_start", "");
     	res.mode = vals.get<std::string>("transport_mode", "");
     }
     static void to_base(const TripChain& src, soci::values& vals, soci::indicator& ind)
@@ -40,7 +40,7 @@ template<> struct type_conversion<TripChain>
     	vals.set("to_location", src.to.location->id);
     	vals.set("primary_activity", src.primary?1:0);
     	vals.set("flexible_activity", src.flexible?1:0);
-    	vals.set("trip_start", src.startTime);
+    	vals.set("trip_start", src.startTime.toString());
     	vals.set("transport_mode", src.mode);
         ind = i_ok;
     }

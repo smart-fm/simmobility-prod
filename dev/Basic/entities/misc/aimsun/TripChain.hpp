@@ -15,6 +15,7 @@
 #include <string>
 
 #include "geospatial/aimsun/Base.hpp"
+#include "util/DailyTime.hpp"
 
 namespace sim_mob
 {
@@ -50,7 +51,7 @@ public:
 	bool primary;
 	bool flexible;
 
-	double startTime;
+	sim_mob::DailyTime startTime;
 
 	std::string mode;
 
@@ -58,6 +59,9 @@ public:
 		from.location = nullptr;
 		to.location = nullptr;
 	}
+
+	//Placeholder
+	std::string TMP_startTimeStr;
 
 	//Reference to saved object
 	sim_mob::TripChain* generatedTC;

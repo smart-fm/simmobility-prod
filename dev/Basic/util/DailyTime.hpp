@@ -34,12 +34,12 @@ public:
 	DailyTime(const std::string& value);
 
 	//Various comparison functions
-	bool isBefore(const DailyTime& other);
-	bool isAfter(const DailyTime& other);
-	bool isEqual(const DailyTime& other);
+	bool isBefore(const DailyTime& other) const;
+	bool isAfter(const DailyTime& other) const;
+	bool isEqual(const DailyTime& other) const;
 
 	//Accessors
-	std::string toString();
+	std::string toString() const;
 
 private:
 	///Helper method: create a string representation from a given time value in miliseconds.
@@ -52,8 +52,9 @@ private:
 	static uint32_t ParseStringRepr(std::string timeRepr);
 
 private:
-	const uint32_t time_;  //MS from 0, which corresponds to 00:00:00.00
-	const std::string repr_;
+	//TODO: Effectively const, but the keyword would make the equality operator tough...
+	uint32_t time_;  //MS from 0, which corresponds to 00:00:00.00
+	std::string repr_;
 };
 
 

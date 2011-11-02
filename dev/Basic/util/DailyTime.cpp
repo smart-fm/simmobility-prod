@@ -21,22 +21,22 @@ sim_mob::DailyTime::DailyTime(const string& value) : time_(ParseStringRepr(value
 {
 }
 
-bool sim_mob::DailyTime::isBefore(const DailyTime& other)
+bool sim_mob::DailyTime::isBefore(const DailyTime& other) const
 {
 	return time_ < other.time_;
 }
 
-bool sim_mob::DailyTime::isAfter(const DailyTime& other)
+bool sim_mob::DailyTime::isAfter(const DailyTime& other) const
 {
 	return time_ > other.time_;
 }
 
-bool sim_mob::DailyTime::isEqual(const DailyTime& other)
+bool sim_mob::DailyTime::isEqual(const DailyTime& other) const
 {
 	return time_ == other.time_;
 }
 
-string sim_mob::DailyTime::toString()
+string sim_mob::DailyTime::toString() const
 {
 	return repr_;
 }

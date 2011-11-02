@@ -31,6 +31,7 @@
 
 #include "util/DynamicVector.hpp"
 #include "util/OutputUtil.hpp"
+#include "util/DailyTime.hpp"
 #include "util/GeomHelpers.hpp"
 
 #include "Node.hpp"
@@ -243,6 +244,9 @@ void LoadTripchains(soci::session& sql, const std::string& storedProc, vector<Tr
 		if(nodelist.count(it->to.TMP_locationNodeID)==0) {
 			throw std::runtime_error("Invalid trip chain to node reference.");
 		}
+
+		//Set date
+		it->startTime = sim_mob::DailyTime(it->TMP_startTimeStr);
 
 		//Note: Make sure not to resize the Node map after referencing its elements.
 		it->from.location = &nodelist[it->from.TMP_locationNodeID];

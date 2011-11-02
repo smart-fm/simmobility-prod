@@ -71,6 +71,14 @@ void signal_status_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNum
 	}
 }
 
+///Worker function for loading agents.
+void load_agents(sim_mob::Worker<sim_mob::Agent>& wk, frame_t frameNumber)
+{
+	for (std::vector<sim_mob::Agent*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
+		trivial((*it)->getId());
+	}
+}
+
 
 
 
@@ -152,20 +160,6 @@ bool performMain(const std::string& configFileName)
   for (size_t i=0; i<Signal::all_signals_.size(); i++) {
 	  signalStatusWorkers.migrate(const_cast<Signal*>(Signal::all_signals_[i]), -1, i%WG_SIGNALS_SIZE);
   }
-
-  //Initialize our shortest path work groups
-  //  TODO: There needs to be a more general way to do this.
-  //EntityWorkGroup shortestPathWorkers(WG_SHORTEST_PATH_SIZE, config.totalRuntimeTicks, config.granPathsTicks);
-  //shortestPathWorkers.initWorkers();
-  /////////////////////////////////////////////////////////////////////////////
-  // NOTE: Currently, an Agent can only be "managed" by one Worker. We need a way to
-  //       say that the agent is the data object of a worker, but WON'T be managed by it.
-  // For example, shortest-path-worker only needs to read X/Y, but will update "shortestPath"
-  //        (which the EntityWorker won't touch).
-  /////////////////////////////////////////////////////////////////////////////
-  /*for (size_t i=0; i<agents.size(); i++) {
-	  shortestPathWorkers.migrate(&agents[i], -1, i%WG_SHORTEST_PATH_SIZE);
-  }*/
 
   //Start work groups
   agentWorkers.startAll();

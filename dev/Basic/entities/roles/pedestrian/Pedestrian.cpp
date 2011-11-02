@@ -358,11 +358,11 @@ void sim_mob::Pedestrian::updateVelocity(int flag) //0-on sidewalk, 1-on crossin
 	yVel = yVel/length;
 	//Set actual velocity
 	if(flag==0)
-		scale = 2.5;
+		scale = 20;
 	else if(flag==1)
-		scale = 1;
+		scale = 1.5;
 	else if (flag==2)
-		scale = 1.8;
+		scale = 3;
 	xVel = xVel*speed*scale;
 	yVel = yVel*speed*scale;
 
@@ -389,11 +389,11 @@ void sim_mob::Pedestrian::updatePosition()
 	//Compute
 //	double newX = parent->xPos.get()+xVelCombined*1; //Time step is 1 second
 //	double newY = parent->yPos.get()+yVelCombined*1;
-//	int newX = (int)(parent->xPos.get()+ xVel*100*(((double)ConfigParams::GetInstance().agentTimeStepInMilliSeconds())/1000));
-//	int newY = (int)(parent->yPos.get()+ yVel*100*(((double)ConfigParams::GetInstance().agentTimeStepInMilliSeconds())/1000));
+	int newX = (int)(parent->xPos.get()+ xVel*100*(((double)ConfigParams::GetInstance().agentTimeStepInMilliSeconds())/1000));
+	int newY = (int)(parent->yPos.get()+ yVel*100*(((double)ConfigParams::GetInstance().agentTimeStepInMilliSeconds())/1000));
 
-	int newX = (int)(parent->xPos.get()+ xVel*100*1);
-	int newY = (int)(parent->yPos.get()+ yVel*100*1);
+//	int newX = (int)(parent->xPos.get()+ xVel*100*1);
+//	int newY = (int)(parent->yPos.get()+ yVel*100*1);
 
 	//Decrement collision velocity
 //	if (xCollisionVector != 0) {

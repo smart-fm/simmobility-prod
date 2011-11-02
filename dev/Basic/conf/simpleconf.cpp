@@ -10,7 +10,6 @@
 //Include here (forward-declared earlier) to avoid include-cycles.
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
-#include "entities/Region.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "geospatial/aimsun/Loader.hpp"
@@ -786,8 +785,7 @@ ConfigParams& sim_mob::ConfigParams::GetInstance() {
 // Main external method
 //////////////////////////////////////////
 
-bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Agent*>& agents, std::vector<Region*>& regions
-		          /*std::vector<TripChain*>& trips,*/ /*std::vector<ChoiceSet*>& chSets*/)
+bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Agent*>& agents)
 {
 	//Load our config file into an XML document object.
 	TiXmlDocument doc(configPath);
@@ -804,13 +802,7 @@ bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<A
 		std::cout <<"Aborting on Config Error: " <<errorMsg <<std::endl;
 	}
 
-	//TEMP:
-	for (size_t i=0; i<5; i++)
-		regions.push_back(new Region(i));
-	/*for (size_t i=0; i<6; i++)
-		trips.push_back(new TripChain(i));*/
-	/*for (size_t i=0; i<15; i++)
-		chSets.push_back(new ChoiceSet(i));*/
+	//Emit a message if parsing was successful.
 	if (errorMsg.empty()) {
 		std::cout <<"Configuration complete." <<std::endl;
 	}

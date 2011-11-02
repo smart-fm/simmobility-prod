@@ -60,8 +60,7 @@ public:
 	 * Load the defualt user config file; initialize all vectors. This function must be called
 	 * once before GetInstance() will return meaningful data.
 	 */
-	static bool InitUserConf(const std::string& configPath, std::vector<Agent*>& agents, std::vector<Region*>& regions
-	          /*std::vector<TripChain*>& trips,*/ /*std::vector<ChoiceSet*>& chSets*/);
+	static bool InitUserConf(const std::string& configPath, std::vector<Agent*>& agents);
 
 	/**
 	 * Retrieve a reference to the current RoadNetwork.

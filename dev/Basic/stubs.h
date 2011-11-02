@@ -27,27 +27,12 @@ void setConfiguration() {
 void loadNetwork() {
 	std::cout <<"Network has been loaded." <<std::endl;
 }
-/*void loadSingleTripChain(const sim_mob::Agent* const ag, const TripChain* const tc) {
-	trivial(tc->id);
-}*/
 void createSingleAgent(const sim_mob::Agent* const ag) {
 	trivial(ag->getId()); //Trivial. Presumably, we'd set an agent's other properties here.
 }
-/*void createSingleChoiceSet(ChoiceSet* const cs, unsigned int newID) {
-	cs->id = newID;
-}*/
-
 
 
 //Example of using a Worker with a functional pointer instead of sub-classing.
-/*void load_trip_chain(sim_mob::Worker<TripChain>& wk, frame_t frameNumber)
-{
-	//Using functional pointers instead of inheritance means we have to cast from void*
-	for (std::vector<TripChain*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
-		loadSingleTripChain(NULL, *it);   //At the moment, no way to link from agents to trip chains.
-	}
-}*/
-
 void load_agents(sim_mob::Worker<sim_mob::Agent>& wk, frame_t frameNumber)
 {
 	for (std::vector<sim_mob::Agent*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
@@ -55,52 +40,37 @@ void load_agents(sim_mob::Worker<sim_mob::Agent>& wk, frame_t frameNumber)
 	}
 }
 
-/*void load_choice_sets(sim_mob::Worker<ChoiceSet>& wk, frame_t frameNumber)
-{
-	for (std::vector<ChoiceSet*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
-		createSingleChoiceSet(*it, (*it)->id);   //At the moment, no way to link from agents to trip chains.
-	}
-}*/
-
-
 
 void agentDecomposition(std::vector<sim_mob::Agent*>& agents) {
-	//Marked as not boost::threadable.
+	//Marked as not threadable.
 	for (size_t i=0; i<agents.size(); i++) {
 		trivial(agents[i]->getId()); //Trivial. Possibly move agents later.
 	}
 }
 
-void updateTrafficInfo(std::vector<sim_mob::Region*>& regions) {
-	//Marked as not boost::threadable.
-	for (size_t i=0; i<regions.size(); i++) {
-		trivial(regions[i]->getId()); //Trivial. Update other properties later.
-	}
-}
-
 void updateSurveillanceData(std::vector<sim_mob::Agent*>& agents) {
-	//Marked as not boost::threadable.
+	//Marked as not threadable.
 	for (size_t i=0; i<agents.size(); i++) {
 		trivial(agents[i]->getId()); //Trivial. Later we will collate data and send it to surveillance systems.
 	}
 }
 
 void updateGUI(std::vector<sim_mob::Agent*>& agents) {
-	//Marked as not boost::threadable.
+	//Marked as not threadable.
 	for (size_t i=0; i<agents.size(); i++) {
 		trivial(agents[i]->getId());  //Trivial. Later we will update the GUI
 	}
 }
 
 void saveStatistics(std::vector<sim_mob::Agent*>& agents) {
-	//Marked as not boost::threadable.
+	//Marked as not threadable.
 	for (size_t i=0; i<agents.size(); i++) {
 		trivial(agents[i]->getId());  //Trivial. Later we will log all agent data.
 	}
 }
 
 void saveStatisticsToDB(std::vector<sim_mob::Agent*>& agents) {
-	//Marked as not boost::threadable.
+	//Marked as not threadable.
 	for (size_t i=0; i<agents.size(); i++) {
 		trivial(agents[i]->getId());  //Trivial. Later we will save all statistis to the database.
 	}
@@ -109,11 +79,11 @@ void saveStatisticsToDB(std::vector<sim_mob::Agent*>& agents) {
 
 
 
-//Quick double-check
-bool checkIDs(const std::vector<sim_mob::Agent*>& agents /*const std::vector<TripChain*>& trips,*/ /*const std::vector<ChoiceSet*>& choiceSets*/) {
-	std::string error = "";
-
-
+/**
+ * Simple sanity check on Agent IDs. Checks that IDs start at 0, end at size(agents)-1,
+ *   and contain every value in between. Order is not important.
+ */
+bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents) {
 	std::set<int> agent_ids;
 	bool foundZero = false;
 	bool foundMax = false;
@@ -123,26 +93,17 @@ bool checkIDs(const std::vector<sim_mob::Agent*>& agents /*const std::vector<Tri
 		if (id==0) {
 			foundZero = true;
 		}
-		if (id==agents.size()-1) {
+		if (id+1==static_cast<int>(agents.size())) {
 			foundMax = true;
 		}
 	}
-	if (agents.size()!=agent_ids.size() || !foundZero || !foundMax)
-		error = "Agent ID";
-
-
-
-	/*for (size_t i=0; i<choiceSets.size(); i++) {
-		if (choiceSets[i]->id != i)
-			error = "Choice Set ID";
-	}*/
-
-	if (error.empty())
-		return true;
-	else {
-		std::cout <<"Error, invalid " <<error <<std::endl;
+	if (agents.size()!=agent_ids.size() || !foundZero || !foundMax) {
+		std::cout <<"Error, invalid Agent ID: " <<(agents.size()!=agent_ids.size()) <<","
+			<<!foundZero <<"," <<!foundMax <<std::endl;
 		return false;
 	}
+
+	return true;
 }
 
 

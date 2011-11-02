@@ -223,9 +223,9 @@ void sim_mob::Driver::intersectionDriving()
 //the movement is based on relative position
 void sim_mob::Driver::linkDriving()
 {
-//	if(isLaneChanging)
-//		updatePosLC();
-//	excuteLaneChanging();
+	if(isLaneChanging)
+		updatePosLC();
+	excuteLaneChanging();
 	if(isTrafficLightStop && vehicle->xVel_ < 50)
 	{
 		vehicle->xVel_ = 0;
@@ -959,8 +959,10 @@ void sim_mob::Driver::updateNearbyAgents()
 			int distance = otherX_ - vehicle->xPos_;
 			if(distance>=0)
 			{
+				distance = distance - vehicle->length/2 - 300;
 				isPedestrianAhead = true;
-				minPedestrianDis = currLaneLength - currLaneOffset - vehicle->length/2 -300;
+				if(distance < minPedestrianDis)
+					minPedestrianDis = distance;//currLaneLength - currLaneOffset - vehicle->length/2 -300;
 			}
 		}
 	}

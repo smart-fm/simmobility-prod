@@ -38,9 +38,13 @@ public:
 
 private:
 	///Helper method: create a string representation from two time values
+	///\todo
+	///Replace this function with something from, e.g., Boost
 	static std::string BuildStringRepr(uint32_t timeVal, size_t maxFractionDigits=4);
 
 	///Helper method: generate a time from a formatted string.
+	///\todo
+	///Replace this function with something from, e.g., Boost
 	static uint32_t ParseStringRepr(std::string timeRepr);
 
 private:

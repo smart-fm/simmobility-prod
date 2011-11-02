@@ -11,7 +11,6 @@
 #include <string>
 #include <boost/thread.hpp>
 
-#include "simple_classes.h"
 #include "constants.h"
 #include "stubs.h"
 
@@ -54,8 +53,8 @@ typedef WorkGroup<Entity> EntityWorkGroup;
 /**
  * First "loading" step is special. Initialize all agents using work groups in parallel.
  */
-void InitializeAll(vector<Agent*>& agents, vector<Region*>& regions, /*vector<TripChain*>& trips,*/
-		      vector<ChoiceSet*>& choiceSets);
+void InitializeAll(vector<Agent*>& agents, vector<Region*>& regions /*vector<TripChain*>& trips,*/
+		      /*vector<ChoiceSet*>& choiceSets*/);
 
 
 
@@ -100,10 +99,10 @@ bool performMain(const std::string& configFileName)
   vector<Agent*>& agents = Agent::all_agents;
   vector<Region*> regions;
   //vector<TripChain*> trips;
-  vector<ChoiceSet*> choiceSets;
+  //vector<ChoiceSet*> choiceSets;
 
   //Load our user config file; save a handle to the shared definition of it.
-  if (!ConfigParams::InitUserConf(configFileName, agents, regions,/* trips,*/ choiceSets)) {   //Note: Agent "shells" are loaded here.
+  if (!ConfigParams::InitUserConf(configFileName, agents, regions/* trips,*/ /*choiceSets*/)) {   //Note: Agent "shells" are loaded here.
 	  return false;
   }
   const ConfigParams& config = ConfigParams::GetInstance();
@@ -123,11 +122,11 @@ bool performMain(const std::string& configFileName)
   //       value, but at the moment we don't even have a "properties class"
   ///////////////////////////////////////////////////////////////////////////////////
   cout <<"Beginning Initialization" <<endl;
-  InitializeAll(agents, regions, /*trips,*/ choiceSets);
+  InitializeAll(agents, regions /*trips,*/ /*choiceSets*/);
   cout <<"  " <<"Initialization done" <<endl;
 
   //Sanity check (simple)
-  if (!checkIDs(agents, /*trips,*/ choiceSets)) {
+  if (!checkIDs(agents /*trips,*/ /*choiceSets*/)) {
 	  return false;
   }
 
@@ -280,13 +279,13 @@ int main(int argc, char* argv[])
 /**
  * Parallel initialization step.
  */
-void InitializeAll(vector<Agent*>& agents, vector<Region*>& regions, /*vector<TripChain*>& trips,*/
-	      vector<ChoiceSet*>& choiceSets)
+void InitializeAll(vector<Agent*>& agents, vector<Region*>& regions /*vector<TripChain*>& trips,*/
+	      /*vector<ChoiceSet*>& choiceSets*/)
 {
 	  //Our work groups. Will be disposed after this time tick.
 	  //SimpleWorkGroup<TripChain> tripChainWorkers(WG_TRIPCHAINS_SIZE, 1);
 	  WorkGroup<sim_mob::Agent> createAgentWorkers(WG_CREATE_AGENT_SIZE, 1);
-	  SimpleWorkGroup<ChoiceSet> choiceSetWorkers(WG_CHOICESET_SIZE, 1);
+	  //SimpleWorkGroup<ChoiceSet> choiceSetWorkers(WG_CHOICESET_SIZE, 1);
 
 	  //Create object from DB; for long time spans objects must be created on demand.
 	  /*Worker<TripChain>::actionFunction func1 = boost::bind(load_trip_chain, _1, _2);
@@ -301,22 +300,22 @@ void InitializeAll(vector<Agent*>& agents, vector<Region*>& regions, /*vector<Tr
 	  for (size_t i=0; i<agents.size(); i++) {
 		  createAgentWorkers.migrate(agents[i], -1, i%WG_CREATE_AGENT_SIZE);
 	  }
-	  Worker<ChoiceSet>::actionFunction func3 = boost::bind(load_choice_sets, _1, _2);
+	  /*Worker<ChoiceSet>::actionFunction func3 = boost::bind(load_choice_sets, _1, _2);
 	  choiceSetWorkers.initWorkers(&func3);
 	  for (size_t i=0; i<choiceSets.size(); i++) {
 		  choiceSetWorkers.migrate(choiceSets[i], -1, i%WG_CHOICESET_SIZE);
-	  }
+	  }*/
 
 	  //Start
 	  cout <<"  Starting threads..." <<endl;
 	  //tripChainWorkers.startAll();
 	  createAgentWorkers.startAll();
-	  choiceSetWorkers.startAll();
+	  //choiceSetWorkers.startAll();
 
 	  //Flip once
 	  //tripChainWorkers.wait();
 	  createAgentWorkers.wait();
-	  choiceSetWorkers.wait();
+	  //choiceSetWorkers.wait();
 
 	  cout <<"  Closing all work groups..." <<endl;
 }

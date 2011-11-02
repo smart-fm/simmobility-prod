@@ -11,7 +11,6 @@
 #include <vector>
 #include <iostream>
 
-#include "simple_classes.h"
 #include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Region.hpp"
@@ -34,9 +33,9 @@ void loadNetwork() {
 void createSingleAgent(const sim_mob::Agent* const ag) {
 	trivial(ag->getId()); //Trivial. Presumably, we'd set an agent's other properties here.
 }
-void createSingleChoiceSet(ChoiceSet* const cs, unsigned int newID) {
+/*void createSingleChoiceSet(ChoiceSet* const cs, unsigned int newID) {
 	cs->id = newID;
-}
+}*/
 
 
 
@@ -56,12 +55,12 @@ void load_agents(sim_mob::Worker<sim_mob::Agent>& wk, frame_t frameNumber)
 	}
 }
 
-void load_choice_sets(sim_mob::Worker<ChoiceSet>& wk, frame_t frameNumber)
+/*void load_choice_sets(sim_mob::Worker<ChoiceSet>& wk, frame_t frameNumber)
 {
 	for (std::vector<ChoiceSet*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
 		createSingleChoiceSet(*it, (*it)->id);   //At the moment, no way to link from agents to trip chains.
 	}
-}
+}*/
 
 
 
@@ -111,7 +110,7 @@ void saveStatisticsToDB(std::vector<sim_mob::Agent*>& agents) {
 
 
 //Quick double-check
-bool checkIDs(const std::vector<sim_mob::Agent*>& agents, /*const std::vector<TripChain*>& trips,*/ const std::vector<ChoiceSet*>& choiceSets) {
+bool checkIDs(const std::vector<sim_mob::Agent*>& agents /*const std::vector<TripChain*>& trips,*/ /*const std::vector<ChoiceSet*>& choiceSets*/) {
 	std::string error = "";
 
 
@@ -133,10 +132,10 @@ bool checkIDs(const std::vector<sim_mob::Agent*>& agents, /*const std::vector<Tr
 
 
 
-	for (size_t i=0; i<choiceSets.size(); i++) {
+	/*for (size_t i=0; i<choiceSets.size(); i++) {
 		if (choiceSets[i]->id != i)
 			error = "Choice Set ID";
-	}
+	}*/
 
 	if (error.empty())
 		return true;

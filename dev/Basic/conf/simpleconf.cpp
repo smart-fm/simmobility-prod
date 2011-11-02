@@ -786,8 +786,8 @@ ConfigParams& sim_mob::ConfigParams::GetInstance() {
 // Main external method
 //////////////////////////////////////////
 
-bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Agent*>& agents, std::vector<Region*>& regions,
-		          /*std::vector<TripChain*>& trips,*/ std::vector<ChoiceSet*>& chSets)
+bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Agent*>& agents, std::vector<Region*>& regions
+		          /*std::vector<TripChain*>& trips,*/ /*std::vector<ChoiceSet*>& chSets*/)
 {
 	//Load our config file into an XML document object.
 	TiXmlDocument doc(configPath);
@@ -809,8 +809,8 @@ bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<A
 		regions.push_back(new Region(i));
 	/*for (size_t i=0; i<6; i++)
 		trips.push_back(new TripChain(i));*/
-	for (size_t i=0; i<15; i++)
-		chSets.push_back(new ChoiceSet(i));
+	/*for (size_t i=0; i<15; i++)
+		chSets.push_back(new ChoiceSet(i));*/
 	if (errorMsg.empty()) {
 		std::cout <<"Configuration complete." <<std::endl;
 	}

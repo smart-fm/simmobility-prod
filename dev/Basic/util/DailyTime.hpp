@@ -17,6 +17,11 @@ namespace sim_mob
  *   \li Only the seconds component may have a fractional component: HH:MM:SS.ffff..fff
  *   \li Hours and minutes are mandatory. Seconds (and second fractions) are optional.
  *   \li The hour 24 cannot be used.
+ *
+ * \note
+ * Many of these constraints are not enforced, but may be in the future. ~Seth
+ *
+ *
  * All times are constant once created. (If we need modifiers later, we should probably use
  *    functions like "addSeconds", which return a different DailyTime object.)
  */
@@ -37,14 +42,13 @@ public:
 	std::string toString();
 
 private:
-	///Helper method: create a string representation from two time values
-	///\todo
-	///Replace this function with something from, e.g., Boost
+	///Helper method: create a string representation from a given time value in miliseconds.
+	///
+	///\note
+	///The maxFractionDigits parameter is currently ignored. ~Seth
 	static std::string BuildStringRepr(uint32_t timeVal, size_t maxFractionDigits=4);
 
 	///Helper method: generate a time from a formatted string.
-	///\todo
-	///Replace this function with something from, e.g., Boost
 	static uint32_t ParseStringRepr(std::string timeRepr);
 
 private:

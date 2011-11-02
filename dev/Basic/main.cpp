@@ -332,10 +332,19 @@ bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents) {
 
 bool TestTimeClass()
 {
+	{ //Ensure nonsense isn't parsed
+	try {
+		DailyTime a("ABCDEFG");
+		std::cout <<"Nonsensical input test failed.\n";
+		return false;
+	} catch (std::exception& ex) {}
+	}
+
 	{ //Ensure optional seconds can be parsed.
 	DailyTime a("08:30:00");
 	DailyTime b("08:30");
 	if (!a.isEqual(b)) {
+		std::cout <<"Optional seconds test failed.\n";
 		return false;
 	}
 	}
@@ -343,6 +352,7 @@ bool TestTimeClass()
 	{ //Ensure hours/minutes are mandatory
 	try {
 		DailyTime a("08");
+		std::cout <<"Non-optional seconds test failed.\n";
 		return false;
 	} catch (std::exception& ex) {}
 	}
@@ -351,6 +361,7 @@ bool TestTimeClass()
 	DailyTime a("08:30:00");
 	DailyTime b("08:30:01");
 	if (a.isEqual(b) || a.isAfter(b) || !a.isBefore(b)) {
+		std::cout <<"Single second after test failed.\n";
 		return false;
 	}
 	}
@@ -359,6 +370,7 @@ bool TestTimeClass()
 	DailyTime a("09:30:00");
 	DailyTime b("08:30:00");
 	if (a.isEqual(b) || !a.isAfter(b) || a.isBefore(b)) {
+		std::cout <<"Single hour before test failed.\n";
 		return false;
 	}
 	}
@@ -367,6 +379,7 @@ bool TestTimeClass()
 	DailyTime a("08:30:00.5");
 	DailyTime b("08:30:00");
 	if (a.isEqual(b) || !a.isAfter(b) || a.isBefore(b)) {
+		std::cout <<"Half second before test failed.\n";
 		return false;
 	}
 	}
@@ -374,6 +387,7 @@ bool TestTimeClass()
 	{ //Check mandatory hours/minutes
 	try {
 		DailyTime a("08.5");
+		std::cout <<"Mandatory minutes test 1 failed.\n";
 		return false;
 	} catch (std::exception& ex) {}
 	}
@@ -381,6 +395,7 @@ bool TestTimeClass()
 	{ //Check mandatory hours/minutes
 	try {
 		DailyTime a("08:30.5");
+		std::cout <<"Mandatory minutes test 2 failed.\n";
 		return false;
 	} catch (std::exception& ex) {}
 	}
@@ -389,6 +404,7 @@ bool TestTimeClass()
 	DailyTime a("08:30:00.3");
 	DailyTime b("08:30:00.5");
 	if (a.isEqual(b) || a.isAfter(b) || !a.isBefore(b)) {
+		std::cout <<"Sub-second comparison test failed.\n";
 		return false;
 	}
 	}

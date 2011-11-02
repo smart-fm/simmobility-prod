@@ -2,10 +2,14 @@
 
 #include "DailyTime.hpp"
 
-#include <sstream>
+//#include <sstream>
 #include <stdexcept>
 
+//For parsing
+#include "boost/date_time/posix_time/posix_time.hpp"
+
 using namespace sim_mob;
+using namespace boost::posix_time;
 using std::string;
 
 
@@ -39,84 +43,47 @@ string sim_mob::DailyTime::toString()
 
 std::string sim_mob::DailyTime::BuildStringRepr(uint32_t timeVal, size_t maxFractionDigits)
 {
-	//Parse into components.
-	uint32_t ms = timeVal%1000;
-	timeVal /= 1000;
-	uint32_t sec = timeVal%60;
-	timeVal /= 60;
-	uint32_t min = timeVal%60;
-	timeVal /= 60;
-	uint32_t hr = timeVal;
+	//Build up based on the total number of milliseconds.
+	time_duration val = milliseconds(timeVal);
+	return to_simple_string(val);
 
-	//Check
-	if (hr>23) {
-		throw std::runtime_error("Invalid time component: greater than 24 hours.");
-	}
 
-	//Build a return value
-	std::stringstream res;
-	res <<hr <<":" <<min <<":" <<sec;
-	if (ms>0) {
-		std::stringstream msFrac;
-		msFrac.precision(6);
-		msFrac <<(ms/1000.0);
-		res <<msFrac.str().substr(1); //Append all but the leading zero.
-	}
-
-	return res.str();
 }
 
 uint32_t sim_mob::DailyTime::ParseStringRepr(std::string timeRepr)
 {
-	//First, perform a simple tokenization to detect the fractional component.
-	string lhs = timeRepr;
-	string rhs = "";
-	size_t dotPos = timeRepr.find('.');
-	if (dotPos==string::npos) {
-		dotPos = timeRepr.find(',');
-	}
-	if (dotPos!=string::npos) {
-		lhs = timeRepr.substr(0, dotPos);
-		rhs = "0." + timeRepr.substr(dotPos+1, string::npos);
-	}
-
-	//Process the right-hand component
-	uint32_t ms = 0;
-	if (!rhs.empty()) {
-		float value;
-		std::istringstream(rhs) >> value;
-		ms = static_cast<uint32_t>(value*1000);
-	}
-
-	//Process the left-hand component
-	uint32_t hr = 0;
-	uint32_t min = 0;
-	uint32_t sec = 0;
-	if (lhs.size()==8) {
-		//Expected format.
-		std::istringstream(lhs.substr(0,2)) >> hr;
-		std::istringstream(lhs.substr(3,2)) >> min;
-		std::istringstream(lhs.substr(6,2)) >> sec;
-	} else {
-		//Optional format only if there's no fractional component.
-		if (lhs.size()==5 && rhs.empty()) {
-			std::istringstream(lhs.substr(0,2)) >> hr;
-			std::istringstream(lhs.substr(3,2)) >> min;
-		} else {
-			throw std::runtime_error("Invalid time format; should be HH:MM:SS.ffff");
+	//A few quick sanity checks
+	//TODO: These can be removed if we read up a bit more on Boost's format specifier strings.
+	size_t numColon = 0;
+	size_t numDigits = 0;
+	bool hasComma = false;
+	for (std::string::iterator it=timeRepr.begin(); it!=timeRepr.end(); it++) {
+		if (*it==',' || *it=='.') {
+			hasComma = true;
+		} else if (*it==':') {
+			numColon++;
+		} else if (*it>='0' && *it<='9') {
+			if (!hasComma) {
+				numDigits++;
+			}
+		} else if (*it!=' ' && *it!='\t'){
+			throw std::runtime_error("Invalid format: unexpected non-whitespace character.");
 		}
 	}
+	if (numDigits%2==1) {
+		throw std::runtime_error("Invalid format: non-even digit count.");
+	}
+	if (numColon==1) {
+		if (hasComma) {
+			throw std::runtime_error("Invalid format: missing hour component.");
+		}
+	} else if (numColon!=2) {
+		throw std::runtime_error("Invalid format: invalid component count.");
+	}
 
-	//Build up a return value
-	uint32_t combined = hr;
-	combined *= 60;
-	combined += min;
-	combined *= 60;
-	combined += sec;
-	combined *= 1000;
-	combined += ms;
-
-	return combined;
+	//Parse
+	time_duration val(duration_from_string(timeRepr));
+	return val.total_milliseconds();
 }
 
 

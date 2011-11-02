@@ -9,6 +9,12 @@ using std::vector;
 
 vector<Agent*> sim_mob::Agent::all_agents;
 
+int sim_mob::Agent::next_agent_id = 0;
+int sim_mob::Agent::GetAndIncrementID()
+{
+	return next_agent_id++;
+}
+
 
 
 sim_mob::Agent::Agent(unsigned int id) : Entity(id), originNode(nullptr), destNode(nullptr), startTime(0), xPos(0), yPos(0),

@@ -59,12 +59,16 @@ public:
 	sim_mob::Buffered<int> currentCrossing;
 
 
-	//Agents can access all other agents (although they usually do not access by ID)
+	///Agents can access all other agents (although they usually do not access by ID)
 	static std::vector<Agent*> all_agents;
+
+	///Retrieve a monotonically-increasing unique ID value.
+	static int GetAndIncrementID();
 
 private:
 	//unsigned int currMode;
 	bool toRemoved;
+	static int next_agent_id;
 
 };
 

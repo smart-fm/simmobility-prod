@@ -113,14 +113,26 @@ void saveStatisticsToDB(std::vector<sim_mob::Agent*>& agents) {
 //Quick double-check
 bool checkIDs(const std::vector<sim_mob::Agent*>& agents, /*const std::vector<TripChain*>& trips,*/ const std::vector<ChoiceSet*>& choiceSets) {
 	std::string error = "";
+
+
+	std::set<int> agent_ids;
+	bool foundZero = false;
+	bool foundMax = false;
 	for (size_t i=0; i<agents.size(); i++) {
-		if (agents[i]->getId() != i)
-			error = "Agent ID";
+		int id = agents[i]->getId();
+		agent_ids.insert(id);
+		if (id==0) {
+			foundZero = true;
+		}
+		if (id==agents.size()-1) {
+			foundMax = true;
+		}
 	}
-	/*for (size_t i=0; i<trips.size(); i++) {
-		if (trips[i]->id != i)
-			error = "Trip Chain ID";
-	}*/
+	if (agents.size()!=agent_ids.size() || !foundZero || !foundMax)
+		error = "Agent ID";
+
+
+
 	for (size_t i=0; i<choiceSets.size(); i++) {
 		if (choiceSets[i]->id != i)
 			error = "Choice Set ID";

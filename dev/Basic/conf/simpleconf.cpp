@@ -117,7 +117,6 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 	//Loop through all agents of this type
 	for (;node;node=node->NextSiblingElement()) {
 		Person* agent = nullptr;
-		bool foundID = false;
 		bool foundXPos = false;
 		bool foundYPos = false;
 		bool foundOrigPos = false;
@@ -134,16 +133,23 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 				std::istringstream(value) >> valueI;
 			}
 
-			//Assign it.
+			//For now, IDs are assigned automatically
 			if (name=="id") {
-				agent = new Person(valueI);
+				throw std::runtime_error("Error: Agents should no longer specify IDs in the config file.");
+			}
+
+			//Create the agent if it doesn't exist
+			if (!agent) {
+				agent = new Person(Agent::GetAndIncrementID());
 				if (agentType=="pedestrian") {
 					agent->changeRole(new Pedestrian(agent));
 				} else if (agentType=="driver") {
 					agent->changeRole(new Driver(agent));
 				}
-				foundID = true;
-			} else if (name=="xPos") {
+			}
+
+			//Assign it.
+			if (name=="xPos") {
 				agent->xPos.force(valueI);
 				foundXPos = true;
 			} else if (name=="yPos") {
@@ -184,10 +190,6 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 
 		//Simple checks
 		bool foundOldPos = foundXPos && foundYPos;
-		if (!foundID) {
-			std::cout <<"id attribute not found.\n";
-			return false;
-		}
 		if (!foundOldPos && !foundOrigPos && !foundDestPos) {
 			std::cout <<"agent position information not found.\n";
 			return false;
@@ -250,7 +252,8 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal const *>& all_si
                     continue;
                 }
 
-                size_t id = all_signals.size();
+                //size_t id = all_signals.size();
+                int id = Agent::GetAndIncrementID();
                 Signal* sig = new Signal(id, *road_node);
                 all_signals.push_back(sig);
                 streetDirectory.registerSignal(*sig);

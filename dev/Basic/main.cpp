@@ -12,7 +12,6 @@
 #include <boost/thread.hpp>
 
 #include "constants.h"
-#include "stubs.h"
 
 #include "workers/Worker.hpp"
 #include "workers/EntityWorker.hpp"
@@ -50,20 +49,21 @@ using namespace sim_mob;
 typedef WorkGroup<Entity> EntityWorkGroup;
 
 
-/**
- * First "loading" step is special. Initialize all agents using work groups in parallel.
- */
+//Function prototypes.
 void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents);
+bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents);
 
 
 
-//TEST
+///Worker function for entity-related loading tasks.
 void entity_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
 {
 	for (std::vector<sim_mob::Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
 		(*it)->update(frameNumber);
 	}
 }
+
+///Worker function for signal status loading task.
 void signal_status_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
 {
 	for (std::vector<sim_mob::Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
@@ -104,10 +104,10 @@ bool performMain(const std::string& configFileName)
   const ConfigParams& config = ConfigParams::GetInstance();
 
   //Initialization: Server configuration
-  setConfiguration();
+  //setConfiguration();  //NOTE: This is done within InitUserConf().
 
   //Initialization: Network decomposition among multiple machines.
-  loadNetwork();
+  //loadNetwork();   //NOTE: This will occur within the partition manager.
 
 
 
@@ -198,8 +198,7 @@ bool performMain(const std::string& configFileName)
 	  //shortestPathWorkers.wait();
 
 	  //Longer Time-based cycle
-	  //TODO: Put these on Worker threads too.
-	  agentDecomposition(agents);
+	  //agentDecomposition(agents);  //NOTE: This should be performed by some other Agent on some kind of worker thread.
 
 	  //Agent-based cycle
 	  agentWorkers.wait();
@@ -208,18 +207,18 @@ bool performMain(const std::string& configFileName)
 	  agentWorkers.waitExternAgain(); // The workers wait on the AuraManager.
 
 	  //Surveillance update
-	  updateSurveillanceData(agents);
+	  //updateSurveillanceData(agents);
 
 	  //Check if the warmup period has ended.
 	  if (currTick >= config.totalWarmupTicks) {
-		  updateGUI(agents);
-		  saveStatistics(agents);
+		  //updateGUI(agents);
+		  //saveStatistics(agents);
 	  } else {
 		  boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 		  cout <<"  Warmup; output ignored." <<endl;
 	  }
 
-	  saveStatisticsToDB(agents);
+	  //saveStatisticsToDB(agents);
   }
 
   cout <<"Simulation complete; closing worker threads." <<endl;
@@ -296,6 +295,35 @@ void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents)
 	  createAgentWorkers.wait();
 
 	  cout <<"  Closing all work groups..." <<endl;
+}
+
+
+
+/**
+ * Simple sanity check on Agent IDs. Checks that IDs start at 0, end at size(agents)-1,
+ *   and contain every value in between. Order is not important.
+ */
+bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents) {
+	std::set<int> agent_ids;
+	bool foundZero = false;
+	bool foundMax = false;
+	for (size_t i=0; i<agents.size(); i++) {
+		int id = agents[i]->getId();
+		agent_ids.insert(id);
+		if (id==0) {
+			foundZero = true;
+		}
+		if (id+1==static_cast<int>(agents.size())) {
+			foundMax = true;
+		}
+	}
+	if (agents.size()!=agent_ids.size() || !foundZero || !foundMax) {
+		std::cout <<"Error, invalid Agent ID: " <<(agents.size()!=agent_ids.size()) <<","
+			<<!foundZero <<"," <<!foundMax <<std::endl;
+		return false;
+	}
+
+	return true;
 }
 
 

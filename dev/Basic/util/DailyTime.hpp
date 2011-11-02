@@ -3,7 +3,8 @@
 #pragma once
 
 #include <string>
-#include <ctime>
+
+#include <stdint.h>  //NOTE: There's a bug in GCC whereby <cstdint> is not the same as <stdint.h>
 
 namespace sim_mob
 {
@@ -22,7 +23,7 @@ namespace sim_mob
 class DailyTime {
 public:
 	///Construct a new DailyTime from a given value. Subtract the "base" time (i.e., the day's start time).
-	DailyTime(time_t value=0, time_t base=0);
+	DailyTime(uint32_t value=0, uint32_t base=0);
 
 	///Construct a new DailyTime from a string formatted to ISO 8601 format.
 	DailyTime(const std::string& value);
@@ -36,14 +37,14 @@ public:
 	std::string toString();
 
 private:
-	///Helper method: create a string representation from two time_t values
-	static std::string BuildStringRepr(time_t timeVal, size_t maxFractionDigits=4);
+	///Helper method: create a string representation from two time values
+	static std::string BuildStringRepr(uint32_t timeVal, size_t maxFractionDigits=4);
 
 	///Helper method: generate a time from a formatted string.
-	static time_t ParseStringRepr(std::string timeRepr);
+	static uint32_t ParseStringRepr(std::string timeRepr);
 
 private:
-	const time_t time_;  //MS from 0, which corresponds to 00:00:00.00
+	const uint32_t time_;  //MS from 0, which corresponds to 00:00:00.00
 	const std::string repr_;
 };
 

@@ -6,7 +6,7 @@ using namespace sim_mob;
 using std::string;
 
 
-sim_mob::DailyTime::DailyTime(time_t value, time_t base) : time_(value-base), repr_(BuildStringRepr(value-base))
+sim_mob::DailyTime::DailyTime(uint32_t value, uint32_t base) : time_(value-base), repr_(BuildStringRepr(value-base))
 {
 }
 
@@ -34,14 +34,16 @@ string sim_mob::DailyTime::toString()
 	return repr_;
 }
 
-std::string sim_mob::DailyTime::BuildStringRepr(time_t timeVal, size_t maxFractionDigits)
+std::string sim_mob::DailyTime::BuildStringRepr(uint32_t timeVal, size_t maxFractionDigits)
 {
+
+
 	//TODO
 	return "";
 
 }
 
-time_t sim_mob::DailyTime::ParseStringRepr(std::string timeRepr)
+uint32_t sim_mob::DailyTime::ParseStringRepr(std::string timeRepr)
 {
 	//TODO
 	return 0;

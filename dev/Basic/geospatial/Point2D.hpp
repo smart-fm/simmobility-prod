@@ -40,6 +40,17 @@ operator<<(std::ostream& stream, Point2D const & point)
     return stream;
 }
 
+inline bool
+operator==(Point2D const & p1, Point2D const & p2)
+{
+    return (p1.getX() == p2.getX()) && (p1.getY() == p2.getY());
+}
+inline bool
+operator!=(Point2D const & p1, Point2D const & p2)
+{
+    return !(p1 == p2);
+}
+
 
 
 

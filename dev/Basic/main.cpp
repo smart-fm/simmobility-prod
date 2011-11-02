@@ -24,6 +24,7 @@
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
 #include "util/OutputUtil.hpp"
+#include "util/DailyTime.hpp"
 
 //Just temporarily, so we know it compiles:
 #include "entities/Signal.hpp"
@@ -52,6 +53,7 @@ typedef WorkGroup<Entity> EntityWorkGroup;
 //Function prototypes.
 void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents);
 bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents);
+bool TestTimeClass();
 
 
 
@@ -139,6 +141,13 @@ bool performMain(const std::string& configFileName)
   if (x) {
 	  return false;
   }
+
+  //Sanity check (time class)
+  if (!TestTimeClass()) {
+	  std::cout <<"Aborting: Time class tests failed.\n";
+	  return false;
+  }
+
 
   //Output
   cout <<"  " <<"...Sanity Check Passed" <<endl;
@@ -320,6 +329,74 @@ bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents) {
 	return true;
 }
 
+
+bool TestTimeClass()
+{
+	{ //Ensure optional seconds can be parsed.
+	DailyTime a("08:30:00");
+	DailyTime b("08:30");
+	if (!a.isEqual(b)) {
+		return false;
+	}
+	}
+
+	{ //Ensure hours/minutes are mandatory
+	try {
+		DailyTime a("08");
+		return false;
+	} catch (std::exception& ex) {}
+	}
+
+	{ //Check time comparison
+	DailyTime a("08:30:00");
+	DailyTime b("08:30:01");
+	if (a.isEqual(b) || a.isAfter(b) || !a.isBefore(b)) {
+		return false;
+	}
+	}
+
+	{ //Check time comparison
+	DailyTime a("09:30:00");
+	DailyTime b("08:30:00");
+	if (a.isEqual(b) || !a.isAfter(b) || a.isBefore(b)) {
+		return false;
+	}
+	}
+
+	{ //Check parsing fractions
+	DailyTime a("08:30:00.5");
+	DailyTime b("08:30:00");
+	if (a.isEqual(b) || !a.isAfter(b) || a.isBefore(b)) {
+		return false;
+	}
+	}
+
+	{ //Check mandatory hours/minutes
+	try {
+		DailyTime a("08.5");
+		return false;
+	} catch (std::exception& ex) {}
+	}
+
+	{ //Check mandatory hours/minutes
+	try {
+		DailyTime a("08:30.5");
+		return false;
+	} catch (std::exception& ex) {}
+	}
+
+	{ //Check fraction comparisons
+	DailyTime a("08:30:00.3");
+	DailyTime b("08:30:00.5");
+	if (a.isEqual(b) || a.isAfter(b) || !a.isBefore(b)) {
+		return false;
+	}
+	}
+
+	std::cout <<"Warning: No tests were performed on DailyTime with a time_t constructor.\n";
+	std::cout <<"DailyTime tests passed.\n";
+	return true;
+}
 
 
 

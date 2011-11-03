@@ -666,7 +666,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     		if (!dbErrorMsg.empty()) {
     			return "Database loading error: " + dbErrorMsg;
     		}
-                StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
 
     		//Finally, mask the password
     		string& s = ConfigParams::GetInstance().connectionString;
@@ -734,6 +733,10 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     	std::cout <<"    Agent(" <<agents[i]->getId() <<") = " <<agents[i]->xPos.get() <<"," <<agents[i]->yPos.get() <<"\n";
     }
     std::cout <<"------------------\n";
+
+    // PrintDB_Network() calls getLaneEdgePolyline() which inserts side-walks into the
+    // road-segments.  We can only only initialize the StreetDirectory only now, not before.
+    StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
 
 	//No error
 	return "";

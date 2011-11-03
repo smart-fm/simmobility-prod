@@ -18,6 +18,92 @@ class RoadNetwork;
 class RoadSegment;
 class Node;
 class Signal;
+class BusStop;
+class Crossing;
+
+/**
+ * A point in the shortest path returned by StreetDirectory::shortestDrivingPath() and StreetDirectory::shortestWalkingPath().
+ *
+ * It is a "variant" type because it can be one of various types.  You should check the \c type_
+ * member to determine which pointer is appropriate.  For example,
+ *   \code
+ *   std::vector<WayPoint> path_;
+ *   size_t path_index_;
+ *   ...
+ *
+ *   Point2D from = ...;
+ *   Point2D to = ...;
+ *   path_ = StreetDirectory::instance().shortestWalkingPath(from, to);
+ *   if (path_.empty())  // <to> is not reachable from <from> via side-walks and crossings.
+ *   {
+ *       error_message(...);
+ *       return;
+ *   }
+ *   path_index_ = 0;
+ *   ...
+ *
+ *   const WayPoint wp = path_[path_index_];
+ *   if (WayPoint::SIDE_WALK == wp.type_)
+ *   {
+ *      walk_on(wp.lane_);  // walk on the side walk
+ *   }
+ *   else if (WayPoint::CROSSING == wp.type_)
+ *   {
+ *      walk_on(wp.crossing_);  // walk on the crossing to cross the road.
+ *   }
+ *   else ...
+ *
+ *   ++path_index_;
+ *   ...
+ *   \endcode
+ *
+ * A WayPoint is a point and the BUS_STOP and NODE types reflect that notion.  For the other types,
+ * the WayPoint is an "abbreviation" of 2 points -- from the start point of the road-segment,
+ * side-walk, or crossing to their end point.
+ *
+ * The shortest path may include a BUS_STOP WayPoint.  This would be useful for buses; such
+ * WayPoints mark out the points they need to stop for passengers to board and alight.  Car
+ * drivers can skip these way-points.  Similarly pedestrians may skip BUS_STOP way-points unless
+ * the way-point is their destination.  The WayPoint before and after the BUS_STOP WayPoint in the
+ * shortest path may refer to the same road-segment (for vehicles) or side-walk (for pedestrians).
+ *
+ * Refer to StreetDirectory::shortestWalkingPath() for a description of the NODE type.
+ *
+ * Future extensions would include underpasses and overhead bridges types.
+ *
+ * \sa StreetDirectory::shortestDrivingPath()
+ * \sa StreetDirectory::shortestWalkingPath()
+ */
+struct WayPoint
+{
+    enum
+    {
+        SIDE_WALK, //!< waypoint is a side walk; lane_ points to a (side-walk) Lane object.
+        ROAD_SEGMENT, //!< waypoint is a road-segment; roadSegment_ points to a RoadSegment object.
+        BUS_STOP, //!< waypoint is a bus-stop; busStop_ points to a BusStop object.
+        CROSSING, //!< waypoint is a crossing; crossing_ points to a Crossing object.
+        NODE, //!< waypoint is node; node_ points to a Node object.
+        INVALID  //!< waypoint is invalid, none of the pointers are valid.
+    } type_;
+    union
+    {
+        Lane const * lane_;
+        RoadSegment const * roadSegment_;
+        BusStop const * busStop_;
+        Crossing const * crossing_;
+        Node const * node_;
+    };
+
+    /** \cond ignoreStreetDirectoryInnards -- Start of block to be ignored by doxygen.  */
+    // Used only by the StreetDirectory.  No need to expose them in the doxygen pages.
+    WayPoint() : type_(INVALID) {}
+    explicit WayPoint(Lane const * lane) : type_(SIDE_WALK), lane_(lane) {}
+    explicit WayPoint(RoadSegment const * road) : type_(ROAD_SEGMENT), roadSegment_(road) {}
+    explicit WayPoint(BusStop const * stop) : type_(BUS_STOP), busStop_(stop) {}
+    explicit WayPoint(Crossing const * crossing) : type_(CROSSING), crossing_(crossing) {}
+    explicit WayPoint(Node const * node) : type_(NODE), node_(node) {}
+    /** \endcond ignoreStreetDirectoryInnards -- End of block to be ignored by doxygen.  */
+};
 
 /**
  * A singleton that provides street-directory information.
@@ -128,6 +214,34 @@ public:
     signalAt(Node const & node) const;
 
     /**
+     * Return the distance-based shortest path to drive from one node to another.
+     *
+     * The fucntion may return an empty array if \c toNode is not reachable from \c fromNode via
+     * road-segments allocated for vehicle traffic.
+     *
+     * The array contains only ROAD_SEGMENT and BUS_STOP WayPoint types.
+     */
+    std::vector<WayPoint>
+    shortestDrivingPath(Node const & fromNode, Node const & toNode) const;
+
+    /**
+     * Return the distance-based shortest path to walk from one point to another.
+     *
+     * The function may return an empty array if \c toPoint is not reachable from \c fromPoint
+     * via side-walks and crossings.
+     *
+     * The array contains only SIDE_WALK, BUS_STOP, CROSSING and NODE WayPoint types.
+     *
+     * It is possible that \c fromPoint or \c toPoint are off the road network (for example,
+     * inside a building).  In that case, the first (last) wayPoint in the array would be a NODE
+     * type if \c fromPoint (\c toPoint) is not within the road network; the NODE way-point would
+     * be located in the road network.  The pedestrian is required to move from \c fromPoint to the
+     * way-point (or from the way-point to \c toPoint) by some undefined mean.
+     */
+    std::vector<WayPoint>
+    shortestWalkingPath(Point2D const & fromPoint, Point2D const & toPoint) const;
+
+    /**
      * Initialize the StreetDirectory object (to be invoked by the simulator kernel).
      *
      * The StreetDirectory partitions the road network into a rectangular grid for fast lookup.
@@ -161,6 +275,7 @@ public:
 private:
     StreetDirectory()
       : pimpl_(nullptr)
+      , spImpl_(nullptr)
       , stats_(nullptr)
     {
     }
@@ -173,6 +288,10 @@ private:
     class Impl;
     Impl* pimpl_;
     friend class Impl;  // allow access to stats_.
+
+    // A private class to calculate distance-based shortest paths for drivers and pedestrians.
+    class ShortestPathImpl;
+    ShortestPathImpl* spImpl_;
 
     class Stats;
     Stats* stats_;

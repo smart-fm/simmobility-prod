@@ -3,12 +3,18 @@
 #include <vector>
 #include <iostream>
 #include <boost/unordered_map.hpp>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/dijkstra_shortest_paths.hpp>
 
 #include "Lane.hpp"
 #include "RoadNetwork.hpp"
 #include "StreetDirectory.hpp"
 #include "buffering/Vector2D.hpp"
 #include "entities/Signal.hpp"
+#include "BusStop.hpp"
+#include "Crossing.hpp"
+#include "ZebraCrossing.hpp"
+#include "UniNode.hpp"
 
 namespace sim_mob
 {
@@ -615,6 +621,654 @@ namespace
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
+// StreetDirectory::ShortestPathImpl
+////////////////////////////////////////////////////////////////////////////////////////////
+
+/** \cond ignoreStreetDirectoryInnards -- Start of block to be ignored by doxygen.  */
+
+class StreetDirectory::ShortestPathImpl : private boost::noncopyable
+{
+public:
+    explicit ShortestPathImpl(RoadNetwork const & network);
+    ~ShortestPathImpl();
+
+    std::vector<WayPoint>
+    shortestDrivingPath(Node const & fromNode, Node const & toNode) const;
+
+    std::vector<WayPoint>
+    shortestWalkingPath(Point2D const & fromPoint, Point2D const & toPoint) const;
+
+private:
+    // We attach a property to each vertex, its name.  We treat the name property as a mean
+    // to identify the vertex.  However instead of a textual name, the actual value that we
+    // attach to the vertex's name is the pointer to the Node where the vertex is located.
+    // When we search the graph for a vertex, we use the Node::location in the search.
+    typedef boost::property<boost::vertex_name_t, Node const *> VertexProperties;
+    // Each edge has a weight property cascaded with a name property.  Just like the vertex's
+    // name property, the edge's name property is the pointer to WayPoint.  The weight property is
+    // the length of the road-segment, side-walk or crossing that each edge represent.
+    typedef boost::property<boost::edge_weight_t, centimeter_t,
+                boost::property<boost::edge_name_t, WayPoint> > EdgeProperties;
+    // The graph contains arrays of integers for the vertices and edges and is a directed graph.
+    typedef boost::adjacency_list<boost::vecS,
+                                  boost::vecS,
+                                  boost::directedS,
+                                  VertexProperties,
+                                  EdgeProperties,
+                                  boost::no_property> Graph;
+    typedef Graph::vertex_descriptor Vertex;  // A vertex is an integer into the vertex array.
+    typedef Graph::edge_descriptor Edge; // An edge is an integer into the edge array.
+
+private:
+    Graph drivingMap_; // A map for drivers, containing road-segments as edges.
+    Graph walkingMap_; // A map for pedestrians, containing side-walks and crossings as edges.
+    std::vector<Node *> nodes_; // "Internal" uni-nodes that are created when building the maps.
+
+private:
+    void process(std::vector<RoadSegment*> const & roads, bool isForward);
+    void process(RoadSegment const * road, bool isForward);
+
+    // Oh wow!  Overloaded functions with different return types.
+    Node const * findVertex(Graph const & graph, Point2D const & point, centimeter_t distance) const;
+    Vertex findVertex(Graph const & graph, Node const * node) const;
+    Vertex findVertex(Point2D const & point);
+
+    Node const * findNode(Point2D const & point);
+
+    void addRoadEdge(Node const * node1, Node const * node2,
+                     WayPoint const & wp, centimeter_t length);
+
+    void addSideWalk(Lane const * sideWalk, centimeter_t length);
+    void addCrossing(Crossing const * crossing, centimeter_t length);
+
+    void getVertices(Vertex & fromVertex, Vertex & toVertex,
+                     Node const & fromNode, Node const & toNode) const;
+
+    void getVertices(Vertex & fromVertex, Vertex & toVertex,
+                     Point2D const & fromPoint, Point2D const & toPoint) const;
+
+    void checkVertices(Vertex const fromVertex, Vertex const toVertex,
+                       Node const & fromNode, Node const & toNode) const;
+
+    std::vector<WayPoint>
+    extractShortestPath(Vertex const fromVertex, Vertex const toVertex,
+                        std::vector<Vertex> const & parent, Graph const & graph) const;
+
+    std::vector<WayPoint>
+    shortestPath(Vertex const fromVertex, Vertex const toVertex, Graph const & graph) const;
+};
+
+StreetDirectory::ShortestPathImpl::~ShortestPathImpl()
+{
+    // Cleanup to avoid memory leakage.
+    for (size_t i = 0; i < nodes_.size(); ++i)
+    {
+        Node * node = nodes_[i];
+        delete node->location;
+        delete node;
+    }
+    nodes_.clear();
+}
+
+namespace
+{
+    // Return the square of Euclidean distance between p1 and p2.
+    inline double hypot(Point2D const & p1, Point2D const & p2)
+    {
+        double x = p1.getX() - p2.getX();
+        double y = p1.getY() - p2.getY();
+        return (x*x) + (y*y);
+    }
+
+    Point2D
+    getBusStopPosition(RoadSegment const * road, centimeter_t offset)
+    {
+        std::vector<Lane*> const & lanes = road->getLanes();
+        Lane * const leftLane = lanes[lanes.size() - 1];
+
+        // Walk along the left lane and stop after we have walked <offset> centimeters.
+        // The bus stop should be at that point.
+        std::vector<Point2D> const & polyline = leftLane->getPolyline();
+        size_t i = 0;
+        Point2D p1;
+        Point2D p2;
+        double len;
+        while (i < polyline.size() - 1)
+        {
+            p1 = polyline[i];
+            p2 = polyline[i + 1];
+            len = sqrt(hypot(p1, p2));
+            if (offset - len < 0)
+            {
+                // Walking to <p2> would be a bit too far.
+                break;
+            }
+            offset -= len;
+            ++i;
+        }
+        // Walk to the point before <p2> that would end at <offset>.
+        double ratio = offset / len;
+        centimeter_t x = p1.getX() + ratio * (p2.getX() - p1.getX());
+        centimeter_t y = p1.getY() + ratio * (p2.getY() - p1.getY());
+        return Point2D(x, y);
+    }
+
+    // Return true if <p1> and <p2> are within <distance>.  Quick and dirty calculation of the
+    // distance between <p1> and <p2>.
+    inline bool
+    closeBy(Point2D const & p1, Point2D const & p2, centimeter_t distance)
+    {
+        return    (std::abs(p1.getX() - p2.getX()) < distance)
+               && (std::abs(p1.getY() - p2.getY()) < distance);
+    }
+}
+
+// Search the graph for a vertex located at a Node that is within <distance> from <point>
+// and return that Node, if any; otherwise return 0.
+Node const *
+StreetDirectory::ShortestPathImpl::findVertex(Graph const & graph, Point2D const & point,
+                                              centimeter_t distance)
+const
+{
+    Graph::vertex_iterator iter, end;
+    for (boost::tie(iter, end) = boost::vertices(graph); iter != end; ++iter)
+    {
+        Vertex v = *iter;
+        Node const * node = boost::get(boost::vertex_name, graph, v);
+        if (closeBy(*node->location, point, distance))
+            return node;
+    }
+    return nullptr;
+}
+
+// If there is a Node in the drivingMap_ that is within 0.5 meter from <point>, return it;
+// otherwise return a new "internal" node located at <point>.  "Internal" means the node exists
+// only in the StreetDirectory::ShortestPathImpl object to be used as a location for a vertex.
+//
+// This function is a hack.  We can't use uni-nodes as vertices in the drivingMap_ graph and
+// yet the lanes polylines are not "connected".  That is, the last point of the lane's polyline
+// in one road-segment is not the first point of the lane's polyline in the next road-segment.
+// I think the gap is small, hopefully it is less than 0.5 meter.
+Node const *
+StreetDirectory::ShortestPathImpl::findNode(Point2D const & point)
+{
+    Node const * node = findVertex(drivingMap_, point, 50);
+    if (node)
+        return node;
+
+    Node * n = new UniNode();
+    n->location = new Point2D(point.getX(), point.getY());
+    nodes_.push_back(n);
+    return n;
+}
+
+// Build up the drivingMap_ and walkingMap_ graphs.
+//
+// Road segments are the only edges in the drivingMap_ graph.  Multi-nodes are inserted as
+// vertices in the graph; it is assumed that vehicles are allowed to make U-turns at the
+// intersections if the link is bi-directional.  Uni-nodes in bi-directional links are split into
+// 2 vertices, without any edge between the 2 vertices; at the current moment, vehicles are not
+// allowed to make U-turns at uni-nodes.  We need to fix this; we need to add an edge from one
+// vertex to the other if traffic is allowed to move in that direction.  The edge length would be
+// 0 since the 2 vertices are located at the same uni-node.
+//
+// For the walkingMap_ graph, the side walks in each road segment, crossings at the
+// intersections, and zebra crossings are edges.  Since pedestrians are not supposed to be
+// walking on the road dividers between 2 side-by-side road-segments, the road divider is
+// not treated as an edge.  Hence each link, whether bidirectional or one-way, has exactly
+// 2 side walk edges.
+//
+// If there is a bus stop, the road segment and the side walk is split into 2 edges, split at
+// the bus stop.  Therefore shortestDrivingPath() would include a bus stop as a waypoint,
+// which would be useful for the BusDriver model but may not be needed by the Driver model.
+//
+// We assume that if a link has any crossing (signalized or zebra crossing), the link is
+// split into several road-segments, split at the crossing.  Hence we assume that the
+// crossing at the beginning or end of a road segment.  Therefore, side walks are not split
+// by crossings.  This assumption needs to be reviewed.
+
+inline void
+StreetDirectory::ShortestPathImpl::process(std::vector<RoadSegment*> const & roads, bool isForward)
+{
+    for (size_t i = 0; i < roads.size(); ++i)
+        process(roads[i], isForward);
+}
+
+inline StreetDirectory::ShortestPathImpl::ShortestPathImpl(RoadNetwork const & network)
+{
+    std::vector<Link*> const & links = network.getLinks();
+    for (std::vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter)
+    {
+        Link const * link = *iter;
+        process(link->getPath(true), true);
+        process(link->getPath(false), false);
+    }
+}
+
+void
+StreetDirectory::ShortestPathImpl::process(RoadSegment const * road, bool isForward)
+{
+    // If this road-segment is inside a one-way Link, then there should be 2 side-walks.
+    std::vector<Lane*> const & lanes = road->getLanes();
+    for (size_t i = 0; i < lanes.size(); ++i)
+    {
+        Lane const * lane = lanes[i];
+        if (lane->is_pedestrian_lane())
+        {
+            addSideWalk(lane, road->length);
+        }
+    }
+
+    Node const * node1 = road->getStart();
+    if (dynamic_cast<UniNode const *>(node1))
+    {
+        // If this road-segment is side-by-side to another road-segment going in the other
+        // direction, we cannot insert this uni-node into the drivingMap_ graph.  Otherwise,
+        // vehicles on both road-segments would be allowed to make U-turns at the uni-node,
+        // which may not correct.  Currently we do not have info from the database about the
+        // U-turns at the uni-nodes.  Instead of using the uni-node as a vertex in the drivingMap_,
+        // we choose a point in one of the lane's polyline.
+        std::vector<Point2D> const & polyline = road->getLanes()[0]->getPolyline();
+        Point2D point = polyline[0];
+        node1 = findNode(point);
+    }
+
+    centimeter_t offset = 0;
+    while (offset < road->length)
+    {
+        RoadItemAndOffsetPair pair = road->nextObstacle(offset, isForward);
+        if (0 == pair.item)
+        {
+            break;
+        }
+
+
+        if (Crossing const * crossing = dynamic_cast<Crossing const *>(pair.item))
+        {
+            // In a bi-directional link, a crossing would span the 2 side-by-side road-segments.
+            // Therefore, we may have already inserted this crossing into the walkingMap_ when
+            // we process the previous road segment.  We check if it is the graph, continuing only
+            // if it wasn't.
+            bool notInWalkingMap = true;
+            Graph::edge_iterator iter, end;
+            for (boost::tie(iter, end) = boost::edges(walkingMap_); iter != end; ++iter)
+            {
+                Edge e = *iter;
+                WayPoint const & wp = boost::get(boost::edge_name, walkingMap_, e);
+                if (WayPoint::CROSSING == wp.type_ && crossing == wp.crossing_)
+                {
+                    notInWalkingMap = false;
+                    break;
+                }
+            }
+
+            if (notInWalkingMap)
+            {
+                centimeter_t length = sqrt(hypot(crossing->nearLine.first, crossing->nearLine.second));
+                addCrossing(crossing, length);
+            }
+        }
+#if 0
+        else if (ZebraCrossing const * crossing = dynamic_cast<ZebraCrossing const *>(pair.item))
+        {
+        }
+#endif
+        else if (BusStop const * busStop = dynamic_cast<BusStop const *>(pair.item))
+        {
+            const Point2D pos = getBusStopPosition(road, offset);
+            Node * node2 = new UniNode();
+            node2->location = new Point2D(pos.getX(), pos.getY());
+            addRoadEdge(node1, node2, WayPoint(busStop), offset);
+            nodes_.push_back(node2);
+            node1 = node2;
+        }
+        offset = pair.offset + 1;
+    }
+
+    Node const * node2 = road->getEnd();
+    if (dynamic_cast<UniNode const *>(node2))
+    {
+        // See comment above about the road-segment's start-node.
+        std::vector<Point2D> const & polyline = road->getLanes()[0]->getPolyline();
+        Point2D point = polyline[polyline.size() - 1];
+        node2 = findNode(point);
+    }
+    addRoadEdge(node1, node2, WayPoint(road), offset);
+}
+
+// Search for <node> in <graph>.  If any vertex in <graph> has <node> attached to it, return it;
+// otherwise insert a new vertex (with <node> attached to it) and return it.
+StreetDirectory::ShortestPathImpl::Vertex
+StreetDirectory::ShortestPathImpl::findVertex(Graph const & graph, Node const * node)
+const
+{
+    Graph::vertex_iterator iter, end;
+    for (boost::tie(iter, end) = boost::vertices(graph); iter != end; ++iter)
+    {
+        Vertex v = *iter;
+        Node const * n = boost::get(boost::vertex_name, graph, v);
+        if (node == n)
+            return v;
+    }
+
+    Vertex v = boost::add_vertex(const_cast<Graph &>(graph));
+    boost::put(boost::vertex_name, const_cast<Graph &>(graph), v, node);
+    return v;
+}
+
+// Insert a directed edge into the drivingMap_ graph from <node1> to <node2>, which represent
+// vertices in the graph.  <wp> is attached to the edge as its name property and <length> as
+// its weight property.
+void
+StreetDirectory::ShortestPathImpl::addRoadEdge(Node const * node1, Node const * node2,
+                                               WayPoint const & wp, centimeter_t length)
+{
+    Vertex u = findVertex(drivingMap_, node1);
+    Vertex v = findVertex(drivingMap_, node2);
+
+    Edge edge;
+    bool ok;
+    boost::tie(edge, ok) = boost::add_edge(u, v, drivingMap_);
+    boost::put(boost::edge_name, drivingMap_, edge, wp);
+    boost::put(boost::edge_weight, drivingMap_, edge, length);
+}
+
+// If there is a Node in the walkingMap_ that is within 10 meters from <point>, return the
+// vertex with that node; otherwise create a new "internal" node located at <point>, insert a
+// vertex with the new node, and return the vertex.  "Internal" means the node exists only in the
+// StreetDirectory::ShortestPathImpl object to be used as a location for a vertex.
+//
+// This function is a hack.  The side-walks and crossings are not aligned, that is, they are not
+// connected.  The gaps are quite large.  I hope that 10 meters would be a good choice.  It should
+// be ok if there really is a crossing at the end of sidewalk (or vice versa, a side-walk at the
+// end of the crossing).  But it may be too large that the function incorrectly returns a vertex
+// that is on the opposite of a narrow road-segment.
+StreetDirectory::ShortestPathImpl::Vertex
+StreetDirectory::ShortestPathImpl::findVertex(Point2D const & point)
+{
+    Node const * node = findVertex(walkingMap_, point, 1000);
+    if (nullptr == node)
+    {
+        Node * n = new UniNode();
+        n->location = new Point2D(point.getX(), point.getY());
+        nodes_.push_back(n);
+        node = n;
+    }
+
+    return findVertex(walkingMap_, node);
+}
+
+// Insert a directed edge into the walkingMap_ graph from one end of <sideWalk> to the other end,
+// both ends represent the vertices in the graph.  <sideWalk> is attached to the edge at its name
+// property and <length> as its weight property.
+//
+// Side-walks are bi-directional for pedestrians.  So 2 edges are inserted for the 2 directions.
+void
+StreetDirectory::ShortestPathImpl::addSideWalk(Lane const * sideWalk, centimeter_t length)
+{
+    std::vector<Point2D> const & polyline = sideWalk->getPolyline();
+    Vertex u = findVertex(polyline[0]);
+    Vertex v = findVertex(polyline[polyline.size() - 1]);
+
+    Edge edge;
+    bool ok;
+    WayPoint wp(sideWalk);
+
+    boost::tie(edge, ok) = boost::add_edge(u, v, walkingMap_);
+    boost::put(boost::edge_name, walkingMap_, edge, wp);
+    boost::put(boost::edge_weight, walkingMap_, edge, length);
+
+    // Side walks are bi-directional for pedestrians.  Add another edge for the other direction.
+    boost::tie(edge, ok) = boost::add_edge(v, u, walkingMap_);
+    boost::put(boost::edge_name, walkingMap_, edge, wp);
+    boost::put(boost::edge_weight, walkingMap_, edge, length);
+}
+
+// Insert a directed edge into the walkingMap_ graph from one end of <crossing> to the other end,
+// both ends represent the vertices in the graph.  <crossing> is attached to the edge at its name
+// property and <length> as its weight property.
+//
+// Crossings are bi-directional for pedestrians.  So 2 edges are inserted for the 2 directions.
+void
+StreetDirectory::ShortestPathImpl::addCrossing(Crossing const * crossing, centimeter_t length)
+{
+    Vertex u = findVertex(crossing->nearLine.first);
+    Vertex v = findVertex(crossing->nearLine.second);
+
+    Edge edge;
+    bool ok;
+    WayPoint wp(crossing);
+
+    boost::tie(edge, ok) = boost::add_edge(u, v, walkingMap_);
+    boost::put(boost::edge_name, walkingMap_, edge, wp);
+    boost::put(boost::edge_weight, walkingMap_, edge, length);
+
+    // Crossings are bi-directional for pedestrians.  Add another edge for the other direction.
+    boost::tie(edge, ok) = boost::add_edge(v, u, walkingMap_);
+    boost::put(boost::edge_name, walkingMap_, edge, wp);
+    boost::put(boost::edge_weight, walkingMap_, edge, length);
+}
+
+std::vector<WayPoint>
+StreetDirectory::ShortestPathImpl::shortestDrivingPath(Node const & fromNode, Node const & toNode)
+const
+{
+    if (&fromNode == &toNode)
+        return std::vector<WayPoint>();
+
+    // Convert the fromNode and toNode (positions in 2D geometry) to vertices in the drivingMap_
+    // graph.  It is possible that fromNode and toNode are not represented by any vertex in the
+    // graph.
+    Vertex fromVertex, toVertex;
+    getVertices(fromVertex, toVertex, fromNode, toNode);
+    // If fromNode and toNode are not represented by any vertex in the graph, then throw an
+    // error message.
+    checkVertices(fromVertex, toVertex, fromNode, toNode);
+
+    return shortestPath(fromVertex, toVertex, drivingMap_);
+}
+
+// Find the vertices in the drivingMap_ graph that represent <fromNode> and <toNode> and return
+// them in <fromVertex> and <toVertex> respectively.  If the node is not represented by any vertex,
+// then the returned vertex is set to a value larger than the number of vertices in the graph.
+void
+StreetDirectory::ShortestPathImpl::getVertices(Vertex & fromVertex, Vertex & toVertex,
+                                               Node const & fromNode, Node const & toNode)
+const
+{
+    Graph::vertices_size_type graphSize = boost::num_vertices(drivingMap_);
+    fromVertex = graphSize + 1;
+    toVertex = graphSize + 1;
+
+    Node const * from = (dynamic_cast<UniNode const *>(&fromNode)) ? &fromNode : nullptr;
+    Node const * to = (dynamic_cast<UniNode const *>(&fromNode)) ? &toNode : nullptr;
+
+    Graph::vertex_iterator iter, end;
+    for (boost::tie(iter, end) = boost::vertices(drivingMap_); iter != end; ++iter)
+    {
+        Vertex v = *iter;
+        Node const * node = boost::get(boost::vertex_name, drivingMap_, v);
+        // Uni-nodes were never inserted into the drivingMap_, but some other points close to
+        // them.  Hopefully, they are within 10 meters and that the correct vertex is returned,
+        // even in narrow links.
+        if (from && closeBy(*from->location, *node->location, 1000))
+        {
+            fromVertex = v;
+        }
+        else if (to && closeBy(*to->location, *node->location, 1000))
+        {
+            toVertex = v;
+        }
+        else if (node == &fromNode)
+        {
+            fromVertex = v;
+        }
+        else if (node == &toNode)
+        {
+            toVertex = v;
+        }
+        if (fromVertex < graphSize && toVertex < graphSize)
+            break;
+    }
+}
+
+// Check that <fromVertex> and <toVertex> are valid vertex in the drivingMap_ graph (ie. if they
+// are between 0 and the number of vertices in the graph).  If not, throw an error message.
+// Since the error message is intended for the modellers and <fromVertex> and <toVertex> are internal
+// data, the message is formatted with info from <fromNode> and <toNode>.
+void
+StreetDirectory::ShortestPathImpl::checkVertices(Vertex const fromVertex, Vertex const toVertex,
+                                                 Node const & fromNode, Node const & toNode)
+const
+{
+    Graph::vertices_size_type graphSize = boost::num_vertices(drivingMap_);
+    if (fromVertex > graphSize || toVertex > graphSize)
+    {
+        std::ostringstream stream;
+        stream << "StreetDirectory::shortestDrivingPath: "; 
+        if (fromVertex > graphSize)
+        {
+            stream << "fromNode=" << *fromNode.location << " is not part of the known road network ";
+        }
+        if (toVertex > graphSize)
+        {
+            stream << "toNode=" << *toNode.location << " is not part of the known road network";
+        }
+
+        throw stream.str();
+    }
+}
+
+// Computes the shortest path from <fromVertex> to <toVertex> in the graph.  If <toVertex> is not
+// reachable from <fromVertex>, then return an empty array.
+std::vector<WayPoint>
+StreetDirectory::ShortestPathImpl::shortestPath(Vertex const fromVertex, Vertex const toVertex,
+                                                Graph const & graph)
+const
+{
+    // The code here is based on the example in the book "The Boost Graph Library" by
+    // Jeremy Siek, et al.
+    std::vector<Vertex> parent(boost::num_vertices(graph));
+    for (Graph::vertices_size_type i = 0; i < boost::num_vertices(graph); ++i)
+    {
+        parent[i] = i;
+    }
+    // If I have counted them correctly, dijkstra_shortest_paths() function has 12 parameters,
+    // 10 of which have default values.  The Boost Graph Library has a facility (called named
+    // parameter) that resembles python keyword argument.  You can pass an argument to one of
+    // those parameters that have default values without worrying about the order of the parameters.
+    // In the following, only the predecessor_map parameter is named and the parent array is
+    // passed in as this parameter; the other parameters take their default values.
+    boost::dijkstra_shortest_paths(graph, fromVertex, boost::predecessor_map(&parent[0]));
+
+    return extractShortestPath(fromVertex, toVertex, parent, graph);
+}
+
+std::vector<WayPoint>
+StreetDirectory::ShortestPathImpl::extractShortestPath(Vertex const fromVertex,
+                                                       Vertex const toVertex,
+                                                       std::vector<Vertex> const & parent,
+                                                       Graph const & graph)
+const
+{
+    // The code here is based on the example in the book "The Boost Graph Library" by
+    // Jeremy Siek, et al.  The dijkstra_shortest_path() function was called with the p = parent
+    // array passed in as the predecessor_map paramter.  The shortest path from s = fromVertex
+    // to v = toVertex consists of the vertices v, p[v], p[p[v]], ..., and so on until s is
+    // reached, in reverse order (text from the Boost Graph Library documentation).  If p[u] = u
+    // then u is either the source vertex (s) or a vertex that is not reachable from s.  Therefore
+    // the while loop stops when p[u] = u.  If the while loop does not terminates with u equal to
+    // fromVertex, then toVertex is not reachable from fromVertex and we return an empty path.
+
+    Vertex v = toVertex;
+    Vertex u = parent[v];
+    std::vector<WayPoint> result;
+    while (u != v)
+    {
+        Edge e;
+        bool exists;
+        boost::tie(e, exists) = boost::edge(u, v, graph);
+        // Stop the loop if there is no path from u to v.
+        if (!exists)
+            break;
+        WayPoint wp = boost::get(boost::edge_name, graph, e);
+        result.push_back(wp);
+        v = u;
+        u = parent[v];
+    }
+    if (u != fromVertex)
+        return std::vector<WayPoint>();
+
+    // result contains the waypoints in the reverse order.  We return them in the correct order.
+    return std::vector<WayPoint>(result.rbegin(), result.rend());
+}
+
+// Get the vertices in the walkingMap_ graph that are closest to <fromPoint> and <toPoint>
+// and return them in <fromVertex> and <toVertex> respectively.
+void
+StreetDirectory::ShortestPathImpl::getVertices(Vertex & fromVertex, Vertex & toVertex,
+                                               Point2D const & fromPoint, Point2D const & toPoint)
+const
+{
+    double d1 = std::numeric_limits<double>::max();
+    double d2 = std::numeric_limits<double>::max();
+    double h;
+    Graph::vertex_iterator iter, end;
+    for (boost::tie(iter, end) = boost::vertices(walkingMap_); iter != end; ++iter)
+    {
+        Vertex v = *iter;
+        Node const * node = boost::get(boost::vertex_name, walkingMap_, v);
+        h = hypot(fromPoint, *node->location);
+        if (d1 > h)
+        {
+            d1 = h;
+            fromVertex = v;
+        }
+        h = hypot(toPoint, *node->location);
+        if (d2 > h)
+        {
+            d2 = h;
+            toVertex = v;
+        }
+    }
+}
+
+std::vector<WayPoint>
+StreetDirectory::ShortestPathImpl::shortestWalkingPath(Point2D const & fromPoint,
+                                                       Point2D const & toPoint)
+const
+{
+    if (fromPoint == toPoint)
+        return std::vector<WayPoint>();
+
+    // Convert the fromPoint and toPoint (positions in 2D geometry) to vertices in the walkingMap_
+    // graph.  The fromVertex and toVertex corresponds to Node objects that are closest to the
+    // fromPoint and toPoint positions in the graph.
+    Vertex fromVertex, toVertex;
+    getVertices(fromVertex, toVertex, fromPoint, toPoint);
+
+    std::vector<WayPoint> path = shortestPath(fromVertex, toVertex, walkingMap_);
+    if (path.empty())
+        return path;
+
+    // If the fromPoint is not exactly located at fromVertex, then we need to insert a Waypoint
+    // that directs the pedestrian to move from fromPoint to fromVertex by some undefined mean.
+    // Similarly if toPoint is not located exactly at toVertex, then we append a WayPpint to
+    // move from tiVertex to toPoint.
+    std::vector<WayPoint> result;
+    Node const * node = boost::get(boost::vertex_name, walkingMap_, fromVertex);
+    if (*node->location != fromPoint)
+        result.push_back(WayPoint(node));
+    result.insert(result.end(), path.begin(), path.end());
+    node = boost::get(boost::vertex_name, walkingMap_, toVertex);
+    if (*node->location != toPoint)
+        result.push_back(WayPoint(node));
+    return result;
+}
+
+/** \endcond ignoreStreetDirectoryInnards -- End of block to be ignored by doxygen.  */
+
+////////////////////////////////////////////////////////////////////////////////////////////
 // StreetDirectory
 ////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -625,6 +1279,7 @@ StreetDirectory::init(RoadNetwork const & network, bool keepStats /* = false */,
     if (keepStats)
         stats_ = new Stats;
     pimpl_ = new Impl(network, gridWidth, gridHeight);
+    spImpl_ = new ShortestPathImpl(network);
 }
 
 StreetDirectory::LaneAndIndexPair
@@ -640,6 +1295,20 @@ StreetDirectory::closestRoadSegments(Point2D const & point,
 {
     return pimpl_ ? pimpl_->closestRoadSegments(point, halfWidth, halfHeight)
                   : std::vector<RoadSegmentAndIndexPair>();
+}
+
+std::vector<WayPoint>
+StreetDirectory::shortestDrivingPath(Node const & fromNode, Node const & toNode) const
+{
+    return spImpl_ ? spImpl_->shortestDrivingPath(fromNode, toNode)
+                   : std::vector<WayPoint>();
+}
+
+std::vector<WayPoint>
+StreetDirectory::shortestWalkingPath(Point2D const & fromPoint, Point2D const & toPoint) const
+{
+    return spImpl_ ? spImpl_->shortestWalkingPath(fromPoint, toPoint)
+                   : std::vector<WayPoint>();
 }
 
 void

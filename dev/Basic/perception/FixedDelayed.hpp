@@ -82,7 +82,9 @@ public:
 		}
 
 		//Return the first value in the list; can_sense() will have already performed the necessary updates.
-		return history.front().item;
+		const T& test = history.front().item;
+		return test; //Debugging....
+		//return history.front().item;
 	}
 
 

@@ -45,8 +45,8 @@ public:
 	void assignVehicle(Vehicle* v) {vehicle = v;}
 
 private:
-	static const double MAX_ACCELERATION		=	+10.0;//10m/s*s
-	static const double MAX_DECELERATION		=	-10.0;
+	static const double MAX_ACCELERATION		=	20.0;//10m/s*s
+	static const double MAX_DECELERATION		=	-20.0;
 
 	//Something I have to define
 
@@ -138,7 +138,6 @@ private:
 	const Lane* nextLaneInNextLink;
 	const Lane* leftLane;
 	const Lane* rightLane;
-	const Node* currNode;
 	const Link* desLink;
 	double currLaneOffset;
     double currLinkOffset;
@@ -147,7 +146,7 @@ private:
 	size_t RSIndex;
 	size_t polylineSegIndex;
 	size_t currLaneIndex;
-	std::vector<const Lane*> targetLane;
+	size_t targetLaneIndex;
 	StreetDirectory::LaneAndIndexPair laneAndIndexPair;
 	const std::vector<sim_mob::Point2D>* currLanePolyLine;
 	const std::vector<sim_mob::Point2D>* desLanePolyLine;
@@ -167,8 +166,10 @@ private:
 	bool isCrossingAhead;
 	bool closeToCrossing;
 	bool isForward;
+	bool nextIsForward;
 	bool isReachGoal;
 	bool lcEnterNewLane;
+	bool isTrafficLightStop;
 	std::vector<const Agent*> nearby_agents;
 	int distanceInFront;
 	int distanceBehind;
@@ -198,7 +199,8 @@ private:
 	bool isLeaveIntersection();
 	bool isGoalReached();
 	bool isCloseToLinkEnd();
-	void chooseNextLaneIntersection();
+	void chooseNextLaneForNextLink();
+	void directionIntersection();
 	int disToObstacle(unsigned obstacle_offset);
 	const Link* findLink(const MultiNode* start, const MultiNode* end);
 
@@ -228,7 +230,7 @@ private:
 	void findCrossing();
 
 	//helper function, to find the lane index in current road segment
-	size_t getLaneIndex(const Lane* l,const RoadSegment* r);
+	size_t getLaneIndex(const Lane* l);
 
 
 
@@ -258,6 +260,7 @@ private:
 	double minRFDistance;
 	double minRBDistance;
 	double minPedestrianDis;
+	double tsStopDistance;     // distance to stop line
 	double space;
 	double headway;				//distance/speed
 	double space_star;			//the distance which leading vehicle will move in next time step
@@ -329,6 +332,7 @@ public:
 	void UpdateNextLinkLane();
 	void enterNextLink();
 	bool isReachCrosswalk();
+	bool isInIntersection() const {return inIntersection;}
 
 private:
 	const Signal* trafficSignal;

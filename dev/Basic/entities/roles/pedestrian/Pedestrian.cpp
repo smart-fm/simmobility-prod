@@ -358,11 +358,11 @@ void sim_mob::Pedestrian::updateVelocity(int flag) //0-on sidewalk, 1-on crossin
 	yVel = yVel/length;
 	//Set actual velocity
 	if(flag==0)
-		scale = 2.5;
+		scale = 20;
 	else if(flag==1)
-		scale = 1;
+		scale = 1.5;
 	else if (flag==2)
-		scale = 1.8;
+		scale = 3;
 	xVel = xVel*speed*scale;
 	yVel = yVel*speed*scale;
 
@@ -389,11 +389,11 @@ void sim_mob::Pedestrian::updatePosition()
 	//Compute
 //	double newX = parent->xPos.get()+xVelCombined*1; //Time step is 1 second
 //	double newY = parent->yPos.get()+yVelCombined*1;
-//	int newX = (int)(parent->xPos.get()+ xVel*100*(((double)ConfigParams::GetInstance().agentTimeStepInMilliSeconds())/1000));
-//	int newY = (int)(parent->yPos.get()+ yVel*100*(((double)ConfigParams::GetInstance().agentTimeStepInMilliSeconds())/1000));
+	int newX = (int)(parent->xPos.get()+ xVel*100*(((double)ConfigParams::GetInstance().agentTimeStepInMilliSeconds())/1000));
+	int newY = (int)(parent->yPos.get()+ yVel*100*(((double)ConfigParams::GetInstance().agentTimeStepInMilliSeconds())/1000));
 
-	int newX = (int)(parent->xPos.get()+ xVel*100*1);
-	int newY = (int)(parent->yPos.get()+ yVel*100*1);
+//	int newX = (int)(parent->xPos.get()+ xVel*100*1);
+//	int newY = (int)(parent->yPos.get()+ yVel*100*1);
 
 	//Decrement collision velocity
 //	if (xCollisionVector != 0) {
@@ -496,22 +496,47 @@ void sim_mob::Pedestrian::setCrossingParas(){
 	const RoadSegment* segToCross;
 //	const Crossing* crossing;
 	std::set<sim_mob::RoadSegment*>::const_iterator i;
-	const MultiNode* start=dynamic_cast<const MultiNode*>(ConfigParams::GetInstance().getNetwork().locateNode(goal, true));
-	const MultiNode* end=dynamic_cast<const MultiNode*>(ConfigParams::GetInstance().getNetwork().locateNode(Point2D(37270984,14378959), true));
-	const std::set<sim_mob::RoadSegment*>& roadsegments=start->getRoadSegments();
+	const MultiNode* currNode=dynamic_cast<const MultiNode*>(ConfigParams::GetInstance().getNetwork().locateNode(goal, true));
+//	const MultiNode* end=dynamic_cast<const MultiNode*>(ConfigParams::GetInstance().getNetwork().locateNode(Point2D(37270984,14378959), true));
+	const std::set<sim_mob::RoadSegment*>& roadsegments=currNode->getRoadSegments();
+
+//	for(i=roadsegments.begin();i!=roadsegments.end();i++){
+//		if((*i)->getLink()->getStart()==end){
+//			segToCross = (*i);
+//			break;
+//		}
+//		else if((*i)->getLink()->getEnd()==end){
+//			segToCross = (*i);
+//			break;
+//		}
+//	}
 
 	for(i=roadsegments.begin();i!=roadsegments.end();i++){
-		if((*i)->getLink()->getStart()==end){
-			segToCross = (*i);
-			break;
-		}
-		else if((*i)->getLink()->getEnd()==end){
-			segToCross = (*i);
-			break;
+		if((*i)->getLink()->getStart()!=parent->originNode&&(*i)->getLink()->getEnd()!=parent->originNode&&(*i)->getLink()->getStart()!=parent->destNode&&(*i)->getLink()->getEnd()!=parent->destNode){
+			cStartX=(double)goal.getX();
+			cStartY=(double)goal.getY();
+			cEndX=(double)parent->destNode->location->getX();
+			cEndY=(double)parent->destNode->location->getY();
+			if((*i)->getStart()==currNode){
+				absToRel((*i)->getEnd()->location->getX(),(*i)->getEnd()->location->getY(),xRel,yRel);
+				if(yRel<0){
+					segToCross=(*i);
+					break;
+				}
+			}
+			else{
+				absToRel((*i)->getStart()->location->getX(),(*i)->getStart()->location->getY(),xRel,yRel);
+				if(yRel<0){
+					segToCross=(*i);
+					break;
+				}
+			}
+//			segToCross=(*i);
+//			break;
 		}
 	}
 
-	if(segToCross->getStart()==start){
+	if(segToCross->getStart()==currNode){
 		 currCrossing=dynamic_cast<const Crossing*>(segToCross->nextObstacle(0,true).item);
 	}
 	else{
@@ -526,21 +551,21 @@ void sim_mob::Pedestrian::setCrossingParas(){
 		Point2D near2 = currCrossing->nearLine.second;
 
 		//Determine the direction of two points
-		if((far1.getY()>far2.getY()&&goal.getY()>parent->originNode->location->getY())||(far1.getY()<far2.getY()&&goal.getY()<parent->originNode->location->getY())){
-			cStartX=(double)far2.getX();
-			cStartY=(double)far2.getY();
-			cEndX=(double)far1.getX();
-			cEndY=(double)far1.getY();
+		if((near1.getY()>near2.getY()&&goal.getY()>parent->originNode->location->getY())||(near1.getY()<near2.getY()&&goal.getY()<parent->originNode->location->getY())){
+			cStartX=(double)near2.getX();
+			cStartY=(double)near2.getY();
+			cEndX=(double)near1.getX();
+			cEndY=(double)near1.getY();
 			absToRel(cEndX,cEndY,length,tmp);
-			absToRel((double)near2.getX(),(double)near2.getY(),tmp,width);
+			absToRel((double)far2.getX(),(double)far2.getY(),tmp,width);
 		}
 		else{
-			cStartX=(double)far1.getX();
-			cStartY=(double)far1.getY();
-			cEndX=(double)far2.getX();
-			cEndY=(double)far2.getY();
+			cStartX=(double)near1.getX();
+			cStartY=(double)near1.getY();
+			cEndX=(double)near2.getX();
+			cEndY=(double)near2.getY();
 			absToRel(cEndX,cEndY,length,tmp);
-			absToRel((double)near1.getX(),(double)near1.getY(),tmp,width);
+			absToRel((double)far1.getX(),(double)far1.getY(),tmp,width);
 		}
 
 		xRel = 0;
@@ -600,6 +625,13 @@ void sim_mob::Pedestrian::relToAbs(double xRel, double yRel, double & xAbs, doub
 	double yDirection=yDir/magnitude;
 	xAbs=xRel*xDirection-yRel*yDirection+cStartX;
 	yAbs=xRel*yDirection+yRel*xDirection+cStartY;
+}
+
+bool sim_mob::Pedestrian::isOnCrossing(){
+	if(currentStage==1&&startToCross==true)
+		return true;
+	else
+		return false;
 }
 
 

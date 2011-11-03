@@ -31,12 +31,15 @@ public class PedestrianTick extends AgentTick {
 		this.pos = new ScaledPoint(posX, posY, spg);
 	}
 	
-	public void draw(Graphics2D g) {
+	public void draw(Graphics2D g, double scale) {
 		//Save old transformation.
 		AffineTransform oldAT = g.getTransform();
 		
 		//Translate
 		AffineTransform at = AffineTransform.getTranslateInstance(pos.getX(), pos.getY());
+		
+		//Scale
+		at.scale(1/scale + 0.2, 1/scale + 0.2);
 		
 		//Translate to top-left corner
 		at.translate(-PedImg.getWidth()/2, -PedImg.getHeight()/2);

@@ -85,7 +85,7 @@ public class NetworkVisualizer {
 		//Save
 		currPercentZoom = percent;
 		
-//		System.out.println("percent: "+percent);
+		//System.out.println("percent: "+percent);
 
 		
 		//Determine the width and height of our canvas.
@@ -108,6 +108,8 @@ public class NetworkVisualizer {
 	}
 	
 	public void redrawAtCurrScale() {
+		//System.out.println(" refresh");
+		
 		//Retrieve a graphics object; ensure it'll anti-alias
 		Graphics2D g = (Graphics2D)buffer.getGraphics();
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -174,7 +176,8 @@ public class NetworkVisualizer {
 		
 		//Now draw simulation data: cars, etc.
 		for (AgentTick at : simRes.ticks.get(currFrameTick).agentTicks.values()) {
-			at.draw(g);
+			
+			at.draw(g,currPercentZoom);
 		}
 		
 	}

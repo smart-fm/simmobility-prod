@@ -13,6 +13,7 @@ namespace sim_mob
 {
 
 //Forward declarations
+class TripChain;
 class RoadNetwork;
 class Link;
 
@@ -39,7 +40,7 @@ public:
 	/// 3) Discard the AIMSUN classes; return the Sim Mobility classes.
 	///Returns false if an exception was thrown or if something else unexpected occurred
 	//  (e.g., Node ID reference that doesn't exist).
-	static std::string LoadNetwork(const std::string& connectionStr, std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn);
+	static std::string LoadNetwork(const std::string& connectionStr, std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn, std::vector<sim_mob::TripChain*>& tcs);
 
 	//Semi-private functions
 	static void ProcessGeneralNode(sim_mob::RoadNetwork& res, Node& src);

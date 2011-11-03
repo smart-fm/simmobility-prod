@@ -5,7 +5,7 @@
 using namespace sim_mob;
 
 
-sim_mob::Person::Person(unsigned int id) : Agent(id), currRole(nullptr)
+sim_mob::Person::Person(unsigned int id) : Agent(id), currRole(nullptr), currTripChain(nullptr)
 {
 
 }

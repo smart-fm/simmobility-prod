@@ -11,7 +11,6 @@
 
 #include "geospatial/Point2D.hpp"
 #include "geospatial/RoadNetwork.hpp"
-#include "simple_classes.h"
 
 
 namespace sim_mob
@@ -21,6 +20,7 @@ namespace sim_mob
 class Agent;
 class Person;
 class Region;
+class TripChain;
 
 
 /**
@@ -43,12 +43,12 @@ public:
 
 	std::string connectionString;
 
-        unsigned int totalRuntimeInMilliSeconds() const { return totalRuntimeTicks * baseGranMS; }
-        unsigned int warmupTimeInMilliSeconds() const { return totalWarmupTicks * baseGranMS; }
-        unsigned int agentTimeStepInMilliSeconds() const { return granAgentsTicks * baseGranMS; }
-        unsigned int signalTimeStepInMilliSeconds() const { return granSignalsTicks * baseGranMS; }
-        unsigned int pathsTimeStepInMilliSeconds() const { return granPathsTicks * baseGranMS; }
-        unsigned int DecompTimeStepInMilliSeconds() const { return granDecompTicks * baseGranMS; }
+	unsigned int totalRuntimeInMilliSeconds() const { return totalRuntimeTicks * baseGranMS; }
+	unsigned int warmupTimeInMilliSeconds() const { return totalWarmupTicks * baseGranMS; }
+	unsigned int agentTimeStepInMilliSeconds() const { return granAgentsTicks * baseGranMS; }
+	unsigned int signalTimeStepInMilliSeconds() const { return granSignalsTicks * baseGranMS; }
+	unsigned int pathsTimeStepInMilliSeconds() const { return granPathsTicks * baseGranMS; }
+	unsigned int DecompTimeStepInMilliSeconds() const { return granDecompTicks * baseGranMS; }
 
 public:
 	/***
@@ -60,13 +60,15 @@ public:
 	 * Load the defualt user config file; initialize all vectors. This function must be called
 	 * once before GetInstance() will return meaningful data.
 	 */
-	static bool InitUserConf(const std::string& configPath, std::vector<Agent*>& agents, std::vector<Region*>& regions,
-	          std::vector<TripChain*>& trips, std::vector<ChoiceSet*>& chSets);
+	static bool InitUserConf(const std::string& configPath, std::vector<Agent*>& agents);
 
 	/**
-	 * Retrive a reference to the current RoadNetwork.
+	 * Retrieve a reference to the current RoadNetwork.
 	 */
 	sim_mob::RoadNetwork& getNetwork() { return network; }
+
+	///Retrieve a reference to the list of trip chains.
+	std::vector<sim_mob::TripChain*>& getTripChains() { return tripchains; }
 
 
 private:
@@ -74,6 +76,7 @@ private:
 	static ConfigParams instance;
 
 	sim_mob::RoadNetwork network;
+	std::vector<sim_mob::TripChain*> tripchains;
 };
 
 }

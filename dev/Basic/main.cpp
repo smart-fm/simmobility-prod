@@ -11,9 +11,7 @@
 #include <string>
 #include <boost/thread.hpp>
 
-#include "simple_classes.h"
 #include "constants.h"
-#include "stubs.h"
 
 #include "workers/Worker.hpp"
 #include "workers/EntityWorker.hpp"
@@ -26,6 +24,7 @@
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
 #include "util/OutputUtil.hpp"
+#include "util/DailyTime.hpp"
 
 //Just temporarily, so we know it compiles:
 #include "entities/Signal.hpp"
@@ -51,25 +50,34 @@ using namespace sim_mob;
 typedef WorkGroup<Entity> EntityWorkGroup;
 
 
-/**
- * First "loading" step is special. Initialize all agents using work groups in parallel.
- */
-void InitializeAll(vector<Agent*>& agents, vector<Region*>& regions, vector<TripChain*>& trips,
-		      vector<ChoiceSet*>& choiceSets);
+//Function prototypes.
+void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents);
+bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents);
+bool TestTimeClass();
 
 
 
-//TEST
+///Worker function for entity-related loading tasks.
 void entity_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
 {
 	for (std::vector<sim_mob::Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
 		(*it)->update(frameNumber);
 	}
 }
+
+///Worker function for signal status loading task.
 void signal_status_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
 {
 	for (std::vector<sim_mob::Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
             (*it)->update(frameNumber);
+	}
+}
+
+///Worker function for loading agents.
+void load_agents(sim_mob::Worker<sim_mob::Agent>& wk, frame_t frameNumber)
+{
+	for (std::vector<sim_mob::Agent*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
+		trivial((*it)->getId());
 	}
 }
 
@@ -98,21 +106,18 @@ bool performMain(const std::string& configFileName)
 {
   //Initialization: Scenario definition
   vector<Agent*>& agents = Agent::all_agents;
-  vector<Region*> regions;
-  vector<TripChain*> trips;
-  vector<ChoiceSet*> choiceSets;
 
   //Load our user config file; save a handle to the shared definition of it.
-  if (!ConfigParams::InitUserConf(configFileName, agents, regions, trips, choiceSets)) {   //Note: Agent "shells" are loaded here.
+  if (!ConfigParams::InitUserConf(configFileName, agents)) {   //Note: Agent "shells" are loaded here.
 	  return false;
   }
   const ConfigParams& config = ConfigParams::GetInstance();
 
   //Initialization: Server configuration
-  setConfiguration();
+  //setConfiguration();  //NOTE: This is done within InitUserConf().
 
   //Initialization: Network decomposition among multiple machines.
-  loadNetwork();
+  //loadNetwork();   //NOTE: This will occur within the partition manager.
 
 
 
@@ -123,11 +128,11 @@ bool performMain(const std::string& configFileName)
   //       value, but at the moment we don't even have a "properties class"
   ///////////////////////////////////////////////////////////////////////////////////
   cout <<"Beginning Initialization" <<endl;
-  InitializeAll(agents, regions, trips, choiceSets);
+  InitializeAllAgentsAndAssignToWorkgroups(agents);
   cout <<"  " <<"Initialization done" <<endl;
 
   //Sanity check (simple)
-  if (!checkIDs(agents, trips, choiceSets)) {
+  if (!CheckAgentIDs(agents /*trips,*/ /*choiceSets*/)) {
 	  return false;
   }
 
@@ -136,6 +141,13 @@ bool performMain(const std::string& configFileName)
   if (x) {
 	  return false;
   }
+
+  //Sanity check (time class)
+  if (!TestTimeClass()) {
+	  std::cout <<"Aborting: Time class tests failed.\n";
+	  return false;
+  }
+
 
   //Output
   cout <<"  " <<"...Sanity Check Passed" <<endl;
@@ -157,20 +169,6 @@ bool performMain(const std::string& configFileName)
   for (size_t i=0; i<Signal::all_signals_.size(); i++) {
 	  signalStatusWorkers.migrate(const_cast<Signal*>(Signal::all_signals_[i]), -1, i%WG_SIGNALS_SIZE);
   }
-
-  //Initialize our shortest path work groups
-  //  TODO: There needs to be a more general way to do this.
-  //EntityWorkGroup shortestPathWorkers(WG_SHORTEST_PATH_SIZE, config.totalRuntimeTicks, config.granPathsTicks);
-  //shortestPathWorkers.initWorkers();
-  /////////////////////////////////////////////////////////////////////////////
-  // NOTE: Currently, an Agent can only be "managed" by one Worker. We need a way to
-  //       say that the agent is the data object of a worker, but WON'T be managed by it.
-  // For example, shortest-path-worker only needs to read X/Y, but will update "shortestPath"
-  //        (which the EntityWorker won't touch).
-  /////////////////////////////////////////////////////////////////////////////
-  /*for (size_t i=0; i<agents.size(); i++) {
-	  shortestPathWorkers.migrate(&agents[i], -1, i%WG_SHORTEST_PATH_SIZE);
-  }*/
 
   //Start work groups
   agentWorkers.startAll();
@@ -197,14 +195,13 @@ bool performMain(const std::string& configFileName)
 	  signalStatusWorkers.wait();
 
 	  //Update weather, traffic conditions, etc.
-	  updateTrafficInfo(regions);
+	  //updateTrafficInfo(regions);
 
 	  //Longer Time-based cycle
 	  //shortestPathWorkers.wait();
 
 	  //Longer Time-based cycle
-	  //TODO: Put these on Worker threads too.
-	  agentDecomposition(agents);
+	  //agentDecomposition(agents);  //NOTE: This should be performed by some other Agent on some kind of worker thread.
 
 	  //Agent-based cycle
 	  agentWorkers.wait();
@@ -213,18 +210,18 @@ bool performMain(const std::string& configFileName)
 	  agentWorkers.waitExternAgain(); // The workers wait on the AuraManager.
 
 	  //Surveillance update
-	  updateSurveillanceData(agents);
+	  //updateSurveillanceData(agents);
 
 	  //Check if the warmup period has ended.
 	  if (currTick >= config.totalWarmupTicks) {
-		  updateGUI(agents);
-		  saveStatistics(agents);
+		  //updateGUI(agents);
+		  //saveStatistics(agents);
 	  } else {
 		  boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 		  cout <<"  Warmup; output ignored." <<endl;
 	  }
 
-	  saveStatisticsToDB(agents);
+	  //saveStatisticsToDB(agents);
   }
 
   cout <<"Simulation complete; closing worker threads." <<endl;
@@ -278,49 +275,144 @@ int main(int argc, char* argv[])
 
 
 /**
- * Parallel initialization step.
+ * Parallel initialization step. Note that this function was created very early in development,
+ *   and will eventually have to be migrated to the dispatcher.
  */
-void InitializeAll(vector<Agent*>& agents, vector<Region*>& regions, vector<TripChain*>& trips,
-	      vector<ChoiceSet*>& choiceSets)
+void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents)
 {
 	  //Our work groups. Will be disposed after this time tick.
-	  SimpleWorkGroup<TripChain> tripChainWorkers(WG_TRIPCHAINS_SIZE, 1);
 	  WorkGroup<sim_mob::Agent> createAgentWorkers(WG_CREATE_AGENT_SIZE, 1);
-	  SimpleWorkGroup<ChoiceSet> choiceSetWorkers(WG_CHOICESET_SIZE, 1);
 
-	  //Create object from DB; for long time spans objects must be created on demand.
-	  Worker<TripChain>::actionFunction func1 = boost::bind(load_trip_chain, _1, _2);
-	  tripChainWorkers.initWorkers(&func1);
-	  for (size_t i=0; i<trips.size(); i++) {
-		  tripChainWorkers.migrate(trips[i], -1, i%WG_TRIPCHAINS_SIZE);
-	  }
-
-	  //Agents and choice sets
+	  //Create agents
 	  Worker<sim_mob::Agent>::actionFunction func2 = boost::bind(load_agents, _1, _2);
 	  createAgentWorkers.initWorkers(&func2);
 	  for (size_t i=0; i<agents.size(); i++) {
 		  createAgentWorkers.migrate(agents[i], -1, i%WG_CREATE_AGENT_SIZE);
 	  }
-	  Worker<ChoiceSet>::actionFunction func3 = boost::bind(load_choice_sets, _1, _2);
-	  choiceSetWorkers.initWorkers(&func3);
-	  for (size_t i=0; i<choiceSets.size(); i++) {
-		  choiceSetWorkers.migrate(choiceSets[i], -1, i%WG_CHOICESET_SIZE);
-	  }
 
 	  //Start
 	  cout <<"  Starting threads..." <<endl;
-	  tripChainWorkers.startAll();
 	  createAgentWorkers.startAll();
-	  choiceSetWorkers.startAll();
 
 	  //Flip once
-	  tripChainWorkers.wait();
 	  createAgentWorkers.wait();
-	  choiceSetWorkers.wait();
 
 	  cout <<"  Closing all work groups..." <<endl;
 }
 
+
+
+/**
+ * Simple sanity check on Agent IDs. Checks that IDs start at 0, end at size(agents)-1,
+ *   and contain every value in between. Order is not important.
+ */
+bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents) {
+	std::set<int> agent_ids;
+	bool foundZero = false;
+	bool foundMax = false;
+	for (size_t i=0; i<agents.size(); i++) {
+		int id = agents[i]->getId();
+		agent_ids.insert(id);
+		if (id==0) {
+			foundZero = true;
+		}
+		if (id+1==static_cast<int>(agents.size())) {
+			foundMax = true;
+		}
+	}
+	if (agents.size()!=agent_ids.size() || !foundZero || !foundMax) {
+		std::cout <<"Error, invalid Agent ID: " <<(agents.size()!=agent_ids.size()) <<","
+			<<!foundZero <<"," <<!foundMax <<std::endl;
+		return false;
+	}
+
+	return true;
+}
+
+
+bool TestTimeClass()
+{
+	{ //Ensure nonsense isn't parsed
+	try {
+		DailyTime a("ABCDEFG");
+		std::cout <<"Nonsensical input test failed.\n";
+		return false;
+	} catch (std::exception& ex) {}
+	}
+
+	{ //Ensure optional seconds can be parsed.
+	DailyTime a("08:30:00");
+	DailyTime b("08:30");
+	if (!a.isEqual(b)) {
+		std::cout <<"Optional seconds test failed.\n";
+		return false;
+	}
+	}
+
+	{ //Ensure hours/minutes are mandatory
+	try {
+		DailyTime a("08");
+		std::cout <<"Non-optional seconds test failed.\n";
+		return false;
+	} catch (std::exception& ex) {}
+	}
+
+	{ //Check time comparison
+	DailyTime a("08:30:00");
+	DailyTime b("08:30:01");
+	if (a.isEqual(b) || a.isAfter(b) || !a.isBefore(b)) {
+		std::cout <<"Single second after test failed.\n";
+		return false;
+	}
+	}
+
+	{ //Check time comparison
+	DailyTime a("09:30:00");
+	DailyTime b("08:30:00");
+	if (a.isEqual(b) || !a.isAfter(b) || a.isBefore(b)) {
+		std::cout <<"Single hour before test failed.\n";
+		return false;
+	}
+	}
+
+	{ //Check parsing fractions
+	DailyTime a("08:30:00.5");
+	DailyTime b("08:30:00");
+	if (a.isEqual(b) || !a.isAfter(b) || a.isBefore(b)) {
+		std::cout <<"Half second before test failed.\n";
+		return false;
+	}
+	}
+
+	{ //Check mandatory hours/minutes
+	try {
+		DailyTime a("08.5");
+		std::cout <<"Mandatory minutes test 1 failed.\n";
+		return false;
+	} catch (std::exception& ex) {}
+	}
+
+	{ //Check mandatory hours/minutes
+	try {
+		DailyTime a("08:30.5");
+		std::cout <<"Mandatory minutes test 2 failed.\n";
+		return false;
+	} catch (std::exception& ex) {}
+	}
+
+	{ //Check fraction comparisons
+	DailyTime a("08:30:00.3");
+	DailyTime b("08:30:00.5");
+	if (a.isEqual(b) || a.isAfter(b) || !a.isBefore(b)) {
+		std::cout <<"Sub-second comparison test failed.\n";
+		return false;
+	}
+	}
+
+	std::cout <<"Warning: No tests were performed on DailyTime with a time_t constructor.\n";
+	std::cout <<"DailyTime tests passed.\n";
+	return true;
+}
 
 
 

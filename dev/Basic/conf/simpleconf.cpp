@@ -10,7 +10,6 @@
 //Include here (forward-declared earlier) to avoid include-cycles.
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
-#include "entities/Region.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "geospatial/aimsun/Loader.hpp"
@@ -23,6 +22,8 @@
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/StreetDirectory.hpp"
 #include "util/OutputUtil.hpp"
+
+#include "entities/misc/TripChain.hpp"
 
 using std::cout;
 using std::endl;
@@ -115,7 +116,6 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 	//Loop through all agents of this type
 	for (;node;node=node->NextSiblingElement()) {
 		Person* agent = nullptr;
-		bool foundID = false;
 		bool foundXPos = false;
 		bool foundYPos = false;
 		bool foundOrigPos = false;
@@ -132,16 +132,23 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 				std::istringstream(value) >> valueI;
 			}
 
-			//Assign it.
+			//For now, IDs are assigned automatically
 			if (name=="id") {
-				agent = new Person(valueI);
+				throw std::runtime_error("Error: Agents should no longer specify IDs in the config file.");
+			}
+
+			//Create the agent if it doesn't exist
+			if (!agent) {
+				agent = new Person(Agent::GetAndIncrementID());
 				if (agentType=="pedestrian") {
 					agent->changeRole(new Pedestrian(agent));
 				} else if (agentType=="driver") {
 					agent->changeRole(new Driver(agent));
 				}
-				foundID = true;
-			} else if (name=="xPos") {
+			}
+
+			//Assign it.
+			if (name=="xPos") {
 				agent->xPos.force(valueI);
 				foundXPos = true;
 			} else if (name=="yPos") {
@@ -182,10 +189,6 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 
 		//Simple checks
 		bool foundOldPos = foundXPos && foundYPos;
-		if (!foundID) {
-			std::cout <<"id attribute not found.\n";
-			return false;
-		}
 		if (!foundOldPos && !foundOrigPos && !foundDestPos) {
 			std::cout <<"agent position information not found.\n";
 			return false;
@@ -248,7 +251,8 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal const *>& all_si
                     continue;
                 }
 
-                size_t id = all_signals.size();
+                //size_t id = all_signals.size();
+                int id = Agent::GetAndIncrementID();
                 Signal* sig = new Signal(id, *road_node);
                 all_signals.push_back(sig);
                 streetDirectory.registerSignal(*sig);
@@ -305,7 +309,7 @@ bool LoadDatabaseDetails(TiXmlElement& parentElem, string& connectionString, map
 	}
 
 	//Done; we'll check the storedProcedures in detail later.
-	return !connectionString.empty() && storedProcedures.size()==6;
+	return !connectionString.empty() && storedProcedures.size()==7;
 }
 
 
@@ -657,12 +661,13 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     			   storedProcedures.count("node")==0 || storedProcedures.count("section")==0
     			|| storedProcedures.count("turning")==0 || storedProcedures.count("polyline")==0
     			|| storedProcedures.count("crossing")==0 || storedProcedures.count("lane")==0
+    			|| storedProcedures.count("tripchain")==0
     		) {
     			return "Not all stored procedures were specified.";
     		}
 
     		//Actually load it
-    		string dbErrorMsg = sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetwork());
+    		string dbErrorMsg = sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetwork(), ConfigParams::GetInstance().getTripChains());
     		if (!dbErrorMsg.empty()) {
     			return "Database loading error: " + dbErrorMsg;
     		}
@@ -700,6 +705,16 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     //TEMP: Eventually, we'll need a more sane way to deal with agent IDs.
     std::sort(agents.begin(), agents.end(), agent_sort_by_id);
 
+    //Assign each agent an arbitrary trip chain
+    for (vector<Agent*>::iterator it=agents.begin(); it!=agents.end(); it++) {
+    	Person* p = dynamic_cast<Person*>(*it);
+    	if (p) {
+    		int nextID = rand() % ConfigParams::GetInstance().getTripChains().size();
+    		TripChain* tc = ConfigParams::GetInstance().getTripChains().at(nextID);
+    		p->setTripChain(tc);
+    	}
+    }
+
 
     //Display
     std::cout <<"Config parameters:\n";
@@ -731,6 +746,12 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     std::cout <<"  Agents Initialized: " <<agents.size() <<"\n";
     for (size_t i=0; i<agents.size(); i++) {
     	std::cout <<"    Agent(" <<agents[i]->getId() <<") = " <<agents[i]->xPos.get() <<"," <<agents[i]->yPos.get() <<"\n";
+
+    	Person* p = dynamic_cast<Person*>(agents[i]);
+    	if (p) {
+    		const TripChain* const tc = p->getTripChain();
+    		std::cout <<"      Trip Chain start time: " <<tc->startTime.toString()  <<" from: " <<tc->from.description <<"(" <<tc->from.location <<") to: " <<tc->to.description <<"(" <<tc->to.location <<") mode: " <<tc->mode <<" primary: " <<tc->primary  <<" flexible: " <<tc->flexible <<"\n";
+    	}
     }
     std::cout <<"------------------\n";
 
@@ -767,8 +788,7 @@ ConfigParams& sim_mob::ConfigParams::GetInstance() {
 // Main external method
 //////////////////////////////////////////
 
-bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Agent*>& agents, std::vector<Region*>& regions,
-		          std::vector<TripChain*>& trips, std::vector<ChoiceSet*>& chSets)
+bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Agent*>& agents)
 {
 	//Load our config file into an XML document object.
 	TiXmlDocument doc(configPath);
@@ -785,13 +805,7 @@ bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<A
 		std::cout <<"Aborting on Config Error: " <<errorMsg <<std::endl;
 	}
 
-	//TEMP:
-	for (size_t i=0; i<5; i++)
-		regions.push_back(new Region(i));
-	for (size_t i=0; i<6; i++)
-		trips.push_back(new TripChain(i));
-	for (size_t i=0; i<15; i++)
-		chSets.push_back(new ChoiceSet(i));
+	//Emit a message if parsing was successful.
 	if (errorMsg.empty()) {
 		std::cout <<"Configuration complete." <<std::endl;
 	}

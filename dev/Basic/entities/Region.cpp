@@ -17,8 +17,6 @@ void sim_mob::Region::update(frame_t frameNumber) {
 	for (std::vector<Signal*>::iterator it=signals.begin(); it!=signals.end(); it++) {
 		//trivial(it->id);  //Again, for now do nothing.
 	}
-
-	//std::cout<<"Test Changes"<<std::endl; //Seth, Fun;
 }
 
 

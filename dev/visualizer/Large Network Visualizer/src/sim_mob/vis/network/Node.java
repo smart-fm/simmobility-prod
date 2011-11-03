@@ -34,6 +34,7 @@ public class Node implements DrawableItem {
 		int[] coords = new int[]{(int)pos.getX()-NODE_SIZE/2, (int)pos.getY()-NODE_SIZE/2};
 		g.setColor(nodeColor);
 		g.fillOval(coords[0], coords[1], NODE_SIZE, NODE_SIZE);
+		
 		if (isUni) {
 			g.setStroke(nodeThinStroke);
 			g.setColor(Color.BLUE);
@@ -42,7 +43,7 @@ public class Node implements DrawableItem {
 			g.setColor(Color.BLACK);
 		}
 		
-		g.drawOval(coords[0], coords[1], NODE_SIZE, NODE_SIZE);
+		g.drawOval(coords[0], coords[1], NODE_SIZE	, NODE_SIZE);
 		
 	}
 	

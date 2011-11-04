@@ -21,7 +21,7 @@ template<> struct type_conversion<TripChain>
     typedef values base_type;
     static void from_base(const soci::values& vals, soci::indicator& ind, TripChain &res)
     {
-    	res.id = vals.get<int>("activity_id", 0);
+    	res.EMPTY_activityID = vals.get<int>("activity_id", 0);
     	res.from.description = vals.get<std::string>("from_activity_desc", "");
     	res.from.TMP_locationNodeID = vals.get<int>("from_location", 0);
     	res.to.description = vals.get<std::string>("to_activity_desc", "");
@@ -33,7 +33,7 @@ template<> struct type_conversion<TripChain>
     }
     static void to_base(const TripChain& src, soci::values& vals, soci::indicator& ind)
     {
-    	vals.set("activity_id", src.id);
+    	vals.set("activity_id", src.EMPTY_activityID);
     	vals.set("from_activity_desc", src.from.description);
     	vals.set("from_location", src.from.location->id);
     	vals.set("to_activity_desc", src.to.description);

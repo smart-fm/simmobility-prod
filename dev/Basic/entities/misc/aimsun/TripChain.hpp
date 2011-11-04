@@ -43,7 +43,7 @@ struct TripActivity {
 
 
 ///A trip chain. Not technically part of AIMSUN; we may have to rename this folder later.
-class TripChain : public Base {
+class TripChain /*: public Base*/ {
 public:
 	TripActivity from;
 	TripActivity to;
@@ -55,13 +55,16 @@ public:
 
 	std::string mode;
 
-	TripChain() : Base() {
+	TripChain() /*: Base()*/ {
 		from.location = nullptr;
 		to.location = nullptr;
 	}
 
 	//Placeholder
 	std::string TMP_startTimeStr;
+
+	//Unused
+	int EMPTY_activityID;
 
 	//Reference to saved object
 	sim_mob::TripChain* generatedTC;

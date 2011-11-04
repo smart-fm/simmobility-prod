@@ -38,7 +38,7 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent)
 	}
 
 	//Init
-	sigColor = 2; //Green by default
+	sigColor = Signal::Green; //Green by default
 	currentStage=0;
 	setGoal(currentStage);
 	startToCross=false;
@@ -121,18 +121,18 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 				//Check whether to start to cross or not
 				updatePedestrianSignal();
 				if(!startToCross){
-					if(sigColor == 2)  //Green phase
+					if(sigColor == Signal::Green)  //Green phase
 						startToCross = true;
-					else if(sigColor == 0){ //Red phase
+					else if(sigColor == Signal::Red){ //Red phase
 						if(checkGapAcceptance()==true)
 							startToCross=true;
 					}
 				}
 
 				if(startToCross){
-					if(sigColor==2) //Green phase
+					if(sigColor==Signal::Green) //Green phase
 						updateVelocity(1);
-					else if (sigColor ==0) //Red phase
+					else if (sigColor ==Signal::Red) //Red phase
 						updateVelocity(2);
 					updatePosition();
 				}

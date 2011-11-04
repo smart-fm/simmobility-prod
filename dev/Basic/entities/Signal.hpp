@@ -184,6 +184,15 @@ public:
          */
 	TrafficColor getPedestrianLight(Crossing const & crossing) const;
 
+        /**
+         * Return the internal links mapping.
+         */
+        std::map<Link const *, size_t> const & links_map() const { return links_map_; }
+        /**
+         * Return the internal crossings mapping.
+         */
+        std::map<Crossing const *, size_t> const & crossings_map() const { return crossings_map_; }
+
         static std::vector<Signal const *> all_signals_;
 
 private:

@@ -36,6 +36,11 @@ bool sim_mob::DailyTime::isEqual(const DailyTime& other) const
 	return time_ == other.time_;
 }
 
+uint32_t sim_mob::DailyTime::offsetMS_From(const DailyTime& other) const
+{
+	return time_ - other.time_;
+}
+
 string sim_mob::DailyTime::toString() const
 {
 	return repr_;

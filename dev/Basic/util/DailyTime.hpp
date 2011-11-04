@@ -38,6 +38,9 @@ public:
 	bool isAfter(const DailyTime& other) const;
 	bool isEqual(const DailyTime& other) const;
 
+	///Retrieve the distance in MS between another DailyTime and this.
+	uint32_t offsetMS_From(const DailyTime& other) const;
+
 	//Accessors
 	std::string toString() const;
 

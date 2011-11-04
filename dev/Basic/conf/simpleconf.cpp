@@ -98,6 +98,41 @@ int ReadGranularity(TiXmlHandle& handle, const std::string& granName)
 }
 
 
+bool generateAgentsFromTripChain(std::vector<Agent*>& agents)
+{
+	const vector<TripChain*>& tcs = ConfigParams::GetInstance().getTripChains();
+	for (vector<TripChain*>::const_iterator it=tcs.begin(); it!=tcs.end(); it++) {
+		//Create a new agent, add it to the list of agents.
+		Person* curr = new Person(Agent::GetAndIncrementID());
+		agents.push_back(curr);
+
+		//Set its mode.
+		if ((*it)->mode == "Car") {
+			curr->changeRole(new Driver(curr));
+		} else if ((*it)->mode == "Walk") {
+			curr->changeRole(new Pedestrian(curr));
+		} else {
+			cout <<"Unknown agent mode: " <<(*it)->mode <<endl;
+			return false;
+		}
+
+		//Origin, destination
+		curr->originNode = (*it)->from.location;
+		curr->destNode = (*it)->to.location;
+
+		//Start time
+		curr->startTime = (*it)->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
+
+		//TEMP
+		cout <<"Starting time declared as: " <<(*it)->startTime.toString() <<"\n";
+		cout <<"   offset from " <<ConfigParams::GetInstance().simStartTime.toString() <<" is " <<(curr->startTime/1000.0) <<"s\n";
+	}
+
+	return true;
+}
+
+
+
 bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const std::string& agentType)
 {
 	//Quick check.
@@ -689,6 +724,12 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     	} else {
     		return "Unknown geometry type: " + (geomType?string(geomType):"");
     	}
+    }
+
+
+    //Create an agent for each Trip Chain in the database.
+    if (!generateAgentsFromTripChain(agents)) {
+    	return "Couldn't generate agents from trip chains.";
     }
 
 

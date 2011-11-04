@@ -987,7 +987,7 @@ StreetDirectory::ShortestPathImpl::Vertex
 StreetDirectory::ShortestPathImpl::findVertex(Point2D const & point)
 {
     Node const * node = findVertex(walkingMap_, point, 1000);
-    if (nullptr == node)
+    if (!node)
     {
         Node * n = new UniNode();
         n->location = new Point2D(point.getX(), point.getY());

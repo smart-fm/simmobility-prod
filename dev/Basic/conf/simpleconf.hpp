@@ -9,6 +9,7 @@
 
 #include <boost/utility.hpp>
 
+#include "util/DailyTime.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/RoadNetwork.hpp"
 
@@ -37,6 +38,9 @@ public:
 	unsigned int granSignalsTicks;    ///<Number of ticks to wait before updating all signals.
 	unsigned int granPathsTicks;      ///<Number of ticks to wait before updating all paths.
 	unsigned int granDecompTicks;     ///<Number of ticks to wait before updating agent decomposition.
+
+	//When the simulation begins
+	DailyTime simStartTime;
 
 	std::map<std::string, Point2D> boundaries;  ///<Indexed by position, e.g., "bottomright"
 	std::map<std::string, Point2D> crossings;   ///<Indexed by position, e.g., "bottomright"

@@ -575,6 +575,10 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
 	int totalRuntime = ReadGranularity(handle, "total_runtime");
 	int totalWarmup = ReadGranularity(handle, "total_warmup");
 
+	//Save simulation start time
+	TiXmlElement* node = handle.FirstChild("start_time").ToElement();
+	const char* simStartStr = node ? node->Attribute("value") : nullptr;
+
 	//Save more granularities
 	handle = TiXmlHandle(&document);
 	handle = handle.FirstChild("config").FirstChild("system").FirstChild("granularities");
@@ -585,7 +589,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
 
 	//Check
     if(    baseGran==-1 || totalRuntime==-1 || totalWarmup==-1
-    	|| granAgent==-1 || granSignal==-1 || granPaths==-1 || granDecomp==-1) {
+    	|| granAgent==-1 || granSignal==-1 || granPaths==-1 || granDecomp==-1 || !simStartStr) {
         return "Unable to read config file.";
     }
 
@@ -625,6 +629,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     	config.granSignalsTicks = granSignal/baseGran;
     	config.granPathsTicks = granPaths/baseGran;
     	config.granDecompTicks = granDecomp/baseGran;
+    	config.simStartTime = DailyTime(simStartStr);
     }
 
 
@@ -726,6 +731,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     std::cout <<"  Signal Granularity: " <<ConfigParams::GetInstance().granSignalsTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Paths Granularity: " <<ConfigParams::GetInstance().granPathsTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Decomp Granularity: " <<ConfigParams::GetInstance().granDecompTicks <<" " <<"ticks" <<"\n";
+    std::cout <<"  Start time: " <<ConfigParams::GetInstance().simStartTime.toString() <<"\n";
     if (!ConfigParams::GetInstance().boundaries.empty() || !ConfigParams::GetInstance().crossings.empty()) {
     	std::cout <<"  Boundaries Found: " <<ConfigParams::GetInstance().boundaries.size() <<"\n";
 		for (map<string, Point2D>::iterator it=ConfigParams::GetInstance().boundaries.begin(); it!=ConfigParams::GetInstance().boundaries.end(); it++) {

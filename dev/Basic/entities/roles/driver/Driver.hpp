@@ -199,6 +199,7 @@ private:
 	bool isLeaveIntersection();
 	bool isGoalReached();
 	bool isCloseToLinkEnd();
+	bool isPedetrianOnTargetCrossing();
 	void chooseNextLaneForNextLink();
 	void directionIntersection();
 	int disToObstacle(unsigned obstacle_offset);
@@ -327,7 +328,6 @@ public:
 	void updateAngle();
 	void intersectionVelocityUpdate();
 	void modifyPosition();
-	bool isReachSignal();
 	void IntersectionDirectionUpdate();
 	void UpdateNextLinkLane();
 	void enterNextLink();

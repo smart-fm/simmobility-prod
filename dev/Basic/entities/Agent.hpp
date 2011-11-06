@@ -55,8 +55,8 @@ public:
 
 	sim_mob::Buffered<double> xAcc;  ///<The agent's acceleration, X
 	sim_mob::Buffered<double> yAcc;  ///<The agent's acceleration, Y
-	sim_mob::Buffered<int> currentLink;
-	sim_mob::Buffered<int> currentCrossing;
+	//sim_mob::Buffered<int> currentLink;
+	//sim_mob::Buffered<int> currentCrossing;
 
 
 	///Agents can access all other agents (although they usually do not access by ID)

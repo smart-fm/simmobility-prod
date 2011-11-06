@@ -180,6 +180,12 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	relat2abs();
 	setToParent();
 	updateAngle();
+
+	//Update currLane_
+	currLane_.set(currLane);
+	currLaneOffset_.set(currLaneOffset);
+	currLaneLength_.set(currLaneLength);
+
 	output(frameNumber);
 }
 
@@ -785,11 +791,11 @@ void sim_mob::Driver::updateNearbyAgents()
 			continue;
 		if(other_driver)
 		{
-			const Lane* other_lane = other_driver->getCurrLane();
+			const Lane* other_lane = other_driver->currLane_.get();// getCurrLane();
 			if(other_driver->isInIntersection())
 				continue;
 			const RoadSegment* otherRoadSegment = other_lane->getRoadSegment();
-			int other_offset = other_driver->getCurrLaneOffset();
+			int other_offset = other_driver->currLaneOffset_.get();
 			//the vehicle is in the current road segment
 			if(currRoadSegment == otherRoadSegment)
 			{
@@ -959,7 +965,7 @@ void sim_mob::Driver::updateNearbyAgents()
 						preRightLane = otherRoadSegment->getLanes().at(preLaneIndex+1);
 				}
 
-				int distance = other_driver->getCurrLaneLength() - other_offset + currLaneOffset -
+				int distance = other_driver->currLaneLength_.get() - other_offset + currLaneOffset -
 						vehicle->length/2 - other_driver->getVehicle()->length/2;
 				//the vehicle is on the current lane
 				if(other_lane == preLane)

@@ -207,19 +207,21 @@ private:
 	int distanceBehind;
 
 public:
-	Buffered<Link*> currLink_;
-	Buffered<RoadSegment*> currRoadSegment_;
-	Buffered<Lane*> currLane_;
-	Buffered<size_t> polylineIndex_;
-	Buffered<double> offsetInPolyline_;
+	//Buffered<Link*> currLink_;
+	//Buffered<RoadSegment*> currRoadSegment_;
+	Buffered<const Lane*> currLane_;
+	Buffered<double> currLaneOffset_;
+	Buffered<double> currLaneLength_;
+	//Buffered<size_t> polylineIndex_;
+	//Buffered<double> offsetInPolyline_;
 
 public:
-	const Link* getCurrLink() const {return currLink;}
-	const RoadSegment* getCurrRoadSegment() const {return currRoadSegment;}
-	const Lane* getCurrLane() const {return currLane;}
-	double getCurrLaneOffset() const {return currLaneOffset;}
-	double getCurrLinkOffset() const {return currLinkOffset;}
-	double getCurrLaneLength() const {return currLaneLength;}
+	//const Link* getCurrLink() const {return currLink;}
+	//const RoadSegment* getCurrRoadSegment() const {return currRoadSegment;}
+	//const Lane* getCurrLane() const {return currLane;}
+	//double getCurrLaneOffset() const {return currLaneOffset;}
+	//double getCurrLinkOffset() const {return currLinkOffset;}
+	//double getCurrLaneLength() const {return currLaneLength;}
 	const Vehicle* getVehicle() const {return vehicle;}
 
 private:

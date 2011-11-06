@@ -36,11 +36,13 @@ void sim_mob::Person::buildSubscriptionList()
 	//Now, add our own properties.
 	if(dynamic_cast<Driver*>(this->getRole())){
 		Driver* d=dynamic_cast<Driver*>(this->getRole());
-		subscriptionList_cached.push_back(&(d->currLink_));
-		subscriptionList_cached.push_back(&(d->currRoadSegment_));
+		//subscriptionList_cached.push_back(&(d->currLink_));
+		//subscriptionList_cached.push_back(&(d->currRoadSegment_));
 		subscriptionList_cached.push_back(&(d->currLane_));
-		subscriptionList_cached.push_back(&(d->polylineIndex_));
-		subscriptionList_cached.push_back(&(d->offsetInPolyline_));
+		subscriptionList_cached.push_back(&(d->currLaneOffset_));
+		subscriptionList_cached.push_back(&(d->currLaneLength_));
+		//subscriptionList_cached.push_back(&(d->polylineIndex_));
+		//subscriptionList_cached.push_back(&(d->offsetInPolyline_));
 	}
 }
 

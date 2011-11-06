@@ -11,8 +11,6 @@
 #include "buffering/Buffered.hpp"
 #include "geospatial/StreetDirectory.hpp"
 #include "perception/FixedDelayed.hpp"
-#include "entities/Signal.hpp"
-#include "entities/vehicle/Vehicle.hpp"
 
 
 namespace sim_mob
@@ -36,6 +34,7 @@ class RoadSegment;
 class Lane;
 class Node;
 class MultiNode;
+class Vehicle;
 
 
 class Driver : public sim_mob::Role {
@@ -45,6 +44,39 @@ public:
 	void assignVehicle(Vehicle* v) {vehicle = v;}
 
 private:
+	///Simple struct to hold Car Following model parameters
+	struct CarFollowParam {
+		double alpha;
+		double beta;
+		double gama;
+		double lambda;
+		double rho;
+		double stddev;
+	};
+
+	///Simple struct to hold Gap Acceptance model parameters
+	struct GapAcceptParam {
+		double scale;
+		double alpha;
+		double lambda;
+		double beta0;
+		double beta1;
+		double beta2;
+		double beta3;
+		double beta4;
+		double stddev;
+	};
+
+	///Simple struct to hold mandator lane changing parameters
+	struct MandLaneChgParam {
+		double feet_lowbound;
+		double feet_delta;
+		double lane_coeff;
+		double congest_coeff;
+		double lane_mintime;
+	};
+
+
 	static const double MAX_ACCELERATION		=	20.0;//10m/s*s
 	static const double MAX_DECELERATION		=	-20.0;
 
@@ -56,9 +88,9 @@ private:
 	static const double hBufferLower			=	0.8;	//lower threshold of headway
 
 	//parameters(refer to MITSIMLab data files)
-	static const double CF_parameters[2][6];	//Car Following parameters
-	static const double GA_parameters[4][9];	//Gap Acceptance model parameters
-	static const double MLC_parameters[5];		//Mandatory Lane Changing parameters
+	static const CarFollowParam CF_parameters[2];	//Car Following parameters
+	static const GapAcceptParam GA_parameters[4];	//Gap Acceptance model parameters
+	static const MandLaneChgParam MLC_parameters;		//Mandatory Lane Changing parameters
 
 
 

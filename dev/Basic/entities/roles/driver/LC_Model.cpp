@@ -8,17 +8,19 @@
  */
 
 #include "Driver.hpp"
+
+#include "entities/vehicle/Vehicle.hpp"
 #include "geospatial/Link.hpp"
 
 using namespace sim_mob;
-const double sim_mob::Driver::GA_parameters[4][9] = {
+const sim_mob::Driver::GapAcceptParam sim_mob::Driver::GA_parameters[4] = {
 //	    scale alpha lambda beta0  beta1  beta2  beta3  beta4  stddev
 		{ 1.00, 0.0, 0.000, 0.508, 0.000, 0.000,-0.420, 0.000, 0.488},	//Discretionary,lead
 		{ 1.00, 0.0, 0.000, 2.020, 0.000, 0.000, 0.153, 0.188, 0.526},	//Discretionary,lag
 		{ 1.00, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859},	//Mandatory,lead
 		{ 1.00, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073}	//Mandatory,lag
 };
-const double sim_mob::Driver::MLC_parameters[5] = {
+const sim_mob::Driver::MandLaneChgParam sim_mob::Driver::MLC_parameters = {
 		1320.0,		//feet, lower bound
 	    5280.0,		//feet, delta
 		   0.5,		//coef for number of lanes
@@ -184,10 +186,10 @@ double sim_mob::Driver::checkIfMandatory()
 	dis2stop = dis2stop/100;
 	double num		=	1;		//now we just assume that MLC only need to change to the adjacent lane
 	double y		=	0.5;		//segment density/jam density, now assume that it is 0.5
-	double delta0	=	feet2Unit(MLC_parameters[0]);
+	double delta0	=	feet2Unit(MLC_parameters.feet_lowbound);
 	double dis		=	dis2stop - delta0;
-	double delta	=	1.0 + MLC_parameters[2] * num + MLC_parameters[3] * y;
-	delta *= MLC_parameters[1];
+	double delta	=	1.0 + MLC_parameters.lane_coeff * num + MLC_parameters.congest_coeff * y;
+	delta *= MLC_parameters.feet_delta;
 	return exp(-dis * dis / (delta * delta));
 }
 

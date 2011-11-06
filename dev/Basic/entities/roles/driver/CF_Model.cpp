@@ -8,9 +8,12 @@
  */
 
 #include "Driver.hpp"
+
+#include "entities/vehicle/Vehicle.hpp"
+
 using namespace sim_mob;
 
-const double sim_mob::Driver::CF_parameters[2][6] = {
+const sim_mob::Driver::CarFollowParam sim_mob::Driver::CF_parameters[2] = {
 //        alpha   beta    gama    lambda  rho     stddev
 		{ 0.0400, 0.7220, 0.2420, 0.6820, 0.6000, 0.8250},
 		{-0.0418, 0.0000, 0.1510, 0.6840, 0.6800, 0.8020}
@@ -143,9 +146,9 @@ double sim_mob::Driver::accOfCarFollowing()
 	double v				=	speed_;
 	int i = (v > v_lead) ? 1 : 0;
 	double dv =(v > v_lead)?(v-v_lead):(v_lead - v);
-	double acc_ = CF_parameters[i][0] * pow(v , CF_parameters[i][1]) /pow(minCFDistance/100 , CF_parameters[i][2]);
-	acc_ *= pow(dv , CF_parameters[i][3])*pow(density,CF_parameters[i][4]);
-	acc_ += feet2Unit(nRandom(0,CF_parameters[i][5]));
+	double acc_ = CF_parameters[i].alpha * pow(v , CF_parameters[i].beta) /pow(minCFDistance/100 , CF_parameters[i].gama);
+	acc_ *= pow(dv , CF_parameters[i].lambda)*pow(density,CF_parameters[i].rho);
+	acc_ += feet2Unit(nRandom(0,CF_parameters[i].stddev));
 
 	return acc_;
 }

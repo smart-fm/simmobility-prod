@@ -15,6 +15,7 @@
 #include "entities/Person.hpp"
 #include "entities/Signal.hpp"
 #include "entities/AuraManager.hpp"
+#include "entities/vehicle/Vehicle.hpp"
 #include "buffering/BufferedDataManager.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"
@@ -47,16 +48,9 @@ double sim_mob::Driver::unit2Feet(double unit)
 }
 
 //initiate
-sim_mob::Driver::Driver(Agent* parent) : Role(parent), perceivedVelocity(reactTime, true),
-	perceivedVelocityOfFwdCar(reactTime, true), perceivedDistToFwdCar(reactTime, false),
-	vehicle(nullptr)
+sim_mob::Driver::Driver(Agent* parent) : Role(parent), vehicle(nullptr), perceivedVelocity(reactTime, true),
+	perceivedVelocityOfFwdCar(reactTime, true), perceivedDistToFwdCar(reactTime, false)
 {
-	//Set random seed
-	//NOTE: This will reset the sequence returned by rand(); it's not a good idea.
-	//      I moved srand() initialization into main.cpp; we'll need to make our own
-	//      random data management classes later.
-	//srand(parent->getId());
-
 	//Set default speed in the range of 10m/s to 19m/s
 	speed = 0;//1000*(1+((double)(rand()%10))/10);
 

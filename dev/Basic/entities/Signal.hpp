@@ -143,7 +143,7 @@ public:
             }
         };
 
-	Signal(unsigned int id, Node const & node);
+	Signal(Node const & node, int id=-1);
 
         /**
          * Return the road-network node where this Signal is located.

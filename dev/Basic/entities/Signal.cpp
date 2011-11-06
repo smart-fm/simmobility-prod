@@ -44,7 +44,7 @@ const double sim_mob::Signal::SplitPlan5[] = {0.20, 0.35, 0.25, 0.20};
 
 //Signal* sim_mob::Signal::instance_ = NULL;
 
-sim_mob :: Signal :: Signal(unsigned int id, Node const & node): Agent(id), node_(node)
+sim_mob :: Signal :: Signal(Node const & node, int id): Agent(id), node_(node)
 {
 	initializeSignal();
         setupIndexMaps();

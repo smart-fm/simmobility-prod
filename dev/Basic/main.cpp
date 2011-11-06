@@ -321,8 +321,8 @@ bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents) {
 		}
 	}
 	if (agents.size()!=agent_ids.size() || !foundZero || !foundMax) {
-		std::cout <<"Error, invalid Agent ID: " <<(agents.size()!=agent_ids.size()) <<","
-			<<!foundZero <<"," <<!foundMax <<std::endl;
+		std::cout <<"Error, invalid Agent ID: agent_size(" <<agents.size() <<"=>" <<agent_ids.size() <<"), "
+				<<"foundZero: " <<foundZero <<", foundMax: " <<foundMax <<std::endl;
 		return false;
 	}
 

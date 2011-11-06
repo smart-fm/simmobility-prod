@@ -19,8 +19,8 @@ class BusRoute;
 class Bus : public sim_mob::Agent {
 
 public:
-	Bus(unsigned int id, BusRoute* busroute, BusStop* currentbusstop,
-		Node* currentnode/*, DynamicVector heading, unsigned int distAlongHeading*/)
+	Bus(BusRoute* busroute, BusStop* currentbusstop,
+		Node* currentnode, int id=-1) : Agent(id)
 	{
 		currBusStop = nullptr;
 		lastBusStop = nullptr;

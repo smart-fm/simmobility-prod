@@ -26,7 +26,7 @@ namespace sim_mob
  */
 class Agent : public sim_mob::Entity {
 public:
-	Agent(unsigned int id=0);
+	Agent(int id=-1);
 
 	virtual void update(frame_t frameNumber) = 0;  ///<Update agent behvaior
 
@@ -63,12 +63,15 @@ public:
 	static std::vector<Agent*> all_agents;
 
 	///Retrieve a monotonically-increasing unique ID value.
-	static int GetAndIncrementID();
+	///\param preferredID Will be returned if it is greater than the current maximum-assigned ID.
+	///\note
+	///Passing in a negative number will always auto-assign an ID, and is recommended.
+	static unsigned int GetAndIncrementID(int preferredID);
 
 private:
 	//unsigned int currMode;
 	bool toRemoved;
-	static int next_agent_id;
+	static unsigned int next_agent_id;
 
 };
 

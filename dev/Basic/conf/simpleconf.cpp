@@ -103,7 +103,7 @@ bool generateAgentsFromTripChain(std::vector<Agent*>& agents)
 	const vector<TripChain*>& tcs = ConfigParams::GetInstance().getTripChains();
 	for (vector<TripChain*>::const_iterator it=tcs.begin(); it!=tcs.end(); it++) {
 		//Create a new agent, add it to the list of agents.
-		Person* curr = new Person(Agent::GetAndIncrementID());
+		Person* curr = new Person();
 		agents.push_back(curr);
 
 		//Set its mode.
@@ -174,7 +174,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 
 			//Create the agent if it doesn't exist
 			if (!agent) {
-				agent = new Person(Agent::GetAndIncrementID());
+				agent = new Person();
 				if (agentType=="pedestrian") {
 					agent->changeRole(new Pedestrian(agent));
 				} else if (agentType=="driver") {
@@ -287,8 +287,8 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal const *>& all_si
                 }
 
                 //size_t id = all_signals.size();
-                int id = Agent::GetAndIncrementID();
-                Signal* sig = new Signal(id, *road_node);
+                //int id = Agent::GetAndIncrementID();
+                Signal* sig = new Signal(*road_node);
                 all_signals.push_back(sig);
                 streetDirectory.registerSignal(*sig);
             }

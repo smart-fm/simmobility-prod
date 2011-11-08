@@ -9,8 +9,11 @@
 
 #include "Driver.hpp"
 
+#include <limits>
+
 #include "entities/vehicle/Vehicle.hpp"
 
+using std::numeric_limits;
 using namespace sim_mob;
 
 const sim_mob::Driver::CarFollowParam sim_mob::Driver::CF_parameters[2] = {
@@ -86,7 +89,10 @@ double sim_mob::Driver::breakToTargetSpeed()
 {
 	double v 			=	speed_;
 	double dt			=	timeStep;
-	if( space_star > FLT_EPSILON) {
+
+	//NOTE: This is the only use of epsilon(), so I just copied the value directly.
+	//      See LC_Model for how to declare a private temporary variable. ~Seth
+	if( space_star > numeric_limits<double>::epsilon()) {
 		return  ((v_lead + a_lead * dt ) * ( v_lead + a_lead * dt) - v * v) / 2 / space_star;
 	} else if ( dt <= 0 ) {
 		return MAX_ACCELERATION;

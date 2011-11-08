@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include <limits>
 #include <vector>
 #include <math.h>
 #include <set>
@@ -86,9 +85,6 @@ private:
 	static const double MAX_DECELERATION		=	-20.0;
 
 	//Something I have to define
-
-	static const double FLT_EPSILON				=	0.01;	//the smallest double
-	static const double MAX_NUM;							//regard as infinity
 	static const double hBufferUpper			=	1.6;	//upper threshold of headway
 	static const double hBufferLower			=	0.8;	//lower threshold of headway
 

@@ -29,13 +29,9 @@
 
 
 using namespace sim_mob;
-using std::numeric_limits;
 using std::max;
 using std::vector;
 using std::set;
-
-//Some static properties require initialization in the CPP file. ~Seth
-const double sim_mob::Driver::MAX_NUM = numeric_limits<double>::max();
 
 //for unit conversion
 double sim_mob::Driver::feet2Unit(double feet)

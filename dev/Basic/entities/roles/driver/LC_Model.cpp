@@ -9,10 +9,22 @@
 
 #include "Driver.hpp"
 
+#include <limits>
+
 #include "entities/vehicle/Vehicle.hpp"
 #include "geospatial/Link.hpp"
 
+using std::numeric_limits;
 using namespace sim_mob;
+
+
+namespace {
+//Declare MAX_NUM as a private variable here to limit its scope.
+const double MAX_NUM = numeric_limits<double>::max();
+}
+
+
+
 const sim_mob::Driver::GapAcceptParam sim_mob::Driver::GA_parameters[4] = {
 //	    scale alpha lambda beta0  beta1  beta2  beta3  beta4  stddev
 		{ 1.00, 0.0, 0.000, 0.508, 0.000, 0.000,-0.420, 0.000, 0.488},	//Discretionary,lead

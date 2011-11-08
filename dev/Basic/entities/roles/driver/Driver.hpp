@@ -76,6 +76,11 @@ private:
 		double lane_mintime;
 	};
 
+	///Simple struct to hold parameters which only exist for a single update tick.
+	struct UpdateParams {
+		const Lane* currLane;
+	};
+
 
 	static const double MAX_ACCELERATION		=	20.0;//10m/s*s
 	static const double MAX_DECELERATION		=	-20.0;
@@ -166,7 +171,7 @@ private:
 	const Link* currLink;
 	const Link* nextLink;
 	const RoadSegment* currRoadSegment;
-	const Lane* currLane;
+	//const Lane* currLane; //See Driver.cpp; this isn't needed as a class attribute.
 	const Lane* nextLaneInNextLink;
 	const Lane* leftLane;
 	const Lane* rightLane;
@@ -227,27 +232,27 @@ private:
 	void directionIntersection();
 	int disToObstacle(unsigned obstacle_offset);
 
-	void setOrigin();
+	void setOrigin(UpdateParams& p);
 
-	void updateCurrInfo(unsigned int mode);
+	void updateCurrInfo(unsigned int mode, UpdateParams& p);
 	void updateAdjacentLanes();
-	void updateRSInCurrLink();
+	void updateRSInCurrLink(UpdateParams& p);
 	void updateAcceleration();
 	void updateVelocity();
 	void updatePositionOnLink();
 	void updatePolyLineSeg();
 	void setBackToOrigin();
-	void updateNearbyAgents();
+	void updateNearbyAgents(UpdateParams& params);
 	void updateCurrLaneLength();
 	void updateDisToLaneEnd();
-	void updatePosLC();
+	void updatePosLC(UpdateParams& p);
 	void updateStartEndIndex();
 	void updateTrafficSignal();
 
-	void trafficSignalDriving();
-	void intersectionDriving();
+	void trafficSignalDriving(UpdateParams& p);
+	void intersectionDriving(UpdateParams& p);
 	void pedestrianAheadDriving();
-	void linkDriving();
+	void linkDriving(UpdateParams& p);
 
 	void initializePath();
 	void findCrossing();
@@ -352,7 +357,7 @@ public:
 	void modifyPosition();
 	void IntersectionDirectionUpdate();
 	void UpdateNextLinkLane();
-	void enterNextLink();
+	void enterNextLink(UpdateParams& p);
 	bool isReachCrosswalk();
 	bool isInIntersection() const {return inIntersection;}
 

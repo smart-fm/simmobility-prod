@@ -88,8 +88,8 @@ void sim_mob::Driver::update(frame_t frameNumber)
 		return;
 	traveledDis = 0;
 	if(!isOriginSet){
-		makeLinkPath();
-		if(linkPath.size()==0)
+		initializePath();
+		if(allRoadSegments.size()==0)
 			return;
 		setOrigin();
 		isOriginSet=true;
@@ -301,9 +301,9 @@ bool sim_mob::Driver::isReachPolyLineSegEnd()
 		return false;
 }
 
-bool sim_mob::Driver::isReachLastRS()
+bool sim_mob::Driver::isReachLastRSinCurrLink()
 {
-	if(RSIndex==roadSegments->size()-1)
+	if(currRoadSegment == currLink->getPath(isForward).at(currLink->getPath(isForward).size()-1))
 		return true;
 	else
 		return false;
@@ -317,19 +317,24 @@ bool sim_mob::Driver::isReachLastPolyLineSeg()
 //TODO
 bool sim_mob::Driver::isCloseToCrossing()
 {
-	return (isReachLastRS()&&isCrossingAhead && xPosCrossing_-vehicle->xPos_-vehicle->length/2 <= 1000);
+	return (isReachLastRSinCurrLink()&&isCrossingAhead && xPosCrossing_-vehicle->xPos_-vehicle->length/2 <= 1000);
 }
 
 
 //when the vehicle reaches the end of last link in link path
 bool sim_mob::Driver::isGoalReached()
 {
-	return (linkIndex == linkPath.size()-1 && isReachLinkEnd());
+	return (RSIndex == allRoadSegments.size()-1 && isReachRoadSegmentEnd());
+}
+
+bool sim_mob::Driver::isReachRoadSegmentEnd()
+{
+	return isReachLastPolyLineSeg()&&isReachPolyLineSegEnd();
 }
 
 bool sim_mob::Driver::isReachLinkEnd()
 {
-	return (isReachLastRS()&&isReachLastPolyLineSeg()&&isReachPolyLineSegEnd());
+	return (isReachLastRSinCurrLink()&&isReachLastPolyLineSeg()&&isReachPolyLineSegEnd());
 }
 
 bool sim_mob::Driver::isLeaveIntersection()
@@ -349,7 +354,7 @@ bool sim_mob::Driver::isPedetrianOnTargetCrossing()
 	size_t index = 0;
 	for(link_i=linkMap.begin();link_i!=linkMap.end();link_i++)
 	{
-		if((*link_i).first==linkPath[linkIndex+1])
+		if((*link_i).first==allRoadSegments.at(RSIndex+1)->getLink())
 		{
 			index = (*link_i).second;
 			break;
@@ -409,7 +414,7 @@ void sim_mob::Driver::updateRSInCurrLink()
 		set<LaneConnector*>::const_iterator i;
 		set<LaneConnector*> lcs=mNode->getOutgoingLanes(*currRoadSegment);
 		for(i=lcs.begin();i!=lcs.end();i++){
-			if((*i)->getLaneTo()->getRoadSegment()->getLink()==currLink
+			if((*i)->getLaneTo()->getRoadSegment()==allRoadSegments.at(RSIndex+1)
 					&& (*i)->getLaneFrom()==currLane){
 				currLane = (*i)->getLaneTo();
 				updateCurrInfo(1);
@@ -424,7 +429,7 @@ void sim_mob::Driver::updateRSInCurrLink()
 	const UniNode* uNode=dynamic_cast<const UniNode*>(currNode);
 	if(uNode){
 		currLane = uNode->getOutgoingLane(*currLane);
-		if(currLane)
+		if(currLane && currLane->getRoadSegment()==allRoadSegments.at(RSIndex+1))
 			updateCurrInfo(1);
 	}
 }
@@ -512,10 +517,10 @@ void sim_mob::Driver::updateCurrInfo(unsigned int mode)
 		currPolyLineSegStart = currLanePolyLine->at(polylineSegIndex);
 		currPolyLineSegEnd = currLanePolyLine->at(polylineSegIndex+1);
 		RSIndex ++;
-		if(isReachLastRS())
+		if(isReachLastRSinCurrLink())
 		{
 			updateTrafficSignal();
-			if(linkIndex<linkPath.size()-1)
+			if(currRoadSegment!=allRoadSegments.at(allRoadSegments.size()-1))
 				chooseNextLaneForNextLink();
 		}
 		break;
@@ -525,15 +530,12 @@ void sim_mob::Driver::updateCurrInfo(unsigned int mode)
 		currPolyLineSegStart = currLanePolyLine->at(polylineSegIndex);
 		currPolyLineSegEnd = currLanePolyLine->at(polylineSegIndex+1);
 		currLink = currRoadSegment->getLink();
-		currLinkOffset = 0;
-		linkIndex ++;
-		RSIndex = 0;
-		roadSegments = &(currLink->getPath(isForward));
 		targetLaneIndex = currLaneIndex;
-		if(isReachLastRS())
+		RSIndex ++;
+		if(isReachLastRSinCurrLink())
 		{
 			updateTrafficSignal();
-			if(linkIndex<linkPath.size()-1)
+			if(currRoadSegment!=allRoadSegments.at(allRoadSegments.size()-1))
 				chooseNextLaneForNextLink();
 		}
 		break;
@@ -556,28 +558,18 @@ void sim_mob::Driver::updatePolyLineSeg()
 //currently it just chooses the first lane from the targetLane
 void sim_mob::Driver::chooseNextLaneForNextLink()
 {
-	nextIsForward = isForward;
-	if(isForward)
-	{
-		if(currLink->getEnd()==linkPath[linkIndex+1]->getEnd())
-			nextIsForward = !isForward;
-	}
+	const Node* currNode = currRoadSegment->getEnd();
+	if(currRoadSegment->getEnd()==allRoadSegments.at(RSIndex+1)->getLink()->getStart())
+		nextIsForward = true;
 	else
-	{
-		if(currLink->getStart()==linkPath[linkIndex+1]->getStart())
-			nextIsForward = !isForward;
-	}
-	const Node* currNode;
-	if(isForward)
-		currNode = currLink->getEnd();
-	else
-		currNode = currLink->getStart();
+		nextIsForward = false;
+
 	const MultiNode* mNode=dynamic_cast<const MultiNode*>(currNode);
 	if(mNode){
 		set<LaneConnector*>::const_iterator i;
 		set<LaneConnector*> lcs=mNode->getOutgoingLanes(*currRoadSegment);
 		for(i=lcs.begin();i!=lcs.end();i++){
-			if((*i)->getLaneTo()->getRoadSegment()->getLink()==linkPath[linkIndex+1]
+			if((*i)->getLaneTo()->getRoadSegment()==allRoadSegments.at(RSIndex+1)
 					&& (*i)->getLaneFrom()->getRoadSegment()==currRoadSegment){
 				nextLaneInNextLink = (*i)->getLaneTo();
 				targetLaneIndex = getLaneIndex((*i)->getLaneFrom());
@@ -585,12 +577,6 @@ void sim_mob::Driver::chooseNextLaneForNextLink()
 			}
 		}
 	}
-
-	//if can't find next lane, make this link as the last link
-	//this should be an error, because the path is not connected.
-	nextLaneInNextLink = currLane;
-	targetLaneIndex = currLaneIndex;
-	linkIndex = linkPath.size()-1;
 }
 
 void sim_mob::Driver::directionIntersection()
@@ -605,21 +591,6 @@ void sim_mob::Driver::directionIntersection()
 	yTurningStart = vehicle->yPos;
 }
 
-//TODO:
-const Link* sim_mob::Driver::findLink(const MultiNode* start, const MultiNode* end)
-{
-	const Link* link;
-	std::set<sim_mob::RoadSegment*>::const_iterator i;
-	const std::set<sim_mob::RoadSegment*>& roadsegments=start->getRoadSegments();
-	for(i=roadsegments.begin();i!=roadsegments.end();i++){
-		link = (*i)->getLink();
-		if(link->getStart()==end)
-			return link;
-		else if(link->getEnd()==end)
-			return link;
-	}
-	return nullptr;
-}
 
 //TODO
 void sim_mob::Driver::setBackToOrigin()
@@ -636,43 +607,32 @@ void sim_mob::Driver::setBackToOrigin()
 
 //link path should be retrieved from other class
 //for now, it serves as this purpose
-void sim_mob::Driver::makeLinkPath()
+void sim_mob::Driver::initializePath()
 {
 	originNode = parent->originNode;
 	destNode = parent->destNode;
-	const MultiNode* multiOriginNode=dynamic_cast<const MultiNode*>(originNode);
-	const MultiNode* multiDestNode=dynamic_cast<const MultiNode*>(destNode);
-	const MultiNode* end = dynamic_cast<const MultiNode*>(ConfigParams::GetInstance().getNetwork().locateNode(Point2D(37250760,14355120), true));
-	if(!multiOriginNode||!multiDestNode||!end)
-		return;
-	const Link* l;
-	l = findLink(multiOriginNode,end);
-	if(l)
-		linkPath.push_back(l);
-	l = findLink(multiDestNode,end);
-	if(l)
-		linkPath.push_back(l);
+	std::vector< WayPoint > a = StreetDirectory::instance().shortestDrivingPath(*originNode, *destNode);
+	for(size_t i=0;i<a.size();i++)
+	{
+		WayPoint wp = a.at(i);
+		if(wp.type_ == WayPoint::ROAD_SEGMENT)
+			allRoadSegments.push_back(wp.roadSegment_);
+	}
 }
 
 void sim_mob::Driver::setOrigin()
 {
 	vehicle = new Vehicle();
 	//Retrieve the first link in the link path vector
-	linkIndex = 0;
-	currLink = linkPath.at(linkIndex);
+	RSIndex = 0;
+	currRoadSegment = allRoadSegments.at(RSIndex);
+	currLink = currRoadSegment->getLink();
 
 	//decide the direction
 	if(currLink->getStart()==originNode)
 		isForward = true;
 	else
 		isForward = false;
-
-	currLinkOffset = 0;
-
-	//Retrieve the first road segment
-	roadSegments = &(currLink->getPath(isForward));
-	RSIndex = 0;
-	currRoadSegment = roadSegments->at(RSIndex);
 
 	maxLaneSpeed = currRoadSegment->maxSpeed/3.6;//slow down
 	targetSpeed = maxLaneSpeed;
@@ -751,7 +711,6 @@ void sim_mob::Driver::updatePositionOnLink()
 	vehicle->xPos_ += traveledDis;
 	vehicle->yPos_ += vehicle->yVel_*timeStep;
 	currLaneOffset += traveledDis;
-	currLinkOffset += traveledDis;
 }
 
 void sim_mob::Driver::updateNearbyAgents()
@@ -873,7 +832,8 @@ void sim_mob::Driver::updateNearbyAgents()
 				}
 			}
 			//the vehicle is in the next road segment
-			else if(RSIndex < roadSegments->size()-1 && otherRoadSegment == roadSegments->at(RSIndex + 1))
+			else if(RSIndex < allRoadSegments.size()-1 && otherRoadSegment == allRoadSegments.at(RSIndex+1) &&
+					otherRoadSegment->getLink() == currLink)
 			{
 				const Node* nextNode;
 				if(isForward)
@@ -931,7 +891,8 @@ void sim_mob::Driver::updateNearbyAgents()
 				}
 			}
 			//the vehicle is in the previous road segment
-			else if(RSIndex > 0 && otherRoadSegment == roadSegments->at(RSIndex - 1))
+			else if(otherRoadSegment == allRoadSegments.at(RSIndex - 1) &&
+					otherRoadSegment->getLink() == currLink)
 			{
 				const Node* preNode;
 				if(isForward)
@@ -1089,7 +1050,7 @@ void sim_mob::Driver::updatePosLC()
 bool sim_mob::Driver::isCloseToLinkEnd()
 {
 	//when the distance <= 10m
-	return isReachLastRS()&&(currLaneLength - currLaneOffset<2000);
+	return isReachLastRSinCurrLink()&&(currLaneLength - currLaneOffset<2000);
 }
 
 void sim_mob::Driver::updateTrafficSignal()

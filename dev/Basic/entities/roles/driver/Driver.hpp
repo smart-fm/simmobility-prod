@@ -162,7 +162,7 @@ public:
 
 	/****************IN REAL NETWORK****************/
 private:
-	std::vector<const Link*> linkPath;
+	std::vector<const RoadSegment*> allRoadSegments;
 	const Link* currLink;
 	const Link* nextLink;
 	const RoadSegment* currRoadSegment;
@@ -174,7 +174,6 @@ private:
 	double currLaneOffset;
     double currLinkOffset;
 	double traveledDis; //the distance traveled within current time step
-	size_t linkIndex;
 	size_t RSIndex;
 	size_t polylineSegIndex;
 	size_t currLaneIndex;
@@ -182,7 +181,6 @@ private:
 	StreetDirectory::LaneAndIndexPair laneAndIndexPair;
 	const std::vector<sim_mob::Point2D>* currLanePolyLine;
 	const std::vector<sim_mob::Point2D>* desLanePolyLine;
-	const std::vector<sim_mob::RoadSegment*>* roadSegments;
 	Point2D currPolyLineSegStart;
 	Point2D currPolyLineSegEnd;
 	Point2D desPolyLineStart;
@@ -207,27 +205,18 @@ private:
 	int distanceBehind;
 
 public:
-	//Buffered<Link*> currLink_;
-	//Buffered<RoadSegment*> currRoadSegment_;
 	Buffered<const Lane*> currLane_;
 	Buffered<double> currLaneOffset_;
 	Buffered<double> currLaneLength_;
-	//Buffered<size_t> polylineIndex_;
-	//Buffered<double> offsetInPolyline_;
 
 public:
-	//const Link* getCurrLink() const {return currLink;}
-	//const RoadSegment* getCurrRoadSegment() const {return currRoadSegment;}
-	//const Lane* getCurrLane() const {return currLane;}
-	//double getCurrLaneOffset() const {return currLaneOffset;}
-	//double getCurrLinkOffset() const {return currLinkOffset;}
-	//double getCurrLaneLength() const {return currLaneLength;}
 	const Vehicle* getVehicle() const {return vehicle;}
 
 private:
 	bool isReachPolyLineSegEnd();
+	bool isReachRoadSegmentEnd();
 	bool isReachLastPolyLineSeg();
-	bool isReachLastRS();
+	bool isReachLastRSinCurrLink();
 	bool isCloseToCrossing();
 	bool isReachLinkEnd();
 	bool isLeaveIntersection();
@@ -237,7 +226,6 @@ private:
 	void chooseNextLaneForNextLink();
 	void directionIntersection();
 	int disToObstacle(unsigned obstacle_offset);
-	const Link* findLink(const MultiNode* start, const MultiNode* end);
 
 	void setOrigin();
 
@@ -261,7 +249,7 @@ private:
 	void pedestrianAheadDriving();
 	void linkDriving();
 
-	void makeLinkPath();
+	void initializePath();
 	void findCrossing();
 
 	//helper function, to find the lane index in current road segment

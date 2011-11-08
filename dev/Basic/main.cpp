@@ -31,6 +31,7 @@
 #include "conf/simpleconf.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/Bus.hpp"
+#include "entities/roles/passenger/Passenger.hpp"
 #include "geospatial/BusStop.hpp"
 #include "geospatial/Route.hpp"
 #include "geospatial/BusRoute.hpp"

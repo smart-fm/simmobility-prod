@@ -29,6 +29,7 @@ public:
 	Pedestrian(Agent* parent);
 
 	virtual void update(frame_t frameNumber);
+	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 	bool isOnCrossing();
 
 private:

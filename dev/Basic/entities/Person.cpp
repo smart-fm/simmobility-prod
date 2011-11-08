@@ -2,6 +2,7 @@
 
 #include "Person.hpp"
 
+using std::vector;
 using namespace sim_mob;
 
 
@@ -34,15 +35,9 @@ void sim_mob::Person::buildSubscriptionList()
 	Agent::buildSubscriptionList();
 
 	//Now, add our own properties.
-	if(dynamic_cast<Driver*>(this->getRole())){
-		Driver* d=dynamic_cast<Driver*>(this->getRole());
-		//subscriptionList_cached.push_back(&(d->currLink_));
-		//subscriptionList_cached.push_back(&(d->currRoadSegment_));
-		subscriptionList_cached.push_back(&(d->currLane_));
-		subscriptionList_cached.push_back(&(d->currLaneOffset_));
-		subscriptionList_cached.push_back(&(d->currLaneLength_));
-		//subscriptionList_cached.push_back(&(d->polylineIndex_));
-		//subscriptionList_cached.push_back(&(d->offsetInPolyline_));
+	vector<BufferedBase*> roleParams = this->getRole()->getSubscriptionParams();
+	for (vector<BufferedBase*>::iterator it=roleParams.begin(); it!=roleParams.end(); it++) {
+		subscriptionList_cached.push_back(*it);
 	}
 }
 

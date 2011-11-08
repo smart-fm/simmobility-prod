@@ -2,7 +2,10 @@
 
 #pragma once
 
+#include <vector>
+
 #include "entities/roles/Role.hpp"
+#include "buffering/BufferedDataManager.hpp"
 
 namespace sim_mob
 {
@@ -19,6 +22,12 @@ class Passenger : public sim_mob::Role {
 public:
 	virtual void update(frame_t frameNumber) {
 
+	}
+
+	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams()
+	{
+		std::vector<sim_mob::BufferedBase*> res;
+		return res;
 	}
 
 

@@ -37,11 +37,8 @@ class Vehicle;
 
 
 class Driver : public sim_mob::Role {
-public:
-	Driver (Agent* parent);			//to initiate
-	virtual void update(frame_t frameNumber);
-	void assignVehicle(Vehicle* v) {vehicle = v;}
 
+//Static data and private class definitions.
 private:
 	///Simple struct to hold Car Following model parameters
 	struct CarFollowParam {
@@ -81,18 +78,23 @@ private:
 	};
 
 
-	static const double MAX_ACCELERATION		=	20.0;//10m/s*s
-	static const double MAX_DECELERATION		=	-20.0;
+	//Model parameters. Might be tunable.
+	static const double MAX_ACCELERATION		=	 20.0;   ///< 10m/s*s
+	static const double MAX_DECELERATION		=	-20.0;   ///< 10m/s*s
+	static const double hBufferUpper			=	  1.6;	 ///< upper threshold of headway
+	static const double hBufferLower			=	  0.8;	 ///< lower threshold of headway
 
-	//Something I have to define
-	static const double hBufferUpper			=	1.6;	//upper threshold of headway
-	static const double hBufferLower			=	0.8;	//lower threshold of headway
-
-	//parameters(refer to MITSIMLab data files)
-	static const CarFollowParam CF_parameters[2];	//Car Following parameters
-	static const GapAcceptParam GA_parameters[4];	//Gap Acceptance model parameters
+	//Parameters from MITSim lab parameters file. Might be tunable.
+	static const CarFollowParam CF_parameters[2];	    //Car Following parameters
+	static const GapAcceptParam GA_parameters[4];	    //Gap Acceptance model parameters
 	static const MandLaneChgParam MLC_parameters;		//Mandatory Lane Changing parameters
 
+
+//Constructor and overridden methods.
+public:
+	Driver (Agent* parent);			//to initiate
+	virtual void update(frame_t frameNumber);
+	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 
 
@@ -146,6 +148,7 @@ private:
 
 public:
 	int getTimeStep() const {return timeStep;}
+	void assignVehicle(Vehicle* v) {vehicle = v;}
 
 	//for coordinate transform
 	void setToParent();			///<set next data to parent buffer data

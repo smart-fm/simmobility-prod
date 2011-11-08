@@ -22,6 +22,7 @@
 #include "geospatial/Crossing.hpp"
 #include "entities/Signal.hpp"
 
+using std::vector;
 using namespace sim_mob;
 
 
@@ -57,6 +58,14 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent)
 	yCollisionVector = 0;
 
 }
+
+
+vector<BufferedBase*> sim_mob::Pedestrian::getSubscriptionParams()
+{
+	vector<BufferedBase*> res;
+	return res;
+}
+
 
 //Main update functionality
 void sim_mob::Pedestrian::update(frame_t frameNumber)

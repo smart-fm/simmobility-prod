@@ -76,6 +76,17 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), vehicle(nullptr), perceiv
 	nextLaneInNextLink = nullptr;
 }
 
+
+vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams()
+{
+	vector<BufferedBase*> res;
+	res.push_back(&(currLane_));
+	res.push_back(&(currLaneOffset_));
+	res.push_back(&(currLaneLength_));
+	return res;
+}
+
+
 //Main update functionality
 void sim_mob::Driver::update(frame_t frameNumber)
 {

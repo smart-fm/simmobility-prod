@@ -183,14 +183,17 @@ private:
 	StreetDirectory::LaneAndIndexPair laneAndIndexPair;
 	const std::vector<sim_mob::Point2D>* currLanePolyLine;
 	const std::vector<sim_mob::Point2D>* desLanePolyLine;
-	Point2D currPolyLineSegStart;
-	Point2D currPolyLineSegEnd;
+
+	//Temp: changing name slightly; this is more automatic with RelAbsPoint.
+	Point2D currPolylineSegStart;
+	Point2D currPolylineSegEnd;
+	int polylineSegLength;
+
 	Point2D desPolyLineStart;
 	Point2D desPolyLineEnd;
 	Point2D entryPoint; //entry point for crossing intersection
 	int xTurningStart;
 	int yTurningStart;
-	int polyLineSegLength;
 	double currLaneLength;
 	double xDirection_entryPoint;
 	double yDirection_entryPoint;
@@ -218,6 +221,10 @@ private:
 	///Helper method for initializing an UpdateParams struct. This method is not strictly necessary, but
 	/// it is helpful to document what each Param is used for.
 	void new_update_params(UpdateParams& res);
+
+	///Helper method; synchronize after changing to a new polyline.
+	///TODO: This should be moved at some point
+	void sync_relabsobjs();
 
 	bool isReachPolyLineSegEnd();
 	bool isReachRoadSegmentEnd();

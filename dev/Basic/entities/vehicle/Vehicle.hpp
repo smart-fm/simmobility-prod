@@ -7,8 +7,10 @@
  *      Author: lzm
  */
 
-#ifndef VEHICLE_H_
-#define VEHICLE_H_
+#pragma once
+
+#include "util/RelAbsPoint.hpp"
+
 
 namespace sim_mob {
 
@@ -23,18 +25,20 @@ public:
 	double timeStep;			//time step size of simulation
 	int xPos;
 	int yPos;
-	double xVel;
-	double yVel;
 	double xAcc;
 	double yAcc;
 
 	int xPos_;
 	int yPos_;
-	double xVel_;
-	double yVel_;
 	double xAcc_;
 	double yAcc_;
+
+	//Testing moving these into their own class:
+	RelAbsPoint velocity;
+	//double xVel;
+	//double yVel;
+	//double xVel_;
+	//double yVel_;
 };
 
-} /* namespace sim_mob */
-#endif /* VEHICLE_H_ */
+} // namespace sim_mob

@@ -98,7 +98,9 @@ unsigned int sim_mob::Driver::gapAcceptance(int type)
 				otherSpeed[i].lead=MAX_NUM;
 				otherDistance[i].lead=MAX_NUM;
 			} else {				//has vehicle ahead
-				otherSpeed[i].lead=fwd->getVehicle()->xVel_;
+				//otherSpeed[i].lead=fwd->getVehicle()->xVel_;
+				otherSpeed[i].lead = fwd->getVehicle()->velocity.getRelX();
+
 				otherDistance[i].lead=(i==0)? minLFDistance:minRFDistance;
 			}
 			if(!back){//no vehicle behind
@@ -106,7 +108,9 @@ unsigned int sim_mob::Driver::gapAcceptance(int type)
 				otherDistance[i].lag=MAX_NUM;
 			}
 			else{		//has vehicle behind, check the gap
-				otherSpeed[i].lag=back->getVehicle()->xVel_;
+				//otherSpeed[i].lag=back->getVehicle()->xVel_;
+				otherSpeed[i].lag=back->getVehicle()->velocity.getRelX();
+
 				otherDistance[i].lag=(i==0)? minLBDistance:minRBDistance;
 			}
 		} else {			// no left/right side exists
@@ -279,7 +283,8 @@ void sim_mob::Driver::excuteLaneChanging()
 	}
 	else{			//when changing lane
 		if(changeDecision!=0) {
-			vehicle->yVel_ = -changeDecision*VelOfLaneChanging;
+			//vehicle->yVel_ = -changeDecision*VelOfLaneChanging;
+			vehicle->velocity.setRelY(-changeDecision*VelOfLaneChanging);
 		}
 	}
 }

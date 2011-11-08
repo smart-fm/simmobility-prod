@@ -13,7 +13,7 @@ namespace sim_mob
 struct DPoint {
 	double x;
 	double y;
-	DPoint(double x, double y) : x(x), y(y) {}
+	DPoint(double x=0.0, double y=0.0) : x(x), y(y) {}
 };
 
 

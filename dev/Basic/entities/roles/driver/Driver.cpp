@@ -139,7 +139,11 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	//Update your perceptions.
 	//NOTE: This should be done as perceptions arrive, but the following code kind of "mixes"
 	//      input and decision-making. ~Seth
-	perceivedVelocity.delay(new Point2D(vehicle->xVel_, vehicle->yVel_), currTimeMS);
+
+	//perceivedVelocity.delay(new Point2D(vehicle->xVel_, vehicle->yVel_), currTimeMS);
+	perceivedVelocity.delay(new Point2D(vehicle->velocity.getRelX(), vehicle->velocity.getRelY()), currTimeMS);
+
+
 	//perceivedVelocityOfFwdCar.delay(new Point2D(otherCarXVel, otherCarYVel), currTimeMS);
 	//perceivedDistToFwdCar.delay(distToOtherCar, currTimeMS);
 
@@ -244,8 +248,11 @@ void sim_mob::Driver::intersectionDriving(UpdateParams& p)
 	}
 	else
 	{
-		vehicle->xPos += vehicle->xVel*timeStep;
-		vehicle->yPos += vehicle->yVel*timeStep;
+		//vehicle->xPos += vehicle->xVel*timeStep;
+		//vehicle->yPos += vehicle->yVel*timeStep;
+		vehicle->xPos += vehicle->velocity.getAbsX()*timeStep;
+		vehicle->yPos += vehicle->velocity.getAbsY()*timeStep;
+
 		abs2relat();
 	}
 }
@@ -257,9 +264,13 @@ void sim_mob::Driver::linkDriving(UpdateParams& p)
 	if(isLaneChanging)
 		updatePosLC(p);
 	excuteLaneChanging();
-	if(isTrafficLightStop && vehicle->xVel_ < 50)
+
+	//if(isTrafficLightStop && vehicle->xVel_ < 50)
+	if(isTrafficLightStop && vehicle->velocity.getRelX() < 50)
 	{
-		vehicle->xVel_ = 0;
+		//vehicle->xVel_ = 0;
+		vehicle->velocity.setRelX(0);
+
 		vehicle->xAcc_ = 0;
 	}
 	else
@@ -275,10 +286,20 @@ void sim_mob::Driver::setToParent()
 {
 	parent->xPos.set(vehicle->xPos);
 	parent->yPos.set(vehicle->yPos);
-	parent->xVel.set(vehicle->xVel);
-	parent->yVel.set(vehicle->yVel);
+
+	//parent->xVel.set(vehicle->xVel);
+	//parent->yVel.set(vehicle->yVel);
+	parent->xVel.set(vehicle->velocity.getAbsX());
+	parent->yVel.set(vehicle->velocity.getAbsY());
+
 	parent->xAcc.set(vehicle->xAcc);
 	parent->yAcc.set(vehicle->yAcc);
+}
+
+
+void sim_mob::Driver::sync_relabsobjs()
+{
+	vehicle->velocity.changeCoords(currPolylineSegStart, currPolylineSegEnd);
 }
 
 
@@ -301,8 +322,9 @@ void sim_mob::Driver::abs2relat()
 	vehicle->xPos_= xOffset*xDirection+yOffset*yDirection;
 	vehicle->yPos_=-xOffset*yDirection+yOffset*xDirection;
 
-	vehicle->xVel_= vehicle->xVel*xDirection+vehicle->yVel*yDirection;
-	vehicle->yVel_=-vehicle->xVel*yDirection+vehicle->yVel*xDirection;
+	//NOTE: This is done automatically by the RelAbsPoint class
+	//vehicle->xVel_= vehicle->xVel*xDirection+vehicle->yVel*yDirection;
+	//vehicle->yVel_=-vehicle->xVel*yDirection+vehicle->yVel*xDirection;
 
 	vehicle->xAcc_= vehicle->xAcc*xDirection+vehicle->yAcc*yDirection;
 	vehicle->yAcc_=-vehicle->xAcc*yDirection+vehicle->yAcc*xDirection;
@@ -317,8 +339,9 @@ void sim_mob::Driver::relat2abs()
 	vehicle->xPos=vehicle->xPos_*xDirection-vehicle->yPos_*yDirection+currPolyLineSegStart.getX();
 	vehicle->yPos=vehicle->xPos_*yDirection+vehicle->yPos_*xDirection+currPolyLineSegStart.getY();
 
-	vehicle->xVel=vehicle->xVel_*xDirection-vehicle->yVel_*yDirection;
-	vehicle->yVel=vehicle->xVel_*yDirection+vehicle->yVel_*xDirection;
+	//NOTE: This is done automatically by the RelAbsPoint class
+	//vehicle->xVel=vehicle->xVel_*xDirection-vehicle->yVel_*yDirection;
+	//vehicle->yVel=vehicle->xVel_*yDirection+vehicle->yVel_*xDirection;
 
 	vehicle->xAcc=vehicle->xAcc_*xDirection-vehicle->yAcc_*yDirection;
 	vehicle->yAcc=vehicle->xAcc_*yDirection+vehicle->yAcc_*xDirection;
@@ -630,8 +653,11 @@ void sim_mob::Driver::setBackToOrigin()
 {
 	vehicle->xPos = parent->originNode->location->getX();
 	vehicle->yPos = parent->originNode->location->getY();
-	vehicle->xVel = 0;
-	vehicle->yVel = 0;
+
+	//vehicle->xVel = 0;
+	//vehicle->yVel = 0;
+	vehicle->velocity.setAbs(0, 0);
+
 	vehicle->xAcc = 0;
 	vehicle->yAcc = 0;
 	setToParent();
@@ -691,13 +717,18 @@ void sim_mob::Driver::setOrigin(UpdateParams& p)
 	vehicle->yPos = currPolyLineSegStart.getY();
 	abs_relat();
 	abs2relat();
-	vehicle->xVel_=0;//speed; //Starting speed is always zero
-	vehicle->yVel_=0;
+
+	//vehicle->xVel_=0;
+	//vehicle->yVel_=0;
+	vehicle->velocity.setRel(0, 0);
+
 	vehicle->xAcc_=0;
 	vehicle->yAcc_=0;
 
-	perceivedXVelocity_=vehicle->xVel_;
-	perceivedYVelocity_=vehicle->yVel_;
+	//perceivedXVelocity_=vehicle->xVel_;
+	//perceivedYVelocity_=vehicle->yVel_;
+	perceivedXVelocity_ = vehicle->velocity.getRelX();
+	perceivedYVelocity_ = vehicle->velocity.getRelY();
 
 	relat2abs();
 	updateAdjacentLanes();
@@ -737,19 +768,30 @@ void sim_mob::Driver::updateAcceleration()
 
 void sim_mob::Driver::updatePositionOnLink()
 {
+	//traveledDis = vehicle->xVel_*timeStep+0.5*vehicle->xAcc_*timeStep*timeStep;
+	traveledDis = vehicle->velocity.getRelX()*timeStep+0.5*vehicle->xAcc_*timeStep*timeStep;
 
-	traveledDis = vehicle->xVel_*timeStep+0.5*vehicle->xAcc_*timeStep*timeStep;
-	if(traveledDis<0)
+	if(traveledDis<0) {
 		traveledDis = 0;
-	vehicle->xVel_ += vehicle->xAcc_*timeStep;
-	if(vehicle->xVel_<0)
+	}
+
+	//vehicle->xVel_ += vehicle->xAcc_*timeStep;
+	vehicle->velocity.setRelX(vehicle->velocity.getRelX() + vehicle->xAcc_*timeStep);
+
+	//if(vehicle->xVel_<0)
+	if (vehicle->velocity.getRelX()<0)
 	{
-		vehicle->xVel_ = 0.1;
+		//vehicle->xVel_ = 0.1;
+		vehicle->velocity.setRelX(0.1);
+
 		vehicle->xAcc_ = 0;
 	}
 
 	vehicle->xPos_ += traveledDis;
-	vehicle->yPos_ += vehicle->yVel_*timeStep;
+
+	//vehicle->yPos_ += vehicle->yVel_*timeStep;
+	vehicle->yPos_ += vehicle->velocity.getRelY()*timeStep;
+
 	currLaneOffset += traveledDis;
 }
 
@@ -1019,12 +1061,15 @@ void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 //Angle shows the velocity direction of vehicles
 void sim_mob::Driver::updateAngle()
 {
-	if(vehicle->xVel==0 && vehicle->yVel==0){}
-    else if(vehicle->xVel>=0 && vehicle->yVel>=0)angle = 360 - atan(vehicle->yVel/vehicle->xVel)/3.1415926*180;
-	else if(vehicle->xVel>=0 && vehicle->yVel<0)angle = - atan(vehicle->yVel/vehicle->xVel)/3.1415926*180;
-	else if(vehicle->xVel<0 && vehicle->yVel>=0)angle = 180 - atan(vehicle->yVel/vehicle->xVel)/3.1415926*180;
-	else if(vehicle->xVel<0 && vehicle->yVel<0)angle = 180 - atan(vehicle->yVel/vehicle->xVel)/3.1415926*180;
-	else{}
+	double xVel = vehicle->velocity.getAbsX();
+	double yVel = vehicle->velocity.getAbsY();
+
+	if(xVel==0 && yVel==0){}
+    else if(xVel>=0 && yVel>=0) { angle = 360 - atan(yVel/xVel)/3.1415926*180; }
+	else if(xVel>=0 && yVel<0 ) { angle = - atan(yVel/xVel)/3.1415926*180; }
+	else if(xVel<0  && yVel>=0) { angle = 180 - atan(yVel/xVel)/3.1415926*180; }
+	else if(xVel<0  && yVel<0 ) { angle = 180 - atan(yVel/xVel)/3.1415926*180; }
+	else{} //??? Why is there another case here? ~Seth
 }
 
 void sim_mob :: Driver :: intersectionVelocityUpdate()
@@ -1032,8 +1077,13 @@ void sim_mob :: Driver :: intersectionVelocityUpdate()
 	double inter_speed = 1000;//10m/s
 	vehicle->xAcc_=0;
 	vehicle->yAcc_=0;
-	vehicle->xVel = inter_speed * xDirection_entryPoint;
-	vehicle->yVel = inter_speed * yDirection_entryPoint;
+
+	//vehicle->xVel = inter_speed * xDirection_entryPoint;
+	//vehicle->yVel = inter_speed * yDirection_entryPoint;
+	vehicle->velocity.setAbs(
+		inter_speed * xDirection_entryPoint,
+		inter_speed * yDirection_entryPoint
+	);
 }
 
 void sim_mob :: Driver :: enterNextLink(UpdateParams& p)
@@ -1042,7 +1092,10 @@ void sim_mob :: Driver :: enterNextLink(UpdateParams& p)
 	p.currLane = nextLaneInNextLink;
 	updateCurrInfo(2, p);
 	abs2relat();
-	vehicle->yVel_ = 0;
+
+	//vehicle->yVel_ = 0;
+	vehicle->velocity.setRelY(0);
+
 	vehicle->yPos_ = 0;
 	vehicle->yAcc_ = 0;
 	linkDriving(p);
@@ -1065,7 +1118,9 @@ void sim_mob::Driver::updatePosLC(UpdateParams& p)
 		{
 			isLaneChanging =false;
 			vehicle->yPos_ = 0;
-			vehicle->yVel_ = 0;
+
+			//vehicle->yVel_ = 0;
+			vehicle->velocity.setRelY(0);
 		}
 	}
 	else if(changeDecision == -1)
@@ -1081,7 +1136,9 @@ void sim_mob::Driver::updatePosLC(UpdateParams& p)
 		{
 			isLaneChanging =false;
 			vehicle->yPos_ = 0;
-			vehicle->yVel_ = 0;
+
+			//vehicle->yVel_ = 0;
+			vehicle->velocity.setRelY(0);
 		}
 	}
 }
@@ -1108,7 +1165,9 @@ void sim_mob::Driver::pedestrianAheadDriving()
 	else
 	{
 		vehicle->xAcc_ = 0;
-		vehicle->xVel_ = 0;
+
+		//vehicle->xVel_ = 0;
+		vehicle->velocity.setRelX(0);
 	}
 	updatePositionOnLink();
 }

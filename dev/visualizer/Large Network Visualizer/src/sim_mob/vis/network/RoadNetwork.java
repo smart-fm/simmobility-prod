@@ -30,7 +30,6 @@ public class RoadNetwork {
 	
 	private Hashtable<Integer,ArrayList<Integer>> segmentRefTable;
 	
-	private RoadNetworkItemsMapping roadNetworkItemsMapTable;
 	
 	//Testing on intersections
 	private ArrayList<Integer> intersecSegmentID;
@@ -63,7 +62,6 @@ public class RoadNetwork {
 		fromToSegmentRefTable =  new Hashtable<String, Integer>();
 		segmentRefTable = new  Hashtable<Integer , ArrayList<Integer>>(); 
 	
-		roadNetworkItemsMapTable =  new RoadNetworkItemsMapping();
 		
 		//Testing
 		intersecSegmentID = new ArrayList<Integer>();
@@ -111,13 +109,8 @@ public class RoadNetwork {
 		cornerLR = new DPoint(xBounds[1], yBounds[1]);
 	
 		
-		//Populate RoadNetWorkTable
-		populateRoadNewWorkItemsTable();
-				
 		//Populate Intersections
 		this.populateIntersections();
-		
-		
 		
 	}
 			
@@ -420,9 +413,6 @@ public class RoadNetwork {
 	
 	}
 	
-	
-	
-	
 	private void collectSignalLineInfo(int objID, LaneConnector laneConnector){				
 		if(lanes.containsKey(laneConnector.getFromSegment()) && lanes.containsKey(laneConnector.getToSegment()) ){
 	
@@ -438,39 +428,6 @@ public class RoadNetwork {
 		}
 	}
 
-	
-	private void populateRoadNewWorkItemsTable(){
-
-	
-		Hashtable <Integer, ArrayList<Integer>> linkSegmentTable = new Hashtable<Integer, ArrayList<Integer>>();
-		Hashtable <Integer, Integer> segmentLinkTable = new Hashtable<Integer, Integer>();
-		
-		Enumeration segmentKeys = segments.keys();
-		
-		while(segmentKeys.hasMoreElements()){
-			
-			Object aKey = segmentKeys.nextElement();
-			Integer segmentID = (Integer) aKey;
-			Segment tempSegment = segments.get(aKey);
-			int parentLinkID = tempSegment.getparentLinkID();
-			
-			if(linkSegmentTable.containsKey(parentLinkID)){
-				linkSegmentTable.get(parentLinkID).add(segmentID);
-		
-			} else {
-				
-				ArrayList<Integer> tempSegmentIDs = new ArrayList<Integer>();
-				tempSegmentIDs.add(segmentID);
-				linkSegmentTable.put(parentLinkID, tempSegmentIDs);
-			}
-			
-			segmentLinkTable.put(segmentID, parentLinkID);
-		}
-		
-				
-		roadNetworkItemsMapTable.setLinkSegmentTable(linkSegmentTable);
-		roadNetworkItemsMapTable.setSegmentLinkTable(segmentLinkTable);
-	}
 	
 	
 	private void populateIntersections(){

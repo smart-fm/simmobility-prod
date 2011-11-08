@@ -71,8 +71,8 @@ private:
 		double yDir = polyEnd.getY()-polyStart.getY();
 		double polyLineSegLength = sqrt(xDir*xDir+yDir*yDir);
 
-		scaleDir.x = xDir/polyLineSegLength;
-		scaleDir.y = yDir/polyLineSegLength;
+		scaleDir.x = polyLineSegLength==0 ? 0 : xDir/polyLineSegLength;
+		scaleDir.y = polyLineSegLength==0 ? 0 :yDir/polyLineSegLength;
 	}
 
 private:

@@ -192,7 +192,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 				//so when the polyline segment has been updated, the coordinate system should also be updated
 				if(isReachPolyLineSegEnd())
 				{
-					vehicle->xPos_ -= polyLineSegLength;
+					vehicle->xPos_ -= polylineSegLength;
 					if(!isReachLastPolyLineSeg())
 						updatePolyLineSeg();
 					else
@@ -306,18 +306,18 @@ void sim_mob::Driver::sync_relabsobjs()
 //calculate absolute-relative transform vectors
 void sim_mob::Driver::abs_relat()
 {
-	double xDir = currPolyLineSegEnd.getX()-currPolyLineSegStart.getX();
-	double yDir = currPolyLineSegEnd.getY()-currPolyLineSegStart.getY();
-	polyLineSegLength = sqrt(xDir*xDir+yDir*yDir);
-	xDirection = xDir/polyLineSegLength;
-	yDirection = yDir/polyLineSegLength;
+	double xDir = currPolylineSegEnd.getX()-currPolylineSegStart.getX();
+	double yDir = currPolylineSegEnd.getY()-currPolylineSegStart.getY();
+	polylineSegLength = sqrt(xDir*xDir+yDir*yDir);
+	xDirection = xDir/polylineSegLength;
+	yDirection = yDir/polylineSegLength;
 }
 
 //convert absolute coordinate system to relative one
 void sim_mob::Driver::abs2relat()
 {
-	double xOffset=vehicle->xPos-currPolyLineSegStart.getX();
-	double yOffset=vehicle->yPos-currPolyLineSegStart.getY();
+	double xOffset=vehicle->xPos-currPolylineSegStart.getX();
+	double yOffset=vehicle->yPos-currPolylineSegStart.getY();
 
 	vehicle->xPos_= xOffset*xDirection+yOffset*yDirection;
 	vehicle->yPos_=-xOffset*yDirection+yOffset*xDirection;
@@ -336,8 +336,8 @@ void sim_mob::Driver::abs2relat()
 //convert relative coordinate system to absolute one
 void sim_mob::Driver::relat2abs()
 {
-	vehicle->xPos=vehicle->xPos_*xDirection-vehicle->yPos_*yDirection+currPolyLineSegStart.getX();
-	vehicle->yPos=vehicle->xPos_*yDirection+vehicle->yPos_*xDirection+currPolyLineSegStart.getY();
+	vehicle->xPos=vehicle->xPos_*xDirection-vehicle->yPos_*yDirection+currPolylineSegStart.getX();
+	vehicle->yPos=vehicle->xPos_*yDirection+vehicle->yPos_*xDirection+currPolylineSegStart.getY();
 
 	//NOTE: This is done automatically by the RelAbsPoint class
 	//vehicle->xVel=vehicle->xVel_*xDirection-vehicle->yVel_*yDirection;
@@ -349,7 +349,7 @@ void sim_mob::Driver::relat2abs()
 
 bool sim_mob::Driver::isReachPolyLineSegEnd()
 {
-	if(vehicle->xPos_>=polyLineSegLength)
+	if(vehicle->xPos_>=polylineSegLength)
 		return true;
 	else
 		return false;
@@ -564,14 +564,20 @@ void sim_mob::Driver::updateCurrInfo(unsigned int mode, UpdateParams& p)
 	{
 	case 0:
 		updateStartEndIndex();
-		currPolyLineSegStart = currLanePolyLine->at(polylineSegIndex);
-		currPolyLineSegEnd = currLanePolyLine->at(polylineSegIndex+1);
+
+		currPolylineSegStart = currLanePolyLine->at(polylineSegIndex);
+		currPolylineSegEnd = currLanePolyLine->at(polylineSegIndex+1);
+		sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
+
 		break;
 	case 1:
 		currLaneOffset = 0;
 		polylineSegIndex = 0;
-		currPolyLineSegStart = currLanePolyLine->at(polylineSegIndex);
-		currPolyLineSegEnd = currLanePolyLine->at(polylineSegIndex+1);
+
+		currPolylineSegStart = currLanePolyLine->at(polylineSegIndex);
+		currPolylineSegEnd = currLanePolyLine->at(polylineSegIndex+1);
+		sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
+
 		RSIndex ++;
 		if(isReachLastRSinCurrLink())
 		{
@@ -583,8 +589,11 @@ void sim_mob::Driver::updateCurrInfo(unsigned int mode, UpdateParams& p)
 	case 2:
 		currLaneOffset = 0;
 		polylineSegIndex = 0;
-		currPolyLineSegStart = currLanePolyLine->at(polylineSegIndex);
-		currPolyLineSegEnd = currLanePolyLine->at(polylineSegIndex+1);
+
+		currPolylineSegStart = currLanePolyLine->at(polylineSegIndex);
+		currPolylineSegEnd = currLanePolyLine->at(polylineSegIndex+1);
+		sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
+
 		currLink = currRoadSegment->getLink();
 		targetLaneIndex = currLaneIndex;
 		RSIndex ++;
@@ -605,8 +614,9 @@ void sim_mob::Driver::updateCurrInfo(unsigned int mode, UpdateParams& p)
 void sim_mob::Driver::updatePolyLineSeg()
 {
 	polylineSegIndex++;
-	currPolyLineSegStart = currLanePolyLine->at(polylineSegIndex);
-	currPolyLineSegEnd = currLanePolyLine->at(polylineSegIndex+1);
+	currPolylineSegStart = currLanePolyLine->at(polylineSegIndex);
+	currPolylineSegEnd = currLanePolyLine->at(polylineSegIndex+1);
+	sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
 	abs_relat();
 }
 
@@ -703,18 +713,20 @@ void sim_mob::Driver::setOrigin(UpdateParams& p)
 	if (p.currLane) { //Avoid memory corruption if null.
 		polylineSegIndex = 0;
 		currLanePolyLine = &(p.currLane->getPolyline());
-		currPolyLineSegStart = currLanePolyLine->at(polylineSegIndex);
-		currPolyLineSegEnd = currLanePolyLine->at(polylineSegIndex+1);
+		currPolylineSegStart = currLanePolyLine->at(polylineSegIndex);
+		currPolylineSegEnd = currLanePolyLine->at(polylineSegIndex+1);
+		sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
 	} else {
 		//Assume a reasonable starting position if the current Lane is null.
 		if (getParent()->originNode) {
-			currPolyLineSegStart = *getParent()->originNode->location;
+			currPolylineSegStart = *getParent()->originNode->location;
+			sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
 		}
 	}
 
 	//Initialise starting position
-	vehicle->xPos = currPolyLineSegStart.getX();
-	vehicle->yPos = currPolyLineSegStart.getY();
+	vehicle->xPos = currPolylineSegStart.getX();
+	vehicle->yPos = currPolylineSegStart.getY();
 	abs_relat();
 	abs2relat();
 
@@ -747,13 +759,13 @@ void sim_mob::Driver::findCrossing()
 
 		double slope1, slope2;
 		slope1 = (double)(far2.getY()-far1.getY())/(far2.getX()-far1.getX());
-		slope2 = (double)(currPolyLineSegEnd.getY()-currPolyLineSegStart.getY())/
-				(currPolyLineSegEnd.getX()-currPolyLineSegStart.getX());
-		int x = (slope2*currPolyLineSegStart.getX()-slope1*far1.getX()+far1.getY()-currPolyLineSegStart.getY())/(slope2-slope1);
+		slope2 = (double)(currPolylineSegEnd.getY()-currPolylineSegStart.getY())/
+				(currPolylineSegEnd.getX()-currPolylineSegStart.getX());
+		int x = (slope2*currPolylineSegStart.getX()-slope1*far1.getX()+far1.getY()-currPolylineSegStart.getY())/(slope2-slope1);
 		int y = slope1*(x-far1.getX())+far1.getY();
 
-		double xOffset=x-currPolyLineSegStart.getX();
-		double yOffset=y-currPolyLineSegStart.getY();
+		double xOffset=x-currPolylineSegStart.getX();
+		double yOffset=y-currPolylineSegStart.getY();
 		xPosCrossing_= xOffset*xDirection+yOffset*yDirection;
 		isCrossingAhead = true;
 	}
@@ -1042,8 +1054,8 @@ void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 		{
 			int otherX = person->xPos;
 			int otherY = person->yPos;
-			double xOffset=otherX-currPolyLineSegStart.getX();
-			double yOffset=otherY-currPolyLineSegStart.getY();
+			double xOffset=otherX-currPolylineSegStart.getX();
+			double yOffset=otherY-currPolylineSegStart.getY();
 
 			int otherX_ = xOffset*xDirection+yOffset*yDirection;
 			int distance = otherX_ - vehicle->xPos_;

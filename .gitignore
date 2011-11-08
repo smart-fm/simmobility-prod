@@ -24,3 +24,7 @@ testing/RoadNetworkSampleVis/applet/
 #Ignore vim .swp files.
 .*.swp
 .*.swo
+
+#Ignore python's compiled byte-code, optimized or otherwise.
+*.pyc
+*.pyo

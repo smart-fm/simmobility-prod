@@ -75,6 +75,7 @@ private:
 	///Simple struct to hold parameters which only exist for a single update tick.
 	struct UpdateParams {
 		const Lane* currLane;
+		meterPerSecond_t currSpeed;
 	};
 
 
@@ -97,19 +98,20 @@ public:
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 
-
-	/**********BASIC DATA*************/
+//Basic data
 private:
-
+	//Pointer to the vehicle this driver is controlling.
 	Vehicle* vehicle;
-        //Sample stored data which takes reaction time into account.
+
+	//Sample stored data which takes reaction time into account.
 	const static size_t reactTime = 1500; //1.5 seconds
 	FixedDelayed<Point2D*> perceivedVelocity;
 	FixedDelayed<Point2D*> perceivedVelocityOfFwdCar;
 	FixedDelayed<centimeter_t> perceivedDistToFwdCar;
-	//absolute Movement-related variables
+
+	//Absolute movement-related variables
 	double timeStep;			//time step size of simulation
-	double speed;
+	//double speed;
 
 	double perceivedXVelocity;
 	double perceivedYVelocity;
@@ -122,7 +124,7 @@ private:
 	int yPos_nextLink;
 
 	int xPosCrossing_; //relative x coordinate for crossing, the intersection point of crossing's front line and current polyline
-	double speed_;
+	//double speed_;
 	double acc_;
 	double xDirection;			//x direction of the current polyline segment
 	double yDirection;			//y direction of the current polyline segment
@@ -217,6 +219,10 @@ public:
 	const Vehicle* getVehicle() const {return vehicle;}
 
 private:
+	///Helper method for initializing an UpdateParams struct. This method is not strictly necessary, but
+	/// it is helpful to document what each Param is used for.
+	void new_update_params(UpdateParams& res);
+
 	bool isReachPolyLineSegEnd();
 	bool isReachRoadSegmentEnd();
 	bool isReachLastPolyLineSeg();
@@ -297,12 +303,12 @@ private:
 
 	//for acceleration decision
 public:
-	void makeAcceleratingDecision();				///<decide acc
-	double breakToTargetSpeed();					///<return the acc to a target speed within a specific distance
-	double accOfEmergencyDecelerating();			///<when headway < lower threshold, use this function
-	double accOfCarFollowing();						///<when lower threshold < headway < upper threshold, use this function
-	double accOfMixOfCFandFF();						///<when upper threshold < headway, use this funcion
-	double accOfFreeFlowing();						///<is a part of accofMixOfCFandFF
+	void makeAcceleratingDecision(UpdateParams& p);				///<decide acc
+	double breakToTargetSpeed(UpdateParams& p);					///<return the acc to a target speed within a specific distance
+	double accOfEmergencyDecelerating(UpdateParams& p);			///<when headway < lower threshold, use this function
+	double accOfCarFollowing(UpdateParams& p);						///<when lower threshold < headway < upper threshold, use this function
+	double accOfMixOfCFandFF(UpdateParams& p);						///<when upper threshold < headway, use this funcion
+	double accOfFreeFlowing(UpdateParams& p);						///<is a part of accofMixOfCFandFF
 	double getTargetSpeed() const {return targetSpeed;}
 
 	//for lane changing decision

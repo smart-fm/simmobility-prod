@@ -48,7 +48,7 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), vehicle(nullptr), perceiv
 	perceivedVelocityOfFwdCar(reactTime, true), perceivedDistToFwdCar(reactTime, false), currLane_(nullptr)
 {
 	//Set default speed in the range of 10m/s to 19m/s
-	speed = 0;//1000*(1+((double)(rand()%10))/10);
+	//speed = 0;//1000*(1+((double)(rand()%10))/10);
 
 	//Set default data for acceleration
 	acc_ = 0;
@@ -87,6 +87,19 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams()
 }
 
 
+
+void sim_mob::Driver::new_update_params(UpdateParams& res)
+{
+	//Set to the previous known lane.
+	res.currLane = currLane_.get();
+
+
+	//Reset; these will be set before they are used.
+	res.currSpeed = 0;
+}
+
+
+
 //Main update functionality
 void sim_mob::Driver::update(frame_t frameNumber)
 {
@@ -98,7 +111,8 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	//      own struct. That way, you don't need to change the function signatures of your various update
 	//      methods each time you change your variables around.
 	//This approach is preferred.
-	UpdateParams params = {currLane_.get()};
+	UpdateParams params;
+	new_update_params(params);
 
 	//Normal update code
 	if(frameNumber<parent->startTime)
@@ -254,7 +268,7 @@ void sim_mob::Driver::linkDriving(UpdateParams& p)
 		vehicle->xAcc_ = 0;
 	}
 	else
-		makeAcceleratingDecision();
+		makeAcceleratingDecision(p);
 	updateAcceleration();
 	updatePositionOnLink();
 }
@@ -682,7 +696,7 @@ void sim_mob::Driver::setOrigin(UpdateParams& p)
 	vehicle->yPos = currPolyLineSegStart.getY();
 	abs_relat();
 	abs2relat();
-	vehicle->xVel_=speed;
+	vehicle->xVel_=0;//speed; //Starting speed is always zero
 	vehicle->yVel_=0;
 	vehicle->xAcc_=0;
 	vehicle->yAcc_=0;

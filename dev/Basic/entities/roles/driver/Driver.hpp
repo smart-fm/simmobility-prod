@@ -112,8 +112,6 @@ private:
 	//Absolute movement-related variables
 	double timeStep;			//time step size of simulation
 
-	double perceivedXVelocity;
-	double perceivedYVelocity;
 	double perceivedXVelocity_;
 	double perceivedYVelocity_;
 

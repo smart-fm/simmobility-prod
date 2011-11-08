@@ -159,11 +159,6 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	}
 
 
-	//Also, in case you're wondering, the Point2D that you "new"'d in the FixedDelayed objects is
-	// automatically reclaimed. This behavior can be turned off, if the object you are storing is shared.
-	//~Seth
-
-
 	//Note: For now, most updates cannot take place unless there is a Lane set
 	if (params.currLane) {
 		//perceivedXVelocity = vehicle->xVel;
@@ -312,8 +307,8 @@ void sim_mob::Driver::abs2relat()
 	vehicle->xAcc_= vehicle->xAcc*xDirection+vehicle->yAcc*yDirection;
 	vehicle->yAcc_=-vehicle->xAcc*yDirection+vehicle->yAcc*xDirection;
 
-	perceivedXVelocity_ = perceivedXVelocity*xDirection+perceivedYVelocity*yDirection;
-	perceivedYVelocity_ = -perceivedXVelocity*yDirection+perceivedYVelocity*xDirection;
+	//perceivedXVelocity_ = perceivedXVelocity*xDirection+perceivedYVelocity*yDirection;
+	//perceivedYVelocity_ = -perceivedXVelocity*yDirection+perceivedYVelocity*xDirection;
 }
 
 //convert relative coordinate system to absolute one

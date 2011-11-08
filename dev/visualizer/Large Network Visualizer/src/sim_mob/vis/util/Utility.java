@@ -43,10 +43,7 @@ public class Utility {
 			input = input.substring(2);
 			radix = 0x10;
 		}
-		Integer temp=Integer.parseInt(input, radix);
-		if(temp == 157065152){
-			System.out.println(input);
-		}
+	
 		
 		return Integer.parseInt(input, radix);
 	}
@@ -80,7 +77,7 @@ public class Utility {
 		Double xPos = Double.parseDouble(items[0]);
 		Double yPos = Double.parseDouble(items[1]);
 		
-		Node tempNode = new Node(xPos,yPos,false); 
+		Node tempNode = new Node(xPos,yPos,false,null); 
 		return tempNode;
 	}
 	

@@ -162,7 +162,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		g.drawImage(drawImg, offset.x, offset.y, null);
 		
 		//Draw traffic lights... it's a bit of a hack
-		netViewCache.drawTrafficLights(g);
+	//	netViewCache.drawTrafficLights(g);
 		
 		//Draw the current frame
 		if (netViewCache!=null) {

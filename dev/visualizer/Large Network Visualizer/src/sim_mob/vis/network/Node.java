@@ -16,10 +16,11 @@ public class Node implements DrawableItem {
 	
 	private ScaledPoint pos;
 	private boolean isUni;   //Rather than having multiple classes....
-	
-	public Node(double x, double y, boolean isUni) {
+	private Integer id;
+	public Node(double x, double y, boolean isUni, Integer id) {
 		pos = new ScaledPoint(x, y, null);
 		this.isUni = isUni;
+		this.id = id;
 	}
 	
 	public ScaledPoint getPos() {
@@ -28,6 +29,9 @@ public class Node implements DrawableItem {
 	
 	public boolean getIsUni() {
 		return isUni;
+	}
+	public Integer getID(){
+		return id;
 	}
 	
 	public void draw(Graphics2D g) {

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.regex.Matcher;
 
+import sim_mob.vis.network.Intersection;
 import sim_mob.vis.network.RoadNetwork;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.util.Utility;
@@ -98,7 +99,8 @@ public class SimulationResults {
 		if (objType.equals("Driver")) {
 			parseDriver(frameID, objID, rhs, rn);
 		} else if (objType.equals("Signal")) {
-			parseSignal(frameID, objID, rhs);
+//			parseSignal(frameID, objID, rhs);
+			parseSignalLines(frameID, objID, rhs);
 		} else if (objType.equals("pedestrian")) {
 			parsePedestrian(frameID, objID, rhs, rn);
 		}
@@ -116,6 +118,22 @@ public class SimulationResults {
 		throw new RuntimeException("Invalid traffic light color: " + id);
 	}
 	
+	private static ArrayList<Integer> parseEachSignal(String signal){
+		ArrayList<Integer> signalLights =  new ArrayList<Integer>();
+		String [] items = signal.split(",");
+		
+		int leftLight, straightLight, rightLight;
+		leftLight = Integer.parseInt(items[0]);
+		straightLight = Integer.parseInt(items[1]);
+		rightLight = Integer.parseInt(items[2]);
+		
+		signalLights.add(leftLight);
+		signalLights.add(straightLight);
+		signalLights.add(rightLight);
+		
+		
+		return signalLights;	
+	}
 	
 	private void parseSignal(int frameID, int objID, String rhs) throws IOException {
 	    //Check and parse properties.
@@ -136,11 +154,13 @@ public class SimulationResults {
 	    	pedestrianLights[i] = ReadColor(Integer.parseInt(props.get("p"+c)));
 	    }
 
+	    
 	    //Ensure the frame has been created
 	    while (ticks.size()<=frameID) {
 	    	TimeTick t = new TimeTick();
 	    	t.agentTicks = new Hashtable<Integer, AgentTick>();
 	    	t.signalTicks = new Hashtable<Integer, SignalTick>();
+	    	t.signalLineTicks = new Hashtable<Integer,SignalLineTick>();
 	    	ticks.add(t);
 	    }
 	    
@@ -150,6 +170,38 @@ public class SimulationResults {
 
 	    //Add this Signal to the array
 	    ticks.get(frameID).signalTicks.put(objID, new SignalTick(xPos, yPos, vehicleLights, pedestrianLights));
+
+	}
+	
+	private void parseSignalLines(int frameID, int objID, String rhs) throws IOException{
+	    //Check and parse properties.
+	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"va", "vb", "vc", "vd", "pa", "pb", "pc", "pd"});
+	    
+	    //Now save the relevant information.  
+	    ArrayList<ArrayList<Integer>> allVehicleLights = new ArrayList<ArrayList<Integer>>();
+	    allVehicleLights.add(parseEachSignal(props.get("va")));
+	    allVehicleLights.add(parseEachSignal(props.get("vb")));
+	    allVehicleLights.add(parseEachSignal(props.get("vc")));
+	    allVehicleLights.add(parseEachSignal(props.get("vd")));
+	    
+	    ArrayList<Integer> allPedestrainLights = new ArrayList<Integer>();
+	    allPedestrainLights.add(Integer.parseInt(props.get("pa")));
+	    allPedestrainLights.add(Integer.parseInt(props.get("pb")));
+	    allPedestrainLights.add(Integer.parseInt(props.get("pc")));
+	    allPedestrainLights.add(Integer.parseInt(props.get("pd")));
+	    
+	    
+	    //Ensure the frame has been created
+	    while (ticks.size()<=frameID) {
+	    	TimeTick t = new TimeTick();
+	    	t.agentTicks = new Hashtable<Integer, AgentTick>();
+	    	t.signalTicks = new Hashtable<Integer, SignalTick>();
+	    	t.signalLineTicks = new Hashtable<Integer,SignalLineTick>();
+	    	ticks.add(t);
+	    }
+	  
+	    ticks.get(frameID).signalLineTicks.put(objID, new SignalLineTick(allVehicleLights, allPedestrainLights ,objID));
+	   
 	}
 	
 	
@@ -178,6 +230,8 @@ public class SimulationResults {
 	    	TimeTick t = new TimeTick();
 	    	t.agentTicks = new Hashtable<Integer, AgentTick>();
 	    	t.signalTicks = new Hashtable<Integer, SignalTick>();
+	    	t.signalLineTicks = new Hashtable<Integer,SignalLineTick>();
+
 	    	ticks.add(t);
 	    }
 	    
@@ -205,6 +259,7 @@ public class SimulationResults {
 	    	TimeTick t = new TimeTick();
 	    	t.agentTicks = new Hashtable<Integer, AgentTick>();
 	    	t.signalTicks = new Hashtable<Integer, SignalTick>();
+	    	t.signalLineTicks = new Hashtable<Integer,SignalLineTick>();
 	    	ticks.add(t);
 	    }
 	    

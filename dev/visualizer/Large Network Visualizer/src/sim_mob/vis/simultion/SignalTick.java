@@ -24,6 +24,7 @@ public class SignalTick implements DrawableItem {
 	
 	
 	public SignalTick(double xVis, double yVis, Color[] vehicleLights, Color[] pedestrianLights) {
+	
 		visPos = new DPoint(xVis, yVis);
 		this.vehicleLights = vehicleLights;
 		this.pedestrianLights = pedestrianLights;

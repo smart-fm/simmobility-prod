@@ -1,0 +1,30 @@
+Intro
+=====
+
+This application renders the shape-files.  It expects the path to the folder containing the
+shape files for road-attributes, arrow-markings, kerb-lines, lane-markings, bus-stops, and
+traffic-signals.
+
+Usage
+=====
+
+Invoke "./bugis <path>" to view the Bugis Road area or "./dover <path>" to view the Dover Road
+area, where path is the folder containing the shape-files.  As the shape-files were provided to
+us on a Non-Disclosure Agreement, you may not have access to the shape files.  Please seek someone
+who has.
+
+To-do
+=====
+1.  Render the arrow markings.
+2.  Render the bus stops.
+3.  Render the traffic signals.
+4.  Improve on the lane markings and kerb lines.
+5.  Improve on the GUI; eg, a way to search for any object.
+
+Observations
+============
+
+1.  The shape files are excellent, very detailed.  Show stop lines (for vehicle before any
+pedestrian crossing), bus zone, bus bays, yellow boxes, etc.
+
+2.  Not sure if we can extract the lane connection easily or not.

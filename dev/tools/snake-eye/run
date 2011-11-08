@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Copyright Singapore-MIT Alliance for Research and Technology
+
+./snake-eye aimsun.log

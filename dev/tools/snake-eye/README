@@ -1,0 +1,47 @@
+Intro
+=====
+
+I developed this application to investigate why the road network seems to be "corrupted" in the
+SimMobility Visualizer.
+
+Usage
+=====
+
+Invoke the "run" script.  You may need to install python and PyQt4 to use the application.
+If you have a mouse-wheel, turn that to zoom in and out.  Otherwise use '+' and '-'.  If you
+are too lazy, '=' does the same thing as '+'.  Select a row in the "Selector" to highlight
+that object in the view.  If you don't want any object highlighted, click on "Clear selection".
+
+Request
+=======
+
+Please run the application and write down any observation in this file that might be useful to
+clean up the SimMobility database or improve on the Visualizer.  If you need to modify the
+python code to test your observation, please do so and push your changes to the central
+repository.
+
+To-do
+=====
+
+1. Fix the bugs.
+2. Incorporate the turnings data.
+
+Notation
+========
+
+I use the format "Bras-Basah-Road/9282/to-node" to mean the "to-node" of section 9282 in Bras Basah
+Road.  And "Queen-Street/9264/1098" to mean lane 1098 of section 9264 of QUeen Street.
+
+Observations
+============
+
+1.  Generally, the data are fairly good.  The most obvious error is "Victoria-Street/34450/4550"
+which is listed as a crossing, but looks more like a road polyline because it runs from one
+intersection to another.
+
+2.  This is the most serious error in the SimMobility database.  The "shapes" are stored in the
+database as multi-points and not as polylines.  That is, the shapes are just unordered collections
+of points.  Without any relationship between the points, it is very difficult to draw the shape.
+One example is the crossing "Victoria-Street/34450/4550".  It looks zig-zag.  But if you uncomment
+the code in add_crossing() in view.py and restart the application, you will see a proper polyline.
+Another example is "North-Bridge/35024/3554".

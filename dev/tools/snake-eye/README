@@ -4,6 +4,10 @@ Intro
 I developed this application to investigate why the road network seems to be "corrupted" in the
 SimMobility Visualizer.
 
+I modified the dev/Basic/geospatial/aimsun/Loader.cpp to dump whatever it loads from the database
+into the aimsun.log file.  The snake-eye application currently search from the pattern "aimsun:*"
+in the log file to extract and render the data.
+
 Usage
 =====
 
@@ -25,6 +29,8 @@ To-do
 
 1. Fix the bugs.
 2. Incorporate the turnings data.
+3. Implement database.py to read directly from the SimMobility database instead of relying on
+aimsun.log.
 
 Notation
 ========

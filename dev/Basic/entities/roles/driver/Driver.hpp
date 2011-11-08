@@ -111,7 +111,6 @@ private:
 
 	//Absolute movement-related variables
 	double timeStep;			//time step size of simulation
-	//double speed;
 
 	double perceivedXVelocity;
 	double perceivedYVelocity;
@@ -124,7 +123,6 @@ private:
 	int yPos_nextLink;
 
 	int xPosCrossing_; //relative x coordinate for crossing, the intersection point of crossing's front line and current polyline
-	//double speed_;
 	double acc_;
 	double xDirection;			//x direction of the current polyline segment
 	double yDirection;			//y direction of the current polyline segment

@@ -29,12 +29,12 @@ class Bus_stop:
         return list()
 
     def graphics(self):
-        path = QtGui.QPainterPath(QtCore.QPointF(0, 0))
-        path.lineTo(30, 0)
-        path.lineTo(30, 240)
-        path.lineTo(150, 240)
-        path.lineTo(150, 330)
-        path.lineTo(0, 330)
+        path = QtGui.QPainterPath(QtCore.QPointF(-15, 0))
+        path.lineTo(15, 0)
+        path.lineTo(15, 240)
+        path.lineTo(135, 240)
+        path.lineTo(135, 330)
+        path.lineTo(-15, 330)
         path.closeSubpath()
         item = QtGui.QGraphicsPathItem(path)
         #item.setPen(QtCore.Qt.green)

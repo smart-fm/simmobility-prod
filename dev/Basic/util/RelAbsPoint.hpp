@@ -61,18 +61,21 @@ private:
 
 	//Rebuild the relative component
 	void rebuild_rel() {
-		rel.x = abs.x*scaleDir.x+abs.y*scaleDir.y;
-		rel.y =-abs.x*scaleDir.y+abs.y*scaleDir.x;
+		rel.x =  abs.x*scaleDir.x+abs.y*scaleDir.y;
+		rel.y = -abs.x*scaleDir.y+abs.y*scaleDir.x;
 	}
 
 	//Rebuild our "directional" components and save into scaleDir
 	void build_scale_dir(const sim_mob::Point2D& polyStart, const sim_mob::Point2D& polyEnd) {
 		double xDir = polyEnd.getX()-polyStart.getX();
 		double yDir = polyEnd.getY()-polyStart.getY();
-		double polyLineSegLength = sqrt(xDir*xDir+yDir*yDir);
-
-		scaleDir.x = polyLineSegLength==0 ? 0 : xDir/polyLineSegLength;
-		scaleDir.y = polyLineSegLength==0 ? 0 :yDir/polyLineSegLength;
+		int polyLineSegLength = sqrt(xDir*xDir+yDir*yDir);
+		if (polyLineSegLength==0) {
+			scaleDir.x = scaleDir.y = 0;
+		} else {
+			scaleDir.x = xDir/polyLineSegLength;
+			scaleDir.y = yDir/polyLineSegLength;
+		}
 	}
 
 private:

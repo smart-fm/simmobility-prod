@@ -21,8 +21,8 @@ PFont f2;
 boolean paintCrossings = true;
 
 //Turn on/off lanes
-boolean paintLanes = false;
-boolean paintLaneShapes = true;
+boolean paintLanes = true;
+boolean paintLaneShapes = false;
 boolean paintWraparound = false;
 boolean displayIgnoredLines = false;
 int nodeHalo = 0; //meters

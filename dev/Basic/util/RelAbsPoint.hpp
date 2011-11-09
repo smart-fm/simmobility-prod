@@ -49,7 +49,7 @@ public:
 	// This should be called each time the current polyline changes.
 	void changeCoords(const sim_mob::Point2D& polyStart, const sim_mob::Point2D& polyEnd) {
 		build_scale_dir(polyStart, polyEnd);
-		rebuild_rel();
+		//rebuild_rel();
 	}
 
 private:

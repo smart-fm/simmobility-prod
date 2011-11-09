@@ -4,6 +4,7 @@
 
 import shapefile
 from point import Point, Bounding_box
+from PyQt4 import QtGui, QtCore
 
 class Arrow_marking:
     def __init__(self, id, position, bearing, type):
@@ -41,7 +42,179 @@ class Arrow_marking:
         if 'I' == self.type: return "St/Lt/Rt Turn"
 
     def graphics(self):
-        return None
+        if 'A' == self.type:
+            path = self.right_arrow()
+        elif 'B' == self.type:
+            path = self.straight_and_left_arrow()
+        elif 'C' == self.type:
+            path = self.straight_and_right_arrow()
+        elif 'D' == self.type:
+            path = self.straight_arrow()
+        elif 'E' == self.type:
+            path = self.left_arrow()
+        elif 'F' == self.type:
+            path = self.left_and_right_arrow()
+        elif 'G' == self.type:
+            path = self.conv_left_arrow()
+        elif 'H' == self.type:
+            path = self.conv_right_arrow()
+        elif 'I' == self.type:
+            path = self.straight_and_left_and_right_arrow()
+        else:
+            path = None
+        if not path:
+            return None
+        item = QtGui.QGraphicsPathItem(path)
+        item.setBrush(QtCore.Qt.green)
+        item.setPos(self.position.x, self.position.y)
+        item.setRotation(self.bearing)
+        return item
+
+    def right_arrow(self):
+        path = QtGui.QPainterPath(QtCore.QPointF(0, -15))
+        path.lineTo(0, 15)
+        path.lineTo(270, 15)
+        path.lineTo(270, -60)
+        path.lineTo(300, -60)
+        path.lineTo(255, -120)
+        path.lineTo(210, -60)
+        path.lineTo(240, -60)
+        path.lineTo(240, -15)
+        path.closeSubpath()
+        return path
+
+    def straight_and_left_arrow(self):
+        path = QtGui.QPainterPath(QtCore.QPointF(0, -15))
+        path.lineTo(0, 15)
+        path.lineTo(150, 15)
+        path.lineTo(150, 60)
+        path.lineTo(120, 60)
+        path.lineTo(165, 120)
+        path.lineTo(210, 60)
+        path.lineTo(180, 60)
+        path.lineTo(180, 15)
+        path.lineTo(240, 15)
+        path.lineTo(240, 45)
+        path.lineTo(300, 0)
+        path.lineTo(240, -45)
+        path.lineTo(240, -15)
+        path.closeSubpath()
+        return path
+
+    def straight_and_right_arrow(self):
+        path = QtGui.QPainterPath(QtCore.QPointF(0, -15))
+        path.lineTo(0, 15)
+        path.lineTo(240, 15)
+        path.lineTo(240, 45)
+        path.lineTo(300, 0)
+        path.lineTo(240, -45)
+        path.lineTo(240, -15)
+        path.lineTo(180, -15)
+        path.lineTo(180, -60)
+        path.lineTo(210, -60)
+        path.lineTo(165, -120)
+        path.lineTo(120, -60)
+        path.lineTo(150, -60)
+        path.lineTo(150, -15)
+        path.closeSubpath()
+        return path
+
+    def straight_arrow(self):
+        path = QtGui.QPainterPath(QtCore.QPointF(0, -15))
+        path.lineTo(0, 15)
+        path.lineTo(240, 15)
+        path.lineTo(240, 45)
+        path.lineTo(300, 0)
+        path.lineTo(240, -45)
+        path.lineTo(240, -15)
+        path.closeSubpath()
+        return path
+
+    def left_arrow(self):
+        path = QtGui.QPainterPath(QtCore.QPointF(0, 15))
+        path.lineTo(240, 15)
+        path.lineTo(240, 60) 
+        path.lineTo(210, 60)
+        path.lineTo(255, 120)
+        path.lineTo(300, 60)
+        path.lineTo(270, 60)
+        path.lineTo(270, -15)
+        path.lineTo(0, -15)
+        path.closeSubpath()
+        return path
+
+    def left_and_right_arrow(self):
+        # At the junction of Arab Street and Muscat Street
+        path = QtGui.QPainterPath(QtCore.QPointF(0, 15))
+        path.lineTo(240, 15)
+        path.lineTo(240, 60) 
+        path.lineTo(210, 60)
+        path.lineTo(255, 120)
+        path.lineTo(300, 60)
+        path.lineTo(270, 60)
+        path.lineTo(270, -60)
+        path.lineTo(300, -60)
+        path.lineTo(255, -120)
+        path.lineTo(210, -60)
+        path.lineTo(240, -60) 
+        path.lineTo(240, -15)
+        path.lineTo(0, -15)
+        path.closeSubpath()
+        return path
+
+    def conv_left_arrow(self):
+        # At junction of Rochor Canal Road and Queen Street.
+        path = QtGui.QPainterPath(QtCore.QPointF(0, 0))
+        rect = QtCore.QRectF(0, -45, 210, 90)
+        path.arcTo(rect, 180, -180)
+        path.lineTo(240, 0)
+        path.lineTo(195, 60)
+        path.lineTo(150, 0)
+        path.lineTo(180, 0)
+        rect = QtCore.QRectF(30, -30, 150, 60)
+        path.arcTo(rect, 0, 180)
+        path.closeSubpath()
+        return path
+
+    def conv_right_arrow(self):
+        # At junction of Rochor Canal Road and Queen Street.
+        path = QtGui.QPainterPath(QtCore.QPointF(0, 0))
+        rect = QtCore.QRectF(0, -45, 210, 90)
+        path.arcTo(rect, 180, 180)
+        path.lineTo(240, 0)
+        path.lineTo(195, -60)
+        path.lineTo(150, 0)
+        path.lineTo(180, 0)
+        rect = QtCore.QRectF(30, -30, 150, 60)
+        path.arcTo(rect, 0, -180)
+        path.closeSubpath()
+        return path
+
+    def straight_and_left_and_right_arrow(self):
+        # Found at junction of Short Street, Albert Street, and McNally Street (???). 
+        path = QtGui.QPainterPath(QtCore.QPointF(0, -15))
+        path.lineTo(0, 15)
+        path.lineTo(150, 15)
+        path.lineTo(150, 60)
+        path.lineTo(120, 60)
+        path.lineTo(165, 120)
+        path.lineTo(210, 60)
+        path.lineTo(180, 60)
+        path.lineTo(180, 15)
+        path.lineTo(240, 15)
+        path.lineTo(240, 45)
+        path.lineTo(300, 0)
+        path.lineTo(240, -45)
+        path.lineTo(240, -15)
+        path.lineTo(180, -15)
+        path.lineTo(180, -60)
+        path.lineTo(210, -60)
+        path.lineTo(165, -120)
+        path.lineTo(120, -60)
+        path.lineTo(150, -60)
+        path.lineTo(150, -15)
+        path.closeSubpath()
+        return path
 
 class Arrow_markings:
     def __init__(self, shape_name):

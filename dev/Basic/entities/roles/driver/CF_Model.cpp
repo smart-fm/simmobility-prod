@@ -121,7 +121,7 @@ double sim_mob::Driver::accOfEmergencyDecelerating(UpdateParams& p)
 	if( dv < epsilon_v ) {
 		a=a_lead + 0.25*aNormalDec;
 	} else if ( space > 0.01 ) {
-		a=a_lead - dv * dv / 2 / (space-0.5);
+		a=a_lead - dv * dv / 2 / space;
 	} else {
 		a= breakToTargetSpeed(p);
 	}

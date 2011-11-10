@@ -75,7 +75,8 @@ private:
 	///Simple struct to hold parameters which only exist for a single update tick.
 	struct UpdateParams {
 		const Lane* currLane;
-		meterPerSecond_t currSpeed;
+		//meterPerSecond_t currSpeed;
+		double currSpeed;
 	};
 
 
@@ -236,7 +237,7 @@ private:
 	bool isGoalReached();
 	bool isCloseToLinkEnd();
 	bool isPedetrianOnTargetCrossing();
-	void chooseNextLaneForNextLink();
+	void chooseNextLaneForNextLink(UpdateParams& p);
 	void directionIntersection();
 	int disToObstacle(unsigned obstacle_offset);
 

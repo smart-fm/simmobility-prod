@@ -29,8 +29,9 @@ public:
 	int xPos_;
 	int yPos_;
 
-	//Test: RelAbsPoint is more compact.
-	RelAbsPoint velocity;
+	//Test2: This is really more of a vector...
+	DynamicVector velocity;
+	DynamicVector velocity_lat; //Lateral velocity. Positive means pointing left.
 	//double xVel;
 	//double yVel;
 	//double xVel_;

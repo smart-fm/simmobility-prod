@@ -23,22 +23,25 @@ public:
 	double length;				//length of the vehicle
 	double width;				//width of the vehicle
 	double timeStep;			//time step size of simulation
+
 	int xPos;
 	int yPos;
-	double xAcc;
-	double yAcc;
-
 	int xPos_;
 	int yPos_;
-	double xAcc_;
-	double yAcc_;
 
-	//Testing moving these into their own class:
+	//Test: RelAbsPoint is more compact.
 	RelAbsPoint velocity;
 	//double xVel;
 	//double yVel;
 	//double xVel_;
 	//double yVel_;
+
+	//Test: RelAbsPoint is more compact.
+	RelAbsPoint accel;
+	//double xAcc;
+	//double yAcc;
+	//double xAcc_;
+	//double yAcc_;
 };
 
 } // namespace sim_mob

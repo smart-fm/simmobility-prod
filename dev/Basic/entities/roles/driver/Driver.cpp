@@ -299,10 +299,10 @@ void sim_mob::Driver::setToParent()
 	//parent->xAcc.set(vehicle->accel.getAbsX());
 
 	//NOTE: If we have another accell vector, just add them
-	double realX = vehicle->accel.getEndX();
-	double realY = vehicle->accel.getEndY();
-	parent->xAcc.set(realX);
-	parent->yAcc.set(realY);
+	//double realX = vehicle->accel.getEndX();
+	//double realY = vehicle->accel.getEndY();
+	//parent->xAcc.set(realX);
+	//parent->yAcc.set(realY);
 }
 
 

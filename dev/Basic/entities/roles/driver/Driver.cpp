@@ -589,7 +589,7 @@ void sim_mob::Driver::updateCurrInfo(unsigned int mode, UpdateParams& p)
 		{
 			updateTrafficSignal();
 			if(currRoadSegment!=allRoadSegments.at(allRoadSegments.size()-1))
-				chooseNextLaneForNextLink();
+				chooseNextLaneForNextLink(p);
 		}
 		break;
 	case 2:
@@ -607,7 +607,7 @@ void sim_mob::Driver::updateCurrInfo(unsigned int mode, UpdateParams& p)
 		{
 			updateTrafficSignal();
 			if(currRoadSegment!=allRoadSegments.at(allRoadSegments.size()-1))
-				chooseNextLaneForNextLink();
+				chooseNextLaneForNextLink(p);
 		}
 		break;
 	default:
@@ -628,8 +628,9 @@ void sim_mob::Driver::updatePolyLineSeg()
 
 
 //currently it just chooses the first lane from the targetLane
-void sim_mob::Driver::chooseNextLaneForNextLink()
+void sim_mob::Driver::chooseNextLaneForNextLink(UpdateParams& p)
 {
+	std::vector<const Lane*> targetLanes;
 	const Node* currNode = currRoadSegment->getEnd();
 	if(currRoadSegment->getEnd()==allRoadSegments.at(RSIndex+1)->getLink()->getStart())
 		nextIsForward = true;
@@ -642,11 +643,28 @@ void sim_mob::Driver::chooseNextLaneForNextLink()
 		set<LaneConnector*> lcs=mNode->getOutgoingLanes(*currRoadSegment);
 		for(i=lcs.begin();i!=lcs.end();i++){
 			if((*i)->getLaneTo()->getRoadSegment()==allRoadSegments.at(RSIndex+1)
-					&& (*i)->getLaneFrom()->getRoadSegment()==currRoadSegment){
-				nextLaneInNextLink = (*i)->getLaneTo();
-				targetLaneIndex = getLaneIndex((*i)->getLaneFrom());
-				return;
+					&& (*i)->getLaneFrom()==p.currLane){
+				targetLanes.push_back((*i)->getLaneTo());
+				size_t laneIndex = getLaneIndex((*i)->getLaneTo());
+				//find target lane with same index, use this lane
+				if(laneIndex == currLaneIndex)
+				{
+					nextLaneInNextLink = (*i)->getLaneTo();
+					targetLaneIndex = laneIndex;
+					return;
+				}
 			}
+		}
+		//no lane with same index, use the first lane in the vector
+		if(targetLanes.size()>0)
+		{
+			nextLaneInNextLink = targetLanes.at(0);
+			targetLaneIndex = getLaneIndex(nextLaneInNextLink);
+		}
+		else
+		{
+			nextLaneInNextLink = allRoadSegments.at(RSIndex+1)->getLanes().at(currLaneIndex);
+			targetLaneIndex = currLaneIndex;
 		}
 	}
 }
@@ -1094,7 +1112,6 @@ void sim_mob::Driver::updateAngle()
 	else if(xVel>=0 && yVel<0 ) { angle = - atan(yVel/xVel)/3.1415926*180; }
 	else if(xVel<0  && yVel>=0) { angle = 180 - atan(yVel/xVel)/3.1415926*180; }
 	else if(xVel<0  && yVel<0 ) { angle = 180 - atan(yVel/xVel)/3.1415926*180; }
-	else{} //??? Why is there another case here? ~Seth
 }
 
 void sim_mob :: Driver :: intersectionVelocityUpdate()

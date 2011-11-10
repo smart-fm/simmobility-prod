@@ -36,8 +36,9 @@ public:
 	//double xVel_;
 	//double yVel_;
 
-	//Test: RelAbsPoint is more compact.
-	RelAbsPoint accel;
+	//Test2: This is really more of a vector...
+	//RelAbsPoint accel;
+	DynamicVector accel;
 	//double xAcc;
 	//double yAcc;
 	//double xAcc_;

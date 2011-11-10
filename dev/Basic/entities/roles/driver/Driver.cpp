@@ -272,7 +272,8 @@ void sim_mob::Driver::linkDriving(UpdateParams& p)
 		vehicle->velocity.setRelX(0);
 
 		//vehicle->xAcc_ = 0;
-		vehicle->accel.setRelX(0);
+		//vehicle->accel.setRelX(0);
+		vehicle->accel.scaleVectTo(0);
 	}
 	else
 		makeAcceleratingDecision(p);
@@ -295,15 +296,28 @@ void sim_mob::Driver::setToParent()
 
 	//parent->xAcc.set(vehicle->xAcc);
 	//parent->yAcc.set(vehicle->yAcc);
-	parent->xAcc.set(vehicle->accel.getAbsX());
-	parent->yAcc.set(vehicle->accel.getAbsY());
+	//parent->xAcc.set(vehicle->accel.getAbsX());
+
+	//NOTE: If we have another accell vector, just add them
+	double realX = vehicle->accel.getEndX();
+	double realY = vehicle->accel.getEndY();
+	parent->xAcc.set(realX);
+	parent->yAcc.set(realY);
 }
 
 
 void sim_mob::Driver::sync_relabsobjs()
 {
 	vehicle->velocity.changeCoords(currPolylineSegStart, currPolylineSegEnd);
-	vehicle->accel.changeCoords(currPolylineSegStart, currPolylineSegEnd);
+
+	//vehicle->accel.changeCoords(currPolylineSegStart, currPolylineSegEnd);
+	double oldMag = vehicle->accel.getMagnitude();
+	vehicle->accel = DynamicVector(
+		0, 0,
+		currPolylineSegEnd.getX()-currPolylineSegStart.getX(),
+		currPolylineSegEnd.getY()-currPolylineSegStart.getY()
+	);
+	vehicle->accel.scaleVectTo(oldMag);
 }
 
 
@@ -694,7 +708,8 @@ void sim_mob::Driver::setBackToOrigin()
 
 	//vehicle->xAcc = 0;
 	//vehicle->yAcc = 0;
-	vehicle->accel.setAbs(0, 0);
+	//vehicle->accel.setAbs(0, 0);
+	vehicle->accel.scaleVectTo(0);
 
 	setToParent();
 }
@@ -762,7 +777,8 @@ void sim_mob::Driver::setOrigin(UpdateParams& p)
 
 	//vehicle->xAcc_=0;
 	//vehicle->yAcc_=0;
-	vehicle->accel.setRel(0, 0);
+	//vehicle->accel.setRel(0, 0);
+	vehicle->accel.scaleVectTo(0);
 
 	//perceivedXVelocity_=vehicle->xVel_;
 	//perceivedYVelocity_=vehicle->yVel_;
@@ -803,14 +819,16 @@ void sim_mob::Driver::findCrossing()
 void sim_mob::Driver::updateAcceleration()
 {
 	//vehicle->xAcc_ = acc_ * 100;
-	vehicle->accel.setRelX(acc_ * 100);
+	//vehicle->accel.setRelX(acc_ * 100);
+	vehicle->accel.scaleVectTo(acc_ * 100);
 }
 
 void sim_mob::Driver::updatePositionOnLink()
 {
 	//traveledDis = vehicle->xVel_*timeStep+0.5*vehicle->xAcc_*timeStep*timeStep;
 	//traveledDis = vehicle->velocity.getRelX()*timeStep+0.5*vehicle->xAcc_*timeStep*timeStep;
-	traveledDis = vehicle->velocity.getRelX()*timeStep+0.5*vehicle->accel.getRelX()*timeStep*timeStep;
+	//traveledDis = vehicle->velocity.getRelX()*timeStep+0.5*vehicle->accel.getRelX()*timeStep*timeStep;
+	traveledDis = vehicle->velocity.getRelX()*timeStep+0.5*vehicle->accel.getMagnitude()*timeStep*timeStep;
 
 	if(traveledDis<0) {
 		traveledDis = 0;
@@ -818,7 +836,8 @@ void sim_mob::Driver::updatePositionOnLink()
 
 	//vehicle->xVel_ += vehicle->xAcc_*timeStep;
 	//vehicle->velocity.setRelX(vehicle->velocity.getRelX() + vehicle->xAcc_*timeStep);
-	vehicle->velocity.setRelX(vehicle->velocity.getRelX() + vehicle->accel.getRelX()*timeStep);
+	//vehicle->velocity.setRelX(vehicle->velocity.getRelX() + vehicle->accel.getRelX()*timeStep);
+	vehicle->velocity.setRelX(vehicle->velocity.getRelX() + vehicle->accel.getMagnitude()*timeStep);
 
 	//if(vehicle->xVel_<0)
 	if (vehicle->velocity.getRelX()<0)
@@ -827,7 +846,8 @@ void sim_mob::Driver::updatePositionOnLink()
 		vehicle->velocity.setRelX(0.1);
 
 		//vehicle->xAcc_ = 0;
-		vehicle->accel.setRelX(0);
+		//vehicle->accel.setRelX(0);
+		vehicle->accel.scaleVectTo(0);
 	}
 
 	vehicle->xPos_ += traveledDis;
@@ -1120,7 +1140,8 @@ void sim_mob :: Driver :: intersectionVelocityUpdate()
 
 	//vehicle->xAcc_=0;
 	//vehicle->yAcc_=0;
-	vehicle->accel.setRel(0, 0);
+	//vehicle->accel.setRel(0, 0);
+	vehicle->accel.scaleVectTo(0);
 
 	//vehicle->xVel = inter_speed * xDirection_entryPoint;
 	//vehicle->yVel = inter_speed * yDirection_entryPoint;
@@ -1143,7 +1164,8 @@ void sim_mob :: Driver :: enterNextLink(UpdateParams& p)
 	vehicle->yPos_ = 0;
 
 	//vehicle->yAcc_ = 0;
-	vehicle->accel.setRelY(0);
+	//vehicle->accel.setRelY(0);
+	//TODO: If you add a y-accel., then you may need to re-enable this line.
 
 	linkDriving(p);
 	relat2abs();
@@ -1210,10 +1232,12 @@ void sim_mob::Driver::pedestrianAheadDriving()
 	if(perceivedXVelocity_>0) {
 		//vehicle->xAcc_ = -0.5*perceivedXVelocity_*perceivedXVelocity_/(0.5*minPedestrianDis);
 		//make sure the vehicle can stop before pedestrian, so distance should be shorter, now I use 0.5*dis
-		vehicle->accel.setRelX(-0.5*perceivedXVelocity_*perceivedXVelocity_/(0.5*minPedestrianDis));
+		//vehicle->accel.setRelX(-0.5*perceivedXVelocity_*perceivedXVelocity_/(0.5*minPedestrianDis));
+		vehicle->accel.scaleVectTo(-0.5*perceivedXVelocity_*perceivedXVelocity_/(0.5*minPedestrianDis));
 	} else {
 		//vehicle->xAcc_ = 0;
-		vehicle->accel.setRelX(0);
+		//vehicle->accel.setRelX(0);
+		vehicle->accel.scaleVectTo(0);
 
 		//vehicle->xVel_ = 0;
 		vehicle->velocity.setRelX(0);

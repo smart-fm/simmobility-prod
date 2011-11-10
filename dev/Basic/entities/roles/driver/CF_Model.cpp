@@ -68,7 +68,8 @@ void sim_mob::Driver::makeAcceleratingDecision(UpdateParams& p)
 			v_lead 		=	CFD->getVehicle()->velocity.getRelX()/100;
 
 			//a_lead		=	CFD->getVehicle()->xAcc_/100;
-			a_lead          =   CFD->getVehicle()->accel.getRelX()/100;
+			//a_lead          =   CFD->getVehicle()->accel.getRelX()/100;
+			a_lead          =   CFD->getVehicle()->accel.getMagnitude()/100;
 		}
 		else
 		{

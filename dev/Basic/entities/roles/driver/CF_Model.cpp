@@ -67,7 +67,8 @@ void sim_mob::Driver::makeAcceleratingDecision(UpdateParams& p)
 			//v_lead 		=	CFD->getVehicle()->xVel_/100;
 			v_lead 		=	CFD->getVehicle()->velocity.getRelX()/100;
 
-			a_lead		=	CFD->getVehicle()->xAcc_/100;
+			//a_lead		=	CFD->getVehicle()->xAcc_/100;
+			a_lead          =   CFD->getVehicle()->accel.getRelX()/100;
 		}
 		else
 		{
@@ -121,7 +122,7 @@ double sim_mob::Driver::accOfEmergencyDecelerating(UpdateParams& p)
 	if( dv < epsilon_v ) {
 		a=a_lead + 0.25*aNormalDec;
 	} else if ( space > 0.01 ) {
-		a=a_lead - dv * dv / 2 / (space-0.5);
+		a=a_lead - dv * dv / 2 / space;
 	} else {
 		a= breakToTargetSpeed(p);
 	}

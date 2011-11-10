@@ -226,6 +226,8 @@ double sim_mob::Driver::makeMandatoryLaneChangingDecision()
 	bool freeRight = ((freeLanes&LSIDE_RIGHT)!=0);
 
 	//find which lane it should get to and choose which side to change
+	//now manually set to 1, it should be replaced by target lane index
+	//i am going to fix it.
 	int direction=1-currLaneIndex;
 
 	//current lane is target lane

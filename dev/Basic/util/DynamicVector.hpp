@@ -44,6 +44,7 @@ public:
 	DynamicVector& scaleVectTo(double val) { ///<Scale this vector's magnitude TO a given value. (Note that this vector need not be a unit vector.)
 		if (mag.x==0 && mag.y==0) {
 			//Nothing to do; avoid dividing by NaN
+			mag.x = mag.y = 0;
 			return *this;
 		}
 

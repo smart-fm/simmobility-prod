@@ -34,6 +34,7 @@ class Lane;
 class Node;
 class MultiNode;
 class Vehicle;
+class DPoint;
 
 
 class Driver : public sim_mob::Role {
@@ -106,7 +107,7 @@ private:
 
 	//Sample stored data which takes reaction time into account.
 	const static size_t reactTime = 1500; //1.5 seconds
-	//FixedDelayed<Point2D*> perceivedVelocity;
+	FixedDelayed<DPoint*> perceivedVelocity;
 	FixedDelayed<Point2D*> perceivedVelocityOfFwdCar;
 	FixedDelayed<centimeter_t> perceivedDistToFwdCar;
 
@@ -114,8 +115,8 @@ private:
 	double timeStep;			//time step size of simulation
 
 	//TODO: Deactivating these temporarily
-	//double perceivedXVelocity_;
-	//double perceivedYVelocity_;
+	double perceivedXVelocity_;
+	double perceivedYVelocity_;
 
 	//absolute position of the target start point on the next link
 	//used for intersection driving behavior

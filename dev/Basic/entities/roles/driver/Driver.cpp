@@ -26,6 +26,7 @@
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Crossing.hpp"
 #include "util/OutputUtil.hpp"
+#include "util/DynamicVector.hpp"
 
 
 using namespace sim_mob;
@@ -44,7 +45,7 @@ double sim_mob::Driver::unit2Feet(double unit)
 }
 
 //initiate
-sim_mob::Driver::Driver(Agent* parent) : Role(parent), vehicle(nullptr), /*perceivedVelocity(reactTime, true),*/
+sim_mob::Driver::Driver(Agent* parent) : Role(parent), vehicle(nullptr), perceivedVelocity(reactTime, true),
 	perceivedVelocityOfFwdCar(reactTime, true), perceivedDistToFwdCar(reactTime, false), currLane_(nullptr)
 {
 	//Set default speed in the range of 10m/s to 19m/s
@@ -139,17 +140,17 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	//Update your perceptions.
 	//NOTE: This should be done as perceptions arrive, but the following code kind of "mixes"
 	//      input and decision-making. ~Seth
-	//perceivedVelocity.delay(new Point2D(vehicle->velocity.getRelX(), vehicle->velocity.getRelY()), currTimeMS);
+	perceivedVelocity.delay(new DPoint(vehicle->velocity.getMagnitude(), vehicle->velocity_lat.getMagnitude()), currTimeMS);
 
 
 	//perceivedVelocityOfFwdCar.delay(new Point2D(otherCarXVel, otherCarYVel), currTimeMS);
 	//perceivedDistToFwdCar.delay(distToOtherCar, currTimeMS);
 
 	//Now, retrieve your sensed velocity, distance, etc.
-	/*if (perceivedVelocity.can_sense(currTimeMS)) {
+	if (perceivedVelocity.can_sense(currTimeMS)) {
 		perceivedXVelocity_ = perceivedVelocity.sense(currTimeMS)->getX();
 		perceivedYVelocity_ = perceivedVelocity.sense(currTimeMS)->getY();
-	}*/
+	}
 
 	//Here, you can use the "perceived" velocity to perform decision-making. Just be
 	// careful about how you're saving the velocity values. ~Seth
@@ -1276,9 +1277,6 @@ void sim_mob::Driver::updateTrafficSignal()
 
 void sim_mob::Driver::pedestrianAheadDriving()
 {
-	//TODO: Comment out when we re-enable perception.
-	double perceivedXVelocity_ = vehicle->velocity.getMagnitude();
-
 	if(perceivedXVelocity_>0) {
 		//vehicle->xAcc_ = -0.5*perceivedXVelocity_*perceivedXVelocity_/(0.5*minPedestrianDis);
 		//make sure the vehicle can stop before pedestrian, so distance should be shorter, now I use 0.5*dis

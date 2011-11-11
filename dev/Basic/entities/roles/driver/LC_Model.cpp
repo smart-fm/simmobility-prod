@@ -128,15 +128,11 @@ unsigned int sim_mob::Driver::gapAcceptance(int type)
 	for(int i=0;i<2;i++){	//i for left / right
 		for(int j=0;j<2;j++){	//j for lead / lag
 			if (j==0) {
-				//TODO: Re-enable perceivedVelocity later!
-				double perceivedXVelocity_ = vehicle->velocity.getMagnitude();
 				double v      = perceivedXVelocity_;
 
 				double dv     = otherSpeed[i].lead - perceivedXVelocity_;
 				flags[i].lead = (otherDistance[i].lead > lcCriticalGap(j+type,dis2stop,v,dv));
 			} else {
-				//TODO: Re-enable perceivedVelocity later!
-				double perceivedXVelocity_ = vehicle->velocity.getMagnitude();
 
 				double v 	 = otherSpeed[i].lag;
 				double dv 	 = perceivedXVelocity_-otherSpeed[i].lag;

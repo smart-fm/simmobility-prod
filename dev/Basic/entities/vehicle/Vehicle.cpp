@@ -11,12 +11,6 @@
 
 using namespace sim_mob;
 
-sim_mob::Vehicle::Vehicle() {
-	//assume that all the car has the same size
-	length=400;
-	width=200;
-}
-
-sim_mob::Vehicle::~Vehicle() {
-	// TODO Auto-generated destructor stub
+//assume that all the car has the same size
+sim_mob::Vehicle::Vehicle() : length(400), width(200) {
 }

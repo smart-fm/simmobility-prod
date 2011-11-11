@@ -17,7 +17,6 @@ namespace sim_mob {
 class Vehicle {
 public:
 	Vehicle();
-	virtual ~Vehicle();
 
 public:
 	double length;				//length of the vehicle

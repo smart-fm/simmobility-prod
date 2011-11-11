@@ -17,10 +17,10 @@ class Bus_stop:
 
     @staticmethod
     def column_names():
-        return ("Bus-stop number", "Shape type", "Position")
+        return ("#", "Bus-stop number", "Shape type", "Position")
 
     def columns(self):
-        return (self.number, "point", self.position)
+        return (self.id, self.number, "point", self.position)
 
     def tip_columns(self):
         return list()
@@ -40,6 +40,7 @@ class Bus_stop:
         #item.setPen(QtCore.Qt.green)
         item.setBrush(QtCore.Qt.green)
         item.setPos(self.position.x, self.position.y)
+        item.info = "bus stop id=%d number=%d" % (self.id, self.number)
         return item
 
 class Bus_stops:

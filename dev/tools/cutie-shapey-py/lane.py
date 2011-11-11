@@ -17,10 +17,10 @@ class Lane_marking:
 
     @staticmethod
     def column_names():
-        return ("Type", "Shape-type", "Vertex")
+        return ("#", "Type", "Shape-type", "Vertex")
 
     def columns(self):
-        return (self.type, "polyline", self.polyline)
+        return (self.id, self.type, "polyline", self.polyline)
 
     def tip_columns(self):
         return [0]
@@ -64,6 +64,7 @@ class Lane_marking:
             path.lineTo(point.x, point.y)
         item = QtGui.QGraphicsPathItem(path)
         item.setPen(QtCore.Qt.blue)
+        item.info = "lane marking id=%d type='%s - %s'" % (self.id, self.type, self.type_desc())
         return item
 
 class Lane_markings:

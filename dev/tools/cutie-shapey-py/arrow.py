@@ -19,10 +19,10 @@ class Arrow_marking:
 
     @staticmethod
     def column_names():
-        return ("Type", "Bearing", "Shape-type", "Position")
+        return ("#", "Type", "Bearing", "Shape-type", "Position")
 
     def columns(self):
-        return (self.type, self.bearing, "point", self.position)
+        return (self.id, self.type, self.bearing, "point", self.position)
 
     def tip_columns(self):
         return [0]
@@ -68,6 +68,7 @@ class Arrow_marking:
         item.setBrush(QtCore.Qt.green)
         item.setPos(self.position.x, self.position.y)
         item.setRotation(self.bearing)
+        item.info = "arrow marking id=%d type='%s' bearing=%d" % (self.id, self.type_desc(), self.bearing)
         return item
 
     def right_arrow(self):

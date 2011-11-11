@@ -148,8 +148,8 @@ void sim_mob::Driver::update(frame_t frameNumber)
 
 	//Now, retrieve your sensed velocity, distance, etc.
 	if (perceivedVelocity.can_sense(currTimeMS)) {
-		perceivedXVelocity_ = perceivedVelocity.sense(currTimeMS)->getX();
-		perceivedYVelocity_ = perceivedVelocity.sense(currTimeMS)->getY();
+		perceivedXVelocity_ = perceivedVelocity.sense(currTimeMS)->x;
+		perceivedYVelocity_ = perceivedVelocity.sense(currTimeMS)->y;
 	}
 
 	//Here, you can use the "perceived" velocity to perform decision-making. Just be

@@ -83,8 +83,6 @@ class Record_table(QtGui.QTreeWidget):
         row = self.topLevelItem(rec.id)
         if row:
             row.graphics = graphics
-        else:
-            print rec.id
 
     def selection_changed(self):
         items = self.selectedItems()

@@ -163,7 +163,7 @@ class Arrow_marking:
         path.closeSubpath()
         return path
 
-    def conv_left_arrow(self):
+    def conv_right_arrow(self):
         # At junction of Rochor Canal Road and Queen Street.
         path = QtGui.QPainterPath(QtCore.QPointF(0, 0))
         rect = QtCore.QRectF(0, -45, 210, 90)
@@ -177,7 +177,7 @@ class Arrow_marking:
         path.closeSubpath()
         return path
 
-    def conv_right_arrow(self):
+    def conv_left_arrow(self):
         # At junction of Rochor Canal Road and Queen Street.
         path = QtGui.QPainterPath(QtCore.QPointF(0, 0))
         rect = QtCore.QRectF(0, -45, 210, 90)
@@ -234,7 +234,7 @@ class Arrow_markings:
         return Arrow_marking.column_names()
 
     def error(self, message):
-        print "error in bus-stop: %s" % message
+        print "error in arrow-markings: %s" % message
 
     def is_all_blanks(self, field):
         if not isinstance(field, str):

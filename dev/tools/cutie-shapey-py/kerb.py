@@ -54,7 +54,7 @@ class Kerb_lines:
         return Kerb_line.column_names()
 
     def error(self, message):
-        print "error in lane-markings: %s" % message
+        print "error in kerb-lines: %s" % message
 
     def is_all_blanks(self, field):
         if not isinstance(field, str):

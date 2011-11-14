@@ -28,7 +28,8 @@ class GraphicsView(QtGui.QGraphicsView):
 
     def mouseMoveEvent(self, event):
         if event.buttons() == QtCore.Qt.NoButton:
-            message = ""
+            point = self.mapToScene(event.pos())
+            message = "(%d, %d) | " % (point.x(), point.y())
             for item in self.items(event.x(), event.y(), 10, 10):
                 message += item.info
                 message += " | "

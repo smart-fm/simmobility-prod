@@ -78,8 +78,10 @@ private:
 	///Simple struct to hold parameters which only exist for a single update tick.
 	struct UpdateParams {
 		const Lane* currLane;
-		//meterPerSecond_t currSpeed;
 		double currSpeed;
+
+		double perceivedFwdVelocity;
+		double perceivedLatVelocity;
 	};
 
 
@@ -121,8 +123,8 @@ private:
 	double timeStep;			//time step size of simulation
 
 	//TODO: Deactivating these temporarily
-	double perceivedXVelocity_;
-	double perceivedYVelocity_;
+	//double perceivedXVelocity_;
+	//double perceivedYVelocity_;
 
 	//absolute position of the target start point on the next link
 	//used for intersection driving behavior
@@ -259,14 +261,16 @@ private:
 	///TODO: This should be moved at some point
 	void sync_relabsobjs();
 
-	bool isReachPolyLineSegEnd();
-	bool isReachRoadSegmentEnd();
-	bool isReachLastPolyLineSeg();
-	bool isReachLastRSinCurrLink();
-	bool isCloseToCrossing();
-	bool isReachLinkEnd();
-	bool isLeaveIntersection();
-	bool isGoalReached();
+	bool isReachPolyLineSegEnd() const;
+	bool isReachCurrRoadSegmentEnd() const;
+	//bool isReachLastPolyLineSeg() const;
+	bool isReachLastRSinCurrLink() const;
+	bool isCloseToCrossing() const;
+
+	bool isLeaveIntersection() const;
+	bool isReachLinkEnd() const;
+	bool isGoalReached() const;
+
 	bool isCloseToLinkEnd();
 	bool isPedetrianOnTargetCrossing();
 	void chooseNextLaneForNextLink(UpdateParams& p);
@@ -296,7 +300,7 @@ private:
 
 	void trafficSignalDriving(UpdateParams& p);
 	void intersectionDriving(UpdateParams& p);
-	void pedestrianAheadDriving();
+	//void pedestrianAheadDriving(UpdateParams& p);
 	void linkDriving(UpdateParams& p);
 
 	void initializePath();

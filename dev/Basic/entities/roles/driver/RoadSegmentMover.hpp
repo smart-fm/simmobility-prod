@@ -36,10 +36,10 @@ public:
 	}
 
 	//Are we move-able?
-	bool isPathSet() {
+	bool isPathSet() const {
 		return !roadSegmentList.empty();
 	}
-	void throwIfPathUnset() {
+	void throwIfPathUnset() const {
 		if (!isPathSet()) {
 			throw std::runtime_error("RoadSegmentMover path not set.");
 		}
@@ -52,6 +52,16 @@ public:
 			currSegmentIt++;
 		}
 		return currSegmentIt!=roadSegmentList.end();
+	}
+
+	//Done?
+	/*bool isAtEnd() const {
+		throwIfPathUnset();
+		return currSegmentIt == roadSegmentList.end();
+	}*/
+	bool isOnLastSegment() const {
+		throwIfPathUnset();
+		return nextPolypoint+1==polypointsList.end();
 	}
 
 	//Retrieve

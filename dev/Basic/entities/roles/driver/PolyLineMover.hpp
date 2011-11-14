@@ -36,14 +36,15 @@ public:
 	}
 
 	//Are we move-able?
-	bool isPathSet() {
+	bool isPathSet() const {
 		return !polypointsList.empty();
 	}
-	void throwIfPathUnset() {
+	void throwIfPathUnset() const {
 		if (!isPathSet()) {
 			throw std::runtime_error("PolyLineMover path not set.");
 		}
 	}
+
 
 	//Advance
 	bool moveToNextSegment() {
@@ -53,6 +54,16 @@ public:
 			nextPolypoint++;
 		}
 		return nextPolypoint!=polypointsList.end();
+	}
+
+	//Done?
+	/*bool isAtEnd() const {
+		throwIfPathUnset();
+		return nextPolypoint==polypointsList.end();
+	}*/
+	bool isOnLastLine() const {
+		throwIfPathUnset();
+		return nextPolypoint+1==polypointsList.end();
 	}
 
 	//Retrieve
@@ -72,8 +83,8 @@ public:
 		double res = 0;
 		for(size_t i=0; i<polypointsList.size()-1; i++) {
 			DynamicVector temp(
-				polypointsList->at(i).getX(), polypointsList->at(i).getY(),
-				polypointsList->at(i+1).getX(), polypointsList->at(i+1).getY()
+				polypointsList.at(i).getX(), polypointsList.at(i).getY(),
+				polypointsList.at(i+1).getX(), polypointsList.at(i+1).getY()
 			);
 			res += temp.getMagnitude();
 		}

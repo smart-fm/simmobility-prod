@@ -9,10 +9,30 @@
 
 #include "Driver.hpp"
 
+#include <limits>
+
 #include "entities/vehicle/Vehicle.hpp"
 #include "geospatial/Link.hpp"
 
+using std::numeric_limits;
 using namespace sim_mob;
+
+
+namespace {
+//Declare MAX_NUM as a private variable here to limit its scope.
+const double MAX_NUM = numeric_limits<double>::max();
+
+//Helper struct
+template <class T>
+struct LeadLag {
+	T lead;
+	T lag;
+};
+
+
+} //End anon namespace
+
+
 const sim_mob::Driver::GapAcceptParam sim_mob::Driver::GA_parameters[4] = {
 //	    scale alpha lambda beta0  beta1  beta2  beta3  beta4  stddev
 		{ 1.00, 0.0, 0.000, 0.508, 0.000, 0.000,-0.420, 0.000, 0.488},	//Discretionary,lead
@@ -62,61 +82,67 @@ double sim_mob::Driver::lcCriticalGap(int type,	double dis_, double spd_, double
 
 unsigned int sim_mob::Driver::gapAcceptance(int type)
 {
-	//[0:left,1:right][0:lead,1:lag]
-	double otherSpeed[2][2];		//the speed of the closest vehicle in adjacent lane
-	double otherDistance[2][2];		//the distance to the closest vehicle in adjacent lane
+	//[0:left,1:right]
+	LeadLag<double> otherSpeed[2];		//the speed of the closest vehicle in adjacent lane
+	LeadLag<double> otherDistance[2];	//the distance to the closest vehicle in adjacent lane
 
 	const Lane* adjacentLanes[2] = {leftLane,rightLane};
-	const Driver* F;
-	const Driver* B;
+	const Driver* fwd;
+	const Driver* back;
 	for(int i=0;i<2;i++){
-		if(i==0){
-			F=LFD;
-			B=LBD;
-		} else {
-			F=RFD;
-			B=RBD;
-		}
+		fwd = (i==0) ? LFD : RFD;
+		back = (i==0) ? LBD : RBD;
+
 		if(adjacentLanes[i]){	//the left/right side exists
-			if(!F) {		//no vehicle ahead on current lane
-				otherSpeed[i][0]=MAX_NUM;
-				otherDistance[i][0]=MAX_NUM;
+			if(!fwd) {		//no vehicle ahead on current lane
+				otherSpeed[i].lead=MAX_NUM;
+				otherDistance[i].lead=MAX_NUM;
 			} else {				//has vehicle ahead
-				otherSpeed[i][0]=F->getVehicle()->xVel_;
-				otherDistance[i][0]=(i==0)? minLFDistance:minRFDistance;
+				//otherSpeed[i].lead=fwd->getVehicle()->xVel_;
+				otherSpeed[i].lead = fwd->getVehicle()->velocity.getRelX();
+
+				otherDistance[i].lead=(i==0)? minLFDistance:minRFDistance;
 			}
-			if(!B){//no vehicle behind
-				otherSpeed[i][1]=-MAX_NUM;
-				otherDistance[i][1]=MAX_NUM;
+			if(!back){//no vehicle behind
+				otherSpeed[i].lag=-MAX_NUM;
+				otherDistance[i].lag=MAX_NUM;
 			}
 			else{		//has vehicle behind, check the gap
-				otherSpeed[i][1]=B->getVehicle()->xVel_;
-				otherDistance[i][1]=(i==0)? minLBDistance:minRBDistance;
+				//otherSpeed[i].lag=back->getVehicle()->xVel_;
+				otherSpeed[i].lag=back->getVehicle()->velocity.getRelX();
+
+				otherDistance[i].lag=(i==0)? minLBDistance:minRBDistance;
 			}
 		} else {			// no left/right side exists
-			otherSpeed[i][0]=-MAX_NUM;
-			otherDistance[i][0]=0;
-			otherSpeed[i][1]=MAX_NUM;
-			otherDistance[i][1]=0;
+			otherSpeed[i].lead    = -MAX_NUM;
+			otherDistance[i].lead = 0;
+			otherSpeed[i].lag     = MAX_NUM;
+			otherDistance[i].lag  = 0;
 		}
 	}
 
-	//[0:left,1:right][0:lead,1:lag]
-	bool flags[2][2];
+	//[0:left,1:right]
+	LeadLag<bool> flags[2];
 	for(int i=0;i<2;i++){	//i for left / right
 		for(int j=0;j<2;j++){	//j for lead / lag
-			double v 	= ( j == 0 ) ? perceivedXVelocity_ : otherSpeed[i][1];
-			double dv 	= ( j == 0 ) ? otherSpeed[i][0] - perceivedXVelocity_ : perceivedXVelocity_-otherSpeed[i][1];
-			flags[i][j]= otherDistance[i][j] > lcCriticalGap(j+type,dis2stop,v,dv);
+			if (j==0) {
+				double v      = perceivedXVelocity_;
+				double dv     = otherSpeed[i].lead - perceivedXVelocity_;
+				flags[i].lead = (otherDistance[i].lead > lcCriticalGap(j+type,dis2stop,v,dv));
+			} else {
+				double v 	 = otherSpeed[i].lag;
+				double dv 	 = perceivedXVelocity_-otherSpeed[i].lag;
+				flags[i].lag = (otherDistance[i].lag > lcCriticalGap(j+type,dis2stop,v,dv));
+			}
 		}
 	}
 
 	//Build up a return value.
 	unsigned int returnVal = 0;
-	if ( flags[0][0] && flags[0][1] ) {
+	if ( flags[0].lead && flags[0].lag ) {
 		returnVal |= LSIDE_LEFT;
 	}
-	if ( flags[1][0] && flags[1][1] ) {
+	if ( flags[1].lead && flags[1].lag ) {
 		returnVal |= LSIDE_RIGHT;
 	}
 
@@ -200,6 +226,8 @@ double sim_mob::Driver::makeMandatoryLaneChangingDecision()
 	bool freeRight = ((freeLanes&LSIDE_RIGHT)!=0);
 
 	//find which lane it should get to and choose which side to change
+	//now manually set to 1, it should be replaced by target lane index
+	//i am going to fix it.
 	int direction=1-currLaneIndex;
 
 	//current lane is target lane
@@ -257,7 +285,8 @@ void sim_mob::Driver::excuteLaneChanging()
 	}
 	else{			//when changing lane
 		if(changeDecision!=0) {
-			vehicle->yVel_ = -changeDecision*VelOfLaneChanging;
+			//vehicle->yVel_ = -changeDecision*VelOfLaneChanging;
+			vehicle->velocity.setRelY(-changeDecision*VelOfLaneChanging);
 		}
 	}
 }

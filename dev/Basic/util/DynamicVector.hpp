@@ -13,7 +13,7 @@ namespace sim_mob
 struct DPoint {
 	double x;
 	double y;
-	DPoint(double x, double y) : x(x), y(y) {}
+	DPoint(double x=0.0, double y=0.0) : x(x), y(y) {}
 };
 
 
@@ -44,6 +44,7 @@ public:
 	DynamicVector& scaleVectTo(double val) { ///<Scale this vector's magnitude TO a given value. (Note that this vector need not be a unit vector.)
 		if (mag.x==0 && mag.y==0) {
 			//Nothing to do; avoid dividing by NaN
+			mag.x = mag.y = 0;
 			return *this;
 		}
 

@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include <limits>
 #include <vector>
 #include <math.h>
 #include <set>
@@ -38,11 +37,8 @@ class Vehicle;
 
 
 class Driver : public sim_mob::Role {
-public:
-	Driver (Agent* parent);			//to initiate
-	virtual void update(frame_t frameNumber);
-	void assignVehicle(Vehicle* v) {vehicle = v;}
 
+//Static data and private class definitions.
 private:
 	///Simple struct to hold Car Following model parameters
 	struct CarFollowParam {
@@ -76,40 +72,47 @@ private:
 		double lane_mintime;
 	};
 
+	///Simple struct to hold parameters which only exist for a single update tick.
+	struct UpdateParams {
+		const Lane* currLane;
+		//meterPerSecond_t currSpeed;
+		double currSpeed;
+	};
 
-	static const double MAX_ACCELERATION		=	20.0;//10m/s*s
-	static const double MAX_DECELERATION		=	-20.0;
 
-	//Something I have to define
+	//Model parameters. Might be tunable.
+	static const double MAX_ACCELERATION		=	 20.0;   ///< 10m/s*s
+	static const double MAX_DECELERATION		=	-20.0;   ///< 10m/s*s
+	static const double hBufferUpper			=	  1.6;	 ///< upper threshold of headway
+	static const double hBufferLower			=	  0.8;	 ///< lower threshold of headway
 
-	static const double FLT_EPSILON				=	0.01;	//the smallest double
-	static const double MAX_NUM;							//regard as infinity
-	static const double hBufferUpper			=	1.6;	//upper threshold of headway
-	static const double hBufferLower			=	0.8;	//lower threshold of headway
-
-	//parameters(refer to MITSIMLab data files)
-	static const CarFollowParam CF_parameters[2];	//Car Following parameters
-	static const GapAcceptParam GA_parameters[4];	//Gap Acceptance model parameters
+	//Parameters from MITSim lab parameters file. Might be tunable.
+	static const CarFollowParam CF_parameters[2];	    //Car Following parameters
+	static const GapAcceptParam GA_parameters[4];	    //Gap Acceptance model parameters
 	static const MandLaneChgParam MLC_parameters;		//Mandatory Lane Changing parameters
 
 
+//Constructor and overridden methods.
+public:
+	Driver (Agent* parent);			//to initiate
+	virtual void update(frame_t frameNumber);
+	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 
-	/**********BASIC DATA*************/
+//Basic data
 private:
-
+	//Pointer to the vehicle this driver is controlling.
 	Vehicle* vehicle;
-        //Sample stored data which takes reaction time into account.
+
+	//Sample stored data which takes reaction time into account.
 	const static size_t reactTime = 1500; //1.5 seconds
 	FixedDelayed<Point2D*> perceivedVelocity;
 	FixedDelayed<Point2D*> perceivedVelocityOfFwdCar;
 	FixedDelayed<centimeter_t> perceivedDistToFwdCar;
-	//absolute Movement-related variables
-	double timeStep;			//time step size of simulation
-	double speed;
 
-	double perceivedXVelocity;
-	double perceivedYVelocity;
+	//Absolute movement-related variables
+	double timeStep;			//time step size of simulation
+
 	double perceivedXVelocity_;
 	double perceivedYVelocity_;
 
@@ -119,7 +122,6 @@ private:
 	int yPos_nextLink;
 
 	int xPosCrossing_; //relative x coordinate for crossing, the intersection point of crossing's front line and current polyline
-	double speed_;
 	double acc_;
 	double xDirection;			//x direction of the current polyline segment
 	double yDirection;			//y direction of the current polyline segment
@@ -145,6 +147,7 @@ private:
 
 public:
 	int getTimeStep() const {return timeStep;}
+	void assignVehicle(Vehicle* v) {vehicle = v;}
 
 	//for coordinate transform
 	void setToParent();			///<set next data to parent buffer data
@@ -162,11 +165,11 @@ public:
 
 	/****************IN REAL NETWORK****************/
 private:
-	std::vector<const Link*> linkPath;
+	std::vector<const RoadSegment*> allRoadSegments;
 	const Link* currLink;
 	const Link* nextLink;
 	const RoadSegment* currRoadSegment;
-	const Lane* currLane;
+	//const Lane* currLane; //See Driver.cpp; this isn't needed as a class attribute.
 	const Lane* nextLaneInNextLink;
 	const Lane* leftLane;
 	const Lane* rightLane;
@@ -174,7 +177,6 @@ private:
 	double currLaneOffset;
     double currLinkOffset;
 	double traveledDis; //the distance traveled within current time step
-	size_t linkIndex;
 	size_t RSIndex;
 	size_t polylineSegIndex;
 	size_t currLaneIndex;
@@ -182,15 +184,17 @@ private:
 	StreetDirectory::LaneAndIndexPair laneAndIndexPair;
 	const std::vector<sim_mob::Point2D>* currLanePolyLine;
 	const std::vector<sim_mob::Point2D>* desLanePolyLine;
-	const std::vector<sim_mob::RoadSegment*>* roadSegments;
-	Point2D currPolyLineSegStart;
-	Point2D currPolyLineSegEnd;
+
+	//Temp: changing name slightly; this is more automatic with RelAbsPoint.
+	Point2D currPolylineSegStart;
+	Point2D currPolylineSegEnd;
+	int polylineSegLength;
+
 	Point2D desPolyLineStart;
 	Point2D desPolyLineEnd;
 	Point2D entryPoint; //entry point for crossing intersection
 	int xTurningStart;
 	int yTurningStart;
-	int polyLineSegLength;
 	double currLaneLength;
 	double xDirection_entryPoint;
 	double yDirection_entryPoint;
@@ -207,61 +211,59 @@ private:
 	int distanceBehind;
 
 public:
-	//Buffered<Link*> currLink_;
-	//Buffered<RoadSegment*> currRoadSegment_;
 	Buffered<const Lane*> currLane_;
 	Buffered<double> currLaneOffset_;
 	Buffered<double> currLaneLength_;
-	//Buffered<size_t> polylineIndex_;
-	//Buffered<double> offsetInPolyline_;
 
 public:
-	//const Link* getCurrLink() const {return currLink;}
-	//const RoadSegment* getCurrRoadSegment() const {return currRoadSegment;}
-	//const Lane* getCurrLane() const {return currLane;}
-	//double getCurrLaneOffset() const {return currLaneOffset;}
-	//double getCurrLinkOffset() const {return currLinkOffset;}
-	//double getCurrLaneLength() const {return currLaneLength;}
 	const Vehicle* getVehicle() const {return vehicle;}
 
 private:
+	///Helper method for initializing an UpdateParams struct. This method is not strictly necessary, but
+	/// it is helpful to document what each Param is used for.
+	void new_update_params(UpdateParams& res);
+
+	///Helper method; synchronize after changing to a new polyline.
+	///TODO: This should be moved at some point
+	void sync_relabsobjs();
+
 	bool isReachPolyLineSegEnd();
+	bool isReachRoadSegmentEnd();
 	bool isReachLastPolyLineSeg();
-	bool isReachLastRS();
+	bool isReachLastRSinCurrLink();
 	bool isCloseToCrossing();
 	bool isReachLinkEnd();
 	bool isLeaveIntersection();
 	bool isGoalReached();
 	bool isCloseToLinkEnd();
 	bool isPedetrianOnTargetCrossing();
-	void chooseNextLaneForNextLink();
+	void chooseNextLaneForNextLink(UpdateParams& p);
 	void directionIntersection();
 	int disToObstacle(unsigned obstacle_offset);
-	const Link* findLink(const MultiNode* start, const MultiNode* end);
 
-	void setOrigin();
+	void setOrigin(UpdateParams& p);
 
-	void updateCurrInfo(unsigned int mode);
+	void updateCurrInfo(unsigned int mode, UpdateParams& p);
 	void updateAdjacentLanes();
-	void updateRSInCurrLink();
+	void updateRSInCurrLink(UpdateParams& p);
 	void updateAcceleration();
 	void updateVelocity();
 	void updatePositionOnLink();
 	void updatePolyLineSeg();
 	void setBackToOrigin();
-	void updateNearbyAgents();
+	void updateNearbyAgents(UpdateParams& params);
 	void updateCurrLaneLength();
 	void updateDisToLaneEnd();
-	void updatePosLC();
+	void updatePosLC(UpdateParams& p);
 	void updateStartEndIndex();
 	void updateTrafficSignal();
 
-	void trafficSignalDriving();
-	void intersectionDriving();
+	void trafficSignalDriving(UpdateParams& p);
+	void intersectionDriving(UpdateParams& p);
 	void pedestrianAheadDriving();
-	void linkDriving();
+	void linkDriving(UpdateParams& p);
 
-	void makeLinkPath();
+	void initializePath();
 	void findCrossing();
 
 	//helper function, to find the lane index in current road segment
@@ -305,12 +307,12 @@ private:
 
 	//for acceleration decision
 public:
-	void makeAcceleratingDecision();				///<decide acc
-	double breakToTargetSpeed();					///<return the acc to a target speed within a specific distance
-	double accOfEmergencyDecelerating();			///<when headway < lower threshold, use this function
-	double accOfCarFollowing();						///<when lower threshold < headway < upper threshold, use this function
-	double accOfMixOfCFandFF();						///<when upper threshold < headway, use this funcion
-	double accOfFreeFlowing();						///<is a part of accofMixOfCFandFF
+	void makeAcceleratingDecision(UpdateParams& p);				///<decide acc
+	double breakToTargetSpeed(UpdateParams& p);					///<return the acc to a target speed within a specific distance
+	double accOfEmergencyDecelerating(UpdateParams& p);			///<when headway < lower threshold, use this function
+	double accOfCarFollowing(UpdateParams& p);						///<when lower threshold < headway < upper threshold, use this function
+	double accOfMixOfCFandFF(UpdateParams& p);						///<when upper threshold < headway, use this funcion
+	double accOfFreeFlowing(UpdateParams& p);						///<is a part of accofMixOfCFandFF
 	double getTargetSpeed() const {return targetSpeed;}
 
 	//for lane changing decision
@@ -364,7 +366,7 @@ public:
 	void modifyPosition();
 	void IntersectionDirectionUpdate();
 	void UpdateNextLinkLane();
-	void enterNextLink();
+	void enterNextLink(UpdateParams& p);
 	bool isReachCrosswalk();
 	bool isInIntersection() const {return inIntersection;}
 

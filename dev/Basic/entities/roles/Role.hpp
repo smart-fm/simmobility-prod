@@ -25,6 +25,11 @@ public:
 	/// Frame number? Elapsed time?
 	virtual void update(frame_t frameNumber) = 0;
 
+	///Return a list of parameters that expect their subscriptions to be managed.
+	/// Agents can append/remove this list to their own subscription list each time
+	/// they change their Role.
+	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams() = 0;
+
 	Agent* getParent() {
 		return parent;
 	}

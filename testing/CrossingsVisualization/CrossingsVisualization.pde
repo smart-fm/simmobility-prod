@@ -21,8 +21,8 @@ PFont f2;
 boolean paintCrossings = true;
 
 //Turn on/off lanes
-boolean paintLanes = false;
-boolean paintLaneShapes = true;
+boolean paintLanes = true;
+boolean paintLaneShapes = false;
 boolean paintWraparound = false;
 boolean displayIgnoredLines = false;
 int nodeHalo = 0; //meters
@@ -233,6 +233,9 @@ class Lane {
   int laneID;
   String laneType;
   String roadName;
+  
+  //Used for sorting
+  int orderingID;
 
   ScaledPoint pos;
   double distanceFromSrc;
@@ -408,7 +411,25 @@ void scaleAndZoom(double centerX, double centerY, double widthInM, double height
 //  the point nearest to the "start" node or the point nearest to the "end"
 //  node, whichever has a lesser distance. 
 ArrayList<Lane> ArrayProgressiveSort(Section s, ArrayList<Lane> toBeSorted) {
-  //Pick the first point.
+  //NOTE: We now use a slightly (very) different approach. 
+  ArrayList<Lane> res = new ArrayList<Lane>();
+  while(!toBeSorted.isEmpty()) {
+    Lane minLane = null;
+    for (Lane ln : toBeSorted) {
+      if (minLane==null || ln.orderingID < minLane.orderingID) {
+        minLane = ln;
+      }
+    }
+    
+    res.add(minLane);
+    toBeSorted.remove(minLane);
+  }
+  
+  return res;
+  
+  
+  
+  /*//Pick the first point.
   int oldSize = toBeSorted.size();
   double minDist = Double.MAX_VALUE;
   Lane minLane = null;
@@ -460,7 +481,7 @@ ArrayList<Lane> ArrayProgressiveSort(Section s, ArrayList<Lane> toBeSorted) {
     println("Error: Array resize.");
   }
   
-  return res;
+  return res;*/
 }
 
 
@@ -1020,7 +1041,7 @@ void readLanes(String lanesFile, double[] xBounds, double[] yBounds) throws IOEx
     
     //Parse: (lane_id, lane_type, lane_type_desc, section, road_name, xpos, ypos)
     String[] items = nextLine.split("\t");
-    if (items.length != 7) {
+    if (items.length != 8) {
       throw new RuntimeException("Bad line in crossings file: " + nextLine);
     }
     
@@ -1043,6 +1064,7 @@ void readLanes(String lanesFile, double[] xBounds, double[] yBounds) throws IOEx
       ln.laneID = Integer.parseInt(items[0]);
       ln.laneType = items[1].trim();
       ln.roadName = items[4].trim();
+      ln.orderingID = Integer.parseInt(items[7]);
       xPos = Double.parseDouble(items[5]);
       yPos = Double.parseDouble(items[6]);
       ln.pos = new ScaledPoint(xPos, yPos);

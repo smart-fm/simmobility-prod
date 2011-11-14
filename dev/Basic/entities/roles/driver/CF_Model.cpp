@@ -9,8 +9,11 @@
 
 #include "Driver.hpp"
 
+#include <limits>
+
 #include "entities/vehicle/Vehicle.hpp"
 
+using std::numeric_limits;
 using namespace sim_mob;
 
 const sim_mob::Driver::CarFollowParam sim_mob::Driver::CF_parameters[2] = {
@@ -20,13 +23,16 @@ const sim_mob::Driver::CarFollowParam sim_mob::Driver::CF_parameters[2] = {
 };
 
 
-void sim_mob::Driver::makeAcceleratingDecision()
+void sim_mob::Driver::makeAcceleratingDecision(UpdateParams& p)
 {
 	//currently convert back to m/s
 //	speed_ = perceivedXVelocity_/100;
 //	//in the case that perceivedXVelocity is not defined
 //	if(speed_<0||speed_>50)
-	speed_ = vehicle->xVel_/100;
+
+	//p.currSpeed = vehicle->xVel_/100;
+	p.currSpeed = vehicle->velocity.getRelX()/100;
+
 	size_t mode;// 0 for vehicle, 1 for pedestrian, 2 for traffic light, 3 for null
 	if(minCFDistance != 5000 && minCFDistance <= tsStopDistance && minCFDistance <= minPedestrianDis)
 	{
@@ -53,12 +59,16 @@ void sim_mob::Driver::makeAcceleratingDecision()
 	}
 	else{
 		if(mode == 3) {
-			acc_ = accOfFreeFlowing();
+			acc_ = accOfFreeFlowing(p);
 			return;
 		} else if(mode == 0)
 		{
-			v_lead 		=	CFD->getVehicle()->xVel_/100;
-			a_lead		=	CFD->getVehicle()->xAcc_/100;
+
+			//v_lead 		=	CFD->getVehicle()->xVel_/100;
+			v_lead 		=	CFD->getVehicle()->velocity.getRelX()/100;
+
+			//a_lead		=	CFD->getVehicle()->xAcc_/100;
+			a_lead          =   CFD->getVehicle()->accel.getRelX()/100;
 		}
 		else
 		{
@@ -66,27 +76,33 @@ void sim_mob::Driver::makeAcceleratingDecision()
 			a_lead = 0;
 		}
 		double dt	=	timeStep;
-		if (speed_ == 0)headway = 2 * space * 100000;
-		else headway = 2*space / (speed_+speed_+timeStep*getMaxAcceleration());
+		if (p.currSpeed == 0) {
+			headway = 2 * space * 100000;
+		} else {
+			headway = 2*space / (p.currSpeed+p.currSpeed+timeStep*getMaxAcceleration());
+		}
 		space_star	=	space + v_lead * dt + 0.5 * a_lead * dt * dt;
 
 		if(headway < hBufferLower) {
-			acc_ = accOfEmergencyDecelerating();
+			acc_ = accOfEmergencyDecelerating(p);
 		}
 		if(headway > hBufferUpper) {
-			acc_ = accOfMixOfCFandFF();
+			acc_ = accOfMixOfCFandFF(p);
 		}
 		if(headway <= hBufferUpper && headway >= hBufferLower) {
-			acc_ = accOfCarFollowing();
+			acc_ = accOfCarFollowing(p);
 		}
 	}
 }
 
-double sim_mob::Driver::breakToTargetSpeed()
+double sim_mob::Driver::breakToTargetSpeed(UpdateParams& p)
 {
-	double v 			=	speed_;
+	double v 			=	p.currSpeed;
 	double dt			=	timeStep;
-	if( space_star > FLT_EPSILON) {
+
+	//NOTE: This is the only use of epsilon(), so I just copied the value directly.
+	//      See LC_Model for how to declare a private temporary variable. ~Seth
+	if( space_star > numeric_limits<double>::epsilon()) {
 		return  ((v_lead + a_lead * dt ) * ( v_lead + a_lead * dt) - v * v) / 2 / space_star;
 	} else if ( dt <= 0 ) {
 		return MAX_ACCELERATION;
@@ -95,9 +111,9 @@ double sim_mob::Driver::breakToTargetSpeed()
 	}
 }
 
-double sim_mob::Driver::accOfEmergencyDecelerating()
+double sim_mob::Driver::accOfEmergencyDecelerating(UpdateParams& p)
 {
-	double v 			=	speed_;
+	double v 			=	p.currSpeed;
 	double dv			=	v-v_lead;
 	double epsilon_v	=	0.001;
 	double aNormalDec	=	getNormalDeceleration();
@@ -106,9 +122,9 @@ double sim_mob::Driver::accOfEmergencyDecelerating()
 	if( dv < epsilon_v ) {
 		a=a_lead + 0.25*aNormalDec;
 	} else if ( space > 0.01 ) {
-		a=a_lead - dv * dv / 2 / (space-0.5);
+		a=a_lead - dv * dv / 2 / space;
 	} else {
-		a= breakToTargetSpeed();
+		a= breakToTargetSpeed(p);
 	}
 	if(a<maxDeceleration)
 		return maxDeceleration;
@@ -139,11 +155,11 @@ double nRandom(double mean,double stddev)
 	   else return (mean);
 }
 
-double sim_mob::Driver::accOfCarFollowing()
+double sim_mob::Driver::accOfCarFollowing(UpdateParams& p)
 {
 	const double density	=	1;		//represent the density of vehicles in front of the subject vehicle
 										//now we ignore it, assuming that it is 1.
-	double v				=	speed_;
+	double v				=	p.currSpeed;
 	int i = (v > v_lead) ? 1 : 0;
 	double dv =(v > v_lead)?(v-v_lead):(v_lead - v);
 	double acc_ = CF_parameters[i].alpha * pow(v , CF_parameters[i].beta) /pow(minCFDistance/100 , CF_parameters[i].gama);
@@ -153,9 +169,9 @@ double sim_mob::Driver::accOfCarFollowing()
 	return acc_;
 }
 
-double sim_mob::Driver::accOfFreeFlowing()
+double sim_mob::Driver::accOfFreeFlowing(UpdateParams& p)
 {
-	double vn =	speed_;
+	double vn =	p.currSpeed;
 	double acc_;
 	if ( vn < getTargetSpeed()) {
 		if( vn < maxLaneSpeed) {
@@ -177,12 +193,12 @@ double sim_mob::Driver::accOfFreeFlowing()
 	return acc_;
 }
 
-double sim_mob::Driver::accOfMixOfCFandFF()		//mix of car following and free flowing
+double sim_mob::Driver::accOfMixOfCFandFF(UpdateParams& p)		//mix of car following and free flowing
 {
-	distanceToNormalStop = speed_ * speed_ / 2 /(-getNormalDeceleration());
+	distanceToNormalStop = p.currSpeed * p.currSpeed / 2 /(-getNormalDeceleration());
 	if( space > distanceToNormalStop ) {
-		return accOfFreeFlowing();
+		return accOfFreeFlowing(p);
 	} else {
-		return breakToTargetSpeed();
+		return breakToTargetSpeed(p);
 	}
 }

@@ -41,15 +41,14 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent)
 	//Init
 	sigColor = Signal::Green; //Green by default
 	currentStage=0;
-	setGoal(currentStage);
 	startToCross=false;
-	startPosSet=false;
+	firstTimeUpdate=true;
 
 	//Set random seed
 	srand(parent->getId());
 
-	//Set default speed in the range of 0.9m/s to 1.3m/s
-	speed = 0.9+(double(rand()%5))/10;
+	//Set default speed in the range of 1.2m/s to 1.6m/s
+	speed = 1.2+(double(rand()%5))/10;
 
 	xVel = 0;
 	yVel = 0;
@@ -74,13 +73,14 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 	if(frameNumber>=parent->startTime){
 
 		//Set the initial position of agent
-		if(!isStartPosSet()){
-			parent->xPos.set(parent->originNode->location->getX());
-			parent->yPos.set(parent->originNode->location->getY());
+		if(isFirstTimeUpdate()){
+//			parent->xPos.set(parent->originNode->location->getX());
+//			parent->yPos.set(parent->originNode->location->getY());
 //			cStartX=372507.60;
 //			cStartY=143551.20;
 //			cEndX=((double)parent->destNode->location->getX())/100;
 //			cEndX=((double)parent->destNode->location->getY())/100;
+			setGoal(currentStage);
 
 			//TEMP: for testing on self-created network only
 //			cStartX=500;
@@ -124,6 +124,7 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 //				//Output (temp)
 //				LogOut("("<<"Pedestrian,"<<frameNumber<<","<<parent->getId()<<","<<"{xPos:"<<parent->xPos.get()<<"," <<"yPos:"<<this->parent->yPos.get()<<","<<"pedSig:"<<currPhase<<",})"<<std::endl);
 //				LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
+				LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
 			}
 			else if(currentStage==1){
 
@@ -177,7 +178,6 @@ void sim_mob::Pedestrian::update(frame_t frameNumber)
 		}
 
 	}
-
 }
 
 /*---------------------Perception-related functions----------------------*/
@@ -191,6 +191,8 @@ void sim_mob::Pedestrian::setGoal(int stage) //0-to the next intersection, 1-to 
 	//goal.xPos = 1100;
 	if(stage==0){
 		goal = Point2D(37250760,14355120); //Hard-code now, need to be replaced once route choicer is done
+		setSidewalkParas(parent->originNode,ConfigParams::GetInstance().getNetwork().locateNode(goal, true),false);
+//		goalInLane = Point2D(37250760,14355120);
 
 		//TEMP: for testing on self-created network only
 //		goal = Point2D(50000,30000);
@@ -208,31 +210,185 @@ void sim_mob::Pedestrian::setGoal(int stage) //0-to the next intersection, 1-to 
 	}
 	else if(stage==2){
 
-		parent->xPos.set(37250760);  //Hard-code now, to be changed
-		parent->yPos.set(14355120);
+//		parent->xPos.set(37250760);  //Hard-code now, to be changed
+//		parent->yPos.set(14355120);
 		goal = Point2D(parent->destNode->location->getX(),parent->destNode->location->getY());
+		setSidewalkParas(ConfigParams::GetInstance().getNetwork().locateNode(Point2D(37250760,14355120),true),parent->destNode,true);
+//		goalInLane = Point2D(parent->destNode->location->getX(),parent->destNode->location->getY());
 //		goal = Point2D(destPos.getX(),destPos.getY());
 	}
 
 }
 
+void sim_mob::Pedestrian::setSidewalkParas(Node* start, Node* end, bool isStartMulti){
+
+	unsigned int numOfLanes;
+	const RoadSegment* segToWalk=nullptr;
+	bool isForward;
+//	const Lane* sideWalk;
+	Point2D startPt, endPt;
+	const std::vector<sim_mob::Point2D>* sidewalkPolyLine;
+	if(isStartMulti){
+		const MultiNode* startNode=dynamic_cast<const MultiNode*>(start);
+		if(startNode){
+			std::set<sim_mob::RoadSegment*>::const_iterator i;
+			const std::set<sim_mob::RoadSegment*>& roadsegments=startNode->getRoadSegments();
+//			std::cout<<"Multinode Road segments size: "<<roadsegments.size()<<std::endl;
+			for(i=roadsegments.begin();i!=roadsegments.end();i++){
+				if((*i)->getStart()==end&&(*i)->getEnd()==start){
+					segToWalk = (*i);
+					isForward=false;
+					break;
+				}
+				else if ((*i)->getStart()==start&&(*i)->getEnd()==end){
+					segToWalk = (*i);
+					isForward=true;
+					break;
+				}
+			}
+			if(segToWalk!=nullptr){
+				numOfLanes=(unsigned int)segToWalk->getLanes().size();
+				sidewalkPolyLine = &(const_cast<RoadSegment*>(segToWalk)->getLaneEdgePolyline(numOfLanes));
+				if(isForward){
+					startPt=sidewalkPolyLine->at(0);
+					endPt=sidewalkPolyLine->at(sidewalkPolyLine->size()-1);
+				}
+				else{
+					endPt=sidewalkPolyLine->at(0);
+					startPt=sidewalkPolyLine->at(sidewalkPolyLine->size()-1);
+				}
+				parent->xPos.set(startPt.getX());
+				parent->yPos.set(startPt.getY());
+				goalInLane = Point2D(endPt.getX(),endPt.getY());
+			}
+			else
+				std::cout<<"Cannot find segment from multinode!"<<std::endl;
+		}
+		else
+			std::cout<<"Cannot cast to Multinode!"<<std::endl;
+
+	}
+	else{
+		const UniNode* startNode=dynamic_cast<const UniNode*>(start);
+		if(startNode){
+			std::vector<const sim_mob::RoadSegment*>::const_iterator i;
+			std::vector<sim_mob::Lane*>::const_iterator j;
+			const std::vector<const sim_mob::RoadSegment*>& roadsegments=startNode->getRoadSegments();
+//			std::cout<<"Uninode Road segments size: "<<roadsegments.size()<<std::endl;
+			for(i=roadsegments.begin();i!=roadsegments.end();i++){
+				if((*i)->getStart()==end&&(*i)->getEnd()==start){
+					segToWalk = (*i);
+					break;
+				}
+			}
+			numOfLanes=(unsigned int)segToWalk->getLanes().size();
+			sidewalkPolyLine = &(const_cast<RoadSegment*>(segToWalk)->getLaneEdgePolyline(numOfLanes));
+			endPt=sidewalkPolyLine->at(0);
+			startPt=sidewalkPolyLine->at(sidewalkPolyLine->size()-1);
+			parent->xPos.set(startPt.getX());
+			parent->yPos.set(startPt.getY());
+			goalInLane = Point2D(endPt.getX(),endPt.getY());
+			//	const std::vector<sim_mob::Lane*>& lanes = segToWalk->getLanes();
+			//	for (j=lanes.begin();j!=lanes.end();j++){
+			//		if((*j)->is_pedestrian_lane()){
+			//			sideWalk = (*j);
+			//			break;
+			//		}
+			//	}
+			//	sidewalkPolyLine = &(sideWalk->getPolyline());
+		}
+		else
+			std::cout<<"Cannot cast to Uninode!"<<std::endl;
+	}
+
+//	if(startNode){
+//		std::vector<const sim_mob::RoadSegment*>::const_iterator i;
+//		std::vector<sim_mob::Lane*>::const_iterator j;
+//		const std::vector<const sim_mob::RoadSegment*>& roadsegments=startNode->getRoadSegments();
+//		for(i=roadsegments.begin();i!=roadsegments.end();i++){
+//			if((*i)->getStart()==end&&(*i)->getEnd()==start){
+//				segToWalk = (*i);
+//				break;
+//			}
+//		}
+//		numOfLanes=(unsigned int)segToWalk->getLanes().size();
+//		sidewalkPolyLine = &(const_cast<RoadSegment*>(segToWalk)->getLaneEdgePolyline(numOfLanes));
+//	//	const std::vector<sim_mob::Lane*>& lanes = segToWalk->getLanes();
+//	//	for (j=lanes.begin();j!=lanes.end();j++){
+//	//		if((*j)->is_pedestrian_lane()){
+//	//			sideWalk = (*j);
+//	//			break;
+//	//		}
+//	//	}
+//	//	sidewalkPolyLine = &(sideWalk->getPolyline());
+//		endPt=sidewalkPolyLine->at(0);
+//		startPt=sidewalkPolyLine->at(sidewalkPolyLine->size()-1);
+//		parent->xPos.set(startPt.getX());
+//		parent->yPos.set(startPt.getY());
+//		goalInLane = Point2D(endPt.getX(),endPt.getY());
+//	}
+//	else{
+//		std::cout<<"Cannot cast to Uninode!"<<std::endl;
+////		const MultiNode* startNode=dynamic_cast<const MultiNode*>(start);
+////		std::set<sim_mob::RoadSegment*>::const_iterator i;
+////		const std::set<sim_mob::RoadSegment*>& roadsegments=startNode->getRoadSegments();
+////		for(i=roadsegments.begin();i!=roadsegments.end();i++){
+////			if((*i)->getStart()==end&&(*i)->getEnd()==start){
+////				segToWalk = (*i);
+////				break;
+////			}
+////		}
+////		numOfLanes=(unsigned int)segToWalk->getLanes().size();
+////		sidewalkPolyLine = &(const_cast<RoadSegment*>(segToWalk)->getLaneEdgePolyline(numOfLanes));
+////	//	const std::vector<sim_mob::Lane*>& lanes = segToWalk->getLanes();
+////	//	for (j=lanes.begin();j!=lanes.end();j++){
+////	//		if((*j)->is_pedestrian_lane()){
+////	//			sideWalk = (*j);
+////	//			break;
+////	//		}
+////	//	}
+////	//	sidewalkPolyLine = &(sideWalk->getPolyline());
+////		startPt=sidewalkPolyLine->at(0);
+////		endPt=sidewalkPolyLine->at(sidewalkPolyLine->size()-1);
+////		parent->xPos.set(startPt.getX());
+////		parent->yPos.set(startPt.getY());
+////		goalInLane = Point2D(endPt.getX(),endPt.getY());
+//	}
+
+}
+
 bool sim_mob::Pedestrian::isDestReached()
 {
+	if(currentStage==2){
+		double dX = ((double)abs(goalInLane.getX() - parent->xPos.get()))/100;
+		double dY = ((double)abs(goalInLane.getY() - parent->yPos.get()))/100;
+	//	double dX = abs(((double)destPos.getX())/100 - parent->xPos.get());
+	//	double dY = abs(((double)destPos.getY())/100 - parent->yPos.get());
+		double dis = sqrt(dX*dX+dY*dY);
+		return dis < agentRadius*4;
+	}
+	else
+		return false;
 
-	double dX = ((double)abs(parent->destNode->location->getX() - parent->xPos.get()))/100;
-	double dY = ((double)abs(parent->destNode->location->getY() - parent->yPos.get()))/100;
-//	double dX = abs(((double)destPos.getX())/100 - parent->xPos.get());
-//	double dY = abs(((double)destPos.getY())/100 - parent->yPos.get());
-	double dis = sqrt(dX*dX+dY*dY);
-	return dis < agentRadius*4;
+//	double dX = ((double)abs(parent->destNode->location->getX() - parent->xPos.get()))/100;
+//	double dY = ((double)abs(parent->destNode->location->getY() - parent->yPos.get()))/100;
+////	double dX = abs(((double)destPos.getX())/100 - parent->xPos.get());
+////	double dY = abs(((double)destPos.getY())/100 - parent->yPos.get());
+//	double dis = sqrt(dX*dX+dY*dY);
+//	return dis < agentRadius*4;
 
 	//return (parent->yPos.get()>=goal.yPos);
 }
 
 bool sim_mob::Pedestrian::isGoalReached()
 {
-	double dX = ((double)abs(goal.getX() - parent->xPos.get()))/100;
-	double dY = ((double)abs(goal.getY() - parent->yPos.get()))/100;
+//	double dX = ((double)abs(goal.getX() - parent->xPos.get()))/100;
+//	double dY = ((double)abs(goal.getY() - parent->yPos.get()))/100;
+//	double dis = sqrt(dX*dX+dY*dY);
+//	return dis < agentRadius*4;
+
+	double dX = ((double)abs(goalInLane.getX() - parent->xPos.get()))/100;
+	double dY = ((double)abs(goalInLane.getY() - parent->yPos.get()))/100;
 	double dis = sqrt(dX*dX+dY*dY);
 	return dis < agentRadius*4;
 
@@ -359,19 +515,19 @@ void sim_mob::Pedestrian::updateVelocity(int flag) //0-on sidewalk, 1-on crossin
 {
 	//Set direction (towards the goal)
 	double scale;
-	xVel = ((double)(goal.getX() - parent->xPos.get()))/100;
-	yVel = ((double)(goal.getY() - parent->yPos.get()))/100;
+	xVel = ((double)(goalInLane.getX() - parent->xPos.get()))/100;
+	yVel = ((double)(goalInLane.getY() - parent->yPos.get()))/100;
 	//Normalize
 	double length = sqrt(xVel*xVel + yVel*yVel);
 	xVel = xVel/length;
 	yVel = yVel/length;
 	//Set actual velocity
 	if(flag==0)
-		scale = 20;
+		scale = 1.2;
 	else if(flag==1)
-		scale = 1.5;
+		scale = 1;
 	else if (flag==2)
-		scale = 3;
+		scale = 1.5;
 	xVel = xVel*speed*scale;
 	yVel = yVel*speed*scale;
 
@@ -589,6 +745,7 @@ void sim_mob::Pedestrian::setCrossingParas(){
 		xRel = xRel+length;
 		relToAbs(xRel,yRel,xAbs,yAbs);
 		goal = Point2D((int)xAbs,(int)yAbs);
+		goalInLane = Point2D((int)xAbs,(int)yAbs);
 
 //		double slope1, slope2;
 //		slope1 = (double)(far2.getY()-far1.getY())/(far2.getX()-far1.getX());
@@ -600,17 +757,17 @@ void sim_mob::Pedestrian::setCrossingParas(){
 
 }
 
-bool sim_mob::Pedestrian::isStartPosSet(){
+bool sim_mob::Pedestrian::isFirstTimeUpdate(){
 //	if(parent->xPos.get()==0 && parent->yPos.get()==0)
 //		return false;
 //	else
 //		return true;
-	if(!startPosSet){
-		startPosSet=true;
-		return false;
+	if(firstTimeUpdate){
+		firstTimeUpdate=false;
+		return true;
 	}
 	else
-		return true;
+		return false;
 }
 
 void sim_mob::Pedestrian::absToRel(double xAbs, double yAbs, double & xRel, double & yRel){

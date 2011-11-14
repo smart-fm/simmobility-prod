@@ -80,6 +80,9 @@ private:
 		const Lane* currLane;
 		double currSpeed;
 
+		double currLaneOffset;
+		double currLaneLength;
+
 		double perceivedFwdVelocity;
 		double perceivedLatVelocity;
 	};
@@ -204,7 +207,7 @@ private:
 	const Lane* rightLane;
 
 	//Helper: Entire length of current polyline
-	double currLaneLength;
+	//double currLaneLength;
 
 
 
@@ -212,7 +215,6 @@ private:
 	const Link* nextLink;
 	const Lane* nextLaneInNextLink;
 	const Link* desLink;
-	double currLaneOffset;
     double currLinkOffset;
 	double traveledDis; //the distance traveled within current time step
 
@@ -248,6 +250,7 @@ public:
 	Buffered<const Lane*> currLane_;
 	Buffered<double> currLaneOffset_;
 	Buffered<double> currLaneLength_;
+	Buffered<bool> isInIntersection;
 
 public:
 	const Vehicle* getVehicle() const {return vehicle;}
@@ -271,7 +274,7 @@ private:
 	bool isReachLinkEnd() const;
 	bool isGoalReached() const;
 
-	bool isCloseToLinkEnd();
+	bool isCloseToLinkEnd(UpdateParams& p);
 	bool isPedetrianOnTargetCrossing();
 	void chooseNextLaneForNextLink(UpdateParams& p);
 	void directionIntersection();
@@ -288,7 +291,7 @@ private:
 	void updateRSInCurrLink(UpdateParams& p);
 	void updateAcceleration();
 	void updateVelocity();
-	void updatePositionOnLink();
+	void updatePositionOnLink(UpdateParams& p);
 	void updatePolyLineSeg();
 	void setBackToOrigin();
 
@@ -296,7 +299,7 @@ private:
 	void updateNearbyDriver(UpdateParams& params, const sim_mob::Person* other, const sim_mob::Driver* other_driver);
 	void updateNearbyPedestrian(UpdateParams& params, const sim_mob::Person* other, const sim_mob::Pedestrian* pedestrian);
 
-	void updateCurrLaneLength();
+	void updateCurrLaneLength(UpdateParams& p);
 	void updateDisToLaneEnd();
 	void updatePosLC(UpdateParams& p);
 	//void updateStartEndIndex();
@@ -413,12 +416,12 @@ public:
 	void UpdateNextLinkLane();
 	void enterNextLink(UpdateParams& p);
 	bool isReachCrosswalk();
-	bool isInIntersection() const {return inIntersection;}
+
+	//bool isInIntersection() const {return inIntersection;}
 
 private:
 	const Signal* trafficSignal;
 	double angle;
-	bool inIntersection;
 
 	/**************COOPERATION WITH PEDESTRIAN***************/
 public:

@@ -72,7 +72,7 @@ size_t updateStartEndIndex(const std::vector<sim_mob::Point2D>* const currLanePo
 //initiate
 sim_mob::Driver::Driver(Agent* parent) : Role(parent), vehicle(nullptr), perceivedVelocity(reactTime, true),
 	perceivedVelocityOfFwdCar(reactTime, true), perceivedDistToFwdCar(reactTime, false),
-	distanceInFront(2000), distanceBehind(500), currLane_(nullptr)
+	distanceInFront(2000), distanceBehind(500), currLane_(nullptr), currLaneOffset_(0), currLaneLength_(0), isInIntersection(false)
 {
 	//Set default speed in the range of 10m/s to 19m/s
 	//speed = 0;//1000*(1+((double)(rand()%10))/10);
@@ -87,13 +87,9 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), vehicle(nullptr), perceiv
 
 	//basic relative parameters
 
-	currLaneLength = 0;
-	currLaneOffset = 0;
-
 
 	timeStep = ConfigParams::GetInstance().baseGranMS/1000.0;
 	firstFrameTick = true;
-	inIntersection=false;
 	isLaneChanging = false;
 	isPedestrianAhead = false;
 	isTrafficLightStop = false;
@@ -109,6 +105,7 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams()
 	res.push_back(&(currLane_));
 	res.push_back(&(currLaneOffset_));
 	res.push_back(&(currLaneLength_));
+	res.push_back(&(isInIntersection));
 	return res;
 }
 
@@ -238,8 +235,8 @@ void sim_mob::Driver::update(frame_t frameNumber)
 
 	//Update our Buffered types
 	currLane_.set(params.currLane);
-	currLaneOffset_.set(currLaneOffset);
-	currLaneLength_.set(currLaneLength);
+	currLaneOffset_.set(params.currLaneOffset);
+	currLaneLength_.set(params.currLaneLength);
 
 	//Print output for this frame.
 	output(frameNumber);
@@ -460,9 +457,9 @@ void sim_mob::Driver::updateRSInCurrLink(UpdateParams& p)
 
 
 //calculate current lane length
-void sim_mob::Driver::updateCurrLaneLength()
+void sim_mob::Driver::updateCurrLaneLength(UpdateParams& p)
 {
-	currLaneLength = polypathMover.getCurrPolylineLength();
+	p.currLaneLength = polypathMover.getCurrPolylineLength();
 }
 
 //TODO:I think lane index should be a data member in the lane class
@@ -502,7 +499,7 @@ void sim_mob::Driver::updateCurrInfo_SameRS(UpdateParams& p)
 {
 	updateCurrGeneralInfo(p);
 
-	polylineSegIndex = updateStartEndIndex(currLanePolyLine, currLaneOffset, polylineSegIndex);
+	polylineSegIndex = updateStartEndIndex(currLanePolyLine, p.currLaneOffset, polylineSegIndex);
 
 	currPolylineSegStart = currLanePolyLine->at(polylineSegIndex);
 	currPolylineSegEnd = currLanePolyLine->at(polylineSegIndex+1);
@@ -518,7 +515,7 @@ void sim_mob::Driver::updateCurrInfo_RSChangeSameLink(UpdateParams& p)
 {
 	updateCurrGeneralInfo(p);
 
-	currLaneOffset = 0;
+	p.currLaneOffset = 0;
 	polylineSegIndex = 0;
 
 	currPolylineSegStart = currLanePolyLine->at(polylineSegIndex);
@@ -543,7 +540,7 @@ void sim_mob::Driver::updateCurrInfo_CrossIntersection(UpdateParams& p)
 {
 	updateCurrGeneralInfo(p);
 
-	currLaneOffset = 0;
+	p.currLaneOffset = 0;
 	polylineSegIndex = 0;
 
 	currPolylineSegStart = currLanePolyLine->at(polylineSegIndex);
@@ -745,7 +742,7 @@ void sim_mob::Driver::updateAcceleration()
 	vehicle->accel.scaleVectTo(acc_ * 100);
 }
 
-void sim_mob::Driver::updatePositionOnLink()
+void sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
 {
 	//traveledDis = vehicle->xVel_*timeStep+0.5*vehicle->xAcc_*timeStep*timeStep;
 	//traveledDis = vehicle->velocity.getRelX()*timeStep+0.5*vehicle->xAcc_*timeStep*timeStep;
@@ -784,26 +781,28 @@ void sim_mob::Driver::updatePositionOnLink()
 	//vehicle->yPos_ += vehicle->velocity_lat.getMagnitude()*timeStep;
 	vehicle->pos.moveLat(vehicle->velocity_lat.getMagnitude()*timeStep);
 
-	currLaneOffset += traveledDis;
+	p.currLaneOffset += traveledDis;
 }
 
 
 void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* other, const Driver* other_driver)
 {
-	//Only update if passed a valid pointer which is not a pointer back to you.
-	if(!(other_driver && this!=other)) {
+	//Only update if passed a valid pointer which is not a pointer back to you, and
+	//the driver is not actually in an intersection at the moment.
+	if(!(other_driver && this!=other_driver && !other_driver->isInIntersection.get())) {
 		return;
 	}
 
-	const Lane* other_lane = other_driver->currLane_.get();// getCurrLane();
-	if(other_driver->isInIntersection())
-		continue;
+	//Retrieve the other driver's lane, road segment, and lane offset.
+	const Lane* other_lane = other_driver->currLane_.get();
 	const RoadSegment* otherRoadSegment = other_lane->getRoadSegment();
 	int other_offset = other_driver->currLaneOffset_.get();
-	//the vehicle is in the current road segment
-	if(currRoadSegment == otherRoadSegment)
-	{
-		int distance = other_offset - currLaneOffset;
+
+	//If the vehicle is in the same Road segment
+	if(pathMover.getCurrSegment() == otherRoadSegment) {
+		//Set distance equal to the _forward_ distance between these two vehicles.
+		int distance = other_offset - params.currLaneOffset;
+
 		//the vehicle is on the current lane
 		if(other_lane == params.currLane)
 		{
@@ -875,17 +874,17 @@ void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* oth
 				}
 			}
 		}
-	}
-	//the vehicle is in the next road segment
-	else if(RSIndex < allRoadSegments.size()-1 && otherRoadSegment == allRoadSegments.at(RSIndex+1) &&
-			otherRoadSegment->getLink() == currLink)
-	{
-		const Node* nextNode;
-		if(isLinkForward)
-			nextNode = currRoadSegment->getEnd();
-		else
-			nextNode = currRoadSegment->getStart();
-		const UniNode* uNode=dynamic_cast<const UniNode*>(nextNode);
+	} else if(otherRoadSegment->getLink() == pathMover.getCurrLink()) {
+		//We are in the same link. Return unless the vehicle is in the _next_ road segment
+		if (pathMover.isOnLastSegment() || pathMover.getCurrSegment()+1 != otherRoadSegment) {
+			return;
+		}
+
+		//Retrieve the next node we are moving to, cast it to a UniNode.
+		const Node* nextNode = isLinkForward ? pathMover.getCurrSegment()->getEnd() : pathMover.getCurrSegment()->getStart();
+		const UniNode* uNode = dynamic_cast<const UniNode*>(nextNode);
+
+		//Initialize some lane pointers
 		const Lane* nextLane = nullptr;
 		const Lane* nextLeftLane = nullptr;
 		const Lane* nextRightLane = nullptr;
@@ -903,7 +902,7 @@ void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* oth
 				nextRightLane = otherRoadSegment->getLanes().at(nextLaneIndex+1);
 		}
 
-		int distance = other_offset + currLaneLength - currLaneOffset -
+		int distance = other_offset + params.currLaneLength - params.currLaneOffset -
 				vehicle->length/2 - other_driver->getVehicle()->length/2;
 		//the vehicle is on the current lane
 		if(other_lane == nextLane)
@@ -970,7 +969,7 @@ void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* oth
 				preRightLane = otherRoadSegment->getLanes().at(preLaneIndex+1);
 		}
 
-		int distance = other_driver->currLaneLength_.get() - other_offset + currLaneOffset -
+		int distance = other_driver->currLaneLength_.get() - other_offset + params.currLaneOffset -
 				vehicle->length/2 - other_driver->getVehicle()->length/2;
 		//the vehicle is on the current lane
 		if(other_lane == preLane)
@@ -1179,10 +1178,10 @@ void sim_mob::Driver::updatePosLC(UpdateParams& p)
 	}
 }
 
-bool sim_mob::Driver::isCloseToLinkEnd()
+bool sim_mob::Driver::isCloseToLinkEnd(UpdateParams& p)
 {
 	//when the distance <= 10m
-	return isReachLastRSinCurrLink()&&(currLaneLength - currLaneOffset<2000);
+	return isReachLastRSinCurrLink()&&(p.currLaneLength - p.currLaneOffset<2000);
 }
 
 void sim_mob::Driver::updateTrafficSignal()
@@ -1225,7 +1224,7 @@ void sim_mob::Driver::trafficSignalDriving(UpdateParams& p)
 		//red yellow
 		case Signal::Red :case Signal::Amber:
 			isTrafficLightStop = true;
-			tsStopDistance = currLaneLength - currLaneOffset - vehicle->length/2 -300;
+			tsStopDistance = p.currLaneLength - p.currLaneOffset - vehicle->length/2 -300;
 			break;
 			//green
 		case Signal::Green:

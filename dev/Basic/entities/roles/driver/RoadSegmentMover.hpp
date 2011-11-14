@@ -3,6 +3,7 @@
 #pragma once
 
 #include <vector>
+#include <stdexcept>
 
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/StreetDirectory.hpp"
@@ -30,6 +31,7 @@ public:
 				roadSegmentList.push_back(it->roadSegment_);
 			}
 		}
+
 		currSegmentIt = roadSegmentList.begin();
 	}
 
@@ -37,9 +39,15 @@ public:
 	bool isPathSet() {
 		return !roadSegmentList.empty();
 	}
+	void throwIfPathUnset() {
+		if (!isPathSet()) {
+			throw std::runtime_error("RoadSegmentMover path not set.");
+		}
+	}
 
 	//Advance
 	bool moveToNextSegment() {
+		throwIfPathUnset();
 		if (currSegmentIt!=roadSegmentList.end()) {
 			currSegmentIt++;
 		}
@@ -48,14 +56,23 @@ public:
 
 	//Retrieve
 	const RoadSegment* getCurrSegment() {
+		throwIfPathUnset();
 		return *currSegmentIt;
+	}
+	const Link* getCurrLink() {
+		throwIfPathUnset();
+		return getCurrSegment()->getLink();
 	}
 
 
 
 private:
-	std::vector<const sim_mob::RoadSegment*> roadSegmentList;         //The vector we're moving along.
-	std::vector<const sim_mob::RoadSegment*>::iterator currSegmentIt; //Our position in the list of segments.
+	//Movement within a Link
+	std::vector<const sim_mob::RoadSegment*> roadSegmentList;
+	std::vector<const sim_mob::RoadSegment*>::iterator currSegmentIt;
+
+
+
 
 
 };

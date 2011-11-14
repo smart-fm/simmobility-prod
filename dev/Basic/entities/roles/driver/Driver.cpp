@@ -130,8 +130,8 @@ void sim_mob::Driver::update_first_frame(UpdateParams& params, frame_t frameNumb
 	//Save the path from orign to destination in allRoadSegments
 	initializePath();
 
-
-	if(!allRoadSegments.empty()) {
+	//Set some properties about the current path, such as the current polyline, etc.
+	if(pathMover.isPathSet()) {
 		setOrigin(params);
 	}
 }
@@ -331,36 +331,8 @@ void sim_mob::Driver::sync_relabsobjs()
 {
 	//NOTE: I'm trying to make this automatic.
 
-	//vehicle->velocity.changeCoords(currPolylineSegStart, currPolylineSegEnd);
-	/*double oldMag = vehicle->velocity.getMagnitude();
-	vehicle->velocity = DynamicVector(
-		0, 0,
-		currPolylineSegEnd.getX()-currPolylineSegStart.getX(),
-		currPolylineSegEnd.getY()-currPolylineSegStart.getY()
-	);
-	vehicle->velocity.scaleVectTo(oldMag);
+	vehicle->newPolyline(polypathMover.getCurrPolypoint(), polypathMover.getNextPolypoint());
 
-	oldMag = vehicle->velocity_lat.getMagnitude();
-	vehicle->velocity_lat = DynamicVector(
-		0, 0,
-		currPolylineSegEnd.getX()-currPolylineSegStart.getX(),
-		currPolylineSegEnd.getY()-currPolylineSegStart.getY()
-	);
-	vehicle->velocity_lat.scaleVectTo(oldMag);
-	vehicle->velocity_lat.flipLeft();
-
-	//vehicle->accel.changeCoords(currPolylineSegStart, currPolylineSegEnd);
-	oldMag = vehicle->accel.getMagnitude();
-	vehicle->accel = DynamicVector(
-		0, 0,
-		currPolylineSegEnd.getX()-currPolylineSegStart.getX(),
-		currPolylineSegEnd.getY()-currPolylineSegStart.getY()
-	);
-	vehicle->accel.scaleVectTo(oldMag);
-
-	//Sync position
-	vehicle->pos.moveToNewVect(DynamicVector(currPolylineSegStart.getX(), currPolylineSegStart.getY(),
-		currPolylineSegEnd.getX(), currPolylineSegEnd.getY()));*/
 }
 
 
@@ -371,7 +343,7 @@ bool sim_mob::Driver::isReachPolyLineSegEnd()
 
 bool sim_mob::Driver::isReachLastRSinCurrLink()
 {
-	return currRoadSegment == currLink->getPath(isForward).at(currLink->getPath(isForward).size()-1);
+	return currRoadSegment == currLink->getPath(isLinkForward).at(currLink->getPath(isLinkForward).size()-1);
 }
 
 bool sim_mob::Driver::isReachLastPolyLineSeg()
@@ -506,13 +478,7 @@ void sim_mob::Driver::updateRSInCurrLink(UpdateParams& p)
 //calculate current lane length
 void sim_mob::Driver::updateCurrLaneLength()
 {
-	currLaneLength = 0;
-	for(size_t i=0;i<currLanePolyLine->size()-1;i++)
-	{
-		double xOffset = currLanePolyLine->at(i+1).getX() - currLanePolyLine->at(i).getX();
-		double yOffset = currLanePolyLine->at(i+1).getY() - currLanePolyLine->at(i).getY();
-		currLaneLength += sqrt(xOffset*xOffset + yOffset*yOffset);
-	}
+	currLaneLength = polypathMover.getCurrPolylineLength();
 }
 
 //TODO:I think lane index should be a data member in the lane class
@@ -534,10 +500,13 @@ void sim_mob::Driver::updateAdjacentLanes()
 {
 	leftLane = nullptr;
 	rightLane = nullptr;
-	if(currLaneIndex>0)
-		rightLane = currRoadSegment->getLanes().at(currLaneIndex-1);
-	if(currLaneIndex < currRoadSegment->getLanes().size()-1)
-		leftLane = currRoadSegment->getLanes().at(currLaneIndex+1);
+
+	if(currLaneIndex>0) {
+		rightLane = pathMover.getCurrSegment()->getLanes().at(currLaneIndex-1);
+	}
+	if(currLaneIndex < currRoadSegment->getLanes().size()-1) {
+		leftLane = pathMover.getCurrSegment()->getLanes().at(currLaneIndex+1);
+	}
 }
 
 
@@ -731,10 +700,6 @@ void sim_mob::Driver::initializePath()
 
 	//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
 	pathMover.setPath(StreetDirectory::instance().shortestDrivingPath(*originNode, *destNode));
-	/*for(vector<WayPoint>::iterator it=a.begin(); it!=a.end(); it++) {
-		if(it->type_ == WayPoint::ROAD_SEGMENT)
-			allRoadSegments.push_back(it->roadSegment_);
-	}*/
 }
 
 void sim_mob::Driver::setOrigin(UpdateParams& p)
@@ -742,71 +707,31 @@ void sim_mob::Driver::setOrigin(UpdateParams& p)
 	//A non-null vehicle means we are moving.
 	vehicle = new Vehicle();
 
-	//Retrieve the first link in the link path vector
-	RSIndex = 0;
-	currRoadSegment = allRoadSegments.at(RSIndex);
-	currLink = currRoadSegment->getLink();
+	//Determine the direction we will be moving along this link.
+	isLinkForward = (pathMover.getCurrLink()->getStart()==originNode);
 
-	//decide the direction
-	if(currLink->getStart()==originNode)
-		isForward = true;
-	else
-		isForward = false;
-
-	maxLaneSpeed = currRoadSegment->maxSpeed/3.6;//slow down
+	//Set the max speed and target speed.
+	maxLaneSpeed = pathMover.getCurrSegment()->maxSpeed/3.6;//slow down
 	targetSpeed = maxLaneSpeed;
 
+	//Set our current and target lanes.
 	currLaneIndex = 0;
-	p.currLane = currRoadSegment->getLanes().at(currLaneIndex);
+	p.currLane = pathMover.getCurrSegment()->getLanes().at(currLaneIndex);
 	targetLaneIndex = currLaneIndex;
 
-	if (p.currLane) { //Avoid memory corruption if null.
-		polylineSegIndex = 0;
-		currLanePolyLine = &(p.currLane->getPolyline());
-		currPolylineSegStart = currLanePolyLine->at(polylineSegIndex);
-		currPolylineSegEnd = currLanePolyLine->at(polylineSegIndex+1);
-		sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
-	} else {
-		//Assume a reasonable starting position if the current Lane is null.
-		if (getParent()->originNode) {
-			currPolylineSegStart = *getParent()->originNode->location;
-			sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
-		}
-	}
+	//if (p.currLane) //Avoid memory corruption if null. NOTE: Probably not necessary; this function isn't called if there's no path
+	polypathMover.setPath(p.currLane->getPolyline());
+	sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
 
-	//Initialise starting position
-	//vehicle->xPos = currPolylineSegStart.getX();
-	//vehicle->yPos = currPolylineSegStart.getY();
-	vehicle->pos = MovementVector(DynamicVector(currPolylineSegStart.getX(), currPolylineSegStart.getY(), currPolylineSegEnd.getX(), currPolylineSegEnd.getY()));
+	//Vehicles start at rest
+	vehicle->setVelocity(0);
+	vehicle->setLatVelocity(0);
+	vehicle->setAcceleration(0);
 
-	  {
-		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-		std::cout <<"TestingX: " <<currPolylineSegStart.getX() <<" -> " <<vehicle->pos.getX() <<"\n";
-		std::cout <<"TestingY: " <<currPolylineSegStart.getY() <<" -> " <<vehicle->pos.getY() <<"\n";
-	  }
-
-
-	abs_relat();
-	abs2relat();
-
-	//vehicle->xVel_=0;
-	//vehicle->yVel_=0;
-	//vehicle->velocity.setRel(0, 0);
-	vehicle->velocity.scaleVectTo(0);
-	vehicle->velocity_lat.scaleVectTo(0);
-
-	//vehicle->xAcc_=0;
-	//vehicle->yAcc_=0;
-	//vehicle->accel.setRel(0, 0);
-	vehicle->accel.scaleVectTo(0);
-
-	//perceivedXVelocity_=vehicle->xVel_;
-	//perceivedYVelocity_=vehicle->yVel_;
-	//perceivedXVelocity_ = vehicle->velocity.getRelX();
-	//perceivedYVelocity_ = vehicle->velocity.getRelY();
-
-	relat2abs();
+	//Scan and save the lanes to the left and right.
 	updateAdjacentLanes();
+
+	//Calculate and save the total length of the current polyline.
 	updateCurrLaneLength();
 }
 
@@ -1012,7 +937,7 @@ void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 					otherRoadSegment->getLink() == currLink)
 			{
 				const Node* nextNode;
-				if(isForward)
+				if(isLinkForward)
 					nextNode = currRoadSegment->getEnd();
 				else
 					nextNode = currRoadSegment->getStart();
@@ -1071,7 +996,7 @@ void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 					otherRoadSegment->getLink() == currLink)
 			{
 				const Node* preNode;
-				if(isForward)
+				if(isLinkForward)
 					preNode = otherRoadSegment->getEnd();
 				else
 					preNode = otherRoadSegment->getStart();
@@ -1184,7 +1109,7 @@ void sim_mob :: Driver :: intersectionVelocityUpdate()
 
 void sim_mob :: Driver :: enterNextLink(UpdateParams& p)
 {
-	isForward = nextIsForward;
+	isLinkForward = nextIsForward;
 	p.currLane = nextLaneInNextLink;
 	updateCurrInfo_CrossIntersection(p);
 	abs2relat();

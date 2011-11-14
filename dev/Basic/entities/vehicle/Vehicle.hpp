@@ -61,6 +61,29 @@ public:
 		accel.scaleVectTo(value);
 	}
 
+	//Complex
+	void newPolyline(sim_mob::Point2D firstPoint, sim_mob::Point2D secondPoint) {
+		//Get a generic vector pointing in the magnitude of the current polyline
+		DynamicVector currDir(0, 0,
+			secondPoint.getX() - firstPoint.getX(),
+			secondPoint.getY() - firstPoint.getY()
+		);
+
+		//Sync velocity.
+		repositionAndScale(velocity, currDir);
+		repositionAndScale(velocity_lat, currDir);
+		velocity_lat.flipLeft();
+
+		//Sync acceleration
+		repositionAndScale(accel, currDir);
+
+		//Sync position
+		position.moveToNewVect(DynamicVector(
+			firstPoint.getX(), secondPoint.getY(),
+			firstPoint.getX(), secondPoint.getY()
+		));
+	}
+
 
 
 
@@ -72,6 +95,13 @@ private:
 	DynamicVector velocity;
 	DynamicVector velocity_lat; //Lateral velocity. Positive means pointing left.
 	DynamicVector accel;
+
+	//Helper function: Reposition and take care of any remaining velocity.
+	void repositionAndScale(DynamicVector& item, const DynamicVector& newHeading) {
+		double oldMag = item.getMagnitude();
+		item = newHeading;
+		item.scaleVectTo(oldMag);
+	}
 };
 
 } // namespace sim_mob

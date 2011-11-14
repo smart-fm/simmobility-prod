@@ -11,6 +11,7 @@
 #include "geospatial/StreetDirectory.hpp"
 #include "perception/FixedDelayed.hpp"
 #include "RoadSegmentMover.hpp"
+#include "PolyLineMover.hpp"
 
 
 namespace sim_mob
@@ -158,9 +159,6 @@ public:
 
 	//for coordinate transform
 	void setToParent();			///<set next data to parent buffer data
-	void abs_relat();           ///<compute transformation vectors
-	void abs2relat();			///<transform absolute coordinate to relative coordinate
-	void relat2abs();			///<transform relative coordinate to absolute coordinate
 	double feet2Unit(double feet);
 	double unit2Feet(double unit);
 
@@ -172,7 +170,9 @@ public:
 
 	/****************IN REAL NETWORK****************/
 private:
+	//Aggregate class to encapsulate movement along a list of RoadSegments.
 	RoadSegmentMover pathMover;
+
 	//Vector containing the path from origin to destination
 	//std::vector<const RoadSegment*> allRoadSegments;
 
@@ -182,26 +182,41 @@ private:
 	//Helper: Current road segment by index
 	//const RoadSegment* currRoadSegment;
 
+	//Helper: The current link we're on
+	//const Link* currLink;
 
+	//True if we are moving forward within the current link.
+	bool isLinkForward;
 
+	//Polyline we are currently moving along.
+	//const std::vector<sim_mob::Point2D>* currLanePolyLine;
 
+	//Current index into the current road segment's polyline.
+	//size_t polylineSegIndex;
 
-	const Link* currLink;
-	const Link* nextLink;
-	//const Lane* currLane; //See Driver.cpp; this isn't needed as a class attribute.
-	const Lane* nextLaneInNextLink;
+	//Helper class for managing movement within a polyline.
+	PolyLineMover polypathMover;
+
+	//Current lanes to the left and right. May be null
 	const Lane* leftLane;
 	const Lane* rightLane;
+
+	//Helper: Entire length of current polyline
+	double currLaneLength;
+
+
+
+
+	const Link* nextLink;
+	const Lane* nextLaneInNextLink;
 	const Link* desLink;
 	double currLaneOffset;
     double currLinkOffset;
 	double traveledDis; //the distance traveled within current time step
 
-	size_t polylineSegIndex;
 	size_t currLaneIndex;
 	size_t targetLaneIndex;
 	StreetDirectory::LaneAndIndexPair laneAndIndexPair;
-	const std::vector<sim_mob::Point2D>* currLanePolyLine;
 	const std::vector<sim_mob::Point2D>* desLanePolyLine;
 
 	//Temp: changing name slightly; this is more automatic with RelAbsPoint.
@@ -214,13 +229,11 @@ private:
 	Point2D entryPoint; //entry point for crossing intersection
 	int xTurningStart;
 	int yTurningStart;
-	double currLaneLength;
 	double xDirection_entryPoint;
 	double yDirection_entryPoint;
 	int disToEntryPoint;
 	bool isCrossingAhead;
 	bool closeToCrossing;
-	bool isForward;
 	bool nextIsForward;
 	bool isReachGoal;
 	bool lcEnterNewLane;

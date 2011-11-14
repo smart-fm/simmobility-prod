@@ -173,7 +173,6 @@ private:
 	const Lane* nextLaneInNextLink;
 	const Lane* leftLane;
 	const Lane* rightLane;
-	const Link* desLink;
 	double currLaneOffset;
     double currLinkOffset;
 	double traveledDis; //the distance traveled within current time step

@@ -246,7 +246,7 @@ void sim_mob::Pedestrian::setSidewalkParas(Node* start, Node* end, bool isStartM
 					break;
 				}
 			}
-			if(segToWalk!=nullptr){
+			if(segToWalk){
 				numOfLanes=(unsigned int)segToWalk->getLanes().size();
 				sidewalkPolyLine = &(const_cast<RoadSegment*>(segToWalk)->getLaneEdgePolyline(numOfLanes));
 				if(isForward){

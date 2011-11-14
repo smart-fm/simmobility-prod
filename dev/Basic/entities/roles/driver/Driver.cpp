@@ -116,6 +116,9 @@ void sim_mob::Driver::new_update_params(UpdateParams& res)
 	//Set to the previous known lane.
 	res.currLane = currLane_.get();
 
+	//Current lanes to the left and right. May be null
+	res.leftLane = nullptr;
+	res.rightLane = nullptr;
 
 	//Reset; these will be set before they are used.
 	res.currSpeed = 0;
@@ -477,16 +480,16 @@ size_t sim_mob::Driver::getLaneIndex(const Lane* l)
 
 //update left and right lanes of the current lane
 //if there is no left or right lane, it will be null
-void sim_mob::Driver::updateAdjacentLanes()
+void sim_mob::Driver::updateAdjacentLanes(UpdateParams& p)
 {
-	leftLane = nullptr;
-	rightLane = nullptr;
+	p.leftLane = nullptr;
+	p.rightLane = nullptr;
 
 	if(currLaneIndex>0) {
-		rightLane = pathMover.getCurrSegment()->getLanes().at(currLaneIndex-1);
+		p.rightLane = pathMover.getCurrSegment()->getLanes().at(currLaneIndex-1);
 	}
 	if(currLaneIndex < currRoadSegment->getLanes().size()-1) {
-		leftLane = pathMover.getCurrSegment()->getLanes().at(currLaneIndex+1);
+		p.leftLane = pathMover.getCurrSegment()->getLanes().at(currLaneIndex+1);
 	}
 }
 
@@ -804,71 +807,55 @@ void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* oth
 		int distance = other_offset - params.currLaneOffset;
 
 		//the vehicle is on the current lane
-		if(other_lane == params.currLane)
-		{
-			//the vehicle is in front
-			if(distance > 0)
-			{
+		if(other_lane == params.currLane) {
+			if(distance > 0) {
+				//the vehicle is in front
 				distance = distance - vehicle->length/2 - other_driver->getVehicle()->length/2;
-				if(distance <= minCFDistance)
-				{
+				if(distance <= minCFDistance) {
 					CFD = other_driver;
 					minCFDistance = distance;
 				}
-			}
-			else
-			{
+			} else {
+				//The vehicle is behind
 				distance = - distance;
 				distance = distance - vehicle->length/2 - other_driver->getVehicle()->length/2;
-				if(distance <= minCBDistance)
-				{
+				if(distance <= minCBDistance) {
 					CBD = other_driver;
 					minCBDistance = distance;
 				}
 			}
-		}
-		//the vehicle is on the left lane
-		else if(other_lane == leftLane)
-		{
-			//the vehicle is in front
-			if(distance > 0)
-			{
+		} else if(other_lane == params.leftLane) {
+			//the vehicle is on the left lane
+			if(distance > 0) {
+				//the vehicle is in front
 				distance = distance - vehicle->length/2 - other_driver->getVehicle()->length/2;
-				if(distance <= minLFDistance)
-				{
+				if(distance <= minLFDistance) {
 					LFD = other_driver;
 					minLFDistance = distance;
 				}
-			}
-			else
-			{
+			} else {
+				//The vehicle is behind
 				distance = - distance;
 				distance = distance - vehicle->length/2 - other_driver->getVehicle()->length/2;
-				if(distance <= minLBDistance)
-				{
+				if(distance <= minLBDistance) {
 					LBD = other_driver;
 					minLBDistance = distance;
 				}
 			}
-		}
-		else if(other_lane == rightLane)
-		{
-			//the vehicle is in front
-			if(distance > 0)
-			{
+		} else if(other_lane == params.rightLane) {
+			//The vehicle is on the right lane
+			if(distance > 0) {
+				//the vehicle is in front
 				distance = distance - vehicle->length/2 - other_driver->getVehicle()->length/2;
-				if(distance <= minRFDistance)
-				{
+				if(distance <= minRFDistance) {
 					RFD = other_driver;
 					minRFDistance = distance;
 				}
-			}
-			else if(distance < 0 && -distance <= minRBDistance)
-			{
+			} else if(distance < 0 && -distance <= minRBDistance) {
+				//The vehicle is behind
 				distance = - distance;
 				distance = distance - vehicle->length/2 - other_driver->getVehicle()->length/2;
-				if(distance <= minRBDistance)
-				{
+				if(distance <= minRBDistance) {
 					RBD = other_driver;
 					minRBDistance = distance;
 				}
@@ -1136,7 +1123,7 @@ void sim_mob::Driver::updatePosLC(UpdateParams& p)
 		//if(!lcEnterNewLane && -vehicle->yPos_>=150)//currLane->getWidth()/2.0)
 		if(!lcEnterNewLane && -vehicle->pos.getLateralMovement() >=150)//currLane->getWidth()/2.0)
 		{
-			p.currLane = rightLane;
+			p.currLane = p.rightLane;
 			updateCurrInfo_SameRS(p);
 			abs2relat();
 			lcEnterNewLane = true;
@@ -1158,7 +1145,7 @@ void sim_mob::Driver::updatePosLC(UpdateParams& p)
 		//if(!lcEnterNewLane && vehicle->yPos_>=150)//currLane->getWidth()/2.0)
 		if(!lcEnterNewLane && vehicle->pos.getLateralMovement()>=150)//currLane->getWidth()/2.0)
 		{
-			p.currLane = leftLane;
+			p.currLane = p.leftLane;
 			updateCurrInfo_SameRS(p);
 			abs2relat();
 			lcEnterNewLane = true;

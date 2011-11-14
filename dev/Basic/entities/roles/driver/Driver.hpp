@@ -78,6 +78,9 @@ private:
 	///Simple struct to hold parameters which only exist for a single update tick.
 	struct UpdateParams {
 		const Lane* currLane;
+		const Lane* leftLane;
+		const Lane* rightLane;
+
 		double currSpeed;
 
 		double currLaneOffset;
@@ -202,9 +205,6 @@ private:
 	//Helper class for managing movement within a polyline.
 	PolyLineMover polypathMover;
 
-	//Current lanes to the left and right. May be null
-	const Lane* leftLane;
-	const Lane* rightLane;
 
 	//Helper: Entire length of current polyline
 	//double currLaneLength;
@@ -287,7 +287,7 @@ private:
 	void updateCurrInfo_RSChangeSameLink(UpdateParams& p); //mode 1
 	void updateCurrInfo_CrossIntersection(UpdateParams& p); //mode 2
 
-	void updateAdjacentLanes();
+	void updateAdjacentLanes(UpdateParams& p);
 	void updateRSInCurrLink(UpdateParams& p);
 	void updateAcceleration();
 	void updateVelocity();

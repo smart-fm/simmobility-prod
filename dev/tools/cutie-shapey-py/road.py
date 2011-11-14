@@ -12,6 +12,7 @@ class Road:
         self.carriage_ways_count = carriage_ways_count
         self.one_way = one_way
         self.type = type
+        self.lanes_count = lanes_count
         self.code = code
         self.name = name.title()
         self.polyline = polyline
@@ -21,11 +22,11 @@ class Road:
 
     @staticmethod
     def column_names():
-        return ("Name", "cway-num", "one-way-in", "Type", "Shape-type", "Vertex")
+        return ("#", "Name", "cway-num", "one-way-in", "Type", "Lane count", "Shape-type", "Vertex")
 
     def columns(self):
-        return (self.name, self.carriage_ways_count, self.one_way, self.type,
-                "polyline", self.polyline)
+        return (self.id, self.name, self.carriage_ways_count, self.one_way, self.type,
+                self.lanes_count, "polyline", self.polyline)
 
     def tip_columns(self):
         return (0, 3)
@@ -57,6 +58,7 @@ class Road:
             path.lineTo(point.x, point.y)
         item = QtGui.QGraphicsPathItem(path)
         item.setPen(QtCore.Qt.red)
+        item.info = "road id=%d name='%s' type='%s'" % (self.id, self.name, self.type_desc())
         return item
 
 class Roads:

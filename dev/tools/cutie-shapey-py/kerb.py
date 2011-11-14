@@ -16,10 +16,10 @@ class Kerb_line:
 
     @staticmethod
     def column_names():
-        return ("Shape-type", "Vertex")
+        return ("#", "Shape-type", "Vertex")
 
     def columns(self):
-        return ("polyline", self.polyline)
+        return (self.id, "polyline", self.polyline)
 
     def tip_columns(self):
         return list()
@@ -34,6 +34,7 @@ class Kerb_line:
             path.lineTo(point.x, point.y)
         item = QtGui.QGraphicsPathItem(path)
         item.setPen(QtCore.Qt.black)
+        item.info = "kerb line id=%d" % (self.id)
         return item
 
 class Kerb_lines:
@@ -53,7 +54,7 @@ class Kerb_lines:
         return Kerb_line.column_names()
 
     def error(self, message):
-        print "error in lane-markings: %s" % message
+        print "error in kerb-lines: %s" % message
 
     def is_all_blanks(self, field):
         if not isinstance(field, str):

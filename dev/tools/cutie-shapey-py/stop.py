@@ -4,6 +4,7 @@
 
 import shapefile
 from point import Point, Bounding_box
+from PyQt4 import QtGui, QtCore
 
 class Bus_stop:
     def __init__(self, id, position, number):
@@ -16,10 +17,10 @@ class Bus_stop:
 
     @staticmethod
     def column_names():
-        return ("Bus-stop number", "Shape type", "Position")
+        return ("#", "Bus-stop number", "Shape type", "Position")
 
     def columns(self):
-        return (self.number, "point", self.position)
+        return (self.id, self.number, "point", self.position)
 
     def tip_columns(self):
         return list()
@@ -28,7 +29,19 @@ class Bus_stop:
         return list()
 
     def graphics(self):
-        return None
+        path = QtGui.QPainterPath(QtCore.QPointF(-15, 0))
+        path.lineTo(15, 0)
+        path.lineTo(15, 240)
+        path.lineTo(135, 240)
+        path.lineTo(135, 330)
+        path.lineTo(-15, 330)
+        path.closeSubpath()
+        item = QtGui.QGraphicsPathItem(path)
+        #item.setPen(QtCore.Qt.green)
+        item.setBrush(QtCore.Qt.green)
+        item.setPos(self.position.x, self.position.y)
+        item.info = "bus stop id=%d number=%d" % (self.id, self.number)
+        return item
 
 class Bus_stops:
     def __init__(self, shape_name):

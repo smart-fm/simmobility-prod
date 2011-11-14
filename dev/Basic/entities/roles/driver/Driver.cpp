@@ -848,6 +848,7 @@ void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* oth
 		if(uNode){
 			nextLane = uNode->getOutgoingLane(*params.currLane);
 		}
+
 		//make sure next lane is in the next road segment, although it should be true
 		if(nextLane && nextLane->getRoadSegment() == otherRoadSegment)
 		{
@@ -891,6 +892,11 @@ void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* oth
 			}
 		}
 	}
+
+	///////////
+	// TODO: The previous "else" excludes this; make this an "else" of the previous level.
+	///////////
+
 	//the vehicle is in the previous road segment
 	else if(otherRoadSegment == allRoadSegments.at(RSIndex - 1) &&
 			otherRoadSegment->getLink() == currLink)

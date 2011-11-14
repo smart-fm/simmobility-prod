@@ -30,7 +30,7 @@ public:
 
 	virtual void update(frame_t frameNumber);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
-	bool isOnCrossing();
+	bool isOnCrossing() const;
 
 private:
 	//Movement-related variables

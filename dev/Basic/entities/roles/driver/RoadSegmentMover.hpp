@@ -61,7 +61,7 @@ public:
 	}*/
 	bool isOnLastSegment() const {
 		throwIfPathUnset();
-		return nextPolypoint+1==polypointsList.end();
+		return currSegmentIt+1==roadSegmentList.end();
 	}
 
 	//Retrieve

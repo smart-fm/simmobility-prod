@@ -240,9 +240,9 @@ private:
 	bool isReachGoal;
 	bool lcEnterNewLane;
 	bool isTrafficLightStop;
-	std::vector<const Agent*> nearby_agents;
-	int distanceInFront;
-	int distanceBehind;
+
+	const int distanceInFront;
+	const int distanceBehind;
 
 public:
 	Buffered<const Lane*> currLane_;
@@ -291,7 +291,11 @@ private:
 	void updatePositionOnLink();
 	void updatePolyLineSeg();
 	void setBackToOrigin();
+
 	void updateNearbyAgents(UpdateParams& params);
+	void updateNearbyDriver(UpdateParams& params, const sim_mob::Driver* other_driver);
+	void updateNearbyPedestrian(UpdateParams& params, const sim_mob::Pedestrian* pedestrian);
+
 	void updateCurrLaneLength();
 	void updateDisToLaneEnd();
 	void updatePosLC(UpdateParams& p);
@@ -321,6 +325,7 @@ private:
 	const Driver* LBD;
 	const Driver* RFD;
 	const Driver* RBD;
+
 	const Pedestrian* CFP;
 	const Pedestrian* LFP;
 	const Pedestrian* RFP;
@@ -417,6 +422,7 @@ private:
 
 	/**************COOPERATION WITH PEDESTRIAN***************/
 public:
+	//True if a pedestrian is within range.
 	bool isPedestrianAhead;
 
 };

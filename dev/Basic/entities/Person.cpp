@@ -54,6 +54,6 @@ void sim_mob::Person::changeRole(sim_mob::Role* newRole)
 	}
 }
 
-sim_mob::Role* sim_mob::Person::getRole(){
+sim_mob::Role* sim_mob::Person::getRole() const {
 	return currRole;
 }

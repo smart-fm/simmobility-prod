@@ -71,7 +71,8 @@ size_t updateStartEndIndex(const std::vector<sim_mob::Point2D>* const currLanePo
 
 //initiate
 sim_mob::Driver::Driver(Agent* parent) : Role(parent), vehicle(nullptr), perceivedVelocity(reactTime, true),
-	perceivedVelocityOfFwdCar(reactTime, true), perceivedDistToFwdCar(reactTime, false), currLane_(nullptr)
+	perceivedVelocityOfFwdCar(reactTime, true), perceivedDistToFwdCar(reactTime, false),
+	distanceInFront(2000), distanceBehind(500), currLane_(nullptr)
 {
 	//Set default speed in the range of 10m/s to 19m/s
 	//speed = 0;//1000*(1+((double)(rand()%10))/10);
@@ -142,25 +143,15 @@ void sim_mob::Driver::update_first_frame(UpdateParams& params, frame_t frameNumb
 
 void sim_mob::Driver::update_general(UpdateParams& params, frame_t frameNumber)
 {
+	//Note: For now, most updates cannot take place unless there is a Lane set
+	if (!params.currLane) {
+		return;
+	}
+
 	//if reach the goal, get back to the origin
 	if(isGoalReached()){
 		//TODO:reach destination
 		setBackToOrigin();
-		return;
-	}
-
-	//Convert the current time to ms
-	unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
-
-	//Update your perceptions, and retrieved their current "sensed" values.
-	perceivedVelocity.delay(new DPoint(vehicle->getVelocity(), vehicle->getLatVelocity()), currTimeMS);
-	if (perceivedVelocity.can_sense(currTimeMS)) {
-		params.perceivedFwdVelocity = perceivedVelocity.sense(currTimeMS)->x;
-		params.perceivedLatVelocity = perceivedVelocity.sense(currTimeMS)->y;
-	}
-
-	//Note: For now, most updates cannot take place unless there is a Lane set
-	if (!params.currLane) {
 		return;
 	}
 
@@ -230,6 +221,16 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	if (firstFrameTick) {
 		update_first_frame(params, frameNumber);
 		firstFrameTick = false;
+	}
+
+	//Convert the current time to ms
+	unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
+
+	//Update your perceptions, and retrieved their current "sensed" values.
+	perceivedVelocity.delay(new DPoint(vehicle->getVelocity(), vehicle->getLatVelocity()), currTimeMS);
+	if (perceivedVelocity.can_sense(currTimeMS)) {
+		params.perceivedFwdVelocity = perceivedVelocity.sense(currTimeMS)->x;
+		params.perceivedLatVelocity = perceivedVelocity.sense(currTimeMS)->y;
 	}
 
 	//General update behavior.
@@ -417,11 +418,10 @@ bool sim_mob::Driver::isPedetrianOnTargetCrossing()
 	std::vector<const Agent*> agentsInRect = AuraManager::instance().agentsInRect(p1,p2);
 	for(size_t i=0;i<agentsInRect.size();i++)
 	{
-		const Person *person = dynamic_cast<const Person *>(agentsInRect.at(i));
-		if(!person)
+		const Person* other = dynamic_cast<const Person *>(agentsInRect.at(i));
+		if(!other)
 			continue;
-		Person* p = const_cast<Person*>(person);
-		Pedestrian* pedestrian = dynamic_cast<Pedestrian*>(p->getRole());
+		const Pedestrian* pedestrian = dynamic_cast<const Pedestrian*>(other->getRole());
 		if(pedestrian && pedestrian->isOnCrossing())
 			return true;
 	}
@@ -787,8 +787,251 @@ void sim_mob::Driver::updatePositionOnLink()
 	currLaneOffset += traveledDis;
 }
 
+
+void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Driver* other_driver)
+{
+	//Only update if passed a valid pointer
+	if(!other_driver) {
+		return;
+	}
+
+	const Lane* other_lane = other_driver->currLane_.get();// getCurrLane();
+	if(other_driver->isInIntersection())
+		continue;
+	const RoadSegment* otherRoadSegment = other_lane->getRoadSegment();
+	int other_offset = other_driver->currLaneOffset_.get();
+	//the vehicle is in the current road segment
+	if(currRoadSegment == otherRoadSegment)
+	{
+		int distance = other_offset - currLaneOffset;
+		//the vehicle is on the current lane
+		if(other_lane == params.currLane)
+		{
+			//the vehicle is in front
+			if(distance > 0)
+			{
+				distance = distance - vehicle->length/2 - other_driver->getVehicle()->length/2;
+				if(distance <= minCFDistance)
+				{
+					CFD = other_driver;
+					minCFDistance = distance;
+				}
+			}
+			else
+			{
+				distance = - distance;
+				distance = distance - vehicle->length/2 - other_driver->getVehicle()->length/2;
+				if(distance <= minCBDistance)
+				{
+					CBD = other_driver;
+					minCBDistance = distance;
+				}
+			}
+		}
+		//the vehicle is on the left lane
+		else if(other_lane == leftLane)
+		{
+			//the vehicle is in front
+			if(distance > 0)
+			{
+				distance = distance - vehicle->length/2 - other_driver->getVehicle()->length/2;
+				if(distance <= minLFDistance)
+				{
+					LFD = other_driver;
+					minLFDistance = distance;
+				}
+			}
+			else
+			{
+				distance = - distance;
+				distance = distance - vehicle->length/2 - other_driver->getVehicle()->length/2;
+				if(distance <= minLBDistance)
+				{
+					LBD = other_driver;
+					minLBDistance = distance;
+				}
+			}
+		}
+		else if(other_lane == rightLane)
+		{
+			//the vehicle is in front
+			if(distance > 0)
+			{
+				distance = distance - vehicle->length/2 - other_driver->getVehicle()->length/2;
+				if(distance <= minRFDistance)
+				{
+					RFD = other_driver;
+					minRFDistance = distance;
+				}
+			}
+			else if(distance < 0 && -distance <= minRBDistance)
+			{
+				distance = - distance;
+				distance = distance - vehicle->length/2 - other_driver->getVehicle()->length/2;
+				if(distance <= minRBDistance)
+				{
+					RBD = other_driver;
+					minRBDistance = distance;
+				}
+			}
+		}
+	}
+	//the vehicle is in the next road segment
+	else if(RSIndex < allRoadSegments.size()-1 && otherRoadSegment == allRoadSegments.at(RSIndex+1) &&
+			otherRoadSegment->getLink() == currLink)
+	{
+		const Node* nextNode;
+		if(isLinkForward)
+			nextNode = currRoadSegment->getEnd();
+		else
+			nextNode = currRoadSegment->getStart();
+		const UniNode* uNode=dynamic_cast<const UniNode*>(nextNode);
+		const Lane* nextLane = nullptr;
+		const Lane* nextLeftLane = nullptr;
+		const Lane* nextRightLane = nullptr;
+		if(uNode){
+			nextLane = uNode->getOutgoingLane(*params.currLane);
+		}
+		//make sure next lane is in the next road segment, although it should be true
+		if(nextLane && nextLane->getRoadSegment() == otherRoadSegment)
+		{
+			//the next lane isn't the left most lane
+			size_t nextLaneIndex = getLaneIndex(nextLane);
+			if(nextLaneIndex>0)
+				nextLeftLane = otherRoadSegment->getLanes().at(nextLaneIndex-1);
+			if(nextLaneIndex < otherRoadSegment->getLanes().size()-1)
+				nextRightLane = otherRoadSegment->getLanes().at(nextLaneIndex+1);
+		}
+
+		int distance = other_offset + currLaneLength - currLaneOffset -
+				vehicle->length/2 - other_driver->getVehicle()->length/2;
+		//the vehicle is on the current lane
+		if(other_lane == nextLane)
+		{
+			//the vehicle is in front
+			if(distance <= minCFDistance)
+			{
+				CFD = other_driver;
+				minCFDistance = distance;
+			}
+		}
+		//the vehicle is on the left lane
+		else if(other_lane == nextLeftLane)
+		{
+			//the vehicle is in front
+			if(distance <= minLFDistance)
+			{
+				LFD = other_driver;
+				minLFDistance = distance;
+			}
+		}
+		else if(other_lane == nextRightLane)
+		{
+			//the vehicle is in front
+			if(distance <= minRFDistance)
+			{
+				RFD = other_driver;
+				minRFDistance = distance;
+			}
+		}
+	}
+	//the vehicle is in the previous road segment
+	else if(otherRoadSegment == allRoadSegments.at(RSIndex - 1) &&
+			otherRoadSegment->getLink() == currLink)
+	{
+		const Node* preNode;
+		if(isLinkForward)
+			preNode = otherRoadSegment->getEnd();
+		else
+			preNode = otherRoadSegment->getStart();
+		const UniNode* uNode=dynamic_cast<const UniNode*>(preNode);
+		const Lane* preLane = nullptr;
+		const Lane* preLeftLane = nullptr;
+		const Lane* preRightLane = nullptr;
+		if(uNode){
+			for(size_t i=0;i<otherRoadSegment->getLanes().size();i++)
+			{
+				const Lane* tempLane = otherRoadSegment->getLanes().at(i);
+				if(uNode->getOutgoingLane(*tempLane) == params.currLane)
+				{
+					preLane = tempLane;
+					break;
+				}
+			}
+		}
+		//make sure next lane is in the next road segment, although it should be true
+		if(preLane)
+		{
+			size_t preLaneIndex = getLaneIndex(preLane);
+			//the next lane isn't the left most lane
+			if(preLaneIndex>0)
+				preLeftLane = otherRoadSegment->getLanes().at(preLaneIndex-1);
+			if(preLaneIndex < otherRoadSegment->getLanes().size()-1)
+				preRightLane = otherRoadSegment->getLanes().at(preLaneIndex+1);
+		}
+
+		int distance = other_driver->currLaneLength_.get() - other_offset + currLaneOffset -
+				vehicle->length/2 - other_driver->getVehicle()->length/2;
+		//the vehicle is on the current lane
+		if(other_lane == preLane)
+		{
+			if(distance <= minCBDistance)
+			{
+				CBD = other_driver;
+				minCBDistance = distance;
+			}
+		}
+		//the vehicle is on the left lane
+		else if(other_lane == preLeftLane)
+		{
+			if(distance <= minLBDistance)
+			{
+				LBD = other_driver;
+				minLBDistance = distance;
+			}
+		}
+		//the vehicle is on the right lane
+		else if(other_lane == preRightLane)
+		{
+			if(distance <= minRBDistance)
+			{
+				RBD = other_driver;
+				minRBDistance = distance;
+			}
+		}
+	}
+}
+
+
+void sim_mob::Driver::updateNearbyPedestrian(UpdateParams& params, const Pedestrian* pedestrian)
+{
+	//Only update if passed a valid pointer and this is on a crossing.
+	if (!(pedestrian && pedestrian->isOnCrossing())) {
+		return;
+	}
+
+	int otherX = person->xPos;
+	int otherY = person->yPos;
+	double xOffset=otherX-currPolylineSegStart.getX();
+	double yOffset=otherY-currPolylineSegStart.getY();
+
+	int otherX_ = xOffset*xDirection+yOffset*yDirection;
+	//int distance = otherX_ - vehicle->xPos_;
+	int distance = otherX_ - vehicle->pos.getX();
+
+	if(distance>=0)
+	{
+		distance = distance - vehicle->length/2 - 300;
+		isPedestrianAhead = true;
+		if(distance < minPedestrianDis)
+			minPedestrianDis = distance;//currLaneLength - currLaneOffset - vehicle->length/2 -300;
+	}
+}
+
+
 void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 {
+	//Reset parameters
 	isPedestrianAhead = false;
 	CFD = nullptr;
 	CBD = nullptr;
@@ -797,13 +1040,8 @@ void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 	RFD = nullptr;
 	RBD = nullptr;
 
-	//Point2D myPos(vehicle->xPos,vehicle->yPos);
-	Point2D myPos(vehicle->pos.getX(),vehicle->pos.getY());
-
-	distanceInFront = 2000;
-	distanceBehind = 500;
-
-	nearby_agents = AuraManager::instance().nearbyAgents(myPos, *params.currLane,  distanceInFront, distanceBehind);
+	//Retrieve a list of nearby agents
+	vector<const Agent*> nearby_agents = AuraManager::instance().nearbyAgents(Point2D(vehicle->getX(),vehicle->getY()), *params.currLane,  distanceInFront, distanceBehind);
 
 	minCFDistance = 5000;
 	minCBDistance = 5000;
@@ -813,244 +1051,24 @@ void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 	minRBDistance = 5000;
 	minPedestrianDis = 5000;
 
-	for(size_t i=0;i<nearby_agents.size();i++)
-	{
-		const Person *person = dynamic_cast<const Person *>(nearby_agents.at(i));
-		if(!person)
+	//
+	for (vector<const Agent*>::iterator it=nearby_agents.begin(); it!=nearby_agents.begin(); it++) {
+		//Perform no action on non-Persons
+		const Person* other = dynamic_cast<const Person *>(*it);
+		if(!other) {
 			continue;
-		Person* p = const_cast<Person*>(person);
-		Driver* other_driver = dynamic_cast<Driver*>(p->getRole());
-		Pedestrian* pedestrian = dynamic_cast<Pedestrian*>(p->getRole());
+		}
 
-		if(other_driver == this)
+		//Perform a different action depending on whether or not this is a Pedestrian/Driver/etc, but perform no action on yourself
+		const Driver* other_driver = dynamic_cast<const Driver*>(other->getRole());
+		const Pedestrian* pedestrian = dynamic_cast<const Pedestrian*>(other->getRole());
+		if (this == other_driver) {
 			continue;
-		if(other_driver)
-		{
-			const Lane* other_lane = other_driver->currLane_.get();// getCurrLane();
-			if(other_driver->isInIntersection())
-				continue;
-			const RoadSegment* otherRoadSegment = other_lane->getRoadSegment();
-			int other_offset = other_driver->currLaneOffset_.get();
-			//the vehicle is in the current road segment
-			if(currRoadSegment == otherRoadSegment)
-			{
-				int distance = other_offset - currLaneOffset;
-				//the vehicle is on the current lane
-				if(other_lane == params.currLane)
-				{
-					//the vehicle is in front
-					if(distance > 0)
-					{
-						distance = distance - vehicle->length/2 - other_driver->getVehicle()->length/2;
-						if(distance <= minCFDistance)
-						{
-							CFD = other_driver;
-							minCFDistance = distance;
-						}
-					}
-					else
-					{
-						distance = - distance;
-						distance = distance - vehicle->length/2 - other_driver->getVehicle()->length/2;
-						if(distance <= minCBDistance)
-						{
-							CBD = other_driver;
-							minCBDistance = distance;
-						}
-					}
-				}
-				//the vehicle is on the left lane
-				else if(other_lane == leftLane)
-				{
-					//the vehicle is in front
-					if(distance > 0)
-					{
-						distance = distance - vehicle->length/2 - other_driver->getVehicle()->length/2;
-						if(distance <= minLFDistance)
-						{
-							LFD = other_driver;
-							minLFDistance = distance;
-						}
-					}
-					else
-					{
-						distance = - distance;
-						distance = distance - vehicle->length/2 - other_driver->getVehicle()->length/2;
-						if(distance <= minLBDistance)
-						{
-							LBD = other_driver;
-							minLBDistance = distance;
-						}
-					}
-				}
-				else if(other_lane == rightLane)
-				{
-					//the vehicle is in front
-					if(distance > 0)
-					{
-						distance = distance - vehicle->length/2 - other_driver->getVehicle()->length/2;
-						if(distance <= minRFDistance)
-						{
-							RFD = other_driver;
-							minRFDistance = distance;
-						}
-					}
-					else if(distance < 0 && -distance <= minRBDistance)
-					{
-						distance = - distance;
-						distance = distance - vehicle->length/2 - other_driver->getVehicle()->length/2;
-						if(distance <= minRBDistance)
-						{
-							RBD = other_driver;
-							minRBDistance = distance;
-						}
-					}
-				}
-			}
-			//the vehicle is in the next road segment
-			else if(RSIndex < allRoadSegments.size()-1 && otherRoadSegment == allRoadSegments.at(RSIndex+1) &&
-					otherRoadSegment->getLink() == currLink)
-			{
-				const Node* nextNode;
-				if(isLinkForward)
-					nextNode = currRoadSegment->getEnd();
-				else
-					nextNode = currRoadSegment->getStart();
-				const UniNode* uNode=dynamic_cast<const UniNode*>(nextNode);
-				const Lane* nextLane = nullptr;
-				const Lane* nextLeftLane = nullptr;
-				const Lane* nextRightLane = nullptr;
-				if(uNode){
-					nextLane = uNode->getOutgoingLane(*params.currLane);
-				}
-				//make sure next lane is in the next road segment, although it should be true
-				if(nextLane && nextLane->getRoadSegment() == otherRoadSegment)
-				{
-					//the next lane isn't the left most lane
-					size_t nextLaneIndex = getLaneIndex(nextLane);
-					if(nextLaneIndex>0)
-						nextLeftLane = otherRoadSegment->getLanes().at(nextLaneIndex-1);
-					if(nextLaneIndex < otherRoadSegment->getLanes().size()-1)
-						nextRightLane = otherRoadSegment->getLanes().at(nextLaneIndex+1);
-				}
-
-				int distance = other_offset + currLaneLength - currLaneOffset -
-						vehicle->length/2 - other_driver->getVehicle()->length/2;
-				//the vehicle is on the current lane
-				if(other_lane == nextLane)
-				{
-					//the vehicle is in front
-					if(distance <= minCFDistance)
-					{
-						CFD = other_driver;
-						minCFDistance = distance;
-					}
-				}
-				//the vehicle is on the left lane
-				else if(other_lane == nextLeftLane)
-				{
-					//the vehicle is in front
-					if(distance <= minLFDistance)
-					{
-						LFD = other_driver;
-						minLFDistance = distance;
-					}
-				}
-				else if(other_lane == nextRightLane)
-				{
-					//the vehicle is in front
-					if(distance <= minRFDistance)
-					{
-						RFD = other_driver;
-						minRFDistance = distance;
-					}
-				}
-			}
-			//the vehicle is in the previous road segment
-			else if(otherRoadSegment == allRoadSegments.at(RSIndex - 1) &&
-					otherRoadSegment->getLink() == currLink)
-			{
-				const Node* preNode;
-				if(isLinkForward)
-					preNode = otherRoadSegment->getEnd();
-				else
-					preNode = otherRoadSegment->getStart();
-				const UniNode* uNode=dynamic_cast<const UniNode*>(preNode);
-				const Lane* preLane = nullptr;
-				const Lane* preLeftLane = nullptr;
-				const Lane* preRightLane = nullptr;
-				if(uNode){
-					for(size_t i=0;i<otherRoadSegment->getLanes().size();i++)
-					{
-						const Lane* tempLane = otherRoadSegment->getLanes().at(i);
-						if(uNode->getOutgoingLane(*tempLane) == params.currLane)
-						{
-							preLane = tempLane;
-							break;
-						}
-					}
-				}
-				//make sure next lane is in the next road segment, although it should be true
-				if(preLane)
-				{
-					size_t preLaneIndex = getLaneIndex(preLane);
-					//the next lane isn't the left most lane
-					if(preLaneIndex>0)
-						preLeftLane = otherRoadSegment->getLanes().at(preLaneIndex-1);
-					if(preLaneIndex < otherRoadSegment->getLanes().size()-1)
-						preRightLane = otherRoadSegment->getLanes().at(preLaneIndex+1);
-				}
-
-				int distance = other_driver->currLaneLength_.get() - other_offset + currLaneOffset -
-						vehicle->length/2 - other_driver->getVehicle()->length/2;
-				//the vehicle is on the current lane
-				if(other_lane == preLane)
-				{
-					if(distance <= minCBDistance)
-					{
-						CBD = other_driver;
-						minCBDistance = distance;
-					}
-				}
-				//the vehicle is on the left lane
-				else if(other_lane == preLeftLane)
-				{
-					if(distance <= minLBDistance)
-					{
-						LBD = other_driver;
-						minLBDistance = distance;
-					}
-				}
-				//the vehicle is on the right lane
-				else if(other_lane == preRightLane)
-				{
-					if(distance <= minRBDistance)
-					{
-						RBD = other_driver;
-						minRBDistance = distance;
-					}
-				}
-			}
 		}
-		else if(pedestrian&&pedestrian->isOnCrossing())
-		{
-			int otherX = person->xPos;
-			int otherY = person->yPos;
-			double xOffset=otherX-currPolylineSegStart.getX();
-			double yOffset=otherY-currPolylineSegStart.getY();
 
-			int otherX_ = xOffset*xDirection+yOffset*yDirection;
-			//int distance = otherX_ - vehicle->xPos_;
-			int distance = otherX_ - vehicle->pos.getX();
-
-			if(distance>=0)
-			{
-				distance = distance - vehicle->length/2 - 300;
-				isPedestrianAhead = true;
-				if(distance < minPedestrianDis)
-					minPedestrianDis = distance;//currLaneLength - currLaneOffset - vehicle->length/2 -300;
-			}
-		}
+		//Dispatch
+		updateNearbyDriver(params, other_driver);
+		updateNearbyPedestrian(params, pedestrian);
 	}
 }
 

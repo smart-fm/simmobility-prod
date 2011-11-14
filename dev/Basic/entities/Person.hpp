@@ -31,7 +31,7 @@ public:
 
 	///Change the role of this person: Driver, Passenger, Pedestrian
 	void changeRole(sim_mob::Role* newRole);
-	sim_mob::Role* getRole();
+	sim_mob::Role* getRole() const;
 
 	///Set this person's trip chain
 	void setTripChain(sim_mob::TripChain* newTripChain) { currTripChain = newTripChain; }

@@ -188,9 +188,9 @@ private:
 	const std::vector<sim_mob::Point2D>* desLanePolyLine;
 
 	//Temp: changing name slightly; this is more automatic with RelAbsPoint.
-	Point2D currPolylineSegStart;
-	Point2D currPolylineSegEnd;
-	int polylineSegLength;
+	//Point2D currPolylineSegStart;
+	//Point2D currPolylineSegEnd;
+	//int polylineSegLength;
 
 	Point2D desPolyLineStart;
 	Point2D desPolyLineEnd;

@@ -17,36 +17,47 @@ namespace sim_mob {
 
 class Vehicle {
 public:
-	Vehicle();
+	Vehicle() : length(400), width(200) {
+	}
 
 public:
 	double length;				//length of the vehicle
 	double width;				//width of the vehicle
 	double timeStep;			//time step size of simulation
 
-	//Test3: Vehicles' relative positions can use vectors too.
-	MovementVector pos;
-	//DynamicVector pos_lat;  //Lateral position. Positive means pointing left.
-	//int xPos;
-	//int yPos;
-	//int xPos_;
-	//int yPos_;
+	//Place at a given location.
+	void placeAt(Point2D pos, Point2D target) {
+		position = MovementVector(DynamicVector(pos.getX(), pos.getY(), target.getX(), target.getY()));
+	}
 
-	//Test2: This is really more of a vector...
+	//Accessors
+	double getX() const {
+		return position.getX();
+	}
+	double getY() const {
+		return position.getY();
+	}
+	double getVelocity() const {
+		return velocity.getMagnitude();
+	}
+	double getLatVelocity() const {
+		return velocity_lat.getMagnitude();
+	}
+	double getAcceleration() const {
+		return accel.getMagnitude();
+	}
+
+
+
+
+
+
+
+private:
+	MovementVector position;
 	DynamicVector velocity;
 	DynamicVector velocity_lat; //Lateral velocity. Positive means pointing left.
-	//double xVel;
-	//double yVel;
-	//double xVel_;
-	//double yVel_;
-
-	//Test2: This is really more of a vector...
-	//RelAbsPoint accel;
 	DynamicVector accel;
-	//double xAcc;
-	//double yAcc;
-	//double xAcc_;
-	//double yAcc_;
 };
 
 } // namespace sim_mob

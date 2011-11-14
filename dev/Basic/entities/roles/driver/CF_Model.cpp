@@ -32,7 +32,7 @@ void sim_mob::Driver::makeAcceleratingDecision(UpdateParams& p)
 
 	//p.currSpeed = vehicle->xVel_/100;
 	//p.currSpeed = vehicle->velocity.getRelX()/100;
-	p.currSpeed = vehicle->velocity.getMagnitude()/100;
+	p.currSpeed = vehicle->getVelocity()/100;
 
 	size_t mode;// 0 for vehicle, 1 for pedestrian, 2 for traffic light, 3 for null
 	if(minCFDistance != 5000 && minCFDistance <= tsStopDistance && minCFDistance <= minPedestrianDis)
@@ -67,11 +67,11 @@ void sim_mob::Driver::makeAcceleratingDecision(UpdateParams& p)
 
 			//v_lead 		=	CFD->getVehicle()->xVel_/100;
 			//v_lead 		=	CFD->getVehicle()->velocity.getRelX()/100;
-			v_lead 		=	CFD->getVehicle()->velocity.getMagnitude()/100;
+			v_lead 		=	CFD->getVehicle()->getVelocity()/100;
 
 			//a_lead		=	CFD->getVehicle()->xAcc_/100;
 			//a_lead          =   CFD->getVehicle()->accel.getRelX()/100;
-			a_lead          =   CFD->getVehicle()->accel.getMagnitude()/100;
+			a_lead          =   CFD->getVehicle()->getAcceleration()/100;
 		}
 		else
 		{

@@ -12,5 +12,6 @@
 using namespace sim_mob;
 
 //assume that all the car has the same size
-sim_mob::Vehicle::Vehicle() : length(400), width(200) {
-}
+//TODO: Re-enable the CPP file later.
+/*sim_mob::Vehicle::Vehicle() : length(400), width(200) {
+}*/

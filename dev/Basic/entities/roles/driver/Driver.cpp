@@ -140,7 +140,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	//Update your perceptions.
 	//NOTE: This should be done as perceptions arrive, but the following code kind of "mixes"
 	//      input and decision-making. ~Seth
-	perceivedVelocity.delay(new DPoint(vehicle->velocity.getMagnitude(), vehicle->velocity_lat.getMagnitude()), currTimeMS);
+	perceivedVelocity.delay(new DPoint(vehicle->getVelocity(), vehicle->getLatVelocity()), currTimeMS);
 
 
 	//perceivedVelocityOfFwdCar.delay(new Point2D(otherCarXVel, otherCarYVel), currTimeMS);
@@ -359,17 +359,17 @@ void sim_mob::Driver::sync_relabsobjs()
 
 
 //calculate absolute-relative transform vectors
-void sim_mob::Driver::abs_relat()
+/*void sim_mob::Driver::abs_relat()
 {
 	double xDir = currPolylineSegEnd.getX()-currPolylineSegStart.getX();
 	double yDir = currPolylineSegEnd.getY()-currPolylineSegStart.getY();
 	polylineSegLength = sqrt(xDir*xDir+yDir*yDir);
 	xDirection = xDir/polylineSegLength;
 	yDirection = yDir/polylineSegLength;
-}
+}*/
 
 //convert absolute coordinate system to relative one
-void sim_mob::Driver::abs2relat()
+/*void sim_mob::Driver::abs2relat()
 {
 	//double xOffset=vehicle->xPos-currPolylineSegStart.getX();
 	//double yOffset=vehicle->yPos-currPolylineSegStart.getY();
@@ -387,10 +387,10 @@ void sim_mob::Driver::abs2relat()
 
 	//perceivedXVelocity_ = perceivedXVelocity*xDirection+perceivedYVelocity*yDirection;
 	//perceivedYVelocity_ = -perceivedXVelocity*yDirection+perceivedYVelocity*xDirection;
-}
+}*/
 
 //convert relative coordinate system to absolute one
-void sim_mob::Driver::relat2abs()
+/*void sim_mob::Driver::relat2abs()
 {
 	//vehicle->xPos=vehicle->xPos_*xDirection-vehicle->yPos_*yDirection+currPolylineSegStart.getX();
 	//vehicle->yPos=vehicle->xPos_*yDirection+vehicle->yPos_*xDirection+currPolylineSegStart.getY();
@@ -402,7 +402,7 @@ void sim_mob::Driver::relat2abs()
 	//NOTE: This is done automatically by the RelAbsPoint class
 	//vehicle->xAcc=vehicle->xAcc_*xDirection-vehicle->yAcc_*yDirection;
 	//vehicle->yAcc=vehicle->xAcc_*yDirection+vehicle->yAcc_*xDirection;
-}
+}*/
 
 bool sim_mob::Driver::isReachPolyLineSegEnd()
 {

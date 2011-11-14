@@ -46,6 +46,20 @@ public:
 	double getAcceleration() const {
 		return accel.getMagnitude();
 	}
+	bool reachedSegmentEnd() const {
+		return position.reachedEnd();
+	}
+
+	//Modifiers
+	void setVelocity(double value) {
+		velocity.scaleVectTo(value);
+	}
+	void setLatVelocity(double value) {
+		velocity_lat.scaleVectTo(value);
+	}
+	void setAcceleration(double value) {
+		accel.scaleVectTo(value);
+	}
 
 
 

@@ -10,6 +10,7 @@
 #include "buffering/Buffered.hpp"
 #include "geospatial/StreetDirectory.hpp"
 #include "perception/FixedDelayed.hpp"
+#include "RoadSegmentMover.hpp"
 
 
 namespace sim_mob
@@ -105,6 +106,10 @@ private:
 	//Pointer to the vehicle this driver is controlling.
 	Vehicle* vehicle;
 
+	//More update methods
+	void update_first_frame(UpdateParams& params, frame_t frameNumber);
+	void update_general(UpdateParams& params, frame_t frameNumber);
+
 	//Sample stored data which takes reaction time into account.
 	const static size_t reactTime = 1500; //1.5 seconds
 	FixedDelayed<DPoint*> perceivedVelocity;
@@ -138,8 +143,8 @@ private:
 	Point2D goal;
 	const Node* destNode;				//first, assume that each vehicle moves towards a goal
 	const Node* originNode;				//when a vehicle reaches its goal, it will return to origin and moves to the goal again
-	bool isGoalSet;				//to check if the goal has been set
-	bool isOriginSet;			//to check if the origin has been set
+	//bool isGoalSet;				//to check if the goal has been set
+	bool firstFrameTick;			//to check if the origin has been set
 
 	double maxAcceleration;
 	double normalDeceleration;
@@ -167,10 +172,22 @@ public:
 
 	/****************IN REAL NETWORK****************/
 private:
-	std::vector<const RoadSegment*> allRoadSegments;
+	RoadSegmentMover pathMover;
+	//Vector containing the path from origin to destination
+	//std::vector<const RoadSegment*> allRoadSegments;
+
+	//Current index into the allRoadSegments vector
+	//size_t RSIndex;
+
+	//Helper: Current road segment by index
+	//const RoadSegment* currRoadSegment;
+
+
+
+
+
 	const Link* currLink;
 	const Link* nextLink;
-	const RoadSegment* currRoadSegment;
 	//const Lane* currLane; //See Driver.cpp; this isn't needed as a class attribute.
 	const Lane* nextLaneInNextLink;
 	const Lane* leftLane;
@@ -179,7 +196,7 @@ private:
 	double currLaneOffset;
     double currLinkOffset;
 	double traveledDis; //the distance traveled within current time step
-	size_t RSIndex;
+
 	size_t polylineSegIndex;
 	size_t currLaneIndex;
 	size_t targetLaneIndex;
@@ -245,7 +262,11 @@ private:
 
 	void setOrigin(UpdateParams& p);
 
-	void updateCurrInfo(unsigned int mode, UpdateParams& p);
+	void updateCurrGeneralInfo(UpdateParams& p);
+	void updateCurrInfo_SameRS(UpdateParams& p);   //mode 0
+	void updateCurrInfo_RSChangeSameLink(UpdateParams& p); //mode 1
+	void updateCurrInfo_CrossIntersection(UpdateParams& p); //mode 2
+
 	void updateAdjacentLanes();
 	void updateRSInCurrLink(UpdateParams& p);
 	void updateAcceleration();
@@ -257,7 +278,7 @@ private:
 	void updateCurrLaneLength();
 	void updateDisToLaneEnd();
 	void updatePosLC(UpdateParams& p);
-	void updateStartEndIndex();
+	//void updateStartEndIndex();
 	void updateTrafficSignal();
 
 	void trafficSignalDriving(UpdateParams& p);

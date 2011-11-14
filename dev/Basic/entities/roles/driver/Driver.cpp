@@ -44,6 +44,31 @@ double sim_mob::Driver::unit2Feet(double unit)
 	return unit/0.158;
 }
 
+
+//Helper functions
+namespace {
+
+//used in lane changing, find the start index and end index of polyline in the target lane
+size_t updateStartEndIndex(const std::vector<sim_mob::Point2D>* const currLanePolyLine, double currLaneOffset, size_t defaultValue)
+{
+	double offset = 0;
+	for(size_t i=0;i<currLanePolyLine->size()-1;i++)
+	{
+		double xOffset = currLanePolyLine->at(i+1).getX() - currLanePolyLine->at(i).getX();
+		double yOffset = currLanePolyLine->at(i+1).getY() - currLanePolyLine->at(i).getY();
+		offset += sqrt(xOffset*xOffset + yOffset*yOffset);
+		if(offset>=currLaneOffset)
+		{
+			return i;
+		}
+	}
+	return defaultValue;
+}
+
+} //End anon namespace
+
+
+
 //initiate
 sim_mob::Driver::Driver(Agent* parent) : Role(parent), vehicle(nullptr), perceivedVelocity(reactTime, true),
 	perceivedVelocityOfFwdCar(reactTime, true), perceivedDistToFwdCar(reactTime, false), currLane_(nullptr)
@@ -66,8 +91,7 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), vehicle(nullptr), perceiv
 
 
 	timeStep = ConfigParams::GetInstance().baseGranMS/1000.0;
-	isGoalSet = false;
-	isOriginSet = false;
+	firstFrameTick = true;
 	inIntersection=false;
 	isLaneChanging = false;
 	isPedestrianAhead = false;
@@ -101,32 +125,21 @@ void sim_mob::Driver::new_update_params(UpdateParams& res)
 
 
 
-//Main update functionality
-void sim_mob::Driver::update(frame_t frameNumber)
+void sim_mob::Driver::update_first_frame(UpdateParams& params, frame_t frameNumber)
 {
-	//We create a temporary variable called currLane to hold the result of our update of the current lane.
-	// We initialize it to currLane_.get(), which is the value of currLane_ last turn (or null if this is turn 1).
-	//const Lane* currLane = currLane_.get();
+	//Save the path from orign to destination in allRoadSegments
+	initializePath();
 
-	//NOTE: If you end up with a lot of these local variables, you might want to put them into their
-	//      own struct. That way, you don't need to change the function signatures of your various update
-	//      methods each time you change your variables around.
-	//This approach is preferred.
-	UpdateParams params;
-	new_update_params(params);
 
-	//Normal update code
-	if(frameNumber<parent->startTime)
-		return;
-	traveledDis = 0;
-	if(!isOriginSet){
-		initializePath();
-		if(allRoadSegments.size()==0)
-			return;
+	if(!allRoadSegments.empty()) {
 		setOrigin(params);
-		isOriginSet=true;
 	}
-	//still need to be modified.
+}
+
+
+
+void sim_mob::Driver::update_general(UpdateParams& params, frame_t frameNumber)
+{
 	//if reach the goal, get back to the origin
 	if(isGoalReached()){
 		//TODO:reach destination
@@ -225,14 +238,36 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	output(frameNumber);
 }
 
+
+
+//Main update functionality
+void sim_mob::Driver::update(frame_t frameNumber)
+{
+	//Do nothing?
+	if(frameNumber<parent->startTime)
+		return;
+
+	//Create a new set of local parameters for this frame update.
+	UpdateParams params;
+	new_update_params(params);
+
+	//First frame update
+	if (firstFrameTick) {
+		update_first_frame(params, frameNumber);
+		firstFrameTick = false;
+	}
+
+	update_general(params, frameNumber);
+}
+
 void sim_mob::Driver::output(frame_t frameNumber)
 {
 	LogOut("(\"Driver\""
 			<<","<<frameNumber
 			<<","<<parent->getId()
 			<<",{"
-			<<"\"xPos\":\""<<static_cast<int>(vehicle->pos.getX())
-			<<"\",\"yPos\":\""<<static_cast<int>(vehicle->pos.getY())
+			<<"\"xPos\":\""<<static_cast<int>(vehicle->getX())
+			<<"\",\"yPos\":\""<<static_cast<int>(vehicle->getY())
 			<<"\",\"angle\":\""<<angle
 			<<"\"})"<<std::endl);
 }
@@ -250,16 +285,10 @@ void sim_mob::Driver::intersectionDriving(UpdateParams& p)
 	else
 	{
 		//TODO: Intersection driving is unlikely to work until lane driving is fixed.
-		//vehicle->xPos += vehicle->xVel*timeStep;
-		//vehicle->yPos += vehicle->yVel*timeStep;
-		//vehicle->xPos += vehicle->velocity.getAbsX()*timeStep;
-		//vehicle->yPos += vehicle->velocity.getAbsY()*timeStep;
-		double xComp = vehicle->velocity.getEndX() + vehicle->velocity_lat.getEndX();
-		double yComp = vehicle->velocity.getEndY() + vehicle->velocity_lat.getEndY();
-		//vehicle->xPos += xComp*timeStep;
-		//vehicle->yPos += yComp*timeStep;
-		vehicle->pos.moveFwd(xComp*timeStep);
-		vehicle->pos.moveLat(yComp*timeStep);
+		//double xComp = vehicle->velocity.getEndX() + vehicle->velocity_lat.getEndX();
+		//double yComp = vehicle->velocity.getEndY() + vehicle->velocity_lat.getEndY();
+		//vehicle->pos.moveFwd(xComp*timeStep);
+		//vehicle->pos.moveLat(yComp*timeStep);
 
 		abs2relat();
 	}
@@ -273,17 +302,10 @@ void sim_mob::Driver::linkDriving(UpdateParams& p)
 		updatePosLC(p);
 	excuteLaneChanging();
 
-	//if(isTrafficLightStop && vehicle->xVel_ < 50)
-	//if(isTrafficLightStop && vehicle->velocity.getRelX() < 50)
-	if(isTrafficLightStop && vehicle->velocity.getMagnitude() < 50)
+	if(isTrafficLightStop && vehicle->getVelocity() < 50)
 	{
-		//vehicle->xVel_ = 0;
-		//vehicle->velocity.setRelX(0);
-		vehicle->velocity.scaleVectTo(0);
-
-		//vehicle->xAcc_ = 0;
-		//vehicle->accel.setRelX(0);
-		vehicle->accel.scaleVectTo(0);
+		vehicle->setVelocity(0);
+		vehicle->setAcceleration(0);
 	}
 	else
 		makeAcceleratingDecision(p);
@@ -296,37 +318,21 @@ void sim_mob::Driver::linkDriving(UpdateParams& p)
 //TODO: need to discuss
 void sim_mob::Driver::setToParent()
 {
-	//parent->xPos.set(vehicle->xPos);
-	//parent->yPos.set(vehicle->yPos);
-	parent->xPos.set(vehicle->pos.getX());
-	parent->yPos.set(vehicle->pos.getY());
+	parent->xPos.set(vehicle->getX());
+	parent->yPos.set(vehicle->getY());
 
-	//parent->xVel.set(vehicle->xVel);
-	//parent->yVel.set(vehicle->yVel);
-	//parent->xVel.set(vehicle->velocity.getAbsX());
-	//parent->yVel.set(vehicle->velocity.getAbsY());
-	double xMag = vehicle->velocity.getEndX() + vehicle->velocity_lat.getEndX();
-	double yMag = vehicle->velocity.getEndY() + vehicle->velocity_lat.getEndY();
-	parent->xVel.set(xMag);
-	parent->yVel.set(yMag);
-
-
-	//parent->xAcc.set(vehicle->xAcc);
-	//parent->yAcc.set(vehicle->yAcc);
-	//parent->xAcc.set(vehicle->accel.getAbsX());
-
-	//NOTE: If we have another accell vector, just add them
-	//double realX = vehicle->accel.getEndX();
-	//double realY = vehicle->accel.getEndY();
-	//parent->xAcc.set(realX);
-	//parent->yAcc.set(realY);
+	//TODO: Is this right?
+	parent->fwdVel.set(vehicle->getVelocity());
+	parent->latVel.set(vehicle->getLatVelocity());
 }
 
 
 void sim_mob::Driver::sync_relabsobjs()
 {
+	//NOTE: I'm trying to make this automatic.
+
 	//vehicle->velocity.changeCoords(currPolylineSegStart, currPolylineSegEnd);
-	double oldMag = vehicle->velocity.getMagnitude();
+	/*double oldMag = vehicle->velocity.getMagnitude();
 	vehicle->velocity = DynamicVector(
 		0, 0,
 		currPolylineSegEnd.getX()-currPolylineSegStart.getX(),
@@ -354,71 +360,18 @@ void sim_mob::Driver::sync_relabsobjs()
 
 	//Sync position
 	vehicle->pos.moveToNewVect(DynamicVector(currPolylineSegStart.getX(), currPolylineSegStart.getY(),
-		currPolylineSegEnd.getX(), currPolylineSegEnd.getY()));
+		currPolylineSegEnd.getX(), currPolylineSegEnd.getY()));*/
 }
 
 
-//calculate absolute-relative transform vectors
-/*void sim_mob::Driver::abs_relat()
-{
-	double xDir = currPolylineSegEnd.getX()-currPolylineSegStart.getX();
-	double yDir = currPolylineSegEnd.getY()-currPolylineSegStart.getY();
-	polylineSegLength = sqrt(xDir*xDir+yDir*yDir);
-	xDirection = xDir/polylineSegLength;
-	yDirection = yDir/polylineSegLength;
-}*/
-
-//convert absolute coordinate system to relative one
-/*void sim_mob::Driver::abs2relat()
-{
-	//double xOffset=vehicle->xPos-currPolylineSegStart.getX();
-	//double yOffset=vehicle->yPos-currPolylineSegStart.getY();
-
-	//vehicle->xPos_= xOffset*xDirection+yOffset*yDirection;
-	//vehicle->yPos_=-xOffset*yDirection+yOffset*xDirection;
-
-	//NOTE: This is done automatically by the RelAbsPoint class
-	//vehicle->xVel_= vehicle->xVel*xDirection+vehicle->yVel*yDirection;
-	//vehicle->yVel_=-vehicle->xVel*yDirection+vehicle->yVel*xDirection;
-
-	//NOTE: This is done automatically by the RelAbsPoint class
-	//vehicle->xAcc_= vehicle->xAcc*xDirection+vehicle->yAcc*yDirection;
-	//vehicle->yAcc_=-vehicle->xAcc*yDirection+vehicle->yAcc*xDirection;
-
-	//perceivedXVelocity_ = perceivedXVelocity*xDirection+perceivedYVelocity*yDirection;
-	//perceivedYVelocity_ = -perceivedXVelocity*yDirection+perceivedYVelocity*xDirection;
-}*/
-
-//convert relative coordinate system to absolute one
-/*void sim_mob::Driver::relat2abs()
-{
-	//vehicle->xPos=vehicle->xPos_*xDirection-vehicle->yPos_*yDirection+currPolylineSegStart.getX();
-	//vehicle->yPos=vehicle->xPos_*yDirection+vehicle->yPos_*xDirection+currPolylineSegStart.getY();
-
-	//NOTE: This is done automatically by the RelAbsPoint class
-	//vehicle->xVel=vehicle->xVel_*xDirection-vehicle->yVel_*yDirection;
-	//vehicle->yVel=vehicle->xVel_*yDirection+vehicle->yVel_*xDirection;
-
-	//NOTE: This is done automatically by the RelAbsPoint class
-	//vehicle->xAcc=vehicle->xAcc_*xDirection-vehicle->yAcc_*yDirection;
-	//vehicle->yAcc=vehicle->xAcc_*yDirection+vehicle->yAcc_*xDirection;
-}*/
-
 bool sim_mob::Driver::isReachPolyLineSegEnd()
 {
-	return vehicle->pos.reachedEnd();
-	/*if(vehicle->xPos_>=polylineSegLength)
-		return true;
-	else
-		return false;*/
+	return vehicle-> reachedSegmentEnd();
 }
 
 bool sim_mob::Driver::isReachLastRSinCurrLink()
 {
-	if(currRoadSegment == currLink->getPath(isForward).at(currLink->getPath(isForward).size()-1))
-		return true;
-	else
-		return false;
+	return currRoadSegment == currLink->getPath(isForward).at(currLink->getPath(isForward).size()-1);
 }
 
 bool sim_mob::Driver::isReachLastPolyLineSeg()
@@ -429,7 +382,7 @@ bool sim_mob::Driver::isReachLastPolyLineSeg()
 //TODO
 bool sim_mob::Driver::isCloseToCrossing()
 {
-	return (isReachLastRSinCurrLink()&&isCrossingAhead && xPosCrossing_-vehicle->pos.getX()-vehicle->length/2 <= 1000);
+	return (isReachLastRSinCurrLink()&&isCrossingAhead && xPosCrossing_-vehicle->getX()-vehicle->length/2 <= 1000);
 }
 
 
@@ -451,10 +404,8 @@ bool sim_mob::Driver::isReachLinkEnd()
 
 bool sim_mob::Driver::isLeaveIntersection()
 {
-	//double currXoffset = vehicle->xPos - xTurningStart;
-	//double currYoffset = vehicle->yPos - yTurningStart;
-	double currXoffset = vehicle->pos.getX() - xTurningStart;
-	double currYoffset = vehicle->pos.getY() - yTurningStart;
+	double currXoffset = vehicle->getX() - xTurningStart;
+	double currYoffset = vehicle->getY() - yTurningStart;
 
 	int currDisToEntrypoint = sqrt(currXoffset*currXoffset + currYoffset*currYoffset);
 	return currDisToEntrypoint >= disToEntryPoint;
@@ -532,7 +483,7 @@ void sim_mob::Driver::updateRSInCurrLink(UpdateParams& p)
 			if((*i)->getLaneTo()->getRoadSegment()==allRoadSegments.at(RSIndex+1)
 					&& (*i)->getLaneFrom()==p.currLane){
 				p.currLane = (*i)->getLaneTo();
-				updateCurrInfo(1, p);
+				updateCurrInfo_RSChangeSameLink(p);
 				return;
 			}
 		}
@@ -546,7 +497,7 @@ void sim_mob::Driver::updateRSInCurrLink(UpdateParams& p)
 		if (p.currLane) { //Avoid possible null dereference
 			p.currLane = uNode->getOutgoingLane(*p.currLane);
 			if(p.currLane && p.currLane->getRoadSegment()==allRoadSegments.at(RSIndex+1))
-				updateCurrInfo(1, p);
+				updateCurrInfo_RSChangeSameLink(p);
 		}
 	}
 }
@@ -590,28 +541,80 @@ void sim_mob::Driver::updateAdjacentLanes()
 }
 
 
-//used in lane changing, find the start index and end index of polyline in the target lane
-void sim_mob::Driver::updateStartEndIndex()
-{
-	double offset = 0;
-	for(size_t i=0;i<currLanePolyLine->size()-1;i++)
-	{
-		double xOffset = currLanePolyLine->at(i+1).getX() - currLanePolyLine->at(i).getX();
-		double yOffset = currLanePolyLine->at(i+1).getY() - currLanePolyLine->at(i).getY();
-		offset += sqrt(xOffset*xOffset + yOffset*yOffset);
-		if(offset>=currLaneOffset)
-		{
-			polylineSegIndex = i;
-			break;
-		}
-	}
-}
+
 
 //when current lane has been changed, update current information.
 //mode 0: within same RS, for lane changing model
+void sim_mob::Driver::updateCurrInfo_SameRS(UpdateParams& p)
+{
+	updateCurrGeneralInfo(p);
+
+	polylineSegIndex = updateStartEndIndex(currLanePolyLine, currLaneOffset, polylineSegIndex);
+
+	currPolylineSegStart = currLanePolyLine->at(polylineSegIndex);
+	currPolylineSegEnd = currLanePolyLine->at(polylineSegIndex+1);
+	sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
+
+	abs_relat();
+}
+
+
+//when current lane has been changed, update current information.
 //mode 1: during RS changing, but in the same link
+void sim_mob::Driver::updateCurrInfo_RSChangeSameLink(UpdateParams& p)
+{
+	updateCurrGeneralInfo(p);
+
+	currLaneOffset = 0;
+	polylineSegIndex = 0;
+
+	currPolylineSegStart = currLanePolyLine->at(polylineSegIndex);
+	currPolylineSegEnd = currLanePolyLine->at(polylineSegIndex+1);
+	sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
+
+	RSIndex ++;
+	if(isReachLastRSinCurrLink())
+	{
+		updateTrafficSignal();
+		if(currRoadSegment!=allRoadSegments.at(allRoadSegments.size()-1))
+			chooseNextLaneForNextLink(p);
+	}
+
+	abs_relat();
+}
+
+
+//when current lane has been changed, update current information.
 //mode 2: during crossing intersection
-void sim_mob::Driver::updateCurrInfo(unsigned int mode, UpdateParams& p)
+void sim_mob::Driver::updateCurrInfo_CrossIntersection(UpdateParams& p)
+{
+	updateCurrGeneralInfo(p);
+
+	currLaneOffset = 0;
+	polylineSegIndex = 0;
+
+	currPolylineSegStart = currLanePolyLine->at(polylineSegIndex);
+	currPolylineSegEnd = currLanePolyLine->at(polylineSegIndex+1);
+	sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
+
+	currLink = currRoadSegment->getLink();
+	targetLaneIndex = currLaneIndex;
+	RSIndex ++;
+	if(isReachLastRSinCurrLink())
+	{
+		updateTrafficSignal();
+		if(currRoadSegment!=allRoadSegments.at(allRoadSegments.size()-1))
+			chooseNextLaneForNextLink(p);
+	}
+
+	abs_relat();
+}
+
+
+
+
+
+void sim_mob::Driver::updateCurrGeneralInfo(UpdateParams& p)
 {
 	currRoadSegment = p.currLane->getRoadSegment();
 	currLaneIndex = getLaneIndex(p.currLane);
@@ -620,55 +623,6 @@ void sim_mob::Driver::updateCurrInfo(unsigned int mode, UpdateParams& p)
 	updateCurrLaneLength();
 	maxLaneSpeed = currRoadSegment->maxSpeed/3.6;//slow down
 	targetSpeed = maxLaneSpeed;
-
-	switch(mode)
-	{
-	case 0:
-		updateStartEndIndex();
-
-		currPolylineSegStart = currLanePolyLine->at(polylineSegIndex);
-		currPolylineSegEnd = currLanePolyLine->at(polylineSegIndex+1);
-		sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
-
-		break;
-	case 1:
-		currLaneOffset = 0;
-		polylineSegIndex = 0;
-
-		currPolylineSegStart = currLanePolyLine->at(polylineSegIndex);
-		currPolylineSegEnd = currLanePolyLine->at(polylineSegIndex+1);
-		sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
-
-		RSIndex ++;
-		if(isReachLastRSinCurrLink())
-		{
-			updateTrafficSignal();
-			if(currRoadSegment!=allRoadSegments.at(allRoadSegments.size()-1))
-				chooseNextLaneForNextLink(p);
-		}
-		break;
-	case 2:
-		currLaneOffset = 0;
-		polylineSegIndex = 0;
-
-		currPolylineSegStart = currLanePolyLine->at(polylineSegIndex);
-		currPolylineSegEnd = currLanePolyLine->at(polylineSegIndex+1);
-		sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
-
-		currLink = currRoadSegment->getLink();
-		targetLaneIndex = currLaneIndex;
-		RSIndex ++;
-		if(isReachLastRSinCurrLink())
-		{
-			updateTrafficSignal();
-			if(currRoadSegment!=allRoadSegments.at(allRoadSegments.size()-1))
-				chooseNextLaneForNextLink(p);
-		}
-		break;
-	default:
-		break;
-	}
-	abs_relat();
 }
 
 //update polyline segment in the current RS
@@ -771,20 +725,23 @@ void sim_mob::Driver::setBackToOrigin()
 //for now, it serves as this purpose
 void sim_mob::Driver::initializePath()
 {
+	//Save local copies of the parent's origin/destination nodes.
 	originNode = parent->originNode;
 	destNode = parent->destNode;
-	std::vector< WayPoint > a = StreetDirectory::instance().shortestDrivingPath(*originNode, *destNode);
-	for(size_t i=0;i<a.size();i++)
-	{
-		WayPoint wp = a.at(i);
-		if(wp.type_ == WayPoint::ROAD_SEGMENT)
-			allRoadSegments.push_back(wp.roadSegment_);
-	}
+
+	//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
+	pathMover.setPath(StreetDirectory::instance().shortestDrivingPath(*originNode, *destNode));
+	/*for(vector<WayPoint>::iterator it=a.begin(); it!=a.end(); it++) {
+		if(it->type_ == WayPoint::ROAD_SEGMENT)
+			allRoadSegments.push_back(it->roadSegment_);
+	}*/
 }
 
 void sim_mob::Driver::setOrigin(UpdateParams& p)
 {
+	//A non-null vehicle means we are moving.
 	vehicle = new Vehicle();
+
 	//Retrieve the first link in the link path vector
 	RSIndex = 0;
 	currRoadSegment = allRoadSegments.at(RSIndex);
@@ -1217,41 +1174,24 @@ void sim_mob::Driver::updateAngle()
 void sim_mob :: Driver :: intersectionVelocityUpdate()
 {
 	double inter_speed = 1000;//10m/s
-
-	//vehicle->xAcc_=0;
-	//vehicle->yAcc_=0;
-	//vehicle->accel.setRel(0, 0);
-	vehicle->accel.scaleVectTo(0);
+	vehicle->setAcceleration(0);
 
 	//TODO: We can figure this out later. In fact, the whole "traces" approach to
 	//      intersections is pretty easy using vectors.
-	//vehicle->xVel = inter_speed * xDirection_entryPoint;
-	//vehicle->yVel = inter_speed * yDirection_entryPoint;
-	/*vehicle->velocity.setAbs(
-		inter_speed * xDirection_entryPoint,
-		inter_speed * yDirection_entryPoint
-	);*/
-	vehicle->velocity.scaleVectTo(inter_speed * xDirection_entryPoint);
-	vehicle->velocity_lat.scaleVectTo(inter_speed * yDirection_entryPoint);
+	vehicle->setVelocity(inter_speed * xDirection_entryPoint);
+	vehicle->setLatVelocity(inter_speed * yDirection_entryPoint);
 }
 
 void sim_mob :: Driver :: enterNextLink(UpdateParams& p)
 {
 	isForward = nextIsForward;
 	p.currLane = nextLaneInNextLink;
-	updateCurrInfo(2, p);
+	updateCurrInfo_CrossIntersection(p);
 	abs2relat();
 
-	//vehicle->yVel_ = 0;
-	//vehicle->velocity.setRelY(0);
-	vehicle->velocity_lat.scaleVectTo(0);
-
-	//vehicle->yPos_ = 0;
+	//TODO: Lateral accelleration wasn't being used. You might enable it again here if you want it.
+	vehicle->setLatVelocity(0);
 	vehicle->pos.resetLateral();
-
-	//vehicle->yAcc_ = 0;
-	//vehicle->accel.setRelY(0);
-	//TODO: If you add a y-accel., then you may need to re-enable this line.
 
 	linkDriving(p);
 	relat2abs();
@@ -1266,7 +1206,7 @@ void sim_mob::Driver::updatePosLC(UpdateParams& p)
 		if(!lcEnterNewLane && -vehicle->pos.getLateralMovement() >=150)//currLane->getWidth()/2.0)
 		{
 			p.currLane = rightLane;
-			updateCurrInfo(0, p);
+			updateCurrInfo_SameRS(p);
 			abs2relat();
 			lcEnterNewLane = true;
 		}
@@ -1288,7 +1228,7 @@ void sim_mob::Driver::updatePosLC(UpdateParams& p)
 		if(!lcEnterNewLane && vehicle->pos.getLateralMovement()>=150)//currLane->getWidth()/2.0)
 		{
 			p.currLane = leftLane;
-			updateCurrInfo(0, p);
+			updateCurrInfo_SameRS(p);
 			abs2relat();
 			lcEnterNewLane = true;
 		}

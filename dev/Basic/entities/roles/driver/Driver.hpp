@@ -293,8 +293,8 @@ private:
 	void setBackToOrigin();
 
 	void updateNearbyAgents(UpdateParams& params);
-	void updateNearbyDriver(UpdateParams& params, const sim_mob::Driver* other_driver);
-	void updateNearbyPedestrian(UpdateParams& params, const sim_mob::Pedestrian* pedestrian);
+	void updateNearbyDriver(UpdateParams& params, const sim_mob::Person* other, const sim_mob::Driver* other_driver);
+	void updateNearbyPedestrian(UpdateParams& params, const sim_mob::Person* other, const sim_mob::Pedestrian* pedestrian);
 
 	void updateCurrLaneLength();
 	void updateDisToLaneEnd();

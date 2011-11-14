@@ -84,10 +84,10 @@ public:
 		));
 	}
 
-
-
-
-
+	//Temporary; workaround
+	const DynamicVector& TEMP_retrieveFwdVelocityVector() {
+		return velocity;
+	}
 
 
 private:

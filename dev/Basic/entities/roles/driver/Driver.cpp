@@ -788,10 +788,10 @@ void sim_mob::Driver::updatePositionOnLink()
 }
 
 
-void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Driver* other_driver)
+void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* other, const Driver* other_driver)
 {
-	//Only update if passed a valid pointer
-	if(!other_driver) {
+	//Only update if passed a valid pointer which is not a pointer back to you.
+	if(!(other_driver && this!=other)) {
 		return;
 	}
 
@@ -1003,28 +1003,49 @@ void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Driver* oth
 }
 
 
-void sim_mob::Driver::updateNearbyPedestrian(UpdateParams& params, const Pedestrian* pedestrian)
+void sim_mob::Driver::updateNearbyPedestrian(UpdateParams& params, const Person* other, const Pedestrian* pedestrian)
 {
 	//Only update if passed a valid pointer and this is on a crossing.
 	if (!(pedestrian && pedestrian->isOnCrossing())) {
 		return;
 	}
 
-	int otherX = person->xPos;
-	int otherY = person->yPos;
-	double xOffset=otherX-currPolylineSegStart.getX();
-	double yOffset=otherY-currPolylineSegStart.getY();
+	//Calculate the other driver's position down the polyline.
+	//NOTE: This might be better passed as a Buffered property. ~Seth
+	//TODO: This might be slightly inaccurate if you are trying to force the other vehicle into a given
+	//      local coordinate system. But it will work for now and we can clean it up later.
+	DynamicVector otherVect(
+		polypathMover.getCurrPolypoint().getX(), polypathMover.getCurrPolypoint().getY(),
+		other->xPos.get(), other->yPos.get()
+	);
 
-	int otherX_ = xOffset*xDirection+yOffset*yDirection;
-	//int distance = otherX_ - vehicle->xPos_;
-	int distance = otherX_ - vehicle->pos.getX();
-
-	if(distance>=0)
+	//Calculate the distance between these two vehicles and the distance between the angle of the
+	// car's forward movement and the pedestrian.
+	//NOTE: I am changing this slightly, since cars were stopping for pedestrians on the opposite side of
+	//      the road for no reason (traffic light was green).
+	double distance = otherVect.getMagnitude();
+	double angleDiff = 0.0;
 	{
-		distance = distance - vehicle->length/2 - 300;
+		//We need to retrieve the actual vector so that we maintain its direction in case it was zero.
+		// Again, this can be fixed later by just buffering the data.
+		DynamicVector fwdVector(vehicle->TEMP_retrieveFwdVelocityVector());
+		fwdVector.scaleVectTo(100);
+
+		//Calculate the difference
+		//NOTE: I may be over-complicating this... we can probably use the dot product but that can be done later. ~Seth
+		double angle1 = atan2(fwdVector.getEndY()-fwdVector.getY(), fwdVector.getEndX()-fwdVector.getX());
+		double angle2 = atan2(otherVect.getEndY()-otherVect.getY(), otherVect.getEndX()-otherVect.getX());
+		double diff = fabs(angle1 - angle2);
+		angleDiff = std::min(diff, fabs(diff - 2*M_PI));
+	}
+
+	//If the pedestrian is not behind us, then set our flag to true and update the minimum pedestrian distance.
+	if(angleDiff < 0.5236) { //30 degrees +/-
 		isPedestrianAhead = true;
-		if(distance < minPedestrianDis)
-			minPedestrianDis = distance;//currLaneLength - currLaneOffset - vehicle->length/2 -300;
+		distance = distance - vehicle->length/2 - 300;
+		if(distance < minPedestrianDis) {
+			minPedestrianDis = distance;
+		}
 	}
 }
 
@@ -1051,7 +1072,7 @@ void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 	minRBDistance = 5000;
 	minPedestrianDis = 5000;
 
-	//
+	//Update each nearby Pedestrian/Driver
 	for (vector<const Agent*>::iterator it=nearby_agents.begin(); it!=nearby_agents.begin(); it++) {
 		//Perform no action on non-Persons
 		const Person* other = dynamic_cast<const Person *>(*it);
@@ -1059,16 +1080,9 @@ void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 			continue;
 		}
 
-		//Perform a different action depending on whether or not this is a Pedestrian/Driver/etc, but perform no action on yourself
-		const Driver* other_driver = dynamic_cast<const Driver*>(other->getRole());
-		const Pedestrian* pedestrian = dynamic_cast<const Pedestrian*>(other->getRole());
-		if (this == other_driver) {
-			continue;
-		}
-
-		//Dispatch
-		updateNearbyDriver(params, other_driver);
-		updateNearbyPedestrian(params, pedestrian);
+		//Perform a different action depending on whether or not this is a Pedestrian/Driver/etc.
+		updateNearbyDriver(params, other, dynamic_cast<const Driver*>(other->getRole()));
+		updateNearbyPedestrian(params, other, dynamic_cast<const Pedestrian*>(other->getRole()));
 	}
 }
 

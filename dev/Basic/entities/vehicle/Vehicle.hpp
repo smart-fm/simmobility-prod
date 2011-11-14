@@ -9,7 +9,8 @@
 
 #pragma once
 
-#include "util/RelAbsPoint.hpp"
+#include "util/MovementVector.hpp"
+#include "util/DynamicVector.hpp"
 
 
 namespace sim_mob {
@@ -23,10 +24,13 @@ public:
 	double width;				//width of the vehicle
 	double timeStep;			//time step size of simulation
 
-	int xPos;
-	int yPos;
-	int xPos_;
-	int yPos_;
+	//Test3: Vehicles' relative positions can use vectors too.
+	MovementVector pos;
+	//DynamicVector pos_lat;  //Lateral position. Positive means pointing left.
+	//int xPos;
+	//int yPos;
+	//int xPos_;
+	//int yPos_;
 
 	//Test2: This is really more of a vector...
 	DynamicVector velocity;

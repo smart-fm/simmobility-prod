@@ -191,7 +191,9 @@ void sim_mob::Driver::update(frame_t frameNumber)
 				//so when the polyline segment has been updated, the coordinate system should also be updated
 				if(isReachPolyLineSegEnd())
 				{
-					vehicle->xPos_ -= polylineSegLength;
+					//vehicle->xPos_ -= polylineSegLength;
+
+
 					if(!isReachLastPolyLineSeg())
 						updatePolyLineSeg();
 					else
@@ -229,8 +231,8 @@ void sim_mob::Driver::output(frame_t frameNumber)
 			<<","<<frameNumber
 			<<","<<parent->getId()
 			<<",{"
-			<<"\"xPos\":\""<<vehicle->xPos
-			<<"\",\"yPos\":\""<<vehicle->yPos
+			<<"\"xPos\":\""<<static_cast<int>(vehicle->pos.getX())
+			<<"\",\"yPos\":\""<<static_cast<int>(vehicle->pos.getY())
 			<<"\",\"angle\":\""<<angle
 			<<"\"})"<<std::endl);
 }
@@ -254,9 +256,10 @@ void sim_mob::Driver::intersectionDriving(UpdateParams& p)
 		//vehicle->yPos += vehicle->velocity.getAbsY()*timeStep;
 		double xComp = vehicle->velocity.getEndX() + vehicle->velocity_lat.getEndX();
 		double yComp = vehicle->velocity.getEndY() + vehicle->velocity_lat.getEndY();
-		vehicle->xPos += xComp*timeStep;
-		vehicle->yPos += yComp*timeStep;
-
+		//vehicle->xPos += xComp*timeStep;
+		//vehicle->yPos += yComp*timeStep;
+		vehicle->pos.moveFwd(xComp*timeStep);
+		vehicle->pos.moveLat(yComp*timeStep);
 
 		abs2relat();
 	}
@@ -293,8 +296,10 @@ void sim_mob::Driver::linkDriving(UpdateParams& p)
 //TODO: need to discuss
 void sim_mob::Driver::setToParent()
 {
-	parent->xPos.set(vehicle->xPos);
-	parent->yPos.set(vehicle->yPos);
+	//parent->xPos.set(vehicle->xPos);
+	//parent->yPos.set(vehicle->yPos);
+	parent->xPos.set(vehicle->pos.getX());
+	parent->yPos.set(vehicle->pos.getY());
 
 	//parent->xVel.set(vehicle->xVel);
 	//parent->yVel.set(vehicle->yVel);
@@ -346,6 +351,10 @@ void sim_mob::Driver::sync_relabsobjs()
 		currPolylineSegEnd.getY()-currPolylineSegStart.getY()
 	);
 	vehicle->accel.scaleVectTo(oldMag);
+
+	//Sync position
+	vehicle->pos.moveToNewVect(DynamicVector(currPolylineSegStart.getX(), currPolylineSegStart.getY(),
+		currPolylineSegEnd.getX(), currPolylineSegEnd.getY()));
 }
 
 
@@ -362,11 +371,11 @@ void sim_mob::Driver::abs_relat()
 //convert absolute coordinate system to relative one
 void sim_mob::Driver::abs2relat()
 {
-	double xOffset=vehicle->xPos-currPolylineSegStart.getX();
-	double yOffset=vehicle->yPos-currPolylineSegStart.getY();
+	//double xOffset=vehicle->xPos-currPolylineSegStart.getX();
+	//double yOffset=vehicle->yPos-currPolylineSegStart.getY();
 
-	vehicle->xPos_= xOffset*xDirection+yOffset*yDirection;
-	vehicle->yPos_=-xOffset*yDirection+yOffset*xDirection;
+	//vehicle->xPos_= xOffset*xDirection+yOffset*yDirection;
+	//vehicle->yPos_=-xOffset*yDirection+yOffset*xDirection;
 
 	//NOTE: This is done automatically by the RelAbsPoint class
 	//vehicle->xVel_= vehicle->xVel*xDirection+vehicle->yVel*yDirection;
@@ -383,8 +392,8 @@ void sim_mob::Driver::abs2relat()
 //convert relative coordinate system to absolute one
 void sim_mob::Driver::relat2abs()
 {
-	vehicle->xPos=vehicle->xPos_*xDirection-vehicle->yPos_*yDirection+currPolylineSegStart.getX();
-	vehicle->yPos=vehicle->xPos_*yDirection+vehicle->yPos_*xDirection+currPolylineSegStart.getY();
+	//vehicle->xPos=vehicle->xPos_*xDirection-vehicle->yPos_*yDirection+currPolylineSegStart.getX();
+	//vehicle->yPos=vehicle->xPos_*yDirection+vehicle->yPos_*xDirection+currPolylineSegStart.getY();
 
 	//NOTE: This is done automatically by the RelAbsPoint class
 	//vehicle->xVel=vehicle->xVel_*xDirection-vehicle->yVel_*yDirection;
@@ -397,10 +406,11 @@ void sim_mob::Driver::relat2abs()
 
 bool sim_mob::Driver::isReachPolyLineSegEnd()
 {
-	if(vehicle->xPos_>=polylineSegLength)
+	return vehicle->pos.reachedEnd();
+	/*if(vehicle->xPos_>=polylineSegLength)
 		return true;
 	else
-		return false;
+		return false;*/
 }
 
 bool sim_mob::Driver::isReachLastRSinCurrLink()
@@ -419,7 +429,7 @@ bool sim_mob::Driver::isReachLastPolyLineSeg()
 //TODO
 bool sim_mob::Driver::isCloseToCrossing()
 {
-	return (isReachLastRSinCurrLink()&&isCrossingAhead && xPosCrossing_-vehicle->xPos_-vehicle->length/2 <= 1000);
+	return (isReachLastRSinCurrLink()&&isCrossingAhead && xPosCrossing_-vehicle->pos.getX()-vehicle->length/2 <= 1000);
 }
 
 
@@ -441,8 +451,11 @@ bool sim_mob::Driver::isReachLinkEnd()
 
 bool sim_mob::Driver::isLeaveIntersection()
 {
-	double currXoffset = vehicle->xPos - xTurningStart;
-	double currYoffset = vehicle->yPos - yTurningStart;
+	//double currXoffset = vehicle->xPos - xTurningStart;
+	//double currYoffset = vehicle->yPos - yTurningStart;
+	double currXoffset = vehicle->pos.getX() - xTurningStart;
+	double currYoffset = vehicle->pos.getY() - yTurningStart;
+
 	int currDisToEntrypoint = sqrt(currXoffset*currXoffset + currYoffset*currYoffset);
 	return currDisToEntrypoint >= disToEntryPoint;
 }
@@ -714,21 +727,30 @@ void sim_mob::Driver::chooseNextLaneForNextLink(UpdateParams& p)
 void sim_mob::Driver::directionIntersection()
 {
 	entryPoint = nextLaneInNextLink->getPolyline().at(0);
-	double xDir = entryPoint.getX() - vehicle->xPos;
-	double yDir = entryPoint.getY() - vehicle->yPos;
+
+	//TODO: Intersection driving won't work right for now.
+	//double xDir = entryPoint.getX() - vehicle->xPos;
+	//double yDir = entryPoint.getY() - vehicle->yPos;
+	double xDir = entryPoint.getX() - vehicle->pos.getX();
+	double yDir = entryPoint.getY() - vehicle->pos.getY();
+
 	disToEntryPoint = sqrt(xDir*xDir+yDir*yDir);
 	xDirection_entryPoint = xDir/disToEntryPoint;
 	yDirection_entryPoint = yDir/disToEntryPoint;
-	xTurningStart = vehicle->xPos;
-	yTurningStart = vehicle->yPos;
+	xTurningStart = vehicle->pos.getX();
+	yTurningStart = vehicle->pos.getY();
 }
 
 
 //TODO
 void sim_mob::Driver::setBackToOrigin()
 {
-	vehicle->xPos = parent->originNode->location->getX();
-	vehicle->yPos = parent->originNode->location->getY();
+	//NOTE: Right now this function isn't called anywhere interesting, so just give it a random heading.
+	//TODO: This won't work.
+	//vehicle->xPos = parent->originNode->location->getX();
+	//vehicle->yPos = parent->originNode->location->getY();
+	DynamicVector someVector(parent->originNode->location->getX(), parent->originNode->location->getY(), 1, 1);
+	vehicle->pos = MovementVector(someVector);
 
 	//vehicle->xVel = 0;
 	//vehicle->yVel = 0;
@@ -796,8 +818,17 @@ void sim_mob::Driver::setOrigin(UpdateParams& p)
 	}
 
 	//Initialise starting position
-	vehicle->xPos = currPolylineSegStart.getX();
-	vehicle->yPos = currPolylineSegStart.getY();
+	//vehicle->xPos = currPolylineSegStart.getX();
+	//vehicle->yPos = currPolylineSegStart.getY();
+	vehicle->pos = MovementVector(DynamicVector(currPolylineSegStart.getX(), currPolylineSegStart.getY(), currPolylineSegEnd.getX(), currPolylineSegEnd.getY()));
+
+	  {
+		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+		std::cout <<"TestingX: " <<currPolylineSegStart.getX() <<" -> " <<vehicle->pos.getX() <<"\n";
+		std::cout <<"TestingY: " <<currPolylineSegStart.getY() <<" -> " <<vehicle->pos.getY() <<"\n";
+	  }
+
+
 	abs_relat();
 	abs2relat();
 
@@ -826,7 +857,9 @@ void sim_mob::Driver::setOrigin(UpdateParams& p)
 //TODO
 void sim_mob::Driver::findCrossing()
 {
-	const Crossing* crossing=dynamic_cast<const Crossing*>(currRoadSegment->nextObstacle(vehicle->xPos_,true).item);
+	//const Crossing* crossing=dynamic_cast<const Crossing*>(currRoadSegment->nextObstacle(vehicle->xPos_,true).item);
+	const Crossing* crossing=dynamic_cast<const Crossing*>(currRoadSegment->nextObstacle(vehicle->pos.getX(),true).item);
+
 	if(crossing)
 	{
 		Point2D far1 = crossing->farLine.first;
@@ -886,11 +919,13 @@ void sim_mob::Driver::updatePositionOnLink()
 		vehicle->accel.scaleVectTo(0);
 	}
 
-	vehicle->xPos_ += traveledDis;
+	//vehicle->xPos_ += traveledDis;
+	vehicle->pos.moveFwd(traveledDis);
 
 	//vehicle->yPos_ += vehicle->yVel_*timeStep;
 	//vehicle->yPos_ += vehicle->velocity.getRelY()*timeStep;
-	vehicle->yPos_ += vehicle->velocity_lat.getMagnitude()*timeStep;
+	//vehicle->yPos_ += vehicle->velocity_lat.getMagnitude()*timeStep;
+	vehicle->pos.moveLat(vehicle->velocity_lat.getMagnitude()*timeStep);
 
 	currLaneOffset += traveledDis;
 }
@@ -905,7 +940,9 @@ void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 	RFD = nullptr;
 	RBD = nullptr;
 
-	Point2D myPos(vehicle->xPos,vehicle->yPos);
+	//Point2D myPos(vehicle->xPos,vehicle->yPos);
+	Point2D myPos(vehicle->pos.getX(),vehicle->pos.getY());
+
 	distanceInFront = 2000;
 	distanceBehind = 500;
 
@@ -1146,7 +1183,9 @@ void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 			double yOffset=otherY-currPolylineSegStart.getY();
 
 			int otherX_ = xOffset*xDirection+yOffset*yDirection;
-			int distance = otherX_ - vehicle->xPos_;
+			//int distance = otherX_ - vehicle->xPos_;
+			int distance = otherX_ - vehicle->pos.getX();
+
 			if(distance>=0)
 			{
 				distance = distance - vehicle->length/2 - 300;
@@ -1207,7 +1246,8 @@ void sim_mob :: Driver :: enterNextLink(UpdateParams& p)
 	//vehicle->velocity.setRelY(0);
 	vehicle->velocity_lat.scaleVectTo(0);
 
-	vehicle->yPos_ = 0;
+	//vehicle->yPos_ = 0;
+	vehicle->pos.resetLateral();
 
 	//vehicle->yAcc_ = 0;
 	//vehicle->accel.setRelY(0);
@@ -1222,17 +1262,20 @@ void sim_mob::Driver::updatePosLC(UpdateParams& p)
 	//right
 	if(changeDecision == 1)
 	{
-		if(!lcEnterNewLane && -vehicle->yPos_>=150)//currLane->getWidth()/2.0)
+		//if(!lcEnterNewLane && -vehicle->yPos_>=150)//currLane->getWidth()/2.0)
+		if(!lcEnterNewLane && -vehicle->pos.getLateralMovement() >=150)//currLane->getWidth()/2.0)
 		{
 			p.currLane = rightLane;
 			updateCurrInfo(0, p);
 			abs2relat();
 			lcEnterNewLane = true;
 		}
-		if(lcEnterNewLane && vehicle->yPos_ <=0)
+		//if(lcEnterNewLane && vehicle->yPos_ <=0)
+		if(lcEnterNewLane && vehicle->pos.getLateralMovement() <=0)
 		{
 			isLaneChanging =false;
-			vehicle->yPos_ = 0;
+			//vehicle->yPos_ = 0;
+			vehicle->pos.resetLateral();
 
 			//vehicle->yVel_ = 0;
 			//vehicle->velocity.setRelY(0);
@@ -1241,17 +1284,21 @@ void sim_mob::Driver::updatePosLC(UpdateParams& p)
 	}
 	else if(changeDecision == -1)
 	{
-		if(!lcEnterNewLane && vehicle->yPos_>=150)//currLane->getWidth()/2.0)
+		//if(!lcEnterNewLane && vehicle->yPos_>=150)//currLane->getWidth()/2.0)
+		if(!lcEnterNewLane && vehicle->pos.getLateralMovement()>=150)//currLane->getWidth()/2.0)
 		{
 			p.currLane = leftLane;
 			updateCurrInfo(0, p);
 			abs2relat();
 			lcEnterNewLane = true;
 		}
-		if(lcEnterNewLane && vehicle->yPos_ >=0)
+		//if(lcEnterNewLane && vehicle->yPos_ >=0)
+		if(lcEnterNewLane && vehicle->pos.getLateralMovement() >=0)
 		{
 			isLaneChanging =false;
-			vehicle->yPos_ = 0;
+
+			//vehicle->yPos_ = 0;
+			vehicle->pos.resetLateral();
 
 			//vehicle->yVel_ = 0;
 			//vehicle->velocity.setRelY(0);

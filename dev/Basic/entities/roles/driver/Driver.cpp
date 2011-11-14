@@ -788,6 +788,20 @@ void sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
 }
 
 
+namespace {
+//Helper function: check if a modified distanc is less than the current minimum and save it.
+void check_and_set_min_car_dist(const Driver*& resDriver, double& resMinDist, double distance, const Vehicle* veh, const Driver* other) {
+	//Subtract the size of the car from the distance between them
+	distance = fabs(distance) - veh->length/2 - other->getVehicle()->length/2;
+	if(distance <= resMinDist) {
+		resDriver = other;
+		resMinDist = distance;
+	}
+
+}
+} //End anon namespace
+
+
 void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* other, const Driver* other_driver)
 {
 	//Only update if passed a valid pointer which is not a pointer back to you, and
@@ -805,60 +819,16 @@ void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* oth
 	if(pathMover.getCurrSegment() == otherRoadSegment) {
 		//Set distance equal to the _forward_ distance between these two vehicles.
 		int distance = other_offset - params.currLaneOffset;
+		bool fwd = distance > 0;
 
-		//the vehicle is on the current lane
-		if(other_lane == params.currLane) {
-			if(distance > 0) {
-				//the vehicle is in front
-				distance = distance - vehicle->length/2 - other_driver->getVehicle()->length/2;
-				if(distance <= minCFDistance) {
-					CFD = other_driver;
-					minCFDistance = distance;
-				}
-			} else {
-				//The vehicle is behind
-				distance = - distance;
-				distance = distance - vehicle->length/2 - other_driver->getVehicle()->length/2;
-				if(distance <= minCBDistance) {
-					CBD = other_driver;
-					minCBDistance = distance;
-				}
-			}
-		} else if(other_lane == params.leftLane) {
-			//the vehicle is on the left lane
-			if(distance > 0) {
-				//the vehicle is in front
-				distance = distance - vehicle->length/2 - other_driver->getVehicle()->length/2;
-				if(distance <= minLFDistance) {
-					LFD = other_driver;
-					minLFDistance = distance;
-				}
-			} else {
-				//The vehicle is behind
-				distance = - distance;
-				distance = distance - vehicle->length/2 - other_driver->getVehicle()->length/2;
-				if(distance <= minLBDistance) {
-					LBD = other_driver;
-					minLBDistance = distance;
-				}
-			}
-		} else if(other_lane == params.rightLane) {
-			//The vehicle is on the right lane
-			if(distance > 0) {
-				//the vehicle is in front
-				distance = distance - vehicle->length/2 - other_driver->getVehicle()->length/2;
-				if(distance <= minRFDistance) {
-					RFD = other_driver;
-					minRFDistance = distance;
-				}
-			} else if(distance < 0 && -distance <= minRBDistance) {
-				//The vehicle is behind
-				distance = - distance;
-				distance = distance - vehicle->length/2 - other_driver->getVehicle()->length/2;
-				if(distance <= minRBDistance) {
-					RBD = other_driver;
-					minRBDistance = distance;
-				}
+		//Set different variables depending on where the car is.
+		if(other_lane == params.currLane) {//the vehicle is on the current lane
+			check_and_set_min_car_dist((fwd?CFD:CBD), (fwd?minCFDistance:minCBDistance), distance, vehicle, other_driver);
+		} else if(other_lane == params.leftLane) { //the vehicle is on the left lane
+			check_and_set_min_car_dist((fwd?LFD:LBD), (fwd?minLFDistance:minLBDistance), distance, vehicle, other_driver);
+		} else if(other_lane == params.rightLane) { //The vehicle is on the right lane
+			if(distance>0 || (distance < 0 && -distance<=minRBDistance)) {
+				check_and_set_min_car_dist((fwd?RFD:RBD), (fwd?minRFDistance:minRBDistance), distance, vehicle, other_driver);
 			}
 		}
 	} else if(otherRoadSegment->getLink() == pathMover.getCurrLink()) {

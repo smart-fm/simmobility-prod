@@ -689,7 +689,7 @@ void sim_mob::Driver::setBackToOrigin()
 {
 	//NOTE: Right now this function isn't called anywhere interesting, so just give it a random heading.
 	//TODO: This won't work.
-	vehicle->placeAt(*parent->originNode->location, Point2D(1, 1));
+	vehicle->newPolyline(*parent->originNode->location, Point2D(1, 1));
 
 	vehicle->setVelocity(0);
 	vehicle->setLatVelocity(0);

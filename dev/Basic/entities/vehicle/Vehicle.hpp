@@ -23,12 +23,12 @@ public:
 public:
 	double length;				//length of the vehicle
 	double width;				//width of the vehicle
-	double timeStep;			//time step size of simulation
+	//double timeStep;			//time step size of simulation
 
 	//Place at a given location.
-	void placeAt(Point2D pos, Point2D target) {
+	/*void placeAt(Point2D pos, Point2D target) {
 		position = MovementVector(DynamicVector(pos.getX(), pos.getY(), target.getX(), target.getY()));
-	}
+	}*/
 
 	//Accessors
 	double getX() const {

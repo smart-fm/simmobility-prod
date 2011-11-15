@@ -52,6 +52,17 @@ public:
 	///Retrieve the magnitude.
 	double getMagnitude() const { return isZero?0:sqrt(mag.x*mag.x + mag.y*mag.y); }
 
+	//Retrieve the angle. Should still work even if the magnitude is zero
+	//Returns an angle in the range 0..2*PI
+	double getAngle() const {
+		if(mag.x==0 && mag.y==0) {
+			//This only happens if the vector is specifically initialize with zero size.
+			throw std::runtime_error("Impossible to retrieve a vector's angle if it has never had a size.");
+		}
+
+		return atan2(mag.y, mag.x) + M_PI;
+	}
+
 	//Basic utility functions
 	DynamicVector& translateVect(double dX, double dY) { pos.x += dX; pos.y += dY; return *this; }  ///<Shift this vector by dX,dY. (Moves the origin)
 	DynamicVector& translateVect() { return translateVect((isZero?0:mag.x), (isZero?0:mag.y)); }  ///<Shift this vector by its own magnitude. Effectively moves the vector's origin to its "end" point.

@@ -92,7 +92,6 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), vehicle(nullptr), perceiv
 	firstFrameTick = true;
 	isLaneChanging = false;
 	isPedestrianAhead = false;
-	angle = 0;
 	nextLaneInNextLink = nullptr;
 }
 
@@ -217,9 +216,8 @@ void sim_mob::Driver::update_general(UpdateParams& params, frame_t frameNumber)
 			linkDriving(params);
 		}
 	}
-	relat2abs();
 	setToParent();
-	updateAngle();
+	updateAngle(params);
 }
 
 
@@ -264,7 +262,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	output(frameNumber);
 }
 
-void sim_mob::Driver::output(frame_t frameNumber)
+void sim_mob::Driver::output(UpdateParams& p, frame_t frameNumber)
 {
 	LogOut("(\"Driver\""
 			<<","<<frameNumber
@@ -272,7 +270,7 @@ void sim_mob::Driver::output(frame_t frameNumber)
 			<<",{"
 			<<"\"xPos\":\""<<static_cast<int>(vehicle->getX())
 			<<"\",\"yPos\":\""<<static_cast<int>(vehicle->getY())
-			<<"\",\"angle\":\""<<angle
+			<<"\",\"angle\":\""<<p.vehicleAngle
 			<<"\"})"<<std::endl);
 }
 
@@ -1020,20 +1018,10 @@ void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 }
 
 //Angle shows the velocity direction of vehicles
-void sim_mob::Driver::updateAngle()
+void sim_mob::Driver::updateAngle(UpdateParams& p)
 {
-	//TODO: Angle is read-only, so we can set it more simply later using
-	//      atan2. Remember, atan2 is your friend!
-	//double xVel = vehicle->velocity.getAbsX();
-	//double yVel = vehicle->velocity.getAbsY();
-	double xVel = vehicle->velocity.getMagnitude();
-	double yVel = vehicle->velocity_lat.getMagnitude();
-
-	if(xVel==0 && yVel==0){}
-    else if(xVel>=0 && yVel>=0) { angle = 360 - atan(yVel/xVel)/3.1415926*180; }
-	else if(xVel>=0 && yVel<0 ) { angle = - atan(yVel/xVel)/3.1415926*180; }
-	else if(xVel<0  && yVel>=0) { angle = 180 - atan(yVel/xVel)/3.1415926*180; }
-	else if(xVel<0  && yVel<0 ) { angle = 180 - atan(yVel/xVel)/3.1415926*180; }
+	//Set angle based on the vehicle's heading and velocity.
+	p.vehicleAngle = vehicle->getAngleBasedOnVelocity() * 180 / M_PI;;
 }
 
 void sim_mob::Driver::intersectionVelocityUpdate()

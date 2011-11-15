@@ -50,6 +50,11 @@ public:
 		return position.reachedEnd();
 	}
 
+	//Special
+	double getAngleBasedOnVelocity() const {
+		return velocity.getAngle();
+	}
+
 	//Modifiers
 	void setVelocity(double value) {
 		velocity.scaleVectTo(value);

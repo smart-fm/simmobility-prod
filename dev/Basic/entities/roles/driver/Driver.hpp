@@ -94,6 +94,7 @@ private:
 		const Lane* rightLane;
 
 		double currSpeed;
+		double vehicleAngle;
 
 		double currLaneOffset;
 		double currLaneLength;
@@ -198,7 +199,7 @@ public:
 	double getNormalDeceleration() const {return normalDeceleration;}
 	double getMaxDeceleration() const {return maxDeceleration;}
 	double getDistanceToNormalStop() const {return distanceToNormalStop;}
-	void output(frame_t frameNumber);
+	void output(UpdateParams& p, frame_t frameNumber);
 
 	/****************IN REAL NETWORK****************/
 private:
@@ -444,7 +445,7 @@ public:
 
 	/**************BEHAVIOR WHEN APPROACHING A INTERSECTION***************/
 public:
-	void updateAngle();
+	void updateAngle(UpdateParams& p);
 	void intersectionVelocityUpdate();
 	void modifyPosition();
 	void IntersectionDirectionUpdate();
@@ -458,7 +459,6 @@ private:
 	//The current traffic signal in our Segment. May be null.
 	const Signal* trafficSignal;
 
-	double angle;
 
 	/**************COOPERATION WITH PEDESTRIAN***************/
 public:

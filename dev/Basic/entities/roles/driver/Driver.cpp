@@ -261,9 +261,12 @@ void sim_mob::Driver::intersectionDriving(UpdateParams& p)
 //the movement is based on relative position
 void sim_mob::Driver::linkDriving(UpdateParams& p)
 {
+	updateLeadingGapandMode(p);
 	if(isLaneChanging)
 		updatePosLC(p);
-	excuteLaneChanging();
+	//if too close to front agent, don't do lane changing. now it is 10m
+	if(space<10)
+		excuteLaneChanging();
 
 	//if(isTrafficLightStop && vehicle->xVel_ < 50)
 	if(isTrafficLightStop && vehicle->velocity.getRelX() < 50)

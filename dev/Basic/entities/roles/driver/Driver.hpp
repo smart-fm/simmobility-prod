@@ -256,6 +256,7 @@ private:
 	void updatePosLC(UpdateParams& p);
 	void updateStartEndIndex();
 	void updateTrafficSignal();
+	void updateLeadingGapandMode(UpdateParams& p);
 
 	void trafficSignalDriving(UpdateParams& p);
 	void intersectionDriving(UpdateParams& p);
@@ -303,6 +304,7 @@ private:
 	double dv;					//the difference of subject vehicle's speed and leading vehicle's speed
 	double a_lead;				//the acceleration of leading vehicle
 	double v_lead;				//the speed of leading vehicle
+	size_t mode;// 0 for vehicle, 1 for pedestrian, 2 for traffic light, 3 for null
 
 	//for acceleration decision
 public:

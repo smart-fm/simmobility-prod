@@ -22,18 +22,9 @@ const sim_mob::Driver::CarFollowParam sim_mob::Driver::CF_parameters[2] = {
 		{-0.0418, 0.0000, 0.1510, 0.6840, 0.6800, 0.8020}
 };
 
-
-void sim_mob::Driver::makeAcceleratingDecision(UpdateParams& p)
+void sim_mob::Driver::updateLeadingGapandMode(UpdateParams& p)
 {
-	//currently convert back to m/s
-//	speed_ = perceivedXVelocity_/100;
-//	//in the case that perceivedXVelocity is not defined
-//	if(speed_<0||speed_>50)
-
-	//p.currSpeed = vehicle->xVel_/100;
 	p.currSpeed = vehicle->velocity.getRelX()/100;
-
-	size_t mode;// 0 for vehicle, 1 for pedestrian, 2 for traffic light, 3 for null
 	if(minCFDistance != 5000 && minCFDistance <= tsStopDistance && minCFDistance <= minPedestrianDis)
 	{
 		space = minCFDistance/100;
@@ -54,6 +45,17 @@ void sim_mob::Driver::makeAcceleratingDecision(UpdateParams& p)
 		space = tsStopDistance/100;//which should be default value 50m
 		mode = 3;
 	}
+
+}
+void sim_mob::Driver::makeAcceleratingDecision(UpdateParams& p)
+{
+	//currently convert back to m/s
+//	speed_ = perceivedXVelocity_/100;
+//	//in the case that perceivedXVelocity is not defined
+//	if(speed_<0||speed_>50)
+
+	//p.currSpeed = vehicle->xVel_/100;
+
 	if(space <= 0) {
 		acc_=0;
 	}

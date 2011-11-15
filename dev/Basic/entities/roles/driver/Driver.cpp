@@ -802,6 +802,9 @@ void check_and_set_min_car_dist(const Driver*& resDriver, double& resMinDist, do
 } //End anon namespace
 
 
+//TODO: I have the feeling that this process of detecting nearby drivers in front of/behind you and saving them to
+//      the various CFD/CBD/LFD/LBD variables can be generalized somewhat. I shortened it a little and added a
+//      helper function; perhaps more cleanup can be done later? ~Seth
 void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* other, const Driver* other_driver)
 {
 	//Only update if passed a valid pointer which is not a pointer back to you, and
@@ -831,134 +834,86 @@ void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* oth
 				check_and_set_min_car_dist((fwd?RFD:RBD), (fwd?minRFDistance:minRBDistance), distance, vehicle, other_driver);
 			}
 		}
-	} else if(otherRoadSegment->getLink() == pathMover.getCurrLink()) {
-		//We are in the same link. Return unless the vehicle is in the _next_ road segment
-		if (pathMover.isOnLastSegment() || pathMover.getCurrSegment()+1 != otherRoadSegment) {
-			return;
-		}
+	} else if(otherRoadSegment->getLink() == pathMover.getCurrLink()) { //We are in the same link.
+		if (!pathMover.isOnLastSegment() && pathMover.getCurrSegment()+1 == otherRoadSegment) { //Vehicle is on the next segment.
+			//Retrieve the next node we are moving to, cast it to a UniNode.
+			const Node* nextNode = isLinkForward ? pathMover.getCurrSegment()->getEnd() : pathMover.getCurrSegment()->getStart();
+			const UniNode* uNode = dynamic_cast<const UniNode*>(nextNode);
 
-		//Retrieve the next node we are moving to, cast it to a UniNode.
-		const Node* nextNode = isLinkForward ? pathMover.getCurrSegment()->getEnd() : pathMover.getCurrSegment()->getStart();
-		const UniNode* uNode = dynamic_cast<const UniNode*>(nextNode);
-
-		//Initialize some lane pointers
-		const Lane* nextLane = nullptr;
-		const Lane* nextLeftLane = nullptr;
-		const Lane* nextRightLane = nullptr;
-		if(uNode){
-			nextLane = uNode->getOutgoingLane(*params.currLane);
-		}
-
-		//make sure next lane is in the next road segment, although it should be true
-		if(nextLane && nextLane->getRoadSegment() == otherRoadSegment)
-		{
-			//the next lane isn't the left most lane
-			size_t nextLaneIndex = getLaneIndex(nextLane);
-			if(nextLaneIndex>0)
-				nextLeftLane = otherRoadSegment->getLanes().at(nextLaneIndex-1);
-			if(nextLaneIndex < otherRoadSegment->getLanes().size()-1)
-				nextRightLane = otherRoadSegment->getLanes().at(nextLaneIndex+1);
-		}
-
-		int distance = other_offset + params.currLaneLength - params.currLaneOffset -
-				vehicle->length/2 - other_driver->getVehicle()->length/2;
-		//the vehicle is on the current lane
-		if(other_lane == nextLane)
-		{
-			//the vehicle is in front
-			if(distance <= minCFDistance)
-			{
-				CFD = other_driver;
-				minCFDistance = distance;
+			//Initialize some lane pointers
+			const Lane* nextLane = nullptr;
+			const Lane* nextLeftLane = nullptr;
+			const Lane* nextRightLane = nullptr;
+			if(uNode){
+				nextLane = uNode->getOutgoingLane(*params.currLane);
 			}
-		}
-		//the vehicle is on the left lane
-		else if(other_lane == nextLeftLane)
-		{
-			//the vehicle is in front
-			if(distance <= minLFDistance)
-			{
-				LFD = other_driver;
-				minLFDistance = distance;
-			}
-		}
-		else if(other_lane == nextRightLane)
-		{
-			//the vehicle is in front
-			if(distance <= minRFDistance)
-			{
-				RFD = other_driver;
-				minRFDistance = distance;
-			}
-		}
-	}
 
-	///////////
-	// TODO: The previous "else" excludes this; make this an "else" of the previous level.
-	///////////
-
-	//the vehicle is in the previous road segment
-	else if(otherRoadSegment == allRoadSegments.at(RSIndex - 1) &&
-			otherRoadSegment->getLink() == currLink)
-	{
-		const Node* preNode;
-		if(isLinkForward)
-			preNode = otherRoadSegment->getEnd();
-		else
-			preNode = otherRoadSegment->getStart();
-		const UniNode* uNode=dynamic_cast<const UniNode*>(preNode);
-		const Lane* preLane = nullptr;
-		const Lane* preLeftLane = nullptr;
-		const Lane* preRightLane = nullptr;
-		if(uNode){
-			for(size_t i=0;i<otherRoadSegment->getLanes().size();i++)
-			{
-				const Lane* tempLane = otherRoadSegment->getLanes().at(i);
-				if(uNode->getOutgoingLane(*tempLane) == params.currLane)
-				{
-					preLane = tempLane;
-					break;
+			//Make sure next lane exists and is in the next road segment, although it should be true
+			if(nextLane && nextLane->getRoadSegment() == otherRoadSegment) {
+				//Assign next left/right lane based on lane ID.
+				size_t nextLaneIndex = getLaneIndex(nextLane);
+				if(nextLaneIndex>0) {
+					nextLeftLane = otherRoadSegment->getLanes().at(nextLaneIndex-1);
+				}
+				if(nextLaneIndex < otherRoadSegment->getLanes().size()-1) {
+					nextRightLane = otherRoadSegment->getLanes().at(nextLaneIndex+1);
 				}
 			}
-		}
-		//make sure next lane is in the next road segment, although it should be true
-		if(preLane)
-		{
-			size_t preLaneIndex = getLaneIndex(preLane);
-			//the next lane isn't the left most lane
-			if(preLaneIndex>0)
-				preLeftLane = otherRoadSegment->getLanes().at(preLaneIndex-1);
-			if(preLaneIndex < otherRoadSegment->getLanes().size()-1)
-				preRightLane = otherRoadSegment->getLanes().at(preLaneIndex+1);
-		}
 
-		int distance = other_driver->currLaneLength_.get() - other_offset + params.currLaneOffset -
-				vehicle->length/2 - other_driver->getVehicle()->length/2;
-		//the vehicle is on the current lane
-		if(other_lane == preLane)
-		{
-			if(distance <= minCBDistance)
-			{
-				CBD = other_driver;
-				minCBDistance = distance;
+			//Modified distance.
+			int distance = other_offset + params.currLaneLength - params.currLaneOffset;// - vehicle->length/2 - other_driver->getVehicle()->length/2;
+
+			//Set different variables depending on where the car is.
+			if(other_lane == nextLane) { //The vehicle is on the current lane
+				check_and_set_min_car_dist(CFD, minCFDistance, distance, vehicle, other_driver);
+			} else if(other_lane == nextLeftLane) { //the vehicle is on the left lane
+				check_and_set_min_car_dist(LFD, minLFDistance, distance, vehicle, other_driver);
+			} else if(other_lane == nextRightLane) { //the vehicle is in front
+				check_and_set_min_car_dist(RFD, minRFDistance, distance, vehicle, other_driver);
 			}
-		}
-		//the vehicle is on the left lane
-		else if(other_lane == preLeftLane)
-		{
-			if(distance <= minLBDistance)
-			{
-				LBD = other_driver;
-				minLBDistance = distance;
+		} else if(!pathMover.isOnFirstSegment() && pathMover.getCurrSegment()-1 == otherRoadSegment) { //Vehicle is on the previous segment.
+			//Retrieve the previous node as a UniNode.
+			const Node* preNode = isLinkForward ? otherRoadSegment->getEnd() : otherRoadSegment->getStart();
+			const UniNode* uNode=dynamic_cast<const UniNode*>(preNode);
+
+			//Set some lane pointers.
+			const Lane* preLane = nullptr;
+			const Lane* preLeftLane = nullptr;
+			const Lane* preRightLane = nullptr;
+
+			//Find the node which leads to this one from the UniNode. (Requires some searching; should probably
+			//   migrate this to the UniNode class later).
+			const vector<Lane*>& lanes = otherRoadSegment->getLanes();
+			if(uNode){
+				for (vector<Lane*>::const_iterator it=lanes.begin(); it!=lanes.end()&&!preLane; it++) {
+					if(uNode->getOutgoingLane(**it) == params.currLane) {
+						preLane = *it;
+					}
+				}
 			}
-		}
-		//the vehicle is on the right lane
-		else if(other_lane == preRightLane)
-		{
-			if(distance <= minRBDistance)
-			{
-				RBD = other_driver;
-				minRBDistance = distance;
+
+			//Make sure next lane is in the next road segment, although it should be true
+			if(preLane) {
+				//Save the new left/right lanes
+				size_t preLaneIndex = getLaneIndex(preLane);
+				if(preLaneIndex>0) {
+					preLeftLane = otherRoadSegment->getLanes().at(preLaneIndex-1);
+				}
+				if(preLaneIndex < otherRoadSegment->getLanes().size()-1) {
+					preRightLane = otherRoadSegment->getLanes().at(preLaneIndex+1);
+				}
+			}
+
+			//Modified distance.
+			int distance = other_driver->currLaneLength_.get() - other_offset + params.currLaneOffset;// - vehicle->length/2 - other_driver->getVehicle()->length/2;
+
+			//Set different variables depending on where the car is.
+			if(other_lane == preLane) { //The vehicle is on the current lane
+				check_and_set_min_car_dist(CBD, minCBDistance, distance, vehicle, other_driver);
+			} else if(other_lane == preLeftLane) { //the vehicle is on the left lane
+				check_and_set_min_car_dist(LBD, minLBDistance, distance, vehicle, other_driver);
+			} else if(other_lane == preRightLane) { //the vehicle is on the right lane
+				check_and_set_min_car_dist(RBD, minRBDistance, distance, vehicle, other_driver);
 			}
 		}
 	}

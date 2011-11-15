@@ -63,6 +63,10 @@ public:
 		throwIfPathUnset();
 		return currSegmentIt+1==roadSegmentList.end();
 	}
+	bool isOnFirstSegment() const {
+		throwIfPathUnset();
+		return currSegmentIt==roadSegmentList.begin();
+	}
 
 	//Retrieve
 	const RoadSegment* getCurrSegment() {

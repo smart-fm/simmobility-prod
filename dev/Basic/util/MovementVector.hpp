@@ -60,6 +60,11 @@ public:
 	void moveToNewVect(const DynamicVector& newVect) {
 		amount = getOverflow();
 		vect = newVect;
+
+		double oldLatVal = lat.getMagnitude();
+		lat = vect;
+		lat.flipLeft();
+		lat.scaleVectTo(oldLatVal);
 	}
 
 private:

@@ -265,7 +265,7 @@ void sim_mob::Driver::linkDriving(UpdateParams& p)
 	if(isLaneChanging)
 		updatePosLC(p);
 	//if too close to front agent, don't do lane changing. now it is 10m
-	if(space<10)
+	if(space>10)
 		excuteLaneChanging();
 
 	//if(isTrafficLightStop && vehicle->xVel_ < 50)

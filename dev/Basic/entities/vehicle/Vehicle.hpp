@@ -60,6 +60,12 @@ public:
 	void setAcceleration(double value) {
 		accel.scaleVectTo(value);
 	}
+	void moveFwd(double amt) {
+		position.moveFwd(amt);
+	}
+	void moveLat(double amt) {
+		position.moveLat(amt);
+	}
 
 	//Complex
 	void newPolyline(sim_mob::Point2D firstPoint, sim_mob::Point2D secondPoint) {

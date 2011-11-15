@@ -237,7 +237,7 @@ private:
 
 	const Link* desLink;
     double currLinkOffset;
-	double traveledDis; //the distance traveled within current time step
+	//double traveledDis; //the distance traveled within current time step
 
 	size_t currLaneIndex;
 	size_t targetLaneIndex;

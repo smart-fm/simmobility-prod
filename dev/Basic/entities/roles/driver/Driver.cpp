@@ -310,15 +310,18 @@ void sim_mob::Driver::linkDriving(UpdateParams& p)
 	//Check if we should change lanes.
 	excuteLaneChanging(p);
 
+	//Retrieve a new acceleration value.
 	double newFwdAcc = 0;
 	if(isTrafficLightStop && vehicle->getVelocity() < 50) {
 		//Slow down.
+		//TODO: Shouldn't acceleration be set to negative in this case?
 		vehicle->setVelocity(0);
 		vehicle->setAcceleration(0);
 	} else {
 		newFwdAcc = makeAcceleratingDecision(p);
 	}
 
+	//Update our chosen acceleration; update our position on the link.
 	updateAcceleration(newFwdAcc);
 	updatePositionOnLink(p);
 }
@@ -792,44 +795,27 @@ void sim_mob::Driver::updateAcceleration(double newFwdAcc)
 
 void sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
 {
-	//traveledDis = vehicle->xVel_*timeStep+0.5*vehicle->xAcc_*timeStep*timeStep;
-	//traveledDis = vehicle->velocity.getRelX()*timeStep+0.5*vehicle->xAcc_*timeStep*timeStep;
-	//traveledDis = vehicle->velocity.getRelX()*timeStep+0.5*vehicle->accel.getRelX()*timeStep*timeStep;
-	//traveledDis = vehicle->velocity.getRelX()*timeStep+0.5*vehicle->accel.getMagnitude()*timeStep*timeStep;
-	traveledDis = vehicle->velocity.getMagnitude()*timeStep+0.5*vehicle->accel.getMagnitude()*timeStep*timeStep;
+	//Determine how far forward we've moved.
+	//TODO: I've disabled the acceleration component because it doesn't really make sense.
+	//      Please re-enable if you think this is expected behavior. ~Seth
+	//fwdDistance = vehicle->getVelocity()*timeStep + 0.5*vehicle->getAcceleration()*timeStep*timeStep;
+	double fwdDistance = vehicle->getVelocity()*timeStep;
+	double latDistance = vehicle->getLatVelocity()*timeStep;
 
-	if(traveledDis<0) {
-		traveledDis = 0;
+	//Increase the vehicle's velocity based on its acceleration.
+	vehicle->setVelocity(vehicle->getVelocity() + vehicle->getAcceleration()*timeStep);
+	if (vehicle->getVelocity() < 0) {
+		//Set to a small forward velocity, no acceleration.
+		vehicle->setVelocity(0.1); //TODO: Why not 0.0?
+		vehicle->setAcceleration(0);
 	}
 
-	//vehicle->xVel_ += vehicle->xAcc_*timeStep;
-	//vehicle->velocity.setRelX(vehicle->velocity.getRelX() + vehicle->xAcc_*timeStep);
-	//vehicle->velocity.setRelX(vehicle->velocity.getRelX() + vehicle->accel.getRelX()*timeStep);
-	//vehicle->velocity.setRelX(vehicle->velocity.getRelX() + vehicle->accel.getMagnitude()*timeStep);
-	vehicle->velocity.scaleVectTo(vehicle->velocity.getMagnitude() + vehicle->accel.getMagnitude()*timeStep);
+	//Move the vehicle forward and laterally by the calculated distances.
+	vehicle->moveFwd(fwdDistance);
+	vehicle->moveLat(latDistance);
 
-	//if(vehicle->xVel_<0)
-	//if (vehicle->velocity.getRelX()<0)
-	if (vehicle->velocity.getMagnitude()<0)
-	{
-		//vehicle->xVel_ = 0.1;
-		//vehicle->velocity.setRelX(0.1);
-		vehicle->velocity.scaleVectTo(0.1);
-
-		//vehicle->xAcc_ = 0;
-		//vehicle->accel.setRelX(0);
-		vehicle->accel.scaleVectTo(0);
-	}
-
-	//vehicle->xPos_ += traveledDis;
-	vehicle->pos.moveFwd(traveledDis);
-
-	//vehicle->yPos_ += vehicle->yVel_*timeStep;
-	//vehicle->yPos_ += vehicle->velocity.getRelY()*timeStep;
-	//vehicle->yPos_ += vehicle->velocity_lat.getMagnitude()*timeStep;
-	vehicle->pos.moveLat(vehicle->velocity_lat.getMagnitude()*timeStep);
-
-	p.currLaneOffset += traveledDis;
+	//Update our offset in the current lane.
+	p.currLaneOffset += fwdDistance;
 }
 
 

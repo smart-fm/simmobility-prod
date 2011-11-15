@@ -301,7 +301,7 @@ private:
 	void setOrigin(UpdateParams& p);
 
 	//A bit verbose, but only used in 1 or 2 places.
-	void newPathMover(const Lane*& oldLane, const Lane* newLane);
+	void newPathMover(const Lane* newLane);
 	void syncCurrLaneCachedInfo(UpdateParams& p);
 	void changeLaneWithinSameRS(UpdateParams& p, const Lane* newLane);   //mode 0
 	void changeToNewRoadSegmentSameLink(UpdateParams& p, const Lane* newLane); //mode 1
@@ -444,7 +444,9 @@ public:
 	//bool isInIntersection() const {return inIntersection;}
 
 private:
+	//The current traffic signal in our Segment. May be null.
 	const Signal* trafficSignal;
+
 	double angle;
 
 	/**************COOPERATION WITH PEDESTRIAN***************/

@@ -82,6 +82,13 @@ public:
 		throwIfPathUnset();
 		return *currSegmentIt;
 	}
+	const RoadSegment* getNextSegment() {
+		throwIfPathUnset();
+		if (currSegmentIt+1 == roadSegmentList.end()) {
+			return nullptr;
+		}
+		return *(currSegmentIt+1);
+	}
 	const Link* getCurrLink() {
 		throwIfPathUnset();
 		return getCurrSegment()->getLink();

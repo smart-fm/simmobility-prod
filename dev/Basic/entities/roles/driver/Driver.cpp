@@ -343,6 +343,8 @@ bool sim_mob::Driver::isReachPolyLineSegEnd() const
 
 bool sim_mob::Driver::isReachLastRSinCurrLink() const
 {
+	//TODO: This might not be technically correct if pathMover ever contains
+	//      RoadSegments on multiple Links. But we can clear that up easily after a test run.
 	return pathMover.isOnLastSegment();
 }
 
@@ -552,13 +554,11 @@ void sim_mob::Driver::changeToNewRoadSegmentSameLink(UpdateParams& p, const Lane
 
 
 
-//Generate a new path, update the old Lane.
-void sim_mob::Driver::newPathMover(const Lane*& oldLane, const Lane* newLane)
+//Find a completely new path and update the pathMover.
+void sim_mob::Driver::newPathMover(const Lane* newLane)
 {
 	//Save road segments; update
-	const RoadSegment* prevSegment = oldLane->getRoadSegment();
 	const RoadSegment* newSegment = newLane->getRoadSegment();
-	oldLane = newLane;
 
 	//Now find the path leading out of the node shared by these two road segments which starts on
 	//   newSegment.
@@ -581,27 +581,22 @@ void sim_mob::Driver::newPathMover(const Lane*& oldLane, const Lane* newLane)
 void sim_mob::Driver::changeToNewLinkAfterIntersection(UpdateParams& p, const Lane* newLane)
 {
 	//Update Lanes, polylines, RoadSegments, etc.
-	newPathMover(p.currLane, newLane);
+	p.currLane = newLane;
+	newPathMover(newLane);
 	syncCurrLaneCachedInfo(p);
-
 	p.currLaneOffset = 0;
-	polylineSegIndex = 0;
-
-	currPolylineSegStart = currLanePolyLine->at(polylineSegIndex);
-	currPolylineSegEnd = currLanePolyLine->at(polylineSegIndex+1);
-	sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
-
-	currLink = currRoadSegment->getLink();
 	targetLaneIndex = currLaneIndex;
-	RSIndex ++;
-	if(isReachLastRSinCurrLink())
-	{
-		updateTrafficSignal();
-		if(currRoadSegment!=allRoadSegments.at(allRoadSegments.size()-1))
-			chooseNextLaneForNextLink(p);
-	}
 
-	abs_relat();
+	//TODO: This is temporary; there should be a better way of handling the current polyline.
+	sync_relabsobjs();
+
+	//Are we now on the last link in this segment?
+	if(isReachLastRSinCurrLink()) {
+		updateTrafficSignal();
+		if(!pathMover.isOnLastSegment()) {
+			chooseNextLaneForNextLink(p);
+		}
+	}
 }
 
 
@@ -634,41 +629,42 @@ void sim_mob::Driver::updatePolyLineSeg()
 //currently it just chooses the first lane from the targetLane
 void sim_mob::Driver::chooseNextLaneForNextLink(UpdateParams& p)
 {
-	std::vector<const Lane*> targetLanes;
-	const Node* currNode = currRoadSegment->getEnd();
-	if(currRoadSegment->getEnd()==allRoadSegments.at(RSIndex+1)->getLink()->getStart())
-		nextIsForward = true;
-	else
-		nextIsForward = false;
+	//Retrieve the node we're on, and determine if this is in the forward direction.
+	const Node* currNode = pathMover.getCurrSegment()->getEnd();
+	const RoadSegment* nextSegment = pathMover.getNextSegment();
+	nextIsForward = nextSegment && currNode == nextSegment->getStart();
 
+	//Build up a list of target lanes.
+	nextLaneInNextLink = nullptr;
+	vector<const Lane*> targetLanes;
 	const MultiNode* mNode=dynamic_cast<const MultiNode*>(currNode);
-	if(mNode){
-		set<LaneConnector*>::const_iterator i;
-		set<LaneConnector*> lcs=mNode->getOutgoingLanes(*currRoadSegment);
-		for(i=lcs.begin();i!=lcs.end();i++){
-			if((*i)->getLaneTo()->getRoadSegment()==allRoadSegments.at(RSIndex+1)
-					&& (*i)->getLaneFrom()==p.currLane){
-				targetLanes.push_back((*i)->getLaneTo());
-				size_t laneIndex = getLaneIndex((*i)->getLaneTo());
+	if(mNode && nextSegment){
+		const set<LaneConnector*>& lcs = mNode->getOutgoingLanes(*pathMover.getCurrSegment());
+		for(set<LaneConnector*>::const_iterator it=lcs.begin(); it!=lcs.end(); it++){
+			if((*it)->getLaneTo()->getRoadSegment() == nextSegment && (*it)->getLaneFrom()==p.currLane) {
+				//It's a valid lane.
+				targetLanes.push_back((*it)->getLaneTo());
+
 				//find target lane with same index, use this lane
-				if(laneIndex == currLaneIndex)
-				{
-					nextLaneInNextLink = (*i)->getLaneTo();
+				size_t laneIndex = getLaneIndex((*it)->getLaneTo());
+				if(laneIndex == currLaneIndex) {
+					nextLaneInNextLink = (*it)->getLaneTo();
 					targetLaneIndex = laneIndex;
-					return;
+					break;
 				}
 			}
 		}
-		//no lane with same index, use the first lane in the vector
-		if(targetLanes.size()>0)
-		{
-			nextLaneInNextLink = targetLanes.at(0);
-			targetLaneIndex = getLaneIndex(nextLaneInNextLink);
-		}
-		else
-		{
-			nextLaneInNextLink = allRoadSegments.at(RSIndex+1)->getLanes().at(currLaneIndex);
-			targetLaneIndex = currLaneIndex;
+
+		//Still haven't found a lane?
+		if(!nextLaneInNextLink){
+			//no lane with same index, use the first lane in the vector if possible.
+			if (targetLanes.size()>0) {
+				nextLaneInNextLink = targetLanes.at(0);
+				targetLaneIndex = getLaneIndex(nextLaneInNextLink);
+			} else if (nextSegment) { //Fallback
+				nextLaneInNextLink = nextSegment->getLanes().at(currLaneIndex);
+				targetLaneIndex = currLaneIndex;
+			}
 		}
 	}
 }
@@ -1133,25 +1129,12 @@ bool sim_mob::Driver::isCloseToLinkEnd(UpdateParams& p)
 	return isReachLastRSinCurrLink()&&(p.currLaneLength - p.currLaneOffset<2000);
 }
 
+//Retrieve the current traffic signal based on our RoadSegment's end node.
 void sim_mob::Driver::updateTrafficSignal()
 {
 	const Node* node = currRoadSegment->getEnd();
-	if(node)
-		trafficSignal = StreetDirectory::instance().signalAt(*node);
-	else
-		trafficSignal = nullptr;
+	trafficSignal = node ? StreetDirectory::instance().signalAt(*node) : nullptr;
 }
-
-/*void sim_mob::Driver::pedestrianAheadDriving(UpdateParams& p)
-{
-	if(p.perceivedFwdVelocity>0) {
-		vehicle->accel.scaleVectTo(-0.5*p.perceivedFwdVelocity*p.perceivedFwdVelocity/(0.5*minPedestrianDis));
-	} else {
-		vehicle->accel.scaleVectTo(0);
-		vehicle->velocity.scaleVectTo(0);
-	}
-	updatePositionOnLink();
-}*/
 
 void sim_mob::Driver::trafficSignalDriving(UpdateParams& p)
 {

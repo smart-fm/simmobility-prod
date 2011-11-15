@@ -336,7 +336,9 @@ void sim_mob::Driver::setToParent()
 //      but for now I'm requiring this function to be called manually. ~Seth
 void sim_mob::Driver::sync_relabsobjs()
 {
-	vehicle->newPolyline(polypathMover.getCurrPolypoint(), polypathMover.getNextPolypoint());
+	sim_mob::Point2D pt1 = polypathMover.getCurrPolypoint();
+	sim_mob::Point2D pt2 = polypathMover.getNextPolypoint();
+	vehicle->newPolyline(pt1, pt2);
 }
 
 
@@ -728,7 +730,6 @@ void sim_mob::Driver::setOrigin(UpdateParams& p)
 	p.currLane = pathMover.getCurrSegment()->getLanes().at(currLaneIndex);
 	targetLaneIndex = currLaneIndex;
 
-	//if (p.currLane) //Avoid memory corruption if null. NOTE: Probably not necessary; this function isn't called if there's no path
 	polypathMover.setPath(p.currLane->getPolyline());
 	sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
 

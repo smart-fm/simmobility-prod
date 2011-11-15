@@ -120,8 +120,8 @@ public:
 
 		//Sync position
 		position.moveToNewVect(DynamicVector(
-			firstPoint.getX(), secondPoint.getY(),
-			firstPoint.getX(), secondPoint.getY()
+			firstPoint.getX(), firstPoint.getY(),
+			secondPoint.getX(), secondPoint.getY()
 		));
 	}
 

@@ -98,6 +98,8 @@ private:
 		double currLaneOffset;
 		double currLaneLength;
 		bool isInIntersection;
+		bool isTrafficLightStop;
+		double trafficSignalStopDistance;
 
 		double perceivedFwdVelocity;
 		double perceivedLatVelocity;
@@ -267,7 +269,7 @@ private:
 
 	bool isReachGoal;
 	bool lcEnterNewLane;
-	bool isTrafficLightStop;
+	//bool isTrafficLightStop;
 
 	const int distanceInFront;
 	const int distanceBehind;
@@ -320,7 +322,6 @@ private:
 	void updateAcceleration(double newFwdAcc);
 	void updateVelocity();
 	void updatePositionOnLink(UpdateParams& p);
-	void updatePolyLineSeg();
 	void setBackToOrigin();
 
 	void updateNearbyAgents(UpdateParams& params);
@@ -377,7 +378,7 @@ private:
 private:
 	double targetSpeed;			//the speed which the vehicle is going to achieve
 	double minPedestrianDis;
-	double tsStopDistance;     // distance to stop line
+	//double tsStopDistance;     // distance to stop line
 	double space;
 	double headway;				//distance/speed
 	double space_star;			//the distance which leading vehicle will move in next time step

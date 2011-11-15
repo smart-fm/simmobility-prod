@@ -91,9 +91,7 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), vehicle(nullptr), perceiv
 	firstFrameTick = true;
 	isLaneChanging = false;
 	isPedestrianAhead = false;
-	isTrafficLightStop = false;
 	angle = 0;
-	tsStopDistance = 5000;
 	nextLaneInNextLink = nullptr;
 }
 
@@ -122,10 +120,13 @@ void sim_mob::Driver::new_update_params(UpdateParams& res)
 	res.leftLane = nullptr;
 	res.rightLane = nullptr;
 
-	//Reset; these will be set before they are used.
+	//Reset; these will be set before they are used; the values here represent either defaul
+	//       values or are unimportant.
 	res.currSpeed = 0;
 	res.perceivedFwdVelocity = 0;
 	res.perceivedLatVelocity = 0;
+	res. isTrafficLightStop = false;
+	res.trafficSignalStopDistance = 5000;
 
 	//Lateral velocity of lane changing.
 	res.laneChangingVelocity = 100;
@@ -196,25 +197,22 @@ void sim_mob::Driver::update_general(UpdateParams& params, frame_t frameNumber)
 		} else {
 			//the relative coordinate system is based on each polyline segment
 			//so when the polyline segment has been updated, the coordinate system should also be updated
-			if(isReachPolyLineSegEnd())
-			{
-				//vehicle->xPos_ -= polylineSegLength;
-
-
-				if(!polypathMover.isOnLastLine())
-					updatePolyLineSeg();
-				else
-				{
+			//NOTE: The relative coordinate system is a bit more robust now, but still needs a small amount of updating. ~Seth
+			if(isReachPolyLineSegEnd()) {
+				if(!polypathMover.isOnLastLine()) {
+					//Go to the next polyline.
+					polypathMover.moveToNextSegment();
+					sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
+				} else {
+					//Go to the next segment.
 					updateRSInCurrLink(params);
-					//if can't find available lane in new road segment
-					//this indicates an error
-					//if(!currLane) //NOTE: We don't really want to "return"; we want to skip to the end of the function.
-					//	return;
 				}
 			}
 
-			if(isCloseToLinkEnd())
+			//Manage traffic signal behavior if we are close to the end of the link.
+			if(isCloseToLinkEnd(params)) {
 				trafficSignalDriving(params);
+			}
 			linkDriving(params);
 		}
 	}
@@ -310,7 +308,7 @@ void sim_mob::Driver::linkDriving(UpdateParams& p)
 
 	//Retrieve a new acceleration value.
 	double newFwdAcc = 0;
-	if(isTrafficLightStop && vehicle->getVelocity() < 50) {
+	if(p.isTrafficLightStop && vehicle->getVelocity() < 50) {
 		//Slow down.
 		//TODO: Shouldn't acceleration be set to negative in this case?
 		vehicle->setVelocity(0);
@@ -449,31 +447,26 @@ bool sim_mob::Driver::isPedetrianOnTargetCrossing()
 
 void sim_mob::Driver::updateRSInCurrLink(UpdateParams& p)
 {
-	const Node * currNode = currRoadSegment->getEnd();
+	const Node* currNode = pathMover.getCurrSegment()->getEnd();
+	const RoadSegment* nextRoadSegment = pathMover.getNextSegment();
+
+	//Dispatch differently depending on the type of node
 	const MultiNode* mNode=dynamic_cast<const MultiNode*>(currNode);
-	if(mNode){
-		set<LaneConnector*>::const_iterator i;
-		set<LaneConnector*> lcs=mNode->getOutgoingLanes(*currRoadSegment);
-		for(i=lcs.begin();i!=lcs.end();i++){
-			if((*i)->getLaneTo()->getRoadSegment()==allRoadSegments.at(RSIndex+1)
-					&& (*i)->getLaneFrom()==p.currLane){
-				changeToNewRoadSegmentSameLink(p, (*i)->getLaneTo());
+	const UniNode* uNode=dynamic_cast<const UniNode*>(currNode);
+	if(uNode){
+		const Lane* newLane = uNode->getOutgoingLane(*p.currLane);
+		if(newLane && newLane->getRoadSegment()==nextRoadSegment) {
+			changeToNewRoadSegmentSameLink(p, newLane);
+		}
+	} else if(mNode) {
+		const set<LaneConnector*>& lcs = mNode->getOutgoingLanes(*pathMover.getCurrSegment());
+		for(set<LaneConnector*>::const_iterator it=lcs.begin();it!=lcs.end();it++){
+			if((*it)->getLaneTo()->getRoadSegment()==nextRoadSegment	&& (*it)->getLaneFrom()==p.currLane){
+				changeToNewRoadSegmentSameLink(p, (*it)->getLaneTo());
 				return;
 			}
 		}
 		p.currLane = nullptr;
-		return;
-	}
-
-	//when end node of current road segment is a uninode
-	const UniNode* uNode=dynamic_cast<const UniNode*>(currNode);
-	if(uNode){
-		//if (p.currLane) { //Avoid possible null dereference
-			const Lane* newLane = uNode->getOutgoingLane(*p.currLane);
-			if(newLane && newLane->getRoadSegment()==allRoadSegments.at(RSIndex+1)) {
-				changeToNewRoadSegmentSameLink(p, newLane);
-			}
-		//}
 	}
 }
 
@@ -623,16 +616,6 @@ void sim_mob::Driver::syncCurrLaneCachedInfo(UpdateParams& p)
 	//Finally, update target/max speed to match the new Lane's rules.
 	maxLaneSpeed = pathMover.getCurrSegment()->maxSpeed/3.6; //slow down
 	targetSpeed = maxLaneSpeed;
-}
-
-//update polyline segment in the current RS
-void sim_mob::Driver::updatePolyLineSeg()
-{
-	polylineSegIndex++;
-	currPolylineSegStart = currLanePolyLine->at(polylineSegIndex);
-	currPolylineSegEnd = currLanePolyLine->at(polylineSegIndex+1);
-	sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
-	abs_relat();
 }
 
 
@@ -1110,33 +1093,28 @@ void sim_mob::Driver::updateTrafficSignal()
 
 void sim_mob::Driver::trafficSignalDriving(UpdateParams& p)
 {
-	tsStopDistance = 5000;
-	if(!trafficSignal)
-	{
-		isTrafficLightStop = false;
-	}
-	else
-	{
-		int color;
-		if(nextLaneInNextLink)
+	if(!trafficSignal) {
+		p.isTrafficLightStop = false;
+	} else {
+		Signal::TrafficColor color;
+		if(nextLaneInNextLink) {
 			color = trafficSignal->getDriverLight(*p.currLane,*nextLaneInNextLink);
-		else
+		} else {
 			color = trafficSignal->getDriverLight(*p.currLane).forward;
+		}
 
-		switch(color)
-		{
-		//red yellow
-		case Signal::Red :case Signal::Amber:
-			isTrafficLightStop = true;
-			tsStopDistance = p.currLaneLength - p.currLaneOffset - vehicle->length/2 -300;
-			break;
-			//green
-		case Signal::Green:
-			if(!isPedetrianOnTargetCrossing())
-				isTrafficLightStop = false;
-			else
-				isTrafficLightStop = true;
-			break;
+		switch(color) {
+			case Signal::Red :case Signal::Amber:
+				p.isTrafficLightStop = true;
+				p.trafficSignalStopDistance = p.currLaneLength - p.currLaneOffset - vehicle->length/2 -300;
+				break;
+
+			case Signal::Green:
+				if(!isPedetrianOnTargetCrossing())
+					p.isTrafficLightStop = false;
+				else
+					p.isTrafficLightStop = true;
+				break;
 		}
 	}
 }

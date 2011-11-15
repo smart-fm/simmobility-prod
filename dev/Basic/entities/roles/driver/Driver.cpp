@@ -184,18 +184,16 @@ void sim_mob::Driver::update_general(UpdateParams& params, frame_t frameNumber)
 	if(params.isInIntersection) {
 		intersectionDriving(params);
 	} else {
-		//the first time vehicle pass the end of current link and enter intersection
-		//if the vehicle reaches the end of the last road segment on current link
-		//I assume this vehicle enters the intersection
-		if(isReachLinkEnd())
-		{
+		//Have we _just_ entered an Intersection?
+		if(isReachLinkEnd()) {
+			//the first time vehicle pass the end of current link and enter intersection
+			//if the vehicle reaches the end of the last road segment on current link
+			//I assume this vehicle enters the intersection
 			params.isInIntersection = true;
 			directionIntersection();
 			intersectionVelocityUpdate();
 			intersectionDriving(params);
-		}
-		else
-		{
+		} else {
 			//the relative coordinate system is based on each polyline segment
 			//so when the polyline segment has been updated, the coordinate system should also be updated
 			if(isReachPolyLineSegEnd())
@@ -681,21 +679,20 @@ void sim_mob::Driver::chooseNextLaneForNextLink(UpdateParams& p)
 	}
 }
 
+//TODO: This is definitely wrong (I want to fix link driving before I fix intersection driving)
 void sim_mob::Driver::directionIntersection()
 {
 	entryPoint = nextLaneInNextLink->getPolyline().at(0);
 
 	//TODO: Intersection driving won't work right for now.
-	//double xDir = entryPoint.getX() - vehicle->xPos;
-	//double yDir = entryPoint.getY() - vehicle->yPos;
-	double xDir = entryPoint.getX() - vehicle->pos.getX();
-	double yDir = entryPoint.getY() - vehicle->pos.getY();
+	double xDir = entryPoint.getX() - vehicle->getX();
+	double yDir = entryPoint.getY() - vehicle->getY();
 
 	disToEntryPoint = sqrt(xDir*xDir+yDir*yDir);
 	xDirection_entryPoint = xDir/disToEntryPoint;
 	yDirection_entryPoint = yDir/disToEntryPoint;
-	xTurningStart = vehicle->pos.getX();
-	yTurningStart = vehicle->pos.getY();
+	xTurningStart = vehicle->getX();
+	yTurningStart = vehicle->getY();
 }
 
 
@@ -1038,7 +1035,7 @@ void sim_mob::Driver::updateAngle()
 	else if(xVel<0  && yVel<0 ) { angle = 180 - atan(yVel/xVel)/3.1415926*180; }
 }
 
-void sim_mob :: Driver :: intersectionVelocityUpdate()
+void sim_mob::Driver::intersectionVelocityUpdate()
 {
 	double inter_speed = 1000;//10m/s
 	vehicle->setAcceleration(0);
@@ -1049,7 +1046,7 @@ void sim_mob :: Driver :: intersectionVelocityUpdate()
 	vehicle->setLatVelocity(inter_speed * yDirection_entryPoint);
 }
 
-void sim_mob :: Driver :: enterNextLink(UpdateParams& p)
+void sim_mob::Driver::enterNextLink(UpdateParams& p)
 {
 	//Set our current lane parameters equal to those we calculated upon entering the
 	// intersection

@@ -193,8 +193,8 @@ public:
 
 	//for coordinate transform
 	void setToParent();			///<set next data to parent buffer data
-	double feet2Unit(double feet);
-	double unit2Feet(double unit);
+	static double feet2Unit(double feet);
+	static double unit2Feet(double unit);
 
 	double getMaxAcceleration() const {return maxAcceleration;}
 	double getNormalDeceleration() const {return normalDeceleration;}
@@ -417,7 +417,7 @@ private:
 										//    and the space between the vehicle and the bad area is smaller than
 										//    this distance, the vehicle won't change lane(because later it should change again)
 public:
-	unsigned int gapAcceptance(int type); 	///<check if the gap of the left lane and the right lane is available
+	unsigned int gapAcceptance(UpdateParams& p, int type); 	///<check if the gap of the left lane and the right lane is available
 	double lcCriticalGap(UpdateParams& p,
 			int type,		// 0=leading 1=lag + 2=mandatory (mask) //TODO: ARGHHHHHHH magic numbers....
 			double dis,					// from critical pos
@@ -427,13 +427,13 @@ public:
 	int checkIfBadAreaAhead();				///<find the closest bad area ahead which the vehicle may knock on(see details in Driver.cpp)
 	int findClosestBadAreaAhead(int lane);	///<find the closest bad area ahead in specific lane
 	double makeLaneChangingDecision();					///<Firstly, check if MLC is needed, and then choose specific model to decide.
-	double checkIfMandatory() const;							///<check if MLC is needed, return probability to MLC
-	double calcSideLaneUtility(bool isLeft);			///<return utility of adjacent gap
+	double checkIfMandatory(double totalLinkDist);							///<check if MLC is needed, return probability to MLC
+	double calcSideLaneUtility(UpdateParams& p,bool isLeft);			///<return utility of adjacent gap
 
-	LANE_CHANGE_SIDE makeDiscretionaryLaneChangingDecision();		///<DLC model, vehicles freely decide which lane to move. Returns 1 for Right, -1 for Left, and 0 for neither.
-	LANE_CHANGE_SIDE makeMandatoryLaneChangingDecision();			///<MLC model, vehicles must change lane, Returns 1 for Right, -1 for Left.
+	LANE_CHANGE_SIDE makeDiscretionaryLaneChangingDecision(UpdateParams& p);		///<DLC model, vehicles freely decide which lane to move. Returns 1 for Right, -1 for Left, and 0 for neither.
+	LANE_CHANGE_SIDE makeMandatoryLaneChangingDecision(UpdateParams& p);			///<MLC model, vehicles must change lane, Returns 1 for Right, -1 for Left.
 
-	void excuteLaneChanging(UpdateParams& p);			///<to execute the lane changing, meanwhile, check if crash will happen and avoid it
+	void excuteLaneChanging(UpdateParams& p, double totalLinkDistance);			///<to execute the lane changing, meanwhile, check if crash will happen and avoid it
 	bool checkForCrash();				///<to check if the crash may happen
 
 	/*

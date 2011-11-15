@@ -300,7 +300,7 @@ void sim_mob::Driver::linkDriving(UpdateParams& p)
 	}
 
 	//Check if we should change lanes.
-	excuteLaneChanging(p);
+	excuteLaneChanging(p, pathMover.getCurrLink()->getLength(isLinkForward));
 
 	//Retrieve a new acceleration value.
 	double newFwdAcc = 0;
@@ -530,13 +530,10 @@ void sim_mob::Driver::changeLaneWithinSameRS(UpdateParams& p, const Lane* newLan
 	polypathMover.setPath(newLane->getPolyline());
 	syncCurrLaneCachedInfo(p);
 
-	polylineSegIndex = updateStartEndIndex(currLanePolyLine, p.currLaneOffset, polylineSegIndex);
+	//NOTE: I think this is done automatically.
+	//polylineSegIndex = updateStartEndIndex(currLanePolyLine, p.currLaneOffset, polylineSegIndex);
 
-	currPolylineSegStart = currLanePolyLine->at(polylineSegIndex);
-	currPolylineSegEnd = currLanePolyLine->at(polylineSegIndex+1);
 	sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
-
-	abs_relat();
 }
 
 
@@ -551,21 +548,16 @@ void sim_mob::Driver::changeToNewRoadSegmentSameLink(UpdateParams& p, const Lane
 	syncCurrLaneCachedInfo(p);
 
 	p.currLaneOffset = 0;
-	polylineSegIndex = 0;
-
-	currPolylineSegStart = currLanePolyLine->at(polylineSegIndex);
-	currPolylineSegEnd = currLanePolyLine->at(polylineSegIndex+1);
+	//polylineSegIndex = 0; //NOTE: This should be set already
 	sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
 
-	RSIndex ++;
-	if(isReachLastRSinCurrLink())
-	{
+	//RSIndex ++;
+	if(isReachLastRSinCurrLink()) {
 		updateTrafficSignal();
-		if(currRoadSegment!=allRoadSegments.at(allRoadSegments.size()-1))
+		if(!pathMover.isOnLastSegment()) {
 			chooseNextLaneForNextLink(p);
+		}
 	}
-
-	abs_relat();
 }
 
 

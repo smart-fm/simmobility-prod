@@ -299,8 +299,9 @@ void sim_mob::Driver::intersectionDriving(UpdateParams& p)
 //the movement is based on relative position
 void sim_mob::Driver::linkDriving(UpdateParams& p)
 {
-	if(isLaneChanging)
+	if(isLaneChanging) {
 		updatePosLC(p);
+	}
 	excuteLaneChanging();
 
 	if(isTrafficLightStop && vehicle->getVelocity() < 50)
@@ -1078,7 +1079,7 @@ void sim_mob :: Driver :: enterNextLink(UpdateParams& p)
 void sim_mob::Driver::updatePosLC(UpdateParams& p)
 {
 	//right
-	if(changeDecision == 1)
+	if(changeDecision == LCS_RIGHT)
 	{
 		//if(!lcEnterNewLane && -vehicle->yPos_>=150)//currLane->getWidth()/2.0)
 		if(!lcEnterNewLane && -vehicle->pos.getLateralMovement() >=150)//currLane->getWidth()/2.0)
@@ -1099,7 +1100,7 @@ void sim_mob::Driver::updatePosLC(UpdateParams& p)
 			vehicle->velocity_lat.scaleVectTo(0);
 		}
 	}
-	else if(changeDecision == -1)
+	else if(changeDecision == LCS_LEFT)
 	{
 		//if(!lcEnterNewLane && vehicle->yPos_>=150)//currLane->getWidth()/2.0)
 		if(!lcEnterNewLane && vehicle->pos.getLateralMovement()>=150)//currLane->getWidth()/2.0)

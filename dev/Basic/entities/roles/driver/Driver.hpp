@@ -27,6 +27,12 @@ enum LANE_CHANGE_MODE {	//as a mask
 	MLC = 2
 };
 
+enum LANE_CHANGE_SIDE {
+	LCS_LEFT = -1,
+	LCS_SAME = 0,
+	LCS_RIGHT = 1
+};
+
 //Forward declarations
 class Pedestrian;
 class Signal;
@@ -391,7 +397,7 @@ public:
 private:
 	double VelOfLaneChanging;	//perpendicular with the lane's direction
 	int changeMode;				//DLC or MLC
-	int changeDecision;		//1 for right, -1 for left, 0 for current
+	LANE_CHANGE_SIDE changeDecision;		//1 for right, -1 for left, 0 for current
 	bool isLaneChanging;			//is the vehicle is changing the lane
 	bool isback;				//in DLC: is the vehicle get back to the lane to avoid crash
 	bool isWaiting;				//in MLC: is the vehicle waiting acceptable gap to change lane
@@ -415,8 +421,10 @@ public:
 	double makeLaneChangingDecision();					///<Firstly, check if MLC is needed, and then choose specific model to decide.
 	double checkIfMandatory();							///<check if MLC is needed, return probability to MLC
 	double calcSideLaneUtility(bool isLeft);			///<return utility of adjacent gap
-	double makeDiscretionaryLaneChangingDecision();		///<DLC model, vehicles freely decide which lane to move. Returns 1 for Right, -1 for Left, and 0 for neither.
-	double makeMandatoryLaneChangingDecision();			///<MLC model, vehicles must change lane, Returns 1 for Right, -1 for Left.
+
+	LANE_CHANGE_SIDE makeDiscretionaryLaneChangingDecision();		///<DLC model, vehicles freely decide which lane to move. Returns 1 for Right, -1 for Left, and 0 for neither.
+	LANE_CHANGE_SIDE makeMandatoryLaneChangingDecision();			///<MLC model, vehicles must change lane, Returns 1 for Right, -1 for Left.
+
 	void excuteLaneChanging();			///<to execute the lane changing, meanwhile, check if crash will happen and avoid it
 	bool checkForCrash();				///<to check if the crash may happen
 

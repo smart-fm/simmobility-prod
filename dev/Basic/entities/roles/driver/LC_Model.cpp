@@ -164,18 +164,22 @@ double sim_mob::Driver::calcSideLaneUtility(bool isLeft){
 		return (isLeft)?minLFDistance : minRFDistance;
 }
 
-double sim_mob::Driver::makeDiscretionaryLaneChangingDecision()
+LANE_CHANGE_SIDE sim_mob::Driver::makeDiscretionaryLaneChangingDecision()
 {
 	// for available gaps(including current gap between leading vehicle and itself), vehicle will choose the longest
 	unsigned int freeLanes = gapAcceptance(DLC);
 	bool freeLeft = ((freeLanes&LSIDE_LEFT)!=0);
 	bool freeRight = ((freeLanes&LSIDE_RIGHT)!=0);
 
-	if(!freeLeft && !freeRight)return 0;		//neither gap is available, stay in current lane
+	if(!freeLeft && !freeRight) {
+		return LCS_SAME;		//neither gap is available, stay in current lane
+	}
 
 	double s=minCFDistance;
 	satisfiedDistance = 1000;
-	if(s>satisfiedDistance)return 0;	// space ahead is satisfying, stay in current lane
+	if(s>satisfiedDistance) {
+		return LCS_SAME;	// space ahead is satisfying, stay in current lane
+	}
 
 	//calculate the utility of both sides
 	double leftUtility = calcSideLaneUtility(true);
@@ -187,26 +191,26 @@ double sim_mob::Driver::makeDiscretionaryLaneChangingDecision()
 
 	//decide
 	if(freeRight && !freeLeft && right) {
-		return 1;
+		return LCS_RIGHT;
 	}
 	if(freeLeft && !freeRight && left) {
-		return -1;
+		return LCS_LEFT;
 	}
 	if(freeLeft && freeRight){
 		if(right && left){
-			return (leftUtility < rightUtility) ? -1 : 1;	//both side is available, choose the better one
+			return (leftUtility < rightUtility) ? LCS_LEFT : LCS_RIGHT;	//both side is available, choose the better one
 		}
 		if(right && !left) {
-			return -1;
+			return LCS_LEFT;
 		}
 		if(!right && left) {
-			return 1;
+			return LCS_RIGHT;
 		}
 		if(!right && !left) {
-			return 0;
+			return LCS_SAME;
 		}
 	}
-	return 0;
+	return LCS_SAME;
 }
 
 double sim_mob::Driver::checkIfMandatory()
@@ -223,7 +227,7 @@ double sim_mob::Driver::checkIfMandatory()
 	return exp(-dis * dis / (delta * delta));
 }
 
-double sim_mob::Driver::makeMandatoryLaneChangingDecision()
+LANE_CHANGE_SIDE sim_mob::Driver::makeMandatoryLaneChangingDecision()
 {
 	unsigned int freeLanes = gapAcceptance(MLC);
 	bool freeLeft = ((freeLanes&LSIDE_LEFT)!=0);
@@ -235,18 +239,20 @@ double sim_mob::Driver::makeMandatoryLaneChangingDecision()
 	int direction=1-currLaneIndex;
 
 	//current lane is target lane
-	if(direction==0)return 0;
+	if(direction==0) {
+		return LCS_SAME;
+	}
 
 	//current lane isn't target lane
 	if(freeRight && direction<0) {		//target lane on the right and is accessable
 		isWaiting=false;
-		return 1;
+		return LCS_RIGHT;
 	} else if(freeLeft && direction>0) {	//target lane on the left and is accessable
 		isWaiting=false;
-		return -1;
+		return LCS_LEFT;
 	} else {			//when target side isn't available,vehicle will decelerate to wait a proper gap.
 		isWaiting=true;
-		return 0;
+		return LCS_SAME;
 	}
 }
 
@@ -277,21 +283,22 @@ void sim_mob::Driver::excuteLaneChanging()
 		}
 		//make decision depending on current lane changing mode
 		if(changeMode==DLC) {
-			changeDecision=makeDiscretionaryLaneChangingDecision();
+			changeDecision = makeDiscretionaryLaneChangingDecision();
 		} else {
-			changeDecision=makeMandatoryLaneChangingDecision();
+			changeDecision = makeMandatoryLaneChangingDecision();
 		}
-		if(changeDecision!=0)
+		if(changeDecision!=LCS_SAME)
 		{
 			isLaneChanging = true;
 			lcEnterNewLane = false;
 		}
 	}
 	else{			//when changing lane
-		if(changeDecision!=0) {
+		if(changeDecision != LCS_SAME) {
 			//vehicle->yVel_ = -changeDecision*VelOfLaneChanging;
 			//vehicle->velocity.setRelY(-changeDecision*VelOfLaneChanging);
-			vehicle->velocity_lat.scaleVectTo(-changeDecision*VelOfLaneChanging);
+			int lcsSign = (changeDecision==LCS_RIGHT) ? -1 : 1;
+			vehicle->velocity_lat.scaleVectTo(lcsSign*VelOfLaneChanging);
 		}
 	}
 }

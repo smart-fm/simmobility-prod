@@ -83,12 +83,7 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), vehicle(nullptr), perceiv
 	normalDeceleration = -maxAcceleration*0.6;
 	maxDeceleration = -maxAcceleration;
 
-	//basic absolute parameters
-
-	//basic relative parameters
-
-
-	timeStep = ConfigParams::GetInstance().baseGranMS/1000.0;
+	//Some one-time flags and other related defaults.
 	firstFrameTick = true;
 	isLaneChanging = false;
 	isPedestrianAhead = false;
@@ -125,8 +120,9 @@ void sim_mob::Driver::new_update_params(UpdateParams& res)
 	res.currSpeed = 0;
 	res.perceivedFwdVelocity = 0;
 	res.perceivedLatVelocity = 0;
-	res. isTrafficLightStop = false;
+	res.isTrafficLightStop = false;
 	res.trafficSignalStopDistance = 5000;
+	res.elapsedSeconds = ConfigParams::GetInstance().baseGranMS/1000.0;
 
 	//Lateral velocity of lane changing.
 	res.laneChangingVelocity = 100;
@@ -259,7 +255,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	isInIntersection.set(params.isInIntersection);
 
 	//Print output for this frame.
-	output(frameNumber);
+	output(params, frameNumber);
 }
 
 void sim_mob::Driver::output(UpdateParams& p, frame_t frameNumber)
@@ -795,11 +791,11 @@ void sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
 	//TODO: I've disabled the acceleration component because it doesn't really make sense.
 	//      Please re-enable if you think this is expected behavior. ~Seth
 	//fwdDistance = vehicle->getVelocity()*timeStep + 0.5*vehicle->getAcceleration()*timeStep*timeStep;
-	double fwdDistance = vehicle->getVelocity()*timeStep;
-	double latDistance = vehicle->getLatVelocity()*timeStep;
+	double fwdDistance = vehicle->getVelocity()*p.elapsedSeconds;
+	double latDistance = vehicle->getLatVelocity()*p.elapsedSeconds;
 
 	//Increase the vehicle's velocity based on its acceleration.
-	vehicle->setVelocity(vehicle->getVelocity() + vehicle->getAcceleration()*timeStep);
+	vehicle->setVelocity(vehicle->getVelocity() + vehicle->getAcceleration()*p.elapsedSeconds);
 	if (vehicle->getVelocity() < 0) {
 		//Set to a small forward velocity, no acceleration.
 		vehicle->setVelocity(0.1); //TODO: Why not 0.0?

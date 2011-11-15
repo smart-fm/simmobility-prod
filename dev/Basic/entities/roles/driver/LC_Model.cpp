@@ -48,10 +48,10 @@ const sim_mob::Driver::MandLaneChgParam sim_mob::Driver::MLC_parameters = {
 		   1.0		//minimum time in lane
 };
 
-double sim_mob::Driver::lcCriticalGap(int type,	double dis_, double spd_, double dv_)
+double sim_mob::Driver::lcCriticalGap(UpdateParams& p, int type,	double dis_, double spd_, double dv_)
 {
 	double k=( type < 2 ) ? 1 : 5;
-	return k*-dv_*timeStep;
+	return k*-dv_ * p.elapsedSeconds;
 
 	//The code below is from MITSIMLab. While the calculation result not suit for current unit.
 	//So now, I just put them here.

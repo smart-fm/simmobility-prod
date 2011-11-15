@@ -101,6 +101,7 @@ private:
 		bool isInIntersection;
 		bool isTrafficLightStop;
 		double trafficSignalStopDistance;
+		double elapsedSeconds;
 
 		double perceivedFwdVelocity;
 		double perceivedLatVelocity;
@@ -151,7 +152,7 @@ private:
 	FixedDelayed<centimeter_t> perceivedDistToFwdCar;
 
 	//Absolute movement-related variables
-	double timeStep;			//time step size of simulation
+	//double timeStep;			//time step size of simulation
 
 	//TODO: Deactivating these temporarily
 	//double perceivedXVelocity_;
@@ -187,7 +188,7 @@ private:
 	double maxLaneSpeed;
 
 public:
-	int getTimeStep() const {return timeStep;}
+	//int getTimeStep() const {return timeStep;}
 	void assignVehicle(Vehicle* v) {vehicle = v;}
 
 	//for coordinate transform
@@ -415,7 +416,8 @@ private:
 										//    this distance, the vehicle won't change lane(because later it should change again)
 public:
 	unsigned int gapAcceptance(int type); 	///<check if the gap of the left lane and the right lane is available
-	double lcCriticalGap(int type,		// 0=leading 1=lag + 2=mandatory (mask)
+	double lcCriticalGap(UpdateParams& p,
+			int type,		// 0=leading 1=lag + 2=mandatory (mask) //TODO: ARGHHHHHHH magic numbers....
 			double dis,					// from critical pos
 			double spd,					// spd of the follower
 			double dv					// spd difference from the leader));

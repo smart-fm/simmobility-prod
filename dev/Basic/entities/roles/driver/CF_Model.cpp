@@ -66,11 +66,11 @@ double sim_mob::Driver::makeAcceleratingDecision(UpdateParams& p)
 		v_lead = (mode!=AM_VEHICLE) ? 0 : p.nvFwd.driver->getVehicle()->getVelocity()/100;
 		a_lead = (mode!=AM_VEHICLE) ? 0 : p.nvFwd.driver->getVehicle()->getAcceleration()/100;
 
-		double dt	=	timeStep;
+		double dt	=	p.elapsedSeconds;
 		if (p.currSpeed == 0) {
 			headway = 2 * space * 100000;
 		} else {
-			headway = 2*space / (p.currSpeed+p.currSpeed+timeStep*getMaxAcceleration());
+			headway = 2*space / (p.currSpeed+p.currSpeed+p.elapsedSeconds*getMaxAcceleration());
 		}
 		space_star	=	space + v_lead * dt + 0.5 * a_lead * dt * dt;
 
@@ -90,7 +90,7 @@ double sim_mob::Driver::makeAcceleratingDecision(UpdateParams& p)
 double sim_mob::Driver::breakToTargetSpeed(UpdateParams& p)
 {
 	double v 			=	p.currSpeed;
-	double dt			=	timeStep;
+	double dt			=	p.elapsedSeconds;
 
 	//NOTE: This is the only use of epsilon(), so I just copied the value directly.
 	//      See LC_Model for how to declare a private temporary variable. ~Seth

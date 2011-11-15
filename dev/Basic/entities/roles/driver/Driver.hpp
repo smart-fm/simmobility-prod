@@ -83,7 +83,7 @@ private:
 
 	///Simple struct to hold parameters which only exist for a single update tick.
 	struct UpdateParams {
-		const Lane* currLane;
+		const Lane* currLane;  //TODO: This should really be tied to PolyLineMover, but for now it's not important.
 		const Lane* leftLane;
 		const Lane* rightLane;
 
@@ -301,7 +301,8 @@ private:
 	void setOrigin(UpdateParams& p);
 
 	//A bit verbose, but only used in 1 or 2 places.
-	void changeLaneGeneralUpdate(UpdateParams& p, const Lane* newLane);
+	void newPathMover(const Lane*& oldLane, const Lane* newLane);
+	void changeLaneGeneralUpdate(UpdateParams& p);
 	void changeLaneWithinSameRS(UpdateParams& p, const Lane* newLane);   //mode 0
 	void changeToNewRoadSegmentSameLink(UpdateParams& p, const Lane* newLane); //mode 1
 	void changeToNewLinkAfterIntersection(UpdateParams& p, const Lane* newLane); //mode 2

@@ -24,12 +24,21 @@ public:
 	RoadSegmentMover() {}
 
 	//Start up
-	void setPath(std::vector<sim_mob::WayPoint> a) {
+	void setPath(std::vector<sim_mob::WayPoint> wp_path) {
 		roadSegmentList.clear();
-		for(std::vector<sim_mob::WayPoint>::iterator it=a.begin(); it!=a.end(); it++) {
+		for(std::vector<sim_mob::WayPoint>::iterator it=wp_path.begin(); it!=wp_path.end(); it++) {
 			if(it->type_ == WayPoint::ROAD_SEGMENT) {
 				roadSegmentList.push_back(it->roadSegment_);
 			}
+		}
+
+		currSegmentIt = roadSegmentList.begin();
+	}
+	//Another one
+	void setPath(const std::vector<sim_mob::RoadSegment*>& path) {
+		roadSegmentList.clear();
+		for(std::vector<sim_mob::RoadSegment*>::const_iterator it=path.begin(); it!=path.end(); it++) {
+			roadSegmentList.push_back(*it);
 		}
 
 		currSegmentIt = roadSegmentList.begin();

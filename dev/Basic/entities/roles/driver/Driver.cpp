@@ -508,6 +508,8 @@ void sim_mob::Driver::updateAdjacentLanes(UpdateParams& p)
 void sim_mob::Driver::changeLaneWithinSameRS(UpdateParams& p, const Lane* newLane)
 {
 	//Update Lanes, polylines, RoadSegments, etc.
+	p.currLane = newLane;
+	polypathMover.setPath(newLane->getPolyline());
 	changeLaneGeneralUpdate(p);
 
 	polylineSegIndex = updateStartEndIndex(currLanePolyLine, p.currLaneOffset, polylineSegIndex);
@@ -525,6 +527,9 @@ void sim_mob::Driver::changeLaneWithinSameRS(UpdateParams& p, const Lane* newLan
 void sim_mob::Driver::changeToNewRoadSegmentSameLink(UpdateParams& p, const Lane* newLane)
 {
 	//Update Lanes, polylines, RoadSegments, etc.
+	p.currLane = newLane;
+	pathMover.moveToNextSegment();
+	polypathMover.setPath(newLane->getPolyline());
 	changeLaneGeneralUpdate(p);
 
 	p.currLaneOffset = 0;
@@ -546,12 +551,38 @@ void sim_mob::Driver::changeToNewRoadSegmentSameLink(UpdateParams& p, const Lane
 }
 
 
+
+//Generate a new path, update the old Lane.
+void sim_mob::Driver::newPathMover(const Lane*& oldLane, const Lane* newLane)
+{
+	//Save road segments; update
+	const RoadSegment* prevSegment = oldLane->getRoadSegment();
+	const RoadSegment* newSegment = newLane->getRoadSegment();
+	oldLane = newLane;
+
+	//Now find the path leading out of the node shared by these two road segments which starts on
+	//   newSegment.
+	for (size_t i=0; i<2; i++) {
+		const vector<RoadSegment*>& path = newSegment->getLink()->getPath(i==0);
+		if (path.front()==newSegment) {
+			pathMover.setPath(path);
+			break;
+		}
+	}
+
+	//Now reset our polyline
+	polypathMover.setPath(newLane->getPolyline());
+
+}
+
+
 //when current lane has been changed, update current information.
 //mode 2: during crossing intersection
 void sim_mob::Driver::changeToNewLinkAfterIntersection(UpdateParams& p, const Lane* newLane)
 {
 	//Update Lanes, polylines, RoadSegments, etc.
-	changeLaneGeneralUpdate(p);
+	newPathMover(p.currLane, newLane);
+	changeLaneGeneralUpdate(p, newLane);
 
 	p.currLaneOffset = 0;
 	polylineSegIndex = 0;
@@ -575,18 +606,25 @@ void sim_mob::Driver::changeToNewLinkAfterIntersection(UpdateParams& p, const La
 
 
 //General update information for whenever a Segment may have changed.
-void sim_mob::Driver::changeLaneGeneralUpdate(UpdateParams& p, const Lane* newLane)
+void sim_mob::Driver::changeLaneGeneralUpdate(UpdateParams& p)
 {
-	//First, reset our current lane and update our mover.
-	p.currLane = nextLaneInNextLink;
-	currRoadSegment = p.currLane->getRoadSegment();
+	//Everything is based on changing the current lane.
+	/*p.currLane = nextLaneInNextLink;
 
+	//Now update our mover and various properties about this new lane.
+	if (pathMover.checkNextRoadSegment(p.currLane->getRoadSegment())) {
+		pathMover.moveToNextSegment();  //We are advancing within the same RoadSegment.
+	} else {
 
+	}
+	currRoadSegment = p.currLane->getRoadSegment();*/
 	currLaneIndex = getLaneIndex(p.currLane);
-	updateAdjacentLanes();
+	updateAdjacentLanes(p);
 	currLanePolyLine = &(p.currLane->getPolyline());
-	updateCurrLaneLength();
-	maxLaneSpeed = currRoadSegment->maxSpeed/3.6;//slow down
+	updateCurrLaneLength(p);
+
+	//Finally, update target/max speed to match the new Lane's rules.
+	maxLaneSpeed = pathMover.getCurrSegment()->maxSpeed/3.6; //slow down
 	targetSpeed = maxLaneSpeed;
 }
 

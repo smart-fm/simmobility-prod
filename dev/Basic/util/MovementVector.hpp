@@ -62,7 +62,7 @@ public:
 		vect = newVect;
 
 		double oldLatVal = lat.getMagnitude();
-		lat = vect;
+		lat = DynamicVector(0, 0, vect.getEndX()-vect.getX(), vect.getEndY()-vect.getY());
 		lat.flipLeft();
 		lat.scaleVectTo(oldLatVal);
 	}

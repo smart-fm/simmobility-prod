@@ -108,6 +108,8 @@ private:
 		NearestVehicle nvLeftBack;
 		NearestVehicle nvRightFwd;
 		NearestVehicle nvRightBack;
+
+		double laneChangingVelocity;
 	};
 
 
@@ -158,7 +160,7 @@ private:
 	int yPos_nextLink;
 
 	int xPosCrossing_; //relative x coordinate for crossing, the intersection point of crossing's front line and current polyline
-	double acc_;
+	//double acc_;
 	double xDirection;			//x direction of the current polyline segment
 	double yDirection;			//y direction of the current polyline segment
 
@@ -315,7 +317,7 @@ private:
 
 	void updateAdjacentLanes(UpdateParams& p);
 	void updateRSInCurrLink(UpdateParams& p);
-	void updateAcceleration();
+	void updateAcceleration(double newFwdAcc);
 	void updateVelocity();
 	void updatePositionOnLink(UpdateParams& p);
 	void updatePolyLineSeg();
@@ -385,7 +387,7 @@ private:
 
 	//for acceleration decision
 public:
-	void makeAcceleratingDecision(UpdateParams& p);				///<decide acc
+	double makeAcceleratingDecision(UpdateParams& p);				///<decide acc
 	double breakToTargetSpeed(UpdateParams& p);					///<return the acc to a target speed within a specific distance
 	double accOfEmergencyDecelerating(UpdateParams& p);			///<when headway < lower threshold, use this function
 	double accOfCarFollowing(UpdateParams& p);						///<when lower threshold < headway < upper threshold, use this function
@@ -395,7 +397,7 @@ public:
 
 	//for lane changing decision
 private:
-	double VelOfLaneChanging;	//perpendicular with the lane's direction
+	//double VelOfLaneChanging;	//perpendicular with the lane's direction
 	int changeMode;				//DLC or MLC
 	LANE_CHANGE_SIDE changeDecision;		//1 for right, -1 for left, 0 for current
 	bool isLaneChanging;			//is the vehicle is changing the lane
@@ -419,13 +421,13 @@ public:
 	int checkIfBadAreaAhead();				///<find the closest bad area ahead which the vehicle may knock on(see details in Driver.cpp)
 	int findClosestBadAreaAhead(int lane);	///<find the closest bad area ahead in specific lane
 	double makeLaneChangingDecision();					///<Firstly, check if MLC is needed, and then choose specific model to decide.
-	double checkIfMandatory();							///<check if MLC is needed, return probability to MLC
+	double checkIfMandatory() const;							///<check if MLC is needed, return probability to MLC
 	double calcSideLaneUtility(bool isLeft);			///<return utility of adjacent gap
 
 	LANE_CHANGE_SIDE makeDiscretionaryLaneChangingDecision();		///<DLC model, vehicles freely decide which lane to move. Returns 1 for Right, -1 for Left, and 0 for neither.
 	LANE_CHANGE_SIDE makeMandatoryLaneChangingDecision();			///<MLC model, vehicles must change lane, Returns 1 for Right, -1 for Left.
 
-	void excuteLaneChanging();			///<to execute the lane changing, meanwhile, check if crash will happen and avoid it
+	void excuteLaneChanging(UpdateParams& p);			///<to execute the lane changing, meanwhile, check if crash will happen and avoid it
 	bool checkForCrash();				///<to check if the crash may happen
 
 	/*

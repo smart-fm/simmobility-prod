@@ -213,13 +213,13 @@ LANE_CHANGE_SIDE sim_mob::Driver::makeDiscretionaryLaneChangingDecision()
 	return LCS_SAME;
 }
 
-double sim_mob::Driver::checkIfMandatory()
-{
-	//the code below is MITSIMLab model
+double sim_mob::Driver::checkIfMandatory() const {
+	//The code below is MITSIMLab model
 	dis2stop = currLink->getLength(isForward) - currLinkOffset - vehicle->length/2 - 300;
-	dis2stop = dis2stop/100;
+	dis2stop /= 100;
+
 	double num		=	1;		//now we just assume that MLC only need to change to the adjacent lane
-	double y		=	0.5;		//segment density/jam density, now assume that it is 0.5
+	double y		=	0.5;	//segment density/jam density, now assume that it is 0.5
 	double delta0	=	feet2Unit(MLC_parameters.feet_lowbound);
 	double dis		=	dis2stop - delta0;
 	double delta	=	1.0 + MLC_parameters.lane_coeff * num + MLC_parameters.congest_coeff * y;
@@ -265,40 +265,41 @@ LANE_CHANGE_SIDE sim_mob::Driver::makeMandatoryLaneChangingDecision()
  *
  * -wangxy
  * */
-void sim_mob::Driver::excuteLaneChanging()
+void sim_mob::Driver::excuteLaneChanging(UpdateParams& p)
 {
-	VelOfLaneChanging = 100;
+	//Behavior changes depending on whether or not we're actually changing lanes.
+	if(isLaneChanging){
+		if(changeDecision != LCS_SAME) {
+			//Set the lateral velocity of the vehicle; move it.
+			int lcsSign = (changeDecision==LCS_RIGHT) ? -1 : 1;
+			vehicle->velocity_lat.scaleVectTo(lcsSign*p.laneChangingVelocity);
+		}
+	} else {
+		//If too close to node, don't do lane changing, distance should be larger than 3m
+		if(p.currLaneLength - p.currLaneOffset - vehicle->length/2 <= 300) {
+			return;
+		}
 
-	// when vehicle is on the lane, make decision
-	if(!isLaneChanging){
-		//if too close to node, don't do lane changing, distance should be larger than 3m
-		if(currLaneLength - currLaneOffset - vehicle->length/2 <= 300)
-				return;
-		double p=(double)(rand()%1000)/1000;
-		if(p<checkIfMandatory()){
+		//Get a random number, use it to determine if we're making a discretionary or a mandatory lane change
+		double randNum = (double)(rand()%1000)/1000;
+		if(randNum<checkIfMandatory()){
 			changeMode = MLC;
 		} else {
 			changeMode = DLC;
-			dis2stop=MAX_NUM;		//no crucial point ahead
+			dis2stop = MAX_NUM;		//no crucial point ahead
 		}
+
 		//make decision depending on current lane changing mode
 		if(changeMode==DLC) {
 			changeDecision = makeDiscretionaryLaneChangingDecision();
 		} else {
 			changeDecision = makeMandatoryLaneChangingDecision();
 		}
-		if(changeDecision!=LCS_SAME)
-		{
+
+		//Finally, if we've decided to change lanes, set our intention.
+		if(changeDecision!=LCS_SAME) {
 			isLaneChanging = true;
 			lcEnterNewLane = false;
-		}
-	}
-	else{			//when changing lane
-		if(changeDecision != LCS_SAME) {
-			//vehicle->yVel_ = -changeDecision*VelOfLaneChanging;
-			//vehicle->velocity.setRelY(-changeDecision*VelOfLaneChanging);
-			int lcsSign = (changeDecision==LCS_RIGHT) ? -1 : 1;
-			vehicle->velocity_lat.scaleVectTo(lcsSign*VelOfLaneChanging);
 		}
 	}
 }

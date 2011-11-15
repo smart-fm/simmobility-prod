@@ -78,7 +78,6 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), vehicle(nullptr), perceiv
 	//speed = 0;//1000*(1+((double)(rand()%10))/10);
 
 	//Set default data for acceleration
-	acc_ = 0;
 	maxAcceleration = MAX_ACCELERATION;
 	normalDeceleration = -maxAcceleration*0.6;
 	maxDeceleration = -maxAcceleration;
@@ -127,6 +126,9 @@ void sim_mob::Driver::new_update_params(UpdateParams& res)
 	res.currSpeed = 0;
 	res.perceivedFwdVelocity = 0;
 	res.perceivedLatVelocity = 0;
+
+	//Lateral velocity of lane changing.
+	res.laneChangingVelocity = 100;
 
 	//Nearest vehicles in the current lane, and left/right (including fwd/back for each).
 	res.nvFwd.driver = nullptr;
@@ -299,20 +301,26 @@ void sim_mob::Driver::intersectionDriving(UpdateParams& p)
 //the movement is based on relative position
 void sim_mob::Driver::linkDriving(UpdateParams& p)
 {
+	//Update our position with respect to lane changing.
+	//Detect if we've successfully moved into our new lane.
 	if(isLaneChanging) {
 		updatePosLC(p);
 	}
-	excuteLaneChanging();
 
-	if(isTrafficLightStop && vehicle->getVelocity() < 50)
-	{
+	//Check if we should change lanes.
+	excuteLaneChanging(p);
+
+	double newFwdAcc = 0;
+	if(isTrafficLightStop && vehicle->getVelocity() < 50) {
+		//Slow down.
 		vehicle->setVelocity(0);
 		vehicle->setAcceleration(0);
+	} else {
+		newFwdAcc = makeAcceleratingDecision(p);
 	}
-	else
-		makeAcceleratingDecision(p);
-	updateAcceleration();
-	updatePositionOnLink();
+
+	updateAcceleration(newFwdAcc);
+	updatePositionOnLink(p);
 }
 
 
@@ -777,11 +785,9 @@ void sim_mob::Driver::findCrossing()
 		isCrossingAhead = false;
 }
 
-void sim_mob::Driver::updateAcceleration()
+void sim_mob::Driver::updateAcceleration(double newFwdAcc)
 {
-	//vehicle->xAcc_ = acc_ * 100;
-	//vehicle->accel.setRelX(acc_ * 100);
-	vehicle->accel.scaleVectTo(acc_ * 100);
+	vehicle->setAcceleration(newFwdAcc * 100);
 }
 
 void sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
@@ -1076,49 +1082,31 @@ void sim_mob :: Driver :: enterNextLink(UpdateParams& p)
 	linkDriving(p);
 }
 
+
+//TODO: This might not assume that the "relative" coordinate is halfway down the lane's width. Might need to fix.
 void sim_mob::Driver::updatePosLC(UpdateParams& p)
 {
-	//right
-	if(changeDecision == LCS_RIGHT)
-	{
-		//if(!lcEnterNewLane && -vehicle->yPos_>=150)//currLane->getWidth()/2.0)
-		if(!lcEnterNewLane && -vehicle->pos.getLateralMovement() >=150)//currLane->getWidth()/2.0)
-		{
+	if(changeDecision == LCS_RIGHT) {
+		double vehicleLeftMovement = vehicle->pos.getLateralMovement();
+		if(!lcEnterNewLane && -vehicleLeftMovement >= 150) { //TODO: Skip hardcoded values! Should this be laneWidth/2?
 			changeLaneWithinSameRS(p, p.rightLane);
-			abs2relat();
 			lcEnterNewLane = true;
 		}
-		//if(lcEnterNewLane && vehicle->yPos_ <=0)
-		if(lcEnterNewLane && vehicle->pos.getLateralMovement() <=0)
-		{
+		if(lcEnterNewLane && vehicleLeftMovement <=0) {
+			//New lane, reset velocity and lateral movement.
 			isLaneChanging =false;
-			//vehicle->yPos_ = 0;
 			vehicle->pos.resetLateral();
-
-			//vehicle->yVel_ = 0;
-			//vehicle->velocity.setRelY(0);
 			vehicle->velocity_lat.scaleVectTo(0);
 		}
-	}
-	else if(changeDecision == LCS_LEFT)
-	{
-		//if(!lcEnterNewLane && vehicle->yPos_>=150)//currLane->getWidth()/2.0)
-		if(!lcEnterNewLane && vehicle->pos.getLateralMovement()>=150)//currLane->getWidth()/2.0)
-		{
+	} else if(changeDecision == LCS_LEFT) {
+		if(!lcEnterNewLane && vehicle->pos.getLateralMovement()>=150) {
 			changeLaneWithinSameRS(p, p.leftLane);
-			abs2relat();
 			lcEnterNewLane = true;
 		}
-		//if(lcEnterNewLane && vehicle->yPos_ >=0)
-		if(lcEnterNewLane && vehicle->pos.getLateralMovement() >=0)
-		{
+		if(lcEnterNewLane && vehicle->pos.getLateralMovement() >=0) {
+			//New lane, reset velocity and lateral movement.
 			isLaneChanging =false;
-
-			//vehicle->yPos_ = 0;
 			vehicle->pos.resetLateral();
-
-			//vehicle->yVel_ = 0;
-			//vehicle->velocity.setRelY(0);
 			vehicle->velocity_lat.scaleVectTo(0);
 		}
 	}

@@ -113,8 +113,11 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams()
 
 void sim_mob::Driver::new_update_params(UpdateParams& res)
 {
-	//Set to the previous known lane.
+	//Set to the previous known buffered values
 	res.currLane = currLane_.get();
+	res.currLaneLength = currLaneLength_.get();
+	res.currLaneOffset = currLaneOffset_.get();
+	res.isInIntersection = isInIntersection.get();
 
 	//Current lanes to the left and right. May be null
 	res.leftLane = nullptr;
@@ -124,6 +127,22 @@ void sim_mob::Driver::new_update_params(UpdateParams& res)
 	res.currSpeed = 0;
 	res.perceivedFwdVelocity = 0;
 	res.perceivedLatVelocity = 0;
+
+	//Nearest vehicles in the current lane, and left/right (including fwd/back for each).
+	res.nvFwd.driver = nullptr;
+	res.nvBack.driver = nullptr;
+	res.nvLeftFwd.driver = nullptr;
+	res.nvLeftBack.driver = nullptr;
+	res.nvRightFwd.driver = nullptr;
+	res.nvRightBack.driver = nullptr;
+
+	//Nearest vehicles' distances are initialized to threshold values.
+	res.nvFwd.distance = 5000;
+	res.nvBack.distance = 5000;
+	res.nvLeftFwd.distance = 5000;
+	res.nvLeftBack.distance = 5000;
+	res.nvRightFwd.distance = 5000;
+	res.nvRightBack.distance = 5000;
 }
 
 
@@ -160,7 +179,7 @@ void sim_mob::Driver::update_general(UpdateParams& params, frame_t frameNumber)
 
 
 	//inside intersection
-	if(inIntersection) {
+	if(params.isInIntersection) {
 		intersectionDriving(params);
 	} else {
 		//the first time vehicle pass the end of current link and enter intersection
@@ -168,7 +187,7 @@ void sim_mob::Driver::update_general(UpdateParams& params, frame_t frameNumber)
 		//I assume this vehicle enters the intersection
 		if(isReachLinkEnd())
 		{
-			inIntersection = true;
+			params.isInIntersection = true;
 			directionIntersection();
 			intersectionVelocityUpdate();
 			intersectionDriving(params);
@@ -240,6 +259,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	currLane_.set(params.currLane);
 	currLaneOffset_.set(params.currLaneOffset);
 	currLaneLength_.set(params.currLaneLength);
+	isInIntersection.set(params.isInIntersection);
 
 	//Print output for this frame.
 	output(frameNumber);
@@ -312,12 +332,11 @@ void sim_mob::Driver::setToParent()
 }
 
 
+//TODO: Previously, the rel/abs nature of the the code made auto-updating impossible. Now it should work,
+//      but for now I'm requiring this function to be called manually. ~Seth
 void sim_mob::Driver::sync_relabsobjs()
 {
-	//NOTE: I'm trying to make this automatic.
-
 	vehicle->newPolyline(polypathMover.getCurrPolypoint(), polypathMover.getNextPolypoint());
-
 }
 
 
@@ -328,13 +347,8 @@ bool sim_mob::Driver::isReachPolyLineSegEnd() const
 
 bool sim_mob::Driver::isReachLastRSinCurrLink() const
 {
-	return currRoadSegment == currLink->getPath(isLinkForward).at(currLink->getPath(isLinkForward).size()-1);
+	return pathMover.isOnLastSegment();
 }
-
-/*bool sim_mob::Driver::isReachLastPolyLineSeg() const
-{
-	return (polylineSegIndex >= currLanePolyLine->size()-2);
-}*/
 
 //TODO
 bool sim_mob::Driver::isCloseToCrossing() const
@@ -790,12 +804,12 @@ void sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
 
 namespace {
 //Helper function: check if a modified distanc is less than the current minimum and save it.
-void check_and_set_min_car_dist(const Driver*& resDriver, double& resMinDist, double distance, const Vehicle* veh, const Driver* other) {
+void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other) {
 	//Subtract the size of the car from the distance between them
 	distance = fabs(distance) - veh->length/2 - other->getVehicle()->length/2;
-	if(distance <= resMinDist) {
-		resDriver = other;
-		resMinDist = distance;
+	if(distance <= res.distance) {
+		res.driver = other;
+		res.distance = distance;
 	}
 
 }
@@ -826,12 +840,12 @@ void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* oth
 
 		//Set different variables depending on where the car is.
 		if(other_lane == params.currLane) {//the vehicle is on the current lane
-			check_and_set_min_car_dist((fwd?CFD:CBD), (fwd?minCFDistance:minCBDistance), distance, vehicle, other_driver);
+			check_and_set_min_car_dist((fwd?params.nvFwd:params.nvBack), distance, vehicle, other_driver);
 		} else if(other_lane == params.leftLane) { //the vehicle is on the left lane
-			check_and_set_min_car_dist((fwd?LFD:LBD), (fwd?minLFDistance:minLBDistance), distance, vehicle, other_driver);
+			check_and_set_min_car_dist((fwd?params.nvLeftFwd:params.nvLeftBack), distance, vehicle, other_driver);
 		} else if(other_lane == params.rightLane) { //The vehicle is on the right lane
 			if(distance>0 || (distance < 0 && -distance<=minRBDistance)) {
-				check_and_set_min_car_dist((fwd?RFD:RBD), (fwd?minRFDistance:minRBDistance), distance, vehicle, other_driver);
+				check_and_set_min_car_dist((fwd?params.nvRightFwd:params.nvRightBack), distance, vehicle, other_driver);
 			}
 		}
 	} else if(otherRoadSegment->getLink() == pathMover.getCurrLink()) { //We are in the same link.
@@ -865,11 +879,11 @@ void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* oth
 
 			//Set different variables depending on where the car is.
 			if(other_lane == nextLane) { //The vehicle is on the current lane
-				check_and_set_min_car_dist(CFD, minCFDistance, distance, vehicle, other_driver);
+				check_and_set_min_car_dist(params.nvFwd, distance, vehicle, other_driver);
 			} else if(other_lane == nextLeftLane) { //the vehicle is on the left lane
-				check_and_set_min_car_dist(LFD, minLFDistance, distance, vehicle, other_driver);
+				check_and_set_min_car_dist(params.nvLeftFwd, distance, vehicle, other_driver);
 			} else if(other_lane == nextRightLane) { //the vehicle is in front
-				check_and_set_min_car_dist(RFD, minRFDistance, distance, vehicle, other_driver);
+				check_and_set_min_car_dist(params.nvRightFwd, distance, vehicle, other_driver);
 			}
 		} else if(!pathMover.isOnFirstSegment() && pathMover.getCurrSegment()-1 == otherRoadSegment) { //Vehicle is on the previous segment.
 			//Retrieve the previous node as a UniNode.
@@ -909,11 +923,11 @@ void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* oth
 
 			//Set different variables depending on where the car is.
 			if(other_lane == preLane) { //The vehicle is on the current lane
-				check_and_set_min_car_dist(CBD, minCBDistance, distance, vehicle, other_driver);
+				check_and_set_min_car_dist(params.nvBack, distance, vehicle, other_driver);
 			} else if(other_lane == preLeftLane) { //the vehicle is on the left lane
-				check_and_set_min_car_dist(LBD, minLBDistance, distance, vehicle, other_driver);
+				check_and_set_min_car_dist(params.nvLeftBack, distance, vehicle, other_driver);
 			} else if(other_lane == preRightLane) { //the vehicle is on the right lane
-				check_and_set_min_car_dist(RBD, minRBDistance, distance, vehicle, other_driver);
+				check_and_set_min_car_dist(params.nvRightBack, distance, vehicle, other_driver);
 			}
 		}
 	}
@@ -970,24 +984,11 @@ void sim_mob::Driver::updateNearbyPedestrian(UpdateParams& params, const Person*
 void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 {
 	//Reset parameters
+	minPedestrianDis = 5000;
 	isPedestrianAhead = false;
-	CFD = nullptr;
-	CBD = nullptr;
-	LFD = nullptr;
-	LBD = nullptr;
-	RFD = nullptr;
-	RBD = nullptr;
 
 	//Retrieve a list of nearby agents
 	vector<const Agent*> nearby_agents = AuraManager::instance().nearbyAgents(Point2D(vehicle->getX(),vehicle->getY()), *params.currLane,  distanceInFront, distanceBehind);
-
-	minCFDistance = 5000;
-	minCBDistance = 5000;
-	minLFDistance = 5000;
-	minLBDistance = 5000;
-	minRFDistance = 5000;
-	minRBDistance = 5000;
-	minPedestrianDis = 5000;
 
 	//Update each nearby Pedestrian/Driver
 	for (vector<const Agent*>::iterator it=nearby_agents.begin(); it!=nearby_agents.begin(); it++) {

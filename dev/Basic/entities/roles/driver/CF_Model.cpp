@@ -35,17 +35,17 @@ void sim_mob::Driver::makeAcceleratingDecision(UpdateParams& p)
 	p.currSpeed = vehicle->getVelocity()/100;
 
 	size_t mode;// 0 for vehicle, 1 for pedestrian, 2 for traffic light, 3 for null
-	if(minCFDistance != 5000 && minCFDistance <= tsStopDistance && minCFDistance <= minPedestrianDis)
+	if(p.nvFwd.distance != 5000 && p.nvFwd.distance <= tsStopDistance && p.nvFwd.distance <= minPedestrianDis)
 	{
-		space = minCFDistance/100;
+		space = p.nvFwd.distance/100;
 		mode = 0;
 	}
-	else if(minPedestrianDis != 5000 && minPedestrianDis <= minCFDistance && minPedestrianDis <= tsStopDistance)
+	else if(minPedestrianDis != 5000 && minPedestrianDis <= p.nvFwd.distance && minPedestrianDis <= tsStopDistance)
 	{
 		space = minPedestrianDis/100;
 		mode = 1;
 	}
-	else if(tsStopDistance != 5000 && tsStopDistance <= minPedestrianDis && tsStopDistance <= minCFDistance)
+	else if(tsStopDistance != 5000 && tsStopDistance <= minPedestrianDis && tsStopDistance <= p.nvFwd.distance)
 	{
 		space = tsStopDistance/100;
 		mode = 2;
@@ -67,11 +67,11 @@ void sim_mob::Driver::makeAcceleratingDecision(UpdateParams& p)
 
 			//v_lead 		=	CFD->getVehicle()->xVel_/100;
 			//v_lead 		=	CFD->getVehicle()->velocity.getRelX()/100;
-			v_lead 		=	CFD->getVehicle()->getVelocity()/100;
+			v_lead 		=	p.nvFwd.driver->getVehicle()->getVelocity()/100;
 
 			//a_lead		=	CFD->getVehicle()->xAcc_/100;
 			//a_lead          =   CFD->getVehicle()->accel.getRelX()/100;
-			a_lead          =   CFD->getVehicle()->getAcceleration()/100;
+			a_lead          =   p.nvFwd.driver->getVehicle()->getAcceleration()/100;
 		}
 		else
 		{
@@ -165,7 +165,7 @@ double sim_mob::Driver::accOfCarFollowing(UpdateParams& p)
 	double v				=	p.currSpeed;
 	int i = (v > v_lead) ? 1 : 0;
 	double dv =(v > v_lead)?(v-v_lead):(v_lead - v);
-	double acc_ = CF_parameters[i].alpha * pow(v , CF_parameters[i].beta) /pow(minCFDistance/100 , CF_parameters[i].gama);
+	double acc_ = CF_parameters[i].alpha * pow(v , CF_parameters[i].beta) /pow(p.nvFwd.distance/100 , CF_parameters[i].gama);
 	acc_ *= pow(dv , CF_parameters[i].lambda)*pow(density,CF_parameters[i].rho);
 	acc_ += feet2Unit(nRandom(0,CF_parameters[i].stddev));
 

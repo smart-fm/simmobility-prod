@@ -75,6 +75,12 @@ private:
 		double lane_mintime;
 	};
 
+	//Struct for holding data about the "nearest" vehicle.
+	struct NearestVehicle {
+		const Driver* driver;
+		double distance;
+	};
+
 	///Simple struct to hold parameters which only exist for a single update tick.
 	struct UpdateParams {
 		const Lane* currLane;
@@ -85,9 +91,17 @@ private:
 
 		double currLaneOffset;
 		double currLaneLength;
+		bool isInIntersection;
 
 		double perceivedFwdVelocity;
 		double perceivedLatVelocity;
+
+		NearestVehicle nvFwd;
+		NearestVehicle nvBack;
+		NearestVehicle nvLeftFwd;
+		NearestVehicle nvLeftBack;
+		NearestVehicle nvRightFwd;
+		NearestVehicle nvRightBack;
 	};
 
 
@@ -321,6 +335,8 @@ private:
 	/***********SOMETHING BIG BROTHER CAN RETURN*************/
 private:
 
+	/*NearestVehicle nearestCarFwd;
+
 	//Vehicle* vehicle;
 	const Driver* CFD;
 	const Driver* CBD;
@@ -328,6 +344,14 @@ private:
 	const Driver* LBD;
 	const Driver* RFD;
 	const Driver* RBD;
+
+	double minCFDistance;				//the distance between subject vehicle to leading vehicle
+	double minCBDistance;
+	double minLFDistance;
+	double minLBDistance;
+	double minRFDistance;
+	double minRBDistance;*/
+
 
 	const Pedestrian* CFP;
 	const Pedestrian* LFP;
@@ -338,12 +362,6 @@ private:
 	//parameters
 private:
 	double targetSpeed;			//the speed which the vehicle is going to achieve
-	double minCFDistance;				//the distance between subject vehicle to leading vehicle
-	double minCBDistance;
-	double minLFDistance;
-	double minLBDistance;
-	double minRFDistance;
-	double minRBDistance;
 	double minPedestrianDis;
 	double tsStopDistance;     // distance to stop line
 	double space;

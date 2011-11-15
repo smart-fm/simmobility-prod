@@ -1,7 +1,12 @@
 package sim_mob.vis.network;
 
+import static java.awt.geom.AffineTransform.getRotateInstance;
+import static java.awt.geom.AffineTransform.getTranslateInstance;
+
 import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
@@ -15,6 +20,7 @@ public class TrafficSignalLine implements DrawableItem{
 	private Node fromNode;
 	private Node toNode;
 	
+	private final int ARR_SIZE = 6; 
 	
 	
 	public TrafficSignalLine(Lane fromLane, Lane toLane){
@@ -71,8 +77,15 @@ public class TrafficSignalLine implements DrawableItem{
 	
 	@Override
 	public void draw(Graphics2D g) {
-		g.drawLine((int)fromNode.getPos().getX(), (int)fromNode.getPos().getY(), (int)toNode.getPos().getX(), (int)toNode.getPos().getY()); 
+		
+		
+		//g.drawLine((int)fromNode.getPos().getX(), (int)fromNode.getPos().getY(), (int)toNode.getPos().getX(), (int)toNode.getPos().getY()); 
+	
+		drawArrow(g, (int)fromNode.getPos().getX(), (int)fromNode.getPos().getY(),(int)toNode.getPos().getX(),(int)toNode.getPos().getY());
+		
 	}
+	
+	
 	
 	public void drawPerLight(Graphics2D g, Integer light){
 		
@@ -83,10 +96,23 @@ public class TrafficSignalLine implements DrawableItem{
 			} else if( light == 3){
 				g.setColor(Color.green);
 				draw(g);
-			}
-			
-		
+			}	
 		
 	}
+    
+	public void drawArrow(Graphics2D g, int x1, int y1, int x2, int y2) {
+
+        double dx = x2 - x1, dy = y2 - y1;
+        double angle = Math.atan2(dy, dx);
+        int len = (int) Math.sqrt(dx*dx + dy*dy);
+        AffineTransform at = getTranslateInstance(x1, y1);
+        at.concatenate(getRotateInstance(angle));
+        g.setTransform(at);
+
+        // Draw horizontal arrow starting in (0, 0)
+        g.drawLine(0, 0, (int) len, 0);
+        g.fillPolygon(new int[] {len, len-ARR_SIZE, len-ARR_SIZE, len},
+                      new int[] {0, -ARR_SIZE, ARR_SIZE, 0}, 4);
+    }
 
 }

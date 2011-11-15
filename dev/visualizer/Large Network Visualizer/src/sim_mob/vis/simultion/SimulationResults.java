@@ -5,11 +5,13 @@ import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.regex.Matcher;
 
 import sim_mob.vis.network.Intersection;
 import sim_mob.vis.network.RoadNetwork;
+import sim_mob.vis.network.TrafficSignalLine;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.util.Utility;
 
@@ -65,8 +67,13 @@ public class SimulationResults {
 		    } catch (IOException ex) {
 		    	throw new IOException(ex.getMessage() + "\n...on line: " + line);
 		    }
+		    
+		    
 		}
 		
+		//Modify traffic signal to make it stable
+		Hashtable<Integer,SignalLineTick> oldSignal = new Hashtable<Integer, SignalLineTick>();
+
 		//Now that the file has been loaded, scale agent positions to the RoadNetwork (so we can at least
 		//  see something.)
 		for (TimeTick tt : ticks) {
@@ -91,7 +98,28 @@ public class SimulationResults {
 				//Save
 				at.pos = new ScaledPoint(resX, resY, tt.tickScaleGroup);
 			}
+		    
+			
+			if(tt.signalLineTicks.size()>0)
+			{
+				//Clean previous data
+				oldSignal = new Hashtable<Integer, SignalLineTick>();
+				//Assign new data
+				oldSignal = tt.signalLineTicks;
+			}
+			else if(tt.signalLineTicks.size() == 0){
+			
+				if(oldSignal.size()!=0){
+					tt.signalLineTicks = oldSignal;
+				}
+				else{
+					System.out.println("Error, in modification of signal line ticks -- SimulationResults, constructor");
+				}
+				
+			}
 		}
+
+		
 	}
 	
 	//We assume the x/y bounds will be within those saved by the RoadNetwork.
@@ -105,7 +133,6 @@ public class SimulationResults {
 			parsePedestrian(frameID, objID, rhs, rn);
 		}
 	}
-	
 	
 	private static Color ReadColor(int id) {
 		if (id==1) {
@@ -200,8 +227,10 @@ public class SimulationResults {
 	    	ticks.add(t);
 	    }
 	  
+
 	    ticks.get(frameID).signalLineTicks.put(objID, new SignalLineTick(allVehicleLights, allPedestrainLights ,objID));
-	   
+	 
+	    
 	}
 	
 	

@@ -172,78 +172,73 @@ public class NetworkVisualizer {
 			for(Crossing crossing : network.getCrossings().values()){
 				crossing.draw(g);
 			}
+		
+			//Now draw out signal
+			for(SignalLineTick at: simRes.ticks.get(currFrameTick).signalLineTicks.values()){
+						
+				//Get Intersection ID
+				Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());
+				//Get Light color
+				ArrayList<ArrayList<Integer>> allVehicleLights =  at.getVehicleLights();
+				ArrayList<Integer> allPedestrainLights = at.getPedestrianLights();
+				
+				//Light Colors
+				ArrayList<Integer> vaLights = allVehicleLights.get(0);
+				ArrayList<Integer> vbLights = allVehicleLights.get(1);
+				ArrayList<Integer> vcLights = allVehicleLights.get(2);
+				ArrayList<Integer> vdLights = allVehicleLights.get(3);
+
+				//Light Lines
+				ArrayList<ArrayList<TrafficSignalLine>> vaSignalLine = tempIntersection.getVaTrafficSignal();
+				ArrayList<ArrayList<TrafficSignalLine>> vbSignalLine = tempIntersection.getVbTrafficSignal();
+				ArrayList<ArrayList<TrafficSignalLine>> vcSignalLine = tempIntersection.getVcTrafficSignal();
+				ArrayList<ArrayList<TrafficSignalLine>> vdSignalLine = tempIntersection.getVdTrafficSignal();
+				
+				ArrayList<Crossing> tempCrossings = tempIntersection.getSignalCrossings();
+				
+				//DrawLights
+				drawTrafficLines(g,vaSignalLine, vaLights);
+				drawTrafficLines(g,vbSignalLine, vbLights);
+				drawTrafficLines(g,vcSignalLine, vcLights);
+				drawTrafficLines(g,vdSignalLine, vdLights);
+				
+				//Draw pedestrian crossing signal
+				drawTrafficPedestrainCross(g,tempCrossings,allPedestrainLights);
+				
+			}
+
+		
+		
 		}
-		
-		
+				
 		//Now draw simulation data: cars, etc.
 		for (AgentTick at : simRes.ticks.get(currFrameTick).agentTicks.values()) {	
 			at.draw(g,currPercentZoom);
 		}
-		
-		//Now draw out signal
-
-		for(SignalLineTick at: simRes.ticks.get(currFrameTick).signalLineTicks.values()){
-			
-			//Get Intersection ID
-			Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());
-			//Get Light color
-			ArrayList<ArrayList<Integer>> allVehicleLights =  at.getVehicleLights();
-			ArrayList<Integer> allPedestrainLights = at.getPedestrianLights();
-			
-			//Light Colors
-			ArrayList<Integer> vaLights = allVehicleLights.get(0);
-			ArrayList<Integer> vbLights = allVehicleLights.get(1);
-			ArrayList<Integer> vcLights = allVehicleLights.get(2);
-			ArrayList<Integer> vdLights = allVehicleLights.get(3);
-
-			//Light Lines
-			ArrayList<ArrayList<TrafficSignalLine>> vaSignalLine = tempIntersection.getVaTrafficSignal();
-			ArrayList<ArrayList<TrafficSignalLine>> vbSignalLine = tempIntersection.getVbTrafficSignal();
-			ArrayList<ArrayList<TrafficSignalLine>> vcSignalLine = tempIntersection.getVcTrafficSignal();
-			ArrayList<ArrayList<TrafficSignalLine>> vdSignalLine = tempIntersection.getVdTrafficSignal();
-			
-			ArrayList<Crossing> tempCrossings = tempIntersection.getSignalCrossings();
-			
-			//DrawLights
-			drawTrafficLines(g,vaSignalLine, vaLights);
-			drawTrafficLines(g,vbSignalLine, vbLights);
-			drawTrafficLines(g,vcSignalLine, vcLights);
-			drawTrafficLines(g,vdSignalLine, vdLights);
-			
-			//Draw pedestrian crossing signal
-			drawTrafficPedestrainCross(g,tempCrossings,allPedestrainLights);
-			
-		
-		}
-		
 		
 	}
 	
 	private void drawTrafficLines(Graphics2D g,ArrayList<ArrayList<TrafficSignalLine>> signalLine, ArrayList<Integer> lightColors){
 		
 		for(int i = 0; i<signalLine.size();i++){
+			
 			//Left turn light
 			ArrayList<TrafficSignalLine> leftTurnLight = signalLine.get(0);
-			for(int left = 0; left < leftTurnLight.size();left++){
-				leftTurnLight.get(left).drawPerLight(g, lightColors.get(0));	
-			}
+			leftTurnLight.get(0).drawPerLight(g, lightColors.get(0));	
+			
 			
 			//Straight turn light
 			ArrayList<TrafficSignalLine> straightTurnLight = signalLine.get(1);				
-			for(int straight = 0; straight < straightTurnLight.size();straight++){
-				straightTurnLight.get(straight).drawPerLight(g, lightColors.get(1));	
-			}
+			straightTurnLight.get(0).drawPerLight(g, lightColors.get(1));	
+			
 			
 			//Right turn light
 			ArrayList<TrafficSignalLine> rightTurnLight = signalLine.get(2);
-			for(int right = 0; right < rightTurnLight.size();right++){
-				rightTurnLight.get(right).drawPerLight(g, lightColors.get(2));	
-			}
+			rightTurnLight.get(0).drawPerLight(g, lightColors.get(2));	
+			
 			
 		}
-		
-	
-		
+				
 	}
 	
 	private void drawTrafficPedestrainCross(Graphics2D g,ArrayList<Crossing> signalPedestrainCrossing, ArrayList<Integer> lightColor){

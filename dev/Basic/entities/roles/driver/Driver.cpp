@@ -27,6 +27,7 @@
 #include "geospatial/Crossing.hpp"
 #include "util/OutputUtil.hpp"
 #include "util/DynamicVector.hpp"
+#include "util/GeomHelpers.hpp"
 
 
 using namespace sim_mob;
@@ -377,7 +378,7 @@ bool sim_mob::Driver::isReachLinkEnd() const
 bool sim_mob::Driver::isLeaveIntersection() const
 {
 	double currDistToEntryPoint = dist(vehicle->getX(), vehicle->getY(), xTurningStart, yTurningStart);
-	return currDisToEntrypoint >= disToEntryPoint;
+	return currDistToEntryPoint >= disToEntryPoint;
 }
 
 
@@ -696,12 +697,11 @@ void sim_mob::Driver::setBackToOrigin()
 {
 	//NOTE: Right now this function isn't called anywhere interesting, so just give it a random heading.
 	//TODO: This won't work.
-	DynamicVector someVector(parent->originNode->location->getX(), parent->originNode->location->getY(), 1, 1);
-	vehicle->pos = MovementVector(someVector);
+	vehicle->placeAt(*parent->originNode->location, Point2D(1, 1));
 
-	vehicle->velocity.scaleVectTo(0);
-	vehicle->velocity_lat.scaleVectTo(0);
-	vehicle->accel.scaleVectTo(0);
+	vehicle->setVelocity(0);
+	vehicle->setLatVelocity(0);
+	vehicle->setAcceleration(0);
 
 	setToParent();
 }
@@ -746,38 +746,38 @@ void sim_mob::Driver::setOrigin(UpdateParams& p)
 	vehicle->setAcceleration(0);
 
 	//Scan and save the lanes to the left and right.
-	updateAdjacentLanes();
+	updateAdjacentLanes(p);
 
 	//Calculate and save the total length of the current polyline.
-	updateCurrLaneLength();
+	updateCurrLaneLength(p);
 }
 
 
 //TODO
 void sim_mob::Driver::findCrossing()
 {
-	//const Crossing* crossing=dynamic_cast<const Crossing*>(currRoadSegment->nextObstacle(vehicle->xPos_,true).item);
-	const Crossing* crossing=dynamic_cast<const Crossing*>(currRoadSegment->nextObstacle(vehicle->pos.getX(),true).item);
+	const Crossing* crossing=dynamic_cast<const Crossing*>(pathMover.getCurrSegment()->nextObstacle(vehicle->getDistanceMovedInSegment(),true).item);
 
-	if(crossing)
-	{
+	if(crossing) {
 		Point2D far1 = crossing->farLine.first;
 		Point2D far2 = crossing->farLine.second;
 
+		Point2D startPt = polypathMover.getCurrPolypoint();
+		Point2D endPt = polypathMover.getNextPolypoint();
+
 		double slope1, slope2;
-		slope1 = (double)(far2.getY()-far1.getY())/(far2.getX()-far1.getX());
-		slope2 = (double)(currPolylineSegEnd.getY()-currPolylineSegStart.getY())/
-				(currPolylineSegEnd.getX()-currPolylineSegStart.getX());
-		int x = (slope2*currPolylineSegStart.getX()-slope1*far1.getX()+far1.getY()-currPolylineSegStart.getY())/(slope2-slope1);
+		slope1 = static_cast<double>(far2.getY()-far1.getY())/(far2.getX()-far1.getX());
+		slope2 = static_cast<double>(endPt.getY() - startPt.getY()) / (endPt.getX() - startPt.getX());
+		int x = (slope2*startPt.getX()-slope1*far1.getX()+far1.getY()-startPt.getY())/(slope2-slope1);
 		int y = slope1*(x-far1.getX())+far1.getY();
 
-		double xOffset=x-currPolylineSegStart.getX();
-		double yOffset=y-currPolylineSegStart.getY();
+		double xOffset=x-startPt.getX();
+		double yOffset=y-startPt.getY();
 		xPosCrossing_= xOffset*xDirection+yOffset*yDirection;
 		isCrossingAhead = true;
-	}
-	else
+	} else {
 		isCrossingAhead = false;
+	}
 }
 
 void sim_mob::Driver::updateAcceleration(double newFwdAcc)
@@ -811,9 +811,9 @@ void sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
 }
 
 
-namespace {
 //Helper function: check if a modified distanc is less than the current minimum and save it.
-void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other) {
+void sim_mob::Driver::check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other)
+{
 	//Subtract the size of the car from the distance between them
 	distance = fabs(distance) - veh->length/2 - other->getVehicle()->length/2;
 	if(distance <= res.distance) {
@@ -822,7 +822,6 @@ void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehi
 	}
 
 }
-} //End anon namespace
 
 
 //TODO: I have the feeling that this process of detecting nearby drivers in front of/behind you and saving them to
@@ -853,7 +852,7 @@ void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* oth
 		} else if(other_lane == params.leftLane) { //the vehicle is on the left lane
 			check_and_set_min_car_dist((fwd?params.nvLeftFwd:params.nvLeftBack), distance, vehicle, other_driver);
 		} else if(other_lane == params.rightLane) { //The vehicle is on the right lane
-			if(distance>0 || (distance < 0 && -distance<=minRBDistance)) {
+			if(distance>0 || (distance < 0 && -distance<=params.nvRightBack.distance)) {
 				check_and_set_min_car_dist((fwd?params.nvRightFwd:params.nvRightBack), distance, vehicle, other_driver);
 			}
 		}
@@ -1044,7 +1043,7 @@ void sim_mob::Driver::enterNextLink(UpdateParams& p)
 	//TODO: Lateral accelleration wasn't being used. You might enable it again here if you want it.
 	//Reset lateral movement/velocity to zero.
 	vehicle->setLatVelocity(0);
-	vehicle->pos.resetLateral();
+	vehicle->resetLateralMovement();
 
 	//Chain to regular link driving behavior.
 	linkDriving(p);
@@ -1055,7 +1054,7 @@ void sim_mob::Driver::enterNextLink(UpdateParams& p)
 void sim_mob::Driver::updatePosLC(UpdateParams& p)
 {
 	if(changeDecision == LCS_RIGHT) {
-		double vehicleLeftMovement = vehicle->pos.getLateralMovement();
+		double vehicleLeftMovement = vehicle->getLateralMovement();
 		if(!lcEnterNewLane && -vehicleLeftMovement >= 150) { //TODO: Skip hardcoded values! Should this be laneWidth/2?
 			changeLaneWithinSameRS(p, p.rightLane);
 			lcEnterNewLane = true;
@@ -1063,19 +1062,19 @@ void sim_mob::Driver::updatePosLC(UpdateParams& p)
 		if(lcEnterNewLane && vehicleLeftMovement <=0) {
 			//New lane, reset velocity and lateral movement.
 			isLaneChanging =false;
-			vehicle->pos.resetLateral();
-			vehicle->velocity_lat.scaleVectTo(0);
+			vehicle->resetLateralMovement();
+			vehicle->setLatVelocity(0);
 		}
 	} else if(changeDecision == LCS_LEFT) {
-		if(!lcEnterNewLane && vehicle->pos.getLateralMovement()>=150) {
+		if(!lcEnterNewLane && vehicle->getLateralMovement()>=150) {
 			changeLaneWithinSameRS(p, p.leftLane);
 			lcEnterNewLane = true;
 		}
-		if(lcEnterNewLane && vehicle->pos.getLateralMovement() >=0) {
+		if(lcEnterNewLane && vehicle->getLateralMovement() >=0) {
 			//New lane, reset velocity and lateral movement.
 			isLaneChanging =false;
-			vehicle->pos.resetLateral();
-			vehicle->velocity_lat.scaleVectTo(0);
+			vehicle->resetLateralMovement();
+			vehicle->setLatVelocity(0);
 		}
 	}
 }
@@ -1089,7 +1088,7 @@ bool sim_mob::Driver::isCloseToLinkEnd(UpdateParams& p)
 //Retrieve the current traffic signal based on our RoadSegment's end node.
 void sim_mob::Driver::updateTrafficSignal()
 {
-	const Node* node = currRoadSegment->getEnd();
+	const Node* node = pathMover.getCurrSegment()->getEnd();
 	trafficSignal = node ? StreetDirectory::instance().signalAt(*node) : nullptr;
 }
 

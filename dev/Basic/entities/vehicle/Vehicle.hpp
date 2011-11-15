@@ -37,6 +37,9 @@ public:
 	double getY() const {
 		return position.getY();
 	}
+	double getDistanceMovedInSegment() const {
+		return position.getAmountMoved();
+	}
 	double getVelocity() const {
 		return velocity.getMagnitude();
 	}
@@ -70,6 +73,12 @@ public:
 	}
 	void moveLat(double amt) {
 		position.moveLat(amt);
+	}
+	void resetLateralMovement() {
+		position.resetLateral();
+	}
+	double getLateralMovement() {
+		return position.getLateralMovement();
 	}
 
 	//Complex

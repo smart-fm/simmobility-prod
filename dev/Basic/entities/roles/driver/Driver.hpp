@@ -204,6 +204,8 @@ public:
 
 	/****************IN REAL NETWORK****************/
 private:
+	static void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
+
 	//Aggregate class to encapsulate movement along a list of RoadSegments.
 	RoadSegmentMover pathMover;
 

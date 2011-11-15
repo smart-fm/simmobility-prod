@@ -32,6 +32,9 @@ public:
 	double getY() const {
 		return getPos().y;
 	}
+	double getAmountMoved() const {
+		return std::min(std::max(0.0,amount), vect.getMagnitude());
+	}
 	double getOverflow() const {
 		return std::max(0.0, amount-vect.getMagnitude());
 	}

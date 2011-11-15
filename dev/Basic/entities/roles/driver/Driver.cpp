@@ -495,7 +495,7 @@ void sim_mob::Driver::updateAdjacentLanes(UpdateParams& p)
 	if(currLaneIndex>0) {
 		p.rightLane = pathMover.getCurrSegment()->getLanes().at(currLaneIndex-1);
 	}
-	if(currLaneIndex < currRoadSegment->getLanes().size()-1) {
+	if(currLaneIndex < pathMover.getCurrSegment()->getLanes().size()-1) {
 		p.leftLane = pathMover.getCurrSegment()->getLanes().at(currLaneIndex+1);
 	}
 }
@@ -510,7 +510,7 @@ void sim_mob::Driver::changeLaneWithinSameRS(UpdateParams& p, const Lane* newLan
 	//Update Lanes, polylines, RoadSegments, etc.
 	p.currLane = newLane;
 	polypathMover.setPath(newLane->getPolyline());
-	changeLaneGeneralUpdate(p);
+	syncCurrLaneCachedInfo(p);
 
 	polylineSegIndex = updateStartEndIndex(currLanePolyLine, p.currLaneOffset, polylineSegIndex);
 
@@ -530,7 +530,7 @@ void sim_mob::Driver::changeToNewRoadSegmentSameLink(UpdateParams& p, const Lane
 	p.currLane = newLane;
 	pathMover.moveToNextSegment();
 	polypathMover.setPath(newLane->getPolyline());
-	changeLaneGeneralUpdate(p);
+	syncCurrLaneCachedInfo(p);
 
 	p.currLaneOffset = 0;
 	polylineSegIndex = 0;
@@ -582,7 +582,7 @@ void sim_mob::Driver::changeToNewLinkAfterIntersection(UpdateParams& p, const La
 {
 	//Update Lanes, polylines, RoadSegments, etc.
 	newPathMover(p.currLane, newLane);
-	changeLaneGeneralUpdate(p, newLane);
+	syncCurrLaneCachedInfo(p);
 
 	p.currLaneOffset = 0;
 	polylineSegIndex = 0;
@@ -606,21 +606,13 @@ void sim_mob::Driver::changeToNewLinkAfterIntersection(UpdateParams& p, const La
 
 
 //General update information for whenever a Segment may have changed.
-void sim_mob::Driver::changeLaneGeneralUpdate(UpdateParams& p)
+void sim_mob::Driver::syncCurrLaneCachedInfo(UpdateParams& p)
 {
-	//Everything is based on changing the current lane.
-	/*p.currLane = nextLaneInNextLink;
-
-	//Now update our mover and various properties about this new lane.
-	if (pathMover.checkNextRoadSegment(p.currLane->getRoadSegment())) {
-		pathMover.moveToNextSegment();  //We are advancing within the same RoadSegment.
-	} else {
-
-	}
-	currRoadSegment = p.currLane->getRoadSegment();*/
+	//The lane may have changed; reset the current lane index.
 	currLaneIndex = getLaneIndex(p.currLane);
+
+	//Update which lanes are adjacent, and the length of the current polyline.
 	updateAdjacentLanes(p);
-	currLanePolyLine = &(p.currLane->getPolyline());
 	updateCurrLaneLength(p);
 
 	//Finally, update target/max speed to match the new Lane's rules.

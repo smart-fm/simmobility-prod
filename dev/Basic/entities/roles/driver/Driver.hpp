@@ -302,7 +302,7 @@ private:
 
 	//A bit verbose, but only used in 1 or 2 places.
 	void newPathMover(const Lane*& oldLane, const Lane* newLane);
-	void changeLaneGeneralUpdate(UpdateParams& p);
+	void syncCurrLaneCachedInfo(UpdateParams& p);
 	void changeLaneWithinSameRS(UpdateParams& p, const Lane* newLane);   //mode 0
 	void changeToNewRoadSegmentSameLink(UpdateParams& p, const Lane* newLane); //mode 1
 	void changeToNewLinkAfterIntersection(UpdateParams& p, const Lane* newLane); //mode 2

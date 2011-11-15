@@ -33,6 +33,7 @@ using namespace sim_mob;
 using std::max;
 using std::vector;
 using std::set;
+using std::map;
 
 //for unit conversion
 double sim_mob::Driver::feet2Unit(double feet)
@@ -385,41 +386,19 @@ bool sim_mob::Driver::isLeaveIntersection() const
 	return currDisToEntrypoint >= disToEntryPoint;
 }
 
-bool sim_mob::Driver::isPedetrianOnTargetCrossing()
-{
-	if(!trafficSignal)
-		return false;
-	std::map<Link const *, size_t> const linkMap = trafficSignal->links_map();
-	std::map<Link const *, size_t>::const_iterator link_i;
-	size_t index = 0;
-	for(link_i=linkMap.begin();link_i!=linkMap.end();link_i++)
-	{
-		if((*link_i).first==allRoadSegments.at(RSIndex+1)->getLink())
-		{
-			index = (*link_i).second;
-			break;
-		}
-	}
 
-	std::map<Crossing const *, size_t> const crossingMap = trafficSignal->crossings_map();
-	std::map<Crossing const *, size_t>::const_iterator crossing_i;
-	const Crossing* crossing = nullptr;
-	for(crossing_i=crossingMap.begin();crossing_i!=crossingMap.end();crossing_i++)
-	{
-		if((*crossing_i).second==index)
-		{
-			crossing = (*crossing_i).first;
-			break;
-		}
-	}
-
-	if(!crossing)
-		return false;
+namespace {
+vector<const Agent*> GetAgentsInCrossing(const Crossing* crossing) {
+	//Put x and y coordinates into planar arrays.
 	int x[4] = {crossing->farLine.first.getX(),crossing->farLine.second.getX(),crossing->nearLine.first.getX(),crossing->nearLine.second.getX()};
 	int y[4] = {crossing->farLine.first.getY(),crossing->farLine.second.getY(),crossing->nearLine.first.getY(),crossing->nearLine.second.getY()};
-    int xmin = x[0],xmax = x[0],ymin = y[0],ymax = y[0];
-	for(int i=0;i<4;i++)
-    {
+
+	//Prepare minimum/maximum values.
+    int xmin = x[0];
+    int xmax = x[0];
+    int ymin = y[0];
+    int ymax = y[0];
+	for(int i=0;i<4;i++) {
 		if(x[i]<xmin)
 			xmin = x[i];
 		if(x[i]>xmax)
@@ -429,18 +408,57 @@ bool sim_mob::Driver::isPedetrianOnTargetCrossing()
 		if(y[i]>ymax)
 			ymax = y[i];
     }
-	Point2D p1 = Point2D(xmin,ymin);
-	Point2D p2 = Point2D(xmax,ymax);
 
-	std::vector<const Agent*> agentsInRect = AuraManager::instance().agentsInRect(p1,p2);
-	for(size_t i=0;i<agentsInRect.size();i++)
-	{
-		const Person* other = dynamic_cast<const Person *>(agentsInRect.at(i));
-		if(!other)
-			continue;
-		const Pedestrian* pedestrian = dynamic_cast<const Pedestrian*>(other->getRole());
-		if(pedestrian && pedestrian->isOnCrossing())
-			return true;
+	//Create a rectangle from xmin,ymin to xmax,ymax
+	//TODO: This is completely unnecessary; Crossings are already in order, so
+	//      crossing.far.first and crossing.near.second already defines a rectangle.
+	Point2D rectMinPoint = Point2D(xmin,ymin);
+	Point2D rectMaxPoint = Point2D(xmax,ymax);
+
+	return AuraManager::instance().agentsInRect(rectMinPoint, rectMaxPoint);
+}
+} //End anon namespace
+
+
+bool sim_mob::Driver::isPedetrianOnTargetCrossing()
+{
+	if(!trafficSignal) {
+		return false;
+	}
+
+	map<Link const*, size_t> const linkMap = trafficSignal->links_map();
+	int index = -1;
+	for(map<Link const*, size_t>::const_iterator link_i=linkMap.begin(); link_i!=linkMap.end(); link_i++) {
+		if(pathMover.getNextSegment() && link_i->first==pathMover.getNextSegment()->getLink()) {
+			index = (*link_i).second;
+			break;
+		}
+	}
+
+	map<Crossing const *, size_t> const crossingMap = trafficSignal->crossings_map();
+	const Crossing* crossing = nullptr;
+	for(map<Crossing const *, size_t>::const_iterator crossing_i=crossingMap.begin(); crossing_i!=crossingMap.end(); crossing_i++) {
+		if(static_cast<int>(crossing_i->second)==index) {
+			crossing = crossing_i->first;
+			break;
+		}
+	}
+
+	//Have we found a relevant crossing?
+	if(!crossing) {
+		return false;
+	}
+
+	//Search through the list of agents in that crossing.
+	vector<const Agent*> agentsInRect = GetAgentsInCrossing(crossing);
+	for(vector<const Agent*>::iterator it=agentsInRect.begin(); it!=agentsInRect.end(); it++) {
+		const Person* other = dynamic_cast<const Person *>(*it);
+		if(other) {
+			const Pedestrian* pedestrian = dynamic_cast<const Pedestrian*>(other->getRole());
+			if(pedestrian && pedestrian->isOnCrossing()) {
+				return true;
+			}
+		}
 	}
 	return false;
 }

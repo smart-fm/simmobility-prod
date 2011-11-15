@@ -174,11 +174,11 @@ void sim_mob::Driver::update_general(UpdateParams& params, frame_t frameNumber)
 		return;
 	}
 
-	//
+	//Save the nearest agents in your lane and the surrounding lanes, stored by their
+	// position before/behind you. Save nearest fwd pedestrian too.
 	updateNearbyAgents(params);
 
-
-	//inside intersection
+	//Driving behavior differs drastically inside intersections.
 	if(params.isInIntersection) {
 		intersectionDriving(params);
 	} else {
@@ -282,20 +282,16 @@ void sim_mob::Driver::output(frame_t frameNumber)
 //the movement is based on absolute position
 void sim_mob::Driver::intersectionDriving(UpdateParams& p)
 {
-	if(isLeaveIntersection())
-	{
-		inIntersection = false;
+	//First detect if we've just left the intersection. Otherwise, perform regular intersection driving.
+	if(isLeaveIntersection()) {
+		p.isInIntersection = false;
 		enterNextLink(p);
-	}
-	else
-	{
+	} else {
 		//TODO: Intersection driving is unlikely to work until lane driving is fixed.
 		//double xComp = vehicle->velocity.getEndX() + vehicle->velocity_lat.getEndX();
 		//double yComp = vehicle->velocity.getEndY() + vehicle->velocity_lat.getEndY();
 		//vehicle->pos.moveFwd(xComp*timeStep);
 		//vehicle->pos.moveLat(yComp*timeStep);
-
-		abs2relat();
 	}
 }
 
@@ -375,10 +371,7 @@ bool sim_mob::Driver::isReachLinkEnd() const
 
 bool sim_mob::Driver::isLeaveIntersection() const
 {
-	double currXoffset = vehicle->getX() - xTurningStart;
-	double currYoffset = vehicle->getY() - yTurningStart;
-
-	int currDisToEntrypoint = sqrt(currXoffset*currXoffset + currYoffset*currYoffset);
+	double currDistToEntryPoint = dist(vehicle->getX(), vehicle->getY(), xTurningStart, yTurningStart);
 	return currDisToEntrypoint >= disToEntryPoint;
 }
 
@@ -452,8 +445,7 @@ void sim_mob::Driver::updateRSInCurrLink(UpdateParams& p)
 		for(i=lcs.begin();i!=lcs.end();i++){
 			if((*i)->getLaneTo()->getRoadSegment()==allRoadSegments.at(RSIndex+1)
 					&& (*i)->getLaneFrom()==p.currLane){
-				p.currLane = (*i)->getLaneTo();
-				updateCurrInfo_RSChangeSameLink(p);
+				changeToNewRoadSegmentSameLink(p, (*i)->getLaneTo());
 				return;
 			}
 		}
@@ -464,11 +456,12 @@ void sim_mob::Driver::updateRSInCurrLink(UpdateParams& p)
 	//when end node of current road segment is a uninode
 	const UniNode* uNode=dynamic_cast<const UniNode*>(currNode);
 	if(uNode){
-		if (p.currLane) { //Avoid possible null dereference
-			p.currLane = uNode->getOutgoingLane(*p.currLane);
-			if(p.currLane && p.currLane->getRoadSegment()==allRoadSegments.at(RSIndex+1))
-				updateCurrInfo_RSChangeSameLink(p);
-		}
+		//if (p.currLane) { //Avoid possible null dereference
+			const Lane* newLane = uNode->getOutgoingLane(*p.currLane);
+			if(newLane && newLane->getRoadSegment()==allRoadSegments.at(RSIndex+1)) {
+				changeToNewRoadSegmentSameLink(p, newLane);
+			}
+		//}
 	}
 }
 
@@ -512,9 +505,10 @@ void sim_mob::Driver::updateAdjacentLanes(UpdateParams& p)
 
 //when current lane has been changed, update current information.
 //mode 0: within same RS, for lane changing model
-void sim_mob::Driver::updateCurrInfo_SameRS(UpdateParams& p)
+void sim_mob::Driver::changeLaneWithinSameRS(UpdateParams& p, const Lane* newLane)
 {
-	updateCurrGeneralInfo(p);
+	//Update Lanes, polylines, RoadSegments, etc.
+	changeLaneGeneralUpdate(p);
 
 	polylineSegIndex = updateStartEndIndex(currLanePolyLine, p.currLaneOffset, polylineSegIndex);
 
@@ -528,9 +522,10 @@ void sim_mob::Driver::updateCurrInfo_SameRS(UpdateParams& p)
 
 //when current lane has been changed, update current information.
 //mode 1: during RS changing, but in the same link
-void sim_mob::Driver::updateCurrInfo_RSChangeSameLink(UpdateParams& p)
+void sim_mob::Driver::changeToNewRoadSegmentSameLink(UpdateParams& p, const Lane* newLane)
 {
-	updateCurrGeneralInfo(p);
+	//Update Lanes, polylines, RoadSegments, etc.
+	changeLaneGeneralUpdate(p);
 
 	p.currLaneOffset = 0;
 	polylineSegIndex = 0;
@@ -553,9 +548,10 @@ void sim_mob::Driver::updateCurrInfo_RSChangeSameLink(UpdateParams& p)
 
 //when current lane has been changed, update current information.
 //mode 2: during crossing intersection
-void sim_mob::Driver::updateCurrInfo_CrossIntersection(UpdateParams& p)
+void sim_mob::Driver::changeToNewLinkAfterIntersection(UpdateParams& p, const Lane* newLane)
 {
-	updateCurrGeneralInfo(p);
+	//Update Lanes, polylines, RoadSegments, etc.
+	changeLaneGeneralUpdate(p);
 
 	p.currLaneOffset = 0;
 	polylineSegIndex = 0;
@@ -578,12 +574,14 @@ void sim_mob::Driver::updateCurrInfo_CrossIntersection(UpdateParams& p)
 }
 
 
-
-
-
-void sim_mob::Driver::updateCurrGeneralInfo(UpdateParams& p)
+//General update information for whenever a Segment may have changed.
+void sim_mob::Driver::changeLaneGeneralUpdate(UpdateParams& p, const Lane* newLane)
 {
+	//First, reset our current lane and update our mover.
+	p.currLane = nextLaneInNextLink;
 	currRoadSegment = p.currLane->getRoadSegment();
+
+
 	currLaneIndex = getLaneIndex(p.currLane);
 	updateAdjacentLanes();
 	currLanePolyLine = &(p.currLane->getPolyline());
@@ -1034,17 +1032,21 @@ void sim_mob :: Driver :: intersectionVelocityUpdate()
 
 void sim_mob :: Driver :: enterNextLink(UpdateParams& p)
 {
+	//Set our current lane parameters equal to those we calculated upon entering the
+	// intersection
 	isLinkForward = nextIsForward;
-	p.currLane = nextLaneInNextLink;
-	updateCurrInfo_CrossIntersection(p);
-	abs2relat();
+	//p.currLane = nextLaneInNextLink;
+
+	//Update information.
+	changeToNewLinkAfterIntersection(p, nextLaneInNextLink);
 
 	//TODO: Lateral accelleration wasn't being used. You might enable it again here if you want it.
+	//Reset lateral movement/velocity to zero.
 	vehicle->setLatVelocity(0);
 	vehicle->pos.resetLateral();
 
+	//Chain to regular link driving behavior.
 	linkDriving(p);
-	relat2abs();
 }
 
 void sim_mob::Driver::updatePosLC(UpdateParams& p)
@@ -1055,8 +1057,7 @@ void sim_mob::Driver::updatePosLC(UpdateParams& p)
 		//if(!lcEnterNewLane && -vehicle->yPos_>=150)//currLane->getWidth()/2.0)
 		if(!lcEnterNewLane && -vehicle->pos.getLateralMovement() >=150)//currLane->getWidth()/2.0)
 		{
-			p.currLane = p.rightLane;
-			updateCurrInfo_SameRS(p);
+			changeLaneWithinSameRS(p, p.rightLane);
 			abs2relat();
 			lcEnterNewLane = true;
 		}
@@ -1077,8 +1078,7 @@ void sim_mob::Driver::updatePosLC(UpdateParams& p)
 		//if(!lcEnterNewLane && vehicle->yPos_>=150)//currLane->getWidth()/2.0)
 		if(!lcEnterNewLane && vehicle->pos.getLateralMovement()>=150)//currLane->getWidth()/2.0)
 		{
-			p.currLane = p.leftLane;
-			updateCurrInfo_SameRS(p);
+			changeLaneWithinSameRS(p, p.leftLane);
 			abs2relat();
 			lcEnterNewLane = true;
 		}

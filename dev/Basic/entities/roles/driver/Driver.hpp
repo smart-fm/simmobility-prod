@@ -226,8 +226,7 @@ private:
 
 
 
-	const Link* nextLink;
-	const Lane* nextLaneInNextLink;
+
 	const Link* desLink;
     double currLinkOffset;
 	double traveledDis; //the distance traveled within current time step
@@ -252,7 +251,12 @@ private:
 	int disToEntryPoint;
 	bool isCrossingAhead;
 	bool closeToCrossing;
+
+	//Parameters relating to the next Link we plan to move to after an intersection.
+	const Link* nextLink;
+	const Lane* nextLaneInNextLink;
 	bool nextIsForward;
+
 	bool isReachGoal;
 	bool lcEnterNewLane;
 	bool isTrafficLightStop;
@@ -296,10 +300,11 @@ private:
 
 	void setOrigin(UpdateParams& p);
 
-	void updateCurrGeneralInfo(UpdateParams& p);
-	void updateCurrInfo_SameRS(UpdateParams& p);   //mode 0
-	void updateCurrInfo_RSChangeSameLink(UpdateParams& p); //mode 1
-	void updateCurrInfo_CrossIntersection(UpdateParams& p); //mode 2
+	//A bit verbose, but only used in 1 or 2 places.
+	void changeLaneGeneralUpdate(UpdateParams& p, const Lane* newLane);
+	void changeLaneWithinSameRS(UpdateParams& p, const Lane* newLane);   //mode 0
+	void changeToNewRoadSegmentSameLink(UpdateParams& p, const Lane* newLane); //mode 1
+	void changeToNewLinkAfterIntersection(UpdateParams& p, const Lane* newLane); //mode 2
 
 	void updateAdjacentLanes(UpdateParams& p);
 	void updateRSInCurrLink(UpdateParams& p);

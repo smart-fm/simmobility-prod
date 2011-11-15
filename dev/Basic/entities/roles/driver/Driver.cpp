@@ -1046,7 +1046,7 @@ void sim_mob::Driver::enterNextLink(UpdateParams& p)
 //TODO: This might not assume that the "relative" coordinate is halfway down the lane's width. Might need to fix.
 void sim_mob::Driver::updatePosLC(UpdateParams& p)
 {
-	if(changeDecision == LCS_RIGHT) {
+	if(changeDecision==LCS_RIGHT && p.rightLane) {
 		double vehicleLeftMovement = vehicle->getLateralMovement();
 		if(!lcEnterNewLane && -vehicleLeftMovement >= 150) { //TODO: Skip hardcoded values! Should this be laneWidth/2?
 			changeLaneWithinSameRS(p, p.rightLane);
@@ -1058,7 +1058,7 @@ void sim_mob::Driver::updatePosLC(UpdateParams& p)
 			vehicle->resetLateralMovement();
 			vehicle->setLatVelocity(0);
 		}
-	} else if(changeDecision == LCS_LEFT) {
+	} else if(changeDecision == LCS_LEFT && p.leftLane) {
 		if(!lcEnterNewLane && vehicle->getLateralMovement()>=150) {
 			changeLaneWithinSameRS(p, p.leftLane);
 			lcEnterNewLane = true;

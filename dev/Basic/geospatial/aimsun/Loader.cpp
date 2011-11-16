@@ -331,6 +331,38 @@ void ComputePolypointDistance(Polyline& pt)
 /**
  * Temporary functions.
  */
+DynamicVector GetCrossingNearLine(Node& atNode, Node& toNode)
+{
+	//Get the outgoing set of crossing IDs
+	map<Node*, vector<int> >::iterator outgoing = atNode.crossingLaneIdsByOutgoingNode.find(&toNode);
+	if (outgoing!=atNode.crossingLaneIdsByOutgoingNode.end()) {
+		//Search for the one closest to the toNode.
+		DynamicVector resLine;
+		double minDist = -1;
+		for (vector<int>::iterator it2=outgoing->second.begin(); it2!=outgoing->second.end(); it2++) {
+			//Get this item
+			map<int, vector<Crossing*> >::iterator crossingIt = atNode.crossingsAtNode.find(*it2);
+			if (crossingIt!=atNode.crossingsAtNode.end()) {
+				//Now make a vector for it.
+				DynamicVector currPoint(
+					crossingIt->second.front()->xPos, crossingIt->second.front()->yPos,
+					crossingIt->second.back()->xPos, crossingIt->second.back()->yPos
+				);
+				DynamicVector midPoint(currPoint);
+				midPoint.scaleVectTo(midPoint.getMagnitude()/2).translateVect();
+				double currDist = sim_mob::dist(midPoint.getX(), midPoint.getY(), toNode.xPos, toNode.yPos);
+				if (minDist==-1 || currDist < minDist) {
+					resLine = currPoint;
+					minDist = currDist;
+				}
+			}
+		}
+		if (minDist > -1) {
+			return resLine;
+		}
+	}
+	throw std::runtime_error("Can't find crossing near line in temporary cleanup function.");
+}
 Section& GetSection(Node& start, Node& end)
 {
 	for (vector<Section*>::iterator it=start.sectionsAtNode.begin(); it!=start.sectionsAtNode.end(); it++) {
@@ -347,6 +379,10 @@ void ScaleLanesToCrossing(Node& start, Node& end, bool scaleEnd)
 	Section& sect = GetSection(start, end);
 
 	//Retrieve the crossing's "near" line.
+	DynamicVector endLine = GetCrossingNearLine(scaleEnd?end:start, scaleEnd?start:end);
+
+	std::cout <<"Crossing near line: " <<static_cast<int>(endLine.getX()) <<"," <<static_cast<int>(endLine.getY());
+	std::cout <<" ==> " <<static_cast<int>(endLine.getEndX()) <<"," <<static_cast<int>(endLine.getEndY()) <<"\n";
 
 
 
@@ -420,32 +456,15 @@ void ManuallyFixVictoriaStreetMiddleRoadIntersection(map<int, Node>& nodes, map<
 	RebuildCrossing(nodes[66508], nodes[75956], 3956, 3719, true, 450, 200);
 	RebuildCrossing(nodes[66508], nodes[84882], 4579, 1251, true, 450, 200);
 
-
-
-
 	//Step 2: Scale lane lines to match the crossings.
 	ScaleLanesToCrossing(nodes[93730], nodes[66508], true);
 	ScaleLanesToCrossing(nodes[66508], nodes[93730], false);
-
-	//TEMP:
-	Node& end = nodes[66508];
-	std::cout <<"Crossing lines at Node 66508: \n";
-	for (map<Node*, vector<int> >::iterator it=end.crossingLaneIdsByOutgoingNode.begin(); it!=end.crossingLaneIdsByOutgoingNode.end(); it++) {
-		std::cout <<"  to Node: " <<it->first->id <<"\n";
-		for (vector<int>::iterator it2=it->second.begin(); it2!=it->second.end(); it2++) {
-			if (end.crossingsAtNode.count(*it2)==0) {
-				throw std::runtime_error("Node doesn't contain a reference to its crossing.");
-			}
-			std::cout <<"    ID: " <<*it2 <<"\n";
-			vector<Crossing*>& crossPoints = end.crossingsAtNode[*it2];
-			for (vector<Crossing*>::iterator it3=crossPoints.begin(); it3!=crossPoints.end(); it3++) {
-				std::cout <<"      " <<static_cast<int>((*it3)->xPos) <<"," <<static_cast<int>((*it3)->yPos) <<"\n";
-			}
-		}
-	}
-
-	//throw std::runtime_error("Done");
-
+	ScaleLanesToCrossing(nodes[65120], nodes[66508], true);
+	ScaleLanesToCrossing(nodes[66508], nodes[65120], false);
+	ScaleLanesToCrossing(nodes[75956], nodes[66508], true);
+	ScaleLanesToCrossing(nodes[66508], nodes[75956], false);
+	ScaleLanesToCrossing(nodes[84882], nodes[66508], true);
+	ScaleLanesToCrossing(nodes[66508], nodes[84882], false);
 }
 
 

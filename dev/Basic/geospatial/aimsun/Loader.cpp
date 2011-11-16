@@ -608,12 +608,6 @@ void CutSingleLanePolyline(vector<Point2D>& laneLine, const DynamicVector& cutLi
 		throw std::runtime_error("Temporary lane function is somehow unable to compute line intersections.");
 	}
 
-	//TEMP
-	std::cout <<"Testing: " <<cutLine.getMagnitude() <<"\n";
-	std::cout <<"  Cut line: " <<cutLine.getX() <<"," <<cutLine.getY() <<" ==>" <<static_cast<int>(cutLine.getEndX()) <<"," <<static_cast<int>(cutLine.getEndY()) <<"\n";
-	std::cout <<"  Lane line: " <<laneLine.front().getX() <<"," <<laneLine.front().getY() <<" ==> " <<laneLine.back().getX() <<"," <<laneLine.back().getY() <<"\n";
-	std::cout <<"  Intersection point: " <<intPt.getX() <<"," <<intPt.getY() <<"\n";
-
 	//Now update either the first or last point
 	laneLine[trimStart?0:laneLine.size()-1] = intPt;
 }
@@ -701,11 +695,6 @@ void sim_mob::aimsun::Loader::TMP_TrimAllLaneLines(sim_mob::RoadSegment* seg, co
 {
 	//Nothing to do?
 	if (cutLine.getMagnitude()==0.0) {
-		return;
-	}
-
-	//TEMP
-	if (!trimStart) {
 		return;
 	}
 

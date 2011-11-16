@@ -18,7 +18,8 @@ PFont f;
 PFont f2;
 
 //Turn on/off crossings
-boolean paintCrossings = true;
+boolean paintCrossings =true;
+boolean paintCrossingShapes =true;
 
 //Turn on/off lanes
 boolean paintLanes = true;
@@ -674,7 +675,7 @@ void draw()
   }
   
   //Draw all Cross Shapes
-  if (paintCrossings) {
+  if (paintCrossingShapes) {
     strokeWeight(2.0);
     stroke(csStroke);
     fill(csFill);

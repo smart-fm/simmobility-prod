@@ -334,10 +334,11 @@ void ComputePolypointDistance(Polyline& pt)
 Section& GetSection(Node& start, Node& end)
 {
 	for (vector<Section*>::iterator it=start.sectionsAtNode.begin(); it!=start.sectionsAtNode.end(); it++) {
-		if ((*it)->id==end.id) {
+		if ((*it)->toNode->id==end.id) {
 			return **it;
 		}
 	}
+	std::cout <<"Error finding section from " <<start.id <<" to " <<end.id <<std::endl;
 	throw std::runtime_error("Can't find section in temporary cleanup function.");
 }
 void ScaleLanesToCrossing(Node& start, Node& end, bool scaleEnd)
@@ -350,22 +351,100 @@ void ScaleLanesToCrossing(Node& start, Node& end, bool scaleEnd)
 
 
 }
+void ResizeTo2(vector<Crossing*>& vec)
+{
+	if (vec.size()<=2) {
+		if (vec.size()==2) {
+			return;
+		}
+		throw std::runtime_error("Can't resize if vector is empty or has only one element.");
+	}
+
+	vec[1] = vec.back();
+	vec.resize(2, nullptr);
+}
+vector<Crossing*>& GetCrossing(Node& atNode, Node& toNode, size_t crossingID)
+{
+	//Get the outgoing set of crossing IDs
+	map<Node*, vector<int> >::iterator outgoing = atNode.crossingLaneIdsByOutgoingNode.find(&toNode);
+	if (outgoing!=atNode.crossingLaneIdsByOutgoingNode.end()) {
+		//Narrow down to the one we want.
+		for (vector<int>::iterator it2=outgoing->second.begin(); it2!=outgoing->second.end(); it2++) {
+			if (*it2 != static_cast<int>(crossingID)) {
+				continue;
+			}
+			map<int, vector<Crossing*> >::iterator crossingIt = atNode.crossingsAtNode.find(*it2);
+			if (crossingIt!=atNode.crossingsAtNode.end()) {
+				return crossingIt->second;
+			}
+			break;
+		}
+	}
+	throw std::runtime_error("Can't find crossing in temporary cleanup function.");
+}
+void RebuildCrossing(Node& atNode, Node& toNode, size_t baseCrossingID, size_t resCrossingID, bool flipLeft, unsigned int crossingWidthCM, unsigned int paddingCM)
+{
+	//Retrieve the base Crossing and the Crossing we will store the result in.
+	vector<Crossing*>& baseCrossing = GetCrossing(atNode, toNode, baseCrossingID);
+	vector<Crossing*>& resCrossing = GetCrossing(atNode, toNode, resCrossingID);
+
+	//Manual resize may be required
+	ResizeTo2(baseCrossing);
+	ResizeTo2(resCrossing);
+
+	//Set point 1:
+	{
+		DynamicVector vec(baseCrossing.front()->xPos, baseCrossing.front()->yPos, baseCrossing.back()->xPos, baseCrossing.back()->yPos);
+		vec.scaleVectTo(paddingCM).translateVect().flipNormal(!flipLeft);
+		vec.scaleVectTo(crossingWidthCM).translateVect();
+		resCrossing.front()->xPos = vec.getX();
+		resCrossing.front()->yPos = vec.getY();
+	}
+
+	//Set point 2:
+	{
+		DynamicVector vec(baseCrossing.back()->xPos, baseCrossing.back()->yPos, baseCrossing.front()->xPos, baseCrossing.front()->yPos);
+		vec.scaleVectTo(paddingCM).translateVect().flipNormal(flipLeft);
+		vec.scaleVectTo(crossingWidthCM).translateVect();
+		resCrossing.back()->xPos = vec.getX();
+		resCrossing.back()->yPos = vec.getY();
+	}
+
+
+}
 void ManuallyFixVictoriaStreetMiddleRoadIntersection(map<int, Node>& nodes, map<int, Section>& sections, vector<Crossing>& crossings, vector<Lane>& lanes, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
 {
 	//Step 1: Tidy up the crossings.
-	Node& end = nodes[66508];
-	std::cout <<"Crossing lines at Node 66508: \n";
-	for (map<Node*, vector<int> >::iterator it=end.crossingLaneIdsByOutgoingNode.begin(); it!=end.crossingLaneIdsByOutgoingNode.end(); it++) {
-		std::cout <<"  to Node: " <<it->first <<"\n";
-		for (vector<int>::iterator it2=it->second.begin(); it2!=it->second.end(); it2++) {
-			std::cout <<"    " <<*it2 <<": " <<crossings[*it2].xPos <<"," <<crossings[*it2].yPos <<"\n";
-		}
-	}
+	RebuildCrossing(nodes[66508], nodes[93730], 683, 721, true, 450, 200);
+	RebuildCrossing(nodes[66508], nodes[65120], 2419, 2111, false, 400, 200);
+	RebuildCrossing(nodes[66508], nodes[75956], 3956, 3719, true, 450, 200);
+	RebuildCrossing(nodes[66508], nodes[84882], 4579, 1251, true, 450, 200);
+
+
 
 
 	//Step 2: Scale lane lines to match the crossings.
 	ScaleLanesToCrossing(nodes[93730], nodes[66508], true);
 	ScaleLanesToCrossing(nodes[66508], nodes[93730], false);
+
+	//TEMP:
+	Node& end = nodes[66508];
+	std::cout <<"Crossing lines at Node 66508: \n";
+	for (map<Node*, vector<int> >::iterator it=end.crossingLaneIdsByOutgoingNode.begin(); it!=end.crossingLaneIdsByOutgoingNode.end(); it++) {
+		std::cout <<"  to Node: " <<it->first->id <<"\n";
+		for (vector<int>::iterator it2=it->second.begin(); it2!=it->second.end(); it2++) {
+			if (end.crossingsAtNode.count(*it2)==0) {
+				throw std::runtime_error("Node doesn't contain a reference to its crossing.");
+			}
+			std::cout <<"    ID: " <<*it2 <<"\n";
+			vector<Crossing*>& crossPoints = end.crossingsAtNode[*it2];
+			for (vector<Crossing*>::iterator it3=crossPoints.begin(); it3!=crossPoints.end(); it3++) {
+				std::cout <<"      " <<static_cast<int>((*it3)->xPos) <<"," <<static_cast<int>((*it3)->yPos) <<"\n";
+			}
+		}
+	}
+
+	//throw std::runtime_error("Done");
 
 }
 

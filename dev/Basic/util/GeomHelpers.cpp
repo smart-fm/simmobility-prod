@@ -91,7 +91,7 @@ Point2D sim_mob::LineLineIntersect(double x1, double y1, double x2, double y2, d
 	if (denom==0) {
 		//NOTE: For now, I return Double.MAX,Double.MAX. C++11 will introduce some help for this,
 		//      or we could find a better way to do it....
-		return Point2D(std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
+		return Point2D(std::numeric_limits<int>::max(), std::numeric_limits<int>::max());
 		//throw std::runtime_error("Can't compute line-line intersection: division by zero.");
 	}
 	double co1 = x1*y2 - y1*x2;
@@ -100,7 +100,7 @@ Point2D sim_mob::LineLineIntersect(double x1, double y1, double x2, double y2, d
 	//Results!
 	double xRes = (co1*(x3-x4) - co2*(x1-x2)) / denom;
 	double yRes = (co1*(y3-y4) - co2*(y1-y2)) / denom;
-	return Point2D(xRes, yRes);
+	return Point2D(static_cast<int>(xRes), static_cast<int>(yRes));
 }
 Point2D sim_mob::LineLineIntersect(const aimsun::Crossing* const p1, const aimsun::Crossing* p2, const aimsun::Section* sec)
 {
@@ -109,6 +109,10 @@ Point2D sim_mob::LineLineIntersect(const aimsun::Crossing* const p1, const aimsu
 Point2D sim_mob::LineLineIntersect(const DynamicVector& v1, const DynamicVector& v2)
 {
 	return LineLineIntersect(v1.getX(), v1.getY(), v1.getEndX(), v1.getEndY(), v2.getX(), v2.getY(), v2.getEndX(), v2.getEndY());
+}
+Point2D sim_mob::LineLineIntersect(const DynamicVector& v1, const Point2D& p3, const Point2D& p4)
+{
+	return LineLineIntersect(v1.getX(), v1.getY(), v1.getEndX(), v1.getEndY(), p3.getX(), p3.getY(), p4.getX(), p4.getY());
 }
 Point2D sim_mob::LineLineIntersect(const Point2D& p1, const Point2D& p2, const Point2D& p3, const Point2D& p4)
 {

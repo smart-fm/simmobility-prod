@@ -51,6 +51,7 @@
 
 using namespace sim_mob::aimsun;
 using sim_mob::DynamicVector;
+using sim_mob::Point2D;
 using std::vector;
 using std::string;
 using std::set;
@@ -381,11 +382,9 @@ void ScaleLanesToCrossing(Node& start, Node& end, bool scaleEnd)
 	//Retrieve the crossing's "near" line.
 	DynamicVector endLine = GetCrossingNearLine(scaleEnd?end:start, scaleEnd?start:end);
 
-	std::cout <<"Crossing near line: " <<static_cast<int>(endLine.getX()) <<"," <<static_cast<int>(endLine.getY());
-	std::cout <<" ==> " <<static_cast<int>(endLine.getEndX()) <<"," <<static_cast<int>(endLine.getEndY()) <<"\n";
-
-
-
+	//We can't do much until lanes are generated (we could try to guess what our lane generator would
+	// do, but it's easier to set a debug flag).
+	(scaleEnd?sect.HACK_LaneLinesStartLineCut:sect.HACK_LaneLinesEndLineCut) = endLine;
 }
 void ResizeTo2(vector<Crossing*>& vec)
 {
@@ -595,6 +594,20 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 }
 
 
+//Another temporary function
+void CutSingleLanePolyline(vector<Point2D>& laneLine, const DynamicVector& cutLine, bool trimStart)
+{
+	//Compute the intersection of our lane line and the crossing.
+	Point2D intPt = sim_mob::LineLineIntersect(cutLine, laneLine.front(), laneLine.back());
+	if (intPt.getX() == std::numeric_limits<int>::max()) {
+		throw std::runtime_error("Temporary lane function is somehow unable to compute line intersections.");
+	}
+
+	//Now update either the first or last point
+	laneLine[trimStart?0:laneLine.size()-1] = intPt;
+}
+
+
 
 void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::TripChain*>& tcs, map<int, Node>& nodes, map<int, Section>& sections, map<int, Turning>& turnings, multimap<int, Polyline>& polylines, vector<TripChain>& tripchains)
 {
@@ -653,7 +666,6 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::Trip
 	// TODO: This should eventually allow other lanes to be designated too.
 	LaneLoader::GenerateLinkLanes(res, nodes, sections);
 
-
 	//Save all trip chains
 	for (vector<TripChain>::iterator it=tripchains.begin(); it!=tripchains.end(); it++) {
 		tcs.push_back(new sim_mob::TripChain());
@@ -672,6 +684,37 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::Trip
 
 } //End anon namespace
 
+
+//Another temporary function
+void sim_mob::aimsun::Loader::TMP_TrimAllLaneLines(sim_mob::RoadSegment* seg, const DynamicVector& cutLine, bool trimStart)
+{
+	//Nothing to do?
+	if (cutLine.getMagnitude()==0.0) {
+		return;
+	}
+
+	//TEMP
+	if (!trimStart) {
+		return;
+	}
+
+	//Ensure that this segment has built all its lane lines.
+	seg->syncLanePolylines();
+
+	//Now go through and manually edit all of them. This includes lane lines and lane edge lines
+	{
+	vector< vector<Point2D> >::iterator it = seg->laneEdgePolylines_cached.begin();
+	for (;it!=seg->laneEdgePolylines_cached.end(); it++) {
+		CutSingleLanePolyline(*it, cutLine, trimStart);
+	}
+	}
+	{
+	vector<sim_mob::Lane*>::iterator it = seg->lanes.begin();
+	for (;it!=seg->lanes.end(); it++) {
+		CutSingleLanePolyline((*it)->polyline_, cutLine, trimStart);
+	}
+	}
+}
 
 
 
@@ -973,6 +1016,13 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, map<str
 
 		//Step Four: Save
 		SaveSimMobilityNetwork(rn, tcs, nodes, sections, turnings, polylines, tripchains);
+
+		//Temporary workaround; Cut lanes short/extend them as reuquired.
+		for (map<int,Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
+			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesStartLineCut.getMagnitude(), true);
+			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesEndLineCut.getMagnitude(), false);
+		}
+
 
 
 

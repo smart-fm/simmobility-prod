@@ -15,6 +15,8 @@ namespace sim_mob
 //Forward declarations
 class TripChain;
 class RoadNetwork;
+class RoadSegment;
+class DynamicVector;
 class Link;
 
 namespace aimsun
@@ -48,6 +50,9 @@ public:
 	static void ProcessSection(sim_mob::RoadNetwork& res, Section& src);
 	static void ProcessTurning(sim_mob::RoadNetwork& res, Turning& src);
 	static void ProcessSectionPolylines(sim_mob::RoadNetwork& res, Section& src);
+
+	//Ugh
+	static void TMP_TrimAllLaneLines(sim_mob::RoadSegment* seg, const sim_mob::DynamicVector& cutLine, bool trimStart);
 
 };
 

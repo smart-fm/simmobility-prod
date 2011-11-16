@@ -79,6 +79,7 @@ bool PointIsLeftOfVector(const sim_mob::DynamicVector& vec, double x, double y);
 sim_mob::Point2D LineLineIntersect(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4);
 sim_mob::Point2D LineLineIntersect(const sim_mob::aimsun::Crossing* const p1, const sim_mob::aimsun::Crossing* p2, const sim_mob::aimsun::Section* sec);
 sim_mob::Point2D LineLineIntersect(const sim_mob::DynamicVector& v1, const sim_mob::DynamicVector& v2);
+sim_mob::Point2D LineLineIntersect(const sim_mob::DynamicVector& v1, const sim_mob::Point2D& p3, const sim_mob::Point2D& p4);
 sim_mob::Point2D LineLineIntersect(const sim_mob::Point2D& p1, const sim_mob::Point2D& p2, const sim_mob::Point2D& p3, const sim_mob::Point2D& p4);
 
 

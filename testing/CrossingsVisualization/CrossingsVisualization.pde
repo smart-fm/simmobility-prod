@@ -22,7 +22,7 @@ boolean paintCrossings = true;
 
 //Turn on/off lanes
 boolean paintLanes = true;
-boolean paintLaneShapes = false;
+boolean paintLaneShapes = true;
 boolean paintWraparound = false;
 boolean displayIgnoredLines = false;
 int nodeHalo = 0; //meters

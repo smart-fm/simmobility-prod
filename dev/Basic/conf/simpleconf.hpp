@@ -54,6 +54,8 @@ public:
 	unsigned int pathsTimeStepInMilliSeconds() const { return granPathsTicks * baseGranMS; }
 	unsigned int DecompTimeStepInMilliSeconds() const { return granDecompTicks * baseGranMS; }
 
+	bool TEMP_ManualFixDemoIntersection;
+
 public:
 	/***
 	 * Singleton. Retrieve an instance of the ConfigParams object.

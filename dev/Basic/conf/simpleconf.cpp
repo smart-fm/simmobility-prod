@@ -622,6 +622,15 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
 	int granPaths = ReadGranularity(handle, "paths");
 	int granDecomp = ReadGranularity(handle, "decomp");
 
+	//Miscelaneous settings
+	handle = TiXmlHandle(&document);
+	if (handle.FirstChild("config").FirstChild("system").FirstChild("misc").FirstChild("manual_fix_demo_intersection").ToElement()) {
+		ConfigParams::GetInstance().TEMP_ManualFixDemoIntersection = true;
+		cout <<">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" <<endl;
+		cout <<"Manual override used for demo intersection." <<endl;
+		cout <<"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" <<endl;
+	}
+
 	//Check
     if(    baseGran==-1 || totalRuntime==-1 || totalWarmup==-1
     	|| granAgent==-1 || granSignal==-1 || granPaths==-1 || granDecomp==-1 || !simStartStr) {
@@ -820,7 +829,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
 // Simple singleton implementation
 //////////////////////////////////////////
 ConfigParams sim_mob::ConfigParams::instance;
-sim_mob::ConfigParams::ConfigParams() {
+sim_mob::ConfigParams::ConfigParams() : TEMP_ManualFixDemoIntersection(false) {
 
 }
 ConfigParams& sim_mob::ConfigParams::GetInstance() {

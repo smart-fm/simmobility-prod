@@ -29,6 +29,8 @@
 #include "geospatial/Crossing.hpp"
 #include "geospatial/Lane.hpp"
 
+#include "conf/simpleconf.hpp"
+
 #include "util/DynamicVector.hpp"
 #include "util/OutputUtil.hpp"
 #include "util/DailyTime.hpp"
@@ -323,6 +325,75 @@ void ComputePolypointDistance(Polyline& pt)
 	//      I can't remember enough vector math to handle this, but if anyone wants to
 	//      replace it the vector version would certainly be faster. ~Seth
 }
+
+
+
+/**
+ * Temporary functions.
+ */
+Section& GetSection(Node& start, Node& end)
+{
+	for (vector<Section*>::iterator it=start.sectionsAtNode.begin(); it!=start.sectionsAtNode.end(); it++) {
+		if ((*it)->id==end.id) {
+			return **it;
+		}
+	}
+	throw std::runtime_error("Can't find section in temporary cleanup function.");
+}
+void ScaleLanesToCrossing(Node& start, Node& end, bool scaleEnd)
+{
+	//Retrieve the section
+	Section& sect = GetSection(start, end);
+
+	//Retrieve the crossing's "near" line.
+
+
+
+}
+void ManuallyFixVictoriaStreetMiddleRoadIntersection(map<int, Node>& nodes, map<int, Section>& sections, vector<Crossing>& crossings, vector<Lane>& lanes, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
+{
+	//Step 1: Tidy up the crossings.
+	Node& end = nodes[66508];
+	std::cout <<"Crossing lines at Node 66508: \n";
+	for (map<Node*, vector<int> >::iterator it=end.crossingLaneIdsByOutgoingNode.begin(); it!=end.crossingLaneIdsByOutgoingNode.end(); it++) {
+		std::cout <<"  to Node: " <<it->first <<"\n";
+		for (vector<int>::iterator it2=it->second.begin(); it2!=it->second.end(); it2++) {
+			std::cout <<"    " <<*it2 <<": " <<crossings[*it2].xPos <<"," <<crossings[*it2].yPos <<"\n";
+		}
+	}
+
+
+	//Step 2: Scale lane lines to match the crossings.
+	ScaleLanesToCrossing(nodes[93730], nodes[66508], true);
+	ScaleLanesToCrossing(nodes[66508], nodes[93730], false);
+
+}
+
+
+
+
+/**
+ * Perform guided cleanup of the fully-loaded data. This step happens directly before the network is converted to
+ * SimMobility format.
+ *
+ * \note
+ * Currently, this process performs a single hard-coded check. Ideally, we would load data from another, smaller
+ * database which contains a few "hints" to help nudge the various network components into the correct positions.
+ * If you want a more heavy-handed approach, you should make a "PreProcessNetwork" function which does things like
+ * deleting lanes, etc. (but be careful of invalidating references in that case).
+ */
+void PostProcessNetwork(map<int, Node>& nodes, map<int, Section>& sections, vector<Crossing>& crossings, vector<Lane>& lanes, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
+{
+	//TEMP: Heavy-handed tactics like this should only be used if you're desperate.
+	// You know, like if you've got a demo tomorrow.
+	bool TEMP_FLAG_ON = sim_mob::ConfigParams::GetInstance().TEMP_ManualFixDemoIntersection;
+	if (TEMP_FLAG_ON) {
+		ManuallyFixVictoriaStreetMiddleRoadIntersection(nodes, sections, crossings, lanes, turnings, polylines);
+	}
+
+}
+
+
 
 
 
@@ -799,7 +870,10 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, map<str
 		//Step Two: Translate
 		DecorateAndTranslateObjects(nodes, sections, crossings, lanes, turnings, polylines);
 
-		//Step Three: Save
+		//Step Three: Perform data-guided cleanup.
+		PostProcessNetwork(nodes, sections, crossings, lanes, turnings, polylines);
+
+		//Step Four: Save
 		SaveSimMobilityNetwork(rn, tcs, nodes, sections, turnings, polylines, tripchains);
 
 

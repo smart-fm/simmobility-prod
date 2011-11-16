@@ -384,7 +384,12 @@ void ScaleLanesToCrossing(Node& start, Node& end, bool scaleEnd)
 
 	//We can't do much until lanes are generated (we could try to guess what our lane generator would
 	// do, but it's easier to set a debug flag).
-	(scaleEnd?sect.HACK_LaneLinesStartLineCut:sect.HACK_LaneLinesEndLineCut) = endLine;
+	//std::cout <<"Saving end line: " <<endLine.getX() <<"," <<endLine.getY() <<" ==> " <<endLine.getEndX() <<"," <<endLine.getEndY() <<"\n";
+	if (scaleEnd) {
+		sect.HACK_LaneLinesEndLineCut = endLine;
+	} else {
+		sect.HACK_LaneLinesStartLineCut = endLine;
+	}
 }
 void ResizeTo2(vector<Crossing*>& vec)
 {
@@ -602,6 +607,12 @@ void CutSingleLanePolyline(vector<Point2D>& laneLine, const DynamicVector& cutLi
 	if (intPt.getX() == std::numeric_limits<int>::max()) {
 		throw std::runtime_error("Temporary lane function is somehow unable to compute line intersections.");
 	}
+
+	//TEMP
+	std::cout <<"Testing: " <<cutLine.getMagnitude() <<"\n";
+	std::cout <<"  Cut line: " <<cutLine.getX() <<"," <<cutLine.getY() <<" ==>" <<static_cast<int>(cutLine.getEndX()) <<"," <<static_cast<int>(cutLine.getEndY()) <<"\n";
+	std::cout <<"  Lane line: " <<laneLine.front().getX() <<"," <<laneLine.front().getY() <<" ==> " <<laneLine.back().getX() <<"," <<laneLine.back().getY() <<"\n";
+	std::cout <<"  Intersection point: " <<intPt.getX() <<"," <<intPt.getY() <<"\n";
 
 	//Now update either the first or last point
 	laneLine[trimStart?0:laneLine.size()-1] = intPt;
@@ -1019,8 +1030,8 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, map<str
 
 		//Temporary workaround; Cut lanes short/extend them as reuquired.
 		for (map<int,Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
-			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesStartLineCut.getMagnitude(), true);
-			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesEndLineCut.getMagnitude(), false);
+			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesStartLineCut, true);
+			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesEndLineCut, false);
 		}
 
 

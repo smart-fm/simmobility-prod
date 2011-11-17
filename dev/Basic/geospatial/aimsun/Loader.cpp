@@ -619,12 +619,14 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::Trip
 	//First, Nodes. These match cleanly to the Sim Mobility data structures
 	std::cout <<"Warning: Units are not considered when converting AIMSUN data.\n";
 	for (map<int,Node>::iterator it=nodes.begin(); it!=nodes.end(); it++) {
+		it->second.generatedNode->originalDB_ID.initProperty("aimsun-id", it->first);
 		sim_mob::aimsun::Loader::ProcessGeneralNode(res, it->second);
 	}
 
 	//Next, Links and RoadSegments. See comments for our approach.
 	for (map<int,Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
 		if (!it->second.hasBeenSaved) {  //Workaround...
+			it->second.generatedSegment->originalDB_ID.initProperty("aimsun-id", it->first);
 			sim_mob::aimsun::Loader::ProcessSection(res, it->second);
 		}
 	}

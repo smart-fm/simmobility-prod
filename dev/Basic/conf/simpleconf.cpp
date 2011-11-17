@@ -444,6 +444,9 @@ void PrintDB_Network()
 		LogOutNotSync("(\"uni-node\", 0, " <<*it <<", {");
 		LogOutNotSync("\"xPos\":\"" <<(*it)->location->getX() <<"\",");
 		LogOutNotSync("\"yPos\":\"" <<(*it)->location->getY() <<"\",");
+		if ((*it)->originalDB_ID.isSet()) {
+			LogOutNotSync((*it)->originalDB_ID.getString());
+		}
 		LogOutNotSync("})" <<endl);
 
 		//Cache all segments
@@ -456,6 +459,9 @@ void PrintDB_Network()
 		LogOutNotSync("(\"multi-node\", 0, " <<*it <<", {");
 		LogOutNotSync("\"xPos\":\"" <<(*it)->location->getX() <<"\",");
 		LogOutNotSync("\"yPos\":\"" <<(*it)->location->getY() <<"\",");
+		if ((*it)->originalDB_ID.isSet()) {
+			LogOutNotSync((*it)->originalDB_ID.getString());
+		}
 		LogOutNotSync("})" <<endl);
 
 		//NOTE: This is temporary; later we'll ensure that the RoadNetwork only stores Intersections,
@@ -507,6 +513,9 @@ void PrintDB_Network()
 		LogOutNotSync("\"lanes\":\"" <<(*it)->getLanes().size() <<"\",");
 		LogOutNotSync("\"from-node\":\"" <<(*it)->getStart() <<"\",");
 		LogOutNotSync("\"to-node\":\"" <<(*it)->getEnd() <<"\",");
+		if ((*it)->originalDB_ID.isSet()) {
+			LogOutNotSync((*it)->originalDB_ID.getString());
+		}
 		LogOutNotSync("})" <<endl);
 
 		if (!(*it)->polyline.empty()) {

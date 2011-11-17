@@ -5,6 +5,7 @@
 #include <bitset>
 #include <sstream>
 
+#include "Point2D.hpp"
 #include "RoadSegment.hpp"
 
 

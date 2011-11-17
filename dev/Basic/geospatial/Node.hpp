@@ -7,6 +7,7 @@
 #include <set>
 
 #include "util/LangHelpers.hpp"
+#include "util/OpaqueProperty.hpp"
 
 namespace sim_mob
 {
@@ -36,6 +37,8 @@ public:
 	///The location of this Node.
 	sim_mob::Point2D* location;
 
+	//Nodes may have hidden properties useful only in for the visualizer.
+	OpaqueProperty originalDB_ID;
 
 protected:
 	Node() : location(nullptr) {}

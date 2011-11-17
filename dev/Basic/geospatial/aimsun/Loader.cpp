@@ -687,6 +687,25 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::Trip
 		tcs.back()->flexible = it->flexible;
 		tcs.back()->startTime = it->startTime;
 	}
+
+
+
+	//TEMP
+	for (map<int,Node>::iterator it=nodes.begin(); it!=nodes.end(); it++) {
+		if (const sim_mob::MultiNode* mnode = dynamic_cast<const sim_mob::MultiNode*>(it->second.generatedNode)) {
+			std::cout <<"Segment(" <<it->first <<") has nodes: \n";
+			set<sim_mob::RoadSegment*>::const_iterator it2=mnode->getRoadSegments().begin();
+			for (; it2!=mnode->getRoadSegments().end(); it2++) {
+				std::cout <<"    ";
+				std::cout <<(*it2)->getStart()->originalDB_ID.getLogItem();
+				std::cout <<" => ";
+				std::cout <<(*it2)->getEnd()->originalDB_ID.getLogItem();
+				std::cout <<"\n";
+			}
+		}
+	}
+	throw 1;
+	//END TEMP
 }
 
 
@@ -922,8 +941,6 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 
 	//Make sure the link's start node is represented at the Node level.
 	//TODO: Try to avoid dynamic casting if possible.
-	dynamic_cast<MultiNode*>(src.fromNode->generatedNode)->roadSegmentsAt.insert(src.generatedSegment);
-
 	for (;;) {
 		//Update
 		ln->end = currSect->toNode->generatedNode;
@@ -967,6 +984,14 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 				found->generatedSegment = new sim_mob::RoadSegment(ln);
 			}
 
+			//Save this segment if either end points are multinodes
+			for (size_t tempID=0; tempID<2; tempID++) {
+				sim_mob::MultiNode* nd = dynamic_cast<sim_mob::MultiNode*>(tempID==0?found->fromNode->generatedNode:found->toNode->generatedNode);
+				if (nd) {
+					nd->roadSegmentsAt.insert(found->generatedSegment);
+				}
+			}
+
 			//Retrieve the generated segment
 			sim_mob::RoadSegment* rs = found->generatedSegment;
 
@@ -993,7 +1018,8 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		if (!currSect->toNode->candidateForSegmentNode) {
 			//Make sure the link's end node is represented at the Node level.
 			//TODO: Try to avoid dynamic casting if possible.
-			dynamic_cast<MultiNode*>(currSect->toNode->generatedNode)->roadSegmentsAt.insert(currSect->generatedSegment);
+			//std::cout <<"Adding segment: " <<src.fromNode->id <<"->" <<src.toNode->id <<" to to node\n";
+			//dynamic_cast<MultiNode*>(currSect->toNode->generatedNode)->roadSegmentsAt.insert(currSect->generatedSegment);
 
 			//Save it.
 			ln->initializeLinkSegments(linkSegments);

@@ -2,38 +2,33 @@
 
 #pragma once
 
-#include <sstream>
 #include <string>
 
-namespace sim_mob {
+namespace sim_mob
+{
 
 
 /**
- * Very simple class which holds a value that is only used in the output (log) file.
- * Should not be accessed by any C++ code at all.
+ * Class to represent data we wish to carry along but not react to. Agents shouldn't ever check these values.
  */
-class OpaqueProperty
-{
+class OpaqueProperty {
 private:
 	std::string key;
-	int value;
+	std::string value;
 
 public:
-	void initProperty(std::string key, int value) {
-		/*std::stringstream res;
-		res <<"\"" <<key.c_str() <<"\"" <<":";
-		res <<"\"" <<value <<"\"" <<",";
-		res >>output_str;*/
-		//this->key = key;
-		//this->value = value;
+	void setProps(const std::string& key, const std::string& value) {
+		this->key = key;
+		this->value = value;
 	}
-	const std::string& getString() const {
-		return key;
+
+	std::string getLogItem() const {
+		return "\"" + key + "\"" + ":" + "\"" + value + "\"" + ",";
 	}
-	bool isSet() const {
-		return !key.empty();
-	}
+
 };
 
 
 }
+
+

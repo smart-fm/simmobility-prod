@@ -57,6 +57,8 @@ public:
 	///Maximum speed of this road segment.
 	unsigned int maxSpeed;
 
+	///TODO This should be made private again.
+	mutable std::vector< std::vector<sim_mob::Point2D> > laneEdgePolylines_cached;
 
 private:
 	///Collection of lanes. All road segments must have at least one lane.
@@ -67,7 +69,7 @@ private:
 	void specifyEdgePolylines(const std::vector< std::vector<sim_mob::Point2D> >& calcdPolylines);
 	void makeLanePolylineFromEdges(sim_mob::Lane* lane, const std::vector<sim_mob::Point2D>& inner, const std::vector<sim_mob::Point2D>& outer) const;
 	std::vector<sim_mob::Point2D> makeLaneEdgeFromPolyline(sim_mob::Lane* refLane, bool edgeIsRight) const;
-	mutable std::vector< std::vector<sim_mob::Point2D> > laneEdgePolylines_cached;
+	//mutable std::vector< std::vector<sim_mob::Point2D> > laneEdgePolylines_cached;
 
 	///Helps to identify road segments which are bi-directional.
 	///We count lanes from the LHS, so this doesn't change with drivingSide

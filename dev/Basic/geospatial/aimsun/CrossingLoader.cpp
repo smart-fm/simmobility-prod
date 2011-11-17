@@ -10,6 +10,7 @@
 #include "util/GeomHelpers.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Crossing.hpp"
+#include "geospatial/Lane.hpp"
 
 #include "Section.hpp"
 

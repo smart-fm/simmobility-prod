@@ -671,6 +671,8 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::Trip
 	// TODO: This should eventually allow other lanes to be designated too.
 	LaneLoader::GenerateLinkLanes(res, nodes, sections);
 
+	sim_mob::aimsun::Loader::FixupLanesAndCrossings(res);
+
 	//Save all trip chains
 	for (vector<TripChain>::iterator it=tripchains.begin(); it!=tripchains.end(); it++) {
 		tcs.push_back(new sim_mob::TripChain());
@@ -713,6 +715,97 @@ void sim_mob::aimsun::Loader::TMP_TrimAllLaneLines(sim_mob::RoadSegment* seg, co
 	for (;it!=seg->lanes.end(); it++) {
 		CutSingleLanePolyline((*it)->polyline_, cutLine, trimStart);
 	}
+	}
+}
+
+
+void sim_mob::aimsun::Loader::FixupLanesAndCrossings(sim_mob::RoadNetwork& res)
+{
+	//Fix up lanes
+	const std::vector<sim_mob::Link*>& vecLinks = res.getLinks();
+	int numLinks = vecLinks.size();
+
+	//TODO more comments needed
+	for(int n = 0; n < numLinks; ++n)
+	{
+		sim_mob::Link* link = vecLinks[n];
+
+		const std::vector<sim_mob::RoadSegment*>& vecForwardSegs = link->getPath(true);
+		const std::vector<sim_mob::RoadSegment*>& vecReverseSegs = link->getPath(false);
+		std::set<sim_mob::RoadSegment*> roadSegs;
+		roadSegs.insert(vecForwardSegs.begin(), vecForwardSegs.end());
+		roadSegs.insert(vecReverseSegs.begin(), vecReverseSegs.end());
+		for(std::set<sim_mob::RoadSegment*>::const_iterator itRS = roadSegs.begin(); itRS!=roadSegs.end(); ++itRS)
+		{
+			for(std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>::const_iterator itObstacles = (*itRS)->obstacles.begin(); itObstacles != (*itRS)->obstacles.end(); ++itObstacles)
+			{
+				const sim_mob::RoadItem* ri = (*itObstacles).second;
+
+				const sim_mob::Crossing* cross = dynamic_cast<const sim_mob::Crossing*>(ri);
+				if(!cross)
+					continue;
+
+				sim_mob::Point2D nearLinemidPoint((cross->nearLine.second.getX()-cross->nearLine.first.getX())/2 + cross->nearLine.first.getX(),
+										(cross->nearLine.second.getY()-cross->nearLine.first.getY())/2 + cross->nearLine.first.getY());
+
+				std::vector<sim_mob::Point2D>& segmentPolyline = (*itRS)->polyline;
+				{
+					//Segment polyline
+					double d1 = dist(&(segmentPolyline[0]), &nearLinemidPoint);
+					double d2 = dist(&(segmentPolyline[segmentPolyline.size()-1]), &nearLinemidPoint);
+					if (d2<d1)
+					{
+						segmentPolyline[segmentPolyline.size()-1] = ProjectOntoLine(segmentPolyline[segmentPolyline.size()-1], cross->farLine.first, cross->farLine.second);
+					}
+					else
+					{
+						segmentPolyline[0] = ProjectOntoLine(segmentPolyline[0], cross->farLine.first, cross->farLine.second);
+					}
+				}
+
+				//Lane edge polylines
+				//TODO don't access variable that should be private here
+				std::vector< std::vector<sim_mob::Point2D> >& vecPolylines = (*itRS)->laneEdgePolylines_cached;
+				for(size_t i = 0; i < vecPolylines.size(); ++i)
+				{
+					//TODO move this functionality into a helper function
+					std::vector<sim_mob::Point2D>& vecThisPolyline = vecPolylines[i];
+					double d1 = dist(&(vecThisPolyline[0]), &nearLinemidPoint);
+					double d2 = dist(&(vecThisPolyline[vecThisPolyline.size()-1]), &nearLinemidPoint);
+					if (d2<d1)
+					{
+						vecThisPolyline[vecThisPolyline.size()-1] = ProjectOntoLine(vecThisPolyline[vecThisPolyline.size()-1], cross->farLine.first, cross->farLine.second);
+					}
+					else
+					{
+						vecThisPolyline[0] = ProjectOntoLine(vecThisPolyline[0], cross->farLine.first, cross->farLine.second);
+					}
+
+				}
+
+				//Lane polylines
+/*				const std::vector<sim_mob::Lane*>& segmentLanes = (*itRS)->getLanes();
+				for(std::vector<sim_mob::Lane*>::const_iterator itLanes = segmentLanes.begin(); itLanes != segmentLanes.end(); ++itLanes)
+				{
+				    ///TODO get rid of ugly const_cast
+					std::vector<sim_mob::Point2D>& lanePolyline = const_cast<std::vector<sim_mob::Point2D>&>((*itLanes)->getPolyline());
+					if(lanePolyline.empty())
+						continue;
+
+					double d1 = dist(&(lanePolyline[0]), &nearLinemidPoint);
+					double d2 = dist(&(lanePolyline[lanePolyline.size()-1]), &nearLinemidPoint);
+					if (d2<d1)
+					{
+						lanePolyline[lanePolyline.size()-1] = ProjectOntoLine(lanePolyline[lanePolyline.size()-1], cross->farLine.first, cross->farLine.second);
+					}
+					else
+					{
+						lanePolyline[0] = ProjectOntoLine(lanePolyline[0], cross->farLine.first, cross->farLine.second);
+					}
+				}
+				*/
+			}
+		}
 	}
 }
 

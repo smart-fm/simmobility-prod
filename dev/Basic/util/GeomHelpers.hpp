@@ -100,5 +100,30 @@ sim_mob::Point2D LineLineIntersect(const sim_mob::Point2D& p1, const sim_mob::Po
 std::vector<sim_mob::Point2D> ShiftPolyline(const std::vector<sim_mob::Point2D>& orig, double shiftAmt, bool shiftLeft=true);
 
 
+/**
+ * Calculates the projection of a point onto a line defined by two other points.
+ *
+ * \param pToProject The point whose projection should be found.
+ * \param pA One point defining the line to be projected upon.
+ * \param shiftLeft The other point defining the line to be projected upon.
+ *
+ * \return The projection of the point onto the line
+ *
+ * \note
+ * This is a projection onto a line, a line segment.  The returned point isn't necessarily between pA and pA.
+ */
+sim_mob::Point2D ProjectOntoLine(const sim_mob::Point2D& pToProject, const sim_mob::Point2D& pA, const sim_mob::Point2D& pB);
+
+/**
+ * Return the point that is perpendicular (with magnitude <magnitude>) to the vector that begins at <origin> and
+ * passes through <direction>. This point is left of the vector if <magnitude> is positive.
+ *
+ * \param origin The start point of the vector.
+ * \param direction A point the vector passes through.
+ * \param magnitude Desired distance from the vector (left of the vector if positive)
+ *
+ * \return The calculated side point.
+ */
+sim_mob::Point2D getSidePoint(const Point2D& origin, const Point2D& direction, double magnitude);
 
 }

@@ -120,6 +120,25 @@ Point2D sim_mob::LineLineIntersect(const Point2D& p1, const Point2D& p2, const P
 }
 
 
+Point2D sim_mob::ProjectOntoLine(const sim_mob::Point2D& pToProject, const sim_mob::Point2D& pA, const sim_mob::Point2D& pB)
+{
+	double dotProductToPoint = (pToProject.getX()-pA.getX())*(pB.getX()-pA.getX()) + (pToProject.getY()-pA.getY())*(pB.getY()-pA.getY());
+	double dotProductOfLine  = (pB.getX()-pA.getX()) * (pB.getX()-pA.getX()) + (pB.getY()-pA.getY())*(pB.getY()-pA.getY());
+	double dotRatio = dotProductToPoint/dotProductOfLine;
+
+	Point2D AB(pB.getX()-pA.getX(), pB.getY()-pA.getY());
+	Point2D ABscaled(AB.getX()*dotRatio,AB.getY()*dotRatio);
+
+	return Point2D(pA.getX() + ABscaled.getX(), pA.getY() + ABscaled.getY());
+}
+
+Point2D sim_mob::getSidePoint(const Point2D& origin, const Point2D& direction, double magnitude) {
+	DynamicVector dv(origin.getX(), origin.getY(), direction.getX(), direction.getY());
+	dv.flipNormal(false).scaleVectTo(magnitude).translateVect();
+	return Point2D(dv.getX(), dv.getY());
+}
+
+
 
 namespace {
 	// Return the point that is perpendicular (with magnitude <magnitude>) to the vector that begins at <origin> and

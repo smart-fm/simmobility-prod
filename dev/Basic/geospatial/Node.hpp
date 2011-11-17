@@ -38,7 +38,7 @@ public:
 	sim_mob::Point2D* location;
 
 	//Nodes may have hidden properties useful only in for the visualizer.
-	OpaqueProperty originalDB_ID;
+	OpaqueProperty<int> originalDB_ID;
 
 protected:
 	Node() : location(nullptr) {}

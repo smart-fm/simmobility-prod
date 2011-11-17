@@ -3,6 +3,7 @@
 #pragma once
 
 #include <string>
+#include <sstream>
 
 namespace sim_mob
 {
@@ -11,21 +12,26 @@ namespace sim_mob
 /**
  * Class to represent data we wish to carry along but not react to. Agents shouldn't ever check these values.
  */
+template <typename T>
 class OpaqueProperty {
 private:
-	std::string key;
-	std::string value;
+	std::string repr_;
 
 public:
-	void setProps(const std::string& key, const std::string& value) {
-		this->key = key;
-		this->value = value;
+	void setProps(const std::string& key, const T& value) {
+		std::stringstream builder;
+		builder <<"\"" <<key <<"\"" <<":"
+				<<"\"" <<value <<"\"" <<",";
+		builder >>repr_;
+	}
+
+	bool isSet() const {
+		return !repr_.empty();
 	}
 
 	std::string getLogItem() const {
-		return "\"" + key + "\"" + ":" + "\"" + value + "\"" + ",";
+		return repr_;
 	}
-
 };
 
 

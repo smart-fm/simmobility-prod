@@ -54,7 +54,7 @@ public:
 	void syncLanePolylines();/* const;*/
 
 	//RoadSegments may have hidden properties useful only in for the visualizer.
-	OpaqueProperty originalDB_ID;
+	OpaqueProperty<int> originalDB_ID;
 
 
 public:

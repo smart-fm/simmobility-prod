@@ -620,7 +620,7 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::Trip
 	std::cout <<"Warning: Units are not considered when converting AIMSUN data.\n";
 	for (map<int,Node>::iterator it=nodes.begin(); it!=nodes.end(); it++) {
 		sim_mob::aimsun::Loader::ProcessGeneralNode(res, it->second);
-		it->second.generatedNode->originalDB_ID.setProps("aimsun-id", "it->first");
+		it->second.generatedNode->originalDB_ID.setProps("aimsun-id", it->first);
 	}
 
 	//Next, Links and RoadSegments. See comments for our approach.
@@ -634,7 +634,7 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::Trip
 		if (!it->second.hasBeenSaved) {
 			throw std::runtime_error("Section was skipped.");
 		}
-		it->second.generatedSegment->originalDB_ID.setProps("aimsun-id", "it->first");
+		it->second.generatedSegment->originalDB_ID.setProps("aimsun-id", it->first);
 	}
 
 	//Next, SegmentNodes (UniNodes), which are only partially initialized in the general case.

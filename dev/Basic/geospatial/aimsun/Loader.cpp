@@ -627,7 +627,6 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::Trip
 	for (map<int,Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
 		if (!it->second.hasBeenSaved) {  //Workaround...
 			sim_mob::aimsun::Loader::ProcessSection(res, it->second);
-			it->second.generatedSegment->originalDB_ID.setProps("aimsun-id", "it->first");
 		}
 	}
 	//Scan the vector to see if any skipped Sections were not filled in later.
@@ -635,6 +634,7 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::Trip
 		if (!it->second.hasBeenSaved) {
 			throw std::runtime_error("Section was skipped.");
 		}
+		it->second.generatedSegment->originalDB_ID.setProps("aimsun-id", "it->first");
 	}
 
 	//Next, SegmentNodes (UniNodes), which are only partially initialized in the general case.

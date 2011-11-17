@@ -162,14 +162,15 @@ void sim_mob::Driver::update(frame_t frameNumber)
 				  <<perceivedXVelocity <<"," <<perceivedYVelocity <<")\n");*/
 	}
 
-
 	//Note: For now, most updates cannot take place unless there is a Lane set
 	if (params.currLane) {
 		//perceivedXVelocity = vehicle->xVel;
 		//perceivedYVelocity = vehicle->yVel;
 		//abs2relat();
+
 		updateNearbyAgents(params);
 		//inside intersection
+
 		if(inIntersection)
 		{
 			intersectionDriving(params);
@@ -591,7 +592,7 @@ void sim_mob::Driver::updateCurrInfo(unsigned int mode, UpdateParams& p)
 		if(isReachLastRSinCurrLink())
 		{
 			updateTrafficSignal();
-			if(currRoadSegment!=allRoadSegments.at(allRoadSegments.size()-1))
+			if(RSIndex<allRoadSegments.size()-1)
 				chooseNextLaneForNextLink(p);
 		}
 		break;
@@ -609,7 +610,7 @@ void sim_mob::Driver::updateCurrInfo(unsigned int mode, UpdateParams& p)
 		if(isReachLastRSinCurrLink())
 		{
 			updateTrafficSignal();
-			if(currRoadSegment!=allRoadSegments.at(allRoadSegments.size()-1))
+			if(RSIndex<allRoadSegments.size()-1)
 				chooseNextLaneForNextLink(p);
 		}
 		break;
@@ -688,8 +689,8 @@ void sim_mob::Driver::directionIntersection()
 //TODO
 void sim_mob::Driver::setBackToOrigin()
 {
-	vehicle->xPos = parent->originNode->location->getX();
-	vehicle->yPos = parent->originNode->location->getY();
+	vehicle->xPos = 0;
+	vehicle->yPos = 0;
 
 	//vehicle->xVel = 0;
 	//vehicle->yVel = 0;
@@ -775,6 +776,13 @@ void sim_mob::Driver::setOrigin(UpdateParams& p)
 	relat2abs();
 	updateAdjacentLanes();
 	updateCurrLaneLength();
+
+	if(isReachLastRSinCurrLink())
+	{
+		updateTrafficSignal();
+		if(RSIndex<allRoadSegments.size()-1)
+			chooseNextLaneForNextLink(p);
+	}
 }
 
 
@@ -855,8 +863,6 @@ void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 	distanceInFront = 2000;
 	distanceBehind = 500;
 
-	nearby_agents = AuraManager::instance().nearbyAgents(myPos, *params.currLane,  distanceInFront, distanceBehind);
-
 	minCFDistance = 5000;
 	minCBDistance = 5000;
 	minLFDistance = 5000;
@@ -864,6 +870,12 @@ void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 	minRFDistance = 5000;
 	minRBDistance = 5000;
 	minPedestrianDis = 5000;
+
+	if(!params.currLane)
+		return;
+	nearby_agents = AuraManager::instance().nearbyAgents(myPos, *params.currLane,  distanceInFront, distanceBehind);
+
+
 
 	for(size_t i=0;i<nearby_agents.size();i++)
 	{
@@ -1019,7 +1031,7 @@ void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 				}
 			}
 			//the vehicle is in the previous road segment
-			else if(otherRoadSegment == allRoadSegments.at(RSIndex - 1) &&
+			else if(RSIndex-1>=0&&otherRoadSegment == allRoadSegments.at(RSIndex - 1) &&
 					otherRoadSegment->getLink() == currLink)
 			{
 				const Node* preNode;

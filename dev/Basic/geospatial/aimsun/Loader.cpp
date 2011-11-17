@@ -688,24 +688,6 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::Trip
 		tcs.back()->startTime = it->startTime;
 	}
 
-
-
-	//TEMP
-	for (map<int,Node>::iterator it=nodes.begin(); it!=nodes.end(); it++) {
-		if (const sim_mob::MultiNode* mnode = dynamic_cast<const sim_mob::MultiNode*>(it->second.generatedNode)) {
-			std::cout <<"Segment(" <<it->first <<") has nodes: \n";
-			set<sim_mob::RoadSegment*>::const_iterator it2=mnode->getRoadSegments().begin();
-			for (; it2!=mnode->getRoadSegments().end(); it2++) {
-				std::cout <<"    ";
-				std::cout <<(*it2)->getStart()->originalDB_ID.getLogItem();
-				std::cout <<" => ";
-				std::cout <<(*it2)->getEnd()->originalDB_ID.getLogItem();
-				std::cout <<"\n";
-			}
-		}
-	}
-	throw 1;
-	//END TEMP
 }
 
 

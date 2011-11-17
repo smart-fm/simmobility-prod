@@ -688,6 +688,31 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::Trip
 		tcs.back()->startTime = it->startTime;
 	}
 
+
+
+	//TEMP
+	/*map<int,Node>::iterator it=nodes.find(66508);
+	if (it!=nodes.end()) {
+		sim_mob::MultiNode* temp = dynamic_cast<sim_mob::MultiNode*>(it->second.generatedNode);
+		if (temp) {
+			for (set<sim_mob::RoadSegment*>::const_iterator it2=temp->getRoadSegments().begin(); it2!=temp->getRoadSegments().end(); it2++) {
+				if (temp->hasOutgoingLanes(**it2)) {
+					std::cout <<"  Segment crossings for:  " <<(*it2)->getStart()->originalDB_ID.getLogItem() <<" ==> " <<(*it2)->getEnd()->originalDB_ID.getLogItem() <<"\n";
+					std::set<string> res;
+					for (set<sim_mob::LaneConnector*>::const_iterator it3=temp->getOutgoingLanes(**it2).begin(); it3!=temp->getOutgoingLanes(**it2).end(); it3++) {
+						res.insert((*it3)->getLaneTo()->getRoadSegment()->getEnd()->originalDB_ID.getLogItem());
+					}
+
+					for (std::set<string>::iterator it4=res.begin(); it4!=res.end(); it4++) {
+						std::cout <<"    ...to:  " <<*it4 <<"\n";
+					}
+				}
+			}
+
+		}
+	}
+	throw 1;*/
+	//END TEMP
 }
 
 
@@ -1057,11 +1082,11 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 	for (int fromLaneID=src.fromLane.first; fromLaneID<=src.fromLane.second; fromLaneID++) {
 		for (int toLaneID=src.toLane.first; toLaneID<=src.toLane.second; toLaneID++) {
 			sim_mob::LaneConnector* lc = new sim_mob::LaneConnector();
-			lc->laneFrom = src.fromSection->generatedSegment->lanes[fromLaneID];
-			lc->laneTo = src.toSection->generatedSegment->lanes[toLaneID];
+			lc->laneFrom = src.fromSection->generatedSegment->lanes.at(fromLaneID);
+			lc->laneTo = src.toSection->generatedSegment->lanes.at(toLaneID);
 
 			//Expanded a bit...
-			RoadSegment* key = lc->laneFrom->getRoadSegment();
+			RoadSegment* key = src.fromSection->generatedSegment;
 			map<const RoadSegment*, set<LaneConnector*> >& connectors = dynamic_cast<MultiNode*>(src.fromSection->toNode->generatedNode)->connectors;
 			connectors[key].insert(lc);
 		}

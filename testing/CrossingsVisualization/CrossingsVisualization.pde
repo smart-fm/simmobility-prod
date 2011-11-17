@@ -18,12 +18,12 @@ PFont f;
 PFont f2;
 
 //Turn on/off crossings
-boolean paintCrossings =true;
-boolean paintCrossingShapes =true;
+boolean paintCrossings =false;
+boolean paintCrossingShapes =false;
 
 //Turn on/off lanes
-boolean paintLanes = true;
-boolean paintLaneShapes = true;
+boolean paintLanes = false;
+boolean paintLaneShapes = false;
 boolean paintWraparound = false;
 boolean displayIgnoredLines = false;
 int nodeHalo = 0; //meters

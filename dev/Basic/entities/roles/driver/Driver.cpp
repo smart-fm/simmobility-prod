@@ -87,7 +87,7 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), vehicle(nullptr), perceiv
 	//Some one-time flags and other related defaults.
 	firstFrameTick = true;
 	isLaneChanging = false;
-	isPedestrianAhead = false;
+	//isPedestrianAhead = false;
 	nextLaneInNextLink = nullptr;
 }
 
@@ -859,7 +859,7 @@ void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* oth
 				check_and_set_min_car_dist((fwd?params.nvRightFwd:params.nvRightBack), distance, vehicle, other_driver);
 			}
 		}
-	} else if(otherRoadSegment->getLink() == pathMover.getCurrLink()) { //We are in the same link.
+	} else if(otherRoadSegment->getLink() == vehicle->getCurrLink()) { //We are in the same link.
 		if (!pathMover.isOnLastSegment() && vehicle->getCurrSegment()+1 == otherRoadSegment) { //Vehicle is on the next segment.
 			//Retrieve the next node we are moving to, cast it to a UniNode.
 			const Node* nextNode = isLinkForward ? vehicle->getCurrSegment()->getEnd() : vehicle->getCurrSegment()->getStart();
@@ -952,25 +952,22 @@ void sim_mob::Driver::updateNearbyPedestrian(UpdateParams& params, const Person*
 		return;
 	}
 
-	//Calculate the other driver's position down the polyline.
-	//NOTE: This might be better passed as a Buffered property. ~Seth
-	//TODO: This might be slightly inaccurate if you are trying to force the other vehicle into a given
-	//      local coordinate system. But it will work for now and we can clean it up later.
+	//TODO: We are using a vector to check the angle to the Pedestrian. There are other ways of doing this which may be more accurate.
+	const std::vector<sim_mob::Point2D>& polyLine = vehicle->getCurrSegment()->getLanes().front()->getPolyline();
 	DynamicVector otherVect(
-		polypathMover.getCurrPolypoint().getX(), polypathMover.getCurrPolypoint().getY(),
+		polyLine.front().getX(), polyLine.front().getY(),
 		other->xPos.get(), other->yPos.get()
 	);
 
 	//Calculate the distance between these two vehicles and the distance between the angle of the
 	// car's forward movement and the pedestrian.
 	//NOTE: I am changing this slightly, since cars were stopping for pedestrians on the opposite side of
-	//      the road for no reason (traffic light was green).
+	//      the road for no reason (traffic light was green). ~Seth
 	double distance = otherVect.getMagnitude();
 	double angleDiff = 0.0;
 	{
-		//We need to retrieve the actual vector so that we maintain its direction in case it was zero.
-		// Again, this can be fixed later by just buffering the data.
-		DynamicVector fwdVector(vehicle->TEMP_retrieveFwdVelocityVector());
+		//Retrieve
+		DynamicVector fwdVector(vehicle->getCurrPolylineVector());
 		fwdVector.scaleVectTo(100);
 
 		//Calculate the difference
@@ -983,11 +980,7 @@ void sim_mob::Driver::updateNearbyPedestrian(UpdateParams& params, const Person*
 
 	//If the pedestrian is not behind us, then set our flag to true and update the minimum pedestrian distance.
 	if(angleDiff < 0.5236) { //30 degrees +/-
-		isPedestrianAhead = true;
-		distance = distance - vehicle->length/2 - 300;
-		if(distance < minPedestrianDis) {
-			minPedestrianDis = distance;
-		}
+		params.npedFwd.distance = std::min(params.npedFwd.distance, otherVect.getMagnitude()-vehicle->length/2-300);
 	}
 }
 
@@ -995,14 +988,14 @@ void sim_mob::Driver::updateNearbyPedestrian(UpdateParams& params, const Person*
 void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 {
 	//Reset parameters
-	minPedestrianDis = 5000;
-	isPedestrianAhead = false;
+	//minPedestrianDis = 5000;
+	//isPedestrianAhead = false;
 
 	//Retrieve a list of nearby agents
 	vector<const Agent*> nearby_agents = AuraManager::instance().nearbyAgents(Point2D(vehicle->getX(),vehicle->getY()), *params.currLane,  distanceInFront, distanceBehind);
 
 	//Update each nearby Pedestrian/Driver
-	for (vector<const Agent*>::iterator it=nearby_agents.begin(); it!=nearby_agents.begin(); it++) {
+	for (vector<const Agent*>::iterator it=nearby_agents.begin(); it!=nearby_agents.end(); it++) {
 		//Perform no action on non-Persons
 		const Person* other = dynamic_cast<const Person *>(*it);
 		if(!other) {

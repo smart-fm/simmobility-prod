@@ -58,6 +58,19 @@ const RoadSegment* sim_mob::Vehicle::getCurrSegment() const
 	return fwdMovement.getCurrSegment();
 }
 
+const Link* sim_mob::Vehicle::getCurrLink() const
+{
+	return fwdMovement.getCurrLink();
+}
+
+sim_mob::DynamicVector sim_mob::Vehicle::getCurrPolylineVector() const
+{
+	return DynamicVector(
+		fwdMovement.getCurrPolypoint().getX(), fwdMovement.getCurrPolypoint().getY(),
+		fwdMovement.getNextPolypoint().getX(), fwdMovement.getNextPolypoint().getY()
+	);
+}
+
 bool sim_mob::Vehicle::hasPath() const
 {
 	return fwdMovement.isPathSet();

@@ -89,6 +89,16 @@ private:
 		double distance;
 	};
 
+	//Similar, but for pedestrians
+	struct NearestPedestrian {
+		NearestPedestrian() : distance(5000) {}
+
+		//TODO: This is probably not needed. We should really set "distance" to DOUBLE_MAX.
+		bool exists() { return distance < 5000; }
+
+		double distance;
+	};
+
 	///Simple struct to hold parameters which only exist for a single update tick.
 	struct UpdateParams {
 		UpdateParams(const Driver& owner); //Initialize with sensible defaults.
@@ -116,6 +126,8 @@ private:
 		NearestVehicle nvLeftBack;
 		NearestVehicle nvRightFwd;
 		NearestVehicle nvRightBack;
+
+		NearestPedestrian npedFwd;
 
 		double laneChangingVelocity;
 	};
@@ -385,7 +397,7 @@ private:
 	//parameters
 private:
 	double targetSpeed;			//the speed which the vehicle is going to achieve
-	double minPedestrianDis;
+	//double minPedestrianDis;
 	//double tsStopDistance;     // distance to stop line
 	double space;
 	double headway;				//distance/speed
@@ -471,7 +483,7 @@ private:
 	/**************COOPERATION WITH PEDESTRIAN***************/
 public:
 	//True if a pedestrian is within range.
-	bool isPedestrianAhead;
+	//bool isPedestrianAhead;
 
 };
 

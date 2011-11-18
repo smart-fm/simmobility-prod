@@ -41,13 +41,13 @@ double sim_mob::Driver::makeAcceleratingDecision(UpdateParams& p)
 
 	//Set our mode.
 	ACCEL_MODE mode;
-	if(p.nvFwd.distance != 5000 && p.nvFwd.distance <= p.trafficSignalStopDistance && p.nvFwd.distance <= minPedestrianDis) {
+	if(p.nvFwd.distance != 5000 && p.nvFwd.distance <= p.trafficSignalStopDistance && p.nvFwd.distance <= p.npedFwd.distance) {
 		space = p.nvFwd.distance/100;
 		mode = AM_VEHICLE;
-	} else if(minPedestrianDis != 5000 && minPedestrianDis <= p.nvFwd.distance && minPedestrianDis <= p.trafficSignalStopDistance) {
-		space = minPedestrianDis/100;
+	} else if(p.npedFwd.distance != 5000 && p.npedFwd.distance <= p.nvFwd.distance && p.npedFwd.distance <= p.trafficSignalStopDistance) {
+		space = p.npedFwd.distance/100;
 		mode = AM_PEDESTRIAN;
-	} else if(p.trafficSignalStopDistance != 5000 && p.trafficSignalStopDistance <= minPedestrianDis && p.trafficSignalStopDistance <= p.nvFwd.distance) {
+	} else if(p.trafficSignalStopDistance != 5000 && p.trafficSignalStopDistance <= p.npedFwd.distance && p.trafficSignalStopDistance <= p.nvFwd.distance) {
 		space = p.trafficSignalStopDistance/100;
 		mode = AM_TRAFF_LIGHT;
 	} else {

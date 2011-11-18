@@ -105,13 +105,13 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams()
 
 
 //TODO: We can use initializer lists later to make some of these params const.
-void sim_mob::Driver::UpdateParams::UpdateParams()
+sim_mob::Driver::UpdateParams::UpdateParams(const Driver& owner)
 {
 	//Set to the previous known buffered values
-	currLane = currLane_.get();
-	currLaneLength = currLaneLength_.get();
-	currLaneOffset = currLaneOffset_.get();
-	isInIntersection = isInIntersection.get();
+	currLane = owner.currLane_.get();
+	currLaneLength = owner.currLaneLength_.get();
+	currLaneOffset = owner.currLaneOffset_.get();
+	isInIntersection = owner.isInIntersection.get();
 
 	//Current lanes to the left and right. May be null
 	leftLane = nullptr;
@@ -155,7 +155,7 @@ void sim_mob::Driver::update_first_frame(UpdateParams& params, frame_t frameNumb
 	initializePath();
 
 	//Set some properties about the current path, such as the current polyline, etc.
-	if(pathMover.isPathSet()) {
+	if(vehicle->hasPath()) {
 		setOrigin(params);
 	}
 }
@@ -201,7 +201,7 @@ void sim_mob::Driver::update_general(UpdateParams& params, frame_t frameNumber)
 				if(!polypathMover.isOnLastLine()) {
 					//Go to the next polyline.
 					polypathMover.moveToNextSegment();
-					sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
+					//sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
 				} else {
 					//Go to the next segment.
 					updateRSInCurrLink(params);
@@ -336,12 +336,12 @@ void sim_mob::Driver::setToParent()
 
 //TODO: Previously, the rel/abs nature of the the code made auto-updating impossible. Now it should work,
 //      but for now I'm requiring this function to be called manually. ~Seth
-void sim_mob::Driver::sync_relabsobjs()
+/*void sim_mob::Driver::sync_relabsobjs()
 {
 	sim_mob::Point2D pt1 = polypathMover.getCurrPolypoint();
 	sim_mob::Point2D pt2 = polypathMover.getNextPolypoint();
 	vehicle->newPolyline(pt1, pt2);
-}
+}*/
 
 
 bool sim_mob::Driver::isReachPolyLineSegEnd() const
@@ -537,7 +537,7 @@ void sim_mob::Driver::changeLaneWithinSameRS(UpdateParams& p, const Lane* newLan
 	//NOTE: I think this is done automatically.
 	//polylineSegIndex = updateStartEndIndex(currLanePolyLine, p.currLaneOffset, polylineSegIndex);
 
-	sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
+	//sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
 }
 
 
@@ -553,7 +553,7 @@ void sim_mob::Driver::changeToNewRoadSegmentSameLink(UpdateParams& p, const Lane
 
 	p.currLaneOffset = 0;
 	//polylineSegIndex = 0; //NOTE: This should be set already
-	sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
+	//sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
 
 	//RSIndex ++;
 	if(isReachLastRSinCurrLink()) {
@@ -600,7 +600,7 @@ void sim_mob::Driver::changeToNewLinkAfterIntersection(UpdateParams& p, const La
 	targetLaneIndex = currLaneIndex;
 
 	//TODO: This is temporary; there should be a better way of handling the current polyline.
-	sync_relabsobjs();
+	//sync_relabsobjs();
 
 	//Are we now on the last link in this segment?
 	if(isReachLastRSinCurrLink()) {
@@ -721,7 +721,7 @@ void sim_mob::Driver::setOrigin(UpdateParams& p)
 	vehicle = new Vehicle();
 
 	//Determine the direction we will be moving along this link.
-	isLinkForward = (pathMover.getCurrLink()->getStart()==originNode);
+	//isLinkForward = (pathMover.getCurrLink()->getStart()==originNode);
 
 	//Set the max speed and target speed.
 	maxLaneSpeed = pathMover.getCurrSegment()->maxSpeed/3.6;//slow down
@@ -732,8 +732,8 @@ void sim_mob::Driver::setOrigin(UpdateParams& p)
 	p.currLane = pathMover.getCurrSegment()->getLanes().at(currLaneIndex);
 	targetLaneIndex = currLaneIndex;
 
-	polypathMover.setPath(p.currLane->getPolyline());
-	sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
+	//polypathMover.setPath(p.currLane->getPolyline());
+	//sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
 
 	//Vehicles start at rest
 	vehicle->setVelocity(0);

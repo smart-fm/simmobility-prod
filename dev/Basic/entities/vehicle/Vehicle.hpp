@@ -40,6 +40,7 @@ public:
 	//bool reachedSegmentEnd() const;  ///<Return true if we've reached the end of the current segment.
 	bool isInIntersection() const;   ///<Are we now in an intersection?
 	bool isDone() const; ///<Are we fully done with our path?
+	bool hasPath() const; ///<Do we have a path to move on?
 
 	//Special
 	double getAngle() const;  ///<For display purposes only.

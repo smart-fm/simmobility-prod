@@ -53,6 +53,11 @@ void sim_mob::Vehicle::initPath(std::vector<sim_mob::WayPoint> wp_path)
 	fwdMovement.setPath(path, isFwd);
 }
 
+bool sim_mob::Vehicle::hasPath() const
+{
+	return fwdMovement.isPathSet();
+}
+
 double sim_mob::Vehicle::getX() const
 {
 	throw_if_error();

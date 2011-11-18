@@ -91,7 +91,7 @@ private:
 
 	///Simple struct to hold parameters which only exist for a single update tick.
 	struct UpdateParams {
-		UpdateParams(); //Initialize with sensible defaults.
+		UpdateParams(const Driver& owner); //Initialize with sensible defaults.
 
 		const Lane* currLane;  //TODO: This should really be tied to PolyLineMover, but for now it's not important.
 		const Lane* leftLane;
@@ -298,7 +298,7 @@ private:
 
 	///Helper method; synchronize after changing to a new polyline.
 	///TODO: This should be moved at some point
-	void sync_relabsobjs();
+	//void sync_relabsobjs();
 
 	bool isReachPolyLineSegEnd() const;
 	bool isReachCurrRoadSegmentEnd() const;

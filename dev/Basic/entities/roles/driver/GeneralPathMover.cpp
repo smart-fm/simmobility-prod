@@ -3,6 +3,7 @@
 #include "GeneralPathMover.hpp"
 
 #include <limits>
+#include <algorithm>
 #include <stdexcept>
 
 #include "geospatial/RoadSegment.hpp"
@@ -15,7 +16,7 @@ using std::vector;
 
 
 
-void sim_mob::GeneralPathMover::setPath(vector<WayPoint> wp_path)
+void sim_mob::GeneralPathMover::setPath(vector<WayPoint> wp_path, bool firstSegMoveFwd)
 {
 	fullPath.clear();
 	for(vector<WayPoint>::iterator it=wp_path.begin(); it!=wp_path.end(); it++) {
@@ -25,16 +26,15 @@ void sim_mob::GeneralPathMover::setPath(vector<WayPoint> wp_path)
 	}
 
 	currSegmentIt = fullPath.begin();
-	polypointsList = (*currSegmentIt)->getLanes().front()->getPolyline();
-	currPolypoint = polypointsList.begin();
-	nextPolypoint = polypointsList.begin()+1;
+	isMovingForwards = firstSegMoveFwd;
+	generateNewPolylineArray();
 	distAlongPolyline = 0;
-	currPolylineLength = sim_mob::dist(&(*currPolypoint), &(*nextPolypoint));
 	inIntersection = false;
+	distMovedInSegment = 0;
 }
 
 
-void sim_mob::GeneralPathMover::setPath(const vector<RoadSegment*>& path)
+void sim_mob::GeneralPathMover::setPath(const vector<RoadSegment*>& path, bool firstSegMoveFwd)
 {
 	fullPath.clear();
 	for(vector<RoadSegment*>::const_iterator it=path.begin(); it!=path.end(); it++) {
@@ -42,14 +42,24 @@ void sim_mob::GeneralPathMover::setPath(const vector<RoadSegment*>& path)
 	}
 
 	currSegmentIt = fullPath.begin();
-	polypointsList = (*currSegmentIt)->getLanes().front()->getPolyline();
-	currPolypoint = polypointsList.begin();
-	nextPolypoint = polypointsList.begin()+1;
+	isMovingForwards = firstSegMoveFwd;
+	generateNewPolylineArray();
 	distAlongPolyline = 0;
-	currPolylineLength = sim_mob::dist(&(*currPolypoint), &(*nextPolypoint));
 	inIntersection = false;
+	distMovedInSegment = 0;
 }
 
+void sim_mob::GeneralPathMover::generateNewPolylineArray()
+{
+	//Simple; just make sure to take the forward direction into account.
+	polypointsList = (*currSegmentIt)->getLanes().front()->getPolyline();
+	if (!isMovingForwards) {
+		std::reverse(polypointsList.begin(), polypointsList.end());
+	}
+	currPolypoint = polypointsList.begin();
+	nextPolypoint = polypointsList.begin()+1;
+	currPolylineLength = sim_mob::dist(&(*currPolypoint), &(*nextPolypoint));
+}
 
 bool sim_mob::GeneralPathMover::isPathSet() const
 {
@@ -64,15 +74,21 @@ bool sim_mob::GeneralPathMover::isDoneWithEntireRoute() const
 void sim_mob::GeneralPathMover::leaveIntersection()
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
+	throwIf(!inIntersection, "Not actually in an Intersection!");
 
 	//Unset flag; move to the next segment.
 	inIntersection = false;
-	currSegmentIt++;
+	actualMoveToNextSegmentAndUpdateDir();
+}
+
+bool sim_mob::GeneralPathMover::isMovingForwardsOnCurrSegment() const
+{
+	return isMovingForwards;
 }
 
 
 //This is where it gets a little complex.
-void sim_mob::GeneralPathMover::advance(centimeter_t fwdDistance)
+void sim_mob::GeneralPathMover::advance(double fwdDistance)
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
 
@@ -90,6 +106,7 @@ void sim_mob::GeneralPathMover::advance(centimeter_t fwdDistance)
 
 	//Move down the current polyline. If this brings us to the end point, go to the next polyline
 	distAlongPolyline += fwdDistance;
+	distMovedInSegment += fwdDistance;
 	while (distAlongPolyline>=currPolylineLength) {
 		advanceToNextPolyline();
 	}
@@ -121,6 +138,7 @@ void sim_mob::GeneralPathMover::advanceToNextRoadSegment()
 {
 	//An error if we're already at the end of this road segment
 	throwIf(currSegmentIt==fullPath.end(), "Road segment can't advance");
+	distMovedInSegment = 0;
 
 	//If we are approaching a new Segment, the Intersection driving model takes precedence.
 	// In addition, no further processing occurs. This means advancing a very large amount will
@@ -132,7 +150,34 @@ void sim_mob::GeneralPathMover::advanceToNextRoadSegment()
 	}
 
 	//Move to the next Segment
+	actualMoveToNextSegmentAndUpdateDir();
+}
+
+void sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir()
+{
+	throwIf(!isPathSet(), "GeneralPathMover path not set.");
+	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
+
+	//Move
 	currSegmentIt++;
+
+	//Just in case
+	distMovedInSegment=0;
+
+	//Is this new segment in reverse?
+	const Node* prevNode = isMovingForwards ? (*(currSegmentIt-1))->getEnd() : (*(currSegmentIt-1))->getStart();
+	if ((*currSegmentIt)->getStart() == prevNode) {
+		isMovingForwards = true;
+	} else if ((*currSegmentIt)->getEnd() == prevNode) {
+		isMovingForwards = false;
+	} else {
+		//Presumably, we could enable something like this later, but it would require advanced
+		//  knowledge of which Segments face forwards.
+		throw std::runtime_error("Can't jump around to arbitrary nodes with GeneralPathMover.");
+	}
+
+	//Now generate a new polyline array.
+	generateNewPolylineArray();
 }
 
 
@@ -161,7 +206,7 @@ const Point2D& sim_mob::GeneralPathMover::getNextPolypoint() const
 	return *nextPolypoint;
 }
 
-centimeter_t sim_mob::GeneralPathMover::getCurrDistAlongPolyline() const
+double sim_mob::GeneralPathMover::getCurrDistAlongPolyline() const
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
 
@@ -174,7 +219,14 @@ centimeter_t sim_mob::GeneralPathMover::getCurrDistAlongPolyline() const
 	return std::min(distAlongPolyline, currPolylineLength);
 }
 
-centimeter_t sim_mob::GeneralPathMover::getCurrPolylineTotalDist() const
+double sim_mob::GeneralPathMover::getCurrDistAlongRoadSegment() const
+{
+	throwIf(!isPathSet(), "GeneralPathMover path not set.");
+
+	return distMovedInSegment;
+}
+
+double sim_mob::GeneralPathMover::getCurrPolylineTotalDist() const
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
 	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");

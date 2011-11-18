@@ -13,130 +13,63 @@
 
 #include "util/MovementVector.hpp"
 #include "util/DynamicVector.hpp"
+#include "entities/roles/driver/GeneralPathMover.hpp"
 
 
 namespace sim_mob {
 
 class Vehicle {
 public:
-	Vehicle() : length(400), width(200), error_state(true) {
-	}
+	Vehicle();
 
 public:
-	double length;				//length of the vehicle
-	double width;				//width of the vehicle
-	//double timeStep;			//time step size of simulation
-
-	//Place at a given location.
-	/*void placeAt(Point2D pos, Point2D target) {
-		position = MovementVector(DynamicVector(pos.getX(), pos.getY(), target.getX(), target.getY()));
-	}*/
+	const double length;  ///<length of the vehicle
+	const double width;   ///<width of the vehicle
 
 	//Accessors
-	double getX() const {
-		throw_if_error();
-		return position.getX();
-	}
-	double getY() const {
-		throw_if_error();
-		return position.getY();
-	}
-	double getDistanceMovedInSegment() const {
-		throw_if_error();
-		return position.getAmountMoved();
-	}
-	double getVelocity() const {
-		throw_if_error();
-		return velocity.getMagnitude();
-	}
-	double getLatVelocity() const {
-		throw_if_error();
-		return velocity_lat.getMagnitude();
-	}
-	double getAcceleration() const {
-		throw_if_error();
-		return accel.getMagnitude();
-	}
-	bool reachedSegmentEnd() const {
-		throw_if_error();
-		return position.reachedEnd();
-	}
+	double getX() const;   ///<Retrieve the vehicle's absolute position, x
+	double getY() const;   ///<Retrieve the vehicle's absolute position, y
+	//double getDistanceMovedInSegment() const;   //<Retrieve the total distance moved in this segment so far.
+	double getLateralMovement() const;         ///<Retrieve a value representing how far to the LEFT of the current lane the vehicle has moved.
+	double getVelocity() const;      ///<Retrieve forward velocity.
+	double getLatVelocity() const;   ///<Retrieve lateral velocity.
+	double getAcceleration() const;  ///<Retrieve forward acceleration.
+	//bool reachedSegmentEnd() const;  ///<Return true if we've reached the end of the current segment.
+	bool isInIntersection() const;   ///<Are we now in an intersection?
+	bool isDone() const; ///<Are we fully done with our path?
 
 	//Special
-	double getAngleBasedOnVelocity() const {
-		throw_if_error();
-		return velocity.getAngle();
-	}
+	double getAngle() const;  ///<For display purposes only.
 
 	//Modifiers
-	void setVelocity(double value) {
-		throw_if_error();
-		velocity.scaleVectTo(value);
-	}
-	void setLatVelocity(double value) {
-		throw_if_error();
-		velocity_lat.scaleVectTo(value);
-	}
-	void setAcceleration(double value) {
-		throw_if_error();
-		accel.scaleVectTo(value);
-	}
-	void moveFwd(double amt) {
-		throw_if_error();
-		position.moveFwd(amt);
-	}
-	void moveLat(double amt) {
-		throw_if_error();
-		position.moveLat(amt);
-	}
-	void resetLateralMovement() {
-		throw_if_error();
-		position.resetLateral();
-	}
-	double getLateralMovement() {
-		throw_if_error();
-		return position.getLateralMovement();
-	}
+	void setVelocity(double value);      ///<Set the forward velocity.
+	void setLatVelocity(double value);   ///<Set the lateral velocity.
+	void setAcceleration(double value);  ///<Set the forward acceleration.
+	void moveFwd(double amt);            ///<Move this car forward. Automatically moved it to new Segments unless it's in an intersection.
+	void moveLat(double amt);            ///<Move this car laterally. NOTE: This will _add_ the amt to the current value.
+	void resetLateralMovement();         ///<Put this car back in the center of the current lane.
+	void moveToNextSegmentAfterIntersection();   ///<If we're in an intersection, move out of it.
 
 	//Complex
-	void newPolyline(sim_mob::Point2D firstPoint, sim_mob::Point2D secondPoint) {
-		//Get a generic vector pointing in the magnitude of the current polyline
-		DynamicVector currDir(0, 0,
-			secondPoint.getX() - firstPoint.getX(),
-			secondPoint.getY() - firstPoint.getY()
-		);
-
-		//Double check that we're not doing something silly.
-		error_state = currDir.getMagnitude()==0;
-		throw_if_error();
-
-		//Sync velocity.
-		repositionAndScale(velocity, currDir);
-		repositionAndScale(velocity_lat, currDir);
-		velocity_lat.flipLeft();
-
-		//Sync acceleration
-		repositionAndScale(accel, currDir);
-
-		//Sync position
-		position.moveToNewVect(DynamicVector(
-			firstPoint.getX(), firstPoint.getY(),
-			secondPoint.getX(), secondPoint.getY()
-		));
-	}
+	//void newPolyline(sim_mob::Point2D firstPoint, sim_mob::Point2D secondPoint)
 
 	//Temporary; workaround
-	const DynamicVector& TEMP_retrieveFwdVelocityVector() {
-		throw_if_error();
-		return velocity;
-	}
+	//const DynamicVector& TEMP_retrieveFwdVelocityVector();
 
 
 private:
-	MovementVector position;
-	DynamicVector velocity;
-	DynamicVector velocity_lat; //Lateral velocity. Positive means pointing left.
-	DynamicVector accel;
+	//Trying a slightly more dynamic moving model.
+	//MovementVector position;
+	//DynamicVector velocity;
+	//DynamicVector velocity_lat; //Lateral velocity. Positive means pointing left.
+	//DynamicVector accel;
+	GeneralPathMover fwdMovement;
+	double latMovement;
+	double fwdVelocity;
+	double latVelocity;
+	double fwdAccel;
+
+
 
 	//NOTE: The error state is a temporary sanity check to help me debug this class. There are certainly
 	//      better ways to handle this (e.g., non-default constructor).
@@ -148,11 +81,12 @@ private:
 	}
 
 	//Helper function: Reposition and take care of any remaining velocity.
-	void repositionAndScale(DynamicVector& item, const DynamicVector& newHeading) {
+	/*void repositionAndScale(DynamicVector& item, const DynamicVector& newHeading) {
 		double oldMag = item.getMagnitude();
 		item = newHeading;
 		item.scaleVectTo(oldMag);
-	}
+	}*/
 };
 
 } // namespace sim_mob
+

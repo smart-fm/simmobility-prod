@@ -207,7 +207,7 @@ private:
 	static void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
 
 	//Aggregate class to encapsulate movement along a list of RoadSegments.
-	RoadSegmentMover pathMover;
+	//RoadSegmentMover pathMover;
 
 	//Vector containing the path from origin to destination
 	//std::vector<const RoadSegment*> allRoadSegments;
@@ -222,7 +222,7 @@ private:
 	//const Link* currLink;
 
 	//True if we are moving forward within the current link.
-	bool isLinkForward;
+	//bool isLinkForward;
 
 	//Polyline we are currently moving along.
 	//const std::vector<sim_mob::Point2D>* currLanePolyLine;
@@ -231,7 +231,7 @@ private:
 	//size_t polylineSegIndex;
 
 	//Helper class for managing movement within a polyline.
-	PolyLineMover polypathMover;
+	//PolyLineMover polypathMover;
 
 
 	//Helper: Entire length of current polyline

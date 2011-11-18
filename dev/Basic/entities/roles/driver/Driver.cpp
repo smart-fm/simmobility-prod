@@ -1009,7 +1009,7 @@ void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 void sim_mob::Driver::updateAngle(UpdateParams& p)
 {
 	//Set angle based on the vehicle's heading and velocity.
-	p.vehicleAngle = vehicle->getAngleBasedOnVelocity() * 180 / M_PI;;
+	p.vehicleAngle = 360 - (vehicle->getAngleBasedOnVelocity() * 180 / M_PI);
 }
 
 void sim_mob::Driver::intersectionVelocityUpdate()

@@ -4,6 +4,9 @@
 
 #include <cmath>
 #include <stdexcept>
+#include <iostream>
+#include <boost/thread.hpp>
+#include "util/OutputUtil.hpp"
 
 namespace sim_mob
 {
@@ -60,7 +63,11 @@ public:
 			throw std::runtime_error("Impossible to retrieve a vector's angle if it has never had a size.");
 		}
 
-		return atan2(mag.y, mag.x) + M_PI;
+		//Bound to 0...2*PI
+		double calcAngle = atan2(mag.y, mag.x);
+		return (calcAngle<0?calcAngle+2*M_PI:calcAngle);
+
+		//return atan2(mag.y, mag.x) + M_PI;
 	}
 
 	//Basic utility functions

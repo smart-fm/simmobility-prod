@@ -308,7 +308,7 @@ private:
 
 	bool isLeaveIntersection() const;
 	bool isReachLinkEnd() const;
-	bool isGoalReached() const;
+	//bool isGoalReached() const;
 
 	bool isCloseToLinkEnd(UpdateParams& p);
 	bool isPedetrianOnTargetCrossing();

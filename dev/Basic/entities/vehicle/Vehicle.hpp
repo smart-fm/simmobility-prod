@@ -45,6 +45,9 @@ public:
 	//Special
 	double getAngle() const;  ///<For display purposes only.
 
+	//More stuff; some might be optional.
+	const sim_mob::RoadSegment* getCurrSegment() const;
+
 	//Modifiers
 	void setVelocity(double value);      ///<Set the forward velocity.
 	void setLatVelocity(double value);   ///<Set the lateral velocity.

@@ -26,6 +26,9 @@ public:
 	const double length;  ///<length of the vehicle
 	const double width;   ///<width of the vehicle
 
+	//Call once
+	void initPath(std::vector<sim_mob::WayPoint> wp_path);
+
 	//Accessors
 	double getX() const;   ///<Retrieve the vehicle's absolute position, x
 	double getY() const;   ///<Retrieve the vehicle's absolute position, y

@@ -15,8 +15,13 @@ using namespace sim_mob;
 using std::vector;
 
 
+sim_mob::GeneralPathMover::GeneralPathMover() : distAlongPolyline(0), currPolylineLength(0),
+	distMovedInSegment(0), inIntersection(false), isMovingForwards(false)
+{
+}
 
-void sim_mob::GeneralPathMover::setPath(vector<WayPoint> wp_path, bool firstSegMoveFwd)
+
+/*void sim_mob::GeneralPathMover::setPath(vector<WayPoint> wp_path, bool firstSegMoveFwd)
 {
 	fullPath.clear();
 	for(vector<WayPoint>::iterator it=wp_path.begin(); it!=wp_path.end(); it++) {
@@ -31,13 +36,13 @@ void sim_mob::GeneralPathMover::setPath(vector<WayPoint> wp_path, bool firstSegM
 	distAlongPolyline = 0;
 	inIntersection = false;
 	distMovedInSegment = 0;
-}
+}*/
 
 
-void sim_mob::GeneralPathMover::setPath(const vector<RoadSegment*>& path, bool firstSegMoveFwd)
+void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, bool firstSegMoveFwd)
 {
 	fullPath.clear();
-	for(vector<RoadSegment*>::const_iterator it=path.begin(); it!=path.end(); it++) {
+	for(vector<const RoadSegment*>::const_iterator it=path.begin(); it!=path.end(); it++) {
 		fullPath.push_back(*it);
 	}
 

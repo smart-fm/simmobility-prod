@@ -24,13 +24,16 @@ class Link;
  */
 class GeneralPathMover {
 public:
-	///Set the path of RoadSegments contained in our path. These segments need not
-	/// necessarily be in the same Link.
-	void setPath(std::vector<sim_mob::WayPoint> wp_path, bool firstSegMoveFwd);
+	GeneralPathMover();
 
 	///Set the path of RoadSegments contained in our path. These segments need not
 	/// necessarily be in the same Link.
-	void setPath(const std::vector<sim_mob::RoadSegment*>& path, bool firstSegMoveFwd);
+	//void setPath(std::vector<sim_mob::RoadSegment*> wp_path, bool firstSegMoveFwd);
+
+	///Set the path of RoadSegments contained in our path. These segments need not
+	/// necessarily be in the same Link.
+	///TODO: I'm not entirely sure that all cases of fwd/rev RoadSegments are handled properly.
+	void setPath(const std::vector<const sim_mob::RoadSegment*>& path, bool firstSegMoveFwd);
 
 	///Is it possible to move? Attempting to operate on a GeneralPathmover which has no RoadSegments in
 	/// its path is an error.

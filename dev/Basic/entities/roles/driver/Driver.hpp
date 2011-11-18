@@ -83,12 +83,16 @@ private:
 
 	//Struct for holding data about the "nearest" vehicle.
 	struct NearestVehicle {
+		NearestVehicle() : driver(nullptr), distance(5000) {}
+
 		const Driver* driver;
 		double distance;
 	};
 
 	///Simple struct to hold parameters which only exist for a single update tick.
 	struct UpdateParams {
+		UpdateParams(); //Initialize with sensible defaults.
+
 		const Lane* currLane;  //TODO: This should really be tied to PolyLineMover, but for now it's not important.
 		const Lane* leftLane;
 		const Lane* rightLane;
@@ -290,7 +294,7 @@ public:
 private:
 	///Helper method for initializing an UpdateParams struct. This method is not strictly necessary, but
 	/// it is helpful to document what each Param is used for.
-	void new_update_params(UpdateParams& res);
+	//void new_update_params(UpdateParams& res);
 
 	///Helper method; synchronize after changing to a new polyline.
 	///TODO: This should be moved at some point

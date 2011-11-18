@@ -104,45 +104,47 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams()
 
 
 
-void sim_mob::Driver::new_update_params(UpdateParams& res)
+//TODO: We can use initializer lists later to make some of these params const.
+void sim_mob::Driver::UpdateParams::UpdateParams()
 {
 	//Set to the previous known buffered values
-	res.currLane = currLane_.get();
-	res.currLaneLength = currLaneLength_.get();
-	res.currLaneOffset = currLaneOffset_.get();
-	res.isInIntersection = isInIntersection.get();
+	currLane = currLane_.get();
+	currLaneLength = currLaneLength_.get();
+	currLaneOffset = currLaneOffset_.get();
+	isInIntersection = isInIntersection.get();
 
 	//Current lanes to the left and right. May be null
-	res.leftLane = nullptr;
-	res.rightLane = nullptr;
+	leftLane = nullptr;
+	rightLane = nullptr;
 
 	//Reset; these will be set before they are used; the values here represent either defaul
 	//       values or are unimportant.
-	res.currSpeed = 0;
-	res.perceivedFwdVelocity = 0;
-	res.perceivedLatVelocity = 0;
-	res.isTrafficLightStop = false;
-	res.trafficSignalStopDistance = 5000;
-	res.elapsedSeconds = ConfigParams::GetInstance().baseGranMS/1000.0;
+	currSpeed = 0;
+	perceivedFwdVelocity = 0;
+	perceivedLatVelocity = 0;
+	isTrafficLightStop = false;
+	trafficSignalStopDistance = 5000;
+	elapsedSeconds = ConfigParams::GetInstance().baseGranMS/1000.0;
 
 	//Lateral velocity of lane changing.
-	res.laneChangingVelocity = 100;
+	laneChangingVelocity = 100;
 
+	//TODO: Copy comments into doxygen comments in the hpp file before deleting commented code.
 	//Nearest vehicles in the current lane, and left/right (including fwd/back for each).
-	res.nvFwd.driver = nullptr;
-	res.nvBack.driver = nullptr;
-	res.nvLeftFwd.driver = nullptr;
-	res.nvLeftBack.driver = nullptr;
-	res.nvRightFwd.driver = nullptr;
-	res.nvRightBack.driver = nullptr;
+	/*nvFwd.driver = nullptr;
+	nvBack.driver = nullptr;
+	nvLeftFwd.driver = nullptr;
+	nvLeftBack.driver = nullptr;
+	nvRightFwd.driver = nullptr;
+	nvRightBack.driver = nullptr;*/
 
 	//Nearest vehicles' distances are initialized to threshold values.
-	res.nvFwd.distance = 5000;
-	res.nvBack.distance = 5000;
-	res.nvLeftFwd.distance = 5000;
-	res.nvLeftBack.distance = 5000;
-	res.nvRightFwd.distance = 5000;
-	res.nvRightBack.distance = 5000;
+	/*nvFwd.distance = 5000;
+	nvBack.distance = 5000;
+	nvLeftFwd.distance = 5000;
+	nvLeftBack.distance = 5000;
+	nvRightFwd.distance = 5000;
+	nvRightBack.distance = 5000;*/
 }
 
 
@@ -228,7 +230,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 
 	//Create a new set of local parameters for this frame update.
 	UpdateParams params;
-	new_update_params(params);
+	//new_update_params(params);
 
 	//First frame update
 	if (firstFrameTick) {
@@ -710,7 +712,7 @@ void sim_mob::Driver::initializePath()
 	destNode = parent->destNode;
 
 	//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
-	pathMover.setPath(StreetDirectory::instance().shortestDrivingPath(*originNode, *destNode));
+	vehicle->initPath(StreetDirectory::instance().shortestDrivingPath(*originNode, *destNode));
 }
 
 void sim_mob::Driver::setOrigin(UpdateParams& p)

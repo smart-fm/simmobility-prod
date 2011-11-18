@@ -8,12 +8,49 @@
  */
 
 #include "Vehicle.hpp"
+#include "geospatial/RoadSegment.hpp"
 
 using namespace sim_mob;
+using std::vector;
 
 
-sim_mob::Vehicle::Vehicle() : length(400), width(200), error_state(true)
+sim_mob::Vehicle::Vehicle() : length(400), width(200),
+	latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true)
 {
+}
+
+void sim_mob::Vehicle::initPath(std::vector<sim_mob::WayPoint> wp_path)
+{
+	//Construct a list of RoadSegments.
+	vector<const RoadSegment*> path;
+	for(vector<WayPoint>::iterator it=wp_path.begin(); it!=wp_path.end(); it++) {
+		if(it->type_ == WayPoint::ROAD_SEGMENT) {
+			path.push_back(it->roadSegment_);
+		}
+	}
+
+	//Determine whether or not the first one is fwd.
+	bool isFwd;
+	if (path.size()>=2) {
+		error_state = false;
+		const RoadSegment* first = path.at(0);
+		const RoadSegment* second = path.at(1);
+		if (first->getEnd()==second->getStart()) {
+			isFwd = true;
+		} else if (first->getStart()==second->getEnd()) {
+			isFwd = false;
+		} else {
+			error_state = true;
+		}
+	}
+
+	//Are we in a valid state?
+	if (error_state) {
+		throw std::runtime_error("Attempting to set a path with 1 or fewer road segments, or segments that aren't in order.");
+	}
+
+	//Init
+	fwdMovement.setPath(path, isFwd);
 }
 
 double sim_mob::Vehicle::getX() const

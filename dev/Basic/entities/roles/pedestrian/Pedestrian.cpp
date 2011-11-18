@@ -237,26 +237,26 @@ void sim_mob::Pedestrian::setSidewalkParas(Node* start, Node* end, bool isStartM
 			for(i=roadsegments.begin();i!=roadsegments.end();i++){
 				if((*i)->getStart()==end&&(*i)->getEnd()==start){
 					segToWalk = (*i);
-					isForward=false;
+//					isForward=false;
 					break;
 				}
-				else if ((*i)->getStart()==start&&(*i)->getEnd()==end){
-					segToWalk = (*i);
-					isForward=true;
-					break;
-				}
+//				else if ((*i)->getStart()==start&&(*i)->getEnd()==end){
+//					segToWalk = (*i);
+//					isForward=true;
+//					break;
+//				}
 			}
 			if(segToWalk){
 				numOfLanes=(unsigned int)segToWalk->getLanes().size();
 				sidewalkPolyLine = &(const_cast<RoadSegment*>(segToWalk)->getLaneEdgePolyline(numOfLanes));
-				if(isForward){
-					startPt=sidewalkPolyLine->at(0);
-					endPt=sidewalkPolyLine->at(sidewalkPolyLine->size()-1);
-				}
-				else{
+//				if(isForward){
+//					startPt=sidewalkPolyLine->at(0);
+//					endPt=sidewalkPolyLine->at(sidewalkPolyLine->size()-1);
+//				}
+//				else{
 					endPt=sidewalkPolyLine->at(0);
 					startPt=sidewalkPolyLine->at(sidewalkPolyLine->size()-1);
-				}
+//				}
 				parent->xPos.set(startPt.getX());
 				parent->yPos.set(startPt.getY());
 				goalInLane = Point2D(endPt.getX(),endPt.getY());

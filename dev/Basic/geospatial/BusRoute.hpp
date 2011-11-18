@@ -1,33 +1,34 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
+#include "BusStop.hpp"
+#include "Lane.hpp"
 
-#pragma once
-
-#include "util/DynamicVector.hpp"
-
-#include "Route.hpp"
-#include <vector>
 
 
 
 
 namespace sim_mob{
-	class RoadSegment;
-	class BusStop;
+  class Lane;
+  class BusStop;
+  class Route;
 
-	class BusRoute: public Route
+
+
+  class Busroute: public Route
 	{
 	public:
-		BusRoute(int id, std::vector <RoadSegment*> roadsegments, int routetime, std::vector <BusStop*> busstops) :
-		Route(id, roadsegments, routetime) {}
-
-
+	  struct Way_point
+	  {
+		enum { LANE, BUS_STOP } type;
+		union
+		{
+			Lane* lane;
+			BusStop* bus_stop;
+		};
+		time_t expected_time;
 	};
 
+		Bus_route = vector<struct Way_point*>;
+		
+		
+	};		
+	
 }
-
-
-
-
-
-
-

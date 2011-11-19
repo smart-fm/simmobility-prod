@@ -23,9 +23,9 @@ class LaneChangeModel {
 	virtual sim_mob::LaneSide gapAcceptance(sim_mob::UpdateParams& p, int type) = 0;
 	virtual double calcSideLaneUtility(sim_mob::UpdateParams& p, bool isLeft) = 0;
 	virtual sim_mob::LANE_CHANGE_SIDE makeDiscretionaryLaneChangingDecision(sim_mob::UpdateParams& p) = 0;
-	virtual double checkIfMandatory(double totalLinkDist) = 0;
+	virtual double checkIfMandatory(UpdateParams& p) = 0;
 	virtual sim_mob::LANE_CHANGE_SIDE makeMandatoryLaneChangingDecision(sim_mob::UpdateParams& p) = 0;
-	virtual void excuteLaneChanging(sim_mob::UpdateParams& p, double totalLinkDistance) = 0;
+	virtual void executeLaneChanging(sim_mob::UpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir) = 0;
 };
 
 class MITSIM_LC_Model : public LaneChangeModel {
@@ -33,9 +33,9 @@ class MITSIM_LC_Model : public LaneChangeModel {
 	virtual sim_mob::LaneSide gapAcceptance(sim_mob::UpdateParams& p, int type);
 	virtual double calcSideLaneUtility(sim_mob::UpdateParams& p, bool isLeft);
 	virtual sim_mob::LANE_CHANGE_SIDE makeDiscretionaryLaneChangingDecision(sim_mob::UpdateParams& p);
-	virtual double checkIfMandatory(double totalLinkDist);
+	virtual double checkIfMandatory(UpdateParams& p);
 	virtual sim_mob::LANE_CHANGE_SIDE makeMandatoryLaneChangingDecision(sim_mob::UpdateParams& p);
-	virtual void excuteLaneChanging(sim_mob::UpdateParams& p, double totalLinkDistance);
+	virtual void executeLaneChanging(sim_mob::UpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir);
 };
 
 

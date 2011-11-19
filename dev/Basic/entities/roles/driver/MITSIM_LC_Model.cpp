@@ -66,6 +66,15 @@ struct LeadLag {
 	T lag;
 };
 
+//Unit conversion
+double unit2Feet(double unit) {
+	return unit/0.158;
+}
+double feet2Unit(double feet) { //Note: This function is now in two locations.
+	return feet*0.158;
+}
+
+
 
 } //End anon namespace
 
@@ -147,12 +156,12 @@ LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(UpdateParams& p, int type)
 			if (j==0) {
 				double v      = p.perceivedFwdVelocity;
 				double dv     = otherSpeed[i].lead - v;
-				flags[i].lead = (otherDistance[i].lead > lcCriticalGap(p, j+type,dis2stop,v,dv));
+				flags[i].lead = (otherDistance[i].lead > lcCriticalGap(p, j+type,p.dis2stop,v,dv));
 			} else {
 
 				double v 	 = otherSpeed[i].lag;
 				double dv 	 = p.perceivedFwdVelocity - otherSpeed[i].lag;
-				flags[i].lag = (otherDistance[i].lag > lcCriticalGap(p, j+type,dis2stop,v,dv));
+				flags[i].lag = (otherDistance[i].lag > lcCriticalGap(p, j+type,p.dis2stop,v,dv));
 			}
 		}
 	}
@@ -187,7 +196,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision
 	}
 
 	double s = p.nvFwd.distance;
-	satisfiedDistance = 1000;
+	const double satisfiedDistance = 1000;
 	if(s>satisfiedDistance) {
 		return LCS_SAME;	// space ahead is satisfying, stay in current lane
 	}
@@ -224,15 +233,13 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision
 	return LCS_SAME;
 }
 
-double sim_mob::MITSIM_LC_Model::checkIfMandatory(double totalLinkDist) {
+double sim_mob::MITSIM_LC_Model::checkIfMandatory(UpdateParams& p)
+{
 	//The code below is MITSIMLab model
-	dis2stop = totalLinkDist - currLinkOffset - vehicle->length/2 - 300;
-	dis2stop /= 100;
-
 	double num		=	1;		//now we just assume that MLC only need to change to the adjacent lane
 	double y		=	0.5;	//segment density/jam density, now assume that it is 0.5
 	double delta0	=	feet2Unit(MLC_parameters.feet_lowbound);
-	double dis		=	dis2stop - delta0;
+	double dis		=	p.dis2stop - delta0;
 	double delta	=	1.0 + MLC_parameters.lane_coeff * num + MLC_parameters.congest_coeff * y;
 	delta *= MLC_parameters.feet_delta;
 	return exp(-dis * dis / (delta * delta));
@@ -245,7 +252,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(Upd
 	//find which lane it should get to and choose which side to change
 	//now manually set to 1, it should be replaced by target lane index
 	//i am going to fix it.
-	int direction=1-currLaneIndex;
+	int direction = 1 - p.currLaneIndex;
 
 	//current lane is target lane
 	if(direction==0) {
@@ -254,13 +261,13 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(Upd
 
 	//current lane isn't target lane
 	if(freeLanes.right && direction<0) {		//target lane on the right and is accessable
-		isWaiting=false;
+		p.isWaiting=false;
 		return LCS_RIGHT;
 	} else if(freeLanes.left && direction>0) {	//target lane on the left and is accessable
-		isWaiting=false;
+		p.isWaiting=false;
 		return LCS_LEFT;
 	} else {			//when target side isn't available,vehicle will decelerate to wait a proper gap.
-		isWaiting=true;
+		p.isWaiting=true;
 		return LCS_SAME;
 	}
 }
@@ -274,28 +281,27 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(Upd
  *
  * -wangxy
  * */
-void sim_mob::MITSIM_LC_Model::excuteLaneChanging(UpdateParams& p, double totalLinkDistance)
+void sim_mob::MITSIM_LC_Model::executeLaneChanging(UpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir)
 {
 	//Behavior changes depending on whether or not we're actually changing lanes.
-	if(vehicle->getLatVelocity()!=0){ //Performing a lane change.
-		if(getCurrLaneChangeDirection() != LCS_SAME) {
-			//Set the lateral velocity of the vehicle; move it.
-			int lcsSign = (getCurrLaneChangeDirection()==LCS_RIGHT) ? -1 : 1;
-			vehicle->setLatVelocity(lcsSign*p.laneChangingVelocity);
-		}
+	if(currLaneChangeDir != LCS_SAME) { //Performing a lane change.
+		//Set the lateral velocity of the vehicle; move it.
+		int lcsSign = (currLaneChangeDir==LCS_RIGHT) ? -1 : 1;
+		vehicle->setLatVelocity(lcsSign*p.laneChangingVelocity);
 	} else {
 		//If too close to node, don't do lane changing, distance should be larger than 3m
-		if(p.currLaneLength - p.currLaneOffset - vehicle->length/2 <= 300) {
+		if(p.currLaneLength - p.currLaneOffset - vehLen/2 <= 300) {
 			return;
 		}
 
 		//Get a random number, use it to determine if we're making a discretionary or a mandatory lane change
 		double randNum = (double)(rand()%1000)/1000;
-		if(randNum<checkIfMandatory(totalLinkDistance)){
+		LANE_CHANGE_MODE changeMode;  //DLC or MLC
+		if(randNum<checkIfMandatory(p)){
 			changeMode = MLC;
 		} else {
 			changeMode = DLC;
-			dis2stop = MAX_NUM;		//no crucial point ahead
+			p.dis2stop = MAX_NUM;		//no crucial point ahead
 		}
 
 		//make decision depending on current lane changing mode

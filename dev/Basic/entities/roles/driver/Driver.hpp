@@ -111,7 +111,7 @@ public:
 	//for coordinate transform
 	void setParentBufferedData();			///<set next data to parent buffer data
 	//static double feet2Unit(double feet);
-	static double unit2Feet(double unit);
+	//static double unit2Feet(double unit);
 
 	//double getMaxAcceleration() const {return maxAcceleration;}
 	//double getNormalDeceleration() const {return normalDeceleration;}
@@ -162,7 +162,7 @@ private:
     double currLinkOffset;
 	//double traveledDis; //the distance traveled within current time step
 
-	size_t currLaneIndex;
+	//size_t currLaneIndex;
 	size_t targetLaneIndex;
 	StreetDirectory::LaneAndIndexPair laneAndIndexPair;
 	const std::vector<sim_mob::Point2D>* desLanePolyLine;
@@ -262,7 +262,7 @@ private:
 	void findCrossing(UpdateParams& p);
 
 	//helper function, to find the lane index in current road segment
-	size_t getLaneIndex(const Lane* l);
+	//size_t getLaneIndex(const Lane* l);
 
 
 
@@ -316,32 +316,32 @@ public:
 	//for lane changing decision
 private:
 	//double VelOfLaneChanging;	//perpendicular with the lane's direction
-	int changeMode;				//DLC or MLC
+	//int changeMode;				//DLC or MLC
 	//LANE_CHANGE_SIDE changeDecision;		//1 for right, -1 for left, 0 for current
 	//bool isLaneChanging;			//is the vehicle is changing the lane
 	bool isback;				//in DLC: is the vehicle get back to the lane to avoid crash
-	bool isWaiting;				//in MLC: is the vehicle waiting acceptable gap to change lane
+	//bool isWaiting;				//in MLC: is the vehicle waiting acceptable gap to change lane
 	int fromLane;				//during lane changing, the lane the vehicle leaves
 	int toLane;					//during lane changing, the lane the vehicle approaches
-	double satisfiedDistance;	//the smallest space ahead which driver is satisfied with so that he/she won't change lane
-	double dis2stop;			//distance to where critical location where lane changing has to be made
+	//double satisfiedDistance;	//the smallest space ahead which driver is satisfied with so that he/she won't change lane
+	//double dis2stop;			//distance to where critical location where lane changing has to be made
 								//currently, we made it infinite
 	double avoidBadAreaDistance;		//when vehicle want to change lane, if the vehicle change to the lane
 										//    and the space between the vehicle and the bad area is smaller than
 										//    this distance, the vehicle won't change lane(because later it should change again)
 public:
-	LaneSide gapAcceptance(UpdateParams& p, int type); 	///<check if the gap of the left lane and the right lane is available
-	double lcCriticalGap(UpdateParams& p,
-			int type,		// 0=leading 1=lag + 2=mandatory (mask) //TODO: ARGHHHHHHH magic numbers....
-			double dis,					// from critical pos
-			double spd,					// spd of the follower
-			double dv					// spd difference from the leader));
-			);								///<use Kazi LC Gap Model to calculate the critical gap
-	int checkIfBadAreaAhead();				///<find the closest bad area ahead which the vehicle may knock on(see details in Driver.cpp)
-	int findClosestBadAreaAhead(int lane);	///<find the closest bad area ahead in specific lane
-	double makeLaneChangingDecision();					///<Firstly, check if MLC is needed, and then choose specific model to decide.
-	double checkIfMandatory(double totalLinkDist);							///<check if MLC is needed, return probability to MLC
-	double calcSideLaneUtility(UpdateParams& p,bool isLeft);			///<return utility of adjacent gap
+//	LaneSide gapAcceptance(UpdateParams& p, int type);
+//	double lcCriticalGap(UpdateParams& p,
+//			int type,		// 0=leading 1=lag + 2=mandatory (mask) //TODO: ARGHHHHHHH magic numbers....
+//			double dis,					// from critical pos
+//			double spd,					// spd of the follower
+//			double dv					// spd difference from the leader));
+//			);								///<use Kazi LC Gap Model to calculate the critical gap
+//	int checkIfBadAreaAhead();				///<find the closest bad area ahead which the vehicle may knock on(see details in Driver.cpp)
+//	int findClosestBadAreaAhead(int lane);	///<find the closest bad area ahead in specific lane
+//	double makeLaneChangingDecision();					///<Firstly, check if MLC is needed, and then choose specific model to decide.
+//	double checkIfMandatory(double totalLinkDist);							///<check if MLC is needed, return probability to MLC
+//	double calcSideLaneUtility(UpdateParams& p,bool isLeft);			///<return utility of adjacent gap
 
 	LANE_CHANGE_SIDE makeDiscretionaryLaneChangingDecision(UpdateParams& p);		///<DLC model, vehicles freely decide which lane to move. Returns 1 for Right, -1 for Left, and 0 for neither.
 	LANE_CHANGE_SIDE makeMandatoryLaneChangingDecision(UpdateParams& p);			///<MLC model, vehicles must change lane, Returns 1 for Right, -1 for Left.

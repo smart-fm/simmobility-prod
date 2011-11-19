@@ -36,12 +36,6 @@ using std::vector;
 using std::set;
 using std::map;
 
-//for unit conversion
-double sim_mob::Driver::unit2Feet(double unit)
-{
-	return unit/0.158;
-}
-
 
 //Helper functions
 namespace {
@@ -62,6 +56,19 @@ size_t updateStartEndIndex(const std::vector<sim_mob::Point2D>* const currLanePo
 	}
 	return defaultValue;
 }
+
+//TODO:I think lane index should be a data member in the lane class
+size_t getLaneIndex(const Lane* l)
+{
+	const RoadSegment* r = l->getRoadSegment();
+	for(size_t i=0;i<r->getLanes().size();i++) {
+		if(r->getLanes().at(i)==l) {
+			return i;
+		}
+	}
+	return -1;  //NOTE: This might not do what you expect! ~Seth
+}
+
 
 } //End anon namespace
 
@@ -102,6 +109,7 @@ sim_mob::UpdateParams::UpdateParams(const Driver& owner)
 {
 	//Set to the previous known buffered values
 	currLane = owner.currLane_.get();
+	currLaneIndex = getLaneIndex(currLane);
 	currLaneLength = owner.currLaneLength_.get();
 	currLaneOffset = owner.currLaneOffset_.get();
 	//isInIntersection = owner.vehicle->isInIntersection();
@@ -141,6 +149,12 @@ sim_mob::UpdateParams::UpdateParams(const Driver& owner)
 	space_star = 0;
 
 	distanceToNormalStop = 0;
+
+	//distance to where critical location where lane changing has to be made
+	dis2stop = 0;
+
+	//in MLC: is the vehicle waiting acceptable gap to change lane
+	isWaiting = false; //TODO: This might need to be saved between turns.
 
 	//If we are moving left, continue moving left unless otherwise notified.
 	//double latMove = owner.vehicle->getLateralMovement();
@@ -322,6 +336,10 @@ void sim_mob::Driver::intersectionDriving(UpdateParams& p)
 //the movement is based on relative position
 void sim_mob::Driver::linkDriving(UpdateParams& p)
 {
+	//TODO: This might not be in the right location
+	p.dis2stop = vehicle->getCurrLinkLength() - currLinkOffset - vehicle->length/2 - 300;
+	p.dis2stop /= 100;
+
 	//Check if we should change lanes.
 	excuteLaneChanging(p, vehicle->getCurrLinkLength());
 
@@ -495,19 +513,6 @@ void sim_mob::Driver::updateCurrLaneLength(UpdateParams& p)
 	p.currLaneLength = vehicle->getCurrPolylineVector().getMagnitude();
 }
 
-//TODO:I think lane index should be a data member in the lane class
-size_t sim_mob::Driver::getLaneIndex(const Lane* l)
-{
-	const RoadSegment* r = l->getRoadSegment();
-	for(size_t i=0;i<r->getLanes().size();i++)
-	{
-		if(r->getLanes().at(i)==l)
-			return i;
-	}
-	return -1;
-}
-
-
 //update left and right lanes of the current lane
 //if there is no left or right lane, it will be null
 void sim_mob::Driver::updateAdjacentLanes(UpdateParams& p)
@@ -515,11 +520,11 @@ void sim_mob::Driver::updateAdjacentLanes(UpdateParams& p)
 	p.leftLane = nullptr;
 	p.rightLane = nullptr;
 
-	if(currLaneIndex>0) {
-		p.rightLane = vehicle->getCurrSegment()->getLanes().at(currLaneIndex-1);
+	if(p.currLaneIndex>0) {
+		p.rightLane = vehicle->getCurrSegment()->getLanes().at(p.currLaneIndex-1);
 	}
-	if(currLaneIndex < vehicle->getCurrSegment()->getLanes().size()-1) {
-		p.leftLane = vehicle->getCurrSegment()->getLanes().at(currLaneIndex+1);
+	if(p.currLaneIndex < vehicle->getCurrSegment()->getLanes().size()-1) {
+		p.leftLane = vehicle->getCurrSegment()->getLanes().at(p.currLaneIndex+1);
 	}
 }
 
@@ -528,7 +533,7 @@ void sim_mob::Driver::updateAdjacentLanes(UpdateParams& p)
 void sim_mob::Driver::syncCurrLaneCachedInfo(UpdateParams& p)
 {
 	//The lane may have changed; reset the current lane index.
-	currLaneIndex = getLaneIndex(p.currLane);
+	p.currLaneIndex = getLaneIndex(p.currLane);
 
 	//Update which lanes are adjacent, and the length of the current polyline.
 	updateAdjacentLanes(p);
@@ -561,7 +566,7 @@ void sim_mob::Driver::chooseNextLaneForNextLink(UpdateParams& p)
 
 				//find target lane with same index, use this lane
 				size_t laneIndex = getLaneIndex((*it)->getLaneTo());
-				if(laneIndex == currLaneIndex) {
+				if(laneIndex == p.currLaneIndex) {
 					nextLaneInNextLink = (*it)->getLaneTo();
 					targetLaneIndex = laneIndex;
 					break;
@@ -576,8 +581,8 @@ void sim_mob::Driver::chooseNextLaneForNextLink(UpdateParams& p)
 				nextLaneInNextLink = targetLanes.at(0);
 				targetLaneIndex = getLaneIndex(nextLaneInNextLink);
 			} else if (nextSegment) { //Fallback
-				nextLaneInNextLink = nextSegment->getLanes().at(currLaneIndex);
-				targetLaneIndex = currLaneIndex;
+				nextLaneInNextLink = nextSegment->getLanes().at(p.currLaneIndex);
+				targetLaneIndex = p.currLaneIndex;
 			}
 		}
 	}
@@ -621,9 +626,9 @@ void sim_mob::Driver::setOrigin(UpdateParams& p)
 	targetSpeed = maxLaneSpeed;
 
 	//Set our current and target lanes.
-	currLaneIndex = 0;
-	p.currLane = vehicle->getCurrSegment()->getLanes().at(currLaneIndex);
-	targetLaneIndex = currLaneIndex;
+	p.currLaneIndex = 0;
+	p.currLane = vehicle->getCurrSegment()->getLanes().at(p.currLaneIndex);
+	targetLaneIndex = p.currLaneIndex;
 
 	//Vehicles start at rest
 	vehicle->setVelocity(0);
@@ -916,7 +921,7 @@ void sim_mob::Driver::justLeftIntersection(UpdateParams& p)
 	//p.currLane = newLane;
 	syncCurrLaneCachedInfo(p);
 	p.currLaneOffset = 0;
-	targetLaneIndex = currLaneIndex;
+	targetLaneIndex = p.currLaneIndex;
 
 	//Reset lateral movement/velocity to zero.
 	vehicle->setLatVelocity(0);

@@ -58,6 +58,7 @@ struct UpdateParams {
 	UpdateParams(const Driver& owner); //Initialize with sensible defaults.
 
 	const Lane* currLane;  //TODO: This should really be tied to PolyLineMover, but for now it's not important.
+	size_t currLaneIndex; //Cache of currLane's index.
 	const Lane* leftLane;
 	const Lane* rightLane;
 
@@ -93,6 +94,10 @@ struct UpdateParams {
 	double v_lead;
 	double space_star;
 	double distanceToNormalStop;
+
+	//Related to our lane changing model.
+	double dis2stop;
+	bool isWaiting;
 };
 
 

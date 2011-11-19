@@ -38,9 +38,9 @@ public:
 
 	virtual sim_mob::LaneSide gapAcceptance(sim_mob::UpdateParams& p, int type);
 	virtual double calcSideLaneUtility(sim_mob::UpdateParams& p, bool isLeft);  ///<return utility of adjacent gap
-	virtual sim_mob::LANE_CHANGE_SIDE makeDiscretionaryLaneChangingDecision(sim_mob::UpdateParams& p);
+	virtual sim_mob::LANE_CHANGE_SIDE makeDiscretionaryLaneChangingDecision(sim_mob::UpdateParams& p);  ///<DLC model, vehicles freely decide which lane to move. Returns 1 for Right, -1 for Left, and 0 for neither.
 	virtual double checkIfMandatory(UpdateParams& p);  ///<check if MLC is needed, return probability to MLC
-	virtual sim_mob::LANE_CHANGE_SIDE makeMandatoryLaneChangingDecision(sim_mob::UpdateParams& p);
+	virtual sim_mob::LANE_CHANGE_SIDE makeMandatoryLaneChangingDecision(sim_mob::UpdateParams& p); ///<MLC model, vehicles must change lane, Returns 1 for Right, -1 for Left.
 };
 
 

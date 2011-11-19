@@ -110,6 +110,10 @@ Point2D sim_mob::LineLineIntersect(const DynamicVector& v1, const DynamicVector&
 {
 	return LineLineIntersect(v1.getX(), v1.getY(), v1.getEndX(), v1.getEndY(), v2.getX(), v2.getY(), v2.getEndX(), v2.getEndY());
 }
+Point2D sim_mob::LineLineIntersect(const DynamicVector& v1, const Point2D& p3, const Point2D& p4)
+{
+	return LineLineIntersect(v1.getX(), v1.getY(), v1.getEndX(), v1.getEndY(), p3.getX(), p3.getY(), p4.getX(), p4.getY());
+}
 Point2D sim_mob::LineLineIntersect(const Point2D& p1, const Point2D& p2, const Point2D& p3, const Point2D& p4)
 {
 	return LineLineIntersect(p1.getX(),p1.getY(), p2.getX(),p2.getY(), p3.getX(),p3.getY(), p4.getX(),p4.getY());

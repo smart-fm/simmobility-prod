@@ -157,27 +157,6 @@ sim_mob::UpdateParams::UpdateParams(const Driver& owner)
 
 	//in MLC: is the vehicle waiting acceptable gap to change lane
 	isWaiting = false; //TODO: This might need to be saved between turns.
-
-	//If we are moving left, continue moving left unless otherwise notified.
-	//double latMove = owner.vehicle->getLateralMovement();
-	//currLaneChangeBehavoir = latMove>0?LCS_LEFT:latMove<0?LCS_RIGHT:LCS_SAME;
-
-	//TODO: Copy comments into doxygen comments in the hpp file before deleting commented code.
-	//Nearest vehicles in the current lane, and left/right (including fwd/back for each).
-	/*nvFwd.driver = nullptr;
-	nvBack.driver = nullptr;
-	nvLeftFwd.driver = nullptr;
-	nvLeftBack.driver = nullptr;
-	nvRightFwd.driver = nullptr;
-	nvRightBack.driver = nullptr;*/
-
-	//Nearest vehicles' distances are initialized to threshold values.
-	/*nvFwd.distance = 5000;
-	nvBack.distance = 5000;
-	nvLeftFwd.distance = 5000;
-	nvLeftBack.distance = 5000;
-	nvRightFwd.distance = 5000;
-	nvRightBack.distance = 5000;*/
 }
 
 
@@ -269,7 +248,6 @@ void sim_mob::Driver::update(frame_t frameNumber)
 
 	//Create a new set of local parameters for this frame update.
 	UpdateParams params(*this);
-	//new_update_params(params);
 
 	//First frame update
 	if (firstFrameTick) {
@@ -381,52 +359,6 @@ void sim_mob::Driver::setParentBufferedData()
 	parent->fwdVel.set(vehicle->getVelocity());
 	parent->latVel.set(vehicle->getLatVelocity());
 }
-
-
-//TODO: Previously, the rel/abs nature of the the code made auto-updating impossible. Now it should work,
-//      but for now I'm requiring this function to be called manually. ~Seth
-/*void sim_mob::Driver::sync_relabsobjs()
-{
-	sim_mob::Point2D pt1 = polypathMover.getCurrPolypoint();
-	sim_mob::Point2D pt2 = polypathMover.getNextPolypoint();
-	vehicle->newPolyline(pt1, pt2);
-}*/
-
-
-/*bool sim_mob::Driver::isReachPolyLineSegEnd() const
-{
-	return vehicle->reachedSegmentEnd();
-}
-
-bool sim_mob::Driver::isReachLastRSinCurrLink() const
-{
-	//TODO: This might not be technically correct if pathMover ever contains
-	//      RoadSegments on multiple Links. But we can clear that up easily after a test run.
-	return pathMover.isOnLastSegment();
-}
-
-//TODO
-bool sim_mob::Driver::isCloseToCrossing() const
-{
-	return (isReachLastRSinCurrLink()&&isCrossingAhead && xPosCrossing_-vehicle->getX()-vehicle->length/2 <= 1000);
-}
-*/
-
-//when the vehicle reaches the end of last link in link path
-/*bool sim_mob::Driver::isGoalReached() const
-{
-	return pathMover.isOnLastSegment() && isReachCurrRoadSegmentEnd();
-}*/
-
-/*bool sim_mob::Driver::isReachCurrRoadSegmentEnd() const
-{
-	return polypathMover.isOnLastLine() && isReachPolyLineSegEnd();
-}
-
-bool sim_mob::Driver::isReachLinkEnd() const
-{
-	return (isReachLastRSinCurrLink() && polypathMover.isOnLastLine() && isReachPolyLineSegEnd());
-}*/
 
 bool sim_mob::Driver::isLeaveIntersection() const
 {
@@ -654,20 +586,11 @@ void sim_mob::Driver::findCrossing(UpdateParams& p)
 	const Crossing* crossing=dynamic_cast<const Crossing*>(vehicle->getCurrSegment()->nextObstacle(vehicle->getDistanceMovedInSegment(),true).item);
 
 	if(crossing) {
-		//TODO: There's already a "GetIntersection()" function in util/GeomHelpers.hpp. Perhaps we
-		//      can use this and cut down on code bloat?
-		Point2D far1 = crossing->farLine.first;
-		Point2D far2 = crossing->farLine.second;
-		DynamicVector currPolyline = vehicle->getCurrPolylineVector();
+		//TODO: Please double-check that this does what's intended.
+		Point2D interSect = LineLineIntersect(vehicle->getCurrPolylineVector(), crossing->farLine.first, crossing->farLine.second);
+		DynamicVector toCrossing(vehicle->getX(), vehicle->getY(), interSect.getX(), interSect.getY());
 
-		double slope1 = static_cast<double>(far2.getY()-far1.getY())/(far2.getX()-far1.getX());
-		double slope2 = static_cast<double>(currPolyline.getEndY() - currPolyline.getY()) / (currPolyline.getEndX() - currPolyline.getX());
-		int x = (slope2*currPolyline.getX()-slope1*far1.getX()+far1.getY()-currPolyline.getY())/(slope2-slope1);
-		int y = slope1*(x-far1.getX())+far1.getY();
-
-		double xOffset=x-currPolyline.getX();
-		double yOffset=y-currPolyline.getY();
-		p.crossingFwdDistance = xOffset*xDirection+yOffset*yDirection;
+		p.crossingFwdDistance = toCrossing.getMagnitude();
 		p.isCrossingAhead = true;
 	}
 }
@@ -881,10 +804,6 @@ void sim_mob::Driver::updateNearbyPedestrian(UpdateParams& params, const Person*
 
 void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 {
-	//Reset parameters
-	//minPedestrianDis = 5000;
-	//isPedestrianAhead = false;
-
 	//Retrieve a list of nearby agents
 	vector<const Agent*> nearby_agents = AuraManager::instance().nearbyAgents(Point2D(vehicle->getX(),vehicle->getY()), *params.currLane,  distanceInFront, distanceBehind);
 

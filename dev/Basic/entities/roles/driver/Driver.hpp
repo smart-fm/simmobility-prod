@@ -33,15 +33,6 @@ class DPoint;
 
 class Driver : public sim_mob::Role {
 
-//Static data and private class definitions.
-private:
-	//Model parameters. Might be tunable.
-	//static const double MAX_ACCELERATION		=	 20.0;   ///< 10m/s*s
-	//static const double MAX_DECELERATION		=	-20.0;   ///< 10m/s*s
-	//static const double hBufferUpper			=	  1.6;	 ///< upper threshold of headway
-	//static const double hBufferLower			=	  0.8;	 ///< lower threshold of headway
-
-
 //Constructor and overridden methods.
 public:
 	Driver (Agent* parent);			//to initiate
@@ -68,40 +59,22 @@ private:
 	FixedDelayed<Point2D*> perceivedVelocityOfFwdCar;
 	FixedDelayed<centimeter_t> perceivedDistToFwdCar;
 
-	//Absolute movement-related variables
-	//double timeStep;			//time step size of simulation
-
-	//TODO: Deactivating these temporarily
-	//double perceivedXVelocity_;
-	//double perceivedYVelocity_;
-
 	//absolute position of the target start point on the next link
 	//used for intersection driving behavior
 	int xPos_nextLink;
 	int yPos_nextLink;
-
-	//int xPosCrossing_; //relative x coordinate for crossing, the intersection point of crossing's front line and current polyline
-	//double acc_;
-	double xDirection;			//x direction of the current polyline segment
-	double yDirection;			//y direction of the current polyline segment
 
 	double crossingFarX;
 	double crossingFarY;
 	double crossingNearX;
 	double crossingNearY;
 
-
 	Point2D origin;
 	Point2D goal;
 	const Node* destNode;				//first, assume that each vehicle moves towards a goal
 	const Node* originNode;				//when a vehicle reaches its goal, it will return to origin and moves to the goal again
-	//bool isGoalSet;				//to check if the goal has been set
 	bool firstFrameTick;			//to check if the origin has been set
 
-	//double maxAcceleration;
-	//double normalDeceleration;
-	//double maxDeceleration;
-	//double distanceToNormalStop;
 	double maxLaneSpeed;
 
 public:
@@ -110,67 +83,18 @@ public:
 
 	//for coordinate transform
 	void setParentBufferedData();			///<set next data to parent buffer data
-	//static double feet2Unit(double feet);
-	//static double unit2Feet(double unit);
-
-	//double getMaxAcceleration() const {return maxAcceleration;}
-	//double getNormalDeceleration() const {return normalDeceleration;}
-	//double getMaxDeceleration() const {return maxDeceleration;}
-	//double getDistanceToNormalStop() const {return distanceToNormalStop;}
 	void output(UpdateParams& p, frame_t frameNumber);
 
 	/****************IN REAL NETWORK****************/
 private:
 	static void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
 
-	//Aggregate class to encapsulate movement along a list of RoadSegments.
-	//RoadSegmentMover pathMover;
-
-	//Vector containing the path from origin to destination
-	//std::vector<const RoadSegment*> allRoadSegments;
-
-	//Current index into the allRoadSegments vector
-	//size_t RSIndex;
-
-	//Helper: Current road segment by index
-	//const RoadSegment* currRoadSegment;
-
-	//Helper: The current link we're on
-	//const Link* currLink;
-
-	//True if we are moving forward within the current link.
-	//bool isLinkForward;
-
-	//Polyline we are currently moving along.
-	//const std::vector<sim_mob::Point2D>* currLanePolyLine;
-
-	//Current index into the current road segment's polyline.
-	//size_t polylineSegIndex;
-
-	//Helper class for managing movement within a polyline.
-	//PolyLineMover polypathMover;
-
-
-	//Helper: Entire length of current polyline
-	//double currLaneLength;
-
-
-
-
-
 	const Link* desLink;
     double currLinkOffset;
-	//double traveledDis; //the distance traveled within current time step
 
-	//size_t currLaneIndex;
 	size_t targetLaneIndex;
 	StreetDirectory::LaneAndIndexPair laneAndIndexPair;
 	const std::vector<sim_mob::Point2D>* desLanePolyLine;
-
-	//Temp: changing name slightly; this is more automatic with RelAbsPoint.
-	//Point2D currPolylineSegStart;
-	//Point2D currPolylineSegEnd;
-	//int polylineSegLength;
 
 	Point2D desPolyLineStart;
 	Point2D desPolyLineEnd;
@@ -187,10 +111,7 @@ private:
 	const Link* nextLink;
 	const Lane* nextLaneInNextLink;
 	bool nextIsForward;
-
 	bool isReachGoal;
-	//bool lcEnterNewLane;
-	//bool isTrafficLightStop;
 
 	const int distanceInFront;
 	const int distanceBehind;
@@ -205,39 +126,18 @@ public:
 	const Vehicle* getVehicle() const {return vehicle;}
 
 private:
-	///Helper method for initializing an UpdateParams struct. This method is not strictly necessary, but
-	/// it is helpful to document what each Param is used for.
-	//void new_update_params(UpdateParams& res);
-
-	///Helper method; synchronize after changing to a new polyline.
-	///TODO: This should be moved at some point
-	//void sync_relabsobjs();
-
-	//bool isReachPolyLineSegEnd() const;
-	//bool isReachCurrRoadSegmentEnd() const;
-	//bool isReachLastPolyLineSeg() const;
-	//bool isReachLastRSinCurrLink() const;
-	//bool isCloseToCrossing() const;
-
 	bool isLeaveIntersection() const;
-	//bool isReachLinkEnd() const;
-	//bool isGoalReached() const;
-
 	bool isCloseToLinkEnd(UpdateParams& p);
 	bool isPedetrianOnTargetCrossing();
 	void chooseNextLaneForNextLink(UpdateParams& p);
 	void directionIntersection();
 	int disToObstacle(unsigned obstacle_offset);
-
 	void setOrigin(UpdateParams& p);
 
 	//A bit verbose, but only used in 1 or 2 places.
-	//void newPathMover(const Lane* newLane);
 	void syncCurrLaneCachedInfo(UpdateParams& p);
 	void justLeftIntersection(UpdateParams& p);
-
 	void updateAdjacentLanes(UpdateParams& p);
-	//void updateRSInCurrLink(UpdateParams& p);
 	void updateAcceleration(double newFwdAcc);
 	void updateVelocity();
 	void updatePositionOnLink(UpdateParams& p);
@@ -250,115 +150,26 @@ private:
 	void updateCurrLaneLength(UpdateParams& p);
 	void updateDisToLaneEnd();
 	void updatePositionDuringLaneChange(UpdateParams& p);
-	//void updateStartEndIndex();
 	void updateTrafficSignal();
 
 	void trafficSignalDriving(UpdateParams& p);
 	void intersectionDriving(UpdateParams& p);
-	//void pedestrianAheadDriving(UpdateParams& p);
 	void linkDriving(UpdateParams& p);
 
 	void initializePath();
 	void findCrossing(UpdateParams& p);
 
-	//helper function, to find the lane index in current road segment
-	//size_t getLaneIndex(const Lane* l);
-
-
 
 	/***********SOMETHING BIG BROTHER CAN RETURN*************/
 private:
-
-	/*NearestVehicle nearestCarFwd;
-
-	//Vehicle* vehicle;
-	const Driver* CFD;
-	const Driver* CBD;
-	const Driver* LFD;
-	const Driver* LBD;
-	const Driver* RFD;
-	const Driver* RBD;
-
-	double minCFDistance;				//the distance between subject vehicle to leading vehicle
-	double minCBDistance;
-	double minLFDistance;
-	double minLBDistance;
-	double minRFDistance;
-	double minRBDistance;*/
-
-
 	const Pedestrian* CFP;
 	const Pedestrian* LFP;
 	const Pedestrian* RFP;
 
 
 	/***********FOR DRIVING BEHAVIOR MODEL**************/
-	//parameters
 private:
 	double targetSpeed;			//the speed which the vehicle is going to achieve
-	//double minPedestrianDis;
-	//double tsStopDistance;     // distance to stop line
-	//double space;
-	//double headway;				//distance/speed
-	//double space_star;			//the distance which leading vehicle will move in next time step
-	double dv;					//the difference of subject vehicle's speed and leading vehicle's speed
-
-	//for acceleration decision
-public:
-	//double makeAcceleratingDecision(UpdateParams& p);				///<decide acc
-	//double breakToTargetSpeed(UpdateParams& p);					///<return the acc to a target speed within a specific distance
-	//double accOfEmergencyDecelerating(UpdateParams& p);			///<when headway < lower threshold, use this function
-	//double accOfCarFollowing(UpdateParams& p);						///<when lower threshold < headway < upper threshold, use this function
-	//double accOfMixOfCFandFF(UpdateParams& p);						///<when upper threshold < headway, use this funcion
-	//double accOfFreeFlowing(UpdateParams& p);						///<is a part of accofMixOfCFandFF
-	//double getTargetSpeed() const {return targetSpeed;}
-
-	//for lane changing decision
-private:
-	//double VelOfLaneChanging;	//perpendicular with the lane's direction
-	//int changeMode;				//DLC or MLC
-	//LANE_CHANGE_SIDE changeDecision;		//1 for right, -1 for left, 0 for current
-	//bool isLaneChanging;			//is the vehicle is changing the lane
-	bool isback;				//in DLC: is the vehicle get back to the lane to avoid crash
-	//bool isWaiting;				//in MLC: is the vehicle waiting acceptable gap to change lane
-	int fromLane;				//during lane changing, the lane the vehicle leaves
-	int toLane;					//during lane changing, the lane the vehicle approaches
-	//double satisfiedDistance;	//the smallest space ahead which driver is satisfied with so that he/she won't change lane
-	//double dis2stop;			//distance to where critical location where lane changing has to be made
-								//currently, we made it infinite
-	double avoidBadAreaDistance;		//when vehicle want to change lane, if the vehicle change to the lane
-										//    and the space between the vehicle and the bad area is smaller than
-										//    this distance, the vehicle won't change lane(because later it should change again)
-public:
-//	LaneSide gapAcceptance(UpdateParams& p, int type);
-//	double lcCriticalGap(UpdateParams& p,
-//			int type,
-//			double dis,
-//			double spd,					//
-//			double dv					//
-//			);
-//	int checkIfBadAreaAhead();
-//	int findClosestBadAreaAhead(int lane);
-//	double makeLaneChangingDecision();
-//	double checkIfMandatory(double totalLinkDist);
-//	double calcSideLaneUtility(UpdateParams& p,bool isLeft);
-
-	LANE_CHANGE_SIDE makeDiscretionaryLaneChangingDecision(UpdateParams& p);		///<DLC model, vehicles freely decide which lane to move. Returns 1 for Right, -1 for Left, and 0 for neither.
-	LANE_CHANGE_SIDE makeMandatoryLaneChangingDecision(UpdateParams& p);			///<MLC model, vehicles must change lane, Returns 1 for Right, -1 for Left.
-
-	//void excuteLaneChanging(UpdateParams& p, double totalLinkDistance);
-	bool checkForCrash();				///<to check if the crash may happen
-
-	/*
-	 * Now I assume that vehicles must make lane changing when they face "bad area" ahead of them.
-	 * The so called bad area is where vehicles can not go.
-	 * Now there is no parts specially designed for avoiding bad areas.
-	 * The decision making process is merged into discretionary lane changing.
-	 * Just add parameters and functions below to search for the bad areas.
-	 * */
-
-
-
 
 	/**************BEHAVIOR WHEN APPROACHING A INTERSECTION***************/
 public:
@@ -367,7 +178,6 @@ public:
 	void modifyPosition();
 	void IntersectionDirectionUpdate();
 	void UpdateNextLinkLane();
-	//void enterNextLink(UpdateParams& p);
 	bool isReachCrosswalk();
 
 	//This always returns the lane we are moving towards; regardless of if we've passed the
@@ -378,17 +188,10 @@ public:
 	// I'm sure we can do this in a less confusion fashion later.
 	LANE_CHANGE_SIDE getCurrLaneSideRelativeToCenter() const;
 
-	//bool isInIntersection() const {return inIntersection;}
-
 private:
 	//The current traffic signal in our Segment. May be null.
 	const Signal* trafficSignal;
 
-
-	/**************COOPERATION WITH PEDESTRIAN***************/
-public:
-	//True if a pedestrian is within range.
-	//bool isPedestrianAhead;
 
 };
 

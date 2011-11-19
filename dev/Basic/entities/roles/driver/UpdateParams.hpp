@@ -74,6 +74,8 @@ struct UpdateParams {
 	double perceivedFwdVelocity;
 	double perceivedLatVelocity;
 
+	//Nearest vehicles in the current lane, and left/right (including fwd/back for each).
+	//Nearest vehicles' distances are initialized to threshold values.
 	NearestVehicle nvFwd;
 	NearestVehicle nvBack;
 	NearestVehicle nvLeftFwd;

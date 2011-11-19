@@ -80,7 +80,7 @@ double sim_mob::Driver::lcCriticalGap(UpdateParams& p, int type,	double dis_, do
 }
 
 
-unsigned int sim_mob::Driver::gapAcceptance(UpdateParams& p, int type)
+LaneSide sim_mob::Driver::gapAcceptance(UpdateParams& p, int type)
 {
 	//[0:left,1:right]
 	LeadLag<double> otherSpeed[2];		//the speed of the closest vehicle in adjacent lane
@@ -135,12 +135,12 @@ unsigned int sim_mob::Driver::gapAcceptance(UpdateParams& p, int type)
 	}
 
 	//Build up a return value.
-	unsigned int returnVal = 0;
+	LaneSide returnVal = {false, false};
 	if ( flags[0].lead && flags[0].lag ) {
-		returnVal |= LSIDE_LEFT;
+		returnVal.left = true;
 	}
 	if ( flags[1].lead && flags[1].lag ) {
-		returnVal |= LSIDE_RIGHT;
+		returnVal.right = true;
 	}
 
 	return returnVal;
@@ -158,11 +158,8 @@ double sim_mob::Driver::calcSideLaneUtility(UpdateParams& p, bool isLeft){
 LANE_CHANGE_SIDE sim_mob::Driver::makeDiscretionaryLaneChangingDecision(UpdateParams& p)
 {
 	// for available gaps(including current gap between leading vehicle and itself), vehicle will choose the longest
-	unsigned int freeLanes = gapAcceptance(p, DLC);
-	bool freeLeft = ((freeLanes&LSIDE_LEFT)!=0);
-	bool freeRight = ((freeLanes&LSIDE_RIGHT)!=0);
-
-	if(!freeLeft && !freeRight) {
+	const LaneSide freeLanes = gapAcceptance(p, DLC);
+	if(!freeLanes.left && !freeLanes.right) {
 		return LCS_SAME;		//neither gap is available, stay in current lane
 	}
 
@@ -181,13 +178,13 @@ LANE_CHANGE_SIDE sim_mob::Driver::makeDiscretionaryLaneChangingDecision(UpdatePa
 	bool right = ( s < rightUtility );
 
 	//decide
-	if(freeRight && !freeLeft && right) {
+	if(freeLanes.rightOnly() && right) {
 		return LCS_RIGHT;
 	}
-	if(freeLeft && !freeRight && left) {
+	if(freeLanes.leftOnly() && left) {
 		return LCS_LEFT;
 	}
-	if(freeLeft && freeRight){
+	if(freeLanes.both()){
 		if(right && left){
 			return (leftUtility < rightUtility) ? LCS_LEFT : LCS_RIGHT;	//both side is available, choose the better one
 		}

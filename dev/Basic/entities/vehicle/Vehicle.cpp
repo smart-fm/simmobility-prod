@@ -88,6 +88,11 @@ const Link* sim_mob::Vehicle::getCurrLink() const
 	return fwdMovement.getCurrLink();
 }
 
+double sim_mob::Vehicle::getCurrLinkLength() const
+{
+	return fwdMovement.getCurrLink()->getLength(fwdMovement.isMovingForwardsOnCurrSegment());
+}
+
 sim_mob::DynamicVector sim_mob::Vehicle::getCurrPolylineVector() const
 {
 	return DynamicVector(
@@ -104,13 +109,29 @@ bool sim_mob::Vehicle::hasPath() const
 double sim_mob::Vehicle::getX() const
 {
 	throw_if_error();
-	return fwdMovement.getPosition().x;
+	return getPosition().x;
 }
 
 double sim_mob::Vehicle::getY() const
 {
 	throw_if_error();
-	return fwdMovement.getPosition().y;
+	return getPosition().y;
+}
+
+DPoint sim_mob::Vehicle::getPosition() const
+{
+	throw_if_error();
+	DPoint origPos = fwdMovement.getPosition();
+	if (latMovement!=0) {
+		DynamicVector latMv(0, 0,
+			fwdMovement.getNextPolypoint().getX()-fwdMovement.getCurrPolypoint().getX(),
+			fwdMovement.getNextPolypoint().getY()-fwdMovement.getCurrPolypoint().getY()
+		);
+		latMv.scaleVectTo(latMovement).translateVect();
+		origPos.x += latMv.getX();
+		origPos.y += latMv.getY();
+	}
+	return origPos;
 }
 
 /*double sim_mob::Vehicle::getDistanceMovedInSegment() const

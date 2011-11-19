@@ -86,8 +86,6 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), vehicle(nullptr), perceiv
 
 	//Some one-time flags and other related defaults.
 	firstFrameTick = true;
-	isLaneChanging = false;
-	//isPedestrianAhead = false;
 	nextLaneInNextLink = nullptr;
 }
 
@@ -111,7 +109,7 @@ sim_mob::Driver::UpdateParams::UpdateParams(const Driver& owner)
 	currLane = owner.currLane_.get();
 	currLaneLength = owner.currLaneLength_.get();
 	currLaneOffset = owner.currLaneOffset_.get();
-	isInIntersection = owner.vehicle->isInIntersection();
+	//isInIntersection = owner.vehicle->isInIntersection();
 
 	//Current lanes to the left and right. May be null
 	leftLane = nullptr;
@@ -128,6 +126,10 @@ sim_mob::Driver::UpdateParams::UpdateParams(const Driver& owner)
 
 	//Lateral velocity of lane changing.
 	laneChangingVelocity = 100;
+
+	//If we are moving left, continue moving left unless otherwise notified.
+	double latMove = owner.vehicle->getLateralMovement();
+	currLaneChangeBehavoir = latMove>0?LCS_LEFT:latMove<0?LCS_RIGHT:LCS_SAME;
 
 	//TODO: Copy comments into doxygen comments in the hpp file before deleting commented code.
 	//Nearest vehicles in the current lane, and left/right (including fwd/back for each).
@@ -305,12 +307,12 @@ void sim_mob::Driver::linkDriving(UpdateParams& p)
 {
 	//Update our position with respect to lane changing.
 	//Detect if we've successfully moved into our new lane.
-	if(isLaneChanging) {
-		updatePosLC(p);
+	if(p.currLaneChangeBehavoir!=LSIDE_NO_LC) {
+		updatePositionDuringLaneChange(p);
 	}
 
 	//Check if we should change lanes.
-	excuteLaneChanging(p, pathMover.getCurrLink()->getLength(isLinkForward));
+	excuteLaneChanging(p, vehicle->getCurrLinkLength());
 
 	//Retrieve a new acceleration value.
 	double newFwdAcc = 0;
@@ -1050,9 +1052,9 @@ void sim_mob::Driver::justLeftIntersection(UpdateParams& p)
 
 
 //TODO: This might not assume that the "relative" coordinate is halfway down the lane's width. Might need to fix.
-void sim_mob::Driver::updatePosLC(UpdateParams& p)
+void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p)
 {
-	if(changeDecision==LCS_RIGHT && p.rightLane) {
+	if(p.currLaneChangeBehavoir==LCS_RIGHT && p.rightLane) {
 		double vehicleLeftMovement = vehicle->getLateralMovement();
 		if(!lcEnterNewLane && -vehicleLeftMovement >= 150) { //TODO: Skip hardcoded values! Should this be laneWidth/2?
 			changeLaneWithinSameRS(p, p.rightLane);
@@ -1064,7 +1066,7 @@ void sim_mob::Driver::updatePosLC(UpdateParams& p)
 			vehicle->resetLateralMovement();
 			vehicle->setLatVelocity(0);
 		}
-	} else if(changeDecision == LCS_LEFT && p.leftLane) {
+	} else if(p.currLaneChangeBehavoir==LCS_LEFT && p.leftLane) {
 		if(!lcEnterNewLane && vehicle->getLateralMovement()>=150) {
 			changeLaneWithinSameRS(p, p.leftLane);
 			lcEnterNewLane = true;

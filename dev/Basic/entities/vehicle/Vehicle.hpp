@@ -54,6 +54,7 @@ public:
 	const sim_mob::Link* getCurrLink() const;
 	const sim_mob::Node* getNodeMovingTowards() const;
 	const sim_mob::Node* getNodeMovingFrom() const;
+	double getCurrLinkLength() const;
 
 	//Modifiers
 	void setVelocity(double value);      ///<Set the forward velocity.
@@ -83,6 +84,8 @@ private:
 	double latVelocity;
 	double fwdAccel;
 
+
+	DPoint getPosition() const;
 
 
 	//NOTE: The error state is a temporary sanity check to help me debug this class. There are certainly

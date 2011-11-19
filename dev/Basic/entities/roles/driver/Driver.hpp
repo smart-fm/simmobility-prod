@@ -17,9 +17,12 @@
 namespace sim_mob
 {
 
-enum LANE_SIDE {
-	LSIDE_LEFT = 1,
-	LSIDE_RIGHT = 2
+struct LaneSide {
+	bool left;
+	bool right;
+	bool both() const { return left && right; }
+	bool leftOnly() const { return left && !right; }
+	bool rightOnly() const { return right && !left; }
 };
 
 enum LANE_CHANGE_MODE {	//as a mask
@@ -128,6 +131,7 @@ private:
 
 		NearestPedestrian npedFwd;
 
+		LANE_CHANGE_SIDE currLaneChangeBehavoir;
 		double laneChangingVelocity;
 	};
 
@@ -350,7 +354,7 @@ private:
 
 	void updateCurrLaneLength(UpdateParams& p);
 	void updateDisToLaneEnd();
-	void updatePosLC(UpdateParams& p);
+	void updatePositionDuringLaneChange(UpdateParams& p);
 	//void updateStartEndIndex();
 	void updateTrafficSignal();
 
@@ -420,8 +424,8 @@ public:
 private:
 	//double VelOfLaneChanging;	//perpendicular with the lane's direction
 	int changeMode;				//DLC or MLC
-	LANE_CHANGE_SIDE changeDecision;		//1 for right, -1 for left, 0 for current
-	bool isLaneChanging;			//is the vehicle is changing the lane
+	//LANE_CHANGE_SIDE changeDecision;		//1 for right, -1 for left, 0 for current
+	//bool isLaneChanging;			//is the vehicle is changing the lane
 	bool isback;				//in DLC: is the vehicle get back to the lane to avoid crash
 	bool isWaiting;				//in MLC: is the vehicle waiting acceptable gap to change lane
 	int fromLane;				//during lane changing, the lane the vehicle leaves
@@ -433,7 +437,7 @@ private:
 										//    and the space between the vehicle and the bad area is smaller than
 										//    this distance, the vehicle won't change lane(because later it should change again)
 public:
-	unsigned int gapAcceptance(UpdateParams& p, int type); 	///<check if the gap of the left lane and the right lane is available
+	LaneSide gapAcceptance(UpdateParams& p, int type); 	///<check if the gap of the left lane and the right lane is available
 	double lcCriticalGap(UpdateParams& p,
 			int type,		// 0=leading 1=lag + 2=mandatory (mask) //TODO: ARGHHHHHHH magic numbers....
 			double dis,					// from critical pos

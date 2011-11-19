@@ -131,7 +131,6 @@ private:
 
 		NearestPedestrian npedFwd;
 
-		LANE_CHANGE_SIDE currLaneChangeBehavoir;
 		double laneChangingVelocity;
 	};
 
@@ -291,7 +290,7 @@ private:
 	bool nextIsForward;
 
 	bool isReachGoal;
-	bool lcEnterNewLane;
+	//bool lcEnterNewLane;
 	//bool isTrafficLightStop;
 
 	const int distanceInFront;
@@ -476,6 +475,14 @@ public:
 	void UpdateNextLinkLane();
 	//void enterNextLink(UpdateParams& p);
 	bool isReachCrosswalk();
+
+	//This always returns the lane we are moving towards; regardless of if we've passed the
+	//  halfway point or not.
+	LANE_CHANGE_SIDE getCurrLaneChangeDirection() const;
+
+	//This, however, returns where we are relative to the center of our own lane.
+	// I'm sure we can do this in a less confusion fashion later.
+	LANE_CHANGE_SIDE getCurrLaneSideRelativeToCenter() const;
 
 	//bool isInIntersection() const {return inIntersection;}
 

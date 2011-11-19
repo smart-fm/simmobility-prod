@@ -129,7 +129,7 @@ sim_mob::Driver::UpdateParams::UpdateParams(const Driver& owner)
 
 	//If we are moving left, continue moving left unless otherwise notified.
 	double latMove = owner.vehicle->getLateralMovement();
-	currLaneChangeBehavoir = latMove>0?LCS_LEFT:latMove<0?LCS_RIGHT:LCS_SAME;
+	//currLaneChangeBehavoir = latMove>0?LCS_LEFT:latMove<0?LCS_RIGHT:LCS_SAME;
 
 	//TODO: Copy comments into doxygen comments in the hpp file before deleting commented code.
 	//Nearest vehicles in the current lane, and left/right (including fwd/back for each).
@@ -305,9 +305,9 @@ void sim_mob::Driver::intersectionDriving(UpdateParams& p)
 //the movement is based on relative position
 void sim_mob::Driver::linkDriving(UpdateParams& p)
 {
-	//Update our position with respect to lane changing.
+	//Update our position with respect to lane changing. We know we are changing lanes if we have a lateral velocity.
 	//Detect if we've successfully moved into our new lane.
-	if(p.currLaneChangeBehavoir!=LSIDE_NO_LC) {
+	if(getCurrLaneChangeDirection()!=LCS_SAME) {
 		updatePositionDuringLaneChange(p);
 	}
 
@@ -543,11 +543,6 @@ void sim_mob::Driver::changeLaneWithinSameRS(UpdateParams& p, const Lane* newLan
 	p.currLane = newLane;
 	polypathMover.setPath(newLane->getPolyline());
 	syncCurrLaneCachedInfo(p);
-
-	//NOTE: I think this is done automatically.
-	//polylineSegIndex = updateStartEndIndex(currLanePolyLine, p.currLaneOffset, polylineSegIndex);
-
-	//sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
 }
 
 
@@ -1050,33 +1045,63 @@ void sim_mob::Driver::justLeftIntersection(UpdateParams& p)
 	vehicle->resetLateralMovement();
 }
 
+LANE_CHANGE_SIDE sim_mob::Driver::getCurrLaneChangeDirection() const
+{
+	if (vehicle->getLatVelocity()>0) {
+		return LCS_LEFT;
+	} else if (vehicle->getLatVelocity()<0) {
+		return LCS_RIGHT;
+	}
+	return LCS_SAME;
+}
 
-//TODO: This might not assume that the "relative" coordinate is halfway down the lane's width. Might need to fix.
+LANE_CHANGE_SIDE sim_mob::Driver::getCurrLaneSideRelativeToCenter() const
+{
+	if (vehicle->getLateralMovement()>0) {
+		return LCS_LEFT;
+	} else if (vehicle->getLatMovement()<0) {
+		return LCS_RIGHT;
+	}
+	return LCS_SAME;
+}
+
+
+//TODO: I think all lane changing occurs after 150m. Double-check please. ~Seth
 void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p)
 {
-	if(p.currLaneChangeBehavoir==LCS_RIGHT && p.rightLane) {
-		double vehicleLeftMovement = vehicle->getLateralMovement();
-		if(!lcEnterNewLane && -vehicleLeftMovement >= 150) { //TODO: Skip hardcoded values! Should this be laneWidth/2?
-			changeLaneWithinSameRS(p, p.rightLane);
-			lcEnterNewLane = true;
+	double halfLaneWidth = p.currLane->getWidth() / 2.0;
+
+	//The direction we are attempting to change lanes in
+	LANE_CHANGE_SIDE actual = getCurrLaneChangeDirection();
+	LANE_CHANGE_SIDE relative = getCurrLaneSideRelativeToCenter();
+	if (actual==LCS_SAME) {
+		return;
+	}
+	if (relative==LCS_SAME) {
+		relative=actual; //Might occur on the first decision to move outward.
+	}
+
+	//Basically, we move "halfway" into the next lane, and then move "halfway" back to its midpoint.
+	if (actual==relative) {
+		//Moving "out".
+		double remainder = fabs(vehicle->getLateralMovement()) - halfLaneWidth;
+		if (remainder>0) {
+			changeLaneWithinSameRS(p, actual==LCS_LEFT?p.leftLane:p.rightLane);
+
+			//Set to the far edge of the other lane, minus any extra amount.
+			halfLaneWidth = p.currLane->getWidth() / 2.0;
+			vehicle->resetLateralMovement();
+			vehicle->moveLat((halfLaneWidth - remainder) * (actual==LCS_LEFT?1:-1));
 		}
-		if(lcEnterNewLane && vehicleLeftMovement <=0) {
-			//New lane, reset velocity and lateral movement.
-			isLaneChanging =false;
+	} else {
+		//Moving "in".
+		bool pastZero = (actual==LCS_LEFT) ? (vehicle->getLateralMovement()>0) : (vehicle->getLateralMovement()<0);
+		if (pastZero) {
+			//Reset all
 			vehicle->resetLateralMovement();
 			vehicle->setLatVelocity(0);
 		}
-	} else if(p.currLaneChangeBehavoir==LCS_LEFT && p.leftLane) {
-		if(!lcEnterNewLane && vehicle->getLateralMovement()>=150) {
-			changeLaneWithinSameRS(p, p.leftLane);
-			lcEnterNewLane = true;
-		}
-		if(lcEnterNewLane && vehicle->getLateralMovement() >=0) {
-			//New lane, reset velocity and lateral movement.
-			isLaneChanging =false;
-			vehicle->resetLateralMovement();
-			vehicle->setLatVelocity(0);
-		}
+
 	}
 }
 

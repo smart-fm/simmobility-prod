@@ -281,17 +281,17 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(Upd
  *
  * -wangxy
  * */
-void sim_mob::MITSIM_LC_Model::executeLaneChanging(UpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir)
+double sim_mob::MITSIM_LC_Model::executeLaneChanging(UpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir)
 {
 	//Behavior changes depending on whether or not we're actually changing lanes.
 	if(currLaneChangeDir != LCS_SAME) { //Performing a lane change.
 		//Set the lateral velocity of the vehicle; move it.
 		int lcsSign = (currLaneChangeDir==LCS_RIGHT) ? -1 : 1;
-		vehicle->setLatVelocity(lcsSign*p.laneChangingVelocity);
+		return lcsSign*p.laneChangingVelocity;
 	} else {
 		//If too close to node, don't do lane changing, distance should be larger than 3m
 		if(p.currLaneLength - p.currLaneOffset - vehLen/2 <= 300) {
-			return;
+			return -1;
 		}
 
 		//Get a random number, use it to determine if we're making a discretionary or a mandatory lane change
@@ -315,7 +315,8 @@ void sim_mob::MITSIM_LC_Model::executeLaneChanging(UpdateParams& p, double total
 		//Finally, if we've decided to change lanes, set our intention.
 		if(decision!=LCS_SAME) {
 			const int lane_shift_velocity = 150;  //TODO: What is our lane changing velocity? Just entering this for now...
-			vehicle->setLatVelocity(decision==LCS_LEFT?lane_shift_velocity:-lane_shift_velocity);
+			return decision==LCS_LEFT?lane_shift_velocity:-lane_shift_velocity;
 		}
 	}
+	return -1;
 }

@@ -341,7 +341,10 @@ void sim_mob::Driver::linkDriving(UpdateParams& p)
 	p.dis2stop /= 100;
 
 	//Check if we should change lanes.
-	excuteLaneChanging(p, vehicle->getCurrLinkLength());
+	double newLatVel = lcModel->executeLaneChanging(p, vehicle->getCurrLinkLength(), vehicle->length, getCurrLaneChangeDirection());
+	if (newLatVel>=0.0) {
+		vehicle->setLatVelocity(newLatVel);
+	}
 
 	//Retrieve a new acceleration value.
 	double newFwdAcc = 0;

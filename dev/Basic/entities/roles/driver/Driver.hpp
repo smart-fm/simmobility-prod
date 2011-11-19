@@ -332,21 +332,21 @@ private:
 public:
 //	LaneSide gapAcceptance(UpdateParams& p, int type);
 //	double lcCriticalGap(UpdateParams& p,
-//			int type,		// 0=leading 1=lag + 2=mandatory (mask) //TODO: ARGHHHHHHH magic numbers....
-//			double dis,					// from critical pos
-//			double spd,					// spd of the follower
-//			double dv					// spd difference from the leader));
-//			);								///<use Kazi LC Gap Model to calculate the critical gap
-//	int checkIfBadAreaAhead();				///<find the closest bad area ahead which the vehicle may knock on(see details in Driver.cpp)
-//	int findClosestBadAreaAhead(int lane);	///<find the closest bad area ahead in specific lane
-//	double makeLaneChangingDecision();					///<Firstly, check if MLC is needed, and then choose specific model to decide.
-//	double checkIfMandatory(double totalLinkDist);							///<check if MLC is needed, return probability to MLC
-//	double calcSideLaneUtility(UpdateParams& p,bool isLeft);			///<return utility of adjacent gap
+//			int type,
+//			double dis,
+//			double spd,					//
+//			double dv					//
+//			);
+//	int checkIfBadAreaAhead();
+//	int findClosestBadAreaAhead(int lane);
+//	double makeLaneChangingDecision();
+//	double checkIfMandatory(double totalLinkDist);
+//	double calcSideLaneUtility(UpdateParams& p,bool isLeft);
 
 	LANE_CHANGE_SIDE makeDiscretionaryLaneChangingDecision(UpdateParams& p);		///<DLC model, vehicles freely decide which lane to move. Returns 1 for Right, -1 for Left, and 0 for neither.
 	LANE_CHANGE_SIDE makeMandatoryLaneChangingDecision(UpdateParams& p);			///<MLC model, vehicles must change lane, Returns 1 for Right, -1 for Left.
 
-	void excuteLaneChanging(UpdateParams& p, double totalLinkDistance);			///<to execute the lane changing, meanwhile, check if crash will happen and avoid it
+	//void excuteLaneChanging(UpdateParams& p, double totalLinkDistance);
 	bool checkForCrash();				///<to check if the crash may happen
 
 	/*

@@ -3,6 +3,7 @@
 #pragma once
 
 #include <vector>
+#include <stdexcept>
 
 #include "RoadItem.hpp"
 #include "Route.hpp"
@@ -23,7 +24,7 @@ class BusRoute;
 class BusStop : public sim_mob::RoadItem {
 	
 public:
-	BusStop(unsigned int id=0, <BusRoute*> busroutes, Point2D point_location);
+	BusStop(unsigned int id=0, std::vector<BusRoute*> busroutes=std::vector<BusRoute*>(), Point2D point_location=Point2D()) {}
 public:
 	///Which RoadItem and lane is this bus stop located at?
 	Lane* lane_location;
@@ -48,7 +49,7 @@ public:
 private:
 	///Get the bus lines available at this stop. Used for route planning.
 	///NOTE: Placeholder method; will obviously not be returning void.
-	std::vector <BusRoute> getBusLines() {  }
+	std::vector <BusRoute> getBusLines() { throw std::runtime_error("Not implemented");  }
 
 	///Get a list of bus arrival times. Pedestrians can consult this (assuming the bus stop is VMS-enabled).
 	///NOTE: Placeholder method; will obviously not be returning void.

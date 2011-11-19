@@ -1,4 +1,6 @@
-#include "DynamicVector.hpp"
+#pragma once
+
+#include "util/DynamicVector.hpp"
 #include "BusStop.hpp"
 #include "Lane.hpp"
 
@@ -9,7 +11,7 @@
 namespace sim_mob{
 	class Lane;
 	class BusStop;
-	class Route{
+	class Route {
 	public:
 		
 		Route(unsigned int id, std::vector <Lane*> lanes);

@@ -2,12 +2,11 @@
 
 #include <vector>
 #include "Agent.hpp"
-#include "BusStop.hpp"
-#include "Route.hpp"
-#include "Node.hpp"
-#include "Lane.hpp"
-#include "Length.hpp"
-#include <vector>
+#include "geospatial/BusStop.hpp"
+#include "geospatial/Route.hpp"
+#include "geospatial/Node.hpp"
+#include "geospatial/Lane.hpp"
+#include "entities/vehicle/Vehicle.hpp"
 #include "metrics/Length.hpp"
 #include "util/DynamicVector.hpp"
 #include "constants.h"
@@ -22,7 +21,7 @@ class Route;
 class Bus : public sim_mob::Vehicle {
 
 public:
-	Bus(unsigned int id=-1) : Agent(id);
+	Bus(unsigned int id=-1) : Vehicle(/*id*/), busroute(nullptr), passenger_count_standing(0), passenger_count_sitting(0), passenger_capacity(0) {}
 	virtual void update(frame_t frameNumber);
 	virtual void buildSubscriptionList();	
 protected:
@@ -60,5 +59,6 @@ public:
 	DynamicVector heading;
 	centimeter_t distAlongHeading;
 
-}
+};
+
 }

@@ -63,6 +63,11 @@ const RoadSegment* sim_mob::Vehicle::getNextSegment() const
 	return fwdMovement.getNextSegment(true);
 }
 
+const RoadSegment* sim_mob::Vehicle::hasNextSegment(bool inSameLink) const
+{
+	return fwdMovement.getNextSegment(inSameLink);
+}
+
 const RoadSegment* sim_mob::Vehicle::getPrevSegment() const
 {
 	return fwdMovement.getPrevSegment(true);

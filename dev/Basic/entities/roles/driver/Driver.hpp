@@ -112,7 +112,6 @@ private:
 
 		double currLaneOffset;
 		double currLaneLength;
-		bool isInIntersection;
 		bool isTrafficLightStop;
 		double trafficSignalStopDistance;
 		double elapsedSeconds;
@@ -208,7 +207,7 @@ public:
 	void assignVehicle(Vehicle* v) {vehicle = v;}
 
 	//for coordinate transform
-	void setToParent();			///<set next data to parent buffer data
+	void setParentBufferedData();			///<set next data to parent buffer data
 	static double feet2Unit(double feet);
 	static double unit2Feet(double unit);
 
@@ -312,14 +311,14 @@ private:
 	///TODO: This should be moved at some point
 	//void sync_relabsobjs();
 
-	bool isReachPolyLineSegEnd() const;
-	bool isReachCurrRoadSegmentEnd() const;
+	//bool isReachPolyLineSegEnd() const;
+	//bool isReachCurrRoadSegmentEnd() const;
 	//bool isReachLastPolyLineSeg() const;
-	bool isReachLastRSinCurrLink() const;
-	bool isCloseToCrossing() const;
+	//bool isReachLastRSinCurrLink() const;
+	//bool isCloseToCrossing() const;
 
 	bool isLeaveIntersection() const;
-	bool isReachLinkEnd() const;
+	//bool isReachLinkEnd() const;
 	//bool isGoalReached() const;
 
 	bool isCloseToLinkEnd(UpdateParams& p);
@@ -335,10 +334,11 @@ private:
 	void syncCurrLaneCachedInfo(UpdateParams& p);
 	void changeLaneWithinSameRS(UpdateParams& p, const Lane* newLane);   //mode 0
 	void changeToNewRoadSegmentSameLink(UpdateParams& p, const Lane* newLane); //mode 1
-	void changeToNewLinkAfterIntersection(UpdateParams& p, const Lane* newLane); //mode 2
+	//void changeToNewLinkAfterIntersection(UpdateParams& p, const Lane* newLane); //mode 2
+	void justLeftIntersection(UpdateParams& p);
 
 	void updateAdjacentLanes(UpdateParams& p);
-	void updateRSInCurrLink(UpdateParams& p);
+	//void updateRSInCurrLink(UpdateParams& p);
 	void updateAcceleration(double newFwdAcc);
 	void updateVelocity();
 	void updatePositionOnLink(UpdateParams& p);
@@ -470,7 +470,7 @@ public:
 	void modifyPosition();
 	void IntersectionDirectionUpdate();
 	void UpdateNextLinkLane();
-	void enterNextLink(UpdateParams& p);
+	//void enterNextLink(UpdateParams& p);
 	bool isReachCrosswalk();
 
 	//bool isInIntersection() const {return inIntersection;}

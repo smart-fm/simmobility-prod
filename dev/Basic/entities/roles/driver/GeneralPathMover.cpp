@@ -57,6 +57,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 void sim_mob::GeneralPathMover::generateNewPolylineArray()
 {
 	//Simple; just make sure to take the forward direction into account.
+	//TODO: Take the current lane into account.
 	polypointsList = (*currSegmentIt)->getLanes().front()->getPolyline();
 	if (!isMovingForwards) {
 		std::reverse(polypointsList.begin(), polypointsList.end());

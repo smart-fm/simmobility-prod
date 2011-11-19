@@ -111,7 +111,7 @@ sim_mob::Driver::UpdateParams::UpdateParams(const Driver& owner)
 	currLane = owner.currLane_.get();
 	currLaneLength = owner.currLaneLength_.get();
 	currLaneOffset = owner.currLaneOffset_.get();
-	isInIntersection = owner.isInIntersection.get();
+	isInIntersection = owner.vehicle->isInIntersection();
 
 	//Current lanes to the left and right. May be null
 	leftLane = nullptr;
@@ -186,41 +186,40 @@ void sim_mob::Driver::update_general(UpdateParams& params, frame_t frameNumber)
 	updateNearbyAgents(params);
 
 	//Driving behavior differs drastically inside intersections.
-	if(params.isInIntersection) {
+	RoadSegment* prevSegment = vehicle->getCurrSegment();
+	if(vehicle->isInIntersection()) {
 		intersectionDriving(params);
 	} else {
-		//Have we _just_ entered an Intersection?
-		if(isReachLinkEnd()) {
+		//Manage traffic signal behavior if we are close to the end of the link.
+		if(isCloseToLinkEnd(params)) {
+			trafficSignalDriving(params);
+		}
+		linkDriving(params);
+
+		//Did our last move forward bring us into an intersection?
+		if(vehicle->isInIntersection()) {
 			//the first time vehicle pass the end of current link and enter intersection
 			//if the vehicle reaches the end of the last road segment on current link
 			//I assume this vehicle enters the intersection
-			params.isInIntersection = true;
 			directionIntersection();
 			intersectionVelocityUpdate();
 			intersectionDriving(params);
-		} else {
-			//the relative coordinate system is based on each polyline segment
-			//so when the polyline segment has been updated, the coordinate system should also be updated
-			//NOTE: The relative coordinate system is a bit more robust now, but still needs a small amount of updating. ~Seth
-			if(isReachPolyLineSegEnd()) {
-				if(!polypathMover.isOnLastLine()) {
-					//Go to the next polyline.
-					polypathMover.moveToNextSegment();
-					//sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
-				} else {
-					//Go to the next segment.
-					updateRSInCurrLink(params);
-				}
-			}
-
-			//Manage traffic signal behavior if we are close to the end of the link.
-			if(isCloseToLinkEnd(params)) {
-				trafficSignalDriving(params);
-			}
-			linkDriving(params);
 		}
 	}
-	setToParent();
+
+	//Has the segment changed?
+	if (!vehicle->isDone() && (vehicle->getCurrSegment()!=prevSegment)) {
+		//Make pre-intersection decisions?
+		if(!vehicle->hasNextSegment(true)) {
+			updateTrafficSignal();
+			if(!vehicle->hasNextSegment(true)) { //TODO: Logic is clearly wrong here.
+				chooseNextLaneForNextLink(p);
+			}
+		}
+	}
+
+	//Update parent/angle.
+	setParentBufferedData();
 	updateAngle(params);
 }
 
@@ -261,7 +260,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	currLane_.set(params.currLane);
 	currLaneOffset_.set(params.currLaneOffset);
 	currLaneLength_.set(params.currLaneLength);
-	isInIntersection.set(params.isInIntersection);
+	isInIntersection.set(vehicle->isInIntersection());
 
 	//Print output for this frame.
 	if (!vehicle->isDone()) {
@@ -288,8 +287,9 @@ void sim_mob::Driver::intersectionDriving(UpdateParams& p)
 {
 	//First detect if we've just left the intersection. Otherwise, perform regular intersection driving.
 	if(isLeaveIntersection()) {
-		p.isInIntersection = false;
-		enterNextLink(p);
+		vehicle->moveToNextSegmentAfterIntersection();
+		justLeftIntersection(p);
+		linkDriving(p); //Chain to regular link driving behavior.
 	} else {
 		//TODO: Intersection driving is unlikely to work until lane driving is fixed.
 		//double xComp = vehicle->velocity.getEndX() + vehicle->velocity_lat.getEndX();
@@ -331,7 +331,7 @@ void sim_mob::Driver::linkDriving(UpdateParams& p)
 
 //for buffer data, maybe need more parameters to be stored
 //TODO: need to discuss
-void sim_mob::Driver::setToParent()
+void sim_mob::Driver::setParentBufferedData()
 {
 	parent->xPos.set(vehicle->getX());
 	parent->yPos.set(vehicle->getY());
@@ -352,7 +352,7 @@ void sim_mob::Driver::setToParent()
 }*/
 
 
-bool sim_mob::Driver::isReachPolyLineSegEnd() const
+/*bool sim_mob::Driver::isReachPolyLineSegEnd() const
 {
 	return vehicle->reachedSegmentEnd();
 }
@@ -369,7 +369,7 @@ bool sim_mob::Driver::isCloseToCrossing() const
 {
 	return (isReachLastRSinCurrLink()&&isCrossingAhead && xPosCrossing_-vehicle->getX()-vehicle->length/2 <= 1000);
 }
-
+*/
 
 //when the vehicle reaches the end of last link in link path
 /*bool sim_mob::Driver::isGoalReached() const
@@ -377,7 +377,7 @@ bool sim_mob::Driver::isCloseToCrossing() const
 	return pathMover.isOnLastSegment() && isReachCurrRoadSegmentEnd();
 }*/
 
-bool sim_mob::Driver::isReachCurrRoadSegmentEnd() const
+/*bool sim_mob::Driver::isReachCurrRoadSegmentEnd() const
 {
 	return polypathMover.isOnLastLine() && isReachPolyLineSegEnd();
 }
@@ -385,7 +385,7 @@ bool sim_mob::Driver::isReachCurrRoadSegmentEnd() const
 bool sim_mob::Driver::isReachLinkEnd() const
 {
 	return (isReachLastRSinCurrLink() && polypathMover.isOnLastLine() && isReachPolyLineSegEnd());
-}
+}*/
 
 bool sim_mob::Driver::isLeaveIntersection() const
 {
@@ -470,7 +470,7 @@ bool sim_mob::Driver::isPedetrianOnTargetCrossing()
 	return false;
 }
 
-void sim_mob::Driver::updateRSInCurrLink(UpdateParams& p)
+/*void sim_mob::Driver::updateRSInCurrLink(UpdateParams& p)
 {
 	const Node* currNode = vehicle->getCurrSegment()->getEnd();
 	const RoadSegment* nextRoadSegment = pathMover.getNextSegment();
@@ -493,7 +493,7 @@ void sim_mob::Driver::updateRSInCurrLink(UpdateParams& p)
 		}
 		p.currLane = nullptr;
 	}
-}
+}*/
 
 
 //calculate current lane length
@@ -564,12 +564,12 @@ void sim_mob::Driver::changeToNewRoadSegmentSameLink(UpdateParams& p, const Lane
 	//sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
 
 	//RSIndex ++;
-	if(isReachLastRSinCurrLink()) {
+	/*if(isReachLastRSinCurrLink()) {
 		updateTrafficSignal();
 		if(!pathMover.isOnLastSegment()) {
 			chooseNextLaneForNextLink(p);
 		}
-	}
+	}*/
 }
 
 
@@ -598,7 +598,7 @@ void sim_mob::Driver::newPathMover(const Lane* newLane)
 
 //when current lane has been changed, update current information.
 //mode 2: during crossing intersection
-void sim_mob::Driver::changeToNewLinkAfterIntersection(UpdateParams& p, const Lane* newLane)
+/*void sim_mob::Driver::changeToNewLinkAfterIntersection(UpdateParams& p, const Lane* newLane)
 {
 	//Update Lanes, polylines, RoadSegments, etc.
 	p.currLane = newLane;
@@ -617,7 +617,7 @@ void sim_mob::Driver::changeToNewLinkAfterIntersection(UpdateParams& p, const La
 			chooseNextLaneForNextLink(p);
 		}
 	}
-}
+}*/
 
 
 //General update information for whenever a Segment may have changed.
@@ -1026,23 +1026,26 @@ void sim_mob::Driver::intersectionVelocityUpdate()
 	vehicle->setLatVelocity(inter_speed * yDirection_entryPoint);
 }
 
-void sim_mob::Driver::enterNextLink(UpdateParams& p)
+void sim_mob::Driver::justLeftIntersection(UpdateParams& p)
 {
-	//Set our current lane parameters equal to those we calculated upon entering the
-	// intersection
-	isLinkForward = nextIsForward;
-	//p.currLane = nextLaneInNextLink;
+	//TODO: Handle Lane driving.
+	p.currLane = newLane;
+	newPathMover(newLane);
+	syncCurrLaneCachedInfo(p);
+	p.currLaneOffset = 0;
+	targetLaneIndex = currLaneIndex;
 
-	//Update information.
-	changeToNewLinkAfterIntersection(p, nextLaneInNextLink);
+	//Are we now on the last link in this segment?
+	/*if(!vehicle->hasNextSegment(true)) {
+		updateTrafficSignal();
+		if(vehicle->hasNextSegment(false)) {
+			chooseNextLaneForNextLink(p);
+		}
+	}*/
 
-	//TODO: Lateral accelleration wasn't being used. You might enable it again here if you want it.
 	//Reset lateral movement/velocity to zero.
 	vehicle->setLatVelocity(0);
 	vehicle->resetLateralMovement();
-
-	//Chain to regular link driving behavior.
-	linkDriving(p);
 }
 
 

@@ -256,7 +256,7 @@ LANE_CHANGE_SIDE sim_mob::Driver::makeMandatoryLaneChangingDecision(UpdateParams
 void sim_mob::Driver::excuteLaneChanging(UpdateParams& p, double totalLinkDistance)
 {
 	//Behavior changes depending on whether or not we're actually changing lanes.
-	if(isLaneChanging){
+	if(vehicle->getLatVelocity()!=0){ //Performing a lane change.
 		if(changeDecision != LCS_SAME) {
 			//Set the lateral velocity of the vehicle; move it.
 			int lcsSign = (changeDecision==LCS_RIGHT) ? -1 : 1;

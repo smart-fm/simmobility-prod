@@ -128,7 +128,7 @@ sim_mob::Driver::UpdateParams::UpdateParams(const Driver& owner)
 	laneChangingVelocity = 100;
 
 	//If we are moving left, continue moving left unless otherwise notified.
-	double latMove = owner.vehicle->getLateralMovement();
+	//double latMove = owner.vehicle->getLateralMovement();
 	//currLaneChangeBehavoir = latMove>0?LCS_LEFT:latMove<0?LCS_RIGHT:LCS_SAME;
 
 	//TODO: Copy comments into doxygen comments in the hpp file before deleting commented code.
@@ -289,7 +289,7 @@ void sim_mob::Driver::intersectionDriving(UpdateParams& p)
 {
 	//First detect if we've just left the intersection. Otherwise, perform regular intersection driving.
 	if(isLeaveIntersection()) {
-		vehicle->moveToNextSegmentAfterIntersection();
+		p.currLane = vehicle->moveToNextSegmentAfterIntersection();
 		justLeftIntersection(p);
 		linkDriving(p); //Chain to regular link driving behavior.
 	} else {
@@ -305,12 +305,6 @@ void sim_mob::Driver::intersectionDriving(UpdateParams& p)
 //the movement is based on relative position
 void sim_mob::Driver::linkDriving(UpdateParams& p)
 {
-	//Update our position with respect to lane changing. We know we are changing lanes if we have a lateral velocity.
-	//Detect if we've successfully moved into our new lane.
-	if(getCurrLaneChangeDirection()!=LCS_SAME) {
-		updatePositionDuringLaneChange(p);
-	}
-
 	//Check if we should change lanes.
 	excuteLaneChanging(p, vehicle->getCurrLinkLength());
 
@@ -438,7 +432,7 @@ bool sim_mob::Driver::isPedetrianOnTargetCrossing()
 	map<Link const*, size_t> const linkMap = trafficSignal->links_map();
 	int index = -1;
 	for(map<Link const*, size_t>::const_iterator link_i=linkMap.begin(); link_i!=linkMap.end(); link_i++) {
-		if(pathMover.getNextSegment() && link_i->first==pathMover.getNextSegment()->getLink()) {
+		if(vehicle->getNextSegment() && link_i->first==vehicle->getNextSegment()->getLink()) {
 			index = (*link_i).second;
 			break;
 		}
@@ -472,36 +466,11 @@ bool sim_mob::Driver::isPedetrianOnTargetCrossing()
 	return false;
 }
 
-/*void sim_mob::Driver::updateRSInCurrLink(UpdateParams& p)
-{
-	const Node* currNode = vehicle->getCurrSegment()->getEnd();
-	const RoadSegment* nextRoadSegment = pathMover.getNextSegment();
-
-	//Dispatch differently depending on the type of node
-	const MultiNode* mNode=dynamic_cast<const MultiNode*>(currNode);
-	const UniNode* uNode=dynamic_cast<const UniNode*>(currNode);
-	if(uNode){
-		const Lane* newLane = uNode->getOutgoingLane(*p.currLane);
-		if(newLane && newLane->getRoadSegment()==nextRoadSegment) {
-			changeToNewRoadSegmentSameLink(p, newLane);
-		}
-	} else if(mNode) {
-		const set<LaneConnector*>& lcs = mNode->getOutgoingLanes(*vehicle->getCurrSegment());
-		for(set<LaneConnector*>::const_iterator it=lcs.begin();it!=lcs.end();it++){
-			if((*it)->getLaneTo()->getRoadSegment()==nextRoadSegment	&& (*it)->getLaneFrom()==p.currLane){
-				changeToNewRoadSegmentSameLink(p, (*it)->getLaneTo());
-				return;
-			}
-		}
-		p.currLane = nullptr;
-	}
-}*/
-
 
 //calculate current lane length
 void sim_mob::Driver::updateCurrLaneLength(UpdateParams& p)
 {
-	p.currLaneLength = polypathMover.getCurrPolylineLength();
+	p.currLaneLength = vehicle->getCurrPolylineVector().getMagnitude();
 }
 
 //TODO:I think lane index should be a data member in the lane class
@@ -531,90 +500,6 @@ void sim_mob::Driver::updateAdjacentLanes(UpdateParams& p)
 		p.leftLane = vehicle->getCurrSegment()->getLanes().at(currLaneIndex+1);
 	}
 }
-
-
-
-
-//when current lane has been changed, update current information.
-//mode 0: within same RS, for lane changing model
-void sim_mob::Driver::changeLaneWithinSameRS(UpdateParams& p, const Lane* newLane)
-{
-	//Update Lanes, polylines, RoadSegments, etc.
-	p.currLane = newLane;
-	polypathMover.setPath(newLane->getPolyline());
-	syncCurrLaneCachedInfo(p);
-}
-
-
-//when current lane has been changed, update current information.
-//mode 1: during RS changing, but in the same link
-void sim_mob::Driver::changeToNewRoadSegmentSameLink(UpdateParams& p, const Lane* newLane)
-{
-	//Update Lanes, polylines, RoadSegments, etc.
-	p.currLane = newLane;
-	pathMover.moveToNextSegment();
-	polypathMover.setPath(newLane->getPolyline());
-	syncCurrLaneCachedInfo(p);
-
-	p.currLaneOffset = 0;
-	//polylineSegIndex = 0; //NOTE: This should be set already
-	//sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
-
-	//RSIndex ++;
-	/*if(isReachLastRSinCurrLink()) {
-		updateTrafficSignal();
-		if(!pathMover.isOnLastSegment()) {
-			chooseNextLaneForNextLink(p);
-		}
-	}*/
-}
-
-
-
-//Find a completely new path and update the pathMover.
-void sim_mob::Driver::newPathMover(const Lane* newLane)
-{
-	//Save road segments; update
-	const RoadSegment* newSegment = newLane->getRoadSegment();
-
-	//Now find the path leading out of the node shared by these two road segments which starts on
-	//   newSegment.
-	for (size_t i=0; i<2; i++) {
-		const vector<RoadSegment*>& path = newSegment->getLink()->getPath(i==0);
-		if (path.front()==newSegment) {
-			pathMover.setPath(path);
-			break;
-		}
-	}
-
-	//Now reset our polyline
-	polypathMover.setPath(newLane->getPolyline());
-
-}
-
-
-//when current lane has been changed, update current information.
-//mode 2: during crossing intersection
-/*void sim_mob::Driver::changeToNewLinkAfterIntersection(UpdateParams& p, const Lane* newLane)
-{
-	//Update Lanes, polylines, RoadSegments, etc.
-	p.currLane = newLane;
-	newPathMover(newLane);
-	syncCurrLaneCachedInfo(p);
-	p.currLaneOffset = 0;
-	targetLaneIndex = currLaneIndex;
-
-	//TODO: This is temporary; there should be a better way of handling the current polyline.
-	//sync_relabsobjs();
-
-	//Are we now on the last link in this segment?
-	if(isReachLastRSinCurrLink()) {
-		updateTrafficSignal();
-		if(!pathMover.isOnLastSegment()) {
-			chooseNextLaneForNextLink(p);
-		}
-	}
-}*/
 
 
 //General update information for whenever a Segment may have changed.
@@ -802,9 +687,14 @@ void sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
 		vehicle->setAcceleration(0);
 	}
 
-	//Move the vehicle forward and laterally by the calculated distances.
+	//Move the vehicle forward.
 	vehicle->moveFwd(fwdDistance);
-	vehicle->moveLat(latDistance);
+
+	//Lateral movement
+	if (latDistance!=0) {
+		vehicle->moveLat(latDistance);
+		updatePositionDuringLaneChange(p);
+	}
 
 	//Update our offset in the current lane.
 	p.currLaneOffset += fwdDistance;
@@ -1026,19 +916,10 @@ void sim_mob::Driver::intersectionVelocityUpdate()
 void sim_mob::Driver::justLeftIntersection(UpdateParams& p)
 {
 	//TODO: Handle Lane driving.
-	p.currLane = newLane;
-	newPathMover(newLane);
+	//p.currLane = newLane;
 	syncCurrLaneCachedInfo(p);
 	p.currLaneOffset = 0;
 	targetLaneIndex = currLaneIndex;
-
-	//Are we now on the last link in this segment?
-	/*if(!vehicle->hasNextSegment(true)) {
-		updateTrafficSignal();
-		if(vehicle->hasNextSegment(false)) {
-			chooseNextLaneForNextLink(p);
-		}
-	}*/
 
 	//Reset lateral movement/velocity to zero.
 	vehicle->setLatVelocity(0);
@@ -1078,7 +959,7 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p)
 		return;
 	}
 	if (relative==LCS_SAME) {
-		relative=actual; //Might occur on the first decision to move outward.
+		relative=actual; //Unlikely to occur, but we can still work off this.
 	}
 
 	//Basically, we move "halfway" into the next lane, and then move "halfway" back to its midpoint.
@@ -1086,7 +967,10 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p)
 		//Moving "out".
 		double remainder = fabs(vehicle->getLateralMovement()) - halfLaneWidth;
 		if (remainder>0) {
-			changeLaneWithinSameRS(p, actual==LCS_LEFT?p.leftLane:p.rightLane);
+			//Update Lanes, polylines, RoadSegments, etc.
+			p.currLane = newLane;
+			syncCurrLaneCachedInfo(p);
+			vehicle->shiftToNewLanePolyline(actual==LCS_LEFT);
 
 			//Set to the far edge of the other lane, minus any extra amount.
 			halfLaneWidth = p.currLane->getWidth() / 2.0;

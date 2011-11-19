@@ -16,7 +16,7 @@ using std::vector;
 
 
 sim_mob::GeneralPathMover::GeneralPathMover() : distAlongPolyline(0), currPolylineLength(0),
-	distMovedInSegment(0), inIntersection(false), isMovingForwards(false)
+	distMovedInSegment(0), inIntersection(false), isMovingForwards(false), currLaneID(0)
 {
 }
 
@@ -39,7 +39,7 @@ sim_mob::GeneralPathMover::GeneralPathMover() : distAlongPolyline(0), currPolyli
 }*/
 
 
-void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, bool firstSegMoveFwd)
+void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, bool firstSegMoveFwd, int startLaneID)
 {
 	fullPath.clear();
 	for(vector<const RoadSegment*>::const_iterator it=path.begin(); it!=path.end(); it++) {
@@ -48,6 +48,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 
 	currSegmentIt = fullPath.begin();
 	isMovingForwards = firstSegMoveFwd;
+	currLaneID = startLaneID;
 	generateNewPolylineArray();
 	distAlongPolyline = 0;
 	inIntersection = false;
@@ -58,7 +59,7 @@ void sim_mob::GeneralPathMover::generateNewPolylineArray()
 {
 	//Simple; just make sure to take the forward direction into account.
 	//TODO: Take the current lane into account.
-	polypointsList = (*currSegmentIt)->getLanes().front()->getPolyline();
+	polypointsList = (*currSegmentIt)->getLanes().at(currLaneID)->getPolyline();
 	if (!isMovingForwards) {
 		std::reverse(polypointsList.begin(), polypointsList.end());
 	}
@@ -77,14 +78,14 @@ bool sim_mob::GeneralPathMover::isDoneWithEntireRoute() const
 	return currSegmentIt==fullPath.end();
 }
 
-void sim_mob::GeneralPathMover::leaveIntersection()
+const Lane* sim_mob::GeneralPathMover::leaveIntersection()
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
 	throwIf(!inIntersection, "Not actually in an Intersection!");
 
 	//Unset flag; move to the next segment.
 	inIntersection = false;
-	actualMoveToNextSegmentAndUpdateDir();
+	return actualMoveToNextSegmentAndUpdateDir();
 }
 
 bool sim_mob::GeneralPathMover::isMovingForwardsOnCurrSegment() const
@@ -159,7 +160,7 @@ void sim_mob::GeneralPathMover::advanceToNextRoadSegment()
 	actualMoveToNextSegmentAndUpdateDir();
 }
 
-void sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir()
+const Lane* sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir()
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
 	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
@@ -169,6 +170,9 @@ void sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir()
 
 	//Just in case
 	distMovedInSegment=0;
+
+	//Bound lanes
+	currLaneID = std::min(currLaneID, (*currSegmentIt)->getLanes().size()-1);
 
 	//Is this new segment in reverse?
 	const Node* prevNode = isMovingForwards ? (*(currSegmentIt-1))->getEnd() : (*(currSegmentIt-1))->getStart();
@@ -184,6 +188,9 @@ void sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir()
 
 	//Now generate a new polyline array.
 	generateNewPolylineArray();
+
+	//Done
+	return (*currSegmentIt)->getLanes().at(currLaneID);
 }
 
 
@@ -268,6 +275,30 @@ double sim_mob::GeneralPathMover::getCurrPolylineTotalDist() const
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
 	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
 	return currPolylineLength;
+}
+
+void sim_mob::GeneralPathMover::shiftToNewPolyline(bool moveLeft)
+{
+	//Nothing to do?
+	int newLaneID = currLaneID + (moveLeft?1:-1);
+	if (newLaneID<0 || newLaneID>=(*currSegmentIt)->getLanes().size()) {
+		return;
+	}
+
+	//Save our progress
+	int distTraveled = currPolypoint - polypointsList.begin();
+
+	//Update our polyline array
+	generateNewPolylineArray();
+	if (distTraveled>0) {
+		currPolypoint += distTraveled;
+		nextPolypoint += distTraveled;
+		currPolylineLength = sim_mob::dist(&(*currPolypoint), &(*nextPolypoint));
+	}
+
+	//TODO: This is kind of a hack, but it's possible to have been on a shorter polyline than the
+	//      one you just switched to. Might want to look at this later.
+	advance(0);
 }
 
 

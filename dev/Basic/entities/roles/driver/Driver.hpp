@@ -10,8 +10,6 @@
 #include "buffering/Buffered.hpp"
 #include "geospatial/StreetDirectory.hpp"
 #include "perception/FixedDelayed.hpp"
-#include "RoadSegmentMover.hpp"
-#include "PolyLineMover.hpp"
 
 
 namespace sim_mob
@@ -333,11 +331,8 @@ private:
 	void setOrigin(UpdateParams& p);
 
 	//A bit verbose, but only used in 1 or 2 places.
-	void newPathMover(const Lane* newLane);
+	//void newPathMover(const Lane* newLane);
 	void syncCurrLaneCachedInfo(UpdateParams& p);
-	void changeLaneWithinSameRS(UpdateParams& p, const Lane* newLane);   //mode 0
-	void changeToNewRoadSegmentSameLink(UpdateParams& p, const Lane* newLane); //mode 1
-	//void changeToNewLinkAfterIntersection(UpdateParams& p, const Lane* newLane); //mode 2
 	void justLeftIntersection(UpdateParams& p);
 
 	void updateAdjacentLanes(UpdateParams& p);
@@ -478,7 +473,7 @@ public:
 
 	//This always returns the lane we are moving towards; regardless of if we've passed the
 	//  halfway point or not.
-	LANE_CHANGE_SIDE getCurrLaneChangeDirection() const;
+	//LANE_CHANGE_SIDE getCurrLaneChangeDirection() const;
 
 	//This, however, returns where we are relative to the center of our own lane.
 	// I'm sure we can do this in a less confusion fashion later.

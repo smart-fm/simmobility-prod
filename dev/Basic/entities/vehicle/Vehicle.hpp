@@ -27,7 +27,7 @@ public:
 	const double width;   ///<width of the vehicle
 
 	//Call once
-	void initPath(std::vector<sim_mob::WayPoint> wp_path);
+	void initPath(std::vector<sim_mob::WayPoint> wp_path, int startLaneID);
 
 	//Accessors
 	double getX() const;   ///<Retrieve the vehicle's absolute position, x
@@ -55,6 +55,7 @@ public:
 	const sim_mob::Node* getNodeMovingTowards() const;
 	const sim_mob::Node* getNodeMovingFrom() const;
 	double getCurrLinkLength() const;
+	void shiftToNewLanePolyline(bool moveLeft);
 
 	//Modifiers
 	void setVelocity(double value);      ///<Set the forward velocity.
@@ -63,7 +64,7 @@ public:
 	void moveFwd(double amt);            ///<Move this car forward. Automatically moved it to new Segments unless it's in an intersection.
 	void moveLat(double amt);            ///<Move this car laterally. NOTE: This will _add_ the amt to the current value.
 	void resetLateralMovement();         ///<Put this car back in the center of the current lane.
-	void moveToNextSegmentAfterIntersection();   ///<If we're in an intersection, move out of it.
+	const Lane* moveToNextSegmentAfterIntersection();   ///<If we're in an intersection, move out of it.
 
 	//Complex
 	//void newPolyline(sim_mob::Point2D firstPoint, sim_mob::Point2D secondPoint)

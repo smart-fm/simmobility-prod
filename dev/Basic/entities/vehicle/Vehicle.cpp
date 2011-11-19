@@ -19,7 +19,7 @@ sim_mob::Vehicle::Vehicle() : length(400), width(200),
 {
 }
 
-void sim_mob::Vehicle::initPath(std::vector<sim_mob::WayPoint> wp_path)
+void sim_mob::Vehicle::initPath(std::vector<sim_mob::WayPoint> wp_path, int startLaneID)
 {
 	//Construct a list of RoadSegments.
 	vector<const RoadSegment*> path;
@@ -50,7 +50,7 @@ void sim_mob::Vehicle::initPath(std::vector<sim_mob::WayPoint> wp_path)
 	}
 
 	//Init
-	fwdMovement.setPath(path, isFwd);
+	fwdMovement.setPath(path, isFwd, startLaneID);
 }
 
 const RoadSegment* sim_mob::Vehicle::getCurrSegment() const
@@ -132,6 +132,11 @@ DPoint sim_mob::Vehicle::getPosition() const
 		origPos.y += latMv.getY();
 	}
 	return origPos;
+}
+
+void sim_mob::Vehicle::shiftToNewLanePolyline(bool moveLeft)
+{
+	fwdMovement.shiftToNewPolyline(moveLeft);
 }
 
 /*double sim_mob::Vehicle::getDistanceMovedInSegment() const
@@ -223,10 +228,10 @@ bool sim_mob::Vehicle::isInIntersection() const
 }
 
 
-void sim_mob::Vehicle::moveToNextSegmentAfterIntersection()
+const Lane* sim_mob::Vehicle::moveToNextSegmentAfterIntersection()
 {
 	throw_if_error();
-	fwdMovement.leaveIntersection();
+	return fwdMovement.leaveIntersection();
 }
 
 bool sim_mob::Vehicle::isDone() const

@@ -33,7 +33,7 @@ public:
 	///Set the path of RoadSegments contained in our path. These segments need not
 	/// necessarily be in the same Link.
 	///TODO: I'm not entirely sure that all cases of fwd/rev RoadSegments are handled properly.
-	void setPath(const std::vector<const sim_mob::RoadSegment*>& path, bool firstSegMoveFwd);
+	void setPath(const std::vector<const sim_mob::RoadSegment*>& path, bool firstSegMoveFwd, int startLaneID);
 
 	///Is it possible to move? Attempting to operate on a GeneralPathmover which has no RoadSegments in
 	/// its path is an error.
@@ -53,7 +53,7 @@ public:
 
 	//Indicate that we are done processing the current intersection. Moves the user to the next
 	//  road segment.
-	void leaveIntersection();
+	const Lane* leaveIntersection();
 
 	//Retrieve properties of your current position in the path.
 	const sim_mob::RoadSegment* getCurrSegment() const;
@@ -77,6 +77,9 @@ public:
 
 	//Retrieve our X/Y position based ONLY on forward movement (e.g., nothing with Lanes)
 	sim_mob::DPoint getPosition() const;
+
+	//We might be able to fold Lane movement in here later. For now, it has to be called externally.
+	void shiftToNewPolyline(bool moveLeft);
 
 
 private:
@@ -102,11 +105,14 @@ private:
 	//We might be moving backwards on a Segment
 	bool isMovingForwards;
 
+	//For tracking lane IDs
+	int currLaneID;
+
 private:
 	//Helper functions
 	void advanceToNextPolyline();
 	void advanceToNextRoadSegment();
-	void actualMoveToNextSegmentAndUpdateDir();
+	const Lane* actualMoveToNextSegmentAndUpdateDir();
 	void generateNewPolylineArray();
 
 	//General throw function. There is probably a better way to do this.

@@ -58,6 +58,26 @@ const RoadSegment* sim_mob::Vehicle::getCurrSegment() const
 	return fwdMovement.getCurrSegment();
 }
 
+const RoadSegment* sim_mob::Vehicle::getNextSegment() const
+{
+	return fwdMovement.getNextSegment(true);
+}
+
+const RoadSegment* sim_mob::Vehicle::getPrevSegment() const
+{
+	return fwdMovement.getPrevSegment(true);
+}
+
+const Node* sim_mob::Vehicle::getNodeMovingTowards() const
+{
+	return fwdMovement.isMovingForwardsOnCurrSegment() ? fwdMovement.getCurrSegment()->getEnd() : fwdMovement.getCurrSegment()->getStart();
+}
+
+const Node* sim_mob::Vehicle::getNodeMovingFrom() const
+{
+	return fwdMovement.isMovingForwardsOnCurrSegment() ? fwdMovement.getCurrSegment()->getStart() : fwdMovement.getCurrSegment()->getEnd();
+}
+
 const Link* sim_mob::Vehicle::getCurrLink() const
 {
 	return fwdMovement.getCurrLink();

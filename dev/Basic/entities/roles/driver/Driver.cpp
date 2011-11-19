@@ -860,9 +860,9 @@ void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* oth
 			}
 		}
 	} else if(otherRoadSegment->getLink() == vehicle->getCurrLink()) { //We are in the same link.
-		if (!pathMover.isOnLastSegment() && vehicle->getCurrSegment()+1 == otherRoadSegment) { //Vehicle is on the next segment.
+		if (vehicle->getNextSegment() == otherRoadSegment) { //Vehicle is on the next segment.
 			//Retrieve the next node we are moving to, cast it to a UniNode.
-			const Node* nextNode = isLinkForward ? vehicle->getCurrSegment()->getEnd() : vehicle->getCurrSegment()->getStart();
+			const Node* nextNode = vehicle->getNodeMovingTowards();
 			const UniNode* uNode = dynamic_cast<const UniNode*>(nextNode);
 
 			//Initialize some lane pointers
@@ -896,10 +896,10 @@ void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* oth
 			} else if(other_lane == nextRightLane) { //the vehicle is in front
 				check_and_set_min_car_dist(params.nvRightFwd, distance, vehicle, other_driver);
 			}
-		} else if(!pathMover.isOnFirstSegment() && vehicle->getCurrSegment()-1 == otherRoadSegment) { //Vehicle is on the previous segment.
+		} else if(vehicle->getPrevSegment() == otherRoadSegment) { //Vehicle is on the previous segment.
 			//Retrieve the previous node as a UniNode.
-			const Node* preNode = isLinkForward ? otherRoadSegment->getEnd() : otherRoadSegment->getStart();
-			const UniNode* uNode=dynamic_cast<const UniNode*>(preNode);
+			const Node* prevNode = vehicle->getNodeMovingFrom();
+			const UniNode* uNode=dynamic_cast<const UniNode*>(prevNode);
 
 			//Set some lane pointers.
 			const Lane* preLane = nullptr;
@@ -963,7 +963,7 @@ void sim_mob::Driver::updateNearbyPedestrian(UpdateParams& params, const Person*
 	// car's forward movement and the pedestrian.
 	//NOTE: I am changing this slightly, since cars were stopping for pedestrians on the opposite side of
 	//      the road for no reason (traffic light was green). ~Seth
-	double distance = otherVect.getMagnitude();
+	//double distance = otherVect.getMagnitude();
 	double angleDiff = 0.0;
 	{
 		//Retrieve

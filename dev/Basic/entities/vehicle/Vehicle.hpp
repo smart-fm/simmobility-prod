@@ -47,8 +47,12 @@ public:
 
 	//More stuff; some might be optional.
 	const sim_mob::RoadSegment* getCurrSegment() const;
+	const sim_mob::RoadSegment* getNextSegment() const;
+	const sim_mob::RoadSegment* getPrevSegment() const;
 	sim_mob::DynamicVector getCurrPolylineVector() const;
 	const sim_mob::Link* getCurrLink() const;
+	const sim_mob::Node* getNodeMovingTowards() const;
+	const sim_mob::Node* getNodeMovingFrom() const;
 
 	//Modifiers
 	void setVelocity(double value);      ///<Set the forward velocity.

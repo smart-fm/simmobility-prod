@@ -192,6 +192,37 @@ const RoadSegment* sim_mob::GeneralPathMover::getCurrSegment() const
 	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
 	return *currSegmentIt;
 }
+const RoadSegment* sim_mob::GeneralPathMover::getNextSegment(bool sameLink) const
+{
+	throwIf(!isPathSet(), "GeneralPathMover path not set.");
+	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
+
+	vector<const RoadSegment*>::iterator nextSegmentIt = currSegmentIt+1;
+	if (nextSegmentIt==fullPath.end()) {
+		return nullptr;
+	}
+	if (((*nextSegmentIt)->getLink()!=(*currSegmentIt)->getLink()) && sameLink) {
+		return nullptr;
+	}
+
+	return *nextSegmentIt;
+}
+const RoadSegment* sim_mob::GeneralPathMover::getPrevSegment(bool sameLink) const
+{
+	throwIf(!isPathSet(), "GeneralPathMover path not set.");
+	throwIf(isDoneWithEntireRoute(), "Entire path is already done."); //Not technically an error, but unlikely to be useful.
+
+	if (currSegmentIt==fullPath.begin()) {
+		return nullptr;
+	}
+
+	vector<const RoadSegment*>::iterator nextSegmentIt = currSegmentIt-1;
+	if (((*nextSegmentIt)->getLink()!=(*currSegmentIt)->getLink()) && sameLink) {
+		return nullptr;
+	}
+
+	return *nextSegmentIt;
+}
 const Link* sim_mob::GeneralPathMover::getCurrLink() const
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");

@@ -596,14 +596,12 @@ void sim_mob::Driver::initializePath()
 
 	//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
 	//TODO: Start in lane 0?
-	vehicle->initPath(StreetDirectory::instance().shortestDrivingPath(*originNode, *destNode), 0);
+	//A non-null vehicle means we are moving.
+	vehicle = new Vehicle(StreetDirectory::instance().shortestDrivingPath(*originNode, *destNode), 0);
 }
 
 void sim_mob::Driver::setOrigin(UpdateParams& p)
 {
-	//A non-null vehicle means we are moving.
-	vehicle = new Vehicle();
-
 	//Set the max speed and target speed.
 	maxLaneSpeed = vehicle->getCurrSegment()->maxSpeed/3.6;//slow down
 	targetSpeed = maxLaneSpeed;

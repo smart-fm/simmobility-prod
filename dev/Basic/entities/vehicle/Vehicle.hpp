@@ -20,7 +20,7 @@ namespace sim_mob {
 
 class Vehicle {
 public:
-	Vehicle();
+	Vehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID); //TODO: now that the constructor is non-default, we might be able to remove throw_if_error()
 
 public:
 	const double length;  ///<length of the vehicle

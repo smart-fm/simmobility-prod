@@ -14,12 +14,13 @@ using namespace sim_mob;
 using std::vector;
 
 
-sim_mob::Vehicle::Vehicle() : length(400), width(200),
+sim_mob::Vehicle::Vehicle(vector<WayPoint> wp_path, int startLaneID) : length(400), width(200),
 	latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true)
 {
+	initPath(wp_path, startLaneID);
 }
 
-void sim_mob::Vehicle::initPath(std::vector<sim_mob::WayPoint> wp_path, int startLaneID)
+void sim_mob::Vehicle::initPath(vector<WayPoint> wp_path, int startLaneID)
 {
 	//Construct a list of RoadSegments.
 	vector<const RoadSegment*> path;

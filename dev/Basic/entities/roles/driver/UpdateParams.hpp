@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "constants.h"
+
 
 namespace sim_mob
 {
@@ -84,6 +86,13 @@ struct UpdateParams {
 
 	bool isCrossingAhead;
 	int crossingFwdDistance;
+
+	//Related to our car following model.
+	double space;
+	double a_lead;
+	double v_lead;
+	double space_star;
+	double distanceToNormalStop;
 };
 
 

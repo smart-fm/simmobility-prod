@@ -36,10 +36,10 @@ class Driver : public sim_mob::Role {
 //Static data and private class definitions.
 private:
 	//Model parameters. Might be tunable.
-	static const double MAX_ACCELERATION		=	 20.0;   ///< 10m/s*s
-	static const double MAX_DECELERATION		=	-20.0;   ///< 10m/s*s
-	static const double hBufferUpper			=	  1.6;	 ///< upper threshold of headway
-	static const double hBufferLower			=	  0.8;	 ///< lower threshold of headway
+	//static const double MAX_ACCELERATION		=	 20.0;   ///< 10m/s*s
+	//static const double MAX_DECELERATION		=	-20.0;   ///< 10m/s*s
+	//static const double hBufferUpper			=	  1.6;	 ///< upper threshold of headway
+	//static const double hBufferLower			=	  0.8;	 ///< lower threshold of headway
 
 
 //Constructor and overridden methods.
@@ -98,10 +98,10 @@ private:
 	//bool isGoalSet;				//to check if the goal has been set
 	bool firstFrameTick;			//to check if the origin has been set
 
-	double maxAcceleration;
-	double normalDeceleration;
-	double maxDeceleration;
-	double distanceToNormalStop;
+	//double maxAcceleration;
+	//double normalDeceleration;
+	//double maxDeceleration;
+	//double distanceToNormalStop;
 	double maxLaneSpeed;
 
 public:
@@ -110,13 +110,13 @@ public:
 
 	//for coordinate transform
 	void setParentBufferedData();			///<set next data to parent buffer data
-	static double feet2Unit(double feet);
+	//static double feet2Unit(double feet);
 	static double unit2Feet(double unit);
 
-	double getMaxAcceleration() const {return maxAcceleration;}
-	double getNormalDeceleration() const {return normalDeceleration;}
-	double getMaxDeceleration() const {return maxDeceleration;}
-	double getDistanceToNormalStop() const {return distanceToNormalStop;}
+	//double getMaxAcceleration() const {return maxAcceleration;}
+	//double getNormalDeceleration() const {return normalDeceleration;}
+	//double getMaxDeceleration() const {return maxDeceleration;}
+	//double getDistanceToNormalStop() const {return distanceToNormalStop;}
 	void output(UpdateParams& p, frame_t frameNumber);
 
 	/****************IN REAL NETWORK****************/
@@ -298,22 +298,20 @@ private:
 	double targetSpeed;			//the speed which the vehicle is going to achieve
 	//double minPedestrianDis;
 	//double tsStopDistance;     // distance to stop line
-	double space;
-	double headway;				//distance/speed
-	double space_star;			//the distance which leading vehicle will move in next time step
+	//double space;
+	//double headway;				//distance/speed
+	//double space_star;			//the distance which leading vehicle will move in next time step
 	double dv;					//the difference of subject vehicle's speed and leading vehicle's speed
-	double a_lead;				//the acceleration of leading vehicle
-	double v_lead;				//the speed of leading vehicle
 
 	//for acceleration decision
 public:
-	double makeAcceleratingDecision(UpdateParams& p);				///<decide acc
-	double breakToTargetSpeed(UpdateParams& p);					///<return the acc to a target speed within a specific distance
-	double accOfEmergencyDecelerating(UpdateParams& p);			///<when headway < lower threshold, use this function
-	double accOfCarFollowing(UpdateParams& p);						///<when lower threshold < headway < upper threshold, use this function
-	double accOfMixOfCFandFF(UpdateParams& p);						///<when upper threshold < headway, use this funcion
-	double accOfFreeFlowing(UpdateParams& p);						///<is a part of accofMixOfCFandFF
-	double getTargetSpeed() const {return targetSpeed;}
+	//double makeAcceleratingDecision(UpdateParams& p);				///<decide acc
+	//double breakToTargetSpeed(UpdateParams& p);					///<return the acc to a target speed within a specific distance
+	//double accOfEmergencyDecelerating(UpdateParams& p);			///<when headway < lower threshold, use this function
+	//double accOfCarFollowing(UpdateParams& p);						///<when lower threshold < headway < upper threshold, use this function
+	//double accOfMixOfCFandFF(UpdateParams& p);						///<when upper threshold < headway, use this funcion
+	//double accOfFreeFlowing(UpdateParams& p);						///<is a part of accofMixOfCFandFF
+	//double getTargetSpeed() const {return targetSpeed;}
 
 	//for lane changing decision
 private:

@@ -9,8 +9,8 @@
 
 #include <limits>
 
+#include "entities/vehicle/Vehicle.hpp"
 #include "LaneChangeModel.hpp"
-#include "UpdateParams.hpp"
 #include "Driver.hpp"
 
 using std::numeric_limits;

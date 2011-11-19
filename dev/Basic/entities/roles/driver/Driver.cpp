@@ -37,10 +37,6 @@ using std::set;
 using std::map;
 
 //for unit conversion
-double sim_mob::Driver::feet2Unit(double feet)
-{
-	return feet*0.158;
-}
 double sim_mob::Driver::unit2Feet(double unit)
 {
 	return unit/0.158;
@@ -82,11 +78,6 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), vehicle(nullptr), perceiv
 	//Initialize our models. These should be swapable later.
 	lcModel = new MITSIM_LC_Model();
 	cfModel = new MITSIM_CF_Model();
-
-	//Set default data for acceleration
-	maxAcceleration = MAX_ACCELERATION;
-	normalDeceleration = -maxAcceleration*0.6;
-	maxDeceleration = -maxAcceleration;
 
 	//Some one-time flags and other related defaults.
 	firstFrameTick = true;
@@ -136,6 +127,20 @@ sim_mob::UpdateParams::UpdateParams(const Driver& owner)
 
 	//relative x coordinate for crossing, the intersection point of crossing's front line and current polyline
 	crossingFwdDistance = 0;
+
+	//Space to next car
+	space = 0;
+
+	//the acceleration of leading vehicle
+	a_lead = 0;
+
+	//the speed of leading vehicle
+	v_lead = 0;
+
+	//the distance which leading vehicle will move in next time step
+	space_star = 0;
+
+	distanceToNormalStop = 0;
 
 	//If we are moving left, continue moving left unless otherwise notified.
 	//double latMove = owner.vehicle->getLateralMovement();
@@ -328,7 +333,12 @@ void sim_mob::Driver::linkDriving(UpdateParams& p)
 		vehicle->setVelocity(0);
 		vehicle->setAcceleration(0);
 	} else {
-		newFwdAcc = makeAcceleratingDecision(p);
+		//Convert back to m/s
+		//TODO: Is this always m/s? We should rename the variable then...
+		p.currSpeed = vehicle->getVelocity()/100;
+
+		//Call our model
+		newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed);
 	}
 
 	//Update our chosen acceleration; update our position on the link.

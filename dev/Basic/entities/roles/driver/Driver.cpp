@@ -60,10 +60,12 @@ size_t updateStartEndIndex(const std::vector<sim_mob::Point2D>* const currLanePo
 //TODO:I think lane index should be a data member in the lane class
 size_t getLaneIndex(const Lane* l)
 {
-	const RoadSegment* r = l->getRoadSegment();
-	for(size_t i=0;i<r->getLanes().size();i++) {
-		if(r->getLanes().at(i)==l) {
-			return i;
+	if (l) {
+		const RoadSegment* r = l->getRoadSegment();
+		for(size_t i=0;i<r->getLanes().size();i++) {
+			if(r->getLanes().at(i)==l) {
+				return i;
+			}
 		}
 	}
 	return -1;  //NOTE: This might not do what you expect! ~Seth

@@ -7,12 +7,11 @@
  *      Author: mavswinwxy & Li Zhemin
  */
 
-#include "Driver.hpp"
-
 #include <limits>
 
-#include "entities/vehicle/Vehicle.hpp"
-#include "geospatial/Link.hpp"
+#include "LaneChangeModel.hpp"
+#include "UpdateParams.hpp"
+#include "Driver.hpp"
 
 using std::numeric_limits;
 using namespace sim_mob;
@@ -21,6 +20,44 @@ using namespace sim_mob;
 namespace {
 //Declare MAX_NUM as a private variable here to limit its scope.
 const double MAX_NUM = numeric_limits<double>::max();
+
+///Simple struct to hold Gap Acceptance model parameters
+struct GapAcceptParam {
+	double scale;
+	double alpha;
+	double lambda;
+	double beta0;
+	double beta1;
+	double beta2;
+	double beta3;
+	double beta4;
+	double stddev;
+};
+
+///Simple struct to hold mandator lane changing parameters
+struct MandLaneChgParam {
+	double feet_lowbound;
+	double feet_delta;
+	double lane_coeff;
+	double congest_coeff;
+	double lane_mintime;
+};
+
+const GapAcceptParam GA_parameters[4] = {
+//	      scale alpha lambda beta0  beta1  beta2  beta3  beta4  stddev
+		{ 1.00, 0.0, 0.000, 0.508, 0.000, 0.000,-0.420, 0.000, 0.488},	//Discretionary,lead
+		{ 1.00, 0.0, 0.000, 2.020, 0.000, 0.000, 0.153, 0.188, 0.526},	//Discretionary,lag
+		{ 1.00, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859},	//Mandatory,lead
+		{ 1.00, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073}	//Mandatory,lag
+};
+
+const MandLaneChgParam MLC_parameters = {
+		1320.0,		//feet, lower bound
+	    5280.0,		//feet, delta
+		   0.5,		//coef for number of lanes
+		   1.0,		//coef for congestion level
+		   1.0		//minimum time in lane
+};
 
 //Helper struct
 template <class T>
@@ -33,22 +70,8 @@ struct LeadLag {
 } //End anon namespace
 
 
-const sim_mob::Driver::GapAcceptParam sim_mob::Driver::GA_parameters[4] = {
-//	    scale alpha lambda beta0  beta1  beta2  beta3  beta4  stddev
-		{ 1.00, 0.0, 0.000, 0.508, 0.000, 0.000,-0.420, 0.000, 0.488},	//Discretionary,lead
-		{ 1.00, 0.0, 0.000, 2.020, 0.000, 0.000, 0.153, 0.188, 0.526},	//Discretionary,lag
-		{ 1.00, 0.0, 0.000, 0.384, 0.000, 0.000, 0.000, 0.000, 0.859},	//Mandatory,lead
-		{ 1.00, 0.0, 0.000, 0.587, 0.000, 0.000, 0.048, 0.356, 1.073}	//Mandatory,lag
-};
-const sim_mob::Driver::MandLaneChgParam sim_mob::Driver::MLC_parameters = {
-		1320.0,		//feet, lower bound
-	    5280.0,		//feet, delta
-		   0.5,		//coef for number of lanes
-		   1.0,		//coef for congestion level
-		   1.0		//minimum time in lane
-};
 
-double sim_mob::Driver::lcCriticalGap(UpdateParams& p, int type,	double dis_, double spd_, double dv_)
+double sim_mob::MITSIM_LC_Model::lcCriticalGap(UpdateParams& p, int type,	double dis_, double spd_, double dv_)
 {
 	double k=( type < 2 ) ? 1 : 5;
 	return k*-dv_ * p.elapsedSeconds;
@@ -80,7 +103,7 @@ double sim_mob::Driver::lcCriticalGap(UpdateParams& p, int type,	double dis_, do
 }
 
 
-LaneSide sim_mob::Driver::gapAcceptance(UpdateParams& p, int type)
+LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(UpdateParams& p, int type)
 {
 	//[0:left,1:right]
 	LeadLag<double> otherSpeed[2];		//the speed of the closest vehicle in adjacent lane
@@ -146,7 +169,7 @@ LaneSide sim_mob::Driver::gapAcceptance(UpdateParams& p, int type)
 	return returnVal;
 }
 
-double sim_mob::Driver::calcSideLaneUtility(UpdateParams& p, bool isLeft){
+double sim_mob::MITSIM_LC_Model::calcSideLaneUtility(UpdateParams& p, bool isLeft){
 	if(isLeft && !p.leftLane) {
 		return -MAX_NUM;	//has no left side
 	} else if(!isLeft && !p.rightLane){
@@ -155,7 +178,7 @@ double sim_mob::Driver::calcSideLaneUtility(UpdateParams& p, bool isLeft){
 	return (isLeft) ? p.nvLeftFwd.distance : p.nvRightFwd.distance;
 }
 
-LANE_CHANGE_SIDE sim_mob::Driver::makeDiscretionaryLaneChangingDecision(UpdateParams& p)
+LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision(UpdateParams& p)
 {
 	// for available gaps(including current gap between leading vehicle and itself), vehicle will choose the longest
 	const LaneSide freeLanes = gapAcceptance(p, DLC);
@@ -201,7 +224,7 @@ LANE_CHANGE_SIDE sim_mob::Driver::makeDiscretionaryLaneChangingDecision(UpdatePa
 	return LCS_SAME;
 }
 
-double sim_mob::Driver::checkIfMandatory(double totalLinkDist) {
+double sim_mob::MITSIM_LC_Model::checkIfMandatory(double totalLinkDist) {
 	//The code below is MITSIMLab model
 	dis2stop = totalLinkDist - currLinkOffset - vehicle->length/2 - 300;
 	dis2stop /= 100;
@@ -215,7 +238,7 @@ double sim_mob::Driver::checkIfMandatory(double totalLinkDist) {
 	return exp(-dis * dis / (delta * delta));
 }
 
-LANE_CHANGE_SIDE sim_mob::Driver::makeMandatoryLaneChangingDecision(UpdateParams& p)
+LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(UpdateParams& p)
 {
 	LaneSide freeLanes = gapAcceptance(p, MLC);
 
@@ -251,7 +274,7 @@ LANE_CHANGE_SIDE sim_mob::Driver::makeMandatoryLaneChangingDecision(UpdateParams
  *
  * -wangxy
  * */
-void sim_mob::Driver::excuteLaneChanging(UpdateParams& p, double totalLinkDistance)
+void sim_mob::MITSIM_LC_Model::excuteLaneChanging(UpdateParams& p, double totalLinkDistance)
 {
 	//Behavior changes depending on whether or not we're actually changing lanes.
 	if(vehicle->getLatVelocity()!=0){ //Performing a lane change.

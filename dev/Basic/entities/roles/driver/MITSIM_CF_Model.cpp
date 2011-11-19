@@ -7,33 +7,68 @@
  *      Author: wangxy & Li Zhemin
  */
 
-#include "Driver.hpp"
-
 #include <limits>
 
-#include "entities/vehicle/Vehicle.hpp"
+#include "CarFollowModel.hpp"
+#include "UpdateParams.hpp"
+#include "Driver.hpp"
 
 using std::numeric_limits;
 using namespace sim_mob;
 
-const sim_mob::Driver::CarFollowParam sim_mob::Driver::CF_parameters[2] = {
-//        alpha   beta    gama    lambda  rho     stddev
-		{ 0.0400, 0.7220, 0.2420, 0.6820, 0.6000, 0.8250},
-		{-0.0418, 0.0000, 0.1510, 0.6840, 0.6800, 0.8020}
+
+namespace {
+
+//Simple struct to hold Car Following model parameters
+struct CarFollowParam {
+	double alpha;
+	double beta;
+	double gama;
+	double lambda;
+	double rho;
+	double stddev;
+};
+
+//Car following parameters for this model.
+const CarFollowParam CF_parameters[2] = {
+//    alpha   beta    gama    lambda  rho     stddev
+	{ 0.0400, 0.7220, 0.2420, 0.6820, 0.6000, 0.8250},
+	{-0.0418, 0.0000, 0.1510, 0.6840, 0.6800, 0.8020}
 };
 
 
-namespace {
+//Acceleration mode
 enum ACCEL_MODE {
 	AM_VEHICLE = 0,
 	AM_PEDESTRIAN = 1,
 	AM_TRAFF_LIGHT = 2,
 	AM_NONE = 3
 };
+
+double uRandom()
+{
+	srand(time(0));
+	long int seed_=rand();
+	const long int M = 2147483647;  // M = modulus (2^31)
+	const long int A = 48271;       // A = multiplier (was 16807)
+	const long int Q = M / A;
+	const long int R = M % A;
+	seed_ = A * (seed_ % Q) - R * (seed_ / Q);
+	seed_ = (seed_ > 0) ? (seed_) : (seed_ + M);
+	return (double)seed_ / (double)M;
+}
+
+double nRandom(double mean,double stddev)
+{
+	   double r1 = uRandom(), r2 = uRandom();
+	   double r = - 2.0 * log(r1);
+	   if (r > 0.0) return (mean + stddev * sqrt(r) * sin(2 * 3.1415926 * r2));
+	   else return (mean);
+}
 } //End anon namespace
 
 
-double sim_mob::Driver::makeAcceleratingDecision(UpdateParams& p)
+double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(UpdateParams& p)
 {
 	//Convert back to m/s
 	//TODO: Is this always m/s? We should rename the variable then...
@@ -87,7 +122,7 @@ double sim_mob::Driver::makeAcceleratingDecision(UpdateParams& p)
 	return res;
 }
 
-double sim_mob::Driver::breakToTargetSpeed(UpdateParams& p)
+double sim_mob::MITSIM_CF_Model::breakToTargetSpeed(UpdateParams& p)
 {
 	double v 			=	p.currSpeed;
 	double dt			=	p.elapsedSeconds;
@@ -103,7 +138,7 @@ double sim_mob::Driver::breakToTargetSpeed(UpdateParams& p)
 	}
 }
 
-double sim_mob::Driver::accOfEmergencyDecelerating(UpdateParams& p)
+double sim_mob::MITSIM_CF_Model::accOfEmergencyDecelerating(UpdateParams& p)
 {
 	double v 			=	p.currSpeed;
 	double dv			=	v-v_lead;
@@ -126,28 +161,9 @@ double sim_mob::Driver::accOfEmergencyDecelerating(UpdateParams& p)
 		return a;
 }
 
-double uRandom()
-{
-	srand(time(0));
-	long int seed_=rand();
-	const long int M = 2147483647;  // M = modulus (2^31)
-	const long int A = 48271;       // A = multiplier (was 16807)
-	const long int Q = M / A;
-	const long int R = M % A;
-	seed_ = A * (seed_ % Q) - R * (seed_ / Q);
-	seed_ = (seed_ > 0) ? (seed_) : (seed_ + M);
-	return (double)seed_ / (double)M;
-}
 
-double nRandom(double mean,double stddev)
-{
-	   double r1 = uRandom(), r2 = uRandom();
-	   double r = - 2.0 * log(r1);
-	   if (r > 0.0) return (mean + stddev * sqrt(r) * sin(2 * 3.1415926 * r2));
-	   else return (mean);
-}
 
-double sim_mob::Driver::accOfCarFollowing(UpdateParams& p)
+double sim_mob::MITSIM_CF_Model::accOfCarFollowing(UpdateParams& p)
 {
 	const double density	=	1;		//represent the density of vehicles in front of the subject vehicle
 										//now we ignore it, assuming that it is 1.
@@ -162,7 +178,7 @@ double sim_mob::Driver::accOfCarFollowing(UpdateParams& p)
 	return res;
 }
 
-double sim_mob::Driver::accOfFreeFlowing(UpdateParams& p)
+double sim_mob::MITSIM_CF_Model::accOfFreeFlowing(UpdateParams& p)
 {
 	double vn =	p.currSpeed;
 	double res;
@@ -186,7 +202,7 @@ double sim_mob::Driver::accOfFreeFlowing(UpdateParams& p)
 	return res;
 }
 
-double sim_mob::Driver::accOfMixOfCFandFF(UpdateParams& p)		//mix of car following and free flowing
+double sim_mob::MITSIM_CF_Model::accOfMixOfCFandFF(UpdateParams& p)		//mix of car following and free flowing
 {
 	distanceToNormalStop = p.currSpeed * p.currSpeed / 2 /(-getNormalDeceleration());
 	if( space > distanceToNormalStop ) {

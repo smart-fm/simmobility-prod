@@ -11,28 +11,13 @@
 #include "geospatial/StreetDirectory.hpp"
 #include "perception/FixedDelayed.hpp"
 
+#include "CarFollowModel.hpp"
+#include "LaneChangeModel.hpp"
+#include "UpdateParams.hpp"
+
 
 namespace sim_mob
 {
-
-struct LaneSide {
-	bool left;
-	bool right;
-	bool both() const { return left && right; }
-	bool leftOnly() const { return left && !right; }
-	bool rightOnly() const { return right && !left; }
-};
-
-enum LANE_CHANGE_MODE {	//as a mask
-	DLC = 0,
-	MLC = 2
-};
-
-enum LANE_CHANGE_SIDE {
-	LCS_LEFT = -1,
-	LCS_SAME = 0,
-	LCS_RIGHT = 1
-};
 
 //Forward declarations
 class Pedestrian;
@@ -50,102 +35,11 @@ class Driver : public sim_mob::Role {
 
 //Static data and private class definitions.
 private:
-	///Simple struct to hold Car Following model parameters
-	struct CarFollowParam {
-		double alpha;
-		double beta;
-		double gama;
-		double lambda;
-		double rho;
-		double stddev;
-	};
-
-	///Simple struct to hold Gap Acceptance model parameters
-	struct GapAcceptParam {
-		double scale;
-		double alpha;
-		double lambda;
-		double beta0;
-		double beta1;
-		double beta2;
-		double beta3;
-		double beta4;
-		double stddev;
-	};
-
-	///Simple struct to hold mandator lane changing parameters
-	struct MandLaneChgParam {
-		double feet_lowbound;
-		double feet_delta;
-		double lane_coeff;
-		double congest_coeff;
-		double lane_mintime;
-	};
-
-	//Struct for holding data about the "nearest" vehicle.
-	struct NearestVehicle {
-		NearestVehicle() : driver(nullptr), distance(5000) {}
-
-		const Driver* driver;
-		double distance;
-	};
-
-	//Similar, but for pedestrians
-	struct NearestPedestrian {
-		NearestPedestrian() : distance(5000) {}
-
-		//TODO: This is probably not needed. We should really set "distance" to DOUBLE_MAX.
-		bool exists() { return distance < 5000; }
-
-		double distance;
-	};
-
-	///Simple struct to hold parameters which only exist for a single update tick.
-	struct UpdateParams {
-		UpdateParams(const Driver& owner); //Initialize with sensible defaults.
-
-		const Lane* currLane;  //TODO: This should really be tied to PolyLineMover, but for now it's not important.
-		const Lane* leftLane;
-		const Lane* rightLane;
-
-		double currSpeed;
-		double vehicleAngle;
-
-		double currLaneOffset;
-		double currLaneLength;
-		bool isTrafficLightStop;
-		double trafficSignalStopDistance;
-		double elapsedSeconds;
-
-		double perceivedFwdVelocity;
-		double perceivedLatVelocity;
-
-		NearestVehicle nvFwd;
-		NearestVehicle nvBack;
-		NearestVehicle nvLeftFwd;
-		NearestVehicle nvLeftBack;
-		NearestVehicle nvRightFwd;
-		NearestVehicle nvRightBack;
-
-		NearestPedestrian npedFwd;
-
-		double laneChangingVelocity;
-
-		bool isCrossingAhead;
-		int crossingFwdDistance;
-	};
-
-
 	//Model parameters. Might be tunable.
 	static const double MAX_ACCELERATION		=	 20.0;   ///< 10m/s*s
 	static const double MAX_DECELERATION		=	-20.0;   ///< 10m/s*s
 	static const double hBufferUpper			=	  1.6;	 ///< upper threshold of headway
 	static const double hBufferLower			=	  0.8;	 ///< lower threshold of headway
-
-	//Parameters from MITSim lab parameters file. Might be tunable.
-	static const CarFollowParam CF_parameters[2];	    //Car Following parameters
-	static const GapAcceptParam GA_parameters[4];	    //Gap Acceptance model parameters
-	static const MandLaneChgParam MLC_parameters;		//Mandatory Lane Changing parameters
 
 
 //Constructor and overridden methods.
@@ -159,6 +53,10 @@ public:
 private:
 	//Pointer to the vehicle this driver is controlling.
 	Vehicle* vehicle;
+
+	//Update models
+	LaneChangeModel* lcModel;
+	CarFollowModel* cfModel;
 
 	//More update methods
 	void update_first_frame(UpdateParams& params, frame_t frameNumber);

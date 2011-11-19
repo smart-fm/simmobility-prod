@@ -79,6 +79,10 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), vehicle(nullptr), perceiv
 	//Set default speed in the range of 10m/s to 19m/s
 	//speed = 0;//1000*(1+((double)(rand()%10))/10);
 
+	//Initialize our models. These should be swapable later.
+	lcModel = new MITSIM_LC_Model();
+	cfModel = new MITSIM_CF_Model();
+
 	//Set default data for acceleration
 	maxAcceleration = MAX_ACCELERATION;
 	normalDeceleration = -maxAcceleration*0.6;
@@ -103,7 +107,7 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams()
 
 
 //TODO: We can use initializer lists later to make some of these params const.
-sim_mob::Driver::UpdateParams::UpdateParams(const Driver& owner)
+sim_mob::UpdateParams::UpdateParams(const Driver& owner)
 {
 	//Set to the previous known buffered values
 	currLane = owner.currLane_.get();

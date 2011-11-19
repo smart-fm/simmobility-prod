@@ -139,11 +139,11 @@ void sim_mob::Vehicle::shiftToNewLanePolyline(bool moveLeft)
 	fwdMovement.shiftToNewPolyline(moveLeft);
 }
 
-/*double sim_mob::Vehicle::getDistanceMovedInSegment() const
+double sim_mob::Vehicle::getDistanceMovedInSegment() const
 {
 	throw_if_error();
-	return position.getAmountMoved();
-}*/
+	return fwdMovement.getCurrDistAlongRoadSegment();
+}
 
 double sim_mob::Vehicle::getVelocity() const
 {

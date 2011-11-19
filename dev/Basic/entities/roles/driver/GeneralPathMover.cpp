@@ -172,7 +172,7 @@ const Lane* sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir()
 	distMovedInSegment=0;
 
 	//Bound lanes
-	currLaneID = std::min(currLaneID, (*currSegmentIt)->getLanes().size()-1);
+	currLaneID = std::min<int>(currLaneID, (*currSegmentIt)->getLanes().size()-1);
 
 	//Is this new segment in reverse?
 	const Node* prevNode = isMovingForwards ? (*(currSegmentIt-1))->getEnd() : (*(currSegmentIt-1))->getStart();
@@ -281,7 +281,7 @@ void sim_mob::GeneralPathMover::shiftToNewPolyline(bool moveLeft)
 {
 	//Nothing to do?
 	int newLaneID = currLaneID + (moveLeft?1:-1);
-	if (newLaneID<0 || newLaneID>=(*currSegmentIt)->getLanes().size()) {
+	if (newLaneID<0 || newLaneID>=static_cast<int>((*currSegmentIt)->getLanes().size())) {
 		return;
 	}
 

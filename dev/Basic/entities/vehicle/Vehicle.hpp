@@ -32,7 +32,7 @@ public:
 	//Accessors
 	double getX() const;   ///<Retrieve the vehicle's absolute position, x
 	double getY() const;   ///<Retrieve the vehicle's absolute position, y
-	//double getDistanceMovedInSegment() const;   //<Retrieve the total distance moved in this segment so far.
+	double getDistanceMovedInSegment() const;   //<Retrieve the total distance moved in this segment so far.
 	double getLateralMovement() const;         ///<Retrieve a value representing how far to the LEFT of the current lane the vehicle has moved.
 	double getVelocity() const;      ///<Retrieve forward velocity.
 	double getLatVelocity() const;   ///<Retrieve lateral velocity.

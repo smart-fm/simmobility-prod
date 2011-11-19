@@ -127,6 +127,12 @@ sim_mob::Driver::UpdateParams::UpdateParams(const Driver& owner)
 	//Lateral velocity of lane changing.
 	laneChangingVelocity = 100;
 
+	//Are we near a crossing?
+	isCrossingAhead = false;
+
+	//relative x coordinate for crossing, the intersection point of crossing's front line and current polyline
+	crossingFwdDistance = 0;
+
 	//If we are moving left, continue moving left unless otherwise notified.
 	//double latMove = owner.vehicle->getLateralMovement();
 	//currLaneChangeBehavoir = latMove>0?LCS_LEFT:latMove<0?LCS_RIGHT:LCS_SAME;
@@ -174,12 +180,14 @@ void sim_mob::Driver::update_general(UpdateParams& params, frame_t frameNumber)
 	//if reach the goal, get back to the origin
 	if(vehicle->isDone()){
 		//TEMP: Move to (0,0). This should prevent collisions.
-		//TODO: Remove from simulation. Do the dispatcher at the same time...
+		//TODO: Remove from simulation. Do this in the dispatcher at the same time...
 		parent->xPos.set(0);
 		parent->yPos.set(0);
 
 		//TODO:reach destination
-		//setBackToOrigin();
+		vehicle->setAcceleration(0);
+		vehicle->setVelocity(0);
+		vehicle->setLatVelocity(0);
 		return;
 	}
 
@@ -578,21 +586,6 @@ void sim_mob::Driver::directionIntersection()
 }
 
 
-//TODO: Right now we just skip updates for vehicles which are done. Shouldn't have to move them...
-/*void sim_mob::Driver::setBackToOrigin()
-{
-	//NOTE: Right now this function isn't called anywhere interesting, so just give it a random heading.
-	//TODO: This won't work.
-	//vehicle->newPolyline(*parent->originNode->location, Point2D(1, 1));
-
-	vehicle->setVelocity(0);
-	vehicle->setLatVelocity(0);
-	vehicle->setAcceleration(0);
-
-	setToParent();
-}*/
-
-
 //link path should be retrieved from other class
 //for now, it serves as this purpose
 void sim_mob::Driver::initializePath()
@@ -602,16 +595,14 @@ void sim_mob::Driver::initializePath()
 	destNode = parent->destNode;
 
 	//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
-	vehicle->initPath(StreetDirectory::instance().shortestDrivingPath(*originNode, *destNode));
+	//TODO: Start in lane 0?
+	vehicle->initPath(StreetDirectory::instance().shortestDrivingPath(*originNode, *destNode), 0);
 }
 
 void sim_mob::Driver::setOrigin(UpdateParams& p)
 {
 	//A non-null vehicle means we are moving.
 	vehicle = new Vehicle();
-
-	//Determine the direction we will be moving along this link.
-	//isLinkForward = (pathMover.getCurrLink()->getStart()==originNode);
 
 	//Set the max speed and target speed.
 	maxLaneSpeed = vehicle->getCurrSegment()->maxSpeed/3.6;//slow down
@@ -621,9 +612,6 @@ void sim_mob::Driver::setOrigin(UpdateParams& p)
 	currLaneIndex = 0;
 	p.currLane = vehicle->getCurrSegment()->getLanes().at(currLaneIndex);
 	targetLaneIndex = currLaneIndex;
-
-	//polypathMover.setPath(p.currLane->getPolyline());
-	//sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
 
 	//Vehicles start at rest
 	vehicle->setVelocity(0);
@@ -639,29 +627,26 @@ void sim_mob::Driver::setOrigin(UpdateParams& p)
 
 
 //TODO
-void sim_mob::Driver::findCrossing()
+void sim_mob::Driver::findCrossing(UpdateParams& p)
 {
 	const Crossing* crossing=dynamic_cast<const Crossing*>(vehicle->getCurrSegment()->nextObstacle(vehicle->getDistanceMovedInSegment(),true).item);
 
 	if(crossing) {
+		//TODO: There's already a "GetIntersection()" function in util/GeomHelpers.hpp. Perhaps we
+		//      can use this and cut down on code bloat?
 		Point2D far1 = crossing->farLine.first;
 		Point2D far2 = crossing->farLine.second;
+		DynamicVector currPolyline = vehicle->getCurrPolylineVector();
 
-		Point2D startPt = polypathMover.getCurrPolypoint();
-		Point2D endPt = polypathMover.getNextPolypoint();
-
-		double slope1, slope2;
-		slope1 = static_cast<double>(far2.getY()-far1.getY())/(far2.getX()-far1.getX());
-		slope2 = static_cast<double>(endPt.getY() - startPt.getY()) / (endPt.getX() - startPt.getX());
-		int x = (slope2*startPt.getX()-slope1*far1.getX()+far1.getY()-startPt.getY())/(slope2-slope1);
+		double slope1 = static_cast<double>(far2.getY()-far1.getY())/(far2.getX()-far1.getX());
+		double slope2 = static_cast<double>(currPolyline.getEndY() - currPolyline.getY()) / (currPolyline.getEndX() - currPolyline.getX());
+		int x = (slope2*currPolyline.getX()-slope1*far1.getX()+far1.getY()-currPolyline.getY())/(slope2-slope1);
 		int y = slope1*(x-far1.getX())+far1.getY();
 
-		double xOffset=x-startPt.getX();
-		double yOffset=y-startPt.getY();
-		xPosCrossing_= xOffset*xDirection+yOffset*yDirection;
-		isCrossingAhead = true;
-	} else {
-		isCrossingAhead = false;
+		double xOffset=x-currPolyline.getX();
+		double yOffset=y-currPolyline.getY();
+		p.crossingFwdDistance = xOffset*xDirection+yOffset*yDirection;
+		p.isCrossingAhead = true;
 	}
 }
 
@@ -899,7 +884,7 @@ void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 void sim_mob::Driver::updateAngle(UpdateParams& p)
 {
 	//Set angle based on the vehicle's heading and velocity.
-	p.vehicleAngle = 360 - (vehicle->getAngleBasedOnVelocity() * 180 / M_PI);
+	p.vehicleAngle = 360 - (vehicle->getAngle() * 180 / M_PI);
 }
 
 void sim_mob::Driver::intersectionVelocityUpdate()
@@ -940,7 +925,7 @@ LANE_CHANGE_SIDE sim_mob::Driver::getCurrLaneSideRelativeToCenter() const
 {
 	if (vehicle->getLateralMovement()>0) {
 		return LCS_LEFT;
-	} else if (vehicle->getLatMovement()<0) {
+	} else if (vehicle->getLateralMovement()<0) {
 		return LCS_RIGHT;
 	}
 	return LCS_SAME;
@@ -956,7 +941,10 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p)
 	LANE_CHANGE_SIDE actual = getCurrLaneChangeDirection();
 	LANE_CHANGE_SIDE relative = getCurrLaneSideRelativeToCenter();
 	if (actual==LCS_SAME) {
-		return;
+		return;  //Not actually changing lanes.
+	}
+	if ((actual==LCS_LEFT && !p.leftLane) || (actual==LCS_RIGHT && !p.rightLane)) {
+		return; //Error condition
 	}
 	if (relative==LCS_SAME) {
 		relative=actual; //Unlikely to occur, but we can still work off this.
@@ -968,7 +956,7 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p)
 		double remainder = fabs(vehicle->getLateralMovement()) - halfLaneWidth;
 		if (remainder>0) {
 			//Update Lanes, polylines, RoadSegments, etc.
-			p.currLane = newLane;
+			p.currLane = (actual==LCS_LEFT?p.leftLane:p.rightLane);
 			syncCurrLaneCachedInfo(p);
 			vehicle->shiftToNewLanePolyline(actual==LCS_LEFT);
 
@@ -992,7 +980,7 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p)
 bool sim_mob::Driver::isCloseToLinkEnd(UpdateParams& p)
 {
 	//when the distance <= 10m
-	return isReachLastRSinCurrLink()&&(p.currLaneLength - p.currLaneOffset<2000);
+	return !vehicle->getNextSegment() && (p.currLaneLength-p.currLaneOffset<2000);
 }
 
 //Retrieve the current traffic signal based on our RoadSegment's end node.

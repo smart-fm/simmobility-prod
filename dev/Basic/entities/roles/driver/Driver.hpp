@@ -130,6 +130,9 @@ private:
 		NearestPedestrian npedFwd;
 
 		double laneChangingVelocity;
+
+		bool isCrossingAhead;
+		int crossingFwdDistance;
 	};
 
 
@@ -179,7 +182,7 @@ private:
 	int xPos_nextLink;
 	int yPos_nextLink;
 
-	int xPosCrossing_; //relative x coordinate for crossing, the intersection point of crossing's front line and current polyline
+	//int xPosCrossing_; //relative x coordinate for crossing, the intersection point of crossing's front line and current polyline
 	//double acc_;
 	double xDirection;			//x direction of the current polyline segment
 	double yDirection;			//y direction of the current polyline segment
@@ -358,7 +361,7 @@ private:
 	void linkDriving(UpdateParams& p);
 
 	void initializePath();
-	void findCrossing();
+	void findCrossing(UpdateParams& p);
 
 	//helper function, to find the lane index in current road segment
 	size_t getLaneIndex(const Lane* l);
@@ -473,7 +476,7 @@ public:
 
 	//This always returns the lane we are moving towards; regardless of if we've passed the
 	//  halfway point or not.
-	//LANE_CHANGE_SIDE getCurrLaneChangeDirection() const;
+	LANE_CHANGE_SIDE getCurrLaneChangeDirection() const;
 
 	//This, however, returns where we are relative to the center of our own lane.
 	// I'm sure we can do this in a less confusion fashion later.

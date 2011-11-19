@@ -217,9 +217,7 @@ double sim_mob::Driver::checkIfMandatory(double totalLinkDist) {
 
 LANE_CHANGE_SIDE sim_mob::Driver::makeMandatoryLaneChangingDecision(UpdateParams& p)
 {
-	unsigned int freeLanes = gapAcceptance(p, MLC);
-	bool freeLeft = ((freeLanes&LSIDE_LEFT)!=0);
-	bool freeRight = ((freeLanes&LSIDE_RIGHT)!=0);
+	LaneSide freeLanes = gapAcceptance(p, MLC);
 
 	//find which lane it should get to and choose which side to change
 	//now manually set to 1, it should be replaced by target lane index
@@ -232,10 +230,10 @@ LANE_CHANGE_SIDE sim_mob::Driver::makeMandatoryLaneChangingDecision(UpdateParams
 	}
 
 	//current lane isn't target lane
-	if(freeRight && direction<0) {		//target lane on the right and is accessable
+	if(freeLanes.right && direction<0) {		//target lane on the right and is accessable
 		isWaiting=false;
 		return LCS_RIGHT;
-	} else if(freeLeft && direction>0) {	//target lane on the left and is accessable
+	} else if(freeLanes.left && direction>0) {	//target lane on the left and is accessable
 		isWaiting=false;
 		return LCS_LEFT;
 	} else {			//when target side isn't available,vehicle will decelerate to wait a proper gap.
@@ -257,9 +255,9 @@ void sim_mob::Driver::excuteLaneChanging(UpdateParams& p, double totalLinkDistan
 {
 	//Behavior changes depending on whether or not we're actually changing lanes.
 	if(vehicle->getLatVelocity()!=0){ //Performing a lane change.
-		if(changeDecision != LCS_SAME) {
+		if(getCurrLaneChangeDirection() != LCS_SAME) {
 			//Set the lateral velocity of the vehicle; move it.
-			int lcsSign = (changeDecision==LCS_RIGHT) ? -1 : 1;
+			int lcsSign = (getCurrLaneChangeDirection()==LCS_RIGHT) ? -1 : 1;
 			vehicle->setLatVelocity(lcsSign*p.laneChangingVelocity);
 		}
 	} else {
@@ -278,16 +276,17 @@ void sim_mob::Driver::excuteLaneChanging(UpdateParams& p, double totalLinkDistan
 		}
 
 		//make decision depending on current lane changing mode
+		LANE_CHANGE_SIDE decision = LCS_SAME;
 		if(changeMode==DLC) {
-			changeDecision = makeDiscretionaryLaneChangingDecision(p);
+			decision = makeDiscretionaryLaneChangingDecision(p);
 		} else {
-			changeDecision = makeMandatoryLaneChangingDecision(p);
+			decision = makeMandatoryLaneChangingDecision(p);
 		}
 
 		//Finally, if we've decided to change lanes, set our intention.
-		if(changeDecision!=LCS_SAME) {
-			isLaneChanging = true;
-			lcEnterNewLane = false;
+		if(decision!=LCS_SAME) {
+			const int lane_shift_velocity = 150;  //TODO: What is our lane changing velocity? Just entering this for now...
+			vehicle->setLatVelocity(decision==LCS_LEFT?lane_shift_velocity:-lane_shift_velocity);
 		}
 	}
 }

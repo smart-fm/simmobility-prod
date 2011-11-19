@@ -186,7 +186,7 @@ void sim_mob::Driver::update_general(UpdateParams& params, frame_t frameNumber)
 	updateNearbyAgents(params);
 
 	//Driving behavior differs drastically inside intersections.
-	RoadSegment* prevSegment = vehicle->getCurrSegment();
+	const RoadSegment* prevSegment = vehicle->getCurrSegment();
 	if(vehicle->isInIntersection()) {
 		intersectionDriving(params);
 	} else {
@@ -213,7 +213,7 @@ void sim_mob::Driver::update_general(UpdateParams& params, frame_t frameNumber)
 		if(!vehicle->hasNextSegment(true)) {
 			updateTrafficSignal();
 			if(!vehicle->hasNextSegment(true)) { //TODO: Logic is clearly wrong here.
-				chooseNextLaneForNextLink(p);
+				chooseNextLaneForNextLink(params);
 			}
 		}
 	}
@@ -641,7 +641,7 @@ void sim_mob::Driver::chooseNextLaneForNextLink(UpdateParams& p)
 {
 	//Retrieve the node we're on, and determine if this is in the forward direction.
 	const Node* currNode = vehicle->getCurrSegment()->getEnd();
-	const RoadSegment* nextSegment = pathMover.getNextSegment();
+	const RoadSegment* nextSegment = vehicle->getNextSegment(false);
 	nextIsForward = nextSegment && currNode == nextSegment->getStart();
 
 	//Build up a list of target lanes.

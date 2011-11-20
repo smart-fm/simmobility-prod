@@ -41,7 +41,8 @@ public:
 
 	///General forward movement function: move X cm forward. Automatically switches to a new polypoint or
 	///  road segment as applicable.
-	void advance(double fwdDistance);
+	//Returns any "overflow" distance if we are in an intersection, 0 otherwise.
+	double advance(double fwdDistance);
 
 	///Are we completely done?
 	bool isDoneWithEntireRoute() const;
@@ -111,8 +112,8 @@ private:
 
 private:
 	//Helper functions
-	void advanceToNextPolyline();
-	void advanceToNextRoadSegment();
+	double advanceToNextPolyline();
+	double advanceToNextRoadSegment();
 	const Lane* actualMoveToNextSegmentAndUpdateDir();
 	void generateNewPolylineArray();
 

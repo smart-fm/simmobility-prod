@@ -115,11 +115,11 @@ public:
 	const double getVehicleLength() const { return vehicle->length; }
 
 private:
-	bool isLeaveIntersection() const;
+	//bool isLeaveIntersection() const;
 	bool isCloseToLinkEnd(UpdateParams& p);
 	bool isPedestrianOnTargetCrossing();
 	void chooseNextLaneForNextLink(UpdateParams& p);
-	void calculateIntersectionTrajectory(DPoint movingFrom);
+	void calculateIntersectionTrajectory(DPoint movingFrom, double overflow);
 	void setOrigin(UpdateParams& p);
 
 	//A bit verbose, but only used in 1 or 2 places.
@@ -127,7 +127,7 @@ private:
 	void justLeftIntersection(UpdateParams& p);
 	void updateAdjacentLanes(UpdateParams& p);
 	void updateVelocity();
-	void updatePositionOnLink(UpdateParams& p);
+	double updatePositionOnLink(UpdateParams& p);
 	void setBackToOrigin();
 
 	void updateNearbyAgents(UpdateParams& params);
@@ -141,7 +141,7 @@ private:
 
 	void trafficSignalDriving(UpdateParams& p);
 	void intersectionDriving(UpdateParams& p);
-	void linkDriving(UpdateParams& p);
+	double linkDriving(UpdateParams& p);
 
 	void initializePath();
 	void findCrossing(UpdateParams& p);

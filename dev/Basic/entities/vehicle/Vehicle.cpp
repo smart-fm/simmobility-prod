@@ -216,10 +216,10 @@ void sim_mob::Vehicle::setAcceleration(double value)
 	fwdAccel = value;
 }
 
-void sim_mob::Vehicle::moveFwd(double amt)
+double sim_mob::Vehicle::moveFwd(double amt)
 {
 	throw_if_error();
-	fwdMovement.advance(amt);
+	return fwdMovement.advance(amt);
 }
 
 void sim_mob::Vehicle::moveLat(double amt)

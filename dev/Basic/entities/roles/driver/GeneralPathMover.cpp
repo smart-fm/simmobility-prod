@@ -95,7 +95,7 @@ bool sim_mob::GeneralPathMover::isMovingForwardsOnCurrSegment() const
 
 
 //This is where it gets a little complex.
-void sim_mob::GeneralPathMover::advance(double fwdDistance)
+double sim_mob::GeneralPathMover::advance(double fwdDistance)
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
 
@@ -105,22 +105,24 @@ void sim_mob::GeneralPathMover::advance(double fwdDistance)
 	if (inIntersection) {
 		distAlongPolyline += fwdDistance;
 		currPolylineLength = distAlongPolyline;
-		return;
+		return 0;
 	}
 
 	//Next, if we are truly at the end of the path, we should probably throw an error for trying to advance.
 	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
 
 	//Move down the current polyline. If this brings us to the end point, go to the next polyline
+	double res = 0.0;
 	distAlongPolyline += fwdDistance;
 	distMovedInSegment += fwdDistance;
 	while (distAlongPolyline>=currPolylineLength) {
-		advanceToNextPolyline();
+		res = advanceToNextPolyline();
 	}
+	return res;
 }
 
 
-void sim_mob::GeneralPathMover::advanceToNextPolyline()
+double sim_mob::GeneralPathMover::advanceToNextPolyline()
 {
 	//An error if we're still at the end of this polyline
 	throwIf(nextPolypoint==polypointsList.end(), "Polyline can't advance");
@@ -135,13 +137,14 @@ void sim_mob::GeneralPathMover::advanceToNextPolyline()
 	//Update length, OR move to a new Segment
 	if (nextPolypoint != polypointsList.end()) {
 		currPolylineLength = sim_mob::dist(&(*currPolypoint), &(*nextPolypoint));
+		return 0;
 	} else {
-		advanceToNextRoadSegment();
+		return advanceToNextRoadSegment();
 	}
 }
 
 
-void sim_mob::GeneralPathMover::advanceToNextRoadSegment()
+double sim_mob::GeneralPathMover::advanceToNextRoadSegment()
 {
 	//An error if we're already at the end of this road segment
 	throwIf(currSegmentIt==fullPath.end(), "Road segment at end");
@@ -154,12 +157,13 @@ void sim_mob::GeneralPathMover::advanceToNextRoadSegment()
 	if (currSegmentIt+1!=fullPath.end()) {
 		if ((*currSegmentIt)->getLink() != (*(currSegmentIt+1))->getLink()) {
 			inIntersection = true;
-			return;
+			return distAlongPolyline;
 		}
 	}
 
 	//Move to the next Segment
 	actualMoveToNextSegmentAndUpdateDir();
+	return 0;
 }
 
 const Lane* sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir()

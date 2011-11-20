@@ -63,7 +63,7 @@ public:
 	void setVelocity(double value);      ///<Set the forward velocity.
 	void setLatVelocity(double value);   ///<Set the lateral velocity.
 	void setAcceleration(double value);  ///<Set the forward acceleration.
-	void moveFwd(double amt);            ///<Move this car forward. Automatically moved it to new Segments unless it's in an intersection.
+	double moveFwd(double amt);            ///<Move this car forward. Automatically moved it to new Segments unless it's in an intersection.
 	void moveLat(double amt);            ///<Move this car laterally. NOTE: This will _add_ the amt to the current value.
 	void resetLateralMovement();         ///<Put this car back in the center of the current lane.
 	const Lane* moveToNextSegmentAfterIntersection();   ///<If we're in an intersection, move out of it.

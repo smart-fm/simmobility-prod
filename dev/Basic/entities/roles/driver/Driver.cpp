@@ -212,14 +212,14 @@ void sim_mob::Driver::update_general(UpdateParams& params, frame_t frameNumber)
 		if(isCloseToLinkEnd(params)) {
 			trafficSignalDriving(params);
 		}
-		linkDriving(params);
+		double overflow = linkDriving(params);
 
 		//Did our last move forward bring us into an intersection?
 		if(vehicle->isInIntersection()) {
 			//the first time vehicle pass the end of current link and enter intersection
 			//if the vehicle reaches the end of the last road segment on current link
 			//I assume this vehicle enters the intersection
-			calculateIntersectionTrajectory(lastKnownPolypoint);
+			calculateIntersectionTrajectory(lastKnownPolypoint, overflow);
 			intersectionVelocityUpdate();
 			intersectionDriving(params);
 		}
@@ -310,24 +310,20 @@ void sim_mob::Driver::intersectionDriving(UpdateParams& p)
 	}
 
 	//First, update movement along the vector.
-	intersectionDistAlongTrajectory += vehicle->getVelocity() * p.elapsedSeconds;
+	DPoint res = intModel->continueDriving(vehicle->getVelocity() * p.elapsedSeconds);
+	vehicle->setPositionInIntersection(res.x, res.y);
 
 	//Next, detect if we've just left the intersection. Otherwise, perform regular intersection driving.
-	if(isLeaveIntersection()) {
+	if(intModel->isDone()) {
 		p.currLane = vehicle->moveToNextSegmentAfterIntersection();
 		justLeftIntersection(p);
 		linkDriving(p); //Chain to regular link driving behavior.
-	} else {
-		//Scale a vector to find our new position.
-		DynamicVector movement(intersectionTrajectory);
-		movement.scaleVectTo(intersectionDistAlongTrajectory).translateVect();
-		vehicle->setPositionInIntersection(movement.getX(), movement.getY());
 	}
 }
 
 //vehicle movement on link, perform acceleration, lane changing if necessary
 //the movement is based on relative position
-void sim_mob::Driver::linkDriving(UpdateParams& p)
+double sim_mob::Driver::linkDriving(UpdateParams& p)
 {
 	//TODO: This might not be in the right location
 	p.dis2stop = vehicle->getCurrLinkLength() - currLinkOffset - vehicle->length/2 - 300;
@@ -357,7 +353,7 @@ void sim_mob::Driver::linkDriving(UpdateParams& p)
 
 	//Update our chosen acceleration; update our position on the link.
 	vehicle->setAcceleration(newFwdAcc * 100);
-	updatePositionOnLink(p);
+	return updatePositionOnLink(p);
 }
 
 
@@ -373,10 +369,10 @@ void sim_mob::Driver::setParentBufferedData()
 	parent->latVel.set(vehicle->getLatVelocity());
 }
 
-bool sim_mob::Driver::isLeaveIntersection() const
+/*bool sim_mob::Driver::isLeaveIntersection() const
 {
 	return intersectionDistAlongTrajectory >= intersectionTrajectory.getMagnitude();
-}
+}*/
 
 
 namespace {
@@ -538,7 +534,7 @@ void sim_mob::Driver::chooseNextLaneForNextLink(UpdateParams& p)
 }
 
 //TODO: For now, we're just using a simple trajectory model. Complex curves may be added later.
-void sim_mob::Driver::calculateIntersectionTrajectory(DPoint movingFrom)
+void sim_mob::Driver::calculateIntersectionTrajectory(DPoint movingFrom, double overflow)
 {
 	//If we have no target link, we have no target trajectory.
 	if (!nextLaneInNextLink) {
@@ -546,11 +542,10 @@ void sim_mob::Driver::calculateIntersectionTrajectory(DPoint movingFrom)
 	}
 
 	//Get the entry point.
-	Point2D entryPoint = nextLaneInNextLink->getPolyline().at(0);
+	Point2D entry = nextLaneInNextLink->getPolyline().at(0);
 
 	//Compute a movement trajectory.
-	intersectionTrajectory = DynamicVector(movingFrom.x, movingFrom.y, entryPoint.getX(), entryPoint.getY());
-	intersectionDistAlongTrajectory = 0;
+	intModel->startDriving(movingFrom, DPoint(entry.getX(), entry.getY()), overflow);
 }
 
 
@@ -609,7 +604,7 @@ void sim_mob::Driver::findCrossing(UpdateParams& p)
 	}
 }
 
-void sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
+double sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
 {
 	//Determine how far forward we've moved.
 	//TODO: I've disabled the acceleration component because it doesn't really make sense.
@@ -627,7 +622,7 @@ void sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
 	}
 
 	//Move the vehicle forward.
-	vehicle->moveFwd(fwdDistance);
+	double res = vehicle->moveFwd(fwdDistance);
 
 	//Lateral movement
 	if (latDistance!=0) {
@@ -637,6 +632,7 @@ void sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
 
 	//Update our offset in the current lane.
 	p.currLaneOffset += fwdDistance;
+	return res;
 }
 
 

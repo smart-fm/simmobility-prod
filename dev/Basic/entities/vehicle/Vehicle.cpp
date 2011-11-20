@@ -82,12 +82,14 @@ const RoadSegment* sim_mob::Vehicle::getPrevSegment() const
 
 const Node* sim_mob::Vehicle::getNodeMovingTowards() const
 {
-	return fwdMovement.isMovingForwardsOnCurrSegment() ? fwdMovement.getCurrSegment()->getEnd() : fwdMovement.getCurrSegment()->getStart();
+	//return fwdMovement.isMovingForwardsOnCurrSegment() ? fwdMovement.getCurrSegment()->getEnd() : fwdMovement.getCurrSegment()->getStart();
+	return fwdMovement.getCurrSegment()->getEnd();  //TEMP
 }
 
 const Node* sim_mob::Vehicle::getNodeMovingFrom() const
 {
-	return fwdMovement.isMovingForwardsOnCurrSegment() ? fwdMovement.getCurrSegment()->getStart() : fwdMovement.getCurrSegment()->getEnd();
+	//return fwdMovement.isMovingForwardsOnCurrSegment() ? fwdMovement.getCurrSegment()->getStart() : fwdMovement.getCurrSegment()->getEnd();
+	return fwdMovement.getCurrSegment()->getStart(); //TEMP
 }
 
 const Link* sim_mob::Vehicle::getCurrLink() const
@@ -97,7 +99,7 @@ const Link* sim_mob::Vehicle::getCurrLink() const
 
 double sim_mob::Vehicle::getCurrLinkLength() const
 {
-	return fwdMovement.getCurrLink()->getLength(fwdMovement.isMovingForwardsOnCurrSegment());
+	return fwdMovement.getCurrLinkLength(); // ()->getLength(fwdMovement.isMovingForwardsOnCurrSegment());
 }
 
 sim_mob::DynamicVector sim_mob::Vehicle::getCurrPolylineVector() const

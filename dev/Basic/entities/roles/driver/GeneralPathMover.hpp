@@ -59,7 +59,8 @@ public:
 	const sim_mob::Link* getCurrLink() const;
 	const sim_mob::Point2D& getCurrPolypoint() const;
 	const sim_mob::Point2D& getNextPolypoint() const;
-	bool isMovingForwardsOnCurrSegment() const;
+	//bool isMovingForwardsOnCurrSegment() const;
+	double getCurrLinkLength() const;
 
 	//Retrieve useful properties of the current polypoint
 	double getCurrDistAlongPolyline() const;
@@ -104,8 +105,8 @@ private:
 	//Intersection driving is different.
 	bool inIntersection;
 
-	//We might be moving backwards on a Segment
-	bool isMovingForwards;
+	//We might be moving backwards on a Link.
+	bool isMovingForwardsInLink;
 
 	//For tracking lane IDs
 	int currLaneID;

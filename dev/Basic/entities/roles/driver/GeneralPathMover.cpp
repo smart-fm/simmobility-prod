@@ -18,7 +18,7 @@ using std::vector;
 
 
 sim_mob::GeneralPathMover::GeneralPathMover() : distAlongPolyline(0), /*currPolylineLength(0),*/
-	distMovedInSegment(0), inIntersection(false), isMovingForwards(false), currLaneID(0)
+	distMovedInSegment(0), inIntersection(false), isMovingForwardsInLink(false), currLaneID(0)
 {
 }
 
@@ -31,7 +31,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 	}
 
 	currSegmentIt = fullPath.begin();
-	isMovingForwards = firstSegMoveFwd;
+	isMovingForwardsInLink = firstSegMoveFwd;
 	currLaneID = startLaneID;
 	generateNewPolylineArray();
 	distAlongPolyline = 0;
@@ -44,9 +44,9 @@ void sim_mob::GeneralPathMover::generateNewPolylineArray()
 	//Simple; just make sure to take the forward direction into account.
 	//TODO: Take the current lane into account.
 	polypointsList = (*currSegmentIt)->getLanes().at(currLaneID)->getPolyline();
-	if (!isMovingForwards) {
+	/*if (!isMovingForwards) { //NOTE: I don't think this makes sense.
 		std::reverse(polypointsList.begin(), polypointsList.end());
-	}
+	}*/
 	currPolypoint = polypointsList.begin();
 	nextPolypoint = polypointsList.begin()+1;
 	//currPolylineLength = sim_mob::dist(&(*currPolypoint), &(*nextPolypoint));
@@ -72,10 +72,10 @@ const Lane* sim_mob::GeneralPathMover::leaveIntersection()
 	return actualMoveToNextSegmentAndUpdateDir();
 }
 
-bool sim_mob::GeneralPathMover::isMovingForwardsOnCurrSegment() const
+/*bool sim_mob::GeneralPathMover::isMovingForwardsOnCurrSegment() const
 {
 	return isMovingForwards;
-}
+}*/
 
 
 //This is where it gets a little complex.
@@ -171,12 +171,13 @@ const Lane* sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir()
 	//Bound lanes
 	currLaneID = std::min<int>(currLaneID, (*currSegmentIt)->getLanes().size()-1);
 
-	//Is this new segment in reverse?
-	const Node* prevNode = isMovingForwards ? (*(currSegmentIt-1))->getEnd() : (*(currSegmentIt-1))->getStart();
+	//Is this new segment part of a Link we're traversing in reverse?
+	//const Node* prevNode = isMovingForwards ? (*(currSegmentIt-1))->getEnd() : (*(currSegmentIt-1))->getStart();
+	const Node* prevNode = (*(currSegmentIt-1))->getEnd(); //TEMP: Not sure about this.
 	if ((*currSegmentIt)->getStart() == prevNode) {
-		isMovingForwards = true;
+		isMovingForwardsInLink = true;
 	} else if ((*currSegmentIt)->getEnd() == prevNode) {
-		isMovingForwards = false;
+		isMovingForwardsInLink = false;
 	} else {
 		//Presumably, we could enable something like this later, but it would require advanced
 		//  knowledge of which Segments face forwards.
@@ -190,6 +191,10 @@ const Lane* sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir()
 	return (*currSegmentIt)->getLanes().at(currLaneID);
 }
 
+double sim_mob::GeneralPathMover::getCurrLinkLength() const
+{
+	return getCurrLink()->getLength(isMovingForwardsInLink);
+}
 
 const RoadSegment* sim_mob::GeneralPathMover::getCurrSegment() const
 {

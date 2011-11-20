@@ -15,6 +15,7 @@
 
 #include "CarFollowModel.hpp"
 #include "LaneChangeModel.hpp"
+#include "IntersectionDrivingModel.hpp"
 #include "UpdateParams.hpp"
 
 
@@ -65,6 +66,7 @@ private:
 	//Update models
 	LaneChangeModel* lcModel;
 	CarFollowModel* cfModel;
+	IntersectionDrivingModel* intModel;
 
 	//Sample stored data which takes reaction time into account.
 	const static size_t reactTime = 1500; //1.5 seconds
@@ -98,8 +100,8 @@ private:
 
 	//Driving through an intersection on a given trajectory.
 	//TODO: A bit buggy.
-	DynamicVector intersectionTrajectory;
-	double intersectionDistAlongTrajectory;
+	//DynamicVector intersectionTrajectory;
+	//double intersectionDistAlongTrajectory;
 
 	//Parameters relating to the next Link we plan to move to after an intersection.
 	const Link* nextLink;

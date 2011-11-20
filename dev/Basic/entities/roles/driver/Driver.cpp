@@ -90,6 +90,7 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), currLane_(nullptr), currL
 	//Initialize our models. These should be swapable later.
 	lcModel = new MITSIM_LC_Model();
 	cfModel = new MITSIM_CF_Model();
+	intModel = new SimpleIntDrivingModel();
 
 	//Some one-time flags and other related defaults.
 	firstFrameTick = true;
@@ -286,7 +287,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 void sim_mob::Driver::output(UpdateParams& p, frame_t frameNumber)
 {
 	//Get angle
-	double baseAngle = vehicle->isInIntersection() ? intersectionTrajectory.getAngle() : vehicle->getAngle();
+	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
 
 	LogOut("(\"Driver\""
 			<<","<<frameNumber

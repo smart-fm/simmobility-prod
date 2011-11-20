@@ -10,6 +10,7 @@
 #include "buffering/Buffered.hpp"
 #include "geospatial/StreetDirectory.hpp"
 #include "perception/FixedDelayed.hpp"
+#include "util/DynamicVector.hpp"
 
 #include "CarFollowModel.hpp"
 #include "LaneChangeModel.hpp"
@@ -98,19 +99,24 @@ private:
 
 	Point2D desPolyLineStart;
 	Point2D desPolyLineEnd;
-	Point2D entryPoint; //entry point for crossing intersection
-	int xTurningStart;
-	int yTurningStart;
-	double xDirection_entryPoint;
-	double yDirection_entryPoint;
-	int disToEntryPoint;
+
+
+	DynamicVector intersectionTrajectory;
+	double intersectionDistAlongTrajectory;
+
+	//Point2D entryPoint; //entry point for crossing intersection
+	//int xTurningStart;
+	//int yTurningStart;
+	//double xDirection_entryPoint;
+	//double yDirection_entryPoint;
+	//int disToEntryPoint;
 	bool isCrossingAhead;
 	bool closeToCrossing;
 
 	//Parameters relating to the next Link we plan to move to after an intersection.
 	const Link* nextLink;
 	const Lane* nextLaneInNextLink;
-	bool nextIsForward;
+	//bool nextIsForward;
 	bool isReachGoal;
 
 	const int distanceInFront;
@@ -130,7 +136,7 @@ private:
 	bool isCloseToLinkEnd(UpdateParams& p);
 	bool isPedetrianOnTargetCrossing();
 	void chooseNextLaneForNextLink(UpdateParams& p);
-	void directionIntersection();
+	void calculateIntersectionTrajectory();
 	int disToObstacle(unsigned obstacle_offset);
 	void setOrigin(UpdateParams& p);
 

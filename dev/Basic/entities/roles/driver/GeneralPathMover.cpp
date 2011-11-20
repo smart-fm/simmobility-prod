@@ -144,16 +144,18 @@ void sim_mob::GeneralPathMover::advanceToNextPolyline()
 void sim_mob::GeneralPathMover::advanceToNextRoadSegment()
 {
 	//An error if we're already at the end of this road segment
-	throwIf(currSegmentIt==fullPath.end(), "Road segment can't advance");
+	throwIf(currSegmentIt==fullPath.end(), "Road segment at end");
 	distMovedInSegment = 0;
 
 	//If we are approaching a new Segment, the Intersection driving model takes precedence.
 	// In addition, no further processing occurs. This means advancing a very large amount will
 	// leave the user inside an intersection even if he/she would normally be beyond it.
 	//Note that distAlongPolyline should still be valid.
-	if ((*currSegmentIt)->getLink() != (*(currSegmentIt+1))->getLink()) {
-		inIntersection = true;
-		return;
+	if (currSegmentIt+1!=fullPath.end()) {
+		if ((*currSegmentIt)->getLink() != (*(currSegmentIt+1))->getLink()) {
+			inIntersection = true;
+			return;
+		}
 	}
 
 	//Move to the next Segment
@@ -170,6 +172,11 @@ const Lane* sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir()
 
 	//Just in case
 	distMovedInSegment=0;
+
+	//Done?
+	if (currSegmentIt==fullPath.end()) {
+		return nullptr;
+	}
 
 	//Bound lanes
 	currLaneID = std::min<int>(currLaneID, (*currSegmentIt)->getLanes().size()-1);
@@ -279,11 +286,16 @@ double sim_mob::GeneralPathMover::getCurrPolylineTotalDist() const
 
 void sim_mob::GeneralPathMover::shiftToNewPolyline(bool moveLeft)
 {
+	moveToNewPolyline(currLaneID + (moveLeft?1:-1));
+}
+
+void sim_mob::GeneralPathMover::moveToNewPolyline(int newLaneID)
+{
 	//Nothing to do?
-	int newLaneID = currLaneID + (moveLeft?1:-1);
 	if (newLaneID<0 || newLaneID>=static_cast<int>((*currSegmentIt)->getLanes().size())) {
 		return;
 	}
+
 
 	//Save our progress
 	int distTraveled = currPolypoint - polypointsList.begin();

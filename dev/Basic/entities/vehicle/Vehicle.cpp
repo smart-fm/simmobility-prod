@@ -54,6 +54,12 @@ void sim_mob::Vehicle::initPath(vector<WayPoint> wp_path, int startLaneID)
 	fwdMovement.setPath(path, isFwd, startLaneID);
 }
 
+void sim_mob::Vehicle::setPositionInIntersection(double x, double y)
+{
+	posInIntersection.x = x;
+	posInIntersection.y = y;
+}
+
 const RoadSegment* sim_mob::Vehicle::getCurrSegment() const
 {
 	return fwdMovement.getCurrSegment();
@@ -123,7 +129,11 @@ DPoint sim_mob::Vehicle::getPosition() const
 {
 	throw_if_error();
 	DPoint origPos = fwdMovement.getPosition();
-	if (latMovement!=0) {
+	if (isInIntersection() && posInIntersection.x!=0 && posInIntersection.y!=0) {
+		//Override: Intersection driving
+		origPos.x = posInIntersection.x;
+		origPos.y = posInIntersection.y;
+	} else if (latMovement!=0) {
 		DynamicVector latMv(0, 0,
 			fwdMovement.getNextPolypoint().getX()-fwdMovement.getCurrPolypoint().getX(),
 			fwdMovement.getNextPolypoint().getY()-fwdMovement.getCurrPolypoint().getY()
@@ -138,6 +148,11 @@ DPoint sim_mob::Vehicle::getPosition() const
 void sim_mob::Vehicle::shiftToNewLanePolyline(bool moveLeft)
 {
 	fwdMovement.shiftToNewPolyline(moveLeft);
+}
+
+void sim_mob::Vehicle::moveToNewLanePolyline(int laneID)
+{
+	fwdMovement.moveToNewPolyline(laneID);
 }
 
 double sim_mob::Vehicle::getDistanceMovedInSegment() const
@@ -232,6 +247,7 @@ bool sim_mob::Vehicle::isInIntersection() const
 const Lane* sim_mob::Vehicle::moveToNextSegmentAfterIntersection()
 {
 	throw_if_error();
+	posInIntersection.x = posInIntersection.y = 0;
 	return fwdMovement.leaveIntersection();
 }
 

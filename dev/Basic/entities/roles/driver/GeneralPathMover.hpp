@@ -80,6 +80,7 @@ public:
 
 	//We might be able to fold Lane movement in here later. For now, it has to be called externally.
 	void shiftToNewPolyline(bool moveLeft);
+	void moveToNewPolyline(int newLaneID);
 
 
 private:

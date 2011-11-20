@@ -114,7 +114,6 @@ sim_mob::UpdateParams::UpdateParams(const Driver& owner)
 	currLaneIndex = getLaneIndex(currLane);
 	currLaneLength = owner.currLaneLength_.get();
 	currLaneOffset = owner.currLaneOffset_.get();
-	//isInIntersection = owner.vehicle->isInIntersection();
 
 	//Current lanes to the left and right. May be null
 	leftLane = nullptr;
@@ -215,7 +214,7 @@ void sim_mob::Driver::update_general(UpdateParams& params, frame_t frameNumber)
 			//the first time vehicle pass the end of current link and enter intersection
 			//if the vehicle reaches the end of the last road segment on current link
 			//I assume this vehicle enters the intersection
-			directionIntersection();
+			calculateIntersectionTrajectory();
 			intersectionVelocityUpdate();
 			intersectionDriving(params);
 		}
@@ -298,17 +297,24 @@ void sim_mob::Driver::output(UpdateParams& p, frame_t frameNumber)
 //the movement is based on absolute position
 void sim_mob::Driver::intersectionDriving(UpdateParams& p)
 {
-	//First detect if we've just left the intersection. Otherwise, perform regular intersection driving.
+	//Don't move if we have no target
+	if (!nextLaneInNextLink) {
+		return;
+	}
+
+	//First, update movement along the vector.
+	intersectionDistAlongTrajectory += vehicle->getVelocity() * p.elapsedSeconds;
+
+	//Next, detect if we've just left the intersection. Otherwise, perform regular intersection driving.
 	if(isLeaveIntersection()) {
 		p.currLane = vehicle->moveToNextSegmentAfterIntersection();
 		justLeftIntersection(p);
 		linkDriving(p); //Chain to regular link driving behavior.
 	} else {
-		//TODO: Intersection driving is unlikely to work until lane driving is fixed.
-		//double xComp = vehicle->velocity.getEndX() + vehicle->velocity_lat.getEndX();
-		//double yComp = vehicle->velocity.getEndY() + vehicle->velocity_lat.getEndY();
-		//vehicle->pos.moveFwd(xComp*timeStep);
-		//vehicle->pos.moveLat(yComp*timeStep);
+		//Scale a vector to find our new position.
+		DynamicVector movement(intersectionTrajectory);
+		movement.scaleVectTo(intersectionDistAlongTrajectory).translateVect();
+		vehicle->setPositionInIntersection(movement.getX(), movement.getY());
 	}
 }
 
@@ -362,8 +368,7 @@ void sim_mob::Driver::setParentBufferedData()
 
 bool sim_mob::Driver::isLeaveIntersection() const
 {
-	double currDistToEntryPoint = dist(vehicle->getX(), vehicle->getY(), xTurningStart, yTurningStart);
-	return currDistToEntryPoint >= disToEntryPoint;
+	return intersectionDistAlongTrajectory >= intersectionTrajectory.getMagnitude();
 }
 
 
@@ -483,19 +488,18 @@ void sim_mob::Driver::syncCurrLaneCachedInfo(UpdateParams& p)
 
 
 //currently it just chooses the first lane from the targetLane
+//Note that this also sets the target lane so that we (hopefully) merge before the intersection.
 void sim_mob::Driver::chooseNextLaneForNextLink(UpdateParams& p)
 {
 	//Retrieve the node we're on, and determine if this is in the forward direction.
-	const Node* currNode = vehicle->getCurrSegment()->getEnd();
+	const MultiNode* currEndNode = dynamic_cast<const MultiNode*>(vehicle->getNodeMovingTowards());
 	const RoadSegment* nextSegment = vehicle->getNextSegment(false);
-	nextIsForward = nextSegment && currNode == nextSegment->getStart();
 
 	//Build up a list of target lanes.
 	nextLaneInNextLink = nullptr;
 	vector<const Lane*> targetLanes;
-	const MultiNode* mNode=dynamic_cast<const MultiNode*>(currNode);
-	if(mNode && nextSegment){
-		const set<LaneConnector*>& lcs = mNode->getOutgoingLanes(*vehicle->getCurrSegment());
+	if(currEndNode && nextSegment){
+		const set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(*vehicle->getCurrSegment());
 		for(set<LaneConnector*>::const_iterator it=lcs.begin(); it!=lcs.end(); it++){
 			if((*it)->getLaneTo()->getRoadSegment() == nextSegment && (*it)->getLaneFrom()==p.currLane) {
 				//It's a valid lane.
@@ -518,27 +522,28 @@ void sim_mob::Driver::chooseNextLaneForNextLink(UpdateParams& p)
 				nextLaneInNextLink = targetLanes.at(0);
 				targetLaneIndex = getLaneIndex(nextLaneInNextLink);
 			} else if (nextSegment) { //Fallback
-				nextLaneInNextLink = nextSegment->getLanes().at(p.currLaneIndex);
-				targetLaneIndex = p.currLaneIndex;
+				size_t fallbackIndex = std::min(p.currLaneIndex, nextSegment->getLanes().size()-1);
+				nextLaneInNextLink = nextSegment->getLanes().at(fallbackIndex);
+				targetLaneIndex = fallbackIndex;
 			}
 		}
 	}
 }
 
-//TODO: This is definitely wrong (I want to fix link driving before I fix intersection driving)
-void sim_mob::Driver::directionIntersection()
+//TODO: For now, we're just using a simple trajectory model. Complex curves may be added later.
+void sim_mob::Driver::calculateIntersectionTrajectory()
 {
-	entryPoint = nextLaneInNextLink->getPolyline().at(0);
+	//If we have no target link, we have no target trajectory.
+	if (!nextLaneInNextLink) {
+		return;
+	}
 
-	//TODO: Intersection driving won't work right for now.
-	double xDir = entryPoint.getX() - vehicle->getX();
-	double yDir = entryPoint.getY() - vehicle->getY();
+	//Get the entry point.
+	Point2D entryPoint = nextLaneInNextLink->getPolyline().at(0);
 
-	disToEntryPoint = sqrt(xDir*xDir+yDir*yDir);
-	xDirection_entryPoint = xDir/disToEntryPoint;
-	yDirection_entryPoint = yDir/disToEntryPoint;
-	xTurningStart = vehicle->getX();
-	yTurningStart = vehicle->getY();
+	//Compute a movement trajectory.
+	intersectionTrajectory = DynamicVector(vehicle->getX(), vehicle->getY(), entryPoint.getX(), entryPoint.getY());
+	intersectionDistAlongTrajectory = 0;
 }
 
 
@@ -833,16 +838,14 @@ void sim_mob::Driver::intersectionVelocityUpdate()
 	double inter_speed = 1000;//10m/s
 	vehicle->setAcceleration(0);
 
-	//TODO: We can figure this out later. In fact, the whole "traces" approach to
-	//      intersections is pretty easy using vectors.
-	vehicle->setVelocity(inter_speed * xDirection_entryPoint);
-	vehicle->setLatVelocity(inter_speed * yDirection_entryPoint);
+	//Set velocity for intersection movement.
+	vehicle->setVelocity(inter_speed);
 }
 
 void sim_mob::Driver::justLeftIntersection(UpdateParams& p)
 {
-	//TODO: Handle Lane driving.
-	//p.currLane = newLane;
+	p.currLane = nextLaneInNextLink;
+	vehicle->moveToNewLanePolyline(getLaneIndex(p.currLane));
 	syncCurrLaneCachedInfo(p);
 	p.currLaneOffset = 0;
 	targetLaneIndex = p.currLaneIndex;

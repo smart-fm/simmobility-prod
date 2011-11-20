@@ -56,6 +56,8 @@ public:
 	const sim_mob::Node* getNodeMovingFrom() const;
 	double getCurrLinkLength() const;
 	void shiftToNewLanePolyline(bool moveLeft);
+	void moveToNewLanePolyline(int laneID);
+	void setPositionInIntersection(double x, double y);
 
 	//Modifiers
 	void setVelocity(double value);      ///<Set the forward velocity.
@@ -75,15 +77,14 @@ public:
 
 private:
 	//Trying a slightly more dynamic moving model.
-	//MovementVector position;
-	//DynamicVector velocity;
-	//DynamicVector velocity_lat; //Lateral velocity. Positive means pointing left.
-	//DynamicVector accel;
 	GeneralPathMover fwdMovement;
 	double latMovement;
 	double fwdVelocity;
 	double latVelocity;
 	double fwdAccel;
+
+	//Override for when we're in an intersection.
+	DPoint posInIntersection;
 
 
 	DPoint getPosition() const;

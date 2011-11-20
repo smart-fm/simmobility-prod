@@ -91,7 +91,7 @@ Point2D sim_mob::LineLineIntersect(double x1, double y1, double x2, double y2, d
 	if (denom==0) {
 		//NOTE: For now, I return Double.MAX,Double.MAX. C++11 will introduce some help for this,
 		//      or we could find a better way to do it....
-		return Point2D(std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
+		return Point2D(std::numeric_limits<int>::max(), std::numeric_limits<int>::max());
 		//throw std::runtime_error("Can't compute line-line intersection: division by zero.");
 	}
 	double co1 = x1*y2 - y1*x2;
@@ -100,7 +100,7 @@ Point2D sim_mob::LineLineIntersect(double x1, double y1, double x2, double y2, d
 	//Results!
 	double xRes = (co1*(x3-x4) - co2*(x1-x2)) / denom;
 	double yRes = (co1*(y3-y4) - co2*(y1-y2)) / denom;
-	return Point2D(xRes, yRes);
+	return Point2D(static_cast<int>(xRes), static_cast<int>(yRes));
 }
 Point2D sim_mob::LineLineIntersect(const aimsun::Crossing* const p1, const aimsun::Crossing* p2, const aimsun::Section* sec)
 {
@@ -117,6 +117,25 @@ Point2D sim_mob::LineLineIntersect(const DynamicVector& v1, const Point2D& p3, c
 Point2D sim_mob::LineLineIntersect(const Point2D& p1, const Point2D& p2, const Point2D& p3, const Point2D& p4)
 {
 	return LineLineIntersect(p1.getX(),p1.getY(), p2.getX(),p2.getY(), p3.getX(),p3.getY(), p4.getX(),p4.getY());
+}
+
+
+Point2D sim_mob::ProjectOntoLine(const sim_mob::Point2D& pToProject, const sim_mob::Point2D& pA, const sim_mob::Point2D& pB)
+{
+	double dotProductToPoint = (pToProject.getX()-pA.getX())*(pB.getX()-pA.getX()) + (pToProject.getY()-pA.getY())*(pB.getY()-pA.getY());
+	double dotProductOfLine  = (pB.getX()-pA.getX()) * (pB.getX()-pA.getX()) + (pB.getY()-pA.getY())*(pB.getY()-pA.getY());
+	double dotRatio = dotProductToPoint/dotProductOfLine;
+
+	Point2D AB(pB.getX()-pA.getX(), pB.getY()-pA.getY());
+	Point2D ABscaled(AB.getX()*dotRatio,AB.getY()*dotRatio);
+
+	return Point2D(pA.getX() + ABscaled.getX(), pA.getY() + ABscaled.getY());
+}
+
+Point2D sim_mob::getSidePoint(const Point2D& origin, const Point2D& direction, double magnitude) {
+	DynamicVector dv(origin.getX(), origin.getY(), direction.getX(), direction.getY());
+	dv.flipNormal(false).scaleVectTo(magnitude).translateVect();
+	return Point2D(dv.getX(), dv.getY());
 }
 
 

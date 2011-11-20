@@ -6,6 +6,7 @@
 
 #include "geospatial/Point2D.hpp"
 #include "util/LangHelpers.hpp"
+#include "util/DynamicVector.hpp"
 #include "Base.hpp"
 
 namespace sim_mob
@@ -45,6 +46,10 @@ public:
 	std::vector<Polyline*> polylineEntries;
 	std::map<int, std::vector<Lane*> > laneLinesAtNode; //Arranged by laneID
 	std::vector< std::vector<sim_mob::Point2D> > lanePolylinesForGenNode;
+
+	//Temporary fixings
+	DynamicVector HACK_LaneLinesStartLineCut;
+	DynamicVector HACK_LaneLinesEndLineCut;
 
 	//Reference to saved object
 	sim_mob::RoadSegment* generatedSegment;

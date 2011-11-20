@@ -29,6 +29,8 @@
 #include "geospatial/Crossing.hpp"
 #include "geospatial/Lane.hpp"
 
+#include "conf/simpleconf.hpp"
+
 #include "util/DynamicVector.hpp"
 #include "util/OutputUtil.hpp"
 #include "util/DailyTime.hpp"
@@ -49,6 +51,7 @@
 
 using namespace sim_mob::aimsun;
 using sim_mob::DynamicVector;
+using sim_mob::Point2D;
 using std::vector;
 using std::string;
 using std::set;
@@ -326,6 +329,176 @@ void ComputePolypointDistance(Polyline& pt)
 
 
 
+/**
+ * Temporary functions.
+ */
+DynamicVector GetCrossingNearLine(Node& atNode, Node& toNode)
+{
+	//Get the outgoing set of crossing IDs
+	map<Node*, vector<int> >::iterator outgoing = atNode.crossingLaneIdsByOutgoingNode.find(&toNode);
+	if (outgoing!=atNode.crossingLaneIdsByOutgoingNode.end()) {
+		//Search for the one closest to the toNode.
+		DynamicVector resLine;
+		double minDist = -1;
+		for (vector<int>::iterator it2=outgoing->second.begin(); it2!=outgoing->second.end(); it2++) {
+			//Get this item
+			map<int, vector<Crossing*> >::iterator crossingIt = atNode.crossingsAtNode.find(*it2);
+			if (crossingIt!=atNode.crossingsAtNode.end()) {
+				//Now make a vector for it.
+				DynamicVector currPoint(
+					crossingIt->second.front()->xPos, crossingIt->second.front()->yPos,
+					crossingIt->second.back()->xPos, crossingIt->second.back()->yPos
+				);
+				DynamicVector midPoint(currPoint);
+				midPoint.scaleVectTo(midPoint.getMagnitude()/2).translateVect();
+				double currDist = sim_mob::dist(midPoint.getX(), midPoint.getY(), toNode.xPos, toNode.yPos);
+				if (minDist==-1 || currDist < minDist) {
+					resLine = currPoint;
+					minDist = currDist;
+				}
+			}
+		}
+		if (minDist > -1) {
+			return resLine;
+		}
+	}
+	throw std::runtime_error("Can't find crossing near line in temporary cleanup function.");
+}
+Section& GetSection(Node& start, Node& end)
+{
+	for (vector<Section*>::iterator it=start.sectionsAtNode.begin(); it!=start.sectionsAtNode.end(); it++) {
+		if ((*it)->toNode->id==end.id) {
+			return **it;
+		}
+	}
+	std::cout <<"Error finding section from " <<start.id <<" to " <<end.id <<std::endl;
+	throw std::runtime_error("Can't find section in temporary cleanup function.");
+}
+void ScaleLanesToCrossing(Node& start, Node& end, bool scaleEnd)
+{
+	//Retrieve the section
+	Section& sect = GetSection(start, end);
+
+	//Retrieve the crossing's "near" line.
+	DynamicVector endLine = GetCrossingNearLine(scaleEnd?end:start, scaleEnd?start:end);
+
+	//We can't do much until lanes are generated (we could try to guess what our lane generator would
+	// do, but it's easier to set a debug flag).
+	//std::cout <<"Saving end line: " <<endLine.getX() <<"," <<endLine.getY() <<" ==> " <<endLine.getEndX() <<"," <<endLine.getEndY() <<"\n";
+	if (scaleEnd) {
+		sect.HACK_LaneLinesEndLineCut = endLine;
+	} else {
+		sect.HACK_LaneLinesStartLineCut = endLine;
+	}
+}
+void ResizeTo2(vector<Crossing*>& vec)
+{
+	if (vec.size()<=2) {
+		if (vec.size()==2) {
+			return;
+		}
+		throw std::runtime_error("Can't resize if vector is empty or has only one element.");
+	}
+
+	vec[1] = vec.back();
+	vec.resize(2, nullptr);
+}
+vector<Crossing*>& GetCrossing(Node& atNode, Node& toNode, size_t crossingID)
+{
+	//Get the outgoing set of crossing IDs
+	map<Node*, vector<int> >::iterator outgoing = atNode.crossingLaneIdsByOutgoingNode.find(&toNode);
+	if (outgoing!=atNode.crossingLaneIdsByOutgoingNode.end()) {
+		//Narrow down to the one we want.
+		for (vector<int>::iterator it2=outgoing->second.begin(); it2!=outgoing->second.end(); it2++) {
+			if (*it2 != static_cast<int>(crossingID)) {
+				continue;
+			}
+			map<int, vector<Crossing*> >::iterator crossingIt = atNode.crossingsAtNode.find(*it2);
+			if (crossingIt!=atNode.crossingsAtNode.end()) {
+				return crossingIt->second;
+			}
+			break;
+		}
+	}
+	throw std::runtime_error("Can't find crossing in temporary cleanup function.");
+}
+void RebuildCrossing(Node& atNode, Node& toNode, size_t baseCrossingID, size_t resCrossingID, bool flipLeft, unsigned int crossingWidthCM, unsigned int paddingCM)
+{
+	//Retrieve the base Crossing and the Crossing we will store the result in.
+	vector<Crossing*>& baseCrossing = GetCrossing(atNode, toNode, baseCrossingID);
+	vector<Crossing*>& resCrossing = GetCrossing(atNode, toNode, resCrossingID);
+
+	//Manual resize may be required
+	ResizeTo2(baseCrossing);
+	ResizeTo2(resCrossing);
+
+	//Set point 1:
+	{
+		DynamicVector vec(baseCrossing.front()->xPos, baseCrossing.front()->yPos, baseCrossing.back()->xPos, baseCrossing.back()->yPos);
+		vec.scaleVectTo(paddingCM).translateVect().flipNormal(!flipLeft);
+		vec.scaleVectTo(crossingWidthCM).translateVect();
+		resCrossing.front()->xPos = vec.getX();
+		resCrossing.front()->yPos = vec.getY();
+	}
+
+	//Set point 2:
+	{
+		DynamicVector vec(baseCrossing.back()->xPos, baseCrossing.back()->yPos, baseCrossing.front()->xPos, baseCrossing.front()->yPos);
+		vec.scaleVectTo(paddingCM).translateVect().flipNormal(flipLeft);
+		vec.scaleVectTo(crossingWidthCM).translateVect();
+		resCrossing.back()->xPos = vec.getX();
+		resCrossing.back()->yPos = vec.getY();
+	}
+
+
+}
+void ManuallyFixVictoriaStreetMiddleRoadIntersection(map<int, Node>& nodes, map<int, Section>& sections, vector<Crossing>& crossings, vector<Lane>& lanes, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
+{
+	//Step 1: Tidy up the crossings.
+	RebuildCrossing(nodes[66508], nodes[93730], 683, 721, true, 450, 200);
+	RebuildCrossing(nodes[66508], nodes[65120], 2419, 2111, false, 400, 200);
+	RebuildCrossing(nodes[66508], nodes[75956], 3956, 3719, true, 450, 200);
+	RebuildCrossing(nodes[66508], nodes[84882], 4579, 1251, true, 450, 200);
+
+	//Step 2: Scale lane lines to match the crossings.
+	ScaleLanesToCrossing(nodes[93730], nodes[66508], true);
+	ScaleLanesToCrossing(nodes[66508], nodes[93730], false);
+	ScaleLanesToCrossing(nodes[65120], nodes[66508], true);
+	ScaleLanesToCrossing(nodes[66508], nodes[65120], false);
+	ScaleLanesToCrossing(nodes[75956], nodes[66508], true);
+	ScaleLanesToCrossing(nodes[66508], nodes[75956], false);
+	ScaleLanesToCrossing(nodes[84882], nodes[66508], true);
+	ScaleLanesToCrossing(nodes[66508], nodes[84882], false);
+}
+
+
+
+
+/**
+ * Perform guided cleanup of the fully-loaded data. This step happens directly before the network is converted to
+ * SimMobility format.
+ *
+ * \note
+ * Currently, this process performs a single hard-coded check. Ideally, we would load data from another, smaller
+ * database which contains a few "hints" to help nudge the various network components into the correct positions.
+ * If you want a more heavy-handed approach, you should make a "PreProcessNetwork" function which does things like
+ * deleting lanes, etc. (but be careful of invalidating references in that case).
+ */
+void PostProcessNetwork(map<int, Node>& nodes, map<int, Section>& sections, vector<Crossing>& crossings, vector<Lane>& lanes, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
+{
+	//TEMP: Heavy-handed tactics like this should only be used if you're desperate.
+	// You know, like if you've got a demo tomorrow.
+	bool TEMP_FLAG_ON = sim_mob::ConfigParams::GetInstance().TEMP_ManualFixDemoIntersection;
+	if (TEMP_FLAG_ON) {
+		ManuallyFixVictoriaStreetMiddleRoadIntersection(nodes, sections, crossings, lanes, turnings, polylines);
+	}
+
+}
+
+
+
+
+
 void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& sections, vector<Crossing>& crossings, vector<Lane>& lanes, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
 {
 	//Step 1: Tag all Nodes with the Sections that meet there.
@@ -426,6 +599,20 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 }
 
 
+//Another temporary function
+void CutSingleLanePolyline(vector<Point2D>& laneLine, const DynamicVector& cutLine, bool trimStart)
+{
+	//Compute the intersection of our lane line and the crossing.
+	Point2D intPt = sim_mob::LineLineIntersect(cutLine, laneLine.front(), laneLine.back());
+	if (intPt.getX() == std::numeric_limits<int>::max()) {
+		throw std::runtime_error("Temporary lane function is somehow unable to compute line intersections.");
+	}
+
+	//Now update either the first or last point
+	laneLine[trimStart?0:laneLine.size()-1] = intPt;
+}
+
+
 
 void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::TripChain*>& tcs, map<int, Node>& nodes, map<int, Section>& sections, map<int, Turning>& turnings, multimap<int, Polyline>& polylines, vector<TripChain>& tripchains)
 {
@@ -433,6 +620,7 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::Trip
 	std::cout <<"Warning: Units are not considered when converting AIMSUN data.\n";
 	for (map<int,Node>::iterator it=nodes.begin(); it!=nodes.end(); it++) {
 		sim_mob::aimsun::Loader::ProcessGeneralNode(res, it->second);
+		it->second.generatedNode->originalDB_ID.setProps("aimsun-id", it->first);
 	}
 
 	//Next, Links and RoadSegments. See comments for our approach.
@@ -446,6 +634,7 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::Trip
 		if (!it->second.hasBeenSaved) {
 			throw std::runtime_error("Section was skipped.");
 		}
+		it->second.generatedSegment->originalDB_ID.setProps("aimsun-id", it->first);
 	}
 
 	//Next, SegmentNodes (UniNodes), which are only partially initialized in the general case.
@@ -484,6 +673,7 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::Trip
 	// TODO: This should eventually allow other lanes to be designated too.
 	LaneLoader::GenerateLinkLanes(res, nodes, sections);
 
+	sim_mob::aimsun::Loader::FixupLanesAndCrossings(res);
 
 	//Save all trip chains
 	for (vector<TripChain>::iterator it=tripchains.begin(); it!=tripchains.end(); it++) {
@@ -497,12 +687,155 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::Trip
 		tcs.back()->flexible = it->flexible;
 		tcs.back()->startTime = it->startTime;
 	}
+
+
+
+	//TEMP
+	/*map<int,Node>::iterator it=nodes.find(66508);
+	if (it!=nodes.end()) {
+		sim_mob::MultiNode* temp = dynamic_cast<sim_mob::MultiNode*>(it->second.generatedNode);
+		if (temp) {
+			for (set<sim_mob::RoadSegment*>::const_iterator it2=temp->getRoadSegments().begin(); it2!=temp->getRoadSegments().end(); it2++) {
+				if (temp->hasOutgoingLanes(**it2)) {
+					std::cout <<"  Segment crossings for:  " <<(*it2)->getStart()->originalDB_ID.getLogItem() <<" ==> " <<(*it2)->getEnd()->originalDB_ID.getLogItem() <<"\n";
+					std::set<string> res;
+					for (set<sim_mob::LaneConnector*>::const_iterator it3=temp->getOutgoingLanes(**it2).begin(); it3!=temp->getOutgoingLanes(**it2).end(); it3++) {
+						res.insert((*it3)->getLaneTo()->getRoadSegment()->getEnd()->originalDB_ID.getLogItem());
+					}
+
+					for (std::set<string>::iterator it4=res.begin(); it4!=res.end(); it4++) {
+						std::cout <<"    ...to:  " <<*it4 <<"\n";
+					}
+				}
+			}
+
+		}
+	}
+	throw 1;*/
+	//END TEMP
 }
 
 
 
 } //End anon namespace
 
+
+//Another temporary function
+void sim_mob::aimsun::Loader::TMP_TrimAllLaneLines(sim_mob::RoadSegment* seg, const DynamicVector& cutLine, bool trimStart)
+{
+	//Nothing to do?
+	if (cutLine.getMagnitude()==0.0) {
+		return;
+	}
+
+	//Ensure that this segment has built all its lane lines.
+	seg->syncLanePolylines();
+
+	//Now go through and manually edit all of them. This includes lane lines and lane edge lines
+	{
+	vector< vector<Point2D> >::iterator it = seg->laneEdgePolylines_cached.begin();
+	for (;it!=seg->laneEdgePolylines_cached.end(); it++) {
+		CutSingleLanePolyline(*it, cutLine, trimStart);
+	}
+	}
+	{
+	vector<sim_mob::Lane*>::iterator it = seg->lanes.begin();
+	for (;it!=seg->lanes.end(); it++) {
+		CutSingleLanePolyline((*it)->polyline_, cutLine, trimStart);
+	}
+	}
+}
+
+
+void sim_mob::aimsun::Loader::FixupLanesAndCrossings(sim_mob::RoadNetwork& res)
+{
+	//Fix up lanes
+	const std::vector<sim_mob::Link*>& vecLinks = res.getLinks();
+	int numLinks = vecLinks.size();
+
+	//TODO more comments needed
+	for(int n = 0; n < numLinks; ++n)
+	{
+		sim_mob::Link* link = vecLinks[n];
+
+		const std::vector<sim_mob::RoadSegment*>& vecForwardSegs = link->getPath(true);
+		const std::vector<sim_mob::RoadSegment*>& vecReverseSegs = link->getPath(false);
+		std::set<sim_mob::RoadSegment*> roadSegs;
+		roadSegs.insert(vecForwardSegs.begin(), vecForwardSegs.end());
+		roadSegs.insert(vecReverseSegs.begin(), vecReverseSegs.end());
+		for(std::set<sim_mob::RoadSegment*>::const_iterator itRS = roadSegs.begin(); itRS!=roadSegs.end(); ++itRS)
+		{
+			for(std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>::const_iterator itObstacles = (*itRS)->obstacles.begin(); itObstacles != (*itRS)->obstacles.end(); ++itObstacles)
+			{
+				const sim_mob::RoadItem* ri = (*itObstacles).second;
+
+				const sim_mob::Crossing* cross = dynamic_cast<const sim_mob::Crossing*>(ri);
+				if(!cross)
+					continue;
+
+				sim_mob::Point2D nearLinemidPoint((cross->nearLine.second.getX()-cross->nearLine.first.getX())/2 + cross->nearLine.first.getX(),
+										(cross->nearLine.second.getY()-cross->nearLine.first.getY())/2 + cross->nearLine.first.getY());
+
+				std::vector<sim_mob::Point2D>& segmentPolyline = (*itRS)->polyline;
+				{
+					//Segment polyline
+					double d1 = dist(&(segmentPolyline[0]), &nearLinemidPoint);
+					double d2 = dist(&(segmentPolyline[segmentPolyline.size()-1]), &nearLinemidPoint);
+					if (d2<d1)
+					{
+						segmentPolyline[segmentPolyline.size()-1] = ProjectOntoLine(segmentPolyline[segmentPolyline.size()-1], cross->farLine.first, cross->farLine.second);
+					}
+					else
+					{
+						segmentPolyline[0] = ProjectOntoLine(segmentPolyline[0], cross->farLine.first, cross->farLine.second);
+					}
+				}
+
+				//Lane edge polylines
+				//TODO don't access variable that should be private here
+				std::vector< std::vector<sim_mob::Point2D> >& vecPolylines = (*itRS)->laneEdgePolylines_cached;
+				for(size_t i = 0; i < vecPolylines.size(); ++i)
+				{
+					//TODO move this functionality into a helper function
+					std::vector<sim_mob::Point2D>& vecThisPolyline = vecPolylines[i];
+					double d1 = dist(&(vecThisPolyline[0]), &nearLinemidPoint);
+					double d2 = dist(&(vecThisPolyline[vecThisPolyline.size()-1]), &nearLinemidPoint);
+					if (d2<d1)
+					{
+						vecThisPolyline[vecThisPolyline.size()-1] = ProjectOntoLine(vecThisPolyline[vecThisPolyline.size()-1], cross->farLine.first, cross->farLine.second);
+					}
+					else
+					{
+						vecThisPolyline[0] = ProjectOntoLine(vecThisPolyline[0], cross->farLine.first, cross->farLine.second);
+					}
+
+				}
+
+				//Lane polylines
+/*				const std::vector<sim_mob::Lane*>& segmentLanes = (*itRS)->getLanes();
+				for(std::vector<sim_mob::Lane*>::const_iterator itLanes = segmentLanes.begin(); itLanes != segmentLanes.end(); ++itLanes)
+				{
+				    ///TODO get rid of ugly const_cast
+					std::vector<sim_mob::Point2D>& lanePolyline = const_cast<std::vector<sim_mob::Point2D>&>((*itLanes)->getPolyline());
+					if(lanePolyline.empty())
+						continue;
+
+					double d1 = dist(&(lanePolyline[0]), &nearLinemidPoint);
+					double d2 = dist(&(lanePolyline[lanePolyline.size()-1]), &nearLinemidPoint);
+					if (d2<d1)
+					{
+						lanePolyline[lanePolyline.size()-1] = ProjectOntoLine(lanePolyline[lanePolyline.size()-1], cross->farLine.first, cross->farLine.second);
+					}
+					else
+					{
+						lanePolyline[0] = ProjectOntoLine(lanePolyline[0], cross->farLine.first, cross->farLine.second);
+					}
+				}
+				*/
+			}
+		}
+	}
+}
 
 
 
@@ -615,8 +948,6 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 
 	//Make sure the link's start node is represented at the Node level.
 	//TODO: Try to avoid dynamic casting if possible.
-	dynamic_cast<MultiNode*>(src.fromNode->generatedNode)->roadSegmentsAt.insert(src.generatedSegment);
-
 	for (;;) {
 		//Update
 		ln->end = currSect->toNode->generatedNode;
@@ -660,6 +991,14 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 				found->generatedSegment = new sim_mob::RoadSegment(ln);
 			}
 
+			//Save this segment if either end points are multinodes
+			for (size_t tempID=0; tempID<2; tempID++) {
+				sim_mob::MultiNode* nd = dynamic_cast<sim_mob::MultiNode*>(tempID==0?found->fromNode->generatedNode:found->toNode->generatedNode);
+				if (nd) {
+					nd->roadSegmentsAt.insert(found->generatedSegment);
+				}
+			}
+
 			//Retrieve the generated segment
 			sim_mob::RoadSegment* rs = found->generatedSegment;
 
@@ -686,7 +1025,8 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		if (!currSect->toNode->candidateForSegmentNode) {
 			//Make sure the link's end node is represented at the Node level.
 			//TODO: Try to avoid dynamic casting if possible.
-			dynamic_cast<MultiNode*>(currSect->toNode->generatedNode)->roadSegmentsAt.insert(currSect->generatedSegment);
+			//std::cout <<"Adding segment: " <<src.fromNode->id <<"->" <<src.toNode->id <<" to to node\n";
+			//dynamic_cast<MultiNode*>(currSect->toNode->generatedNode)->roadSegmentsAt.insert(currSect->generatedSegment);
 
 			//Save it.
 			ln->initializeLinkSegments(linkSegments);
@@ -742,11 +1082,11 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 	for (int fromLaneID=src.fromLane.first; fromLaneID<=src.fromLane.second; fromLaneID++) {
 		for (int toLaneID=src.toLane.first; toLaneID<=src.toLane.second; toLaneID++) {
 			sim_mob::LaneConnector* lc = new sim_mob::LaneConnector();
-			lc->laneFrom = src.fromSection->generatedSegment->lanes[fromLaneID];
-			lc->laneTo = src.toSection->generatedSegment->lanes[toLaneID];
+			lc->laneFrom = src.fromSection->generatedSegment->lanes.at(fromLaneID);
+			lc->laneTo = src.toSection->generatedSegment->lanes.at(toLaneID);
 
 			//Expanded a bit...
-			RoadSegment* key = lc->laneFrom->getRoadSegment();
+			RoadSegment* key = src.fromSection->generatedSegment;
 			map<const RoadSegment*, set<LaneConnector*> >& connectors = dynamic_cast<MultiNode*>(src.fromSection->toNode->generatedNode)->connectors;
 			connectors[key].insert(lc);
 		}
@@ -799,8 +1139,18 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, map<str
 		//Step Two: Translate
 		DecorateAndTranslateObjects(nodes, sections, crossings, lanes, turnings, polylines);
 
-		//Step Three: Save
+		//Step Three: Perform data-guided cleanup.
+		PostProcessNetwork(nodes, sections, crossings, lanes, turnings, polylines);
+
+		//Step Four: Save
 		SaveSimMobilityNetwork(rn, tcs, nodes, sections, turnings, polylines, tripchains);
+
+		//Temporary workaround; Cut lanes short/extend them as reuquired.
+		for (map<int,Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
+			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesStartLineCut, true);
+			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesEndLineCut, false);
+		}
+
 
 
 

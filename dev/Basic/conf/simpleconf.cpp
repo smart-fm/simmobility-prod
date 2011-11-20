@@ -444,6 +444,9 @@ void PrintDB_Network()
 		LogOutNotSync("(\"uni-node\", 0, " <<*it <<", {");
 		LogOutNotSync("\"xPos\":\"" <<(*it)->location->getX() <<"\",");
 		LogOutNotSync("\"yPos\":\"" <<(*it)->location->getY() <<"\",");
+		if (!(*it)->originalDB_ID.getLogItem().empty()) {
+			LogOutNotSync((*it)->originalDB_ID.getLogItem());
+		}
 		LogOutNotSync("})" <<endl);
 
 		//Cache all segments
@@ -456,6 +459,9 @@ void PrintDB_Network()
 		LogOutNotSync("(\"multi-node\", 0, " <<*it <<", {");
 		LogOutNotSync("\"xPos\":\"" <<(*it)->location->getX() <<"\",");
 		LogOutNotSync("\"yPos\":\"" <<(*it)->location->getY() <<"\",");
+		if (!(*it)->originalDB_ID.getLogItem().empty()) {
+			LogOutNotSync((*it)->originalDB_ID.getLogItem());
+		}
 		LogOutNotSync("})" <<endl);
 
 		//NOTE: This is temporary; later we'll ensure that the RoadNetwork only stores Intersections,
@@ -507,6 +513,9 @@ void PrintDB_Network()
 		LogOutNotSync("\"lanes\":\"" <<(*it)->getLanes().size() <<"\",");
 		LogOutNotSync("\"from-node\":\"" <<(*it)->getStart() <<"\",");
 		LogOutNotSync("\"to-node\":\"" <<(*it)->getEnd() <<"\",");
+		if (!(*it)->originalDB_ID.getLogItem().empty()) {
+			LogOutNotSync((*it)->originalDB_ID.getLogItem());
+		}
 		LogOutNotSync("})" <<endl);
 
 		if (!(*it)->polyline.empty()) {
@@ -621,6 +630,15 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
 	int granSignal = ReadGranularity(handle, "signal");
 	int granPaths = ReadGranularity(handle, "paths");
 	int granDecomp = ReadGranularity(handle, "decomp");
+
+	//Miscelaneous settings
+	handle = TiXmlHandle(&document);
+	if (handle.FirstChild("config").FirstChild("system").FirstChild("misc").FirstChild("manual_fix_demo_intersection").ToElement()) {
+		ConfigParams::GetInstance().TEMP_ManualFixDemoIntersection = true;
+		cout <<">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" <<endl;
+		cout <<"Manual override used for demo intersection." <<endl;
+		cout <<"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" <<endl;
+	}
 
 	//Check
     if(    baseGran==-1 || totalRuntime==-1 || totalWarmup==-1
@@ -820,7 +838,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
 // Simple singleton implementation
 //////////////////////////////////////////
 ConfigParams sim_mob::ConfigParams::instance;
-sim_mob::ConfigParams::ConfigParams() {
+sim_mob::ConfigParams::ConfigParams() : TEMP_ManualFixDemoIntersection(false) {
 
 }
 ConfigParams& sim_mob::ConfigParams::GetInstance() {

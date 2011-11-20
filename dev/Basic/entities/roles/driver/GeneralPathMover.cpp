@@ -17,7 +17,7 @@ using namespace sim_mob;
 using std::vector;
 
 
-sim_mob::GeneralPathMover::GeneralPathMover() : distAlongPolyline(0), currPolylineLength(0),
+sim_mob::GeneralPathMover::GeneralPathMover() : distAlongPolyline(0), /*currPolylineLength(0),*/
 	distMovedInSegment(0), inIntersection(false), isMovingForwards(false), currLaneID(0)
 {
 }
@@ -49,7 +49,7 @@ void sim_mob::GeneralPathMover::generateNewPolylineArray()
 	}
 	currPolypoint = polypointsList.begin();
 	nextPolypoint = polypointsList.begin()+1;
-	currPolylineLength = sim_mob::dist(&(*currPolypoint), &(*nextPolypoint));
+	//currPolylineLength = sim_mob::dist(&(*currPolypoint), &(*nextPolypoint));
 }
 
 bool sim_mob::GeneralPathMover::isPathSet() const
@@ -88,7 +88,7 @@ double sim_mob::GeneralPathMover::advance(double fwdDistance)
 	//  current polyline length to always be the same as the forward distance.
 	if (inIntersection) {
 		distAlongPolyline += fwdDistance;
-		currPolylineLength = distAlongPolyline;
+		//currPolylineLength = distAlongPolyline;
 		return 0;
 	}
 
@@ -99,7 +99,11 @@ double sim_mob::GeneralPathMover::advance(double fwdDistance)
 	double res = 0.0;
 	distAlongPolyline += fwdDistance;
 	distMovedInSegment += fwdDistance;
-	while (distAlongPolyline>=currPolylineLength) {
+	while (distAlongPolyline>=currPolylineLength()) {
+		//Subtract distance moved thus far
+		distAlongPolyline -= currPolylineLength();
+
+		//Advance pointers, etc.
 		res = advanceToNextPolyline();
 	}
 
@@ -112,16 +116,13 @@ double sim_mob::GeneralPathMover::advanceToNextPolyline()
 	//An error if we're still at the end of this polyline
 	throwIf(nextPolypoint==polypointsList.end(), "Polyline can't advance");
 
-	//Subtract distance moved thus far
-	distAlongPolyline -= currPolylineLength;
-
 	//Advance pointers
 	currPolypoint++;
 	nextPolypoint++;
 
 	//Update length, OR move to a new Segment
 	if (nextPolypoint != polypointsList.end()) {
-		currPolylineLength = sim_mob::dist(&(*currPolypoint), &(*nextPolypoint));
+		//currPolylineLength = sim_mob::dist(&(*currPolypoint), &(*nextPolypoint));
 		return 0;
 	} else {
 		return advanceToNextRoadSegment();
@@ -256,7 +257,7 @@ double sim_mob::GeneralPathMover::getCurrDistAlongPolyline() const
 	}
 
 	//Limiting by the total distance makes sense.
-	return std::min(distAlongPolyline, currPolylineLength);
+	return std::min(distAlongPolyline, currPolylineLength());
 }
 
 double sim_mob::GeneralPathMover::getCurrDistAlongRoadSegment() const
@@ -270,7 +271,7 @@ double sim_mob::GeneralPathMover::getCurrPolylineTotalDist() const
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
 	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
-	return currPolylineLength;
+	return currPolylineLength();
 }
 
 void sim_mob::GeneralPathMover::shiftToNewPolyline(bool moveLeft)
@@ -294,7 +295,7 @@ void sim_mob::GeneralPathMover::moveToNewPolyline(int newLaneID)
 	if (distTraveled>0) {
 		currPolypoint += distTraveled;
 		nextPolypoint += distTraveled;
-		currPolylineLength = sim_mob::dist(&(*currPolypoint), &(*nextPolypoint));
+		//currPolylineLength = sim_mob::dist(&(*currPolypoint), &(*nextPolypoint));
 	}
 
 	//TODO: This is kind of a hack, but it's possible to have been on a shorter polyline than the

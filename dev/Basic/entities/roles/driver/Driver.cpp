@@ -657,7 +657,7 @@ void sim_mob::Driver::check_and_set_min_car_dist(NearestVehicle& res, double dis
 //TODO: I have the feeling that this process of detecting nearby drivers in front of/behind you and saving them to
 //      the various CFD/CBD/LFD/LBD variables can be generalized somewhat. I shortened it a little and added a
 //      helper function; perhaps more cleanup can be done later? ~Seth
-void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* other, const Driver* other_driver)
+void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* other, const Driver* other_driver) const
 {
 	//Only update if passed a valid pointer which is not a pointer back to you, and
 	//the driver is not actually in an intersection at the moment.
@@ -775,7 +775,7 @@ void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* oth
 }
 
 
-void sim_mob::Driver::updateNearbyPedestrian(UpdateParams& params, const Person* other, const Pedestrian* pedestrian)
+void sim_mob::Driver::updateNearbyPedestrian(UpdateParams& params, const Person* other, const Pedestrian* pedestrian) const
 {
 	//Only update if passed a valid pointer and this is on a crossing.
 	if (!(pedestrian && pedestrian->isOnCrossing())) {
@@ -815,7 +815,7 @@ void sim_mob::Driver::updateNearbyPedestrian(UpdateParams& params, const Person*
 }
 
 
-void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
+void sim_mob::Driver::updateNearbyAgents(UpdateParams& params) const
 {
 	//Retrieve a list of nearby agents
 	vector<const Agent*> nearby_agents = AuraManager::instance().nearbyAgents(Point2D(vehicle->getX(),vehicle->getY()), *params.currLane,  distanceInFront, distanceBehind);

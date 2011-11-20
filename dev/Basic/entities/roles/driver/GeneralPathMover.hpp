@@ -92,7 +92,11 @@ private:
 
 	//Movement along a single line
 	double distAlongPolyline;
-	double currPolylineLength;
+	double currPolylineLength() const {
+		//TEMP: Just making sure.
+		DynamicVector temp(currPolypoint->getX(), currPolypoint->getY(),nextPolypoint->getX(), nextPolypoint->getY());
+		return temp.getMagnitude();
+	}
 
 	//Counter
 	double distMovedInSegment;

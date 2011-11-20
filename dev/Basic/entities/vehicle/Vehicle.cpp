@@ -133,7 +133,7 @@ DPoint sim_mob::Vehicle::getPosition() const
 		//Override: Intersection driving
 		origPos.x = posInIntersection.x;
 		origPos.y = posInIntersection.y;
-	} else if (latMovement!=0) {
+	} else if (latMovement!=0 && !fwdMovement.isDoneWithEntireRoute()) {
 		DynamicVector latMv(0, 0,
 			fwdMovement.getNextPolypoint().getX()-fwdMovement.getCurrPolypoint().getX(),
 			fwdMovement.getNextPolypoint().getY()-fwdMovement.getCurrPolypoint().getY()
@@ -188,6 +188,9 @@ double sim_mob::Vehicle::getAcceleration() const
 double sim_mob::Vehicle::getAngle() const
 {
 	throw_if_error();
+	if (fwdMovement.isDoneWithEntireRoute()) {
+		return 0; //Shouldn't matter.
+	}
 	DynamicVector temp(
 		fwdMovement.getCurrPolypoint().getX(), fwdMovement.getCurrPolypoint().getY(),
 		fwdMovement.getNextPolypoint().getX(), fwdMovement.getNextPolypoint().getY()

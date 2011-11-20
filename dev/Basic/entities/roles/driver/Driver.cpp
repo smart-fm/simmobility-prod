@@ -203,6 +203,7 @@ void sim_mob::Driver::update_general(UpdateParams& params, frame_t frameNumber)
 
 	//Driving behavior differs drastically inside intersections.
 	const RoadSegment* prevSegment = vehicle->getCurrSegment();
+	DPoint lastKnownPolypoint(vehicle->getCurrPolylineVector().getEndX(), vehicle->getCurrPolylineVector().getEndY());
 	if(vehicle->isInIntersection()) {
 		intersectionDriving(params);
 	} else {
@@ -217,7 +218,7 @@ void sim_mob::Driver::update_general(UpdateParams& params, frame_t frameNumber)
 			//the first time vehicle pass the end of current link and enter intersection
 			//if the vehicle reaches the end of the last road segment on current link
 			//I assume this vehicle enters the intersection
-			calculateIntersectionTrajectory();
+			calculateIntersectionTrajectory(lastKnownPolypoint);
 			intersectionVelocityUpdate();
 			intersectionDriving(params);
 		}
@@ -284,13 +285,16 @@ void sim_mob::Driver::update(frame_t frameNumber)
 
 void sim_mob::Driver::output(UpdateParams& p, frame_t frameNumber)
 {
+	//Get angle
+	double baseAngle = vehicle->isInIntersection() ? intersectionTrajectory.getAngle() : vehicle->getAngle();
+
 	LogOut("(\"Driver\""
 			<<","<<frameNumber
 			<<","<<parent->getId()
 			<<",{"
 			<<"\"xPos\":\""<<static_cast<int>(vehicle->getX())
 			<<"\",\"yPos\":\""<<static_cast<int>(vehicle->getY())
-			<<"\",\"angle\":\""<<(360 - (vehicle->getAngle() * 180 / M_PI))
+			<<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI))
 			<<"\"})"<<std::endl);
 }
 
@@ -533,7 +537,7 @@ void sim_mob::Driver::chooseNextLaneForNextLink(UpdateParams& p)
 }
 
 //TODO: For now, we're just using a simple trajectory model. Complex curves may be added later.
-void sim_mob::Driver::calculateIntersectionTrajectory()
+void sim_mob::Driver::calculateIntersectionTrajectory(DPoint movingFrom)
 {
 	//If we have no target link, we have no target trajectory.
 	if (!nextLaneInNextLink) {
@@ -544,7 +548,7 @@ void sim_mob::Driver::calculateIntersectionTrajectory()
 	Point2D entryPoint = nextLaneInNextLink->getPolyline().at(0);
 
 	//Compute a movement trajectory.
-	intersectionTrajectory = DynamicVector(vehicle->getX(), vehicle->getY(), entryPoint.getX(), entryPoint.getY());
+	intersectionTrajectory = DynamicVector(movingFrom.x, movingFrom.y, entryPoint.getX(), entryPoint.getY());
 	intersectionDistAlongTrajectory = 0;
 }
 
@@ -661,6 +665,9 @@ void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* oth
 
 	//Retrieve the other driver's lane, road segment, and lane offset.
 	const Lane* other_lane = other_driver->currLane_.get();
+	if (!other_lane) {
+		return;
+	}
 	const RoadSegment* otherRoadSegment = other_lane->getRoadSegment();
 	int other_offset = other_driver->currLaneOffset_.get();
 

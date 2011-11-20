@@ -117,7 +117,7 @@ private:
 	bool isCloseToLinkEnd(UpdateParams& p);
 	bool isPedestrianOnTargetCrossing();
 	void chooseNextLaneForNextLink(UpdateParams& p);
-	void calculateIntersectionTrajectory();
+	void calculateIntersectionTrajectory(DPoint movingFrom);
 	void setOrigin(UpdateParams& p);
 
 	//A bit verbose, but only used in 1 or 2 places.

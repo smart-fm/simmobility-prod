@@ -134,7 +134,7 @@ double sim_mob::GeneralPathMover::advanceToNextRoadSegment()
 {
 	//An error if we're already at the end of this road segment
 	throwIf(currSegmentIt==fullPath.end(), "Road segment at end");
-	distMovedInSegment = 0;
+	distMovedInSegment = distAlongPolyline;
 
 	//If we are approaching a new Segment, the Intersection driving model takes precedence.
 	// In addition, no further processing occurs. This means advancing a very large amount will
@@ -160,8 +160,8 @@ const Lane* sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir()
 	//Move
 	currSegmentIt++;
 
-	//Just in case
-	distMovedInSegment=0;
+	//In case we moved
+	distAlongPolyline = distMovedInSegment; //NOTE: Should probably factor this out into a sep. variable.
 
 	//Done?
 	if (currSegmentIt==fullPath.end()) {

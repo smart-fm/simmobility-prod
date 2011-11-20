@@ -95,6 +95,9 @@ private:
 	double distAlongPolyline;
 	double currPolylineLength() const {
 		//TEMP: Just making sure.
+		if (isInIntersection()) {
+			return distAlongPolyline;
+		}
 		DynamicVector temp(currPolypoint->getX(), currPolypoint->getY(),nextPolypoint->getX(), nextPolypoint->getY());
 		return temp.getMagnitude();
 	}

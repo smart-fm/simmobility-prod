@@ -103,6 +103,11 @@ private:
 	}
 
 	//Counter
+	//TODO: This should always be the same regardless of what lane you're in. In other words,
+	//      you should take (distAlongPolyline/currPolylineLength) and multiply that by some "normalized"
+	//      distance for that Segment (e.g., the median lane line) and then add that to the normalized distances
+	//      for all previous Segments. This is important as it prevents obstacles from appearing in the wrong
+	//      places to different drivers.
 	double distMovedInSegment;
 
 	//Intersection driving is different.

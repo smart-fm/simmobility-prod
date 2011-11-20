@@ -28,10 +28,6 @@ public:
 
 	///Set the path of RoadSegments contained in our path. These segments need not
 	/// necessarily be in the same Link.
-	//void setPath(std::vector<sim_mob::RoadSegment*> wp_path, bool firstSegMoveFwd);
-
-	///Set the path of RoadSegments contained in our path. These segments need not
-	/// necessarily be in the same Link.
 	///TODO: I'm not entirely sure that all cases of fwd/rev RoadSegments are handled properly.
 	void setPath(const std::vector<const sim_mob::RoadSegment*>& path, bool firstSegMoveFwd, int startLaneID);
 

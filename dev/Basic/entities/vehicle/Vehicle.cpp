@@ -128,6 +128,13 @@ double sim_mob::Vehicle::getY() const
 DPoint sim_mob::Vehicle::getPosition() const
 {
 	throw_if_error();
+
+	//Temp
+	if (isInIntersection() && (posInIntersection.x==0 || posInIntersection.y==0)) {
+		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex); //Note: beware double-locking.
+		std::cout <<"WARNING: Vehicle is in intersection without a position!\n";
+	}
+
 	DPoint origPos = fwdMovement.getPosition();
 	if (isInIntersection() && posInIntersection.x!=0 && posInIntersection.y!=0) {
 		//Override: Intersection driving

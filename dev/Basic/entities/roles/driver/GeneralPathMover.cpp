@@ -8,7 +8,9 @@
 
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Link.hpp"
+#include "geospatial/Node.hpp"
 #include "geospatial/Lane.hpp"
+#include "geospatial/Point2D.hpp"
 #include "util/GeomHelpers.hpp"
 
 using namespace sim_mob;
@@ -19,24 +21,6 @@ sim_mob::GeneralPathMover::GeneralPathMover() : distAlongPolyline(0), currPolyli
 	distMovedInSegment(0), inIntersection(false), isMovingForwards(false), currLaneID(0)
 {
 }
-
-
-/*void sim_mob::GeneralPathMover::setPath(vector<WayPoint> wp_path, bool firstSegMoveFwd)
-{
-	fullPath.clear();
-	for(vector<WayPoint>::iterator it=wp_path.begin(); it!=wp_path.end(); it++) {
-		if(it->type_ == WayPoint::ROAD_SEGMENT) {
-			fullPath.push_back(it->roadSegment_);
-		}
-	}
-
-	currSegmentIt = fullPath.begin();
-	isMovingForwards = firstSegMoveFwd;
-	generateNewPolylineArray();
-	distAlongPolyline = 0;
-	inIntersection = false;
-	distMovedInSegment = 0;
-}*/
 
 
 void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, bool firstSegMoveFwd, int startLaneID)
@@ -118,6 +102,7 @@ double sim_mob::GeneralPathMover::advance(double fwdDistance)
 	while (distAlongPolyline>=currPolylineLength) {
 		res = advanceToNextPolyline();
 	}
+
 	return res;
 }
 

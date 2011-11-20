@@ -210,7 +210,7 @@ void sim_mob::Driver::update_general(UpdateParams& params, frame_t frameNumber)
 	} else {
 		//Manage traffic signal behavior if we are close to the end of the link.
 		if(isCloseToLinkEnd(params)) {
-			trafficSignalDriving(params);
+			setTrafficSignalParams(params);
 		}
 		double overflow = linkDriving(params);
 
@@ -221,18 +221,16 @@ void sim_mob::Driver::update_general(UpdateParams& params, frame_t frameNumber)
 			//I assume this vehicle enters the intersection
 			calculateIntersectionTrajectory(lastKnownPolypoint, overflow);
 			intersectionVelocityUpdate();
-			intersectionDriving(params);
+			//intersectionDriving(params); //Not needed; overflow is already taken care of.
 		}
 	}
 
 	//Has the segment changed?
-	if (!vehicle->isDone() && (vehicle->getCurrSegment()!=prevSegment)) {
+	if (!vehicle->isDone() && !vehicle->isInIntersection() && (vehicle->getCurrSegment()!=prevSegment)) {
 		//Make pre-intersection decisions?
 		if(!vehicle->hasNextSegment(true)) {
 			updateTrafficSignal();
-			if(!vehicle->hasNextSegment(true)) { //TODO: Logic is clearly wrong here.
-				chooseNextLaneForNextLink(params);
-			}
+			chooseNextLaneForNextLink(params);
 		}
 	}
 
@@ -369,10 +367,6 @@ void sim_mob::Driver::setParentBufferedData()
 	parent->latVel.set(vehicle->getLatVelocity());
 }
 
-/*bool sim_mob::Driver::isLeaveIntersection() const
-{
-	return intersectionDistAlongTrajectory >= intersectionTrajectory.getMagnitude();
-}*/
 
 
 namespace {
@@ -408,7 +402,7 @@ vector<const Agent*> GetAgentsInCrossing(const Crossing* crossing) {
 } //End anon namespace
 
 
-bool sim_mob::Driver::isPedestrianOnTargetCrossing()
+bool sim_mob::Driver::isPedestrianOnTargetCrossing() const
 {
 	if(!trafficSignal) {
 		return false;
@@ -546,6 +540,17 @@ void sim_mob::Driver::calculateIntersectionTrajectory(DPoint movingFrom, double 
 
 	//Compute a movement trajectory.
 	intModel->startDriving(movingFrom, DPoint(entry.getX(), entry.getY()), overflow);
+
+	//Temp update
+	DPoint curr = intModel->continueDriving(0);
+	vehicle->setPositionInIntersection(curr.x, curr.y);
+
+	//Typical results: 45m. Why is this so far off?
+	/*double displacement = dist(entry.getX(), entry.getY(), vehicle->getX(), vehicle->getY());
+	{
+		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+		std::cout <<"Overshot intersection by: " <<displacement <<" cm\n";
+	}*/
 }
 
 
@@ -930,7 +935,7 @@ void sim_mob::Driver::updateTrafficSignal()
 	trafficSignal = node ? StreetDirectory::instance().signalAt(*node) : nullptr;
 }
 
-void sim_mob::Driver::trafficSignalDriving(UpdateParams& p)
+void sim_mob::Driver::setTrafficSignalParams(UpdateParams& p) const
 {
 	if(!trafficSignal) {
 		p.isTrafficLightStop = false;

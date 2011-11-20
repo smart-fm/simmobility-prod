@@ -15,7 +15,6 @@
 #include "entities/Person.hpp"
 #include "entities/Signal.hpp"
 #include "entities/AuraManager.hpp"
-#include "entities/vehicle/Vehicle.hpp"
 #include "buffering/BufferedDataManager.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"
@@ -39,6 +38,10 @@ using std::map;
 
 //Helper functions
 namespace {
+
+//Helpful constants
+const int distanceInFront = 2000;
+const int distanceBehind = 500;
 
 //used in lane changing, find the start index and end index of polyline in the target lane
 size_t updateStartEndIndex(const std::vector<sim_mob::Point2D>* const currLanePolyLine, double currLaneOffset, size_t defaultValue)
@@ -77,9 +80,9 @@ size_t getLaneIndex(const Lane* l)
 
 
 //initiate
-sim_mob::Driver::Driver(Agent* parent) : Role(parent), vehicle(nullptr), perceivedVelocity(reactTime, true),
-	perceivedVelocityOfFwdCar(reactTime, true), perceivedDistToFwdCar(reactTime, false),
-	distanceInFront(2000), distanceBehind(500), currLane_(nullptr), currLaneOffset_(0), currLaneLength_(0), isInIntersection(false)
+sim_mob::Driver::Driver(Agent* parent) : Role(parent), currLane_(nullptr), currLaneOffset_(0),
+	currLaneLength_(0), isInIntersection(false), vehicle(nullptr), perceivedVelocity(reactTime, true),
+	perceivedVelocityOfFwdCar(reactTime, true), perceivedDistToFwdCar(reactTime, false)
 {
 	//Set default speed in the range of 10m/s to 19m/s
 	//speed = 0;//1000*(1+((double)(rand()%10))/10);
@@ -176,7 +179,7 @@ void sim_mob::Driver::update_first_frame(UpdateParams& params, frame_t frameNumb
 void sim_mob::Driver::update_general(UpdateParams& params, frame_t frameNumber)
 {
 	//Note: For now, most updates cannot take place unless there is a Lane set
-	if (!params.currLane) {
+	if (!params.currLane || !vehicle) {
 		return;
 	}
 
@@ -231,9 +234,8 @@ void sim_mob::Driver::update_general(UpdateParams& params, frame_t frameNumber)
 		}
 	}
 
-	//Update parent/angle.
+	//Update parent data
 	setParentBufferedData();
-	updateAngle(params);
 }
 
 
@@ -288,7 +290,7 @@ void sim_mob::Driver::output(UpdateParams& p, frame_t frameNumber)
 			<<",{"
 			<<"\"xPos\":\""<<static_cast<int>(vehicle->getX())
 			<<"\",\"yPos\":\""<<static_cast<int>(vehicle->getY())
-			<<"\",\"angle\":\""<<p.vehicleAngle
+			<<"\",\"angle\":\""<<(360 - (vehicle->getAngle() * 180 / M_PI))
 			<<"\"})"<<std::endl);
 }
 
@@ -349,7 +351,7 @@ void sim_mob::Driver::linkDriving(UpdateParams& p)
 	}
 
 	//Update our chosen acceleration; update our position on the link.
-	updateAcceleration(newFwdAcc);
+	vehicle->setAcceleration(newFwdAcc * 100);
 	updatePositionOnLink(p);
 }
 
@@ -405,7 +407,7 @@ vector<const Agent*> GetAgentsInCrossing(const Crossing* crossing) {
 } //End anon namespace
 
 
-bool sim_mob::Driver::isPedetrianOnTargetCrossing()
+bool sim_mob::Driver::isPedestrianOnTargetCrossing()
 {
 	if(!trafficSignal) {
 		return false;
@@ -552,13 +554,15 @@ void sim_mob::Driver::calculateIntersectionTrajectory()
 void sim_mob::Driver::initializePath()
 {
 	//Save local copies of the parent's origin/destination nodes.
-	originNode = parent->originNode;
-	destNode = parent->destNode;
+	origin.node = parent->originNode;
+	origin.point = *origin.node->location;
+	goal.node = parent->destNode;
+	goal.point = *goal.node->location;
 
 	//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
 	//TODO: Start in lane 0?
 	//A non-null vehicle means we are moving.
-	vehicle = new Vehicle(StreetDirectory::instance().shortestDrivingPath(*originNode, *destNode), 0);
+	vehicle = new Vehicle(StreetDirectory::instance().shortestDrivingPath(*origin.node, *goal.node), 0);
 }
 
 void sim_mob::Driver::setOrigin(UpdateParams& p)
@@ -600,11 +604,6 @@ void sim_mob::Driver::findCrossing(UpdateParams& p)
 	}
 }
 
-void sim_mob::Driver::updateAcceleration(double newFwdAcc)
-{
-	vehicle->setAcceleration(newFwdAcc * 100);
-}
-
 void sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
 {
 	//Determine how far forward we've moved.
@@ -640,7 +639,7 @@ void sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
 void sim_mob::Driver::check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other)
 {
 	//Subtract the size of the car from the distance between them
-	distance = fabs(distance) - veh->length/2 - other->getVehicle()->length/2;
+	distance = fabs(distance) - veh->length/2 - other->getVehicleLength()/2;
 	if(distance <= res.distance) {
 		res.driver = other;
 		res.distance = distance;
@@ -708,7 +707,7 @@ void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* oth
 			}
 
 			//Modified distance.
-			int distance = other_offset + params.currLaneLength - params.currLaneOffset;// - vehicle->length/2 - other_driver->getVehicle()->length/2;
+			int distance = other_offset + params.currLaneLength - params.currLaneOffset;
 
 			//Set different variables depending on where the car is.
 			if(other_lane == nextLane) { //The vehicle is on the current lane
@@ -752,7 +751,7 @@ void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* oth
 			}
 
 			//Modified distance.
-			int distance = other_driver->currLaneLength_.get() - other_offset + params.currLaneOffset;// - vehicle->length/2 - other_driver->getVehicle()->length/2;
+			int distance = other_driver->currLaneLength_.get() - other_offset + params.currLaneOffset;
 
 			//Set different variables depending on where the car is.
 			if(other_lane == preLane) { //The vehicle is on the current lane
@@ -824,13 +823,6 @@ void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 		updateNearbyDriver(params, other, dynamic_cast<const Driver*>(other->getRole()));
 		updateNearbyPedestrian(params, other, dynamic_cast<const Pedestrian*>(other->getRole()));
 	}
-}
-
-//Angle shows the velocity direction of vehicles
-void sim_mob::Driver::updateAngle(UpdateParams& p)
-{
-	//Set angle based on the vehicle's heading and velocity.
-	p.vehicleAngle = 360 - (vehicle->getAngle() * 180 / M_PI);
 }
 
 void sim_mob::Driver::intersectionVelocityUpdate()
@@ -953,7 +945,7 @@ void sim_mob::Driver::trafficSignalDriving(UpdateParams& p)
 				break;
 
 			case Signal::Green:
-				if(!isPedetrianOnTargetCrossing())
+				if(!isPedestrianOnTargetCrossing())
 					p.isTrafficLightStop = false;
 				else
 					p.isTrafficLightStop = true;

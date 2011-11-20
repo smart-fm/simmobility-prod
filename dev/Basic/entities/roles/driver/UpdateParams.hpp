@@ -63,7 +63,6 @@ struct UpdateParams {
 	const Lane* rightLane;
 
 	double currSpeed;
-	double vehicleAngle;
 
 	double currLaneOffset;
 	double currLaneLength;

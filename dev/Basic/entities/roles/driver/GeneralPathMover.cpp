@@ -105,7 +105,7 @@ double sim_mob::GeneralPathMover::advance(double fwdDistance)
 	double res = 0.0;
 	distAlongPolyline += fwdDistance;
 	distMovedInSegment += fwdDistance;
-	while (distAlongPolyline>=currPolylineLength()) {
+	while (distAlongPolyline>=currPolylineLength() && !inIntersection) {
 		//Subtract distance moved thus far
 		distAlongPolyline -= currPolylineLength();
 
@@ -164,7 +164,7 @@ const Lane* sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir()
 	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
 
 	//Record
-	bool nextInNewLink = (*(currSegmentIt+1))->getLink() != (*currSegmentIt)->getLink();
+	bool nextInNewLink = ((currSegmentIt+1)!=fullPath.end()) && ((*(currSegmentIt+1))->getLink() != (*currSegmentIt)->getLink());
 
 	//Move
 	currSegmentIt++;

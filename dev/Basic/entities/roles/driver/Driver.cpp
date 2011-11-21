@@ -252,7 +252,9 @@ void sim_mob::Driver::update_movement(UpdateParams& params, frame_t frameNumber)
 	}
 
 	//Has the segment changed?
-	params.justChangedToNewSegment = (vehicle->getCurrSegment()!=prevSegment);
+	if (!vehicle->isDone()) {
+		params.justChangedToNewSegment = (vehicle->getCurrSegment()!=prevSegment);
+	}
 }
 
 

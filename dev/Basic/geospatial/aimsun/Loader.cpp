@@ -67,7 +67,7 @@ class DatabaseLoader : private boost::noncopyable
 public:
     explicit DatabaseLoader(string const & connectionString);
 
-    void LoadBasicAimsunObjects(map<string, string> & storedProcedures);
+    void LoadBasicAimsunObjects(map<string, string> const & storedProcedures);
     void DecorateAndTranslateObjects();
     void PostProcessNetwork();
     void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::TripChain*>& tcs);
@@ -295,21 +295,31 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 
 
 
-void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> & storedProcs)
+std::string const &
+getStoredProcedure(map<string, string> const & storedProcs, string const & procedureName)
 {
-	LoadNodes(storedProcs["node"]);
+    map<string, string>::const_iterator iter = storedProcs.find(procedureName);
+    if (iter != storedProcs.end())
+        return iter->second;
+    throw std::runtime_error("expected to find stored-procedure named '" + procedureName
+                             + "' in the config file");
+}
 
-	LoadSections(storedProcs["section"]);
+void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedProcs)
+{
+	LoadNodes(getStoredProcedure(storedProcs, "node"));
 
-	LoadCrossings(storedProcs["crossing"]);
+	LoadSections(getStoredProcedure(storedProcs, "section"));
 
-	LoadLanes(storedProcs["lane"]);
+	LoadCrossings(getStoredProcedure(storedProcs, "crossing"));
 
-	LoadTurnings(storedProcs["turning"]);
+	LoadLanes(getStoredProcedure(storedProcs, "lane"));
 
-	LoadPolylines(storedProcs["polyline"]);
+	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
 
-	LoadTripchains(storedProcs["tripchain"]);
+	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
+
+	LoadTripchains(getStoredProcedure(storedProcs, "tripchain"));
 }
 
 

@@ -714,16 +714,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     			return "Unable to load database connection settings.";
     		}
 
-    		//Confirm that all stored procedures have been set.
-    		if (
-    			   storedProcedures.count("node")==0 || storedProcedures.count("section")==0
-    			|| storedProcedures.count("turning")==0 || storedProcedures.count("polyline")==0
-    			|| storedProcedures.count("crossing")==0 || storedProcedures.count("lane")==0
-    			|| storedProcedures.count("tripchain")==0
-    		) {
-    			return "Not all stored procedures were specified.";
-    		}
-
     		//Actually load it
     		string dbErrorMsg = sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetwork(), ConfigParams::GetInstance().getTripChains());
     		if (!dbErrorMsg.empty()) {

@@ -69,9 +69,12 @@ public:
 	//Retrieve the current distance moved in this road segment. Due to lane changing, etc., it
 	//  is entirely possible that this may appear longer than the actual RoadSegment.
 	//Note that this function does not attempt to subtract any distance moved beyond the
-	//  limit of the current polyline.
+	//  limit of the current polyline. (But it should be close; we try to normalize it).
 	//You will almost always want to use getCurrDistAlongPolyline() instead of this function.
 	double getCurrDistAlongRoadSegment() const;
+
+	//Get what should be the total distance of the RoadSegment.
+	double getTotalRoadSegmentLength() const;
 
 	//Retrieve our X/Y position based ONLY on forward movement (e.g., nothing with Lanes)
 	sim_mob::DPoint getPosition() const;
@@ -91,6 +94,10 @@ private:
 	std::vector<sim_mob::Point2D>::iterator currPolypoint;
 	std::vector<sim_mob::Point2D>::iterator nextPolypoint;
 
+	//Unfortuante duplication, but necessary to avoid aliasing
+	std::vector<sim_mob::Point2D>::const_iterator currLaneZeroPolypoint;
+	std::vector<sim_mob::Point2D>::const_iterator nextLaneZeroPolypoint;
+
 	//Movement along a single line
 	double distAlongPolyline;
 	double currPolylineLength() const {
@@ -103,12 +110,15 @@ private:
 	}
 
 	//Counter
-	//TODO: This should always be the same regardless of what lane you're in. In other words,
-	//      you should take (distAlongPolyline/currPolylineLength) and multiply that by some "normalized"
+	//NOTE: This is always the same regardless of what lane you're in. In other words,
+	//      you take (distAlongPolyline/currPolylineLength) and multiply that by some "normalized"
 	//      distance for that Segment (e.g., the median lane line) and then add that to the normalized distances
 	//      for all previous Segments. This is important as it prevents obstacles from appearing in the wrong
 	//      places to different drivers.
-	double distMovedInSegment;
+	double distMovedInPrevSegments;
+
+	//And track the expected total distance.
+	double distOfThisSegment;
 
 	//Intersection driving is different.
 	bool inIntersection;
@@ -125,6 +135,7 @@ private:
 	double advanceToNextRoadSegment();
 	const Lane* actualMoveToNextSegmentAndUpdateDir();
 	void generateNewPolylineArray();
+	void calcNewLaneDistances();
 
 	//General throw function. There is probably a better way to do this.
 	void throwIf(bool conditional, const std::string& msg) const {

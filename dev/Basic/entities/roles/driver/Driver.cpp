@@ -496,10 +496,10 @@ bool sim_mob::Driver::isPedestrianOnTargetCrossing() const
 
 
 //calculate current lane length
-void sim_mob::Driver::updateCurrLaneLength(UpdateParams& p)
+/*void sim_mob::Driver::updateCurrLaneLength(UpdateParams& p)
 {
 	p.currLaneLength = vehicle->getCurrPolylineVector().getMagnitude();
-}
+}*/
 
 //update left and right lanes of the current lane
 //if there is no left or right lane, it will be null
@@ -523,9 +523,11 @@ void sim_mob::Driver::syncCurrLaneCachedInfo(UpdateParams& p)
 	//The lane may have changed; reset the current lane index.
 	p.currLaneIndex = getLaneIndex(p.currLane);
 
-	//Update which lanes are adjacent, and the length of the current polyline.
+	//Update which lanes are adjacent.
 	updateAdjacentLanes(p);
-	updateCurrLaneLength(p);
+
+	//Update the length of the current road segment.
+	p.currLaneLength = vehicle->getCurrLaneLength();
 
 	//Finally, update target/max speed to match the new Lane's rules.
 	maxLaneSpeed = vehicle->getCurrSegment()->maxSpeed/3.6; //slow down
@@ -639,7 +641,7 @@ void sim_mob::Driver::setOrigin(UpdateParams& p)
 	updateAdjacentLanes(p);
 
 	//Calculate and save the total length of the current polyline.
-	updateCurrLaneLength(p);
+	p.currLaneLength = vehicle->getCurrLaneLength();
 }
 
 
@@ -685,7 +687,9 @@ double sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
 	}
 
 	//Update our offset in the current lane.
-	p.currLaneOffset += fwdDistance; //NOTE: This is probably related to vehicle->getDistanceMovedInSegment() once we normalize it.
+	if (!vehicle->isInIntersection()) {
+		p.currLaneOffset = vehicle->getDistanceMovedInSegment();
+	}
 	return res;
 }
 
@@ -897,7 +901,7 @@ void sim_mob::Driver::justLeftIntersection(UpdateParams& p)
 	p.currLane = nextLaneInNextLink;
 	vehicle->moveToNewLanePolyline(getLaneIndex(p.currLane));
 	syncCurrLaneCachedInfo(p);
-	p.currLaneOffset = 0;
+	p.currLaneOffset = vehicle->getDistanceMovedInSegment();
 	targetLaneIndex = p.currLaneIndex;
 
 	//Reset lateral movement/velocity to zero.

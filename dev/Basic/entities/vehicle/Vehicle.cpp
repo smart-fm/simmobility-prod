@@ -170,6 +170,12 @@ double sim_mob::Vehicle::getDistanceMovedInSegment() const
 	return fwdMovement.getCurrDistAlongRoadSegment();
 }
 
+double sim_mob::Vehicle::getCurrLaneLength() const
+{
+	throw_if_error();
+	return fwdMovement.getTotalRoadSegmentLength();
+}
+
 double sim_mob::Vehicle::getVelocity() const
 {
 	throw_if_error();

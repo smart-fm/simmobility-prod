@@ -135,7 +135,7 @@ private:
 	void updateNearbyDriver(UpdateParams& params, const sim_mob::Person* other, const sim_mob::Driver* other_driver) const;
 	void updateNearbyPedestrian(UpdateParams& params, const sim_mob::Person* other, const sim_mob::Pedestrian* pedestrian) const;
 
-	void updateCurrLaneLength(UpdateParams& p);
+	//void updateCurrLaneLength(UpdateParams& p);
 	void updateDisToLaneEnd();
 	void updatePositionDuringLaneChange(UpdateParams& p);
 	void saveCurrTrafficSignal();

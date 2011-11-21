@@ -90,8 +90,10 @@ private:
 	static void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
 
 	//More update methods
-	void update_first_frame(UpdateParams& params, frame_t frameNumber);
-	void update_general(UpdateParams& params, frame_t frameNumber);
+	void update_first_frame(UpdateParams& params, frame_t frameNumber);    ///<Called the first time a frame after start_time is reached.
+	void update_sensors(UpdateParams& params, frame_t frameNumber);        ///<Called to update things we _sense_, like nearby vehicles.
+	void update_movement(UpdateParams& params, frame_t frameNumber);       ///<Called to move vehicles forward.
+	void update_post_movement(UpdateParams& params, frame_t frameNumber);  ///<Called to deal with the consequences of moving forwards.
 
 	const Link* desLink;
     double currLinkOffset;
@@ -115,7 +117,7 @@ public:
 	const double getVehicleLength() const { return vehicle->length; }
 
 private:
-	bool isCloseToLinkEnd(UpdateParams& p);
+	bool isCloseToLinkEnd(UpdateParams& p) const;
 	bool isPedestrianOnTargetCrossing() const;
 	void chooseNextLaneForNextLink(UpdateParams& p);
 	void calculateIntersectionTrajectory(DPoint movingFrom, double overflow);
@@ -136,7 +138,7 @@ private:
 	void updateCurrLaneLength(UpdateParams& p);
 	void updateDisToLaneEnd();
 	void updatePositionDuringLaneChange(UpdateParams& p);
-	void updateTrafficSignal();
+	void saveCurrTrafficSignal();
 
 	void setTrafficSignalParams(UpdateParams& p) const;
 	void intersectionDriving(UpdateParams& p);

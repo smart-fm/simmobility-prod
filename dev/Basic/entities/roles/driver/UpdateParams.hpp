@@ -99,6 +99,12 @@ struct UpdateParams {
 	//Related to our lane changing model.
 	double dis2stop;
 	bool isWaiting;
+
+	//Handles state information
+	bool justChangedToNewSegment;
+	DPoint TEMP_lastKnownPolypoint;
+	bool justMovedIntoIntersection;
+	double overflowIntoIntersection;
 };
 
 

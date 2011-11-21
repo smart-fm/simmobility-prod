@@ -160,6 +160,19 @@ sim_mob::UpdateParams::UpdateParams(const Driver& owner)
 
 	//in MLC: is the vehicle waiting acceptable gap to change lane
 	isWaiting = false; //TODO: This might need to be saved between turns.
+
+	//Set to true if we have just moved to a new segment.
+	justChangedToNewSegment = false;
+
+	//Will be removed later.
+	TEMP_lastKnownPolypoint = DPoint(0, 0);
+
+	//Set to true if we have just moved into an intersection.
+	justMovedIntoIntersection = false;
+
+	//If we've just moved into an intersection, is set to the amount of overflow (e.g.,
+	//  how far into it we already are.)
+	overflowIntoIntersection = 0;
 }
 
 
@@ -177,14 +190,31 @@ void sim_mob::Driver::update_first_frame(UpdateParams& params, frame_t frameNumb
 
 
 
-void sim_mob::Driver::update_general(UpdateParams& params, frame_t frameNumber)
+void sim_mob::Driver::update_sensors(UpdateParams& params, frame_t frameNumber)
 {
-	//Note: For now, most updates cannot take place unless there is a Lane set
-	if (!params.currLane || !vehicle) {
+	//Are we done?
+	if (vehicle->isDone()) {
 		return;
 	}
 
-	//if reach the goal, get back to the origin
+	//Save the nearest agents in your lane and the surrounding lanes, stored by their
+	// position before/behind you. Save nearest fwd pedestrian too.
+	updateNearbyAgents(params);
+
+	//Manage traffic signal behavior if we are close to the end of the link.
+	//TODO: This might be slightly inaccurate if a vehicle leaves an intersection
+	//      on a particularly short road segment. For now, though, I'm just organizing these
+	//      functions with structure in mind, and it won't affect our current network.
+	if(isCloseToLinkEnd(params)) {
+		setTrafficSignalParams(params);
+	}
+}
+
+
+
+void sim_mob::Driver::update_movement(UpdateParams& params, frame_t frameNumber)
+{
+	//If reach the goal, get back to the origin
 	if(vehicle->isDone()){
 		//TEMP: Move to (0,0). This should prevent collisions.
 		//TODO: Remove from simulation. Do this in the dispatcher at the same time...
@@ -198,44 +228,56 @@ void sim_mob::Driver::update_general(UpdateParams& params, frame_t frameNumber)
 		return;
 	}
 
-	//Save the nearest agents in your lane and the surrounding lanes, stored by their
-	// position before/behind you. Save nearest fwd pedestrian too.
-	updateNearbyAgents(params);
-
-	//Driving behavior differs drastically inside intersections.
+	//Save some values which might not be available later.
+	//TODO: LastKnownPolypoint should actually be the _new_ polypoint.
 	const RoadSegment* prevSegment = vehicle->getCurrSegment();
-	DPoint lastKnownPolypoint(vehicle->getCurrPolylineVector().getEndX(), vehicle->getCurrPolylineVector().getEndY());
+	params.TEMP_lastKnownPolypoint = DPoint(vehicle->getCurrPolylineVector().getEndX(), vehicle->getCurrPolylineVector().getEndY());
+
+	//First, handle driving behavior inside an intersection.
 	if(vehicle->isInIntersection()) {
 		intersectionDriving(params);
-	} else {
-		//Manage traffic signal behavior if we are close to the end of the link.
-		if(isCloseToLinkEnd(params)) {
-			setTrafficSignalParams(params);
-		}
-		double overflow = linkDriving(params);
+	}
+
+	//Next, handle driving on links.
+	// Note that a vehicle may leave an intersection during intersectionDriving(), so the conditional check is necessary.
+	// Note that there is no need to chain this back to intersectionDriving.
+	if(!vehicle->isInIntersection()) {
+		//Drive forward. Save how far "over" we go through the intersection.
+		params.overflowIntoIntersection = linkDriving(params);
 
 		//Did our last move forward bring us into an intersection?
 		if(vehicle->isInIntersection()) {
-			//the first time vehicle pass the end of current link and enter intersection
-			//if the vehicle reaches the end of the last road segment on current link
-			//I assume this vehicle enters the intersection
-			calculateIntersectionTrajectory(lastKnownPolypoint, overflow);
-			intersectionVelocityUpdate();
-			//intersectionDriving(params); //Not needed; overflow is already taken care of.
+			params.justMovedIntoIntersection = true;
 		}
 	}
 
 	//Has the segment changed?
-	if (!vehicle->isDone() && !vehicle->isInIntersection() && (vehicle->getCurrSegment()!=prevSegment)) {
+	params.justChangedToNewSegment = (vehicle->getCurrSegment()!=prevSegment);
+}
+
+
+void sim_mob::Driver::update_post_movement(UpdateParams& params, frame_t frameNumber)
+{
+	//Are we done?
+	if (vehicle->isDone()) {
+		return;
+	}
+
+	//Has the segment changed?
+	if (!vehicle->isInIntersection() && params.justChangedToNewSegment) {
 		//Make pre-intersection decisions?
 		if(!vehicle->hasNextSegment(true)) {
-			updateTrafficSignal();
+			saveCurrTrafficSignal();
 			chooseNextLaneForNextLink(params);
 		}
 	}
 
-	//Update parent data
-	setParentBufferedData();
+	//Have we just entered into an intersection?
+	if (vehicle->isInIntersection() && params.justMovedIntoIntersection) {
+		//Calculate a trajectory and init movement on that intersection.
+		calculateIntersectionTrajectory(params.TEMP_lastKnownPolypoint, params.overflowIntoIntersection);
+		intersectionVelocityUpdate();
+	}
 }
 
 
@@ -267,7 +309,13 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	}
 
 	//General update behavior.
-	update_general(params, frameNumber);
+	//Note: For now, most updates cannot take place unless there is a Lane and vehicle.
+	if (params.currLane && vehicle) {
+		update_sensors(params, frameNumber);
+		update_movement(params, frameNumber);
+		update_post_movement(params, frameNumber);
+		setParentBufferedData();  //Update parent data
+	}
 
 	//Update our Buffered types
 	//TODO: Update parent buffered properties, or perhaps delegate this.
@@ -315,7 +363,6 @@ void sim_mob::Driver::intersectionDriving(UpdateParams& p)
 	if(intModel->isDone()) {
 		p.currLane = vehicle->moveToNextSegmentAfterIntersection();
 		justLeftIntersection(p);
-		linkDriving(p); //Chain to regular link driving behavior.
 	}
 }
 
@@ -636,7 +683,7 @@ double sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
 	}
 
 	//Update our offset in the current lane.
-	p.currLaneOffset += fwdDistance;
+	p.currLaneOffset += fwdDistance; //NOTE: This is probably related to vehicle->getDistanceMovedInSegment() once we normalize it.
 	return res;
 }
 
@@ -922,14 +969,14 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p)
 	}
 }
 
-bool sim_mob::Driver::isCloseToLinkEnd(UpdateParams& p)
+bool sim_mob::Driver::isCloseToLinkEnd(UpdateParams& p) const
 {
 	//when the distance <= 10m
 	return !vehicle->getNextSegment() && (p.currLaneLength-p.currLaneOffset<2000);
 }
 
 //Retrieve the current traffic signal based on our RoadSegment's end node.
-void sim_mob::Driver::updateTrafficSignal()
+void sim_mob::Driver::saveCurrTrafficSignal()
 {
 	const Node* node = vehicle->getCurrSegment()->getEnd();
 	trafficSignal = node ? StreetDirectory::instance().signalAt(*node) : nullptr;

@@ -44,6 +44,10 @@ void sim_mob::GeneralPathMover::generateNewPolylineArray()
 	//Simple; just make sure to take the forward direction into account.
 	//TODO: Take the current lane into account.
 	polypointsList = (*currSegmentIt)->getLanes().at(currLaneID)->getPolyline();
+
+	//Check
+	throwIf(polypointsList.size()<2, "Can't manage polylines of length 0/1");
+
 	/*if (!isMovingForwards) { //NOTE: I don't think this makes sense.
 		std::reverse(polypointsList.begin(), polypointsList.end());
 	}*/
@@ -87,6 +91,8 @@ double sim_mob::GeneralPathMover::advance(double fwdDistance)
 	//  simply update the total distance and return (let the user deal with it). Also udpate the
 	//  current polyline length to always be the same as the forward distance.
 	if (inIntersection) {
+		throw std::runtime_error("Calling \"advance\" within an Intersection currently doesn't work right; use the Intersection model.");
+
 		distAlongPolyline += fwdDistance;
 		//currPolylineLength = distAlongPolyline;
 		return 0;
@@ -121,12 +127,11 @@ double sim_mob::GeneralPathMover::advanceToNextPolyline()
 	nextPolypoint++;
 
 	//Update length, OR move to a new Segment
-	if (nextPolypoint != polypointsList.end()) {
-		//currPolylineLength = sim_mob::dist(&(*currPolypoint), &(*nextPolypoint));
-		return 0;
-	} else {
+	if (nextPolypoint == polypointsList.end()) {
 		return advanceToNextRoadSegment();
 	}
+
+	return 0;
 }
 
 
@@ -142,6 +147,7 @@ double sim_mob::GeneralPathMover::advanceToNextRoadSegment()
 	//Note that distAlongPolyline should still be valid.
 	if (currSegmentIt+1!=fullPath.end()) {
 		if ((*currSegmentIt)->getLink() != (*(currSegmentIt+1))->getLink()) {
+			//Return early; we can't actually move the car now.
 			inIntersection = true;
 			return distAlongPolyline;
 		}
@@ -157,11 +163,14 @@ const Lane* sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir()
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
 	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
 
+	//Record
+	bool nextInNewLink = (*(currSegmentIt+1))->getLink() != (*currSegmentIt)->getLink();
+
 	//Move
 	currSegmentIt++;
 
 	//In case we moved
-	distAlongPolyline = distMovedInSegment; //NOTE: Should probably factor this out into a sep. variable.
+	//distAlongPolyline = distMovedInSegment; //NOTE: Should probably factor this out into a sep. variable.
 
 	//Done?
 	if (currSegmentIt==fullPath.end()) {
@@ -173,15 +182,17 @@ const Lane* sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir()
 
 	//Is this new segment part of a Link we're traversing in reverse?
 	//const Node* prevNode = isMovingForwards ? (*(currSegmentIt-1))->getEnd() : (*(currSegmentIt-1))->getStart();
-	const Node* prevNode = (*(currSegmentIt-1))->getEnd(); //TEMP: Not sure about this.
-	if ((*currSegmentIt)->getStart() == prevNode) {
-		isMovingForwardsInLink = true;
-	} else if ((*currSegmentIt)->getEnd() == prevNode) {
-		isMovingForwardsInLink = false;
-	} else {
-		//Presumably, we could enable something like this later, but it would require advanced
-		//  knowledge of which Segments face forwards.
-		throw std::runtime_error("Can't jump around to arbitrary nodes with GeneralPathMover.");
+	if (nextInNewLink) {
+		const Node* prevNode = (*currSegmentIt)->getStart(); //TEMP: Not sure about this.
+		if ((*currSegmentIt)->getLink()->getStart() == prevNode) {
+			isMovingForwardsInLink = true;
+		} else if ((*currSegmentIt)->getLink()->getEnd() == prevNode) {
+			isMovingForwardsInLink = false;
+		} else {
+			//Presumably, we could enable something like this later, but it would require advanced
+			//  knowledge of which Segments face forwards.
+			throw std::runtime_error("Can't jump around to arbitrary nodes with GeneralPathMover.");
+		}
 	}
 
 	//Now generate a new polyline array.

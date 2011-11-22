@@ -344,7 +344,7 @@ bool LoadDatabaseDetails(TiXmlElement& parentElem, string& connectionString, map
 	}
 
 	//Done; we'll check the storedProcedures in detail later.
-	return !connectionString.empty() && storedProcedures.size()==7;
+	return true;
 }
 
 

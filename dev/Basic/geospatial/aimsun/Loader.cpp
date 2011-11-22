@@ -44,9 +44,12 @@
 #include "SOCI_Converters.hpp"
 
 //Note: These will eventually have to be put into a separate Loader for non-AIMSUN data.
+// fclim: I plan to move $topdir/geospatial/aimsun/* and entities/misc/aimsun/* to
+// $topdir/database/ and rename the aimsun namespace to "database".
 #include "entities/misc/TripChain.hpp"
 #include "entities/misc/aimsun/TripChain.hpp"
 #include "entities/misc/aimsun/SOCI_Converters.hpp"
+#include "entities/Signal.hpp"
 
 
 using namespace sim_mob::aimsun;
@@ -84,6 +87,7 @@ private:
     map<int, Turning> turnings_;
     multimap<int, Polyline> polylines_;
     vector<TripChain> tripchains_;
+    map<int, Signal> signals_;
 
 private:
     void LoadNodes(const std::string& storedProc);
@@ -93,6 +97,9 @@ private:
     void LoadTurnings(const std::string& storedProc);
     void LoadPolylines(const std::string& storedProc);
     void LoadTripchains(const std::string& storedProc);
+    void LoadTrafficSignals(const std::string& storedProc);
+
+    void createSignals();
 };
 
 DatabaseLoader::DatabaseLoader(string const & connectionString)
@@ -293,7 +300,31 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 	}
 }
 
+void
+DatabaseLoader::LoadTrafficSignals(std::string const & storedProcedure)
+{
+    // For testing purpose, we can disable automatic signal creation via database lookup
+    // by putting an empty string for the 'signal' stored procedure in the config file.
+    // Manual creation can be achieved by specifying the signal locations in the top level
+    // <signals> section of the config file.  This feature will be removed soon
+    // and without notice.
+    if (storedProcedure.empty())
+    {
+        std::cout << "WARNING: An empty 'signal' stored-procedure was specified in the config file; "
+                  << "will not lookup the database to create any signal found in there" << std::endl;
+        return;
+    }
 
+    soci::rowset<Signal> rows = (sql_.prepare <<"select * from " + storedProcedure);
+    for (soci::rowset<Signal>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
+    {
+        Signal signal = *iter;
+        // Convert from meters to centimeters.
+        signal.xPos *= 100;
+        signal.yPos *= 100;
+        signals_.insert(std::make_pair(signal.id, signal));
+    }
+}
 
 std::string const &
 getStoredProcedure(map<string, string> const & storedProcs, string const & procedureName)
@@ -308,18 +339,13 @@ getStoredProcedure(map<string, string> const & storedProcs, string const & proce
 void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedProcs)
 {
 	LoadNodes(getStoredProcedure(storedProcs, "node"));
-
 	LoadSections(getStoredProcedure(storedProcs, "section"));
-
 	LoadCrossings(getStoredProcedure(storedProcs, "crossing"));
-
 	LoadLanes(getStoredProcedure(storedProcs, "lane"));
-
 	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
-
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
-
 	LoadTripchains(getStoredProcedure(storedProcs, "tripchain"));
+	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal"));
 }
 
 
@@ -743,6 +769,46 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 	}
 	throw 1;
 #endif
+
+        createSignals();
+}
+
+void
+DatabaseLoader::createSignals()
+{
+    std::set<sim_mob::Node const *> uniNodes;
+
+    for (map<int, Signal>::const_iterator iter = signals_.begin(); iter != signals_.end(); ++iter)
+    {
+        Signal const & dbSignal = iter->second;
+        map<int, Node>::const_iterator iter2 = nodes_.find(dbSignal.nodeId);
+        if (iter2 == nodes_.end())
+        {
+            std::ostringstream stream;
+            stream << "cannot find node (id=" << dbSignal.nodeId
+                   << ") in the database for signal id=" << iter->first;
+            throw std::runtime_error(stream.str());
+        }
+
+        Node const & dbNode = iter2->second;
+        sim_mob::Node const * node = dbNode.generatedNode;
+        if (dynamic_cast<sim_mob::UniNode const *>(node))
+        {
+            if (uniNodes.count(node) == 0)
+            {
+                uniNodes.insert(node);
+                std::cout << "cannot create signal at Uni-node (database-id=" << dbSignal.nodeId
+                          << ") because Signal.cpp was written only for 4-way traffic at an "
+                          << "intersection.  Need to fix this." << std::endl;
+            }
+            continue;
+        }
+
+        sim_mob::Signal & signal = sim_mob::Signal::signalAt(*node);
+        // The 'signal' stored procedure did not retrieve the signal equipment's bearing.  Will
+        // raise a ticket about this issue.
+        signal.addSignalSite(dbSignal.xPos, dbSignal.yPos, dbSignal.typeCode, 0.0);
+    }
 }
 
 

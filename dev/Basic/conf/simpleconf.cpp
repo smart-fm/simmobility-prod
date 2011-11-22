@@ -286,11 +286,18 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal const *>& all_si
                     continue;
                 }
 
-                //size_t id = all_signals.size();
-                //int id = Agent::GetAndIncrementID();
-                Signal* sig = new Signal(*road_node);
-                all_signals.push_back(sig);
-                streetDirectory.registerSignal(*sig);
+                Signal const * signal = streetDirectory.signalAt(*road_node);
+                if (signal)
+                {
+                    std::cout << "signal at node(" << xpos << ", " << ypos << ") already exists; "
+                              << "skipping this config file entry" << std::endl;
+                }
+                else
+                {
+                    // The following call will create and register the signal with thessssss
+                    // street-directory.
+                    Signal::signalAt(*road_node);
+                }
             }
             catch (boost::bad_lexical_cast &)
             {

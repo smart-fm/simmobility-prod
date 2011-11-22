@@ -7,6 +7,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
+import org.apache.batik.css.parser.Parser;
+import org.apache.batik.css.parser.Scanner;
+
 /**
  * Load a CSS_Interface via the Batik library.
  * 
@@ -23,6 +26,8 @@ public class BatikCSS_Loader {
 	}
 	
 	private static void LoadSingleFile(CSS_Interface res, BufferedReader f) {
+		Scanner scan = new Scanner(f);
+		Parser parse = new Parser();
 		
 	}
 

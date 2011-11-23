@@ -1,13 +1,15 @@
 package sim_mob.vis.network;
 
 import java.awt.*;
+
+import sim_mob.vis.MainFrame;
 import sim_mob.vis.controls.DrawableItem;
 
 public class Lane implements DrawableItem{
 	//Constants/Resources
-	private static Color laneColor = new Color(0x00, 0x00, 0x00);
-	private static Color sideWalkColor = new Color(0x84, 0x70, 0xff);
-	private static Stroke laneStroke = new BasicStroke(1.0F);
+	//private static Color laneColor = new Color(0x00, 0x00, 0x00);
+	//private static Color sideWalkColor = new Color(0x84, 0x70, 0xff);
+	//private static Stroke laneStroke = new BasicStroke(1.0F);
 	
 	private Integer parentSegment;
 	private Node start;
@@ -38,12 +40,12 @@ public class Lane implements DrawableItem{
 	
 	@Override
 	public void draw(Graphics2D g) {
-		g.setColor(laneColor);
-		g.setStroke(laneStroke);
+		g.setColor(MainFrame.Config.getLineColor("lane"));
+		g.setStroke(MainFrame.Config.getLineStroke("lane"));
 		if(isSideWalk){
 			 
-			g.setColor(sideWalkColor);
-			g.setStroke(laneStroke);
+			g.setColor(MainFrame.Config.getLineColor("sidewalk"));
+			g.setStroke(MainFrame.Config.getLineStroke("lane"));
 			g.drawLine((int)start.getPos().getX(), (int)start.getPos().getY(), (int)end.getPos().getX(), (int)end.getPos().getY()); 
 		
 		} 

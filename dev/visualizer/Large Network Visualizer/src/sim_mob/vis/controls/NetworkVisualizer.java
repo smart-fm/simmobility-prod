@@ -4,6 +4,8 @@ import java.awt.*;
 
 import java.awt.image.BufferedImage;
 import java.util.*;
+
+import sim_mob.vis.MainFrame;
 import sim_mob.vis.network.basic.*;
 import sim_mob.vis.network.*;
 import sim_mob.vis.simultion.*;
@@ -115,7 +117,7 @@ public class NetworkVisualizer {
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		
 		//Fill the background
-		g.setBackground(Color.WHITE);
+		g.setBackground(MainFrame.Config.getBackground("network"));
 		g.clearRect(0, 0, buffer.getWidth(), buffer.getHeight());
 		
 		//Draw nodes

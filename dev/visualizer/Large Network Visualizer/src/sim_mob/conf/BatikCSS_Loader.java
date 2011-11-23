@@ -176,11 +176,11 @@ public class BatikCSS_Loader {
 				}
 			} else if (name.equals("border")) {
 				//Shortcut declaration: width, style, color
-			} else {
-				System.out.println("Skipping CSS property: " + name);
 				Object[] objs = ReadAndMakeColor(value);
 				res.lineColors.put(currSelectorName, (Color)objs[0]);
 				res.lineStrokes.put(currSelectorName, (Stroke)objs[1]);
+			} else {
+				System.out.println("Skipping CSS property: " + name);
 			}
 		}
 		

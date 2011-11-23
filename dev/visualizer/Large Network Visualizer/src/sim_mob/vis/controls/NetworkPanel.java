@@ -6,6 +6,7 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import javax.swing.*;
 
+import sim_mob.vis.MainFrame;
 import sim_mob.vis.network.Node;
 import sim_mob.vis.util.*;
 
@@ -154,7 +155,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		
 		//If the image is smaller in at least one dimension;we should re-fill the background with light-gray.
 		if ((drawImg.getWidth()<buffer.getWidth()) || (drawImg.getHeight()<buffer.getHeight())) {
-			g.setBackground(Color.lightGray);
+			g.setBackground(MainFrame.Config.getBackground("panel"));
 			g.clearRect(0, 0, buffer.getWidth(), buffer.getHeight());
 		}
 		

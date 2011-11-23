@@ -11,6 +11,7 @@
 #include "Crossing.hpp"
 #include "Turning.hpp"
 #include "Polyline.hpp"
+#include "Signal.hpp"
 
 
 using namespace sim_mob::aimsun;
@@ -158,6 +159,33 @@ template<> struct type_conversion<Lane>
     	vals.set("xpos", src.xPos);
     	vals.set("ypos", src.yPos);
         ind = i_ok;
+    }
+};
+
+template<>
+struct type_conversion<Signal>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, Signal& signal)
+    {
+        signal.id = values.get<int>("signal_id", 0);
+        signal.nodeId = values.get<int>("node_id", 0);
+        signal.xPos = values.get<double>("xpos", 0.0);
+        signal.yPos = values.get<double>("ypos", 0.0);
+        signal.typeCode = values.get<std::string>("type_cd", "");
+    }
+
+    static void
+    to_base(Signal const & signal, soci::values & values, soci::indicator & indicator)
+    {
+        values.set("signal_id", signal.id);
+        values.set("node_id", signal.nodeId);
+        values.set("xpos", signal.xPos);
+        values.set("ypos", signal.yPos);
+        values.set("type_cd", signal.typeCode);
+        indicator = i_ok;
     }
 };
 

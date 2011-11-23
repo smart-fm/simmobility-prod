@@ -308,21 +308,24 @@ void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents)
  *   and contain every value in between. Order is not important.
  */
 bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents) {
+    std::vector<sim_mob::Agent const *> all_agents(agents.begin(), agents.end());
+    std::copy(Signal::all_signals_.begin(), Signal::all_signals_.end(), std::back_inserter(all_agents));
+
 	std::set<int> agent_ids;
 	bool foundZero = false;
 	bool foundMax = false;
-	for (size_t i=0; i<agents.size(); i++) {
-		int id = agents[i]->getId();
+	for (size_t i=0; i<all_agents.size(); i++) {
+		int id = all_agents[i]->getId();
 		agent_ids.insert(id);
 		if (id==0) {
 			foundZero = true;
 		}
-		if (id+1==static_cast<int>(agents.size())) {
+		if (id+1==static_cast<int>(all_agents.size())) {
 			foundMax = true;
 		}
 	}
-	if (agents.size()!=agent_ids.size() || !foundZero || !foundMax) {
-		std::cout <<"Error, invalid Agent ID: agent_size(" <<agents.size() <<"=>" <<agent_ids.size() <<"), "
+	if (all_agents.size()!=agent_ids.size() || !foundZero || !foundMax) {
+		std::cout <<"Error, invalid Agent ID: agent_size(" <<all_agents.size() <<"=>" <<agent_ids.size() <<"), "
 				<<"foundZero: " <<foundZero <<", foundMax: " <<foundMax <<std::endl;
 		return false;
 	}

@@ -13,6 +13,7 @@
 #include "geospatial/Crossing.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/RoadSegment.hpp"
+#include "geospatial/StreetDirectory.hpp"
 #include "util/OutputUtil.hpp"
 using namespace sim_mob;
 
@@ -43,6 +44,26 @@ const double sim_mob::Signal::SplitPlan4[] = {0.35, 0.30, 0.10, 0.25};
 const double sim_mob::Signal::SplitPlan5[] = {0.20, 0.35, 0.25, 0.20};
 
 //Signal* sim_mob::Signal::instance_ = NULL;
+
+/* static */ sim_mob::Signal &
+sim_mob::Signal::signalAt(Node const & node)
+{
+    Signal const * signal = StreetDirectory::instance().signalAt(node);
+    if (signal)
+        return const_cast<Signal &>(*signal);
+
+    Signal * sig = new Signal(node);
+    all_signals_.push_back(sig);
+    StreetDirectory::instance().registerSignal(*sig);
+    return *sig;
+}
+
+void
+sim_mob::Signal::addSignalSite(centimeter_t /* xpos */, centimeter_t /* ypos */,
+                               std::string const & /* typeCode */, double /* bearing */)
+{
+    // Not implemented yet.
+}
 
 sim_mob :: Signal :: Signal(Node const & node, int id): Agent(id), node_(node)
 {

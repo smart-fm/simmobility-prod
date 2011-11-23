@@ -286,11 +286,18 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal const *>& all_si
                     continue;
                 }
 
-                //size_t id = all_signals.size();
-                //int id = Agent::GetAndIncrementID();
-                Signal* sig = new Signal(*road_node);
-                all_signals.push_back(sig);
-                streetDirectory.registerSignal(*sig);
+                Signal const * signal = streetDirectory.signalAt(*road_node);
+                if (signal)
+                {
+                    std::cout << "signal at node(" << xpos << ", " << ypos << ") already exists; "
+                              << "skipping this config file entry" << std::endl;
+                }
+                else
+                {
+                    // The following call will create and register the signal with thessssss
+                    // street-directory.
+                    Signal::signalAt(*road_node);
+                }
             }
             catch (boost::bad_lexical_cast &)
             {
@@ -344,7 +351,7 @@ bool LoadDatabaseDetails(TiXmlElement& parentElem, string& connectionString, map
 	}
 
 	//Done; we'll check the storedProcedures in detail later.
-	return !connectionString.empty() && storedProcedures.size()==7;
+	return true;
 }
 
 
@@ -712,16 +719,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     		map<string, string> storedProcedures; //Of the form "node" -> "get_node()"
     		if (!LoadDatabaseDetails(*geomElem, ConfigParams::GetInstance().connectionString, storedProcedures)) {
     			return "Unable to load database connection settings.";
-    		}
-
-    		//Confirm that all stored procedures have been set.
-    		if (
-    			   storedProcedures.count("node")==0 || storedProcedures.count("section")==0
-    			|| storedProcedures.count("turning")==0 || storedProcedures.count("polyline")==0
-    			|| storedProcedures.count("crossing")==0 || storedProcedures.count("lane")==0
-    			|| storedProcedures.count("tripchain")==0
-    		) {
-    			return "Not all stored procedures were specified.";
     		}
 
     		//Actually load it

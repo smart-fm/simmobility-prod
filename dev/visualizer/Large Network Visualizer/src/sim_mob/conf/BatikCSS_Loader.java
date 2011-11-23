@@ -1,6 +1,8 @@
 package sim_mob.conf;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Stroke;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -34,9 +36,7 @@ public class BatikCSS_Loader {
 		CSS_Interface csi = new CSS_Interface();
 		for (BufferedReader f : files) {
 			try {
-				System.out.println("-------------------------");
 				LoadSingleFile(csi, f);
-				System.out.println("-------------------------");
 			} catch (Exception ex) {
 				System.out.println("Can't parse colors file");
 				throw new RuntimeException(ex); 
@@ -54,18 +54,82 @@ public class BatikCSS_Loader {
 	
 	
 	//Processing nodes & helpers
-	private static Color ReadBackground(LexicalUnit value) {
+	private static float ReadGeneralFloat(LexicalUnit value) {
+		if (value.getLexicalUnitType()==LexicalUnit.SAC_PIXEL) {
+			return value.getFloatValue();
+		}
+		throw new RuntimeException("Unknown lexical type for general float (pixel currently supported): " + value.getLexicalUnitType());
+	}
+	private static int ReadGeneralStyle(LexicalUnit value) {
+		if (value.getLexicalUnitType()==LexicalUnit.SAC_IDENT) {
+			if (value.getStringValue().equals("solid")) {
+				return 0;
+			}
+			throw new RuntimeException("Un-supported border-style: " + value.getStringValue());
+		}
+		throw new RuntimeException("Unknown border style lexical type: " + value.getLexicalUnitType());
+	}
+	private static Color ReadGeneralColor(LexicalUnit value) {
 		if (value.getLexicalUnitType()==LexicalUnit.SAC_IDENT) {
 			return ReadColorIdentity(value);
+		} else if (value.getLexicalUnitType()==LexicalUnit.SAC_RGBCOLOR) {
+			return ReadColorRgb(value);
 		}
+		throw new RuntimeException("Unknown lexical type for general color: " + value.getLexicalUnitType());
+	}
+	private static Object[] ReadAndMakeColor(LexicalUnit value) { //Return [Color,Stroke]
+		//Width
+		float width = ReadGeneralFloat(value);
+		
+		//Style
+		value = value.getNextLexicalUnit();
+		if (value==null) {
+			throw new RuntimeException("Stroke shortcut is missing properties.");
+		}
+		/*int style =*/ ReadGeneralStyle(value);
+		
+		//Color
+		value = value.getNextLexicalUnit();
+		if (value==null) {
+			throw new RuntimeException("Stroke shortcut is missing properties.");
+		}
+		Color clr = ReadGeneralColor(value);
+		
+		//Done!
+		return new Object[] {
+			clr,
+			new BasicStroke(width)
+		};
 	}
 	
 	private static Color ReadColorIdentity(LexicalUnit value) {
-		String ident = value.getStringValue();
-		if (!IdentityColors.containsKey(ident.toLowerCase())) {
-			throw new RuntimeException("Invalid color identity: " + ident;);
+		Color res = IdentityColors.get(value.getStringValue().toLowerCase());
+		if (res==null) {
+			throw new RuntimeException("Invalid color identity: " + value.getStringValue());
 		}
-		return IdentityColors.get(ident);
+		return res;
+	}
+	
+	private static Color ReadColorRgb(LexicalUnit value) {
+		ArrayList<Integer> rgb = new ArrayList<Integer>();
+		LexicalUnit currPair = value.getParameters();;
+		while (currPair!=null) {
+			if (currPair.getLexicalUnitType()==LexicalUnit.SAC_INTEGER) {
+				rgb.add(currPair.getIntegerValue());
+			}
+			currPair = currPair.getNextLexicalUnit();
+			if (currPair==null || currPair.getLexicalUnitType()!=LexicalUnit.SAC_OPERATOR_COMMA) {
+				break;
+			}
+			currPair = currPair.getNextLexicalUnit();
+		}
+		
+		//Generate the RGB equivalent.
+		if (rgb.size()!=3) {
+			throw new RuntimeException("Invalid RGB string.");
+		}
+		
+		return new Color(rgb.get(0), rgb.get(1), rgb.get(2));
 	}
 	
 	
@@ -73,66 +137,75 @@ public class BatikCSS_Loader {
 	//Helper class
 	private static class MyDocumentHandler implements DocumentHandler {
 		private CSS_Interface res;
+		private String currSelectorName; //What we're currently working on.
+		
+		private float currStrokeWidth; //Partial building.
+		private int currStrokeStyle;   //Partial building. For now, only "solid" (0)
 		public MyDocumentHandler(CSS_Interface res) { this.res = res; }
 		
 		
 		
 		public void property(String name, LexicalUnit value, boolean important) throws CSSException {
-			System.out.print("  " + name + " : ");
-			if (value.getLexicalUnitType()==LexicalUnit.SAC_IDENT) {
-				System.out.print(value.getStringValue());
-			} else if (value.getLexicalUnitType()==LexicalUnit.SAC_PIXEL) {
-				System.out.print(value.getFloatValue());
+			if (currSelectorName==null) {
+				return;
+			}			
+			
+			//Handle the value based on the name.
+			name = name.trim();
+			if (name.equals("background")) {
+				res.backgroundColors.put(currSelectorName, ReadGeneralColor(value));
+			} else if (name.equals("border-color")) {
+				res.lineColors.put(currSelectorName, ReadGeneralColor(value));
+			} else if (name.equals("border-width")) {
+				currStrokeWidth = ReadGeneralFloat(value);
 				
-				//border?
-				LexicalUnit curr = value.getNextLexicalUnit();
-				while (curr!=null) {
-					if (curr.getLexicalUnitType()==LexicalUnit.SAC_IDENT) {
-						System.out.print(" (" + curr.getStringValue() + ")");
-					} else if (curr.getLexicalUnitType()==LexicalUnit.SAC_RGBCOLOR) {
-						LexicalUnit curr2 = curr.getParameters();;
-						
-						System.out.print(" (");
-						while (curr2!=null) {
-							if (curr2.getLexicalUnitType()==LexicalUnit.SAC_INTEGER) {
-								System.out.print(curr2.getIntegerValue());
-							}
-							if (curr2.getLexicalUnitType()==LexicalUnit.SAC_OPERATOR_COMMA) {
-								System.out.print(",");
-							}
-							curr2=curr2.getNextLexicalUnit();
-						}
-						System.out.print(")");
-					} else {
-						System.out.print(" <" + curr.getLexicalUnitType() + ">");
-					}
-					curr = curr.getNextLexicalUnit();
+				//Build it?
+				if (currStrokeWidth>0 && currStrokeStyle==0) {
+					res.lineStrokes.put(currSelectorName, new BasicStroke(currStrokeWidth));
+					currStrokeWidth = -1;
+					currStrokeStyle = -1;
 				}
-			} else if (value.getLexicalUnitType()==LexicalUnit.SAC_RGBCOLOR) {
-				LexicalUnit curr = value.getParameters();;
+			} else if (name.equals("border-style")) {
+				currStrokeStyle = ReadGeneralStyle(value);
 				
-				while (curr!=null) {
-					if (curr.getLexicalUnitType()==LexicalUnit.SAC_INTEGER) {
-						System.out.print(curr.getIntegerValue());
-					}
-					if (curr.getLexicalUnitType()==LexicalUnit.SAC_OPERATOR_COMMA) {
-						System.out.print(",");
-					}
-					curr=curr.getNextLexicalUnit();
+				//Build it?
+				if (currStrokeWidth>0 && currStrokeStyle==0) {
+					res.lineStrokes.put(currSelectorName, new BasicStroke(currStrokeWidth));
+					currStrokeWidth = -1;
+					currStrokeStyle = -1;
 				}
+			} else if (name.equals("border")) {
+				//Shortcut declaration: width, style, color
 			} else {
-				System.out.print("<" + value.getLexicalUnitType() + ">");
+				System.out.println("Skipping CSS property: " + name);
+				Object[] objs = ReadAndMakeColor(value);
+				res.lineColors.put(currSelectorName, (Color)objs[0]);
+				res.lineStrokes.put(currSelectorName, (Stroke)objs[1]);
 			}
-			System.out.println();
 		}
 		
 		public void startSelector(SelectorList selectors) throws CSSException {
-			Selector first = selectors.item(0);
-			System.out.println(first.toString() + " {");
+			if (selectors.getLength()!=1) {
+				throw new RuntimeException("Unknown: multiple selectors.");
+			}
+			
+			//Save for later.
+			//Trim, remove the *. before the class name.
+			Selector currSelector = selectors.item(0);
+			currSelectorName = currSelector.toString().trim();
+			if (currSelectorName.startsWith("*.")) {
+				currSelectorName = currSelectorName.substring(2);
+			} else {
+				System.out.println("Skipping CSS class name: " + currSelectorName);
+				return;
+			}
+
 		}
 		
 		public void endSelector(SelectorList selectors) throws CSSException {
-			System.out.println("}");
+			currSelectorName = null;
+			currStrokeWidth = -1;
+			currStrokeStyle = -1;
 		}
 		
 		public void startDocument(InputSource source) throws CSSException {}

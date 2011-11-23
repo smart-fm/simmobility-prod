@@ -1,8 +1,10 @@
 package sim_mob.conf;
 
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Hashtable;
 
 import org.apache.batik.css.parser.Parser;
 import org.w3c.css.sac.CSSException;
@@ -19,8 +21,16 @@ import org.w3c.css.sac.SelectorList;
  * @author sethhetu
  */
 public class BatikCSS_Loader {
+	//List of colors by ID
+	private static Hashtable<String, Color> IdentityColors;
+	
 	//Load each file in order, overwriting settings as you go.
 	public static CSS_Interface LoadCSS_Interface(ArrayList<BufferedReader> files) {
+		if (IdentityColors==null) {
+			IdentityColors = new Hashtable<String, Color>();
+			CssColorIdentifiers.LoadIdentityColors(IdentityColors);
+		}
+		
 		CSS_Interface csi = new CSS_Interface();
 		for (BufferedReader f : files) {
 			try {
@@ -39,6 +49,23 @@ public class BatikCSS_Loader {
 		Parser p = new Parser();
 		p.setDocumentHandler(new MyDocumentHandler(res));
 		p.parseStyleSheet(new InputSource(f));
+	}
+	
+	
+	
+	//Processing nodes & helpers
+	private static Color ReadBackground(LexicalUnit value) {
+		if (value.getLexicalUnitType()==LexicalUnit.SAC_IDENT) {
+			return ReadColorIdentity(value);
+		}
+	}
+	
+	private static Color ReadColorIdentity(LexicalUnit value) {
+		String ident = value.getStringValue();
+		if (!IdentityColors.containsKey(ident.toLowerCase())) {
+			throw new RuntimeException("Invalid color identity: " + ident;);
+		}
+		return IdentityColors.get(ident);
 	}
 	
 	

@@ -150,6 +150,8 @@ const Lane* sim_mob::GeneralPathMover::leaveIntersection()
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
 	throwIf(!inIntersection, "Not actually in an Intersection!");
 
+	if (DebugOn) { DebugStream <<"User left intersection." <<endl; }
+
 	//Unset flag; move to the next segment.
 	inIntersection = false;
 	return actualMoveToNextSegmentAndUpdateDir();
@@ -218,6 +220,8 @@ double sim_mob::GeneralPathMover::advanceToNextPolyline()
 
 	//Update length, OR move to a new Segment
 	if (nextPolypoint == polypointsList.end()) {
+		if (DebugOn) { DebugStream <<"On new Road Segment" <<endl; }
+
 		return advanceToNextRoadSegment();
 	} else {
 		if (DebugOn) {
@@ -245,6 +249,8 @@ double sim_mob::GeneralPathMover::advanceToNextRoadSegment()
 	//Note that distAlongPolyline should still be valid.
 	if (currSegmentIt+1!=fullPath.end()) {
 		if ((*currSegmentIt)->getLink() != (*(currSegmentIt+1))->getLink()) {
+			if (DebugOn) { DebugStream <<"Now in Intersection" <<endl; }
+
 			//Return early; we can't actually move the car now.
 			inIntersection = true;
 			return distAlongPolyline;
@@ -415,8 +421,15 @@ void sim_mob::GeneralPathMover::shiftToNewPolyline(bool moveLeft)
 void sim_mob::GeneralPathMover::moveToNewPolyline(int newLaneID)
 {
 	//Nothing to do?
-	if (newLaneID<0 || newLaneID>=static_cast<int>((*currSegmentIt)->getLanes().size())) {
+	if (newLaneID==currLaneID) {
 		return;
+	}
+
+	if (DebugOn) {  DebugStream <<"Switching to new lane: " <<newLaneID <<" from lane: " <<currLaneID <<endl;  }
+
+	//Invalid ID?
+	if (newLaneID<0 || newLaneID>=static_cast<int>((*currSegmentIt)->getLanes().size())) {
+		throw std::runtime_error("Switching to an invalid lane ID.");
 	}
 
 

@@ -899,7 +899,8 @@ void sim_mob::Driver::intersectionVelocityUpdate()
 void sim_mob::Driver::justLeftIntersection(UpdateParams& p)
 {
 	p.currLane = nextLaneInNextLink;
-	vehicle->moveToNewLanePolyline(getLaneIndex(p.currLane));
+	p.currLaneIndex = getLaneIndex(p.currLane);
+	vehicle->moveToNewLanePolyline(p.currLaneIndex);
 	syncCurrLaneCachedInfo(p);
 	p.currLaneOffset = vehicle->getDistanceMovedInSegment();
 	targetLaneIndex = p.currLaneIndex;

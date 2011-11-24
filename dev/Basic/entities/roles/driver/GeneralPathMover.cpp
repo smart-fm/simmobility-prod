@@ -118,6 +118,11 @@ void sim_mob::GeneralPathMover::generateNewPolylineArray()
 	const vector<Point2D>& tempLaneZero = const_cast<RoadSegment*>(*currSegmentIt)->getLaneEdgePolyline(0);
 	currLaneZeroPolypoint = tempLaneZero.begin();
 	nextLaneZeroPolypoint = tempLaneZero.end()+1;
+
+	//Debug output
+	if (DebugOn) {
+		DebugStream <<"On new polyline (1 of " <<polypointsList.size()-1 <<") of length: " <<Fmt_M(currPolylineLength()) <<"  length of lane zero: " <<Fmt_M(dist(&(*nextLaneZeroPolypoint), &(*currLaneZeroPolypoint))) <<endl;
+	}
 }
 
 bool sim_mob::GeneralPathMover::isPathSet() const
@@ -172,6 +177,11 @@ double sim_mob::GeneralPathMover::advance(double fwdDistance)
 		return 0;
 	}
 
+	//Debug output
+	if (DebugOn) {
+		DebugStream <<"  +" <<fwdDistance <<"cm" <<", (" <<Fmt_M(distAlongPolyline) <<")";
+	}
+
 	//Next, if we are truly at the end of the path, we should probably throw an error for trying to advance.
 	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
 
@@ -180,6 +190,8 @@ double sim_mob::GeneralPathMover::advance(double fwdDistance)
 	distAlongPolyline += fwdDistance;
 	//distMovedInSegment += fwdDistance;
 	while (distAlongPolyline>=currPolylineLength() && !inIntersection) {
+		if (DebugOn) { DebugStream <<endl; }
+
 		//Subtract distance moved thus far
 		distAlongPolyline -= currPolylineLength();
 
@@ -207,6 +219,10 @@ double sim_mob::GeneralPathMover::advanceToNextPolyline()
 	//Update length, OR move to a new Segment
 	if (nextPolypoint == polypointsList.end()) {
 		return advanceToNextRoadSegment();
+	} else {
+		if (DebugOn) {
+			DebugStream <<"On new polyline (" <<(currPolypoint-polypointsList.begin()+1) <<" of " <<polypointsList.size()-1 <<") of length: " <<Fmt_M(currPolylineLength()) <<"  length of lane zero: " <<Fmt_M(dist(&(*nextLaneZeroPolypoint), &(*currLaneZeroPolypoint))) <<endl;
+		}
 	}
 
 	return 0;

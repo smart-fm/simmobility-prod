@@ -117,7 +117,7 @@ void sim_mob::GeneralPathMover::generateNewPolylineArray()
 	//Set our lane zero polypoint-ers.
 	const vector<Point2D>& tempLaneZero = const_cast<RoadSegment*>(*currSegmentIt)->getLaneEdgePolyline(0);
 	currLaneZeroPolypoint = tempLaneZero.begin();
-	nextLaneZeroPolypoint = tempLaneZero.end()+1;
+	nextLaneZeroPolypoint = tempLaneZero.begin()+1;
 
 	//Debug output
 	if (DebugOn) {

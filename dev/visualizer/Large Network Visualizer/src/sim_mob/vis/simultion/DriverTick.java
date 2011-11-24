@@ -19,6 +19,8 @@ import sim_mob.vis.util.Utility;
  */
 public class DriverTick extends AgentTick {
 	private static Stroke debugStr = new BasicStroke(1.0F);
+	private static Color debugClr = new Color(0x00, 0x00, 0x66);
+	private static final boolean DebugOn = true;
 	
 	private static BufferedImage CarImg;
 	static {
@@ -75,10 +77,15 @@ public class DriverTick extends AgentTick {
 		g.setTransform(oldAT);
 		
 		//Sample debug output
-		if (true) {
-			g.setColor(Color.magenta);
+		if (DebugOn) {
+			int sz = 10;
+			int x = (int)pos.getX();
+			int y = (int)pos.getY();
+			g.setColor(debugClr);
 			g.setStroke(debugStr);
-			g.drawOval((int)pos.getX()-10, (int)pos.getY()-10, 20, 20);
+			g.drawOval(x-sz, y-sz, 2*sz, 2*sz);
+			g.drawLine(x-3*sz/2, y, x+3*sz/2,y);
+			g.drawLine(x, y-3*sz/2, x, y+3*sz/2);
 		}
 		
 		

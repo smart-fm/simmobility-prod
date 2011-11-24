@@ -20,7 +20,7 @@ using std::endl;
 
 
 //Used for path debugging.
-const bool sim_mob::GeneralPathMover::DebugOn = true;
+const bool sim_mob::GeneralPathMover::DebugOn = false;
 
 
 sim_mob::GeneralPathMover::GeneralPathMover() : distAlongPolyline(0), /*currPolylineLength(0),*/

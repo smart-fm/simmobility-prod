@@ -121,7 +121,8 @@ void sim_mob::GeneralPathMover::generateNewPolylineArray()
 
 	//Debug output
 	if (DebugOn) {
-		DebugStream <<"On new polyline (1 of " <<polypointsList.size()-1 <<") of length: " <<Fmt_M(currPolylineLength()) <<"  length of lane zero: " <<Fmt_M(dist(&(*nextLaneZeroPolypoint), &(*currLaneZeroPolypoint))) <<endl;
+		DebugStream <<"On new polyline (1 of " <<polypointsList.size()-1 <<") of length: " <<Fmt_M(currPolylineLength()) <<"  length of lane zero: " <<Fmt_M(dist(&(*nextLaneZeroPolypoint), &(*currLaneZeroPolypoint))) <<", starting at: " <<Fmt_M(distAlongPolyline) <<", starting at: " <<Fmt_M(distAlongPolyline) <<endl;
+		DebugStream <<"Distance of polyline end from end of Road Segment: " <<Fmt_M(dist(&polypointsList.back(), (*currSegmentIt)->getEnd()->location)) <<endl;
 	}
 }
 
@@ -181,7 +182,7 @@ double sim_mob::GeneralPathMover::advance(double fwdDistance)
 
 	//Debug output
 	if (DebugOn) {
-		DebugStream <<"  +" <<fwdDistance <<"cm" <<", (" <<Fmt_M(distAlongPolyline) <<")";
+		DebugStream <<"  +" <<fwdDistance <<"cm" <<", (" <<Fmt_M(distAlongPolyline+fwdDistance) <<")";
 	}
 
 	//Next, if we are truly at the end of the path, we should probably throw an error for trying to advance.
@@ -192,7 +193,10 @@ double sim_mob::GeneralPathMover::advance(double fwdDistance)
 	distAlongPolyline += fwdDistance;
 	//distMovedInSegment += fwdDistance;
 	while (distAlongPolyline>=currPolylineLength() && !inIntersection) {
-		if (DebugOn) { DebugStream <<endl; }
+		if (DebugOn) {
+			Point2D myPos(getPosition().x, getPosition().y);
+			DebugStream <<endl <<"Now at polyline end. Distance from actual end: " <<Fmt_M(dist(&(*nextPolypoint), &myPos)) <<endl;
+		}
 
 		//Subtract distance moved thus far
 		distAlongPolyline -= currPolylineLength();
@@ -225,7 +229,7 @@ double sim_mob::GeneralPathMover::advanceToNextPolyline()
 		return advanceToNextRoadSegment();
 	} else {
 		if (DebugOn) {
-			DebugStream <<"On new polyline (" <<(currPolypoint-polypointsList.begin()+1) <<" of " <<polypointsList.size()-1 <<") of length: " <<Fmt_M(currPolylineLength()) <<"  length of lane zero: " <<Fmt_M(dist(&(*nextLaneZeroPolypoint), &(*currLaneZeroPolypoint))) <<endl;
+			DebugStream <<"On new polyline (" <<(currPolypoint-polypointsList.begin()+1) <<" of " <<polypointsList.size()-1 <<") of length: " <<Fmt_M(currPolylineLength()) <<"  length of lane zero: " <<Fmt_M(dist(&(*nextLaneZeroPolypoint), &(*currLaneZeroPolypoint))) <<", starting at: " <<Fmt_M(distAlongPolyline) <<endl;
 		}
 	}
 
@@ -249,7 +253,8 @@ double sim_mob::GeneralPathMover::advanceToNextRoadSegment()
 	//Note that distAlongPolyline should still be valid.
 	if (currSegmentIt+1!=fullPath.end()) {
 		if ((*currSegmentIt)->getLink() != (*(currSegmentIt+1))->getLink()) {
-			if (DebugOn) { DebugStream <<"Now in Intersection" <<endl; }
+			Point2D myPos(getPosition().x, getPosition().y);
+			if (DebugOn) { DebugStream <<"Now in Intersection. Distance from Node center: " <<Fmt_M(dist((*currSegmentIt)->getEnd()->location, &myPos)) <<endl; }
 
 			//Return early; we can't actually move the car now.
 			inIntersection = true;

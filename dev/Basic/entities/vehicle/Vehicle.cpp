@@ -147,6 +147,7 @@ DPoint sim_mob::Vehicle::getPosition() const
 			fwdMovement.getNextPolypoint().getX()-fwdMovement.getCurrPolypoint().getX(),
 			fwdMovement.getNextPolypoint().getY()-fwdMovement.getCurrPolypoint().getY()
 		);
+		latMv.flipLeft();
 		latMv.scaleVectTo(latMovement).translateVect();
 		origPos.x += latMv.getX();
 		origPos.y += latMv.getY();

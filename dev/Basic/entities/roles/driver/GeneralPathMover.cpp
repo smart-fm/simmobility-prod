@@ -182,7 +182,10 @@ double sim_mob::GeneralPathMover::advance(double fwdDistance)
 
 	//Debug output
 	if (DebugOn) {
-		DebugStream <<"  +" <<fwdDistance <<"cm" <<", (" <<Fmt_M(distAlongPolyline+fwdDistance) <<")";
+		//DebugStream <<"  +" <<fwdDistance <<"cm" <<", (" <<Fmt_M(distAlongPolyline+fwdDistance) <<")";
+		//Print the distance from the next Node
+		Point2D myPos(getPosition().x, getPosition().y);
+		DebugStream <<"  " <<Fmt_M(dist(&myPos, (*currSegmentIt)->getEnd()->location))  <<",";
 	}
 
 	//Next, if we are truly at the end of the path, we should probably throw an error for trying to advance.

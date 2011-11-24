@@ -1,6 +1,9 @@
 package sim_mob.vis.simultion;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Stroke;
 
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
@@ -15,6 +18,8 @@ import sim_mob.vis.util.Utility;
  * Driver "Agent Tick"
  */
 public class DriverTick extends AgentTick {
+	private static Stroke debugStr = new BasicStroke(1.0F);
+	
 	private static BufferedImage CarImg;
 	static {
 		try {
@@ -68,6 +73,13 @@ public class DriverTick extends AgentTick {
 		
 		//Restore old transformation matrix
 		g.setTransform(oldAT);
+		
+		//Sample debug output
+		if (true) {
+			g.setColor(Color.magenta);
+			g.setStroke(debugStr);
+			g.drawOval((int)pos.getX()-10, (int)pos.getY()-10, 20, 20);
+		}
 		
 		
 	}

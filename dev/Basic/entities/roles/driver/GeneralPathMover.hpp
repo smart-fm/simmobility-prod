@@ -141,6 +141,8 @@ private:
 	const Lane* actualMoveToNextSegmentAndUpdateDir();
 	void generateNewPolylineArray();
 	void calcNewLaneDistances();
+	static double CalcSegmentLaneZeroDist(std::vector<const sim_mob::RoadSegment*>::const_iterator start, std::vector<const sim_mob::RoadSegment*>::const_iterator end);
+	static std::string Fmt_M(centimeter_t dist); //Helper to format cm as m for debug output.
 
 	//General throw function. There is probably a better way to do this.
 	void throwIf(bool conditional, const std::string& msg) const {

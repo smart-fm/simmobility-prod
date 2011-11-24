@@ -15,6 +15,7 @@
 
 using namespace sim_mob;
 using std::vector;
+using std::string;
 using std::endl;
 
 
@@ -36,9 +37,24 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 	}
 
 	//Add RoadSegments to the path.
+	Link* currLink = nullptr;
+	bool fwd = firstSegMoveFwd;
 	fullPath.clear();
 	for(vector<const RoadSegment*>::const_iterator it=path.begin(); it!=path.end(); it++) {
 		fullPath.push_back(*it);
+
+		if (DebugOn) {
+			DebugStream <<"  " <<(*it)->getStart()->originalDB_ID.getLogItem() <<"=>" <<(*it)->getEnd()->originalDB_ID.getLogItem();
+			if ((*it)->getLink()!=currLink) {
+				currLink = (*it)->getLink();
+				if (it!=path.begin()) {
+					fwd = (*it)->getLink()->getStart() == (*it)->getStart();
+				}
+				DebugStream <<"  Link: " <<currLink <<" fwd: " <<(fwd?"true":"false") <<"  length: " <<Fmt_M(currLink->getLength(fwd)) <<"  poly-length: " <<Fmt_M(CalcSegmentLaneZeroDist(it, path.end()));
+			}
+			DebugStream <<endl;
+			DebugStream <<"    Euclidean length: " <<Fmt_M(dist((*it)->getStart()->location, (*it)->getEnd()->location)) <<"   reported length: " <<Fmt_M((*it)->length) <<endl;
+		}
 	}
 
 	//Re-generate the polylines array, etc.
@@ -54,19 +70,32 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 void sim_mob::GeneralPathMover::calcNewLaneDistances()
 {
 	distMovedInPrevSegments = 0;
-	distOfThisSegment = 0;
-	for (vector<const RoadSegment*>::iterator it=currSegmentIt;it!=fullPath.end();it++) {
+	distOfThisSegment = CalcSegmentLaneZeroDist(currSegmentIt, fullPath.end());
+}
+
+string sim_mob::GeneralPathMover::Fmt_M(centimeter_t dist)
+{
+	std::stringstream res;
+	res <<static_cast<int>(dist/100) <<" m";
+	return res.str();
+}
+
+double sim_mob::GeneralPathMover::CalcSegmentLaneZeroDist(vector<const RoadSegment*>::const_iterator start, vector<const RoadSegment*>::const_iterator end)
+{
+	double res = 0.0;
+	for (vector<const RoadSegment*>::const_iterator it=start;it!=end;it++) {
 		//Add all polylines in this Segment
 		const vector<Point2D>& polyLine = const_cast<RoadSegment*>(*it)->getLaneEdgePolyline(0);
 		for (vector<Point2D>::const_iterator it2=polyLine.begin(); (it2+1)!=polyLine.end(); it2++) {
-			distOfThisSegment += dist(it2->getX(), it2->getY(), (it2+1)->getX(), (it2+1)->getY());
+			res += dist(it2->getX(), it2->getY(), (it2+1)->getX(), (it2+1)->getY());
 		}
 
 		//Break if the next Segment isn't in this link.
-		if ((it+1==fullPath.end()) || ((*it)->getLink() != (*(it+1))->getLink()))  {
+		if ((it+1==end) || ((*it)->getLink() != (*(it+1))->getLink()))  {
 			break;
 		}
 	}
+	return res;
 }
 
 void sim_mob::GeneralPathMover::generateNewPolylineArray()

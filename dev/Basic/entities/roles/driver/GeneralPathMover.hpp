@@ -3,6 +3,7 @@
 #pragma once
 
 #include <vector>
+#include <sstream>
 
 #include "util/DynamicVector.hpp"
 #include "geospatial/Point2D.hpp"
@@ -128,6 +129,10 @@ private:
 
 	//For tracking lane IDs
 	int currLaneID;
+
+	//Debug
+	static const bool DebugOn;
+	mutable std::stringstream DebugStream;
 
 private:
 	//Helper functions

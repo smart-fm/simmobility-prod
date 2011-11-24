@@ -15,6 +15,11 @@
 
 using namespace sim_mob;
 using std::vector;
+using std::endl;
+
+
+//Used for path debugging.
+const bool sim_mob::GeneralPathMover::DebugOn = true;
 
 
 sim_mob::GeneralPathMover::GeneralPathMover() : distAlongPolyline(0), /*currPolylineLength(0),*/
@@ -25,11 +30,18 @@ sim_mob::GeneralPathMover::GeneralPathMover() : distAlongPolyline(0), /*currPoly
 
 void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, bool firstSegMoveFwd, int startLaneID)
 {
+	if (DebugOn) {
+		DebugStream <<"New Path of length " <<path.size() <<endl;
+		DebugStream <<"Starting in Lane: " <<startLaneID <<endl;
+	}
+
+	//Add RoadSegments to the path.
 	fullPath.clear();
 	for(vector<const RoadSegment*>::const_iterator it=path.begin(); it!=path.end(); it++) {
 		fullPath.push_back(*it);
 	}
 
+	//Re-generate the polylines array, etc.
 	currSegmentIt = fullPath.begin();
 	isMovingForwardsInLink = firstSegMoveFwd;
 	currLaneID = startLaneID;
@@ -86,7 +98,17 @@ bool sim_mob::GeneralPathMover::isPathSet() const
 
 bool sim_mob::GeneralPathMover::isDoneWithEntireRoute() const
 {
-	return currSegmentIt==fullPath.end();
+	bool res = currSegmentIt==fullPath.end();
+
+	if (DebugOn && res) {
+		if (!DebugStream.str().empty()) {
+			DebugStream <<"Path is DONE." <<endl;
+			std::cout <<DebugStream.str();
+			DebugStream.str("");
+		}
+	}
+
+	return res;
 }
 
 const Lane* sim_mob::GeneralPathMover::leaveIntersection()

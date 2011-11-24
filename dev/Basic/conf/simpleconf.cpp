@@ -124,8 +124,8 @@ bool generateAgentsFromTripChain(std::vector<Agent*>& agents)
 		curr->startTime = (*it)->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 
 		//TEMP
-		cout <<"Starting time declared as: " <<(*it)->startTime.toString() <<"\n";
-		cout <<"   offset from " <<ConfigParams::GetInstance().simStartTime.toString() <<" is " <<(curr->startTime/1000.0) <<"s\n";
+		//cout <<"Starting time declared as: " <<(*it)->startTime.toString() <<"\n";
+		//cout <<"   offset from " <<ConfigParams::GetInstance().simStartTime.toString() <<" is " <<(curr->startTime/1000.0) <<"s\n";
 	}
 
 	return true;
@@ -810,12 +810,12 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     }
     std::cout <<"  Agents Initialized: " <<agents.size() <<"\n";
     for (size_t i=0; i<agents.size(); i++) {
-    	std::cout <<"    Agent(" <<agents[i]->getId() <<") = " <<agents[i]->xPos.get() <<"," <<agents[i]->yPos.get() <<"\n";
+    	//std::cout <<"    Agent(" <<agents[i]->getId() <<") = " <<agents[i]->xPos.get() <<"," <<agents[i]->yPos.get() <<"\n";
 
     	Person* p = dynamic_cast<Person*>(agents[i]);
     	if (p && p->getTripChain()) {
     		const TripChain* const tc = p->getTripChain();
-    		std::cout <<"      Trip Chain start time: " <<tc->startTime.toString()  <<" from: " <<tc->from.description <<"(" <<tc->from.location <<") to: " <<tc->to.description <<"(" <<tc->to.location <<") mode: " <<tc->mode <<" primary: " <<tc->primary  <<" flexible: " <<tc->flexible <<"\n";
+    		//std::cout <<"      Trip Chain start time: " <<tc->startTime.toString()  <<" from: " <<tc->from.description <<"(" <<tc->from.location <<") to: " <<tc->to.description <<"(" <<tc->to.location <<") mode: " <<tc->mode <<" primary: " <<tc->primary  <<" flexible: " <<tc->flexible <<"\n";
     	}
     }
     std::cout <<"------------------\n";

@@ -947,11 +947,14 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p)
 	if (actual==LCS_SAME) {
 		return;  //Not actually changing lanes.
 	}
-	if ((actual==LCS_LEFT && !p.leftLane) || (actual==LCS_RIGHT && !p.rightLane)) {
-		return; //Error condition
-	}
 	if (relative==LCS_SAME) {
 		relative=actual; //Unlikely to occur, but we can still work off this.
+	}
+	if (actual==relative) { //We haven't merged halfway yet; check there's actually a lane for us to merge into.
+		if ((actual==LCS_LEFT && !p.leftLane) || (actual==LCS_RIGHT && !p.rightLane)) {
+			throw std::runtime_error("Attempting to merge into a lane that doesn't exist.");
+			return; //Error condition
+		}
 	}
 
 	//Basically, we move "halfway" into the next lane, and then move "halfway" back to its midpoint.
@@ -964,7 +967,7 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p)
 			std::cout <<"Remainder: " <<remainder <<"\n";
 		}
 
-		if (remainder>0) {
+		if (remainder>=0) {
 			//Update Lanes, polylines, RoadSegments, etc.
 			p.currLane = (actual==LCS_LEFT?p.leftLane:p.rightLane);
 			syncCurrLaneCachedInfo(p);
@@ -978,6 +981,12 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p)
 	} else {
 		//Moving "in".
 		bool pastZero = (actual==LCS_LEFT) ? (vehicle->getLateralMovement()>0) : (vehicle->getLateralMovement()<0);
+
+		{
+			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+			std::cout <<"Movement: " <<vehicle->getLateralMovement() <<", done? " <<pastZero <<"\n";
+		}
+
 		if (pastZero) {
 			//Reset all
 			vehicle->resetLateralMovement();

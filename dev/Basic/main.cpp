@@ -189,7 +189,8 @@ bool performMain(const std::string& configFileName)
 	  //Output
 	  {
 		  boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-          cout <<"Approximate Tick Boundary: " <<currTick <<", " <<(currTick*config.baseGranMS) <<" ms" <<endl;
+          //cout <<"Approximate Tick Boundary: " <<currTick <<", " <<(currTick*config.baseGranMS) <<" ms" <<endl;
+		  //TEMP: Re-enable later.
 	  }
 
 	  //Update the signal logic and plans for every intersection grouped by region

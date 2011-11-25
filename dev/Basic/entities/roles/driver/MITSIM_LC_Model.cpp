@@ -253,6 +253,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(Upd
 	//now manually set to 1, it should be replaced by target lane index
 	//i am going to fix it.
 	int direction = 1 - p.currLaneIndex;
+	//direction = 0; //Otherwise drivers always merge.
 
 	//current lane is target lane
 	if(direction==0) {
@@ -296,8 +297,9 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(UpdateParams& p, double tot
 
 		//Get a random number, use it to determine if we're making a discretionary or a mandatory lane change
 		double randNum = (double)(rand()%1000)/1000;
+		double mandCheck = checkIfMandatory(p);
 		LANE_CHANGE_MODE changeMode;  //DLC or MLC
-		if(randNum<checkIfMandatory(p)){
+		if(randNum<mandCheck){
 			changeMode = MLC;
 		} else {
 			changeMode = DLC;

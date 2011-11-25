@@ -300,6 +300,8 @@ void sim_mob::Driver::update(frame_t frameNumber)
 		firstFrameTick = false;
 	}
 
+	updateAdjacentLanes(params); //Just a bit glitchy...
+
 	//Convert the current time to ms
 	unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
 
@@ -505,14 +507,17 @@ bool sim_mob::Driver::isPedestrianOnTargetCrossing() const
 //if there is no left or right lane, it will be null
 void sim_mob::Driver::updateAdjacentLanes(UpdateParams& p)
 {
-	p.leftLane = nullptr;
-	p.rightLane = nullptr;
+	//p.leftLane = nullptr;
+	//p.rightLane = nullptr;
+	if (!p.currLane) {
+		return; //Can't do anything without a lane to reference.
+	}
 
 	if(p.currLaneIndex>0) {
-		p.rightLane = vehicle->getCurrSegment()->getLanes().at(p.currLaneIndex-1);
+		p.rightLane = p.currLane->getRoadSegment()->getLanes().at(p.currLaneIndex-1);
 	}
-	if(p.currLaneIndex < vehicle->getCurrSegment()->getLanes().size()-1) {
-		p.leftLane = vehicle->getCurrSegment()->getLanes().at(p.currLaneIndex+1);
+	if(p.currLaneIndex < p.currLane->getRoadSegment()->getLanes().size()-1) {
+		p.leftLane = p.currLane->getRoadSegment()->getLanes().at(p.currLaneIndex+1);
 	}
 }
 
@@ -524,7 +529,7 @@ void sim_mob::Driver::syncCurrLaneCachedInfo(UpdateParams& p)
 	p.currLaneIndex = getLaneIndex(p.currLane);
 
 	//Update which lanes are adjacent.
-	updateAdjacentLanes(p);
+	//updateAdjacentLanes(p);
 
 	//Update the length of the current road segment.
 	p.currLaneLength = vehicle->getCurrLaneLength();
@@ -638,7 +643,7 @@ void sim_mob::Driver::setOrigin(UpdateParams& p)
 	vehicle->setAcceleration(0);
 
 	//Scan and save the lanes to the left and right.
-	updateAdjacentLanes(p);
+	//updateAdjacentLanes(p);
 
 	//Calculate and save the total length of the current polyline.
 	p.currLaneLength = vehicle->getCurrLaneLength();
@@ -953,6 +958,12 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p)
 	if (actual==relative) {
 		//Moving "out".
 		double remainder = fabs(vehicle->getLateralMovement()) - halfLaneWidth;
+
+		{
+			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+			std::cout <<"Remainder: " <<remainder <<"\n";
+		}
+
 		if (remainder>0) {
 			//Update Lanes, polylines, RoadSegments, etc.
 			p.currLane = (actual==LCS_LEFT?p.leftLane:p.rightLane);

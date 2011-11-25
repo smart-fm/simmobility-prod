@@ -953,7 +953,7 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p)
 	if (actual==relative) { //We haven't merged halfway yet; check there's actually a lane for us to merge into.
 		if ((actual==LCS_LEFT && !p.leftLane) || (actual==LCS_RIGHT && !p.rightLane)) {
 			throw std::runtime_error("Attempting to merge into a lane that doesn't exist.");
-			return; //Error condition
+			//return; //Error condition
 		}
 	}
 
@@ -972,6 +972,11 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p)
 			p.currLane = (actual==LCS_LEFT?p.leftLane:p.rightLane);
 			syncCurrLaneCachedInfo(p);
 			vehicle->shiftToNewLanePolyline(actual==LCS_LEFT);
+
+			//Check
+			if (p.currLane->is_pedestrian_lane()) {
+				throw std::runtime_error("Error: Car has moved onto sidewalk.");
+			}
 
 			//Set to the far edge of the other lane, minus any extra amount.
 			halfLaneWidth = p.currLane->getWidth() / 2.0;

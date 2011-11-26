@@ -443,6 +443,7 @@ void sim_mob::GeneralPathMover::moveToNewPolyline(int newLaneID)
 
 	//Save our progress
 	int distTraveled = currPolypoint - polypointsList.begin();
+	currLaneID = newLaneID;
 
 	//Update our polyline array
 	generateNewPolylineArray();

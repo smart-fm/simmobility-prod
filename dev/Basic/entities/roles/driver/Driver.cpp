@@ -531,8 +531,10 @@ bool sim_mob::Driver::isPedestrianOnTargetCrossing() const
 //if there is no left or right lane, it will be null
 void sim_mob::Driver::updateAdjacentLanes(UpdateParams& p)
 {
-	//p.leftLane = nullptr;
-	//p.rightLane = nullptr;
+	//Need to reset, we can call this after UpdateParams is initialized.
+	p.leftLane = nullptr;
+	p.rightLane = nullptr;
+
 	if (!p.currLane) {
 		return; //Can't do anything without a lane to reference.
 	}
@@ -553,7 +555,7 @@ void sim_mob::Driver::syncCurrLaneCachedInfo(UpdateParams& p)
 	p.currLaneIndex = getLaneIndex(p.currLane);
 
 	//Update which lanes are adjacent.
-	//updateAdjacentLanes(p);
+	updateAdjacentLanes(p);
 
 	//Update the length of the current road segment.
 	p.currLaneLength = vehicle->getCurrLaneLength();
@@ -992,7 +994,7 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p, LANE_CHANG
 		//Moving "out".
 		double remainder = fabs(vehicle->getLateralMovement()) - halfLaneWidth;
 
-		if (DebugOn) { DebugStream <<"    Moving out: " <<remainder <<endl; }
+		if (DebugOn) { DebugStream <<"    Moving out on Lane " <<p.currLaneIndex <<": " <<remainder <<endl; }
 
 		if (remainder>=0) {
 			//Update Lanes, polylines, RoadSegments, etc.
@@ -1023,7 +1025,7 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p, LANE_CHANG
 		//Moving "in".
 		bool pastZero = (actual==LCS_LEFT) ? (vehicle->getLateralMovement()>0) : (vehicle->getLateralMovement()<0);
 
-		if (DebugOn) { DebugStream <<"    Moving in: " <<vehicle->getLateralMovement() <<endl; }
+		if (DebugOn) { DebugStream <<"    Moving in on lane " <<p.currLaneIndex <<": " <<vehicle->getLateralMovement() <<endl; }
 
 		if (pastZero) {
 			//Reset all

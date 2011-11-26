@@ -34,6 +34,7 @@ using std::max;
 using std::vector;
 using std::set;
 using std::map;
+using std::string;
 using std::endl;
 
 
@@ -43,6 +44,16 @@ namespace {
 //Helpful constants
 const int distanceInFront = 2000;
 const int distanceBehind = 500;
+
+//Output helper
+string PrintLCS(LANE_CHANGE_SIDE s) {
+	if (s==LCS_LEFT) {
+		return "LCS_LEFT";
+	} else if (s==LCS_RIGHT) {
+		return "LCS_RIGHT";
+	}
+	return "LCS_SAME";
+}
 
 //used in lane changing, find the start index and end index of polyline in the target lane
 size_t updateStartEndIndex(const std::vector<sim_mob::Point2D>* const currLanePolyLine, double currLaneOffset, size_t defaultValue)
@@ -950,6 +961,7 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p)
 	LANE_CHANGE_SIDE actual = getCurrLaneChangeDirection();
 	LANE_CHANGE_SIDE relative = getCurrLaneSideRelativeToCenter();
 	if (actual==LCS_SAME) {
+		if (DebugOn) { DebugStream <<"  Lane change: " <<"ERROR: Called with \"same\"" <<endl; }
 		return;  //Not actually changing lanes.
 	}
 	if (relative==LCS_SAME) {
@@ -962,20 +974,28 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p)
 		}
 	}
 
+	if (DebugOn) { DebugStream <<"  Lane change: " <<PrintLCS(actual) <<" (" <<PrintLCS(relative) <<")" <<endl; }
+
 	//Basically, we move "halfway" into the next lane, and then move "halfway" back to its midpoint.
 	if (actual==relative) {
 		//Moving "out".
 		double remainder = fabs(vehicle->getLateralMovement()) - halfLaneWidth;
+
+		if (DebugOn) { DebugStream <<"    Moving out: " <<remainder <<endl; }
+
 		if (remainder>=0) {
 			//Update Lanes, polylines, RoadSegments, etc.
 			p.currLane = (actual==LCS_LEFT?p.leftLane:p.rightLane);
 			syncCurrLaneCachedInfo(p);
 			vehicle->shiftToNewLanePolyline(actual==LCS_LEFT);
 
+			if (DebugOn) { DebugStream <<"    Shifting to new lane." <<endl; }
+
 			//Check
 			if (p.currLane->is_pedestrian_lane()) {
 				//Flush debug output (we are debugging this error).
 				if (DebugOn) {
+					DebugStream <<">>>Exception: Moved to sidewalk." <<endl;
 					boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 					std::cout <<DebugStream.str();
 				}
@@ -991,10 +1011,15 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p)
 	} else {
 		//Moving "in".
 		bool pastZero = (actual==LCS_LEFT) ? (vehicle->getLateralMovement()>0) : (vehicle->getLateralMovement()<0);
+
+		if (DebugOn) { DebugStream <<"    Moving in: " <<vehicle->getLateralMovement() <<endl; }
+
 		if (pastZero) {
 			//Reset all
 			vehicle->resetLateralMovement();
 			vehicle->setLatVelocity(0);
+
+			if (DebugOn) { DebugStream <<"    New lane shift complete." <<endl; }
 		}
 
 	}

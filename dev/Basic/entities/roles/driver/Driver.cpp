@@ -232,6 +232,14 @@ void sim_mob::Driver::update_movement(UpdateParams& params, frame_t frameNumber)
 {
 	//If reach the goal, get back to the origin
 	if(vehicle->isDone()){
+		//Output
+		if (DebugOn && !DebugStream.str().empty()) {
+			DebugStream <<">>>Vehicle done." <<endl;
+			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+			std::cout <<DebugStream.str();
+			DebugStream.str("");
+		}
+
 		//TEMP: Move to (0,0). This should prevent collisions.
 		//TODO: Remove from simulation. Do this in the dispatcher at the same time...
 		parent->xPos.set(0);
@@ -390,9 +398,6 @@ void sim_mob::Driver::intersectionDriving(UpdateParams& p)
 //the movement is based on relative position
 double sim_mob::Driver::linkDriving(UpdateParams& p)
 {
-	//Retrieve what direction we're moving in, since it will "flip" if we cross the relative X axis.
-	LANE_CHANGE_SIDE relative = getCurrLaneSideRelativeToCenter();
-
 	//TODO: This might not be in the right location
 	p.dis2stop = vehicle->getCurrLinkLength() - currLinkOffset - vehicle->length/2 - 300;
 	p.dis2stop /= 100;
@@ -421,7 +426,7 @@ double sim_mob::Driver::linkDriving(UpdateParams& p)
 
 	//Update our chosen acceleration; update our position on the link.
 	vehicle->setAcceleration(newFwdAcc * 100);
-	return updatePositionOnLink(p, relative);
+	return updatePositionOnLink(p);
 }
 
 
@@ -704,10 +709,13 @@ double sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
 	//Move the vehicle forward.
 	double res = vehicle->moveFwd(fwdDistance);
 
+	//Retrieve what direction we're moving in, since it will "flip" if we cross the relative X axis.
+	LANE_CHANGE_SIDE relative = getCurrLaneSideRelativeToCenter();
+
 	//Lateral movement
 	if (latDistance!=0) {
 		vehicle->moveLat(latDistance);
-		updatePositionDuringLaneChange(p);
+		updatePositionDuringLaneChange(p, relative);
 	}
 
 	//Update our offset in the current lane.

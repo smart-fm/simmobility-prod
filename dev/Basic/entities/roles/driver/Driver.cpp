@@ -90,7 +90,7 @@ size_t getLaneIndex(const Lane* l)
 } //End anon namespace
 
 
-const bool sim_mob::Driver::DebugOn = true;
+const bool sim_mob::Driver::DebugOn = false;
 
 
 //initiate

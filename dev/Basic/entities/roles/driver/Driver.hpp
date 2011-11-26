@@ -137,7 +137,7 @@ private:
 
 	//void updateCurrLaneLength(UpdateParams& p);
 	void updateDisToLaneEnd();
-	void updatePositionDuringLaneChange(UpdateParams& p);
+	void updatePositionDuringLaneChange(UpdateParams& p, LANE_CHANGE_SIDE relative);
 	void saveCurrTrafficSignal();
 
 	void setTrafficSignalParams(UpdateParams& p) const;

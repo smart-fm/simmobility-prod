@@ -390,6 +390,9 @@ void sim_mob::Driver::intersectionDriving(UpdateParams& p)
 //the movement is based on relative position
 double sim_mob::Driver::linkDriving(UpdateParams& p)
 {
+	//Retrieve what direction we're moving in, since it will "flip" if we cross the relative X axis.
+	LANE_CHANGE_SIDE relative = getCurrLaneSideRelativeToCenter();
+
 	//TODO: This might not be in the right location
 	p.dis2stop = vehicle->getCurrLinkLength() - currLinkOffset - vehicle->length/2 - 300;
 	p.dis2stop /= 100;
@@ -418,7 +421,7 @@ double sim_mob::Driver::linkDriving(UpdateParams& p)
 
 	//Update our chosen acceleration; update our position on the link.
 	vehicle->setAcceleration(newFwdAcc * 100);
-	return updatePositionOnLink(p);
+	return updatePositionOnLink(p, relative);
 }
 
 
@@ -953,13 +956,13 @@ LANE_CHANGE_SIDE sim_mob::Driver::getCurrLaneSideRelativeToCenter() const
 
 
 //TODO: I think all lane changing occurs after 150m. Double-check please. ~Seth
-void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p)
+void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p, LANE_CHANGE_SIDE relative)
 {
 	double halfLaneWidth = p.currLane->getWidth() / 2.0;
 
 	//The direction we are attempting to change lanes in
 	LANE_CHANGE_SIDE actual = getCurrLaneChangeDirection();
-	LANE_CHANGE_SIDE relative = getCurrLaneSideRelativeToCenter();
+	//LANE_CHANGE_SIDE relative = getCurrLaneSideRelativeToCenter();
 	if (actual==LCS_SAME) {
 		if (DebugOn) { DebugStream <<"  Lane change: " <<"ERROR: Called with \"same\"" <<endl; }
 		return;  //Not actually changing lanes.
@@ -1006,7 +1009,7 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p)
 			//Set to the far edge of the other lane, minus any extra amount.
 			halfLaneWidth = p.currLane->getWidth() / 2.0;
 			vehicle->resetLateralMovement();
-			vehicle->moveLat((halfLaneWidth - remainder) * (actual==LCS_LEFT?1:-1));
+			vehicle->moveLat((halfLaneWidth - remainder) * (actual==LCS_LEFT?-1:1));
 		}
 	} else {
 		//Moving "in".

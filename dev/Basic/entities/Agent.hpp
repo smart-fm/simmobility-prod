@@ -50,11 +50,13 @@ public:
 	sim_mob::Buffered<int> xPos;  ///<The agent's position, X
 	sim_mob::Buffered<int> yPos;  ///<The agent's position, Y
 
-	sim_mob::Buffered<double> xVel;  ///<The agent's velocity, X
-	sim_mob::Buffered<double> yVel;  ///<The agent's velocity, Y
+	//sim_mob::Buffered<double> xVel;  ///<The agent's velocity, X
+	//sim_mob::Buffered<double> yVel;  ///<The agent's velocity, Y
+	sim_mob::Buffered<double> fwdVel;  //The agent's forward velocity
+	sim_mob::Buffered<double> latVel;  //The agent's forward velocity
 
-	sim_mob::Buffered<double> xAcc;  ///<The agent's acceleration, X
-	sim_mob::Buffered<double> yAcc;  ///<The agent's acceleration, Y
+	//sim_mob::Buffered<double> xAcc;  ///<The agent's acceleration, X
+	//sim_mob::Buffered<double> yAcc;  ///<The agent's acceleration, Y
 	//sim_mob::Buffered<int> currentLink;
 	//sim_mob::Buffered<int> currentCrossing;
 

@@ -746,8 +746,13 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 
 
 
+<<<<<<< HEAD
 #if 0
 	map<int,Node>::iterator it=nodes.find(66508);
+=======
+	//TEMP
+	/*map<int,Node>::iterator it=nodes.find(66508);
+>>>>>>> seth_vectmove
 	if (it!=nodes.end()) {
 		sim_mob::MultiNode* temp = dynamic_cast<sim_mob::MultiNode*>(it->second.generatedNode);
 		if (temp) {
@@ -767,6 +772,7 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 
 		}
 	}
+<<<<<<< HEAD
 	throw 1;
 #endif
 
@@ -809,6 +815,10 @@ DatabaseLoader::createSignals()
         // raise a ticket about this issue.
         signal.addSignalSite(dbSignal.xPos, dbSignal.yPos, dbSignal.typeCode, 0.0);
     }
+=======
+	throw 1;*/
+	//END TEMP
+>>>>>>> seth_vectmove
 }
 
 
@@ -907,9 +917,14 @@ void sim_mob::aimsun::Loader::FixupLanesAndCrossings(sim_mob::RoadNetwork& res)
 
 				}
 
+<<<<<<< HEAD
 #if 0
 				//Lane polylines
 				const std::vector<sim_mob::Lane*>& segmentLanes = (*itRS)->getLanes();
+=======
+				//Lane polylines
+/*				const std::vector<sim_mob::Lane*>& segmentLanes = (*itRS)->getLanes();
+>>>>>>> seth_vectmove
 				for(std::vector<sim_mob::Lane*>::const_iterator itLanes = segmentLanes.begin(); itLanes != segmentLanes.end(); ++itLanes)
 				{
 				    ///TODO get rid of ugly const_cast
@@ -928,7 +943,11 @@ void sim_mob::aimsun::Loader::FixupLanesAndCrossings(sim_mob::RoadNetwork& res)
 						lanePolyline[0] = ProjectOntoLine(lanePolyline[0], cross->farLine.first, cross->farLine.second);
 					}
 				}
+<<<<<<< HEAD
 #endif
+=======
+				*/
+>>>>>>> seth_vectmove
 			}
 		}
 	}
@@ -1241,6 +1260,21 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 
 		//Temporary workaround; Cut lanes short/extend them as reuquired.
 		for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {
+			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesStartLineCut, true);
+			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesEndLineCut, false);
+		}
+
+<<<<<<< HEAD
+=======
+		//Step Three: Perform data-guided cleanup.
+		PostProcessNetwork(nodes, sections, crossings, lanes, turnings, polylines);
+
+		//Step Four: Save
+		SaveSimMobilityNetwork(rn, tcs, nodes, sections, turnings, polylines, tripchains);
+>>>>>>> seth_vectmove
+
+		//Temporary workaround; Cut lanes short/extend them as reuquired.
+		for (map<int,Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
 			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesStartLineCut, true);
 			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesEndLineCut, false);
 		}

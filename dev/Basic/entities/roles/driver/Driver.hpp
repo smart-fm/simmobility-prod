@@ -168,6 +168,10 @@ private:
 	//The current traffic signal in our Segment. May be null.
 	const Signal* trafficSignal;
 
+	//For generating a debugging trace
+	static const bool DebugOn;
+	mutable std::stringstream DebugStream;
+
 
 };
 

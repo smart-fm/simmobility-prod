@@ -34,6 +34,7 @@ using std::max;
 using std::vector;
 using std::set;
 using std::map;
+using std::endl;
 
 
 //Helper functions
@@ -78,12 +79,16 @@ size_t getLaneIndex(const Lane* l)
 } //End anon namespace
 
 
+const bool sim_mob::Driver::DebugOn = true;
+
 
 //initiate
 sim_mob::Driver::Driver(Agent* parent) : Role(parent), currLane_(nullptr), currLaneOffset_(0),
 	currLaneLength_(0), isInIntersection(false), vehicle(nullptr), perceivedVelocity(reactTime, true),
 	perceivedVelocityOfFwdCar(reactTime, true), perceivedDistToFwdCar(reactTime, false)
 {
+	if (DebugOn) { DebugStream <<"Driver starting: " <<parent->getId() <<endl; }
+
 	//Set default speed in the range of 10m/s to 19m/s
 	//speed = 0;//1000*(1+((double)(rand()%10))/10);
 
@@ -961,12 +966,6 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p)
 	if (actual==relative) {
 		//Moving "out".
 		double remainder = fabs(vehicle->getLateralMovement()) - halfLaneWidth;
-
-		{
-			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-			std::cout <<"Remainder: " <<remainder <<"\n";
-		}
-
 		if (remainder>=0) {
 			//Update Lanes, polylines, RoadSegments, etc.
 			p.currLane = (actual==LCS_LEFT?p.leftLane:p.rightLane);
@@ -975,6 +974,12 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p)
 
 			//Check
 			if (p.currLane->is_pedestrian_lane()) {
+				//Flush debug output (we are debugging this error).
+				if (DebugOn) {
+					boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+					std::cout <<DebugStream.str();
+				}
+
 				throw std::runtime_error("Error: Car has moved onto sidewalk.");
 			}
 
@@ -986,12 +991,6 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p)
 	} else {
 		//Moving "in".
 		bool pastZero = (actual==LCS_LEFT) ? (vehicle->getLateralMovement()>0) : (vehicle->getLateralMovement()<0);
-
-		{
-			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-			std::cout <<"Movement: " <<vehicle->getLateralMovement() <<", done? " <<pastZero <<"\n";
-		}
-
 		if (pastZero) {
 			//Reset all
 			vehicle->resetLateralMovement();

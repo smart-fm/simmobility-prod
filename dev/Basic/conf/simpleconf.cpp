@@ -10,7 +10,6 @@
 //Include here (forward-declared earlier) to avoid include-cycles.
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
-#include "entities/Region.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "geospatial/aimsun/Loader.hpp"
@@ -99,6 +98,41 @@ int ReadGranularity(TiXmlHandle& handle, const std::string& granName)
 }
 
 
+bool generateAgentsFromTripChain(std::vector<Agent*>& agents)
+{
+	const vector<TripChain*>& tcs = ConfigParams::GetInstance().getTripChains();
+	for (vector<TripChain*>::const_iterator it=tcs.begin(); it!=tcs.end(); it++) {
+		//Create a new agent, add it to the list of agents.
+		Person* curr = new Person();
+		agents.push_back(curr);
+
+		//Set its mode.
+		if ((*it)->mode == "Car") {
+			curr->changeRole(new Driver(curr));
+		} else if ((*it)->mode == "Walk") {
+			curr->changeRole(new Pedestrian(curr));
+		} else {
+			cout <<"Unknown agent mode: " <<(*it)->mode <<endl;
+			return false;
+		}
+
+		//Origin, destination
+		curr->originNode = (*it)->from.location;
+		curr->destNode = (*it)->to.location;
+
+		//Start time
+		curr->startTime = (*it)->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
+
+		//TEMP
+		//cout <<"Starting time declared as: " <<(*it)->startTime.toString() <<"\n";
+		//cout <<"   offset from " <<ConfigParams::GetInstance().simStartTime.toString() <<" is " <<(curr->startTime/1000.0) <<"s\n";
+	}
+
+	return true;
+}
+
+
+
 bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const std::string& agentType)
 {
 	//Quick check.
@@ -117,7 +151,6 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 	//Loop through all agents of this type
 	for (;node;node=node->NextSiblingElement()) {
 		Person* agent = nullptr;
-		bool foundID = false;
 		bool foundXPos = false;
 		bool foundYPos = false;
 		bool foundOrigPos = false;
@@ -134,16 +167,23 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 				std::istringstream(value) >> valueI;
 			}
 
-			//Assign it.
+			//For now, IDs are assigned automatically
 			if (name=="id") {
-				agent = new Person(valueI);
+				throw std::runtime_error("Error: Agents should no longer specify IDs in the config file.");
+			}
+
+			//Create the agent if it doesn't exist
+			if (!agent) {
+				agent = new Person();
 				if (agentType=="pedestrian") {
 					agent->changeRole(new Pedestrian(agent));
 				} else if (agentType=="driver") {
 					agent->changeRole(new Driver(agent));
 				}
-				foundID = true;
-			} else if (name=="xPos") {
+			}
+
+			//Assign it.
+			if (name=="xPos") {
 				agent->xPos.force(valueI);
 				foundXPos = true;
 			} else if (name=="yPos") {
@@ -184,10 +224,6 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 
 		//Simple checks
 		bool foundOldPos = foundXPos && foundYPos;
-		if (!foundID) {
-			std::cout <<"id attribute not found.\n";
-			return false;
-		}
 		if (!foundOldPos && !foundOrigPos && !foundDestPos) {
 			std::cout <<"agent position information not found.\n";
 			return false;
@@ -250,10 +286,18 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal const *>& all_si
                     continue;
                 }
 
-                size_t id = all_signals.size();
-                Signal* sig = new Signal(id, *road_node);
-                all_signals.push_back(sig);
-                streetDirectory.registerSignal(*sig);
+                Signal const * signal = streetDirectory.signalAt(*road_node);
+                if (signal)
+                {
+                    std::cout << "signal at node(" << xpos << ", " << ypos << ") already exists; "
+                              << "skipping this config file entry" << std::endl;
+                }
+                else
+                {
+                    // The following call will create and register the signal with thessssss
+                    // street-directory.
+                    Signal::signalAt(*road_node);
+                }
             }
             catch (boost::bad_lexical_cast &)
             {
@@ -307,7 +351,7 @@ bool LoadDatabaseDetails(TiXmlElement& parentElem, string& connectionString, map
 	}
 
 	//Done; we'll check the storedProcedures in detail later.
-	return !connectionString.empty() && storedProcedures.size()==7;
+	return true;
 }
 
 
@@ -407,6 +451,9 @@ void PrintDB_Network()
 		LogOutNotSync("(\"uni-node\", 0, " <<*it <<", {");
 		LogOutNotSync("\"xPos\":\"" <<(*it)->location->getX() <<"\",");
 		LogOutNotSync("\"yPos\":\"" <<(*it)->location->getY() <<"\",");
+		if (!(*it)->originalDB_ID.getLogItem().empty()) {
+			LogOutNotSync((*it)->originalDB_ID.getLogItem());
+		}
 		LogOutNotSync("})" <<endl);
 
 		//Cache all segments
@@ -419,6 +466,9 @@ void PrintDB_Network()
 		LogOutNotSync("(\"multi-node\", 0, " <<*it <<", {");
 		LogOutNotSync("\"xPos\":\"" <<(*it)->location->getX() <<"\",");
 		LogOutNotSync("\"yPos\":\"" <<(*it)->location->getY() <<"\",");
+		if (!(*it)->originalDB_ID.getLogItem().empty()) {
+			LogOutNotSync((*it)->originalDB_ID.getLogItem());
+		}
 		LogOutNotSync("})" <<endl);
 
 		//NOTE: This is temporary; later we'll ensure that the RoadNetwork only stores Intersections,
@@ -470,6 +520,9 @@ void PrintDB_Network()
 		LogOutNotSync("\"lanes\":\"" <<(*it)->getLanes().size() <<"\",");
 		LogOutNotSync("\"from-node\":\"" <<(*it)->getStart() <<"\",");
 		LogOutNotSync("\"to-node\":\"" <<(*it)->getEnd() <<"\",");
+		if (!(*it)->originalDB_ID.getLogItem().empty()) {
+			LogOutNotSync((*it)->originalDB_ID.getLogItem());
+		}
 		LogOutNotSync("})" <<endl);
 
 		if (!(*it)->polyline.empty()) {
@@ -573,6 +626,10 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
 	int totalRuntime = ReadGranularity(handle, "total_runtime");
 	int totalWarmup = ReadGranularity(handle, "total_warmup");
 
+	//Save simulation start time
+	TiXmlElement* node = handle.FirstChild("start_time").ToElement();
+	const char* simStartStr = node ? node->Attribute("value") : nullptr;
+
 	//Save more granularities
 	handle = TiXmlHandle(&document);
 	handle = handle.FirstChild("config").FirstChild("system").FirstChild("granularities");
@@ -581,9 +638,18 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
 	int granPaths = ReadGranularity(handle, "paths");
 	int granDecomp = ReadGranularity(handle, "decomp");
 
+	//Miscelaneous settings
+	handle = TiXmlHandle(&document);
+	if (handle.FirstChild("config").FirstChild("system").FirstChild("misc").FirstChild("manual_fix_demo_intersection").ToElement()) {
+		ConfigParams::GetInstance().TEMP_ManualFixDemoIntersection = true;
+		cout <<">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" <<endl;
+		cout <<"Manual override used for demo intersection." <<endl;
+		cout <<"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" <<endl;
+	}
+
 	//Check
     if(    baseGran==-1 || totalRuntime==-1 || totalWarmup==-1
-    	|| granAgent==-1 || granSignal==-1 || granPaths==-1 || granDecomp==-1) {
+    	|| granAgent==-1 || granSignal==-1 || granPaths==-1 || granDecomp==-1 || !simStartStr) {
         return "Unable to read config file.";
     }
 
@@ -623,6 +689,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     	config.granSignalsTicks = granSignal/baseGran;
     	config.granPathsTicks = granPaths/baseGran;
     	config.granDecompTicks = granDecomp/baseGran;
+    	config.simStartTime = DailyTime(simStartStr);
     }
 
 
@@ -654,22 +721,11 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     			return "Unable to load database connection settings.";
     		}
 
-    		//Confirm that all stored procedures have been set.
-    		if (
-    			   storedProcedures.count("node")==0 || storedProcedures.count("section")==0
-    			|| storedProcedures.count("turning")==0 || storedProcedures.count("polyline")==0
-    			|| storedProcedures.count("crossing")==0 || storedProcedures.count("lane")==0
-    			|| storedProcedures.count("tripchain")==0
-    		) {
-    			return "Not all stored procedures were specified.";
-    		}
-
     		//Actually load it
     		string dbErrorMsg = sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetwork(), ConfigParams::GetInstance().getTripChains());
     		if (!dbErrorMsg.empty()) {
     			return "Database loading error: " + dbErrorMsg;
     		}
-                StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
 
     		//Finally, mask the password
     		string& s = ConfigParams::GetInstance().connectionString;
@@ -683,6 +739,12 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     	} else {
     		return "Unknown geometry type: " + (geomType?string(geomType):"");
     	}
+    }
+
+
+    //Create an agent for each Trip Chain in the database.
+    if (!generateAgentsFromTripChain(agents)) {
+    	return "Couldn't generate agents from trip chains.";
     }
 
 
@@ -702,17 +764,17 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
 
     //Sort agents by id.
     //TEMP: Eventually, we'll need a more sane way to deal with agent IDs.
-    std::sort(agents.begin(), agents.end(), agent_sort_by_id);
+    //std::sort(agents.begin(), agents.end(), agent_sort_by_id);
 
     //Assign each agent an arbitrary trip chain
-    for (vector<Agent*>::iterator it=agents.begin(); it!=agents.end(); it++) {
+    /*for (vector<Agent*>::iterator it=agents.begin(); it!=agents.end(); it++) {
     	Person* p = dynamic_cast<Person*>(*it);
     	if (p) {
     		int nextID = rand() % ConfigParams::GetInstance().getTripChains().size();
     		TripChain* tc = ConfigParams::GetInstance().getTripChains().at(nextID);
     		p->setTripChain(tc);
     	}
-    }
+    }*/
 
 
     //Display
@@ -725,6 +787,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     std::cout <<"  Signal Granularity: " <<ConfigParams::GetInstance().granSignalsTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Paths Granularity: " <<ConfigParams::GetInstance().granPathsTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Decomp Granularity: " <<ConfigParams::GetInstance().granDecompTicks <<" " <<"ticks" <<"\n";
+    std::cout <<"  Start time: " <<ConfigParams::GetInstance().simStartTime.toString() <<"\n";
     if (!ConfigParams::GetInstance().boundaries.empty() || !ConfigParams::GetInstance().crossings.empty()) {
     	std::cout <<"  Boundaries Found: " <<ConfigParams::GetInstance().boundaries.size() <<"\n";
 		for (map<string, Point2D>::iterator it=ConfigParams::GetInstance().boundaries.begin(); it!=ConfigParams::GetInstance().boundaries.end(); it++) {
@@ -744,15 +807,19 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     }
     std::cout <<"  Agents Initialized: " <<agents.size() <<"\n";
     for (size_t i=0; i<agents.size(); i++) {
-    	std::cout <<"    Agent(" <<agents[i]->getId() <<") = " <<agents[i]->xPos.get() <<"," <<agents[i]->yPos.get() <<"\n";
+    	//std::cout <<"    Agent(" <<agents[i]->getId() <<") = " <<agents[i]->xPos.get() <<"," <<agents[i]->yPos.get() <<"\n";
 
     	Person* p = dynamic_cast<Person*>(agents[i]);
-    	if (p) {
+    	if (p && p->getTripChain()) {
     		const TripChain* const tc = p->getTripChain();
-    		std::cout <<"      Trip Chain start time: " <<tc->startTime  <<" from: " <<tc->from.description <<"(" <<tc->from.location <<") to: " <<tc->to.description <<"(" <<tc->to.location <<") mode: " <<tc->mode <<" primary: " <<tc->primary  <<" flexible: " <<tc->flexible <<"\n";
+    		//std::cout <<"      Trip Chain start time: " <<tc->startTime.toString()  <<" from: " <<tc->from.description <<"(" <<tc->from.location <<") to: " <<tc->to.description <<"(" <<tc->to.location <<") mode: " <<tc->mode <<" primary: " <<tc->primary  <<" flexible: " <<tc->flexible <<"\n";
     	}
     }
     std::cout <<"------------------\n";
+
+    // PrintDB_Network() calls getLaneEdgePolyline() which inserts side-walks into the
+    // road-segments.  We can only only initialize the StreetDirectory only now, not before.
+    StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
 
 	//No error
 	return "";
@@ -768,7 +835,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
 // Simple singleton implementation
 //////////////////////////////////////////
 ConfigParams sim_mob::ConfigParams::instance;
-sim_mob::ConfigParams::ConfigParams() {
+sim_mob::ConfigParams::ConfigParams() : TEMP_ManualFixDemoIntersection(false) {
 
 }
 ConfigParams& sim_mob::ConfigParams::GetInstance() {
@@ -783,8 +850,7 @@ ConfigParams& sim_mob::ConfigParams::GetInstance() {
 // Main external method
 //////////////////////////////////////////
 
-bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Agent*>& agents, std::vector<Region*>& regions,
-		          /*std::vector<TripChain*>& trips,*/ std::vector<ChoiceSet*>& chSets)
+bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Agent*>& agents)
 {
 	//Load our config file into an XML document object.
 	TiXmlDocument doc(configPath);
@@ -801,13 +867,7 @@ bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<A
 		std::cout <<"Aborting on Config Error: " <<errorMsg <<std::endl;
 	}
 
-	//TEMP:
-	for (size_t i=0; i<5; i++)
-		regions.push_back(new Region(i));
-	/*for (size_t i=0; i<6; i++)
-		trips.push_back(new TripChain(i));*/
-	for (size_t i=0; i<15; i++)
-		chSets.push_back(new ChoiceSet(i));
+	//Emit a message if parsing was successful.
 	if (errorMsg.empty()) {
 		std::cout <<"Configuration complete." <<std::endl;
 	}

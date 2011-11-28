@@ -11,6 +11,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+
+import sim_mob.conf.CSS_Interface;
 import sim_mob.vis.controls.*;
 import sim_mob.vis.network.RoadNetwork;
 import sim_mob.vis.simultion.SimulationResults;
@@ -38,17 +40,21 @@ public class MainFrame extends JFrame {
 	private JButton fwdBtn;
 	private ImageIcon playIcon;
 	private ImageIcon pauseIcon;
+	
+	//Helper
+	public static CSS_Interface Config;
 
 	
 	/**
 	 * NOTE: Currently, I haven't found a good way to switch between MainFrame as a JFrame and MainFrame as an Applet.
 	 *       Basically, it requires changing 4 lines of code.
 	 */
-	public MainFrame() {
+	public MainFrame(CSS_Interface config) {
 		//Initial setup: FRAME
 		super("Sim Mobility Visualization");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setLocation(150, 100);
+		MainFrame.Config = config;
 		
 		//Initial setup: FRAME AND APPLET
 		this.setSize(1024, 768);

@@ -15,7 +15,10 @@ namespace sim_mob
 //Forward declarations
 class TripChain;
 class RoadNetwork;
+class RoadSegment;
+class DynamicVector;
 class Link;
+
 
 namespace aimsun
 {
@@ -40,7 +43,7 @@ public:
 	/// 3) Discard the AIMSUN classes; return the Sim Mobility classes.
 	///Returns false if an exception was thrown or if something else unexpected occurred
 	//  (e.g., Node ID reference that doesn't exist).
-	static std::string LoadNetwork(const std::string& connectionStr, std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn, std::vector<sim_mob::TripChain*>& tcs);
+	static std::string LoadNetwork(const std::string& connectionStr, const std::map<std::string, std::string>& storedProcs, sim_mob::RoadNetwork& rn, std::vector<sim_mob::TripChain*>& tcs);
 
 	//Semi-private functions
 	static void ProcessGeneralNode(sim_mob::RoadNetwork& res, Node& src);
@@ -48,6 +51,11 @@ public:
 	static void ProcessSection(sim_mob::RoadNetwork& res, Section& src);
 	static void ProcessTurning(sim_mob::RoadNetwork& res, Turning& src);
 	static void ProcessSectionPolylines(sim_mob::RoadNetwork& res, Section& src);
+
+	static void FixupLanesAndCrossings(sim_mob::RoadNetwork& res);
+
+	//Ugh
+	static void TMP_TrimAllLaneLines(sim_mob::RoadSegment* seg, const sim_mob::DynamicVector& cutLine, bool trimStart);
 
 };
 

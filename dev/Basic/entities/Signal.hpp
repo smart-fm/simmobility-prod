@@ -14,6 +14,7 @@
 
 #include "constants.h"
 #include "Agent.hpp"
+#include "metrics/Length.hpp"
 
 
 namespace sim_mob
@@ -143,7 +144,7 @@ public:
             }
         };
 
-	Signal(unsigned int id, Node const & node);
+	Signal(Node const & node, int id=-1);
 
         /**
          * Return the road-network node where this Signal is located.
@@ -184,7 +185,40 @@ public:
          */
 	TrafficColor getPedestrianLight(Crossing const & crossing) const;
 
+        /**
+         * Return the internal links mapping.
+         */
+        std::map<Link const *, size_t> const & links_map() const { return links_map_; }
+        /**
+         * Return the internal crossings mapping.
+         */
+        std::map<Crossing const *, size_t> const & crossings_map() const { return crossings_map_; }
+
+        /**
+         * Return the Signal that is located at the specified \c node, creating one if necessary.
+         */
+        static Signal & signalAt(Node const & node);
+
+        /**
+         * The list of all Signal objects in the simulator.
+         */
         static std::vector<Signal const *> all_signals_;
+
+        /**
+         * Furnish this Signal information about the position, type, and direction of its various
+         * signal equipment.
+         *
+         * There are various equipment associated with a traffic signal.  Examples are pedestrian
+         * signals, green filter arrow signals, overhead signals, B-signals (bus signals), etc.
+         * This method is used to supply information about the position, type, and direction
+         * of one equipment to the Signal object, which uses the information to determine its
+         * "responsibilities".  For example, at a 4-way traffic intersection, pedestrians may not
+         * be allowed to cross on one of the 4 sides.  In that case, no pedestrian signal will be
+         * erected in that direction and the Signal object should not "cater" to pedestrians on
+         * that side.
+         */
+        void addSignalSite(centimeter_t xpos, centimeter_t ypos,
+                           std::string const & typeCode, double bearing);
 
 private:
         Node const & node_;

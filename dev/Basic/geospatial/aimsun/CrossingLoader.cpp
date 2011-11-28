@@ -10,6 +10,7 @@
 #include "util/GeomHelpers.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Crossing.hpp"
+#include "geospatial/Lane.hpp"
 
 #include "Section.hpp"
 
@@ -78,7 +79,7 @@ void sim_mob::aimsun::CrossingLoader::DecorateCrossings(map<int, Node>& nodes, v
 					for (vector<Section*>::iterator itSec=n.sectionsAtNode.begin(); itSec!=n.sectionsAtNode.end()&&!found; itSec++) {
 						//Get the intersection between the two Points, and the Section we are considering
 						Point2D intRes = sim_mob::LineLineIntersect(it->second[i], it->second[j], *itSec);
-						if (intRes.getX()==std::numeric_limits<double>::max()) {
+						if (intRes.getX()==std::numeric_limits<int>::max()) {
 							//Lines are parallel
 							continue;
 						}

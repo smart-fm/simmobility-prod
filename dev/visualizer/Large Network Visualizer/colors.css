@@ -1,0 +1,23 @@
+/* This overrides the embedded "default_colors.css" file. */
+
+/* panel - The entire printable area. */
+/*.panel { 
+  background: #202020;
+}*/
+
+/* network - The road network. May be smaller or larger than the panel. */
+/*.network { 
+  background: #202020;
+}*/
+
+/* lane - Each (road) lane. */
+/*.lane { 
+  border: 1px solid white;
+}*/
+
+/* sidewalk - Each (sidewalk) lane. */
+/*.sidewalk { 
+  border: 1px solid yellow;
+}*/
+
+

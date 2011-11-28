@@ -1,0 +1,18 @@
+#!/usr/bin/python
+
+from cutie_shapey import cutie_shapey_py
+
+folder = "LTA Road Map/LTAGDMDR20100914-002/Bugis"
+road_attributes_shape_name = "%s/RoadAttributeLine_15Sep10_104252" % folder
+arrow_markings_shape_name = "%s/ArrowMarking_15Sep10_104237" % folder
+kerb_lines_shape_name = "%s/KerbLine_15Sep10_104924" % folder
+lane_markings_shape_name = "%s/LaneMarking_15Sep10_104241" % folder
+bus_stops_shape_name = "%s/BusStop_15Sep10_104241" % folder
+traffic_signals_shape_name = "%s/TrafficSignalAspect_15Sep10_104655" % folder
+
+cutie_shapey_py(road_attributes_shape_name,
+                arrow_markings_shape_name,
+                kerb_lines_shape_name,
+                lane_markings_shape_name,
+                bus_stops_shape_name,
+                traffic_signals_shape_name)

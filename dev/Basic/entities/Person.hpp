@@ -21,7 +21,7 @@ class TripChain;
  */
 class Person : public sim_mob::Agent {
 public:
-	Person(unsigned int id=0);
+	Person(int id=-1);
 
 	///Update Person behavior
 	virtual void update(frame_t frameNumber);
@@ -31,7 +31,7 @@ public:
 
 	///Change the role of this person: Driver, Passenger, Pedestrian
 	void changeRole(sim_mob::Role* newRole);
-	sim_mob::Role* getRole();
+	sim_mob::Role* getRole() const;
 
 	///Set this person's trip chain
 	void setTripChain(sim_mob::TripChain* newTripChain) { currTripChain = newTripChain; }

@@ -26,7 +26,7 @@ namespace sim_mob
  */
 class Agent : public sim_mob::Entity {
 public:
-	Agent(unsigned int id=0);
+	Agent(int id=-1);
 
 	virtual void update(frame_t frameNumber) = 0;  ///<Update agent behvaior
 
@@ -50,21 +50,30 @@ public:
 	sim_mob::Buffered<int> xPos;  ///<The agent's position, X
 	sim_mob::Buffered<int> yPos;  ///<The agent's position, Y
 
-	sim_mob::Buffered<double> xVel;  ///<The agent's velocity, X
-	sim_mob::Buffered<double> yVel;  ///<The agent's velocity, Y
+	//sim_mob::Buffered<double> xVel;  ///<The agent's velocity, X
+	//sim_mob::Buffered<double> yVel;  ///<The agent's velocity, Y
+	sim_mob::Buffered<double> fwdVel;  //The agent's forward velocity
+	sim_mob::Buffered<double> latVel;  //The agent's forward velocity
 
-	sim_mob::Buffered<double> xAcc;  ///<The agent's acceleration, X
-	sim_mob::Buffered<double> yAcc;  ///<The agent's acceleration, Y
-	sim_mob::Buffered<int> currentLink;
-	sim_mob::Buffered<int> currentCrossing;
+	//sim_mob::Buffered<double> xAcc;  ///<The agent's acceleration, X
+	//sim_mob::Buffered<double> yAcc;  ///<The agent's acceleration, Y
+	//sim_mob::Buffered<int> currentLink;
+	//sim_mob::Buffered<int> currentCrossing;
 
 
-	//Agents can access all other agents (although they usually do not access by ID)
+	///Agents can access all other agents (although they usually do not access by ID)
 	static std::vector<Agent*> all_agents;
+
+	///Retrieve a monotonically-increasing unique ID value.
+	///\param preferredID Will be returned if it is greater than the current maximum-assigned ID.
+	///\note
+	///Passing in a negative number will always auto-assign an ID, and is recommended.
+	static unsigned int GetAndIncrementID(int preferredID);
 
 private:
 	//unsigned int currMode;
 	bool toRemoved;
+	static unsigned int next_agent_id;
 
 };
 

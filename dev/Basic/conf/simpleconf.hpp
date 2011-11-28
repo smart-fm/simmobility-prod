@@ -9,9 +9,9 @@
 
 #include <boost/utility.hpp>
 
+#include "util/DailyTime.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/RoadNetwork.hpp"
-#include "simple_classes.h"
 
 
 namespace sim_mob
@@ -39,6 +39,9 @@ public:
 	unsigned int granPathsTicks;      ///<Number of ticks to wait before updating all paths.
 	unsigned int granDecompTicks;     ///<Number of ticks to wait before updating agent decomposition.
 
+	//When the simulation begins
+	DailyTime simStartTime;
+
 	std::map<std::string, Point2D> boundaries;  ///<Indexed by position, e.g., "bottomright"
 	std::map<std::string, Point2D> crossings;   ///<Indexed by position, e.g., "bottomright"
 
@@ -51,6 +54,8 @@ public:
 	unsigned int pathsTimeStepInMilliSeconds() const { return granPathsTicks * baseGranMS; }
 	unsigned int DecompTimeStepInMilliSeconds() const { return granDecompTicks * baseGranMS; }
 
+	bool TEMP_ManualFixDemoIntersection;
+
 public:
 	/***
 	 * Singleton. Retrieve an instance of the ConfigParams object.
@@ -61,8 +66,7 @@ public:
 	 * Load the defualt user config file; initialize all vectors. This function must be called
 	 * once before GetInstance() will return meaningful data.
 	 */
-	static bool InitUserConf(const std::string& configPath, std::vector<Agent*>& agents, std::vector<Region*>& regions,
-	          /*std::vector<TripChain*>& trips,*/ std::vector<ChoiceSet*>& chSets);
+	static bool InitUserConf(const std::string& configPath, std::vector<Agent*>& agents);
 
 	/**
 	 * Retrieve a reference to the current RoadNetwork.

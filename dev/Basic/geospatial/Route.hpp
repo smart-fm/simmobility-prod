@@ -1,39 +1,40 @@
-/* Copyright Singapore-MIT Alliance for Research and Technology */
-
 #pragma once
 
-
 #include "util/DynamicVector.hpp"
+#include "BusStop.hpp"
+#include "Lane.hpp"
+
+
+
 
 
 namespace sim_mob{
-	class RoadSegment;
+	class Lane;
 	class BusStop;
-
-	class Route{
+	class Route {
 	public:
-
-		Route(int id, std::vector <RoadSegment*> roadsegments, int routetime);
-
-        int computeRouteLength(); ///<gives the length of the given route.
-        const RoadSegment* getCurrentRoadSegment() const; ///<currently where bus is located on route
-        const RoadSegment* getNextRoadSegment() const;    ///<where/ which direction the bus is going
-        const RoadSegment* getFirstRoadSegment() const;  ///<Initial start position of busroute
-        const RoadSegment* getLastRoadSegment() const;   ///<final place bus goes.
-
-
-	//public:
-	protected:
-
+		
+		Route(unsigned int id, std::vector <Lane*> lanes);
+		
+        int computeRouteLength(); //gives the length of the given route.  
+        Lane* getFirstRoadLane(); //Initial start position of busroute
+		Lane* getLastLane(); //final place bus goes.
+		
+		
+	public:
+		
 		int id;
-		//DynamicVector <RoadSegment*> roadsegments; //NOTE: DynamicVector is for mathematical vectors. It's not a container.
-		int routetime;
-
-
-
+		std::vector <Lane*> lanes; 
+		
+		
+		
 	};
+	
 
+		
+	
 }
+
 
 
 

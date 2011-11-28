@@ -2,5 +2,8 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry kind="lib" path="libs/batik-css.jar" sourcepath="libs/batik-src-1.4.zip"/>
+	<classpathentry kind="lib" path="libs/sac.jar" sourcepath="libs/sac-src-1.3.zip"/>
+	<classpathentry kind="lib" path="libs/batik-util.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

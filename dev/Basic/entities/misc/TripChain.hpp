@@ -7,6 +7,7 @@
 #include <set>
 
 #include "util/LangHelpers.hpp"
+#include "util/DailyTime.hpp"
 
 namespace sim_mob
 {
@@ -38,7 +39,8 @@ public:
 	bool primary;
 	bool flexible;
 
-	double startTime; //Note: Do we have a time class yet for our special format?
+	//double startTime; //Note: Do we have a time class yet for our special format?
+	sim_mob::DailyTime startTime;
 
 	std::string mode;
 

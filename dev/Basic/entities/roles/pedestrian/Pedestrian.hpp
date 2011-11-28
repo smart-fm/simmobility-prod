@@ -29,7 +29,8 @@ public:
 	Pedestrian(Agent* parent);
 
 	virtual void update(frame_t frameNumber);
-	bool isOnCrossing();
+	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
+	bool isOnCrossing() const;
 
 private:
 	//Movement-related variables
@@ -37,6 +38,7 @@ private:
 	double xVel;
 	double yVel;
 	Point2D goal;
+	Point2D goalInLane;
 	int currentStage;
 
 //	Signal sig;
@@ -47,7 +49,7 @@ private:
 	int curCrossingID;
 	bool startToCross;
 	double cStartX, cStartY, cEndX, cEndY;
-	bool startPosSet;
+	bool firstTimeUpdate;
 //	Point2D destPos;
 
 	//For collisions
@@ -67,7 +69,8 @@ private:
 //	bool reachStartOfCrossing();
 	bool checkGapAcceptance();
 	void setCrossingParas(); //Temp helper function
-	bool isStartPosSet(); //Temp helper function
+	bool isFirstTimeUpdate(); //Temp helper function
+	void setSidewalkParas(Node* start, Node* end, bool isStartMulti);
 	void absToRel(double, double, double &, double &);
 	void relToAbs(double, double, double &, double &);
 

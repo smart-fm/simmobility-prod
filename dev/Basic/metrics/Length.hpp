@@ -28,6 +28,11 @@ namespace sim_mob
  */
 typedef int32_t centimeter_t;
 
+
+///A variable to hold meters. Note that the default unit of length is centimeters.
+typedef int32_t meter_t;
+
+
 /** The type to represent speeds in centimeter per second.
  *
  * A vehicle travelling at 72 km/hr or 44.74 mi/hr is moving at 2000 cm/sec.  Walking should be
@@ -42,6 +47,11 @@ typedef int32_t centimeter_t;
  * Whenever possible, stick to integer arithmetic and avoid floating-point calculation.
  */
 typedef int32_t centimeterPerSecond_t;
+
+
+///A variable to hold meters-per-second
+typedef int32_t meterPerSecond_t;
+
 
 /** Convert from miles to centimeters.  */
 inline centimeter_t mileToCentimeter(float mile)

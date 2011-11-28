@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+
+# Copyright Singapore-MIT Alliance for Research and Technology
+
+import sys, random
+from company import Registrar_of_companies
+from person import City
+
+if len(sys.argv) > 1:
+    # If you want the same pseudo-random numbers, specify a seed on the command line.
+    # The seed can be any hashable object.  So, sys.arg[1] can even be a string.
+    random.seed(sys.argv[1])
+
+Registrar_of_companies.genesis()
+City.genesis()
+
+print "==================== List of companies ===================="
+Registrar_of_companies.dump()
+print
+print
+print
+print "==================== City residents ===================="
+City.dump()
+print
+print
+print
+print "==================== Trips by residents ===================="
+City.generate_trips()

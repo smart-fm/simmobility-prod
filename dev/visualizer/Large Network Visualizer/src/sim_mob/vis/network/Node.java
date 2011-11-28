@@ -18,10 +18,11 @@ public class Node implements DrawableItem {
 	
 	private ScaledPoint pos;
 	private boolean isUni;   //Rather than having multiple classes....
-	
-	public Node(double x, double y, boolean isUni) {
+	private Integer id;
+	public Node(double x, double y, boolean isUni, Integer id) {
 		pos = new ScaledPoint(x, y, null);
 		this.isUni = isUni;
+		this.id = id;
 	}
 	
 	public ScaledPoint getPos() {
@@ -31,10 +32,14 @@ public class Node implements DrawableItem {
 	public boolean getIsUni() {
 		return isUni;
 	}
+	public Integer getID(){
+		return id;
+	}
 	
 	public void draw(Graphics2D g) {
 		int[] coords = new int[]{(int)pos.getX()-NODE_SIZE/2, (int)pos.getY()-NODE_SIZE/2};
 		g.setColor(MainFrame.Config.getBackground("node"));
+			
 		g.fillOval(coords[0], coords[1], NODE_SIZE, NODE_SIZE);
 		
 		if (isUni) {

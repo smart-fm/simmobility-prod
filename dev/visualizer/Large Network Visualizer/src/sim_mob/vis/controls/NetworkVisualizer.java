@@ -1,10 +1,7 @@
 package sim_mob.vis.controls;
-
 import java.awt.*;
-
 import java.awt.image.BufferedImage;
 import java.util.*;
-
 import sim_mob.vis.MainFrame;
 import sim_mob.vis.network.basic.*;
 import sim_mob.vis.network.*;
@@ -163,35 +160,103 @@ public class NetworkVisualizer {
 		//Draw out lanes only it is zoom to certain scale
 		if(currPercentZoom>ZOOM_IN_CRITICAL){
 			//Draw Lanes
-			for (Hashtable<Integer,Lane> laneTable : network.getLanes().values()) {
-				for(Lane lane : laneTable.values()){
-					lane.draw(g);
+			for (Hashtable<Integer,LaneMarking> lineMarkingTable : network.getLaneMarkings().values()) {
+				for(LaneMarking lineMarking : lineMarkingTable.values()){
+					lineMarking.draw(g);
 				}
 			}
 			
 			//Draw Perdestrain Crossing
 			for(Crossing crossing : network.getCrossings().values()){
 				crossing.draw(g);
-			
 			}
-		}
 		
+			//Now draw out signal
+			for(SignalLineTick at: simRes.ticks.get(currFrameTick).signalLineTicks.values()){
+						
+				//Get Intersection ID
+				Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());
+	
+				//Get Light color
+				ArrayList<ArrayList<Integer>> allVehicleLights =  at.getVehicleLights();
+				ArrayList<Integer> allPedestrainLights = at.getPedestrianLights();
+				
+				//Light Colors
+				ArrayList<Integer> vaLights = allVehicleLights.get(0);
+				ArrayList<Integer> vbLights = allVehicleLights.get(1);
+				ArrayList<Integer> vcLights = allVehicleLights.get(2);
+				ArrayList<Integer> vdLights = allVehicleLights.get(3);
+
+				//Light Lines
+				ArrayList<ArrayList<TrafficSignalLine>> vaSignalLine = tempIntersection.getVaTrafficSignal();
+				ArrayList<ArrayList<TrafficSignalLine>> vbSignalLine = tempIntersection.getVbTrafficSignal();
+				ArrayList<ArrayList<TrafficSignalLine>> vcSignalLine = tempIntersection.getVcTrafficSignal();
+				ArrayList<ArrayList<TrafficSignalLine>> vdSignalLine = tempIntersection.getVdTrafficSignal();
+				
+				ArrayList<Crossing> tempCrossings = tempIntersection.getSignalCrossings();
+
+				//Draw pedestrian crossing signal
+				drawTrafficPedestrainCross(g,tempCrossings,allPedestrainLights);
+
+				//DrawLights
+				drawTrafficLines(g,vaSignalLine, vaLights);
+				drawTrafficLines(g,vbSignalLine, vbLights);
+				drawTrafficLines(g,vcSignalLine, vcLights);
+				drawTrafficLines(g,vdSignalLine, vdLights);
+				
+				
+			}
+
+		
+		
+		}
+				
 		//Now draw simulation data: cars, etc.
-		for (AgentTick at : simRes.ticks.get(currFrameTick).agentTicks.values()) {
-			
+		for (AgentTick at : simRes.ticks.get(currFrameTick).agentTicks.values()) {	
 			at.draw(g,currPercentZoom);
 		}
 		
 	}
 	
-	
-	//Hackish
-	void drawTrafficLights(Graphics2D g) {
-		/*for (SignalTick sg : simRes.ticks.get(currFrameTick).signalTicks.values()) {
-			sg.draw(g);
-		}*/
+	private void drawTrafficLines(Graphics2D g,ArrayList<ArrayList<TrafficSignalLine>> signalLine, ArrayList<Integer> lightColors){
+		
+		for(int i = 0; i<signalLine.size();i++){
+			
+			//Left turn light
+			ArrayList<TrafficSignalLine> leftTurnLight = signalLine.get(0);
+			leftTurnLight.get(0).drawPerLight(g, lightColors.get(0));	
+			
+			
+			//Straight turn light
+			ArrayList<TrafficSignalLine> straightTurnLight = signalLine.get(1);				
+			straightTurnLight.get(0).drawPerLight(g, lightColors.get(1));	
+			
+			
+			//Right turn light
+			ArrayList<TrafficSignalLine> rightTurnLight = signalLine.get(2);
+			rightTurnLight.get(0).drawPerLight(g, lightColors.get(2));			
+		}
+				
 	}
 	
+	private void drawTrafficPedestrainCross(Graphics2D g,ArrayList<Crossing> signalPedestrainCrossing, ArrayList<Integer> lightColor){
+
+
+		if(signalPedestrainCrossing.size() != 0 && lightColor.size() != 0
+				 && signalPedestrainCrossing.size() == lightColor.size())
+		{
+			for(int i = 0; i<signalPedestrainCrossing.size();i++)
+			{
+				//Draw crossing signal
+				signalPedestrainCrossing.get(i).drawSignalCrossing(g, lightColor.get(i));
+				
+			}
+		}
+		else{
+			System.out.println("Error, the signal and crossing are not corresponding to each other -- NetWorkVisualizer, drawTrafficPedestrainCross()");		
+		}
+		
+	}
 
 }
 

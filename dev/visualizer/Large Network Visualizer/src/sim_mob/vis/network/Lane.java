@@ -1,47 +1,33 @@
 package sim_mob.vis.network;
 
-import java.awt.*;
-
-import sim_mob.vis.MainFrame;
+import java.awt.Graphics2D;
 import sim_mob.vis.controls.DrawableItem;
+import sim_mob.vis.MainFrame;
 
 public class Lane implements DrawableItem{
-	//Constants/Resources
-	//private static Color laneColor = new Color(0x00, 0x00, 0x00);
-	//private static Color sideWalkColor = new Color(0x84, 0x70, 0xff);
-	//private static Stroke laneStroke = new BasicStroke(1.0F);
-	
-	private Integer parentSegment;
-	private Node start;
-	private Node end;
-	
-	private boolean isSideWalk;
 	private int laneNumber;
+	private Node startMiddleNode;
+	private Node endMiddleNode;
 
-	public Lane(Node start, Node end, boolean isSideWalk, int lineNumber, Integer parentSegment) {
-		
-		this.start = start;
-		this.end = end;
-		this.isSideWalk = isSideWalk;
-		this.laneNumber = lineNumber;
-		this.parentSegment = parentSegment;
-		
-	}
-
-	public Node getStart() { return start; }
-	public Node getEnd() { return end; }
-	public boolean isSideWalk() { return isSideWalk; }
-	public int getLaneNumber()	{ return laneNumber; }
-	public Integer getParentSegment(){ return parentSegment; }
 	
-	public void setSideWalk(boolean isSideWalk){
-		this.isSideWalk = isSideWalk;
+	public int getLaneNumber(){return laneNumber;}
+	public Node getStartMiddleNode(){return startMiddleNode;}
+	public Node getEndMiddleNode(){return endMiddleNode;}
+	
+	public Lane(int laneNumber, Node startMiddleNode, Node endMiddleNode){
+		this.laneNumber = laneNumber;
+		this.startMiddleNode = startMiddleNode;
+		this.endMiddleNode = endMiddleNode;
+		
 	}
 	
 	@Override
 	public void draw(Graphics2D g) {
+
+/*
 		g.setColor(MainFrame.Config.getLineColor("lane"));
 		g.setStroke(MainFrame.Config.getLineStroke("lane"));
+
 		if(isSideWalk){
 			 
 			g.setColor(MainFrame.Config.getLineColor("sidewalk"));
@@ -64,14 +50,12 @@ public class Lane implements DrawableItem{
 			g.drawLine((int)start.getPos().getX(), (int)start.getPos().getY(), (int)end.getPos().getX(), (int)end.getPos().getY()); 	
 			
 		}
-*/		else {
+		else {
 			g.drawLine((int)start.getPos().getX(), (int)start.getPos().getY(), (int)end.getPos().getX(), (int)end.getPos().getY());
 				
 		}
 		
-		
+*/		
 				
 	}
-
-	
 }

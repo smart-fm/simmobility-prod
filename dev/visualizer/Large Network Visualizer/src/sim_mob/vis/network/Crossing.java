@@ -34,13 +34,34 @@ public class Crossing implements DrawableItem{
 	public void draw(Graphics2D g) {
 		g.setColor(crossingColor);
 		g.setStroke(crossingStroke);
+		drawCrossing(g);
+	}
+	
+	
+	public void drawSignalCrossing(Graphics2D g, Integer light){
+
+		if(light == 2){
+			
+			g.setColor(Color.yellow);
+			g.setStroke(crossingStroke);
+			drawCrossing(g);
+			
+		} else if(light == 3){
+			g.setColor(Color.green);
+			g.setStroke(crossingStroke);
+			drawCrossing(g);
+		}
+			
+			
 		
-		
+	}
+	
+	public void drawCrossing(Graphics2D g){
+
 		g.drawLine((int)nearOne.getPos().getX(), (int)nearOne.getPos().getY(), (int)nearTwo.getPos().getX(), (int)nearTwo.getPos().getY()); 
 		g.drawLine((int)farOne.getPos().getX(), (int)farOne.getPos().getY(), (int)farTwo.getPos().getX(), (int)farTwo.getPos().getY()); 
-		
-		Polygon poly = new Polygon();
-		
+
+		Polygon poly = new Polygon();		
 		poly.addPoint((int)nearOne.getPos().getX(), (int)nearOne.getPos().getY());
 		poly.addPoint((int)nearTwo.getPos().getX(), (int)nearTwo.getPos().getY());
 		poly.addPoint((int)farTwo.getPos().getX(), (int)farTwo.getPos().getY());
@@ -49,7 +70,6 @@ public class Crossing implements DrawableItem{
 		g.fillPolygon(poly);
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,1.0f));
 	}
-
 	
 
 }

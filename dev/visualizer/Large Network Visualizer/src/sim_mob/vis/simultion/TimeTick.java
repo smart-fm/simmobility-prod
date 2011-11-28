@@ -10,5 +10,6 @@ import sim_mob.vis.network.basic.ScaledPointGroup;
 public class TimeTick {
 	public Hashtable<Integer, AgentTick> agentTicks;
 	public Hashtable<Integer, SignalTick> signalTicks;
+	public Hashtable<Integer, SignalLineTick> signalLineTicks;
 	public ScaledPointGroup tickScaleGroup = new ScaledPointGroup();
 }

@@ -399,11 +399,11 @@ void sim_mob::Driver::intersectionDriving(UpdateParams& p)
 double sim_mob::Driver::linkDriving(UpdateParams& p)
 {
 	//TODO: This might not be in the right location
-	p.dis2stop = vehicle->getCurrLinkLength() - currLinkOffset - vehicle->length/2 - 300;
+	p.dis2stop = vehicle->getCurrLinkLaneZeroLength() - currLinkOffset - vehicle->length/2 - 300;
 	p.dis2stop /= 100;
 
 	//Check if we should change lanes.
-	double newLatVel = lcModel->executeLaneChanging(p, vehicle->getCurrLinkLength(), vehicle->length, getCurrLaneChangeDirection());
+	double newLatVel = lcModel->executeLaneChanging(p, vehicle->getCurrLinkLaneZeroLength(), vehicle->length, getCurrLaneChangeDirection());
 	if (newLatVel>=0.0) {
 		vehicle->setLatVelocity(newLatVel);
 	}
@@ -558,7 +558,7 @@ void sim_mob::Driver::syncCurrLaneCachedInfo(UpdateParams& p)
 	updateAdjacentLanes(p);
 
 	//Update the length of the current road segment.
-	p.currLaneLength = vehicle->getCurrLaneLength();
+	p.currLaneLength = vehicle->getCurrLinkLaneZeroLength();
 
 	//Finally, update target/max speed to match the new Lane's rules.
 	maxLaneSpeed = vehicle->getCurrSegment()->maxSpeed/3.6; //slow down
@@ -672,7 +672,7 @@ void sim_mob::Driver::setOrigin(UpdateParams& p)
 	//updateAdjacentLanes(p);
 
 	//Calculate and save the total length of the current polyline.
-	p.currLaneLength = vehicle->getCurrLaneLength();
+	p.currLaneLength = vehicle->getCurrLinkLaneZeroLength();
 }
 
 

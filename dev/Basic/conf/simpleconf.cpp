@@ -811,7 +811,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
 
     	Person* p = dynamic_cast<Person*>(agents[i]);
     	if (p && p->getTripChain()) {
-    		const TripChain* const tc = p->getTripChain();
+    		//const TripChain* const tc = p->getTripChain();
     		//std::cout <<"      Trip Chain start time: " <<tc->startTime.toString()  <<" from: " <<tc->from.description <<"(" <<tc->from.location <<") to: " <<tc->to.description <<"(" <<tc->to.location <<") mode: " <<tc->mode <<" primary: " <<tc->primary  <<" flexible: " <<tc->flexible <<"\n";
     	}
     }

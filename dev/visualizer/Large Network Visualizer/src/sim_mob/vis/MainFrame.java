@@ -193,6 +193,34 @@ public class MainFrame extends JFrame {
 			}
 		});
 		
+		//Forward and Backward Button
+		fwdBtn.addActionListener(new ActionListener(){
+			
+			public void actionPerformed(ActionEvent arg0) {
+				if (newViewPnl.advanceAnimbyStep(1, frameTickSlider)) {
+					animTimer.stop();
+					playBtn.setIcon(playIcon);
+					return;
+				}
+				
+			}
+			
+		});
+
+		revBtn.addActionListener(new ActionListener(){
+			
+			public void actionPerformed(ActionEvent arg0) {
+				if (newViewPnl.advanceAnimbyStep(-1, frameTickSlider)) {
+					animTimer.stop();
+					playBtn.setIcon(playIcon);
+					return;
+				}
+				
+			}
+			
+		});
+
+		
 		//20 FPS, update anim
 		animTimer = new Timer(50, new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -203,6 +231,8 @@ public class MainFrame extends JFrame {
 				}
 			}
 		});
+		
+		
 		
 		
 		openEmbeddedFile.addActionListener(new ActionListener() {
@@ -277,7 +307,6 @@ public class MainFrame extends JFrame {
 		//Add a visualizer
 		NetworkVisualizer vis = new NetworkVisualizer();
 		vis.setSource(rn, simData, 1.0, newViewPnl.getWidth(), newViewPnl.getHeight());
-		
 		
 		//Update the map
 		newViewPnl.drawMap(vis, 0, 0);

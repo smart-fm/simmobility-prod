@@ -58,7 +58,6 @@ public class NetworkVisualizer {
 		return null;
 	}
 	
-	
 	public void setSource(RoadNetwork network, SimulationResults simRes, double initialZoom, int width100Percent, int height100Percent) {
 		//Save
 		this.network = network;

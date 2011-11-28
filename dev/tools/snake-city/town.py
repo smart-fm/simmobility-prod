@@ -13,9 +13,9 @@ class Town_layout:
     school_locations.append(84882)
     school_locations.append(60978)
 
-    residential_locations.append(95146)
-    residential_locations.append(75846)
-    residential_locations.append(116724)
+#    residential_locations.append(95146)
+#    residential_locations.append(75846)
+#    residential_locations.append(116724)
 
     restuarant_locations.append(106946)
     restuarant_locations.append(98852)
@@ -33,10 +33,18 @@ class Town_layout:
     movie_house_locations.append(58950)
     movie_house_locations.append(107736)
 
-    business_locations.append(107736)
-    business_locations.append(103046)
-    business_locations.append(106946)
-    business_locations.append(98856)
-    business_locations.append(48732)
-    business_locations.append(60896)
-    business_locations.append(60978)
+#    business_locations.append(107736)
+#    business_locations.append(103046)
+#    business_locations.append(106946)
+#    business_locations.append(98856)
+#    business_locations.append(48732)
+#    business_locations.append(60896)
+#    business_locations.append(60978)
+
+    all_uni_nodes = (48732, 54758, 58944, 58950, 60896, 60978, 65120, 75792, 75846, 75808,
+                     103046, 75956, 76548, 92370, 84882, 91144, 93730, 95146, 95374, 95940,
+                     98852, 98856, 103708, 106946, 107736, 115418, 116724)
+    residential_locations = list()
+    residential_locations.extend(all_uni_nodes)
+    business_locations = list()
+    business_locations.extend(all_uni_nodes)

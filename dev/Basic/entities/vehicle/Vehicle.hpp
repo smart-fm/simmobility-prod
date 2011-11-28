@@ -34,7 +34,7 @@ public:
 	double getX() const;   ///<Retrieve the vehicle's absolute position, x
 	double getY() const;   ///<Retrieve the vehicle's absolute position, y
 	double getDistanceMovedInSegment() const;   ///<Retrieve the total distance moved in this segment so far.
-	double getCurrLaneLength() const; ///<Get the total length of this RoadSegment.
+	//double getCurrLaneLength() const; ///<Get the total length of this RoadSegment.
 	double getLateralMovement() const;         ///<Retrieve a value representing how far to the LEFT of the current lane the vehicle has moved.
 	double getVelocity() const;      ///<Retrieve forward velocity.
 	double getLatVelocity() const;   ///<Retrieve lateral velocity.
@@ -56,7 +56,8 @@ public:
 	const sim_mob::Link* getCurrLink() const;
 	const sim_mob::Node* getNodeMovingTowards() const;
 	const sim_mob::Node* getNodeMovingFrom() const;
-	double getCurrLinkLength() const;
+	double getCurrLinkLaneZeroLength() const;
+	double getCurrLinkReportedLength() const;
 	void shiftToNewLanePolyline(bool moveLeft);
 	void moveToNewLanePolyline(int laneID);
 	void setPositionInIntersection(double x, double y);

@@ -24,7 +24,7 @@ const bool sim_mob::GeneralPathMover::DebugOn = false;
 
 
 sim_mob::GeneralPathMover::GeneralPathMover() : distAlongPolyline(0), /*currPolylineLength(0),*/
-		distMovedInPrevSegments(0), distOfThisSegment(0), inIntersection(false), isMovingForwardsInLink(false), currLaneID(0)
+		distMovedInCurrSegment(0), distOfThisSegment(0), inIntersection(false), isMovingForwardsInLink(false), currLaneID(0)
 {
 }
 
@@ -69,8 +69,8 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 
 void sim_mob::GeneralPathMover::calcNewLaneDistances()
 {
-	distMovedInPrevSegments = 0;
-	distOfThisSegment = CalcSegmentLaneZeroDist(currSegmentIt, fullPath.end());
+	DynamicVector zeroPoly(currLaneZeroPolypoint->getX(), currLaneZeroPolypoint->getY(), nextLaneZeroPolypoint->getX(), nextLaneZeroPolypoint->getY());
+	distMovedInCurrSegment += zeroPoly.getMagnitude();
 }
 
 string sim_mob::GeneralPathMover::Fmt_M(centimeter_t dist)
@@ -217,6 +217,9 @@ double sim_mob::GeneralPathMover::advanceToNextPolyline()
 	//An error if we're still at the end of this polyline
 	throwIf(nextPolypoint==polypointsList.end(), "Polyline can't advance");
 
+	//We can safely update our total distance here.
+	calcNewLaneDistances();
+
 	//Advance pointers
 	currPolypoint++;
 	nextPolypoint++;
@@ -245,10 +248,6 @@ double sim_mob::GeneralPathMover::advanceToNextRoadSegment()
 	//An error if we're already at the end of this road segment
 	throwIf(currSegmentIt==fullPath.end(), "Road segment at end");
 	//distMovedInSegment = distAlongPolyline;
-
-	//We can safely update our total distance here.
-	DynamicVector zeroPoly(currLaneZeroPolypoint->getX(), currLaneZeroPolypoint->getY(), nextLaneZeroPolypoint->getX(), nextLaneZeroPolypoint->getY());
-	distMovedInPrevSegments += zeroPoly.getMagnitude();
 
 	//If we are approaching a new Segment, the Intersection driving model takes precedence.
 	// In addition, no further processing occurs. This means advancing a very large amount will
@@ -281,6 +280,10 @@ const Lane* sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir()
 	//Move
 	currSegmentIt++;
 
+	//Reset our distance; calculate the total lane-zero distance of this segment.
+	distMovedInCurrSegment = 0;
+	distOfThisSegment = CalcSegmentLaneZeroDist(currSegmentIt, fullPath.end());
+
 	//In case we moved
 	//distAlongPolyline = distMovedInSegment; //NOTE: Should probably factor this out into a sep. variable.
 
@@ -295,7 +298,7 @@ const Lane* sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir()
 	//Is this new segment part of a Link we're traversing in reverse?
 	//const Node* prevNode = isMovingForwards ? (*(currSegmentIt-1))->getEnd() : (*(currSegmentIt-1))->getStart();
 	if (nextInNewLink) {
-		calcNewLaneDistances();
+		//calcNewLaneDistances();
 
 		const Node* prevNode = (*currSegmentIt)->getStart(); //TEMP: Not sure about this.
 		if ((*currSegmentIt)->getLink()->getStart() == prevNode) {
@@ -316,7 +319,7 @@ const Lane* sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir()
 	return (*currSegmentIt)->getLanes().at(currLaneID);
 }
 
-double sim_mob::GeneralPathMover::getCurrLinkLength() const
+double sim_mob::GeneralPathMover::getCurrLinkReportedLength() const
 {
 	return getCurrLink()->getLength(isMovingForwardsInLink);
 }
@@ -403,7 +406,7 @@ double sim_mob::GeneralPathMover::getCurrDistAlongRoadSegment() const
 	double distRatio = distAlongPolyline / currPolylineLength();
 
 	//Add this to the distance moved so far.
-	return distMovedInPrevSegments + distRatio*totalPolyDist;
+	return distMovedInCurrSegment + distRatio*totalPolyDist;
 }
 
 double sim_mob::GeneralPathMover::getTotalRoadSegmentLength() const

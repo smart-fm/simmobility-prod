@@ -1,6 +1,8 @@
 package sim_mob.vis.network;
 
 import java.awt.*;
+
+import sim_mob.vis.MainFrame;
 import sim_mob.vis.controls.DrawableItem;
 
 public class LaneMarking implements DrawableItem{
@@ -42,12 +44,14 @@ public class LaneMarking implements DrawableItem{
 	
 	@Override
 	public void draw(Graphics2D g) {
-		g.setColor(laneColor);
-		g.setStroke(laneStroke);
-		if(isSideWalk){
-			 
-			g.setColor(sideWalkColor);
-			g.setStroke(laneStroke);
+
+		g.setColor(MainFrame.Config.getLineColor("lane"));
+		g.setStroke(MainFrame.Config.getLineStroke("lane"));
+		
+		if(isSideWalk){		 
+			g.setColor(MainFrame.Config.getLineColor("sidewalk"));
+			g.setStroke(MainFrame.Config.getLineStroke("sidewalk"));
+			
 			g.drawLine((int)start.getPos().getX(), (int)start.getPos().getY(), (int)end.getPos().getX(), (int)end.getPos().getY()); 
 		
 		} 

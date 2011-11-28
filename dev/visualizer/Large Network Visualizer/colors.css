@@ -1,23 +1,39 @@
 /* This overrides the embedded "default_colors.css" file. */
 
 /* panel - The entire printable area. */
-/*.panel { 
+.panel { 
   background: #202020;
-}*/
+}
 
 /* network - The road network. May be smaller or larger than the panel. */
-/*.network { 
+.network { 
   background: #202020;
-}*/
+}
+
+/* node - Each Node. */
+.node { 
+  background: yellow;
+}
+.multinode {
+  border: 3px solid whitesmoke;
+}
+.uninode {
+  border: 3px solid green;
+}
 
 /* lane - Each (road) lane. */
-/*.lane { 
+.lane { 
   border: 1px solid white;
-}*/
+}
 
 /* sidewalk - Each (sidewalk) lane. */
-/*.sidewalk { 
+.sidewalk { 
   border: 1px solid yellow;
-}*/
+}
+
+/* roadname - Each (road) roadname. */
+.roadname { 
+  border: 1px solid white;
+}
 
 

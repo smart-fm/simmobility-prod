@@ -95,7 +95,7 @@ public class SimulationResults {
 				double resX = amtX + rn.getTopLeft().x;
 				double resY = amtY + rn.getTopLeft().y;
 				
-				//Savemodification
+				//Save
 				at.pos = new ScaledPoint(resX, resY, tt.tickScaleGroup);
 			}
 		    

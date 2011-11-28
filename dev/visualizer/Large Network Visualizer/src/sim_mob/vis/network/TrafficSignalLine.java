@@ -34,6 +34,7 @@ public class TrafficSignalLine implements DrawableItem{
 													fromLane.getStartMiddleNode().getPos().getUnscaledY(), 
 													toLane.getStartMiddleNode().getPos().getUnscaledX(), 
 													toLane.getStartMiddleNode().getPos().getUnscaledY());
+	
 		double distStartEnd = Utility.Distance(fromLane.getStartMiddleNode().getPos().getUnscaledX(), 
 				fromLane.getStartMiddleNode().getPos().getUnscaledY(), 
 				toLane.getEndMiddleNode().getPos().getUnscaledX(), 

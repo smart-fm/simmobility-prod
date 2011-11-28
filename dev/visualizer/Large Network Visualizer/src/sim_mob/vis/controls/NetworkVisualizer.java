@@ -178,6 +178,7 @@ public class NetworkVisualizer {
 						
 				//Get Intersection ID
 				Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());
+	
 				//Get Light color
 				ArrayList<ArrayList<Integer>> allVehicleLights =  at.getVehicleLights();
 				ArrayList<Integer> allPedestrainLights = at.getPedestrianLights();
@@ -195,15 +196,16 @@ public class NetworkVisualizer {
 				ArrayList<ArrayList<TrafficSignalLine>> vdSignalLine = tempIntersection.getVdTrafficSignal();
 				
 				ArrayList<Crossing> tempCrossings = tempIntersection.getSignalCrossings();
-				
+
+				//Draw pedestrian crossing signal
+				drawTrafficPedestrainCross(g,tempCrossings,allPedestrainLights);
+
 				//DrawLights
 				drawTrafficLines(g,vaSignalLine, vaLights);
 				drawTrafficLines(g,vbSignalLine, vbLights);
 				drawTrafficLines(g,vcSignalLine, vcLights);
 				drawTrafficLines(g,vdSignalLine, vdLights);
 				
-				//Draw pedestrian crossing signal
-				drawTrafficPedestrainCross(g,tempCrossings,allPedestrainLights);
 				
 			}
 
@@ -234,15 +236,13 @@ public class NetworkVisualizer {
 			
 			//Right turn light
 			ArrayList<TrafficSignalLine> rightTurnLight = signalLine.get(2);
-			rightTurnLight.get(0).drawPerLight(g, lightColors.get(2));	
-			
-			
+			rightTurnLight.get(0).drawPerLight(g, lightColors.get(2));			
 		}
 				
 	}
 	
 	private void drawTrafficPedestrainCross(Graphics2D g,ArrayList<Crossing> signalPedestrainCrossing, ArrayList<Integer> lightColor){
-		
+
 
 		if(signalPedestrainCrossing.size() != 0 && lightColor.size() != 0
 				 && signalPedestrainCrossing.size() == lightColor.size())
@@ -251,8 +251,8 @@ public class NetworkVisualizer {
 			{
 				//Draw crossing signal
 				signalPedestrainCrossing.get(i).drawSignalCrossing(g, lightColor.get(i));
+				
 			}
-		
 		}
 		else{
 			System.out.println("Error, the signal and crossing are not corresponding to each other -- NetWorkVisualizer, drawTrafficPedestrainCross()");		

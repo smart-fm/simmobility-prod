@@ -51,6 +51,8 @@ public class Crossing implements DrawableItem{
 			g.setStroke(crossingStroke);
 			drawCrossing(g);
 		}
+			
+			
 		
 	}
 	

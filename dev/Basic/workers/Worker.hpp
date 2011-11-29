@@ -24,7 +24,6 @@
 
 #include "metrics/Frame.hpp"
 #include "util/LangHelpers.hpp"
-#include "entities/Entity.hpp"
 #include "buffering/Buffered.hpp"
 #include "buffering/BufferedDataManager.hpp"
 

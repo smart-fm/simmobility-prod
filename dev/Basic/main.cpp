@@ -48,7 +48,7 @@ using namespace sim_mob;
 
 
 //Helper
-typedef WorkGroup<Entity> EntityWorkGroup;
+typedef WorkGroup EntityWorkGroup;
 
 
 //Function prototypes.
@@ -159,7 +159,7 @@ bool performMain(const std::string& configFileName)
   Worker<sim_mob::Entity>::actionFunction entityWork = boost::bind(entity_worker, _1, _2);
   agentWorkers.initWorkers(&entityWork);
   for (size_t i=0; i<agents.size(); i++) {
-	  agentWorkers.migrate(agents[i], -1, i%WG_AGENTS_SIZE);
+	  agentWorkers.migrate(agents[i], i%WG_AGENTS_SIZE);
   }
 
   //Initialize our signal status work groups
@@ -168,7 +168,7 @@ bool performMain(const std::string& configFileName)
   Worker<sim_mob::Entity>::actionFunction spWork = boost::bind(signal_status_worker, _1, _2);
   signalStatusWorkers.initWorkers(&spWork);
   for (size_t i=0; i<Signal::all_signals_.size(); i++) {
-	  signalStatusWorkers.migrate(const_cast<Signal*>(Signal::all_signals_[i]), -1, i%WG_SIGNALS_SIZE);
+	  signalStatusWorkers.migrate(const_cast<Signal*>(Signal::all_signals_[i]), i%WG_SIGNALS_SIZE);
   }
 
   //Start work groups
@@ -285,13 +285,13 @@ int main(int argc, char* argv[])
 void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents)
 {
 	  //Our work groups. Will be disposed after this time tick.
-	  WorkGroup<sim_mob::Agent> createAgentWorkers(WG_CREATE_AGENT_SIZE, 1);
+	  SimpleWorkGroup<sim_mob::Agent> createAgentWorkers(WG_CREATE_AGENT_SIZE, 1);
 
 	  //Create agents
 	  Worker<sim_mob::Agent>::actionFunction func2 = boost::bind(load_agents, _1, _2);
 	  createAgentWorkers.initWorkers(&func2);
 	  for (size_t i=0; i<agents.size(); i++) {
-		  createAgentWorkers.migrate(agents[i], -1, i%WG_CREATE_AGENT_SIZE);
+		  createAgentWorkers.migrate(agents[i], createAgentWorkers.getWorker(-1), createAgentWorkers.getWorker(i%WG_CREATE_AGENT_SIZE));
 	  }
 
 	  //Start

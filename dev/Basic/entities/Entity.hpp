@@ -2,12 +2,18 @@
 
 #pragma once
 
+#include <string>
+#include <sstream>
+
 #include "metrics/Frame.hpp"
 #include "buffering/BufferedDataManager.hpp"
+#include "workers/Worker.hpp"
 
 
 namespace sim_mob
 {
+
+class WorkGroup;
 
 
 /**
@@ -16,24 +22,8 @@ namespace sim_mob
 class Entity {
 public:
 	///Construct an entity with an immutable ID
-	Entity(unsigned int id) : id(id), isSubscriptionListBuilt(false)
-	{
-	}
+	Entity(unsigned int id) : id(id), currWorker(nullptr), isSubscriptionListBuilt(false) {}
 
-	/**
-	 * Returns a list of pointers to each Buffered<> type that this entity managed.
-	 * Entity sub-classes should override buildSubscriptionList() to help with
-	 * this process.
-	 */
-	std::vector<sim_mob::BufferedBase*>& getSubscriptionList()
-	{
-		if (!isSubscriptionListBuilt) {
-			subscriptionList_cached.clear();
-			buildSubscriptionList();
-			isSubscriptionListBuilt = true;
-		}
-		return subscriptionList_cached;
-	}
 
 	/**
 	 * Update function. This will be called each time tick (at the entity type's granularity; see
@@ -56,11 +46,44 @@ protected:
 
 private:
 	unsigned int id;
+	Worker<Entity>* currWorker;
 	bool isSubscriptionListBuilt;
 
-//Trivial accessors/mutators. Header-implemented
+	//Only the WorkGroup can retrieve/set the currWorker flag. I'm doing this through a
+	// friend class, since get/set methods have the potential for abuse (currWorker can't be declared const*)
+	friend class WorkGroup;
+
+//Some near-trivial functions
 public:
+	///Retrieve this Entity's id. An entity's ID must be unique within a given machine.
 	unsigned int getId() const { return id; }
+
+	///Retrieve this Entity's global id. An entity's Global ID must be unique across machine boundaries,
+	///  and is currently made by concatenating the result of getId() to the current machine's IP address.
+	///
+	///\note
+	///This function currently assumes one machine (localhost); it should be modified once our MPI code is
+	//   finished.
+	std::string getGlobalId() const {
+		std::stringstream res;
+		res <<"127.0.0.1:" <<id;
+		return res.str();
+	}
+
+
+	/**
+	 * Returns a list of pointers to each Buffered<> type that this entity managed.
+	 * Entity sub-classes should override buildSubscriptionList() to help with
+	 * this process.
+	 */
+	std::vector<sim_mob::BufferedBase*>& getSubscriptionList() {
+		if (!isSubscriptionListBuilt) {
+			subscriptionList_cached.clear();
+			buildSubscriptionList();
+			isSubscriptionListBuilt = true;
+		}
+		return subscriptionList_cached;
+	}
 };
 
 

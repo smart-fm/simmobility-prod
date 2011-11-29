@@ -223,18 +223,24 @@ public class NetworkVisualizer {
 		for(int i = 0; i<signalLine.size();i++){
 			
 			//Left turn light
-			ArrayList<TrafficSignalLine> leftTurnLight = signalLine.get(0);
-			leftTurnLight.get(0).drawPerLight(g, lightColors.get(0));	
+			if (signalLine.size()>0 && lightColors.size()>0 && signalLine.get(0).size()>0) {
+				ArrayList<TrafficSignalLine> leftTurnLight = signalLine.get(0);
+				leftTurnLight.get(0).drawPerLight(g, lightColors.get(0));
+			}
 			
 			
 			//Straight turn light
-			ArrayList<TrafficSignalLine> straightTurnLight = signalLine.get(1);				
-			straightTurnLight.get(0).drawPerLight(g, lightColors.get(1));	
+			if (signalLine.size()>1 && lightColors.size()>1 && signalLine.get(1).size()>0) {
+				ArrayList<TrafficSignalLine> straightTurnLight = signalLine.get(1);				
+				straightTurnLight.get(0).drawPerLight(g, lightColors.get(1));	
+			}
 			
 			
 			//Right turn light
-			ArrayList<TrafficSignalLine> rightTurnLight = signalLine.get(2);
-			rightTurnLight.get(0).drawPerLight(g, lightColors.get(2));	
+			if (signalLine.size()>2 && lightColors.size()>2 && signalLine.get(2).size()>0) {
+				ArrayList<TrafficSignalLine> rightTurnLight = signalLine.get(2);
+				rightTurnLight.get(0).drawPerLight(g, lightColors.get(2));
+			}
 			
 			
 		}

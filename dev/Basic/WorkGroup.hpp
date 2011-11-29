@@ -49,7 +49,7 @@ public:
 
 protected:
 	//Does nothing; see sub-class WorkGroup
-	virtual void manageData(sim_mob::BufferedDataManager* mgr, EntityType* ag, bool takeControl);
+	virtual void manageData(sim_mob::BufferedDataManager* mgr, EntityType* ag, bool takeControl) = 0;
 
 
 protected:
@@ -185,18 +185,6 @@ void sim_mob::SimpleWorkGroup<EntityType>::interrupt()
 		workers[i]->interrupt();
 }
 
-
-template <class EntityType>
-void sim_mob::SimpleWorkGroup<EntityType>::manageData(sim_mob::BufferedDataManager* mgr, EntityType* ag, bool takeControl)
-{
-	/*for (std::vector<sim_mob::BufferedBase*>::iterator it=ag->getSubscriptionList().begin(); it!=ag->getSubscriptionList().end(); it++) {
-		if (takeControl) {
-			mgr->beginManaging(*it);
-		} else {
-			mgr->stopManaging(*it);
-		}
-	}*/
-}
 
 
 template <class EntityType>

@@ -114,6 +114,9 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), currLane_(nullptr), currL
 }
 
 
+///Note that Driver's destructor is only for reclaiming memory.
+///  If you want to remove its registered properties from the Worker (which you should do!) then
+///  this should occur elsewhere.
 sim_mob::Driver::~Driver()
 {
 	//Our movement models.
@@ -121,8 +124,8 @@ sim_mob::Driver::~Driver()
 	safe_delete(cfModel);
 	safe_delete(intModel);
 
-	//
-
+	//Our vehicle
+	safe_delete(vehicle);
 }
 
 

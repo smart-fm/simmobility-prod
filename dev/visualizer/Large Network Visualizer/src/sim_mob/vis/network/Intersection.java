@@ -1,31 +1,58 @@
 package sim_mob.vis.network;
 
-import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-import sim_mob.vis.controls.DrawableItem;
+public class Intersection {
 
-public class Intersection implements DrawableItem{
+	private int intersectNodeID;
+	private ArrayList <Integer> signalLinkIDs; 
+	private ArrayList <Integer> signalCrossingIDs;
+	private ArrayList <Crossing> signalCrossings;
+
 	
-	public Node intersectionNode;
-	public ArrayList<Integer> intersectionSegmentsID;
-	public Crossing intersectionCrossing;
-	public Hashtable<Integer, ArrayList<Lane>> intersectionLanes;
 
-	public Intersection(){
+	private ArrayList<ArrayList<TrafficSignalLine>> vaSignalLine  = new ArrayList<ArrayList<TrafficSignalLine>>();
+	private ArrayList<ArrayList<TrafficSignalLine>> vbSignalLine  = new ArrayList<ArrayList<TrafficSignalLine>>();
+	private ArrayList<ArrayList<TrafficSignalLine>> vcSignalLine  = new ArrayList<ArrayList<TrafficSignalLine>>();
+	private ArrayList<ArrayList<TrafficSignalLine>> vdSignalLine  = new ArrayList<ArrayList<TrafficSignalLine>>();
+
+	
+	
+	public int getIntersectNodeID (){return intersectNodeID;}
+	public ArrayList <Integer> getSigalLinkIDs(){return signalLinkIDs;}
+	public ArrayList <Integer> getSigalCrossingIDs(){return signalCrossingIDs;}
+	public ArrayList <Crossing> getSignalCrossings(){return signalCrossings;}
+	
+	public ArrayList<ArrayList<TrafficSignalLine>> getVaTrafficSignal(){return vaSignalLine;}
+	public ArrayList<ArrayList<TrafficSignalLine>> getVbTrafficSignal(){return vbSignalLine;}
+	public ArrayList<ArrayList<TrafficSignalLine>> getVcTrafficSignal(){return vcSignalLine;}
+	public ArrayList<ArrayList<TrafficSignalLine>> getVdTrafficSignal(){return vdSignalLine;}
+	
+	public Intersection(int intersectNodeID, ArrayList <Integer> signalLinkIDs, ArrayList <Integer> signalCrossingIDs){
 		
-		
+		this.intersectNodeID = intersectNodeID;
+		this.signalLinkIDs = signalLinkIDs;
+		this.signalCrossingIDs = signalCrossingIDs;
+
 	}
 	
-	
-	@Override
-	public void draw(Graphics2D g) {
-		// TODO Auto-generated method stub
-		
+
+	public void setVaTrafficSignal(ArrayList<ArrayList<TrafficSignalLine>> vaSignalLine){
+		this.vaSignalLine = vaSignalLine;
 	}
-
+	public void setVbTrafficSignal(ArrayList<ArrayList<TrafficSignalLine>> vbSignalLine){
+		this.vbSignalLine = vbSignalLine;
+	}
+	public void setVcTrafficSignal(ArrayList<ArrayList<TrafficSignalLine>> vcSignalLine){
+		this.vcSignalLine = vcSignalLine;
+	}
+	public void setVdTrafficSignal(ArrayList<ArrayList<TrafficSignalLine>> vdSignalLine){
+		this.vdSignalLine = vdSignalLine;
+	}
+			
+	public void setSignalCrossing (ArrayList <Crossing> signalCrossings){
+		this.signalCrossings = signalCrossings;
+	}
 	
-	
-
 }

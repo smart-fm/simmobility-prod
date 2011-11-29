@@ -2,6 +2,8 @@ package sim_mob.vis.network;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+
+import sim_mob.vis.MainFrame;
 import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.network.basic.Vect;
 
@@ -36,7 +38,7 @@ public class Link implements DrawableItem {
 	}
 	
 	public void drawName(Graphics2D g) {
-		g.setColor(roadNameColor);
+		g.setColor(MainFrame.Config.getLineColor("roadname"));
 		g.setFont(roadNameFont);
 		float targetX = (float)(start.getPos().getX()+(end.getPos().getX()-start.getPos().getX())/2);
 		float targetY = (float)(start.getPos().getY()+(end.getPos().getY()-start.getPos().getY())/2);

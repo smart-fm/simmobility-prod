@@ -97,9 +97,9 @@ const Link* sim_mob::Vehicle::getCurrLink() const
 	return fwdMovement.getCurrLink();
 }
 
-double sim_mob::Vehicle::getCurrLinkLength() const
+double sim_mob::Vehicle::getCurrLinkReportedLength() const
 {
-	return fwdMovement.getCurrLinkLength(); // ()->getLength(fwdMovement.isMovingForwardsOnCurrSegment());
+	return fwdMovement.getCurrLinkReportedLength(); // ()->getLength(fwdMovement.isMovingForwardsOnCurrSegment());
 }
 
 sim_mob::DynamicVector sim_mob::Vehicle::getCurrPolylineVector() const
@@ -171,7 +171,7 @@ double sim_mob::Vehicle::getDistanceMovedInSegment() const
 	return fwdMovement.getCurrDistAlongRoadSegment();
 }
 
-double sim_mob::Vehicle::getCurrLaneLength() const
+double sim_mob::Vehicle::getCurrLinkLaneZeroLength() const
 {
 	throw_if_error();
 	return fwdMovement.getTotalRoadSegmentLength();

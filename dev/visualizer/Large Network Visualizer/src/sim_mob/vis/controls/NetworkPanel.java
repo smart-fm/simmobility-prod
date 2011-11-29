@@ -93,6 +93,15 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		updateMap();
 		return true;
 	}
+	public boolean advanceAnimbyStep(int ticks, JSlider slider) {
+		//Increment
+		if (netViewCache==null || !netViewCache.incrementCurrFrameTick(ticks)) {
+			return false;
+		}
+		
+		return jumpAnim(netViewCache.getCurrFrameTick(), slider);
+	}
+	
 	
 	
 	public boolean advanceAnim(int ticks, JSlider slider) {
@@ -163,12 +172,12 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		g.drawImage(drawImg, offset.x, offset.y, null);
 		
 		//Draw traffic lights... it's a bit of a hack
-		netViewCache.drawTrafficLights(g);
+	//	netViewCache.drawTrafficLights(g);
 		
 		//Draw the current frame
 		if (netViewCache!=null) {
 			g.setFont(FrameFont);
-			g.setColor(Color.black);
+			g.setColor(MainFrame.Config.getBackground("framenumber"));
 			g.drawString("Frame: "+netViewCache.getCurrFrameTick() , 15, 10+g.getFontMetrics().getAscent());
 		}
 		

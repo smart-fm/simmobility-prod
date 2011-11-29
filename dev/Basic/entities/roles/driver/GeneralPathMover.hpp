@@ -61,7 +61,7 @@ public:
 	const sim_mob::Point2D& getCurrPolypoint() const;
 	const sim_mob::Point2D& getNextPolypoint() const;
 	//bool isMovingForwardsOnCurrSegment() const;
-	double getCurrLinkLength() const;
+	double getCurrLinkReportedLength() const;
 
 	//Retrieve useful properties of the current polypoint
 	double getCurrDistAlongPolyline() const;
@@ -116,7 +116,8 @@ private:
 	//      distance for that Segment (e.g., the median lane line) and then add that to the normalized distances
 	//      for all previous Segments. This is important as it prevents obstacles from appearing in the wrong
 	//      places to different drivers.
-	double distMovedInPrevSegments;
+	//NOTE:  This does NOT include the distance moved in the current polyline.
+	double distMovedInCurrSegment;
 
 	//And track the expected total distance.
 	double distOfThisSegment;

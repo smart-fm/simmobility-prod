@@ -12,7 +12,7 @@ if len(sys.argv) > 1:
     random.seed(sys.argv[1])
 
 Registrar_of_companies.genesis()
-city = City(2000)
+city = City(4000)
 city.genesis()
 
 print "==================== List of companies ===================="

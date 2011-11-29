@@ -98,7 +98,6 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(UpdateParams& p, doubl
 		p.space = p.trafficSignalStopDistance/100;//which should be default value 50m
 		mode = AM_NONE;
 	}
-	p.space -= 0.5;
 
 	//If we have no space left to move, immediately cut off acceleration.
 	double res = 0;
@@ -164,11 +163,11 @@ double sim_mob::MITSIM_CF_Model::accOfEmergencyDecelerating(UpdateParams& p)
 	} else {
 		a= breakToTargetSpeed(p);
 	}
-//	if(a<maxDeceleration)
-//		return maxDeceleration;
-//	else if(a>maxAcceleration)
-//		return maxAcceleration;
-//	else
+	if(a<maxDeceleration)
+		return maxDeceleration;
+	else if(a>maxAcceleration)
+		return maxAcceleration;
+	else
 		return a;
 }
 
@@ -205,7 +204,7 @@ double sim_mob::MITSIM_CF_Model::accOfFreeFlowing(UpdateParams& p, double target
 double sim_mob::MITSIM_CF_Model::accOfMixOfCFandFF(UpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {
 	p.distanceToNormalStop = p.currSpeed * p.currSpeed / 2 /(-normalDeceleration);
-	if(p.space > p.distanceToNormalStop) {
+	if(p.space > p.distanceToNormalStop ) {
 		return accOfFreeFlowing(p, targetSpeed, maxLaneSpeed);
 	} else {
 		return breakToTargetSpeed(p);

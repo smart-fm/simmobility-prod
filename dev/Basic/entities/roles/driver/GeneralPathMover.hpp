@@ -58,7 +58,6 @@ public:
 	const sim_mob::RoadSegment* getNextSegment(bool sameLink) const;
 	const sim_mob::RoadSegment* getPrevSegment(bool sameLink) const;
 	const sim_mob::Link* getCurrLink() const;
-	const sim_mob::Lane* getCurrLane() const;
 	const sim_mob::Point2D& getCurrPolypoint() const;
 	const sim_mob::Point2D& getNextPolypoint() const;
 	//bool isMovingForwardsOnCurrSegment() const;
@@ -85,8 +84,6 @@ public:
 	void shiftToNewPolyline(bool moveLeft);
 	void moveToNewPolyline(int newLaneID);
 
-	double getCurrPolylineLength() const { return currPolylineLength();}
-	double getDistAlongPolyline() const { return distAlongPolyline;}
 
 private:
 	//List of RoadSegments we're moving to in order.

@@ -117,6 +117,7 @@ public:
 	const double getVehicleLength() const { return vehicle->length; }
 
 private:
+	bool isCloseToLinkEnd(UpdateParams& p) const;
 	bool isPedestrianOnTargetCrossing() const;
 	void chooseNextLaneForNextLink(UpdateParams& p);
 	void calculateIntersectionTrajectory(DPoint movingFrom, double overflow);

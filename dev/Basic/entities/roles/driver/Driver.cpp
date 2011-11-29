@@ -211,8 +211,11 @@ void sim_mob::Driver::update_first_frame(UpdateParams& params, frame_t frameNumb
 	initializePath();
 
 	//Set some properties about the current path, such as the current polyline, etc.
-	if(vehicle->hasPath()) {
+	if(vehicle && vehicle->hasPath()) {
 		setOrigin(params);
+	} else {
+		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+		std::cout <<"ERROR: Vehicle could not be created for driver; no route!\n";
 	}
 }
 

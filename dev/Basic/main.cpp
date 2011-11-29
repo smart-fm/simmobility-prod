@@ -186,10 +186,16 @@ bool performMain(const std::string& configFileName)
   //       a barrier sync.
   /////////////////////////////////////////////////////////////////
   for (unsigned int currTick=0; currTick<config.totalRuntimeTicks; currTick++) {
+	  //Flag
+	  bool warmupDone = (currTick >= config.totalWarmupTicks);
+
 	  //Output
 	  {
 		  boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
           cout <<"Approximate Tick Boundary: " <<currTick <<", " <<(currTick*config.baseGranMS) <<" ms" <<endl;
+		  if (!warmupDone) {
+			  cout <<"  Warmup; output ignored." <<endl;
+		  }
 	  }
 
 	  //Update the signal logic and plans for every intersection grouped by region
@@ -214,12 +220,9 @@ bool performMain(const std::string& configFileName)
 	  //updateSurveillanceData(agents);
 
 	  //Check if the warmup period has ended.
-	  if (currTick >= config.totalWarmupTicks) {
+	  if (warmupDone) {
 		  //updateGUI(agents);
 		  //saveStatistics(agents);
-	  } else {
-		  boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-		  cout <<"  Warmup; output ignored." <<endl;
 	  }
 
 	  //saveStatisticsToDB(agents);

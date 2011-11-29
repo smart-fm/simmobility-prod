@@ -6,111 +6,10 @@ import random
 from town import Town_layout
 from company import Registrar_of_companies
 
-def generate_school_trips(student):
-    name = "student name='%s'" % student.name
-    trip =   "from home-address='%s' to school-address='%s'" \
-           % (student.address, student.school.address)
-    start_time = "at 7:%02d:%02d" % (random.randint(0, 15), random.randint(0, 59))
-    if "car" == student.mode:
-        print "Person name='%s' drives" % student.driver.name, name, trip, start_time
-    else:
-        print name, "walks", trip, start_time
-
-    # catch a movie once in every 100 school days.
-    if random.random() < 0.01:
-        movie_house = random.choice(Registrar_of_companies.movie_houses)
-        trip =   "walks from school-address='%s' to movie-house-address='%s'" \
-               % (student.school.address, movie_house.address)
-        start_time = "at 3:%02d:%02d" % (random.randint(0, 45), random.randint(0, 59))
-        print name, trip, start_time
-
-        trip =   "walks from movie-house-address='%s' to home-address='%s'" \
-               % (movie_house.address, student.address)
-        start_time = "at 6:%02d:%02d" % (random.randint(30, 59), random.randint(0, 59))
-        print name, trip, start_time
-    else:
-        trip =   "walks from school-address='%s' to home-address='%s'" \
-               % (student.school.address, student.address)
-        start_time = "at 3:%02d:%02d" % (random.randint(0, 45), random.randint(0, 59))
-        print name, trip, start_time
-
-def generate_work_trips(person):
-    name = "Person name='%s'" % person.name
-    if "car" == person.mode:
-        #if len(person.passengers):
-        #    print name, " drives from school-address='%s'"
-        trip =   "drives from home-address='%s' to work-address='%s'" \
-               % (person.address, person.company.address)
-        start_time = "at 8:%02d:%02d" % (random.randint(0, 30), random.randint(0, 59))
-        print name, trip, start_time
-    else:
-        trip =   "walks from home-address='%s' to work-address='%s'" \
-               % (person.address, person.company.address)
-        start_time = "at 8:%02d:%02d" % (random.randint(0, 30), random.randint(0, 59))
-        print name, trip, start_time
-
-    # Time for lunch
-    cafe = random.choice(Registrar_of_companies.restuarants)
-    trip =   "walks from work-address='%s' to restuarant-address='%s' for lunch" \
-           % (person.company.address, cafe.address)
-    start_time = "at 12:%02d:%02d" % (random.randint(0, 15), random.randint(0, 59))
-    print name, trip, start_time
-
-    # Back to the office
-    trip =   "walks from restuarant-address='%s' to work-address='%s'" \
-           % (cafe.address, person.company.address)
-    start_time = "at 12:%02d:%02d" % (random.randint(45, 59), random.randint(0, 59))
-    print name, trip, start_time
-
-    # 20 % chance of having dinner before going home
-    if random.random() < 0.2:
-        restuarant = random.choice(Registrar_of_companies.restuarants)
-        trip =   "from office-address='%s' to resturant-address='%s'" \
-               % (person.company.address, restuarant.address)
-        mode = "drives" if "car" == person.mode else "walks"
-        start_time = "at 6:%02d:%02d" % (random.randint(30, 59), random.randint(0, 59))
-        print name, mode, trip, start_time
-
-        trip =   "from restuarant-address='%s' to home-address='%s'" \
-               % (restuarant.address, person.address)
-        start_time = "at 8:%02d:%02d" % (random.randint(0, 15), random.randint(0, 59))
-        print name, mode, trip, start_time
-    else:
-        trip = "from office-address='%s' to home-address='%s'" \
-               % (person.company.address, person.address)
-        mode = "drives" if "car" == person.mode else "walks"
-        start_time = "at 6:%02d:%02d" % (random.randint(30, 59), random.randint(0, 59))
-        print name, mode, trip, start_time
-
-class City:
-    residents = list()
-    max_population_size = 2000
-
-    @staticmethod
-    def genesis():
-        while len(City.residents) < City.max_population_size:
-            Person()
-
-    @staticmethod
-    def dump():
-        for person in City.residents:
-            print person
-
-    @staticmethod
-    def generate_trips():
-        for person in City.residents:
-            if person.father:
-                child = person
-                # a child is either in school or is at home; a toddler never gets to go anywhere.
-                if child.is_student:
-                    generate_school_trips(child)
-            elif person.company:
-                generate_work_trips(person)
-
 class Person:
-    def __init__(self, attrs=None):
-        self.name = "Person_%04d" % len(City.residents)
-        City.residents.append(self)
+    def __init__(self, city, attrs=None):
+        self.name = "Person_%04d" % len(city.residents)
+        city.residents.append(self)
         self.children = list()
         self.father = None
         self.mother = None
@@ -135,7 +34,7 @@ class Person:
                 attrs["is_married"] = True
                 attrs["spouse"] = self
                 attrs["address"] = self.address
-                self.spouse = Person(attrs)
+                self.spouse = Person(city, attrs)
 
                 child_count = random.randint(0, 3)
                 if child_count:
@@ -147,7 +46,7 @@ class Person:
                         attrs["mother"] = self
                         attrs["father"] = self.spouse
                     attrs["address"] = self.address
-                    child = Person(attrs)
+                    child = Person(city, attrs)
                     self.add_child(child)
                     self.spouse.add_child(child)
 
@@ -187,7 +86,6 @@ class Person:
 #                else:
 #                    self.mode = "walk"
                 self.mode = "walk"
-
 
     def add_child(self, child):
         self.children.append(child)

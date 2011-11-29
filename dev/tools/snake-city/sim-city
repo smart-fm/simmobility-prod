@@ -4,7 +4,7 @@
 
 import sys, random
 from company import Registrar_of_companies
-from person import City
+from city import City
 
 if len(sys.argv) > 1:
     # If you want the same pseudo-random numbers, specify a seed on the command line.
@@ -12,7 +12,8 @@ if len(sys.argv) > 1:
     random.seed(sys.argv[1])
 
 Registrar_of_companies.genesis()
-City.genesis()
+city = City(4000)
+city.genesis()
 
 print "==================== List of companies ===================="
 Registrar_of_companies.dump()
@@ -20,9 +21,14 @@ print
 print
 print
 print "==================== City residents ===================="
-City.dump()
+city.dump()
 print
 print
 print
 print "==================== Trips by residents ===================="
-City.generate_trips()
+city.generate_trips()
+print
+print
+print
+print "==================== SQL statements ===================="
+city.dump_sql_statements()

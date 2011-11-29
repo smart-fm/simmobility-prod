@@ -21,6 +21,7 @@ void delete_possible_pointer(T* item) { delete item; }
 
 
 
+
 /**
  * Temporary definition of nullptr. The new standard (C++11) will have "nullptr" as a builtin
  * keyword with special properties. So, I'm defining a class here with some of "nullptr"'s properties.
@@ -56,3 +57,18 @@ private:
 
 } nullptr = {};  //Single instance, named "nullptr"
 
+
+
+
+
+
+
+//Deleting a possibly-null pointer and setting it to null.
+//TODO: We might be able to merge this with delete_possible_pointer.
+template <typename T>
+void safe_delete(T*& item) {
+	if (item) {
+		delete item;
+		item = nullptr;
+	}
+}

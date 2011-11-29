@@ -114,6 +114,18 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), currLane_(nullptr), currL
 }
 
 
+sim_mob::Driver::~Driver()
+{
+	//Our movement models.
+	safe_delete(lcModel);
+	safe_delete(cfModel);
+	safe_delete(intModel);
+
+	//
+
+}
+
+
 vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams()
 {
 	vector<BufferedBase*> res;

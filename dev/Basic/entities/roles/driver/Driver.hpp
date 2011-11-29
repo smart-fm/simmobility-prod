@@ -48,6 +48,8 @@ private:
 //Constructor and overridden methods.
 public:
 	Driver (Agent* parent);			//to initiate
+	virtual ~Driver();
+
 	virtual void update(frame_t frameNumber);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 

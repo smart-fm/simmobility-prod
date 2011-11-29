@@ -294,6 +294,6 @@ class City:
         sql = 'INSERT INTO "Trip_Chains"("From_Activity_Id", "To_Activity_Id", '
         sql += '"Mode_Of_Travel_Id", "Start_Time")'
         for trip in self.trip_chains:
-            print >>sys.stderr, sql, 'VALUES(%d, %d, %d, "%s");' % (trip.from_id, trip.to_id,
+            print >>sys.stderr, sql, "VALUES(%d, %d, %d, '%s');" % (trip.from_id, trip.to_id,
                                                                     mode_choices[trip.mode],
                                                                     trip.start_time)

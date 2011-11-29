@@ -2,7 +2,7 @@
 
 # Copyright Singapore-MIT Alliance for Research and Technology
 
-import random
+import random, sys
 from town import Town_layout
 from company import Registrar_of_companies
 
@@ -82,9 +82,21 @@ def generate_work_trips(person):
         start_time = "at 6:%02d:%02d" % (random.randint(30, 59), random.randint(0, 59))
         print name, mode, trip, start_time
 
+class Activity:
+    def __init__(self, type, primary, flexible, location):
+        self.type = type
+        self.primary = primary
+        self.flexible = flexible
+        self.location = location
+
+    def __repr__(self):
+        return   "Activity type=%s is%s-primary is%s-flexible location=%d" \
+               % (self.type, "" if self.primary else "-not", "" if self.flexible else "-not", self.location)
+
 class City:
     residents = list()
     max_population_size = 2000
+    activities = dict()
 
     @staticmethod
     def genesis():
@@ -97,7 +109,72 @@ class City:
             print person
 
     @staticmethod
+    def generate_home_activities():
+        for person in City.residents:
+            key = "home-%d" % person.address
+            if key not in City.activities:
+                City.activities[key] = Activity("Home", True, False, person.address)
+
+    @staticmethod
+    def generate_work_place_activities(companies):
+        for company in companies:
+            if len(company.staff):
+                key = "work-%d" % company.address
+                if key not in City.activities:
+                    City.activities[key] = Activity("Work", True, False, company.address)
+
+    @staticmethod
+    def generate_shopping_activities():
+        for shop in Registrar_of_companies.shops:
+            key = "shopping-%d" % shop.address
+            if key not in City.activities:
+                City.activities[key] = Activity("Shopping", False, True, shop.address)
+
+    @staticmethod
+    def generate_school_activities():
+        for school in Registrar_of_companies.schools:
+            key = "school-%d" % school.address
+            if key not in City.activities:
+                City.activities[key] = Activity("School", True, False, school.address)
+
+    @staticmethod
+    def generate_lunch_activities():
+        for restuarant in Registrar_of_companies.restuarants:
+            key = "lunch-%d" % restuarant.address
+            if key not in City.activities:
+                City.activities[key] = Activity("Lunch", False, True, restuarant.address)
+
+    @staticmethod
+    def generate_dinner_activities():
+        for restuarant in Registrar_of_companies.restuarants:
+            key = "dinner-%d" % restuarant.address
+            if key not in City.activities:
+                City.activities[key] = Activity("Dinner", False, True, restuarant.address)
+
+    @staticmethod
+    def generate_movie_activities():
+        for movie_house in Registrar_of_companies.movie_houses:
+            key = "movie-%d" % movie_house.address
+            if key not in City.activities:
+                City.activities[key] = Activity("Movie", False, True, movie_house.address)
+
+    @staticmethod
+    def generate_activities():
+        City.generate_home_activities()
+        City.generate_work_place_activities(Registrar_of_companies.small_companies)
+        City.generate_work_place_activities(Registrar_of_companies.medium_size_companies)
+        City.generate_work_place_activities(Registrar_of_companies.large_companies)
+        City.generate_shopping_activities()
+        City.generate_school_activities()
+        City.generate_lunch_activities()
+        City.generate_dinner_activities()
+        City.generate_movie_activities()
+
+    @staticmethod
     def generate_trips():
+        City.generate_activities()
+        #for key, activity in City.activities.iteritems():
+        #    print key, activity
         for person in City.residents:
             if person.father:
                 child = person
@@ -106,6 +183,18 @@ class City:
                     generate_school_trips(child)
             elif person.company:
                 generate_work_trips(person)
+
+    @staticmethod
+    def dump_sql_statements():
+        activity_types = {"Home" : 1, "Work" : 2, "Shopping" : 3,
+                          "School" : 4, "Lunch" : 5, "Dinner" : 6, "Movie" : 8 }
+        sql = 'INSERT INTO "Activity_Spec"("Activity_Type", "Primary_Activity", '
+        sql += '"Flexible_Activity", "Location_Id")'
+        for key, activity in City.activities.iteritems():
+            print >>sys.stderr, sql, 'VALUES(%d, %s, %s, %d);' % (activity_types[activity.type],
+                                                           "TRUE" if activity.primary else "FALSE",
+                                                           "TRUE" if activity.flexible else "FALSE",
+                                                           activity.location)
 
 class Person:
     def __init__(self, attrs=None):

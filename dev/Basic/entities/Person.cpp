@@ -12,6 +12,13 @@ sim_mob::Person::Person(int id) : Agent(id), currRole(nullptr), currTripChain(nu
 
 }
 
+
+sim_mob::Person::~Person()
+{
+	safe_delete(currRole);
+}
+
+
 void sim_mob::Person::update(frame_t frameNumber)
 {
 	//Update this agent's role
@@ -23,9 +30,6 @@ void sim_mob::Person::update(frame_t frameNumber)
 	//NOTE: Make sure you set this flag AFTER performing your final output.
 	if (isToBeRemoved()) {
 		//TODO: Everything in this scope will likely be moved to the Dispatch Manager later on.
-		//      In particular, we don't delete the Agent* right now (untested), and the destructor of
-		//      Agent is really where currRole should be removed.
-		safe_delete(currRole);
 
 		//Migrate this Agent off of its current Worker.
 		Agent::TMP_AgentWorkGroup->migrate(this, -1);
@@ -36,9 +40,9 @@ void sim_mob::Person::update(frame_t frameNumber)
 			Agent::all_agents.erase(it);
 		}
 
-		//TEMP
-		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-		std::cout <<"Agent: " <<this->getId() <<" removed from simulation.\n";
+		//Deleting yourself is ok if you're sure there are no lingering references
+		// (again, this will be moved to the Dispatch Manager later. So please ignore the ugliness of deleting this for now.)
+		delete this;
 	}
 }
 

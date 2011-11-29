@@ -22,6 +22,7 @@ class TripChain;
 class Person : public sim_mob::Agent {
 public:
 	Person(int id=-1);
+	virtual ~Person();
 
 	///Update Person behavior
 	virtual void update(frame_t frameNumber);

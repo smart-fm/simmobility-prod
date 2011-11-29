@@ -29,6 +29,7 @@ class WorkGroup;
 class Agent : public sim_mob::Entity {
 public:
 	Agent(int id=-1);
+	virtual ~Agent();
 
 	virtual void update(frame_t frameNumber) = 0;  ///<Update agent behvaior
 

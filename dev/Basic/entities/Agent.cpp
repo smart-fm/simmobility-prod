@@ -31,6 +31,11 @@ sim_mob::Agent::Agent(int id) : Entity(GetAndIncrementID(id)), originNode(nullpt
 	toRemoved = false;
 }
 
+sim_mob::Agent::~Agent()
+{
+
+}
+
 
 
 void sim_mob::Agent::buildSubscriptionList()

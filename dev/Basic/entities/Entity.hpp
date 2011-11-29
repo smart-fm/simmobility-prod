@@ -3,6 +3,7 @@
 #pragma once
 
 #include <string>
+#include <stdexcept>
 #include <sstream>
 
 #include "metrics/Frame.hpp"
@@ -23,6 +24,12 @@ class Entity {
 public:
 	///Construct an entity with an immutable ID
 	Entity(unsigned int id) : id(id), isSubscriptionListBuilt(false), currWorker(nullptr) {}
+	virtual ~Entity() {
+		if (currWorker) {
+			//TODO: Make sure throwing from destructors is ok.
+			throw std::runtime_error("Error: Deleting an Entity which is still being managed by a Worker.");
+		}
+	}
 
 
 	/**

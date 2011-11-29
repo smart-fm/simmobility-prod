@@ -114,22 +114,41 @@ def generate_work_trips(person, trip_chains, activities):
     to_id = activities[key].id
     trip_chains.append(Trip(from_id, to_id, "Walk", start_time))
 
-    # 20 % chance of having dinner before going home
+    # 20 % chance of having dinner or going shopping before going home
     if random.random() < 0.2:
-        restuarant = random.choice(Registrar_of_companies.restuarants)
-        trip =   "from office-address='%s' to resturant-address='%s'" \
-               % (person.company.address, restuarant.address)
+        # equal chance of eating or shopping.
+        choice = "eat" if random.random() < 0.5 else "shop"
+
+        if "eat" == choice:
+            restuarant = random.choice(Registrar_of_companies.restuarants)
+            trip =   "from office-address='%s' to resturant-address='%s'" \
+                   % (person.company.address, restuarant.address)
+        else:
+            shop = random.choice(Registrar_of_companies.shops)
+            trip =   "from office-address='%s' to shop-address='%s'" \
+                   % (person.company.address, shop.address)
+
         mode = "drives" if "car" == person.mode else "walks"
         start_time = "6:%02d:%02d" % (random.randint(30, 59), random.randint(0, 59))
-        print name, mode, trip, "for dinner at", start_time
+        if "eat" == choice:
+            print name, mode, trip, "for dinner at", start_time
+        else:
+            print name, mode, trip, "for shopping at", start_time
 
         from_id = to_id
-        key = "dinner-%d" % restuarant.address
+        if "eat" == choice:
+            key = "dinner-%d" % restuarant.address
+        else:
+            key = "shopping-%d" % shop.address
         to_id = activities[key].id
         trip_chains.append(Trip(from_id, to_id, "Car" if "car" == person.mode else "Walk", start_time))
 
-        trip =   "from restuarant-address='%s' to home-address='%s'" \
-               % (restuarant.address, person.address)
+        if "eat" == choice:
+            trip =   "from restuarant-address='%s' to home-address='%s'" \
+                   % (restuarant.address, person.address)
+        else:
+            trip =   "from shop-address='%s' to home-address='%s'" \
+                   % (shop.address, person.address)
         start_time = "8:%02d:%02d" % (random.randint(0, 15), random.randint(0, 59))
         print name, mode, trip, "at", start_time
 

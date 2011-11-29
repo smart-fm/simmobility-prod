@@ -260,13 +260,14 @@ void sim_mob::Driver::update_movement(UpdateParams& params, frame_t frameNumber)
 
 		//TEMP: Move to (0,0). This should prevent collisions.
 		//TODO: Remove from simulation. Do this in the dispatcher at the same time...
-		parent->xPos.set(0);
+		parent->setToBeRemoved(true);
+		/*parent->xPos.set(0);
 		parent->yPos.set(0);
 
 		//TODO:reach destination
 		vehicle->setAcceleration(0);
 		vehicle->setVelocity(0);
-		vehicle->setLatVelocity(0);
+		vehicle->setLatVelocity(0);*/
 		return;
 	}
 

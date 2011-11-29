@@ -41,8 +41,8 @@ public:
 	//! to construct a Worker object.  This procedure will be called repeatedly; the 1st
 	//! argument will a reference to the constructed Worker object and the 2nd argument
 	//! will be a strictly monotonic increasing number which represent the time-step.
-	typedef boost::function<void(Worker<EntityType>& worker, frame_t frameNumber)> actionFunction;
-	Worker(actionFunction* action =nullptr, boost::barrier* internal_barr =nullptr, boost::barrier* external_barr =nullptr, frame_t endTick=0, frame_t tickStep=0, bool auraManagerActive=false);
+	typedef boost::function<void(Worker<EntityType>& worker, frame_t frameNumber)> ActionFunction;
+	Worker(ActionFunction* action =nullptr, boost::barrier* internal_barr =nullptr, boost::barrier* external_barr =nullptr, frame_t endTick=0, frame_t tickStep=0, bool auraManagerActive=false);
 	virtual ~Worker();
 
 	//Thread-style operations
@@ -69,7 +69,7 @@ protected:
 	//Properties
 	boost::barrier* internal_barr;
 	boost::barrier* external_barr;
-	actionFunction* action;
+	ActionFunction* action;
 
 	//Time management
 	frame_t currTick;
@@ -130,7 +130,7 @@ std::vector<EntityType*>& sim_mob::Worker<EntityType>::getEntities() {
 
 
 template <class EntityType>
-sim_mob::Worker<EntityType>::Worker(actionFunction* action, boost::barrier* internal_barr, boost::barrier* external_barr, frame_t endTick, frame_t tickStep, bool auraManagerActive)
+sim_mob::Worker<EntityType>::Worker(ActionFunction* action, boost::barrier* internal_barr, boost::barrier* external_barr, frame_t endTick, frame_t tickStep, bool auraManagerActive)
     : BufferedDataManager(),
       internal_barr(internal_barr), external_barr(external_barr), action(action),
       endTick(endTick),

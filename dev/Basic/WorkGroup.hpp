@@ -34,7 +34,7 @@ public:
 	virtual ~SimpleWorkGroup();
 
 	//template <typename WorkType>  //For now, just assume Workers
-	void initWorkers(typename Worker<EntityType>::actionFunction* action = nullptr);
+	void initWorkers(typename Worker<EntityType>::ActionFunction* action = nullptr);
 
 	//Worker<EntityType>* const getWorker(size_t id);
 	void startAll();
@@ -108,7 +108,7 @@ public:
  * Template function must be defined in the same translational unit as it is declared.
  */
 template <class EntityType>
-void sim_mob::SimpleWorkGroup<EntityType>::initWorkers(typename Worker<EntityType>::actionFunction* action)
+void sim_mob::SimpleWorkGroup<EntityType>::initWorkers(typename Worker<EntityType>::ActionFunction* action)
 {
 	for (size_t i=0; i<total_size; i++) {
 		workers.push_back(new Worker<EntityType>(action, &shared_barr, &external_barr, endTick, tickStep, auraManagerActive));

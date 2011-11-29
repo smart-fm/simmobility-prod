@@ -15,7 +15,6 @@
 
 #include "workers/Worker.hpp"
 #include "workers/EntityWorker.hpp"
-#include "workers/ShortestPathWorker.hpp"
 #include "buffering/BufferedDataManager.hpp"
 #include "WorkGroup.hpp"
 #include "geospatial/aimsun/Loader.hpp"
@@ -31,6 +30,7 @@
 #include "conf/simpleconf.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/Bus.hpp"
+#include "entities/Person.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "geospatial/BusStop.hpp"
 #include "geospatial/Route.hpp"
@@ -45,10 +45,6 @@ using boost::thread;
 
 
 using namespace sim_mob;
-
-
-//Helper
-typedef WorkGroup EntityWorkGroup;
 
 
 //Function prototypes.
@@ -155,8 +151,9 @@ bool performMain(const std::string& configFileName)
 
 
   //Initialize our work groups, assign agents randomly to these groups.
-  EntityWorkGroup agentWorkers(WG_AGENTS_SIZE, config.totalRuntimeTicks, config.granAgentsTicks, true);
-  Worker<sim_mob::Entity>::actionFunction entityWork = boost::bind(entity_worker, _1, _2);
+  WorkGroup agentWorkers(WG_AGENTS_SIZE, config.totalRuntimeTicks, config.granAgentsTicks, true);
+  Agent::TMP_AgentWorkGroup = &agentWorkers;
+  Worker<sim_mob::Entity>::ActionFunction entityWork = boost::bind(entity_worker, _1, _2);
   agentWorkers.initWorkers(&entityWork);
   for (size_t i=0; i<agents.size(); i++) {
 	  agentWorkers.migrate(agents[i], i%WG_AGENTS_SIZE);
@@ -164,8 +161,8 @@ bool performMain(const std::string& configFileName)
 
   //Initialize our signal status work groups
   //  TODO: There needs to be a more general way to do this.
-  EntityWorkGroup signalStatusWorkers(WG_SIGNALS_SIZE, config.totalRuntimeTicks, config.granSignalsTicks);
-  Worker<sim_mob::Entity>::actionFunction spWork = boost::bind(signal_status_worker, _1, _2);
+  WorkGroup signalStatusWorkers(WG_SIGNALS_SIZE, config.totalRuntimeTicks, config.granSignalsTicks);
+  Worker<sim_mob::Entity>::ActionFunction spWork = boost::bind(signal_status_worker, _1, _2);
   signalStatusWorkers.initWorkers(&spWork);
   for (size_t i=0; i<Signal::all_signals_.size(); i++) {
 	  signalStatusWorkers.migrate(const_cast<Signal*>(Signal::all_signals_[i]), i%WG_SIGNALS_SIZE);
@@ -185,6 +182,7 @@ bool performMain(const std::string& configFileName)
   //       time ticks, the WorkGroups will return without performing
   //       a barrier sync.
   /////////////////////////////////////////////////////////////////
+  size_t numStartAgents = Agent::all_agents.size();
   for (unsigned int currTick=0; currTick<config.totalRuntimeTicks; currTick++) {
 	  //Flag
 	  bool warmupDone = (currTick >= config.totalWarmupTicks);
@@ -228,10 +226,20 @@ bool performMain(const std::string& configFileName)
 	  //saveStatisticsToDB(agents);
   }
 
-  cout <<"Simulation complete; closing worker threads." <<endl;
+  cout <<"Starting Agents: " <<numStartAgents <<endl;
   if (Agent::all_agents.empty()) {
-	  cout <<"NOTE: No agents were processed." <<endl;
+	  cout <<"All Agents have left the simulation.\n";
+  } else {
+	  size_t numPerson = 0;
+	  for (vector<Agent*>::iterator it=Agent::all_agents.begin(); it!=Agent::all_agents.end(); it++) {
+		  if (dynamic_cast<Person*>(*it)) {
+			  numPerson++;
+		  }
+	  }
+	  cout <<"Remaining Agents: " <<numPerson <<" (Person)   " <<(Agent::all_agents.size()-numPerson) <<" (Other)" <<endl;
   }
+
+  cout <<"Simulation complete; closing worker threads." <<endl;
   return true;
 }
 
@@ -288,7 +296,7 @@ void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents)
 	  SimpleWorkGroup<sim_mob::Agent> createAgentWorkers(WG_CREATE_AGENT_SIZE, 1);
 
 	  //Create agents
-	  Worker<sim_mob::Agent>::actionFunction func2 = boost::bind(load_agents, _1, _2);
+	  Worker<sim_mob::Agent>::ActionFunction func2 = boost::bind(load_agents, _1, _2);
 	  createAgentWorkers.initWorkers(&func2);
 	  for (size_t i=0; i<agents.size(); i++) {
 		  createAgentWorkers.migrate(agents[i], createAgentWorkers.getWorker(-1), createAgentWorkers.getWorker(i%WG_CREATE_AGENT_SIZE));

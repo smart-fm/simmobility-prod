@@ -10,6 +10,7 @@ using std::vector;
 
 
 vector<Agent*> sim_mob::Agent::all_agents;
+WorkGroup* sim_mob::Agent::TMP_AgentWorkGroup(nullptr);
 
 unsigned int sim_mob::Agent::next_agent_id = 0;
 unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID)
@@ -57,9 +58,9 @@ bool sim_mob::Agent::isToBeRemoved()
 void sim_mob::Agent::setToBeRemoved(bool value)
 {
 	//Do nothing?
-	if (value==toRemoved) {
+	/*if (value==toRemoved) {
 		return;
-	}
+	}*/
 
 	toRemoved = value;
 }

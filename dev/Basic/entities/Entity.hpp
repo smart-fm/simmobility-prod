@@ -22,7 +22,7 @@ class WorkGroup;
 class Entity {
 public:
 	///Construct an entity with an immutable ID
-	Entity(unsigned int id) : id(id), currWorker(nullptr), isSubscriptionListBuilt(false) {}
+	Entity(unsigned int id) : id(id), isSubscriptionListBuilt(false), currWorker(nullptr) {}
 
 
 	/**
@@ -46,8 +46,11 @@ protected:
 
 private:
 	unsigned int id;
-	Worker<Entity>* currWorker;
 	bool isSubscriptionListBuilt;
+
+protected:
+	///Who is currently managing this Entity?
+	Worker<Entity>* currWorker;
 
 	//Only the WorkGroup can retrieve/set the currWorker flag. I'm doing this through a
 	// friend class, since get/set methods have the potential for abuse (currWorker can't be declared const*)

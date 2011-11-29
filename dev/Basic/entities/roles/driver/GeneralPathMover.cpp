@@ -367,6 +367,13 @@ const Link* sim_mob::GeneralPathMover::getCurrLink() const
 	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
 	return getCurrSegment()->getLink();
 }
+const Lane* sim_mob::GeneralPathMover::getCurrLane() const
+{
+	throwIf(!isPathSet(), "GeneralPathMover path not set.");
+	if(isDoneWithEntireRoute())
+		return nullptr;
+	return(*currSegmentIt)->getLanes().at(currLaneID);
+}
 const Point2D& sim_mob::GeneralPathMover::getCurrPolypoint() const
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
@@ -406,7 +413,8 @@ double sim_mob::GeneralPathMover::getCurrDistAlongRoadSegment() const
 	double distRatio = distAlongPolyline / currPolylineLength();
 
 	//Add this to the distance moved so far.
-	return distMovedInCurrSegment + distRatio*totalPolyDist;
+	//return distMovedInCurrSegment + distRatio*totalPolyDist;
+	return distRatio*totalPolyDist;
 }
 
 double sim_mob::GeneralPathMover::getTotalRoadSegmentLength() const

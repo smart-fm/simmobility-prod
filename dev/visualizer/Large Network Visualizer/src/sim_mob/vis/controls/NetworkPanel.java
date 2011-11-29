@@ -179,6 +179,8 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 			g.setFont(FrameFont);
 			g.setColor(MainFrame.Config.getBackground("framenumber"));
 			g.drawString("Frame: "+netViewCache.getCurrFrameTick() , 15, 10+g.getFontMetrics().getAscent());
+			g.drawString("Input File Name: "+netViewCache.getFileName() , 100, 10+g.getFontMetrics().getAscent());
+
 		}
 		
 		//Repaint

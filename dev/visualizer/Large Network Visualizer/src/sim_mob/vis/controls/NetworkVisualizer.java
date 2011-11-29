@@ -21,8 +21,10 @@ public class NetworkVisualizer {
 	private int height100Percent;
 	double currPercentZoom;
 	private static final double  ZOOM_IN_CRITICAL = 1.6;
+	private String fileName;
 	
 	public int getCurrFrameTick() { return currFrameTick; }
+	public String getFileName(){return fileName;}
 	public boolean incrementCurrFrameTick(int amt) {
 		return setCurrFrameTick(currFrameTick+amt);
 	}
@@ -58,13 +60,14 @@ public class NetworkVisualizer {
 		return null;
 	}
 	
-	public void setSource(RoadNetwork network, SimulationResults simRes, double initialZoom, int width100Percent, int height100Percent) {
+	public void setSource(RoadNetwork network, SimulationResults simRes, double initialZoom, int width100Percent, int height100Percent,String fileName) {
 		//Save
 		this.network = network;
 		this.simRes = simRes;
 		this.currFrameTick = 0;
 		this.width100Percent = width100Percent;
 		this.height100Percent = height100Percent;
+		this.fileName = fileName;
 		
 		//Recalc
 		redrawAtScale(initialZoom);

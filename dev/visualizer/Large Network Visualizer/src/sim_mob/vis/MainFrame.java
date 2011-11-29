@@ -44,7 +44,7 @@ public class MainFrame extends JFrame {
 	//Helper
 	public static CSS_Interface Config;
 
-	
+		
 	/**
 	 * NOTE: Currently, I haven't found a good way to switch between MainFrame as a JFrame and MainFrame as an Applet.
 	 *       Basically, it requires changing 4 lines of code.
@@ -52,10 +52,10 @@ public class MainFrame extends JFrame {
 	public MainFrame(CSS_Interface config) {
 		//Initial setup: FRAME
 		super("Sim Mobility Visualization");
+
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setLocation(150, 100);
 		MainFrame.Config = config;
-		
 		//Initial setup: FRAME AND APPLET
 		this.setSize(1024, 768);
 		
@@ -68,6 +68,7 @@ public class MainFrame extends JFrame {
 		} catch (Exception ex) {
 			throw new RuntimeException(ex);
 		}
+	
 	}
 	
 	
@@ -92,6 +93,7 @@ public class MainFrame extends JFrame {
 				console.setText(str);
 			}
 		});
+
 	}
 	
 	/**
@@ -267,14 +269,19 @@ public class MainFrame extends JFrame {
 			f = fc.getSelectedFile();
 		}
 
+		
+		
 		//Load the default visualization
 		RoadNetwork rn = null;
+		String fileName;
 		try {
 			BufferedReader br = null;
 			if (isEmbedded) {
 				br = Utility.LoadFileResource("res/data/default.log.txt");
+				fileName = "default.log";
 			} else {
 				br = new BufferedReader(new FileReader(f));
+				fileName = f.getName();
 			}
  
 			rn = new RoadNetwork(br);
@@ -306,7 +313,7 @@ public class MainFrame extends JFrame {
 		
 		//Add a visualizer
 		NetworkVisualizer vis = new NetworkVisualizer();
-		vis.setSource(rn, simData, 1.0, newViewPnl.getWidth(), newViewPnl.getHeight());
+		vis.setSource(rn, simData, 1.0, newViewPnl.getWidth(), newViewPnl.getHeight(), fileName);
 		
 		//Update the map
 		newViewPnl.drawMap(vis, 0, 0);

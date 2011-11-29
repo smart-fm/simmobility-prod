@@ -776,7 +776,7 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 void
 DatabaseLoader::createSignals()
 {
-    std::set<sim_mob::Node const *> uniNodes;
+    std::set<sim_mob::Node const *> badNodes;
 
     for (map<int, Signal>::const_iterator iter = signals_.begin(); iter != signals_.end(); ++iter)
     {
@@ -792,14 +792,41 @@ DatabaseLoader::createSignals()
 
         Node const & dbNode = iter2->second;
         sim_mob::Node const * node = dbNode.generatedNode;
-        if (dynamic_cast<sim_mob::UniNode const *>(node))
+
+        // There are 2 factors determining whether the following code fragment remains or should
+        // be deleted in the near future.  Firstly, in the current version, Signal is designed
+        // only for intersections with 4 links, the code in Signal.cpp and the visualizer expects
+        // to access 4 links and 4 crossings.  This needs to be fixed, Signal.cpp needs to be
+        // extended to model traffic signals at all kinds of intersections or at uni-nodes.
+        //
+        // However, even when Signal.cpp is fixed, the following code fragment may still remain
+        // here, although it may be modified.  The reason is that the entire road network may not
+        // be loaded.  There will be signal sites, especially at the edges of the loaded road
+        // networks, with missing links.  In some cases, it may not make any sense to create a
+        // Signal object there, even though a signal is present at that site in the database.
+        // One example is an intersection with 4 links, but only one link is loaded in.  That
+        // intersection would look like a dead-end to the Driver and Pedestrian objects.  Or
+        // an intersection with 4-way traffic, but only 3 links are loaded in.  This would "turn"
+        // the intersection into a T-junction.
+        std::set<sim_mob::Link const *> links;
+        if (sim_mob::MultiNode const * multi_node = dynamic_cast<sim_mob::MultiNode const *>(node))
         {
-            if (uniNodes.count(node) == 0)
+            std::set<sim_mob::RoadSegment*> const & roads = multi_node->getRoadSegments();
+            std::set<sim_mob::RoadSegment*>::const_iterator iter;
+            for (iter = roads.begin(); iter != roads.end(); ++iter)
             {
-                uniNodes.insert(node);
-                std::cout << "cannot create signal at Uni-node (database-id=" << dbSignal.nodeId
-                          << ") because Signal.cpp was written only for 4-way traffic at an "
-                          << "intersection.  Need to fix this." << std::endl;
+                sim_mob::RoadSegment const * road = *iter;
+                links.insert(road->getLink());
+            }
+        }
+        if (links.size() != 4)
+        {
+            if (badNodes.count(node) == 0)
+            {
+                badNodes.insert(node);
+                std::cerr << "the node at " << *node->location << " (database-id="
+                          << dbSignal.nodeId << ") does not have 4 links; "
+                          << "no signal will be created here." << std::endl;
             }
             continue;
         }

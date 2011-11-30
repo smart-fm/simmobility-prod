@@ -14,13 +14,16 @@ import sim_mob.vis.util.Utility;
  */
 public class PedestrianTick extends AgentTick {
 	private static BufferedImage PedImg;
+	private static BufferedImage FakePedImg;
 	static {
 		try {
 			PedImg = Utility.LoadImgResource("res/entities/person.png");
+			FakePedImg = Utility.LoadImgResource("res/entities/fake_person.png");
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
 		}
 	} 
+	private boolean fake;
 	
 	/**
 	 * NOTE: Here is where we start to see some inefficiencies with our ScaledPoint implementation.
@@ -29,8 +32,12 @@ public class PedestrianTick extends AgentTick {
 	 */
 	public PedestrianTick(double posX, double posY, ScaledPointGroup spg) {
 		this.pos = new ScaledPoint(posX, posY, spg);
+		this.fake  = false;
 	}
 	
+	public void setItFake(){
+		fake = true;
+	}
 	public void draw(Graphics2D g, double scale) {
 		//Save old transformation.
 		AffineTransform oldAT = g.getTransform();
@@ -46,8 +53,11 @@ public class PedestrianTick extends AgentTick {
 		
 		//Draw
 		g.setTransform(at);
-		g.drawImage(PedImg, 0, 0, null);
-		
+		if(fake){
+			g.drawImage(FakePedImg, 0, 0, null);
+		}else{
+			g.drawImage(PedImg, 0, 0, null);
+		}
 		//Restore old transformation matrix
 		g.setTransform(oldAT);
 	}

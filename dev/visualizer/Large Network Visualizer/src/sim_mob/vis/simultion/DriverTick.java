@@ -7,6 +7,10 @@ import java.awt.Stroke;
 
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
+import java.awt.image.LookupOp;
+import java.awt.image.LookupTable;
+import java.awt.image.ShortLookupTable;
 import java.io.IOException;
 
 import sim_mob.vis.network.basic.ScaledPoint;
@@ -23,17 +27,21 @@ public class DriverTick extends AgentTick {
 	private static final boolean DebugOn = true;
 	
 	private static BufferedImage CarImg;
+	private static BufferedImage FakeCarImg;
 	static {
 		try {
 			CarImg = Utility.LoadImgResource("res/entities/car.png");
+			FakeCarImg = Utility.LoadImgResource("res/entities/fake_car.png");
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
 		}
 	}
+
 	
 	private double angle;
+	private boolean fake;
 	public double getAngle() { return angle; } 
-	
+	public boolean getFake() { return fake; }
 	/**
 	 * NOTE: Here is where we start to see some inefficiencies with our ScaledPoint implementation.
 	 *       When we re-scale, every car on every time tick has its position scaled. We should 
@@ -47,7 +55,11 @@ public class DriverTick extends AgentTick {
 	public DriverTick(double posX, double posY, double angle, ScaledPointGroup spg) {
 		this.pos = new ScaledPoint(posX, posY, spg);
 		this.angle = angle;
+		this.fake = false;
+	}
 	
+	public void setItFake(){
+		fake = true;
 	}
 	
 	public void draw(Graphics2D g,double scale) {
@@ -69,9 +81,13 @@ public class DriverTick extends AgentTick {
 
 		//Set new transformation matrix
 		g.setTransform(at);
-
+		
 		//Draw
-		g.drawImage(CarImg, 0, 0, null);		
+		if(fake){
+			g.drawImage(FakeCarImg, 0, 0, null);		
+		}else{
+			g.drawImage(CarImg, 0, 0, null);				
+		}
 		
 		//Restore old transformation matrix
 		g.setTransform(oldAT);
@@ -88,9 +104,9 @@ public class DriverTick extends AgentTick {
 			g.drawLine(x, y-3*sz/2, x, y+3*sz/2);
 		}
 		
-		
 	}
 	
+
 	
 }
 

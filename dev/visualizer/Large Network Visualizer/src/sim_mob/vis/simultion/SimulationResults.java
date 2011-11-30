@@ -161,45 +161,7 @@ public class SimulationResults {
 		
 		return signalLights;	
 	}
-	
-	private void parseSignal(int frameID, int objID, String rhs) throws IOException {
-	    //Check and parse properties.
-	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"va", "vb", "vc", "vd", "pa", "pb", "pc", "pd"});
-	    
-	    //Now save the relevant information.
-	    Color[] vehicleLights = new Color[4];
-	    Color[] pedestrianLights = new Color[4];
-	    for (int i=0; i<4; i++) {
-	    	String c = Character.toString((char)('a'+i));
-	    	
-	    	//NOTE: We are ignoring the other 2 signals in each TrafficLight; right now we just
-	    	//      need to see if they roughly work.
-	    	String tmp = props.get("v"+c);
-	    	tmp = Character.toString(tmp.charAt(0));
-	    	
-	    	vehicleLights[i] = ReadColor(Integer.parseInt(tmp));
-	    	pedestrianLights[i] = ReadColor(Integer.parseInt(props.get("p"+c)));
-	    }
-
-	    
-	    //Ensure the frame has been created
-	    while (ticks.size()<=frameID) {
-	    	TimeTick t = new TimeTick();
-	    	t.agentTicks = new Hashtable<Integer, AgentTick>();
-	    	t.signalTicks = new Hashtable<Integer, SignalTick>();
-	    	t.signalLineTicks = new Hashtable<Integer,SignalLineTick>();
-	    	ticks.add(t);
-	    }
-	    
-	    //For now, just push multiple signals further in on the X axis
-	    int xPos = (10+SignalTick.EstVisualSize())*ticks.get(frameID).signalTicks.size() + 10;
-	    int yPos = 50;
-
-	    //Add this Signal to the array
-	    ticks.get(frameID).signalTicks.put(objID, new SignalTick(xPos, yPos, vehicleLights, pedestrianLights));
-
-	}
-	
+		
 	private void parseSignalLines(int frameID, int objID, String rhs) throws IOException{
 	    //Check and parse properties.
 	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"va", "vb", "vc", "vd", "pa", "pb", "pc", "pd"});
@@ -227,10 +189,18 @@ public class SimulationResults {
 	    	ticks.add(t);
 	    }
 	  
+	    //Create a temp signal
+	    SignalLineTick tempSignalLineTick = new SignalLineTick(allVehicleLights, allPedestrainLights ,objID);
 
-	    ticks.get(frameID).signalLineTicks.put(objID, new SignalLineTick(allVehicleLights, allPedestrainLights ,objID));
-	 
+	    //Check if signal is fake
+	    if(props.containsKey("fake")){
+	    	if(props.get("fake").equals("true")){
+	    		tempSignalLineTick.setItFake();
+	    	}
+	    }
 	    
+	    //Add it to current time tick
+	    ticks.get(frameID).signalLineTicks.put(objID, tempSignalLineTick);
 	}
 	
 	
@@ -263,9 +233,19 @@ public class SimulationResults {
 
 	    	ticks.add(t);
 	    }
+	  
+	    //Create temp driver
+	    DriverTick tempDriver = new DriverTick(xPos, yPos, angle, ticks.get(frameID).tickScaleGroup);
+	    
+	    //Check if the driver is fake
+	    if(props.containsKey("fake")){
+	    	if(props.get("fake").equals("true")){
+	    		tempDriver.setItFake();
+	    	}
+	    }
 	    
 	    //Add this agent to the proper frame.
-	    ticks.get(frameID).agentTicks.put(objID, new DriverTick(xPos, yPos, angle, ticks.get(frameID).tickScaleGroup));
+	    ticks.get(frameID).agentTicks.put(objID, tempDriver);
 	}
 	
 	private void parsePedestrian(int frameID, int objID, String rhs, RoadNetwork rn) throws IOException {
@@ -292,8 +272,18 @@ public class SimulationResults {
 	    	ticks.add(t);
 	    }
 	    
+	    //Create a temp pedestrian
+	    PedestrianTick tempPedestrian = new PedestrianTick(xPos, yPos, ticks.get(frameID).tickScaleGroup);
+	    
+	    //Check if the pedestrian is fake
+	    if(props.containsKey("fake")){
+	    	if(props.get("fake").equals("true")){
+	    		tempPedestrian.setItFake();
+	    	}
+	    }
+	  	    
 	    //Add this agent to the proper frame.
-	    ticks.get(frameID).agentTicks.put(objID, new PedestrianTick(xPos, yPos, ticks.get(frameID).tickScaleGroup));
+	    ticks.get(frameID).agentTicks.put(objID, tempPedestrian);
 	}
 }
 

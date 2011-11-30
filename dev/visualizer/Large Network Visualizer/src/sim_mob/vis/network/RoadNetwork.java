@@ -25,7 +25,8 @@ public class RoadNetwork {
 	private Hashtable<Integer, Hashtable<Integer,Lane> > lanes;
 	private Hashtable<Integer, TrafficSignalLine> trafficSignalLines;
 	private Hashtable<Integer, Intersection> intersections; 
-	
+	private Hashtable<Integer, CutLine> cutLines;
+
 	private Hashtable<String, Integer> fromToSegmentRefTable;
 	
 	private Hashtable<Integer,ArrayList<Integer>> segmentRefTable;
@@ -44,6 +45,8 @@ public class RoadNetwork {
 	public Hashtable<Integer, Hashtable<Integer,Lane> > getLanes(){return lanes;}
 	public Hashtable<Integer, TrafficSignalLine> getTrafficSignalLine(){return trafficSignalLines;}
 	public Hashtable<Integer, Intersection> getIntersection(){return intersections;}
+	public Hashtable<Integer, CutLine> getCutLine(){return cutLines;}
+
 	/**
 	 * Load the network from a filestream.
 	 */
@@ -59,6 +62,8 @@ public class RoadNetwork {
 		laneConnectors = new Hashtable<Integer, LaneConnector>();
 		trafficSignalLines = new Hashtable<Integer, TrafficSignalLine>(); 
 		intersections = new Hashtable<Integer, Intersection>();
+		cutLines =  new Hashtable<Integer, CutLine>();
+
 		fromToSegmentRefTable =  new Hashtable<String, Integer>();
 		segmentRefTable = new  Hashtable<Integer , ArrayList<Integer>>(); 
 	
@@ -130,6 +135,8 @@ public class RoadNetwork {
 			parseLaneConnector(frameID, objID, rhs);
 		} else if(objType.equals("Signal-location")){
 			parseSignalLocation(frameID, objID, rhs);
+		} else if(objType.equals("CutLine")){
+			parseCutLine(frameID, objID, rhs);
 		}
 
 		
@@ -411,6 +418,24 @@ public class RoadNetwork {
 	    
 	    intersections.put(objID, new Intersection(intersectionNodeID,tempLinkIDs, tempCrossingIDs));		
 	
+	}
+	
+	private void parseCutLine(int frameID, int objID, String rhs) throws IOException{
+	    //Check frameID
+	    if (frameID!=0) {
+	    	throw new IOException("Unexpected frame ID, should be zero");
+	    }
+	    
+	    //Check and parse properties.
+	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"startPointX", "startPointY", "endPointX", "endPointY"});
+	    
+	    int startPosintX = Integer.parseInt(props.get("startPointX"));
+	    int endPosintX = Integer.parseInt(props.get("endPointX"));
+	    int startPosintY = Integer.parseInt(props.get("startPointY"));
+	    int endPosintY = Integer.parseInt(props.get("endPointY"));
+	    
+	    cutLines.put(objID, new CutLine(new Node(startPosintX,startPosintY, true, -1),new Node(endPosintX,endPosintY, true, -1)));
+		
 	}
 	
 	private void collectSignalLineInfo(int objID, LaneConnector laneConnector){				

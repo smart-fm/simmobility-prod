@@ -34,14 +34,14 @@ void SortLaneLine(vector<Lane*>& laneLine, std::pair<Node*, Node*> nodes)
 	size_t oldSize = laneLine.size();
 	
 	//Sort by row number from DB
-	std::map<long long, Lane*> mapLaneLines;
+	std::map<int, Lane*> mapLaneLines;
 	for(std::vector<Lane*>::const_iterator it = laneLine.begin(); it != laneLine.end(); ++it)
 	{
 		mapLaneLines[(*it)->rowNo] = *it;
 	}
 
 	vector<Lane*> res;
-	for(std::map<long long, Lane*>::const_iterator it = mapLaneLines.begin(); it !=mapLaneLines.end(); ++it)
+	for(std::map<int, Lane*>::const_iterator it = mapLaneLines.begin(); it !=mapLaneLines.end(); ++it)
 	{
 		res.push_back((*it).second);
 	}

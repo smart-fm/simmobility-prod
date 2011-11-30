@@ -47,7 +47,6 @@ public class NetworkVisualizer {
 		return buffer;
 	}
 	
-	
 	//Retrieve the node at the given screen position, or null if there's none.
 	public Node getNodeAt(Point screenPos) {
 		//First, convert the screen coordinates to centimeters
@@ -86,9 +85,6 @@ public class NetworkVisualizer {
 		//Save
 		currPercentZoom = percent;
 		
-		//System.out.println("percent: "+percent);
-
-		
 		//Determine the width and height of our canvas.
 		int width = (int)(width100Percent * percent);
 		int height = (int)(height100Percent * percent);
@@ -99,8 +95,6 @@ public class NetworkVisualizer {
 		double height5Percent = 0.05 * (network.getLowerRight().y - network.getTopLeft().y);
 		DPoint newTL = new DPoint(network.getTopLeft().x-width5Percent, network.getTopLeft().y-height5Percent);
 		DPoint newLR = new DPoint(network.getLowerRight().x+width5Percent, network.getLowerRight().y+height5Percent);
-		
-		
 		
 		//Scale all points
 		ScaledPointGroup.SetNewScaleContext(new ScaleContext(percent, newTL, newLR, width, height));
@@ -145,6 +139,12 @@ public class NetworkVisualizer {
 			ln.draw(g);
 		}
 		
+		//Draw Cutline
+		for(CutLine ctl : network.getCutLine().values()){
+		
+			ctl.draw(g);
+		
+		}
 		//Names go on last; make sure we don't draw them twice...
 		Set<String> alreadyDrawn = new HashSet<String>();
 		for (Link ln : network.getLinks().values()) {
@@ -195,16 +195,16 @@ public class NetworkVisualizer {
 				ArrayList<ArrayList<TrafficSignalLine>> vdSignalLine = tempIntersection.getVdTrafficSignal();
 				
 				ArrayList<Crossing> tempCrossings = tempIntersection.getSignalCrossings();
-				
+
+				//Draw pedestrian crossing signal
+				drawTrafficPedestrainCross(g,tempCrossings,allPedestrainLights);
+		
 				//DrawLights
 				drawTrafficLines(g,vaSignalLine, vaLights);
 				drawTrafficLines(g,vbSignalLine, vbLights);
 				drawTrafficLines(g,vcSignalLine, vcLights);
 				drawTrafficLines(g,vdSignalLine, vdLights);
-				
-				//Draw pedestrian crossing signal
-				drawTrafficPedestrainCross(g,tempCrossings,allPedestrainLights);
-				
+						
 			}
 
 		

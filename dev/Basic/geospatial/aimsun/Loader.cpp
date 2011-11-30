@@ -832,9 +832,7 @@ DatabaseLoader::createSignals()
         }
 
         sim_mob::Signal & signal = sim_mob::Signal::signalAt(*node);
-        // The 'signal' stored procedure did not retrieve the signal equipment's bearing.  Will
-        // raise a ticket about this issue.
-        signal.addSignalSite(dbSignal.xPos, dbSignal.yPos, dbSignal.typeCode, 0.0);
+        signal.addSignalSite(dbSignal.xPos, dbSignal.yPos, dbSignal.typeCode, dbSignal.bearing);
     }
 }
 

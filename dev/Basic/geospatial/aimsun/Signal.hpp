@@ -15,6 +15,7 @@ namespace aimsun   // This namespace should be called "database" to be more gene
         int nodeId;
         double xPos;
         double yPos;
+        double bearing;
         std::string typeCode;
     };
 

@@ -36,7 +36,7 @@ def generate_school_trips(student, trip_chains, activities):
         movie_house = random.choice(Registrar_of_companies.movie_houses)
         trip =   "walks from school-address='%s' to movie-house-address='%s'" \
                % (student.school.address, movie_house.address)
-        start_time = "3:%02d:%02d" % (random.randint(0, 45), random.randint(0, 59))
+        start_time = "15:%02d:%02d" % (random.randint(0, 45), random.randint(0, 59))
         print name, trip, "at", start_time
 
         from_id = to_id
@@ -46,7 +46,7 @@ def generate_school_trips(student, trip_chains, activities):
 
         trip =   "walks from movie-house-address='%s' to home-address='%s'" \
                % (movie_house.address, student.address)
-        start_time = "6:%02d:%02d" % (random.randint(30, 59), random.randint(0, 59))
+        start_time = "18:%02d:%02d" % (random.randint(30, 59), random.randint(0, 59))
         print name, trip, "at", start_time
 
         from_id = to_id
@@ -56,7 +56,7 @@ def generate_school_trips(student, trip_chains, activities):
     else:
         trip =   "walks from school-address='%s' to home-address='%s'" \
                % (student.school.address, student.address)
-        start_time = "3:%02d:%02d" % (random.randint(0, 45), random.randint(0, 59))
+        start_time = "15:%02d:%02d" % (random.randint(0, 45), random.randint(0, 59))
         print name, trip, "at", start_time
 
         from_id = to_id
@@ -129,7 +129,7 @@ def generate_work_trips(person, trip_chains, activities):
                    % (person.company.address, shop.address)
 
         mode = "drives" if "car" == person.mode else "walks"
-        start_time = "6:%02d:%02d" % (random.randint(30, 59), random.randint(0, 59))
+        start_time = "18:%02d:%02d" % (random.randint(30, 59), random.randint(0, 59))
         if "eat" == choice:
             print name, mode, trip, "for dinner at", start_time
         else:
@@ -149,7 +149,7 @@ def generate_work_trips(person, trip_chains, activities):
         else:
             trip =   "from shop-address='%s' to home-address='%s'" \
                    % (shop.address, person.address)
-        start_time = "8:%02d:%02d" % (random.randint(0, 15), random.randint(0, 59))
+        start_time = "20:%02d:%02d" % (random.randint(0, 15), random.randint(0, 59))
         print name, mode, trip, "at", start_time
 
         from_id = to_id
@@ -160,7 +160,7 @@ def generate_work_trips(person, trip_chains, activities):
         trip = "from office-address='%s' to home-address='%s'" \
                % (person.company.address, person.address)
         mode = "drives" if "car" == person.mode else "walks"
-        start_time = "6:%02d:%02d" % (random.randint(30, 59), random.randint(0, 59))
+        start_time = "18:%02d:%02d" % (random.randint(30, 59), random.randint(0, 59))
         print name, mode, trip, "at", start_time
 
         from_id = to_id

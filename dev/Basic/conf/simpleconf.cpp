@@ -98,6 +98,33 @@ int ReadGranularity(TiXmlHandle& handle, const std::string& granName)
 }
 
 
+void SplitAndAddString(vector<string>& arr, string str)
+{
+    std::istringstream iss(str);
+	std::copy(std::istream_iterator<string>(iss), std::istream_iterator<string>(),
+		std::back_inserter<vector<string> >(arr));
+}
+
+
+
+vector<string> ReadSpaceSepArray(TiXmlHandle& handle, const std::string& attrName)
+{
+	//Search for this attribute, parse it.
+	TiXmlElement* node = handle.ToElement();
+	vector<string> res;
+	if (node) {
+		const char* strArrP = node->Attribute(attrName.c_str());
+		if (strArrP) {
+			SplitAndAddString(res, strArrP);
+		}
+	}
+
+	//Done
+	return res;
+}
+
+
+
 bool generateAgentsFromTripChain(std::vector<Agent*>& agents)
 {
 	const vector<TripChain*>& tcs = ConfigParams::GetInstance().getTripChains();
@@ -659,6 +686,20 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
 	int granPaths = ReadGranularity(handle, "paths");
 	int granDecomp = ReadGranularity(handle, "decomp");
 
+	//Determine what order we will load Agents in
+	handle = TiXmlHandle(&document);
+	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("load_agents");
+	vector<string> loadAgentOrder = ReadSpaceSepArray(handle, "order");
+	cout <<"Agent Load order: ";
+	if (loadAgentOrder.empty()) {
+		cout <<"<N/A>";
+	} else {
+		for (vector<string>::iterator it=loadAgentOrder.begin(); it!=loadAgentOrder.end(); it++) {
+			cout <<*it <<"  ";
+		}
+	}
+	cout <<endl;
+
 	//Miscelaneous settings
 	handle = TiXmlHandle(&document);
 	if (handle.FirstChild("config").FirstChild("system").FirstChild("misc").FirstChild("manual_fix_demo_intersection").ToElement()) {
@@ -762,21 +803,29 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     	}
     }
 
-
-    //Create an agent for each Trip Chain in the database.
-    if (!generateAgentsFromTripChain(agents)) {
-    	return "Couldn't generate agents from trip chains.";
+    //Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder
+    for (vector<string>::iterator it=loadAgentOrder.begin(); it!=loadAgentOrder.end(); it++) {
+    	if ((*it) == "database") {
+    	    //Create an agent for each Trip Chain in the database.
+    	    if (!generateAgentsFromTripChain(agents)) {
+    	    	return "Couldn't generate agents from trip chains.";
+    	    }
+    	    cout <<"Loaded Database Agents (from Trip Chains)." <<endl;
+    	} else if ((*it) == "drivers") {
+    	    if (!loadXMLAgents(document, agents, "driver")) {
+    	    	return	 "Couldn't load drivers";
+    	    }
+    		cout <<"Loaded Driver Agents (from config file)." <<endl;
+    	} else if ((*it) == "pedestrians") {
+    		if (!loadXMLAgents(document, agents, "pedestrian")) {
+    			return "Couldn't load pedestrians";
+    		}
+    		cout <<"Loaded Pedestrian Agents (from config file)." <<endl;
+    	} else {
+    		return string("Unknown item in load_agents: ") + (*it);
+    	}
     }
 
-
-    //Load ALL agents: drivers and pedestrians.
-    //  (Note: Use separate config files if you just want to test one kind of agent.)
-    if (!loadXMLAgents(document, agents, "pedestrian")) {
-    	return "Couldn't load pedestrians";
-    }
-    if (!loadXMLAgents(document, agents, "driver")) {
-    	return	 "Couldn't load drivers";
-    }
 
     //Load signals, which are currently agents
     if (!loadXMLSignals(document, Signal::all_signals_, "signal")) {

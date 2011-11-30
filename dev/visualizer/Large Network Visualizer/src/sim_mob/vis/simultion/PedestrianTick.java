@@ -18,7 +18,7 @@ public class PedestrianTick extends AgentTick {
 	static {
 		try {
 			PedImg = Utility.LoadImgResource("res/entities/person.png");
-			FakePedImg = Utility.LoadImgResource("res/entities/fake_person_v3.png");
+			FakePedImg = Utility.LoadImgResource("res/entities/fake_person.png");
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
 		}

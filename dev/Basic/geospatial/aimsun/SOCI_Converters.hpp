@@ -123,6 +123,7 @@ template<> struct type_conversion<Crossing>
     static void from_base(const soci::values& vals, soci::indicator& ind, Crossing &res)
     {
     	res.laneID = vals.get<int>("lane_id", 0);
+		res.rowNo = vals.get<long long>("rowno", 0);
     	res.laneType = vals.get<std::string>("lane_type", "");
     	res.TMP_AtSectionID = vals.get<int>("section", 0);
     	res.xPos = vals.get<double>("xpos", 0.0);
@@ -131,6 +132,7 @@ template<> struct type_conversion<Crossing>
     static void to_base(const Crossing& src, soci::values& vals, soci::indicator& ind)
     {
     	vals.set("lane_id", src.laneID);
+		vals.set("rowno", 0);
     	vals.set("lane_type", src.laneType);
     	vals.set("section", src.atSection->id);
     	vals.set("xpos", src.xPos);

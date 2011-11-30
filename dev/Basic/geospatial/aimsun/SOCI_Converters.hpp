@@ -150,6 +150,7 @@ template<> struct type_conversion<Lane>
     	res.TMP_AtSectionID = vals.get<int>("section", 0);
     	res.xPos = vals.get<double>("xpos", 0.0);
     	res.yPos = vals.get<double>("ypos", 0.0);
+        res.rowNo = vals.get<int>("rowno", 0);
     }
     static void to_base(const Lane& src, soci::values& vals, soci::indicator& ind)
     {
@@ -158,6 +159,7 @@ template<> struct type_conversion<Lane>
     	vals.set("section", src.atSection->id);
     	vals.set("xpos", src.xPos);
     	vals.set("ypos", src.yPos);
+        vals.set("rowno", src.rowNo);
         ind = i_ok;
     }
 };

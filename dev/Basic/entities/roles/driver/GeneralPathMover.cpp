@@ -367,6 +367,14 @@ const Link* sim_mob::GeneralPathMover::getCurrLink() const
 	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
 	return getCurrSegment()->getLink();
 }
+
+const Lane* sim_mob::GeneralPathMover::getCurrLane() const
+{
+	throwIf(!isPathSet(), "GeneralPathMover path not set.");
+	if(isDoneWithEntireRoute())
+		return nullptr;
+	return getCurrSegment()->getLanes().at(currLaneID);
+}
 const Point2D& sim_mob::GeneralPathMover::getCurrPolypoint() const
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");

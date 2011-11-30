@@ -34,22 +34,27 @@ public:
 	virtual ~SimpleWorkGroup();
 
 	//template <typename WorkType>  //For now, just assume Workers
-	void initWorkers(typename Worker<EntityType>::actionFunction* action = nullptr);
+	void initWorkers(typename Worker<EntityType>::ActionFunction* action = nullptr);
 
-	Worker<EntityType>* const getWorker(size_t id);
+	//Worker<EntityType>* const getWorker(size_t id);
 	void startAll();
 	void interrupt();
 	size_t size();
 
 	void wait();
 	void waitExternAgain();
+	void migrate(EntityType* ag, Worker<EntityType>* from, Worker<EntityType>* to);
 
-	//TODO: Move this to the Worker, not the work group. Maybe?
-	void migrate(EntityType * ag, int fromID, int toID);
+	Worker<EntityType>* getWorker(int id) {
+		if (id<0) {
+			return nullptr;
+		}
+		return workers.at(id);
+	}
 
 protected:
 	//Does nothing; see sub-class WorkGroup
-	virtual void manageData(sim_mob::BufferedDataManager* mgr, EntityType* ag, bool takeControl);
+	//virtual void manageData(sim_mob::BufferedDataManager* mgr, EntityType* ag, bool takeControl) = 0;
 
 
 protected:
@@ -80,15 +85,18 @@ protected:
  * types that each EntityType contains. This requires EntityType to be a sub-class
  * of Entity, and to implement getSubscriptionList().
  */
-template <class EntityType>
-class WorkGroup : public sim_mob::SimpleWorkGroup<EntityType> {
+class WorkGroup : public sim_mob::SimpleWorkGroup<Entity> {
 public:
 	WorkGroup(size_t size, unsigned int endTick=0, unsigned int tickStep=1, bool auraManagerActive=false)
-	: SimpleWorkGroup<EntityType>(size, endTick, tickStep, auraManagerActive) {}
+	: SimpleWorkGroup<Entity>(size, endTick, tickStep, auraManagerActive) {}
 
 protected:
 	//Migrates all subscribed types.
-	virtual void manageData(sim_mob::BufferedDataManager* mgr, EntityType* ag, bool takeControl);
+	virtual void manageData(sim_mob::BufferedDataManager* mgr, Entity* ag, bool takeControl);
+
+public:
+	//This is much more automatic than its SimpleWorkGroup counterpart.
+	void migrate(Entity* ag, int toID);
 
 };
 
@@ -100,7 +108,7 @@ protected:
  * Template function must be defined in the same translational unit as it is declared.
  */
 template <class EntityType>
-void sim_mob::SimpleWorkGroup<EntityType>::initWorkers(typename Worker<EntityType>::actionFunction* action)
+void sim_mob::SimpleWorkGroup<EntityType>::initWorkers(typename Worker<EntityType>::ActionFunction* action)
 {
 	for (size_t i=0; i<total_size; i++) {
 		workers.push_back(new Worker<EntityType>(action, &shared_barr, &external_barr, endTick, tickStep, auraManagerActive));
@@ -108,13 +116,13 @@ void sim_mob::SimpleWorkGroup<EntityType>::initWorkers(typename Worker<EntityTyp
 }
 
 
-template <class EntityType>
+/*template <class EntityType>
 sim_mob::Worker<EntityType>* const sim_mob::SimpleWorkGroup<EntityType>::getWorker(size_t id)
 {
 	if (id >= workers.size())
 		throw std::runtime_error("Invalid Worker id.");
 	return workers[id];
-}
+}*/
 
 
 //////////////////////////////////////////////
@@ -157,6 +165,25 @@ size_t sim_mob::SimpleWorkGroup<EntityType>::size()
 }
 
 
+template <class EntityType>
+void sim_mob::SimpleWorkGroup<EntityType>::migrate(EntityType* ag, Worker<EntityType>* from, Worker<EntityType>* to)
+{
+	if (!ag)
+		return;
+
+	if (from) {
+		//Remove
+		from->remEntity(ag);
+	}
+
+	if (to) {
+		//Add
+		to->addEntity(ag);
+	}
+}
+
+
+
 
 template <class EntityType>
 void sim_mob::SimpleWorkGroup<EntityType>::wait()
@@ -185,60 +212,5 @@ void sim_mob::SimpleWorkGroup<EntityType>::interrupt()
 		workers[i]->interrupt();
 }
 
-
-template <class EntityType>
-void sim_mob::SimpleWorkGroup<EntityType>::manageData(sim_mob::BufferedDataManager* mgr, EntityType* ag, bool takeControl)
-{
-	/*for (std::vector<sim_mob::BufferedBase*>::iterator it=ag->getSubscriptionList().begin(); it!=ag->getSubscriptionList().end(); it++) {
-		if (takeControl) {
-			mgr->beginManaging(*it);
-		} else {
-			mgr->stopManaging(*it);
-		}
-	}*/
-}
-
-
-template <class EntityType>
-void sim_mob::WorkGroup<EntityType>::manageData(sim_mob::BufferedDataManager* mgr, EntityType* ag, bool takeControl)
-{
-	for (std::vector<sim_mob::BufferedBase*>::iterator it=ag->getSubscriptionList().begin(); it!=ag->getSubscriptionList().end(); it++) {
-		if (takeControl) {
-			mgr->beginManaging(*it);
-		} else {
-			mgr->stopManaging(*it);
-		}
-	}
-}
-
-
-
-/**
- * Set "fromID" or "toID" to -1 to skip that step.
- */
-template <class EntityType>
-void sim_mob::SimpleWorkGroup<EntityType>::migrate(EntityType* ag, int fromID, int toID)
-{
-	if (!ag)
-		return;
-
-	if (fromID >= 0) {
-		//Remove from the old location
-		sim_mob::Worker<EntityType>* const from = getWorker(fromID);
-		from->remEntity(ag);
-
-		//Remove this entity's Buffered<> types from our list
-		manageData(dynamic_cast<BufferedDataManager*>(from), ag, false);
-	}
-
-	if (toID >= 0) {
-		//Add to the new location
-		sim_mob::Worker<EntityType>* const to = getWorker(toID);
-		to->addEntity(ag);
-
-		//Add this entity's Buffered<> types to our list
-		manageData(dynamic_cast<BufferedDataManager*>(to), ag, true);
-	}
-}
 
 

@@ -32,12 +32,25 @@ void SortLaneLine(vector<Lane*>& laneLine, std::pair<Node*, Node*> nodes)
 {
 	//Quality control
 	size_t oldSize = laneLine.size();
+	
+	//Sort by row number from DB
+	std::map<long long, Lane*> mapLaneLines;
+	for(std::vector<Lane*>::const_iterator it = laneLine.begin(); it != laneLine.end(); ++it)
+	{
+		mapLaneLines[(*it)->rowNo] = *it;
+	}
+
+	vector<Lane*> res;
+	for(std::map<long long, Lane*>::const_iterator it = mapLaneLines.begin(); it !=mapLaneLines.end(); ++it)
+	{
+		res.push_back((*it).second);
+	}
 
 	//Pick the first point.
 	double currDist = 0.0;
 	bool flipLater = false;
-	vector<Lane*>::iterator currLane = laneLine.end();
-	for (vector<Lane*>::iterator it=laneLine.begin(); it!=laneLine.end(); it++) {
+	vector<Lane*>::iterator currLane = res.end();
+	for (vector<Lane*>::iterator it=res.begin(); it!=res.end(); it++) {
 		double distFwd = sim_mob::dist(*it, nodes.first);
 		double distRev = sim_mob::dist(*it, nodes.second);
 		double newDist = std::min(distFwd, distRev);
@@ -45,28 +58,6 @@ void SortLaneLine(vector<Lane*>& laneLine, std::pair<Node*, Node*> nodes)
 			currDist = newDist;
 			currLane = it;
 			flipLater = distRev<distFwd;
-		}
-	}
-
-	//Continue adding points and selecting candidates
-	vector<Lane*> res;
-	while (currLane!=laneLine.end()) {
-		//Add it, remove it, null it.
-		res.push_back(*currLane);
-		laneLine.erase(currLane);
-		currLane = laneLine.end();
-
-		//Pick the next lane
-		for (vector<Lane*>::iterator it=laneLine.begin(); it!=laneLine.end(); it++) {
-			double newDist = sim_mob::dist(res.back(), *it);
-			if (currLane==laneLine.end() || newDist<currDist) {
-				currDist = newDist;
-				currLane = it;
-
-				//TODO: We might want to see what happens here if newDist is zero.
-				//      In the previous tests I ran, there is only ONE pair of points with the exact
-				//      same coordinates, but about 5 other pairs are very very close together.
-			}
 		}
 	}
 
@@ -500,6 +491,11 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const Node* co
 	//TODO: For the start/end nodes, we should use the medianEndpoints provided, since these lanes won't end on the node exactly.
 	//Note that adding/removing lanes complicates our algorithm slightly.
 	//NOTE: This function is a bit coarse, since we're only hoping to rely on it for initial data.
+	bool oneWay = false;
+	if(!currSectPair.first || !currSectPair.second)
+	{
+		oneWay = true;
+	}
 	for (size_t i=0; i<2; i++) {
 		//Create a vector going "left" from lane zero. We will use this to build new starting points.
 		Section* currSect = i==0 ? currSectPair.first : currSectPair.second;
@@ -513,6 +509,19 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const Node* co
 		//Create the "origin" point, which goes "from"=>"to" the current section.
 		DynamicVector originPt(currSect->fromNode->xPos, currSect->fromNode->yPos, currSect->fromNode->xPos+magX, currSect->fromNode->yPos+magY);
 		originPt.flipNormal(false);
+		
+		///TODO figure out why this only affects certain lanes
+#if 0
+		if(oneWay)
+		{
+			double totalWidth = currSect->numLanes*singleLaneWidth;
+			double distToShift = totalWidth/2.0;
+			originPt.flipMirror();
+			originPt.scaleVectTo(distToShift);
+			originPt.translateVect();
+			originPt.flipMirror();
+		}
+#endif
 
 		//Calculate "offsets" for the origin. This occurs if either the start or end is a MultiNode start/end.
 		//The offset is the distance from the node's center to the median point.

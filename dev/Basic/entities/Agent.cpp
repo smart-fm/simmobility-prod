@@ -10,6 +10,7 @@ using std::vector;
 
 
 vector<Agent*> sim_mob::Agent::all_agents;
+WorkGroup* sim_mob::Agent::TMP_AgentWorkGroup(nullptr);
 
 unsigned int sim_mob::Agent::next_agent_id = 0;
 unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID)
@@ -28,6 +29,11 @@ unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID)
 sim_mob::Agent::Agent(int id) : Entity(GetAndIncrementID(id)), originNode(nullptr), destNode(nullptr), startTime(0), xPos(0), yPos(0)
 		/*xVel(0), yVel(0)*//*,xAcc(0), yAcc(0)*//*, currentLink(0),currentCrossing(-1)*/{
 	toRemoved = false;
+}
+
+sim_mob::Agent::~Agent()
+{
+
 }
 
 
@@ -57,9 +63,9 @@ bool sim_mob::Agent::isToBeRemoved()
 void sim_mob::Agent::setToBeRemoved(bool value)
 {
 	//Do nothing?
-	if (value==toRemoved) {
+	/*if (value==toRemoved) {
 		return;
-	}
+	}*/
 
 	toRemoved = value;
 }

@@ -114,6 +114,21 @@ sim_mob::Driver::Driver(Agent* parent) : Role(parent), currLane_(nullptr), currL
 }
 
 
+///Note that Driver's destructor is only for reclaiming memory.
+///  If you want to remove its registered properties from the Worker (which you should do!) then
+///  this should occur elsewhere.
+sim_mob::Driver::~Driver()
+{
+	//Our movement models.
+	safe_delete(lcModel);
+	safe_delete(cfModel);
+	safe_delete(intModel);
+
+	//Our vehicle
+	safe_delete(vehicle);
+}
+
+
 vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams()
 {
 	vector<BufferedBase*> res;
@@ -199,8 +214,11 @@ void sim_mob::Driver::update_first_frame(UpdateParams& params, frame_t frameNumb
 	initializePath();
 
 	//Set some properties about the current path, such as the current polyline, etc.
-	if(vehicle->hasPath()) {
+	if(vehicle && vehicle->hasPath()) {
 		setOrigin(params);
+	} else {
+		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+		std::cout <<"ERROR: Vehicle could not be created for driver; no route!\n";
 	}
 }
 
@@ -221,7 +239,7 @@ void sim_mob::Driver::update_sensors(UpdateParams& params, frame_t frameNumber)
 	//TODO: This might be slightly inaccurate if a vehicle leaves an intersection
 	//      on a particularly short road segment. For now, though, I'm just organizing these
 	//      functions with structure in mind, and it won't affect our current network.
-	if(isCloseToLinkEnd(params)) {
+	if(!vehicle->getNextSegment()&&!vehicle->isInIntersection()) {
 		setTrafficSignalParams(params);
 	}
 }
@@ -242,13 +260,14 @@ void sim_mob::Driver::update_movement(UpdateParams& params, frame_t frameNumber)
 
 		//TEMP: Move to (0,0). This should prevent collisions.
 		//TODO: Remove from simulation. Do this in the dispatcher at the same time...
-		parent->xPos.set(0);
+		parent->setToBeRemoved(true);
+		/*parent->xPos.set(0);
 		parent->yPos.set(0);
 
 		//TODO:reach destination
 		vehicle->setAcceleration(0);
 		vehicle->setVelocity(0);
-		vehicle->setLatVelocity(0);
+		vehicle->setLatVelocity(0);*/
 		return;
 	}
 
@@ -347,9 +366,12 @@ void sim_mob::Driver::update(frame_t frameNumber)
 
 	//Update our Buffered types
 	//TODO: Update parent buffered properties, or perhaps delegate this.
-	currLane_.set(params.currLane);
-	currLaneOffset_.set(params.currLaneOffset);
-	currLaneLength_.set(params.currLaneLength);
+//	currLane_.set(params.currLane);
+//	currLaneOffset_.set(params.currLaneOffset);
+//	currLaneLength_.set(params.currLaneLength);
+	currLane_.set(vehicle->getCurrLane());
+	currLaneOffset_.set(vehicle->getDistAlongPolyline());
+	currLaneLength_.set(vehicle->getCurrPolylineLength());
 	isInIntersection.set(vehicle->isInIntersection());
 
 	//Print output for this frame.
@@ -410,19 +432,13 @@ double sim_mob::Driver::linkDriving(UpdateParams& p)
 
 	//Retrieve a new acceleration value.
 	double newFwdAcc = 0;
-	if(p.isTrafficLightStop && vehicle->getVelocity() < 50) {
-		//Slow down.
-		//TODO: Shouldn't acceleration be set to negative in this case?
-		vehicle->setVelocity(0);
-		vehicle->setAcceleration(0);
-	} else {
-		//Convert back to m/s
-		//TODO: Is this always m/s? We should rename the variable then...
-		p.currSpeed = vehicle->getVelocity()/100;
 
-		//Call our model
-		newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed);
-	}
+	//Convert back to m/s
+	//TODO: Is this always m/s? We should rename the variable then...
+	p.currSpeed = vehicle->getVelocity()/100;
+	//Call our model
+	newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed);
+
 
 	//Update our chosen acceleration; update our position on the link.
 	vehicle->setAcceleration(newFwdAcc * 100);
@@ -702,9 +718,12 @@ double sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
 
 	//Increase the vehicle's velocity based on its acceleration.
 	vehicle->setVelocity(vehicle->getVelocity() + vehicle->getAcceleration()*p.elapsedSeconds);
-	if (vehicle->getVelocity() < 0) {
+
+	//when v_lead and a_lead is 0, space is not negative, the Car Following will generate an acceleration based on free flowing model
+	//this causes problem, so i manually set acceleration and velocity to 0
+	if (vehicle->getVelocity() < 0||(p.space<0.1&&p.v_lead==0&&p.a_lead==0)) {
 		//Set to a small forward velocity, no acceleration.
-		vehicle->setVelocity(0.1); //TODO: Why not 0.0?
+		vehicle->setVelocity(0.0);
 		vehicle->setAcceleration(0);
 	}
 
@@ -1038,11 +1057,6 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p, LANE_CHANG
 	}
 }
 
-bool sim_mob::Driver::isCloseToLinkEnd(UpdateParams& p) const
-{
-	//when the distance <= 10m
-	return !vehicle->getNextSegment() && (p.currLaneLength-p.currLaneOffset<2000);
-}
 
 //Retrieve the current traffic signal based on our RoadSegment's end node.
 void sim_mob::Driver::saveCurrTrafficSignal()
@@ -1066,7 +1080,7 @@ void sim_mob::Driver::setTrafficSignalParams(UpdateParams& p) const
 		switch(color) {
 			case Signal::Red :case Signal::Amber:
 				p.isTrafficLightStop = true;
-				p.trafficSignalStopDistance = p.currLaneLength - p.currLaneOffset - vehicle->length/2 -300;
+				p.trafficSignalStopDistance = p.currLaneLength - p.currLaneOffset - vehicle->length/2;
 				break;
 
 			case Signal::Green:

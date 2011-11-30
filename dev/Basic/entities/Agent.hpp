@@ -19,6 +19,8 @@
 namespace sim_mob
 {
 
+class WorkGroup;
+
 
 /**
  * Basic Agent class. Agents maintain an x and a y position. They may have different
@@ -27,6 +29,7 @@ namespace sim_mob
 class Agent : public sim_mob::Entity {
 public:
 	Agent(int id=-1);
+	virtual ~Agent();
 
 	virtual void update(frame_t frameNumber) = 0;  ///<Update agent behvaior
 
@@ -63,6 +66,10 @@ public:
 
 	///Agents can access all other agents (although they usually do not access by ID)
 	static std::vector<Agent*> all_agents;
+
+	///Temporary variable; holds a pointer to the current Agent work group. Will be moved
+	///  into the Dispatch Manager as soon as it's created.
+	static sim_mob::WorkGroup* TMP_AgentWorkGroup;
 
 	///Retrieve a monotonically-increasing unique ID value.
 	///\param preferredID Will be returned if it is greater than the current maximum-assigned ID.

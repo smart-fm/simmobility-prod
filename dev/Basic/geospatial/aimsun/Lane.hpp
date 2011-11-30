@@ -29,6 +29,7 @@ class Section;
 class Lane : public Base {
 public:
 	int laneID;
+	long long rowNo;
 	std::string laneType;
 	Section* atSection;
 

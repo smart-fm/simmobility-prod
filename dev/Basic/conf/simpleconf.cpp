@@ -286,6 +286,27 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal const *>& all_si
                     continue;
                 }
 
+                // See the comments in createSignals() in geospatial/aimsun/Loader.cpp.
+                // At some point in the future, this function loadXMLSignals() will be removed
+                // in its entirety, not just the following code fragment.
+                std::set<Link const *> links;
+                if (MultiNode const * multi_node = dynamic_cast<MultiNode const *>(road_node))
+                {
+                    std::set<RoadSegment*> const & roads = multi_node->getRoadSegments();
+                    std::set<RoadSegment*>::const_iterator iter;
+                    for (iter = roads.begin(); iter != roads.end(); ++iter)
+                    {
+                        RoadSegment const * road = *iter;
+                        links.insert(road->getLink());
+                    }
+                }
+                if (links.size() != 4)
+                {
+                    std::cerr << "the multi-node at " << pt << " does not have 4 links; "
+                              << "no signal will be created here." << std::endl;
+                    continue;
+                }
+
                 Signal const * signal = streetDirectory.signalAt(*road_node);
                 if (signal)
                 {
@@ -294,7 +315,7 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal const *>& all_si
                 }
                 else
                 {
-                    // The following call will create and register the signal with thessssss
+                    // The following call will create and register the signal with the
                     // street-directory.
                     Signal::signalAt(*road_node);
                 }

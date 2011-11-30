@@ -28,6 +28,9 @@ void sim_mob::Person::update(frame_t frameNumber)
 
 	//Are we done?
 	//NOTE: Make sure you set this flag AFTER performing your final output.
+	//TODO: Two bugs. First, calling migrate() while still within the "entity_worker" loop will
+	//      invalidate our iterator. Second, removing from "all_agents" in update can lead to
+	//      inconsistencies due to the Aura manager; this should happen in "flip()" instead.
 	if (isToBeRemoved()) {
 		//TODO: Everything in this scope will likely be moved to the Dispatch Manager later on.
 

@@ -26,8 +26,12 @@ public:
 	Entity(unsigned int id) : id(id), isSubscriptionListBuilt(false), currWorker(nullptr) {}
 	virtual ~Entity() {
 		if (currWorker) {
-			//TODO: Make sure throwing from destructors is ok.
-			throw std::runtime_error("Error: Deleting an Entity which is still being managed by a Worker.");
+			//Note: If a worker thread is still active for this agent, that's a major problem. But
+			//      we can't throw an exception since that may lead to a call of terminate().
+			//      So we'll output a message and terminate manually, since throwing exceptions from
+			//      a destructor is iffy at best.
+			std::cout <<"Error: Deleting an Entity which is still being managed by a Worker." <<std::endl;
+			abort();
 		}
 	}
 

@@ -177,6 +177,7 @@ struct type_conversion<Signal>
         signal.xPos = values.get<double>("xpos", 0.0);
         signal.yPos = values.get<double>("ypos", 0.0);
         signal.typeCode = values.get<std::string>("type_cd", "");
+        signal.bearing = values.get<double>("bearg", 0.0);
     }
 
     static void
@@ -187,6 +188,7 @@ struct type_conversion<Signal>
         values.set("xpos", signal.xPos);
         values.set("ypos", signal.yPos);
         values.set("type_cd", signal.typeCode);
+        values.set("bearg", signal.bearing);
         indicator = i_ok;
     }
 };

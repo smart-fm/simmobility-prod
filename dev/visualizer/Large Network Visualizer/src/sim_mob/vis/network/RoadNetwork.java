@@ -453,8 +453,6 @@ public class RoadNetwork {
 		}
 	}
 
-	
-	
 	private void populateIntersections(){
 
 		

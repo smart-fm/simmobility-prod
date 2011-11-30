@@ -38,12 +38,12 @@ public class NetworkVisualizer {
 	
 	//For clicking
 	private static final double NEAR_THRESHHOLD = 20;
-	
-	
+		
 	public NetworkVisualizer() {
 	}
 	
 	public BufferedImage getImage() {
+
 		return buffer;
 	}
 	
@@ -134,6 +134,7 @@ public class NetworkVisualizer {
 				sn.draw(g);
 			}
 		}
+		
 		//Draw links
 		for (Link ln : network.getLinks().values()) {
 			ln.draw(g);
@@ -145,6 +146,7 @@ public class NetworkVisualizer {
 			ctl.draw(g);
 		
 		}
+		
 		//Names go on last; make sure we don't draw them twice...
 		Set<String> alreadyDrawn = new HashSet<String>();
 		for (Link ln : network.getLinks().values()) {

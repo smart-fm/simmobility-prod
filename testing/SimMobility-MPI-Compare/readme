@@ -1,0 +1,54 @@
+README
+--------------------------------------------
+Program version: 2011-11-29
+From: SimMobility
+Target:
+Compare simulation results to calculate
+[1] SimMobility V.S. SimMobility
+[2] SimMobility-MPI V.S. SimMobility-MPI
+[3] SimMobility V.S. SimMobility-MPI
+---------------------------------------------
+---------------------------------------------
+Step 1: Install
+
+This is one Java Program, so no need to compile and install.
+
+Requirement:
+[1]JDK 1.6 (or higher)
+
+------------------------------------------------
+------------------------------------------------
+Step 2: Load Project in Eclipse
+
+-----------------------------------------------
+------------------------------------------------
+Step 3: Simulation Results Location
+
+[1]You can find two folders: 
+   1. simmobility_results_A
+   2. simmobility_results_B
+[2]Put the results of two different simulations in these folders.
+[3]Run the program
+
+-------------------------------------------------
+Step 4: Results
+
+"""""
+Error Ratio Results:
+----------------------------------------
+Total Simulation Time Step:1799
+----------------------------------------
+Divers:
+Divers Count:12050
+Divers Error Ratio: (1215/12050)10.083(precent)
+Divers Average Error Distance: 19.67 (cm)
+----------------------------------------
+Pedestrians:
+Pedestrians Count:5400
+Pedestrians Error Ratio: (1444/5400)26.741(precent)
+Pedestrians Average Error Distance: 17.86 (cm)
+----------------------------------------
+Signals:
+Signals Count:1800
+Signals Error Ratio: (0/1800)0.00(precent)
+""""""

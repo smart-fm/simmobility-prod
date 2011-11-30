@@ -677,7 +677,8 @@ void sim_mob::Pedestrian::setCrossingParas(){
 //	}
 
 	for(i=roadsegments.begin();i!=roadsegments.end();i++){
-		if((*i)->getLink()->getStart()!=parent->originNode&&(*i)->getLink()->getEnd()!=parent->originNode&&(*i)->getLink()->getStart()!=parent->destNode&&(*i)->getLink()->getEnd()!=parent->destNode){
+//		if((*i)->getLink()->getStart()!=parent->originNode&&(*i)->getLink()->getEnd()!=parent->originNode&&(*i)->getLink()->getStart()!=parent->destNode&&(*i)->getLink()->getEnd()!=parent->destNode){
+		if((*i)->getStart()!=parent->originNode&&(*i)->getEnd()!=parent->originNode&&(*i)->getStart()!=parent->destNode&&(*i)->getEnd()!=parent->destNode){
 			cStartX=(double)goal.getX();
 			cStartY=(double)goal.getY();
 			cEndX=(double)parent->destNode->location->getX();

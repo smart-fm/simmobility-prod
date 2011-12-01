@@ -113,7 +113,7 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 		perform_main(currTick);
 
 		//Get a reference to the first item in the pending list, for later
-		Agent* nextAg = !Agent::pending_agents.empty() ? &(*Agent::pending_agents.top()) : nullptr;
+		Agent* nextAg = !Agent::pending_agents.empty() ? Agent::pending_agents.top() : nullptr;
 
 		if (internal_barr)
 			internal_barr->wait();
@@ -122,6 +122,10 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 		currTick += tickStep;
 		if (endTick>0 && currTick>=endTick) {
 			this->active.set(false);
+		}
+
+		if (nextAg) {
+			std::cout <<"TEST: " <<currTick <<"," <<nextAg->startTime <<"\n";
 		}
 
 		//Now, add any Entities that will be active in this new time step.
@@ -142,7 +146,7 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 					//This Agent must be dealt with, but are we the one to deal with it?
 					if (parent->isMyTurnForAgent(this)) {
 						//Remove it from the pending_ list, add it to all_
-						ag = &(*Agent::pending_agents.top());
+						ag = Agent::pending_agents.top();
 						Agent::pending_agents.pop();
 						Agent::all_agents.push_back(ag);
 					}

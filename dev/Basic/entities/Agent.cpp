@@ -19,7 +19,8 @@ priority_queue<Agent*, vector<Agent*>, sim_mob::cmp_agent_start> sim_mob::Agent:
 //Implementation of our comparison function for Agents by start time.
 bool sim_mob::cmp_agent_start::operator() (const Agent* x, const Agent* y) const
 {
-  return x->startTime < y->startTime;
+	//We want a lower start time to translate into a higher priority.
+	return x->startTime > y->startTime;
 }
 
 

@@ -27,6 +27,7 @@ namespace sim_mob
 class Pedestrian : public sim_mob::Role {
 public:
 	Pedestrian(Agent* parent);
+	virtual ~Pedestrian();
 
 	virtual void update(frame_t frameNumber);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();

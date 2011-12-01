@@ -58,6 +58,12 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent)
 
 }
 
+//Note that a destructor is not technically needed, but I want to enforce the idea
+//  of overriding virtual destructors if they exist.
+sim_mob::Pedestrian::~Pedestrian()
+{
+}
+
 
 vector<BufferedBase*> sim_mob::Pedestrian::getSubscriptionParams()
 {

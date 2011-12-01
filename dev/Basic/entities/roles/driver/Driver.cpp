@@ -180,8 +180,7 @@ sim_mob::Driver::Driver(Person* parent) : Role(parent), currLane_(nullptr), curr
 {
 	if (Debug::Drivers) { DebugStream <<"Driver starting: " <<parent->getId() <<endl; }
 
-	//Set default speed in the range of 10m/s to 19m/s
-	//speed = 0;//1000*(1+((double)(rand()%10))/10);
+	trafficSignal = nullptr;
 
 	//Initialize our models. These should be swapable later.
 	lcModel = new MITSIM_LC_Model();

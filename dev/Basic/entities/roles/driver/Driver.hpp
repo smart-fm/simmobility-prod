@@ -73,7 +73,8 @@ private:
 	//Sample stored data which takes reaction time into account.
 	const static size_t reactTime = 1500; //1.5 seconds
 	FixedDelayed<DPoint*> perceivedVelocity;
-	FixedDelayed<Point2D*> perceivedVelocityOfFwdCar;
+	FixedDelayed<DPoint*> perceivedVelocityOfFwdCar;
+	FixedDelayed<double> perceivedAccelerationOfFwdCar;
 	FixedDelayed<centimeter_t> perceivedDistToFwdCar;
 
 	NodePoint origin;

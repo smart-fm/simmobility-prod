@@ -78,16 +78,15 @@ public:
 	//Get what should be the total distance of the RoadSegment.
 	double getTotalRoadSegmentLength() const;
 
+	//Get the length of rest road segments in current link, include current road segment
+	double getAllRestRoadSegmentsLength() const;
+
 	//Retrieve our X/Y position based ONLY on forward movement (e.g., nothing with Lanes)
 	sim_mob::DPoint getPosition() const;
 
 	//We might be able to fold Lane movement in here later. For now, it has to be called externally.
 	void shiftToNewPolyline(bool moveLeft);
 	void moveToNewPolyline(int newLaneID);
-
-	double getCurrPolylineLength() const {return currPolylineLength();}
-	double getDistAlongPolyline() const {return distAlongPolyline;}
-
 
 private:
 	//List of RoadSegments we're moving to in order.
@@ -126,6 +125,9 @@ private:
 	//And track the expected total distance.
 	double distOfThisSegment;
 
+	//length of rest road segments in current link, include current segment
+	double distOfRestSegments;
+
 	//Intersection driving is different.
 	bool inIntersection;
 
@@ -147,6 +149,7 @@ private:
 	void generateNewPolylineArray();
 	void calcNewLaneDistances();
 	static double CalcSegmentLaneZeroDist(std::vector<const sim_mob::RoadSegment*>::const_iterator start, std::vector<const sim_mob::RoadSegment*>::const_iterator end);
+	static double CalcRestSegmentsLaneZeroDist(std::vector<const sim_mob::RoadSegment*>::const_iterator start, std::vector<const sim_mob::RoadSegment*>::const_iterator end);
 	static std::string Fmt_M(centimeter_t dist); //Helper to format cm as m for debug output.
 
 	//General throw function. There is probably a better way to do this.
@@ -165,6 +168,5 @@ private:
 
 
 }
-
 
 

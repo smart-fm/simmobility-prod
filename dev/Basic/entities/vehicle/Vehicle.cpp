@@ -183,16 +183,10 @@ double sim_mob::Vehicle::getCurrLinkLaneZeroLength() const
 	return fwdMovement.getTotalRoadSegmentLength();
 }
 
-double sim_mob::Vehicle::getCurrPolylineLength() const
+double sim_mob::Vehicle::getAllRestRoadSegmentsLength() const
 {
 	throw_if_error();
-	return fwdMovement.getCurrPolylineLength();
-}
-
-double sim_mob::Vehicle::getDistAlongPolyline() const
-{
-	throw_if_error();
-	return fwdMovement.getDistAlongPolyline();
+	return fwdMovement.getAllRestRoadSegmentsLength();
 }
 
 double sim_mob::Vehicle::getVelocity() const
@@ -325,5 +319,4 @@ bool sim_mob::Vehicle::isDone() const
 	throw_if_error();
 	return velocity;
 }*/
-
 

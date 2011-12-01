@@ -41,8 +41,13 @@ public:
 	 * simpleconf.hpp for more information), and will update the entity's state. During this phase,
 	 * the entity may call any Buffered data type's "get" method, but may only "set" its own
 	 * Buffered data. Flip is called after each update phase.
+	 *
+	 * Returns true if the Entity should be scheduled for at least one more time tick.
+	 *
+	 * If this function returns false, the Entity should be considered finished with its work
+	 *   and may be removed from the Simulation and deleted.
 	 */
-	virtual void update(frame_t frameNumber) = 0;
+	virtual bool update(frame_t frameNumber) = 0;
 
 
 protected:

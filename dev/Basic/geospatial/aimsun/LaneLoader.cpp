@@ -491,11 +491,6 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const Node* co
 	//TODO: For the start/end nodes, we should use the medianEndpoints provided, since these lanes won't end on the node exactly.
 	//Note that adding/removing lanes complicates our algorithm slightly.
 	//NOTE: This function is a bit coarse, since we're only hoping to rely on it for initial data.
-	bool oneWay = false;
-	if(!currSectPair.first || !currSectPair.second)
-	{
-		oneWay = true;
-	}
 	for (size_t i=0; i<2; i++) {
 		//Create a vector going "left" from lane zero. We will use this to build new starting points.
 		Section* currSect = i==0 ? currSectPair.first : currSectPair.second;
@@ -511,7 +506,7 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const Node* co
 		originPt.flipNormal(false);
 		
 		///TODO figure out why this only affects certain lanes
-#if 0
+/*#if 0
 		if(oneWay)
 		{
 			double totalWidth = currSect->numLanes*singleLaneWidth;
@@ -521,7 +516,7 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const Node* co
 			originPt.translateVect();
 			originPt.flipMirror();
 		}
-#endif
+#endif*/
 
 		//Calculate "offsets" for the origin. This occurs if either the start or end is a MultiNode start/end.
 		//The offset is the distance from the node's center to the median point.

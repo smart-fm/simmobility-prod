@@ -19,7 +19,7 @@ sim_mob::Person::~Person()
 }
 
 
-void sim_mob::Person::update(frame_t frameNumber)
+bool sim_mob::Person::update(frame_t frameNumber)
 {
 	//Update this agent's role
 	if (currRole) {
@@ -46,7 +46,12 @@ void sim_mob::Person::update(frame_t frameNumber)
 		//Deleting yourself is ok if you're sure there are no lingering references
 		// (again, this will be moved to the Dispatch Manager later. So please ignore the ugliness of deleting this for now.)
 		delete this;
+
+		//Todo
+		return false;
 	}
+
+	return true;
 }
 
 /*void sim_mob::Person::subscribe(sim_mob::BufferedDataManager* mgr, bool isNew) {

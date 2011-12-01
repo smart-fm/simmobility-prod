@@ -31,7 +31,7 @@ public:
 	Agent(int id=-1);
 	virtual ~Agent();
 
-	virtual void update(frame_t frameNumber) = 0;  ///<Update agent behvaior
+	virtual bool update(frame_t frameNumber) = 0;  ///<Update agent behvaior
 
 	///Subscribe this agent to a data manager.
 	//virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew);

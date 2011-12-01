@@ -153,14 +153,19 @@ bool performMain(const std::string& configFileName)
   cout <<"  " <<"...Sanity Check Passed" <<endl;
 
 
-  //Initialize our work groups, assign agents randomly to these groups.
+  //Initialize our work groups.
   WorkGroup agentWorkers(WG_AGENTS_SIZE, config.totalRuntimeTicks, config.granAgentsTicks, true);
   Agent::TMP_AgentWorkGroup = &agentWorkers;
   Worker<sim_mob::Entity>::ActionFunction entityWork = boost::bind(entity_worker, _1, _2);
   agentWorkers.initWorkers(&entityWork);
+
+  //Migrate all Agents from the all_agents array to the pending_agents priority queue. For now, this
+  //  means Agents can't start on time tick 1, but that will be simple to fix later.
   for (size_t i=0; i<agents.size(); i++) {
-	  agentWorkers.migrate(agents[i], i%WG_AGENTS_SIZE);
+	  Agent::pending_agents.push(agents[i]);
+	  //agentWorkers.migrate(agents[i], i%WG_AGENTS_SIZE);
   }
+  agents.clear();
 
   //Initialize our signal status work groups
   //  TODO: There needs to be a more general way to do this.

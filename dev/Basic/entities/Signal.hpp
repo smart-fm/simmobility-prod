@@ -95,7 +95,7 @@ public:
 	double getnextOffset() {return nextOffset;}
 
 	//Abstract methods. You will have to implement these eventually.
-	virtual void update(frame_t frameNumber);
+	virtual bool update(frame_t frameNumber);
 	virtual void buildSubscriptionList() {}
 
 

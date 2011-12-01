@@ -58,7 +58,10 @@ bool TestTimeClass();
 void entity_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
 {
 	for (std::vector<sim_mob::Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
-		(*it)->update(frameNumber);
+		if (!(*it)->update(frameNumber)) {
+			//This Entity is done; schedule for deletion.
+			wk.scheduleForRemoval(*it);
+		}
 	}
 }
 

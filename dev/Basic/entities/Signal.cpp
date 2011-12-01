@@ -284,7 +284,7 @@ void sim_mob :: Signal :: startSplitPlan()
 	vote5 = 0;
 }
 
-void sim_mob :: Signal ::update(frame_t frameNumber)
+bool sim_mob :: Signal ::update(frame_t frameNumber)
 {
 
                         std::stringstream logout;
@@ -333,6 +333,8 @@ void sim_mob :: Signal ::update(frame_t frameNumber)
 
 
 	updateSignal (Density);
+
+	return true;
 }
 
 //Update Signal Light

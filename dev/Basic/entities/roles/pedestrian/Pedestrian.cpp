@@ -224,7 +224,7 @@ void sim_mob::Pedestrian::setSidewalkParas(Node* start, Node* end, bool isStartM
 
 	unsigned int numOfLanes;
 	const RoadSegment* segToWalk=nullptr;
-	bool isForward;
+	//bool isForward;
 //	const Lane* sideWalk;
 	Point2D startPt, endPt;
 	const std::vector<sim_mob::Point2D>* sidewalkPolyLine;

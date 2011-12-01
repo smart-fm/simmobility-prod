@@ -123,6 +123,15 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		updateMap();
 	}
 	
+	public void showFakeAgent(boolean drawFakeAgent){
+		
+		if(netViewCache == null){
+			return;
+		}
+		netViewCache.toggleFakeAgent(drawFakeAgent);
+		this.repaint();
+	}
+	
 	
 	private void clickMap(Point pos) {
 		//Anything?

@@ -33,14 +33,19 @@ public class Crossing implements DrawableItem{
 	
 	public void draw(Graphics2D g) {
 		g.setColor(crossingColor);
-		g.setStroke(crossingStroke);
+		g.setStroke(crossingStroke);    
 		drawCrossing(g);
 	}
 	
 	
 	public void drawSignalCrossing(Graphics2D g, Integer light){
+		if(light == 1){
+			g.setColor(Color.red);
+			g.setStroke(crossingStroke);
+			drawCrossing(g);
 
-		if(light == 2){
+		}
+		else if(light == 2){
 			
 			g.setColor(Color.yellow);
 			g.setStroke(crossingStroke);
@@ -50,6 +55,7 @@ public class Crossing implements DrawableItem{
 			g.setColor(Color.green);
 			g.setStroke(crossingStroke);
 			drawCrossing(g);
+
 		}
 		
 	}

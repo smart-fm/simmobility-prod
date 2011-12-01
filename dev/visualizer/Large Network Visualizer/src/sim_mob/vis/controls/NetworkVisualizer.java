@@ -22,6 +22,7 @@ public class NetworkVisualizer {
 	double currPercentZoom;
 	private static final double  ZOOM_IN_CRITICAL = 1.6;
 	private String fileName;
+	private boolean showFakeAgent;
 	
 	public int getCurrFrameTick() { return currFrameTick; }
 	public String getFileName(){return fileName;}
@@ -67,7 +68,7 @@ public class NetworkVisualizer {
 		this.width100Percent = width100Percent;
 		this.height100Percent = height100Percent;
 		this.fileName = fileName;
-		
+		this.showFakeAgent = false;
 		//Recalc
 		redrawAtScale(initialZoom);
 	}
@@ -79,6 +80,14 @@ public class NetworkVisualizer {
 		
 		//System.out.println("zoom number: "+number);
 		//System.out.println("current percent zoom: " + currPercentZoom);
+	}
+	
+	public void toggleFakeAgent(boolean drawFakeAgent){
+
+		
+		this.showFakeAgent = drawFakeAgent;			
+		redrawAtCurrScale();
+		
 	}
 	
 	public void redrawAtScale(double percent) {
@@ -141,10 +150,10 @@ public class NetworkVisualizer {
 		}
 		
 		//Draw Cutline
-		for(CutLine ctl : network.getCutLine().values()){
-		
-			ctl.draw(g);
-		
+		if(this.showFakeAgent){
+			for(CutLine ctl : network.getCutLine().values()){
+				ctl.draw(g);	
+			}
 		}
 		
 		//Names go on last; make sure we don't draw them twice...
@@ -169,20 +178,26 @@ public class NetworkVisualizer {
 					lineMarking.draw(g);
 				}
 			}
-			
 			//Draw Perdestrain Crossing
 			for(Crossing crossing : network.getCrossings().values()){
 				crossing.draw(g);
 			}
-		
+
 			//Now draw out signal
 			for(SignalLineTick at: simRes.ticks.get(currFrameTick).signalLineTicks.values()){
-						
+				
 				//Get Intersection ID
 				Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());
 				//Get Light color
 				ArrayList<ArrayList<Integer>> allVehicleLights =  at.getVehicleLights();
 				ArrayList<Integer> allPedestrainLights = at.getPedestrianLights();
+
+//				System.out.println(Integer.toHexString(at.getIntersectionID()));
+//				for(int i = 0;i <allPedestrainLights.size();i++){
+//					System.out.print(allPedestrainLights.get(i)+ " ");
+//				}
+//				System.out.println();
+//				System.out.println( );
 				
 				//Light Colors
 				ArrayList<Integer> vaLights = allVehicleLights.get(0);
@@ -206,16 +221,19 @@ public class NetworkVisualizer {
 				drawTrafficLines(g,vbSignalLine, vbLights);
 				drawTrafficLines(g,vcSignalLine, vcLights);
 				drawTrafficLines(g,vdSignalLine, vdLights);
+				
 						
 			}
+			
 
 		
-		
 		}
-				
+
+	
 		//Now draw simulation data: cars, etc.
 		for (AgentTick at : simRes.ticks.get(currFrameTick).agentTicks.values()) {	
-			at.draw(g,currPercentZoom);
+			
+			at.draw(g,currPercentZoom,this.showFakeAgent);
 		}
 		
 	}
@@ -251,16 +269,17 @@ public class NetworkVisualizer {
 	
 	private void drawTrafficPedestrainCross(Graphics2D g,ArrayList<Crossing> signalPedestrainCrossing, ArrayList<Integer> lightColor){
 		
-
 		if(signalPedestrainCrossing.size() != 0 && lightColor.size() != 0
 				 && signalPedestrainCrossing.size() == lightColor.size())
 		{
+			
 			for(int i = 0; i<signalPedestrainCrossing.size();i++)
 			{
 				//Draw crossing signal
 				signalPedestrainCrossing.get(i).drawSignalCrossing(g, lightColor.get(i));
+			
 			}
-		
+			
 		}
 		else{
 			System.out.println("Error, the signal and crossing are not corresponding to each other -- NetWorkVisualizer, drawTrafficPedestrainCross()");		

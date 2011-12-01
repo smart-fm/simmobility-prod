@@ -132,9 +132,9 @@ bool performMain(const std::string& configFileName)
   cout <<"  " <<"Initialization done" <<endl;
 
   //Sanity check (simple)
-  if (!CheckAgentIDs(agents /*trips,*/ /*choiceSets*/)) {
+  /*if (!CheckAgentIDs(agents )) {
 	  return false;
-  }
+  }*/
 
   //Sanity check (nullptr)
   void* x = nullptr;
@@ -257,6 +257,10 @@ bool performMain(const std::string& configFileName)
 	  cout <<"Remaining Agents: " <<numPerson <<" (Person)   " <<(Agent::all_agents.size()-numPerson) <<" (Other)" <<endl;
   }
 
+  if (!Agent::pending_agents.empty()) {
+	  cout <<"WARNING! There are still " <<Agent::pending_agents.size() <<" Agents waiting to be scheduled; next start time is: " <<Agent::pending_agents.top()->startTime <<" ms\n";
+  }
+
   cout <<"Simulation complete; closing worker threads." <<endl;
   return true;
 }
@@ -336,7 +340,9 @@ void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents)
  * Simple sanity check on Agent IDs. Checks that IDs start at 0, end at size(agents)-1,
  *   and contain every value in between. Order is not important.
  */
-bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents) {
+//This is unlikely to be true from here on out, since Agents aren't always dispatched
+//   (and may soon not even be created until needed).
+/*bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents) {
     std::vector<sim_mob::Agent const *> all_agents(agents.begin(), agents.end());
     std::copy(Signal::all_signals_.begin(), Signal::all_signals_.end(), std::back_inserter(all_agents));
 
@@ -360,7 +366,7 @@ bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents) {
 	}
 
 	return true;
-}
+}*/
 
 
 bool TestTimeClass()

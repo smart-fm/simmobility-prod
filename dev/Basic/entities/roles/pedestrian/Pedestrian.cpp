@@ -69,9 +69,9 @@ vector<BufferedBase*> sim_mob::Pedestrian::getSubscriptionParams()
 //Main update functionality
 void sim_mob::Pedestrian::update(frame_t frameNumber)
 {
-
-	if(frameNumber<parent->startTime){
-		throw std::runtime_error("Driver should not be started before its startTime; this should be automatic.");
+	unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
+	if(currTimeMS<parent->startTime){
+		throw std::runtime_error("Pedestrian should not be started before its startTime; this should be automatic.");
 	}
 
 	//Set the initial position of agent

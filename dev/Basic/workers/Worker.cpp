@@ -124,15 +124,18 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 			this->active.set(false);
 		}
 
+		//Get the current tick value in MS
+		unsigned int currMs = currTick*ConfigParams::GetInstance().baseGranMS;
+
 		//Now, add any Entities that will be active in this new time step.
-		if (nextAg && currTick>=nextAg->startTime) { //This check can always be done lock-free
+		if (nextAg && currMs>=nextAg->startTime) { //This check can always be done lock-free
 			for (;;) {
 				Agent* ag = nullptr;
 
 				//Now we need a mutex, since multiple threads may be checking/modifying the Agents arrays at the same time.
 				{
 					boost::mutex::scoped_lock local_lock(sim_mob::Agent::all_agents_lock);
-					if (Agent::pending_agents.empty() || currTick < Agent::pending_agents.top()->startTime) {
+					if (Agent::pending_agents.empty() || currMs < Agent::pending_agents.top()->startTime) {
 						break;  //The double-check is needed since pending_agents may have changed.
 					}
 
@@ -142,6 +145,8 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 						ag = Agent::pending_agents.top();
 						Agent::pending_agents.pop();
 						Agent::all_agents.push_back(ag);
+
+						//std::cout <<"This worker (" <<this <<") took control of an Agent with start time " <<ag->startTime <<std::endl;
 					}
 				}
 

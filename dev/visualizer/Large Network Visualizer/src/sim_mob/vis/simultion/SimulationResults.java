@@ -1,17 +1,11 @@
 package sim_mob.vis.simultion;
 
 
-import java.awt.Color;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.io.*;
+import java.util.*;
 import java.util.regex.Matcher;
 
-import sim_mob.vis.network.Intersection;
-import sim_mob.vis.network.RoadNetwork;
-import sim_mob.vis.network.TrafficSignalLine;
+import sim_mob.vis.network.*;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.util.Utility;
 
@@ -134,7 +128,7 @@ public class SimulationResults {
 		}
 	}
 	
-	private static Color ReadColor(int id) {
+	/*private static Color ReadColor(int id) {
 		if (id==1) {
 			return Color.RED;
 		} else if (id==2) {
@@ -143,7 +137,7 @@ public class SimulationResults {
 			return new Color(0x00, 0x99, 0x00);
 		}
 		throw new RuntimeException("Invalid traffic light color: " + id);
-	}
+	}*/
 	
 	private static ArrayList<Integer> parseEachSignal(String signal){
 		ArrayList<Integer> signalLights =  new ArrayList<Integer>();

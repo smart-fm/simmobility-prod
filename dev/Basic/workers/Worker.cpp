@@ -59,11 +59,11 @@ void sim_mob::Worker<EntityType>::scheduleForRemoval(EntityType* entity)
 template <class EntityType>
 sim_mob::Worker<EntityType>::Worker(SimpleWorkGroup<EntityType>* parent, ActionFunction* action, boost::barrier* internal_barr, boost::barrier* external_barr, frame_t endTick, frame_t tickStep, bool auraManagerActive)
     : BufferedDataManager(),
-      parent(parent),
       internal_barr(internal_barr), external_barr(external_barr), action(action),
       endTick(endTick),
       tickStep(tickStep),
       auraManagerActive(auraManagerActive),
+      parent(parent),
       active(/*this, */false)  //Passing the "this" pointer is probably ok, since we only use the base class (which is constructed)
 {
 	this->beginManaging(&active);
@@ -126,6 +126,9 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 
 		//Now, add any Entities that will be active in this new time step.
 		if (nextAg && currTick>=nextAg->startTime) { //This check can always be done lock-free
+
+			std::cout <<"XXXXXXXXXXXXXXXXXXX\n";
+
 			for (;;) {
 				Agent* ag = nullptr;
 

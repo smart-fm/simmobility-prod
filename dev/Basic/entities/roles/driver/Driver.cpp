@@ -258,16 +258,6 @@ void sim_mob::Driver::update_movement(UpdateParams& params, frame_t frameNumber)
 			DebugStream.str("");
 		}
 
-		//TEMP: Move to (0,0). This should prevent collisions.
-		//TODO: Remove from simulation. Do this in the dispatcher at the same time...
-		parent->setToBeRemoved(true);
-		/*parent->xPos.set(0);
-		parent->yPos.set(0);
-
-		//TODO:reach destination
-		vehicle->setAcceleration(0);
-		vehicle->setVelocity(0);
-		vehicle->setLatVelocity(0);*/
 		return;
 	}
 
@@ -339,6 +329,14 @@ void sim_mob::Driver::update(frame_t frameNumber)
 		msg <<"Driver specifies a start time of: " <<parent->startTime <<" but it is currently: "
 			<<currTimeMS <<"; this indicates an error, and should be handled automatically.";
 		throw std::runtime_error(msg.str().c_str());
+	}
+
+	//Are we done already?
+	if (vehicle->isDone()) {
+		if (parent->isToBeRemoved()) {
+			throw std::runtime_error("Driver is already done, but hasn't been removed.");
+		}
+		parent->setToBeRemoved(true);
 	}
 
 	//Create a new set of local parameters for this frame update.

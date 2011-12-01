@@ -161,11 +161,20 @@ bool performMain(const std::string& configFileName)
 
   //Migrate all Agents from the all_agents array to the pending_agents priority queue. For now, this
   //  means Agents can't start on time tick 1, but that will be simple to fix later.
+  vector<Agent*> starting_agents;
   for (size_t i=0; i<agents.size(); i++) {
-	  Agent::pending_agents.push(agents[i]);
-	  //agentWorkers.migrate(agents[i], i%WG_AGENTS_SIZE);
+	  Agent* const ag = agents[i];
+	  if (ag->startTime==0) {
+		  //Only agents with a start time of zero should start immediately in the all_agents list.
+		  agentWorkers.migrateByID(agents[i], i%WG_AGENTS_SIZE);
+		  starting_agents.push_back(ag);
+	  } else {
+		  //Start later.
+		  Agent::pending_agents.push(ag);
+	  }
   }
   agents.clear();
+  agents.insert(agents.begin(), starting_agents.begin(), starting_agents.end());
 
   //Initialize our signal status work groups
   //  TODO: There needs to be a more general way to do this.

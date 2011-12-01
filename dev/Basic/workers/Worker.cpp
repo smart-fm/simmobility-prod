@@ -124,15 +124,8 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 			this->active.set(false);
 		}
 
-		if (nextAg) {
-			std::cout <<"TEST: " <<currTick <<"," <<nextAg->startTime <<"\n";
-		}
-
 		//Now, add any Entities that will be active in this new time step.
 		if (nextAg && currTick>=nextAg->startTime) { //This check can always be done lock-free
-
-			std::cout <<"XXXXXXXXXXXXXXXXXXX\n";
-
 			for (;;) {
 				Agent* ag = nullptr;
 

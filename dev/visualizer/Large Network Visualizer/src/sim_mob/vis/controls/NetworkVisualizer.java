@@ -248,9 +248,8 @@ public class NetworkVisualizer {
 	}
 	
 	private void drawTrafficPedestrainCross(Graphics2D g,ArrayList<Crossing> signalPedestrainCrossing, ArrayList<Integer> lightColor){
-		
-
-		if(signalPedestrainCrossing.size() != 0 && lightColor.size() != 0
+		if(signalPedestrainCrossing!=null && signalPedestrainCrossing.size() != 0 && 
+		   lightColor!=null && lightColor.size() != 0
 				 && signalPedestrainCrossing.size() == lightColor.size())
 		{
 			for(int i = 0; i<signalPedestrainCrossing.size();i++)

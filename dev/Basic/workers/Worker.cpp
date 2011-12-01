@@ -137,6 +137,7 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 			//Delete the object pointed to by our iterator
 			delete (*it);
 		}
+		toBeRemoved.clear();
 
 		//Now flip all remaining data.
 		perform_flip();

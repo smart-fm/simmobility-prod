@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <queue>
 #include <vector>
 #include <stdlib.h>
 
@@ -16,10 +17,19 @@
 #include "Entity.hpp"
 
 
+
+
 namespace sim_mob
 {
 
+class Agent;
 class WorkGroup;
+
+
+//Comparison for our priority queue
+struct cmp_agent_start : std::binary_function <const Agent*, const Agent*,bool> {
+  bool operator() (const Agent* x, const Agent* y) const;
+};
 
 
 /**
@@ -66,6 +76,7 @@ public:
 
 	///Agents can access all other agents (although they usually do not access by ID)
 	static std::vector<Agent*> all_agents;
+	static std::priority_queue<Agent*, std::vector<Agent*>, cmp_agent_start> pending_agents; //Agents waiting to be added to the simulation, prioritized by start time.
 
 	///When adding/deleting Agents asynchronously, a lock is required.
 	static boost::mutex all_agents_lock;

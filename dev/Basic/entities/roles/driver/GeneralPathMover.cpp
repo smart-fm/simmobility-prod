@@ -24,7 +24,7 @@ const bool sim_mob::GeneralPathMover::DebugOn = false;
 
 
 sim_mob::GeneralPathMover::GeneralPathMover() : distAlongPolyline(0), /*currPolylineLength(0),*/
-		distMovedInCurrSegment(0), distOfThisSegment(0), inIntersection(false), isMovingForwardsInLink(false), currLaneID(0)
+		distMovedInCurrSegment(0), distOfThisSegment(0),distOfRestSegments(0), inIntersection(false), isMovingForwardsInLink(false), currLaneID(0)
 {
 }
 
@@ -64,7 +64,12 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 	generateNewPolylineArray();
 	distAlongPolyline = 0;
 	inIntersection = false;
-	calcNewLaneDistances();
+	//calcNewLaneDistances();
+
+	distMovedInCurrSegment = 0;
+	distOfThisSegment = CalcSegmentLaneZeroDist(currSegmentIt, fullPath.end());
+	distOfRestSegments = CalcRestSegmentsLaneZeroDist(currSegmentIt, fullPath.end());
+
 }
 
 void sim_mob::GeneralPathMover::calcNewLaneDistances()
@@ -80,7 +85,20 @@ string sim_mob::GeneralPathMover::Fmt_M(centimeter_t dist)
 	return res.str();
 }
 
-double sim_mob::GeneralPathMover::CalcSegmentLaneZeroDist(vector<const RoadSegment*>::const_iterator start, vector<const RoadSegment*>::const_iterator end)
+double sim_mob::GeneralPathMover::CalcSegmentLaneZeroDist(vector<const RoadSegment*>::const_iterator it, vector<const RoadSegment*>::const_iterator end)
+{
+	double res = 0.0;
+	if(it!=end)
+	{
+		const vector<Point2D>& polyLine = const_cast<RoadSegment*>(*it)->getLaneEdgePolyline(0);
+		for (vector<Point2D>::const_iterator it2=polyLine.begin(); (it2+1)!=polyLine.end(); it2++) {
+			res += dist(it2->getX(), it2->getY(), (it2+1)->getX(), (it2+1)->getY());
+		}
+	}
+	return res;
+}
+
+double sim_mob::GeneralPathMover::CalcRestSegmentsLaneZeroDist(vector<const RoadSegment*>::const_iterator start, vector<const RoadSegment*>::const_iterator end)
 {
 	double res = 0.0;
 	for (vector<const RoadSegment*>::const_iterator it=start;it!=end;it++) {
@@ -97,7 +115,6 @@ double sim_mob::GeneralPathMover::CalcSegmentLaneZeroDist(vector<const RoadSegme
 	}
 	return res;
 }
-
 void sim_mob::GeneralPathMover::generateNewPolylineArray()
 {
 	//Simple; just make sure to take the forward direction into account.
@@ -283,11 +300,11 @@ const Lane* sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir()
 	//Reset our distance; calculate the total lane-zero distance of this segment.
 	distMovedInCurrSegment = 0;
 	distOfThisSegment = CalcSegmentLaneZeroDist(currSegmentIt, fullPath.end());
+	distOfRestSegments = CalcRestSegmentsLaneZeroDist(currSegmentIt, fullPath.end());
 
 	//In case we moved
 	//distAlongPolyline = distMovedInSegment; //NOTE: Should probably factor this out into a sep. variable.
 
-	//Done?
 	if (currSegmentIt==fullPath.end()) {
 		return nullptr;
 	}
@@ -425,6 +442,14 @@ double sim_mob::GeneralPathMover::getTotalRoadSegmentLength() const
 	return distOfThisSegment;
 }
 
+double sim_mob::GeneralPathMover::getAllRestRoadSegmentsLength() const
+{
+	throwIf(!isPathSet(), "GeneralPathMover path not set.");
+	throwIf(isInIntersection(), "Can't get distance of Segment while in an intersection.");
+
+	return distOfRestSegments;
+}
+
 double sim_mob::GeneralPathMover::getCurrPolylineTotalDist() const
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
@@ -488,7 +513,6 @@ DPoint sim_mob::GeneralPathMover::getPosition() const
 	movementVect.scaleVectTo(getCurrDistAlongPolyline()).translateVect();
 	return DPoint(movementVect.getX(), movementVect.getY());
 }
-
 
 
 

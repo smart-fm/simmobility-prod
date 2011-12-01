@@ -453,8 +453,6 @@ public class RoadNetwork {
 		}
 	}
 
-	
-	
 	private void populateIntersections(){
 
 		
@@ -575,6 +573,11 @@ public class RoadNetwork {
 			int linkPbID = crossingIDs.get(1);
 			int linkPcID = crossingIDs.get(2);
 			int linkPdID = crossingIDs.get(3);
+			
+			//System.out.println("Intersection ID: " + Integer.toHexString(intersection.getIntersectNodeID()));
+			//System.out.println("linkPaID: "+ linkPaID +" linkPbID: "+ linkPbID + " linkPcID: "+ linkPcID +" linkPdID: "+ linkPdID);
+			
+			
 			
 			if(crossings.containsKey(linkPaID) && crossings.containsKey(linkPbID) 
 		    		&& crossings.containsKey(linkPcID) && crossings.containsKey(linkPdID)){	    	

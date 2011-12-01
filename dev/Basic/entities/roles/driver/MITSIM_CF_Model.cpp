@@ -23,7 +23,7 @@ const double hBufferUpper			=	  1.6;	 ///< upper threshold of headway
 const double hBufferLower			=	  0.8;	 ///< lower threshold of headway
 
 //Set default data for acceleration
-const double maxAcceleration = 20.0;   ///< 10m/s*s, might be tunable later
+const double maxAcceleration = 5.0;   ///< 5m/s*s, might be tunable later
 const double normalDeceleration = -maxAcceleration*0.6;
 const double maxDeceleration = -maxAcceleration;
 
@@ -80,13 +80,18 @@ double nRandom(double mean,double stddev)
 }
 } //End anon namespace
 
+double speed;//if reaction time disable, speed is current velocity
+             //if reaction time enable, speed is perceivedFwdVelocity
 
 double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(UpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {
+	//speed = p.perceivedFwdVelocity/100;
+	speed = p.currSpeed;
 	//Set our mode.
 	ACCEL_MODE mode;
 	if(p.nvFwd.distance != 5000 && p.nvFwd.distance <= p.trafficSignalStopDistance && p.nvFwd.distance <= p.npedFwd.distance) {
 		p.space = p.nvFwd.distance/100;
+		//p.space = p.perceivedDistToFwdCar/100;
 		mode = AM_VEHICLE;
 	} else if(p.npedFwd.distance != 5000 && p.npedFwd.distance <= p.nvFwd.distance && p.npedFwd.distance <= p.trafficSignalStopDistance) {
 		p.space = p.npedFwd.distance/100;
@@ -107,15 +112,17 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(UpdateParams& p, doubl
 		}
 
 		//Retrieve velocity/acceleration in m/s
-		p.v_lead = (mode!=AM_VEHICLE) ? 0 : p.nvFwd.driver->getVehicle()->getVelocity()/100;
-		p.a_lead = (mode!=AM_VEHICLE) ? 0 : p.nvFwd.driver->getVehicle()->getAcceleration()/100;
+//		p.v_lead = (mode!=AM_VEHICLE) ? 0 : p.nvFwd.driver->getVehicle()->getVelocity()/100;
+//		p.a_lead = (mode!=AM_VEHICLE) ? 0 : p.nvFwd.driver->getVehicle()->getAcceleration()/100;
+		p.v_lead = (mode!=AM_VEHICLE) ? 0 : p.perceivedFwdVelocityOfFwdCar/100;
+		p.a_lead = (mode!=AM_VEHICLE) ? 0 : p.perceivedAccelerationOfFwdCar/100;
 
 		double dt	=	p.elapsedSeconds;
 		double headway = 0;  //distance/speed
-		if (p.currSpeed == 0) {
+		if (speed == 0) {
 			headway = 2 * p.space * 100000;
 		} else {
-			headway = 2 * p.space / (p.currSpeed+p.currSpeed+p.elapsedSeconds*maxAcceleration);
+			headway = 2 * p.space / (speed+speed+p.elapsedSeconds*maxAcceleration);
 		}
 		p.space_star	=	p.space + p.v_lead * dt + 0.5 * p.a_lead * dt * dt;
 
@@ -134,7 +141,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(UpdateParams& p, doubl
 
 double sim_mob::MITSIM_CF_Model::breakToTargetSpeed(UpdateParams& p)
 {
-	double v 			=	p.currSpeed;
+	double v 			=	speed;
 	double dt			=	p.elapsedSeconds;
 
 	//NOTE: This is the only use of epsilon(), so I just copied the value directly.
@@ -150,7 +157,7 @@ double sim_mob::MITSIM_CF_Model::breakToTargetSpeed(UpdateParams& p)
 
 double sim_mob::MITSIM_CF_Model::accOfEmergencyDecelerating(UpdateParams& p)
 {
-	double v 			=	p.currSpeed;
+	double v 			=	speed;
 	double dv			=	v-p.v_lead;
 	double epsilon_v	=	0.001;
 	double aNormalDec	=	normalDeceleration;
@@ -163,11 +170,11 @@ double sim_mob::MITSIM_CF_Model::accOfEmergencyDecelerating(UpdateParams& p)
 	} else {
 		a= breakToTargetSpeed(p);
 	}
-	if(a<maxDeceleration)
-		return maxDeceleration;
-	else if(a>maxAcceleration)
-		return maxAcceleration;
-	else
+//	if(a<maxDeceleration)
+//		return maxDeceleration;
+//	else if(a>maxAcceleration)
+//		return maxAcceleration;
+//	else
 		return a;
 }
 
@@ -177,7 +184,7 @@ double sim_mob::MITSIM_CF_Model::accOfCarFollowing(UpdateParams& p)
 {
 	const double density	=	1;		//represent the density of vehicles in front of the subject vehicle
 										//now we ignore it, assuming that it is 1.
-	double v				=	p.currSpeed;
+	double v				=	speed;
 	int i = (v > p.v_lead) ? 1 : 0;
 	double dv =(v > p.v_lead)?(v-p.v_lead):(p.v_lead - v);
 
@@ -190,7 +197,7 @@ double sim_mob::MITSIM_CF_Model::accOfCarFollowing(UpdateParams& p)
 
 double sim_mob::MITSIM_CF_Model::accOfFreeFlowing(UpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {
-	double vn =	p.currSpeed;
+	double vn =	speed;
 	if (vn < targetSpeed) {
 		return (vn<maxLaneSpeed) ? maxAcceleration : normalDeceleration;
 	} else if (vn > targetSpeed) {
@@ -203,7 +210,18 @@ double sim_mob::MITSIM_CF_Model::accOfFreeFlowing(UpdateParams& p, double target
 
 double sim_mob::MITSIM_CF_Model::accOfMixOfCFandFF(UpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {
-	p.distanceToNormalStop = p.currSpeed * p.currSpeed / 2 /(-normalDeceleration);
+	double minSpeed = 0.1;
+	double minResponseDistance = 5;
+	double DIS_EPSILON = 0.001;
+	if (speed > minSpeed) {
+		p.distanceToNormalStop = DIS_EPSILON -
+				0.5 * speed * speed / normalDeceleration;
+		if (p.distanceToNormalStop < minResponseDistance) {
+			p.distanceToNormalStop = minResponseDistance;
+		}
+	} else {
+		p.distanceToNormalStop = minResponseDistance;
+	}
 	if(p.space > p.distanceToNormalStop ) {
 		return accOfFreeFlowing(p, targetSpeed, maxLaneSpeed);
 	} else {

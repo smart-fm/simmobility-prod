@@ -38,7 +38,9 @@ public class PedestrianTick extends AgentTick {
 	public void setItFake(){
 		fake = true;
 	}
+	
 	public void draw(Graphics2D g, double scale) {
+
 		//Save old transformation.
 		AffineTransform oldAT = g.getTransform();
 		
@@ -53,14 +55,52 @@ public class PedestrianTick extends AgentTick {
 		
 		//Draw
 		g.setTransform(at);
+
 		if(fake){
 			g.drawImage(FakePedImg, 0, 0, null);
 		}else{
 			g.drawImage(PedImg, 0, 0, null);
 		}
+		
 		//Restore old transformation matrix
 		g.setTransform(oldAT);
+		
 	}
+	
+	public void draw(Graphics2D g, double scale, boolean drawFake){
+		
+		//Save old transformation.
+		AffineTransform oldAT = g.getTransform();
+		
+		//Translate
+		AffineTransform at = AffineTransform.getTranslateInstance(pos.getX(), pos.getY());
+		
+		//Scale
+		at.scale(1/scale + 0.2, 1/scale + 0.2);
+		
+		//Translate to top-left corner
+		at.translate(-PedImg.getWidth()/2, -PedImg.getHeight()/2);
+		
+		//Draw
+		g.setTransform(at);
+
+		//Enable Draw fake agent
+		if(drawFake)
+		{
+			if(fake){
+				g.drawImage(FakePedImg, 0, 0, null);
+			}else{
+				g.drawImage(PedImg, 0, 0, null);
+			}
+
+		}else{
+			g.drawImage(PedImg, 0, 0, null);
+		}
+		//Restore old transformation matrix
+		g.setTransform(oldAT);
+		
+	}
+	
 }
 
 

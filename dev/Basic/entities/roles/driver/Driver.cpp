@@ -96,7 +96,7 @@ const bool sim_mob::Driver::DebugOn = false;
 //initiate
 sim_mob::Driver::Driver(Agent* parent) : Role(parent), currLane_(nullptr), currLaneOffset_(0),
 	currLaneLength_(0), isInIntersection(false), vehicle(nullptr), perceivedVelocity(reactTime, true),
-	perceivedVelocityOfFwdCar(reactTime, true), perceivedDistToFwdCar(reactTime, false)
+	perceivedVelocityOfFwdCar(reactTime, true), perceivedAccelerationOfFwdCar(reactTime, true),perceivedDistToFwdCar(reactTime, true)
 {
 	if (DebugOn) { DebugStream <<"Driver starting: " <<parent->getId() <<endl; }
 
@@ -354,9 +354,24 @@ void sim_mob::Driver::update(frame_t frameNumber)
 
 	//Update your perceptions, and retrieved their current "sensed" values.
 	perceivedVelocity.delay(new DPoint(vehicle->getVelocity(), vehicle->getLatVelocity()), currTimeMS);
-	if (perceivedVelocity.can_sense(currTimeMS)) {
-		params.perceivedFwdVelocity = perceivedVelocity.sense(currTimeMS)->x;
-		params.perceivedLatVelocity = perceivedVelocity.sense(currTimeMS)->y;
+	if(params.nvFwd.distance!=5000)
+	{
+		perceivedVelocityOfFwdCar.delay(new DPoint(params.nvFwd.driver->getVehicle()->getVelocity(),params.nvFwd.driver->getVehicle()->getLatVelocity()),currTimeMS);
+		perceivedAccelerationOfFwdCar.delay(params.nvFwd.driver->getVehicle()->getAcceleration(),currTimeMS);
+		perceivedDistToFwdCar.delay(params.nvFwd.distance,currTimeMS);
+
+		if (perceivedVelocity.can_sense(currTimeMS)) {
+			params.perceivedFwdVelocity = perceivedVelocity.sense(currTimeMS)->x;
+			params.perceivedLatVelocity = perceivedVelocity.sense(currTimeMS)->y;
+		}
+		if(perceivedVelocityOfFwdCar.can_sense(currTimeMS)){
+			params.perceivedFwdVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense(currTimeMS)->x;
+			params.perceivedLatVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense(currTimeMS)->y;
+		}
+		if(perceivedAccelerationOfFwdCar.can_sense(currTimeMS))
+			params.perceivedAccelerationOfFwdCar = perceivedAccelerationOfFwdCar.sense(currTimeMS);
+		if(perceivedDistToFwdCar.can_sense(currTimeMS))
+			params.perceivedDistToFwdCar = perceivedDistToFwdCar.sense(currTimeMS);
 	}
 
 	//General update behavior.
@@ -373,9 +388,12 @@ void sim_mob::Driver::update(frame_t frameNumber)
 //	currLane_.set(params.currLane);
 //	currLaneOffset_.set(params.currLaneOffset);
 //	currLaneLength_.set(params.currLaneLength);
-	currLane_.set(vehicle->getCurrLane());
-	currLaneOffset_.set(vehicle->getDistAlongPolyline());
-	currLaneLength_.set(vehicle->getCurrPolylineLength());
+	if(!vehicle->isInIntersection())
+	{
+		currLane_.set(vehicle->getCurrLane());
+		currLaneOffset_.set(vehicle->getDistanceMovedInSegment());
+		currLaneLength_.set(vehicle->getCurrLinkLaneZeroLength());
+	}
 	isInIntersection.set(vehicle->isInIntersection());
 
 	//Print output for this frame.
@@ -425,13 +443,18 @@ void sim_mob::Driver::intersectionDriving(UpdateParams& p)
 double sim_mob::Driver::linkDriving(UpdateParams& p)
 {
 	//TODO: This might not be in the right location
-	p.dis2stop = vehicle->getCurrLinkLaneZeroLength() - currLinkOffset - vehicle->length/2 - 300;
+	p.dis2stop = vehicle->getAllRestRoadSegmentsLength() - vehicle->getDistanceMovedInSegment() - vehicle->length/2 - 300;
 	p.dis2stop /= 100;
 
 	//Check if we should change lanes.
-	double newLatVel = lcModel->executeLaneChanging(p, vehicle->getCurrLinkLaneZeroLength(), vehicle->length, getCurrLaneChangeDirection());
+	double newLatVel = lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length, getCurrLaneChangeDirection());
 	if (newLatVel>=0.0) {
 		vehicle->setLatVelocity(newLatVel);
+	}
+	//when vehicle stops, don't do lane changing
+	if(vehicle->getVelocity()<=0)
+	{
+		vehicle->setLatVelocity(0);
 	}
 
 	//Retrieve a new acceleration value.
@@ -716,8 +739,8 @@ double sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
 	//Determine how far forward we've moved.
 	//TODO: I've disabled the acceleration component because it doesn't really make sense.
 	//      Please re-enable if you think this is expected behavior. ~Seth
-	//fwdDistance = vehicle->getVelocity()*timeStep + 0.5*vehicle->getAcceleration()*timeStep*timeStep;
-	double fwdDistance = vehicle->getVelocity()*p.elapsedSeconds;
+	double fwdDistance = vehicle->getVelocity()*p.elapsedSeconds + 0.5*vehicle->getAcceleration()*p.elapsedSeconds*p.elapsedSeconds;
+	//double fwdDistance = vehicle->getVelocity()*p.elapsedSeconds;
 	double latDistance = vehicle->getLatVelocity()*p.elapsedSeconds;
 
 	//Increase the vehicle's velocity based on its acceleration.
@@ -725,8 +748,8 @@ double sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
 
 	//when v_lead and a_lead is 0, space is not negative, the Car Following will generate an acceleration based on free flowing model
 	//this causes problem, so i manually set acceleration and velocity to 0
-	if (vehicle->getVelocity() < 0||(p.space<0.1&&p.v_lead==0&&p.a_lead==0)) {
-		//Set to a small forward velocity, no acceleration.
+	if (vehicle->getVelocity() < 0|| p.space<0){//||(p.space<1&&p.v_lead==0&&p.a_lead==0)) {
+		//Set to 0 forward velocity, no acceleration.
 		vehicle->setVelocity(0.0);
 		vehicle->setAcceleration(0);
 	}
@@ -1084,7 +1107,7 @@ void sim_mob::Driver::setTrafficSignalParams(UpdateParams& p) const
 		switch(color) {
 			case Signal::Red :case Signal::Amber:
 				p.isTrafficLightStop = true;
-				p.trafficSignalStopDistance = p.currLaneLength - p.currLaneOffset - vehicle->length/2;
+				p.trafficSignalStopDistance = vehicle->getAllRestRoadSegmentsLength() - vehicle->getDistanceMovedInSegment() - vehicle->length/2;
 				break;
 
 			case Signal::Green:
@@ -1096,4 +1119,3 @@ void sim_mob::Driver::setTrafficSignalParams(UpdateParams& p) const
 		}
 	}
 }
-

@@ -240,11 +240,11 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 					return false;
 				}
 				foundDestPos = true;
-			}
-			else if (name=="time"){
+			} else if (name=="time") {
 				agent->startTime=valueI;
-			}
-			else {
+			} else if (name=="special") {
+				agent->specialStr = value;
+			} else {
 				return false;
 			}
 		}

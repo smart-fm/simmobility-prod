@@ -88,12 +88,93 @@ size_t getLaneIndex(const Lane* l)
 }
 
 
+//PathA: Small loop (south)
+const Point2D SpecialPathA[] = {
+	Point2D(37218351,14335255),   //AIMSUN 75780
+	Point2D(37227139,14327875),   //AIMSUN 91218
+	Point2D(37250760,14355120),   //AIMSUN 66508
+	Point2D(37241080,14362955),   //AIMSUN 61688
+};
+
+//PathB: Large loop
+const Point2D SpecialPathB[] = {
+	Point2D(37218351,14335255),
+};
+
+
+//Path is in multi-node positions
+vector<WayPoint> ConvertToWaypoints(const Node* origin, const vector<Point2D>& path)
+{
+	vector<WayPoint> res;
+
+	//Double-check our first node. Also ensure we have at least 3 nodes (or a loop can't be made).
+	if (path.size()<3 || origin->location->getX()!=path.front().getX() || origin->location->getY()!=path.front().getY()) {
+		throw std::runtime_error("Special path does not begin on origin.");
+	}
+
+	//Starting at the origin, find the outgoing Link to each node in the list. Then loop around back to the origin.
+	const MultiNode* curr = dynamic_cast<const MultiNode*>(origin);
+	for (vector<Point2D>::const_iterator it=path.begin(); it!=path.end(); it++) {
+		if (!curr) {
+			throw std::runtime_error("Not a multinode (in special path).");
+		}
+
+		//Search for the Link to the next point.
+		Point2D nextPt = it+1==path.end()?path.front():*(it+1);
+		std::pair<const Link*, bool> nextLink(nullptr,false); //bool == fwd?
+		const set<RoadSegment*>& segs = curr->getRoadSegments();
+		for (set<RoadSegment*>::const_iterator segIt=segs.begin(); segIt!=segs.end(); segIt++) {
+			const Link* ln = (*segIt)->getLink();
+			if (ln->getStart()->location->getX()==nextPt.getX() && ln->getStart()->location->getY()==nextPt.getY()) {
+				nextLink.first = ln;
+				nextLink.second = false;
+				break;
+			} else if (ln->getEnd()->location->getX()==nextPt.getX() && ln->getEnd()->location->getY()==nextPt.getY()) {
+				nextLink.first = ln;
+				nextLink.second = true;
+				break;
+			}
+		}
+		if (!nextLink.first) {
+			throw std::runtime_error("Couldn't find a Link between nodes in the Special path");
+		}
+
+		//Add each Segment in the Link's fwd/rev path to the result.
+		const vector<RoadSegment*>& segPath = nextLink.first->getPath(nextLink.second);
+		for (vector<RoadSegment*>::const_iterator pthIt=segPath.begin(); pthIt!=segPath.end(); pthIt++) {
+			res.push_back(WayPoint(*pthIt));
+		}
+
+		//Continue
+		curr = dynamic_cast<const MultiNode*>(nextLink.second ? nextLink.first->getEnd() : nextLink.first->getStart());
+	}
+
+	return res;
+}
+
+
+//For the NS3 paths
+vector<WayPoint> LoadSpecialPath(const Node* origin, char pathLetter)
+{
+	if (pathLetter=='A') {
+		size_t sz = sizeof(SpecialPathA) / sizeof(SpecialPathA[0]);
+		return ConvertToWaypoints(origin, vector<Point2D>(SpecialPathA, &SpecialPathA[sz]));
+	} else if (pathLetter=='B') {
+		size_t sz = sizeof(SpecialPathB) / sizeof(SpecialPathB[0]);
+		return ConvertToWaypoints(origin, vector<Point2D>(SpecialPathB, &SpecialPathB[sz]));
+	} else {
+		throw std::runtime_error("Invalid special path.");
+	}
+}
+
+
+
 } //End anon namespace
 
 
 
 //initiate
-sim_mob::Driver::Driver(Agent* parent) : Role(parent), currLane_(nullptr), currLaneOffset_(0),
+sim_mob::Driver::Driver(Person* parent) : Role(parent), currLane_(nullptr), currLaneOffset_(0),
 	currLaneLength_(0), isInIntersection(false), vehicle(nullptr), perceivedVelocity(reactTime, true),
 	perceivedVelocityOfFwdCar(reactTime, true), perceivedAccelerationOfFwdCar(reactTime, true),perceivedDistToFwdCar(reactTime, true)
 {
@@ -699,9 +780,35 @@ void sim_mob::Driver::initializePath()
 	goal.point = *goal.node->location;
 
 	//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
-	//TODO: Start in lane 0?
+	vector<WayPoint> path;
+	Person* parentP = dynamic_cast<Person*>(parent);
+	if (!parentP || parentP->specialStr.empty()) {
+		path = StreetDirectory::instance().shortestDrivingPath(*origin.node, *goal.node);
+	} else {
+		//In special cases, we may be manually specifying a loop, e.g., "loop:A:5" in the special string.
+		size_t cInd = parentP->specialStr.find(':');
+		if (cInd!=string::npos && cInd+1<parentP->specialStr.length()) {
+			//Repeat this path X times.
+			vector<WayPoint> part = LoadSpecialPath(parent->originNode, parentP->specialStr[cInd+1]);
+			cInd = parentP->specialStr.find(':', cInd+1);
+			if (cInd!=string::npos && cInd+1<parentP->specialStr.length()) {
+				int amount = -1;
+				std::istringstream(parentP->specialStr.substr(cInd+1, string::npos)) >> amount;
+				for (size_t i=0; static_cast<int>(i)<amount && amount>1; i++) {
+					part.insert(part.end(), path.begin(), path.end());
+				}
+			}
+
+			//Just in case one of these failed.
+			if (path.empty()) {
+				path = part;
+			}
+		}
+	}
+
 	//A non-null vehicle means we are moving.
-	vehicle = new Vehicle(StreetDirectory::instance().shortestDrivingPath(*origin.node, *goal.node), 0);
+	//TODO: Start in lane 0?
+	vehicle = new Vehicle(path, 0);
 }
 
 void sim_mob::Driver::setOrigin(UpdateParams& p)

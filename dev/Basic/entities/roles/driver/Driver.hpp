@@ -47,7 +47,7 @@ private:
 
 //Constructor and overridden methods.
 public:
-	Driver (Agent* parent);			//to initiate
+	Driver (Person* parent);			//to initiate
 	virtual ~Driver();
 
 	virtual void update(frame_t frameNumber);
@@ -149,7 +149,6 @@ private:
 
 	void initializePath();
 	void findCrossing(UpdateParams& p);
-
 
 	/***********FOR DRIVING BEHAVIOR MODEL**************/
 private:

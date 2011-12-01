@@ -31,6 +31,9 @@ protected:
 	//Migrates all subscribed types.
 	virtual void manageData(sim_mob::BufferedDataManager* mgr, Entity* ag, bool takeControl);
 
+	//For debugging
+	static const bool DebugOn;
+
 public:
 	//This is much more automatic than its SimpleWorkGroup counterpart.
 	void migrateByID(Entity* ag, int toID);

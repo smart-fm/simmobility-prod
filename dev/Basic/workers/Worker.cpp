@@ -145,8 +145,6 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 						ag = Agent::pending_agents.top();
 						Agent::pending_agents.pop();
 						Agent::all_agents.push_back(ag);
-
-						//std::cout <<"This worker (" <<this <<") took control of an Agent with start time " <<ag->startTime <<std::endl;
 					}
 				}
 

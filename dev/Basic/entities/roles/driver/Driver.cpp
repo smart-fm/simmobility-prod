@@ -755,7 +755,14 @@ double sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
 	}
 
 	//Move the vehicle forward.
-	double res = vehicle->moveFwd(fwdDistance);
+	double res = 0.0;
+	try {
+		res = vehicle->moveFwd(fwdDistance);
+	} catch (std::exception& ex) {
+		std::stringstream msg;
+		msg <<"Error moving vehicle forward for Agent ID: " <<parent->getId() <<"\n" <<ex.what();
+		throw std::runtime_error(msg.str().c_str());
+	}
 
 	//Retrieve what direction we're moving in, since it will "flip" if we cross the relative X axis.
 	LANE_CHANGE_SIDE relative = getCurrLaneSideRelativeToCenter();
@@ -1059,7 +1066,9 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p, LANE_CHANG
 					std::cout <<DebugStream.str();
 				}
 
-				throw std::runtime_error("Error: Car has moved onto sidewalk.");
+				std::stringstream msg;
+				msg <<"Error: Car has moved onto sidewalk. Agent ID: " <<parent->getId();
+				throw std::runtime_error(msg.str().c_str());
 			}
 
 			//Set to the far edge of the other lane, minus any extra amount.

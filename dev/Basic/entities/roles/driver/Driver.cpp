@@ -98,7 +98,7 @@ const Point2D SpecialPathA[] = {
 
 //PathB: Large loop
 const Point2D SpecialPathB[] = {
-	Point2D(37218351,14335255),
+	Point2D(37218351,14335255),   //AIMSUN 75780
 };
 
 
@@ -107,8 +107,8 @@ vector<WayPoint> ConvertToWaypoints(const Node* origin, const vector<Point2D>& p
 {
 	vector<WayPoint> res;
 
-	//Double-check our first node. Also ensure we have at least 3 nodes (or a loop can't be made).
-	if (path.size()<3 || origin->location->getX()!=path.front().getX() || origin->location->getY()!=path.front().getY()) {
+	//Double-check our first node. Also ensure we have at least 2 nodes (or a path can't be found).
+	if (path.size()<2 || origin->location->getX()!=path.front().getX() || origin->location->getY()!=path.front().getY()) {
 		throw std::runtime_error("Special path does not begin on origin.");
 	}
 

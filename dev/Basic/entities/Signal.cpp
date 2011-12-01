@@ -698,7 +698,7 @@ const
 {
     RoadSegment const * road = lane.getRoadSegment();
     Link const * link = road->getLink();
-    std::cout <<"Looking for link" <<std::endl;
+    std::cout <<"Looking for link: " <<link <<" in map of size: " <<links_map_.size() <<std::endl;
     std::map<Link const *, size_t>::const_iterator iter = links_map_.find(link);
     std::cout <<"Found it" <<std::endl;
     if (iter == links_map_.end())

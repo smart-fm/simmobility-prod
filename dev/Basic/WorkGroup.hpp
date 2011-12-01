@@ -33,7 +33,8 @@ protected:
 
 public:
 	//This is much more automatic than its SimpleWorkGroup counterpart.
-	void migrate(Entity* ag, int toID);
+	void migrateByID(Entity* ag, int toID);
+	void migrate(Entity* ag, sim_mob::Worker<Entity>* toWorker);
 
 };
 

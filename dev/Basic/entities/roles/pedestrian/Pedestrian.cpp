@@ -70,114 +70,115 @@ vector<BufferedBase*> sim_mob::Pedestrian::getSubscriptionParams()
 void sim_mob::Pedestrian::update(frame_t frameNumber)
 {
 
-	if(frameNumber>=parent->startTime){
+	if(frameNumber<parent->startTime){
+		throw std::runtime_error("Driver should not be started before its startTime; this should be automatic.");
+	}
 
-		//Set the initial position of agent
-		if(isFirstTimeUpdate()){
+	//Set the initial position of agent
+	if(isFirstTimeUpdate()){
 //			parent->xPos.set(parent->originNode->location->getX());
 //			parent->yPos.set(parent->originNode->location->getY());
 //			cStartX=372507.60;
 //			cStartY=143551.20;
 //			cEndX=((double)parent->destNode->location->getX())/100;
 //			cEndX=((double)parent->destNode->location->getY())/100;
-			setGoal(currentStage);
+		setGoal(currentStage);
 
-			//TEMP: for testing on self-created network only
+		//TEMP: for testing on self-created network only
 //			cStartX=500;
 //			cStartY=300;
 //			cEndX=500;
 //			cEndY=600;
 
-		}
-		else{
-		//update signal information
+	}
+	else{
+	//update signal information
 //		updatePedestrianSignal();
 
-	    //checkForCollisions();
+	//checkForCollisions();
 
-		//Check if the agent has reached the destination
-		if(isDestReached()){
+	//Check if the agent has reached the destination
+	if(isDestReached()){
 
-			if(!parent->isToBeRemoved()){
-				//Output (temp)
-				LogOut("Pedestrian " <<parent->getId() <<" has reached the destination" <<std::endl);
-				parent->setToBeRemoved(true);
-			}
-			return;
+		if(!parent->isToBeRemoved()){
+			//Output (temp)
+			LogOut("Pedestrian " <<parent->getId() <<" has reached the destination" <<std::endl);
+			parent->setToBeRemoved(true);
 		}
+		return;
+	}
 
-		if(isGoalReached()){
-			currentStage++;
-			setGoal(currentStage); //Set next goal
+	if(isGoalReached()){
+		currentStage++;
+		setGoal(currentStage); //Set next goal
 //			{
 //				boost::mutex::scoped_lock local_lock(Logger::global_mutex);
 //				LogOutNotSync("Pedestrian " <<parent->getId() <<" has reached goal " <<currentStage<<std::endl);
 //				LogOutNotSync("("<<"Pedestrian,"<<frameNumber<<","<<parent->getId()<<","<<"{xPos:"<<parent->xPos.get()<<"," <<"yPos:"<<this->parent->yPos.get()<<","<<"pedSig:"<<currPhase<<",})"<<std::endl);
 //			}
-		}
-		else{
+	}
+	else{
 
-			if(currentStage==0||currentStage==2){
-				updateVelocity(0);
-				updatePosition();
-				LogOut("Pedestrian " <<parent->getId() <<" is walking on sidewalk" <<std::endl);
+		if(currentStage==0||currentStage==2){
+			updateVelocity(0);
+			updatePosition();
+			LogOut("Pedestrian " <<parent->getId() <<" is walking on sidewalk" <<std::endl);
 //				//Output (temp)
 //				LogOut("("<<"Pedestrian,"<<frameNumber<<","<<parent->getId()<<","<<"{xPos:"<<parent->xPos.get()<<"," <<"yPos:"<<this->parent->yPos.get()<<","<<"pedSig:"<<currPhase<<",})"<<std::endl);
 //				LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
-				LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
-			}
-			else if(currentStage==1){
-
-				//Check whether to start to cross or not
-				updatePedestrianSignal();
-				if(!startToCross){
-					if(sigColor == Signal::Green)  //Green phase
-						startToCross = true;
-					else if(sigColor == Signal::Red){ //Red phase
-						if(checkGapAcceptance()==true)
-							startToCross=true;
-					}
-				}
-
-				if(startToCross){
-					if(sigColor==Signal::Green) //Green phase
-						updateVelocity(1);
-					else if (sigColor ==Signal::Red) //Red phase
-						updateVelocity(2);
-					updatePosition();
-				}
-				else{
-					//Output (temp)
-                    LogOut("Pedestrian " <<parent->getId() <<" is waiting at the crossing" <<std::endl);
-				}
-				//Output (temp)
-                    LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
-			}
-
+			LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
 		}
+		else if(currentStage==1){
 
+			//Check whether to start to cross or not
+			updatePedestrianSignal();
+			if(!startToCross){
+				if(sigColor == Signal::Green)  //Green phase
+					startToCross = true;
+				else if(sigColor == Signal::Red){ //Red phase
+					if(checkGapAcceptance()==true)
+						startToCross=true;
+				}
+			}
 
-	//	//Continue checking if the goal has not been reached.
-	//	if(reachStartOfCrossing()) {
-	//		if(currPhase == 3){ //Green phase
-	//			updateVelocity(1);
-	//			updatePosition();
-	//		} else if (currPhase == 1) { //Red phase
-	//			//Waiting, do nothing now
-	//			//Output (temp)
-	//			checkGapAcceptance();
-        //			LogOut("(Agent " <<parent->getId() <<" is waiting at crossing at frame "<<frameNumber<<")" <<std::endl);
-	//		}
-	//	} else {
-	//		if(currPhase==1&&onCrossing())
-	//			updateVelocity(2);
-	//		else
-	//			updateVelocity(1);
-	//		updatePosition();
-	//	}
+			if(startToCross){
+				if(sigColor==Signal::Green) //Green phase
+					updateVelocity(1);
+				else if (sigColor ==Signal::Red) //Red phase
+					updateVelocity(2);
+				updatePosition();
+			}
+			else{
+				//Output (temp)
+				LogOut("Pedestrian " <<parent->getId() <<" is waiting at the crossing" <<std::endl);
+			}
+			//Output (temp)
+				LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
 		}
 
 	}
+
+
+//	//Continue checking if the goal has not been reached.
+//	if(reachStartOfCrossing()) {
+//		if(currPhase == 3){ //Green phase
+//			updateVelocity(1);
+//			updatePosition();
+//		} else if (currPhase == 1) { //Red phase
+//			//Waiting, do nothing now
+//			//Output (temp)
+//			checkGapAcceptance();
+	//			LogOut("(Agent " <<parent->getId() <<" is waiting at crossing at frame "<<frameNumber<<")" <<std::endl);
+//		}
+//	} else {
+//		if(currPhase==1&&onCrossing())
+//			updateVelocity(2);
+//		else
+//			updateVelocity(1);
+//		updatePosition();
+//	}
+	}
+
 }
 
 /*---------------------Perception-related functions----------------------*/

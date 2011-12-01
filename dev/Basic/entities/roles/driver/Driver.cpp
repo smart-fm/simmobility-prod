@@ -331,8 +331,9 @@ void sim_mob::Driver::update_post_movement(UpdateParams& params, frame_t frameNu
 void sim_mob::Driver::update(frame_t frameNumber)
 {
 	//Do nothing?
-	if(frameNumber<parent->startTime)
-		return;
+	if(frameNumber<parent->startTime) {
+		throw std::runtime_error("Driver should not be started before its startTime; this should be automatic.");
+	}
 
 	//Create a new set of local parameters for this frame update.
 	UpdateParams params(*this);

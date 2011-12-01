@@ -35,6 +35,10 @@
 namespace sim_mob
 {
 
+template <class EntityType>
+class SimpleWorkGroup;
+
+
 
 template <class EntityType>
 class Worker : public BufferedDataManager {
@@ -46,7 +50,7 @@ public:
 	//! argument will a reference to the constructed Worker object and the 2nd argument
 	//! will be a strictly monotonic increasing number which represent the time-step.
 	typedef boost::function<void(Worker<EntityType>& worker, frame_t frameNumber)> ActionFunction;
-	Worker(ActionFunction* action =nullptr, boost::barrier* internal_barr =nullptr, boost::barrier* external_barr =nullptr, frame_t endTick=0, frame_t tickStep=0, bool auraManagerActive=false);
+	Worker(SimpleWorkGroup<EntityType>* parent, ActionFunction* action =nullptr, boost::barrier* internal_barr =nullptr, boost::barrier* external_barr =nullptr, frame_t endTick=0, frame_t tickStep=0, bool auraManagerActive=false);
 	virtual ~Worker();
 
 	//Thread-style operations
@@ -82,6 +86,9 @@ protected:
         frame_t tickStep;
 
 	bool auraManagerActive;
+
+	//Saved
+	SimpleWorkGroup<EntityType>* const parent;
 
 
 public:

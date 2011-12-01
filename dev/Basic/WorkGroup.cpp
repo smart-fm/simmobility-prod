@@ -25,14 +25,21 @@ void sim_mob::WorkGroup::manageData(sim_mob::BufferedDataManager* mgr, Entity* a
  * Set "toID" to -1 to skip that step. Automatically removes the Agent from its given Worker if that Worker
  *  has been set.
  */
-void sim_mob::WorkGroup::migrate(Entity* ag, int toID)
+void sim_mob::WorkGroup::migrateByID(Entity* ag, int toID)
+{
+	//Dispatch
+	migrate(ag, (toID>=0) ? workers.at(toID) : nullptr);
+}
+
+
+void sim_mob::WorkGroup::migrate(Entity* ag, Worker<Entity>* toWorker)
 {
 	if (!ag)
 		return;
 
 	//Call the parent migrate function.
 	sim_mob::Worker<Entity>* from = ag->currWorker;
-	sim_mob::Worker<Entity>* to = (toID>=0) ? workers.at(toID) : nullptr;
+	sim_mob::Worker<Entity>* to = toWorker;
 	sim_mob::SimpleWorkGroup<Entity>::migrate(ag, from, to);
 
 	//Update our Entity's pointer.

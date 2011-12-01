@@ -74,9 +74,9 @@ void signal_status_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNum
 }
 
 ///Worker function for loading agents.
-void load_agents(sim_mob::Worker<sim_mob::Agent>& wk, frame_t frameNumber)
+void load_agents(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
 {
-	for (std::vector<sim_mob::Agent*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
+	for (std::vector<sim_mob::Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
 		trivial((*it)->getId());
 	}
 }
@@ -173,7 +173,7 @@ bool performMain(const std::string& configFileName)
   Worker<sim_mob::Entity>::ActionFunction spWork = boost::bind(signal_status_worker, _1, _2);
   signalStatusWorkers.initWorkers(&spWork);
   for (size_t i=0; i<Signal::all_signals_.size(); i++) {
-	  signalStatusWorkers.migrate(const_cast<Signal*>(Signal::all_signals_[i]), i%WG_SIGNALS_SIZE);
+	  signalStatusWorkers.migrateByID(const_cast<Signal*>(Signal::all_signals_[i]), i%WG_SIGNALS_SIZE);
   }
 
   //Start work groups
@@ -191,6 +191,7 @@ bool performMain(const std::string& configFileName)
   //       a barrier sync.
   /////////////////////////////////////////////////////////////////
   size_t numStartAgents = Agent::all_agents.size();
+  size_t numPendingAgents = Agent::pending_agents.size();
   for (unsigned int currTick=0; currTick<config.totalRuntimeTicks; currTick++) {
 	  //Flag
 	  bool warmupDone = (currTick >= config.totalWarmupTicks);
@@ -234,7 +235,7 @@ bool performMain(const std::string& configFileName)
 	  //saveStatisticsToDB(agents);
   }
 
-  cout <<"Starting Agents: " <<numStartAgents <<endl;
+  cout <<"Starting Agents: " <<numStartAgents <<",     Pending: " <<numPendingAgents <<endl;
   if (Agent::all_agents.empty()) {
 	  cout <<"All Agents have left the simulation.\n";
   } else {
@@ -301,10 +302,10 @@ int main(int argc, char* argv[])
 void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents)
 {
 	  //Our work groups. Will be disposed after this time tick.
-	  SimpleWorkGroup<sim_mob::Agent> createAgentWorkers(WG_CREATE_AGENT_SIZE, 1);
+	  SimpleWorkGroup<sim_mob::Entity> createAgentWorkers(WG_CREATE_AGENT_SIZE, 1);
 
 	  //Create agents
-	  Worker<sim_mob::Agent>::ActionFunction func2 = boost::bind(load_agents, _1, _2);
+	  Worker<sim_mob::Entity>::ActionFunction func2 = boost::bind(load_agents, _1, _2);
 	  createAgentWorkers.initWorkers(&func2);
 	  for (size_t i=0; i<agents.size(); i++) {
 		  createAgentWorkers.migrate(agents[i], createAgentWorkers.getWorker(-1), createAgentWorkers.getWorker(i%WG_CREATE_AGENT_SIZE));

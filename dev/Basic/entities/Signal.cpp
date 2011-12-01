@@ -720,7 +720,9 @@ const
 {
     RoadSegment const * fromRoad = fromLane.getRoadSegment();
     Link const * fromLink = fromRoad->getLink();
+    std::cout <<"Looking for link: " <<link <<" in map of size: " <<links_map_.size() <<std::endl;
     std::map<Link const *, size_t>::const_iterator iter = links_map_.find(fromLink);
+    std::cout <<"Found it.\n";
     if (iter == links_map_.end())
     {
         throw mismatchError("Signal::getDriverLight(fromLane, toLane)", *this, *fromRoad);
@@ -729,7 +731,9 @@ const
 
     RoadSegment const * toRoad = toLane.getRoadSegment();
     Link const * toLink = toRoad->getLink();
+    std::cout <<"Looking for link: " <<link <<" in map of size: " <<links_map_.size() <<std::endl;
     iter = links_map_.find(toLink);
+    std::cout <<"Found it.\n";
     if (iter == links_map_.end())
     {
         throw mismatchError("Signal::getDriverLight(fromLane, toLane)", *this, *toRoad);

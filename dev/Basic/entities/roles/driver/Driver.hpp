@@ -94,9 +94,9 @@ private:
 
 	//More update methods
 	void update_first_frame(UpdateParams& params, frame_t frameNumber);    ///<Called the first time a frame after start_time is reached.
-	void update_sensors(UpdateParams& params, frame_t frameNumber);        ///<Called to update things we _sense_, like nearby vehicles.
-	void update_movement(UpdateParams& params, frame_t frameNumber);       ///<Called to move vehicles forward.
-	void update_post_movement(UpdateParams& params, frame_t frameNumber);  ///<Called to deal with the consequences of moving forwards.
+	bool update_sensors(UpdateParams& params, frame_t frameNumber);        ///<Called to update things we _sense_, like nearby vehicles.
+	bool update_movement(UpdateParams& params, frame_t frameNumber);       ///<Called to move vehicles forward.
+	bool update_post_movement(UpdateParams& params, frame_t frameNumber);  ///<Called to deal with the consequences of moving forwards.
 
 	const Link* desLink;
     double currLinkOffset;

@@ -303,11 +303,11 @@ void sim_mob::Driver::update_first_frame(UpdateParams& params, frame_t frameNumb
 
 
 
-void sim_mob::Driver::update_sensors(UpdateParams& params, frame_t frameNumber)
+bool sim_mob::Driver::update_sensors(UpdateParams& params, frame_t frameNumber)
 {
 	//Are we done?
 	if (vehicle->isDone()) {
-		return;
+		return false;
 	}
 
 	//Save the nearest agents in your lane and the surrounding lanes, stored by their
@@ -321,11 +321,13 @@ void sim_mob::Driver::update_sensors(UpdateParams& params, frame_t frameNumber)
 	if(!vehicle->getNextSegment()&&!vehicle->isInIntersection()) {
 		setTrafficSignalParams(params);
 	}
+
+	return true;
 }
 
 
 
-void sim_mob::Driver::update_movement(UpdateParams& params, frame_t frameNumber)
+bool sim_mob::Driver::update_movement(UpdateParams& params, frame_t frameNumber)
 {
 	//If reach the goal, get back to the origin
 	if(vehicle->isDone()){
@@ -337,7 +339,7 @@ void sim_mob::Driver::update_movement(UpdateParams& params, frame_t frameNumber)
 			DebugStream.str("");
 		}
 
-		return;
+		return false;
 	}
 
 	//Save some values which might not be available later.
@@ -367,14 +369,16 @@ void sim_mob::Driver::update_movement(UpdateParams& params, frame_t frameNumber)
 	if (!vehicle->isDone()) {
 		params.justChangedToNewSegment = (vehicle->getCurrSegment()!=prevSegment);
 	}
+
+	return true;
 }
 
 
-void sim_mob::Driver::update_post_movement(UpdateParams& params, frame_t frameNumber)
+bool sim_mob::Driver::update_post_movement(UpdateParams& params, frame_t frameNumber)
 {
 	//Are we done?
 	if (vehicle->isDone()) {
-		return;
+		return false;
 	}
 
 	//Has the segment changed?
@@ -392,6 +396,8 @@ void sim_mob::Driver::update_post_movement(UpdateParams& params, frame_t frameNu
 		calculateIntersectionTrajectory(params.TEMP_lastKnownPolypoint, params.overflowIntoIntersection);
 		intersectionVelocityUpdate();
 	}
+
+	return true;
 }
 
 
@@ -464,10 +470,13 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	//General update behavior.
 	//Note: For now, most updates cannot take place unless there is a Lane and vehicle.
 	if (params.currLane && vehicle) {
-		update_sensors(params, frameNumber);
-		update_movement(params, frameNumber);
-		update_post_movement(params, frameNumber);
-		setParentBufferedData();  //Update parent data
+		if (   update_sensors(params, frameNumber)
+			&& update_movement(params, frameNumber)
+			&& update_post_movement(params, frameNumber)) {
+
+			//Update parent data. Only works if we're not "done" for a bad reason.
+			setParentBufferedData();
+		}
 	}
 
 	//Update our Buffered types

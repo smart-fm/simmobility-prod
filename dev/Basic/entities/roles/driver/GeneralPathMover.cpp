@@ -153,7 +153,9 @@ bool sim_mob::GeneralPathMover::isDoneWithEntireRoute() const
 	bool res = currSegmentIt==fullPath.end();
 
 	if (DebugOn && res) {
+		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 		if (!DebugStream.str().empty()) {
+			//TEMP: Re-enable later.
 			DebugStream <<"Path is DONE." <<endl;
 			std::cout <<DebugStream.str();
 			DebugStream.str("");
@@ -175,10 +177,22 @@ const Lane* sim_mob::GeneralPathMover::leaveIntersection()
 	return actualMoveToNextSegmentAndUpdateDir();
 }
 
-/*bool sim_mob::GeneralPathMover::isMovingForwardsOnCurrSegment() const
+void sim_mob::GeneralPathMover::throwIf(bool conditional, const std::string& msg) const
 {
-	return isMovingForwards;
-}*/
+	if (conditional) {
+		//Debug
+		if (DebugOn) {
+			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+			if (!DebugStream.str().empty()) {
+				DebugStream <<"EXCEPTION: " <<msg <<endl;
+				std::cout <<DebugStream.str();
+				DebugStream.str("");
+			}
+		}
+
+		throw std::runtime_error(msg.c_str());
+	}
+}
 
 
 //This is where it gets a little complex.

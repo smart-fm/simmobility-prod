@@ -14,7 +14,7 @@ using boost::function;
 using namespace sim_mob;
 
 
-const bool sim_mob::WorkGroup::DebugOn = true;
+const bool sim_mob::WorkGroup::DebugOn = false;
 
 
 void sim_mob::WorkGroup::manageData(sim_mob::BufferedDataManager* mgr, Entity* ag, bool takeControl)

@@ -153,12 +153,7 @@ private:
 	static std::string Fmt_M(centimeter_t dist); //Helper to format cm as m for debug output.
 
 	//General throw function. There is probably a better way to do this.
-	void throwIf(bool conditional, const std::string& msg) const {
-		if (conditional) {
-			throw std::runtime_error(msg.c_str());
-		}
-	}
-
+	void throwIf(bool conditional, const std::string& msg) const;
 
 
 

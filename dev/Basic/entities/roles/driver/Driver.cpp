@@ -758,6 +758,12 @@ double sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
 	try {
 		res = vehicle->moveFwd(fwdDistance);
 	} catch (std::exception& ex) {
+		if (DebugOn) {
+			DebugStream <<">>>Exception: " <<ex.what() <<endl;
+			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+			std::cout <<DebugStream.str();
+		}
+
 		std::stringstream msg;
 		msg <<"Error moving vehicle forward for Agent ID: " <<parent->getId() <<"\n" <<ex.what();
 		throw std::runtime_error(msg.str().c_str());

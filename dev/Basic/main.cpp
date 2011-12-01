@@ -31,6 +31,9 @@
 #include "entities/AuraManager.hpp"
 #include "entities/Bus.hpp"
 #include "entities/Person.hpp"
+#include "entities/roles/Role.hpp"
+#include "entities/roles/driver/Driver.hpp"
+#include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "geospatial/BusStop.hpp"
 #include "geospatial/Route.hpp"
@@ -249,12 +252,22 @@ bool performMain(const std::string& configFileName)
 	  cout <<"All Agents have left the simulation.\n";
   } else {
 	  size_t numPerson = 0;
+	  size_t numDriver = 0;
+	  size_t numPedestrian = 0;
 	  for (vector<Agent*>::iterator it=Agent::all_agents.begin(); it!=Agent::all_agents.end(); it++) {
-		  if (dynamic_cast<Person*>(*it)) {
+		  Person* p = dynamic_cast<Person*>(*it);
+		  if (p) {
 			  numPerson++;
+			  if (p->getRole() && dynamic_cast<Driver*>(p->getRole())) {
+				  numDriver++;
+			  }
+			  if (p->getRole() && dynamic_cast<Pedestrian*>(p->getRole())) {
+				  numPedestrian++;
+			  }
 		  }
 	  }
 	  cout <<"Remaining Agents: " <<numPerson <<" (Person)   " <<(Agent::all_agents.size()-numPerson) <<" (Other)" <<endl;
+	  cout <<"   Person Agents: " <<numDriver <<" (Driver)   " <<numPedestrian <<" (Pedestrian)   " <<(numPerson-numDriver-numPedestrian) <<" (Other)" <<endl;
   }
 
   if (!Agent::pending_agents.empty()) {

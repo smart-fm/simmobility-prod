@@ -22,6 +22,10 @@
 #include <boost/thread.hpp>
 #include <boost/function.hpp>
 
+//#include "WorkGroup.hpp"
+//#include "entities/Agent.hpp"
+#include "entities/Entity.hpp"
+
 #include "metrics/Frame.hpp"
 #include "util/LangHelpers.hpp"
 #include "buffering/Buffered.hpp"
@@ -54,6 +58,7 @@ public:
 	void addEntity(EntityType* entity);
 	void remEntity(EntityType* entity);
 	std::vector<EntityType*>& getEntities();
+	void scheduleForRemoval(EntityType* entity);
 
 
 protected:
@@ -88,136 +93,12 @@ private:
 
 	//Object management
 	std::vector<EntityType*> data;
+
+	//Entities to remove after this time tick.
+	std::vector<EntityType*> toBeRemoved;
 };
 
 }
 
 
-//////////////////////////////////////////////
-// Template implementation
-//////////////////////////////////////////////
-
-
-
-template <class EntityType>
-void sim_mob::Worker<EntityType>::addEntity(EntityType* entity)
-{
-	//Save this entity in the data vector.
-	data.push_back(entity);
-}
-
-template <class EntityType>
-void sim_mob::Worker<EntityType>::remEntity(EntityType* entity)
-{
-	//Remove this entity from the data vector.
-	typename std::vector<EntityType*>::iterator it = std::find(data.begin(), data.end(), entity);
-	if (it!=data.end()) {
-		data.erase(it);
-	}
-}
-
-template <class EntityType>
-std::vector<EntityType*>& sim_mob::Worker<EntityType>::getEntities() {
-	return data;
-}
-
-
-
-//////////////////////////////////////////////
-// These also need the temoplate parameter,
-// but don't actually do anythign with it.
-//////////////////////////////////////////////
-
-
-template <class EntityType>
-sim_mob::Worker<EntityType>::Worker(ActionFunction* action, boost::barrier* internal_barr, boost::barrier* external_barr, frame_t endTick, frame_t tickStep, bool auraManagerActive)
-    : BufferedDataManager(),
-      internal_barr(internal_barr), external_barr(external_barr), action(action),
-      endTick(endTick),
-      tickStep(tickStep),
-      auraManagerActive(auraManagerActive),
-      active(/*this, */false)  //Passing the "this" pointer is probably ok, since we only use the base class (which is constructed)
-{
-	this->beginManaging(&active);
-}
-
-template <class EntityType>
-sim_mob::Worker<EntityType>::~Worker()
-{
-	//Clear all tracked entitites
-	while (!data.empty()) {
-		remEntity(data[0]);
-	}
-
-	//Clear all tracked data
-	while (!managedData.empty()) {
-		stopManaging(managedData[0]);
-	}
-}
-
-template <class EntityType>
-void sim_mob::Worker<EntityType>::start()
-{
-	active.force(true);
-	currTick = 0;
-	main_thread = boost::thread(boost::bind(&Worker::barrier_mgmt, this));
-}
-
-template <class EntityType>
-void sim_mob::Worker<EntityType>::join()
-{
-	main_thread.join();
-}
-
-template <class EntityType>
-void sim_mob::Worker<EntityType>::interrupt()
-{
-	if (main_thread.joinable()) {
-		main_thread.interrupt();
-	}
-}
-
-
-template <class EntityType>
-void sim_mob::Worker<EntityType>::barrier_mgmt()
-{
-	for (;active.get();) {
-		perform_main(currTick);
-
-		if (internal_barr)
-			internal_barr->wait();
-
-		//Advance local time-step
-                currTick += tickStep;
-		if (endTick>0 && currTick>=endTick) {
-			this->active.set(false);
-		}
-
-		perform_flip();
-
-		if (external_barr)
-			external_barr->wait();
-
-        // Wait for the AuraManager
-		if (auraManagerActive) {
-			if (external_barr)
-				external_barr->wait();
-		}
-	}
-}
-
-
-template <class EntityType>
-void sim_mob::Worker<EntityType>::perform_main(frame_t frameNumber)
-{
-	if (action)
-		(*action)(*this, frameNumber);
-}
-
-template <class EntityType>
-void sim_mob::Worker<EntityType>::perform_flip()
-{
-	//Flip all data managed by this worker.
-	this->flip();
-}
 

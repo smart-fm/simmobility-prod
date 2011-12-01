@@ -513,7 +513,7 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const Node* co
 			double distToShift = totalWidth/2.0;
 			originPt.flipMirror();
 			originPt.scaleVectTo(distToShift);
-			originPt.translateVect();
+		-	originPt.translateVect();
 			originPt.flipMirror();
 		}
 #endif*/

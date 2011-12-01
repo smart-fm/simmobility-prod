@@ -67,6 +67,9 @@ public:
 	///Agents can access all other agents (although they usually do not access by ID)
 	static std::vector<Agent*> all_agents;
 
+	///When adding/deleting Agents asynchronously, a lock is required.
+	static boost::mutex all_agents_lock;
+
 	///Temporary variable; holds a pointer to the current Agent work group. Will be moved
 	///  into the Dispatch Manager as soon as it's created.
 	static sim_mob::WorkGroup* TMP_AgentWorkGroup;
@@ -76,6 +79,7 @@ public:
 	///\note
 	///Passing in a negative number will always auto-assign an ID, and is recommended.
 	static unsigned int GetAndIncrementID(int preferredID);
+
 
 private:
 	//unsigned int currMode;

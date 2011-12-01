@@ -2,17 +2,22 @@
 
 #pragma once
 
+#include <iostream>
 #include <string>
 #include <stdexcept>
 #include <sstream>
 
+#include "util/LangHelpers.hpp"
 #include "metrics/Frame.hpp"
 #include "buffering/BufferedDataManager.hpp"
-#include "workers/Worker.hpp"
+//#include "workers/Worker.hpp"
 
 
 namespace sim_mob
 {
+
+template <class EntityType>
+class Worker;
 
 class WorkGroup;
 

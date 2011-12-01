@@ -9,6 +9,7 @@ using namespace sim_mob;
 using std::vector;
 
 
+boost::mutex sim_mob::Agent::all_agents_lock;
 vector<Agent*> sim_mob::Agent::all_agents;
 WorkGroup* sim_mob::Agent::TMP_AgentWorkGroup(nullptr);
 

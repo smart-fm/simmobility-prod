@@ -49,7 +49,7 @@ public:
 
 	//Removal methods
 	bool isToBeRemoved();
-	void setToBeRemoved(bool value);
+	void setToBeRemoved();
 
 public:
 	//The agent's start/end nodes.

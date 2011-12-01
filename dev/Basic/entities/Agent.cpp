@@ -72,13 +72,8 @@ bool sim_mob::Agent::isToBeRemoved()
 }
 
 
-void sim_mob::Agent::setToBeRemoved(bool value)
+void sim_mob::Agent::setToBeRemoved()
 {
-	//Do nothing?
-	/*if (value==toRemoved) {
-		return;
-	}*/
-
-	toRemoved = value;
+	toRemoved = true;
 }
 

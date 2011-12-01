@@ -90,7 +90,7 @@ void sim_mob::Pedestrian::update(frame_t frameNumber) {
 		if (!parent->isToBeRemoved()) {
 			//Output (temp)
 			LogOut("Pedestrian " <<parent->getId() <<" has reached the destination" <<std::endl);
-			parent->setToBeRemoved(true);
+			parent->setToBeRemoved();
 		}
 		return;
 	}

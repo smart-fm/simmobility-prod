@@ -331,14 +331,6 @@ void sim_mob::Driver::update(frame_t frameNumber)
 		throw std::runtime_error(msg.str().c_str());
 	}
 
-	//Are we done already?
-	if (vehicle->isDone()) {
-		if (parent->isToBeRemoved()) {
-			throw std::runtime_error("Driver is already done, but hasn't been removed.");
-		}
-		parent->setToBeRemoved(true);
-	}
-
 	//Create a new set of local parameters for this frame update.
 	UpdateParams params(*this);
 
@@ -348,7 +340,16 @@ void sim_mob::Driver::update(frame_t frameNumber)
 		firstFrameTick = false;
 	}
 
-	updateAdjacentLanes(params); //Just a bit glitchy...
+	//Are we done already?
+	if (vehicle->isDone()) {
+		if (parent->isToBeRemoved()) {
+			throw std::runtime_error("Driver is already done, but hasn't been removed.");
+		}
+		parent->setToBeRemoved();
+	}
+
+	//Just a bit glitchy...
+	updateAdjacentLanes(params);
 
 	//Update your perceptions, and retrieved their current "sensed" values.
 	perceivedVelocity.delay(new DPoint(vehicle->getVelocity(), vehicle->getLatVelocity()), currTimeMS);

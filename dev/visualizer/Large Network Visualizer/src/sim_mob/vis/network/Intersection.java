@@ -8,10 +8,9 @@ public class Intersection {
 	private int intersectNodeID;
 	private ArrayList <Integer> signalLinkIDs; 
 	private ArrayList <Integer> signalCrossingIDs;
-	private ArrayList <Crossing> signalCrossings;
+	private ArrayList <TrafficSignalCrossing> signalCrossings;
 
 	
-
 	private ArrayList<ArrayList<TrafficSignalLine>> vaSignalLine  = new ArrayList<ArrayList<TrafficSignalLine>>();
 	private ArrayList<ArrayList<TrafficSignalLine>> vbSignalLine  = new ArrayList<ArrayList<TrafficSignalLine>>();
 	private ArrayList<ArrayList<TrafficSignalLine>> vcSignalLine  = new ArrayList<ArrayList<TrafficSignalLine>>();
@@ -22,7 +21,7 @@ public class Intersection {
 	public int getIntersectNodeID (){return intersectNodeID;}
 	public ArrayList <Integer> getSigalLinkIDs(){return signalLinkIDs;}
 	public ArrayList <Integer> getSigalCrossingIDs(){return signalCrossingIDs;}
-	public ArrayList <Crossing> getSignalCrossings(){return signalCrossings;}
+	public ArrayList <TrafficSignalCrossing> getSignalCrossings(){return signalCrossings;}
 	
 	public ArrayList<ArrayList<TrafficSignalLine>> getVaTrafficSignal(){return vaSignalLine;}
 	public ArrayList<ArrayList<TrafficSignalLine>> getVbTrafficSignal(){return vbSignalLine;}
@@ -51,7 +50,7 @@ public class Intersection {
 		this.vdSignalLine = vdSignalLine;
 	}
 			
-	public void setSignalCrossing (ArrayList <Crossing> signalCrossings){
+	public void setSignalCrossing (ArrayList <TrafficSignalCrossing> signalCrossings){
 		this.signalCrossings = signalCrossings;
 	}
 	

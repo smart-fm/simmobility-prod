@@ -75,6 +75,11 @@ sim_mob::Worker<EntityType>::Worker(SimpleWorkGroup<EntityType>* parent, ActionF
       active(/*this, */false)  //Passing the "this" pointer is probably ok, since we only use the base class (which is constructed)
 {
 	this->beginManaging(&active);
+
+	//Test
+	if (!internal_barr || !external_barr) {
+		throw std::runtime_error("Worker won't function correctly with a non-null barrier.");
+	}
 }
 
 template <class EntityType>
@@ -126,13 +131,6 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 				throw std::runtime_error("Simple workers cannot add Entities at arbitrary times.");
 			}
 
-			//Add it to our global list. Requires locking.
-			Agent* ag = dynamic_cast<Agent*>(*it);
-			if (ag) {
-				boost::mutex::scoped_lock local_lock(sim_mob::Agent::all_agents_lock);
-				Agent::all_agents.push_back(ag);
-			}
-
 			//Migrate its Buffered properties.
 			wg->migrate(*it, this);
 		}
@@ -171,8 +169,9 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 		currTick += tickStep;
 		this->active.set(endTick==0 || currTick<endTick);
 
-		if (internal_barr)
+		if (internal_barr) {
 			internal_barr->wait();
+		}
 
 		//Now flip all remaining data.
 		perform_flip();

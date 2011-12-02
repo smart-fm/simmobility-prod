@@ -163,14 +163,14 @@ bool performMain(const std::string& configFileName)
   Worker<sim_mob::Entity>::ActionFunction entityWork = boost::bind(entity_worker, _1, _2);
   agentWorkers.initWorkers(&entityWork);
 
-  //Migrate all Agents from the all_agents array to the pending_agents priority queue. For now, this
-  //  means Agents can't start on time tick 1, but that will be simple to fix later.
+  //Migrate all Agents from the all_agents array to the pending_agents priority queue unless they are
+  // actually starting at time tick zero.
   vector<Agent*> starting_agents;
-  for (size_t i=0; i<agents.size(); i++) {
-	  Agent* const ag = agents[i];
+  for (vector<Agent*>::iterator it=agents.begin(); it!=agents.end(); it++) {
+	  Agent* const ag = *it;
 	  if (ag->startTime==0) {
 		  //Only agents with a start time of zero should start immediately in the all_agents list.
-		  agentWorkers.migrateByID(agents[i], i%WG_AGENTS_SIZE);
+		  agentWorkers.assignAWorker(ag);
 		  starting_agents.push_back(ag);
 	  } else {
 		  //Start later.
@@ -178,7 +178,7 @@ bool performMain(const std::string& configFileName)
 	  }
   }
   agents.clear();
-  agents.insert(agents.begin(), starting_agents.begin(), starting_agents.end());
+  agents.insert(agents.end(), starting_agents.begin(), starting_agents.end());
 
   cout <<"Initial Agents dispatched or pushed to pending." <<endl;
 
@@ -191,13 +191,14 @@ bool performMain(const std::string& configFileName)
 	  signalStatusWorkers.migrateByID(const_cast<Signal*>(Signal::all_signals_[i]), i%WG_SIGNALS_SIZE);
   }
 
-  //Start work groups
+  //Initialize the aura manager
+  AuraManager& auraMgr = AuraManager::instance();
+  auraMgr.init();
+
+  //Start work groups and all threads.
   agentWorkers.startAll();
   signalStatusWorkers.startAll();
   //shortestPathWorkers.startAll();
-
-  AuraManager& auraMgr = AuraManager::instance();
-  auraMgr.init();
 
   /////////////////////////////////////////////////////////////////
   // NOTE: WorkGroups are able to handle skipping steps by themselves.

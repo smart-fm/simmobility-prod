@@ -49,6 +49,7 @@ public:
 	Worker<EntityType>* getWorker(int id);
 
 	void stageAgents();
+	void assignAWorker(EntityType* ag);
 
 
 protected:
@@ -165,11 +166,23 @@ void sim_mob::SimpleWorkGroup<EntityType>::stageAgents()
 			std::cout <<"Staging agent ID: " <<Agent::pending_agents.top()->getId() <<" in time for tick: " <<nextTimeTickToStage <<"\n";
 		}
 
+		//Add it to our global list. Requires locking.
+		{
+			boost::mutex::scoped_lock local_lock(sim_mob::Agent::all_agents_lock);
+			Agent::all_agents.push_back(Agent::pending_agents.top());
+		}
+
 		//Find a worker to assign this to and send it the Entity to manage.
-		workers.at(nextWorkerID++)->scheduleForAddition(Agent::pending_agents.top());
-		nextWorkerID %= workers.size();
+		assignAWorker(Agent::pending_agents.top());
 		Agent::pending_agents.pop();
 	}
+}
+
+template <class EntityType>
+void sim_mob::SimpleWorkGroup<EntityType>::assignAWorker(EntityType* ag)
+{
+	workers.at(nextWorkerID++)->scheduleForAddition(ag);
+	nextWorkerID %= workers.size();
 }
 
 

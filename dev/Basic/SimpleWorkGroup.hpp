@@ -255,9 +255,9 @@ void sim_mob::SimpleWorkGroup<EntityType>::wait()
 
 	//While the Workers are flipping Buffered types, we are free to copy toBeMovedLater into toBeMovedNow.
 	//First, though, we should "add" all Agents which will become active during this time tick.
-	unsigned int currMs = currWorkerTimeTick*ConfigParams::GetInstance().baseGranMS;
+	unsigned int nextMs = (currWorkerTimeTick+tickStep)*ConfigParams::GetInstance().baseGranMS;
 	while (!Agent::pending_agents.empty()) {
-		if (currMs >= Agent::pending_agents.top()->startTime) {
+		if (nextMs >= Agent::pending_agents.top()->startTime) {
 			MoveInstruction mv = {Agent::pending_agents.top(), true};
 			toBeMovedLater.push_back(mv);
 			Agent::pending_agents.pop();

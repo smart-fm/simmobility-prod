@@ -45,7 +45,8 @@ std::vector<EntityType*>& sim_mob::Worker<EntityType>::getEntities() {
 template <class EntityType>
 void sim_mob::Worker<EntityType>::scheduleForRemoval(EntityType* entity)
 {
-	toBeRemoved.push_back(entity);
+	//Dispatch to parent.
+	parent->scheduleForRemoval(entity);
 }
 
 
@@ -112,68 +113,12 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 	for (;active.get();) {
 		perform_main(currTick);
 
-		//Get a reference to the first item in the pending list, for later
-		Agent* nextAg = !Agent::pending_agents.empty() ? Agent::pending_agents.top() : nullptr;
-
-		if (internal_barr)
-			internal_barr->wait();
-
-		//Advance local time-step
+		//Advance local time-step. This must be done before the barrier or "active" could get out of sync.
 		currTick += tickStep;
 		this->active.set(endTick==0 || currTick<endTick);
 
-		//Get the current tick value in MS
-		unsigned int currMs = currTick*ConfigParams::GetInstance().baseGranMS;
-
-		//Now, add any Entities that will be active in this new time step.
-		if (nextAg && currMs>=nextAg->startTime) { //This check can always be done lock-free
-			for (;;) {
-				Agent* ag = nullptr;
-
-				//Now we need a mutex, since multiple threads may be checking/modifying the Agents arrays at the same time.
-				{
-					boost::mutex::scoped_lock local_lock(sim_mob::Agent::all_agents_lock);
-					if (Agent::pending_agents.empty() || currMs < Agent::pending_agents.top()->startTime) {
-						break;  //The double-check is needed since pending_agents may have changed.
-					}
-
-					//This Agent must be dealt with, but are we the one to deal with it?
-					if (parent->isMyTurnForAgent(this)) {
-						//Remove it from the pending_ list, add it to all_
-						ag = Agent::pending_agents.top();
-						Agent::pending_agents.pop();
-						Agent::all_agents.push_back(ag);
-					}
-				}
-
-				//If we have an Agent, migrate it in
-				if (ag) {
-					sim_mob::Agent::TMP_AgentWorkGroup->migrate(ag, this);
-				}
-			}
-		}
-
-		//Now remove and delete all Entities marked for deletion.
-		for (typename std::vector<EntityType*>::iterator it=toBeRemoved.begin(); it!=toBeRemoved.end(); it++) {
-			//Migrate this Entity off of its current Worker. Since its current worker is "this"
-			// worker, there is no race condition.
-			sim_mob::Agent::TMP_AgentWorkGroup->migrate(*it, nullptr);
-
-			//Remove this Agent (if it is one) from the list of discoverable Agents.
-			sim_mob::Agent* ag = dynamic_cast<sim_mob::Agent*>(*it);
-			if (ag) {
-				// Currently, this requires a lock.
-				boost::mutex::scoped_lock local_lock(sim_mob::Agent::all_agents_lock);
-				std::vector<Agent*>::iterator it = std::find(Agent::all_agents.begin(),Agent::all_agents.end(), ag);
-				if (it!=Agent::all_agents.end()) {
-					Agent::all_agents.erase(it);
-				}
-			}
-
-			//Delete the object pointed to by our iterator
-			delete (*it);
-		}
-		toBeRemoved.clear();
+		if (internal_barr)
+			internal_barr->wait();
 
 		//Now flip all remaining data.
 		perform_flip();

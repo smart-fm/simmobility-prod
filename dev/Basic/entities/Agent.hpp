@@ -55,7 +55,6 @@ public:
 	//The agent's start/end nodes.
 	Node* originNode;
 	Node* destNode;
-	unsigned int startTime;
 
 //	sim_mob::Buffered<double> xPos;  ///<The agent's position, X
 //	sim_mob::Buffered<double> yPos;  ///<The agent's position, Y

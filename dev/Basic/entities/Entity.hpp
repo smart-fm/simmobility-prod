@@ -28,7 +28,7 @@ class WorkGroup;
 class Entity {
 public:
 	///Construct an entity with an immutable ID
-	Entity(unsigned int id) : id(id), isSubscriptionListBuilt(false), currWorker(nullptr) {}
+	Entity(unsigned int id) : startTime(0), id(id), isSubscriptionListBuilt(false), currWorker(nullptr) {}
 	virtual ~Entity() {
 		if (currWorker) {
 			//Note: If a worker thread is still active for this agent, that's a major problem. But
@@ -53,6 +53,10 @@ public:
 	 *   and may be removed from the Simulation and deleted.
 	 */
 	virtual bool update(frame_t frameNumber) = 0;
+
+
+	//When (in ms) does this Entity start?
+	unsigned int startTime;
 
 
 protected:

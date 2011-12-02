@@ -3,6 +3,7 @@
 #include "WorkGroup.hpp"
 
 //For debugging
+#include <stdexcept>
 #include <boost/thread.hpp>
 #include "entities/Agent.hpp"
 #include "util/OutputUtil.hpp"

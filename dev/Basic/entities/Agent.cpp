@@ -38,7 +38,7 @@ unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID)
 
 
 
-sim_mob::Agent::Agent(int id) : Entity(GetAndIncrementID(id)), originNode(nullptr), destNode(nullptr), startTime(0), xPos(0), yPos(0)
+sim_mob::Agent::Agent(int id) : Entity(GetAndIncrementID(id)), originNode(nullptr), destNode(nullptr), /*startTime(0),*/ xPos(0), yPos(0)
 		/*xVel(0), yVel(0)*//*,xAcc(0), yAcc(0)*//*, currentLink(0),currentCrossing(-1)*/{
 	toRemoved = false;
 }

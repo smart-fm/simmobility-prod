@@ -46,7 +46,8 @@ public:
 
 	Worker<EntityType>* getWorker(int id);
 
-	bool isMyTurnForAgent(Worker<EntityType>* me);
+	void scheduleForAddition(EntityType* entity);
+	void scheduleForRemoval(EntityType* entity);
 
 
 protected:
@@ -72,10 +73,34 @@ protected:
 
 	bool auraManagerActive;
 
+	//What to do with an Agent we're "moving"
+	struct MoveInstruction {
+		EntityType* ent;
+		bool add;
+	};
+
+	//Pointers to _actually_ be deleted during this time tick.
+	std::vector<EntityType*> toBeDeletedNow;
+
+	//Entities to be moved during this update tick.
+	std::vector<MoveInstruction> toBeMovedNow;
+
+	//Entities to be moved in the next time tick. Refreshed in flip()
+	std::vector<MoveInstruction> toBeMovedLater;
+
+	//Locking for these arrays
+	static boost::mutex add_remove_array_lock;
+
 };
 
 
 } //End sim_mob namespace
+
+
+
+//Lock definition
+template <class EntityType>
+boost::mutex sim_mob::SimpleWorkGroup<EntityType>::add_remove_array_lock;
 
 
 
@@ -159,18 +184,20 @@ sim_mob::Worker<EntityType>* sim_mob::SimpleWorkGroup<EntityType>::getWorker(int
 	return workers.at(id);
 }
 
+template <class EntityType>
+void sim_mob::SimpleWorkGroup<EntityType>::scheduleForAddition(EntityType* entity)
+{
+	boost::mutex::scoped_lock local_lock(add_remove_array_lock);
+	MoveInstruction mv = {entity, true};
+	toBeMovedLater.push_back(mv);
+}
 
 template <class EntityType>
-bool sim_mob::SimpleWorkGroup<EntityType>::isMyTurnForAgent(Worker<EntityType>* me)
+void sim_mob::SimpleWorkGroup<EntityType>::scheduleForRemoval(EntityType* entity)
 {
-	//If not, just return false.
-	if (workers.at(nextWorkerID) != me) {
-		return false;
-	}
-
-	//If so, increment the worker ID and return true.
-	nextWorkerID = (nextWorkerID+1) % workers.size();
-	return true;
+	boost::mutex::scoped_lock local_lock(add_remove_array_lock);
+	MoveInstruction mv = {entity, false};
+	toBeMovedLater.push_back(mv);
 }
 
 
@@ -183,7 +210,53 @@ void sim_mob::SimpleWorkGroup<EntityType>::wait()
 	}
 	tickOffset = tickStep;
 
+	//While the Workers are updating each Agent and building toBeMovedLater, we are
+	//  free to move around Agents and Buffered<> types (so long as we don't delete anything).
+	for (vector<MoveInstruction>::iterator it=toBeMovedNow.begin(); it!=toBeMovedNow.end(); it++) {
+		if (it->add) {
+			//Add the Agent
+			Agent::all_agents.push_back(it->ent);
+			sim_mob::Agent::TMP_AgentWorkGroup->migrate(it->ent, workers.at(nextWorkerID));
+			nextWorkerID = (nextWorkerID+1)%workers.size();
+		} else {
+			//Remove the Agent
+			sim_mob::Agent::TMP_AgentWorkGroup->migrate(it->ent, nullptr);
+			std::vector<Agent*>::iterator it2 = std::find(Agent::all_agents.begin(), Agent::all_agents.end(), it->ent);
+			if (it2!=Agent::all_agents.end()) {
+				Agent::all_agents.erase(it2);
+			}
+
+			//We can't delete the Agent right now, so save its pointer for later
+			toBeDeletedNow.push_back(ent);
+		}
+	}
+
+	//TODO: This is the place to delete Agents, but I'm disabling it for now, for debugging purposes.
+	while (!toBeDeletedNow.empty()) {
+		EntityType* ent = toBeDeletedNow.back();
+		toBeDeletedNow.pop_back();
+		//delete ent;
+	}
+
+
 	shared_barr.wait();
+
+	//While the Workers are flipping Buffered types, we are free to copy toBeMovedLater into toBeMovedNow.
+	//First, though, we should "add" all Agents which will become active during this time tick.
+	unsigned int currMs = currTick*ConfigParams::GetInstance().baseGranMS;
+	while (!Agent::pending_agents.empty()) {
+		if (currMs >= Agent::pending_agents.top()->startTime) {
+			MoveInstruction mv = {Agent::pending_agents.top(), true};
+			toBeMovedLater.push_back(mv);
+			Agent::pending_agents.pop();
+		}
+	}
+
+	//Now copy.
+	toBeMovedNow.clear();
+	toBeMovedNow.insert(toBeMovedNow.begin(), toBeMovedLater.begin(), toBeMovedLater.end());
+	toBeMovedLater.clear();
+
 	external_barr.wait();
 }
 

@@ -102,7 +102,7 @@ private:
 	std::vector<EntityType*> data;
 
 	//Entities to remove after this time tick.
-	std::vector<EntityType*> toBeRemoved;
+	//std::vector<EntityType*> toBeRemoved;
 };
 
 }

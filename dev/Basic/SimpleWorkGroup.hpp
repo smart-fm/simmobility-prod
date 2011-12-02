@@ -261,7 +261,9 @@ void sim_mob::SimpleWorkGroup<EntityType>::wait()
 			MoveInstruction mv = {Agent::pending_agents.top(), true};
 			toBeMovedLater.push_back(mv);
 			Agent::pending_agents.pop();
+			continue;
 		}
+		break;
 	}
 
 	//Now copy.

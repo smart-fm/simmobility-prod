@@ -337,8 +337,11 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	//First frame update
 	if (firstFrameTick) {
 		//Helper check; not needed once we trust our Workers.
-		if (!abs(currTimeMS-parent->startTime)<ConfigParams::GetInstance().baseGranMS) {
-			throw std::runtime_error("Driver was not started within one timespan of its requested start time.");
+		if (abs(currTimeMS-parent->startTime)>=ConfigParams::GetInstance().baseGranMS) {
+			std::stringstream msg;
+			msg <<"Driver was not started within one timespan of its requested start time.";
+			msg <<"\nStart was: " <<parent->startTime <<",  Curr time is: " <<currTimeMS <<"\n";
+			throw std::runtime_error(msg.str().c_str());
 		}
 
 		update_first_frame(params, frameNumber);

@@ -44,7 +44,7 @@ public:
 
 	void wait();
 	void waitExternAgain();
-	void migrate(EntityType* ag, Worker<EntityType>* from, Worker<EntityType>* to);
+	void migrate(EntityType& ag, Worker<EntityType>* from, Worker<EntityType>* to);
 
 	Worker<EntityType>* getWorker(int id);
 
@@ -93,12 +93,12 @@ protected:
 	frame_t nextTimeTickToStage;
 
 	//For collaboration
-	virtual void addEntityToWorker(EntityType* ent, Worker<EntityType>* wrk) {
+	/*virtual void addEntityToWorker(EntityType* ent, Worker<EntityType>* wrk) {
 		throw std::runtime_error("Simple workers cannot add Entities at arbitrary times.");
 	}
 	virtual void remEntityFromCurrWorker(EntityType* ent) {
 		throw std::runtime_error("Simple workers cannot remove Entities at arbitrary times.");
-	}
+	}*/
 
 };
 
@@ -197,19 +197,16 @@ size_t sim_mob::SimpleWorkGroup<EntityType>::size()
 
 
 template <class EntityType>
-void sim_mob::SimpleWorkGroup<EntityType>::migrate(EntityType* ag, Worker<EntityType>* from, Worker<EntityType>* to)
+void sim_mob::SimpleWorkGroup<EntityType>::migrate(EntityType& ag, Worker<EntityType>* from, Worker<EntityType>* to)
 {
-	if (!ag)
-		return;
-
 	if (from) {
 		//Remove
-		from->remEntity(ag);
+		from->remEntity(&ag);
 	}
 
 	if (to) {
 		//Add
-		to->addEntity(ag);
+		to->addEntity(&ag);
 	}
 }
 

@@ -132,7 +132,7 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 			}
 
 			//Migrate its Buffered properties.
-			wg->migrate(*it, this);
+			wg->migrate(**it, this);
 		}
 		toBeAdded.clear();
 
@@ -148,7 +148,7 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 			}
 
 			//Migrate out its buffered properties.
-			wg->migrate(*it, nullptr);
+			wg->migrate(**it, nullptr);
 
 			//Remove it from our global list. Requires locking
 			Agent* ag = dynamic_cast<Agent*>(*it);
@@ -179,8 +179,9 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 
         // Wait for the AuraManager
 		if (auraManagerActive) {
-			if (external_barr)
+			if (external_barr) {
 				external_barr->wait();
+			}
 		}
 	}
 }

@@ -34,21 +34,17 @@ using namespace sim_mob;
  * Set "toID" to -1 to skip that step. Automatically removes the Agent from its given Worker if that Worker
  *  has been set.
  */
-void sim_mob::WorkGroup::migrateByID(Entity* ag, int toID)
+void sim_mob::WorkGroup::migrateByID(Entity& ag, int toID)
 {
 	//Dispatch
 	migrate(ag, (toID>=0) ? workers.at(toID) : nullptr);
 }
 
 
-void sim_mob::WorkGroup::migrate(Entity* ag, Worker<Entity>* toWorker)
+void sim_mob::WorkGroup::migrate(Entity& ag, Worker<Entity>* toWorker)
 {
-	if (!ag) {
-		return;
-	}
-
 	//Call the parent migrate function.
-	sim_mob::Worker<Entity>* from = ag->currWorker;
+	sim_mob::Worker<Entity>* from = ag.currWorker;
 	sim_mob::Worker<Entity>* to = toWorker;
 	sim_mob::SimpleWorkGroup<Entity>::migrate(ag, from, to);
 
@@ -58,16 +54,16 @@ void sim_mob::WorkGroup::migrate(Entity* ag, Worker<Entity>* toWorker)
 	}
 
 	//Update our Entity's pointer.
-	ag->currWorker = to;
+	ag.currWorker = to;
 
 	//More automatic updating
 	if (from) {
 		//Remove this entity's Buffered<> types from our list
-		from->stopManaging(ag->getSubscriptionList());
+		from->stopManaging(ag.getSubscriptionList());
 
 		//Debugging output
 		if (Debug::WorkGroupSemantics) {
-			Agent* agent = dynamic_cast<Agent*>(ag);
+			Agent* agent = dynamic_cast<Agent*>(&ag);
 			if (agent && dynamic_cast<Person*>(agent)) {
 				boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 				std::cout <<"Removing Agent " <<agent->getId() <<" from worker: " <<from <<std::endl;
@@ -76,11 +72,11 @@ void sim_mob::WorkGroup::migrate(Entity* ag, Worker<Entity>* toWorker)
 	}
 	if (to) {
 		//Add this entity's Buffered<> types to our list
-		to->beginManaging(ag->getSubscriptionList());
+		to->beginManaging(ag.getSubscriptionList());
 
 		//Debugging output
 		if (Debug::WorkGroupSemantics) {
-			Agent* agent = dynamic_cast<Agent*>(ag);
+			Agent* agent = dynamic_cast<Agent*>(&ag);
 			if (agent && dynamic_cast<Person*>(agent)) {
 				boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 				std::cout <<"Adding Agent " <<agent->getId() <<" to worker: " <<to <<" at requested time: " <<agent->startTime <<std::endl;
@@ -90,7 +86,7 @@ void sim_mob::WorkGroup::migrate(Entity* ag, Worker<Entity>* toWorker)
 }
 
 
-void sim_mob::WorkGroup::addEntityToWorker(Entity* ent, Worker<Entity>* wrk)
+/*void sim_mob::WorkGroup::addEntityToWorker(Entity* ent, Worker<Entity>* wrk)
 {
 	//Add it to our global list.
 	Agent* ag = dynamic_cast<Agent*>(ent);
@@ -118,5 +114,5 @@ void sim_mob::WorkGroup::remEntityFromCurrWorker(Entity* ent)
 		}
 	}
 
-}
+}*/
 

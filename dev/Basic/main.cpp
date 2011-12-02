@@ -158,7 +158,7 @@ bool performMain(const std::string& configFileName)
 
   //Initialize our work groups.
   WorkGroup agentWorkers(WG_AGENTS_SIZE, config.totalRuntimeTicks, config.granAgentsTicks, true);
-  Agent::TMP_AgentWorkGroup = &agentWorkers;
+  //Agent::TMP_AgentWorkGroup = &agentWorkers;
   Worker<sim_mob::Entity>::ActionFunction entityWork = boost::bind(entity_worker, _1, _2);
   agentWorkers.initWorkers(&entityWork);
 

@@ -39,6 +39,10 @@ public:
 	void migrateByID(Entity* ag, int toID);
 	void migrate(Entity* ag, sim_mob::Worker<Entity>* toWorker);
 
+	//Will be dispatched to from the SimpleWorkGroup
+	virtual void addEntityToWorker(Entity* ent, Worker<Entity>* wrk);
+	virtual void remEntityFromCurrWorker(Entity* ent);
+
 };
 
 

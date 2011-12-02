@@ -92,6 +92,17 @@ protected:
 	//Locking for these arrays
 	static boost::mutex add_remove_array_lock;
 
+	//Needed to stay in sync with the workers
+	frame_t currWorkerTimeTick;
+
+	//For collaboration
+	virtual void addEntityToWorker(EntityType* ent, Worker<EntityType>* wrk) {
+		throw std::runtime_error("Simple workers cannot add Entities at arbitrary times.");
+	}
+	virtual void remEntityFromCurrWorker(EntityType* ent) {
+		throw std::runtime_error("Simple workers cannot remove Entities at arbitrary times.");
+	}
+
 };
 
 
@@ -126,7 +137,8 @@ void sim_mob::SimpleWorkGroup<EntityType>::initWorkers(typename Worker<EntityTyp
 
 template <class EntityType>
 sim_mob::SimpleWorkGroup<EntityType>::SimpleWorkGroup(size_t size, unsigned int endTick, unsigned int tickStep, bool auraManagerActive) :
-		shared_barr(size+1), external_barr(size+1), nextWorkerID(0), endTick(endTick), tickStep(tickStep), total_size(size), auraManagerActive(auraManagerActive)
+		shared_barr(size+1), external_barr(size+1), nextWorkerID(0), endTick(endTick), tickStep(tickStep), total_size(size), auraManagerActive(auraManagerActive),
+		currWorkerTimeTick(0)
 {
 }
 
@@ -144,6 +156,7 @@ sim_mob::SimpleWorkGroup<EntityType>::~SimpleWorkGroup()
 template <class EntityType>
 void sim_mob::SimpleWorkGroup<EntityType>::startAll()
 {
+	currWorkerTimeTick = 0;
 	tickOffset = tickStep;
 	for (size_t i=0; i<workers.size(); i++) {
 		workers[i]->start();
@@ -211,21 +224,19 @@ void sim_mob::SimpleWorkGroup<EntityType>::wait()
 	}
 	tickOffset = tickStep;
 
+	//Stay in sync with the workers.
+	currWorkerTimeTick += tickStep;
+
 	//While the Workers are updating each Agent and building toBeMovedLater, we are
 	//  free to move around Agents and Buffered<> types (so long as we don't delete anything).
 	for (typename std::vector<MoveInstruction>::iterator it=toBeMovedNow.begin(); it!=toBeMovedNow.end(); it++) {
 		if (it->add) {
-			//Add the Agent
-			Agent::all_agents.push_back(it->ent);
-			migrate(it->ent, workers.at(nextWorkerID));
-			nextWorkerID = (nextWorkerID+1)%workers.size();
+			//Add it, increment our ID.
+			addEntityToWorker(it->ent, workers.at(nextWorkerID++));
+			nextWorkerID %= workers.size();
 		} else {
 			//Remove the Agent
-			migrate(it->ent, nullptr);
-			std::vector<Agent*>::iterator it2 = std::find(Agent::all_agents.begin(), Agent::all_agents.end(), it->ent);
-			if (it2!=Agent::all_agents.end()) {
-				Agent::all_agents.erase(it2);
-			}
+			remEntityFromCurrWorker(it->ent);
 
 			//We can't delete the Agent right now, so save its pointer for later
 			toBeDeletedNow.push_back(it->ent);
@@ -234,7 +245,7 @@ void sim_mob::SimpleWorkGroup<EntityType>::wait()
 
 	//TODO: This is the place to delete Agents, but I'm disabling it for now, for debugging purposes.
 	while (!toBeDeletedNow.empty()) {
-		EntityType* ent = toBeDeletedNow.back();
+		//EntityType* ent = toBeDeletedNow.back();
 		toBeDeletedNow.pop_back();
 		//delete ent;
 	}
@@ -244,7 +255,7 @@ void sim_mob::SimpleWorkGroup<EntityType>::wait()
 
 	//While the Workers are flipping Buffered types, we are free to copy toBeMovedLater into toBeMovedNow.
 	//First, though, we should "add" all Agents which will become active during this time tick.
-	unsigned int currMs = currTick*ConfigParams::GetInstance().baseGranMS;
+	unsigned int currMs = currWorkerTimeTick*ConfigParams::GetInstance().baseGranMS;
 	while (!Agent::pending_agents.empty()) {
 		if (currMs >= Agent::pending_agents.top()->startTime) {
 			MoveInstruction mv = {Agent::pending_agents.top(), true};

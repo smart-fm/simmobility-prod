@@ -84,3 +84,34 @@ void sim_mob::WorkGroup::migrate(Entity* ag, Worker<Entity>* toWorker)
 	}
 }
 
+
+void sim_mob::WorkGroup::addEntityToWorker(Entity* ent, Worker<Entity>* wrk)
+{
+	//Add it to our global list.
+	Agent* ag = dynamic_cast<Agent*>(ent);
+	if (ag) {
+		Agent::all_agents.push_back(ag);
+	}
+
+	//Migrate its Buffered properties.
+	migrate(ent, wrk);
+}
+
+
+
+void sim_mob::WorkGroup::remEntityFromCurrWorker(Entity* ent)
+{
+	//Migrate out its buffered properties.
+	migrate(ent, nullptr);
+
+	//Remove it from our global list.
+	Agent* ag = dynamic_cast<Agent*>(ent);
+	if (ag) {
+		std::vector<Agent*>::iterator it2 = std::find(Agent::all_agents.begin(), Agent::all_agents.end(), ag);
+		if (it2!=Agent::all_agents.end()) {
+			Agent::all_agents.erase(it2);
+		}
+	}
+
+}
+

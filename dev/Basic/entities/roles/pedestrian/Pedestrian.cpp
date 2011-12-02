@@ -147,7 +147,26 @@ void sim_mob::Pedestrian::setGoal(int stage) //0-to the next intersection, 1-to 
 	//Give every agent the same goal.
 	//goal.xPos = 1100;
 	if(stage==0){
-		goal = Point2D(37250760,14355120); //Hard-code now, need to be replaced once route choicer is done
+//		goal = Point2D(37250760,14355120); //Hard-code now, need to be replaced once route choicer is done
+		const Lane* nextSideWalk;
+		vector<WayPoint> wp_path= StreetDirectory::instance().shortestWalkingPath(*parent->originNode->location,*parent->destNode->location);
+		for(vector<WayPoint>::iterator it=wp_path.begin(); it!=wp_path.end(); it++) {
+			if(it->type_ == WayPoint::SIDE_WALK) {
+				nextSideWalk=it->lane_;
+				break;
+			}
+		}
+		if(nextSideWalk->getRoadSegment()->getStart()==parent->originNode){
+//			std::cout<<"Intersection is "<<nextSideWalk->getRoadSegment()->getEnd()->location->getX()<<" "<<nextSideWalk->getRoadSegment()->getEnd()->location->getY()<<std::endl;
+			goal = Point2D(nextSideWalk->getRoadSegment()->getEnd()->location->getX(),nextSideWalk->getRoadSegment()->getEnd()->location->getY());
+			interPoint = Point2D(nextSideWalk->getRoadSegment()->getEnd()->location->getX(),nextSideWalk->getRoadSegment()->getEnd()->location->getY());
+		}
+		else{
+//			std::cout<<"Intersection is "<<nextSideWalk->getRoadSegment()->getStart()->location->getX()<<" "<<nextSideWalk->getRoadSegment()->getEnd()->location->getY()<<std::endl;
+			goal = Point2D(nextSideWalk->getRoadSegment()->getStart()->location->getX(),nextSideWalk->getRoadSegment()->getStart()->location->getY());
+			interPoint = Point2D(nextSideWalk->getRoadSegment()->getStart()->location->getX(),nextSideWalk->getRoadSegment()->getStart()->location->getY());
+		}
+
 		setSidewalkParas(parent->originNode,ConfigParams::GetInstance().getNetwork().locateNode(goal, true),false);
 //		goalInLane = Point2D(37250760,14355120);
 
@@ -170,7 +189,7 @@ void sim_mob::Pedestrian::setGoal(int stage) //0-to the next intersection, 1-to 
 //		parent->xPos.set(37250760);  //Hard-code now, to be changed
 //		parent->yPos.set(14355120);
 		goal = Point2D(parent->destNode->location->getX(),parent->destNode->location->getY());
-		setSidewalkParas(ConfigParams::GetInstance().getNetwork().locateNode(Point2D(37250760,14355120),true),parent->destNode,true);
+		setSidewalkParas(ConfigParams::GetInstance().getNetwork().locateNode(interPoint,true),parent->destNode,true);
 //		goalInLane = Point2D(parent->destNode->location->getX(),parent->destNode->location->getY());
 //		goal = Point2D(destPos.getX(),destPos.getY());
 	}

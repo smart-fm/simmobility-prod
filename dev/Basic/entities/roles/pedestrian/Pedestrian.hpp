@@ -51,7 +51,7 @@ private:
 	bool startToCross;
 	double cStartX, cStartY, cEndX, cEndY;
 	bool firstTimeUpdate;
-//	Point2D destPos;
+	Point2D interPoint;
 
 	//For collisions
 	double xCollisionVector;

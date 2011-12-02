@@ -38,8 +38,7 @@ bool sim_mob::Person::update(frame_t frameNumber)
 
 	//Return true unless we are scheduled for removal.
 	//NOTE: Make sure you set this flag AFTER performing your final output.
-	//return !isToBeRemoved();
-	return true;
+	return !isToBeRemoved();
 }
 
 /*void sim_mob::Person::subscribe(sim_mob::BufferedDataManager* mgr, bool isNew) {

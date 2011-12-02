@@ -3,6 +3,7 @@
 #include "Worker.hpp"
 
 #include <queue>
+#include <sstream>
 
 using std::vector;
 using std::priority_queue;
@@ -25,22 +26,22 @@ using namespace sim_mob;
 void sim_mob::Worker::addEntity(Entity* entity)
 {
 	//Save this entity in the data vector.
-	data.push_back(entity);
+	managedEntities.push_back(entity);
 }
 
 
 void sim_mob::Worker::remEntity(Entity* entity)
 {
 	//Remove this entity from the data vector.
-	typename std::vector<Entity*>::iterator it = std::find(data.begin(), data.end(), entity);
-	if (it!=data.end()) {
-		data.erase(it);
+	typename std::vector<Entity*>::iterator it = std::find(managedEntities.begin(), managedEntities.end(), entity);
+	if (it!=managedEntities.end()) {
+		managedEntities.erase(it);
 	}
 }
 
 
 std::vector<Entity*>& sim_mob::Worker::getEntities() {
-	return data;
+	return managedEntities;
 }
 
 
@@ -66,29 +67,22 @@ void sim_mob::Worker::scheduleForRemoval(Entity* entity)
 
 
 
-sim_mob::Worker::Worker(WorkGroup* parent, ActionFunction* action, boost::barrier* internal_barr, boost::barrier* external_barr, frame_t endTick, frame_t tickStep, bool auraManagerActive)
+sim_mob::Worker::Worker(WorkGroup* parent, boost::barrier& internal_barr, boost::barrier& external_barr, ActionFunction* action, frame_t endTick, frame_t tickStep, bool auraManagerActive)
     : BufferedDataManager(),
       internal_barr(internal_barr), external_barr(external_barr), action(action),
       endTick(endTick),
       tickStep(tickStep),
       auraManagerActive(auraManagerActive),
-      parent(parent),
-      active(/*this, */false)  //Passing the "this" pointer is probably ok, since we only use the base class (which is constructed)
+      parent(parent)
 {
-	this->beginManaging(&active);
-
-	//Test
-	if (!internal_barr || !external_barr) {
-		throw std::runtime_error("Worker won't function correctly with a non-null barrier.");
-	}
 }
 
 
 sim_mob::Worker::~Worker()
 {
 	//Clear all tracked entitites
-	while (!data.empty()) {
-		remEntity(data[0]);
+	while (!managedEntities.empty()) {
+		remEntity(managedEntities.front());
 	}
 
 	//Clear all tracked data
@@ -100,8 +94,6 @@ sim_mob::Worker::~Worker()
 
 void sim_mob::Worker::start()
 {
-	active.force(true);
-	currTick = 0;
 	main_thread = boost::thread(boost::bind(&Worker::barrier_mgmt, this));
 }
 
@@ -121,70 +113,67 @@ void sim_mob::Worker::interrupt()
 
 
 
+void sim_mob::Worker::addPendingAgents()
+{
+	for (vector<Entity*>::iterator it=toBeAdded.begin(); it!=toBeAdded.end(); it++) {
+		//Migrate its Buffered properties.
+		migrateOut(**it);
+	}
+	toBeAdded.clear();
+}
+
+
+void sim_mob::Worker::removePendingAgents()
+{
+	for (vector<Entity*>::iterator it=toBeRemoved.begin(); it!=toBeRemoved.end(); it++) {
+		//Migrate out its buffered properties.
+		migrateIn(**it);
+
+		//Remove it from our global list. Requires locking
+		Agent* ag = dynamic_cast<Agent*>(*it);
+		if (ag) {
+			boost::mutex::scoped_lock local_lock(sim_mob::Agent::all_agents_lock);
+			parent->agToBeRemoved.push_back(ag);
+		}
+
+		//Delete this entity
+		//delete *it;  //NOTE: For now, I'm leaving it in memory to make debugging slightly eaier. ~Seth
+	}
+	toBeRemoved.clear();
+}
+
+
+
 void sim_mob::Worker::barrier_mgmt()
 {
-	for (;active.get();) {
+	frame_t currTick = 0;
+	bool active = true;
+	while (active) {
 		//Add Agents as required.
-		for (vector<Entity*>::iterator it=toBeAdded.begin(); it!=toBeAdded.end(); it++) {
-			//Ensure we're on the same page
-			WorkGroup* wg = dynamic_cast<WorkGroup*>(parent);
-			if (!wg) {
-				throw std::runtime_error("Simple workers cannot add Entities at arbitrary times.");
-			}
-
-			//Migrate its Buffered properties.
-			migrateOut(**it);
-			//wg->migrate(**it, this);
-		}
-		toBeAdded.clear();
+		addPendingAgents();
 
 		//Perform all our Agent updates, etc.
 		perform_main(currTick);
 
 		//Remove Agents as requires
-		for (vector<Entity*>::iterator it=toBeRemoved.begin(); it!=toBeRemoved.end(); it++) {
-			//Ensure we're on the same page
-			WorkGroup* wg = dynamic_cast<WorkGroup*>(parent);
-			if (!wg) {
-				throw std::runtime_error("Simple workers cannot remove Entities at arbitrary times.");
-			}
+		removePendingAgents();
 
-			//Migrate out its buffered properties.
-			migrateIn(**it);
-			//wg->migrate(**it, nullptr);
-
-			//Remove it from our global list. Requires locking
-			Agent* ag = dynamic_cast<Agent*>(*it);
-			if (ag) {
-				boost::mutex::scoped_lock local_lock(sim_mob::Agent::all_agents_lock);
-				parent->agToBeRemoved.push_back(ag);
-			}
-
-			//Delete this entity
-			//delete *it;  //NOTE: For now, I'm leaving it in memory to make debugging slightly eaier. ~Seth
-		}
-		toBeRemoved.clear();
-
-		//Advance local time-step. This must be done before the barrier or "active" could get out of sync.
+		//Advance local time-step.
 		currTick += tickStep;
-		this->active.set(endTick==0 || currTick<endTick);
+		active = (endTick==0 || currTick<endTick);
 
-		if (internal_barr) {
-			internal_barr->wait();
-		}
+		//First barrier
+		internal_barr.wait();
 
 		//Now flip all remaining data.
 		perform_flip();
 
-		if (external_barr) {
-			external_barr->wait();
-		}
+		//Second barrier
+		external_barr.wait();
 
         // Wait for the AuraManager
 		if (auraManagerActive) {
-			if (external_barr) {
-				external_barr->wait();
-			}
+			external_barr.wait();
 		}
 	}
 }
@@ -195,7 +184,9 @@ void sim_mob::Worker::migrateOut(Entity& ag)
 {
 	//Sanity check
 	if (ag.currWorker != this) {
-		throw std::runtime_error("Error: Entity has somehow switched workers.");
+		std::stringstream msg;
+		msg <<"Error: Entity has somehow switched workers: " <<ag.currWorker <<"," <<this;
+		throw std::runtime_error(msg.str().c_str());
 	}
 
 	//Simple migration

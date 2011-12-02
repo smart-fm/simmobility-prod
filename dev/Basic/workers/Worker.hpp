@@ -46,7 +46,8 @@ public:
 	//! argument will a reference to the constructed Worker object and the 2nd argument
 	//! will be a strictly monotonic increasing number which represent the time-step.
 	typedef boost::function<void(Worker& worker, frame_t frameNumber)> ActionFunction;
-	Worker(WorkGroup* parent, ActionFunction* action =nullptr, boost::barrier* internal_barr =nullptr, boost::barrier* external_barr =nullptr, frame_t endTick=0, frame_t tickStep=0, bool auraManagerActive=false);
+
+	Worker(WorkGroup* parent, boost::barrier& internal_barr, boost::barrier& external_barr, ActionFunction* action =nullptr, frame_t endTick=0, frame_t tickStep=0, bool auraManagerActive=false);
 	virtual ~Worker();
 
 	//Thread-style operations
@@ -77,14 +78,14 @@ private:
 
 protected:
 	//Properties
-	boost::barrier* internal_barr;
-	boost::barrier* external_barr;
+	boost::barrier& internal_barr;
+	boost::barrier& external_barr;
 	ActionFunction* action;
 
 	//Time management
-	frame_t currTick;
+	//frame_t currTick;
 	frame_t endTick;
-        frame_t tickStep;
+	frame_t tickStep;
 
 	bool auraManagerActive;
 
@@ -100,19 +101,16 @@ protected:
 	std::vector<Entity*> toBeAdded;
 	std::vector<Entity*> toBeRemoved;
 
-
-public:
-	sim_mob::Buffered<bool> active;
-
 private:
-	//Thread management
+	//Helper methods
+	void addPendingAgents();
+	void removePendingAgents();
+
+	///The main thread which this Worker wraps
 	boost::thread main_thread;
 
-	//Object management
-	std::vector<Entity*> data;
-
-	//Entities to remove after this time tick.
-	//std::vector<Entity*> toBeRemoved;
+	///Entities managed by this worker
+	std::vector<Entity*> managedEntities;
 };
 
 }

@@ -25,7 +25,7 @@ using namespace sim_mob;
 void sim_mob::WorkGroup::initWorkers(Worker::ActionFunction* action)
 {
 	for (size_t i=0; i<total_size; i++) {
-		workers.push_back(new Worker(this, action, &shared_barr, &external_barr, endTick, tickStep, auraManagerActive));
+		workers.push_back(new Worker(this, shared_barr, external_barr, action, endTick, tickStep, auraManagerActive));
 	}
 }
 

@@ -139,8 +139,9 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 template <class EntityType>
 void sim_mob::Worker<EntityType>::perform_main(frame_t frameNumber)
 {
-	if (action)
+	if (action) {
 		(*action)(*this, frameNumber);
+	}
 }
 
 template <class EntityType>

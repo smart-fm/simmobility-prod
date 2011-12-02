@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <boost/thread.hpp>
 
+#include "entities/Agent.hpp"
 #include "workers/Worker.hpp"
 
 #include "util/LangHelpers.hpp"
@@ -212,22 +213,22 @@ void sim_mob::SimpleWorkGroup<EntityType>::wait()
 
 	//While the Workers are updating each Agent and building toBeMovedLater, we are
 	//  free to move around Agents and Buffered<> types (so long as we don't delete anything).
-	for (vector<MoveInstruction>::iterator it=toBeMovedNow.begin(); it!=toBeMovedNow.end(); it++) {
+	for (typename std::vector<MoveInstruction>::iterator it=toBeMovedNow.begin(); it!=toBeMovedNow.end(); it++) {
 		if (it->add) {
 			//Add the Agent
 			Agent::all_agents.push_back(it->ent);
-			sim_mob::Agent::TMP_AgentWorkGroup->migrate(it->ent, workers.at(nextWorkerID));
+			migrate(it->ent, workers.at(nextWorkerID));
 			nextWorkerID = (nextWorkerID+1)%workers.size();
 		} else {
 			//Remove the Agent
-			sim_mob::Agent::TMP_AgentWorkGroup->migrate(it->ent, nullptr);
+			migrate(it->ent, nullptr);
 			std::vector<Agent*>::iterator it2 = std::find(Agent::all_agents.begin(), Agent::all_agents.end(), it->ent);
 			if (it2!=Agent::all_agents.end()) {
 				Agent::all_agents.erase(it2);
 			}
 
 			//We can't delete the Agent right now, so save its pointer for later
-			toBeDeletedNow.push_back(ent);
+			toBeDeletedNow.push_back(it->ent);
 		}
 	}
 

@@ -82,7 +82,7 @@ public:
 
 	///Temporary variable; holds a pointer to the current Agent work group. Will be moved
 	///  into the Dispatch Manager as soon as it's created.
-	static sim_mob::WorkGroup* TMP_AgentWorkGroup;
+	//static sim_mob::WorkGroup* TMP_AgentWorkGroup;
 
 	///Retrieve a monotonically-increasing unique ID value.
 	///\param preferredID Will be returned if it is greater than the current maximum-assigned ID.

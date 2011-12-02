@@ -47,11 +47,11 @@ class Traffic_signal:
         # The signal icon looks like an ice-cream cone, with the semi-circle representing the
         # light bulb facing the drivers or pedestrians.
         path1 = QtGui.QPainterPath()
-        path1.lineTo(200, -50)
-        path1.lineTo(200, 50)
+        path1.lineTo(-50, 200)
+        path1.lineTo(50, 200)
         path1.closeSubpath()
-        path2 = QtGui.QPainterPath(QtCore.QPointF(200, -50))
-        path2.arcTo(150, -50, 100, 100, 270, 180)
+        path2 = QtGui.QPainterPath(QtCore.QPointF(-50, 200))
+        path2.arcTo(-50, 150, 100, 100, 0, -180)
         path2.lineTo(0, 0)
         path2.closeSubpath()
         item = QtGui.QGraphicsPathItem(path1.united(path2))
@@ -66,7 +66,8 @@ class Traffic_signal:
         if 'R' == self.type: item.setBrush(QtCore.Qt.gray)
         if 'T' == self.type: item.setBrush(QtCore.Qt.lightGray)
         item.setPos(self.position.x, self.position.y)
-        item.setRotation(self.bearing)
+        # See the comments in the Graphics_view constructor in window.py
+        item.setRotation(-self.bearing)
         item.info = "signal id=%d type='%s' bearing=%d" % (self.id, self.type_desc(), self.bearing)
         return item
 

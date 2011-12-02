@@ -9,7 +9,7 @@ using std::priority_queue;
 using boost::barrier;
 using boost::function;
 
-#include "WorkGroup.hpp"
+#include "workers/WorkGroup.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 
@@ -66,7 +66,7 @@ void sim_mob::Worker::scheduleForRemoval(Entity* entity)
 
 
 
-sim_mob::Worker::Worker(SimpleWorkGroup<Entity>* parent, ActionFunction* action, boost::barrier* internal_barr, boost::barrier* external_barr, frame_t endTick, frame_t tickStep, bool auraManagerActive)
+sim_mob::Worker::Worker(WorkGroup* parent, ActionFunction* action, boost::barrier* internal_barr, boost::barrier* external_barr, frame_t endTick, frame_t tickStep, bool auraManagerActive)
     : BufferedDataManager(),
       internal_barr(internal_barr), external_barr(external_barr), action(action),
       endTick(endTick),

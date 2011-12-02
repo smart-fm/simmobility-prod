@@ -29,12 +29,12 @@ public:
 	//These are passed along to the Workers:
 	//  endTick=0 means run forever.
 	//  tickStep is used to allow Workers to skip ticks; no barriers are locked.
-	SimpleWorkGroup(size_t size, unsigned int endTick=0, unsigned int tickStep=1, bool auraManagerActive=false);
+	WorkGroup(size_t size, unsigned int endTick=0, unsigned int tickStep=1, bool auraManagerActive=false);
 
-	virtual ~SimpleWorkGroup();
+	virtual ~WorkGroup();
 
 	//template <typename WorkType>  //For now, just assume Workers
-	void initWorkers(typename Worker<EntityType>::ActionFunction* action = nullptr);
+	void initWorkers(Worker::ActionFunction* action = nullptr);
 
 	//Worker<EntityType>* const getWorker(size_t id);
 	void startAll();
@@ -45,10 +45,10 @@ public:
 	void waitExternAgain();
 	//void migrate(EntityType& ag, Worker<EntityType>* from, Worker<EntityType>* to);
 
-	Worker<EntityType>* getWorker(int id);
+	Worker* getWorker(int id);
 
 	void stageAgents();
-	void assignAWorker(EntityType* ag);
+	void assignAWorker(Entity* ag);
 
 	std::vector<Agent*> agToBeRemoved;
 
@@ -59,7 +59,7 @@ protected:
 	boost::barrier external_barr;
 
 	//Worker object management
-	std::vector<Worker<EntityType>*> workers;
+	std::vector<Worker*> workers;
 
 	//Used to coordinate which Worker gets the next Agent; currently round-robin.
 	size_t nextWorkerID;

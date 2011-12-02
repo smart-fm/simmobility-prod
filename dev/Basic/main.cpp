@@ -14,9 +14,8 @@
 #include "constants.h"
 
 #include "workers/Worker.hpp"
-#include "workers/EntityWorker.hpp"
 #include "buffering/BufferedDataManager.hpp"
-#include "WorkGroup.hpp"
+#include "workers/WorkGroup.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/UniNode.hpp"
@@ -58,7 +57,7 @@ bool TestTimeClass();
 
 
 ///Worker function for entity-related loading tasks.
-void entity_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
+void entity_worker(sim_mob::Worker& wk, frame_t frameNumber)
 {
 	for (vector<Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
 		if (!(*it)->update(frameNumber)) {
@@ -160,7 +159,7 @@ bool performMain(const std::string& configFileName)
   //Initialize our work groups.
   WorkGroup agentWorkers(WG_AGENTS_SIZE, config.totalRuntimeTicks, config.granAgentsTicks, true);
   //Agent::TMP_AgentWorkGroup = &agentWorkers;
-  Worker<sim_mob::Entity>::ActionFunction entityWork = boost::bind(entity_worker, _1, _2);
+  Worker::ActionFunction entityWork = boost::bind(entity_worker, _1, _2);
   agentWorkers.initWorkers(&entityWork);
 
   //Migrate all Agents from the all_agents array to the pending_agents priority queue unless they are

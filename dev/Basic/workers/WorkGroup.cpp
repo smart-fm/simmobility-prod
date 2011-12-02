@@ -22,10 +22,10 @@ using namespace sim_mob;
  * Template function must be defined in the same translational unit as it is declared.
  */
 
-void sim_mob::WorkGroup::initWorkers(typename Worker<Entity>::ActionFunction* action)
+void sim_mob::WorkGroup::initWorkers(Worker::ActionFunction* action)
 {
 	for (size_t i=0; i<total_size; i++) {
-		workers.push_back(new Worker<Entity>(this, action, &shared_barr, &external_barr, endTick, tickStep, auraManagerActive));
+		workers.push_back(new Worker(this, action, &shared_barr, &external_barr, endTick, tickStep, auraManagerActive));
 	}
 }
 
@@ -38,7 +38,7 @@ void sim_mob::WorkGroup::initWorkers(typename Worker<Entity>::ActionFunction* ac
 
 
 
-sim_mob::WorkGroup::SimpleWorkGroup(size_t size, unsigned int endTick, unsigned int tickStep, bool auraManagerActive) :
+sim_mob::WorkGroup::WorkGroup(size_t size, unsigned int endTick, unsigned int tickStep, bool auraManagerActive) :
 		shared_barr(size+1), external_barr(size+1), nextWorkerID(0), endTick(endTick), tickStep(tickStep), total_size(size), auraManagerActive(auraManagerActive),
 		nextTimeTickToStage(0)
 {
@@ -46,7 +46,7 @@ sim_mob::WorkGroup::SimpleWorkGroup(size_t size, unsigned int endTick, unsigned 
 
 
 
-sim_mob::WorkGroup::~SimpleWorkGroup()
+sim_mob::WorkGroup::~WorkGroup()
 {
 	for (size_t i=0; i<workers.size(); i++) {
 		workers[i]->join();  //NOTE: If we don't join all Workers, we get threading exceptions.
@@ -108,7 +108,7 @@ size_t sim_mob::WorkGroup::size()
 
 
 /*
-void sim_mob::WorkGroup::migrate(Entity& ag, Worker<Entity>* from, Worker<Entity>* to)
+void sim_mob::WorkGroup::migrate(Entity& ag, Worker* from, Worker* to)
 {
 	if (from) {
 		//Remove
@@ -123,7 +123,7 @@ void sim_mob::WorkGroup::migrate(Entity& ag, Worker<Entity>* from, Worker<Entity
 
 
 
-sim_mob::Worker<Entity>* sim_mob::WorkGroup::getWorker(int id)
+sim_mob::Worker* sim_mob::WorkGroup::getWorker(int id)
 {
 	if (id<0) {
 		return nullptr;

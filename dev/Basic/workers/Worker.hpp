@@ -22,8 +22,6 @@
 #include <boost/thread.hpp>
 #include <boost/function.hpp>
 
-//#include "WorkGroup.hpp"
-//#include "entities/Agent.hpp"
 #include "entities/Entity.hpp"
 
 #include "metrics/Frame.hpp"
@@ -47,8 +45,8 @@ public:
 	//! to construct a Worker object.  This procedure will be called repeatedly; the 1st
 	//! argument will a reference to the constructed Worker object and the 2nd argument
 	//! will be a strictly monotonic increasing number which represent the time-step.
-	typedef boost::function<void(Worker<Entity>& worker, frame_t frameNumber)> ActionFunction;
-	Worker(SimpleWorkGroup<Entity>* parent, ActionFunction* action =nullptr, boost::barrier* internal_barr =nullptr, boost::barrier* external_barr =nullptr, frame_t endTick=0, frame_t tickStep=0, bool auraManagerActive=false);
+	typedef boost::function<void(Worker& worker, frame_t frameNumber)> ActionFunction;
+	Worker(WorkGroup* parent, ActionFunction* action =nullptr, boost::barrier* internal_barr =nullptr, boost::barrier* external_barr =nullptr, frame_t endTick=0, frame_t tickStep=0, bool auraManagerActive=false);
 	virtual ~Worker();
 
 	//Thread-style operations
@@ -91,7 +89,7 @@ protected:
 	bool auraManagerActive;
 
 	//Saved
-	SimpleWorkGroup<Entity>* const parent;
+	WorkGroup* const parent;
 
 	//For migration. The first array is accessed by WorkGroup in the flip() phase, and should be
 	//   emptied by this worker at the beginning of the update() phase.

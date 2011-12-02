@@ -16,7 +16,6 @@
 namespace sim_mob
 {
 
-template <class EntityType>
 class Worker;
 
 class WorkGroup;
@@ -75,11 +74,10 @@ private:
 
 protected:
 	///Who is currently managing this Entity?
-	Worker<Entity>* currWorker;
+	Worker* currWorker;
 
 	//Only the WorkGroup can retrieve/set the currWorker flag. I'm doing this through a
 	// friend class, since get/set methods have the potential for abuse (currWorker can't be declared const*)
-	template <class EntityType>
 	friend class Worker;
 
 //Some near-trivial functions

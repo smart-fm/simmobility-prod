@@ -27,13 +27,17 @@ public:
 	WorkGroup(size_t size, unsigned int endTick=0, unsigned int tickStep=1, bool auraManagerActive=false)
 	: SimpleWorkGroup<Entity>(size, endTick, tickStep, auraManagerActive) {}
 
+	//For debugging
+	static const bool DebugOn;
+
 protected:
 	//Migrates all subscribed types.
 	virtual void manageData(sim_mob::BufferedDataManager* mgr, Entity* ag, bool takeControl);
 
 public:
 	//This is much more automatic than its SimpleWorkGroup counterpart.
-	void migrate(Entity* ag, int toID);
+	void migrateByID(Entity* ag, int toID);
+	void migrate(Entity* ag, sim_mob::Worker<Entity>* toWorker);
 
 };
 

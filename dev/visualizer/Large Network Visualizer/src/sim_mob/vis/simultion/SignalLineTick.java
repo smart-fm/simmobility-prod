@@ -1,11 +1,6 @@
 package sim_mob.vis.simultion;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
 import java.util.ArrayList;
-
-import sim_mob.vis.controls.DrawableItem;
-import sim_mob.vis.network.Intersection;
 
 public class SignalLineTick{
 	

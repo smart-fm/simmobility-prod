@@ -1,16 +1,13 @@
 package sim_mob.vis.simultion;
 
 import java.awt.BasicStroke;
+
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
 
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.awt.image.BufferedImageOp;
-import java.awt.image.LookupOp;
-import java.awt.image.LookupTable;
-import java.awt.image.ShortLookupTable;
 import java.io.IOException;
 
 import sim_mob.vis.network.basic.ScaledPoint;

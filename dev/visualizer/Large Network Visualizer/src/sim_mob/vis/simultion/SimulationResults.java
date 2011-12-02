@@ -1,17 +1,11 @@
 package sim_mob.vis.simultion;
 
 
-import java.awt.Color;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.io.*;
+import java.util.*;
 import java.util.regex.Matcher;
 
-import sim_mob.vis.network.Intersection;
-import sim_mob.vis.network.RoadNetwork;
-import sim_mob.vis.network.TrafficSignalLine;
+import sim_mob.vis.network.*;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.util.Utility;
 
@@ -133,7 +127,7 @@ public class SimulationResults {
 			parsePedestrian(frameID, objID, rhs, rn);
 		}
 	}
-		
+
 	private static ArrayList<Integer> parseEachSignal(String signal){
 		ArrayList<Integer> signalLights =  new ArrayList<Integer>();
 		String [] items = signal.split(",");

@@ -34,7 +34,7 @@ public class RoadNetwork {
 	
 	
 	//Testing on intersections
-	private ArrayList<Integer> intersecSegmentID;
+	//private ArrayList<Integer> intersecSegmentID;
 	
 	public DPoint getTopLeft() { return cornerTL; }
 	public DPoint getLowerRight() { return cornerLR; }
@@ -72,7 +72,7 @@ public class RoadNetwork {
 	
 		
 		//Testing
-		intersecSegmentID = new ArrayList<Integer>();
+		//intersecSegmentID = new ArrayList<Integer>();
 	
 		
 		//Also track min/max x/y pos
@@ -474,7 +474,7 @@ public class RoadNetwork {
 				int tempLinkID = tempIntersectLinkIDs.get(i);
 				//ArrayList<Integer> tempSegmentIDs = roadNetworkItemsMapTable.findSegmentIDWithLinkID(tempLinkID);
 				ArrayList<Integer> tempSegmentIDs = new ArrayList<Integer>();
-				Enumeration segmentKeys = segments.keys();
+				Enumeration<Integer> segmentKeys = segments.keys();
 							
 				while(segmentKeys.hasMoreElements()){
 					
@@ -544,7 +544,7 @@ public class RoadNetwork {
 			}
 							
 			Hashtable<Integer, ArrayList<ArrayList<TrafficSignalLine>>> signalList = helperAllocateDirection(fromSegmentList,toSegmentList);			
-			Enumeration signalListKeys = signalList.keys();
+			Enumeration<Integer> signalListKeys = signalList.keys();
 			
 			while(signalListKeys.hasMoreElements()){
 				

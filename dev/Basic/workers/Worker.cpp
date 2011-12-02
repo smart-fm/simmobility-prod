@@ -2,7 +2,10 @@
 
 #include "Worker.hpp"
 
+#include <queue>
+
 using std::vector;
+using std::priority_queue;
 using boost::barrier;
 using boost::function;
 
@@ -54,12 +57,13 @@ void sim_mob::Worker<EntityType>::scheduleForRemoval(EntityType* entity)
 
 
 template <class EntityType>
-sim_mob::Worker<EntityType>::Worker(ActionFunction* action, boost::barrier* internal_barr, boost::barrier* external_barr, frame_t endTick, frame_t tickStep, bool auraManagerActive)
+sim_mob::Worker<EntityType>::Worker(SimpleWorkGroup<EntityType>* parent, ActionFunction* action, boost::barrier* internal_barr, boost::barrier* external_barr, frame_t endTick, frame_t tickStep, bool auraManagerActive)
     : BufferedDataManager(),
       internal_barr(internal_barr), external_barr(external_barr), action(action),
       endTick(endTick),
       tickStep(tickStep),
       auraManagerActive(auraManagerActive),
+      parent(parent),
       active(/*this, */false)  //Passing the "this" pointer is probably ok, since we only use the base class (which is constructed)
 {
 	this->beginManaging(&active);
@@ -108,6 +112,9 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 	for (;active.get();) {
 		perform_main(currTick);
 
+		//Get a reference to the first item in the pending list, for later
+		Agent* nextAg = !Agent::pending_agents.empty() ? Agent::pending_agents.top() : nullptr;
+
 		if (internal_barr)
 			internal_barr->wait();
 
@@ -117,11 +124,42 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 			this->active.set(false);
 		}
 
+		//Get the current tick value in MS
+		unsigned int currMs = currTick*ConfigParams::GetInstance().baseGranMS;
+
+		//Now, add any Entities that will be active in this new time step.
+		if (nextAg && currMs>=nextAg->startTime) { //This check can always be done lock-free
+			for (;;) {
+				Agent* ag = nullptr;
+
+				//Now we need a mutex, since multiple threads may be checking/modifying the Agents arrays at the same time.
+				{
+					boost::mutex::scoped_lock local_lock(sim_mob::Agent::all_agents_lock);
+					if (Agent::pending_agents.empty() || currMs < Agent::pending_agents.top()->startTime) {
+						break;  //The double-check is needed since pending_agents may have changed.
+					}
+
+					//This Agent must be dealt with, but are we the one to deal with it?
+					if (parent->isMyTurnForAgent(this)) {
+						//Remove it from the pending_ list, add it to all_
+						ag = Agent::pending_agents.top();
+						Agent::pending_agents.pop();
+						Agent::all_agents.push_back(ag);
+					}
+				}
+
+				//If we have an Agent, migrate it in
+				if (ag) {
+					sim_mob::Agent::TMP_AgentWorkGroup->migrate(ag, this);
+				}
+			}
+		}
+
 		//Now remove and delete all Entities marked for deletion.
 		for (typename std::vector<EntityType*>::iterator it=toBeRemoved.begin(); it!=toBeRemoved.end(); it++) {
 			//Migrate this Entity off of its current Worker. Since its current worker is "this"
 			// worker, there is no race condition.
-			sim_mob::Agent::TMP_AgentWorkGroup->migrate(*it, -1);
+			sim_mob::Agent::TMP_AgentWorkGroup->migrate(*it, nullptr);
 
 			//Remove this Agent (if it is one) from the list of discoverable Agents.
 			sim_mob::Agent* ag = dynamic_cast<sim_mob::Agent*>(*it);
@@ -174,7 +212,7 @@ void sim_mob::Worker<EntityType>::perform_flip()
 //////////////////////////////////////////////
 // Manual template instantiation: Entity
 //////////////////////////////////////////////
-template sim_mob::Worker<sim_mob::Entity>::Worker(sim_mob::Worker<sim_mob::Entity>::ActionFunction* action =nullptr, boost::barrier* internal_barr =nullptr, boost::barrier* external_barr =nullptr, frame_t endTick=0, frame_t tickStep=0, bool auraManagerActive=false);
+template sim_mob::Worker<sim_mob::Entity>::Worker(SimpleWorkGroup<sim_mob::Entity>* parent, sim_mob::Worker<sim_mob::Entity>::ActionFunction* action =nullptr, boost::barrier* internal_barr =nullptr, boost::barrier* external_barr =nullptr, frame_t endTick=0, frame_t tickStep=0, bool auraManagerActive=false);
 template sim_mob::Worker<sim_mob::Entity>::~Worker();
 
 template void sim_mob::Worker<sim_mob::Entity>::start();
@@ -190,22 +228,3 @@ template void sim_mob::Worker<sim_mob::Entity>::perform_main(frame_t frameNumber
 template void sim_mob::Worker<sim_mob::Entity>::perform_flip();
 template void sim_mob::Worker<sim_mob::Entity>::barrier_mgmt();
 
-
-//////////////////////////////////////////////
-// Manual template instantiation: Agent
-//////////////////////////////////////////////
-template sim_mob::Worker<sim_mob::Agent>::Worker(sim_mob::Worker<sim_mob::Agent>::ActionFunction* action =nullptr, boost::barrier* internal_barr =nullptr, boost::barrier* external_barr =nullptr, frame_t endTick=0, frame_t tickStep=0, bool auraManagerActive=false);
-template sim_mob::Worker<sim_mob::Agent>::~Worker();
-
-template void sim_mob::Worker<sim_mob::Agent>::start();
-template void sim_mob::Worker<sim_mob::Agent>::interrupt();
-template void sim_mob::Worker<sim_mob::Agent>::join();
-
-template void sim_mob::Worker<sim_mob::Agent>::addEntity(Agent* entity);
-template void sim_mob::Worker<sim_mob::Agent>::remEntity(Agent* entity);
-template std::vector<Agent*>& sim_mob::Worker<sim_mob::Agent>::getEntities();
-template void sim_mob::Worker<sim_mob::Agent>::scheduleForRemoval(Agent* entity);
-
-template void sim_mob::Worker<sim_mob::Agent>::perform_main(frame_t frameNumber);
-template void sim_mob::Worker<sim_mob::Agent>::perform_flip();
-template void sim_mob::Worker<sim_mob::Agent>::barrier_mgmt();

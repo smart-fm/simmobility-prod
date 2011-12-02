@@ -27,6 +27,7 @@ namespace sim_mob
 class Pedestrian : public sim_mob::Role {
 public:
 	Pedestrian(Agent* parent);
+	virtual ~Pedestrian();
 
 	virtual void update(frame_t frameNumber);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
@@ -50,7 +51,7 @@ private:
 	bool startToCross;
 	double cStartX, cStartY, cEndX, cEndY;
 	bool firstTimeUpdate;
-//	Point2D destPos;
+	Point2D interPoint;
 
 	//For collisions
 	double xCollisionVector;

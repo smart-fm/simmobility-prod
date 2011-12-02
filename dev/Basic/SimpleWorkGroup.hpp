@@ -44,16 +44,9 @@ public:
 	void waitExternAgain();
 	void migrate(EntityType* ag, Worker<EntityType>* from, Worker<EntityType>* to);
 
-	Worker<EntityType>* getWorker(int id) {
-		if (id<0) {
-			return nullptr;
-		}
-		return workers.at(id);
-	}
+	Worker<EntityType>* getWorker(int id);
 
-protected:
-	//Does nothing; see sub-class WorkGroup
-	//virtual void manageData(sim_mob::BufferedDataManager* mgr, EntityType* ag, bool takeControl) = 0;
+	bool isMyTurnForAgent(Worker<EntityType>* me);
 
 
 protected:
@@ -63,6 +56,9 @@ protected:
 
 	//Worker object management
 	std::vector<Worker<EntityType>*> workers;
+
+	//Used to coordinate which Worker gets the next Agent; currently round-robin.
+	size_t nextWorkerID;
 
 	//Passed along to Workers
 	unsigned int endTick;
@@ -90,7 +86,7 @@ template <class EntityType>
 void sim_mob::SimpleWorkGroup<EntityType>::initWorkers(typename Worker<EntityType>::ActionFunction* action)
 {
 	for (size_t i=0; i<total_size; i++) {
-		workers.push_back(new Worker<EntityType>(action, &shared_barr, &external_barr, endTick, tickStep, auraManagerActive));
+		workers.push_back(new Worker<EntityType>(this, action, &shared_barr, &external_barr, endTick, tickStep, auraManagerActive));
 	}
 }
 
@@ -104,7 +100,7 @@ void sim_mob::SimpleWorkGroup<EntityType>::initWorkers(typename Worker<EntityTyp
 
 template <class EntityType>
 sim_mob::SimpleWorkGroup<EntityType>::SimpleWorkGroup(size_t size, unsigned int endTick, unsigned int tickStep, bool auraManagerActive) :
-		shared_barr(size+1), external_barr(size+1), endTick(endTick), tickStep(tickStep), total_size(size), auraManagerActive(auraManagerActive)
+		shared_barr(size+1), external_barr(size+1), nextWorkerID(0), endTick(endTick), tickStep(tickStep), total_size(size), auraManagerActive(auraManagerActive)
 {
 }
 
@@ -153,6 +149,29 @@ void sim_mob::SimpleWorkGroup<EntityType>::migrate(EntityType* ag, Worker<Entity
 	}
 }
 
+
+template <class EntityType>
+sim_mob::Worker<EntityType>* sim_mob::SimpleWorkGroup<EntityType>::getWorker(int id)
+{
+	if (id<0) {
+		return nullptr;
+	}
+	return workers.at(id);
+}
+
+
+template <class EntityType>
+bool sim_mob::SimpleWorkGroup<EntityType>::isMyTurnForAgent(Worker<EntityType>* me)
+{
+	//If not, just return false.
+	if (workers.at(nextWorkerID) != me) {
+		return false;
+	}
+
+	//If so, increment the worker ID and return true.
+	nextWorkerID = (nextWorkerID+1) % workers.size();
+	return true;
+}
 
 
 

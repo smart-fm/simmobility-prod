@@ -14,7 +14,7 @@ using boost::function;
 using namespace sim_mob;
 
 
-const bool sim_mob::WorkGroup::DebugOn = false;
+const bool sim_mob::WorkGroup::DebugOn = true;
 
 
 void sim_mob::WorkGroup::manageData(sim_mob::BufferedDataManager* mgr, Entity* ag, bool takeControl)
@@ -42,8 +42,9 @@ void sim_mob::WorkGroup::migrateByID(Entity* ag, int toID)
 
 void sim_mob::WorkGroup::migrate(Entity* ag, Worker<Entity>* toWorker)
 {
-	if (!ag)
+	if (!ag) {
 		return;
+	}
 
 	//Call the parent migrate function.
 	sim_mob::Worker<Entity>* from = ag->currWorker;
@@ -76,7 +77,7 @@ void sim_mob::WorkGroup::migrate(Entity* ag, Worker<Entity>* toWorker)
 			Agent* agent = dynamic_cast<Agent*>(ag);
 			if (agent) {
 				boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-				std::cout <<"Adding Agent " <<agent->getId() <<" to worker: " <<to <<std::endl;
+				std::cout <<"Adding Agent " <<agent->getId() <<" to worker: " <<to <<" at requested time: " <<agent->startTime <<std::endl;
 			}
 		}
 	}

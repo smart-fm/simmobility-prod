@@ -179,6 +179,8 @@ bool performMain(const std::string& configFileName)
   agents.clear();
   agents.insert(agents.begin(), starting_agents.begin(), starting_agents.end());
 
+  cout <<"Initial Agents dispatched or pushed to pending." <<endl;
+
   //Initialize our signal status work groups
   //  TODO: There needs to be a more general way to do this.
   WorkGroup signalStatusWorkers(WG_SIGNALS_SIZE, config.totalRuntimeTicks, config.granSignalsTicks);
@@ -211,9 +213,9 @@ bool performMain(const std::string& configFileName)
 	  //Output
 	  {
 		  boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-          //cout <<"Approximate Tick Boundary: " <<currTick <<", " <<(currTick*config.baseGranMS) <<" ms" <<endl;
+          cout <<"Approximate Tick Boundary: " <<currTick <<", " <<(currTick*config.baseGranMS) <<" ms" <<endl;
 		  if (!warmupDone) {
-			  //cout <<"  Warmup; output ignored." <<endl;
+			  cout <<"  Warmup; output ignored." <<endl;
 		  }
 	  }
 

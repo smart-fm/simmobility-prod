@@ -120,9 +120,7 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 
 		//Advance local time-step
 		currTick += tickStep;
-		if (endTick>0 && currTick>=endTick) {
-			this->active.set(false);
-		}
+		this->active.set(endTick==0 || currTick<endTick);
 
 		//Get the current tick value in MS
 		unsigned int currMs = currTick*ConfigParams::GetInstance().baseGranMS;

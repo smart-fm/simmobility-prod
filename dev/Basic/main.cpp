@@ -60,7 +60,13 @@ bool TestTimeClass();
 ///Worker function for entity-related loading tasks.
 void entity_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
 {
-	for (std::vector<sim_mob::Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
+	//Copy the vector worker's vector of entities, since we might change it.
+	//TODO: Deleting doesn't resize a vector, so we can play around with iterator arithmetic
+	//      and possibly avoid the need to copy.
+	vector<Entity*> copyVect;
+	copyVect.insert(copyVect.begin(), wk.getEntities().begin(), wk.getEntities().end());
+
+	for (vector<Entity*>::iterator it=copyVect.begin(); it!=copyVect.end(); it++) {
 		if (!(*it)->update(frameNumber)) {
 			//This Entity is done; schedule for deletion.
 			wk.scheduleForRemoval(*it);

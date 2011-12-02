@@ -202,7 +202,7 @@ public:
         /**
          * The list of all Signal objects in the simulator.
          */
-        static std::vector<Signal const *> all_signals_;
+        static std::vector<Signal*> all_signals_;
 
         /**
          * Furnish this Signal information about the position, type, and direction of its various

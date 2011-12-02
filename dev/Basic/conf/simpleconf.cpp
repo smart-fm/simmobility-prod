@@ -271,7 +271,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 }
 
 
-bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal const *>& all_signals, const std::string& signalKeyID)
+bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal *>& all_signals, const std::string& signalKeyID)
 {
 	//Quick check.
 	if (signalKeyID!="signal") {
@@ -489,7 +489,7 @@ void PrintDB_Network()
 
 
 	//Print the Signal representation.
-	for (vector<Signal const *>::const_iterator it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++) {
+	for (vector<Signal*>::const_iterator it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++) {
 		LogOutNotSync((*it)->toString() <<endl);
 	}
 

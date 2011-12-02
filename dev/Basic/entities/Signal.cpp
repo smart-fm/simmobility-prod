@@ -23,7 +23,7 @@ using std::string;
 double Density[] = {1, 1, 1, 1};
 double DS_all;
 
-/* static */ std::vector<Signal const *> Signal::all_signals_;
+/* static */ std::vector<Signal*> Signal::all_signals_;
 
 //Private namespace
 namespace {

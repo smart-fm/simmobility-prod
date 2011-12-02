@@ -69,12 +69,12 @@ void entity_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
 }
 
 ///Worker function for signal status loading task.
-void signal_status_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
+/*void signal_status_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
 {
 	for (std::vector<sim_mob::Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
-            (*it)->update(frameNumber);
+		(*it)->update(frameNumber);
 	}
-}
+}*/
 
 ///Worker function for loading agents.
 /*void load_agents(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
@@ -184,12 +184,14 @@ bool performMain(const std::string& configFileName)
 
   //Initialize our signal status work groups
   //  TODO: There needs to be a more general way to do this.
-  WorkGroup signalStatusWorkers(WG_SIGNALS_SIZE, config.totalRuntimeTicks, config.granSignalsTicks);
+  /*WorkGroup signalStatusWorkers(WG_SIGNALS_SIZE, config.totalRuntimeTicks, config.granSignalsTicks);
   Worker<sim_mob::Entity>::ActionFunction spWork = boost::bind(signal_status_worker, _1, _2);
-  signalStatusWorkers.initWorkers(&spWork);
+  signalStatusWorkers.initWorkers(&spWork);*/
   for (size_t i=0; i<Signal::all_signals_.size(); i++) {
-	  signalStatusWorkers.migrateByID(const_cast<Signal*>(Signal::all_signals_[i]), i%WG_SIGNALS_SIZE);
+	  agentWorkers.assignAWorker(Signal::all_signals_[i]);
   }
+	  //signalStatusWorkers.migrateByID(const_cast<Signal*>(Signal::all_signals_[i]), i%WG_SIGNALS_SIZE);
+  //}
 
   //Initialize the aura manager
   AuraManager& auraMgr = AuraManager::instance();
@@ -197,7 +199,7 @@ bool performMain(const std::string& configFileName)
 
   //Start work groups and all threads.
   agentWorkers.startAll();
-  signalStatusWorkers.startAll();
+  //signalStatusWorkers.startAll();
   //shortestPathWorkers.startAll();
 
   /////////////////////////////////////////////////////////////////
@@ -222,7 +224,7 @@ bool performMain(const std::string& configFileName)
 	  }
 
 	  //Update the signal logic and plans for every intersection grouped by region
-	  signalStatusWorkers.wait();
+	  //signalStatusWorkers.wait();
 
 	  //Update weather, traffic conditions, etc.
 	  //updateTrafficInfo(regions);

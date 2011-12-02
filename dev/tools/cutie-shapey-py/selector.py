@@ -7,6 +7,7 @@ import arrow
 import lane
 import kerb
 import road
+import tsignal
 
 class Selector(QtGui.QDockWidget):
     def __init__(self, parent=None):
@@ -30,6 +31,7 @@ class Selector(QtGui.QDockWidget):
         self.road_type_group = self.add_group("Road types")
         self.arrow_marking_group = self.add_group("Arrow markings")
         self.lane_marking_group = self.add_group("Lane markings")
+        self.traffic_signal_group = self.add_group("Traffic signals")
         self.kerb_line_group = self.add_kerb_line_group("Kerb lines")
 
         return tree
@@ -57,6 +59,8 @@ class Selector(QtGui.QDockWidget):
         elif isinstance(rec, road.Road):
             self.add_road(self.road_group, item, rec, "rec", "line")
             self.add_type(self.road_type_group, item, rec, "red", "line")
+        elif isinstance(rec, tsignal.Traffic_signal):
+            self.add_traffic_signal(item, rec)
 
     def add_type(self, group, item, rec, initial_color, shape_type):
         for i in range(group.childCount()):
@@ -89,6 +93,32 @@ class Selector(QtGui.QDockWidget):
             child.items.append(item)
 
             self.make_check_box_and_combo_box(rec.name, child, initial_color, shape_type)
+
+    def add_traffic_signal(self, item, rec):
+        group = self.traffic_signal_group
+        for i in range(group.childCount()):
+            child = group.child(i)
+            widget = self.checkables_tree.itemWidget(child, 0)
+            if rec.type == widget.text():
+                child.items.append(item)
+                break
+        else:
+            child = QtGui.QTreeWidgetItem(["button", "color", rec.type_desc()])
+            group.addChild(child)
+
+            child.items = list()
+            child.items.append(item)
+
+            if 'B' == rec.type: initial_color = "red"
+            if 'C' == rec.type: initial_color = "blue"
+            if 'F' == rec.type: initial_color = "green"
+            if 'G' == rec.type: initial_color = "cyan"
+            if 'H' == rec.type: initial_color = "magenta"
+            if 'N' == rec.type: initial_color = "yellow"
+            if 'P' == rec.type: initial_color = "black"
+            if 'R' == rec.type: initial_color = "gray"
+            if 'T' == rec.type: initial_color = "lightGray"
+            self.make_check_box_and_combo_box(rec.type, child, initial_color, "polygon")
 
     def make_check_box_and_combo_box(self, name, row, initial_color, shape_type):
         button = QtGui.QCheckBox(name)

@@ -154,10 +154,7 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 			Agent* ag = dynamic_cast<Agent*>(*it);
 			if (ag) {
 				boost::mutex::scoped_lock local_lock(sim_mob::Agent::all_agents_lock);
-				std::vector<Agent*>::iterator it2 = std::find(Agent::all_agents.begin(), Agent::all_agents.end(), ag);
-				if (it2!=Agent::all_agents.end()) {
-					Agent::all_agents.erase(it2);
-				}
+				parent->agToBeRemoved.push_back(ag);
 			}
 
 			//Delete this entity

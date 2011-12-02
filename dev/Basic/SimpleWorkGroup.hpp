@@ -51,6 +51,8 @@ public:
 	void stageAgents();
 	void assignAWorker(EntityType* ag);
 
+	std::vector<Agent*> agToBeRemoved;
+
 
 protected:
 	//Shared barrier
@@ -168,6 +170,7 @@ void sim_mob::SimpleWorkGroup<EntityType>::stageAgents()
 
 		//Add it to our global list. Requires locking.
 		{
+			//TODO: This shouldn't actually require locking. Leaving it in here for now to be safe.
 			boost::mutex::scoped_lock local_lock(sim_mob::Agent::all_agents_lock);
 			Agent::all_agents.push_back(Agent::pending_agents.top());
 		}
@@ -236,6 +239,16 @@ void sim_mob::SimpleWorkGroup<EntityType>::wait()
 
 	//Stage Agent updates based on nextTimeTickToStage
 	stageAgents();
+
+	//Remove any Agents staged for removal.
+	for (std::vector<Agent*>::iterator it=agToBeRemoved.begin(); it!=agToBeRemoved.end(); it++) {
+		boost::mutex::scoped_lock local_lock(sim_mob::Agent::all_agents_lock);
+		std::vector<Agent*>::iterator it2 = std::find(Agent::all_agents.begin(), Agent::all_agents.end(), *it);
+		if (it2!=Agent::all_agents.end()) {
+			Agent::all_agents.erase(it2);
+		}
+	}
+	agToBeRemoved.clear();
 
 	external_barr.wait();
 }

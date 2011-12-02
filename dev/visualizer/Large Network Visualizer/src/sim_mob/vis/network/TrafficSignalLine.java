@@ -1,14 +1,12 @@
 package sim_mob.vis.network;
 
 import static java.awt.geom.AffineTransform.getRotateInstance;
+
 import static java.awt.geom.AffineTransform.getTranslateInstance;
 
 import java.awt.Color;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
-import java.util.ArrayList;
-import java.util.Hashtable;
 
 import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.util.Utility;
@@ -77,10 +75,7 @@ public class TrafficSignalLine implements DrawableItem{
 	
 	@Override
 	public void draw(Graphics2D g) {
-		
-		
-		//g.drawLine((int)fromNode.getPos().getX(), (int)fromNode.getPos().getY(), (int)toNode.getPos().getX(), (int)toNode.getPos().getY()); 
-	
+			
 		drawArrow(g, (int)fromNode.getPos().getX(), (int)fromNode.getPos().getY(),(int)toNode.getPos().getX(),(int)toNode.getPos().getY());
 		
 	}

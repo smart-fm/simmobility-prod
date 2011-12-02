@@ -58,6 +58,12 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent)
 
 }
 
+//Note that a destructor is not technically needed, but I want to enforce the idea
+//  of overriding virtual destructors if they exist.
+sim_mob::Pedestrian::~Pedestrian()
+{
+}
+
 
 vector<BufferedBase*> sim_mob::Pedestrian::getSubscriptionParams()
 {
@@ -67,116 +73,67 @@ vector<BufferedBase*> sim_mob::Pedestrian::getSubscriptionParams()
 
 
 //Main update functionality
-void sim_mob::Pedestrian::update(frame_t frameNumber)
-{
+void sim_mob::Pedestrian::update(frame_t frameNumber) {
+	unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
+	if (currTimeMS < parent->startTime) {
+		return;
+		//throw std::runtime_error("Pedestrian should not be started before its startTime; this should be automatic.");
+	}
 
-	if(frameNumber>=parent->startTime){
+	//Set the initial position of agent
+	if (isFirstTimeUpdate()) {
+		setGoal(currentStage);
+		return;
+	}
 
-		//Set the initial position of agent
-		if(isFirstTimeUpdate()){
-//			parent->xPos.set(parent->originNode->location->getX());
-//			parent->yPos.set(parent->originNode->location->getY());
-//			cStartX=372507.60;
-//			cStartY=143551.20;
-//			cEndX=((double)parent->destNode->location->getX())/100;
-//			cEndX=((double)parent->destNode->location->getY())/100;
-			setGoal(currentStage);
-
-			//TEMP: for testing on self-created network only
-//			cStartX=500;
-//			cStartY=300;
-//			cEndX=500;
-//			cEndY=600;
-
+	//Check if the agent has reached the destination
+	if (isDestReached()) {
+		if (!parent->isToBeRemoved()) {
+			//Output (temp)
+			LogOut("Pedestrian " <<parent->getId() <<" has reached the destination" <<std::endl);
+			parent->setToBeRemoved();
 		}
-		else{
-		//update signal information
-//		updatePedestrianSignal();
+		return;
+	}
 
-	    //checkForCollisions();
+	if (isGoalReached()) {
+		currentStage++;
+		setGoal(currentStage); //Set next goal
+		return;
+	}
 
-		//Check if the agent has reached the destination
-		if(isDestReached()){
+	if (currentStage == 0 || currentStage == 2) {
+		updateVelocity(0);
+		updatePosition();
+		LogOut("Pedestrian " <<parent->getId() <<" is walking on sidewalk" <<std::endl);
+		LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
+		return;
+	}
 
-			if(!parent->isToBeRemoved()){
-				//Output (temp)
-				LogOut("Pedestrian " <<parent->getId() <<" has reached the destination" <<std::endl);
-				parent->setToBeRemoved(true);
+	if (currentStage == 1) {
+		//Check whether to start to cross or not
+		updatePedestrianSignal();
+		if (!startToCross) {
+			if (sigColor == Signal::Green) //Green phase
+				startToCross = true;
+			else if (sigColor == Signal::Red) { //Red phase
+				if (checkGapAcceptance() == true)
+					startToCross = true;
 			}
-			return;
 		}
 
-		if(isGoalReached()){
-			currentStage++;
-			setGoal(currentStage); //Set next goal
-//			{
-//				boost::mutex::scoped_lock local_lock(Logger::global_mutex);
-//				LogOutNotSync("Pedestrian " <<parent->getId() <<" has reached goal " <<currentStage<<std::endl);
-//				LogOutNotSync("("<<"Pedestrian,"<<frameNumber<<","<<parent->getId()<<","<<"{xPos:"<<parent->xPos.get()<<"," <<"yPos:"<<this->parent->yPos.get()<<","<<"pedSig:"<<currPhase<<",})"<<std::endl);
-//			}
+		if (startToCross) {
+			if (sigColor == Signal::Green) //Green phase
+				updateVelocity(1);
+			else if (sigColor == Signal::Red) //Red phase
+				updateVelocity(2);
+			updatePosition();
+		} else {
+			//Output (temp)
+			LogOut("Pedestrian " <<parent->getId() <<" is waiting at the crossing" <<std::endl);
 		}
-		else{
-
-			if(currentStage==0||currentStage==2){
-				updateVelocity(0);
-				updatePosition();
-				LogOut("Pedestrian " <<parent->getId() <<" is walking on sidewalk" <<std::endl);
-//				//Output (temp)
-//				LogOut("("<<"Pedestrian,"<<frameNumber<<","<<parent->getId()<<","<<"{xPos:"<<parent->xPos.get()<<"," <<"yPos:"<<this->parent->yPos.get()<<","<<"pedSig:"<<currPhase<<",})"<<std::endl);
-//				LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
-				LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
-			}
-			else if(currentStage==1){
-
-				//Check whether to start to cross or not
-				updatePedestrianSignal();
-				if(!startToCross){
-					if(sigColor == Signal::Green)  //Green phase
-						startToCross = true;
-					else if(sigColor == Signal::Red){ //Red phase
-						if(checkGapAcceptance()==true)
-							startToCross=true;
-					}
-				}
-
-				if(startToCross){
-					if(sigColor==Signal::Green) //Green phase
-						updateVelocity(1);
-					else if (sigColor ==Signal::Red) //Red phase
-						updateVelocity(2);
-					updatePosition();
-				}
-				else{
-					//Output (temp)
-                    LogOut("Pedestrian " <<parent->getId() <<" is waiting at the crossing" <<std::endl);
-				}
-				//Output (temp)
-                    LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
-			}
-
-		}
-
-
-	//	//Continue checking if the goal has not been reached.
-	//	if(reachStartOfCrossing()) {
-	//		if(currPhase == 3){ //Green phase
-	//			updateVelocity(1);
-	//			updatePosition();
-	//		} else if (currPhase == 1) { //Red phase
-	//			//Waiting, do nothing now
-	//			//Output (temp)
-	//			checkGapAcceptance();
-        //			LogOut("(Agent " <<parent->getId() <<" is waiting at crossing at frame "<<frameNumber<<")" <<std::endl);
-	//		}
-	//	} else {
-	//		if(currPhase==1&&onCrossing())
-	//			updateVelocity(2);
-	//		else
-	//			updateVelocity(1);
-	//		updatePosition();
-	//	}
-		}
-
+		//Output (temp)
+		LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
 	}
 }
 
@@ -190,7 +147,26 @@ void sim_mob::Pedestrian::setGoal(int stage) //0-to the next intersection, 1-to 
 	//Give every agent the same goal.
 	//goal.xPos = 1100;
 	if(stage==0){
-		goal = Point2D(37250760,14355120); //Hard-code now, need to be replaced once route choicer is done
+//		goal = Point2D(37250760,14355120); //Hard-code now, need to be replaced once route choicer is done
+		const Lane* nextSideWalk;
+		vector<WayPoint> wp_path= StreetDirectory::instance().shortestWalkingPath(*parent->originNode->location,*parent->destNode->location);
+		for(vector<WayPoint>::iterator it=wp_path.begin(); it!=wp_path.end(); it++) {
+			if(it->type_ == WayPoint::SIDE_WALK) {
+				nextSideWalk=it->lane_;
+				break;
+			}
+		}
+		if(nextSideWalk->getRoadSegment()->getStart()==parent->originNode){
+//			std::cout<<"Intersection is "<<nextSideWalk->getRoadSegment()->getEnd()->location->getX()<<" "<<nextSideWalk->getRoadSegment()->getEnd()->location->getY()<<std::endl;
+			goal = Point2D(nextSideWalk->getRoadSegment()->getEnd()->location->getX(),nextSideWalk->getRoadSegment()->getEnd()->location->getY());
+			interPoint = Point2D(nextSideWalk->getRoadSegment()->getEnd()->location->getX(),nextSideWalk->getRoadSegment()->getEnd()->location->getY());
+		}
+		else{
+//			std::cout<<"Intersection is "<<nextSideWalk->getRoadSegment()->getStart()->location->getX()<<" "<<nextSideWalk->getRoadSegment()->getEnd()->location->getY()<<std::endl;
+			goal = Point2D(nextSideWalk->getRoadSegment()->getStart()->location->getX(),nextSideWalk->getRoadSegment()->getStart()->location->getY());
+			interPoint = Point2D(nextSideWalk->getRoadSegment()->getStart()->location->getX(),nextSideWalk->getRoadSegment()->getStart()->location->getY());
+		}
+
 		setSidewalkParas(parent->originNode,ConfigParams::GetInstance().getNetwork().locateNode(goal, true),false);
 //		goalInLane = Point2D(37250760,14355120);
 
@@ -213,7 +189,7 @@ void sim_mob::Pedestrian::setGoal(int stage) //0-to the next intersection, 1-to 
 //		parent->xPos.set(37250760);  //Hard-code now, to be changed
 //		parent->yPos.set(14355120);
 		goal = Point2D(parent->destNode->location->getX(),parent->destNode->location->getY());
-		setSidewalkParas(ConfigParams::GetInstance().getNetwork().locateNode(Point2D(37250760,14355120),true),parent->destNode,true);
+		setSidewalkParas(ConfigParams::GetInstance().getNetwork().locateNode(interPoint,true),parent->destNode,true);
 //		goalInLane = Point2D(parent->destNode->location->getX(),parent->destNode->location->getY());
 //		goal = Point2D(destPos.getX(),destPos.getY());
 	}
@@ -224,7 +200,7 @@ void sim_mob::Pedestrian::setSidewalkParas(Node* start, Node* end, bool isStartM
 
 	unsigned int numOfLanes;
 	const RoadSegment* segToWalk=nullptr;
-	bool isForward;
+	//bool isForward;
 //	const Lane* sideWalk;
 	Point2D startPt, endPt;
 	const std::vector<sim_mob::Point2D>* sidewalkPolyLine;

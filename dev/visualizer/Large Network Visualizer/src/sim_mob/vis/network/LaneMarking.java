@@ -7,9 +7,9 @@ import sim_mob.vis.controls.DrawableItem;
 
 public class LaneMarking implements DrawableItem{
 	//Constants/Resources
-	private static Color laneColor = new Color(0x00, 0x00, 0x00);
-	private static Color sideWalkColor = new Color(0x84, 0x70, 0xff);
-	private static Stroke laneStroke = new BasicStroke(1.0F);
+	//private static Color laneColor = new Color(0x00, 0x00, 0x00);
+	//private static Color sideWalkColor = new Color(0x84, 0x70, 0xff);
+	//private static Stroke laneStroke = new BasicStroke(1.0F);
 	
 	private Integer parentSegment;
 	private Node start;

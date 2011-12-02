@@ -25,7 +25,7 @@ public:
 	virtual ~Person();
 
 	///Update Person behavior
-	virtual void update(frame_t frameNumber);
+	virtual bool update(frame_t frameNumber);
 
 	///Update a Person's subscription list.
 	virtual void buildSubscriptionList();

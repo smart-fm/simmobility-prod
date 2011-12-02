@@ -31,7 +31,7 @@ class Region : public Entity {
 public:
 	Region(unsigned int id=0);
 
-	virtual void update(frame_t frameNumber);
+	virtual bool update(frame_t frameNumber);
 
 	virtual void buildSubscriptionList() {} //Nothing for now
 

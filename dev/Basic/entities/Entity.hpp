@@ -2,17 +2,22 @@
 
 #pragma once
 
+#include <iostream>
 #include <string>
 #include <stdexcept>
 #include <sstream>
 
+#include "util/LangHelpers.hpp"
 #include "metrics/Frame.hpp"
 #include "buffering/BufferedDataManager.hpp"
-#include "workers/Worker.hpp"
+//#include "workers/Worker.hpp"
 
 
 namespace sim_mob
 {
+
+template <class EntityType>
+class Worker;
 
 class WorkGroup;
 
@@ -26,8 +31,12 @@ public:
 	Entity(unsigned int id) : id(id), isSubscriptionListBuilt(false), currWorker(nullptr) {}
 	virtual ~Entity() {
 		if (currWorker) {
-			//TODO: Make sure throwing from destructors is ok.
-			throw std::runtime_error("Error: Deleting an Entity which is still being managed by a Worker.");
+			//Note: If a worker thread is still active for this agent, that's a major problem. But
+			//      we can't throw an exception since that may lead to a call of terminate().
+			//      So we'll output a message and terminate manually, since throwing exceptions from
+			//      a destructor is iffy at best.
+			std::cout <<"Error: Deleting an Entity which is still being managed by a Worker." <<std::endl;
+			abort();
 		}
 	}
 
@@ -37,8 +46,13 @@ public:
 	 * simpleconf.hpp for more information), and will update the entity's state. During this phase,
 	 * the entity may call any Buffered data type's "get" method, but may only "set" its own
 	 * Buffered data. Flip is called after each update phase.
+	 *
+	 * Returns true if the Entity should be scheduled for at least one more time tick.
+	 *
+	 * If this function returns false, the Entity should be considered finished with its work
+	 *   and may be removed from the Simulation and deleted.
 	 */
-	virtual void update(frame_t frameNumber) = 0;
+	virtual bool update(frame_t frameNumber) = 0;
 
 
 protected:

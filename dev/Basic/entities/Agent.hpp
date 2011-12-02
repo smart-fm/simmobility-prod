@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <queue>
 #include <vector>
 #include <stdlib.h>
 
@@ -16,10 +17,19 @@
 #include "Entity.hpp"
 
 
+
+
 namespace sim_mob
 {
 
+class Agent;
 class WorkGroup;
+
+
+//Comparison for our priority queue
+struct cmp_agent_start : std::binary_function <const Agent*, const Agent*,bool> {
+  bool operator() (const Agent* x, const Agent* y) const;
+};
 
 
 /**
@@ -31,7 +41,7 @@ public:
 	Agent(int id=-1);
 	virtual ~Agent();
 
-	virtual void update(frame_t frameNumber) = 0;  ///<Update agent behvaior
+	virtual bool update(frame_t frameNumber) = 0;  ///<Update agent behvaior
 
 	///Subscribe this agent to a data manager.
 	//virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew);
@@ -39,7 +49,7 @@ public:
 
 	//Removal methods
 	bool isToBeRemoved();
-	void setToBeRemoved(bool value);
+	void setToBeRemoved();
 
 public:
 	//The agent's start/end nodes.
@@ -66,6 +76,10 @@ public:
 
 	///Agents can access all other agents (although they usually do not access by ID)
 	static std::vector<Agent*> all_agents;
+	static std::priority_queue<Agent*, std::vector<Agent*>, cmp_agent_start> pending_agents; //Agents waiting to be added to the simulation, prioritized by start time.
+
+	///When adding/deleting Agents asynchronously, a lock is required.
+	static boost::mutex all_agents_lock;
 
 	///Temporary variable; holds a pointer to the current Agent work group. Will be moved
 	///  into the Dispatch Manager as soon as it's created.
@@ -76,6 +90,7 @@ public:
 	///\note
 	///Passing in a negative number will always auto-assign an ID, and is recommended.
 	static unsigned int GetAndIncrementID(int preferredID);
+
 
 private:
 	//unsigned int currMode;

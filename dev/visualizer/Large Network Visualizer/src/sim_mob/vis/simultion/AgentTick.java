@@ -1,9 +1,6 @@
 package sim_mob.vis.simultion;
 
-import java.awt.Graphics2D;
-
 import sim_mob.vis.controls.DrawableAgent;
-import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.network.basic.ScaledPoint;
 
 

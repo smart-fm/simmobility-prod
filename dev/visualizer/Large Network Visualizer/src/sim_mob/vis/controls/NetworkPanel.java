@@ -93,6 +93,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		updateMap();
 		return true;
 	}
+	
 	public boolean advanceAnimbyStep(int ticks, JSlider slider) {
 		//Increment
 		if (netViewCache==null || !netViewCache.incrementCurrFrameTick(ticks)) {
@@ -101,8 +102,6 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		
 		return jumpAnim(netViewCache.getCurrFrameTick(), slider);
 	}
-	
-	
 	
 	public boolean advanceAnim(int ticks, JSlider slider) {
 		//Increment
@@ -122,6 +121,15 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		netViewCache = nv;
 		
 		updateMap();
+	}
+	
+	public void showFakeAgent(boolean drawFakeAgent){
+		
+		if(netViewCache == null){
+			return;
+		}
+		netViewCache.toggleFakeAgent(drawFakeAgent);
+		this.repaint();
 	}
 	
 	

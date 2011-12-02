@@ -11,6 +11,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import sim_mob.conf.CSS_Interface;
 import sim_mob.vis.controls.*;
@@ -23,6 +25,10 @@ import sim_mob.vis.util.Utility;
 public class MainFrame extends JFrame {
 	public static final long serialVersionUID = 1L;
 	
+	//Regex
+	private static final String num = "([0-9]+)";
+	public static final Pattern NUM_REGEX = Pattern.compile(num);
+	
 	//Center (main) panel
 	private NetworkPanel newViewPnl;
 	private SimulationResults simData;
@@ -31,6 +37,10 @@ public class MainFrame extends JFrame {
 	//LHS panel
 	private JButton openLogFile;
 	private JButton openEmbeddedFile;
+	private JButton changeClockRate;
+	private JButton showFakeAgent;
+	
+	private JTextField clockRateField;
 	
 	//Lower panel
 	private Timer animTimer;
@@ -43,7 +53,8 @@ public class MainFrame extends JFrame {
 	
 	//Helper
 	public static CSS_Interface Config;
-
+	private boolean showFake;
+	
 		
 	/**
 	 * NOTE: Currently, I haven't found a good way to switch between MainFrame as a JFrame and MainFrame as an Applet.
@@ -58,7 +69,7 @@ public class MainFrame extends JFrame {
 		MainFrame.Config = config;
 		//Initial setup: FRAME AND APPLET
 		this.setSize(1024, 768);
-		
+		this.showFake = false;
 		//Components and layout
 		try {
 			loadComponents();
@@ -68,9 +79,9 @@ public class MainFrame extends JFrame {
 		} catch (Exception ex) {
 			throw new RuntimeException(ex);
 		}
+		
 	
 	}
-	
 	
 	/**
 	 * Load all components and initialize them properly.
@@ -79,9 +90,13 @@ public class MainFrame extends JFrame {
 		playIcon = new ImageIcon(Utility.LoadImgResource("res/icons/play.png"));
 		pauseIcon = new ImageIcon(Utility.LoadImgResource("res/icons/pause.png"));
 		console = new JTextField();
-		
-		openLogFile = new JButton("Open Logfile", new ImageIcon(Utility.LoadImgResource("res/icons/open.png")));
+	    clockRateField  = new JTextField();
+	    
+	    openLogFile = new JButton("Open Logfile", new ImageIcon(Utility.LoadImgResource("res/icons/open.png")));
 		openEmbeddedFile = new JButton("Open Default", new ImageIcon(Utility.LoadImgResource("res/icons/embed.png")));
+		changeClockRate = new JButton("Change Clock Rate", new ImageIcon(Utility.LoadImgResource("res/icons/xclock.png")));
+		showFakeAgent = new JButton("Toggle Fake Agent", new ImageIcon(Utility.LoadImgResource("res/icons/fake.png")));
+		
 		frameTickSlider = new JSlider(JSlider.HORIZONTAL);
 		revBtn = new JButton(new ImageIcon(Utility.LoadImgResource("res/icons/rev.png")));
 		playBtn = new JButton(playIcon);
@@ -89,11 +104,11 @@ public class MainFrame extends JFrame {
 		
 		newViewPnl = new NetworkPanel(new StringSetter() {
 			public void set(String str) {
+
 				//Update the status bar
 				console.setText(str);
 			}
 		});
-
 	}
 	
 	/**
@@ -102,9 +117,12 @@ public class MainFrame extends JFrame {
 	 */
 	private void addComponents(Container cp) {
 		//Left panel
-		JPanel jpLeft = new JPanel(new GridLayout(0, 1, 0, 10));
+		JPanel jpLeft = new JPanel(new GridLayout(0, 1, 0, 10));	
 		jpLeft.add(openLogFile);
 		jpLeft.add(openEmbeddedFile);
+		jpLeft.add(clockRateField);
+		jpLeft.add(changeClockRate);
+		jpLeft.add(showFakeAgent);
 		
 		//Bottom panel
 		JPanel jpLower = new JPanel(new BorderLayout());
@@ -222,6 +240,7 @@ public class MainFrame extends JFrame {
 			
 		});
 
+	
 		
 		//20 FPS, update anim
 		animTimer = new Timer(50, new ActionListener() {
@@ -234,7 +253,50 @@ public class MainFrame extends JFrame {
 			}
 		});
 		
+		changeClockRate.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				
+				String speed = clockRateField.getText();
+				
+		        Matcher matcher = null;
+		        matcher = NUM_REGEX.matcher(speed);
+		        
+				if(!speed.isEmpty() && matcher.matches()){
+					int clockRate = Integer.parseInt(speed);
+					
+					animTimer.stop();
+					
+					animTimer = new Timer(clockRate, new ActionListener() {
+						public void actionPerformed(ActionEvent arg0) {
+							if (!newViewPnl.advanceAnim(1, frameTickSlider)) {
+								animTimer.stop();
+								playBtn.setIcon(playIcon);
+								return;
+							}
+						}
+					});
+					animTimer.start();
+					
+				}
+				
+			}
+		});
 		
+		showFakeAgent.addActionListener(new ActionListener() {
+
+			public void actionPerformed(ActionEvent arg0) {
+				
+				if(showFake){
+					newViewPnl.showFakeAgent(false);
+					showFake = false;
+				}else{
+					newViewPnl.showFakeAgent(true);
+					showFake = true;
+				}
+			
+			}
+			
+		});
 		
 		
 		openEmbeddedFile.addActionListener(new ActionListener() {
@@ -249,8 +311,9 @@ public class MainFrame extends JFrame {
 				openAFile(false);
 			}
 		});
+		
+
 	}
-	
 	
 	private void openAFile(boolean isEmbedded) {
 		//Pause the animation

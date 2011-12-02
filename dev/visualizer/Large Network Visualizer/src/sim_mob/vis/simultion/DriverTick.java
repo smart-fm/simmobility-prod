@@ -1,16 +1,13 @@
 package sim_mob.vis.simultion;
 
 import java.awt.BasicStroke;
+
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
 
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.awt.image.BufferedImageOp;
-import java.awt.image.LookupOp;
-import java.awt.image.LookupTable;
-import java.awt.image.ShortLookupTable;
 import java.io.IOException;
 
 import sim_mob.vis.network.basic.ScaledPoint;
@@ -62,6 +59,49 @@ public class DriverTick extends AgentTick {
 		fake = true;
 	}
 	
+	public void draw(Graphics2D g,double scale, boolean drawFake){
+		AffineTransform oldAT = g.getTransform();
+
+		AffineTransform at = AffineTransform.getTranslateInstance(pos.getX(), pos.getY());
+		
+		//Rotate
+		at.rotate((Math.PI*angle)/180);
+		
+		//Scale
+		at.scale(1/scale + 0.2, 1/scale + 0.2);
+		
+		//Translate to top-left corner
+		at.translate(-CarImg.getWidth()/2, -CarImg.getHeight()/2);
+
+		//Set new transformation matrix
+		g.setTransform(at);
+		
+		//Draw with fake agent enabled
+		if(drawFake){
+			if(fake){
+				g.drawImage(FakeCarImg, 0, 0, null);		
+			}else{
+				g.drawImage(CarImg, 0, 0, null);				
+			}	
+		} else {
+			g.drawImage(CarImg, 0, 0, null);				
+		}
+		
+		//Restore old transformation matrix
+		g.setTransform(oldAT);
+		
+		//Sample debug output
+		if (DebugOn) {
+			int sz = 10;
+			int x = (int)pos.getX();
+			int y = (int)pos.getY();
+			g.setColor(debugClr);
+			g.setStroke(debugStr);
+			g.drawOval(x-sz, y-sz, 2*sz, 2*sz);
+			g.drawLine(x-3*sz/2, y, x+3*sz/2,y);
+			g.drawLine(x, y-3*sz/2, x, y+3*sz/2);
+		}
+	}
 	public void draw(Graphics2D g,double scale) {
 	
 //	public void draw(Graphics2D g) {
@@ -105,6 +145,7 @@ public class DriverTick extends AgentTick {
 		}
 		
 	}
+
 	
 
 	

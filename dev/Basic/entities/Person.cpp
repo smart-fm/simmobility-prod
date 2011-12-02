@@ -1,6 +1,11 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "Person.hpp"
+//#include "SimpleWorkGroup.hpp"
+
+//For debugging
+#include "entities/roles/driver/Driver.hpp"
+#include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "WorkGroup.hpp"
 
 using std::vector;
@@ -19,31 +24,22 @@ sim_mob::Person::~Person()
 }
 
 
-void sim_mob::Person::update(frame_t frameNumber)
+bool sim_mob::Person::update(frame_t frameNumber)
 {
 	//Update this agent's role
 	if (currRole) {
 		currRole->update(frameNumber);
 	}
 
-	//Are we done?
-	//NOTE: Make sure you set this flag AFTER performing your final output.
-	if (isToBeRemoved()) {
-		//TODO: Everything in this scope will likely be moved to the Dispatch Manager later on.
-
-		//Migrate this Agent off of its current Worker.
-		Agent::TMP_AgentWorkGroup->migrate(this, -1);
-
-		//Remove this Agent from the list of discoverable Agents
-		vector<Agent*>::iterator it = std::find(Agent::all_agents.begin(),Agent::all_agents.end(), this);
-		if (it!=Agent::all_agents.end()) {
-			Agent::all_agents.erase(it);
-		}
-
-		//Deleting yourself is ok if you're sure there are no lingering references
-		// (again, this will be moved to the Dispatch Manager later. So please ignore the ugliness of deleting this for now.)
-		delete this;
+	if (WorkGroup::DebugOn && isToBeRemoved()) {
+		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+		std::cout <<"Person requested removal: " <<(dynamic_cast<Driver*>(currRole) ? "Driver" : dynamic_cast<Pedestrian*>(currRole) ? "Pedestrian" : "Other") <<"\n";
 	}
+
+	//Return true unless we are scheduled for removal.
+	//NOTE: Make sure you set this flag AFTER performing your final output.
+	//return !isToBeRemoved();
+	return true;
 }
 
 /*void sim_mob::Person::subscribe(sim_mob::BufferedDataManager* mgr, bool isNew) {

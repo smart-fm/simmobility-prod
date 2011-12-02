@@ -1,0 +1,23 @@
+Changes to Driver since branch:
+
+* changed p.currentspeed data type from int to double.
+* force the vehicle do lane changing
+
+
+
+Merge conflicts
+Auto-merging dev/Basic/conf/simpleconf.cpp
+CONFLICT (delete/modify): dev/Basic/entities/roles/driver/CF_Model.cpp deleted in seth_vectmove and modified in HEAD. Version HEAD of dev/Basic/entities/roles/driver/CF_Model.cpp left in tree.
+Auto-merging dev/Basic/entities/roles/driver/Driver.cpp
+CONFLICT (content): Merge conflict in dev/Basic/entities/roles/driver/Driver.cpp
+Auto-merging dev/Basic/entities/roles/driver/Driver.hpp
+CONFLICT (content): Merge conflict in dev/Basic/entities/roles/driver/Driver.hpp
+Removing dev/Basic/entities/roles/driver/LC_Model.cpp
+Auto-merging dev/Basic/entities/roles/pedestrian/Pedestrian.cpp
+Auto-merging dev/Basic/entities/roles/pedestrian/Pedestrian.hpp
+Auto-merging dev/Basic/geospatial/aimsun/Loader.cpp
+CONFLICT (content): Merge conflict in dev/Basic/geospatial/aimsun/Loader.cpp
+Auto-merging dev/Basic/main.cpp
+Removing dev/Basic/util/RelAbsPoint.hpp
+Automatic merge failed; fix conflicts and then commit the result.
+

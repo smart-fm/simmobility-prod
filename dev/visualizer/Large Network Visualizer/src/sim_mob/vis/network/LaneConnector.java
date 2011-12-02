@@ -1,8 +1,5 @@
 package sim_mob.vis.network;
 
-import java.awt.Graphics2D;
-
-import sim_mob.vis.controls.DrawableItem;
 
 public class LaneConnector{
 
@@ -13,6 +10,9 @@ public class LaneConnector{
 	
 	private Node fromNode;
 	private Node toNode;
+	
+	public Node getFromNode(){return fromNode; }
+	public Node getToNode(){return toNode; }
 	
 	public int getFromSegment(){return fromSegment; }
 	public int getToSegment(){return toSegment;}

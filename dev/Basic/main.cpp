@@ -31,6 +31,9 @@
 #include "entities/AuraManager.hpp"
 #include "entities/Bus.hpp"
 #include "entities/Person.hpp"
+#include "entities/roles/Role.hpp"
+#include "entities/roles/driver/Driver.hpp"
+#include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "geospatial/BusStop.hpp"
 #include "geospatial/Route.hpp"
@@ -58,7 +61,10 @@ bool TestTimeClass();
 void entity_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
 {
 	for (std::vector<sim_mob::Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
-		(*it)->update(frameNumber);
+		if (!(*it)->update(frameNumber)) {
+			//This Entity is done; schedule for deletion.
+			wk.scheduleForRemoval(*it);
+		}
 	}
 }
 
@@ -71,9 +77,9 @@ void signal_status_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNum
 }
 
 ///Worker function for loading agents.
-void load_agents(sim_mob::Worker<sim_mob::Agent>& wk, frame_t frameNumber)
+void load_agents(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
 {
-	for (std::vector<sim_mob::Agent*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
+	for (std::vector<sim_mob::Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
 		trivial((*it)->getId());
 	}
 }
@@ -129,9 +135,9 @@ bool performMain(const std::string& configFileName)
   cout <<"  " <<"Initialization done" <<endl;
 
   //Sanity check (simple)
-  if (!CheckAgentIDs(agents /*trips,*/ /*choiceSets*/)) {
+  /*if (!CheckAgentIDs(agents )) {
 	  return false;
-  }
+  }*/
 
   //Sanity check (nullptr)
   void* x = nullptr;
@@ -150,14 +156,29 @@ bool performMain(const std::string& configFileName)
   cout <<"  " <<"...Sanity Check Passed" <<endl;
 
 
-  //Initialize our work groups, assign agents randomly to these groups.
+  //Initialize our work groups.
   WorkGroup agentWorkers(WG_AGENTS_SIZE, config.totalRuntimeTicks, config.granAgentsTicks, true);
   Agent::TMP_AgentWorkGroup = &agentWorkers;
   Worker<sim_mob::Entity>::ActionFunction entityWork = boost::bind(entity_worker, _1, _2);
   agentWorkers.initWorkers(&entityWork);
+
+  //Migrate all Agents from the all_agents array to the pending_agents priority queue. For now, this
+  //  means Agents can't start on time tick 1, but that will be simple to fix later.
+  vector<Agent*> starting_agents;
   for (size_t i=0; i<agents.size(); i++) {
-	  agentWorkers.migrate(agents[i], i%WG_AGENTS_SIZE);
+	  Agent* const ag = agents[i];
+	  /*if (ag->startTime==0) {*/
+	  if (true) {
+		  //Only agents with a start time of zero should start immediately in the all_agents list.
+		  agentWorkers.migrateByID(agents[i], i%WG_AGENTS_SIZE);
+		  starting_agents.push_back(ag);
+	  } else {
+		  //Start later.
+		  Agent::pending_agents.push(ag);
+	  }
   }
+  agents.clear();
+  agents.insert(agents.begin(), starting_agents.begin(), starting_agents.end());
 
   //Initialize our signal status work groups
   //  TODO: There needs to be a more general way to do this.
@@ -165,7 +186,7 @@ bool performMain(const std::string& configFileName)
   Worker<sim_mob::Entity>::ActionFunction spWork = boost::bind(signal_status_worker, _1, _2);
   signalStatusWorkers.initWorkers(&spWork);
   for (size_t i=0; i<Signal::all_signals_.size(); i++) {
-	  signalStatusWorkers.migrate(const_cast<Signal*>(Signal::all_signals_[i]), i%WG_SIGNALS_SIZE);
+	  signalStatusWorkers.migrateByID(const_cast<Signal*>(Signal::all_signals_[i]), i%WG_SIGNALS_SIZE);
   }
 
   //Start work groups
@@ -183,6 +204,7 @@ bool performMain(const std::string& configFileName)
   //       a barrier sync.
   /////////////////////////////////////////////////////////////////
   size_t numStartAgents = Agent::all_agents.size();
+  size_t numPendingAgents = Agent::pending_agents.size();
   for (unsigned int currTick=0; currTick<config.totalRuntimeTicks; currTick++) {
 	  //Flag
 	  bool warmupDone = (currTick >= config.totalWarmupTicks);
@@ -226,17 +248,31 @@ bool performMain(const std::string& configFileName)
 	  //saveStatisticsToDB(agents);
   }
 
-  cout <<"Starting Agents: " <<numStartAgents <<endl;
+  cout <<"Starting Agents: " <<numStartAgents <<",     Pending: " <<numPendingAgents <<endl;
   if (Agent::all_agents.empty()) {
 	  cout <<"All Agents have left the simulation.\n";
   } else {
 	  size_t numPerson = 0;
+	  size_t numDriver = 0;
+	  size_t numPedestrian = 0;
 	  for (vector<Agent*>::iterator it=Agent::all_agents.begin(); it!=Agent::all_agents.end(); it++) {
-		  if (dynamic_cast<Person*>(*it)) {
+		  Person* p = dynamic_cast<Person*>(*it);
+		  if (p) {
 			  numPerson++;
+			  if (p->getRole() && dynamic_cast<Driver*>(p->getRole())) {
+				  numDriver++;
+			  }
+			  if (p->getRole() && dynamic_cast<Pedestrian*>(p->getRole())) {
+				  numPedestrian++;
+			  }
 		  }
 	  }
 	  cout <<"Remaining Agents: " <<numPerson <<" (Person)   " <<(Agent::all_agents.size()-numPerson) <<" (Other)" <<endl;
+	  cout <<"   Person Agents: " <<numDriver <<" (Driver)   " <<numPedestrian <<" (Pedestrian)   " <<(numPerson-numDriver-numPedestrian) <<" (Other)" <<endl;
+  }
+
+  if (!Agent::pending_agents.empty()) {
+	  cout <<"WARNING! There are still " <<Agent::pending_agents.size() <<" Agents waiting to be scheduled; next start time is: " <<Agent::pending_agents.top()->startTime <<" ms\n";
   }
 
   cout <<"Simulation complete; closing worker threads." <<endl;
@@ -293,10 +329,10 @@ int main(int argc, char* argv[])
 void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents)
 {
 	  //Our work groups. Will be disposed after this time tick.
-	  SimpleWorkGroup<sim_mob::Agent> createAgentWorkers(WG_CREATE_AGENT_SIZE, 1);
+	  SimpleWorkGroup<sim_mob::Entity> createAgentWorkers(WG_CREATE_AGENT_SIZE, 1);
 
 	  //Create agents
-	  Worker<sim_mob::Agent>::ActionFunction func2 = boost::bind(load_agents, _1, _2);
+	  Worker<sim_mob::Entity>::ActionFunction func2 = boost::bind(load_agents, _1, _2);
 	  createAgentWorkers.initWorkers(&func2);
 	  for (size_t i=0; i<agents.size(); i++) {
 		  createAgentWorkers.migrate(agents[i], createAgentWorkers.getWorker(-1), createAgentWorkers.getWorker(i%WG_CREATE_AGENT_SIZE));
@@ -318,7 +354,9 @@ void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents)
  * Simple sanity check on Agent IDs. Checks that IDs start at 0, end at size(agents)-1,
  *   and contain every value in between. Order is not important.
  */
-bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents) {
+//This is unlikely to be true from here on out, since Agents aren't always dispatched
+//   (and may soon not even be created until needed).
+/*bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents) {
     std::vector<sim_mob::Agent const *> all_agents(agents.begin(), agents.end());
     std::copy(Signal::all_signals_.begin(), Signal::all_signals_.end(), std::back_inserter(all_agents));
 
@@ -342,7 +380,7 @@ bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents) {
 	}
 
 	return true;
-}
+}*/
 
 
 bool TestTimeClass()

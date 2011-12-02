@@ -7,10 +7,22 @@
 using namespace sim_mob;
 
 using std::vector;
+using std::priority_queue;
 
 
+boost::mutex sim_mob::Agent::all_agents_lock;
 vector<Agent*> sim_mob::Agent::all_agents;
 WorkGroup* sim_mob::Agent::TMP_AgentWorkGroup(nullptr);
+priority_queue<Agent*, vector<Agent*>, sim_mob::cmp_agent_start> sim_mob::Agent::pending_agents;
+
+
+//Implementation of our comparison function for Agents by start time.
+bool sim_mob::cmp_agent_start::operator() (const Agent* x, const Agent* y) const
+{
+	//We want a lower start time to translate into a higher priority.
+	return x->startTime > y->startTime;
+}
+
 
 unsigned int sim_mob::Agent::next_agent_id = 0;
 unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID)
@@ -60,13 +72,8 @@ bool sim_mob::Agent::isToBeRemoved()
 }
 
 
-void sim_mob::Agent::setToBeRemoved(bool value)
+void sim_mob::Agent::setToBeRemoved()
 {
-	//Do nothing?
-	/*if (value==toRemoved) {
-		return;
-	}*/
-
-	toRemoved = value;
+	toRemoved = true;
 }
 

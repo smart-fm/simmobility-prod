@@ -24,6 +24,7 @@ public class RoadNetwork {
 	private Hashtable<Integer, LaneConnector> laneConnectors;
 	private Hashtable<Integer, Hashtable<Integer,Lane> > lanes;
 	private Hashtable<Integer, TrafficSignalLine> trafficSignalLines;
+	private Hashtable<Integer, TrafficSignalCrossing> trafficSignalCrossings;
 	private Hashtable<Integer, Intersection> intersections; 
 	private Hashtable<Integer, CutLine> cutLines;
 
@@ -33,7 +34,7 @@ public class RoadNetwork {
 	
 	
 	//Testing on intersections
-	private ArrayList<Integer> intersecSegmentID;
+	//private ArrayList<Integer> intersecSegmentID;
 	
 	public DPoint getTopLeft() { return cornerTL; }
 	public DPoint getLowerRight() { return cornerLR; }
@@ -44,6 +45,7 @@ public class RoadNetwork {
 	public Hashtable<Integer, Crossing> getCrossings() { return crossings; }
 	public Hashtable<Integer, Hashtable<Integer,Lane> > getLanes(){return lanes;}
 	public Hashtable<Integer, TrafficSignalLine> getTrafficSignalLine(){return trafficSignalLines;}
+	public Hashtable<Integer, TrafficSignalCrossing> getTrafficSignalCrossing() {return trafficSignalCrossings;}
 	public Hashtable<Integer, Intersection> getIntersection(){return intersections;}
 	public Hashtable<Integer, CutLine> getCutLine(){return cutLines;}
 
@@ -61,6 +63,7 @@ public class RoadNetwork {
 		crossings = new Hashtable<Integer, Crossing>();
 		laneConnectors = new Hashtable<Integer, LaneConnector>();
 		trafficSignalLines = new Hashtable<Integer, TrafficSignalLine>(); 
+		trafficSignalCrossings = new Hashtable<Integer, TrafficSignalCrossing>();
 		intersections = new Hashtable<Integer, Intersection>();
 		cutLines =  new Hashtable<Integer, CutLine>();
 
@@ -69,7 +72,7 @@ public class RoadNetwork {
 	
 		
 		//Testing
-		intersecSegmentID = new ArrayList<Integer>();
+		//intersecSegmentID = new ArrayList<Integer>();
 	
 		
 		//Also track min/max x/y pos
@@ -330,6 +333,7 @@ public class RoadNetwork {
 	   
 	    //Create a new Crossing, save it
 	    crossings.put(objID, new Crossing(nearOneNode,nearTwoNode,farOneNode,farTwoNode,objID));
+	    trafficSignalCrossings.put(objID, new TrafficSignalCrossing(nearOneNode,nearTwoNode,farOneNode,farTwoNode,objID));
 	}
 	
 	private void parseLaneConnector(int frameID, int objID, String rhs) throws IOException{
@@ -453,8 +457,6 @@ public class RoadNetwork {
 		}
 	}
 
-	
-	
 	private void populateIntersections(){
 
 		
@@ -472,7 +474,7 @@ public class RoadNetwork {
 				int tempLinkID = tempIntersectLinkIDs.get(i);
 				//ArrayList<Integer> tempSegmentIDs = roadNetworkItemsMapTable.findSegmentIDWithLinkID(tempLinkID);
 				ArrayList<Integer> tempSegmentIDs = new ArrayList<Integer>();
-				Enumeration segmentKeys = segments.keys();
+				Enumeration<Integer> segmentKeys = segments.keys();
 							
 				while(segmentKeys.hasMoreElements()){
 					
@@ -542,7 +544,7 @@ public class RoadNetwork {
 			}
 							
 			Hashtable<Integer, ArrayList<ArrayList<TrafficSignalLine>>> signalList = helperAllocateDirection(fromSegmentList,toSegmentList);			
-			Enumeration signalListKeys = signalList.keys();
+			Enumeration<Integer> signalListKeys = signalList.keys();
 			
 			while(signalListKeys.hasMoreElements()){
 				
@@ -570,19 +572,22 @@ public class RoadNetwork {
 			
 			//Fill crossing signals
 			ArrayList<Integer> crossingIDs = intersection.getSigalCrossingIDs();
-			ArrayList<Crossing> crossingSignals =  new ArrayList<Crossing>();
-			int linkPaID = crossingIDs.get(0);
+			ArrayList<TrafficSignalCrossing> crossingSignals =  new ArrayList<TrafficSignalCrossing>();
+			int linkPaID = crossingIDs.get(0);	
 			int linkPbID = crossingIDs.get(1);
 			int linkPcID = crossingIDs.get(2);
 			int linkPdID = crossingIDs.get(3);
 			
-			if(crossings.containsKey(linkPaID) && crossings.containsKey(linkPbID) 
-		    		&& crossings.containsKey(linkPcID) && crossings.containsKey(linkPdID)){	    	
+			//System.out.println("Intersection ID: " + Integer.toHexString(intersection.getIntersectNodeID()));
+			//System.out.println("linkPaID: "+ linkPaID +" linkPbID: "+ linkPbID + " linkPcID: "+ linkPcID +" linkPdID: "+ linkPdID);
+					
+			if(trafficSignalCrossings.containsKey(linkPaID) && trafficSignalCrossings.containsKey(linkPbID) 
+		    		&& trafficSignalCrossings.containsKey(linkPcID) && trafficSignalCrossings.containsKey(linkPdID)){	    	
 		    	
-				crossingSignals.add(crossings.get(linkPaID));
-				crossingSignals.add(crossings.get(linkPbID));
-				crossingSignals.add(crossings.get(linkPcID));
-				crossingSignals.add(crossings.get(linkPdID));
+				crossingSignals.add(trafficSignalCrossings.get(linkPaID));
+				crossingSignals.add(trafficSignalCrossings.get(linkPbID));
+				crossingSignals.add(trafficSignalCrossings.get(linkPcID));
+				crossingSignals.add(trafficSignalCrossings.get(linkPdID));
 				
 				intersection.setSignalCrossing(crossingSignals);
 				

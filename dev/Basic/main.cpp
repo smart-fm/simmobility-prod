@@ -167,7 +167,8 @@ bool performMain(const std::string& configFileName)
   vector<Agent*> starting_agents;
   for (size_t i=0; i<agents.size(); i++) {
 	  Agent* const ag = agents[i];
-	  if (ag->startTime==0) {
+	  /*if (ag->startTime==0) {*/
+	  if (true) {
 		  //Only agents with a start time of zero should start immediately in the all_agents list.
 		  agentWorkers.migrateByID(agents[i], i%WG_AGENTS_SIZE);
 		  starting_agents.push_back(ag);
@@ -211,9 +212,9 @@ bool performMain(const std::string& configFileName)
 	  //Output
 	  {
 		  boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-          //cout <<"Approximate Tick Boundary: " <<currTick <<", " <<(currTick*config.baseGranMS) <<" ms" <<endl;
+          cout <<"Approximate Tick Boundary: " <<currTick <<", " <<(currTick*config.baseGranMS) <<" ms" <<endl;
 		  if (!warmupDone) {
-			  //cout <<"  Warmup; output ignored." <<endl;
+			  cout <<"  Warmup; output ignored." <<endl;
 		  }
 	  }
 

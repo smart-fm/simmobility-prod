@@ -29,7 +29,7 @@ public:
 
 protected:
 	//Migrates all subscribed types.
-	virtual void manageData(sim_mob::BufferedDataManager* mgr, Entity* ag, bool takeControl);
+	//virtual void manageData(sim_mob::BufferedDataManager* mgr, Entity* ag, bool takeControl);
 
 public:
 	//This is much more automatic than its SimpleWorkGroup counterpart.

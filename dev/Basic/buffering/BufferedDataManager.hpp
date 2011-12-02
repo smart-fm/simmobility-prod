@@ -85,6 +85,10 @@ public:
     ///Stop tracking a buffered data item.
     void stopManaging(BufferedBase* datum);
 
+    //For multiple items
+    void beginManaging(std::vector<sim_mob::BufferedBase*> data);
+    void stopManaging(std::vector<sim_mob::BufferedBase*> data);
+
     ///Flip (update the current value of) all buffered data items under your control.
     void flip();
 

@@ -17,7 +17,7 @@ using namespace sim_mob;
 
 
 
-void sim_mob::WorkGroup::manageData(sim_mob::BufferedDataManager* mgr, Entity* ag, bool takeControl)
+/*void sim_mob::WorkGroup::manageData(sim_mob::BufferedDataManager* mgr, Entity* ag, bool takeControl)
 {
 	vector<sim_mob::BufferedBase*> subs = ag->getSubscriptionList();
 	for (std::vector<sim_mob::BufferedBase*>::iterator it=subs.begin(); it!=subs.end(); it++) {
@@ -27,7 +27,7 @@ void sim_mob::WorkGroup::manageData(sim_mob::BufferedDataManager* mgr, Entity* a
 			mgr->stopManaging(*it);
 		}
 	}
-}
+}*/
 
 
 /**
@@ -63,7 +63,7 @@ void sim_mob::WorkGroup::migrate(Entity* ag, Worker<Entity>* toWorker)
 	//More automatic updating
 	if (from) {
 		//Remove this entity's Buffered<> types from our list
-		manageData(from, ag, false);
+		from->stopManaging(ag->getSubscriptionList());
 
 		//Debugging output
 		if (Debug::WorkGroupSemantics) {
@@ -76,7 +76,7 @@ void sim_mob::WorkGroup::migrate(Entity* ag, Worker<Entity>* toWorker)
 	}
 	if (to) {
 		//Add this entity's Buffered<> types to our list
-		manageData(to, ag, true);
+		to->beginManaging(ag->getSubscriptionList());
 
 		//Debugging output
 		if (Debug::WorkGroupSemantics) {

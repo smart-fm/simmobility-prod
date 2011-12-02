@@ -117,7 +117,7 @@ void sim_mob::Worker::addPendingAgents()
 {
 	for (vector<Entity*>::iterator it=toBeAdded.begin(); it!=toBeAdded.end(); it++) {
 		//Migrate its Buffered properties.
-		migrateOut(**it);
+		migrateIn(**it);
 	}
 	toBeAdded.clear();
 }
@@ -127,7 +127,7 @@ void sim_mob::Worker::removePendingAgents()
 {
 	for (vector<Entity*>::iterator it=toBeRemoved.begin(); it!=toBeRemoved.end(); it++) {
 		//Migrate out its buffered properties.
-		migrateIn(**it);
+		migrateOut(**it);
 
 		//Remove it from our global list. Requires locking
 		Agent* ag = dynamic_cast<Agent*>(*it);
@@ -212,6 +212,13 @@ void sim_mob::Worker::migrateOut(Entity& ag)
 
 void sim_mob::Worker::migrateIn(Entity& ag)
 {
+	//Sanity check
+	if (ag.currWorker) {
+		std::stringstream msg;
+		msg <<"Error: Entity is already being managed: " <<ag.currWorker <<"," <<this;
+		throw std::runtime_error(msg.str().c_str());
+	}
+
 	//Simple migration
 	addEntity(&ag);
 

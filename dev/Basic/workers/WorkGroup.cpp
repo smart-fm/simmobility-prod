@@ -60,7 +60,6 @@ void sim_mob::WorkGroup::startAll()
 {
 	//Stage any Agents that will become active within the first time tick (in time for the next tick)
 	nextTimeTickToStage = 0;
-	//stageAgents();
 
 	//Start all workers
 	tickOffset = tickStep;
@@ -75,20 +74,23 @@ void sim_mob::WorkGroup::stageAgents()
 {
 	unsigned int nextTickMS = nextTimeTickToStage*ConfigParams::GetInstance().baseGranMS;
 	while (!Agent::pending_agents.empty() && Agent::pending_agents.top()->startTime <= nextTickMS) {
+		//Remove it.
+		Agent* ag = Agent::pending_agents.top();
+		Agent::pending_agents.pop();
+
 		if (sim_mob::Debug::WorkGroupSemantics) {
-			std::cout <<"Staging agent ID: " <<Agent::pending_agents.top()->getId() <<" in time for tick: " <<nextTimeTickToStage <<"\n";
+			std::cout <<"Staging agent ID: " <<ag->getId() <<" in time for tick: " <<nextTimeTickToStage <<"\n";
 		}
 
 		//Add it to our global list. Requires locking.
 		{
 			//TODO: This shouldn't actually require locking. Leaving it in here for now to be safe.
 			boost::mutex::scoped_lock local_lock(sim_mob::Agent::all_agents_lock);
-			Agent::all_agents.push_back(Agent::pending_agents.top());
+			Agent::all_agents.push_back(ag);
 		}
 
 		//Find a worker to assign this to and send it the Entity to manage.
-		assignAWorker(Agent::pending_agents.top());
-		Agent::pending_agents.pop();
+		assignAWorker(ag);
 	}
 }
 
@@ -106,20 +108,6 @@ size_t sim_mob::WorkGroup::size()
 	return workers.size();
 }
 
-
-/*
-void sim_mob::WorkGroup::migrate(Entity& ag, Worker* from, Worker* to)
-{
-	if (from) {
-		//Remove
-		from->remEntity(&ag);
-	}
-
-	if (to) {
-		//Add
-		to->addEntity(&ag);
-	}
-}*/
 
 
 

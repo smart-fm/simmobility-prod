@@ -11,6 +11,7 @@ using boost::function;
 
 #include "WorkGroup.hpp"
 #include "entities/Agent.hpp"
+#include "entities/Person.hpp"
 
 using namespace sim_mob;
 
@@ -132,7 +133,8 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 			}
 
 			//Migrate its Buffered properties.
-			wg->migrate(**it, this);
+			migrateOut(**it);
+			//wg->migrate(**it, this);
 		}
 		toBeAdded.clear();
 
@@ -148,7 +150,8 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 			}
 
 			//Migrate out its buffered properties.
-			wg->migrate(**it, nullptr);
+			migrateIn(**it);
+			//wg->migrate(**it, nullptr);
 
 			//Remove it from our global list. Requires locking
 			Agent* ag = dynamic_cast<Agent*>(*it);
@@ -182,6 +185,57 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 			if (external_barr) {
 				external_barr->wait();
 			}
+		}
+	}
+}
+
+
+template <class EntityType>
+void sim_mob::Worker<EntityType>::migrateOut(EntityType& ag)
+{
+	//Sanity check
+	if (ag.currWorker != this) {
+		throw std::runtime_error("Error: Entity has somehow switched workers.");
+	}
+
+	//Simple migration
+	remEntity(&ag);
+
+	//Update our Entity's pointer.
+	ag.currWorker = nullptr;
+
+	//Remove this entity's Buffered<> types from our list
+	stopManaging(ag.getSubscriptionList());
+
+	//Debugging output
+	if (Debug::WorkGroupSemantics) {
+		Agent* agent = dynamic_cast<Agent*>(&ag);
+		if (agent && dynamic_cast<Person*>(agent)) {
+			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+			std::cout <<"Removing Agent " <<agent->getId() <<" from worker: " <<this <<std::endl;
+		}
+	}
+}
+
+
+template <class EntityType>
+void sim_mob::Worker<EntityType>::migrateIn(EntityType& ag)
+{
+	//Simple migration
+	addEntity(&ag);
+
+	//Update our Entity's pointer.
+	ag.currWorker = this;
+
+	//Add this entity's Buffered<> types to our list
+	beginManaging(ag.getSubscriptionList());
+
+	//Debugging output
+	if (Debug::WorkGroupSemantics) {
+		Agent* agent = dynamic_cast<Agent*>(&ag);
+		if (agent && dynamic_cast<Person*>(agent)) {
+			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+			std::cout <<"Adding Agent " <<agent->getId() <<" to worker: " <<this <<" at requested time: " <<agent->startTime <<std::endl;
 		}
 	}
 }
@@ -224,4 +278,7 @@ template void sim_mob::Worker<sim_mob::Entity>::scheduleForRemoval(Entity* entit
 template void sim_mob::Worker<sim_mob::Entity>::perform_main(frame_t frameNumber);
 template void sim_mob::Worker<sim_mob::Entity>::perform_flip();
 template void sim_mob::Worker<sim_mob::Entity>::barrier_mgmt();
+
+template void sim_mob::Worker<sim_mob::Entity>::migrateOut(Entity& ent);
+template void sim_mob::Worker<sim_mob::Entity>::migrateIn(Entity& ent);
 

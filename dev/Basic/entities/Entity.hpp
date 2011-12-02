@@ -79,7 +79,8 @@ protected:
 
 	//Only the WorkGroup can retrieve/set the currWorker flag. I'm doing this through a
 	// friend class, since get/set methods have the potential for abuse (currWorker can't be declared const*)
-	friend class WorkGroup;
+	template <class EntityType>
+	friend class Worker;
 
 //Some near-trivial functions
 public:

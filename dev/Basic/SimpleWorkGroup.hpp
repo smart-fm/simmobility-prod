@@ -44,7 +44,7 @@ public:
 
 	void wait();
 	void waitExternAgain();
-	void migrate(EntityType& ag, Worker<EntityType>* from, Worker<EntityType>* to);
+	//void migrate(EntityType& ag, Worker<EntityType>* from, Worker<EntityType>* to);
 
 	Worker<EntityType>* getWorker(int id);
 
@@ -75,30 +75,11 @@ protected:
 	//Only used once
 	size_t total_size;
 
+	//Additional locking is required if the aura manager is active.
 	bool auraManagerActive;
-
-	//Pointers to _actually_ be deleted during this time tick.
-	//std::vector<EntityType*> toBeDeletedNow;
-
-	//Entities to be moved during this update tick.
-	//std::vector<MoveInstruction> toBeMovedNow;
-
-	//Entities to be moved in the next time tick. Refreshed in flip()
-	//std::vector<MoveInstruction> toBeMovedLater;
-
-	//Locking for these arrays
-	//static boost::mutex add_remove_array_lock;
 
 	//Needed to stay in sync with the workers
 	frame_t nextTimeTickToStage;
-
-	//For collaboration
-	/*virtual void addEntityToWorker(EntityType* ent, Worker<EntityType>* wrk) {
-		throw std::runtime_error("Simple workers cannot add Entities at arbitrary times.");
-	}
-	virtual void remEntityFromCurrWorker(EntityType* ent) {
-		throw std::runtime_error("Simple workers cannot remove Entities at arbitrary times.");
-	}*/
 
 };
 
@@ -196,7 +177,7 @@ size_t sim_mob::SimpleWorkGroup<EntityType>::size()
 }
 
 
-template <class EntityType>
+/*template <class EntityType>
 void sim_mob::SimpleWorkGroup<EntityType>::migrate(EntityType& ag, Worker<EntityType>* from, Worker<EntityType>* to)
 {
 	if (from) {
@@ -208,7 +189,7 @@ void sim_mob::SimpleWorkGroup<EntityType>::migrate(EntityType& ag, Worker<Entity
 		//Add
 		to->addEntity(&ag);
 	}
-}
+}*/
 
 
 template <class EntityType>
@@ -254,6 +235,9 @@ void sim_mob::SimpleWorkGroup<EntityType>::wait()
 template <class EntityType>
 void sim_mob::SimpleWorkGroup<EntityType>::waitExternAgain()
 {
+	if (!auraManagerActive) {
+		throw std::runtime_error("Aura manager must be active for waitExternAgain()");
+	}
 	external_barr.wait();
 }
 

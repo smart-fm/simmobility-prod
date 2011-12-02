@@ -75,6 +75,9 @@ protected:
 private:
 	void barrier_mgmt();
 
+	void migrateOut(EntityType& ent);
+	void migrateIn(EntityType& ent);
+
 
 protected:
 	//Properties

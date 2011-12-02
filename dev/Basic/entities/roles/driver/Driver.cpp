@@ -341,6 +341,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 			std::stringstream msg;
 			msg <<"Driver was not started within one timespan of its requested start time.";
 			msg <<"\nStart was: " <<parent->startTime <<",  Curr time is: " <<currTimeMS <<"\n";
+			msg <<"Agent ID: " <<parent->getId() <<"\n";
 			throw std::runtime_error(msg.str().c_str());
 		}
 

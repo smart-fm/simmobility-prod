@@ -93,7 +93,7 @@ protected:
 	static boost::mutex add_remove_array_lock;
 
 	//Needed to stay in sync with the workers
-	frame_t currWorkerTimeTick;
+	frame_t nextTimeTickToStage;
 
 	//For collaboration
 	virtual void addEntityToWorker(EntityType* ent, Worker<EntityType>* wrk) {
@@ -138,7 +138,7 @@ void sim_mob::SimpleWorkGroup<EntityType>::initWorkers(typename Worker<EntityTyp
 template <class EntityType>
 sim_mob::SimpleWorkGroup<EntityType>::SimpleWorkGroup(size_t size, unsigned int endTick, unsigned int tickStep, bool auraManagerActive) :
 		shared_barr(size+1), external_barr(size+1), nextWorkerID(0), endTick(endTick), tickStep(tickStep), total_size(size), auraManagerActive(auraManagerActive),
-		currWorkerTimeTick(0)
+		nextTimeTickToStage(0)
 {
 }
 
@@ -156,21 +156,23 @@ sim_mob::SimpleWorkGroup<EntityType>::~SimpleWorkGroup()
 template <class EntityType>
 void sim_mob::SimpleWorkGroup<EntityType>::startAll()
 {
-	currWorkerTimeTick = 0;
+	nextTimeTickToStage = tickStep;
 	tickOffset = tickStep;
 	for (size_t i=0; i<workers.size(); i++) {
 		workers[i]->start();
 	}
 
-	//Stage any Agents that will become active within the first time tick.
+	//Stage any Agents that will become active within the first time tick (in time for the next tick)
 	while (!Agent::pending_agents.empty()) {
-		if (Agent::pending_agents.top()->startTime > ConfigParams::GetInstance().baseGranMS) {
+		if (Agent::pending_agents.top()->startTime > (nextTimeTickToStage*ConfigParams::GetInstance().baseGranMS)) {
 			break;
 		}
 
+		std::cout <<"Staging agent ID: " <<Agent::pending_agents.top()->getId() <<"\n";
+
 		//Else, add it.
 		MoveInstruction mv = {Agent::pending_agents.top(), true};
-		toBeMovedLater.push_back(mv);
+		toBeMovedNow.push_back(mv);
 		Agent::pending_agents.pop();
 	}
 }
@@ -236,9 +238,6 @@ void sim_mob::SimpleWorkGroup<EntityType>::wait()
 	}
 	tickOffset = tickStep;
 
-	//Stay in sync with the workers.
-	currWorkerTimeTick += tickStep;
-
 	//While the Workers are updating each Agent and building toBeMovedLater, we are
 	//  free to move around Agents and Buffered<> types (so long as we don't delete anything).
 	for (typename std::vector<MoveInstruction>::iterator it=toBeMovedNow.begin(); it!=toBeMovedNow.end(); it++) {
@@ -262,14 +261,15 @@ void sim_mob::SimpleWorkGroup<EntityType>::wait()
 		//delete ent;
 	}
 
+	//Stay in sync with the workers.
+	nextTimeTickToStage += tickStep;
 
 	shared_barr.wait();
 
-	//While the Workers are flipping Buffered types, we are free to copy toBeMovedLater into toBeMovedNow.
-	//First, though, we should "add" all Agents which will become active during this time tick.
-	unsigned int nextMs = (currWorkerTimeTick+tickStep)*ConfigParams::GetInstance().baseGranMS;
+	//For now, WorkGroup stages its own next set of Agents
+	unsigned int nextMs = nextTimeTickToStage*ConfigParams::GetInstance().baseGranMS;
 	while (!Agent::pending_agents.empty()) {
-		if (nextMs < Agent::pending_agents.top()->startTime) {
+		if (Agent::pending_agents.top()->startTime > nextMs) {
 			break;
 		}
 
@@ -279,7 +279,13 @@ void sim_mob::SimpleWorkGroup<EntityType>::wait()
 		Agent::pending_agents.pop();
 	}
 
-	//Now copy.
+	//TEMP
+	for (typename std::vector<MoveInstruction>::iterator it=toBeMovedLater.begin(); it!=toBeMovedLater.end(); it++) {
+		Agent* ag = dynamic_cast<Agent*>(it->ent);
+		std::cout <<"AGENT " <<ag->getId() <<" will be added at time tick: " <<nextMs <<"\n";
+	}
+
+	//While the Workers are flipping Buffered types, we are free to copy toBeMovedLater into toBeMovedNow.
 	toBeMovedNow.clear();
 	toBeMovedNow.insert(toBeMovedNow.begin(), toBeMovedLater.begin(), toBeMovedLater.end());
 	toBeMovedLater.clear();

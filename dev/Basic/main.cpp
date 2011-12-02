@@ -51,7 +51,7 @@ using namespace sim_mob;
 
 
 //Function prototypes.
-void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents);
+//void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents);
 bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents);
 bool TestTimeClass();
 
@@ -83,12 +83,12 @@ void signal_status_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNum
 }
 
 ///Worker function for loading agents.
-void load_agents(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
+/*void load_agents(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
 {
 	for (std::vector<sim_mob::Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
 		trivial((*it)->getId());
 	}
-}
+}*/
 
 
 
@@ -136,9 +136,10 @@ bool performMain(const std::string& configFileName)
   //       no data to read.) The other option is to load all "properties" with a default
   //       value, but at the moment we don't even have a "properties class"
   ///////////////////////////////////////////////////////////////////////////////////
-  cout <<"Beginning Initialization" <<endl;
-  InitializeAllAgentsAndAssignToWorkgroups(agents);
-  cout <<"  " <<"Initialization done" <<endl;
+  //NOTE: This is not really done any more.
+  //cout <<"Beginning Initialization" <<endl;
+  //InitializeAllAgentsAndAssignToWorkgroups(agents);
+  //cout <<"  " <<"Initialization done" <<endl;
 
   //Sanity check (simple)
   /*if (!CheckAgentIDs(agents )) {
@@ -333,7 +334,7 @@ int main(int argc, char* argv[])
  * Parallel initialization step. Note that this function was created very early in development,
  *   and will eventually have to be migrated to the dispatcher.
  */
-void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents)
+/*void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents)
 {
 	  //Our work groups. Will be disposed after this time tick.
 	  SimpleWorkGroup<sim_mob::Entity> createAgentWorkers(WG_CREATE_AGENT_SIZE, 1);
@@ -353,7 +354,7 @@ void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents)
 	  createAgentWorkers.wait();
 
 	  cout <<"  Closing all work groups..." <<endl;
-}
+}*/
 
 
 

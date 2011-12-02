@@ -161,6 +161,18 @@ void sim_mob::SimpleWorkGroup<EntityType>::startAll()
 	for (size_t i=0; i<workers.size(); i++) {
 		workers[i]->start();
 	}
+
+	//Stage any Agents that will become active within the first time tick.
+	while (!Agent::pending_agents.empty()) {
+		if (Agent::pending_agents.top()->startTime > ConfigParams::GetInstance().baseGranMS) {
+			break;
+		}
+
+		//Else, add it.
+		MoveInstruction mv = {Agent::pending_agents.top(), true};
+		toBeMovedLater.push_back(mv);
+		Agent::pending_agents.pop();
+	}
 }
 
 
@@ -257,13 +269,14 @@ void sim_mob::SimpleWorkGroup<EntityType>::wait()
 	//First, though, we should "add" all Agents which will become active during this time tick.
 	unsigned int nextMs = (currWorkerTimeTick+tickStep)*ConfigParams::GetInstance().baseGranMS;
 	while (!Agent::pending_agents.empty()) {
-		if (nextMs >= Agent::pending_agents.top()->startTime) {
-			MoveInstruction mv = {Agent::pending_agents.top(), true};
-			toBeMovedLater.push_back(mv);
-			Agent::pending_agents.pop();
-			continue;
+		if (nextMs < Agent::pending_agents.top()->startTime) {
+			break;
 		}
-		break;
+
+		//Else, add it.
+		MoveInstruction mv = {Agent::pending_agents.top(), true};
+		toBeMovedLater.push_back(mv);
+		Agent::pending_agents.pop();
 	}
 
 	//Now copy.

@@ -21,37 +21,37 @@ using namespace sim_mob;
 // Template implementation
 //////////////////////////////////////////////
 
-template <class EntityType>
-void sim_mob::Worker<EntityType>::addEntity(EntityType* entity)
+
+void sim_mob::Worker::addEntity(Entity* entity)
 {
 	//Save this entity in the data vector.
 	data.push_back(entity);
 }
 
-template <class EntityType>
-void sim_mob::Worker<EntityType>::remEntity(EntityType* entity)
+
+void sim_mob::Worker::remEntity(Entity* entity)
 {
 	//Remove this entity from the data vector.
-	typename std::vector<EntityType*>::iterator it = std::find(data.begin(), data.end(), entity);
+	typename std::vector<Entity*>::iterator it = std::find(data.begin(), data.end(), entity);
 	if (it!=data.end()) {
 		data.erase(it);
 	}
 }
 
-template <class EntityType>
-std::vector<EntityType*>& sim_mob::Worker<EntityType>::getEntities() {
+
+std::vector<Entity*>& sim_mob::Worker::getEntities() {
 	return data;
 }
 
-template <class EntityType>
-void sim_mob::Worker<EntityType>::scheduleForAddition(EntityType* entity)
+
+void sim_mob::Worker::scheduleForAddition(Entity* entity)
 {
 	//Save for later
 	toBeAdded.push_back(entity);
 }
 
-template <class EntityType>
-void sim_mob::Worker<EntityType>::scheduleForRemoval(EntityType* entity)
+
+void sim_mob::Worker::scheduleForRemoval(Entity* entity)
 {
 	//Save for later
 	toBeRemoved.push_back(entity);
@@ -65,8 +65,8 @@ void sim_mob::Worker<EntityType>::scheduleForRemoval(EntityType* entity)
 //////////////////////////////////////////////
 
 
-template <class EntityType>
-sim_mob::Worker<EntityType>::Worker(SimpleWorkGroup<EntityType>* parent, ActionFunction* action, boost::barrier* internal_barr, boost::barrier* external_barr, frame_t endTick, frame_t tickStep, bool auraManagerActive)
+
+sim_mob::Worker::Worker(SimpleWorkGroup<Entity>* parent, ActionFunction* action, boost::barrier* internal_barr, boost::barrier* external_barr, frame_t endTick, frame_t tickStep, bool auraManagerActive)
     : BufferedDataManager(),
       internal_barr(internal_barr), external_barr(external_barr), action(action),
       endTick(endTick),
@@ -83,8 +83,8 @@ sim_mob::Worker<EntityType>::Worker(SimpleWorkGroup<EntityType>* parent, ActionF
 	}
 }
 
-template <class EntityType>
-sim_mob::Worker<EntityType>::~Worker()
+
+sim_mob::Worker::~Worker()
 {
 	//Clear all tracked entitites
 	while (!data.empty()) {
@@ -97,22 +97,22 @@ sim_mob::Worker<EntityType>::~Worker()
 	}
 }
 
-template <class EntityType>
-void sim_mob::Worker<EntityType>::start()
+
+void sim_mob::Worker::start()
 {
 	active.force(true);
 	currTick = 0;
 	main_thread = boost::thread(boost::bind(&Worker::barrier_mgmt, this));
 }
 
-template <class EntityType>
-void sim_mob::Worker<EntityType>::join()
+
+void sim_mob::Worker::join()
 {
 	main_thread.join();
 }
 
-template <class EntityType>
-void sim_mob::Worker<EntityType>::interrupt()
+
+void sim_mob::Worker::interrupt()
 {
 	if (main_thread.joinable()) {
 		main_thread.interrupt();
@@ -120,8 +120,8 @@ void sim_mob::Worker<EntityType>::interrupt()
 }
 
 
-template <class EntityType>
-void sim_mob::Worker<EntityType>::barrier_mgmt()
+
+void sim_mob::Worker::barrier_mgmt()
 {
 	for (;active.get();) {
 		//Add Agents as required.
@@ -190,8 +190,8 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 }
 
 
-template <class EntityType>
-void sim_mob::Worker<EntityType>::migrateOut(EntityType& ag)
+
+void sim_mob::Worker::migrateOut(Entity& ag)
 {
 	//Sanity check
 	if (ag.currWorker != this) {
@@ -218,8 +218,8 @@ void sim_mob::Worker<EntityType>::migrateOut(EntityType& ag)
 }
 
 
-template <class EntityType>
-void sim_mob::Worker<EntityType>::migrateIn(EntityType& ag)
+
+void sim_mob::Worker::migrateIn(Entity& ag)
 {
 	//Simple migration
 	addEntity(&ag);
@@ -241,44 +241,19 @@ void sim_mob::Worker<EntityType>::migrateIn(EntityType& ag)
 }
 
 
-template <class EntityType>
-void sim_mob::Worker<EntityType>::perform_main(frame_t frameNumber)
+
+void sim_mob::Worker::perform_main(frame_t frameNumber)
 {
 	if (action) {
 		(*action)(*this, frameNumber);
 	}
 }
 
-template <class EntityType>
-void sim_mob::Worker<EntityType>::perform_flip()
+
+void sim_mob::Worker::perform_flip()
 {
 	//Flip all data managed by this worker.
 	this->flip();
 }
 
-
-
-//////////////////////////////////////////////
-// Manual template instantiation: Entity
-//////////////////////////////////////////////
-template sim_mob::Worker<sim_mob::Entity>::Worker(SimpleWorkGroup<sim_mob::Entity>* parent, sim_mob::Worker<sim_mob::Entity>::ActionFunction* action =nullptr, boost::barrier* internal_barr =nullptr, boost::barrier* external_barr =nullptr, frame_t endTick=0, frame_t tickStep=0, bool auraManagerActive=false);
-template sim_mob::Worker<sim_mob::Entity>::~Worker();
-
-template void sim_mob::Worker<sim_mob::Entity>::start();
-template void sim_mob::Worker<sim_mob::Entity>::interrupt();
-template void sim_mob::Worker<sim_mob::Entity>::join();
-
-template void sim_mob::Worker<sim_mob::Entity>::addEntity(Entity* entity);
-template void sim_mob::Worker<sim_mob::Entity>::remEntity(Entity* entity);
-template std::vector<Entity*>& sim_mob::Worker<sim_mob::Entity>::getEntities();
-
-template void sim_mob::Worker<sim_mob::Entity>::scheduleForAddition(Entity* entity);
-template void sim_mob::Worker<sim_mob::Entity>::scheduleForRemoval(Entity* entity);
-
-template void sim_mob::Worker<sim_mob::Entity>::perform_main(frame_t frameNumber);
-template void sim_mob::Worker<sim_mob::Entity>::perform_flip();
-template void sim_mob::Worker<sim_mob::Entity>::barrier_mgmt();
-
-template void sim_mob::Worker<sim_mob::Entity>::migrateOut(Entity& ent);
-template void sim_mob::Worker<sim_mob::Entity>::migrateIn(Entity& ent);
 

@@ -168,6 +168,7 @@ void sim_mob::SimpleWorkGroup<EntityType>::stageAgents()
 		//Find a worker to assign this to and send it the Entity to manage.
 		workers.at(nextWorkerID++)->scheduleForAddition(Agent::pending_agents.top());
 		nextWorkerID %= workers.size();
+		Agent::pending_agents.pop();
 	}
 }
 

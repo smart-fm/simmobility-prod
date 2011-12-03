@@ -99,6 +99,11 @@ const Point2D SpecialPathA[] = {
 //PathB: Large loop
 const Point2D SpecialPathB[] = {
 	Point2D(37218351,14335255),   //AIMSUN 75780
+	Point2D(37227139,14327875),   //AIMSUN 91218
+	Point2D(37250760,14355120),   //AIMSUN 66508
+	Point2D(37270984,14378959),   //AIMSUN 45666
+	Point2D(37262150,14386897),   //AIMSUN 45690
+	Point2D(37241080,14362955),   //AIMSUN 61688
 };
 
 
@@ -329,11 +334,6 @@ bool sim_mob::Driver::update_sensors(UpdateParams& params, frame_t frameNumber)
 
 bool sim_mob::Driver::update_movement(UpdateParams& params, frame_t frameNumber)
 {
-	{ //TEMP
-	boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-	std::cout <<"Vehicle: " <<parent->getId() <<" update_movement" <<std::endl;
-	}
-
 	//If reach the goal, get back to the origin
 	if(vehicle->isDone()){
 		//Output
@@ -352,19 +352,9 @@ bool sim_mob::Driver::update_movement(UpdateParams& params, frame_t frameNumber)
 	const RoadSegment* prevSegment = vehicle->getCurrSegment();
 	params.TEMP_lastKnownPolypoint = DPoint(vehicle->getCurrPolylineVector().getEndX(), vehicle->getCurrPolylineVector().getEndY());
 
-	{ //TEMP
-	boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-	std::cout <<"  done? " <<vehicle->isDone() <<" in intersection? " <<vehicle->isInIntersection() <<std::endl;
-	}
-
 	//First, handle driving behavior inside an intersection.
 	if(vehicle->isInIntersection()) {
 		intersectionDriving(params);
-	}
-
-	{ //TEMP
-	boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-	std::cout <<"     in intersection now? " <<vehicle->isInIntersection() <<std::endl;
 	}
 
 	//Next, handle driving on links.
@@ -373,12 +363,6 @@ bool sim_mob::Driver::update_movement(UpdateParams& params, frame_t frameNumber)
 	if(!vehicle->isInIntersection()) {
 		//Drive forward. Save how far "over" we go through the intersection.
 		params.overflowIntoIntersection = linkDriving(params);
-
-		{ //TEMP
-		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-		std::cout <<"     how about now? " <<vehicle->isInIntersection() <<std::endl;
-		std::cout <<"     overflow: " <<params.overflowIntoIntersection <<std::endl;
-		}
 
 		//Did our last move forward bring us into an intersection?
 		if(vehicle->isInIntersection()) {
@@ -824,12 +808,14 @@ void sim_mob::Driver::initializePath()
 		if (cInd!=string::npos && cInd+1<parentP->specialStr.length()) {
 			//Repeat this path X times.
 			vector<WayPoint> part = LoadSpecialPath(parent->originNode, parentP->specialStr[cInd+1]);
+
 			cInd = parentP->specialStr.find(':', cInd+1);
 			if (cInd!=string::npos && cInd+1<parentP->specialStr.length()) {
 				int amount = -1;
 				std::istringstream(parentP->specialStr.substr(cInd+1, string::npos)) >> amount;
+
 				for (size_t i=0; static_cast<int>(i)<amount && amount>1; i++) {
-					part.insert(part.end(), path.begin(), path.end());
+					path.insert(path.end(), part.begin(), part.end());
 				}
 			}
 

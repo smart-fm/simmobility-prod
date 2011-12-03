@@ -138,7 +138,6 @@ private:
 	int currLaneID;
 
 	//Debug
-	static const bool DebugOn;
 	mutable std::stringstream DebugStream;
 
 private:

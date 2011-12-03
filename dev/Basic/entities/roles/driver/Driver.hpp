@@ -172,7 +172,6 @@ private:
 	const Signal* trafficSignal;
 
 	//For generating a debugging trace
-	static const bool DebugOn;
 	mutable std::stringstream DebugStream;
 
 

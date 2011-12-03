@@ -12,15 +12,12 @@
 #include "geospatial/Lane.hpp"
 #include "geospatial/Point2D.hpp"
 #include "util/GeomHelpers.hpp"
+#include "util/DebugFlags.hpp"
 
 using namespace sim_mob;
 using std::vector;
 using std::string;
 using std::endl;
-
-
-//Used for path debugging.
-const bool sim_mob::GeneralPathMover::DebugOn = false;
 
 
 sim_mob::GeneralPathMover::GeneralPathMover() : distAlongPolyline(0), /*currPolylineLength(0),*/
@@ -31,7 +28,7 @@ sim_mob::GeneralPathMover::GeneralPathMover() : distAlongPolyline(0), /*currPoly
 
 void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, bool firstSegMoveFwd, int startLaneID)
 {
-	if (DebugOn) {
+	if (Debug::Paths) {
 		DebugStream <<"New Path of length " <<path.size() <<endl;
 		DebugStream <<"Starting in Lane: " <<startLaneID <<endl;
 	}
@@ -43,7 +40,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 	for(vector<const RoadSegment*>::const_iterator it=path.begin(); it!=path.end(); it++) {
 		fullPath.push_back(*it);
 
-		if (DebugOn) {
+		if (Debug::Paths) {
 			DebugStream <<"  " <<(*it)->getStart()->originalDB_ID.getLogItem() <<"=>" <<(*it)->getEnd()->originalDB_ID.getLogItem();
 			if ((*it)->getLink()!=currLink) {
 				currLink = (*it)->getLink();
@@ -137,7 +134,7 @@ void sim_mob::GeneralPathMover::generateNewPolylineArray()
 	nextLaneZeroPolypoint = tempLaneZero.begin()+1;
 
 	//Debug output
-	if (DebugOn) {
+	if (Debug::Paths) {
 		DebugStream <<"On new polyline (1 of " <<polypointsList.size()-1 <<") of length: " <<Fmt_M(currPolylineLength()) <<"  length of lane zero: " <<Fmt_M(dist(&(*nextLaneZeroPolypoint), &(*currLaneZeroPolypoint))) <<", starting at: " <<Fmt_M(distAlongPolyline) <<", starting at: " <<Fmt_M(distAlongPolyline) <<endl;
 		DebugStream <<"Distance of polyline end from end of Road Segment: " <<Fmt_M(dist(&polypointsList.back(), (*currSegmentIt)->getEnd()->location)) <<endl;
 	}
@@ -152,7 +149,7 @@ bool sim_mob::GeneralPathMover::isDoneWithEntireRoute() const
 {
 	bool res = currSegmentIt==fullPath.end();
 
-	if (DebugOn && res) {
+	if (Debug::Paths && res) {
 		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 		if (!DebugStream.str().empty()) {
 			//TEMP: Re-enable later.
@@ -170,7 +167,7 @@ const Lane* sim_mob::GeneralPathMover::leaveIntersection()
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
 	throwIf(!inIntersection, "Not actually in an Intersection!");
 
-	if (DebugOn) { DebugStream <<"User left intersection." <<endl; }
+	if (Debug::Paths) { DebugStream <<"User left intersection." <<endl; }
 
 	//Unset flag; move to the next segment.
 	inIntersection = false;
@@ -181,7 +178,7 @@ void sim_mob::GeneralPathMover::throwIf(bool conditional, const std::string& msg
 {
 	if (conditional) {
 		//Debug
-		if (DebugOn) {
+		if (Debug::Paths) {
 			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 			if (!DebugStream.str().empty()) {
 				DebugStream <<"EXCEPTION: " <<msg <<endl;
@@ -212,7 +209,7 @@ double sim_mob::GeneralPathMover::advance(double fwdDistance)
 	}
 
 	//Debug output
-	if (DebugOn) {
+	if (Debug::Paths) {
 		//DebugStream <<"  +" <<fwdDistance <<"cm" <<", (" <<Fmt_M(distAlongPolyline+fwdDistance) <<")";
 		//Print the distance from the next Node
 		Point2D myPos(getPosition().x, getPosition().y);
@@ -227,7 +224,7 @@ double sim_mob::GeneralPathMover::advance(double fwdDistance)
 	distAlongPolyline += fwdDistance;
 	//distMovedInSegment += fwdDistance;
 	while (distAlongPolyline>=currPolylineLength() && !inIntersection) {
-		if (DebugOn) {
+		if (Debug::Paths) {
 			Point2D myPos(getPosition().x, getPosition().y);
 			DebugStream <<endl <<"Now at polyline end. Distance from actual end: " <<Fmt_M(dist(&(*nextPolypoint), &myPos)) <<endl;
 		}
@@ -261,11 +258,11 @@ double sim_mob::GeneralPathMover::advanceToNextPolyline()
 
 	//Update length, OR move to a new Segment
 	if (nextPolypoint == polypointsList.end()) {
-		if (DebugOn) { DebugStream <<"On new Road Segment" <<endl; }
+		if (Debug::Paths) { DebugStream <<"On new Road Segment" <<endl; }
 
 		return advanceToNextRoadSegment();
 	} else {
-		if (DebugOn) {
+		if (Debug::Paths) {
 			DebugStream <<"On new polyline (" <<(currPolypoint-polypointsList.begin()+1) <<" of " <<polypointsList.size()-1 <<") of length: " <<Fmt_M(currPolylineLength()) <<"  length of lane zero: " <<Fmt_M(dist(&(*nextLaneZeroPolypoint), &(*currLaneZeroPolypoint))) <<", starting at: " <<Fmt_M(distAlongPolyline) <<endl;
 		}
 	}
@@ -287,7 +284,7 @@ double sim_mob::GeneralPathMover::advanceToNextRoadSegment()
 	if (currSegmentIt+1!=fullPath.end()) {
 		if ((*currSegmentIt)->getLink() != (*(currSegmentIt+1))->getLink()) {
 			Point2D myPos(getPosition().x, getPosition().y);
-			if (DebugOn) { DebugStream <<"Now in Intersection. Distance from Node center: " <<Fmt_M(dist((*currSegmentIt)->getEnd()->location, &myPos)) <<endl; }
+			if (Debug::Paths) { DebugStream <<"Now in Intersection. Distance from Node center: " <<Fmt_M(dist((*currSegmentIt)->getEnd()->location, &myPos)) <<endl; }
 
 			//Return early; we can't actually move the car now.
 			inIntersection = true;
@@ -483,7 +480,7 @@ void sim_mob::GeneralPathMover::moveToNewPolyline(int newLaneID)
 		return;
 	}
 
-	if (DebugOn) {  DebugStream <<"Switching to new lane: " <<newLaneID <<" from lane: " <<currLaneID <<endl;  }
+	if (Debug::Paths) {  DebugStream <<"Switching to new lane: " <<newLaneID <<" from lane: " <<currLaneID <<endl;  }
 
 	//Invalid ID?
 	if (newLaneID<0 || newLaneID>=static_cast<int>((*currSegmentIt)->getLanes().size())) {

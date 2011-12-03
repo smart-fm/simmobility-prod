@@ -62,6 +62,8 @@ public:
 	void addEntity(EntityType* entity);
 	void remEntity(EntityType* entity);
 	std::vector<EntityType*>& getEntities();
+
+	void scheduleForAddition(EntityType* entity);
 	void scheduleForRemoval(EntityType* entity);
 
 

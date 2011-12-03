@@ -6,6 +6,7 @@
 //For debugging
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
+#include "util/DebugFlags.hpp"
 #include "WorkGroup.hpp"
 
 using std::vector;
@@ -31,7 +32,7 @@ bool sim_mob::Person::update(frame_t frameNumber)
 		currRole->update(frameNumber);
 	}
 
-	if (WorkGroup::DebugOn && isToBeRemoved()) {
+	if (Debug::WorkGroupSemantics && isToBeRemoved()) {
 		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 		std::cout <<"Person requested removal: " <<(dynamic_cast<Driver*>(currRole) ? "Driver" : dynamic_cast<Pedestrian*>(currRole) ? "Pedestrian" : "Other") <<"\n";
 	}

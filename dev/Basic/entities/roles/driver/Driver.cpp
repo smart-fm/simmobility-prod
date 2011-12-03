@@ -27,6 +27,7 @@
 #include "util/OutputUtil.hpp"
 #include "util/DynamicVector.hpp"
 #include "util/GeomHelpers.hpp"
+#include "util/DebugFlags.hpp"
 
 
 using namespace sim_mob;
@@ -90,15 +91,13 @@ size_t getLaneIndex(const Lane* l)
 } //End anon namespace
 
 
-const bool sim_mob::Driver::DebugOn = false;
-
 
 //initiate
 sim_mob::Driver::Driver(Agent* parent) : Role(parent), currLane_(nullptr), currLaneOffset_(0),
 	currLaneLength_(0), isInIntersection(false), vehicle(nullptr), perceivedVelocity(reactTime, true),
 	perceivedVelocityOfFwdCar(reactTime, true), perceivedAccelerationOfFwdCar(reactTime, true),perceivedDistToFwdCar(reactTime, true)
 {
-	if (DebugOn) { DebugStream <<"Driver starting: " <<parent->getId() <<endl; }
+	if (Debug::Drivers) { DebugStream <<"Driver starting: " <<parent->getId() <<endl; }
 
 	//Set default speed in the range of 10m/s to 19m/s
 	//speed = 0;//1000*(1+((double)(rand()%10))/10);
@@ -251,7 +250,7 @@ void sim_mob::Driver::update_movement(UpdateParams& params, frame_t frameNumber)
 	//If reach the goal, get back to the origin
 	if(vehicle->isDone()){
 		//Output
-		if (DebugOn && !DebugStream.str().empty()) {
+		if (Debug::Drivers && !DebugStream.str().empty()) {
 			DebugStream <<">>>Vehicle done." <<endl;
 			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 			std::cout <<DebugStream.str();
@@ -767,7 +766,7 @@ double sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
 	try {
 		res = vehicle->moveFwd(fwdDistance);
 	} catch (std::exception& ex) {
-		if (DebugOn) {
+		if (Debug::Drivers) {
 			DebugStream <<">>>Exception: " <<ex.what() <<endl;
 			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 			std::cout <<DebugStream.str();
@@ -1041,7 +1040,7 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p, LANE_CHANG
 	LANE_CHANGE_SIDE actual = getCurrLaneChangeDirection();
 	//LANE_CHANGE_SIDE relative = getCurrLaneSideRelativeToCenter();
 	if (actual==LCS_SAME) {
-		if (DebugOn) { DebugStream <<"  Lane change: " <<"ERROR: Called with \"same\"" <<endl; }
+		if (Debug::Drivers) { DebugStream <<"  Lane change: " <<"ERROR: Called with \"same\"" <<endl; }
 		return;  //Not actually changing lanes.
 	}
 	if (relative==LCS_SAME) {
@@ -1054,14 +1053,14 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p, LANE_CHANG
 		}
 	}
 
-	if (DebugOn) { DebugStream <<"  Lane change: " <<PrintLCS(actual) <<" (" <<PrintLCS(relative) <<")" <<endl; }
+	if (Debug::Drivers) { DebugStream <<"  Lane change: " <<PrintLCS(actual) <<" (" <<PrintLCS(relative) <<")" <<endl; }
 
 	//Basically, we move "halfway" into the next lane, and then move "halfway" back to its midpoint.
 	if (actual==relative) {
 		//Moving "out".
 		double remainder = fabs(vehicle->getLateralMovement()) - halfLaneWidth;
 
-		if (DebugOn) { DebugStream <<"    Moving out on Lane " <<p.currLaneIndex <<": " <<remainder <<endl; }
+		if (Debug::Drivers) { DebugStream <<"    Moving out on Lane " <<p.currLaneIndex <<": " <<remainder <<endl; }
 
 		if (remainder>=0) {
 			//Update Lanes, polylines, RoadSegments, etc.
@@ -1069,12 +1068,12 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p, LANE_CHANG
 			syncCurrLaneCachedInfo(p);
 			vehicle->shiftToNewLanePolyline(actual==LCS_LEFT);
 
-			if (DebugOn) { DebugStream <<"    Shifting to new lane." <<endl; }
+			if (Debug::Drivers) { DebugStream <<"    Shifting to new lane." <<endl; }
 
 			//Check
 			if (p.currLane->is_pedestrian_lane()) {
 				//Flush debug output (we are debugging this error).
-				if (DebugOn) {
+				if (Debug::Drivers) {
 					DebugStream <<">>>Exception: Moved to sidewalk." <<endl;
 					boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 					std::cout <<DebugStream.str();
@@ -1094,14 +1093,14 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p, LANE_CHANG
 		//Moving "in".
 		bool pastZero = (actual==LCS_LEFT) ? (vehicle->getLateralMovement()>0) : (vehicle->getLateralMovement()<0);
 
-		if (DebugOn) { DebugStream <<"    Moving in on lane " <<p.currLaneIndex <<": " <<vehicle->getLateralMovement() <<endl; }
+		if (Debug::Drivers) { DebugStream <<"    Moving in on lane " <<p.currLaneIndex <<": " <<vehicle->getLateralMovement() <<endl; }
 
 		if (pastZero) {
 			//Reset all
 			vehicle->resetLateralMovement();
 			vehicle->setLatVelocity(0);
 
-			if (DebugOn) { DebugStream <<"    New lane shift complete." <<endl; }
+			if (Debug::Drivers) { DebugStream <<"    New lane shift complete." <<endl; }
 		}
 
 	}

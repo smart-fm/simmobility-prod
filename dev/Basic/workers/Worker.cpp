@@ -43,6 +43,13 @@ std::vector<EntityType*>& sim_mob::Worker<EntityType>::getEntities() {
 }
 
 template <class EntityType>
+void sim_mob::Worker<EntityType>::scheduleForAddition(EntityType* entity)
+{
+	//Save for later
+	toBeAdded.push_back(entity);
+}
+
+template <class EntityType>
 void sim_mob::Worker<EntityType>::scheduleForRemoval(EntityType* entity)
 {
 	//Save for later
@@ -213,6 +220,8 @@ template void sim_mob::Worker<sim_mob::Entity>::join();
 template void sim_mob::Worker<sim_mob::Entity>::addEntity(Entity* entity);
 template void sim_mob::Worker<sim_mob::Entity>::remEntity(Entity* entity);
 template std::vector<Entity*>& sim_mob::Worker<sim_mob::Entity>::getEntities();
+
+template void sim_mob::Worker<sim_mob::Entity>::scheduleForAddition(Entity* entity);
 template void sim_mob::Worker<sim_mob::Entity>::scheduleForRemoval(Entity* entity);
 
 template void sim_mob::Worker<sim_mob::Entity>::perform_main(frame_t frameNumber);

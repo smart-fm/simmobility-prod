@@ -5,6 +5,7 @@
 #include <boost/unordered_set.hpp>
 #include "3rd-party/RStarTree.h"
 
+#include "Entity.hpp"
 #include "Agent.hpp"
 #include "AuraManager.hpp"
 #include "geospatial/Lane.hpp"
@@ -125,14 +126,14 @@ namespace
 
     // Find the agent in the <agents> collection that is closest to <agent>.
     Agent const *
-    nearest_agent(Agent const * agent, boost::unordered_set<Agent const *> const & agents)
+    nearest_agent(Agent const * agent, boost::unordered_set<Entity const *> const & agents)
     {
         Agent const * result = 0;
         double dist = std::numeric_limits<double>::max();
-        boost::unordered_set<Agent const *>::const_iterator iter;
+        boost::unordered_set<Entity const *>::const_iterator iter;
         for (iter = agents.begin(); iter != agents.end(); ++iter)
         {
-            Agent const * another_agent = *iter;
+            Agent const * another_agent = dynamic_cast<Agent const*>(*iter);
             double d = distance(agent, another_agent);
             if (dist > d)
             {
@@ -261,13 +262,17 @@ AuraManager::Impl::update()
     if (Agent::all_agents.empty())
         return;
 
-    boost::unordered_set<Agent const *> agents(Agent::all_agents.begin(), Agent::all_agents.end());
+    boost::unordered_set<Entity const *> agents(Agent::all_agents.begin(), Agent::all_agents.end());
 
     // We populate the tree incrementally by finding the agent that was nearest to the agent
     // that was most recently inserted into the tree.  This will increase the chance that the
     // agents in non-leaf nodes are close to each other, and therefore the overlaps of non-leaf
     // nodes are not large.  Querying will be faster if the overlaps is small.
-    Agent const * agent = *agents.begin();
+    Agent const * agent = dynamic_cast<Agent const*>(*agents.begin());
+    if (!agent) {
+    	throw std::runtime_error("all_agents is somehow storing an entity.");
+    }
+
     while (agents.size() > 1)
     {
         agents.erase(agent);

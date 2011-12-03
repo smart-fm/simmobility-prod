@@ -149,7 +149,7 @@ bool generateAgentsFromTripChain(std::vector<Entity*>& agents)
 		curr->destNode = (*it)->to.location;
 
 		//Start time
-		curr->startTime = (*it)->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
+		curr->setStartTime((*it)->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
 
 		//TEMP
 		//cout <<"Starting time declared as: " <<(*it)->startTime.toString() <<"\n";
@@ -161,7 +161,7 @@ bool generateAgentsFromTripChain(std::vector<Entity*>& agents)
 
 
 
-bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const std::string& agentType)
+bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& agents, const std::string& agentType)
 {
 	//Quick check.
 	if (agentType!="pedestrian" && agentType!="driver") {
@@ -243,7 +243,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 				}
 				foundDestPos = true;
 			} else if (name=="time") {
-				agent->startTime=valueI;
+				agent->setStartTime(valueI);
 			} else if (name=="special") {
 				agent->specialStr = value;
 			} else {
@@ -670,7 +670,7 @@ void PrintDB_Network()
 
 
 //Returns the error message, or an empty string if no error.
-std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
+std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& agents)
 {
 	//Save granularities: system
 	TiXmlHandle handle(&document);
@@ -938,7 +938,7 @@ ConfigParams& sim_mob::ConfigParams::GetInstance() {
 // Main external method
 //////////////////////////////////////////
 
-bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Agent*>& agents)
+bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Entity*>& agents)
 {
 	//Load our config file into an XML document object.
 	TiXmlDocument doc(configPath);

@@ -53,7 +53,8 @@ public:
 	virtual bool update(frame_t frameNumber) = 0;
 
 
-	virtual unsigned int getStartTime() { return startTime; }
+	virtual void setStartTime(unsigned int value) { startTime = value; }
+	virtual unsigned int getStartTime() const { return startTime; }
 
 
 protected:

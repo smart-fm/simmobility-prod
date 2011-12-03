@@ -11,7 +11,7 @@ using std::priority_queue;
 
 #ifndef DISABLE_DYNAMIC_DISPATCH
 boost::mutex sim_mob::Agent::all_agents_lock;
-priority_queue<Entity*> sim_mob::Agent::pending_agents(vector<Entity*>, sim_mob::cmp_agent_start);
+priority_queue<Entity*> sim_mob::Agent::pending_agents = priority_queue<Entity*>(sim_mob::cmp_agent_start());
 #endif
 
 vector<Entity*> sim_mob::Agent::all_agents;
@@ -19,10 +19,10 @@ vector<Entity*> sim_mob::Agent::all_agents;
 
 
 //Implementation of our comparison function for Agents by start time.
-bool sim_mob::cmp_agent_start::operator() (const Agent* x, const Agent* y) const
+bool sim_mob::cmp_agent_start::operator() (const Entity* x, const Entity* y) const
 {
 	//We want a lower start time to translate into a higher priority.
-	return x->startTime > y->startTime;
+	return x->getStartTime() > y->getStartTime();
 }
 
 

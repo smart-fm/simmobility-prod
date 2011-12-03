@@ -4,6 +4,7 @@
 
 #include <queue>
 #include <vector>
+#include <functional>
 #include <stdlib.h>
 
 #include "constants.h"
@@ -29,8 +30,8 @@ class WorkGroup;
 
 
 //Comparison for our priority queue
-struct cmp_agent_start : std::binary_function <const Agent*, const Agent*,bool> {
-  bool operator() (const Agent* x, const Agent* y) const;
+struct cmp_agent_start : public std::less<Entity*> {
+  bool operator() (const Entity* x, const Entity* y) const;
 };
 
 

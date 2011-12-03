@@ -69,7 +69,7 @@ void sim_mob::WorkGroup::startAll()
 }
 
 
-
+#ifndef DISABLE_DYNAMIC_DISPATCH
 void sim_mob::WorkGroup::stageAgents()
 {
 	unsigned int nextTickMS = nextTimeTickToStage*ConfigParams::GetInstance().baseGranMS;
@@ -93,11 +93,16 @@ void sim_mob::WorkGroup::stageAgents()
 		assignAWorker(ag);
 	}
 }
+#endif
 
 
 void sim_mob::WorkGroup::assignAWorker(Entity* ag)
 {
+#ifndef DISABLE_DYNAMIC_DISPATCH
 	workers.at(nextWorkerID++)->scheduleForAddition(ag);
+#else
+	workers.at(nextWorkerID++)->scheduleAgentNow(ag);
+#endif
 	nextWorkerID %= workers.size();
 }
 
@@ -134,9 +139,12 @@ void sim_mob::WorkGroup::wait()
 	shared_barr.wait();
 
 	//Stage Agent updates based on nextTimeTickToStage
+#ifndef DISABLE_DYNAMIC_DISPATCH
 	stageAgents();
+#endif
 
 	//Remove any Agents staged for removal.
+#ifndef DISABLE_DYNAMIC_DISPATCH
 	for (std::vector<Agent*>::iterator it=agToBeRemoved.begin(); it!=agToBeRemoved.end(); it++) {
 		boost::mutex::scoped_lock local_lock(sim_mob::Agent::all_agents_lock);
 		std::vector<Agent*>::iterator it2 = std::find(Agent::all_agents.begin(), Agent::all_agents.end(), *it);
@@ -145,6 +153,7 @@ void sim_mob::WorkGroup::wait()
 		}
 	}
 	agToBeRemoved.clear();
+#endif
 
 	external_barr.wait();
 }

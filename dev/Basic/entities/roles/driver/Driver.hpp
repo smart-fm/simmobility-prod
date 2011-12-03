@@ -6,6 +6,8 @@
 #include <math.h>
 #include <set>
 
+#include "constants.h"
+
 #include "entities/roles/Role.hpp"
 #include "buffering/Buffered.hpp"
 #include "geospatial/StreetDirectory.hpp"

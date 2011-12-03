@@ -62,28 +62,20 @@ void entity_worker(sim_mob::Worker& wk, frame_t frameNumber)
 	for (vector<Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
 		if (!(*it)->update(frameNumber)) {
 			//This Entity is done; schedule for deletion.
+#ifndef DISABLE_DYNAMIC_DISPATCH
 			wk.scheduleForRemoval(*it);
+#endif
 		}
 	}
 }
 
 ///Worker function for signal status loading task.
-/*void signal_status_worker(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
+void signal_status_worker(sim_mob::Worker& wk, frame_t frameNumber)
 {
-	for (std::vector<sim_mob::Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
+	for (vector<Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
 		(*it)->update(frameNumber);
 	}
-}*/
-
-///Worker function for loading agents.
-/*void load_agents(sim_mob::Worker<sim_mob::Entity>& wk, frame_t frameNumber)
-{
-	for (std::vector<sim_mob::Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
-		trivial((*it)->getId());
-	}
-}*/
-
-
+}
 
 
 
@@ -115,29 +107,6 @@ bool performMain(const std::string& configFileName)
   }
   const ConfigParams& config = ConfigParams::GetInstance();
 
-  //Initialization: Server configuration
-  //setConfiguration();  //NOTE: This is done within InitUserConf().
-
-  //Initialization: Network decomposition among multiple machines.
-  //loadNetwork();   //NOTE: This will occur within the partition manager.
-
-
-
-  ///////////////////////////////////////////////////////////////////////////////////
-  // NOTE: Because of the way we cache the old values of agents, we need to run our
-  //       initialization workers and then flip their values (otherwise there will be
-  //       no data to read.) The other option is to load all "properties" with a default
-  //       value, but at the moment we don't even have a "properties class"
-  ///////////////////////////////////////////////////////////////////////////////////
-  //NOTE: This is not really done any more.
-  //cout <<"Beginning Initialization" <<endl;
-  //InitializeAllAgentsAndAssignToWorkgroups(agents);
-  //cout <<"  " <<"Initialization done" <<endl;
-
-  //Sanity check (simple)
-  /*if (!CheckAgentIDs(agents )) {
-	  return false;
-  }*/
 
   //Sanity check (nullptr)
   void* x = nullptr;
@@ -167,14 +136,18 @@ bool performMain(const std::string& configFileName)
   vector<Agent*> starting_agents;
   for (vector<Agent*>::iterator it=agents.begin(); it!=agents.end(); it++) {
 	  Agent* const ag = *it;
+#ifndef DISABLE_DYNAMIC_DISPATCH
 	  if (ag->startTime==0) {
+#endif
 		  //Only agents with a start time of zero should start immediately in the all_agents list.
 		  agentWorkers.assignAWorker(ag);
 		  starting_agents.push_back(ag);
+#ifndef DISABLE_DYNAMIC_DISPATCH
 	  } else {
 		  //Start later.
 		  Agent::pending_agents.push(ag);
 	  }
+#endif
   }
   agents.clear();
   agents.insert(agents.end(), starting_agents.begin(), starting_agents.end());
@@ -183,14 +156,12 @@ bool performMain(const std::string& configFileName)
 
   //Initialize our signal status work groups
   //  TODO: There needs to be a more general way to do this.
-  /*WorkGroup signalStatusWorkers(WG_SIGNALS_SIZE, config.totalRuntimeTicks, config.granSignalsTicks);
-  Worker<sim_mob::Entity>::ActionFunction spWork = boost::bind(signal_status_worker, _1, _2);
-  signalStatusWorkers.initWorkers(&spWork);*/
+  WorkGroup signalStatusWorkers(WG_SIGNALS_SIZE, config.totalRuntimeTicks, config.granSignalsTicks);
+  Worker::ActionFunction spWork = boost::bind(signal_status_worker, _1, _2);
+  signalStatusWorkers.initWorkers(&spWork);
   for (size_t i=0; i<Signal::all_signals_.size(); i++) {
-	  agentWorkers.assignAWorker(Signal::all_signals_[i]);
+	  signalStatusWorkers.assignAWorker(Signal::all_signals_[i]);
   }
-	  //signalStatusWorkers.migrateByID(const_cast<Signal*>(Signal::all_signals_[i]), i%WG_SIGNALS_SIZE);
-  //}
 
   //Initialize the aura manager
   AuraManager& auraMgr = AuraManager::instance();
@@ -198,8 +169,7 @@ bool performMain(const std::string& configFileName)
 
   //Start work groups and all threads.
   agentWorkers.startAll();
-  //signalStatusWorkers.startAll();
-  //shortestPathWorkers.startAll();
+  signalStatusWorkers.startAll();
 
   /////////////////////////////////////////////////////////////////
   // NOTE: WorkGroups are able to handle skipping steps by themselves.
@@ -208,7 +178,11 @@ bool performMain(const std::string& configFileName)
   //       a barrier sync.
   /////////////////////////////////////////////////////////////////
   size_t numStartAgents = Agent::all_agents.size();
+
+#ifndef DISABLE_DYNAMIC_DISPATCH
   size_t numPendingAgents = Agent::pending_agents.size();
+#endif
+
   for (unsigned int currTick=0; currTick<config.totalRuntimeTicks; currTick++) {
 	  //Flag
 	  bool warmupDone = (currTick >= config.totalWarmupTicks);
@@ -223,16 +197,7 @@ bool performMain(const std::string& configFileName)
 	  }
 
 	  //Update the signal logic and plans for every intersection grouped by region
-	  //signalStatusWorkers.wait();
-
-	  //Update weather, traffic conditions, etc.
-	  //updateTrafficInfo(regions);
-
-	  //Longer Time-based cycle
-	  //shortestPathWorkers.wait();
-
-	  //Longer Time-based cycle
-	  //agentDecomposition(agents);  //NOTE: This should be performed by some other Agent on some kind of worker thread.
+	  signalStatusWorkers.wait();
 
 	  //Agent-based cycle
 	  agentWorkers.wait();
@@ -252,7 +217,12 @@ bool performMain(const std::string& configFileName)
 	  //saveStatisticsToDB(agents);
   }
 
-  cout <<"Starting Agents: " <<numStartAgents <<",     Pending: " <<numPendingAgents <<endl;
+  cout <<"Starting Agents: " <<numStartAgents;
+#ifndef DISABLE_DYNAMIC_DISPATCH
+  cout <<",     Pending: " <<numPendingAgents;
+#endif
+  cout <<endl;
+
   if (Agent::all_agents.empty()) {
 	  cout <<"All Agents have left the simulation.\n";
   } else {
@@ -275,9 +245,11 @@ bool performMain(const std::string& configFileName)
 	  cout <<"   Person Agents: " <<numDriver <<" (Driver)   " <<numPedestrian <<" (Pedestrian)   " <<(numPerson-numDriver-numPedestrian) <<" (Other)" <<endl;
   }
 
+#ifndef DISABLE_DYNAMIC_DISPATCH
   if (!Agent::pending_agents.empty()) {
 	  cout <<"WARNING! There are still " <<Agent::pending_agents.size() <<" Agents waiting to be scheduled; next start time is: " <<Agent::pending_agents.top()->startTime <<" ms\n";
   }
+#endif
 
   cout <<"Simulation complete; closing worker threads." <<endl;
   return true;
@@ -324,67 +296,6 @@ int main(int argc, char* argv[])
 	return returnVal;
 }
 
-
-
-/**
- * Parallel initialization step. Note that this function was created very early in development,
- *   and will eventually have to be migrated to the dispatcher.
- */
-/*void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents)
-{
-	  //Our work groups. Will be disposed after this time tick.
-	  SimpleWorkGroup<sim_mob::Entity> createAgentWorkers(WG_CREATE_AGENT_SIZE, 1);
-
-	  //Create agents
-	  Worker<sim_mob::Entity>::ActionFunction func2 = boost::bind(load_agents, _1, _2);
-	  createAgentWorkers.initWorkers(&func2);
-	  for (size_t i=0; i<agents.size(); i++) {
-		  createAgentWorkers.migrate(agents[i], createAgentWorkers.getWorker(-1), createAgentWorkers.getWorker(i%WG_CREATE_AGENT_SIZE));
-	  }
-
-	  //Start
-	  cout <<"  Starting threads..." <<endl;
-	  createAgentWorkers.startAll();
-
-	  //Flip once
-	  createAgentWorkers.wait();
-
-	  cout <<"  Closing all work groups..." <<endl;
-}*/
-
-
-
-/**
- * Simple sanity check on Agent IDs. Checks that IDs start at 0, end at size(agents)-1,
- *   and contain every value in between. Order is not important.
- */
-//This is unlikely to be true from here on out, since Agents aren't always dispatched
-//   (and may soon not even be created until needed).
-/*bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents) {
-    std::vector<sim_mob::Agent const *> all_agents(agents.begin(), agents.end());
-    std::copy(Signal::all_signals_.begin(), Signal::all_signals_.end(), std::back_inserter(all_agents));
-
-	std::set<int> agent_ids;
-	bool foundZero = false;
-	bool foundMax = false;
-	for (size_t i=0; i<all_agents.size(); i++) {
-		int id = all_agents[i]->getId();
-		agent_ids.insert(id);
-		if (id==0) {
-			foundZero = true;
-		}
-		if (id+1==static_cast<int>(all_agents.size())) {
-			foundMax = true;
-		}
-	}
-	if (all_agents.size()!=agent_ids.size() || !foundZero || !foundMax) {
-		std::cout <<"Error, invalid Agent ID: agent_size(" <<all_agents.size() <<"=>" <<agent_ids.size() <<"), "
-				<<"foundZero: " <<foundZero <<", foundMax: " <<foundMax <<std::endl;
-		return false;
-	}
-
-	return true;
-}*/
 
 
 bool TestTimeClass()

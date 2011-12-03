@@ -76,10 +76,14 @@ vector<BufferedBase*> sim_mob::Pedestrian::getSubscriptionParams()
 void sim_mob::Pedestrian::update(frame_t frameNumber) {
 	unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
 	if (currTimeMS < parent->startTime) {
+#ifndef DISABLE_DYNAMIC_DISPATCH
 		std::stringstream msg;
 		msg <<"Pedestrian specifies a start time of: " <<parent->startTime <<" but it is currently: "
 			<<currTimeMS <<"; this indicates an error, and should be handled automatically.";
 		throw std::runtime_error(msg.str().c_str());
+#else
+		return;
+#endif
 	}
 
 	//Set the initial position of agent
@@ -90,11 +94,13 @@ void sim_mob::Pedestrian::update(frame_t frameNumber) {
 
 	//Check if the agent has reached the destination
 	if (isDestReached()) {
+#ifndef DISABLE_DYNAMIC_DISPATCH
 		if (!parent->isToBeRemoved()) {
 			//Output (temp)
 			LogOut("Pedestrian " <<parent->getId() <<" has reached the destination" <<std::endl);
 			parent->setToBeRemoved();
 		}
+#endif
 		return;
 	}
 

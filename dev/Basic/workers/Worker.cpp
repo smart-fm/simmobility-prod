@@ -45,6 +45,7 @@ std::vector<Entity*>& sim_mob::Worker::getEntities() {
 }
 
 
+#ifndef DISABLE_DYNAMIC_DISPATCH
 void sim_mob::Worker::scheduleForAddition(Entity* entity)
 {
 	//Save for later
@@ -57,6 +58,17 @@ void sim_mob::Worker::scheduleForRemoval(Entity* entity)
 	//Save for later
 	toBeRemoved.push_back(entity);
 }
+
+#else
+
+void sim_mob::Worker::scheduleAgentNow(Entity* entity)
+{
+	//Add it now.
+	migrateIn(*entity);
+}
+
+
+#endif
 
 
 
@@ -112,7 +124,7 @@ void sim_mob::Worker::interrupt()
 }
 
 
-
+#ifndef DISABLE_DYNAMIC_DISPATCH
 void sim_mob::Worker::addPendingAgents()
 {
 	for (vector<Entity*>::iterator it=toBeAdded.begin(); it!=toBeAdded.end(); it++) {
@@ -141,6 +153,7 @@ void sim_mob::Worker::removePendingAgents()
 	}
 	toBeRemoved.clear();
 }
+#endif
 
 
 
@@ -150,13 +163,17 @@ void sim_mob::Worker::barrier_mgmt()
 	bool active = true;
 	while (active) {
 		//Add Agents as required.
+#ifndef DISABLE_DYNAMIC_DISPATCH
 		addPendingAgents();
+#endif
 
 		//Perform all our Agent updates, etc.
 		perform_main(currTick);
 
 		//Remove Agents as requires
+#ifndef DISABLE_DYNAMIC_DISPATCH
 		removePendingAgents();
+#endif
 
 		//Advance local time-step.
 		currTick += tickStep;

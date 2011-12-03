@@ -405,11 +405,6 @@ bool sim_mob::Driver::update_post_movement(UpdateParams& params, frame_t frameNu
 		//Fix: We need to perform this calculation at least once or we won't have a heading within the intersection.
 		DPoint res = intModel->continueDriving(0);
 		vehicle->setPositionInIntersection(res.x, res.y);
-
-		{ //TEMP
-		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-		std::cout <<"     setting pos: " <<res.x <<"," <<res.y <<std::endl;
-		}
 	}
 
 	return true;
@@ -425,10 +420,14 @@ void sim_mob::Driver::update(frame_t frameNumber)
 
 	//Do nothing?
 	if(currTimeMS<parent->startTime) {
+#ifndef DISABLE_DYNAMIC_DISPATCH
 		std::stringstream msg;
 		msg <<"Driver(" <<parent->getId() <<") specifies a start time of: " <<parent->startTime <<" but it is currently: "
 			<<currTimeMS <<"; this indicates an error, and should be handled automatically.";
 		throw std::runtime_error(msg.str().c_str());
+#else
+		return;
+#endif
 	}
 
 	//Create a new set of local parameters for this frame update.
@@ -437,6 +436,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	//First frame update
 	if (firstFrameTick) {
 		//Helper check; not needed once we trust our Workers.
+#ifndef DISABLE_DYNAMIC_DISPATCH
 		if (abs(currTimeMS-parent->startTime)>=ConfigParams::GetInstance().baseGranMS) {
 			std::stringstream msg;
 			msg <<"Driver was not started within one timespan of its requested start time.";
@@ -444,6 +444,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 			msg <<"Agent ID: " <<parent->getId() <<"\n";
 			throw std::runtime_error(msg.str().c_str());
 		}
+#endif
 
 		update_first_frame(params, frameNumber);
 		firstFrameTick = false;
@@ -451,10 +452,14 @@ void sim_mob::Driver::update(frame_t frameNumber)
 
 	//Are we done already?
 	if (vehicle->isDone()) {
+#ifndef DISABLE_DYNAMIC_DISPATCH
 		if (parent->isToBeRemoved()) {
 			throw std::runtime_error("Driver is already done, but hasn't been removed.");
 		}
 		parent->setToBeRemoved();
+#else
+		return;
+#endif
 	}
 
 	//Just a bit glitchy...

@@ -6,6 +6,8 @@
 #include <stdexcept>
 #include <boost/thread.hpp>
 
+#include "constants.h"
+
 #include "entities/Agent.hpp"
 #include "workers/Worker.hpp"
 
@@ -47,10 +49,12 @@ public:
 
 	Worker* getWorker(int id);
 
+#ifndef DISABLE_DYNAMIC_DISPATCH
 	void stageAgents();
-	void assignAWorker(Entity* ag);
-
 	std::vector<Agent*> agToBeRemoved;
+#endif
+
+	void assignAWorker(Entity* ag);
 
 
 protected:

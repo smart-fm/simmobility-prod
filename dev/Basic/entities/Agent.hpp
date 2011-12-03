@@ -84,7 +84,7 @@ public:
 	struct StartTimePriorityQueue {
 		std::priority_queue<Entity*> impl;
 
-		StartTimePriorityQueue() : impl(cmp_agent_start()) {}
+		StartTimePriorityQueue() : impl(cmp_agent_start(), std::vector<Entity*>()) {}
 	};
 
 	static StartTimePriorityQueue pending_agents; //Agents waiting to be added to the simulation, prioritized by start time.

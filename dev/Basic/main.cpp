@@ -155,6 +155,13 @@ bool performMain(const std::string& configFileName)
   agents.clear();
   agents.insert(agents.end(), starting_agents.begin(), starting_agents.end());
 
+  //TEMP
+  while (!Agent::pending_agents.impl.empty()) {
+	  std::cout <<"Start: " <<Agent::pending_agents.impl.top()->getStartTime() <<"\n";
+	  Agent::pending_agents.impl.pop();
+  }
+  throw 1;
+
   cout <<"Initial Agents dispatched or pushed to pending." <<endl;
 
   //Initialize our signal status work groups

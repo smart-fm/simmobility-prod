@@ -411,11 +411,6 @@ bool sim_mob::Driver::update_post_movement(UpdateParams& params, frame_t frameNu
 		}
 	}
 
-	{ //TEMP
-	boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-	std::cout <<"     just moved: " <<params.justMovedIntoIntersection <<std::endl;
-	}
-
 	//Have we just entered into an intersection?
 	if (vehicle->isInIntersection() && params.justMovedIntoIntersection) {
 		//Calculate a trajectory and init movement on that intersection.
@@ -425,6 +420,11 @@ bool sim_mob::Driver::update_post_movement(UpdateParams& params, frame_t frameNu
 		//Fix: We need to perform this calculation at least once or we won't have a heading within the intersection.
 		DPoint res = intModel->continueDriving(0);
 		vehicle->setPositionInIntersection(res.x, res.y);
+
+		{ //TEMP
+		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+		std::cout <<"     setting pos: " <<res.x <<"," <<res.y <<std::endl;
+		}
 	}
 
 	return true;
@@ -778,6 +778,10 @@ void sim_mob::Driver::chooseNextLaneForNextLink(UpdateParams& p)
 			}
 		}
 	}
+
+	if (!nextLaneInNextLink) {
+		throw std::runtime_error("Can't find nextLaneInNextLink.");
+	}
 }
 
 //TODO: For now, we're just using a simple trajectory model. Complex curves may be added later.
@@ -785,6 +789,8 @@ void sim_mob::Driver::calculateIntersectionTrajectory(DPoint movingFrom, double 
 {
 	//If we have no target link, we have no target trajectory.
 	if (!nextLaneInNextLink) {
+		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+		std::cout <<"WARNING: nextLaneInNextLink has not been set; can't calculate intersection trajectory." <<std::endl;
 		return;
 	}
 
@@ -793,17 +799,6 @@ void sim_mob::Driver::calculateIntersectionTrajectory(DPoint movingFrom, double 
 
 	//Compute a movement trajectory.
 	intModel->startDriving(movingFrom, DPoint(entry.getX(), entry.getY()), overflow);
-
-	//Temp update
-	DPoint curr = intModel->continueDriving(0);
-	vehicle->setPositionInIntersection(curr.x, curr.y);
-
-	//Typical results: 45m. Why is this so far off?
-	/*double displacement = dist(entry.getX(), entry.getY(), vehicle->getX(), vehicle->getY());
-	{
-		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-		std::cout <<"Overshot intersection by: " <<displacement <<" cm\n";
-	}*/
 }
 
 
@@ -870,6 +865,9 @@ void sim_mob::Driver::setOrigin(UpdateParams& p)
 
 	//Calculate and save the total length of the current polyline.
 	p.currLaneLength = vehicle->getCurrLinkLaneZeroLength();
+
+	//TEMP: Is this in the right place?
+	chooseNextLaneForNextLink(p);
 }
 
 

@@ -47,7 +47,7 @@ private:
 
 //Constructor and overridden methods.
 public:
-	Driver (Person* parent);			//to initiate
+	Driver(Person* parent, unsigned int reacTime_LeadingVehicle, unsigned int reacTime_SubjectVehicle, unsigned int reacTime_Gap);		//to initiate
 	virtual ~Driver();
 
 	virtual void update(frame_t frameNumber);

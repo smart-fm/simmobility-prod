@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <boost/thread.hpp>
 #include "entities/Agent.hpp"
+#include "entities/Person.hpp"
 #include "util/OutputUtil.hpp"
 
 using std::vector;
@@ -61,7 +62,7 @@ void sim_mob::WorkGroup::migrate(Entity* ag, Worker<Entity>* toWorker)
 		//Debugging output
 		if (Debug::WorkGroupSemantics) {
 			Agent* agent = dynamic_cast<Agent*>(ag);
-			if (agent) {
+			if (agent && dynamic_cast<Person*>(agent)) {
 				boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 				std::cout <<"Removing Agent " <<agent->getId() <<" from worker: " <<from <<std::endl;
 			}
@@ -74,7 +75,7 @@ void sim_mob::WorkGroup::migrate(Entity* ag, Worker<Entity>* toWorker)
 		//Debugging output
 		if (Debug::WorkGroupSemantics) {
 			Agent* agent = dynamic_cast<Agent*>(ag);
-			if (agent) {
+			if (agent && dynamic_cast<Person*>(agent)) {
 				boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 				std::cout <<"Adding Agent " <<agent->getId() <<" to worker: " <<to <<" at requested time: " <<agent->startTime <<std::endl;
 			}

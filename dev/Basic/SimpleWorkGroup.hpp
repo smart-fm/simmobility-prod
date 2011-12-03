@@ -162,7 +162,7 @@ void sim_mob::SimpleWorkGroup<EntityType>::stageAgents()
 	unsigned int nextTickMS = nextTimeTickToStage*ConfigParams::GetInstance().baseGranMS;
 	while (!Agent::pending_agents.empty() && Agent::pending_agents.top()->startTime <= nextTickMS) {
 		if (sim_mob::Debug::WorkGroupSemantics) {
-			std::cout <<"Staging agent ID: " <<Agent::pending_agents.top()->getId() <<"\n";
+			std::cout <<"Staging agent ID: " <<Agent::pending_agents.top()->getId() <<" in time for tick: " <<nextTimeTickToStage <<"\n";
 		}
 
 		//Find a worker to assign this to and send it the Entity to manage.

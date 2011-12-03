@@ -14,7 +14,7 @@ namespace sim_mob
 class Debug {
 public:
 	///Debug work groups and worker semantics. Adding/staging entities, etc.
-	static const bool WorkGroupSemantics = true;
+	static const bool WorkGroupSemantics = false;
 
 	///Debug Driver-specific behavior like changing lanes.
 	static const bool Drivers = false;

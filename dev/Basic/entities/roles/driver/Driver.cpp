@@ -1079,6 +1079,11 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p, LANE_CHANG
 					std::cout <<DebugStream.str();
 				}
 
+				//TEMP OVERRIDE:
+				//TODO: Fix!
+				parent->setToBeRemoved();
+				return;
+
 				std::stringstream msg;
 				msg <<"Error: Car has moved onto sidewalk. Agent ID: " <<parent->getId();
 				throw std::runtime_error(msg.str().c_str());

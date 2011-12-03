@@ -325,7 +325,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	//Do nothing?
 	if(currTimeMS<parent->startTime) {
 		std::stringstream msg;
-		msg <<"Driver specifies a start time of: " <<parent->startTime <<" but it is currently: "
+		msg <<"Driver(" <<parent->getId() <<") specifies a start time of: " <<parent->startTime <<" but it is currently: "
 			<<currTimeMS <<"; this indicates an error, and should be handled automatically.";
 		throw std::runtime_error(msg.str().c_str());
 	}

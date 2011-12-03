@@ -145,8 +145,8 @@ template <class EntityType>
 void sim_mob::SimpleWorkGroup<EntityType>::startAll()
 {
 	//Stage any Agents that will become active within the first time tick (in time for the next tick)
-	nextTimeTickToStage = tickStep;
-	stageAgents();
+	nextTimeTickToStage = 0;
+	//stageAgents();
 
 	//Start all workers
 	tickOffset = tickStep;

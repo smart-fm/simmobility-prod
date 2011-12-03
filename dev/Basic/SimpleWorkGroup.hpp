@@ -74,23 +74,17 @@ protected:
 
 	bool auraManagerActive;
 
-	//What to do with an Agent we're "moving"
-	struct MoveInstruction {
-		EntityType* ent;
-		bool add;
-	};
-
 	//Pointers to _actually_ be deleted during this time tick.
-	std::vector<EntityType*> toBeDeletedNow;
+	//std::vector<EntityType*> toBeDeletedNow;
 
 	//Entities to be moved during this update tick.
-	std::vector<MoveInstruction> toBeMovedNow;
+	//std::vector<MoveInstruction> toBeMovedNow;
 
 	//Entities to be moved in the next time tick. Refreshed in flip()
-	std::vector<MoveInstruction> toBeMovedLater;
+	//std::vector<MoveInstruction> toBeMovedLater;
 
 	//Locking for these arrays
-	static boost::mutex add_remove_array_lock;
+	//static boost::mutex add_remove_array_lock;
 
 	//Needed to stay in sync with the workers
 	frame_t nextTimeTickToStage;

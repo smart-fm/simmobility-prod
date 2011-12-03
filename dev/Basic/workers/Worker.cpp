@@ -45,8 +45,8 @@ std::vector<EntityType*>& sim_mob::Worker<EntityType>::getEntities() {
 template <class EntityType>
 void sim_mob::Worker<EntityType>::scheduleForRemoval(EntityType* entity)
 {
-	//Dispatch to parent.
-	parent->scheduleForRemoval(entity);
+	//Save for later
+	toBeRemoved.push_back(entity);
 }
 
 
@@ -111,7 +111,54 @@ template <class EntityType>
 void sim_mob::Worker<EntityType>::barrier_mgmt()
 {
 	for (;active.get();) {
+		//Add Agents as required.
+		for (vector<Entity*>::iterator it=toBeAdded.begin(); it!=toBeAdded.end(); it++) {
+			//Ensure we're on the same page
+			WorkGroup* wg = dynamic_cast<WorkGroup*>(parent);
+			if (!wg) {
+				throw std::runtime_error("Simple workers cannot add Entities at arbitrary times.");
+			}
+
+			//Add it to our global list. Requires locking.
+			Agent* ag = dynamic_cast<Agent*>(*it);
+			if (ag) {
+				boost::mutex::scoped_lock local_lock(sim_mob::Agent::all_agents_lock);
+				Agent::all_agents.push_back(ag);
+			}
+
+			//Migrate its Buffered properties.
+			wg->migrate(*it, this);
+		}
+		toBeAdded.clear();
+
+		//Perform all our Agent updates, etc.
 		perform_main(currTick);
+
+		//Remove Agents as requires
+		for (vector<Entity*>::iterator it=toBeRemoved.begin(); it!=toBeRemoved.end(); it++) {
+			//Ensure we're on the same page
+			WorkGroup* wg = dynamic_cast<WorkGroup*>(parent);
+			if (!wg) {
+				throw std::runtime_error("Simple workers cannot remove Entities at arbitrary times.");
+			}
+
+			//Migrate out its buffered properties.
+			wg->migrate(*it, nullptr);
+
+			//Remove it from our global list. Requires locking
+			Agent* ag = dynamic_cast<Agent*>(*it);
+			if (ag) {
+				boost::mutex::scoped_lock local_lock(sim_mob::Agent::all_agents_lock);
+				std::vector<Agent*>::iterator it2 = std::find(Agent::all_agents.begin(), Agent::all_agents.end(), ag);
+				if (it2!=Agent::all_agents.end()) {
+					Agent::all_agents.erase(it2);
+				}
+			}
+
+			//Delete this entity
+			//delete *it;  //NOTE: For now, I'm leaving it in memory to make debugging slightly eaier. ~Seth
+		}
+		toBeRemoved.clear();
 
 		//Advance local time-step. This must be done before the barrier or "active" could get out of sync.
 		currTick += tickStep;

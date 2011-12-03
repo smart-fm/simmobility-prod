@@ -127,18 +127,7 @@ public class SimulationResults {
 			parsePedestrian(frameID, objID, rhs, rn);
 		}
 	}
-	
-	/*private static Color ReadColor(int id) {
-		if (id==1) {
-			return Color.RED;
-		} else if (id==2) {
-			return Color.YELLOW;
-		} else if (id==3) {
-			return new Color(0x00, 0x99, 0x00);
-		}
-		throw new RuntimeException("Invalid traffic light color: " + id);
-	}*/
-	
+
 	private static ArrayList<Integer> parseEachSignal(String signal){
 		ArrayList<Integer> signalLights =  new ArrayList<Integer>();
 		String [] items = signal.split(",");
@@ -196,7 +185,6 @@ public class SimulationResults {
 	    //Add it to current time tick
 	    ticks.get(frameID).signalLineTicks.put(objID, tempSignalLineTick);
 	}
-	
 	
 	private void parseDriver(int frameID, int objID, String rhs, RoadNetwork rn) throws IOException {
 	    //Check and parse properties.

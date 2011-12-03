@@ -75,10 +75,7 @@ public class TrafficSignalLine implements DrawableItem{
 	
 	@Override
 	public void draw(Graphics2D g) {
-		
-		
-		//g.drawLine((int)fromNode.getPos().getX(), (int)fromNode.getPos().getY(), (int)toNode.getPos().getX(), (int)toNode.getPos().getY()); 
-	
+			
 		drawArrow(g, (int)fromNode.getPos().getX(), (int)fromNode.getPos().getY(),(int)toNode.getPos().getX(),(int)toNode.getPos().getY());
 		
 	}

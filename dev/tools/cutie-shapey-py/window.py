@@ -18,8 +18,17 @@ class GraphicsView(QtGui.QGraphicsView):
         self.setRenderHint(QtGui.QPainter.TextAntialiasing)
         self.scale(0.004, 0.004)
 
-        # For the geospatial data, the Y-axis points upwards.  QtGui.QGraphicsView has its Y-axis
-        # pointing down.  Flip the view about the X-Axis so that things look right.
+        # This is confusing.  The points in the shape files use the Cartesian co-ordinate system,
+        # where the Y-axis points up.  But in Qt's co-ordinate system(s), the Y-axis points
+        # downwards.  We flip the view about the X-axis so that things look right.  But...
+        #
+        # With the below rotation matrix added, if we draw a upright bus stop (as in the usual
+        # Cartesian tradition), then the bus stop would be upright in the view.  The same goes for
+        # the icons for the lane arrow markings and traffic signals.  The question is what is the
+        # co-ordinate system for the bearings (directions, angles, etc) in the shape files.  I was
+        # confused when previously some of the arrow markings and traffic signals were pointing in
+        # the wrong directions.  I discovered that if we use the negative of the bearings in the
+        # shape files, everything looks right.
         matrix = QtGui.QTransform()
         matrix.rotate(180, QtCore.Qt.XAxis)
         self.setTransform(matrix, True)

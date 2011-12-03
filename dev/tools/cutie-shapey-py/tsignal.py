@@ -6,6 +6,7 @@
 
 import shapefile
 from point import Point, Bounding_box
+from PyQt4 import QtGui, QtCore
 
 class Traffic_signal:
     def __init__(self, id, position, bearing, type):
@@ -43,7 +44,32 @@ class Traffic_signal:
         if 'T' == self.type: return "Count Down Timer for Pedestrian"
 
     def graphics(self):
-        return None
+        # The signal icon looks like an ice-cream cone, with the semi-circle representing the
+        # light bulb facing the drivers or pedestrians.
+        path1 = QtGui.QPainterPath()
+        path1.lineTo(-50, 200)
+        path1.lineTo(50, 200)
+        path1.closeSubpath()
+        path2 = QtGui.QPainterPath(QtCore.QPointF(-50, 200))
+        path2.arcTo(-50, 150, 100, 100, 0, -180)
+        path2.lineTo(0, 0)
+        path2.closeSubpath()
+        item = QtGui.QGraphicsPathItem(path1.united(path2))
+
+        if 'B' == self.type: item.setBrush(QtCore.Qt.red)
+        if 'C' == self.type: item.setBrush(QtCore.Qt.blue)
+        if 'F' == self.type: item.setBrush(QtCore.Qt.green)
+        if 'G' == self.type: item.setBrush(QtCore.Qt.cyan)
+        if 'H' == self.type: item.setBrush(QtCore.Qt.magenta)
+        if 'N' == self.type: item.setBrush(QtCore.Qt.yellow)
+        if 'P' == self.type: item.setBrush(QtCore.Qt.black)
+        if 'R' == self.type: item.setBrush(QtCore.Qt.gray)
+        if 'T' == self.type: item.setBrush(QtCore.Qt.lightGray)
+        item.setPos(self.position.x, self.position.y)
+        # See the comments in the Graphics_view constructor in window.py
+        item.setRotation(-self.bearing)
+        item.info = "signal id=%d type='%s' bearing=%d" % (self.id, self.type_desc(), self.bearing)
+        return item
 
 class Traffic_signals:
     def __init__(self, shape_name):

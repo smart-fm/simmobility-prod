@@ -125,7 +125,7 @@ vector<string> ReadSpaceSepArray(TiXmlHandle& handle, const std::string& attrNam
 
 
 
-bool generateAgentsFromTripChain(std::vector<Agent*>& agents)
+bool generateAgentsFromTripChain(std::vector<Entity*>& agents)
 {
 	ConfigParams& config = ConfigParams::GetInstance();
 	const vector<TripChain*>& tcs = ConfigParams::GetInstance().getTripChains();

@@ -2,21 +2,24 @@
 
 #pragma once
 
+#include <queue>
 #include <vector>
 #include <stdexcept>
 #include <boost/thread.hpp>
 
 #include "constants.h"
 
-#include "entities/Agent.hpp"
-#include "workers/Worker.hpp"
-
 #include "util/LangHelpers.hpp"
 #include "util/DebugFlags.hpp"
+
+//Needed for ActionFunction
+#include "workers/Worker.hpp"
 
 
 namespace sim_mob
 {
+
+
 
 /*
  * Worker wrapper, similar to thread_group but using barriers.
@@ -28,6 +31,16 @@ namespace sim_mob
  */
 class WorkGroup {
 public:
+	//Migration parameters
+	struct EntityLoadParams {
+		std::priority_queue<Entity*>& pending_source;
+		std::vector<Entity*>& entity_dest;
+		boost::mutex& entity_dest_lock;
+		EntityLoadParams(std::priority_queue<Entity*>& pending_source, std::vector<Entity*>& entity_dest, boost::mutex& entity_dest_lock)
+			: pending_source(pending_source), entity_dest(entity_dest), entity_dest_lock(entity_dest_lock) {}
+	};
+
+
 	//These are passed along to the Workers:
 	//  endTick=0 means run forever.
 	//  tickStep is used to allow Workers to skip ticks; no barriers are locked.
@@ -36,7 +49,7 @@ public:
 	virtual ~WorkGroup();
 
 	//template <typename WorkType>  //For now, just assume Workers
-	void initWorkers(Worker::ActionFunction* action = nullptr);
+	void initWorkers(Worker::ActionFunction* action, EntityLoadParams* loader);
 
 	//Worker<EntityType>* const getWorker(size_t id);
 	void startAll();
@@ -50,11 +63,13 @@ public:
 	Worker* getWorker(int id);
 
 #ifndef DISABLE_DYNAMIC_DISPATCH
-	void stageAgents();
-	std::vector<Agent*> agToBeRemoved;
+	void stageEntities();
+	std::vector<Entity*> entToBeRemoved;
 #endif
 
 	void assignAWorker(Entity* ag);
+
+	void scheduleEntForRemoval(Entity* ag);
 
 
 protected:
@@ -83,6 +98,13 @@ protected:
 
 	//Needed to stay in sync with the workers
 	frame_t nextTimeTickToStage;
+
+	//Contains information needed to migrate Entities
+	EntityLoadParams* loader;
+
+
+
+
 
 };
 

@@ -98,8 +98,11 @@ void signal_status_worker(sim_mob::Worker& wk, frame_t frameNumber)
  */
 bool performMain(const std::string& configFileName)
 {
+  //Loader params for our Agents
+  WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents, Agent::all_agents_lock);
+
   //Initialization: Scenario definition
-  vector<Agent*>& agents = Agent::all_agents;
+  vector<Entity*>& agents = Agent::all_agents;
 
   //Load our user config file; save a handle to the shared definition of it.
   if (!ConfigParams::InitUserConf(configFileName, agents)) {   //Note: Agent "shells" are loaded here.
@@ -129,15 +132,15 @@ bool performMain(const std::string& configFileName)
   WorkGroup agentWorkers(WG_AGENTS_SIZE, config.totalRuntimeTicks, config.granAgentsTicks, true);
   //Agent::TMP_AgentWorkGroup = &agentWorkers;
   Worker::ActionFunction entityWork = boost::bind(entity_worker, _1, _2);
-  agentWorkers.initWorkers(&entityWork);
+  agentWorkers.initWorkers(&entityWork, &entLoader);
 
   //Migrate all Agents from the all_agents array to the pending_agents priority queue unless they are
   // actually starting at time tick zero.
-  vector<Agent*> starting_agents;
-  for (vector<Agent*>::iterator it=agents.begin(); it!=agents.end(); it++) {
-	  Agent* const ag = *it;
+  vector<Entity*> starting_agents;
+  for (vector<Entity*>::iterator it=agents.begin(); it!=agents.end(); it++) {
+	  Entity* const ag = *it;
 #ifndef DISABLE_DYNAMIC_DISPATCH
-	  if (ag->startTime==0) {
+	  if (ag->getStartTime()==0) {
 #endif
 		  //Only agents with a start time of zero should start immediately in the all_agents list.
 		  agentWorkers.assignAWorker(ag);
@@ -229,7 +232,7 @@ bool performMain(const std::string& configFileName)
 	  size_t numPerson = 0;
 	  size_t numDriver = 0;
 	  size_t numPedestrian = 0;
-	  for (vector<Agent*>::iterator it=Agent::all_agents.begin(); it!=Agent::all_agents.end(); it++) {
+	  for (vector<Entity*>::iterator it=Agent::all_agents.begin(); it!=Agent::all_agents.end(); it++) {
 		  Person* p = dynamic_cast<Person*>(*it);
 		  if (p) {
 			  numPerson++;
@@ -247,7 +250,7 @@ bool performMain(const std::string& configFileName)
 
 #ifndef DISABLE_DYNAMIC_DISPATCH
   if (!Agent::pending_agents.empty()) {
-	  cout <<"WARNING! There are still " <<Agent::pending_agents.size() <<" Agents waiting to be scheduled; next start time is: " <<Agent::pending_agents.top()->startTime <<" ms\n";
+	  cout <<"WARNING! There are still " <<Agent::pending_agents.size() <<" Agents waiting to be scheduled; next start time is: " <<Agent::pending_agents.top()->getStartTime() <<" ms\n";
   }
 #endif
 

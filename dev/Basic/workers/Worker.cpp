@@ -11,8 +11,7 @@ using boost::barrier;
 using boost::function;
 
 #include "workers/WorkGroup.hpp"
-#include "entities/Agent.hpp"
-#include "entities/Person.hpp"
+#include "util/OutputUtil.hpp"
 
 using namespace sim_mob;
 
@@ -61,7 +60,7 @@ void sim_mob::Worker::scheduleForRemoval(Entity* entity)
 
 #else
 
-void sim_mob::Worker::scheduleAgentNow(Entity* entity)
+void sim_mob::Worker::scheduleEntityNow(Entity* entity)
 {
 	//Add it now.
 	migrateIn(*entity);
@@ -125,7 +124,7 @@ void sim_mob::Worker::interrupt()
 
 
 #ifndef DISABLE_DYNAMIC_DISPATCH
-void sim_mob::Worker::addPendingAgents()
+void sim_mob::Worker::addPendingEntities()
 {
 	for (vector<Entity*>::iterator it=toBeAdded.begin(); it!=toBeAdded.end(); it++) {
 		//Migrate its Buffered properties.
@@ -135,18 +134,14 @@ void sim_mob::Worker::addPendingAgents()
 }
 
 
-void sim_mob::Worker::removePendingAgents()
+void sim_mob::Worker::removePendingEntities()
 {
 	for (vector<Entity*>::iterator it=toBeRemoved.begin(); it!=toBeRemoved.end(); it++) {
 		//Migrate out its buffered properties.
 		migrateOut(**it);
 
 		//Remove it from our global list. Requires locking
-		Agent* ag = dynamic_cast<Agent*>(*it);
-		if (ag) {
-			boost::mutex::scoped_lock local_lock(sim_mob::Agent::all_agents_lock);
-			parent->agToBeRemoved.push_back(ag);
-		}
+		parent->scheduleEntForRemoval(*it);
 
 		//Delete this entity
 		//delete *it;  //NOTE: For now, I'm leaving it in memory to make debugging slightly eaier. ~Seth
@@ -164,7 +159,7 @@ void sim_mob::Worker::barrier_mgmt()
 	while (active) {
 		//Add Agents as required.
 #ifndef DISABLE_DYNAMIC_DISPATCH
-		addPendingAgents();
+		addPendingEntities();
 #endif
 
 		//Perform all our Agent updates, etc.
@@ -172,7 +167,7 @@ void sim_mob::Worker::barrier_mgmt()
 
 		//Remove Agents as requires
 #ifndef DISABLE_DYNAMIC_DISPATCH
-		removePendingAgents();
+		removePendingEntities();
 #endif
 
 		//Advance local time-step.
@@ -217,11 +212,8 @@ void sim_mob::Worker::migrateOut(Entity& ag)
 
 	//Debugging output
 	if (Debug::WorkGroupSemantics) {
-		Agent* agent = dynamic_cast<Agent*>(&ag);
-		if (agent && dynamic_cast<Person*>(agent)) {
-			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-			std::cout <<"Removing Agent " <<agent->getId() <<" from worker: " <<this <<std::endl;
-		}
+		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+		std::cout <<"Removing Entity " <<ag.getId() <<" from worker: " <<this <<std::endl;
 	}
 }
 
@@ -247,11 +239,8 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 
 	//Debugging output
 	if (Debug::WorkGroupSemantics) {
-		Agent* agent = dynamic_cast<Agent*>(&ag);
-		if (agent && dynamic_cast<Person*>(agent)) {
-			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-			std::cout <<"Adding Agent " <<agent->getId() <<" to worker: " <<this <<" at requested time: " <<agent->startTime <<std::endl;
-		}
+		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+		std::cout <<"Adding Entity " <<ag.getId() <<" to worker: " <<this <<std::endl;
 	}
 }
 

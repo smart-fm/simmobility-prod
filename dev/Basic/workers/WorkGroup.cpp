@@ -5,9 +5,9 @@
 //For debugging
 #include <stdexcept>
 #include <boost/thread.hpp>
-#include "entities/Agent.hpp"
-#include "entities/Person.hpp"
 #include "util/OutputUtil.hpp"
+
+#include "conf/simpleconf.hpp"
 
 using std::vector;
 using boost::barrier;
@@ -22,8 +22,10 @@ using namespace sim_mob;
  * Template function must be defined in the same translational unit as it is declared.
  */
 
-void sim_mob::WorkGroup::initWorkers(Worker::ActionFunction* action)
+void sim_mob::WorkGroup::initWorkers(Worker::ActionFunction* action, EntityLoadParams* loader)
 {
+	this->loader = loader;
+
 	for (size_t i=0; i<total_size; i++) {
 		workers.push_back(new Worker(this, shared_barr, external_barr, action, endTick, tickStep, auraManagerActive));
 	}
@@ -40,7 +42,7 @@ void sim_mob::WorkGroup::initWorkers(Worker::ActionFunction* action)
 
 sim_mob::WorkGroup::WorkGroup(size_t size, unsigned int endTick, unsigned int tickStep, bool auraManagerActive) :
 		shared_barr(size+1), external_barr(size+1), nextWorkerID(0), endTick(endTick), tickStep(tickStep), total_size(size), auraManagerActive(auraManagerActive),
-		nextTimeTickToStage(0)
+		nextTimeTickToStage(0), loader(nullptr)
 {
 }
 
@@ -70,13 +72,29 @@ void sim_mob::WorkGroup::startAll()
 
 
 #ifndef DISABLE_DYNAMIC_DISPATCH
-void sim_mob::WorkGroup::stageAgents()
+void sim_mob::WorkGroup::scheduleEntForRemoval(Entity* ag)
 {
+	if (!loader) {
+		throw std::runtime_error("Attempting to remove an entity from a WorkGroup that doesn't allow it.");
+	}
+
+	//May be accessed by child workers; requires locking.
+	boost::mutex::scoped_lock local_lock(loader->entity_dest_lock);
+	entToBeRemoved.push_back(ag);
+}
+
+void sim_mob::WorkGroup::stageEntities()
+{
+	if (!loader) {
+		return;
+	}
+
+	//Keep assigning the next entity until none are left.
 	unsigned int nextTickMS = nextTimeTickToStage*ConfigParams::GetInstance().baseGranMS;
-	while (!Agent::pending_agents.empty() && Agent::pending_agents.top()->startTime <= nextTickMS) {
+	while (!loader->pending_source.empty() && loader->pending_source.top()->getStartTime() <= nextTickMS) {
 		//Remove it.
-		Agent* ag = Agent::pending_agents.top();
-		Agent::pending_agents.pop();
+		Entity* ag = loader->pending_source.top();
+		loader->pending_source.pop();
 
 		if (sim_mob::Debug::WorkGroupSemantics) {
 			std::cout <<"Staging agent ID: " <<ag->getId() <<" in time for tick: " <<nextTimeTickToStage <<"\n";
@@ -85,8 +103,8 @@ void sim_mob::WorkGroup::stageAgents()
 		//Add it to our global list. Requires locking.
 		{
 			//TODO: This shouldn't actually require locking. Leaving it in here for now to be safe.
-			boost::mutex::scoped_lock local_lock(sim_mob::Agent::all_agents_lock);
-			Agent::all_agents.push_back(ag);
+			boost::mutex::scoped_lock local_lock(loader->entity_dest_lock);
+			loader->entity_dest.push_back(ag);
 		}
 
 		//Find a worker to assign this to and send it the Entity to manage.
@@ -101,7 +119,7 @@ void sim_mob::WorkGroup::assignAWorker(Entity* ag)
 #ifndef DISABLE_DYNAMIC_DISPATCH
 	workers.at(nextWorkerID++)->scheduleForAddition(ag);
 #else
-	workers.at(nextWorkerID++)->scheduleAgentNow(ag);
+	workers.at(nextWorkerID++)->scheduleEntityNow(ag);
 #endif
 	nextWorkerID %= workers.size();
 }
@@ -140,19 +158,21 @@ void sim_mob::WorkGroup::wait()
 
 	//Stage Agent updates based on nextTimeTickToStage
 #ifndef DISABLE_DYNAMIC_DISPATCH
-	stageAgents();
+	stageEntities();
 #endif
 
 	//Remove any Agents staged for removal.
 #ifndef DISABLE_DYNAMIC_DISPATCH
-	for (std::vector<Agent*>::iterator it=agToBeRemoved.begin(); it!=agToBeRemoved.end(); it++) {
-		boost::mutex::scoped_lock local_lock(sim_mob::Agent::all_agents_lock);
-		std::vector<Agent*>::iterator it2 = std::find(Agent::all_agents.begin(), Agent::all_agents.end(), *it);
-		if (it2!=Agent::all_agents.end()) {
-			Agent::all_agents.erase(it2);
+	if (loader) {
+		for (std::vector<Entity*>::iterator it=entToBeRemoved.begin(); it!=entToBeRemoved.end(); it++) {
+			boost::mutex::scoped_lock local_lock(loader->entity_dest_lock);
+			std::vector<Entity*>::iterator it2 = std::find(loader->entity_dest.begin(), loader->entity_dest.end(), *it);
+			if (it2!=loader->entity_dest.end()) {
+				loader->entity_dest.erase(it2);
+			}
 		}
+		entToBeRemoved.clear();
 	}
-	agToBeRemoved.clear();
 #endif
 
 	external_barr.wait();

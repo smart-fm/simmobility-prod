@@ -6,7 +6,6 @@
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "util/DebugFlags.hpp"
-#include "workers/WorkGroup.hpp"
 
 using std::vector;
 using namespace sim_mob;

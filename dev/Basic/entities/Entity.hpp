@@ -10,7 +10,6 @@
 #include "util/LangHelpers.hpp"
 #include "metrics/Frame.hpp"
 #include "buffering/BufferedDataManager.hpp"
-//#include "workers/Worker.hpp"
 
 
 namespace sim_mob
@@ -27,7 +26,7 @@ class WorkGroup;
 class Entity {
 public:
 	///Construct an entity with an immutable ID
-	Entity(unsigned int id) : startTime(0), id(id), isSubscriptionListBuilt(false), currWorker(nullptr) {}
+	Entity(unsigned int id) : id(id), isSubscriptionListBuilt(false), startTime(0), currWorker(nullptr) {}
 	virtual ~Entity() {
 		if (currWorker) {
 			//Note: If a worker thread is still active for this agent, that's a major problem. But
@@ -54,8 +53,7 @@ public:
 	virtual bool update(frame_t frameNumber) = 0;
 
 
-	//When (in ms) does this Entity start?
-	unsigned int startTime;
+	virtual unsigned int getStartTime() { return startTime; }
 
 
 protected:
@@ -71,6 +69,9 @@ protected:
 private:
 	unsigned int id;
 	bool isSubscriptionListBuilt;
+
+	//When (in ms) does this Entity start?
+	unsigned int startTime;
 
 protected:
 	///Who is currently managing this Entity?

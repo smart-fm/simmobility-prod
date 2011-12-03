@@ -66,7 +66,7 @@ public:
 	void scheduleForAddition(Entity* entity);
 	void scheduleForRemoval(Entity* entity);
 #else
-	void scheduleAgentNow(Entity* entity);
+	void scheduleEntityNow(Entity* entity);
 #endif
 
 
@@ -112,8 +112,8 @@ protected:
 private:
 	//Helper methods
 #ifndef DISABLE_DYNAMIC_DISPATCH
-	void addPendingAgents();
-	void removePendingAgents();
+	void addPendingEntities();
+	void removePendingEntities();
 #endif
 
 	///The main thread which this Worker wraps

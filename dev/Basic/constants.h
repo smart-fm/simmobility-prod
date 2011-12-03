@@ -20,7 +20,7 @@
 
 //Should we use dynamic dispatch, or force all Agents to start at time tick zero?
 // This is a workaround for current bugs; it will be removed later.
-#define DISABLE_DYNAMIC_DISPATCH
+//#define DISABLE_DYNAMIC_DISPATCH
 
 
 //Sizes of workgroups. (Note that enums are allowed to overlap values)

@@ -75,10 +75,10 @@ vector<BufferedBase*> sim_mob::Pedestrian::getSubscriptionParams()
 //Main update functionality
 void sim_mob::Pedestrian::update(frame_t frameNumber) {
 	unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
-	if (currTimeMS < parent->startTime) {
+	if (currTimeMS < parent->getStartTime()) {
 #ifndef DISABLE_DYNAMIC_DISPATCH
 		std::stringstream msg;
-		msg <<"Pedestrian specifies a start time of: " <<parent->startTime <<" but it is currently: "
+		msg <<"Pedestrian specifies a start time of: " <<parent->getStartTime() <<" but it is currently: "
 			<<currTimeMS <<"; this indicates an error, and should be handled automatically.";
 		throw std::runtime_error(msg.str().c_str());
 #else
@@ -565,7 +565,9 @@ void sim_mob::Pedestrian::checkForCollisions()
 	Agent* other = nullptr;
 	for (size_t i=0; i<Agent::all_agents.size(); i++) {
 		//Skip self
-		other = Agent::all_agents[i];
+		other = dynamic_cast<Agent*>(Agent::all_agents[i]);
+		if (!other) { break; } //Shouldn't happen; we might need to write a function for this later.
+
 		if (other->getId()==parent->getId()) {
 			other = nullptr;
 			continue;

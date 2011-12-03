@@ -419,10 +419,10 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
 
 	//Do nothing?
-	if(currTimeMS<parent->startTime) {
+	if(currTimeMS<parent->getStartTime()) {
 #ifndef DISABLE_DYNAMIC_DISPATCH
 		std::stringstream msg;
-		msg <<"Driver(" <<parent->getId() <<") specifies a start time of: " <<parent->startTime <<" but it is currently: "
+		msg <<"Driver(" <<parent->getId() <<") specifies a start time of: " <<parent->getStartTime() <<" but it is currently: "
 			<<currTimeMS <<"; this indicates an error, and should be handled automatically.";
 		throw std::runtime_error(msg.str().c_str());
 #else
@@ -437,10 +437,10 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	if (firstFrameTick) {
 		//Helper check; not needed once we trust our Workers.
 #ifndef DISABLE_DYNAMIC_DISPATCH
-		if (abs(currTimeMS-parent->startTime)>=ConfigParams::GetInstance().baseGranMS) {
+		if (abs(currTimeMS-parent->getStartTime())>=ConfigParams::GetInstance().baseGranMS) {
 			std::stringstream msg;
 			msg <<"Driver was not started within one timespan of its requested start time.";
-			msg <<"\nStart was: " <<parent->startTime <<",  Curr time is: " <<currTimeMS <<"\n";
+			msg <<"\nStart was: " <<parent->getStartTime() <<",  Curr time is: " <<currTimeMS <<"\n";
 			msg <<"Agent ID: " <<parent->getId() <<"\n";
 			throw std::runtime_error(msg.str().c_str());
 		}

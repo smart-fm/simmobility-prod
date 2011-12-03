@@ -777,10 +777,11 @@ void sim_mob::Driver::chooseNextLaneForNextLink(UpdateParams& p)
 				targetLaneIndex = fallbackIndex;
 			}
 		}
-	}
 
-	if (!nextLaneInNextLink) {
-		throw std::runtime_error("Can't find nextLaneInNextLink.");
+		//We should have generated a nextLaneInNextLink here.
+		if (!nextLaneInNextLink) {
+			throw std::runtime_error("Can't find nextLaneInNextLink.");
+		}
 	}
 }
 

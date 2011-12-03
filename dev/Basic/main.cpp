@@ -99,7 +99,7 @@ void signal_status_worker(sim_mob::Worker& wk, frame_t frameNumber)
 bool performMain(const std::string& configFileName)
 {
   //Loader params for our Agents
-  WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents, Agent::all_agents_lock);
+  WorkGroup::EntityLoadParams entLoader(Agent::pending_agents.impl, Agent::all_agents, Agent::all_agents_lock);
 
   //Initialization: Scenario definition
   vector<Entity*>& agents = Agent::all_agents;
@@ -148,7 +148,7 @@ bool performMain(const std::string& configFileName)
 #ifndef DISABLE_DYNAMIC_DISPATCH
 	  } else {
 		  //Start later.
-		  Agent::pending_agents.push(ag);
+		  Agent::pending_agents.impl.push(ag);
 	  }
 #endif
   }
@@ -183,7 +183,7 @@ bool performMain(const std::string& configFileName)
   size_t numStartAgents = Agent::all_agents.size();
 
 #ifndef DISABLE_DYNAMIC_DISPATCH
-  size_t numPendingAgents = Agent::pending_agents.size();
+  size_t numPendingAgents = Agent::pending_agents.impl.size();
 #endif
 
   for (unsigned int currTick=0; currTick<config.totalRuntimeTicks; currTick++) {
@@ -249,8 +249,8 @@ bool performMain(const std::string& configFileName)
   }
 
 #ifndef DISABLE_DYNAMIC_DISPATCH
-  if (!Agent::pending_agents.empty()) {
-	  cout <<"WARNING! There are still " <<Agent::pending_agents.size() <<" Agents waiting to be scheduled; next start time is: " <<Agent::pending_agents.top()->getStartTime() <<" ms\n";
+  if (!Agent::pending_agents.impl.empty()) {
+	  cout <<"WARNING! There are still " <<Agent::pending_agents.impl.size() <<" Agents waiting to be scheduled; next start time is: " <<Agent::pending_agents.impl.top()->getStartTime() <<" ms\n";
   }
 #endif
 

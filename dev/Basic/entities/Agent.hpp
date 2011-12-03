@@ -80,7 +80,14 @@ public:
 	static std::vector<Entity*> all_agents;
 
 #ifndef DISABLE_DYNAMIC_DISPATCH
-	static std::priority_queue<Entity*> pending_agents; //Agents waiting to be added to the simulation, prioritized by start time.
+	//C++ static constructors...
+	struct StartTimePriorityQueue {
+		std::priority_queue<Entity*> impl;
+
+		StartTimePriorityQueue() : impl(cmp_agent_start()) {}
+	};
+
+	static StartTimePriorityQueue pending_agents; //Agents waiting to be added to the simulation, prioritized by start time.
 
 	///When adding/deleting Agents asynchronously, a lock is required.
 	static boost::mutex all_agents_lock;

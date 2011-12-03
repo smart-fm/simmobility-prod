@@ -888,14 +888,45 @@ void sim_mob::aimsun::Loader::FixupLanesAndCrossings(sim_mob::RoadNetwork& res)
 		{
 			for(std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>::const_iterator itObstacles = (*itRS)->obstacles.begin(); itObstacles != (*itRS)->obstacles.end(); ++itObstacles)
 			{
-				const sim_mob::RoadItem* ri = (*itObstacles).second;
+				///TODO discuss constness of this variable on the RoadSegment and get rid of const cast
+				sim_mob::RoadItem* ri = const_cast<sim_mob::RoadItem*>((*itObstacles).second);
 
-				const sim_mob::Crossing* cross = dynamic_cast<const sim_mob::Crossing*>(ri);
+				sim_mob::Crossing* cross = dynamic_cast<sim_mob::Crossing*>(ri);
 				if(!cross)
 					continue;
 
+				//Due to some bugs upstream, certain crossings aren't found making the joins between crossing and lanes messy.
+				//As an imperfect fix, make crossings rectangular.
+				Point2D farLinemidPoint((cross->farLine.second.getX()-cross->farLine.first.getX())/2 + cross->farLine.first.getX(),(cross->farLine.second.getY()-cross->farLine.first.getY())/2 + cross->farLine.first.getY());
+				Point2D nearLineProjection = ProjectOntoLine(farLinemidPoint, cross->nearLine.first, cross->nearLine.second);
+				Point2D offset(farLinemidPoint.getX()-nearLineProjection.getX(),farLinemidPoint.getY()-nearLineProjection.getY());
+
+#if 0
+				///TODO figure out why these lines cause a null pointer crash in the driver code
+				cross->farLine.first = Point2D(cross->nearLine.first.getX() + offset.getX(), cross->nearLine.first.getY() + offset.getY());
+				cross->farLine.second = Point2D(cross->nearLine.second.getX() + offset.getX(), cross->nearLine.second.getY() + offset.getY());
+#endif
 				sim_mob::Point2D nearLinemidPoint((cross->nearLine.second.getX()-cross->nearLine.first.getX())/2 + cross->nearLine.first.getX(),
 										(cross->nearLine.second.getY()-cross->nearLine.first.getY())/2 + cross->nearLine.first.getY());
+
+				//Translate the crossing left or right to be centered on the link's median line.
+				//This is imperfect but is an improvement.
+				const sim_mob::Node* start = link->getStart();
+				const sim_mob::Node* end = link->getEnd();
+				if(	end && end->location->getX() !=0 && end->location->getY() !=0 &&
+					start && start->location->getX() !=0 && start->location->getY() !=0)
+				{
+					sim_mob::Point2D medianProjection = LineLineIntersect(cross->nearLine.first, cross->nearLine.second, *(link->getStart()->location), *(link->getEnd()->location));
+					Point2D shift(medianProjection.getX()-nearLinemidPoint.getX(), medianProjection.getY()-nearLinemidPoint.getY());
+					///TODO this is needed temporarily due to a bug in which one intersection's crossings end up shifted across the map.
+					if(shift.getX() > 1000)
+						continue;
+
+					cross->nearLine.first = Point2D(cross->nearLine.first.getX()+shift.getX(), cross->nearLine.first.getY()+shift.getY());
+					cross->nearLine.second = Point2D(cross->nearLine.second.getX()+shift.getX(), cross->nearLine.second.getY()+shift.getY());
+					cross->farLine.first = Point2D(cross->farLine.first.getX()+shift.getX(), cross->farLine.first.getY()+shift.getY());
+					cross->farLine.second = Point2D(cross->farLine.second.getX()+shift.getX(), cross->farLine.second.getY()+shift.getY());
+				}
 
 				std::vector<sim_mob::Point2D>& segmentPolyline = (*itRS)->polyline;
 				{
@@ -929,31 +960,7 @@ void sim_mob::aimsun::Loader::FixupLanesAndCrossings(sim_mob::RoadNetwork& res)
 					{
 						vecThisPolyline[0] = ProjectOntoLine(vecThisPolyline[0], cross->farLine.first, cross->farLine.second);
 					}
-
 				}
-
-#if 0
-				//Lane polylines
-				const std::vector<sim_mob::Lane*>& segmentLanes = (*itRS)->getLanes();
-				for(std::vector<sim_mob::Lane*>::const_iterator itLanes = segmentLanes.begin(); itLanes != segmentLanes.end(); ++itLanes)
-				{
-				    ///TODO get rid of ugly const_cast
-					std::vector<sim_mob::Point2D>& lanePolyline = const_cast<std::vector<sim_mob::Point2D>&>((*itLanes)->getPolyline());
-					if(lanePolyline.empty())
-						continue;
-
-					double d1 = dist(&(lanePolyline[0]), &nearLinemidPoint);
-					double d2 = dist(&(lanePolyline[lanePolyline.size()-1]), &nearLinemidPoint);
-					if (d2<d1)
-					{
-						lanePolyline[lanePolyline.size()-1] = ProjectOntoLine(lanePolyline[lanePolyline.size()-1], cross->farLine.first, cross->farLine.second);
-					}
-					else
-					{
-						lanePolyline[0] = ProjectOntoLine(lanePolyline[0], cross->farLine.first, cross->farLine.second);
-					}
-				}
-#endif
 			}
 		}
 	}

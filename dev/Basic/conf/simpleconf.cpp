@@ -585,10 +585,13 @@ void PrintDB_Network()
 		}
 
 		//Save crossing info for later
-		RoadItemAndOffsetPair res = (*it)->nextObstacle(0, true);
-		if (res.item) {
-			const Crossing* resC  = dynamic_cast<const Crossing*>(res.item);
-			if (resC) {
+		const std::map<centimeter_t, const RoadItem*>& mapCrossings = (*it)->obstacles;
+		for(std::map<centimeter_t, const RoadItem*>::const_iterator itCrossings = mapCrossings.begin();
+				itCrossings != mapCrossings.end(); ++itCrossings)
+		{
+			const RoadItem* ri = itCrossings->second;
+			const Crossing* resC = dynamic_cast<const Crossing*>(ri);
+				if (resC) {
 				cachedCrossings.insert(resC);
 			} else {
 				std::cout <<"NOTE: Unknown obstacle!\n";

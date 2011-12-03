@@ -464,6 +464,11 @@ double ComputeAngle(Node* start, Node* end) {
 void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const Node* const startNode, const Node* const endNode, const pair<Lane, Lane>& medianEndpoints, int singleLaneWidth)
 {
 	//First, we need a general idea of the angles in this Section.
+	//Note: This is currently dead code because angle checking is not used.
+	//There are certain cases in which we don't want to return early if there
+	//are no candidate lines, such as one-way sections, so for now,
+	//this code is killed.
+#if 0
 	vector<LaneSingleLine> candidateLines = CalculateSectionGeneralAngleCandidateList(currSectPair, singleLaneWidth, 0.034906585); //Within about 2 degrees
 	if (candidateLines.empty()) {
 		return;
@@ -483,7 +488,7 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const Node* co
 		//TODO: For now, we have no misbehaving output. May want to re-enable later.
 		//return;
 	}
-
+#endif
 
 	//Next, we simply draw lines from the previous node's lanes through this node's lanes.
 	// All lines stop when they cross the line normal to this Section's angle (which is slightly
@@ -497,6 +502,7 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const Node* co
 		if (!currSect) {
 			continue;
 		}
+
 		const double magX = currSect->toNode->xPos - currSect->fromNode->xPos;
 		const double magY = currSect->toNode->yPos - currSect->fromNode->yPos;
 		const double magSect = sqrt(magX*magX + magY*magY);
@@ -505,18 +511,16 @@ void CalculateSectionLanes(pair<Section*, Section*> currSectPair, const Node* co
 		DynamicVector originPt(currSect->fromNode->xPos, currSect->fromNode->yPos, currSect->fromNode->xPos+magX, currSect->fromNode->yPos+magY);
 		originPt.flipNormal(false);
 		
-		///TODO figure out why this only affects certain lanes
-/*#if 0
-		if(oneWay)
+		//Shift one-way lanes by half the width in order to be centered on the "median" line.
+		if(!currSectPair.first || !currSectPair.second)
 		{
-			double totalWidth = currSect->numLanes*singleLaneWidth;
+			double totalWidth = (currSect->numLanes)*singleLaneWidth;
 			double distToShift = totalWidth/2.0;
 			originPt.flipMirror();
 			originPt.scaleVectTo(distToShift);
-		-	originPt.translateVect();
+			originPt.translateVect();
 			originPt.flipMirror();
 		}
-#endif*/
 
 		//Calculate "offsets" for the origin. This occurs if either the start or end is a MultiNode start/end.
 		//The offset is the distance from the node's center to the median point.
@@ -634,7 +638,6 @@ void sim_mob::aimsun::LaneLoader::GenerateLinkLaneZero(const sim_mob::RoadNetwor
 		}
 	}
 
-
 	//Step 2: We now have to narrow these points down to NumLanes + 1 + 1 total points.
 	//        NumLanes is calculated based on the number of lanes in the incoming and outgoing
 	//        Section, +1 since each lane shares 2 points. The additional +1 is for Links
@@ -668,17 +671,9 @@ void sim_mob::aimsun::LaneLoader::GenerateLinkLaneZero(const sim_mob::RoadNetwor
 	TrimCandidateList(candidates.first, maxCandidates.first, 0.0);
 	TrimCandidateList(candidates.second, maxCandidates.second, 0.0);
 
-
-	//Step 2.5: If we don't have any candidates to work with, just use the RoadSegment polyline to generate the Lane geometry
-	if (candidates.first.empty() || candidates.second.empty()) {
-		return;
-	}
-
-
 	//TEMP: Lane width
 	//TODO: Calculate dynamically, or pull from the database
 	int singleLaneWidth = 300; //3m
-
 
 	//Step 3: Take the first point on each of the "start" candidates, and the last point on each
 	//        of the "end" candidates. These are the major points. If this number is equal to
@@ -691,7 +686,12 @@ void sim_mob::aimsun::LaneLoader::GenerateLinkLaneZero(const sim_mob::RoadNetwor
 	// NOTE:  The algorithm described above has to be performed for each Section, and then saved in the
 	//        generated RoadSegment.
 	// NOTE:  We also update the segment width.
-	pair<Lane, Lane> medianEndpoints = ComputeMedianEndpoints(rn.drivingSide==DRIVES_ON_LEFT, start, end, candidates, maxCandidates, linkSections); //Start, end
+	pair<Lane, Lane> medianEndpoints;
+
+	if(!candidates.first.empty() && !candidates.second.empty())
+	{
+		ComputeMedianEndpoints(rn.drivingSide==DRIVES_ON_LEFT, start, end, candidates, maxCandidates, linkSections); //Start, end
+	}
 
 
 	//Step 4: Now that we have the median endpoints, travel to each Segment Node and update this median information.

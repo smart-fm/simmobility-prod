@@ -309,7 +309,8 @@ class CrossShape {
 Hashtable<MySeg, LaneShape> laneshapes = new Hashtable<MySeg, LaneShape>();
 class LaneShape {
   ArrayList< ArrayList<ScaledPoint> > laneLines = new ArrayList< ArrayList<ScaledPoint> >(); //0 is the median, size()-1 is the outer-most lane.
-  int sidewalkID = -1; //Which lane to highlight as a sidewalk.
+  int sidewalkID1 = -1; //Which lane to highlight as a sidewalk.
+  int sidewalkID2 = -1; //Second lane to highlight as a sidewalk (applies to one-way laneshapes)
 };
 
 
@@ -643,13 +644,13 @@ void draw()
         vertex((float)outerLine.get(i).getX(), (float)outerLine.get(i).getY());
       }
       endShape(CLOSE);
-      
-      //Draw the sidewalk shape, if any
-      if (ls.sidewalkID!=-1) {
+
+      //Draw the sidewalk shapes, if any
+      if (ls.sidewalkID1!=-1) {
         stroke(lsStrokeSW);
         fill(lsFillSW);
-        medianLine = ls.laneLines.get(ls.sidewalkID+1);
-        outerLine = ls.laneLines.get(ls.sidewalkID);
+        medianLine = ls.laneLines.get(ls.sidewalkID1);
+        outerLine = ls.laneLines.get(ls.sidewalkID1+1);
         beginShape();
         for (int i=0; i<medianLine.size(); i++) {
           vertex((float)medianLine.get(i).getX(), (float)medianLine.get(i).getY());
@@ -659,17 +660,35 @@ void draw()
         }
         endShape(CLOSE);
       }
+ 
+       if (ls.sidewalkID2!=-1) {
+         stroke(lsStrokeSW);
+         fill(lsFillSW);
+         medianLine = ls.laneLines.get(ls.sidewalkID2);
+         outerLine = ls.laneLines.get(ls.sidewalkID2+1);
+         beginShape();
+         for (int i=0; i<medianLine.size(); i++) {
+           vertex((float)medianLine.get(i).getX(), (float)medianLine.get(i).getY());
+         }
+         for (int i=outerLine.size()-1; i>=0; i--) {
+           vertex((float)outerLine.get(i).getX(), (float)outerLine.get(i).getY());
+         }
+         endShape(CLOSE);
+      }
       
       //Draw remaining lines
       stroke(lsStroke);
       strokeWeight(1.0);
-      for (int laneID=1; laneID<ls.laneLines.size()-1; laneID++) {
-        ArrayList<ScaledPoint> innerLine = ls.laneLines.get(laneID);
-        beginShape();
-        for (int i=0; i<innerLine.size(); i++) {
-          vertex((float)innerLine.get(i).getX(), (float)innerLine.get(i).getY());
+      for (int laneID=0; laneID<ls.laneLines.size(); laneID++) {
+        if(laneID!=ls.sidewalkID1 && laneID!=ls.sidewalkID2)
+        {
+           ArrayList<ScaledPoint> innerLine = ls.laneLines.get(laneID);
+           beginShape();
+           for (int i=0; i<innerLine.size(); i++) {
+             vertex((float)innerLine.get(i).getX(), (float)innerLine.get(i).getY());
+           }
+           endShape();
         }
-        endShape();
       }
     }
   }
@@ -1263,8 +1282,15 @@ void readDecoratedData(String path) {
       for (int laneLineID=0; properties.containsKey("line-"+laneLineID); laneLineID++) {
         //Is this a sidewalk?
         if (properties.containsKey("line-"+laneLineID+"is-sidewalk")) {
-          ls.sidewalkID = laneLineID;
-        }
+          if(ls.sidewalkID1==-1)
+          {
+            ls.sidewalkID1 = laneLineID;
+          }
+          else
+          {
+            ls.sidewalkID2 = laneLineID;
+          }
+         }
         
         //Add points
         ls.laneLines.add(new ArrayList<ScaledPoint>());
@@ -1526,6 +1552,7 @@ class Vec {
     magY = newY;
   }
 }
+
 
 
 

@@ -156,12 +156,12 @@ bool performMain(const std::string& configFileName)
 
   //Initialize our signal status work groups
   //  TODO: There needs to be a more general way to do this.
-  WorkGroup signalStatusWorkers(WG_SIGNALS_SIZE, config.totalRuntimeTicks, config.granSignalsTicks);
+  /*WorkGroup signalStatusWorkers(WG_SIGNALS_SIZE, config.totalRuntimeTicks, config.granSignalsTicks);
   Worker::ActionFunction spWork = boost::bind(signal_status_worker, _1, _2);
   signalStatusWorkers.initWorkers(&spWork);
   for (size_t i=0; i<Signal::all_signals_.size(); i++) {
 	  signalStatusWorkers.assignAWorker(Signal::all_signals_[i]);
-  }
+  }*/
 
   //Initialize the aura manager
   AuraManager& auraMgr = AuraManager::instance();
@@ -169,7 +169,7 @@ bool performMain(const std::string& configFileName)
 
   //Start work groups and all threads.
   agentWorkers.startAll();
-  signalStatusWorkers.startAll();
+  //signalStatusWorkers.startAll();
 
   /////////////////////////////////////////////////////////////////
   // NOTE: WorkGroups are able to handle skipping steps by themselves.
@@ -197,7 +197,7 @@ bool performMain(const std::string& configFileName)
 	  }
 
 	  //Update the signal logic and plans for every intersection grouped by region
-	  signalStatusWorkers.wait();
+	  //signalStatusWorkers.wait();
 
 	  //Agent-based cycle
 	  agentWorkers.wait();

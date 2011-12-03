@@ -886,6 +886,12 @@ double sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
 	//Increase the vehicle's velocity based on its acceleration.
 	vehicle->setVelocity(vehicle->getVelocity() + vehicle->getAcceleration()*p.elapsedSeconds);
 
+	//TEMP: For ns3
+	Person* parentP = dynamic_cast<Person*>(parent);
+	if (parentP && !parentP->specialStr.empty() && parentP->specialStr.at(5)=='A') {
+		vehicle->setVelocity(vehicle->getVelocity()*1.1);
+	}
+
 	//when v_lead and a_lead is 0, space is not negative, the Car Following will generate an acceleration based on free flowing model
 	//this causes problem, so i manually set acceleration and velocity to 0
 	if (vehicle->getVelocity() < 0|| p.space<0){//||(p.space<1&&p.v_lead==0&&p.a_lead==0)) {

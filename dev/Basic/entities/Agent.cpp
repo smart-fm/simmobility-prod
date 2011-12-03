@@ -11,7 +11,7 @@ using std::priority_queue;
 
 #ifndef DISABLE_DYNAMIC_DISPATCH
 boost::mutex sim_mob::Agent::all_agents_lock;
-Agent::StartTimePriorityQueue sim_mob::Agent::pending_agents;
+StartTimePriorityQueue sim_mob::Agent::pending_agents;
 #endif
 
 vector<Entity*> sim_mob::Agent::all_agents;

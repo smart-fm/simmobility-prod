@@ -29,9 +29,14 @@ class Agent;
 class WorkGroup;
 
 
+
 //Comparison for our priority queue
 struct cmp_agent_start : public std::less<Entity*> {
   bool operator() (const Entity* x, const Entity* y) const;
+};
+
+//C++ static constructors...
+class StartTimePriorityQueue : public std::priority_queue<Entity*, std::vector<Entity*>, cmp_agent_start> {
 };
 
 
@@ -80,13 +85,6 @@ public:
 	static std::vector<Entity*> all_agents;
 
 #ifndef DISABLE_DYNAMIC_DISPATCH
-	//C++ static constructors...
-	struct StartTimePriorityQueue {
-		std::priority_queue<Entity*> impl;
-
-		StartTimePriorityQueue() : impl(cmp_agent_start(), std::vector<Entity*>()) {}
-	};
-
 	static StartTimePriorityQueue pending_agents; //Agents waiting to be added to the simulation, prioritized by start time.
 
 	///When adding/deleting Agents asynchronously, a lock is required.

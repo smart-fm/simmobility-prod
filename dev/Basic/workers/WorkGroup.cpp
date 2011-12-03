@@ -9,6 +9,8 @@
 
 #include "conf/simpleconf.hpp"
 
+#include "entities/Agent.hpp"
+
 using std::vector;
 using boost::barrier;
 using boost::function;

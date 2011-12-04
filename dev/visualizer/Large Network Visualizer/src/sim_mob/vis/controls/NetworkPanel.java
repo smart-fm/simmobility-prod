@@ -130,8 +130,8 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		}
 		netViewCache.toggleFakeAgent(drawFakeAgent);
 		this.repaint();
+		updateMap();
 	}
-	
 	
 	private void clickMap(Point pos) {
 		//Anything?
@@ -152,7 +152,6 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		}
 		
 	}
-	
 	
 	private void updateMap() {
 		//Anything?
@@ -187,7 +186,6 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 			g.setFont(FrameFont);
 			g.setColor(MainFrame.Config.getBackground("framenumber"));
 			g.drawString("Frame: "+netViewCache.getCurrFrameTick() , 15, 10+g.getFontMetrics().getAscent());
-			g.drawString("Input File Name: "+netViewCache.getFileName() , 100, 10+g.getFontMetrics().getAscent());
 
 		}
 		
@@ -195,14 +193,12 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		this.repaint();
 	}
 	
-	
 	//Resize listener
 	public void componentResized(ComponentEvent e) {
 		buffer = new BufferedImage(this.getWidth(), this.getHeight(), BufferedImage.TYPE_INT_RGB);
 		this.repaint();
 	}
 
-	
 	//Helper class
 	class WidthGetter implements IntGetter {
 		NetworkPanel parent;
@@ -213,6 +209,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 			return parent.getWidth();
 		}
 	}
+
 	class HeightGetter implements IntGetter {
 		NetworkPanel parent;
 		HeightGetter(NetworkPanel parent) {
@@ -251,7 +248,6 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		updateMap();
 	}
 	
-	
 	//Zooming with the mouse wheel
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		//Get the old width/height for comparison
@@ -267,6 +263,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		//      After scaling, just translate this point back to screen co-ordinates and subtract
 		//      width/2, height/2 to get the correct new offset. 
 		//      For now, just "nudging" the value slightly.
+		
 		double modAmtX = netViewCache.getImage().getWidth()>oldW ? 1.1 : 0.9;
 		double modAmtY = netViewCache.getImage().getHeight()>oldH ? 1.1 : 0.9;
 		
@@ -275,9 +272,35 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		offset.y = (int)((modAmtY*offset.y*netViewCache.getImage().getHeight())/oldH);
 		
 		updateMap();
+		
 	}
 	
-	
+	//Zooming with button click
+	public void zoomWithButtonClick(int number){
+		//Get the old width/height for comparison
+		double oldW = netViewCache.getImage().getWidth();
+		double oldH = netViewCache.getImage().getHeight();
+		
+		//Zoom
+		netViewCache.zoomIn(number);
+		
+		//NOTE: The math isn't quite right for scaling; will fix this later.
+		//      A correct fix will create a temporary "ScaledPoint" that represents the center
+		//      of the canvas (offset.x+width/2, offset.y+height/2) as an actual point on the map
+		//      After scaling, just translate this point back to screen co-ordinates and subtract
+		//      width/2, height/2 to get the correct new offset. 
+		//      For now, just "nudging" the value slightly.
+		
+		double modAmtX = netViewCache.getImage().getWidth()>oldW ? 1.1 : 0.9;
+		double modAmtY = netViewCache.getImage().getHeight()>oldH ? 1.1 : 0.9;
+		
+		//Modify the offset accordingly
+		offset.x = (int)((modAmtX*offset.x*netViewCache.getImage().getWidth())/oldW);
+		offset.y = (int)((modAmtY*offset.y*netViewCache.getImage().getHeight())/oldH);
+		
+		updateMap();
+		
+	}
 	
 	//Component method stubs
 	public void componentHidden(ComponentEvent e) {}

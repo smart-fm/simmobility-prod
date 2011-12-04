@@ -61,8 +61,7 @@ public class SimulationResults {
 		    } catch (IOException ex) {
 		    	throw new IOException(ex.getMessage() + "\n...on line: " + line);
 		    }
-		    
-		    
+		    		    
 		}
 		
 		//Modify traffic signal to make it stable
@@ -184,6 +183,7 @@ public class SimulationResults {
 	    
 	    //Add it to current time tick
 	    ticks.get(frameID).signalLineTicks.put(objID, tempSignalLineTick);
+
 	}
 	
 	private void parseDriver(int frameID, int objID, String rhs, RoadNetwork rn) throws IOException {
@@ -203,7 +203,7 @@ public class SimulationResults {
 	    
 	    //Double-check angle
 	    if (angle<0 || angle>360) {
-	    	throw new IOException("Bad angle: " + angle + " for driver: " + objID);
+
 	    }
 	    
 	    //Ensure the frame has been created
@@ -225,9 +225,17 @@ public class SimulationResults {
 	    		tempDriver.setItFake();
 	    	}
 	    }
+	    //Check if the car has a length and width or not
+	    if(props.containsKey("length") && props.containsKey("width")){
+	    	tempDriver.setLenth(Integer.parseInt(props.get("length")));
+	    	tempDriver.setWidth(Integer.parseInt(props.get("width")));
+	    }
 	    
+	    tempDriver.setID(objID);
 	    //Add this agent to the proper frame.
 	    ticks.get(frameID).agentTicks.put(objID, tempDriver);
+	    
+
 	}
 	
 	private void parsePedestrian(int frameID, int objID, String rhs, RoadNetwork rn) throws IOException {
@@ -267,5 +275,8 @@ public class SimulationResults {
 	    //Add this agent to the proper frame.
 	    ticks.get(frameID).agentTicks.put(objID, tempPedestrian);
 	}
+
+
+
 }
 

@@ -1,5 +1,6 @@
 package sim_mob.vis;
 
+
 import java.awt.*;
 import java.awt.event.*;
 
@@ -11,7 +12,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import sim_mob.conf.CSS_Interface;
@@ -24,7 +24,9 @@ import sim_mob.vis.util.Utility;
 
 public class MainFrame extends JFrame {
 	public static final long serialVersionUID = 1L;
-	
+	//For JComboBox
+	private static final String clockRateList[] = {"default-50ms","10 ms", "50 ms", "100 ms", "200 ms","500 ms","1000 ms"};
+    	
 	//Regex
 	private static final String num = "([0-9]+)";
 	public static final Pattern NUM_REGEX = Pattern.compile(num);
@@ -37,10 +39,12 @@ public class MainFrame extends JFrame {
 	//LHS panel
 	private JButton openLogFile;
 	private JButton openEmbeddedFile;
-	private JButton changeClockRate;
 	private JButton showFakeAgent;
+	private JButton zoomIn;
+	private JButton	zoomOut;
 	
-	private JTextField clockRateField;
+    private JComboBox clockRateComboBox;
+
 	
 	//Lower panel
 	private Timer animTimer;
@@ -50,6 +54,7 @@ public class MainFrame extends JFrame {
 	private JButton fwdBtn;
 	private ImageIcon playIcon;
 	private ImageIcon pauseIcon;
+	
 	
 	//Helper
 	public static CSS_Interface Config;
@@ -70,6 +75,7 @@ public class MainFrame extends JFrame {
 		//Initial setup: FRAME AND APPLET
 		this.setSize(1024, 768);
 		this.showFake = false;
+		
 		//Components and layout
 		try {
 			loadComponents();
@@ -86,16 +92,19 @@ public class MainFrame extends JFrame {
 	/**
 	 * Load all components and initialize them properly.
 	 */
+	
 	private void loadComponents() throws IOException {
 		playIcon = new ImageIcon(Utility.LoadImgResource("res/icons/play.png"));
 		pauseIcon = new ImageIcon(Utility.LoadImgResource("res/icons/pause.png"));
 		console = new JTextField();
-	    clockRateField  = new JTextField();
+	    clockRateComboBox = new JComboBox(clockRateList);
 	    
-	    openLogFile = new JButton("Open Logfile", new ImageIcon(Utility.LoadImgResource("res/icons/open.png")));
-		openEmbeddedFile = new JButton("Open Default", new ImageIcon(Utility.LoadImgResource("res/icons/embed.png")));
-		changeClockRate = new JButton("Change Clock Rate", new ImageIcon(Utility.LoadImgResource("res/icons/xclock.png")));
-		showFakeAgent = new JButton("Toggle Fake Agent", new ImageIcon(Utility.LoadImgResource("res/icons/fake.png")));
+	    openLogFile = new JButton("Open File From...", new ImageIcon(Utility.LoadImgResource("res/icons/open copy.png")));
+		openEmbeddedFile = new JButton("Open Default File", new ImageIcon(Utility.LoadImgResource("res/icons/embed copy.png")));
+		showFakeAgent = new JButton("Show Fake Agent", new ImageIcon(Utility.LoadImgResource("res/icons/fake copy.png")));
+		zoomIn = new JButton("       Zoom In 	        ", new ImageIcon(Utility.LoadImgResource("res/icons/zoom_in.png")));
+		zoomOut = new JButton("      Zoom Out  	    ", new ImageIcon(Utility.LoadImgResource("res/icons/zoom_out.png")));
+		
 		
 		frameTickSlider = new JSlider(JSlider.HORIZONTAL);
 		revBtn = new JButton(new ImageIcon(Utility.LoadImgResource("res/icons/rev.png")));
@@ -104,9 +113,14 @@ public class MainFrame extends JFrame {
 		
 		newViewPnl = new NetworkPanel(new StringSetter() {
 			public void set(String str) {
-
 				//Update the status bar
-				console.setText(str);
+				String oldValue = console.getText();
+				if(oldValue.isEmpty())
+				{
+					console.setText(str);
+				}else{
+					console.setText(oldValue+"\t"+str);
+				}
 			}
 		});
 	}
@@ -117,13 +131,15 @@ public class MainFrame extends JFrame {
 	 */
 	private void addComponents(Container cp) {
 		//Left panel
-		JPanel jpLeft = new JPanel(new GridLayout(0, 1, 0, 10));	
+		GridLayout gl = new GridLayout(0,1,0,2);
+		JPanel jpLeft = new JPanel(gl);
 		jpLeft.add(openLogFile);
 		jpLeft.add(openEmbeddedFile);
-		jpLeft.add(clockRateField);
-		jpLeft.add(changeClockRate);
+		jpLeft.add(clockRateComboBox);
 		jpLeft.add(showFakeAgent);
-		
+		jpLeft.add(zoomIn);
+		jpLeft.add(zoomOut);
+	
 		//Bottom panel
 		JPanel jpLower = new JPanel(new BorderLayout());
 		jpLower.add(BorderLayout.NORTH, frameTickSlider);
@@ -240,8 +256,6 @@ public class MainFrame extends JFrame {
 			
 		});
 
-	
-		
 		//20 FPS, update anim
 		animTimer = new Timer(50, new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -253,16 +267,14 @@ public class MainFrame extends JFrame {
 			}
 		});
 		
-		changeClockRate.addActionListener(new ActionListener() {
+		clockRateComboBox.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				
-				String speed = clockRateField.getText();
-				
-		        Matcher matcher = null;
-		        matcher = NUM_REGEX.matcher(speed);
-		        
-				if(!speed.isEmpty() && matcher.matches()){
-					int clockRate = Integer.parseInt(speed);
+				String speed = (String) clockRateComboBox.getSelectedItem();
+				if(!speed.contains("default")){
+					String [] items = speed.split(" ");
+					
+					int clockRate = Integer.parseInt(items[0]);
 					
 					animTimer.stop();
 					
@@ -276,9 +288,7 @@ public class MainFrame extends JFrame {
 						}
 					});
 					animTimer.start();
-					
 				}
-				
 			}
 		});
 		
@@ -289,15 +299,35 @@ public class MainFrame extends JFrame {
 				if(showFake){
 					newViewPnl.showFakeAgent(false);
 					showFake = false;
+					showFakeAgent.setText("Show Fake Agent");
+
 				}else{
 					newViewPnl.showFakeAgent(true);
 					showFake = true;
+					showFakeAgent.setText("Hide Fake Agent");
 				}
 			
 			}
 			
 		});
 		
+		zoomIn.addActionListener(new ActionListener(){
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				newViewPnl.zoomWithButtonClick(1);
+			}
+			
+		});
+		
+		zoomOut.addActionListener(new ActionListener(){
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				newViewPnl.zoomWithButtonClick(-1);
+			}
+
+		});
 		
 		openEmbeddedFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -332,8 +362,6 @@ public class MainFrame extends JFrame {
 			f = fc.getSelectedFile();
 		}
 
-		
-		
 		//Load the default visualization
 		RoadNetwork rn = null;
 		String fileName;
@@ -352,6 +380,8 @@ public class MainFrame extends JFrame {
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
 		}
+	
+		console.setText("Input File Name: "+fileName);
 		
 		//Load the simulation's results
 		try {

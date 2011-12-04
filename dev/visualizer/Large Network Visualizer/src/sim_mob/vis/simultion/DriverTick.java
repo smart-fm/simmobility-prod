@@ -21,7 +21,7 @@ import sim_mob.vis.util.Utility;
 public class DriverTick extends AgentTick {
 	private static Stroke debugStr = new BasicStroke(1.0F);
 	private static Color debugClr = new Color(0x00, 0x00, 0x66);
-	private static final boolean DebugOn = true;
+	private static boolean DebugOn = true;
 	
 	private static BufferedImage CarImg;
 	private static BufferedImage FakeCarImg;
@@ -33,10 +33,14 @@ public class DriverTick extends AgentTick {
 			throw new RuntimeException(ex);
 		}
 	}
-
-	
+	private int ID;
 	private double angle;
 	private boolean fake;
+	private int length;
+	private int width;
+	public int getID(){return ID;}
+	public int getLength(){return length;}
+	public int getWidth() {return width;}
 	public double getAngle() { return angle; } 
 	public boolean getFake() { return fake; }
 	/**
@@ -45,10 +49,7 @@ public class DriverTick extends AgentTick {
 	 *       limit this to the current frame, and then continue to scale frames as they arrive. 
 	 */
 
-/*	public DriverTick(double posX, double posY, double angle) {
-		//this.pos = new ScaledPoint(posX, posY);
 
-*/	
 	public DriverTick(double posX, double posY, double angle, ScaledPointGroup spg) {
 		this.pos = new ScaledPoint(posX, posY, spg);
 		this.angle = angle;
@@ -58,7 +59,15 @@ public class DriverTick extends AgentTick {
 	public void setItFake(){
 		fake = true;
 	}
-	
+	public void setLenth(int length){
+		this.length = length;
+	}
+	public void setWidth(int width){
+		this.width = width;
+	}
+	public void setID(int id){
+		this.ID = id;
+	}
 	public void draw(Graphics2D g,double scale, boolean drawFake){
 		AffineTransform oldAT = g.getTransform();
 
@@ -70,6 +79,8 @@ public class DriverTick extends AgentTick {
 		//Scale
 		at.scale(1/scale + 0.2, 1/scale + 0.2);
 		
+	//	System.out.println("scale " + scale );
+	
 		//Translate to top-left corner
 		at.translate(-CarImg.getWidth()/2, -CarImg.getHeight()/2);
 
@@ -85,6 +96,7 @@ public class DriverTick extends AgentTick {
 			}	
 		} else {
 			g.drawImage(CarImg, 0, 0, null);				
+		
 		}
 		
 		//Restore old transformation matrix
@@ -101,10 +113,10 @@ public class DriverTick extends AgentTick {
 			g.drawLine(x-3*sz/2, y, x+3*sz/2,y);
 			g.drawLine(x, y-3*sz/2, x, y+3*sz/2);
 		}
+		//drawString(g);
 	}
 	public void draw(Graphics2D g,double scale) {
 	
-//	public void draw(Graphics2D g) {
 		//Save old transformation.
 		AffineTransform oldAT = g.getTransform();
 
@@ -146,6 +158,29 @@ public class DriverTick extends AgentTick {
 		
 	}
 
+	public void drawString(Graphics2D g)
+	{
+		//Save old transformation.
+		AffineTransform oldTrans = g.getTransform();
+		
+		float targetX = (float)(pos.getX());
+		float targetY = (float)(pos.getY());
+		
+		//Create a new translation matrix which is located at the center of the string.
+		AffineTransform trans = AffineTransform.getTranslateInstance(targetX, targetY);
+		//Apply the transformation, draw the string at the origin.
+		g.setTransform(trans);
+		
+		g.setColor(Color.GREEN);
+		g.setStroke(new BasicStroke(0.5F));
+		
+		String id = Integer.toString(ID);
+		g.drawString(id, 0, 0);
+
+		//Restore AffineTransform matrix.
+		g.setTransform(oldTrans);
+		
+	}
 	
 
 	

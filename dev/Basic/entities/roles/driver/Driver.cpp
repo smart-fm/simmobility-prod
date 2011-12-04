@@ -416,7 +416,7 @@ bool sim_mob::Driver::update_post_movement(UpdateParams& params, frame_t frameNu
 void sim_mob::Driver::update(frame_t frameNumber)
 {
 	//Convert the current time to ms
-	unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
+	currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
 
 	//Do nothing?
 	if(currTimeMS<parent->getStartTime()) {
@@ -465,28 +465,11 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	//Just a bit glitchy...
 	updateAdjacentLanes(params);
 
-	//Update your perceptions, and retrieved their current "sensed" values.
-	perceivedVelocity.delay(new DPoint(vehicle->getVelocity(), vehicle->getLatVelocity()), currTimeMS);
-	if(params.nvFwd.distance!=5000)
-	{
-		perceivedVelocityOfFwdCar.delay(new DPoint(params.nvFwd.driver->getVehicle()->getVelocity(),params.nvFwd.driver->getVehicle()->getLatVelocity()),currTimeMS);
-		perceivedAccelerationOfFwdCar.delay(params.nvFwd.driver->getVehicle()->getAcceleration(),currTimeMS);
-		perceivedDistToFwdCar.delay(params.nvFwd.distance,currTimeMS);
-
-		if (perceivedVelocity.can_sense(currTimeMS)) {
-			params.perceivedFwdVelocity = perceivedVelocity.sense(currTimeMS)->x;
-			params.perceivedLatVelocity = perceivedVelocity.sense(currTimeMS)->y;
-		}
-		if(perceivedVelocityOfFwdCar.can_sense(currTimeMS)){
-			params.perceivedFwdVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense(currTimeMS)->x;
-			params.perceivedLatVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense(currTimeMS)->y;
-		}
-		if(perceivedAccelerationOfFwdCar.can_sense(currTimeMS))
-			params.perceivedAccelerationOfFwdCar = perceivedAccelerationOfFwdCar.sense(currTimeMS);
-		if(perceivedDistToFwdCar.can_sense(currTimeMS))
-			params.perceivedDistToFwdCar = perceivedDistToFwdCar.sense(currTimeMS);
+	//retrieved their current "sensed" values.
+	if (perceivedVelocity.can_sense(currTimeMS)) {
+		params.perceivedFwdVelocity = perceivedVelocity.sense(currTimeMS)->x;
+		params.perceivedLatVelocity = perceivedVelocity.sense(currTimeMS)->y;
 	}
-
 	//General update behavior.
 	//Note: For now, most updates cannot take place unless there is a Lane and vehicle.
 	if (params.currLane && vehicle) {
@@ -511,7 +494,8 @@ void sim_mob::Driver::update(frame_t frameNumber)
 		currLaneLength_.set(vehicle->getCurrLinkLaneZeroLength());
 	}
 	isInIntersection.set(vehicle->isInIntersection());
-
+	//Update your perceptions
+	perceivedVelocity.delay(new DPoint(vehicle->getVelocity(), vehicle->getLatVelocity()), currTimeMS);
 	//Print output for this frame.
 	if (!vehicle->isDone()) {
 		output(params, frameNumber);
@@ -885,6 +869,8 @@ double sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
 	//TODO: I've disabled the acceleration component because it doesn't really make sense.
 	//      Please re-enable if you think this is expected behavior. ~Seth
 	double fwdDistance = vehicle->getVelocity()*p.elapsedSeconds + 0.5*vehicle->getAcceleration()*p.elapsedSeconds*p.elapsedSeconds;
+	if(fwdDistance<0)
+		fwdDistance = 0;
 	//double fwdDistance = vehicle->getVelocity()*p.elapsedSeconds;
 	double latDistance = vehicle->getLatVelocity()*p.elapsedSeconds;
 
@@ -954,7 +940,7 @@ void sim_mob::Driver::check_and_set_min_car_dist(NearestVehicle& res, double dis
 //TODO: I have the feeling that this process of detecting nearby drivers in front of/behind you and saving them to
 //      the various CFD/CBD/LFD/LBD variables can be generalized somewhat. I shortened it a little and added a
 //      helper function; perhaps more cleanup can be done later? ~Seth
-void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* other, const Driver* other_driver) const
+void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* other, const Driver* other_driver)
 {
 	//Only update if passed a valid pointer which is not a pointer back to you, and
 	//the driver is not actually in an intersection at the moment.
@@ -1069,10 +1055,26 @@ void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* oth
 			}
 		}
 	}
+	//Update your perceptions for leading vehicle and gap
+	if(params.nvFwd.distance!=5000)
+	{
+		perceivedVelocityOfFwdCar.delay(new DPoint(params.nvFwd.driver->getVehicle()->getVelocity(),params.nvFwd.driver->getVehicle()->getLatVelocity()),currTimeMS);
+		perceivedAccelerationOfFwdCar.delay(params.nvFwd.driver->getVehicle()->getAcceleration(),currTimeMS);
+		perceivedDistToFwdCar.delay(params.nvFwd.distance,currTimeMS);
+	}
+	//retrieve perceptions
+	if(perceivedVelocityOfFwdCar.can_sense(currTimeMS)){
+		params.perceivedFwdVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense(currTimeMS)->x;
+		params.perceivedLatVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense(currTimeMS)->y;
+	}
+	if(perceivedAccelerationOfFwdCar.can_sense(currTimeMS))
+		params.perceivedAccelerationOfFwdCar = perceivedAccelerationOfFwdCar.sense(currTimeMS);
+	if(perceivedDistToFwdCar.can_sense(currTimeMS))
+		params.perceivedDistToFwdCar = perceivedDistToFwdCar.sense(currTimeMS);
 }
 
 
-void sim_mob::Driver::updateNearbyPedestrian(UpdateParams& params, const Person* other, const Pedestrian* pedestrian) const
+void sim_mob::Driver::updateNearbyPedestrian(UpdateParams& params, const Person* other, const Pedestrian* pedestrian)
 {
 	//Only update if passed a valid pointer and this is on a crossing.
 	if (!(pedestrian && pedestrian->isOnCrossing())) {
@@ -1112,7 +1114,7 @@ void sim_mob::Driver::updateNearbyPedestrian(UpdateParams& params, const Person*
 }
 
 
-void sim_mob::Driver::updateNearbyAgents(UpdateParams& params) const
+void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 {
 	//Retrieve a list of nearby agents
 	vector<const Agent*> nearby_agents = AuraManager::instance().nearbyAgents(Point2D(vehicle->getX(),vehicle->getY()), *params.currLane,  distanceInFront, distanceBehind);

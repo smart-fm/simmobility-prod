@@ -64,6 +64,7 @@ public:
 
 //Basic data
 private:
+	unsigned int currTimeMS;
 	//Pointer to the vehicle this driver is controlling.
 	Vehicle* vehicle;
 
@@ -136,9 +137,9 @@ private:
 	double updatePositionOnLink(UpdateParams& p);
 	void setBackToOrigin();
 
-	void updateNearbyAgents(UpdateParams& params) const;
-	void updateNearbyDriver(UpdateParams& params, const sim_mob::Person* other, const sim_mob::Driver* other_driver) const;
-	void updateNearbyPedestrian(UpdateParams& params, const sim_mob::Person* other, const sim_mob::Pedestrian* pedestrian) const;
+	void updateNearbyAgents(UpdateParams& params);
+	void updateNearbyDriver(UpdateParams& params, const sim_mob::Person* other, const sim_mob::Driver* other_driver);
+	void updateNearbyPedestrian(UpdateParams& params, const sim_mob::Person* other, const sim_mob::Pedestrian* pedestrian);
 
 	//void updateCurrLaneLength(UpdateParams& p);
 	void updateDisToLaneEnd();

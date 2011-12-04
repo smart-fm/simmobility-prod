@@ -62,7 +62,7 @@ bool readPoint(const string& str, Point2D& res)
 
 
 
-int getValueInMS(int value, const std::string& units)
+int getValueInMS(double value, const std::string& units)
 {
 	//Detect errors
 	if (units.empty() || (units!="minutes" && units!="seconds" && units!="ms")) {
@@ -77,7 +77,13 @@ int getValueInMS(int value, const std::string& units)
     	value *= 1000;
     }
 
-    return value;
+    //Check for overflow:
+    int res = static_cast<int>(value);
+    if (static_cast<double>(res) != value) {
+    	std::cout <<"NOTE: Rounding value in ms from " <<value <<" to " <<res <<"\n";
+    }
+
+    return res;
 }
 
 
@@ -88,7 +94,7 @@ int ReadGranularity(TiXmlHandle& handle, const std::string& granName)
 		return -1;
 	}
 
-	int value;
+	double value;
 	const char* units = node->Attribute("units");
 	if (!node->Attribute("value", &value) || !units) {
 		return -1;

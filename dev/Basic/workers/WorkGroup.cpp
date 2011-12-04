@@ -172,6 +172,9 @@ void sim_mob::WorkGroup::wait()
 			if (it2!=loader->entity_dest.end()) {
 				loader->entity_dest.erase(it2);
 			}
+
+			//Delete this entity
+			delete *it;
 		}
 		entToBeRemoved.clear();
 	}

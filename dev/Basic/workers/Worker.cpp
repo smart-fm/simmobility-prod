@@ -142,9 +142,6 @@ void sim_mob::Worker::removePendingEntities()
 
 		//Remove it from our global list. Requires locking
 		parent->scheduleEntForRemoval(*it);
-
-		//Delete this entity
-		//delete *it;  //NOTE: For now, I'm leaving it in memory to make debugging slightly eaier. ~Seth
 	}
 	toBeRemoved.clear();
 }

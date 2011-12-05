@@ -421,6 +421,8 @@ void sim_mob::Driver::output(UpdateParams& p, frame_t frameNumber)
 			<<"\"xPos\":\""<<static_cast<int>(vehicle->getX())
 			<<"\",\"yPos\":\""<<static_cast<int>(vehicle->getY())
 			<<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI))
+			<<"\",\"length\":\""<<static_cast<int>(vehicle->length)
+			<<"\",\"width\":\""<<static_cast<int>(vehicle->width)
 			<<"\"})"<<std::endl);
 }
 

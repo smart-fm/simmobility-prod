@@ -56,6 +56,7 @@ public:
 	void remEntity(EntityType* entity);
 	std::vector<EntityType*>& getEntities();
 
+	int getAgentSize();
 
 protected:
 	virtual void perform_main(frame_t frameNumber);
@@ -222,3 +223,9 @@ void sim_mob::Worker<EntityType>::perform_flip()
 	this->flip();
 }
 
+//add by xuyan
+template <class EntityType>
+int sim_mob::Worker<EntityType>::getAgentSize()
+{
+	return data.size();
+}

@@ -3,6 +3,9 @@
 #pragma once
 
 #include <iostream>
+//add by xuyan
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
 
 namespace sim_mob
 {
@@ -31,6 +34,15 @@ private:
 	int xPos;
 	int yPos;
 
+	//add by xuyan
+public:
+	friend class boost::serialization::access;
+	template<class Archive>
+	void serialize(Archive & ar, const unsigned int version)
+	{
+		ar & xPos;
+		ar & yPos;
+	}
 };
 
 inline std::ostream&

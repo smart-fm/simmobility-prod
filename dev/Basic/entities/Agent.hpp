@@ -19,6 +19,8 @@
 namespace sim_mob
 {
 
+class AgentPackageManager;
+class BoundaryProcessor;
 
 /**
  * Basic Agent class. Agents maintain an x and a y position. They may have different
@@ -29,6 +31,8 @@ public:
 	Agent(int id=-1);
 
 	virtual void update(frame_t frameNumber) = 0;  ///<Update agent behvaior
+
+	virtual void output(frame_t frameNumber) = 0;
 
 	///Subscribe this agent to a data manager.
 	//virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew);
@@ -50,13 +54,11 @@ public:
 	sim_mob::Buffered<int> xPos;  ///<The agent's position, X
 	sim_mob::Buffered<int> yPos;  ///<The agent's position, Y
 
-	//sim_mob::Buffered<double> xVel;  ///<The agent's velocity, X
-	//sim_mob::Buffered<double> yVel;  ///<The agent's velocity, Y
-	sim_mob::Buffered<double> fwdVel;  //The agent's forward velocity
-	sim_mob::Buffered<double> latVel;  //The agent's forward velocity
+	sim_mob::Buffered<double> xVel;  ///<The agent's velocity, X
+	sim_mob::Buffered<double> yVel;  ///<The agent's velocity, Y
 
-	//sim_mob::Buffered<double> xAcc;  ///<The agent's acceleration, X
-	//sim_mob::Buffered<double> yAcc;  ///<The agent's acceleration, Y
+	sim_mob::Buffered<double> xAcc;  ///<The agent's acceleration, X
+	sim_mob::Buffered<double> yAcc;  ///<The agent's acceleration, Y
 	//sim_mob::Buffered<int> currentLink;
 	//sim_mob::Buffered<int> currentCrossing;
 
@@ -70,11 +72,16 @@ public:
 	///Passing in a negative number will always auto-assign an ID, and is recommended.
 	static unsigned int GetAndIncrementID(int preferredID);
 
+
 private:
 	//unsigned int currMode;
 	bool toRemoved;
 	static unsigned int next_agent_id;
 
+	//add by xuyan
+public:
+	friend class AgentPackageManager;
+	friend class BoundaryProcessor;
 };
 
 }

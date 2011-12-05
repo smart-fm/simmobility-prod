@@ -47,6 +47,8 @@ public:
 
 	std::string connectionString;
 
+	bool is_run_on_many_computers;
+
 	unsigned int totalRuntimeInMilliSeconds() const { return totalRuntimeTicks * baseGranMS; }
 	unsigned int warmupTimeInMilliSeconds() const { return totalWarmupTicks * baseGranMS; }
 	unsigned int agentTimeStepInMilliSeconds() const { return granAgentsTicks * baseGranMS; }

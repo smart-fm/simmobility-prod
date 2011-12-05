@@ -17,6 +17,10 @@
 
 namespace sim_mob {
 class Point2D;
+class Signal;
+class RoadSegment;
+class Link;
+class Crossing;
 
 namespace aimsun {
 class Node;
@@ -98,6 +102,17 @@ sim_mob::Point2D LineLineIntersect(const sim_mob::Point2D& p1, const sim_mob::Po
  */
 std::vector<sim_mob::Point2D> ShiftPolyline(const std::vector<sim_mob::Point2D>& orig, double shiftAmt, bool shiftLeft=true);
 
+//add by xuyan
+//Calculate the middle point, given the start/end point and the offset.
+//used to get the boundary box
+sim_mob::Point2D getMiddlePoint2D(sim_mob::Point2D* start_point, sim_mob::Point2D* end_point, double offset);
+
+//add by xuyan
+//Suggest to be part of StreetDirectory.
+const sim_mob::Link* getLinkBetweenNodes(sim_mob::Point2D* start_point, sim_mob::Point2D* end_point);
+const sim_mob::RoadSegment* getRoadSegmentBasedOnNodes(sim_mob::Point2D* start_point, sim_mob::Point2D* end_point);
+const sim_mob::Signal* getSignalBasedOnNode(sim_mob::Point2D* one_point);
+const sim_mob::Crossing* getCrossingBasedOnNode(sim_mob::Point2D* one_near_point, sim_mob::Point2D* two_near_point, sim_mob::Point2D* one_far_point, sim_mob::Point2D* two_far_point);
 
 
 }

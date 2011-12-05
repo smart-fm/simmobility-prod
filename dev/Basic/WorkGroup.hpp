@@ -12,6 +12,10 @@
 #include "util/LangHelpers.hpp"
 
 
+//add by xuyan
+#include <map>
+#include "entities/Agent.hpp"
+
 namespace sim_mob
 {
 
@@ -46,6 +50,15 @@ public:
 
 	//TODO: Move this to the Worker, not the work group. Maybe?
 	void migrate(EntityType * ag, int fromID, int toID);
+
+//add by xuyan
+public:
+	void removeAgentFromWorker(EntityType * ag);
+	void addAgentInWorker(EntityType * ag);
+
+	std::map<EntityType*, int> agentMapping;
+	int getTheMostFreeWorkerID();
+
 
 protected:
 	//Does nothing; see sub-class WorkGroup
@@ -226,6 +239,7 @@ void sim_mob::SimpleWorkGroup<EntityType>::migrate(EntityType* ag, int fromID, i
 		//Remove from the old location
 		sim_mob::Worker<EntityType>* const from = getWorker(fromID);
 		from->remEntity(ag);
+		agentMapping.erase(ag);
 
 		//Remove this entity's Buffered<> types from our list
 		manageData(dynamic_cast<BufferedDataManager*>(from), ag, false);
@@ -235,10 +249,55 @@ void sim_mob::SimpleWorkGroup<EntityType>::migrate(EntityType* ag, int fromID, i
 		//Add to the new location
 		sim_mob::Worker<EntityType>* const to = getWorker(toID);
 		to->addEntity(ag);
+		agentMapping[ag] = toID;
 
 		//Add this entity's Buffered<> types to our list
 		manageData(dynamic_cast<BufferedDataManager*>(to), ag, true);
 	}
 }
 
+template<class EntityType>
+void sim_mob::SimpleWorkGroup<EntityType>::removeAgentFromWorker(EntityType * ag)
+{
+	typename std::map<EntityType*, int>::iterator it = agentMapping.find(ag);
+	if (it != agentMapping.end())
+	{
+		int from_worker_id = it->second;
+		migrate(ag, from_worker_id, -1);
+	}
+}
+
+template<class EntityType>
+void sim_mob::SimpleWorkGroup<EntityType>::addAgentInWorker(EntityType * ag)
+{
+	Agent* agent_test = dynamic_cast<Agent *> (ag);
+	if (agent_test)
+	{
+		Agent* one_agent = const_cast<Agent*> (agent_test);
+
+		std::vector<Agent*>& agents = Agent::all_agents;
+		agents.push_back(one_agent);
+
+		int free_worker_id = getTheMostFreeWorkerID();
+		migrate(ag, -1, free_worker_id);
+	}
+}
+
+template<class EntityType>
+int sim_mob::SimpleWorkGroup<EntityType>::getTheMostFreeWorkerID()
+{
+	int minimum_task = std::numeric_limits<int>::max();
+	int minimum_index = 0;
+
+	for (size_t i = 0; i < workers.size(); i++)
+	{
+		if (workers[i]->getAgentSize() < minimum_task)
+		{
+			minimum_task = workers[i]->getAgentSize();
+			minimum_index = i;
+		}
+	}
+
+	return minimum_index;
+}
 

@@ -15,23 +15,14 @@
 namespace sim_mob
 {
 
-struct LaneSide {
-	bool left;
-	bool right;
-	bool both() const { return left && right; }
-	bool leftOnly() const { return left && !right; }
-	bool rightOnly() const { return right && !left; }
+enum LANE_SIDE {
+	LSIDE_LEFT = 1,
+	LSIDE_RIGHT = 2
 };
 
 enum LANE_CHANGE_MODE {	//as a mask
 	DLC = 0,
 	MLC = 2
-};
-
-enum LANE_CHANGE_SIDE {
-	LCS_LEFT = -1,
-	LCS_SAME = 0,
-	LCS_RIGHT = 1
 };
 
 //Forward declarations
@@ -43,7 +34,8 @@ class Lane;
 class Node;
 class MultiNode;
 class Vehicle;
-class DPoint;
+class AgentPackageManager;
+class BoundaryProcessor;
 
 
 class Driver : public sim_mob::Role {
@@ -82,57 +74,11 @@ private:
 		double lane_mintime;
 	};
 
-	//Struct for holding data about the "nearest" vehicle.
-	struct NearestVehicle {
-		NearestVehicle() : driver(nullptr), distance(5000) {}
-
-		const Driver* driver;
-		double distance;
-	};
-
-	//Similar, but for pedestrians
-	struct NearestPedestrian {
-		NearestPedestrian() : distance(5000) {}
-
-		//TODO: This is probably not needed. We should really set "distance" to DOUBLE_MAX.
-		bool exists() { return distance < 5000; }
-
-		double distance;
-	};
-
 	///Simple struct to hold parameters which only exist for a single update tick.
 	struct UpdateParams {
-		UpdateParams(const Driver& owner); //Initialize with sensible defaults.
-
-		const Lane* currLane;  //TODO: This should really be tied to PolyLineMover, but for now it's not important.
-		const Lane* leftLane;
-		const Lane* rightLane;
-
+		const Lane* currLane;
+		//meterPerSecond_t currSpeed;
 		double currSpeed;
-		double vehicleAngle;
-
-		double currLaneOffset;
-		double currLaneLength;
-		bool isTrafficLightStop;
-		double trafficSignalStopDistance;
-		double elapsedSeconds;
-
-		double perceivedFwdVelocity;
-		double perceivedLatVelocity;
-
-		NearestVehicle nvFwd;
-		NearestVehicle nvBack;
-		NearestVehicle nvLeftFwd;
-		NearestVehicle nvLeftBack;
-		NearestVehicle nvRightFwd;
-		NearestVehicle nvRightBack;
-
-		NearestPedestrian npedFwd;
-
-		double laneChangingVelocity;
-
-		bool isCrossingAhead;
-		int crossingFwdDistance;
 	};
 
 
@@ -153,37 +99,32 @@ public:
 	Driver (Agent* parent);			//to initiate
 	virtual void update(frame_t frameNumber);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
-
+	virtual void output(frame_t frameNumber);
 
 //Basic data
 private:
 	//Pointer to the vehicle this driver is controlling.
 	Vehicle* vehicle;
 
-	//More update methods
-	void update_first_frame(UpdateParams& params, frame_t frameNumber);
-	void update_general(UpdateParams& params, frame_t frameNumber);
-
 	//Sample stored data which takes reaction time into account.
 	const static size_t reactTime = 1500; //1.5 seconds
-	FixedDelayed<DPoint*> perceivedVelocity;
+	FixedDelayed<Point2D*> perceivedVelocity;
 	FixedDelayed<Point2D*> perceivedVelocityOfFwdCar;
 	FixedDelayed<centimeter_t> perceivedDistToFwdCar;
 
 	//Absolute movement-related variables
-	//double timeStep;			//time step size of simulation
+	double timeStep;			//time step size of simulation
 
-	//TODO: Deactivating these temporarily
-	//double perceivedXVelocity_;
-	//double perceivedYVelocity_;
+	double perceivedXVelocity_;
+	double perceivedYVelocity_;
 
 	//absolute position of the target start point on the next link
 	//used for intersection driving behavior
 	int xPos_nextLink;
 	int yPos_nextLink;
 
-	//int xPosCrossing_; //relative x coordinate for crossing, the intersection point of crossing's front line and current polyline
-	//double acc_;
+	int xPosCrossing_; //relative x coordinate for crossing, the intersection point of crossing's front line and current polyline
+	double acc_;
 	double xDirection;			//x direction of the current polyline segment
 	double yDirection;			//y direction of the current polyline segment
 
@@ -197,8 +138,8 @@ private:
 	Point2D goal;
 	const Node* destNode;				//first, assume that each vehicle moves towards a goal
 	const Node* originNode;				//when a vehicle reaches its goal, it will return to origin and moves to the goal again
-	//bool isGoalSet;				//to check if the goal has been set
-	bool firstFrameTick;			//to check if the origin has been set
+	bool isGoalSet;				//to check if the goal has been set
+	bool isOriginSet;			//to check if the origin has been set
 
 	double maxAcceleration;
 	double normalDeceleration;
@@ -207,101 +148,73 @@ private:
 	double maxLaneSpeed;
 
 public:
-	//int getTimeStep() const {return timeStep;}
+	int getTimeStep() const {return timeStep;}
 	void assignVehicle(Vehicle* v) {vehicle = v;}
 
 	//for coordinate transform
-	void setParentBufferedData();			///<set next data to parent buffer data
-	static double feet2Unit(double feet);
-	static double unit2Feet(double unit);
+	void setToParent();			///<set next data to parent buffer data
+	void abs_relat();           ///<compute transformation vectors
+	void abs2relat();			///<transform absolute coordinate to relative coordinate
+	void relat2abs();			///<transform relative coordinate to absolute coordinate
+	double feet2Unit(double feet);
+	double unit2Feet(double unit);
 
 	double getMaxAcceleration() const {return maxAcceleration;}
 	double getNormalDeceleration() const {return normalDeceleration;}
 	double getMaxDeceleration() const {return maxDeceleration;}
 	double getDistanceToNormalStop() const {return distanceToNormalStop;}
-	void output(UpdateParams& p, frame_t frameNumber);
+
 
 	/****************IN REAL NETWORK****************/
 private:
-	static void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
-
-	//Aggregate class to encapsulate movement along a list of RoadSegments.
-	//RoadSegmentMover pathMover;
-
-	//Vector containing the path from origin to destination
-	//std::vector<const RoadSegment*> allRoadSegments;
-
-	//Current index into the allRoadSegments vector
-	//size_t RSIndex;
-
-	//Helper: Current road segment by index
-	//const RoadSegment* currRoadSegment;
-
-	//Helper: The current link we're on
-	//const Link* currLink;
-
-	//True if we are moving forward within the current link.
-	//bool isLinkForward;
-
-	//Polyline we are currently moving along.
-	//const std::vector<sim_mob::Point2D>* currLanePolyLine;
-
-	//Current index into the current road segment's polyline.
-	//size_t polylineSegIndex;
-
-	//Helper class for managing movement within a polyline.
-	//PolyLineMover polypathMover;
-
-
-	//Helper: Entire length of current polyline
-	//double currLaneLength;
-
-
-
-
-
-	const Link* desLink;
+	std::vector<const RoadSegment*> allRoadSegments;
+	const Link* currLink;
+	const Link* nextLink;
+	const RoadSegment* currRoadSegment;
+	//const Lane* currLane; //See Driver.cpp; this isn't needed as a class attribute.
+	const Lane* nextLaneInNextLink;
+	const Lane* leftLane;
+	const Lane* rightLane;
+	double currLaneOffset;
     double currLinkOffset;
-	//double traveledDis; //the distance traveled within current time step
-
+	double traveledDis; //the distance traveled within current time step
+	size_t RSIndex;
+	size_t polylineSegIndex;
 	size_t currLaneIndex;
 	size_t targetLaneIndex;
 	StreetDirectory::LaneAndIndexPair laneAndIndexPair;
+	const std::vector<sim_mob::Point2D>* currLanePolyLine;
 	const std::vector<sim_mob::Point2D>* desLanePolyLine;
 
 	//Temp: changing name slightly; this is more automatic with RelAbsPoint.
-	//Point2D currPolylineSegStart;
-	//Point2D currPolylineSegEnd;
-	//int polylineSegLength;
+	Point2D currPolylineSegStart;
+	Point2D currPolylineSegEnd;
+	int polylineSegLength;
 
 	Point2D desPolyLineStart;
 	Point2D desPolyLineEnd;
 	Point2D entryPoint; //entry point for crossing intersection
 	int xTurningStart;
 	int yTurningStart;
+	double currLaneLength;
 	double xDirection_entryPoint;
 	double yDirection_entryPoint;
 	int disToEntryPoint;
 	bool isCrossingAhead;
 	bool closeToCrossing;
-
-	//Parameters relating to the next Link we plan to move to after an intersection.
-	const Link* nextLink;
-	const Lane* nextLaneInNextLink;
+	bool isForward;
 	bool nextIsForward;
-
 	bool isReachGoal;
-	//bool lcEnterNewLane;
-	//bool isTrafficLightStop;
-
-	const int distanceInFront;
-	const int distanceBehind;
+	bool lcEnterNewLane;
+	bool isTrafficLightStop;
+	std::vector<const Agent*> nearby_agents;
+	int distanceInFront;
+	int distanceBehind;
 
 public:
 	Buffered<const Lane*> currLane_;
 	Buffered<double> currLaneOffset_;
 	Buffered<double> currLaneLength_;
-	Buffered<bool> isInIntersection;
 
 public:
 	const Vehicle* getVehicle() const {return vehicle;}
@@ -309,23 +222,21 @@ public:
 private:
 	///Helper method for initializing an UpdateParams struct. This method is not strictly necessary, but
 	/// it is helpful to document what each Param is used for.
-	//void new_update_params(UpdateParams& res);
+	void new_update_params(UpdateParams& res);
 
 	///Helper method; synchronize after changing to a new polyline.
 	///TODO: This should be moved at some point
-	//void sync_relabsobjs();
+	void sync_relabsobjs();
 
-	//bool isReachPolyLineSegEnd() const;
-	//bool isReachCurrRoadSegmentEnd() const;
-	//bool isReachLastPolyLineSeg() const;
-	//bool isReachLastRSinCurrLink() const;
-	//bool isCloseToCrossing() const;
-
-	bool isLeaveIntersection() const;
-	//bool isReachLinkEnd() const;
-	//bool isGoalReached() const;
-
-	bool isCloseToLinkEnd(UpdateParams& p);
+	bool isReachPolyLineSegEnd();
+	bool isReachRoadSegmentEnd();
+	bool isReachLastPolyLineSeg();
+	bool isReachLastRSinCurrLink();
+	bool isCloseToCrossing();
+	bool isReachLinkEnd();
+	bool isLeaveIntersection();
+	bool isGoalReached();
+	bool isCloseToLinkEnd();
 	bool isPedetrianOnTargetCrossing();
 	void chooseNextLaneForNextLink(UpdateParams& p);
 	void directionIntersection();
@@ -333,35 +244,29 @@ private:
 
 	void setOrigin(UpdateParams& p);
 
-	//A bit verbose, but only used in 1 or 2 places.
-	//void newPathMover(const Lane* newLane);
-	void syncCurrLaneCachedInfo(UpdateParams& p);
-	void justLeftIntersection(UpdateParams& p);
-
-	void updateAdjacentLanes(UpdateParams& p);
-	//void updateRSInCurrLink(UpdateParams& p);
-	void updateAcceleration(double newFwdAcc);
+	void updateCurrInfo(unsigned int mode, UpdateParams& p);
+	void updateAdjacentLanes();
+	void updateRSInCurrLink(UpdateParams& p);
+	void updateAcceleration();
 	void updateVelocity();
-	void updatePositionOnLink(UpdateParams& p);
+	void updatePositionOnLink();
+	void updatePolyLineSeg();
 	void setBackToOrigin();
-
 	void updateNearbyAgents(UpdateParams& params);
-	void updateNearbyDriver(UpdateParams& params, const sim_mob::Person* other, const sim_mob::Driver* other_driver);
-	void updateNearbyPedestrian(UpdateParams& params, const sim_mob::Person* other, const sim_mob::Pedestrian* pedestrian);
-
-	void updateCurrLaneLength(UpdateParams& p);
+	void updateCurrLaneLength();
 	void updateDisToLaneEnd();
-	void updatePositionDuringLaneChange(UpdateParams& p);
-	//void updateStartEndIndex();
+	void updatePosLC(UpdateParams& p);
+	void updateStartEndIndex();
 	void updateTrafficSignal();
+	void updateLeadingGapandMode(UpdateParams& p);
 
 	void trafficSignalDriving(UpdateParams& p);
 	void intersectionDriving(UpdateParams& p);
-	//void pedestrianAheadDriving(UpdateParams& p);
+	void pedestrianAheadDriving();
 	void linkDriving(UpdateParams& p);
 
 	void initializePath();
-	void findCrossing(UpdateParams& p);
+	void findCrossing();
 
 	//helper function, to find the lane index in current road segment
 	size_t getLaneIndex(const Lane* l);
@@ -371,8 +276,6 @@ private:
 	/***********SOMETHING BIG BROTHER CAN RETURN*************/
 private:
 
-	/*NearestVehicle nearestCarFwd;
-
 	//Vehicle* vehicle;
 	const Driver* CFD;
 	const Driver* CBD;
@@ -380,15 +283,6 @@ private:
 	const Driver* LBD;
 	const Driver* RFD;
 	const Driver* RBD;
-
-	double minCFDistance;				//the distance between subject vehicle to leading vehicle
-	double minCBDistance;
-	double minLFDistance;
-	double minLBDistance;
-	double minRFDistance;
-	double minRBDistance;*/
-
-
 	const Pedestrian* CFP;
 	const Pedestrian* LFP;
 	const Pedestrian* RFP;
@@ -398,18 +292,25 @@ private:
 	//parameters
 private:
 	double targetSpeed;			//the speed which the vehicle is going to achieve
-	//double minPedestrianDis;
-	//double tsStopDistance;     // distance to stop line
+	double minCFDistance;				//the distance between subject vehicle to leading vehicle
+	double minCBDistance;
+	double minLFDistance;
+	double minLBDistance;
+	double minRFDistance;
+	double minRBDistance;
+	double minPedestrianDis;
+	double tsStopDistance;     // distance to stop line
 	double space;
 	double headway;				//distance/speed
 	double space_star;			//the distance which leading vehicle will move in next time step
 	double dv;					//the difference of subject vehicle's speed and leading vehicle's speed
 	double a_lead;				//the acceleration of leading vehicle
 	double v_lead;				//the speed of leading vehicle
+	size_t mode;// 0 for vehicle, 1 for pedestrian, 2 for traffic light, 3 for null
 
 	//for acceleration decision
 public:
-	double makeAcceleratingDecision(UpdateParams& p);				///<decide acc
+	void makeAcceleratingDecision(UpdateParams& p);				///<decide acc
 	double breakToTargetSpeed(UpdateParams& p);					///<return the acc to a target speed within a specific distance
 	double accOfEmergencyDecelerating(UpdateParams& p);			///<when headway < lower threshold, use this function
 	double accOfCarFollowing(UpdateParams& p);						///<when lower threshold < headway < upper threshold, use this function
@@ -419,10 +320,10 @@ public:
 
 	//for lane changing decision
 private:
-	//double VelOfLaneChanging;	//perpendicular with the lane's direction
+	double VelOfLaneChanging;	//perpendicular with the lane's direction
 	int changeMode;				//DLC or MLC
-	//LANE_CHANGE_SIDE changeDecision;		//1 for right, -1 for left, 0 for current
-	//bool isLaneChanging;			//is the vehicle is changing the lane
+	int changeDecision;		//1 for right, -1 for left, 0 for current
+	bool isLaneChanging;			//is the vehicle is changing the lane
 	bool isback;				//in DLC: is the vehicle get back to the lane to avoid crash
 	bool isWaiting;				//in MLC: is the vehicle waiting acceptable gap to change lane
 	int fromLane;				//during lane changing, the lane the vehicle leaves
@@ -434,9 +335,8 @@ private:
 										//    and the space between the vehicle and the bad area is smaller than
 										//    this distance, the vehicle won't change lane(because later it should change again)
 public:
-	LaneSide gapAcceptance(UpdateParams& p, int type); 	///<check if the gap of the left lane and the right lane is available
-	double lcCriticalGap(UpdateParams& p,
-			int type,		// 0=leading 1=lag + 2=mandatory (mask) //TODO: ARGHHHHHHH magic numbers....
+	unsigned int gapAcceptance(int type); 	///<check if the gap of the left lane and the right lane is available
+	double lcCriticalGap(int type,		// 0=leading 1=lag + 2=mandatory (mask)
 			double dis,					// from critical pos
 			double spd,					// spd of the follower
 			double dv					// spd difference from the leader));
@@ -444,13 +344,11 @@ public:
 	int checkIfBadAreaAhead();				///<find the closest bad area ahead which the vehicle may knock on(see details in Driver.cpp)
 	int findClosestBadAreaAhead(int lane);	///<find the closest bad area ahead in specific lane
 	double makeLaneChangingDecision();					///<Firstly, check if MLC is needed, and then choose specific model to decide.
-	double checkIfMandatory(double totalLinkDist);							///<check if MLC is needed, return probability to MLC
-	double calcSideLaneUtility(UpdateParams& p,bool isLeft);			///<return utility of adjacent gap
-
-	LANE_CHANGE_SIDE makeDiscretionaryLaneChangingDecision(UpdateParams& p);		///<DLC model, vehicles freely decide which lane to move. Returns 1 for Right, -1 for Left, and 0 for neither.
-	LANE_CHANGE_SIDE makeMandatoryLaneChangingDecision(UpdateParams& p);			///<MLC model, vehicles must change lane, Returns 1 for Right, -1 for Left.
-
-	void excuteLaneChanging(UpdateParams& p, double totalLinkDistance);			///<to execute the lane changing, meanwhile, check if crash will happen and avoid it
+	double checkIfMandatory();							///<check if MLC is needed, return probability to MLC
+	double calcSideLaneUtility(bool isLeft);			///<return utility of adjacent gap
+	double makeDiscretionaryLaneChangingDecision();		///<DLC model, vehicles freely decide which lane to move. Returns 1 for Right, -1 for Left, and 0 for neither.
+	double makeMandatoryLaneChangingDecision();			///<MLC model, vehicles must change lane, Returns 1 for Right, -1 for Left.
+	void excuteLaneChanging();			///<to execute the lane changing, meanwhile, check if crash will happen and avoid it
 	bool checkForCrash();				///<to check if the crash may happen
 
 	/*
@@ -466,34 +364,28 @@ public:
 
 	/**************BEHAVIOR WHEN APPROACHING A INTERSECTION***************/
 public:
-	void updateAngle(UpdateParams& p);
+	void updateAngle();
 	void intersectionVelocityUpdate();
 	void modifyPosition();
 	void IntersectionDirectionUpdate();
 	void UpdateNextLinkLane();
-	//void enterNextLink(UpdateParams& p);
+	void enterNextLink(UpdateParams& p);
 	bool isReachCrosswalk();
-
-	//This always returns the lane we are moving towards; regardless of if we've passed the
-	//  halfway point or not.
-	LANE_CHANGE_SIDE getCurrLaneChangeDirection() const;
-
-	//This, however, returns where we are relative to the center of our own lane.
-	// I'm sure we can do this in a less confusion fashion later.
-	LANE_CHANGE_SIDE getCurrLaneSideRelativeToCenter() const;
-
-	//bool isInIntersection() const {return inIntersection;}
+	bool isInIntersection() const {return inIntersection;}
 
 private:
-	//The current traffic signal in our Segment. May be null.
 	const Signal* trafficSignal;
-
+	double angle;
+	bool inIntersection;
 
 	/**************COOPERATION WITH PEDESTRIAN***************/
 public:
-	//True if a pedestrian is within range.
-	//bool isPedestrianAhead;
+	bool isPedestrianAhead;
 
+	//add by xuyan
+public:
+	friend class AgentPackageManager;
+	friend class BoundaryProcessor;
 };
 
 

@@ -265,52 +265,6 @@ void sim_mob :: Signal :: startSplitPlan()
 
 void sim_mob :: Signal ::update(frame_t frameNumber)
 {
-
-                        std::stringstream logout;
-	                logout <<"(\"Signal\","<<frameNumber<<","<< this <<",{\"va\":\"";
-	                for(int i = 0; i<3; i++) {
-	                        logout<<TC_for_Driver[0][i];
-	                        if (i==2) {
-	                                logout <<"\",";
-	                        } else {
-	                                logout <<",";
-	                        }
-	                }
-	                logout <<"\"vb\":\"";
-	                for(int i = 0; i<3; i++) {
-	                        logout<<TC_for_Driver[1][i];
-	                        if (i==2) {
-	                                logout <<"\",";
-	                        } else {
-	                                logout <<",";
-	                        }
-	                }
-	                logout <<"\"vc\":\"";
-	                for(int i = 0; i<3; i++) {
-	                        logout<<TC_for_Driver[2][i];
-	                        if (i==2) {
-	                                logout <<"\",";
-	                        } else {
-	                                logout <<",";
-	                        }
-	                }
-	                logout <<"\"vd\":\"";
-	                for(int i = 0; i<3; i++) {
-	                        logout<<TC_for_Driver[3][i];
-	                        if (i==2) {
-	                                logout <<"\",";
-	                        } else {
-	                                logout <<",";
-	                        }
-	                }
-
-	                logout <<"\"pa\":\""<<TC_for_Pedestrian[0]<<"\",";
-	                logout <<"\"pb\":\""<<TC_for_Pedestrian[1]<<"\",";
-	                logout <<"\"pc\":\""<<TC_for_Pedestrian[2]<<"\",";
-	                logout <<"\"pd\":\""<<TC_for_Pedestrian[3]<<"\"})"<<std::endl;
-                        LogOut(logout.str());
-
-
 	updateSignal (Density);
 }
 
@@ -629,10 +583,16 @@ void sim_mob :: Signal :: updateTrafficLights(){
 
 
 	//Update
-	for (size_t i=0; i<4; i++) {
-		TC_for_Driver[i] = TC_for_DriverTemplate[relID][i];
+	for (size_t i = 0; i < 4; i++)
+	{
+		for (size_t j = 0; j < 3; j++)
+			TC_for_Driver[i][j] = TC_for_DriverTemplate[relID][i][j];
 	}
-	TC_for_Pedestrian = TC_for_PedestrianTemplate[relID];
+
+	for (size_t i = 0; i < 4; i++)
+	{
+		TC_for_Pedestrian[i] = TC_for_PedestrianTemplate[relID][i];
+	}
 
 }
 
@@ -816,4 +776,85 @@ int sim_mob :: Signal :: calvote(unsigned int vote1,unsigned int vote2, unsigned
 		//else{}
 	}
 	return ID;
+}
+
+void sim_mob::Signal::output(frame_t frameNumber)
+{
+	std::stringstream logout;
+
+	logout << "(\"Signal\",";
+
+	logout << frameNumber << "," << this->getId() << ",{\"va\":\"";
+	for (int i = 0; i < 3; i++)
+	{
+		logout << TC_for_Driver[0][i];
+		if (i == 2)
+		{
+			logout << "\",";
+		}
+		else
+		{
+			logout << ",";
+		}
+	}
+	logout << "\"vb\":\"";
+	for (int i = 0; i < 3; i++)
+	{
+		logout << TC_for_Driver[1][i];
+		if (i == 2)
+		{
+			logout << "\",";
+		}
+		else
+		{
+			logout << ",";
+		}
+	}
+	logout << "\"vc\":\"";
+	for (int i = 0; i < 3; i++)
+	{
+		logout << TC_for_Driver[2][i];
+		if (i == 2)
+		{
+			logout << "\",";
+		}
+		else
+		{
+			logout << ",";
+		}
+	}
+	logout << "\"vd\":\"";
+	for (int i = 0; i < 3; i++)
+	{
+		logout << TC_for_Driver[3][i];
+		if (i == 2)
+		{
+			logout << "\",";
+		}
+		else
+		{
+			logout << ",";
+		}
+	}
+
+	logout << "\"pa\":\"" << TC_for_Pedestrian[0] << "\",";
+	logout << "\"pb\":\"" << TC_for_Pedestrian[1] << "\",";
+	logout << "\"pc\":\"" << TC_for_Pedestrian[2] << "\",";
+	logout << "\"pd\":\"" << TC_for_Pedestrian[3] << "\",";
+
+	logout << "\"xPos\":\"" << getNode().location->getX() << "\",";
+	logout << "\"yPos\":\"" << getNode().location->getY() << "\",";
+
+	if (this->isFake)
+	{
+		logout << "\"fake\":\"" << "true";
+	}
+	else
+	{
+		logout << "\"fake\":\"" << "false";
+	}
+
+
+	logout << "\"})" << std::endl;
+	LogOut(logout.str());
 }

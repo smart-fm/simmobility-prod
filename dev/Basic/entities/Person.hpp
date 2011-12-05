@@ -12,7 +12,7 @@ namespace sim_mob
 {
 
 class TripChain;
-
+class AgentPackageManager;
 
 /**
  * Basic Person class. A person may perform one of several roles which
@@ -25,6 +25,8 @@ public:
 
 	///Update Person behavior
 	virtual void update(frame_t frameNumber);
+
+	virtual void output(frame_t frameNumber);
 
 	///Update a Person's subscription list.
 	virtual void buildSubscriptionList();
@@ -42,7 +44,9 @@ private:
 	sim_mob::Role* currRole;
 	sim_mob::TripChain* currTripChain;
 
-
+	//add by xuyan
+public:
+	friend class AgentPackageManager;
 };
 
 

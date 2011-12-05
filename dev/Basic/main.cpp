@@ -37,6 +37,8 @@
 #include "geospatial/BusRoute.hpp"
 #include "perception/FixedDelayed.hpp"
 
+//add by xuyan
+#include "partitions/PartitionManager.hpp"
 
 using std::cout;
 using std::endl;
@@ -133,8 +135,11 @@ bool performMain(const std::string& configFileName)
   cout <<"  " <<"Initialization done" <<endl;
 
   //Sanity check (simple)
-  if (!CheckAgentIDs(agents /*trips,*/ /*choiceSets*/)) {
-	  return false;
+  if (config.is_run_on_many_computers == false)
+  {
+	  if (!CheckAgentIDs(agents /*trips,*/ /*choiceSets*/)) {
+		  return false;
+	  }
   }
 
   //Sanity check (nullptr)
@@ -152,7 +157,11 @@ bool performMain(const std::string& configFileName)
 
   //Output
   cout <<"  " <<"...Sanity Check Passed" <<endl;
-
+  if (config.is_run_on_many_computers)
+	{
+		PartitionManager& partitionImpl = PartitionManager::instance();
+		partitionImpl.initBoundaryTrafficItems();
+	}
 
   //Initialize our work groups, assign agents randomly to these groups.
   EntityWorkGroup agentWorkers(WG_AGENTS_SIZE, config.totalRuntimeTicks, config.granAgentsTicks, true);
@@ -178,6 +187,12 @@ bool performMain(const std::string& configFileName)
 
   AuraManager& auraMgr = AuraManager::instance();
   auraMgr.init();
+
+  if (config.is_run_on_many_computers)
+	{
+		PartitionManager& partitionImpl = PartitionManager::instance();
+		partitionImpl.setEntityWorkGroup(&agentWorkers, &signalStatusWorkers);
+	}
 
   /////////////////////////////////////////////////////////////////
   // NOTE: WorkGroups are able to handle skipping steps by themselves.
@@ -207,8 +222,32 @@ bool performMain(const std::string& configFileName)
 	  //Agent-based cycle
 	  agentWorkers.wait();
 
+	  if (config.is_run_on_many_computers)
+		{
+			PartitionManager& partitionImpl = PartitionManager::instance();
+			partitionImpl.crossPCBarrier();
+		}
+
       auraMgr.update(currTick);
 	  agentWorkers.waitExternAgain(); // The workers wait on the AuraManager.
+
+	  if (config.is_run_on_many_computers)
+		{
+			PartitionManager& partitionImpl = PartitionManager::instance();
+			partitionImpl.crossPCBarrier();
+		}
+
+		//add by xuyan
+
+		if (config.is_run_on_many_computers)
+		{
+			PartitionManager& partitionImpl = PartitionManager::instance();
+			partitionImpl.crossPCboundaryProcess(currTick);
+			partitionImpl.crossPCBarrier();
+		}
+
+		PartitionManager& partitionImpl = PartitionManager::instance();
+		partitionImpl.outputAllEntities(currTick);
 
 	  //Surveillance update
 	  //updateSurveillanceData(agents);
@@ -225,6 +264,12 @@ bool performMain(const std::string& configFileName)
 	  //saveStatisticsToDB(agents);
   }
 
+  if (config.is_run_on_many_computers)
+	{
+		PartitionManager& partitionImpl = PartitionManager::instance();
+		partitionImpl.stopMPIEnvironment();
+	}
+
   cout <<"Simulation complete; closing worker threads." <<endl;
   if (Agent::all_agents.empty()) {
 	  cout <<"NOTE: No agents were processed." <<endl;
@@ -236,6 +281,32 @@ bool performMain(const std::string& configFileName)
 
 int main(int argc, char* argv[])
 {
+	/**
+	 * Check whether to run SimMobility or SimMobility-MPI
+	 */
+	ConfigParams& config = ConfigParams::GetInstance();
+	if (argc > 3 && strcmp(argv[3], "mpi") == 0)
+	{
+		config.is_run_on_many_computers = true;
+	}
+	else
+	{
+		config.is_run_on_many_computers = false;
+	}
+
+	/**
+	 * Start MPI if is_run_on_many_computers is true
+	 */
+	if (config.is_run_on_many_computers)
+	{
+		PartitionManager& partitionImpl = PartitionManager::instance();
+		std::string mpi_result = partitionImpl.startMPIEnvironment(argc, argv);
+		if (mpi_result.compare("") != 0)
+		{
+			cout << "Error:" << mpi_result << endl;
+			exit(1);
+		}
+	}
 	//Argument 1: Config file
 	//Note: Don't chnage this here; change it by supplying an argument on the
 	//      command line, or through Eclipse's "Run Configurations" dialog.

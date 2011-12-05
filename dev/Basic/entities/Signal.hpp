@@ -23,6 +23,7 @@ namespace sim_mob
 class Node;
 class Lane;
 class Crossing;
+class RoadNetworkPackageManager;
 
 /**
  * Basic Signal class.
@@ -95,6 +96,7 @@ public:
 
 	//Abstract methods. You will have to implement these eventually.
 	virtual void update(frame_t frameNumber);
+	virtual void output(frame_t frameNumber);
 	virtual void buildSubscriptionList() {}
 
 
@@ -226,8 +228,9 @@ private:
 
 	//int TC_for_Driver[4][3];
 	//Note: Making const* to make re-assigning easier. ~Seth
-	const int* TC_for_Driver[4];
-	const int* TC_for_Pedestrian;
+	//Need to serialize the attribute, fiexed array needed. (need to talk with Seth)
+	int TC_for_Driver[4][3];
+	int TC_for_Pedestrian[4];
 
 	//String representation, so that we can retrieve this information at any time.
 	std::string strRepr;
@@ -239,7 +242,8 @@ protected:
 protected:
         void setupIndexMaps();
 
-
+public:
+        friend class sim_mob::RoadNetworkPackageManager;
 };
 
 }

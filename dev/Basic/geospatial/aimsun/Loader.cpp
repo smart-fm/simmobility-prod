@@ -46,6 +46,9 @@
 #include "entities/misc/aimsun/TripChain.hpp"
 #include "entities/misc/aimsun/SOCI_Converters.hpp"
 
+//add by xuyan
+#include "partitions/PartitionManager.hpp"
+#include "conf/simpleconf.hpp"
 
 using namespace sim_mob::aimsun;
 using sim_mob::DynamicVector;
@@ -232,7 +235,32 @@ void LoadPolylines(soci::session& sql, const std::string& storedProc, multimap<i
 void LoadTripchains(soci::session& sql, const std::string& storedProc, vector<TripChain>& tripchainlist, map<int, Node>& nodelist)
 {
 	//Our SQL statement
-	soci::rowset<TripChain> rs = (sql.prepare <<"select * from " + storedProc);
+	std::string sql_str;
+
+	//changed by xuyan
+	const sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstance();
+	if (config.is_run_on_many_computers)
+	{
+		sim_mob::PartitionManager& partitionImpl = sim_mob::PartitionManager::instance();
+		int partition_solution_id = partitionImpl.partition_config->partition_solution_id;
+
+		//Note: partition_id starts from 1 while boost::mpi_id strats from 0
+		int partition_id = partitionImpl.partition_config->partition_id + 1;
+
+		std::string sqlPara = "";
+		sqlPara += sim_mob::MathUtil::getStringFromNumber(partition_solution_id);
+		sqlPara += ",";
+		sqlPara += sim_mob::MathUtil::getStringFromNumber(partition_id);
+
+		sql_str = "select * from get_trip_chains_in_partition(" + sqlPara + ")";
+
+	}
+	else
+	{
+		sql_str = "select * from " + storedProc;
+	}
+
+	soci::rowset<TripChain> rs = (sql.prepare << sql_str);
 
 	//Exectue as a rowset to avoid repeatedly building the query.
 	tripchainlist.clear();
@@ -255,9 +283,39 @@ void LoadTripchains(soci::session& sql, const std::string& storedProc, vector<Tr
 	}
 }
 
+//add by xuyan
+//read from database
+void LoadBoundarySegments(soci::session& sql, vector<sim_mob::BoundarySegment*>& boundary_segments) {
+	sim_mob::PartitionManager& partitionImpl = sim_mob::PartitionManager::instance();
+	int partition_solution_id = partitionImpl.partition_config->partition_solution_id;
+	int partition_id = partitionImpl.partition_config->partition_id + 1;
 
+	std::string sqlPara = "";
+	sqlPara += sim_mob::MathUtil::getStringFromNumber(partition_solution_id);
+	sqlPara += ",";
+	sqlPara += sim_mob::MathUtil::getStringFromNumber(partition_id);
 
-void LoadBasicAimsunObjects(const string& connectionStr, map<string, string>& storedProcs, map<int, Node>& nodes, map<int, Section>& sections, vector<Crossing>& crossings, vector<Lane>& lanes, map<int, Turning>& turnings, multimap<int, Polyline>& polylines, vector<TripChain>& tripchains)
+	std::string sql_str = "select * from get_boundary_segments_in_partition(" + sqlPara + ")";
+	soci::rowset<soci::row> rs = (sql.prepare << sql_str);
+
+	for (soci::rowset<soci::row>::const_iterator it = rs.begin(); it != rs.end(); it++) {
+		soci::row const& row = *it;
+
+		sim_mob::BoundarySegment* boundary = new sim_mob::BoundarySegment();
+
+		boundary->cutLineOffset = row.get<double> (0);
+		boundary->connected_partition_id = row.get<int> (1);
+		boundary->responsible_side = row.get<int> (2);
+		boundary->start_node_x = row.get<double> (3);
+		boundary->start_node_y = row.get<double> (4);
+		boundary->end_node_x = row.get<double> (5);
+		boundary->end_node_y = row.get<double> (6);
+
+		boundary_segments.push_back(boundary);
+	}
+}
+
+void LoadBasicAimsunObjects(const string& connectionStr, map<string, string>& storedProcs, map<int, Node>& nodes, map<int, Section>& sections, vector<Crossing>& crossings, vector<Lane>& lanes, map<int, Turning>& turnings, multimap<int, Polyline>& polylines, vector<TripChain>& tripchains, vector<sim_mob::BoundarySegment*>& boundary_segments)
 {
 	//Connect
 	//Connection string will look something like this:
@@ -287,6 +345,14 @@ void LoadBasicAimsunObjects(const string& connectionStr, map<string, string>& st
 
 	//Load all trip chains
 	LoadTripchains(sql, storedProcs["tripchain"], tripchains, nodes);
+
+	//add by xuyan
+	//load in boundary segments
+	const sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstance();
+	if (config.is_run_on_many_computers)
+	{
+		LoadBoundarySegments(sql, boundary_segments);
+	}
 }
 
 
@@ -778,7 +844,24 @@ void sim_mob::aimsun::Loader::ProcessSectionPolylines(sim_mob::RoadNetwork& res,
 	src.generatedSegment->polyline.push_back(pt);
 }
 
+//add by xuyan
+//get the pointer of BoundarySegment using x,y position
+void TransferBoundaryRoadSegment(sim_mob::RoadNetwork& rn, vector<sim_mob::BoundarySegment*>& boundary_segments) {
+	sim_mob::PartitionManager& partitionImpl = sim_mob::PartitionManager::instance();
+	vector<sim_mob::BoundarySegment*>::iterator it = boundary_segments.begin();
+	for (; it != boundary_segments.end(); it++) {
+		int start_x = static_cast<int> ((*it)->start_node_x * 100 + 0.5);
+		int start_y = static_cast<int> ((*it)->start_node_y * 100 + 0.5);
+		int end_x = static_cast<int> ((*it)->end_node_x * 100 + 0.5);
+		int end_y = static_cast<int> ((*it)->end_node_y * 100 + 0.5);
 
+		sim_mob::Point2D start_point(start_x, start_y);
+		sim_mob::Point2D end_point(end_x, end_y);
+		(*it)->boundarySegment = sim_mob::getRoadSegmentBasedOnNodes(&start_point, &end_point);
+
+		partitionImpl.loadInBoundarySegment((*it)->boundarySegment->getId(), (*it));
+	}
+}
 
 
 string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::vector<sim_mob::TripChain*>& tcs)
@@ -792,9 +875,11 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, map<str
 		map<int, Turning> turnings;
 		multimap<int, Polyline> polylines;
 		vector<TripChain> tripchains;
+		//add by xuyan
+		vector<BoundarySegment*> boundary_segments;
 
 		//Step One: Load
-		LoadBasicAimsunObjects(connectionStr, storedProcs, nodes, sections, crossings, lanes, turnings, polylines, tripchains);
+		LoadBasicAimsunObjects(connectionStr, storedProcs, nodes, sections, crossings, lanes, turnings, polylines, tripchains, boundary_segments);
 
 		//Step Two: Translate
 		DecorateAndTranslateObjects(nodes, sections, crossings, lanes, turnings, polylines);
@@ -802,6 +887,11 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, map<str
 		//Step Three: Save
 		SaveSimMobilityNetwork(rn, tcs, nodes, sections, turnings, polylines, tripchains);
 
+		//Step Four: boundary data load in
+		sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstance();
+		if (config.is_run_on_many_computers) {
+			TransferBoundaryRoadSegment(rn, boundary_segments);
+		}
 
 
 	} catch (std::exception& ex) {

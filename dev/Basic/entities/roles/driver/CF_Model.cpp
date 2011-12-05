@@ -22,75 +22,85 @@ const sim_mob::Driver::CarFollowParam sim_mob::Driver::CF_parameters[2] = {
 		{-0.0418, 0.0000, 0.1510, 0.6840, 0.6800, 0.8020}
 };
 
-
-namespace {
-enum ACCEL_MODE {
-	AM_VEHICLE = 0,
-	AM_PEDESTRIAN = 1,
-	AM_TRAFF_LIGHT = 2,
-	AM_NONE = 3
-};
-} //End anon namespace
-
-
-double sim_mob::Driver::makeAcceleratingDecision(UpdateParams& p)
+void sim_mob::Driver::updateLeadingGapandMode(UpdateParams& p)
 {
-	//Convert back to m/s
-	//TODO: Is this always m/s? We should rename the variable then...
-	p.currSpeed = vehicle->getVelocity()/100;
-
-	//Set our mode.
-	ACCEL_MODE mode;
-	if(p.nvFwd.distance != 5000 && p.nvFwd.distance <= p.trafficSignalStopDistance && p.nvFwd.distance <= p.npedFwd.distance) {
-		space = p.nvFwd.distance/100;
-		mode = AM_VEHICLE;
-	} else if(p.npedFwd.distance != 5000 && p.npedFwd.distance <= p.nvFwd.distance && p.npedFwd.distance <= p.trafficSignalStopDistance) {
-		space = p.npedFwd.distance/100;
-		mode = AM_PEDESTRIAN;
-	} else if(p.trafficSignalStopDistance != 5000 && p.trafficSignalStopDistance <= p.npedFwd.distance && p.trafficSignalStopDistance <= p.nvFwd.distance) {
-		space = p.trafficSignalStopDistance/100;
-		mode = AM_TRAFF_LIGHT;
-	} else {
-		space = p.trafficSignalStopDistance/100;//which should be default value 50m
-		mode = AM_NONE;
+	p.currSpeed = vehicle->velocity.getRelX()/100;
+	if(minCFDistance != 5000 && minCFDistance <= tsStopDistance && minCFDistance <= minPedestrianDis)
+	{
+		space = minCFDistance/100;
+		mode = 0;
+	}
+	else if(minPedestrianDis != 5000 && minPedestrianDis <= minCFDistance && minPedestrianDis <= tsStopDistance)
+	{
+		space = minPedestrianDis/100;
+		mode = 1;
+	}
+	else if(tsStopDistance != 5000 && tsStopDistance <= minPedestrianDis && tsStopDistance <= minCFDistance)
+	{
+		space = tsStopDistance/100;
+		mode = 2;
+	}
+	else
+	{
+		space = tsStopDistance/100;//which should be default value 50m
+		mode = 3;
 	}
 
-	//If we have no space left to move, immediately cut off acceleration.
-	double res = 0;
-	if(space > 0) {
-		if(mode == AM_NONE) {
-			return accOfFreeFlowing(p);
+}
+void sim_mob::Driver::makeAcceleratingDecision(UpdateParams& p)
+{
+	//currently convert back to m/s
+//	speed_ = perceivedXVelocity_/100;
+//	//in the case that perceivedXVelocity is not defined
+//	if(speed_<0||speed_>50)
+
+	//p.currSpeed = vehicle->xVel_/100;
+
+	if(space <= 0) {
+		acc_=0;
+	}
+	else{
+		if(mode == 3) {
+			acc_ = accOfFreeFlowing(p);
+			return;
+		} else if(mode == 0)
+		{
+
+			//v_lead 		=	CFD->getVehicle()->xVel_/100;
+			v_lead 		=	CFD->getVehicle()->velocity.getRelX()/100;
+
+			//a_lead		=	CFD->getVehicle()->xAcc_/100;
+			a_lead          =   CFD->getVehicle()->accel.getRelX()/100;
 		}
-
-		//Retrieve velocity/acceleration in m/s
-		v_lead = (mode!=AM_VEHICLE) ? 0 : p.nvFwd.driver->getVehicle()->getVelocity()/100;
-		a_lead = (mode!=AM_VEHICLE) ? 0 : p.nvFwd.driver->getVehicle()->getAcceleration()/100;
-
-		double dt	=	p.elapsedSeconds;
+		else
+		{
+			v_lead = 0;
+			a_lead = 0;
+		}
+		double dt	=	timeStep;
 		if (p.currSpeed == 0) {
 			headway = 2 * space * 100000;
 		} else {
-			headway = 2*space / (p.currSpeed+p.currSpeed+p.elapsedSeconds*getMaxAcceleration());
+			headway = 2*space / (p.currSpeed+p.currSpeed+timeStep*getMaxAcceleration());
 		}
 		space_star	=	space + v_lead * dt + 0.5 * a_lead * dt * dt;
 
 		if(headway < hBufferLower) {
-			res = accOfEmergencyDecelerating(p);
+			acc_ = accOfEmergencyDecelerating(p);
 		}
 		if(headway > hBufferUpper) {
-			res = accOfMixOfCFandFF(p);
+			acc_ = accOfMixOfCFandFF(p);
 		}
 		if(headway <= hBufferUpper && headway >= hBufferLower) {
-			res = accOfCarFollowing(p);
+			acc_ = accOfCarFollowing(p);
 		}
 	}
-	return res;
 }
 
 double sim_mob::Driver::breakToTargetSpeed(UpdateParams& p)
 {
 	double v 			=	p.currSpeed;
-	double dt			=	p.elapsedSeconds;
+	double dt			=	timeStep;
 
 	//NOTE: This is the only use of epsilon(), so I just copied the value directly.
 	//      See LC_Model for how to declare a private temporary variable. ~Seth
@@ -154,36 +164,35 @@ double sim_mob::Driver::accOfCarFollowing(UpdateParams& p)
 	double v				=	p.currSpeed;
 	int i = (v > v_lead) ? 1 : 0;
 	double dv =(v > v_lead)?(v-v_lead):(v_lead - v);
+	double acc_ = CF_parameters[i].alpha * pow(v , CF_parameters[i].beta) /pow(minCFDistance/100 , CF_parameters[i].gama);
+	acc_ *= pow(dv , CF_parameters[i].lambda)*pow(density,CF_parameters[i].rho);
+	acc_ += feet2Unit(nRandom(0,CF_parameters[i].stddev));
 
-	double res = CF_parameters[i].alpha * pow(v , CF_parameters[i].beta) /pow(p.nvFwd.distance/100 , CF_parameters[i].gama);
-	res *= pow(dv , CF_parameters[i].lambda)*pow(density,CF_parameters[i].rho);
-	res += feet2Unit(nRandom(0,CF_parameters[i].stddev));
-
-	return res;
+	return acc_;
 }
 
 double sim_mob::Driver::accOfFreeFlowing(UpdateParams& p)
 {
 	double vn =	p.currSpeed;
-	double res;
+	double acc_;
 	if ( vn < getTargetSpeed()) {
 		if( vn < maxLaneSpeed) {
-			res=getMaxAcceleration();
+			acc_=getMaxAcceleration();
 		} else {
-			res = getNormalDeceleration();
+			acc_ = getNormalDeceleration();
 		}
 	}
 	if ( vn > getTargetSpeed()) {
-		res = getNormalDeceleration();
+		acc_ = getNormalDeceleration();
 	}
 	if ( vn == getTargetSpeed()) {
 		if( vn < maxLaneSpeed) {
-			res=getMaxAcceleration();
+			acc_=getMaxAcceleration();
 		} else {
-			res = 0;
+			acc_ = 0;
 		}
 	}
-	return res;
+	return acc_;
 }
 
 double sim_mob::Driver::accOfMixOfCFandFF(UpdateParams& p)		//mix of car following and free flowing

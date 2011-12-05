@@ -21,6 +21,8 @@
 namespace sim_mob
 {
 
+class AgentPackageManager;
+
 /**
  * A Person in the Pedestrian role is navigating sidewalks and zebra crossings.
  */
@@ -30,7 +32,8 @@ public:
 
 	virtual void update(frame_t frameNumber);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
-	bool isOnCrossing() const;
+	bool isOnCrossing();
+	virtual void output(frame_t frameNumber);
 
 private:
 	//Movement-related variables
@@ -38,6 +41,7 @@ private:
 	double xVel;
 	double yVel;
 	Point2D goal;
+	Point2D goalInLane;
 	int currentStage;
 
 //	Signal sig;
@@ -48,7 +52,7 @@ private:
 	int curCrossingID;
 	bool startToCross;
 	double cStartX, cStartY, cEndX, cEndY;
-	bool startPosSet;
+	bool firstTimeUpdate;
 //	Point2D destPos;
 
 	//For collisions
@@ -68,10 +72,13 @@ private:
 //	bool reachStartOfCrossing();
 	bool checkGapAcceptance();
 	void setCrossingParas(); //Temp helper function
-	bool isStartPosSet(); //Temp helper function
+	bool isFirstTimeUpdate(); //Temp helper function
+	void setSidewalkParas(Node* start, Node* end, bool isStartMulti);
 	void absToRel(double, double, double &, double &);
 	void relToAbs(double, double, double &, double &);
 
+public:
+friend class AgentPackageManager;
 };
 
 

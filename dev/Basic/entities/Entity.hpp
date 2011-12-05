@@ -18,6 +18,7 @@ public:
 	///Construct an entity with an immutable ID
 	Entity(unsigned int id) : id(id), isSubscriptionListBuilt(false)
 	{
+		isFake = false;
 	}
 
 	/**
@@ -43,6 +44,7 @@ public:
 	 */
 	virtual void update(frame_t frameNumber) = 0;
 
+	virtual void output(frame_t frameNumber) = 0;
 
 protected:
 	/**
@@ -61,6 +63,13 @@ private:
 //Trivial accessors/mutators. Header-implemented
 public:
 	unsigned int getId() const { return id; }
+
+	//add by xuyan
+public:
+	friend class AgentPackageManager;
+	friend class RoadNetworkPackageManager;
+	bool isFake;
+	bool receiveTheFakeEntityAgain;
 };
 
 

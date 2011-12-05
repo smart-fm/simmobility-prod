@@ -35,7 +35,7 @@
 <tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.330000606" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">
 <option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.exe.debug.option.optimization.level.1616685986" name="Optimization Level" superClass="gnu.c.compiler.exe.debug.option.optimization.level" valueType="enumerated"/>
 <option id="gnu.c.compiler.exe.debug.option.debugging.level.1298258227" name="Debug Level" superClass="gnu.c.compiler.exe.debug.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
-<option id="gnu.c.compiler.option.include.paths.812309485" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+<option id="gnu.c.compiler.option.include.paths.812309485" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${ProjDirPath}&quot;"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.304442535" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
@@ -44,6 +44,9 @@
 <tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.754222105" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 <option id="gnu.cpp.link.option.libs.924075316" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 <listOptionValue builtIn="false" value="boost_thread"/>
+<listOptionValue builtIn="false" value="CGAL"/>
+<listOptionValue builtIn="false" value="boost_mpi"/>
+<listOptionValue builtIn="false" value="boost_serialization"/>
 <listOptionValue builtIn="false" value="tinyxml"/>
 <listOptionValue builtIn="false" value="soci_core-gcc-3_0"/>
 <listOptionValue builtIn="false" value="soci_postgresql-gcc-3_0"/>
@@ -100,7 +103,7 @@
 <tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.release.1758738208" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.release">
 <option defaultValue="gnu.c.optimization.level.most" id="gnu.c.compiler.exe.release.option.optimization.level.1481875375" name="Optimization Level" superClass="gnu.c.compiler.exe.release.option.optimization.level" valueType="enumerated"/>
 <option id="gnu.c.compiler.exe.release.option.debugging.level.241428746" name="Debug Level" superClass="gnu.c.compiler.exe.release.option.debugging.level" value="gnu.c.debugging.level.none" valueType="enumerated"/>
-<option id="gnu.c.compiler.option.include.paths.1873436079" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+<option id="gnu.c.compiler.option.include.paths.1873436079" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 <listOptionValue builtIn="false" value="&quot;${ProjDirPath}&quot;"/>
 </option>
 <inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1616489070" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>

@@ -728,10 +728,14 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
 
 
     //Create an agent for each Trip Chain in the database.
-    if (!generateAgentsFromTripChain(agents)) {
-    	return "Couldn't generate agents from trip chains.";
-    }
-
+    const ConfigParams& config = ConfigParams::GetInstance();
+	if (config.is_run_on_many_computers == false)
+	{
+		if (!generateAgentsFromTripChain(agents))
+		{
+			return "Couldn't generate agents from trip chains.";
+		}
+	}
 
     //Load ALL agents: drivers and pedestrians.
     //  (Note: Use separate config files if you just want to test one kind of agent.)

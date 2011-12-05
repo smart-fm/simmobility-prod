@@ -7,9 +7,7 @@
  *      Author: wangxy & Li Zhemin
  */
 
-
 #include "Driver.hpp"
-
 
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/Person.hpp"
@@ -26,69 +24,54 @@
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Crossing.hpp"
 #include "util/OutputUtil.hpp"
-#include "util/DynamicVector.hpp"
-#include "util/GeomHelpers.hpp"
-
 
 using namespace sim_mob;
 using std::max;
 using std::vector;
 using std::set;
-using std::map;
 
 //for unit conversion
 double sim_mob::Driver::feet2Unit(double feet)
 {
-	return feet*0.158;
+	return feet * 0.158;
 }
 double sim_mob::Driver::unit2Feet(double unit)
 {
-	return unit/0.158;
+	return unit / 0.158;
 }
-
-
-//Helper functions
-namespace {
-
-//used in lane changing, find the start index and end index of polyline in the target lane
-size_t updateStartEndIndex(const std::vector<sim_mob::Point2D>* const currLanePolyLine, double currLaneOffset, size_t defaultValue)
-{
-	double offset = 0;
-	for(size_t i=0;i<currLanePolyLine->size()-1;i++)
-	{
-		double xOffset = currLanePolyLine->at(i+1).getX() - currLanePolyLine->at(i).getX();
-		double yOffset = currLanePolyLine->at(i+1).getY() - currLanePolyLine->at(i).getY();
-		offset += sqrt(xOffset*xOffset + yOffset*yOffset);
-		if(offset>=currLaneOffset)
-		{
-			return i;
-		}
-	}
-	return defaultValue;
-}
-
-} //End anon namespace
-
-
 
 //initiate
-sim_mob::Driver::Driver(Agent* parent) : Role(parent), vehicle(nullptr), perceivedVelocity(reactTime, true),
-	perceivedVelocityOfFwdCar(reactTime, true), perceivedDistToFwdCar(reactTime, false),
-	distanceInFront(2000), distanceBehind(500), currLane_(nullptr), currLaneOffset_(0), currLaneLength_(0), isInIntersection(false)
+sim_mob::Driver::Driver(Agent* parent) :
+	Role(parent), vehicle(nullptr), perceivedVelocity(reactTime, true), perceivedVelocityOfFwdCar(reactTime, true),
+			perceivedDistToFwdCar(reactTime, false), currLane_(nullptr)
 {
 	//Set default speed in the range of 10m/s to 19m/s
 	//speed = 0;//1000*(1+((double)(rand()%10))/10);
 
 	//Set default data for acceleration
+	acc_ = 0;
 	maxAcceleration = MAX_ACCELERATION;
-	normalDeceleration = -maxAcceleration*0.6;
+	normalDeceleration = -maxAcceleration * 0.6;
 	maxDeceleration = -maxAcceleration;
 
-	//Some one-time flags and other related defaults.
-	firstFrameTick = true;
+	//basic absolute parameters
+
+	//basic relative parameters
+
+	currLaneLength = 0;
+	currLaneOffset = 0;
+
+	timeStep = ConfigParams::GetInstance().baseGranMS / 1000.0;
+	isGoalSet = false;
+	isOriginSet = false;
+	inIntersection = false;
+	isLaneChanging = false;
+	isPedestrianAhead = false;
+	isTrafficLightStop = false;
+	angle = 0;
+	tsStopDistance = 5000;
 	nextLaneInNextLink = nullptr;
 }
-
 
 vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams()
 {
@@ -96,216 +79,183 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams()
 	res.push_back(&(currLane_));
 	res.push_back(&(currLaneOffset_));
 	res.push_back(&(currLaneLength_));
-	res.push_back(&(isInIntersection));
 	return res;
 }
 
-
-
-//TODO: We can use initializer lists later to make some of these params const.
-sim_mob::Driver::UpdateParams::UpdateParams(const Driver& owner)
+void sim_mob::Driver::new_update_params(UpdateParams& res)
 {
-	//Set to the previous known buffered values
-	currLane = owner.currLane_.get();
-	currLaneLength = owner.currLaneLength_.get();
-	currLaneOffset = owner.currLaneOffset_.get();
-	//isInIntersection = owner.vehicle->isInIntersection();
+	//Set to the previous known lane.
+	res.currLane = currLane_.get();
 
-	//Current lanes to the left and right. May be null
-	leftLane = nullptr;
-	rightLane = nullptr;
-
-	//Reset; these will be set before they are used; the values here represent either defaul
-	//       values or are unimportant.
-	currSpeed = 0;
-	perceivedFwdVelocity = 0;
-	perceivedLatVelocity = 0;
-	isTrafficLightStop = false;
-	trafficSignalStopDistance = 5000;
-	elapsedSeconds = ConfigParams::GetInstance().baseGranMS/1000.0;
-
-	//Lateral velocity of lane changing.
-	laneChangingVelocity = 100;
-
-	//Are we near a crossing?
-	isCrossingAhead = false;
-
-	//relative x coordinate for crossing, the intersection point of crossing's front line and current polyline
-	crossingFwdDistance = 0;
-
-	//If we are moving left, continue moving left unless otherwise notified.
-	//double latMove = owner.vehicle->getLateralMovement();
-	//currLaneChangeBehavoir = latMove>0?LCS_LEFT:latMove<0?LCS_RIGHT:LCS_SAME;
-
-	//TODO: Copy comments into doxygen comments in the hpp file before deleting commented code.
-	//Nearest vehicles in the current lane, and left/right (including fwd/back for each).
-	/*nvFwd.driver = nullptr;
-	nvBack.driver = nullptr;
-	nvLeftFwd.driver = nullptr;
-	nvLeftBack.driver = nullptr;
-	nvRightFwd.driver = nullptr;
-	nvRightBack.driver = nullptr;*/
-
-	//Nearest vehicles' distances are initialized to threshold values.
-	/*nvFwd.distance = 5000;
-	nvBack.distance = 5000;
-	nvLeftFwd.distance = 5000;
-	nvLeftBack.distance = 5000;
-	nvRightFwd.distance = 5000;
-	nvRightBack.distance = 5000;*/
+	//Reset; these will be set before they are used.
+	res.currSpeed = 0;
 }
-
-
-
-void sim_mob::Driver::update_first_frame(UpdateParams& params, frame_t frameNumber)
-{
-	//Save the path from orign to destination in allRoadSegments
-	initializePath();
-
-	//Set some properties about the current path, such as the current polyline, etc.
-	if(vehicle->hasPath()) {
-		setOrigin(params);
-	}
-}
-
-
-
-void sim_mob::Driver::update_general(UpdateParams& params, frame_t frameNumber)
-{
-	//Note: For now, most updates cannot take place unless there is a Lane set
-	if (!params.currLane) {
-		return;
-	}
-
-	//if reach the goal, get back to the origin
-	if(vehicle->isDone()){
-		//TEMP: Move to (0,0). This should prevent collisions.
-		//TODO: Remove from simulation. Do this in the dispatcher at the same time...
-		parent->xPos.set(0);
-		parent->yPos.set(0);
-
-		//TODO:reach destination
-		vehicle->setAcceleration(0);
-		vehicle->setVelocity(0);
-		vehicle->setLatVelocity(0);
-		return;
-	}
-
-	//Save the nearest agents in your lane and the surrounding lanes, stored by their
-	// position before/behind you. Save nearest fwd pedestrian too.
-	updateNearbyAgents(params);
-
-	//Driving behavior differs drastically inside intersections.
-	const RoadSegment* prevSegment = vehicle->getCurrSegment();
-	if(vehicle->isInIntersection()) {
-		intersectionDriving(params);
-	} else {
-		//Manage traffic signal behavior if we are close to the end of the link.
-		if(isCloseToLinkEnd(params)) {
-			trafficSignalDriving(params);
-		}
-		linkDriving(params);
-
-		//Did our last move forward bring us into an intersection?
-		if(vehicle->isInIntersection()) {
-			//the first time vehicle pass the end of current link and enter intersection
-			//if the vehicle reaches the end of the last road segment on current link
-			//I assume this vehicle enters the intersection
-			directionIntersection();
-			intersectionVelocityUpdate();
-			intersectionDriving(params);
-		}
-	}
-
-	//Has the segment changed?
-	if (!vehicle->isDone() && (vehicle->getCurrSegment()!=prevSegment)) {
-		//Make pre-intersection decisions?
-		if(!vehicle->hasNextSegment(true)) {
-			updateTrafficSignal();
-			if(!vehicle->hasNextSegment(true)) { //TODO: Logic is clearly wrong here.
-				chooseNextLaneForNextLink(params);
-			}
-		}
-	}
-
-	//Update parent/angle.
-	setParentBufferedData();
-	updateAngle(params);
-}
-
-
 
 //Main update functionality
 void sim_mob::Driver::update(frame_t frameNumber)
 {
-	//Do nothing?
-	if(frameNumber<parent->startTime)
+	//We create a temporary variable called currLane to hold the result of our update of the current lane.
+	// We initialize it to currLane_.get(), which is the value of currLane_ last turn (or null if this is turn 1).
+	//const Lane* currLane = currLane_.get();
+
+	//NOTE: If you end up with a lot of these local variables, you might want to put them into their
+	//      own struct. That way, you don't need to change the function signatures of your various update
+	//      methods each time you change your variables around.
+	//	std::cout << this->getParent()->getId() << "RSIndex:" << RSIndex << std::endl;
+	//	std::cout << "allRoadSegments.size():" << this->allRoadSegments.size() << std::endl;
+	//This approach is preferred.
+	UpdateParams params;
+	new_update_params(params);
+
+	//Normal update code
+	if (frameNumber < parent->startTime)
 		return;
-
-	//Create a new set of local parameters for this frame update.
-	UpdateParams params(*this);
-	//new_update_params(params);
-
-	//First frame update
-	if (firstFrameTick) {
-		update_first_frame(params, frameNumber);
-		firstFrameTick = false;
+	traveledDis = 0;
+	if (!isOriginSet)
+	{
+		initializePath();
+		if (allRoadSegments.size() == 0)
+			return;
+		setOrigin(params);
+		isOriginSet = true;
+	}
+	//still need to be modified.
+	//if reach the goal, get back to the origin
+	if (isGoalReached())
+	{
+		//TODO:reach destination
+		setBackToOrigin();
+		return;
 	}
 
-	//Convert the current time to ms
+	//Retrieve the current time in ms
 	unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
 
-	//Update your perceptions, and retrieved their current "sensed" values.
-	perceivedVelocity.delay(new DPoint(vehicle->getVelocity(), vehicle->getLatVelocity()), currTimeMS);
-	if (perceivedVelocity.can_sense(currTimeMS)) {
-		params.perceivedFwdVelocity = perceivedVelocity.sense(currTimeMS)->x;
-		params.perceivedLatVelocity = perceivedVelocity.sense(currTimeMS)->y;
+	//Update your perceptions.
+	//NOTE: This should be done as perceptions arrive, but the following code kind of "mixes"
+	//      input and decision-making. ~Seth
+
+	//perceivedVelocity.delay(new Point2D(vehicle->xVel_, vehicle->yVel_), currTimeMS);
+	perceivedVelocity.delay(new Point2D(vehicle->velocity.getRelX(), vehicle->velocity.getRelY()), currTimeMS);
+
+	//perceivedVelocityOfFwdCar.delay(new Point2D(otherCarXVel, otherCarYVel), currTimeMS);
+	//perceivedDistToFwdCar.delay(distToOtherCar, currTimeMS);
+
+	//Now, retrieve your sensed velocity, distance, etc.
+	if (perceivedVelocity.can_sense(currTimeMS))
+	{
+		perceivedXVelocity_ = perceivedVelocity.sense(currTimeMS)->getX();
+		perceivedYVelocity_ = perceivedVelocity.sense(currTimeMS)->getY();
 	}
 
-	//General update behavior.
-	update_general(params, frameNumber);
+	//Here, you can use the "perceived" velocity to perform decision-making. Just be
+	// careful about how you're saving the velocity values. ~Seth
+	if (parent->getId() == 0)
+	{
+		/*
+		 LogOut("At time " <<currTimeMS <<"ms, with a perception delay of " <<reactTime
+		 <<"ms, my actual velocity is (" <<xVel <<"," <<yVel <<"), and my perceived velocity is ("
+		 <<perceivedXVelocity <<"," <<perceivedYVelocity <<")\n");*/
+	}
 
-	//Update our Buffered types
-	//TODO: Update parent buffered properties, or perhaps delegate this.
+	//Note: For now, most updates cannot take place unless there is a Lane set
+	if (params.currLane)
+	{
+		//perceivedXVelocity = vehicle->xVel;
+		//perceivedYVelocity = vehicle->yVel;
+		//abs2relat();
+		updateNearbyAgents(params);
+		//inside intersection
+		if (inIntersection)
+		{
+			intersectionDriving(params);
+		}
+		else
+		{
+			//the first time vehicle pass the end of current link and enter intersection
+			//if the vehicle reaches the end of the last road segment on current link
+			//I assume this vehicle enters the intersection
+			if (isReachLinkEnd())
+			{
+				inIntersection = true;
+				directionIntersection();
+				intersectionVelocityUpdate();
+				intersectionDriving(params);
+			}
+			else
+			{
+				//the relative coordinate system is based on each polyline segment
+				//so when the polyline segment has been updated, the coordinate system should also be updated
+				if (isReachPolyLineSegEnd())
+				{
+					vehicle->xPos_ -= polylineSegLength;
+					if (!isReachLastPolyLineSeg())
+						updatePolyLineSeg();
+					else
+					{
+						updateRSInCurrLink(params);
+						//if can't find available lane in new road segment
+						//this indicates an error
+						//if(!currLane) //NOTE: We don't really want to "return"; we want to skip to the end of the function.
+						//	return;
+					}
+				}
+
+				if (isCloseToLinkEnd())
+					trafficSignalDriving(params);
+				linkDriving(params);
+			}
+		}
+		relat2abs();
+		setToParent();
+		updateAngle();
+	}
+
+	//Update currLane_ with the latest computed value (from our local currLane).
 	currLane_.set(params.currLane);
-	currLaneOffset_.set(params.currLaneOffset);
-	currLaneLength_.set(params.currLaneLength);
-	isInIntersection.set(vehicle->isInIntersection());
+	currLaneOffset_.set(currLaneOffset);
+	currLaneLength_.set(currLaneLength);
 
-	//Print output for this frame.
-	if (!vehicle->isDone()) {
-		output(params, frameNumber);
+//	output(frameNumber);
+}
+
+void sim_mob::Driver::output(frame_t frameNumber) {
+	if (frameNumber < parent->startTime)
+		return;
+
+	std::stringstream logout;
+
+	logout << "(\"Driver\"" << "," << frameNumber << "," << parent->getId() << ",{" << "\"xPos\":\"" << vehicle->xPos
+			<< "\",\"yPos\":\"" << vehicle->yPos << "\",\"angle\":\"" << angle;
+
+	if (this->parent->isFake) {
+		logout << "\",\"fake\":\"" << "true";
+	} else {
+		logout << "\",\"fake\":\"" << "false";
 	}
-}
 
-void sim_mob::Driver::output(UpdateParams& p, frame_t frameNumber)
-{
-	LogOut("(\"Driver\""
-			<<","<<frameNumber
-			<<","<<parent->getId()
-			<<",{"
-			<<"\"xPos\":\""<<static_cast<int>(vehicle->getX())
-			<<"\",\"yPos\":\""<<static_cast<int>(vehicle->getY())
-			<<"\",\"angle\":\""<<p.vehicleAngle
-			<<"\"})"<<std::endl);
-}
+	logout << "\"})" << std::endl;
 
+	LogOut(logout.str());
+}
 
 //responsible for vehicle behaviour inside intersection
 //the movement is based on absolute position
 void sim_mob::Driver::intersectionDriving(UpdateParams& p)
 {
-	//First detect if we've just left the intersection. Otherwise, perform regular intersection driving.
-	if(isLeaveIntersection()) {
-		p.currLane = vehicle->moveToNextSegmentAfterIntersection();
-		justLeftIntersection(p);
-		linkDriving(p); //Chain to regular link driving behavior.
-	} else {
-		//TODO: Intersection driving is unlikely to work until lane driving is fixed.
-		//double xComp = vehicle->velocity.getEndX() + vehicle->velocity_lat.getEndX();
-		//double yComp = vehicle->velocity.getEndY() + vehicle->velocity_lat.getEndY();
-		//vehicle->pos.moveFwd(xComp*timeStep);
-		//vehicle->pos.moveLat(yComp*timeStep);
+	if (isLeaveIntersection())
+	{
+		inIntersection = false;
+		enterNextLink(p);
+	}
+	else
+	{
+		//vehicle->xPos += vehicle->xVel*timeStep;
+		//vehicle->yPos += vehicle->yVel*timeStep;
+		vehicle->xPos += vehicle->velocity.getAbsX() * timeStep;
+		vehicle->yPos += vehicle->velocity.getAbsY() * timeStep;
+
+		abs2relat();
 	}
 }
 
@@ -313,705 +263,1028 @@ void sim_mob::Driver::intersectionDriving(UpdateParams& p)
 //the movement is based on relative position
 void sim_mob::Driver::linkDriving(UpdateParams& p)
 {
-	//Check if we should change lanes.
-	excuteLaneChanging(p, vehicle->getCurrLinkLength());
+	updateLeadingGapandMode(p);
+	if (isLaneChanging)
+		updatePosLC(p);
+	//if too close to front agent, don't do lane changing. now it is 10m
+	if (space > 10)
+		excuteLaneChanging();
 
-	//Retrieve a new acceleration value.
-	double newFwdAcc = 0;
-	if(p.isTrafficLightStop && vehicle->getVelocity() < 50) {
-		//Slow down.
-		//TODO: Shouldn't acceleration be set to negative in this case?
-		vehicle->setVelocity(0);
-		vehicle->setAcceleration(0);
-	} else {
-		newFwdAcc = makeAcceleratingDecision(p);
+	//if(isTrafficLightStop && vehicle->xVel_ < 50)
+	if (isTrafficLightStop && vehicle->velocity.getRelX() < 50)
+	{
+		//vehicle->xVel_ = 0;
+		vehicle->velocity.setRelX(0);
+
+		//vehicle->xAcc_ = 0;
+		vehicle->accel.setRelX(0);
 	}
-
-	//Update our chosen acceleration; update our position on the link.
-	updateAcceleration(newFwdAcc);
-	updatePositionOnLink(p);
+	else
+		makeAcceleratingDecision(p);
+	updateAcceleration();
+	updatePositionOnLink();
 }
-
 
 //for buffer data, maybe need more parameters to be stored
 //TODO: need to discuss
-void sim_mob::Driver::setParentBufferedData()
+void sim_mob::Driver::setToParent()
 {
-	parent->xPos.set(vehicle->getX());
-	parent->yPos.set(vehicle->getY());
+	parent->xPos.set(vehicle->xPos);
+	parent->yPos.set(vehicle->yPos);
 
-	//TODO: Need to see how the parent agent uses its velocity vector.
-	parent->fwdVel.set(vehicle->getVelocity());
-	parent->latVel.set(vehicle->getLatVelocity());
+	//parent->xVel.set(vehicle->xVel);
+	//parent->yVel.set(vehicle->yVel);
+	parent->xVel.set(vehicle->velocity.getAbsX());
+	parent->yVel.set(vehicle->velocity.getAbsY());
+
+	//parent->xAcc.set(vehicle->xAcc);
+	//parent->yAcc.set(vehicle->yAcc);
+	parent->xAcc.set(vehicle->accel.getAbsX());
+	parent->yAcc.set(vehicle->accel.getAbsY());
 }
 
-
-//TODO: Previously, the rel/abs nature of the the code made auto-updating impossible. Now it should work,
-//      but for now I'm requiring this function to be called manually. ~Seth
-/*void sim_mob::Driver::sync_relabsobjs()
+void sim_mob::Driver::sync_relabsobjs()
 {
-	sim_mob::Point2D pt1 = polypathMover.getCurrPolypoint();
-	sim_mob::Point2D pt2 = polypathMover.getNextPolypoint();
-	vehicle->newPolyline(pt1, pt2);
-}*/
-
-
-/*bool sim_mob::Driver::isReachPolyLineSegEnd() const
-{
-	return vehicle->reachedSegmentEnd();
+	vehicle->velocity.changeCoords(currPolylineSegStart, currPolylineSegEnd);
+	vehicle->accel.changeCoords(currPolylineSegStart, currPolylineSegEnd);
 }
 
-bool sim_mob::Driver::isReachLastRSinCurrLink() const
+//calculate absolute-relative transform vectors
+void sim_mob::Driver::abs_relat()
 {
-	//TODO: This might not be technically correct if pathMover ever contains
-	//      RoadSegments on multiple Links. But we can clear that up easily after a test run.
-	return pathMover.isOnLastSegment();
+	double xDir = currPolylineSegEnd.getX() - currPolylineSegStart.getX();
+	double yDir = currPolylineSegEnd.getY() - currPolylineSegStart.getY();
+	polylineSegLength = sqrt(xDir * xDir + yDir * yDir);
+	xDirection = xDir / polylineSegLength;
+	yDirection = yDir / polylineSegLength;
+}
+
+//convert absolute coordinate system to relative one
+void sim_mob::Driver::abs2relat()
+{
+	double xOffset = vehicle->xPos - currPolylineSegStart.getX();
+	double yOffset = vehicle->yPos - currPolylineSegStart.getY();
+
+	vehicle->xPos_ = xOffset * xDirection + yOffset * yDirection;
+	vehicle->yPos_ = -xOffset * yDirection + yOffset * xDirection;
+
+	//NOTE: This is done automatically by the RelAbsPoint class
+	//vehicle->xVel_= vehicle->xVel*xDirection+vehicle->yVel*yDirection;
+	//vehicle->yVel_=-vehicle->xVel*yDirection+vehicle->yVel*xDirection;
+
+	//NOTE: This is done automatically by the RelAbsPoint class
+	//vehicle->xAcc_= vehicle->xAcc*xDirection+vehicle->yAcc*yDirection;
+	//vehicle->yAcc_=-vehicle->xAcc*yDirection+vehicle->yAcc*xDirection;
+
+	//perceivedXVelocity_ = perceivedXVelocity*xDirection+perceivedYVelocity*yDirection;
+	//perceivedYVelocity_ = -perceivedXVelocity*yDirection+perceivedYVelocity*xDirection;
+}
+
+//convert relative coordinate system to absolute one
+void sim_mob::Driver::relat2abs()
+{
+	vehicle->xPos = vehicle->xPos_ * xDirection - vehicle->yPos_ * yDirection + currPolylineSegStart.getX();
+	vehicle->yPos = vehicle->xPos_ * yDirection + vehicle->yPos_ * xDirection + currPolylineSegStart.getY();
+
+	//NOTE: This is done automatically by the RelAbsPoint class
+	//vehicle->xVel=vehicle->xVel_*xDirection-vehicle->yVel_*yDirection;
+	//vehicle->yVel=vehicle->xVel_*yDirection+vehicle->yVel_*xDirection;
+
+	//NOTE: This is done automatically by the RelAbsPoint class
+	//vehicle->xAcc=vehicle->xAcc_*xDirection-vehicle->yAcc_*yDirection;
+	//vehicle->yAcc=vehicle->xAcc_*yDirection+vehicle->yAcc_*xDirection;
+}
+
+bool sim_mob::Driver::isReachPolyLineSegEnd()
+{
+	if (vehicle->xPos_ >= polylineSegLength)
+		return true;
+	else
+		return false;
+}
+
+bool sim_mob::Driver::isReachLastRSinCurrLink()
+{
+	if (currRoadSegment == currLink->getPath(isForward).at(currLink->getPath(isForward).size() - 1))
+		return true;
+	else
+		return false;
+}
+
+bool sim_mob::Driver::isReachLastPolyLineSeg()
+{
+	return (polylineSegIndex >= currLanePolyLine->size() - 2);
 }
 
 //TODO
-bool sim_mob::Driver::isCloseToCrossing() const
+bool sim_mob::Driver::isCloseToCrossing()
 {
-	return (isReachLastRSinCurrLink()&&isCrossingAhead && xPosCrossing_-vehicle->getX()-vehicle->length/2 <= 1000);
+	return (isReachLastRSinCurrLink() && isCrossingAhead && xPosCrossing_ - vehicle->xPos_ - vehicle->length / 2
+			<= 1000);
 }
-*/
 
 //when the vehicle reaches the end of last link in link path
-/*bool sim_mob::Driver::isGoalReached() const
+bool sim_mob::Driver::isGoalReached()
 {
-	return pathMover.isOnLastSegment() && isReachCurrRoadSegmentEnd();
-}*/
-
-/*bool sim_mob::Driver::isReachCurrRoadSegmentEnd() const
-{
-	return polypathMover.isOnLastLine() && isReachPolyLineSegEnd();
+	return (RSIndex == allRoadSegments.size() - 1 && isReachRoadSegmentEnd());
 }
 
-bool sim_mob::Driver::isReachLinkEnd() const
+bool sim_mob::Driver::isReachRoadSegmentEnd()
 {
-	return (isReachLastRSinCurrLink() && polypathMover.isOnLastLine() && isReachPolyLineSegEnd());
-}*/
-
-bool sim_mob::Driver::isLeaveIntersection() const
-{
-	double currDistToEntryPoint = dist(vehicle->getX(), vehicle->getY(), xTurningStart, yTurningStart);
-	return currDistToEntryPoint >= disToEntryPoint;
+	return isReachLastPolyLineSeg() && isReachPolyLineSegEnd();
 }
 
-
-namespace {
-vector<const Agent*> GetAgentsInCrossing(const Crossing* crossing) {
-	//Put x and y coordinates into planar arrays.
-	int x[4] = {crossing->farLine.first.getX(),crossing->farLine.second.getX(),crossing->nearLine.first.getX(),crossing->nearLine.second.getX()};
-	int y[4] = {crossing->farLine.first.getY(),crossing->farLine.second.getY(),crossing->nearLine.first.getY(),crossing->nearLine.second.getY()};
-
-	//Prepare minimum/maximum values.
-    int xmin = x[0];
-    int xmax = x[0];
-    int ymin = y[0];
-    int ymax = y[0];
-	for(int i=0;i<4;i++) {
-		if(x[i]<xmin)
-			xmin = x[i];
-		if(x[i]>xmax)
-			xmax = x[i];
-		if(y[i]<ymin)
-			ymin = y[i];
-		if(y[i]>ymax)
-			ymax = y[i];
-    }
-
-	//Create a rectangle from xmin,ymin to xmax,ymax
-	//TODO: This is completely unnecessary; Crossings are already in order, so
-	//      crossing.far.first and crossing.near.second already defines a rectangle.
-	Point2D rectMinPoint = Point2D(xmin,ymin);
-	Point2D rectMaxPoint = Point2D(xmax,ymax);
-
-	return AuraManager::instance().agentsInRect(rectMinPoint, rectMaxPoint);
+bool sim_mob::Driver::isReachLinkEnd()
+{
+	return (isReachLastRSinCurrLink() && isReachLastPolyLineSeg() && isReachPolyLineSegEnd());
 }
-} //End anon namespace
 
+bool sim_mob::Driver::isLeaveIntersection()
+{
+	double currXoffset = vehicle->xPos - xTurningStart;
+	double currYoffset = vehicle->yPos - yTurningStart;
+	int currDisToEntrypoint = sqrt(currXoffset * currXoffset + currYoffset * currYoffset);
+	return currDisToEntrypoint >= disToEntryPoint;
+}
 
 bool sim_mob::Driver::isPedetrianOnTargetCrossing()
 {
-	if(!trafficSignal) {
+	if (!trafficSignal)
 		return false;
-	}
-
-	map<Link const*, size_t> const linkMap = trafficSignal->links_map();
-	int index = -1;
-	for(map<Link const*, size_t>::const_iterator link_i=linkMap.begin(); link_i!=linkMap.end(); link_i++) {
-		if(vehicle->getNextSegment() && link_i->first==vehicle->getNextSegment()->getLink()) {
+	std::map<Link const *, size_t> const linkMap = trafficSignal->links_map();
+	std::map<Link const *, size_t>::const_iterator link_i;
+	size_t index = 0;
+	for (link_i = linkMap.begin(); link_i != linkMap.end(); link_i++)
+	{
+		if ((*link_i).first == allRoadSegments.at(RSIndex + 1)->getLink())
+		{
 			index = (*link_i).second;
 			break;
 		}
 	}
 
-	map<Crossing const *, size_t> const crossingMap = trafficSignal->crossings_map();
+	std::map<Crossing const *, size_t> const crossingMap = trafficSignal->crossings_map();
+	std::map<Crossing const *, size_t>::const_iterator crossing_i;
 	const Crossing* crossing = nullptr;
-	for(map<Crossing const *, size_t>::const_iterator crossing_i=crossingMap.begin(); crossing_i!=crossingMap.end(); crossing_i++) {
-		if(static_cast<int>(crossing_i->second)==index) {
-			crossing = crossing_i->first;
+	for (crossing_i = crossingMap.begin(); crossing_i != crossingMap.end(); crossing_i++)
+	{
+		if ((*crossing_i).second == index)
+		{
+			crossing = (*crossing_i).first;
 			break;
 		}
 	}
 
-	//Have we found a relevant crossing?
-	if(!crossing) {
+	if (!crossing)
 		return false;
+	int x[4] = { crossing->farLine.first.getX(), crossing->farLine.second.getX(), crossing->nearLine.first.getX(),
+			crossing->nearLine.second.getX() };
+	int y[4] = { crossing->farLine.first.getY(), crossing->farLine.second.getY(), crossing->nearLine.first.getY(),
+			crossing->nearLine.second.getY() };
+	int xmin = x[0], xmax = x[0], ymin = y[0], ymax = y[0];
+	for (int i = 0; i < 4; i++)
+	{
+		if (x[i] < xmin)
+			xmin = x[i];
+		if (x[i] > xmax)
+			xmax = x[i];
+		if (y[i] < ymin)
+			ymin = y[i];
+		if (y[i] > ymax)
+			ymax = y[i];
 	}
+	Point2D p1 = Point2D(xmin, ymin);
+	Point2D p2 = Point2D(xmax, ymax);
 
-	//Search through the list of agents in that crossing.
-	vector<const Agent*> agentsInRect = GetAgentsInCrossing(crossing);
-	for(vector<const Agent*>::iterator it=agentsInRect.begin(); it!=agentsInRect.end(); it++) {
-		const Person* other = dynamic_cast<const Person *>(*it);
-		if(other) {
-			const Pedestrian* pedestrian = dynamic_cast<const Pedestrian*>(other->getRole());
-			if(pedestrian && pedestrian->isOnCrossing()) {
-				return true;
-			}
-		}
+	std::vector<const Agent*> agentsInRect = AuraManager::instance().agentsInRect(p1, p2);
+	for (size_t i = 0; i < agentsInRect.size(); i++)
+	{
+		const Person *person = dynamic_cast<const Person *> (agentsInRect.at(i));
+		if (!person)
+			continue;
+		Person* p = const_cast<Person*> (person);
+		Pedestrian* pedestrian = dynamic_cast<Pedestrian*> (p->getRole());
+		if (pedestrian && pedestrian->isOnCrossing())
+			return true;
 	}
 	return false;
 }
 
+void sim_mob::Driver::updateRSInCurrLink(UpdateParams& p)
+{
+	const Node * currNode = currRoadSegment->getEnd();
+
+	const MultiNode* mNode = dynamic_cast<const MultiNode*> (currNode);
+	if (mNode)
+	{
+		set<LaneConnector*>::const_iterator i;
+		set<LaneConnector*> lcs = mNode->getOutgoingLanes(*currRoadSegment);
+		for (i = lcs.begin(); i != lcs.end(); i++)
+		{
+			if ((*i)->getLaneTo()->getRoadSegment() == allRoadSegments.at(RSIndex + 1) && (*i)->getLaneFrom()
+					== p.currLane)
+			{
+				p.currLane = (*i)->getLaneTo();
+				updateCurrInfo(1, p);
+				return;
+			}
+		}
+		p.currLane = nullptr;
+		return;
+	}
+
+	//when end node of current road segment is a uninode
+	const UniNode* uNode = dynamic_cast<const UniNode*> (currNode);
+	if (uNode)
+	{
+		if (p.currLane)
+		{ //Avoid possible null dereference
+			p.currLane = uNode->getOutgoingLane(*p.currLane);
+
+			if (p.currLane && p.currLane->getRoadSegment() == allRoadSegments.at(RSIndex + 1))
+			{
+				updateCurrInfo(1, p);
+			}
+		}
+	}
+}
 
 //calculate current lane length
-void sim_mob::Driver::updateCurrLaneLength(UpdateParams& p)
+void sim_mob::Driver::updateCurrLaneLength()
 {
-	p.currLaneLength = vehicle->getCurrPolylineVector().getMagnitude();
+	currLaneLength = 0;
+	for (size_t i = 0; i < currLanePolyLine->size() - 1; i++)
+	{
+		double xOffset = currLanePolyLine->at(i + 1).getX() - currLanePolyLine->at(i).getX();
+		double yOffset = currLanePolyLine->at(i + 1).getY() - currLanePolyLine->at(i).getY();
+		currLaneLength += sqrt(xOffset * xOffset + yOffset * yOffset);
+	}
 }
 
 //TODO:I think lane index should be a data member in the lane class
 size_t sim_mob::Driver::getLaneIndex(const Lane* l)
 {
 	const RoadSegment* r = l->getRoadSegment();
-	for(size_t i=0;i<r->getLanes().size();i++)
+	for (size_t i = 0; i < r->getLanes().size(); i++)
 	{
-		if(r->getLanes().at(i)==l)
+		if (r->getLanes().at(i) == l)
 			return i;
 	}
 	return -1;
 }
 
-
 //update left and right lanes of the current lane
 //if there is no left or right lane, it will be null
-void sim_mob::Driver::updateAdjacentLanes(UpdateParams& p)
+void sim_mob::Driver::updateAdjacentLanes()
 {
-	p.leftLane = nullptr;
-	p.rightLane = nullptr;
+	leftLane = nullptr;
+	rightLane = nullptr;
+	if (currLaneIndex > 0)
+		rightLane = currRoadSegment->getLanes().at(currLaneIndex - 1);
+	if (currLaneIndex < currRoadSegment->getLanes().size() - 1)
+		leftLane = currRoadSegment->getLanes().at(currLaneIndex + 1);
+}
 
-	if(currLaneIndex>0) {
-		p.rightLane = vehicle->getCurrSegment()->getLanes().at(currLaneIndex-1);
-	}
-	if(currLaneIndex < vehicle->getCurrSegment()->getLanes().size()-1) {
-		p.leftLane = vehicle->getCurrSegment()->getLanes().at(currLaneIndex+1);
+//used in lane changing, find the start index and end index of polyline in the target lane
+void sim_mob::Driver::updateStartEndIndex()
+{
+	double offset = 0;
+	for (size_t i = 0; i < currLanePolyLine->size() - 1; i++)
+	{
+		double xOffset = currLanePolyLine->at(i + 1).getX() - currLanePolyLine->at(i).getX();
+		double yOffset = currLanePolyLine->at(i + 1).getY() - currLanePolyLine->at(i).getY();
+		offset += sqrt(xOffset * xOffset + yOffset * yOffset);
+		if (offset >= currLaneOffset)
+		{
+			polylineSegIndex = i;
+			break;
+		}
 	}
 }
 
-
-//General update information for whenever a Segment may have changed.
-void sim_mob::Driver::syncCurrLaneCachedInfo(UpdateParams& p)
+//when current lane has been changed, update current information.
+//mode 0: within same RS, for lane changing model
+//mode 1: during RS changing, but in the same link
+//mode 2: during crossing intersection
+void sim_mob::Driver::updateCurrInfo(unsigned int mode, UpdateParams& p)
 {
-	//The lane may have changed; reset the current lane index.
+	currRoadSegment = p.currLane->getRoadSegment();
+
 	currLaneIndex = getLaneIndex(p.currLane);
+	//add by xuyan
+	currLane_.set(p.currLane);
 
-	//Update which lanes are adjacent, and the length of the current polyline.
-	updateAdjacentLanes(p);
-	updateCurrLaneLength(p);
-
-	//Finally, update target/max speed to match the new Lane's rules.
-	maxLaneSpeed = vehicle->getCurrSegment()->maxSpeed/3.6; //slow down
+	updateAdjacentLanes();
+	currLanePolyLine = &(p.currLane->getPolyline());
+	updateCurrLaneLength();
+	maxLaneSpeed = currRoadSegment->maxSpeed / 3.6;//slow down
 	targetSpeed = maxLaneSpeed;
+
+	switch (mode)
+	{
+	case 0:
+		updateStartEndIndex();
+
+		currPolylineSegStart = currLanePolyLine->at(polylineSegIndex);
+		currPolylineSegEnd = currLanePolyLine->at(polylineSegIndex + 1);
+		sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
+
+		break;
+	case 1:
+		currLaneOffset = 0;
+		polylineSegIndex = 0;
+
+		currPolylineSegStart = currLanePolyLine->at(polylineSegIndex);
+		currPolylineSegEnd = currLanePolyLine->at(polylineSegIndex + 1);
+		sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
+
+		RSIndex++;
+		if (isReachLastRSinCurrLink())
+		{
+			updateTrafficSignal();
+			if (currRoadSegment != allRoadSegments.at(allRoadSegments.size() - 1))
+				chooseNextLaneForNextLink(p);
+		}
+		break;
+	case 2:
+		currLaneOffset = 0;
+		polylineSegIndex = 0;
+
+		currPolylineSegStart = currLanePolyLine->at(polylineSegIndex);
+		currPolylineSegEnd = currLanePolyLine->at(polylineSegIndex + 1);
+		sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
+
+		currLink = currRoadSegment->getLink();
+		targetLaneIndex = currLaneIndex;
+		RSIndex++;
+		if (isReachLastRSinCurrLink())
+		{
+			updateTrafficSignal();
+			if (currRoadSegment != allRoadSegments.at(allRoadSegments.size() - 1))
+				chooseNextLaneForNextLink(p);
+		}
+		break;
+	default:
+		break;
+	}
+	abs_relat();
 }
 
+//update polyline segment in the current RS
+void sim_mob::Driver::updatePolyLineSeg()
+{
+	polylineSegIndex++;
+	currPolylineSegStart = currLanePolyLine->at(polylineSegIndex);
+	currPolylineSegEnd = currLanePolyLine->at(polylineSegIndex + 1);
+	sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
+	abs_relat();
+}
 
 //currently it just chooses the first lane from the targetLane
 void sim_mob::Driver::chooseNextLaneForNextLink(UpdateParams& p)
 {
-	//Retrieve the node we're on, and determine if this is in the forward direction.
-	const Node* currNode = vehicle->getCurrSegment()->getEnd();
-	const RoadSegment* nextSegment = vehicle->getNextSegment(false);
-	nextIsForward = nextSegment && currNode == nextSegment->getStart();
+	std::vector<const Lane*> targetLanes;
+	const Node* currNode = currRoadSegment->getEnd();
+	if (currRoadSegment->getEnd() == allRoadSegments.at(RSIndex + 1)->getLink()->getStart())
+		nextIsForward = true;
+	else
+		nextIsForward = false;
 
-	//Build up a list of target lanes.
-	nextLaneInNextLink = nullptr;
-	vector<const Lane*> targetLanes;
-	const MultiNode* mNode=dynamic_cast<const MultiNode*>(currNode);
-	if(mNode && nextSegment){
-		const set<LaneConnector*>& lcs = mNode->getOutgoingLanes(*vehicle->getCurrSegment());
-		for(set<LaneConnector*>::const_iterator it=lcs.begin(); it!=lcs.end(); it++){
-			if((*it)->getLaneTo()->getRoadSegment() == nextSegment && (*it)->getLaneFrom()==p.currLane) {
-				//It's a valid lane.
-				targetLanes.push_back((*it)->getLaneTo());
-
+	const MultiNode* mNode = dynamic_cast<const MultiNode*> (currNode);
+	if (mNode)
+	{
+		set<LaneConnector*>::const_iterator i;
+		set<LaneConnector*> lcs = mNode->getOutgoingLanes(*currRoadSegment);
+		for (i = lcs.begin(); i != lcs.end(); i++)
+		{
+			if ((*i)->getLaneTo()->getRoadSegment() == allRoadSegments.at(RSIndex + 1) && (*i)->getLaneFrom()
+					== p.currLane)
+			{
+				targetLanes.push_back((*i)->getLaneTo());
+				size_t laneIndex = getLaneIndex((*i)->getLaneTo());
 				//find target lane with same index, use this lane
-				size_t laneIndex = getLaneIndex((*it)->getLaneTo());
-				if(laneIndex == currLaneIndex) {
-					nextLaneInNextLink = (*it)->getLaneTo();
+				if (laneIndex == currLaneIndex)
+				{
+					nextLaneInNextLink = (*i)->getLaneTo();
 					targetLaneIndex = laneIndex;
-					break;
+					return;
 				}
 			}
 		}
-
-		//Still haven't found a lane?
-		if(!nextLaneInNextLink){
-			//no lane with same index, use the first lane in the vector if possible.
-			if (targetLanes.size()>0) {
-				nextLaneInNextLink = targetLanes.at(0);
-				targetLaneIndex = getLaneIndex(nextLaneInNextLink);
-			} else if (nextSegment) { //Fallback
-				nextLaneInNextLink = nextSegment->getLanes().at(currLaneIndex);
-				targetLaneIndex = currLaneIndex;
-			}
+		//no lane with same index, use the first lane in the vector
+		if (targetLanes.size() > 0)
+		{
+			nextLaneInNextLink = targetLanes.at(0);
+			targetLaneIndex = getLaneIndex(nextLaneInNextLink);
+		}
+		else
+		{
+			nextLaneInNextLink = allRoadSegments.at(RSIndex + 1)->getLanes().at(currLaneIndex);
+			targetLaneIndex = currLaneIndex;
 		}
 	}
 }
 
-//TODO: This is definitely wrong (I want to fix link driving before I fix intersection driving)
 void sim_mob::Driver::directionIntersection()
 {
 	entryPoint = nextLaneInNextLink->getPolyline().at(0);
-
-	//TODO: Intersection driving won't work right for now.
-	double xDir = entryPoint.getX() - vehicle->getX();
-	double yDir = entryPoint.getY() - vehicle->getY();
-
-	disToEntryPoint = sqrt(xDir*xDir+yDir*yDir);
-	xDirection_entryPoint = xDir/disToEntryPoint;
-	yDirection_entryPoint = yDir/disToEntryPoint;
-	xTurningStart = vehicle->getX();
-	yTurningStart = vehicle->getY();
+	double xDir = entryPoint.getX() - vehicle->xPos;
+	double yDir = entryPoint.getY() - vehicle->yPos;
+	disToEntryPoint = sqrt(xDir * xDir + yDir * yDir);
+	xDirection_entryPoint = xDir / disToEntryPoint;
+	yDirection_entryPoint = yDir / disToEntryPoint;
+	xTurningStart = vehicle->xPos;
+	yTurningStart = vehicle->yPos;
 }
 
+//TODO
+void sim_mob::Driver::setBackToOrigin()
+{
+	vehicle->xPos = parent->originNode->location->getX();
+	vehicle->yPos = parent->originNode->location->getY();
+
+	//vehicle->xVel = 0;
+	//vehicle->yVel = 0;
+	vehicle->velocity.setAbs(0, 0);
+
+	//vehicle->xAcc = 0;
+	//vehicle->yAcc = 0;
+	vehicle->accel.setAbs(0, 0);
+
+	setToParent();
+}
 
 //link path should be retrieved from other class
 //for now, it serves as this purpose
 void sim_mob::Driver::initializePath()
 {
-	//Save local copies of the parent's origin/destination nodes.
 	originNode = parent->originNode;
 	destNode = parent->destNode;
-
-	//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
-	//TODO: Start in lane 0?
-	//A non-null vehicle means we are moving.
-	vehicle = new Vehicle(StreetDirectory::instance().shortestDrivingPath(*originNode, *destNode), 0);
+	std::vector<WayPoint> a = StreetDirectory::instance().shortestDrivingPath(*originNode, *destNode);
+	for (size_t i = 0; i < a.size(); i++)
+	{
+		WayPoint wp = a.at(i);
+		if (wp.type_ == WayPoint::ROAD_SEGMENT)
+			allRoadSegments.push_back(wp.roadSegment_);
+	}
 }
 
 void sim_mob::Driver::setOrigin(UpdateParams& p)
 {
-	//Set the max speed and target speed.
-	maxLaneSpeed = vehicle->getCurrSegment()->maxSpeed/3.6;//slow down
+	vehicle = new Vehicle();
+	//Retrieve the first link in the link path vector
+	RSIndex = 0;
+	currRoadSegment = allRoadSegments.at(RSIndex);
+	currLink = currRoadSegment->getLink();
+
+	//decide the direction
+	if (currLink->getStart() == originNode)
+		isForward = true;
+	else
+		isForward = false;
+
+	maxLaneSpeed = currRoadSegment->maxSpeed / 3.6;//slow down
 	targetSpeed = maxLaneSpeed;
 
-	//Set our current and target lanes.
 	currLaneIndex = 0;
-	p.currLane = vehicle->getCurrSegment()->getLanes().at(currLaneIndex);
+	p.currLane = currRoadSegment->getLanes().at(currLaneIndex);
 	targetLaneIndex = currLaneIndex;
 
-	//Vehicles start at rest
-	vehicle->setVelocity(0);
-	vehicle->setLatVelocity(0);
-	vehicle->setAcceleration(0);
+	if (p.currLane)
+	{ //Avoid memory corruption if null.
+		polylineSegIndex = 0;
+		currLanePolyLine = &(p.currLane->getPolyline());
+		currPolylineSegStart = currLanePolyLine->at(polylineSegIndex);
+		currPolylineSegEnd = currLanePolyLine->at(polylineSegIndex + 1);
+		sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
+	}
+	else
+	{
+		//Assume a reasonable starting position if the current Lane is null.
+		if (getParent()->originNode)
+		{
+			currPolylineSegStart = *getParent()->originNode->location;
+			sync_relabsobjs(); //TODO: This is temporary; there should be a better way of handling the current polyline.
+		}
+	}
 
-	//Scan and save the lanes to the left and right.
-	updateAdjacentLanes(p);
+	//Initialise starting position
+	vehicle->xPos = currPolylineSegStart.getX();
+	vehicle->yPos = currPolylineSegStart.getY();
+	abs_relat();
+	abs2relat();
 
-	//Calculate and save the total length of the current polyline.
-	updateCurrLaneLength(p);
+	//vehicle->xVel_=0;
+	//vehicle->yVel_=0;
+	vehicle->velocity.setRel(0, 0);
+
+	//vehicle->xAcc_=0;
+	//vehicle->yAcc_=0;
+	vehicle->accel.setRel(0, 0);
+
+	//perceivedXVelocity_=vehicle->xVel_;
+	//perceivedYVelocity_=vehicle->yVel_;
+	perceivedXVelocity_ = vehicle->velocity.getRelX();
+	perceivedYVelocity_ = vehicle->velocity.getRelY();
+
+	relat2abs();
+	updateAdjacentLanes();
+	updateCurrLaneLength();
 }
-
 
 //TODO
-void sim_mob::Driver::findCrossing(UpdateParams& p)
+void sim_mob::Driver::findCrossing()
 {
-	const Crossing* crossing=dynamic_cast<const Crossing*>(vehicle->getCurrSegment()->nextObstacle(vehicle->getDistanceMovedInSegment(),true).item);
-
-	if(crossing) {
-		//TODO: There's already a "GetIntersection()" function in util/GeomHelpers.hpp. Perhaps we
-		//      can use this and cut down on code bloat?
+	const Crossing* crossing = dynamic_cast<const Crossing*> (currRoadSegment->nextObstacle(vehicle->xPos_, true).item);
+	if (crossing)
+	{
 		Point2D far1 = crossing->farLine.first;
 		Point2D far2 = crossing->farLine.second;
-		DynamicVector currPolyline = vehicle->getCurrPolylineVector();
 
-		double slope1 = static_cast<double>(far2.getY()-far1.getY())/(far2.getX()-far1.getX());
-		double slope2 = static_cast<double>(currPolyline.getEndY() - currPolyline.getY()) / (currPolyline.getEndX() - currPolyline.getX());
-		int x = (slope2*currPolyline.getX()-slope1*far1.getX()+far1.getY()-currPolyline.getY())/(slope2-slope1);
-		int y = slope1*(x-far1.getX())+far1.getY();
+		double slope1, slope2;
+		slope1 = (double) (far2.getY() - far1.getY()) / (far2.getX() - far1.getX());
+		slope2 = (double) (currPolylineSegEnd.getY() - currPolylineSegStart.getY()) / (currPolylineSegEnd.getX()
+				- currPolylineSegStart.getX());
+		int x = (slope2 * currPolylineSegStart.getX() - slope1 * far1.getX() + far1.getY()
+				- currPolylineSegStart.getY()) / (slope2 - slope1);
+		int y = slope1 * (x - far1.getX()) + far1.getY();
 
-		double xOffset=x-currPolyline.getX();
-		double yOffset=y-currPolyline.getY();
-		p.crossingFwdDistance = xOffset*xDirection+yOffset*yDirection;
-		p.isCrossingAhead = true;
+		double xOffset = x - currPolylineSegStart.getX();
+		double yOffset = y - currPolylineSegStart.getY();
+		xPosCrossing_ = xOffset * xDirection + yOffset * yDirection;
+		isCrossingAhead = true;
 	}
+	else
+		isCrossingAhead = false;
 }
 
-void sim_mob::Driver::updateAcceleration(double newFwdAcc)
+void sim_mob::Driver::updateAcceleration()
 {
-	vehicle->setAcceleration(newFwdAcc * 100);
+	//vehicle->xAcc_ = acc_ * 100;
+	vehicle->accel.setRelX(acc_ * 100);
 }
 
-void sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
+void sim_mob::Driver::updatePositionOnLink()
 {
-	//Determine how far forward we've moved.
-	//TODO: I've disabled the acceleration component because it doesn't really make sense.
-	//      Please re-enable if you think this is expected behavior. ~Seth
-	//fwdDistance = vehicle->getVelocity()*timeStep + 0.5*vehicle->getAcceleration()*timeStep*timeStep;
-	double fwdDistance = vehicle->getVelocity()*p.elapsedSeconds;
-	double latDistance = vehicle->getLatVelocity()*p.elapsedSeconds;
+	//traveledDis = vehicle->xVel_*timeStep+0.5*vehicle->xAcc_*timeStep*timeStep;
+	//traveledDis = vehicle->velocity.getRelX()*timeStep+0.5*vehicle->xAcc_*timeStep*timeStep;
+	traveledDis = vehicle->velocity.getRelX() * timeStep + 0.5 * vehicle->accel.getRelX() * timeStep * timeStep;
 
-	//Increase the vehicle's velocity based on its acceleration.
-	vehicle->setVelocity(vehicle->getVelocity() + vehicle->getAcceleration()*p.elapsedSeconds);
-	if (vehicle->getVelocity() < 0) {
-		//Set to a small forward velocity, no acceleration.
-		vehicle->setVelocity(0.1); //TODO: Why not 0.0?
-		vehicle->setAcceleration(0);
-	}
-
-	//Move the vehicle forward.
-	vehicle->moveFwd(fwdDistance);
-
-	//Lateral movement
-	if (latDistance!=0) {
-		vehicle->moveLat(latDistance);
-		updatePositionDuringLaneChange(p);
-	}
-
-	//Update our offset in the current lane.
-	p.currLaneOffset += fwdDistance;
-}
-
-
-//Helper function: check if a modified distanc is less than the current minimum and save it.
-void sim_mob::Driver::check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other)
-{
-	//Subtract the size of the car from the distance between them
-	distance = fabs(distance) - veh->length/2 - other->getVehicle()->length/2;
-	if(distance <= res.distance) {
-		res.driver = other;
-		res.distance = distance;
-	}
-
-}
-
-
-//TODO: I have the feeling that this process of detecting nearby drivers in front of/behind you and saving them to
-//      the various CFD/CBD/LFD/LBD variables can be generalized somewhat. I shortened it a little and added a
-//      helper function; perhaps more cleanup can be done later? ~Seth
-void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* other, const Driver* other_driver)
-{
-	//Only update if passed a valid pointer which is not a pointer back to you, and
-	//the driver is not actually in an intersection at the moment.
-	if(!(other_driver && this!=other_driver && !other_driver->isInIntersection.get())) {
-		return;
-	}
-
-	//Retrieve the other driver's lane, road segment, and lane offset.
-	const Lane* other_lane = other_driver->currLane_.get();
-	const RoadSegment* otherRoadSegment = other_lane->getRoadSegment();
-	int other_offset = other_driver->currLaneOffset_.get();
-
-	//If the vehicle is in the same Road segment
-	if(vehicle->getCurrSegment() == otherRoadSegment) {
-		//Set distance equal to the _forward_ distance between these two vehicles.
-		int distance = other_offset - params.currLaneOffset;
-		bool fwd = distance > 0;
-
-		//Set different variables depending on where the car is.
-		if(other_lane == params.currLane) {//the vehicle is on the current lane
-			check_and_set_min_car_dist((fwd?params.nvFwd:params.nvBack), distance, vehicle, other_driver);
-		} else if(other_lane == params.leftLane) { //the vehicle is on the left lane
-			check_and_set_min_car_dist((fwd?params.nvLeftFwd:params.nvLeftBack), distance, vehicle, other_driver);
-		} else if(other_lane == params.rightLane) { //The vehicle is on the right lane
-			if(distance>0 || (distance < 0 && -distance<=params.nvRightBack.distance)) {
-				check_and_set_min_car_dist((fwd?params.nvRightFwd:params.nvRightBack), distance, vehicle, other_driver);
-			}
-		}
-	} else if(otherRoadSegment->getLink() == vehicle->getCurrLink()) { //We are in the same link.
-		if (vehicle->getNextSegment() == otherRoadSegment) { //Vehicle is on the next segment.
-			//Retrieve the next node we are moving to, cast it to a UniNode.
-			const Node* nextNode = vehicle->getNodeMovingTowards();
-			const UniNode* uNode = dynamic_cast<const UniNode*>(nextNode);
-
-			//Initialize some lane pointers
-			const Lane* nextLane = nullptr;
-			const Lane* nextLeftLane = nullptr;
-			const Lane* nextRightLane = nullptr;
-			if(uNode){
-				nextLane = uNode->getOutgoingLane(*params.currLane);
-			}
-
-			//Make sure next lane exists and is in the next road segment, although it should be true
-			if(nextLane && nextLane->getRoadSegment() == otherRoadSegment) {
-				//Assign next left/right lane based on lane ID.
-				size_t nextLaneIndex = getLaneIndex(nextLane);
-				if(nextLaneIndex>0) {
-					nextLeftLane = otherRoadSegment->getLanes().at(nextLaneIndex-1);
-				}
-				if(nextLaneIndex < otherRoadSegment->getLanes().size()-1) {
-					nextRightLane = otherRoadSegment->getLanes().at(nextLaneIndex+1);
-				}
-			}
-
-			//Modified distance.
-			int distance = other_offset + params.currLaneLength - params.currLaneOffset;// - vehicle->length/2 - other_driver->getVehicle()->length/2;
-
-			//Set different variables depending on where the car is.
-			if(other_lane == nextLane) { //The vehicle is on the current lane
-				check_and_set_min_car_dist(params.nvFwd, distance, vehicle, other_driver);
-			} else if(other_lane == nextLeftLane) { //the vehicle is on the left lane
-				check_and_set_min_car_dist(params.nvLeftFwd, distance, vehicle, other_driver);
-			} else if(other_lane == nextRightLane) { //the vehicle is in front
-				check_and_set_min_car_dist(params.nvRightFwd, distance, vehicle, other_driver);
-			}
-		} else if(vehicle->getPrevSegment() == otherRoadSegment) { //Vehicle is on the previous segment.
-			//Retrieve the previous node as a UniNode.
-			const Node* prevNode = vehicle->getNodeMovingFrom();
-			const UniNode* uNode=dynamic_cast<const UniNode*>(prevNode);
-
-			//Set some lane pointers.
-			const Lane* preLane = nullptr;
-			const Lane* preLeftLane = nullptr;
-			const Lane* preRightLane = nullptr;
-
-			//Find the node which leads to this one from the UniNode. (Requires some searching; should probably
-			//   migrate this to the UniNode class later).
-			const vector<Lane*>& lanes = otherRoadSegment->getLanes();
-			if(uNode){
-				for (vector<Lane*>::const_iterator it=lanes.begin(); it!=lanes.end()&&!preLane; it++) {
-					if(uNode->getOutgoingLane(**it) == params.currLane) {
-						preLane = *it;
-					}
-				}
-			}
-
-			//Make sure next lane is in the next road segment, although it should be true
-			if(preLane) {
-				//Save the new left/right lanes
-				size_t preLaneIndex = getLaneIndex(preLane);
-				if(preLaneIndex>0) {
-					preLeftLane = otherRoadSegment->getLanes().at(preLaneIndex-1);
-				}
-				if(preLaneIndex < otherRoadSegment->getLanes().size()-1) {
-					preRightLane = otherRoadSegment->getLanes().at(preLaneIndex+1);
-				}
-			}
-
-			//Modified distance.
-			int distance = other_driver->currLaneLength_.get() - other_offset + params.currLaneOffset;// - vehicle->length/2 - other_driver->getVehicle()->length/2;
-
-			//Set different variables depending on where the car is.
-			if(other_lane == preLane) { //The vehicle is on the current lane
-				check_and_set_min_car_dist(params.nvBack, distance, vehicle, other_driver);
-			} else if(other_lane == preLeftLane) { //the vehicle is on the left lane
-				check_and_set_min_car_dist(params.nvLeftBack, distance, vehicle, other_driver);
-			} else if(other_lane == preRightLane) { //the vehicle is on the right lane
-				check_and_set_min_car_dist(params.nvRightBack, distance, vehicle, other_driver);
-			}
-		}
-	}
-}
-
-
-void sim_mob::Driver::updateNearbyPedestrian(UpdateParams& params, const Person* other, const Pedestrian* pedestrian)
-{
-	//Only update if passed a valid pointer and this is on a crossing.
-	if (!(pedestrian && pedestrian->isOnCrossing())) {
-		return;
-	}
-
-	//TODO: We are using a vector to check the angle to the Pedestrian. There are other ways of doing this which may be more accurate.
-	const std::vector<sim_mob::Point2D>& polyLine = vehicle->getCurrSegment()->getLanes().front()->getPolyline();
-	DynamicVector otherVect(
-		polyLine.front().getX(), polyLine.front().getY(),
-		other->xPos.get(), other->yPos.get()
-	);
-
-	//Calculate the distance between these two vehicles and the distance between the angle of the
-	// car's forward movement and the pedestrian.
-	//NOTE: I am changing this slightly, since cars were stopping for pedestrians on the opposite side of
-	//      the road for no reason (traffic light was green). ~Seth
-	//double distance = otherVect.getMagnitude();
-	double angleDiff = 0.0;
+	if (traveledDis < 0)
 	{
-		//Retrieve
-		DynamicVector fwdVector(vehicle->getCurrPolylineVector());
-		fwdVector.scaleVectTo(100);
-
-		//Calculate the difference
-		//NOTE: I may be over-complicating this... we can probably use the dot product but that can be done later. ~Seth
-		double angle1 = atan2(fwdVector.getEndY()-fwdVector.getY(), fwdVector.getEndX()-fwdVector.getX());
-		double angle2 = atan2(otherVect.getEndY()-otherVect.getY(), otherVect.getEndX()-otherVect.getX());
-		double diff = fabs(angle1 - angle2);
-		angleDiff = std::min(diff, fabs(diff - 2*M_PI));
+		traveledDis = 0;
 	}
 
-	//If the pedestrian is not behind us, then set our flag to true and update the minimum pedestrian distance.
-	if(angleDiff < 0.5236) { //30 degrees +/-
-		params.npedFwd.distance = std::min(params.npedFwd.distance, otherVect.getMagnitude()-vehicle->length/2-300);
+	//vehicle->xVel_ += vehicle->xAcc_*timeStep;
+	//vehicle->velocity.setRelX(vehicle->velocity.getRelX() + vehicle->xAcc_*timeStep);
+	vehicle->velocity.setRelX(vehicle->velocity.getRelX() + vehicle->accel.getRelX() * timeStep);
+
+	//if(vehicle->xVel_<0)
+	if (vehicle->velocity.getRelX() < 0)
+	{
+		//vehicle->xVel_ = 0.1;
+		vehicle->velocity.setRelX(0.1);
+
+		//vehicle->xAcc_ = 0;
+		vehicle->accel.setRelX(0);
 	}
+
+	vehicle->xPos_ += traveledDis;
+
+	//vehicle->yPos_ += vehicle->yVel_*timeStep;
+	vehicle->yPos_ += vehicle->velocity.getRelY() * timeStep;
+
+	currLaneOffset += traveledDis;
 }
-
 
 void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 {
-	//Reset parameters
-	//minPedestrianDis = 5000;
-	//isPedestrianAhead = false;
+	isPedestrianAhead = false;
+	CFD = nullptr;
+	CBD = nullptr;
+	LFD = nullptr;
+	LBD = nullptr;
+	RFD = nullptr;
+	RBD = nullptr;
 
-	//Retrieve a list of nearby agents
-	vector<const Agent*> nearby_agents = AuraManager::instance().nearbyAgents(Point2D(vehicle->getX(),vehicle->getY()), *params.currLane,  distanceInFront, distanceBehind);
+	Point2D myPos(vehicle->xPos, vehicle->yPos);
+	distanceInFront = 2000;
+	distanceBehind = 500;
 
-	//Update each nearby Pedestrian/Driver
-	for (vector<const Agent*>::iterator it=nearby_agents.begin(); it!=nearby_agents.end(); it++) {
-		//Perform no action on non-Persons
-		const Person* other = dynamic_cast<const Person *>(*it);
-		if(!other) {
+	nearby_agents = AuraManager::instance().nearbyAgents(myPos, *params.currLane, distanceInFront, distanceBehind);
+
+	minCFDistance = 5000;
+	minCBDistance = 5000;
+	minLFDistance = 5000;
+	minLBDistance = 5000;
+	minRFDistance = 5000;
+	minRBDistance = 5000;
+	minPedestrianDis = 5000;
+
+	for (size_t i = 0; i < nearby_agents.size(); i++)
+	{
+		const Person *person = dynamic_cast<const Person *> (nearby_agents.at(i));
+		if (!person)
 			continue;
-		}
+		Person* p = const_cast<Person*> (person);
+		Driver* other_driver = dynamic_cast<Driver*> (p->getRole());
+		Pedestrian* pedestrian = dynamic_cast<Pedestrian*> (p->getRole());
 
-		//Perform a different action depending on whether or not this is a Pedestrian/Driver/etc.
-		updateNearbyDriver(params, other, dynamic_cast<const Driver*>(other->getRole()));
-		updateNearbyPedestrian(params, other, dynamic_cast<const Pedestrian*>(other->getRole()));
+		if (other_driver == this)
+			continue;
+		if (other_driver)
+		{
+			const Lane* other_lane = other_driver->currLane_.get();// getCurrLane();
+			if (other_driver->isInIntersection())
+				continue;
+			const RoadSegment* otherRoadSegment = other_lane->getRoadSegment();
+			int other_offset = other_driver->currLaneOffset_.get();
+			//the vehicle is in the current road segment
+			if (currRoadSegment == otherRoadSegment)
+			{
+				int distance = other_offset - currLaneOffset;
+				//the vehicle is on the current lane
+				if (other_lane == params.currLane)
+				{
+					//the vehicle is in front
+					if (distance > 0)
+					{
+						distance = distance - vehicle->length / 2 - other_driver->getVehicle()->length / 2;
+						if (distance <= minCFDistance)
+						{
+							CFD = other_driver;
+							minCFDistance = distance;
+						}
+					}
+					else
+					{
+						distance = -distance;
+						distance = distance - vehicle->length / 2 - other_driver->getVehicle()->length / 2;
+						if (distance <= minCBDistance)
+						{
+							CBD = other_driver;
+							minCBDistance = distance;
+						}
+					}
+				}
+				//the vehicle is on the left lane
+				else if (other_lane == leftLane)
+				{
+					//the vehicle is in front
+					if (distance > 0)
+					{
+						distance = distance - vehicle->length / 2 - other_driver->getVehicle()->length / 2;
+						if (distance <= minLFDistance)
+						{
+							LFD = other_driver;
+							minLFDistance = distance;
+						}
+					}
+					else
+					{
+						distance = -distance;
+						distance = distance - vehicle->length / 2 - other_driver->getVehicle()->length / 2;
+						if (distance <= minLBDistance)
+						{
+							LBD = other_driver;
+							minLBDistance = distance;
+						}
+					}
+				}
+				else if (other_lane == rightLane)
+				{
+					//the vehicle is in front
+					if (distance > 0)
+					{
+						distance = distance - vehicle->length / 2 - other_driver->getVehicle()->length / 2;
+						if (distance <= minRFDistance)
+						{
+							RFD = other_driver;
+							minRFDistance = distance;
+						}
+					}
+					else if (distance < 0 && -distance <= minRBDistance)
+					{
+						distance = -distance;
+						distance = distance - vehicle->length / 2 - other_driver->getVehicle()->length / 2;
+						if (distance <= minRBDistance)
+						{
+							RBD = other_driver;
+							minRBDistance = distance;
+						}
+					}
+				}
+			}
+			//the vehicle is in the next road segment
+			else if (RSIndex < allRoadSegments.size() - 1 && otherRoadSegment == allRoadSegments.at(RSIndex + 1)
+					&& otherRoadSegment->getLink() == currLink)
+			{
+				const Node* nextNode;
+				if (isForward)
+					nextNode = currRoadSegment->getEnd();
+				else
+					nextNode = currRoadSegment->getStart();
+				const UniNode* uNode = dynamic_cast<const UniNode*> (nextNode);
+				const Lane* nextLane = nullptr;
+				const Lane* nextLeftLane = nullptr;
+				const Lane* nextRightLane = nullptr;
+				if (uNode)
+				{
+					nextLane = uNode->getOutgoingLane(*params.currLane);
+				}
+				//make sure next lane is in the next road segment, although it should be true
+				if (nextLane && nextLane->getRoadSegment() == otherRoadSegment)
+				{
+					//the next lane isn't the left most lane
+					size_t nextLaneIndex = getLaneIndex(nextLane);
+					if (nextLaneIndex > 0)
+						nextLeftLane = otherRoadSegment->getLanes().at(nextLaneIndex - 1);
+					if (nextLaneIndex < otherRoadSegment->getLanes().size() - 1)
+						nextRightLane = otherRoadSegment->getLanes().at(nextLaneIndex + 1);
+				}
+
+				int distance = other_offset + currLaneLength - currLaneOffset - vehicle->length / 2
+						- other_driver->getVehicle()->length / 2;
+				//the vehicle is on the current lane
+				if (other_lane == nextLane)
+				{
+					//the vehicle is in front
+					if (distance <= minCFDistance)
+					{
+						CFD = other_driver;
+						minCFDistance = distance;
+					}
+				}
+				//the vehicle is on the left lane
+				else if (other_lane == nextLeftLane)
+				{
+					//the vehicle is in front
+					if (distance <= minLFDistance)
+					{
+						LFD = other_driver;
+						minLFDistance = distance;
+					}
+				}
+				else if (other_lane == nextRightLane)
+				{
+					//the vehicle is in front
+					if (distance <= minRFDistance)
+					{
+						RFD = other_driver;
+						minRFDistance = distance;
+					}
+				}
+			}
+			//the vehicle is in the previous road segment
+			else if (otherRoadSegment == allRoadSegments.at(RSIndex - 1) && otherRoadSegment->getLink() == currLink)
+			{
+				const Node* preNode;
+				if (isForward)
+					preNode = otherRoadSegment->getEnd();
+				else
+					preNode = otherRoadSegment->getStart();
+				const UniNode* uNode = dynamic_cast<const UniNode*> (preNode);
+				const Lane* preLane = nullptr;
+				const Lane* preLeftLane = nullptr;
+				const Lane* preRightLane = nullptr;
+				if (uNode)
+				{
+					for (size_t i = 0; i < otherRoadSegment->getLanes().size(); i++)
+					{
+						const Lane* tempLane = otherRoadSegment->getLanes().at(i);
+						if (uNode->getOutgoingLane(*tempLane) == params.currLane)
+						{
+							preLane = tempLane;
+							break;
+						}
+					}
+				}
+				//make sure next lane is in the next road segment, although it should be true
+				if (preLane)
+				{
+					size_t preLaneIndex = getLaneIndex(preLane);
+					//the next lane isn't the left most lane
+					if (preLaneIndex > 0)
+						preLeftLane = otherRoadSegment->getLanes().at(preLaneIndex - 1);
+					if (preLaneIndex < otherRoadSegment->getLanes().size() - 1)
+						preRightLane = otherRoadSegment->getLanes().at(preLaneIndex + 1);
+				}
+
+				int distance = other_driver->currLaneLength_.get() - other_offset + currLaneOffset - vehicle->length
+						/ 2 - other_driver->getVehicle()->length / 2;
+				//the vehicle is on the current lane
+				if (other_lane == preLane)
+				{
+					if (distance <= minCBDistance)
+					{
+						CBD = other_driver;
+						minCBDistance = distance;
+					}
+				}
+				//the vehicle is on the left lane
+				else if (other_lane == preLeftLane)
+				{
+					if (distance <= minLBDistance)
+					{
+						LBD = other_driver;
+						minLBDistance = distance;
+					}
+				}
+				//the vehicle is on the right lane
+				else if (other_lane == preRightLane)
+				{
+					if (distance <= minRBDistance)
+					{
+						RBD = other_driver;
+						minRBDistance = distance;
+					}
+				}
+			}
+		}
+		else if (pedestrian && pedestrian->isOnCrossing())
+		{
+			int otherX = person->xPos;
+			int otherY = person->yPos;
+			double xOffset = otherX - currPolylineSegStart.getX();
+			double yOffset = otherY - currPolylineSegStart.getY();
+
+			int otherX_ = xOffset * xDirection + yOffset * yDirection;
+			int distance = otherX_ - vehicle->xPos_;
+			if (distance >= 0)
+			{
+				distance = distance - vehicle->length / 2 - 300;
+				isPedestrianAhead = true;
+				if (distance < minPedestrianDis)
+					minPedestrianDis = distance;//currLaneLength - currLaneOffset - vehicle->length/2 -300;
+			}
+		}
 	}
 }
 
 //Angle shows the velocity direction of vehicles
-void sim_mob::Driver::updateAngle(UpdateParams& p)
+void sim_mob::Driver::updateAngle()
 {
-	//Set angle based on the vehicle's heading and velocity.
-	p.vehicleAngle = 360 - (vehicle->getAngle() * 180 / M_PI);
+	double xVel = vehicle->velocity.getAbsX();
+	double yVel = vehicle->velocity.getAbsY();
+
+	if (xVel == 0 && yVel == 0)
+	{
+	}
+	else if (xVel >= 0 && yVel >= 0)
+	{
+		angle = 360 - atan(yVel / xVel) / 3.1415926 * 180;
+	}
+	else if (xVel >= 0 && yVel < 0)
+	{
+		angle = -atan(yVel / xVel) / 3.1415926 * 180;
+	}
+	else if (xVel < 0 && yVel >= 0)
+	{
+		angle = 180 - atan(yVel / xVel) / 3.1415926 * 180;
+	}
+	else if (xVel < 0 && yVel < 0)
+	{
+		angle = 180 - atan(yVel / xVel) / 3.1415926 * 180;
+	}
 }
 
 void sim_mob::Driver::intersectionVelocityUpdate()
 {
 	double inter_speed = 1000;//10m/s
-	vehicle->setAcceleration(0);
 
-	//TODO: We can figure this out later. In fact, the whole "traces" approach to
-	//      intersections is pretty easy using vectors.
-	vehicle->setVelocity(inter_speed * xDirection_entryPoint);
-	vehicle->setLatVelocity(inter_speed * yDirection_entryPoint);
+	//vehicle->xAcc_=0;
+	//vehicle->yAcc_=0;
+	vehicle->accel.setRel(0, 0);
+
+	//vehicle->xVel = inter_speed * xDirection_entryPoint;
+	//vehicle->yVel = inter_speed * yDirection_entryPoint;
+	vehicle->velocity.setAbs(inter_speed * xDirection_entryPoint, inter_speed * yDirection_entryPoint);
 }
 
-void sim_mob::Driver::justLeftIntersection(UpdateParams& p)
+void sim_mob::Driver::enterNextLink(UpdateParams& p)
 {
-	//TODO: Handle Lane driving.
-	//p.currLane = newLane;
-	syncCurrLaneCachedInfo(p);
-	p.currLaneOffset = 0;
-	targetLaneIndex = currLaneIndex;
+	isForward = nextIsForward;
+	p.currLane = nextLaneInNextLink;
+	updateCurrInfo(2, p);
+	abs2relat();
 
-	//Reset lateral movement/velocity to zero.
-	vehicle->setLatVelocity(0);
-	vehicle->resetLateralMovement();
+	//vehicle->yVel_ = 0;
+	vehicle->velocity.setRelY(0);
+
+	vehicle->yPos_ = 0;
+
+	//vehicle->yAcc_ = 0;
+	vehicle->accel.setRelY(0);
+
+	linkDriving(p);
+	relat2abs();
 }
 
-LANE_CHANGE_SIDE sim_mob::Driver::getCurrLaneChangeDirection() const
+void sim_mob::Driver::updatePosLC(UpdateParams& p)
 {
-	if (vehicle->getLatVelocity()>0) {
-		return LCS_LEFT;
-	} else if (vehicle->getLatVelocity()<0) {
-		return LCS_RIGHT;
-	}
-	return LCS_SAME;
-}
-
-LANE_CHANGE_SIDE sim_mob::Driver::getCurrLaneSideRelativeToCenter() const
-{
-	if (vehicle->getLateralMovement()>0) {
-		return LCS_LEFT;
-	} else if (vehicle->getLateralMovement()<0) {
-		return LCS_RIGHT;
-	}
-	return LCS_SAME;
-}
-
-
-//TODO: I think all lane changing occurs after 150m. Double-check please. ~Seth
-void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p)
-{
-	double halfLaneWidth = p.currLane->getWidth() / 2.0;
-
-	//The direction we are attempting to change lanes in
-	LANE_CHANGE_SIDE actual = getCurrLaneChangeDirection();
-	LANE_CHANGE_SIDE relative = getCurrLaneSideRelativeToCenter();
-	if (actual==LCS_SAME) {
-		return;  //Not actually changing lanes.
-	}
-	if ((actual==LCS_LEFT && !p.leftLane) || (actual==LCS_RIGHT && !p.rightLane)) {
-		return; //Error condition
-	}
-	if (relative==LCS_SAME) {
-		relative=actual; //Unlikely to occur, but we can still work off this.
-	}
-
-	//Basically, we move "halfway" into the next lane, and then move "halfway" back to its midpoint.
-	if (actual==relative) {
-		//Moving "out".
-		double remainder = fabs(vehicle->getLateralMovement()) - halfLaneWidth;
-		if (remainder>0) {
-			//Update Lanes, polylines, RoadSegments, etc.
-			p.currLane = (actual==LCS_LEFT?p.leftLane:p.rightLane);
-			syncCurrLaneCachedInfo(p);
-			vehicle->shiftToNewLanePolyline(actual==LCS_LEFT);
-
-			//Set to the far edge of the other lane, minus any extra amount.
-			halfLaneWidth = p.currLane->getWidth() / 2.0;
-			vehicle->resetLateralMovement();
-			vehicle->moveLat((halfLaneWidth - remainder) * (actual==LCS_LEFT?1:-1));
+	//right
+	if (changeDecision == 1)
+	{
+		if (!lcEnterNewLane && -vehicle->yPos_ >= 150)//currLane->getWidth()/2.0)
+		{
+			p.currLane = rightLane;
+			updateCurrInfo(0, p);
+			abs2relat();
+			lcEnterNewLane = true;
 		}
-	} else {
-		//Moving "in".
-		bool pastZero = (actual==LCS_LEFT) ? (vehicle->getLateralMovement()>0) : (vehicle->getLateralMovement()<0);
-		if (pastZero) {
-			//Reset all
-			vehicle->resetLateralMovement();
-			vehicle->setLatVelocity(0);
-		}
+		if (lcEnterNewLane && vehicle->yPos_ <= 0)
+		{
+			isLaneChanging = false;
+			vehicle->yPos_ = 0;
 
+			//vehicle->yVel_ = 0;
+			vehicle->velocity.setRelY(0);
+		}
+	}
+	else if (changeDecision == -1)
+	{
+		if (!lcEnterNewLane && vehicle->yPos_ >= 150)//currLane->getWidth()/2.0)
+		{
+			p.currLane = leftLane;
+			updateCurrInfo(0, p);
+			abs2relat();
+			lcEnterNewLane = true;
+		}
+		if (lcEnterNewLane && vehicle->yPos_ >= 0)
+		{
+			isLaneChanging = false;
+			vehicle->yPos_ = 0;
+
+			//vehicle->yVel_ = 0;
+			vehicle->velocity.setRelY(0);
+		}
 	}
 }
 
-bool sim_mob::Driver::isCloseToLinkEnd(UpdateParams& p)
+bool sim_mob::Driver::isCloseToLinkEnd()
 {
 	//when the distance <= 10m
-	return !vehicle->getNextSegment() && (p.currLaneLength-p.currLaneOffset<2000);
+	return isReachLastRSinCurrLink() && (currLaneLength - currLaneOffset < 2000);
 }
 
-//Retrieve the current traffic signal based on our RoadSegment's end node.
 void sim_mob::Driver::updateTrafficSignal()
 {
-	const Node* node = vehicle->getCurrSegment()->getEnd();
-	trafficSignal = node ? StreetDirectory::instance().signalAt(*node) : nullptr;
+	const Node* node = currRoadSegment->getEnd();
+	if (node)
+		trafficSignal = StreetDirectory::instance().signalAt(*node);
+	else
+		trafficSignal = nullptr;
+}
+
+void sim_mob::Driver::pedestrianAheadDriving()
+{
+	if (perceivedXVelocity_ > 0)
+	{
+		//vehicle->xAcc_ = -0.5*perceivedXVelocity_*perceivedXVelocity_/(0.5*minPedestrianDis);
+		//make sure the vehicle can stop before pedestrian, so distance should be shorter, now I use 0.5*dis
+		vehicle->accel.setRelX(-0.5 * perceivedXVelocity_ * perceivedXVelocity_ / (0.5 * minPedestrianDis));
+	}
+	else
+	{
+		//vehicle->xAcc_ = 0;
+		vehicle->accel.setRelX(0);
+
+		//vehicle->xVel_ = 0;
+		vehicle->velocity.setRelX(0);
+	}
+	updatePositionOnLink();
 }
 
 void sim_mob::Driver::trafficSignalDriving(UpdateParams& p)
 {
-	if(!trafficSignal) {
-		p.isTrafficLightStop = false;
-	} else {
-		Signal::TrafficColor color;
-		if(nextLaneInNextLink) {
-			color = trafficSignal->getDriverLight(*p.currLane,*nextLaneInNextLink);
-		} else {
+	tsStopDistance = 5000;
+	if (!trafficSignal)
+	{
+		isTrafficLightStop = false;
+	}
+	else
+	{
+		int color;
+		if (nextLaneInNextLink)
+			color = trafficSignal->getDriverLight(*p.currLane, *nextLaneInNextLink);
+		else
 			color = trafficSignal->getDriverLight(*p.currLane).forward;
-		}
 
-		switch(color) {
-			case Signal::Red :case Signal::Amber:
-				p.isTrafficLightStop = true;
-				p.trafficSignalStopDistance = p.currLaneLength - p.currLaneOffset - vehicle->length/2 -300;
-				break;
-
-			case Signal::Green:
-				if(!isPedetrianOnTargetCrossing())
-					p.isTrafficLightStop = false;
-				else
-					p.isTrafficLightStop = true;
-				break;
+		switch (color)
+		{
+		//red yellow
+		case Signal::Red:
+		case Signal::Amber:
+			isTrafficLightStop = true;
+			tsStopDistance = currLaneLength - currLaneOffset - vehicle->length / 2 - 300;
+			break;
+			//green
+		case Signal::Green:
+			if (!isPedetrianOnTargetCrossing())
+				isTrafficLightStop = false;
+			else
+				isTrafficLightStop = true;
+			break;
 		}
 	}
 }

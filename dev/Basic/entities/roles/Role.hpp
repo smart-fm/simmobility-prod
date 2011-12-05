@@ -25,6 +25,8 @@ public:
 	/// Frame number? Elapsed time?
 	virtual void update(frame_t frameNumber) = 0;
 
+	virtual void output(frame_t frameNumber) = 0;
+
 	///Return a list of parameters that expect their subscriptions to be managed.
 	/// Agents can append/remove this list to their own subscription list each time
 	/// they change their Role.

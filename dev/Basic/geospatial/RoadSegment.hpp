@@ -14,6 +14,7 @@ namespace sim_mob
 
 //Forward declarations
 class Lane;
+class RoadNetworkPackageManager;
 
 namespace aimsun
 {
@@ -78,7 +79,7 @@ private:
 
 friend class sim_mob::aimsun::Loader;
 friend class sim_mob::aimsun::LaneLoader;
-
+friend class sim_mob::RoadNetworkPackageManager;
 
 };
 

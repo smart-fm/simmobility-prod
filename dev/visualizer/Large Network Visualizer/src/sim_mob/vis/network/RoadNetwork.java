@@ -190,7 +190,8 @@ public class RoadNetwork {
 	    Hashtable<Integer,Lane> tempLaneTable = new Hashtable<Integer,Lane>();
 	    ArrayList<Integer> lineNumbers = new ArrayList<Integer>();
 	    Hashtable<Integer, ArrayList<Integer>> lineMarkingPositions = new Hashtable<Integer, ArrayList<Integer>>();
-	    int sideWalkLane = -1;
+	    int sideWalkLane1 = -1;
+	    int sideWalkLane2 = -1;
 	    while(keys.hasMoreElements()){
 		    
 	    	String key = keys.nextElement().toString();
@@ -211,7 +212,14 @@ public class RoadNetwork {
 	    	//Extract node information
 	    	if(key.contains("sidewalk")){
 	    		//keep track the side walk lane number
-	    		sideWalkLane = lineNumber;
+	    		if(sideWalkLane1 == -1)
+	    		{
+		    		sideWalkLane1 = lineNumber;	    			
+	    		}
+	    		else
+	    		{
+	    			sideWalkLane2 = lineNumber;
+	    		}
 	    		
 	    	}else{
 	    		
@@ -231,11 +239,18 @@ public class RoadNetwork {
 	   
 	    } 
 	    
-	    //Find the sidewalk line and mark it 
-	    if(sideWalkLane!=-1){
-	    	tempLineTable.get(sideWalkLane).setSideWalk(true);
-	    	tempLineTable.get((sideWalkLane+1)).setSideWalk(true);
+	    //Find the first sidewalk line and mark it 
+	    if(sideWalkLane1!=-1){
+	    	tempLineTable.get(sideWalkLane1).setSideWalk(true);
+	    	tempLineTable.get((sideWalkLane1+1)).setSideWalk(true);
 	    }
+	    
+	    //Find the second sidewalk line and mark it 
+	    if(sideWalkLane2!=-1){
+	    	tempLineTable.get(sideWalkLane2).setSideWalk(true);
+	    	tempLineTable.get((sideWalkLane2+1)).setSideWalk(true);
+	    }
+
 	    
 	    //Sort array list to ascending order
 	    Collections.sort(lineNumbers);

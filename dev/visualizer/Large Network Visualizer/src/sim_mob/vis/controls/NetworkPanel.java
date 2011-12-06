@@ -130,6 +130,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		}
 		netViewCache.toggleFakeAgent(drawFakeAgent);
 		this.repaint();
+		updateMap();
 	}
 	
 	

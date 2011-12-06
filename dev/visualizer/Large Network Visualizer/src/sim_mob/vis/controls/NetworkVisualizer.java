@@ -6,6 +6,7 @@ import sim_mob.vis.MainFrame;
 import sim_mob.vis.network.basic.*;
 import sim_mob.vis.network.*;
 import sim_mob.vis.simultion.*;
+import sim_mob.vis.util.Utility;
 
 
 /**
@@ -84,10 +85,8 @@ public class NetworkVisualizer {
 	
 	public void toggleFakeAgent(boolean drawFakeAgent){
 
-		
 		this.showFakeAgent = drawFakeAgent;			
 		redrawAtCurrScale();
-		
 	}
 	
 	public void redrawAtScale(double percent) {
@@ -173,9 +172,55 @@ public class NetworkVisualizer {
 
 		//Draw out lanes only it is zoom to certain scale
 		if(currPercentZoom>ZOOM_IN_CRITICAL){
+
+			
+			
+			if(network.getLaneMarkings().containsKey(149402728))
+			{
+				
+				Hashtable<Integer,LaneMarking> tempLineMarkingTable = network.getLaneMarkings().get(149402728);
+				
+				if(tempLineMarkingTable.containsKey(0) && tempLineMarkingTable.containsKey(1)){
+					LaneMarking l1 = tempLineMarkingTable.get(0);
+					LaneMarking l2 = tempLineMarkingTable.get(1);
+					
+					double distStartStart = Utility.Distance(l1.getStart().getPos().getX(), 
+							l1.getStart().getPos().getY(), 
+							l2.getStart().getPos().getX(),
+							l2.getStart().getPos().getY());
+				
+					double distStartEnd = Utility.Distance(l1.getStart().getPos().getX(), 
+							l1.getStart().getPos().getY(), 
+							l1.getEnd().getPos().getX(),
+							l1.getEnd().getPos().getY());
+						
+					//System.out.println("width: " + distStartStart  + "		length: " + distStartEnd + "		zoom in: "+currPercentZoom );
+					
+					
+					double distStartStartU = Utility.Distance(l1.getStart().getPos().getUnscaledX(), 
+							l1.getStart().getPos().getUnscaledY(), 
+							l2.getStart().getPos().getUnscaledX(),
+							l2.getStart().getPos().getUnscaledY());
+				
+					double distStartEndU = Utility.Distance(l1.getStart().getPos().getUnscaledX(), 
+							l1.getStart().getPos().getUnscaledY(), 
+							l1.getEnd().getPos().getUnscaledX(),
+							l1.getEnd().getPos().getUnscaledY());
+					
+					//System.out.println("width: " + distStartStartU  + "		length: " + distStartEndU );
+					//System.out.println();
+				}
+			
+			}
+			
+			
 			//Draw Lanes
 			for (Hashtable<Integer,LaneMarking> lineMarkingTable : network.getLaneMarkings().values()) {
+				
+
+				
 				for(LaneMarking lineMarking : lineMarkingTable.values()){
+					
 					lineMarking.draw(g);
 				}
 			}
@@ -234,17 +279,19 @@ public class NetworkVisualizer {
 				drawTrafficLines(g,vcSignalLine, vcLights);
 				drawTrafficLines(g,vdSignalLine, vdLights);	
 				
-
-				
 			}
 			
 		}
+		
+		
 		//Now draw simulation data: cars, etc.
 		for (AgentTick at : simRes.ticks.get(currFrameTick).agentTicks.values()) {	
 			
 			at.draw(g,currPercentZoom,this.showFakeAgent);
+			
 		}
 
+		
 		
 	}
 	

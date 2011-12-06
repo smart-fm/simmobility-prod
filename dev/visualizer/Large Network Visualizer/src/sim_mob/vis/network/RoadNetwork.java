@@ -255,6 +255,8 @@ public class RoadNetwork {
 	    	   	
 	    }
 	    lanes.put(parentKey, tempLaneTable);	 
+	    
+	    
 	    //Create a new Lane, save it
 	    linaMarkings.put(objID, tempLineTable);
 	    
@@ -431,14 +433,14 @@ public class RoadNetwork {
 	    }
 	    
 	    //Check and parse properties.
-	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"startPointX", "startPointY", "endPointX", "endPointY"});
+	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"startPointX", "startPointY", "endPointX", "endPointY","color"});
 	    
 	    int startPosintX = Integer.parseInt(props.get("startPointX"));
 	    int endPosintX = Integer.parseInt(props.get("endPointX"));
 	    int startPosintY = Integer.parseInt(props.get("startPointY"));
 	    int endPosintY = Integer.parseInt(props.get("endPointY"));
-	    
-	    cutLines.put(objID, new CutLine(new Node(startPosintX,startPosintY, true, -1),new Node(endPosintX,endPosintY, true, -1)));
+	    String color = props.get("color");
+	    cutLines.put(objID, new CutLine(new Node(startPosintX,startPosintY, true, -1),new Node(endPosintX,endPosintY, true, -1),color));
 		
 	}
 	

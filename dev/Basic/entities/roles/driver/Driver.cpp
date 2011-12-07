@@ -174,9 +174,10 @@ vector<WayPoint> LoadSpecialPath(const Node* origin, char pathLetter)
 
 
 //initiate
-sim_mob::Driver::Driver(Person* parent) : Role(parent), currLane_(nullptr), currLaneOffset_(0),
-	currLaneLength_(0), isInIntersection(false), vehicle(nullptr), perceivedVelocity(reactTime, true),
-	perceivedVelocityOfFwdCar(reactTime, true), perceivedAccelerationOfFwdCar(reactTime, true),perceivedDistToFwdCar(reactTime, true)
+sim_mob::Driver::Driver(Person* parent, unsigned int reacTime_LeadingVehicle,
+		unsigned int reacTime_SubjectVehicle, unsigned int reacTime_Gap) : Role(parent), currLane_(nullptr), currLaneOffset_(0),
+	currLaneLength_(0), isInIntersection(false), vehicle(nullptr), perceivedVelocity(reacTime_SubjectVehicle, true),
+	perceivedVelocityOfFwdCar(reacTime_LeadingVehicle, true), perceivedAccelerationOfFwdCar(reacTime_LeadingVehicle, true),perceivedDistToFwdCar(reacTime_Gap, true)
 {
 	if (Debug::Drivers) { DebugStream <<"Driver starting: " <<parent->getId() <<endl; }
 

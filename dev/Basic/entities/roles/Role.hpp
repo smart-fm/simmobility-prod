@@ -105,7 +105,9 @@ protected:
 	//public:
 	//	static boost::mutex m_mutex;
 public:
+#ifndef SIMMOB_DISABLE_MPI
 	friend class sim_mob::PartitionManager;
+#endif
 
 
 };

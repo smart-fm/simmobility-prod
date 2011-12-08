@@ -7,15 +7,12 @@
 
 #pragma once
 
-#include "constants.h"
-#ifndef SIMMOB_DISABLE_MPI
-
-
-#include "geospatial/RoadSegment.hpp"
 #include "geospatial/Point2D.hpp"
 
 namespace sim_mob
 {
+
+class RoadSegment;
 
 class BoundarySegment
 {
@@ -45,5 +42,4 @@ public:
 
 }
 
-#endif
 

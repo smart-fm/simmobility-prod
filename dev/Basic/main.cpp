@@ -129,10 +129,12 @@ bool performMain(const std::string& configFileName) {
 	cout << "  " << "...Sanity Check Passed" << endl;
 
 	//Start boundaries
+#ifndef SIMMOB_DISABLE_MPI
 	if (config.is_run_on_many_computers) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.initBoundaryTrafficItems();
 	}
+#endif
 
 	//Initialize our work groups.
 	WorkGroup agentWorkers(WG_AGENTS_SIZE, config.totalRuntimeTicks,
@@ -183,13 +185,16 @@ bool performMain(const std::string& configFileName) {
 	signalStatusWorkers.startAll();
 
 	//
+#ifndef SIMMOB_DISABLE_MPI
 	if (config.is_run_on_many_computers) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.setEntityWorkGroup(&agentWorkers, NULL);
 
-		if (config.is_simulation_repeatable)
+		if (config.is_simulation_repeatable) {
 			partitionImpl.updateRandomSeed();
+		}
 	}
+#endif
 
 	/////////////////////////////////////////////////////////////////
 	// NOTE: WorkGroups are able to handle skipping steps by themselves.
@@ -223,6 +228,7 @@ bool performMain(const std::string& configFileName) {
 		//Agent-based cycle
 		agentWorkers.wait();
 
+#ifndef SIMMOB_DISABLE_MPI
 		if (config.is_run_on_many_computers) {
 			PartitionManager& partitionImpl = PartitionManager::instance();
 			partitionImpl.crossPCBarrier();
@@ -230,6 +236,7 @@ bool performMain(const std::string& configFileName) {
 			partitionImpl.crossPCBarrier();
 			partitionImpl.outputAllEntities(currTick);
 		}
+#endif
 
 		//output_All
 		//		PartitionManager::instance().outputAllEntities(currTick);
@@ -253,10 +260,12 @@ bool performMain(const std::string& configFileName) {
 	}
 
 	//Finalize partition manager
+#ifndef SIMMOB_DISABLE_MPI
 	if (config.is_run_on_many_computers) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.stopMPIEnvironment();
 	}
+#endif
 
 	cout << "Starting Agents: " << numStartAgents;
 #ifndef DISABLE_DYNAMIC_DISPATCH
@@ -325,6 +334,7 @@ int main(int argc, char* argv[])
 	/**
 	 * Start MPI if is_run_on_many_computers is true
 	 */
+#ifndef SIMMOB_DISABLE_MPI
 	if (config.is_run_on_many_computers)
 	{
 		PartitionManager& partitionImpl = PartitionManager::instance();
@@ -335,6 +345,8 @@ int main(int argc, char* argv[])
 			exit(1);
 		}
 	}
+#endif
+
 	//Argument 1: Config file
 	//Note: Don't chnage this here; change it by supplying an argument on the
 	//      command line, or through Eclipse's "Run Configurations" dialog.

@@ -14,6 +14,9 @@
 
 #pragma once
 
+#include "constants.h"
+#ifndef SIMMOB_DISABLE_MPI
+
 #include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
 
@@ -125,3 +128,5 @@ private:
 };
 
 }
+
+#endif

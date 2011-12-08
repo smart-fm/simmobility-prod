@@ -6,6 +6,8 @@
  */
 
 #include "BoundarySegment.hpp"
+
+#include "geospatial/RoadSegment.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/OutputUtil.hpp"
 
@@ -84,3 +86,4 @@ void BoundarySegment::output() {
 	outputLine(*(bounary_box.end() - 1), *(bounary_box.begin()), "blue");
 }
 }
+

@@ -96,7 +96,7 @@ public:
 	double getnextOffset() {return nextOffset;}
 
 	//Abstract methods. You will have to implement these eventually.
-	virtual void update(frame_t frameNumber);
+	virtual bool update(frame_t frameNumber);
 	virtual void output(frame_t frameNumber);
 	virtual void buildSubscriptionList();
 
@@ -206,21 +206,6 @@ public:
          */
         static std::vector<Signal*> all_signals_;
 
-        /**
-         * Furnish this Signal information about the position, type, and direction of its various
-         * signal equipment.
-         *
-         * There are various equipment associated with a traffic signal.  Examples are pedestrian
-         * signals, green filter arrow signals, overhead signals, B-signals (bus signals), etc.
-         * This method is used to supply information about the position, type, and direction
-         * of one equipment to the Signal object, which uses the information to determine its
-         * "responsibilities".  For example, at a 4-way traffic intersection, pedestrians may not
-         * be allowed to cross on one of the 4 sides.  In that case, no pedestrian signal will be
-         * erected in that direction and the Signal object should not "cater" to pedestrians on
-         * that side.
-         */
-        void addSignalSite(centimeter_t xpos, centimeter_t ypos,
-                           std::string const & typeCode, double bearing);
 
         /**
          * Furnish this Signal information about the position, type, and direction of its various

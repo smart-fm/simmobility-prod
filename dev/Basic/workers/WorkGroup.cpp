@@ -11,6 +11,7 @@
 
 #include "entities/Agent.hpp"
 
+using std::map;
 using std::vector;
 using boost::barrier;
 using boost::function;
@@ -186,7 +187,7 @@ void sim_mob::WorkGroup::wait()
 
 void sim_mob::WorkGroup::removeAgentFromWorker(Entity* ag)
 {
-	typename map<Entity*, int>::iterator it = agentMapping.find(ag);
+	map<Entity*, int>::iterator it = agentMapping.find(ag);
 	if (it != agentMapping.end()) {
 		int from_worker_id = it->second;
 		migrate(ag, from_worker_id, -1);
@@ -200,7 +201,7 @@ void sim_mob::WorkGroup::addAgentInWorker(Entity * ag)
 	if (agent_test) {
 		Agent* one_agent = const_cast<Agent*> (agent_test);
 
-		std::vector<Agent*>& agents = Agent::all_agents;
+		std::vector<Entity*>& agents = Agent::all_agents;
 		agents.push_back(one_agent);
 
 		int free_worker_id = getTheMostFreeWorkerID();

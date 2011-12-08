@@ -74,10 +74,10 @@ public:
 
 //add by xuyan
 public:
-	void removeAgentFromWorker(EntityType * ag);
-	void addAgentInWorker(EntityType * ag);
+	void removeAgentFromWorker(Entity * ag);
+	void addAgentInWorker(Entity * ag);
 
-	std::map<EntityType*, int> agentMapping;
+	std::map<Entity*, int> agentMapping;
 	int getTheMostFreeWorkerID();
 
 

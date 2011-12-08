@@ -7,7 +7,6 @@
 #include "Section.hpp"
 #include "Lane.hpp"
 #include "Node.hpp"
-#include "Lane.hpp"
 
 #include "geospatial/RoadNetwork.hpp"
 

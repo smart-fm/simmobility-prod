@@ -10,6 +10,7 @@
 #include "util/GeomHelpers.hpp"
 #include "util/DynamicVector.hpp"
 #include "geospatial/RoadSegment.hpp"
+#include "geospatial/Link.hpp"
 
 
 using std::pair;
@@ -143,6 +144,23 @@ map<sim_mob::Link*, LinkHelperStruct> buildLinkHelperStruct(map<int, Node>& node
 			}
 		}
 	}
+
+
+	std::pair<int,int> errorCount(0,0);
+	for (map<sim_mob::Link*, LinkHelperStruct>::iterator it=res.begin(); it!=res.end(); it++) {
+		if (!it->second.start) {
+			errorCount.first++;
+		}
+		if (!it->second.end) {
+			errorCount.second++;
+		}
+	}
+	if (errorCount.first+errorCount.second > 0) {
+		std::stringstream msg;
+		msg <<"Error: Not all Links are represented in full: " <<errorCount.first <<"," <<errorCount.second;
+		throw std::runtime_error(msg.str().c_str());
+	}
+
 
 	return res;
 }

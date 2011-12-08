@@ -3,7 +3,11 @@
 #pragma once
 
 #include "util/LangHelpers.hpp"
-
+//add by xuyan
+#include <string>
+#include "Node.hpp"
+#include "Point2D.hpp"
+#include "util/MathUtil.hpp"
 
 namespace sim_mob
 {
@@ -11,6 +15,7 @@ namespace sim_mob
 
 //Forward declarations
 class Node;
+class RoadNetworkPackageManager;
 
 namespace aimsun {
 class CrossingLoader;
@@ -41,7 +46,21 @@ protected:
 
 	friend class sim_mob::aimsun::CrossingLoader;
 
+public:
+	std::string getId() const
+	{
+		std::string id = "";
 
+		id += MathUtil::getStringFromNumber(start->location->getX()) + ":";
+		id += MathUtil::getStringFromNumber(start->location->getY()) + ":";
+		id += MathUtil::getStringFromNumber(end->location->getX()) + ":";
+		id += MathUtil::getStringFromNumber(end->location->getY());
+
+		return id;
+	}
+
+public:
+	friend class sim_mob::RoadNetworkPackageManager;
 
 };
 

@@ -15,6 +15,7 @@ namespace sim_mob
 
 //Forward declarations
 class Lane;
+class RoadNetworkPackageManager;
 
 namespace aimsun
 {
@@ -56,7 +57,6 @@ public:
 	//RoadSegments may have hidden properties useful only in for the visualizer.
 	OpaqueProperty<int> originalDB_ID;
 
-
 public:
 	///Maximum speed of this road segment.
 	unsigned int maxSpeed;
@@ -84,7 +84,7 @@ private:
 
 friend class sim_mob::aimsun::Loader;
 friend class sim_mob::aimsun::LaneLoader;
-
+friend class sim_mob::RoadNetworkPackageManager;
 
 };
 

@@ -5,6 +5,10 @@
 #include <string>
 
 #include <stdint.h>  //NOTE: There's a bug in GCC whereby <cstdint> is not the same as <stdint.h>
+//add by xuyan
+#include <boost/serialization/string.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
 
 namespace sim_mob
 {
@@ -58,6 +62,16 @@ private:
 	//TODO: Effectively const, but the keyword would make the equality operator tough...
 	uint32_t time_;  //MS from 0, which corresponds to 00:00:00.00
 	std::string repr_;
+
+	//add by xuyan
+public:
+	friend class boost::serialization::access;
+	template<class Archive>
+	void serialize(Archive & ar, const unsigned int version)
+	{
+		ar & time_;
+		ar & repr_;
+	}
 };
 
 

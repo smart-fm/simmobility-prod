@@ -24,12 +24,14 @@ public:
 
 	}
 
+	virtual void output(frame_t frameNumber) const
+	{}
+
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams()
 	{
 		std::vector<sim_mob::BufferedBase*> res;
 		return res;
 	}
-
 
 };
 

@@ -27,7 +27,8 @@ namespace sim_mob
 
 class Agent;
 class WorkGroup;
-
+class AgentPackageManager;
+class BoundaryProcessor;
 
 
 //Comparison for our priority queue
@@ -51,6 +52,8 @@ public:
 
 	virtual bool update(frame_t frameNumber) = 0;  ///<Update agent behvaior
 
+	virtual void output(frame_t frameNumber) = 0;
+
 	///Subscribe this agent to a data manager.
 	//virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew);
 	virtual void buildSubscriptionList();
@@ -70,13 +73,11 @@ public:
 	sim_mob::Buffered<int> xPos;  ///<The agent's position, X
 	sim_mob::Buffered<int> yPos;  ///<The agent's position, Y
 
-	//sim_mob::Buffered<double> xVel;  ///<The agent's velocity, X
-	//sim_mob::Buffered<double> yVel;  ///<The agent's velocity, Y
-	sim_mob::Buffered<double> fwdVel;  //The agent's forward velocity
-	sim_mob::Buffered<double> latVel;  //The agent's forward velocity
+	sim_mob::Buffered<double> xVel;  ///<The agent's velocity, X
+	sim_mob::Buffered<double> yVel;  ///<The agent's velocity, Y
 
-	//sim_mob::Buffered<double> xAcc;  ///<The agent's acceleration, X
-	//sim_mob::Buffered<double> yAcc;  ///<The agent's acceleration, Y
+	sim_mob::Buffered<double> xAcc;  ///<The agent's acceleration, X
+	sim_mob::Buffered<double> yAcc;  ///<The agent's acceleration, Y
 	//sim_mob::Buffered<int> currentLink;
 	//sim_mob::Buffered<int> currentCrossing;
 
@@ -107,6 +108,10 @@ private:
 	bool toRemoved;
 	static unsigned int next_agent_id;
 
+	//add by xuyan
+public:
+	friend class AgentPackageManager;
+	friend class BoundaryProcessor;
 };
 
 }

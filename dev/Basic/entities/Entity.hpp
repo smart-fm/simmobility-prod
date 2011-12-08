@@ -16,9 +16,10 @@ namespace sim_mob
 {
 
 class Worker;
-
 class WorkGroup;
-
+class PartitionManager;
+class RoadNetworkPackageManager;
+class AgentPackageManager;
 
 /**
  * Base class of all agents and other "decision-making" entities.
@@ -26,7 +27,7 @@ class WorkGroup;
 class Entity {
 public:
 	///Construct an entity with an immutable ID
-	Entity(unsigned int id) : id(id), isSubscriptionListBuilt(false), startTime(0), currWorker(nullptr) {}
+	Entity(unsigned int id) : id(id), isSubscriptionListBuilt(false), startTime(0), currWorker(nullptr), isFake(false) {}
 	virtual ~Entity() {
 		if (currWorker) {
 			//Note: If a worker thread is still active for this agent, that's a major problem. But
@@ -56,6 +57,7 @@ public:
 	virtual void setStartTime(unsigned int value) { startTime = value; }
 	virtual unsigned int getStartTime() const { return startTime; }
 
+	virtual void output(frame_t frameNumber) = 0;
 
 protected:
 	/**
@@ -113,6 +115,15 @@ public:
 		}
 		return subscriptionList_cached;
 	}
+
+	//add by xuyan
+public:
+	friend class AgentPackageManager;
+	friend class RoadNetworkPackageManager;
+	friend class PartitionManager;
+	bool isFake;
+	bool receiveTheFakeEntityAgain;
+
 };
 
 

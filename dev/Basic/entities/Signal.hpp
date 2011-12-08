@@ -15,7 +15,7 @@
 #include "constants.h"
 #include "Agent.hpp"
 #include "metrics/Length.hpp"
-
+#include "util/SignalStatus.hpp"
 
 namespace sim_mob
 {
@@ -24,6 +24,7 @@ namespace sim_mob
 class Node;
 class Lane;
 class Crossing;
+class RoadNetworkPackageManager;
 
 /**
  * Basic Signal class.
@@ -95,8 +96,9 @@ public:
 	double getnextOffset() {return nextOffset;}
 
 	//Abstract methods. You will have to implement these eventually.
-	virtual bool update(frame_t frameNumber);
-	virtual void buildSubscriptionList() {}
+	virtual void update(frame_t frameNumber);
+	virtual void output(frame_t frameNumber);
+	virtual void buildSubscriptionList();
 
 
 	static double fmax(const double proDS[]);
@@ -220,6 +222,22 @@ public:
         void addSignalSite(centimeter_t xpos, centimeter_t ypos,
                            std::string const & typeCode, double bearing);
 
+        /**
+         * Furnish this Signal information about the position, type, and direction of its various
+         * signal equipment.
+         *
+         * There are various equipment associated with a traffic signal.  Examples are pedestrian
+         * signals, green filter arrow signals, overhead signals, B-signals (bus signals), etc.
+         * This method is used to supply information about the position, type, and direction
+         * of one equipment to the Signal object, which uses the information to determine its
+         * "responsibilities".  For example, at a 4-way traffic intersection, pedestrians may not
+         * be allowed to cross on one of the 4 sides.  In that case, no pedestrian signal will be
+         * erected in that direction and the Signal object should not "cater" to pedestrians on
+         * that side.
+         */
+        void addSignalSite(centimeter_t xpos, centimeter_t ypos,
+                           std::string const & typeCode, double bearing);
+
 private:
         Node const & node_;
 
@@ -251,8 +269,11 @@ private:
 
 	//int TC_for_Driver[4][3];
 	//Note: Making const* to make re-assigning easier. ~Seth
-	const int* TC_for_Driver[4];
-	const int* TC_for_Pedestrian;
+	//Need to serialize the attribute, fiexed array needed. (need to talk with Seth)
+	int TC_for_Driver[4][3];
+	int TC_for_Pedestrian[4];
+
+	sim_mob::Buffered<SignalStatus> buffered_TC;
 
 	//String representation, so that we can retrieve this information at any time.
 	std::string strRepr;
@@ -265,7 +286,8 @@ protected:
         void setupIndexMaps();
         void outputToVisualizer(frame_t frameNumber);
 
-
+public:
+        friend class sim_mob::RoadNetworkPackageManager;
 };
 
 }

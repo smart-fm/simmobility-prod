@@ -331,14 +331,19 @@ void sim_mob::Signal::outputToVisualizer(frame_t frameNumber)
                         LogOut(logout.str());
 }
 
-
-
 bool sim_mob :: Signal ::update(frame_t frameNumber)
 {
 	updateSignal (Density);
-        outputToVisualizer(frameNumber);
+    outputToVisualizer(frameNumber);
 
-	return true;
+	LogOut("Test Pedestrian:" << config.granSignalsTicks << ":" << frameNumber << " \n");
+	LogOut("Test Pedestrian 1:" << buffered_TC.get().TC_for_Driver[1][1] << "\n");
+	LogOut("Test Pedestrian 2:" << TC_for_Driver[1][1] << "\n");
+//
+	if (ConfigParams::GetInstance().is_run_on_many_computers == false)
+		output(frameNumber);
+
+    return true;
 }
 
 //Update Signal Light
@@ -656,11 +661,23 @@ void sim_mob :: Signal :: updateTrafficLights(){
 
 
 	//Update
-	for (size_t i=0; i<4; i++) {
-		TC_for_Driver[i] = TC_for_DriverTemplate[relID][i];
+	SignalStatus new_status;
+	for (size_t i = 0; i < 4; i++)
+	{
+		for (size_t j = 0; j < 3; j++)
+		{
+			TC_for_Driver[i][j] = TC_for_DriverTemplate[relID][i][j];
+			new_status.TC_for_Driver[i][j] = TC_for_DriverTemplate[relID][i][j];
+		}
 	}
-	TC_for_Pedestrian = TC_for_PedestrianTemplate[relID];
 
+	for (size_t i = 0; i < 4; i++)
+	{
+		TC_for_Pedestrian[i] = TC_for_PedestrianTemplate[relID][i];
+		new_status.TC_for_Pedestrian[i] = TC_for_PedestrianTemplate[relID][i];
+	}
+
+	buffered_TC.set(new_status);
 }
 
 namespace
@@ -709,7 +726,7 @@ const
     }
 
     size_t index = iter->second;
-    const int* threeIntegers = TC_for_Driver[index];
+    const int* threeIntegers = buffered_TC.get().TC_for_Driver[index];
     TrafficColor left = convertToTrafficColor(threeIntegers[0]);
     TrafficColor forward = convertToTrafficColor(threeIntegers[1]);
     TrafficColor right = convertToTrafficColor(threeIntegers[2]);
@@ -786,7 +803,7 @@ const
         throw stream.str();
     }
     size_t index = iter->second;
-    return convertToTrafficColor(TC_for_Pedestrian[index]);
+    return convertToTrafficColor(buffered_TC.get().TC_for_Pedestrian[index]);
 }
 
 
@@ -804,6 +821,13 @@ double sim_mob :: Signal :: fmax(const double proDS[])
 	return max;
 }
 
+void sim_mob :: Signal ::buildSubscriptionList()
+{
+	//First, add the x and y co-ordinates
+	Agent::buildSubscriptionList();
+
+	subscriptionList_cached.push_back(&buffered_TC);
+}
 
 //find the minimum among the max projected DS
 int sim_mob :: Signal :: fmin_ID(const double maxproDS[])
@@ -843,4 +867,85 @@ int sim_mob :: Signal :: calvote(unsigned int vote1,unsigned int vote2, unsigned
 		//else{}
 	}
 	return ID;
+}
+
+void sim_mob::Signal::output(frame_t frameNumber)
+{
+	std::stringstream logout;
+
+	logout << "(\"Signal\",";
+
+	logout << frameNumber << "," << this << ",{\"va\":\"";
+	for (int i = 0; i < 3; i++)
+	{
+		logout << TC_for_Driver[0][i];
+		if (i == 2)
+		{
+			logout << "\",";
+		}
+		else
+		{
+			logout << ",";
+		}
+	}
+	logout << "\"vb\":\"";
+	for (int i = 0; i < 3; i++)
+	{
+		logout << TC_for_Driver[1][i];
+		if (i == 2)
+		{
+			logout << "\",";
+		}
+		else
+		{
+			logout << ",";
+		}
+	}
+	logout << "\"vc\":\"";
+	for (int i = 0; i < 3; i++)
+	{
+		logout << TC_for_Driver[2][i];
+		if (i == 2)
+		{
+			logout << "\",";
+		}
+		else
+		{
+			logout << ",";
+		}
+	}
+	logout << "\"vd\":\"";
+	for (int i = 0; i < 3; i++)
+	{
+		logout << TC_for_Driver[3][i];
+		if (i == 2)
+		{
+			logout << "\",";
+		}
+		else
+		{
+			logout << ",";
+		}
+	}
+
+	logout << "\"pa\":\"" << TC_for_Pedestrian[0] << "\",";
+	logout << "\"pb\":\"" << TC_for_Pedestrian[1] << "\",";
+	logout << "\"pc\":\"" << TC_for_Pedestrian[2] << "\",";
+	logout << "\"pd\":\"" << TC_for_Pedestrian[3] << "\",";
+
+	logout << "\"xPos\":\"" << getNode().location->getX() << "\",";
+	logout << "\"yPos\":\"" << getNode().location->getY() << "\",";
+
+	if (this->isFake)
+	{
+		logout << "\"fake\":\"" << "true";
+	}
+	else
+	{
+		logout << "\"fake\":\"" << "false";
+	}
+
+
+	logout << "\"})" << std::endl;
+	LogOut(logout.str());
 }

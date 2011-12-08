@@ -40,6 +40,13 @@ bool sim_mob::Person::update(frame_t frameNumber)
 	return !isToBeRemoved();
 }
 
+void sim_mob::Person::output(frame_t frameNumber)
+{
+	if (currRole) {
+			currRole->output(frameNumber);
+		}
+}
+
 /*void sim_mob::Person::subscribe(sim_mob::BufferedDataManager* mgr, bool isNew) {
 	Agent::subscribe(mgr, isNew); //Get x/y subscribed.
 }*/

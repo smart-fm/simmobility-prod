@@ -69,6 +69,7 @@ public:
 	void scheduleEntityNow(Entity* entity);
 #endif
 
+	int getAgentSize();
 
 protected:
 	virtual void perform_main(frame_t frameNumber);
@@ -124,6 +125,5 @@ private:
 };
 
 }
-
 
 

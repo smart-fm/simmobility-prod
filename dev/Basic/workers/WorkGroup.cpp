@@ -184,6 +184,47 @@ void sim_mob::WorkGroup::wait()
 }
 
 
+void sim_mob::WorkGroup::removeAgentFromWorker(Entity* ag)
+{
+	typename map<Entity*, int>::iterator it = agentMapping.find(ag);
+	if (it != agentMapping.end()) {
+		int from_worker_id = it->second;
+		migrate(ag, from_worker_id, -1);
+	}
+}
+
+
+void sim_mob::WorkGroup::addAgentInWorker(Entity * ag)
+{
+	Agent* agent_test = dynamic_cast<Agent*> (ag);
+	if (agent_test) {
+		Agent* one_agent = const_cast<Agent*> (agent_test);
+
+		std::vector<Agent*>& agents = Agent::all_agents;
+		agents.push_back(one_agent);
+
+		int free_worker_id = getTheMostFreeWorkerID();
+		migrate(ag, -1, free_worker_id);
+	}
+}
+
+
+int sim_mob::WorkGroup::getTheMostFreeWorkerID()
+{
+	int minimum_task = std::numeric_limits<int>::max();
+	int minimum_index = 0;
+
+	for (size_t i = 0; i < workers.size(); i++) {
+		if (workers[i]->getAgentSize() < minimum_task) {
+			minimum_task = workers[i]->getAgentSize();
+			minimum_index = i;
+		}
+	}
+
+	return minimum_index;
+}
+
+
 
 void sim_mob::WorkGroup::waitExternAgain()
 {

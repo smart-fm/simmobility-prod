@@ -18,7 +18,7 @@ namespace sim_mob
 //Forward declarations
 class RoadSegment;
 class MultiNode;
-
+class RoadNetworkPackageManager;
 
 namespace aimsun
 {
@@ -68,7 +68,7 @@ protected:
 
 
 friend class sim_mob::aimsun::Loader;
-
+friend class sim_mob::RoadNetworkPackageManager;
 
 };
 

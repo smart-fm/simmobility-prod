@@ -10,7 +10,7 @@
 namespace sim_mob
 {
 
-
+class RoadNetworkPackageManager;
 
 /**
  * Templatized wrapper for data values with a fixed delay.
@@ -123,13 +123,20 @@ private:
 		bool canObserve(uint32_t currTimeMS, size_t delayMS){
 			return observedTime + delayMS <= currTimeMS;
 		}
+
+		//add by xuyan
+		public:
+		friend class sim_mob::RoadNetworkPackageManager;
 	};
 
 	//Private data
 	std::list<HistItem> history;
-	const size_t delayMS;
-	const bool reclaimPtrs;
+	size_t delayMS;
+	bool reclaimPtrs;
 
+
+public:
+	friend class sim_mob::RoadNetworkPackageManager;
 };
 
 

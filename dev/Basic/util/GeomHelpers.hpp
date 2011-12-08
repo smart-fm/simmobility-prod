@@ -17,6 +17,10 @@
 
 namespace sim_mob {
 class Point2D;
+class Signal;
+class RoadSegment;
+class Link;
+class Crossing;
 
 namespace aimsun {
 class Node;
@@ -99,6 +103,43 @@ sim_mob::Point2D LineLineIntersect(const sim_mob::Point2D& p1, const sim_mob::Po
  */
 std::vector<sim_mob::Point2D> ShiftPolyline(const std::vector<sim_mob::Point2D>& orig, double shiftAmt, bool shiftLeft=true);
 
+/**
+ * Calculates the projection of a point onto a line defined by two other points.
+ *
+ * \param pToProject The point whose projection should be found.
+ * \param pA One point defining the line to be projected upon.
+ * \param shiftLeft The other point defining the line to be projected upon.
+ *
+ * \return The projection of the point onto the line
+ *
+ * \note
+ * This is a projection onto a line, a line segment.  The returned point isn't necessarily between pA and pA.
+ */
+sim_mob::Point2D ProjectOntoLine(const sim_mob::Point2D& pToProject, const sim_mob::Point2D& pA, const sim_mob::Point2D& pB);
+
+/**
+ * Return the point that is perpendicular (with magnitude <magnitude>) to the vector that begins at <origin> and
+ * passes through <direction>. This point is left of the vector if <magnitude> is positive.
+ *
+ * \param origin The start point of the vector.
+ * \param direction A point the vector passes through.
+ * \param magnitude Desired distance from the vector (left of the vector if positive)
+ *
+ * \return The calculated side point.
+ */
+sim_mob::Point2D getSidePoint(const Point2D& origin, const Point2D& direction, double magnitude);
+
+//add by xuyan
+//Calculate the middle point, given the start/end point and the offset.
+//used to get the boundary box
+sim_mob::Point2D getMiddlePoint2D(sim_mob::Point2D* start_point, sim_mob::Point2D* end_point, double offset);
+
+//add by xuyan
+//Suggest to be part of StreetDirectory.
+const sim_mob::Link* getLinkBetweenNodes(sim_mob::Point2D* start_point, sim_mob::Point2D* end_point);
+const sim_mob::RoadSegment* getRoadSegmentBasedOnNodes(sim_mob::Point2D* start_point, sim_mob::Point2D* end_point);
+const sim_mob::Signal* getSignalBasedOnNode(sim_mob::Point2D* one_point);
+const sim_mob::Crossing* getCrossingBasedOnNode(sim_mob::Point2D* one_near_point, sim_mob::Point2D* two_near_point, sim_mob::Point2D* one_far_point, sim_mob::Point2D* two_far_point);
 
 /**
  * Calculates the projection of a point onto a line defined by two other points.

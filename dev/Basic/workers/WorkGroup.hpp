@@ -72,6 +72,14 @@ public:
 
 	void scheduleEntForRemoval(Entity* ag);
 
+//add by xuyan
+public:
+	void removeAgentFromWorker(EntityType * ag);
+	void addAgentInWorker(EntityType * ag);
+
+	std::map<EntityType*, int> agentMapping;
+	int getTheMostFreeWorkerID();
+
 
 protected:
 	//Shared barrier

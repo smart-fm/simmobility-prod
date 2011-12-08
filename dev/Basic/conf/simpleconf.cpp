@@ -831,9 +831,10 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& agents)
     for (vector<string>::iterator it=loadAgentOrder.begin(); it!=loadAgentOrder.end(); it++) {
     	if ((*it) == "database") {
     	    //Create an agent for each Trip Chain in the database.
-    	    if (!generateAgentsFromTripChain(agents)) {
+    		//TEMP: Disabled by XuYan
+    	    /*if (!generateAgentsFromTripChain(agents)) {
     	    	return "Couldn't generate agents from trip chains.";
-    	    }
+    	    }*/
     	    cout <<"Loaded Database Agents (from Trip Chains)." <<endl;
     	} else if ((*it) == "drivers") {
     	    if (!loadXMLAgents(document, agents, "driver")) {

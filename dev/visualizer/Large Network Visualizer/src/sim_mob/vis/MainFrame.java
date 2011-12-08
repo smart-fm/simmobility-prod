@@ -315,7 +315,7 @@ public class MainFrame extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				
+				newViewPnl.zoomWithButtonClick(1);
 			}
 			
 		});
@@ -324,9 +324,9 @@ public class MainFrame extends JFrame {
 
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				
+				newViewPnl.zoomWithButtonClick(-1);
 			}
-			
+
 		});
 		
 		openEmbeddedFile.addActionListener(new ActionListener() {

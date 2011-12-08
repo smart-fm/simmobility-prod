@@ -79,8 +79,8 @@ public class NetworkVisualizer {
 		//Each tick increases zoom by 10%
 		redrawAtScale(currPercentZoom + currPercentZoom*number*0.10);
 		
-		//System.out.println("zoom number: "+number);
-		//System.out.println("current percent zoom: " + currPercentZoom);
+		//		System.out.println("currPercentZoom: "+currPercentZoom +" currPercentZoom*number*0.10: " +currPercentZoom*number*0.10+ " result " + currPercentZoom + currPercentZoom*number*0.10);
+		
 	}
 	
 	public void toggleFakeAgent(boolean drawFakeAgent){

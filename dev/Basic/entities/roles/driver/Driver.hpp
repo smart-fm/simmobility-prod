@@ -6,6 +6,8 @@
 #include <math.h>
 #include <set>
 
+#include "constants.h"
+
 #include "entities/roles/Role.hpp"
 #include "buffering/Buffered.hpp"
 #include "geospatial/StreetDirectory.hpp"
@@ -47,7 +49,7 @@ private:
 
 //Constructor and overridden methods.
 public:
-	Driver (Agent* parent);			//to initiate
+	Driver(Person* parent, unsigned int reacTime_LeadingVehicle, unsigned int reacTime_SubjectVehicle, unsigned int reacTime_Gap);		//to initiate
 	virtual ~Driver();
 
 	virtual void update(frame_t frameNumber);
@@ -62,6 +64,7 @@ public:
 
 //Basic data
 private:
+	unsigned int currTimeMS;
 	//Pointer to the vehicle this driver is controlling.
 	Vehicle* vehicle;
 
@@ -94,9 +97,9 @@ private:
 
 	//More update methods
 	void update_first_frame(UpdateParams& params, frame_t frameNumber);    ///<Called the first time a frame after start_time is reached.
-	void update_sensors(UpdateParams& params, frame_t frameNumber);        ///<Called to update things we _sense_, like nearby vehicles.
-	void update_movement(UpdateParams& params, frame_t frameNumber);       ///<Called to move vehicles forward.
-	void update_post_movement(UpdateParams& params, frame_t frameNumber);  ///<Called to deal with the consequences of moving forwards.
+	bool update_sensors(UpdateParams& params, frame_t frameNumber);        ///<Called to update things we _sense_, like nearby vehicles.
+	bool update_movement(UpdateParams& params, frame_t frameNumber);       ///<Called to move vehicles forward.
+	bool update_post_movement(UpdateParams& params, frame_t frameNumber);  ///<Called to deal with the consequences of moving forwards.
 
 	const Link* desLink;
     double currLinkOffset;
@@ -134,9 +137,9 @@ private:
 	double updatePositionOnLink(UpdateParams& p);
 	void setBackToOrigin();
 
-	void updateNearbyAgents(UpdateParams& params) const;
-	void updateNearbyDriver(UpdateParams& params, const sim_mob::Person* other, const sim_mob::Driver* other_driver) const;
-	void updateNearbyPedestrian(UpdateParams& params, const sim_mob::Person* other, const sim_mob::Pedestrian* pedestrian) const;
+	void updateNearbyAgents(UpdateParams& params);
+	void updateNearbyDriver(UpdateParams& params, const sim_mob::Person* other, const sim_mob::Driver* other_driver);
+	void updateNearbyPedestrian(UpdateParams& params, const sim_mob::Person* other, const sim_mob::Pedestrian* pedestrian);
 
 	//void updateCurrLaneLength(UpdateParams& p);
 	void updateDisToLaneEnd();
@@ -149,7 +152,6 @@ private:
 
 	void initializePath();
 	void findCrossing(UpdateParams& p);
-
 
 	/***********FOR DRIVING BEHAVIOR MODEL**************/
 private:

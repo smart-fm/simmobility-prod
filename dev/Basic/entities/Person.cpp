@@ -1,13 +1,12 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "Person.hpp"
-//#include "SimpleWorkGroup.hpp"
 
 //For debugging
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "util/DebugFlags.hpp"
-#include "WorkGroup.hpp"
+#include "workers/WorkGroup.hpp"
 
 using std::vector;
 using namespace sim_mob;

@@ -127,6 +127,7 @@ vector<string> ReadSpaceSepArray(TiXmlHandle& handle, const std::string& attrNam
 
 bool generateAgentsFromTripChain(std::vector<Agent*>& agents)
 {
+	ConfigParams& config = ConfigParams::GetInstance();
 	const vector<TripChain*>& tcs = ConfigParams::GetInstance().getTripChains();
 	for (vector<TripChain*>::const_iterator it=tcs.begin(); it!=tcs.end(); it++) {
 		//Create a new agent, add it to the list of agents.
@@ -135,7 +136,7 @@ bool generateAgentsFromTripChain(std::vector<Agent*>& agents)
 
 		//Set its mode.
 		if ((*it)->mode == "Car") {
-			curr->changeRole(new Driver(curr));
+			curr->changeRole(new Driver(curr,config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
 		} else if ((*it)->mode == "Walk") {
 			curr->changeRole(new Pedestrian(curr));
 		} else {
@@ -175,6 +176,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 		return true;
 	}
 
+	ConfigParams& config = ConfigParams::GetInstance();
 	//Loop through all agents of this type
 	for (;node;node=node->NextSiblingElement()) {
 		Person* agent = nullptr;
@@ -205,7 +207,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 				if (agentType=="pedestrian") {
 					agent->changeRole(new Pedestrian(agent));
 				} else if (agentType=="driver") {
-					agent->changeRole(new Driver(agent));
+					agent->changeRole(new Driver(agent,config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
 				}
 			}
 
@@ -240,11 +242,11 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 					return false;
 				}
 				foundDestPos = true;
-			}
-			else if (name=="time"){
+			} else if (name=="time") {
 				agent->startTime=valueI;
-			}
-			else {
+			} else if (name=="special") {
+				agent->specialStr = value;
+			} else {
 				return false;
 			}
 		}
@@ -271,7 +273,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 }
 
 
-bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal const *>& all_signals, const std::string& signalKeyID)
+bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal *>& all_signals, const std::string& signalKeyID)
 {
 	//Quick check.
 	if (signalKeyID!="signal") {
@@ -489,7 +491,7 @@ void PrintDB_Network()
 
 
 	//Print the Signal representation.
-	for (vector<Signal const *>::const_iterator it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++) {
+	for (vector<Signal*>::const_iterator it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++) {
 		LogOutNotSync((*it)->toString() <<endl);
 	}
 
@@ -585,10 +587,13 @@ void PrintDB_Network()
 		}
 
 		//Save crossing info for later
-		RoadItemAndOffsetPair res = (*it)->nextObstacle(0, true);
-		if (res.item) {
-			const Crossing* resC  = dynamic_cast<const Crossing*>(res.item);
-			if (resC) {
+		const std::map<centimeter_t, const RoadItem*>& mapCrossings = (*it)->obstacles;
+		for(std::map<centimeter_t, const RoadItem*>::const_iterator itCrossings = mapCrossings.begin();
+				itCrossings != mapCrossings.end(); ++itCrossings)
+		{
+			const RoadItem* ri = itCrossings->second;
+			const Crossing* resC = dynamic_cast<const Crossing*>(ri);
+				if (resC) {
 				cachedCrossings.insert(resC);
 			} else {
 				std::cout <<"NOTE: Unknown obstacle!\n";
@@ -674,9 +679,19 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
 	int totalRuntime = ReadGranularity(handle, "total_runtime");
 	int totalWarmup = ReadGranularity(handle, "total_warmup");
 
+	//Save reaction time parameters
+	int reacTime_LeadingVehicle = ReadGranularity(handle,"reacTime_LeadingVehicle");
+	int reacTime_SubjectVehicle = ReadGranularity(handle,"reacTime_SubjectVehicle");
+	int reacTime_Gap = ReadGranularity(handle,"reacTime_Gap");
+
+
 	//Save simulation start time
 	TiXmlElement* node = handle.FirstChild("start_time").ToElement();
 	const char* simStartStr = node ? node->Attribute("value") : nullptr;
+
+
+
+
 
 	//Save more granularities
 	handle = TiXmlHandle(&document);
@@ -752,6 +767,9 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     	config.granPathsTicks = granPaths/baseGran;
     	config.granDecompTicks = granDecomp/baseGran;
     	config.simStartTime = DailyTime(simStartStr);
+    	config.reacTime_LeadingVehicle = reacTime_LeadingVehicle;
+    	config.reacTime_SubjectVehicle = reacTime_SubjectVehicle;
+    	config.reacTime_Gap = reacTime_Gap;
     }
 
 

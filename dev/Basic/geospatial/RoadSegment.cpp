@@ -109,6 +109,34 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 	width += swLane->width_;
 	laneEdgePolylines_cached.push_back(makeLaneEdgeFromPolyline(lanes.back(), false));
 
+	//Add an extra sidewalk on the other side if it's a road segment on a one-way link.
+	sim_mob::Link* parentLink = getLink();
+	if(parentLink)
+	{
+		//Check whether the link is one-way
+		if(parentLink->getPath(false).empty() || parentLink->getPath(true).empty())
+		{
+			for(size_t i = 0; i < lanes.size(); ++i)
+			{
+				lanes[i]->laneID_++;
+			}
+
+			//Add a sidewalk on the other side of the road segment
+			Lane* swLane2 = new Lane(this, 0);
+			swLane2->is_pedestrian_lane(true);
+			swLane2->width_ = lanes.front()->width_/2;
+			swLane2->polyline_ = sim_mob::ShiftPolyline(lanes.front()->polyline_, lanes.front()->getWidth()/2+swLane2->getWidth()/2, false);
+			lanes.insert(lanes.begin(), swLane2);
+			width += swLane2->width_;
+			laneEdgePolylines_cached.insert(laneEdgePolylines_cached.begin(), makeLaneEdgeFromPolyline(lanes[0], true));
+
+			for(size_t i = 0; i < lanes.size(); ++i)
+			{
+				int j = lanes[i]->laneID_;
+				int y = j;
+			}
+		}
+	}
 }
 
 

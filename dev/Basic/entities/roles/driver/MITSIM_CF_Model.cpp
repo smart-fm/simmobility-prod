@@ -85,13 +85,13 @@ double speed;//if reaction time disable, speed is current velocity
 
 double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(UpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {
-	//speed = p.perceivedFwdVelocity/100;
-	speed = p.currSpeed;
+	speed = p.perceivedFwdVelocity/100;
+//	speed = p.currSpeed;
 	//Set our mode.
 	ACCEL_MODE mode;
 	if(p.nvFwd.distance != 5000 && p.nvFwd.distance <= p.trafficSignalStopDistance && p.nvFwd.distance <= p.npedFwd.distance) {
-		p.space = p.nvFwd.distance/100;
-		//p.space = p.perceivedDistToFwdCar/100;
+//		p.space = p.nvFwd.distance/100;
+		p.space = p.perceivedDistToFwdCar/100;
 		mode = AM_VEHICLE;
 	} else if(p.npedFwd.distance != 5000 && p.npedFwd.distance <= p.nvFwd.distance && p.npedFwd.distance <= p.trafficSignalStopDistance) {
 		p.space = p.npedFwd.distance/100;

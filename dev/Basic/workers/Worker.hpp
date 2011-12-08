@@ -22,8 +22,8 @@
 #include <boost/thread.hpp>
 #include <boost/function.hpp>
 
-//#include "WorkGroup.hpp"
-//#include "entities/Agent.hpp"
+#include "constants.h"
+
 #include "entities/Entity.hpp"
 
 #include "metrics/Frame.hpp"
@@ -35,12 +35,10 @@
 namespace sim_mob
 {
 
-template <class EntityType>
-class SimpleWorkGroup;
+class WorkGroup;
 
 
 
-template <class EntityType>
 class Worker : public BufferedDataManager {
 public:
 	//! The function type for the 1st parameter to the Worker constructor.
@@ -49,8 +47,9 @@ public:
 	//! to construct a Worker object.  This procedure will be called repeatedly; the 1st
 	//! argument will a reference to the constructed Worker object and the 2nd argument
 	//! will be a strictly monotonic increasing number which represent the time-step.
-	typedef boost::function<void(Worker<EntityType>& worker, frame_t frameNumber)> ActionFunction;
-	Worker(SimpleWorkGroup<EntityType>* parent, ActionFunction* action =nullptr, boost::barrier* internal_barr =nullptr, boost::barrier* external_barr =nullptr, frame_t endTick=0, frame_t tickStep=0, bool auraManagerActive=false);
+	typedef boost::function<void(Worker& worker, frame_t frameNumber)> ActionFunction;
+
+	Worker(WorkGroup* parent, boost::barrier& internal_barr, boost::barrier& external_barr, ActionFunction* action =nullptr, frame_t endTick=0, frame_t tickStep=0, bool auraManagerActive=false);
 	virtual ~Worker();
 
 	//Thread-style operations
@@ -59,12 +58,16 @@ public:
 	void join();
 
 	//Manage entities
-	void addEntity(EntityType* entity);
-	void remEntity(EntityType* entity);
-	std::vector<EntityType*>& getEntities();
+	void addEntity(Entity* entity);
+	void remEntity(Entity* entity);
+	std::vector<Entity*>& getEntities();
 
-	void scheduleForAddition(EntityType* entity);
-	void scheduleForRemoval(EntityType* entity);
+#ifndef DISABLE_DYNAMIC_DISPATCH
+	void scheduleForAddition(Entity* entity);
+	void scheduleForRemoval(Entity* entity);
+#else
+	void scheduleAgentNow(Entity* entity);
+#endif
 
 
 protected:
@@ -75,22 +78,25 @@ protected:
 private:
 	void barrier_mgmt();
 
+	void migrateOut(Entity& ent);
+	void migrateIn(Entity& ent);
+
 
 protected:
 	//Properties
-	boost::barrier* internal_barr;
-	boost::barrier* external_barr;
+	boost::barrier& internal_barr;
+	boost::barrier& external_barr;
 	ActionFunction* action;
 
 	//Time management
-	frame_t currTick;
+	//frame_t currTick;
 	frame_t endTick;
-        frame_t tickStep;
+	frame_t tickStep;
 
 	bool auraManagerActive;
 
 	//Saved
-	SimpleWorkGroup<EntityType>* const parent;
+	WorkGroup* const parent;
 
 	//For migration. The first array is accessed by WorkGroup in the flip() phase, and should be
 	//   emptied by this worker at the beginning of the update() phase.
@@ -98,22 +104,23 @@ protected:
 	//   be cleared by this worker some time before the next update. For now we clear it right after
 	//   update(), but it might make sense to clear directly before update(), so that the WorkGroup
 	//   has the ability to schedule Agents for deletion in flip().
-	std::vector<EntityType*> toBeAdded;
-	std::vector<EntityType*> toBeRemoved;
-
-
-public:
-	sim_mob::Buffered<bool> active;
+#ifndef DISABLE_DYNAMIC_DISPATCH
+	std::vector<Entity*> toBeAdded;
+	std::vector<Entity*> toBeRemoved;
+#endif
 
 private:
-	//Thread management
+	//Helper methods
+#ifndef DISABLE_DYNAMIC_DISPATCH
+	void addPendingAgents();
+	void removePendingAgents();
+#endif
+
+	///The main thread which this Worker wraps
 	boost::thread main_thread;
 
-	//Object management
-	std::vector<EntityType*> data;
-
-	//Entities to remove after this time tick.
-	//std::vector<EntityType*> toBeRemoved;
+	///Entities managed by this worker
+	std::vector<Entity*> managedEntities;
 };
 
 }

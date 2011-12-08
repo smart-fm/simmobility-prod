@@ -9,11 +9,13 @@ using namespace sim_mob;
 using std::vector;
 using std::priority_queue;
 
-
+#ifndef DISABLE_DYNAMIC_DISPATCH
 boost::mutex sim_mob::Agent::all_agents_lock;
-vector<Agent*> sim_mob::Agent::all_agents;
-//WorkGroup* sim_mob::Agent::TMP_AgentWorkGroup(nullptr);
 priority_queue<Agent*, vector<Agent*>, sim_mob::cmp_agent_start> sim_mob::Agent::pending_agents;
+#endif
+
+vector<Agent*> sim_mob::Agent::all_agents;
+
 
 
 //Implementation of our comparison function for Agents by start time.

@@ -88,19 +88,105 @@ size_t getLaneIndex(const Lane* l)
 }
 
 
+//PathA: Small loop (south)
+const Point2D SpecialPathA[] = {
+	Point2D(37218351,14335255),   //AIMSUN 75780
+	Point2D(37227139,14327875),   //AIMSUN 91218
+	Point2D(37250760,14355120),   //AIMSUN 66508
+	Point2D(37241080,14362955),   //AIMSUN 61688
+};
+
+//PathB: Large loop
+const Point2D SpecialPathB[] = {
+	Point2D(37218351,14335255),   //AIMSUN 75780
+	Point2D(37227139,14327875),   //AIMSUN 91218
+	Point2D(37250760,14355120),   //AIMSUN 66508
+	Point2D(37270984,14378959),   //AIMSUN 45666
+	Point2D(37262150,14386897),   //AIMSUN 45690
+	Point2D(37241080,14362955),   //AIMSUN 61688
+};
+
+
+//Path is in multi-node positions
+vector<WayPoint> ConvertToWaypoints(const Node* origin, const vector<Point2D>& path)
+{
+	vector<WayPoint> res;
+
+	//Double-check our first node. Also ensure we have at least 2 nodes (or a path can't be found).
+	if (path.size()<2 || origin->location->getX()!=path.front().getX() || origin->location->getY()!=path.front().getY()) {
+		throw std::runtime_error("Special path does not begin on origin.");
+	}
+
+	//Starting at the origin, find the outgoing Link to each node in the list. Then loop around back to the origin.
+	const MultiNode* curr = dynamic_cast<const MultiNode*>(origin);
+	for (vector<Point2D>::const_iterator it=path.begin(); it!=path.end(); it++) {
+		if (!curr) {
+			throw std::runtime_error("Not a multinode (in special path).");
+		}
+
+		//Search for the Link to the next point.
+		Point2D nextPt = it+1==path.end()?path.front():*(it+1);
+		std::pair<const Link*, bool> nextLink(nullptr,false); //bool == fwd?
+		const set<RoadSegment*>& segs = curr->getRoadSegments();
+		for (set<RoadSegment*>::const_iterator segIt=segs.begin(); segIt!=segs.end(); segIt++) {
+			const Link* ln = (*segIt)->getLink();
+			if (ln->getStart()->location->getX()==nextPt.getX() && ln->getStart()->location->getY()==nextPt.getY()) {
+				nextLink.first = ln;
+				nextLink.second = false;
+				break;
+			} else if (ln->getEnd()->location->getX()==nextPt.getX() && ln->getEnd()->location->getY()==nextPt.getY()) {
+				nextLink.first = ln;
+				nextLink.second = true;
+				break;
+			}
+		}
+		if (!nextLink.first) {
+			throw std::runtime_error("Couldn't find a Link between nodes in the Special path");
+		}
+
+		//Add each Segment in the Link's fwd/rev path to the result.
+		const vector<RoadSegment*>& segPath = nextLink.first->getPath(nextLink.second);
+		for (vector<RoadSegment*>::const_iterator pthIt=segPath.begin(); pthIt!=segPath.end(); pthIt++) {
+			res.push_back(WayPoint(*pthIt));
+		}
+
+		//Continue
+		curr = dynamic_cast<const MultiNode*>(nextLink.second ? nextLink.first->getEnd() : nextLink.first->getStart());
+	}
+
+	return res;
+}
+
+
+//For the NS3 paths
+vector<WayPoint> LoadSpecialPath(const Node* origin, char pathLetter)
+{
+	if (pathLetter=='A') {
+		size_t sz = sizeof(SpecialPathA) / sizeof(SpecialPathA[0]);
+		return ConvertToWaypoints(origin, vector<Point2D>(SpecialPathA, &SpecialPathA[sz]));
+	} else if (pathLetter=='B') {
+		size_t sz = sizeof(SpecialPathB) / sizeof(SpecialPathB[0]);
+		return ConvertToWaypoints(origin, vector<Point2D>(SpecialPathB, &SpecialPathB[sz]));
+	} else {
+		throw std::runtime_error("Invalid special path.");
+	}
+}
+
+
+
 } //End anon namespace
 
 
 
 //initiate
-sim_mob::Driver::Driver(Agent* parent) : Role(parent), currLane_(nullptr), currLaneOffset_(0),
-	currLaneLength_(0), isInIntersection(false), vehicle(nullptr), perceivedVelocity(reactTime, true),
-	perceivedVelocityOfFwdCar(reactTime, true), perceivedAccelerationOfFwdCar(reactTime, true),perceivedDistToFwdCar(reactTime, true)
+sim_mob::Driver::Driver(Person* parent, unsigned int reacTime_LeadingVehicle,
+		unsigned int reacTime_SubjectVehicle, unsigned int reacTime_Gap) : Role(parent), currLane_(nullptr), currLaneOffset_(0),
+	currLaneLength_(0), isInIntersection(false), vehicle(nullptr), perceivedVelocity(reacTime_SubjectVehicle, true),
+	perceivedVelocityOfFwdCar(reacTime_LeadingVehicle, true), perceivedAccelerationOfFwdCar(reacTime_LeadingVehicle, true),perceivedDistToFwdCar(reacTime_Gap, true)
 {
 	if (Debug::Drivers) { DebugStream <<"Driver starting: " <<parent->getId() <<endl; }
 
-	//Set default speed in the range of 10m/s to 19m/s
-	//speed = 0;//1000*(1+((double)(rand()%10))/10);
+	trafficSignal = nullptr;
 
 	//Initialize our models. These should be swapable later.
 	lcModel = new MITSIM_LC_Model();
@@ -223,11 +309,11 @@ void sim_mob::Driver::update_first_frame(UpdateParams& params, frame_t frameNumb
 
 
 
-void sim_mob::Driver::update_sensors(UpdateParams& params, frame_t frameNumber)
+bool sim_mob::Driver::update_sensors(UpdateParams& params, frame_t frameNumber)
 {
 	//Are we done?
 	if (vehicle->isDone()) {
-		return;
+		return false;
 	}
 
 	//Save the nearest agents in your lane and the surrounding lanes, stored by their
@@ -241,11 +327,13 @@ void sim_mob::Driver::update_sensors(UpdateParams& params, frame_t frameNumber)
 	if(!vehicle->getNextSegment()&&!vehicle->isInIntersection()) {
 		setTrafficSignalParams(params);
 	}
+
+	return true;
 }
 
 
 
-void sim_mob::Driver::update_movement(UpdateParams& params, frame_t frameNumber)
+bool sim_mob::Driver::update_movement(UpdateParams& params, frame_t frameNumber)
 {
 	//If reach the goal, get back to the origin
 	if(vehicle->isDone()){
@@ -257,7 +345,7 @@ void sim_mob::Driver::update_movement(UpdateParams& params, frame_t frameNumber)
 			DebugStream.str("");
 		}
 
-		return;
+		return false;
 	}
 
 	//Save some values which might not be available later.
@@ -287,14 +375,16 @@ void sim_mob::Driver::update_movement(UpdateParams& params, frame_t frameNumber)
 	if (!vehicle->isDone()) {
 		params.justChangedToNewSegment = (vehicle->getCurrSegment()!=prevSegment);
 	}
+
+	return true;
 }
 
 
-void sim_mob::Driver::update_post_movement(UpdateParams& params, frame_t frameNumber)
+bool sim_mob::Driver::update_post_movement(UpdateParams& params, frame_t frameNumber)
 {
 	//Are we done?
 	if (vehicle->isDone()) {
-		return;
+		return false;
 	}
 
 	//Has the segment changed?
@@ -311,7 +401,13 @@ void sim_mob::Driver::update_post_movement(UpdateParams& params, frame_t frameNu
 		//Calculate a trajectory and init movement on that intersection.
 		calculateIntersectionTrajectory(params.TEMP_lastKnownPolypoint, params.overflowIntoIntersection);
 		intersectionVelocityUpdate();
+
+		//Fix: We need to perform this calculation at least once or we won't have a heading within the intersection.
+		DPoint res = intModel->continueDriving(0);
+		vehicle->setPositionInIntersection(res.x, res.y);
 	}
+
+	return true;
 }
 
 
@@ -320,14 +416,18 @@ void sim_mob::Driver::update_post_movement(UpdateParams& params, frame_t frameNu
 void sim_mob::Driver::update(frame_t frameNumber)
 {
 	//Convert the current time to ms
-	unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
+	currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
 
 	//Do nothing?
-	if(currTimeMS<parent->startTime) {
+	if(frameNumber<parent->startTime) {
+#ifndef DISABLE_DYNAMIC_DISPATCH
 		std::stringstream msg;
 		msg <<"Driver(" <<parent->getId() <<") specifies a start time of: " <<parent->startTime <<" but it is currently: "
 			<<currTimeMS <<"; this indicates an error, and should be handled automatically.";
 		throw std::runtime_error(msg.str().c_str());
+#else
+		return;
+#endif
 	}
 
 	//Create a new set of local parameters for this frame update.
@@ -336,6 +436,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	//First frame update
 	if (firstFrameTick) {
 		//Helper check; not needed once we trust our Workers.
+#ifndef DISABLE_DYNAMIC_DISPATCH
 		if (abs(currTimeMS-parent->startTime)>=ConfigParams::GetInstance().baseGranMS) {
 			std::stringstream msg;
 			msg <<"Driver was not started within one timespan of its requested start time.";
@@ -343,6 +444,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 			msg <<"Agent ID: " <<parent->getId() <<"\n";
 			throw std::runtime_error(msg.str().c_str());
 		}
+#endif
 
 		update_first_frame(params, frameNumber);
 		firstFrameTick = false;
@@ -350,44 +452,34 @@ void sim_mob::Driver::update(frame_t frameNumber)
 
 	//Are we done already?
 	if (vehicle->isDone()) {
+#ifndef DISABLE_DYNAMIC_DISPATCH
 		if (parent->isToBeRemoved()) {
 			throw std::runtime_error("Driver is already done, but hasn't been removed.");
 		}
 		parent->setToBeRemoved();
+#else
+		return;
+#endif
 	}
 
 	//Just a bit glitchy...
 	updateAdjacentLanes(params);
 
-	//Update your perceptions, and retrieved their current "sensed" values.
-	perceivedVelocity.delay(new DPoint(vehicle->getVelocity(), vehicle->getLatVelocity()), currTimeMS);
-	if(params.nvFwd.distance!=5000)
-	{
-		perceivedVelocityOfFwdCar.delay(new DPoint(params.nvFwd.driver->getVehicle()->getVelocity(),params.nvFwd.driver->getVehicle()->getLatVelocity()),currTimeMS);
-		perceivedAccelerationOfFwdCar.delay(params.nvFwd.driver->getVehicle()->getAcceleration(),currTimeMS);
-		perceivedDistToFwdCar.delay(params.nvFwd.distance,currTimeMS);
-
-		if (perceivedVelocity.can_sense(currTimeMS)) {
-			params.perceivedFwdVelocity = perceivedVelocity.sense(currTimeMS)->x;
-			params.perceivedLatVelocity = perceivedVelocity.sense(currTimeMS)->y;
-		}
-		if(perceivedVelocityOfFwdCar.can_sense(currTimeMS)){
-			params.perceivedFwdVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense(currTimeMS)->x;
-			params.perceivedLatVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense(currTimeMS)->y;
-		}
-		if(perceivedAccelerationOfFwdCar.can_sense(currTimeMS))
-			params.perceivedAccelerationOfFwdCar = perceivedAccelerationOfFwdCar.sense(currTimeMS);
-		if(perceivedDistToFwdCar.can_sense(currTimeMS))
-			params.perceivedDistToFwdCar = perceivedDistToFwdCar.sense(currTimeMS);
+	//retrieved their current "sensed" values.
+	if (perceivedVelocity.can_sense(currTimeMS)) {
+		params.perceivedFwdVelocity = perceivedVelocity.sense(currTimeMS)->x;
+		params.perceivedLatVelocity = perceivedVelocity.sense(currTimeMS)->y;
 	}
-
 	//General update behavior.
 	//Note: For now, most updates cannot take place unless there is a Lane and vehicle.
 	if (params.currLane && vehicle) {
-		update_sensors(params, frameNumber);
-		update_movement(params, frameNumber);
-		update_post_movement(params, frameNumber);
-		setParentBufferedData();  //Update parent data
+		if (   update_sensors(params, frameNumber)
+			&& update_movement(params, frameNumber)
+			&& update_post_movement(params, frameNumber)) {
+
+			//Update parent data. Only works if we're not "done" for a bad reason.
+			setParentBufferedData();
+		}
 	}
 
 	//Update our Buffered types
@@ -402,7 +494,8 @@ void sim_mob::Driver::update(frame_t frameNumber)
 		currLaneLength_.set(vehicle->getCurrLinkLaneZeroLength());
 	}
 	isInIntersection.set(vehicle->isInIntersection());
-
+	//Update your perceptions
+	perceivedVelocity.delay(new DPoint(vehicle->getVelocity(), vehicle->getLatVelocity()), currTimeMS);
 	//Print output for this frame.
 	if (!vehicle->isDone()) {
 		output(params, frameNumber);
@@ -421,6 +514,8 @@ void sim_mob::Driver::output(UpdateParams& p, frame_t frameNumber)
 			<<"\"xPos\":\""<<static_cast<int>(vehicle->getX())
 			<<"\",\"yPos\":\""<<static_cast<int>(vehicle->getY())
 			<<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI))
+			<<"\",\"length\":\""<<static_cast<int>(vehicle->length)
+			<<"\",\"width\":\""<<static_cast<int>(vehicle->width)
 			<<"\"})"<<std::endl);
 }
 
@@ -656,6 +751,11 @@ void sim_mob::Driver::chooseNextLaneForNextLink(UpdateParams& p)
 				targetLaneIndex = fallbackIndex;
 			}
 		}
+
+		//We should have generated a nextLaneInNextLink here.
+		if (!nextLaneInNextLink) {
+			throw std::runtime_error("Can't find nextLaneInNextLink.");
+		}
 	}
 }
 
@@ -664,6 +764,8 @@ void sim_mob::Driver::calculateIntersectionTrajectory(DPoint movingFrom, double 
 {
 	//If we have no target link, we have no target trajectory.
 	if (!nextLaneInNextLink) {
+		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+		std::cout <<"WARNING: nextLaneInNextLink has not been set; can't calculate intersection trajectory." <<std::endl;
 		return;
 	}
 
@@ -672,17 +774,6 @@ void sim_mob::Driver::calculateIntersectionTrajectory(DPoint movingFrom, double 
 
 	//Compute a movement trajectory.
 	intModel->startDriving(movingFrom, DPoint(entry.getX(), entry.getY()), overflow);
-
-	//Temp update
-	DPoint curr = intModel->continueDriving(0);
-	vehicle->setPositionInIntersection(curr.x, curr.y);
-
-	//Typical results: 45m. Why is this so far off?
-	/*double displacement = dist(entry.getX(), entry.getY(), vehicle->getX(), vehicle->getY());
-	{
-		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-		std::cout <<"Overshot intersection by: " <<displacement <<" cm\n";
-	}*/
 }
 
 
@@ -697,9 +788,37 @@ void sim_mob::Driver::initializePath()
 	goal.point = *goal.node->location;
 
 	//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
-	//TODO: Start in lane 0?
+	vector<WayPoint> path;
+	Person* parentP = dynamic_cast<Person*>(parent);
+	if (!parentP || parentP->specialStr.empty()) {
+		path = StreetDirectory::instance().shortestDrivingPath(*origin.node, *goal.node);
+	} else {
+		//In special cases, we may be manually specifying a loop, e.g., "loop:A:5" in the special string.
+		size_t cInd = parentP->specialStr.find(':');
+		if (cInd!=string::npos && cInd+1<parentP->specialStr.length()) {
+			//Repeat this path X times.
+			vector<WayPoint> part = LoadSpecialPath(parent->originNode, parentP->specialStr[cInd+1]);
+
+			cInd = parentP->specialStr.find(':', cInd+1);
+			if (cInd!=string::npos && cInd+1<parentP->specialStr.length()) {
+				int amount = -1;
+				std::istringstream(parentP->specialStr.substr(cInd+1, string::npos)) >> amount;
+
+				for (size_t i=0; static_cast<int>(i)<amount && amount>1; i++) {
+					path.insert(path.end(), part.begin(), part.end());
+				}
+			}
+
+			//Just in case one of these failed.
+			if (path.empty()) {
+				path = part;
+			}
+		}
+	}
+
 	//A non-null vehicle means we are moving.
-	vehicle = new Vehicle(StreetDirectory::instance().shortestDrivingPath(*origin.node, *goal.node), 0);
+	//TODO: Start in lane 0?
+	vehicle = new Vehicle(path, 0);
 }
 
 void sim_mob::Driver::setOrigin(UpdateParams& p)
@@ -723,6 +842,9 @@ void sim_mob::Driver::setOrigin(UpdateParams& p)
 
 	//Calculate and save the total length of the current polyline.
 	p.currLaneLength = vehicle->getCurrLinkLaneZeroLength();
+
+	//TEMP: Is this in the right place?
+	chooseNextLaneForNextLink(p);
 }
 
 
@@ -747,11 +869,19 @@ double sim_mob::Driver::updatePositionOnLink(UpdateParams& p)
 	//TODO: I've disabled the acceleration component because it doesn't really make sense.
 	//      Please re-enable if you think this is expected behavior. ~Seth
 	double fwdDistance = vehicle->getVelocity()*p.elapsedSeconds + 0.5*vehicle->getAcceleration()*p.elapsedSeconds*p.elapsedSeconds;
+	if(fwdDistance<0)
+		fwdDistance = 0;
 	//double fwdDistance = vehicle->getVelocity()*p.elapsedSeconds;
 	double latDistance = vehicle->getLatVelocity()*p.elapsedSeconds;
 
 	//Increase the vehicle's velocity based on its acceleration.
 	vehicle->setVelocity(vehicle->getVelocity() + vehicle->getAcceleration()*p.elapsedSeconds);
+
+	//TEMP: For ns3
+	Person* parentP = dynamic_cast<Person*>(parent);
+	if (parentP && !parentP->specialStr.empty() && parentP->specialStr.at(5)=='A') {
+		vehicle->setVelocity(vehicle->getVelocity()*1.1);
+	}
 
 	//when v_lead and a_lead is 0, space is not negative, the Car Following will generate an acceleration based on free flowing model
 	//this causes problem, so i manually set acceleration and velocity to 0
@@ -810,7 +940,7 @@ void sim_mob::Driver::check_and_set_min_car_dist(NearestVehicle& res, double dis
 //TODO: I have the feeling that this process of detecting nearby drivers in front of/behind you and saving them to
 //      the various CFD/CBD/LFD/LBD variables can be generalized somewhat. I shortened it a little and added a
 //      helper function; perhaps more cleanup can be done later? ~Seth
-void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* other, const Driver* other_driver) const
+void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* other, const Driver* other_driver)
 {
 	//Only update if passed a valid pointer which is not a pointer back to you, and
 	//the driver is not actually in an intersection at the moment.
@@ -925,10 +1055,26 @@ void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* oth
 			}
 		}
 	}
+	//Update your perceptions for leading vehicle and gap
+	if(params.nvFwd.distance!=5000)
+	{
+		perceivedVelocityOfFwdCar.delay(new DPoint(params.nvFwd.driver->getVehicle()->getVelocity(),params.nvFwd.driver->getVehicle()->getLatVelocity()),currTimeMS);
+		perceivedAccelerationOfFwdCar.delay(params.nvFwd.driver->getVehicle()->getAcceleration(),currTimeMS);
+		perceivedDistToFwdCar.delay(params.nvFwd.distance,currTimeMS);
+	}
+	//retrieve perceptions
+	if(perceivedVelocityOfFwdCar.can_sense(currTimeMS)){
+		params.perceivedFwdVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense(currTimeMS)->x;
+		params.perceivedLatVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense(currTimeMS)->y;
+	}
+	if(perceivedAccelerationOfFwdCar.can_sense(currTimeMS))
+		params.perceivedAccelerationOfFwdCar = perceivedAccelerationOfFwdCar.sense(currTimeMS);
+	if(perceivedDistToFwdCar.can_sense(currTimeMS))
+		params.perceivedDistToFwdCar = perceivedDistToFwdCar.sense(currTimeMS);
 }
 
 
-void sim_mob::Driver::updateNearbyPedestrian(UpdateParams& params, const Person* other, const Pedestrian* pedestrian) const
+void sim_mob::Driver::updateNearbyPedestrian(UpdateParams& params, const Person* other, const Pedestrian* pedestrian)
 {
 	//Only update if passed a valid pointer and this is on a crossing.
 	if (!(pedestrian && pedestrian->isOnCrossing())) {
@@ -968,7 +1114,7 @@ void sim_mob::Driver::updateNearbyPedestrian(UpdateParams& params, const Person*
 }
 
 
-void sim_mob::Driver::updateNearbyAgents(UpdateParams& params) const
+void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 {
 	//Retrieve a list of nearby agents
 	vector<const Agent*> nearby_agents = AuraManager::instance().nearbyAgents(Point2D(vehicle->getX(),vehicle->getY()), *params.currLane,  distanceInFront, distanceBehind);

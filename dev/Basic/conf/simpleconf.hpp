@@ -39,6 +39,11 @@ public:
 	unsigned int granPathsTicks;      ///<Number of ticks to wait before updating all paths.
 	unsigned int granDecompTicks;     ///<Number of ticks to wait before updating agent decomposition.
 
+	//reaction time parameters
+	unsigned int reacTime_LeadingVehicle;
+	unsigned int reacTime_SubjectVehicle;
+	unsigned int reacTime_Gap;
+
 	//When the simulation begins
 	DailyTime simStartTime;
 

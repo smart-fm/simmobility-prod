@@ -18,6 +18,11 @@
 //namespace sim_mob {} //This is a temporary file, so it exists outside the namespace
 
 
+//Should we use dynamic dispatch, or force all Agents to start at time tick zero?
+// This is a workaround for current bugs; it will be removed later.
+#define DISABLE_DYNAMIC_DISPATCH
+
+
 //Sizes of workgroups. (Note that enums are allowed to overlap values)
 enum WORKGROUP_SIZES {
 	WG_TRIPCHAINS_SIZE = 4,       ///<Number of trip chain workers in group.

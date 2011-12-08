@@ -6,6 +6,8 @@
 #include <vector>
 #include <stdlib.h>
 
+#include "constants.h"
+
 #include <boost/thread.hpp>
 
 #include "util/LangHelpers.hpp"
@@ -75,10 +77,13 @@ public:
 
 	///Agents can access all other agents (although they usually do not access by ID)
 	static std::vector<Agent*> all_agents;
+
+#ifndef DISABLE_DYNAMIC_DISPATCH
 	static std::priority_queue<Agent*, std::vector<Agent*>, cmp_agent_start> pending_agents; //Agents waiting to be added to the simulation, prioritized by start time.
 
 	///When adding/deleting Agents asynchronously, a lock is required.
 	static boost::mutex all_agents_lock;
+#endif
 
 	///Temporary variable; holds a pointer to the current Agent work group. Will be moved
 	///  into the Dispatch Manager as soon as it's created.

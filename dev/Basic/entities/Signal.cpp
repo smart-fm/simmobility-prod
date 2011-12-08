@@ -23,7 +23,7 @@ using std::string;
 double Density[] = {1, 1, 1, 1};
 double DS_all;
 
-/* static */ std::vector<Signal const *> Signal::all_signals_;
+/* static */ std::vector<Signal*> Signal::all_signals_;
 
 //Private namespace
 namespace {
@@ -284,9 +284,8 @@ void sim_mob :: Signal :: startSplitPlan()
 	vote5 = 0;
 }
 
-bool sim_mob :: Signal ::update(frame_t frameNumber)
+void sim_mob::Signal::outputToVisualizer(frame_t frameNumber)
 {
-
                         std::stringstream logout;
 	                logout <<"(\"Signal\","<<frameNumber<<","<< this <<",{\"va\":\"";
 	                for(int i = 0; i<3; i++) {
@@ -330,9 +329,14 @@ bool sim_mob :: Signal ::update(frame_t frameNumber)
 	                logout <<"\"pc\":\""<<TC_for_Pedestrian[2]<<"\",";
 	                logout <<"\"pd\":\""<<TC_for_Pedestrian[3]<<"\"})"<<std::endl;
                         LogOut(logout.str());
+}
 
 
+
+bool sim_mob :: Signal ::update(frame_t frameNumber)
+{
 	updateSignal (Density);
+        outputToVisualizer(frameNumber);
 
 	return true;
 }

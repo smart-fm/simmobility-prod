@@ -7,6 +7,10 @@
 
 #pragma once
 
+#include "constants.h"
+#ifndef SIMMOB_DISABLE_MPI
+
+
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Point2D.hpp"
 
@@ -40,3 +44,6 @@ public:
 };
 
 }
+
+#endif
+

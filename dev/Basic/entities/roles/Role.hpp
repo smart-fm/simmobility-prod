@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "constants.h"
 #include "util/LangHelpers.hpp"
 #include "entities/Agent.hpp"
 #include "entities/roles/driver/UpdateParams.hpp"
@@ -11,7 +12,9 @@
 
 namespace sim_mob {
 
+#ifndef SIMMOB_DISABLE_MPI
 class PartitionManager;
+#endif
 
 /**
  * Role that a person may fulfill. Allows Person agents to swap out roles easily,

@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <sstream>
 
+#include "constants.h"
 #include "util/LangHelpers.hpp"
 #include "metrics/Frame.hpp"
 #include "buffering/BufferedDataManager.hpp"
@@ -17,7 +18,11 @@ namespace sim_mob
 
 class Worker;
 class WorkGroup;
+
+#ifndef SIMMOB_DISABLE_MPI
 class PartitionManager;
+#endif
+
 class RoadNetworkPackageManager;
 class AgentPackageManager;
 
@@ -120,7 +125,11 @@ public:
 public:
 	friend class AgentPackageManager;
 	friend class RoadNetworkPackageManager;
+
+#ifndef SIMMOB_DISABLE_MPI
 	friend class PartitionManager;
+#endif
+
 	bool isFake;
 	bool receiveTheFakeEntityAgain;
 

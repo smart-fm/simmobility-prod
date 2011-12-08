@@ -561,7 +561,7 @@ void sim_mob::RoadNetworkPackageManager::packageVehicle(Archive & ar, const Vehi
 
 	ar & (one_vehicle->length);
 	ar & (one_vehicle->width);
-	ar & (one_vehicle->timeStep);
+	/*ar & (one_vehicle->timeStep);
 
 	ar & (one_vehicle->xPos);
 	ar & (one_vehicle->yPos);
@@ -569,7 +569,7 @@ void sim_mob::RoadNetworkPackageManager::packageVehicle(Archive & ar, const Vehi
 	ar & (one_vehicle->yPos_);
 
 	packageRelAbsPoint(ar, &(one_vehicle->velocity));
-	packageRelAbsPoint(ar, &(one_vehicle->accel));
+	packageRelAbsPoint(ar, &(one_vehicle->accel));*/
 }
 
 template<class Archive>
@@ -581,18 +581,21 @@ Vehicle* sim_mob::RoadNetworkPackageManager::unpackageVehicle(Archive & ar)
 	if (hasSomthing == false)
 		return NULL;
 
-	Vehicle* one_vehicle = new Vehicle();
+	//TEMP: This won't work; need to fill the waypoint path.
+	std::vector<sim_mob::WayPoint> wp_path;
+
+	Vehicle* one_vehicle = new Vehicle(wp_path, 0);
 
 	ar & (one_vehicle->length);
 	ar & (one_vehicle->width);
-	ar & (one_vehicle->timeStep);
+	/*ar & (one_vehicle->timeStep);
 	ar & (one_vehicle->xPos);
 	ar & (one_vehicle->yPos);
 	ar & (one_vehicle->xPos_);
 	ar & (one_vehicle->yPos_);
 
 	one_vehicle->velocity = *(unpackageRelAbsPoint(ar));
-	one_vehicle->accel = *(unpackageRelAbsPoint(ar));
+	one_vehicle->accel = *(unpackageRelAbsPoint(ar));*/
 
 	return one_vehicle;
 }

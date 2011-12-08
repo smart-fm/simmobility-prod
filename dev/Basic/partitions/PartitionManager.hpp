@@ -56,7 +56,7 @@ public:
 	/*
 	 * Called in the beginning of simulation
 	 */
-	void setEntityWorkGroup(WorkGroup<Entity>* entity_group, WorkGroup<Entity>* singal_group);
+	void setEntityWorkGroup(WorkGroup* entity_group, WorkGroup* singal_group);
 	void loadInBoundarySegment(std::string boundary_segment_id, BoundarySegment* boundary);
 	void updateRandomSeed();
 

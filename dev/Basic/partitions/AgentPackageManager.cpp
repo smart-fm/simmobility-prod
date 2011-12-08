@@ -159,6 +159,8 @@ void sim_mob::AgentPackageManager::updateOneFeedbackPedestrian(
 	one_old_pedestrian->xCollisionVector = new_pedestrian->xCollisionVector;
 	one_old_pedestrian->yCollisionVector = new_pedestrian->yCollisionVector;
 
+	one_old_pedestrian->currentStage_.set(new_pedestrian->currentStage_.get());
+	one_old_pedestrian->startToCross_.set(new_pedestrian->startToCross_.get());
 }
 
 void sim_mob::AgentPackageManager::updateOneFeedbackPassenger(

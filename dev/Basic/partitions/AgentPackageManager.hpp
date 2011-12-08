@@ -28,24 +28,21 @@ namespace sim_mob {
 /**
  * for receiver to know what is the class structure
  */
-enum role_modes
-{
+enum role_modes {
 	No_Role = 0, Driver_Role, Pedestrian_Role, Passenger_Role
 };
 
 /**
  * for receiver to know what is the class structure
  */
-enum message_type
-{
+enum message_type {
 	No_MESSAGE_CLASS = 0, ACCIDENT_SEND, ACCIDENT_RECV
 };
 
 /**
  * for receiver to know what is the target of communication
  */
-enum message_tags
-{
+enum message_tags {
 	No_MESSAGE = 1000,
 	TYPE_TAGE,
 	BOUNDARY_PROCESS,
@@ -54,22 +51,19 @@ enum message_tags
 	P2P_COMMUNICATION_IMEDIATE_RESULT
 };
 
-class AgentPackageManager
-{
+class AgentPackageManager {
 public:
 	/**
 	 *many classes need the help of AgentPackageManager, just for easy access
 	 */
 	static AgentPackageManager &
-	instance()
-	{
+	instance() {
 		return instance_;
 	}
 
 private:
 	static AgentPackageManager instance_;
-	AgentPackageManager()
-	{
+	AgentPackageManager() {
 	}
 
 public:
@@ -152,16 +146,12 @@ private:
 };
 
 template<class Archive>
-bool sim_mob::AgentPackageManager::checkSerilizationNotNull(Archive & ar, Agent const* agent)
-{
-	if (!agent)
-	{
+bool sim_mob::AgentPackageManager::checkSerilizationNotNull(Archive & ar, Agent const* agent) {
+	if (!agent) {
 		bool isNULL = false;
 		ar & isNULL;
 		return false;
-	}
-	else
-	{
+	} else {
 		bool isNULL = true;
 		ar & isNULL;
 		return true;
@@ -173,11 +163,9 @@ bool sim_mob::AgentPackageManager::checkSerilizationNotNull(Archive & ar, Agent 
  */
 
 template<class Archive>
-void sim_mob::AgentPackageManager::packageOneCrossAgent(Archive & ar, Agent const* agent)
-{
+void sim_mob::AgentPackageManager::packageOneCrossAgent(Archive & ar, Agent const* agent) {
 	//std::cout << "packageOneCrossDriver 2.2:" << std::endl;
-	if (checkSerilizationNotNull(ar, agent) == false)
-	{
+	if (checkSerilizationNotNull(ar, agent) == false) {
 		return;
 	}
 
@@ -187,28 +175,21 @@ void sim_mob::AgentPackageManager::packageOneCrossAgent(Archive & ar, Agent cons
 	/**
 	 * The modeler should define the functions for each type of agent
 	 */
-	if (agent_type == Driver_Role)
-	{
+	if (agent_type == Driver_Role) {
 		packageOneCrossDriver(ar, agent);
-	}
-	else if (agent_type == Pedestrian_Role)
-	{
+	} else if (agent_type == Pedestrian_Role) {
 		packageOneCrossPedestrain(ar, agent);
-	}
-	else if (agent_type == Passenger_Role)
-	{
+	} else if (agent_type == Passenger_Role) {
 		//		packageOneCrossPassenger(ar, agent);
 	}
 }
 
 template<class Archive>
-void sim_mob::AgentPackageManager::packageOneFeedbackAgent(Archive & ar, Agent const* agent)
-{
+void sim_mob::AgentPackageManager::packageOneFeedbackAgent(Archive & ar, Agent const* agent) {
 
 	//	packageOneCrossAgent(ar, agent);
 
-	if (checkSerilizationNotNull(ar, agent) == false)
-	{
+	if (checkSerilizationNotNull(ar, agent) == false) {
 		return;
 	}
 
@@ -217,51 +198,37 @@ void sim_mob::AgentPackageManager::packageOneFeedbackAgent(Archive & ar, Agent c
 	/**
 	 * The modeler should define the functions for each type of agent
 	 */
-	if (agent_type == Driver_Role)
-	{
+	if (agent_type == Driver_Role) {
 		packageOneFeedbackDriver(ar, agent);
-	}
-	else if (agent_type == Pedestrian_Role)
-	{
+	} else if (agent_type == Pedestrian_Role) {
 		packageOneFeedbackPedestrain(ar, agent);
-	}
-	else if (agent_type == Passenger_Role)
-	{
+	} else if (agent_type == Passenger_Role) {
 		//packageOneFeedbackDriver(ar, agent);
 	}
 }
 
 template<class Archive>
-Agent* sim_mob::AgentPackageManager::rebuildOneCrossAgent(Archive & ar, role_modes agent_type)
-{
+Agent* sim_mob::AgentPackageManager::rebuildOneCrossAgent(Archive & ar, role_modes agent_type) {
 	bool isNotNULL;
 	ar & isNotNULL;
 
 	if (isNotNULL == false)
 		return NULL;
 
-	if (agent_type == Driver_Role)
-	{
+	if (agent_type == Driver_Role) {
 		return rebuildOneCrossDriver(ar);
-	}
-	else if (agent_type == Pedestrian_Role)
-	{
+	} else if (agent_type == Pedestrian_Role) {
 		return rebuildOneCrossPedestrian(ar);
-	}
-	else if (agent_type == Passenger_Role)
-	{
+	} else if (agent_type == Passenger_Role) {
 		return NULL; //rebuildOneCrossPassenger(ar);
-	}
-	else
-	{
+	} else {
 		std::cout << "Error: not found agent type" << std::endl;
 		return 0;
 	}
 }
 
 template<class Archive>
-Agent* sim_mob::AgentPackageManager::rebuildOneFeedbackAgent(Archive & ar, role_modes agent_type)
-{
+Agent* sim_mob::AgentPackageManager::rebuildOneFeedbackAgent(Archive & ar, role_modes agent_type) {
 
 	//	return rebuildOneCrossAgent(ar, agent_type);
 
@@ -271,23 +238,16 @@ Agent* sim_mob::AgentPackageManager::rebuildOneFeedbackAgent(Archive & ar, role_
 	if (isNotNULL == false)
 		return NULL;
 
-	if (agent_type == Driver_Role)
-	{
+	if (agent_type == Driver_Role) {
 		//std::cout << "There 4.11" << std::endl;
 		return rebuildOneFeedbackDriver(ar);
-	}
-	else if (agent_type == Pedestrian_Role)
-	{
+	} else if (agent_type == Pedestrian_Role) {
 		//std::cout << "There 4.22" << std::endl;
 		return rebuildOneFeedbackPedestrian(ar);
-	}
-	else if (agent_type == Passenger_Role)
-	{
+	} else if (agent_type == Passenger_Role) {
 		//std::cout << "There 4.33" << std::endl;
 		return NULL; //rebuildOneFeedbackPassenger(ar);
-	}
-	else
-	{
+	} else {
 		std::cout << "Error: not found agent type" << std::endl;
 		return NULL;
 	}
@@ -298,8 +258,7 @@ Agent* sim_mob::AgentPackageManager::rebuildOneFeedbackAgent(Archive & ar, role_
  */
 
 template<class Archive>
-void sim_mob::AgentPackageManager::packageOneCrossDriver(Archive & ar, Agent const* agent)
-{
+void sim_mob::AgentPackageManager::packageOneCrossDriver(Archive & ar, Agent const* agent) {
 	const Person *person = dynamic_cast<const Person *> (agent);
 	Person* one_person = const_cast<Person*> (person);
 
@@ -385,8 +344,7 @@ void sim_mob::AgentPackageManager::packageOneCrossDriver(Archive & ar, Agent con
 	ar & all_segments_size;
 	std::vector<const RoadSegment*>::const_iterator it = driver->allRoadSegments.begin();
 
-	for (; it != driver->allRoadSegments.end(); it++)
-	{
+	for (; it != driver->allRoadSegments.end(); it++) {
 		rnpackageImpl.packageRoadSegment(ar, (*it));
 	}
 
@@ -514,8 +472,7 @@ void sim_mob::AgentPackageManager::packageOneCrossDriver(Archive & ar, Agent con
 }
 
 template<class Archive>
-void sim_mob::AgentPackageManager::packageOneFeedbackDriver(Archive & ar, Agent const* agent)
-{
+void sim_mob::AgentPackageManager::packageOneFeedbackDriver(Archive & ar, Agent const* agent) {
 	const Person *person = dynamic_cast<const Person *> (agent);
 	Person* one_person = const_cast<Person*> (person);
 
@@ -597,8 +554,7 @@ void sim_mob::AgentPackageManager::packageOneFeedbackDriver(Archive & ar, Agent 
 	ar & all_segments_size;
 	std::vector<const RoadSegment*>::const_iterator it = driver->allRoadSegments.begin();
 
-	for (; it != driver->allRoadSegments.end(); it++)
-	{
+	for (; it != driver->allRoadSegments.end(); it++) {
 		rnpackageImpl.packageRoadSegment(ar, (*it));
 	}
 
@@ -726,8 +682,7 @@ void sim_mob::AgentPackageManager::packageOneFeedbackDriver(Archive & ar, Agent 
 }
 
 template<class Archive>
-Agent* sim_mob::AgentPackageManager::rebuildOneCrossDriver(Archive & ar)
-{
+Agent* sim_mob::AgentPackageManager::rebuildOneCrossDriver(Archive & ar) {
 	Person* one_person = new Person();
 
 	Driver* onerole = new Driver(one_person);
@@ -820,8 +775,7 @@ Agent* sim_mob::AgentPackageManager::rebuildOneCrossDriver(Archive & ar)
 	int all_segment_size;
 	ar & all_segment_size;
 
-	for (int i = 0; i < all_segment_size; i++)
-	{
+	for (int i = 0; i < all_segment_size; i++) {
 		const RoadSegment* one_road_segment = rnpackageImpl.unpackageRoadSegment(ar);
 		onerole->allRoadSegments.push_back(one_road_segment);
 	}
@@ -947,8 +901,7 @@ Agent* sim_mob::AgentPackageManager::rebuildOneCrossDriver(Archive & ar)
 }
 
 template<class Archive>
-Agent* sim_mob::AgentPackageManager::rebuildOneFeedbackDriver(Archive & ar)
-{
+Agent* sim_mob::AgentPackageManager::rebuildOneFeedbackDriver(Archive & ar) {
 	Person* one_person = new Person();
 
 	Driver* onerole = new Driver(one_person);
@@ -1038,8 +991,7 @@ Agent* sim_mob::AgentPackageManager::rebuildOneFeedbackDriver(Archive & ar)
 	int all_segment_size;
 	ar & all_segment_size;
 
-	for (int i = 0; i < all_segment_size; i++)
-	{
+	for (int i = 0; i < all_segment_size; i++) {
 		const RoadSegment* one_road_segment = rnpackageImpl.unpackageRoadSegment(ar);
 		onerole->allRoadSegments.push_back(one_road_segment);
 	}
@@ -1169,8 +1121,7 @@ Agent* sim_mob::AgentPackageManager::rebuildOneFeedbackDriver(Archive & ar)
  */
 
 template<class Archive>
-void sim_mob::AgentPackageManager::packageOneCrossPedestrain(Archive & ar, Agent const* agent)
-{
+void sim_mob::AgentPackageManager::packageOneCrossPedestrain(Archive & ar, Agent const* agent) {
 
 	//	std::cout << "packageOneCrossDriver Pdesttrains 2.4:" << std::endl;
 	const Person *person = dynamic_cast<const Person *> (agent);
@@ -1218,6 +1169,7 @@ void sim_mob::AgentPackageManager::packageOneCrossPedestrain(Archive & ar, Agent
 	ar & (pedestrian->goal);
 	ar & (pedestrian->goalInLane);
 	ar & (pedestrian->currentStage);
+	ar & (pedestrian->currentStage_.get());
 
 	//std::cout << "packageOneCrossDriver Pdesttrains 2.8.4:" << std::endl;
 
@@ -1231,6 +1183,8 @@ void sim_mob::AgentPackageManager::packageOneCrossPedestrain(Archive & ar, Agent
 	ar & (pedestrian->sigColor);
 	ar & (pedestrian->curCrossingID);
 	ar & (pedestrian->startToCross);
+	ar & (pedestrian->startToCross_.get());
+
 	ar & (pedestrian->cStartX);
 	ar & (pedestrian->cStartY);
 	ar & (pedestrian->cEndX);
@@ -1247,8 +1201,7 @@ void sim_mob::AgentPackageManager::packageOneCrossPedestrain(Archive & ar, Agent
 }
 
 template<class Archive>
-void sim_mob::AgentPackageManager::packageOneFeedbackPedestrain(Archive & ar, Agent const* agent)
-{
+void sim_mob::AgentPackageManager::packageOneFeedbackPedestrain(Archive & ar, Agent const* agent) {
 	//std::cout << "packageOneCrossDriver Pdesttrains 2.4:" << std::endl;
 	const Person *person = dynamic_cast<const Person *> (agent);
 	Person* one_person = const_cast<Person*> (person);
@@ -1293,6 +1246,7 @@ void sim_mob::AgentPackageManager::packageOneFeedbackPedestrain(Archive & ar, Ag
 	ar & (pedestrian->goal);
 	ar & (pedestrian->goalInLane);
 	ar & (pedestrian->currentStage);
+	ar & (pedestrian->currentStage_.get());
 
 	//std::cout << "packageOneCrossDriver Pdesttrains 2.8.4:" << std::endl;
 
@@ -1306,6 +1260,8 @@ void sim_mob::AgentPackageManager::packageOneFeedbackPedestrain(Archive & ar, Ag
 	ar & (pedestrian->sigColor);
 	ar & (pedestrian->curCrossingID);
 	ar & (pedestrian->startToCross);
+	ar & (pedestrian->startToCross_.get());
+
 	ar & (pedestrian->cStartX);
 	ar & (pedestrian->cStartY);
 	ar & (pedestrian->cEndX);
@@ -1321,8 +1277,7 @@ void sim_mob::AgentPackageManager::packageOneFeedbackPedestrain(Archive & ar, Ag
 }
 
 template<class Archive>
-Agent* sim_mob::AgentPackageManager::rebuildOneCrossPedestrian(Archive & ar)
-{
+Agent* sim_mob::AgentPackageManager::rebuildOneCrossPedestrian(Archive & ar) {
 	Person* one_person = new Person();
 
 	Pedestrian* onerole = new Pedestrian(one_person);
@@ -1376,6 +1331,9 @@ Agent* sim_mob::AgentPackageManager::rebuildOneCrossPedestrian(Archive & ar)
 	ar & (onerole->goal);
 	ar & (onerole->goalInLane);
 	ar & (onerole->currentStage);
+	int buffer_currentStage;
+	ar & buffer_currentStage;
+	onerole->currentStage_.force(buffer_currentStage);
 
 	onerole->trafficSignal = rnpackageImpl.unpackageSignal(ar);
 	onerole->currCrossing = rnpackageImpl.unpackageCrossing(ar);
@@ -1384,6 +1342,10 @@ Agent* sim_mob::AgentPackageManager::rebuildOneCrossPedestrian(Archive & ar)
 	ar & (onerole->sigColor);
 	ar & (onerole->curCrossingID);
 	ar & (onerole->startToCross);
+	int buffer_startToCross;
+	ar & buffer_startToCross;
+	onerole->startToCross_.force(buffer_startToCross);
+
 	ar & (onerole->cStartX);
 	ar & (onerole->cStartY);
 	ar & (onerole->cEndX);
@@ -1397,8 +1359,7 @@ Agent* sim_mob::AgentPackageManager::rebuildOneCrossPedestrian(Archive & ar)
 }
 
 template<class Archive>
-Agent* sim_mob::AgentPackageManager::rebuildOneFeedbackPedestrian(Archive & ar)
-{
+Agent* sim_mob::AgentPackageManager::rebuildOneFeedbackPedestrian(Archive & ar) {
 	Person* one_person = new Person();
 
 	Pedestrian* onerole = new Pedestrian(one_person);
@@ -1451,6 +1412,9 @@ Agent* sim_mob::AgentPackageManager::rebuildOneFeedbackPedestrian(Archive & ar)
 	ar & (onerole->goal);
 	ar & (onerole->goalInLane);
 	ar & (onerole->currentStage);
+	int buffer_currentStage;
+	ar & buffer_currentStage;
+	onerole->currentStage_.force(buffer_currentStage);
 
 	//onerole->trafficSignal = rnpackageImpl.unpackageSignal(ar);
 	//onerole->currCrossing = rnpackageImpl.unpackageCrossing(ar);
@@ -1459,6 +1423,10 @@ Agent* sim_mob::AgentPackageManager::rebuildOneFeedbackPedestrian(Archive & ar)
 	ar & (onerole->sigColor);
 	ar & (onerole->curCrossingID);
 	ar & (onerole->startToCross);
+	int buffer_startToCross;
+	ar & buffer_startToCross;
+	onerole->startToCross_.force(buffer_startToCross);
+
 	ar & (onerole->cStartX);
 	ar & (onerole->cStartY);
 	ar & (onerole->cEndX);

@@ -166,7 +166,7 @@ public class NetworkVisualizer {
 				continue;
 			}
 			alreadyDrawn.add(key1);
-			ln.drawName(g);
+			ln.drawName(g,currPercentZoom);
 		}
 		
 

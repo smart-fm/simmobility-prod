@@ -37,7 +37,7 @@ public class Link implements DrawableItem {
 		g.drawLine((int)start.getPos().getX(), (int)start.getPos().getY(), (int)end.getPos().getX(), (int)end.getPos().getY()); 
 	}
 	
-	public void drawName(Graphics2D g) {
+	public void drawName(Graphics2D g, double scale) {
 		g.setColor(MainFrame.Config.getLineColor("roadname"));
 		g.setFont(roadNameFont);
 		float targetX = (float)(start.getPos().getX()+(end.getPos().getX()-start.getPos().getX())/2);
@@ -58,8 +58,11 @@ public class Link implements DrawableItem {
 		trans.rotate(line.getMagX(), line.getMagY());
 		
 		//Next, translate X backwards by half the string width, and move it up slightly.
-		trans.translate(-halfStrWidth, -3);
-		
+		if(scale<1.6)
+			trans.translate(-halfStrWidth, -3);
+		else 
+			trans.translate(-halfStrWidth, -3 *scale*4);
+
 		//Apply the transformation, draw the string at the origin.
 		g.setTransform(trans);
 		g.drawString(name, 0, 0);

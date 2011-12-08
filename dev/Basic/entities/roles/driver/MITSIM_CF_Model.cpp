@@ -112,10 +112,10 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(UpdateParams& p, doubl
 		}
 
 		//Retrieve velocity/acceleration in m/s
-		p.v_lead = (mode!=AM_VEHICLE) ? 0 : p.nvFwd.driver->getVehicle()->getVelocity()/100;
-		p.a_lead = (mode!=AM_VEHICLE) ? 0 : p.nvFwd.driver->getVehicle()->getAcceleration()/100;
-//		p.v_lead = (mode!=AM_VEHICLE) ? 0 : p.perceivedFwdVelocityOfFwdCar/100;
-//		p.a_lead = (mode!=AM_VEHICLE) ? 0 : p.perceivedAccelerationOfFwdCar/100;
+//		p.v_lead = (mode!=AM_VEHICLE) ? 0 : p.nvFwd.driver->getVehicle()->getVelocity()/100;
+//		p.a_lead = (mode!=AM_VEHICLE) ? 0 : p.nvFwd.driver->getVehicle()->getAcceleration()/100;
+		p.v_lead = (mode!=AM_VEHICLE) ? 0 : p.perceivedFwdVelocityOfFwdCar/100;
+		p.a_lead = (mode!=AM_VEHICLE) ? 0 : p.perceivedAccelerationOfFwdCar/100;
 
 		double dt	=	p.elapsedSeconds;
 		double headway = 0;  //distance/speed

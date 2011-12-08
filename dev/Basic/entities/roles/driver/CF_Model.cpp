@@ -25,6 +25,7 @@ const sim_mob::Driver::CarFollowParam sim_mob::Driver::CF_parameters[2] = {
 void sim_mob::Driver::updateLeadingGapandMode(UpdateParams& p)
 {
 	p.currSpeed = vehicle->velocity.getRelX()/100;
+	LogOut("ID:" << parent->getId() << ":1111," << minCFDistance <<"," <<tsStopDistance << "," << minPedestrianDis << "\n");
 
 	if(minCFDistance != 5000 && minCFDistance <= tsStopDistance && minCFDistance <= minPedestrianDis)
 	{
@@ -67,7 +68,7 @@ void sim_mob::Driver::makeAcceleratingDecision(UpdateParams& p)
 			return;
 		} else if(mode == 0)
 		{
-
+			LogOut("ID:" << parent->getId() << "124");
 			//v_lead 		=	CFD->getVehicle()->xVel_/100;
 			//v_lead 		=	CFD->getVehicle()->velocity.getRelX()/100;
 			v_lead = CFD->buffer_velocity.get().getRelX() / 100;
@@ -89,12 +90,15 @@ void sim_mob::Driver::makeAcceleratingDecision(UpdateParams& p)
 		space_star	=	space + v_lead * dt + 0.5 * a_lead * dt * dt;
 
 		if(headway < hBufferLower) {
+			LogOut("ID:" << parent->getId() << "126");
 			acc_ = accOfEmergencyDecelerating(p);
 		}
 		if(headway > hBufferUpper) {
+			LogOut("ID:" << parent->getId() << "127");
 			acc_ = accOfMixOfCFandFF(p);
 		}
 		if(headway <= hBufferUpper && headway >= hBufferLower) {
+			LogOut("ID:" << parent->getId() << "128");
 			acc_ = accOfCarFollowing(p);
 		}
 	}

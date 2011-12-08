@@ -176,13 +176,13 @@ bool performMain(const std::string& configFileName)
 
 	//Initialize our signal status work groups
 	//  TODO: There needs to be a more general way to do this.
-//	EntityWorkGroup signalStatusWorkers(WG_SIGNALS_SIZE, config.totalRuntimeTicks, config.granAgentsTicks);
-//	Worker<sim_mob::Entity>::actionFunction spWork = boost::bind(signal_status_worker, _1, _2);
-//	signalStatusWorkers.initWorkers(&spWork);
-//	for (size_t i = 0; i < Signal::all_signals_.size(); i++)
-//	{
-//		signalStatusWorkers.migrate(const_cast<Signal*> (Signal::all_signals_[i]), -1, i % WG_SIGNALS_SIZE);
-//	}
+	//	EntityWorkGroup signalStatusWorkers(WG_SIGNALS_SIZE, config.totalRuntimeTicks, config.granAgentsTicks);
+	//	Worker<sim_mob::Entity>::actionFunction spWork = boost::bind(signal_status_worker, _1, _2);
+	//	signalStatusWorkers.initWorkers(&spWork);
+	//	for (size_t i = 0; i < Signal::all_signals_.size(); i++)
+	//	{
+	//		signalStatusWorkers.migrate(const_cast<Signal*> (Signal::all_signals_[i]), -1, i % WG_SIGNALS_SIZE);
+	//	}
 
 	//Start work groups
 	agentWorkers.startAll();
@@ -196,7 +196,9 @@ bool performMain(const std::string& configFileName)
 	{
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.setEntityWorkGroup(&agentWorkers, NULL);
-		partitionImpl.updateRandomSeed();
+
+		if (config.is_simulation_repeatable)
+			partitionImpl.updateRandomSeed();
 	}
 
 	/////////////////////////////////////////////////////////////////
@@ -210,10 +212,8 @@ bool performMain(const std::string& configFileName)
 		//Output
 		{
 			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-
-			if(currTick < 10)
 			cout << "Approximate Tick Boundary: " << currTick << ", " << (currTick * config.baseGranMS) << " ms"
-					<< endl;
+						<< endl;
 		}
 
 		//Update the signal logic and plans for every intersection grouped by region
@@ -235,15 +235,16 @@ bool performMain(const std::string& configFileName)
 		{
 			PartitionManager& partitionImpl = PartitionManager::instance();
 			partitionImpl.crossPCBarrier();
-		}
-
-		if (config.is_run_on_many_computers)
-		{
-			PartitionManager& partitionImpl = PartitionManager::instance();
 			partitionImpl.crossPCboundaryProcess(currTick);
 			partitionImpl.crossPCBarrier();
 			partitionImpl.outputAllEntities(currTick);
 		}
+
+		//output_All
+//		PartitionManager::instance().outputAllEntities(currTick);
+//		agentWorkers.waitExternAgain(); //wait on output.
+//
+//		cout << "Passing Output." << endl;
 
 		auraMgr.update(currTick);
 		agentWorkers.waitExternAgain(); // The workers wait on the AuraManager.
@@ -261,7 +262,7 @@ bool performMain(const std::string& configFileName)
 		else
 		{
 			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-			cout << "  Warmup; output ignored." << endl;
+			//cout << "  Warmup; output ignored." << endl;
 		}
 
 		//saveStatisticsToDB(agents);
@@ -389,6 +390,9 @@ void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents)
 
 	//Flip once
 	createAgentWorkers.wait();
+
+//	//temp setting for PM
+//	createAgentWorkers.waitExternAgain();
 
 	cout << "  Closing all work groups..." << endl;
 }

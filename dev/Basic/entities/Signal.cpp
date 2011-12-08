@@ -292,7 +292,7 @@ void sim_mob :: Signal ::update(frame_t frameNumber)
 		LogOut("Test Pedestrian 1:" << buffered_TC.get().TC_for_Driver[1][1] << "\n");
 	}
 
-	if(frameNumber % config.granSignalsTicks != 0)
+	if(frameNumber % ConfigParams::GetInstance().granSignalsTicks != 0)
 	{
 		return;
 	}
@@ -302,8 +302,8 @@ void sim_mob :: Signal ::update(frame_t frameNumber)
 	LogOut("Test Pedestrian:" << config.granSignalsTicks << ":" << frameNumber << " \n");
 	LogOut("Test Pedestrian 1:" << buffered_TC.get().TC_for_Driver[1][1] << "\n");
 	LogOut("Test Pedestrian 2:" << TC_for_Driver[1][1] << "\n");
-
-	if (config.is_run_on_many_computers == false)
+//
+	if (ConfigParams::GetInstance().is_run_on_many_computers == false)
 		output(frameNumber);
 }
 

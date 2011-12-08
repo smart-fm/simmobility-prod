@@ -130,6 +130,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	if (isGoalReached())
 	{
 		//TODO:reach destination
+		parent->setToBeRemoved(true);
 		setBackToOrigin();
 		return;
 	}
@@ -167,15 +168,17 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	//Note: For now, most updates cannot take place unless there is a Lane set
 	if (params.currLane)
 	{
-		LogOut(this->getParent()->getId() << "11 -- \n");
+		//LogOut(this->getParent()->getId() << "11 -- \n");
 		//perceivedXVelocity = vehicle->xVel;
 		//perceivedYVelocity = vehicle->yVel;
 		//abs2relat();
+		LogOut("ID:" << parent->getId() << "2" << "\n");
 		updateNearbyAgents(params);
 		//inside intersection
 		if (inIntersection)
 		{
 			//No >>>
+			LogOut("ID:" << parent->getId() << "3" << "\n");
 			intersectionDriving(params);
 		}
 		else
@@ -186,6 +189,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 			if (isReachLinkEnd())
 			{
 				//No >>>
+				LogOut("ID:" << parent->getId() << "4" << "\n");
 				inIntersection = true;
 				directionIntersection();
 				intersectionVelocityUpdate();
@@ -193,16 +197,19 @@ void sim_mob::Driver::update(frame_t frameNumber)
 			}
 			else
 			{
+				LogOut("ID:" << parent->getId() << "5" << "\n");
 				//the relative coordinate system is based on each polyline segment
 				//so when the polyline segment has been updated, the coordinate system should also be updated
 				if (isReachPolyLineSegEnd())
 				{
 					//No >>>
+					LogOut("ID:" << parent->getId() << "6" << "\n");
 					vehicle->xPos_ -= polylineSegLength;
 					if (!isReachLastPolyLineSeg())
 						updatePolyLineSeg();
 					else
 					{
+						LogOut("ID:" << parent->getId() << "6.5" << "\n");
 						updateRSInCurrLink(params);
 						//if can't find available lane in new road segment
 						//this indicates an error
@@ -212,14 +219,19 @@ void sim_mob::Driver::update(frame_t frameNumber)
 				}
 
 				//Yes >>>
+				LogOut("ID:" << parent->getId() << "7" << "\n");
 				if (isCloseToLinkEnd())
+				{
+					LogOut("ID:" << parent->getId() << "7.5" << "\n");
 					trafficSignalDriving(params);
+				}
 
 				linkDriving(params);
 			}
 		}
 
 		//Yes >>>
+		LogOut("ID:" << parent->getId() << "888" << "\n");
 		relat2abs();
 		setToParent();
 		updateAngle();
@@ -244,6 +256,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 
 void sim_mob::Driver::output(frame_t frameNumber)
 {
+	//LogOut("Driver "<< frameNumber << "parent->startTime:" << parent->startTime << "\n");
 	if (frameNumber < parent->startTime)
 		return;
 
@@ -256,6 +269,14 @@ void sim_mob::Driver::output(frame_t frameNumber)
 			<< this->buffer_velocity.get().getRelX() << "\",\"getBufferedRelY\":\""
 			<< this->buffer_velocity.get().getRelY() << "\",\"space\":\""
 			<< this->space;
+
+//	logout << "(\"Driver\"" << "," << frameNumber << "," << parent->getId() << ",{" << "\"xPos\":\"" << parent->xPos.get()
+//				<< "\",\"yPos\":\"" << parent->yPos.get() << "\",\"angle\":\"" << angle << "\",\"vehicle_x\":\""
+//				<< vehicle->velocity.getRelX() << "\",\"vehicle_y\":\"" << vehicle->velocity.getRelY() << "\",\"dynamic_seed\":\""
+//				<< this->dynamic_seed << "\",\"getBufferedRelX\":\""
+//				<< this->buffer_velocity.get().getRelX() << "\",\"getBufferedRelY\":\""
+//				<< this->buffer_velocity.get().getRelY() << "\",\"space\":\""
+//				<< this->space;
 
 	if (this->parent->isFake)
 	{
@@ -306,11 +327,12 @@ void sim_mob::Driver::linkDriving(UpdateParams& p)
 		excuteLaneChanging();
 	}
 
-
+	LogOut("ID:" << parent->getId() << "122,"<< isTrafficLightStop << "\n");
 
 	//if(isTrafficLightStop && vehicle->xVel_ < 50)
 	if (isTrafficLightStop && vehicle->velocity.getRelX() < 50)
 	{
+		LogOut("ID:" << parent->getId() << "123"<< "\n");
 		//vehicle->xVel_ = 0;
 		vehicle->velocity.setRelX(0);
 
@@ -443,16 +465,17 @@ bool sim_mob::Driver::isLeaveIntersection()
 	double currYoffset = vehicle->yPos - yTurningStart;
 	int currDisToEntrypoint = sqrt(currXoffset * currXoffset + currYoffset * currYoffset);
 	//return currDisToEntrypoint >= disToEntryPoint;
-	if (this->parent->getId() == 1)
-		std::cout << "currDisToEntrypoint:" << currDisToEntrypoint << "<------> disToEntryPoint:" << disToEntryPoint
-				<< std::endl;
+
 	return currDisToEntrypoint >= disToEntryPoint;
 }
 
 bool sim_mob::Driver::isPedetrianOnTargetCrossing()
 {
+	LogOut("ID:" << parent->getId() << ":1.0331" << "\n");
 	if (!trafficSignal)
 		return false;
+
+	LogOut("ID:" << parent->getId() << ":1.034" << "\n");
 	std::map<Link const *, size_t> const linkMap = trafficSignal->links_map();
 	std::map<Link const *, size_t>::const_iterator link_i;
 	size_t index = 0;
@@ -465,6 +488,7 @@ bool sim_mob::Driver::isPedetrianOnTargetCrossing()
 		}
 	}
 
+	LogOut("ID:" << parent->getId() << ":1.035" << "\n");
 	std::map<Crossing const *, size_t> const crossingMap = trafficSignal->crossings_map();
 	std::map<Crossing const *, size_t>::const_iterator crossing_i;
 	const Crossing* crossing = nullptr;
@@ -477,6 +501,7 @@ bool sim_mob::Driver::isPedetrianOnTargetCrossing()
 		}
 	}
 
+	LogOut("ID:" << parent->getId() << ":1.036" << "\n");
 	if (!crossing)
 		return false;
 	int x[4] = { crossing->farLine.first.getX(), crossing->farLine.second.getX(), crossing->nearLine.first.getX(),
@@ -498,6 +523,7 @@ bool sim_mob::Driver::isPedetrianOnTargetCrossing()
 	Point2D p1 = Point2D(xmin, ymin);
 	Point2D p2 = Point2D(xmax, ymax);
 
+	LogOut("ID:" << parent->getId() << ":1.037" << "\n");
 	std::vector<const Agent*> agentsInRect = AuraManager::instance().agentsInRect(p1, p2);
 	for (size_t i = 0; i < agentsInRect.size(); i++)
 	{
@@ -507,7 +533,10 @@ bool sim_mob::Driver::isPedetrianOnTargetCrossing()
 		Person* p = const_cast<Person*> (person);
 		Pedestrian* pedestrian = dynamic_cast<Pedestrian*> (p->getRole());
 		if (pedestrian && pedestrian->isOnCrossing())
+		{
+			LogOut("ID:" << parent->getId() << ":1.039" << "\n");
 			return true;
+		}
 	}
 	return false;
 }
@@ -878,6 +907,8 @@ void sim_mob::Driver::updatePositionOnLink()
 	{
 		traveledDis = 0;
 	}
+
+	LogOut("ID:" << parent->getId() << "129" << vehicle->accel.getRelX()<< "\n");
 
 	//vehicle->xVel_ += vehicle->xAcc_*timeStep;
 	//vehicle->velocity.setRelX(vehicle->velocity.getRelX() + vehicle->xAcc_*timeStep);
@@ -1313,6 +1344,7 @@ void sim_mob::Driver::trafficSignalDriving(UpdateParams& p)
 	if (!trafficSignal)
 	{
 		//No >>
+		LogOut("ID:" << parent->getId() << ":1.00" << "\n");
 		isTrafficLightStop = false;
 	}
 	else
@@ -1322,11 +1354,13 @@ void sim_mob::Driver::trafficSignalDriving(UpdateParams& p)
 		{
 			color = trafficSignal->getDriverLight(*p.currLane, *nextLaneInNextLink);
 			//Yes
+			LogOut("ID:" << parent->getId() << ":1.01" << "\n");
 		}
 		else
 		{
 			color = trafficSignal->getDriverLight(*p.currLane).forward;
 			//No
+			LogOut("ID:" << parent->getId() << ":1.02" << "\n");
 		}
 
 		switch (color)
@@ -1334,6 +1368,7 @@ void sim_mob::Driver::trafficSignalDriving(UpdateParams& p)
 		//red yellow
 		case Signal::Red:
 		case Signal::Amber:
+			LogOut("ID:" << parent->getId() << ":1.033" << "\n");
 			isTrafficLightStop = true;
 			tsStopDistance = currLaneLength - currLaneOffset - vehicle->length / 2 - 300;
 			break;
@@ -1341,11 +1376,13 @@ void sim_mob::Driver::trafficSignalDriving(UpdateParams& p)
 		case Signal::Green:
 			if (!isPedetrianOnTargetCrossing())
 			{
+				LogOut("ID:" << parent->getId() << ":1.04" << "\n");
 				isTrafficLightStop = false;
 			}
 			else
 			{
 				//Yes
+				LogOut("ID:" << parent->getId() << ":1.05" << "\n");
 				isTrafficLightStop = true;
 			}
 			break;

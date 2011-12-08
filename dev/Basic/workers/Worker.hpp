@@ -200,6 +200,10 @@ void sim_mob::Worker<EntityType>::barrier_mgmt()
 		if (external_barr)
 			external_barr->wait();
 
+		//wait for PM output
+//		if (external_barr)
+//			external_barr->wait();
+
         // Wait for the AuraManager
 		if (auraManagerActive) {
 			if (external_barr)

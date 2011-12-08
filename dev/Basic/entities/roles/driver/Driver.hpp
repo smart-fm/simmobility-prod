@@ -220,7 +220,6 @@ public:
 	Buffered<RelAbsPoint> buffer_accel;
 
 
-
 public:
 	const Vehicle* getVehicle() const {return vehicle;}
 

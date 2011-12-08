@@ -336,6 +336,7 @@ void sim_mob::AgentPackageManager::packageOneCrossDriver(Archive & ar, Agent con
 	//std::cout << "packageOneCrossDriver 3:" << std::endl;
 
 	ar & (driver->dynamic_seed);
+	std::cout << "driver->dynamic_seed" << driver->dynamic_seed << "," << person->getId() << std::endl;
 
 	//Step 3
 	rnpackageImpl.packageVehicle(ar, driver->vehicle);
@@ -463,6 +464,9 @@ void sim_mob::AgentPackageManager::packageOneCrossDriver(Archive & ar, Agent con
 
 	ar & (driver->currLaneOffset_.get());
 	ar & (driver->currLaneLength_.get());
+	rnpackageImpl.packageRelAbsPoint(ar, &(driver->buffer_velocity.get()));
+	rnpackageImpl.packageRelAbsPoint(ar, &(driver->buffer_accel.get()));
+	ar & (driver->inIntersection_.get());
 
 	/***********SOMETHING BIG BROTHER CAN RETURN*************/
 	ar & (driver->targetSpeed);
@@ -672,6 +676,9 @@ void sim_mob::AgentPackageManager::packageOneFeedbackDriver(Archive & ar, Agent 
 
 	ar & (driver->currLaneOffset_.get());
 	ar & (driver->currLaneLength_.get());
+	rnpackageImpl.packageRelAbsPoint(ar, &(driver->buffer_velocity.get()));
+	rnpackageImpl.packageRelAbsPoint(ar, &(driver->buffer_accel.get()));
+	ar & (driver->inIntersection_.get());
 
 	/***********SOMETHING BIG BROTHER CAN RETURN*************/
 	ar & (driver->targetSpeed);
@@ -766,6 +773,7 @@ Agent* sim_mob::AgentPackageManager::rebuildOneCrossDriver(Archive & ar)
 	one_person->currTripChain = rnpackageImpl.unpackageTripChain(ar);
 
 	ar & (onerole->dynamic_seed);
+	std::cout << "onerole->dynamic_seed" << onerole->dynamic_seed << "," << one_person->getId() << std::endl;
 
 	//Step 3
 	onerole->vehicle = rnpackageImpl.unpackageVehicle(ar);
@@ -881,6 +889,18 @@ Agent* sim_mob::AgentPackageManager::rebuildOneCrossDriver(Archive & ar)
 	double buffer_currLaneLength;
 	ar & buffer_currLaneLength;
 	onerole->currLaneLength_.force(buffer_currLaneLength);
+
+	RelAbsPoint buffer_vel;
+	buffer_vel = *(rnpackageImpl.unpackageRelAbsPoint(ar));
+	onerole->buffer_velocity.force(buffer_vel);
+
+	RelAbsPoint buffer_acc;
+	buffer_acc = *(rnpackageImpl.unpackageRelAbsPoint(ar));
+	onerole->buffer_accel.force(buffer_acc);
+
+	bool buffer_in_intersection;
+	ar & buffer_in_intersection;
+	onerole->inIntersection_.force(buffer_in_intersection);
 
 	/***********SOMETHING BIG BROTHER CAN RETURN*************/
 	ar & (onerole->targetSpeed);
@@ -1087,6 +1107,18 @@ Agent* sim_mob::AgentPackageManager::rebuildOneFeedbackDriver(Archive & ar)
 	double buffer_currLaneLength;
 	ar & buffer_currLaneLength;
 	onerole->currLaneLength_.force(buffer_currLaneLength);
+
+	RelAbsPoint buffer_vel;
+	buffer_vel = *(rnpackageImpl.unpackageRelAbsPoint(ar));
+	onerole->buffer_velocity.force(buffer_vel);
+
+	RelAbsPoint buffer_acc;
+	buffer_acc = *(rnpackageImpl.unpackageRelAbsPoint(ar));
+	onerole->buffer_accel.force(buffer_acc);
+
+	bool buffer_in_intersection;
+	ar & buffer_in_intersection;
+	onerole->inIntersection_.force(buffer_in_intersection);
 
 	/***********SOMETHING BIG BROTHER CAN RETURN*************/
 	ar & (onerole->targetSpeed);

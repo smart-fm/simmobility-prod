@@ -76,6 +76,7 @@ void sim_mob::AgentPackageManager::updateOneFeedbackDriver(Agent * new_agent,
 	Person* one_new_person = const_cast<Person*> (new_person);
 	const Driver *new_driver =
 			dynamic_cast<const Driver *> (one_new_person->getRole());
+	Driver *one_new_driver =const_cast<Driver*> (new_driver);
 
 	const Person *old_person = dynamic_cast<const Person *> (old_agent);
 	Person* one_old_person = const_cast<Person*> (old_person);
@@ -86,6 +87,9 @@ void sim_mob::AgentPackageManager::updateOneFeedbackDriver(Agent * new_agent,
 	one_old_driver->currLane_.force(new_driver->currLane_.get());
 	one_old_driver->currLaneOffset_.force(new_driver->currLaneOffset_.get());
 	one_old_driver->currLaneLength_.force(new_driver->currLaneLength_.get());
+	one_old_driver->buffer_velocity.force(new_driver->buffer_velocity.get());
+	one_old_driver->buffer_accel.force(new_driver->buffer_accel.get());
+	one_old_driver->inIntersection_.force(one_new_driver->inIntersection_.get());
 
 	one_old_driver->vehicle->velocity.abs.x
 			= new_driver->getVehicle()->velocity.abs.x;
@@ -115,7 +119,6 @@ void sim_mob::AgentPackageManager::updateOneFeedbackDriver(Agent * new_agent,
 
 	one_old_driver->vehicle->xPos = new_driver->getVehicle()->xPos;
 	one_old_driver->vehicle->yPos = new_driver->getVehicle()->yPos;
-
 }
 
 void sim_mob::AgentPackageManager::updateOneFeedbackPedestrian(

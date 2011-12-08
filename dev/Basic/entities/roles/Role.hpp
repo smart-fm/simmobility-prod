@@ -10,6 +10,8 @@
 
 namespace sim_mob {
 
+class PartitionManager;
+
 /**
  * Role that a person may fulfill. Allows Person agents to swap out roles easily,
  * without re-creating themselves or maintaining temporarily irrelevant data.
@@ -27,6 +29,7 @@ public:
 		if (parent)
 		{
 			dynamic_seed = parent->getId();
+			LogOut("synamic_seed:" << parent->getId());
 		}
 		else
 		{
@@ -97,6 +100,8 @@ protected:
 
 	//public:
 	//	static boost::mutex m_mutex;
+public:
+	friend class sim_mob::PartitionManager;
 
 
 };

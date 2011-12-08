@@ -22,6 +22,7 @@ namespace sim_mob
 {
 
 class AgentPackageManager;
+class PartitionManager;
 
 /**
  * A Person in the Pedestrian role is navigating sidewalks and zebra crossings.
@@ -43,6 +44,7 @@ private:
 	Point2D goal;
 	Point2D goalInLane;
 	int currentStage;
+	Buffered<int> currentStage_;
 
 //	Signal sig;
 	const Signal* trafficSignal;
@@ -51,6 +53,8 @@ private:
 //	unsigned int phaseCounter; //To be replaced by traffic management system
 	int curCrossingID;
 	bool startToCross;
+	Buffered<bool> startToCross_;
+
 	double cStartX, cStartY, cEndX, cEndY;
 	bool firstTimeUpdate;
 //	Point2D destPos;
@@ -79,6 +83,7 @@ private:
 
 public:
 friend class AgentPackageManager;
+friend class PartitionManager;
 };
 
 

@@ -9,6 +9,9 @@
 namespace sim_mob
 {
 
+class PartitionManager;
+class RoadNetworkPackageManager;
+class AgentPackageManager;
 
 /**
  * Base class of all agents and other "decision-making" entities.
@@ -68,6 +71,7 @@ public:
 public:
 	friend class AgentPackageManager;
 	friend class RoadNetworkPackageManager;
+	friend class PartitionManager;
 	bool isFake;
 	bool receiveTheFakeEntityAgain;
 };

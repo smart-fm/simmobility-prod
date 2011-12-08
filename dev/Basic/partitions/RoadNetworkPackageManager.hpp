@@ -463,7 +463,8 @@ void sim_mob::RoadNetworkPackageManager::packageSignalContent(Archive & ar, cons
 	{
 		for (int j = 0; j < 3; j++)
 		{
-			int value = one_signal->TC_for_Driver[i][j];
+			//int value = one_signal->TC_for_Driver[i][j];
+			int value = one_signal->buffered_TC.get().TC_for_Driver[i][j];
 			//	std::cout << "value:" << value << std::endl;
 			ar & value;
 		}
@@ -473,7 +474,7 @@ void sim_mob::RoadNetworkPackageManager::packageSignalContent(Archive & ar, cons
 
 	for (int i = 0; i < 4; i++)
 	{
-		int value = one_signal->TC_for_Pedestrian[i];
+		int value = one_signal->buffered_TC.get().TC_for_Pedestrian[i];
 		ar & value;
 	}
 
@@ -509,13 +510,16 @@ void sim_mob::RoadNetworkPackageManager::unpackageSignalContent(Archive & ar)
 
 	//std::cout << "66666666666666" << std::endl;
 
+	SignalStatus buffered_signal;
+
 	//very dangerous, suggest to change
 	for (int i = 0; i < 4; i++)
 	{
 		for (int j = 0; j < 3; j++)
 		{
 			//			int value;
-			ar & (one_signal->TC_for_Driver[i][j]);
+			//ar & (one_signal->TC_for_Driver[i][j]);
+			ar & (buffered_signal.TC_for_Driver[i][j]);
 			//			TC_for_Driver[i][j] = value;
 		}
 	}
@@ -526,9 +530,12 @@ void sim_mob::RoadNetworkPackageManager::unpackageSignalContent(Archive & ar)
 	for (int i = 0; i < 4; i++)
 	{
 		//		int value;
-		ar & (one_signal->TC_for_Pedestrian[i]);
+		//ar & (one_signal->TC_for_Pedestrian[i]);
+		ar & (buffered_signal.TC_for_Pedestrian[i]);
 		//		TC_for_Pedestrian[i] = value;
 	}
+
+	one_signal->buffered_TC.force(buffered_signal);
 
 	//	std::string value;
 	//	ar & value;

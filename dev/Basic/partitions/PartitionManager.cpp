@@ -20,6 +20,7 @@
 #include "workers/EntityWorker.hpp"
 #include "workers/Worker.hpp"
 #include "WorkGroup.hpp"
+#include "AgentPackageManager.hpp"
 
 namespace mpi = boost::mpi;
 
@@ -92,10 +93,10 @@ std::string PartitionManager::startMPIEnvironment(int argc, char* argv[], bool c
 		input += ".xml";
 		argv[1] = (char*) input.c_str();
 
-//		ConfigParams& config = ConfigParams::GetInstance();
-//		config.is_run_on_many_computers = false;
+		//		ConfigParams& config = ConfigParams::GetInstance();
+		//		config.is_run_on_many_computers = false;
 		//for internal use
-//		is_on_many_computers = false;
+		//		is_on_many_computers = false;
 
 		MPI_Finalize();
 		return "";
@@ -112,7 +113,7 @@ std::string PartitionManager::startMPIEnvironment(int argc, char* argv[], bool c
 	 * 2. User/Modeler can overload the MPI configuration in config.xml file
 	 */
 
-//	is_on_many_computers = true;
+	//	is_on_many_computers = true;
 	partition_config = new PartitionConfigure();
 	scenario = new SimulationScenario();
 
@@ -129,47 +130,75 @@ std::string PartitionManager::startMPIEnvironment(int argc, char* argv[], bool c
 void PartitionManager::setEntityWorkGroup(sim_mob::WorkGroup<Entity>* entity_group,
 		sim_mob::WorkGroup<Entity>* singal_group)
 {
-//	if (is_on_many_computers == false)
-//		return;
+	//	if (is_on_many_computers == false)
+	//		return;
 
 	processor.setEntityWorkGroup(entity_group, singal_group);
 }
 
 void PartitionManager::initBoundaryTrafficItems()
 {
-//	if (is_on_many_computers == false)
-//		return;
+	//	if (is_on_many_computers == false)
+	//		return;
 
 	processor.initBoundaryTrafficItems();
 }
 
 void PartitionManager::loadInBoundarySegment(std::string boundary_segment_id, BoundarySegment* boundary)
 {
-//	if (is_on_many_computers == false)
-//		return;
+	//	if (is_on_many_computers == false)
+	//		return;
 
 	processor.loadInBoundarySegment(boundary_segment_id, boundary);
 }
 
 void PartitionManager::updateRandomSeed()
 {
-	vector<Agent*> all_agents = Agent::all_agents;
+	std::vector<Agent*> all_agents = Agent::all_agents;
 	//
+	std::vector<Agent*>::iterator itr = all_agents.begin();
+	for (; itr != all_agents.end(); itr++)
+	{
+		Agent* one_agent = (*itr);
+		if (one_agent->id >= 10000)
+		{
+			one_agent->id = one_agent->id - 10000 + 3;
+		}
+		else if (one_agent->id >= 3)
+		{
+			one_agent->id = one_agent->id + 4;
+		}
 
+		const Person *person = dynamic_cast<const Person *> (one_agent);
+		if (person)
+		{
+			Person* p = const_cast<Person*> (person);
+			//init random seed
+			p->getRole()->dynamic_seed = one_agent->getId();
+
+			//update pedestrain speed
+			const Pedestrian *pedestrian = dynamic_cast<const Pedestrian *> (p->getRole());
+			if (pedestrian)
+			{
+				Pedestrian *one_pedestrian = const_cast<Pedestrian*> (pedestrian);
+				one_pedestrian->speed = 1.2 + (double(one_agent->getId() % 5)) / 10;
+			}
+		}
+	}
 }
 
 std::string PartitionManager::crossPCboundaryProcess(int time_step)
 {
-//	if (is_on_many_computers == false)
-//		return "";
+	//	if (is_on_many_computers == false)
+	//		return "";
 
 	return processor.boundaryProcessing(time_step);
 }
 
 std::string PartitionManager::crossPCBarrier()
 {
-//	if (is_on_many_computers == false)
-//		return "";
+	//	if (is_on_many_computers == false)
+	//		return "";
 
 	mpi::communicator world;
 	world.barrier();
@@ -184,8 +213,8 @@ std::string PartitionManager::outputAllEntities(frame_t time_step)
 
 std::string PartitionManager::stopMPIEnvironment()
 {
-//	if (is_on_many_computers == false)
-//		return "";
+	//	if (is_on_many_computers == false)
+	//		return "";
 
 	MPI_Finalize();
 	std::cout << "Finished" << std::endl;

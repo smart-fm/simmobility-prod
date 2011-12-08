@@ -45,15 +45,8 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent) :
 
 	//Set random seed
 	//temp setting, to compare with simmobility-mpi
-	int person_id = parent->getId();
-	if(person_id >= 10000)
-	{
-		speed = 1.2 + (double((parent->getId()-10000 + 3) % 5)) / 10;
-	}
-	else
-	{
-		speed = 1.2 + (double(parent->getId() % 5)) / 10;
-	}
+//	int person_id = parent->getId();
+	speed = 1.2 + (double(parent->getId() % 5)) / 10;
 
 //	srand(parent->getId());
 
@@ -69,6 +62,10 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent) :
 
 vector<BufferedBase*> sim_mob::Pedestrian::getSubscriptionParams() {
 	vector<BufferedBase*> res;
+
+	res.push_back(&(currentStage_));
+	res.push_back(&(startToCross_));
+
 	return res;
 }
 
@@ -86,7 +83,8 @@ void sim_mob::Pedestrian::update(frame_t frameNumber) {
 			//			cEndX=((double)parent->destNode->location->getX())/100;
 			//			cEndX=((double)parent->destNode->location->getY())/100;
 			setGoal(currentStage);
-
+			if(ConfigParams::GetInstance().is_run_on_many_computers == false)
+			output(frameNumber);
 			//TEMP: for testing on self-created network only
 			//			cStartX=500;
 			//			cStartY=300;
@@ -104,7 +102,7 @@ void sim_mob::Pedestrian::update(frame_t frameNumber) {
 
 				if (!parent->isToBeRemoved()) {
 					//Output (temp)
-					LogOut("Pedestrian " <<parent->getId() <<" has reached the destination" <<std::endl);
+					//LogOut("Pedestrian " <<parent->getId() <<" has reached the destination" <<std::endl);
 					parent->setToBeRemoved(true);
 				}
 				return;
@@ -113,6 +111,7 @@ void sim_mob::Pedestrian::update(frame_t frameNumber) {
 			if (isGoalReached()) {
 				currentStage++;
 				setGoal(currentStage); //Set next goal
+				if(ConfigParams::GetInstance().is_run_on_many_computers == false)
 				output(frameNumber);
 
 				//			{
@@ -125,7 +124,7 @@ void sim_mob::Pedestrian::update(frame_t frameNumber) {
 				if (currentStage == 0 || currentStage == 2) {
 					updateVelocity(0);
 					updatePosition();
-					LogOut("Pedestrian " <<parent->getId() <<" is walking on sidewalk" <<std::endl);
+					//LogOut("Pedestrian " <<parent->getId() <<" is walking on sidewalk" <<std::endl);
 					//				//Output (temp)
 					//				LogOut("("<<"Pedestrian,"<<frameNumber<<","<<parent->getId()<<","<<"{xPos:"<<parent->xPos.get()<<"," <<"yPos:"<<this->parent->yPos.get()<<","<<"pedSig:"<<currPhase<<",})"<<std::endl);
 					//				LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
@@ -154,7 +153,7 @@ void sim_mob::Pedestrian::update(frame_t frameNumber) {
 						updatePosition();
 					} else {
 						//Output (temp)
-						LogOut("Pedestrian " <<parent->getId() <<" is waiting at the crossing" <<std::endl);
+						//LogOut("Pedestrian " <<parent->getId() <<" is waiting at the crossing" <<std::endl);
 					}
 
 					const ConfigParams& config = ConfigParams::GetInstance();
@@ -186,6 +185,8 @@ void sim_mob::Pedestrian::update(frame_t frameNumber) {
 			//	}
 		}
 
+		currentStage_.set(currentStage);
+		startToCross_.set(startToCross);
 	}
 }
 
@@ -801,20 +802,22 @@ void sim_mob::Pedestrian::relToAbs(double xRel, double yRel, double & xAbs, doub
 }
 
 bool sim_mob::Pedestrian::isOnCrossing() {
-	if (currentStage == 1 && startToCross == true)
+	if (currentStage_.get() == 1 && startToCross_.get() == true)
 		return true;
 	else
 		return false;
 }
 
 void sim_mob::Pedestrian::output(frame_t frameNumber) {
+	//LogOut("pedestrian "<< frameNumber <<"parent->startTime:" << parent->startTime << "\n");
+
 	if (frameNumber < parent->startTime)
 		return;
 
 	if (this->parent->isFake) {
-		LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get() <<"\"," <<"\"fake\":\""<<"true" <<"\",})"<<std::endl);
+		LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get() <<"\"," <<"\"xVel\":\""<< this->xVel <<"\"," <<"\"yVel\":\""<< this->yVel <<"\"," <<"\"fake\":\""<<"true" <<"\",})"<<std::endl);
 	} else {
-		LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get() <<"\"," <<"\"fake\":\""<<"false" <<"\",})"<<std::endl);
+		LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get() <<"\"," <<"\"xVel\":\""<< this->xVel <<"\"," <<"\"yVel\":\""<< this->yVel <<"\"," <<"\"fake\":\""<<"false" <<"\",})"<<std::endl);
 	}
 }
 

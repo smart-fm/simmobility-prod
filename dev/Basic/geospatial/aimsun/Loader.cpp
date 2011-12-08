@@ -17,6 +17,8 @@
 #include "CrossingLoader.hpp"
 #include "LaneLoader.hpp"
 
+#include "constants.h"
+
 #include "geospatial/Point2D.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/UniNode.hpp"
@@ -75,7 +77,10 @@ public:
     explicit DatabaseLoader(string const & connectionString);
 
     void LoadBasicAimsunObjects(map<string, string> const & storedProcedures);
+
+#ifndef SIMMOB_DISABLE_MPI
     void TransferBoundaryRoadSegment();
+#endif
 
     void DecorateAndTranslateObjects();
     void PostProcessNetwork();
@@ -107,7 +112,9 @@ private:
     void LoadTripchains(const std::string& storedProc);
     void LoadTrafficSignals(const std::string& storedProc);
 
+#ifndef SIMMOB_DISABLE_MPI
     void LoadBoundarySegments();
+#endif
 
     void createSignals();
 };
@@ -290,6 +297,7 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 	std::string sql_str;
 
 	//changed by xuyan
+#ifndef SIMMOB_DISABLE_MPI
 	const sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstance();
 	if (config.is_run_on_many_computers)
 	{
@@ -308,6 +316,9 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 
 	}
 	else
+#else
+	if (true)
+#endif
 	{
 		sql_str = "select * from " + storedProc;
 	}
@@ -371,6 +382,7 @@ getStoredProcedure(map<string, string> const & storedProcs, string const & proce
                              + "' in the config file");
 }
 
+#ifndef SIMMOB_DISABLE_MPI
 void DatabaseLoader::LoadBoundarySegments()
 {
 	sim_mob::PartitionManager& partitionImpl = sim_mob::PartitionManager::instance();
@@ -425,7 +437,7 @@ void DatabaseLoader::TransferBoundaryRoadSegment()
 		partitionImpl.loadInBoundarySegment((*it)->boundarySegment->getId(), (*it));
 	}
 }
-
+#endif
 
 void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedProcs)
 {
@@ -440,10 +452,12 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 
 	//add by xuyan
 	//load in boundary segments (not finished!)
+#ifndef SIMMOB_DISABLE_MPI
 	const sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstance();
 	if (config.is_run_on_many_computers) {
 		LoadBoundarySegments();
 	}
+#endif
 }
 
 
@@ -1385,11 +1399,12 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 
 		//add by xuyan, load in boundary segments
 		//Step Four: find boundary segment in road network using start-node(x,y) and end-node(x,y)
-		sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstance();
-		if (config.is_run_on_many_computers)
+#ifndef SIMMOB_DISABLE_MPI
+		if (ConfigParams::GetInstance().is_run_on_many_computers)
 		{
 			loader.TransferBoundaryRoadSegment();
 		}
+#endif
 
 
 	} catch (std::exception& ex) {

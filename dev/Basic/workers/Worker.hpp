@@ -69,7 +69,7 @@ public:
 	void scheduleEntityNow(Entity* entity);
 #endif
 
-	int getAgentSize();
+	int getAgentSize() { return managedEntities.size(); }
 
 protected:
 	virtual void perform_main(frame_t frameNumber);

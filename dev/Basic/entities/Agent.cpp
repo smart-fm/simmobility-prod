@@ -36,18 +36,18 @@ unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID)
 		next_agent_id = static_cast<unsigned int> (preferredID);
 	}
 
-	const ConfigParams& config = ConfigParams::GetInstance();
-	if (config.is_run_on_many_computers == false)
-	{
-		return next_agent_id++;
-	}
-	else
-	{
+#ifndef SIMMOB_DISABLE_MPI
+	if (ConfigParams::GetInstance().is_run_on_many_computers) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		int mpi_id = partitionImpl.partition_config->partition_id;
 		int cycle = partitionImpl.partition_config->maximum_agent_id;
 		return (next_agent_id++) + cycle * mpi_id;
+	} else {
+#endif
+		return next_agent_id++;
+#ifndef SIMMOB_DISABLE_MPI
 	}
+#endif
 }
 
 sim_mob::Agent::Agent(int id) : Entity(GetAndIncrementID(id)), originNode(nullptr), destNode(nullptr), xPos(0), yPos(0) {

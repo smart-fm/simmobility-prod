@@ -206,6 +206,14 @@ vector<Point2D> sim_mob::ShiftPolyline(const vector<Point2D>& orig, double shift
 	return res;
 }
 
+//add by xuyan
+Point2D sim_mob::getMiddlePoint2D(sim_mob::Point2D* start_point, sim_mob::Point2D* end_point, double offset)
+{
+	double distance = sim_mob::dist(start_point->getX(), start_point->getY(), end_point->getX(), end_point->getY());
+	double location_x = start_point->getX() + (offset * 100) / distance * (end_point->getX() - start_point->getX());
+	double location_y = start_point->getY() + (offset * 100) / distance * (end_point->getY() - start_point->getY());
 
+	return Point2D(location_x, location_y);
+}
 
 

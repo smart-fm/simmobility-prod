@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include "geospatial/Point2D.hpp"
 
 namespace sim_mob

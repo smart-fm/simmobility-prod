@@ -3,6 +3,9 @@
  *
  */
 
+#include "constants.h"
+#ifndef SIMMOB_DISABLE_MPI
+
 #include "PartitionManager.hpp"
 #include <iostream>
 
@@ -228,3 +231,6 @@ std::string PartitionManager::adaptiveLoadBalance()
 	return "";
 }
 }
+
+#endif
+

@@ -285,8 +285,8 @@ void sim_mob::AgentPackageManager::packageOneCrossDriver(Archive & ar, Agent con
 	ar & (agent->yPos.get());
 	ar & (agent->xAcc.get());
 	ar & (agent->yAcc.get());
-	ar & (agent->xVel.get());
-	ar & (agent->yVel.get());
+	ar & (agent->fwdVel.get());
+	ar & (agent->latVel.get());
 	ar & (agent->toRemoved);
 
 	//Step 2
@@ -498,8 +498,8 @@ void sim_mob::AgentPackageManager::packageOneFeedbackDriver(Archive & ar, Agent 
 	ar & (agent->yPos.get());
 	ar & (agent->xAcc.get());
 	ar & (agent->yAcc.get());
-	ar & (agent->xVel.get());
-	ar & (agent->yVel.get());
+	ar & (agent->fwdVel.get());
+	ar & (agent->latVel.get());
 	ar & (agent->toRemoved);
 
 	//Step 2
@@ -719,8 +719,8 @@ Agent* sim_mob::AgentPackageManager::rebuildOneCrossDriver(Archive & ar) {
 	one_person->yPos.force(y_pos);
 	one_person->xAcc.force(x_acc);
 	one_person->yAcc.force(y_acc);
-	one_person->xVel.force(x_vel);
-	one_person->yVel.force(y_vel);
+	one_person->fwdVel.force(x_vel);
+	one_person->latVel.force(y_vel);
 
 	ar & (one_person->toRemoved);
 
@@ -939,8 +939,8 @@ Agent* sim_mob::AgentPackageManager::rebuildOneFeedbackDriver(Archive & ar) {
 	one_person->yPos.force(y_pos);
 	one_person->xAcc.force(x_acc);
 	one_person->yAcc.force(y_acc);
-	one_person->xVel.force(x_vel);
-	one_person->yVel.force(y_vel);
+	one_person->fwdVel.force(x_vel);
+	one_person->latVel.force(y_vel);
 
 	ar & (one_person->toRemoved);
 
@@ -1147,8 +1147,8 @@ void sim_mob::AgentPackageManager::packageOneCrossPedestrain(Archive & ar, Agent
 	ar & (agent->xAcc.get());
 	//	std::cout << "packageOneCrossDriver Pdesttrains 2.7:" << std::endl;
 	ar & (agent->yAcc.get());
-	ar & (agent->xVel.get());
-	ar & (agent->yVel.get());
+	ar & (agent->fwdVel.get());
+	ar & (agent->latVel.get());
 
 	//std::cout << "packageOneCrossDriver Pdesttrains 2.8:" << std::endl;
 
@@ -1226,8 +1226,8 @@ void sim_mob::AgentPackageManager::packageOneFeedbackPedestrain(Archive & ar, Ag
 	ar & (agent->xAcc.get());
 	//std::cout << "packageOneCrossDriver Pdesttrains 2.7:" << std::endl;
 	ar & (agent->yAcc.get());
-	ar & (agent->xVel.get());
-	ar & (agent->yVel.get());
+	ar & (agent->fwdVel.get());
+	ar & (agent->latVel.get());
 
 	//std::cout << "packageOneCrossDriver Pdesttrains 2.8:" << std::endl;
 
@@ -1315,8 +1315,8 @@ Agent* sim_mob::AgentPackageManager::rebuildOneCrossPedestrian(Archive & ar) {
 	one_person->yPos.force(y_pos);
 	one_person->xAcc.force(x_acc);
 	one_person->yAcc.force(y_acc);
-	one_person->xVel.force(x_vel);
-	one_person->yVel.force(y_vel);
+	one_person->fwdVel.force(x_vel);
+	one_person->latVel.force(y_vel);
 
 	ar & (one_person->toRemoved);
 
@@ -1397,8 +1397,8 @@ Agent* sim_mob::AgentPackageManager::rebuildOneFeedbackPedestrian(Archive & ar) 
 	one_person->yPos.force(y_pos);
 	one_person->xAcc.force(x_acc);
 	one_person->yAcc.force(y_acc);
-	one_person->xVel.force(x_vel);
-	one_person->yVel.force(y_vel);
+	one_person->fwdVel.force(x_vel);
+	one_person->latVel.force(y_vel);
 
 	ar & (one_person->toRemoved);
 

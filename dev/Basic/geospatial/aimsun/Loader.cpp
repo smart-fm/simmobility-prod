@@ -871,7 +871,8 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 void
 DatabaseLoader::createSignals()
 {
-    std::set<sim_mob::Node const *> uniNodes;
+    //std::set<sim_mob::Node const *> uniNodes;
+    std::set<sim_mob::Node const *> badNodes;
 
     for (map<int, Signal>::const_iterator iter = signals_.begin(); iter != signals_.end(); ++iter)
     {

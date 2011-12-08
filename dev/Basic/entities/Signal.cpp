@@ -336,7 +336,7 @@ bool sim_mob :: Signal ::update(frame_t frameNumber)
 	updateSignal (Density);
     outputToVisualizer(frameNumber);
 
-	LogOut("Test Pedestrian:" << config.granSignalsTicks << ":" << frameNumber << " \n");
+	LogOut("Test Pedestrian:" << ConfigParams::GetInstance().granSignalsTicks << ":" << frameNumber << " \n");
 	LogOut("Test Pedestrian 1:" << buffered_TC.get().TC_for_Driver[1][1] << "\n");
 	LogOut("Test Pedestrian 2:" << TC_for_Driver[1][1] << "\n");
 //

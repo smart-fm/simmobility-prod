@@ -67,8 +67,8 @@ void sim_mob::AgentPackageManager::updateOneFeedbackDriver(Agent * new_agent,
 
 	old_agent->xPos.force(new_agent->xPos.get());
 	old_agent->yPos.force(new_agent->yPos.get());
-	old_agent->xVel.force(new_agent->xVel.get());
-	old_agent->yVel.force(new_agent->yVel.get());
+	old_agent->fwdVel.force(new_agent->fwdVel.get());
+	old_agent->latVel.force(new_agent->latVel.get());
 	old_agent->xAcc.force(new_agent->xAcc.get());
 	old_agent->yAcc.force(new_agent->yAcc.get());
 
@@ -126,8 +126,8 @@ void sim_mob::AgentPackageManager::updateOneFeedbackPedestrian(
 
 	old_agent->xPos.force(new_agent->xPos.get());
 	old_agent->yPos.force(new_agent->yPos.get());
-	old_agent->xVel.force(new_agent->xVel.get());
-	old_agent->yVel.force(new_agent->yVel.get());
+	old_agent->fwdVel.force(new_agent->fwdVel.get());
+	old_agent->latVel.force(new_agent->latVel.get());
 	old_agent->xAcc.force(new_agent->xAcc.get());
 	old_agent->yAcc.force(new_agent->yAcc.get());
 

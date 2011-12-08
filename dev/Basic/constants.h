@@ -20,7 +20,17 @@
 
 //Should we use dynamic dispatch, or force all Agents to start at time tick zero?
 // This is a workaround for current bugs; it will be removed later.
-//#define DISABLE_DYNAMIC_DISPATCH
+#ifndef DISABLE_DYNAMIC_DISPATCH
+  //#define DISABLE_DYNAMIC_DISPATCH
+#endif
+
+//Use this flag to completely disable compilation with MPI. This flag basically just disables the various
+//  MPI includes. It should be possible to EFFECTIVELY disable mpi by simply setting the number of
+//  computers to 1, but this flag exists to allow someone without boost::mpi installed to compile the
+//  Sim Mobility simulator.
+#ifndef SIMMOB_DISABLE_MPI
+  #define SIMMOB_DISABLE_MPI
+#endif
 
 
 //Sizes of workgroups. (Note that enums are allowed to overlap values)

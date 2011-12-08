@@ -33,7 +33,7 @@ public:
 
 	virtual void update(frame_t frameNumber);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
-	void output(UpdateParams& p, frame_t frameNumber);
+	void output(frame_t frameNumber);
 	bool isOnCrossing() const;
 
 private:

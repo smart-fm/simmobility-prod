@@ -2,6 +2,10 @@
  * BoundaryProcessor.cpp
  *
  */
+
+#include "constants.h"
+#ifndef SIMMOB_DISABLE_MPI
+
 #include <limits>
 
 #include <boost/mpi.hpp>
@@ -707,3 +711,6 @@ void BoundaryProcessor::setConfigure(PartitionConfigure* partition_config, Simul
 }
 
 }
+
+
+#endif

@@ -89,7 +89,7 @@ private:
 public:
 	//for coordinate transform
 	void setParentBufferedData();			///<set next data to parent buffer data
-	void output(UpdateParams& p, frame_t frameNumber);
+	void output(frame_t frameNumber);
 
 	/****************IN REAL NETWORK****************/
 private:

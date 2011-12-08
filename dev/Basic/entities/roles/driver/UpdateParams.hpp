@@ -3,6 +3,7 @@
 #pragma once
 
 #include "constants.h"
+#include "util/DynamicVector.hpp"
 
 
 namespace sim_mob

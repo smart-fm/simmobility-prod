@@ -498,11 +498,11 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	perceivedVelocity.delay(new DPoint(vehicle->getVelocity(), vehicle->getLatVelocity()), currTimeMS);
 	//Print output for this frame.
 	if (!vehicle->isDone()) {
-		output(params, frameNumber);
+		output(frameNumber);
 	}
 }
 
-void sim_mob::Driver::output(UpdateParams& p, frame_t frameNumber)
+void sim_mob::Driver::output(frame_t frameNumber)
 {
 	//Get angle
 	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();

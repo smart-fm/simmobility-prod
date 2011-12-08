@@ -87,11 +87,11 @@ void sim_mob::AgentPackageManager::updateOneFeedbackDriver(Agent * new_agent,
 	one_old_driver->currLane_.force(new_driver->currLane_.get());
 	one_old_driver->currLaneOffset_.force(new_driver->currLaneOffset_.get());
 	one_old_driver->currLaneLength_.force(new_driver->currLaneLength_.get());
-	one_old_driver->buffer_velocity.force(new_driver->buffer_velocity.get());
-	one_old_driver->buffer_accel.force(new_driver->buffer_accel.get());
-	one_old_driver->inIntersection_.force(one_new_driver->inIntersection_.get());
+	//one_old_driver->buffer_velocity.force(new_driver->buffer_velocity.get());
+	//one_old_driver->buffer_accel.force(new_driver->buffer_accel.get());
+	//one_old_driver->inIntersection_.force(one_new_driver->inIntersection_.get());
 
-	one_old_driver->vehicle->velocity.abs.x
+	/*one_old_driver->vehicle->velocity.abs.x
 			= new_driver->getVehicle()->velocity.abs.x;
 	one_old_driver->vehicle->velocity.abs.y
 			= new_driver->getVehicle()->velocity.abs.y;
@@ -102,9 +102,9 @@ void sim_mob::AgentPackageManager::updateOneFeedbackDriver(Agent * new_agent,
 	one_old_driver->vehicle->velocity.scaleDir.x
 			= new_driver->getVehicle()->velocity.scaleDir.x;
 	one_old_driver->vehicle->velocity.scaleDir.y
-			= new_driver->getVehicle()->velocity.scaleDir.y;
+			= new_driver->getVehicle()->velocity.scaleDir.y;*/
 
-	one_old_driver->vehicle->accel.abs.x
+	/*one_old_driver->vehicle->accel.abs.x
 			= new_driver->getVehicle()->accel.abs.x;
 	one_old_driver->vehicle->accel.abs.y
 			= new_driver->getVehicle()->accel.abs.y;
@@ -118,7 +118,7 @@ void sim_mob::AgentPackageManager::updateOneFeedbackDriver(Agent * new_agent,
 			= new_driver->getVehicle()->accel.scaleDir.y;
 
 	one_old_driver->vehicle->xPos = new_driver->getVehicle()->xPos;
-	one_old_driver->vehicle->yPos = new_driver->getVehicle()->yPos;
+	one_old_driver->vehicle->yPos = new_driver->getVehicle()->yPos;*/
 }
 
 void sim_mob::AgentPackageManager::updateOneFeedbackPedestrian(
@@ -142,7 +142,7 @@ void sim_mob::AgentPackageManager::updateOneFeedbackPedestrian(
 			dynamic_cast<const Pedestrian *> (one_old_person->getRole());
 	Pedestrian *one_old_pedestrian = const_cast<Pedestrian*> (old_pedestrian);
 
-	one_old_pedestrian->speed = new_pedestrian->speed;
+	/*one_old_pedestrian->speed = new_pedestrian->speed;
 	one_old_pedestrian->xVel = new_pedestrian->xVel;
 	one_old_pedestrian->yVel = new_pedestrian->yVel;
 
@@ -160,7 +160,7 @@ void sim_mob::AgentPackageManager::updateOneFeedbackPedestrian(
 	one_old_pedestrian->yCollisionVector = new_pedestrian->yCollisionVector;
 
 	one_old_pedestrian->currentStage_.set(new_pedestrian->currentStage_.get());
-	one_old_pedestrian->startToCross_.set(new_pedestrian->startToCross_.get());
+	one_old_pedestrian->startToCross_.set(new_pedestrian->startToCross_.get());*/
 }
 
 void sim_mob::AgentPackageManager::updateOneFeedbackPassenger(

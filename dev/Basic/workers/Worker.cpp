@@ -205,7 +205,7 @@ void sim_mob::Worker::migrateOut(Entity& ag)
 	ag.currWorker = nullptr;
 
 	//Remove this entity from our Agent mappings.
-	agentMapping.erase(ag);
+	//agentMapping.erase(ag);
 
 	//Remove this entity's Buffered<> types from our list
 	stopManaging(ag.getSubscriptionList());
@@ -235,7 +235,7 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 	ag.currWorker = this;
 
 	//Add this entity to our Agent mappings.
-	agentMapping[ag] = toID;
+	//agentMapping[ag] = toID;
 
 	//Add this entity's Buffered<> types to our list
 	beginManaging(ag.getSubscriptionList());

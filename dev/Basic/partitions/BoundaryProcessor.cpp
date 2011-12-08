@@ -51,10 +51,11 @@ std::string BoundaryProcessor::boundaryProcessing(int time_step) {
 	mpi::communicator world;
 	std::vector<BoundaryProcessingPackage> all_packages;
 	all_gather(world, own_package, all_packages);
+//	std::cout << "Testing 3:" << value << std::endl;
 
 	//Step 4
 	processBoundaryPackages(all_packages);
-
+//	std::cout << "Testing 4:" << value << std::endl;
 	return "";
 }
 
@@ -415,8 +416,8 @@ std::string BoundaryProcessor::outputAllEntities(frame_t time_step) {
 	std::vector<Agent*>::iterator it = Agent::all_agents.begin();
 
 	for (; it != Agent::all_agents.end(); it++) {
-
-		(*it) ->output(time_step);
+		if((*it)->isToBeRemoved() == false)
+			(*it) ->output(time_step);
 	}
 
 	std::vector<Signal const *>::iterator itr_sig = Signal::all_signals_.begin();

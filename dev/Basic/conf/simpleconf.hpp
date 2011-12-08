@@ -48,6 +48,7 @@ public:
 	std::string connectionString;
 
 	bool is_run_on_many_computers;
+	bool is_simulation_repeatable;
 
 	unsigned int totalRuntimeInMilliSeconds() const { return totalRuntimeTicks * baseGranMS; }
 	unsigned int warmupTimeInMilliSeconds() const { return totalWarmupTicks * baseGranMS; }
@@ -56,6 +57,7 @@ public:
 	unsigned int pathsTimeStepInMilliSeconds() const { return granPathsTicks * baseGranMS; }
 	unsigned int DecompTimeStepInMilliSeconds() const { return granDecompTicks * baseGranMS; }
 
+	bool TEMP_ManualFixDemoIntersection;
 public:
 	/***
 	 * Singleton. Retrieve an instance of the ConfigParams object.

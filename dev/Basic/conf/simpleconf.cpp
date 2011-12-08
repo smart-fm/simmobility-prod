@@ -98,6 +98,33 @@ int ReadGranularity(TiXmlHandle& handle, const std::string& granName)
 }
 
 
+void SplitAndAddString(vector<string>& arr, string str)
+{
+    std::istringstream iss(str);
+	std::copy(std::istream_iterator<string>(iss), std::istream_iterator<string>(),
+		std::back_inserter<vector<string> >(arr));
+}
+
+
+
+vector<string> ReadSpaceSepArray(TiXmlHandle& handle, const std::string& attrName)
+{
+	//Search for this attribute, parse it.
+	TiXmlElement* node = handle.ToElement();
+	vector<string> res;
+	if (node) {
+		const char* strArrP = node->Attribute(attrName.c_str());
+		if (strArrP) {
+			SplitAndAddString(res, strArrP);
+		}
+	}
+
+	//Done
+	return res;
+}
+
+
+
 bool generateAgentsFromTripChain(std::vector<Agent*>& agents)
 {
 	const vector<TripChain*>& tcs = ConfigParams::GetInstance().getTripChains();
@@ -124,8 +151,8 @@ bool generateAgentsFromTripChain(std::vector<Agent*>& agents)
 		curr->startTime = (*it)->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 
 		//TEMP
-		cout <<"Starting time declared as: " <<(*it)->startTime.toString() <<"\n";
-		cout <<"   offset from " <<ConfigParams::GetInstance().simStartTime.toString() <<" is " <<(curr->startTime/1000.0) <<"s\n";
+		//cout <<"Starting time declared as: " <<(*it)->startTime.toString() <<"\n";
+		//cout <<"   offset from " <<ConfigParams::GetInstance().simStartTime.toString() <<" is " <<(curr->startTime/1000.0) <<"s\n";
 	}
 
 	return true;
@@ -213,11 +240,11 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Agent*>& agents, const s
 					return false;
 				}
 				foundDestPos = true;
-			}
-			else if (name=="time"){
+			} else if (name=="time") {
 				agent->startTime=valueI;
-			}
-			else {
+			} else if (name=="special") {
+				agent->specialStr = value;
+			} else {
 				return false;
 			}
 		}
@@ -286,11 +313,39 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal const *>& all_si
                     continue;
                 }
 
-                //size_t id = all_signals.size();
-                //int id = Agent::GetAndIncrementID();
-                Signal* sig = new Signal(*road_node);
-                all_signals.push_back(sig);
-                streetDirectory.registerSignal(*sig);
+                // See the comments in createSignals() in geospatial/aimsun/Loader.cpp.
+                // At some point in the future, this function loadXMLSignals() will be removed
+                // in its entirety, not just the following code fragment.
+                std::set<Link const *> links;
+                if (MultiNode const * multi_node = dynamic_cast<MultiNode const *>(road_node))
+                {
+                    std::set<RoadSegment*> const & roads = multi_node->getRoadSegments();
+                    std::set<RoadSegment*>::const_iterator iter;
+                    for (iter = roads.begin(); iter != roads.end(); ++iter)
+                    {
+                        RoadSegment const * road = *iter;
+                        links.insert(road->getLink());
+                    }
+                }
+                if (links.size() != 4)
+                {
+                    std::cerr << "the multi-node at " << pt << " does not have 4 links; "
+                              << "no signal will be created here." << std::endl;
+                    continue;
+                }
+
+                Signal const * signal = streetDirectory.signalAt(*road_node);
+                if (signal)
+                {
+                    std::cout << "signal at node(" << xpos << ", " << ypos << ") already exists; "
+                              << "skipping this config file entry" << std::endl;
+                }
+                else
+                {
+                    // The following call will create and register the signal with the
+                    // street-directory.
+                    Signal::signalAt(*road_node);
+                }
             }
             catch (boost::bad_lexical_cast &)
             {
@@ -344,7 +399,7 @@ bool LoadDatabaseDetails(TiXmlElement& parentElem, string& connectionString, map
 	}
 
 	//Done; we'll check the storedProcedures in detail later.
-	return !connectionString.empty() && storedProcedures.size()==7;
+	return true;
 }
 
 
@@ -444,6 +499,9 @@ void PrintDB_Network()
 		LogOutNotSync("(\"uni-node\", 0, " <<*it <<", {");
 		LogOutNotSync("\"xPos\":\"" <<(*it)->location->getX() <<"\",");
 		LogOutNotSync("\"yPos\":\"" <<(*it)->location->getY() <<"\",");
+		if (!(*it)->originalDB_ID.getLogItem().empty()) {
+			LogOutNotSync((*it)->originalDB_ID.getLogItem());
+		}
 		LogOutNotSync("})" <<endl);
 
 		//Cache all segments
@@ -456,6 +514,9 @@ void PrintDB_Network()
 		LogOutNotSync("(\"multi-node\", 0, " <<*it <<", {");
 		LogOutNotSync("\"xPos\":\"" <<(*it)->location->getX() <<"\",");
 		LogOutNotSync("\"yPos\":\"" <<(*it)->location->getY() <<"\",");
+		if (!(*it)->originalDB_ID.getLogItem().empty()) {
+			LogOutNotSync((*it)->originalDB_ID.getLogItem());
+		}
 		LogOutNotSync("})" <<endl);
 
 		//NOTE: This is temporary; later we'll ensure that the RoadNetwork only stores Intersections,
@@ -507,6 +568,9 @@ void PrintDB_Network()
 		LogOutNotSync("\"lanes\":\"" <<(*it)->getLanes().size() <<"\",");
 		LogOutNotSync("\"from-node\":\"" <<(*it)->getStart() <<"\",");
 		LogOutNotSync("\"to-node\":\"" <<(*it)->getEnd() <<"\",");
+		if (!(*it)->originalDB_ID.getLogItem().empty()) {
+			LogOutNotSync((*it)->originalDB_ID.getLogItem());
+		}
 		LogOutNotSync("})" <<endl);
 
 		if (!(*it)->polyline.empty()) {
@@ -622,6 +686,29 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
 	int granPaths = ReadGranularity(handle, "paths");
 	int granDecomp = ReadGranularity(handle, "decomp");
 
+	//Determine what order we will load Agents in
+	handle = TiXmlHandle(&document);
+	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("load_agents");
+	vector<string> loadAgentOrder = ReadSpaceSepArray(handle, "order");
+	cout <<"Agent Load order: ";
+	if (loadAgentOrder.empty()) {
+		cout <<"<N/A>";
+	} else {
+		for (vector<string>::iterator it=loadAgentOrder.begin(); it!=loadAgentOrder.end(); it++) {
+			cout <<*it <<"  ";
+		}
+	}
+	cout <<endl;
+
+	//Miscelaneous settings
+	handle = TiXmlHandle(&document);
+	if (handle.FirstChild("config").FirstChild("system").FirstChild("misc").FirstChild("manual_fix_demo_intersection").ToElement()) {
+		ConfigParams::GetInstance().TEMP_ManualFixDemoIntersection = true;
+		cout <<">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" <<endl;
+		cout <<"Manual override used for demo intersection." <<endl;
+		cout <<"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" <<endl;
+	}
+
 	//Check
     if(    baseGran==-1 || totalRuntime==-1 || totalWarmup==-1
     	|| granAgent==-1 || granSignal==-1 || granPaths==-1 || granDecomp==-1 || !simStartStr) {
@@ -696,16 +783,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     			return "Unable to load database connection settings.";
     		}
 
-    		//Confirm that all stored procedures have been set.
-    		if (
-    			   storedProcedures.count("node")==0 || storedProcedures.count("section")==0
-    			|| storedProcedures.count("turning")==0 || storedProcedures.count("polyline")==0
-    			|| storedProcedures.count("crossing")==0 || storedProcedures.count("lane")==0
-    			|| storedProcedures.count("tripchain")==0
-    		) {
-    			return "Not all stored procedures were specified.";
-    		}
-
     		//Actually load it
     		string dbErrorMsg = sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetwork(), ConfigParams::GetInstance().getTripChains());
     		if (!dbErrorMsg.empty()) {
@@ -726,25 +803,29 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     	}
     }
 
-
-    //Create an agent for each Trip Chain in the database.
-    const ConfigParams& config = ConfigParams::GetInstance();
-	if (config.is_run_on_many_computers == false)
-	{
-		if (!generateAgentsFromTripChain(agents))
-		{
-			return "Couldn't generate agents from trip chains.";
-		}
-	}
-
-    //Load ALL agents: drivers and pedestrians.
-    //  (Note: Use separate config files if you just want to test one kind of agent.)
-    if (!loadXMLAgents(document, agents, "pedestrian")) {
-    	return "Couldn't load pedestrians";
+    //Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder
+    for (vector<string>::iterator it=loadAgentOrder.begin(); it!=loadAgentOrder.end(); it++) {
+    	if ((*it) == "database") {
+    	    //Create an agent for each Trip Chain in the database.
+//    	    if (!generateAgentsFromTripChain(agents)) {
+//    	    	return "Couldn't generate agents from trip chains.";
+//    	    }
+//    	    cout <<"Loaded Database Agents (from Trip Chains)." <<endl;
+    	} else if ((*it) == "drivers") {
+    	    if (!loadXMLAgents(document, agents, "driver")) {
+    	    	return	 "Couldn't load drivers";
+    	    }
+    		cout <<"Loaded Driver Agents (from config file)." <<endl;
+    	} else if ((*it) == "pedestrians") {
+    		if (!loadXMLAgents(document, agents, "pedestrian")) {
+    			return "Couldn't load pedestrians";
+    		}
+    		cout <<"Loaded Pedestrian Agents (from config file)." <<endl;
+    	} else {
+    		return string("Unknown item in load_agents: ") + (*it);
+    	}
     }
-    if (!loadXMLAgents(document, agents, "driver")) {
-    	return	 "Couldn't load drivers";
-    }
+
 
     //Load signals, which are currently agents
     if (!loadXMLSignals(document, Signal::all_signals_, "signal")) {
@@ -796,12 +877,12 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
     }
     std::cout <<"  Agents Initialized: " <<agents.size() <<"\n";
     for (size_t i=0; i<agents.size(); i++) {
-    	std::cout <<"    Agent(" <<agents[i]->getId() <<") = " <<agents[i]->xPos.get() <<"," <<agents[i]->yPos.get() <<"\n";
+    	//std::cout <<"    Agent(" <<agents[i]->getId() <<") = " <<agents[i]->xPos.get() <<"," <<agents[i]->yPos.get() <<"\n";
 
     	Person* p = dynamic_cast<Person*>(agents[i]);
     	if (p && p->getTripChain()) {
-    		const TripChain* const tc = p->getTripChain();
-    		std::cout <<"      Trip Chain start time: " <<tc->startTime.toString()  <<" from: " <<tc->from.description <<"(" <<tc->from.location <<") to: " <<tc->to.description <<"(" <<tc->to.location <<") mode: " <<tc->mode <<" primary: " <<tc->primary  <<" flexible: " <<tc->flexible <<"\n";
+    		//const TripChain* const tc = p->getTripChain();
+    		//std::cout <<"      Trip Chain start time: " <<tc->startTime.toString()  <<" from: " <<tc->from.description <<"(" <<tc->from.location <<") to: " <<tc->to.description <<"(" <<tc->to.location <<") mode: " <<tc->mode <<" primary: " <<tc->primary  <<" flexible: " <<tc->flexible <<"\n";
     	}
     }
     std::cout <<"------------------\n";
@@ -824,7 +905,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Agent*>& agents)
 // Simple singleton implementation
 //////////////////////////////////////////
 ConfigParams sim_mob::ConfigParams::instance;
-sim_mob::ConfigParams::ConfigParams() {
+sim_mob::ConfigParams::ConfigParams() : TEMP_ManualFixDemoIntersection(false) {
 
 }
 ConfigParams& sim_mob::ConfigParams::GetInstance() {

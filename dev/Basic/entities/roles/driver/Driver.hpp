@@ -10,7 +10,7 @@
 #include "buffering/Buffered.hpp"
 #include "geospatial/StreetDirectory.hpp"
 #include "perception/FixedDelayed.hpp"
-
+#include "util/RelAbsPoint.hpp"
 
 namespace sim_mob
 {
@@ -36,6 +36,7 @@ class MultiNode;
 class Vehicle;
 class AgentPackageManager;
 class BoundaryProcessor;
+class RoadNetworkPackageManager;
 
 
 class Driver : public sim_mob::Role {
@@ -215,6 +216,10 @@ public:
 	Buffered<const Lane*> currLane_;
 	Buffered<double> currLaneOffset_;
 	Buffered<double> currLaneLength_;
+	Buffered<RelAbsPoint> buffer_velocity;
+	Buffered<RelAbsPoint> buffer_accel;
+
+
 
 public:
 	const Vehicle* getVehicle() const {return vehicle;}
@@ -304,6 +309,10 @@ private:
 	double headway;				//distance/speed
 	double space_star;			//the distance which leading vehicle will move in next time step
 	double dv;					//the difference of subject vehicle's speed and leading vehicle's speed
+
+//	Buffered<double> buffer_a_lead;
+//	Buffered<double> buffer_v_lead;
+
 	double a_lead;				//the acceleration of leading vehicle
 	double v_lead;				//the speed of leading vehicle
 	size_t mode;// 0 for vehicle, 1 for pedestrian, 2 for traffic light, 3 for null
@@ -317,7 +326,8 @@ public:
 	double accOfMixOfCFandFF(UpdateParams& p);						///<when upper threshold < headway, use this funcion
 	double accOfFreeFlowing(UpdateParams& p);						///<is a part of accofMixOfCFandFF
 	double getTargetSpeed() const {return targetSpeed;}
-
+	double nRandom(double mean,double stddev);
+	double uRandom();
 	//for lane changing decision
 private:
 	double VelOfLaneChanging;	//perpendicular with the lane's direction
@@ -371,12 +381,15 @@ public:
 	void UpdateNextLinkLane();
 	void enterNextLink(UpdateParams& p);
 	bool isReachCrosswalk();
-	bool isInIntersection() const {return inIntersection;}
 
 private:
 	const Signal* trafficSignal;
 	double angle;
 	bool inIntersection;
+
+public:
+	Buffered<bool> inIntersection_;
+	bool isInIntersection() const {return inIntersection_.get();}
 
 	/**************COOPERATION WITH PEDESTRIAN***************/
 public:
@@ -386,6 +399,9 @@ public:
 public:
 	friend class AgentPackageManager;
 	friend class BoundaryProcessor;
+	friend class RoadNetworkPackageManager;
+
+
 };
 
 

@@ -13,6 +13,7 @@
 #include "geospatial/Crossing.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/RoadSegment.hpp"
+#include "geospatial/StreetDirectory.hpp"
 #include "util/OutputUtil.hpp"
 using namespace sim_mob;
 
@@ -43,6 +44,26 @@ const double sim_mob::Signal::SplitPlan4[] = {0.35, 0.30, 0.10, 0.25};
 const double sim_mob::Signal::SplitPlan5[] = {0.20, 0.35, 0.25, 0.20};
 
 //Signal* sim_mob::Signal::instance_ = NULL;
+
+/* static */ sim_mob::Signal &
+sim_mob::Signal::signalAt(Node const & node)
+{
+    Signal const * signal = StreetDirectory::instance().signalAt(node);
+    if (signal)
+        return const_cast<Signal &>(*signal);
+
+    Signal * sig = new Signal(node);
+    all_signals_.push_back(sig);
+    StreetDirectory::instance().registerSignal(*sig);
+    return *sig;
+}
+
+void
+sim_mob::Signal::addSignalSite(centimeter_t /* xpos */, centimeter_t /* ypos */,
+                               std::string const & /* typeCode */, double /* bearing */)
+{
+    // Not implemented yet.
+}
 
 sim_mob :: Signal :: Signal(Node const & node, int id): Agent(id), node_(node)
 {
@@ -265,7 +286,25 @@ void sim_mob :: Signal :: startSplitPlan()
 
 void sim_mob :: Signal ::update(frame_t frameNumber)
 {
+	const ConfigParams& config = ConfigParams::GetInstance();
+	if(frameNumber % config.granSignalsTicks == 1)
+	{
+		LogOut("Test Pedestrian 1:" << buffered_TC.get().TC_for_Driver[1][1] << "\n");
+	}
+
+	if(frameNumber % config.granSignalsTicks != 0)
+	{
+		return;
+	}
+
 	updateSignal (Density);
+
+	LogOut("Test Pedestrian:" << config.granSignalsTicks << ":" << frameNumber << " \n");
+	LogOut("Test Pedestrian 1:" << buffered_TC.get().TC_for_Driver[1][1] << "\n");
+	LogOut("Test Pedestrian 2:" << TC_for_Driver[1][1] << "\n");
+
+	if (config.is_run_on_many_computers == false)
+		output(frameNumber);
 }
 
 //Update Signal Light
@@ -583,17 +622,23 @@ void sim_mob :: Signal :: updateTrafficLights(){
 
 
 	//Update
+	SignalStatus new_status;
 	for (size_t i = 0; i < 4; i++)
 	{
 		for (size_t j = 0; j < 3; j++)
+		{
 			TC_for_Driver[i][j] = TC_for_DriverTemplate[relID][i][j];
+			new_status.TC_for_Driver[i][j] = TC_for_DriverTemplate[relID][i][j];
+		}
 	}
 
 	for (size_t i = 0; i < 4; i++)
 	{
 		TC_for_Pedestrian[i] = TC_for_PedestrianTemplate[relID][i];
+		new_status.TC_for_Pedestrian[i] = TC_for_PedestrianTemplate[relID][i];
 	}
 
+	buffered_TC.set(new_status);
 }
 
 namespace
@@ -642,7 +687,7 @@ const
     }
 
     size_t index = iter->second;
-    const int* threeIntegers = TC_for_Driver[index];
+    const int* threeIntegers = buffered_TC.get().TC_for_Driver[index];
     TrafficColor left = convertToTrafficColor(threeIntegers[0]);
     TrafficColor forward = convertToTrafficColor(threeIntegers[1]);
     TrafficColor right = convertToTrafficColor(threeIntegers[2]);
@@ -719,7 +764,7 @@ const
         throw stream.str();
     }
     size_t index = iter->second;
-    return convertToTrafficColor(TC_for_Pedestrian[index]);
+    return convertToTrafficColor(buffered_TC.get().TC_for_Pedestrian[index]);
 }
 
 
@@ -737,6 +782,13 @@ double sim_mob :: Signal :: fmax(const double proDS[])
 	return max;
 }
 
+void sim_mob :: Signal ::buildSubscriptionList()
+{
+	//First, add the x and y co-ordinates
+	Agent::buildSubscriptionList();
+
+	subscriptionList_cached.push_back(&buffered_TC);
+}
 
 //find the minimum among the max projected DS
 int sim_mob :: Signal :: fmin_ID(const double maxproDS[])
@@ -784,7 +836,7 @@ void sim_mob::Signal::output(frame_t frameNumber)
 
 	logout << "(\"Signal\",";
 
-	logout << frameNumber << "," << this->getId() << ",{\"va\":\"";
+	logout << frameNumber << "," << this << ",{\"va\":\"";
 	for (int i = 0; i < 3; i++)
 	{
 		logout << TC_for_Driver[0][i];

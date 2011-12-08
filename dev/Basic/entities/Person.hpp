@@ -39,6 +39,8 @@ public:
 	void setTripChain(sim_mob::TripChain* newTripChain) { currTripChain = newTripChain; }
 	sim_mob::TripChain* getTripChain() { return currTripChain; }
 
+	//Used for passing various debug data. Do not rely on this for anything long-term.
+	std::string specialStr;
 private:
 	//Properties
 	sim_mob::Role* currRole;

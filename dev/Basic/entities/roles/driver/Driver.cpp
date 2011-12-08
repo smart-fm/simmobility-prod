@@ -79,6 +79,10 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams()
 	res.push_back(&(currLane_));
 	res.push_back(&(currLaneOffset_));
 	res.push_back(&(currLaneLength_));
+	res.push_back(&(buffer_velocity));
+	res.push_back(&(buffer_accel));
+	res.push_back(&(inIntersection_));
+
 	return res;
 }
 
@@ -111,6 +115,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	if (frameNumber < parent->startTime)
 		return;
 	traveledDis = 0;
+
 	if (!isOriginSet)
 	{
 		initializePath();
@@ -121,6 +126,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	}
 	//still need to be modified.
 	//if reach the goal, get back to the origin
+
 	if (isGoalReached())
 	{
 		//TODO:reach destination
@@ -161,6 +167,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 	//Note: For now, most updates cannot take place unless there is a Lane set
 	if (params.currLane)
 	{
+		LogOut(this->getParent()->getId() << "11 -- \n");
 		//perceivedXVelocity = vehicle->xVel;
 		//perceivedYVelocity = vehicle->yVel;
 		//abs2relat();
@@ -168,6 +175,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 		//inside intersection
 		if (inIntersection)
 		{
+			//No >>>
 			intersectionDriving(params);
 		}
 		else
@@ -177,6 +185,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 			//I assume this vehicle enters the intersection
 			if (isReachLinkEnd())
 			{
+				//No >>>
 				inIntersection = true;
 				directionIntersection();
 				intersectionVelocityUpdate();
@@ -188,6 +197,7 @@ void sim_mob::Driver::update(frame_t frameNumber)
 				//so when the polyline segment has been updated, the coordinate system should also be updated
 				if (isReachPolyLineSegEnd())
 				{
+					//No >>>
 					vehicle->xPos_ -= polylineSegLength;
 					if (!isReachLastPolyLineSeg())
 						updatePolyLineSeg();
@@ -201,36 +211,58 @@ void sim_mob::Driver::update(frame_t frameNumber)
 					}
 				}
 
+				//Yes >>>
 				if (isCloseToLinkEnd())
 					trafficSignalDriving(params);
+
 				linkDriving(params);
 			}
 		}
+
+		//Yes >>>
 		relat2abs();
 		setToParent();
 		updateAngle();
 	}
 
+	//Yes >>>
 	//Update currLane_ with the latest computed value (from our local currLane).
 	currLane_.set(params.currLane);
 	currLaneOffset_.set(currLaneOffset);
 	currLaneLength_.set(currLaneLength);
 
-//	output(frameNumber);
+	buffer_velocity.set(vehicle->velocity);
+	buffer_accel.set(vehicle->accel);
+	inIntersection_.set(inIntersection);
+
+	const ConfigParams& config = ConfigParams::GetInstance();
+	if (config.is_run_on_many_computers == false)
+	{
+		output(frameNumber);
+	}
 }
 
-void sim_mob::Driver::output(frame_t frameNumber) {
+void sim_mob::Driver::output(frame_t frameNumber)
+{
 	if (frameNumber < parent->startTime)
 		return;
 
 	std::stringstream logout;
 
 	logout << "(\"Driver\"" << "," << frameNumber << "," << parent->getId() << ",{" << "\"xPos\":\"" << vehicle->xPos
-			<< "\",\"yPos\":\"" << vehicle->yPos << "\",\"angle\":\"" << angle;
+			<< "\",\"yPos\":\"" << vehicle->yPos << "\",\"angle\":\"" << angle << "\",\"vehicle_x\":\""
+			<< vehicle->velocity.getRelX() << "\",\"vehicle_y\":\"" << vehicle->velocity.getRelY() << "\",\"dynamic_seed\":\""
+			<< this->dynamic_seed << "\",\"getBufferedRelX\":\""
+			<< this->buffer_velocity.get().getRelX() << "\",\"getBufferedRelY\":\""
+			<< this->buffer_velocity.get().getRelY() << "\",\"space\":\""
+			<< this->space;
 
-	if (this->parent->isFake) {
+	if (this->parent->isFake)
+	{
 		logout << "\",\"fake\":\"" << "true";
-	} else {
+	}
+	else
+	{
 		logout << "\",\"fake\":\"" << "false";
 	}
 
@@ -265,10 +297,16 @@ void sim_mob::Driver::linkDriving(UpdateParams& p)
 {
 	updateLeadingGapandMode(p);
 	if (isLaneChanging)
+	{
 		updatePosLC(p);
+	}
 	//if too close to front agent, don't do lane changing. now it is 10m
 	if (space > 10)
+	{
 		excuteLaneChanging();
+	}
+
+
 
 	//if(isTrafficLightStop && vehicle->xVel_ < 50)
 	if (isTrafficLightStop && vehicle->velocity.getRelX() < 50)
@@ -404,6 +442,10 @@ bool sim_mob::Driver::isLeaveIntersection()
 	double currXoffset = vehicle->xPos - xTurningStart;
 	double currYoffset = vehicle->yPos - yTurningStart;
 	int currDisToEntrypoint = sqrt(currXoffset * currXoffset + currYoffset * currYoffset);
+	//return currDisToEntrypoint >= disToEntryPoint;
+	if (this->parent->getId() == 1)
+		std::cout << "currDisToEntrypoint:" << currDisToEntrypoint << "<------> disToEntryPoint:" << disToEntryPoint
+				<< std::endl;
 	return currDisToEntrypoint >= disToEntryPoint;
 }
 
@@ -732,6 +774,8 @@ void sim_mob::Driver::initializePath()
 void sim_mob::Driver::setOrigin(UpdateParams& p)
 {
 	vehicle = new Vehicle();
+
+
 	//Retrieve the first link in the link path vector
 	RSIndex = 0;
 	currRoadSegment = allRoadSegments.at(RSIndex);
@@ -881,6 +925,7 @@ void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 	minRBDistance = 5000;
 	minPedestrianDis = 5000;
 
+
 	for (size_t i = 0; i < nearby_agents.size(); i++)
 	{
 		const Person *person = dynamic_cast<const Person *> (nearby_agents.at(i));
@@ -891,12 +936,16 @@ void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 		Pedestrian* pedestrian = dynamic_cast<Pedestrian*> (p->getRole());
 
 		if (other_driver == this)
+		{
 			continue;
+		}
 		if (other_driver)
 		{
 			const Lane* other_lane = other_driver->currLane_.get();// getCurrLane();
 			if (other_driver->isInIntersection())
+			{
 				continue;
+			}
 			const RoadSegment* otherRoadSegment = other_lane->getRoadSegment();
 			int other_offset = other_driver->currLaneOffset_.get();
 			//the vehicle is in the current road segment
@@ -910,8 +959,11 @@ void sim_mob::Driver::updateNearbyAgents(UpdateParams& params)
 					if (distance > 0)
 					{
 						distance = distance - vehicle->length / 2 - other_driver->getVehicle()->length / 2;
+						LogOut(this->getParent()->getId() << ":T6.5" << distance << "," << minCFDistance << "\n");
+
 						if (distance <= minCFDistance)
 						{
+							LogOut(this->getParent()->getId() << ":T7" << "\n");
 							CFD = other_driver;
 							minCFDistance = distance;
 						}
@@ -1260,15 +1312,22 @@ void sim_mob::Driver::trafficSignalDriving(UpdateParams& p)
 	tsStopDistance = 5000;
 	if (!trafficSignal)
 	{
+		//No >>
 		isTrafficLightStop = false;
 	}
 	else
 	{
 		int color;
 		if (nextLaneInNextLink)
+		{
 			color = trafficSignal->getDriverLight(*p.currLane, *nextLaneInNextLink);
+			//Yes
+		}
 		else
+		{
 			color = trafficSignal->getDriverLight(*p.currLane).forward;
+			//No
+		}
 
 		switch (color)
 		{
@@ -1281,9 +1340,14 @@ void sim_mob::Driver::trafficSignalDriving(UpdateParams& p)
 			//green
 		case Signal::Green:
 			if (!isPedetrianOnTargetCrossing())
+			{
 				isTrafficLightStop = false;
+			}
 			else
+			{
+				//Yes
 				isTrafficLightStop = true;
+			}
 			break;
 		}
 	}

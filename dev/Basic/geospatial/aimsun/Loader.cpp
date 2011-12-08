@@ -29,6 +29,8 @@
 #include "geospatial/Crossing.hpp"
 #include "geospatial/Lane.hpp"
 
+#include "conf/simpleconf.hpp"
+
 #include "util/DynamicVector.hpp"
 #include "util/OutputUtil.hpp"
 #include "util/DailyTime.hpp"
@@ -42,16 +44,21 @@
 #include "SOCI_Converters.hpp"
 
 //Note: These will eventually have to be put into a separate Loader for non-AIMSUN data.
+// fclim: I plan to move $topdir/geospatial/aimsun/* and entities/misc/aimsun/* to
+// $topdir/database/ and rename the aimsun namespace to "database".
 #include "entities/misc/TripChain.hpp"
 #include "entities/misc/aimsun/TripChain.hpp"
 #include "entities/misc/aimsun/SOCI_Converters.hpp"
+#include "entities/Signal.hpp"
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
+#include "partitions/BoundarySegment.hpp"
 #include "conf/simpleconf.hpp"
 
 using namespace sim_mob::aimsun;
 using sim_mob::DynamicVector;
+using sim_mob::Point2D;
 using std::vector;
 using std::string;
 using std::set;
@@ -62,7 +69,51 @@ using std::multimap;
 
 namespace {
 
+class DatabaseLoader : private boost::noncopyable
+{
+public:
+    explicit DatabaseLoader(string const & connectionString);
 
+    void LoadBasicAimsunObjects(map<string, string> const & storedProcedures);
+    void TransferBoundaryRoadSegment();
+
+    void DecorateAndTranslateObjects();
+    void PostProcessNetwork();
+    void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::TripChain*>& tcs);
+
+    map<int, Section> const & sections() const { return sections_; }
+
+private:
+    soci::session sql_;
+
+    map<int, Node> nodes_;
+    map<int, Section> sections_;
+    vector<Crossing> crossings_;
+    vector<Lane> lanes_;
+    map<int, Turning> turnings_;
+    multimap<int, Polyline> polylines_;
+    vector<TripChain> tripchains_;
+    map<int, Signal> signals_;
+    vector<sim_mob::BoundarySegment*> boundary_segments;
+
+private:
+    void LoadNodes(const std::string& storedProc);
+    void LoadSections(const std::string& storedProc);
+    void LoadCrossings(const std::string& storedProc);
+    void LoadLanes(const std::string& storedProc);
+    void LoadTurnings(const std::string& storedProc);
+    void LoadPolylines(const std::string& storedProc);
+    void LoadTripchains(const std::string& storedProc);
+    void LoadTrafficSignals(const std::string& storedProc);
+    void LoadBoundarySegments();
+
+    void createSignals();
+};
+
+DatabaseLoader::DatabaseLoader(string const & connectionString)
+  : sql_(soci::postgresql, connectionString)
+{
+}
 
 //Sorting function for polylines
 bool polyline_sorter (const Polyline* const p1, const Polyline* const p2)
@@ -71,16 +122,15 @@ bool polyline_sorter (const Polyline* const p1, const Polyline* const p2)
 }
 
 
-
-void LoadNodes(soci::session& sql, const std::string& storedProc, map<int, Node>& nodelist)
+void DatabaseLoader::LoadNodes(const std::string& storedProc)
 {
 	//Our SQL statement
-	soci::rowset<Node> rs = (sql.prepare <<"select * from " + storedProc);
+	soci::rowset<Node> rs = (sql_.prepare <<"select * from " + storedProc);
 
 	//Exectue as a rowset to avoid repeatedly building the query.
-	nodelist.clear();
+	nodes_.clear();
 	for (soci::rowset<Node>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
-		if (nodelist.count(it->id)>0) {
+		if (nodes_.count(it->id)>0) {
 			throw std::runtime_error("Duplicate AIMSUN node.");
 		}
 
@@ -88,23 +138,23 @@ void LoadNodes(soci::session& sql, const std::string& storedProc, map<int, Node>
 		it->xPos *= 100;
 		it->yPos *= 100;
 
-		nodelist[it->id] = *it;
+		nodes_[it->id] = *it;
 	}
 }
 
 
-void LoadSections(soci::session& sql, const std::string& storedProc, map<int, Section>& sectionlist, map<int, Node>& nodelist)
+void DatabaseLoader::LoadSections(const std::string& storedProc)
 {
 	//Our SQL statement
-	soci::rowset<Section> rs = (sql.prepare <<"select * from " + storedProc);
+	soci::rowset<Section> rs = (sql_.prepare <<"select * from " + storedProc);
 
 	//Exectue as a rowset to avoid repeatedly building the query.
-	sectionlist.clear();
+	sections_.clear();
 	for (soci::rowset<Section>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//Check nodes
-		if(nodelist.count(it->TMP_FromNodeID)==0 || nodelist.count(it->TMP_ToNodeID)==0) {
-			std::cout <<"From node: " <<it->TMP_FromNodeID  <<"  " <<nodelist.count(it->TMP_FromNodeID) <<"\n";
-			std::cout <<"To node: " <<it->TMP_ToNodeID  <<"  " <<nodelist.count(it->TMP_ToNodeID) <<"\n";
+		if(nodes_.count(it->TMP_FromNodeID)==0 || nodes_.count(it->TMP_ToNodeID)==0) {
+			std::cout <<"From node: " <<it->TMP_FromNodeID  <<"  " <<nodes_.count(it->TMP_FromNodeID) <<"\n";
+			std::cout <<"To node: " <<it->TMP_ToNodeID  <<"  " <<nodes_.count(it->TMP_ToNodeID) <<"\n";
 			throw std::runtime_error("Invalid From or To node.");
 		}
 
@@ -112,23 +162,23 @@ void LoadSections(soci::session& sql, const std::string& storedProc, map<int, Se
 		it->length *= 100;
 
 		//Note: Make sure not to resize the Node map after referencing its elements.
-		it->fromNode = &nodelist[it->TMP_FromNodeID];
-		it->toNode = &nodelist[it->TMP_ToNodeID];
-		sectionlist[it->id] = *it;
+		it->fromNode = &nodes_[it->TMP_FromNodeID];
+		it->toNode = &nodes_[it->TMP_ToNodeID];
+		sections_[it->id] = *it;
 	}
 }
 
 
-void LoadCrossings(soci::session& sql, const std::string& storedProc, vector<Crossing>& crossings, map<int, Section>& sectionlist)
+void DatabaseLoader::LoadCrossings(const std::string& storedProc)
 {
 	//Our SQL statement
-	soci::rowset<Crossing> rs = (sql.prepare <<"select * from " + storedProc);
+	soci::rowset<Crossing> rs = (sql_.prepare <<"select * from " + storedProc);
 
 	//Exectue as a rowset to avoid repeatedly building the query.
-	crossings.clear();
+	crossings_.clear();
 	for (soci::rowset<Crossing>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//Check sections
-		if(sectionlist.count(it->TMP_AtSectionID)==0) {
+		if(sections_.count(it->TMP_AtSectionID)==0) {
 			throw std::runtime_error("Crossing at Invalid Section");
 		}
 
@@ -137,21 +187,21 @@ void LoadCrossings(soci::session& sql, const std::string& storedProc, vector<Cro
 		it->yPos *= 100;
 
 		//Note: Make sure not to resize the Section vector after referencing its elements.
-		it->atSection = &sectionlist[it->TMP_AtSectionID];
-		crossings.push_back(*it);
+		it->atSection = &sections_[it->TMP_AtSectionID];
+		crossings_.push_back(*it);
 	}
 }
 
-void LoadLanes(soci::session& sql, const std::string& storedProc, vector<Lane>& lanes, map<int, Section>& sectionlist)
+void DatabaseLoader::LoadLanes(const std::string& storedProc)
 {
 	//Our SQL statement
-	soci::rowset<Lane> rs = (sql.prepare <<"select * from " + storedProc);
+	soci::rowset<Lane> rs = (sql_.prepare <<"select * from " + storedProc);
 
 	//Exectue as a rowset to avoid repeatedly building the query.
-	lanes.clear();
+	lanes_.clear();
 	for (soci::rowset<Lane>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//Check sections
-		if(sectionlist.count(it->TMP_AtSectionID)==0) {
+		if(sections_.count(it->TMP_AtSectionID)==0) {
 			throw std::runtime_error("Lane at Invalid Section");
 		}
 
@@ -174,49 +224,49 @@ void LoadLanes(soci::session& sql, const std::string& storedProc, vector<Lane>& 
 		}
 
 		//Note: Make sure not to resize the Section vector after referencing its elements.
-		it->atSection = &sectionlist[it->TMP_AtSectionID];
-		lanes.push_back(*it);
+		it->atSection = &sections_[it->TMP_AtSectionID];
+		lanes_.push_back(*it);
 	}
 }
 
 
-void LoadTurnings(soci::session& sql, const std::string& storedProc, map<int, Turning>& turninglist, map<int, Section>& sectionlist)
+void DatabaseLoader::LoadTurnings(const std::string& storedProc)
 {
 	//Our SQL statement
-	soci::rowset<Turning> rs = (sql.prepare <<"select * from " + storedProc);
+	soci::rowset<Turning> rs = (sql_.prepare <<"select * from " + storedProc);
 
 	//Exectue as a rowset to avoid repeatedly building the query.
 	vector<int> skippedTurningIDs;
-	turninglist.clear();
+	turnings_.clear();
 	for (soci::rowset<Turning>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//Check nodes
-		bool fromMissing = sectionlist.count(it->TMP_FromSection)==0;
-		bool toMissing = sectionlist.count(it->TMP_ToSection)==0;
+		bool fromMissing = sections_.count(it->TMP_FromSection)==0;
+		bool toMissing = sections_.count(it->TMP_ToSection)==0;
 		if(fromMissing || toMissing) {
 			skippedTurningIDs.push_back(it->id);
 			continue;
 		}
 
 		//Note: Make sure not to resize the Section map after referencing its elements.
-		it->fromSection = &sectionlist[it->TMP_FromSection];
-		it->toSection = &sectionlist[it->TMP_ToSection];
-		turninglist[it->id] = *it;
+		it->fromSection = &sections_[it->TMP_FromSection];
+		it->toSection = &sections_[it->TMP_ToSection];
+		turnings_[it->id] = *it;
 	}
 
 	//Print skipped turnings all at once.
 	sim_mob::PrintArray(skippedTurningIDs, "Turnings skipped: ", "[", "]", ", ", 4);
 }
 
-void LoadPolylines(soci::session& sql, const std::string& storedProc, multimap<int, Polyline>& polylinelist, map<int, Section>& sectionlist)
+void DatabaseLoader::LoadPolylines(const std::string& storedProc)
 {
 	//Our SQL statement
-	soci::rowset<Polyline> rs = (sql.prepare <<"select * from " + storedProc);
+	soci::rowset<Polyline> rs = (sql_.prepare <<"select * from " + storedProc);
 
 	//Exectue as a rowset to avoid repeatedly building the query.
-	polylinelist.clear();
+	polylines_.clear();
 	for (soci::rowset<Polyline>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//Check nodes
-		if(sectionlist.count(it->TMP_SectionId)==0) {
+		if(sections_.count(it->TMP_SectionId)==0) {
 			throw std::runtime_error("Invalid polyline section reference.");
 		}
 
@@ -225,14 +275,14 @@ void LoadPolylines(soci::session& sql, const std::string& storedProc, multimap<i
 		it->yPos *= 100;
 
 		//Note: Make sure not to resize the Section map after referencing its elements.
-		it->section = &sectionlist[it->TMP_SectionId];
-		polylinelist.insert(std::make_pair(it->section->id, *it));
-		//polylinelist[it->id] = *it;
+		it->section = &sections_[it->TMP_SectionId];
+		polylines_.insert(std::make_pair(it->section->id, *it));
+		//polylines_[it->id] = *it;
 	}
 }
 
 
-void LoadTripchains(soci::session& sql, const std::string& storedProc, vector<TripChain>& tripchainlist, map<int, Node>& nodelist)
+void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 {
 	//Our SQL statement
 	std::string sql_str;
@@ -260,16 +310,16 @@ void LoadTripchains(soci::session& sql, const std::string& storedProc, vector<Tr
 		sql_str = "select * from " + storedProc;
 	}
 
-	soci::rowset<TripChain> rs = (sql.prepare << sql_str);
+	soci::rowset<TripChain> rs = (sql_.prepare << sql_str);
 
 	//Exectue as a rowset to avoid repeatedly building the query.
-	tripchainlist.clear();
+	tripchains_.clear();
 	for (soci::rowset<TripChain>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		//Check nodes
-		if(nodelist.count(it->from.TMP_locationNodeID)==0) {
+		if(nodes_.count(it->from.TMP_locationNodeID)==0) {
 			throw std::runtime_error("Invalid trip chain from node reference.");
 		}
-		if(nodelist.count(it->to.TMP_locationNodeID)==0) {
+		if(nodes_.count(it->to.TMP_locationNodeID)==0) {
 			throw std::runtime_error("Invalid trip chain to node reference.");
 		}
 
@@ -277,17 +327,44 @@ void LoadTripchains(soci::session& sql, const std::string& storedProc, vector<Tr
 		it->startTime = sim_mob::DailyTime(it->TMP_startTimeStr);
 
 		//Note: Make sure not to resize the Node map after referencing its elements.
-		it->from.location = &nodelist[it->from.TMP_locationNodeID];
-		it->to.location = &nodelist[it->to.TMP_locationNodeID];
-		tripchainlist.push_back(*it);
+		it->from.location = &nodes_[it->from.TMP_locationNodeID];
+		it->to.location = &nodes_[it->to.TMP_locationNodeID];
+		tripchains_.push_back(*it);
 	}
 }
 
-//add by xuyan
-//read from database
-void LoadBoundarySegments(soci::session& sql, vector<sim_mob::BoundarySegment*>& boundary_segments) {
+void
+DatabaseLoader::LoadTrafficSignals(std::string const & storedProcedure)
+{
+    // For testing purpose, we can disable automatic signal creation via database lookup
+    // by putting an empty string for the 'signal' stored procedure in the config file.
+    // Manual creation can be achieved by specifying the signal locations in the top level
+    // <signals> section of the config file.  This feature will be removed soon
+    // and without notice.
+    if (storedProcedure.empty())
+    {
+        std::cout << "WARNING: An empty 'signal' stored-procedure was specified in the config file; "
+                  << "will not lookup the database to create any signal found in there" << std::endl;
+        return;
+    }
+
+    soci::rowset<Signal> rows = (sql_.prepare <<"select * from " + storedProcedure);
+    for (soci::rowset<Signal>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
+    {
+        Signal signal = *iter;
+        // Convert from meters to centimeters.
+        signal.xPos *= 100;
+        signal.yPos *= 100;
+        signals_.insert(std::make_pair(signal.id, signal));
+    }
+}
+
+void DatabaseLoader::LoadBoundarySegments()
+{
 	sim_mob::PartitionManager& partitionImpl = sim_mob::PartitionManager::instance();
 	int partition_solution_id = partitionImpl.partition_config->partition_solution_id;
+
+	//Note: partition_id starts from 1 while boost::mpi_id strats from 0
 	int partition_id = partitionImpl.partition_config->partition_id + 1;
 
 	std::string sqlPara = "";
@@ -296,9 +373,12 @@ void LoadBoundarySegments(soci::session& sql, vector<sim_mob::BoundarySegment*>&
 	sqlPara += sim_mob::MathUtil::getStringFromNumber(partition_id);
 
 	std::string sql_str = "select * from get_boundary_segments_in_partition(" + sqlPara + ")";
-	soci::rowset<soci::row> rs = (sql.prepare << sql_str);
+	soci::rowset<soci::row> rs = (sql_.prepare << sql_str);
 
-	for (soci::rowset<soci::row>::const_iterator it = rs.begin(); it != rs.end(); it++) {
+	//std::cout << "sql_str" << sql_str << std::endl;
+
+	for (soci::rowset<soci::row>::const_iterator it = rs.begin(); it != rs.end(); it++)
+	{
 		soci::row const& row = *it;
 
 		sim_mob::BoundarySegment* boundary = new sim_mob::BoundarySegment();
@@ -315,43 +395,51 @@ void LoadBoundarySegments(soci::session& sql, vector<sim_mob::BoundarySegment*>&
 	}
 }
 
-void LoadBasicAimsunObjects(const string& connectionStr, map<string, string>& storedProcs, map<int, Node>& nodes, map<int, Section>& sections, vector<Crossing>& crossings, vector<Lane>& lanes, map<int, Turning>& turnings, multimap<int, Polyline>& polylines, vector<TripChain>& tripchains, vector<sim_mob::BoundarySegment*>& boundary_segments)
+void DatabaseLoader::TransferBoundaryRoadSegment()
 {
-	//Connect
-	//Connection string will look something like this:
-	//"host=localhost port=5432 dbname=SimMobility_DB user=postgres password=XXXXX"
-	std::cout <<"Attempting to connect to remote database...";
-	std::cout.flush();
-	soci::session sql(soci::postgresql, connectionStr);
-	std::cout <<" Success." <<std::endl;
+	sim_mob::PartitionManager& partitionImpl = sim_mob::PartitionManager::instance();
+	vector<sim_mob::BoundarySegment*>::iterator it = boundary_segments.begin();
+	for (; it != boundary_segments.end(); it++)
+	{
+		int start_x = static_cast<int> ((*it)->start_node_x * 100 + 0.5);
+		int start_y = static_cast<int> ((*it)->start_node_y * 100 + 0.5);
+		int end_x = static_cast<int> ((*it)->end_node_x * 100 + 0.5);
+		int end_y = static_cast<int> ((*it)->end_node_y * 100 + 0.5);
 
-	//Load all nodes
-	LoadNodes(sql, storedProcs["node"], nodes);
+		sim_mob::Point2D start_point(start_x, start_y);
+		sim_mob::Point2D end_point(end_x, end_y);
+		(*it)->boundarySegment = sim_mob::getRoadSegmentBasedOnNodes(&start_point, &end_point);
 
-	//Load all sections
-	LoadSections(sql, storedProcs["section"], sections, nodes);
+		partitionImpl.loadInBoundarySegment((*it)->boundarySegment->getId(), (*it));
+	}
+}
 
-	//Load all crossings
-	LoadCrossings(sql, storedProcs["crossing"], crossings, sections);
+std::string const &
+getStoredProcedure(map<string, string> const & storedProcs, string const & procedureName)
+{
+    map<string, string>::const_iterator iter = storedProcs.find(procedureName);
+    if (iter != storedProcs.end())
+        return iter->second;
+    throw std::runtime_error("expected to find stored-procedure named '" + procedureName
+                             + "' in the config file");
+}
 
-	//Load all lanes
-	LoadLanes(sql, storedProcs["lane"], lanes, sections);
-
-	//Load all turnings
-	LoadTurnings(sql, storedProcs["turning"], turnings, sections);
-
-	//Load all polylines
-	LoadPolylines(sql, storedProcs["polyline"], polylines, sections);
-
-	//Load all trip chains
-	LoadTripchains(sql, storedProcs["tripchain"], tripchains, nodes);
+void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedProcs)
+{
+	LoadNodes(getStoredProcedure(storedProcs, "node"));
+	LoadSections(getStoredProcedure(storedProcs, "section"));
+	LoadCrossings(getStoredProcedure(storedProcs, "crossing"));
+	LoadLanes(getStoredProcedure(storedProcs, "lane"));
+	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
+	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
+	LoadTripchains(getStoredProcedure(storedProcs, "tripchain"));
+	//LoadTrafficSignals(getStoredProcedure(storedProcs, "signal"));
 
 	//add by xuyan
-	//load in boundary segments
+	//load in boundary segments (not finished!)
 	const sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstance();
-	if (config.is_run_on_many_computers)
-	{
-		LoadBoundarySegments(sql, boundary_segments);
+	if (config.is_run_on_many_computers) {
+		LoadBoundarySegments();
 	}
 }
 
@@ -392,10 +480,180 @@ void ComputePolypointDistance(Polyline& pt)
 
 
 
-void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& sections, vector<Crossing>& crossings, vector<Lane>& lanes, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
+/**
+ * Temporary functions.
+ */
+DynamicVector GetCrossingNearLine(Node& atNode, Node& toNode)
+{
+	//Get the outgoing set of crossing IDs
+	map<Node*, vector<int> >::iterator outgoing = atNode.crossingLaneIdsByOutgoingNode.find(&toNode);
+	if (outgoing!=atNode.crossingLaneIdsByOutgoingNode.end()) {
+		//Search for the one closest to the toNode.
+		DynamicVector resLine;
+		double minDist = -1;
+		for (vector<int>::iterator it2=outgoing->second.begin(); it2!=outgoing->second.end(); it2++) {
+			//Get this item
+			map<int, vector<Crossing*> >::iterator crossingIt = atNode.crossingsAtNode.find(*it2);
+			if (crossingIt!=atNode.crossingsAtNode.end()) {
+				//Now make a vector for it.
+				DynamicVector currPoint(
+					crossingIt->second.front()->xPos, crossingIt->second.front()->yPos,
+					crossingIt->second.back()->xPos, crossingIt->second.back()->yPos
+				);
+				DynamicVector midPoint(currPoint);
+				midPoint.scaleVectTo(midPoint.getMagnitude()/2).translateVect();
+				double currDist = sim_mob::dist(midPoint.getX(), midPoint.getY(), toNode.xPos, toNode.yPos);
+				if (minDist==-1 || currDist < minDist) {
+					resLine = currPoint;
+					minDist = currDist;
+				}
+			}
+		}
+		if (minDist > -1) {
+			return resLine;
+		}
+	}
+	throw std::runtime_error("Can't find crossing near line in temporary cleanup function.");
+}
+Section& GetSection(Node& start, Node& end)
+{
+	for (vector<Section*>::iterator it=start.sectionsAtNode.begin(); it!=start.sectionsAtNode.end(); it++) {
+		if ((*it)->toNode->id==end.id) {
+			return **it;
+		}
+	}
+	std::cout <<"Error finding section from " <<start.id <<" to " <<end.id <<std::endl;
+	throw std::runtime_error("Can't find section in temporary cleanup function.");
+}
+void ScaleLanesToCrossing(Node& start, Node& end, bool scaleEnd)
+{
+	//Retrieve the section
+	Section& sect = GetSection(start, end);
+
+	//Retrieve the crossing's "near" line.
+	DynamicVector endLine = GetCrossingNearLine(scaleEnd?end:start, scaleEnd?start:end);
+
+	//We can't do much until lanes are generated (we could try to guess what our lane generator would
+	// do, but it's easier to set a debug flag).
+	//std::cout <<"Saving end line: " <<endLine.getX() <<"," <<endLine.getY() <<" ==> " <<endLine.getEndX() <<"," <<endLine.getEndY() <<"\n";
+	if (scaleEnd) {
+		sect.HACK_LaneLinesEndLineCut = endLine;
+	} else {
+		sect.HACK_LaneLinesStartLineCut = endLine;
+	}
+}
+void ResizeTo2(vector<Crossing*>& vec)
+{
+	if (vec.size()<=2) {
+		if (vec.size()==2) {
+			return;
+		}
+		throw std::runtime_error("Can't resize if vector is empty or has only one element.");
+	}
+
+	vec[1] = vec.back();
+	vec.resize(2, nullptr);
+}
+vector<Crossing*>& GetCrossing(Node& atNode, Node& toNode, size_t crossingID)
+{
+	//Get the outgoing set of crossing IDs
+	map<Node*, vector<int> >::iterator outgoing = atNode.crossingLaneIdsByOutgoingNode.find(&toNode);
+	if (outgoing!=atNode.crossingLaneIdsByOutgoingNode.end()) {
+		//Narrow down to the one we want.
+		for (vector<int>::iterator it2=outgoing->second.begin(); it2!=outgoing->second.end(); it2++) {
+			if (*it2 != static_cast<int>(crossingID)) {
+				continue;
+			}
+			map<int, vector<Crossing*> >::iterator crossingIt = atNode.crossingsAtNode.find(*it2);
+			if (crossingIt!=atNode.crossingsAtNode.end()) {
+				return crossingIt->second;
+			}
+			break;
+		}
+	}
+	throw std::runtime_error("Can't find crossing in temporary cleanup function.");
+}
+void RebuildCrossing(Node& atNode, Node& toNode, size_t baseCrossingID, size_t resCrossingID, bool flipLeft, unsigned int crossingWidthCM, unsigned int paddingCM)
+{
+	//Retrieve the base Crossing and the Crossing we will store the result in.
+	vector<Crossing*>& baseCrossing = GetCrossing(atNode, toNode, baseCrossingID);
+	vector<Crossing*>& resCrossing = GetCrossing(atNode, toNode, resCrossingID);
+
+	//Manual resize may be required
+	ResizeTo2(baseCrossing);
+	ResizeTo2(resCrossing);
+
+	//Set point 1:
+	{
+		DynamicVector vec(baseCrossing.front()->xPos, baseCrossing.front()->yPos, baseCrossing.back()->xPos, baseCrossing.back()->yPos);
+		vec.scaleVectTo(paddingCM).translateVect().flipNormal(!flipLeft);
+		vec.scaleVectTo(crossingWidthCM).translateVect();
+		resCrossing.front()->xPos = vec.getX();
+		resCrossing.front()->yPos = vec.getY();
+	}
+
+	//Set point 2:
+	{
+		DynamicVector vec(baseCrossing.back()->xPos, baseCrossing.back()->yPos, baseCrossing.front()->xPos, baseCrossing.front()->yPos);
+		vec.scaleVectTo(paddingCM).translateVect().flipNormal(flipLeft);
+		vec.scaleVectTo(crossingWidthCM).translateVect();
+		resCrossing.back()->xPos = vec.getX();
+		resCrossing.back()->yPos = vec.getY();
+	}
+
+
+}
+void ManuallyFixVictoriaStreetMiddleRoadIntersection(map<int, Node>& nodes, map<int, Section>& sections, vector<Crossing>& crossings, vector<Lane>& lanes, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
+{
+	//Step 1: Tidy up the crossings.
+	RebuildCrossing(nodes[66508], nodes[93730], 683, 721, true, 450, 200);
+	RebuildCrossing(nodes[66508], nodes[65120], 2419, 2111, false, 400, 200);
+	RebuildCrossing(nodes[66508], nodes[75956], 3956, 3719, true, 450, 200);
+	RebuildCrossing(nodes[66508], nodes[84882], 4579, 1251, true, 450, 200);
+
+	//Step 2: Scale lane lines to match the crossings.
+	ScaleLanesToCrossing(nodes[93730], nodes[66508], true);
+	ScaleLanesToCrossing(nodes[66508], nodes[93730], false);
+	ScaleLanesToCrossing(nodes[65120], nodes[66508], true);
+	ScaleLanesToCrossing(nodes[66508], nodes[65120], false);
+	ScaleLanesToCrossing(nodes[75956], nodes[66508], true);
+	ScaleLanesToCrossing(nodes[66508], nodes[75956], false);
+	ScaleLanesToCrossing(nodes[84882], nodes[66508], true);
+	ScaleLanesToCrossing(nodes[66508], nodes[84882], false);
+}
+
+
+
+
+/**
+ * Perform guided cleanup of the fully-loaded data. This step happens directly before the network is converted to
+ * SimMobility format.
+ *
+ * \note
+ * Currently, this process performs a single hard-coded check. Ideally, we would load data from another, smaller
+ * database which contains a few "hints" to help nudge the various network components into the correct positions.
+ * If you want a more heavy-handed approach, you should make a "PreProcessNetwork" function which does things like
+ * deleting lanes, etc. (but be careful of invalidating references in that case).
+ */
+void DatabaseLoader::PostProcessNetwork()
+{
+	//TEMP: Heavy-handed tactics like this should only be used if you're desperate.
+	// You know, like if you've got a demo tomorrow.
+	bool TEMP_FLAG_ON = sim_mob::ConfigParams::GetInstance().TEMP_ManualFixDemoIntersection;
+	if (TEMP_FLAG_ON) {
+		ManuallyFixVictoriaStreetMiddleRoadIntersection(nodes_, sections_, crossings_, lanes_, turnings_, polylines_);
+	}
+
+}
+
+
+
+
+
+void DatabaseLoader::DecorateAndTranslateObjects()
 {
 	//Step 1: Tag all Nodes with the Sections that meet there.
-	for (map<int,Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
+	for (map<int,Section>::iterator it=sections_.begin(); it!=sections_.end(); it++) {
 		it->second.fromNode->sectionsAtNode.push_back(&(it->second));
 		it->second.toNode->sectionsAtNode.push_back(&(it->second));
 	}
@@ -408,7 +666,7 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 	//        3) All Segments share the same Road Name
 	//        4) Optionally, there can be a single link in ONE direction, representing a one-way road.
 	vector<int> nodeMismatchIDs;
-	for (map<int,Node>::iterator it=nodes.begin(); it!=nodes.end(); it++) {
+	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++) {
 		Node* n = &it->second;
 		n->candidateForSegmentNode = true; //Conditional pass
 
@@ -471,51 +729,67 @@ void DecorateAndTranslateObjects(map<int, Node>& nodes, map<int, Section>& secti
 	sim_mob::PrintArray(nodeMismatchIDs, "UniNode/Intersection mismatches: ", "[", "]", ", ", 4);
 
 	//Step 3: Tag all Sections with Turnings that apply to that Section
-	for (map<int,Turning>::iterator it=turnings.begin(); it!=turnings.end(); it++) {
+	for (map<int,Turning>::iterator it=turnings_.begin(); it!=turnings_.end(); it++) {
 		it->second.fromSection->connectedTurnings.push_back(&(it->second));
 		it->second.toSection->connectedTurnings.push_back(&(it->second));
 	}
 
 	//Step 4: Add polyline entries to Sections. As you do this, compute their distance
 	//        from the origin ("from" node)
-	for (map<int,Polyline>::iterator it=polylines.begin(); it!=polylines.end(); it++) {
+	for (map<int,Polyline>::iterator it=polylines_.begin(); it!=polylines_.end(); it++) {
 		it->second.section->polylineEntries.push_back(&(it->second));
 		ComputePolypointDistance(it->second);
 	}
 
 	//Step 4.5: Request the LaneLoader to tag some Lane-related data.
-	LaneLoader::DecorateLanes(sections, lanes);
+	LaneLoader::DecorateLanes(sections_, lanes_);
 
 	//Steps 5,6: Request the CrossingsLoader to tag some Crossing-related data.
-	CrossingLoader::DecorateCrossings(nodes, crossings);
+	CrossingLoader::DecorateCrossings(nodes_, crossings_);
 
 }
 
 
+//Another temporary function
+void CutSingleLanePolyline(vector<Point2D>& laneLine, const DynamicVector& cutLine, bool trimStart)
+{
+	//Compute the intersection of our lane line and the crossing.
+	Point2D intPt = sim_mob::LineLineIntersect(cutLine, laneLine.front(), laneLine.back());
+	if (intPt.getX() == std::numeric_limits<int>::max()) {
+		throw std::runtime_error("Temporary lane function is somehow unable to compute line intersections.");
+	}
 
-void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::TripChain*>& tcs, map<int, Node>& nodes, map<int, Section>& sections, map<int, Turning>& turnings, multimap<int, Polyline>& polylines, vector<TripChain>& tripchains)
+	//Now update either the first or last point
+	laneLine[trimStart?0:laneLine.size()-1] = intPt;
+}
+
+
+
+void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::TripChain*>& tcs)
 {
 	//First, Nodes. These match cleanly to the Sim Mobility data structures
 	std::cout <<"Warning: Units are not considered when converting AIMSUN data.\n";
-	for (map<int,Node>::iterator it=nodes.begin(); it!=nodes.end(); it++) {
+	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++) {
 		sim_mob::aimsun::Loader::ProcessGeneralNode(res, it->second);
+		it->second.generatedNode->originalDB_ID.setProps("aimsun-id", it->first);
 	}
 
 	//Next, Links and RoadSegments. See comments for our approach.
-	for (map<int,Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
+	for (map<int,Section>::iterator it=sections_.begin(); it!=sections_.end(); it++) {
 		if (!it->second.hasBeenSaved) {  //Workaround...
 			sim_mob::aimsun::Loader::ProcessSection(res, it->second);
 		}
 	}
 	//Scan the vector to see if any skipped Sections were not filled in later.
-	for (map<int,Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
+	for (map<int,Section>::iterator it=sections_.begin(); it!=sections_.end(); it++) {
 		if (!it->second.hasBeenSaved) {
 			throw std::runtime_error("Section was skipped.");
 		}
+		it->second.generatedSegment->originalDB_ID.setProps("aimsun-id", it->first);
 	}
 
 	//Next, SegmentNodes (UniNodes), which are only partially initialized in the general case.
-	for (map<int,Node>::iterator it=nodes.begin(); it!=nodes.end(); it++) {
+	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++) {
 		if (it->second.candidateForSegmentNode) {
 			sim_mob::aimsun::Loader::ProcessUniNode(res, it->second);
 		}
@@ -523,12 +797,12 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::Trip
 
 	//Next, Turnings. These generally match up.
 	std::cout <<"Warning: Lanes-Left-of-Divider incorrect when converting AIMSUN data.\n";
-	for (map<int,Turning>::iterator it=turnings.begin(); it!=turnings.end(); it++) {
+	for (map<int,Turning>::iterator it=turnings_.begin(); it!=turnings_.end(); it++) {
 		sim_mob::aimsun::Loader::ProcessTurning(res, it->second);
 	}
 
 	//Next, save the Polylines. This is best done at the Section level
-	for (map<int,Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
+	for (map<int,Section>::iterator it=sections_.begin(); it!=sections_.end(); it++) {
 		sim_mob::aimsun::Loader::ProcessSectionPolylines(res, it->second);
 	}
 
@@ -540,7 +814,7 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::Trip
 	//Prune Crossings and convert to the "near" and "far" syntax of Sim Mobility. Also give it a "position", defined
 	//   as halfway between the midpoints of the near/far lines, and then assign it as an Obstacle to both the incoming and
 	//   outgoing RoadSegment that it crosses.
-	for (map<int,Node>::iterator it=nodes.begin(); it!=nodes.end(); it++) {
+	for (map<int,Node>::iterator it=nodes_.begin(); it!=nodes_.end(); it++) {
 		for (map<Node*, std::vector<int> >::iterator i2=it->second.crossingLaneIdsByOutgoingNode.begin(); i2!=it->second.crossingLaneIdsByOutgoingNode.end(); i2++) {
 			CrossingLoader::GenerateACrossing(res, it->second, *i2->first, i2->second);
 		}
@@ -548,11 +822,12 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::Trip
 
 	//Prune lanes and figure out where the median is.
 	// TODO: This should eventually allow other lanes to be designated too.
-	LaneLoader::GenerateLinkLanes(res, nodes, sections);
+	LaneLoader::GenerateLinkLanes(res, nodes_, sections_);
 
+	sim_mob::aimsun::Loader::FixupLanesAndCrossings(res);
 
 	//Save all trip chains
-	for (vector<TripChain>::iterator it=tripchains.begin(); it!=tripchains.end(); it++) {
+	for (vector<TripChain>::iterator it=tripchains_.begin(); it!=tripchains_.end(); it++) {
 		tcs.push_back(new sim_mob::TripChain());
 		tcs.back()->from.description = it->from.description;
 		tcs.back()->from.location = it->from.location->generatedNode;
@@ -563,12 +838,196 @@ void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::Trip
 		tcs.back()->flexible = it->flexible;
 		tcs.back()->startTime = it->startTime;
 	}
+
+
+
+#if 0
+	map<int,Node>::iterator it=nodes.find(66508);
+	if (it!=nodes.end()) {
+		sim_mob::MultiNode* temp = dynamic_cast<sim_mob::MultiNode*>(it->second.generatedNode);
+		if (temp) {
+			for (set<sim_mob::RoadSegment*>::const_iterator it2=temp->getRoadSegments().begin(); it2!=temp->getRoadSegments().end(); it2++) {
+				if (temp->hasOutgoingLanes(**it2)) {
+					std::cout <<"  Segment crossings for:  " <<(*it2)->getStart()->originalDB_ID.getLogItem() <<" ==> " <<(*it2)->getEnd()->originalDB_ID.getLogItem() <<"\n";
+					std::set<string> res;
+					for (set<sim_mob::LaneConnector*>::const_iterator it3=temp->getOutgoingLanes(**it2).begin(); it3!=temp->getOutgoingLanes(**it2).end(); it3++) {
+						res.insert((*it3)->getLaneTo()->getRoadSegment()->getEnd()->originalDB_ID.getLogItem());
+					}
+
+					for (std::set<string>::iterator it4=res.begin(); it4!=res.end(); it4++) {
+						std::cout <<"    ...to:  " <<*it4 <<"\n";
+					}
+				}
+			}
+
+		}
+	}
+	throw 1;
+#endif
+
+        createSignals();
+}
+
+void
+DatabaseLoader::createSignals()
+{
+    std::set<sim_mob::Node const *> uniNodes;
+
+    for (map<int, Signal>::const_iterator iter = signals_.begin(); iter != signals_.end(); ++iter)
+    {
+        Signal const & dbSignal = iter->second;
+        map<int, Node>::const_iterator iter2 = nodes_.find(dbSignal.nodeId);
+        if (iter2 == nodes_.end())
+        {
+            std::ostringstream stream;
+            stream << "cannot find node (id=" << dbSignal.nodeId
+                   << ") in the database for signal id=" << iter->first;
+            throw std::runtime_error(stream.str());
+        }
+
+        Node const & dbNode = iter2->second;
+        sim_mob::Node const * node = dbNode.generatedNode;
+        if (dynamic_cast<sim_mob::UniNode const *>(node))
+        {
+            if (uniNodes.count(node) == 0)
+            {
+                uniNodes.insert(node);
+                std::cout << "cannot create signal at Uni-node (database-id=" << dbSignal.nodeId
+                          << ") because Signal.cpp was written only for 4-way traffic at an "
+                          << "intersection.  Need to fix this." << std::endl;
+            }
+            continue;
+        }
+
+        sim_mob::Signal & signal = sim_mob::Signal::signalAt(*node);
+        // The 'signal' stored procedure did not retrieve the signal equipment's bearing.  Will
+        // raise a ticket about this issue.
+        signal.addSignalSite(dbSignal.xPos, dbSignal.yPos, dbSignal.typeCode, 0.0);
+    }
 }
 
 
 
 } //End anon namespace
 
+
+//Another temporary function
+void sim_mob::aimsun::Loader::TMP_TrimAllLaneLines(sim_mob::RoadSegment* seg, const DynamicVector& cutLine, bool trimStart)
+{
+	//Nothing to do?
+	if (cutLine.getMagnitude()==0.0) {
+		return;
+	}
+
+	//Ensure that this segment has built all its lane lines.
+	seg->syncLanePolylines();
+
+	//Now go through and manually edit all of them. This includes lane lines and lane edge lines
+	{
+	vector< vector<Point2D> >::iterator it = seg->laneEdgePolylines_cached.begin();
+	for (;it!=seg->laneEdgePolylines_cached.end(); it++) {
+		CutSingleLanePolyline(*it, cutLine, trimStart);
+	}
+	}
+	{
+	vector<sim_mob::Lane*>::iterator it = seg->lanes.begin();
+	for (;it!=seg->lanes.end(); it++) {
+		CutSingleLanePolyline((*it)->polyline_, cutLine, trimStart);
+	}
+	}
+}
+
+
+void sim_mob::aimsun::Loader::FixupLanesAndCrossings(sim_mob::RoadNetwork& res)
+{
+	//Fix up lanes
+	const std::vector<sim_mob::Link*>& vecLinks = res.getLinks();
+	int numLinks = vecLinks.size();
+
+	//TODO more comments needed
+	for(int n = 0; n < numLinks; ++n)
+	{
+		sim_mob::Link* link = vecLinks[n];
+
+		const std::vector<sim_mob::RoadSegment*>& vecForwardSegs = link->getPath(true);
+		const std::vector<sim_mob::RoadSegment*>& vecReverseSegs = link->getPath(false);
+		std::set<sim_mob::RoadSegment*> roadSegs;
+		roadSegs.insert(vecForwardSegs.begin(), vecForwardSegs.end());
+		roadSegs.insert(vecReverseSegs.begin(), vecReverseSegs.end());
+		for(std::set<sim_mob::RoadSegment*>::const_iterator itRS = roadSegs.begin(); itRS!=roadSegs.end(); ++itRS)
+		{
+			for(std::map<sim_mob::centimeter_t, const sim_mob::RoadItem*>::const_iterator itObstacles = (*itRS)->obstacles.begin(); itObstacles != (*itRS)->obstacles.end(); ++itObstacles)
+			{
+				const sim_mob::RoadItem* ri = (*itObstacles).second;
+
+				const sim_mob::Crossing* cross = dynamic_cast<const sim_mob::Crossing*>(ri);
+				if(!cross)
+					continue;
+
+				sim_mob::Point2D nearLinemidPoint((cross->nearLine.second.getX()-cross->nearLine.first.getX())/2 + cross->nearLine.first.getX(),
+										(cross->nearLine.second.getY()-cross->nearLine.first.getY())/2 + cross->nearLine.first.getY());
+
+				std::vector<sim_mob::Point2D>& segmentPolyline = (*itRS)->polyline;
+				{
+					//Segment polyline
+					double d1 = dist(&(segmentPolyline[0]), &nearLinemidPoint);
+					double d2 = dist(&(segmentPolyline[segmentPolyline.size()-1]), &nearLinemidPoint);
+					if (d2<d1)
+					{
+						segmentPolyline[segmentPolyline.size()-1] = ProjectOntoLine(segmentPolyline[segmentPolyline.size()-1], cross->farLine.first, cross->farLine.second);
+					}
+					else
+					{
+						segmentPolyline[0] = ProjectOntoLine(segmentPolyline[0], cross->farLine.first, cross->farLine.second);
+					}
+				}
+
+				//Lane edge polylines
+				//TODO don't access variable that should be private here
+				std::vector< std::vector<sim_mob::Point2D> >& vecPolylines = (*itRS)->laneEdgePolylines_cached;
+				for(size_t i = 0; i < vecPolylines.size(); ++i)
+				{
+					//TODO move this functionality into a helper function
+					std::vector<sim_mob::Point2D>& vecThisPolyline = vecPolylines[i];
+					double d1 = dist(&(vecThisPolyline[0]), &nearLinemidPoint);
+					double d2 = dist(&(vecThisPolyline[vecThisPolyline.size()-1]), &nearLinemidPoint);
+					if (d2<d1)
+					{
+						vecThisPolyline[vecThisPolyline.size()-1] = ProjectOntoLine(vecThisPolyline[vecThisPolyline.size()-1], cross->farLine.first, cross->farLine.second);
+					}
+					else
+					{
+						vecThisPolyline[0] = ProjectOntoLine(vecThisPolyline[0], cross->farLine.first, cross->farLine.second);
+					}
+
+				}
+
+#if 0
+				//Lane polylines
+				const std::vector<sim_mob::Lane*>& segmentLanes = (*itRS)->getLanes();
+				for(std::vector<sim_mob::Lane*>::const_iterator itLanes = segmentLanes.begin(); itLanes != segmentLanes.end(); ++itLanes)
+				{
+				    ///TODO get rid of ugly const_cast
+					std::vector<sim_mob::Point2D>& lanePolyline = const_cast<std::vector<sim_mob::Point2D>&>((*itLanes)->getPolyline());
+					if(lanePolyline.empty())
+						continue;
+
+					double d1 = dist(&(lanePolyline[0]), &nearLinemidPoint);
+					double d2 = dist(&(lanePolyline[lanePolyline.size()-1]), &nearLinemidPoint);
+					if (d2<d1)
+					{
+						lanePolyline[lanePolyline.size()-1] = ProjectOntoLine(lanePolyline[lanePolyline.size()-1], cross->farLine.first, cross->farLine.second);
+					}
+					else
+					{
+						lanePolyline[0] = ProjectOntoLine(lanePolyline[0], cross->farLine.first, cross->farLine.second);
+					}
+				}
+#endif
+			}
+		}
+	}
+}
 
 
 
@@ -681,8 +1140,6 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 
 	//Make sure the link's start node is represented at the Node level.
 	//TODO: Try to avoid dynamic casting if possible.
-	dynamic_cast<MultiNode*>(src.fromNode->generatedNode)->roadSegmentsAt.insert(src.generatedSegment);
-
 	for (;;) {
 		//Update
 		ln->end = currSect->toNode->generatedNode;
@@ -726,6 +1183,14 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 				found->generatedSegment = new sim_mob::RoadSegment(ln);
 			}
 
+			//Save this segment if either end points are multinodes
+			for (size_t tempID=0; tempID<2; tempID++) {
+				sim_mob::MultiNode* nd = dynamic_cast<sim_mob::MultiNode*>(tempID==0?found->fromNode->generatedNode:found->toNode->generatedNode);
+				if (nd) {
+					nd->roadSegmentsAt.insert(found->generatedSegment);
+				}
+			}
+
 			//Retrieve the generated segment
 			sim_mob::RoadSegment* rs = found->generatedSegment;
 
@@ -752,7 +1217,8 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 		if (!currSect->toNode->candidateForSegmentNode) {
 			//Make sure the link's end node is represented at the Node level.
 			//TODO: Try to avoid dynamic casting if possible.
-			dynamic_cast<MultiNode*>(currSect->toNode->generatedNode)->roadSegmentsAt.insert(currSect->generatedSegment);
+			//std::cout <<"Adding segment: " <<src.fromNode->id <<"->" <<src.toNode->id <<" to to node\n";
+			//dynamic_cast<MultiNode*>(currSect->toNode->generatedNode)->roadSegmentsAt.insert(currSect->generatedSegment);
 
 			//Save it.
 			ln->initializeLinkSegments(linkSegments);
@@ -808,11 +1274,11 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 	for (int fromLaneID=src.fromLane.first; fromLaneID<=src.fromLane.second; fromLaneID++) {
 		for (int toLaneID=src.toLane.first; toLaneID<=src.toLane.second; toLaneID++) {
 			sim_mob::LaneConnector* lc = new sim_mob::LaneConnector();
-			lc->laneFrom = src.fromSection->generatedSegment->lanes[fromLaneID];
-			lc->laneTo = src.toSection->generatedSegment->lanes[toLaneID];
+			lc->laneFrom = src.fromSection->generatedSegment->lanes.at(fromLaneID);
+			lc->laneTo = src.toSection->generatedSegment->lanes.at(toLaneID);
 
 			//Expanded a bit...
-			RoadSegment* key = lc->laneFrom->getRoadSegment();
+			RoadSegment* key = src.fromSection->generatedSegment;
 			map<const RoadSegment*, set<LaneConnector*> >& connectors = dynamic_cast<MultiNode*>(src.fromSection->toNode->generatedNode)->connectors;
 			connectors[key].insert(lc);
 		}
@@ -844,53 +1310,42 @@ void sim_mob::aimsun::Loader::ProcessSectionPolylines(sim_mob::RoadNetwork& res,
 	src.generatedSegment->polyline.push_back(pt);
 }
 
-//add by xuyan
-//get the pointer of BoundarySegment using x,y position
-void TransferBoundaryRoadSegment(sim_mob::RoadNetwork& rn, vector<sim_mob::BoundarySegment*>& boundary_segments) {
-	sim_mob::PartitionManager& partitionImpl = sim_mob::PartitionManager::instance();
-	vector<sim_mob::BoundarySegment*>::iterator it = boundary_segments.begin();
-	for (; it != boundary_segments.end(); it++) {
-		int start_x = static_cast<int> ((*it)->start_node_x * 100 + 0.5);
-		int start_y = static_cast<int> ((*it)->start_node_y * 100 + 0.5);
-		int end_x = static_cast<int> ((*it)->end_node_x * 100 + 0.5);
-		int end_y = static_cast<int> ((*it)->end_node_y * 100 + 0.5);
-
-		sim_mob::Point2D start_point(start_x, start_y);
-		sim_mob::Point2D end_point(end_x, end_y);
-		(*it)->boundarySegment = sim_mob::getRoadSegmentBasedOnNodes(&start_point, &end_point);
-
-		partitionImpl.loadInBoundarySegment((*it)->boundarySegment->getId(), (*it));
-	}
-}
 
 
-string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::vector<sim_mob::TripChain*>& tcs)
+
+string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::vector<sim_mob::TripChain*>& tcs)
 {
 	try {
-		//Temporary AIMSUN data structures
-		map<int, Node> nodes;
-		map<int, Section> sections;
-		vector<Crossing> crossings;
-		vector<Lane> lanes;
-		map<int, Turning> turnings;
-		multimap<int, Polyline> polylines;
-		vector<TripChain> tripchains;
-		//add by xuyan
-		vector<BoundarySegment*> boundary_segments;
+            //Connection string will look something like this:
+            //"host=localhost port=5432 dbname=SimMobility_DB user=postgres password=XXXXX"
+            std::cout << "Attempting to connect to remote database..." << std::flush;
+            DatabaseLoader loader(connectionStr);
+            std::cout << " Success." << std::endl;
 
 		//Step One: Load
-		LoadBasicAimsunObjects(connectionStr, storedProcs, nodes, sections, crossings, lanes, turnings, polylines, tripchains, boundary_segments);
+		loader.LoadBasicAimsunObjects(storedProcs);
 
 		//Step Two: Translate
-		DecorateAndTranslateObjects(nodes, sections, crossings, lanes, turnings, polylines);
+		loader.DecorateAndTranslateObjects();
 
-		//Step Three: Save
-		SaveSimMobilityNetwork(rn, tcs, nodes, sections, turnings, polylines, tripchains);
+		//Step Three: Perform data-guided cleanup.
+		loader.PostProcessNetwork();
 
-		//Step Four: boundary data load in
+		//Step Four: Save
+		loader.SaveSimMobilityNetwork(rn, tcs);
+
+		//Temporary workaround; Cut lanes short/extend them as reuquired.
+		for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {
+			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesStartLineCut, true);
+			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesEndLineCut, false);
+		}
+
+		//add by xuyan, load in boundary segments
+		//Step Four: find boundary segment in road network using start-node(x,y) and end-node(x,y)
 		sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstance();
-		if (config.is_run_on_many_computers) {
-			TransferBoundaryRoadSegment(rn, boundary_segments);
+		if (config.is_run_on_many_computers)
+		{
+			loader.TransferBoundaryRoadSegment();
 		}
 
 

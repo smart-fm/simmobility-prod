@@ -14,7 +14,8 @@
 
 #include "constants.h"
 #include "Agent.hpp"
-
+#include "metrics/Length.hpp"
+#include "util/SignalStatus.hpp"
 
 namespace sim_mob
 {
@@ -97,7 +98,7 @@ public:
 	//Abstract methods. You will have to implement these eventually.
 	virtual void update(frame_t frameNumber);
 	virtual void output(frame_t frameNumber);
-	virtual void buildSubscriptionList() {}
+	virtual void buildSubscriptionList();
 
 
 	static double fmax(const double proDS[]);
@@ -195,7 +196,28 @@ public:
          */
         std::map<Crossing const *, size_t> const & crossings_map() const { return crossings_map_; }
 
+        /**
+         * Return the Signal that is located at the specified \c node, creating one if necessary.
+         */
+        static Signal & signalAt(Node const & node);
+
         static std::vector<Signal const *> all_signals_;
+
+        /**
+         * Furnish this Signal information about the position, type, and direction of its various
+         * signal equipment.
+         *
+         * There are various equipment associated with a traffic signal.  Examples are pedestrian
+         * signals, green filter arrow signals, overhead signals, B-signals (bus signals), etc.
+         * This method is used to supply information about the position, type, and direction
+         * of one equipment to the Signal object, which uses the information to determine its
+         * "responsibilities".  For example, at a 4-way traffic intersection, pedestrians may not
+         * be allowed to cross on one of the 4 sides.  In that case, no pedestrian signal will be
+         * erected in that direction and the Signal object should not "cater" to pedestrians on
+         * that side.
+         */
+        void addSignalSite(centimeter_t xpos, centimeter_t ypos,
+                           std::string const & typeCode, double bearing);
 
 private:
         Node const & node_;
@@ -231,6 +253,8 @@ private:
 	//Need to serialize the attribute, fiexed array needed. (need to talk with Seth)
 	int TC_for_Driver[4][3];
 	int TC_for_Pedestrian[4];
+
+	sim_mob::Buffered<SignalStatus> buffered_TC;
 
 	//String representation, so that we can retrieve this information at any time.
 	std::string strRepr;

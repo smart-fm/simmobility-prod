@@ -10,7 +10,7 @@
 #pragma once
 
 #include "util/RelAbsPoint.hpp"
-
+#include "buffering/Buffered.hpp"
 
 namespace sim_mob {
 
@@ -38,6 +38,7 @@ public:
 
 	//Test: RelAbsPoint is more compact.
 	RelAbsPoint accel;
+
 	//double xAcc;
 	//double yAcc;
 	//double xAcc_;

@@ -38,15 +38,19 @@
 #include "util/GeomHelpers.hpp"
 #include "perception/FixedDelayed.hpp"
 
+#include "entities/roles/driver/Driver.hpp"
+
 #include <list>
 #include <vector>
 
 namespace sim_mob {
 
-class RoadNetworkPackageManager {
+class RoadNetworkPackageManager
+{
 public:
 	static RoadNetworkPackageManager &
-	instance() {
+	instance()
+	{
 		return instance_;
 	}
 
@@ -115,13 +119,13 @@ public:
 	RelAbsPoint* unpackageRelAbsPoint(Archive & ar);
 
 	template<class Archive>
-	void packageFixedDelayedPointer2D(Archive & ar, const FixedDelayed<Point2D*>& one_delay);
+	void packageFixedDelayedPointer2D(Archive & ar, FixedDelayed<Point2D*>& one_delay);
 
 	template<class Archive>
 	FixedDelayed<Point2D*>& unpackageFixedDelayedPointer2D(Archive & ar);
 
 	template<class Archive>
-	void packageFixedDelayedInt(Archive & ar, const FixedDelayed<int32_t>& one_delay);
+	void packageFixedDelayedInt(Archive & ar, FixedDelayed<int32_t>& one_delay);
 
 	template<class Archive>
 	FixedDelayed<int32_t>& unpackageFixedDelayedInt(Archive & ar);
@@ -140,13 +144,17 @@ public:
 };
 
 template<class Archive>
-void sim_mob::RoadNetworkPackageManager::packageNode(Archive & ar, const Node* one_node) {
+void sim_mob::RoadNetworkPackageManager::packageNode(Archive & ar, const Node* one_node)
+{
 	bool hasSomthing = true;
-	if (one_node == NULL) {
+	if (!one_node)
+	{
 		hasSomthing = false;
 		ar & hasSomthing;
 		return;
-	} else {
+	}
+	else
+	{
 		ar & hasSomthing;
 	}
 
@@ -154,7 +162,8 @@ void sim_mob::RoadNetworkPackageManager::packageNode(Archive & ar, const Node* o
 }
 
 template<class Archive>
-const Node* sim_mob::RoadNetworkPackageManager::unpackageNode(Archive & ar) {
+const Node* sim_mob::RoadNetworkPackageManager::unpackageNode(Archive & ar)
+{
 	bool hasSomthing;
 	ar & hasSomthing;
 
@@ -169,13 +178,17 @@ const Node* sim_mob::RoadNetworkPackageManager::unpackageNode(Archive & ar) {
 }
 
 template<class Archive>
-void sim_mob::RoadNetworkPackageManager::packageRoadSegment(Archive & ar, const RoadSegment* roadsegment) {
+void sim_mob::RoadNetworkPackageManager::packageRoadSegment(Archive & ar, const RoadSegment* roadsegment)
+{
 	bool hasSomthing = true;
-	if (roadsegment == NULL) {
+	if (!roadsegment)
+	{
 		hasSomthing = false;
 		ar & hasSomthing;
 		return;
-	} else {
+	}
+	else
+	{
 		ar & hasSomthing;
 	}
 
@@ -184,7 +197,8 @@ void sim_mob::RoadNetworkPackageManager::packageRoadSegment(Archive & ar, const 
 }
 
 template<class Archive>
-const RoadSegment* sim_mob::RoadNetworkPackageManager::unpackageRoadSegment(Archive & ar) {
+const RoadSegment* sim_mob::RoadNetworkPackageManager::unpackageRoadSegment(Archive & ar)
+{
 	bool hasSomthing;
 	ar & hasSomthing;
 
@@ -201,13 +215,17 @@ const RoadSegment* sim_mob::RoadNetworkPackageManager::unpackageRoadSegment(Arch
 }
 
 template<class Archive>
-void sim_mob::RoadNetworkPackageManager::packageLink(Archive & ar, const Link* one_link) {
+void sim_mob::RoadNetworkPackageManager::packageLink(Archive & ar, const Link* one_link)
+{
 	bool hasSomthing = true;
-	if (one_link == NULL) {
+	if (!one_link)
+	{
 		hasSomthing = false;
 		ar & hasSomthing;
 		return;
-	} else {
+	}
+	else
+	{
 		ar & hasSomthing;
 	}
 
@@ -216,7 +234,8 @@ void sim_mob::RoadNetworkPackageManager::packageLink(Archive & ar, const Link* o
 }
 
 template<class Archive>
-const Link* sim_mob::RoadNetworkPackageManager::unpackageLink(Archive & ar) {
+const Link* sim_mob::RoadNetworkPackageManager::unpackageLink(Archive & ar)
+{
 	bool hasSomthing;
 	ar & hasSomthing;
 
@@ -233,13 +252,17 @@ const Link* sim_mob::RoadNetworkPackageManager::unpackageLink(Archive & ar) {
 }
 
 template<class Archive>
-void sim_mob::RoadNetworkPackageManager::packageLane(Archive & ar, const Lane* one_lane) {
+void sim_mob::RoadNetworkPackageManager::packageLane(Archive & ar, const Lane* one_lane)
+{
 	bool hasSomthing = true;
-	if (one_lane == NULL) {
+	if (!one_lane)
+	{
 		hasSomthing = false;
 		ar & hasSomthing;
 		return;
-	} else {
+	}
+	else
+	{
 		ar & hasSomthing;
 	}
 
@@ -253,7 +276,8 @@ void sim_mob::RoadNetworkPackageManager::packageLane(Archive & ar, const Lane* o
 }
 
 template<class Archive>
-const Lane* sim_mob::RoadNetworkPackageManager::unpackageLane(Archive & ar) {
+const Lane* sim_mob::RoadNetworkPackageManager::unpackageLane(Archive & ar)
+{
 	bool hasSomthing;
 	ar & hasSomthing;
 
@@ -273,7 +297,8 @@ const Lane* sim_mob::RoadNetworkPackageManager::unpackageLane(Archive & ar) {
 	const std::vector<sim_mob::Lane*>& lanes = roadSegment->getLanes();
 	std::vector<sim_mob::Lane*>::const_iterator it = lanes.begin();
 
-	for (; it != lanes.end(); it++) {
+	for (; it != lanes.end(); it++)
+	{
 		if ((*it)->getLaneID() == lane_id)
 			return (*it);
 	}
@@ -282,13 +307,17 @@ const Lane* sim_mob::RoadNetworkPackageManager::unpackageLane(Archive & ar) {
 }
 
 template<class Archive>
-void sim_mob::RoadNetworkPackageManager::packageTripActivity(Archive & ar, const TripActivity* tripActivity) {
+void sim_mob::RoadNetworkPackageManager::packageTripActivity(Archive & ar, const TripActivity* tripActivity)
+{
 	bool hasSomthing = true;
-	if (tripActivity == NULL) {
+	if (!tripActivity)
+	{
 		hasSomthing = false;
 		ar & hasSomthing;
 		return;
-	} else {
+	}
+	else
+	{
 		ar & hasSomthing;
 	}
 
@@ -297,7 +326,8 @@ void sim_mob::RoadNetworkPackageManager::packageTripActivity(Archive & ar, const
 }
 
 template<class Archive>
-TripActivity* sim_mob::RoadNetworkPackageManager::unpackageTripActivity(Archive & ar) {
+TripActivity* sim_mob::RoadNetworkPackageManager::unpackageTripActivity(Archive & ar)
+{
 	bool hasSomthing;
 	ar & hasSomthing;
 
@@ -312,13 +342,17 @@ TripActivity* sim_mob::RoadNetworkPackageManager::unpackageTripActivity(Archive 
 }
 
 template<class Archive>
-void sim_mob::RoadNetworkPackageManager::packageTripChain(Archive & ar, const TripChain* tripChain) {
+void sim_mob::RoadNetworkPackageManager::packageTripChain(Archive & ar, const TripChain* tripChain)
+{
 	bool hasSomthing = true;
-	if (tripChain == NULL) {
+	if (!tripChain)
+	{
 		hasSomthing = false;
 		ar & hasSomthing;
 		return;
-	} else {
+	}
+	else
+	{
 		ar & hasSomthing;
 	}
 
@@ -332,7 +366,8 @@ void sim_mob::RoadNetworkPackageManager::packageTripChain(Archive & ar, const Tr
 }
 
 template<class Archive>
-TripChain* sim_mob::RoadNetworkPackageManager::unpackageTripChain(Archive & ar) {
+TripChain* sim_mob::RoadNetworkPackageManager::unpackageTripChain(Archive & ar)
+{
 	bool hasSomthing;
 	ar & hasSomthing;
 
@@ -352,15 +387,19 @@ TripChain* sim_mob::RoadNetworkPackageManager::unpackageTripChain(Archive & ar) 
 }
 
 template<class Archive>
-void sim_mob::RoadNetworkPackageManager::packageSignal(Archive & ar, const Signal* one_signal) {
+void sim_mob::RoadNetworkPackageManager::packageSignal(Archive & ar, const Signal* one_signal)
+{
 	//std::cout << "packageOneCrossDriver Pdesttrains 2.8.4.4:" << std::endl;
 	bool hasSomthing = true;
 
-	if (!one_signal) {
+	if (!one_signal)
+	{
 		hasSomthing = false;
 		ar & hasSomthing;
 		return;
-	} else {
+	}
+	else
+	{
 		ar & hasSomthing;
 	}
 
@@ -373,7 +412,8 @@ void sim_mob::RoadNetworkPackageManager::packageSignal(Archive & ar, const Signa
 }
 
 template<class Archive>
-const Signal* sim_mob::RoadNetworkPackageManager::unpackageSignal(Archive & ar) {
+const Signal* sim_mob::RoadNetworkPackageManager::unpackageSignal(Archive & ar)
+{
 	bool hasSomthing;
 	ar & hasSomthing;
 
@@ -389,13 +429,17 @@ const Signal* sim_mob::RoadNetworkPackageManager::unpackageSignal(Archive & ar) 
 }
 
 template<class Archive>
-void sim_mob::RoadNetworkPackageManager::packageSignalContent(Archive & ar, const Signal* one_signal) {
+void sim_mob::RoadNetworkPackageManager::packageSignalContent(Archive & ar, const Signal* one_signal)
+{
 	bool hasSomthing = true;
-	if (!one_signal) {
+	if (!one_signal)
+	{
 		hasSomthing = false;
 		ar & hasSomthing;
 		return;
-	} else {
+	}
+	else
+	{
 		ar & hasSomthing;
 	}
 
@@ -415,8 +459,10 @@ void sim_mob::RoadNetworkPackageManager::packageSignalContent(Archive & ar, cons
 	//std::cout << "22222" << std::endl;
 
 	//very dangerous, suggest to change
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 3; j++) {
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
 			int value = one_signal->TC_for_Driver[i][j];
 			//	std::cout << "value:" << value << std::endl;
 			ar & value;
@@ -425,16 +471,20 @@ void sim_mob::RoadNetworkPackageManager::packageSignalContent(Archive & ar, cons
 
 	//std::cout << "33333333" << std::endl;
 
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 4; i++)
+	{
 		int value = one_signal->TC_for_Pedestrian[i];
 		ar & value;
 	}
 
+	//	std::string value = "test_main";
+	//	ar & value;
 	//std::cout << "444444444444" << std::endl;
 }
 
 template<class Archive>
-void sim_mob::RoadNetworkPackageManager::unpackageSignalContent(Archive & ar) {
+void sim_mob::RoadNetworkPackageManager::unpackageSignalContent(Archive & ar)
+{
 	bool hasSomthing;
 	ar & hasSomthing;
 
@@ -460,8 +510,10 @@ void sim_mob::RoadNetworkPackageManager::unpackageSignalContent(Archive & ar) {
 	//std::cout << "66666666666666" << std::endl;
 
 	//very dangerous, suggest to change
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 3; j++) {
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 3; j++)
+		{
 			//			int value;
 			ar & (one_signal->TC_for_Driver[i][j]);
 			//			TC_for_Driver[i][j] = value;
@@ -471,24 +523,32 @@ void sim_mob::RoadNetworkPackageManager::unpackageSignalContent(Archive & ar) {
 	//std::cout << "7777777777777" << std::endl;
 
 	//	int[] TC_for_Pedestrian = const_cast<int[]> (one_signal->TC_for_Pedestrian);
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 4; i++)
+	{
 		//		int value;
 		ar & (one_signal->TC_for_Pedestrian[i]);
 		//		TC_for_Pedestrian[i] = value;
 	}
 
+	//	std::string value;
+	//	ar & value;
+	//	std::cout << "Testing:" << value << std::endl;
 	//std::cout << "888888888888" << std::endl;
 }
 
 template<class Archive>
-void sim_mob::RoadNetworkPackageManager::packageVehicle(Archive & ar, const Vehicle* one_vehicle) {
+void sim_mob::RoadNetworkPackageManager::packageVehicle(Archive & ar, const Vehicle* one_vehicle)
+{
 
 	bool hasSomthing = true;
-	if (one_vehicle == NULL) {
+	if (!one_vehicle)
+	{
 		hasSomthing = false;
 		ar & hasSomthing;
 		return;
-	} else {
+	}
+	else
+	{
 		ar & hasSomthing;
 	}
 
@@ -506,7 +566,8 @@ void sim_mob::RoadNetworkPackageManager::packageVehicle(Archive & ar, const Vehi
 }
 
 template<class Archive>
-Vehicle* sim_mob::RoadNetworkPackageManager::unpackageVehicle(Archive & ar) {
+Vehicle* sim_mob::RoadNetworkPackageManager::unpackageVehicle(Archive & ar)
+{
 	bool hasSomthing;
 	ar & hasSomthing;
 
@@ -530,13 +591,17 @@ Vehicle* sim_mob::RoadNetworkPackageManager::unpackageVehicle(Archive & ar) {
 }
 
 template<class Archive>
-void sim_mob::RoadNetworkPackageManager::packageRelAbsPoint(Archive & ar, const RelAbsPoint* attributes) {
+void sim_mob::RoadNetworkPackageManager::packageRelAbsPoint(Archive & ar, const RelAbsPoint* attributes)
+{
 	bool hasSomthing = true;
-	if (attributes == NULL) {
+	if (!attributes)
+	{
 		hasSomthing = false;
 		ar & hasSomthing;
 		return;
-	} else {
+	}
+	else
+	{
 		ar & hasSomthing;
 	}
 
@@ -551,7 +616,8 @@ void sim_mob::RoadNetworkPackageManager::packageRelAbsPoint(Archive & ar, const 
 }
 
 template<class Archive>
-RelAbsPoint* sim_mob::RoadNetworkPackageManager::unpackageRelAbsPoint(Archive & ar) {
+RelAbsPoint* sim_mob::RoadNetworkPackageManager::unpackageRelAbsPoint(Archive & ar)
+{
 	bool hasSomthing;
 	ar & hasSomthing;
 
@@ -573,72 +639,115 @@ RelAbsPoint* sim_mob::RoadNetworkPackageManager::unpackageRelAbsPoint(Archive & 
 }
 
 template<class Archive>
-void sim_mob::RoadNetworkPackageManager::packageFixedDelayedPointer2D(Archive & ar,
-		const FixedDelayed<Point2D*>& one_delay) {
-	int value = one_delay.delayMS;
-	bool value_2 = one_delay.reclaimPtrs;
+void sim_mob::RoadNetworkPackageManager::packageFixedDelayedPointer2D(Archive & ar, FixedDelayed<Point2D*>& one_delay)
+{
+	int list_size = one_delay.history.size();
+	ar & list_size;
 
-	ar & value;
-	ar & value_2;
+	std::list<FixedDelayed<Point2D*>::HistItem>::const_iterator itr = one_delay.history.begin();
+	for (; itr != one_delay.history.end(); itr++)
+	{
+		FixedDelayed<Point2D*>::HistItem one = (*itr);
+		Point2D* value = one.item;
+		int value2 = one.observedTime;
 
-	ar.template register_type<FixedDelayed<Point2D*>::HistItem> ();
-	ar & one_delay.history;
+		ar & (*value);
+		ar & value2;
+	}
+
+//	std::cout << "Send one_delay(Pointer2D)->history:" << one_delay.history.size() << std::endl;
 }
 
 template<class Archive>
-FixedDelayed<Point2D*>& sim_mob::RoadNetworkPackageManager::unpackageFixedDelayedPointer2D(Archive & ar) {
-	int delayMS;
-	ar & delayMS;
+FixedDelayed<Point2D*>& sim_mob::RoadNetworkPackageManager::unpackageFixedDelayedPointer2D(Archive & ar)
+{
+	size_t reaction_time = Driver::reactTime;
+	FixedDelayed<Point2D*>* one_delay = new FixedDelayed<Point2D*> (reaction_time, true);
 
-	bool reclaimPtrs;
-	ar & reclaimPtrs;
+	int list_size;
+	ar & list_size;
 
-	FixedDelayed<Point2D*>* one_delay = new FixedDelayed<Point2D*> (delayMS, reclaimPtrs);
+	for (int i = 0; i < list_size; i++)
+	{
+		Point2D value;
+		int value2;
 
-	ar.template register_type<FixedDelayed<Point2D*>::HistItem> ();
-	ar & (one_delay->history);
+		ar & value;
+		ar & value2;
 
+		Point2D* buffer_value = new Point2D(value.getX(), value.getY());
+		uint32_t ut_value = value2;
+
+		FixedDelayed<Point2D*>::HistItem one(buffer_value, ut_value);
+		one_delay->history.push_back(one);
+	}
+
+//	std::cout << "one_delay(Pointer2D)->history:" << one_delay->history.size() << std::endl;
 	return (*one_delay);
 }
 
 template<class Archive>
-void sim_mob::RoadNetworkPackageManager::packageFixedDelayedInt(Archive & ar, const FixedDelayed<int32_t>& one_delay) {
-	int value = one_delay.delayMS;
-	bool value_2 = one_delay.reclaimPtrs;
+void sim_mob::RoadNetworkPackageManager::packageFixedDelayedInt(Archive & ar, FixedDelayed<int32_t>& one_delay)
+{
+	int list_size = one_delay.history.size();
+	ar & list_size;
 
-	ar & value;
-	ar & value_2;
+	std::list<FixedDelayed<int32_t>::HistItem>::const_iterator itr = one_delay.history.begin();
+	for (; itr != one_delay.history.end(); itr++)
+	{
+		FixedDelayed<int32_t>::HistItem one = (*itr);
+		int value = one.item;
+		int value2 = one.observedTime;
 
-	ar.template register_type<FixedDelayed<int32_t>::HistItem> ();
-	ar & one_delay.history;
+		ar & value;
+		ar & value2;
+	}
+
+//	std::cout << "Send one_delay(int)->history:" << one_delay.history.size() << std::endl;
 }
 
 template<class Archive>
-FixedDelayed<int32_t>& sim_mob::RoadNetworkPackageManager::unpackageFixedDelayedInt(Archive & ar) {
-	int delayMS;
-	ar & delayMS;
+FixedDelayed<int32_t>& sim_mob::RoadNetworkPackageManager::unpackageFixedDelayedInt(Archive & ar)
+{
+	size_t reaction_time = Driver::reactTime;
+	FixedDelayed<int32_t>* one_delay = new FixedDelayed<int32_t> (reaction_time, false);
 
-	bool reclaimPtrs;
-	ar & reclaimPtrs;
+	int list_size;
+	ar & list_size;
 
-	FixedDelayed<int32_t>* one_delay = new FixedDelayed<int32_t> (delayMS, reclaimPtrs);
+	for (int i = 0; i < list_size; i++)
+	{
+		int value;
+		int value2;
 
-	ar.template register_type<FixedDelayed<int32_t>::HistItem> ();
-	ar & (one_delay->history);
+		ar & value;
+		ar & value2;
 
+		int32_t t_value = value;
+		uint32_t ut_value = value2;
+
+		FixedDelayed<int32_t>::HistItem one(t_value, ut_value);
+		one_delay->history.push_back(one);
+	}
+
+//	std::cout << "one_delay(int)->history:" << one_delay->history.size() << std::endl;
 	return (*one_delay);
 }
 
 template<class Archive>
 void sim_mob::RoadNetworkPackageManager::packageLaneAndIndexPair(Archive & ar,
-		const StreetDirectory::LaneAndIndexPair* lane_pair) {
+		const StreetDirectory::LaneAndIndexPair* lane_pair)
+{
 
 	bool hasSomthing = true;
-	if (lane_pair == NULL) {
+	if (!lane_pair)
+	{
 		hasSomthing = false;
 		ar & hasSomthing;
 		return;
-	} else {
+	}
+	else
+	{
 		ar & hasSomthing;
 	}
 
@@ -648,7 +757,8 @@ void sim_mob::RoadNetworkPackageManager::packageLaneAndIndexPair(Archive & ar,
 }
 
 template<class Archive>
-StreetDirectory::LaneAndIndexPair* sim_mob::RoadNetworkPackageManager::unpackageLaneAndIndexPair(Archive & ar) {
+StreetDirectory::LaneAndIndexPair* sim_mob::RoadNetworkPackageManager::unpackageLaneAndIndexPair(Archive & ar)
+{
 	bool hasSomthing;
 	ar & hasSomthing;
 
@@ -664,45 +774,55 @@ StreetDirectory::LaneAndIndexPair* sim_mob::RoadNetworkPackageManager::unpackage
 }
 
 template<class Archive>
-void sim_mob::RoadNetworkPackageManager::packageCrossing(Archive & ar, const Crossing* cross) {
+void sim_mob::RoadNetworkPackageManager::packageCrossing(Archive & ar, const Crossing* cross)
+{
 	bool hasSomthing = true;
-	if (!cross) {
+	if (!cross)
+	{
 		hasSomthing = false;
 		ar & hasSomthing;
 		return;
-	} else {
+	}
+	else
+	{
 		ar & hasSomthing;
 	}
 
-	ar & cross->farLine.first;
-	ar & cross->farLine.second;
+	ar & (cross->nearLine.first);
+	ar & (cross->nearLine.second);
 
-	ar & cross->nearLine.first;
-	ar & cross->nearLine.second;
+	ar & (cross->farLine.first);
+	ar & (cross->farLine.second);
+
+	//	std::cout << "Point 1:" << cross->farLine.first.getX() << "," << cross->farLine.first.getY() << std::endl;
+	//	std::cout << "Point 2:" << cross->farLine.second.getX() << "," << cross->farLine.second.getY() << std::endl;
+	//	std::cout << "Point 3:" << cross->nearLine.first.getX() << "," << cross->nearLine.first.getY() << std::endl;
+	//	std::cout << "Point 4:" << cross->nearLine.second.getX() << "," << cross->nearLine.second.getY() << std::endl;
 
 	//	ar & cross->start;
 	//	ar & cross->end;
 }
 
 template<class Archive>
-const Crossing* sim_mob::RoadNetworkPackageManager::unpackageCrossing(Archive & ar) {
+const Crossing* sim_mob::RoadNetworkPackageManager::unpackageCrossing(Archive & ar)
+{
 	bool hasSomthing;
 	ar & hasSomthing;
 
 	if (hasSomthing == false)
 		return NULL;
 
-	sim_mob::Point2D from_1;
-	sim_mob::Point2D from_2;
-	sim_mob::Point2D to_1;
-	sim_mob::Point2D to_2;
+	sim_mob::Point2D near_1;
+	sim_mob::Point2D near_2;
+	sim_mob::Point2D far_1;
+	sim_mob::Point2D far_2;
 
-	ar & from_1;
-	ar & from_2;
-	ar & to_1;
-	ar & to_2;
+	ar & near_1;
+	ar & near_2;
+	ar & far_1;
+	ar & far_2;
 
-	return sim_mob::getCrossingBasedOnNode(&from_1, &from_2, &to_1, &to_2);
+	return sim_mob::getCrossingBasedOnNode(&near_1, &near_2, &far_1, &far_2);
 }
 
 }

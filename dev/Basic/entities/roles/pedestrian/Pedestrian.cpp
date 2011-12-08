@@ -44,10 +44,20 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent) :
 	firstTimeUpdate = true;
 
 	//Set random seed
-	srand(parent->getId());
+	//temp setting, to compare with simmobility-mpi
+	int person_id = parent->getId();
+	if(person_id >= 10000)
+	{
+		speed = 1.2 + (double((parent->getId()-10000 + 3) % 5)) / 10;
+	}
+	else
+	{
+		speed = 1.2 + (double(parent->getId() % 5)) / 10;
+	}
+
+//	srand(parent->getId());
 
 	//Set default speed in the range of 1.2m/s to 1.6m/s
-	speed = 1.2 + (double(rand() % 5)) / 10;
 
 	xVel = 0;
 	yVel = 0;
@@ -103,6 +113,8 @@ void sim_mob::Pedestrian::update(frame_t frameNumber) {
 			if (isGoalReached()) {
 				currentStage++;
 				setGoal(currentStage); //Set next goal
+				output(frameNumber);
+
 				//			{
 				//				boost::mutex::scoped_lock local_lock(Logger::global_mutex);
 				//				LogOutNotSync("Pedestrian " <<parent->getId() <<" has reached goal " <<currentStage<<std::endl);
@@ -118,7 +130,9 @@ void sim_mob::Pedestrian::update(frame_t frameNumber) {
 					//				LogOut("("<<"Pedestrian,"<<frameNumber<<","<<parent->getId()<<","<<"{xPos:"<<parent->xPos.get()<<"," <<"yPos:"<<this->parent->yPos.get()<<","<<"pedSig:"<<currPhase<<",})"<<std::endl);
 					//				LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
 					//LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
-					//output(frameNumber);
+					const ConfigParams& config = ConfigParams::GetInstance();
+					if(config.is_run_on_many_computers == false)
+					output(frameNumber);
 				} else if (currentStage == 1) {
 
 					//Check whether to start to cross or not
@@ -142,7 +156,10 @@ void sim_mob::Pedestrian::update(frame_t frameNumber) {
 						//Output (temp)
 						LogOut("Pedestrian " <<parent->getId() <<" is waiting at the crossing" <<std::endl);
 					}
-					//output(frameNumber);
+
+					const ConfigParams& config = ConfigParams::GetInstance();
+					if(config.is_run_on_many_computers == false)
+					output(frameNumber);
 					//Output (temp)
 					//LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
 				}
@@ -712,10 +729,25 @@ void sim_mob::Pedestrian::setCrossingParas() {
 		}
 
 		xRel = 0;
-		if (width < 0)
-			yRel = -((double) (rand() % (int(abs(width) / 2 + 1))) + (double) (rand() % (int(abs(width) / 2 + 1))));
+
+		ConfigParams& config = ConfigParams::GetInstance();
+		if (config.is_simulation_repeatable)
+		{
+			if (width < 0)
+				yRel = -((double) (getOwnRandomNumber() % (int(abs(width) / 2 + 1))) + (double) (getOwnRandomNumber()
+						% (int(abs(width) / 2 + 1))));
+			else
+				yRel = (double) (getOwnRandomNumber() % (int(width / 2 + 1))) + (double) (getOwnRandomNumber()
+						% (int(width / 2 + 1)));
+		}
 		else
-			yRel = (double) (rand() % (int(width / 2 + 1))) + (double) (rand() % (int(width / 2 + 1)));
+		{
+			if (width < 0)
+				yRel = -((double) (rand() % (int(abs(width) / 2 + 1))) + (double) (rand() % (int(abs(width) / 2 + 1))));
+			else
+				yRel = (double) (rand() % (int(width / 2 + 1))) + (double) (rand() % (int(width / 2 + 1)));
+		}
+
 		xRel = (yRel * tmp) / width;
 		relToAbs(xRel, yRel, xAbs, yAbs);
 		parent->xPos.set((int) xAbs);

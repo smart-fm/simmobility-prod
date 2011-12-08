@@ -99,7 +99,8 @@ unsigned int sim_mob::Driver::gapAcceptance(int type)
 				otherDistance[i].lead=MAX_NUM;
 			} else {				//has vehicle ahead
 				//otherSpeed[i].lead=fwd->getVehicle()->xVel_;
-				otherSpeed[i].lead = fwd->getVehicle()->velocity.getRelX();
+				//otherSpeed[i].lead = fwd->getVehicle()->velocity.getRelX();
+				otherSpeed[i].lead = fwd->buffer_velocity.get().getRelX();
 
 				otherDistance[i].lead=(i==0)? minLFDistance:minRFDistance;
 			}
@@ -109,7 +110,8 @@ unsigned int sim_mob::Driver::gapAcceptance(int type)
 			}
 			else{		//has vehicle behind, check the gap
 				//otherSpeed[i].lag=back->getVehicle()->xVel_;
-				otherSpeed[i].lag=back->getVehicle()->velocity.getRelX();
+				//otherSpeed[i].lag=back->getVehicle()->velocity.getRelX();
+				otherSpeed[i].lag=back->buffer_velocity.get().getRelX();
 
 				otherDistance[i].lag=(i==0)? minLBDistance:minRBDistance;
 			}
@@ -264,7 +266,9 @@ void sim_mob::Driver::excuteLaneChanging()
 		//if too close to node, don't do lane changing, distance should be larger than 3m
 		if(currLaneLength - currLaneOffset - vehicle->length/2 <= 300)
 				return;
-		double p=(double)(rand()%1000)/1000;
+
+		int seed_ = getOwnRandomNumber();
+		double p=(double)(seed_%1000)/1000;
 		if(p<checkIfMandatory()){
 			changeMode = MLC;
 		} else {

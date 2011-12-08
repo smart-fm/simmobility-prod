@@ -5,6 +5,7 @@
 #include <vector>
 #include <stdexcept>
 
+#include "util/OpaqueProperty.hpp"
 #include "Pavement.hpp"
 #include "Link.hpp"
 
@@ -53,6 +54,8 @@ public:
 	//Force expansion of all Lane and LaneEdge polylines
 	void syncLanePolylines();/* const;*/
 
+	//RoadSegments may have hidden properties useful only in for the visualizer.
+	OpaqueProperty<int> originalDB_ID;
 
 public:
 	///Maximum speed of this road segment.

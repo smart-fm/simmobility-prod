@@ -25,6 +25,7 @@ const sim_mob::Driver::CarFollowParam sim_mob::Driver::CF_parameters[2] = {
 void sim_mob::Driver::updateLeadingGapandMode(UpdateParams& p)
 {
 	p.currSpeed = vehicle->velocity.getRelX()/100;
+
 	if(minCFDistance != 5000 && minCFDistance <= tsStopDistance && minCFDistance <= minPedestrianDis)
 	{
 		space = minCFDistance/100;
@@ -55,22 +56,24 @@ void sim_mob::Driver::makeAcceleratingDecision(UpdateParams& p)
 //	if(speed_<0||speed_>50)
 
 	//p.currSpeed = vehicle->xVel_/100;
-
 	if(space <= 0) {
 		acc_=0;
 	}
 	else{
+
 		if(mode == 3) {
+
 			acc_ = accOfFreeFlowing(p);
 			return;
 		} else if(mode == 0)
 		{
 
 			//v_lead 		=	CFD->getVehicle()->xVel_/100;
-			v_lead 		=	CFD->getVehicle()->velocity.getRelX()/100;
-
+			//v_lead 		=	CFD->getVehicle()->velocity.getRelX()/100;
+			v_lead = CFD->buffer_velocity.get().getRelX() / 100;
 			//a_lead		=	CFD->getVehicle()->xAcc_/100;
-			a_lead          =   CFD->getVehicle()->accel.getRelX()/100;
+			//a_lead          =   CFD->getVehicle()->accel.getRelX()/100;
+			a_lead = CFD->buffer_accel.get().getRelX() / 100;
 		}
 		else
 		{
@@ -136,10 +139,12 @@ double sim_mob::Driver::accOfEmergencyDecelerating(UpdateParams& p)
 		return a;
 }
 
-double uRandom()
+double sim_mob::Driver::uRandom()
 {
-	srand(time(0));
-	long int seed_=rand();
+//	srand(time(0));
+//	long int seed_=rand();
+
+	int seed_ = getOwnRandomNumber();
 	const long int M = 2147483647;  // M = modulus (2^31)
 	const long int A = 48271;       // A = multiplier (was 16807)
 	const long int Q = M / A;
@@ -149,7 +154,7 @@ double uRandom()
 	return (double)seed_ / (double)M;
 }
 
-double nRandom(double mean,double stddev)
+double sim_mob::Driver::nRandom(double mean,double stddev)
 {
 	   double r1 = uRandom(), r2 = uRandom();
 	   double r = - 2.0 * log(r1);

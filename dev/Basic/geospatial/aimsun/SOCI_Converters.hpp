@@ -11,6 +11,7 @@
 #include "Crossing.hpp"
 #include "Turning.hpp"
 #include "Polyline.hpp"
+#include "Signal.hpp"
 
 
 using namespace sim_mob::aimsun;
@@ -149,6 +150,7 @@ template<> struct type_conversion<Lane>
     	res.TMP_AtSectionID = vals.get<int>("section", 0);
     	res.xPos = vals.get<double>("xpos", 0.0);
     	res.yPos = vals.get<double>("ypos", 0.0);
+//        res.rowNo = vals.get<int>("rowno", 0);
     }
     static void to_base(const Lane& src, soci::values& vals, soci::indicator& ind)
     {
@@ -157,7 +159,37 @@ template<> struct type_conversion<Lane>
     	vals.set("section", src.atSection->id);
     	vals.set("xpos", src.xPos);
     	vals.set("ypos", src.yPos);
+ //       vals.set("rowno", src.rowNo);
         ind = i_ok;
+    }
+};
+
+template<>
+struct type_conversion<Signal>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, Signal& signal)
+    {
+        signal.id = values.get<int>("signal_id", 0);
+        signal.nodeId = values.get<int>("node_id", 0);
+        signal.xPos = values.get<double>("xpos", 0.0);
+        signal.yPos = values.get<double>("ypos", 0.0);
+        signal.typeCode = values.get<std::string>("type_cd", "");
+        signal.bearing = values.get<double>("bearg", 0.0);
+    }
+
+    static void
+    to_base(Signal const & signal, soci::values & values, soci::indicator & indicator)
+    {
+        values.set("signal_id", signal.id);
+        values.set("node_id", signal.nodeId);
+        values.set("xpos", signal.xPos);
+        values.set("ypos", signal.yPos);
+        values.set("type_cd", signal.typeCode);
+        values.set("bearg", signal.bearing);
+        indicator = i_ok;
     }
 };
 

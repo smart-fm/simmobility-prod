@@ -73,12 +73,6 @@ void BoundarySegment::output() {
 		return;
 	}
 
-	std::cout << "-----------------" << std::endl;
-	std::cout << cut_line_start->getX() << std::endl;
-	std::cout << cut_line_start->getY() << std::endl;
-	std::cout << cut_line_to->getX() << std::endl;
-	std::cout << cut_line_to->getY() << std::endl;
-
 	outputLine(*cut_line_start, *cut_line_to, "red");
 
 	std::vector<Point2D>::iterator itr = bounary_box.begin();

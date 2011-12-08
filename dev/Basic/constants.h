@@ -28,6 +28,8 @@
 //  MPI includes. It should be possible to EFFECTIVELY disable mpi by simply setting the number of
 //  computers to 1, but this flag exists to allow someone without boost::mpi installed to compile the
 //  Sim Mobility simulator.
+//NOTE: Currently the user will still need libboost_mpi to "link" against, but when we switch to
+//      cmake (or anything slightly more automated) we will disable that too.
 #ifndef SIMMOB_DISABLE_MPI
   #define SIMMOB_DISABLE_MPI
 #endif

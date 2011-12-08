@@ -1171,7 +1171,7 @@ void sim_mob::AgentPackageManager::packageOneCrossPedestrain(Archive & ar, Agent
 	ar & (pedestrian->goal);
 	ar & (pedestrian->goalInLane);
 	ar & (pedestrian->currentStage);
-	ar & (pedestrian->currentStage_.get());
+	//ar & (pedestrian->currentStage_.get());
 
 	//std::cout << "packageOneCrossDriver Pdesttrains 2.8.4:" << std::endl;
 

@@ -145,6 +145,13 @@ void sim_mob::Pedestrian::update(frame_t frameNumber) {
 	}
 }
 
+
+void sim_mob::Driver::output(UpdateParams& p, frame_t frameNumber)
+{
+	throw std::runtime_error("UNIMPLEMENTED: Pedestrian::output()");
+}
+
+
 /*---------------------Perception-related functions----------------------*/
 
 void sim_mob::Pedestrian::setGoal(int stage) //0-to the next intersection, 1-to the crossing end, 2-to the destination

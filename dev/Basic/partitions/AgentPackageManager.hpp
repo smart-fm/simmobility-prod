@@ -311,7 +311,7 @@ void sim_mob::AgentPackageManager::packageOneCrossDriver(Archive & ar, Agent con
 	//	driver->perceivedVelocity.delayMS;
 	//	driver->perceivedVelocity.delayMS;
 
-	ar & (driver->timeStep);
+	/*ar & (driver->timeStep);
 	ar & (driver->perceivedXVelocity_);
 	ar & (driver->perceivedYVelocity_);
 	ar & (driver->xPos_nextLink);
@@ -323,82 +323,82 @@ void sim_mob::AgentPackageManager::packageOneCrossDriver(Archive & ar, Agent con
 	ar & (driver->crossingFarX);
 	ar & (driver->crossingFarY);
 	ar & (driver->crossingNearX);
-	ar & (driver->crossingNearY);
+	ar & (driver->crossingNearY);*/
 	ar & (driver->origin);
 	ar & (driver->goal);
 
-	rnpackageImpl.packageNode(ar, driver->destNode);
-	rnpackageImpl.packageNode(ar, driver->originNode);
+	/*rnpackageImpl.packageNode(ar, driver->destNode);
+	rnpackageImpl.packageNode(ar, driver->originNode);*/
 
-	ar & (driver->isGoalSet);
+	/*ar & (driver->isGoalSet);
 	ar & (driver->isOriginSet);
 
 	ar & (driver->maxAcceleration);
 	ar & (driver->normalDeceleration);
 	ar & (driver->maxDeceleration);
-	ar & (driver->distanceToNormalStop);
+	ar & (driver->distanceToNormalStop);*/
 	ar & (driver->maxLaneSpeed);
 
 	/****************IN REAL NETWORK****************/
-	int all_segments_size = driver->allRoadSegments.size();
+	/*int all_segments_size = driver->allRoadSegments.size();
 	ar & all_segments_size;
 	std::vector<const RoadSegment*>::const_iterator it = driver->allRoadSegments.begin();
 
 	for (; it != driver->allRoadSegments.end(); it++) {
 		rnpackageImpl.packageRoadSegment(ar, (*it));
-	}
+	}*/
 
 	//std::cout << "packageOneCrossDriver 5:" << std::endl;
 
-	rnpackageImpl.packageLink(ar, driver->currLink);
+	//rnpackageImpl.packageLink(ar, driver->currLink);
 	//std::cout << "packageOneCrossDriver 6.1:" << std::endl;
 	//		rnpackageImpl.packageLink(ar, driver->nextLink);
 	//std::cout << "packageOneCrossDriver 6.2:" << std::endl;
-	rnpackageImpl.packageRoadSegment(ar, driver->currRoadSegment);
+	//rnpackageImpl.packageRoadSegment(ar, driver->currRoadSegment);
 	//std::cout << "packageOneCrossDriver 6.3:" << std::endl;
 	//		rnpackageImpl.packageLane(ar, currLane);
 	rnpackageImpl.packageLane(ar, driver->nextLaneInNextLink);
 	//std::cout << "packageOneCrossDriver 6.4:" << std::endl;
-	rnpackageImpl.packageLane(ar, driver->leftLane);
+	//rnpackageImpl.packageLane(ar, driver->leftLane);
 	//std::cout << "packageOneCrossDriver 6.5:" << std::endl;
-	rnpackageImpl.packageLane(ar, driver->rightLane);
+	//rnpackageImpl.packageLane(ar, driver->rightLane);
 
 	//		rnpackageImpl.packageLink(ar, driver->desLink);
 
 
-	ar & (driver->currLaneOffset);
+	//ar & (driver->currLaneOffset);
 	ar & (driver->currLinkOffset);
-	ar & (driver->traveledDis);
+	/*ar & (driver->traveledDis);
 	ar & (driver->RSIndex);
 	ar & (driver->polylineSegIndex);
-	ar & (driver->currLaneIndex);
+	ar & (driver->currLaneIndex);*/
 	ar & (driver->targetLaneIndex);
 
 	//std::cout << "driver->RSIndex:" << driver->RSIndex << std::endl;
 
-	rnpackageImpl.packageLaneAndIndexPair(ar, &(driver->laneAndIndexPair));
+	//rnpackageImpl.packageLaneAndIndexPair(ar, &(driver->laneAndIndexPair));
 
 	//I will solve it later
 	//		ar & laneAndIndexPair;
-	ar & (*(driver->currLanePolyLine));
+	//ar & (*(driver->currLanePolyLine));
 	//		ar & (*(driver->desLanePolyLine));
 
 	//std::cout << "packageOneCrossDriver 7.0:" << std::endl;
 
-	ar & (driver->currPolylineSegStart);
+	/*ar & (driver->currPolylineSegStart);
 	ar & (driver->currPolylineSegEnd);
-	ar & (driver->polylineSegLength);
+	ar & (driver->polylineSegLength);*/
 	//std::cout << "packageOneCrossDriver 7.1:" << std::endl;
 
-	ar & (driver->desPolyLineStart);
+	/*ar & (driver->desPolyLineStart);
 	ar & (driver->desPolyLineEnd);
 	ar & (driver->entryPoint);
 	ar & (driver->xTurningStart);
-	ar & (driver->yTurningStart);
+	ar & (driver->yTurningStart);*/
 
 	//std::cout << "packageOneCrossDriver 7.2:" << std::endl;
 
-	ar & (driver->currLaneLength);
+	/*ar & (driver->currLaneLength);
 	ar & (driver->xDirection_entryPoint);
 	ar & (driver->yDirection_entryPoint);
 	ar & (driver->disToEntryPoint);
@@ -408,13 +408,13 @@ void sim_mob::AgentPackageManager::packageOneCrossDriver(Archive & ar, Agent con
 	ar & (driver->nextIsForward);
 	ar & (driver->isReachGoal);
 	ar & (driver->lcEnterNewLane);
-	ar & (driver->isTrafficLightStop);
+	ar & (driver->isTrafficLightStop);*/
 
 	//std::cout << "packageOneCrossDriver 7.3:" << std::endl;
 
 	//		ar & nearby_agents);
-	ar & (driver->distanceInFront);
-	ar & (driver->distanceBehind);
+	/*ar & (driver->distanceInFront);
+	ar & (driver->distanceBehind);*/
 
 	//std::cout << "packageOneCrossDriver 8:" << std::endl;
 
@@ -422,13 +422,13 @@ void sim_mob::AgentPackageManager::packageOneCrossDriver(Archive & ar, Agent con
 
 	ar & (driver->currLaneOffset_.get());
 	ar & (driver->currLaneLength_.get());
-	rnpackageImpl.packageRelAbsPoint(ar, &(driver->buffer_velocity.get()));
+	/*rnpackageImpl.packageRelAbsPoint(ar, &(driver->buffer_velocity.get()));
 	rnpackageImpl.packageRelAbsPoint(ar, &(driver->buffer_accel.get()));
-	ar & (driver->inIntersection_.get());
+	ar & (driver->inIntersection_.get());*/
 
 	/***********SOMETHING BIG BROTHER CAN RETURN*************/
 	ar & (driver->targetSpeed);
-	ar & (driver->minCFDistance);
+	/*ar & (driver->minCFDistance);
 	ar & (driver->minCBDistance);
 	ar & (driver->minLFDistance);
 	ar & (driver->minLBDistance);
@@ -441,12 +441,12 @@ void sim_mob::AgentPackageManager::packageOneCrossDriver(Archive & ar, Agent con
 	ar & (driver->space_star);
 	ar & (driver->dv);
 	ar & (driver->a_lead);
-	ar & (driver->v_lead);
+	ar & (driver->v_lead);*/
 
 	//std::cout << "packageOneCrossDriver 9:" << std::endl;
 
 	//for lane changing decision
-	ar & (driver->VelOfLaneChanging);
+	/*ar & (driver->VelOfLaneChanging);
 	ar & (driver->changeMode);
 	ar & (driver->changeDecision);
 	ar & (driver->isLaneChanging);
@@ -456,18 +456,18 @@ void sim_mob::AgentPackageManager::packageOneCrossDriver(Archive & ar, Agent con
 	ar & (driver->toLane);
 	ar & (driver->satisfiedDistance);
 	ar & (driver->dis2stop);
-	ar & (driver->avoidBadAreaDistance);
+	ar & (driver->avoidBadAreaDistance);*/
 
 	/**************BEHAVIOR WHEN APPROACHING A INTERSECTION***************/
 
 	//std::cout << "packageOneCrossDriver 10:" << std::endl;
 	rnpackageImpl.packageSignal(ar, driver->trafficSignal);
 
-	ar & (driver->angle);
-	ar & (driver->inIntersection);
+	//ar & (driver->angle);
+	//ar & (driver->inIntersection);
 
 	/**************COOPERATION WITH PEDESTRIAN***************/
-	ar & (driver->isPedestrianAhead);
+	//ar & (driver->isPedestrianAhead);
 	//std::cout << "packageOneCrossDriver 11:" << std::endl;
 }
 
@@ -521,7 +521,7 @@ void sim_mob::AgentPackageManager::packageOneFeedbackDriver(Archive & ar, Agent 
 	//	driver->perceivedVelocity.delayMS;
 	//	driver->perceivedVelocity.delayMS;
 
-	ar & (driver->timeStep);
+	/*ar & (driver->timeStep);
 	ar & (driver->perceivedXVelocity_);
 	ar & (driver->perceivedYVelocity_);
 	ar & (driver->xPos_nextLink);
@@ -533,11 +533,11 @@ void sim_mob::AgentPackageManager::packageOneFeedbackDriver(Archive & ar, Agent 
 	ar & (driver->crossingFarX);
 	ar & (driver->crossingFarY);
 	ar & (driver->crossingNearX);
-	ar & (driver->crossingNearY);
+	ar & (driver->crossingNearY);*/
 	ar & (driver->origin);
 	ar & (driver->goal);
 
-	rnpackageImpl.packageNode(ar, driver->destNode);
+	/*rnpackageImpl.packageNode(ar, driver->destNode);
 	rnpackageImpl.packageNode(ar, driver->originNode);
 
 	ar & (driver->isGoalSet);
@@ -546,69 +546,69 @@ void sim_mob::AgentPackageManager::packageOneFeedbackDriver(Archive & ar, Agent 
 	ar & (driver->maxAcceleration);
 	ar & (driver->normalDeceleration);
 	ar & (driver->maxDeceleration);
-	ar & (driver->distanceToNormalStop);
+	ar & (driver->distanceToNormalStop);*/
 	ar & (driver->maxLaneSpeed);
 
 	/****************IN REAL NETWORK****************/
-	int all_segments_size = driver->allRoadSegments.size();
+	/*int all_segments_size = driver->allRoadSegments.size();
 	ar & all_segments_size;
 	std::vector<const RoadSegment*>::const_iterator it = driver->allRoadSegments.begin();
 
 	for (; it != driver->allRoadSegments.end(); it++) {
 		rnpackageImpl.packageRoadSegment(ar, (*it));
-	}
+	}*/
 
 	//std::cout << "packageOneCrossDriver 5:" << std::endl;
 
-	rnpackageImpl.packageLink(ar, driver->currLink);
+	//rnpackageImpl.packageLink(ar, driver->currLink);
 	//std::cout << "packageOneCrossDriver 6.1:" << std::endl;
 	//		rnpackageImpl.packageLink(ar, driver->nextLink);
 	//std::cout << "packageOneCrossDriver 6.2:" << std::endl;
-	rnpackageImpl.packageRoadSegment(ar, driver->currRoadSegment);
+	//rnpackageImpl.packageRoadSegment(ar, driver->currRoadSegment);
 	//std::cout << "packageOneCrossDriver 6.3:" << std::endl;
 	//		rnpackageImpl.packageLane(ar, currLane);
 	rnpackageImpl.packageLane(ar, driver->nextLaneInNextLink);
 	//std::cout << "packageOneCrossDriver 6.4:" << std::endl;
-	rnpackageImpl.packageLane(ar, driver->leftLane);
+	//rnpackageImpl.packageLane(ar, driver->leftLane);
 	//std::cout << "packageOneCrossDriver 6.5:" << std::endl;
-	rnpackageImpl.packageLane(ar, driver->rightLane);
+	//rnpackageImpl.packageLane(ar, driver->rightLane);
 
 	//		rnpackageImpl.packageLink(ar, driver->desLink);
 
 
-	ar & (driver->currLaneOffset);
+	//ar & (driver->currLaneOffset);
 	ar & (driver->currLinkOffset);
-	ar & (driver->traveledDis);
-	ar & (driver->RSIndex);
-	ar & (driver->polylineSegIndex);
-	ar & (driver->currLaneIndex);
+	//ar & (driver->traveledDis);
+	//ar & (driver->RSIndex);
+	//ar & (driver->polylineSegIndex);
+	//ar & (driver->currLaneIndex);
 	ar & (driver->targetLaneIndex);
 
 	//std::cout << "driver->RSIndex:" << driver->RSIndex << std::endl;
 
-	rnpackageImpl.packageLaneAndIndexPair(ar, &(driver->laneAndIndexPair));
+	//rnpackageImpl.packageLaneAndIndexPair(ar, &(driver->laneAndIndexPair));
 
 	//I will solve it later
 	//		ar & laneAndIndexPair;
-	ar & (*(driver->currLanePolyLine));
+	//ar & (*(driver->currLanePolyLine));
 	//		ar & (*(driver->desLanePolyLine));
 
 	//std::cout << "packageOneCrossDriver 7.0:" << std::endl;
 
-	ar & (driver->currPolylineSegStart);
-	ar & (driver->currPolylineSegEnd);
-	ar & (driver->polylineSegLength);
+	//ar & (driver->currPolylineSegStart);
+	//ar & (driver->currPolylineSegEnd);
+	//ar & (driver->polylineSegLength);
 	//std::cout << "packageOneCrossDriver 7.1:" << std::endl;
 
-	ar & (driver->desPolyLineStart);
+	/*ar & (driver->desPolyLineStart);
 	ar & (driver->desPolyLineEnd);
 	ar & (driver->entryPoint);
 	ar & (driver->xTurningStart);
-	ar & (driver->yTurningStart);
+	ar & (driver->yTurningStart);*/
 
 	//std::cout << "packageOneCrossDriver 7.2:" << std::endl;
 
-	ar & (driver->currLaneLength);
+	/*ar & (driver->currLaneLength);
 	ar & (driver->xDirection_entryPoint);
 	ar & (driver->yDirection_entryPoint);
 	ar & (driver->disToEntryPoint);
@@ -618,13 +618,13 @@ void sim_mob::AgentPackageManager::packageOneFeedbackDriver(Archive & ar, Agent 
 	ar & (driver->nextIsForward);
 	ar & (driver->isReachGoal);
 	ar & (driver->lcEnterNewLane);
-	ar & (driver->isTrafficLightStop);
+	ar & (driver->isTrafficLightStop);*/
 
 	//std::cout << "packageOneCrossDriver 7.3:" << std::endl;
 
 	//		ar & nearby_agents);
-	ar & (driver->distanceInFront);
-	ar & (driver->distanceBehind);
+	//ar & (driver->distanceInFront);
+	//ar & (driver->distanceBehind);
 
 	//std::cout << "packageOneCrossDriver 8:" << std::endl;
 
@@ -632,13 +632,13 @@ void sim_mob::AgentPackageManager::packageOneFeedbackDriver(Archive & ar, Agent 
 
 	ar & (driver->currLaneOffset_.get());
 	ar & (driver->currLaneLength_.get());
-	rnpackageImpl.packageRelAbsPoint(ar, &(driver->buffer_velocity.get()));
+	/*rnpackageImpl.packageRelAbsPoint(ar, &(driver->buffer_velocity.get()));
 	rnpackageImpl.packageRelAbsPoint(ar, &(driver->buffer_accel.get()));
-	ar & (driver->inIntersection_.get());
+	ar & (driver->inIntersection_.get());*/
 
 	/***********SOMETHING BIG BROTHER CAN RETURN*************/
 	ar & (driver->targetSpeed);
-	ar & (driver->minCFDistance);
+	/*ar & (driver->minCFDistance);
 	ar & (driver->minCBDistance);
 	ar & (driver->minLFDistance);
 	ar & (driver->minLBDistance);
@@ -651,12 +651,12 @@ void sim_mob::AgentPackageManager::packageOneFeedbackDriver(Archive & ar, Agent 
 	ar & (driver->space_star);
 	ar & (driver->dv);
 	ar & (driver->a_lead);
-	ar & (driver->v_lead);
+	ar & (driver->v_lead);*/
 
 	//std::cout << "packageOneCrossDriver 9:" << std::endl;
 
 	//for lane changing decision
-	ar & (driver->VelOfLaneChanging);
+	/*ar & (driver->VelOfLaneChanging);
 	ar & (driver->changeMode);
 	ar & (driver->changeDecision);
 	ar & (driver->isLaneChanging);
@@ -666,26 +666,27 @@ void sim_mob::AgentPackageManager::packageOneFeedbackDriver(Archive & ar, Agent 
 	ar & (driver->toLane);
 	ar & (driver->satisfiedDistance);
 	ar & (driver->dis2stop);
-	ar & (driver->avoidBadAreaDistance);
+	ar & (driver->avoidBadAreaDistance);*/
 
 	/**************BEHAVIOR WHEN APPROACHING A INTERSECTION***************/
 
 	//std::cout << "packageOneCrossDriver 10:" << std::endl;
 	//rnpackageImpl.packageSignal(ar, driver->trafficSignal);
 
-	ar & (driver->angle);
-	ar & (driver->inIntersection);
+	//ar & (driver->angle);
+	//ar & (driver->inIntersection);
 
 	/**************COOPERATION WITH PEDESTRIAN***************/
-	ar & (driver->isPedestrianAhead);
+	//ar & (driver->isPedestrianAhead);
 	//		std::cout << "packageOneCrossDriver 11:" << std::endl;
 }
 
 template<class Archive>
 Agent* sim_mob::AgentPackageManager::rebuildOneCrossDriver(Archive & ar) {
+	ConfigParams& config = ConfigParams::GetInstance();
 	Person* one_person = new Person();
 
-	Driver* onerole = new Driver(one_person);
+	Driver* onerole = new Driver(one_person, config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap);
 	one_person->changeRole(onerole);
 
 	/**
@@ -742,7 +743,7 @@ Agent* sim_mob::AgentPackageManager::rebuildOneCrossDriver(Archive & ar) {
 	onerole->perceivedVelocityOfFwdCar = rnpackageImpl.unpackageFixedDelayedPointer2D(ar);
 	onerole->perceivedDistToFwdCar = rnpackageImpl.unpackageFixedDelayedInt(ar);
 
-	ar & (onerole->timeStep);
+	/*ar & (onerole->timeStep);
 	ar & (onerole->perceivedXVelocity_);
 	ar & (onerole->perceivedYVelocity_);
 	ar & (onerole->xPos_nextLink);
@@ -754,19 +755,19 @@ Agent* sim_mob::AgentPackageManager::rebuildOneCrossDriver(Archive & ar) {
 	ar & (onerole->crossingFarX);
 	ar & (onerole->crossingFarY);
 	ar & (onerole->crossingNearX);
-	ar & (onerole->crossingNearY);
+	ar & (onerole->crossingNearY);*/
 	ar & (onerole->origin);
 	ar & (onerole->goal);
 
-	onerole->destNode = rnpackageImpl.unpackageNode(ar);
-	onerole->originNode = rnpackageImpl.unpackageNode(ar);
+	//onerole->destNode = rnpackageImpl.unpackageNode(ar);
+	//onerole->originNode = rnpackageImpl.unpackageNode(ar);
 
-	ar & (onerole->isGoalSet);
+	/*ar & (onerole->isGoalSet);
 	ar & (onerole->isOriginSet);
 	ar & (onerole->maxAcceleration);
 	ar & (onerole->normalDeceleration);
 	ar & (onerole->maxDeceleration);
-	ar & (onerole->distanceToNormalStop);
+	ar & (onerole->distanceToNormalStop);*/
 	ar & (onerole->maxLaneSpeed);
 
 	//std::cout << "Here 3.12" << std::endl;
@@ -777,45 +778,45 @@ Agent* sim_mob::AgentPackageManager::rebuildOneCrossDriver(Archive & ar) {
 
 	for (int i = 0; i < all_segment_size; i++) {
 		const RoadSegment* one_road_segment = rnpackageImpl.unpackageRoadSegment(ar);
-		onerole->allRoadSegments.push_back(one_road_segment);
+		//onerole->allRoadSegments.push_back(one_road_segment);
 	}
 
-	onerole->currLink = rnpackageImpl.unpackageLink(ar);
+	//onerole->currLink = rnpackageImpl.unpackageLink(ar);
 	//		onerole->nextLink = rnpackageImpl.unpackageLink(ar);
-	onerole->currRoadSegment = rnpackageImpl.unpackageRoadSegment(ar);
+	//onerole->currRoadSegment = rnpackageImpl.unpackageRoadSegment(ar);
 	onerole->nextLaneInNextLink = rnpackageImpl.unpackageLane(ar);
-	onerole->leftLane = rnpackageImpl.unpackageLane(ar);
-	onerole->rightLane = rnpackageImpl.unpackageLane(ar);
+	//onerole->leftLane = rnpackageImpl.unpackageLane(ar);
+	//onerole->rightLane = rnpackageImpl.unpackageLane(ar);
 	//onerole->desLink = rnpackageImpl.unpackageLink(ar);
 
 	//std::cout << "Here 3.13" << std::endl;
 
-	ar & (onerole->currLaneOffset);
+	//ar & (onerole->currLaneOffset);
 	ar & (onerole->currLinkOffset);
-	ar & (onerole->traveledDis);
-	ar & (onerole->RSIndex);
-	ar & (onerole->polylineSegIndex);
-	ar & (onerole->currLaneIndex);
+	//ar & (onerole->traveledDis);
+	//ar & (onerole->RSIndex);
+	//ar & (onerole->polylineSegIndex);
+	//ar & (onerole->currLaneIndex);
 	ar & (onerole->targetLaneIndex);
 	//		ar & laneAndIndexPair;
 
-	onerole->laneAndIndexPair = *(rnpackageImpl.unpackageLaneAndIndexPair(ar));
+	//onerole->laneAndIndexPair = *(rnpackageImpl.unpackageLaneAndIndexPair(ar));
 
 	std::vector<sim_mob::Point2D>* buffer_currLanePolyLine = new std::vector<sim_mob::Point2D>();
 	ar & (*buffer_currLanePolyLine);
-	onerole->currLanePolyLine = buffer_currLanePolyLine;
+	//onerole->currLanePolyLine = buffer_currLanePolyLine;
 
-	ar & (onerole->currPolylineSegStart);
+	/*ar & (onerole->currPolylineSegStart);
 	ar & (onerole->currPolylineSegEnd);
-	ar & (onerole->polylineSegLength);
+	ar & (onerole->polylineSegLength);*/
 
-	ar & (onerole->desPolyLineStart);
+	/*ar & (onerole->desPolyLineStart);
 	ar & (onerole->desPolyLineEnd);
 	ar & (onerole->entryPoint);
 	ar & (onerole->xTurningStart);
-	ar & (onerole->yTurningStart);
+	ar & (onerole->yTurningStart);*/
 
-	ar & (onerole->currLaneLength);
+	/*ar & (onerole->currLaneLength);
 	ar & (onerole->xDirection_entryPoint);
 	ar & (onerole->yDirection_entryPoint);
 	ar & (onerole->disToEntryPoint);
@@ -828,7 +829,7 @@ Agent* sim_mob::AgentPackageManager::rebuildOneCrossDriver(Archive & ar) {
 	ar & (onerole->isTrafficLightStop);
 	//		ar & nearby_agents;
 	ar & (onerole->distanceInFront);
-	ar & (onerole->distanceBehind);
+	ar & (onerole->distanceBehind);*/
 
 	//std::cout << "Here 3.15" << std::endl;
 
@@ -846,19 +847,19 @@ Agent* sim_mob::AgentPackageManager::rebuildOneCrossDriver(Archive & ar) {
 
 	RelAbsPoint buffer_vel;
 	buffer_vel = *(rnpackageImpl.unpackageRelAbsPoint(ar));
-	onerole->buffer_velocity.force(buffer_vel);
+	//onerole->buffer_velocity.force(buffer_vel);
 
 	RelAbsPoint buffer_acc;
 	buffer_acc = *(rnpackageImpl.unpackageRelAbsPoint(ar));
-	onerole->buffer_accel.force(buffer_acc);
+	//onerole->buffer_accel.force(buffer_acc);
 
 	bool buffer_in_intersection;
 	ar & buffer_in_intersection;
-	onerole->inIntersection_.force(buffer_in_intersection);
+	//onerole->inIntersection_.force(buffer_in_intersection);
 
 	/***********SOMETHING BIG BROTHER CAN RETURN*************/
 	ar & (onerole->targetSpeed);
-	ar & (onerole->minCFDistance);
+	/*ar & (onerole->minCFDistance);
 	ar & (onerole->minCBDistance);
 	ar & (onerole->minLFDistance);
 	ar & (onerole->minLBDistance);
@@ -871,10 +872,10 @@ Agent* sim_mob::AgentPackageManager::rebuildOneCrossDriver(Archive & ar) {
 	ar & (onerole->space_star);
 	ar & (onerole->dv);
 	ar & (onerole->a_lead);
-	ar & (onerole->v_lead);
+	ar & (onerole->v_lead);*/
 
 	//for lane changing decision
-	ar & (onerole->VelOfLaneChanging);
+	/*ar & (onerole->VelOfLaneChanging);
 	ar & (onerole->changeMode);
 	ar & (onerole->changeDecision);
 	ar & (onerole->isLaneChanging);
@@ -884,16 +885,16 @@ Agent* sim_mob::AgentPackageManager::rebuildOneCrossDriver(Archive & ar) {
 	ar & (onerole->toLane);
 	ar & (onerole->satisfiedDistance);
 	ar & (onerole->dis2stop);
-	ar & (onerole->avoidBadAreaDistance);
+	ar & (onerole->avoidBadAreaDistance);*/
 
 	/**************BEHAVIOR WHEN APPROACHING A INTERSECTION***************/
 	onerole->trafficSignal = rnpackageImpl.unpackageSignal(ar);
 
-	ar & (onerole->angle);
-	ar & (onerole->inIntersection);
+	//ar & (onerole->angle);
+	//ar & (onerole->inIntersection);
 
 	/**************COOPERATION WITH PEDESTRIAN***************/
-	ar & (onerole->isPedestrianAhead);
+	//ar & (onerole->isPedestrianAhead);
 
 	//std::cout << "Rebuild FINISHED" << std::endl;
 
@@ -903,8 +904,9 @@ Agent* sim_mob::AgentPackageManager::rebuildOneCrossDriver(Archive & ar) {
 template<class Archive>
 Agent* sim_mob::AgentPackageManager::rebuildOneFeedbackDriver(Archive & ar) {
 	Person* one_person = new Person();
+	ConfigParams& config = ConfigParams::GetInstance();
 
-	Driver* onerole = new Driver(one_person);
+	Driver* onerole = new Driver(one_person, config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap);
 	one_person->changeRole(onerole);
 
 	/**
@@ -958,7 +960,7 @@ Agent* sim_mob::AgentPackageManager::rebuildOneFeedbackDriver(Archive & ar) {
 	//	onerole->perceivedVelocityOfFwdCar = rnpackageImpl.unpackageFixedDelayedPointer2D(ar);
 	//	onerole->perceivedDistToFwdCar = rnpackageImpl.unpackageFixedDelayedInt(ar);
 
-	ar & (onerole->timeStep);
+	/*ar & (onerole->timeStep);
 	ar & (onerole->perceivedXVelocity_);
 	ar & (onerole->perceivedYVelocity_);
 	ar & (onerole->xPos_nextLink);
@@ -970,19 +972,19 @@ Agent* sim_mob::AgentPackageManager::rebuildOneFeedbackDriver(Archive & ar) {
 	ar & (onerole->crossingFarX);
 	ar & (onerole->crossingFarY);
 	ar & (onerole->crossingNearX);
-	ar & (onerole->crossingNearY);
+	ar & (onerole->crossingNearY);*/
 	ar & (onerole->origin);
 	ar & (onerole->goal);
 
-	onerole->destNode = rnpackageImpl.unpackageNode(ar);
-	onerole->originNode = rnpackageImpl.unpackageNode(ar);
+	//onerole->destNode = rnpackageImpl.unpackageNode(ar);
+	//onerole->originNode = rnpackageImpl.unpackageNode(ar);
 
-	ar & (onerole->isGoalSet);
+	/*ar & (onerole->isGoalSet);
 	ar & (onerole->isOriginSet);
 	ar & (onerole->maxAcceleration);
 	ar & (onerole->normalDeceleration);
 	ar & (onerole->maxDeceleration);
-	ar & (onerole->distanceToNormalStop);
+	ar & (onerole->distanceToNormalStop);*/
 	ar & (onerole->maxLaneSpeed);
 
 	//std::cout << "Here 3.12" << std::endl;
@@ -993,35 +995,35 @@ Agent* sim_mob::AgentPackageManager::rebuildOneFeedbackDriver(Archive & ar) {
 
 	for (int i = 0; i < all_segment_size; i++) {
 		const RoadSegment* one_road_segment = rnpackageImpl.unpackageRoadSegment(ar);
-		onerole->allRoadSegments.push_back(one_road_segment);
+		//onerole->allRoadSegments.push_back(one_road_segment);
 	}
 
-	onerole->currLink = rnpackageImpl.unpackageLink(ar);
+	//onerole->currLink = rnpackageImpl.unpackageLink(ar);
 	//		onerole->nextLink = rnpackageImpl.unpackageLink(ar);
-	onerole->currRoadSegment = rnpackageImpl.unpackageRoadSegment(ar);
+	//onerole->currRoadSegment = rnpackageImpl.unpackageRoadSegment(ar);
 	onerole->nextLaneInNextLink = rnpackageImpl.unpackageLane(ar);
-	onerole->leftLane = rnpackageImpl.unpackageLane(ar);
-	onerole->rightLane = rnpackageImpl.unpackageLane(ar);
+	//onerole->leftLane = rnpackageImpl.unpackageLane(ar);
+	//onerole->rightLane = rnpackageImpl.unpackageLane(ar);
 	//onerole->desLink = rnpackageImpl.unpackageLink(ar);
 
 	//std::cout << "Here 3.13" << std::endl;
 
-	ar & (onerole->currLaneOffset);
+	//ar & (onerole->currLaneOffset);
 	ar & (onerole->currLinkOffset);
-	ar & (onerole->traveledDis);
-	ar & (onerole->RSIndex);
-	ar & (onerole->polylineSegIndex);
-	ar & (onerole->currLaneIndex);
+	//ar & (onerole->traveledDis);
+	//ar & (onerole->RSIndex);
+	//ar & (onerole->polylineSegIndex);
+	//ar & (onerole->currLaneIndex);
 	ar & (onerole->targetLaneIndex);
 	//		ar & laneAndIndexPair;
 
-	onerole->laneAndIndexPair = *(rnpackageImpl.unpackageLaneAndIndexPair(ar));
+	//onerole->laneAndIndexPair = *(rnpackageImpl.unpackageLaneAndIndexPair(ar));
 
 	std::vector<sim_mob::Point2D>* buffer_currLanePolyLine = new std::vector<sim_mob::Point2D>();
 	ar & (*buffer_currLanePolyLine);
-	onerole->currLanePolyLine = buffer_currLanePolyLine;
+	//onerole->currLanePolyLine = buffer_currLanePolyLine;
 
-	ar & (onerole->currPolylineSegStart);
+	/*ar & (onerole->currPolylineSegStart);
 	ar & (onerole->currPolylineSegEnd);
 	ar & (onerole->polylineSegLength);
 
@@ -1044,7 +1046,7 @@ Agent* sim_mob::AgentPackageManager::rebuildOneFeedbackDriver(Archive & ar) {
 	ar & (onerole->isTrafficLightStop);
 	//		ar & nearby_agents;
 	ar & (onerole->distanceInFront);
-	ar & (onerole->distanceBehind);
+	ar & (onerole->distanceBehind);*/
 
 	//std::cout << "Here 3.15" << std::endl;
 
@@ -1062,19 +1064,19 @@ Agent* sim_mob::AgentPackageManager::rebuildOneFeedbackDriver(Archive & ar) {
 
 	RelAbsPoint buffer_vel;
 	buffer_vel = *(rnpackageImpl.unpackageRelAbsPoint(ar));
-	onerole->buffer_velocity.force(buffer_vel);
+	//onerole->buffer_velocity.force(buffer_vel);
 
 	RelAbsPoint buffer_acc;
 	buffer_acc = *(rnpackageImpl.unpackageRelAbsPoint(ar));
-	onerole->buffer_accel.force(buffer_acc);
+	//onerole->buffer_accel.force(buffer_acc);
 
 	bool buffer_in_intersection;
 	ar & buffer_in_intersection;
-	onerole->inIntersection_.force(buffer_in_intersection);
+	//onerole->inIntersection_.force(buffer_in_intersection);
 
 	/***********SOMETHING BIG BROTHER CAN RETURN*************/
 	ar & (onerole->targetSpeed);
-	ar & (onerole->minCFDistance);
+	/*ar & (onerole->minCFDistance);
 	ar & (onerole->minCBDistance);
 	ar & (onerole->minLFDistance);
 	ar & (onerole->minLBDistance);
@@ -1087,10 +1089,10 @@ Agent* sim_mob::AgentPackageManager::rebuildOneFeedbackDriver(Archive & ar) {
 	ar & (onerole->space_star);
 	ar & (onerole->dv);
 	ar & (onerole->a_lead);
-	ar & (onerole->v_lead);
+	ar & (onerole->v_lead);*/
 
 	//for lane changing decision
-	ar & (onerole->VelOfLaneChanging);
+	/*ar & (onerole->VelOfLaneChanging);
 	ar & (onerole->changeMode);
 	ar & (onerole->changeDecision);
 	ar & (onerole->isLaneChanging);
@@ -1100,16 +1102,16 @@ Agent* sim_mob::AgentPackageManager::rebuildOneFeedbackDriver(Archive & ar) {
 	ar & (onerole->toLane);
 	ar & (onerole->satisfiedDistance);
 	ar & (onerole->dis2stop);
-	ar & (onerole->avoidBadAreaDistance);
+	ar & (onerole->avoidBadAreaDistance);*/
 
 	/**************BEHAVIOR WHEN APPROACHING A INTERSECTION***************/
 	//onerole->trafficSignal = rnpackageImpl.unpackageSignal(ar);
 
-	ar & (onerole->angle);
-	ar & (onerole->inIntersection);
+	//ar & (onerole->angle);
+	//ar & (onerole->inIntersection);
 
 	/**************COOPERATION WITH PEDESTRIAN***************/
-	ar & (onerole->isPedestrianAhead);
+	//ar & (onerole->isPedestrianAhead);
 
 	//std::cout << "Rebuild FINISHED" << std::endl;
 
@@ -1183,7 +1185,7 @@ void sim_mob::AgentPackageManager::packageOneCrossPedestrain(Archive & ar, Agent
 	ar & (pedestrian->sigColor);
 	ar & (pedestrian->curCrossingID);
 	ar & (pedestrian->startToCross);
-	ar & (pedestrian->startToCross_.get());
+	//ar & (pedestrian->startToCross_.get());
 
 	ar & (pedestrian->cStartX);
 	ar & (pedestrian->cStartY);
@@ -1246,7 +1248,7 @@ void sim_mob::AgentPackageManager::packageOneFeedbackPedestrain(Archive & ar, Ag
 	ar & (pedestrian->goal);
 	ar & (pedestrian->goalInLane);
 	ar & (pedestrian->currentStage);
-	ar & (pedestrian->currentStage_.get());
+	//ar & (pedestrian->currentStage_.get());
 
 	//std::cout << "packageOneCrossDriver Pdesttrains 2.8.4:" << std::endl;
 
@@ -1260,7 +1262,7 @@ void sim_mob::AgentPackageManager::packageOneFeedbackPedestrain(Archive & ar, Ag
 	ar & (pedestrian->sigColor);
 	ar & (pedestrian->curCrossingID);
 	ar & (pedestrian->startToCross);
-	ar & (pedestrian->startToCross_.get());
+	//ar & (pedestrian->startToCross_.get());
 
 	ar & (pedestrian->cStartX);
 	ar & (pedestrian->cStartY);
@@ -1333,7 +1335,7 @@ Agent* sim_mob::AgentPackageManager::rebuildOneCrossPedestrian(Archive & ar) {
 	ar & (onerole->currentStage);
 	int buffer_currentStage;
 	ar & buffer_currentStage;
-	onerole->currentStage_.force(buffer_currentStage);
+	//onerole->currentStage_.force(buffer_currentStage);
 
 	onerole->trafficSignal = rnpackageImpl.unpackageSignal(ar);
 	onerole->currCrossing = rnpackageImpl.unpackageCrossing(ar);
@@ -1344,7 +1346,7 @@ Agent* sim_mob::AgentPackageManager::rebuildOneCrossPedestrian(Archive & ar) {
 	ar & (onerole->startToCross);
 	int buffer_startToCross;
 	ar & buffer_startToCross;
-	onerole->startToCross_.force(buffer_startToCross);
+	//onerole->startToCross_.force(buffer_startToCross);
 
 	ar & (onerole->cStartX);
 	ar & (onerole->cStartY);
@@ -1414,7 +1416,7 @@ Agent* sim_mob::AgentPackageManager::rebuildOneFeedbackPedestrian(Archive & ar) 
 	ar & (onerole->currentStage);
 	int buffer_currentStage;
 	ar & buffer_currentStage;
-	onerole->currentStage_.force(buffer_currentStage);
+	//onerole->currentStage_.force(buffer_currentStage);
 
 	//onerole->trafficSignal = rnpackageImpl.unpackageSignal(ar);
 	//onerole->currCrossing = rnpackageImpl.unpackageCrossing(ar);
@@ -1425,7 +1427,7 @@ Agent* sim_mob::AgentPackageManager::rebuildOneFeedbackPedestrian(Archive & ar) 
 	ar & (onerole->startToCross);
 	int buffer_startToCross;
 	ar & buffer_startToCross;
-	onerole->startToCross_.force(buffer_startToCross);
+	//onerole->startToCross_.force(buffer_startToCross);
 
 	ar & (onerole->cStartX);
 	ar & (onerole->cStartY);

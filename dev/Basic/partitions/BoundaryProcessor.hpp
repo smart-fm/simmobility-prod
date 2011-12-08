@@ -19,7 +19,7 @@
 
 #include "BoundaryProcessingPackage.hpp"
 #include "BoundarySegment.hpp"
-#include "WorkGroup.hpp"
+#include "workers/WorkGroup.hpp"
 #include "PartitionConfigure.hpp"
 #include "SimulationScenario.hpp"
 
@@ -44,14 +44,11 @@ public:
 	 * initialization
 	 */
 
-	void setEntityWorkGroup(WorkGroup<Entity>* entity_group,
-			WorkGroup<Entity>* singal_group);
+	void setEntityWorkGroup(WorkGroup* entity_group, WorkGroup* singal_group);
 
-	void loadInBoundarySegment(std::string boundary_segment_id,
-			BoundarySegment* boundary);
+	void loadInBoundarySegment(std::string boundary_segment_id, BoundarySegment* boundary);
 
-	void setConfigure(PartitionConfigure* partition_config,
-			SimulationScenario* scenario);
+	void setConfigure(PartitionConfigure* partition_config, SimulationScenario* scenario);
 
 	void initBoundaryTrafficItems();
 
@@ -71,8 +68,8 @@ private:
 	std::map<std::string, BoundarySegment*> boundary_segments;
 //	std::map<std::string, std::vector<Agent*>*> fake_agents;
 
-	sim_mob::WorkGroup<Entity>* entity_group;
-	sim_mob::WorkGroup<Entity>* singal_group;
+	sim_mob::WorkGroup* entity_group;
+	sim_mob::WorkGroup* singal_group;
 
 	PartitionConfigure* partition_config;
 	SimulationScenario* scenario;

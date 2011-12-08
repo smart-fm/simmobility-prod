@@ -263,6 +263,7 @@ protected:
 
 protected:
         void setupIndexMaps();
+        void outputToVisualizer(frame_t frameNumber);
 
 
 };

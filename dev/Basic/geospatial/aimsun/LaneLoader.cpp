@@ -122,6 +122,7 @@ struct LinkHelperStruct {
 };
 map<sim_mob::Link*, LinkHelperStruct> buildLinkHelperStruct(map<int, Node>& nodes, map<int, Section>& sections)
 {
+	int okCount = 0;
 	map<sim_mob::Link*, LinkHelperStruct> res;
 	for (map<int, Section>::iterator it=sections.begin(); it!=sections.end(); it++) {
 		//Always add the section
@@ -132,18 +133,28 @@ map<sim_mob::Link*, LinkHelperStruct> buildLinkHelperStruct(map<int, Node>& node
 		if (!res[parent].start) {
 			if (it->second.fromNode->generatedNode == parent->getStart()) {
 				res[parent].start = it->second.fromNode;
+				okCount++;
+				std::cout <<"ok: " <<okCount <<"\n";
 			} else if (it->second.toNode->generatedNode == parent->getStart()) {
 				res[parent].start = it->second.toNode;
+				okCount++;
+				std::cout <<"ok: " <<okCount <<"\n";
 			}
 		}
 		if (!res[parent].end) {
 			if (it->second.fromNode->generatedNode == parent->getEnd()) {
 				res[parent].end = it->second.fromNode;
+				okCount++;
+				std::cout <<"ok: " <<okCount <<"\n";
 			} else if (it->second.toNode->generatedNode == parent->getEnd()) {
 				res[parent].end = it->second.toNode;
+				okCount++;
+				std::cout <<"ok: " <<okCount <<"\n";
 			}
 		}
 	}
+
+	std::cout <<"ok_done: " <<okCount <<"\n";
 
 
 	std::pair<int,int> errorCount(0,0);
@@ -165,7 +176,7 @@ map<sim_mob::Link*, LinkHelperStruct> buildLinkHelperStruct(map<int, Node>& node
 		}
 	}
 	if (errorCount.first+errorCount.second > 0) {
-		msg <<"Final counts: " <<errorCount.first <<"," <<errorCount.second;
+		msg <<"Final counts: " <<errorCount.first <<"," <<errorCount.second <<" of a total: " <<res.size() <<", should have found: " <<okCount;
 		throw std::runtime_error(msg.str().c_str());
 	}
 

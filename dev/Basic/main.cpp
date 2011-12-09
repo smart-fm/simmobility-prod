@@ -317,14 +317,12 @@ int main(int argc, char* argv[])
 	 * Check whether to run SimMobility or SimMobility-MPI
 	 */
 	ConfigParams& config = ConfigParams::GetInstance();
-	if (argc > 3 && strcmp(argv[3], "mpi") == 0)
-	{
+	config.is_run_on_many_computers = false;
+#ifndef SIMMOB_DISABLE_MPI
+	if (argc > 3 && strcmp(argv[3], "mpi") == 0) {
 		config.is_run_on_many_computers = true;
 	}
-	else
-	{
-		config.is_run_on_many_computers = false;
-	}
+#endif
 
 	/**
 	 * set random be repeatable

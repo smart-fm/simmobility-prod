@@ -44,20 +44,20 @@ public class LaneMarking implements DrawableItem{
 	
 	@Override
 	public void draw(Graphics2D g) {
-
-		g.setColor(MainFrame.Config.getLineColor("lane"));
-		g.setStroke(MainFrame.Config.getLineStroke("lane"));
+		//Retrieve
+		Color clr = MainFrame.Config.getLineColor(isSideWalk?"sidewalk":"lane");
+		Stroke strk = MainFrame.Config.getLineStroke(isSideWalk?"sidewalk":"lane");
 		
-		if(isSideWalk){		 
-			g.setColor(MainFrame.Config.getLineColor("sidewalk"));
-			g.setStroke(MainFrame.Config.getLineStroke("sidewalk"));
-			g.drawLine((int)start.getPos().getX(), (int)start.getPos().getY(), (int)end.getPos().getX(), (int)end.getPos().getY()); 
-		
-		} 
-		else  {
-			g.drawLine((int)start.getPos().getX(), (int)start.getPos().getY(), (int)end.getPos().getX(), (int)end.getPos().getY());
+		//Override for lane line zero
+		if (laneNumber==0) {
+			clr = MainFrame.Config.getLineColor("median");
+			strk = MainFrame.Config.getLineStroke("median");
 		}
 		
+		//Draw it.
+		g.setColor(clr);
+		g.setStroke(strk);
+		g.drawLine((int)start.getPos().getX(), (int)start.getPos().getY(), (int)end.getPos().getX(), (int)end.getPos().getY());
 	}
 
 	

@@ -1056,11 +1056,11 @@ void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* oth
 		}
 	}
 	//Update your perceptions for leading vehicle and gap
+	perceivedDistToFwdCar.delay(params.nvFwd.distance,currTimeMS);
 	if(params.nvFwd.distance!=5000)
 	{
 		perceivedVelocityOfFwdCar.delay(new DPoint(params.nvFwd.driver->getVehicle()->getVelocity(),params.nvFwd.driver->getVehicle()->getLatVelocity()),currTimeMS);
 		perceivedAccelerationOfFwdCar.delay(params.nvFwd.driver->getVehicle()->getAcceleration(),currTimeMS);
-		perceivedDistToFwdCar.delay(params.nvFwd.distance,currTimeMS);
 	}
 	//retrieve perceptions
 	if(perceivedVelocityOfFwdCar.can_sense(currTimeMS)){
@@ -1071,6 +1071,8 @@ void sim_mob::Driver::updateNearbyDriver(UpdateParams& params, const Person* oth
 		params.perceivedAccelerationOfFwdCar = perceivedAccelerationOfFwdCar.sense(currTimeMS);
 	if(perceivedDistToFwdCar.can_sense(currTimeMS))
 		params.perceivedDistToFwdCar = perceivedDistToFwdCar.sense(currTimeMS);
+	else
+		params.perceivedDistToFwdCar = params.nvFwd.distance;
 }
 
 

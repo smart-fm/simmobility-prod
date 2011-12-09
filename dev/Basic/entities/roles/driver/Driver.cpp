@@ -787,12 +787,20 @@ void sim_mob::Driver::initializePath()
 	goal.node = parent->destNode;
 	goal.point = *goal.node->location;
 
+	//TEMP
+	std::stringstream errorMsg;
+
 	//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
 	vector<WayPoint> path;
 	Person* parentP = dynamic_cast<Person*>(parent);
+	errorMsg <<"Attempting to generate a vehicle" <<std::endl;
 	if (!parentP || parentP->specialStr.empty()) {
 		path = StreetDirectory::instance().shortestDrivingPath(*origin.node, *goal.node);
+
+		errorMsg <<"...from node: " <<origin.node->originalDB_ID.getLogItem() <<" to node: " <<goal.node->originalDB_ID.getLogItem() <<std::endl;
 	} else {
+		errorMsg <<"...special path." <<std::endl;
+
 		//In special cases, we may be manually specifying a loop, e.g., "loop:A:5" in the special string.
 		size_t cInd = parentP->specialStr.find(':');
 		if (cInd!=string::npos && cInd+1<parentP->specialStr.length()) {
@@ -818,7 +826,13 @@ void sim_mob::Driver::initializePath()
 
 	//A non-null vehicle means we are moving.
 	//TODO: Start in lane 0?
-	vehicle = new Vehicle(path, 0);
+	try {
+		vehicle = new Vehicle(path, 0);
+	} catch (std::exception& ex) {
+		errorMsg <<"ERROR: " <<ex.what();
+		std::cout <<errorMsg.str() <<std::endl;
+		throw ex;
+	}
 }
 
 void sim_mob::Driver::setOrigin(UpdateParams& p)

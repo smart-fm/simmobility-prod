@@ -36,7 +36,9 @@ void sim_mob::Vehicle::initPath(vector<WayPoint> wp_path, int startLaneID)
 	//Determine whether or not the first one is fwd.
 	bool isFwd;
 	if (path.empty()) {
-		throw std::runtime_error("Attempting to set a path with 0 road segments.");
+		std::stringstream msg;
+		msg <<"Attempting to set a path with 0 road segments: " <<path.size() <<" : " <<wp_path.size();
+		throw std::runtime_error(msg.str().c_str());
 	}
 
 	//We know we are moving forward if the last Node in the last Segment in the first Link is

@@ -133,6 +133,16 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		updateMap();
 	}
 	
+	public void showDebugMode(boolean debugOn){
+		
+		if(netViewCache == null){
+			return;
+		}
+		netViewCache.toggleDebugOn(debugOn);
+		this.repaint();
+		updateMap();
+	}
+	
 	private void clickMap(Point pos) {
 		//Anything?
 		if (netViewCache==null) {

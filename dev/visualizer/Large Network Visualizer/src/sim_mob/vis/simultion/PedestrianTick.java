@@ -3,6 +3,7 @@ package sim_mob.vis.simultion;
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
@@ -23,7 +24,7 @@ import sim_mob.vis.util.Utility;
 public class PedestrianTick extends AgentTick {
 	private static Stroke debugStr = new BasicStroke(1.0F);
 	private static Color debugClr = new Color(0x00, 0x00, 0x66);
-	private static final boolean DebugOn = true;
+	private static Font idFont = new Font("Arial", Font.PLAIN, 10);
 
 	
 	private static BufferedImage PedImg;
@@ -38,6 +39,9 @@ public class PedestrianTick extends AgentTick {
 		}
 	} 
 	private boolean fake;
+	private int ID;
+	public int getID(){return ID;}
+
 	
 	/**
 	 * NOTE: Here is where we start to see some inefficiencies with our ScaledPoint implementation.
@@ -52,49 +56,12 @@ public class PedestrianTick extends AgentTick {
 	public void setItFake(){
 		fake = true;
 	}
-
-	public void draw(Graphics2D g, double scale) {
-
-		//Save old transformation.
-		AffineTransform oldAT = g.getTransform();
-		
-		//Translate
-		AffineTransform at = AffineTransform.getTranslateInstance(pos.getX(), pos.getY());
-		
-		
-		//Scale
-		at.scale(1/scale + 0.2, 1/scale + 0.2);
-		
-		//Translate to top-left corner
-		at.translate(-PedImg.getWidth()/2, -PedImg.getHeight()/2);
-		
-		//Draw
-		g.setTransform(at);
-
-		if(fake){
-			g.drawImage(FakePedImg, 0, 0, null);
-		}else{
-			g.drawImage(PedImg, 0, 0, null);
-		}
-		
-
-		//Restore old transformation matrix
-		g.setTransform(oldAT);
-		
-		//Sample debug output
-		if (DebugOn) {
-			int sz = 10;
-			int x = (int)pos.getX();
-			int y = (int)pos.getY();
-			g.setColor(debugClr);
-			g.setStroke(debugStr);
-			g.drawOval(x-sz, y-sz, 2*sz, 2*sz);
-			g.drawLine(x-3*sz/2, y, x+3*sz/2,y);
-			g.drawLine(x, y-3*sz/2, x, y+3*sz/2);
-		}
+	public void setID(int id){
+		this.ID = id;
 	}
-	
-	public void draw(Graphics2D g, double scale, boolean drawFake){
+
+	public void draw(Graphics2D g, double scale, boolean drawFake, boolean debug){
+		
 		
 		//Save old transformation.
 		AffineTransform oldAT = g.getTransform();
@@ -127,9 +94,10 @@ public class PedestrianTick extends AgentTick {
 		//Restore old transformation matrix
 		g.setTransform(oldAT);	
 		
+		
 		//Sample debug output
-		if (DebugOn) {
-			int sz = 10;
+		if (debug) {
+			int sz = 3;
 			int x = (int)pos.getX();
 			int y = (int)pos.getY();
 			g.setColor(debugClr);
@@ -137,8 +105,35 @@ public class PedestrianTick extends AgentTick {
 			g.drawOval(x-sz, y-sz, 2*sz, 2*sz);
 			g.drawLine(x-3*sz/2, y, x+3*sz/2,y);
 			g.drawLine(x, y-3*sz/2, x, y+3*sz/2);
+			
+			//drawString(g);
 		}
 	}
+	public void drawString(Graphics2D g)
+	{
+		//Save old transformation.
+		AffineTransform oldTrans = g.getTransform();
+		
+		float targetX = (float)(pos.getX());
+		float targetY = (float)(pos.getY());
+		
+		//Create a new translation matrix which is located at the center of the string.
+		AffineTransform trans = AffineTransform.getTranslateInstance(targetX, targetY);
+		//Apply the transformation, draw the string at the origin.
+		g.setTransform(trans);
+		
+		g.setColor(Color.RED);
+		g.setFont(idFont);
+		g.setStroke(new BasicStroke(0.5F));
+		
+		String id = Integer.toString(ID);
+		g.drawString(id, 0, 0);
+
+		//Restore AffineTransform matrix.
+		g.setTransform(oldTrans);
+		
+	}
+
 
 }
 

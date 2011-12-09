@@ -24,6 +24,7 @@ public class NetworkVisualizer {
 	private static final double  ZOOM_IN_CRITICAL = 1.6;
 	private String fileName;
 	private boolean showFakeAgent;
+	private boolean debugOn;
 	
 	public int getCurrFrameTick() { return currFrameTick; }
 	public String getFileName(){return fileName;}
@@ -70,6 +71,8 @@ public class NetworkVisualizer {
 		this.height100Percent = height100Percent;
 		this.fileName = fileName;
 		this.showFakeAgent = false;
+		this.debugOn = false;
+		
 		//Recalc
 		redrawAtScale(initialZoom);
 	}
@@ -86,6 +89,11 @@ public class NetworkVisualizer {
 	public void toggleFakeAgent(boolean drawFakeAgent){
 
 		this.showFakeAgent = drawFakeAgent;			
+		redrawAtCurrScale();
+	}
+	
+	public void toggleDebugOn(boolean debugOn){
+		this.debugOn = debugOn;
 		redrawAtCurrScale();
 	}
 	
@@ -174,7 +182,6 @@ public class NetworkVisualizer {
 		if(currPercentZoom>ZOOM_IN_CRITICAL){
 
 			
-			
 			if(network.getLaneMarkings().containsKey(149402728))
 			{
 				
@@ -207,8 +214,6 @@ public class NetworkVisualizer {
 							l1.getEnd().getPos().getUnscaledX(),
 							l1.getEnd().getPos().getUnscaledY());
 					
-					//System.out.println("width: " + distStartStartU  + "		length: " + distStartEndU );
-					//System.out.println();
 				}
 			
 			}
@@ -287,7 +292,7 @@ public class NetworkVisualizer {
 		//Now draw simulation data: cars, etc.
 		for (AgentTick at : simRes.ticks.get(currFrameTick).agentTicks.values()) {	
 			
-			at.draw(g,currPercentZoom,this.showFakeAgent);
+			at.draw(g,currPercentZoom,this.showFakeAgent,this.debugOn);
 			
 		}
 

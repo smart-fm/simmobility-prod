@@ -42,9 +42,12 @@ public class MainFrame extends JFrame {
 	private JButton showFakeAgent;
 	private JButton zoomIn;
 	private JButton	zoomOut;
+	private JButton debug;
 	
     private JComboBox clockRateComboBox;
-
+    private ImageIcon debugIcon;
+    private ImageIcon displayIcon;
+    
 	
 	//Lower panel
 	private Timer animTimer;
@@ -59,6 +62,7 @@ public class MainFrame extends JFrame {
 	//Helper
 	public static CSS_Interface Config;
 	private boolean showFake;
+	private boolean showDebugMode;
 	
 		
 	/**
@@ -75,7 +79,7 @@ public class MainFrame extends JFrame {
 		//Initial setup: FRAME AND APPLET
 		this.setSize(1024, 768);
 		this.showFake = false;
-		
+		this.showDebugMode = false;
 		//Components and layout
 		try {
 			loadComponents();
@@ -96,15 +100,18 @@ public class MainFrame extends JFrame {
 	private void loadComponents() throws IOException {
 		playIcon = new ImageIcon(Utility.LoadImgResource("res/icons/play.png"));
 		pauseIcon = new ImageIcon(Utility.LoadImgResource("res/icons/pause.png"));
+		displayIcon = new ImageIcon(Utility.LoadImgResource("res/icons/display.png"));
+		debugIcon = new ImageIcon(Utility.LoadImgResource("res/icons/bug.png"));
+		
 		console = new JTextField();
 	    clockRateComboBox = new JComboBox(clockRateList);
 	    
-	    openLogFile = new JButton("Open File From...", new ImageIcon(Utility.LoadImgResource("res/icons/open copy.png")));
-		openEmbeddedFile = new JButton("Open Default File", new ImageIcon(Utility.LoadImgResource("res/icons/embed copy.png")));
-		showFakeAgent = new JButton("Show Fake Agent", new ImageIcon(Utility.LoadImgResource("res/icons/fake copy.png")));
+	    openLogFile = new JButton("Open File From...", new ImageIcon(Utility.LoadImgResource("res/icons/open.png")));
+		openEmbeddedFile = new JButton("Open Default File", new ImageIcon(Utility.LoadImgResource("res/icons/embed.png")));
+		showFakeAgent = new JButton("Show Fake Agent", new ImageIcon(Utility.LoadImgResource("res/icons/fake.png")));
 		zoomIn = new JButton("       Zoom In 	        ", new ImageIcon(Utility.LoadImgResource("res/icons/zoom_in.png")));
 		zoomOut = new JButton("      Zoom Out  	    ", new ImageIcon(Utility.LoadImgResource("res/icons/zoom_out.png")));
-		
+		debug = new JButton("    Display Mode    ", displayIcon);
 		
 		frameTickSlider = new JSlider(JSlider.HORIZONTAL);
 		revBtn = new JButton(new ImageIcon(Utility.LoadImgResource("res/icons/rev.png")));
@@ -135,11 +142,12 @@ public class MainFrame extends JFrame {
 		JPanel jpLeft = new JPanel(gl);
 		jpLeft.add(openLogFile);
 		jpLeft.add(openEmbeddedFile);
-		jpLeft.add(clockRateComboBox);
 		jpLeft.add(showFakeAgent);
 		jpLeft.add(zoomIn);
 		jpLeft.add(zoomOut);
-	
+		jpLeft.add(debug);
+		jpLeft.add(clockRateComboBox);
+		
 		//Bottom panel
 		JPanel jpLower = new JPanel(new BorderLayout());
 		jpLower.add(BorderLayout.NORTH, frameTickSlider);
@@ -328,6 +336,28 @@ public class MainFrame extends JFrame {
 			}
 
 		});
+
+		debug.addActionListener(new ActionListener(){
+
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+		
+				if(showDebugMode){
+					newViewPnl.showDebugMode(false);
+					showDebugMode = false;
+					debug.setText("    Display Mode    ");
+					debug.setIcon(displayIcon);
+					
+				}else{
+					newViewPnl.showDebugMode(true);
+					showDebugMode = true;
+					debug.setText("     Debug Mode    ");
+					debug.setIcon(debugIcon);
+				}
+			}
+
+		});
+
 		
 		openEmbeddedFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {

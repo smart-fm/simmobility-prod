@@ -271,7 +271,10 @@ public class SimulationResults {
 	    		tempPedestrian.setItFake();
 	    	}
 	    }
-	  	    
+	  	
+	    //Set ID
+	    tempPedestrian.setID(objID);
+	    
 	    //Add this agent to the proper frame.
 	    ticks.get(frameID).agentTicks.put(objID, tempPedestrian);
 	}

@@ -3,6 +3,7 @@ package sim_mob.vis.simultion;
 import java.awt.BasicStroke;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
 
@@ -21,8 +22,8 @@ import sim_mob.vis.util.Utility;
 public class DriverTick extends AgentTick {
 	private static Stroke debugStr = new BasicStroke(1.0F);
 	private static Color debugClr = new Color(0x00, 0x00, 0x66);
-	private static boolean DebugOn = true;
-	
+	private static Font idFont = new Font("Arial", Font.PLAIN, 10);
+
 	private static BufferedImage CarImg;
 	private static BufferedImage FakeCarImg;
 	static {
@@ -68,7 +69,10 @@ public class DriverTick extends AgentTick {
 	public void setID(int id){
 		this.ID = id;
 	}
-	public void draw(Graphics2D g,double scale, boolean drawFake){
+	
+	
+	public void draw(Graphics2D g,double scale, boolean drawFake,boolean debug){
+
 		AffineTransform oldAT = g.getTransform();
 
 		AffineTransform at = AffineTransform.getTranslateInstance(pos.getX(), pos.getY());
@@ -78,9 +82,7 @@ public class DriverTick extends AgentTick {
 		
 		//Scale
 		at.scale(1/scale + 0.2, 1/scale + 0.2);
-		
-	//	System.out.println("scale " + scale );
-	
+			
 		//Translate to top-left corner
 		at.translate(-CarImg.getWidth()/2, -CarImg.getHeight()/2);
 
@@ -103,7 +105,7 @@ public class DriverTick extends AgentTick {
 		g.setTransform(oldAT);
 		
 		//Sample debug output
-		if (DebugOn) {
+		if (debug) {
 			int sz = 10;
 			int x = (int)pos.getX();
 			int y = (int)pos.getY();
@@ -112,52 +114,11 @@ public class DriverTick extends AgentTick {
 			g.drawOval(x-sz, y-sz, 2*sz, 2*sz);
 			g.drawLine(x-3*sz/2, y, x+3*sz/2,y);
 			g.drawLine(x, y-3*sz/2, x, y+3*sz/2);
+			
+			//drawString(g);
 		}
-		//drawString(g);
 	}
-	public void draw(Graphics2D g,double scale) {
 	
-		//Save old transformation.
-		AffineTransform oldAT = g.getTransform();
-
-		AffineTransform at = AffineTransform.getTranslateInstance(pos.getX(), pos.getY());
-		
-		//Rotate
-		at.rotate((Math.PI*angle)/180);
-		
-		//Scale
-		at.scale(1/scale + 0.2, 1/scale + 0.2);
-		
-		//Translate to top-left corner
-		at.translate(-CarImg.getWidth()/2, -CarImg.getHeight()/2);
-
-		//Set new transformation matrix
-		g.setTransform(at);
-		
-		//Draw
-		if(fake){
-			g.drawImage(FakeCarImg, 0, 0, null);		
-		}else{
-			g.drawImage(CarImg, 0, 0, null);				
-		}
-		
-		//Restore old transformation matrix
-		g.setTransform(oldAT);
-		
-		//Sample debug output
-		if (DebugOn) {
-			int sz = 10;
-			int x = (int)pos.getX();
-			int y = (int)pos.getY();
-			g.setColor(debugClr);
-			g.setStroke(debugStr);
-			g.drawOval(x-sz, y-sz, 2*sz, 2*sz);
-			g.drawLine(x-3*sz/2, y, x+3*sz/2,y);
-			g.drawLine(x, y-3*sz/2, x, y+3*sz/2);
-		}
-		
-	}
-
 	public void drawString(Graphics2D g)
 	{
 		//Save old transformation.
@@ -172,6 +133,7 @@ public class DriverTick extends AgentTick {
 		g.setTransform(trans);
 		
 		g.setColor(Color.GREEN);
+		g.setFont(idFont);
 		g.setStroke(new BasicStroke(0.5F));
 		
 		String id = Integer.toString(ID);
@@ -182,7 +144,6 @@ public class DriverTick extends AgentTick {
 		
 	}
 	
-
 	
 }
 

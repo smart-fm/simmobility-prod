@@ -40,7 +40,7 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent)
 
 	//Init
 	sigColor = Signal::Green; //Green by default
-	currentStage=0;
+	currentStage = ApproachingIntersection;
 	startToCross=false;
 	firstTimeUpdate=true;
 
@@ -105,12 +105,12 @@ void sim_mob::Pedestrian::update(frame_t frameNumber) {
 	}
 
 	if (isGoalReached()) {
-		currentStage++;
+		++currentStage;
 		setGoal(currentStage); //Set next goal
 		return;
 	}
 
-	if (currentStage == 0 || currentStage == 2) {
+	if (currentStage == ApproachingIntersection || currentStage == LeavingIntersection) {
 		updateVelocity(0);
 		updatePosition();
 		LogOut("Pedestrian " <<parent->getId() <<" is walking on sidewalk" <<std::endl);
@@ -118,7 +118,7 @@ void sim_mob::Pedestrian::update(frame_t frameNumber) {
 		return;
 	}
 
-	if (currentStage == 1) {
+	if (currentStage == NavigatingIntersection) {
 		//Check whether to start to cross or not
 		updatePedestrianSignal();
 		if (!startToCross) {
@@ -154,14 +154,14 @@ void sim_mob::Pedestrian::output(frame_t frameNumber)
 
 /*---------------------Perception-related functions----------------------*/
 
-void sim_mob::Pedestrian::setGoal(int stage) //0-to the next intersection, 1-to the crossing end, 2-to the destination
+void sim_mob::Pedestrian::setGoal(PedestrianStage currStage)
 {
 	//goal.xPos = this->xPos.get();
 	//goal.yPos = topLeftCrossing.yPos + double(rand()%5) + 1;;
 
 	//Give every agent the same goal.
 	//goal.xPos = 1100;
-	if(stage==0){
+	if(currStage==ApproachingIntersection){
 //		goal = Point2D(37250760,14355120); //Hard-code now, need to be replaced once route choicer is done
 		const Lane* nextSideWalk;
 		vector<WayPoint> wp_path= StreetDirectory::instance().shortestWalkingPath(*parent->originNode->location,*parent->destNode->location);
@@ -190,7 +190,7 @@ void sim_mob::Pedestrian::setGoal(int stage) //0-to the next intersection, 1-to 
 //		destPos = Point2D(50000,60000);
 
 	}
-	else if(stage==1){
+	else if(currStage==NavigatingIntersection){
 
 		//???? How to get position of crossings
 //		RoadNetwork& network = ConfigParams::GetInstance().getNetwork();
@@ -199,7 +199,7 @@ void sim_mob::Pedestrian::setGoal(int stage) //0-to the next intersection, 1-to 
 		setCrossingParas();
 
 	}
-	else if(stage==2){
+	else if(currStage==LeavingIntersection){
 
 //		parent->xPos.set(37250760);  //Hard-code now, to be changed
 //		parent->yPos.set(14355120);
@@ -350,7 +350,7 @@ void sim_mob::Pedestrian::setSidewalkParas(Node* start, Node* end, bool isStartM
 
 bool sim_mob::Pedestrian::isDestReached()
 {
-	if(currentStage==2){
+	if(currentStage==LeavingIntersection){
 		double dX = ((double)abs(goalInLane.getX() - parent->xPos.get()))/100;
 		double dY = ((double)abs(goalInLane.getY() - parent->yPos.get()))/100;
 	//	double dX = abs(((double)destPos.getX())/100 - parent->xPos.get());
@@ -788,7 +788,7 @@ void sim_mob::Pedestrian::relToAbs(double xRel, double yRel, double & xAbs, doub
 }
 
 bool sim_mob::Pedestrian::isOnCrossing() const {
-	if(currentStage==1&&startToCross==true)
+	if(currentStage==NavigatingIntersection&&startToCross==true)
 		return true;
 	else
 		return false;

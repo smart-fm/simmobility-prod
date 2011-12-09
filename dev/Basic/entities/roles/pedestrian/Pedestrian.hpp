@@ -23,6 +23,29 @@
 namespace sim_mob
 {
 
+
+//Stages
+enum PedestrianStage {
+	ApproachingIntersection = 0,
+	NavigatingIntersection = 1,
+	LeavingIntersection =2
+};
+
+//Prefix increment operator for Stage
+inline void operator++(PedestrianStage& rhs) {
+  switch (rhs) {
+	  case ApproachingIntersection:
+		  rhs = NavigatingIntersection;
+		  break;
+	  case NavigatingIntersection:
+		  rhs = LeavingIntersection;
+		  break;
+	  default:
+		  throw std::runtime_error("Cannot increment LeavingIntersection");
+  }
+}
+
+
 /**
  * A Person in the Pedestrian role is navigating sidewalks and zebra crossings.
  */
@@ -43,7 +66,7 @@ private:
 	double yVel;
 	Point2D goal;
 	Point2D goalInLane;
-	int currentStage;
+	PedestrianStage currentStage;
 
 //	Signal sig;
 	const Signal* trafficSignal;
@@ -65,7 +88,7 @@ private:
 	//The following methods are to be moved to agent's sub-systems in future
 	bool isGoalReached();
 	bool isDestReached();
-	void setGoal(int);
+	void setGoal(PedestrianStage currStage);
 	void updateVelocity(int);
 	void updatePosition();
 	void updatePedestrianSignal();
@@ -79,7 +102,6 @@ private:
 	void relToAbs(double, double, double &, double &);
 
 };
-
 
 
 }

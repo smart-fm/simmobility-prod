@@ -30,7 +30,7 @@ public:
 	///Set the path of RoadSegments contained in our path. These segments need not
 	/// necessarily be in the same Link.
 	///TODO: I'm not entirely sure that all cases of fwd/rev RoadSegments are handled properly.
-	void setPath(const std::vector<const sim_mob::RoadSegment*>& path, bool firstSegMoveFwd, int startLaneID);
+	void setPath(const std::vector<const sim_mob::RoadSegment*>& path, int startLaneID);
 
 	///Is it possible to move? Attempting to operate on a GeneralPathmover which has no RoadSegments in
 	/// its path is an error.

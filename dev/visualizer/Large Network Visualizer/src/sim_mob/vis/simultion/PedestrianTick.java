@@ -1,20 +1,16 @@
 package sim_mob.vis.simultion;
 
-import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
-import sim_mob.vis.MainFrame;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.network.basic.ScaledPointGroup;
-import sim_mob.vis.network.basic.Vect;
 import sim_mob.vis.util.Utility;
 
 

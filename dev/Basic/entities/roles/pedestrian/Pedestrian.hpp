@@ -19,6 +19,7 @@
 #include "conf/simpleconf.hpp"
 #include "entities/Signal.hpp"
 #include "geospatial/Crossing.hpp"
+#include "entities/roles/driver/GeneralPathMover.hpp"
 
 namespace sim_mob
 {
@@ -100,6 +101,9 @@ private:
 	void setSidewalkParas(Node* start, Node* end, bool isStartMulti);
 	void absToRel(double, double, double &, double &);
 	void relToAbs(double, double, double &, double &);
+
+	//Attempting to replace stage-one movement (TO the intersection) with the GeneralPathMover. ~Seth
+	GeneralPathMover fwdMovement;
 
 };
 

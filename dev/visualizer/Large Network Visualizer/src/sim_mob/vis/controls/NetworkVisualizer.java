@@ -6,7 +6,6 @@ import sim_mob.vis.MainFrame;
 import sim_mob.vis.network.basic.*;
 import sim_mob.vis.network.*;
 import sim_mob.vis.simultion.*;
-import sim_mob.vis.util.Utility;
 
 
 /**
@@ -188,10 +187,10 @@ public class NetworkVisualizer {
 				Hashtable<Integer,LaneMarking> tempLineMarkingTable = network.getLaneMarkings().get(149402728);
 				
 				if(tempLineMarkingTable.containsKey(0) && tempLineMarkingTable.containsKey(1)){
-					LaneMarking l1 = tempLineMarkingTable.get(0);
-					LaneMarking l2 = tempLineMarkingTable.get(1);
+					//LaneMarking l1 = tempLineMarkingTable.get(0);
+					//LaneMarking l2 = tempLineMarkingTable.get(1);
 					
-					double distStartStart = Utility.Distance(l1.getStart().getPos().getX(), 
+					/*double distStartStart = Utility.Distance(l1.getStart().getPos().getX(), 
 							l1.getStart().getPos().getY(), 
 							l2.getStart().getPos().getX(),
 							l2.getStart().getPos().getY());
@@ -199,12 +198,12 @@ public class NetworkVisualizer {
 					double distStartEnd = Utility.Distance(l1.getStart().getPos().getX(), 
 							l1.getStart().getPos().getY(), 
 							l1.getEnd().getPos().getX(),
-							l1.getEnd().getPos().getY());
+							l1.getEnd().getPos().getY());*/
 						
 					//System.out.println("width: " + distStartStart  + "		length: " + distStartEnd + "		zoom in: "+currPercentZoom );
 					
 					
-					double distStartStartU = Utility.Distance(l1.getStart().getPos().getUnscaledX(), 
+					/*double distStartStartU = Utility.Distance(l1.getStart().getPos().getUnscaledX(), 
 							l1.getStart().getPos().getUnscaledY(), 
 							l2.getStart().getPos().getUnscaledX(),
 							l2.getStart().getPos().getUnscaledY());
@@ -212,7 +211,7 @@ public class NetworkVisualizer {
 					double distStartEndU = Utility.Distance(l1.getStart().getPos().getUnscaledX(), 
 							l1.getStart().getPos().getUnscaledY(), 
 							l1.getEnd().getPos().getUnscaledX(),
-							l1.getEnd().getPos().getUnscaledY());
+							l1.getEnd().getPos().getUnscaledY());*/
 					
 				}
 			
@@ -329,7 +328,7 @@ public class NetworkVisualizer {
 				
 	}
 	
-	private void drawTrafficPedestrainCross(Graphics2D g,ArrayList<TrafficSignalCrossing> signalPedestrainCrossing, ArrayList<Integer> lightColor){
+	public void drawTrafficPedestrainCross(Graphics2D g,ArrayList<TrafficSignalCrossing> signalPedestrainCrossing, ArrayList<Integer> lightColor){
 
 		if(signalPedestrainCrossing != null && signalPedestrainCrossing.size() != 0 &&  lightColor!=null && lightColor.size() != 0
 				 && signalPedestrainCrossing.size() == lightColor.size())

@@ -26,16 +26,48 @@ sim_mob::GeneralPathMover::GeneralPathMover() : distAlongPolyline(0), /*currPoly
 }
 
 
-void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, bool firstSegMoveFwd, int startLaneID)
+void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, int startLaneID)
 {
 	if (Debug::Paths) {
 		DebugStream <<"New Path of length " <<path.size() <<endl;
 		DebugStream <<"Starting in Lane: " <<startLaneID <<endl;
 	}
 
+	//Determine whether or not the first one is fwd.
+	bool isFwd;
+	if (path.empty()) {
+		throw std::runtime_error("Attempting to set a path with 0 road segments");
+	}
+
+	//We know we are moving forward if the last Node in the last Segment in the first Link is
+	//   the "end" node of that Link.
+	const RoadSegment* lastSeg = path.front();
+	for (vector<const RoadSegment*>::const_iterator it=path.begin()+1; it!=path.end(); it++) {
+		if ((*it)->getLink() != lastSeg->getLink()) {
+			break;
+		}
+		lastSeg = *it;
+	}
+
+	//Now check
+	if (lastSeg->getEnd()==lastSeg->getLink()->getEnd()) {
+		isFwd = true;
+	} else if (lastSeg->getEnd()==lastSeg->getLink()->getStart()) {
+		isFwd = false;
+	} else {
+		std::stringstream msg;
+		msg <<"Attempting to set a path with segments that aren't in order:\n";
+		for (vector<const RoadSegment*>::const_iterator it=path.begin(); it!=path.end(); it++) {
+			msg <<"  " <<(*it)->getStart()->originalDB_ID.getLogItem() <<" => " <<(*it)->getEnd()->originalDB_ID.getLogItem() <<"\n";
+		}
+
+		throw std::runtime_error(msg.str().c_str());
+	}
+
+
 	//Add RoadSegments to the path.
 	Link* currLink = nullptr;
-	bool fwd = firstSegMoveFwd;
+	bool fwd = isFwd;
 	fullPath.clear();
 	for(vector<const RoadSegment*>::const_iterator it=path.begin(); it!=path.end(); it++) {
 		fullPath.push_back(*it);
@@ -56,7 +88,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 
 	//Re-generate the polylines array, etc.
 	currSegmentIt = fullPath.begin();
-	isMovingForwardsInLink = firstSegMoveFwd;
+	isMovingForwardsInLink = isFwd;
 	currLaneID = startLaneID;
 	generateNewPolylineArray();
 	distAlongPolyline = 0;

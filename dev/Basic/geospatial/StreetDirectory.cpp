@@ -1,5 +1,6 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
+#include <stdexcept>
 #include <vector>
 #include <iostream>
 #include <boost/unordered_map.hpp>
@@ -1135,7 +1136,7 @@ const
             stream << "toNode=" << *toNode.location << " is not part of the known road network";
         }
 
-        throw stream.str();
+        throw std::runtime_error(stream.str().c_str());
     }
 }
 

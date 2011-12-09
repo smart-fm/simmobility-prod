@@ -30,24 +30,32 @@ void sim_mob::Vehicle::initPath(vector<WayPoint> wp_path, int startLaneID)
 		}
 	}
 
+	//Assume this is sufficient; we will specifically test for error cases later.
+	error_state = false;
+
 	//Determine whether or not the first one is fwd.
 	bool isFwd;
-	if (path.size()>=2) {
-		error_state = false;
-		const RoadSegment* first = path.at(0);
-		const RoadSegment* second = path.at(1);
-		if (first->getEnd()==second->getStart()) {
-			isFwd = true;
-		} else if (first->getStart()==second->getEnd()) {
-			isFwd = false;
-		} else {
-			error_state = true;
-		}
+	if (path.empty()) {
+		throw std::runtime_error("Attempting to set a path with 0 road segments.");
 	}
 
-	//Are we in a valid state?
-	if (error_state) {
-		throw std::runtime_error("Attempting to set a path with 1 or fewer road segments, or segments that aren't in order.");
+	//We know we are moving forward if the last Node in the last Segment in the first Link is
+	//   the "end" node of that Link.
+	const RoadSegment* lastSeg = path.front();
+	for (vector<const RoadSegment*>::iterator it=path.begin()+1; it!=path.end(); it++) {
+		if ((*it)->getLink() != lastSeg->getLink()) {
+			break;
+		}
+		lastSeg = *it;
+	}
+
+	//Now check
+	if (lastSeg->getEnd()==lastSeg->getLink()->getEnd()) {
+		isFwd = true;
+	} else if (lastSeg->getEnd()==lastSeg->getLink()->getStart()) {
+		isFwd = false;
+	} else {
+		throw std::runtime_error("Attempting to set a path with segments that aren't in order.");
 	}
 
 	//Init

@@ -147,17 +147,25 @@ map<sim_mob::Link*, LinkHelperStruct> buildLinkHelperStruct(map<int, Node>& node
 
 
 	std::pair<int,int> errorCount(0,0);
+	std::stringstream msg;
+	msg <<"Error: Not all Links are represented in full: \n";
 	for (map<sim_mob::Link*, LinkHelperStruct>::iterator it=res.begin(); it!=res.end(); it++) {
+		int count = 0;
 		if (!it->second.start) {
 			errorCount.first++;
+			count++;
 		}
 		if (!it->second.end) {
 			errorCount.second++;
+			count++;
+		}
+
+		if (count > 0) {
+			msg <<"Road: " <<it->first->roadName <<" missing(" <<count <<")" <<"\n";
 		}
 	}
 	if (errorCount.first+errorCount.second > 0) {
-		std::stringstream msg;
-		msg <<"Error: Not all Links are represented in full: " <<errorCount.first <<"," <<errorCount.second;
+		msg <<"Final counts: " <<errorCount.first <<"," <<errorCount.second;
 		throw std::runtime_error(msg.str().c_str());
 	}
 

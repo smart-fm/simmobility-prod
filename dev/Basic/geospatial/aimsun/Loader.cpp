@@ -1388,15 +1388,6 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesEndLineCut, false);
 		}
 
-		//Step Four: Save
-		loader.SaveSimMobilityNetwork(rn, tcs);
-
-		//Temporary workaround; Cut lanes short/extend them as reuquired.
-		for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {
-			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesStartLineCut, true);
-			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesEndLineCut, false);
-		}
-
 		//add by xuyan, load in boundary segments
 		//Step Four: find boundary segment in road network using start-node(x,y) and end-node(x,y)
 #ifndef SIMMOB_DISABLE_MPI

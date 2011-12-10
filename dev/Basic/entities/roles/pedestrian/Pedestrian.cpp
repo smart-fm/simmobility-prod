@@ -236,7 +236,7 @@ void sim_mob::Pedestrian::setGoal(PedestrianStage currStage)
 
 		//NOTE: "goal" and "interPoint" are not really needed. We will keep them for now, but
 		//      later we can just use the "isInIntersection()" check.
-		goal = Point2D(parent->destNode->location->getX(), parent->destNode->location->getY());
+		goal = Point2D(path.back()->getEnd()->location->getX(), path.back()->getEnd()->location->getY());
 		interPoint = Point2D(path.back()->getEnd()->location->getX(), path.back()->getEnd()->location->getY());
 	}
 	else if(currStage==NavigatingIntersection){
@@ -647,25 +647,6 @@ void sim_mob::Pedestrian::checkForCollisions()
 /*---------------------Other helper functions----------------------------*/
 
 void sim_mob::Pedestrian::setCrossingParas(){
-
-	//TEMP: for testing on self-created network only
-
-	//Set agents' start crossing locations
-//	double xRel = -30;
-////	double yRel = 30+(double)(rand()%6);
-//	double yRel = 30+(double)(rand()%6)+(double)(rand()%6);
-//	double xAbs=0;
-//	double yAbs=0;
-//	double width, length, tmp;
-//	relToAbs(xRel,yRel,xAbs,yAbs);
-//	parent->xPos.set(xAbs);
-//	parent->yPos.set(yAbs);
-//	//Set agents' end crossing locations
-//	xRel=30;
-//	relToAbs(xRel,yRel,xAbs,yAbs);
-//	goal = Point2D(int(xAbs*100),int(yAbs*100));
-
-
 	double xRel, yRel;
 	double xAbs, yAbs;
 	double width, length, tmp;
@@ -677,26 +658,27 @@ void sim_mob::Pedestrian::setCrossingParas(){
 	else
 		trafficSignal = nullptr;
 
-	const RoadSegment* segToCross;
-//	const Crossing* crossing;
 	std::set<sim_mob::RoadSegment*>::const_iterator i;
-	const MultiNode* currNode=dynamic_cast<const MultiNode*>(ConfigParams::GetInstance().getNetwork().locateNode(goal, true));
-//	const MultiNode* end=dynamic_cast<const MultiNode*>(ConfigParams::GetInstance().getNetwork().locateNode(Point2D(37270984,14378959), true));
+	const Node* currNodeA = ConfigParams::GetInstance().getNetwork().locateNode(goal, true);
+	if (!currNodeA) {
+		std::stringstream msg;
+		msg <<"Could not retrieve node at position: " <<goal.getX() <<"," <<goal.getY();
+		msg <<"\n   for Pedestrian traveling from: " <<parent->originNode->originalDB_ID.getLogItem() <<"  to: " <<parent->destNode->originalDB_ID.getLogItem();
+		throw std::runtime_error(msg.str().c_str());
+	}
+	const MultiNode* currNode = dynamic_cast<const MultiNode*>(currNodeA);
+	if (!currNode) {
+		std::stringstream msg;
+		msg <<"Node is not a multiNode: " <<currNodeA->originalDB_ID.getLogItem();
+		msg <<"\n   for Pedestrian traveling from: " <<parent->originNode->originalDB_ID.getLogItem() <<"  to: " <<parent->destNode->originalDB_ID.getLogItem();
+		throw std::runtime_error(msg.str().c_str());
+	}
+
+
+	//Determine the Segment that we need to cross.
+	const RoadSegment* segToCross;
 	const std::set<sim_mob::RoadSegment*>& roadsegments=currNode->getRoadSegments();
-
-//	for(i=roadsegments.begin();i!=roadsegments.end();i++){
-//		if((*i)->getLink()->getStart()==end){
-//			segToCross = (*i);
-//			break;
-//		}
-//		else if((*i)->getLink()->getEnd()==end){
-//			segToCross = (*i);
-//			break;
-//		}
-//	}
-
 	for(i=roadsegments.begin();i!=roadsegments.end();i++){
-//		if((*i)->getLink()->getStart()!=parent->originNode&&(*i)->getLink()->getEnd()!=parent->originNode&&(*i)->getLink()->getStart()!=parent->destNode&&(*i)->getLink()->getEnd()!=parent->destNode){
 		if((*i)->getStart()!=parent->originNode&&(*i)->getEnd()!=parent->originNode&&(*i)->getStart()!=parent->destNode&&(*i)->getEnd()!=parent->destNode){
 			cStartX=(double)goal.getX();
 			cStartY=(double)goal.getY();
@@ -708,16 +690,13 @@ void sim_mob::Pedestrian::setCrossingParas(){
 					segToCross=(*i);
 					break;
 				}
-			}
-			else{
+			} else {
 				absToRel((*i)->getStart()->location->getX(),(*i)->getStart()->location->getY(),xRel,yRel);
 				if(yRel<0){
 					segToCross=(*i);
 					break;
 				}
 			}
-//			segToCross=(*i);
-//			break;
 		}
 	}
 
@@ -778,10 +757,6 @@ void sim_mob::Pedestrian::setCrossingParas(){
 }
 
 bool sim_mob::Pedestrian::isFirstTimeUpdate(){
-//	if(parent->xPos.get()==0 && parent->yPos.get()==0)
-//		return false;
-//	else
-//		return true;
 	if(firstTimeUpdate){
 		firstTimeUpdate=false;
 		return true;

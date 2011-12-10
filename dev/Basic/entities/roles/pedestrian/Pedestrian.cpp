@@ -275,6 +275,10 @@ void sim_mob::Pedestrian::setGoal(PedestrianStage currStage,const RoadSegment* p
 			//      later we can just use the "isInIntersection()" check.
 			goal = Point2D(path.back()->getEnd()->location->getX(), path.back()->getEnd()->location->getY());
 			interPoint = Point2D(path.back()->getEnd()->location->getX(), path.back()->getEnd()->location->getY());
+
+			//Update the Parent
+			parent->xPos.set(fwdMovement.getPosition().x);
+			parent->yPos.set(fwdMovement.getPosition().y);
 		}
 	} else if(currStage==NavigatingIntersection) {
 		//Set the agent's position at the start of crossing and set the goal to the end of crossing

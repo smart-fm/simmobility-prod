@@ -151,7 +151,20 @@ void sim_mob::Pedestrian::update(frame_t frameNumber) {
 	}
 
 	if (currentStage == ApproachingIntersection) {
-		fwdMovement.advance(speed*1.2);
+		double vel = speed * 1.2 * 100 * ConfigParams::GetInstance().agentTimeStepInMilliSeconds()/1000.0;
+
+		const RoadSegment* prevSeg = fwdMovement.getCurrSegment();
+		fwdMovement.advance(vel);
+		if (!fwdMovement.isDoneWithEntireRoute() && prevSeg!=fwdMovement.getCurrSegment()) {
+			//Move onto the outer lane (sidewalk).
+			//TODO: This isn't always correct on one-way streets.
+			fwdMovement.moveToNewPolyline(fwdMovement.getCurrSegment()->getLanes().size()-1);
+		}
+
+
+		parent->xPos.set(fwdMovement.getPosition().x);
+		parent->yPos.set(fwdMovement.getPosition().y);
+		LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
 	} else if (currentStage == LeavingIntersection) {
 		updateVelocity(0);
 		updatePosition();
@@ -228,6 +241,7 @@ void sim_mob::Pedestrian::setGoal(PedestrianStage currStage)
 		//      difficult to fix, but for now I'm just flipping the path.
 		if (path.front()->getEnd()==parent->originNode) {
 			path = ForceForwardSubpath(path.front(), path.front()->getLink()->getPath(true), path.front()->getLink()->getPath(false));
+			laneID = path.front()->getLanes().size()-1;
 		}
 
 
@@ -564,26 +578,9 @@ void sim_mob::Pedestrian::updateVelocity(int flag) //0-on sidewalk, 1-on crossin
 
 void sim_mob::Pedestrian::updatePosition()
 {
-//	//Factor in collisions
-//	double xVelCombined = xVel + xCollisionVector;
-//	double yVelCombined = yVel + yCollisionVector;
-
 	//Compute
-//	double newX = parent->xPos.get()+xVelCombined*1; //Time step is 1 second
-//	double newY = parent->yPos.get()+yVelCombined*1;
 	int newX = (int)(parent->xPos.get()+ xVel*100*(((double)ConfigParams::GetInstance().agentTimeStepInMilliSeconds())/1000));
 	int newY = (int)(parent->yPos.get()+ yVel*100*(((double)ConfigParams::GetInstance().agentTimeStepInMilliSeconds())/1000));
-
-//	int newX = (int)(parent->xPos.get()+ xVel*100*1);
-//	int newY = (int)(parent->yPos.get()+ yVel*100*1);
-
-	//Decrement collision velocity
-//	if (xCollisionVector != 0) {
-//		xCollisionVector -= ((0.1*collisionForce) / (xCollisionVector/abs(xCollisionVector)) );
-//	}
-//	if (yCollisionVector != 0) {
-//		yCollisionVector -= ((0.1*collisionForce) / (yCollisionVector/abs(yCollisionVector)) );
-//	}
 
 	//Set
 	parent->xPos.set(newX);

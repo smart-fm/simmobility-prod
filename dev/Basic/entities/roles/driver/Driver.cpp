@@ -390,11 +390,11 @@ bool sim_mob::Driver::update_post_movement(UpdateParams& params, frame_t frameNu
 	//Has the segment changed?
 	if (!vehicle->isInIntersection() && params.justChangedToNewSegment) {
 		//Make pre-intersection decisions?
-		if(!vehicle->hasNextSegment(true)) {
+		if(!vehicle->hasNextSegment(true))
 			saveCurrTrafficSignal();
-			chooseNextLaneForNextLink(params);
-		}
 	}
+	if(!vehicle->isInIntersection()&&!vehicle->hasNextSegment(true)&&vehicle->hasNextSegment(false))
+		chooseNextLaneForNextLink(params);
 
 	//Have we just entered into an intersection?
 	if (vehicle->isInIntersection() && params.justMovedIntoIntersection) {
@@ -544,10 +544,17 @@ void sim_mob::Driver::intersectionDriving(UpdateParams& p)
 //the movement is based on relative position
 double sim_mob::Driver::linkDriving(UpdateParams& p)
 {
-	//TODO: This might not be in the right location
-	p.dis2stop = vehicle->getAllRestRoadSegmentsLength() - vehicle->getDistanceMovedInSegment() - vehicle->length/2 - 300;
-	p.dis2stop /= 100;
+	if(!vehicle->hasNextSegment(true)) {
+		p.dis2stop = vehicle->getAllRestRoadSegmentsLength() - vehicle->getDistanceMovedInSegment() - vehicle->length/2 - 300;
+		if(p.nvFwd.distance<p.dis2stop)
+			p.dis2stop = p.nvFwd.distance;
+		p.dis2stop /= 100;
+	}
+	else
+		p.dis2stop = std::numeric_limits<double>::max();
 
+	if(p.fromLaneIndex>=p.currLane->getRoadSegment()->getLanes().size())
+		p.fromLaneIndex = p.currLaneIndex;
 	//Check if we should change lanes.
 	double newLatVel = lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length, getCurrLaneChangeDirection());
 	if (newLatVel>=0.0) {
@@ -715,6 +722,7 @@ void sim_mob::Driver::syncCurrLaneCachedInfo(UpdateParams& p)
 //Note that this also sets the target lane so that we (hopefully) merge before the intersection.
 void sim_mob::Driver::chooseNextLaneForNextLink(UpdateParams& p)
 {
+	p.fromLaneIndex = p.currLaneIndex;
 	//Retrieve the node we're on, and determine if this is in the forward direction.
 	const MultiNode* currEndNode = dynamic_cast<const MultiNode*>(vehicle->getNodeMovingTowards());
 	const RoadSegment* nextSegment = vehicle->getNextSegment(false);
@@ -857,8 +865,11 @@ void sim_mob::Driver::setOrigin(UpdateParams& p)
 	//Calculate and save the total length of the current polyline.
 	p.currLaneLength = vehicle->getCurrLinkLaneZeroLength();
 
-	//TEMP: Is this in the right place?
-	chooseNextLaneForNextLink(p);
+	//if the first road segment is the last one in this link
+	if(!vehicle->hasNextSegment(true))
+		saveCurrTrafficSignal();
+	if(!vehicle->hasNextSegment(true)&&vehicle->hasNextSegment(false))
+		chooseNextLaneForNextLink(p);
 }
 
 

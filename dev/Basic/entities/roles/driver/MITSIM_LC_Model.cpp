@@ -67,11 +67,11 @@ struct LeadLag {
 };
 
 //Unit conversion
-double unit2Feet(double unit) {
-	return unit/0.158;
+double meter2Feet(double meter) {
+	return meter*3.2808399;
 }
-double feet2Unit(double feet) { //Note: This function is now in two locations.
-	return feet*0.158;
+double feet2Meter(double feet) { //Note: This function is now in two locations.
+	return feet*0.3048;
 }
 
 
@@ -174,7 +174,6 @@ LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(UpdateParams& p, int type)
 	if ( flags[1].lead && flags[1].lag ) {
 		returnVal.right = true;
 	}
-
 	return returnVal;
 }
 
@@ -194,9 +193,8 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision
 	if(!freeLanes.left && !freeLanes.right) {
 		return LCS_SAME;		//neither gap is available, stay in current lane
 	}
-
 	double s = p.nvFwd.distance;
-	const double satisfiedDistance = 1000;
+	const double satisfiedDistance = 5000;
 	if(s>satisfiedDistance) {
 		return LCS_SAME;	// space ahead is satisfying, stay in current lane
 	}
@@ -235,11 +233,14 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision
 
 double sim_mob::MITSIM_LC_Model::checkIfMandatory(UpdateParams& p)
 {
+	if(p.fromLaneIndex == p.currLaneIndex)
+		p.dis2stop = MAX_NUM;
 	//The code below is MITSIMLab model
 	double num		=	1;		//now we just assume that MLC only need to change to the adjacent lane
 	double y		=	0.5;	//segment density/jam density, now assume that it is 0.5
-	double delta0	=	feet2Unit(MLC_parameters.feet_lowbound);
-	double dis		=	p.dis2stop - delta0;
+	//double delta0	=	feet2Unit(MLC_parameters.feet_lowbound);
+	double dis2stop_feet = meter2Feet(p.dis2stop);
+	double dis		=	dis2stop_feet - MLC_parameters.feet_lowbound;
 	double delta	=	1.0 + MLC_parameters.lane_coeff * num + MLC_parameters.congest_coeff * y;
 	delta *= MLC_parameters.feet_delta;
 	return exp(-dis * dis / (delta * delta));
@@ -252,7 +253,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(Upd
 	//find which lane it should get to and choose which side to change
 	//now manually set to 1, it should be replaced by target lane index
 	//i am going to fix it.
-	int direction = 1 - p.currLaneIndex;
+	int direction = p.fromLaneIndex - p.currLaneIndex;
 	//direction = 0; //Otherwise drivers always merge.
 
 	//current lane is target lane

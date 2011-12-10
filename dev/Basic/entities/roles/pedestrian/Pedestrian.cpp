@@ -26,6 +26,44 @@ using std::vector;
 using namespace sim_mob;
 
 
+
+namespace {
+
+vector<const RoadSegment*> BuildUpPath(vector<RoadSegment*>::iterator curr, vector<RoadSegment*>::iterator end)
+{
+	vector<const RoadSegment*> res;
+	for (;curr!=end; curr++) {
+		res.push_back(*curr);
+	}
+	return res;
+}
+
+vector<const RoadSegment*> ForceForwardSubpath(const RoadSegment* revSegment, vector<RoadSegment*> candList1, vector<RoadSegment*> candList2)
+{
+	//First, iterate through each list until we find an item that is the REVERSE of our revSegment
+	for (int i=0; i<2; i++) {
+		vector<RoadSegment*>& cand = (i==0) ? candList1 : candList2;
+		for (vector<RoadSegment*>::iterator it=cand.begin(); it!=cand.end(); it++) {
+			//Negative: break early if we find the same segment.
+			if ((*it)->getStart()==revSegment->getStart() && (*it)->getEnd()==revSegment->getEnd()) {
+				break;
+			}
+
+			//Positive: return if we find the reverse segment
+			if ((*it)->getStart()==revSegment->getEnd() && (*it)->getEnd()==revSegment->getStart()) {
+				return BuildUpPath(it, cand.end());
+			}
+		}
+	}
+
+	//Error:
+	throw std::runtime_error("Can't retrieve forward subpath for the given candidates.");
+}
+
+}
+
+
+
 double Pedestrian::collisionForce = 20;
 double Pedestrian::agentRadius = 0.5; //Shoulder width of a person is about 0.5 meter
 
@@ -185,6 +223,14 @@ void sim_mob::Pedestrian::setGoal(PedestrianStage currStage)
 			throw std::runtime_error("Can't find path for Pedestrian.");
 		}
 
+
+		//TEMP: Currently, GeneralPathMover doesn't like walking on Segments in reverse. This is not too
+		//      difficult to fix, but for now I'm just flipping the path.
+		if (path.front()->getEnd()==parent->originNode) {
+			path = ForceForwardSubpath(path.front(), path.front()->getLink()->getPath(true), path.front()->getLink()->getPath(false));
+		}
+
+
 		//Set the path
 		fwdMovement.setPath(path, laneID);
 
@@ -192,38 +238,16 @@ void sim_mob::Pedestrian::setGoal(PedestrianStage currStage)
 		//      later we can just use the "isInIntersection()" check.
 		goal = Point2D(parent->destNode->location->getX(), parent->destNode->location->getY());
 		interPoint = Point2D(path.back()->getEnd()->location->getX(), path.back()->getEnd()->location->getY());
-
-
-		/*if(nextSideWalk->getRoadSegment()->getStart()==parent->originNode){
-//			std::cout<<"Intersection is "<<nextSideWalk->getRoadSegment()->getEnd()->location->getX()<<" "<<nextSideWalk->getRoadSegment()->getEnd()->location->getY()<<std::endl;
-			goal = Point2D(nextSideWalk->getRoadSegment()->getEnd()->location->getX(),nextSideWalk->getRoadSegment()->getEnd()->location->getY());
-			interPoint = Point2D(nextSideWalk->getRoadSegment()->getEnd()->location->getX(),nextSideWalk->getRoadSegment()->getEnd()->location->getY());
-		}
-		else{
-//			std::cout<<"Intersection is "<<nextSideWalk->getRoadSegment()->getStart()->location->getX()<<" "<<nextSideWalk->getRoadSegment()->getEnd()->location->getY()<<std::endl;
-			goal = Point2D(nextSideWalk->getRoadSegment()->getStart()->location->getX(),nextSideWalk->getRoadSegment()->getStart()->location->getY());
-			interPoint = Point2D(nextSideWalk->getRoadSegment()->getStart()->location->getX(),nextSideWalk->getRoadSegment()->getStart()->location->getY());
-		}*/
-
-		//setSidewalkParas(parent->originNode,ConfigParams::GetInstance().getNetwork().locateNode(goal, true),false);
 	}
 	else if(currStage==NavigatingIntersection){
-
-		//???? How to get position of crossings
-//		RoadNetwork& network = ConfigParams::GetInstance().getNetwork();
 
 		//Set the agent's position at the start of crossing and set the goal to the end of crossing
 		setCrossingParas();
 
 	}
 	else if(currStage==LeavingIntersection){
-
-//		parent->xPos.set(37250760);  //Hard-code now, to be changed
-//		parent->yPos.set(14355120);
 		goal = Point2D(parent->destNode->location->getX(),parent->destNode->location->getY());
 		setSidewalkParas(ConfigParams::GetInstance().getNetwork().locateNode(interPoint,true),parent->destNode,true);
-//		goalInLane = Point2D(parent->destNode->location->getX(),parent->destNode->location->getY());
-//		goal = Point2D(destPos.getX(),destPos.getY());
 	}
 
 }

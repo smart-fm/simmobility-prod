@@ -12,6 +12,7 @@
 #include "entities/roles/driver/Driver.hpp"
 #include "geospatial/Node.hpp"
 #include "util/OutputUtil.hpp"
+#include "util/GeomHelpers.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
@@ -68,7 +69,7 @@ double Pedestrian::collisionForce = 20;
 double Pedestrian::agentRadius = 0.5; //Shoulder width of a person is about 0.5 meter
 
 
-sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent)
+sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent), prevSeg(nullptr)
 {
 	//Check non-null parent. Perhaps references may be of use here?
 	if (!parent) {
@@ -126,7 +127,7 @@ void sim_mob::Pedestrian::update(frame_t frameNumber) {
 
 	//Set the initial position of agent
 	if (isFirstTimeUpdate()) {
-		setGoal(currentStage);
+		setGoal(currentStage, nullptr);
 		return;
 	}
 
@@ -146,16 +147,16 @@ void sim_mob::Pedestrian::update(frame_t frameNumber) {
 
 	if (isGoalReached()) {
 		++currentStage;
-		setGoal(currentStage); //Set next goal
+		setGoal(currentStage,prevSeg); //Set next goal
 		return;
 	}
 
 	if (currentStage == ApproachingIntersection) {
 		double vel = speed * 1.2 * 100 * ConfigParams::GetInstance().agentTimeStepInMilliSeconds()/1000.0;
 
-		const RoadSegment* prevSeg = fwdMovement.getCurrSegment();
+		prevSeg = fwdMovement.getCurrSegment();
 		fwdMovement.advance(vel);
-		if (!fwdMovement.isDoneWithEntireRoute() && prevSeg!=fwdMovement.getCurrSegment()) {
+		if (!fwdMovement.isDoneWithEntireRoute() && !fwdMovement.isInIntersection() && prevSeg!=fwdMovement.getCurrSegment()) {
 			//Move onto the outer lane (sidewalk).
 			//TODO: This isn't always correct on one-way streets.
 			fwdMovement.moveToNewPolyline(fwdMovement.getCurrSegment()->getLanes().size()-1);
@@ -207,7 +208,7 @@ void sim_mob::Pedestrian::output(frame_t frameNumber)
 
 /*---------------------Perception-related functions----------------------*/
 
-void sim_mob::Pedestrian::setGoal(PedestrianStage currStage)
+void sim_mob::Pedestrian::setGoal(PedestrianStage currStage,const RoadSegment* prevSegment)
 {
 	if(currStage==ApproachingIntersection){
 		//Retrieve the walking path to the next intersection.
@@ -256,7 +257,7 @@ void sim_mob::Pedestrian::setGoal(PedestrianStage currStage)
 	else if(currStage==NavigatingIntersection){
 
 		//Set the agent's position at the start of crossing and set the goal to the end of crossing
-		setCrossingParas();
+		setCrossingParas(prevSegment);
 
 	}
 	else if(currStage==LeavingIntersection){
@@ -643,7 +644,7 @@ void sim_mob::Pedestrian::checkForCollisions()
 
 /*---------------------Other helper functions----------------------------*/
 
-void sim_mob::Pedestrian::setCrossingParas(){
+void sim_mob::Pedestrian::setCrossingParas(const RoadSegment* prevSegment) {
 	double xRel, yRel;
 	double xAbs, yAbs;
 	double width, length, tmp;
@@ -673,7 +674,7 @@ void sim_mob::Pedestrian::setCrossingParas(){
 
 
 	//Determine the Segment that we need to cross.
-	const RoadSegment* segToCross;
+	const RoadSegment* segToCross = nullptr;
 	const std::set<sim_mob::RoadSegment*>& roadsegments=currNode->getRoadSegments();
 	for(i=roadsegments.begin();i!=roadsegments.end();i++){
 		if((*i)->getStart()!=parent->originNode&&(*i)->getEnd()!=parent->originNode&&(*i)->getStart()!=parent->destNode&&(*i)->getEnd()!=parent->destNode){
@@ -696,6 +697,34 @@ void sim_mob::Pedestrian::setCrossingParas(){
 			}
 		}
 	}
+
+
+	//TEMP: We can fold this in later
+	if (!segToCross) {
+		//Create a vector in the direction that we were moving.
+		DynamicVector dir(prevSegment->getStart()->location->getX(),prevSegment->getStart()->location->getY(),prevSegment->getEnd()->location->getX(),prevSegment->getEnd()->location->getY());
+		if (prevSegment->getStart() == currNode) {
+			dir.translateVect().flipMirror();
+		}
+		dir.scaleVectTo(dir.getMagnitude()*2); //Just to make sure we have something to work with.
+
+		//Now, check all outgoing segments and stop when we find one which starts "left" of the current one.
+		//TODO: This is not the best way to check this. Eventually we should use "getCircular()" to retrieve
+		//      an entire path around the intersection. But it should be solid enough for now.
+		for(i=roadsegments.begin();i!=roadsegments.end();i++){
+			const Node* check = (*i)->getStart()==currNode ? (*i)->getEnd() : (*i)->getStart();
+			if (PointIsLeftOfVector(dir, check->location->getX(), check->location->getY())) {
+				segToCross = *i;
+				break;
+			}
+		}
+	}
+
+
+	if (!segToCross) {
+		throw std::runtime_error("Can't find segment to cross.");
+	}
+
 
 	if(segToCross->getStart()==currNode){
 		 currCrossing=dynamic_cast<const Crossing*>(segToCross->nextObstacle(0,true).item);

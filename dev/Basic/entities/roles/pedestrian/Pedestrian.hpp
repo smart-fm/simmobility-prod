@@ -89,14 +89,14 @@ private:
 	//The following methods are to be moved to agent's sub-systems in future
 	bool isGoalReached();
 	bool isDestReached();
-	void setGoal(PedestrianStage currStage);
+	void setGoal(PedestrianStage currStage,const RoadSegment* prevSegment);
 	void updateVelocity(int);
 	void updatePosition();
 	void updatePedestrianSignal();
 	void checkForCollisions();
 //	bool reachStartOfCrossing();
 	bool checkGapAcceptance();
-	void setCrossingParas(); //Temp helper function
+	void setCrossingParas(const RoadSegment* prevSegment); //Temp helper function
 	bool isFirstTimeUpdate(); //Temp helper function
 	void setSidewalkParas(Node* start, Node* end, bool isStartMulti);
 	void absToRel(double, double, double &, double &);
@@ -104,6 +104,9 @@ private:
 
 	//Attempting to replace stage-one movement (TO the intersection) with the GeneralPathMover. ~Seth
 	GeneralPathMover fwdMovement;
+
+	//Could be folded into the code if we switched goal checking and movement.
+	const RoadSegment* prevSeg;
 
 };
 

@@ -21,7 +21,7 @@
 //Should we use dynamic dispatch, or force all Agents to start at time tick zero?
 // This is a workaround for current bugs; it will be removed later.
 #ifndef DISABLE_DYNAMIC_DISPATCH
-  //#define DISABLE_DYNAMIC_DISPATCH
+  #define DISABLE_DYNAMIC_DISPATCH
 #endif
 
 //Use this flag to completely disable compilation with MPI. This flag basically just disables the various

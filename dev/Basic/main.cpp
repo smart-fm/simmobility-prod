@@ -95,8 +95,10 @@ void signal_status_worker(sim_mob::Worker& wk, frame_t frameNumber)
  */
 bool performMain(const std::string& configFileName) {
 	//Loader params for our Agents
+#ifndef DISABLE_DYNAMIC_DISPATCH
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents,
 			Agent::all_agents, Agent::all_agents_lock);
+#endif
 
 	//Initialization: Scenario definition
 	vector<Entity*>& agents = Agent::all_agents;
@@ -141,7 +143,13 @@ bool performMain(const std::string& configFileName) {
 			config.granAgentsTicks, true);
 	//Agent::TMP_AgentWorkGroup = &agentWorkers;
 	Worker::ActionFunction entityWork = boost::bind(entity_worker, _1, _2);
-	agentWorkers.initWorkers(&entityWork, &entLoader);
+	agentWorkers.initWorkers(&entityWork,
+#ifndef DISABLE_DYNAMIC_DISPATCH
+		&entLoader
+#else
+		nullptr
+#endif
+	);
 
 	//Migrate all Agents from the all_agents array to the pending_agents priority queue unless they are
 	// actually starting at time tick zero.

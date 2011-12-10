@@ -60,6 +60,7 @@ struct UpdateParams {
 
 	const Lane* currLane;  //TODO: This should really be tied to PolyLineMover, but for now it's not important.
 	size_t currLaneIndex; //Cache of currLane's index.
+	size_t fromLaneIndex; //for lane changing model
 	const Lane* leftLane;
 	const Lane* rightLane;
 

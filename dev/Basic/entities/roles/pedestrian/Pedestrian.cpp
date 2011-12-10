@@ -249,6 +249,11 @@ void sim_mob::Pedestrian::setGoal(PedestrianStage currStage,const RoadSegment* p
 			setSidewalkParas(parent->originNode,ConfigParams::GetInstance().getNetwork().locateNode(goal, true),false);
 
 		} else {  //New code
+			{
+				boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+				std::cout <<"Pedestrian: " <<parent->getId() <<" is using the NEW movement model." <<std::endl;
+			}
+
 			//Sanity check
 			if (path.empty() || laneID==-1) {
 				throw std::runtime_error("Can't find path for Pedestrian.");

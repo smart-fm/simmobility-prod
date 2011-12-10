@@ -69,7 +69,7 @@ double Pedestrian::collisionForce = 20;
 double Pedestrian::agentRadius = 0.5; //Shoulder width of a person is about 0.5 meter
 
 
-sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent), prevSeg(nullptr)
+sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent), prevSeg(nullptr), isUsingGenPathMover(false)
 {
 	//Check non-null parent. Perhaps references may be of use here?
 	if (!parent) {
@@ -151,7 +151,7 @@ void sim_mob::Pedestrian::update(frame_t frameNumber) {
 		return;
 	}
 
-	if (currentStage == ApproachingIntersection) {
+	if (currentStage == ApproachingIntersection && isUsingGenPathMover) {
 		double vel = speed * 1.2 * 100 * ConfigParams::GetInstance().agentTimeStepInMilliSeconds()/1000.0;
 
 		prevSeg = fwdMovement.getCurrSegment();
@@ -162,16 +162,12 @@ void sim_mob::Pedestrian::update(frame_t frameNumber) {
 			fwdMovement.moveToNewPolyline(fwdMovement.getCurrSegment()->getLanes().size()-1);
 		}
 
-
 		parent->xPos.set(fwdMovement.getPosition().x);
 		parent->yPos.set(fwdMovement.getPosition().y);
-		LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
-	} else if (currentStage == LeavingIntersection) {
+	} else if (currentStage == ApproachingIntersection || currentStage == LeavingIntersection) {
 		updateVelocity(0);
 		updatePosition();
 		LogOut("Pedestrian " <<parent->getId() <<" is walking on sidewalk" <<std::endl);
-		LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
-		return;
 	} else if (currentStage == NavigatingIntersection) {
 		//Check whether to start to cross or not
 		updatePedestrianSignal();
@@ -194,9 +190,10 @@ void sim_mob::Pedestrian::update(frame_t frameNumber) {
 			//Output (temp)
 			LogOut("Pedestrian " <<parent->getId() <<" is waiting at the crossing" <<std::endl);
 		}
-		//Output (temp)
-		LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
 	}
+
+	//Output (temp)
+	LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
 }
 
 
@@ -215,10 +212,16 @@ void sim_mob::Pedestrian::setGoal(PedestrianStage currStage,const RoadSegment* p
 		vector<WayPoint> wp_path= StreetDirectory::instance().shortestWalkingPath(*parent->originNode->location,*parent->destNode->location);
 
 		//Create a vector of RoadSegments, which the GeneralPathMover will expect.
+		const Lane* nextSideWalk = nullptr; //For the old code
 		vector<const RoadSegment*> path;
 		int laneID = -1; //Also save the lane id.
 		for(vector<WayPoint>::iterator it=wp_path.begin(); it!=wp_path.end(); it++) {
 			if(it->type_ == WayPoint::SIDE_WALK) {
+				//Save
+				if (!nextSideWalk) {
+					nextSideWalk = it->lane_;
+				}
+
 				//If we're changing Links, stop. Thus, "path" contains only the Segments needed to reach the Intersection, and no more.
 				//NOTE: Later, you can send the ENTIRE shortestWalkingPath to fwdMovement and just handle "isInIntersection()"
 				RoadSegment* rs = it->lane_->getRoadSegment();
@@ -232,35 +235,46 @@ void sim_mob::Pedestrian::setGoal(PedestrianStage currStage,const RoadSegment* p
 			}
 		}
 
-		//Sanity check
-		if (path.empty() || laneID==-1) {
-			throw std::runtime_error("Can't find path for Pedestrian.");
+		//If there is exactly 1 Road Segment before the intersection, use the old movement code.
+		isUsingGenPathMover = path.size() != 1;
+		if (!isUsingGenPathMover) {
+			//Old code
+			if(nextSideWalk->getRoadSegment()->getStart()==parent->originNode){
+				goal = Point2D(nextSideWalk->getRoadSegment()->getEnd()->location->getX(),nextSideWalk->getRoadSegment()->getEnd()->location->getY());
+				interPoint = Point2D(nextSideWalk->getRoadSegment()->getEnd()->location->getX(),nextSideWalk->getRoadSegment()->getEnd()->location->getY());
+			} else{
+				goal = Point2D(nextSideWalk->getRoadSegment()->getStart()->location->getX(),nextSideWalk->getRoadSegment()->getStart()->location->getY());
+				interPoint = Point2D(nextSideWalk->getRoadSegment()->getStart()->location->getX(),nextSideWalk->getRoadSegment()->getStart()->location->getY());
+			}
+			setSidewalkParas(parent->originNode,ConfigParams::GetInstance().getNetwork().locateNode(goal, true),false);
+
+		} else {  //New code
+			//Sanity check
+			if (path.empty() || laneID==-1) {
+				throw std::runtime_error("Can't find path for Pedestrian.");
+			}
+
+
+			//TEMP: Currently, GeneralPathMover doesn't like walking on Segments in reverse. This is not too
+			//      difficult to fix, but for now I'm just flipping the path.
+			if (path.front()->getEnd()==parent->originNode) {
+				path = ForceForwardSubpath(path.front(), path.front()->getLink()->getPath(true), path.front()->getLink()->getPath(false));
+				laneID = path.front()->getLanes().size()-1;
+			}
+
+
+			//Set the path
+			fwdMovement.setPath(path, laneID);
+
+			//NOTE: "goal" and "interPoint" are not really needed. We will keep them for now, but
+			//      later we can just use the "isInIntersection()" check.
+			goal = Point2D(path.back()->getEnd()->location->getX(), path.back()->getEnd()->location->getY());
+			interPoint = Point2D(path.back()->getEnd()->location->getX(), path.back()->getEnd()->location->getY());
 		}
-
-
-		//TEMP: Currently, GeneralPathMover doesn't like walking on Segments in reverse. This is not too
-		//      difficult to fix, but for now I'm just flipping the path.
-		if (path.front()->getEnd()==parent->originNode) {
-			path = ForceForwardSubpath(path.front(), path.front()->getLink()->getPath(true), path.front()->getLink()->getPath(false));
-			laneID = path.front()->getLanes().size()-1;
-		}
-
-
-		//Set the path
-		fwdMovement.setPath(path, laneID);
-
-		//NOTE: "goal" and "interPoint" are not really needed. We will keep them for now, but
-		//      later we can just use the "isInIntersection()" check.
-		goal = Point2D(path.back()->getEnd()->location->getX(), path.back()->getEnd()->location->getY());
-		interPoint = Point2D(path.back()->getEnd()->location->getX(), path.back()->getEnd()->location->getY());
-	}
-	else if(currStage==NavigatingIntersection){
-
+	} else if(currStage==NavigatingIntersection) {
 		//Set the agent's position at the start of crossing and set the goal to the end of crossing
 		setCrossingParas(prevSegment);
-
-	}
-	else if(currStage==LeavingIntersection){
+	} else if(currStage==LeavingIntersection) {
 		goal = Point2D(parent->destNode->location->getX(),parent->destNode->location->getY());
 		setSidewalkParas(ConfigParams::GetInstance().getNetwork().locateNode(interPoint,true),parent->destNode,true);
 	}
@@ -417,7 +431,7 @@ bool sim_mob::Pedestrian::isDestReached()
 
 bool sim_mob::Pedestrian::isGoalReached()
 {
-	if(currentStage==ApproachingIntersection) {
+	if(currentStage==ApproachingIntersection && isUsingGenPathMover) {
 		return fwdMovement.isDoneWithEntireRoute();
 	}
 

@@ -108,6 +108,9 @@ private:
 	//Could be folded into the code if we switched goal checking and movement.
 	const RoadSegment* prevSeg;
 
+	//Are we using the multi-path movement model? Set automatically if we move on a path of size >2
+	bool isUsingGenPathMover;
+
 };
 
 

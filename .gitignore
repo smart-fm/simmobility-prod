@@ -1,7 +1,9 @@
 #Ignore all files within these directories
 dev/Basic/Debug/
+dev/Basic/Debug_M/
 dev/Basic/Release/
 dev/Basic/doxy/output/
+dev/Basic/Build/*
 
 #Java project built files
 dev/visualizer/Traffic_Signal_Animation/.settings/
@@ -28,3 +30,7 @@ testing/RoadNetworkSampleVis/applet/
 #Ignore python's compiled byte-code, optimized or otherwise.
 *.pyc
 *.pyo
+
+#Don't ignore gitignore files:
+!.gitignore
+

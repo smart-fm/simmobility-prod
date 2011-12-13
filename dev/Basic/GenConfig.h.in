@@ -1,0 +1,4 @@
+//Cmake-related constants
+#define SIMMOB_VERSION_MAJOR "@Basic_VERSION_MAJOR@"
+#define SIMMOB_VERSION_MINOR "@Basic_VERSION_MINOR@"
+

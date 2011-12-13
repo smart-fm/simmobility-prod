@@ -12,7 +12,10 @@ set (Basic_VERSION_MINOR 1)
 option (SIMMOB_DISABLE_MPI  "Disable all included files, libraries, and code segments that require MPI." ON)
 
 #Option: disable dynamic dispatch. Use the cmake gui to change this on a per-user basis.
-option (SIMMOB_DISABLE_DYNAMIC_DISPATCH  "Disable dynamic dispatch of Agents. All Agents will be started at time tick zero and will silently skup updates until before their startTime (or after they are done)." OFF) 
+option (SIMMOB_DISABLE_DYNAMIC_DISPATCH  "Disable dynamic dispatch of Agents. All Agents will be started at time tick zero and will silently skup updates until before their startTime (or after they are done)." OFF)
+
+#Option: compile with c++0x. Use the cmake gui to change this on a per-user basis.
+option (SIMMOB_LATEST_STANDARD  "Attempt to compile Sim Mobility with the latest version of C++ (2011). Untested." OFF) 
 
 #Turn on verbose output
 SET(CMAKE_VERBOSE_MAKEFILE ON)
@@ -32,6 +35,13 @@ configure_file (
   "${PROJECT_SOURCE_DIR}/GenConfig.h.in"
   "${PROJECT_SOURCE_DIR}/GenConfig.h"
 )
+
+#Cflags for C++0x support via gcc
+IF (SIMMOB_LATEST_STANDARD)
+  IF(CMAKE_COMPILER_IS_GNUCXX)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+  ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+ENDIF(SIMMOB_LATEST_STANDARD)
 
 
 #Include directories ported over from Eclipse. Can be augmented later with pkgconfig.
@@ -86,7 +96,7 @@ target_link_libraries (SimMobility soci_postgresql-gcc-3_0)
 
 #Optional library: MPI
 if (SIMMOB_DISABLE_MPI)
-		target_link_libraries (SimMobility boost_mpi)
+  target_link_libraries (SimMobility boost_mpi)
 endif(SIMMOB_DISABLE_MPI)
 
 

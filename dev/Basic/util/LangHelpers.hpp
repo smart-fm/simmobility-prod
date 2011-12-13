@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "GenConfig.h"
+
 
 /**
  * \file LangHelpers.hpp
@@ -22,6 +24,7 @@ void delete_possible_pointer(T* item) { delete item; }
 
 
 
+#ifndef SIMMOB_LATEST_STANDARD
 /**
  * Temporary definition of nullptr. The new standard (C++11) will have "nullptr" as a builtin
  * keyword with special properties. So, I'm defining a class here with some of "nullptr"'s properties.
@@ -56,7 +59,7 @@ private:
 	//bool operator != (long) const;
 
 } nullptr = {};  //Single instance, named "nullptr"
-
+#endif
 
 
 

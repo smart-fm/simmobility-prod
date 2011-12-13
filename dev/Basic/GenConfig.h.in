@@ -21,6 +21,7 @@
 //Flags imported from cmake
 #cmakedefine SIMMOB_DISABLE_MPI
 #cmakedefine SIMMOB_DISABLE_DYNAMIC_DISPATCH
+#cmakedefine SIMMOB_LATEST_STANDARD
 
 
 ///Sizes of workgroups. (Note that enums are allowed to overlap values)

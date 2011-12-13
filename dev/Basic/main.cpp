@@ -12,6 +12,7 @@
 #include <boost/thread.hpp>
 
 #include "constants.h"
+#include "GenConfig.h"
 
 #include "workers/Worker.hpp"
 #include "buffering/BufferedDataManager.hpp"
@@ -45,9 +46,13 @@
 using std::cout;
 using std::endl;
 using std::vector;
+using std::string;
 using boost::thread;
 
 using namespace sim_mob;
+
+//Current software version.
+const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
 
 //Function prototypes.
 //void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents);
@@ -94,6 +99,8 @@ void signal_status_worker(sim_mob::Worker& wk, frame_t frameNumber)
  * This function is separate from main() to allow for easy scoping of WorkGroup objects.
  */
 bool performMain(const std::string& configFileName) {
+	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
+
 	//Loader params for our Agents
 #ifndef DISABLE_DYNAMIC_DISPATCH
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents,

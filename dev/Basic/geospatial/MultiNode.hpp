@@ -6,7 +6,7 @@
 #include <map>
 #include <set>
 
-#include "constants.h"
+#include "GenConfig.h"
 
 #include "Node.hpp"
 

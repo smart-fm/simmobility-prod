@@ -4,7 +4,7 @@
 
 #include <vector>
 
-#include "constants.h"
+#include "GenConfig.h"
 #include "Entity.hpp"
 
 namespace sim_mob

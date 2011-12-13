@@ -17,7 +17,7 @@
 #include "CrossingLoader.hpp"
 #include "LaneLoader.hpp"
 
-#include "constants.h"
+#include "GenConfig.h"
 
 #include "geospatial/Point2D.hpp"
 #include "geospatial/Node.hpp"

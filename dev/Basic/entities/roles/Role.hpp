@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "constants.h"
+#include "GenConfig.h"
 #include "util/LangHelpers.hpp"
 #include "entities/Agent.hpp"
 #include "entities/roles/driver/UpdateParams.hpp"

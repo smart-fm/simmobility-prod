@@ -12,7 +12,7 @@
 #include <map>
 #include <vector>
 
-#include "constants.h"
+#include "GenConfig.h"
 #include "Agent.hpp"
 #include "metrics/Length.hpp"
 #include "util/SignalStatus.hpp"

@@ -11,7 +11,7 @@
 
 #include <vector>
 
-#include "constants.h"
+#include "GenConfig.h"
 #include "Signal.hpp"
 
 

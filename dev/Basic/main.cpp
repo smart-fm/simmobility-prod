@@ -11,7 +11,6 @@
 #include <string>
 #include <boost/thread.hpp>
 
-#include "constants.h"
 #include "GenConfig.h"
 
 #include "workers/Worker.hpp"

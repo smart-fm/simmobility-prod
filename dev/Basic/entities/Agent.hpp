@@ -7,7 +7,7 @@
 #include <functional>
 #include <stdlib.h>
 
-#include "constants.h"
+#include "GenConfig.h"
 
 #include <boost/thread.hpp>
 

@@ -22,7 +22,7 @@
 #include <boost/thread.hpp>
 #include <boost/function.hpp>
 
-#include "constants.h"
+#include "GenConfig.h"
 
 #include "entities/Entity.hpp"
 

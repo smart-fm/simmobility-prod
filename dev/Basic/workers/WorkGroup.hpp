@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <boost/thread.hpp>
 
-#include "constants.h"
+#include "GenConfig.h"
 
 #include "util/LangHelpers.hpp"
 #include "util/DebugFlags.hpp"

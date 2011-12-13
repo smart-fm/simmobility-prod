@@ -26,7 +26,7 @@ void delete_possible_pointer(T* item) { delete item; }
  * Temporary definition of nullptr. The new standard (C++11) will have "nullptr" as a builtin
  * keyword with special properties. So, I'm defining a class here with some of "nullptr"'s properties.
  * If we use, e.g.:
- *    #include "constants.h"
+ *    #include "GenConfig.h"
  *    in* x = nullptr;
  *
  * ...then when Tile-GCC supports nullptr, we can simply delete this temporary class and

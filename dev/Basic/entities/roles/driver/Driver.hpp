@@ -6,7 +6,7 @@
 #include <math.h>
 #include <set>
 
-#include "constants.h"
+#include "GenConfig.h"
 
 #include "entities/roles/Role.hpp"
 #include "buffering/Buffered.hpp"

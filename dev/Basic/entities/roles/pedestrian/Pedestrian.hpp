@@ -12,7 +12,7 @@
 #include <time.h>
 #include <math.h>
 
-#include "constants.h"
+#include "GenConfig.h"
 
 #include "entities/roles/Role.hpp"
 #include "geospatial/Point2D.hpp"

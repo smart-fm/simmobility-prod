@@ -16,6 +16,22 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmessage-length=0")
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
-#Our output executable and its input sources
-add_executable(SimMobility main.cpp)
 
+#Include directories ported over from Eclipse. Can be augmented later with pkgconfig.
+include_directories("/usr/include/soci/postgresql")
+include_directories("/usr/include/soci")
+include_directories("/usr/include/postgresql")
+
+#Group as many files as possible together automatically
+FILE(GLOB_RECURSE BASIC_CPP RECURSE_SYMLINKS_OFF *.cpp)
+
+#Remove tests
+FILE(GLOB UnitTests buffering/unit-tests/*.cpp)
+LIST(REMOVE_ITEM BASIC_CPP ${UnitTests})
+
+#Include the top-level source/binary directories
+include_directories("${PROJECT_SOURCE_DIR}")
+include_directories("${PROJECT_BINARY_DIR}")
+
+#Our output executable and its input sources. List *.c files manually
+add_executable(SimMobility main.cpp  ${BASIC_CPP})

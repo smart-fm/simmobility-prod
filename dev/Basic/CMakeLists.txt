@@ -22,16 +22,35 @@ include_directories("/usr/include/soci/postgresql")
 include_directories("/usr/include/soci")
 include_directories("/usr/include/postgresql")
 
+#Link directories
+#link_directories (/usr/lib/whatever)  
+
 #Group as many files as possible together automatically
-FILE(GLOB_RECURSE BASIC_CPP RECURSE_SYMLINKS_OFF *.cpp)
+FILE(GLOB_RECURSE BASIC_CPP *.cpp)
 
 #Remove tests
-FILE(GLOB UnitTests buffering/unit-tests/*.cpp)
+FILE(GLOB_RECURSE UnitTests buffering/unit-tests/*.cpp)
 LIST(REMOVE_ITEM BASIC_CPP ${UnitTests})
+
+#Remove the "Build" directory
+FILE(GLOB_RECURSE BuildFiles Build/*.cpp)
+LIST(REMOVE_ITEM BASIC_CPP ${BuildFiles})
 
 #Include the top-level source/binary directories
 include_directories("${PROJECT_SOURCE_DIR}")
 include_directories("${PROJECT_BINARY_DIR}")
 
 #Our output executable and its input sources. List *.c files manually
-add_executable(SimMobility main.cpp  ${BASIC_CPP})
+add_executable(SimMobility ${BASIC_CPP})
+
+#Libraries to link, ported over from Eclipse.
+target_link_libraries (SimMobility boost_mpi)      #Todo: We can remove this if the mpi flag is unset
+target_link_libraries (SimMobility boost_thread)
+target_link_libraries (SimMobility CGAL)
+target_link_libraries (SimMobility boost_serialization)
+target_link_libraries (SimMobility tinyxml)
+target_link_libraries (SimMobility soci_core-gcc-3_0)
+target_link_libraries (SimMobility soci_postgresql-gcc-3_0)
+
+
+

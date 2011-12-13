@@ -37,25 +37,41 @@ include_directories("/usr/include/soci")
 include_directories("/usr/include/postgresql")
 
 #Link directories
-#link_directories (/usr/lib/whatever)  
+#link_directories (/usr/lib/whatever)
 
 #Group as many files as possible together automatically
 FILE(GLOB_RECURSE BASIC_CPP *.cpp)
 
+#Create a list of items to remove from the Build.
+# Adding main.cpp to this list makes a good starting point, and ensures
+# we always have at least one item to remove from BASIC_CPP
+SET(IgnoreList main.cpp)
+
 #Remove tests
-FILE(GLOB_RECURSE UnitTests buffering/unit-tests/*.cpp)
-LIST(REMOVE_ITEM BASIC_CPP ${UnitTests})
+FILE(GLOB_RECURSE IgnoreTmp buffering/unit-tests/*.cpp)
+LIST(APPEND IgnoreList ${IgnoreTmp})
 
 #Remove the "Build" directory
-FILE(GLOB_RECURSE BuildFiles Build/*.cpp)
-LIST(REMOVE_ITEM BASIC_CPP ${BuildFiles})
+FILE(GLOB_RECURSE IgnoreTmp Build/*.cpp)
+LIST(APPEND IgnoreList ${IgnoreTmp})
+
+#Remove the "Debug" directories
+FILE(GLOB_RECURSE IgnoreTmp Debug/*.cpp)
+LIST(APPEND IgnoreList ${IgnoreTmp})
+FILE(GLOB_RECURSE IgnoreTmp Debug_M/*.cpp)
+LIST(APPEND IgnoreList ${IgnoreTmp})
+FILE(GLOB_RECURSE IgnoreTmp Release/*.cpp)
+LIST(APPEND IgnoreList ${IgnoreTmp})
+
+#Actually remove these
+LIST(REMOVE_ITEM BASIC_CPP ${IgnoreList})
 
 #Include the top-level source/binary directories
 include_directories("${PROJECT_SOURCE_DIR}")
 #include_directories("${PROJECT_BINARY_DIR}")
 
 #Our output executable and its input sources. List *.c files manually
-add_executable(SimMobility ${BASIC_CPP})
+add_executable(SimMobility main.cpp ${BASIC_CPP})
 
 #Libraries to link, ported over from Eclipse.
 target_link_libraries (SimMobility boost_thread)

@@ -63,7 +63,7 @@ public:
 
 	Worker* getWorker(int id);
 
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	void stageEntities();
 	std::vector<Entity*> entToBeRemoved;
 #endif

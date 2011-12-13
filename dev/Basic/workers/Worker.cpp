@@ -44,7 +44,7 @@ std::vector<Entity*>& sim_mob::Worker::getEntities() {
 }
 
 
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 void sim_mob::Worker::scheduleForAddition(Entity* entity)
 {
 	//Save for later
@@ -123,7 +123,7 @@ void sim_mob::Worker::interrupt()
 }
 
 
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 void sim_mob::Worker::addPendingEntities()
 {
 	for (vector<Entity*>::iterator it=toBeAdded.begin(); it!=toBeAdded.end(); it++) {
@@ -155,7 +155,7 @@ void sim_mob::Worker::barrier_mgmt()
 	bool active = true;
 	while (active) {
 		//Add Agents as required.
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 		addPendingEntities();
 #endif
 
@@ -163,7 +163,7 @@ void sim_mob::Worker::barrier_mgmt()
 		perform_main(currTick);
 
 		//Remove Agents as requires
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 		removePendingEntities();
 #endif
 

@@ -9,7 +9,10 @@ set (Basic_VERSION_MAJOR 0)
 set (Basic_VERSION_MINOR 1)
 
 #Option: disable MPI. Use the cmake gui to change this on a per-user basis.
-option (SIMMOB_DISABLE_MPI  "Disable all included files, libraries, and code segments that require MPI." ON) 
+option (SIMMOB_DISABLE_MPI  "Disable all included files, libraries, and code segments that require MPI." ON)
+
+#Option: disable dynamic dispatch. Use the cmake gui to change this on a per-user basis.
+option (SIMMOB_DISABLE_DYNAMIC_DISPATCH  "Disable dynamic dispatch of Agents. All Agents will be started at time tick zero and will silently skup updates until before their startTime (or after they are done)." OFF) 
 
 #Turn on verbose output
 SET(CMAKE_VERBOSE_MAKEFILE ON)

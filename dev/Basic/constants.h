@@ -18,21 +18,13 @@
 //namespace sim_mob {} //This is a temporary file, so it exists outside the namespace
 
 
-//Should we use dynamic dispatch, or force all Agents to start at time tick zero?
-// This is a workaround for current bugs; it will be removed later.
-#ifndef DISABLE_DYNAMIC_DISPATCH
-  //#define DISABLE_DYNAMIC_DISPATCH
-#endif
+//
+// NOTE: The flags "DISABLE_DYNAMIC_DISPATCH" and "SIMMOB_DISABLE_MPI" used to be defined here, but they
+//       should now be set through the CMake GUI. Please see the wiki for more information; in particular,
+//       this makes it easier for people working with different flag settings to avoid clashing on each commit.
+// ~Seth
+//
 
-//Use this flag to completely disable compilation with MPI. This flag basically just disables the various
-//  MPI includes. It should be possible to EFFECTIVELY disable mpi by simply setting the number of
-//  computers to 1, but this flag exists to allow someone without boost::mpi installed to compile the
-//  Sim Mobility simulator.
-//NOTE: Currently the user will still need libboost_mpi to "link" against, but when we switch to
-//      cmake (or anything slightly more automated) we will disable that too.
-#ifndef SIMMOB_DISABLE_MPI
-  #define SIMMOB_DISABLE_MPI
-#endif
 
 
 //Sizes of workgroups. (Note that enums are allowed to overlap values)

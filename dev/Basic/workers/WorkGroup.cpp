@@ -74,7 +74,7 @@ void sim_mob::WorkGroup::startAll()
 }
 
 
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 void sim_mob::WorkGroup::scheduleEntForRemoval(Entity* ag)
 {
 	if (!loader) {
@@ -119,7 +119,7 @@ void sim_mob::WorkGroup::stageEntities()
 
 void sim_mob::WorkGroup::assignAWorker(Entity* ag)
 {
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	workers.at(nextWorkerID++)->scheduleForAddition(ag);
 #else
 	workers.at(nextWorkerID++)->scheduleEntityNow(ag);
@@ -160,12 +160,12 @@ void sim_mob::WorkGroup::wait()
 	shared_barr.wait();
 
 	//Stage Agent updates based on nextTimeTickToStage
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	stageEntities();
 #endif
 
 	//Remove any Agents staged for removal.
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	if (loader) {
 		for (std::vector<Entity*>::iterator it=entToBeRemoved.begin(); it!=entToBeRemoved.end(); it++) {
 			boost::mutex::scoped_lock local_lock(loader->entity_dest_lock);

@@ -65,7 +65,7 @@ void entity_worker(sim_mob::Worker& wk, frame_t frameNumber)
 	for (vector<Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
 		if (!(*it)->update(frameNumber)) {
 			//This Entity is done; schedule for deletion.
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 			wk.scheduleForRemoval(*it);
 #endif
 		}
@@ -102,7 +102,7 @@ bool performMain(const std::string& configFileName) {
 	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
 
 	//Loader params for our Agents
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents,
 			Agent::all_agents, Agent::all_agents_lock);
 #endif
@@ -151,7 +151,7 @@ bool performMain(const std::string& configFileName) {
 	//Agent::TMP_AgentWorkGroup = &agentWorkers;
 	Worker::ActionFunction entityWork = boost::bind(entity_worker, _1, _2);
 	agentWorkers.initWorkers(&entityWork,
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 		&entLoader
 #else
 		nullptr
@@ -163,13 +163,13 @@ bool performMain(const std::string& configFileName) {
 	vector<Entity*> starting_agents;
 	for (vector<Entity*>::iterator it = agents.begin(); it != agents.end(); it++) {
 		Entity* const ag = *it;
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 		if (ag->getStartTime() == 0) {
 #endif
 			//Only agents with a start time of zero should start immediately in the all_agents list.
 			agentWorkers.assignAWorker(ag);
 			starting_agents.push_back(ag);
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 		} else {
 			//Start later.
 			Agent::pending_agents.push(ag);
@@ -219,7 +219,7 @@ bool performMain(const std::string& configFileName) {
 	/////////////////////////////////////////////////////////////////
 	size_t numStartAgents = Agent::all_agents.size();
 
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	size_t numPendingAgents = Agent::pending_agents.size();
 #endif
 
@@ -283,7 +283,7 @@ bool performMain(const std::string& configFileName) {
 #endif
 
 	cout << "Starting Agents: " << numStartAgents;
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	cout << ",     Pending: " << numPendingAgents;
 #endif
 	cout << endl;
@@ -314,7 +314,7 @@ bool performMain(const std::string& configFileName) {
 				- numDriver - numPedestrian) << " (Other)" << endl;
 	}
 
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	if (!Agent::pending_agents.empty()) {
 		cout << "WARNING! There are still " << Agent::pending_agents.size()
 				<< " Agents waiting to be scheduled; next start time is: "

@@ -83,7 +83,7 @@ LIST(APPEND IgnoreList ${IgnoreTmp})
 LIST(REMOVE_ITEM BASIC_CPP ${IgnoreList})
 
 #List of libraries to link
-SET(LibraryList boost_thread, CGAL, boost_serialization, tinyxml, soci_core-gcc-3_0, soci_postgresql-gcc-3_0)
+SET(LibraryList boost_thread CGAL boost_serialization tinyxml soci_core-gcc-3_0 soci_postgresql-gcc-3_0)
 #Optional library: MPI
 IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   LIST(APPEND LibraryList boost_mpi)

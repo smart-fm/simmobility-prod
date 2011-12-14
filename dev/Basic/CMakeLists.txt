@@ -63,6 +63,9 @@ FILE(GLOB_RECURSE BASIC_CPP *.cpp)
 # we always have at least one item to remove from BASIC_CPP
 SET(IgnoreList main.cpp)
 
+#TEMP: Why isn't the previous line working?
+FILE(GLOB IgnoreList "main.cpp")
+
 #Remove tests
 FILE(GLOB_RECURSE IgnoreTmp "unit-tests/*.cpp" "unit-tests/*.c")
 LIST(APPEND IgnoreList ${IgnoreTmp})

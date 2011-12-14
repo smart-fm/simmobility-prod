@@ -15,7 +15,10 @@ option (SIMMOB_DISABLE_MPI  "Disable all included files, libraries, and code seg
 option (SIMMOB_DISABLE_DYNAMIC_DISPATCH  "Disable dynamic dispatch of Agents. All Agents will be started at time tick zero and will silently skup updates until before their startTime (or after they are done)." OFF)
 
 #Option: compile with c++0x. Use the cmake gui to change this on a per-user basis.
-option (SIMMOB_LATEST_STANDARD  "Attempt to compile Sim Mobility with the latest version of C++ (2011). Untested." OFF) 
+option (SIMMOB_LATEST_STANDARD  "Attempt to compile Sim Mobility with the latest version of C++ (2011). Untested." OFF)
+
+#Option: build tests. Use the cmake gui to change this on a per-user basis.
+option(BUILD_TESTS "Build unit tests." OFF) 
 
 #Turn on verbose output
 SET(CMAKE_VERBOSE_MAKEFILE ON)
@@ -61,7 +64,7 @@ FILE(GLOB_RECURSE BASIC_CPP *.cpp)
 SET(IgnoreList main.cpp)
 
 #Remove tests
-FILE(GLOB_RECURSE IgnoreTmp buffering/unit-tests/*.cpp)
+FILE(GLOB_RECURSE IgnoreTmp "unit-tests/*.cpp" "unit-tests/*.c")
 LIST(APPEND IgnoreList ${IgnoreTmp})
 
 #Remove the "Build" directory
@@ -79,6 +82,18 @@ LIST(APPEND IgnoreList ${IgnoreTmp})
 #Actually remove these
 LIST(REMOVE_ITEM BASIC_CPP ${IgnoreList})
 
+#List of libraries to link
+SET(LibraryList boost_thread, CGAL, boost_serialization, tinyxml, soci_core-gcc-3_0, soci_postgresql-gcc-3_0)
+#Optional library: MPI
+IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
+  LIST(APPEND LibraryList boost_mpi)
+ENDIF(${SIMMOB_DISABLE_MPI} MATCHES "OFF")
+
+#Build tests?
+IF (${BUILD_TESTS} MATCHES "ON")
+	add_subdirectory(unit-tests)
+ENDIF (${BUILD_TESTS} MATCHES "ON")
+
 #Include the top-level source/binary directories
 include_directories("${PROJECT_SOURCE_DIR}")
 #include_directories("${PROJECT_BINARY_DIR}")
@@ -87,17 +102,8 @@ include_directories("${PROJECT_SOURCE_DIR}")
 add_executable(SimMobility main.cpp ${BASIC_CPP})
 
 #Libraries to link, ported over from Eclipse.
-target_link_libraries (SimMobility boost_thread)
-target_link_libraries (SimMobility CGAL)
-target_link_libraries (SimMobility boost_serialization)
-target_link_libraries (SimMobility tinyxml)
-target_link_libraries (SimMobility soci_core-gcc-3_0)
-target_link_libraries (SimMobility soci_postgresql-gcc-3_0)
+target_link_libraries (SimMobility ${LibraryList})
 
-#Optional library: MPI
-if (SIMMOB_DISABLE_MPI)
-  target_link_libraries (SimMobility boost_mpi)
-endif(SIMMOB_DISABLE_MPI)
 
 
 

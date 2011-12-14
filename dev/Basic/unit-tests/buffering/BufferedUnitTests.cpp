@@ -3,10 +3,10 @@
 #include <cmath>
 #include <limits>
 
-#include <Buffered.hpp>
-#include <Buffered_uint32.hpp>
-#include <BufferedDataManager.hpp>
-#include <Vector2D.hpp>
+#include "buffering/Buffered.hpp"
+#include "buffering/Buffered_uint32.hpp"
+#include "buffering/BufferedDataManager.hpp"
+#include "buffering/Vector2D.hpp"
 
 #include "BufferedUnitTests.hpp"
 

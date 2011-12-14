@@ -89,14 +89,14 @@ IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   LIST(APPEND LibraryList boost_mpi)
 ENDIF(${SIMMOB_DISABLE_MPI} MATCHES "OFF")
 
+#Include the top-level source/binary directories
+include_directories("${PROJECT_SOURCE_DIR}")
+#include_directories("${PROJECT_BINARY_DIR}")
+
 #Build tests?
 IF (${BUILD_TESTS} MATCHES "ON")
 	add_subdirectory(unit-tests)
 ENDIF (${BUILD_TESTS} MATCHES "ON")
-
-#Include the top-level source/binary directories
-include_directories("${PROJECT_SOURCE_DIR}")
-#include_directories("${PROJECT_BINARY_DIR}")
 
 #Our output executable and its input sources. List *.c files manually
 add_executable(SimMobility main.cpp ${BASIC_CPP})

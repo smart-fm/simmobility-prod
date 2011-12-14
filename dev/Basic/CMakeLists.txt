@@ -65,15 +65,15 @@ FILE(GLOB_RECURSE IgnoreTmp buffering/unit-tests/*.cpp)
 LIST(APPEND IgnoreList ${IgnoreTmp})
 
 #Remove the "Build" directory
-FILE(GLOB_RECURSE IgnoreTmp Build/*.cpp)
+FILE(GLOB_RECURSE IgnoreTmp "Build/*.c" "Build/*.cpp")
 LIST(APPEND IgnoreList ${IgnoreTmp})
 
 #Remove the "Debug" directories
-FILE(GLOB_RECURSE IgnoreTmp Debug/*.cpp)
+FILE(GLOB_RECURSE IgnoreTmp "Debug/*.c" "Debug/*.cpp")
 LIST(APPEND IgnoreList ${IgnoreTmp})
-FILE(GLOB_RECURSE IgnoreTmp Debug_M/*.cpp)
+FILE(GLOB_RECURSE IgnoreTmp "Debug_M/*.c" "Debug_M/*.cpp")
 LIST(APPEND IgnoreList ${IgnoreTmp})
-FILE(GLOB_RECURSE IgnoreTmp Release/*.cpp)
+FILE(GLOB_RECURSE IgnoreTmp "Release/*.c" "Release/*.cpp")
 LIST(APPEND IgnoreList ${IgnoreTmp})
 
 #Actually remove these

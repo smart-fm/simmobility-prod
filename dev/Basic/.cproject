@@ -322,7 +322,7 @@
 <buildTargets>
 <target name="Run CMake (Debug)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>cmake</buildCommand>
-<buildArguments>-E chdir Build/ cmake -G "Unix Makefiles" ../</buildArguments>
+<buildArguments>-E chdir Debug/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Debug</buildArguments>
 <buildTarget/>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>false</useDefaultCommand>
@@ -647,7 +647,7 @@
 <buildTargets>
 <target name="Run CMake (Debug)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>cmake</buildCommand>
-<buildArguments>-E chdir Build/ cmake -G "Unix Makefiles" ../</buildArguments>
+<buildArguments>-E chdir Debug/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Debug</buildArguments>
 <buildTarget/>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>false</useDefaultCommand>
@@ -672,7 +672,7 @@
 <folderInfo id="cdt.managedbuild.config.gnu.exe.debug.1174903641.48752345." name="/" resourcePath="">
 <toolChain id="cdt.managedbuild.toolchain.gnu.exe.debug.1646435696" name="Linux GCC" resourceTypeBasedDiscovery="true" superClass="cdt.managedbuild.toolchain.gnu.exe.debug">
 <targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.debug.18922563" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.debug"/>
-<builder arguments="-C ${ProjDirPath}/Build VERBOSE=1 -j2" buildPath="" command="make" id="cdt.managedbuild.target.gnu.builder.exe.debug.197986699" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.exe.debug"/>
+<builder arguments="-C ${ProjDirPath}/Debug VERBOSE=1 -j2" buildPath="" command="make" id="cdt.managedbuild.target.gnu.builder.exe.debug.197986699" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.exe.debug"/>
 <tool id="cdt.managedbuild.tool.gnu.archiver.base.1161554787" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 <tool command="g++" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1746382223" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug">
 <option id="gnu.cpp.compiler.exe.debug.option.optimization.level.532698040" name="Optimization Level" superClass="gnu.cpp.compiler.exe.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
@@ -968,7 +968,7 @@
 <buildTargets>
 <target name="Run CMake (Debug)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>cmake</buildCommand>
-<buildArguments>-E chdir Build/ cmake -G "Unix Makefiles" ../</buildArguments>
+<buildArguments>-E chdir Debug/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Debug</buildArguments>
 <buildTarget/>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>false</useDefaultCommand>

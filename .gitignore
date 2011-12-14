@@ -1,9 +1,9 @@
 #Ignore all files within these directories
-dev/Basic/Debug/
-dev/Basic/Debug_M/
-dev/Basic/Release/
-dev/Basic/doxy/output/
+dev/Basic/Debug/*
+dev/Basic/Debug_M/*
+dev/Basic/Release/*
 dev/Basic/Build/*
+dev/Basic/doxy/output/
 
 #Java project built files
 dev/visualizer/Traffic_Signal_Animation/.settings/

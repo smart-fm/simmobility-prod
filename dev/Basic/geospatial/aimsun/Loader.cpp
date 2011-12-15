@@ -448,7 +448,7 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
 	LoadTripchains(getStoredProcedure(storedProcs, "tripchain"));
-	//LoadTrafficSignals(getStoredProcedure(storedProcs, "signal"));
+	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal"));
 
 	//add by xuyan
 	//load in boundary segments (not finished!)

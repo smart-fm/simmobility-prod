@@ -12,6 +12,8 @@
 #include <time.h>
 #include <math.h>
 
+#include <boost/random.hpp>
+
 #include "GenConfig.h"
 
 #include "entities/roles/Role.hpp"
@@ -110,6 +112,10 @@ private:
 
 	//Are we using the multi-path movement model? Set automatically if we move on a path of size >2
 	bool isUsingGenPathMover;
+
+	//Random number generator
+	//TODO: We need a policy on who can get a generator and why.
+	boost::mt19937 gen;
 
 };
 

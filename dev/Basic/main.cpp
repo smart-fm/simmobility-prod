@@ -410,17 +410,10 @@ int main(int argc, char* argv[])
 
 	//This should be moved later, but we'll likely need to manage random numbers
 	//ourselves anyway, to make simulations as repeatable as possible.
-	if (config.is_simulation_repeatable)
-	{
-		srand(123);
-		cout << "Random Seed Init: " << 123 << endl;
-	}
-	else
-	{
-		time_t t = time(NULL);
-		srand(t);
-		cout << "Random Seed Init: " << t << endl;
-	}
+	//if (config.is_simulation_repeatable)
+	//{
+		//TODO: Output the random seed here (and only here)
+	//}
 
 	//Perform main loop
 	int returnVal = performMain(configFileName) ? 0 : 1;

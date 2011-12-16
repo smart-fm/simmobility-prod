@@ -856,20 +856,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& agents)
     	return	 "Couldn't load signals";
     }
 
-    //Sort agents by id.
-    //TEMP: Eventually, we'll need a more sane way to deal with agent IDs.
-    //std::sort(agents.begin(), agents.end(), agent_sort_by_id);
-
-    //Assign each agent an arbitrary trip chain
-    /*for (vector<Agent*>::iterator it=agents.begin(); it!=agents.end(); it++) {
-    	Person* p = dynamic_cast<Person*>(*it);
-    	if (p) {
-    		int nextID = rand() % ConfigParams::GetInstance().getTripChains().size();
-    		TripChain* tc = ConfigParams::GetInstance().getTripChains().at(nextID);
-    		p->setTripChain(tc);
-    	}
-    }*/
-
 
     //Display
     std::cout <<"Config parameters:\n";

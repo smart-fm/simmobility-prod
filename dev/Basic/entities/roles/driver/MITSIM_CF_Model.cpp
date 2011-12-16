@@ -7,6 +7,8 @@
  *      Author: wangxy & Li Zhemin
  */
 
+#include <boost/random.hpp>
+
 #include <limits>
 
 #include "entities/vehicle/Vehicle.hpp"
@@ -18,6 +20,10 @@ using namespace sim_mob;
 
 
 namespace {
+//Random number generator
+//TODO: We need a policy on who can get a generator and why.
+boost::mt19937 gen;
+
 //Threshold defaults
 const double hBufferUpper			=	  1.6;	 ///< upper threshold of headway
 const double hBufferLower			=	  0.8;	 ///< lower threshold of headway
@@ -60,8 +66,9 @@ enum ACCEL_MODE {
 
 double uRandom()
 {
-	srand(time(0));
-	long int seed_=rand();
+	boost::uniform_int<> dist(0, RAND_MAX);
+	long int seed_ = dist(gen);
+
 	const long int M = 2147483647;  // M = modulus (2^31)
 	const long int A = 48271;       // A = multiplier (was 16807)
 	const long int Q = M / A;

@@ -30,6 +30,10 @@ using namespace sim_mob;
 
 namespace {
 
+//For random number generating
+boost::uniform_int<> zero_to_five(0, 5);
+boost::uniform_int<> zero_to_max(0, RAND_MAX);
+
 vector<const RoadSegment*> BuildUpPath(vector<RoadSegment*>::iterator curr, vector<RoadSegment*>::iterator end)
 {
 	vector<const RoadSegment*> res;
@@ -83,11 +87,8 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent), prevSeg(nullptr),
 	startToCross=false;
 	firstTimeUpdate=true;
 
-	//Set random seed
-	srand(parent->getId());
-
 	//Set default speed in the range of 1.2m/s to 1.6m/s
-	speed = 1.2+(double(rand()%5))/10;
+	speed = 1.2+(double(zero_to_five(gen)))/10;
 
 	xVel = 0;
 	yVel = 0;
@@ -783,9 +784,9 @@ void sim_mob::Pedestrian::setCrossingParas(const RoadSegment* prevSegment) {
 
 		xRel = 0;
 		if(width<0)
-			yRel = -((double)(rand()%(int(abs(width)/2+1)))+(double)(rand()%(int(abs(width)/2+1))));
+			yRel = -((double)(zero_to_max(gen)%(int(abs(width)/2+1)))+(double)(zero_to_max(gen)%(int(abs(width)/2+1))));
 		else
-			yRel = (double)(rand()%(int(width/2+1)))+(double)(rand()%(int(width/2+1)));
+			yRel = (double)(zero_to_max(gen)%(int(width/2+1)))+(double)(zero_to_max(gen)%(int(width/2+1)));
 		xRel = (yRel*tmp)/width;
 		relToAbs(xRel,yRel,xAbs,yAbs);
 		parent->xPos.set((int)xAbs);

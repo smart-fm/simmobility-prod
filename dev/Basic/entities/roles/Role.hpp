@@ -10,6 +10,8 @@
 #include "boost/thread/locks.hpp"
 #include "util/OutputUtil.hpp"
 
+#include <boost/random.hpp>
+
 namespace sim_mob {
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -72,14 +74,17 @@ public:
 
 		while (one_try != second_try || third_try != second_try)
 		{
-			srand(dynamic_seed);
-			one_try = rand();
+			//TODO: I've replaced your calls to srand() and rand() (which are not
+			//      thread-safe) with boost::random.
+			//      This is likely to not work the way you want it to.
+			//      Please read the boost::random docs. ~Seth
+			boost::uniform_int<> dist(0, RAND_MAX);
 
-			srand(dynamic_seed);
-			second_try = rand();
+			one_try = dist(gen);
 
-			srand(dynamic_seed);
-			third_try = rand();
+			second_try = dist(gen);
+
+			third_try = dist(gen);
 
 //			if (one_try != second_try || third_try != second_try)
 //			{
@@ -101,6 +106,10 @@ protected:
 	//add by xuyan
 protected:
 	int dynamic_seed;
+
+	//Random number generator
+	//TODO: We need a policy on who can get a generator and why.
+	boost::mt19937 gen;
 
 	//public:
 	//	static boost::mutex m_mutex;

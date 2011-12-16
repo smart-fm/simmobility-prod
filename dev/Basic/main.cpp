@@ -10,6 +10,7 @@
 #include <vector>
 #include <string>
 #include <boost/thread.hpp>
+#include <ctime>
 
 #include "GenConfig.h"
 
@@ -49,6 +50,9 @@ using std::string;
 using boost::thread;
 
 using namespace sim_mob;
+
+//Start time of program
+clock_t start_time;
 
 //Current software version.
 const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
@@ -222,6 +226,8 @@ bool performMain(const std::string& configFileName) {
 	size_t numPendingAgents = Agent::pending_agents.size();
 #endif
 
+	clock_t loop_start_offset = clock() - start_time;
+
 	for (unsigned int currTick = 0; currTick < config.totalRuntimeTicks; currTick++) {
 		//Flag
 		bool warmupDone = (currTick >= config.totalWarmupTicks);
@@ -281,6 +287,8 @@ bool performMain(const std::string& configFileName) {
 	}
 #endif
 
+	std::cout <<"Database lookup took: " <<(loop_start_offset*1000.0/CLOCKS_PER_SEC) <<" ms" <<std::endl;
+
 	cout << "Starting Agents: " << numStartAgents;
 #ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	cout << ",     Pending: " << numPendingAgents;
@@ -327,6 +335,9 @@ bool performMain(const std::string& configFileName) {
 
 int main(int argc, char* argv[])
 {
+	//Save start time
+	start_time = clock();
+
 	/**
 	 * Check whether to run SimMobility or SimMobility-MPI
 	 */

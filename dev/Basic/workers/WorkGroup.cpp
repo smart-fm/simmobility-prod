@@ -168,6 +168,7 @@ void sim_mob::WorkGroup::wait()
 #ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	if (loader) {
 		for (std::vector<Entity*>::iterator it=entToBeRemoved.begin(); it!=entToBeRemoved.end(); it++) {
+			//TODO: This shouldn't actually require locking. Leaving it in here for now to be safe.
 			//boost::mutex::scoped_lock local_lock(loader->entity_dest_lock);
 			std::vector<Entity*>::iterator it2 = std::find(loader->entity_dest.begin(), loader->entity_dest.end(), *it);
 			if (it2!=loader->entity_dest.end()) {

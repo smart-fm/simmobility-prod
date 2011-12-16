@@ -52,7 +52,14 @@ using boost::thread;
 using namespace sim_mob;
 
 //Start time of program
-clock_t start_time;
+timeval start_time;
+
+//Helper for computing differences. May be off by ~1ms
+namespace {
+int diff_ms(timeval t1, timeval t2) {
+    return (((t1.tv_sec - t2.tv_sec) * 1000000) + (t1.tv_usec - t2.tv_usec))/1000;
+}
+} //End anon namespace
 
 //Current software version.
 const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
@@ -226,7 +233,9 @@ bool performMain(const std::string& configFileName) {
 	size_t numPendingAgents = Agent::pending_agents.size();
 #endif
 
-	clock_t loop_start_offset = clock() - start_time;
+	timeval loop_start_time;
+	gettimeofday(&loop_start_time, nullptr);
+	int loop_start_offset = diff_ms(loop_start_time, start_time);
 
 	for (unsigned int currTick = 0; currTick < config.totalRuntimeTicks; currTick++) {
 		//Flag
@@ -287,7 +296,7 @@ bool performMain(const std::string& configFileName) {
 	}
 #endif
 
-	std::cout <<"Database lookup took: " <<(loop_start_offset*1000.0/CLOCKS_PER_SEC) <<" ms" <<std::endl;
+	std::cout <<"Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;
 
 	cout << "Starting Agents: " << numStartAgents;
 #ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
@@ -336,7 +345,7 @@ bool performMain(const std::string& configFileName) {
 int main(int argc, char* argv[])
 {
 	//Save start time
-	start_time = clock();
+	gettimeofday(&start_time, nullptr);
 
 	/**
 	 * Check whether to run SimMobility or SimMobility-MPI

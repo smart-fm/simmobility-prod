@@ -29,8 +29,20 @@ void sim_mob::WorkGroup::initWorkers(Worker::ActionFunction* action, EntityLoadP
 {
 	this->loader = loader;
 
+	//Init our worker list-backs
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
+	entToBeRemovedPerWorker.resize(total_size, vector<Entity*>());
+#endif
+
+	//Init the workers themselves.
 	for (size_t i=0; i<total_size; i++) {
-		workers.push_back(new Worker(this, shared_barr, external_barr, action, endTick, tickStep, auraManagerActive));
+		workers.push_back(new Worker(this, shared_barr, external_barr,
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
+			&entToBeRemovedPerWorker.at(i),
+#else
+			nullptr,
+#endif
+			action, endTick, tickStep, auraManagerActive));
 	}
 }
 
@@ -75,7 +87,7 @@ void sim_mob::WorkGroup::startAll()
 
 
 #ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
-void sim_mob::WorkGroup::scheduleEntForRemoval(Entity* ag)
+/*void sim_mob::WorkGroup::scheduleEntForRemoval(Entity* ag)
 {
 	if (!loader) {
 		throw std::runtime_error("Attempting to remove an entity from a WorkGroup that doesn't allow it.");
@@ -84,7 +96,7 @@ void sim_mob::WorkGroup::scheduleEntForRemoval(Entity* ag)
 	//May be accessed by child workers; requires locking.
 	boost::mutex::scoped_lock local_lock(loader->entity_dest_lock);
 	entToBeRemoved.push_back(ag);
-}
+}*/
 
 void sim_mob::WorkGroup::stageEntities()
 {
@@ -167,18 +179,23 @@ void sim_mob::WorkGroup::wait()
 	//Remove any Agents staged for removal.
 #ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	if (loader) {
-		for (std::vector<Entity*>::iterator it=entToBeRemoved.begin(); it!=entToBeRemoved.end(); it++) {
-			//TODO: This shouldn't actually require locking. Leaving it in here for now to be safe.
-			//boost::mutex::scoped_lock local_lock(loader->entity_dest_lock);
-			std::vector<Entity*>::iterator it2 = std::find(loader->entity_dest.begin(), loader->entity_dest.end(), *it);
-			if (it2!=loader->entity_dest.end()) {
-				loader->entity_dest.erase(it2);
+		for (vector<vector <Entity*> >::iterator outerIt=entToBeRemovedPerWorker.begin(); outerIt!=entToBeRemovedPerWorker.end(); outerIt++) {
+			for (vector<Entity*>::iterator it=outerIt->begin(); it!=outerIt->end(); it++) {
+				//TODO: This shouldn't actually require locking. Leaving it in here for now to be safe.
+				//boost::mutex::scoped_lock local_lock(loader->entity_dest_lock);
+				std::vector<Entity*>::iterator it2 = std::find(loader->entity_dest.begin(), loader->entity_dest.end(), *it);
+				if (it2!=loader->entity_dest.end()) {
+					loader->entity_dest.erase(it2);
+				}
+
+				//Delete this entity
+				delete *it;
 			}
 
-			//Delete this entity
-			delete *it;
+			//This worker's list of entries is clear
+			outerIt->clear();
 		}
-		entToBeRemoved.clear();
+		//entToBeRemoved.clear();
 	}
 #endif
 

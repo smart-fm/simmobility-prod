@@ -78,13 +78,15 @@ void sim_mob::Worker::scheduleEntityNow(Entity* entity)
 
 
 
-sim_mob::Worker::Worker(WorkGroup* parent, boost::barrier& internal_barr, boost::barrier& external_barr, ActionFunction* action, frame_t endTick, frame_t tickStep, bool auraManagerActive)
+sim_mob::Worker::Worker(WorkGroup* parent, boost::barrier& internal_barr, boost::barrier& external_barr, std::vector<Entity*>* entityRemovalList, ActionFunction* action, frame_t endTick, frame_t tickStep, bool auraManagerActive)
     : BufferedDataManager(),
-      internal_barr(internal_barr), external_barr(external_barr), action(action),
+      internal_barr(internal_barr), external_barr(external_barr),
+      action(action),
       endTick(endTick),
       tickStep(tickStep),
       auraManagerActive(auraManagerActive),
-      parent(parent)
+      parent(parent),
+      entityRemovalList(entityRemovalList)
 {
 }
 
@@ -141,7 +143,10 @@ void sim_mob::Worker::removePendingEntities()
 		migrateOut(**it);
 
 		//Remove it from our global list. Requires locking
-		parent->scheduleEntForRemoval(*it);
+		if (!entityRemovalList) {
+			throw std::runtime_error("Attempting to remove an entity from a WorkGroup that doesn't allow it.");
+		}
+		entityRemovalList->push_back(*it);
 	}
 	toBeRemoved.clear();
 }

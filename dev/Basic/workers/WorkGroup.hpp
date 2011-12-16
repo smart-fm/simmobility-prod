@@ -65,12 +65,12 @@ public:
 
 #ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	void stageEntities();
-	std::vector<Entity*> entToBeRemoved;
+	std::vector< std::vector<Entity*> > entToBeRemovedPerWorker;
 #endif
 
 	void assignAWorker(Entity* ag);
 
-	void scheduleEntForRemoval(Entity* ag);
+	//void scheduleEntForRemoval(Entity* ag);
 
 //add by xuyan
 public:

@@ -432,6 +432,7 @@ void sim_mob::Driver::update(frame_t frameNumber) {
 		if (parent->isToBeRemoved()) {
 			throw std::runtime_error("Driver is already done, but hasn't been removed.");
 		}
+
 		parent->setToBeRemoved();
 #else
 		return;
@@ -1509,13 +1510,18 @@ void sim_mob::Driver::packageProxy(PackageUtils& packageUtil) {
 //	std::cout << "*****************11" << std::endl;
 //	packageUtil.packageLink(desLink);
 	//std::cout << "*****************22" << std::endl;
+
+	if(currLinkOffset != currLinkOffset)
+		currLinkOffset = 0;
+
 	packageUtil.packageBasicData(currLinkOffset);
-	//std::cout << "*****************33" << std::endl;
-	packageUtil.packageBasicData(targetLaneIndex);
+
+	int lane_size = targetLaneIndex;
+	packageUtil.packageBasicData(lane_size);
 	//std::cout << "*****************44" << std::endl;
 	//packageUtil.packageLink(nextLink);
 	//std::cout << "*****************55" << std::endl;
-	packageUtil.packageLane(nextLaneInNextLink);
+	//packageUtil.packageLane(nextLaneInNextLink);
 
 //
 //	//Part 4
@@ -1527,24 +1533,30 @@ void sim_mob::Driver::unpackageProxy(UnPackageUtils& unpackageUtil) {
 	//Part 1
 	const Lane* one_lane = unpackageUtil.unpackageLane();
 	currLane_.force(one_lane);
+//	std::cout << "Step 4.2.7.1:" << std::endl;
 
 	double value_lane_offset = unpackageUtil.unpackageBasicData<double> ();
 	currLaneOffset_.force(value_lane_offset);
+//	std::cout << "Step 4.2.7.2:" << std::endl;
 
 	double value_lane_length = unpackageUtil.unpackageBasicData<double> ();
 	currLaneLength_.force(value_lane_length);
+//	std::cout << "Step 4.2.7.3:" << std::endl;
 
 	bool value_inIntersection = unpackageUtil.unpackageBasicData<bool> ();
 	isInIntersection.force(value_inIntersection);
+//	std::cout << "Step 4.2.7.4:" << std::endl;
 
 	currTimeMS = unpackageUtil.unpackageBasicData<int> ();
 	vehicle = const_cast<Vehicle*> (unpackageUtil.unpackageVehicle());
+//	std::cout << "Step 4.2.7.5:" << std::endl;
 
 	bool hasSomething = unpackageUtil.unpackageBasicData<bool> ();
 	if(hasSomething)
 	{
 		intModel = unpackageUtil.unpackageIntersectionDrivingModel();
 	}
+//	std::cout << "Step 4.2.7.6:" << std::endl;
 
 	//part 2 , temp
 //	perceivedVelocity = unpackageUtil.unpackageFixedDelayedDPoint();
@@ -1564,9 +1576,10 @@ void sim_mob::Driver::unpackageProxy(UnPackageUtils& unpackageUtil) {
 //	//Part 3
 //	desLink = unpackageUtil.unpackageLink();
 	currLinkOffset = unpackageUtil.unpackageBasicData<double> ();
+
 	targetLaneIndex = unpackageUtil.unpackageBasicData<int> ();
 	//nextLink = unpackageUtil.unpackageLink();
-	nextLaneInNextLink = unpackageUtil.unpackageLane();
+	//nextLaneInNextLink = unpackageUtil.unpackageLane();
 //
 
 //	//Part 4

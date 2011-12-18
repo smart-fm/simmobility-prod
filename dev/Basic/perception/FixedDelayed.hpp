@@ -10,7 +10,10 @@
 namespace sim_mob
 {
 
-class RoadNetworkPackageManager;
+#ifndef SIMMOB_DISABLE_MPI
+class PackageUtils;
+class UnPackageUtils;
+#endif
 
 /**
  * Templatized wrapper for data values with a fixed delay.
@@ -125,8 +128,11 @@ private:
 		}
 
 		//add by xuyan
+		#ifndef SIMMOB_DISABLE_MPI
 		public:
-		friend class sim_mob::RoadNetworkPackageManager;
+			friend class sim_mob::PackageUtils;
+			friend class sim_mob::UnPackageUtils;
+		#endif
 	};
 
 	//Private data
@@ -135,8 +141,12 @@ private:
 	bool reclaimPtrs;
 
 
+#ifndef SIMMOB_DISABLE_MPI
 public:
-	friend class sim_mob::RoadNetworkPackageManager;
+	friend class sim_mob::PackageUtils;
+	friend class sim_mob::UnPackageUtils;
+#endif
+
 };
 
 

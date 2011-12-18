@@ -15,8 +15,6 @@
 #include "constants.h"
 #ifndef SIMMOB_DISABLE_MPI
 
-
-
 #include <vector>
 #include <string>
 

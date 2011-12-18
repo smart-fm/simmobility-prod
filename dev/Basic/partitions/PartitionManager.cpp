@@ -20,10 +20,14 @@
 #include "BoundarySegment.hpp"
 #include "util/MathUtil.hpp"
 #include "conf/simpleconf.hpp"
-#include "workers/EntityWorker.hpp"
 #include "workers/Worker.hpp"
-#include "WorkGroup.hpp"
-#include "AgentPackageManager.hpp"
+#include "workers/WorkGroup.hpp"
+
+#include "entities/roles/driver/Driver.hpp"
+#include "entities/roles/passenger/Passenger.hpp"
+#include "entities/roles/pedestrian/Pedestrian.hpp"
+#include "entities/Agent.hpp"
+#include "entities/Person.hpp"
 
 namespace mpi = boost::mpi;
 
@@ -130,8 +134,8 @@ std::string PartitionManager::startMPIEnvironment(int argc, char* argv[], bool c
 	return "";
 }
 
-void PartitionManager::setEntityWorkGroup(sim_mob::WorkGroup<Entity>* entity_group,
-		sim_mob::WorkGroup<Entity>* singal_group)
+void PartitionManager::setEntityWorkGroup(sim_mob::WorkGroup* entity_group,
+		sim_mob::WorkGroup* singal_group)
 {
 	//	if (is_on_many_computers == false)
 	//		return;
@@ -157,12 +161,12 @@ void PartitionManager::loadInBoundarySegment(std::string boundary_segment_id, Bo
 
 void PartitionManager::updateRandomSeed()
 {
-	std::vector<Agent*> all_agents = Agent::all_agents;
+	std::vector<Entity*> all_agents = Agent::all_agents;
 	//
-	std::vector<Agent*>::iterator itr = all_agents.begin();
+	std::vector<Entity*>::iterator itr = all_agents.begin();
 	for (; itr != all_agents.end(); itr++)
 	{
-		Agent* one_agent = (*itr);
+		Entity* one_agent = (*itr);
 		if (one_agent->id >= 10000)
 		{
 			one_agent->id = one_agent->id - 10000 + 3;
@@ -177,14 +181,13 @@ void PartitionManager::updateRandomSeed()
 		{
 			Person* p = const_cast<Person*> (person);
 			//init random seed
-			p->getRole()->dynamic_seed = one_agent->getId();
+			p->dynamic_seed = one_agent->getId();
 
 			//update pedestrain speed
-			const Pedestrian *pedestrian = dynamic_cast<const Pedestrian *> (p->getRole());
+			Pedestrian* pedestrian = dynamic_cast<Pedestrian*> (p->getRole());
 			if (pedestrian)
 			{
-				Pedestrian *one_pedestrian = const_cast<Pedestrian*> (pedestrian);
-				one_pedestrian->speed = 1.2 + (double(one_agent->getId() % 5)) / 10;
+				pedestrian->speed = 1.2 + (double(one_agent->getId() % 5)) / 10;
 			}
 		}
 	}

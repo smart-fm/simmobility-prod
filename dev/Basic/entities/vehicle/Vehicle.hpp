@@ -19,9 +19,15 @@
 
 namespace sim_mob {
 
+#ifndef SIMMOB_DISABLE_MPI
+class PackageUtils;
+class UnPackageUtils;
+#endif
+
 class Vehicle {
 public:
 	Vehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID); //TODO: now that the constructor is non-default, we might be able to remove throw_if_error()
+	Vehicle();  //There is no wpPoint to initialize one Vehicle when crossing
 
 public:
 	const double length;  ///<length of the vehicle
@@ -81,7 +87,9 @@ public:
 	//const DynamicVector& TEMP_retrieveFwdVelocityVector();
 
 
-private:
+//private:
+	//temp
+public:
 	//Trying a slightly more dynamic moving model.
 	GeneralPathMover fwdMovement;
 	double latMovement;
@@ -111,6 +119,12 @@ private:
 		item = newHeading;
 		item.scaleVectTo(oldMag);
 	}*/
+
+#ifndef SIMMOB_DISABLE_MPI
+public:
+	friend class sim_mob::PackageUtils;
+	friend class sim_mob::UnPackageUtils;
+#endif
 };
 
 } // namespace sim_mob

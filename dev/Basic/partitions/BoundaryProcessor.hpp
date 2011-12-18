@@ -19,10 +19,10 @@
 
 #include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
+#include "entities/Person.hpp"
 
 #include "BoundaryProcessingPackage.hpp"
 #include "BoundarySegment.hpp"
-#include "workers/WorkGroup.hpp"
 #include "PartitionConfigure.hpp"
 #include "SimulationScenario.hpp"
 
@@ -88,17 +88,19 @@ private:
 	 */
 	std::string checkBoundaryAgents(BoundaryProcessingPackage& package);
 
+
+	/**
+	 * Step 3: Get Data
+	 */
+	std::string getDataInPackage(BoundaryProcessingPackage& package);
+	void processPackageData(std::string data);
+
 	/**
 	 * Step 4: processing packages
 	 */
 	std::string processBoundaryPackages(
-			std::vector<BoundaryProcessingPackage>& all_packages);
+			std::vector<std::string>& all_packages);
 
-	/**
-	 *Step 4.1
-	 */
-	std::string processOneBoundaryPackages(
-			BoundaryProcessingPackage& one_package);
 
 private:
 	/**
@@ -121,10 +123,10 @@ private:
 	sim_mob::BoundarySegment* getBoundarySegmentByID(std::string segmentID);
 	bool isAgentInLocalPartition(unsigned int agent_id, bool includeFakeAgent);
 	bool isCrossAgentShouldBeInsert(const sim_mob::Agent* agent);
-	Agent* getFakeAgentById(unsigned int agent_id);
+	Person* getFakePersonById(unsigned int agent_id);
 	std::vector<Agent const *> agentsInSegmentBoundary(sim_mob::BoundarySegment* boundary_segment);
 
-	void releaseFakeAgentMemory(sim_mob::Agent* agent);
+	void releaseFakeAgentMemory(sim_mob::Entity* agent);
 };
 
 }

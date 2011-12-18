@@ -33,6 +33,16 @@ public:
 		return res;
 	}
 
+	//Serialization
+#ifndef SIMMOB_DISABLE_MPI
+public:
+	virtual void package(PackageUtils& packageUtil){}
+	virtual void unpackage(UnPackageUtils& unpackageUtil){}
+
+	virtual void packageProxy(PackageUtils& packageUtil){}
+	virtual void unpackageProxy(UnPackageUtils& unpackageUtil){}
+#endif
+
 };
 
 

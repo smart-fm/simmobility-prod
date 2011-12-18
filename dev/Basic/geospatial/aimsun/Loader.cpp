@@ -457,7 +457,10 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	if (config.is_run_on_many_computers) {
 		LoadBoundarySegments();
 	}
+//#else
+//	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal"));
 #endif
+
 }
 
 

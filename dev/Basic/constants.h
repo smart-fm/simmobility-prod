@@ -30,9 +30,9 @@
 //  Sim Mobility simulator.
 //NOTE: Currently the user will still need libboost_mpi to "link" against, but when we switch to
 //      cmake (or anything slightly more automated) we will disable that too.
-#ifndef SIMMOB_DISABLE_MPI
-  #define SIMMOB_DISABLE_MPI
-#endif
+//#ifndef SIMMOB_DISABLE_MPI
+//  #define SIMMOB_DISABLE_MPI
+//#endif
 
 
 //Sizes of workgroups. (Note that enums are allowed to overlap values)

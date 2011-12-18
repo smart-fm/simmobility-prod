@@ -8,6 +8,11 @@
 #include <boost/thread.hpp>
 #include "util/OutputUtil.hpp"
 
+#ifndef SIMMOB_DISABLE_MPI
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#endif
+
 namespace sim_mob
 {
 
@@ -18,6 +23,18 @@ struct DPoint {
 	double x;
 	double y;
 	DPoint(double x=0.0, double y=0.0) : x(x), y(y) {}
+
+	//add by xuyan
+#ifndef SIMMOB_DISABLE_MPI
+public:
+	friend class boost::serialization::access;
+	template<class Archive>
+	void serialize(Archive & ar, const unsigned int version)
+	{
+		ar & x;
+		ar & y;
+	}
+#endif
 };
 
 
@@ -33,6 +50,18 @@ private:
 	// value so that scaling to zero and back produces a valid vector. The alternative is to maintain
 	// the vector's angle, but this would be more costly.
 	bool isZero;
+
+#ifndef SIMMOB_DISABLE_MPI
+public:
+	friend class boost::serialization::access;
+	template<class Archive>
+	void serialize(Archive & ar, const unsigned int version)
+	{
+		ar & pos;
+		ar & mag;
+		ar & isZero;
+	}
+#endif
 
 public:
 	DynamicVector(double fromX=0.0, double fromY=0.0, double toX=0.0, double toY=0.0)
@@ -58,17 +87,17 @@ public:
 	//Retrieve the angle. Should still work even if the magnitude is zero
 	//Returns an angle in the range 0..2*PI
 	double getAngle() const {
-		if(mag.x==0 && mag.y==0) {
-			//This only happens if the vector is specifically initialize with zero size.
+		if (mag.x == 0 && mag.y == 0) {
+		//This only happens if the vector is specifically initialize with zero size.
 			throw std::runtime_error("Impossible to retrieve a vector's angle if it has never had a size.");
 		}
 
 		//Bound to 0...2*PI
 		double calcAngle = atan2(mag.y, mag.x);
-		return (calcAngle<0?calcAngle+2*M_PI:calcAngle);
+		return (calcAngle < 0 ? calcAngle + 2 * M_PI : calcAngle);
 
-		//return atan2(mag.y, mag.x) + M_PI;
 	}
+	//return atan2(mag.y, mag.x) + M_PI;
 
 	//Basic utility functions
 	DynamicVector& translateVect(double dX, double dY) { pos.x += dX; pos.y += dY; return *this; }  ///<Shift this vector by dX,dY. (Moves the origin)

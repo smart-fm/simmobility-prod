@@ -122,6 +122,10 @@ private:
 
 	///Entities managed by this worker
 	std::vector<Entity*> managedEntities;
+
+	//add by xuyan, in order to call migrate in and migrate out
+public:
+	friend class WorkGroup;
 };
 
 }

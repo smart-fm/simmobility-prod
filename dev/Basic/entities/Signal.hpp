@@ -17,6 +17,11 @@
 #include "metrics/Length.hpp"
 #include "util/SignalStatus.hpp"
 
+#ifndef SIMMOB_DISABLE_MPI
+#include "partitions/PackageUtils.hpp"
+#include "partitions/UnPackageUtils.hpp"
+#endif
+
 namespace sim_mob
 {
 
@@ -24,7 +29,7 @@ namespace sim_mob
 class Node;
 class Lane;
 class Crossing;
-class RoadNetworkPackageManager;
+
 
 /**
  * Basic Signal class.
@@ -271,8 +276,14 @@ protected:
         void setupIndexMaps();
         void outputToVisualizer(frame_t frameNumber);
 
+#ifndef SIMMOB_DISABLE_MPI
 public:
-        friend class sim_mob::RoadNetworkPackageManager;
+    virtual void package(PackageUtils& packageUtil){}
+    virtual void unpackage(UnPackageUtils& unpackageUtil){}
+
+	virtual void packageProxy(PackageUtils& packageUtil);
+	virtual void unpackageProxy(UnPackageUtils& unpackageUtil);
+#endif
 };
 
 }

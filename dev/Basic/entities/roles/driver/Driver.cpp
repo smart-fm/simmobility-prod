@@ -395,8 +395,8 @@ void sim_mob::Driver::update(frame_t frameNumber) {
 	currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
 
 	//Do nothing?
-	if (currTimeMS < parent->getStartTime()) {
-#ifndef DISABLE_DYNAMIC_DISPATCH
+	if(currTimeMS<parent->getStartTime()) {
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 		std::stringstream msg;
 		msg << "Driver(" << parent->getId() << ") specifies a start time of: " << parent->getStartTime()
 				<< " but it is currently: " << currTimeMS
@@ -413,8 +413,8 @@ void sim_mob::Driver::update(frame_t frameNumber) {
 	//First frame update
 	if (firstFrameTick) {
 		//Helper check; not needed once we trust our Workers.
-#ifndef DISABLE_DYNAMIC_DISPATCH
-		if (abs(currTimeMS - parent->getStartTime()) >= ConfigParams::GetInstance().baseGranMS) {
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
+		if (abs(currTimeMS-parent->getStartTime())>=ConfigParams::GetInstance().baseGranMS) {
 			std::stringstream msg;
 			msg << "Driver was not started within one timespan of its requested start time.";
 			msg << "\nStart was: " << parent->getStartTime() << ",  Curr time is: " << currTimeMS << "\n";
@@ -428,7 +428,7 @@ void sim_mob::Driver::update(frame_t frameNumber) {
 	}
 	//Are we done already?
 	if (vehicle->isDone()) {
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 		if (parent->isToBeRemoved()) {
 			throw std::runtime_error("Driver is already done, but hasn't been removed.");
 		}

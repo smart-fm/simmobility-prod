@@ -22,7 +22,7 @@
 #include <boost/thread.hpp>
 #include <boost/function.hpp>
 
-#include "constants.h"
+#include "GenConfig.h"
 
 #include "entities/Entity.hpp"
 
@@ -62,7 +62,7 @@ public:
 	void remEntity(Entity* entity);
 	std::vector<Entity*>& getEntities();
 
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	void scheduleForAddition(Entity* entity);
 	void scheduleForRemoval(Entity* entity);
 #else
@@ -105,14 +105,14 @@ protected:
 	//   be cleared by this worker some time before the next update. For now we clear it right after
 	//   update(), but it might make sense to clear directly before update(), so that the WorkGroup
 	//   has the ability to schedule Agents for deletion in flip().
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	std::vector<Entity*> toBeAdded;
 	std::vector<Entity*> toBeRemoved;
 #endif
 
 private:
 	//Helper methods
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	void addPendingEntities();
 	void removePendingEntities();
 #endif

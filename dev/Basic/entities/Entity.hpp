@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <sstream>
 
-#include "constants.h"
+#include "GenConfig.h"
 #include "util/LangHelpers.hpp"
 #include "metrics/Frame.hpp"
 #include "buffering/BufferedDataManager.hpp"

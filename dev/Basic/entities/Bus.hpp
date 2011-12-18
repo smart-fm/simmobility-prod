@@ -9,7 +9,7 @@
 #include "entities/vehicle/Vehicle.hpp"
 #include "metrics/Length.hpp"
 #include "util/DynamicVector.hpp"
-#include "constants.h"
+#include "GenConfig.h"
 
 namespace sim_mob{
 

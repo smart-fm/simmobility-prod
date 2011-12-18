@@ -8,7 +8,7 @@
 #include <sstream>
 #include <iostream>
 
-#include "constants.h"
+#include "GenConfig.h"
 
 #include "Traversable.hpp"
 

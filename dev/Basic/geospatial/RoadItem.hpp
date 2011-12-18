@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "constants.h"
+#include "GenConfig.h"
 
 #include "Point2D.hpp"
 

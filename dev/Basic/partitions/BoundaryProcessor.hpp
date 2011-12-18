@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "constants.h"
+#include "GenConfig.h"
 #ifndef SIMMOB_DISABLE_MPI
 
 #include "entities/Entity.hpp"

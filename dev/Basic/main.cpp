@@ -10,8 +10,9 @@
 #include <vector>
 #include <string>
 #include <boost/thread.hpp>
+#include <ctime>
 
-#include "constants.h"
+#include "GenConfig.h"
 
 #include "workers/Worker.hpp"
 #include "buffering/BufferedDataManager.hpp"
@@ -45,10 +46,23 @@
 using std::cout;
 using std::endl;
 using std::vector;
+using std::string;
 using boost::thread;
 
 using namespace sim_mob;
 
+//Start time of program
+timeval start_time;
+
+//Helper for computing differences. May be off by ~1ms
+namespace {
+int diff_ms(timeval t1, timeval t2) {
+    return (((t1.tv_sec - t2.tv_sec) * 1000000) + (t1.tv_usec - t2.tv_usec))/1000;
+}
+} //End anon namespace
+
+//Current software version.
+const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
 
 //Function prototypes.
 //void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents);
@@ -61,7 +75,7 @@ void entity_worker(sim_mob::Worker& wk, frame_t frameNumber)
 	for (vector<Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
 		if (!(*it)->update(frameNumber)) {
 			//This Entity is done; schedule for deletion.
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 			wk.scheduleForRemoval(*it);
 #endif
 		}
@@ -95,8 +109,10 @@ void signal_status_worker(sim_mob::Worker& wk, frame_t frameNumber)
  * This function is separate from main() to allow for easy scoping of WorkGroup objects.
  */
 bool performMain(const std::string& configFileName) {
+	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
+
 	//Loader params for our Agents
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents,
 			Agent::all_agents, Agent::all_agents_lock);
 #endif
@@ -145,7 +161,7 @@ bool performMain(const std::string& configFileName) {
 	//Agent::TMP_AgentWorkGroup = &agentWorkers;
 	Worker::ActionFunction entityWork = boost::bind(entity_worker, _1, _2);
 	agentWorkers.initWorkers(&entityWork,
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 		&entLoader
 #else
 		nullptr
@@ -157,13 +173,13 @@ bool performMain(const std::string& configFileName) {
 	vector<Entity*> starting_agents;
 	for (vector<Entity*>::iterator it = agents.begin(); it != agents.end(); it++) {
 		Entity* const ag = *it;
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 		if (ag->getStartTime() == 0) {
 #endif
 			//Only agents with a start time of zero should start immediately in the all_agents list.
 			agentWorkers.assignAWorker(ag);
 			starting_agents.push_back(ag);
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 		} else {
 			//Start later.
 			Agent::pending_agents.push(ag);
@@ -218,9 +234,13 @@ bool performMain(const std::string& configFileName) {
 	/////////////////////////////////////////////////////////////////
 	size_t numStartAgents = Agent::all_agents.size();
 
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	size_t numPendingAgents = Agent::pending_agents.size();
 #endif
+
+	timeval loop_start_time;
+	gettimeofday(&loop_start_time, nullptr);
+	int loop_start_offset = diff_ms(loop_start_time, start_time);
 
 	for (unsigned int currTick = 0; currTick < config.totalRuntimeTicks; currTick++) {
 		//Flag
@@ -275,8 +295,10 @@ bool performMain(const std::string& configFileName) {
 	}
 #endif
 
+	std::cout <<"Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;
+
 	cout << "Starting Agents: " << numStartAgents;
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	cout << ",     Pending: " << numPendingAgents;
 #endif
 	cout << endl;
@@ -307,7 +329,7 @@ bool performMain(const std::string& configFileName) {
 				- numDriver - numPedestrian) << " (Other)" << endl;
 	}
 
-#ifndef DISABLE_DYNAMIC_DISPATCH
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	if (!Agent::pending_agents.empty()) {
 		cout << "WARNING! There are still " << Agent::pending_agents.size()
 				<< " Agents waiting to be scheduled; next start time is: "
@@ -321,6 +343,9 @@ bool performMain(const std::string& configFileName) {
 
 int main(int argc, char* argv[])
 {
+	//Save start time
+	gettimeofday(&start_time, nullptr);
+
 	/**
 	 * Check whether to run SimMobility or SimMobility-MPI
 	 */

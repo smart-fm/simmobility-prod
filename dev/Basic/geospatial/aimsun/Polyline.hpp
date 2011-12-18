@@ -5,7 +5,7 @@
 #include <string>
 
 #include "Base.hpp"
-#include "constants.h"
+#include "GenConfig.h"
 
 namespace sim_mob
 {

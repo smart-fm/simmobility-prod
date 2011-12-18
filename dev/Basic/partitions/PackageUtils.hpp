@@ -1,6 +1,7 @@
 #pragma once
 
 #ifndef SIMMOB_DISABLE_MPI
+
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/string.hpp>

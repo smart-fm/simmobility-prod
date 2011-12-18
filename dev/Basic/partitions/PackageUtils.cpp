@@ -1,7 +1,8 @@
 #include "constants.h"
 
-#ifndef SIMMOB_DISABLE_MPI
 #include "PackageUtils.hpp"
+
+#ifndef SIMMOB_DISABLE_MPI
 
 #include "entities/roles/driver/GeneralPathMover.hpp"
 #include "entities/vehicle/Vehicle.hpp"

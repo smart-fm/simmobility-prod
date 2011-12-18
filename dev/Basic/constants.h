@@ -35,17 +35,6 @@
 //#endif
 
 
-//Sizes of workgroups. (Note that enums are allowed to overlap values)
-enum WORKGROUP_SIZES {
-	WG_TRIPCHAINS_SIZE = 4,       ///<Number of trip chain workers in group.
-	WG_CREATE_AGENT_SIZE = 3,     ///<Number of agent creation workers in group.
-	WG_CHOICESET_SIZE = 6,        ///<Number of choice set workers in group.
-	WG_AGENTS_SIZE = 5,           ///<Number of agent workers in group.
-	WG_SIGNALS_SIZE = 2,          ///<Number of signal workers in group.
-	WG_SHORTEST_PATH_SIZE = 10,   ///<Number of shortest path workers in group.
-};
-
-
 //Note: Un-named namespace used to avoid multiple definitions error.
 //      Of course, these functions need a common place eventually, like a "utils" hpp/cpp
 namespace {

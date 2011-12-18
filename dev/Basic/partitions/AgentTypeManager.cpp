@@ -2,9 +2,9 @@
  * AgentPackageManager.cpp
  */
 #include "constants.h"
+#include "AgentTypeManager.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
-#include "AgentTypeManager.hpp"
 
 #include "entities/Entity.hpp"
 #include "entities/Agent.hpp"

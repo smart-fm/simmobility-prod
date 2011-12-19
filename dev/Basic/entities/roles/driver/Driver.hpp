@@ -20,6 +20,10 @@
 #include "IntersectionDrivingModel.hpp"
 #include "UpdateParams.hpp"
 
+#ifndef SIMMOB_DISABLE_MPI
+#include "partitions/PackageUtils.hpp"
+#include "partitions/UnPackageUtils.hpp"
+#endif
 
 namespace sim_mob
 {
@@ -101,7 +105,7 @@ private:
 	bool update_movement(UpdateParams& params, frame_t frameNumber);       ///<Called to move vehicles forward.
 	bool update_post_movement(UpdateParams& params, frame_t frameNumber);  ///<Called to deal with the consequences of moving forwards.
 
-	const Link* desLink;
+//	const Link* desLink;
     double currLinkOffset;
 
 	size_t targetLaneIndex;
@@ -112,7 +116,7 @@ private:
 	//double intersectionDistAlongTrajectory;
 
 	//Parameters relating to the next Link we plan to move to after an intersection.
-	const Link* nextLink;
+//	const Link* nextLink;
 	const Lane* nextLaneInNextLink;
 
 public:
@@ -176,6 +180,15 @@ private:
 	//For generating a debugging trace
 	mutable std::stringstream DebugStream;
 
+	//Serialization
+#ifndef SIMMOB_DISABLE_MPI
+public:
+	virtual void package(PackageUtils& packageUtil);
+	virtual void unpackage(UnPackageUtils& unpackageUtil);
+
+	virtual void packageProxy(PackageUtils& packageUtil);
+	virtual void unpackageProxy(UnPackageUtils& unpackageUtil);
+#endif
 
 };
 

@@ -9,13 +9,14 @@
 #include "boost/thread/thread.hpp"
 #include "boost/thread/locks.hpp"
 #include "util/OutputUtil.hpp"
-
 #include <boost/random.hpp>
 
 namespace sim_mob {
 
 #ifndef SIMMOB_DISABLE_MPI
 class PartitionManager;
+class PackageUtils;
+class UnPackageUtils;
 #endif
 
 /**
@@ -32,15 +33,6 @@ public:
 	Role(Agent* parent = nullptr) :
 		parent(parent)
 	{
-		if (parent)
-		{
-			dynamic_seed = parent->getId();
-			LogOut("synamic_seed:" << parent->getId());
-		}
-		else
-		{
-			dynamic_seed = 123;
-		}
 	}
 
 	/// TODO: Think through what kind of data this function might need.
@@ -116,6 +108,16 @@ protected:
 public:
 #ifndef SIMMOB_DISABLE_MPI
 	friend class sim_mob::PartitionManager;
+#endif
+
+	//Serialization
+#ifndef SIMMOB_DISABLE_MPI
+public:
+	virtual void package(PackageUtils& packageUtil) = 0;
+	virtual void unpackage(UnPackageUtils& unpackageUtil) = 0;
+
+	virtual void packageProxy(PackageUtils& packageUtil) = 0;
+	virtual void unpackageProxy(UnPackageUtils& unpackageUtil) = 0;
 #endif
 
 

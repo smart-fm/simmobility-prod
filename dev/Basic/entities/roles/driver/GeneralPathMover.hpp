@@ -16,7 +16,10 @@ namespace sim_mob
 //Forward declarations
 class RoadSegment;
 class Link;
-
+#ifndef SIMMOB_DISABLE_MPI
+class PackageUtils;
+class UnPackageUtils;
+#endif
 
 
 /**
@@ -87,8 +90,9 @@ public:
 	//We might be able to fold Lane movement in here later. For now, it has to be called externally.
 	void shiftToNewPolyline(bool moveLeft);
 	void moveToNewPolyline(int newLaneID);
-
-private:
+//temp
+//private:
+public:
 	//List of RoadSegments we're moving to in order.
 	std::vector<const sim_mob::RoadSegment*> fullPath;
 	std::vector<const sim_mob::RoadSegment*>::iterator currSegmentIt;
@@ -137,7 +141,7 @@ private:
 	//For tracking lane IDs
 	int currLaneID;
 
-	//Debug
+	//Debug, the debug message also will be transformed and reset PC
 	mutable std::stringstream DebugStream;
 
 private:
@@ -155,6 +159,11 @@ private:
 	void throwIf(bool conditional, const std::string& msg) const;
 
 
+#ifndef SIMMOB_DISABLE_MPI
+public:
+	friend class sim_mob::PackageUtils;
+	friend class sim_mob::UnPackageUtils;
+#endif
 
 
 

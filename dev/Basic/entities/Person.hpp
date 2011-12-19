@@ -8,11 +8,19 @@
 #include "roles/Role.hpp"
 #include "roles/driver/Driver.hpp"
 
+#ifndef SIMMOB_DISABLE_MPI
+#include "partitions/PackageUtils.hpp"
+#include "partitions/UnPackageUtils.hpp"
+#endif
+
 namespace sim_mob
 {
 
 class TripChain;
-class AgentPackageManager;
+
+#ifndef SIMMOB_DISABLE_MPI
+class PartitionManager;
+#endif
 
 /**
  * Basic Person class. A person may perform one of several roles which
@@ -49,8 +57,19 @@ private:
 	sim_mob::TripChain* currTripChain;
 
 	//add by xuyan
+#ifndef SIMMOB_DISABLE_MPI
 public:
-	friend class AgentPackageManager;
+	friend class PartitionManager;
+
+public:
+	virtual void package(PackageUtils& packageUtil);
+	virtual void unpackage(UnPackageUtils& unpackageUtil);
+
+	virtual void packageProxy(PackageUtils& packageUtil);
+	virtual void unpackageProxy(UnPackageUtils& unpackageUtil);
+
+#endif
+
 };
 
 

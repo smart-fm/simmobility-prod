@@ -19,17 +19,22 @@
 
 #include "Entity.hpp"
 
-
-
+#ifndef SIMMOB_DISABLE_MPI
+#include "partitions/PackageUtils.hpp"
+#include "partitions/UnPackageUtils.hpp"
+#endif
 
 namespace sim_mob
 {
 
 class Agent;
 class WorkGroup;
-class AgentPackageManager;
-class BoundaryProcessor;
 
+#ifndef SIMMOB_DISABLE_MPI
+class BoundaryProcessor;
+//class PackageUtils;
+//class UnPackageUtils;
+#endif
 
 //Comparison for our priority queue
 struct cmp_agent_start : public std::less<Entity*> {
@@ -109,9 +114,27 @@ private:
 	static unsigned int next_agent_id;
 
 	//add by xuyan
+protected:
+	int dynamic_seed;
+
 public:
-	friend class AgentPackageManager;
+	int getOwnRandomNumber();
+
+#ifndef SIMMOB_DISABLE_MPI
+public:
 	friend class BoundaryProcessor;
+	/**
+	 * Used for crossing agents
+	 */
+	virtual void package(PackageUtils& packageUtil);
+	virtual void unpackage(UnPackageUtils& unpackageUtil);
+
+	/**
+	 * used for feedback and feed forward agents
+	 */
+	virtual void packageProxy(PackageUtils& packageUtil);
+	virtual void unpackageProxy(UnPackageUtils& unpackageUtil);
+#endif
 };
 
 }

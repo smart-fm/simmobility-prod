@@ -14,6 +14,8 @@
 #include "util/GeomHelpers.hpp"
 #include "util/DebugFlags.hpp"
 
+#include "partitions/PartitionManager.hpp"
+
 using namespace sim_mob;
 using std::vector;
 using std::string;
@@ -281,6 +283,7 @@ double sim_mob::GeneralPathMover::advanceToNextPolyline()
 	calcNewLaneDistances();
 
 	//Advance pointers
+
 	currPolypoint++;
 	nextPolypoint++;
 
@@ -502,13 +505,16 @@ double sim_mob::GeneralPathMover::getCurrPolylineTotalDist() const
 
 void sim_mob::GeneralPathMover::shiftToNewPolyline(bool moveLeft)
 {
+
 	moveToNewPolyline(currLaneID + (moveLeft?1:-1));
 }
 
 void sim_mob::GeneralPathMover::moveToNewPolyline(int newLaneID)
 {
+
 	//Nothing to do?
 	if (newLaneID==currLaneID) {
+		std::cout << "Nothing to do for next" << std::endl;
 		return;
 	}
 

@@ -20,6 +20,11 @@ sim_mob::Vehicle::Vehicle(vector<WayPoint> wp_path, int startLaneID) : length(40
 	initPath(wp_path, startLaneID);
 }
 
+sim_mob::Vehicle::Vehicle(): length(400), width(200),
+		latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true)
+{
+}
+
 void sim_mob::Vehicle::initPath(vector<WayPoint> wp_path, int startLaneID)
 {
 	//Construct a list of RoadSegments.
@@ -202,10 +207,24 @@ double sim_mob::Vehicle::getAngle() const
 	if (fwdMovement.isDoneWithEntireRoute()) {
 		return 0; //Shouldn't matter.
 	}
+
+//	LogOut("X1:" << fwdMovement.getCurrPolypoint().getX() <<"\n");
+//	LogOut( "X2:" << fwdMovement.getNextPolypoint().getX()<<"\n" );
+//	LogOut("X3:" << fwdMovement.getCurrPolypoint().getY()<<"\n" );
+//	LogOut("X4:" << fwdMovement.getNextPolypoint().getY()<<"\n");
+
 	DynamicVector temp(
 		fwdMovement.getCurrPolypoint().getX(), fwdMovement.getCurrPolypoint().getY(),
 		fwdMovement.getNextPolypoint().getX(), fwdMovement.getNextPolypoint().getY()
 	);
+
+//	if(fwdMovement.getNextPolypoint().getX() < 1000)
+//	{
+//		std::cout << "------------------------" << std::endl;
+//		std::cout << "X:" << fwdMovement.getNextPolypoint().getX() << std::endl;
+//		std::cout << "Y:" << fwdMovement.getNextPolypoint().getY() << std::endl;
+//	}
+
 	return temp.getAngle();
 }
 

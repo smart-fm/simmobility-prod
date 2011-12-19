@@ -6,6 +6,10 @@
 
 #include "util/DynamicVector.hpp"
 
+#ifndef SIMMOB_DISABLE_MPI
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#endif
 
 namespace sim_mob {
 
@@ -16,6 +20,16 @@ public:
 	virtual DPoint continueDriving(double amount) = 0;
 	virtual bool isDone() = 0;
 	virtual double getCurrentAngle() = 0;
+
+	//add by xuyan
+#ifndef SIMMOB_DISABLE_MPI
+public:
+	friend class boost::serialization::access;
+	template<class Archive>
+	void serialize(Archive & ar, const unsigned int version)
+	{
+	}
+#endif
 };
 
 class SimpleIntDrivingModel : public IntersectionDrivingModel {
@@ -40,6 +54,18 @@ public:
 
 	virtual double getCurrentAngle() { return intTrajectory.getAngle(); }
 	virtual bool isDone() { return totalMovement >= intTrajectory.getMagnitude(); }
+
+	//add by xuyan
+#ifndef SIMMOB_DISABLE_MPI
+public:
+	friend class boost::serialization::access;
+	template<class Archive>
+	void serialize(Archive & ar, const unsigned int version)
+	{
+		ar & intTrajectory;
+		ar & totalMovement;
+	}
+#endif
 };
 
 

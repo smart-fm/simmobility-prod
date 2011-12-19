@@ -198,6 +198,10 @@ bool performMain(const std::string& configFileName) {
 	Worker::ActionFunction spWork = boost::bind(signal_status_worker, _1, _2);
 	signalStatusWorkers.initWorkers(&spWork, nullptr);
 	for (size_t i = 0; i < Signal::all_signals_.size(); i++) {
+		//add by xuyan
+//		if(Signal::all_signals_[i]->isFake)
+//			continue;
+
 		signalStatusWorkers.assignAWorker(Signal::all_signals_[i]);
 	}
 
@@ -213,11 +217,12 @@ bool performMain(const std::string& configFileName) {
 #ifndef SIMMOB_DISABLE_MPI
 	if (config.is_run_on_many_computers) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
-		partitionImpl.setEntityWorkGroup(&agentWorkers, NULL);
+		partitionImpl.setEntityWorkGroup(&agentWorkers, &signalStatusWorkers);
 
-		if (config.is_simulation_repeatable) {
-			partitionImpl.updateRandomSeed();
-		}
+		//temp no need
+//		if (config.is_simulation_repeatable) {
+//			partitionImpl.updateRandomSeed();
+//		}
 	}
 #endif
 
@@ -266,12 +271,6 @@ bool performMain(const std::string& configFileName) {
 			partitionImpl.outputAllEntities(currTick);
 		}
 #endif
-
-		//output_All
-		//		PartitionManager::instance().outputAllEntities(currTick);
-		//		agentWorkers.waitExternAgain(); //wait on output.
-		//
-		//		cout << "Passing Output." << endl;
 
 		auraMgr.update(currTick);
 		agentWorkers.waitExternAgain(); // The workers wait on the AuraManager.

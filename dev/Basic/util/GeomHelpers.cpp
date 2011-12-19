@@ -12,6 +12,19 @@
 #include "geospatial/aimsun/Section.hpp"
 #include "geospatial/aimsun/Crossing.hpp"
 
+//add by xuyan
+#include "geospatial/RoadNetwork.hpp"
+#include "geospatial/StreetDirectory.hpp"
+#include "conf/simpleconf.hpp"
+#include "geospatial/Node.hpp"
+#include "geospatial/UniNode.hpp"
+#include "geospatial/MultiNode.hpp"
+#include "geospatial/Link.hpp"
+#include "geospatial/Point2D.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "entities/Signal.hpp"
+#include "geospatial/Crossing.hpp"
+
 using namespace sim_mob;
 using std::vector;
 
@@ -216,4 +229,179 @@ Point2D sim_mob::getMiddlePoint2D(sim_mob::Point2D* start_point, sim_mob::Point2
 	return Point2D(location_x, location_y);
 }
 
+//add by xuyan
+const sim_mob::Link* sim_mob::getLinkBetweenNodes(sim_mob::Point2D* start_point, sim_mob::Point2D* end_point)
+{
+	sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
 
+	const std::vector<sim_mob::Link*>& all_links = rn.getLinks();
+	std::vector<sim_mob::Link*>::const_iterator it = all_links.begin();
+
+	for (; it != all_links.end(); it++)
+	{
+		if ((*it)->getStart()->location->getX() == start_point->getX() && (*it)->getStart()->location->getY()
+				== start_point->getY() && (*it)->getEnd()->location->getX() == end_point->getX()
+				&& (*it)->getEnd()->location->getY() == end_point->getY())
+		{
+			return (*it);
+		}
+	}
+
+	return 0;
+}
+
+//add by xuyan
+const sim_mob::RoadSegment* sim_mob::getRoadSegmentBasedOnNodes(sim_mob::Point2D* start_point,
+		sim_mob::Point2D* end_point)
+{
+	sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
+
+	sim_mob::Node* start_node = rn.locateNode(*start_point, true);
+	sim_mob::Node* end_node = rn.locateNode(*end_point, true);
+
+	std::vector<sim_mob::RoadSegment*> buffer_road_segments;
+
+	if (dynamic_cast<sim_mob::UniNode *> (start_node))
+	{
+		//std::cout << "start_node is UniNode" << std::endl;
+		const sim_mob::UniNode *one_uninode = dynamic_cast<const sim_mob::UniNode *> (start_node);
+		const std::vector<const sim_mob::RoadSegment*>& start_node_segments = one_uninode->getRoadSegments();
+
+		std::vector<const sim_mob::RoadSegment*>::const_iterator it = start_node_segments.begin();
+		for (; it != start_node_segments.end(); it++)
+		{
+			buffer_road_segments.push_back(const_cast<sim_mob::RoadSegment*> (*it));
+		}
+	}
+	else
+	{
+	}
+
+	if (dynamic_cast<sim_mob::UniNode *> (end_node))
+	{
+		//std::cout << "end_node is UniNode" << std::endl;
+		const sim_mob::UniNode *one_uninode = dynamic_cast<const sim_mob::UniNode *> (end_node);
+		const std::vector<const sim_mob::RoadSegment*>& end_node_segments = one_uninode->getRoadSegments();
+
+		std::vector<const sim_mob::RoadSegment*>::const_iterator it = end_node_segments.begin();
+		for (; it != end_node_segments.end(); it++)
+		{
+			buffer_road_segments.push_back(const_cast<sim_mob::RoadSegment*> (*it));
+		}
+	}
+	else
+	{
+	}
+
+	//Find the road segment
+	std::vector<sim_mob::RoadSegment*>::iterator it = buffer_road_segments.begin();
+
+	for (; it != buffer_road_segments.end(); it++)
+	{
+		if ((*it)->getStart()->location->getX() == start_point->getX() && (*it)->getStart()->location->getY()
+				== start_point->getY())
+			if ((*it)->getEnd()->location->getX() == end_point->getX() && (*it)->getEnd()->location->getY()
+					== end_point->getY())
+			{
+				return (*it);
+			}
+	}
+
+	std::cout << "Error: can not find one boundary road segment in Loader.cpp" << std::endl;
+	return 0;
+}
+
+//add by xuyan
+const sim_mob::Signal* sim_mob::getSignalBasedOnNode(sim_mob::Point2D* one_point)
+{
+	sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
+	sim_mob::Node* one_node = rn.locateNode(*one_point, true);
+
+	sim_mob::StreetDirectory& directory = sim_mob::StreetDirectory::instance();
+	return directory.signalAt(*one_node);
+}
+
+bool isRoadItemTheCrossing(const sim_mob::RoadItem* one_item, sim_mob::Point2D* one_near_point,
+		sim_mob::Point2D* two_near_point, sim_mob::Point2D* one_far_point, sim_mob::Point2D* two_far_point)
+{
+	const sim_mob::Crossing* one_cross = dynamic_cast<const sim_mob::Crossing*> (one_item);
+	if (one_cross)
+	{
+		if (one_cross->nearLine.first.getX() != one_near_point->getX() || one_cross->nearLine.first.getY()
+				!= one_near_point->getY())
+		{
+			return false;
+		}
+		if (one_cross->nearLine.second.getX() != two_near_point->getX() || one_cross->nearLine.second.getY()
+				!= two_near_point->getY())
+		{
+			return false;
+		}
+
+		if (one_cross->farLine.first.getX() != one_far_point->getX() || one_cross->farLine.first.getY()
+				!= one_far_point->getY())
+		{
+			return false;
+		}
+		if (one_cross->farLine.second.getX() != two_far_point->getX() || one_cross->farLine.second.getY()
+				!= two_far_point->getY())
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+const sim_mob::Crossing* sim_mob::getCrossingBasedOnNode(sim_mob::Point2D* one_near_point,
+		sim_mob::Point2D* two_near_point, sim_mob::Point2D* one_far_point, sim_mob::Point2D* two_far_point)
+{
+	sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
+	const std::vector<sim_mob::Link*>& all_links = rn.getLinks();
+
+	std::vector<sim_mob::Link*>::const_iterator itr = all_links.begin();
+	for (; itr != all_links.end(); itr++)
+	{
+		sim_mob::Link* one_link = (*itr);
+
+		vector<RoadSegment*> one_direction_segments = one_link->getPath(true);
+		vector<RoadSegment*>::iterator itr_seg = one_direction_segments.begin();
+		for (; itr_seg != one_direction_segments.end(); itr_seg++)
+		{
+			const sim_mob::RoadSegment* one_seg = (*itr_seg);
+
+			std::map<centimeter_t, const sim_mob::RoadItem*>::const_iterator itr_item = one_seg->obstacles.begin();
+			for (; itr_item != one_seg->obstacles.end(); itr_item++)
+			{
+				const sim_mob::RoadItem* one_item = (*itr_item).second;
+				if (isRoadItemTheCrossing(one_item, one_near_point, two_near_point, one_far_point, two_far_point))
+				{
+					const sim_mob::Crossing* one_cross = dynamic_cast<const sim_mob::Crossing*> (one_item);
+					return one_cross;
+				}
+			}
+		}
+
+		vector<RoadSegment*> second_direction_segments = one_link->getPath(false);
+		itr_seg = second_direction_segments.begin();
+		for (; itr_seg != second_direction_segments.end(); itr_seg++)
+		{
+			const sim_mob::RoadSegment* one_seg = (*itr_seg);
+
+			std::map<centimeter_t, const sim_mob::RoadItem*>::const_iterator itr_item = one_seg->obstacles.begin();
+			for (; itr_item != one_seg->obstacles.end(); itr_item++)
+			{
+				const sim_mob::RoadItem* one_item = (*itr_item).second;
+				if (isRoadItemTheCrossing(one_item, one_near_point, two_near_point, one_far_point, two_far_point))
+				{
+					const sim_mob::Crossing* one_cross = dynamic_cast<const sim_mob::Crossing*> (one_item);
+					return one_cross;
+				}
+			}
+		}
+	}
+
+	return 0;
+}

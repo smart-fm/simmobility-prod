@@ -12,7 +12,6 @@
 #include "metrics/Frame.hpp"
 #include "buffering/BufferedDataManager.hpp"
 
-
 namespace sim_mob
 {
 
@@ -22,9 +21,6 @@ class WorkGroup;
 #ifndef SIMMOB_DISABLE_MPI
 class PartitionManager;
 #endif
-
-class RoadNetworkPackageManager;
-class AgentPackageManager;
 
 /**
  * Base class of all agents and other "decision-making" entities.
@@ -74,20 +70,22 @@ protected:
 	virtual void buildSubscriptionList() = 0;
 	std::vector<sim_mob::BufferedBase*> subscriptionList_cached;
 
-private:
+protected:
 	unsigned int id;
 	bool isSubscriptionListBuilt;
 
 	//When (in ms) does this Entity start?
 	unsigned int startTime;
 
-protected:
+	//temp setting, I set Worker group to be friend class, but worker group still can not get it;
+public:
 	///Who is currently managing this Entity?
 	Worker* currWorker;
 
 	//Only the WorkGroup can retrieve/set the currWorker flag. I'm doing this through a
 	// friend class, since get/set methods have the potential for abuse (currWorker can't be declared const*)
 	friend class Worker;
+	friend class WorkerGroup;
 
 //Some near-trivial functions
 public:
@@ -121,17 +119,12 @@ public:
 		return subscriptionList_cached;
 	}
 
-	//add by xuyan
-public:
-	friend class AgentPackageManager;
-	friend class RoadNetworkPackageManager;
+	bool isFake;
+	bool receiveTheFakeEntityAgain;
 
 #ifndef SIMMOB_DISABLE_MPI
 	friend class PartitionManager;
 #endif
-
-	bool isFake;
-	bool receiveTheFakeEntityAgain;
 
 };
 

@@ -23,9 +23,17 @@
 #include "geospatial/Crossing.hpp"
 #include "entities/roles/driver/GeneralPathMover.hpp"
 
+#ifndef SIMMOB_DISABLE_MPI
+#include "partitions/PackageUtils.hpp"
+#include "partitions/UnPackageUtils.hpp"
+#endif
+
 namespace sim_mob
 {
 
+#ifndef SIMMOB_DISABLE_MPI
+class PartitionManager;
+#endif
 
 //Stages
 enum PedestrianStage {
@@ -117,6 +125,18 @@ private:
 	//TODO: We need a policy on who can get a generator and why.
 	boost::mt19937 gen;
 
+	//Serialization
+#ifndef SIMMOB_DISABLE_MPI
+public:
+	friend class sim_mob::PartitionManager;
+
+public:
+	virtual void package(PackageUtils& packageUtil);
+	virtual void unpackage(UnPackageUtils& unpackageUtil);
+
+	virtual void packageProxy(PackageUtils& packageUtil);
+	virtual void unpackageProxy(UnPackageUtils& unpackageUtil);
+#endif
 };
 
 

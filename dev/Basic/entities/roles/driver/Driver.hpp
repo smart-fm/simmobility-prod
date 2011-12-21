@@ -9,7 +9,7 @@
 #include "GenConfig.h"
 
 #include "entities/roles/Role.hpp"
-#include "buffering/Buffered.hpp"
+#include "buffering/Shared.hpp"
 #include "geospatial/StreetDirectory.hpp"
 #include "perception/FixedDelayed.hpp"
 #include "entities/vehicle/Vehicle.hpp"

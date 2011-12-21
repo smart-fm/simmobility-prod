@@ -12,7 +12,7 @@
 #include <boost/thread.hpp>
 
 #include "util/LangHelpers.hpp"
-#include "buffering/Buffered.hpp"
+#include "buffering/Shared.hpp"
 #include "buffering/BufferedDataManager.hpp"
 #include "geospatial/Point2D.hpp"
 #include "conf/simpleconf.hpp"

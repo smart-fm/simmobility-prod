@@ -10,6 +10,7 @@
 #include "GenConfig.h"
 
 #include <boost/thread.hpp>
+#include <boost/random.hpp>
 
 #include "util/LangHelpers.hpp"
 #include "buffering/Shared.hpp"
@@ -107,6 +108,12 @@ public:
 	///Passing in a negative number will always auto-assign an ID, and is recommended.
 	static unsigned int GetAndIncrementID(int preferredID);
 
+	///Note: Calling this function from another Agent is extremely dangerous if you
+	/// don't know what you're doing.
+	boost::mt19937& getGenerator() {
+		return gen;
+	}
+
 
 private:
 	//unsigned int currMode;
@@ -116,6 +123,11 @@ private:
 	//add by xuyan
 protected:
 	int dynamic_seed;
+
+	//Random number generator
+	//TODO: For now (for thread safety) I am giving each Agent control over its own random
+	//      number stream. We can probably raise this to the Worker level if we require it.
+	boost::mt19937 gen;
 
 public:
 	int getOwnRandomNumber();

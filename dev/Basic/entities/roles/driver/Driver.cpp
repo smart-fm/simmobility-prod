@@ -212,7 +212,7 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {
 }
 
 //TODO: We can use initializer lists later to make some of these params const.
-sim_mob::UpdateParams::UpdateParams(const Driver& owner) {
+sim_mob::UpdateParams::UpdateParams(const Driver& owner, boost::mt19937& gen) : gen(gen) {
 	//Set to the previous known buffered values
 	currLane = owner.currLane_.get();
 	currLaneIndex = getLaneIndex(currLane);
@@ -408,7 +408,7 @@ void sim_mob::Driver::update(frame_t frameNumber) {
 	}
 
 	//Create a new set of local parameters for this frame update.
-	UpdateParams params(*this);
+	UpdateParams params(*this, parent->getGenerator());
 
 	//First frame update
 	if (firstFrameTick) {

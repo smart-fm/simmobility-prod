@@ -144,7 +144,7 @@ bool generateAgentsFromTripChain(std::vector<Entity*>& agents)
 		if ((*it)->mode == "Car") {
 			curr->changeRole(new Driver(curr, config.mutexStategy, config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
 		} else if ((*it)->mode == "Walk") {
-			curr->changeRole(new Pedestrian(curr));
+			curr->changeRole(new Pedestrian(curr, curr->getGenerator()));
 		} else {
 			cout <<"Unknown agent mode: " <<(*it)->mode <<endl;
 			return false;
@@ -211,7 +211,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& agents, const 
 			if (!agent) {
 				agent = new Person(config.mutexStategy);
 				if (agentType=="pedestrian") {
-					agent->changeRole(new Pedestrian(agent));
+					agent->changeRole(new Pedestrian(agent, agent->getGenerator()));
 				} else if (agentType=="driver") {
 					agent->changeRole(new Driver(agent, config.mutexStategy, config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
 				}

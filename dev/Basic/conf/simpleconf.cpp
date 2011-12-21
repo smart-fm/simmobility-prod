@@ -129,6 +129,22 @@ vector<string> ReadSpaceSepArray(TiXmlHandle& handle, const std::string& attrNam
 	return res;
 }
 
+string ReadLowercase(TiXmlHandle& handle, const std::string& attrName)
+{
+	//Search for this attribute, parse it.
+	TiXmlElement* node = handle.ToElement();
+	string res;
+	if (node) {
+		const char* strArrP = node->Attribute(attrName.c_str());
+		if (strArrP) {
+			res = string(strArrP);
+			std::transform(res.begin(), res.end(), res.begin(), ::tolower);
+		}
+	}
+
+	//Done
+	return res;
+}
 
 
 bool generateAgentsFromTripChain(std::vector<Entity*>& agents)
@@ -721,6 +737,19 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& agents)
 	}
 	cout <<endl;
 
+	//Buffering strategy (optional)
+	handle = TiXmlHandle(&document);
+	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("mutex_enforcement");
+	string mutexStrat = ReadLowercase(handle, "strategy");
+	MutexStrategy mtStrat = MtxStrat_Buffered;
+	if (!mutexStrat.empty()) {
+		if (mutexStrat == "locked") {
+			mtStrat = MtxStrat_Locked;
+		} else if (mutexStrat != "buffered") {
+			return string("Unknown mutex strategy: ") + mutexStrat;
+		}
+	}
+
 	//Miscelaneous settings
 	handle = TiXmlHandle(&document);
 	if (handle.FirstChild("config").FirstChild("system").FirstChild("misc").FirstChild("manual_fix_demo_intersection").ToElement()) {
@@ -776,6 +805,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& agents)
     	config.reacTime_LeadingVehicle = reacTime_LeadingVehicle;
     	config.reacTime_SubjectVehicle = reacTime_SubjectVehicle;
     	config.reacTime_Gap = reacTime_Gap;
+    	config.mutexStategy = mtStrat;
     }
 
 
@@ -868,6 +898,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& agents)
     std::cout <<"  Paths Granularity: " <<ConfigParams::GetInstance().granPathsTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Decomp Granularity: " <<ConfigParams::GetInstance().granDecompTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Start time: " <<ConfigParams::GetInstance().simStartTime.toString() <<"\n";
+    std::cout <<"  Mutex strategy: " <<(ConfigParams::GetInstance().mutexStategy==MtxStrat_Locked?"Locked":ConfigParams::GetInstance().mutexStategy==MtxStrat_Buffered?"Buffered":"Unknown") <<"\n";
     if (!ConfigParams::GetInstance().boundaries.empty() || !ConfigParams::GetInstance().crossings.empty()) {
     	std::cout <<"  Boundaries Found: " <<ConfigParams::GetInstance().boundaries.size() <<"\n";
 		for (map<string, Point2D>::iterator it=ConfigParams::GetInstance().boundaries.begin(); it!=ConfigParams::GetInstance().boundaries.end(); it++) {

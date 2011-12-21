@@ -167,9 +167,9 @@ vector<WayPoint> LoadSpecialPath(const Node* origin, char pathLetter) {
 
 
 //initiate
-sim_mob::Driver::Driver(Person* parent, unsigned int reacTime_LeadingVehicle, unsigned int reacTime_SubjectVehicle,
+sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, unsigned int reacTime_LeadingVehicle, unsigned int reacTime_SubjectVehicle,
 		unsigned int reacTime_Gap) :
-	Role(parent), currLane_(nullptr), currLaneOffset_(0), currLaneLength_(0), isInIntersection(false),
+	Role(parent), currLane_(mtxStrat, nullptr), currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0), isInIntersection(mtxStrat, false),
 			vehicle(nullptr), perceivedVelocity(reacTime_SubjectVehicle, true), perceivedVelocityOfFwdCar(
 					reacTime_LeadingVehicle, true), perceivedAccelerationOfFwdCar(reacTime_LeadingVehicle, true),
 			perceivedDistToFwdCar(reacTime_Gap, true) {

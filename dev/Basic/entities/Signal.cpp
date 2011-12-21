@@ -45,12 +45,12 @@ const double sim_mob::Signal::SplitPlan5[] = { 0.20, 0.35, 0.25, 0.20 };
 //Signal* sim_mob::Signal::instance_ = NULL;
 
 /* static */sim_mob::Signal &
-sim_mob::Signal::signalAt(Node const & node) {
+sim_mob::Signal::signalAt(Node const & node, const MutexStrategy& mtxStrat) {
 	Signal const * signal = StreetDirectory::instance().signalAt(node);
 	if (signal)
 		return const_cast<Signal &> (*signal);
 
-	Signal * sig = new Signal(node);
+	Signal * sig = new Signal(node, mtxStrat);
 	all_signals_.push_back(sig);
 	StreetDirectory::instance().registerSignal(*sig);
 	return *sig;
@@ -61,8 +61,8 @@ void sim_mob::Signal::addSignalSite(centimeter_t /* xpos */, centimeter_t /* ypo
 	// Not implemented yet.
 }
 
-sim_mob::Signal::Signal(Node const & node, int id) :
-	Agent(id), node_(node) {
+sim_mob::Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id) :
+	Agent(mtxStrat, id), node_(node), buffered_TC(mtxStrat, SignalStatus()) {
 	initializeSignal();
 	setupIndexMaps();
 }

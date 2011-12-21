@@ -151,7 +151,7 @@ public:
             }
         };
 
-	Signal(Node const & node, int id=-1);
+	Signal(Node const & node, const MutexStrategy& mtxStrat, int id=-1);
 
         /**
          * Return the road-network node where this Signal is located.
@@ -204,7 +204,7 @@ public:
         /**
          * Return the Signal that is located at the specified \c node, creating one if necessary.
          */
-        static Signal & signalAt(Node const & node);
+        static Signal & signalAt(Node const & node, const MutexStrategy& mtxStrat);
 
         /**
          * The list of all Signal objects in the simulator.
@@ -263,7 +263,7 @@ private:
 	int TC_for_Driver[4][3];
 	int TC_for_Pedestrian[4];
 
-	sim_mob::Buffered<SignalStatus> buffered_TC;
+	sim_mob::Shared<SignalStatus> buffered_TC;
 
 	//String representation, so that we can retrieve this information at any time.
 	std::string strRepr;

@@ -7,6 +7,7 @@
 #include "Agent.hpp"
 #include "roles/Role.hpp"
 #include "roles/driver/Driver.hpp"
+#include "buffering/Shared.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -29,7 +30,7 @@ class PartitionManager;
  */
 class Person : public sim_mob::Agent {
 public:
-	Person(int id=-1);
+	Person(const MutexStrategy& mtxStrat, int id=-1);
 	virtual ~Person();
 
 	///Update Person behavior

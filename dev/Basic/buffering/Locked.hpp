@@ -109,7 +109,7 @@ protected:
     void flip() {}
 
     //Shared ownership of reading, exclusive ownership of writing.
-    boost::shared_mutex mutex_;
+    mutable boost::shared_mutex mutex_;
 
     //Value
     T current_;

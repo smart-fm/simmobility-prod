@@ -52,7 +52,7 @@ class StartTimePriorityQueue : public std::priority_queue<Entity*, std::vector<E
  */
 class Agent : public sim_mob::Entity {
 public:
-	Agent(int id=-1);
+	Agent(const MutexStrategy& mtxStrat, int id=-1);
 	virtual ~Agent();
 
 	virtual bool update(frame_t frameNumber) = 0;  ///<Update agent behvaior
@@ -75,14 +75,14 @@ public:
 //	sim_mob::Buffered<double> xPos;  ///<The agent's position, X
 //	sim_mob::Buffered<double> yPos;  ///<The agent's position, Y
 
-	sim_mob::Buffered<int> xPos;  ///<The agent's position, X
-	sim_mob::Buffered<int> yPos;  ///<The agent's position, Y
+	sim_mob::Shared<int> xPos;  ///<The agent's position, X
+	sim_mob::Shared<int> yPos;  ///<The agent's position, Y
 
-	sim_mob::Buffered<double> fwdVel;  ///<The agent's velocity, X
-	sim_mob::Buffered<double> latVel;  ///<The agent's velocity, Y
+	sim_mob::Shared<double> fwdVel;  ///<The agent's velocity, X
+	sim_mob::Shared<double> latVel;  ///<The agent's velocity, Y
 
-	sim_mob::Buffered<double> xAcc;  ///<The agent's acceleration, X
-	sim_mob::Buffered<double> yAcc;  ///<The agent's acceleration, Y
+	sim_mob::Shared<double> xAcc;  ///<The agent's acceleration, X
+	sim_mob::Shared<double> yAcc;  ///<The agent's acceleration, Y
 	//sim_mob::Buffered<int> currentLink;
 	//sim_mob::Buffered<int> currentCrossing;
 

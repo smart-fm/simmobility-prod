@@ -10,8 +10,8 @@
 using std::vector;
 using namespace sim_mob;
 
-sim_mob::Person::Person(int id) :
-	Agent(id), currRole(nullptr), currTripChain(nullptr) {
+sim_mob::Person::Person(const MutexStrategy& mtxStrat, int id) :
+	Agent(mtxStrat, id), currRole(nullptr), currTripChain(nullptr) {
 
 }
 

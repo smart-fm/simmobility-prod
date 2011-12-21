@@ -11,6 +11,14 @@ namespace sim_mob
 {
 
 
+///Strategy for enforcing mutual exclusion
+enum MutexStrategy {
+	MtxStrat_Buffered,
+	MtxStrat_Locked,
+};
+
+
+
 /**
  * Templatized wrapper for an object that may be Buffered OR Locked.
  *
@@ -43,18 +51,12 @@ template <typename T>
 class Shared : public BufferedBase
 {
 public:
-	///Strategy for enforcing mutual exclusion
-	enum MutexStrategy {
-		MtxStrat_Buffered,
-		MtxStrat_Locked,
-	};
-
 	/**
 	 * Create a new Shared data type.
 	 *
 	 * \param value The initial value. You can also set an initial value using "force".
 	 */
-	Shared (MutexStrategy mtxStrategy, const T& value = T()) : BufferedBase(),
+	Shared (const sim_mob::MutexStrategy& mtxStrategy, const T& value = T()) : BufferedBase(),
 		current_ (value), strategy_(mtxStrategy), next_ (value) {}
 	virtual ~Shared() {}
 
@@ -154,7 +156,7 @@ protected:
 
     //Used by both
     T current_;
-    MutexStrategy strategy_;
+    sim_mob::MutexStrategy strategy_;
 
     //Next value to be written
     // Used by Buffered
@@ -162,7 +164,7 @@ protected:
 
     //Shared ownership of reading, exclusive ownership of writing.
     // Used by Locked
-    boost::shared_mutex mutex_;
+    mutable boost::shared_mutex mutex_;
 
 
 };

@@ -38,7 +38,7 @@ const int sim_mob::Subsystem::DB_Link4[] = {0, 0, 0, 1};
 
 
 
-sim_mob :: Subsystem :: Subsystem(Node const & node, int id) : sim_mob::Signal(node, id)
+sim_mob :: Subsystem :: Subsystem(Node const & node, const MutexStrategy& mtxStrat, int id) : sim_mob::Signal(node, mtxStrat, id)
 {
 	Critical->setCL(60,60,60);//default initial cycle length for SCATS
 	Critical->setRL(60,60);//default initial RL for SCATS

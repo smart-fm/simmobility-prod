@@ -53,7 +53,7 @@ private:
 
 //Constructor and overridden methods.
 public:
-	Driver(Person* parent, unsigned int reacTime_LeadingVehicle, unsigned int reacTime_SubjectVehicle, unsigned int reacTime_Gap);		//to initiate
+	Driver(Person* parent, sim_mob::MutexStrategy mtxStrat, unsigned int reacTime_LeadingVehicle, unsigned int reacTime_SubjectVehicle, unsigned int reacTime_Gap);		//to initiate
 	virtual ~Driver();
 
 	virtual void update(frame_t frameNumber);
@@ -61,10 +61,10 @@ public:
 
 //Buffered data
 public:
-	Buffered<const Lane*> currLane_;
-	Buffered<double> currLaneOffset_;
-	Buffered<double> currLaneLength_;
-	Buffered<bool> isInIntersection;
+	Shared<const Lane*> currLane_;
+	Shared<double> currLaneOffset_;
+	Shared<double> currLaneLength_;
+	Shared<bool> isInIntersection;
 
 //Basic data
 private:

@@ -137,12 +137,12 @@ bool generateAgentsFromTripChain(std::vector<Entity*>& agents)
 	const vector<TripChain*>& tcs = ConfigParams::GetInstance().getTripChains();
 	for (vector<TripChain*>::const_iterator it=tcs.begin(); it!=tcs.end(); it++) {
 		//Create a new agent, add it to the list of agents.
-		Person* curr = new Person();
+		Person* curr = new Person(ConfigParams::GetInstance().mutexStategy);
 		agents.push_back(curr);
 
 		//Set its mode.
 		if ((*it)->mode == "Car") {
-			curr->changeRole(new Driver(curr,config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
+			curr->changeRole(new Driver(curr, config.mutexStategy, config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
 		} else if ((*it)->mode == "Walk") {
 			curr->changeRole(new Pedestrian(curr));
 		} else {
@@ -209,11 +209,11 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& agents, const 
 
 			//Create the agent if it doesn't exist
 			if (!agent) {
-				agent = new Person();
+				agent = new Person(config.mutexStategy);
 				if (agentType=="pedestrian") {
 					agent->changeRole(new Pedestrian(agent));
 				} else if (agentType=="driver") {
-					agent->changeRole(new Driver(agent,config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
+					agent->changeRole(new Driver(agent, config.mutexStategy, config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
 				}
 			}
 
@@ -352,7 +352,7 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal *>& all_signals,
                 {
                     // The following call will create and register the signal with the
                     // street-directory.
-                    Signal::signalAt(*road_node);
+                    Signal::signalAt(*road_node, ConfigParams::GetInstance().mutexStategy);
                 }
             }
             catch (boost::bad_lexical_cast &)
@@ -915,7 +915,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& agents)
 // Simple singleton implementation
 //////////////////////////////////////////
 ConfigParams sim_mob::ConfigParams::instance;
-sim_mob::ConfigParams::ConfigParams() : TEMP_ManualFixDemoIntersection(false) {
+sim_mob::ConfigParams::ConfigParams() : TEMP_ManualFixDemoIntersection(false), mutexStategy(MtxStrat_Buffered) {
 
 }
 ConfigParams& sim_mob::ConfigParams::GetInstance() {

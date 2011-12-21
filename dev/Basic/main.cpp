@@ -39,6 +39,9 @@
 #include "geospatial/Route.hpp"
 #include "geospatial/BusRoute.hpp"
 #include "perception/FixedDelayed.hpp"
+#include "buffering/Buffered.hpp"
+#include "buffering/Locked.hpp"
+#include "buffering/Shared.hpp"
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"

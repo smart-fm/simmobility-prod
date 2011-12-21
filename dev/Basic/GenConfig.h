@@ -19,7 +19,7 @@
 #define SIMMOB_VERSION_MINOR "1"
 
 //Flags imported from cmake
-/* #undef SIMMOB_DISABLE_MPI */
+#define SIMMOB_DISABLE_MPI
 /* #undef SIMMOB_DISABLE_DYNAMIC_DISPATCH */
 /* #undef SIMMOB_LATEST_STANDARD */
 

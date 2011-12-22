@@ -14,6 +14,8 @@
 #include "GenConfig.h"
 #include "Signal.hpp"
 
+#include "buffering/Shared.hpp"
+
 
 namespace sim_mob
 {
@@ -38,7 +40,7 @@ namespace sim_mob
 class Subsystem : public sim_mob::Signal {
 
 public:
-	Subsystem(Node const & node, int id=-1);
+	Subsystem(Node const & node, const MutexStrategy& mtxStrat, int id=-1);
 
 	//update Subsystem
 	void updateSubsystem(double DS_C[],double DS_S1[], double DS_S2[], int flow1[], int flow2[]);

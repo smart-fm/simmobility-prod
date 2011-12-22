@@ -62,7 +62,7 @@ inline void operator++(PedestrianStage& rhs) {
  */
 class Pedestrian : public sim_mob::Role {
 public:
-	Pedestrian(Agent* parent);
+	Pedestrian(Agent* parent, boost::mt19937& gen);
 	virtual ~Pedestrian();
 
 	virtual void update(frame_t frameNumber);
@@ -106,7 +106,7 @@ private:
 	void checkForCollisions();
 //	bool reachStartOfCrossing();
 	bool checkGapAcceptance();
-	void setCrossingParas(const RoadSegment* prevSegment); //Temp helper function
+	void setCrossingParas(const RoadSegment* prevSegment, boost::mt19937& gen); //Temp helper function
 	bool isFirstTimeUpdate(); //Temp helper function
 	void setSidewalkParas(Node* start, Node* end, bool isStartMulti);
 	void absToRel(double, double, double &, double &);
@@ -123,7 +123,7 @@ private:
 
 	//Random number generator
 	//TODO: We need a policy on who can get a generator and why.
-	boost::mt19937 gen;
+	//boost::mt19937 gen;
 
 	//Serialization
 #ifndef SIMMOB_DISABLE_MPI

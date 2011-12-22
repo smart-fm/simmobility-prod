@@ -165,9 +165,9 @@ vector<WayPoint> LoadSpecialPath(const Node* origin, char pathLetter) {
 
 
 //initiate
-sim_mob::Driver::Driver(Person* parent, unsigned int reacTime_LeadingVehicle, unsigned int reacTime_SubjectVehicle,
+sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, unsigned int reacTime_LeadingVehicle, unsigned int reacTime_SubjectVehicle,
 		unsigned int reacTime_Gap) :
-	Role(parent), currLane_(nullptr), currLaneOffset_(0), currLaneLength_(0), isInIntersection(false),
+	Role(parent), currLane_(mtxStrat, nullptr), currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0), isInIntersection(mtxStrat, false),
 			vehicle(nullptr), perceivedVelocity(reacTime_SubjectVehicle, true), perceivedVelocityOfFwdCar(
 					reacTime_LeadingVehicle, true), perceivedAccelerationOfFwdCar(reacTime_LeadingVehicle, true),
 			perceivedDistToFwdCar(reacTime_Gap, true) {
@@ -210,7 +210,7 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {
 }
 
 //TODO: We can use initializer lists later to make some of these params const.
-sim_mob::UpdateParams::UpdateParams(const Driver& owner) {
+sim_mob::UpdateParams::UpdateParams(const Driver& owner, boost::mt19937& gen) : gen(gen) {
 	//Set to the previous known buffered values
 	currLane = owner.currLane_.get();
 	currLaneIndex = getLaneIndex(currLane);
@@ -406,7 +406,7 @@ void sim_mob::Driver::update(frame_t frameNumber) {
 	}
 
 	//Create a new set of local parameters for this frame update.
-	UpdateParams params(*this);
+	UpdateParams params(*this, parent->getGenerator());
 
 	//First frame update
 	if (firstFrameTick) {

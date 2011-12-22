@@ -944,7 +944,7 @@ DatabaseLoader::createSignals()
             continue;
         }
 
-        sim_mob::Signal & signal = sim_mob::Signal::signalAt(*node);
+        sim_mob::Signal & signal = sim_mob::Signal::signalAt(*node, sim_mob::ConfigParams::GetInstance().mutexStategy);
         signal.addSignalSite(dbSignal.xPos, dbSignal.yPos, dbSignal.typeCode, dbSignal.bearing);
     }
 }

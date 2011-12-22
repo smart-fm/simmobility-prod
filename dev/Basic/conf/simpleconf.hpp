@@ -9,6 +9,7 @@
 
 #include <boost/utility.hpp>
 
+#include "buffering/Shared.hpp"
 #include "util/DailyTime.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/RoadNetwork.hpp"
@@ -44,6 +45,9 @@ public:
 	unsigned int reacTime_LeadingVehicle;
 	unsigned int reacTime_SubjectVehicle;
 	unsigned int reacTime_Gap;
+
+	//Locking strategy
+	sim_mob::MutexStrategy mutexStategy;
 
 	//When the simulation begins
 	DailyTime simStartTime;

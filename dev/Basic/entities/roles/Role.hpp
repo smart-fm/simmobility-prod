@@ -56,7 +56,7 @@ public:
 		this->parent = parent;
 	}
 
-	int getOwnRandomNumber()
+	int getOwnRandomNumber(boost::mt19937& gen)
 	{
 		//		boost::mutex::scoped_lock lock(m_mutex);
 		int one_try = -1;
@@ -101,7 +101,7 @@ protected:
 
 	//Random number generator
 	//TODO: We need a policy on who can get a generator and why.
-	boost::mt19937 gen;
+	//boost::mt19937 gen;
 
 	//public:
 	//	static boost::mutex m_mutex;

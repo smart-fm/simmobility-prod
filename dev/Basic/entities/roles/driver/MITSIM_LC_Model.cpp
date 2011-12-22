@@ -22,7 +22,7 @@ using namespace sim_mob;
 namespace {
 //Random number generator
 //TODO: We need a policy on who can get a generator and why.
-boost::mt19937 gen;
+//boost::mt19937 gen;
 
 //Declare MAX_NUM as a private variable here to limit its scope.
 const double MAX_NUM = numeric_limits<double>::max();
@@ -304,7 +304,7 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(UpdateParams& p, double tot
 
 		//Get a random number, use it to determine if we're making a discretionary or a mandatory lane change
 		boost::uniform_int<> zero_to_max(0, RAND_MAX);
-		double randNum = (double)(zero_to_max(gen)%1000)/1000;
+		double randNum = (double)(zero_to_max(p.gen)%1000)/1000;
 		double mandCheck = checkIfMandatory(p);
 		LANE_CHANGE_MODE changeMode;  //DLC or MLC
 		if(randNum<mandCheck){

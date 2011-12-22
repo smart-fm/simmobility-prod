@@ -45,17 +45,21 @@ unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID) {
 #endif
 }
 
-sim_mob::Agent::Agent(int id) :
-	Entity(GetAndIncrementID(id)), originNode(nullptr), destNode(nullptr), xPos(0), yPos(0) {
+sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncrementID(id)),
+	originNode(nullptr), destNode(nullptr), xPos(mtxStrat, 0), yPos(mtxStrat, 0),
+	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0)
+{
 	toRemoved = false;
 	dynamic_seed = id;
 }
 
-sim_mob::Agent::~Agent() {
+sim_mob::Agent::~Agent()
+{
 
 }
 
-void sim_mob::Agent::buildSubscriptionList() {
+void sim_mob::Agent::buildSubscriptionList()
+{
 	subscriptionList_cached.push_back(&xPos);
 	subscriptionList_cached.push_back(&yPos);
 	subscriptionList_cached.push_back(&fwdVel);

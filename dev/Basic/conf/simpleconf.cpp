@@ -129,6 +129,22 @@ vector<string> ReadSpaceSepArray(TiXmlHandle& handle, const std::string& attrNam
 	return res;
 }
 
+string ReadLowercase(TiXmlHandle& handle, const std::string& attrName)
+{
+	//Search for this attribute, parse it.
+	TiXmlElement* node = handle.ToElement();
+	string res;
+	if (node) {
+		const char* strArrP = node->Attribute(attrName.c_str());
+		if (strArrP) {
+			res = string(strArrP);
+			std::transform(res.begin(), res.end(), res.begin(), ::tolower);
+		}
+	}
+
+	//Done
+	return res;
+}
 
 
 bool generateAgentsFromTripChain(std::vector<Entity*>& agents)
@@ -137,14 +153,14 @@ bool generateAgentsFromTripChain(std::vector<Entity*>& agents)
 	const vector<TripChain*>& tcs = ConfigParams::GetInstance().getTripChains();
 	for (vector<TripChain*>::const_iterator it=tcs.begin(); it!=tcs.end(); it++) {
 		//Create a new agent, add it to the list of agents.
-		Person* curr = new Person();
+		Person* curr = new Person(ConfigParams::GetInstance().mutexStategy);
 		agents.push_back(curr);
 
 		//Set its mode.
 		if ((*it)->mode == "Car") {
-			curr->changeRole(new Driver(curr,config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
+			curr->changeRole(new Driver(curr, config.mutexStategy, config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
 		} else if ((*it)->mode == "Walk") {
-			curr->changeRole(new Pedestrian(curr));
+			curr->changeRole(new Pedestrian(curr, curr->getGenerator()));
 		} else {
 			cout <<"Unknown agent mode: " <<(*it)->mode <<endl;
 			return false;
@@ -209,11 +225,11 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& agents, const 
 
 			//Create the agent if it doesn't exist
 			if (!agent) {
-				agent = new Person();
+				agent = new Person(config.mutexStategy);
 				if (agentType=="pedestrian") {
-					agent->changeRole(new Pedestrian(agent));
+					agent->changeRole(new Pedestrian(agent, agent->getGenerator()));
 				} else if (agentType=="driver") {
-					agent->changeRole(new Driver(agent,config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
+					agent->changeRole(new Driver(agent, config.mutexStategy, config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
 				}
 			}
 
@@ -352,7 +368,7 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal *>& all_signals,
                 {
                     // The following call will create and register the signal with the
                     // street-directory.
-                    Signal::signalAt(*road_node);
+                    Signal::signalAt(*road_node, ConfigParams::GetInstance().mutexStategy);
                 }
             }
             catch (boost::bad_lexical_cast &)
@@ -721,6 +737,19 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& agents)
 	}
 	cout <<endl;
 
+	//Buffering strategy (optional)
+	handle = TiXmlHandle(&document);
+	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("mutex_enforcement");
+	string mutexStrat = ReadLowercase(handle, "strategy");
+	MutexStrategy mtStrat = MtxStrat_Buffered;
+	if (!mutexStrat.empty()) {
+		if (mutexStrat == "locked") {
+			mtStrat = MtxStrat_Locked;
+		} else if (mutexStrat != "buffered") {
+			return string("Unknown mutex strategy: ") + mutexStrat;
+		}
+	}
+
 	//Miscelaneous settings
 	handle = TiXmlHandle(&document);
 	if (handle.FirstChild("config").FirstChild("system").FirstChild("misc").FirstChild("manual_fix_demo_intersection").ToElement()) {
@@ -776,6 +805,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& agents)
     	config.reacTime_LeadingVehicle = reacTime_LeadingVehicle;
     	config.reacTime_SubjectVehicle = reacTime_SubjectVehicle;
     	config.reacTime_Gap = reacTime_Gap;
+    	config.mutexStategy = mtStrat;
     }
 
 
@@ -868,6 +898,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& agents)
     std::cout <<"  Paths Granularity: " <<ConfigParams::GetInstance().granPathsTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Decomp Granularity: " <<ConfigParams::GetInstance().granDecompTicks <<" " <<"ticks" <<"\n";
     std::cout <<"  Start time: " <<ConfigParams::GetInstance().simStartTime.toString() <<"\n";
+    std::cout <<"  Mutex strategy: " <<(ConfigParams::GetInstance().mutexStategy==MtxStrat_Locked?"Locked":ConfigParams::GetInstance().mutexStategy==MtxStrat_Buffered?"Buffered":"Unknown") <<"\n";
     if (!ConfigParams::GetInstance().boundaries.empty() || !ConfigParams::GetInstance().crossings.empty()) {
     	std::cout <<"  Boundaries Found: " <<ConfigParams::GetInstance().boundaries.size() <<"\n";
 		for (map<string, Point2D>::iterator it=ConfigParams::GetInstance().boundaries.begin(); it!=ConfigParams::GetInstance().boundaries.end(); it++) {
@@ -915,7 +946,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& agents)
 // Simple singleton implementation
 //////////////////////////////////////////
 ConfigParams sim_mob::ConfigParams::instance;
-sim_mob::ConfigParams::ConfigParams() : TEMP_ManualFixDemoIntersection(false) {
+sim_mob::ConfigParams::ConfigParams() : TEMP_ManualFixDemoIntersection(false), mutexStategy(MtxStrat_Buffered) {
 
 }
 ConfigParams& sim_mob::ConfigParams::GetInstance() {

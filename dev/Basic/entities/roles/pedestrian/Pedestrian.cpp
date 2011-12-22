@@ -71,7 +71,7 @@ double Pedestrian::collisionForce = 20;
 double Pedestrian::agentRadius = 0.5; //Shoulder width of a person is about 0.5 meter
 
 
-sim_mob::Pedestrian::Pedestrian(Agent* parent) :
+sim_mob::Pedestrian::Pedestrian(Agent* parent, boost::mt19937& gen) :
 	Role(parent), prevSeg(nullptr), isUsingGenPathMover(false) {
 	//Check non-null parent. Perhaps references may be of use here?
 	if (!parent) {
@@ -287,7 +287,7 @@ void sim_mob::Pedestrian::setGoal(PedestrianStage currStage, const RoadSegment* 
 		}
 	} else if (currStage == NavigatingIntersection) {
 		//Set the agent's position at the start of crossing and set the goal to the end of crossing
-		setCrossingParas(prevSegment);
+		setCrossingParas(prevSegment, parent->getGenerator());
 	} else if (currStage == LeavingIntersection) {
 		goal = Point2D(parent->destNode->location);
 		setSidewalkParas(ConfigParams::GetInstance().getNetwork().locateNode(interPoint, true), parent->destNode, true);
@@ -665,7 +665,7 @@ void sim_mob::Pedestrian::checkForCollisions() {
 
 /*---------------------Other helper functions----------------------------*/
 
-void sim_mob::Pedestrian::setCrossingParas(const RoadSegment* prevSegment) {
+void sim_mob::Pedestrian::setCrossingParas(const RoadSegment* prevSegment, boost::mt19937& gen) {
 	double xRel, yRel;
 	double xAbs, yAbs;
 	double width, length, tmp;

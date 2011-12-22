@@ -20,6 +20,9 @@ namespace sim_mob
  *   Buffered<int>
  * ...is a "Buffered int".
  *
+ * \note
+ * Do not delete this class until we decide what to do with it. See Shared.hpp for more information.
+ *
  *  \todo Currently, Buffered types don't work well with classes. For example, if
  *  we have a "Buffered<Point2D> pos", then calling "pos.get().xPos = 10" will
  *  not work. You need to do something like "Point2D newPos(10, 20); pos.set(newPos)", which

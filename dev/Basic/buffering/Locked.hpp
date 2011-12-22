@@ -2,8 +2,10 @@
 
 #pragma once
 
-
 #include "BufferedDataManager.hpp"
+
+#include <boost/thread.hpp>
+#include <boost/thread/locks.hpp>
 
 
 namespace sim_mob
@@ -19,6 +21,9 @@ namespace sim_mob
  * The spoken semantics of this template are sensible; for example:
  *   Locked<int>
  * ...is a "Locked int".
+ *
+ * \note
+ * Do not delete this class until we decide what to do with it. See Shared.hpp for more information.
  *
  *  \todo It seems that Locked<primitive> shouldn't have to lock on get(), but I'll have to look into this.
  *
@@ -51,7 +56,7 @@ public:
 	 * Retrieve the current value.
 	 */
     const T& get() const {
-    	boost::shared_lock lock_(mutex_);
+    	boost::shared_lock<boost::shared_mutex> lock_(mutex_);
 
     	return current_;
     }
@@ -60,10 +65,10 @@ public:
 	 * Set the current value.
 	 */
     void set (const T& value) {
-    	boost::upgrade_lock lock_(mutex_);
-    	boost::upgrade_to_unique_lock unique_(lock_);
+    	boost::upgrade_lock<boost::shared_mutex> lock_(mutex_);
+    	boost::upgrade_to_unique_lock<boost::shared_mutex> unique_(lock_);
 
-    	next_ = value;
+    	current_ = value;
     }
 
 
@@ -104,7 +109,7 @@ protected:
     void flip() {}
 
     //Shared ownership of reading, exclusive ownership of writing.
-    boost::shared_mutex mutex_;
+    mutable boost::shared_mutex mutex_;
 
     //Value
     T current_;

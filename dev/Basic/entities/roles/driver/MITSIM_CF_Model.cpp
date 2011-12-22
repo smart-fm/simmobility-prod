@@ -22,7 +22,7 @@ using namespace sim_mob;
 namespace {
 //Random number generator
 //TODO: We need a policy on who can get a generator and why.
-boost::mt19937 gen;
+//boost::mt19937 gen;
 
 //Threshold defaults
 const double hBufferUpper			=	  1.6;	 ///< upper threshold of headway
@@ -64,7 +64,7 @@ enum ACCEL_MODE {
 	AM_NONE = 3
 };
 
-double uRandom()
+double uRandom(boost::mt19937& gen)
 {
 	boost::uniform_int<> dist(0, RAND_MAX);
 	long int seed_ = dist(gen);
@@ -78,9 +78,9 @@ double uRandom()
 	return (double)seed_ / (double)M;
 }
 
-double nRandom(double mean,double stddev)
+double nRandom(boost::mt19937& gen, double mean,double stddev)
 {
-	   double r1 = uRandom(), r2 = uRandom();
+	   double r1 = uRandom(gen), r2 = uRandom(gen);
 	   double r = - 2.0 * log(r1);
 	   if (r > 0.0) return (mean + stddev * sqrt(r) * sin(2 * 3.1415926 * r2));
 	   else return (mean);
@@ -197,7 +197,7 @@ double sim_mob::MITSIM_CF_Model::accOfCarFollowing(UpdateParams& p)
 
 	double res = CF_parameters[i].alpha * pow(v , CF_parameters[i].beta) /pow(p.nvFwd.distance/100 , CF_parameters[i].gama);
 	res *= pow(dv , CF_parameters[i].lambda)*pow(density,CF_parameters[i].rho);
-	res += feet2Unit(nRandom(0,CF_parameters[i].stddev));
+	res += feet2Unit(nRandom(p.gen, 0, CF_parameters[i].stddev));
 
 	return res;
 }

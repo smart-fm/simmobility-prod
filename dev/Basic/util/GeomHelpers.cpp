@@ -48,8 +48,8 @@ double sim_mob::dist(const aimsun::Lane* ln1, const aimsun::Lane* ln2) {
 double sim_mob::dist(const aimsun::Node* n1, const aimsun::Node* n2) {
 	return dist(n1->xPos, n1->yPos, n2->xPos, n2->yPos);
 }
-double sim_mob::dist(const Point2D* p1, const Point2D* p2) {
-	return dist(p1->getX(), p1->getY(), p2->getX(), p2->getY());
+double sim_mob::dist(const Point2D& p1, const Point2D& p2) {
+	return dist(p1.getX(), p1.getY(), p2.getX(), p2.getY());
 }
 
 
@@ -165,7 +165,7 @@ namespace {
     // Return the intersection of the vectors (pPrev->pCurr) and (pNext->pCurr) when extended by "magnitude"
     Point2D calcCurveIntersection(const Point2D& pPrev, const Point2D& pCurr, const Point2D& pNext, double magnitude) {
     	//Get an estimate on the maximum distance. This isn't strictly needed, since we use the line-line intersection formula later.
-    	double maxDist = sim_mob::dist(&pPrev, &pNext);
+    	double maxDist = sim_mob::dist(pPrev, pNext);
 
     	//Get vector 1.
     	DynamicVector dvPrev(pPrev.getX(), pPrev.getY(), pCurr.getX(), pCurr.getY());
@@ -239,9 +239,8 @@ const sim_mob::Link* sim_mob::getLinkBetweenNodes(sim_mob::Point2D* start_point,
 
 	for (; it != all_links.end(); it++)
 	{
-		if ((*it)->getStart()->location->getX() == start_point->getX() && (*it)->getStart()->location->getY()
-				== start_point->getY() && (*it)->getEnd()->location->getX() == end_point->getX()
-				&& (*it)->getEnd()->location->getY() == end_point->getY())
+		if (   (*it)->getStart()->location == *start_point
+		    && (*it)->getEnd()->location == *end_point)
 		{
 			return (*it);
 		}
@@ -298,13 +297,11 @@ const sim_mob::RoadSegment* sim_mob::getRoadSegmentBasedOnNodes(sim_mob::Point2D
 
 	for (; it != buffer_road_segments.end(); it++)
 	{
-		if ((*it)->getStart()->location->getX() == start_point->getX() && (*it)->getStart()->location->getY()
-				== start_point->getY())
-			if ((*it)->getEnd()->location->getX() == end_point->getX() && (*it)->getEnd()->location->getY()
-					== end_point->getY())
-			{
-				return (*it);
-			}
+		if (   (*it)->getStart()->location == *start_point
+                    && (*it)->getEnd()->location == *end_point)
+                {
+                        return *it;
+                }
 	}
 
 	std::cout << "Error: can not find one boundary road segment in Loader.cpp" << std::endl;

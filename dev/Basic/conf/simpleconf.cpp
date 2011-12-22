@@ -505,8 +505,8 @@ void PrintDB_Network()
 	//Print nodes first
 	for (set<UniNode*>::const_iterator it=rn.getUniNodes().begin(); it!=rn.getUniNodes().end(); it++) {
 		LogOutNotSync("(\"uni-node\", 0, " <<*it <<", {");
-		LogOutNotSync("\"xPos\":\"" <<(*it)->location->getX() <<"\",");
-		LogOutNotSync("\"yPos\":\"" <<(*it)->location->getY() <<"\",");
+		LogOutNotSync("\"xPos\":\"" <<(*it)->location.getX() <<"\",");
+		LogOutNotSync("\"yPos\":\"" <<(*it)->location.getY() <<"\",");
 		if (!(*it)->originalDB_ID.getLogItem().empty()) {
 			LogOutNotSync((*it)->originalDB_ID.getLogItem());
 		}
@@ -520,8 +520,8 @@ void PrintDB_Network()
 	}
 	for (vector<MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
 		LogOutNotSync("(\"multi-node\", 0, " <<*it <<", {");
-		LogOutNotSync("\"xPos\":\"" <<(*it)->location->getX() <<"\",");
-		LogOutNotSync("\"yPos\":\"" <<(*it)->location->getY() <<"\",");
+		LogOutNotSync("\"xPos\":\"" <<(*it)->location.getX() <<"\",");
+		LogOutNotSync("\"yPos\":\"" <<(*it)->location.getY() <<"\",");
 		if (!(*it)->originalDB_ID.getLogItem().empty()) {
 			LogOutNotSync((*it)->originalDB_ID.getLogItem());
 		}

@@ -80,7 +80,7 @@ public:
 	void packageFixedDelayedDPoint(FixedDelayed<DPoint*>& one_delay);
 	void packageFixedDelayedDouble(FixedDelayed<double>& one_delay);
 	void packageFixedDelayedInt(FixedDelayed<int>& one_delay);
-	void packagePoint2D(const Point2D* one_point);
+	void packagePoint2D(const Point2D& one_point);
 
 private:
 	std::string getPackageData();

@@ -214,8 +214,8 @@ void sim_mob::Pedestrian::output(frame_t frameNumber) {
 void sim_mob::Pedestrian::setGoal(PedestrianStage currStage, const RoadSegment* prevSegment) {
 	if (currStage == ApproachingIntersection) {
 		//Retrieve the walking path to the next intersection.
-		vector<WayPoint> wp_path = StreetDirectory::instance().shortestWalkingPath(*parent->originNode->location,
-				*parent->destNode->location);
+		vector<WayPoint> wp_path = StreetDirectory::instance().shortestWalkingPath(parent->originNode->location,
+				parent->destNode->location);
 
 		//Create a vector of RoadSegments, which the GeneralPathMover will expect.
 		const Lane* nextSideWalk = nullptr; //For the old code
@@ -246,15 +246,11 @@ void sim_mob::Pedestrian::setGoal(PedestrianStage currStage, const RoadSegment* 
 		if (!isUsingGenPathMover) {
 			//Old code
 			if (nextSideWalk->getRoadSegment()->getStart() == parent->originNode) {
-				goal = Point2D(nextSideWalk->getRoadSegment()->getEnd()->location->getX(),
-						nextSideWalk->getRoadSegment()->getEnd()->location->getY());
-				interPoint = Point2D(nextSideWalk->getRoadSegment()->getEnd()->location->getX(),
-						nextSideWalk->getRoadSegment()->getEnd()->location->getY());
+				goal = Point2D(nextSideWalk->getRoadSegment()->getEnd()->location);
+				interPoint = Point2D(nextSideWalk->getRoadSegment()->getEnd()->location);
 			} else {
-				goal = Point2D(nextSideWalk->getRoadSegment()->getStart()->location->getX(),
-						nextSideWalk->getRoadSegment()->getStart()->location->getY());
-				interPoint = Point2D(nextSideWalk->getRoadSegment()->getStart()->location->getX(),
-						nextSideWalk->getRoadSegment()->getStart()->location->getY());
+				goal = Point2D(nextSideWalk->getRoadSegment()->getStart()->location);
+				interPoint = Point2D(nextSideWalk->getRoadSegment()->getStart()->location);
 			}
 			setSidewalkParas(parent->originNode, ConfigParams::GetInstance().getNetwork().locateNode(goal, true), false);
 
@@ -282,8 +278,8 @@ void sim_mob::Pedestrian::setGoal(PedestrianStage currStage, const RoadSegment* 
 
 			//NOTE: "goal" and "interPoint" are not really needed. We will keep them for now, but
 			//      later we can just use the "isInIntersection()" check.
-			goal = Point2D(path.back()->getEnd()->location->getX(), path.back()->getEnd()->location->getY());
-			interPoint = Point2D(path.back()->getEnd()->location->getX(), path.back()->getEnd()->location->getY());
+			goal = Point2D(path.back()->getEnd()->location);
+			interPoint = Point2D(path.back()->getEnd()->location);
 
 			//Update the Parent
 			parent->xPos.set(fwdMovement.getPosition().x);
@@ -293,7 +289,7 @@ void sim_mob::Pedestrian::setGoal(PedestrianStage currStage, const RoadSegment* 
 		//Set the agent's position at the start of crossing and set the goal to the end of crossing
 		setCrossingParas(prevSegment);
 	} else if (currStage == LeavingIntersection) {
-		goal = Point2D(parent->destNode->location->getX(), parent->destNode->location->getY());
+		goal = Point2D(parent->destNode->location);
 		setSidewalkParas(ConfigParams::GetInstance().getNetwork().locateNode(interPoint, true), parent->destNode, true);
 	}
 
@@ -707,16 +703,16 @@ void sim_mob::Pedestrian::setCrossingParas(const RoadSegment* prevSegment) {
 				!= parent->destNode && (*i)->getEnd() != parent->destNode) {
 			cStartX = (double) goal.getX();
 			cStartY = (double) goal.getY();
-			cEndX = (double) parent->destNode->location->getX();
-			cEndY = (double) parent->destNode->location->getY();
+			cEndX = (double) parent->destNode->location.getX();
+			cEndY = (double) parent->destNode->location.getY();
 			if ((*i)->getStart() == currNode) {
-				absToRel((*i)->getEnd()->location->getX(), (*i)->getEnd()->location->getY(), xRel, yRel);
+				absToRel((*i)->getEnd()->location.getX(), (*i)->getEnd()->location.getY(), xRel, yRel);
 				if (yRel < 0) {
 					segToCross = (*i);
 					break;
 				}
 			} else {
-				absToRel((*i)->getStart()->location->getX(), (*i)->getStart()->location->getY(), xRel, yRel);
+				absToRel((*i)->getStart()->location.getX(), (*i)->getStart()->location.getY(), xRel, yRel);
 				if (yRel < 0) {
 					segToCross = (*i);
 					break;
@@ -728,8 +724,8 @@ void sim_mob::Pedestrian::setCrossingParas(const RoadSegment* prevSegment) {
 	//TEMP: We can fold this in later
 	if (!segToCross) {
 		//Create a vector in the direction that we were moving.
-		DynamicVector dir(prevSegment->getStart()->location->getX(), prevSegment->getStart()->location->getY(),
-				prevSegment->getEnd()->location->getX(), prevSegment->getEnd()->location->getY());
+		DynamicVector dir(prevSegment->getStart()->location.getX(), prevSegment->getStart()->location.getY(),
+				prevSegment->getEnd()->location.getX(), prevSegment->getEnd()->location.getY());
 		if (prevSegment->getStart() == currNode) {
 			dir.translateVect().flipMirror();
 		}
@@ -740,7 +736,7 @@ void sim_mob::Pedestrian::setCrossingParas(const RoadSegment* prevSegment) {
 		//      an entire path around the intersection. But it should be solid enough for now.
 		for (i = roadsegments.begin(); i != roadsegments.end(); i++) {
 			const Node* check = (*i)->getStart() == currNode ? (*i)->getEnd() : (*i)->getStart();
-			if (PointIsLeftOfVector(dir, check->location->getX(), check->location->getY())) {
+			if (PointIsLeftOfVector(dir, check->location.getX(), check->location.getY())) {
 				segToCross = *i;
 				break;
 			}
@@ -764,8 +760,8 @@ void sim_mob::Pedestrian::setCrossingParas(const RoadSegment* prevSegment) {
 		Point2D near2 = currCrossing->nearLine.second;
 
 		//Determine the direction of two points
-		if ((near1.getY() > near2.getY() && goal.getY() > parent->originNode->location->getY()) || (near1.getY()
-				< near2.getY() && goal.getY() < parent->originNode->location->getY())) {
+		if ((near1.getY() > near2.getY() && goal.getY() > parent->originNode->location.getY()) || (near1.getY()
+				< near2.getY() && goal.getY() < parent->originNode->location.getY())) {
 			cStartX = (double) near2.getX();
 			cStartY = (double) near2.getY();
 			cEndX = (double) near1.getX();
@@ -849,8 +845,8 @@ void sim_mob::Pedestrian::package(PackageUtils& packageUtil) {
 	packageUtil.packageBasicData(speed);
 	packageUtil.packageBasicData(xVel);
 	packageUtil.packageBasicData(yVel);
-	packageUtil.packagePoint2D(&goal);
-	packageUtil.packagePoint2D(&goalInLane);
+	packageUtil.packagePoint2D(goal);
+	packageUtil.packagePoint2D(goalInLane);
 	packageUtil.packageBasicData(currentStage);
 
 //	if (trafficSignal) {
@@ -882,7 +878,7 @@ void sim_mob::Pedestrian::package(PackageUtils& packageUtil) {
 	packageUtil.packageBasicData(cEndY);
 	packageUtil.packageBasicData(firstTimeUpdate);
 
-	packageUtil.packagePoint2D(&interPoint);
+	packageUtil.packagePoint2D(interPoint);
 
 	packageUtil.packageBasicData(xCollisionVector);
 	packageUtil.packageBasicData(yCollisionVector);
@@ -953,8 +949,8 @@ void sim_mob::Pedestrian::packageProxy(PackageUtils& packageUtil) {
 	packageUtil.packageBasicData(speed);
 	packageUtil.packageBasicData(xVel);
 	packageUtil.packageBasicData(yVel);
-	packageUtil.packagePoint2D(&goal);
-	packageUtil.packagePoint2D(&goalInLane);
+	packageUtil.packagePoint2D(goal);
+	packageUtil.packagePoint2D(goalInLane);
 	packageUtil.packageBasicData(currentStage);
 
 //	if(trafficSignal)
@@ -987,7 +983,7 @@ void sim_mob::Pedestrian::packageProxy(PackageUtils& packageUtil) {
 	packageUtil.packageBasicData(cEndX);
 	packageUtil.packageBasicData(cEndY);
 	packageUtil.packageBasicData(firstTimeUpdate);
-	packageUtil.packagePoint2D(&interPoint);
+	packageUtil.packagePoint2D(interPoint);
 
 	packageUtil.packageBasicData(xCollisionVector);
 	packageUtil.packageBasicData(yCollisionVector);

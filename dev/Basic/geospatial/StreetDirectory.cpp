@@ -705,7 +705,6 @@ StreetDirectory::ShortestPathImpl::~ShortestPathImpl()
     for (size_t i = 0; i < nodes_.size(); ++i)
     {
         Node * node = nodes_[i];
-        delete node->location;
         delete node;
     }
     nodes_.clear();
@@ -776,7 +775,7 @@ const
     {
         Vertex v = *iter;
         Node const * node = boost::get(boost::vertex_name, graph, v);
-        if (closeBy(*node->location, point, distance))
+        if (closeBy(node->location, point, distance))
             return node;
     }
     return nullptr;
@@ -797,8 +796,7 @@ StreetDirectory::ShortestPathImpl::findNode(Point2D const & point)
     if (node)
         return node;
 
-    Node * n = new UniNode();
-    n->location = new Point2D(point.getX(), point.getY());
+    Node * n = new UniNode(point.getX(), point.getY());
     nodes_.push_back(n);
     return n;
 }
@@ -917,8 +915,7 @@ StreetDirectory::ShortestPathImpl::process(RoadSegment const * road, bool isForw
         else if (BusStop const * busStop = dynamic_cast<BusStop const *>(pair.item))
         {
             const Point2D pos = getBusStopPosition(road, offset);
-            Node * node2 = new UniNode();
-            node2->location = new Point2D(pos.getX(), pos.getY());
+            Node * node2 = new UniNode(pos.getX(), pos.getY());
             addRoadEdge(node1, node2, WayPoint(busStop), offset);
             nodes_.push_back(node2);
             node1 = node2;
@@ -990,8 +987,7 @@ StreetDirectory::ShortestPathImpl::findVertex(Point2D const & point)
     Node const * node = findVertex(walkingMap_, point, 1000);
     if (!node)
     {
-        Node * n = new UniNode();
-        n->location = new Point2D(point.getX(), point.getY());
+        Node * n = new UniNode(point.getX(), point.getY());
         nodes_.push_back(n);
         node = n;
     }
@@ -1092,11 +1088,11 @@ const
         // Uni-nodes were never inserted into the drivingMap_, but some other points close to
         // them.  Hopefully, they are within 10 meters and that the correct vertex is returned,
         // even in narrow links.
-        if (from && closeBy(*from->location, *node->location, 1000))
+        if (from && closeBy(from->location, node->location, 1000))
         {
             fromVertex = v;
         }
-        else if (to && closeBy(*to->location, *node->location, 1000))
+        else if (to && closeBy(to->location, node->location, 1000))
         {
             toVertex = v;
         }
@@ -1129,11 +1125,11 @@ const
         stream << "StreetDirectory::shortestDrivingPath: "; 
         if (fromVertex > graphSize)
         {
-            stream << "fromNode=" << *fromNode.location << " is not part of the known road network ";
+            stream << "fromNode=" << fromNode.location << " is not part of the known road network ";
         }
         if (toVertex > graphSize)
         {
-            stream << "toNode=" << *toNode.location << " is not part of the known road network";
+            stream << "toNode=" << toNode.location << " is not part of the known road network";
         }
 
         throw std::runtime_error(stream.str().c_str());
@@ -1219,13 +1215,13 @@ const
     {
         Vertex v = *iter;
         Node const * node = boost::get(boost::vertex_name, walkingMap_, v);
-        h = hypot(fromPoint, *node->location);
+        h = hypot(fromPoint, node->location);
         if (d1 > h)
         {
             d1 = h;
             fromVertex = v;
         }
-        h = hypot(toPoint, *node->location);
+        h = hypot(toPoint, node->location);
         if (d2 > h)
         {
             d2 = h;
@@ -1258,11 +1254,11 @@ const
     // move from tiVertex to toPoint.
     std::vector<WayPoint> result;
     Node const * node = boost::get(boost::vertex_name, walkingMap_, fromVertex);
-    if (*node->location != fromPoint)
+    if (node->location != fromPoint)
         result.push_back(WayPoint(node));
     result.insert(result.end(), path.begin(), path.end());
     node = boost::get(boost::vertex_name, walkingMap_, toVertex);
-    if (*node->location != toPoint)
+    if (node->location != toPoint)
         result.push_back(WayPoint(node));
     return result;
 }

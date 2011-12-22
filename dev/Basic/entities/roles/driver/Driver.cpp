@@ -104,8 +104,7 @@ vector<WayPoint> ConvertToWaypoints(const Node* origin, const vector<Point2D>& p
 	vector<WayPoint> res;
 
 	//Double-check our first node. Also ensure we have at least 2 nodes (or a path can't be found).
-	if (path.size() < 2 || origin->location->getX() != path.front().getX() || origin->location->getY()
-			!= path.front().getY()) {
+	if (path.size() < 2 || origin->location != path.front()) {
 		throw std::runtime_error("Special path does not begin on origin.");
 	}
 
@@ -122,12 +121,11 @@ vector<WayPoint> ConvertToWaypoints(const Node* origin, const vector<Point2D>& p
 		const set<RoadSegment*>& segs = curr->getRoadSegments();
 		for (set<RoadSegment*>::const_iterator segIt = segs.begin(); segIt != segs.end(); segIt++) {
 			const Link* ln = (*segIt)->getLink();
-			if (ln->getStart()->location->getX() == nextPt.getX() && ln->getStart()->location->getY() == nextPt.getY()) {
+			if (ln->getStart()->location == nextPt) {
 				nextLink.first = ln;
 				nextLink.second = false;
 				break;
-			} else if (ln->getEnd()->location->getX() == nextPt.getX() && ln->getEnd()->location->getY()
-					== nextPt.getY()) {
+			} else if (ln->getEnd()->location == nextPt) {
 				nextLink.first = ln;
 				nextLink.second = true;
 				break;
@@ -782,9 +780,9 @@ void sim_mob::Driver::calculateIntersectionTrajectory(DPoint movingFrom, double 
 void sim_mob::Driver::initializePath() {
 	//Save local copies of the parent's origin/destination nodes.
 	origin.node = parent->originNode;
-	origin.point = *origin.node->location;
+	origin.point = origin.node->location;
 	goal.node = parent->destNode;
-	goal.point = *goal.node->location;
+	goal.point = goal.node->location;
 
 	//TEMP
 	std::stringstream errorMsg;
@@ -1370,9 +1368,9 @@ void sim_mob::Driver::package(PackageUtils& packageUtil) {
 	packageUtil.packageFixedDelayedDouble(perceivedAccelerationOfFwdCar);
 	packageUtil.packageFixedDelayedInt(perceivedDistToFwdCar);
 
-	packageUtil.packagePoint2D(&(origin.point));
+	packageUtil.packagePoint2D(origin.point);
 	packageUtil.packageNode(origin.node);
-	packageUtil.packagePoint2D(&(goal.point));
+	packageUtil.packagePoint2D(goal.point);
 	packageUtil.packageNode(goal.node);
 
 	packageUtil.packageBasicData(firstFrameTick);

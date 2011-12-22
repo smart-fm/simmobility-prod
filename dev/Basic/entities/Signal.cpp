@@ -121,11 +121,11 @@ struct AngleCalculator {
 	double angle(Link const * link) const {
 		Point2D point;
 		if (link->getStart() == &center_)
-			point = *(link->getEnd()->location);
+			point = link->getEnd()->location;
 		else
-			point = *(link->getStart()->location);
-		double xDiff = point.getX() - center_.location->getX();
-		double yDiff = point.getY() - center_.location->getY();
+			point = link->getStart()->location;
+		double xDiff = point.getX() - center_.location.getX();
+		double yDiff = point.getY() - center_.location.getY();
 		return atan2(yDiff, xDiff);
 	}
 };
@@ -657,9 +657,9 @@ namespace {
 std::string mismatchError(char const * const func_name, Signal const & signal, RoadSegment const & road) {
 	std::ostringstream stream;
 	stream << func_name << ": mismatch in Signal and Lane; Details as follows" << std::endl;
-	stream << "    Signal is located at (" << *signal.getNode().location << std::endl;
-	stream << "    Lane is part of RoadSegment going from " << *road.getStart()->location << " to "
-			<< *road.getEnd()->location << std::endl;
+	stream << "    Signal is located at (" << signal.getNode().location << std::endl;
+	stream << "    Lane is part of RoadSegment going from " << road.getStart()->location << " to "
+			<< road.getEnd()->location << std::endl;
 	return stream.str();
 }
 }
@@ -738,7 +738,7 @@ sim_mob::Signal::TrafficColor sim_mob::Signal::getPedestrianLight(Crossing const
 	if (iter == crossings_map_.end()) {
 		std::ostringstream stream;
 		stream << "Signal::getPedestrianLight: Mismatch in Signal and Crossing; Details as follows" << std::endl;
-		stream << "    Signal is located at " << *node_.location << std::endl;
+		stream << "    Signal is located at " << node_.location << std::endl;
 		stream << "    Crossing near-line is " << crossing.nearLine.first << " to " << crossing.nearLine.second
 				<< std::endl;
 		stream << "    Crossing far-line is " << crossing.farLine.first << " to " << crossing.farLine.second
@@ -853,8 +853,8 @@ void sim_mob::Signal::output(frame_t frameNumber) {
 	logout << "\"pc\":\"" << TC_for_Pedestrian[2] << "\",";
 	logout << "\"pd\":\"" << TC_for_Pedestrian[3] << "\",";
 
-	logout << "\"xPos\":\"" << getNode().location->getX() << "\",";
-	logout << "\"yPos\":\"" << getNode().location->getY() << "\",";
+	logout << "\"xPos\":\"" << getNode().location.getX() << "\",";
+	logout << "\"yPos\":\"" << getNode().location.getY() << "\",";
 
 	if (this->isFake) {
 		logout << "\"fake\":\"" << "true";

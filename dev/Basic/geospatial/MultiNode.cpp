@@ -22,15 +22,15 @@ namespace {
 double AngleBetween(const Node* const center, const Node* const first, const Node* const second, bool readClockwise)
 {
 	//Quick check: Force 0 if the two points are the same (we wouldn't want them to appear as 2PI)
-	if (first->location->getX()==second->location->getX() && first->location->getY()==second->location->getY()) {
+	if (first->location == second->location) {
 		return 0.0;
 	}
 
 	//Subtract the vectors
-	double v1x = first->location->getX() - center->location->getX();
-	double v1y = first->location->getY() - center->location->getY();
-	double v2x = second->location->getX() - center->location->getX();
-	double v2y = second->location->getY() - center->location->getY();
+	double v1x = first->location.getX() - center->location.getX();
+	double v1y = first->location.getY() - center->location.getY();
+	double v2x = second->location.getX() - center->location.getX();
+	double v2y = second->location.getY() - center->location.getY();
 
 	//NOTE: I'm pretty sure atan2 already handles this... but do we have to bound it to 0<=res,+2PI?
 	double res = atan2(v2x, v2y) - atan2(v1x, v1y);
@@ -59,12 +59,12 @@ double AngleBetween(const Node* const center, const Node* const first, const Nod
 	//      to the second vector's end point. (Note: Rotational matrices rotate counter-clockwise)
 	{
 	double resRev = 2*M_PI - res;
-	double res1X = first->location->getX()*cos(resRev) - first->location->getY()*sin(resRev);
-	double res1Y = first->location->getX()*sin(resRev) - first->location->getY()*cos(resRev);
-	double res1Dist = dist(second->location->getX(), second->location->getY(), res1X, res1Y);
-	double res2X = first->location->getX()*cos(res) - first->location->getY()*sin(res);
-	double res2Y = first->location->getX()*sin(res) - first->location->getY()*cos(res);
-	double res2Dist = dist(second->location->getX(), second->location->getY(), res2X, res2Y);
+	double res1X = first->location.getX()*cos(resRev) - first->location.getY()*sin(resRev);
+	double res1Y = first->location.getX()*sin(resRev) - first->location.getY()*cos(resRev);
+	double res1Dist = dist(second->location.getX(), second->location.getY(), res1X, res1Y);
+	double res2X = first->location.getX()*cos(res) - first->location.getY()*sin(res);
+	double res2Y = first->location.getX()*sin(res) - first->location.getY()*cos(res);
+	double res2Dist = dist(second->location.getX(), second->location.getY(), res2X, res2Y);
 	if (res2Dist<res1Dist) {
 		res = 2*M_PI - res;
 	}

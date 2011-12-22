@@ -84,12 +84,12 @@ void PackageUtils::packageLane(const Lane* one_lane) {
 		(*package) & hasSomthing;
 	}
 
-	sim_mob::Point2D* start = one_lane->getRoadSegment()->getStart()->location;
-	sim_mob::Point2D* end = one_lane->getRoadSegment()->getEnd()->location;
+	sim_mob::Point2D const & start = one_lane->getRoadSegment()->getStart()->location;
+	sim_mob::Point2D const & end = one_lane->getRoadSegment()->getEnd()->location;
 	int lane_id = one_lane->getLaneID();
 
-	(*package) & (*start);
-	(*package) & (*end);
+	(*package) & (start);
+	(*package) & (end);
 	(*package) & lane_id;
 }
 
@@ -307,8 +307,8 @@ void PackageUtils::packageFixedDelayedInt(FixedDelayed<int>& one_delay) {
 	}
 }
 
-void PackageUtils::packagePoint2D(const Point2D* one_point) {
-	(*package) & (*one_point);
+void PackageUtils::packagePoint2D(const Point2D& one_point) {
+	(*package) & (one_point);
 }
 
 }

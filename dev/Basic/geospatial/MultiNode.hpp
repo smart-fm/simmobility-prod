@@ -36,7 +36,7 @@ class Loader;
  */
 class MultiNode : public sim_mob::Node {
 public:
-	MultiNode() : Node() {}
+	MultiNode(int x, int y) : Node(x, y) {}
 
 	///Query the list of connectors at the current node, restricting the results to
 	///   those which originate at the "from" segment.

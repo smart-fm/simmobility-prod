@@ -32,7 +32,7 @@ Node* sim_mob::RoadNetwork::locateNode(const Point2D& position, bool includeUniN
 	int minDist = maxDistCM+1;
 	Node* candidate = nullptr;
 	for (vector<MultiNode*>::const_iterator it=nodes.begin(); (it!=nodes.end())&&(minDist!=0); it++) {
-		int newDist = dist(*(*it)->location, position);
+		int newDist = dist((*it)->location, position);
 		if (newDist < minDist) {
 			minDist = newDist;
 			candidate = *it;
@@ -42,7 +42,7 @@ Node* sim_mob::RoadNetwork::locateNode(const Point2D& position, bool includeUniN
 	//Next, check the UniNodes, if the flag is set.
 	if (includeUniNodes) {
 		for (set<UniNode*>::const_iterator it=segmentnodes.begin(); (it!=segmentnodes.end())&&(minDist!=0); it++) {
-			int newDist = dist(*(*it)->location, position);
+			int newDist = dist((*it)->location, position);
 			if (newDist < minDist) {
 				minDist = newDist;
 				candidate = *it;

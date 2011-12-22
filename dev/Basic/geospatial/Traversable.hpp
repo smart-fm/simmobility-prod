@@ -51,10 +51,10 @@ public:
 	{
 		std::string id = "";
 
-		id += MathUtil::getStringFromNumber(start->location->getX()) + ":";
-		id += MathUtil::getStringFromNumber(start->location->getY()) + ":";
-		id += MathUtil::getStringFromNumber(end->location->getX()) + ":";
-		id += MathUtil::getStringFromNumber(end->location->getY());
+		id += MathUtil::getStringFromNumber(start->location.getX()) + ":";
+		id += MathUtil::getStringFromNumber(start->location.getY()) + ":";
+		id += MathUtil::getStringFromNumber(end->location.getX()) + ":";
+		id += MathUtil::getStringFromNumber(end->location.getY());
 
 		return id;
 	}

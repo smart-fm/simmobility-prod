@@ -9,12 +9,13 @@
 #include "util/LangHelpers.hpp"
 #include "util/OpaqueProperty.hpp"
 
+#include "Point2D.hpp"
+
 namespace sim_mob
 {
 
 
 //Forward declarations
-class Point2D;
 class Link;
 class Lane;
 class LaneConnector;
@@ -35,14 +36,13 @@ public:
 	virtual ~Node() {} //A virtual destructor allows dynamic casting
 
 	///The location of this Node.
-	sim_mob::Point2D* location;
+	Point2D const location;
 
 	//Nodes may have hidden properties useful only in for the visualizer.
 	OpaqueProperty<int> originalDB_ID;
 
 protected:
-	Node() : location(nullptr) {}
-
+    Node(int x, int y) : location(x, y) {}
 };
 
 

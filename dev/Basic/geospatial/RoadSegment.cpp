@@ -129,12 +129,6 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 			lanes.insert(lanes.begin(), swLane2);
 			width += swLane2->width_;
 			laneEdgePolylines_cached.insert(laneEdgePolylines_cached.begin(), makeLaneEdgeFromPolyline(lanes[0], true));
-
-			for(size_t i = 0; i < lanes.size(); ++i)
-			{
-				int j = lanes[i]->laneID_;
-				int y = j;
-			}
 		}
 	}
 }
@@ -159,7 +153,7 @@ vector<Point2D> sim_mob::RoadSegment::makeLaneEdgeFromPolyline(Lane* refLane, bo
 	for (vector<Point2D>::const_iterator it=refLane->polyline_.begin(); it!=refLane->polyline_.end(); it++) {
 		//Scale and translate the primary vector?
 		if (lastPt) {
-			double segDist = sim_mob::dist(lastPt, &(*it));
+			double segDist = sim_mob::dist(*lastPt, *it);
 			fullLine.scaleVectTo(segDist).translateVect();
 		}
 

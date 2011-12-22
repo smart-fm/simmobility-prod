@@ -937,7 +937,7 @@ DatabaseLoader::createSignals()
             if (badNodes.count(node) == 0)
             {
                 badNodes.insert(node);
-                std::cerr << "the node at " << *node->location << " (database-id="
+                std::cerr << "the node at " << node->location << " (database-id="
                           << dbSignal.nodeId << ") does not have 4 links; "
                           << "no signal will be created here." << std::endl;
             }
@@ -1026,10 +1026,10 @@ void sim_mob::aimsun::Loader::FixupLanesAndCrossings(sim_mob::RoadNetwork& res)
 				//This is imperfect but is an improvement.
 				const sim_mob::Node* start = link->getStart();
 				const sim_mob::Node* end = link->getEnd();
-				if(	end && end->location->getX() !=0 && end->location->getY() !=0 &&
-					start && start->location->getX() !=0 && start->location->getY() !=0)
+				if(	end && end->location.getX() !=0 && end->location.getY() !=0 &&
+					start && start->location.getX() !=0 && start->location.getY() !=0)
 				{
-					sim_mob::Point2D medianProjection = LineLineIntersect(cross->nearLine.first, cross->nearLine.second, *(link->getStart()->location), *(link->getEnd()->location));
+					sim_mob::Point2D medianProjection = LineLineIntersect(cross->nearLine.first, cross->nearLine.second, link->getStart()->location, link->getEnd()->location);
 					Point2D shift(medianProjection.getX()-nearLinemidPoint.getX(), medianProjection.getY()-nearLinemidPoint.getY());
 					///TODO this is needed temporarily due to a bug in which one intersection's crossings end up shifted across the map.
 					if(shift.getX() > 1000)
@@ -1044,8 +1044,8 @@ void sim_mob::aimsun::Loader::FixupLanesAndCrossings(sim_mob::RoadNetwork& res)
 				std::vector<sim_mob::Point2D>& segmentPolyline = (*itRS)->polyline;
 				{
 					//Segment polyline
-					double d1 = dist(&(segmentPolyline[0]), &nearLinemidPoint);
-					double d2 = dist(&(segmentPolyline[segmentPolyline.size()-1]), &nearLinemidPoint);
+					double d1 = dist(segmentPolyline[0], nearLinemidPoint);
+					double d2 = dist(segmentPolyline[segmentPolyline.size()-1], nearLinemidPoint);
 					if (d2<d1)
 					{
 						segmentPolyline[segmentPolyline.size()-1] = ProjectOntoLine(segmentPolyline[segmentPolyline.size()-1], cross->farLine.first, cross->farLine.second);
@@ -1063,8 +1063,8 @@ void sim_mob::aimsun::Loader::FixupLanesAndCrossings(sim_mob::RoadNetwork& res)
 				{
 					//TODO move this functionality into a helper function
 					std::vector<sim_mob::Point2D>& vecThisPolyline = vecPolylines[i];
-					double d1 = dist(&(vecThisPolyline[0]), &nearLinemidPoint);
-					double d2 = dist(&(vecThisPolyline[vecThisPolyline.size()-1]), &nearLinemidPoint);
+					double d1 = dist(vecThisPolyline[0], nearLinemidPoint);
+					double d2 = dist(vecThisPolyline[vecThisPolyline.size()-1], nearLinemidPoint);
 					if (d2<d1)
 					{
 						vecThisPolyline[vecThisPolyline.size()-1] = ProjectOntoLine(vecThisPolyline[vecThisPolyline.size()-1], cross->farLine.first, cross->farLine.second);
@@ -1089,18 +1089,15 @@ void sim_mob::aimsun::Loader::ProcessGeneralNode(sim_mob::RoadNetwork& res, Node
 	sim_mob::Node* newNode = nullptr;
 	if (!src.candidateForSegmentNode) {
 		//This is an Intersection
-		newNode = new sim_mob::Intersection();
+		newNode = new sim_mob::Intersection(src.getXPosAsInt(), src.getYPosAsInt());
 
 		//Store it in the global nodes array
 		res.nodes.push_back(dynamic_cast<MultiNode*>(newNode));
 	} else {
 		//Just save for later so the pointer isn't invalid
-		newNode = new UniNode();
+		newNode = new UniNode(src.getXPosAsInt(), src.getYPosAsInt());
 		res.segmentnodes.insert(dynamic_cast<UniNode*>(newNode));
 	}
-
-	//Always save the location
-	newNode->location = new Point2D(src.getXPosAsInt(), src.getYPosAsInt());
 
 	//For future reference
 	src.generatedNode = newNode;
@@ -1344,7 +1341,7 @@ void sim_mob::aimsun::Loader::ProcessSectionPolylines(sim_mob::RoadNetwork& res,
 	//The start point is first
 	// NOTE: We agreed earlier to include the start/end points; I think this was because it makes lane polylines consistent. ~Seth
 	{
-		sim_mob::Point2D pt(src.fromNode->generatedNode->location->getX(), src.fromNode->generatedNode->location->getY());
+		sim_mob::Point2D pt(src.fromNode->generatedNode->location);
 		src.generatedSegment->polyline.push_back(pt);
 	}
 
@@ -1357,7 +1354,7 @@ void sim_mob::aimsun::Loader::ProcessSectionPolylines(sim_mob::RoadNetwork& res,
 	}
 
 	//The ending point is last
-	sim_mob::Point2D pt(src.toNode->generatedNode->location->getX(), src.toNode->generatedNode->location->getY());
+	sim_mob::Point2D pt(src.toNode->generatedNode->location);
 	src.generatedSegment->polyline.push_back(pt);
 }
 

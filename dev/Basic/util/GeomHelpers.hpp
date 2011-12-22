@@ -41,7 +41,7 @@ double dist(const sim_mob::aimsun::Crossing* c1, const sim_mob::aimsun::Crossing
 double dist(const sim_mob::aimsun::Lane* ln, const sim_mob::aimsun::Node* nd);
 double dist(const sim_mob::aimsun::Lane* ln1, const sim_mob::aimsun::Lane* ln2);
 double dist(const sim_mob::aimsun::Node* n1, const sim_mob::aimsun::Node* n2);
-double dist(const sim_mob::Point2D* p1, const sim_mob::Point2D* p2);
+double dist(const sim_mob::Point2D& p1, const sim_mob::Point2D& p2);
 
 
 /**

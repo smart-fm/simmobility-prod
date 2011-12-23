@@ -1210,7 +1210,9 @@ void sim_mob::Driver::updatePositionDuringLaneChange(UpdateParams& p, LANE_CHANG
 	}
 	if (actual == relative) { //We haven't merged halfway yet; check there's actually a lane for us to merge into.
 		if ((actual == LCS_LEFT && !p.leftLane) || (actual == LCS_RIGHT && !p.rightLane)) {
-			throw std::runtime_error("Attempting to merge into a lane that doesn't exist.");
+			std::stringstream msg;
+			msg <<"Agent (" <<parent->getId() <<") is attempting to merge into a lane that doesn't exist.";
+			throw std::runtime_error(msg.str().c_str());
 			//return; //Error condition
 		}
 	}

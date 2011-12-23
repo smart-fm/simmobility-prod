@@ -58,7 +58,6 @@ public:
 
 	void wait();
 	void waitExternAgain();
-	//void migrate(EntityType& ag, Worker<EntityType>* from, Worker<EntityType>* to);
 
 	Worker* getWorker(int id);
 
@@ -75,9 +74,7 @@ public:
 public:
 	void removeAgentFromWorker(Entity * ag);
 	void addAgentInWorker(Entity * ag);
-
-	//std::map<Entity*, int> agentMapping;
-	int getTheMostFreeWorkerID();
+	int getTheMostFreeWorkerID() const;
 #endif
 
 

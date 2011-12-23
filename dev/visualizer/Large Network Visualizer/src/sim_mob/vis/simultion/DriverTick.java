@@ -72,7 +72,6 @@ public class DriverTick extends AgentTick {
 	
 	
 	public void draw(Graphics2D g,double scale, boolean drawFake,boolean debug){
-
 		AffineTransform oldAT = g.getTransform();
 
 		AffineTransform at = AffineTransform.getTranslateInstance(pos.getX(), pos.getY());
@@ -106,7 +105,7 @@ public class DriverTick extends AgentTick {
 		
 		//Sample debug output
 		if (debug) {
-			int sz = 10;
+			int sz = 12;
 			int x = (int)pos.getX();
 			int y = (int)pos.getY();
 			g.setColor(debugClr);

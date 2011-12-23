@@ -36,6 +36,13 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	private Point offset = new Point(0, 0);
 	private NetworkVisualizer netViewCache;
 	
+	//Which Agent ID to highlight
+	public void setHighlightID(int id) { 
+		if (netViewCache!=null)  {
+			netViewCache.setHighlightID(id);
+		} //NOTE: This might have to be synchronized.
+	}
+	
 	
 	public NetworkPanel(StringSetter statusBarUpdate) {
 		this.setIgnoreRepaint(true);

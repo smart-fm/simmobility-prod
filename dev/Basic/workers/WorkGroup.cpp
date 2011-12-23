@@ -211,7 +211,7 @@ void sim_mob::WorkGroup::addAgentInWorker(Entity * ag)
 }
 
 
-int sim_mob::WorkGroup::getTheMostFreeWorkerID()
+int sim_mob::WorkGroup::getTheMostFreeWorkerID() const
 {
 	int minimum_task = std::numeric_limits<int>::max();
 	int minimum_index = 0;

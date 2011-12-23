@@ -25,6 +25,11 @@ public class NetworkVisualizer {
 	private boolean showFakeAgent;
 	private boolean debugOn;
 	
+	private int currHighlightID;
+	public void setHighlightID(int id) {
+		currHighlightID=id; 
+	}
+	
 	public int getCurrFrameTick() { return currFrameTick; }
 	public String getFileName(){return fileName;}
 	public boolean incrementCurrFrameTick(int amt) {
@@ -42,6 +47,7 @@ public class NetworkVisualizer {
 	private static final double NEAR_THRESHHOLD = 20;
 		
 	public NetworkVisualizer() {
+		this.currHighlightID = -1;
 	}
 	
 	public BufferedImage getImage() {
@@ -289,10 +295,11 @@ public class NetworkVisualizer {
 		
 		
 		//Now draw simulation data: cars, etc.
-		for (AgentTick at : simRes.ticks.get(currFrameTick).agentTicks.values()) {	
-			
-			at.draw(g,currPercentZoom,this.showFakeAgent,this.debugOn);
-			
+		Hashtable<Integer, AgentTick> agents = simRes.ticks.get(currFrameTick).agentTicks;
+		for (Integer key : agents.keySet()) {
+			AgentTick at = agents.get(key);
+			boolean highlight = this.debugOn || (key.intValue()==currHighlightID);
+			at.draw(g,currPercentZoom,this.showFakeAgent,highlight);
 		}
 
 		

@@ -16,12 +16,12 @@ void BoundarySegment::buildBoundaryBox(double boundary_length, double boundary_w
 	double start_offset = cutLineOffset + boundary_length / 100;
 	double end_offset = cutLineOffset - boundary_length / 100;
 
-	Point2D upper_point = sim_mob::getMiddlePoint2D(boundarySegment->getStart()->location,
-			boundarySegment->getEnd()->location, start_offset);
-	Point2D down_point = sim_mob::getMiddlePoint2D(boundarySegment->getStart()->location,
-			boundarySegment->getEnd()->location, end_offset);
+	Point2D upper_point = sim_mob::getMiddlePoint2D(&boundarySegment->getStart()->location,
+			&boundarySegment->getEnd()->location, start_offset);
+	Point2D down_point = sim_mob::getMiddlePoint2D(&boundarySegment->getStart()->location,
+			&boundarySegment->getEnd()->location, end_offset);
 
-	double length = sim_mob::dist(&upper_point, &down_point);
+	double length = sim_mob::dist(upper_point, down_point);
 //	LogOut("length:" << length << "\n");
 	double ratio = boundary_width * 1.0 / length;
 

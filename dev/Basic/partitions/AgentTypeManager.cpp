@@ -1,7 +1,7 @@
 /*
  * AgentPackageManager.cpp
  */
-#include "constants.h"
+#include "GenConfig.h"
 #include "AgentTypeManager.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI

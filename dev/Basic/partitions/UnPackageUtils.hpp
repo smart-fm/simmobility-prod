@@ -1,5 +1,5 @@
 #pragma once
-#include "constants.h"
+#include "GenConfig.h"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include <boost/archive/text_iarchive.hpp>

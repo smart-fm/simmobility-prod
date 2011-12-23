@@ -1,4 +1,4 @@
-#include "constants.h"
+#include "GenConfig.h"
 
 #include "PackageUtils.hpp"
 

@@ -250,8 +250,8 @@ const sim_mob::Link* sim_mob::getLinkBetweenNodes(const sim_mob::Point2D* start_
 }
 
 //add by xuyan
-const sim_mob::RoadSegment* sim_mob::getRoadSegmentBasedOnNodes(sim_mob::Point2D* start_point,
-		sim_mob::Point2D* end_point)
+const sim_mob::RoadSegment* sim_mob::getRoadSegmentBasedOnNodes(const sim_mob::Point2D* start_point,
+		const sim_mob::Point2D* end_point)
 {
 	sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
 
@@ -309,7 +309,7 @@ const sim_mob::RoadSegment* sim_mob::getRoadSegmentBasedOnNodes(sim_mob::Point2D
 }
 
 //add by xuyan
-const sim_mob::Signal* sim_mob::getSignalBasedOnNode(sim_mob::Point2D* one_point)
+const sim_mob::Signal* sim_mob::getSignalBasedOnNode(const sim_mob::Point2D* one_point)
 {
 	sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
 	sim_mob::Node* one_node = rn.locateNode(*one_point, true);
@@ -318,8 +318,8 @@ const sim_mob::Signal* sim_mob::getSignalBasedOnNode(sim_mob::Point2D* one_point
 	return directory.signalAt(*one_node);
 }
 
-bool isRoadItemTheCrossing(const sim_mob::RoadItem* one_item, sim_mob::Point2D* one_near_point,
-		sim_mob::Point2D* two_near_point, sim_mob::Point2D* one_far_point, sim_mob::Point2D* two_far_point)
+bool isRoadItemTheCrossing(const sim_mob::RoadItem* one_item, const sim_mob::Point2D* one_near_point,
+		const sim_mob::Point2D* two_near_point, const sim_mob::Point2D* one_far_point, const sim_mob::Point2D* two_far_point)
 {
 	const sim_mob::Crossing* one_cross = dynamic_cast<const sim_mob::Crossing*> (one_item);
 	if (one_cross)
@@ -352,8 +352,8 @@ bool isRoadItemTheCrossing(const sim_mob::RoadItem* one_item, sim_mob::Point2D* 
 	return false;
 }
 
-const sim_mob::Crossing* sim_mob::getCrossingBasedOnNode(sim_mob::Point2D* one_near_point,
-		sim_mob::Point2D* two_near_point, sim_mob::Point2D* one_far_point, sim_mob::Point2D* two_far_point)
+const sim_mob::Crossing* sim_mob::getCrossingBasedOnNode(const sim_mob::Point2D* one_near_point,
+		const sim_mob::Point2D* two_near_point, const sim_mob::Point2D* one_far_point, const sim_mob::Point2D* two_far_point)
 {
 	sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
 	const std::vector<sim_mob::Link*>& all_links = rn.getLinks();

@@ -220,7 +220,7 @@ vector<Point2D> sim_mob::ShiftPolyline(const vector<Point2D>& orig, double shift
 }
 
 //add by xuyan
-Point2D sim_mob::getMiddlePoint2D(sim_mob::Point2D* start_point, sim_mob::Point2D* end_point, double offset)
+Point2D sim_mob::getMiddlePoint2D(const sim_mob::Point2D* start_point, const sim_mob::Point2D* end_point, double offset)
 {
 	double distance = sim_mob::dist(start_point->getX(), start_point->getY(), end_point->getX(), end_point->getY());
 	double location_x = start_point->getX() + (offset * 100) / distance * (end_point->getX() - start_point->getX());
@@ -230,7 +230,7 @@ Point2D sim_mob::getMiddlePoint2D(sim_mob::Point2D* start_point, sim_mob::Point2
 }
 
 //add by xuyan
-const sim_mob::Link* sim_mob::getLinkBetweenNodes(sim_mob::Point2D* start_point, sim_mob::Point2D* end_point)
+const sim_mob::Link* sim_mob::getLinkBetweenNodes(const sim_mob::Point2D* start_point, const sim_mob::Point2D* end_point)
 {
 	sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
 

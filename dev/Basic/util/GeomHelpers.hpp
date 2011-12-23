@@ -132,11 +132,11 @@ sim_mob::Point2D getSidePoint(const Point2D& origin, const Point2D& direction, d
 //add by xuyan
 //Calculate the middle point, given the start/end point and the offset.
 //used to get the boundary box
-sim_mob::Point2D getMiddlePoint2D(sim_mob::Point2D* start_point, sim_mob::Point2D* end_point, double offset);
+sim_mob::Point2D getMiddlePoint2D(const sim_mob::Point2D* start_point, const sim_mob::Point2D* end_point, double offset);
 
 //add by xuyan
 //Suggest to be part of StreetDirectory.
-const sim_mob::Link* getLinkBetweenNodes(sim_mob::Point2D* start_point, sim_mob::Point2D* end_point);
+const sim_mob::Link* getLinkBetweenNodes(const sim_mob::Point2D* start_point, const sim_mob::Point2D* end_point);
 const sim_mob::RoadSegment* getRoadSegmentBasedOnNodes(sim_mob::Point2D* start_point, sim_mob::Point2D* end_point);
 const sim_mob::Signal* getSignalBasedOnNode(sim_mob::Point2D* one_point);
 const sim_mob::Crossing* getCrossingBasedOnNode(sim_mob::Point2D* one_near_point, sim_mob::Point2D* two_near_point, sim_mob::Point2D* one_far_point, sim_mob::Point2D* two_far_point);

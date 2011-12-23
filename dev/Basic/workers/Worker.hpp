@@ -108,17 +108,13 @@ protected:
 	//   be cleared by this worker some time before the next update. For now we clear it right after
 	//   update(), but it might make sense to clear directly before update(), so that the WorkGroup
 	//   has the ability to schedule Agents for deletion in flip().
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	std::vector<Entity*> toBeAdded;
 	std::vector<Entity*> toBeRemoved;
-#endif
 
 private:
 	//Helper methods
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	void addPendingEntities();
 	void removePendingEntities();
-#endif
 
 	///The main thread which this Worker wraps
 	boost::thread main_thread;

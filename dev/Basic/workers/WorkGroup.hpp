@@ -62,22 +62,23 @@ public:
 
 	Worker* getWorker(int id);
 
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	void stageEntities();
+	void collectRemovedEntities();
 	std::vector< std::vector<Entity*> > entToBeRemovedPerWorker;
-#endif
 
 	void assignAWorker(Entity* ag);
 
 	//void scheduleEntForRemoval(Entity* ag);
 
 //add by xuyan
+#ifndef SIMMOB_DISABLE_MPI
 public:
 	void removeAgentFromWorker(Entity * ag);
 	void addAgentInWorker(Entity * ag);
 
 	//std::map<Entity*, int> agentMapping;
 	int getTheMostFreeWorkerID();
+#endif
 
 
 protected:

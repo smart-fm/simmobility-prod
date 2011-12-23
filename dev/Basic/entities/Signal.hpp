@@ -204,7 +204,7 @@ public:
         /**
          * Return the Signal that is located at the specified \c node, creating one if necessary.
          */
-        static Signal & signalAt(Node const & node, const MutexStrategy& mtxStrat);
+        static Signal const & signalAt(Node const & node, const MutexStrategy& mtxStrat);
 
         /**
          * The list of all Signal objects in the simulator.

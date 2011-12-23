@@ -15,10 +15,12 @@
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/StreetDirectory.hpp"
 #include "util/OutputUtil.hpp"
-using namespace sim_mob;
 
 using std::map;
 using std::string;
+
+namespace sim_mob
+{
 
 double Density[] = { 1, 1, 1, 1 };
 double DS_all;
@@ -36,16 +38,16 @@ const double CL_low = 70, CL_up = 120;
 const double Off_low = 5, Off_up = 26;
 }
 
-const double sim_mob::Signal::SplitPlan1[] = { 0.30, 0.30, 0.20, 0.20 };
-const double sim_mob::Signal::SplitPlan2[] = { 0.20, 0.35, 0.20, 0.25 };
-const double sim_mob::Signal::SplitPlan3[] = { 0.35, 0.35, 0.20, 0.10 };
-const double sim_mob::Signal::SplitPlan4[] = { 0.35, 0.30, 0.10, 0.25 };
-const double sim_mob::Signal::SplitPlan5[] = { 0.20, 0.35, 0.25, 0.20 };
+const double Signal::SplitPlan1[] = { 0.30, 0.30, 0.20, 0.20 };
+const double Signal::SplitPlan2[] = { 0.20, 0.35, 0.20, 0.25 };
+const double Signal::SplitPlan3[] = { 0.35, 0.35, 0.20, 0.10 };
+const double Signal::SplitPlan4[] = { 0.35, 0.30, 0.10, 0.25 };
+const double Signal::SplitPlan5[] = { 0.20, 0.35, 0.25, 0.20 };
 
 //Signal* sim_mob::Signal::instance_ = NULL;
 
-/* static */sim_mob::Signal &
-sim_mob::Signal::signalAt(Node const & node, const MutexStrategy& mtxStrat) {
+/* static */Signal &
+Signal::signalAt(Node const & node, const MutexStrategy& mtxStrat) {
 	Signal const * signal = StreetDirectory::instance().signalAt(node);
 	if (signal)
 		return const_cast<Signal &> (*signal);
@@ -56,18 +58,18 @@ sim_mob::Signal::signalAt(Node const & node, const MutexStrategy& mtxStrat) {
 	return *sig;
 }
 
-void sim_mob::Signal::addSignalSite(centimeter_t /* xpos */, centimeter_t /* ypos */,
+void Signal::addSignalSite(centimeter_t /* xpos */, centimeter_t /* ypos */,
 		std::string const & /* typeCode */, double /* bearing */) {
 	// Not implemented yet.
 }
 
-sim_mob::Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id) :
+Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id) :
 	Agent(mtxStrat, id), node_(node), buffered_TC(mtxStrat, SignalStatus()) {
 	initializeSignal();
 	setupIndexMaps();
 }
 
-void sim_mob::Signal::initializeSignal() {
+void Signal::initializeSignal() {
 	setCL(60, 60, 60);//default initial cycle length for SCATS
 	setRL(60, 60);//default initial RL for SCATS
 	startSplitPlan();
@@ -173,7 +175,7 @@ getCrossing(RoadSegment const * road) {
 // The links_map_ and crossing_map_ are intended to translate from the Link and Crossing classes
 // to indexes into the abovementioned arrays in the getDriverLight() and getPedestrianLight()
 // methods.
-void sim_mob::Signal::setupIndexMaps() {
+void Signal::setupIndexMaps() {
 	// Currently, we assume Signals are located at Multinodes.  We need to handle the cases
 	// where Signals are located at Uninodes or even at obstacle locations (the obstacle being
 	// a Crossing).
@@ -233,12 +235,8 @@ void sim_mob::Signal::setupIndexMaps() {
 	strRepr = output.str();
 }
 
-string sim_mob::Signal::toString() const {
-	return strRepr;
-}
-
 //initialize SplitPlan
-void sim_mob::Signal::startSplitPlan() {
+void Signal::startSplitPlan() {
 	//CurrSplitPlan
 	currSplitPlanID = 1;
 	/*for(int i = 0; i < 4; i++) {
@@ -255,7 +253,7 @@ void sim_mob::Signal::startSplitPlan() {
 	vote5 = 0;
 }
 
-void sim_mob::Signal::outputToVisualizer(frame_t frameNumber) {
+void Signal::outputToVisualizer(frame_t frameNumber) {
 	std::stringstream logout;
 	logout << "(\"Signal\"," << frameNumber << "," << this << ",{\"va\":\"";
 	for (int i = 0; i < 3; i++) {
@@ -301,7 +299,7 @@ void sim_mob::Signal::outputToVisualizer(frame_t frameNumber) {
 	LogOut(logout.str());
 }
 
-bool sim_mob::Signal::update(frame_t frameNumber) {
+bool Signal::update(frame_t frameNumber) {
 	updateSignal(Density);
 	outputToVisualizer(frameNumber);
 
@@ -316,7 +314,7 @@ bool sim_mob::Signal::update(frame_t frameNumber) {
 }
 
 //Update Signal Light
-void sim_mob::Signal::updateSignal(double DS[]) {
+void Signal::updateSignal(double DS[]) {
 	if (phaseCounter == 0) {
 		//find the maximum DS
 		DS_all = fmax(DS);
@@ -364,12 +362,12 @@ void sim_mob::Signal::updateSignal(double DS[]) {
 	updateTrafficLights();
 }
 
-int sim_mob::Signal::getcurrPhase() {
+int Signal::getcurrPhase() {
 	return currPhase;
 }
 
 //use SCATS to determine next cyecle length
-void sim_mob::Signal::setnextCL(double DS) {
+void Signal::setnextCL(double DS) {
 	//parameters in SCATS
 	double RL0;
 	//double diff_CL,diff_CL0;
@@ -437,24 +435,24 @@ void sim_mob::Signal::setnextCL(double DS) {
 	}
 }
 
-void sim_mob::Signal::updateprevCL() {
+void Signal::updateprevCL() {
 	prevCL = currCL;
 }
 
-void sim_mob::Signal::updatecurrCL() {
+void Signal::updatecurrCL() {
 	currCL = nextCL;
 }
 
-void sim_mob::Signal::updateprevRL1(double RL1) {
+void Signal::updateprevRL1(double RL1) {
 	prevRL1 = RL1;
 }
 
-void sim_mob::Signal::updateprevRL2(double RL2) {
+void Signal::updateprevRL2(double RL2) {
 	prevRL2 = RL2;
 }
 
 //use DS to choose SplitPlan for next cycle
-void sim_mob::Signal::setnextSplitPlan(double DS[]) {
+void Signal::setnextSplitPlan(double DS[]) {
 	double proDS[4];// projected DS
 	double maxproDS[6];// max projected DS of each SplitPlan
 	//int i;
@@ -537,7 +535,7 @@ void sim_mob::Signal::setnextSplitPlan(double DS[]) {
 	nextSplitPlan[3] = SplitPlan[3];
 }
 
-void sim_mob::Signal::updatecurrSplitPlan() {
+void Signal::updatecurrSplitPlan() {
 	currSplitPlanID = nextSplitPlanID;
 	for (int i = 0; i < 4; i++) {
 		currSplitPlan[i] = nextSplitPlan[i];
@@ -545,7 +543,7 @@ void sim_mob::Signal::updatecurrSplitPlan() {
 }
 
 //use next cycle length to calculate next Offset
-void sim_mob::Signal::setnextOffset(double nextCL) {
+void Signal::setnextOffset(double nextCL) {
 	if (nextCL <= CL_low) {
 		nextOffset = Off_low;
 	} else if (nextCL > CL_low && nextCL <= CL_up) {
@@ -555,7 +553,7 @@ void sim_mob::Signal::setnextOffset(double nextCL) {
 	}
 }
 
-void sim_mob::Signal::updateOffset() {
+void Signal::updateOffset() {
 	currOffset = nextOffset;
 }
 
@@ -588,7 +586,7 @@ const int TC_for_DriverTemplate[][4][3] = { { { 3, 3, 1 }, { 1, 1, 1 }, { 3, 3, 
 
 //updata traffic lights information in a way that can be easily
 //recognized by driver and pedestrian
-void sim_mob::Signal::updateTrafficLights() {
+void Signal::updateTrafficLights() {
 	//Get a relative ID into the TS arrays.
 	size_t relID = 0;
 	switch (currPhase) {
@@ -639,16 +637,16 @@ void sim_mob::Signal::updateTrafficLights() {
 }
 
 namespace {
-sim_mob::Signal::TrafficColor convertToTrafficColor(int i) {
+Signal::TrafficColor convertToTrafficColor(int i) {
 	switch (i) {
 	case 1:
-		return sim_mob::Signal::Red;
+		return Signal::Red;
 	case 2:
-		return sim_mob::Signal::Amber;
+		return Signal::Amber;
 	case 3:
-		return sim_mob::Signal::Green;
+		return Signal::Green;
 	default:
-		return sim_mob::Signal::Red;
+		return Signal::Red;
 	}
 }
 }
@@ -664,7 +662,7 @@ std::string mismatchError(char const * const func_name, Signal const & signal, R
 }
 }
 
-sim_mob::Signal::VehicleTrafficColors sim_mob::Signal::getDriverLight(Lane const & lane) const {
+Signal::VehicleTrafficColors Signal::getDriverLight(Lane const & lane) const {
 	RoadSegment const * road = lane.getRoadSegment();
 	Link const * link = road->getLink();
 	std::map<Link const *, size_t>::const_iterator iter = links_map_.find(link);
@@ -680,7 +678,7 @@ sim_mob::Signal::VehicleTrafficColors sim_mob::Signal::getDriverLight(Lane const
 	return VehicleTrafficColors(left, forward, right);
 }
 
-sim_mob::Signal::TrafficColor sim_mob::Signal::getDriverLight(Lane const & fromLane, Lane const & toLane) const {
+Signal::TrafficColor Signal::getDriverLight(Lane const & fromLane, Lane const & toLane) const {
 	RoadSegment const * fromRoad = fromLane.getRoadSegment();
 	Link const * fromLink = fromRoad->getLink();
 	std::map<Link const *, size_t>::const_iterator iter = links_map_.find(fromLink);
@@ -733,7 +731,7 @@ sim_mob::Signal::TrafficColor sim_mob::Signal::getDriverLight(Lane const & fromL
 	return Red;
 }
 
-sim_mob::Signal::TrafficColor sim_mob::Signal::getPedestrianLight(Crossing const & crossing) const {
+Signal::TrafficColor Signal::getPedestrianLight(Crossing const & crossing) const {
 	std::map<Crossing const *, size_t>::const_iterator iter = crossings_map_.find(&crossing);
 	if (iter == crossings_map_.end()) {
 		std::ostringstream stream;
@@ -750,7 +748,7 @@ sim_mob::Signal::TrafficColor sim_mob::Signal::getPedestrianLight(Crossing const
 }
 
 //find the max projected DS in each SplitPlan
-double sim_mob::Signal::fmax(const double proDS[]) {
+double Signal::fmax(const double proDS[]) {
 	double max = proDS[0];
 	for (int i = 1; i < 4; i++) {
 		if (proDS[i] > max) {
@@ -761,7 +759,7 @@ double sim_mob::Signal::fmax(const double proDS[]) {
 	return max;
 }
 
-void sim_mob::Signal::buildSubscriptionList() {
+void Signal::buildSubscriptionList() {
 	//First, add the x and y co-ordinates
 	Agent::buildSubscriptionList();
 
@@ -769,7 +767,7 @@ void sim_mob::Signal::buildSubscriptionList() {
 }
 
 //find the minimum among the max projected DS
-int sim_mob::Signal::fmin_ID(const double maxproDS[]) {
+int Signal::fmin_ID(const double maxproDS[]) {
 	int min = 1;
 	for (int i = 2; i <= 5; i++) {
 		if (maxproDS[i] < maxproDS[min]) {
@@ -781,7 +779,7 @@ int sim_mob::Signal::fmin_ID(const double maxproDS[]) {
 }
 
 //determine next SplitPlan according to the votes in last 5 cycle
-int sim_mob::Signal::calvote(unsigned int vote1, unsigned int vote2, unsigned int vote3, unsigned int vote4,
+int Signal::calvote(unsigned int vote1, unsigned int vote2, unsigned int vote3, unsigned int vote4,
 		unsigned int vote5) {
 	assert(vote1<6);
 	assert(vote2<6);
@@ -806,7 +804,7 @@ int sim_mob::Signal::calvote(unsigned int vote1, unsigned int vote2, unsigned in
 	return ID;
 }
 
-void sim_mob::Signal::output(frame_t frameNumber) {
+void Signal::output(frame_t frameNumber) {
 	std::stringstream logout;
 
 	logout << "(\"Signal\",";
@@ -867,9 +865,9 @@ void sim_mob::Signal::output(frame_t frameNumber) {
 }
 
 #ifndef SIMMOB_DISABLE_MPI
-void sim_mob::Signal::packageProxy(PackageUtils& packageUtil) {
+void Signal::packageProxy(PackageUtils& packageUtil) {
 
-	//sim_mob::Agent::packageProxy(packageUtil);
+	//Agent::packageProxy(packageUtil);
 	packageUtil.packageBasicData(id);
 	packageUtil.packageBasicData(currCL);
 	packageUtil.packageBasicDataVector(currSplitPlan);
@@ -897,9 +895,9 @@ void sim_mob::Signal::packageProxy(PackageUtils& packageUtil) {
 //	std::cout << "Testing value:" << buffered_TC.get().TC_for_Pedestrian[0] << std::endl;
 }
 
-void sim_mob::Signal::unpackageProxy(UnPackageUtils& unpackageUtil) {
+void Signal::unpackageProxy(UnPackageUtils& unpackageUtil) {
 
-	//sim_mob::Agent::unpackageProxy(unpackageUtil);
+	//Agent::unpackageProxy(unpackageUtil);
 	id = unpackageUtil.unpackageBasicData<int>();
 	currCL = unpackageUtil.unpackageBasicData<double>();
 	currSplitPlan = unpackageUtil.unpackageBasicDataVector<double>();
@@ -924,3 +922,5 @@ void sim_mob::Signal::unpackageProxy(UnPackageUtils& unpackageUtil) {
 //	std::cout << "Checking value:" << buffered_TC.get().TC_for_Pedestrian[0] << std::endl;
 }
 #endif
+
+}

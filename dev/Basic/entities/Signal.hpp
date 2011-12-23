@@ -76,7 +76,7 @@ public:
 	}
 
 	///Return the loggable representation of this Signal.
-	std::string toString() const;
+	std::string toString() const { return strRepr; }
 
 	//initialize the SplitPlan for SCATS
 	void startSplitPlan();

@@ -73,7 +73,7 @@ public:
 	/***
 	 * Singleton. Retrieve an instance of the ConfigParams object.
 	 */
-	static ConfigParams& GetInstance();
+	static ConfigParams& GetInstance() { return ConfigParams::instance; }
 
 	/**
 	 * Load the defualt user config file; initialize all vectors. This function must be called
@@ -91,7 +91,9 @@ public:
 
 
 private:
-	ConfigParams();
+	ConfigParams() : mutexStategy(MtxStrat_Buffered), TEMP_ManualFixDemoIntersection(false)
+        {
+        }
 	static ConfigParams instance;
 
 	sim_mob::RoadNetwork network;

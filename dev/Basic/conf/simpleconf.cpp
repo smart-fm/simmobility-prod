@@ -946,16 +946,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& agents)
 // Simple singleton implementation
 //////////////////////////////////////////
 ConfigParams sim_mob::ConfigParams::instance;
-sim_mob::ConfigParams::ConfigParams() : TEMP_ManualFixDemoIntersection(false), mutexStategy(MtxStrat_Buffered) {
-
-}
-ConfigParams& sim_mob::ConfigParams::GetInstance() {
-	return ConfigParams::instance;
-}
-
-
-
-
 
 //////////////////////////////////////////
 // Main external method

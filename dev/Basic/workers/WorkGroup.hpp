@@ -36,9 +36,8 @@ public:
 	struct EntityLoadParams {
 		StartTimePriorityQueue& pending_source;
 		std::vector<Entity*>& entity_dest;
-		boost::mutex& entity_dest_lock;
-		EntityLoadParams(StartTimePriorityQueue& pending_source, std::vector<Entity*>& entity_dest, boost::mutex& entity_dest_lock)
-			: pending_source(pending_source), entity_dest(entity_dest), entity_dest_lock(entity_dest_lock) {}
+		EntityLoadParams(StartTimePriorityQueue& pending_source, std::vector<Entity*>& entity_dest)
+			: pending_source(pending_source), entity_dest(entity_dest) {}
 	};
 
 

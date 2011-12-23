@@ -7,6 +7,8 @@
 #include <string>
 #include <sstream>
 
+#include "GenConfig.h"
+
 #include <boost/utility.hpp>
 
 #include "buffering/Shared.hpp"
@@ -68,6 +70,24 @@ public:
 	unsigned int DecompTimeStepInMilliSeconds() const { return granDecompTicks * baseGranMS; }
 
 	bool TEMP_ManualFixDemoIntersection;
+
+	///Synced to the value of SIMMOB_DISABLE_DYNAMIC_DISPATCH; used for runtime checks.
+	bool DynamicDispatchDisabled() const {
+#ifdef SIMMOB_DISABLE_DYNAMIC_DISPATCH
+		return true;
+#else
+		return false;
+#endif
+	}
+
+	///Synced to the value of SIMMOB_DISABLE_MPI; used for runtime checks.
+	bool MPI_Disabled() const {
+#ifdef SIMMOB_DISABLE_MPI
+		return true;
+#else
+		return false;
+#endif
+	}
 
 public:
 	/***

@@ -240,7 +240,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision
 double sim_mob::MITSIM_LC_Model::checkIfMandatory(UpdateParams& p)
 {
 	if(p.fromLaneIndex == p.currLaneIndex)
-		p.dis2stop = MAX_NUM;
+		p.dis2stop = 1000;//defalut 1000m
 	//The code below is MITSIMLab model
 	double num		=	1;		//now we just assume that MLC only need to change to the adjacent lane
 	double y		=	0.5;	//segment density/jam density, now assume that it is 0.5

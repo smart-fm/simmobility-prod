@@ -551,7 +551,7 @@ double sim_mob::Driver::linkDriving(UpdateParams& p) {
 			p.dis2stop = p.nvFwd.distance;
 		p.dis2stop /= 100;
 	} else
-		p.dis2stop = std::numeric_limits<double>::max();
+		p.dis2stop = 1000;//defalut 1000m
 
 	if (p.fromLaneIndex >= p.currLane->getRoadSegment()->getLanes().size())
 		p.fromLaneIndex = p.currLaneIndex;
@@ -686,11 +686,16 @@ void sim_mob::Driver::updateAdjacentLanes(UpdateParams& p) {
 		return; //Can't do anything without a lane to reference.
 	}
 
+	const Lane* temp;
 	if (p.currLaneIndex > 0) {
-		p.rightLane = p.currLane->getRoadSegment()->getLanes().at(p.currLaneIndex - 1);
+		temp = p.currLane->getRoadSegment()->getLanes().at(p.currLaneIndex - 1);
+		if(!temp->is_pedestrian_lane())
+			p.rightLane = temp;
 	}
 	if (p.currLaneIndex < p.currLane->getRoadSegment()->getLanes().size() - 1) {
-		p.leftLane = p.currLane->getRoadSegment()->getLanes().at(p.currLaneIndex + 1);
+		temp = p.currLane->getRoadSegment()->getLanes().at(p.currLaneIndex + 1);
+		if(!temp->is_pedestrian_lane())
+			p.leftLane = temp;
 	}
 }
 
@@ -730,7 +735,7 @@ void sim_mob::Driver::chooseNextLaneForNextLink(UpdateParams& p) {
 
 				//find target lane with same index, use this lane
 				size_t laneIndex = getLaneIndex((*it)->getLaneTo());
-				if (laneIndex == p.currLaneIndex) {
+				if (laneIndex == p.currLaneIndex&&!((*it)->getLaneTo()->is_pedestrian_lane())){
 					nextLaneInNextLink = (*it)->getLaneTo();
 					targetLaneIndex = laneIndex;
 					break;
@@ -743,6 +748,8 @@ void sim_mob::Driver::chooseNextLaneForNextLink(UpdateParams& p) {
 			//no lane with same index, use the first lane in the vector if possible.
 			if (targetLanes.size() > 0) {
 				nextLaneInNextLink = targetLanes.at(0);
+				if(nextLaneInNextLink->is_pedestrian_lane()&&targetLanes.size()>1)
+					nextLaneInNextLink = targetLanes.at(1);
 				targetLaneIndex = getLaneIndex(nextLaneInNextLink);
 			} else if (nextSegment) { //Fallback
 				size_t fallbackIndex = std::min(p.currLaneIndex, nextSegment->getLanes().size() - 1);

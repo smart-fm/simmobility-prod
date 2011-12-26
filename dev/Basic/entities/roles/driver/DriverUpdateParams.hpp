@@ -3,6 +3,7 @@
 #pragma once
 
 #include "GenConfig.h"
+#include "entities/UpdateParams.hpp"
 #include "util/DynamicVector.hpp"
 
 
@@ -54,9 +55,11 @@ struct NearestPedestrian {
 
 
 ///Simple struct to hold parameters which only exist for a single update tick.
-struct UpdateParams {
-	//NOTE: Constructor is currently implemented in Driver.cpp. Feel free to shuffle this around if you like.
-	UpdateParams(const Driver& owner, boost::mt19937& gen); //Initialize with sensible defaults.
+//NOTE: Constructor is currently implemented in Driver.cpp. Feel free to shuffle this around if you like.
+struct DriverUpdateParams : public UpdateParams {
+	DriverUpdateParams(boost::mt19937& gen) : UpdateParams(gen) {}
+
+	virtual void reset(frame_t frameNumber, unsigned int currTimeMS, const Driver& owner);
 
 	const Lane* currLane;  //TODO: This should really be tied to PolyLineMover, but for now it's not important.
 	size_t currLaneIndex; //Cache of currLane's index.
@@ -112,9 +115,6 @@ struct UpdateParams {
 	DPoint TEMP_lastKnownPolypoint;
 	bool justMovedIntoIntersection;
 	double overflowIntoIntersection;
-
-	//The random number generator we are using
-	boost::mt19937& gen;
 };
 
 

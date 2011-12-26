@@ -2,15 +2,17 @@
 
 #pragma once
 
+#include "GenConfig.h"
+
 #include <queue>
 #include <vector>
 #include <functional>
-#include <stdlib.h>
-
-#include "GenConfig.h"
+#include <cstdlib>
 
 #include <boost/thread.hpp>
 #include <boost/random.hpp>
+
+#include "entities/Entity.hpp"
 
 #include "util/LangHelpers.hpp"
 #include "buffering/Shared.hpp"
@@ -18,7 +20,6 @@
 #include "geospatial/Point2D.hpp"
 #include "conf/simpleconf.hpp"
 
-#include "Entity.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -30,6 +31,7 @@ namespace sim_mob
 
 class Agent;
 class WorkGroup;
+class UpdateParams;
 
 #ifndef SIMMOB_DISABLE_MPI
 class BoundaryProcessor;
@@ -56,9 +58,25 @@ public:
 	Agent(const MutexStrategy& mtxStrat, int id=-1);
 	virtual ~Agent();
 
-	virtual bool update(frame_t frameNumber) = 0;  ///<Update agent behvaior
+	///Update this Agent. Performs life-cycle management, then calls frame_tick.
+	///Note: Sub-classes of Agent should override frame_tick, NOT update. If you want
+	///      to override update, you should probably be extending Entity.
+	virtual bool update(frame_t frameNumber) final;
 
-	virtual void output(frame_t frameNumber) = 0;
+
+	///Called the first time an Agent's update() method is successfully called.
+	/// This will be the tick of its startTime, rounded down(?).
+	virtual void frame_init(UpdateParams& p) = 0;
+
+	///Perform each frame's update tick for this Agent.
+	virtual bool frame_tick(UpdateParams& p) = 0;
+
+	///Generate output for this frame's tick for this Agent.
+	virtual void frame_tick_output(const UpdateParams& p) = 0;
+
+	///Create the UpdateParams (or, more likely, sub-class) which will hold all
+	///  the temporary information for this time tick.
+	virtual UpdateParams& make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS) = 0;
 
 	///Subscribe this agent to a data manager.
 	//virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew);
@@ -91,16 +109,8 @@ public:
 	///Agents can access all other agents (although they usually do not access by ID)
 	static std::vector<Entity*> all_agents;
 
-//#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
-	static StartTimePriorityQueue pending_agents; //Agents waiting to be added to the simulation, prioritized by start time.
-
-	///When adding/deleting Agents asynchronously, a lock is required.
-	//static boost::mutex all_agents_lock;
-//#endif
-
-	///Temporary variable; holds a pointer to the current Agent work group. Will be moved
-	///  into the Dispatch Manager as soon as it's created.
-	//static sim_mob::WorkGroup* TMP_AgentWorkGroup;
+	//Agents waiting to be added to the simulation, prioritized by start time.
+	static StartTimePriorityQueue pending_agents;
 
 	///Retrieve a monotonically-increasing unique ID value.
 	///\param preferredID Will be returned if it is greater than the current maximum-assigned ID.
@@ -116,7 +126,7 @@ public:
 
 
 private:
-	//unsigned int currMode;
+	bool firstFrameTick;  ///Determines if frame_init() has been done.
 	bool toRemoved;
 	static unsigned int next_agent_id;
 

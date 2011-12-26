@@ -2,9 +2,11 @@
 
 #include "Agent.hpp"
 
+#include <cstdlib>
+
 #include "util/OutputUtil.hpp"
 #include "partitions/PartitionManager.hpp"
-#include <cstdlib>
+#include "entities/UpdateParams.hpp"
 
 using namespace sim_mob;
 
@@ -49,6 +51,7 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 	originNode(nullptr), destNode(nullptr), xPos(mtxStrat, 0), yPos(mtxStrat, 0),
 	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0)
 {
+	firstFrameTick = true;
 	toRemoved = false;
 	dynamic_seed = id;
 }
@@ -56,6 +59,62 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 sim_mob::Agent::~Agent()
 {
 
+}
+
+void sim_mob::Agent::update(frame_t frameNumber)
+{
+	//First, we need to retrieve an UpdateParams subclass appropriate for this Agent.
+	unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
+	UpdateParams& params = make_frame_tick_params(frameNumber, currTimeMS);
+
+	//Has update() been called early?
+	if(currTimeMS < getStartTime()) {
+		//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
+		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+			std::stringstream msg;
+			msg << "Agent(" << getId() << ") specifies a start time of: " << getStartTime()
+					<< " but it is currently: " << currTimeMS
+					<< "; this indicates an error, and should be handled automatically.";
+			throw std::runtime_error(msg.str().c_str());
+		}
+		return;
+	}
+
+	//Has update() been called too late?
+	if (isToBeRemoved()) {
+		//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
+		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+			throw std::runtime_error("Agent is already done, but hasn't been removed.");
+		}
+		return;
+	}
+
+	//Is this the first frame tick for this Agent?
+	if (firstFrameTick) {
+		//Helper check; not needed once we trust our Workers.
+		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+			if (abs(currTimeMS-parent->getStartTime())>=ConfigParams::GetInstance().baseGranMS) {
+				std::stringstream msg;
+				msg << "Agent was not started within one timespan of its requested start time.";
+				msg << "\nStart was: " << getStartTime() << ",  Curr time is: " << currTimeMS << "\n";
+				msg << "Agent ID: " << getId() << "\n";
+				throw std::runtime_error(msg.str().c_str());
+			}
+		}
+
+		frame_init(params);
+		firstFrameTick = false;
+	}
+
+	//Now perform the main update tick
+	if (!isToBeRemoved()) {
+		frame_tick(params);
+	}
+
+	//Finally, save the output
+	if (!isToBeRemoved()) {
+		frame_tick_output(params);
+	}
 }
 
 void sim_mob::Agent::buildSubscriptionList()
@@ -79,9 +138,6 @@ void sim_mob::Agent::setToBeRemoved() {
 	toRemoved = true;
 }
 
-void sim_mob::Agent::output(frame_t frameNumber) {
-	//currently, do nothing
-}
 
 #ifndef SIMMOB_DISABLE_MPI
 void sim_mob::Agent::package(PackageUtils& packageUtil) {

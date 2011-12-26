@@ -79,9 +79,6 @@ void sim_mob::Agent::setToBeRemoved() {
 	toRemoved = true;
 }
 
-void sim_mob::Agent::output(frame_t frameNumber) {
-	//currently, do nothing
-}
 
 #ifndef SIMMOB_DISABLE_MPI
 void sim_mob::Agent::package(PackageUtils& packageUtil) {

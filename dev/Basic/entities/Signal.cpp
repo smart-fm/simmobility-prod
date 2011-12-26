@@ -806,7 +806,7 @@ int sim_mob::Signal::calvote(unsigned int vote1, unsigned int vote2, unsigned in
 	return ID;
 }
 
-void sim_mob::Signal::output(frame_t frameNumber) {
+void sim_mob::Signal::frame_output(frame_t frameNumber) {
 	std::stringstream logout;
 
 	logout << "(\"Signal\",";

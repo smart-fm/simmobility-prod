@@ -22,7 +22,7 @@ sim_mob::Person::~Person() {
 bool sim_mob::Person::update(frame_t frameNumber) {
 	//First, we need to retrieve an UpdateParams subclass appropriate for this Agent.
 	unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
-	UpdateParams& params = make_frame_tick_params(frameNumber, currTimeMS);
+	UpdateParams& params = currRole->make_frame_tick_params(frameNumber, currTimeMS);
 
 	//Has update() been called early?
 	if(currTimeMS < getStartTime()) {
@@ -34,7 +34,7 @@ bool sim_mob::Person::update(frame_t frameNumber) {
 					<< "; this indicates an error, and should be handled automatically.";
 			throw std::runtime_error(msg.str().c_str());
 		}
-		return;
+		return true;
 	}
 
 	//Has update() been called too late?
@@ -43,14 +43,14 @@ bool sim_mob::Person::update(frame_t frameNumber) {
 		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 			throw std::runtime_error("Agent is already done, but hasn't been removed.");
 		}
-		return;
+		return true;
 	}
 
 	//Is this the first frame tick for this Agent?
 	if (firstFrameTick) {
 		//Helper check; not needed once we trust our Workers.
 		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-			if (abs(currTimeMS-parent->getStartTime())>=ConfigParams::GetInstance().baseGranMS) {
+			if (abs(currTimeMS-getStartTime())>=ConfigParams::GetInstance().baseGranMS) {
 				std::stringstream msg;
 				msg << "Agent was not started within one timespan of its requested start time.";
 				msg << "\nStart was: " << getStartTime() << ",  Curr time is: " << currTimeMS << "\n";
@@ -59,18 +59,18 @@ bool sim_mob::Person::update(frame_t frameNumber) {
 			}
 		}
 
-		frame_init(params);
+		currRole->frame_init(params);
 		firstFrameTick = false;
 	}
 
 	//Now perform the main update tick
 	if (!isToBeRemoved()) {
-		frame_tick(params);
+		currRole->frame_tick(params);
 	}
 
 	//Finally, save the output
 	if (!isToBeRemoved()) {
-		frame_tick_output(params);
+		currRole->frame_tick_output(params);
 	}
 
 	//Output if removal requested.

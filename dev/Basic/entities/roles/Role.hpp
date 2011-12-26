@@ -40,7 +40,7 @@ public:
 	virtual void frame_init(UpdateParams& p) = 0;
 
 	///Perform each frame's update tick for this Agent.
-	virtual bool frame_tick(UpdateParams& p) = 0;
+	virtual void frame_tick(UpdateParams& p) = 0;
 
 	///Generate output for this frame's tick for this Agent.
 	virtual void frame_tick_output(const UpdateParams& p) = 0;

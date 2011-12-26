@@ -13,6 +13,7 @@
 #include "entities/Person.hpp"
 #include "entities/Signal.hpp"
 #include "entities/AuraManager.hpp"
+#include "entities/UpdateParams.hpp"
 #include "buffering/BufferedDataManager.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"
@@ -183,7 +184,6 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, unsigned int rea
 	intModel = new SimpleIntDrivingModel();
 
 	//Some one-time flags and other related defaults.
-	firstFrameTick = true;
 	nextLaneInNextLink = nullptr;
 }
 
@@ -203,8 +203,10 @@ void sim_mob::Driver::frame_init(UpdateParams& p)
 }
 
 //Main update functionality
-bool sim_mob::Driver::frame_tick(sim_mob::Driver::UpdateParams& p)
+void sim_mob::Driver::frame_tick(UpdateParams& p)
 {
+	DriverUpdateParams& p2 = dynamic_cast<DriverUpdateParams&>(p);
+
 	//Are we done already?
 	if (vehicle->isDone()) {
 		parent->setToBeRemoved();
@@ -212,20 +214,19 @@ bool sim_mob::Driver::frame_tick(sim_mob::Driver::UpdateParams& p)
 	}
 
 	//Just a bit glitchy...
-	updateAdjacentLanes(p);
+	updateAdjacentLanes(p2);
 
 	//retrieved their current "sensed" values.
-	if (perceivedVelocity.can_sense(currTimeMS)) {
-		p.perceivedFwdVelocity = perceivedVelocity.sense(currTimeMS)->x;
-		p.perceivedLatVelocity = perceivedVelocity.sense(currTimeMS)->y;
+	if (perceivedVelocity.can_sense(p.currTimeMS)) {
+		p2.perceivedFwdVelocity = perceivedVelocity.sense(p.currTimeMS)->x;
+		p2.perceivedLatVelocity = perceivedVelocity.sense(p.currTimeMS)->y;
 	}
 
 	//General update behavior.
 	//Note: For now, most updates cannot take place unless there is a Lane and vehicle.
-	if (p.currLane && vehicle) {
+	if (p2.currLane && vehicle) {
 
-		if (update_sensors(p, frameNumber) && update_movement(p, frameNumber) && update_post_movement(p,
-				frameNumber)) {
+		if (update_sensors(p2, p.frameNumber) && update_movement(p2, p.frameNumber) && update_post_movement(p2, p.frameNumber)) {
 
 			//Update parent data. Only works if we're not "done" for a bad reason.
 			setParentBufferedData();
@@ -245,11 +246,11 @@ bool sim_mob::Driver::frame_tick(sim_mob::Driver::UpdateParams& p)
 
 	isInIntersection.set(vehicle->isInIntersection());
 	//Update your perceptions
-	perceivedVelocity.delay(new DPoint(vehicle->getVelocity(), vehicle->getLatVelocity()), currTimeMS);
+	perceivedVelocity.delay(new DPoint(vehicle->getVelocity(), vehicle->getLatVelocity()), p.currTimeMS);
 	//Print output for this frame.
 }
 
-void sim_mob::Driver::sim_mob::Driver::frame_tick_output(const UpdateParams& p)
+void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
 {
 	//Skip?
 	if (vehicle->isDone() || ConfigParams::GetInstance().is_run_on_many_computers) {
@@ -283,7 +284,7 @@ void sim_mob::Driver::sim_mob::Driver::frame_tick_output(const UpdateParams& p)
 	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
 
 	LogOut("(\"Driver\""
-			<<","<<frameNumber
+			<<","<<p.frameNumber
 			<<","<<parent->getId()
 			<<",{"
 			<<"\"xPos\":\""<<static_cast<int>(vehicle->getX())
@@ -326,9 +327,9 @@ vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {
 	return res;
 }
 
-void sim_mob::DriverUpdateParams::reset(frame_t frameNumber, const Driver& owner)
+void sim_mob::DriverUpdateParams::reset(frame_t frameNumber, unsigned int currTimeMS, const Driver& owner)
 {
-	UpdateParams::reset(frameNumber);
+	UpdateParams::reset(frameNumber, currTimeMS);
 
 	//Set to the previous known buffered values
 	currLane = owner.currLane_.get();
@@ -1057,21 +1058,21 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 		}
 	}
 	//Update your perceptions for leading vehicle and gap
-	perceivedDistToFwdCar.delay(params.nvFwd.distance, currTimeMS);
+	perceivedDistToFwdCar.delay(params.nvFwd.distance, params.currTimeMS);
 	if (params.nvFwd.distance != 5000) {
 		perceivedVelocityOfFwdCar.delay(new DPoint(params.nvFwd.driver->getVehicle()->getVelocity(),
-				params.nvFwd.driver->getVehicle()->getLatVelocity()), currTimeMS);
-		perceivedAccelerationOfFwdCar.delay(params.nvFwd.driver->getVehicle()->getAcceleration(), currTimeMS);
+				params.nvFwd.driver->getVehicle()->getLatVelocity()), params.currTimeMS);
+		perceivedAccelerationOfFwdCar.delay(params.nvFwd.driver->getVehicle()->getAcceleration(), params.currTimeMS);
 	}
 	//retrieve perceptions
-	if (perceivedVelocityOfFwdCar.can_sense(currTimeMS)) {
-		params.perceivedFwdVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense(currTimeMS)->x;
-		params.perceivedLatVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense(currTimeMS)->y;
+	if (perceivedVelocityOfFwdCar.can_sense(params.currTimeMS)) {
+		params.perceivedFwdVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense(params.currTimeMS)->x;
+		params.perceivedLatVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense(params.currTimeMS)->y;
 	}
-	if (perceivedAccelerationOfFwdCar.can_sense(currTimeMS))
-		params.perceivedAccelerationOfFwdCar = perceivedAccelerationOfFwdCar.sense(currTimeMS);
-	if (perceivedDistToFwdCar.can_sense(currTimeMS))
-		params.perceivedDistToFwdCar = perceivedDistToFwdCar.sense(currTimeMS);
+	if (perceivedAccelerationOfFwdCar.can_sense(params.currTimeMS))
+		params.perceivedAccelerationOfFwdCar = perceivedAccelerationOfFwdCar.sense(params.currTimeMS);
+	if (perceivedDistToFwdCar.can_sense(params.currTimeMS))
+		params.perceivedDistToFwdCar = perceivedDistToFwdCar.sense(params.currTimeMS);
 	else
 		params.perceivedDistToFwdCar = params.nvFwd.distance;
 }
@@ -1328,7 +1329,7 @@ void sim_mob::Driver::package(PackageUtils& packageUtil) {
 	packageUtil.packageBasicData(isInIntersection.get());
 
 	//part 2
-	packageUtil.packageBasicData(currTimeMS);
+	packageUtil.packageBasicData(params.currTimeMS);
 	packageUtil.packageVehicle(vehicle);
 	bool hasSomething = false;
 	if (intModel) {

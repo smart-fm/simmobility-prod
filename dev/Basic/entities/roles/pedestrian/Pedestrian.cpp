@@ -110,22 +110,24 @@ vector<BufferedBase*> sim_mob::Pedestrian::getSubscriptionParams() {
 void sim_mob::Pedestrian::frame_init(UpdateParams& p)
 {
 	setGoal(currentStage, nullptr);
-	p.skipThisFrame = true;
+	dynamic_cast<PedestrianUpdateParams&>(p).skipThisFrame = true;
 }
 
 
 UpdateParams& sim_mob::Pedestrian::make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS)
 {
-	params.reset(franeNumber, currTimeMS);
+	params.reset(frameNumber, currTimeMS);
 	return params;
 }
 
 
 //Main update method
-bool sim_mob::Pedestrian::frame_tick(UpdateParams& p)
+void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 {
+	PedestrianUpdateParams& p2 = dynamic_cast<PedestrianUpdateParams&>(p);
+
 	//Is this the first frame tick?
-	if (p.skipThisFrame) {
+	if (p2.skipThisFrame) {
 		return;
 	}
 

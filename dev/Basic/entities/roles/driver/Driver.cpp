@@ -686,14 +686,13 @@ void sim_mob::Driver::updateAdjacentLanes(UpdateParams& p) {
 		return; //Can't do anything without a lane to reference.
 	}
 
-	const Lane* temp;
 	if (p.currLaneIndex > 0) {
-		temp = p.currLane->getRoadSegment()->getLanes().at(p.currLaneIndex - 1);
+		const Lane* temp = p.currLane->getRoadSegment()->getLanes().at(p.currLaneIndex - 1);
 		if(!temp->is_pedestrian_lane())
 			p.rightLane = temp;
 	}
 	if (p.currLaneIndex < p.currLane->getRoadSegment()->getLanes().size() - 1) {
-		temp = p.currLane->getRoadSegment()->getLanes().at(p.currLaneIndex + 1);
+		const Lane* temp = p.currLane->getRoadSegment()->getLanes().at(p.currLaneIndex + 1);
 		if(!temp->is_pedestrian_lane())
 			p.leftLane = temp;
 	}

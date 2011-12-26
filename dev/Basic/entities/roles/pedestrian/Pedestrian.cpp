@@ -189,6 +189,10 @@ void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 
 void sim_mob::Pedestrian::frame_tick_output(const UpdateParams& p)
 {
+	if (dynamic_cast<const PedestrianUpdateParams&>(p).skipThisFrame) {
+		return;
+	}
+
 	if (ConfigParams::GetInstance().is_run_on_many_computers) {
 		return;
 	}

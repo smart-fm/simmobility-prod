@@ -142,7 +142,7 @@ private:
 
 	//Temporary variable which will be flushed each time tick. We save it
 	// here to avoid constantly allocating and clearing memory each time tick.
-	UpdateParams params;
+	PedestrianUpdateParams params;
 
 	//Serialization
 #ifndef SIMMOB_DISABLE_MPI

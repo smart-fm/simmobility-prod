@@ -41,7 +41,7 @@ void PackageUtils::packageNode(const Node* one_node) {
 		(*package) & hasSomthing;
 	}
 
-	(*package) & (*(one_node->location));
+	(*package) & (one_node->location);
 }
 
 void PackageUtils::packageRoadSegment(const RoadSegment* roadsegment) {
@@ -57,8 +57,8 @@ void PackageUtils::packageRoadSegment(const RoadSegment* roadsegment) {
 	}
 
 
-	(*package) & (*(roadsegment->getStart()->location));
-	(*package) & (*(roadsegment->getEnd()->location));
+	(*package) & (roadsegment->getStart()->location);
+	(*package) & (roadsegment->getEnd()->location);
 }
 void PackageUtils::packageLink(const Link* one_link) {
 	bool hasSomthing = true;
@@ -70,8 +70,8 @@ void PackageUtils::packageLink(const Link* one_link) {
 		(*package) & hasSomthing;
 	}
 
-	(*package) & (*(one_link->getStart()->location));
-	(*package) & (*(one_link->getEnd()->location));
+	(*package) & (one_link->getStart()->location);
+	(*package) & (one_link->getEnd()->location);
 }
 
 void PackageUtils::packageLane(const Lane* one_lane) {

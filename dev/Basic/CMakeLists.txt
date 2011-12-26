@@ -52,6 +52,11 @@ include_directories("/usr/include/soci/postgresql")
 include_directories("/usr/include/soci")
 include_directories("/usr/include/postgresql")
 
+#Optional includes: MPI
+IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
+  include_directories("/usr/include/mpi")
+ENDIF(${SIMMOB_DISABLE_MPI} MATCHES "OFF")
+
 #Link directories
 #link_directories (/usr/lib/whatever)
 
@@ -87,6 +92,7 @@ LIST(REMOVE_ITEM BASIC_CPP ${IgnoreList})
 
 #List of libraries to link
 SET(LibraryList boost_thread CGAL boost_serialization tinyxml soci_core-gcc-3_0 soci_postgresql-gcc-3_0)
+
 #Optional library: MPI
 IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   LIST(APPEND LibraryList boost_mpi)

@@ -44,12 +44,12 @@ namespace mpi = boost::mpi;
 
 namespace sim_mob {
 
-const sim_mob::Signal* findOneSignalByNode(sim_mob::Point2D* point) {
+const sim_mob::Signal* findOneSignalByNode(const sim_mob::Point2D* point) {
 	//std::cout << "sim_mob::Signal::all_signals_.size():" << sim_mob::Signal::all_signals_.size() << std::endl;
 
 	for (size_t i = 0; i < sim_mob::Signal::all_signals_.size(); i++) {
-		if (sim_mob::Signal::all_signals_[i]->getNode().location->getX() == point->getX()
-				&& sim_mob::Signal::all_signals_[i]->getNode().location->getY() == point->getY()) {
+		if (sim_mob::Signal::all_signals_[i]->getNode().location.getX() == point->getX()
+				&& sim_mob::Signal::all_signals_[i]->getNode().location.getY() == point->getY()) {
 			return sim_mob::Signal::all_signals_[i];
 		}
 	}
@@ -248,7 +248,7 @@ std::string BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& packa
 
 	std::vector<Signal const*>::iterator itr_signal = package.boundary_signals.begin();
 	for (; itr_signal != package.boundary_signals.end(); itr_signal++) {
-		sim_mob::Point2D* location = (*itr_signal)->getNode().location;
+		const sim_mob::Point2D& location = (*itr_signal)->getNode().location;
 		packageUtil.packagePoint2D(location);
 
 		Signal* one_signal = const_cast<Signal*> (*itr_signal);
@@ -273,8 +273,8 @@ void BoundaryProcessor::processPackageData(std::string data) {
 
 		switch (type) {
 		case Driver_Role: {
-			Person* one_person = new Person();
-			Driver* one_driver = new Driver(one_person, 0, 0, 0);
+			Person* one_person = new Person(ConfigParams::GetInstance().mutexStategy);
+			Driver* one_driver = new Driver(one_person, ConfigParams::GetInstance().mutexStategy, 0, 0, 0);
 			one_person->changeRole(one_driver);
 
 			one_person->unpackage(unpackageUtil);
@@ -288,8 +288,8 @@ void BoundaryProcessor::processPackageData(std::string data) {
 
 			break;
 		case Pedestrian_Role: {
-			Person* one_person = new Person();
-			Pedestrian* one_pedestrian = new Pedestrian(one_person);
+			Person* one_person = new Person(ConfigParams::GetInstance().mutexStategy);
+			Pedestrian* one_pedestrian = new Pedestrian(one_person, one_person->getGenerator());
 			one_person->changeRole(one_pedestrian);
 
 			one_person->unpackage(unpackageUtil);
@@ -343,8 +343,8 @@ void BoundaryProcessor::processPackageData(std::string data) {
 
 			switch (value) {
 			case Driver_Role:
-				one_person = new Person(-1);
-				one_person->changeRole(new Driver(one_person, config.reacTime_LeadingVehicle,
+				one_person = new Person(ConfigParams::GetInstance().mutexStategy, -1);
+				one_person->changeRole(new Driver(one_person, ConfigParams::GetInstance().mutexStategy, config.reacTime_LeadingVehicle,
 						config.reacTime_SubjectVehicle, config.reacTime_Gap));
 
 				one_person->unpackageProxy(unpackageUtil);
@@ -363,8 +363,8 @@ void BoundaryProcessor::processPackageData(std::string data) {
 				break;
 
 			case Pedestrian_Role:
-				one_person = new Person(-1);
-				one_person->changeRole(new Pedestrian(one_person));
+				one_person = new Person(ConfigParams::GetInstance().mutexStategy, -1);
+				one_person->changeRole(new Pedestrian(one_person, one_person->getGenerator()));
 
 				one_person->unpackageProxy(unpackageUtil);
 				//std::cout << "Step 4.2.9:" << std::endl;
@@ -449,21 +449,21 @@ bool BoundaryProcessor::isAgentCrossed(BoundarySegment* segment, Agent const* ag
 		Person* p = const_cast<Person*> (person);
 		const Driver *driver = dynamic_cast<const Driver *> (p->getRole());
 
-		if (driver->getVehicle()->getCurrSegment()->getStart()->location->getX()
-				!= segment->boundarySegment->getStart()->location->getX()) {
+		if (driver->getVehicle()->getCurrSegment()->getStart()->location.getX()
+				!= segment->boundarySegment->getStart()->location.getX()) {
 			return false;
 		}
 
-		if (driver->getVehicle()->getCurrSegment()->getStart()->location->getY()
-				!= segment->boundarySegment->getStart()->location->getY()) {
+		if (driver->getVehicle()->getCurrSegment()->getStart()->location.getY()
+				!= segment->boundarySegment->getStart()->location.getY()) {
 			return false;
 		}
-		if (driver->getVehicle()->getCurrSegment()->getEnd()->location->getX()
-				!= segment->boundarySegment->getEnd()->location->getX()) {
+		if (driver->getVehicle()->getCurrSegment()->getEnd()->location.getX()
+				!= segment->boundarySegment->getEnd()->location.getX()) {
 			return false;
 		}
-		if (driver->getVehicle()->getCurrSegment()->getEnd()->location->getY()
-				!= segment->boundarySegment->getEnd()->location->getY()) {
+		if (driver->getVehicle()->getCurrSegment()->getEnd()->location.getY()
+				!= segment->boundarySegment->getEnd()->location.getY()) {
 			return false;
 		}
 
@@ -478,8 +478,8 @@ bool BoundaryProcessor::isAgentCrossed(BoundarySegment* segment, Agent const* ag
 		if (pos_line == 0)
 			return false;
 
-		int upper_x_pos = segment->boundarySegment->getStart()->location->getX();
-		int upper_y_pos = segment->boundarySegment->getStart()->location->getY();
+		int upper_x_pos = segment->boundarySegment->getStart()->location.getX();
+		int upper_y_pos = segment->boundarySegment->getStart()->location.getY();
 
 		int upper_pos_line = (upper_x_pos - segment->cut_line_start->getX()) * y_cut_dis - (upper_y_pos
 				- segment->cut_line_start->getY()) * x_cut_dis;
@@ -507,8 +507,8 @@ bool BoundaryProcessor::isAgentCrossed(BoundarySegment* segment, Agent const* ag
 		if (pos_line == 0)
 			return false;
 
-		int upper_x_pos = segment->boundarySegment->getStart()->location->getX();
-		int upper_y_pos = segment->boundarySegment->getStart()->location->getY();
+		int upper_x_pos = segment->boundarySegment->getStart()->location.getX();
+		int upper_y_pos = segment->boundarySegment->getStart()->location.getY();
 
 		int upper_pos_line = (upper_x_pos - segment->cut_line_start->getX()) * y_cut_dis - (upper_y_pos
 				- segment->cut_line_start->getY()) * x_cut_dis;
@@ -610,7 +610,7 @@ std::string BoundaryProcessor::outputAllEntities(frame_t time_step) {
 
 		Agent* one_agent = dynamic_cast<Agent*> (*it);
 		if (one_agent->isToBeRemoved() == false)
-			one_agent ->output(time_step);
+			one_agent->output(time_step);
 	}
 
 	//signal output every 10 seconds
@@ -720,14 +720,14 @@ void BoundaryProcessor::initBoundaryTrafficItems() {
 
 		if (one_segment->responsible_side == -1) {
 			const sim_mob::Signal* startNodeSignal = findOneSignalByNode(
-					one_segment->boundarySegment->getStart()->location);
+					&one_segment->boundarySegment->getStart()->location);
 
 			if (startNodeSignal) {
 				boundaryRealTrafficItems.insert(startNodeSignal);
 			}
 
 			const sim_mob::Signal* endNodeSignal =
-					findOneSignalByNode(one_segment->boundarySegment->getEnd()->location);
+					findOneSignalByNode(&one_segment->boundarySegment->getEnd()->location);
 			if (endNodeSignal) {
 				sim_mob::Signal* one_signal = const_cast<sim_mob::Signal*> (endNodeSignal);
 				one_signal->isFake = true;
@@ -736,7 +736,7 @@ void BoundaryProcessor::initBoundaryTrafficItems() {
 
 		{
 			const sim_mob::Signal* startNodeSignal = findOneSignalByNode(
-					one_segment->boundarySegment->getStart()->location);
+					&one_segment->boundarySegment->getStart()->location);
 
 			if (startNodeSignal) {
 				if (startNodeSignal->isFake == false) {
@@ -746,7 +746,7 @@ void BoundaryProcessor::initBoundaryTrafficItems() {
 			}
 
 			const sim_mob::Signal* endNodeSignal =
-					findOneSignalByNode(one_segment->boundarySegment->getEnd()->location);
+					findOneSignalByNode(&one_segment->boundarySegment->getEnd()->location);
 			if (endNodeSignal) {
 				boundaryRealTrafficItems.insert(endNodeSignal);
 			}

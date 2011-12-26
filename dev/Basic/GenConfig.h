@@ -20,7 +20,7 @@
 
 //Flags imported from cmake
 #define SIMMOB_DISABLE_MPI
-#define SIMMOB_DISABLE_DYNAMIC_DISPATCH
+/* #undef SIMMOB_DISABLE_DYNAMIC_DISPATCH */
 /* #undef SIMMOB_LATEST_STANDARD */
 
 

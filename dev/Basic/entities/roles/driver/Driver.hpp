@@ -18,7 +18,7 @@
 #include "CarFollowModel.hpp"
 #include "LaneChangeModel.hpp"
 #include "IntersectionDrivingModel.hpp"
-#include "UpdateParams.hpp"
+#include "DriverUpdateParams.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -37,6 +37,7 @@ class Lane;
 class Node;
 class MultiNode;
 class DPoint;
+class UpdateParams;
 
 
 class Driver : public sim_mob::Role {
@@ -56,7 +57,11 @@ public:
 	Driver(Person* parent, sim_mob::MutexStrategy mtxStrat, unsigned int reacTime_LeadingVehicle, unsigned int reacTime_SubjectVehicle, unsigned int reacTime_Gap);		//to initiate
 	virtual ~Driver();
 
-	virtual void update(frame_t frameNumber);
+	//Virtual implementations
+	virtual void frame_init(UpdateParams& p);
+	virtual void frame_tick(UpdateParams& p);
+	virtual void frame_tick_output(const UpdateParams& p);
+	virtual UpdateParams& make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 //Buffered data
@@ -68,9 +73,13 @@ public:
 
 //Basic data
 private:
-	unsigned int currTimeMS;
+	//unsigned int currTimeMS;
 	//Pointer to the vehicle this driver is controlling.
 	Vehicle* vehicle;
+
+	//Temporary variable which will be flushed each time tick. We save it
+	// here to avoid constantly allocating and clearing memory each time tick.
+	DriverUpdateParams params;
 
 	//Update models
 	LaneChangeModel* lcModel;
@@ -86,24 +95,24 @@ private:
 
 	NodePoint origin;
 	NodePoint goal;    //first, assume that each vehicle moves towards a goal
-	bool firstFrameTick;			//to check if the origin has been set
+
 
 	double maxLaneSpeed;
 
 public:
 	//for coordinate transform
 	void setParentBufferedData();			///<set next data to parent buffer data
-	void output(frame_t frameNumber);
+	//void output(frame_t frameNumber);
 
 	/****************IN REAL NETWORK****************/
 private:
 	static void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
 
 	//More update methods
-	void update_first_frame(UpdateParams& params, frame_t frameNumber);    ///<Called the first time a frame after start_time is reached.
-	bool update_sensors(UpdateParams& params, frame_t frameNumber);        ///<Called to update things we _sense_, like nearby vehicles.
-	bool update_movement(UpdateParams& params, frame_t frameNumber);       ///<Called to move vehicles forward.
-	bool update_post_movement(UpdateParams& params, frame_t frameNumber);  ///<Called to deal with the consequences of moving forwards.
+	//void update_first_frame(DriverUpdateParams& params, frame_t frameNumber);    ///<Called the first time a frame after start_time is reached.
+	bool update_sensors(DriverUpdateParams& params, frame_t frameNumber);        ///<Called to update things we _sense_, like nearby vehicles.
+	bool update_movement(DriverUpdateParams& params, frame_t frameNumber);       ///<Called to move vehicles forward.
+	bool update_post_movement(DriverUpdateParams& params, frame_t frameNumber);  ///<Called to deal with the consequences of moving forwards.
 
 //	const Link* desLink;
     double currLinkOffset;
@@ -127,35 +136,35 @@ public:
 	const double getVehicleLength() const { return vehicle->length; }
 
 private:
-	bool isCloseToLinkEnd(UpdateParams& p) const;
+	bool isCloseToLinkEnd(DriverUpdateParams& p) const;
 	bool isPedestrianOnTargetCrossing() const;
-	void chooseNextLaneForNextLink(UpdateParams& p);
+	void chooseNextLaneForNextLink(DriverUpdateParams& p);
 	void calculateIntersectionTrajectory(DPoint movingFrom, double overflow);
-	void setOrigin(UpdateParams& p);
+	void setOrigin(DriverUpdateParams& p);
 
 	//A bit verbose, but only used in 1 or 2 places.
-	void syncCurrLaneCachedInfo(UpdateParams& p);
-	void justLeftIntersection(UpdateParams& p);
-	void updateAdjacentLanes(UpdateParams& p);
+	void syncCurrLaneCachedInfo(DriverUpdateParams& p);
+	void justLeftIntersection(DriverUpdateParams& p);
+	void updateAdjacentLanes(DriverUpdateParams& p);
 	void updateVelocity();
-	double updatePositionOnLink(UpdateParams& p);
+	double updatePositionOnLink(DriverUpdateParams& p);
 	void setBackToOrigin();
 
-	void updateNearbyAgents(UpdateParams& params);
-	void updateNearbyDriver(UpdateParams& params, const sim_mob::Person* other, const sim_mob::Driver* other_driver);
-	void updateNearbyPedestrian(UpdateParams& params, const sim_mob::Person* other, const sim_mob::Pedestrian* pedestrian);
+	void updateNearbyAgents(DriverUpdateParams& params);
+	void updateNearbyDriver(DriverUpdateParams& params, const sim_mob::Person* other, const sim_mob::Driver* other_driver);
+	void updateNearbyPedestrian(DriverUpdateParams& params, const sim_mob::Person* other, const sim_mob::Pedestrian* pedestrian);
 
-	//void updateCurrLaneLength(UpdateParams& p);
+	//void updateCurrLaneLength(DriverUpdateParams& p);
 	void updateDisToLaneEnd();
-	void updatePositionDuringLaneChange(UpdateParams& p, LANE_CHANGE_SIDE relative);
+	void updatePositionDuringLaneChange(DriverUpdateParams& p, LANE_CHANGE_SIDE relative);
 	void saveCurrTrafficSignal();
 
-	void setTrafficSignalParams(UpdateParams& p) const;
-	void intersectionDriving(UpdateParams& p);
-	double linkDriving(UpdateParams& p);
+	void setTrafficSignalParams(DriverUpdateParams& p) const;
+	void intersectionDriving(DriverUpdateParams& p);
+	double linkDriving(DriverUpdateParams& p);
 
 	void initializePath();
-	void findCrossing(UpdateParams& p);
+	void findCrossing(DriverUpdateParams& p);
 
 	/***********FOR DRIVING BEHAVIOR MODEL**************/
 private:

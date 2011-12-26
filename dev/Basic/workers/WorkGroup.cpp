@@ -80,27 +80,16 @@ void sim_mob::WorkGroup::startAll()
 
 	//Start all workers
 	tickOffset = tickStep;
-	for (size_t i=0; i<workers.size(); i++) {
-		workers[i]->start();
+	for (vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
+		(*it)->start();
 	}
 }
 
 
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
-/*void sim_mob::WorkGroup::scheduleEntForRemoval(Entity* ag)
-{
-	if (!loader) {
-		throw std::runtime_error("Attempting to remove an entity from a WorkGroup that doesn't allow it.");
-	}
-
-	//May be accessed by child workers; requires locking.
-	boost::mutex::scoped_lock local_lock(loader->entity_dest_lock);
-	entToBeRemoved.push_back(ag);
-}*/
-
 void sim_mob::WorkGroup::stageEntities()
 {
-	if (!loader) {
+	//Even with dynamic dispatch enabled, some WorkGroups simply don't manage entities.
+	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || !loader) {
 		return;
 	}
 
@@ -126,7 +115,33 @@ void sim_mob::WorkGroup::stageEntities()
 		assignAWorker(ag);
 	}
 }
-#endif
+
+
+void sim_mob::WorkGroup::collectRemovedEntities()
+{
+	//Even with dynamic dispatch enabled, some WorkGroups simply don't manage entities.
+	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || !loader) {
+		return;
+	}
+
+	//Each Worker has its own vector of Entities to post removal requests to.
+	for (vector<vector <Entity*> >::iterator outerIt=entToBeRemovedPerWorker.begin(); outerIt!=entToBeRemovedPerWorker.end(); outerIt++) {
+		for (vector<Entity*>::iterator it=outerIt->begin(); it!=outerIt->end(); it++) {
+			//For each Entity, find it in the list of all_agents and remove it.
+			std::vector<Entity*>::iterator it2 = std::find(loader->entity_dest.begin(), loader->entity_dest.end(), *it);
+			if (it2!=loader->entity_dest.end()) {
+				loader->entity_dest.erase(it2);
+			}
+
+			//Delete this entity
+			delete *it;
+		}
+
+		//This worker's list of entries is clear
+		outerIt->clear();
+	}
+}
+
 
 
 void sim_mob::WorkGroup::assignAWorker(Entity* ag)
@@ -172,43 +187,20 @@ void sim_mob::WorkGroup::wait()
 	shared_barr.wait();
 
 	//Stage Agent updates based on nextTimeTickToStage
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	stageEntities();
-#endif
 
 	//Remove any Agents staged for removal.
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
-	if (loader) {
-		for (vector<vector <Entity*> >::iterator outerIt=entToBeRemovedPerWorker.begin(); outerIt!=entToBeRemovedPerWorker.end(); outerIt++) {
-			for (vector<Entity*>::iterator it=outerIt->begin(); it!=outerIt->end(); it++) {
-				//TODO: This shouldn't actually require locking. Leaving it in here for now to be safe.
-				//boost::mutex::scoped_lock local_lock(loader->entity_dest_lock);
-				std::vector<Entity*>::iterator it2 = std::find(loader->entity_dest.begin(), loader->entity_dest.end(), *it);
-				if (it2!=loader->entity_dest.end()) {
-					loader->entity_dest.erase(it2);
-				}
-
-				//Delete this entity
-				delete *it;
-			}
-
-			//This worker's list of entries is clear
-			outerIt->clear();
-		}
-		//entToBeRemoved.clear();
-	}
-#endif
+	collectRemovedEntities();
 
 	external_barr.wait();
 }
 
 
+#ifndef SIMMOB_DISABLE_MPI
+
 void sim_mob::WorkGroup::removeAgentFromWorker(Entity* ag)
 {
 	ag->currWorker->migrateOut(*(ag));
-//	ag->currWorker->remEntity(ag);
-//	ag->currWorker = NULL;
-//	scheduleEntForRemoval(ag);
 }
 
 
@@ -216,12 +208,10 @@ void sim_mob::WorkGroup::addAgentInWorker(Entity * ag)
 {
 	int free_worker_id = getTheMostFreeWorkerID();
 	getWorker(free_worker_id)->migrateIn(*(ag));
-
-	//assignAWorker(ag);
 }
 
 
-int sim_mob::WorkGroup::getTheMostFreeWorkerID()
+int sim_mob::WorkGroup::getTheMostFreeWorkerID() const
 {
 	int minimum_task = std::numeric_limits<int>::max();
 	int minimum_index = 0;
@@ -236,6 +226,7 @@ int sim_mob::WorkGroup::getTheMostFreeWorkerID()
 	return minimum_index;
 }
 
+#endif
 
 
 void sim_mob::WorkGroup::waitExternAgain()

@@ -102,8 +102,9 @@ public:
 
 	//Abstract methods. You will have to implement these eventually.
 	virtual bool update(frame_t frameNumber);
-	virtual void output(frame_t frameNumber);
 	virtual void buildSubscriptionList();
+
+	void frame_output(frame_t frameNumber);
 
 
 	static double fmax(const double proDS[]);

@@ -5,7 +5,7 @@
 #include "GenConfig.h"
 #include "util/LangHelpers.hpp"
 #include "entities/Agent.hpp"
-#include "entities/roles/driver/UpdateParams.hpp"
+#include "entities/roles/driver/DriverUpdateParams.hpp"
 #include "boost/thread/thread.hpp"
 #include "boost/thread/locks.hpp"
 #include "util/OutputUtil.hpp"
@@ -35,11 +35,19 @@ public:
 	{
 	}
 
-	/// TODO: Think through what kind of data this function might need.
-	/// Frame number? Elapsed time?
-	virtual void update(frame_t frameNumber) = 0;
+	///Called the first time an Agent's update() method is successfully called.
+	/// This will be the tick of its startTime, rounded down(?).
+	virtual void frame_init(UpdateParams& p) = 0;
 
-	virtual void output(frame_t frameNumber) = 0;
+	///Perform each frame's update tick for this Agent.
+	virtual void frame_tick(UpdateParams& p) = 0;
+
+	///Generate output for this frame's tick for this Agent.
+	virtual void frame_tick_output(const UpdateParams& p) = 0;
+
+	///Create the UpdateParams (or, more likely, sub-class) which will hold all
+	///  the temporary information for this time tick.
+	virtual UpdateParams& make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS) = 0;
 
 	///Return a list of parameters that expect their subscriptions to be managed.
 	/// Agents can append/remove this list to their own subscription list each time

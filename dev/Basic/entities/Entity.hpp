@@ -58,8 +58,6 @@ public:
 	virtual void setStartTime(unsigned int value) { startTime = value; }
 	virtual unsigned int getStartTime() const { return startTime; }
 
-	virtual void output(frame_t frameNumber) = 0;
-
 protected:
 	/**
 	 * Build the list of Buffered<> types this entity subscribes to. Any subclass of

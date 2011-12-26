@@ -25,6 +25,13 @@ void delete_possible_pointer(T* item) { delete item; }
 
 
 #ifndef SIMMOB_LATEST_STANDARD
+///Temporary definitions of final and override. These are keywords in the new standard, and it is
+/// useful to be able to tag (some) methods with these during the design stage. Feel free to ignore
+/// these if you don't see the need; just be aware of what they do if you see them after a function name.
+#define final
+#define override
+
+
 /**
  * Temporary definition of nullptr. The new standard (C++11) will have "nullptr" as a builtin
  * keyword with special properties. So, I'm defining a class here with some of "nullptr"'s properties.

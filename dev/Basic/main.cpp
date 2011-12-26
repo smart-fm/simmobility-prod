@@ -117,7 +117,7 @@ bool performMain(const std::string& configFileName) {
 	//Loader params for our Agents
 #ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents,
-			Agent::all_agents, Agent::all_agents_lock);
+			Agent::all_agents);
 #endif
 
 	//Initialization: Scenario definition
@@ -129,11 +129,6 @@ bool performMain(const std::string& configFileName) {
 	}
 	const ConfigParams& config = ConfigParams::GetInstance();
 
-	//Initialization: Server configuration
-	//setConfiguration();  //NOTE: This is done within InitUserConf().
-
-	//Initialization: Network decomposition among multiple machines.
-	//loadNetwork();   //NOTE: This will occur within the partition manager.
 
 	//Sanity check (nullptr)
 	void* x = nullptr;
@@ -142,6 +137,7 @@ bool performMain(const std::string& configFileName) {
 	}
 
 	//Sanity check (time class)
+	//TODO: Move to their own unit tests!
 	if (!TestTimeClass()) {
 		std::cout << "Aborting: Time class tests failed.\n";
 		return false;
@@ -171,23 +167,21 @@ bool performMain(const std::string& configFileName) {
 #endif
 	);
 
+	bool NoDynamicDispatch = ConfigParams::GetInstance().DynamicDispatchDisabled();
+
 	//Migrate all Agents from the all_agents array to the pending_agents priority queue unless they are
 	// actually starting at time tick zero.
 	vector<Entity*> starting_agents;
 	for (vector<Entity*>::iterator it = agents.begin(); it != agents.end(); it++) {
 		Entity* const ag = *it;
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
-		if (ag->getStartTime() == 0) {
-#endif
+		if (NoDynamicDispatch || ag->getStartTime()==0) {
 			//Only agents with a start time of zero should start immediately in the all_agents list.
 			agentWorkers.assignAWorker(ag);
 			starting_agents.push_back(ag);
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 		} else {
 			//Start later.
 			Agent::pending_agents.push(ag);
 		}
-#endif
 	}
 	agents.clear();
 	agents.insert(agents.end(), starting_agents.begin(), starting_agents.end());
@@ -196,8 +190,7 @@ bool performMain(const std::string& configFileName) {
 
 	//Initialize our signal status work groups
 	//  TODO: There needs to be a more general way to do this.
-	WorkGroup signalStatusWorkers(WG_SIGNALS_SIZE, config.totalRuntimeTicks,
-			config.granSignalsTicks);
+	WorkGroup signalStatusWorkers(WG_SIGNALS_SIZE, config.totalRuntimeTicks, config.granSignalsTicks);
 	Worker::ActionFunction spWork = boost::bind(signal_status_worker, _1, _2);
 	signalStatusWorkers.initWorkers(&spWork, nullptr);
 	for (size_t i = 0; i < Signal::all_signals_.size(); i++) {
@@ -236,10 +229,7 @@ bool performMain(const std::string& configFileName) {
 	//       a barrier sync.
 	/////////////////////////////////////////////////////////////////
 	size_t numStartAgents = Agent::all_agents.size();
-
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	size_t numPendingAgents = Agent::pending_agents.size();
-#endif
 
 	timeval loop_start_time;
 	gettimeofday(&loop_start_time, nullptr);
@@ -301,9 +291,12 @@ bool performMain(const std::string& configFileName) {
 	std::cout <<"Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;
 
 	cout << "Starting Agents: " << numStartAgents;
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
-	cout << ",     Pending: " << numPendingAgents;
-#endif
+	cout << ",     Pending: ";
+	if (NoDynamicDispatch) {
+		cout <<"<Disabled>";
+	} else {
+		cout <<numPendingAgents;
+	}
 	cout << endl;
 
 	if (Agent::all_agents.empty()) {
@@ -332,13 +325,14 @@ bool performMain(const std::string& configFileName) {
 				- numDriver - numPedestrian) << " (Other)" << endl;
 	}
 
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	if (!Agent::pending_agents.empty()) {
 		cout << "WARNING! There are still " << Agent::pending_agents.size()
 				<< " Agents waiting to be scheduled; next start time is: "
 				<< Agent::pending_agents.top()->getStartTime() << " ms\n";
+		if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+			throw std::runtime_error("ERROR: pending_agents shouldn't be used if Dynamic Dispatch is disabled.");
+		}
 	}
-#endif
 
 	cout << "Simulation complete; closing worker threads." << endl;
 	return true;

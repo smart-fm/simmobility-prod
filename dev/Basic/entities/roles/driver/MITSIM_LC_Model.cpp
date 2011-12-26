@@ -86,7 +86,7 @@ double feet2Meter(double feet) { //Note: This function is now in two locations.
 
 
 
-double sim_mob::MITSIM_LC_Model::lcCriticalGap(UpdateParams& p, int type,	double dis_, double spd_, double dv_)
+double sim_mob::MITSIM_LC_Model::lcCriticalGap(DriverUpdateParams& p, int type,	double dis_, double spd_, double dv_)
 {
 	double k=( type < 2 ) ? 1 : 5;
 	return k*-dv_ * p.elapsedSeconds;
@@ -118,7 +118,7 @@ double sim_mob::MITSIM_LC_Model::lcCriticalGap(UpdateParams& p, int type,	double
 }
 
 
-LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(UpdateParams& p, int type)
+LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(DriverUpdateParams& p, int type)
 {
 	//[0:left,1:right]
 	LeadLag<double> otherSpeed[2];		//the speed of the closest vehicle in adjacent lane
@@ -183,7 +183,7 @@ LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(UpdateParams& p, int type)
 	return returnVal;
 }
 
-double sim_mob::MITSIM_LC_Model::calcSideLaneUtility(UpdateParams& p, bool isLeft){
+double sim_mob::MITSIM_LC_Model::calcSideLaneUtility(DriverUpdateParams& p, bool isLeft){
 	if(isLeft && !p.leftLane) {
 		return -MAX_NUM;	//has no left side
 	} else if(!isLeft && !p.rightLane){
@@ -192,7 +192,7 @@ double sim_mob::MITSIM_LC_Model::calcSideLaneUtility(UpdateParams& p, bool isLef
 	return (isLeft) ? p.nvLeftFwd.distance : p.nvRightFwd.distance;
 }
 
-LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision(UpdateParams& p)
+LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision(DriverUpdateParams& p)
 {
 	// for available gaps(including current gap between leading vehicle and itself), vehicle will choose the longest
 	const LaneSide freeLanes = gapAcceptance(p, DLC);
@@ -237,10 +237,10 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision
 	return LCS_SAME;
 }
 
-double sim_mob::MITSIM_LC_Model::checkIfMandatory(UpdateParams& p)
+double sim_mob::MITSIM_LC_Model::checkIfMandatory(DriverUpdateParams& p)
 {
 	if(p.fromLaneIndex == p.currLaneIndex)
-		p.dis2stop = MAX_NUM;
+		p.dis2stop = 1000;//defalut 1000m
 	//The code below is MITSIMLab model
 	double num		=	1;		//now we just assume that MLC only need to change to the adjacent lane
 	double y		=	0.5;	//segment density/jam density, now assume that it is 0.5
@@ -252,7 +252,7 @@ double sim_mob::MITSIM_LC_Model::checkIfMandatory(UpdateParams& p)
 	return exp(-dis * dis / (delta * delta));
 }
 
-LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(UpdateParams& p)
+LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(DriverUpdateParams& p)
 {
 	LaneSide freeLanes = gapAcceptance(p, MLC);
 
@@ -289,7 +289,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(Upd
  *
  * -wangxy
  * */
-double sim_mob::MITSIM_LC_Model::executeLaneChanging(UpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir)
+double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir)
 {
 	//Behavior changes depending on whether or not we're actually changing lanes.
 	if(currLaneChangeDir != LCS_SAME) { //Performing a lane change.

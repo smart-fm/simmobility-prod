@@ -11,10 +11,10 @@ using namespace sim_mob;
 using std::vector;
 using std::priority_queue;
 
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
-boost::mutex sim_mob::Agent::all_agents_lock;
+//#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
+//boost::mutex sim_mob::Agent::all_agents_lock;
 StartTimePriorityQueue sim_mob::Agent::pending_agents;
-#endif
+//#endif
 
 vector<Entity*> sim_mob::Agent::all_agents;
 
@@ -79,9 +79,6 @@ void sim_mob::Agent::setToBeRemoved() {
 	toRemoved = true;
 }
 
-void sim_mob::Agent::output(frame_t frameNumber) {
-	//currently, do nothing
-}
 
 #ifndef SIMMOB_DISABLE_MPI
 void sim_mob::Agent::package(PackageUtils& packageUtil) {

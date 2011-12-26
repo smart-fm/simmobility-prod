@@ -90,7 +90,7 @@ double nRandom(boost::mt19937& gen, double mean,double stddev)
 double speed;//if reaction time disable, speed is current velocity
              //if reaction time enable, speed is perceivedFwdVelocity
 
-double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(UpdateParams& p, double targetSpeed, double maxLaneSpeed)
+double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {
 	speed = p.perceivedFwdVelocity/100;
 //	speed = p.currSpeed;
@@ -146,7 +146,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(UpdateParams& p, doubl
 	return res;
 }
 
-double sim_mob::MITSIM_CF_Model::breakToTargetSpeed(UpdateParams& p)
+double sim_mob::MITSIM_CF_Model::breakToTargetSpeed(DriverUpdateParams& p)
 {
 	double v 			=	speed;
 	double dt			=	p.elapsedSeconds;
@@ -162,7 +162,7 @@ double sim_mob::MITSIM_CF_Model::breakToTargetSpeed(UpdateParams& p)
 	}
 }
 
-double sim_mob::MITSIM_CF_Model::accOfEmergencyDecelerating(UpdateParams& p)
+double sim_mob::MITSIM_CF_Model::accOfEmergencyDecelerating(DriverUpdateParams& p)
 {
 	double v 			=	speed;
 	double dv			=	v-p.v_lead;
@@ -187,7 +187,7 @@ double sim_mob::MITSIM_CF_Model::accOfEmergencyDecelerating(UpdateParams& p)
 
 
 
-double sim_mob::MITSIM_CF_Model::accOfCarFollowing(UpdateParams& p)
+double sim_mob::MITSIM_CF_Model::accOfCarFollowing(DriverUpdateParams& p)
 {
 	const double density	=	1;		//represent the density of vehicles in front of the subject vehicle
 										//now we ignore it, assuming that it is 1.
@@ -202,7 +202,7 @@ double sim_mob::MITSIM_CF_Model::accOfCarFollowing(UpdateParams& p)
 	return res;
 }
 
-double sim_mob::MITSIM_CF_Model::accOfFreeFlowing(UpdateParams& p, double targetSpeed, double maxLaneSpeed)
+double sim_mob::MITSIM_CF_Model::accOfFreeFlowing(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {
 	double vn =	speed;
 	if (vn < targetSpeed) {
@@ -215,7 +215,7 @@ double sim_mob::MITSIM_CF_Model::accOfFreeFlowing(UpdateParams& p, double target
 	return (vn<maxLaneSpeed) ? maxAcceleration: 0;
 }
 
-double sim_mob::MITSIM_CF_Model::accOfMixOfCFandFF(UpdateParams& p, double targetSpeed, double maxLaneSpeed)
+double sim_mob::MITSIM_CF_Model::accOfMixOfCFandFF(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {
 	double minSpeed = 0.1;
 	double minResponseDistance = 5;

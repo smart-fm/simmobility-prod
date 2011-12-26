@@ -12,11 +12,13 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.regex.Pattern;
 
 import sim_mob.conf.CSS_Interface;
 import sim_mob.vis.controls.*;
 import sim_mob.vis.network.RoadNetwork;
+import sim_mob.vis.simultion.AgentTick;
 import sim_mob.vis.simultion.SimulationResults;
 import sim_mob.vis.util.StringSetter;
 import sim_mob.vis.util.Utility;
@@ -48,6 +50,8 @@ public class MainFrame extends JFrame {
     private ImageIcon debugIcon;
     private ImageIcon displayIcon;
     
+    private JComboBox trackAgentIDs;
+    
 	
 	//Lower panel
 	private Timer animTimer;
@@ -63,6 +67,23 @@ public class MainFrame extends JFrame {
 	public static CSS_Interface Config;
 	private boolean showFake;
 	private boolean showDebugMode;
+	
+	
+	//Helper class
+	private class StringItem {
+		private String name;
+		private int value;
+		public StringItem(String name, int value) {
+			this.name = name;
+			this.value = value;
+		}
+		public String toString() {
+			return name;
+		}
+		public int getValue() {
+			return value;
+		}
+	}
 	
 		
 	/**
@@ -105,6 +126,8 @@ public class MainFrame extends JFrame {
 		
 		console = new JTextField();
 	    clockRateComboBox = new JComboBox(clockRateList);
+	    trackAgentIDs = new JComboBox(new String[]{"", ""});
+	    resetTrackAgentIDs(null);
 	    
 	    openLogFile = new JButton("Open File From...", new ImageIcon(Utility.LoadImgResource("res/icons/open.png")));
 		openEmbeddedFile = new JButton("Open Default File", new ImageIcon(Utility.LoadImgResource("res/icons/embed.png")));
@@ -147,6 +170,7 @@ public class MainFrame extends JFrame {
 		jpLeft.add(zoomOut);
 		jpLeft.add(debug);
 		jpLeft.add(clockRateComboBox);
+		jpLeft.add(trackAgentIDs);
 		
 		//Bottom panel
 		JPanel jpLower = new JPanel(new BorderLayout());
@@ -300,6 +324,16 @@ public class MainFrame extends JFrame {
 			}
 		});
 		
+		trackAgentIDs.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (trackAgentIDs.getSelectedIndex()==-1) {
+					return;
+				}
+					
+				newViewPnl.setHighlightID(((StringItem)trackAgentIDs.getSelectedItem()).getValue());
+			}
+		});
+		
 		showFakeAgent.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent arg0) {
@@ -375,6 +409,16 @@ public class MainFrame extends JFrame {
 
 	}
 	
+	private void resetTrackAgentIDs(HashSet<Integer> allIds) {
+		trackAgentIDs.removeAllItems();
+		trackAgentIDs.addItem(new StringItem("Track no Agent", -1));
+		if (allIds!=null) {
+			for (Integer it : allIds) {
+				trackAgentIDs.addItem(new StringItem("Track Agent " + it.intValue(), it.intValue()));
+			}
+		}
+	}
+	
 	private void openAFile(boolean isEmbedded) {
 		//Pause the animation
 		if (animTimer.isRunning()) {
@@ -413,6 +457,9 @@ public class MainFrame extends JFrame {
 	
 		console.setText("Input File Name: "+fileName);
 		
+		//Store all Agents returned by this.
+		HashSet<Integer> uniqueAgentIDs = new HashSet<Integer>();
+		
 		//Load the simulation's results
 		try {
 			BufferedReader br = null;
@@ -421,11 +468,14 @@ public class MainFrame extends JFrame {
 			} else {
 				br = new BufferedReader(new FileReader(f));
 			}
-			simData = new SimulationResults(br, rn);
+			simData = new SimulationResults(br, rn, uniqueAgentIDs);
 			br.close();
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
 		}
+		
+		//Reset our Agent ID combo box.
+		resetTrackAgentIDs(uniqueAgentIDs);
 		
 		//Update the slider
 		frameTickSlider.setMinimum(0);

@@ -12,6 +12,7 @@ using boost::function;
 
 #include "workers/WorkGroup.hpp"
 #include "util/OutputUtil.hpp"
+#include "conf/simpleconf.hpp"
 
 using namespace sim_mob;
 
@@ -125,9 +126,12 @@ void sim_mob::Worker::interrupt()
 }
 
 
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 void sim_mob::Worker::addPendingEntities()
 {
+	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+		return;
+	}
+
 	for (vector<Entity*>::iterator it=toBeAdded.begin(); it!=toBeAdded.end(); it++) {
 		//Migrate its Buffered properties.
 		migrateIn(**it);
@@ -138,11 +142,15 @@ void sim_mob::Worker::addPendingEntities()
 
 void sim_mob::Worker::removePendingEntities()
 {
+	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+		return;
+	}
+
 	for (vector<Entity*>::iterator it=toBeRemoved.begin(); it!=toBeRemoved.end(); it++) {
 		//Migrate out its buffered properties.
 		migrateOut(**it);
 
-		//Remove it from our global list. Requires locking
+		//Remove it from our global list.
 		if (!entityRemovalList) {
 			throw std::runtime_error("Attempting to remove an entity from a WorkGroup that doesn't allow it.");
 		}
@@ -150,27 +158,21 @@ void sim_mob::Worker::removePendingEntities()
 	}
 	toBeRemoved.clear();
 }
-#endif
 
 
 
 void sim_mob::Worker::barrier_mgmt()
 {
 	frame_t currTick = 0;
-	bool active = true;
-	while (active) {
+	for (bool active=true; active;) {
 		//Add Agents as required.
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 		addPendingEntities();
-#endif
 
 		//Perform all our Agent updates, etc.
 		perform_main(currTick);
 
 		//Remove Agents as requires
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 		removePendingEntities();
-#endif
 
 		//Advance local time-step.
 		currTick += tickStep;

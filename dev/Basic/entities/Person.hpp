@@ -4,10 +4,13 @@
 
 #include <vector>
 
+#include "GenConfig.h"
+
 #include "Agent.hpp"
 #include "roles/Role.hpp"
 #include "roles/driver/Driver.hpp"
 #include "buffering/Shared.hpp"
+#include "entities/UpdateParams.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -34,9 +37,7 @@ public:
 	virtual ~Person();
 
 	///Update Person behavior
-	virtual bool update(frame_t frameNumber);
-
-	virtual void output(frame_t frameNumber);
+	virtual bool update(frame_t frameNumber) final;
 
 	///Update a Person's subscription list.
 	virtual void buildSubscriptionList();
@@ -56,6 +57,8 @@ private:
 	//Properties
 	sim_mob::Role* currRole;
 	sim_mob::TripChain* currTripChain;
+
+	bool firstFrameTick;  ///Determines if frame_init() has been done.
 
 	//add by xuyan
 #ifndef SIMMOB_DISABLE_MPI

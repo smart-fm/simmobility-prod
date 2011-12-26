@@ -36,9 +36,8 @@ public:
 	struct EntityLoadParams {
 		StartTimePriorityQueue& pending_source;
 		std::vector<Entity*>& entity_dest;
-		boost::mutex& entity_dest_lock;
-		EntityLoadParams(StartTimePriorityQueue& pending_source, std::vector<Entity*>& entity_dest, boost::mutex& entity_dest_lock)
-			: pending_source(pending_source), entity_dest(entity_dest), entity_dest_lock(entity_dest_lock) {}
+		EntityLoadParams(StartTimePriorityQueue& pending_source, std::vector<Entity*>& entity_dest)
+			: pending_source(pending_source), entity_dest(entity_dest) {}
 	};
 
 
@@ -59,26 +58,24 @@ public:
 
 	void wait();
 	void waitExternAgain();
-	//void migrate(EntityType& ag, Worker<EntityType>* from, Worker<EntityType>* to);
 
 	Worker* getWorker(int id);
 
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	void stageEntities();
+	void collectRemovedEntities();
 	std::vector< std::vector<Entity*> > entToBeRemovedPerWorker;
-#endif
 
 	void assignAWorker(Entity* ag);
 
 	//void scheduleEntForRemoval(Entity* ag);
 
 //add by xuyan
+#ifndef SIMMOB_DISABLE_MPI
 public:
 	void removeAgentFromWorker(Entity * ag);
 	void addAgentInWorker(Entity * ag);
-
-	//std::map<Entity*, int> agentMapping;
-	int getTheMostFreeWorkerID();
+	int getTheMostFreeWorkerID() const;
+#endif
 
 
 protected:

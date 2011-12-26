@@ -58,8 +58,6 @@ public:
 
 	virtual bool update(frame_t frameNumber) = 0;  ///<Update agent behvaior
 
-	virtual void output(frame_t frameNumber) = 0;
-
 	///Subscribe this agent to a data manager.
 	//virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew);
 	virtual void buildSubscriptionList();
@@ -91,12 +89,12 @@ public:
 	///Agents can access all other agents (although they usually do not access by ID)
 	static std::vector<Entity*> all_agents;
 
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
+//#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	static StartTimePriorityQueue pending_agents; //Agents waiting to be added to the simulation, prioritized by start time.
 
 	///When adding/deleting Agents asynchronously, a lock is required.
-	static boost::mutex all_agents_lock;
-#endif
+	//static boost::mutex all_agents_lock;
+//#endif
 
 	///Temporary variable; holds a pointer to the current Agent work group. Will be moved
 	///  into the Dispatch Manager as soon as it's created.

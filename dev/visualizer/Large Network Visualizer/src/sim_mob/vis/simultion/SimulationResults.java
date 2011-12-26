@@ -24,7 +24,7 @@ public class SimulationResults {
 				|| (y < rn.getTopLeft().y) || (y > rn.getLowerRight().y);
 	}
 	
-	public SimulationResults(BufferedReader inFile, RoadNetwork rn) throws IOException {
+	public SimulationResults(BufferedReader inFile, RoadNetwork rn, HashSet<Integer> uniqueAgentIDs) throws IOException {
 		ticks = new ArrayList<TimeTick>();
 		
 		//TEMP: Hack for agents which are out of bounds
@@ -57,7 +57,7 @@ public class SimulationResults {
 		    
 		    //Pass this off to a different function based on the type
 		    try {
-		    	dispatchConstructionRequest(type, frameID, objID, rhs, rn);
+		    	dispatchConstructionRequest(type, frameID, objID, rhs, rn, uniqueAgentIDs);
 		    } catch (IOException ex) {
 		    	throw new IOException(ex.getMessage() + "\n...on line: " + line);
 		    }
@@ -116,14 +116,17 @@ public class SimulationResults {
 	}
 	
 	//We assume the x/y bounds will be within those saved by the RoadNetwork.
-	private void dispatchConstructionRequest(String objType, int frameID, int objID, String rhs, RoadNetwork rn) throws IOException {
+	private void dispatchConstructionRequest(String objType, int frameID, int objID, String rhs, RoadNetwork rn, HashSet<Integer> uniqueAgentIDs) throws IOException {
 		if (objType.equals("Driver")) {
 			parseDriver(frameID, objID, rhs, rn);
+			uniqueAgentIDs.add(objID);
 		} else if (objType.equals("Signal")) {
 //			parseSignal(frameID, objID, rhs);
 			parseSignalLines(frameID, objID, rhs);
+			//uniqueAgentIDs.add(objID); //NOTE: This should work! Need to check Signal ID code....
 		} else if (objType.equals("pedestrian")) {
 			parsePedestrian(frameID, objID, rhs, rn);
+			uniqueAgentIDs.add(objID);
 		}
 	}
 

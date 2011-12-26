@@ -932,6 +932,25 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& agents)
     // road-segments.  We can only only initialize the StreetDirectory only now, not before.
     StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
 
+    // Each Signal has its own LoopDetectorEntity which is an Entity that must run at the same
+    // rate as the Driver objects.  So we need to put the loop-detectors into the all_agents
+    // list.
+    //
+    // The name "PrintDB_Network" is misleading.  The name gives the impression that the function
+    // only dumps the road network data onto std::cout and does not modify the road network.  But
+    // it does as the function "insert" side-walks which means road-segments may have more
+    // lanes when the function returns.
+    //
+    // Since the LoopDetectorEntity::init() function needs the lanes information, we can only call
+    // it here.
+    for (size_t i = 0; i < Signal::all_signals_.size(); ++i)
+    {
+        Signal const * signal = Signal::all_signals_[i];
+        LoopDetectorEntity & loopDetector = const_cast<LoopDetectorEntity&>(signal->loopDetector());
+        loopDetector.init(*signal);
+        agents.push_back(&loopDetector);
+    }
+
 	//No error
 	return "";
 }

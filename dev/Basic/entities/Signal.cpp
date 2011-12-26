@@ -63,10 +63,14 @@ void Signal::addSignalSite(centimeter_t /* xpos */, centimeter_t /* ypos */,
 	// Not implemented yet.
 }
 
-Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id) :
-	Agent(mtxStrat, id), node_(node), buffered_TC(mtxStrat, SignalStatus()) {
-	initializeSignal();
-	setupIndexMaps();
+Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id)
+  : Agent(mtxStrat, id)
+  , node_(node)
+  , buffered_TC(mtxStrat, SignalStatus())
+  , loopDetector_(*this, mtxStrat)
+{
+    initializeSignal();
+    setupIndexMaps();
 }
 
 void Signal::initializeSignal() {

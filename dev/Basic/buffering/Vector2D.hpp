@@ -297,7 +297,7 @@ namespace sim_mob{
      *  Computes the length of the specified \c vector
      */
         template< typename T >
-	inline float length(const Vector2D<T>& vector)
+	inline double length(const Vector2D<T>& vector)
 	{
 	return std::sqrt(vector * vector);
 	}

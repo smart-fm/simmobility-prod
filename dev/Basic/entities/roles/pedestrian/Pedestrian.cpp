@@ -72,7 +72,7 @@ double Pedestrian::agentRadius = 0.5; //Shoulder width of a person is about 0.5 
 
 
 sim_mob::Pedestrian::Pedestrian(Agent* parent, boost::mt19937& gen) :
-	Role(parent), prevSeg(nullptr), isUsingGenPathMover(false) {
+	Role(parent), prevSeg(nullptr), isUsingGenPathMover(false), params(parent->getGenerator()) {
 	//Check non-null parent. Perhaps references may be of use here?
 	if (!parent) {
 		std::cout << "Role constructed with no parent Agent." << std::endl;
@@ -83,7 +83,6 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent, boost::mt19937& gen) :
 	sigColor = Signal::Green; //Green by default
 	currentStage = ApproachingIntersection;
 	startToCross = false;
-	firstTimeUpdate = true;
 
 	//Set default speed in the range of 1.2m/s to 1.6m/s
 	speed = 1.2+(double(zero_to_five(gen)))/10;
@@ -106,37 +105,33 @@ vector<BufferedBase*> sim_mob::Pedestrian::getSubscriptionParams() {
 	return res;
 }
 
-//Main update functionality
-void sim_mob::Pedestrian::update(frame_t frameNumber) {
-	unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
-	if (currTimeMS < parent->getStartTime()) {
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
-		std::stringstream msg;
-		msg << "Pedestrian specifies a start time of: " << parent->getStartTime() << " but it is currently: "
-				<< currTimeMS << "; this indicates an error, and should be handled automatically.";
-		throw std::runtime_error(msg.str().c_str());
-#else
-		return;
-#endif
-	}
 
-	//Set the initial position of agent
-	if (isFirstTimeUpdate()) {
-		setGoal(currentStage, nullptr);
+
+void sim_mob::Pedestrian::frame_init(UpdateParams& p)
+{
+	setGoal(currentStage, nullptr);
+	p.skipThisFrame = true;
+}
+
+
+UpdateParams& sim_mob::Pedestrian::make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS)
+{
+	params.reset(franeNumber, currTimeMS);
+	return params;
+}
+
+
+//Main update method
+bool sim_mob::Pedestrian::frame_tick(UpdateParams& p)
+{
+	//Is this the first frame tick?
+	if (p.skipThisFrame) {
 		return;
 	}
 
 	//Check if the agent has reached the destination
 	if (isDestReached()) {
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
-		if (parent->isToBeRemoved()) {
-			throw std::runtime_error("Pedestrian already set to be removed!");
-		}
-
-		//Output (temp)
-		LogOut("Pedestrian " <<parent->getId() <<" has reached the destination" <<std::endl);
 		parent->setToBeRemoved();
-#endif
 		return;
 	}
 
@@ -187,32 +182,26 @@ void sim_mob::Pedestrian::update(frame_t frameNumber) {
 			LogOut("Pedestrian " <<parent->getId() <<" is waiting at the crossing" <<std::endl);
 		}
 	}
-
-	if (ConfigParams::GetInstance().is_run_on_many_computers == false) {
-		output (frameNumber);
-	}
 }
 
 
-void sim_mob::Pedestrian::frame_init(UpdateParams& p)  { throw 1; }
-bool sim_mob::Pedestrian::frame_tick(UpdateParams& p)  { throw 1; }
-void sim_mob::Pedestrian::frame_tick_output(const UpdateParams& p)  { throw 1; }
-UpdateParams& sim_mob::Pedestrian::make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS) { throw 1; }
+void sim_mob::Pedestrian::frame_tick_output(const UpdateParams& p)
+{
+	if (ConfigParams::GetInstance().is_run_on_many_computers) {
+		return;
+	}
 
-
-void sim_mob::Pedestrian::output(frame_t frameNumber) {
-	//throw std::runtime_error("UNIMPLEMENTED: Pedestrian::output()");
 #ifndef SIMMOB_DISABLE_MPI
-	if (frameNumber < parent->getStartTime())
+	if (p.frameNumber < parent->getStartTime())
 		return;
 
 	if (this->parent->isFake) {
-		LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get() <<"\"," <<"\"xVel\":\""<< this->xVel <<"\"," <<"\"yVel\":\""<< this->yVel <<"\"," <<"\"fake\":\""<<"true" <<"\",})"<<std::endl);
+		LogOut("("<<"\"pedestrian\","<<p.frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get() <<"\"," <<"\"xVel\":\""<< this->xVel <<"\"," <<"\"yVel\":\""<< this->yVel <<"\"," <<"\"fake\":\""<<"true" <<"\",})"<<std::endl);
 	} else {
-		LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get() <<"\"," <<"\"xVel\":\""<< this->xVel <<"\"," <<"\"yVel\":\""<< this->yVel <<"\"," <<"\"fake\":\""<<"false" <<"\",})"<<std::endl);
+		LogOut("("<<"\"pedestrian\","<<p.frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get() <<"\"," <<"\"xVel\":\""<< this->xVel <<"\"," <<"\"yVel\":\""<< this->yVel <<"\"," <<"\"fake\":\""<<"false" <<"\",})"<<std::endl);
 	}
 #else
-	LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
+	LogOut("("<<"\"pedestrian\","<<p.frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
 #endif
 }
 
@@ -807,13 +796,6 @@ void sim_mob::Pedestrian::setCrossingParas(const RoadSegment* prevSegment, boost
 
 }
 
-bool sim_mob::Pedestrian::isFirstTimeUpdate() {
-	if (firstTimeUpdate) {
-		firstTimeUpdate = false;
-		return true;
-	} else
-		return false;
-}
 
 void sim_mob::Pedestrian::absToRel(double xAbs, double yAbs, double & xRel, double & yRel) {
 

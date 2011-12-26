@@ -188,7 +188,7 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, unsigned int rea
 }
 
 
-virtual void sim_mob::Driver::frame_init(UpdateParams& p)
+void sim_mob::Driver::frame_init(UpdateParams& p)
 {
 	//Save the path from orign to destination in allRoadSegments
 	initializePath();
@@ -203,7 +203,7 @@ virtual void sim_mob::Driver::frame_init(UpdateParams& p)
 }
 
 //Main update functionality
-virtual bool sim_mob::Driver::frame_tick(sim_mob::Driver::UpdateParams& p)
+bool sim_mob::Driver::frame_tick(sim_mob::Driver::UpdateParams& p)
 {
 	//Are we done already?
 	if (vehicle->isDone()) {
@@ -249,7 +249,7 @@ virtual bool sim_mob::Driver::frame_tick(sim_mob::Driver::UpdateParams& p)
 	//Print output for this frame.
 }
 
-virtual void sim_mob::Driver::sim_mob::Driver::frame_tick_output(const UpdateParams& p)
+void sim_mob::Driver::sim_mob::Driver::frame_tick_output(const UpdateParams& p)
 {
 	//Skip?
 	if (vehicle->isDone() || ConfigParams::GetInstance().is_run_on_many_computers) {
@@ -297,9 +297,10 @@ virtual void sim_mob::Driver::sim_mob::Driver::frame_tick_output(const UpdatePar
 
 }
 
-virtual sim_mob::UpdateParams& sim_mob::Driver::make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS)
+sim_mob::UpdateParams& sim_mob::Driver::make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS)
 {
 	params.reset(frameNumber, currTimeMS, *this);
+	return params;
 }
 
 

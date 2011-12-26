@@ -22,6 +22,7 @@
 #include "entities/Signal.hpp"
 #include "geospatial/Crossing.hpp"
 #include "entities/roles/driver/GeneralPathMover.hpp"
+#include "entities/UpdateParams.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -55,6 +56,22 @@ inline void operator++(PedestrianStage& rhs) {
 		  throw std::runtime_error("Cannot increment LeavingIntersection");
   }
 }
+
+//Helper struct
+struct PedestrianUpdateParams : public sim_mob::UpdateParams {
+	PedestrianUpdateParams(boost::mt19937& gen) : UpdateParams(gen) {}
+
+	virtual void reset(frame_t frameNumber, unsigned int currTimeMS)
+	{
+		sim_mob::UpdateParams::reset(frameNumber, currTimeMS);
+
+		skipThisFrame = false;
+	}
+
+	///Used to skip the first frame; kind of hackish.
+	bool skipThisFrame;
+};
+
 
 
 /**
@@ -91,7 +108,6 @@ private:
 	int curCrossingID;
 	bool startToCross;
 	double cStartX, cStartY, cEndX, cEndY;
-	bool firstTimeUpdate;
 	Point2D interPoint;
 
 	//For collisions
@@ -111,7 +127,6 @@ private:
 //	bool reachStartOfCrossing();
 	bool checkGapAcceptance();
 	void setCrossingParas(const RoadSegment* prevSegment, boost::mt19937& gen); //Temp helper function
-	bool isFirstTimeUpdate(); //Temp helper function
 	void setSidewalkParas(Node* start, Node* end, bool isStartMulti);
 	void absToRel(double, double, double &, double &);
 	void relToAbs(double, double, double &, double &);
@@ -125,9 +140,9 @@ private:
 	//Are we using the multi-path movement model? Set automatically if we move on a path of size >2
 	bool isUsingGenPathMover;
 
-	//Random number generator
-	//TODO: We need a policy on who can get a generator and why.
-	//boost::mt19937 gen;
+	//Temporary variable which will be flushed each time tick. We save it
+	// here to avoid constantly allocating and clearing memory each time tick.
+	UpdateParams params;
 
 	//Serialization
 #ifndef SIMMOB_DISABLE_MPI

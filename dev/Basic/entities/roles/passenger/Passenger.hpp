@@ -20,12 +20,13 @@ namespace sim_mob
  */
 class Passenger : public sim_mob::Role {
 public:
-	virtual void update(frame_t frameNumber) {
+	virtual void update(frame_t frameNumber) { throw std::runtime_error("Passenger not yet implemented."); }
 
-	}
-
-	virtual void output(frame_t frameNumber) const
-	{}
+	//todo
+	virtual void frame_init(UpdateParams& p) { throw std::runtime_error("Passenger not yet implemented."); }
+	virtual bool frame_tick(UpdateParams& p) { throw std::runtime_error("Passenger not yet implemented."); }
+	virtual void frame_tick_output(const UpdateParams& p) { throw std::runtime_error("Passenger not yet implemented."); }
+	virtual UpdateParams& make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS) { throw std::runtime_error("Passenger not yet implemented."); }
 
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams()
 	{

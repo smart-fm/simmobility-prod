@@ -193,6 +193,13 @@ void sim_mob::Pedestrian::update(frame_t frameNumber) {
 	}
 }
 
+
+void sim_mob::Pedestrian::frame_init(UpdateParams& p)  { throw 1; }
+bool sim_mob::Pedestrian::frame_tick(UpdateParams& p)  { throw 1; }
+void sim_mob::Pedestrian::frame_tick_output(const UpdateParams& p)  { throw 1; }
+UpdateParams& sim_mob::Pedestrian::make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS) { throw 1; }
+
+
 void sim_mob::Pedestrian::output(frame_t frameNumber) {
 	//throw std::runtime_error("UNIMPLEMENTED: Pedestrian::output()");
 #ifndef SIMMOB_DISABLE_MPI

@@ -310,7 +310,7 @@ bool sim_mob::Signal::update(frame_t frameNumber) {
 //	LogOut("Test Pedestrian 2:" << TC_for_Driver[1][1] << "\n");
 	//
 	if (ConfigParams::GetInstance().is_run_on_many_computers == false)
-		output(frameNumber);
+		frame_output(frameNumber);
 
 	return true;
 }

@@ -65,9 +65,13 @@ public:
 	Pedestrian(Agent* parent, boost::mt19937& gen);
 	virtual ~Pedestrian();
 
-	virtual void update(frame_t frameNumber);
+	//Virtual overrides
+	virtual void frame_init(UpdateParams& p);
+	virtual bool frame_tick(UpdateParams& p);
+	virtual void frame_tick_output(const UpdateParams& p);
+	virtual UpdateParams& make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
-	void output(frame_t frameNumber);
+
 	bool isOnCrossing() const;
 
 private:

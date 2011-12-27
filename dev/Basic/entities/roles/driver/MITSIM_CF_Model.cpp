@@ -111,6 +111,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 		mode = AM_NONE;
 	}
 
+
 	//If we have no space left to move, immediately cut off acceleration.
 	double res = 0;
 	if(p.space > 0) {

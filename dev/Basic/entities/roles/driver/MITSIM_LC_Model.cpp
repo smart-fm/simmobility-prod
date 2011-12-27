@@ -311,7 +311,7 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 			changeMode = MLC;
 		} else {
 			changeMode = DLC;
-			p.dis2stop = MAX_NUM;		//no crucial point ahead
+			p.dis2stop = 1000;//MAX_NUM;		//no crucial point ahead
 		}
 
 		//make decision depending on current lane changing mode

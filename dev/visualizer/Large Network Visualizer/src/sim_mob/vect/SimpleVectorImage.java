@@ -50,6 +50,10 @@ public class SimpleVectorImage {
 			BufferedImage img = rotatedBuffers[angle] = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB);
 			Graphics2D g = (Graphics2D)img.getGraphics();
 			
+			//TEMP: For debugging
+			//g.setBackground(Color.white);
+			//g.clearRect(0, 0, img.getWidth(), img.getHeight());
+			
 			//Create a transformation for this angle/scale. Translate to the center of the image.
 			AffineTransform at = AffineTransform.getTranslateInstance(img.getWidth()/2, img.getHeight()/2);
 			at.scale(lastKnownScale, lastKnownScale);
@@ -64,7 +68,7 @@ public class SimpleVectorImage {
 	//Draw a single instance.
 	private void draw(Graphics2D g) {
 		//Amount to subtract from each component to get a centered version.
-		float[] off = new float[]{coordinates.getWidth()/2, coordinates.getHeight()/2};
+		float[] off = new float[]{(int)Math.ceil(coordinates.getWidth()/2.0), (int)Math.ceil(coordinates.getHeight()/2.0)};
 		
 		//Draw each VectorItem
 		for (VectorItem item : drawOrder) {

@@ -86,14 +86,18 @@ public class DriverTick extends AgentTick {
 
 		AffineTransform at = AffineTransform.getTranslateInstance(pos.getX(), pos.getY());
 		
+		//Retrieve the image to draw
+		BufferedImage toDraw = carImg.getImage(1/scale + 0.2, (int)angle);
+		
 		//Rotate
-		at.rotate((Math.PI*angle)/180);
+		//at.rotate((Math.PI*angle)/180);
 		
 		//Scale
-		at.scale(1/scale + 0.2, 1/scale + 0.2);
+		//at.scale(1/scale + 0.2, 1/scale + 0.2);
 			
 		//Translate to top-left corner
-		at.translate(-CarImg.getWidth()/2, -CarImg.getHeight()/2);
+		//at.translate(-CarImg.getWidth()/2, -CarImg.getHeight()/2);
+		at.translate(-toDraw.getWidth()/2, -toDraw.getHeight()/2);
 
 		//Set new transformation matrix
 		g.setTransform(at);
@@ -101,13 +105,15 @@ public class DriverTick extends AgentTick {
 		//Draw with fake agent enabled
 		if(drawFake){
 			if(fake){
-				g.drawImage(FakeCarImg, 0, 0, null);		
+				//TODO: Enable again later.
+				//g.drawImage(FakeCarImg, 0, 0, null);
 			}else{
-				g.drawImage(CarImg, 0, 0, null);				
-			}	
+				//TODO: Enable again later.
+				//g.drawImage(CarImg, 0, 0, null);
+			}
 		} else {
-			g.drawImage(CarImg, 0, 0, null);				
-		
+			g.drawImage(toDraw, 0, 0, null);
+			//g.drawImage(CarImg, 0, 0, null);
 		}
 		
 		//Restore old transformation matrix

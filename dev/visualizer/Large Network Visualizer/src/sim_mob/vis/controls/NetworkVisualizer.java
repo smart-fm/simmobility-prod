@@ -23,7 +23,7 @@ public class NetworkVisualizer {
 	private static final double  ZOOM_IN_CRITICAL = 1.6;
 	private String fileName;
 	private boolean showFakeAgent;
-	private boolean debugOn;
+	private boolean debugOn = false;
 	
 	private int currHighlightID;
 	public void setHighlightID(int id) {
@@ -76,7 +76,7 @@ public class NetworkVisualizer {
 		this.height100Percent = height100Percent;
 		this.fileName = fileName;
 		this.showFakeAgent = false;
-		this.debugOn = false;
+		//this.debugOn = false;
 		
 		//Recalc
 		redrawAtScale(initialZoom);

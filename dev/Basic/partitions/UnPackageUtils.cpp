@@ -6,6 +6,7 @@
 
 #include "conf/simpleconf.hpp"
 #include "entities/roles/driver/Driver.hpp"
+#include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/vehicle/Vehicle.hpp"
 #include "entities/misc/TripChain.hpp"
 #include "util/GeomHelpers.hpp"
@@ -153,18 +154,24 @@ const Vehicle* UnPackageUtils::unpackageVehicle() {
 	(*package) & width;
 	//not used
 
+	//std::cout << "B00211," << std::endl;
 	//segment
 	unpackageGeneralPathMover(&(one_vehicle->fwdMovement));
 	//one_vehicle->fwdMovement = *(unpackageGeneralPathMover());
 
+	//std::cout << "B00212," << std::endl;
 	//After fwdMovement
 	(*package) & (one_vehicle->latMovement);
 	(*package) & (one_vehicle->fwdVelocity);
 	(*package) & (one_vehicle->latVelocity);
 	(*package) & (one_vehicle->fwdAccel);
 
+	//std::cout << "B00213," << std::endl;
+
 	(*package) & (one_vehicle->posInIntersection);
 	(*package) & (one_vehicle->error_state);
+
+	//std::cout << "B00214," << std::endl;
 
 	return one_vehicle;
 }
@@ -204,9 +211,6 @@ void UnPackageUtils::unpackageGeneralPathMover(GeneralPathMover* one_motor) {
 
 		if (next_poly >= 0) {
 			one_motor->nextPolypoint = one_motor->polypointsList.begin() + next_poly;
-		} else {
-			//error
-			one_motor->nextPolypoint = one_motor->polypointsList.end();
 		}
 
 		const std::vector<Point2D>& tempLaneZero =
@@ -362,5 +366,62 @@ Point2D* UnPackageUtils::unpackagePoint2D() {
 
 	return one_point;
 }
+
+void UnPackageUtils::unpackageDriverUpdateParams(DriverUpdateParams& one_driver)
+{
+	(*package) & (one_driver.frameNumber);
+	(*package) & (one_driver.currTimeMS);
+	//(*package) & (one_driver.gen);
+
+	one_driver.currLane = unpackageLane();
+	(*package) & (one_driver.currLaneIndex);
+	(*package) & (one_driver.fromLaneIndex);
+
+	one_driver.leftLane = unpackageLane();
+	one_driver.rightLane = unpackageLane();
+
+	(*package) & (one_driver.currSpeed);
+
+	(*package) & (one_driver.currLaneOffset);
+	(*package) & (one_driver.currLaneLength);
+	(*package) & (one_driver.isTrafficLightStop);
+	(*package) & (one_driver.trafficSignalStopDistance);
+	(*package) & (one_driver.elapsedSeconds);
+
+	(*package) & (one_driver.perceivedFwdVelocity);
+	(*package) & (one_driver.perceivedLatVelocity);
+
+	(*package) & (one_driver.perceivedFwdVelocityOfFwdCar);
+	(*package) & (one_driver.perceivedLatVelocityOfFwdCar);
+	(*package) & (one_driver.perceivedAccelerationOfFwdCar);
+	(*package) & (one_driver.perceivedDistToFwdCar);
+
+	(*package) & (one_driver.laneChangingVelocity);
+
+	(*package) & (one_driver.isCrossingAhead);
+	(*package) & (one_driver.crossingFwdDistance);
+
+	(*package) & (one_driver.space);
+	(*package) & (one_driver.a_lead);
+	(*package) & (one_driver.v_lead);
+	(*package) & (one_driver.space_star);
+	(*package) & (one_driver.distanceToNormalStop);
+
+	(*package) & (one_driver.dis2stop);
+	(*package) & (one_driver.isWaiting);
+
+	(*package) & (one_driver.justChangedToNewSegment);
+	(*package) & (one_driver.TEMP_lastKnownPolypoint);
+	(*package) & (one_driver.justMovedIntoIntersection);
+	(*package) & (one_driver.overflowIntoIntersection);
+}
+
+void UnPackageUtils::unpackagePedestrianUpdateParams(PedestrianUpdateParams& one_pedestrain)
+{
+	(*package) & (one_pedestrain.frameNumber);
+	(*package) & (one_pedestrain.currTimeMS);
+	(*package) & (one_pedestrain.skipThisFrame);
+}
+
 }
 #endif

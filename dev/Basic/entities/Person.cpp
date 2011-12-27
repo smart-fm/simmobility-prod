@@ -134,6 +134,7 @@ void sim_mob::Person::package(PackageUtils& packageUtil) {
 	//package person
 	packageUtil.packageBasicData(specialStr);
 	packageUtil.packageTripChain(currTripChain);
+	packageUtil.packageBasicData(firstFrameTick);
 }
 
 void sim_mob::Person::unpackage(UnPackageUtils& unpackageUtil) {
@@ -143,6 +144,7 @@ void sim_mob::Person::unpackage(UnPackageUtils& unpackageUtil) {
 
 	specialStr = unpackageUtil.unpackageBasicData<std::string> ();
 	currTripChain = const_cast<sim_mob::TripChain*>(unpackageUtil.unpackageTripChain());
+	firstFrameTick = unpackageUtil.unpackageBasicData<bool> ();
 }
 
 void sim_mob::Person::packageProxy(PackageUtils& packageUtil) {
@@ -152,6 +154,7 @@ void sim_mob::Person::packageProxy(PackageUtils& packageUtil) {
 	//package person
 	packageUtil.packageBasicData(specialStr);
 	packageUtil.packageTripChain(currTripChain);
+	packageUtil.packageBasicData(firstFrameTick);
 }
 
 void sim_mob::Person::unpackageProxy(UnPackageUtils& unpackageUtil) {
@@ -159,6 +162,7 @@ void sim_mob::Person::unpackageProxy(UnPackageUtils& unpackageUtil) {
 
 	specialStr = unpackageUtil.unpackageBasicData<std::string> ();
 	currTripChain = const_cast<sim_mob::TripChain*>(unpackageUtil.unpackageTripChain());
+	firstFrameTick = unpackageUtil.unpackageBasicData<bool> ();
 }
 
 #endif

@@ -146,7 +146,6 @@ public:
     	}
     }
 
-
 protected:
     void flip() {
     	if (strategy_==MtxStrat_Buffered) {
@@ -156,6 +155,7 @@ protected:
 
     //Used by both
     T current_;
+
     sim_mob::MutexStrategy strategy_;
 
     //Next value to be written

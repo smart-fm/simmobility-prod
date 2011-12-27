@@ -257,9 +257,27 @@ void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
 		return;
 	}
 
-	//Get angle
-#ifndef SIMMOB_DISABLE_MPI
+	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
+
+	LogOut("(\"Driver\""
+			<<","<<p.frameNumber
+			<<","<<parent->getId()
+			<<",{"
+			<<"\"xPos\":\""<<static_cast<int>(vehicle->getX())
+			<<"\",\"yPos\":\""<<static_cast<int>(vehicle->getY())
+			<<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI))
+			<<"\",\"length\":\""<<static_cast<int>(vehicle->length)
+			<<"\",\"width\":\""<<static_cast<int>(vehicle->width)
+			<<"\"})"<<std::endl);
+
+}
+
+void sim_mob::Driver::frame_tick_output_mpi(frame_t frameNumber)
+{
 	if (frameNumber < parent->getStartTime())
+		return;
+
+	if (vehicle->isDone())
 		return;
 
 	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
@@ -279,23 +297,6 @@ void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
 	logout << "\"})" << std::endl;
 
 	LogOut(logout.str());
-
-#else
-	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
-
-	LogOut("(\"Driver\""
-			<<","<<p.frameNumber
-			<<","<<parent->getId()
-			<<",{"
-			<<"\"xPos\":\""<<static_cast<int>(vehicle->getX())
-			<<"\",\"yPos\":\""<<static_cast<int>(vehicle->getY())
-			<<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI))
-			<<"\",\"length\":\""<<static_cast<int>(vehicle->length)
-			<<"\",\"width\":\""<<static_cast<int>(vehicle->width)
-			<<"\"})"<<std::endl);
-
-#endif
-
 }
 
 sim_mob::UpdateParams& sim_mob::Driver::make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS)
@@ -904,7 +905,7 @@ double sim_mob::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 		}
 
 		std::stringstream msg;
-		msg << "Error moving vehicle forward for Agent ID: " << parent->getId() << "\n" << ex.what();
+		msg << "Error moving vehicle forward for Agent ID: " << parent->getId() << "," << this->vehicle->getX() << "," << this->vehicle->getY() << "\n" << ex.what();
 		throw std::runtime_error(msg.str().c_str());
 	}
 
@@ -1322,14 +1323,13 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) const {
  */
 void sim_mob::Driver::package(PackageUtils& packageUtil) {
 	//Part 1
-	//std::cout << "Driver package Called" << this->getParent()->getId() <<  std::endl;
 	packageUtil.packageLane(currLane_.get());
-	packageUtil.packageBasicData(currLaneOffset_.get());
-	packageUtil.packageBasicData(currLaneLength_.get());
+	packageUtil.safePackageDoubleValue(currLaneOffset_.get());
+	packageUtil.safePackageDoubleValue(currLaneLength_.get());
 	packageUtil.packageBasicData(isInIntersection.get());
 
 	//part 2
-	packageUtil.packageBasicData(params.currTimeMS);
+	packageUtil.packageDriverUpdateParams(params);
 	packageUtil.packageVehicle(vehicle);
 	bool hasSomething = false;
 	if (intModel) {
@@ -1356,19 +1356,18 @@ void sim_mob::Driver::package(PackageUtils& packageUtil) {
 	packageUtil.packagePoint2D(goal.point);
 	packageUtil.packageNode(goal.node);
 
-	packageUtil.packageBasicData(firstFrameTick);
+	//packageUtil.packageBasicData(firstFrameTick);
 	packageUtil.packageBasicData(maxLaneSpeed);
 
 	//Part 4
 	//packageUtil.packageLink(desLink);
-	packageUtil.packageBasicData(currLinkOffset);
+	packageUtil.safePackageDoubleValue(currLinkOffset);
 	packageUtil.packageBasicData(targetLaneIndex);
 	//packageUtil.packageLink(nextLink);
 	packageUtil.packageLane(nextLaneInNextLink);
 
-
 	//Part 5
-	packageUtil.packageBasicData(targetSpeed);
+	packageUtil.safePackageDoubleValue(targetSpeed);
 
 	if(trafficSignal)
 	{
@@ -1388,7 +1387,6 @@ void sim_mob::Driver::package(PackageUtils& packageUtil) {
 
 void sim_mob::Driver::unpackage(UnPackageUtils& unpackageUtil) {
 	//Part 1
-	//std::cout << "Driver unpackage Called" << this->getParent()->getId() << std::endl;
 	const Lane* one_lane = unpackageUtil.unpackageLane();
 	currLane_.force(one_lane);
 	double value_lane_offset = unpackageUtil.unpackageBasicData<double> ();
@@ -1398,9 +1396,12 @@ void sim_mob::Driver::unpackage(UnPackageUtils& unpackageUtil) {
 	bool value_inIntersection = unpackageUtil.unpackageBasicData<bool> ();
 	isInIntersection.force(value_inIntersection);
 
+	unpackageUtil.unpackageDriverUpdateParams(params);
+
 	//part 2
-	currTimeMS = unpackageUtil.unpackageBasicData<int> ();
+	//currTimeMS = unpackageUtil.unpackageBasicData<int> ();
 	vehicle = const_cast<Vehicle*> (unpackageUtil.unpackageVehicle());
+
 	bool hasSomething = unpackageUtil.unpackageBasicData<bool> ();
 	if (hasSomething) {
 		intModel = unpackageUtil.unpackageIntersectionDrivingModel();
@@ -1411,13 +1412,14 @@ void sim_mob::Driver::unpackage(UnPackageUtils& unpackageUtil) {
 	perceivedVelocityOfFwdCar = unpackageUtil.unpackageFixedDelayedDPoint();
 	perceivedAccelerationOfFwdCar = unpackageUtil.unpackageFixedDelayedDouble();
 	perceivedDistToFwdCar = unpackageUtil.unpackageFixedDelayedInt();
+	std::cout << "A003" << this->getParent()->getId() << std::endl;
 
 	origin.point = *(unpackageUtil.unpackagePoint2D());
 	origin.node = unpackageUtil.unpackageNode();
 	goal.point = *(unpackageUtil.unpackagePoint2D());
 	goal.node = unpackageUtil.unpackageNode();
 
-	firstFrameTick = unpackageUtil.unpackageBasicData<bool> ();
+	//firstFrameTick = unpackageUtil.unpackageBasicData<bool> ();
 	maxLaneSpeed = unpackageUtil.unpackageBasicData<double> ();
 
 	//Part 4
@@ -1426,6 +1428,8 @@ void sim_mob::Driver::unpackage(UnPackageUtils& unpackageUtil) {
 	targetLaneIndex = unpackageUtil.unpackageBasicData<int> ();
 	//nextLink = unpackageUtil.unpackageLink();
 	nextLaneInNextLink = unpackageUtil.unpackageLane();
+
+	std::cout << "A005" << this->getParent()->getId() << std::endl;
 
 	//Part 5
 	targetSpeed = unpackageUtil.unpackageBasicData<double> ();
@@ -1439,16 +1443,18 @@ void sim_mob::Driver::unpackage(UnPackageUtils& unpackageUtil) {
 	std::string buffer;
 	buffer = unpackageUtil.unpackageBasicData<std::string> ();
 	DebugStream << buffer;
+
+	std::cout << "A006" << this->getParent()->getId() << std::endl;
 }
 
 void sim_mob::Driver::packageProxy(PackageUtils& packageUtil) {
 	//Part 1
 	packageUtil.packageLane(currLane_.get());
-	packageUtil.packageBasicData(currLaneOffset_.get());
-	packageUtil.packageBasicData(currLaneLength_.get());
+	packageUtil.safePackageDoubleValue(currLaneOffset_.get());
+	packageUtil.safePackageDoubleValue(currLaneLength_.get());
 	packageUtil.packageBasicData(isInIntersection.get());
 
-	packageUtil.packageBasicData(currTimeMS);
+	//packageUtil.packageBasicData(currTimeMS);
 	packageUtil.packageVehicle(vehicle);
 
 	bool hasSomething = false;
@@ -1492,10 +1498,7 @@ void sim_mob::Driver::packageProxy(PackageUtils& packageUtil) {
 //	packageUtil.packageLink(desLink);
 	//std::cout << "*****************22" << std::endl;
 
-	if(currLinkOffset != currLinkOffset)
-		currLinkOffset = 0;
-
-	packageUtil.packageBasicData(currLinkOffset);
+	packageUtil.safePackageDoubleValue(currLinkOffset);
 
 	int lane_size = targetLaneIndex;
 	packageUtil.packageBasicData(lane_size);
@@ -1512,13 +1515,20 @@ void sim_mob::Driver::packageProxy(PackageUtils& packageUtil) {
 
 void sim_mob::Driver::unpackageProxy(UnPackageUtils& unpackageUtil) {
 	//Part 1
+//	std::cout << "Driver::unpackageProxy" << std::endl;
+
 	const Lane* one_lane = unpackageUtil.unpackageLane();
 	currLane_.force(one_lane);
+//		if(this->getParent()->getId() < 1000)
+//		std::cout << this->getParent()->getId() << "1-1-6-2" << std::endl;
 //	std::cout << "Step 4.2.7.1:" << std::endl;
 
 	double value_lane_offset = unpackageUtil.unpackageBasicData<double> ();
 	currLaneOffset_.force(value_lane_offset);
 //	std::cout << "Step 4.2.7.2:" << std::endl;
+
+//	if(this->getParent()->getId() > 1000)
+//		std::cout << this->getParent()->getId() << "1-1-6-3" << std::endl;
 
 	double value_lane_length = unpackageUtil.unpackageBasicData<double> ();
 	currLaneLength_.force(value_lane_length);
@@ -1528,7 +1538,10 @@ void sim_mob::Driver::unpackageProxy(UnPackageUtils& unpackageUtil) {
 	isInIntersection.force(value_inIntersection);
 //	std::cout << "Step 4.2.7.4:" << std::endl;
 
-	currTimeMS = unpackageUtil.unpackageBasicData<int> ();
+//	if(this->getParent()->getId() < 1000)
+//		std::cout << this->getParent()->getId() << "1-1-6-4" << std::endl;
+
+	//currTimeMS = unpackageUtil.unpackageBasicData<int> ();
 	vehicle = const_cast<Vehicle*> (unpackageUtil.unpackageVehicle());
 //	std::cout << "Step 4.2.7.5:" << std::endl;
 
@@ -1556,6 +1569,10 @@ void sim_mob::Driver::unpackageProxy(UnPackageUtils& unpackageUtil) {
 //
 //	//Part 3
 //	desLink = unpackageUtil.unpackageLink();
+
+//	if(this->getParent()->getId() < 1000)
+//		std::cout << this->getParent()->getId() << "1-1-6-5" << std::endl;
+
 	currLinkOffset = unpackageUtil.unpackageBasicData<double> ();
 
 	targetLaneIndex = unpackageUtil.unpackageBasicData<int> ();

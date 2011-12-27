@@ -12,6 +12,8 @@
 #include "geospatial/Point2D.hpp"
 #include "util/DynamicVector.hpp"
 #include "entities/roles/driver/Driver.hpp"
+#include "entities/roles/driver/DriverUpdateParams.hpp"
+#include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "partitions/PartitionManager.hpp"
 
 namespace sim_mob {
@@ -29,6 +31,15 @@ void PackageUtils::clearPackage() {
 		delete package;
 		package = NULL;
 	}
+}
+
+void PackageUtils::safePackageDoubleValue(double value)
+{
+	double buffer = 0;
+	if(value != value)
+		(*package) & buffer;
+	else
+		(*package) & value;
 }
 
 void PackageUtils::packageNode(const Node* one_node) {
@@ -221,7 +232,7 @@ void PackageUtils::packageCrossing(const Crossing* one_crossing) {
 		(*package) & hasSomthing;
 	}
 
-	std::cout << "333.6" << std::endl;
+	//std::cout << "333.6" << std::endl;
 
 	Point2D near1 = one_crossing->nearLine.first;
 	Point2D near2 = one_crossing->nearLine.second;
@@ -231,12 +242,12 @@ void PackageUtils::packageCrossing(const Crossing* one_crossing) {
 	(*package) & (near1);
 	(*package) & (near2);
 
-	std::cout << "333.7" << std::endl;
+	//std::cout << "333.7" << std::endl;
 
 	(*package) & (far1);
 	(*package) & (far2);
 
-	std::cout << "333.8" << std::endl;
+	//std::cout << "333.8" << std::endl;
 }
 
 void PackageUtils::packageIntersectionDrivingModel(SimpleIntDrivingModel* one_model) {
@@ -309,6 +320,61 @@ void PackageUtils::packageFixedDelayedInt(FixedDelayed<int>& one_delay) {
 
 void PackageUtils::packagePoint2D(const Point2D& one_point) {
 	(*package) & (one_point);
+}
+
+void PackageUtils::packageDriverUpdateParams(const DriverUpdateParams& one_driver)
+{
+	(*package) & (one_driver.frameNumber);
+	(*package) & (one_driver.currTimeMS);
+	//(*package) & (one_driver.gen);
+
+	packageLane(one_driver.currLane);
+	(*package) & (one_driver.currLaneIndex);
+	(*package) & (one_driver.fromLaneIndex);
+	packageLane(one_driver.leftLane);
+	packageLane(one_driver.rightLane);
+
+	(*package) & (one_driver.currSpeed);
+
+	(*package) & (one_driver.currLaneOffset);
+	(*package) & (one_driver.currLaneLength);
+	(*package) & (one_driver.isTrafficLightStop);
+	(*package) & (one_driver.trafficSignalStopDistance);
+	(*package) & (one_driver.elapsedSeconds);
+
+	(*package) & (one_driver.perceivedFwdVelocity);
+	(*package) & (one_driver.perceivedLatVelocity);
+
+	(*package) & (one_driver.perceivedFwdVelocityOfFwdCar);
+	(*package) & (one_driver.perceivedLatVelocityOfFwdCar);
+	(*package) & (one_driver.perceivedAccelerationOfFwdCar);
+	(*package) & (one_driver.perceivedDistToFwdCar);
+
+	(*package) & (one_driver.laneChangingVelocity);
+
+	(*package) & (one_driver.isCrossingAhead);
+	(*package) & (one_driver.crossingFwdDistance);
+
+	(*package) & (one_driver.space);
+	(*package) & (one_driver.a_lead);
+	(*package) & (one_driver.v_lead);
+	(*package) & (one_driver.space_star);
+	(*package) & (one_driver.distanceToNormalStop);
+
+	(*package) & (one_driver.dis2stop);
+	(*package) & (one_driver.isWaiting);
+
+	(*package) & (one_driver.justChangedToNewSegment);
+	(*package) & (one_driver.TEMP_lastKnownPolypoint);
+	(*package) & (one_driver.justMovedIntoIntersection);
+	(*package) & (one_driver.overflowIntoIntersection);
+}
+
+void PackageUtils::packagePedestrianUpdateParams(const PedestrianUpdateParams& one_pedestrain)
+{
+	(*package) & (one_pedestrain.frameNumber);
+	(*package) & (one_pedestrain.currTimeMS);
+	(*package) & (one_pedestrain.skipThisFrame);
 }
 
 }

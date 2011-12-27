@@ -14,12 +14,12 @@ public class VectorItem {
 	
 	private String shape;
 	
-	private int[] points;
+	private float[] points;
 	
 	public String getBkgrd() { return bkgrd; }
 	public String[] getGradient() { return gradient; }
 	public String getStroke() { return stroke; }
 	public float getWidth() { return width; }
 	public String getShape() { return shape; }
-	public int[] getPoints() { return points; }
+	public float[] getPoints() { return points; }
 }

@@ -11,6 +11,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
+import sim_mob.vect.SimpleVectorImage;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.network.basic.ScaledPointGroup;
 import sim_mob.vis.util.Utility;
@@ -20,6 +21,15 @@ import sim_mob.vis.util.Utility;
  * Driver "Agent Tick"
  */
 public class DriverTick extends AgentTick {
+	private static SimpleVectorImage carImg;
+	static {
+		try {
+			carImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/car.json.txt"));
+		} catch (IOException ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+	
 	private static Stroke debugStr = new BasicStroke(1.0F);
 	private static Color debugClr = new Color(0x00, 0x00, 0x66);
 	private static Font idFont = new Font("Arial", Font.PLAIN, 10);

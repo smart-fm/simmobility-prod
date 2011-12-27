@@ -884,7 +884,7 @@ double sim_mob::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 
 	//when v_lead and a_lead is 0, space is not negative, the Car Following will generate an acceleration based on free flowing model
 	//this causes problem, so i manually set acceleration and velocity to 0
-	if (vehicle->getVelocity() < 0 || p.space < 0) {//||(p.space<1&&p.v_lead==0&&p.a_lead==0)) {
+	if (vehicle->getVelocity() < 0 ||(p.space<1&&p.v_lead==0&&p.a_lead==0)) {
 		//Set to 0 forward velocity, no acceleration.
 		vehicle->setVelocity(0.0);
 		vehicle->setAcceleration(0);
@@ -943,6 +943,7 @@ void sim_mob::Driver::check_and_set_min_car_dist(NearestVehicle& res, double dis
 void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Person* other, const Driver* other_driver) {
 	//Only update if passed a valid pointer which is not a pointer back to you, and
 	//the driver is not actually in an intersection at the moment.
+
 
 	if (!(other_driver && this != other_driver && !other_driver->isInIntersection.get())) {
 		return;
@@ -1121,6 +1122,7 @@ void sim_mob::Driver::updateNearbyAgents(DriverUpdateParams& params) {
 			Point2D(vehicle->getX(), vehicle->getY()), *params.currLane, distanceInFront, distanceBehind);
 
 	//Update each nearby Pedestrian/Driver
+	params.nvFwd.distance = 5000;
 	for (vector<const Agent*>::iterator it = nearby_agents.begin(); it != nearby_agents.end(); it++) {
 		//Perform no action on non-Persons
 		const Person* other = dynamic_cast<const Person *> (*it);

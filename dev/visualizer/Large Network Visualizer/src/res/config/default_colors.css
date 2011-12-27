@@ -87,3 +87,16 @@
 .car-fake-window-outline {
   border: 1px solid #919191;
 }
+
+
+/* car colors - debug Agent*/
+/* NOTE: border-width is ignored for now */
+.car-debug-body1 {
+  background: #4040FF;
+}
+.car-debug-body2 {
+  background: #9595FF;
+}
+.car-debug-body-outline {
+  border: 1px solid #2C2C71;
+}

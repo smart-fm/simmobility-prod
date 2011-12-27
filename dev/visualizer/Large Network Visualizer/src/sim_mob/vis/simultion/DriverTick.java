@@ -24,6 +24,7 @@ import sim_mob.vis.util.Utility;
  */
 public class DriverTick extends AgentTick {
 	private static SimpleVectorImage CarImg;
+	private static SimpleVectorImage DebugCarImg;
 	private static SimpleVectorImage FakeCarImg;
 	
 	private static Stroke debugStr = new BasicStroke(1.0F);
@@ -72,6 +73,9 @@ public class DriverTick extends AgentTick {
 		if (CarImg==null) {
 			MakeCarImage();
 		}
+		if (DebugCarImg==null) {
+			MakeDebugCarImage();
+		}
 		if (FakeCarImg==null) {
 			MakeFakeCarImage();
 		}
@@ -88,6 +92,19 @@ public class DriverTick extends AgentTick {
 		//Recolor per the user's config file.
 		Hashtable<String, Color> overrides = GetOverrides("car");
 		CarImg.buildColorIndex(overrides);
+	}
+	
+	private static void MakeDebugCarImage() {
+		//Load it.
+		try {
+			DebugCarImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/car.json.txt"));
+		} catch (IOException ex) {
+			throw new RuntimeException(ex);
+		}
+		
+		//Recolor per the user's config file.
+		Hashtable<String, Color> overrides = GetOverrides("car-debug");
+		DebugCarImg.buildColorIndex(overrides);
 	}
 	
 	private static void MakeFakeCarImage() {
@@ -141,7 +158,7 @@ public class DriverTick extends AgentTick {
 		AffineTransform at = AffineTransform.getTranslateInstance(pos.getX(), pos.getY());
 		
 		//Retrieve the image to draw
-		SimpleVectorImage svi = (drawFake&&fake) ? FakeCarImg : CarImg;
+		SimpleVectorImage svi = (drawFake&&fake) ? FakeCarImg : debug ? DebugCarImg : CarImg;
 		BufferedImage toDraw = svi.getImage(1/scale + 0.2, (int)angle);
 		
 		//Rotate

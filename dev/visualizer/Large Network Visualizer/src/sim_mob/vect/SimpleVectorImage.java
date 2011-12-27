@@ -9,7 +9,11 @@ import com.google.gson.Gson;
 
 public class SimpleVectorImage {
 	//No-argument constructor; required for gson
-	private SimpleVectorImage() {}
+	private SimpleVectorImage() {
+		for (int i=0; i<rotatedBuffers.length; i++) {
+			rotatedBuffers[i] = new CachedBuffer();
+		}
+	}
 	
 	private CoordinateSystem coordinates;
 	
@@ -18,8 +22,11 @@ public class SimpleVectorImage {
 	private VectorItem[] drawOrder;
 	
 	//Cached buffers
-	private BufferedImage[] rotatedBuffers = new BufferedImage[360];
-	private double lastKnownScale;
+	class CachedBuffer {
+		double scaleAmt;
+		BufferedImage img;
+	}
+	private CachedBuffer[] rotatedBuffers = new CachedBuffer[360];
 	
 	//Helper
 	private static Gson gson = new Gson();
@@ -31,38 +38,39 @@ public class SimpleVectorImage {
 	
 	//Retrieve a scaled, rotated version of this image.
 	public BufferedImage getImage(double scaleFactor, int rotateAngle) {
+		//Bound, retrieve
+		CachedBuffer cacheEntry = rotatedBuffers[rotateAngle%360];
+		
 		//Do we need to refresh the image cache?
-		if (rotatedBuffers[0]==null || Math.abs(scaleFactor-lastKnownScale)>1E-7) { //Just hard-code an epsilon value for now.
-			lastKnownScale = scaleFactor;
-			redrawAtScale();
+		if (cacheEntry.img==null || Math.abs(scaleFactor-cacheEntry.scaleAmt)>1E-7) { //Just hard-code an epsilon value for now.
+			cacheEntry.scaleAmt = scaleFactor;
+			redrawAtScale(cacheEntry, rotateAngle);
 		}
 		
-		//Now, bound and return
-		return rotatedBuffers[rotateAngle%360];
+		return cacheEntry.img;
 	}
 	
 	//Redraw all 360 degree rotations of this image at this scale.
-	private void redrawAtScale() {
-		for (int angle=0; angle<rotatedBuffers.length; angle++) {
-			//Make a new image to hold this.
-			//TODO: Currently, we use a buffer 100x100 in size. This should _definitely_ scale with the Image in 
-			//      question, but for now I'm just testing out centering.
-			BufferedImage img = rotatedBuffers[angle] = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB);
-			Graphics2D g = (Graphics2D)img.getGraphics();
-			
-			//TEMP: For debugging
-			//g.setBackground(Color.white);
-			//g.clearRect(0, 0, img.getWidth(), img.getHeight());
-			
-			//Create a transformation for this angle/scale. Translate to the center of the image.
-			AffineTransform at = AffineTransform.getTranslateInstance(img.getWidth()/2, img.getHeight()/2);
-			at.scale(lastKnownScale, lastKnownScale);
-			at.rotate((Math.PI*angle)/180);
-			g.setTransform(at);
-			
-			//Now draw it.
-			draw(g);
-		}
+	private void redrawAtScale(CachedBuffer entry, int angle) {
+		//Make a new image to hold this.
+		//TODO: Currently, we use a buffer 100x100 in size. This should _definitely_ scale with the Image in 
+		//      question, but for now I'm just testing out centering.
+		entry.img = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g = (Graphics2D)entry.img.getGraphics();
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		
+		//TEMP: For debugging
+		g.setBackground(Color.white);
+		g.clearRect(0, 0, entry.img.getWidth(), entry.img.getHeight());
+		
+		//Create a transformation for this angle/scale. Translate to the center of the image.
+		AffineTransform at = AffineTransform.getTranslateInstance(entry.img.getWidth()/2, entry.img.getHeight()/2);
+		at.scale(entry.scaleAmt, entry.scaleAmt);
+		at.rotate((Math.PI*angle)/180);
+		g.setTransform(at);
+		
+		//Now draw it.
+		draw(g);
 	}
 	
 	//Draw a single instance.

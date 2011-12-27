@@ -65,7 +65,7 @@
 
     #Front part
     { "stroke":"wheel-outline", "width":"1", "shape":"line",
-      "points":[0,18, 18,18]
+      "points":[18,0, 18,18]
     }
   ]
 

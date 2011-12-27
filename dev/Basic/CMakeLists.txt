@@ -66,7 +66,7 @@ FILE(GLOB_RECURSE BASIC_CPP *.cpp)
 #Create a list of items to remove from the Build.
 # Adding main.cpp to this list makes a good starting point, and ensures
 # we always have at least one item to remove from BASIC_CPP
-SET(IgnoreList main.cpp)
+#SET(IgnoreList main.cpp)
 
 #TEMP: Why isn't the previous line working?
 FILE(GLOB IgnoreList "main.cpp")
@@ -91,11 +91,11 @@ LIST(APPEND IgnoreList ${IgnoreTmp})
 LIST(REMOVE_ITEM BASIC_CPP ${IgnoreList})
 
 #List of libraries to link
-SET(LibraryList boost_thread CGAL boost_serialization tinyxml soci_core-gcc-3_0 soci_postgresql-gcc-3_0)
+SET(LibraryList boost_thread boost_serialization tinyxml soci_core-gcc-3_0 soci_postgresql-gcc-3_0)
 
-#Optional library: MPI
+#Optional library: MPI. Also pulls in CGAL
 IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
-  LIST(APPEND LibraryList boost_mpi)
+  LIST(APPEND LibraryList boost_mpi CGAL)
 ENDIF(${SIMMOB_DISABLE_MPI} MATCHES "OFF")
 
 #Include the top-level source/binary directories

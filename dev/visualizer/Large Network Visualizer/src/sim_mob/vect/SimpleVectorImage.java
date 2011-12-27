@@ -153,8 +153,16 @@ public class SimpleVectorImage {
 				if (item.getBkgrd()!=null) {
 					g.setColor(getColor(item.getBkgrd()));
 				} else if (item.getGradient()!=null) {
-					//TODO: Gradients
-					g.setColor(getColor(item.getGradient()[0]));
+					//TODO: For now, gradients are assumed to always have two points only.
+					if (item.getGradient().length!=2) {
+						throw new RuntimeException("Error: For now gradients can only have two points.");
+					}
+					
+					GradientPaint gp = makeGP(item.getPoints(), getColor(item.getGradient()[0]), getColor(item.getGradient()[1]));
+					g.setPaint(gp);
+					
+					//Get backup.
+					//g.setColor(getColor(item.getGradient()[0]));
 				} else {
 					throw new RuntimeException("No background or gradient for item.");
 				}
@@ -168,6 +176,22 @@ public class SimpleVectorImage {
 		}
 	}
 	
+	private GradientPaint makeGP(float[] points, Color startColor, Color endColor) {
+		//For now, all gradients start at left-middle and go to right-middle. This can be added to the json file later.
+		double minX = java.lang.Double.MAX_VALUE;
+		double maxX = java.lang.Double.MIN_VALUE;
+		double minY = java.lang.Double.MAX_VALUE;
+		double maxY = java.lang.Double.MIN_VALUE;
+		for (int i=0; i<points.length/2; i++) {
+			minX = Math.min(minX, points[i*2]);
+			maxX = Math.max(maxX, points[i*2]);
+			minY = Math.min(minY, points[i*2+1]);
+			maxY = Math.max(maxY, points[i*2+1]);
+		}
+		
+		return new GradientPaint((float)minX, (float)(minY + (maxY-minY)/2), startColor, (float)maxX, (float)(minY + (maxY-minY)/2), endColor, false);		
+	}
+
 	//TEMP: Draw a shape
 	private void fillPoints(Graphics2D g, String shapeType, float[] points, float[] off) {
 		if (shapeType.equals("poly")) {

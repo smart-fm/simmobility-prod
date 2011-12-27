@@ -512,14 +512,17 @@ LoopDetectorEntity::update(frame_t frameNumber)
 }
 
 void
-LoopDetectorEntity::reset()
+LoopDetectorEntity::reset(Lane const & lane)
 {
-    std::map<Lane const *, Shared<CountAndTimePair>*>::iterator iter;
-    for (iter = data_.begin(); iter != data_.end(); ++iter)
+    std::map<Lane const *, Shared<CountAndTimePair>*>::iterator iter = data_.find(&lane);
+    if (iter != data_.end())
     {
         Shared<CountAndTimePair> * pair = iter->second;
         pair->set(CountAndTimePair());
     }
+    std::ostringstream stream;
+    stream << "LoopDetectorEntity::reset() was called on invalid lane";
+    throw stream.str();
 }
 
 LoopDetectorEntity::CountAndTimePair const &

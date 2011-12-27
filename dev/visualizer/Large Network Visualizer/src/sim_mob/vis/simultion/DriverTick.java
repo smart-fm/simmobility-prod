@@ -10,8 +10,10 @@ import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.Hashtable;
 
 import sim_mob.vect.SimpleVectorImage;
+import sim_mob.vis.MainFrame;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.network.basic.ScaledPointGroup;
 import sim_mob.vis.util.Utility;
@@ -21,20 +23,20 @@ import sim_mob.vis.util.Utility;
  * Driver "Agent Tick"
  */
 public class DriverTick extends AgentTick {
-	private static SimpleVectorImage carImg;
-	static {
-		try {
-			carImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/car.json.txt"));
-		} catch (IOException ex) {
-			throw new RuntimeException(ex);
-		}
-	}
+	private static SimpleVectorImage CarImg;
+	private static SimpleVectorImage FakeCarImg;
 	
 	private static Stroke debugStr = new BasicStroke(1.0F);
 	private static Color debugClr = new Color(0x00, 0x00, 0x66);
 	private static Font idFont = new Font("Arial", Font.PLAIN, 10);
+	private static final String[] CarBkgdColorIDs = new String[] {
+		"body1", "body2", "window1", "window2", "wheel"
+	};
+	private static final String[] CarLineColorIDs = new String[] {
+		"body-outline", "window-outline", "wheel-outline"
+	};
 
-	private static BufferedImage CarImg;
+	/*private static BufferedImage CarImg;
 	private static BufferedImage FakeCarImg;
 	static {
 		try {
@@ -43,7 +45,7 @@ public class DriverTick extends AgentTick {
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
 		}
-	}
+	}*/
 	private int ID;
 	private double angle;
 	private boolean fake;
@@ -65,6 +67,58 @@ public class DriverTick extends AgentTick {
 		this.pos = new ScaledPoint(posX, posY, spg);
 		this.angle = angle;
 		this.fake = false;
+		
+		//Init resources?
+		if (CarImg==null) {
+			MakeCarImage();
+		}
+		if (FakeCarImg==null) {
+			MakeFakeCarImage();
+		}
+	}
+	
+	private static void MakeCarImage() {
+		//Load it.
+		try {
+			CarImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/car.json.txt"));
+		} catch (IOException ex) {
+			throw new RuntimeException(ex);
+		}
+		
+		//Recolor per the user's config file.
+		Hashtable<String, Color> overrides = GetOverrides("car");
+		CarImg.buildColorIndex(overrides);
+	}
+	
+	private static void MakeFakeCarImage() {
+		//Load it.
+		try {
+			FakeCarImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/car.json.txt"));
+		} catch (IOException ex) {
+			throw new RuntimeException(ex);
+		}
+		
+		//Recolor per the user's config file.
+		Hashtable<String, Color> overrides = GetOverrides("car-fake");
+		FakeCarImg.buildColorIndex(overrides);
+		FakeCarImg.phaseColors(0xFF/2);
+	}
+	
+	private static Hashtable<String, Color> GetOverrides(String prefix) {
+		Hashtable<String, Color> overrides = new Hashtable<String, Color>();
+		for (String id : CarBkgdColorIDs) {
+			Color clr = MainFrame.Config.getBackground(prefix+"-"+id);
+			if (clr!=null) {
+				overrides.put(id, clr);
+			}
+		}
+		for (String id : CarLineColorIDs) {
+			Color clr = MainFrame.Config.getLineColor(prefix+"-"+id);
+			if (clr!=null) {
+				overrides.put(id, clr);
+			}
+		}
+		return overrides;
 	}
 	
 	public void setItFake(){
@@ -87,7 +141,8 @@ public class DriverTick extends AgentTick {
 		AffineTransform at = AffineTransform.getTranslateInstance(pos.getX(), pos.getY());
 		
 		//Retrieve the image to draw
-		BufferedImage toDraw = carImg.getImage(1/scale + 0.2, (int)angle);
+		SimpleVectorImage svi = (drawFake&&fake) ? FakeCarImg : CarImg;
+		BufferedImage toDraw = svi.getImage(1/scale + 0.2, (int)angle);
 		
 		//Rotate
 		//at.rotate((Math.PI*angle)/180);
@@ -103,18 +158,16 @@ public class DriverTick extends AgentTick {
 		g.setTransform(at);
 		
 		//Draw with fake agent enabled
-		if(drawFake){
+		/*if(drawFake){
 			if(fake){
-				//TODO: Enable again later.
 				//g.drawImage(FakeCarImg, 0, 0, null);
 			}else{
-				//TODO: Enable again later.
 				//g.drawImage(CarImg, 0, 0, null);
 			}
-		} else {
+		} else {*/
 			g.drawImage(toDraw, 0, 0, null);
 			//g.drawImage(CarImg, 0, 0, null);
-		}
+		//}
 		
 		//Restore old transformation matrix
 		g.setTransform(oldAT);

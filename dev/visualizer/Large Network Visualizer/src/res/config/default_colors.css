@@ -44,3 +44,46 @@
   border: 1px solid black;
 }
 
+
+/* car colors */
+/* NOTE: border-width is ignored for now */
+.car-body1 {
+  background: #FF4040;
+}
+.car-body2 {
+  background: #FF9595;
+}
+.car-body-outline {
+  border: 1px solid #712C2C;
+}
+.car-window1 {
+  background: #C6D2FF;
+}
+.car-window2 {
+  background: #DEE2FF;
+}
+.car-window-outline {
+  border: 1px solid #696D89;
+}
+
+
+/* car colors: fake agents */
+/* NOTE: border-width is ignored for now */
+.car-fake-body1 {
+  background: #696969;
+}
+.car-fake-body2 {
+  background: #ACACAC;
+}
+.car-fake-body-outline {
+  border: 1px solid #464646;
+}
+.car-fake-window1 {
+  background: #D2D2D2;
+}
+.car-fake-window2 {
+  background: #E2E2E2;
+}
+.car-fake-window-outline {
+  border: 1px solid #919191;
+}

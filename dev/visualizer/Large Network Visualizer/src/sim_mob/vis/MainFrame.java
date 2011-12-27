@@ -18,7 +18,6 @@ import java.util.regex.Pattern;
 import sim_mob.conf.CSS_Interface;
 import sim_mob.vis.controls.*;
 import sim_mob.vis.network.RoadNetwork;
-import sim_mob.vis.simultion.AgentTick;
 import sim_mob.vis.simultion.SimulationResults;
 import sim_mob.vis.util.StringSetter;
 import sim_mob.vis.util.Utility;

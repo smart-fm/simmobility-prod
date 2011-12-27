@@ -6,6 +6,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Point2D.Double;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.util.ArrayList;
 import java.util.Hashtable;
 
 import com.google.gson.Gson;
@@ -58,6 +59,15 @@ public class SimpleVectorImage {
 				}
 				indexedColors.put(key, new Color(Integer.parseInt(rgb, 0x10)));
 			}
+		}
+	}
+	
+	//Helper: Make all colors slightly translucent.
+	public void phaseColors(int alpha) {
+		String[] oldKeys = indexedColors.keySet().toArray(new String[]{});
+		for (String key : oldKeys) {
+			Color orig = indexedColors.get(key);
+			indexedColors.put(key, new Color(orig.getRed(), orig.getGreen(), orig.getBlue(), alpha));
 		}
 	}
 	

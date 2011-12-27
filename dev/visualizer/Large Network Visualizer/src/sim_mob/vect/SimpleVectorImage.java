@@ -6,6 +6,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Point2D.Double;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.util.Hashtable;
 
 import com.google.gson.Gson;
 
@@ -23,6 +24,9 @@ public class SimpleVectorImage {
 	
 	private VectorItem[] drawOrder;
 	
+	//Lookup:
+	private Hashtable<String, Color> indexedColors;
+	
 	//Cached buffers
 	class CachedBuffer {
 		double scaleAmt;
@@ -36,6 +40,25 @@ public class SimpleVectorImage {
 	//Load from file
 	public static SimpleVectorImage LoadFromFile(BufferedReader file) {
 		return gson.fromJson(file, SimpleVectorImage.class);
+	}
+	
+	//Finalize this car's color scheme, substituting user preferences as appropriate.
+	public void buildColorIndex(Hashtable<String, Color> userOverrides) {
+		indexedColors = new Hashtable<String, Color>();
+		
+		//Add every color in the list of IndexedColors; override with user-specified overrides if they exist.
+		for (IndexedColor clr : colors) {
+			String key = clr.getId();
+			if (userOverrides.containsKey(key)) {
+				indexedColors.put(key, userOverrides.get(key));
+			} else {
+				String rgb = clr.getRGB();
+				if (rgb==null) {
+					throw new RuntimeException("Can't build color index; no default color: " + key);
+				}
+				indexedColors.put(key, new Color(Integer.parseInt(rgb, 0x10)));
+			}
+		}
 	}
 	
 	//Retrieve a scaled, rotated version of this image.
@@ -177,16 +200,16 @@ public class SimpleVectorImage {
 	
 	//TEMP: Inefficient.
 	private Color getColor(String key) {
-		for (IndexedColor clr : colors) {
-			if (clr.getId().equals(key)) {
-				String rgb = clr.getRGB();
-				if (rgb==null) {
-					throw new RuntimeException("Can't draw color, is null: " + key);
-				}
-				return new Color(Integer.parseInt(rgb, 0x10));
-			}
+		//Failsafe; just use the default color scheme.
+		if (indexedColors==null) {
+			buildColorIndex(new Hashtable<String, Color>());
 		}
-		throw new RuntimeException("Invalid color: " + key);
+		
+		if (!indexedColors.containsKey(key)) {
+			throw new RuntimeException("Invalid color: " + key);
+		}
+		
+		return indexedColors.get(key);
 	}
 }
 

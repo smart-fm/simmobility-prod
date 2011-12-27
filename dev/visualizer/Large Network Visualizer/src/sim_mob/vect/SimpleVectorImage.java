@@ -2,6 +2,8 @@ package sim_mob.vect;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.awt.geom.Point2D.Double;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 
@@ -50,18 +52,51 @@ public class SimpleVectorImage {
 		return cacheEntry.img;
 	}
 	
+	//Expand a bounding box based on rotation
+	private void expandBox(double[] size, double angle) {
+		//We have four points to consider. Assume the rectangle is situated with (0,0) as its top-left corner.
+		Point2D[] candidates = new Point2D[] {
+			new Point2D.Double(0, 0),
+			new Point2D.Double(size[0], 0),
+			new Point2D.Double(0, size[1]),
+			new Point2D.Double(size[0], size[1])
+		};
+		
+		//From this, we need to retrieve the minimum and maximum elements
+		Point2D center = new Point2D.Double(size[0]/2, size[1]/2);
+		double minX = center.getX();
+		double maxX = center.getX();
+		double minY = center.getY();
+		double maxY = center.getY();
+		
+		//Transform each coordinate and consider if it changes the min/max.
+		for (Point2D pt : candidates) {
+			double vx = pt.getX() - center.getX();
+			double vy = pt.getY() - center.getY();
+			Point2D trans = new Point2D.Double(center.getX() + Math.cos(angle)*vx - Math.sin(angle)*vy, center.getY() + Math.sin(angle)*vx + Math.cos(angle)*vy);
+			minX = Math.min(minX, trans.getX());
+			maxX = Math.max(maxX, trans.getX());
+			minY = Math.min(minY, trans.getY());
+			maxY = Math.max(maxY, trans.getY());
+		}
+		
+		//Now simply compute the size of the resulting box.
+		size[0] = maxX - minX;
+		size[1] = maxY - minY;
+	}
+	
 	//Redraw all 360 degree rotations of this image at this scale.
 	private void redrawAtScale(CachedBuffer entry, int angle) {
+		//Based on our scale factor, take a guess at the correct size of the output rectangle.
+		double[] scaleSizeD = new double[]{coordinates.getWidth()*entry.scaleAmt, coordinates.getHeight()*entry.scaleAmt};
+		
+		//Now modify this based on the current rotation.
+		expandBox(scaleSizeD, (Math.PI*angle)/180);
+		
 		//Make a new image to hold this.
-		//TODO: Currently, we use a buffer 100x100 in size. This should _definitely_ scale with the Image in 
-		//      question, but for now I'm just testing out centering.
-		entry.img = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB);
+		entry.img = new BufferedImage((int)Math.ceil(scaleSizeD[0])+1, (int)Math.ceil(scaleSizeD[1])+1, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g = (Graphics2D)entry.img.getGraphics();
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		
-		//TEMP: For debugging
-		g.setBackground(Color.white);
-		g.clearRect(0, 0, entry.img.getWidth(), entry.img.getHeight());
 		
 		//Create a transformation for this angle/scale. Translate to the center of the image.
 		AffineTransform at = AffineTransform.getTranslateInstance(entry.img.getWidth()/2, entry.img.getHeight()/2);

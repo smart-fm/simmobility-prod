@@ -6,6 +6,7 @@ public class IndexedColor {
 	
 	//Typical constructor
 	public IndexedColor(String id, String rgb) {
+		this(); //Added to avoid a build warning.
 		this.id = id;
 		this.rgb = rgb;
 	}

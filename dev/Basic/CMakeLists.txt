@@ -85,16 +85,15 @@ IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   find_package(Boost COMPONENTS mpi REQUIRED)
   LIST(APPEND LibraryList ${Boost_LIBRARIES})
   
-  #Find mpich-2
-  find_package(MPICH2 REQUIRED)
+  #Find any MPI implementation
+  set(MPI_COMPILER ${MPI_ROOT}/bin/mpicxx)
+  find_package(MPI REQUIRED)
+  include_directories(${MPI_CXX_INCLUDE_PATH})
+  LIST(APPEND LibraryList ${MPI_CXX_LIBRARIES})
   
-  include_directories(${MPI_INCLUDE_PATH})
-  LIST(APPEND LibraryList ${MPI_LIBRARIES})
-  
-  #include_directories(/usr/include/mpich2)
-  #LIST(APPEND LibraryList mpi boost_mpi)
-  
-  #MESSAGE("TODO: /usr/include/mpich2 (and libs) is currently hard-coded; need to modify FindMPICH2.cmake")
+  #More mpi-related flags
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
+  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MPI_CXX_LINK_FLAGS}")
   
   #Find cgal
   find_package(CGAL REQUIRED)
@@ -102,8 +101,9 @@ IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   LIST(APPEND LibraryList ${CGAL_LIBRARIES})
   
   #Use the mpi compiler.
-  SET(CMAKE_C_COMPILER mpicc)
-  SET(CMAKE_CXX_COMPILER mpicxx)
+  SET(CMAKE_C_COMPILER ${MPI_C_COMPILER})
+  SET(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
+  MESSAGE("INFO: Overriding c compiler: ${CMAKE_C_COMPILER}")
   MESSAGE("INFO: Overriding c++ compiler: ${CMAKE_CXX_COMPILER}")
 ENDIF(${SIMMOB_DISABLE_MPI} MATCHES "OFF")
 

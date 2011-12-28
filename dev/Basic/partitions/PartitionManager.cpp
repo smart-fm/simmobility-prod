@@ -9,7 +9,7 @@
 #include "PartitionManager.hpp"
 #include <iostream>
 
-#include "mpi.h"
+//#include "mpi.h"
 #include <boost/mpi.hpp>
 #include <boost/mpi/environment.hpp>
 #include <boost/mpi/communicator.hpp>
@@ -82,6 +82,19 @@ std::string PartitionManager::startMPIEnvironment(int argc, char* argv[], bool c
 	if (pmode != MPI_THREAD_MULTIPLE)
 	{
 		std::cout << "Thread Multiple not supported by the MPI implementation" << std::endl;
+		std::cout <<"Supported level is: ";
+		if (pmode==MPI_THREAD_SINGLE) {
+			std::cout <<"Single";
+		} else if (pmode==MPI_THREAD_FUNNELED) {
+			std::cout <<"Funneled";
+		} else if (pmode==MPI_THREAD_SERIALIZED) {
+			std::cout <<"Serialized";
+		} else if (pmode==MPI_THREAD_MULTIPLE) {
+			std::cout <<"Multiple (Unexpected)";
+		} else {
+			std::cout <<"<Unknown: " <<pmode <<">";
+		}
+		std::cout <<std::endl;
 		MPI_Abort(MPI_COMM_WORLD, -1);
 		return "MPI start failed";
 	}

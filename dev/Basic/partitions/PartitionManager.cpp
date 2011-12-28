@@ -77,6 +77,10 @@ std::string PartitionManager::startMPIEnvironment(int argc, char* argv[], bool c
 	//start MPI
 	//	MPI_Init(&argc, &argv);
 
+	//NOTE: We actually need MPI_THREAD_FUNNELED. According to the OpenMPI docs,
+	//      even though OpenMPI returns MPI_THREAD_SINGLE, it can be used as
+	//      MPI_THREAD_FUNNELED. Note that OpenMPI support for MPI_THREAD_MULTIPLE
+	//      is incredibly slow (and I doubt we need _MULTIPLE anyway). ~Seth
 	int pmode;
 	MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &pmode);
 	if (pmode != MPI_THREAD_MULTIPLE)
@@ -95,8 +99,8 @@ std::string PartitionManager::startMPIEnvironment(int argc, char* argv[], bool c
 			std::cout <<"<Unknown: " <<pmode <<">";
 		}
 		std::cout <<std::endl;
-		MPI_Abort(MPI_COMM_WORLD, -1);
-		return "MPI start failed";
+		//MPI_Abort(MPI_COMM_WORLD, -1);
+		//return "MPI start failed";
 	}
 
 	mpi::communicator world;

@@ -79,11 +79,6 @@ find_package(SOCIPostgreSQL REQUIRED)
 include_directories(${SOCIPOSTGRESQL_INCLUDE_DIRS})
 LIST(APPEND LibraryList ${SOCIPOSTGRESQL_LIBRARIES})
 
-#Include directories ported over from Eclipse. Can be augmented later with pkgconfig.
-#include_directories("/usr/include/soci/postgresql")
-#include_directories("/usr/include/soci")
-#include_directories("/usr/include/postgresql")
-
 #Optionally find: MPI, CGAL
 IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   #Find boost-mpi
@@ -112,10 +107,7 @@ FILE(GLOB_RECURSE BASIC_CPP *.cpp)
 #Create a list of items to remove from the Build.
 # Adding main.cpp to this list makes a good starting point, and ensures
 # we always have at least one item to remove from BASIC_CPP
-#SET(IgnoreList main.cpp)
-
-#TEMP: Why isn't the previous line working?
-FILE(GLOB IgnoreList "main.cpp")
+FILE(GLOB IgnoreList main.cpp)
 
 #Remove tests
 FILE(GLOB_RECURSE IgnoreTmp "unit-tests/*.cpp" "unit-tests/*.c")
@@ -136,14 +128,8 @@ LIST(APPEND IgnoreList ${IgnoreTmp})
 #Actually remove these
 LIST(REMOVE_ITEM BASIC_CPP ${IgnoreList})
 
-#Optional library: MPI. Also pulls in CGAL
-#IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
-#  LIST(APPEND LibraryList boost_mpi CGAL)
-#ENDIF(${SIMMOB_DISABLE_MPI} MATCHES "OFF")
-
 #Include the top-level source/binary directories
 include_directories("${PROJECT_SOURCE_DIR}")
-#include_directories("${PROJECT_BINARY_DIR}")
 
 #Build tests?
 IF (${BUILD_TESTS} MATCHES "ON")

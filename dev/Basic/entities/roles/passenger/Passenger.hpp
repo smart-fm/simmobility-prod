@@ -26,6 +26,7 @@ public:
 	virtual void frame_init(UpdateParams& p) { throw std::runtime_error("Passenger not yet implemented."); }
 	virtual void frame_tick(UpdateParams& p) { throw std::runtime_error("Passenger not yet implemented."); }
 	virtual void frame_tick_output(const UpdateParams& p) { throw std::runtime_error("Passenger not yet implemented."); }
+	virtual void frame_tick_output_mpi(frame_t frameNumber) {throw std::runtime_error("Passenger not yet implemented."); }
 	virtual UpdateParams& make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS) { throw std::runtime_error("Passenger not yet implemented."); }
 
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams()

@@ -45,6 +45,9 @@ public:
 	///Generate output for this frame's tick for this Agent.
 	virtual void frame_tick_output(const UpdateParams& p) = 0;
 
+	//generate output with fake attributes for MPI
+	virtual void frame_tick_output_mpi(frame_t frameNumber) = 0;
+
 	///Create the UpdateParams (or, more likely, sub-class) which will hold all
 	///  the temporary information for this time tick.
 	virtual UpdateParams& make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS) = 0;

@@ -64,6 +64,7 @@ private:
 #ifndef SIMMOB_DISABLE_MPI
 public:
 	friend class PartitionManager;
+	friend class BoundaryProcessor;
 
 public:
 	virtual void package(PackageUtils& packageUtil);

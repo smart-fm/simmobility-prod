@@ -59,9 +59,10 @@ public:
     CountAndTimePair const & getCountAndTimePair(Lane const & lane) const;
 
     /**
-     * Called by the Signal object at the end of its cycle to reset all CountAndTimePair.
+     * Called by the Signal object at the end of its cycle to reset the CountAndTimePair
+     * for the specified \c lane.
      */
-    void reset();
+    void reset(Lane const & lane);
 
 protected:
     virtual void buildSubscriptionList();

@@ -37,6 +37,8 @@ class TripActivity;
 class GeneralPathMover;
 class IntersectionDrivingModel;
 class SimpleIntDrivingModel;
+class DriverUpdateParams;
+class PedestrianUpdateParams;
 
 class PackageUtils {
 private:
@@ -48,6 +50,9 @@ public:
 	//Include: int, double, float, bool, std::string
 	template<class DATA_TYPE>
 	void packageBasicData(DATA_TYPE value);
+
+	//check the double value is not non
+	void safePackageDoubleValue(double value);
 
 	//STL
 	template<class DATA_TYPE>
@@ -81,6 +86,8 @@ public:
 	void packageFixedDelayedDouble(FixedDelayed<double>& one_delay);
 	void packageFixedDelayedInt(FixedDelayed<int>& one_delay);
 	void packagePoint2D(const Point2D& one_point);
+	void packageDriverUpdateParams(const DriverUpdateParams& one_driver);
+	void packagePedestrianUpdateParams(const PedestrianUpdateParams& one_pedestrain);
 
 private:
 	std::string getPackageData();

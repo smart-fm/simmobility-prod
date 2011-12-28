@@ -9,7 +9,7 @@
 #include "PartitionManager.hpp"
 #include <iostream>
 
-#include <mpi.h>
+#include "mpi.h"
 #include <boost/mpi.hpp>
 #include <boost/mpi/environment.hpp>
 #include <boost/mpi/communicator.hpp>

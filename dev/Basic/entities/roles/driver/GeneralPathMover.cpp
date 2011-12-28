@@ -308,6 +308,7 @@ double sim_mob::GeneralPathMover::advanceToNextPolyline()
 
 double sim_mob::GeneralPathMover::advanceToNextRoadSegment()
 {
+	//std::cout << "AAA" << std::endl;
 	//An error if we're already at the end of this road segment
 	throwIf(currSegmentIt==fullPath.end(), "Road segment at end");
 	//distMovedInSegment = distAlongPolyline;

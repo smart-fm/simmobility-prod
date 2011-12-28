@@ -259,8 +259,11 @@ bool performMain(const std::string& configFileName) {
 		if (config.is_run_on_many_computers) {
 			PartitionManager& partitionImpl = PartitionManager::instance();
 			partitionImpl.crossPCBarrier();
+
 			partitionImpl.crossPCboundaryProcess(currTick);
+
 			partitionImpl.crossPCBarrier();
+
 			partitionImpl.outputAllEntities(currTick);
 		}
 #endif

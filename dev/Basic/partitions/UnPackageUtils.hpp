@@ -38,6 +38,8 @@ class TripChain;
 class TripActivity;
 class GeneralPathMover;
 class IntersectionDrivingModel;
+class DriverUpdateParams;
+class PedestrianUpdateParams;
 
 class UnPackageUtils {
 private:
@@ -82,6 +84,8 @@ public:
 	FixedDelayed<double>& unpackageFixedDelayedDouble();
 	FixedDelayed<int>& unpackageFixedDelayedInt();
 	Point2D* unpackagePoint2D();
+	void unpackageDriverUpdateParams(DriverUpdateParams& one_driver);
+	void unpackagePedestrianUpdateParams(PedestrianUpdateParams& one_pedestrain);
 
 private:
 	void initializePackage(std::string value);

@@ -87,16 +87,24 @@ IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   
   #Find mpich-2
   find_package(MPICH2 REQUIRED)
-  #include_directories(${MPI_INCLUDE_PATH})
-  include_directories(/usr/include/mpich2)
+  
+  include_directories(${MPI_INCLUDE_PATH})
   LIST(APPEND LibraryList ${MPI_LIBRARIES})
   
-  MESSAGE("TODO: /usr/include/mpich2 is currently hard-coded; need to modify FindMPICH2.cmake")
+  #include_directories(/usr/include/mpich2)
+  #LIST(APPEND LibraryList mpi boost_mpi)
+  
+  #MESSAGE("TODO: /usr/include/mpich2 (and libs) is currently hard-coded; need to modify FindMPICH2.cmake")
   
   #Find cgal
   find_package(CGAL REQUIRED)
   #include_directories(${CGAL_INCLUDE_DIR})  #This messes up gmpxx...
   LIST(APPEND LibraryList ${CGAL_LIBRARIES})
+  
+  #Use the mpi compiler.
+  SET(CMAKE_C_COMPILER mpicc)
+  SET(CMAKE_CXX_COMPILER mpicxx)
+  MESSAGE("INFO: Overriding c++ compiler: ${CMAKE_CXX_COMPILER}")
 ENDIF(${SIMMOB_DISABLE_MPI} MATCHES "OFF")
 
 #Remove duplicates, just in case

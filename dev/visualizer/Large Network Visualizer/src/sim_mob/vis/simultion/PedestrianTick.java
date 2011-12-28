@@ -8,7 +8,10 @@ import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.Hashtable;
 
+import sim_mob.vect.SimpleVectorImage;
+import sim_mob.vis.MainFrame;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.network.basic.ScaledPointGroup;
 import sim_mob.vis.util.Utility;
@@ -22,18 +25,28 @@ public class PedestrianTick extends AgentTick {
 	private static Color debugClr = new Color(0x00, 0x00, 0x66);
 	private static Font idFont = new Font("Arial", Font.PLAIN, 10);
 
+	private static SimpleVectorImage PersonImg;
+	private static SimpleVectorImage FakePersonImg;
+	private static SimpleVectorImage DebugPersonImg;
 	
-	private static BufferedImage PedImg;
-	private static BufferedImage FakePedImg;
+	private static final String[] PedBkgdColorIDs = new String[] {
+		"body", "body-head", "touch-up-2"
+	};
+	private static final String[] PedLineColorIDs = new String[] {
+		"body-outline", "touch-up-1", "touch-up-3", "touch-up-4"
+	};
 	
-	static {
+	//private static BufferedImage PedImg;
+	//private static BufferedImage FakePedImg;
+	
+	/*static {
 		try {
 			PedImg = Utility.LoadImgResource("res/entities/person.png");
 			FakePedImg = Utility.LoadImgResource("res/entities/fake_person.png");
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
 		}
-	} 
+	} */
 	private boolean fake;
 	private int ID;
 	public int getID(){return ID;}
@@ -47,7 +60,58 @@ public class PedestrianTick extends AgentTick {
 	public PedestrianTick(double posX, double posY, ScaledPointGroup spg) {
 		this.pos = new ScaledPoint(posX, posY, spg);
 		this.fake  = false;
+		
+		if (PersonImg==null) {
+			MakePersonImage();
+		}
+		if (FakePersonImg==null) {
+			MakeFakePersonImage();
+		}
+		if (DebugPersonImg==null) {
+			MakeDebugPersonImage();
+		}
 	}
+	
+	private static void MakePersonImage() {
+		//Load it.
+		try {
+			PersonImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/person.json.txt"));
+		} catch (IOException ex) {
+			throw new RuntimeException(ex);
+		}
+		
+		//Recolor per the user's config file.
+		Hashtable<String, Color> overrides = MainFrame.GetOverrides("pedestrian", PedBkgdColorIDs, PedLineColorIDs);
+		PersonImg.buildColorIndex(overrides);
+	}
+	
+	private static void MakeFakePersonImage() {
+		//Load it.
+		try {
+			FakePersonImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/person.json.txt"));
+		} catch (IOException ex) {
+			throw new RuntimeException(ex);
+		}
+		
+		//Recolor per the user's config file.
+		Hashtable<String, Color> overrides = MainFrame.GetOverrides("pedestrian-fake", PedBkgdColorIDs, PedLineColorIDs);
+		FakePersonImg.buildColorIndex(overrides);
+		FakePersonImg.phaseColors(0xFF/2);
+	}
+	
+	private static void MakeDebugPersonImage() {
+		//Load it.
+		try {
+			DebugPersonImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/person.json.txt"));
+		} catch (IOException ex) {
+			throw new RuntimeException(ex);
+		}
+		
+		//Recolor per the user's config file.
+		Hashtable<String, Color> overrides = MainFrame.GetOverrides("pedestrian-debug", PedBkgdColorIDs, PedLineColorIDs);
+		DebugPersonImg.buildColorIndex(overrides);
+	}
+	
 	
 	public void setItFake(){
 		fake = true;
@@ -66,16 +130,20 @@ public class PedestrianTick extends AgentTick {
 		AffineTransform at = AffineTransform.getTranslateInstance(pos.getX(), pos.getY());
 		
 		//Scale
-		at.scale(1/scale + 0.2, 1/scale + 0.2);
+		//at.scale(1/scale + 0.2, 1/scale + 0.2);
+		
+		//Retrieve the image to draw
+		SimpleVectorImage svi = (drawFake&&fake) ? FakePersonImg : debug ? DebugPersonImg : PersonImg;
+		BufferedImage toDraw = svi.getImage(1/scale + 0.2, 0);
 		
 		//Translate to top-left corner
-		at.translate(-PedImg.getWidth()/2, -PedImg.getHeight()/2);
+		at.translate(-toDraw.getWidth()/2, -toDraw.getHeight()/2);
 		
 		//Draw
 		g.setTransform(at);
 
 		//Enable Draw fake agent
-		if(drawFake)
+		/*if(drawFake)
 		{
 			if(fake){
 				g.drawImage(FakePedImg, 0, 0, null);
@@ -83,9 +151,9 @@ public class PedestrianTick extends AgentTick {
 				g.drawImage(PedImg, 0, 0, null);
 			}
 
-		}else{
-			g.drawImage(PedImg, 0, 0, null);
-		}
+		}else{*/
+			g.drawImage(toDraw, 0, 0, null);
+		//}
 
 		//Restore old transformation matrix
 		g.setTransform(oldAT);	

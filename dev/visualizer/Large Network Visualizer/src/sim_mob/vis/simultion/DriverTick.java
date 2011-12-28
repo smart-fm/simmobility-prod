@@ -90,7 +90,7 @@ public class DriverTick extends AgentTick {
 		}
 		
 		//Recolor per the user's config file.
-		Hashtable<String, Color> overrides = GetOverrides("car");
+		Hashtable<String, Color> overrides = MainFrame.GetOverrides("car", CarBkgdColorIDs, CarLineColorIDs);
 		CarImg.buildColorIndex(overrides);
 	}
 	
@@ -103,7 +103,7 @@ public class DriverTick extends AgentTick {
 		}
 		
 		//Recolor per the user's config file.
-		Hashtable<String, Color> overrides = GetOverrides("car-debug");
+		Hashtable<String, Color> overrides = MainFrame.GetOverrides("car-debug", CarBkgdColorIDs, CarLineColorIDs);
 		DebugCarImg.buildColorIndex(overrides);
 	}
 	
@@ -116,27 +116,11 @@ public class DriverTick extends AgentTick {
 		}
 		
 		//Recolor per the user's config file.
-		Hashtable<String, Color> overrides = GetOverrides("car-fake");
+		Hashtable<String, Color> overrides = MainFrame.GetOverrides("car-fake", CarBkgdColorIDs, CarLineColorIDs);
 		FakeCarImg.buildColorIndex(overrides);
 		FakeCarImg.phaseColors(0xFF/2);
 	}
 	
-	private static Hashtable<String, Color> GetOverrides(String prefix) {
-		Hashtable<String, Color> overrides = new Hashtable<String, Color>();
-		for (String id : CarBkgdColorIDs) {
-			Color clr = MainFrame.Config.getBackground(prefix+"-"+id);
-			if (clr!=null) {
-				overrides.put(id, clr);
-			}
-		}
-		for (String id : CarLineColorIDs) {
-			Color clr = MainFrame.Config.getLineColor(prefix+"-"+id);
-			if (clr!=null) {
-				overrides.put(id, clr);
-			}
-		}
-		return overrides;
-	}
 	
 	public void setItFake(){
 		fake = true;

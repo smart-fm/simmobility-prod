@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.regex.Pattern;
 
 import sim_mob.conf.CSS_Interface;
@@ -109,14 +110,30 @@ public class MainFrame extends JFrame {
 		} catch (Exception ex) {
 			throw new RuntimeException(ex);
 		}
-		
-	
 	}
+	
+	
+	public static Hashtable<String, Color> GetOverrides(String prefix, String[] bkgrdColors, String[] lineColors) {
+		Hashtable<String, Color> overrides = new Hashtable<String, Color>();
+		for (String id : bkgrdColors) {
+			Color clr = MainFrame.Config.getBackground(prefix+"-"+id);
+			if (clr!=null) {
+				overrides.put(id, clr);
+			}
+		}
+		for (String id : lineColors) {
+			Color clr = MainFrame.Config.getLineColor(prefix+"-"+id);
+			if (clr!=null) {
+				overrides.put(id, clr);
+			}
+		}
+		return overrides;
+	}
+	
 	
 	/**
 	 * Load all components and initialize them properly.
 	 */
-	
 	private void loadComponents() throws IOException {
 		playIcon = new ImageIcon(Utility.LoadImgResource("res/icons/play.png"));
 		pauseIcon = new ImageIcon(Utility.LoadImgResource("res/icons/pause.png"));

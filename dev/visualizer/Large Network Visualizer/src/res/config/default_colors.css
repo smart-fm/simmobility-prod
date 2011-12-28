@@ -100,3 +100,71 @@
 .car-debug-body-outline {
   border: 1px solid #2C2C71;
 }
+
+
+/* pedestrian colors */
+/* NOTE: border-width is ignored for now */
+.pedestrian-body {
+  background: #FDCA6C;
+}
+.pedestrian-body-head {
+  background: #D1D0D0;
+}
+.pedestrian-body-outline {
+  border: 1px solid #000000;
+}
+.pedestrian-touch-up-1 {
+  border: 1px solid #DD811D;
+}
+.pedestrian-touch-up-2 {
+  background: #CB5400;
+}
+.pedestrian-touch-up-3 {
+  border: 1px solid #732E00;
+}
+.pedestrian-touch-up-4 {
+  border: 1px solid #FFF2CD;
+}
+
+
+/* pedestrian colors - fake */
+/* NOTE: border-width is ignored for now */
+.pedestrian-fake-body {
+  background: #CECECE;
+}
+.pedestrian-fake-body-head {
+  background: #D1D0D0;
+}
+.pedestrian-fake-touch-up-1 {
+  border: 1px solid #8D8D8D;
+}
+.pedestrian-fake-touch-up-2 {
+  background: #676767;
+}
+.pedestrian-fake-touch-up-3 {
+  border: 1px solid #393939;
+}
+.pedestrian-fake-touch-up-4 {
+  border: 1px solid #F2F2F2;
+}
+
+/* pedestrian colors - debug */
+/* NOTE: border-width is ignored for now */
+.pedestrian-debug-body {
+  background: #B5ACEB;
+}
+.pedestrian-debug-body-head {
+  background: #BDF8E9;
+}
+.pedestrian-debug-touch-up-1 {
+  border: 1px solid #5844D3;
+}
+.pedestrian-debug-touch-up-2 {
+  background: #3826A7;
+}
+.pedestrian-debug-touch-up-3 {
+  border: 1px solid #1E145B;
+}
+.pedestrian-debug-touch-up-4 {
+  border: 1px solid #EAE8F9;
+}

@@ -87,8 +87,11 @@ IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   
   #Find mpich-2
   find_package(MPICH2 REQUIRED)
-  include_directories(${MPI_INCLUDE_PATH})
+  #include_directories(${MPI_INCLUDE_PATH})
+  include_directories(/usr/include/mpich2)
   LIST(APPEND LibraryList ${MPI_LIBRARIES})
+  
+  MESSAGE("TODO: /usr/include/mpich2 is currently hard-coded; need to modify FindMPICH2.cmake")
   
   #Find cgal
   find_package(CGAL REQUIRED)

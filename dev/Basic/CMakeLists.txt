@@ -92,7 +92,7 @@ IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   
   #Find cgal
   find_package(CGAL REQUIRED)
-  include_directories(${CGAL_INCLUDE_DIR})
+  #include_directories(${CGAL_INCLUDE_DIR})  #This messes up gmpxx...
   LIST(APPEND LibraryList ${CGAL_LIBRARIES})
 ENDIF(${SIMMOB_DISABLE_MPI} MATCHES "OFF")
 

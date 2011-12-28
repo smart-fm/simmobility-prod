@@ -9,50 +9,57 @@
 ## SOCI_INCLUDE_DIRS, where to find the headers
 ##
 
-FIND_PATH(SOCI_INCLUDE_DIRS soci.h
-    ${SOCI_DIR}/include
-    ${SOCI_DIR}/include/soci
-    $ENV{SOCI_DIR}/include
-    $ENV{SOCI_DIR}/include/soci
-    $ENV{SOCI_DIR}
-    ~/Library/Frameworks
-    /Library/Frameworks
-    /usr/local/include
-    /usr/local/include/soci
-    /usr/include
-    /usr/include/soci
-    /sw/include # Fink
-    /opt/local/include # DarwinPorts
-    /opt/csw/include # Blastwave
-    /opt/include
-)
+if (SOCI_INCLUDE_DIRS AND SOCI_LIBRARIES)
+  #Do nothing; the cached values of these already exist
 
-FIND_LIBRARY(SOCI_LIBRARIES
-    NAMES soci_core  soci_core-gcc-3_0
-    PATHS
-    ${SOCI_DIR}/lib
-    $ENV{SOCI_DIR}/lib
-    $ENV{SOCI_DIR}
-    ~/Library/Frameworks
-    /Library/Frameworks
-    /usr/local/lib
-    /usr/lib
-    /sw/lib
-    /opt/local/lib
-    /opt/csw/lib
-    /opt/lib
-)
+else ()
 
-IF(SOCI_LIBRARIES)
-    IF (NOT SOCI_FIND_QUIETLY)
-    MESSAGE(STATUS "Found the SOCI library at ${SOCI_LIBRARIES}")
-    MESSAGE(STATUS "Found the SOCI headers at ${SOCI_INCLUDE_DIRS}")
-    ENDIF (NOT SOCI_FIND_QUIETLY)
-ENDIF(SOCI_LIBRARIES)
+  FIND_PATH(SOCI_INCLUDE_DIRS soci.h
+      ${SOCI_DIR}/include
+      ${SOCI_DIR}/include/soci
+      $ENV{SOCI_DIR}/include
+      $ENV{SOCI_DIR}/include/soci
+      $ENV{SOCI_DIR}
+      ~/Library/Frameworks
+      /Library/Frameworks
+      /usr/local/include
+      /usr/local/include/soci
+      /usr/include
+      /usr/include/soci
+      /sw/include # Fink
+      /opt/local/include # DarwinPorts
+      /opt/csw/include # Blastwave
+      /opt/include
+  )
 
-IF(NOT SOCI_LIBRARIES)
-    IF (SOCI_FIND_REQUIRED)
-    MESSAGE(FATAL_ERROR "SOCI Not Found.")
-    ENDIF (SOCI_FIND_REQUIRED)
-ENDIF(NOT SOCI_LIBRARIES)
+  FIND_LIBRARY(SOCI_LIBRARIES
+      NAMES soci_core  soci_core-gcc-3_0
+      PATHS
+      ${SOCI_DIR}/lib
+      $ENV{SOCI_DIR}/lib
+      $ENV{SOCI_DIR}
+      ~/Library/Frameworks
+      /Library/Frameworks
+      /usr/local/lib
+      /usr/lib
+      /sw/lib
+      /opt/local/lib
+      /opt/csw/lib
+      /opt/lib
+  )
+
+  IF(SOCI_LIBRARIES)
+      IF (NOT SOCI_FIND_QUIETLY)
+      MESSAGE(STATUS "Found the SOCI library at ${SOCI_LIBRARIES}")
+      MESSAGE(STATUS "Found the SOCI headers at ${SOCI_INCLUDE_DIRS}")
+      ENDIF (NOT SOCI_FIND_QUIETLY)
+  ENDIF(SOCI_LIBRARIES)
+
+  IF(NOT SOCI_LIBRARIES)
+      IF (SOCI_FIND_REQUIRED)
+      MESSAGE(FATAL_ERROR "SOCI Not Found.")
+      ENDIF (SOCI_FIND_REQUIRED)
+  ENDIF(NOT SOCI_LIBRARIES)
+
+endif (SOCI_INCLUDE_DIRS AND SOCI_LIBRARIES)
 

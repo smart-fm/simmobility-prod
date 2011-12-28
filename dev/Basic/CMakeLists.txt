@@ -64,6 +64,11 @@ find_package(TinyXML REQUIRED)
 include_directories(${TinyXML_INCLUDE_DIRS})
 LIST(APPEND LibraryList ${TINYXML_LIBRARIES})
 
+#Find PQ
+find_package(PostgreSQL REQUIRED)
+include_directories(${PostgreSQL_INCLUDE_DIRS})
+LIST(APPEND LibraryList ${PostgreSQL_LIBRARIES})
+
 #Find SOCI
 find_package(SOCI REQUIRED)
 include_directories(${SOCI_INCLUDE_DIRS})
@@ -71,8 +76,8 @@ LIST(APPEND LibraryList ${SOCI_LIBRARIES})
 
 #Find SOCI-PostgreSQL
 find_package(SOCIPostgreSQL REQUIRED)
-include_directories(${SOCIPostgreSQL_INCLUDE_DIRS})
-LIST(APPEND LibraryList ${SOCIPostgreSQL_LIBRARIES})
+include_directories(${SOCIPOSTGRESQL_INCLUDE_DIRS})
+LIST(APPEND LibraryList ${SOCIPOSTGRESQL_LIBRARIES})
 
 #Include directories ported over from Eclipse. Can be augmented later with pkgconfig.
 #include_directories("/usr/include/soci/postgresql")
@@ -95,6 +100,11 @@ IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   include_directories(${CGAL_INCLUDE_DIRS})
   LIST(APPEND LibraryList ${CGAL_LIBRARIES})
 ENDIF(${SIMMOB_DISABLE_MPI} MATCHES "OFF")
+
+#Remove duplicates, just in case
+#TODO: We should probably build up a list of IncludeDirs and LibraryDirs too (duplicates removed)
+#      Not a real priority right now, but should allow better porting later on.
+list(REMOVE_DUPLICATES LibraryList)
 
 #Group as many files as possible together automatically
 FILE(GLOB_RECURSE BASIC_CPP *.cpp)

@@ -56,12 +56,12 @@ SET(LibraryList "")
 #Find boost
 set(Boost_ADDITIONAL_VERSIONS "1.47" "1.47.0" "1.48" "1.48.0")
 find_package(Boost COMPONENTS thread serialization date_time REQUIRED)
-include_directories(${Boost_INCLUDE_DIRS})
+include_directories(${Boost_INCLUDE_DIR})
 LIST(APPEND LibraryList ${Boost_LIBRARIES})
 
 #Find TinyXML
 find_package(TinyXML REQUIRED)
-include_directories(${TinyXML_INCLUDE_DIRS})
+include_directories(${TINYXML_INCLUDE_DIR})
 LIST(APPEND LibraryList ${TINYXML_LIBRARIES})
 
 #Find PQ
@@ -97,7 +97,7 @@ IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   
   #Find cgal
   find_package(CGAL REQUIRED)
-  include_directories(${CGAL_INCLUDE_DIRS})
+  include_directories(${CGAL_INCLUDE_DIR})
   LIST(APPEND LibraryList ${CGAL_LIBRARIES})
 ENDIF(${SIMMOB_DISABLE_MPI} MATCHES "OFF")
 

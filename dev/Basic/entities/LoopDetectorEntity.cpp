@@ -512,6 +512,17 @@ LoopDetectorEntity::update(frame_t frameNumber)
 }
 
 void
+LoopDetectorEntity::reset()
+{
+    std::map<Lane const *, Shared<CountAndTimePair>*>::iterator iter;
+    for (iter = data_.begin(); iter != data_.end(); ++iter)
+    {
+        Shared<CountAndTimePair> * pair = iter->second;
+        pair->set(CountAndTimePair());
+    }
+}
+
+void
 LoopDetectorEntity::reset(Lane const & lane)
 {
     std::map<Lane const *, Shared<CountAndTimePair>*>::iterator iter = data_.find(&lane);

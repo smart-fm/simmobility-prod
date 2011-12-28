@@ -1295,7 +1295,7 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) const {
 	} else {
 
 		Signal::TrafficColor color;
-		if (nextLaneInNextLink) {
+		if (vehicle->hasNextSegment(false)) {
 			color = trafficSignal->getDriverLight(*p.currLane, *nextLaneInNextLink);
 		} else {
 			color = trafficSignal->getDriverLight(*p.currLane).forward;
@@ -1303,12 +1303,12 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) const {
 
 		switch (color) {
 		case Signal::Red:
-		case Signal::Amber:
 			p.isTrafficLightStop = true;
 			p.trafficSignalStopDistance = vehicle->getAllRestRoadSegmentsLength()
 					- vehicle->getDistanceMovedInSegment() - vehicle->length / 2;
 			break;
 
+		case Signal::Amber:
 		case Signal::Green:
 			if (!isPedestrianOnTargetCrossing())
 				p.isTrafficLightStop = false;

@@ -88,6 +88,9 @@ public:
 	void setnextOffset(double nextCL);
 	void updateOffset();
 
+	double computeDS(double total_g);
+	double LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,double total_g);
+
 
 	//get the parameters in SCATS
 	double getprevCL() {return prevCL;}

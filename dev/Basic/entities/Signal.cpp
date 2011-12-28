@@ -303,6 +303,46 @@ void Signal::outputToVisualizer(frame_t frameNumber) {
 	LogOut(logout.str());
 }
 
+double sim_mob::Signal::computeDS(double total_g)
+{
+	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&node_);
+	double maxDS = 0;
+	if(mNode)
+	{
+		const std::set<sim_mob::RoadSegment*>& rs = mNode->getRoadSegments();
+		for(std::set<sim_mob::RoadSegment*>::const_iterator it=rs.begin(); it!=rs.end(); it++){
+			if((*it)->getEnd()!=&node_)
+				continue;
+			const std::vector<sim_mob::Lane*>& lanes = (*it)->getLanes();
+			for(size_t i=0;i<lanes.size();i++)
+			{
+				const Lane* lane = lanes.at(i);
+				if(lane->is_pedestrian_lane())
+					continue;
+				VehicleTrafficColors colors = getDriverLight(*lane);
+				if(colors.forward==Red&&colors.left==Red&&colors.right==Red)
+					continue;
+
+				const LoopDetectorEntity::CountAndTimePair& ctPair = loopDetector_.getCountAndTimePair(*lane);
+				double lane_DS = LaneDS(ctPair,total_g);
+				if(lane_DS>maxDS)
+					maxDS = lane_DS;
+			}
+		}
+	}
+	return maxDS;
+}
+
+double sim_mob::Signal::LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,double total_g)
+{
+	size_t vehicleCount = ctPair.vehicleCount;
+	unsigned int spaceTime = ctPair.spaceTimeInMilliSeconds;
+	//std::cout<<"DS "<<vehicleCount<<" "<<spaceTime<<" "<<total_g<<std::endl;
+	double standard_space_time = 1.04*1000;//1.04 seconds
+	double used_g = total_g - (spaceTime - standard_space_time*vehicleCount);
+	return used_g/total_g;
+}
+
 bool Signal::update(frame_t frameNumber) {
 	updateSignal(Density);
 	outputToVisualizer(frameNumber);
@@ -336,6 +376,7 @@ void Signal::updateSignal(double DS[]) {
 		updatecurrSplitPlan();
 	}
 
+	int prePhase = currPhase;
 	if (phaseCounter < nextCL * nextSplitPlan[0]) {
 		if (phaseCounter <= (nextCL * nextSplitPlan[0] - 3))
 			currPhase = 0;
@@ -360,9 +401,16 @@ void Signal::updateSignal(double DS[]) {
 
 	if (phaseCounter == floor(nextCL)) {
 		phaseCounter = 0;
-	} else {
 	}
 
+	if(currPhase%10!=prePhase%10||phaseCounter==0)
+	{
+		double total_g = (nextCL * nextSplitPlan[prePhase%10])*1000;
+		double currPhaseDS = computeDS(total_g);
+		DS[prePhase%10] = currPhaseDS;
+		loopDetector_.reset();
+//		std::cout<<"DS "<<currPhaseDS<<std::endl;
+	}
 	updateTrafficLights();
 }
 
@@ -444,6 +492,7 @@ void Signal::updateprevCL() {
 }
 
 void Signal::updatecurrCL() {
+//	std::cout<<"currCL "<<currCL<<" nextCL "<<nextCL<<std::endl;
 	currCL = nextCL;
 }
 

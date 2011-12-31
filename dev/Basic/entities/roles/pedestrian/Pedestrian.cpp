@@ -890,7 +890,9 @@ void sim_mob::Pedestrian::package(PackageUtils& packageUtil) {
 	}
 
 	packageUtil.packageBasicData(isUsingGenPathMover);
-	packageUtil.packagePedestrianUpdateParams(params);
+
+	//no need to package params, params will be rebuild in the next time step
+	//packageUtil.packagePedestrianUpdateParams(params);
 }
 
 void sim_mob::Pedestrian::unpackage(UnPackageUtils& unpackageUtil) {
@@ -937,7 +939,9 @@ void sim_mob::Pedestrian::unpackage(UnPackageUtils& unpackageUtil) {
 	}
 
 	isUsingGenPathMover = unpackageUtil.unpackageBasicData<bool> ();
-	unpackageUtil.unpackagePedestrianUpdateParams(params);
+
+	//no need to unpackage params, params will be rebuild in the next time step
+	//unpackageUtil.unpackagePedestrianUpdateParams(params);
 }
 
 void sim_mob::Pedestrian::packageProxy(PackageUtils& packageUtil) {

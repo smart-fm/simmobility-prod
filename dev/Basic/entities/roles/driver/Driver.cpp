@@ -1295,7 +1295,7 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) const {
 	} else {
 
 		Signal::TrafficColor color;
-		if (nextLaneInNextLink) {
+		if (vehicle->hasNextSegment(false)) {
 			color = trafficSignal->getDriverLight(*p.currLane, *nextLaneInNextLink);
 		} else {
 			color = trafficSignal->getDriverLight(*p.currLane).forward;
@@ -1303,12 +1303,12 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) const {
 
 		switch (color) {
 		case Signal::Red:
-		case Signal::Amber:
 			p.isTrafficLightStop = true;
 			p.trafficSignalStopDistance = vehicle->getAllRestRoadSegmentsLength()
 					- vehicle->getDistanceMovedInSegment() - vehicle->length / 2;
 			break;
 
+		case Signal::Amber:
 		case Signal::Green:
 			if (!isPedestrianOnTargetCrossing())
 				p.isTrafficLightStop = false;
@@ -1331,7 +1331,8 @@ void sim_mob::Driver::package(PackageUtils& packageUtil) {
 	packageUtil.packageBasicData(isInIntersection.get());
 
 	//part 2
-	packageUtil.packageDriverUpdateParams(params);
+	//no need to package params, params will be rebuild in the next time step
+	//packageUtil.packageDriverUpdateParams(params);
 	packageUtil.packageVehicle(vehicle);
 	bool hasSomething = false;
 	if (intModel) {
@@ -1398,7 +1399,8 @@ void sim_mob::Driver::unpackage(UnPackageUtils& unpackageUtil) {
 	bool value_inIntersection = unpackageUtil.unpackageBasicData<bool> ();
 	isInIntersection.force(value_inIntersection);
 
-	unpackageUtil.unpackageDriverUpdateParams(params);
+	//no need to unpackage params, params will be rebuild in the next time step
+	//unpackageUtil.unpackageDriverUpdateParams(params);
 
 	//part 2
 	//currTimeMS = unpackageUtil.unpackageBasicData<int> ();

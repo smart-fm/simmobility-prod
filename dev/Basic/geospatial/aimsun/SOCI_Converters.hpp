@@ -4,7 +4,7 @@
 
 //This file contains several Type converters for SOCI object-mapping
 
-#include "soci/soci.h"
+#include "soci.h"
 #include "Node.hpp"
 #include "Section.hpp"
 #include "Lane.hpp"

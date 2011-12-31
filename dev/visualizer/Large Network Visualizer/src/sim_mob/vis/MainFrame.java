@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 import sim_mob.conf.CSS_Interface;
 import sim_mob.vis.controls.*;
 import sim_mob.vis.network.RoadNetwork;
+import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.simultion.SimulationResults;
 import sim_mob.vis.util.StringSetter;
 import sim_mob.vis.util.Utility;
@@ -472,6 +473,9 @@ public class MainFrame extends JFrame {
 		}
 	
 		console.setText("Input File Name: "+fileName);
+		
+		//Clear our global scaled points array.
+		ScaledPoint.ClearGlobalGroup();
 		
 		//Store all Agents returned by this.
 		HashSet<Integer> uniqueAgentIDs = new HashSet<Integer>();

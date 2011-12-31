@@ -132,6 +132,21 @@ std::string BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage& pa
 					continue;
 				}
 
+				//TODO: What do we do if the vehicle is already done with its path?
+				//      Currently, this will lead to undefined behavior if the BoundarySegment is
+				//      DIRECTLY at the end of the Agent's route, and the Agent lands on
+				//      that line EXACTLY. So, this is probably ok, but I'd rather not rely
+				//      on this behvaior in the future. ~Seth
+				{//Temporary bugfix.
+				const Person* p = dynamic_cast<const Person*>(*agent_pointer);
+				if (p) {
+					const Driver* d = dynamic_cast<const Driver*>(p->getRole());
+					if (d && d->getVehicle()->isDone()) {
+						continue; //Avoid crashing on a call to getCurrSegment()
+					}
+				}
+				}
+
 				if ((packageImpl.getAgentRoleType(*agent_pointer) != role_modes(Driver_Role))
 						&& (packageImpl.getAgentRoleType(*agent_pointer) != role_modes(Pedestrian_Role))) {
 					continue;
@@ -470,6 +485,7 @@ bool BoundaryProcessor::isAgentCrossed(BoundarySegment* segment, Agent const* ag
 		Person* p = const_cast<Person*> (person);
 		const Driver *driver = dynamic_cast<const Driver *> (p->getRole());
 
+		//normal check
 		if (driver->getVehicle()->getCurrSegment()->getStart()->location.getX()
 				!= segment->boundarySegment->getStart()->location.getX()) {
 			return false;

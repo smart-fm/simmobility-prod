@@ -46,19 +46,70 @@ IF (SIMMOB_LATEST_STANDARD)
   ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 ENDIF(SIMMOB_LATEST_STANDARD)
 
+#Additional module find scripts
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules/")
 
-#Include directories ported over from Eclipse. Can be augmented later with pkgconfig.
-include_directories("/usr/include/soci/postgresql")
-include_directories("/usr/include/soci")
-include_directories("/usr/include/postgresql")
+#List of libraries to link
+#SET(LibraryList soci_core-gcc-3_0 soci_postgresql-gcc-3_0)
+SET(LibraryList "")
 
-#Optional includes: MPI
+#Find boost
+set(Boost_ADDITIONAL_VERSIONS "1.47" "1.47.0" "1.48" "1.48.0")
+find_package(Boost COMPONENTS thread serialization date_time REQUIRED)
+include_directories(${Boost_INCLUDE_DIR})
+LIST(APPEND LibraryList ${Boost_LIBRARIES})
+
+#Find TinyXML
+find_package(TinyXML REQUIRED)
+include_directories(${TINYXML_INCLUDE_DIR})
+LIST(APPEND LibraryList ${TINYXML_LIBRARIES})
+
+#Find PQ
+find_package(PostgreSQL REQUIRED)
+include_directories(${PostgreSQL_INCLUDE_DIRS})
+LIST(APPEND LibraryList ${PostgreSQL_LIBRARIES})
+
+#Find SOCI
+find_package(SOCI REQUIRED)
+include_directories(${SOCI_INCLUDE_DIRS})
+LIST(APPEND LibraryList ${SOCI_LIBRARIES})
+
+#Find SOCI-PostgreSQL
+find_package(SOCIPostgreSQL REQUIRED)
+include_directories(${SOCIPOSTGRESQL_INCLUDE_DIRS})
+LIST(APPEND LibraryList ${SOCIPOSTGRESQL_LIBRARIES})
+
+#Optionally find: MPI, CGAL
 IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
-  include_directories("/usr/include/mpi")
+  #Find boost-mpi
+  find_package(Boost COMPONENTS mpi REQUIRED)
+  LIST(APPEND LibraryList ${Boost_LIBRARIES})
+  
+  #Find any MPI implementation
+  set(MPI_COMPILER ${MPI_ROOT}/bin/mpicxx)
+  find_package(MPI REQUIRED)
+  include_directories(${MPI_CXX_INCLUDE_PATH})
+  LIST(APPEND LibraryList ${MPI_CXX_LIBRARIES})
+  
+  #More mpi-related flags
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
+  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MPI_CXX_LINK_FLAGS}")
+  
+  #Find cgal
+  find_package(CGAL REQUIRED)
+  #include_directories(${CGAL_INCLUDE_DIR})  #This messes up gmpxx...
+  LIST(APPEND LibraryList ${CGAL_LIBRARIES})
+  
+  #Use the mpi compiler.
+  SET(CMAKE_C_COMPILER ${MPI_C_COMPILER})
+  SET(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
+  MESSAGE("INFO: Overriding c++ compiler: ${CMAKE_CXX_COMPILER}")
 ENDIF(${SIMMOB_DISABLE_MPI} MATCHES "OFF")
 
-#Link directories
-#link_directories (/usr/lib/whatever)
+#Remove duplicates, just in case
+#TODO: We should probably build up a list of IncludeDirs and LibraryDirs too (duplicates removed)
+#      Not a real priority right now, but should allow better porting later on.
+list(REMOVE_DUPLICATES LibraryList)
 
 #Group as many files as possible together automatically
 FILE(GLOB_RECURSE BASIC_CPP *.cpp)
@@ -66,10 +117,7 @@ FILE(GLOB_RECURSE BASIC_CPP *.cpp)
 #Create a list of items to remove from the Build.
 # Adding main.cpp to this list makes a good starting point, and ensures
 # we always have at least one item to remove from BASIC_CPP
-#SET(IgnoreList main.cpp)
-
-#TEMP: Why isn't the previous line working?
-FILE(GLOB IgnoreList "main.cpp")
+FILE(GLOB IgnoreList main.cpp)
 
 #Remove tests
 FILE(GLOB_RECURSE IgnoreTmp "unit-tests/*.cpp" "unit-tests/*.c")
@@ -90,17 +138,8 @@ LIST(APPEND IgnoreList ${IgnoreTmp})
 #Actually remove these
 LIST(REMOVE_ITEM BASIC_CPP ${IgnoreList})
 
-#List of libraries to link
-SET(LibraryList boost_thread boost_serialization tinyxml soci_core-gcc-3_0 soci_postgresql-gcc-3_0)
-
-#Optional library: MPI. Also pulls in CGAL
-IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
-  LIST(APPEND LibraryList boost_mpi CGAL)
-ENDIF(${SIMMOB_DISABLE_MPI} MATCHES "OFF")
-
 #Include the top-level source/binary directories
 include_directories("${PROJECT_SOURCE_DIR}")
-#include_directories("${PROJECT_BINARY_DIR}")
 
 #Build tests?
 IF (${BUILD_TESTS} MATCHES "ON")

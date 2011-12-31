@@ -3,11 +3,9 @@ package sim_mob.vect;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.awt.geom.Point2D.Double;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
-import java.util.ArrayList;
-import java.util.Hashtable;
+import java.util.*;
 
 import com.google.gson.Gson;
 

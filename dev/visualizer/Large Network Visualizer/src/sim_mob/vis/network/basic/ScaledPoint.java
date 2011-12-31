@@ -13,6 +13,10 @@ public class ScaledPoint {
 	private DPoint orig;
 	private DPoint scaled;
 	private ScaledPointGroup group;
+	
+	public static void ClearGlobalGroup() {
+		GlobalGroup = new ScaledPointGroup();
+	}
 	  
 	/**
 	 * Create a new ScaledPoint at the given x and y coordinates, belonging to a given ScaledPointGroup. If null, use the glboal group. 

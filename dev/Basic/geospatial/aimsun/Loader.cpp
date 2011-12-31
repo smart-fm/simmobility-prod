@@ -11,7 +11,7 @@
 //      "$INC/soci/postgresql". For now, I'm just referencing it manually, but
 //      we might want to use something like pkg-config to manage header file directories
 //      eventually.
-#include "soci/soci.h"
+#include "soci.h"
 #include "soci-postgresql.h"
 
 #include "CrossingLoader.hpp"

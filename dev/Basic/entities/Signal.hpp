@@ -241,6 +241,9 @@ public:
         /** \endcond doNotExpose -- End of block to be ignored by doxygen.  */
 
 private:
+    double Density[4];
+    double DS_all;
+
         Node const & node_;
 
 	//previous,current and next cycle length

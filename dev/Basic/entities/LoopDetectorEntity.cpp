@@ -518,7 +518,8 @@ LoopDetectorEntity::reset()
     for (iter = data_.begin(); iter != data_.end(); ++iter)
     {
         Shared<CountAndTimePair> * pair = iter->second;
-        pair->set(CountAndTimePair());
+        //pair->set(CountAndTimePair());
+        pair->force(CountAndTimePair());
     }
 }
 

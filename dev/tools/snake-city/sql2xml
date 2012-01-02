@@ -54,7 +54,10 @@ class Activity:
         self.location = location
 
 activity_spec_re = re.compile('INSERT INTO "Activity_Spec"\(.* VALUES\((\d+), (\d), (.*), (.*), (\d+)\);')
-trip_chain_re = re.compile('INSERT INTO "Trip_Chains"\(.* VALUES\((\d+), (\d+), (\d), "([^"]+)"\);')
+trip_chain_re = re.compile('INSERT INTO "Trip_Chains"\(.* VALUES\((\d+), (\d+), (\d), [\'"]([^"\']+)[\'"]\);')
+
+#Example line: INSERT INTO "Trip_Chains"("From_Activity_Id", "To_Activity_Id", "Mode_Of_Travel_Id", "Start_Time")  \
+#              VALUES(0, 38, 1, '8:24:26');
 
 activities = dict()
 f = open(sys.argv[1], 'r')

@@ -421,10 +421,10 @@ void Signal::updateSignal(double DS[]) {
 		double currPhaseDS = computeDS(total_g);
 		DS[prePhase%10] = currPhaseDS;
 		loopDetector_.reset();
-		if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
-		{
-			std::cout<<"DSS "<<prePhase%10<<" ["<<DS[0]<<","<<DS[1]<<","<<DS[2]<<","<<DS[3]<<"]"<<std::endl;
-		}
+//		if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
+//		{
+//			std::cout<<"DSS "<<prePhase%10<<" ["<<DS[0]<<","<<DS[1]<<","<<DS[2]<<","<<DS[3]<<"]"<<std::endl;
+//		}
 //		std::cout<<"DS "<<currPhaseDS<<std::endl;
 	}
 	updateTrafficLights();

@@ -257,6 +257,7 @@ double sim_mob::GeneralPathMover::advance(double fwdDistance)
 	double res = 0.0;
 	distAlongPolyline += fwdDistance;
 	//distMovedInSegment += fwdDistance;
+
 	while (distAlongPolyline>=currPolylineLength() && !inIntersection) {
 		if (Debug::Paths) {
 			Point2D myPos(getPosition().x, getPosition().y);

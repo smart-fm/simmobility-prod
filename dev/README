@@ -1,4 +1,12 @@
-Put dev stuff here. 
+General outline:
+
+    dev/Basic - The main Sim Mobility simulator
+    dev/visualizer - The main output visualizer
+    dev/tools - Tools which are generally useful to everyone
+
+If you have your own special-purpose tools or visualizations, it's better to put them in testing/
+
+
 
 
 

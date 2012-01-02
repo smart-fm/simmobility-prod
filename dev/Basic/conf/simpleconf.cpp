@@ -199,6 +199,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& agents, const 
 	}
 
 	ConfigParams& config = ConfigParams::GetInstance();
+	config.numAgentsSkipped = 0;
 	//Loop through all agents of this type
 	for (;node;node=node->NextSiblingElement()) {
 		Person* agent = nullptr;
@@ -225,6 +226,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& agents, const 
 
 			//Create the agent if it doesn't exist
 			if (!agent) {
+				//Actually create the agent.
 				agent = new Person(config.mutexStategy);
 				if (agentType=="pedestrian") {
 					agent->changeRole(new Pedestrian(agent, agent->getGenerator()));
@@ -270,6 +272,40 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& agents, const 
 				agent->specialStr = value;
 			} else {
 				return false;
+			}
+		}
+
+		//Optional: Only add this Agent if a path exists for it from start to finish.
+		bool checkBadPaths = true; //TODO: Migrate this flag into the config file.
+		StreetDirectory& sd = StreetDirectory::instance();
+		if (agent && foundOrigPos && foundDestPos && checkBadPaths) {
+			bool skip = false;
+			if (agentType=="pedestrian") {
+				//For now, pedestrians can't have invalid routes.
+				/*skip = true;
+				vector<WayPoint> path = sd.shortestWalkingPath(agent->originNode->location, agent->destNode->location);
+				for (vector<WayPoint>::iterator it=path.begin(); it!=path.end(); it++) {
+					if (it->type_ == WayPoint::SIDE_WALK) {
+						skip = false;
+						break;
+					}
+				}*/
+			} else if (agentType=="driver") {
+				skip = true;
+				vector<WayPoint> path = sd.shortestWalkingPath(agent->originNode->location, agent->destNode->location);
+				for (vector<WayPoint>::iterator it=path.begin(); it!=path.end(); it++) {
+					if (it->type_ == WayPoint::ROAD_SEGMENT) {
+						skip = false;
+						break;
+					}
+				}
+			}
+
+			//Is this Agent invalid?
+			if (skip) {
+				config.numAgentsSkipped++;
+				delete agent;
+				continue;
 			}
 		}
 

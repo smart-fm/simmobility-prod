@@ -8,13 +8,16 @@
  */
 
 #include "GenConfig.h"
-#ifndef SIMMOB_DISABLE_OUTPUT
+
 
 
 #include <vector>
 #include <string>
 
+#ifndef SIMMOB_DISABLE_OUTPUT
 #include <boost/thread.hpp>
+#endif
+
 #include <iostream>
 #include <fstream>
 
@@ -32,7 +35,7 @@ namespace sim_mob {
  */
 void PrintArray(const std::vector<int>& ids, const std::string& label="", const std::string& brL="[", const std::string& brR="]", const std::string& comma=",", int lineIndent=2);
 
-
+#ifndef SIMMOB_DISABLE_OUTPUT
 class Logger
 {
 public:
@@ -60,9 +63,12 @@ private:
 	static std::ostream* log_file_or_cout;
 	static std::ofstream file_output;
 };
+#endif
+
+} //End sim_mob namespace
 
 
-}
+#ifndef SIMMOB_DISABLE_OUTPUT
 
 /**
  * Write a message to the log file without any thread synchronization.
@@ -100,5 +106,6 @@ private:
         LogOutNotSync(strm); \
     } \
     while (0)
+
 
 #endif

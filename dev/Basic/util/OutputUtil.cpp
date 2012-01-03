@@ -1,7 +1,6 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "GenConfig.h"
-#ifndef SIMMOB_DISABLE_OUTPUT
 
 #include "OutputUtil.hpp"
 
@@ -11,10 +10,11 @@
 using std::vector;
 using std::string;
 
-
+#ifndef SIMMOB_DISABLE_OUTPUT
 boost::mutex sim_mob::Logger::global_mutex;
 std::ostream* sim_mob::Logger::log_file_or_cout;
 std::ofstream sim_mob::Logger::file_output;
+#endif
 
 
 void sim_mob::PrintArray(const vector<int>& ids, const string& label, const string& brL, const string& brR, const string& comma, int lineIndent)
@@ -48,6 +48,4 @@ void sim_mob::PrintArray(const vector<int>& ids, const string& label, const stri
 	std::cout <<out.str();
 }
 
-
-#endif
 

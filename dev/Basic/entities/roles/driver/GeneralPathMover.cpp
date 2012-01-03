@@ -530,7 +530,10 @@ void sim_mob::GeneralPathMover::moveToNewPolyline(int newLaneID)
 
 	//Nothing to do?
 	if (newLaneID==currLaneID) {
+#ifndef SIMMOB_DISABLE_OUTPUT
+		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 		std::cout << "Nothing to do for next" << std::endl;
+#endif
 		return;
 	}
 

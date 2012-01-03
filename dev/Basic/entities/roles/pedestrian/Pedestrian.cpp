@@ -160,7 +160,10 @@ void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 	} else if (currentStage == ApproachingIntersection || currentStage == LeavingIntersection) {
 		updateVelocity(0);
 		updatePosition();
+
+#ifndef SIMMOB_DISABLE_OUTPUT
 		LogOut("Pedestrian " <<parent->getId() <<" is walking on sidewalk" <<std::endl);
+#endif
 	} else if (currentStage == NavigatingIntersection) {
 		//Check whether to start to cross or not
 		updatePedestrianSignal();
@@ -181,7 +184,9 @@ void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 			updatePosition();
 		} else {
 			//Output (temp)
+#ifndef SIMMOB_DISABLE_OUTPUT
 			LogOut("Pedestrian " <<parent->getId() <<" is waiting at the crossing" <<std::endl);
+#endif
 		}
 	}
 }
@@ -197,7 +202,9 @@ void sim_mob::Pedestrian::frame_tick_output(const UpdateParams& p)
 		return;
 	}
 
+#ifndef SIMMOB_DISABLE_OUTPUT
 	LogOut("("<<"\"pedestrian\","<<p.frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get()<<"\",})"<<std::endl);
+#endif
 }
 
 void sim_mob::Pedestrian::frame_tick_output_mpi(frame_t frameNumber)
@@ -205,11 +212,13 @@ void sim_mob::Pedestrian::frame_tick_output_mpi(frame_t frameNumber)
 	if (frameNumber < 1 || frameNumber < parent->getStartTime())
 		return;
 
+#ifndef SIMMOB_DISABLE_OUTPUT
 	if (this->parent->isFake) {
 		LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get() <<"\"," <<"\"xVel\":\""<< this->xVel <<"\"," <<"\"yVel\":\""<< this->yVel <<"\"," <<"\"fake\":\""<<"true" <<"\",})"<<std::endl);
 	} else {
 		LogOut("("<<"\"pedestrian\","<<frameNumber<<","<<parent->getId()<<","<<"{\"xPos\":\""<<parent->xPos.get()<<"\"," <<"\"yPos\":\""<<this->parent->yPos.get() <<"\"," <<"\"xVel\":\""<< this->xVel <<"\"," <<"\"yVel\":\""<< this->yVel <<"\"," <<"\"fake\":\""<<"false" <<"\",})"<<std::endl);
 	}
+#endif
 }
 
 /*---------------------Perception-related functions----------------------*/

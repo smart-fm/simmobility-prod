@@ -262,6 +262,7 @@ void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
 
 	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
 
+#ifndef SIMMOB_DISABLE_OUTPUT
 	LogOut("(\"Driver\""
 			<<","<<p.frameNumber
 			<<","<<parent->getId()
@@ -272,7 +273,7 @@ void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
 			<<"\",\"length\":\""<<static_cast<int>(vehicle->length)
 			<<"\",\"width\":\""<<static_cast<int>(vehicle->width)
 			<<"\"})"<<std::endl);
-
+#endif
 }
 
 void sim_mob::Driver::frame_tick_output_mpi(frame_t frameNumber)
@@ -283,6 +284,7 @@ void sim_mob::Driver::frame_tick_output_mpi(frame_t frameNumber)
 	if (vehicle->isDone())
 		return;
 
+#ifndef SIMMOB_DISABLE_OUTPUT
 	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
 	std::stringstream logout;
 
@@ -300,6 +302,7 @@ void sim_mob::Driver::frame_tick_output_mpi(frame_t frameNumber)
 	logout << "\"})" << std::endl;
 
 	LogOut(logout.str());
+#endif
 }
 
 sim_mob::UpdateParams& sim_mob::Driver::make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS)

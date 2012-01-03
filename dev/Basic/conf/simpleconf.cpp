@@ -536,6 +536,7 @@ bool LoadXMLBoundariesCrossings(TiXmlDocument& document, const string& parentStr
 //      first because Links need Nodes. Otherwise, the output will be in no guaranteed order.
 void PrintDB_Network()
 {
+#ifndef SIMMOB_DISABLE_OUTPUT
 	//Save RoadSegments/Connectors to make output simpler
 	std::set<const RoadSegment*> cachedSegments;
 	std::set<LaneConnector*> cachedConnectors;
@@ -726,6 +727,7 @@ void PrintDB_Network()
 			LogOutNotSync("})" <<endl);
 		}
 	}
+#endif
 }
 
 

@@ -400,19 +400,18 @@ int main(int argc, char* argv[])
 	cout << "Using config file: " << configFileName << endl;
 
 	//Argument 2: Log file
-	if (argc > 2)
-	{
+#ifndef SIMMOB_DISABLE_OUTPUT
+	if (argc > 2) {
 		if (!Logger::log_init(argv[2]))
 		{
 			cout << "Loading output file failed; using cout" << endl;
 			cout << argv[2] << endl;
 		}
-	}
-	else
-	{
+	} else {
 		Logger::log_init("");
 		cout << "No output file specified; using cout." << endl;
 	}
+#endif
 
 	//This should be moved later, but we'll likely need to manage random numbers
 	//ourselves anyway, to make simulations as repeatable as possible.
@@ -425,7 +424,9 @@ int main(int argc, char* argv[])
 	int returnVal = performMain(configFileName) ? 0 : 1;
 
 	//Close log file, return.
+#ifndef SIMMOB_DISABLE_OUTPUT
 	Logger::log_done();
+#endif
 	cout << "Done" << endl;
 	return returnVal;
 }

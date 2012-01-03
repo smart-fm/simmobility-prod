@@ -194,6 +194,7 @@ bool sim_mob::GeneralPathMover::isDoneWithEntireRoute() const
 	bool res = currSegmentIt==fullPath.end();
 
 	if (Debug::Paths && res) {
+#ifndef SIMMOB_DISABLE_OUTPUT
 		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 		if (!DebugStream.str().empty()) {
 			//TEMP: Re-enable later.
@@ -201,6 +202,7 @@ bool sim_mob::GeneralPathMover::isDoneWithEntireRoute() const
 			std::cout <<DebugStream.str();
 			DebugStream.str("");
 		}
+#endif
 	}
 
 	return res;
@@ -223,12 +225,14 @@ void sim_mob::GeneralPathMover::throwIf(bool conditional, const std::string& msg
 	if (conditional) {
 		//Debug
 		if (Debug::Paths) {
+#ifndef SIMMOB_DISABLE_OUTPUT
 			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 			if (!DebugStream.str().empty()) {
 				DebugStream <<"EXCEPTION: " <<msg <<endl;
 				std::cout <<DebugStream.str();
 				DebugStream.str("");
 			}
+#endif
 		}
 
 		throw std::runtime_error(msg.c_str());

@@ -15,7 +15,10 @@
 #include <boost/mpi/communicator.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
+
+#ifndef SIMMOB_DISABLE_OUTPUT
 #include <boost/thread/mutex.hpp>
+#endif
 
 #include "BoundarySegment.hpp"
 #include "util/MathUtil.hpp"

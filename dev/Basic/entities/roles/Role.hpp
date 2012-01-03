@@ -69,7 +69,6 @@ public:
 
 	int getOwnRandomNumber(boost::mt19937& gen)
 	{
-		//		boost::mutex::scoped_lock lock(m_mutex);
 		int one_try = -1;
 		int second_try = -2;
 		int third_try = -3;
@@ -114,8 +113,6 @@ protected:
 	//TODO: We need a policy on who can get a generator and why.
 	//boost::mt19937 gen;
 
-	//public:
-	//	static boost::mutex m_mutex;
 public:
 #ifndef SIMMOB_DISABLE_MPI
 	friend class sim_mob::PartitionManager;

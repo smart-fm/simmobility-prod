@@ -219,8 +219,10 @@ void sim_mob::Worker::migrateOut(Entity& ag)
 
 	//Debugging output
 	if (Debug::WorkGroupSemantics) {
+#ifndef SIMMOB_DISABLE_OUTPUT
 		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 		std::cout <<"Removing Entity " <<ag.getId() <<" from worker: " <<this <<std::endl;
+#endif
 	}
 }
 
@@ -249,8 +251,10 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 
 	//Debugging output
 	if (Debug::WorkGroupSemantics) {
+#ifndef SIMMOB_DISABLE_OUTPUT
 		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 		std::cout <<"Adding Entity " <<ag.getId() <<" to worker: " <<this <<std::endl;
+#endif
 	}
 }
 

@@ -76,9 +76,11 @@ bool sim_mob::Person::update(frame_t frameNumber) {
 
 		//Output if removal requested.
 		if (Debug::WorkGroupSemantics && isToBeRemoved()) {
+#ifndef SIMMOB_DISABLE_OUTPUT
 			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 			std::cout << "Person requested removal: " << (dynamic_cast<Driver*> (currRole) ? "Driver"
 					: dynamic_cast<Pedestrian*> (currRole) ? "Pedestrian" : "Other") << "\n";
+#endif
 		}
 
 		//Return true unless we are scheduled for removal.

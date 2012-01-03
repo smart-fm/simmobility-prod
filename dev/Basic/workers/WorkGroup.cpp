@@ -104,12 +104,8 @@ void sim_mob::WorkGroup::stageEntities()
 			std::cout <<"Staging agent ID: " <<ag->getId() <<" in time for tick: " <<nextTimeTickToStage <<"\n";
 		}
 
-		//Add it to our global list. Requires locking.
-		{
-			//TODO: This shouldn't actually require locking. Leaving it in here for now to be safe.
-			//boost::mutex::scoped_lock local_lock(loader->entity_dest_lock);
-			loader->entity_dest.push_back(ag);
-		}
+		//Add it to our global list.
+		loader->entity_dest.push_back(ag);
 
 		//Find a worker to assign this to and send it the Entity to manage.
 		assignAWorker(ag);

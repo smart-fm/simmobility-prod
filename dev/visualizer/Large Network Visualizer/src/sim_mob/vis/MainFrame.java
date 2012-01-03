@@ -12,6 +12,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.regex.Pattern;
@@ -430,7 +431,12 @@ public class MainFrame extends JFrame {
 		trackAgentIDs.removeAllItems();
 		trackAgentIDs.addItem(new StringItem("Track no Agent", -1));
 		if (allIds!=null) {
-			for (Integer it : allIds) {
+			//Sort
+			Integer[] ids_sorted = allIds.toArray(new Integer[]{});
+			Arrays.sort(ids_sorted);
+			
+			//Add
+			for (Integer it : ids_sorted) {
 				trackAgentIDs.addItem(new StringItem("Track Agent " + it.intValue(), it.intValue()));
 			}
 		}

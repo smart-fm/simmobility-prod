@@ -20,69 +20,77 @@ sim_mob::Person::~Person() {
 }
 
 bool sim_mob::Person::update(frame_t frameNumber) {
-	//First, we need to retrieve an UpdateParams subclass appropriate for this Agent.
-	unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
-	UpdateParams& params = currRole->make_frame_tick_params(frameNumber, currTimeMS);
+	try {
+		//First, we need to retrieve an UpdateParams subclass appropriate for this Agent.
+		unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
+		UpdateParams& params = currRole->make_frame_tick_params(frameNumber, currTimeMS);
 
-	//Has update() been called early?
-	if(currTimeMS < getStartTime()) {
-		//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
-		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-			std::stringstream msg;
-			msg << "Agent(" << getId() << ") specifies a start time of: " << getStartTime()
-					<< " but it is currently: " << currTimeMS
-					<< "; this indicates an error, and should be handled automatically.";
-			throw std::runtime_error(msg.str().c_str());
-		}
-		return true;
-	}
-
-	//Has update() been called too late?
-	if (isToBeRemoved()) {
-		//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
-		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-			throw std::runtime_error("Agent is already done, but hasn't been removed.");
-		}
-		return true;
-	}
-
-	//Is this the first frame tick for this Agent?
-	if (firstFrameTick) {
-		//Helper check; not needed once we trust our Workers.
-		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-			if (abs(currTimeMS-getStartTime())>=ConfigParams::GetInstance().baseGranMS) {
+		//Has update() been called early?
+		if(currTimeMS < getStartTime()) {
+			//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
+			if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 				std::stringstream msg;
-				msg << "Agent was not started within one timespan of its requested start time.";
-				msg << "\nStart was: " << getStartTime() << ",  Curr time is: " << currTimeMS << "\n";
-				msg << "Agent ID: " << getId() << "\n";
+				msg << "Agent(" << getId() << ") specifies a start time of: " << getStartTime()
+						<< " but it is currently: " << currTimeMS
+						<< "; this indicates an error, and should be handled automatically.";
 				throw std::runtime_error(msg.str().c_str());
 			}
+			return true;
 		}
 
-		currRole->frame_init(params);
-		firstFrameTick = false;
-	}
+		//Has update() been called too late?
+		if (isToBeRemoved()) {
+			//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
+			if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+				throw std::runtime_error("Agent is already done, but hasn't been removed.");
+			}
+			return true;
+		}
 
-	//Now perform the main update tick
-	if (!isToBeRemoved()) {
-		currRole->frame_tick(params);
-	}
+		//Is this the first frame tick for this Agent?
+		if (firstFrameTick) {
+			//Helper check; not needed once we trust our Workers.
+			if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+				if (abs(currTimeMS-getStartTime())>=ConfigParams::GetInstance().baseGranMS) {
+					std::stringstream msg;
+					msg << "Agent was not started within one timespan of its requested start time.";
+					msg << "\nStart was: " << getStartTime() << ",  Curr time is: " << currTimeMS << "\n";
+					msg << "Agent ID: " << getId() << "\n";
+					throw std::runtime_error(msg.str().c_str());
+				}
+			}
 
-	//Finally, save the output
-	if (!isToBeRemoved()) {
-		currRole->frame_tick_output(params);
-	}
+			currRole->frame_init(params);
+			firstFrameTick = false;
+		}
 
-	//Output if removal requested.
-	if (Debug::WorkGroupSemantics && isToBeRemoved()) {
-		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-		std::cout << "Person requested removal: " << (dynamic_cast<Driver*> (currRole) ? "Driver"
-				: dynamic_cast<Pedestrian*> (currRole) ? "Pedestrian" : "Other") << "\n";
-	}
+		//Now perform the main update tick
+		if (!isToBeRemoved()) {
+			currRole->frame_tick(params);
+		}
 
-	//Return true unless we are scheduled for removal.
-	//NOTE: Make sure you set this flag AFTER performing your final output.
-	return !isToBeRemoved();
+		//Finally, save the output
+		if (!isToBeRemoved()) {
+			currRole->frame_tick_output(params);
+		}
+
+		//Output if removal requested.
+		if (Debug::WorkGroupSemantics && isToBeRemoved()) {
+			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+			std::cout << "Person requested removal: " << (dynamic_cast<Driver*> (currRole) ? "Driver"
+					: dynamic_cast<Pedestrian*> (currRole) ? "Pedestrian" : "Other") << "\n";
+		}
+
+		//Return true unless we are scheduled for removal.
+		//NOTE: Make sure you set this flag AFTER performing your final output.
+		return !isToBeRemoved();
+	} catch (std::exception& ex) {
+		//Provide diagnostics for all errors
+		std::stringstream msg;
+		msg <<"Error updating Agent[" <<getId() <<"]\n";
+		msg <<ex.what();
+		throw std::runtime_error(msg.str().c_str());
+	}
 }
 
 /*void sim_mob::Person::output(frame_t frameNumber) {

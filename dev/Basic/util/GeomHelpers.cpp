@@ -232,7 +232,7 @@ Point2D sim_mob::getMiddlePoint2D(const sim_mob::Point2D* start_point, const sim
 //add by xuyan
 const sim_mob::Link* sim_mob::getLinkBetweenNodes(const sim_mob::Point2D* start_point, const sim_mob::Point2D* end_point)
 {
-	sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
+	const sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
 
 	const std::vector<sim_mob::Link*>& all_links = rn.getLinks();
 	std::vector<sim_mob::Link*>::const_iterator it = all_links.begin();
@@ -253,7 +253,7 @@ const sim_mob::Link* sim_mob::getLinkBetweenNodes(const sim_mob::Point2D* start_
 const sim_mob::RoadSegment* sim_mob::getRoadSegmentBasedOnNodes(const sim_mob::Point2D* start_point,
 		const sim_mob::Point2D* end_point)
 {
-	sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
+	const sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
 
 	sim_mob::Node* start_node = rn.locateNode(*start_point, true);
 	sim_mob::Node* end_node = rn.locateNode(*end_point, true);
@@ -311,7 +311,7 @@ const sim_mob::RoadSegment* sim_mob::getRoadSegmentBasedOnNodes(const sim_mob::P
 //add by xuyan
 const sim_mob::Signal* sim_mob::getSignalBasedOnNode(const sim_mob::Point2D* one_point)
 {
-	sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
+	const sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
 	sim_mob::Node* one_node = rn.locateNode(*one_point, true);
 
 	sim_mob::StreetDirectory& directory = sim_mob::StreetDirectory::instance();
@@ -355,7 +355,7 @@ bool isRoadItemTheCrossing(const sim_mob::RoadItem* one_item, const sim_mob::Poi
 const sim_mob::Crossing* sim_mob::getCrossingBasedOnNode(const sim_mob::Point2D* one_near_point,
 		const sim_mob::Point2D* two_near_point, const sim_mob::Point2D* one_far_point, const sim_mob::Point2D* two_far_point)
 {
-	sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
+	const sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
 	const std::vector<sim_mob::Link*>& all_links = rn.getLinks();
 
 	std::vector<sim_mob::Link*>::const_iterator itr = all_links.begin();

@@ -541,7 +541,7 @@ void PrintDB_Network()
 	std::set<LaneConnector*> cachedConnectors;
 
 	//Initial message
-	RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
+	const RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
 	LogOutNotSync("Printing node network" <<endl);
 	LogOutNotSync("NOTE: All IDs in this section are consistent for THIS simulation run, but will change if you run the simulation again." <<endl);
 
@@ -877,7 +877,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& agents)
     		}
 
     		//Actually load it
-    		string dbErrorMsg = sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetwork(), ConfigParams::GetInstance().getTripChains());
+    		string dbErrorMsg = sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetworkRW(), ConfigParams::GetInstance().getTripChains());
     		if (!dbErrorMsg.empty()) {
     			return "Database loading error: " + dbErrorMsg;
     		}
@@ -896,8 +896,10 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& agents)
     	}
     }
 
+    //Seal the network; no more changes can be made after this.
+    ConfigParams::GetInstance().sealNetwork();
 
-    //Now that the network has been loaded, initialize our street directory (so that lookup succeeds)
+    //Now that the network has been loaded, initialize our street directory (so that lookup succeeds).
     StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
 
 

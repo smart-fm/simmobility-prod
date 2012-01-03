@@ -107,20 +107,39 @@ public:
 	/**
 	 * Retrieve a reference to the current RoadNetwork.
 	 */
-	sim_mob::RoadNetwork& getNetwork() { return network; }
+	const sim_mob::RoadNetwork& getNetwork() { return network; }
+
+	/**
+	 * Retrieve a reference to the current RoadNetwork; read-write access.
+	 * Fails if the network has been sealed.
+	 */
+	sim_mob::RoadNetwork& getNetworkRW() {
+		if (sealedNetwork) {
+			throw std::runtime_error("getNetworkRW() failed; network has been sealed.");
+		}
+		return network;
+	}
+
+	/**
+	 * Seal the network. After this, no more editing of the network can take place.
+	 */
+	void sealNetwork() {
+		sealedNetwork = true;
+	}
 
 	///Retrieve a reference to the list of trip chains.
 	std::vector<sim_mob::TripChain*>& getTripChains() { return tripchains; }
 
 
 private:
-	ConfigParams() : mutexStategy(MtxStrat_Buffered), TEMP_ManualFixDemoIntersection(false)
+	ConfigParams() : mutexStategy(MtxStrat_Buffered), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false)
         {
         }
 	static ConfigParams instance;
 
 	sim_mob::RoadNetwork network;
 	std::vector<sim_mob::TripChain*> tripchains;
+	bool sealedNetwork;
 };
 
 }

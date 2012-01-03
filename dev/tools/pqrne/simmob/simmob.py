@@ -4,7 +4,6 @@
 
 import os, bz2, pickle
 
-import rne
 from database import Database
 
 cache_file_name = "SimMob.cache"

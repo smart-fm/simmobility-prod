@@ -236,6 +236,10 @@ bool performMain(const std::string& configFileName) {
 	gettimeofday(&loop_start_time, nullptr);
 	int loop_start_offset = diff_ms(loop_start_time, start_time);
 
+#ifdef SIMMOB_DISABLE_OUTPUT
+	int lastTickPercent = 0; //So we have some idea how much time is left.
+#endif
+
 	for (unsigned int currTick = 0; currTick < config.totalRuntimeTicks; currTick++) {
 		//Flag
 		bool warmupDone = (currTick >= config.totalWarmupTicks);
@@ -249,6 +253,16 @@ bool performMain(const std::string& configFileName) {
 			if (!warmupDone) {
 				cout << "  Warmup; output ignored." << endl;
 			}
+		}
+#else
+		//Get a rough idea how far along we are
+		int currTickPercent = (currTick*100)/config.totalRuntimeTicks;
+		if (currTickPercent-lastTickPercent>9) {
+			lastTickPercent = currTickPercent;
+
+			//We don't need to lock this output if general output is disabled, since Agents won't
+			//  perform any output (and hence there will be no contention)
+			cout <<currTickPercent <<"%" <<endl;
 		}
 #endif
 

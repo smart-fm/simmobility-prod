@@ -438,7 +438,6 @@ LoopDetectorEntity::Impl::check(frame_t frameNumber)
     std::map<Lane const *, LoopDetector *>::const_iterator iter;
     for (iter = loopDetectors_.begin(); iter != loopDetectors_.end(); ++iter)
     {
-        Lane const * lane = iter->first;
         LoopDetector * detector = iter->second;
         if (detector->check(vehicles))
         {
@@ -489,22 +488,17 @@ void
 LoopDetectorEntity::init(Signal const & signal)
 {
     pimpl_ = new Impl(signal, *this);
+}
 
-    // Now that data_ has been populated, we can register our double-buffering data with the
-    // double-buffering data-manager to flip our data.
+/* virtual */ void
+LoopDetectorEntity::buildSubscriptionList()
+{
     std::map<Lane const *, Shared<CountAndTimePair> *>::iterator iter;
     for (iter = data_.begin(); iter != data_.end(); ++iter)
     {
         Shared<CountAndTimePair> * pair = iter->second;
         subscriptionList_cached.push_back(pair);
     }
-}
-
-/* virtual */ void
-LoopDetectorEntity::buildSubscriptionList()
-{
-    // At this time data_ has not been populated yet; it gets populated when init() is called
-    // and init() can only be called much later, long after the constructor.
 }
 
 /* virtual */ bool
@@ -523,7 +517,8 @@ LoopDetectorEntity::reset()
     for (iter = data_.begin(); iter != data_.end(); ++iter)
     {
         Shared<CountAndTimePair> * pair = iter->second;
-        pair->set(CountAndTimePair());
+        //pair->set(CountAndTimePair());
+        pair->force(CountAndTimePair());
     }
 }
 

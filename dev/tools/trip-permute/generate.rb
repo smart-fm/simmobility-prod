@@ -11,7 +11,7 @@
 #
 #Arguments after "blacklist" are:
 #    1) Number of Agents to generate
-#    2,3) Start time, end time of Agent trip generation
+#    2,3) Start time, end time of Agent trip generation (note: for now, start time must be the same as the simulation's start time)
 #    4) Random seed (optional, uses current system time otherwise)
 
 
@@ -24,12 +24,34 @@ class Trip
 end
 
 
+def read_date(val)
+  return -1 unless val =~ /([0-9]?[0-9]):([0-9][0-9])/
+  mins = $1.to_i*60 + $2.to_i
+  return mins*60*1000
+end
+
+
 def run_main()
   #Requires several args
   if ARGV.length<5 or ARGV.length>6
     print_usage()
     return
   end
+
+  #Read the number of agents
+  num_agents = ARGV[2].to_i
+
+  #Parse the dates
+  start_ms = read_date ARGV[3]
+  end_ms = read_date ARGV[4]
+  if start_ms==-1 or end_ms==-1
+    puts "Bad time: #{ARGV[3]} or #{ARGV[4]}"
+    return
+  end
+
+  #Random seed
+  seed = if ARGV.length>5 then ARGV[5].to_i else Time.new.to_i end
+  srand seed
 
   #Build our blacklist, indexed by strings a la: "[x1,y1=>x2,y2]"
   #Blacklist entry sample: Skipping agent; (some text) {(37232859, 14308003)=>(37273805, 14362442)}
@@ -62,9 +84,19 @@ def run_main()
   }
 
   #Some data
-  puts "Trips: #{trips.length}"
-  puts "Skipped: #{skipped}"
-  
+  puts "<!-- Trips: #{trips.length} -->"
+  puts "<!-- Skipped: #{skipped} -->"
+  puts "<!-- Random seed: #{seed} -->"
+  puts "<!-- Num agents: #{num_agents} -->"
+
+  #Generate random agents at random start times
+  puts '<drivers>'
+  for agID in (1..num_agents) 
+      trip = trips[rand(trips.length)]
+      start = rand(end_ms - start_ms)
+      puts "  <driver originPos=\"#{trip.fromX}, #{trip.fromY}\" destPos=\"#{trip.toX}, #{trip.toY}\" time=\"#{start}\"/>" 
+  end
+  puts '</drivers>'
 
 end
 

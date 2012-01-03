@@ -328,6 +328,10 @@ bool performMain(const std::string& configFileName) {
 				- numDriver - numPedestrian) << " (Other)" << endl;
 	}
 
+	if (ConfigParams::GetInstance().numAgentsSkipped>0) {
+		cout <<"Agents SKIPPED due to invalid route assignment: " <<ConfigParams::GetInstance().numAgentsSkipped <<endl;
+	}
+
 	if (!Agent::pending_agents.empty()) {
 		cout << "WARNING! There are still " << Agent::pending_agents.size()
 				<< " Agents waiting to be scheduled; next start time is: "

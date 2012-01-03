@@ -48,6 +48,9 @@ public:
 	unsigned int reacTime_SubjectVehicle;
 	unsigned int reacTime_Gap;
 
+	//Number of agents skipped in loading
+	unsigned int numAgentsSkipped;
+
 	//Locking strategy
 	sim_mob::MutexStrategy mutexStategy;
 

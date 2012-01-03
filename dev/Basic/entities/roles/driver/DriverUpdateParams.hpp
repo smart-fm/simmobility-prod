@@ -97,6 +97,7 @@ struct DriverUpdateParams : public UpdateParams {
 	double laneChangingVelocity;
 
 	bool isCrossingAhead;
+	bool isApproachingToIntersection;
 	int crossingFwdDistance;
 
 	//Related to our car following model.

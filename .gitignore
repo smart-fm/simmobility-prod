@@ -2,7 +2,6 @@
 dev/Basic/Debug/*
 dev/Basic/Debug_M/*
 dev/Basic/Release/*
-dev/Basic/Build/*
 dev/Basic/doxy/output/
 
 #Java project built files

@@ -132,14 +132,16 @@ LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(DriverUpdateParams& p, int type
 		back = (i==0) ? p.nvLeftBack.driver : p.nvRightBack.driver;
 
 		if(adjacentLanes[i]){	//the left/right side exists
-			if(!fwd) {		//no vehicle ahead on current lane
+
+			if(!fwd||!fwd->getVehicle()) {		//no vehicle ahead on current lane
 				otherSpeed[i].lead=MAX_NUM;
 				otherDistance[i].lead=MAX_NUM;
 			} else {				//has vehicle ahead
 				otherSpeed[i].lead = fwd->getVehicle()->getVelocity();
 				otherDistance[i].lead=(i==0)? p.nvLeftFwd.distance : p.nvRightFwd.distance;
 			}
-			if(!back){//no vehicle behind
+
+			if(!back||!back->getVehicle()){//no vehicle behind
 				otherSpeed[i].lag=-MAX_NUM;
 				otherDistance[i].lag=MAX_NUM;
 			}
@@ -180,6 +182,7 @@ LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(DriverUpdateParams& p, int type
 	if ( flags[1].lead && flags[1].lag ) {
 		returnVal.right = true;
 	}
+
 	return returnVal;
 }
 
@@ -321,6 +324,7 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 		} else {
 			decision = makeMandatoryLaneChangingDecision(p);
 		}
+
 
 		//Finally, if we've decided to change lanes, set our intention.
 		if(decision!=LCS_SAME) {

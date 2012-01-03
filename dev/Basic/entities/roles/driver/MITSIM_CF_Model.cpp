@@ -112,6 +112,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	}
 
 
+
 	//If we have no space left to move, immediately cut off acceleration.
 	double res = 0;
 	if(p.space > 0) {
@@ -120,10 +121,17 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 		}
 
 		//Retrieve velocity/acceleration in m/s
-//		p.v_lead = (mode!=AM_VEHICLE) ? 0 : p.nvFwd.driver->getVehicle()->getVelocity()/100;
-//		p.a_lead = (mode!=AM_VEHICLE) ? 0 : p.nvFwd.driver->getVehicle()->getAcceleration()/100;
-		p.v_lead = (mode!=AM_VEHICLE) ? 0 : p.perceivedFwdVelocityOfFwdCar/100;
-		p.a_lead = (mode!=AM_VEHICLE) ? 0 : p.perceivedAccelerationOfFwdCar/100;
+		//when decelerating, don't use reaction time
+		if(p.isApproachingToIntersection&&p.isTrafficLightStop)
+		{
+			p.v_lead = (mode!=AM_VEHICLE) ? 0 : p.nvFwd.driver->getVehicle()->getVelocity()/100;
+			p.a_lead = (mode!=AM_VEHICLE) ? 0 : p.nvFwd.driver->getVehicle()->getAcceleration()/100;
+		}
+		else
+		{
+			p.v_lead = (mode!=AM_VEHICLE) ? 0 : p.perceivedFwdVelocityOfFwdCar/100;
+			p.a_lead = (mode!=AM_VEHICLE) ? 0 : p.perceivedAccelerationOfFwdCar/100;
+		}
 
 		double dt	=	p.elapsedSeconds;
 		double headway = 0;  //distance/speed

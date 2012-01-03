@@ -233,6 +233,7 @@ void sim_mob::Driver::frame_tick(UpdateParams& p)
 		}
 	}
 
+
 	//Update our Buffered types
 	//TODO: Update parent buffered properties, or perhaps delegate this.
 	//	currLane_.set(params.currLane);
@@ -410,16 +411,16 @@ bool sim_mob::Driver::update_sensors(DriverUpdateParams& params, frame_t frameNu
 	//TODO: This might be slightly inaccurate if a vehicle leaves an intersection
 	//      on a particularly short road segment. For now, though, I'm just organizing these
 	//      functions with structure in mind, and it won't affect our current network.
+	params.isApproachingToIntersection = false;
 	if (!vehicle->getNextSegment() && !vehicle->isInIntersection()) {
+		params.isApproachingToIntersection = true;
 		setTrafficSignalParams(params);
 	}
-
 	return true;
 }
 
 bool sim_mob::Driver::update_movement(DriverUpdateParams& params, frame_t frameNumber) {
 	//If reach the goal, get back to the origin
-
 	if (vehicle->isDone()) {
 		//Output
 		if (Debug::Drivers && !DebugStream.str().empty()) {
@@ -432,6 +433,7 @@ bool sim_mob::Driver::update_movement(DriverUpdateParams& params, frame_t frameN
 		return false;
 	}
 
+
 	//Save some values which might not be available later.
 	//TODO: LastKnownPolypoint should actually be the _new_ polypoint.
 
@@ -439,6 +441,7 @@ bool sim_mob::Driver::update_movement(DriverUpdateParams& params, frame_t frameN
 
 	params.TEMP_lastKnownPolypoint = DPoint(vehicle->getCurrPolylineVector().getEndX(),
 			vehicle->getCurrPolylineVector().getEndY());
+
 
 	//First, handle driving behavior inside an intersection.
 	if (vehicle->isInIntersection()) {
@@ -459,11 +462,11 @@ bool sim_mob::Driver::update_movement(DriverUpdateParams& params, frame_t frameN
 		}
 	}
 
+
 	//Has the segment changed?
 	if (!vehicle->isDone()) {
 		params.justChangedToNewSegment = (vehicle->getCurrSegment() != prevSegment);
 	}
-
 	return true;
 }
 
@@ -534,6 +537,7 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 	//Check if we should change lanes.
 	double newLatVel = lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length,
 			getCurrLaneChangeDirection());
+	//double newLatVel = 0;
 	if (newLatVel >= 0.0) {
 		vehicle->setLatVelocity(newLatVel);
 	}
@@ -541,6 +545,7 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 	if (vehicle->getVelocity() <= 0) {
 		vehicle->setLatVelocity(0);
 	}
+
 
 	//Retrieve a new acceleration value.
 	double newFwdAcc = 0;
@@ -944,7 +949,6 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 	//Only update if passed a valid pointer which is not a pointer back to you, and
 	//the driver is not actually in an intersection at the moment.
 
-
 	if (!(other_driver && this != other_driver && !other_driver->isInIntersection.get())) {
 		return;
 	}
@@ -1065,18 +1069,24 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 		perceivedVelocityOfFwdCar.delay(new DPoint(params.nvFwd.driver->getVehicle()->getVelocity(),
 				params.nvFwd.driver->getVehicle()->getLatVelocity()), params.currTimeMS);
 		perceivedAccelerationOfFwdCar.delay(params.nvFwd.driver->getVehicle()->getAcceleration(), params.currTimeMS);
+
+		//retrieve perceptions
+		if (perceivedVelocityOfFwdCar.can_sense(params.currTimeMS)
+				&&perceivedAccelerationOfFwdCar.can_sense(params.currTimeMS)
+				&&perceivedDistToFwdCar.can_sense(params.currTimeMS)) {
+			params.perceivedFwdVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense(params.currTimeMS)->x;
+			params.perceivedLatVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense(params.currTimeMS)->y;
+			params.perceivedAccelerationOfFwdCar = perceivedAccelerationOfFwdCar.sense(params.currTimeMS);
+			params.perceivedDistToFwdCar = perceivedDistToFwdCar.sense(params.currTimeMS);
+		}
+		else
+		{
+			params.perceivedFwdVelocityOfFwdCar = params.nvFwd.driver->getVehicle()->getVelocity();
+			params.perceivedLatVelocityOfFwdCar = params.nvFwd.driver->getVehicle()->getLatVelocity();
+			params.perceivedAccelerationOfFwdCar = params.nvFwd.driver->getVehicle()->getAcceleration();
+			params.perceivedDistToFwdCar = params.nvFwd.distance;
+		}
 	}
-	//retrieve perceptions
-	if (perceivedVelocityOfFwdCar.can_sense(params.currTimeMS)) {
-		params.perceivedFwdVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense(params.currTimeMS)->x;
-		params.perceivedLatVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense(params.currTimeMS)->y;
-	}
-	if (perceivedAccelerationOfFwdCar.can_sense(params.currTimeMS))
-		params.perceivedAccelerationOfFwdCar = perceivedAccelerationOfFwdCar.sense(params.currTimeMS);
-	if (perceivedDistToFwdCar.can_sense(params.currTimeMS))
-		params.perceivedDistToFwdCar = perceivedDistToFwdCar.sense(params.currTimeMS);
-	else
-		params.perceivedDistToFwdCar = params.nvFwd.distance;
 }
 
 void sim_mob::Driver::updateNearbyPedestrian(DriverUpdateParams& params, const Person* other, const Pedestrian* pedestrian) {
@@ -1123,6 +1133,13 @@ void sim_mob::Driver::updateNearbyAgents(DriverUpdateParams& params) {
 
 	//Update each nearby Pedestrian/Driver
 	params.nvFwd.distance = 5000;
+	params.nvFwd = NearestVehicle();
+	params.nvLeftFwd = NearestVehicle();
+	params.nvRightFwd = NearestVehicle();
+	params.nvBack = NearestVehicle();
+	params.nvLeftBack = NearestVehicle();
+	params.nvRightBack = NearestVehicle();
+
 	for (vector<const Agent*>::iterator it = nearby_agents.begin(); it != nearby_agents.end(); it++) {
 		//Perform no action on non-Persons
 		const Person* other = dynamic_cast<const Person *> (*it);
@@ -1331,7 +1348,8 @@ void sim_mob::Driver::package(PackageUtils& packageUtil) {
 	packageUtil.packageBasicData(isInIntersection.get());
 
 	//part 2
-	packageUtil.packageDriverUpdateParams(params);
+	//no need to package params, params will be rebuild in the next time step
+	//packageUtil.packageDriverUpdateParams(params);
 	packageUtil.packageVehicle(vehicle);
 	bool hasSomething = false;
 	if (intModel) {
@@ -1398,7 +1416,8 @@ void sim_mob::Driver::unpackage(UnPackageUtils& unpackageUtil) {
 	bool value_inIntersection = unpackageUtil.unpackageBasicData<bool> ();
 	isInIntersection.force(value_inIntersection);
 
-	unpackageUtil.unpackageDriverUpdateParams(params);
+	//no need to unpackage params, params will be rebuild in the next time step
+	//unpackageUtil.unpackageDriverUpdateParams(params);
 
 	//part 2
 	//currTimeMS = unpackageUtil.unpackageBasicData<int> ();

@@ -22,9 +22,6 @@ using std::string;
 namespace sim_mob
 {
 
-double Density[] = { 1, 1, 1, 1 };
-double DS_all;
-
 /* static */std::vector<Signal*> Signal::all_signals_;
 
 //Private namespace
@@ -74,11 +71,14 @@ Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id)
 }
 
 void Signal::initializeSignal() {
+	Density[0]=0,Density[1]=0,Density[2]=0,Density[3]=0;
 	setCL(60, 60, 60);//default initial cycle length for SCATS
 	setRL(60, 60);//default initial RL for SCATS
 	startSplitPlan();
 	currPhase = 0;
 	phaseCounter = 0;
+	currOffset = 0;
+	nextOffset = 0;
 	updateTrafficLights();
 
 }
@@ -303,7 +303,7 @@ void Signal::outputToVisualizer(frame_t frameNumber) {
 	LogOut(logout.str());
 }
 
-double sim_mob::Signal::computeDS(double total_g)
+double Signal::computeDS(double total_g)
 {
 	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&node_);
 	double maxDS = 0;
@@ -333,17 +333,25 @@ double sim_mob::Signal::computeDS(double total_g)
 	return maxDS;
 }
 
-double sim_mob::Signal::LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,double total_g)
+double Signal::LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,double total_g)
 {
+
 	size_t vehicleCount = ctPair.vehicleCount;
 	unsigned int spaceTime = ctPair.spaceTimeInMilliSeconds;
+
 	//std::cout<<"DS "<<vehicleCount<<" "<<spaceTime<<" "<<total_g<<std::endl;
 	double standard_space_time = 1.04*1000;//1.04 seconds
-	double used_g = total_g - (spaceTime - standard_space_time*vehicleCount);
+	double used_g = (vehicleCount==0)?0:total_g - (spaceTime - standard_space_time*vehicleCount);
+//	if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
+//		std::cout<<"laneCount "<<ctPair.vehicleCount<<" "<<ctPair.spaceTimeInMilliSeconds<<" "<<total_g<<" "<<used_g/total_g<<std::endl;
 	return used_g/total_g;
 }
 
 bool Signal::update(frame_t frameNumber) {
+//	if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
+//	{
+//		std::cout<<"DSSE1 "<<" ["<<Density[0]<<","<<Density[1]<<","<<Density[2]<<","<<Density[3]<<"]"<<std::endl;
+//	}
 	updateSignal(Density);
 	outputToVisualizer(frameNumber);
 
@@ -374,6 +382,9 @@ void Signal::updateSignal(double DS[]) {
 		updatecurrCL();
 		setnextSplitPlan(DS);
 		updatecurrSplitPlan();
+		currPhase = 0;
+		loopDetector_.reset();
+		phaseCounter += currOffset;
 	}
 
 	int prePhase = currPhase;
@@ -406,9 +417,14 @@ void Signal::updateSignal(double DS[]) {
 	if(currPhase%10!=prePhase%10||phaseCounter==0)
 	{
 		double total_g = (nextCL * nextSplitPlan[prePhase%10])*1000;
+
 		double currPhaseDS = computeDS(total_g);
 		DS[prePhase%10] = currPhaseDS;
 		loopDetector_.reset();
+//		if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
+//		{
+//			std::cout<<"DSS "<<prePhase%10<<" ["<<DS[0]<<","<<DS[1]<<","<<DS[2]<<","<<DS[3]<<"]"<<std::endl;
+//		}
 //		std::cout<<"DS "<<currPhaseDS<<std::endl;
 	}
 	updateTrafficLights();
@@ -428,11 +444,11 @@ void Signal::setnextCL(double DS) {
 	//calculate RL0
 	if (DS <= DSmed) {
 		RL0 = CLmin + (DS - DSmin) * (CLmed - CLmin) / (DSmed - DSmin);
-	} else { //if (DS>DSmed)
+	} else {
 		RL0 = CLmed + (DS - DSmed) * (CLmax - CLmed) / (DSmax - DSmed);
 	}
-	//else {}
-
+	if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
+		std::cout<<"DS "<<DS<<std::endl;
 
 	int sign;
 	double diff_CL;
@@ -459,6 +475,8 @@ void Signal::setnextCL(double DS) {
 	//RL is partly determined by its previous values
 	double RL = w1 * RL1 + w2 * prevRL1 + w3 * prevRL2;
 
+	if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
+		std::cout<<"RL "<<RL<<std::endl;
 	//update previous RL
 	prevRL2 = prevRL1;
 	prevRL1 = RL1;
@@ -485,6 +503,11 @@ void Signal::setnextCL(double DS) {
 			nextCL = currCL + sign * 9;
 		}
 	}
+//	if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
+//	{
+//		std::cout<<"CL "<<currCL<<std::endl;
+//		std::cout<<"NL "<<nextCL<<std::endl;
+//	}
 }
 
 void Signal::updateprevCL() {
@@ -492,7 +515,8 @@ void Signal::updateprevCL() {
 }
 
 void Signal::updatecurrCL() {
-//	std::cout<<"currCL "<<currCL<<" nextCL "<<nextCL<<std::endl;
+	if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
+		std::cout<<"currCL "<<currCL<<" nextCL "<<nextCL<<std::endl;
 	currCL = nextCL;
 }
 
@@ -597,6 +621,7 @@ void Signal::updatecurrSplitPlan() {
 
 //use next cycle length to calculate next Offset
 void Signal::setnextOffset(double nextCL) {
+//	std::cout<<"nextCL "<<nextCL<<std::endl;
 	if (nextCL <= CL_low) {
 		nextOffset = Off_low;
 	} else if (nextCL > CL_low && nextCL <= CL_up) {
@@ -607,6 +632,7 @@ void Signal::setnextOffset(double nextCL) {
 }
 
 void Signal::updateOffset() {
+//	std::cout<<"currOffset "<<currOffset<<std::endl;
 	currOffset = nextOffset;
 }
 

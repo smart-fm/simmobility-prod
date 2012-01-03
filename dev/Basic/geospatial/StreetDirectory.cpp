@@ -688,7 +688,7 @@ private:
     void getVertices(Vertex & fromVertex, Vertex & toVertex,
                      Point2D const & fromPoint, Point2D const & toPoint) const;
 
-    void checkVertices(Vertex const fromVertex, Vertex const toVertex,
+    bool checkVertices(Vertex const fromVertex, Vertex const toVertex,
                        Node const & fromNode, Node const & toNode) const;
 
     std::vector<WayPoint>
@@ -1058,9 +1058,14 @@ const
     // graph.
     Vertex fromVertex, toVertex;
     getVertices(fromVertex, toVertex, fromNode, toNode);
+
     // If fromNode and toNode are not represented by any vertex in the graph, then throw an
     // error message.
-    checkVertices(fromVertex, toVertex, fromNode, toNode);
+    if (!checkVertices(fromVertex, toVertex, fromNode, toNode)) {
+    	//Fallback: If the RoadNetwork knows about the from/to node(s) but the Street Directory
+    	//  does not, it is not an error (but it means no path can possibly be found).
+    	return std::vector<WayPoint>();
+    }
 
     return shortestPath(fromVertex, toVertex, drivingMap_);
 }
@@ -1113,7 +1118,8 @@ const
 // are between 0 and the number of vertices in the graph).  If not, throw an error message.
 // Since the error message is intended for the modellers and <fromVertex> and <toVertex> are internal
 // data, the message is formatted with info from <fromNode> and <toNode>.
-void
+// Returns false in some cases to indicate that the nodes exist, but cannot be found.
+bool
 StreetDirectory::ShortestPathImpl::checkVertices(Vertex const fromVertex, Vertex const toVertex,
                                                  Node const & fromNode, Node const & toNode)
 const
@@ -1121,19 +1127,43 @@ const
     Graph::vertices_size_type graphSize = boost::num_vertices(drivingMap_);
     if (fromVertex > graphSize || toVertex > graphSize)
     {
+    	bool critical = true;
         std::ostringstream stream;
         stream << "StreetDirectory::shortestDrivingPath: "; 
         if (fromVertex > graphSize)
         {
+        	critical = true;
             stream << "fromNode=" << fromNode.location << " is not part of the known road network ";
+
+            //Check if the ConfigManager can find it.
+            if (ConfigParams::GetInstance().getNetwork().locateNode(fromNode.location, true, 10)) {
+            	critical = false;
+            	stream <<"  (...but it is listed in the RoadNetwork)";
+            }
         }
         if (toVertex > graphSize)
         {
+        	critical = true;
             stream << "toNode=" << toNode.location << " is not part of the known road network";
+
+            //Check if the ConfigManager can find it.
+            if (ConfigParams::GetInstance().getNetwork().locateNode(toNode.location, true, 10)) {
+            	critical = false;
+            	stream <<"  (...but it is listed in the RoadNetwork)";
+            }
         }
 
-        throw std::runtime_error(stream.str().c_str());
+        //Should we actually throw this
+        if (critical) {
+        	throw std::runtime_error(stream.str().c_str());
+        }
+
+        //Either way it's a problem.
+        return false;
     }
+
+    //Nothing wrong here.
+    return true;
 }
 
 // Computes the shortest path from <fromVertex> to <toVertex> in the graph.  If <toVertex> is not

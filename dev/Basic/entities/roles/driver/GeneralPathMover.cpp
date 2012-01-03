@@ -43,6 +43,8 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 
 	//We know we are moving forward if the last Node in the last Segment in the first Link is
 	//   the "end" node of that Link.
+	//The inverse applies to the first segment.
+	const RoadSegment* firstSeg = path.front();
 	const RoadSegment* lastSeg = path.front();
 	for (vector<const RoadSegment*>::const_iterator it=path.begin()+1; it!=path.end(); it++) {
 		if ((*it)->getLink() != lastSeg->getLink()) {
@@ -51,11 +53,19 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 		lastSeg = *it;
 	}
 
-	//Now check
+	//First check: end
 	if (lastSeg->getEnd()==lastSeg->getLink()->getEnd()) {
 		isFwd = true;
 	} else if (lastSeg->getEnd()==lastSeg->getLink()->getStart()) {
 		isFwd = false;
+
+	//Send check: start
+	} else if (firstSeg->getStart()==firstSeg->getLink()->getStart()) {
+		isFwd = true;
+	} else if (firstSeg->getStart()==firstSeg->getLink()->getEnd()) {
+		isFwd = false;
+
+	//Failure:
 	} else {
 		std::stringstream msg;
 		msg <<"Attempting to set a path with segments that aren't in order:\n";

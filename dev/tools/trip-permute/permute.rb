@@ -23,25 +23,27 @@ def run_main()
 
   #Open, read. Sample line:
   #("uni/multi-node", 0, 0xa4dca20, {"xPos":"37289787","yPos":"14381483","aimsun-id":"116724",})
-  allpoints = []
+  from_pts = []
+  to_pts = []
   File.open(ARGV[0]).each { |line|
     if line =~ /\("(uni-node|multi-node)"[^{]+\{"xPos":"([^"]+)" *, *"yPos":"([^"]+)" *, *"aimsun-id":"([^"]+)" *,? *\} *\) */
-      allpoints.push Point.new($2, $3)
+      from_pts.push Point.new($2, $3) if ($1=='multi-node') 
+      to_pts.push Point.new($2, $3)
     end
   }
 
   #Process further?
-  if allpoints.empty?
-    puts 'Empty file'
+  if from_pts.empty? or to_pts.empty?
+    puts 'Empty file(s)'
     return
   end
 
   #Else, generate an Agent for each permutation
   puts '<drivers>'
-  for i in 0 ... allpoints.size
-    for i2 in 0 ... allpoints.size
-      next if i==i2
-      puts "  <driver originPos=\"#{allpoints[i].x}, #{allpoints[i].y}\" destPos=\"#{allpoints[i2].x}, #{allpoints[i2].y}\" time=\"0\"/>" 
+  for i in 0 ... from_pts.size
+    for i2 in 0 ... to_pts.size
+      next if from_pts[i].x==to_pts[i2].x and from_pts[i].y==to_pts[i2].y
+      puts "  <driver originPos=\"#{from_pts[i].x}, #{from_pts[i].y}\" destPos=\"#{to_pts[i2].x}, #{to_pts[i2].y}\" time=\"0\"/>" 
     end
   end
   puts '</drivers>'

@@ -842,10 +842,13 @@ void sim_mob::Driver::setOrigin(DriverUpdateParams& p) {
 	p.currLaneLength = vehicle->getCurrLinkLaneZeroLength();
 
 	//if the first road segment is the last one in this link
-	if (!vehicle->hasNextSegment(true))
+	if (!vehicle->hasNextSegment(true)) {
 		saveCurrTrafficSignal();
-	if (!vehicle->hasNextSegment(true) && vehicle->hasNextSegment(false))
+	}
+	if (!vehicle->hasNextSegment(true) && vehicle->hasNextSegment(false)) {
+		//Don't do this if there is no next link.
 		chooseNextLaneForNextLink(p);
+	}
 }
 
 //TODO

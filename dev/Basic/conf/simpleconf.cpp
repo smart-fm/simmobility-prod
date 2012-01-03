@@ -303,7 +303,8 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& agents, const 
 
 			//Is this Agent invalid?
 			if (skip) {
-				std::cout <<"Skipping agent; can't find route from: " <<agent->originNode->originalDB_ID.getLogItem() <<" to: " <<agent->destNode->originalDB_ID.getLogItem()  <<std::endl;
+				std::cout <<"Skipping agent; can't find route from: " <<agent->originNode->originalDB_ID.getLogItem() <<" to: " <<agent->destNode->originalDB_ID.getLogItem();
+				std::cout <<"   {" <<agent->originNode->location <<"=>" <<agent->destNode->location <<"}" <<std::endl;
 
 				config.numAgentsSkipped++;
 				delete agent;

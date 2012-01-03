@@ -6,7 +6,7 @@
 #
 #   ./permute.rb in.txt >all_trips.txt
 #   #Manually convert all_trips.txt into all_trips.xml
-#   ./SimMobility all_trips.txt /dev/null >blacklist.txt
+#   ./SimMobility all_trips.xml /dev/null >blacklist.txt
 #   ./generate.rb all_trips.txt blacklist.txt 4000 8:00 10:00 0
 #
 #Arguments after "blacklist" are:

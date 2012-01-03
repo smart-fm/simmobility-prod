@@ -92,6 +92,15 @@ public:
 #endif
 	}
 
+	///Synced to the value of SIMMOB_DISABLE_OUTPUT; used for runtime checks.
+	bool Output_Disabled() const {
+#ifdef SIMMOB_DISABLE_OUTPUT
+		return true;
+#else
+		return false;
+#endif
+	}
+
 public:
 	/***
 	 * Singleton. Retrieve an instance of the ConfigParams object.

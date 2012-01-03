@@ -6,10 +6,8 @@
  * properties from data/config.xml, and attempts a simulation run. Currently, the various
  * granularities and pedestrian starting locations are loaded.
  */
-#include <iostream>
 #include <vector>
 #include <string>
-#include <boost/thread.hpp>
 #include <ctime>
 
 #include "GenConfig.h"
@@ -46,11 +44,14 @@
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
 
+//Note: This must be the LAST include, so that other header files don't have
+//      access to cout if SIMMOB_DISABLE_OUTPUT is true.
+#include <iostream>
+
 using std::cout;
 using std::endl;
 using std::vector;
 using std::string;
-using boost::thread;
 
 using namespace sim_mob;
 
@@ -240,6 +241,7 @@ bool performMain(const std::string& configFileName) {
 		bool warmupDone = (currTick >= config.totalWarmupTicks);
 
 		//Output
+#ifndef SIMMOB_DISABLE_OUTPUT
 		{
 			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 			cout << "Approximate Tick Boundary: " << currTick << ", "
@@ -248,6 +250,7 @@ bool performMain(const std::string& configFileName) {
 				cout << "  Warmup; output ignored." << endl;
 			}
 		}
+#endif
 
 		//Update the signal logic and plans for every intersection grouped by region
 		signalStatusWorkers.wait();

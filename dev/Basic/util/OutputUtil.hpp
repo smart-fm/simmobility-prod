@@ -7,6 +7,9 @@
  * Contains functions which are helpful for formatting output on stdout.
  */
 
+#include "GenConfig.h"
+#ifndef SIMMOB_DISABLE_OUTPUT
+
 
 #include <vector>
 #include <string>
@@ -14,6 +17,7 @@
 #include <boost/thread.hpp>
 #include <iostream>
 #include <fstream>
+
 
 namespace sim_mob {
 
@@ -97,3 +101,4 @@ private:
     } \
     while (0)
 
+#endif

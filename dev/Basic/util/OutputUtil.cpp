@@ -1,5 +1,8 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
+#include "GenConfig.h"
+#ifndef SIMMOB_DISABLE_OUTPUT
+
 #include "OutputUtil.hpp"
 
 #include <sstream>
@@ -45,4 +48,6 @@ void sim_mob::PrintArray(const vector<int>& ids, const string& label, const stri
 	std::cout <<out.str();
 }
 
+
+#endif
 

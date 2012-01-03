@@ -292,7 +292,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& agents, const 
 				}*/
 			} else if (agentType=="driver") {
 				skip = true;
-				vector<WayPoint> path = sd.shortestWalkingPath(agent->originNode->location, agent->destNode->location);
+				vector<WayPoint> path = sd.shortestDrivingPath(*agent->originNode, *agent->destNode);
 				for (vector<WayPoint>::iterator it=path.begin(); it!=path.end(); it++) {
 					if (it->type_ == WayPoint::ROAD_SEGMENT) {
 						skip = false;
@@ -896,6 +896,11 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& agents)
     	}
     }
 
+
+    //Now that the network has been loaded, initialize our street directory (so that lookup succeeds)
+    StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
+
+
     //Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder
     for (vector<string>::iterator it=loadAgentOrder.begin(); it!=loadAgentOrder.end(); it++) {
     	if ((*it) == "database") {
@@ -969,7 +974,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& agents)
 
     // PrintDB_Network() calls getLaneEdgePolyline() which inserts side-walks into the
     // road-segments.  We can only only initialize the StreetDirectory only now, not before.
-    StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
+    //StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
 
     // Each Signal has its own LoopDetectorEntity which is an Entity that must run at the same
     // rate as the Driver objects.  So we need to put the loop-detectors into the all_agents

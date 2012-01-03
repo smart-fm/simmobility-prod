@@ -1,0 +1,8 @@
+pqrne is a graphical tool for editing road network.
+
+You need to install python, psycopg2, and pyqt4.
+
+I have not create an eclipse project for this.  So you have to run it on the command line.  Open
+a shell, and type
+    ./pqrne <filename>
+The editor saves and loads from <filename>.

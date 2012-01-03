@@ -1,0 +1,25 @@
+#!/usr/bin/env python
+
+# Copyright Singapore-MIT Alliance for Research and Technology
+
+import sys
+from PyQt4 import QtGui
+
+from network import Road_network
+from simmob import simmob
+from window import Main_window
+
+def main(argv):
+    app = QtGui.QApplication(argv)
+    if len(argv) != 2:
+        print "usage: %s filename" % argv[0]
+        print "The editor loads from and saves to the specified file"
+        sys.exit(1)
+
+    road_network = Road_network(argv[1])
+    simmob.load_road_network(road_network)
+    window = Main_window(road_network)
+    window.show()
+    sys.exit(app.exec_())
+
+main(sys.argv)

@@ -95,7 +95,9 @@ bool sim_mob::Person::update(frame_t frameNumber) {
 			throw std::runtime_error(msg.str().c_str());
 		} else {
 			//Add a line to the output file.
+#ifndef SIMMOB_DISABLE_OUTPUT
 			LogOut("ERROR: Agent " <<getId() <<" encountered an error and will be removed from the simulation." <<std::endl);
+#endif
 			setToBeRemoved();
 		}
 	}

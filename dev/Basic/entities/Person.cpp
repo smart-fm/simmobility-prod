@@ -7,6 +7,8 @@
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "util/DebugFlags.hpp"
 
+#include "geospatial/Node.hpp"
+
 using std::vector;
 using namespace sim_mob;
 
@@ -89,8 +91,10 @@ bool sim_mob::Person::update(frame_t frameNumber) {
 	} catch (std::exception& ex) {
 		//Provide diagnostics for all errors
 		std::stringstream msg;
-		msg <<"Error updating Agent[" <<getId() <<"]\n";
-		msg <<ex.what();
+		msg <<"Error updating Agent[" <<getId() <<"]";
+		msg <<"\nFrom node: " <<(originNode?originNode->originalDB_ID.getLogItem():"<Unknown>");
+		msg <<"\nTo node: " <<(destNode?destNode->originalDB_ID.getLogItem():"<Unknown>");
+		msg <<"\n" <<ex.what();
 		throw std::runtime_error(msg.str().c_str());
 	}
 }

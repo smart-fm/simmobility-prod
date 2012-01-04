@@ -258,6 +258,7 @@ void Signal::startSplitPlan() {
 }
 
 void Signal::outputToVisualizer(frame_t frameNumber) {
+#ifndef SIMMOB_DISABLE_OUTPUT
 	std::stringstream logout;
 	logout << "(\"Signal\"," << frameNumber << "," << this << ",{\"va\":\"";
 	for (int i = 0; i < 3; i++) {
@@ -301,6 +302,7 @@ void Signal::outputToVisualizer(frame_t frameNumber) {
 	logout << "\"pc\":\"" << TC_for_Pedestrian[2] << "\",";
 	logout << "\"pd\":\"" << TC_for_Pedestrian[3] << "\"})" << std::endl;
 	LogOut(logout.str());
+#endif
 }
 
 double Signal::computeDS(double total_g)
@@ -339,26 +341,14 @@ double Signal::LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,double 
 	size_t vehicleCount = ctPair.vehicleCount;
 	unsigned int spaceTime = ctPair.spaceTimeInMilliSeconds;
 
-	//std::cout<<"DS "<<vehicleCount<<" "<<spaceTime<<" "<<total_g<<std::endl;
 	double standard_space_time = 1.04*1000;//1.04 seconds
 	double used_g = (vehicleCount==0)?0:total_g - (spaceTime - standard_space_time*vehicleCount);
-//	if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
-//		std::cout<<"laneCount "<<ctPair.vehicleCount<<" "<<ctPair.spaceTimeInMilliSeconds<<" "<<total_g<<" "<<used_g/total_g<<std::endl;
 	return used_g/total_g;
 }
 
 bool Signal::update(frame_t frameNumber) {
-//	if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
-//	{
-//		std::cout<<"DSSE1 "<<" ["<<Density[0]<<","<<Density[1]<<","<<Density[2]<<","<<Density[3]<<"]"<<std::endl;
-//	}
 	updateSignal(Density);
 	outputToVisualizer(frameNumber);
-
-//	LogOut("Test Pedestrian:" << ConfigParams::GetInstance().granSignalsTicks << ":" << frameNumber << " \n");
-//	LogOut("Test Pedestrian 1:" << buffered_TC.get().TC_for_Driver[1][1] << "\n");
-//	LogOut("Test Pedestrian 2:" << TC_for_Driver[1][1] << "\n");
-	//
 	if (ConfigParams::GetInstance().is_run_on_many_computers == false)
 		frame_output(frameNumber);
 
@@ -421,11 +411,6 @@ void Signal::updateSignal(double DS[]) {
 		double currPhaseDS = computeDS(total_g);
 		DS[prePhase%10] = currPhaseDS;
 		loopDetector_.reset();
-//		if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
-//		{
-//			std::cout<<"DSS "<<prePhase%10<<" ["<<DS[0]<<","<<DS[1]<<","<<DS[2]<<","<<DS[3]<<"]"<<std::endl;
-//		}
-//		std::cout<<"DS "<<currPhaseDS<<std::endl;
 	}
 	updateTrafficLights();
 }
@@ -447,8 +432,12 @@ void Signal::setnextCL(double DS) {
 	} else {
 		RL0 = CLmed + (DS - DSmed) * (CLmax - CLmed) / (DSmax - DSmed);
 	}
-	if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
+	if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120) {
+#ifndef SIMMOB_DISABLE_OUTPUT
+		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 		std::cout<<"DS "<<DS<<std::endl;
+#endif
+	}
 
 	int sign;
 	double diff_CL;
@@ -475,8 +464,12 @@ void Signal::setnextCL(double DS) {
 	//RL is partly determined by its previous values
 	double RL = w1 * RL1 + w2 * prevRL1 + w3 * prevRL2;
 
-	if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
+	if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120) {
+#ifndef SIMMOB_DISABLE_OUTPUT
+		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 		std::cout<<"RL "<<RL<<std::endl;
+#endif
+	}
 	//update previous RL
 	prevRL2 = prevRL1;
 	prevRL1 = RL1;
@@ -515,8 +508,12 @@ void Signal::updateprevCL() {
 }
 
 void Signal::updatecurrCL() {
-	if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
+	if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120) {
+#ifndef SIMMOB_DISABLE_OUTPUT
+		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 		std::cout<<"currCL "<<currCL<<" nextCL "<<nextCL<<std::endl;
+#endif
+	}
 	currCL = nextCL;
 }
 
@@ -884,6 +881,7 @@ int Signal::calvote(unsigned int vote1, unsigned int vote2, unsigned int vote3, 
 }
 
 void Signal::frame_output(frame_t frameNumber) {
+#ifndef SIMMOB_DISABLE_OUTPUT
 	std::stringstream logout;
 
 	logout << "(\"Signal\",";
@@ -941,6 +939,7 @@ void Signal::frame_output(frame_t frameNumber) {
 
 	logout << "\"})" << std::endl;
 	LogOut(logout.str());
+#endif
 }
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -964,14 +963,10 @@ void Signal::packageProxy(PackageUtils& packageUtil) {
 		}
 	}
 
-	//std::cout << "33333333" << std::endl;
-
 	for (int i = 0; i < 4; i++) {
 		int value = buffered_TC.get().TC_for_Pedestrian[i];
 		packageUtil.packageBasicData(value);
 	}
-
-//	std::cout << "Testing value:" << buffered_TC.get().TC_for_Pedestrian[0] << std::endl;
 }
 
 void Signal::unpackageProxy(UnPackageUtils& unpackageUtil) {
@@ -998,7 +993,6 @@ void Signal::unpackageProxy(UnPackageUtils& unpackageUtil) {
 	}
 
 	buffered_TC.force(buffered_signal);
-//	std::cout << "Checking value:" << buffered_TC.get().TC_for_Pedestrian[0] << std::endl;
 }
 #endif
 

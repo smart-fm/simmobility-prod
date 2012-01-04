@@ -197,8 +197,10 @@ void sim_mob::Driver::frame_init(UpdateParams& p)
 	if (vehicle && vehicle->hasPath()) {
 		setOrigin(params);
 	} else {
+#ifndef SIMMOB_DISABLE_OUTPUT
 		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 		std::cout << "ERROR: Vehicle could not be created for driver; no route!\n";
+#endif
 	}
 }
 
@@ -260,6 +262,7 @@ void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
 
 	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
 
+#ifndef SIMMOB_DISABLE_OUTPUT
 	LogOut("(\"Driver\""
 			<<","<<p.frameNumber
 			<<","<<parent->getId()
@@ -270,7 +273,7 @@ void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
 			<<"\",\"length\":\""<<static_cast<int>(vehicle->length)
 			<<"\",\"width\":\""<<static_cast<int>(vehicle->width)
 			<<"\"})"<<std::endl);
-
+#endif
 }
 
 void sim_mob::Driver::frame_tick_output_mpi(frame_t frameNumber)
@@ -281,6 +284,7 @@ void sim_mob::Driver::frame_tick_output_mpi(frame_t frameNumber)
 	if (vehicle->isDone())
 		return;
 
+#ifndef SIMMOB_DISABLE_OUTPUT
 	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
 	std::stringstream logout;
 
@@ -298,6 +302,7 @@ void sim_mob::Driver::frame_tick_output_mpi(frame_t frameNumber)
 	logout << "\"})" << std::endl;
 
 	LogOut(logout.str());
+#endif
 }
 
 sim_mob::UpdateParams& sim_mob::Driver::make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS)
@@ -424,10 +429,12 @@ bool sim_mob::Driver::update_movement(DriverUpdateParams& params, frame_t frameN
 	if (vehicle->isDone()) {
 		//Output
 		if (Debug::Drivers && !DebugStream.str().empty()) {
+#ifndef SIMMOB_DISABLE_OUTPUT
 			DebugStream << ">>>Vehicle done." << endl;
 			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 			std::cout << DebugStream.str();
 			DebugStream.str("");
+#endif
 		}
 
 		return false;
@@ -749,9 +756,11 @@ void sim_mob::Driver::chooseNextLaneForNextLink(DriverUpdateParams& p) {
 void sim_mob::Driver::calculateIntersectionTrajectory(DPoint movingFrom, double overflow) {
 	//If we have no target link, we have no target trajectory.
 	if (!nextLaneInNextLink) {
+#ifndef SIMMOB_DISABLE_OUTPUT
 		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 		std::cout << "WARNING: nextLaneInNextLink has not been set; can't calculate intersection trajectory."
 				<< std::endl;
+#endif
 		return;
 	}
 
@@ -842,10 +851,13 @@ void sim_mob::Driver::setOrigin(DriverUpdateParams& p) {
 	p.currLaneLength = vehicle->getCurrLinkLaneZeroLength();
 
 	//if the first road segment is the last one in this link
-	if (!vehicle->hasNextSegment(true))
+	if (!vehicle->hasNextSegment(true)) {
 		saveCurrTrafficSignal();
-	if (!vehicle->hasNextSegment(true) && vehicle->hasNextSegment(false))
+	}
+	if (!vehicle->hasNextSegment(true) && vehicle->hasNextSegment(false)) {
+		//Don't do this if there is no next link.
 		chooseNextLaneForNextLink(p);
+	}
 }
 
 //TODO
@@ -904,9 +916,11 @@ double sim_mob::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 		res = vehicle->moveFwd(fwdDistance);
 	} catch (std::exception& ex) {
 		if (Debug::Drivers) {
+#ifndef SIMMOB_DISABLE_OUTPUT
 			DebugStream << ">>>Exception: " << ex.what() << endl;
 			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 			std::cout << DebugStream.str();
+#endif
 		}
 
 		std::stringstream msg;
@@ -1252,9 +1266,11 @@ void sim_mob::Driver::updatePositionDuringLaneChange(DriverUpdateParams& p, LANE
 			if (p.currLane->is_pedestrian_lane()) {
 				//Flush debug output (we are debugging this error).
 				if (Debug::Drivers) {
+#ifndef SIMMOB_DISABLE_OUTPUT
 					DebugStream << ">>>Exception: Moved to sidewalk." << endl;
 					boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 					std::cout << DebugStream.str();
+#endif
 				}
 
 				//TEMP OVERRIDE:

@@ -292,7 +292,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& agents, const 
 				}*/
 			} else if (agentType=="driver") {
 				skip = true;
-				vector<WayPoint> path = sd.shortestWalkingPath(agent->originNode->location, agent->destNode->location);
+				vector<WayPoint> path = sd.shortestDrivingPath(*agent->originNode, *agent->destNode);
 				for (vector<WayPoint>::iterator it=path.begin(); it!=path.end(); it++) {
 					if (it->type_ == WayPoint::ROAD_SEGMENT) {
 						skip = false;
@@ -303,7 +303,8 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& agents, const 
 
 			//Is this Agent invalid?
 			if (skip) {
-				std::cout <<"Skipping agent; can't find route from: " <<agent->originNode->originalDB_ID.getLogItem() <<" to: " <<agent->destNode->originalDB_ID.getLogItem()  <<std::endl;
+				std::cout <<"Skipping agent; can't find route from: " <<agent->originNode->originalDB_ID.getLogItem() <<" to: " <<agent->destNode->originalDB_ID.getLogItem();
+				std::cout <<"   {" <<agent->originNode->location <<"=>" <<agent->destNode->location <<"}" <<std::endl;
 
 				config.numAgentsSkipped++;
 				delete agent;
@@ -535,12 +536,13 @@ bool LoadXMLBoundariesCrossings(TiXmlDocument& document, const string& parentStr
 //      first because Links need Nodes. Otherwise, the output will be in no guaranteed order.
 void PrintDB_Network()
 {
+#ifndef SIMMOB_DISABLE_OUTPUT
 	//Save RoadSegments/Connectors to make output simpler
 	std::set<const RoadSegment*> cachedSegments;
 	std::set<LaneConnector*> cachedConnectors;
 
 	//Initial message
-	RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
+	const RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
 	LogOutNotSync("Printing node network" <<endl);
 	LogOutNotSync("NOTE: All IDs in this section are consistent for THIS simulation run, but will change if you run the simulation again." <<endl);
 
@@ -725,6 +727,7 @@ void PrintDB_Network()
 			LogOutNotSync("})" <<endl);
 		}
 	}
+#endif
 }
 
 
@@ -876,7 +879,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& agents)
     		}
 
     		//Actually load it
-    		string dbErrorMsg = sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetwork(), ConfigParams::GetInstance().getTripChains());
+    		string dbErrorMsg = sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetworkRW(), ConfigParams::GetInstance().getTripChains());
     		if (!dbErrorMsg.empty()) {
     			return "Database loading error: " + dbErrorMsg;
     		}
@@ -894,6 +897,13 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& agents)
     		return "Unknown geometry type: " + (geomType?string(geomType):"");
     	}
     }
+
+    //Seal the network; no more changes can be made after this.
+    ConfigParams::GetInstance().sealNetwork();
+
+    //Now that the network has been loaded, initialize our street directory (so that lookup succeeds).
+    StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
+
 
     //Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder
     for (vector<string>::iterator it=loadAgentOrder.begin(); it!=loadAgentOrder.end(); it++) {
@@ -968,7 +978,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& agents)
 
     // PrintDB_Network() calls getLaneEdgePolyline() which inserts side-walks into the
     // road-segments.  We can only only initialize the StreetDirectory only now, not before.
-    StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
+    //StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
 
     // Each Signal has its own LoopDetectorEntity which is an Entity that must run at the same
     // rate as the Driver objects.  So we need to put the loop-detectors into the all_agents

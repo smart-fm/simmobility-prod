@@ -6,10 +6,8 @@
  * properties from data/config.xml, and attempts a simulation run. Currently, the various
  * granularities and pedestrian starting locations are loaded.
  */
-#include <iostream>
 #include <vector>
 #include <string>
-#include <boost/thread.hpp>
 #include <ctime>
 
 #include "GenConfig.h"
@@ -46,11 +44,14 @@
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
 
+//Note: This must be the LAST include, so that other header files don't have
+//      access to cout if SIMMOB_DISABLE_OUTPUT is true.
+#include <iostream>
+
 using std::cout;
 using std::endl;
 using std::vector;
 using std::string;
-using boost::thread;
 
 using namespace sim_mob;
 
@@ -235,11 +236,16 @@ bool performMain(const std::string& configFileName) {
 	gettimeofday(&loop_start_time, nullptr);
 	int loop_start_offset = diff_ms(loop_start_time, start_time);
 
+#ifdef SIMMOB_DISABLE_OUTPUT
+	int lastTickPercent = 0; //So we have some idea how much time is left.
+#endif
+
 	for (unsigned int currTick = 0; currTick < config.totalRuntimeTicks; currTick++) {
 		//Flag
 		bool warmupDone = (currTick >= config.totalWarmupTicks);
 
 		//Output
+#ifndef SIMMOB_DISABLE_OUTPUT
 		{
 			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 			cout << "Approximate Tick Boundary: " << currTick << ", "
@@ -248,6 +254,17 @@ bool performMain(const std::string& configFileName) {
 				cout << "  Warmup; output ignored." << endl;
 			}
 		}
+#else
+		//Get a rough idea how far along we are
+		int currTickPercent = (currTick*100)/config.totalRuntimeTicks;
+		if (currTickPercent-lastTickPercent>9) {
+			lastTickPercent = currTickPercent;
+
+			//We don't need to lock this output if general output is disabled, since Agents won't
+			//  perform any output (and hence there will be no contention)
+			cout <<currTickPercent <<"%" <<endl;
+		}
+#endif
 
 		//Update the signal logic and plans for every intersection grouped by region
 		signalStatusWorkers.wait();
@@ -397,19 +414,18 @@ int main(int argc, char* argv[])
 	cout << "Using config file: " << configFileName << endl;
 
 	//Argument 2: Log file
-	if (argc > 2)
-	{
+#ifndef SIMMOB_DISABLE_OUTPUT
+	if (argc > 2) {
 		if (!Logger::log_init(argv[2]))
 		{
 			cout << "Loading output file failed; using cout" << endl;
 			cout << argv[2] << endl;
 		}
-	}
-	else
-	{
+	} else {
 		Logger::log_init("");
 		cout << "No output file specified; using cout." << endl;
 	}
+#endif
 
 	//This should be moved later, but we'll likely need to manage random numbers
 	//ourselves anyway, to make simulations as repeatable as possible.
@@ -422,7 +438,9 @@ int main(int argc, char* argv[])
 	int returnVal = performMain(configFileName) ? 0 : 1;
 
 	//Close log file, return.
+#ifndef SIMMOB_DISABLE_OUTPUT
 	Logger::log_done();
+#endif
 	cout << "Done" << endl;
 	return returnVal;
 }

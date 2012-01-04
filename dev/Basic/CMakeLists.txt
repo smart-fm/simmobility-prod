@@ -8,6 +8,9 @@ project (Basic)
 set (Basic_VERSION_MAJOR 0)
 set (Basic_VERSION_MINOR 1)
 
+#Option: disable output. Use the cmake gui to change this on a per-user basis.
+option (SIMMOB_DISABLE_OUTPUT  "Disable all mutex-locked output and all additional non-trivial output. Avoid all use of mutexes w.r.t. output." OFF)
+
 #Option: disable MPI. Use the cmake gui to change this on a per-user basis.
 option (SIMMOB_DISABLE_MPI  "Disable all included files, libraries, and code segments that require MPI." ON)
 

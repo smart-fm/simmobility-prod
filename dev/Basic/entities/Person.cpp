@@ -84,10 +84,6 @@ bool sim_mob::Person::update(frame_t frameNumber) {
 					: dynamic_cast<Pedestrian*> (currRole) ? "Pedestrian" : "Other") << "\n";
 #endif
 		}
-
-		//Return true unless we are scheduled for removal.
-		//NOTE: Make sure you set this flag AFTER performing your final output.
-		return !isToBeRemoved();
 	} catch (std::exception& ex) {
 		if (ConfigParams::GetInstance().StrictAgentErrors()) {
 			//Provide diagnostics for all errors
@@ -103,6 +99,10 @@ bool sim_mob::Person::update(frame_t frameNumber) {
 			setToBeRemoved();
 		}
 	}
+
+	//Return true unless we are scheduled for removal.
+	//NOTE: Make sure you set this flag AFTER performing your final output.
+	return !isToBeRemoved();
 }
 
 

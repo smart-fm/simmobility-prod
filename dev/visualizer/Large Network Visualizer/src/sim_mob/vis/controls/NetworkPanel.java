@@ -3,6 +3,7 @@ package sim_mob.vis.controls;
 import java.awt.*;
 
 import java.awt.event.*;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import javax.swing.*;
 
@@ -55,17 +56,52 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		this.statusBarUpdate = statusBarUpdate;
 	}
 	
-	public void swapBuffer(int[] newRGB, int scanSize) {
+	/*public void swapBuffer(int[] newRGB, int scanSize) {
 		buffer.setRGB(0, 0, buffer.getWidth(), buffer.getHeight(), 
 				newRGB, 0, scanSize);
-	}
+	}*/
 	
 	protected void paintComponent(Graphics g) {
 		//Paint background
 		super.paintComponent(g);
-					
+		
 		//Paint the bufer
 		g.drawImage(buffer, 0, 0, null);
+	}
+	
+	
+	//Percent is from [0.0 .. 1.0]
+	public void drawBufferAsProgressBar(double amt, boolean amtIsPercent) {
+		//Clear.
+		Graphics2D g = (Graphics2D)buffer.getGraphics();
+		g.setColor(Color.darkGray);
+		g.fillRect(0, 0, buffer.getWidth(), buffer.getHeight());
+		
+		//Calc
+		double percent = amtIsPercent?amt:1.0;
+		
+		//Rectangle.
+		int margin = 20;
+		int barSize = 100;
+		Rectangle2D bar = new Rectangle2D.Double(margin, buffer.getHeight()/2-barSize/2, buffer.getWidth()-margin*2, barSize);
+		g.setColor(Color.black);
+		g.fillRect((int)bar.getX(), (int)bar.getY(), (int)bar.getWidth(), (int)bar.getHeight());
+		g.setColor(Color.blue);
+		g.fillRect((int)bar.getX(), (int)bar.getY(), (int)(bar.getWidth()*percent), (int)bar.getHeight());
+		g.setColor(Color.white);
+		g.drawRect((int)bar.getX(), (int)bar.getY(), (int)bar.getWidth(), (int)bar.getHeight());
+		
+		//Amount
+		if (!amtIsPercent) {
+			String toDraw = "" + (int)(amt/1024) + " kB";
+			int toDrawLen = g.getFontMetrics().stringWidth(toDraw);
+			
+			g.setColor(Color.white);
+			g.drawString(toDraw, buffer.getWidth()/2-toDrawLen/2, buffer.getHeight()/2-g.getFontMetrics().getHeight()/2);
+		}
+		
+		//Repaint.
+		this.repaint();
 	}
 
 	

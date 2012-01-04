@@ -4,6 +4,9 @@ import java.io.*;
 import java.util.*;
 import java.util.regex.*;
 
+import javax.swing.SwingUtilities;
+
+import sim_mob.vis.controls.NetworkPanel;
 import sim_mob.vis.network.basic.DPoint;
 import sim_mob.vis.util.Mapping;
 import sim_mob.vis.util.Utility;
@@ -48,12 +51,30 @@ public class RoadNetwork {
 	public Hashtable<Integer, TrafficSignalCrossing> getTrafficSignalCrossing() {return trafficSignalCrossings;}
 	public Hashtable<Integer, Intersection> getIntersection(){return intersections;}
 	public Hashtable<Integer, CutLine> getCutLine(){return cutLines;}
+	
+	
+	//Helper
+	class ProgressUpdateRunner implements Runnable {
+		NetworkPanel pnl;
+		double value;
+		boolean knownSize;
+		
+		ProgressUpdateRunner(NetworkPanel pnl, double value, boolean knownSize) {
+			this.pnl = pnl;
+			this.value = value;
+			this.knownSize = knownSize;
+		}
+		
+		public void run() {
+			pnl.drawBufferAsProgressBar(value, knownSize);
+		}
+	}
+	
 
 	/**
 	 * Load the network from a filestream.
 	 */
-	
-	public RoadNetwork(BufferedReader inFile) throws IOException {
+	public void loadFileAndReport(BufferedReader inFile, long fileLength, NetworkPanel progressUpdate) throws IOException {
 
 		nodes = new Hashtable<Integer, Node>();
 		links = new Hashtable<Integer, Link>();
@@ -71,10 +92,11 @@ public class RoadNetwork {
 		segmentRefTable = new  Hashtable<Integer , ArrayList<Integer>>(); 
 	
 		
-		//Testing
-		//intersecSegmentID = new ArrayList<Integer>();
-	
-		
+		//Provide feedback to the user
+		long totalBytesRead = 0;
+		long lastKnownTotalBytesRead = 0;
+		SwingUtilities.invokeLater(new ProgressUpdateRunner(progressUpdate, 0.0, false));
+
 		//Also track min/max x/y pos
 		double[] xBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
 		double[] yBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
@@ -82,6 +104,20 @@ public class RoadNetwork {
 		//Read
 		String line;
 		while ((line=inFile.readLine())!=null) {
+			//Update
+			totalBytesRead += line.length();
+			boolean pushUpdate = (totalBytesRead - lastKnownTotalBytesRead) > 1024;
+			
+			//Send a message
+			if (pushUpdate) {
+				lastKnownTotalBytesRead = totalBytesRead;
+				if (fileLength>0) {
+					SwingUtilities.invokeLater(new ProgressUpdateRunner(progressUpdate, totalBytesRead/((double)fileLength), true));
+				} else {
+					SwingUtilities.invokeLater(new ProgressUpdateRunner(progressUpdate, totalBytesRead, false));
+				}
+			}
+			
 			//Comment?
 			line = line.trim();
 			if (line.isEmpty() || !line.startsWith("(") || !line.endsWith(")")) {
@@ -108,6 +144,15 @@ public class RoadNetwork {
 		    	dispatchConstructionRequest(type, frameID, objID, rhs, xBounds, yBounds);
 		    } catch (IOException ex) {
 		    	throw new IOException(ex.getMessage() + "\n...on line: " + line);
+		    }
+		    
+		    
+		    if (pushUpdate) {
+			    try {
+			    	Thread.sleep(1);
+			    } catch (InterruptedException ex) {
+			    	throw new RuntimeException(ex);
+			    }
 		    }
 		}
 		

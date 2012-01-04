@@ -148,6 +148,8 @@ class Graphics_view(QtGui.QGraphicsView):
         elif event.key() == QtCore.Qt.Key_S:
             print "saving road network"
             self.road_network.save()
+        elif event.key() == QtCore.Qt.Key_N:
+            self.scene().toggle_node_visibility()
 
     def filter_out_lower_items(self, graphics_items):
         for item in graphics_items:

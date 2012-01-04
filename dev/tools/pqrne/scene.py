@@ -9,9 +9,11 @@ from chain import Ball, Chain
 class Graphics_scene(QtGui.QGraphicsScene):
     def __init__(self, parent=None):
         super(Graphics_scene, self).__init__(parent)
+        self.node_items = list()
+        self.nodes_are_hidden = True
 
     def draw_road_network(self, road_network, tool_box):
-        #self.draw_nodes(road_network)
+        self.draw_nodes(road_network)
         self.draw_lane_markings(road_network, tool_box)
         self.draw_kerb_lines(road_network, tool_box)
         self.draw_lane_edges(road_network, tool_box)
@@ -24,7 +26,19 @@ class Graphics_scene(QtGui.QGraphicsScene):
             #    info += " from-section=%d" % section.id
             #for section in node.to_sections:
             #    info += " to-section=%d" % section.id
-            self.draw_point(node, node, QtCore.Qt.red, info, large=True)
+            item = self.draw_point(node, color=QtCore.Qt.red, info=info, large=True)
+            item.hide()
+            self.node_items.append(item)
+
+    def toggle_node_visibility(self):
+        if self.nodes_are_hidden:
+            for item in self.node_items:
+                item.show()
+            self.nodes_are_hidden = False
+        else:
+            for item in self.node_items:
+                item.hide()
+            self.nodes_are_hidden = True
 
     def draw_lane_markings(self, road_network, tool_box):
         for section in road_network.sections.values():

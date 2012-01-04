@@ -97,6 +97,9 @@ public:
 
     Vehicle const * vehicle() const { return vehicle_; }
 
+    // Called by the Signal object at the end of its cycle to reset the CountAndTimePair.
+    void reset() { request_to_reset_ = true; }
+
 private:
     Point2D center_;
     Vector2D<double> orientationL_;  // orientation of the OBB along its length.
@@ -106,6 +109,7 @@ private:
     centimeter_t outerLength_;
 
     unsigned int timeStepInMilliSeconds_;  // The loop detector entity runs at this rate.
+    bool request_to_reset_; // See the comment in check().
     Shared<LoopDetectorEntity::CountAndTimePair> & countAndTimePair_;
     Vehicle const * vehicle_;  // Current vehicle, if any, that is hovering over the loop detector.
 
@@ -132,6 +136,7 @@ LoopDetector::LoopDetector(Lane const * lane, centimeter_t innerLength, centimet
   : width_(lane->getWidth())
   , innerLength_(innerLength)
   , outerLength_(outerLength)
+  , request_to_reset_(false)
   , countAndTimePair_(pair)
   , vehicle_(nullptr)
 {
@@ -211,6 +216,24 @@ const
 bool
 LoopDetector::check(boost::unordered_set<Vehicle const *> & vehicles)
 {
+    // In the previous version, LoopDetectorEntity::reset() was allowed to modify countAndTimePair_.
+    // Therefore, countAndTimePair_ could be modified via 2 execution paths -- reset() and this
+    // method, check().  This causes a race condition because reset() is called by the Signal
+    // object on one thread and check() is called by the LoopDetectorEntity object on another
+    // thread.  As a result, sometimes the countAndTimePair_ did not get reset.
+    //
+    // To prevent race conditions, there can only be 1 writer for any variable.  Therefore, we
+    // make check() the only writer of countAndTimePair_.  The LoopDetectorEntity::reset() now
+    // "requests" for countAndTimePair_ to be reset.  Now there is a race condition on the
+    // request_to_reset_ variable, but this race will not cause any issue except that
+    // countAndTimePair_ may get reset twice in a row.  That is not serious.
+    if (request_to_reset_)
+    {
+        request_to_reset_ = false;
+        countAndTimePair_.force(LoopDetectorEntity::CountAndTimePair());
+        return false;
+    }
+
     boost::unordered_set<Vehicle const *>::iterator iter;
     for (iter = vehicles.begin(); iter != vehicles.end(); ++iter)
     {
@@ -277,6 +300,13 @@ public:
 
     // Check if any vehicle is hovering over any of the loop detectors or not.
     bool check(frame_t frameNumber);
+
+    // Called by the Signal object at the end of its cycle to reset all CountAndTimePair.
+    void reset();
+
+    // Called by the Signal object at the end of its cycle to reset the CountAndTimePair
+    // for the specified <lane>.
+    void reset(Lane const & lane);
 
 private:
     centimeter_t innerLength_;
@@ -458,6 +488,31 @@ LoopDetectorEntity::Impl::check(frame_t frameNumber)
     return true;
 }
 
+void
+LoopDetectorEntity::Impl::reset()
+{
+    std::map<Lane const *, LoopDetector *>::const_iterator iter;
+    for (iter = loopDetectors_.begin(); iter != loopDetectors_.end(); ++iter)
+    {
+        LoopDetector * detector = iter->second;
+        detector->reset();
+    }
+}
+
+void
+LoopDetectorEntity::Impl::reset(Lane const & lane)
+{
+    std::map<Lane const *, LoopDetector *>::const_iterator iter = loopDetectors_.find(&lane);
+    if (iter != loopDetectors_.end())
+    {
+        LoopDetector * detector = iter->second;
+        detector->reset();
+    }
+    std::ostringstream stream;
+    stream << "LoopDetectorEntity::Impl::reset() was called on invalid lane";
+    throw stream.str();
+}
+
 /** \endcond ignoreLoopDetectorInnards -- End of block to be ignored by doxygen.  */
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -513,27 +568,15 @@ LoopDetectorEntity::update(frame_t frameNumber)
 void
 LoopDetectorEntity::reset()
 {
-    std::map<Lane const *, Shared<CountAndTimePair>*>::iterator iter;
-    for (iter = data_.begin(); iter != data_.end(); ++iter)
-    {
-        Shared<CountAndTimePair> * pair = iter->second;
-        //pair->set(CountAndTimePair());
-        pair->force(CountAndTimePair());
-    }
+    if (pimpl_)
+        pimpl_->reset();
 }
 
 void
 LoopDetectorEntity::reset(Lane const & lane)
 {
-    std::map<Lane const *, Shared<CountAndTimePair>*>::iterator iter = data_.find(&lane);
-    if (iter != data_.end())
-    {
-        Shared<CountAndTimePair> * pair = iter->second;
-        pair->set(CountAndTimePair());
-    }
-    std::ostringstream stream;
-    stream << "LoopDetectorEntity::reset() was called on invalid lane";
-    throw stream.str();
+    if (pimpl_)
+        pimpl_->reset(lane);
 }
 
 LoopDetectorEntity::CountAndTimePair const &

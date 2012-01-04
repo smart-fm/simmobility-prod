@@ -116,8 +116,8 @@ class Graphics_scene(QtGui.QGraphicsScene):
                 ball.info = info
             else:
                 ball.info = info + "polyline-first-point"
-            ball.road_item = object
-            ball.lane_edge = object
+            ball.road_item = lane_edge_or_center_line
+            ball.lane_edge = lane_edge_or_center_line
             ball.point_index = i
             ball.setZValue(1)
             ball.is_a_line = False

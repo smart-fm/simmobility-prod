@@ -8,6 +8,9 @@ project (Basic)
 set (Basic_VERSION_MAJOR 0)
 set (Basic_VERSION_MINOR 1)
 
+#Option: strict error handling. Use the cmake gui to change this on a per-user basis.
+option (SIMMOB_STRICT_AGENT_ERRORS  "All unexpected and potentially dangerous behavior causes Agents to throw exceptions. If OFF, Agents will generally just remove themselves from the simulation in case of error." ON)
+
 #Option: disable output. Use the cmake gui to change this on a per-user basis.
 option (SIMMOB_DISABLE_OUTPUT  "Disable all mutex-locked output and all additional non-trivial output. Avoid all use of mutexes w.r.t. output." OFF)
 

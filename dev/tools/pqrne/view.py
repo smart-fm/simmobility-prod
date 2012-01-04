@@ -102,12 +102,20 @@ class Graphics_view(QtGui.QGraphicsView):
                     lane_edge_dialog.set_lane_edge(lane_edge)
                     if lane_edge_dialog.exec_():
                         lane_edge_dialog.update(lane_edge)
+                        info = "lane-edge section=%d index=%d type=%s" \
+                               % (lane_edge.section_id, lane_edge.index, lane_edge.type)
+                        for item in selected_lane_edge.graphics_items:
+                            item.info = info
                     selected_lane_edge.clear(lane_edge)
                 elif isinstance(lane_edge, edge.Center_line):
                     center_line_dialog = Dialogs.center_line_dialog
                     center_line_dialog.set_center_line(lane_edge)
                     if center_line_dialog.exec_():
                         center_line_dialog.update(lane_edge)
+                        info = "center-line section=%d index=%d type=%s" \
+                               % (center_line.section_id, center_line.index, center_line.type)
+                        for item in selected_lane_edge.graphics_items:
+                            item.info = info
                     selected_lane_edge.clear(lane_edge)
         elif event.key() == QtCore.Qt.Key_D:
             # Delete the selected lane edges or center lines from the graphics view as well as

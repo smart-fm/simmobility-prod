@@ -57,6 +57,12 @@ IF (SIMMOB_LATEST_STANDARD)
   ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 ENDIF(SIMMOB_LATEST_STANDARD)
 
+#Avoid deprecation warnings in boost by declaring that this platform has no hash_set
+# implementation (note: doesn't affect unordered_map; fixes a warning with gcc-4.5 and boost 1.42)
+IF(CMAKE_COMPILER_IS_GNUCXX)
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_HASH")
+ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+
 #Additional module find scripts
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules/")
 

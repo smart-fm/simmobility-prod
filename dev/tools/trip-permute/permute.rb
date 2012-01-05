@@ -27,8 +27,10 @@ def run_main()
   to_pts = []
   File.open(ARGV[0]).each { |line|
     if line =~ /\("(uni-node|multi-node)"[^{]+\{"xPos":"([^"]+)" *, *"yPos":"([^"]+)" *, *"aimsun-id":"([^"]+)" *,? *\} *\) */
-      from_pts.push Point.new($2, $3) if ($1=='multi-node') 
-      to_pts.push Point.new($2, $3)
+      unless $4.to_i == 70392
+        from_pts.push Point.new($2, $3) if ($1=='multi-node') 
+        to_pts.push Point.new($2, $3)
+      end
     end
   }
 

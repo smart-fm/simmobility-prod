@@ -8,6 +8,14 @@ project (Basic)
 set (Basic_VERSION_MAJOR 0)
 set (Basic_VERSION_MINOR 1)
 
+#Flags for each configuration type
+SET(CMAKE_CXX_FLAGS_RELEASE "-O2")
+SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g")
+
+
+#Option: strict error handling. Use the cmake gui to change this on a per-user basis.
+option (SIMMOB_STRICT_AGENT_ERRORS  "All unexpected and potentially dangerous behavior causes Agents to throw exceptions. If OFF, Agents will generally just remove themselves from the simulation in case of error." ON)
+
 #Option: disable output. Use the cmake gui to change this on a per-user basis.
 option (SIMMOB_DISABLE_OUTPUT  "Disable all mutex-locked output and all additional non-trivial output. Avoid all use of mutexes w.r.t. output." OFF)
 
@@ -48,6 +56,12 @@ IF (SIMMOB_LATEST_STANDARD)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
   ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 ENDIF(SIMMOB_LATEST_STANDARD)
+
+#Avoid deprecation warnings in boost by declaring that this platform has no hash_set
+# implementation (note: doesn't affect unordered_map; fixes a warning with gcc-4.5 and boost 1.42)
+IF(CMAKE_COMPILER_IS_GNUCXX)
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_NO_HASH")
+ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 #Additional module find scripts
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules/")

@@ -7,6 +7,8 @@
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "util/DebugFlags.hpp"
 
+#include "geospatial/Node.hpp"
+
 using std::vector;
 using namespace sim_mob;
 
@@ -82,28 +84,29 @@ bool sim_mob::Person::update(frame_t frameNumber) {
 					: dynamic_cast<Pedestrian*> (currRole) ? "Pedestrian" : "Other") << "\n";
 #endif
 		}
-
-		//Return true unless we are scheduled for removal.
-		//NOTE: Make sure you set this flag AFTER performing your final output.
-		return !isToBeRemoved();
 	} catch (std::exception& ex) {
-		//Provide diagnostics for all errors
-		std::stringstream msg;
-		msg <<"Error updating Agent[" <<getId() <<"]\n";
-		msg <<ex.what();
-		throw std::runtime_error(msg.str().c_str());
+		if (ConfigParams::GetInstance().StrictAgentErrors()) {
+			//Provide diagnostics for all errors
+			std::stringstream msg;
+			msg <<"Error updating Agent[" <<getId() <<"]";
+			msg <<"\nFrom node: " <<(originNode?originNode->originalDB_ID.getLogItem():"<Unknown>");
+			msg <<"\nTo node: " <<(destNode?destNode->originalDB_ID.getLogItem():"<Unknown>");
+			msg <<"\n" <<ex.what();
+			throw std::runtime_error(msg.str().c_str());
+		} else {
+			//Add a line to the output file.
+#ifndef SIMMOB_DISABLE_OUTPUT
+			LogOut("ERROR: Agent " <<getId() <<" encountered an error and will be removed from the simulation." <<std::endl);
+#endif
+			setToBeRemoved();
+		}
 	}
+
+	//Return true unless we are scheduled for removal.
+	//NOTE: Make sure you set this flag AFTER performing your final output.
+	return !isToBeRemoved();
 }
 
-/*void sim_mob::Person::output(frame_t frameNumber) {
-	if (currRole) {
-		currRole->output(frameNumber);
-	}
-}*/
-
-/*void sim_mob::Person::subscribe(sim_mob::BufferedDataManager* mgr, bool isNew) {
- Agent::subscribe(mgr, isNew); //Get x/y subscribed.
- }*/
 
 void sim_mob::Person::buildSubscriptionList() {
 	//First, add the x and y co-ordinates

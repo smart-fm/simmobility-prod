@@ -17,6 +17,8 @@ Skipped "crossing" laneIDs: [2615, 2778, 2115, 1345, 2134, 2931, 2944, 1098,
     434, 500, 3859, 4550, 4550, 265, 998, 1270, 1281, 2563, 1201, 1993]
 Warning: Units are not considered when converting AIMSUN data.
 Warning: Lanes-Left-of-Divider incorrect when converting AIMSUN data.
+the node at (37262150, 14386897) (database-id=45690) does not have 4 links; no signal will be created here.
+the node at (37283599, 14393370) (database-id=75822) does not have 4 links; no signal will be created here.
 AIMSUN Network successfully imported.
 Skipping agent; can't find route from: "aimsun-id":"45666", to: "aimsun-id":"48732",   {(37270984, 14378959)=>(37232859, 14308003)}
 Skipping agent; can't find route from: "aimsun-id":"45666", to: "aimsun-id":"54758",   {(37270984, 14378959)=>(37273805, 14362442)}
@@ -115,7 +117,6 @@ Skipping agent; can't find route from: "aimsun-id":"48718", to: "aimsun-id":"547
 Skipping agent; can't find route from: "aimsun-id":"48718", to: "aimsun-id":"61682",   {(37240057, 14318241)=>(37236951, 14366395)}
 Skipping agent; can't find route from: "aimsun-id":"48718", to: "aimsun-id":"61688",   {(37240057, 14318241)=>(37241080, 14362955)}
 Skipping agent; can't find route from: "aimsun-id":"48718", to: "aimsun-id":"66508",   {(37240057, 14318241)=>(37250760, 14355120)}
-Skipping agent; can't find route from: "aimsun-id":"48718", to: "aimsun-id":"70392",   {(37240057, 14318241)=>(37255963, 14394928)}
 Skipping agent; can't find route from: "aimsun-id":"48718", to: "aimsun-id":"75780",   {(37240057, 14318241)=>(37218351, 14335255)}
 Skipping agent; can't find route from: "aimsun-id":"48718", to: "aimsun-id":"75822",   {(37240057, 14318241)=>(37283599, 14393370)}
 Skipping agent; can't find route from: "aimsun-id":"48718", to: "aimsun-id":"76554",   {(37240057, 14318241)=>(37212150, 14310654)}
@@ -255,53 +256,6 @@ Skipping agent; can't find route from: "aimsun-id":"66508", to: "aimsun-id":"102
 Skipping agent; can't find route from: "aimsun-id":"66508", to: "aimsun-id":"110320",   {(37250760, 14355120)=>(37228105, 14300695)}
 Skipping agent; can't find route from: "aimsun-id":"66508", to: "aimsun-id":"113152",   {(37250760, 14355120)=>(37278234, 14397288)}
 Skipping agent; can't find route from: "aimsun-id":"66508", to: "aimsun-id":"115436",   {(37250760, 14355120)=>(37209605, 14342934)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"48732",   {(37255963, 14394928)=>(37232859, 14308003)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"54758",   {(37255963, 14394928)=>(37273805, 14362442)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"58944",   {(37255963, 14394928)=>(37260341, 14366554)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"58950",   {(37255963, 14394928)=>(37265277, 14372270)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"60896",   {(37255963, 14394928)=>(37203363, 14316228)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"60978",   {(37255963, 14394928)=>(37207327, 14321605)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"65120",   {(37255963, 14394928)=>(37254988, 14351820)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"75792",   {(37255963, 14394928)=>(37228714, 14347788)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"75808",   {(37255963, 14394928)=>(37275470, 14384214)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"75846",   {(37255963, 14394928)=>(37277897, 14386971)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"75956",   {(37255963, 14394928)=>(37255424, 14360690)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"76548",   {(37255963, 14394928)=>(37219598, 14319517)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"84882",   {(37255963, 14394928)=>(37246069, 14349392)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"91144",   {(37255963, 14394928)=>(37283798, 14374819)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"92370",   {(37255963, 14394928)=>(37269835, 14357029)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"93730",   {(37255963, 14394928)=>(37245506, 14359431)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"95146",   {(37255963, 14394928)=>(37257272, 14381914)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"95374",   {(37255963, 14394928)=>(37242841, 14345362)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"95940",   {(37255963, 14394928)=>(37252241, 14376060)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"98852",   {(37255963, 14394928)=>(37254052, 14336482)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"98856",   {(37255963, 14394928)=>(37251673, 14333350)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"103046",   {(37255963, 14394928)=>(37236345, 14337301)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"103708",   {(37255963, 14394928)=>(37245085, 14367879)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"106946",   {(37255963, 14394928)=>(37267718, 14354161)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"107736",   {(37255963, 14394928)=>(37248527, 14329197)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"115418",   {(37255963, 14394928)=>(37256237, 14339027)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"116724",   {(37255963, 14394928)=>(37289787, 14381483)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"45666",   {(37255963, 14394928)=>(37270984, 14378959)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"45690",   {(37255963, 14394928)=>(37262150, 14386897)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"48718",   {(37255963, 14394928)=>(37240057, 14318241)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"54744",   {(37255963, 14394928)=>(37279699, 14369995)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"61682",   {(37255963, 14394928)=>(37236951, 14366395)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"61688",   {(37255963, 14394928)=>(37241080, 14362955)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"66508",   {(37255963, 14394928)=>(37250760, 14355120)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"75780",   {(37255963, 14394928)=>(37218351, 14335255)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"75822",   {(37255963, 14394928)=>(37283599, 14393370)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"76554",   {(37255963, 14394928)=>(37212150, 14310654)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"83620",   {(37255963, 14394928)=>(37261496, 14346008)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"85760",   {(37255963, 14394928)=>(37293562, 14385720)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"90616",   {(37255963, 14394928)=>(37249206, 14310754)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"91218",   {(37255963, 14394928)=>(37227139, 14327875)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"98226",   {(37255963, 14394928)=>(37208093, 14303432)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"102346",   {(37255963, 14394928)=>(37286699, 14361875)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"103664",   {(37255963, 14394928)=>(37275559, 14333268)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"110320",   {(37255963, 14394928)=>(37228105, 14300695)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"113152",   {(37255963, 14394928)=>(37278234, 14397288)}
-Skipping agent; can't find route from: "aimsun-id":"70392", to: "aimsun-id":"115436",   {(37255963, 14394928)=>(37209605, 14342934)}
 Skipping agent; can't find route from: "aimsun-id":"75780", to: "aimsun-id":"48732",   {(37218351, 14335255)=>(37232859, 14308003)}
 Skipping agent; can't find route from: "aimsun-id":"75780", to: "aimsun-id":"54758",   {(37218351, 14335255)=>(37273805, 14362442)}
 Skipping agent; can't find route from: "aimsun-id":"75780", to: "aimsun-id":"58944",   {(37218351, 14335255)=>(37260341, 14366554)}
@@ -464,7 +418,6 @@ Skipping agent; can't find route from: "aimsun-id":"85760", to: "aimsun-id":"547
 Skipping agent; can't find route from: "aimsun-id":"85760", to: "aimsun-id":"61682",   {(37293562, 14385720)=>(37236951, 14366395)}
 Skipping agent; can't find route from: "aimsun-id":"85760", to: "aimsun-id":"61688",   {(37293562, 14385720)=>(37241080, 14362955)}
 Skipping agent; can't find route from: "aimsun-id":"85760", to: "aimsun-id":"66508",   {(37293562, 14385720)=>(37250760, 14355120)}
-Skipping agent; can't find route from: "aimsun-id":"85760", to: "aimsun-id":"70392",   {(37293562, 14385720)=>(37255963, 14394928)}
 Skipping agent; can't find route from: "aimsun-id":"85760", to: "aimsun-id":"75780",   {(37293562, 14385720)=>(37218351, 14335255)}
 Skipping agent; can't find route from: "aimsun-id":"85760", to: "aimsun-id":"75822",   {(37293562, 14385720)=>(37283599, 14393370)}
 Skipping agent; can't find route from: "aimsun-id":"85760", to: "aimsun-id":"76554",   {(37293562, 14385720)=>(37212150, 14310654)}
@@ -511,7 +464,6 @@ Skipping agent; can't find route from: "aimsun-id":"90616", to: "aimsun-id":"547
 Skipping agent; can't find route from: "aimsun-id":"90616", to: "aimsun-id":"61682",   {(37249206, 14310754)=>(37236951, 14366395)}
 Skipping agent; can't find route from: "aimsun-id":"90616", to: "aimsun-id":"61688",   {(37249206, 14310754)=>(37241080, 14362955)}
 Skipping agent; can't find route from: "aimsun-id":"90616", to: "aimsun-id":"66508",   {(37249206, 14310754)=>(37250760, 14355120)}
-Skipping agent; can't find route from: "aimsun-id":"90616", to: "aimsun-id":"70392",   {(37249206, 14310754)=>(37255963, 14394928)}
 Skipping agent; can't find route from: "aimsun-id":"90616", to: "aimsun-id":"75780",   {(37249206, 14310754)=>(37218351, 14335255)}
 Skipping agent; can't find route from: "aimsun-id":"90616", to: "aimsun-id":"75822",   {(37249206, 14310754)=>(37283599, 14393370)}
 Skipping agent; can't find route from: "aimsun-id":"90616", to: "aimsun-id":"76554",   {(37249206, 14310754)=>(37212150, 14310654)}
@@ -759,7 +711,7 @@ Config parameters:
 Network details loaded from connection: host=172.18.127.157 port=5432 dbname=SimMobility_DB user=postgres password=***********
 ------------------
 ------------------
-  Agents Initialized: 262
+  Agents Initialized: 245
 ------------------
 XML config file loaded.
 Configuration complete.
@@ -769,155 +721,11 @@ DailyTime tests passed.
 Initial Agents dispatched or pushed to pending.
 Approximate Tick Boundary: 0, 0 ms
   Warmup; output ignored.
-DS 0
-RL 51.45
-currCL 60 nextCL 54
-Approximate Tick Boundary: 1, 100 ms
-  Warmup; output ignored.
-Approximate Tick Boundary: 2, 200 ms
-  Warmup; output ignored.
-Approximate Tick Boundary: 3, 300 ms
-  Warmup; output ignored.
-Approximate Tick Boundary: 4, 400 ms
-  Warmup; output ignored.
-Approximate Tick Boundary: 5, 500 ms
-  Warmup; output ignored.
-Approximate Tick Boundary: 6, 600 ms
-  Warmup; output ignored.
-Approximate Tick Boundary: 7, 700 ms
-  Warmup; output ignored.
-Approximate Tick Boundary: 8, 800 ms
-  Warmup; output ignored.
-Approximate Tick Boundary: 9, 900 ms
-  Warmup; output ignored.
-Approximate Tick Boundary: 10, 1000 ms
-Approximate Tick Boundary: 11, 1100 ms
-Approximate Tick Boundary: 12, 1200 ms
-Approximate Tick Boundary: 13, 1300 ms
-Approximate Tick Boundary: 14, 1400 ms
-Approximate Tick Boundary: 15, 1500 ms
-Approximate Tick Boundary: 16, 1600 ms
-Approximate Tick Boundary: 17, 1700 ms
-Approximate Tick Boundary: 18, 1800 ms
-Approximate Tick Boundary: 19, 1900 ms
-Approximate Tick Boundary: 20, 2000 ms
-Approximate Tick Boundary: 21, 2100 ms
-Approximate Tick Boundary: 22, 2200 ms
-Approximate Tick Boundary: 23, 2300 ms
-Approximate Tick Boundary: 24, 2400 ms
-Approximate Tick Boundary: 25, 2500 ms
-Approximate Tick Boundary: 26, 2600 ms
-Approximate Tick Boundary: 27, 2700 ms
-Approximate Tick Boundary: 28, 2800 ms
-Approximate Tick Boundary: 29, 2900 ms
-Approximate Tick Boundary: 30, 3000 ms
-Approximate Tick Boundary: 31, 3100 ms
-Approximate Tick Boundary: 32, 3200 ms
-Approximate Tick Boundary: 33, 3300 ms
-Approximate Tick Boundary: 34, 3400 ms
-Approximate Tick Boundary: 35, 3500 ms
-Approximate Tick Boundary: 36, 3600 ms
-Approximate Tick Boundary: 37, 3700 ms
-Approximate Tick Boundary: 38, 3800 ms
-Approximate Tick Boundary: 39, 3900 ms
-Approximate Tick Boundary: 40, 4000 ms
-Approximate Tick Boundary: 41, 4100 ms
-Approximate Tick Boundary: 42, 4200 ms
-Approximate Tick Boundary: 43, 4300 ms
-Approximate Tick Boundary: 44, 4400 ms
-Approximate Tick Boundary: 45, 4500 ms
-Approximate Tick Boundary: 46, 4600 ms
-Approximate Tick Boundary: 47, 4700 ms
-Approximate Tick Boundary: 48, 4800 ms
-Approximate Tick Boundary: 49, 4900 ms
-Approximate Tick Boundary: 50, 5000 ms
-Approximate Tick Boundary: 51, 5100 ms
-Approximate Tick Boundary: 52, 5200 ms
-Approximate Tick Boundary: 53, 5300 ms
-Approximate Tick Boundary: 54, 5400 ms
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Approximate Tick Boundary: 55, 5500 ms
-Approximate Tick Boundary: 56, 5600 ms
-Approximate Tick Boundary: 57, 5700 ms
-Approximate Tick Boundary: 58, 5800 ms
-Approximate Tick Boundary: 59, 5900 ms
-Approximate Tick Boundary: 60, 6000 ms
-Approximate Tick Boundary: 61, 6100 ms
-Approximate Tick Boundary: 62, 6200 ms
-Approximate Tick Boundary: 63, 6300 ms
-Approximate Tick Boundary: 64, 6400 ms
-Approximate Tick Boundary: 65, 6500 ms
-Approximate Tick Boundary: 66, 6600 ms
-Approximate Tick Boundary: 67, 6700 ms
-Approximate Tick Boundary: 68, 6800 ms
-Approximate Tick Boundary: 69, 6900 ms
-Approximate Tick Boundary: 70, 7000 ms
-Approximate Tick Boundary: 71, 7100 ms
-Approximate Tick Boundary: 72, 7200 ms
-Approximate Tick Boundary: 73, 7300 ms
-Approximate Tick Boundary: 74, 7400 ms
-Approximate Tick Boundary: 75, 7500 ms
-Nothing to do for next
-Approximate Tick Boundary: 76, 7600 ms
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Approximate Tick Boundary: 77, 7700 ms
-Approximate Tick Boundary: 78, 7800 ms
-Approximate Tick Boundary: 79, 7900 ms
-Approximate Tick Boundary: 80, 8000 ms
-Approximate Tick Boundary: 81, 8100 ms
-Approximate Tick Boundary: 82, 8200 ms
-Approximate Tick Boundary: 83, 8300 ms
-Approximate Tick Boundary: 84, 8400 ms
-Approximate Tick Boundary: 85, 8500 ms
-Approximate Tick Boundary: 86, 8600 ms
-Approximate Tick Boundary: 87, 8700 ms
-Approximate Tick Boundary: 88, 8800 ms
-Approximate Tick Boundary: 89, 8900 ms
-Approximate Tick Boundary: 90, 9000 ms
-Approximate Tick Boundary: 91, 9100 ms
-Approximate Tick Boundary: 92, 9200 ms
-Approximate Tick Boundary: 93, 9300 ms
-Nothing to do for next
-Approximate Tick Boundary: 94, 9400 ms
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Nothing to do for next
-Approximate Tick Boundary: 95, 9500 ms
-Approximate Tick Boundary: 96, 9600 ms
-Approximate Tick Boundary: 97, 9700 ms
-Approximate Tick Boundary: 98, 9800 ms
-Approximate Tick Boundary: 99, 9900 ms
-Database lookup took: 603 ms
-Starting Agents: 270,     Pending: 0
-Remaining Agents: 253 (Person)   8 (Other)
-   Person Agents: 253 (Driver)   0 (Pedestrian)   0 (Other)
-Agents SKIPPED due to invalid route assignment: 725
+Database lookup took: 600 ms
+Starting Agents: 253,     Pending: 0
+Remaining Agents: 237 (Person)   8 (Other)
+   Person Agents: 237 (Driver)   0 (Pedestrian)   0 (Other)
+Agents SKIPPED due to invalid route assignment: 675
 Simulation complete; closing worker threads.
 Done
+

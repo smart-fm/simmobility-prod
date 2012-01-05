@@ -1,0 +1,39 @@
+#Low-quality car vectorization  
+{
+ #100% zoom coordinate system.
+ "coordinates" :
+ {
+   "width":"19",
+   "height":"19"
+ },
+
+ #Index of colors used by this image. Allows easy substitution.
+ "colors" :
+ [
+
+   {"id":"wheel-outline",  "rgb":"FFFFFF"},
+
+   #Car body
+   {"id":"body1",          "rgb":"FF4040"},
+   {"id":"body2",          "rgb":"FF9595"},
+   {"id":"body-outline",   "rgb":"712C2C"}
+
+ ],
+
+ #Items to draw, in order, when rendering this car. Coordinate system
+ # is from [0 .. width/height-1]. Stroke is scaled accordingly.
+ #A "poly" has pairs of x/y coordinates, and is assumed closed.
+ "drawOrder" :
+ [
+
+   #Car body
+   { "gradient":["body1","body2"], "stroke":"body-outline", "width":"1", "shape":"poly",
+     "points":[0,5, 17,5, 17,13, 0,13]
+   },
+   { "stroke":"wheel-outline", "width":"2", "shape":"line",
+     "points":[18,6, 18,12]
+   }
+
+ ]
+
+}

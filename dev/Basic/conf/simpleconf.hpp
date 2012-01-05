@@ -101,6 +101,16 @@ public:
 #endif
 	}
 
+	///Synced to the value of SIMMOB_STRICT_AGENT_ERRORS; used for runtime checks.
+	bool StrictAgentErrors() const {
+	#ifdef SIMMOB_STRICT_AGENT_ERRORS
+			return true;
+	#else
+			return false;
+	#endif
+		}
+
+
 public:
 	/***
 	 * Singleton. Retrieve an instance of the ConfigParams object.

@@ -39,7 +39,7 @@ const Node* UnPackageUtils::unpackageNode() {
 	sim_mob::Point2D location;
 	(*package) & location;
 
-	sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
+	const sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
 	return rn.locateNode(location, true);
 }
 

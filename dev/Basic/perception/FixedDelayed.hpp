@@ -39,7 +39,7 @@ public:
 	 * \param delayMS The time to delay each sensation.
 	 * \param reclaimPtrs If true, any item discarded by this history list is deleted. Does nothing if the template type is not a pointer.
 	 */
-	FixedDelayed(size_t delayMS, bool reclaimPtrs=true) : delayMS(delayMS), reclaimPtrs(reclaimPtrs) {}
+	FixedDelayed(size_t delayMS, bool reclaimPtrs=true) : maxDelayMS(delayMS), reclaimPtrs(reclaimPtrs) {}
 
 
 	/**
@@ -78,15 +78,29 @@ public:
 	 * currTimeMS must be monotonically increasing; sense() is used to retrieve values at
 	 * the current time tick, not any arbitrary time tick.
 	 */
-	const T& sense(uint32_t currTimeMS) {
+	const T& sense(uint32_t currTimeMS, uint32_t delayMS)
+	{
 		//Consistency check, done via update.
 		if (!can_sense(currTimeMS)) {
 			throw std::runtime_error("Can't sense: not enough time has passed.");
 		}
 
 		//Return the first value in the list; can_sense() will have already performed the necessary updates.
-		const T& test = history.front().item;
-		return test; //Debugging....
+		//const T& test = history.front().item;
+
+
+		typename std::list<HistItem>::iterator iter = history.begin();
+		while(iter!=history.end())
+		{
+			HistItem& histItem = *iter;
+			if((++iter)==history.end())
+				return histItem.item;
+			HistItem& histItemNext = *iter;
+			if(histItem.canObserve(currTimeMS,delayMS)&&(!histItemNext.canObserve(currTimeMS,delayMS)))
+				return histItem.item;
+		}
+		//if for loop doesn't return
+		return history.front().item; //Debugging....
 		//return history.front().item;
 	}
 
@@ -97,9 +111,9 @@ public:
 	 */
 	bool can_sense(uint32_t currTimeMS) {
 		//Loop while the first value is "sense"-able.
-		while (!history.empty() && history.front().canObserve(currTimeMS, delayMS)) {
+		while (!history.empty() && history.front().canObserve(currTimeMS, maxDelayMS)) {
 			//If the second element in the list is non-sensable, we're done.
-			if (history.size()==1 || !(++history.begin())->canObserve(currTimeMS, delayMS)) {
+			if (history.size()==1 || !(++history.begin())->canObserve(currTimeMS, maxDelayMS)) {
 				return true;
 			}
 
@@ -113,6 +127,8 @@ public:
 		//In this case, nothing can be observed
 		return false;
 	}
+
+
 
 
 private:
@@ -137,7 +153,7 @@ private:
 
 	//Private data
 	std::list<HistItem> history;
-	size_t delayMS;
+	size_t maxDelayMS;
 	bool reclaimPtrs;
 
 
@@ -148,11 +164,5 @@ public:
 #endif
 
 };
-
-
-
-
-
-
 
 }

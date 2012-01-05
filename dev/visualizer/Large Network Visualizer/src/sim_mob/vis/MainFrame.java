@@ -149,7 +149,7 @@ public class MainFrame extends JFrame {
 	    
 	    openLogFile = new JButton("Open File From...", new ImageIcon(Utility.LoadImgResource("res/icons/open.png")));
 		openEmbeddedFile = new JButton("Open Default File", new ImageIcon(Utility.LoadImgResource("res/icons/embed.png")));
-		showFakeAgent = new JButton("Show Fake Agent", new ImageIcon(Utility.LoadImgResource("res/icons/fake.png")));
+		showFakeAgent = new JButton("Show Proxy Agent", new ImageIcon(Utility.LoadImgResource("res/icons/fake.png")));
 		zoomIn = new JButton("       Zoom In 	        ", new ImageIcon(Utility.LoadImgResource("res/icons/zoom_in.png")));
 		zoomOut = new JButton("      Zoom Out  	    ", new ImageIcon(Utility.LoadImgResource("res/icons/zoom_out.png")));
 		debug = new JButton("    Display Mode    ", displayIcon);
@@ -359,12 +359,12 @@ public class MainFrame extends JFrame {
 				if(showFake){
 					newViewPnl.showFakeAgent(false);
 					showFake = false;
-					showFakeAgent.setText("Show Fake Agent");
+					showFakeAgent.setText("Show Proxy Agent");
 
 				}else{
 					newViewPnl.showFakeAgent(true);
 					showFake = true;
-					showFakeAgent.setText("Hide Fake Agent");
+					showFakeAgent.setText("Hide Proxy Agent");
 				}
 			
 			}
@@ -413,14 +413,14 @@ public class MainFrame extends JFrame {
 		
 		openEmbeddedFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				openAFile(true);
+				new FileOpenThread(true).start();
 			}
 		});
 		
 		
 		openLogFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				openAFile(false);
+				new FileOpenThread(false).start();
 			}
 		});
 		
@@ -442,80 +442,93 @@ public class MainFrame extends JFrame {
 		}
 	}
 	
-	private void openAFile(boolean isEmbedded) {
-		//Pause the animation
-		if (animTimer.isRunning()) {
-			animTimer.stop();
-			playBtn.setIcon(playIcon);
-		}
-		
-		//Use a FileChooser
-		File f = null;
-		if (!isEmbedded) {
-			final JFileChooser fc = new JFileChooser("src/res/data");
-			if (fc.showOpenDialog(MainFrame.this)!=JFileChooser.APPROVE_OPTION) {
-				return;
-			}
-			f = fc.getSelectedFile();
-		}
-
-		//Load the default visualization
-		RoadNetwork rn = null;
-		String fileName;
-		try {
-			BufferedReader br = null;
-			if (isEmbedded) {
-				br = Utility.LoadFileResource("res/data/default.log.txt");
-				fileName = "default.log";
-			} else {
-				br = new BufferedReader(new FileReader(f));
-				fileName = f.getName();
-			}
- 
-			rn = new RoadNetwork(br);
-			br.close();
-		} catch (IOException ex) {
-			throw new RuntimeException(ex);
-		}
 	
-		console.setText("Input File Name: "+fileName);
-		
-		//Clear our global scaled points array.
-		ScaledPoint.ClearGlobalGroup();
-		
-		//Store all Agents returned by this.
-		HashSet<Integer> uniqueAgentIDs = new HashSet<Integer>();
-		
-		//Load the simulation's results
-		try {
-			BufferedReader br = null;
-			if (isEmbedded) {
-				br = Utility.LoadFileResource("res/data/default.log.txt");
-			} else {
-				br = new BufferedReader(new FileReader(f));
-			}
-			simData = new SimulationResults(br, rn, uniqueAgentIDs);
-			br.close();
-		} catch (IOException ex) {
-			throw new RuntimeException(ex);
+	//Helper
+	class FileOpenThread extends Thread {
+		boolean isEmbedded;
+		FileOpenThread(boolean isEmbedded) {
+			this.isEmbedded = isEmbedded;
 		}
 		
-		//Reset our Agent ID combo box.
-		resetTrackAgentIDs(uniqueAgentIDs);
+		public void run() {
+			//Pause the animation
+			if (animTimer.isRunning()) {
+				animTimer.stop();
+				playBtn.setIcon(playIcon);
+			}
+			
+			//Use a FileChooser
+			File f = null;
+			if (!isEmbedded) {
+				final JFileChooser fc = new JFileChooser("src/res/data");
+				if (fc.showOpenDialog(MainFrame.this)!=JFileChooser.APPROVE_OPTION) {
+					return;
+				}
+				f = fc.getSelectedFile();
+			}
+	
+			//Load the default visualization
+			RoadNetwork rn = null;
+			String fileName;
+			try {
+				BufferedReader br = null;
+				long fileSize = 0;
+				if (isEmbedded) {
+					br = Utility.LoadFileResource("res/data/default.log.txt");
+					fileName = "default.log";
+				} else {
+					br = new BufferedReader(new FileReader(f));
+					fileSize = f.length();
+					fileName = f.getName();
+				}
+
+				rn = new RoadNetwork();
+				rn.loadFileAndReport(br, fileSize, newViewPnl);
+				
+				br.close();
+			} catch (IOException ex) {
+				throw new RuntimeException(ex);
+			}
 		
-		//Update the slider
-		frameTickSlider.setMinimum(0);
-		frameTickSlider.setMaximum(simData.ticks.size()-1);
-		frameTickSlider.setMajorTickSpacing(simData.ticks.size()/10);
-		frameTickSlider.setMinorTickSpacing(simData.ticks.size()/50);
-		frameTickSlider.setValue(0);
-		
-		//Add a visualizer
-		NetworkVisualizer vis = new NetworkVisualizer();
-		vis.setSource(rn, simData, 1.0, newViewPnl.getWidth(), newViewPnl.getHeight(), fileName);
-		
-		//Update the map
-		newViewPnl.drawMap(vis, 0, 0);
+			console.setText("Input File Name: "+fileName);
+			
+			//Clear our global scaled points array.
+			ScaledPoint.ClearGlobalGroup();
+			
+			//Store all Agents returned by this.
+			HashSet<Integer> uniqueAgentIDs = new HashSet<Integer>();
+			
+			//Load the simulation's results
+			try {
+				BufferedReader br = null;
+				if (isEmbedded) {
+					br = Utility.LoadFileResource("res/data/default.log.txt");
+				} else {
+					br = new BufferedReader(new FileReader(f));
+				}
+				simData = new SimulationResults(br, rn, uniqueAgentIDs);
+				br.close();
+			} catch (IOException ex) {
+				throw new RuntimeException(ex);
+			}
+			
+			//Reset our Agent ID combo box.
+			resetTrackAgentIDs(uniqueAgentIDs);
+			
+			//Update the slider
+			frameTickSlider.setMinimum(0);
+			frameTickSlider.setMaximum(simData.ticks.size()-1);
+			frameTickSlider.setMajorTickSpacing(simData.ticks.size()/10);
+			frameTickSlider.setMinorTickSpacing(simData.ticks.size()/50);
+			frameTickSlider.setValue(0);
+			
+			//Add a visualizer
+			NetworkVisualizer vis = new NetworkVisualizer();
+			vis.setSource(rn, simData, 1.0, newViewPnl.getWidth(), newViewPnl.getHeight(), fileName);
+			
+			//Update the map
+			newViewPnl.drawMap(vis, 0, 0);
+		}
 	}
 	
 }

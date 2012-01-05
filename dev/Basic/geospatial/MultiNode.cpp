@@ -12,6 +12,7 @@ using namespace sim_mob;
 using std::pair;
 using std::vector;
 using std::set;
+using std::map;
 
 
 
@@ -35,45 +36,6 @@ double AngleBetween(const Node* const center, const Node* const first, const Nod
 	//NOTE: I'm pretty sure atan2 already handles this... but do we have to bound it to 0<=res,+2PI?
 	double res = atan2(v2x, v2y) - atan2(v1x, v1y);
 	return res;
-
-
-/*
-
-	//Calculate the interior angle using atan2 & the dot-product
-	double res = -(180.0/M_PI) * atan2(v1x*v2y - v1y*v2x, v1x*v2x+v1y*v2y);
-
-	//0 is always 0
-	if (res==0) {
-		return res;
-	}
-
-	//If the cross-product is anti-parallel to the plane, we need to subtract this angle from 2PI
-	//TODO: I'm bad with vectors. ~Seth
-	bool isAntiparallel = false;
-	if (isAntiparallel) { //TODO: Check! This will be much faster than using a rotational matrix, below.
-		//res = 2*M_PI - res;
-	}
-
-	//TEMP: Sine our anti-parallel solution isn't ready, another way to handle this is to use a roational
-	//      matrix to rotate the first vector by A and 2PI-A radians, and pick whichever result is closer
-	//      to the second vector's end point. (Note: Rotational matrices rotate counter-clockwise)
-	{
-	double resRev = 2*M_PI - res;
-	double res1X = first->location.getX()*cos(resRev) - first->location.getY()*sin(resRev);
-	double res1Y = first->location.getX()*sin(resRev) - first->location.getY()*cos(resRev);
-	double res1Dist = dist(second->location.getX(), second->location.getY(), res1X, res1Y);
-	double res2X = first->location.getX()*cos(res) - first->location.getY()*sin(res);
-	double res2Y = first->location.getX()*sin(res) - first->location.getY()*cos(res);
-	double res2Dist = dist(second->location.getX(), second->location.getY(), res2X, res2Y);
-	if (res2Dist<res1Dist) {
-		res = 2*M_PI - res;
-	}
-	}
-
-
-
-	//Reverse the result if requested
-	return readClockwise ? res : (2*M_PI-res);*/
 }
 
 
@@ -111,7 +73,14 @@ const set<LaneConnector*>& sim_mob::MultiNode::getOutgoingLanes(const RoadSegmen
 {
 	if (!hasOutgoingLanes(from)) {
 		//TODO: How are we handling logical errors?
-		throw std::runtime_error("No outgoing Road Segments.");
+		std::stringstream msg;
+		msg <<"No outgoing Road Segments at node: " <<originalDB_ID.getLogItem();
+		msg <<"   from node: " <<(from.getStart()==this?from.getEnd()->originalDB_ID.getLogItem():from.getStart()->originalDB_ID.getLogItem());
+		msg <<"\nExisting connectors:";
+		for (map<const RoadSegment*, set<LaneConnector*> >::const_iterator it=connectors.begin(); it!=connectors.end(); it++) {
+			msg <<"\n" <<it->first->getStart()->originalDB_ID.getLogItem() <<" => " <<it->first->getEnd()->originalDB_ID.getLogItem();
+		}
+		throw std::runtime_error(msg.str().c_str());
 	}
 
 	return connectors.find(&from)->second;

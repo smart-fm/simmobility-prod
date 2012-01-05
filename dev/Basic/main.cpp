@@ -244,24 +244,24 @@ bool performMain(const std::string& configFileName) {
 		//Flag
 		bool warmupDone = (currTick >= config.totalWarmupTicks);
 
+		//Get a rough idea how far along we are
+		int currTickPercent = (currTick*100)/config.totalRuntimeTicks;
+
 		//Output
 #ifndef SIMMOB_DISABLE_OUTPUT
 		{
 			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-			cout << "Approximate Tick Boundary: " << currTick << ", "
-					<< (currTick * config.baseGranMS) << " ms" << endl;
+			cout << "Approximate Tick Boundary: " << currTick << ", ";
+			cout << (currTick * config.baseGranMS) << " ms   [" <<currTickPercent <<"%]" << endl;
 			if (!warmupDone) {
 				cout << "  Warmup; output ignored." << endl;
 			}
 		}
 #else
-		//Get a rough idea how far along we are
-		int currTickPercent = (currTick*100)/config.totalRuntimeTicks;
+		//We don't need to lock this output if general output is disabled, since Agents won't
+		//  perform any output (and hence there will be no contention)
 		if (currTickPercent-lastTickPercent>9) {
 			lastTickPercent = currTickPercent;
-
-			//We don't need to lock this output if general output is disabled, since Agents won't
-			//  perform any output (and hence there will be no contention)
 			cout <<currTickPercent <<"%" <<endl;
 		}
 #endif

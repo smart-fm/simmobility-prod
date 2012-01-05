@@ -84,7 +84,7 @@ public class DriverTick extends AgentTick {
 	private static void MakeCarImage() {
 		//Load it.
 		try {
-			CarImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/car.json.txt"));
+			CarImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/car_lq.json.txt"));
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
 		}
@@ -141,9 +141,25 @@ public class DriverTick extends AgentTick {
 
 		AffineTransform at = AffineTransform.getTranslateInstance(pos.getX(), pos.getY());
 		
+		//HACK: Modify the angle slightly based on the quadrant
+		double angleD = angle;
+		if (angleD<90) {
+			//Moving down-right
+			angleD -= 7;
+		} else if (angle<180) {
+			//Moving down-left
+			angleD += 7;
+		} else if (angle<270) {
+			//Moving up-left
+			angleD -= 7;
+		} else if (angle<360) {
+			//Moving up-right
+			angleD += 7;
+		}
+		
 		//Retrieve the image to draw
-		SimpleVectorImage svi = (drawFake&&fake) ? FakeCarImg : debug ? DebugCarImg : CarImg;
-		BufferedImage toDraw = svi.getImage(1/scale + 0.2, (int)angle);
+		SimpleVectorImage svi = (drawFake&&fake) ? FakeCarImg : debug ? DebugCarImg : CarImg;		
+		BufferedImage toDraw = svi.getImage(1/scale + 0.2, angleD, true);
 		
 		//Rotate
 		//at.rotate((Math.PI*angle)/180);

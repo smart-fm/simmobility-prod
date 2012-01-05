@@ -70,14 +70,23 @@ public class SimpleVectorImage {
 	}
 	
 	//Retrieve a scaled, rotated version of this image.
-	public BufferedImage getImage(double scaleFactor, int rotateAngle) {
+	public BufferedImage getImage(double scaleFactor, double rotateAngleDegrees) {
+		return getImage(scaleFactor, rotateAngleDegrees, false);
+	}
+	public BufferedImage getImage(double scaleFactor, double rotateAngleDegrees, boolean ignoreCache) {
 		//Bound, retrieve
-		CachedBuffer cacheEntry = rotatedBuffers[rotateAngle%360];
+		CachedBuffer cacheEntry = null;
+		if (ignoreCache) {
+			cacheEntry = new CachedBuffer();
+		} else {
+			int rotateAngle = (int)Math.round(rotateAngleDegrees);
+			cacheEntry = rotatedBuffers[rotateAngle%360];
+		}
 		
 		//Do we need to refresh the image cache?
 		if (cacheEntry.img==null || Math.abs(scaleFactor-cacheEntry.scaleAmt)>1E-7) { //Just hard-code an epsilon value for now.
 			cacheEntry.scaleAmt = scaleFactor;
-			redrawAtScale(cacheEntry, rotateAngle);
+			redrawAtScale(cacheEntry, rotateAngleDegrees);
 		}
 		
 		return cacheEntry.img;
@@ -117,7 +126,7 @@ public class SimpleVectorImage {
 	}
 	
 	//Redraw all 360 degree rotations of this image at this scale.
-	private void redrawAtScale(CachedBuffer entry, int angle) {
+	private void redrawAtScale(CachedBuffer entry, double angle) {
 		//Based on our scale factor, take a guess at the correct size of the output rectangle.
 		double[] scaleSizeD = new double[]{coordinates.getWidth()*entry.scaleAmt, coordinates.getHeight()*entry.scaleAmt};
 		
@@ -130,7 +139,7 @@ public class SimpleVectorImage {
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		
 		//Create a transformation for this angle/scale. Translate to the center of the image.
-		AffineTransform at = AffineTransform.getTranslateInstance(entry.img.getWidth()/2, entry.img.getHeight()/2);
+		AffineTransform at = AffineTransform.getTranslateInstance(entry.img.getWidth()/2.0, entry.img.getHeight()/2.0);
 		at.scale(entry.scaleAmt, entry.scaleAmt);
 		at.rotate((Math.PI*angle)/180);
 		g.setTransform(at);

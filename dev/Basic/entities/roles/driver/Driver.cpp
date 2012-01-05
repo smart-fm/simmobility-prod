@@ -220,8 +220,8 @@ void sim_mob::Driver::frame_tick(UpdateParams& p)
 
 	//retrieved their current "sensed" values.
 	if (perceivedVelocity.can_sense(p.currTimeMS)) {
-		p2.perceivedFwdVelocity = perceivedVelocity.sense(p.currTimeMS)->x;
-		p2.perceivedLatVelocity = perceivedVelocity.sense(p.currTimeMS)->y;
+		p2.perceivedFwdVelocity = perceivedVelocity.sense(p.currTimeMS,0)->x;
+		p2.perceivedLatVelocity = perceivedVelocity.sense(p.currTimeMS,0)->y;
 	}
 
 	//General update behavior.
@@ -410,8 +410,6 @@ bool sim_mob::Driver::update_sensors(DriverUpdateParams& params, frame_t frameNu
 	//Save the nearest agents in your lane and the surrounding lanes, stored by their
 	// position before/behind you. Save nearest fwd pedestrian too.
 
-	updateNearbyAgents(params);
-
 	//Manage traffic signal behavior if we are close to the end of the link.
 	//TODO: This might be slightly inaccurate if a vehicle leaves an intersection
 	//      on a particularly short road segment. For now, though, I'm just organizing these
@@ -421,6 +419,10 @@ bool sim_mob::Driver::update_sensors(DriverUpdateParams& params, frame_t frameNu
 		params.isApproachingToIntersection = true;
 		setTrafficSignalParams(params);
 	}
+
+	updateNearbyAgents(params);
+
+
 	return true;
 }
 
@@ -1077,30 +1079,7 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 			}
 		}
 	}
-	//Update your perceptions for leading vehicle and gap
-	perceivedDistToFwdCar.delay(params.nvFwd.distance, params.currTimeMS);
-	if (params.nvFwd.distance != 5000) {
-		perceivedVelocityOfFwdCar.delay(new DPoint(params.nvFwd.driver->getVehicle()->getVelocity(),
-				params.nvFwd.driver->getVehicle()->getLatVelocity()), params.currTimeMS);
-		perceivedAccelerationOfFwdCar.delay(params.nvFwd.driver->getVehicle()->getAcceleration(), params.currTimeMS);
 
-		//retrieve perceptions
-		if (perceivedVelocityOfFwdCar.can_sense(params.currTimeMS)
-				&&perceivedAccelerationOfFwdCar.can_sense(params.currTimeMS)
-				&&perceivedDistToFwdCar.can_sense(params.currTimeMS)) {
-			params.perceivedFwdVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense(params.currTimeMS)->x;
-			params.perceivedLatVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense(params.currTimeMS)->y;
-			params.perceivedAccelerationOfFwdCar = perceivedAccelerationOfFwdCar.sense(params.currTimeMS);
-			params.perceivedDistToFwdCar = perceivedDistToFwdCar.sense(params.currTimeMS);
-		}
-		else
-		{
-			params.perceivedFwdVelocityOfFwdCar = params.nvFwd.driver->getVehicle()->getVelocity();
-			params.perceivedLatVelocityOfFwdCar = params.nvFwd.driver->getVehicle()->getLatVelocity();
-			params.perceivedAccelerationOfFwdCar = params.nvFwd.driver->getVehicle()->getAcceleration();
-			params.perceivedDistToFwdCar = params.nvFwd.distance;
-		}
-	}
 }
 
 void sim_mob::Driver::updateNearbyPedestrian(DriverUpdateParams& params, const Person* other, const Pedestrian* pedestrian) {
@@ -1164,6 +1143,40 @@ void sim_mob::Driver::updateNearbyAgents(DriverUpdateParams& params) {
 		//Perform a different action depending on whether or not this is a Pedestrian/Driver/etc.
 		updateNearbyDriver(params, other, dynamic_cast<const Driver*> (other->getRole()));
 		updateNearbyPedestrian(params, other, dynamic_cast<const Pedestrian*> (other->getRole()));
+	}
+	//Update your perceptions for leading vehicle and gap
+	perceivedDistToFwdCar.delay(params.nvFwd.distance, params.currTimeMS);
+	if (params.nvFwd.distance != 5000) {
+		perceivedVelocityOfFwdCar.delay(new DPoint(params.nvFwd.driver->getVehicle()->getVelocity(),
+				params.nvFwd.driver->getVehicle()->getLatVelocity()), params.currTimeMS);
+		perceivedAccelerationOfFwdCar.delay(params.nvFwd.driver->getVehicle()->getAcceleration(), params.currTimeMS);
+
+		//retrieve perceptions
+		size_t delayMS = 1500;
+		//make delay time changeable
+		if(params.isApproachingToIntersection&&!params.isTrafficLightStop)
+		{
+			int numV = (vehicle->getAllRestRoadSegmentsLength()
+					- vehicle->getDistanceMovedInSegment())/vehicle->length;
+			if(numV<=0)
+				numV=1;
+			delayMS = delayMS/numV;
+		}
+		if (perceivedVelocityOfFwdCar.can_sense(params.currTimeMS)
+				&&perceivedAccelerationOfFwdCar.can_sense(params.currTimeMS)
+				&&perceivedDistToFwdCar.can_sense(params.currTimeMS)) {
+			params.perceivedFwdVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense(params.currTimeMS,delayMS)->x;
+			params.perceivedLatVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense(params.currTimeMS,delayMS)->y;
+			params.perceivedAccelerationOfFwdCar = perceivedAccelerationOfFwdCar.sense(params.currTimeMS,delayMS);
+			params.perceivedDistToFwdCar = perceivedDistToFwdCar.sense(params.currTimeMS,delayMS);
+		}
+		else
+		{
+			params.perceivedFwdVelocityOfFwdCar = params.nvFwd.driver->getVehicle()->getVelocity();
+			params.perceivedLatVelocityOfFwdCar = params.nvFwd.driver->getVehicle()->getLatVelocity();
+			params.perceivedAccelerationOfFwdCar = params.nvFwd.driver->getVehicle()->getAcceleration();
+			params.perceivedDistToFwdCar = params.nvFwd.distance;
+		}
 	}
 }
 

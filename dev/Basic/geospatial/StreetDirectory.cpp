@@ -969,6 +969,15 @@ StreetDirectory::ShortestPathImpl::addRoadEdge(Node const * node1, Node const * 
     boost::tie(edge, ok) = boost::add_edge(u, v, drivingMap_);
     boost::put(boost::edge_name, drivingMap_, edge, wp);
     boost::put(boost::edge_weight, drivingMap_, edge, length);
+
+    //NOTE: With some combinations of boost+gcc+optimizations, this sometimes adds
+    //      a null node. Rather than silently crashing, we will directly check the
+    //      added value here and explicitly fail if corruption occurred. ~Seth
+    WayPoint cp = boost::get(boost::edge_name, drivingMap_, edge);
+    if (cp.type_ != wp.type_) {
+    	throw std::runtime_error("StreetDirectory::addRoadEdge; boost::put corrupted data."
+    		"This sometimes happens with certain versions of boost, gcc, and optimization level 2.");
+    }
 }
 
 // If there is a Node in the walkingMap_ that is within 10 meters from <point>, return the

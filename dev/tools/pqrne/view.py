@@ -10,6 +10,7 @@ import edge
 from dialog import Dialogs
 from chain import Ball
 from simmob.point import Point
+from bisect import bisect
 
 class Selected_lane_edge:
     def __init__(self, graphics_item):
@@ -158,6 +159,15 @@ class Graphics_view(QtGui.QGraphicsView):
             self.road_network.save()
         elif event.key() == QtCore.Qt.Key_N:
             self.scene().toggle_node_visibility()
+        elif event.key() == QtCore.Qt.Key_B:
+            # Use the selected lane edge as a cut-line to bisect all lane edges and center lines
+            # in its path.
+            if len(self.selected_lane_edges) != 1:
+                print "select one line as the cutting line to bisect lane edges and center lines"
+                return
+            selected_lane_edge = self.selected_lane_edges.pop()
+            bisect(selected_lane_edge.lane_edge, self.road_network, self)
+            selected_lane_edge.clear(selected_lane_edge.lane_edge)
 
     def filter_out_lower_items(self, graphics_items):
         for item in graphics_items:

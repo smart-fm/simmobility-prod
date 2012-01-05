@@ -73,7 +73,7 @@ class Graphics_scene(QtGui.QGraphicsScene):
             if i:
                 ball.info = info
             else:
-                ball.info = info + "polyline-first-point"
+                ball.info = info + " polyline-first-point"
             ball.road_item = lane_edge
             ball.lane_edge = lane_edge
             ball.point_index = i

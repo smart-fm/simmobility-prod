@@ -22,10 +22,10 @@ class Graphics_scene(QtGui.QGraphicsScene):
     def draw_nodes(self, road_network):
         for node in road_network.nodes.values():
             info = "%s id=%d" % ("multi-node" if node.is_intersection else "uni-node", node.id)
-            #for section in node.from_sections:
-            #    info += " from-section=%d" % section.id
-            #for section in node.to_sections:
-            #    info += " to-section=%d" % section.id
+            for section in node.from_sections:
+               info += " from-section=%d" % section.id
+            for section in node.to_sections:
+                info += " to-section=%d" % section.id
             item = self.draw_point(node, color=QtCore.Qt.red, info=info, large=True)
             item.hide()
             self.node_items.append(item)

@@ -68,6 +68,8 @@ class Database:
             to_node = road_network.nodes[to_node_id]
             section = Section(id, road, number_lanes, speed_limit,
                               capacity, from_node, to_node, length)
+            from_node.add_from_section(section)
+            to_node.add_to_section(section)
             road_network.sections[id] = section
             road.sections.append(section)
 

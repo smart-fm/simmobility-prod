@@ -9,6 +9,9 @@ class Node:
         self.y = y
         self.is_intersection = is_intersection
 
+        self.from_sections = list()
+        self.to_sections = list()
+
     def add_from_section(self, section):
         self.from_sections.append(section)
 

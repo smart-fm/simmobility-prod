@@ -20,7 +20,7 @@ def bisect(cut_line, road_network, view):
     polyline = cut_line.polyline
     point = polyline[0]
     search_path = QtGui.QPainterPath(QtCore.QPointF(point.x, point.y))
-    point = polyline[1]
+    point = polyline[-1]
     search_path.lineTo(point.x, point.y)
     edges = list()
     balls_and_chains = dict()
@@ -99,7 +99,7 @@ def intersection(polyline, cut_line):
     # The following intersection algorithm is described in Section 5.1.9.1 of "Real-Time Collision
     # Detection" by Christer Ericson, Morgan Kaufmann Publishers.
     pt1 = cut_line[0]
-    pt2 = cut_line[1]
+    pt2 = cut_line[-1]
     for i in range(len(polyline) - 1):
         pt3 = polyline[i]
         pt4 = polyline[i+1]

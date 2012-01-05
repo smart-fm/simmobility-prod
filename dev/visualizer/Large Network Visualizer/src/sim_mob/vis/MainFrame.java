@@ -149,7 +149,7 @@ public class MainFrame extends JFrame {
 	    
 	    openLogFile = new JButton("Open File From...", new ImageIcon(Utility.LoadImgResource("res/icons/open.png")));
 		openEmbeddedFile = new JButton("Open Default File", new ImageIcon(Utility.LoadImgResource("res/icons/embed.png")));
-		showFakeAgent = new JButton("Show Fake Agent", new ImageIcon(Utility.LoadImgResource("res/icons/fake.png")));
+		showFakeAgent = new JButton("Show Proxy Agent", new ImageIcon(Utility.LoadImgResource("res/icons/fake.png")));
 		zoomIn = new JButton("       Zoom In 	        ", new ImageIcon(Utility.LoadImgResource("res/icons/zoom_in.png")));
 		zoomOut = new JButton("      Zoom Out  	    ", new ImageIcon(Utility.LoadImgResource("res/icons/zoom_out.png")));
 		debug = new JButton("    Display Mode    ", displayIcon);
@@ -359,12 +359,12 @@ public class MainFrame extends JFrame {
 				if(showFake){
 					newViewPnl.showFakeAgent(false);
 					showFake = false;
-					showFakeAgent.setText("Show Fake Agent");
+					showFakeAgent.setText("Show Proxy Agent");
 
 				}else{
 					newViewPnl.showFakeAgent(true);
 					showFake = true;
-					showFakeAgent.setText("Hide Fake Agent");
+					showFakeAgent.setText("Hide Proxy Agent");
 				}
 			
 			}

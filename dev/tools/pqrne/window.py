@@ -7,7 +7,7 @@ from PyQt4 import QtGui, QtCore
 import scene
 import view
 import tool
-from dialog import Dialogs, Lane_edge_dialog, Center_line_dialog
+from dialog import Dialogs, Lane_edge_dialog, Center_line_dialog, Output_xml_dialog
 import help
 
 class Main_window(QtGui.QMainWindow):
@@ -33,6 +33,7 @@ class Main_window(QtGui.QMainWindow):
         Dialogs.help_dialog = help.create_manual()
         Dialogs.lane_edge_dialog = Lane_edge_dialog(self)
         Dialogs.center_line_dialog = Center_line_dialog(self)
+        Dialogs.output_xml_dialog = Output_xml_dialog(self)
 
     def closeEvent(self, event):
         msg_box = QtGui.QMessageBox()

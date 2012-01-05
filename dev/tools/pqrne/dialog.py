@@ -8,6 +8,7 @@ class Dialogs:
     help_dialog = None
     lane_edge_dialog = None
     center_line_dialog = None
+    output_xml_dialog = None
 
 class Lane_edge_dialog(QtGui.QDialog):
     types = ("lane edge",
@@ -27,7 +28,7 @@ class Lane_edge_dialog(QtGui.QDialog):
 
     def __init__(self, parent=None):
         super(Lane_edge_dialog, self).__init__(parent)
-        self.setWindowTitle("pqrne edit lane-edge information")
+        self.setWindowTitle("pqrne: edit lane-edge information")
 
         section_id_label = QtGui.QLabel("Section-id:")
         self.section_id_line_edit = QtGui.QLineEdit()
@@ -100,7 +101,7 @@ class Lane_edge_dialog(QtGui.QDialog):
 class Center_line_dialog(QtGui.QDialog):
     def __init__(self, parent=None):
         super(Center_line_dialog, self).__init__(parent)
-        self.setWindowTitle("pqrne edit center-line information")
+        self.setWindowTitle("pqrne: edit center-line information")
 
         section_id_label = QtGui.QLabel("Section-id:")
         self.section_id_line_edit = QtGui.QLineEdit()
@@ -224,3 +225,35 @@ class Center_line_dialog(QtGui.QDialog):
         center_line.can_freely_park_here = self.can_freely_park_here_check_box.isChecked()
         center_line.can_stop_here = self.can_stop_here_check_box.isChecked()
         center_line.is_U_turn_allowed_here = self.is_U_turn_allowed_here_check_box.isChecked()
+
+class Output_xml_dialog(QtGui.QDialog):
+    def __init__(self, parent=None):
+        super(Output_xml_dialog, self).__init__(parent)
+        self.setWindowTitle("pqrne: output to xml file")
+
+        network_name_label = QtGui.QLabel("Name of network:")
+        self.network_name_line_edit = QtGui.QLineEdit()
+        network_name_label.setBuddy(self.network_name_line_edit)
+
+        output_file_name_label = QtGui.QLabel("Output file name:")
+        self.output_file_name_line_edit = QtGui.QLineEdit()
+        output_file_name_label.setBuddy(self.output_file_name_line_edit)
+
+        layout = QtGui.QGridLayout()
+        layout.addWidget(network_name_label, 0, 0)
+        layout.addWidget(self.network_name_line_edit, 0, 1)
+        layout.addWidget(output_file_name_label, 1, 0)
+        layout.addWidget(self.output_file_name_line_edit, 1, 1)
+
+        button_box = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
+        button_box.button(QtGui.QDialogButtonBox.Ok).setDefault(True)
+        layout.addWidget(button_box, 2, 0, 1, 2)
+
+        self.setLayout(layout)
+
+        self.connect(button_box, QtCore.SIGNAL("accepted()"), self, QtCore.SLOT("accept()"))
+        self.connect(button_box, QtCore.SIGNAL("rejected()"), self, QtCore.SLOT("reject()"))
+
+    def set_default_values(self, network_name, output_file_name):
+        self.network_name_line_edit.setText(network_name)
+        self.output_file_name_line_edit.setText(output_file_name)

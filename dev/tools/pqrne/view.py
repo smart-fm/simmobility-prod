@@ -11,6 +11,7 @@ from dialog import Dialogs
 from chain import Ball
 from simmob.point import Point
 from bisect import bisect
+from output import output
 
 class Selected_lane_edge:
     def __init__(self, graphics_item):
@@ -114,7 +115,7 @@ class Graphics_view(QtGui.QGraphicsView):
                     if center_line_dialog.exec_():
                         center_line_dialog.update(lane_edge)
                         info = "center-line section=%d index=%d type=%s" \
-                               % (center_line.section_id, center_line.index, center_line.type)
+                               % (lane_edge.section_id, lane_edge.index, lane_edge.type)
                         for item in selected_lane_edge.graphics_items:
                             item.info = info
                     selected_lane_edge.clear(lane_edge)
@@ -168,6 +169,13 @@ class Graphics_view(QtGui.QGraphicsView):
             selected_lane_edge = self.selected_lane_edges.pop()
             bisect(selected_lane_edge.lane_edge, self.road_network, self)
             selected_lane_edge.clear(selected_lane_edge.lane_edge)
+        elif event.key() == QtCore.Qt.Key_X:
+            # Output the edited road network to an XML file.
+            output_xml_dialog = Dialogs.output_xml_dialog
+            if output_xml_dialog.exec_():
+                network_name = str(output_xml_dialog.network_name_line_edit.text())
+                output_file_name = str(output_xml_dialog.output_file_name_line_edit.text())
+                output(self.road_network, network_name, output_file_name)
 
     def filter_out_lower_items(self, graphics_items):
         for item in graphics_items:

@@ -825,7 +825,7 @@ void sim_mob::Driver::initializePath() {
 	try {
 		//vehicle length and width
 		double length;
-		double width = 400;
+		double width = 200;
 		size_t type = parent->getId()%10;
 		if(type==0)//bus
 			length = 1200;

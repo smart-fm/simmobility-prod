@@ -823,7 +823,17 @@ void sim_mob::Driver::initializePath() {
 	//A non-null vehicle means we are moving.
 	//TODO: Start in lane 0?
 	try {
-		vehicle = new Vehicle(path, 0);
+		//vehicle length and width
+		double length;
+		double width = 200;
+		size_t type = parent->getId()%10;
+		if(type==0)//bus
+			length = 1200;
+		else if(type==1||type==2)//truck
+			length = 1500;
+		else//car
+			length = 500;
+		vehicle = new Vehicle(path, 0, length, width);
 	} catch (std::exception& ex) {
 		errorMsg << "ERROR: " << ex.what();
 		std::cout << errorMsg.str() << std::endl;

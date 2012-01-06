@@ -13,8 +13,13 @@
 using namespace sim_mob;
 using std::vector;
 
-
 sim_mob::Vehicle::Vehicle(vector<WayPoint> wp_path, int startLaneID) : length(400), width(200),
+	latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true)
+{
+	initPath(wp_path, startLaneID);
+}
+
+sim_mob::Vehicle::Vehicle(vector<WayPoint> wp_path, int startLaneID, double length, double width) : length(length), width(width),
 	latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true)
 {
 	initPath(wp_path, startLaneID);

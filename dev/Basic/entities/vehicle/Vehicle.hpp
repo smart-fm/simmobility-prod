@@ -26,7 +26,8 @@ class UnPackageUtils;
 
 class Vehicle {
 public:
-	Vehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID); //TODO: now that the constructor is non-default, we might be able to remove throw_if_error()
+	Vehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID);
+	Vehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID, double length, double width); //TODO: now that the constructor is non-default, we might be able to remove throw_if_error()
 	Vehicle();  //There is no wpPoint to initialize one Vehicle when crossing
 
 public:

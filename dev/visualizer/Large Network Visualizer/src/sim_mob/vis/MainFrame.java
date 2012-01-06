@@ -9,6 +9,8 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.xuggle.mediatool.IMediaWriter;
+import com.xuggle.mediatool.ToolFactory;
 import com.xuggle.xuggler.ICodec;
 import com.xuggle.xuggler.IContainer;
 import com.xuggle.xuggler.IPacket;
@@ -28,6 +30,7 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import sim_mob.conf.CSS_Interface;
@@ -609,10 +612,16 @@ public class MainFrame extends JFrame {
 	
 	private void renderToFile() {
 		System.out.println("Rendering started.");
-		String outFilePath = "test.mpg";
+		String outFilePath = "test.mp4";
+		IMediaWriter writer = ToolFactory.makeWriter(outFilePath);
+		IRational frameRate = IRational.make(30,1); 
+		writer.addVideoStream(0, 0, frameRate, newViewPnl.getWidth(), newViewPnl.getHeight());
+
+		//Make sure we're encoding at quality 0 (highest)
+		writer.getContainer().getStream(0).getStreamCoder().setGlobalQuality(0);
 		
 		//Create and open the container for our video.
-		IContainer outContainer = IContainer.make();
+		/*IContainer outContainer = IContainer.make();
 		int retval = outContainer.open(outFilePath, IContainer.Type.WRITE, null); 
 		if (retval<0) { throw new RuntimeException("Could not open output file: " + outFilePath); }
 		
@@ -637,7 +646,6 @@ public class MainFrame extends JFrame {
 		
 		//Set the framerate
 		if (simData.frame_length_ms==-1) { throw new RuntimeException("Simulation output data missing fps."); }
-		IRational frameRate = IRational.make(30,1); 
 		outStreamCoder.setFrameRate(frameRate); 
 		outStreamCoder.setTimeBase(IRational.make(frameRate.getDenominator(), frameRate.getNumerator())); 
 		frameRate = null;
@@ -647,7 +655,7 @@ public class MainFrame extends JFrame {
 		if (retval<0) { throw new RuntimeException("Could not open out stream codec."); }
 		
 		retval = outContainer.writeHeader();
-		if (retval<0) { throw new RuntimeException("Could not write header."); }
+		if (retval<0) { throw new RuntimeException("Could not write header."); }*/
 		
 		//Write through each frame
 		int lastPercent = 0;
@@ -666,9 +674,11 @@ public class MainFrame extends JFrame {
 			//Get the buffered image for this frame.
 			//TODO;
 			BufferedImage originalImage = newViewPnl.drawFrameToExternalBuffer(i);
+			BufferedImage worksWithXugglerBufferedImage = convertToType(originalImage, BufferedImage.TYPE_3BYTE_BGR);
+			writer.encodeVideo(0, worksWithXugglerBufferedImage, (i-startFrame)*simData.frame_length_ms, TimeUnit.MILLISECONDS);
 			
 			//Convert it to the format xuggler expects.
-			BufferedImage worksWithXugglerBufferedImage = convertToType(originalImage, BufferedImage.TYPE_3BYTE_BGR);
+			/*BufferedImage worksWithXugglerBufferedImage = convertToType(originalImage, BufferedImage.TYPE_3BYTE_BGR);
 			IPacket packet = IPacket.make(); 
 			IConverter converter = ConverterFactory.createConverter(worksWithXugglerBufferedImage, IPixelFormat.Type.YUV420P);
 			
@@ -683,15 +693,16 @@ public class MainFrame extends JFrame {
 			if (packet.isComplete()) {
 				retval = outContainer.writePacket(packet);
 				if (retval<0) { throw new RuntimeException("Could not write frame id: " + (i-startFrame)); }
-			}
+			}*/
 		}
 		
 		//Finalize and close the image.
-		retval = outContainer.writeTrailer();
+		/*retval = outContainer.writeTrailer();
 		if (retval<0) { throw new RuntimeException("Could not write trailer"); }
 		
 		retval = outContainer.close();
-		if (retval<0) { System.out.println("Could not close file (video may still have encoded ok)."); }
+		if (retval<0) { System.out.println("Could not close file (video may still have encoded ok)."); }*/
+		writer.close();
 		
 		System.out.println("Done");
 	}

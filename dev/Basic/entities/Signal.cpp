@@ -340,9 +340,10 @@ double Signal::LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,double 
 
 	size_t vehicleCount = ctPair.vehicleCount;
 	unsigned int spaceTime = ctPair.spaceTimeInMilliSeconds;
-
 	double standard_space_time = 1.04*1000;//1.04 seconds
 	double used_g = (vehicleCount==0)?0:total_g - (spaceTime - standard_space_time*vehicleCount);
+//	if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
+//			std::cout<<"laneDS "<<vehicleCount<<" "<<used_g/total_g<<std::endl;
 	return used_g/total_g;
 }
 
@@ -409,6 +410,8 @@ void Signal::updateSignal(double DS[]) {
 		double total_g = (nextCL * nextSplitPlan[prePhase%10])*1000;
 
 		double currPhaseDS = computeDS(total_g);
+//		if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
+//			std::cout<<"currDS "<<currPhaseDS<<std::endl;
 		DS[prePhase%10] = currPhaseDS;
 		loopDetector_.reset();
 	}
@@ -508,12 +511,10 @@ void Signal::updateprevCL() {
 }
 
 void Signal::updatecurrCL() {
-	if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120) {
-#ifndef SIMMOB_DISABLE_OUTPUT
-		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-		std::cout<<"currCL "<<currCL<<" nextCL "<<nextCL<<std::endl;
-#endif
-	}
+//	if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120) {
+//		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+//		std::cout<<"currCL "<<currCL<<" nextCL "<<nextCL<<std::endl;
+//	}
 	currCL = nextCL;
 }
 

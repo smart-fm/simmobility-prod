@@ -19,6 +19,8 @@ public class SimulationResults {
 	private static double[] xBounds;
 	private static double[] yBounds;
 	
+	public int frame_length_ms;
+	
 	private static boolean OutOfBounds(double x, double y, RoadNetwork rn) {
 		return     (x < rn.getTopLeft().x) || (x > rn.getLowerRight().x)
 				|| (y < rn.getTopLeft().y) || (y > rn.getLowerRight().y);
@@ -26,6 +28,7 @@ public class SimulationResults {
 	
 	public SimulationResults(BufferedReader inFile, RoadNetwork rn, HashSet<Integer> uniqueAgentIDs) throws IOException {
 		ticks = new ArrayList<TimeTick>();
+		frame_length_ms = -1;
 		
 		//TEMP: Hack for agents which are out of bounds
 		xBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
@@ -127,6 +130,8 @@ public class SimulationResults {
 		} else if (objType.equals("pedestrian")) {
 			parsePedestrian(frameID, objID, rhs, rn);
 			uniqueAgentIDs.add(objID);
+		} else if (objType.equals("simulation")) {
+			parseSimulation(frameID, objID, rhs, rn);
 		}
 	}
 
@@ -282,6 +287,18 @@ public class SimulationResults {
 	    ticks.get(frameID).agentTicks.put(objID, tempPedestrian);
 	}
 
+	
+	private void parseSimulation(int frameID, int objID, String rhs, RoadNetwork rn) throws IOException {
+	    //Check and parse properties.
+	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"frame-time-ms"});
+	    
+	    //Check
+	    if (frameID!=0) { throw new RuntimeException("Simulation block must have frame-id=0"); }
+	    if (objID!=0) { throw new RuntimeException("Simulation block must have agent-id=0"); }
+	    
+	    //Now save the relevant information
+	    this.frame_length_ms = Integer.parseInt(props.get("frame-time-ms"));
+	}
 
 
 }

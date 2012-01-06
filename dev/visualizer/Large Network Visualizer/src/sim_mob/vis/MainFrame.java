@@ -3,15 +3,28 @@ package sim_mob.vis;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.xuggle.xuggler.ICodec;
+import com.xuggle.xuggler.IContainer;
+import com.xuggle.xuggler.IPacket;
+import com.xuggle.xuggler.IPixelFormat;
+import com.xuggle.xuggler.IRational;
+import com.xuggle.xuggler.IStream;
+import com.xuggle.xuggler.IStreamCoder;
+import com.xuggle.xuggler.IVideoPicture;
+import com.xuggle.xuggler.video.ConverterFactory;
+import com.xuggle.xuggler.video.IConverter;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -53,6 +66,7 @@ public class MainFrame extends JFrame {
     private ImageIcon displayIcon;
     
     private JComboBox trackAgentIDs;
+    private JButton renderVideo;
     
 	
 	//Lower panel
@@ -147,6 +161,42 @@ public class MainFrame extends JFrame {
 	    trackAgentIDs = new JComboBox(new String[]{"", ""});
 	    resetTrackAgentIDs(null);
 	    
+	    renderVideo = new JButton("Render Video");
+	    
+	    //Disable our render button if this clearly won't work.
+	    renderVideo.setEnabled(false);
+	    String osName = System.getProperty("os.name").toLowerCase();
+	    if (osName.indexOf("nix")>=0 || osName.indexOf("nux")>=0) {
+		    String xugglerPath = "/usr/local/xuggler/lib";
+		    File f = new File(xugglerPath);
+		    if (f.exists() && f.isDirectory()) {
+		    	try {
+		    		//Need to set java.library.path or JNI will fail.
+		    		System.setProperty( "java.library.path", xugglerPath);
+		    		
+		    		//Need to set LD_LIBRARY_PATH or _actual_ native lookup will fail.
+		    		if(!System.getenv().containsKey("LD_LIBRARY_PATH")) {
+		    			throw new RuntimeException("LD_LIBRARY_PATH not set.");
+		    		}
+		    		String ldLib = System.getenv("LD_LIBRARY_PATH");
+		    		if (!ldLib.contains(xugglerPath)) {
+		    			System.out.println("LD_LIBRARY_PATH is = " + ldLib);
+		    			throw new RuntimeException("LD_LIBRARY_PATH doesn't contain xuggler.");
+		    		}
+		    		//TODO: There are ways to hack this in too. Do it later.
+		    		
+		    		//Kind of a hack: refresh jni at runtime.
+		    		Field fieldSysPath = ClassLoader.class.getDeclaredField( "sys_paths" );
+		    		fieldSysPath.setAccessible( true );
+		    		fieldSysPath.set(null, null);
+		    		
+		    		//Everything should work now.
+		    		renderVideo.setEnabled(true);
+		    	} catch (Throwable t) {}
+		    }
+	    }
+
+	    
 	    openLogFile = new JButton("Open File From...", new ImageIcon(Utility.LoadImgResource("res/icons/open.png")));
 		openEmbeddedFile = new JButton("Open Default File", new ImageIcon(Utility.LoadImgResource("res/icons/embed.png")));
 		showFakeAgent = new JButton("Show Proxy Agent", new ImageIcon(Utility.LoadImgResource("res/icons/fake.png")));
@@ -189,6 +239,7 @@ public class MainFrame extends JFrame {
 		jpLeft.add(debug);
 		jpLeft.add(clockRateComboBox);
 		jpLeft.add(trackAgentIDs);
+		jpLeft.add(renderVideo);
 		
 		//Bottom panel
 		JPanel jpLower = new JPanel(new BorderLayout());
@@ -409,6 +460,30 @@ public class MainFrame extends JFrame {
 			}
 
 		});
+		
+		renderVideo.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				//Nothing to render?
+				if (simData==null) {
+					return;
+				}
+				
+				//Stop animation
+				if (animTimer.isRunning()) {
+					animTimer.stop();
+					playBtn.setIcon(playIcon);
+				}
+				
+				//Render
+				try {
+					renderToFile();
+				} catch (Throwable t) {
+					System.out.println("Exception while rendering to file: " + t.getClass().getName());
+					System.out.println(t.getMessage());
+					t.printStackTrace();
+				}
+			}
+		});
 
 		
 		openEmbeddedFile.addActionListener(new ActionListener() {
@@ -529,6 +604,111 @@ public class MainFrame extends JFrame {
 			//Update the map
 			newViewPnl.drawMap(vis, 0, 0);
 		}
+	}
+	
+	
+	private void renderToFile() {
+		System.out.println("Rendering started.");
+		String outFilePath = "test.mpg";
+		
+		//Create and open the container for our video.
+		IContainer outContainer = IContainer.make();
+		int retval = outContainer.open(outFilePath, IContainer.Type.WRITE, null); 
+		if (retval<0) { throw new RuntimeException("Could not open output file: " + outFilePath); }
+		
+		//Add a stream to this container, along with a coder for that stream.
+		IStream outStream = outContainer.addNewStream(0); 
+		IStreamCoder outStreamCoder = outStream.getStreamCoder();
+		
+		//Guess encoding for this coder.
+		//TODO: Force ffmpeg
+		ICodec codec = ICodec.guessEncodingCodec(null, null, outFilePath, null, ICodec.Type.CODEC_TYPE_VIDEO);
+		
+		//Set parameters for this video.
+		outStreamCoder.setNumPicturesInGroupOfPictures(10); 
+		outStreamCoder.setCodec(codec); 
+		outStreamCoder.setBitRate(25000); 
+		outStreamCoder.setBitRateTolerance(9000); 
+		outStreamCoder.setPixelType(IPixelFormat.Type.YUV420P); 
+		outStreamCoder.setWidth(newViewPnl.getWidth()); 
+		outStreamCoder.setHeight(newViewPnl.getHeight());
+		outStreamCoder.setFlag(IStreamCoder.Flags.FLAG_QSCALE, true); 
+		outStreamCoder.setGlobalQuality(0); 
+		
+		//Set the framerate
+		if (simData.frame_length_ms==-1) { throw new RuntimeException("Simulation output data missing fps."); }
+		IRational frameRate = IRational.make(30,1); 
+		outStreamCoder.setFrameRate(frameRate); 
+		outStreamCoder.setTimeBase(IRational.make(frameRate.getDenominator(), frameRate.getNumerator())); 
+		frameRate = null;
+		
+		//Write the header.
+		retval = outStreamCoder.open();
+		if (retval<0) { throw new RuntimeException("Could not open out stream codec."); }
+		
+		retval = outContainer.writeHeader();
+		if (retval<0) { throw new RuntimeException("Could not write header."); }
+		
+		//Write through each frame
+		int lastPercent = 0;
+		int currPercent = 0;
+		int startFrame = newViewPnl.getCurrFrameTick();
+		int endFrame = newViewPnl.getMaxFrameTick();
+		System.out.println("0%");
+		for (int i=startFrame; i<=endFrame; i++) {
+			//Update
+			currPercent = ((i-startFrame)*100)/(endFrame-startFrame);
+			if (currPercent-lastPercent > 9) {
+				lastPercent = currPercent;
+				System.out.println(currPercent + "%");
+			}
+			
+			//Get the buffered image for this frame.
+			//TODO;
+			BufferedImage originalImage = newViewPnl.drawFrameToExternalBuffer(i);
+			
+			//Convert it to the format xuggler expects.
+			BufferedImage worksWithXugglerBufferedImage = convertToType(originalImage, BufferedImage.TYPE_3BYTE_BGR);
+			IPacket packet = IPacket.make(); 
+			IConverter converter = ConverterFactory.createConverter(worksWithXugglerBufferedImage, IPixelFormat.Type.YUV420P);
+			
+			//Add a timestamp
+			long timeStamp = (i-startFrame)*simData.frame_length_ms*1000; // convert to microseconds 
+			IVideoPicture outFrame = converter.toPicture(worksWithXugglerBufferedImage, timeStamp); 
+			outFrame.setQuality(0); 
+			
+			retval = outStreamCoder.encodeVideo(packet, outFrame, 0);
+			if (retval<0) { throw new RuntimeException("Could not encode frame id: " + (i-startFrame)); }
+			
+			if (packet.isComplete()) {
+				retval = outContainer.writePacket(packet);
+				if (retval<0) { throw new RuntimeException("Could not write frame id: " + (i-startFrame)); }
+			}
+		}
+		
+		//Finalize and close the image.
+		retval = outContainer.writeTrailer();
+		if (retval<0) { throw new RuntimeException("Could not write trailer"); }
+		
+		retval = outContainer.close();
+		if (retval<0) { System.out.println("Could not close file (video may still have encoded ok)."); }
+		
+		System.out.println("Done");
+	}
+	
+	//Helper method for image conversion (TODO: Do this manually in our draw step)
+	private static BufferedImage convertToType(BufferedImage sourceImage, int targetType) {
+		BufferedImage image;
+		
+		// if the source image is already the target type, return the source image
+		if (sourceImage.getType() == targetType) { 
+			image = sourceImage; 
+		} else {
+			// create a new image of the target type and draw the new image
+			image = new BufferedImage(sourceImage.getWidth(), sourceImage.getHeight(), targetType);
+			image.getGraphics().drawImage(sourceImage, 0, 0, null);
+		}
+		return image;
 	}
 	
 }

@@ -31,6 +31,7 @@ public class NetworkVisualizer {
 	}
 	
 	public int getCurrFrameTick() { return currFrameTick; }
+	public int getMaxFrameTick() { return simRes.ticks.size()-1; }
 	public String getFileName(){return fileName;}
 	public boolean incrementCurrFrameTick(int amt) {
 		return setCurrFrameTick(currFrameTick+amt);
@@ -53,6 +54,12 @@ public class NetworkVisualizer {
 	public BufferedImage getImage() {
 
 		return buffer;
+	}
+	
+	public BufferedImage getImageAtTimeTick(int tick) {
+		BufferedImage res = new BufferedImage(buffer.getWidth(), buffer.getHeight(), BufferedImage.TYPE_INT_RGB);
+		redrawAtCurrScale(res, tick);
+		return res;
 	}
 	
 	//Retrieve the node at the given screen position, or null if there's none.
@@ -120,19 +127,23 @@ public class NetworkVisualizer {
 		//Scale all points
 		ScaledPointGroup.SetNewScaleContext(new ScaleContext(percent, newTL, newLR, width, height));
 		//ScaledPoint.ScaleAllPoints(percent, newTL, newLR, width, height);
-		redrawAtCurrScale();
+		redrawAtCurrScale(buffer, currFrameTick);
 	}
 	
 	public void redrawAtCurrScale() {
+		redrawAtCurrScale(buffer, currFrameTick);
+	}
+	
+	public void redrawAtCurrScale(BufferedImage dest, int frameTick) {
 		//System.out.println(" refresh");
 		
 		//Retrieve a graphics object; ensure it'll anti-alias
-		Graphics2D g = (Graphics2D)buffer.getGraphics();
+		Graphics2D g = (Graphics2D)dest.getGraphics();
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		
 		//Fill the background
 		g.setBackground(MainFrame.Config.getBackground("network"));
-		g.clearRect(0, 0, buffer.getWidth(), buffer.getHeight());
+		g.clearRect(0, 0, dest.getWidth(), dest.getHeight());
 		
 		//Draw nodes
 		for (Node n : network.getNodes().values()) {
@@ -240,7 +251,7 @@ public class NetworkVisualizer {
 			}
 			
 			//Draw Crossing Light
-			for(SignalLineTick at: simRes.ticks.get(currFrameTick).signalLineTicks.values()){
+			for(SignalLineTick at: simRes.ticks.get(frameTick).signalLineTicks.values()){
 				//Get Intersection ID
 				Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());
 				
@@ -264,7 +275,7 @@ public class NetworkVisualizer {
 			}
 	
 			//Now draw out signal
-			for(SignalLineTick at: simRes.ticks.get(currFrameTick).signalLineTicks.values()){
+			for(SignalLineTick at: simRes.ticks.get(frameTick).signalLineTicks.values()){
 				
 				//Get Intersection ID
 				Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());
@@ -295,7 +306,7 @@ public class NetworkVisualizer {
 		
 		
 		//Now draw simulation data: cars, etc.
-		Hashtable<Integer, AgentTick> agents = simRes.ticks.get(currFrameTick).agentTicks;
+		Hashtable<Integer, AgentTick> agents = simRes.ticks.get(frameTick).agentTicks;
 		for (Integer key : agents.keySet()) {
 			AgentTick at = agents.get(key);
 			boolean highlight = this.debugOn || (key.intValue()==currHighlightID);

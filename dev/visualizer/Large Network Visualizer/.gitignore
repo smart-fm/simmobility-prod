@@ -1,2 +1,2 @@
-libs-native/
-!libs-native/README.txt
+libs-native/*.so*
+

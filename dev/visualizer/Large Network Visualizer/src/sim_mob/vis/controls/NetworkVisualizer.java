@@ -134,7 +134,7 @@ public class NetworkVisualizer {
 		redrawAtCurrScale(buffer, currFrameTick);
 	}
 	
-	public void redrawAtCurrScale(BufferedImage dest, int frameTick) {
+	private void redrawAtCurrScale(BufferedImage dest, int frameTick) {
 		//System.out.println(" refresh");
 		
 		//Retrieve a graphics object; ensure it'll anti-alias

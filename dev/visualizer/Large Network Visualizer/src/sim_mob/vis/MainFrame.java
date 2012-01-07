@@ -205,10 +205,9 @@ public class MainFrame extends JFrame {
 			public void set(String str) {
 				//Update the status bar
 				String oldValue = console.getText();
-				if(oldValue.isEmpty())
-				{
+				if(oldValue.isEmpty()) {
 					console.setText(str);
-				}else{
+				} else {
 					console.setText(oldValue+"\t"+str);
 				}
 			}
@@ -464,6 +463,16 @@ public class MainFrame extends JFrame {
 				if (animTimer.isRunning()) {
 					animTimer.stop();
 					playBtn.setIcon(playIcon);
+				}
+				
+				//Request params
+				VideoEncodeDialog vd = new VideoEncodeDialog(MainFrame.this, newViewPnl.getCurrFrameTick(), newViewPnl.getMaxFrameTick());
+				vd.setLocationRelativeTo(MainFrame.this);
+				vd.setVisible(true);
+				
+				//Nothing?
+				if (vd.getOutFileName().isEmpty()) {
+					return;
 				}
 				
 				//Render

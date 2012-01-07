@@ -476,7 +476,7 @@ public class MainFrame extends JFrame {
 				}
 				
 				//Render
-				new RenderToFileThread(vd.getOutFileName(), vd.getOutFileQuality(), vd.getOutFileFirstFrame(), vd.getOutFileLastFrame()).start();
+				new RenderToFileThread(vd.getOutFileName(), vd.getOutFileQuality(), vd.getOutFileFirstFrame(), vd.getOutFileLastFrame(), vd.getShowFrameNumber()).start();
 			}
 		});
 
@@ -606,12 +606,14 @@ public class MainFrame extends JFrame {
 		int quality;
 		int firstFrame;
 		int lastFrame;
+		boolean showFrameNumber;
 		
-		private RenderToFileThread(String fileName, int quality, int firstFrame, int lastFrame) {
+		private RenderToFileThread(String fileName, int quality, int firstFrame, int lastFrame, boolean showFrameNumber) {
 			this.fileName = fileName;
 			this.quality = quality;
 			this.firstFrame = firstFrame;
 			this.lastFrame = lastFrame;
+			this.showFrameNumber = showFrameNumber;
 		}
 		
 		public void run() {
@@ -639,7 +641,7 @@ public class MainFrame extends JFrame {
 					}
 					
 					//Get the buffered image for this frame.
-					BufferedImage originalImage = newViewPnl.drawFrameToExternalBuffer(i);
+					BufferedImage originalImage = newViewPnl.drawFrameToExternalBuffer(i, showFrameNumber);
 					BufferedImage worksWithXugglerBufferedImage = convertToType(originalImage, BufferedImage.TYPE_3BYTE_BGR);
 					writer.encodeVideo(0, worksWithXugglerBufferedImage, (i-firstFrame)*simData.frame_length_ms, TimeUnit.MILLISECONDS);
 				}

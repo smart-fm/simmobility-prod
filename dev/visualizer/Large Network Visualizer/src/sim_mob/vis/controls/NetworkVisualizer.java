@@ -55,7 +55,7 @@ public class NetworkVisualizer {
 
 		return buffer;
 	}
-	
+
 	public BufferedImage getImageAtTimeTick(int tick) {
 		BufferedImage res = new BufferedImage(buffer.getWidth(), buffer.getHeight(), BufferedImage.TYPE_INT_RGB);
 		redrawAtCurrScale(res, tick);

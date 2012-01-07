@@ -25,6 +25,7 @@ public class VideoEncodeDialog extends JDialog {
 	private RangeSlider outFileRange;
 	private JLabel outRangeLower;
 	private JLabel outRangeUpper;
+	private JCheckBox showFrames;
 	
 	private JButton okBtn;
 	private JButton cancelBtn;
@@ -135,8 +136,15 @@ public class VideoEncodeDialog extends JDialog {
 		cp.add(pnl);
 		}
 		
-		//A blank panel in between
-		cp.add(new JPanel(new BorderLayout()));
+		//Show frames check box
+		{
+		showFrames = new JCheckBox();
+		showFrames.setText("Show Frame Number?");
+		showFrames.setSelected(true);
+		JPanel pnl = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		pnl.add(showFrames);
+		cp.add(pnl);
+		}
 		
 		//The Ok/Cancel buttons
 		{
@@ -205,6 +213,9 @@ public class VideoEncodeDialog extends JDialog {
 	}
 	public int getOutFileLastFrame() {
 		return outFileRange.getUpperValue();
+	}
+	public boolean getShowFrameNumber() {
+		return showFrames.isSelected();
 	}
 	
 }

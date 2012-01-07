@@ -214,7 +214,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	}
 	
 	
-	public BufferedImage drawFrameToExternalBuffer(int tick) {
+	public BufferedImage drawFrameToExternalBuffer(int tick, boolean showFrameNumber) {
 		//Sanity check.
 		if (netViewCache==null) { throw new RuntimeException("Unexptected: newViewCache is null."); }
 		
@@ -223,13 +223,16 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		
 		//Step 2: re-draw the original image.
 		BufferedImage drawImg = netViewCache.getImageAtTimeTick(tick);
-		drawMapOntoImage(resImg, drawImg, tick);
+		drawMapOntoImage(resImg, drawImg, tick, showFrameNumber);
 		
 		return resImg;
 	}
 	
 	
 	private void drawMapOntoImage(BufferedImage destImg, BufferedImage drawImg, int frameNumber) {
+		drawMapOntoImage(destImg, drawImg, frameNumber, true);
+	}
+	private void drawMapOntoImage(BufferedImage destImg, BufferedImage drawImg, int frameNumber, boolean showFrameNumber) {
 		//Get 2D graphics obj.
 		Graphics2D g = (Graphics2D)destImg.getGraphics();
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -249,9 +252,11 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		g.drawImage(drawImg, offset.x, offset.y, null);
 		
 		//Draw the current frame ID
-		g.setFont(FrameFont);
-		g.setColor(MainFrame.Config.getBackground("framenumber"));
-		g.drawString("Frame: "+frameNumber , 15, 10+g.getFontMetrics().getAscent());
+		if (showFrameNumber) {
+			g.setFont(FrameFont);
+			g.setColor(MainFrame.Config.getBackground("framenumber"));
+			g.drawString("Frame: "+frameNumber , 15, 10+g.getFontMetrics().getAscent());
+		}
 	}
 	
 	

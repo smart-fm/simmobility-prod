@@ -476,13 +476,7 @@ public class MainFrame extends JFrame {
 				}
 				
 				//Render
-				try {
-					renderToFile();
-				} catch (Throwable t) {
-					System.out.println("Exception while rendering to file: " + t.getClass().getName());
-					System.out.println(t.getMessage());
-					t.printStackTrace();
-				}
+				new RenderToFileThread(vd.getOutFileName(), vd.getOutFileQuality(), vd.getOutFileFirstFrame(), vd.getOutFileLastFrame()).start();
 			}
 		});
 
@@ -607,105 +601,69 @@ public class MainFrame extends JFrame {
 		}
 	}
 	
-	
-	private void renderToFile() {
-		System.out.println("Rendering started.");
-		String outFilePath = "test.mp4";
-		IMediaWriter writer = ToolFactory.makeWriter(outFilePath);
-		IRational frameRate = IRational.make(30,1); 
-		writer.addVideoStream(0, 0, frameRate, newViewPnl.getWidth(), newViewPnl.getHeight());
-
-		//Make sure we're encoding at quality 0 (highest)
-		writer.getContainer().getStream(0).getStreamCoder().setGlobalQuality(0);
+	class RenderToFileThread extends Thread {
+		String fileName;
+		int quality;
+		int firstFrame;
+		int lastFrame;
 		
-		//Create and open the container for our video.
-		/*IContainer outContainer = IContainer.make();
-		int retval = outContainer.open(outFilePath, IContainer.Type.WRITE, null); 
-		if (retval<0) { throw new RuntimeException("Could not open output file: " + outFilePath); }
-		
-		//Add a stream to this container, along with a coder for that stream.
-		IStream outStream = outContainer.addNewStream(0); 
-		IStreamCoder outStreamCoder = outStream.getStreamCoder();
-		
-		//Guess encoding for this coder.
-		//TODO: Force ffmpeg
-		ICodec codec = ICodec.guessEncodingCodec(null, null, outFilePath, null, ICodec.Type.CODEC_TYPE_VIDEO);
-		
-		//Set parameters for this video.
-		outStreamCoder.setNumPicturesInGroupOfPictures(10); 
-		outStreamCoder.setCodec(codec); 
-		outStreamCoder.setBitRate(25000); 
-		outStreamCoder.setBitRateTolerance(9000); 
-		outStreamCoder.setPixelType(IPixelFormat.Type.YUV420P); 
-		outStreamCoder.setWidth(newViewPnl.getWidth()); 
-		outStreamCoder.setHeight(newViewPnl.getHeight());
-		outStreamCoder.setFlag(IStreamCoder.Flags.FLAG_QSCALE, true); 
-		outStreamCoder.setGlobalQuality(0); 
-		
-		//Set the framerate
-		if (simData.frame_length_ms==-1) { throw new RuntimeException("Simulation output data missing fps."); }
-		outStreamCoder.setFrameRate(frameRate); 
-		outStreamCoder.setTimeBase(IRational.make(frameRate.getDenominator(), frameRate.getNumerator())); 
-		frameRate = null;
-		
-		//Write the header.
-		retval = outStreamCoder.open();
-		if (retval<0) { throw new RuntimeException("Could not open out stream codec."); }
-		
-		retval = outContainer.writeHeader();
-		if (retval<0) { throw new RuntimeException("Could not write header."); }*/
-		
-		//Write through each frame
-		int lastPercent = 0;
-		int currPercent = 0;
-		int startFrame = newViewPnl.getCurrFrameTick();
-		int endFrame = newViewPnl.getMaxFrameTick();
-		System.out.println("0%");
-		for (int i=startFrame; i<=endFrame; i++) {
-			//Update
-			currPercent = ((i-startFrame)*100)/(endFrame-startFrame);
-			if (currPercent-lastPercent > 9) {
-				lastPercent = currPercent;
-				System.out.println(currPercent + "%");
-			}
-			
-			//Get the buffered image for this frame.
-			//TODO;
-			BufferedImage originalImage = newViewPnl.drawFrameToExternalBuffer(i);
-			BufferedImage worksWithXugglerBufferedImage = convertToType(originalImage, BufferedImage.TYPE_3BYTE_BGR);
-			writer.encodeVideo(0, worksWithXugglerBufferedImage, (i-startFrame)*simData.frame_length_ms, TimeUnit.MILLISECONDS);
-			
-			//Convert it to the format xuggler expects.
-			/*BufferedImage worksWithXugglerBufferedImage = convertToType(originalImage, BufferedImage.TYPE_3BYTE_BGR);
-			IPacket packet = IPacket.make(); 
-			IConverter converter = ConverterFactory.createConverter(worksWithXugglerBufferedImage, IPixelFormat.Type.YUV420P);
-			
-			//Add a timestamp
-			long timeStamp = (i-startFrame)*simData.frame_length_ms*1000; // convert to microseconds 
-			IVideoPicture outFrame = converter.toPicture(worksWithXugglerBufferedImage, timeStamp); 
-			outFrame.setQuality(0); 
-			
-			retval = outStreamCoder.encodeVideo(packet, outFrame, 0);
-			if (retval<0) { throw new RuntimeException("Could not encode frame id: " + (i-startFrame)); }
-			
-			if (packet.isComplete()) {
-				retval = outContainer.writePacket(packet);
-				if (retval<0) { throw new RuntimeException("Could not write frame id: " + (i-startFrame)); }
-			}*/
+		private RenderToFileThread(String fileName, int quality, int firstFrame, int lastFrame) {
+			this.fileName = fileName;
+			this.quality = quality;
+			this.firstFrame = firstFrame;
+			this.lastFrame = lastFrame;
 		}
 		
-		//Finalize and close the image.
-		/*retval = outContainer.writeTrailer();
-		if (retval<0) { throw new RuntimeException("Could not write trailer"); }
+		public void run() {
+			try {			
+				IMediaWriter writer = ToolFactory.makeWriter(fileName);
+				IRational frameRate = IRational.make(30,1); 
+				writer.addVideoStream(0, 0, frameRate, newViewPnl.getWidth(), newViewPnl.getHeight());
 		
-		retval = outContainer.close();
-		if (retval<0) { System.out.println("Could not close file (video may still have encoded ok)."); }*/
-		writer.close();
+				//Make sure we're encoding at quality 0 (highest)
+				writer.getContainer().getStream(0).getStreamCoder().setGlobalQuality(quality);
+				
+				//Provide feedback to the user
+				SwingUtilities.invokeLater(new ProgressUpdateRunner(newViewPnl, 0.0, false, new Color(0x00, 0x66, 0x00), ""));
+				
+				//Write through each frame
+				int lastPercent = 0;
+				int currPercent = 0;
+				for (int i=firstFrame; i<=lastFrame; i++) {
+					//Update
+					double currPercentF = ((double)(i-firstFrame))/(lastFrame-firstFrame);
+					currPercent = (int)(currPercentF*100);
+					if (currPercent>lastPercent) {
+						lastPercent = currPercent;
+						SwingUtilities.invokeLater(new ProgressUpdateRunner(newViewPnl, currPercentF, true, new Color(0x00, 0x66, 0x00), "Encoding"));
+					}
+					
+					//Get the buffered image for this frame.
+					BufferedImage originalImage = newViewPnl.drawFrameToExternalBuffer(i);
+					BufferedImage worksWithXugglerBufferedImage = convertToType(originalImage, BufferedImage.TYPE_3BYTE_BGR);
+					writer.encodeVideo(0, worksWithXugglerBufferedImage, (i-firstFrame)*simData.frame_length_ms, TimeUnit.MILLISECONDS);
+				}
+				
+				//Finalize and close the image.
+				writer.close();
 		
-		System.out.println("Done");
+				//And update our display
+				System.out.println("Done");
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						newViewPnl.jumpAnim(frameTickSlider.getValue(), frameTickSlider);
+					}
+				});
+			} catch (Throwable t) {
+				System.out.println("Exception while rendering to file: " + t.getClass().getName());
+				System.out.println(t.getMessage());
+				t.printStackTrace();
+			}
+		}
 	}
 	
-	//Helper method for image conversion (TODO: Do this manually in our draw step)
+	//Helper method for image conversion 
+	//TODO: Do this manually in our draw step
 	private static BufferedImage convertToType(BufferedImage sourceImage, int targetType) {
 		BufferedImage image;
 		

@@ -67,11 +67,16 @@ public class VideoEncodeDialog extends JDialog {
 	}
 	
 	private void addComponents(Container cp, int currFrameID, int maxFrameID) {
+		Font f = new Font("Arial", Font.PLAIN, 14);
+		Font f2 = new Font("Arial", Font.PLAIN, 12);
+		
 		//The top panel
 		{
 		JLabel outFileLbl = new JLabel("<html><b>File:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></html>");
+		outFileLbl.setFont(f);
 		outFileName = new JTextField();
 		outFileCodec = new JLabel("<html><b>Codec:</b> <i>Unknown</i></html>");
+		outFileCodec.setFont(f2);
 		JPanel innerPnl = new JPanel(new BorderLayout());
 		innerPnl.add(BorderLayout.NORTH, new JPanel());
 		innerPnl.add(BorderLayout.CENTER, outFileName);
@@ -85,10 +90,13 @@ public class VideoEncodeDialog extends JDialog {
 		//The middle panel
 		{
 		JLabel outQualityLbl = new JLabel("<html><b>Quality:&nbsp;&nbsp;</b></html>");
+		outQualityLbl.setFont(f);
 		outFileQuality = new JSlider(0, 20, 20);
 		Hashtable<Integer, JLabel> labels = new Hashtable<Integer, JLabel>();
 		labels.put(new Integer(0), new JLabel("Min"));
 		labels.put(new Integer(20), new JLabel("Max"));
+		labels.get(new Integer(0)).setFont(f2);
+		labels.get(new Integer(20)).setFont(f2);
 		outFileQuality.setLabelTable(labels);
 		outFileQuality.setPaintLabels(true);
 		JPanel pnl = new JPanel(new BorderLayout());
@@ -100,8 +108,11 @@ public class VideoEncodeDialog extends JDialog {
 		//The lower panel
 		{
 		JLabel outRangeLbl = new JLabel("<html><b>Range:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></html>");
+		outRangeLbl.setFont(f);
 		outRangeLower = new JLabel();
+		outRangeLower.setFont(f2);
 		outRangeUpper = new JLabel();
+		outRangeUpper.setFont(f2);
 		outFileRange = new RangeSlider(0, maxFrameID);
 		outFileRange.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg0) {
@@ -130,7 +141,9 @@ public class VideoEncodeDialog extends JDialog {
 		//The Ok/Cancel buttons
 		{
 		okBtn = new JButton("<html><b>Render</b></html>");
+		okBtn.setFont(f);
 		cancelBtn = new JButton("Cancel");
+		cancelBtn.setFont(f);
 		JPanel innerPnl = new JPanel(new BorderLayout());
 		innerPnl.add(BorderLayout.WEST, okBtn);
 		innerPnl.add(BorderLayout.EAST, cancelBtn);
@@ -183,6 +196,15 @@ public class VideoEncodeDialog extends JDialog {
 	//Helpers
 	public String getOutFileName() {
 		return outFileName.getText();
+	}
+	public int getOutFileQuality() {
+		return outFileQuality.getMaximum() - outFileQuality.getValue();
+	}
+	public int getOutFileFirstFrame() {
+		return outFileRange.getValue();
+	}
+	public int getOutFileLastFrame() {
+		return outFileRange.getUpperValue();
 	}
 	
 }

@@ -71,7 +71,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	
 	
 	//Percent is from [0.0 .. 1.0]
-	public void drawBufferAsProgressBar(double amt, boolean amtIsPercent) {
+	public void drawBufferAsProgressBar(double amt, boolean amtIsPercent, Color color, String caption) {
 		//Clear.
 		Graphics2D g = (Graphics2D)buffer.getGraphics();
 		g.setColor(Color.darkGray);
@@ -86,19 +86,19 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		Rectangle2D bar = new Rectangle2D.Double(margin, buffer.getHeight()/2-barSize/2, buffer.getWidth()-margin*2, barSize);
 		g.setColor(Color.black);
 		g.fillRect((int)bar.getX(), (int)bar.getY(), (int)bar.getWidth(), (int)bar.getHeight());
-		g.setColor(Color.blue);
+		g.setColor(color);
 		g.fillRect((int)bar.getX(), (int)bar.getY(), (int)(bar.getWidth()*percent), (int)bar.getHeight());
 		g.setColor(Color.white);
 		g.drawRect((int)bar.getX(), (int)bar.getY(), (int)bar.getWidth(), (int)bar.getHeight());
 		
 		//Amount
-		if (!amtIsPercent) {
-			String toDraw = "" + (int)(amt/1024) + " kB";
+		String toDraw = amtIsPercent ? caption : "" + (int)(amt/1024) + " kB";
+		if (!toDraw.isEmpty()) {
 			int toDrawLen = g.getFontMetrics().stringWidth(toDraw);
 			
 			g.setColor(Color.white);
 			g.drawString(toDraw, buffer.getWidth()/2-toDrawLen/2, buffer.getHeight()/2-g.getFontMetrics().getHeight()/2);
-		}
+		} 
 		
 		//Repaint.
 		this.repaint();

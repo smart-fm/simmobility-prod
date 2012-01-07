@@ -3,7 +3,7 @@
  #100% zoom coordinate system.
  "coordinates" :
  {
-   "width":"5",
+   "width":"15",
    "height":"3"
  },
 
@@ -14,8 +14,8 @@
    {"id":"wheel-outline",  "rgb":"FFFFFF"},
 
    #Car body
-   {"id":"body1",          "rgb":"FF4040"},
-   {"id":"body2",          "rgb":"FF9595"},
+   {"id":"truck1",          "rgb":"00FFFF"},
+   {"id":"truck2",          "rgb":"FFF8DC"},
    {"id":"body-outline",   "rgb":"712C2C"}
 
  ],
@@ -27,12 +27,12 @@
  [
 
    #Car body
-   { "gradient":["body1","body2"], "stroke":"body-outline", "width":"0", "shape":"poly",
-     "points":[3.5,0, 0,0, 0,2, 3.5,2]
+   { "gradient":["truck1","truck2"], "stroke":"body-outline", "width":"0", "shape":"poly",
+     "points":[13.5,0, 0,0, 0,2, 13.5,2]
    		
    },
    { "stroke":"wheel-outline", "width":"0.5", "shape":"line",
-      "points":[3.5,0, 3.5,2]
+      "points":[13.5,0, 13.5,2]
    }
 
  ]

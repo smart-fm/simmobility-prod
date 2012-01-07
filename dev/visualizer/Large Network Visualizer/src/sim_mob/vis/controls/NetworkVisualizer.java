@@ -295,14 +295,16 @@ public class NetworkVisualizer {
 		
 		
 		//Now draw simulation data: cars, etc.
-		Hashtable<Integer, AgentTick> agents = simRes.ticks.get(currFrameTick).agentTicks;
-		for (Integer key : agents.keySet()) {
-			AgentTick at = agents.get(key);
-			boolean highlight = this.debugOn || (key.intValue()==currHighlightID);
-			at.draw(g,currPercentZoom,this.showFakeAgent,highlight);
-		}
+		if(currPercentZoom>ZOOM_IN_CRITICAL){
 
-		
+			Hashtable<Integer, AgentTick> agents = simRes.ticks.get(currFrameTick).agentTicks;
+			for (Integer key : agents.keySet()) {
+				AgentTick at = agents.get(key);
+				boolean highlight = this.debugOn || (key.intValue()==currHighlightID);
+				at.draw(g,currPercentZoom,this.showFakeAgent,highlight);
+			}
+
+		}		
 		
 	}
 	

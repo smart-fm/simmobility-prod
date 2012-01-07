@@ -2,19 +2,39 @@ package sim_mob.vis;
 
 
 import java.awt.*;
+
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import ch.qos.logback.classic.spi.ThrowableDataPoint;
+
+import com.xuggle.mediatool.IMediaWriter;
+import com.xuggle.mediatool.ToolFactory;
+import com.xuggle.xuggler.ICodec;
+import com.xuggle.xuggler.IContainer;
+import com.xuggle.xuggler.IPacket;
+import com.xuggle.xuggler.IPixelFormat;
+import com.xuggle.xuggler.IRational;
+import com.xuggle.xuggler.IStream;
+import com.xuggle.xuggler.IStreamCoder;
+import com.xuggle.xuggler.IVideoPicture;
+import com.xuggle.xuggler.video.ConverterFactory;
+import com.xuggle.xuggler.video.IConverter;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import sim_mob.conf.CSS_Interface;
@@ -53,6 +73,7 @@ public class MainFrame extends JFrame {
     private ImageIcon displayIcon;
     
     private JComboBox trackAgentIDs;
+    private JButton renderVideo;
     
 	
 	//Lower panel
@@ -69,7 +90,6 @@ public class MainFrame extends JFrame {
 	public static CSS_Interface Config;
 	private boolean showFake;
 	private boolean showDebugMode;
-	
 	
 	//Helper class
 	private class StringItem {
@@ -147,6 +167,28 @@ public class MainFrame extends JFrame {
 	    trackAgentIDs = new JComboBox(new String[]{"", ""});
 	    resetTrackAgentIDs(null);
 	    
+	    renderVideo = new JButton("Render Video");
+	    
+	    //Disable our render button if this clearly won't work.
+	    renderVideo.setEnabled(false);
+	    String osName = System.getProperty("os.name").toLowerCase();
+	    if (osName.indexOf("nix")>=0 || osName.indexOf("nux")>=0) {
+	    	try {
+	    		//If their path is all set...
+	    		loadXuggler();
+	    	} catch (Throwable t) {
+	    		try {
+	    			//Mangle the path for them.
+	    			hotlinkXuggler();
+	    			loadXuggler();
+	    		} catch (Throwable t2) {
+	    			System.out.println("Couldn't find/load xuggler; video rendering disabled.");
+	    			System.out.println("  => " + t2.getMessage());
+	    		}
+	    	}
+	    }
+
+	    
 	    openLogFile = new JButton("Open File From...", new ImageIcon(Utility.LoadImgResource("res/icons/open.png")));
 		openEmbeddedFile = new JButton("Open Default File", new ImageIcon(Utility.LoadImgResource("res/icons/embed.png")));
 		showFakeAgent = new JButton("Show Proxy Agent", new ImageIcon(Utility.LoadImgResource("res/icons/fake.png")));
@@ -163,10 +205,9 @@ public class MainFrame extends JFrame {
 			public void set(String str) {
 				//Update the status bar
 				String oldValue = console.getText();
-				if(oldValue.isEmpty())
-				{
+				if(oldValue.isEmpty()) {
 					console.setText(str);
-				}else{
+				} else {
 					console.setText(oldValue+"\t"+str);
 				}
 			}
@@ -189,6 +230,7 @@ public class MainFrame extends JFrame {
 		jpLeft.add(debug);
 		jpLeft.add(clockRateComboBox);
 		jpLeft.add(trackAgentIDs);
+		jpLeft.add(renderVideo);
 		
 		//Bottom panel
 		JPanel jpLower = new JPanel(new BorderLayout());
@@ -409,6 +451,34 @@ public class MainFrame extends JFrame {
 			}
 
 		});
+		
+		renderVideo.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				//Nothing to render?
+				if (simData==null) {
+					return;
+				}
+				
+				//Stop animation
+				if (animTimer.isRunning()) {
+					animTimer.stop();
+					playBtn.setIcon(playIcon);
+				}
+				
+				//Request params
+				VideoEncodeDialog vd = new VideoEncodeDialog(MainFrame.this, newViewPnl.getCurrFrameTick(), newViewPnl.getMaxFrameTick());
+				vd.setLocationRelativeTo(MainFrame.this);
+				vd.setVisible(true);
+				
+				//Nothing?
+				if (vd.getOutFileName().isEmpty()) {
+					return;
+				}
+				
+				//Render
+				new RenderToFileThread(vd.getOutFileName(), vd.getOutFileQuality(), vd.getOutFileFirstFrame(), vd.getOutFileLastFrame(), vd.getShowFrameNumber()).start();
+			}
+		});
 
 		
 		openEmbeddedFile.addActionListener(new ActionListener() {
@@ -531,6 +601,123 @@ public class MainFrame extends JFrame {
 		}
 	}
 	
+	class RenderToFileThread extends Thread {
+		String fileName;
+		int quality;
+		int firstFrame;
+		int lastFrame;
+		boolean showFrameNumber;
+		
+		private RenderToFileThread(String fileName, int quality, int firstFrame, int lastFrame, boolean showFrameNumber) {
+			this.fileName = fileName;
+			this.quality = quality;
+			this.firstFrame = firstFrame;
+			this.lastFrame = lastFrame;
+			this.showFrameNumber = showFrameNumber;
+		}
+		
+		public void run() {
+			try {			
+				IMediaWriter writer = ToolFactory.makeWriter(fileName);
+				IRational frameRate = IRational.make(30,1); 
+				writer.addVideoStream(0, 0, frameRate, newViewPnl.getWidth(), newViewPnl.getHeight());
+		
+				//Make sure we're encoding at quality 0 (highest)
+				writer.getContainer().getStream(0).getStreamCoder().setGlobalQuality(quality);
+				
+				//Provide feedback to the user
+				SwingUtilities.invokeLater(new ProgressUpdateRunner(newViewPnl, 0.0, false, new Color(0x00, 0x66, 0x00), ""));
+				
+				//Write through each frame
+				int lastPercent = 0;
+				int currPercent = 0;
+				for (int i=firstFrame; i<=lastFrame; i++) {
+					//Update
+					double currPercentF = ((double)(i-firstFrame))/(lastFrame-firstFrame);
+					currPercent = (int)(currPercentF*100);
+					if (currPercent>lastPercent) {
+						lastPercent = currPercent;
+						SwingUtilities.invokeLater(new ProgressUpdateRunner(newViewPnl, currPercentF, true, new Color(0x00, 0x66, 0x00), "Encoding"));
+					}
+					
+					//Get the buffered image for this frame.
+					BufferedImage originalImage = newViewPnl.drawFrameToExternalBuffer(i, showFrameNumber);
+					BufferedImage worksWithXugglerBufferedImage = convertToType(originalImage, BufferedImage.TYPE_3BYTE_BGR);
+					writer.encodeVideo(0, worksWithXugglerBufferedImage, (i-firstFrame)*simData.frame_length_ms, TimeUnit.MILLISECONDS);
+				}
+				
+				//Finalize and close the image.
+				writer.close();
+		
+				//And update our display
+				System.out.println("Done");
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						newViewPnl.jumpAnim(frameTickSlider.getValue(), frameTickSlider);
+					}
+				});
+			} catch (Throwable t) {
+				System.out.println("Exception while rendering to file: " + t.getClass().getName());
+				System.out.println(t.getMessage());
+				t.printStackTrace();
+			}
+		}
+	}
+	
+	//Helper method for image conversion 
+	//TODO: Do this manually in our draw step
+	private static BufferedImage convertToType(BufferedImage sourceImage, int targetType) {
+		BufferedImage image;
+		
+		// if the source image is already the target type, return the source image
+		if (sourceImage.getType() == targetType) { 
+			image = sourceImage; 
+		} else {
+			// create a new image of the target type and draw the new image
+			image = new BufferedImage(sourceImage.getWidth(), sourceImage.getHeight(), targetType);
+			image.getGraphics().drawImage(sourceImage, 0, 0, null);
+		}
+		return image;
+	}
+	
+	
+	//////////////////////////////////////////////////
+	// Code for mangling our various path variables. 
+	//////////////////////////////////////////////////
+	
+	
+	private void loadXuggler() {
+		String path = System.getenv().containsKey("LD_LIBRARY_PATH") ? System.getenv("LD_LIBRARY_PATH")+":" : "";
+		
+		//Try loading the library.
+		System.loadLibrary("xuggle-xuggler");
+		
+		//If we didn't throw an exception, we're good.
+		renderVideo.setEnabled(true);
+	}
+	
+	private void hotlinkXuggler() throws NoSuchFieldException, IllegalAccessException {
+		File xugglerDir = new File("libs-native");
+		String xugglerPath = xugglerDir.getAbsolutePath();
+		
+		System.out.println("Attempting to patch in Xuggler: " + xugglerPath);
+		if (xugglerDir.exists() && xugglerDir.isDirectory()) {
+			mangleSystemPath(xugglerPath);
+		}
+	}
+	
+	
+	private void mangleSystemPath(String xugglerPath) throws NoSuchFieldException, IllegalAccessException {
+		//Set java.library.path, or JNI can't find the library.
+		String path = System.getProperties().containsKey("java.library.path") ? System.getProperty("java.library.path")+":" : "";
+		System.setProperty( "java.library.path", path+xugglerPath);
+		
+		//Kind of a hack: refresh a system property at runtime.
+		Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
+		fieldSysPath.setAccessible( true );
+		fieldSysPath.set(null, null);
+	}
+		
 }
 
 

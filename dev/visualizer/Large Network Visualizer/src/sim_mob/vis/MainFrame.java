@@ -2,12 +2,15 @@ package sim_mob.vis;
 
 
 import java.awt.*;
+
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import ch.qos.logback.classic.spi.ThrowableDataPoint;
 
 import com.xuggle.mediatool.IMediaWriter;
 import com.xuggle.mediatool.ToolFactory;
@@ -30,6 +33,7 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -86,7 +90,6 @@ public class MainFrame extends JFrame {
 	public static CSS_Interface Config;
 	private boolean showFake;
 	private boolean showDebugMode;
-	
 	
 	//Helper class
 	private class StringItem {
@@ -170,33 +173,19 @@ public class MainFrame extends JFrame {
 	    renderVideo.setEnabled(false);
 	    String osName = System.getProperty("os.name").toLowerCase();
 	    if (osName.indexOf("nix")>=0 || osName.indexOf("nux")>=0) {
-		    String xugglerPath = "/usr/local/xuggler/lib";
-		    File f = new File(xugglerPath);
-		    if (f.exists() && f.isDirectory()) {
-		    	try {
-		    		//Need to set java.library.path or JNI will fail.
-		    		System.setProperty( "java.library.path", xugglerPath);
-		    		
-		    		//Need to set LD_LIBRARY_PATH or _actual_ native lookup will fail.
-		    		if(!System.getenv().containsKey("LD_LIBRARY_PATH")) {
-		    			throw new RuntimeException("LD_LIBRARY_PATH not set.");
-		    		}
-		    		String ldLib = System.getenv("LD_LIBRARY_PATH");
-		    		if (!ldLib.contains(xugglerPath)) {
-		    			System.out.println("LD_LIBRARY_PATH is = " + ldLib);
-		    			throw new RuntimeException("LD_LIBRARY_PATH doesn't contain xuggler.");
-		    		}
-		    		//TODO: There are ways to hack this in too. Do it later.
-		    		
-		    		//Kind of a hack: refresh jni at runtime.
-		    		Field fieldSysPath = ClassLoader.class.getDeclaredField( "sys_paths" );
-		    		fieldSysPath.setAccessible( true );
-		    		fieldSysPath.set(null, null);
-		    		
-		    		//Everything should work now.
-		    		renderVideo.setEnabled(true);
-		    	} catch (Throwable t) {}
-		    }
+	    	try {
+	    		//If their path is all set...
+	    		loadXuggler();
+	    	} catch (Throwable t) {
+	    		try {
+	    			//Mangle the path for them.
+	    			hotlinkXuggler();
+	    			loadXuggler();
+	    		} catch (Throwable t2) {
+	    			System.out.println("Couldn't find/load xuggler; video rendering disabled.");
+	    			System.out.println("  => " + t2.getMessage());
+	    		}
+	    	}
 	    }
 
 	    
@@ -722,6 +711,44 @@ public class MainFrame extends JFrame {
 		return image;
 	}
 	
+	
+	//////////////////////////////////////////////////
+	// Code for mangling our various path variables. 
+	//////////////////////////////////////////////////
+	
+	
+	private void loadXuggler() {
+		String path = System.getenv().containsKey("LD_LIBRARY_PATH") ? System.getenv("LD_LIBRARY_PATH")+":" : "";
+		
+		//Try loading the library.
+		System.loadLibrary("xuggle-xuggler");
+		
+		//If we didn't throw an exception, we're good.
+		renderVideo.setEnabled(true);
+	}
+	
+	private void hotlinkXuggler() throws NoSuchFieldException, IllegalAccessException {
+		File xugglerDir = new File("libs-native");
+		String xugglerPath = xugglerDir.getAbsolutePath();
+		
+		System.out.println("Attempting to patch in Xuggler: " + xugglerPath);
+		if (xugglerDir.exists() && xugglerDir.isDirectory()) {
+			mangleSystemPath(xugglerPath);
+		}
+	}
+	
+	
+	private void mangleSystemPath(String xugglerPath) throws NoSuchFieldException, IllegalAccessException {
+		//Set java.library.path, or JNI can't find the library.
+		String path = System.getProperties().containsKey("java.library.path") ? System.getProperty("java.library.path")+":" : "";
+		System.setProperty( "java.library.path", path+xugglerPath);
+		
+		//Kind of a hack: refresh a system property at runtime.
+		Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
+		fieldSysPath.setAccessible( true );
+		fieldSysPath.set(null, null);
+	}
+		
 }
 
 

@@ -55,6 +55,10 @@ using std::string;
 
 using namespace sim_mob;
 
+//Temporary flag: Shuffle all agents (signals and otherwise) onto the Agent worker threads?
+// This is needed for performance testing; it will cause signals to fluxuate faster than they should.
+//#define TEMP_FORCE_ONE_WORK_GROUP
+
 //Start time of program
 timeval start_time;
 
@@ -87,12 +91,14 @@ void entity_worker(sim_mob::Worker& wk, frame_t frameNumber)
 }
 
 ///Worker function for signal status loading task.
+#ifndef TEMP_FORCE_ONE_WORK_GROUP
 void signal_status_worker(sim_mob::Worker& wk, frame_t frameNumber)
 {
 	for (vector<Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
 		(*it)->update(frameNumber);
 	}
 }
+#endif
 
 
 /**
@@ -191,15 +197,20 @@ bool performMain(const std::string& configFileName) {
 
 	//Initialize our signal status work groups
 	//  TODO: There needs to be a more general way to do this.
+#ifndef TEMP_FORCE_ONE_WORK_GROUP
 	WorkGroup signalStatusWorkers(WG_SIGNALS_SIZE, config.totalRuntimeTicks, config.granSignalsTicks);
 	Worker::ActionFunction spWork = boost::bind(signal_status_worker, _1, _2);
 	signalStatusWorkers.initWorkers(&spWork, nullptr);
+#endif
 	for (size_t i = 0; i < Signal::all_signals_.size(); i++) {
 		//add by xuyan
 //		if(Signal::all_signals_[i]->isFake)
 //			continue;
-
+#ifdef TEMP_FORCE_ONE_WORK_GROUP
+		agentWorkers.assignAWorker(Signal::all_signals_[i]);
+#else
 		signalStatusWorkers.assignAWorker(Signal::all_signals_[i]);
+#endif
 	}
 
 	//Initialize the aura manager
@@ -208,7 +219,9 @@ bool performMain(const std::string& configFileName) {
 
 	//Start work groups and all threads.
 	agentWorkers.startAll();
+#ifndef TEMP_FORCE_ONE_WORK_GROUP
 	signalStatusWorkers.startAll();
+#endif
 
 	//
 #ifndef SIMMOB_DISABLE_MPI
@@ -267,7 +280,9 @@ bool performMain(const std::string& configFileName) {
 #endif
 
 		//Update the signal logic and plans for every intersection grouped by region
+#ifndef TEMP_FORCE_ONE_WORK_GROUP
 		signalStatusWorkers.wait();
+#endif
 
 		//Agent-based cycle
 		agentWorkers.wait();

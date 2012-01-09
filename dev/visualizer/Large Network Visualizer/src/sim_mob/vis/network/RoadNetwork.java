@@ -1,5 +1,7 @@
 package sim_mob.vis.network;
 
+import java.awt.Color;
+
 import java.io.*;
 import java.util.*;
 import java.util.regex.*;
@@ -10,6 +12,7 @@ import sim_mob.vis.controls.NetworkPanel;
 import sim_mob.vis.network.basic.DPoint;
 import sim_mob.vis.util.Mapping;
 import sim_mob.vis.util.Utility;
+import sim_mob.vis.ProgressUpdateRunner;
 
 /**
  * The RoadNetwork is the top-level object containing all relevant details about our 
@@ -52,24 +55,6 @@ public class RoadNetwork {
 	public Hashtable<Integer, Intersection> getIntersection(){return intersections;}
 	public Hashtable<Integer, CutLine> getCutLine(){return cutLines;}
 	
-	
-	//Helper
-	class ProgressUpdateRunner implements Runnable {
-		NetworkPanel pnl;
-		double value;
-		boolean knownSize;
-		
-		ProgressUpdateRunner(NetworkPanel pnl, double value, boolean knownSize) {
-			this.pnl = pnl;
-			this.value = value;
-			this.knownSize = knownSize;
-		}
-		
-		public void run() {
-			pnl.drawBufferAsProgressBar(value, knownSize);
-		}
-	}
-	
 
 	/**
 	 * Load the network from a filestream.
@@ -95,7 +80,7 @@ public class RoadNetwork {
 		//Provide feedback to the user
 		long totalBytesRead = 0;
 		long lastKnownTotalBytesRead = 0;
-		SwingUtilities.invokeLater(new ProgressUpdateRunner(progressUpdate, 0.0, false));
+		SwingUtilities.invokeLater(new ProgressUpdateRunner(progressUpdate, 0.0, false, new Color(0x00, 0x00, 0xFF), ""));
 
 		//Also track min/max x/y pos
 		double[] xBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
@@ -112,9 +97,9 @@ public class RoadNetwork {
 			if (pushUpdate) {
 				lastKnownTotalBytesRead = totalBytesRead;
 				if (fileLength>0) {
-					SwingUtilities.invokeLater(new ProgressUpdateRunner(progressUpdate, totalBytesRead/((double)fileLength), true));
+					SwingUtilities.invokeLater(new ProgressUpdateRunner(progressUpdate, totalBytesRead/((double)fileLength), true, new Color(0x00, 0x00, 0xFF), ""));
 				} else {
-					SwingUtilities.invokeLater(new ProgressUpdateRunner(progressUpdate, totalBytesRead, false));
+					SwingUtilities.invokeLater(new ProgressUpdateRunner(progressUpdate, totalBytesRead, false, new Color(0x00, 0x00, 0xFF), ""));
 				}
 			}
 			

@@ -71,7 +71,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	
 	
 	//Percent is from [0.0 .. 1.0]
-	public void drawBufferAsProgressBar(double amt, boolean amtIsPercent) {
+	public void drawBufferAsProgressBar(double amt, boolean amtIsPercent, Color color, String caption) {
 		//Clear.
 		Graphics2D g = (Graphics2D)buffer.getGraphics();
 		g.setColor(Color.darkGray);
@@ -86,19 +86,19 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		Rectangle2D bar = new Rectangle2D.Double(margin, buffer.getHeight()/2-barSize/2, buffer.getWidth()-margin*2, barSize);
 		g.setColor(Color.black);
 		g.fillRect((int)bar.getX(), (int)bar.getY(), (int)bar.getWidth(), (int)bar.getHeight());
-		g.setColor(Color.blue);
+		g.setColor(color);
 		g.fillRect((int)bar.getX(), (int)bar.getY(), (int)(bar.getWidth()*percent), (int)bar.getHeight());
 		g.setColor(Color.white);
 		g.drawRect((int)bar.getX(), (int)bar.getY(), (int)bar.getWidth(), (int)bar.getHeight());
 		
 		//Amount
-		if (!amtIsPercent) {
-			String toDraw = "" + (int)(amt/1024) + " kB";
+		String toDraw = amtIsPercent ? caption : "" + (int)(amt/1024) + " kB";
+		if (!toDraw.isEmpty()) {
 			int toDrawLen = g.getFontMetrics().stringWidth(toDraw);
 			
 			g.setColor(Color.white);
 			g.drawString(toDraw, buffer.getWidth()/2-toDrawLen/2, buffer.getHeight()/2-g.getFontMetrics().getHeight()/2);
-		}
+		} 
 		
 		//Repaint.
 		this.repaint();
@@ -155,6 +155,14 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		return jumpAnim(netViewCache.getCurrFrameTick(), slider);
 	}
 	
+	public int getCurrFrameTick() {
+		return netViewCache.getCurrFrameTick();
+	}
+	
+	public int getMaxFrameTick() {
+		return netViewCache.getMaxFrameTick();
+	}
+	
 	
 	//Draw the map
 	public void drawMap(NetworkVisualizer nv, int offsetX, int offsetY) {
@@ -203,8 +211,54 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 			String str = String.format("NODE: %.0f , %.0f", n.getPos().getUnscaledX(), n.getPos().getUnscaledY());
 			statusBarUpdate.set(str);
 		}
-		
 	}
+	
+	
+	public BufferedImage drawFrameToExternalBuffer(int tick, boolean showFrameNumber) {
+		//Sanity check.
+		if (netViewCache==null) { throw new RuntimeException("Unexptected: newViewCache is null."); }
+		
+		//Step 1: prepare a return image
+		BufferedImage resImg = new BufferedImage(this.getWidth(), this.getHeight(), BufferedImage.TYPE_INT_RGB);
+		
+		//Step 2: re-draw the original image.
+		BufferedImage drawImg = netViewCache.getImageAtTimeTick(tick);
+		drawMapOntoImage(resImg, drawImg, tick, showFrameNumber);
+		
+		return resImg;
+	}
+	
+	
+	private void drawMapOntoImage(BufferedImage destImg, BufferedImage drawImg, int frameNumber) {
+		drawMapOntoImage(destImg, drawImg, frameNumber, true);
+	}
+	private void drawMapOntoImage(BufferedImage destImg, BufferedImage drawImg, int frameNumber, boolean showFrameNumber) {
+		//Get 2D graphics obj.
+		Graphics2D g = (Graphics2D)destImg.getGraphics();
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		
+		//If the image is smaller than the canvas to draw it on, always center it.
+		//Check bounds too; we don't want to scroll the map off the screen.
+		offset.x = CenterAndBoundsCheck(offset.x, drawImg.getWidth(), destImg.getWidth());
+		offset.y = CenterAndBoundsCheck(offset.y, drawImg.getHeight(), destImg.getHeight());
+		
+		//If the image is smaller in at least one dimension;we should re-fill the background with light-gray.
+		if ((drawImg.getWidth()<destImg.getWidth()) || (drawImg.getHeight()<destImg.getHeight())) {
+			g.setBackground(MainFrame.Config.getBackground("panel"));
+			g.clearRect(0, 0, destImg.getWidth(), destImg.getHeight());
+		}
+		
+		//Draw the network at the given offset
+		g.drawImage(drawImg, offset.x, offset.y, null);
+		
+		//Draw the current frame ID
+		if (showFrameNumber) {
+			g.setFont(FrameFont);
+			g.setColor(MainFrame.Config.getBackground("framenumber"));
+			g.drawString("Frame: "+frameNumber , 15, 10+g.getFontMetrics().getAscent());
+		}
+	}
+	
 	
 	private void updateMap() {
 		//Anything?
@@ -212,35 +266,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 			return;
 		}
 		BufferedImage drawImg = netViewCache.getImage();
-		
-		//Get 2D graphics obj.
-		Graphics2D g = (Graphics2D)buffer.getGraphics();
-		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		
-		//If the image is smaller than the canvas to draw it on, always center it.
-		//Check bounds too; we don't want to scroll the map off the screen.
-		offset.x = CenterAndBoundsCheck(offset.x, drawImg.getWidth(), buffer.getWidth());
-		offset.y = CenterAndBoundsCheck(offset.y, drawImg.getHeight(), buffer.getHeight());
-		
-		//If the image is smaller in at least one dimension;we should re-fill the background with light-gray.
-		if ((drawImg.getWidth()<buffer.getWidth()) || (drawImg.getHeight()<buffer.getHeight())) {
-			g.setBackground(MainFrame.Config.getBackground("panel"));
-			g.clearRect(0, 0, buffer.getWidth(), buffer.getHeight());
-		}
-		
-		//Draw the network at the given offset
-		g.drawImage(drawImg, offset.x, offset.y, null);
-		
-		//Draw traffic lights... it's a bit of a hack
-	//	netViewCache.drawTrafficLights(g);
-		
-		//Draw the current frame
-		if (netViewCache!=null) {
-			g.setFont(FrameFont);
-			g.setColor(MainFrame.Config.getBackground("framenumber"));
-			g.drawString("Frame: "+netViewCache.getCurrFrameTick() , 15, 10+g.getFontMetrics().getAscent());
-
-		}
+		drawMapOntoImage(buffer, drawImg, netViewCache.getCurrFrameTick());
 		
 		//Repaint
 		this.repaint();

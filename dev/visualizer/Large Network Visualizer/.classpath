@@ -10,5 +10,10 @@
 			<attribute name="javadoc_location" value="jar:platform:/resource/Large Network Visualizer/libs/gson-2.0-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="libs/xuggle-xuggler.jar"/>
+	<classpathentry kind="lib" path="libs/slf4j-api.jar"/>
+	<classpathentry kind="lib" path="libs/logback-classic.jar"/>
+	<classpathentry kind="lib" path="libs/logback-core.jar"/>
+	<classpathentry kind="lib" path="libs/commons-cli.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

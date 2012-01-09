@@ -17,13 +17,16 @@ import sim_mob.vis.MainFrame;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.network.basic.ScaledPointGroup;
 import sim_mob.vis.util.Utility;
-
+import java.util.Random;
 
 /**
  * Driver "Agent Tick"
  */
 public class DriverTick extends AgentTick {
 	private static SimpleVectorImage CarImg;
+	private static SimpleVectorImage BusImg;
+	private static SimpleVectorImage TruckImg;
+	
 	private static SimpleVectorImage DebugCarImg;
 	private static SimpleVectorImage FakeCarImg;
 	
@@ -37,6 +40,8 @@ public class DriverTick extends AgentTick {
 		"body-outline", "window-outline", "wheel-outline"
 	};
 
+	
+	
 	/*private static BufferedImage CarImg;
 	private static BufferedImage FakeCarImg;
 	static {
@@ -47,11 +52,15 @@ public class DriverTick extends AgentTick {
 			throw new RuntimeException(ex);
 		}
 	}*/
+	private static boolean isCar;
+	
+	
 	private int ID;
 	private double angle;
 	private boolean fake;
 	private int length;
 	private int width;
+	private int pickNumber;
 	public int getID(){return ID;}
 	public int getLength(){return length;}
 	public int getWidth() {return width;}
@@ -68,23 +77,31 @@ public class DriverTick extends AgentTick {
 		this.pos = new ScaledPoint(posX, posY, spg);
 		this.angle = angle;
 		this.fake = false;
+		this.isCar = true;
 		
-		//Init resources?
-		if (CarImg==null) {
+		
+		
+		if(CarImg==null){
 			MakeCarImage();
 		}
+
 		if (DebugCarImg==null) {
 			MakeDebugCarImage();
 		}
 		if (FakeCarImg==null) {
 			MakeFakeCarImage();
 		}
+
 	}
 	
 	private static void MakeCarImage() {
 		//Load it.
 		try {
+			
 			CarImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/car_lq.json.txt"));
+			BusImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/bus.json.txt"));
+			TruckImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/truck.json.txt"));
+			
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
 		}
@@ -133,6 +150,7 @@ public class DriverTick extends AgentTick {
 	}
 	public void setID(int id){
 		this.ID = id;
+		this.pickNumber =  id%3;	
 	}
 	
 	
@@ -157,9 +175,24 @@ public class DriverTick extends AgentTick {
 			angleD += 7;
 		}
 		
+		SimpleVectorImage svi = null;
+		
 		//Retrieve the image to draw
-		SimpleVectorImage svi = (drawFake&&fake) ? FakeCarImg : debug ? DebugCarImg : CarImg;		
-		BufferedImage toDraw = svi.getImage(1/scale + 0.2, angleD, true);
+
+		
+		if(this.length == 500){
+			 svi = (drawFake&&fake) ? FakeCarImg : debug ? DebugCarImg : CarImg;		
+		
+		}else if(this.length == 1200){
+			 svi = (drawFake&&fake) ? FakeCarImg : debug ? DebugCarImg : BusImg;		
+			
+		}else if(this.length == 1500){
+			 svi = (drawFake&&fake) ? FakeCarImg : debug ? DebugCarImg : TruckImg;		
+		}else{
+			 svi = (drawFake&&fake) ? FakeCarImg : debug ? DebugCarImg : CarImg;		
+		}
+		
+		BufferedImage toDraw = svi.getImage(scale*0.8, angleD, true);
 		
 		//Rotate
 		//at.rotate((Math.PI*angle)/180);

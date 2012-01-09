@@ -169,7 +169,7 @@ public class NetworkVisualizer {
 		
 		//Draw links
 		for (Link ln : network.getLinks().values()) {
-			ln.draw(g);
+			//ln.draw(g);
 		}
 		
 		//Draw Cutline
@@ -238,8 +238,6 @@ public class NetworkVisualizer {
 			//Draw Lanes
 			for (Hashtable<Integer,LaneMarking> lineMarkingTable : network.getLaneMarkings().values()) {
 				
-
-				
 				for(LaneMarking lineMarking : lineMarkingTable.values()){
 					
 					lineMarking.draw(g);
@@ -306,16 +304,16 @@ public class NetworkVisualizer {
 		
 		
 		//Now draw simulation data: cars, etc.
-		if(currPercentZoom>ZOOM_IN_CRITICAL){
+		//if(currPercentZoom>ZOOM_IN_CRITICAL){
 
-			Hashtable<Integer, AgentTick> agents = simRes.ticks.get(currFrameTick).agentTicks;
+			Hashtable<Integer, AgentTick> agents = simRes.ticks.get(frameTick).agentTicks;
 			for (Integer key : agents.keySet()) {
 				AgentTick at = agents.get(key);
 				boolean highlight = this.debugOn || (key.intValue()==currHighlightID);
 				at.draw(g,currPercentZoom,this.showFakeAgent,highlight);
 			}
 
-		}		
+		//}		
 		
 	}
 	

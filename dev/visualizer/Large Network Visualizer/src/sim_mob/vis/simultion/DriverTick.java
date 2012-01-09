@@ -28,7 +28,12 @@ public class DriverTick extends AgentTick {
 	private static SimpleVectorImage TruckImg;
 	
 	private static SimpleVectorImage DebugCarImg;
+	private static SimpleVectorImage DebugBusImg;
+	private static SimpleVectorImage DebugTruckImg;
+	
 	private static SimpleVectorImage FakeCarImg;
+	private static SimpleVectorImage FakeBusImg;
+	private static SimpleVectorImage FakeTruckImg;
 	
 	private static Stroke debugStr = new BasicStroke(1.0F);
 	private static Color debugClr = new Color(0x00, 0x00, 0x66);
@@ -98,9 +103,9 @@ public class DriverTick extends AgentTick {
 		//Load it.
 		try {
 			
-			CarImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/car_lq.json.txt"));
-			BusImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/bus.json.txt"));
-			TruckImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/truck.json.txt"));
+			CarImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/car_v1.json.txt"));
+			BusImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/car_v2.json.txt"));
+			TruckImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/car_v3.json.txt"));
 			
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
@@ -114,7 +119,10 @@ public class DriverTick extends AgentTick {
 	private static void MakeDebugCarImage() {
 		//Load it.
 		try {
-			DebugCarImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/car.json.txt"));
+			DebugCarImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/car_v1.json.txt"));
+			DebugBusImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/car_v2.json.txt"));
+			DebugTruckImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/car_v3.json.txt"));
+			
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
 		}
@@ -127,7 +135,10 @@ public class DriverTick extends AgentTick {
 	private static void MakeFakeCarImage() {
 		//Load it.
 		try {
-			FakeCarImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/car.json.txt"));
+			FakeCarImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/car_v1.json.txt"));
+			FakeBusImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/car_v2.json.txt"));
+			FakeTruckImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/car_v3.json.txt"));
+
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
 		}
@@ -136,6 +147,12 @@ public class DriverTick extends AgentTick {
 		Hashtable<String, Color> overrides = MainFrame.GetOverrides("car-fake", CarBkgdColorIDs, CarLineColorIDs);
 		FakeCarImg.buildColorIndex(overrides);
 		FakeCarImg.phaseColors(0xFF/2);
+
+		FakeBusImg.buildColorIndex(overrides);
+		FakeBusImg.phaseColors(0xFF/2);
+		
+		FakeTruckImg.buildColorIndex(overrides);
+		FakeTruckImg.phaseColors(0xFF/2);
 	}
 	
 	
@@ -180,19 +197,20 @@ public class DriverTick extends AgentTick {
 		//Retrieve the image to draw
 
 		
-		if(this.length == 500){
+		if(this.pickNumber == 0){
 			 svi = (drawFake&&fake) ? FakeCarImg : debug ? DebugCarImg : CarImg;		
 		
-		}else if(this.length == 1200){
-			 svi = (drawFake&&fake) ? FakeCarImg : debug ? DebugCarImg : BusImg;		
+		}else if(this.pickNumber == 1){
+			 svi = (drawFake&&fake) ? FakeBusImg : debug ? DebugBusImg : BusImg;		
 			
-		}else if(this.length == 1500){
-			 svi = (drawFake&&fake) ? FakeCarImg : debug ? DebugCarImg : TruckImg;		
+		}else if(this.pickNumber == 2){
+			 svi = (drawFake&&fake) ? FakeTruckImg : debug ? DebugTruckImg : TruckImg;		
 		}else{
-			 svi = (drawFake&&fake) ? FakeCarImg : debug ? DebugCarImg : CarImg;		
+			 svi = (drawFake&&fake) ? FakeCarImg : debug ? DebugCarImg : CarImg;
+			 System.out.println("Error, No such length, use car image instead -- DriverTick, draw()");
 		}
 		
-		BufferedImage toDraw = svi.getImage(scale*0.8, angleD, true);
+		BufferedImage toDraw = svi.getImage(1/scale + 0.2, angleD, true);
 		
 		//Rotate
 		//at.rotate((Math.PI*angle)/180);

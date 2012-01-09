@@ -20,7 +20,7 @@ class Lane_edge:
         self.section_id = section_id
 
 class Center_line:
-    def __init__(self, polyline, orig_line):
+    def __init__(self, polyline, orig_line=None):
         self.polyline = polyline
         self.type = 'c'
         if orig_line:

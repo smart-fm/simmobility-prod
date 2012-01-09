@@ -130,9 +130,9 @@ def split(lane_edge, last_index, new_point, road_network):
     polyline.append(new_point)
     polyline.extend(entire_polyline[last_index + 1:])
     if isinstance(lane_edge, edge.Lane_edge):
-        new_edge = edge.Lane_edge(polyline, lane_edge.type)
+        new_edge = edge.Lane_edge(polyline, lane_edge.type, lane_edge)
         road_network.add_lane_edge(new_edge)
     elif isinstance(lane_edge, edge.Center_line):
-        new_edge = edge.Center_line(polyline)
+        new_edge = edge.Center_line(polyline, lane_edge)
         road_network.add_center_line(new_edge)
     return new_edge

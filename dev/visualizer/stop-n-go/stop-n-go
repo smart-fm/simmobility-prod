@@ -1,0 +1,17 @@
+#!/usr/bin/env python
+
+# Copyright Singapore-MIT Alliance for Research and Technology
+
+import sys
+from PyQt4 import QtGui
+from visualizer import Visualizer
+
+def main(argv):
+    app = QtGui.QApplication(argv)
+    visualizer = Visualizer()
+    if len(argv) == 2:
+        visualizer.load(argv[1])
+    visualizer.show()
+    sys.exit(app.exec_())
+
+main(sys.argv)

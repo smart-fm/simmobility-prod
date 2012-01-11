@@ -15,7 +15,6 @@ import sim_mob.vis.simultion.*;
 public class NetworkVisualizer {
 	private RoadNetwork network;
 	private SimulationResults simRes;
-	private int currFrameTick;
 	private BufferedImage buffer;
 	private int width100Percent;
 	private int height100Percent;
@@ -30,19 +29,8 @@ public class NetworkVisualizer {
 		currHighlightID=id; 
 	}
 	
-	public int getCurrFrameTick() { return currFrameTick; }
 	public int getMaxFrameTick() { return simRes.ticks.size()-1; }
 	public String getFileName(){return fileName;}
-	public boolean incrementCurrFrameTick(int amt) {
-		return setCurrFrameTick(currFrameTick+amt);
-	}
-	public boolean setCurrFrameTick(int newVal) {
-		if (newVal<0 || simRes==null || newVal>=simRes.ticks.size()) {
-			return false;
-		}
-		currFrameTick = newVal;
-		return true;
-	}
 	
 	//For clicking
 	private static final double NEAR_THRESHHOLD = 20;
@@ -78,7 +66,6 @@ public class NetworkVisualizer {
 		//Save
 		this.network = network;
 		this.simRes = simRes;
-		this.currFrameTick = 0;
 		this.width100Percent = width100Percent;
 		this.height100Percent = height100Percent;
 		this.fileName = fileName;
@@ -86,30 +73,30 @@ public class NetworkVisualizer {
 		//this.debugOn = false;
 		
 		//Recalc
-		redrawAtScale(initialZoom);
+		redrawAtScale(initialZoom, 0);
 	}
 	
 	//Negative numbers mean zoom out that many times.
-	public void zoomIn(int number) {
+	public void zoomIn(int number, int frameTick) {
 		//Each tick increases zoom by 10%
-		redrawAtScale(currPercentZoom + currPercentZoom*number*0.10);
+		redrawAtScale(currPercentZoom + currPercentZoom*number*0.10, frameTick);
 		
 		//		System.out.println("currPercentZoom: "+currPercentZoom +" currPercentZoom*number*0.10: " +currPercentZoom*number*0.10+ " result " + currPercentZoom + currPercentZoom*number*0.10);
 		
 	}
 	
-	public void toggleFakeAgent(boolean drawFakeAgent){
+	public void toggleFakeAgent(boolean drawFakeAgent, int frameTick){
 
 		this.showFakeAgent = drawFakeAgent;			
-		redrawAtCurrScale();
+		redrawAtCurrScale(frameTick);
 	}
 	
-	public void toggleDebugOn(boolean debugOn){
+	public void toggleDebugOn(boolean debugOn, int frameTick){
 		this.debugOn = debugOn;
-		redrawAtCurrScale();
+		redrawAtCurrScale(frameTick);
 	}
 	
-	public void redrawAtScale(double percent) {
+	public void redrawAtScale(double percent, int frameTick) {
 		//Save
 		currPercentZoom = percent;
 		
@@ -127,11 +114,11 @@ public class NetworkVisualizer {
 		//Scale all points
 		ScaledPointGroup.SetNewScaleContext(new ScaleContext(percent, newTL, newLR, width, height));
 		//ScaledPoint.ScaleAllPoints(percent, newTL, newLR, width, height);
-		redrawAtCurrScale(buffer, currFrameTick);
+		redrawAtCurrScale(buffer, frameTick);
 	}
 	
-	public void redrawAtCurrScale() {
-		redrawAtCurrScale(buffer, currFrameTick);
+	public void redrawAtCurrScale(int frameTick) {
+		redrawAtCurrScale(buffer, frameTick);
 	}
 	
 	private void redrawAtCurrScale(BufferedImage dest, int frameTick) {
@@ -168,9 +155,9 @@ public class NetworkVisualizer {
 		}
 		
 		//Draw links
-		for (Link ln : network.getLinks().values()) {
+		//for (Link ln : network.getLinks().values()) {
 			//ln.draw(g);
-		}
+		//}
 		
 		//Draw Cutline
 		if(this.showFakeAgent){

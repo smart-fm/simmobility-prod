@@ -75,6 +75,7 @@ public class SimpleVectorImage {
 	}
 	public BufferedImage getImage(double scaleFactor, double rotateAngleDegrees, boolean ignoreCache) {
 		//Bound, retrieve
+		//rotateAngleDegrees = 0;
 		CachedBuffer cacheEntry = null;
 		if (ignoreCache) {
 			cacheEntry = new CachedBuffer();

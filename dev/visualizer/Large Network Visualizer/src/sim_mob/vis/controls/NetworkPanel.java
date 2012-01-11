@@ -224,15 +224,15 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	}
 	
 	
-	public BufferedImage drawFrameToExternalBuffer(int tick, boolean showFrameNumber) {
+	public BufferedImage drawFrameToExternalBuffer(int tick, boolean showFrameNumber, int imageType) {
 		//Sanity check.
 		if (netViewCache==null) { throw new RuntimeException("Unexptected: newViewCache is null."); }
 		
 		//Step 1: prepare a return image
-		BufferedImage resImg = new BufferedImage(this.getWidth(), this.getHeight(), BufferedImage.TYPE_INT_RGB);
+		BufferedImage resImg = new BufferedImage(this.getWidth(), this.getHeight(), imageType);
 		
 		//Step 2: re-draw the original image.
-		BufferedImage drawImg = netViewCache.getImageAtTimeTick(tick);
+		BufferedImage drawImg = netViewCache.getImageAtTimeTick(tick, imageType);
 		drawMapOntoImage(resImg, drawImg, tick, showFrameNumber);
 		
 		return resImg;

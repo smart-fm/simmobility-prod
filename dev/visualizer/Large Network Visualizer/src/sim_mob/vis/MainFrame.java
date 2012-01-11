@@ -626,9 +626,9 @@ public class MainFrame extends JFrame {
 					}
 					
 					//Get the buffered image for this frame.
-					BufferedImage originalImage = newViewPnl.drawFrameToExternalBuffer(i, showFrameNumber);
-					BufferedImage worksWithXugglerBufferedImage = convertToType(originalImage, BufferedImage.TYPE_3BYTE_BGR);
-					writer.encodeVideo(0, worksWithXugglerBufferedImage, (i-firstFrame)*simData.frame_length_ms, TimeUnit.MILLISECONDS);
+					BufferedImage originalImage = newViewPnl.drawFrameToExternalBuffer(i, showFrameNumber, BufferedImage.TYPE_3BYTE_BGR);
+					//BufferedImage worksWithXugglerBufferedImage = convertToType(originalImage, BufferedImage.TYPE_3BYTE_BGR);
+					writer.encodeVideo(0, originalImage, (i-firstFrame)*simData.frame_length_ms, TimeUnit.MILLISECONDS);
 				}
 				
 				//Finalize and close the image.
@@ -651,7 +651,7 @@ public class MainFrame extends JFrame {
 	
 	//Helper method for image conversion 
 	//TODO: Do this manually in our draw step
-	private static BufferedImage convertToType(BufferedImage sourceImage, int targetType) {
+	/*private static BufferedImage convertToType(BufferedImage sourceImage, int targetType) {
 		BufferedImage image;
 		
 		// if the source image is already the target type, return the source image
@@ -663,7 +663,7 @@ public class MainFrame extends JFrame {
 			image.getGraphics().drawImage(sourceImage, 0, 0, null);
 		}
 		return image;
-	}
+	}*/
 	
 	
 	//////////////////////////////////////////////////

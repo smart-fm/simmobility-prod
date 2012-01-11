@@ -110,8 +110,17 @@ public class Utility {
 		
 	}
 	
-	
-	
+	public static ArrayList<Integer> ParseLinkPaths(String input){
+		ArrayList<Integer> pos = new ArrayList<Integer>();
+		//System.out.println(input);
+		Matcher m = NUMH_REGEX.matcher(input);
+		while(m.find()){	
+			pos.add(ParseIntOptionalHex(m.group(1)));
+		}
+
+		return pos;
+	}
+
 	public static double Distance(double x1, double y1, double x2, double y2) { 
 		double dx   = x2 - x1;
 		double dy   = y2 - y1;
@@ -128,5 +137,6 @@ public class Utility {
 	public static final Pattern LOG_LHS_REGEX = Pattern.compile("\\(" + strn + sep + num + sep + numH + sep  + rhs + "\\)");
 	public static final Pattern LOG_RHS_REGEX = Pattern.compile(strn + ":" + strn + ",?");
 	public static final Pattern NUM_REGEX = Pattern.compile(num);
+	public static final Pattern NUMH_REGEX = Pattern.compile(numH);
 }
 

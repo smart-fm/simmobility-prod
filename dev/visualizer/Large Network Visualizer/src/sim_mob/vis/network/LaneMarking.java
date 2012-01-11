@@ -4,6 +4,7 @@ import java.awt.*;
 
 import sim_mob.vis.MainFrame;
 import sim_mob.vis.controls.DrawableItem;
+import sim_mob.vis.network.basic.ScaledPoint;
 
 public class LaneMarking implements DrawableItem{
 	//Constants/Resources
@@ -14,7 +15,10 @@ public class LaneMarking implements DrawableItem{
 	private Integer parentSegment;
 	private Node start;
 	private Node end;
-
+	private ScaledPoint startPt;
+	private ScaledPoint secondPt;
+	private ScaledPoint penultimatePt; //second to last
+	private ScaledPoint lastPt;
 	
 	private boolean isSideWalk;
 	private int laneNumber;
@@ -27,7 +31,16 @@ public class LaneMarking implements DrawableItem{
 		this.laneNumber = lineNumber;
 		this.parentSegment = parentSegment;
 
-		
+		if(start != null)
+		{
+			this.startPt = start.getPos();
+			this.secondPt = start.getPos();			
+		}
+		if(end != null)
+		{
+			this.penultimatePt = end.getPos();
+			this.lastPt = end.getPos();
+		}
 	}
 
 	public Node getStart() { return start; }
@@ -35,8 +48,11 @@ public class LaneMarking implements DrawableItem{
 	public boolean isSideWalk() { return isSideWalk; }
 	public int getLaneNumber()	{ return laneNumber; }
 	public Integer getParentSegment(){ return parentSegment; }
-	
 
+	public void setStartPt(ScaledPoint pt){ startPt = pt; }
+	public void setSecondPt(ScaledPoint pt){ secondPt = pt; }
+	public void setPenultimatePt(ScaledPoint pt){ penultimatePt = pt; }
+	public void setLastPt(ScaledPoint pt){ lastPt = pt; }
 
 	public void setSideWalk(boolean isSideWalk){
 		this.isSideWalk = isSideWalk;
@@ -57,7 +73,9 @@ public class LaneMarking implements DrawableItem{
 		//Draw it.
 		g.setColor(clr);
 		g.setStroke(strk);
-		g.drawLine((int)start.getPos().getX(), (int)start.getPos().getY(), (int)end.getPos().getX(), (int)end.getPos().getY());
+		g.drawLine((int)startPt.getX(),(int)startPt.getY(),(int)secondPt.getX(),(int)secondPt.getY());
+		g.drawLine((int)secondPt.getX(),(int)secondPt.getY(),(int)penultimatePt.getX(),(int)penultimatePt.getY());
+		g.drawLine((int)penultimatePt.getX(),(int)penultimatePt.getY(), (int)lastPt.getX(),(int)lastPt.getY());
 	}
 
 	

@@ -2,6 +2,7 @@ package sim_mob.vis.network;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.util.ArrayList;
 
 import sim_mob.vis.MainFrame;
 import sim_mob.vis.controls.DrawableItem;
@@ -20,6 +21,8 @@ public class Link implements DrawableItem {
 	private String name;
 	private Node start;
 	private Node end;
+	private ArrayList<Integer> fwdPathSegmentIDs;
+	private ArrayList<Integer> revPathSegmentIDs;
 	
 	public Link(String name, Node start, Node end) {
 		this.name = name;
@@ -30,6 +33,11 @@ public class Link implements DrawableItem {
 	public String getName() { return name; }
 	public Node getStart() { return start; }
 	public Node getEnd() { return end; }
+	
+	public ArrayList<Integer> getFwdPathSegmentIDs() { return fwdPathSegmentIDs; }
+	public ArrayList<Integer> getRevPathSegmentIDs() { return revPathSegmentIDs; }
+	public void setFwdPathSegmentIDs(ArrayList<Integer> segIDs) { fwdPathSegmentIDs = segIDs; }
+	public void setRevPathSegmentIDs(ArrayList<Integer> segIDs) { revPathSegmentIDs = segIDs; }
 	
 	public void draw(Graphics2D g) {
 		g.setColor(roadColor);

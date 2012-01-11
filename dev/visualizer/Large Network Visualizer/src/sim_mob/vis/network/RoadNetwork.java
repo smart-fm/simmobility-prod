@@ -10,6 +10,8 @@ import javax.swing.SwingUtilities;
 
 import sim_mob.vis.controls.NetworkPanel;
 import sim_mob.vis.network.basic.DPoint;
+import sim_mob.vis.network.basic.ScaledPoint;
+import sim_mob.vis.network.basic.Vect;
 import sim_mob.vis.util.Mapping;
 import sim_mob.vis.util.Utility;
 import sim_mob.vis.ProgressUpdateRunner;
@@ -37,6 +39,9 @@ public class RoadNetwork {
 	private Hashtable<String, Integer> fromToSegmentRefTable;
 	
 	private Hashtable<Integer,ArrayList<Integer>> segmentRefTable;
+	
+	//                segID              lane#   laneID
+	private Hashtable<Integer,Hashtable<Integer,Integer>> segmentToLanesTable;
 	
 	
 	//Testing on intersections
@@ -75,6 +80,7 @@ public class RoadNetwork {
 
 		fromToSegmentRefTable =  new Hashtable<String, Integer>();
 		segmentRefTable = new  Hashtable<Integer , ArrayList<Integer>>(); 
+		segmentToLanesTable = new Hashtable<Integer,Hashtable<Integer,Integer>>();
 	
 		
 		//Provide feedback to the user
@@ -150,6 +156,9 @@ public class RoadNetwork {
 		//Populate Intersections
 		this.populateIntersections();
 		
+		//Fix up connections between segments to look 
+		//pretty where # of lanes changes
+		this.smoothSegmentJoins();
 	}
 			
 	private void dispatchConstructionRequest(String objType, int frameID, int objID, String rhs, double[] xBounds, double[] yBounds) throws IOException {
@@ -200,7 +209,10 @@ public class RoadNetwork {
 	    }
 	    
 	    //Create a new Link, save it
-	    links.put(objID, new Link(name, startNode, endNode));
+	    Link toAdd = new Link(name, startNode, endNode);
+	    toAdd.setFwdPathSegmentIDs(Utility.ParseLinkPaths(props.get("fwd-path")));
+	    toAdd.setRevPathSegmentIDs(Utility.ParseLinkPaths(props.get("rev-path")));
+	    links.put(objID, toAdd);
 	}
 	
 	private void parseLineMarking(int frameID, int objID, String rhs) throws IOException {
@@ -297,16 +309,21 @@ public class RoadNetwork {
 	    	Lane tempLane = new Lane(i,new Node(startMiddleX, startMiddleY,true, null),new Node(endMiddleX,endMiddleY,false,null));	    		
 	    	
 	    	tempLaneTable.put(i,tempLane);
-	    	   	
+
+	    	if(segmentToLanesTable.containsKey(parentKey)){
+	    		segmentToLanesTable.get(parentKey).put(i, objID);
+	    	}	
+	    	else{
+	    		Hashtable<Integer, Integer> lanesOnSegment = new Hashtable<Integer,Integer>();
+	    		lanesOnSegment.put(i, objID);
+	    		segmentToLanesTable.put(parentKey, lanesOnSegment);
+	    	}
 	    }
 	    lanes.put(parentKey, tempLaneTable);	 
 	    
 	    
 	    //Create a new Lane, save it
-	    linaMarkings.put(objID, tempLineTable);
-	    
-	    
-	    
+	    linaMarkings.put(objID, tempLineTable);    
 	}
 	
 	private void parseSegment(int frameID, int objID, String rhs) throws IOException {
@@ -645,6 +662,132 @@ public class RoadNetwork {
 			
 		} // End for loop
 		
+	}
+	
+	private void smoothSegmentJoins(){
+		for(Link link : links.values()){
+			smoothSegmentJoins(link.getFwdPathSegmentIDs());
+			smoothSegmentJoins(link.getRevPathSegmentIDs());
+		}
+	}
+
+	private void smoothSegmentJoins(ArrayList<Integer> segmentIDs){
+		if(segmentIDs.size() < 2)
+			return;
+
+		Integer currentSegmentID = segmentIDs.get(0);
+
+		LaneMarking currSegSidewalkLane1 = new LaneMarking(null, null, false, 0, 0);
+		LaneMarking currSegSidewalkLane2 = new LaneMarking(null, null, false, 0, 0);
+
+
+		for(int i = 0; i<segmentIDs.size();i++){	
+			Integer nextSegmentID = segmentIDs.get(i);
+			if(segmentToLanesTable.containsKey(currentSegmentID) && segmentToLanesTable.containsKey(nextSegmentID))
+			{
+				Hashtable<Integer, Integer> currentSegLanes = segmentToLanesTable.get(currentSegmentID);
+				Hashtable<Integer, Integer> nextSegLanes = segmentToLanesTable.get(nextSegmentID);
+		
+				LaneMarking nextSegSidewalkLane1 = new LaneMarking(null, null, false, 0, 0);
+				LaneMarking nextSegSidewalkLane2 = new LaneMarking(null, null, false, 0, 0);
+
+				boolean bFound = false;
+
+				for(Integer currSegLaneID : currentSegLanes.values())
+				{
+					Hashtable<Integer,LaneMarking> currentSegLaneMarkTable = linaMarkings.get(currSegLaneID);
+					for(LaneMarking currSegLaneMark : currentSegLaneMarkTable.values())
+					{
+						if(currSegLaneMark.isSideWalk()){
+							if(bFound == false){
+								currSegSidewalkLane1 = currSegLaneMark;								
+							}
+							else{
+								currSegSidewalkLane2 = currSegLaneMark;								
+							}
+						}						
+					}
+				}
+
+				bFound = false;
+
+				for(Integer nextSegLaneID : nextSegLanes.values())
+				{
+					Hashtable<Integer,LaneMarking> nextSegLaneMarkTable = linaMarkings.get(nextSegLaneID);
+					for(LaneMarking nextSegLaneMark : nextSegLaneMarkTable.values())
+					{
+						if(nextSegLaneMark.isSideWalk()){
+							if(bFound == false){
+								nextSegSidewalkLane1 = nextSegLaneMark;	
+								bFound = true;
+							}
+							else{
+								nextSegSidewalkLane2 = nextSegLaneMark;								
+							}
+						}						
+					}
+				}
+			
+				if(currSegSidewalkLane1.getLaneNumber() > currSegSidewalkLane2.getLaneNumber())
+				{
+					LaneMarking temp = currSegSidewalkLane1;		
+					currSegSidewalkLane1 = currSegSidewalkLane2;
+					currSegSidewalkLane2 = temp;
+				}
+		
+				if(nextSegSidewalkLane1.getLaneNumber() > nextSegSidewalkLane2.getLaneNumber())
+				{
+					LaneMarking temp = nextSegSidewalkLane1;		
+					nextSegSidewalkLane1 = nextSegSidewalkLane2;
+					nextSegSidewalkLane2 = temp;
+				}
+
+				if(i != 0)
+				{
+					DPoint currSegStart1 = new DPoint(currSegSidewalkLane1.getStart().getPos().getUnscaledX(), currSegSidewalkLane1.getStart().getPos().getUnscaledY());
+					DPoint currSegEnd1 = new DPoint(currSegSidewalkLane1.getEnd().getPos().getUnscaledX(), currSegSidewalkLane1.getEnd().getPos().getUnscaledY());
+					DPoint currSegStart2 = new DPoint(currSegSidewalkLane2.getStart().getPos().getUnscaledX(), currSegSidewalkLane2.getStart().getPos().getUnscaledY());
+					DPoint currSegEnd2 = new DPoint(currSegSidewalkLane2.getEnd().getPos().getUnscaledX(), currSegSidewalkLane2.getEnd().getPos().getUnscaledY());
+			
+					Vect currSidewalk1 = new Vect(currSegStart1.x, currSegStart1.y, currSegEnd1.x, currSegEnd1.y);
+					Vect currSidewalk2 = new Vect(currSegStart2.x, currSegStart2.y, currSegEnd2.x, currSegEnd2.y);
+			
+					DPoint nextSegStart1 = new DPoint(nextSegSidewalkLane1.getStart().getPos().getUnscaledX(), nextSegSidewalkLane1.getStart().getPos().getUnscaledY());
+					DPoint nextSegEnd1 = new DPoint(nextSegSidewalkLane1.getEnd().getPos().getUnscaledX(), nextSegSidewalkLane1.getEnd().getPos().getUnscaledY());
+					DPoint nextSegStart2 = new DPoint(nextSegSidewalkLane2.getStart().getPos().getUnscaledX(), nextSegSidewalkLane2.getStart().getPos().getUnscaledY());
+					DPoint nextSegEnd2 = new DPoint(nextSegSidewalkLane2.getEnd().getPos().getUnscaledX(), nextSegSidewalkLane2.getEnd().getPos().getUnscaledY());
+					
+					Vect nextSidewalk1 = new Vect(nextSegStart1.x, nextSegStart1.y, nextSegEnd1.x, nextSegEnd1.y);
+					Vect nextSidewalk2 = new Vect(nextSegStart2.x, nextSegStart2.y, nextSegEnd2.x, nextSegEnd2.y);
+					
+					if(currentSegLanes.size() > nextSegLanes.size()) 
+					{
+						//Fix up 1st sidewalk lane						
+						currSidewalk1.scaleVect((currSidewalk1.getMagnitude()-750.0)/currSidewalk1.getMagnitude());
+						currSidewalk2.scaleVect((currSidewalk2.getMagnitude()-750.0)/currSidewalk2.getMagnitude());
+						currSegSidewalkLane1.setPenultimatePt(new ScaledPoint(currSegStart1.x + currSidewalk1.getMagX(), currSegStart1.y + currSidewalk1.getMagY(), null));
+						currSegSidewalkLane2.setPenultimatePt(new ScaledPoint(currSegStart2.x + currSidewalk2.getMagX(), currSegStart2.y + currSidewalk2.getMagY(), null));
+						currSegSidewalkLane1.setLastPt(new ScaledPoint(nextSegStart1.x, nextSegStart1.y, null));
+						currSegSidewalkLane2.setLastPt(new ScaledPoint(nextSegStart2.x, nextSegStart2.y, null));
+					}
+					else if(nextSegLanes.size() > currentSegLanes.size())
+					{
+						//Fix up second sidewalk lane
+						nextSidewalk1.scaleVect((nextSidewalk1.getMagnitude()-750.0)/nextSidewalk1.getMagnitude());
+						nextSidewalk2.scaleVect((nextSidewalk2.getMagnitude()-750.0)/nextSidewalk2.getMagnitude());
+						nextSegSidewalkLane1.setSecondPt(new ScaledPoint(nextSegEnd1.x - nextSidewalk1.getMagX(), nextSegEnd1.y - nextSidewalk1.getMagY(), null));
+						nextSegSidewalkLane2.setSecondPt(new ScaledPoint(nextSegEnd2.x - nextSidewalk2.getMagX(), nextSegEnd2.y - nextSidewalk2.getMagY(), null));
+						nextSegSidewalkLane1.setStartPt(new ScaledPoint(currSegEnd1.x, currSegEnd1.y, null));
+						nextSegSidewalkLane2.setStartPt(new ScaledPoint(currSegEnd2.x, currSegEnd2.y, null));
+					}
+				}
+					
+				currSegSidewalkLane1 = nextSegSidewalkLane1;
+				currSegSidewalkLane2 = nextSegSidewalkLane2;
+			}
+			
+			currentSegmentID = nextSegmentID;
+		}
 	}
 	
 	private Hashtable<Integer, ArrayList<ArrayList<TrafficSignalLine>>> helperAllocateDirection(int[] fromSegmentList, int [] toSegmentList){

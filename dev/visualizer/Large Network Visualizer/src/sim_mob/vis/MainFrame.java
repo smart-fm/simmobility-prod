@@ -3,6 +3,7 @@ package sim_mob.vis;
 
 import java.awt.*;
 
+
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 
@@ -10,32 +11,16 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import ch.qos.logback.classic.spi.ThrowableDataPoint;
+import com.xuggle.mediatool.*;
+import com.xuggle.xuggler.*;
 
-import com.xuggle.mediatool.IMediaWriter;
-import com.xuggle.mediatool.ToolFactory;
-import com.xuggle.xuggler.ICodec;
-import com.xuggle.xuggler.IContainer;
-import com.xuggle.xuggler.IPacket;
-import com.xuggle.xuggler.IPixelFormat;
-import com.xuggle.xuggler.IRational;
-import com.xuggle.xuggler.IStream;
-import com.xuggle.xuggler.IStreamCoder;
-import com.xuggle.xuggler.IVideoPicture;
-import com.xuggle.xuggler.video.ConverterFactory;
-import com.xuggle.xuggler.video.IConverter;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.lang.reflect.Field;
+import java.io.*;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
+import java.util.regex.*;
 
 import sim_mob.conf.CSS_Interface;
 import sim_mob.vis.controls.*;
@@ -687,7 +672,7 @@ public class MainFrame extends JFrame {
 	
 	
 	private void loadXuggler() {
-		String path = System.getenv().containsKey("LD_LIBRARY_PATH") ? System.getenv("LD_LIBRARY_PATH")+":" : "";
+		//String path = System.getenv().containsKey("LD_LIBRARY_PATH") ? System.getenv("LD_LIBRARY_PATH")+":" : "";
 		
 		//Try loading the library.
 		System.loadLibrary("xuggle-xuggler");

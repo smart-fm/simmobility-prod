@@ -17,7 +17,6 @@ import sim_mob.vis.MainFrame;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.network.basic.ScaledPointGroup;
 import sim_mob.vis.util.Utility;
-import java.util.Random;
 
 /**
  * Driver "Agent Tick"
@@ -57,7 +56,7 @@ public class DriverTick extends AgentTick {
 			throw new RuntimeException(ex);
 		}
 	}*/
-	private static boolean isCar;
+	//private static boolean isCar;
 	
 	
 	private int ID;
@@ -82,7 +81,7 @@ public class DriverTick extends AgentTick {
 		this.pos = new ScaledPoint(posX, posY, spg);
 		this.angle = angle;
 		this.fake = false;
-		this.isCar = true;
+		//DriverTick.isCar = true;
 		
 		
 		

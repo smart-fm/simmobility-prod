@@ -10,10 +10,7 @@ class Movement:
         self.args = args
 
     def __call__(self):
-        if len(self.args) == 1:
-            self.func(self.args[0])
-        else:
-            self.func(self.args[0], self.args[1])
+        self.func(*self.args)
 
 class Animator:
     def __init__(self, graphics_scene):

@@ -10,7 +10,7 @@ def main(argv):
     app = QtGui.QApplication(argv)
     visualizer = Visualizer()
     if len(argv) == 2:
-        visualizer.load(argv[1])
+        visualizer.controller.load_log_file(argv[1])
     visualizer.show()
     sys.exit(app.exec_())
 

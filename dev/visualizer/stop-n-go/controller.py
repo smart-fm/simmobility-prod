@@ -27,6 +27,10 @@ class Controller(QtGui.QDockWidget,
     @QtCore.pyqtSignature("int")
     def on_frame_number_spin_box_valueChanged(self, frame_number):
         self.frame_number_slider.setValue(frame_number)
+        if frame_number > self.session.warm_up_time:
+            self.warm_up_status_label.setText('<span style="color: green;">Warm-up completed</span>')
+        else:
+            self.warm_up_status_label.setText('<strong style="color: red;">Warming up</strong>')
         self.set_time_display(frame_number)
         self.animator.go_to_frame_number(frame_number)
 
@@ -149,6 +153,7 @@ class Controller(QtGui.QDockWidget,
         self.frame_number_spin_box.setMaximum(last_frame_number - 1)
         self.last_frame_number_spin_box.setMaximum(last_frame_number + 1)
         self.last_frame_number_spin_box.setValue(last_frame_number)
+        self.warm_up_time_line_edit.setText("%d (frames)" % self.session.warm_up_time)
         self.frame_number_slider.setMaximum(last_frame_number + 1)
         if last_frame_number / self.frame_number_slider.tickInterval() < 20:
             self.frame_number_slider.setTickPosition(QtGui.QSlider.TicksAbove)

@@ -22,7 +22,6 @@ class Controller(QtGui.QDockWidget,
 
         self.visualizer_view = visualizer_view
         self.status_bar = status_bar
-        self.interval = 100
 
     @QtCore.pyqtSignature("int")
     def on_frame_number_spin_box_valueChanged(self, frame_number):
@@ -106,6 +105,26 @@ class Controller(QtGui.QDockWidget,
         self.frame_number_spin_box.setValue(elapsed)
         #print "setting frame number to %d" % elapsed
 
+    @QtCore.pyqtSignature("int")
+    def on_playback_speed_slider_valueChanged(self, speed):
+        self.set_playback_speed(speed)
+
+    def set_playback_speed(self, speed):
+        if speed == 0:
+            self.playback_speed_line_edit.setText(u"1\u00d7")
+            self.playback_speed_description_label.setText("real-time")
+            self.interval = self.session.frame_interval
+        elif speed > 0:
+            factor = speed + 1
+            self.playback_speed_line_edit.setText(u"%d\u00d7" % factor)
+            self.playback_speed_description_label.setText("quick-time")
+            self.interval = self.session.frame_interval / factor
+        else:
+            factor = -speed + 1
+            self.playback_speed_line_edit.setText(u"\u00f7%d" % factor)
+            self.playback_speed_description_label.setText("slow-motion")
+            self.interval = self.session.frame_interval * factor
+
     @QtCore.pyqtSignature("")
     def on_load_file_push_button_clicked(self):
         file_name = QtGui.QFileDialog.getOpenFileName(self.parent, "Choose file to load", ".")
@@ -162,6 +181,7 @@ class Controller(QtGui.QDockWidget,
         self.set_time_display(0)
         end_time = self.start_time.addMSecs(last_frame_number * self.session.frame_interval)
         self.end_time_line_edit.setTime(end_time)
+        self.set_playback_speed(self.playback_speed_slider.value())
 
         self.frame_number_spin_box.setEnabled(True)
         self.frame_number_slider.setEnabled(True)
@@ -170,6 +190,7 @@ class Controller(QtGui.QDockWidget,
         self.second_spin_box.setEnabled(True)
         self.fraction_second_spin_box.setEnabled(True)
         self.am_or_pm_push_button.setEnabled(True)
+        self.playback_speed_slider.setEnabled(True)
         self.stop_or_go_push_button.setEnabled(True)
 
     @QtCore.pyqtSignature("bool")

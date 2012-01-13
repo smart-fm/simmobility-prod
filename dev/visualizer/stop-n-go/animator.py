@@ -5,7 +5,9 @@
 from PyQt4 import QtGui, QtCore
 
 class Movement:
-    def __init__(self, func, args):
+    def __init__(self, id, agent, func, args):
+        self.id = id
+        self.agent = agent
         self.func = func
         self.args = args
 
@@ -27,7 +29,7 @@ class Animator:
             pedestrian.hide()
             self.agents[id] = pedestrian
         pedestrian = self.agents[id]
-        self.add_movement(frame_number, pedestrian.set_position, (position,))
+        self.add_movement(frame_number, id, pedestrian, pedestrian.set_position, (position,))
 
     def set_driver_position_and_orientation_at(self, agent, frame_number, position, angle):
         id = agent.id
@@ -37,20 +39,24 @@ class Animator:
             driver.hide()
             self.agents[id] = driver
         driver = self.agents[id]
-        self.add_movement(frame_number, driver.set_position_and_orientation, (position, angle))
+        self.add_movement(frame_number, id, driver,
+                          driver.set_position_and_orientation, (position, angle))
 
-    def set_visibility_at(self, agent, frame_number, state):
-        pass
-
-    def add_movement(self, frame_number, func, args):
+    def add_movement(self, frame_number, id, agent, func, args):
         if frame_number == len(self.time_line):
             self.time_line.append(list())
         movements = self.time_line[frame_number]
-        movements.append(Movement(func, args))
+        movements.append(Movement(id, agent, func, args))
 
     def go_to_frame_number(self, frame_number):
+        # Any agent which did not make any movement in this frame is considered to be dead.
+        # We hide all such agents.
+        all_agents = self.agents.values()
         for movement in self.time_line[frame_number]:
             movement()
+            all_agents.remove(movement.agent)
+        for agent in all_agents:
+            agent.hide()
 
 class Driver:
     def __init__(self, id, length, width, graphics_scene):

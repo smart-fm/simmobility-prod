@@ -37,6 +37,8 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	private Point offset = new Point(0, 0);
 	private NetworkVisualizer netViewCache;
 	
+	private int currFrameTick;
+	
 	//Which Agent ID to highlight
 	public void setHighlightID(int id) { 
 		if (netViewCache!=null)  {
@@ -56,10 +58,17 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		this.statusBarUpdate = statusBarUpdate;
 	}
 	
-	/*public void swapBuffer(int[] newRGB, int scanSize) {
-		buffer.setRGB(0, 0, buffer.getWidth(), buffer.getHeight(), 
-				newRGB, 0, scanSize);
-	}*/
+	public boolean incrementCurrFrameTick(int amt) {
+		return setCurrFrameTick(currFrameTick+amt);
+	}
+	public boolean setCurrFrameTick(int newVal) {
+		if (newVal<0 || netViewCache==null || newVal>=netViewCache.getMaxFrameTick()) {
+			return false;
+		}
+		currFrameTick = newVal;
+		return true;
+	}
+
 	
 	protected void paintComponent(Graphics g) {
 		//Paint background
@@ -121,42 +130,42 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	
 	public boolean jumpAnim(int toTick, JSlider slider) {
 		//Set
-		if (netViewCache==null || !netViewCache.setCurrFrameTick(toTick)) {
+		if (netViewCache==null || !setCurrFrameTick(toTick)) {
 			return false;
 		}
 		
 		//Update the slider, if it exists
 		if (slider!=null) {
 			slider.setEnabled(false);
-			slider.setValue(netViewCache.getCurrFrameTick());
+			slider.setValue(getCurrFrameTick());
 			slider.setEnabled(true);
 		}
 
-		netViewCache.redrawAtCurrScale();
+		netViewCache.redrawAtCurrScale(getCurrFrameTick());
 		updateMap();
 		return true;
 	}
 	
 	public boolean advanceAnimbyStep(int ticks, JSlider slider) {
 		//Increment
-		if (netViewCache==null || !netViewCache.incrementCurrFrameTick(ticks)) {
+		if (netViewCache==null || !incrementCurrFrameTick(ticks)) {
 			return false;
 		}
 		
-		return jumpAnim(netViewCache.getCurrFrameTick(), slider);
+		return jumpAnim(getCurrFrameTick(), slider);
 	}
 	
 	public boolean advanceAnim(int ticks, JSlider slider) {
 		//Increment
-		if (netViewCache==null || !netViewCache.incrementCurrFrameTick(1)) {
+		if (netViewCache==null || !incrementCurrFrameTick(1)) {
 			return false;
 		}
 		
-		return jumpAnim(netViewCache.getCurrFrameTick(), slider);
+		return jumpAnim(getCurrFrameTick(), slider);
 	}
 	
 	public int getCurrFrameTick() {
-		return netViewCache.getCurrFrameTick();
+		return currFrameTick;
 	}
 	
 	public int getMaxFrameTick() {
@@ -165,11 +174,12 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	
 	
 	//Draw the map
-	public void drawMap(NetworkVisualizer nv, int offsetX, int offsetY) {
+	public void initMapCache(NetworkVisualizer nv, int offsetX, int offsetY) {
 		//Save for later.
 		offset.x = offsetX;
 		offset.y = offsetY;
 		netViewCache = nv;
+		currFrameTick = 0;
 		
 		updateMap();
 	}
@@ -179,7 +189,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		if(netViewCache == null){
 			return;
 		}
-		netViewCache.toggleFakeAgent(drawFakeAgent);
+		netViewCache.toggleFakeAgent(drawFakeAgent, getCurrFrameTick());
 		this.repaint();
 		updateMap();
 	}
@@ -189,7 +199,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		if(netViewCache == null){
 			return;
 		}
-		netViewCache.toggleDebugOn(debugOn);
+		netViewCache.toggleDebugOn(debugOn, getCurrFrameTick());
 		this.repaint();
 		updateMap();
 	}
@@ -214,15 +224,15 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	}
 	
 	
-	public BufferedImage drawFrameToExternalBuffer(int tick, boolean showFrameNumber) {
+	public BufferedImage drawFrameToExternalBuffer(int tick, boolean showFrameNumber, int imageType) {
 		//Sanity check.
 		if (netViewCache==null) { throw new RuntimeException("Unexptected: newViewCache is null."); }
 		
 		//Step 1: prepare a return image
-		BufferedImage resImg = new BufferedImage(this.getWidth(), this.getHeight(), BufferedImage.TYPE_INT_RGB);
+		BufferedImage resImg = new BufferedImage(this.getWidth(), this.getHeight(), imageType);
 		
 		//Step 2: re-draw the original image.
-		BufferedImage drawImg = netViewCache.getImageAtTimeTick(tick);
+		BufferedImage drawImg = netViewCache.getImageAtTimeTick(tick, imageType);
 		drawMapOntoImage(resImg, drawImg, tick, showFrameNumber);
 		
 		return resImg;
@@ -266,7 +276,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 			return;
 		}
 		BufferedImage drawImg = netViewCache.getImage();
-		drawMapOntoImage(buffer, drawImg, netViewCache.getCurrFrameTick());
+		drawMapOntoImage(buffer, drawImg, getCurrFrameTick());
 		
 		//Repaint
 		this.repaint();
@@ -334,7 +344,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		double oldH = netViewCache.getImage().getHeight();
 		
 		//Zoom
-		netViewCache.zoomIn(-e.getWheelRotation());
+		netViewCache.zoomIn(-e.getWheelRotation(), getCurrFrameTick());
 		
 		//NOTE: The math isn't quite right for scaling; will fix this later.
 		//      A correct fix will create a temporary "ScaledPoint" that represents the center
@@ -361,7 +371,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		double oldH = netViewCache.getImage().getHeight();
 		
 		//Zoom
-		netViewCache.zoomIn(number);
+		netViewCache.zoomIn(number, getCurrFrameTick());
 		
 		//NOTE: The math isn't quite right for scaling; will fix this later.
 		//      A correct fix will create a temporary "ScaledPoint" that represents the center

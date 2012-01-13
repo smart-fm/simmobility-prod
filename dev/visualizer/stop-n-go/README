@@ -1,0 +1,13 @@
+The application here is a visualizer for SimMobility.
+
+You would need to do the following step once before you can use the visualizer:
+    pyuic4 -o ui_controller.py controller.ui
+or
+    make
+in a shell.
+
+To run the visualizer, run
+    ./stop-n-go
+or
+    ./stop-n-go <simulator-log-file>
+The simulator-log-file may be in compressed form by gzip or bzip2.

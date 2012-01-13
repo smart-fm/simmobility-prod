@@ -20,6 +20,10 @@ class Graphics_view(QtGui.QGraphicsView):
         matrix.rotate(180, QtCore.Qt.XAxis)
         self.setTransform(matrix, True)
 
+        # When user presses 'C' or 'A' to rotate the view, we maintain the orientation field
+        # so that we can revert to the original orientation when the user presses 'O' (letter O).
+        self.orientation = 0
+
     def wheelEvent(self, event):
         factor = 1.41 ** (-event.delta() / 240.0)
         self.scale(factor, factor)
@@ -42,3 +46,16 @@ class Graphics_view(QtGui.QGraphicsView):
             self.scale(1.1, 1.1)
         elif event.key() == QtCore.Qt.Key_Minus:
             self.scale(0.91, 0.91)
+        # Make it difficult to rotate the view by assigning capital 'C', 'A", and 'O' (letter O)
+        elif event.key() == QtCore.Qt.Key_C and event.modifiers() == QtCore.Qt.ShiftModifier:
+            # Rotate the view clockwise by 1 degree
+            self.rotate(-1)
+            self.orientation -= 1
+        elif event.key() == QtCore.Qt.Key_A and event.modifiers() == QtCore.Qt.ShiftModifier:
+            # Rotate the view anti-clockwise by 1 degree
+            self.rotate(1)
+            self.orientation += 1
+        elif event.key() == QtCore.Qt.Key_O and event.modifiers() == QtCore.Qt.ShiftModifier:
+            # Revert back to the original orientation
+            self.rotate(-self.orientation)
+            self.orientation = 0

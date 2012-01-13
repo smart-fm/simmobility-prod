@@ -11,3 +11,9 @@ To run the visualizer, run
 or
     ./stop-n-go <simulator-log-file>
 The simulator-log-file may be in compressed form by gzip or bzip2.
+
++ or =   Zoom in.
+-        Zoom out.
+A        Rotate 1 degree anti-clockwise.
+C        Rotate 1 degree clockwise.
+O        Revert to original orientation.

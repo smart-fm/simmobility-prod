@@ -3,7 +3,7 @@
 #include <limits>
 #include <algorithm>
 #include <boost/unordered_set.hpp>
-#include "3rd-party/RStarTree.h"
+#include "3rd-party/RStarTree.hpp"
 
 #include "Entity.hpp"
 #include "Agent.hpp"

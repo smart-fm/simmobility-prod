@@ -17,7 +17,7 @@
  
  #pragma once
  
- #include "RStarBoundingBox.h"
+ #include "RStarBoundingBox.hpp"
  
  /**
 	\file

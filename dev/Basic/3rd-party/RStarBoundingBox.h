@@ -16,8 +16,7 @@
  */
 
 
-#ifndef RStarBoundingBox_H
-#define RStarBoundingBox_H
+#pragma once
 
 #include <limits>
 #include <utility>
@@ -310,6 +309,3 @@ struct SortBoundedItemsByOverlapEnlargement :
 		return bi1->bound.overlap(*m_center) < bi2->bound.overlap(*m_center);
 	}
 };
-
-
-#endif

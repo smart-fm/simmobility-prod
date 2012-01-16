@@ -26,8 +26,7 @@
  */
 
 
-#ifndef RSTARTREE_H
-#define RSTARTREE_H
+#pragma once
 
 #include <list>
 #include <vector>
@@ -42,12 +41,10 @@
 
 #include "RStarBoundingBox.h"
 
-// R* tree parameters
-#define RTREE_REINSERT_P 0.30
-#define RTREE_CHOOSE_SUBTREE_P 32
-
-// template definition:
-#define RSTAR_TEMPLATE 
+namespace {  //R* tree parameters, unique to this translational unit.
+const double RTREE_REINSERT_P = 0.30;
+const size_t RTREE_CHOOSE_SUBTREE_P = 32;
+}
 
 
 // definition of an leaf
@@ -758,14 +755,6 @@ private:
 	std::size_t m_size;
 };
 
-#undef RSTAR_TEMPLATE
-
-#undef RTREE_SPLIT_M
-#undef RTREE_REINSERT_P
-#undef RTREE_CHOOSE_SUBTREE_P
 
 
-
-
-#endif
 

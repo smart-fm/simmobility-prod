@@ -649,22 +649,6 @@ public class MainFrame extends JFrame {
 		}
 	}
 	
-	//Helper method for image conversion 
-	//TODO: Do this manually in our draw step
-	/*private static BufferedImage convertToType(BufferedImage sourceImage, int targetType) {
-		BufferedImage image;
-		
-		// if the source image is already the target type, return the source image
-		if (sourceImage.getType() == targetType) { 
-			image = sourceImage; 
-		} else {
-			// create a new image of the target type and draw the new image
-			image = new BufferedImage(sourceImage.getWidth(), sourceImage.getHeight(), targetType);
-			image.getGraphics().drawImage(sourceImage, 0, 0, null);
-		}
-		return image;
-	}*/
-	
 	
 	//////////////////////////////////////////////////
 	// Code for mangling our various path variables. 

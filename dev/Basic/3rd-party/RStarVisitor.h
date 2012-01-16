@@ -15,8 +15,7 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
  
- #ifndef RSTARVISITOR_H
- #define RSTARVISITOR_H
+ #pragma once
  
  #include "RStarBoundingBox.h"
  
@@ -164,6 +163,3 @@ struct RStarRemoveSpecificLeaf
 	
 	private: RStarRemoveSpecificLeaf(){}
 };
-
-
-#endif

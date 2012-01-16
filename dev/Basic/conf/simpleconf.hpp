@@ -29,7 +29,7 @@ class TripChain;
 
 
 /**
- * Temporary configuration parser. Operates as a singleton. Contains all basic
+ * Temporary configuration pConfigParamsarser. Operates as a singleton. Contains all basic
  * configuation parameters.
  */
 class ConfigParams : private boost::noncopyable {
@@ -151,9 +151,7 @@ public:
 
 
 private:
-	ConfigParams() : mutexStategy(MtxStrat_Buffered), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false)
-        {
-        }
+	ConfigParams() : mutexStategy(MtxStrat_Buffered), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false) { }
 	static ConfigParams instance;
 
 	sim_mob::RoadNetwork network;

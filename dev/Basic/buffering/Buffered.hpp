@@ -50,7 +50,7 @@ public:
 	 *
 	 * \param value The initial value. You can also set an initial value using "force".
 	 */
-	Buffered (const T& value = T()) : BufferedBase(), current_ (value), next_ (value) {}
+	explicit Buffered (const T& value = T()) : BufferedBase(), current_ (value), next_ (value) {}
 	virtual ~Buffered() {}
 
 

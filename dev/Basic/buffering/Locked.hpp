@@ -48,7 +48,7 @@ public:
 	 *
 	 * @param value The initial value.
 	 */
-	Locked (const T& value = T()) : BufferedBase(), current_ (value) {}
+	explicit Locked (const T& value = T()) : BufferedBase(), current_ (value) {}
 	virtual ~Locked() {}
 
 

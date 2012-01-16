@@ -75,7 +75,6 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
 //Function prototypes.
 //void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents);
 bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents);
-bool TestTimeClass();
 
 ///Worker function for entity-related loading tasks.
 void entity_worker(sim_mob::Worker& wk, frame_t frameNumber)
@@ -140,13 +139,6 @@ bool performMain(const std::string& configFileName) {
 	//Sanity check (nullptr)
 	void* x = nullptr;
 	if (x) {
-		return false;
-	}
-
-	//Sanity check (time class)
-	//TODO: Move to their own unit tests!
-	if (!TestTimeClass()) {
-		std::cout << "Aborting: Time class tests failed.\n";
 		return false;
 	}
 
@@ -458,103 +450,5 @@ int main(int argc, char* argv[])
 #endif
 	cout << "Done" << endl;
 	return returnVal;
-}
-
-
-bool TestTimeClass()
-{
-	{
-
-	}
-
-	{ //Ensure optional seconds can be parsed.
-		DailyTime a("08:30:00");
-		DailyTime b("08:30");
-		if (!a.isEqual(b))
-		{
-			std::cout << "Optional seconds test failed.\n";
-			return false;
-		}
-	}
-
-	{ //Ensure hours/minutes are mandatory
-		try
-		{
-			DailyTime a("08");
-			std::cout << "Non-optional seconds test failed.\n";
-			return false;
-		}
-		catch (std::exception& ex)
-		{
-		}
-	}
-
-	{ //Check time comparison
-		DailyTime a("08:30:00");
-		DailyTime b("08:30:01");
-		if (a.isEqual(b) || a.isAfter(b) || !a.isBefore(b))
-		{
-			std::cout << "Single second after test failed.\n";
-			return false;
-		}
-	}
-
-	{ //Check time comparison
-		DailyTime a("09:30:00");
-		DailyTime b("08:30:00");
-		if (a.isEqual(b) || !a.isAfter(b) || a.isBefore(b))
-		{
-			std::cout << "Single hour before test failed.\n";
-			return false;
-		}
-	}
-
-	{ //Check parsing fractions
-		DailyTime a("08:30:00.5");
-		DailyTime b("08:30:00");
-		if (a.isEqual(b) || !a.isAfter(b) || a.isBefore(b))
-		{
-			std::cout << "Half second before test failed.\n";
-			return false;
-		}
-	}
-
-	{ //Check mandatory hours/minutes
-		try
-		{
-			DailyTime a("08.5");
-			std::cout << "Mandatory minutes test 1 failed.\n";
-			return false;
-		}
-		catch (std::exception& ex)
-		{
-		}
-	}
-
-	{ //Check mandatory hours/minutes
-		try
-		{
-			DailyTime a("08:30.5");
-			std::cout << "Mandatory minutes test 2 failed.\n";
-			return false;
-		}
-		catch (std::exception& ex)
-		{
-		}
-	}
-
-	{ //Check fraction comparisons
-		DailyTime a("08:30:00.3");
-		DailyTime b("08:30:00.5");
-		if (a.isEqual(b) || a.isAfter(b) || !a.isBefore(b))
-		{
-			std::cout << "Sub-second comparison test failed.\n";
-			return false;
-		}
-	}
-
-	std::cout << "Warning: No tests were performed on DailyTime with a time_t constructor.\n";
-	std::cout << "DailyTime tests passed.\n";
-	return true;
 }
 

@@ -141,51 +141,6 @@ public:
 	}
 
 	
-	/*
-		This is an interpretation of the bulk insert algorithm described
-		in "Improving Performance with Bulk-Inserts in Oracle R-Trees" 
-		by N. An, R. Kanth, V. Kothuri, and S. Ravada 
-		
-		I think this is essentially right, since if you think about it for too
-		long then it makes sense ;) The idea is to work your way down to the 
-		bottom of the tree, make some child nodes, perform a split,	and work 
-		your way back up continually. The bounding boxes have to be adjusted 
-		on the way up the tree, and not on the way down. 
-	
-	Entries * BulkInsert(Node * node, Node * buddy, vector<Leaf*> &entries)
-	{
-		if (entries.empty() && !buddy)
-			return node;
-		
-		if (node->hasLeaves)
-			child_entries = node.items + buddy.items + entries;
-		else
-		{
-			combine items in node and buddy;
-			
-			for each item in entries?
-			for each possible partition in entries
-			{
-				pick ci and bi using choose subtree, where 
-				ci is not null, bi can be null
-				
-				each entry can only be in one partition
-				
-				child_entries += BulkInsert(ci, bi, entries);
-			}
-		}
-		
-		// this part builds up the tree from the ground up, and then 
-		// passes it back to the parent to be split more until we reach
-		// the root node
-		
-		// create new nodes: the split algorithm generalized to N
-		
-		return rtreeCluster(child_entries);
-	
-	}
-	*/
-	
 	/**
 		\brief Touches each node using the visitor pattern
 		

@@ -778,6 +778,7 @@ void BufferedUnitTests::test_the_Vector2D_float_class()
         float angle2 = atan2f(vec1.getY(), vec1.getX());
         float theta = angle2 - angle1;
         CPPUNIT_ASSERT((vec1 * vec2) == (length(vec1) * length(vec2) * cosf(theta)));
+        //NOTE: This test is failing on my machine. ~Seth
 
         // The dot product of a vector and its normal is 0.  The normal, the vector that
         // is perpendicular to vec(x, y), can be simply calcuated as vec(-y, x) or vec(y, -x).

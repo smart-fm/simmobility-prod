@@ -463,16 +463,8 @@ int main(int argc, char* argv[])
 
 bool TestTimeClass()
 {
-	{ //Ensure nonsense isn't parsed
-		try
-		{
-			DailyTime a("ABCDEFG");
-			std::cout << "Nonsensical input test failed.\n";
-			return false;
-		}
-		catch (std::exception& ex)
-		{
-		}
+	{
+
 	}
 
 	{ //Ensure optional seconds can be parsed.

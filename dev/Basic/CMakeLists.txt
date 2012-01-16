@@ -67,7 +67,6 @@ ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules/")
 
 #List of libraries to link
-#SET(LibraryList soci_core-gcc-3_0 soci_postgresql-gcc-3_0)
 SET(LibraryList "")
 
 #Find boost
@@ -137,8 +136,8 @@ FILE(GLOB_RECURSE BASIC_CPP *.cpp)
 FILE(GLOB IgnoreList main.cpp)
 
 #Remove tests
-FILE(GLOB_RECURSE IgnoreTmp "unit-tests/*.cpp" "unit-tests/*.c")
-LIST(APPEND IgnoreList ${IgnoreTmp})
+FILE(GLOB_RECURSE TESTING_CPP "unit-tests/*.cpp" "unit-tests/*.c")
+LIST(APPEND IgnoreList ${TESTING_CPP})
 
 #Remove the "Build" directory
 FILE(GLOB_RECURSE IgnoreTmp "Build/*.c" "Build/*.cpp")

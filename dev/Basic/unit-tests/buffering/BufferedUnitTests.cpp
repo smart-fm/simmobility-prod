@@ -774,11 +774,20 @@ void BufferedUnitTests::test_the_Vector2D_float_class()
 
         // Another formula for the dot product is length(vec1) * length(vec2) * cos(theta)
         // where theta is the angle between the 2 vectors.
-        float angle1 = atan2f(vec2.getY(), vec2.getX());
-        float angle2 = atan2f(vec1.getY(), vec1.getX());
+        float angle1 = atan2(vec2.getY(), vec2.getX());
+        float angle2 = atan2(vec1.getY(), vec1.getX());
         float theta = angle2 - angle1;
-        CPPUNIT_ASSERT((vec1 * vec2) == (length(vec1) * length(vec2) * cosf(theta)));
+        CPPUNIT_ASSERT((vec1 * vec2) == (length(vec1) * length(vec2) * cos(theta)));
         //NOTE: This test is failing on my machine. ~Seth
+        //Actual error value is about 7 x epsilon.
+        //Note that atan2() and cos() return the type they are passed (cosf/atan2f are relics of
+        // C's math.h library; C++ is better at guessing what you want returned.)
+        //
+        /*float diff = (vec1 * vec2) - (length(vec1) * length(vec2) * cos(theta));
+        std::cout <<"\n" <<diff <<"=>" <<std::numeric_limits<float>::epsilon() <<"\n";
+        std::cout <<"Test: " <<(fabs(diff)<std::numeric_limits<float>::epsilon()) <<"\n";*/
+
+
 
         // The dot product of a vector and its normal is 0.  The normal, the vector that
         // is perpendicular to vec(x, y), can be simply calcuated as vec(-y, x) or vec(y, -x).

@@ -16,6 +16,10 @@ namespace sim_mob
 
 class RoadSegment;
 
+
+/**
+ * \author Xu Yan
+ */
 class BoundarySegment
 {
 public:

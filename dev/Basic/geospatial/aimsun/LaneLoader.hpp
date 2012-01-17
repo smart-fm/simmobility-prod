@@ -18,6 +18,8 @@ namespace aimsun {
 
 /**
  * Static class which helps load the even more notoriously complex Lanes
+ * \author Seth N. Hetu
+ * \author Matthew Bremer Bruchon
  */
 class LaneLoader {
 public:

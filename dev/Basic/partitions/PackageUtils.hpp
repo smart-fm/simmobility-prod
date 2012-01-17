@@ -40,6 +40,10 @@ class SimpleIntDrivingModel;
 class DriverUpdateParams;
 class PedestrianUpdateParams;
 
+
+/**
+ * \author Xu Yan
+ */
 class PackageUtils {
 private:
 	std::stringstream buffer;

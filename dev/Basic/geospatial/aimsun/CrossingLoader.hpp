@@ -16,6 +16,8 @@ namespace aimsun {
 
 /**
  * Static class which helps load the notoriously complex Crossings
+ * \author Seth N. Hetu
+ * \author Matthew Bremer Bruchon
  */
 class CrossingLoader {
 public:

@@ -18,6 +18,8 @@ class RoadSegment;
  * from an Intersection and then to the center of this ParkingLot. This allows cars leaving the lot
  * to be queued up while waiting to exit. Small ParkingLots will have one RoadSegment which
  * functions as both the entrance and the exit.
+ *
+ * \author Seth N. Hetu
  */
 class ParkingLot {
 public:

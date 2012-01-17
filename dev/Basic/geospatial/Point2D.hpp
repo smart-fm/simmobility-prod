@@ -11,7 +11,13 @@ namespace sim_mob
 {
 
 /**
- * Simple storage class for geospatial items in the road network. In general, everything within a
+ * Simple storage class for geospatial items in the road network.
+ *
+ * \author Seth N. Hetu
+ * \author LIM Fung Chai
+ * \author Xu Yan
+ *
+ * In general, everything within a
  * road network is defined in reference to its Point2D location. Road segments are defined by 2
  * nodes (each node containing a point):  one at the beginning of the segment and another at the end.
  * Intersections are defined by a point at the intersection of all roads that join at that point.

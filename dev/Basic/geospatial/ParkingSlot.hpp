@@ -10,6 +10,7 @@ namespace sim_mob
 
 /**
  * Representation of a defined space within a road segment that one may park in.
+ * \author Seth N. Hetu
  */
 class ParkingSlot : public sim_mob::RoadItem {
 public:

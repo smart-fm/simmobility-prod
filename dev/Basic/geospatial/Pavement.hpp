@@ -21,6 +21,8 @@ class RoadItem;
 
 /**
  * Helper class that represents a RoadItem at a given offset.
+ * \author Seth N. Hetu
+ * \author LIM Fung Chai
  */
 struct RoadItemAndOffsetPair
 {

@@ -12,6 +12,10 @@ namespace sim_mob{
 
 
 
+  /**
+   * \author Skyler Seto
+   * \author Seth N. Hetu
+   */
 	class Busroute: public Route {
 	public:
 		struct Way_point {

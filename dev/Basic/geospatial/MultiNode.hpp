@@ -33,6 +33,9 @@ class Loader;
  * A Node where any number of Links meet, usually representing an Interserction or Roundabout.
  * Each Link contributes one RoadSegment to this MultiNode, and each Lane of each RoadSegment
  * may connect to any number of lanes from any number of other RoadSegments.
+ *
+ * \author Seth N. Hetu
+ * \author LIM Fung Chai
  */
 class MultiNode : public sim_mob::Node {
 public:

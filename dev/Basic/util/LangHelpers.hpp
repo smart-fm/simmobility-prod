@@ -9,6 +9,8 @@
  * \file LangHelpers.hpp
  * Contains functionality to help work with or around parts of the C++ language itself. As such, I have put these
  * in the global namespace. (Try to keep this file small.)
+ *
+ * \author Seth N. Hetu
  */
 
 

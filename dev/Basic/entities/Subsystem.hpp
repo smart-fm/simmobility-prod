@@ -23,6 +23,11 @@ namespace sim_mob
 /**
  * Basic  Subsystem Signal Control class.
  *
+ * \author Runmin Xu
+ * \author Seth N. Hetu
+ * \author LIM Fung Chai
+ * \author Li Zhemin
+ *
  * NOTES:
  *1.Each subsystem has only one critical intersection. The cycle length of
  *	this subsystem is controlled by the critical intersection.

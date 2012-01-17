@@ -29,8 +29,12 @@ class Loader;
 
 
 /**
- * A Node where two to four RoadSegments from within the same Link meet. This usually occurs
- *   because lane rules (or the actual number of lanes) change.
+ * A Node where two to four RoadSegments from within the same Link meet.
+ *
+ * \author Seth N. Hetu
+ * \author LIM Fung Chai
+ *
+ * This usually occurs because lane rules (or the actual number of lanes) change.
  *
  * \note
  * Currently, UniNodes are slightly restricted: They MUST always contain either ONE or TWO

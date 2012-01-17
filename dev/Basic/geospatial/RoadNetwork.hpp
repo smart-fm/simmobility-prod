@@ -26,7 +26,11 @@ class Loader;
 
 
 /**
- * The side of the road on which cars drive. For the USA, this is DRIVES_ON_RIGHT;
+ * The side of the road on which cars drive.
+ *
+ * \author Seth N. Hetu
+ *
+ * For the USA, this is DRIVES_ON_RIGHT;
  * for Singapore it is DRIVES_ON_LEFT. This affects the context of "can_turn_right_on_red",
  * and may affect lane merging rules.
  */
@@ -38,6 +42,9 @@ enum DRIVING_SIDE {
 
 /**
  * The main Road Network. (Currently, this class only contains the "drivingSide" variable)
+ *
+ * \author Seth N. Hetu
+ * \author LIM Fung Chai
  */
 class RoadNetwork {
 public:

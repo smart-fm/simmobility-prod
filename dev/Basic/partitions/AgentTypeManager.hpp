@@ -13,6 +13,9 @@ enum role_modes {
 	No_Role = 0, Driver_Role, Pedestrian_Role, Passenger_Role, Signal_Role
 };
 
+/**
+ * \author Xu Yan
+ */
 class AgentTypeManager {
 public:
 	/**

@@ -6,6 +6,11 @@
 /**
  * \file GeomHelpers.hpp
  * Contains functions which are useful when calculating geometric information, such as distances or line intersections.
+ *
+ * \author Seth N. Hetu
+ * \author Matthew Bremer Bruchon
+ * \author Xu Yan
+ * \author LIM Fung Chai
  */
 
 

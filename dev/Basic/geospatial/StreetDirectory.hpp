@@ -24,6 +24,9 @@ class Crossing;
 /**
  * A point in the shortest path returned by StreetDirectory::shortestDrivingPath() and StreetDirectory::shortestWalkingPath().
  *
+ * \author LIM Fung Chai
+ * \author Seth N. Hetu
+ *
  * It is a "variant" type because it can be one of various types.  You should check the \c type_
  * member to determine which pointer is appropriate.  For example,
  *   \code

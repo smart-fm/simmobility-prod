@@ -55,7 +55,10 @@ struct NearestPedestrian {
 
 
 ///Simple struct to hold parameters which only exist for a single update tick.
-//NOTE: Constructor is currently implemented in Driver.cpp. Feel free to shuffle this around if you like.
+/// \author Wang Xinyuan
+/// \author Li Zhemin
+/// \author Seth N. Hetu
+///NOTE: Constructor is currently implemented in Driver.cpp. Feel free to shuffle this around if you like.
 struct DriverUpdateParams : public UpdateParams {
 	explicit DriverUpdateParams(boost::mt19937& gen) : UpdateParams(gen) {}
 

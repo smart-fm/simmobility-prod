@@ -20,6 +20,8 @@ class Node;
 
 /**
  * An activity within a trip chain. Has a location and a description.
+ *
+ * \author Seth N. Hetu
  */
 struct TripActivity {
 	std::string description;
@@ -30,6 +32,8 @@ struct TripActivity {
 
 /**
  * A chain of activities.
+ *
+ * \author Seth N. Hetu
  */
 class TripChain {
 public:

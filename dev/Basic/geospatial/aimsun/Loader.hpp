@@ -33,6 +33,9 @@ class Polyline;
 
 /**
  * Class for loading AimSun data and converting it to a format compatible with out network.
+ * \author Seth N. Hetu
+ * \author LIM Fung Chai
+ * \author Matthew Bremer Bruchon
  */
 class Loader {
 public:

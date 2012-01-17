@@ -17,6 +17,8 @@ namespace sim_mob{
          * Class template to implement 2-dimensional vector with x and y co-ordinates
          * of template parameter type.
          *
+         * \author LIM Fung Chai
+         *
          * The textbook 2-dimensional vector is implemented by this class methods and
          * non-class functions.
          *

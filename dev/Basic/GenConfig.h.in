@@ -1,6 +1,8 @@
 /**
  * \file GenConfig.h
- * Configuration parameters and constants. 
+ * Configuration parameters and constants.
+ *
+ * \author Seth N. Hetu 
  * 
  * Please do not edit the file GenConfig.h; instead, edit GenConfig.h.in, which the header
  *  file is generated from.

@@ -31,6 +31,10 @@ class SimulationScenario;
 class PartitionConfigure;
 class BoundaryProcessor;
 
+
+/**
+ * \author Xu Yan
+ */
 class PartitionManager
 {
 

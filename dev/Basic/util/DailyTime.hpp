@@ -15,6 +15,10 @@ namespace sim_mob
 
 /**
  * Simple class to represent any point in time during a single day.
+ *
+ * \author Seth N. Hetu
+ * \author Xu Yan
+ *
  * This class is based on the ISO 8601 standard, with the following restrictions:
  *   \li No date may be specified, only times.
  *   \li Times must be of the format HH:MM:SS  --the colon is not optional.

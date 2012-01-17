@@ -27,7 +27,15 @@ class PartitionManager;
 #endif
 
 /**
- * Basic Person class. A person may perform one of several roles which
+ * Basic Person class.
+ *
+ * \author Seth N. Hetu
+ * \author Wang Xinyuan
+ * \author Luo Linbo
+ * \author Li Zhemin
+ * \author Xu Yan
+ *
+ * A person may perform one of several roles which
  *  change over time. For example: Drivers, Pedestrians, and Passengers are
  *  all roles which a Person may fulfill.
  */

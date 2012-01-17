@@ -41,6 +41,10 @@ class IntersectionDrivingModel;
 class DriverUpdateParams;
 class PedestrianUpdateParams;
 
+
+/**
+ * \author Xu Yan
+ */
 class UnPackageUtils {
 private:
 	std::stringstream buffer;

@@ -10,6 +10,7 @@ namespace unit_tests
 
 /**
  * Unit Tests for the double-buffered data types in Basic/buffering.
+ * \author LIM Fung Chai
  */
 class BufferedUnitTests : public CppUnit::TestFixture
 {

@@ -25,6 +25,7 @@ class Turning;
 class Polyline;
 
 ///An AIMSUN link or road segment
+/// \author Seth N. Hetu
 class Section : public Base {
 public:
 	std::string roadName;

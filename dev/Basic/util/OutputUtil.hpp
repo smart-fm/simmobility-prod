@@ -26,6 +26,9 @@ namespace sim_mob {
 
 /**
  * Print an array of integers with separators and automatic line-breaks.
+ * \author Seth N. Hetu
+ * \author LIM Fung Chai
+ *
  * \param ids Integer values we are printing.
  * \param label Label for the entire output string.
  * \param brL Left bracket character.

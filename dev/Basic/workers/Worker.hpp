@@ -6,6 +6,10 @@
  *    - Use the default constructor. Call "wait" once. (See: WorkGroup)
  *    - Create it with a non-null barrier. (Again, see: WorkGroup)
  *
+ * \author Seth N. Hetu
+ * \author LIM Fung Chai
+ * \author Xu Yan
+ *
  * To customize the Worker, either subclass it and override "main_loop", or
  * use a normal Worker and pass in a bindable function in the constructor.
  *

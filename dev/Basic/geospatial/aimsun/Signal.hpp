@@ -9,6 +9,7 @@ namespace sim_mob
 
 namespace aimsun   // This namespace should be called "database" to be more generic.
 {
+    /// \author LIM Fung Chai
     struct Signal : public Base
     {
         int id;

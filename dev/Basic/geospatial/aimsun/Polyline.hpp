@@ -17,7 +17,8 @@ class Section;
 
 
 ///An AIMSUN polyline (applies to a Section)
-//   Polylines don't have an ID, but they still extend Base() to get access to the write flag.
+///   Polylines don't have an ID, but they still extend Base() to get access to the write flag.
+/// \author Seth N. Hetu
 class Polyline : public Base {
 public:
 	double xPos;

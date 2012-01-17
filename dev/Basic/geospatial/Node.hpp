@@ -27,6 +27,9 @@ class RoadSegment;
  * location. Additional information (such as lane connectors) are located in other classes (e.g.,
  * Intersections, Roundabouts, and SegmentNodes.
  *
+ * \author Seth N. Hetu
+ * \author LIM Fung Chai
+ *
  * Nodes should not be constructed directly. Instead, they exist to provide a uniform interface
  * to define locations in a RoadNetwork. UniNodes and MultiNodes (and their subclasses) provide
  * more comprehensive functionality, and their sub-classes provide even more.

@@ -28,6 +28,11 @@ class LaneLoader;
 
 /**
  * Part of a Link with consistent lane numbering. RoadSegments may be bidirectional.
+ *
+ * \author Seth N. Hetu
+ * \author Matthew Bremer Bruchon
+ * \author Xu Yan
+ * \author LIM Fung Chai
  */
 class RoadSegment : public sim_mob::Pavement {
 public:

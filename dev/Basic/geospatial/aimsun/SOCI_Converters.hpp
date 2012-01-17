@@ -2,7 +2,11 @@
 
 #pragma once
 
-//This file contains several Type converters for SOCI object-mapping
+/// \file SOCI_Converters.hpp
+///This file contains several Type converters for SOCI object-mapping
+/// \author Seth N. Hetu
+/// \author LIM Fung Chai
+/// \author Matthew Bremer Bruchon
 
 #include "soci.h"
 #include "Node.hpp"

@@ -10,14 +10,6 @@
 namespace sim_mob
 {
 
-/**
- * Traffic signal.
- */
-/*
-struct Signal {
-	unsigned int id;
-	Signal(unsigned int id=0) : id(id) {}
-};*/
 
 //Forward declaration
 class Signal;
@@ -26,6 +18,9 @@ class Signal;
 
 /**
  * Basic Region class. Currently does nothing.
+ *
+ * \author Seth N. Hetu
+ * \author LIM Fung Chai
  */
 class Region : public Entity {
 public:

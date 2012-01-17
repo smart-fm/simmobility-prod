@@ -27,6 +27,7 @@ class Section;
 
 ///An AIMSUN road intersection or segment intersection.
 //   Crossings don't have an ID, but they still extend Base() to get access to the write flag.
+/// \author Seth N. Hetu
 class Crossing : public Base {
 public:
 	int laneID;

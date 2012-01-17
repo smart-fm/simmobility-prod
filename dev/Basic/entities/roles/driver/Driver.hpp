@@ -40,6 +40,16 @@ class DPoint;
 class UpdateParams;
 
 
+/**
+ * \author Wang Xinyuan
+ * \author Li Zhemin
+ * \author Runmin Xu
+ * \author Seth N. Hetu
+ * \author Luo Linbo
+ * \author LIM Fung Chai
+ * \author Zhang Shuai
+ * \author Xu Yan
+ */
 class Driver : public sim_mob::Role {
 //Internal classes
 private:

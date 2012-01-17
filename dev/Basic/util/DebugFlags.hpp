@@ -9,6 +9,8 @@ namespace sim_mob
 /**
  * Class which holds all of our Debug values, to make turning them on or off simple.
  *
+ * \author Seth N. Hetu
+ *
  * Intended to allow usage like "if (Debug::DriverPaths){}"
  */
 class Debug {

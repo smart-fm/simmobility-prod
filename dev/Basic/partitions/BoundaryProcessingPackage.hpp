@@ -19,6 +19,9 @@
 
 namespace sim_mob {
 
+/**
+ * \author Xu Yan
+ */
 class BoundaryProcessingPackage {
 
 public:

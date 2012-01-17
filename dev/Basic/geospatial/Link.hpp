@@ -31,6 +31,9 @@ class Loader;
 /**
  * A road or sidewalk. Generalized movement rules apply for agents inside a link,
  * which is itself composed of segments.
+ * \author Seth N. Hetu
+ * \author LIM Fung Chai
+ * \author Xu Yan
  */
 class Link : public sim_mob::Traversable {
 public:

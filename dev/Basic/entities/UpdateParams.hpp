@@ -10,6 +10,8 @@ namespace sim_mob
 
 
 ///Simple struct to hold parameters which only exist for a single update tick.
+/// \author Seth N. Hetu
+///
 ///Passed into Agent::frame_tick() and Agent::frame_tick_output().
 ///This class should only contain general properties; each Role should define its own subclass and return that
 /// in Agent::make_frame_tick_params().

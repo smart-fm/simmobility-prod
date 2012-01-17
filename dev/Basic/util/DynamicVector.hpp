@@ -18,6 +18,8 @@ namespace sim_mob
 
 /**
  * Lightwight double-point struct
+ *
+ * \author Seth N. Hetu
  */
 struct DPoint {
 	double x;
@@ -40,6 +42,9 @@ public:
 
 /**
  * Simple, lightweight class to represent vector operations
+ *
+ * \author Seth N. Hetu
+ * \author Xu Yan
  */
 class DynamicVector {
 private:

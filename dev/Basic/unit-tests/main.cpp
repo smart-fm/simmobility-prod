@@ -1,5 +1,15 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
+
+/**
+ * \file main.cpp
+ * Unit testing driver code.
+ *
+ * \author LIM Fung Chai
+ * \author Seth N. Hetu
+ */
+
+
 ///Define SIMMOB_USE_TEST_GUI to use the GUI for CPPUnit tests.
 /// Since this affects so little of the code, I'm not putting it in the CMake file.
 /// Later, we can abstract it into CMake (or build two executables, or build only one, etc.)

@@ -24,6 +24,9 @@ class PartitionManager;
 
 /**
  * Base class of all agents and other "decision-making" entities.
+ * \author Seth N. Hetu
+ * \author LIM Fung Chai
+ * \author Xu Yan
  */
 class Entity {
 public:

@@ -26,6 +26,9 @@ class Loader;
 /**
  * A lane, including its movement rules and its parent segment.
  *
+ * \author Seth N. Hetu
+ * \author LIM Fung Chai
+ *
  * When the StreetDirectory creates a Lane, it needs to set up the rules for that lane.  Since
  * the bitset constructor will set the bits to false, the StreetDirectory would only need to
  * set up the rules which are to be true.

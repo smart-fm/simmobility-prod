@@ -10,6 +10,7 @@ namespace unit_tests
 
 /**
  * Unit Tests for the Daily Time class in Basic/util
+ * \author Seth N. Hetu
  */
 class DailyTimeUnitTests : public CppUnit::TestFixture
 {

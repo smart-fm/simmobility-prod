@@ -9,7 +9,8 @@ namespace sim_mob
 {
 
 /**
- * Representation of a Bus Stop.
+ * Representation of a Loop Detector.
+ * \author Seth N. Hetu
  */
 class LoopDetector : public sim_mob::RoadItem {
 public:

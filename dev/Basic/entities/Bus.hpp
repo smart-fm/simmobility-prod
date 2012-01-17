@@ -18,6 +18,10 @@ class Lane;
 class BusStop;
 class Route;
 
+/**
+ * \author Skyler Seto
+ * \author Seth N. Hetu
+ */
 class Bus : public sim_mob::Vehicle {
 
 public:

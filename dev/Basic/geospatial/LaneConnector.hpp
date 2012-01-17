@@ -24,6 +24,7 @@ class Loader;
 
 /**
  * A lane for motorized vehicles. Links one Road Segment to another, by Lane ID.
+ * \author Seth N. Hetu
  */
 class LaneConnector {
 public:

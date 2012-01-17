@@ -18,6 +18,9 @@ class UnPackageUtils;
 /**
  * Templatized wrapper for data values with a fixed delay.
  *
+ * \author Seth N. Hetu
+ * \author Xu Yan
+ *
  * Imposes a fixed delay (in ms) on a given object. For example, a FixedDelayed<int> is a
  * "(fixed) delayed integer". Attempting to retrieve the value of a FixedDelayed item will
  * return its most recently observed value (after a delay has been accounted for).

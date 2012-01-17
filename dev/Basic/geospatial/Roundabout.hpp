@@ -10,7 +10,11 @@ namespace sim_mob
 {
 
 /**
- * A node where multiple Links join. By themselves, Nodes provide all of the information
+ * A node where multiple Links join.
+ *
+ * \author Seth N. Hetu
+ *
+ * By themselves, Nodes provide all of the information
  * required to diagram which Lanes lead to other lanes at a given roundabout. The
  * Roundabout class, however, adds a much-needed layer of context by specifying exactly
  * how the roundabout actually looks and behaves.

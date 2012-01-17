@@ -25,6 +25,11 @@ class UnPackageUtils;
 /**
  * The GeneralPathMover allows a vehicle to move forward in a series of RoadSegments based entirely
  * on its forward movement "amount".
+ *
+ * \author Seth N. Hetu
+ * \author Li Zhemin
+ * \author Xu Yan
+ * \author LIM Fung Chai
  */
 class GeneralPathMover {
 public:

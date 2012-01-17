@@ -13,6 +13,9 @@ namespace sim_mob
 
 /**
  * Base class for geospatial items which take up physical space but are not traversable.
+ *
+ * \author Seth N. Hetu
+ *
  * RoadItems have a start and end position, but unlike the Traversable class, these are not
  * Nodes but Poin2Ds. Additional data may be used to fine-tune this item's shape
  * in 2-D space, or even to extend it into 3-D space.

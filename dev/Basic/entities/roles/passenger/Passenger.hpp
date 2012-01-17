@@ -13,6 +13,10 @@ namespace sim_mob
 /**
  * A Person in the Passenger role is likely just waiting for his or her bus stop.
  *
+ * \author Luo Linbo
+ * \author Seth N. Hetu
+ * \author Xu Yan
+ *
  *  \note
  *  This is a skeleton class. All functions are defined in this header file.
  *  When this class's full functionality is added, these header-defined functions should

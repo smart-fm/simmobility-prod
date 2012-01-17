@@ -1,5 +1,12 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
+/**
+ * \file Length.cpp
+ * Centralized storage of the length-related parameters and functions.
+ *
+ * \author Seth N. Hetu
+ */
+
 #pragma once
 
 #include <stdint.h>

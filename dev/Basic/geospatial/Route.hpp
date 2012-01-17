@@ -11,6 +11,11 @@
 namespace sim_mob{
 	class Lane;
 	class BusStop;
+
+	/**
+	 * \author Skyler Seto
+	 * \author Seth N. Hetu
+	 */
 	class Route {
 	public:
 		

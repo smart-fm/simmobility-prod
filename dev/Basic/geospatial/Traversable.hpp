@@ -24,6 +24,10 @@ class CrossingLoader;
 
 /**
  * Base class for geospatial items which take up physical space and can be traversed.
+ *
+ * \author Seth N. Hetu
+ * \author LIM Fung Chai
+ *
  * (Contrast: Nodes, which can be traversed but don't take up physical space.)
  * (Compare: RoadItems which take up physical space but can't be traversed.)
  *

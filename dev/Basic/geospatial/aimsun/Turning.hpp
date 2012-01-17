@@ -17,6 +17,7 @@ class Section;
 
 
 ///An AIMSUN "turning" (aggregate of Lane Connectors)
+/// \author Seth N. Hetu
 class Turning : public Base {
 public:
 	std::pair<int, int> fromLane;

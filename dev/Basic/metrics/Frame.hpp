@@ -1,5 +1,14 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
+
+/**
+ * \file Frame.cpp
+ * Centralized storage of the frame-tick parameter.
+ *
+ * \author LIM Fung Chai
+ */
+
+
 #pragma once
 
 #include <stdint.h>

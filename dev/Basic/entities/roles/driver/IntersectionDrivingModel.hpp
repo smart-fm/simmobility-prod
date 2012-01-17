@@ -14,6 +14,9 @@
 namespace sim_mob {
 
 
+/**
+ * \author Seth N. Hetu
+ */
 class IntersectionDrivingModel {
 public:
 	virtual void startDriving(const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset) = 0;
@@ -32,6 +35,9 @@ public:
 #endif
 };
 
+/**
+ * \author Seth N. Hetu
+ */
 class SimpleIntDrivingModel : public IntersectionDrivingModel {
 private:
 	DynamicVector intTrajectory;

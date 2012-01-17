@@ -14,6 +14,7 @@ namespace sim_mob
 
 /**
  * A Crossing is a RoadItem that crosses one (or more) RoadSegment(s).
+ * \author Seth N. Hetu
  *
  * \note
  * Currently, the "start" and "end" points of a Crossing don't make much sense; the crossing

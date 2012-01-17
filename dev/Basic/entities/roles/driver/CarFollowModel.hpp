@@ -7,10 +7,11 @@
 namespace sim_mob {
 
 /*
- * CF_Model.hpp
+ * \file CarFollowModel.hpp
  *
- *  Created on: 2011-8-15
- *      Author: wangxy & Li Zhemin
+ * \author Wang Xinyuan
+ * \author Li Zhemin
+ * \author Seth N. Hetu
  */
 
 //Abstract class which describes car following.

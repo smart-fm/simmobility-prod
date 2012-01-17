@@ -29,6 +29,9 @@ class StartTimePriorityQueue;
  *   worker threads cannot be changed once the object has been constructed.
  * A SimpleWorkGroup maintains one extra hold on the shared barrier; to "advance"
  *   a group, call SimpleWorkGroup::wait().
+ *
+ * \author Seth N. Hetu
+ * \author Xu Yan
  */
 class WorkGroup {
 public:

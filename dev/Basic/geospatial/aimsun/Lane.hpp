@@ -24,8 +24,10 @@ class Section;
 
 
 ///An AIMSUN lane that is not a Crossing.
-//   Lanes don't have an ID, but they still extend Base() to get access to the write flag.
-//   Lanes share the same basic data types as Crossings, but they have different derived types.
+///   Lanes don't have an ID, but they still extend Base() to get access to the write flag.
+///   Lanes share the same basic data types as Crossings, but they have different derived types.
+/// \author Seth N. Hetu
+/// \author LIM Fung Chai
 class Lane : public Base {
 public:
 	int laneID;

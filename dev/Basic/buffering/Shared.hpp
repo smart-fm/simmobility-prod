@@ -12,6 +12,7 @@ namespace sim_mob
 
 
 ///Strategy for enforcing mutual exclusion
+/// \author Seth N. Hetu
 enum MutexStrategy {
 	MtxStrat_Buffered,
 	MtxStrat_Locked,
@@ -21,6 +22,9 @@ enum MutexStrategy {
 
 /**
  * Templatized wrapper for an object that may be Buffered OR Locked.
+ *
+ * \author Seth N. Hetu
+ * \author Xu Yan
  *
  * A Buffered datum handle multiple readers and a single writer without
  * locking. The "flip" method is used to update the current value after calling "set".

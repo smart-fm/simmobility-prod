@@ -1,10 +1,12 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 /*
- * Vehicle.h
+ * \file Vehicle.h
  *
- *  Created on: Oct 24, 2011
- *      Author: lzm
+ * \author Li Zhemin
+ * \author Seth N. Hetu
+ * \author Zhang Shuai
+ * \author Xu Yan
  */
 
 #pragma once

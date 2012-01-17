@@ -48,8 +48,15 @@ class StartTimePriorityQueue : public std::priority_queue<Entity*, std::vector<E
 
 
 /**
- * Basic Agent class. Agents maintain an x and a y position. They may have different
- * behavioral models.
+ * Basic Agent class.
+ *
+ * \author Seth N. Hetu
+ * \author Luo Linbo
+ * \author LIM Fung Chai
+ * \author Wang Xinyuan
+ * \author Xu Yan
+ *
+ * Agents maintain an x and a y position. They may have different behavioral models.
  */
 class Agent : public sim_mob::Entity {
 public:

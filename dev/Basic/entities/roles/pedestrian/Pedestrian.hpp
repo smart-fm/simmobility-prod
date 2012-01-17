@@ -1,10 +1,13 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 /*
- * Pedestrian.hpp
+ * \file Pedestrian.hpp
  *
- *  Created on: 2011-6-20
- *      Author: Linbo
+ * \author Luo Linbo
+ * \author Seth N. Hetu
+ * \author Li Zhemin
+ * \author LIM Fung Chai
+ * \author Xu Yan
  */
 
 #pragma once

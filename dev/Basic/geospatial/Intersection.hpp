@@ -24,6 +24,9 @@ class Loader;
  * Intersection class, however, adds a much-needed layer of context by specifying exactly
  * how the intersection actually looks and behaves.
  *
+ * \author Seth N. Hetu
+ * \author LIM Fung Chai
+ *
  * \todo
  * The current image doesn't use the same terminology as the code. Also, I think we can
  * provide a slightly clearer example (e.g., a T-intersection is probably sufficient).

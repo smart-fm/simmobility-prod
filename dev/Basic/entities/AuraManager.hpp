@@ -15,6 +15,9 @@ class Lane;
 /**
  * A singleton that can locate agents/entities within any rectangle.
  *
+ * \author LIM Fung Chai
+ * \author Seth N. Hetu
+ *
  * To locate nearby agents, calculate 2 points to form the search rectangle before calling
  * agentsInRect(). 
  *   \code

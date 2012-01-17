@@ -8,6 +8,7 @@ namespace aimsun
 {
 
 ///Nearly all AIMSUN items have IDs.
+/// \author Seth N. Hetu
 class Base {
 public:
 	int id;

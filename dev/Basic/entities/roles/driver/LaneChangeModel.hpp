@@ -11,10 +11,11 @@ namespace sim_mob {
 
 
 /*
- * LC_Model.cpp
+ * \file LaneChangeModel.hpp
  *
- *  Created on: 2011-8-15
- *      Author: mavswinwxy & Li Zhemin
+ * \author Wang Xinyuan
+ * \author Li Zhemin
+ * \author Seth N. Hetu
  */
 
 

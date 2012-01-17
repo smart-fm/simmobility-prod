@@ -32,6 +32,7 @@ class Node;
 
 
 ///An activity within a trip chain
+/// \author Seth N. Hetu
 struct TripActivity {
 	std::string description;
 	Node* location;
@@ -43,6 +44,7 @@ struct TripActivity {
 
 
 ///A trip chain. Not technically part of AIMSUN; we may have to rename this folder later.
+/// \author Seth N. Hetu
 class TripChain /*: public Base*/ {
 public:
 	TripActivity from;

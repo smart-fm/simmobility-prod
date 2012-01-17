@@ -13,6 +13,8 @@ namespace sim_mob
 /**
  * Simple class to handle scaling along a vector.
  *
+ * \author Seth N. Hetu
+ *
  * \note
  * I'm making this header-only for now to make it simpler to develop. Will need to migrate to its own
  * separate *.cpp file if nothing breaks.

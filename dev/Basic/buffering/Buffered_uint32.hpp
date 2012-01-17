@@ -11,6 +11,8 @@ namespace sim_mob
 /**
  * The double-buffered data type for unsigned 32bit integers.
  *
+ * \author LIM Fung Chai
+ *
  * This data type is useful for passenger-counts, vehicle-counts, etc.
  */
 class Buffered_uint32 : public Buffered<uint32_t>

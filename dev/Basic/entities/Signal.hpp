@@ -35,6 +35,14 @@ class Crossing;
 /**
  * Basic Signal class.
  *
+ * \author Runmin Xu
+ * \author Wang Xinyuan
+ * \author Seth N. Hetu
+ * \author Luo Linbo
+ * \author Li Zhemin
+ * \author LIM Fung Chai
+ * \author Xu Yan
+ *
  * NOTES:
  *1.The signal light uses adaptive signal control strategy (SCATS).
  *

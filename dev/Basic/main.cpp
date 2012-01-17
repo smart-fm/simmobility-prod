@@ -5,6 +5,10 @@
  * A first approximation of the basic pseudo-code in C++. The main file loads several
  * properties from data/config.xml, and attempts a simulation run. Currently, the various
  * granularities and pedestrian starting locations are loaded.
+ *
+ * \author Seth N. Hetu
+ * \author LIM Fung Chai
+ * \author Xu Yan
  */
 #include <vector>
 #include <string>

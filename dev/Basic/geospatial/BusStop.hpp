@@ -20,6 +20,8 @@ class BusRoute;
 
 /**
  * Representation of a Bus Stop.
+ * \author Skyler Seto
+ * \author Seth N. Hetu
  */
 class BusStop : public sim_mob::RoadItem {
 	

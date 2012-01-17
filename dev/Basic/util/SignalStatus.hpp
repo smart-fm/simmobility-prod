@@ -5,6 +5,10 @@
 #include <sstream>
 
 namespace sim_mob {
+
+/**
+ * \author Xu Yan
+ */
 class SignalStatus
 {
 public:

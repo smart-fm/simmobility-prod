@@ -27,6 +27,7 @@ class Crossing;
 
 
 ///An AIMSUN road intersection or segment intersection.
+/// \author Seth N. Hetu
 class Node : public Base {
 public:
 	double xPos;

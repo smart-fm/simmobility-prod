@@ -17,6 +17,8 @@ class Signal;
  * The LoopDetectorEntity is an entity that models all the loop-detectors located just before the
  * stop-line on all vehicle lanes approaching a Signal.
  *
+ * \author LIM Fung Chai
+ *
  * Each LoopDetectorEntity object must run at the same rate as the Driver objects.  This
  * implementation assumes this is so.
  *

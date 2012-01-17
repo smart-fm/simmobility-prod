@@ -1,5 +1,21 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
+
+/**
+ * \file simpleconf.hpp
+ * Central location for configuration-loading code.
+ *
+ * \author Seth N. Hetu
+ * \author LIM Fung Chai
+ * \author Luo Linbo
+ * \author Wang Xinyuan
+ * \author Runmin Xu
+ * \author Zhang Shuai
+ * \author Li Zhemin
+ * \author Matthew Bremer Bruchon
+ * \author Xu Yan
+ */
+
 #pragma once
 
 #include <map>

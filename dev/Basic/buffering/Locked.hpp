@@ -15,6 +15,8 @@ namespace sim_mob
 /**
  * Templatized wrapper for locked objects.
  *
+ * \author Seth N. Hetu
+ *
  * A Locked datum handle multiple readers and a single writer through locking. The "set" and "get"
  *  methods ensure mutual exclusion. The "flip" method is an artifact of BufferedBase and does nothing.
  *

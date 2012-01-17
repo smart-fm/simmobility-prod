@@ -20,7 +20,12 @@ class UnPackageUtils;
 #endif
 
 /**
- * Role that a person may fulfill. Allows Person agents to swap out roles easily,
+ * Role that a person may fulfill.
+ *
+ * \author Seth N. Hetu
+ * \author Xu Yan
+ *
+ * Allows Person agents to swap out roles easily,
  * without re-creating themselves or maintaining temporarily irrelevant data.
  *
  * \note

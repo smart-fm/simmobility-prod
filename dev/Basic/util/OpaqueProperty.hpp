@@ -11,6 +11,8 @@ namespace sim_mob
 
 /**
  * Class to represent data we wish to carry along but not react to. Agents shouldn't ever check these values.
+ *
+ * \author Seth N. Hetu
  */
 template <typename T>
 class OpaqueProperty {

@@ -24,7 +24,7 @@ namespace sim_mob
  */
 class Point2D {
 public:
-	Point2D(int xPos=0, int yPos=0) : xPos(xPos), yPos(yPos) {}
+	explicit Point2D(int xPos=0, int yPos=0) : xPos(xPos), yPos(yPos) {}
 
 	int getX() const { return xPos; }
 	int getY() const { return yPos; }

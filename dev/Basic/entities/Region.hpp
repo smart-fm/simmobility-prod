@@ -29,7 +29,7 @@ class Signal;
  */
 class Region : public Entity {
 public:
-	Region(unsigned int id=0);
+	explicit Region(unsigned int id=0);
 
 	virtual bool update(frame_t frameNumber);
 

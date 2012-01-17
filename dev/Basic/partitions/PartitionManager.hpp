@@ -84,6 +84,8 @@ private:
 	static PartitionManager instance_;
 	BoundaryProcessor processor;
 
+	PartitionManager() {}
+
 };
 }
 

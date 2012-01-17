@@ -19,7 +19,7 @@ namespace sim_mob
  */
 class MovementVector {
 public:
-	MovementVector(const DynamicVector& vect=DynamicVector(), double amt=0.0) : vect(vect), amount(amt) {
+	explicit MovementVector(const DynamicVector& vect=DynamicVector(), double amt=0.0) : vect(vect), amount(amt) {
 		lat = DynamicVector(0, 0, vect.getEndX()-vect.getX(), vect.getEndY()-vect.getY());
 		lat.flipLeft();
 		resetLateral();

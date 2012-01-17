@@ -53,7 +53,7 @@ class StartTimePriorityQueue : public std::priority_queue<Entity*, std::vector<E
  */
 class Agent : public sim_mob::Entity {
 public:
-	Agent(const MutexStrategy& mtxStrat, int id=-1);
+	explicit Agent(const MutexStrategy& mtxStrat, int id=-1);
 	virtual ~Agent();
 
 	virtual bool update(frame_t frameNumber) = 0;  ///<Update agent behvaior

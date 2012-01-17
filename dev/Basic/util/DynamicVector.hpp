@@ -22,7 +22,7 @@ namespace sim_mob
 struct DPoint {
 	double x;
 	double y;
-	DPoint(double x=0.0, double y=0.0) : x(x), y(y) {}
+	explicit DPoint(double x=0.0, double y=0.0) : x(x), y(y) {}
 
 	//add by xuyan
 #ifndef SIMMOB_DISABLE_MPI

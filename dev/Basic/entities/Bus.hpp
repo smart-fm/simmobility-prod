@@ -23,7 +23,7 @@ class Bus : public sim_mob::Vehicle {
 public:
 	///NOTE: Currently vehicles need to be constructed with a route. Feel free to modify as needed; it's a relic
 	///      from our cleanup of Driver. ~Seth
-	Bus(unsigned int id=-1) : Vehicle(std::vector<sim_mob::WayPoint>(), 0), busroute(nullptr), passenger_count_standing(0), passenger_count_sitting(0), passenger_capacity(0) {}
+	explicit Bus(unsigned int id=-1) : Vehicle(std::vector<sim_mob::WayPoint>(), 0), busroute(nullptr), passenger_count_standing(0), passenger_count_sitting(0), passenger_capacity(0) {}
 
 	virtual void update(frame_t frameNumber);
 	virtual void buildSubscriptionList();	

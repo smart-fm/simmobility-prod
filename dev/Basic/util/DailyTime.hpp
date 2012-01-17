@@ -32,10 +32,10 @@ namespace sim_mob
 class DailyTime {
 public:
 	///Construct a new DailyTime from a given value. Subtract the "base" time (i.e., the day's start time).
-	DailyTime(uint32_t value=0, uint32_t base=0);
+	explicit DailyTime(uint32_t value=0, uint32_t base=0);
 
 	///Construct a new DailyTime from a string formatted to ISO 8601 format.
-	DailyTime(const std::string& value);
+	explicit DailyTime(const std::string& value);
 
 	//Various comparison functions
 	bool isBefore(const DailyTime& other) const;

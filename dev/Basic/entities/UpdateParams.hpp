@@ -15,7 +15,7 @@ namespace sim_mob
 /// in Agent::make_frame_tick_params().
 ///Note that the mt19937 generator cannot be changed once this object is constructed.
 struct UpdateParams {
-	UpdateParams(boost::mt19937& gen) : frameNumber(0), currTimeMS(0), gen(gen) {}
+	explicit UpdateParams(boost::mt19937& gen) : frameNumber(0), currTimeMS(0), gen(gen) {}
 
 	///Reset this struct for use with the next frame.
 	virtual void reset(frame_t frameNumber, unsigned int currTimeMS) {

@@ -28,7 +28,7 @@ class PartitionManager;
 class Entity {
 public:
 	///Construct an entity with an immutable ID
-	Entity(unsigned int id) : id(id), isSubscriptionListBuilt(false), startTime(0), currWorker(nullptr), isFake(false) {}
+	explicit Entity(unsigned int id) : id(id), isSubscriptionListBuilt(false), startTime(0), currWorker(nullptr), isFake(false) {}
 	virtual ~Entity() {
 		if (currWorker) {
 			//Note: If a worker thread is still active for this agent, that's a major problem. But

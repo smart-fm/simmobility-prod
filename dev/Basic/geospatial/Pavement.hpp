@@ -91,10 +91,6 @@ public:
 	///       would allow for long non-curving segments and short curving ones.
 	static void GeneratePolyline(Pavement* p, Point2D center, double bulge, int segmentLength);
 
-private:
-
-
-
 };
 
 

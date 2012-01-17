@@ -30,7 +30,7 @@ class Role
 {
 public:
 	//NOTE: Don't forget to call this from sub-classes!
-	Role(Agent* parent = nullptr) :
+	explicit Role(Agent* parent = nullptr) :
 		parent(parent)
 	{
 	}

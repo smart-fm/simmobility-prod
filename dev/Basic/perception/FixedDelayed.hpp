@@ -39,7 +39,7 @@ public:
 	 * \param delayMS The time to delay each sensation.
 	 * \param reclaimPtrs If true, any item discarded by this history list is deleted. Does nothing if the template type is not a pointer.
 	 */
-	FixedDelayed(size_t delayMS, bool reclaimPtrs=true) : maxDelayMS(delayMS), reclaimPtrs(reclaimPtrs) {}
+	explicit FixedDelayed(size_t delayMS, bool reclaimPtrs=true) : maxDelayMS(delayMS), reclaimPtrs(reclaimPtrs) {}
 
 
 	/**

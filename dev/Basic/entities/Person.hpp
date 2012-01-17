@@ -33,7 +33,7 @@ class PartitionManager;
  */
 class Person : public sim_mob::Agent {
 public:
-	Person(const MutexStrategy& mtxStrat, int id=-1);
+	explicit Person(const MutexStrategy& mtxStrat, int id=-1);
 	virtual ~Person();
 
 	///Update Person behavior

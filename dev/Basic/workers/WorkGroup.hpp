@@ -44,7 +44,7 @@ public:
 	//These are passed along to the Workers:
 	//  endTick=0 means run forever.
 	//  tickStep is used to allow Workers to skip ticks; no barriers are locked.
-	WorkGroup(size_t size, unsigned int endTick=0, unsigned int tickStep=1, bool auraManagerActive=false);
+	explicit WorkGroup(size_t size, unsigned int endTick=0, unsigned int tickStep=1, bool auraManagerActive=false);
 
 	virtual ~WorkGroup();
 

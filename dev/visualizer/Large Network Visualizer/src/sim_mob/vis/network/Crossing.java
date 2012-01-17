@@ -4,6 +4,10 @@ import java.awt.*;
 
 import sim_mob.vis.controls.DrawableItem;
 
+/**
+ * \author Zhang Shuai
+ * \author Seth N. Hetu
+ */
 public class Crossing implements DrawableItem{
 	//Constants/Resources
 	private static Color crossingColor = new Color(0x00, 0x9a, 0xcd);

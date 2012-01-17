@@ -14,7 +14,9 @@ import sim_mob.vis.util.*;
 
 
 /**
- * Double-buffered panel which can display an image and can do some dynamic drawing. 
+ * Double-buffered panel which can display an image and can do some dynamic drawing.
+ * \author Seth N. Hetu
+ * \author Zhang Shuai 
  */
 public class NetworkPanel extends JPanel implements ComponentListener, MouseListener, MouseMotionListener, MouseWheelListener {
 	public static final long serialVersionUID = 1L;

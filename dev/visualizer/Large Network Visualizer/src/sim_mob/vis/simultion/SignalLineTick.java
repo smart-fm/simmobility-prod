@@ -2,6 +2,11 @@ package sim_mob.vis.simultion;
 
 import java.util.ArrayList;
 
+/**
+ * 
+ * \author Seth N. Hetu
+ * \author Zhang Shuai
+ */
 public class SignalLineTick{
 	
 	private ArrayList<ArrayList<Integer>> allVehicleLights;

@@ -8,7 +8,7 @@ import java.util.Hashtable;
  * Simple interface to our CSS properties like color and line width. 
  * This allows us to switch out CSS parsers without affecting the majority of our code.
  * 
- * @author sethhetu
+ * \author Seth N. Hetu
  */
 public class CSS_Interface {
 	//Store properties individually.

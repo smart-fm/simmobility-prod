@@ -8,6 +8,9 @@ import sim_mob.vis.network.basic.ScaledPoint;
 
 /**
  * Nodes represent locations in our network.
+ * 
+ * \author Seth N. Hetu
+ * \author Zhang Shuai
  */
 public class Node implements DrawableItem {
 	//Constants

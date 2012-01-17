@@ -3,6 +3,10 @@ package sim_mob.vis.network;
 import java.awt.Graphics2D;
 import sim_mob.vis.controls.DrawableItem;
 
+/**
+ * \author Zhang Shuai
+ * \author Seth N. Hetu
+ */
 public class Lane implements DrawableItem{
 	private int laneNumber;
 	private Node startMiddleNode;

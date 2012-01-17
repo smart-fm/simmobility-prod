@@ -9,7 +9,11 @@ import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.network.basic.Vect;
 
 /**
- * Links join Intersections and consist of Segments. 
+ * Links join Intersections and consist of Segments.
+ * 
+ *  \author Seth N. Hetu
+ *  \author Zhang Shuai
+ *  \author Matthew Bremer Bruchon
  */
 public class Link implements DrawableItem {
 	//Constants/Resources

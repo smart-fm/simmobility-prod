@@ -1,5 +1,10 @@
 package sim_mob.vect;
 
+
+/**
+ * 
+ * \author Seth N. Hetu
+ */
 public class IndexedColor {
 	//No-argument constructor; required for gson
 	private IndexedColor() {}

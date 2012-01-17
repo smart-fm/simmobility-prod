@@ -7,6 +7,9 @@ import java.awt.Polygon;
 
 import sim_mob.vis.controls.DrawableItem;
 
+/**
+ * \author Zhang Shuai
+ */
 public class TrafficSignalCrossing implements DrawableItem{
 
 	private float alpha = 0.5f;

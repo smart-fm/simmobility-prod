@@ -20,7 +20,7 @@ import org.w3c.css.sac.SelectorList;
 /**
  * Load a CSS_Interface via the Batik library.
  * 
- * @author sethhetu
+ * \author Seth N. Hetu
  */
 public class BatikCSS_Loader {
 	//List of colors by ID

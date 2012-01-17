@@ -7,6 +7,9 @@ import java.awt.Stroke;
 
 import sim_mob.vis.controls.DrawableItem;
 
+/**
+ * \author Zhang Shuai
+ */
 public class CutLine implements DrawableItem{
 
 	

@@ -6,6 +6,11 @@ import sim_mob.vis.MainFrame;
 import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.network.basic.ScaledPoint;
 
+/**
+ * \author Zhang Shuai
+ * \author Seth N. Hetu
+ * \author Matthew Bremer Bruchon
+ */
 public class LaneMarking implements DrawableItem{
 	//Constants/Resources
 	//private static Color laneColor = new Color(0x00, 0x00, 0x00);

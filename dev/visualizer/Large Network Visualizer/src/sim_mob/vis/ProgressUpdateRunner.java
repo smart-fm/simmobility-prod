@@ -4,7 +4,11 @@ import java.awt.Color;
 
 import sim_mob.vis.controls.NetworkPanel;
 
-//Helper callback for updating the progress bar.
+/**
+ * Helper callback for updating the progress bar.
+ * \author Seth N. Hetu
+ */
+
 public class ProgressUpdateRunner extends Thread {
 	NetworkPanel pnl;
 	double value;

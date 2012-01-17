@@ -2,6 +2,8 @@ package sim_mob.vis.network.basic;
 
 /**
  * Simple class holding the parameters which are used to scale the network.
+ * 
+ * \author Seth N. Hetu
  */
 public class ScaleContext {
 	public double percent;

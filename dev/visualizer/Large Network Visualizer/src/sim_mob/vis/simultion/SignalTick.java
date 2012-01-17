@@ -9,7 +9,10 @@ import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.network.basic.DPoint;
 
 /**
- * For now, Traffic Signals are simply added to the top-level container, and are all drawn in a row. 
+ * For now, Traffic Signals are simply added to the top-level container, and are all drawn in a row.
+ * 
+ *  \author Seth N. Hetu
+ *  \author Zhang Shuai
  */
 public class SignalTick implements DrawableItem {
 	private DPoint visPos;

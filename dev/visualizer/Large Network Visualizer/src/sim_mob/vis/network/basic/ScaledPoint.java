@@ -2,7 +2,12 @@ package sim_mob.vis.network.basic;
 
 
 /**
- * A position which can be dynamically rescaled. By default, the "scaled" position is always returned.
+ * A position which can be dynamically rescaled.
+ * 
+ *  \author Seth N. Hetu
+ *  \author Zhang Shuai
+ * 
+ * By default, the "scaled" position is always returned.
  * This position also flips the Y axis to be consistent with Cartesian co-ordiates.
  */
 public class ScaledPoint {

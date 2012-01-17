@@ -1,5 +1,9 @@
 package sim_mob.vis.util;
 
+/**
+ * 
+ * \author Zhang Shuai
+ */
 public final class Mapping {
 
 	//Declare Intersection Link Name, starts from 1

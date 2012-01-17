@@ -31,6 +31,10 @@ import sim_mob.vis.util.StringSetter;
 import sim_mob.vis.util.Utility;
 
 
+/**
+ * \author Seth N. Hetu
+ * \author Zhang Shuai
+ */
 public class MainFrame extends JFrame {
 	public static final long serialVersionUID = 1L;
 	//For JComboBox

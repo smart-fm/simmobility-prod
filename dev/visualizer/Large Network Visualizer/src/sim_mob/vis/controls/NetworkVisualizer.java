@@ -11,6 +11,9 @@ import sim_mob.vis.simultion.*;
 /**
  * Represents an actual visualizer for the network. Handles scaling, etc. 
  * TODO: When zoomed in, it still draws the entire map. May want to "tile" drawn sections.
+ * 
+ * \author Seth N. Hetu
+ * \author Zhang Shuai
  */
 public class NetworkVisualizer {
 	private RoadNetwork network;

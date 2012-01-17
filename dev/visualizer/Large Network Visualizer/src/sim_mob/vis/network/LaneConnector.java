@@ -1,6 +1,10 @@
 package sim_mob.vis.network;
 
 
+/**
+ * \author Zhang Shuai
+ * \author Seth N. Hetu
+ */
 public class LaneConnector{
 
 	private int fromSegment;

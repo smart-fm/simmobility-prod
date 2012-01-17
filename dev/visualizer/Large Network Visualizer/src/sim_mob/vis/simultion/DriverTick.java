@@ -20,6 +20,9 @@ import sim_mob.vis.util.Utility;
 
 /**
  * Driver "Agent Tick"
+ * 
+ * \author Seth N. Hetu
+ * \author Zhang Shuai
  */
 public class DriverTick extends AgentTick {
 	private static SimpleVectorImage CarImg;

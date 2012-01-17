@@ -9,6 +9,11 @@ import java.util.*;
 
 import com.google.gson.Gson;
 
+/**
+ * 
+ * \author Seth N. Hetu
+ * \author Zhang Shuai
+ */
 public class SimpleVectorImage {
 	//No-argument constructor; required for gson
 	private SimpleVectorImage() {

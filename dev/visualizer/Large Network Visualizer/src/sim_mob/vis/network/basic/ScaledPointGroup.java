@@ -6,7 +6,11 @@ import java.util.HashSet;
 
 
 /**
- * This is a simple class which allows scaled points to belong to groups. A group of points will
+ * This is a simple class which allows scaled points to belong to groups. 
+ * 
+ * \author Seth N. Hetu
+ * 
+ * A group of points will
  * scale on demand according to the globally expected scale value.
  */
 public class ScaledPointGroup {

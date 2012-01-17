@@ -19,6 +19,10 @@ import sim_mob.vis.ProgressUpdateRunner;
 /**
  * The RoadNetwork is the top-level object containing all relevant details about our 
  * static RoadNetwork.
+ * 
+ * \author Seth N. Hetu
+ * \author Zhang Shuai
+ * \author Matthew Bremer Bruchon
  */
 public class RoadNetwork {
 	private DPoint cornerTL;

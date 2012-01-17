@@ -16,6 +16,10 @@ import javax.swing.event.DocumentListener;
 import sim_mob.components.RangeSlider;
 
 
+/**
+ * 
+ * \author Seth N. Hetu
+ */
 public class VideoEncodeDialog extends JDialog {
 	public static final long serialVersionUID = 1L;
 	

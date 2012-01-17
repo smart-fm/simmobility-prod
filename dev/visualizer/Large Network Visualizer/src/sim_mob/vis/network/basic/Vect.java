@@ -3,6 +3,8 @@ package sim_mob.vis.network.basic;
 
 /**
  * Vector class, with convenience methods for scaling, etc.
+ * 
+ * \author Seth N. Hetu
  */
 public class Vect {
 	private DPoint pos;

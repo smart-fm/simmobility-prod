@@ -19,6 +19,9 @@ import sim_mob.vis.util.Utility;
 
 /**
  * Driver "Agent Tick"
+ * 
+ * \author Seth N. Hetu
+ * \author Zhang Shuai
  */
 public class PedestrianTick extends AgentTick {
 	private static Stroke debugStr = new BasicStroke(1.0F);

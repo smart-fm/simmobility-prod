@@ -3,6 +3,9 @@ package sim_mob.conf;
 import java.awt.Color;
 import java.util.Hashtable;
 
+/**
+ * \author Seth N. Hetu
+ */
 public class CssColorIdentifiers {
 	
 	/**

@@ -2,6 +2,11 @@ package sim_mob.vis.network;
 
 import java.util.ArrayList;
 
+
+/**
+ * \author Zhang Shuai
+ * \author Seth N. Hetu
+ */
 public class Intersection {
 
 	private int intersectNodeID;

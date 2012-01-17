@@ -10,6 +10,11 @@ import javax.imageio.ImageIO;
 import sim_mob.vis.Main;
 import sim_mob.vis.network.Node;
 
+/**
+ * \author Seth N. Hetu
+ * \author Zhang Shuai
+ * \author Matthew Bremer Bruchon
+ */
 public class Utility {
 	/**
 	 * Helper method: load an image resource using the classpath. 

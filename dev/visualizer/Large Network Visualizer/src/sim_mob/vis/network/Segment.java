@@ -5,6 +5,9 @@ import sim_mob.vis.controls.DrawableItem;
 
 /**
  * Segments join Nodes together
+ * 
+ * \author Seth N. Hetu
+ * \author Zhang Shuai
  */
 public class Segment implements DrawableItem {
 	//Constants/Resources

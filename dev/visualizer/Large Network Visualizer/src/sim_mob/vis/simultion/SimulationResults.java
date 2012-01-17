@@ -12,6 +12,9 @@ import sim_mob.vis.util.Utility;
 
 /**
  * Contains everything needed to display the results of a simulation.
+ * 
+ * \author Seth N. Hetu
+ * \author Zhang Shuai
  */
 public class SimulationResults {
 	public ArrayList<TimeTick> ticks;

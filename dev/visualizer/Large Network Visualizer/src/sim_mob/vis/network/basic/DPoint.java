@@ -2,6 +2,8 @@ package sim_mob.vis.network.basic;
 
 /** 
  * Very simply double-point class.
+ * 
+ * \author Seth N. Hetu
  */
 public class DPoint {
 	public double x;

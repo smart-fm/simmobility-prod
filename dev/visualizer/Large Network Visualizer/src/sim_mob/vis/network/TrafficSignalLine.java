@@ -11,6 +11,10 @@ import java.awt.geom.AffineTransform;
 import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.util.Utility;
 
+/**
+ * \author Zhang Shuai
+ * \author Seth N. Hetu
+ */
 public class TrafficSignalLine implements DrawableItem{
 	
 	private Lane fromLane;

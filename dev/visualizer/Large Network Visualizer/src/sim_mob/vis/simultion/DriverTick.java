@@ -24,6 +24,7 @@ import sim_mob.vis.util.Utility;
  * 
  * \author Seth N. Hetu
  * \author Zhang Shuai
+ * \author Anirudh Sivaraman
  */
 public class DriverTick extends AgentTick {
 	private static SimpleVectorImage CarImg;
@@ -62,11 +63,15 @@ public class DriverTick extends AgentTick {
 	}*/
 	//private static boolean isCar;
 	
+	public static class RxLocation {
+		public double longitude;
+		public double latitude;
+	}
 	
+	
+	private RxLocation msgLocation; //If null, display no message
 	private int ID;
 	private double angle;
-	private double rxLong;
-	private double rxLat;
 	private boolean fake;
 	private int length;
 	private int width;
@@ -83,14 +88,17 @@ public class DriverTick extends AgentTick {
 	 */
 
 
-	public DriverTick(double posX, double posY, double angle, double rxLong,double rxLat, ScaledPointGroup spg) {
+	public DriverTick(double posX, double posY, double angle, ScaledPointGroup spg) {
+		this(posX, posY, angle, null, spg);
+	}
+	
+	public DriverTick(double posX, double posY, double angle, RxLocation msgLocation, ScaledPointGroup spg) {
 		this.pos = new ScaledPoint(posX, posY, spg);
 		this.angle = angle;
 		this.fake = false;
 		//DriverTick.isCar = true;
 		
-		this.rxLong=rxLong;
-		this.rxLat=rxLat;
+		this.msgLocation = msgLocation;
 		if(CarImg==null){
 			MakeCarImage();
 		}
@@ -230,22 +238,18 @@ public class DriverTick extends AgentTick {
 		//Set new transformation matrix
 		g.setTransform(at);
 		
-		//Draw with fake agent enabled
-		/*if(drawFake){
-			if(fake){
-				//g.drawImage(FakeCarImg, 0, 0, null);
-			}else{
-				//g.drawImage(CarImg, 0, 0, null);
-			}
-		} else {*/
+		//Draw the car
+		g.drawImage(toDraw, 0, 0, null);
+		
+		//Draw its message
+		if (msgLocation != null) {
 			g.setBackground(Color.BLUE);
 			g.clearRect(+6, -10, 170,20);
-			g.drawImage(toDraw, 0, 0, null);
-			double roundedLong=((int)(rxLong*100000))/100000;
-			double roundedLat=((int)(rxLat*100000))/100000;
-			String loc=String.format("%.5f,%.5f", rxLong,rxLat);
+			//double roundedLong=((int)(msgLocation.longitude*100000))/100000;
+			//double roundedLat=((int)(msgLocation.latitude*100000))/100000;
+			String loc=String.format("%.5f,%.5f", msgLocation.longitude, msgLocation.latitude);
 			g.drawString(loc, 10, 10);
-		//}
+		}
 		
 		//Restore old transformation matrix
 		g.setTransform(oldAT);

@@ -15,6 +15,7 @@ import sim_mob.vis.util.Utility;
  * 
  * \author Seth N. Hetu
  * \author Zhang Shuai
+ * \author Anirudh Sivaraman
  */
 public class SimulationResults {
 	public ArrayList<TimeTick> ticks;
@@ -199,14 +200,24 @@ public class SimulationResults {
 	
 	private void parseDriver(int frameID, int objID, String rhs, RoadNetwork rn) throws IOException {
 	    //Check and parse properties.
-	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"xPos", "yPos", "angle", "rxLong","rxLat"});
+	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"xPos", "yPos", "angle"});
 	    
 	    //Now save the relevant information
 	    double xPos = Double.parseDouble(props.get("xPos"));
 	    double yPos = Double.parseDouble(props.get("yPos"));
 	    double angle = Double.parseDouble(props.get("angle"));
-	    double rxLong=Double.parseDouble(props.get("rxLong"));
-	    double rxLat=Double.parseDouble(props.get("rxLat"));
+	    //double rxLong=Double.parseDouble(props.get("rxLong"));
+	    //double rxLat=Double.parseDouble(props.get("rxLat"));
+	    
+	    //See if we have a message icon to show
+	    DriverTick.RxLocation msgLoc = null;
+	    if (props.containsKey("rxLong") && props.containsKey("rxLat")) {
+	    	msgLoc = new DriverTick.RxLocation();
+	    	msgLoc.longitude = Double.parseDouble(props.get("rxLong"));
+	    	msgLoc.latitude = Double.parseDouble(props.get("rxLat"));
+	    }
+	    
+	    
 	    //TEMP: Hack for out-of-bounds agents
 	    if (OutOfBounds(xPos, yPos, rn)) {
 	    	Utility.CheckBounds(xBounds, xPos);
@@ -229,7 +240,7 @@ public class SimulationResults {
 	    }
 	  
 	    //Create temp driver
-	    DriverTick tempDriver = new DriverTick(xPos, yPos, angle, rxLong,rxLat,ticks.get(frameID).tickScaleGroup);
+	    DriverTick tempDriver = new DriverTick(xPos, yPos, angle, msgLoc, ticks.get(frameID).tickScaleGroup);
 	    
 	    //Check if the driver is fake
 	    if(props.containsKey("fake")){

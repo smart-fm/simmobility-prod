@@ -18,8 +18,8 @@ class BufferedDataManager;
 /**
  * Base class for all buffered data.
  *
- * \author Seth N. Hetu
  * \author LIM Fung Chai
+ * \author Seth N. Hetu
  *
  * It is recommended to use the templatized sub-class Buffered
  * for actual data. This base class exists to allow the BufferedDataManager to store a vector of

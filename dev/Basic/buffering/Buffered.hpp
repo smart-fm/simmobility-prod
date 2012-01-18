@@ -13,8 +13,8 @@ namespace sim_mob
 /**
  * Templatized wrapper for buffered objects.
  *
- * \author Seth N. Hetu
  * \author LIM Fung Chai
+ * \author Seth N. Hetu
  *
  * A Buffered datum handle multiple readers and a single writer without
  * locking. The "flip" method is used to update the current value after calling "set".

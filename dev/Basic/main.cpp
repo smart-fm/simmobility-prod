@@ -240,6 +240,7 @@ bool performMain(const std::string& configFileName) {
 	/////////////////////////////////////////////////////////////////
 	size_t numStartAgents = Agent::all_agents.size();
 	size_t numPendingAgents = Agent::pending_agents.size();
+	size_t maxAgents = Agent::all_agents.size();
 
 	timeval loop_start_time;
 	gettimeofday(&loop_start_time, nullptr);
@@ -255,6 +256,9 @@ bool performMain(const std::string& configFileName) {
 
 		//Get a rough idea how far along we are
 		int currTickPercent = (currTick*100)/config.totalRuntimeTicks;
+
+		//Save the maximum number of agents at any given time
+		maxAgents = std::max(maxAgents, Agent::all_agents.size());
 
 		//Output
 #ifndef SIMMOB_DISABLE_OUTPUT
@@ -321,6 +325,7 @@ bool performMain(const std::string& configFileName) {
 
 	std::cout <<"Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;
 
+	cout << "Max Agents at any given time: " <<maxAgents <<std::endl;
 	cout << "Starting Agents: " << numStartAgents;
 	cout << ",     Pending: ";
 	if (NoDynamicDispatch) {

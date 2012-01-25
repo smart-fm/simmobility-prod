@@ -51,9 +51,9 @@ public:
 	//! to construct a Worker object.  This procedure will be called repeatedly; the 1st
 	//! argument will a reference to the constructed Worker object and the 2nd argument
 	//! will be a strictly monotonic increasing number which represent the time-step.
-	typedef boost::function<void(Worker& worker, frame_t frameNumber)> ActionFunction;
+	//typedef boost::function<void(Worker& worker, frame_t frameNumber)> ActionFunction;
 
-	Worker(WorkGroup* parent, boost::barrier& internal_barr, boost::barrier& external_barr, std::vector<Entity*>* entityRemovalList, ActionFunction* action =nullptr, frame_t endTick=0, frame_t tickStep=0, bool auraManagerActive=false);
+	Worker(WorkGroup* parent, boost::barrier& internal_barr, boost::barrier& external_barr, std::vector<Entity*>* entityRemovalList/*, ActionFunction* action =nullptr*/, frame_t endTick=0, frame_t tickStep=0, bool auraManagerActive=false);
 	virtual ~Worker();
 
 	//Thread-style operations
@@ -91,7 +91,7 @@ protected:
 	//Properties
 	boost::barrier& internal_barr;
 	boost::barrier& external_barr;
-	ActionFunction* action;
+	//ActionFunction* action;
 
 	//Time management
 	//frame_t currTick;

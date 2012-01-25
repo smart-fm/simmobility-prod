@@ -21,6 +21,23 @@ sim_mob::Person::~Person() {
 	safe_delete(currRole);
 }
 
+Person* sim_mob::Person::GeneratePersonFromPending(const PendingEntity& p)
+{
+	const ConfigParams& config = ConfigParams::GetInstance();
+
+	//Create a person object.
+	Person* res = new Person(config.mutexStategy);
+
+	//Set its mode.
+	if (p.type == ENTITY_DRIVER) {
+		res->changeRole(new Driver(res, config.mutexStategy, config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
+	} else if (p.type == ENTITY_PEDESTRIAN) {
+		res->changeRole(new Pedestrian(res, res->getGenerator()));
+	} else {
+		throw std::runtime_error("PendingEntity currently only supports Drivers and Pedestrians.");
+	}
+}
+
 bool sim_mob::Person::update(frame_t frameNumber) {
 	try {
 		//First, we need to retrieve an UpdateParams subclass appropriate for this Agent.

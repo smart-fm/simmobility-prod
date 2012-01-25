@@ -44,6 +44,9 @@ public:
 	explicit Person(const MutexStrategy& mtxStrat, int id=-1);
 	virtual ~Person();
 
+	///Generate a person from a PendingEntity. Currently only works for Drivers/Pedestrians
+	static Person* GeneratePersonFromPending(const PendingEntity& p);
+
 	///Update Person behavior
 	virtual bool update(frame_t frameNumber) final;
 

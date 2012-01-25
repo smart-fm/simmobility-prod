@@ -147,35 +147,56 @@ string ReadLowercase(TiXmlHandle& handle, const std::string& attrName)
 }
 
 
-bool generateAgentsFromTripChain(std::vector<Entity*>& agents)
+
+void addOrStashEntity(const PendingEntity& p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
+{
+	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p.start==0) {
+		//Only agents with a start time of zero should start immediately in the all_agents list.
+		active_agents.push_back(Person::GeneratePersonFromPending(p));
+	} else {
+		//Start later.
+		pending_agents.push(p);
+	}
+}
+
+
+bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
 	ConfigParams& config = ConfigParams::GetInstance();
 	const vector<TripChain*>& tcs = ConfigParams::GetInstance().getTripChains();
 	for (vector<TripChain*>::const_iterator it=tcs.begin(); it!=tcs.end(); it++) {
+		//Create an Agent candidate
+		PendingEntity p;
+
 		//Create a new agent, add it to the list of agents.
-		Person* curr = new Person(ConfigParams::GetInstance().mutexStategy);
-		agents.push_back(curr);
+		//Person* curr = new Person(ConfigParams::GetInstance().mutexStategy);
+		//agents.push_back(curr);
 
 		//Set its mode.
 		if ((*it)->mode == "Car") {
-			curr->changeRole(new Driver(curr, config.mutexStategy, config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
+			p.type = ENTITY_DRIVER;
+			//curr->changeRole(new Driver(curr, config.mutexStategy, config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
 		} else if ((*it)->mode == "Walk") {
-			curr->changeRole(new Pedestrian(curr, curr->getGenerator()));
+			p.type = ENTITY_PEDESTRIAN;
+			//curr->changeRole(new Pedestrian(curr, curr->getGenerator()));
 		} else {
-			cout <<"Unknown agent mode: " <<(*it)->mode <<endl;
+			cout <<"Unknown agent mode" <<endl;
 			return false;
 		}
 
 		//Origin, destination
-		curr->originNode = (*it)->from.location;
-		curr->destNode = (*it)->to.location;
+		//curr->originNode =
+		p.origin = (*it)->from.location;
+		//curr->destNode =
+		p.dest = (*it)->to.location;
 
 		//Start time
-		curr->setStartTime((*it)->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
+		//curr->setStartTime(
+		p.start = (*it)->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 
-		//TEMP
-		//cout <<"Starting time declared as: " <<(*it)->startTime.toString() <<"\n";
-		//cout <<"   offset from " <<ConfigParams::GetInstance().simStartTime.toString() <<" is " <<(curr->startTime/1000.0) <<"s\n";
+
+		//Add it or stash it
+		addOrStashEntity(p, active_agents, pending_agents);
 	}
 
 	return true;
@@ -183,7 +204,7 @@ bool generateAgentsFromTripChain(std::vector<Entity*>& agents)
 
 
 
-bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& agents, const std::string& agentType)
+bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType)
 {
 	//Quick check.
 	if (agentType!="pedestrian" && agentType!="driver") {
@@ -202,11 +223,19 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& agents, const 
 	config.numAgentsSkipped = 0;
 	//Loop through all agents of this type
 	for (;node;node=node->NextSiblingElement()) {
-		Person* agent = nullptr;
-		bool foundXPos = false;
-		bool foundYPos = false;
+		//Person* agent = nullptr;
 		bool foundOrigPos = false;
 		bool foundDestPos = false;
+
+		//Create an agent candidate
+		PendingEntity candidate;
+		if (agentType=="driver") {
+			candidate.type = ENTITY_DRIVER;
+		} else if (agentType=="pedestrian") {
+			candidate.type = ENTITY_PEDESTRIAN;
+		}
+
+		//Loop through attributes
 		for (TiXmlAttribute* attr=node->FirstAttribute(); attr; attr=attr->Next()) {
 			//Read each attribute.
 			std::string name = attr->NameTStr();
@@ -225,7 +254,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& agents, const 
 			}
 
 			//Create the agent if it doesn't exist
-			if (!agent) {
+			/*if (!agent) {
 				//Actually create the agent.
 				agent = new Person(config.mutexStategy);
 				if (agentType=="pedestrian") {
@@ -233,23 +262,22 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& agents, const 
 				} else if (agentType=="driver") {
 					agent->changeRole(new Driver(agent, config.mutexStategy, config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
 				}
-			}
+			}*/
+
 
 			//Assign it.
 			if (name=="xPos") {
-				agent->xPos.force(valueI);
-				foundXPos = true;
+				throw std::runtime_error("Old-style xPos not supported.");
 			} else if (name=="yPos") {
-				agent->yPos.force(valueI);
-				foundYPos = true;
+				throw std::runtime_error("Old-style yPos not supported.");
 			} else if (name=="originPos") {
 				Point2D pt;
 				if (!readPoint(value, pt)) {
 					std::cout <<"Couldn't read point from value: " <<value <<"\n";
 					return false;
 				}
-				agent->originNode = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);
-				if (!agent->originNode) {
+				candidate.origin = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);
+				if (!candidate.origin) {
 					std::cout <<"Couldn't find position: " <<pt.getX() <<"," <<pt.getY() <<"\n";
 					return false;
 				}
@@ -260,16 +288,17 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& agents, const 
 					std::cout <<"Couldn't read point from value: " <<value <<"\n";
 					return false;
 				}
-				agent->destNode = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);
-				if (!agent->destNode) {
+				candidate.dest = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);
+				if (!candidate.dest) {
 					std::cout <<"Couldn't find position: " <<pt.getX() <<"," <<pt.getY() <<"\n";
 					return false;
 				}
 				foundDestPos = true;
 			} else if (name=="time") {
-				agent->setStartTime(valueI);
+				candidate.start = valueI;
 			} else if (name=="special") {
-				agent->specialStr = value;
+				throw std::runtime_error("Special strings currently disabled.");
+				//agent->specialStr = value;
 			} else {
 				return false;
 			}
@@ -278,7 +307,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& agents, const 
 		//Optional: Only add this Agent if a path exists for it from start to finish.
 		bool checkBadPaths = true; //TODO: Migrate this flag into the config file.
 		StreetDirectory& sd = StreetDirectory::instance();
-		if (agent && foundOrigPos && foundDestPos && checkBadPaths) {
+		if (foundOrigPos && foundDestPos && checkBadPaths) {
 			bool skip = false;
 			if (agentType=="pedestrian") {
 				//For now, pedestrians can't have invalid routes.
@@ -292,7 +321,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& agents, const 
 				}*/
 			} else if (agentType=="driver") {
 				skip = true;
-				vector<WayPoint> path = sd.shortestDrivingPath(*agent->originNode, *agent->destNode);
+				vector<WayPoint> path = sd.shortestDrivingPath(*candidate.origin, *candidate.dest);
 				for (vector<WayPoint>::iterator it=path.begin(); it!=path.end(); it++) {
 					if (it->type_ == WayPoint::ROAD_SEGMENT) {
 						skip = false;
@@ -303,31 +332,34 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& agents, const 
 
 			//Is this Agent invalid?
 			if (skip) {
-				std::cout <<"Skipping agent; can't find route from: " <<agent->originNode->originalDB_ID.getLogItem() <<" to: " <<agent->destNode->originalDB_ID.getLogItem();
-				std::cout <<"   {" <<agent->originNode->location <<"=>" <<agent->destNode->location <<"}" <<std::endl;
+				std::cout <<"Skipping agent; can't find route from: " <<candidate.origin->originalDB_ID.getLogItem() <<" to: " <<candidate.dest->originalDB_ID.getLogItem();
+				std::cout <<"   {" <<candidate.origin->location <<"=>" <<candidate.dest->location <<"}" <<std::endl;
 
 				config.numAgentsSkipped++;
-				delete agent;
+				//delete agent;
 				continue;
 			}
 		}
 
 		//Simple checks
-		bool foundOldPos = foundXPos && foundYPos;
+		/*bool foundOldPos = foundXPos && foundYPos;
 		if (!foundOldPos && !foundOrigPos && !foundDestPos) {
 			std::cout <<"agent position information not found.\n";
 			return false;
-		}
+		}*/
 
 		//Slightly more complex checks
-		if (foundOldPos && (foundOrigPos || foundDestPos)) {
+		/*if (foundOldPos && (foundOrigPos || foundDestPos)) {
 			std::cout <<"agent contains both old and new-style position information.\n";
 			return false;
-		}
+		}*/
 
+
+		//Add it or stash it
+		addOrStashEntity(candidate, active_agents, pending_agents);
 
 		//Save it.
-		agents.push_back(agent);
+		//agents.push_back(agent);
 	}
 
 	return true;
@@ -733,7 +765,7 @@ void PrintDB_Network()
 
 
 //Returns the error message, or an empty string if no error.
-std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& agents)
+std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
 	//Save granularities: system
 	TiXmlHandle handle(&document);
@@ -909,17 +941,17 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& agents)
     for (vector<string>::iterator it=loadAgentOrder.begin(); it!=loadAgentOrder.end(); it++) {
     	if ((*it) == "database") {
     	    //Create an agent for each Trip Chain in the database.
-    	    if (!generateAgentsFromTripChain(agents)) {
+    	    if (!generateAgentsFromTripChain(active_agents, pending_agents)) {
     	    	return "Couldn't generate agents from trip chains.";
     	    }
     	    cout <<"Loaded Database Agents (from Trip Chains)." <<endl;
     	} else if ((*it) == "drivers") {
-    	    if (!loadXMLAgents(document, agents, "driver")) {
+    	    if (!loadXMLAgents(document, active_agents, pending_agents, "driver")) {
     	    	return	 "Couldn't load drivers";
     	    }
     		cout <<"Loaded Driver Agents (from config file)." <<endl;
     	} else if ((*it) == "pedestrians") {
-    		if (!loadXMLAgents(document, agents, "pedestrian")) {
+    		if (!loadXMLAgents(document, active_agents, pending_agents, "pedestrian")) {
     			return "Couldn't load pedestrians";
     		}
     		cout <<"Loaded Pedestrian Agents (from config file)." <<endl;
@@ -964,16 +996,16 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& agents)
     	PrintDB_Network();
     	std::cout <<"------------------\n";
     }
-    std::cout <<"  Agents Initialized: " <<agents.size() <<"\n";
-    for (size_t i=0; i<agents.size(); i++) {
+    std::cout <<"  Agents Initialized: " <<Agent::all_agents.size() <<"\n";
+    /*for (size_t i=0; i<active_agents.size(); i++) {
     	//std::cout <<"    Agent(" <<agents[i]->getId() <<") = " <<agents[i]->xPos.get() <<"," <<agents[i]->yPos.get() <<"\n";
 
-    	Person* p = dynamic_cast<Person*>(agents[i]);
+    	Person* p = dynamic_cast<Person*>(active_agents[i]);
     	if (p && p->getTripChain()) {
     		//const TripChain* const tc = p->getTripChain();
     		//std::cout <<"      Trip Chain start time: " <<tc->startTime.toString()  <<" from: " <<tc->from.description <<"(" <<tc->from.location <<") to: " <<tc->to.description <<"(" <<tc->to.location <<") mode: " <<tc->mode <<" primary: " <<tc->primary  <<" flexible: " <<tc->flexible <<"\n";
     	}
-    }
+    }*/
     std::cout <<"------------------\n";
 
     // PrintDB_Network() calls getLaneEdgePolyline() which inserts side-walks into the
@@ -996,7 +1028,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& agents)
         Signal const * signal = Signal::all_signals_[i];
         LoopDetectorEntity & loopDetector = const_cast<LoopDetectorEntity&>(signal->loopDetector());
         loopDetector.init(*signal);
-        agents.push_back(&loopDetector);
+        active_agents.push_back(&loopDetector);
     }
 
 	//No error
@@ -1018,7 +1050,7 @@ ConfigParams sim_mob::ConfigParams::instance;
 // Main external method
 //////////////////////////////////////////
 
-bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Entity*>& agents)
+bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
 	//Load our config file into an XML document object.
 	TiXmlDocument doc(configPath);
@@ -1028,7 +1060,7 @@ bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 	}
 
 	//Parse it
-	string errorMsg = loadXMLConf(doc, agents);
+	string errorMsg = loadXMLConf(doc, active_agents, pending_agents);
 	if (errorMsg.empty()) {
 		std::cout <<"XML config file loaded." <<std::endl;
 	} else {

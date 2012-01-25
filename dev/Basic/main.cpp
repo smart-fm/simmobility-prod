@@ -80,28 +80,6 @@ const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSIO
 //void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents);
 bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents);
 
-///Worker function for entity-related loading tasks.
-void entity_worker(sim_mob::Worker& wk, frame_t frameNumber)
-{
-	for (vector<Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
-		if (!(*it)->update(frameNumber)) {
-			//This Entity is done; schedule for deletion.
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
-			wk.scheduleForRemoval(*it);
-#endif
-		}
-	}
-}
-
-///Worker function for signal status loading task.
-#ifndef TEMP_FORCE_ONE_WORK_GROUP
-void signal_status_worker(sim_mob::Worker& wk, frame_t frameNumber)
-{
-	for (vector<Entity*>::iterator it=wk.getEntities().begin(); it!=wk.getEntities().end(); it++) {
-		(*it)->update(frameNumber);
-	}
-}
-#endif
 
 
 /**
@@ -126,15 +104,11 @@ bool performMain(const std::string& configFileName) {
 
 	//Loader params for our Agents
 #ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
-	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents,
-			Agent::all_agents);
+	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
 #endif
 
-	//Initialization: Scenario definition
-	vector<Entity*>& agents = Agent::all_agents;
-
 	//Load our user config file; save a handle to the shared definition of it.
-	if (!ConfigParams::InitUserConf(configFileName, agents)) { //Note: Agent "shells" are loaded here.
+	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents)) { //Note: Agent "shells" are loaded here.
 		return false;
 	}
 	const ConfigParams& config = ConfigParams::GetInstance();
@@ -161,8 +135,8 @@ bool performMain(const std::string& configFileName) {
 	WorkGroup agentWorkers(WG_AGENTS_SIZE, config.totalRuntimeTicks,
 			config.granAgentsTicks, true);
 	//Agent::TMP_AgentWorkGroup = &agentWorkers;
-	Worker::ActionFunction entityWork = boost::bind(entity_worker, _1, _2);
-	agentWorkers.initWorkers(&entityWork,
+	//Worker::ActionFunction entityWork = boost::bind(entity_worker, _1, _2);
+	agentWorkers.initWorkers(//&entityWork,
 #ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 		&entLoader
 #else
@@ -172,22 +146,11 @@ bool performMain(const std::string& configFileName) {
 
 	bool NoDynamicDispatch = ConfigParams::GetInstance().DynamicDispatchDisabled();
 
-	//Migrate all Agents from the all_agents array to the pending_agents priority queue unless they are
-	// actually starting at time tick zero.
-	vector<Entity*> starting_agents;
-	for (vector<Entity*>::iterator it = agents.begin(); it != agents.end(); it++) {
-		Entity* const ag = *it;
-		if (NoDynamicDispatch || ag->getStartTime()==0) {
-			//Only agents with a start time of zero should start immediately in the all_agents list.
-			agentWorkers.assignAWorker(ag);
-			starting_agents.push_back(ag);
-		} else {
-			//Start later.
-			Agent::pending_agents.push(ag);
-		}
+	//Add all agents to workers. If they are in all_agents, then their start times have already been taken
+	//  into account; just add them. Otherwise, by definition, they will be in pending_agents.
+	for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
+		agentWorkers.assignAWorker(*it);
 	}
-	agents.clear();
-	agents.insert(agents.end(), starting_agents.begin(), starting_agents.end());
 
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
@@ -195,8 +158,8 @@ bool performMain(const std::string& configFileName) {
 	//  TODO: There needs to be a more general way to do this.
 #ifndef TEMP_FORCE_ONE_WORK_GROUP
 	WorkGroup signalStatusWorkers(WG_SIGNALS_SIZE, config.totalRuntimeTicks, config.granSignalsTicks);
-	Worker::ActionFunction spWork = boost::bind(signal_status_worker, _1, _2);
-	signalStatusWorkers.initWorkers(&spWork, nullptr);
+	//Worker::ActionFunction spWork = boost::bind(signal_status_worker, _1, _2);
+	signalStatusWorkers.initWorkers(/*&spWork,*/ nullptr);
 #endif
 	for (size_t i = 0; i < Signal::all_signals_.size(); i++) {
 		//add by xuyan
@@ -368,7 +331,7 @@ bool performMain(const std::string& configFileName) {
 	if (!Agent::pending_agents.empty()) {
 		cout << "WARNING! There are still " << Agent::pending_agents.size()
 				<< " Agents waiting to be scheduled; next start time is: "
-				<< Agent::pending_agents.top()->getStartTime() << " ms\n";
+				<< Agent::pending_agents.top().start << " ms\n";
 		if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 			throw std::runtime_error("ERROR: pending_agents shouldn't be used if Dynamic Dispatch is disabled.");
 		}

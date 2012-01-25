@@ -52,7 +52,7 @@ public:
 	virtual ~WorkGroup();
 
 	//template <typename WorkType>  //For now, just assume Workers
-	void initWorkers(Worker::ActionFunction* action, EntityLoadParams* loader);
+	void initWorkers(/*Worker::ActionFunction* action,*/ EntityLoadParams* loader);
 
 	//Worker<EntityType>* const getWorker(size_t id);
 	void startAll();

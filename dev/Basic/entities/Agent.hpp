@@ -19,6 +19,7 @@
 #include "conf/simpleconf.hpp"
 
 #include "Entity.hpp"
+#include "PendingEntity.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -38,12 +39,12 @@ class BoundaryProcessor;
 #endif
 
 //Comparison for our priority queue
-struct cmp_agent_start : public std::less<Entity*> {
-  bool operator() (const Entity* x, const Entity* y) const;
+struct cmp_agent_start : public std::less<PendingEntity> {
+  bool operator() (const PendingEntity& x, const PendingEntity& y) const;
 };
 
 //C++ static constructors...
-class StartTimePriorityQueue : public std::priority_queue<Entity*, std::vector<Entity*>, cmp_agent_start> {
+class StartTimePriorityQueue : public std::priority_queue<PendingEntity, std::vector<PendingEntity>, cmp_agent_start> {
 };
 
 

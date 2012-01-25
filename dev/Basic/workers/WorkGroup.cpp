@@ -10,6 +10,7 @@
 #include "conf/simpleconf.hpp"
 
 #include "entities/Agent.hpp"
+#include "entities/Person.hpp"
 
 using std::map;
 using std::vector;
@@ -25,7 +26,7 @@ using namespace sim_mob;
  * Template function must be defined in the same translational unit as it is declared.
  */
 
-void sim_mob::WorkGroup::initWorkers(Worker::ActionFunction* action, EntityLoadParams* loader)
+void sim_mob::WorkGroup::initWorkers(/*Worker::ActionFunction* action, */EntityLoadParams* loader)
 {
 	this->loader = loader;
 
@@ -42,7 +43,7 @@ void sim_mob::WorkGroup::initWorkers(Worker::ActionFunction* action, EntityLoadP
 #else
 			nullptr,
 #endif
-			action, endTick, tickStep, auraManagerActive));
+			/*action,*/ endTick, tickStep, auraManagerActive));
 	}
 }
 
@@ -95,9 +96,9 @@ void sim_mob::WorkGroup::stageEntities()
 
 	//Keep assigning the next entity until none are left.
 	unsigned int nextTickMS = nextTimeTickToStage*ConfigParams::GetInstance().baseGranMS;
-	while (!loader->pending_source.empty() && loader->pending_source.top()->getStartTime() <= nextTickMS) {
+	while (!loader->pending_source.empty() && loader->pending_source.top().start <= nextTickMS) {
 		//Remove it.
-		Entity* ag = loader->pending_source.top();
+		Person* ag = Person::GeneratePersonFromPending(loader->pending_source.top());
 		loader->pending_source.pop();
 
 		if (sim_mob::Debug::WorkGroupSemantics) {

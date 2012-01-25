@@ -42,6 +42,7 @@ class Agent;
 class Person;
 class Region;
 class TripChain;
+class StartTimePriorityQueue;
 
 
 /**
@@ -136,8 +137,11 @@ public:
 	/**
 	 * Load the defualt user config file; initialize all vectors. This function must be called
 	 * once before GetInstance() will return meaningful data.
+	 *
+	 * \param active_agents Vector to hold all agents that will be active during time tick zero.
+	 * \param pending_agents Priority queue to hold all agents that will become active after time tick zero.
 	 */
-	static bool InitUserConf(const std::string& configPath, std::vector<Entity*>& agents);
+	static bool InitUserConf(const std::string& configPath, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents);
 
 	/**
 	 * Retrieve a reference to the current RoadNetwork.

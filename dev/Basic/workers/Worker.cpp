@@ -79,10 +79,10 @@ void sim_mob::Worker::scheduleEntityNow(Entity* entity)
 
 
 
-sim_mob::Worker::Worker(WorkGroup* parent, boost::barrier& internal_barr, boost::barrier& external_barr, std::vector<Entity*>* entityRemovalList, ActionFunction* action, frame_t endTick, frame_t tickStep, bool auraManagerActive)
+sim_mob::Worker::Worker(WorkGroup* parent, boost::barrier& internal_barr, boost::barrier& external_barr, std::vector<Entity*>* entityRemovalList/*, ActionFunction* action*/, frame_t endTick, frame_t tickStep, bool auraManagerActive)
     : BufferedDataManager(),
       internal_barr(internal_barr), external_barr(external_barr),
-      action(action),
+      //action(action),
       endTick(endTick),
       tickStep(tickStep),
       auraManagerActive(auraManagerActive),
@@ -262,8 +262,14 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 
 void sim_mob::Worker::perform_main(frame_t frameNumber)
 {
-	if (action) {
-		(*action)(*this, frameNumber);
+	//All Entity workers perform the same tasks for their set of managedEntities.
+	for (vector<Entity*>::iterator it=managedEntities.begin(); it!=managedEntities.end(); it++) {
+		if (!(*it)->update(frameNumber)) {
+			//This Entity is done; schedule for deletion.
+#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
+			scheduleForRemoval(*it);
+#endif
+		}
 	}
 }
 

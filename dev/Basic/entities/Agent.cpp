@@ -16,9 +16,9 @@ StartTimePriorityQueue sim_mob::Agent::pending_agents;
 vector<Entity*> sim_mob::Agent::all_agents;
 
 //Implementation of our comparison function for Agents by start time.
-bool sim_mob::cmp_agent_start::operator()(const Entity* x, const Entity* y) const {
+bool sim_mob::cmp_agent_start::operator()(const PendingEntity& x, const PendingEntity& y) const {
 	//We want a lower start time to translate into a higher priority.
-	return x->getStartTime() > y->getStartTime();
+	return x.start > y.start;
 }
 
 unsigned int sim_mob::Agent::next_agent_id = 0;

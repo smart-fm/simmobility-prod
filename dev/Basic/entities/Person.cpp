@@ -36,6 +36,13 @@ Person* sim_mob::Person::GeneratePersonFromPending(const PendingEntity& p)
 	} else {
 		throw std::runtime_error("PendingEntity currently only supports Drivers and Pedestrians.");
 	}
+
+	//Set its origin, destination, and startTime
+	res->originNode = p.origin;
+	res->destNode = p.dest;
+	res->setStartTime(p.start);
+
+	return res;
 }
 
 bool sim_mob::Person::update(frame_t frameNumber) {

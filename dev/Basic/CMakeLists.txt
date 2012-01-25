@@ -57,6 +57,21 @@ IF (SIMMOB_LATEST_STANDARD)
   ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 ENDIF(SIMMOB_LATEST_STANDARD)
 
+
+#Testing PGO: Have to pass these flags in from the command line.
+SET(TestPgoDirectory "${CMAKE_CURRENT_SOURCE_DIR}/pgo")
+IF (SIMMOBTEST_GENERATE_PROFILE)
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-generate=${TestPgoDirectory}")
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-generate=${TestPgoDirectory}")
+  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-generate=${TestPgoDirectory}")
+ENDIF(SIMMOBTEST_GENERATE_PROFILE)
+IF (SIMMOBTEST_USE_PROFILE)
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-use=${TestPgoDirectory}")
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-use=${TestPgoDirectory}")
+  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-use=${TestPgoDirectory}")
+ENDIF (SIMMOBTEST_USE_PROFILE)
+
+
 #Avoid deprecation warnings in boost by declaring that this platform has no hash_set
 # implementation (note: doesn't affect unordered_map; fixes a warning with gcc-4.5 and boost 1.42)
 IF(CMAKE_COMPILER_IS_GNUCXX)

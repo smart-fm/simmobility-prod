@@ -91,7 +91,7 @@
 </target>
 <target name="Run CMake (Z_GenProfile)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>cmake</buildCommand>
-<buildArguments>-E chdir Release/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_TESTS:BOOL=OFF -DSIMMOBTEST_GENERATE_PROFILE:BOOL=ON</buildArguments>
+<buildArguments>-E chdir Release/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_TESTS:BOOL=OFF -DSIMMOBTEST_GENERATE_PROFILE:BOOL=ON  -DSIMMOBTEST_USE_PROFILE:BOOL=OFF</buildArguments>
 <buildTarget/>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>false</useDefaultCommand>
@@ -99,7 +99,7 @@
 </target>
 <target name="Run CMake (Z_UseProfile)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>cmake</buildCommand>
-<buildArguments>-E chdir Release/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_TESTS:BOOL=OFF -DSIMMOBTEST_USE_PROFILE:BOOL=ON</buildArguments>
+<buildArguments>-E chdir Release/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_TESTS:BOOL=OFF -DSIMMOBTEST_USE_PROFILE:BOOL=ON -DSIMMOBTEST_GENERATE_PROFILE:BOOL=OFF</buildArguments>
 <buildTarget/>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>false</useDefaultCommand>
@@ -200,7 +200,7 @@
 </target>
 <target name="Run CMake (Z_GenProfile)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>cmake</buildCommand>
-<buildArguments>-E chdir Release/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_TESTS:BOOL=OFF -DSIMMOBTEST_GENERATE_PROFILE:BOOL=ON</buildArguments>
+<buildArguments>-E chdir Release/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_TESTS:BOOL=OFF -DSIMMOBTEST_GENERATE_PROFILE:BOOL=ON  -DSIMMOBTEST_USE_PROFILE:BOOL=OFF</buildArguments>
 <buildTarget/>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>false</useDefaultCommand>
@@ -208,7 +208,7 @@
 </target>
 <target name="Run CMake (Z_UseProfile)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>cmake</buildCommand>
-<buildArguments>-E chdir Release/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_TESTS:BOOL=OFF -DSIMMOBTEST_USE_PROFILE:BOOL=ON</buildArguments>
+<buildArguments>-E chdir Release/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_TESTS:BOOL=OFF -DSIMMOBTEST_USE_PROFILE:BOOL=ON -DSIMMOBTEST_GENERATE_PROFILE:BOOL=OFF</buildArguments>
 <buildTarget/>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>false</useDefaultCommand>
@@ -305,7 +305,7 @@
 </target>
 <target name="Run CMake (Z_GenProfile)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>cmake</buildCommand>
-<buildArguments>-E chdir Release/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_TESTS:BOOL=OFF -DSIMMOBTEST_GENERATE_PROFILE:BOOL=ON</buildArguments>
+<buildArguments>-E chdir Release/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_TESTS:BOOL=OFF -DSIMMOBTEST_GENERATE_PROFILE:BOOL=ON  -DSIMMOBTEST_USE_PROFILE:BOOL=OFF</buildArguments>
 <buildTarget/>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>false</useDefaultCommand>
@@ -313,7 +313,7 @@
 </target>
 <target name="Run CMake (Z_UseProfile)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
 <buildCommand>cmake</buildCommand>
-<buildArguments>-E chdir Release/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_TESTS:BOOL=OFF -DSIMMOBTEST_USE_PROFILE:BOOL=ON</buildArguments>
+<buildArguments>-E chdir Release/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_TESTS:BOOL=OFF -DSIMMOBTEST_USE_PROFILE:BOOL=ON -DSIMMOBTEST_GENERATE_PROFILE:BOOL=OFF</buildArguments>
 <buildTarget/>
 <stopOnError>true</stopOnError>
 <useDefaultCommand>false</useDefaultCommand>

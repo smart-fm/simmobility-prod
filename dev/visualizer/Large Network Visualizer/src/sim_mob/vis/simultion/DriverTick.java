@@ -7,8 +7,7 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
 
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Arc2D.Double;
+import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Hashtable;

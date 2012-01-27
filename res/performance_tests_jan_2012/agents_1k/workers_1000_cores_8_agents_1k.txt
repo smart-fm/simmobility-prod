@@ -1,0 +1,105 @@
+------------------------------------------------------
+NOTE: We need to account for this.
+------------------------------------------------------
+enum WORKGROUP_SIZES {
+	WG_AGENTS_SIZE = 1000,
+};
+------------------------------------------------------
+SKIPPED: Warmup the cache
+------------------------------------------------------
+Database lookup took: 519 ms
+Starting Agents: 8,     Pending: 1000
+Remaining Agents: 891 (Person)   8 (Other)
+   Person Agents: 891 (Driver)   0 (Pedestrian)   0 (Other)
+Simulation complete; closing worker threads.
+Done
+Elapsed: 799.33s
+Kernel: 295.59s
+User: 1212.74
+Percent CPU: 188%
+Max memory used: 152960kb
+Average total memory used: 0kb
+------------------------------------------------------
+1
+------------------------------------------------------
+Database lookup took: 1452 ms
+Starting Agents: 8,     Pending: 1000
+Remaining Agents: 891 (Person)   8 (Other)
+   Person Agents: 891 (Driver)   0 (Pedestrian)   0 (Other)
+Simulation complete; closing worker threads.
+Done
+Elapsed: 843.86s
+Kernel: 320.29s
+User: 1292.46
+Percent CPU: 191%
+Max memory used: 154384kb
+Average total memory used: 0kb
+------------------------------------------------------
+2
+------------------------------------------------------
+Database lookup took: 7255 ms
+Starting Agents: 8,     Pending: 1000
+Remaining Agents: 891 (Person)   8 (Other)
+   Person Agents: 891 (Driver)   0 (Pedestrian)   0 (Other)
+Simulation complete; closing worker threads.
+Done
+Elapsed: 853.83s
+Kernel: 319.12s
+User: 1316.72
+Percent CPU: 191%
+Max memory used: 155744kb
+Average total memory used: 0kb
+------------------------------------------------------
+3
+------------------------------------------------------
+Database lookup took: 1557 ms
+Starting Agents: 8,     Pending: 1000
+Remaining Agents: 891 (Person)   8 (Other)
+   Person Agents: 891 (Driver)   0 (Pedestrian)   0 (Other)
+Simulation complete; closing worker threads.
+Done
+Elapsed: 816.24s
+Kernel: 307.29s
+User: 1252.75
+Percent CPU: 191%
+Max memory used: 155248kb
+Average total memory used: 0kb
+------------------------------------------------------
+4
+------------------------------------------------------
+Database lookup took: 519 ms
+Starting Agents: 8,     Pending: 1000
+Remaining Agents: 889 (Person)   8 (Other)
+   Person Agents: 889 (Driver)   0 (Pedestrian)   0 (Other)
+Simulation complete; closing worker threads.
+Done
+Elapsed: 791.47s
+Kernel: 293.54s
+User: 1204.17
+Percent CPU: 189%
+Max memory used: 157024kb
+Average total memory used: 0kb
+------------------------------------------------------
+5
+------------------------------------------------------
+Database lookup took: 492 ms
+Starting Agents: 8,     Pending: 1000
+Remaining Agents: 892 (Person)   8 (Other)
+   Person Agents: 892 (Driver)   0 (Pedestrian)   0 (Other)
+Simulation complete; closing worker threads.
+Done
+Elapsed: 810.71s
+Kernel: 303.90s
+User: 1230.71
+Percent CPU: 189%
+Max memory used: 155648kb
+Average total memory used: 0kb
+------------------------------------------------------
+6
+------------------------------------------------------
+------------------------------------------------------
+7
+------------------------------------------------------
+
+
+

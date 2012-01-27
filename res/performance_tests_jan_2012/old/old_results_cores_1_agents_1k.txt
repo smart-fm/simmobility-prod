@@ -1,0 +1,178 @@
+------------------------------------------------------
+NOTE: We need to account for this.
+------------------------------------------------------
+enum WORKGROUP_SIZES {
+	WG_TRIPCHAINS_SIZE = 4,       ///<Number of trip chain workers in group.
+	WG_CREATE_AGENT_SIZE = 3,     ///<Number of agent creation workers in group.
+	WG_CHOICESET_SIZE = 6,        ///<Number of choice set workers in group.
+	WG_AGENTS_SIZE = 5,           ///<Number of agent workers in group.
+	WG_SIGNALS_SIZE = 2,          ///<Number of signal workers in group.
+	WG_SHORTEST_PATH_SIZE = 10,   ///<Number of shortest path workers in group.
+};
+------------------------------------------------------
+SKIPPED: Warmup the cache
+------------------------------------------------------
+Database lookup took: 407 ms
+Starting Agents: 8,     Pending: 1000
+Remaining Agents: 61 (Person)   8 (Other)
+   Person Agents: 61 (Driver)   0 (Pedestrian)   0 (Other)
+Simulation complete; closing worker threads.
+Done
+Elapsed: 44.56s
+Kernel: 0.61s
+User: 43.48
+Percent CPU: 98%
+Max memory used: 74640kb
+Average total memory used: 0kb
+------------------------------------------------------
+1
+------------------------------------------------------
+Database lookup took: 417 ms
+Starting Agents: 8,     Pending: 1000
+Remaining Agents: 57 (Person)   8 (Other)
+   Person Agents: 57 (Driver)   0 (Pedestrian)   0 (Other)
+Simulation complete; closing worker threads.
+Done
+Elapsed: 44.68s
+Kernel: 0.51s
+User: 43.73
+Percent CPU: 99%
+Max memory used: 73264kb
+Average total memory used: 0kb
+------------------------------------------------------
+2
+------------------------------------------------------
+Database lookup took: 410 ms
+Starting Agents: 8,     Pending: 1000
+Remaining Agents: 56 (Person)   8 (Other)
+   Person Agents: 56 (Driver)   0 (Pedestrian)   0 (Other)
+Simulation complete; closing worker threads.
+Done
+Elapsed: 40.29s
+Kernel: 0.58s
+User: 39.29
+Percent CPU: 98%
+Max memory used: 72272kb
+Average total memory used: 0kb
+------------------------------------------------------
+3
+------------------------------------------------------
+Database lookup took: 520 ms
+Starting Agents: 8,     Pending: 1000
+Remaining Agents: 70 (Person)   8 (Other)
+   Person Agents: 70 (Driver)   0 (Pedestrian)   0 (Other)
+Simulation complete; closing worker threads.
+Done
+Elapsed: 50.55s
+Kernel: 0.58s
+User: 49.39
+Percent CPU: 98%
+Max memory used: 70928kb
+Average total memory used: 0kb
+------------------------------------------------------
+4
+------------------------------------------------------
+Database lookup took: 477 ms
+Starting Agents: 8,     Pending: 1000
+Remaining Agents: 69 (Person)   8 (Other)
+   Person Agents: 69 (Driver)   0 (Pedestrian)   0 (Other)
+Simulation complete; closing worker threads.
+Done
+Elapsed: 50.01s
+Kernel: 0.56s
+User: 48.91
+Percent CPU: 98%
+Max memory used: 73008kb
+Average total memory used: 0kb
+------------------------------------------------------
+5
+------------------------------------------------------
+Database lookup took: 515 ms
+Starting Agents: 8,     Pending: 1000
+Remaining Agents: 58 (Person)   8 (Other)
+   Person Agents: 58 (Driver)   0 (Pedestrian)   0 (Other)
+Simulation complete; closing worker threads.
+Done
+Elapsed: 42.13s
+Kernel: 0.60s
+User: 40.99
+Percent CPU: 98%
+Max memory used: 75120kb
+Average total memory used: 0kb
+------------------------------------------------------
+6
+------------------------------------------------------
+Database lookup took: 3525 ms
+Starting Agents: 8,     Pending: 1000
+Remaining Agents: 58 (Person)   8 (Other)
+   Person Agents: 58 (Driver)   0 (Pedestrian)   0 (Other)
+Simulation complete; closing worker threads.
+Done
+Elapsed: 47.12s
+Kernel: 0.59s
+User: 42.84
+Percent CPU: 92%
+Max memory used: 75088kb
+Average total memory used: 0kb
+------------------------------------------------------
+7
+------------------------------------------------------
+Database lookup took: 492 ms
+Starting Agents: 8,     Pending: 1000
+Remaining Agents: 68 (Person)   8 (Other)
+   Person Agents: 68 (Driver)   0 (Pedestrian)   0 (Other)
+Simulation complete; closing worker threads.
+Done
+Elapsed: 49.82s
+Kernel: 0.60s
+User: 48.68
+Percent CPU: 98%
+Max memory used: 72832kb
+Average total memory used: 0kb
+------------------------------------------------------
+8
+------------------------------------------------------
+Database lookup took: 413 ms
+Starting Agents: 8,     Pending: 1000
+Remaining Agents: 68 (Person)   8 (Other)
+   Person Agents: 68 (Driver)   0 (Pedestrian)   0 (Other)
+Simulation complete; closing worker threads.
+Done
+Elapsed: 46.58s
+Kernel: 0.60s
+User: 45.51
+Percent CPU: 99%
+Max memory used: 72848kb
+Average total memory used: 0kb
+------------------------------------------------------
+9
+------------------------------------------------------
+Database lookup took: 508 ms
+Starting Agents: 8,     Pending: 1000
+Remaining Agents: 68 (Person)   8 (Other)
+   Person Agents: 68 (Driver)   0 (Pedestrian)   0 (Other)
+Simulation complete; closing worker threads.
+Done
+Elapsed: 50.05s
+Kernel: 0.59s
+User: 48.92
+Percent CPU: 98%
+Max memory used: 74208kb
+Average total memory used: 0kb
+------------------------------------------------------
+10
+------------------------------------------------------
+Database lookup took: 489 ms
+Starting Agents: 8,     Pending: 1000
+Remaining Agents: 69 (Person)   8 (Other)
+   Person Agents: 69 (Driver)   0 (Pedestrian)   0 (Other)
+Simulation complete; closing worker threads.
+Done
+Elapsed: 51.80s
+Kernel: 0.66s
+User: 50.60
+Percent CPU: 98%
+Max memory used: 74352kb
+Average total memory used: 0kb
+
+

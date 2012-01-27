@@ -1,0 +1,135 @@
+------------------------------------------------------
+NOTE: We need to account for this.
+------------------------------------------------------
+enum WORKGROUP_SIZES {
+	WG_AGENTS_SIZE = 8,
+};
+------------------------------------------------------
+SKIPPED: Warmup the cache
+------------------------------------------------------
+Database lookup took: 4396 ms
+Starting Agents: 8Max Agents at any given time: 2637
+,     Pending: 42065
+Remaining Agents: 2635 (Person)   8 (Other)
+   Person Agents: 2635 (Driver)   0 (Pedestrian)   0 (Other)
+WARNING! There are still 39240 Agents waiting to be scheduled; next start time is: 60004 ms
+Simulation complete; closing worker threads.
+Done
+Elapsed: 79.67s
+Kernel: 1.18s
+User: 118.46
+Percent CPU: 150%
+Max memory used: 1398048kb
+Average total memory used: 0kb
+------------------------------------------------------
+1
+------------------------------------------------------
+Database lookup took: 1453 ms
+Starting Agents: 8Max Agents at any given time: 2640
+,     Pending: 42065
+Remaining Agents: 2637 (Person)   8 (Other)
+   Person Agents: 2637 (Driver)   0 (Pedestrian)   0 (Other)
+WARNING! There are still 39240 Agents waiting to be scheduled; next start time is: 60004 ms
+Simulation complete; closing worker threads.
+Done
+Elapsed: 76.62s
+Kernel: 1.00s
+User: 116.54
+Percent CPU: 153%
+Max memory used: 1397936kb
+Average total memory used: 0kb
+------------------------------------------------------
+2
+------------------------------------------------------
+Database lookup took: 1514 ms
+Starting Agents: 8Max Agents at any given time: 2642
+,     Pending: 42065
+Remaining Agents: 2639 (Person)   8 (Other)
+   Person Agents: 2639 (Driver)   0 (Pedestrian)   0 (Other)
+WARNING! There are still 39240 Agents waiting to be scheduled; next start time is: 60004 ms
+Simulation complete; closing worker threads.
+Done
+Elapsed: 76.61s
+Kernel: 1.07s
+User: 115.38
+Percent CPU: 152%
+Max memory used: 1398368kb
+Average total memory used: 0kb
+------------------------------------------------------
+3
+------------------------------------------------------
+Database lookup took: 1462 ms
+Starting Agents: 8Max Agents at any given time: 2649
+,     Pending: 42065
+Remaining Agents: 2646 (Person)   8 (Other)
+   Person Agents: 2646 (Driver)   0 (Pedestrian)   0 (Other)
+WARNING! There are still 39240 Agents waiting to be scheduled; next start time is: 60004 ms
+Simulation complete; closing worker threads.
+Done
+Elapsed: 76.10s
+Kernel: 0.92s
+User: 113.90
+Percent CPU: 150%
+Max memory used: 1398176kb
+Average total memory used: 0kb
+------------------------------------------------------
+4
+------------------------------------------------------
+Database lookup took: 4462 ms
+Starting Agents: 8Max Agents at any given time: 2638
+,     Pending: 42065
+Remaining Agents: 2635 (Person)   8 (Other)
+   Person Agents: 2635 (Driver)   0 (Pedestrian)   0 (Other)
+WARNING! There are still 39240 Agents waiting to be scheduled; next start time is: 60004 ms
+Simulation complete; closing worker threads.
+Done
+Elapsed: 79.70s
+Kernel: 1.08s
+User: 117.27
+Percent CPU: 148%
+Max memory used: 1398000kb
+Average total memory used: 0kb
+------------------------------------------------------
+5
+------------------------------------------------------
+Database lookup took: 1490 ms
+Starting Agents: 8Max Agents at any given time: 2642
+,     Pending: 42065
+Remaining Agents: 2640 (Person)   8 (Other)
+   Person Agents: 2640 (Driver)   0 (Pedestrian)   0 (Other)
+WARNING! There are still 39240 Agents waiting to be scheduled; next start time is: 60004 ms
+Simulation complete; closing worker threads.
+Done
+Elapsed: 77.37s
+Kernel: 0.92s
+User: 119.13
+Percent CPU: 155%
+Max memory used: 1398176kb
+Average total memory used: 0kb
+------------------------------------------------------
+6
+------------------------------------------------------
+------------------------------------------------------
+7
+------------------------------------------------------
+------------------------------------------------------
+8
+------------------------------------------------------
+------------------------------------------------------
+9
+------------------------------------------------------
+------------------------------------------------------
+10
+------------------------------------------------------
+------------------------------------------------------
+11
+------------------------------------------------------
+------------------------------------------------------
+12
+------------------------------------------------------
+------------------------------------------------------
+13
+------------------------------------------------------
+
+
+

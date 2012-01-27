@@ -1,0 +1,129 @@
+------------------------------------------------------
+NOTE: We need to account for this.
+------------------------------------------------------
+enum WORKGROUP_SIZES {
+	WG_AGENTS_SIZE = 8,
+};
+------------------------------------------------------
+SKIPPED: Warmup the cache
+------------------------------------------------------
+Database lookup took: 524 ms
+Starting Agents: 8Max Agents at any given time: 953
+,     Pending: 1000
+Remaining Agents: 945 (Person)   8 (Other)
+   Person Agents: 945 (Driver)   0 (Pedestrian)   0 (Other)
+Simulation complete; closing worker threads.
+Done
+Elapsed: 481.44s
+Kernel: 13.82s
+User: 948.04
+Percent CPU: 199%
+Max memory used: 128032kb
+Average total memory used: 0kb
+------------------------------------------------------
+1
+------------------------------------------------------
+Database lookup took: 3557 ms
+Starting Agents: 8Max Agents at any given time: 952
+,     Pending: 1000
+Remaining Agents: 944 (Person)   8 (Other)
+   Person Agents: 944 (Driver)   0 (Pedestrian)   0 (Other)
+Simulation complete; closing worker threads.
+Done
+Elapsed: 482.51s
+Kernel: 14.43s
+User: 953.42
+Percent CPU: 200%
+Max memory used: 127936kb
+Average total memory used: 0kb
+------------------------------------------------------
+2
+------------------------------------------------------
+Database lookup took: 558 ms
+Starting Agents: 8Max Agents at any given time: 907
+,     Pending: 1000
+Remaining Agents: 899 (Person)   8 (Other)
+   Person Agents: 899 (Driver)   0 (Pedestrian)   0 (Other)
+Simulation complete; closing worker threads.
+Done
+Elapsed: 441.29s
+Kernel: 15.74s
+User: 881.11
+Percent CPU: 203%
+Max memory used: 122864kb
+Average total memory used: 0kb
+------------------------------------------------------
+3
+------------------------------------------------------
+Database lookup took: 3440 ms
+Starting Agents: 8Max Agents at any given time: 952
+,     Pending: 1000
+Remaining Agents: 944 (Person)   8 (Other)
+   Person Agents: 944 (Driver)   0 (Pedestrian)   0 (Other)
+Simulation complete; closing worker threads.
+Done
+Elapsed: 482.55s
+Kernel: 16.17s
+User: 950.43
+Percent CPU: 200%
+Max memory used: 127584kb
+Average total memory used: 0kb
+------------------------------------------------------
+4
+------------------------------------------------------
+Database lookup took: 1527 ms
+Starting Agents: 8Max Agents at any given time: 898
+,     Pending: 1000
+Remaining Agents: 890 (Person)   8 (Other)
+   Person Agents: 890 (Driver)   0 (Pedestrian)   0 (Other)
+Simulation complete; closing worker threads.
+Done
+Elapsed: 440.08s
+Kernel: 14.67s
+User: 878.27
+Percent CPU: 202%
+Max memory used: 120896kb
+Average total memory used: 0kb
+------------------------------------------------------
+5
+------------------------------------------------------
+Database lookup took: 3549 ms
+Starting Agents: 8Max Agents at any given time: 952
+,     Pending: 1000
+Remaining Agents: 944 (Person)   8 (Other)
+   Person Agents: 944 (Driver)   0 (Pedestrian)   0 (Other)
+Simulation complete; closing worker threads.
+Done
+Elapsed: 484.01s
+Kernel: 14.61s
+User: 944.92
+Percent CPU: 198%
+Max memory used: 130320kb
+Average total memory used: 0kb
+------------------------------------------------------
+6
+------------------------------------------------------
+------------------------------------------------------
+7
+------------------------------------------------------
+------------------------------------------------------
+8
+------------------------------------------------------
+------------------------------------------------------
+9
+------------------------------------------------------
+------------------------------------------------------
+10
+------------------------------------------------------
+------------------------------------------------------
+11
+------------------------------------------------------
+------------------------------------------------------
+12
+------------------------------------------------------
+------------------------------------------------------
+13
+------------------------------------------------------
+
+
+

@@ -1,0 +1,109 @@
+------------------------------------------------------
+NOTE: We need to account for this.
+------------------------------------------------------
+enum WORKGROUP_SIZES {
+	WG_AGENTS_SIZE = 8,
+};
+------------------------------------------------------
+SKIPPED: Warmup the cache
+------------------------------------------------------
+Database lookup took: 1469 ms
+Starting Agents: 8,     Pending: 42065
+Remaining Agents: 2647 (Person)   8 (Other)
+   Person Agents: 2647 (Driver)   0 (Pedestrian)   0 (Other)
+WARNING! There are still 39240 Agents waiting to be scheduled; next start time is: 60004 ms
+Simulation complete; closing worker threads.
+Done
+Elapsed: 81.07s
+Kernel: 0.49s
+User: 100.64
+Percent CPU: 124%
+Max memory used: 1396960kb
+Average total memory used: 0kb
+------------------------------------------------------
+1
+------------------------------------------------------
+Database lookup took: 1470 ms
+Starting Agents: 8,     Pending: 42065
+Remaining Agents: 2620 (Person)   8 (Other)
+   Person Agents: 2620 (Driver)   0 (Pedestrian)   0 (Other)
+WARNING! There are still 39240 Agents waiting to be scheduled; next start time is: 60004 ms
+Simulation complete; closing worker threads.
+Done
+Elapsed: 80.45s
+Kernel: 0.64s
+User: 100.75
+Percent CPU: 126%
+Max memory used: 1396624kb
+Average total memory used: 0kb
+------------------------------------------------------
+2
+------------------------------------------------------
+Database lookup took: 4385 ms
+Starting Agents: 8,     Pending: 42065
+Remaining Agents: 2631 (Person)   8 (Other)
+   Person Agents: 2631 (Driver)   0 (Pedestrian)   0 (Other)
+WARNING! There are still 39240 Agents waiting to be scheduled; next start time is: 60004 ms
+Simulation complete; closing worker threads.
+Done
+Elapsed: 83.30s
+Kernel: 0.70s
+User: 100.29
+Percent CPU: 121%
+Max memory used: 1397088kb
+Average total memory used: 0kb
+------------------------------------------------------
+3
+------------------------------------------------------
+Database lookup took: 1459 ms
+Starting Agents: 8,     Pending: 42065
+Remaining Agents: 2626 (Person)   8 (Other)
+   Person Agents: 2626 (Driver)   0 (Pedestrian)   0 (Other)
+WARNING! There are still 39240 Agents waiting to be scheduled; next start time is: 60004 ms
+Simulation complete; closing worker threads.
+Done
+Elapsed: 80.73s
+Kernel: 0.44s
+User: 100.65
+Percent CPU: 125%
+Max memory used: 1397632kb
+Average total memory used: 0kb
+------------------------------------------------------
+4
+------------------------------------------------------
+Database lookup took: 1458 ms
+Starting Agents: 8,     Pending: 42065
+Remaining Agents: 2628 (Person)   8 (Other)
+   Person Agents: 2628 (Driver)   0 (Pedestrian)   0 (Other)
+WARNING! There are still 39240 Agents waiting to be scheduled; next start time is: 60004 ms
+Simulation complete; closing worker threads.
+Done
+Elapsed: 80.30s
+Kernel: 0.55s
+User: 100.39
+Percent CPU: 125%
+Max memory used: 1397328kb
+Average total memory used: 0kb
+------------------------------------------------------
+5
+------------------------------------------------------
+Database lookup took: 1499 ms
+Starting Agents: 8,     Pending: 42065
+Remaining Agents: 2646 (Person)   8 (Other)
+   Person Agents: 2646 (Driver)   0 (Pedestrian)   0 (Other)
+WARNING! There are still 39240 Agents waiting to be scheduled; next start time is: 60004 ms
+Simulation complete; closing worker threads.
+Done
+Elapsed: 81.50s
+Kernel: 0.54s
+User: 101.56
+Percent CPU: 125%
+Max memory used: 1396192kb
+Average total memory used: 0kb
+------------------------------------------------------
+6
+------------------------------------------------------
+------------------------------------------------------
+7
+------------------------------------------------------
+

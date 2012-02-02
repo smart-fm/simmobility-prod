@@ -40,7 +40,7 @@ struct GapAcceptParam {
 	double stddev;
 };
 
-///Simple struct to hold mandator lane changing parameters
+///Simple struct to hold mandatory lane changing parameters
 struct MandLaneChgParam {
 	double feet_lowbound;
 	double feet_delta;

@@ -22,6 +22,8 @@ def load_road_network(road_network):
         database = Database()
         database.load(road_network)
         print "loading done."
+        # If the road network is too large, then pickle will fail.  So we disable the caching.
+        return
 
         print "caching SimMobility road network locally..."
         f = bz2.BZ2File(cache_file_name, 'wb')

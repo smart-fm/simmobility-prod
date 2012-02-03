@@ -956,7 +956,7 @@ double sim_mob::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 	return res;
 }
 
-//Helper function: check if a modified distanc is less than the current minimum and save it.
+//Helper function: check if a modified distance is less than the current minimum and save it.
 void sim_mob::Driver::check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh,
 		const Driver* other) {
 	//Subtract the size of the car from the distance between them

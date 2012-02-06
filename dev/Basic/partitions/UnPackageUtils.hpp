@@ -8,6 +8,8 @@
 #include <boost/serialization/list.hpp>
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/map.hpp>
+#include <boost/serialization/unordered_set.hpp>
+#include <boost/serialization/unordered_map.hpp>
 
 #include <sstream>
 #include <set>
@@ -15,6 +17,8 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <unordered_set>
+#include <unordered_map>
 
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/Node.hpp"
@@ -51,23 +55,60 @@ private:
 	boost::archive::text_iarchive* package;
 
 public:
-	//Basic type
-	//Include: int, double, float, bool, std::string
+	//Basic type (DATA_TYPE)
+	//Includes: int, double, float, bool, std::string
+	//(Can not be pointer, struct, class, union)
 	template<class DATA_TYPE>
-	DATA_TYPE unpackageBasicData();
+	inline DATA_TYPE unpackageBasicData()
+	{
+		DATA_TYPE value;
+		(*package) & value;
+		return value;
+	}
 
-	//STL: return value
+	//Basic type (DATA_TYPE)
+	//Includes: int, double, float, bool, std::string
+	//(Can not be pointer, struct, class, union)
 	template<class DATA_TYPE>
-	std::list<DATA_TYPE> unpackageBasicDataList();
+	inline std::list<DATA_TYPE> unpackageBasicDataList() const
+	{
+		std::list<DATA_TYPE> value;
+		(*package) & value;
+		return value;
+	}
 
+	//Basic type (DATA_TYPE)
+	//Includes: int, double, float, bool, std::string
+	//(Can not be pointer, struct, class, union)
 	template<class DATA_TYPE>
-	std::vector<DATA_TYPE> unpackageBasicDataVector();
+	inline std::vector<DATA_TYPE> unpackageBasicDataVector() const
+	{
+		std::vector<DATA_TYPE> value;
+		(*package) & value;
+		return value;
+	}
 
+	//Basic type (DATA_TYPE)
+	//Includes: int, double, float, bool, std::string
+	//(Can not be pointer, struct, class, union)
 	template<class DATA_TYPE>
-	std::set<DATA_TYPE> unpackageBasicDataSet();
+	inline std::set<DATA_TYPE> unpackageBasicDataSet() const
+	{
+		std::set<DATA_TYPE> value;
+		(*package) & value;
+		return value;
+	}
 
+	//Basic type (DATA_TYPE)
+	//Includes: int, double, float, bool, std::string
+	//(Can not be pointer, struct, class, union)
 	template<class DATA_TYPE_1, class DATA_TYPE_2>
-	std::map<DATA_TYPE_1, DATA_TYPE_2> unpackageBasicDataMap();
+	inline std::map<DATA_TYPE_1, DATA_TYPE_2> unpackageBasicDataMap() const
+	{
+		std::map<DATA_TYPE_1, DATA_TYPE_2> value;
+		(*package) & value;
+		return value;
+	}
 
 	//Road Network
 	const Node* unpackageNode();
@@ -98,42 +139,5 @@ private:
 public:
 	friend class BoundaryProcessor;
 };
-
-template<class DATA_TYPE>
-DATA_TYPE UnPackageUtils::unpackageBasicData() {
-	DATA_TYPE value;
-	(*package) & value;
-	return value;
-}
-
-//STL: return value
-template<class DATA_TYPE>
-std::list<DATA_TYPE> UnPackageUtils::unpackageBasicDataList() {
-	std::list<DATA_TYPE> value;
-	(*package) & value;
-	return value;
-}
-
-template<class DATA_TYPE>
-std::vector<DATA_TYPE> UnPackageUtils::unpackageBasicDataVector() {
-	std::vector<DATA_TYPE> value;
-	(*package) & value;
-	return value;
-}
-
-template<class DATA_TYPE>
-std::set<DATA_TYPE> UnPackageUtils::unpackageBasicDataSet() {
-	std::set<DATA_TYPE> value;
-	(*package) & value;
-	return value;
-}
-
-template<class DATA_TYPE_1, class DATA_TYPE_2>
-std::map<DATA_TYPE_1, DATA_TYPE_2> UnPackageUtils::unpackageBasicDataMap() {
-	std::map<DATA_TYPE_1, DATA_TYPE_2> value;
-	(*package) & value;
-	return value;
-}
-
 }
 #endif

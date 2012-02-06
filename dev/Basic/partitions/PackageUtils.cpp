@@ -264,7 +264,7 @@ void PackageUtils::packageIntersectionDrivingModel(SimpleIntDrivingModel* one_mo
 }
 
 void PackageUtils::packageFixedDelayedDPoint(FixedDelayed<DPoint*>& one_delay) {
-	(*package) & (one_delay.delayMS);
+	//(*package) & (one_delay.delayMS);
 	(*package) & (one_delay.reclaimPtrs);
 
 	int list_size = one_delay.history.size();
@@ -282,7 +282,7 @@ void PackageUtils::packageFixedDelayedDPoint(FixedDelayed<DPoint*>& one_delay) {
 }
 
 void PackageUtils::packageFixedDelayedDouble(FixedDelayed<double>& one_delay) {
-	(*package) & (one_delay.delayMS);
+	//(*package) & (one_delay.delayMS);
 	(*package) & (one_delay.reclaimPtrs);
 
 
@@ -301,7 +301,7 @@ void PackageUtils::packageFixedDelayedDouble(FixedDelayed<double>& one_delay) {
 }
 
 void PackageUtils::packageFixedDelayedInt(FixedDelayed<int>& one_delay) {
-	(*package) & (one_delay.delayMS);
+	//(*package) & (one_delay.delayMS);
 	(*package) & (one_delay.reclaimPtrs);
 
 	int list_size = one_delay.history.size();

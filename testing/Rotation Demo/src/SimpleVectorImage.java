@@ -14,6 +14,9 @@ public class SimpleVectorImage {
 	//No-argument constructor; required for gson
 	private SimpleVectorImage() {}
 	
+	//Debug property
+	public static Color DrawBufferColor = null;
+	
 	//Gson properties
 	private CoordinateSystem coordinates;
 	private IndexedColor[] colors;
@@ -92,6 +95,12 @@ public class SimpleVectorImage {
 		BufferedImage img = new BufferedImage((int)Math.ceil(scaleSizeD[0])+1, (int)Math.ceil(scaleSizeD[1])+1, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g = (Graphics2D)img.getGraphics();
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		
+		//Fill bounding box if requested
+		if (DrawBufferColor!=null) {
+			g.setColor(DrawBufferColor);
+			g.fillRect(0,  0, img.getWidth(), img.getHeight());
+		}
 		
 		//Create a transformation for this angle/scale. Translate to the center of the image.
 		AffineTransform at = AffineTransform.getTranslateInstance(img.getWidth()/2.0, img.getHeight()/2.0);

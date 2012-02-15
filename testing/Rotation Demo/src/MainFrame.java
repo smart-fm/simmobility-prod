@@ -94,6 +94,10 @@ public class MainFrame extends JFrame {
 		scaleAmt.setMajorTickSpacing(100);
 		scaleAmt.setMinorTickSpacing(10);
 		
+		//Label/checkbox: fill background buffer?
+		JLabel fillBufferLbl = new JLabel("Image Buffer");
+		JCheckBox fillBufferCheck = new JCheckBox("Draw");
+		
 		//Sub-panel 1
 		JPanel lSub = new JPanel(new BorderLayout());
 		lSub.add(BorderLayout.NORTH, new JLabel("Vector Image"));
@@ -112,6 +116,11 @@ public class MainFrame extends JFrame {
 		lSub.add(BorderLayout.CENTER, scaleAmt);
 		lPnl = addInitPanel(lPnl, lSub);
 		
+		//Sub-panel 4
+		lSub = new JPanel(new BorderLayout());
+		lSub.add(BorderLayout.NORTH, fillBufferLbl);
+		lSub.add(BorderLayout.CENTER, fillBufferCheck);
+		lPnl = addInitPanel(lPnl, lSub);
 		
 		
 		//Right panel
@@ -128,6 +137,9 @@ public class MainFrame extends JFrame {
 		
 		scaleAmt.addChangeListener(new ScaleLblChangeListener(scaleAmt, scaleLbl, vectPnl));
 		scaleAmt.setValue(0);
+		
+		fillBufferCheck.addActionListener(new CheckBackgroundFillListener(fillBufferCheck, vectPnl));
+		fillBufferCheck.setSelected(false);
 		
 		
 	}
@@ -166,6 +178,16 @@ public class MainFrame extends JFrame {
 		public void stateChanged(ChangeEvent arg0) {
 			lbl.setText("Scale (" + slide.getValue() + "%)");
 			vectPnl.setCurrScale(slide.getValue());
+		}
+	}
+	
+	class CheckBackgroundFillListener implements ActionListener {
+		JCheckBox fillBufferCheck;
+		VectImgPanel vectPnl;
+		public CheckBackgroundFillListener(JCheckBox fillBufferCheck, VectImgPanel vectPnl) { this.fillBufferCheck=fillBufferCheck; this.vectPnl=vectPnl; }
+		public void actionPerformed(ActionEvent e) {
+			SimpleVectorImage.DrawBufferColor = fillBufferCheck.isSelected() ? Color.cyan : null;
+			vectPnl.repaint();
 		}
 	}
 	

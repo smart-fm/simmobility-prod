@@ -1,11 +1,7 @@
 import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.awt.geom.Point2D.Double;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-
 import javax.swing.*;
 
 
@@ -62,6 +58,8 @@ public class VectImgPanel extends JPanel {
 		
 		//Paint background
 		super.paintComponent(g);
+		g.setColor(Color.darkGray);
+		g.fillRect(0, 0, getWidth(), getHeight());
 		
 		//Anything to draw?
 		if (currImg==null) {
@@ -80,8 +78,9 @@ public class VectImgPanel extends JPanel {
 		
 		//Draw the current image in the center
 		BufferedImage img = currImg.getImage(currScale/100.0, currAngle);
-		g.drawImage(img, getWidth()/2-img.getWidth()/2, getHeight()/2-img.getHeight()/2, null);
-		
-
+		AffineTransform at = AffineTransform.getTranslateInstance(getWidth()/2.0, getHeight()/2.0);
+		at.translate(-img.getWidth()/2.0, -img.getHeight()/2.0);
+		g.setTransform(at);
+		g.drawImage(img, 0, 0, null);
 	}
 }

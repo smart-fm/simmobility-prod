@@ -157,7 +157,8 @@ public class SimpleVectorImage {
 	//Draw a single instance.
 	private void draw(Graphics2D g) {
 		//Amount to subtract from each component to get a centered version.
-		float[] off = new float[]{(int)Math.ceil(coordinates.getWidth()/2.0), (int)Math.ceil(coordinates.getHeight()/2.0)};
+		float[] off = new float[]{coordinates.getWidth()/2.0F, coordinates.getHeight()/2.0F};
+				//new float[]{(int)Math.ceil(coordinates.getWidth()/2.0), (int)Math.ceil(coordinates.getHeight()/2.0)};
 		
 		//Draw each VectorItem
 		for (VectorItem item : drawOrder) {

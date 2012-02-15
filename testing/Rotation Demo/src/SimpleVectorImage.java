@@ -117,6 +117,11 @@ public class SimpleVectorImage {
 	private void draw(Graphics2D g) {
 		//Amount to subtract from each component to get a centered version.
 		float[] off = new float[]{(int)Math.ceil(coordinates.getWidth()/2.0), (int)Math.ceil(coordinates.getHeight()/2.0)};
+		off = new float[]{coordinates.getWidth()/2.0F, coordinates.getHeight()/2.0F};
+		System.out.println("Offset is: (" + off[0] + "," + off[1] + ")");
+		System.out.println("Coords are: (" + coordinates.getWidth() + "," + coordinates.getHeight() +")");
+		
+		
 		
 		//Draw each VectorItem
 		for (VectorItem item : drawOrder) {
@@ -169,7 +174,7 @@ public class SimpleVectorImage {
 		if (shapeType.equals("poly")) {
 			int[] xPoints = new int[points.length/2];
 			int[] yPoints = new int[points.length/2];
-			splitToPlanarArrays(points, off, xPoints, yPoints);
+			splitToPlanarArrays(points, off, xPoints, yPoints);			
 			g.fillPolygon(xPoints, yPoints, xPoints.length);
 		} else {
 			throw new RuntimeException("Unknown shape: " + shapeType);
@@ -187,6 +192,12 @@ public class SimpleVectorImage {
 			if (points.length!=4) {
 				throw new RuntimeException("Points array must contain four items for a line.");
 			}
+			
+			//TEMP
+			System.out.println("Drawing line onto coordinate system  (" + coordinates.getWidth() + "," + coordinates.getHeight() +")");
+			System.out.println("   (" + (points[0]-off[0]) + "," + (points[1]-off[1]) + ")");
+			System.out.println("   (" + (points[2]-off[0]) + "," + (points[3]-off[1]) + ")");
+			
 			g.drawLine((int)(points[0]-off[0]), (int)(points[1]-off[1]), (int)(points[2]-off[0]), (int)(points[3]-off[1]));
 		} else {
 			throw new RuntimeException("Unknown shape: " + shapeType);

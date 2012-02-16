@@ -36,7 +36,7 @@ BusRoute MakeSampleRoute(const vector<const RoadSegment*>& path)
 
 
 sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat, unsigned int reacTime_LeadingVehicle, unsigned int reacTime_SubjectVehicle, unsigned int reacTime_Gap)
-	: Driver(parent, mtxStrat, reacTime_LeadingVehicle, reacTime_SubjectVehicle, reacTime_Gap), nextStop(nullptr)
+	: Driver(parent, mtxStrat, reacTime_LeadingVehicle, reacTime_SubjectVehicle, reacTime_Gap), nextStop(nullptr), waitAtStopMS(0.0)
 {
 }
 
@@ -70,55 +70,40 @@ void sim_mob::BusDriver::frame_init(UpdateParams& p)
 	} else {
 		throw std::runtime_error("Vehicle could not be created for bus driver; no route!");
 	}
+
+	//Unique to BusDrivers: reset your route
+	route.reset();
+	nextStop = route.getCurrentStop();
+	waitAtStopMS = 0.0;
 }
 
 //Main update functionality
 void sim_mob::BusDriver::frame_tick(UpdateParams& p)
 {
-/*	DriverUpdateParams& p2 = dynamic_cast<DriverUpdateParams&>(p);
+	//Call the parent's tick function
+	Driver::frame_tick(p);
 
-	//Are we done already?
-	if (vehicle->isDone()) {
-		parent->setToBeRemoved();
-		return;
-	}
+	//Driver::frame_tick() will move the Bus along its route.
+	// If a Bus Stop has been reached, then a forced stop is performed,
+	// and the variable "waitAtStopMS" is set to >0. This is where we react to it.
+	if (waitAtStopMS>0.0) {
+		waitAtStopMS = std::max(0.0, waitAtStopMS-p.currTimeMS);
+		if (waitAtStopMS <= 0.0) {
+			//Done waiting at the bus stop.
+			Bus* bus = dynamic_cast<Bus*>(vehicle);
+			if (!bus) {
+				return; //TODO: Bus drivers should always have a Bus, by design...
+			}
 
-	//Just a bit glitchy...
-	updateAdjacentLanes(p2);
+			//Pick up a semi-random number of passengers
+			int pCount = reinterpret_cast<intptr_t>(bus) % 50;
+			bus->setPassengerCount(pCount);
 
-	//retrieved their current "sensed" values.
-	if (perceivedVelocity.can_sense(p.currTimeMS)) {
-		p2.perceivedFwdVelocity = perceivedVelocity.sense(p.currTimeMS,0)->x;
-		p2.perceivedLatVelocity = perceivedVelocity.sense(p.currTimeMS,0)->y;
-	}
-
-	//General update behavior.
-	//Note: For now, most updates cannot take place unless there is a Lane and vehicle.
-	if (p2.currLane && vehicle) {
-
-		if (update_sensors(p2, p.frameNumber) && update_movement(p2, p.frameNumber) && update_post_movement(p2, p.frameNumber)) {
-
-			//Update parent data. Only works if we're not "done" for a bad reason.
-			setParentBufferedData();
+			//Advance your route. This will cause the Bus to start moving again.
+			route.advance();
+			nextStop = route.getCurrentStop();
 		}
 	}
-
-
-	//Update our Buffered types
-	//TODO: Update parent buffered properties, or perhaps delegate this.
-	//	currLane_.set(params.currLane);
-	//	currLaneOffset_.set(params.currLaneOffset);
-	//	currLaneLength_.set(params.currLaneLength);
-	if (!vehicle->isInIntersection()) {
-		currLane_.set(vehicle->getCurrLane());
-		currLaneOffset_.set(vehicle->getDistanceMovedInSegment());
-		currLaneLength_.set(vehicle->getCurrLinkLaneZeroLength());
-	}
-
-	isInIntersection.set(vehicle->isInIntersection());
-	//Update your perceptions
-	perceivedVelocity.delay(new DPoint(vehicle->getVelocity(), vehicle->getLatVelocity()), p.currTimeMS);
-	//Print output for this frame.*/
 }
 
 void sim_mob::BusDriver::frame_tick_output(const UpdateParams& p)

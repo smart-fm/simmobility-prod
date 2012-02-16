@@ -41,6 +41,7 @@ protected:
 private:
 	BusRoute route;
 	const BusStop* nextStop;
+	double waitAtStopMS;
 
 
 	//Serialization

@@ -15,7 +15,7 @@ using std::vector;
 namespace {
 
 //Create a simple route via the following rules:
-//   1) Every other road segment (starting with the second) has a
+//   1) Every other road segment (starting with the first) has a
 //      bus stop.
 //   2) The first of these is located 30% down the road, the second is
 //      60% down the road, and all others are 50% down the road.
@@ -23,7 +23,7 @@ namespace {
 BusRoute MakeSampleRoute(const vector<const RoadSegment*>& path)
 {
 	vector<DemoBusStop> res;
-	for (size_t i=1; i<path.size(); i+=2) {
+	for (size_t i=0; i<path.size(); i+=2) {
 		DemoBusStop next;
 		next.seg = path.at(i);
 		next.percent = (i==1?0.3:i==3?0.6:0.5);

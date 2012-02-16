@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Driver.hpp"
+#include "entities/vehicle/BusRoute.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -21,7 +22,7 @@ namespace sim_mob
  */
 class BusDriver : public sim_mob::Driver {
 public:
-	BusDriver(Person* parent, sim_mob::MutexStrategy mtxStrat, unsigned int reacTime_LeadingVehicle, unsigned int reacTime_SubjectVehicle, unsigned int reacTime_Gap);
+	BusDriver(sim_mob::Person* parent, sim_mob::MutexStrategy mtxStrat, unsigned int reacTime_LeadingVehicle, unsigned int reacTime_SubjectVehicle, unsigned int reacTime_Gap);
 
 	//Overrides
 	virtual void frame_init(UpdateParams& p);

@@ -12,6 +12,7 @@
 
 #include "geospatial/RoadSegment.hpp"
 #include "util/LangHelpers.hpp"
+#include "util/GeomHelpers.hpp"
 #include "metrics/Frame.hpp"
 
 
@@ -40,7 +41,7 @@ public:
 
 	///Have we reached this bus stop?
 	bool atOrPastBusStop(const RoadSegment* curr, const double distTraveledOnSegmentZeroLane) {
-		const std::vector<Point2D>& poly = seg->getLaneEdgePolyline(0);
+		const std::vector<Point2D>& poly = const_cast<RoadSegment*>(seg)->getLaneEdgePolyline(0);
 		double totalDist = 0.0;
 		for (std::vector<Point2D>::const_iterator it=poly.begin(); it!=poly.end(); it++) {
 			if (it!=poly.begin()) {

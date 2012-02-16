@@ -1,7 +1,7 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 /*
- * \file Vehicle.h
+ * \file Vehicle.hpp
  *
  * \author Li Zhemin
  * \author Seth N. Hetu

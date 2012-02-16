@@ -3,6 +3,7 @@ dev/Basic/Debug/*
 dev/Basic/Debug_M/*
 dev/Basic/Release/*
 dev/Basic/doxy/output/
+dev/Basic/pgo/*
 
 #Java project built files
 dev/visualizer/Traffic_Signal_Animation/.settings/
@@ -29,6 +30,9 @@ testing/RoadNetworkSampleVis/applet/
 #Ignore python's compiled byte-code, optimized or otherwise.
 *.pyc
 *.pyo
+
+#Ignore video files (binary files really mess up git)
+*.mp4
 
 #Don't ignore gitignore files:
 !.gitignore

@@ -84,11 +84,12 @@ public:
 	Shared<bool> isInIntersection;
 
 //Basic data
-private:
+protected:
 	//unsigned int currTimeMS;
 	//Pointer to the vehicle this driver is controlling.
 	Vehicle* vehicle;
 
+private:
 	//Temporary variable which will be flushed each time tick. We save it
 	// here to avoid constantly allocating and clearing memory each time tick.
 	DriverUpdateParams params;

@@ -44,7 +44,7 @@ protected:
 
 private:
 	BusRoute route;
-	const BusStop* nextStop;
+	const DemoBusStop* nextStop;
 	double waitAtStopMS;
 
 

@@ -29,18 +29,18 @@ class UnPackageUtils;
 /**
  * A simple RoadSegment+percent offset for representing bus stops. See: BusRoute class.
  */
-class BusStop {
+class DemoBusStop {
 public:
 	const sim_mob::RoadSegment* seg;
 	double percent;
 
 	///Is there a bus stop on the current road segment?
-	bool isBusStopOnCurrSegment(const RoadSegment* curr) {
+	bool isBusStopOnCurrSegment(const RoadSegment* curr) const {
 		return seg==curr;
 	}
 
 	///Have we reached this bus stop?
-	bool atOrPastBusStop(const RoadSegment* curr, const double distTraveledOnSegmentZeroLane) {
+	bool atOrPastBusStop(const RoadSegment* curr, const double distTraveledOnSegmentZeroLane) const {
 		const std::vector<Point2D>& poly = const_cast<RoadSegment*>(seg)->getLaneEdgePolyline(0);
 		double totalDist = 0.0;
 		for (std::vector<Point2D>::const_iterator it=poly.begin(); it!=poly.end(); it++) {
@@ -60,7 +60,11 @@ public:
  */
 class BusRoute {
 public:
-	BusRoute(std::vector<BusStop> stops) : stops(stops) {
+	/*BusRoute() : stops(std::vector<BusStop>()) { //No route; still allowed.
+		reset();
+	}*/
+
+	explicit BusRoute(std::vector<DemoBusStop> stops=std::vector<DemoBusStop>()) : stops(stops) {
 		//Start driving at the beginning
 		reset();
 	}
@@ -74,7 +78,7 @@ public:
 			currStop++;
 		}
 	}
-	const BusStop* getCurrentStop() {
+	const DemoBusStop* getCurrentStop() const {
 		if (currStop!=stops.end()) {
 			return &(*currStop);
 		}
@@ -83,8 +87,8 @@ public:
 
 
 private:
-	const std::vector<BusStop> stops;
-	std::vector<BusStop>::const_iterator currStop;
+	std::vector<DemoBusStop> stops;
+	std::vector<DemoBusStop>::const_iterator currStop;
 
 
 #ifndef SIMMOB_DISABLE_MPI

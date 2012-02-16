@@ -16,7 +16,8 @@ namespace sim_mob{
    * \author Skyler Seto
    * \author Seth N. Hetu
    */
-	class Busroute: public Route {
+  //I am disabling this temporarily; see vehicle/BusRoute.hpp ~Seth
+	/*class Busroute: public Route {
 	public:
 		struct Way_point {
 			enum { LANE, BUS_STOP } type;
@@ -29,6 +30,6 @@ namespace sim_mob{
 
 		std::vector<Way_point*> Bus_route;
 
-	};		
+	};*/
 	
 }

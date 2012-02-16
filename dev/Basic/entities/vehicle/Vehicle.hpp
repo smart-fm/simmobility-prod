@@ -33,6 +33,9 @@ public:
 	Vehicle();  //There is no wpPoint to initialize one Vehicle when crossing
 	Vehicle(const Vehicle& copy); ///<Copy constructor
 
+	//Enable polymorphism
+	virtual ~Vehicle(){}
+
 public:
 	const double length;  ///<length of the vehicle
 	const double width;   ///<width of the vehicle

@@ -22,9 +22,9 @@ namespace {
 
 BusRoute MakeSampleRoute(const vector<const RoadSegment*>& path)
 {
-	vector<BusStop> res;
+	vector<DemoBusStop> res;
 	for (size_t i=1; i<path.size(); i+=2) {
-		BusStop next;
+		DemoBusStop next;
 		next.seg = path.at(i);
 		next.percent = (i==1?0.3:i==3?0.6:0.5);
 		res.push_back(next);
@@ -42,7 +42,7 @@ sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat, unsigned i
 
 void sim_mob::BusDriver::setRoute(const BusRoute& route)
 {
-	route = route;
+	this->route = route;
 	nextStop = route.getCurrentStop();
 }
 

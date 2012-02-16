@@ -28,7 +28,8 @@ public:
 	: Vehicle(*clone), passengerCount(0), route(route)
 	{}
 
-	int getPassengerCount() { return passengerCount; }
+	int getPassengerCount() const { return passengerCount; }
+	void setPassengerCount(int val) { passengerCount = val; }
 
 private:
 	int passengerCount;

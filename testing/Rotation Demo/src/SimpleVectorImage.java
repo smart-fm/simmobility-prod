@@ -108,17 +108,21 @@ public class SimpleVectorImage {
 		at.rotate((Math.PI*rotateAngleDegrees)/180);
 		g.setTransform(at);
 		
+		//Compute the offset. This is the amount to subtract from each component to center it (so we can
+		//  draw rotations easily). Unfortunately, this requires taking scale into account.
+		//There's probably a better (mathematical) way of computing this, but since we always add "1"
+		//  we are probably safe just subtracting half a pixel to each.
+		float[] offset = new float[] { coordinates.getWidth()/2.0F-0.5F, coordinates.getHeight()/2.0F-0.5F};
+		
 		//Now draw it.
-		draw(g);
+		draw(g, offset);
 		return img;
 	}
 	
 	//Draw a single instance.
-	private void draw(Graphics2D g) {
-		//Amount to subtract from each component to get a centered version.
-		float[] off = new float[]{(int)Math.ceil(coordinates.getWidth()/2.0), (int)Math.ceil(coordinates.getHeight()/2.0)};
-		off = new float[]{coordinates.getWidth()/2.0F, coordinates.getHeight()/2.0F};
-		System.out.println("Offset is: (" + off[0] + "," + off[1] + ")");
+	private void draw(Graphics2D g, float[] offset) {
+		//Offset = Amount to subtract from each component to get a centered version.
+		System.out.println("Offset is: (" + offset[0] + "," + offset[1] + ")");
 		System.out.println("Coords are: (" + coordinates.getWidth() + "," + coordinates.getHeight() +")");
 		
 		
@@ -143,13 +147,13 @@ public class SimpleVectorImage {
 				} else {
 					throw new RuntimeException("No background or gradient for item.");
 				}
-				fillPoints(g, item.getShape(), item.getPoints(), off);
+				fillPoints(g, item.getShape(), item.getPoints(), offset);
 			}
 			
 			//Draw the stroke
 			g.setColor(getColor(item.getStroke()));
 			g.setStroke(new BasicStroke(item.getWidth()));
-			drawPoints(g, item.getShape(), item.getPoints(), off);
+			drawPoints(g, item.getShape(), item.getPoints(), offset);
 		}
 	}
 	

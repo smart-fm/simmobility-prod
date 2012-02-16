@@ -148,6 +148,9 @@ public:
 	//This is probably ok.
 	const double getVehicleLength() const { return vehicle->length; }
 
+protected:
+	virtual double updatePositionOnLink(DriverUpdateParams& p);
+
 private:
 	bool isCloseToLinkEnd(DriverUpdateParams& p) const;
 	bool isPedestrianOnTargetCrossing() const;
@@ -160,7 +163,6 @@ private:
 	void justLeftIntersection(DriverUpdateParams& p);
 	void updateAdjacentLanes(DriverUpdateParams& p);
 	void updateVelocity();
-	double updatePositionOnLink(DriverUpdateParams& p);
 	void setBackToOrigin();
 
 	void updateNearbyAgents(DriverUpdateParams& params);

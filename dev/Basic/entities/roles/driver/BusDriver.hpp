@@ -38,6 +38,9 @@ protected:
 	//Vehicle* vehicle;  //NOTE: I'm not sure what the best way is in C++ to say that
 	//                   //      the PARENT class maintains a vehicle but we maintain a Bus*.
 
+	//Override the following behavior
+	virtual double updatePositionOnLink(DriverUpdateParams& p);
+
 private:
 	BusRoute route;
 	const BusStop* nextStop;

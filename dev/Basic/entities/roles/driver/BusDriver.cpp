@@ -77,6 +77,29 @@ void sim_mob::BusDriver::frame_init(UpdateParams& p)
 	waitAtStopMS = 0.0;
 }
 
+
+double sim_mob::BusDriver::updatePositionOnLink(DriverUpdateParams& p)
+{
+	//First, have we just passed a bus stop? (You'll have to modify this to
+	//   detect them in advance, but the concept's similar)
+	bool atBusStop = nextStop && nextStop->atOrPastBusStop(vehicle->getCurrSegment(), vehicle->getDistanceMovedInSegment());
+
+	//If we are moving, then (optionally) decelerate and call normal update behavior.
+	if (vehicle->getVelocity()>0 || vehicle->getLatVelocity()>0) {
+		if (atBusStop) {
+			vehicle->setAcceleration(-300); //Force stop.
+		}
+		Driver::updatePositionOnLink(p);
+	} else {
+		//We're stopped. Is it for a bus stop? If so, set waitAtStopMS if it's not already set
+		if (atBusStop && waitAtStopMS<=0.0) {
+			waitAtStopMS = 10000; //Stop for 10s (temp)
+		}
+	}
+
+}
+
+
 //Main update functionality
 void sim_mob::BusDriver::frame_tick(UpdateParams& p)
 {

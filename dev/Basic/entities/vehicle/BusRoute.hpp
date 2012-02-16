@@ -39,7 +39,7 @@ public:
 	}
 
 	///Have we reached this bus stop?
-	bool atOrPastBusStop(const RoadSegment* curr, const centimeter_t distTraveledOnSegmentZeroLane) {
+	bool atOrPastBusStop(const RoadSegment* curr, const double distTraveledOnSegmentZeroLane) {
 		const std::vector<Point2D>& poly = seg->getLaneEdgePolyline(0);
 		double totalDist = 0.0;
 		for (std::vector<Point2D>::const_iterator it=poly.begin(); it!=poly.end(); it++) {
@@ -47,7 +47,7 @@ public:
 				totalDist += sim_mob::dist(*it, *(it-1));
 			}
 		}
-		return isBusStopOnCurrSegment(curr) && (distTraveledOnSegment >= percent*totalDist);
+		return isBusStopOnCurrSegment(curr) && (distTraveledOnSegmentZeroLane >= percent*totalDist);
 	}
 };
 

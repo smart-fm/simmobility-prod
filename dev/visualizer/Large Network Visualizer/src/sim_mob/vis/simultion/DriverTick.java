@@ -38,9 +38,9 @@ public class DriverTick extends AgentTick {
 	private static SimpleVectorImage FakeBusImg;
 	private static SimpleVectorImage FakeTruckImg;
 	
-	private static Stroke debugStr = new BasicStroke(1.0F);
-	private static Color debugClr = new Color(0x00, 0x00, 0x66);
-	private static Font idFont = new Font("Arial", Font.PLAIN, 10);
+	protected static Stroke debugStr = new BasicStroke(1.0F);
+	protected static Color debugClr = new Color(0x00, 0x00, 0x66);
+	protected static Font idFont = new Font("Arial", Font.PLAIN, 10);
 	private static final String[] CarBkgdColorIDs = new String[] {
 		"body1", "body2", "window1", "window2", "wheel"
 	};

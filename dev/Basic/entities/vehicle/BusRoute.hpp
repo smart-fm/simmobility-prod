@@ -48,6 +48,10 @@ public:
 				totalDist += sim_mob::dist(*it, *(it-1));
 			}
 		}
+
+		//std::cout <<"Test: " <<distTraveledOnSegmentZeroLane <<" => " <<totalDist <<"\n";
+		//throw 1;
+
 		return isBusStopOnCurrSegment(curr) && (distTraveledOnSegmentZeroLane >= percent*totalDist);
 	}
 };

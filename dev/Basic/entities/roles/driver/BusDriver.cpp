@@ -38,14 +38,13 @@ BusRoute MakeSampleRoute(const vector<const RoadSegment*>& path)
 sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat, unsigned int reacTime_LeadingVehicle, unsigned int reacTime_SubjectVehicle, unsigned int reacTime_Gap)
 	: Driver(parent, mtxStrat, reacTime_LeadingVehicle, reacTime_SubjectVehicle, reacTime_Gap), nextStop(nullptr), waitAtStopMS(0.0)
 {
-
 }
 
-void sim_mob::BusDriver::setRoute(const BusRoute& route)
+/*void sim_mob::BusDriver::setRoute(const BusRoute& route)
 {
 	this->route = route;
-	nextStop = route.getCurrentStop();
-}
+	nextStop = this->route.getCurrentStop();
+}*/
 
 
 void sim_mob::BusDriver::frame_init(UpdateParams& p)
@@ -61,9 +60,9 @@ void sim_mob::BusDriver::frame_init(UpdateParams& p)
 	//initializePath() actually creates a Vehicle. We want Vehicle to be a "Bus",
 	// so we need to recreate it here. This will require a new property, "route", which
 	// contains the Bus route. For now, we can just generate a simple route.
-	Vehicle* oldVehicle = vehicle;
-	vehicle = new Bus(MakeSampleRoute(vehicle->getCompletePath()), vehicle);
-	delete oldVehicle;
+	Bus* bus = new Bus(MakeSampleRoute(vehicle->getCompletePath()), vehicle);
+	delete vehicle;
+	vehicle = bus;
 
 	//This code is used by Driver to set a few properties of the Vehicle/Bus.
 	if (vehicle && vehicle->hasPath()) {
@@ -73,8 +72,8 @@ void sim_mob::BusDriver::frame_init(UpdateParams& p)
 	}
 
 	//Unique to BusDrivers: reset your route
-	route.reset();
-	nextStop = route.getCurrentStop();
+	bus->getRoute().reset();
+	nextStop = bus->getRoute().getCurrentStop();
 	waitAtStopMS = 0.0;
 }
 
@@ -133,8 +132,8 @@ void sim_mob::BusDriver::frame_tick(UpdateParams& p)
 			bus->setPassengerCount(pCount);
 
 			//Advance your route. This will cause the Bus to start moving again.
-			route.advance();
-			nextStop = route.getCurrentStop();
+			bus->getRoute().advance();
+			nextStop = bus->getRoute().getCurrentStop();
 		}
 	}
 }

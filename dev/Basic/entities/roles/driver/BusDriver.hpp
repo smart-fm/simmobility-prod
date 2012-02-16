@@ -31,7 +31,7 @@ public:
 	virtual void frame_tick_output_mpi(frame_t frameNumber);
 
 	//Functionality
-	void setRoute(const BusRoute& route);
+	//void setRoute(const BusRoute& route);
 
 //Basic data
 protected:
@@ -43,7 +43,7 @@ protected:
 	virtual double updatePositionOnLink(DriverUpdateParams& p);
 
 private:
-	BusRoute route;
+	//BusRoute route;
 	const DemoBusStop* nextStop;
 	double waitAtStopMS;
 

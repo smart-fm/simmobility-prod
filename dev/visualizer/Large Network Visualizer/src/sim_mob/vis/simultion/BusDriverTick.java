@@ -5,6 +5,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.Stroke;
 
 import java.awt.geom.*;
@@ -147,16 +148,20 @@ public class BusDriverTick extends DriverTick {
 		
 		//Draw a circle with its passenger count
 		if (passengerCount>0) {
+			Point center = new Point(toDraw.getWidth()/2, toDraw.getHeight()/2-20);
+			final int Size = 20;
+			
 			//Background
 			g.setColor(Color.BLUE);
-			g.fillOval(10, 10, 20, 20);
+			g.fillOval(center.x-Size/2, center.y-Size/2, Size, Size);
 			g.setColor(Color.CYAN);
-			g.drawOval(10, 10, 20, 20);
+			g.drawOval(center.x-Size/2, center.y-Size/2, Size, Size);
 			
 			//Text
 			g.setColor(Color.WHITE);
 			g.setFont(DriverTick.idFont);
-			g.drawString(""+passengerCount, 10, 10);
+			int strW = g.getFontMetrics().stringWidth(""+passengerCount);
+			g.drawString(""+passengerCount, center.x-strW/2+1, center.y+4);
 		}
 		
 		//Restore old transformation matrix

@@ -49,8 +49,9 @@ public:
 			}
 		}
 
-		//std::cout <<"Test: " <<distTraveledOnSegmentZeroLane <<" => " <<totalDist <<"\n";
-		//throw 1;
+		/*if (isBusStopOnCurrSegment(curr)) {
+			std::cout <<"Test: " <<distTraveledOnSegmentZeroLane <<" => " <<percent*totalDist <<"   (" <<(isBusStopOnCurrSegment(curr) && (distTraveledOnSegmentZeroLane >= percent*totalDist)) <<")" <<"\n";
+		}*/
 
 		return isBusStopOnCurrSegment(curr) && (distTraveledOnSegmentZeroLane >= percent*totalDist);
 	}

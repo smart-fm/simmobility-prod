@@ -88,14 +88,17 @@ double sim_mob::BusDriver::updatePositionOnLink(DriverUpdateParams& p)
 	//If we are moving, then (optionally) decelerate and call normal update behavior.
 	if (vehicle->getVelocity()>0 || vehicle->getLatVelocity()>0) {
 		if (atBusStop) {
-			vehicle->setAcceleration(-300); //Force stop.
+			//vehicle->setAcceleration(-300); //Force stop.
+			vehicle->setAcceleration(0);
+			vehicle->setVelocity(0); //TEMP: Need to really force it.
+			waitAtStopMS = p.currTimeMS; //TEMP: Need to force this too.
 		}
 		updatePos = true;
 	} else {
 		//We're stopped. Is it for a bus stop? If so, set waitAtStopMS if it's not already set
 		if (atBusStop) {
-			if (waitAtStopMS<=0.0) {
-				waitAtStopMS = 10000; //Stop for 10s (temp)
+			if (waitAtStopMS==0.0) {
+				waitAtStopMS = p.currTimeMS;
 			}
 		} else {
 			updatePos = true;
@@ -119,8 +122,10 @@ void sim_mob::BusDriver::frame_tick(UpdateParams& p)
 	// If a Bus Stop has been reached, then a forced stop is performed,
 	// and the variable "waitAtStopMS" is set to >0. This is where we react to it.
 	if (waitAtStopMS>0.0) {
-		waitAtStopMS = std::max(0.0, waitAtStopMS-p.currTimeMS);
-		if (waitAtStopMS <= 0.0) {
+		if (p.currTimeMS-waitAtStopMS >= 10000) { //10s
+			waitAtStopMS = 0.0;
+		}
+		if (waitAtStopMS == 0.0) {
 			//Done waiting at the bus stop.
 			Bus* bus = dynamic_cast<Bus*>(vehicle);
 			if (!bus) {

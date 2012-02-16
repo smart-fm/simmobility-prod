@@ -207,13 +207,13 @@ bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType)
 {
 	//Quick check.
-	if (agentType!="pedestrian" && agentType!="driver") {
+	if (agentType!="pedestrian" && agentType!="driver" && agentType!="bus") {
 		return false;
 	}
 
 	//Build the expression dynamically.
 	TiXmlHandle handle(&document);
-	TiXmlElement* node = handle.FirstChild("config").FirstChild(agentType+"s").FirstChild(agentType).ToElement();
+	TiXmlElement* node = handle.FirstChild("config").FirstChild(agentType+(agentType=="bus"?"es":"s")).FirstChild(agentType).ToElement();
 	if (!node) {
 		//Agents are optional
 		return true;
@@ -233,6 +233,8 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 			candidate.type = ENTITY_DRIVER;
 		} else if (agentType=="pedestrian") {
 			candidate.type = ENTITY_PEDESTRIAN;
+		} else if (agentType=="bus") {
+			candidate.type == ENTITY_BUSDRIVER;
 		}
 
 		//Loop through attributes
@@ -319,7 +321,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 						break;
 					}
 				}*/
-			} else if (agentType=="driver") {
+			} else if (agentType=="driver" || agentType=="bus") {
 				skip = true;
 				vector<WayPoint> path = sd.shortestDrivingPath(*candidate.origin, *candidate.dest);
 				for (vector<WayPoint>::iterator it=path.begin(); it!=path.end(); it++) {
@@ -948,6 +950,9 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	} else if ((*it) == "drivers") {
     	    if (!loadXMLAgents(document, active_agents, pending_agents, "driver")) {
     	    	return	 "Couldn't load drivers";
+    	    }
+    	    if (!loadXMLAgents(document, active_agents, pending_agents, "bus")) {
+    	    	return	 "Couldn't load bus drivers";
     	    }
     		cout <<"Loaded Driver Agents (from config file)." <<endl;
     	} else if ((*it) == "pedestrians") {

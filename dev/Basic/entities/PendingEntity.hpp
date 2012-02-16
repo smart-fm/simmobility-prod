@@ -8,6 +8,7 @@ namespace sim_mob
 enum KNOWN_ENTITY_TYPES {
 	ENTITY_DRIVER,
 	ENTITY_PEDESTRIAN,
+	ENTITY_BUSDRIVER,
 };
 
 /**

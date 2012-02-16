@@ -4,6 +4,7 @@
 
 //For debugging
 #include "entities/roles/driver/Driver.hpp"
+#include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "util/DebugFlags.hpp"
 
@@ -33,6 +34,8 @@ Person* sim_mob::Person::GeneratePersonFromPending(const PendingEntity& p)
 		res->changeRole(new Driver(res, config.mutexStategy, config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
 	} else if (p.type == ENTITY_PEDESTRIAN) {
 		res->changeRole(new Pedestrian(res, res->getGenerator()));
+	} else if (p.type == ENTITY_BUSDRIVER) {
+		res->changeRole(new BusDriver(res, config.mutexStategy, config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
 	} else {
 		throw std::runtime_error("PendingEntity currently only supports Drivers and Pedestrians.");
 	}

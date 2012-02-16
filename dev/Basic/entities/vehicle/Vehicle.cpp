@@ -30,6 +30,15 @@ sim_mob::Vehicle::Vehicle(): length(400), width(200),
 {
 }
 
+sim_mob::Vehicle::Vehicle(const Vehicle& copyFrom)
+	: length(copyFrom.length), width(copyFrom.width), fwdMovement(copyFrom.fwdMovement),
+	  latMovement(copyFrom.latMovement), fwdVelocity(copyFrom.fwdVelocity),
+	  latVelocity(copyFrom.latVelocity), fwdAccel(copyFrom.fwdAccel),
+	  posInIntersection(copyFrom.posInIntersection), error_state(copyFrom.error_state)
+{
+
+}
+
 void sim_mob::Vehicle::initPath(vector<WayPoint> wp_path, int startLaneID)
 {
 	//Construct a list of RoadSegments.
@@ -46,6 +55,13 @@ void sim_mob::Vehicle::initPath(vector<WayPoint> wp_path, int startLaneID)
 	//Init
 	fwdMovement.setPath(path, startLaneID);
 }
+
+
+const vector<const RoadSegment*>& sim_mob::Vehicle::getCompletePath() const
+{
+	return fwdMovement.fullPath;
+}
+
 
 void sim_mob::Vehicle::setPositionInIntersection(double x, double y)
 {

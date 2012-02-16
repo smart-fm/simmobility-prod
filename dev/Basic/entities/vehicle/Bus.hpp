@@ -24,7 +24,9 @@ class UnPackageUtils;
  */
 class Bus : public sim_mob::Vehicle {
 public:
-	Bus(BusRoute route, double length, double width) : Driver(length, width), passengerCount(0), route(route) {}
+	Bus(const BusRoute& route, const Vehicle* clone)
+	: Vehicle(*clone), passengerCount(0), route(route)
+	{}
 
 	int getPassengerCount() { return passengerCount; }
 

@@ -34,6 +34,7 @@ class UnPackageUtils;
 class GeneralPathMover {
 public:
 	GeneralPathMover();
+	GeneralPathMover(const GeneralPathMover& copyFrom); ///<Copy constructor, used to make sure iterators work cleanly.
 
 	///Set the path of RoadSegments contained in our path. These segments need not
 	/// necessarily be in the same Link.

@@ -130,7 +130,7 @@ public class BusDriverTick extends DriverTick {
 		}
 		
 		//Our bus image is significantly larger than our car image. So scale it.
-		final double ScaleFact = 0.15;
+		final double ScaleFact = 0.2;
 		
 		//Retrieve the image to draw
 		SimpleVectorImage svi = (drawFake&&getFake()) ? FakeTempBusImg: debug ? DebugTempBusImg : TempBusImg;			

@@ -234,7 +234,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 		} else if (agentType=="pedestrian") {
 			candidate.type = ENTITY_PEDESTRIAN;
 		} else if (agentType=="bus") {
-			candidate.type == ENTITY_BUSDRIVER;
+			candidate.type = ENTITY_BUSDRIVER;
 		}
 
 		//Loop through attributes

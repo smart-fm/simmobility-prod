@@ -6,26 +6,21 @@
   #100% zoom coordinate system.
   "coordinates" :
   {
-    "width":"19",
-    "height":"19"
+    "width":"12",
+    "height":"3"
   },
 
   #Index of colors used by this image. Allows easy substitution.
   "colors" : 
   [
     #Wheels
-    {"id":"wheel",          "rgb":"9D9D9D"},
-    {"id":"wheel-outline",  "rgb":"00BFFF"},
+    {"id":"header1",  "rgb":"FFD700"},
+    {"id":"header2",  "rgb":"FFD700"},
 
     #Car body
-    {"id":"body5",          "rgb":"FFFFFF"},
-    {"id":"body6",          "rgb":"FFFFFF"},
-    {"id":"body-outline",   "rgb":"712C2C"},
-
-    #Car window
-    {"id":"window1",        "rgb":"C6D2FF"},
-    {"id":"window2",        "rgb":"DEE2FF"},
-    {"id":"window-outline", "rgb":"696D89"}
+    {"id":"body5",          "rgb":"FF0000"},
+    {"id":"body6",          "rgb":"FF0000"},
+    {"id":"body-outline",   "rgb":"712C2C"}
   ],
 
   #Items to draw, in order, when rendering this car. Coordinate system
@@ -34,14 +29,14 @@
   "drawOrder" :
   [
     #Car body
-    { "gradient":["body5","body6"], "stroke":"body-outline", "width":"1", "shape":"poly",
-      "points":[0,3, 17,3, 17,15, 0,15]
+    { "gradient":["body5","body6"], "stroke":"body-outline", "width":"0", "shape":"poly",
+      "points":[0,0, 11,0, 11,2, 0,2]
     },
-
-    #Front part
-    { "stroke":"wheel-outline", "width":"2", "shape":"line",
-      "points":[18,3, 18,15]
+    #Car header
+    { "gradient":["header1","header2"], "stroke":"body-outline", "width":"0", "shape":"poly",
+      "points":[10,0, 11,0, 11,2, 10,2]
     }
+
   ]
 
 }

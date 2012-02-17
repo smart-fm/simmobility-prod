@@ -127,6 +127,9 @@ public class SimulationResults {
 		if (objType.equals("Driver")) {
 			parseDriver(frameID, objID, rhs, rn);
 			uniqueAgentIDs.add(objID);
+		} else if (objType.equals("BusDriver")) {
+			parseBusDriver(frameID, objID, rhs, rn);
+			uniqueAgentIDs.add(objID);
 		} else if (objType.equals("Signal")) {
 //			parseSignal(frameID, objID, rhs);
 			parseSignalLines(frameID, objID, rhs);
@@ -257,9 +260,57 @@ public class SimulationResults {
 	    tempDriver.setID(objID);
 	    //Add this agent to the proper frame.
 	    ticks.get(frameID).agentTicks.put(objID, tempDriver);
-	    
-
 	}
+	
+	
+	//TODO: This shares a lot of functionality with parseDriver(). Can we merge some of it?
+	private void parseBusDriver(int frameID, int objID, String rhs, RoadNetwork rn) throws IOException {
+	    //Check and parse properties.
+	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"xPos", "yPos", "angle", "passengers"});
+	    
+	    //Now save the relevant information
+	    double xPos = Double.parseDouble(props.get("xPos"));
+	    double yPos = Double.parseDouble(props.get("yPos"));
+	    double angle = Double.parseDouble(props.get("angle"));
+	    int numPassengers = Integer.parseInt(props.get("passengers"));
+	    
+	    //TEMP: Hack for out-of-bounds agents
+	    if (OutOfBounds(xPos, yPos, rn)) {
+	    	Utility.CheckBounds(xBounds, xPos);
+	    	Utility.CheckBounds(yBounds, yPos);
+	    }
+	    
+	    //Ensure the frame has been created
+	    while (ticks.size()<=frameID) {
+	    	TimeTick t = new TimeTick();
+	    	t.agentTicks = new Hashtable<Integer, AgentTick>();
+	    	t.signalTicks = new Hashtable<Integer, SignalTick>();
+	    	t.signalLineTicks = new Hashtable<Integer,SignalLineTick>();
+
+	    	ticks.add(t);
+	    }
+	  
+	    //Create temp driver
+	    BusDriverTick tempBusDriver = new BusDriverTick(xPos, yPos, angle, numPassengers, ticks.get(frameID).tickScaleGroup);
+	    
+	    //Check if the driver is fake
+	    if(props.containsKey("fake")){
+	    	if(props.get("fake").equals("true")){
+	    		tempBusDriver.setItFake();
+	    	}
+	    }
+	    //Check if the car has a length and width or not
+	    if(props.containsKey("length") && props.containsKey("width")){
+	    	tempBusDriver.setLenth(Integer.parseInt(props.get("length")));
+	    	tempBusDriver.setWidth(Integer.parseInt(props.get("width")));
+	    }
+	    
+	    tempBusDriver.setID(objID);
+
+	    //Add this agent to the proper frame.
+	    ticks.get(frameID).agentTicks.put(objID, tempBusDriver);
+	}
+	
 	
 	private void parsePedestrian(int frameID, int objID, String rhs, RoadNetwork rn) throws IOException {
 	    //Check and parse properties.

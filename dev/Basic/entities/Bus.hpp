@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vector>
+/*#include <vector>
 #include "Agent.hpp"
 #include "geospatial/BusStop.hpp"
 #include "geospatial/Route.hpp"
@@ -9,20 +9,20 @@
 #include "entities/vehicle/Vehicle.hpp"
 #include "metrics/Length.hpp"
 #include "util/DynamicVector.hpp"
-#include "GenConfig.h"
+#include "GenConfig.h"*/
 
 namespace sim_mob{
 
-class Node;
+/*class Node;
 class Lane;
 class BusStop;
-class Route;
+class Route;*/
 
 /**
  * \author Skyler Seto
  * \author Seth N. Hetu
  */
-class Bus : public sim_mob::Vehicle {
+/*class Bus : public sim_mob::Vehicle {
 
 public:
 	///NOTE: Currently vehicles need to be constructed with a route. Feel free to modify as needed; it's a relic
@@ -66,6 +66,6 @@ public:
 	DynamicVector heading;
 	centimeter_t distAlongHeading;
 
-};
+};*/
 
 }

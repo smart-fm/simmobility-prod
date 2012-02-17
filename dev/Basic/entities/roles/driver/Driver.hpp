@@ -84,11 +84,12 @@ public:
 	Shared<bool> isInIntersection;
 
 //Basic data
-private:
+protected:
 	//unsigned int currTimeMS;
 	//Pointer to the vehicle this driver is controlling.
 	Vehicle* vehicle;
 
+protected:
 	//Temporary variable which will be flushed each time tick. We save it
 	// here to avoid constantly allocating and clearing memory each time tick.
 	DriverUpdateParams params;
@@ -98,6 +99,7 @@ private:
 	CarFollowModel* cfModel;
 	IntersectionDrivingModel* intModel;
 
+private:
 	//Sample stored data which takes reaction time into account.
 	const static size_t reactTime = 1500; //1.5 seconds
 	FixedDelayed<DPoint*> perceivedVelocity;
@@ -147,19 +149,22 @@ public:
 	//This is probably ok.
 	const double getVehicleLength() const { return vehicle->length; }
 
+protected:
+	virtual double updatePositionOnLink(DriverUpdateParams& p);
+	void initializePath();
+	void setOrigin(DriverUpdateParams& p);
+
 private:
 	bool isCloseToLinkEnd(DriverUpdateParams& p) const;
 	bool isPedestrianOnTargetCrossing() const;
 	void chooseNextLaneForNextLink(DriverUpdateParams& p);
 	void calculateIntersectionTrajectory(DPoint movingFrom, double overflow);
-	void setOrigin(DriverUpdateParams& p);
 
 	//A bit verbose, but only used in 1 or 2 places.
 	void syncCurrLaneCachedInfo(DriverUpdateParams& p);
 	void justLeftIntersection(DriverUpdateParams& p);
 	void updateAdjacentLanes(DriverUpdateParams& p);
 	void updateVelocity();
-	double updatePositionOnLink(DriverUpdateParams& p);
 	void setBackToOrigin();
 
 	void updateNearbyAgents(DriverUpdateParams& params);
@@ -175,7 +180,6 @@ private:
 	void intersectionDriving(DriverUpdateParams& p);
 	double linkDriving(DriverUpdateParams& p);
 
-	void initializePath();
 	void findCrossing(DriverUpdateParams& p);
 
 	/***********FOR DRIVING BEHAVIOR MODEL**************/

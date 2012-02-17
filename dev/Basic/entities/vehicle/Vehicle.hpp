@@ -1,7 +1,7 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 /*
- * \file Vehicle.h
+ * \file Vehicle.hpp
  *
  * \author Li Zhemin
  * \author Seth N. Hetu
@@ -31,6 +31,10 @@ public:
 	Vehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID);
 	Vehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID, double length, double width); //TODO: now that the constructor is non-default, we might be able to remove throw_if_error()
 	Vehicle();  //There is no wpPoint to initialize one Vehicle when crossing
+	Vehicle(const Vehicle& copy); ///<Copy constructor
+
+	//Enable polymorphism
+	virtual ~Vehicle(){}
 
 public:
 	const double length;  ///<length of the vehicle
@@ -56,6 +60,9 @@ public:
 
 	//Special
 	double getAngle() const;  ///<For display purposes only.
+
+	//Helper method; used in BusDriver
+	const std::vector<const sim_mob::RoadSegment*>& getCompletePath() const;
 
 	//More stuff; some might be optional.
 	const sim_mob::RoadSegment* getCurrSegment() const;

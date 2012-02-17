@@ -27,6 +27,31 @@ sim_mob::GeneralPathMover::GeneralPathMover() : distAlongPolyline(0), /*currPoly
 {
 }
 
+sim_mob::GeneralPathMover::GeneralPathMover(const GeneralPathMover& copyFrom)
+	: fullPath(copyFrom.fullPath), polypointsList(copyFrom.polypointsList),
+	  distAlongPolyline(copyFrom.distAlongPolyline), distMovedInCurrSegment(copyFrom.distMovedInCurrSegment),
+	  distOfThisSegment(copyFrom.distOfThisSegment), distOfRestSegments(copyFrom.distOfRestSegments),
+	  inIntersection(copyFrom.inIntersection), isMovingForwardsInLink(copyFrom.isMovingForwardsInLink),
+	  currLaneID(copyFrom.currLaneID)
+
+{
+	//We don't really care about the debug stream, but we should probably inform the user
+	if (Debug::Paths) {
+		DebugStream <<"<COPY_CONSTRUCTOR>";
+	}
+
+	//Need to align our iterators
+	currSegmentIt = fullPath.begin() + (copyFrom.currSegmentIt-copyFrom.fullPath.begin());
+	currPolypoint = polypointsList.begin() + (copyFrom.currPolypoint - copyFrom.polypointsList.begin());
+	nextPolypoint = polypointsList.begin() + (copyFrom.nextPolypoint - copyFrom.polypointsList.begin());
+
+	//Lane-zero iterators are a little trickier
+	const vector<Point2D>& myLaneZero = const_cast<RoadSegment*>(*currSegmentIt)->getLaneEdgePolyline(0);
+	const vector<Point2D>& otherLaneZero = const_cast<RoadSegment*>(*copyFrom.currSegmentIt)->getLaneEdgePolyline(0);
+	currLaneZeroPolypoint = myLaneZero.begin() + (copyFrom.currLaneZeroPolypoint - otherLaneZero.begin());
+	nextLaneZeroPolypoint = myLaneZero.begin() + (copyFrom.nextLaneZeroPolypoint - otherLaneZero.begin());
+}
+
 
 void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, int startLaneID)
 {

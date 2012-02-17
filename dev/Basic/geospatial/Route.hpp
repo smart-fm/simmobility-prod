@@ -16,7 +16,8 @@ namespace sim_mob{
 	 * \author Skyler Seto
 	 * \author Seth N. Hetu
 	 */
-	class Route {
+	//I am disabling this temporarily; see vehicle/BusRoute.hpp ~Seth
+	/*class Route {
 	public:
 		
 		Route(unsigned int id, std::vector <Lane*> lanes);
@@ -33,7 +34,7 @@ namespace sim_mob{
 		
 		
 		
-	};
+	};*/
 	
 
 		

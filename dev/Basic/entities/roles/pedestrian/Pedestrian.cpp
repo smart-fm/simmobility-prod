@@ -846,151 +846,151 @@ bool sim_mob::Pedestrian::isOnCrossing() const {
 }
 
 #ifndef SIMMOB_DISABLE_MPI
-void sim_mob::Pedestrian::package(PackageUtils& packageUtil) {
+void sim_mob::Pedestrian::pack(PackageUtils& packageUtil) {
 	//Part 1
 
 	packageUtil.safePackageDoubleValue(speed);
 	packageUtil.safePackageDoubleValue(xVel);
 	packageUtil.safePackageDoubleValue(yVel);
-	packageUtil.packagePoint2D(goal);
-	packageUtil.packagePoint2D(goalInLane);
-	packageUtil.packageBasicData(currentStage);
+	packageUtil.packPoint2D(goal);
+	packageUtil.packPoint2D(goalInLane);
+	packageUtil.packBasicData(currentStage);
 
 //	if (trafficSignal) {
 //		bool hasSignal = true;
-//		packageUtil.packageBasicData(hasSignal);
-//		packageUtil.packagePoint2D(trafficSignal->getNode().location);
+//		packageUtil.packBasicData(hasSignal);
+//		packageUtil.packPoint2D(trafficSignal->getNode().location);
 //	} else {
 //		bool hasSignal = false;
-//		packageUtil.packageBasicData(hasSignal);
+//		packageUtil.packBasicData(hasSignal);
 //	}
 
 //	if (currCrossing) {
 //		bool hasCrossing = true;
-//		packageUtil.packageBasicData(hasCrossing);
-//		packageUtil.packageCrossing(currCrossing);
+//		packageUtil.packBasicData(hasCrossing);
+//		packageUtil.packCrossing(currCrossing);
 //	} else {
 //		bool hasCrossing = false;
-//		packageUtil.packageBasicData(hasCrossing);
+//		packageUtil.packBasicData(hasCrossing);
 //	}
 
 
 	//Part 2
-	packageUtil.packageBasicData(sigColor);
-	packageUtil.packageBasicData(curCrossingID);
-	packageUtil.packageBasicData(startToCross);
+	packageUtil.packBasicData(sigColor);
+	packageUtil.packBasicData(curCrossingID);
+	packageUtil.packBasicData(startToCross);
 	packageUtil.safePackageDoubleValue(cStartX);
 	packageUtil.safePackageDoubleValue(cStartY);
 	packageUtil.safePackageDoubleValue(cEndX);
 	packageUtil.safePackageDoubleValue(cEndY);
-	//packageUtil.packageBasicData(firstTimeUpdate);
+	//packageUtil.packBasicData(firstTimeUpdate);
 
-	packageUtil.packagePoint2D(interPoint);
+	packageUtil.packPoint2D(interPoint);
 
 	packageUtil.safePackageDoubleValue(xCollisionVector);
 	packageUtil.safePackageDoubleValue(yCollisionVector);
-	packageUtil.packageGeneralPathMover(&fwdMovement);
+	packageUtil.packGeneralPathMover(&fwdMovement);
 
 	if (prevSeg) {
 		bool hasSegment = true;
-		packageUtil.packageBasicData(hasSegment);
-		packageUtil.packageRoadSegment(prevSeg);
+		packageUtil.packBasicData(hasSegment);
+		packageUtil.packRoadSegment(prevSeg);
 	} else {
 		bool hasSegment = false;
-		packageUtil.packageBasicData(hasSegment);
+		packageUtil.packBasicData(hasSegment);
 	}
 
-	packageUtil.packageBasicData(isUsingGenPathMover);
+	packageUtil.packBasicData(isUsingGenPathMover);
 
 	//no need to package params, params will be rebuild in the next time step
-	//packageUtil.packagePedestrianUpdateParams(params);
+	//packageUtil.packPedestrianUpdateParams(params);
 }
 
-void sim_mob::Pedestrian::unpackage(UnPackageUtils& unpackageUtil) {
+void sim_mob::Pedestrian::unpack(UnPackageUtils& unpackageUtil) {
 	//Part 1
-	speed = unpackageUtil.unpackageBasicData<double> ();
-	xVel = unpackageUtil.unpackageBasicData<double> ();
-	yVel = unpackageUtil.unpackageBasicData<double> ();
+	speed = unpackageUtil.unpackBasicData<double> ();
+	xVel = unpackageUtil.unpackBasicData<double> ();
+	yVel = unpackageUtil.unpackBasicData<double> ();
 
-	goal = *(unpackageUtil.unpackagePoint2D());
-	goalInLane = *(unpackageUtil.unpackagePoint2D());
-	int value = unpackageUtil.unpackageBasicData<int> ();
+	goal = *(unpackageUtil.unpackPoint2D());
+	goalInLane = *(unpackageUtil.unpackPoint2D());
+	int value = unpackageUtil.unpackBasicData<int> ();
 	currentStage = PedestrianStage(value);
 
-//	bool hasSignal = unpackageUtil.unpackageBasicData<bool> ();
+//	bool hasSignal = unpackageUtil.unpackBasicData<bool> ();
 //	if (hasSignal) {
-//		Point2D* signal_location = unpackageUtil.unpackagePoint2D();
+//		Point2D* signal_location = unpackageUtil.unpackPoint2D();
 //		trafficSignal = sim_mob::getSignalBasedOnNode(signal_location);
 //	}
 
-//	bool hasCrossing = unpackageUtil.unpackageBasicData<bool> ();
+//	bool hasCrossing = unpackageUtil.unpackBasicData<bool> ();
 //	if (hasCrossing) {
-//		currCrossing = unpackageUtil.unpackageCrossing();
+//		currCrossing = unpackageUtil.unpackCrossing();
 //	}
 
 	//Part 2
-	sigColor = unpackageUtil.unpackageBasicData<int> ();
-	curCrossingID = unpackageUtil.unpackageBasicData<int> ();
-	startToCross = unpackageUtil.unpackageBasicData<bool> ();
-	cStartX = unpackageUtil.unpackageBasicData<double> ();
-	cStartY = unpackageUtil.unpackageBasicData<double> ();
-	cEndX = unpackageUtil.unpackageBasicData<double> ();
-	cEndY = unpackageUtil.unpackageBasicData<double> ();
-	//firstTimeUpdate = unpackageUtil.unpackageBasicData<bool> ();
+	sigColor = unpackageUtil.unpackBasicData<int> ();
+	curCrossingID = unpackageUtil.unpackBasicData<int> ();
+	startToCross = unpackageUtil.unpackBasicData<bool> ();
+	cStartX = unpackageUtil.unpackBasicData<double> ();
+	cStartY = unpackageUtil.unpackBasicData<double> ();
+	cEndX = unpackageUtil.unpackBasicData<double> ();
+	cEndY = unpackageUtil.unpackBasicData<double> ();
+	//firstTimeUpdate = unpackageUtil.unpackBasicData<bool> ();
 
-	interPoint = *(unpackageUtil.unpackagePoint2D());
+	interPoint = *(unpackageUtil.unpackPoint2D());
 
-	xCollisionVector = unpackageUtil.unpackageBasicData<double> ();
-	yCollisionVector = unpackageUtil.unpackageBasicData<double> ();
-	unpackageUtil.unpackageGeneralPathMover(&fwdMovement);
-	//fwdMovement = *(unpackageUtil.unpackageGeneralPathMover());
-	bool hasSegment = unpackageUtil.unpackageBasicData<bool> ();
+	xCollisionVector = unpackageUtil.unpackBasicData<double> ();
+	yCollisionVector = unpackageUtil.unpackBasicData<double> ();
+	unpackageUtil.unpackGeneralPathMover(&fwdMovement);
+	//fwdMovement = *(unpackageUtil.unpackGeneralPathMover());
+	bool hasSegment = unpackageUtil.unpackBasicData<bool> ();
 	if (hasSegment) {
-		prevSeg = unpackageUtil.unpackageRoadSegment();
+		prevSeg = unpackageUtil.unpackRoadSegment();
 	}
 
-	isUsingGenPathMover = unpackageUtil.unpackageBasicData<bool> ();
+	isUsingGenPathMover = unpackageUtil.unpackBasicData<bool> ();
 
 	//no need to unpackage params, params will be rebuild in the next time step
-	//unpackageUtil.unpackagePedestrianUpdateParams(params);
+	//unpackageUtil.unpackPedestrianUpdateParams(params);
 }
 
-void sim_mob::Pedestrian::packageProxy(PackageUtils& packageUtil) {
+void sim_mob::Pedestrian::packProxy(PackageUtils& packageUtil) {
 	//Part 1
 	//std::cout << "1-1-6-1" << std::endl;
 	//Part 1
 	packageUtil.safePackageDoubleValue(speed);
 	packageUtil.safePackageDoubleValue(xVel);
 	packageUtil.safePackageDoubleValue(yVel);
-	packageUtil.packagePoint2D(goal);
-	packageUtil.packagePoint2D(goalInLane);
-	packageUtil.packageBasicData(currentStage);
+	packageUtil.packPoint2D(goal);
+	packageUtil.packPoint2D(goalInLane);
+	packageUtil.packBasicData(currentStage);
 
 //	if(trafficSignal)
 //	{
 //		bool hasSignal = true;
-//		packageUtil.packageBasicData(hasSignal);
-//		packageUtil.packagePoint2D(trafficSignal->getNode().location);
+//		packageUtil.packBasicData(hasSignal);
+//		packageUtil.packPoint2D(trafficSignal->getNode().location);
 //	}
 //	else
 //	{
 //		bool hasSignal = false;
-//		packageUtil.packageBasicData(hasSignal);
+//		packageUtil.packBasicData(hasSignal);
 //	}
 //
 //	if (currCrossing) {
 //		bool hasCrossing = true;
-//		packageUtil.packageBasicData(hasCrossing);
-//		packageUtil.packageCrossing(currCrossing);
+//		packageUtil.packBasicData(hasCrossing);
+//		packageUtil.packCrossing(currCrossing);
 //	} else {
 //		bool hasCrossing = false;
-//		packageUtil.packageBasicData(hasCrossing);
+//		packageUtil.packBasicData(hasCrossing);
 //	}
 
 	//Part 2
-	packageUtil.packageBasicData(sigColor);
-	packageUtil.packageBasicData(curCrossingID);
-	packageUtil.packageBasicData(startToCross);
+	packageUtil.packBasicData(sigColor);
+	packageUtil.packBasicData(curCrossingID);
+	packageUtil.packBasicData(startToCross);
 	packageUtil.safePackageDoubleValue(cStartX);
 
 //	if(this->getParent()->getId() > 1000)
@@ -1003,69 +1003,69 @@ void sim_mob::Pedestrian::packageProxy(PackageUtils& packageUtil) {
 	packageUtil.safePackageDoubleValue(cStartY);
 	packageUtil.safePackageDoubleValue(cEndX);
 	packageUtil.safePackageDoubleValue(cEndY);
-	//packageUtil.packageBasicData(firstTimeUpdate);
-	packageUtil.packagePoint2D(interPoint);
+	//packageUtil.packBasicData(firstTimeUpdate);
+	packageUtil.packPoint2D(interPoint);
 
 	packageUtil.safePackageDoubleValue(xCollisionVector);
 	packageUtil.safePackageDoubleValue(yCollisionVector);
-	packageUtil.packageGeneralPathMover(&fwdMovement);
+	packageUtil.packGeneralPathMover(&fwdMovement);
 //
 //	if(prevSeg)
 //	{
 //		bool hasSegment = true;
-//		packageUtil.packageBasicData(hasSegment);
-//		packageUtil.packageRoadSegment(prevSeg);
+//		packageUtil.packBasicData(hasSegment);
+//		packageUtil.packRoadSegment(prevSeg);
 //	}
 //	else
 //	{
 //		bool hasSegment = false;
-//		packageUtil.packageBasicData(hasSegment);
+//		packageUtil.packBasicData(hasSegment);
 //	}
 
-	packageUtil.packageBasicData(isUsingGenPathMover);
+	packageUtil.packBasicData(isUsingGenPathMover);
 
 }
 
-void sim_mob::Pedestrian::unpackageProxy(UnPackageUtils& unpackageUtil) {
+void sim_mob::Pedestrian::unpackProxy(UnPackageUtils& unpackageUtil) {
 //Part 1
 
 //	if(this->getParent()->getId() > 1000)
 //	std::cout << "1-1-6-2" << std::endl;
 //
-	speed = unpackageUtil.unpackageBasicData<double> ();
-	xVel = unpackageUtil.unpackageBasicData<double> ();
-	yVel = unpackageUtil.unpackageBasicData<double> ();
+	speed = unpackageUtil.unpackBasicData<double> ();
+	xVel = unpackageUtil.unpackBasicData<double> ();
+	yVel = unpackageUtil.unpackBasicData<double> ();
 
 //	if(this->getParent()->getId() > 1000)
 //	std::cout << "1-1-6-23" << std::endl;
 
-	goal = *(unpackageUtil.unpackagePoint2D());
-	goalInLane = *(unpackageUtil.unpackagePoint2D());
-	int value = unpackageUtil.unpackageBasicData<int> ();
+	goal = *(unpackageUtil.unpackPoint2D());
+	goalInLane = *(unpackageUtil.unpackPoint2D());
+	int value = unpackageUtil.unpackBasicData<int> ();
 	currentStage = PedestrianStage(value);
 //	if(this->getParent()->getId() > 1000)
 //	std::cout << "1-1-6-4" << std::endl;
 //
-//	bool hasSignal = unpackageUtil.unpackageBasicData<bool> ();
+//	bool hasSignal = unpackageUtil.unpackBasicData<bool> ();
 //	if (hasSignal) {
-//		Point2D* signal_location = unpackageUtil.unpackagePoint2D();
+//		Point2D* signal_location = unpackageUtil.unpackPoint2D();
 //		trafficSignal = sim_mob::getSignalBasedOnNode(signal_location);
 //	}
 //
-//	bool hasCrossing = unpackageUtil.unpackageBasicData<bool> ();
+//	bool hasCrossing = unpackageUtil.unpackBasicData<bool> ();
 //	if (hasCrossing) {
-//		currCrossing = unpackageUtil.unpackageCrossing();
+//		currCrossing = unpackageUtil.unpackCrossing();
 //	}
 //	if(this->getParent()->getId() > 1000)
 //	std::cout << "1-1-6-5" << std::endl;
 	//Part 2
-	sigColor = unpackageUtil.unpackageBasicData<int> ();
-	curCrossingID = unpackageUtil.unpackageBasicData<int> ();
-	startToCross = unpackageUtil.unpackageBasicData<bool> ();
+	sigColor = unpackageUtil.unpackBasicData<int> ();
+	curCrossingID = unpackageUtil.unpackBasicData<int> ();
+	startToCross = unpackageUtil.unpackBasicData<bool> ();
 //	if(this->getParent()->getId() > 1000)
 //		std::cout << "1-1-6-5-1" << std::endl;
 
-	cStartX = unpackageUtil.unpackageBasicData<double> ();
+	cStartX = unpackageUtil.unpackBasicData<double> ();
 //	if(this->getParent()->getId() > 1000)
 //		std::cout << "1-1-6-5-1-5" << std::endl;
 //	if (this->getParent()->getId() > 1000) {
@@ -1073,7 +1073,7 @@ void sim_mob::Pedestrian::unpackageProxy(UnPackageUtils& unpackageUtil) {
 //		std::cout << "Recv: cStartX:" << cStartX << std::endl;
 //	}
 
-	cStartY = unpackageUtil.unpackageBasicData<double> ();
+	cStartY = unpackageUtil.unpackBasicData<double> ();
 //	if(this->getParent()->getId() > 1000)
 //		std::cout << "1-1-6-5-2-5" << std::endl;
 
@@ -1082,25 +1082,25 @@ void sim_mob::Pedestrian::unpackageProxy(UnPackageUtils& unpackageUtil) {
 //		std::cout << "Recv: cStartY:" << cStartY << std::endl;
 //	}
 
-	cEndX = unpackageUtil.unpackageBasicData<double> ();
-	cEndY = unpackageUtil.unpackageBasicData<double> ();
-	//firstTimeUpdate = unpackageUtil.unpackageBasicData<bool> ();
+	cEndX = unpackageUtil.unpackBasicData<double> ();
+	cEndY = unpackageUtil.unpackBasicData<double> ();
+	//firstTimeUpdate = unpackageUtil.unpackBasicData<bool> ();
 //	if(this->getParent()->getId() > 1000)
 //	std::cout << "1-1-6-6" << std::endl;
-	interPoint = *(unpackageUtil.unpackagePoint2D());
+	interPoint = *(unpackageUtil.unpackPoint2D());
 
-	xCollisionVector = unpackageUtil.unpackageBasicData<double> ();
-	yCollisionVector = unpackageUtil.unpackageBasicData<double> ();
-	unpackageUtil.unpackageGeneralPathMover(&fwdMovement);
+	xCollisionVector = unpackageUtil.unpackBasicData<double> ();
+	yCollisionVector = unpackageUtil.unpackBasicData<double> ();
+	unpackageUtil.unpackGeneralPathMover(&fwdMovement);
 //	if(this->getParent()->getId() > 1000)
 //	std::cout << "1-1-6-7" << std::endl;
-//	//fwdMovement = *(unpackageUtil.unpackageGeneralPathMover());
-//	bool hasSegment = unpackageUtil.unpackageBasicData<bool> ();
+//	//fwdMovement = *(unpackageUtil.unpackGeneralPathMover());
+//	bool hasSegment = unpackageUtil.unpackBasicData<bool> ();
 //	if (hasSegment) {
-//		prevSeg = unpackageUtil.unpackageRoadSegment();
+//		prevSeg = unpackageUtil.unpackRoadSegment();
 //	}
 
-	isUsingGenPathMover = unpackageUtil.unpackageBasicData<bool> ();
+	isUsingGenPathMover = unpackageUtil.unpackBasicData<bool> ();
 //	if(this->getParent()->getId() > 1000)
 //	std::cout << "1-1-6-8" << std::endl;
 

@@ -8,8 +8,8 @@
 #include <boost/serialization/list.hpp>
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/map.hpp>
-#include <boost/serialization/unordered_set.hpp>
-#include <boost/serialization/unordered_map.hpp>
+//#include <boost/serialization/unordered_set.hpp>
+//#include <boost/serialization/unordered_map.hpp>
 
 #include <sstream>
 #include <set>
@@ -17,8 +17,8 @@
 #include <vector>
 #include <map>
 #include <string>
-#include <unordered_set>
-#include <unordered_map>
+//#include <unordered_set>
+//#include <unordered_map>
 
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/Node.hpp"
@@ -48,6 +48,10 @@ class PedestrianUpdateParams;
 
 /**
  * \author Xu Yan
+ * Function:
+ * UnPackageUtils is used in receiver side to unpack basic data type (like: vector<int>) and some SimMobility data type (like: Node).
+ * Note:
+ * PackageUtils/UnPackageUtils have matching functions, if you add/edit/remove one function in this class, you need to check class PackageUtils
  */
 class UnPackageUtils {
 private:
@@ -55,55 +59,70 @@ private:
 	boost::archive::text_iarchive* package;
 
 public:
-	//Basic type (DATA_TYPE)
-	//Includes: int, double, float, bool, std::string
-	//(Can not be pointer, struct, class, union)
+	/**
+	 * DATA_TYPE can be:
+	 * (1)int {unsigned, signed}, long, short
+	 * (2)float, double, char
+	 * (3)bool
+	 */
 	template<class DATA_TYPE>
-	inline DATA_TYPE unpackageBasicData()
+	inline DATA_TYPE unpackBasicData() const
 	{
 		DATA_TYPE value;
 		(*package) & value;
 		return value;
 	}
 
-	//Basic type (DATA_TYPE)
-	//Includes: int, double, float, bool, std::string
-	//(Can not be pointer, struct, class, union)
+	/**
+	 * DATA_TYPE can be:
+	 * (1)int {unsigned, signed}, long, short
+	 * (2)float, double, char
+	 * (3)bool
+	 */
 	template<class DATA_TYPE>
-	inline std::list<DATA_TYPE> unpackageBasicDataList() const
+	inline std::list<DATA_TYPE> unpackBasicDataList() const
 	{
 		std::list<DATA_TYPE> value;
 		(*package) & value;
 		return value;
 	}
 
-	//Basic type (DATA_TYPE)
-	//Includes: int, double, float, bool, std::string
-	//(Can not be pointer, struct, class, union)
+	/**
+	 * DATA_TYPE can be:
+	 * (1)int {unsigned, signed}, long, short
+	 * (2)float, double, char
+	 * (3)bool
+	 */
 	template<class DATA_TYPE>
-	inline std::vector<DATA_TYPE> unpackageBasicDataVector() const
+	inline std::vector<DATA_TYPE> unpackBasicDataVector() const
 	{
 		std::vector<DATA_TYPE> value;
 		(*package) & value;
 		return value;
 	}
 
-	//Basic type (DATA_TYPE)
-	//Includes: int, double, float, bool, std::string
-	//(Can not be pointer, struct, class, union)
+	/**
+	 * DATA_TYPE can be:
+	 * (1)int {unsigned, signed}, long, short
+	 * (2)float, double, char
+	 * (3)bool
+	 */
 	template<class DATA_TYPE>
-	inline std::set<DATA_TYPE> unpackageBasicDataSet() const
+	inline std::set<DATA_TYPE> unpackBasicDataSet() const
 	{
 		std::set<DATA_TYPE> value;
 		(*package) & value;
 		return value;
 	}
 
-	//Basic type (DATA_TYPE)
-	//Includes: int, double, float, bool, std::string
-	//(Can not be pointer, struct, class, union)
+	/**
+	 * DATA_TYPE can be:
+	 * (1)int {unsigned, signed}, long, short
+	 * (2)float, double, char
+	 * (3)bool
+	 */
 	template<class DATA_TYPE_1, class DATA_TYPE_2>
-	inline std::map<DATA_TYPE_1, DATA_TYPE_2> unpackageBasicDataMap() const
+	inline std::map<DATA_TYPE_1, DATA_TYPE_2> unpackBasicDataMap() const
 	{
 		std::map<DATA_TYPE_1, DATA_TYPE_2> value;
 		(*package) & value;
@@ -111,26 +130,26 @@ public:
 	}
 
 	//Road Network
-	const Node* unpackageNode();
-	const RoadSegment* unpackageRoadSegment();
-	const Link* unpackageLink();
-	const Lane* unpackageLane();
-	const TripChain* unpackageTripChain();
-	const TripActivity* unpackageTripActivity();
+	const Node* unpackNode() const;
+	const RoadSegment* unpackRoadSegment() const;
+	const Link* unpackLink() const;
+	const Lane* unpackLane() const;
+	const TripChain* unpackTripChain() const;
+	const TripActivity* unpackTripActivity() const;
 
 	//Road Item
-	const Vehicle* unpackageVehicle();
-	void unpackageGeneralPathMover(GeneralPathMover* one_motor);
-	const Crossing* unpackageCrossing();
+	const Vehicle* unpackVehicle() const;
+	void unpackGeneralPathMover(GeneralPathMover* one_motor) const;
+	const Crossing* unpackCrossing() const;
 
 	//Others
-	IntersectionDrivingModel* unpackageIntersectionDrivingModel();
-	FixedDelayed<DPoint*>& unpackageFixedDelayedDPoint();
-	FixedDelayed<double>& unpackageFixedDelayedDouble();
-	FixedDelayed<int>& unpackageFixedDelayedInt();
-	Point2D* unpackagePoint2D();
-	void unpackageDriverUpdateParams(DriverUpdateParams& one_driver);
-	void unpackagePedestrianUpdateParams(PedestrianUpdateParams& one_pedestrain);
+	IntersectionDrivingModel* unpackIntersectionDrivingModel() const;
+	FixedDelayed<DPoint*>& unpackFixedDelayedDPoint() const;
+	FixedDelayed<double>& unpackFixedDelayedDouble() const;
+	FixedDelayed<int>& unpackFixedDelayedInt() const;
+	Point2D* unpackPoint2D() const;
+	void unpackDriverUpdateParams(DriverUpdateParams& one_driver) const;
+	void unpackPedestrianUpdateParams(PedestrianUpdateParams& one_pedestrain) const;
 
 private:
 	void initializePackage(std::string value);

@@ -51,11 +51,11 @@ private:
 	//Serialization
 #ifndef SIMMOB_DISABLE_MPI
 public:
-	virtual void package(PackageUtils& packageUtil);
-	virtual void unpackage(UnPackageUtils& unpackageUtil);
+	virtual void pack(PackageUtils& packageUtil);
+	virtual void unpack(UnPackageUtils& unpackageUtil);
 
-	virtual void packageProxy(PackageUtils& packageUtil);
-	virtual void unpackageProxy(UnPackageUtils& unpackageUtil);
+	virtual void packProxy(PackageUtils& packageUtil);
+	virtual void unpackProxy(UnPackageUtils& unpackageUtil);
 #endif
 
 };

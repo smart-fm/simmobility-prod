@@ -42,7 +42,7 @@ void PackageUtils::safePackageDoubleValue(double value)
 		(*package) & value;
 }
 
-void PackageUtils::packageNode(const Node* one_node) {
+void PackageUtils::packRoadNetworkElement(const Node* one_node) {
 	bool hasSomthing = true;
 	if (!one_node) {
 		hasSomthing = false;
@@ -55,7 +55,7 @@ void PackageUtils::packageNode(const Node* one_node) {
 	(*package) & (one_node->location);
 }
 
-void PackageUtils::packageRoadSegment(const RoadSegment* roadsegment) {
+void PackageUtils::packRoadNetworkElement(const RoadSegment* roadsegment) {
 	bool hasSomthing = true;
 	if (!roadsegment) {
 
@@ -71,7 +71,7 @@ void PackageUtils::packageRoadSegment(const RoadSegment* roadsegment) {
 	(*package) & (roadsegment->getStart()->location);
 	(*package) & (roadsegment->getEnd()->location);
 }
-void PackageUtils::packageLink(const Link* one_link) {
+void PackageUtils::packRoadNetworkElement(const Link* one_link) {
 	bool hasSomthing = true;
 	if (!one_link) {
 		hasSomthing = false;
@@ -85,7 +85,7 @@ void PackageUtils::packageLink(const Link* one_link) {
 	(*package) & (one_link->getEnd()->location);
 }
 
-void PackageUtils::packageLane(const Lane* one_lane) {
+void PackageUtils::packLane(const Lane* one_lane) {
 	bool hasSomthing = true;
 	if (!one_lane) {
 		hasSomthing = false;
@@ -104,7 +104,7 @@ void PackageUtils::packageLane(const Lane* one_lane) {
 	(*package) & lane_id;
 }
 
-void PackageUtils::packageTripChain(const TripChain* tripChain) {
+void PackageUtils::packTripChain(const TripChain* tripChain) {
 	bool hasSomthing = true;
 	if (!tripChain) {
 		hasSomthing = false;
@@ -114,8 +114,8 @@ void PackageUtils::packageTripChain(const TripChain* tripChain) {
 		(*package) & hasSomthing;
 	}
 
-	packageTripActivity(&(tripChain->from));
-	packageTripActivity(&(tripChain->to));
+	packTripActivity(&(tripChain->from));
+	packTripActivity(&(tripChain->to));
 
 	(*package) & (tripChain->primary);
 	(*package) & (tripChain->flexible);
@@ -123,7 +123,7 @@ void PackageUtils::packageTripChain(const TripChain* tripChain) {
 	(*package) & (tripChain->mode);
 }
 
-void PackageUtils::packageTripActivity(const TripActivity* tripActivity) {
+void PackageUtils::packTripActivity(const TripActivity* tripActivity) {
 	bool hasSomthing = true;
 	if (!tripActivity) {
 		hasSomthing = false;
@@ -134,10 +134,10 @@ void PackageUtils::packageTripActivity(const TripActivity* tripActivity) {
 	}
 
 	(*package) & (tripActivity->description);
-	packageNode(tripActivity->location);
+	packNode(tripActivity->location);
 }
 
-void PackageUtils::packageVehicle(const Vehicle* one_vehicle) {
+void PackageUtils::packVehicle(const Vehicle* one_vehicle) {
 	bool hasSomthing = true;
 	if (!one_vehicle) {
 		hasSomthing = false;
@@ -150,7 +150,7 @@ void PackageUtils::packageVehicle(const Vehicle* one_vehicle) {
 	(*package) & (one_vehicle->length);
 	(*package) & (one_vehicle->width);
 
-	packageGeneralPathMover(&(one_vehicle->fwdMovement));
+	packGeneralPathMover(&(one_vehicle->fwdMovement));
 
 	//After fwdMovement
 	(*package) & (one_vehicle->latMovement);
@@ -162,7 +162,7 @@ void PackageUtils::packageVehicle(const Vehicle* one_vehicle) {
 	(*package) & (one_vehicle->error_state);
 }
 
-void PackageUtils::packageGeneralPathMover(const GeneralPathMover* fwdMovement) {
+void PackageUtils::packGeneralPathMover(const GeneralPathMover* fwdMovement) {
 	//transfer vector of road segment
 	//part 1
 
@@ -171,7 +171,7 @@ void PackageUtils::packageGeneralPathMover(const GeneralPathMover* fwdMovement) 
 
 	std::vector<const sim_mob::RoadSegment*>::const_iterator itr = fwdMovement->fullPath.begin();
 	for (; itr != fwdMovement->fullPath.end(); itr++) {
-		packageRoadSegment(*itr);
+		packRoadSegment(*itr);
 	}
 
 	int current_segment = fwdMovement->currSegmentIt - fwdMovement->fullPath.begin();
@@ -222,7 +222,7 @@ void PackageUtils::packageGeneralPathMover(const GeneralPathMover* fwdMovement) 
 
 }
 
-void PackageUtils::packageCrossing(const Crossing* one_crossing) {
+void PackageUtils::packCrossing(const Crossing* one_crossing) {
 	bool hasSomthing = true;
 	if (!one_crossing) {
 		hasSomthing = false;
@@ -250,7 +250,7 @@ void PackageUtils::packageCrossing(const Crossing* one_crossing) {
 	//std::cout << "333.8" << std::endl;
 }
 
-void PackageUtils::packageIntersectionDrivingModel(SimpleIntDrivingModel* one_model) {
+void PackageUtils::packIntersectionDrivingModel(const SimpleIntDrivingModel* one_model) {
 	bool hasSomthing = true;
 	if (!one_model) {
 		hasSomthing = false;
@@ -263,7 +263,7 @@ void PackageUtils::packageIntersectionDrivingModel(SimpleIntDrivingModel* one_mo
 	(*package) & (*one_model);
 }
 
-void PackageUtils::packageFixedDelayedDPoint(FixedDelayed<DPoint*>& one_delay) {
+void PackageUtils::packFixedDelayedDPoint(const FixedDelayed<DPoint*>& one_delay) {
 	//(*package) & (one_delay.delayMS);
 	(*package) & (one_delay.reclaimPtrs);
 
@@ -281,7 +281,7 @@ void PackageUtils::packageFixedDelayedDPoint(FixedDelayed<DPoint*>& one_delay) {
 	}
 }
 
-void PackageUtils::packageFixedDelayedDouble(FixedDelayed<double>& one_delay) {
+void PackageUtils::packFixedDelayedDouble(const FixedDelayed<double>& one_delay) {
 	//(*package) & (one_delay.delayMS);
 	(*package) & (one_delay.reclaimPtrs);
 
@@ -300,7 +300,7 @@ void PackageUtils::packageFixedDelayedDouble(FixedDelayed<double>& one_delay) {
 	}
 }
 
-void PackageUtils::packageFixedDelayedInt(FixedDelayed<int>& one_delay) {
+void PackageUtils::packFixedDelayedInt(const FixedDelayed<int>& one_delay) {
 	//(*package) & (one_delay.delayMS);
 	(*package) & (one_delay.reclaimPtrs);
 
@@ -318,21 +318,21 @@ void PackageUtils::packageFixedDelayedInt(FixedDelayed<int>& one_delay) {
 	}
 }
 
-void PackageUtils::packagePoint2D(const Point2D& one_point) {
+void PackageUtils::packPoint2D(const Point2D& one_point) {
 	(*package) & (one_point);
 }
 
-void PackageUtils::packageDriverUpdateParams(const DriverUpdateParams& one_driver)
+void PackageUtils::packDriverUpdateParams(const DriverUpdateParams& one_driver)
 {
 	(*package) & (one_driver.frameNumber);
 	(*package) & (one_driver.currTimeMS);
 	//(*package) & (one_driver.gen);
 
-	packageLane(one_driver.currLane);
+	packLane(one_driver.currLane);
 	(*package) & (one_driver.currLaneIndex);
 	(*package) & (one_driver.fromLaneIndex);
-	packageLane(one_driver.leftLane);
-	packageLane(one_driver.rightLane);
+	packLane(one_driver.leftLane);
+	packLane(one_driver.rightLane);
 
 	(*package) & (one_driver.currSpeed);
 
@@ -370,7 +370,7 @@ void PackageUtils::packageDriverUpdateParams(const DriverUpdateParams& one_drive
 	(*package) & (one_driver.overflowIntoIntersection);
 }
 
-void PackageUtils::packagePedestrianUpdateParams(const PedestrianUpdateParams& one_pedestrain)
+void PackageUtils::packPedestrianUpdateParams(const PedestrianUpdateParams& one_pedestrain)
 {
 	(*package) & (one_pedestrain.frameNumber);
 	(*package) & (one_pedestrain.currTimeMS);

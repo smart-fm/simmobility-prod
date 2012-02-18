@@ -211,7 +211,7 @@ std::string BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& packa
 //	std::cout << "Step 2.1" << PartitionManager::instance().partition_config->partition_id << std::endl;
 
 	//package cross agents
-	packageUtil.packageBasicData(package.cross_persons.size());
+	packageUtil.packBasicData(package.cross_persons.size());
 //	std::cout << "Step 2.2" << PartitionManager::instance().partition_config->partition_id << std::endl;
 
 	//std::cout << "Out cross_persons:" << package.cross_persons.size() << std::endl;
@@ -221,16 +221,16 @@ std::string BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& packa
 	for (; itr_cross != package.cross_persons.end(); itr_cross++) {
 
 		role_modes type = packageImpl.getAgentRoleType(*itr_cross);
-		packageUtil.packageBasicData((int) (type));
+		packageUtil.packBasicData((int) (type));
 
 		Person* one_person = const_cast<Person*> (*itr_cross);
 
 //		std::cout << "Step 2.4:" << one_person->getId() << PartitionManager::instance().partition_config->partition_id << std::endl;
 
-		one_person->package(packageUtil);
+		one_person->pack(packageUtil);
 //		std::cout << "Step 2.4.1:" << type << " ," << one_person->getId() << PartitionManager::instance().partition_config->partition_id << std::endl;
 
-		one_person->getRole()->package(packageUtil);
+		one_person->getRole()->pack(packageUtil);
 //		std::cout << "Step 2.4.2:" <<  type << " ," << one_person->getId() << PartitionManager::instance().partition_config->partition_id << std::endl;
 
 	}
@@ -238,7 +238,7 @@ std::string BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& packa
 //	std::cout << "Step 2.5" << PartitionManager::instance().partition_config->partition_id << std::endl;
 
 	//package feedback agents
-	packageUtil.packageBasicData(package.feedback_persons.size());
+	packageUtil.packBasicData(package.feedback_persons.size());
 
 //	std::cout << "Step 2.6" << PartitionManager::instance().partition_config->partition_id << std::endl;
 
@@ -246,29 +246,29 @@ std::string BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& packa
 
 	for (; itr_feedback != package.feedback_persons.end(); itr_feedback++) {
 		role_modes type = packageImpl.getAgentRoleType(*itr_feedback);
-		packageUtil.packageBasicData((int) (type));
+		packageUtil.packBasicData((int) (type));
 
 		int agent_id = (*itr_feedback)->getId();
-		packageUtil.packageBasicData(agent_id);
+		packageUtil.packBasicData(agent_id);
 
 		Person* one_person = const_cast<Person*> (*itr_feedback);
 
-		one_person->packageProxy(packageUtil);
-		one_person->getRole()->packageProxy(packageUtil);
+		one_person->packProxy(packageUtil);
+		one_person->getRole()->packProxy(packageUtil);
 	}
 
 //	std::cout << "Step 2.7" << PartitionManager::instance().partition_config->partition_id << std::endl;
 
 	//package signal
-	packageUtil.packageBasicData(package.boundary_signals.size());
+	packageUtil.packBasicData(package.boundary_signals.size());
 
 	std::vector<Signal const*>::iterator itr_signal = package.boundary_signals.begin();
 	for (; itr_signal != package.boundary_signals.end(); itr_signal++) {
 		const sim_mob::Point2D& location = (*itr_signal)->getNode().location;
-		packageUtil.packagePoint2D(location);
+		packageUtil.packPoint2D(location);
 
 		Signal* one_signal = const_cast<Signal*> (*itr_signal);
-		one_signal->packageProxy(packageUtil);
+		one_signal->packProxy(packageUtil);
 	}
 
 //	std::cout << "Step 2.8:" << PartitionManager::instance().partition_config->partition_id << std::endl;
@@ -283,10 +283,10 @@ void BoundaryProcessor::processPackageData(std::string data) {
 	//std::cout << partition_config->partition_id << ",Step 4.1" << std::endl;
 
 	//cross agents
-	int cross_size = unpackageUtil.unpackageBasicData<int> ();
+	int cross_size = unpackageUtil.unpackBasicData<int> ();
 	//std::cout << partition_config->partition_id << ",In cross_size:" << cross_size << std::endl;
 	for (int i = 0; i < cross_size; i++) {
-		int type = unpackageUtil.unpackageBasicData<int> ();
+		int type = unpackageUtil.unpackBasicData<int> ();
 
 		switch (type) {
 		case Driver_Role: {
@@ -295,10 +295,10 @@ void BoundaryProcessor::processPackageData(std::string data) {
 			Driver* one_driver = new Driver(one_person, ConfigParams::GetInstance().mutexStategy, 0, 0, 0);
 			one_person->changeRole(one_driver);
 
-			one_person->unpackage(unpackageUtil);
+			one_person->unpack(unpackageUtil);
 			//std::cout << partition_config->partition_id << ",Step 4.2.1.2:" << std::endl;
 
-			one_driver->unpackage(unpackageUtil);
+			one_driver->unpack(unpackageUtil);
 			//std::cout << partition_config->partition_id << ",Step 4.2.1.3:" << std::endl;
 
 			if (isCrossAgentShouldBeInsert(one_person)) {
@@ -315,9 +315,9 @@ void BoundaryProcessor::processPackageData(std::string data) {
 			Pedestrian* one_pedestrian = new Pedestrian(one_person, one_person->getGenerator());
 			one_person->changeRole(one_pedestrian);
 
-			one_person->unpackage(unpackageUtil);
+			one_person->unpack(unpackageUtil);
 			//std::cout << partition_config->partition_id << ",Step 4.2.1.3:" << std::endl;
-			one_pedestrian->unpackage(unpackageUtil);
+			one_pedestrian->unpack(unpackageUtil);
 			//std::cout << partition_config->partition_id << ",Step 4.2.1.4:" << std::endl;
 
 			if (isCrossAgentShouldBeInsert(one_person)) {
@@ -336,7 +336,7 @@ void BoundaryProcessor::processPackageData(std::string data) {
 	//std::cout << partition_config->partition_id << ",Step 4.2" << std::endl;
 
 	//feedback agents
-	int feedback_size = unpackageUtil.unpackageBasicData<int> ();
+	int feedback_size = unpackageUtil.unpackBasicData<int> ();
 	////std::cout << "In feedback_size:" << feedback_size << std::endl;
 
 //	if(partition_config->partition_id == 0)
@@ -346,20 +346,20 @@ void BoundaryProcessor::processPackageData(std::string data) {
 
 		//std::cout << "-------------------------" << std::endl;
 
-		int value = unpackageUtil.unpackageBasicData<int> ();
+		int value = unpackageUtil.unpackBasicData<int> ();
 		//std::cout << "Step 4.2.3:" << std::endl;
 
-		int agent_id = unpackageUtil.unpackageBasicData<int> ();
+		int agent_id = unpackageUtil.unpackBasicData<int> ();
 		//std::cout << "Step 4.2.4:" << std::endl;
 
 		Person* one_person = getFakePersonById(agent_id);
 
 		if (one_person) {
-			one_person->unpackageProxy(unpackageUtil);
+			one_person->unpackProxy(unpackageUtil);
 //			if(partition_config->partition_id == 0)
 //			std::cout << one_person->getId() << "Step 4.2.5:" << std::endl;
 
-			one_person->getRole()->unpackageProxy(unpackageUtil);
+			one_person->getRole()->unpackProxy(unpackageUtil);
 
 			one_person->isFake = true;
 			one_person->receiveTheFakeEntityAgain = true;
@@ -377,11 +377,11 @@ void BoundaryProcessor::processPackageData(std::string data) {
 				one_person->changeRole(new Driver(one_person, ConfigParams::GetInstance().mutexStategy, config.reacTime_LeadingVehicle,
 						config.reacTime_SubjectVehicle, config.reacTime_Gap));
 
-				one_person->unpackageProxy(unpackageUtil);
+				one_person->unpackProxy(unpackageUtil);
 //				if(partition_config->partition_id == 1)
 //				std::cout << partition_config->partition_id << ",Step 4.2.7:" << std::endl;
 
-				one_person->getRole()->unpackageProxy(unpackageUtil);
+				one_person->getRole()->unpackProxy(unpackageUtil);
 //				if(partition_config->partition_id == 1)
 //				std::cout << partition_config->partition_id << ",Step 4.2.8:" << std::endl;
 
@@ -398,11 +398,11 @@ void BoundaryProcessor::processPackageData(std::string data) {
 				one_person = new Person(ConfigParams::GetInstance().mutexStategy, -1);
 				one_person->changeRole(new Pedestrian(one_person, one_person->getGenerator()));
 
-				one_person->unpackageProxy(unpackageUtil);
+				one_person->unpackProxy(unpackageUtil);
 //				if(partition_config->partition_id == 1)
 //				std::cout << partition_config->partition_id << ",Step 4.2.9:" << std::endl;
 
-				one_person->getRole()->unpackageProxy(unpackageUtil);
+				one_person->getRole()->unpackProxy(unpackageUtil);
 //				if(partition_config->partition_id == 1)
 //				std::cout << partition_config->partition_id << ",Step 4.2.10:" << std::endl;
 
@@ -427,13 +427,13 @@ void BoundaryProcessor::processPackageData(std::string data) {
 	//std::cout << partition_config->partition_id << ",Step 4.3" << std::endl;
 
 	//feedback signal
-	int signal_size = unpackageUtil.unpackageBasicData<int> ();
+	int signal_size = unpackageUtil.unpackBasicData<int> ();
 
 	for (int i = 0; i < signal_size; i++) {
-		sim_mob::Point2D* location = unpackageUtil.unpackagePoint2D();
+		sim_mob::Point2D* location = unpackageUtil.unpackPoint2D();
 		sim_mob::Signal* one_signal = const_cast<Signal*> (sim_mob::getSignalBasedOnNode(location));
 
-		one_signal->unpackageProxy(unpackageUtil);
+		one_signal->unpackProxy(unpackageUtil);
 	}
 
 //	if(partition_config->partition_id == 1)

@@ -35,7 +35,8 @@ Person* sim_mob::Person::GeneratePersonFromPending(const PendingEntity& p)
 	} else if (p.type == ENTITY_PEDESTRIAN) {
 		res->changeRole(new Pedestrian(res, res->getGenerator()));
 	} else if (p.type == ENTITY_BUSDRIVER) {
-		res->changeRole(new BusDriver(res, config.mutexStategy, config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
+		//undefined reference to `sim_mob::BusDriver::BusDriver(sim_mob::Person*, sim_mob::MutexStrategy, unsigned int, unsigned int, unsigned int)'
+		//res->changeRole(new BusDriver(res, config.mutexStategy, config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
 	} else {
 		throw std::runtime_error("PendingEntity currently only supports Drivers and Pedestrians.");
 	}
@@ -166,43 +167,43 @@ sim_mob::Role* sim_mob::Person::getRole() const {
 /*
  * package Entity, Agent, Person and Role
  */
-void sim_mob::Person::package(PackageUtils& packageUtil) {
+void sim_mob::Person::pack(PackageUtils& packageUtil) {
 	//package Entity
 	//std::cout << "Person package Called" << this->getId() << std::endl;
-	sim_mob::Agent::package(packageUtil);
+	sim_mob::Agent::pack(packageUtil);
 
 	//package person
-	packageUtil.packageBasicData(specialStr);
-	packageUtil.packageTripChain(currTripChain);
-	packageUtil.packageBasicData(firstFrameTick);
+	packageUtil.packBasicData(specialStr);
+	packageUtil.packTripChain(currTripChain);
+	packageUtil.packBasicData(firstFrameTick);
 }
 
-void sim_mob::Person::unpackage(UnPackageUtils& unpackageUtil) {
+void sim_mob::Person::unpack(UnPackageUtils& unpackageUtil) {
 
-	sim_mob::Agent::unpackage(unpackageUtil);
+	sim_mob::Agent::unpack(unpackageUtil);
 	//std::cout << "Person unpackage Called" << this->getId() << std::endl;
 
-	specialStr = unpackageUtil.unpackageBasicData<std::string> ();
-	currTripChain = const_cast<sim_mob::TripChain*>(unpackageUtil.unpackageTripChain());
-	firstFrameTick = unpackageUtil.unpackageBasicData<bool> ();
+	specialStr = unpackageUtil.unpackBasicData<std::string> ();
+	currTripChain = const_cast<sim_mob::TripChain*>(unpackageUtil.unpackTripChain());
+	firstFrameTick = unpackageUtil.unpackBasicData<bool> ();
 }
 
-void sim_mob::Person::packageProxy(PackageUtils& packageUtil) {
+void sim_mob::Person::packProxy(PackageUtils& packageUtil) {
 	//package Entity
-	sim_mob::Agent::package(packageUtil);
+	sim_mob::Agent::pack(packageUtil);
 
 	//package person
-	packageUtil.packageBasicData(specialStr);
-	packageUtil.packageTripChain(currTripChain);
-	packageUtil.packageBasicData(firstFrameTick);
+	packageUtil.packBasicData(specialStr);
+	packageUtil.packTripChain(currTripChain);
+	packageUtil.packBasicData(firstFrameTick);
 }
 
-void sim_mob::Person::unpackageProxy(UnPackageUtils& unpackageUtil) {
-	sim_mob::Agent::unpackage(unpackageUtil);
+void sim_mob::Person::unpackProxy(UnPackageUtils& unpackageUtil) {
+	sim_mob::Agent::unpack(unpackageUtil);
 
-	specialStr = unpackageUtil.unpackageBasicData<std::string> ();
-	currTripChain = const_cast<sim_mob::TripChain*>(unpackageUtil.unpackageTripChain());
-	firstFrameTick = unpackageUtil.unpackageBasicData<bool> ();
+	specialStr = unpackageUtil.unpackBasicData<std::string> ();
+	currTripChain = const_cast<sim_mob::TripChain*>(unpackageUtil.unpackTripChain());
+	firstFrameTick = unpackageUtil.unpackBasicData<bool> ();
 }
 
 #endif

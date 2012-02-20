@@ -5,7 +5,7 @@
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
-#endif
+
 
 using namespace sim_mob;
 
@@ -37,3 +37,4 @@ Node* Node::unpack(UnPackageUtils& unpackage)
 	 return rn.locateNode(location, true);
 }
 }
+#endif

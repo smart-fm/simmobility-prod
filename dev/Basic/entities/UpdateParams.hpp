@@ -3,7 +3,7 @@
 #pragma once
 
 #include "metrics/Frame.hpp"
-
+#include <boost/random.hpp>
 
 namespace sim_mob
 {

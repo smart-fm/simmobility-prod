@@ -6,7 +6,6 @@
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
-#endif
 
 using namespace sim_mob;
 
@@ -33,3 +32,4 @@ void IntersectionDrivingModel::unpack(UnPackageUtils& unpackage, SimpleIntDrivin
 	unpackage.unpackDynamicVector(params->intTrajectory);
 	params->totalMovement = unpackage.unpackBasicData<double>();
 }
+#endif

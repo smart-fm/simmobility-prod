@@ -5,7 +5,8 @@
 #include "GenConfig.h"
 #include "entities/UpdateParams.hpp"
 #include "util/DynamicVector.hpp"
-
+#include <boost/random.hpp>
+#include "util/LangHelpers.hpp"
 
 namespace sim_mob
 {

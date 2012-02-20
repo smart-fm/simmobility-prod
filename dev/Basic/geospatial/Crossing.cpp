@@ -6,6 +6,7 @@
 
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
+#include "util/GeomHelpers.hpp"
 
 namespace sim_mob {
 void Crossing::pack(PackageUtils& package, Crossing* one_cross) {
@@ -37,10 +38,10 @@ const Crossing* Crossing::unpack(UnPackageUtils& unpackage) {
 		return NULL;
 	}
 
-	sim_mob::Point2D near1 = *(unpackage.unpackPoint2D());
-	sim_mob::Point2D near2 = *(unpackage.unpackPoint2D());
-	sim_mob::Point2D far1 = *(unpackage.unpackPoint2D());
-	sim_mob::Point2D far2 = *(unpackage.unpackPoint2D());
+	sim_mob::Point2D near_1 = *(unpackage.unpackPoint2D());
+	sim_mob::Point2D near_2 = *(unpackage.unpackPoint2D());
+	sim_mob::Point2D far_1 = *(unpackage.unpackPoint2D());
+	sim_mob::Point2D far_2 = *(unpackage.unpackPoint2D());
 
 	return sim_mob::getCrossingBasedOnNode(&near_1, &near_2, &far_1, &far_2);
 }

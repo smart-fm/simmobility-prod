@@ -5,11 +5,10 @@
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
+#include "geospatial/RoadNetwork.hpp"
+#include "conf/simpleconf.hpp"
 
-
-using namespace sim_mob;
-
-namespace {
+namespace sim_mob{
 
 void Node::pack(PackageUtils& package, const Node* one_node)
 {

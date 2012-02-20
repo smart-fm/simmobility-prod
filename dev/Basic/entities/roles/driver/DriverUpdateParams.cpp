@@ -5,12 +5,12 @@
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
+#include "geospatial/Lane.hpp"
 #endif
 
 #ifndef SIMMOB_DISABLE_MPI
-using namespace sim_mob;
 
-namespace {
+namespace sim_mob{
 
 void DriverUpdateParams::pack(PackageUtils& package, const DriverUpdateParams* params) {
 

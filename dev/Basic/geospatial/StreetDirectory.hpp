@@ -227,6 +227,9 @@ public:
     std::vector<WayPoint>
     shortestDrivingPath(Node const & fromNode, Node const & toNode) const;
 
+    std::vector<WayPoint>
+    GetShortestDrivingPath(Node const & fromNode, Node const & toNode) const;
+
     /**
      * Return the distance-based shortest path to walk from one point to another.
      *

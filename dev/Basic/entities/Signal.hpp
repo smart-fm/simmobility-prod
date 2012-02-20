@@ -18,11 +18,6 @@
 #include "util/SignalStatus.hpp"
 #include "entities/LoopDetectorEntity.hpp"
 
-#ifndef SIMMOB_DISABLE_MPI
-#include "partitions/PackageUtils.hpp"
-#include "partitions/UnPackageUtils.hpp"
-#endif
-
 namespace sim_mob
 {
 
@@ -30,6 +25,11 @@ namespace sim_mob
 class Node;
 class Lane;
 class Crossing;
+
+#ifndef SIMMOB_DISABLE_MPI
+class PackageUtils;
+class UnPackageUtils;
+#endif
 
 
 /**

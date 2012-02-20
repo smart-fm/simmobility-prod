@@ -96,6 +96,13 @@ public:
 	//Temporary; workaround
 	//const DynamicVector& TEMP_retrieveFwdVelocityVector();
 
+#ifndef SIMMOB_DISABLE_MPI
+public:
+	///Serialization
+	static void pack(PackageUtils& package, Vehicle* one_vehicle);
+
+	static Vehicle* unpack(UnPackageUtils& unpackage);
+#endif
 
 //private:
 	//temp

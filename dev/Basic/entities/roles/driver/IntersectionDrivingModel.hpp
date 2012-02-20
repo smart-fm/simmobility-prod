@@ -13,6 +13,10 @@
 
 namespace sim_mob {
 
+#ifndef SIMMOB_DISABLE_MPI
+class PackageUtils;
+class UnPackageUtils;
+#endif
 
 /**
  * \author Seth N. Hetu
@@ -24,14 +28,11 @@ public:
 	virtual bool isDone() = 0;
 	virtual double getCurrentAngle() = 0;
 
-	//add by xuyan
+	//add by xuyan, do nothing
 #ifndef SIMMOB_DISABLE_MPI
 public:
-	friend class boost::serialization::access;
-	template<class Archive>
-	void serialize(Archive & ar, const unsigned int version)
-	{
-	}
+	static void pack(PackageUtils& package, const IntersectionDrivingModel* params);
+	static void unpack(UnPackageUtils& unpackage, IntersectionDrivingModel* params);
 #endif
 };
 
@@ -63,14 +64,9 @@ public:
 
 	//add by xuyan
 #ifndef SIMMOB_DISABLE_MPI
-public:
-	friend class boost::serialization::access;
-	template<class Archive>
-	void serialize(Archive & ar, const unsigned int version)
-	{
-		ar & intTrajectory;
-		ar & totalMovement;
-	}
+	static void pack(PackageUtils& package, const SimpleIntDrivingModel* params);
+
+	static void unpack(UnPackageUtils& unpackage, SimpleIntDrivingModel* params);
 #endif
 };
 

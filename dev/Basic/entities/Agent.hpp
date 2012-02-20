@@ -21,11 +21,6 @@
 #include "Entity.hpp"
 #include "PendingEntity.hpp"
 
-#ifndef SIMMOB_DISABLE_MPI
-#include "partitions/PackageUtils.hpp"
-#include "partitions/UnPackageUtils.hpp"
-#endif
-
 namespace sim_mob
 {
 
@@ -34,8 +29,8 @@ class WorkGroup;
 
 #ifndef SIMMOB_DISABLE_MPI
 class BoundaryProcessor;
-//class PackageUtils;
-//class UnPackageUtils;
+class PackageUtils;
+class UnPackageUtils;
 #endif
 
 //Comparison for our priority queue

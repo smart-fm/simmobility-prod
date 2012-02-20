@@ -6,6 +6,12 @@
 #include "partitions/PartitionManager.hpp"
 #include <cstdlib>
 
+#ifndef SIMMOB_DISABLE_MPI
+#include "geospatial/Node.hpp"
+#include "partitions/PackageUtils.hpp"
+#include "partitions/UnPackageUtils.hpp"
+#endif
+
 using namespace sim_mob;
 
 using std::vector;
@@ -85,8 +91,11 @@ void sim_mob::Agent::pack(PackageUtils& packageUtil) {
 	packageUtil.packBasicData(isSubscriptionListBuilt);
 	packageUtil.packBasicData(startTime);
 
-	packageUtil.packNode(originNode);
-	packageUtil.packNode(destNode);
+	sim_mob::Node::pack(packageUtil, originNode);
+	sim_mob::Node::pack(packageUtil, destNode);
+
+//	packageUtil.packNode(originNode);
+//	packageUtil.packNode(destNode);
 
 	packageUtil.packBasicData(xPos.get());
 	packageUtil.packBasicData(yPos.get());
@@ -106,8 +115,8 @@ void sim_mob::Agent::unpack(UnPackageUtils& unpackageUtil) {
 	isSubscriptionListBuilt = unpackageUtil.unpackBasicData<bool> ();
 	startTime = unpackageUtil.unpackBasicData<int> ();
 
-	originNode = const_cast<Node*>(unpackageUtil.unpackNode());
-	destNode = const_cast<Node*>(unpackageUtil.unpackNode());
+	originNode = Node::unpack(unpackageUtil);
+	destNode = Node::unpack(unpackageUtil);
 
 	int x_pos, y_pos;
 	double x_acc, y_acc;
@@ -137,9 +146,6 @@ void sim_mob::Agent::packProxy(PackageUtils& packageUtil)
 	packageUtil.packBasicData(isSubscriptionListBuilt);
 	packageUtil.packBasicData(startTime);
 
-	packageUtil.packNode(originNode);
-	packageUtil.packNode(destNode);
-
 	packageUtil.packBasicData(xPos.get());
 	packageUtil.packBasicData(yPos.get());
 	packageUtil.packBasicData(fwdVel.get());
@@ -155,9 +161,6 @@ void sim_mob::Agent::unpackProxy(UnPackageUtils& unpackageUtil) {
 	id = unpackageUtil.unpackBasicData<int> ();
 	isSubscriptionListBuilt = unpackageUtil.unpackBasicData<bool> ();
 	startTime = unpackageUtil.unpackBasicData<int> ();
-
-	originNode = const_cast<Node*> (unpackageUtil.unpackNode());
-	destNode = const_cast<Node*> (unpackageUtil.unpackNode());
 
 	int x_pos, y_pos;
 	double x_acc, y_acc;

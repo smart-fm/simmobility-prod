@@ -16,6 +16,11 @@
 #include "geospatial/StreetDirectory.hpp"
 #include "util/OutputUtil.hpp"
 
+#ifndef SIMMOB_DISABLE_MPI
+#include "partitions/PackageUtils.hpp"
+#include "partitions/UnPackageUtils.hpp"
+#endif
+
 using std::map;
 using std::string;
 

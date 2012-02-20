@@ -16,6 +16,7 @@ namespace sim_mob
 //Forward declarations
 class RoadSegment;
 class Link;
+
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
 class UnPackageUtils;
@@ -96,6 +97,15 @@ public:
 	//We might be able to fold Lane movement in here later. For now, it has to be called externally.
 	void shiftToNewPolyline(bool moveLeft);
 	void moveToNewPolyline(int newLaneID);
+
+#ifndef SIMMOB_DISABLE_MPI
+public:
+	///Serialization
+	static void pack(PackageUtils& package, GeneralPathMover* one_mover);
+
+	static void unpack(UnPackageUtils& unpackage, GeneralPathMover* one_motor);
+#endif
+
 //temp
 //private:
 public:

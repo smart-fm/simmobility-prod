@@ -9,13 +9,16 @@
 #include "util/LangHelpers.hpp"
 #include "util/DailyTime.hpp"
 
+#ifndef SIMMOB_DISABLE_MPI
+#include "partitions/PackageUtils.hpp"
+#include "partitions/UnPackageUtils.hpp"
+#endif
+
 namespace sim_mob
 {
 
-
 //Forward declarations
 class Node;
-
 
 
 /**
@@ -53,6 +56,12 @@ public:
 		to.location = nullptr;
 	}
 
+public:
+#ifndef SIMMOB_DISABLE_MPI
+	static void pack(PackageUtils& package, const TripChain* chain);
+
+	static TripChain* unpack(UnPackageUtils& unpackage);
+#endif
 };
 
 

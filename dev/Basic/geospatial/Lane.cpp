@@ -8,6 +8,11 @@
 #include "util/DynamicVector.hpp"
 #include "util/GeomHelpers.hpp"
 
+#ifndef SIMMOB_DISABLE_MPI
+#include "partitions/PackageUtils.hpp"
+#include "partitions/UnPackageUtils.hpp"
+#endif
+
 using std::vector;
 
 namespace sim_mob
@@ -81,5 +86,53 @@ const std::vector<sim_mob::Point2D>& Lane::getPolyline() const
     }
     return polyline_;
 }
+
+#ifndef SIMMOB_DISABLE_MPI
+void Lane::pack(sim_mob::PackageUtils& package, const sim_mob::Lane* one_lane) {
+	if (one_lane == NULL) {
+		bool is_NULL = true;
+		package.packBasicData(is_NULL);
+		return;
+	} else {
+		bool is_NULL = false;
+		package.packBasicData(is_NULL);
+	}
+
+	sim_mob::Point2D const & start = one_lane->getRoadSegment()->getStart()->location;
+	sim_mob::Point2D const & end = one_lane->getRoadSegment()->getEnd()->location;
+	int lane_id = one_lane->getLaneID();
+
+	package.packPoint2D(start);
+	package.packPoint2D(end);
+	package.packBasicData<int>(lane_id);
+}
+
+Lane* Lane::unpack(sim_mob::UnPackageUtils& unpackage) {
+	bool is_NULL = unpackage.unpackBasicData<bool> ();
+	if (is_NULL) {
+		return NULL;
+	}
+
+	sim_mob::Point2D start;
+	sim_mob::Point2D end;
+	int lane_id;
+
+	start = *(unpackage.unpackPoint2D());
+	end = *(unpackage.unpackPoint2D());
+	lane_id = unpackage.unpackBasicData<int> ();
+
+	const sim_mob::RoadSegment* roadSegment = sim_mob::getRoadSegmentBasedOnNodes(&start, &end);
+
+	const std::vector<sim_mob::Lane*>& lanes = roadSegment->getLanes();
+	std::vector<sim_mob::Lane*>::const_iterator it = lanes.begin();
+
+	for (; it != lanes.end(); it++) {
+		if ((*it)->getLaneID() == lane_id)
+			return *it;
+	}
+
+	return NULL;
+}
+#endif
 
 }

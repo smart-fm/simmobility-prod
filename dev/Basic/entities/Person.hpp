@@ -12,11 +12,6 @@
 #include "buffering/Shared.hpp"
 #include "entities/UpdateParams.hpp"
 
-#ifndef SIMMOB_DISABLE_MPI
-#include "partitions/PackageUtils.hpp"
-#include "partitions/UnPackageUtils.hpp"
-#endif
-
 namespace sim_mob
 {
 
@@ -24,6 +19,8 @@ class TripChain;
 
 #ifndef SIMMOB_DISABLE_MPI
 class PartitionManager;
+class PackageUtils;
+class UnPackageUtils;
 #endif
 
 /**

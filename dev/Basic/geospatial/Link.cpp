@@ -7,6 +7,12 @@
 
 #include "RoadSegment.hpp"
 
+#ifndef SIMMOB_DISABLE_MPI
+#include "partitions/PackageUtils.hpp"
+#include "partitions/UnPackageUtils.hpp"
+#include "util/GeomHelpers.hpp"
+#endif
+
 using namespace sim_mob;
 using std::vector;
 using std::set;
@@ -133,4 +139,39 @@ string sim_mob::Link::getSegmentName(const RoadSegment* segment)
 	return res.str();
 }
 
+#ifndef SIMMOB_DISABLE_MPI
+void sim_mob::Link::pack(PackageUtils& package,const Link* one_link)
+{
+	if (one_link == NULL) {
+		bool is_NULL = true;
+		package.packBasicData(is_NULL);
+		return;
+	} else {
+		bool is_NULL = false;
+		package.packBasicData(is_NULL);
+	}
+
+	sim_mob::Point2D point_1 = one_link->getStart()->location;
+	sim_mob::Point2D point_2 = one_link->getEnd()->location;
+
+	package.packPoint2D(point_1);
+	package.packPoint2D(point_2);
+}
+
+const Link* sim_mob::Link::unpack(UnPackageUtils& unpackage)
+{
+	bool is_NULL = unpackage.unpackBasicData<bool> ();
+	if (is_NULL) {
+		return NULL;
+	}
+
+	sim_mob::Point2D point_1;
+	sim_mob::Point2D point_2;
+
+	point_1 = *(unpackage.unpackPoint2D());
+	point_2 = *(unpackage.unpackPoint2D());
+
+	return sim_mob::getLinkBetweenNodes(&point_1, &point_2);
+}
+#endif
 

@@ -10,7 +10,10 @@
 
 namespace sim_mob
 {
-
+#ifndef SIMMOB_DISABLE_MPI
+class PackageUtils;
+class UnPackageUtils;
+#endif
 
 /**
  * A Crossing is a RoadItem that crosses one (or more) RoadSegment(s).
@@ -32,6 +35,15 @@ public:
 	//The line that is "far" from the intersection (further down the road)
 	std::pair<sim_mob::Point2D, sim_mob::Point2D> farLine;
 
+public:
+
+#ifndef SIMMOB_DISABLE_MPI
+	///The identification of Crossing is packed using PackageUtils;
+	static void pack(PackageUtils& package, Crossing* one_cross);
+
+	///UnPackageUtils use the identification of Crossing to find the Crossing Object
+	static const Crossing* unpack(UnPackageUtils& unpackage);
+#endif
 };
 
 

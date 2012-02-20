@@ -33,6 +33,10 @@
 
 namespace sim_mob {
 
+enum Agent_Type {
+	NO_TYPE = 0, DRIVER_TYPE, PEDESTRIAN_TYPE, PASSENGER_TYPE, SIGNAL_TYPE
+};
+
 
 /**
  * \author Xu Yan
@@ -75,8 +79,8 @@ private:
 	std::map<std::string, BoundarySegment*> boundary_segments;
 //	std::map<std::string, std::vector<Agent*>*> fake_agents;
 
-	sim_mob::WorkGroup* entity_group;
-	sim_mob::WorkGroup* singal_group;
+	WorkGroup* entity_group;
+	WorkGroup* singal_group;
 
 	PartitionConfigure* partition_config;
 	SimulationScenario* scenario;
@@ -124,13 +128,14 @@ private:
 
 private:
 	//Others
-	sim_mob::BoundarySegment* getBoundarySegmentByID(std::string segmentID);
+	BoundarySegment* getBoundarySegmentByID(std::string segmentID);
 	bool isAgentInLocalPartition(unsigned int agent_id, bool includeFakeAgent);
-	bool isCrossAgentShouldBeInsert(const sim_mob::Agent* agent);
+	bool isCrossAgentShouldBeInsert(const Agent* agent);
 	Person* getFakePersonById(unsigned int agent_id);
-	std::vector<Agent const *> agentsInSegmentBoundary(sim_mob::BoundarySegment* boundary_segment);
+	std::vector<Agent const *> agentsInSegmentBoundary(BoundarySegment* boundary_segment);
 
-	void releaseFakeAgentMemory(sim_mob::Entity* agent);
+	void releaseFakeAgentMemory(Entity* agent);
+	Agent_Type getAgentTypeForSerialization(Agent const* agent);
 };
 
 }

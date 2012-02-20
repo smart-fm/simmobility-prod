@@ -15,6 +15,10 @@ namespace sim_mob
 //Forward declarations
 //class RoadSegment;
 
+#ifndef SIMMOB_DISABLE_MPI
+class PackageUtils;
+class UnPackageUtils;
+#endif
 
 namespace aimsun
 {
@@ -233,6 +237,17 @@ public:
 
     /** Return the polyline of the Lane, which traces the middle of the lane.  */
     const std::vector<sim_mob::Point2D>& getPolyline() const;
+
+public:
+
+#ifndef SIMMOB_DISABLE_MPI
+	///The identification of Lane is packed using PackageUtils;
+	static void pack(sim_mob::PackageUtils& package, const Lane* one_lane);
+
+	///UnPackageUtils use the identification of Lane to find the Lane Object
+	static Lane* unpack(UnPackageUtils& unpackage);
+
+#endif
 
 private:
     void makePolylineFromParentSegment();

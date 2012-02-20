@@ -17,6 +17,11 @@ namespace sim_mob
 class Lane;
 class RoadNetworkPackageManager;
 
+#ifndef SIMMOB_DISABLE_MPI
+class PackageUtils;
+class UnPackageUtils;
+#endif
+
 namespace aimsun
 {
 //Forward declaration
@@ -61,6 +66,14 @@ public:
 
 	//RoadSegments may have hidden properties useful only in for the visualizer.
 	OpaqueProperty<int> originalDB_ID;
+
+#ifndef SIMMOB_DISABLE_MPI
+	///The identification of RoadSegment is packed using PackageUtils;
+	static void pack(PackageUtils& package, const RoadSegment* one_segment);
+
+	///UnPackageUtils use the identification of RoadSegment to find the RoadSegment Object
+	static const RoadSegment* unpack(UnPackageUtils& unpackage);
+#endif
 
 public:
 	///Maximum speed of this road segment.

@@ -8,8 +8,6 @@
 #include <boost/serialization/list.hpp>
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/map.hpp>
-//#include <boost/serialization/unordered_set.hpp>
-//#include <boost/serialization/unordered_map.hpp>
 
 #include <sstream>
 #include <set>
@@ -17,17 +15,14 @@
 #include <vector>
 #include <map>
 #include <string>
-//#include <unordered_set>
-//#include <unordered_map>
 
-#include "geospatial/RoadNetwork.hpp"
-#include "geospatial/Node.hpp"
-#include "geospatial/Link.hpp"
-#include "geospatial/Lane.hpp"
-#include "geospatial/RoadSegment.hpp"
-#include "geospatial/Crossing.hpp"
-#include "geospatial/StreetDirectory.hpp"
+#include <boost/unordered_set.hpp>
+#include <boost/unordered_map.hpp>
+
 #include "perception/FixedDelayed.hpp"
+#include "util/DailyTime.hpp"
+#include "util/DynamicVector.hpp"
+#include "geospatial/Point2D.hpp"
 
 namespace sim_mob {
 
@@ -35,15 +30,9 @@ class BoundaryProcessor;
 
 class Point2D;
 class DPoint;
-class Vehicle;
-class TripChain;
-class TripActivity;
-class GeneralPathMover;
+
 class IntersectionDrivingModel;
 class SimpleIntDrivingModel;
-class DriverUpdateParams;
-class PedestrianUpdateParams;
-
 
 /**
  * \author Xu Yan
@@ -58,6 +47,9 @@ private:
 	boost::archive::text_oarchive* package;
 
 public:
+	PackageUtils();
+	~PackageUtils();
+public:
 	/**
 	 * DATA_TYPE can be:
 	 * (1)int {unsigned, signed}, long, short
@@ -65,36 +57,28 @@ public:
 	 * (3)bool
 	 */
 	template<class DATA_TYPE>
-	inline void packBasicData(DATA_TYPE value)
-	{
+	inline void packBasicData(DATA_TYPE value) {
 		(*package) & value;
 	}
 
-	//check the double value is not non and then package
-	void safePackageDoubleValue(double value);
-
-	/**
-	 * DATA_TYPE can be:
-	 * (1)int {unsigned, signed}, long, short
-	 * (2)float, double, char
-	 * (3)bool
-	 */
 	template<class DATA_TYPE>
-	inline void packBasicDataList(const std::list<DATA_TYPE>& value)
-	{
-		(*package) & value;
+	inline void operator<<(DATA_TYPE& value) {
+		packBasicData(value);
 	}
 
 	/**
-	 * DATA_TYPE can be:
-	 * (1)int {unsigned, signed}, long, short
-	 * (2)float, double, char
-	 * (3)bool
+	 *Check whether the double value is NaN.
 	 */
-	template<class DATA_TYPE>
-	inline void packBasicDataVector(const std::vector<DATA_TYPE>& value)
-	{
-		(*package) & value;
+	inline void packBasicData(double value) {
+		double buffer = 0;
+		if (value != value)
+			(*package) & buffer;
+		else
+			(*package) & value;
+	}
+
+	inline void operator<<(double value) {
+		packBasicData(value);
 	}
 
 	/**
@@ -104,26 +88,56 @@ public:
 	 * (3)bool
 	 */
 	template<class DATA_TYPE>
-	inline void packBasicDataSet(const std::set<DATA_TYPE>& value)
-	{
+	inline void packBasicDataList(const std::list<DATA_TYPE>& value) {
 		(*package) & value;
 	}
 
-	//Basic type (DATA_TYPE)
-	//Includes: int, double, float, bool, std::string
-	//(Can not be pointer, struct, class, union)
-//	template<class DATA_TYPE>
-//	inline void packBasicDataUnorderedSet(const std::unordered_set<DATA_TYPE>& value) {
-//		(*package) & value;
-//	}
-//
-//	//Basic type (DATA_TYPE)
-//	//Includes: int, double, float, bool, std::string
-//	//(Can not be pointer, struct, class, union)
-//	template<class DATA_TYPE>
-//	inline void packBasicDataUnorderedMap(const std::unordered_map<DATA_TYPE>& value) {
-//		(*package) & value;
-//	}
+	template<class DATA_TYPE>
+	inline void operator<<(const std::list<DATA_TYPE>& value) {
+		packBasicDataList(value);
+	}
+
+	//	template<class DATA_TYPE>
+	//	inline void operator<<(const std::list<DATA_TYPE>& value) {
+	//		(*package) & value;
+	//	}
+
+	/**
+	 * DATA_TYPE can be:
+	 * (1)int {unsigned, signed}, long, short
+	 * (2)float, double, char
+	 * (3)bool
+	 */
+	template<class DATA_TYPE>
+	inline void packBasicDataVector(const std::vector<DATA_TYPE>& value) {
+		(*package) & value;
+	}
+
+	template<class DATA_TYPE>
+	inline void operator<<(const std::vector<DATA_TYPE>& value) {
+		packBasicDataVector(value);
+	}
+
+	//	template<class DATA_TYPE>
+	//	inline void operator<<(const std::list<DATA_TYPE>& value) {
+	//		(*package) & value;
+	//	}
+
+	/**
+	 * DATA_TYPE can be:
+	 * (1)int {unsigned, signed}, long, short
+	 * (2)float, double, char
+	 * (3)bool
+	 */
+	template<class DATA_TYPE>
+	inline void packBasicDataSet(const std::set<DATA_TYPE>& value) {
+		(*package) & value;
+	}
+
+	template<class DATA_TYPE>
+	inline void operator<<(const std::set<DATA_TYPE>& value) {
+		packBasicDataSet(value);
+	}
 
 	/**
 	 * DATA_TYPE can be:
@@ -132,37 +146,79 @@ public:
 	 * (3)bool
 	 */
 	template<class DATA_TYPE_1, class DATA_TYPE_2>
-	inline void packBasicDataMap(const std::map<DATA_TYPE_1, DATA_TYPE_2>& value)
-	{
+	inline void packBasicDataMap(const std::map<DATA_TYPE_1, DATA_TYPE_2>& value) {
 		(*package) & value;
 	}
 
+	template<class DATA_TYPE_1, class DATA_TYPE_2>
+	inline void operator<<(const std::map<DATA_TYPE_1, DATA_TYPE_2>& value) {
+		packBasicDataMap(value);
+	}
+
+	/**
+	 * DATA_TYPE can be:
+	 * (1)int {unsigned, signed}, long, short
+	 * (2)float, double, char
+	 * (3)bool
+	 * (not tested yet)
+	 */
+	template<class DATA_TYPE_1, class DATA_TYPE_2>
+	inline void packUnorderedMap(const boost::unordered_map<DATA_TYPE_1, DATA_TYPE_2>& value) {
+		(*package) & value;
+	}
+
+	template<class DATA_TYPE_1, class DATA_TYPE_2>
+	inline void operator<<(const boost::unordered_map<DATA_TYPE_1, DATA_TYPE_2>& value) {
+		packUnorderedMap(value);
+	}
+
+	/**
+	 * DATA_TYPE can be:
+	 * (1)int {unsigned, signed}, long, short
+	 * (2)float, double, char
+	 * (3)bool
+	 * (not tested yet)
+	 */
+	template<class DATA_TYPE>
+	inline void packUnorderedSet(const boost::unordered_set<DATA_TYPE>& value) {
+		(*package) & value;
+	}
+
+	template<class DATA_TYPE>
+	inline void operator<<(const boost::unordered_set<DATA_TYPE>& value) {
+		packUnorderedSet(value);
+	}
+
 	//Road Network
-	void packRoadNetworkElement(const Node* one_node);
-	void packRoadNetworkElement(const RoadSegment* roadsegment);
-	void packRoadNetworkElement(const Link* one_link);
-	void packRoadNetworkElement(const Lane* one_lane);
-	void packRoadNetworkElement(const TripChain* tripChain);
-	void packRoadNetworkElement(const TripActivity* tripActivity);
+	//void packNode(const Node* one_node);
+	//void packRoadSegment(const RoadSegment* roadsegment);
+	//void packLink(const Link* one_link);
+	//void packLane(const Lane* one_lane);
+//	void packTripChain(const TripChain* tripChain);
+//	void packTripActivity(const TripActivity* tripActivity);
 
 	//Road Item
-	void packVehicle(const Vehicle* one_vehicle);
-	void packGeneralPathMover(const sim_mob::GeneralPathMover* mover);
-	void packCrossing(const Crossing* one_crossing);
+	//void packVehicle(const Vehicle* one_vehicle);
+	//void packGeneralPathMover(const sim_mob::GeneralPathMover* mover);
+	//void packCrossing(const Crossing* one_crossing);
 
 	//Other struct
-	void packIntersectionDrivingModel(const SimpleIntDrivingModel* one_model);
+//	void packIntersectionDrivingModel(const SimpleIntDrivingModel* one_model);
 	void packFixedDelayedDPoint(const FixedDelayed<DPoint*>& one_delay);
 	void packFixedDelayedDouble(const FixedDelayed<double>& one_delay);
 	void packFixedDelayedInt(const FixedDelayed<int>& one_delay);
 	void packPoint2D(const Point2D& one_point);
-	void packDriverUpdateParams(const DriverUpdateParams& one_driver);
-	void packPedestrianUpdateParams(const PedestrianUpdateParams& one_pedestrain);
+//	void packDriverUpdateParams(const DriverUpdateParams& one_driver);
+//	void packPedestrianUpdateParams(const PedestrianUpdateParams& one_pedestrain);
+
+	void packDailyTime(const DailyTime& time);
+	void packDPoint(const DPoint& point);
+	void packDynamicVector(const DynamicVector& vector);
 
 private:
 	std::string getPackageData();
-	void initializePackage();
-	void clearPackage();
+//	void initializePackage();
+//	void clearPackage();
 
 public:
 	friend class BoundaryProcessor;

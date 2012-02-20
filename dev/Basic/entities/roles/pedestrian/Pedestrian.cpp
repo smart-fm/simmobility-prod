@@ -25,6 +25,11 @@
 #include "util/GeomHelpers.hpp"
 #include "geospatial/Point2D.hpp"
 
+#ifndef SIMMOB_DISABLE_MPI
+#include "partitions/PackageUtils.hpp"
+#include "partitions/UnPackageUtils.hpp"
+#endif
+
 using std::vector;
 using namespace sim_mob;
 
@@ -849,9 +854,9 @@ bool sim_mob::Pedestrian::isOnCrossing() const {
 void sim_mob::Pedestrian::pack(PackageUtils& packageUtil) {
 	//Part 1
 
-	packageUtil.safePackageDoubleValue(speed);
-	packageUtil.safePackageDoubleValue(xVel);
-	packageUtil.safePackageDoubleValue(yVel);
+	packageUtil.packBasicData(speed);
+	packageUtil.packBasicData(xVel);
+	packageUtil.packBasicData(yVel);
 	packageUtil.packPoint2D(goal);
 	packageUtil.packPoint2D(goalInLane);
 	packageUtil.packBasicData(currentStage);
@@ -879,22 +884,25 @@ void sim_mob::Pedestrian::pack(PackageUtils& packageUtil) {
 	packageUtil.packBasicData(sigColor);
 	packageUtil.packBasicData(curCrossingID);
 	packageUtil.packBasicData(startToCross);
-	packageUtil.safePackageDoubleValue(cStartX);
-	packageUtil.safePackageDoubleValue(cStartY);
-	packageUtil.safePackageDoubleValue(cEndX);
-	packageUtil.safePackageDoubleValue(cEndY);
+	packageUtil.packBasicData(cStartX);
+	packageUtil.packBasicData(cStartY);
+	packageUtil.packBasicData(cEndX);
+	packageUtil.packBasicData(cEndY);
 	//packageUtil.packBasicData(firstTimeUpdate);
 
 	packageUtil.packPoint2D(interPoint);
 
-	packageUtil.safePackageDoubleValue(xCollisionVector);
-	packageUtil.safePackageDoubleValue(yCollisionVector);
-	packageUtil.packGeneralPathMover(&fwdMovement);
+	packageUtil.packBasicData(xCollisionVector);
+	packageUtil.packBasicData(yCollisionVector);
+
+	GeneralPathMover::pack(packageUtil, &fwdMovement);
+//	packageUtil.packGeneralPathMover(&fwdMovement);
 
 	if (prevSeg) {
 		bool hasSegment = true;
 		packageUtil.packBasicData(hasSegment);
-		packageUtil.packRoadSegment(prevSeg);
+		RoadSegment::pack(packageUtil, prevSeg);
+//		packageUtil.packRoadSegment(prevSeg);
 	} else {
 		bool hasSegment = false;
 		packageUtil.packBasicData(hasSegment);
@@ -942,11 +950,14 @@ void sim_mob::Pedestrian::unpack(UnPackageUtils& unpackageUtil) {
 
 	xCollisionVector = unpackageUtil.unpackBasicData<double> ();
 	yCollisionVector = unpackageUtil.unpackBasicData<double> ();
-	unpackageUtil.unpackGeneralPathMover(&fwdMovement);
+
+	GeneralPathMover::unpack(unpackageUtil, &fwdMovement);
+//	unpackageUtil.unpackGeneralPathMover(&fwdMovement);
 	//fwdMovement = *(unpackageUtil.unpackGeneralPathMover());
 	bool hasSegment = unpackageUtil.unpackBasicData<bool> ();
 	if (hasSegment) {
-		prevSeg = unpackageUtil.unpackRoadSegment();
+		prevSeg = RoadSegment::unpack(unpackageUtil);
+//		prevSeg = unpackageUtil.unpackRoadSegment();
 	}
 
 	isUsingGenPathMover = unpackageUtil.unpackBasicData<bool> ();
@@ -959,9 +970,9 @@ void sim_mob::Pedestrian::packProxy(PackageUtils& packageUtil) {
 	//Part 1
 	//std::cout << "1-1-6-1" << std::endl;
 	//Part 1
-	packageUtil.safePackageDoubleValue(speed);
-	packageUtil.safePackageDoubleValue(xVel);
-	packageUtil.safePackageDoubleValue(yVel);
+	packageUtil.packBasicData(speed);
+	packageUtil.packBasicData(xVel);
+	packageUtil.packBasicData(yVel);
 	packageUtil.packPoint2D(goal);
 	packageUtil.packPoint2D(goalInLane);
 	packageUtil.packBasicData(currentStage);
@@ -991,7 +1002,7 @@ void sim_mob::Pedestrian::packProxy(PackageUtils& packageUtil) {
 	packageUtil.packBasicData(sigColor);
 	packageUtil.packBasicData(curCrossingID);
 	packageUtil.packBasicData(startToCross);
-	packageUtil.safePackageDoubleValue(cStartX);
+	packageUtil.packBasicData(cStartX);
 
 //	if(this->getParent()->getId() > 1000)
 //		{
@@ -1000,15 +1011,17 @@ void sim_mob::Pedestrian::packProxy(PackageUtils& packageUtil) {
 //			std::cout << "Check: cStartY:" << cStartY << std::endl;
 //		}
 
-	packageUtil.safePackageDoubleValue(cStartY);
-	packageUtil.safePackageDoubleValue(cEndX);
-	packageUtil.safePackageDoubleValue(cEndY);
+	packageUtil.packBasicData(cStartY);
+	packageUtil.packBasicData(cEndX);
+	packageUtil.packBasicData(cEndY);
 	//packageUtil.packBasicData(firstTimeUpdate);
 	packageUtil.packPoint2D(interPoint);
 
-	packageUtil.safePackageDoubleValue(xCollisionVector);
-	packageUtil.safePackageDoubleValue(yCollisionVector);
-	packageUtil.packGeneralPathMover(&fwdMovement);
+	packageUtil.packBasicData(xCollisionVector);
+	packageUtil.packBasicData(yCollisionVector);
+
+	GeneralPathMover::pack(packageUtil, &fwdMovement);
+//	packageUtil.packGeneralPathMover(&fwdMovement);
 //
 //	if(prevSeg)
 //	{
@@ -1091,7 +1104,9 @@ void sim_mob::Pedestrian::unpackProxy(UnPackageUtils& unpackageUtil) {
 
 	xCollisionVector = unpackageUtil.unpackBasicData<double> ();
 	yCollisionVector = unpackageUtil.unpackBasicData<double> ();
-	unpackageUtil.unpackGeneralPathMover(&fwdMovement);
+
+	GeneralPathMover::unpack(unpackageUtil, &fwdMovement);
+//	unpackageUtil.unpackGeneralPathMover(&fwdMovement);
 //	if(this->getParent()->getId() > 1000)
 //	std::cout << "1-1-6-7" << std::endl;
 //	//fwdMovement = *(unpackageUtil.unpackGeneralPathMover());
@@ -1105,4 +1120,31 @@ void sim_mob::Pedestrian::unpackProxy(UnPackageUtils& unpackageUtil) {
 //	std::cout << "1-1-6-8" << std::endl;
 
 }
+
+void PedestrianUpdateParams::pack(PackageUtils& package, const PedestrianUpdateParams* params) {
+
+	if (params == NULL) {
+		bool is_NULL = true;
+		package.packBasicData(is_NULL);
+		return;
+	} else {
+		bool is_NULL = false;
+		package.packBasicData(is_NULL);
+	}
+
+	package.packBasicData<int>(params->frameNumber);
+	package.packBasicData<int>(params->currTimeMS);
+	package.packBasicData<bool>(params->skipThisFrame);
+}
+
+void PedestrianUpdateParams::unpack(UnPackageUtils& unpackage, PedestrianUpdateParams* params) {
+	bool is_NULL = unpackage.unpackBasicData<bool> ();
+	if (is_NULL) {
+		return;
+	}
+
+	params->frameNumber = unpackage.unpackBasicData<int>();
+		params->currTimeMS = unpackage.unpackBasicData<int>();
+		params->skipThisFrame = unpackage.unpackBasicData<bool>();
+	}
 #endif

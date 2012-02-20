@@ -16,7 +16,10 @@ namespace sim_mob
 //Forward declarations
 class RoadItem;
 
-
+#ifndef SIMMOB_DISABLE_MPI
+class PackageUtils;
+class UnPackageUtils;
+#endif
 
 
 /**
@@ -93,6 +96,13 @@ public:
 	///       would allow for long non-curving segments and short curving ones.
 	static void GeneratePolyline(Pavement* p, Point2D center, double bulge, int segmentLength);
 
+#ifndef SIMMOB_DISABLE_MPI
+	///The identification of Crossing is packed using PackageUtils;
+	static void pack(PackageUtils& package, Pavement* one_pavement);
+
+	///UnPackageUtils use the identification of Crossing to find the Crossing Object
+	static const Pavement* unpack(UnPackageUtils& unpackage);
+#endif
 };
 
 

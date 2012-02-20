@@ -21,6 +21,10 @@ class Lane;
 class LaneConnector;
 class RoadSegment;
 
+#ifndef SIMMOB_DISABLE_MPI
+class PackageUtils;
+class UnPackageUtils;
+#endif
 
 /**
  * A location on a map where other elements interact. Nodes contain a Point2D representing their
@@ -43,6 +47,14 @@ public:
 
 	//Nodes may have hidden properties useful only in for the visualizer.
 	OpaqueProperty<int> originalDB_ID;
+
+#ifndef SIMMOB_DISABLE_MPI
+	///The identification of Node is packed using PackageUtils;
+	static void pack(PackageUtils& package, const Node* one_node);
+
+	///UnPackageUtils use the identification of Node to find the Node Object
+	static Node* unpack(UnPackageUtils& unpackage);
+#endif
 
 protected:
     Node(int x, int y) : location(x, y) {}

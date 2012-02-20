@@ -10,6 +10,12 @@
 
 #include "geospatial/Node.hpp"
 
+#ifndef SIMMOB_DISABLE_MPI
+#include "partitions/PackageUtils.hpp"
+#include "partitions/UnPackageUtils.hpp"
+#include "entities/misc/TripChain.hpp"
+#endif
+
 using std::vector;
 using namespace sim_mob;
 
@@ -174,7 +180,7 @@ void sim_mob::Person::pack(PackageUtils& packageUtil) {
 
 	//package person
 	packageUtil.packBasicData(specialStr);
-	packageUtil.packTripChain(currTripChain);
+	sim_mob::TripChain::pack(packageUtil, currTripChain);
 	packageUtil.packBasicData(firstFrameTick);
 }
 
@@ -184,7 +190,7 @@ void sim_mob::Person::unpack(UnPackageUtils& unpackageUtil) {
 	//std::cout << "Person unpackage Called" << this->getId() << std::endl;
 
 	specialStr = unpackageUtil.unpackBasicData<std::string> ();
-	currTripChain = const_cast<sim_mob::TripChain*>(unpackageUtil.unpackTripChain());
+	currTripChain = sim_mob::TripChain::unpack(unpackageUtil);
 	firstFrameTick = unpackageUtil.unpackBasicData<bool> ();
 }
 
@@ -194,7 +200,6 @@ void sim_mob::Person::packProxy(PackageUtils& packageUtil) {
 
 	//package person
 	packageUtil.packBasicData(specialStr);
-	packageUtil.packTripChain(currTripChain);
 	packageUtil.packBasicData(firstFrameTick);
 }
 
@@ -202,7 +207,6 @@ void sim_mob::Person::unpackProxy(UnPackageUtils& unpackageUtil) {
 	sim_mob::Agent::unpack(unpackageUtil);
 
 	specialStr = unpackageUtil.unpackBasicData<std::string> ();
-	currTripChain = const_cast<sim_mob::TripChain*>(unpackageUtil.unpackTripChain());
 	firstFrameTick = unpackageUtil.unpackBasicData<bool> ();
 }
 

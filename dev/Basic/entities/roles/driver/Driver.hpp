@@ -20,11 +20,6 @@
 #include "IntersectionDrivingModel.hpp"
 #include "DriverUpdateParams.hpp"
 
-#ifndef SIMMOB_DISABLE_MPI
-#include "partitions/PackageUtils.hpp"
-#include "partitions/UnPackageUtils.hpp"
-#endif
-
 namespace sim_mob
 {
 
@@ -38,6 +33,11 @@ class Node;
 class MultiNode;
 class DPoint;
 class UpdateParams;
+
+#ifndef SIMMOB_DISABLE_MPI
+class PackageUtils;
+class UnPackageUtils;
+#endif
 
 
 /**

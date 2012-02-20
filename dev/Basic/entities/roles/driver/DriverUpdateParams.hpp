@@ -14,6 +14,11 @@ namespace sim_mob
 class Lane;
 class Driver;
 
+#ifndef SIMMOB_DISABLE_MPI
+class PackageUtils;
+class UnPackageUtils;
+#endif
+
 
 struct LaneSide {
 	bool left;
@@ -119,8 +124,14 @@ struct DriverUpdateParams : public UpdateParams {
 	DPoint TEMP_lastKnownPolypoint;
 	bool justMovedIntoIntersection;
 	double overflowIntoIntersection;
-};
 
+public:
+#ifndef SIMMOB_DISABLE_MPI
+	static void pack(PackageUtils& package, const DriverUpdateParams* params);
+
+	static void unpack(UnPackageUtils& unpackage, DriverUpdateParams* params);
+#endif
+};
 
 
 }

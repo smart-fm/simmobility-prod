@@ -14,7 +14,6 @@
 #include <boost/mpi/environment.hpp>
 #include <boost/mpi/communicator.hpp>
 
-#include "AgentTypeManager.hpp"
 #include "PackageUtils.hpp"
 #include "UnPackageUtils.hpp"
 #include "BoundaryProcessor.hpp"
@@ -24,6 +23,9 @@
 #include "util/OutputUtil.hpp"
 #include "conf/simpleconf.hpp"
 #include "workers/WorkGroup.hpp"
+
+#include "geospatial/Node.hpp"
+#include "geospatial/RoadSegment.hpp"
 
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
@@ -113,7 +115,6 @@ void BoundaryProcessor::clearFakeAgentFlag() {
 
 std::string BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage& package) {
 	std::map<std::string, BoundarySegment*>::iterator loopRoadSegment;
-	AgentTypeManager& packageImpl = AgentTypeManager::instance();
 
 	for (loopRoadSegment = boundary_segments.begin(); loopRoadSegment != boundary_segments.end(); ++loopRoadSegment) {
 		//std::cout << "1.1.1.1" << std::endl;
@@ -147,8 +148,8 @@ std::string BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage& pa
 				}
 				}
 
-				if ((packageImpl.getAgentRoleType(*agent_pointer) != role_modes(Driver_Role))
-						&& (packageImpl.getAgentRoleType(*agent_pointer) != role_modes(Pedestrian_Role))) {
+				if ((getAgentTypeForSerialization(*agent_pointer) != DRIVER_TYPE)
+						&& (getAgentTypeForSerialization(*agent_pointer) != PEDESTRIAN_TYPE)) {
 					continue;
 				}
 
@@ -176,8 +177,8 @@ std::string BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage& pa
 				if ((*agent_pointer)->isFake || (*agent_pointer)->toRemoved)
 					continue;
 
-				if ((packageImpl.getAgentRoleType(*agent_pointer) != role_modes(Driver_Role))
-						&& (packageImpl.getAgentRoleType(*agent_pointer) != role_modes(Pedestrian_Role))) {
+				if ((getAgentTypeForSerialization(*agent_pointer) != DRIVER_TYPE)
+						&& (getAgentTypeForSerialization(*agent_pointer) != PEDESTRIAN_TYPE)) {
 					continue;
 				}
 
@@ -206,7 +207,6 @@ std::string BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage& pa
 
 std::string BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& package) {
 	sim_mob::PackageUtils packageUtil;
-	packageUtil.initializePackage();
 
 //	std::cout << "Step 2.1" << PartitionManager::instance().partition_config->partition_id << std::endl;
 
@@ -215,12 +215,11 @@ std::string BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& packa
 //	std::cout << "Step 2.2" << PartitionManager::instance().partition_config->partition_id << std::endl;
 
 	//std::cout << "Out cross_persons:" << package.cross_persons.size() << std::endl;
-	AgentTypeManager& packageImpl = AgentTypeManager::instance();
 
 	std::vector<Person const*>::iterator itr_cross = package.cross_persons.begin();
 	for (; itr_cross != package.cross_persons.end(); itr_cross++) {
 
-		role_modes type = packageImpl.getAgentRoleType(*itr_cross);
+		Agent_Type type = getAgentTypeForSerialization(*itr_cross);
 		packageUtil.packBasicData((int) (type));
 
 		Person* one_person = const_cast<Person*> (*itr_cross);
@@ -245,7 +244,7 @@ std::string BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& packa
 	std::vector<Person const*>::iterator itr_feedback = package.feedback_persons.begin();
 
 	for (; itr_feedback != package.feedback_persons.end(); itr_feedback++) {
-		role_modes type = packageImpl.getAgentRoleType(*itr_feedback);
+		Agent_Type type = getAgentTypeForSerialization(*itr_feedback);
 		packageUtil.packBasicData((int) (type));
 
 		int agent_id = (*itr_feedback)->getId();
@@ -264,8 +263,8 @@ std::string BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& packa
 
 	std::vector<Signal const*>::iterator itr_signal = package.boundary_signals.begin();
 	for (; itr_signal != package.boundary_signals.end(); itr_signal++) {
-		const sim_mob::Point2D& location = (*itr_signal)->getNode().location;
-		packageUtil.packPoint2D(location);
+		//const sim_mob::Point2D location = (*itr_signal)->getNode().location;
+		packageUtil.packPoint2D((*itr_signal)->getNode().location);
 
 		Signal* one_signal = const_cast<Signal*> (*itr_signal);
 		one_signal->packProxy(packageUtil);
@@ -276,8 +275,7 @@ std::string BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& packa
 }
 
 void BoundaryProcessor::processPackageData(std::string data) {
-	UnPackageUtils unpackageUtil;
-	unpackageUtil.initializePackage(data);
+	UnPackageUtils unpackageUtil(data);
 
 //	if(partition_config->partition_id == 0)
 	//std::cout << partition_config->partition_id << ",Step 4.1" << std::endl;
@@ -289,7 +287,7 @@ void BoundaryProcessor::processPackageData(std::string data) {
 		int type = unpackageUtil.unpackBasicData<int> ();
 
 		switch (type) {
-		case Driver_Role: {
+		case DRIVER_TYPE: {
 			//std::cout << partition_config->partition_id << ",Step 4.2.1.1:" << std::endl;
 			Person* one_person = new Person(ConfigParams::GetInstance().mutexStategy);
 			Driver* one_driver = new Driver(one_person, ConfigParams::GetInstance().mutexStategy, 0, 0, 0);
@@ -309,7 +307,7 @@ void BoundaryProcessor::processPackageData(std::string data) {
 		}
 
 			break;
-		case Pedestrian_Role: {
+		case PEDESTRIAN_TYPE: {
 			//std::cout << partition_config->partition_id << ",Step 4.2.1.2:" << std::endl;
 			Person* one_person = new Person(ConfigParams::GetInstance().mutexStategy);
 			Pedestrian* one_pedestrian = new Pedestrian(one_person, one_person->getGenerator());
@@ -372,7 +370,7 @@ void BoundaryProcessor::processPackageData(std::string data) {
 			ConfigParams& config = ConfigParams::GetInstance();
 
 			switch (value) {
-			case Driver_Role:
+			case DRIVER_TYPE:
 				one_person = new Person(ConfigParams::GetInstance().mutexStategy, -1);
 				one_person->changeRole(new Driver(one_person, ConfigParams::GetInstance().mutexStategy, config.reacTime_LeadingVehicle,
 						config.reacTime_SubjectVehicle, config.reacTime_Gap));
@@ -394,7 +392,7 @@ void BoundaryProcessor::processPackageData(std::string data) {
 				insertOneFakeAgentToWorkerGroup(one_person);
 				break;
 
-			case Pedestrian_Role:
+			case PEDESTRIAN_TYPE:
 				one_person = new Person(ConfigParams::GetInstance().mutexStategy, -1);
 				one_person->changeRole(new Pedestrian(one_person, one_person->getGenerator()));
 
@@ -478,9 +476,7 @@ bool BoundaryProcessor::isAgentCrossed(BoundarySegment* segment, Agent const* ag
 	if (is_down_boundary)
 		return false;
 
-	sim_mob::AgentTypeManager& packageImpl = sim_mob::AgentTypeManager::instance();
-
-	if (packageImpl.getAgentRoleType(agent) == role_modes(Driver_Role)) {
+	if (getAgentTypeForSerialization(agent) == DRIVER_TYPE) {
 		const Person *person = dynamic_cast<const Person *> (agent);
 		Person* p = const_cast<Person*> (person);
 		const Driver *driver = dynamic_cast<const Driver *> (p->getRole());
@@ -529,7 +525,7 @@ bool BoundaryProcessor::isAgentCrossed(BoundarySegment* segment, Agent const* ag
 
 		return true;
 
-	} else if (packageImpl.getAgentRoleType(agent) == role_modes(Pedestrian_Role)) {
+	} else if (getAgentTypeForSerialization(agent) == PEDESTRIAN_TYPE) {
 		const Person *person = dynamic_cast<const Person *> (agent);
 
 		//calcuate the relationship between point and line
@@ -831,6 +827,38 @@ void BoundaryProcessor::loadInBoundarySegment(std::string id, BoundarySegment* b
 void BoundaryProcessor::setConfigure(PartitionConfigure* partition_config, SimulationScenario* scenario) {
 	this ->partition_config = partition_config;
 	this ->scenario = scenario;
+}
+
+Agent_Type BoundaryProcessor::getAgentTypeForSerialization(Agent const* agent)
+{
+	const Person *person = dynamic_cast<const Person *> (agent);
+	if (!person) {
+		const Signal *one_signal = dynamic_cast<const Signal *> (agent);
+		if (!one_signal) {
+			return NO_TYPE;
+		} else {
+			return SIGNAL_TYPE;
+		}
+	} else {
+		Person* p = const_cast<Person*> (person);
+
+		const Driver *driver = dynamic_cast<const Driver *> (p->getRole());
+		if (driver) {
+			return DRIVER_TYPE;
+		}
+
+		const Pedestrian *pedestrian = dynamic_cast<const Pedestrian *> (p->getRole());
+		if (pedestrian) {
+			return PEDESTRIAN_TYPE;
+		}
+
+		const Passenger *passenger = dynamic_cast<const Passenger *> (p->getRole());
+		if (passenger) {
+			return PASSENGER_TYPE;
+		}
+
+		return NO_TYPE;
+	}
 }
 
 }

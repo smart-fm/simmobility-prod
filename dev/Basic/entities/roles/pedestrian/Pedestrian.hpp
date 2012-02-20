@@ -27,16 +27,13 @@
 #include "entities/roles/driver/GeneralPathMover.hpp"
 #include "entities/UpdateParams.hpp"
 
-#ifndef SIMMOB_DISABLE_MPI
-#include "partitions/PackageUtils.hpp"
-#include "partitions/UnPackageUtils.hpp"
-#endif
-
 namespace sim_mob
 {
 
 #ifndef SIMMOB_DISABLE_MPI
 class PartitionManager;
+class PackageUtils;
+class UnPackageUtils;
 #endif
 
 //Stages
@@ -73,6 +70,12 @@ struct PedestrianUpdateParams : public sim_mob::UpdateParams {
 
 	///Used to skip the first frame; kind of hackish.
 	bool skipThisFrame;
+
+#ifndef SIMMOB_DISABLE_MPI
+	static void pack(PackageUtils& package, const PedestrianUpdateParams* params);
+
+	static void unpack(UnPackageUtils& unpackage, PedestrianUpdateParams* params);
+#endif
 };
 
 

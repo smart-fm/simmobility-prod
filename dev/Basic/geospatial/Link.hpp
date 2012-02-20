@@ -20,6 +20,11 @@ class RoadSegment;
 class MultiNode;
 class RoadNetworkPackageManager;
 
+#ifndef SIMMOB_DISABLE_MPI
+class PackageUtils;
+class UnPackageUtils;
+#endif
+
 namespace aimsun
 {
 //Forward declaration
@@ -57,6 +62,15 @@ public:
 	///The name of the particular segment. E.g., "Main Street 01".
 	///Useful for debugging by location. May be auto-numbered.
 	std::string getSegmentName(const sim_mob::RoadSegment* segment);
+
+#ifndef SIMMOB_DISABLE_MPI
+	///The identification of Link is packed using PackageUtils;
+	static void pack(sim_mob::PackageUtils& package, const Link* one_link);
+
+	///UnPackageUtils use the identification of Link to find the Link Object
+	static const Link* unpack(sim_mob::UnPackageUtils& unpackage);
+
+#endif
 
 public:
 	///The road link's name. E.g., "Main Street"

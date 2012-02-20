@@ -4,6 +4,11 @@
 
 #include <stdexcept>
 
+#ifndef SIMMOB_DISABLE_MPI
+#include "partitions/PackageUtils.hpp"
+#include "partitions/UnPackageUtils.hpp"
+#endif
+
 using namespace sim_mob;
 
 
@@ -28,3 +33,27 @@ void sim_mob::Pavement::GeneratePolyline(Pavement* p, Point2D center, double bul
 {
 	throw std::runtime_error("Not implemented yet.");
 }
+
+#ifndef SIMMOB_DISABLE_MPI
+void sim_mob::Pavement::pack(PackageUtils& package, Pavement* one_pavement)
+{
+	if (one_pavement == NULL) {
+		bool is_NULL = true;
+		package.packBasicData(is_NULL);
+		return;
+	} else {
+		bool is_NULL = false;
+		package.packBasicData(is_NULL);
+	}
+}
+
+const Pavement* sim_mob::Pavement::unpack(UnPackageUtils& unpackage)
+{
+	bool is_NULL = unpackage.unpackBasicData<bool> ();
+	if (is_NULL) {
+		return NULL;
+	}
+
+	return NULL;
+}
+#endif

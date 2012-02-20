@@ -135,14 +135,14 @@ public:
 	/**
 	 * Used for crossing agents
 	 */
-	virtual void package(PackageUtils& packageUtil);
-	virtual void unpackage(UnPackageUtils& unpackageUtil);
+	virtual void pack(PackageUtils& packageUtil);
+	virtual void unpack(UnPackageUtils& unpackageUtil);
 
 	/**
 	 * used for feedback and feed forward agents
 	 */
-	virtual void packageProxy(PackageUtils& packageUtil);
-	virtual void unpackageProxy(UnPackageUtils& unpackageUtil);
+	virtual void packProxy(PackageUtils& packageUtil);
+	virtual void unpackProxy(UnPackageUtils& unpackageUtil);
 #endif
 };
 

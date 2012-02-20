@@ -637,6 +637,9 @@ public:
     shortestDrivingPath(Node const & fromNode, Node const & toNode) const;
 
     std::vector<WayPoint>
+    GetShortestDrivingPath(Node const & fromNode, Node const & toNode) const;
+
+    std::vector<WayPoint>
     shortestWalkingPath(Point2D const & fromPoint, Point2D const & toPoint) const;
 
 private:
@@ -664,11 +667,14 @@ private:
     Graph drivingMap_; // A map for drivers, containing road-segments as edges.
     Graph walkingMap_; // A map for pedestrians, containing side-walks and crossings as edges.
     std::vector<Node *> nodes_; // "Internal" uni-nodes that are created when building the maps.
+    std::vector<std::vector<std::vector<std::vector<WayPoint> > > > choiceSet;
 
 private:
     void process(std::vector<RoadSegment*> const & roads, bool isForward);
     void process(RoadSegment const * road, bool isForward);
 
+    void GeneratePathChoiceSet(Graph const & graph);
+    bool checkIfExist(std::vector<std::vector<WayPoint> > & paths, std::vector<WayPoint> & path);
     // Oh wow!  Overloaded functions with different return types.
     Node const * findVertex(Graph const & graph, Point2D const & point, centimeter_t distance) const;
     Vertex findVertex(Graph const & graph, Node const * node) const;
@@ -697,6 +703,10 @@ private:
 
     std::vector<WayPoint>
     shortestPath(Vertex const fromVertex, Vertex const toVertex, Graph const & graph) const;
+
+    std::vector<WayPoint>
+    extractShortestPath(Vertex const fromVertex, Vertex const toVertex,
+    		std::vector<Vertex> const & parent, Graph const & graph, std::vector<Edge> & edges) const;
 };
 
 StreetDirectory::ShortestPathImpl::~ShortestPathImpl()
@@ -842,6 +852,7 @@ inline StreetDirectory::ShortestPathImpl::ShortestPathImpl(RoadNetwork const & n
         process(link->getPath(true), true);
         process(link->getPath(false), false);
     }
+    GeneratePathChoiceSet(drivingMap_);
 }
 
 void
@@ -1084,6 +1095,32 @@ const
     return shortestPath(fromVertex, toVertex, drivingMap_);
 }
 
+std::vector<WayPoint>
+StreetDirectory::ShortestPathImpl::GetShortestDrivingPath(Node const & fromNode, Node const & toNode)
+const
+{
+    if (&fromNode == &toNode)
+        return std::vector<WayPoint>();
+
+    // Convert the fromNode and toNode (positions in 2D geometry) to vertices in the drivingMap_
+    // graph.  It is possible that fromNode and toNode are not represented by any vertex in the
+    // graph.
+    Vertex fromVertex, toVertex;
+    getVertices(fromVertex, toVertex, fromNode, toNode);
+
+    // If fromNode and toNode are not represented by any vertex in the graph, then throw an
+    // error message.
+    if (!checkVertices(fromVertex, toVertex, fromNode, toNode)) {
+    	//Fallback: If the RoadNetwork knows about the from/to node(s) but the Street Directory
+    	//  does not, it is not an error (but it means no path can possibly be found).
+    	return std::vector<WayPoint>();
+    }
+
+    //std::cout<<"size of choice set "<<choiceSet[fromVertex][toVertex].size()<<std::endl;
+    return choiceSet[fromVertex][toVertex][0];
+}
+
+
 // Find the vertices in the drivingMap_ graph that represent <fromNode> and <toNode> and return
 // them in <fromVertex> and <toVertex> respectively.  If the node is not represented by any vertex,
 // then the returned vertex is set to a value larger than the number of vertices in the graph.
@@ -1244,6 +1281,49 @@ const
     return std::vector<WayPoint>(result.rbegin(), result.rend());
 }
 
+
+std::vector<WayPoint>
+StreetDirectory::ShortestPathImpl::extractShortestPath(Vertex const fromVertex,
+                                                       Vertex const toVertex,
+                                                       std::vector<Vertex> const & parent,
+                                                       Graph const & graph,std::vector<Edge> & edges)
+const
+{
+    // The code here is based on the example in the book "The Boost Graph Library" by
+    // Jeremy Siek, et al.  The dijkstra_shortest_path() function was called with the p = parent
+    // array passed in as the predecessor_map paramter.  The shortest path from s = fromVertex
+    // to v = toVertex consists of the vertices v, p[v], p[p[v]], ..., and so on until s is
+    // reached, in reverse order (text from the Boost Graph Library documentation).  If p[u] = u
+    // then u is either the source vertex (s) or a vertex that is not reachable from s.  Therefore
+    // the while loop stops when p[u] = u.  If the while loop does not terminates with u equal to
+    // fromVertex, then toVertex is not reachable from fromVertex and we return an empty path.
+
+    edges.clear();
+    Vertex v = toVertex;
+    Vertex u = parent[v];
+    std::vector<WayPoint> result;
+    while (u != v)
+    {
+        Edge e;
+        bool exists;
+        boost::tie(e, exists) = boost::edge(u, v, graph);
+        edges.push_back(e);
+        // Stop the loop if there is no path from u to v.
+        if (!exists)
+            break;
+        WayPoint wp = boost::get(boost::edge_name, graph, e);
+        result.push_back(wp);
+        v = u;
+        u = parent[v];
+    }
+    if (u != fromVertex)
+        return std::vector<WayPoint>();
+
+    // result contains the waypoints in the reverse order.  We return them in the correct order.
+    return std::vector<WayPoint>(result.rbegin(), result.rend());
+}
+
+
 // Get the vertices in the walkingMap_ graph that are closest to <fromPoint> and <toPoint>
 // and return them in <fromVertex> and <toVertex> respectively.
 void
@@ -1307,6 +1387,69 @@ const
     return result;
 }
 
+
+bool StreetDirectory::ShortestPathImpl::checkIfExist(std::vector<std::vector<WayPoint> > & paths, std::vector<WayPoint> & path)
+{
+	for(size_t i=0;i<paths.size();i++)
+	{
+		std::vector<WayPoint> temp = paths.at(i);
+		if(temp.size()!=path.size())
+			continue;
+		bool same = true;
+		for(size_t j=0;j<temp.size();j++)
+		{
+			if(temp.at(j).roadSegment_ != path.at(j).roadSegment_)
+			{
+				same = false;
+				break;
+			}
+		}
+		if(same)
+			return true;
+	}
+	return false;
+}
+
+void StreetDirectory::ShortestPathImpl::GeneratePathChoiceSet(Graph const & graph)
+{
+	Graph::vertex_iterator iter, end;
+	for (boost::tie(iter, end) = boost::vertices(graph); iter != end; ++iter)
+	{
+		Vertex v = *iter;
+		Node const * node = boost::get(boost::vertex_name, graph, v);
+		std::vector<std::vector<std::vector<WayPoint> > > paths_from_v;
+
+		std::vector<Vertex> parent(boost::num_vertices(graph));
+		for (Graph::vertices_size_type i = 0; i < boost::num_vertices(graph); ++i)
+			parent[i] = i;
+
+		//std::cout<<"vertex "<<v<<std::endl;
+		boost::dijkstra_shortest_paths(graph, v, boost::predecessor_map(&parent[0]));
+		for (Graph::vertices_size_type i = 0; i < boost::num_vertices(graph); ++i)
+		{
+			std::vector<std::vector<WayPoint> > temp_paths;
+			std::vector<Edge> edges;
+			temp_paths.push_back(extractShortestPath(v, i, parent, graph,edges));
+			for(size_t j=0; j<edges.size(); j++)
+			{
+				centimeter_t length = boost::get(boost::edge_weight, drivingMap_, edges.at(j));
+				boost::put(boost::edge_weight, drivingMap_, edges.at(j), 10*length);
+				std::vector<Vertex> parent(boost::num_vertices(graph));
+				for (Graph::vertices_size_type k = 0; k < boost::num_vertices(graph); ++k)
+					parent[k] = k;
+				boost::dijkstra_shortest_paths(graph, v, boost::predecessor_map(&parent[0]));
+				std::vector<WayPoint> path = extractShortestPath(v, i, parent, graph);
+				if(!checkIfExist(temp_paths, path))
+					temp_paths.push_back(path);
+				boost::put(boost::edge_weight, drivingMap_, edges.at(j), length);
+			}
+			//std::cout<<"size of path "<<temp_paths.size()<<std::endl;
+			paths_from_v.push_back(temp_paths);
+		}
+		choiceSet.push_back(paths_from_v);
+	}
+}
+
 /** \endcond ignoreStreetDirectoryInnards -- End of block to be ignored by doxygen.  */
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -1346,11 +1489,19 @@ StreetDirectory::shortestDrivingPath(Node const & fromNode, Node const & toNode)
 }
 
 std::vector<WayPoint>
+StreetDirectory::GetShortestDrivingPath(Node const & fromNode, Node const & toNode) const
+{
+    return spImpl_ ? spImpl_->GetShortestDrivingPath(fromNode, toNode)
+                   : std::vector<WayPoint>();
+}
+
+std::vector<WayPoint>
 StreetDirectory::shortestWalkingPath(Point2D const & fromPoint, Point2D const & toPoint) const
 {
     return spImpl_ ? spImpl_->shortestWalkingPath(fromPoint, toPoint)
                    : std::vector<WayPoint>();
 }
+
 
 void
 StreetDirectory::printStatistics() const

@@ -29,7 +29,7 @@ void UnPackageUtils::clearPackage() {
 	}
 }
 
-const Node* UnPackageUtils::unpackageNode() {
+const Node* UnPackageUtils::unpackNode() const {
 	bool hasSomthing;
 	(*package) & hasSomthing;
 
@@ -43,7 +43,7 @@ const Node* UnPackageUtils::unpackageNode() {
 	return rn.locateNode(location, true);
 }
 
-const RoadSegment* UnPackageUtils::unpackageRoadSegment() {
+const RoadSegment* UnPackageUtils::unpackRoadSegment() const {
 	bool hasSomthing;
 	(*package) & hasSomthing;
 
@@ -59,7 +59,7 @@ const RoadSegment* UnPackageUtils::unpackageRoadSegment() {
 	return sim_mob::getRoadSegmentBasedOnNodes(&point_1, &point_2);
 }
 
-const Link* UnPackageUtils::unpackageLink() {
+const Link* UnPackageUtils::unpackLink() const {
 	bool hasSomthing;
 	(*package) & hasSomthing;
 
@@ -76,7 +76,7 @@ const Link* UnPackageUtils::unpackageLink() {
 	return sim_mob::getLinkBetweenNodes(&point_1, &point_2);
 }
 
-const Lane* UnPackageUtils::unpackageLane() {
+const Lane* UnPackageUtils::unpackLane() const {
 	bool hasSomthing;
 	(*package) & hasSomthing;
 
@@ -104,7 +104,7 @@ const Lane* UnPackageUtils::unpackageLane() {
 	return NULL;
 }
 
-const TripChain* UnPackageUtils::unpackageTripChain() {
+const TripChain* UnPackageUtils::unpackTripChain() const {
 	bool hasSomthing;
 	(*package) & hasSomthing;
 
@@ -112,8 +112,8 @@ const TripChain* UnPackageUtils::unpackageTripChain() {
 		return NULL;
 
 	TripChain* tripChain = new TripChain();
-	tripChain->from = *(unpackageTripActivity());
-	tripChain->to = *(unpackageTripActivity());
+	tripChain->from = *(unpackTripActivity());
+	tripChain->to = *(unpackTripActivity());
 
 	(*package) & (tripChain->primary);
 	(*package) & (tripChain->flexible);
@@ -123,7 +123,7 @@ const TripChain* UnPackageUtils::unpackageTripChain() {
 	return tripChain;
 }
 
-const TripActivity* UnPackageUtils::unpackageTripActivity() {
+const TripActivity* UnPackageUtils::unpackTripActivity() const {
 	bool hasSomthing;
 	(*package) & hasSomthing;
 
@@ -133,11 +133,11 @@ const TripActivity* UnPackageUtils::unpackageTripActivity() {
 	TripActivity* activity = new TripActivity();
 	(*package) & (activity->description);
 
-	activity->location = const_cast<sim_mob::Node*> (unpackageNode());
+	activity->location = const_cast<sim_mob::Node*> (unpackNode());
 	return activity;
 }
 
-const Vehicle* UnPackageUtils::unpackageVehicle() {
+const Vehicle* UnPackageUtils::unpackVehicle() const {
 	bool hasSomthing;
 	(*package) & hasSomthing;
 
@@ -156,7 +156,7 @@ const Vehicle* UnPackageUtils::unpackageVehicle() {
 
 	//std::cout << "B00211," << std::endl;
 	//segment
-	unpackageGeneralPathMover(&(one_vehicle->fwdMovement));
+	unpackGeneralPathMover(&(one_vehicle->fwdMovement));
 	//one_vehicle->fwdMovement = *(unpackageGeneralPathMover());
 
 	//std::cout << "B00212," << std::endl;
@@ -176,13 +176,13 @@ const Vehicle* UnPackageUtils::unpackageVehicle() {
 	return one_vehicle;
 }
 
-void UnPackageUtils::unpackageGeneralPathMover(GeneralPathMover* one_motor) {
+void UnPackageUtils::unpackGeneralPathMover(GeneralPathMover* one_motor) const {
 
 	int path_size;
 	(*package) & path_size;
 
 	for (int i = 0; i < path_size; i++) {
-		const sim_mob::RoadSegment* one_segment = unpackageRoadSegment();
+		const sim_mob::RoadSegment* one_segment = unpackRoadSegment();
 		one_motor->fullPath.push_back(one_segment);
 	}
 
@@ -243,7 +243,7 @@ void UnPackageUtils::unpackageGeneralPathMover(GeneralPathMover* one_motor) {
 
 }
 
-const Crossing* UnPackageUtils::unpackageCrossing() {
+const Crossing* UnPackageUtils::unpackCrossing() const {
 	bool hasSomthing;
 	(*package) & hasSomthing;
 
@@ -263,7 +263,7 @@ const Crossing* UnPackageUtils::unpackageCrossing() {
 	return sim_mob::getCrossingBasedOnNode(&near_1, &near_2, &far_1, &far_2);
 }
 
-IntersectionDrivingModel* UnPackageUtils::unpackageIntersectionDrivingModel() {
+IntersectionDrivingModel* UnPackageUtils::unpackIntersectionDrivingModel() const {
 	bool hasSomthing;
 	(*package) & hasSomthing;
 
@@ -275,7 +275,7 @@ IntersectionDrivingModel* UnPackageUtils::unpackageIntersectionDrivingModel() {
 	return one_model;
 }
 
-FixedDelayed<DPoint*>& UnPackageUtils::unpackageFixedDelayedDPoint() {
+FixedDelayed<DPoint*>& UnPackageUtils::unpackFixedDelayedDPoint() const {
 	int delayMS;
 	(*package) & delayMS;
 
@@ -304,7 +304,7 @@ FixedDelayed<DPoint*>& UnPackageUtils::unpackageFixedDelayedDPoint() {
 	return (*one_delay);
 }
 
-FixedDelayed<double>& UnPackageUtils::unpackageFixedDelayedDouble() {
+FixedDelayed<double>& UnPackageUtils::unpackFixedDelayedDouble() const {
 	int delayMS;
 	(*package) & delayMS;
 
@@ -332,7 +332,7 @@ FixedDelayed<double>& UnPackageUtils::unpackageFixedDelayedDouble() {
 	return (*one_delay);
 }
 
-FixedDelayed<int>& UnPackageUtils::unpackageFixedDelayedInt() {
+FixedDelayed<int>& UnPackageUtils::unpackFixedDelayedInt() const {
 	int delayMS;
 	(*package) & delayMS;
 
@@ -360,25 +360,25 @@ FixedDelayed<int>& UnPackageUtils::unpackageFixedDelayedInt() {
 	return (*one_delay);
 }
 
-Point2D* UnPackageUtils::unpackagePoint2D() {
+Point2D* UnPackageUtils::unpackPoint2D() const {
 	Point2D* one_point = new Point2D(0, 0);
 	(*package) & (*one_point);
 
 	return one_point;
 }
 
-void UnPackageUtils::unpackageDriverUpdateParams(DriverUpdateParams& one_driver)
-{
+void UnPackageUtils::unpackDriverUpdateParams(DriverUpdateParams& one_driver)
+const {
 	(*package) & (one_driver.frameNumber);
 	(*package) & (one_driver.currTimeMS);
 	//(*package) & (one_driver.gen);
 
-	one_driver.currLane = unpackageLane();
+	one_driver.currLane = unpackLane();
 	(*package) & (one_driver.currLaneIndex);
 	(*package) & (one_driver.fromLaneIndex);
 
-	one_driver.leftLane = unpackageLane();
-	one_driver.rightLane = unpackageLane();
+	one_driver.leftLane = unpackLane();
+	one_driver.rightLane = unpackLane();
 
 	(*package) & (one_driver.currSpeed);
 
@@ -416,8 +416,8 @@ void UnPackageUtils::unpackageDriverUpdateParams(DriverUpdateParams& one_driver)
 	(*package) & (one_driver.overflowIntoIntersection);
 }
 
-void UnPackageUtils::unpackagePedestrianUpdateParams(PedestrianUpdateParams& one_pedestrain)
-{
+void UnPackageUtils::unpackPedestrianUpdateParams(PedestrianUpdateParams& one_pedestrain)
+const {
 	(*package) & (one_pedestrain.frameNumber);
 	(*package) & (one_pedestrain.currTimeMS);
 	(*package) & (one_pedestrain.skipThisFrame);

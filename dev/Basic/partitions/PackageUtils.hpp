@@ -8,8 +8,8 @@
 #include <boost/serialization/list.hpp>
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/map.hpp>
-#include <boost/serialization/unordered_set.hpp>
-#include <boost/serialization/unordered_map.hpp>
+//#include <boost/serialization/unordered_set.hpp>
+//#include <boost/serialization/unordered_map.hpp>
 
 #include <sstream>
 #include <set>
@@ -17,8 +17,8 @@
 #include <vector>
 #include <map>
 #include <string>
-#include <unordered_set>
-#include <unordered_map>
+//#include <unordered_set>
+//#include <unordered_map>
 
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/Node.hpp"
@@ -47,6 +47,10 @@ class PedestrianUpdateParams;
 
 /**
  * \author Xu Yan
+ * Function:
+ * PackageUtils is used in sender side to pack basic data type (like: vector<int>) and some SimMobility data type (like: Node).
+ * Note:
+ * PackageUtils/UnPackageUtils have matching functions, if you add/edit/remove one function in this class, you need to check class UnPackageUtils
  */
 class PackageUtils {
 private:
@@ -54,11 +58,14 @@ private:
 	boost::archive::text_oarchive* package;
 
 public:
-	//Basic type (DATA_TYPE)
-	//Includes: int, double, float, bool, std::string, char
-	//(Can not be pointer, struct, class, union, array)
+	/**
+	 * DATA_TYPE can be:
+	 * (1)int {unsigned, signed}, long, short
+	 * (2)float, double, char
+	 * (3)bool
+	 */
 	template<class DATA_TYPE>
-	inline void packageBasicData(DATA_TYPE value)
+	inline void packBasicData(DATA_TYPE value)
 	{
 		(*package) & value;
 	}
@@ -66,11 +73,38 @@ public:
 	//check the double value is not non and then package
 	void safePackageDoubleValue(double value);
 
-	//Basic type (DATA_TYPE)
-	//Includes: int, double, float, bool, std::string
-	//(Can not be pointer, struct, class, union)
+	/**
+	 * DATA_TYPE can be:
+	 * (1)int {unsigned, signed}, long, short
+	 * (2)float, double, char
+	 * (3)bool
+	 */
 	template<class DATA_TYPE>
-	inline void packageBasicDataList(const std::list<DATA_TYPE>& value)
+	inline void packBasicDataList(const std::list<DATA_TYPE>& value)
+	{
+		(*package) & value;
+	}
+
+	/**
+	 * DATA_TYPE can be:
+	 * (1)int {unsigned, signed}, long, short
+	 * (2)float, double, char
+	 * (3)bool
+	 */
+	template<class DATA_TYPE>
+	inline void packBasicDataVector(const std::vector<DATA_TYPE>& value)
+	{
+		(*package) & value;
+	}
+
+	/**
+	 * DATA_TYPE can be:
+	 * (1)int {unsigned, signed}, long, short
+	 * (2)float, double, char
+	 * (3)bool
+	 */
+	template<class DATA_TYPE>
+	inline void packBasicDataSet(const std::set<DATA_TYPE>& value)
 	{
 		(*package) & value;
 	}
@@ -78,67 +112,52 @@ public:
 	//Basic type (DATA_TYPE)
 	//Includes: int, double, float, bool, std::string
 	//(Can not be pointer, struct, class, union)
-	template<class DATA_TYPE>
-	inline void packageBasicDataVector(const std::vector<DATA_TYPE>& value)
-	{
-		(*package) & value;
-	}
+//	template<class DATA_TYPE>
+//	inline void packBasicDataUnorderedSet(const std::unordered_set<DATA_TYPE>& value) {
+//		(*package) & value;
+//	}
+//
+//	//Basic type (DATA_TYPE)
+//	//Includes: int, double, float, bool, std::string
+//	//(Can not be pointer, struct, class, union)
+//	template<class DATA_TYPE>
+//	inline void packBasicDataUnorderedMap(const std::unordered_map<DATA_TYPE>& value) {
+//		(*package) & value;
+//	}
 
-	//Basic type (DATA_TYPE)
-	//Includes: int, double, float, bool, std::string
-	//(Can not be pointer, struct, class, union)
-	template<class DATA_TYPE>
-	inline void packageBasicDataSet(const std::set<DATA_TYPE>& value)
-	{
-		(*package) & value;
-	}
-
-	//Basic type (DATA_TYPE)
-	//Includes: int, double, float, bool, std::string
-	//(Can not be pointer, struct, class, union)
-	template<class DATA_TYPE>
-	inline void packageBasicDataUnorderedSet(const std::unordered_set<DATA_TYPE>& value) {
-		(*package) & value;
-	}
-
-	//Basic type (DATA_TYPE)
-	//Includes: int, double, float, bool, std::string
-	//(Can not be pointer, struct, class, union)
-	template<class DATA_TYPE>
-	inline void packageBasicDataUnorderedMap(const std::unordered_map<DATA_TYPE>& value) {
-		(*package) & value;
-	}
-
-	//Basic type (DATA_TYPE)
-	//Includes: int, double, float, bool, std::string
-	//(Can not be pointer, struct, class, union)
+	/**
+	 * DATA_TYPE can be:
+	 * (1)int {unsigned, signed}, long, short
+	 * (2)float, double, char
+	 * (3)bool
+	 */
 	template<class DATA_TYPE_1, class DATA_TYPE_2>
-	inline void packageBasicDataMap(const std::map<DATA_TYPE_1, DATA_TYPE_2>& value)
+	inline void packBasicDataMap(const std::map<DATA_TYPE_1, DATA_TYPE_2>& value)
 	{
 		(*package) & value;
 	}
 
 	//Road Network
-	void packageNode(const Node* one_node);
-	void packageRoadSegment(const RoadSegment* roadsegment);
-	void packageLink(const Link* one_link);
-	void packageLane(const Lane* one_lane);
-	void packageTripChain(const TripChain* tripChain);
-	void packageTripActivity(const TripActivity* tripActivity);
+	void packRoadNetworkElement(const Node* one_node);
+	void packRoadNetworkElement(const RoadSegment* roadsegment);
+	void packRoadNetworkElement(const Link* one_link);
+	void packRoadNetworkElement(const Lane* one_lane);
+	void packRoadNetworkElement(const TripChain* tripChain);
+	void packRoadNetworkElement(const TripActivity* tripActivity);
 
 	//Road Item
-	void packageVehicle(const Vehicle* one_vehicle);
-	void packageGeneralPathMover(const sim_mob::GeneralPathMover* mover);
-	void packageCrossing(const Crossing* one_crossing);
+	void packVehicle(const Vehicle* one_vehicle);
+	void packGeneralPathMover(const sim_mob::GeneralPathMover* mover);
+	void packCrossing(const Crossing* one_crossing);
 
 	//Other struct
-	void packageIntersectionDrivingModel(SimpleIntDrivingModel* one_model);
-	void packageFixedDelayedDPoint(FixedDelayed<DPoint*>& one_delay);
-	void packageFixedDelayedDouble(FixedDelayed<double>& one_delay);
-	void packageFixedDelayedInt(FixedDelayed<int>& one_delay);
-	void packagePoint2D(const Point2D& one_point);
-	void packageDriverUpdateParams(const DriverUpdateParams& one_driver);
-	void packagePedestrianUpdateParams(const PedestrianUpdateParams& one_pedestrain);
+	void packIntersectionDrivingModel(const SimpleIntDrivingModel* one_model);
+	void packFixedDelayedDPoint(const FixedDelayed<DPoint*>& one_delay);
+	void packFixedDelayedDouble(const FixedDelayed<double>& one_delay);
+	void packFixedDelayedInt(const FixedDelayed<int>& one_delay);
+	void packPoint2D(const Point2D& one_point);
+	void packDriverUpdateParams(const DriverUpdateParams& one_driver);
+	void packPedestrianUpdateParams(const PedestrianUpdateParams& one_pedestrain);
 
 private:
 	std::string getPackageData();

@@ -944,53 +944,53 @@ void Signal::frame_output(frame_t frameNumber) {
 }
 
 #ifndef SIMMOB_DISABLE_MPI
-void Signal::packageProxy(PackageUtils& packageUtil) {
+void Signal::packProxy(PackageUtils& packageUtil) {
 
 	//Agent::packageProxy(packageUtil);
-	packageUtil.packageBasicData(id);
-	packageUtil.packageBasicData(currCL);
-	packageUtil.packageBasicDataVector(currSplitPlan);
-	packageUtil.packageBasicData(currOffset);
-	packageUtil.packageBasicData(currPhase);
-	packageUtil.packageBasicData(currSplitPlanID);
-	packageUtil.packageBasicData(phaseCounter);
+	packageUtil.packBasicData(id);
+	packageUtil.packBasicData(currCL);
+	packageUtil.packBasicDataVector(currSplitPlan);
+	packageUtil.packBasicData(currOffset);
+	packageUtil.packBasicData(currPhase);
+	packageUtil.packBasicData(currSplitPlanID);
+	packageUtil.packBasicData(phaseCounter);
 
 	//very dangerous, suggest to change
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 3; j++) {
 			//int value = one_signal->TC_for_Driver[i][j];
 			int value = buffered_TC.get().TC_for_Driver[i][j];
-			packageUtil.packageBasicData(value);
+			packageUtil.packBasicData(value);
 		}
 	}
 
 	for (int i = 0; i < 4; i++) {
 		int value = buffered_TC.get().TC_for_Pedestrian[i];
-		packageUtil.packageBasicData(value);
+		packageUtil.packBasicData(value);
 	}
 }
 
-void Signal::unpackageProxy(UnPackageUtils& unpackageUtil) {
+void Signal::unpackProxy(UnPackageUtils& unpackageUtil) {
 
 	//Agent::unpackageProxy(unpackageUtil);
-	id = unpackageUtil.unpackageBasicData<int>();
-	currCL = unpackageUtil.unpackageBasicData<double>();
-	currSplitPlan = unpackageUtil.unpackageBasicDataVector<double>();
-	currOffset = unpackageUtil.unpackageBasicData<double>();
-	currPhase = unpackageUtil.unpackageBasicData<int>();
-	currSplitPlanID = unpackageUtil.unpackageBasicData<int>();
-	phaseCounter = unpackageUtil.unpackageBasicData<int>();
+	id = unpackageUtil.unpackBasicData<int>();
+	currCL = unpackageUtil.unpackBasicData<double>();
+	currSplitPlan = unpackageUtil.unpackBasicDataVector<double>();
+	currOffset = unpackageUtil.unpackBasicData<double>();
+	currPhase = unpackageUtil.unpackBasicData<int>();
+	currSplitPlanID = unpackageUtil.unpackBasicData<int>();
+	phaseCounter = unpackageUtil.unpackBasicData<int>();
 
 	SignalStatus buffered_signal;
 	//very dangerous, suggest to change
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 3; j++) {
-			buffered_signal.TC_for_Driver[i][j] = unpackageUtil.unpackageBasicData<int>();
+			buffered_signal.TC_for_Driver[i][j] = unpackageUtil.unpackBasicData<int>();
 		}
 	}
 
 	for (int i = 0; i < 4; i++) {
-		buffered_signal.TC_for_Pedestrian[i] = unpackageUtil.unpackageBasicData<int>();
+		buffered_signal.TC_for_Pedestrian[i] = unpackageUtil.unpackBasicData<int>();
 	}
 
 	buffered_TC.force(buffered_signal);

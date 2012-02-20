@@ -78,47 +78,47 @@ void sim_mob::Agent::setToBeRemoved() {
 
 
 #ifndef SIMMOB_DISABLE_MPI
-void sim_mob::Agent::package(PackageUtils& packageUtil) {
+void sim_mob::Agent::pack(PackageUtils& packageUtil) {
 	//std::cout << "Agent package Called" <<this->getId()<< std::endl;
 
-	packageUtil.packageBasicData(id);
-	packageUtil.packageBasicData(isSubscriptionListBuilt);
-	packageUtil.packageBasicData(startTime);
+	packageUtil.packBasicData(id);
+	packageUtil.packBasicData(isSubscriptionListBuilt);
+	packageUtil.packBasicData(startTime);
 
-	packageUtil.packageNode(originNode);
-	packageUtil.packageNode(destNode);
+	packageUtil.packNode(originNode);
+	packageUtil.packNode(destNode);
 
-	packageUtil.packageBasicData(xPos.get());
-	packageUtil.packageBasicData(yPos.get());
-	packageUtil.packageBasicData(fwdVel.get());
-	packageUtil.packageBasicData(latVel.get());
-	packageUtil.packageBasicData(xAcc.get());
-	packageUtil.packageBasicData(yAcc.get());
+	packageUtil.packBasicData(xPos.get());
+	packageUtil.packBasicData(yPos.get());
+	packageUtil.packBasicData(fwdVel.get());
+	packageUtil.packBasicData(latVel.get());
+	packageUtil.packBasicData(xAcc.get());
+	packageUtil.packBasicData(yAcc.get());
 
-	packageUtil.packageBasicData(toRemoved);
-	packageUtil.packageBasicData(dynamic_seed);
+	packageUtil.packBasicData(toRemoved);
+	packageUtil.packBasicData(dynamic_seed);
 }
 
-void sim_mob::Agent::unpackage(UnPackageUtils& unpackageUtil) {
+void sim_mob::Agent::unpack(UnPackageUtils& unpackageUtil) {
 
-	id = unpackageUtil.unpackageBasicData<int> ();
+	id = unpackageUtil.unpackBasicData<int> ();
 	//std::cout << "Agent unpackage Called:" <<this->getId() << std::endl;
-	isSubscriptionListBuilt = unpackageUtil.unpackageBasicData<bool> ();
-	startTime = unpackageUtil.unpackageBasicData<int> ();
+	isSubscriptionListBuilt = unpackageUtil.unpackBasicData<bool> ();
+	startTime = unpackageUtil.unpackBasicData<int> ();
 
-	originNode = const_cast<Node*>(unpackageUtil.unpackageNode());
-	destNode = const_cast<Node*>(unpackageUtil.unpackageNode());
+	originNode = const_cast<Node*>(unpackageUtil.unpackNode());
+	destNode = const_cast<Node*>(unpackageUtil.unpackNode());
 
 	int x_pos, y_pos;
 	double x_acc, y_acc;
 	double x_vel, y_vel;
 
-	x_pos = unpackageUtil.unpackageBasicData<int> ();
-	y_pos = unpackageUtil.unpackageBasicData<int> ();
-	x_acc = unpackageUtil.unpackageBasicData<double> ();
-	y_acc = unpackageUtil.unpackageBasicData<double> ();
-	x_vel = unpackageUtil.unpackageBasicData<double> ();
-	y_vel = unpackageUtil.unpackageBasicData<double> ();
+	x_pos = unpackageUtil.unpackBasicData<int> ();
+	y_pos = unpackageUtil.unpackBasicData<int> ();
+	x_acc = unpackageUtil.unpackBasicData<double> ();
+	y_acc = unpackageUtil.unpackBasicData<double> ();
+	x_vel = unpackageUtil.unpackBasicData<double> ();
+	y_vel = unpackageUtil.unpackBasicData<double> ();
 
 	xPos.force(x_pos);
 	yPos.force(y_pos);
@@ -127,48 +127,48 @@ void sim_mob::Agent::unpackage(UnPackageUtils& unpackageUtil) {
 	fwdVel.force(x_vel);
 	latVel.force(y_vel);
 
-	toRemoved = unpackageUtil.unpackageBasicData<bool> ();
-	dynamic_seed = unpackageUtil.unpackageBasicData<int> ();
+	toRemoved = unpackageUtil.unpackBasicData<bool> ();
+	dynamic_seed = unpackageUtil.unpackBasicData<int> ();
 }
 
-void sim_mob::Agent::packageProxy(PackageUtils& packageUtil)
+void sim_mob::Agent::packProxy(PackageUtils& packageUtil)
 {
-	packageUtil.packageBasicData(id);
-	packageUtil.packageBasicData(isSubscriptionListBuilt);
-	packageUtil.packageBasicData(startTime);
+	packageUtil.packBasicData(id);
+	packageUtil.packBasicData(isSubscriptionListBuilt);
+	packageUtil.packBasicData(startTime);
 
-	packageUtil.packageNode(originNode);
-	packageUtil.packageNode(destNode);
+	packageUtil.packNode(originNode);
+	packageUtil.packNode(destNode);
 
-	packageUtil.packageBasicData(xPos.get());
-	packageUtil.packageBasicData(yPos.get());
-	packageUtil.packageBasicData(fwdVel.get());
-	packageUtil.packageBasicData(latVel.get());
-	packageUtil.packageBasicData(xAcc.get());
-	packageUtil.packageBasicData(yAcc.get());
+	packageUtil.packBasicData(xPos.get());
+	packageUtil.packBasicData(yPos.get());
+	packageUtil.packBasicData(fwdVel.get());
+	packageUtil.packBasicData(latVel.get());
+	packageUtil.packBasicData(xAcc.get());
+	packageUtil.packBasicData(yAcc.get());
 
-	packageUtil.packageBasicData(toRemoved);
-	packageUtil.packageBasicData(dynamic_seed);
+	packageUtil.packBasicData(toRemoved);
+	packageUtil.packBasicData(dynamic_seed);
 }
 
-void sim_mob::Agent::unpackageProxy(UnPackageUtils& unpackageUtil) {
-	id = unpackageUtil.unpackageBasicData<int> ();
-	isSubscriptionListBuilt = unpackageUtil.unpackageBasicData<bool> ();
-	startTime = unpackageUtil.unpackageBasicData<int> ();
+void sim_mob::Agent::unpackProxy(UnPackageUtils& unpackageUtil) {
+	id = unpackageUtil.unpackBasicData<int> ();
+	isSubscriptionListBuilt = unpackageUtil.unpackBasicData<bool> ();
+	startTime = unpackageUtil.unpackBasicData<int> ();
 
-	originNode = const_cast<Node*> (unpackageUtil.unpackageNode());
-	destNode = const_cast<Node*> (unpackageUtil.unpackageNode());
+	originNode = const_cast<Node*> (unpackageUtil.unpackNode());
+	destNode = const_cast<Node*> (unpackageUtil.unpackNode());
 
 	int x_pos, y_pos;
 	double x_acc, y_acc;
 	double x_vel, y_vel;
 
-	x_pos = unpackageUtil.unpackageBasicData<int> ();
-	y_pos = unpackageUtil.unpackageBasicData<int> ();
-	x_acc = unpackageUtil.unpackageBasicData<double> ();
-	y_acc = unpackageUtil.unpackageBasicData<double> ();
-	x_vel = unpackageUtil.unpackageBasicData<double> ();
-	y_vel = unpackageUtil.unpackageBasicData<double> ();
+	x_pos = unpackageUtil.unpackBasicData<int> ();
+	y_pos = unpackageUtil.unpackBasicData<int> ();
+	x_acc = unpackageUtil.unpackBasicData<double> ();
+	y_acc = unpackageUtil.unpackBasicData<double> ();
+	x_vel = unpackageUtil.unpackBasicData<double> ();
+	y_vel = unpackageUtil.unpackBasicData<double> ();
 
 	xPos.force(x_pos);
 	yPos.force(y_pos);
@@ -177,8 +177,8 @@ void sim_mob::Agent::unpackageProxy(UnPackageUtils& unpackageUtil) {
 	fwdVel.force(x_vel);
 	latVel.force(y_vel);
 
-	toRemoved = unpackageUtil.unpackageBasicData<bool> ();
-	dynamic_seed = unpackageUtil.unpackageBasicData<int> ();
+	toRemoved = unpackageUtil.unpackBasicData<bool> ();
+	dynamic_seed = unpackageUtil.unpackBasicData<int> ();
 }
 
 int sim_mob::Agent::getOwnRandomNumber() {

@@ -179,7 +179,6 @@ public class DriverTick extends AgentTick {
 	}
 	public void setID(int id){
 		this.ID = id;
-		this.pickNumber =  id%3;	
 	}
 	
 	
@@ -209,13 +208,13 @@ public class DriverTick extends AgentTick {
 		//Retrieve the image to draw
 
 		
-		if(this.pickNumber == 0){
+		if(this.length == 400){
 			 svi = (drawFake&&fake) ? FakeCarImg : debug ? DebugCarImg : CarImg;		
 		
-		}else if(this.pickNumber == 1){
+		}else if(this.length == 1200){
 			 svi = (drawFake&&fake) ? FakeBusImg : debug ? DebugBusImg : BusImg;		
 			
-		}else if(this.pickNumber == 2){
+		}else if(this.length == 1500){
 			 svi = (drawFake&&fake) ? FakeTruckImg : debug ? DebugTruckImg : TruckImg;		
 		}else{
 			 svi = (drawFake&&fake) ? FakeCarImg : debug ? DebugCarImg : CarImg;

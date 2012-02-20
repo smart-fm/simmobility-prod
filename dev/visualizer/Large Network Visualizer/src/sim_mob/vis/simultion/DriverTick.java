@@ -222,7 +222,7 @@ public class DriverTick extends AgentTick {
 			 System.out.println("Error, No such length, use car image instead -- DriverTick, draw()");
 		}
 		
-		BufferedImage toDraw = svi.getImage(1/scale + 0.2, angleD, true);
+		BufferedImage toDraw = svi.getImage(scale, angleD, true);
 		
 		//Rotate
 		//at.rotate((Math.PI*angle)/180);

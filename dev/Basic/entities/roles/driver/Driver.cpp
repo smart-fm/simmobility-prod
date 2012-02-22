@@ -533,6 +533,27 @@ void sim_mob::Driver::intersectionDriving(DriverUpdateParams& p) {
 	}
 }
 
+bool sim_mob::Driver::AvoidCrashWhenLaneChanging(DriverUpdateParams& p)
+{
+	double distanceRange =500; //currently, set 5m as the range which maybe cause two vehicles crash
+	//the subject vehicle isn't doing lane changing
+	if(vehicle->getLatVelocity()==0)
+		return false;
+	if(p.nvLeftFwd2.exists()||p.nvRightFwd2.exists())
+		std::cout<<"avoid"<<std::endl;
+//	std::cout<<"exist "<<p.nvLeftFwd2.exists()<<std::endl;
+//	std::cout<<"dis "<<p.nvLeftFwd2.distance<<std::endl;
+
+	//the subject vehicle is changing to left lane
+	if(vehicle->getLatVelocity()>0 && p.nvLeftFwd2.exists() && p.nvLeftFwd2.distance < distanceRange
+			&& p.nvLeftFwd2.driver->getVehicle()->getLatVelocity()<0)
+		return true;
+	if(vehicle->getLatVelocity()<0 && p.nvRightFwd2.exists() && p.nvRightFwd2.distance < distanceRange
+			&& p.nvRightFwd2.driver->getVehicle()->getLatVelocity()>0)
+		return true;
+	return false;
+}
+
 //vehicle movement on link, perform acceleration, lane changing if necessary
 //the movement is based on relative position
 double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
@@ -551,14 +572,12 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 	//Check if we should change lanes.
 	double newLatVel = lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length,
 			getCurrLaneChangeDirection());
-	//double newLatVel = 0;
-	if (newLatVel >= 0.0) {
-		vehicle->setLatVelocity(newLatVel);
-	}
+	vehicle->setLatVelocity(newLatVel);
 	//when vehicle stops, don't do lane changing
 	if (vehicle->getVelocity() <= 0) {
 		vehicle->setLatVelocity(0);
 	}
+
 
 
 	//Retrieve a new acceleration value.
@@ -572,6 +591,10 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 
 	//Update our chosen acceleration; update our position on the link.
 	vehicle->setAcceleration(newFwdAcc * 100);
+	if(AvoidCrashWhenLaneChanging(p))
+	{
+		vehicle->setLatVelocity(0);
+	}
 	return updatePositionOnLink(p);
 }
 
@@ -676,6 +699,8 @@ void sim_mob::Driver::updateAdjacentLanes(DriverUpdateParams& p) {
 	//Need to reset, we can call this after DriverUpdateParams is initialized.
 	p.leftLane = nullptr;
 	p.rightLane = nullptr;
+	p.leftLane2 = nullptr;
+	p.rightLane2 = nullptr;
 
 	if (!p.currLane) {
 		return; //Can't do anything without a lane to reference.
@@ -686,10 +711,22 @@ void sim_mob::Driver::updateAdjacentLanes(DriverUpdateParams& p) {
 		if(!temp->is_pedestrian_lane())
 			p.rightLane = temp;
 	}
+	if (p.currLaneIndex > 1) {
+		const Lane* temp = p.currLane->getRoadSegment()->getLanes().at(p.currLaneIndex - 2);
+		if(!temp->is_pedestrian_lane())
+			p.rightLane2 = temp;
+	}
+
 	if (p.currLaneIndex < p.currLane->getRoadSegment()->getLanes().size() - 1) {
 		const Lane* temp = p.currLane->getRoadSegment()->getLanes().at(p.currLaneIndex + 1);
 		if(!temp->is_pedestrian_lane())
 			p.leftLane = temp;
+	}
+
+	if (p.currLaneIndex < p.currLane->getRoadSegment()->getLanes().size() - 2) {
+		const Lane* temp = p.currLane->getRoadSegment()->getLanes().at(p.currLaneIndex + 2);
+		if(!temp->is_pedestrian_lane())
+			p.leftLane2 = temp;
 	}
 }
 
@@ -838,7 +875,12 @@ void sim_mob::Driver::initializePath() {
 			length = 1500;
 		else//car
 			length = 500;
-		vehicle = new Vehicle(path, 0, length, width);
+		int startlaneID;
+		if(parent->getId()%2==0)
+			startlaneID = 0;
+		else
+			startlaneID = 2;
+		vehicle = new Vehicle(path, startlaneID, length, width);
 	} catch (std::exception& ex) {
 		errorMsg << "ERROR: " << ex.what();
 		std::cout << errorMsg.str() << std::endl;
@@ -852,8 +894,8 @@ void sim_mob::Driver::setOrigin(DriverUpdateParams& p) {
 	targetSpeed = maxLaneSpeed;
 
 	//Set our current and target lanes.
-	p.currLaneIndex = 0;
-	p.currLane = vehicle->getCurrSegment()->getLanes().at(p.currLaneIndex);
+	p.currLane = vehicle->getCurrLane();
+	p.currLaneIndex = getLaneIndex(p.currLane);
 	targetLaneIndex = p.currLaneIndex;
 
 	//Vehicles start at rest
@@ -980,6 +1022,7 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 	//Only update if passed a valid pointer which is not a pointer back to you, and
 	//the driver is not actually in an intersection at the moment.
 
+
 	if (!(other_driver && this != other_driver && !other_driver->isInIntersection.get())) {
 		return;
 	}
@@ -996,6 +1039,7 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 
 	//If the vehicle is in the same Road segment
 	if (vehicle->getCurrSegment() == otherRoadSegment) {
+		//std::cout<<getLaneIndex(vehicle->getCurrLane())<<"have one"<<getLaneIndex(other_driver->getVehicle()->getCurrLane())<<std::endl;
 		//Set distance equal to the _forward_ distance between these two vehicles.
 		int distance = other_offset - params.currLaneOffset;
 		bool fwd = distance > 0;
@@ -1006,10 +1050,11 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 		} else if (other_lane == params.leftLane) { //the vehicle is on the left lane
 			check_and_set_min_car_dist((fwd ? params.nvLeftFwd : params.nvLeftBack), distance, vehicle, other_driver);
 		} else if (other_lane == params.rightLane) { //The vehicle is on the right lane
-			if (distance > 0 || (distance < 0 && -distance <= params.nvRightBack.distance)) {
-				check_and_set_min_car_dist((fwd ? params.nvRightFwd : params.nvRightBack), distance, vehicle,
-						other_driver);
-			}
+			check_and_set_min_car_dist((fwd ? params.nvRightFwd : params.nvRightBack), distance, vehicle,other_driver);
+		} else if (other_lane == params.leftLane2) { //The vehicle is on the second Left lane
+			check_and_set_min_car_dist((fwd ? params.nvLeftFwd2 : params.nvLeftBack2), distance, vehicle,other_driver);
+		} else if (other_lane == params.rightLane2) { //The vehicle is on the second right lane
+			check_and_set_min_car_dist((fwd ? params.nvRightFwd2 : params.nvRightBack2), distance, vehicle,other_driver);
 		}
 	} else if (otherRoadSegment->getLink() == vehicle->getCurrLink()) { //We are in the same link.
 		if (vehicle->getNextSegment() == otherRoadSegment) { //Vehicle is on the next segment.
@@ -1021,6 +1066,8 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 			const Lane* nextLane = nullptr;
 			const Lane* nextLeftLane = nullptr;
 			const Lane* nextRightLane = nullptr;
+			const Lane* nextLeftLane2 = nullptr;
+			const Lane* nextRightLane2 = nullptr;
 			if (uNode) {
 				nextLane = uNode->getOutgoingLane(*params.currLane);
 			}
@@ -1035,6 +1082,13 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 				if (nextLaneIndex < otherRoadSegment->getLanes().size() - 1) {
 					nextRightLane = otherRoadSegment->getLanes().at(nextLaneIndex + 1);
 				}
+				if (nextLaneIndex > 1)
+				{
+					nextLeftLane2 = otherRoadSegment->getLanes().at(nextLaneIndex - 2);
+				}
+				if (nextLaneIndex < otherRoadSegment->getLanes().size() - 2) {
+				    nextRightLane2 = otherRoadSegment->getLanes().at(nextLaneIndex + 2);
+				}
 			}
 
 			//Modified distance.
@@ -1047,6 +1101,10 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 				check_and_set_min_car_dist(params.nvLeftFwd, distance, vehicle, other_driver);
 			} else if (other_lane == nextRightLane) { //the vehicle is in front
 				check_and_set_min_car_dist(params.nvRightFwd, distance, vehicle, other_driver);
+			} else if (other_lane == nextLeftLane2) { //The vehicle is on the second Left lane
+				check_and_set_min_car_dist(params.nvLeftFwd2, distance, vehicle,other_driver);
+			} else if (other_lane == nextRightLane2) { //The vehicle is on the second right lane
+				check_and_set_min_car_dist(params.nvRightFwd2, distance, vehicle,other_driver);
 			}
 		} else if (vehicle->getPrevSegment() == otherRoadSegment) { //Vehicle is on the previous segment.
 			//Retrieve the previous node as a UniNode.
@@ -1057,6 +1115,8 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 			const Lane* preLane = nullptr;
 			const Lane* preLeftLane = nullptr;
 			const Lane* preRightLane = nullptr;
+			const Lane* preLeftLane2 = nullptr;
+			const Lane* preRightLane2 = nullptr;
 
 			//Find the node which leads to this one from the UniNode. (Requires some searching; should probably
 			//   migrate this to the UniNode class later).
@@ -1091,6 +1151,10 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 				check_and_set_min_car_dist(params.nvLeftBack, distance, vehicle, other_driver);
 			} else if (other_lane == preRightLane) { //the vehicle is on the right lane
 				check_and_set_min_car_dist(params.nvRightBack, distance, vehicle, other_driver);
+			} else if (other_lane == preLeftLane2) { //The vehicle is on the second Left lane
+				check_and_set_min_car_dist(params.nvLeftBack2, distance, vehicle,other_driver);
+			} else if (other_lane == preRightLane2) { //The vehicle is on the second right lane
+				check_and_set_min_car_dist(params.nvRightBack2, distance, vehicle,other_driver);
 			}
 		}
 	}
@@ -1147,6 +1211,10 @@ void sim_mob::Driver::updateNearbyAgents(DriverUpdateParams& params) {
 	params.nvBack = NearestVehicle();
 	params.nvLeftBack = NearestVehicle();
 	params.nvRightBack = NearestVehicle();
+	params.nvLeftFwd2 = NearestVehicle();
+	params.nvLeftBack2 = NearestVehicle();
+	params.nvRightBack2 = NearestVehicle();
+	params.nvRightBack = NearestVehicle();
 
 	for (vector<const Agent*>::iterator it = nearby_agents.begin(); it != nearby_agents.end(); it++) {
 		//Perform no action on non-Persons
@@ -1159,12 +1227,14 @@ void sim_mob::Driver::updateNearbyAgents(DriverUpdateParams& params) {
 		updateNearbyDriver(params, other, dynamic_cast<const Driver*> (other->getRole()));
 		updateNearbyPedestrian(params, other, dynamic_cast<const Pedestrian*> (other->getRole()));
 	}
+
+	NearestVehicle nv = vehicleChangingToCurrentLane(params);
 	//Update your perceptions for leading vehicle and gap
-	perceivedDistToFwdCar.delay(params.nvFwd.distance, params.currTimeMS);
+	perceivedDistToFwdCar.delay(nv.distance, params.currTimeMS);
 	if (params.nvFwd.distance != 5000) {
-		perceivedVelocityOfFwdCar.delay(new DPoint(params.nvFwd.driver->getVehicle()->getVelocity(),
-				params.nvFwd.driver->getVehicle()->getLatVelocity()), params.currTimeMS);
-		perceivedAccelerationOfFwdCar.delay(params.nvFwd.driver->getVehicle()->getAcceleration(), params.currTimeMS);
+		perceivedVelocityOfFwdCar.delay(new DPoint(nv.driver->getVehicle()->getVelocity(),
+				nv.driver->getVehicle()->getLatVelocity()), params.currTimeMS);
+		perceivedAccelerationOfFwdCar.delay(nv.driver->getVehicle()->getAcceleration(), params.currTimeMS);
 
 		//retrieve perceptions
 		size_t delayMS = 1500;
@@ -1193,6 +1263,26 @@ void sim_mob::Driver::updateNearbyAgents(DriverUpdateParams& params) {
 			params.perceivedDistToFwdCar = params.nvFwd.distance;
 		}
 	}
+}
+
+NearestVehicle sim_mob::Driver::vehicleChangingToCurrentLane(DriverUpdateParams& p)
+{
+	double leftDis = p.nvLeftFwd.distance;
+	double rightDis = p.nvRightFwd.distance;
+	double currentDis = p.nvFwd.distance;
+	if(leftDis<currentDis && leftDis<rightDis)
+	{
+		//the vehicle in the left lane is turning to right
+		if(p.nvLeftFwd.driver->getVehicle()->getLatVelocity()<0)
+			return p.nvLeftFwd;
+	}
+	else if(rightDis<currentDis && rightDis<leftDis)
+	{
+		if(p.nvRightFwd.driver->getVehicle()->getLatVelocity()>0)
+			return p.nvRightFwd;
+	}
+
+	return p.nvFwd;
 }
 
 void sim_mob::Driver::intersectionVelocityUpdate() {
@@ -1322,14 +1412,15 @@ void sim_mob::Driver::updatePositionDuringLaneChange(DriverUpdateParams& p, LANE
 //		if(parent->getId() == 8)
 //		LogOut("8,44\n");
 
-		bool pastZero = (actual == LCS_LEFT) ? (vehicle->getLateralMovement() > 0)
-				: (vehicle->getLateralMovement() < 0);
+		bool pastZero = (actual == LCS_LEFT) ? (vehicle->getLateralMovement() >= 0)
+				: (vehicle->getLateralMovement() <= 0);
 
 		if (Debug::Drivers) {
 			DebugStream << "    Moving in on lane " << p.currLaneIndex << ": " << vehicle->getLateralMovement() << endl;
 		}
 
 		if (pastZero) {
+
 			//Reset all
 			vehicle->resetLateralMovement();
 			vehicle->setLatVelocity(0);

@@ -45,6 +45,8 @@ enum LANE_CHANGE_SIDE {
 struct NearestVehicle {
 	NearestVehicle() : driver(nullptr), distance(5000) {}
 
+	//TODO: This is probably not needed. We should really set "distance" to DOUBLE_MAX.
+	bool exists() { return distance < 5000; }
 	const Driver* driver;
 	double distance;
 };
@@ -75,6 +77,8 @@ struct DriverUpdateParams : public UpdateParams {
 	size_t fromLaneIndex; //for lane changing model
 	const Lane* leftLane;
 	const Lane* rightLane;
+	const Lane* leftLane2; //the second left lane
+	const Lane* rightLane2;
 
 	double currSpeed;
 
@@ -100,6 +104,12 @@ struct DriverUpdateParams : public UpdateParams {
 	NearestVehicle nvLeftBack;
 	NearestVehicle nvRightFwd;
 	NearestVehicle nvRightBack;
+	NearestVehicle nvLeftFwd2; //the second adjacent lane
+	NearestVehicle nvLeftBack2;
+	NearestVehicle nvRightFwd2;
+	NearestVehicle nvRightBack2;
+
+
 
 	NearestPedestrian npedFwd;
 

@@ -99,6 +99,7 @@ const Lane* sim_mob::Vehicle::getCurrLane() const {
 	return fwdMovement.getCurrLane();
 }
 
+
 double sim_mob::Vehicle::getCurrLinkReportedLength() const {
 	return fwdMovement.getCurrLinkReportedLength(); // ()->getLength(fwdMovement.isMovingForwardsOnCurrSegment());
 }

@@ -86,9 +86,18 @@ public class NetworkVisualizer {
 	public void zoomIn(int number, int frameTick) {
 		//Each tick increases zoom by 10%
 		redrawAtScale(currPercentZoom + currPercentZoom*number*0.10, frameTick);
+	}
+	
+	public void squareZoom(int frameTick) {
+		//First, square it.
+		int min100Percent = Math.min(width100Percent, height100Percent);
+		if (width100Percent != height100Percent) {
+			width100Percent = min100Percent;
+			height100Percent = min100Percent;
+		}
 		
-		//		System.out.println("currPercentZoom: "+currPercentZoom +" currPercentZoom*number*0.10: " +currPercentZoom*number*0.10+ " result " + currPercentZoom + currPercentZoom*number*0.10);
-		
+		//Now redraw
+		redrawAtScale(currPercentZoom, frameTick);
 	}
 	
 	public void toggleFakeAgent(boolean drawFakeAgent, int frameTick){

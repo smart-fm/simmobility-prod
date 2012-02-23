@@ -389,9 +389,15 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		offset.x = (int)((modAmtX*offset.x*netViewCache.getImage().getWidth())/oldW);
 		offset.y = (int)((modAmtY*offset.y*netViewCache.getImage().getHeight())/oldH);
 		
-		updateMap();
-		
+		updateMap();	
 	}
+	
+	
+	public void zoomFitSquare() {
+		netViewCache.squareZoom(getCurrFrameTick());
+		updateMap();
+	}
+	
 	
 	//Component method stubs
 	public void componentHidden(ComponentEvent e) {}

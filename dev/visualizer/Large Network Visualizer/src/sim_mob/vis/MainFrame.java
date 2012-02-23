@@ -63,6 +63,7 @@ public class MainFrame extends JFrame {
     
     private JComboBox trackAgentIDs;
     private JButton renderVideo;
+    private JButton squareViewport;
     
 	
 	//Lower panel
@@ -176,6 +177,8 @@ public class MainFrame extends JFrame {
 	    		}
 	    	}
 	    }
+	    
+	    squareViewport = new JButton("Square viewport");
 
 	    
 	    openLogFile = new JButton("Open File From...", new ImageIcon(Utility.LoadImgResource("res/icons/open.png")));
@@ -220,6 +223,7 @@ public class MainFrame extends JFrame {
 		jpLeft.add(clockRateComboBox);
 		jpLeft.add(trackAgentIDs);
 		jpLeft.add(renderVideo);
+		jpLeft.add(squareViewport);
 		
 		//Bottom panel
 		JPanel jpLower = new JPanel(new BorderLayout());
@@ -466,6 +470,14 @@ public class MainFrame extends JFrame {
 				
 				//Render
 				new RenderToFileThread(vd.getOutFileName(), vd.getOutFileQuality(), vd.getOutFileFirstFrame(), vd.getOutFileLastFrame(), vd.getShowFrameNumber()).start();
+			}
+		});
+		
+		
+		//This button causes the current view to become square.
+		squareViewport.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				newViewPnl.zoomFitSquare();
 			}
 		});
 

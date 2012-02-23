@@ -189,7 +189,7 @@ public class DriverTick extends AgentTick {
 		
 		//HACK: Modify the angle slightly based on the quadrant
 		double angleD = angle;
-		if (angleD<90) {
+		/*if (angleD<90) {
 			//Moving down-right
 			angleD -= 7;
 		} else if (angle<180) {
@@ -201,7 +201,7 @@ public class DriverTick extends AgentTick {
 		} else if (angle<360) {
 			//Moving up-right
 			angleD += 7;
-		}
+		}*/
 		
 		SimpleVectorImage svi = null;
 		

@@ -17,7 +17,7 @@
 #include "util/MovementVector.hpp"
 #include "util/DynamicVector.hpp"
 #include "entities/roles/driver/GeneralPathMover.hpp"
-
+#include "entities/roles/driver/DriverUpdateParams.hpp"
 
 namespace sim_mob {
 
@@ -60,6 +60,7 @@ public:
 
 	//Special
 	double getAngle() const;  ///<For display purposes only.
+	LANE_CHANGE_SIDE getTurningDirection() const;
 
 	//Helper method; used in BusDriver
 	const std::vector<const sim_mob::RoadSegment*>& getCompletePath() const;
@@ -81,6 +82,7 @@ public:
 	void moveToNewLanePolyline(int laneID);
 	void setPositionInIntersection(double x, double y);
 
+	void setTurningDirection(LANE_CHANGE_SIDE direction);
 	//Modifiers
 	void setVelocity(double value);      ///<Set the forward velocity.
 	void setLatVelocity(double value);   ///<Set the lateral velocity.
@@ -113,6 +115,7 @@ public:
 	double fwdVelocity;
 	double latVelocity;
 	double fwdAccel;
+	LANE_CHANGE_SIDE turningDirection;
 
 	//Override for when we're in an intersection.
 	DPoint posInIntersection;

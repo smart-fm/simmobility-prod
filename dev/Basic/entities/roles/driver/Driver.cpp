@@ -539,10 +539,6 @@ bool sim_mob::Driver::AvoidCrashWhenLaneChanging(DriverUpdateParams& p)
 	//the subject vehicle isn't doing lane changing
 	if(vehicle->getLatVelocity()==0)
 		return false;
-	if(p.nvLeftFwd2.exists()||p.nvRightFwd2.exists())
-		std::cout<<"avoid"<<std::endl;
-//	std::cout<<"exist "<<p.nvLeftFwd2.exists()<<std::endl;
-//	std::cout<<"dis "<<p.nvLeftFwd2.distance<<std::endl;
 
 	//the subject vehicle is changing to left lane
 	if(vehicle->getLatVelocity()>0 && p.nvLeftFwd2.exists() && p.nvLeftFwd2.distance < distanceRange
@@ -571,14 +567,19 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 		p.fromLaneIndex = p.currLaneIndex;
 	//Check if we should change lanes.
 	double newLatVel = lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length,
-			getCurrLaneChangeDirection());
+			vehicle->getTurningDirection());
+
 	vehicle->setLatVelocity(newLatVel);
+	if(vehicle->getLatVelocity()>0)
+		vehicle->setTurningDirection(LCS_LEFT);
+	else if(vehicle->getLatVelocity()<0)
+		vehicle->setTurningDirection(LCS_RIGHT);
+	else
+		vehicle->setTurningDirection(LCS_SAME);
 	//when vehicle stops, don't do lane changing
 	if (vehicle->getVelocity() <= 0) {
 		vehicle->setLatVelocity(0);
 	}
-
-
 
 	//Retrieve a new acceleration value.
 	double newFwdAcc = 0;
@@ -594,7 +595,9 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 	if(AvoidCrashWhenLaneChanging(p))
 	{
 		vehicle->setLatVelocity(0);
+		vehicle->setAcceleration(vehicle->getAcceleration()*0.5);
 	}
+
 	return updatePositionOnLink(p);
 }
 
@@ -875,11 +878,11 @@ void sim_mob::Driver::initializePath() {
 			length = 1500;
 		else//car
 			length = 500;
-		int startlaneID;
-		if(parent->getId()%2==0)
-			startlaneID = 0;
-		else
-			startlaneID = 2;
+		int startlaneID = 0;
+//		if(parent->getId()%2==0)
+//			startlaneID = 0;
+//		else
+//			startlaneID = 2;
 		vehicle = new Vehicle(path, startlaneID, length, width);
 	} catch (std::exception& ex) {
 		errorMsg << "ERROR: " << ex.what();
@@ -1039,10 +1042,9 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 
 	//If the vehicle is in the same Road segment
 	if (vehicle->getCurrSegment() == otherRoadSegment) {
-		//std::cout<<getLaneIndex(vehicle->getCurrLane())<<"have one"<<getLaneIndex(other_driver->getVehicle()->getCurrLane())<<std::endl;
 		//Set distance equal to the _forward_ distance between these two vehicles.
 		int distance = other_offset - params.currLaneOffset;
-		bool fwd = distance > 0;
+		bool fwd = distance >= 0;
 
 		//Set different variables depending on where the car is.
 		if (other_lane == params.currLane) {//the vehicle is on the current lane
@@ -1228,7 +1230,15 @@ void sim_mob::Driver::updateNearbyAgents(DriverUpdateParams& params) {
 		updateNearbyPedestrian(params, other, dynamic_cast<const Pedestrian*> (other->getRole()));
 	}
 
-	NearestVehicle nv = vehicleChangingToCurrentLane(params);
+	NearestVehicle & nv = vehicleChangingToCurrentLane(params);
+	if(nv.distance<=0)
+	{
+		if(nv.driver->parent->getId() > parent->getId())
+		{
+			nv = NearestVehicle();
+		}
+	}
+
 	//Update your perceptions for leading vehicle and gap
 	perceivedDistToFwdCar.delay(nv.distance, params.currTimeMS);
 	if (params.nvFwd.distance != 5000) {
@@ -1265,7 +1275,7 @@ void sim_mob::Driver::updateNearbyAgents(DriverUpdateParams& params) {
 	}
 }
 
-NearestVehicle sim_mob::Driver::vehicleChangingToCurrentLane(DriverUpdateParams& p)
+NearestVehicle & sim_mob::Driver::vehicleChangingToCurrentLane(DriverUpdateParams& p)
 {
 	double leftDis = p.nvLeftFwd.distance;
 	double rightDis = p.nvRightFwd.distance;
@@ -1330,7 +1340,7 @@ void sim_mob::Driver::updatePositionDuringLaneChange(DriverUpdateParams& p, LANE
 	double halfLaneWidth = p.currLane->getWidth() / 2.0;
 
 	//The direction we are attempting to change lanes in
-	LANE_CHANGE_SIDE actual = getCurrLaneChangeDirection();
+	LANE_CHANGE_SIDE actual = vehicle->getTurningDirection();
 	//LANE_CHANGE_SIDE relative = getCurrLaneSideRelativeToCenter();
 	if (actual == LCS_SAME) {
 		if (Debug::Drivers) {
@@ -1424,6 +1434,7 @@ void sim_mob::Driver::updatePositionDuringLaneChange(DriverUpdateParams& p, LANE
 			//Reset all
 			vehicle->resetLateralMovement();
 			vehicle->setLatVelocity(0);
+			vehicle->setTurningDirection(LCS_SAME);
 
 			if (Debug::Drivers) {
 				DebugStream << "    New lane shift complete." << endl;

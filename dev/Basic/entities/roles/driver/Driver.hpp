@@ -155,7 +155,7 @@ protected:
 	void setOrigin(DriverUpdateParams& p);
 
 private:
-	NearestVehicle vehicleChangingToCurrentLane(DriverUpdateParams& p);
+	NearestVehicle & vehicleChangingToCurrentLane(DriverUpdateParams& p);
 	bool AvoidCrashWhenLaneChanging(DriverUpdateParams& p);
 	bool isCloseToLinkEnd(DriverUpdateParams& p) const;
 	bool isPedestrianOnTargetCrossing() const;

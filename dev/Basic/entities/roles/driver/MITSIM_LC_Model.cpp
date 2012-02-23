@@ -264,7 +264,6 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(Dri
 	//i am going to fix it.
 	int direction = p.fromLaneIndex - p.currLaneIndex;
 	//int direction = 1 - p.currLaneIndex;
-	//std::cout<<"currID"<<p.currLaneIndex<<std::endl;
 	//direction = 0; //Otherwise drivers always merge.
 
 	//current lane is target lane
@@ -303,9 +302,9 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 		return lcsSign*p.laneChangingVelocity;
 	} else {
 		//If too close to node, don't do lane changing, distance should be larger than 3m
-//		if(p.currLaneLength - p.currLaneOffset - vehLen/2 <= 300) {
-//			return -1;
-//		}
+		if(p.currLaneLength - p.currLaneOffset - vehLen/2 <= 300) {
+			return 0;
+		}
 
 		//Get a random number, use it to determine if we're making a discretionary or a mandatory lane change
 		boost::uniform_int<> zero_to_max(0, RAND_MAX);

@@ -19,12 +19,12 @@ using namespace sim_mob;
 using std::vector;
 
 sim_mob::Vehicle::Vehicle(vector<WayPoint> wp_path, int startLaneID) :
-	length(400), width(200), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true) {
+	length(400), width(200), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true), turningDirection(LCS_SAME) {
 	initPath(wp_path, startLaneID);
 }
 
 sim_mob::Vehicle::Vehicle(vector<WayPoint> wp_path, int startLaneID, double length, double width) :
-	length(length), width(width), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true) {
+	length(length), width(width), latMovement(0), fwdVelocity(0), latVelocity(0), fwdAccel(0), error_state(true), turningDirection(LCS_SAME) {
 	initPath(wp_path, startLaneID);
 }
 
@@ -194,6 +194,10 @@ double sim_mob::Vehicle::getAcceleration() const {
  return position.reachedEnd();
  }*/
 
+LANE_CHANGE_SIDE sim_mob::Vehicle::getTurningDirection() const{
+	return turningDirection;
+}
+
 double sim_mob::Vehicle::getAngle() const {
 	throw_if_error();
 	if (fwdMovement.isDoneWithEntireRoute()) {
@@ -241,6 +245,12 @@ double sim_mob::Vehicle::moveFwd(double amt) {
 void sim_mob::Vehicle::moveLat(double amt) {
 	throw_if_error();
 	latMovement += amt;
+}
+
+void sim_mob::Vehicle::setTurningDirection(LANE_CHANGE_SIDE direction)
+{
+	throw_if_error();
+	turningDirection = direction;
 }
 
 void sim_mob::Vehicle::resetLateralMovement() {

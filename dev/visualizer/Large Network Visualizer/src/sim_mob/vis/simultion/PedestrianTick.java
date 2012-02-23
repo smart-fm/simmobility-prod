@@ -2,6 +2,7 @@ package sim_mob.vis.simultion;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
@@ -123,7 +124,7 @@ public class PedestrianTick extends AgentTick {
 		this.ID = id;
 	}
 
-	public void draw(Graphics2D g, double scale, boolean drawFake, boolean debug){
+	public void draw(Graphics2D g, double scale, boolean drawFake, boolean debug, Dimension size100Percent){
 		
 		
 		//Save old transformation.

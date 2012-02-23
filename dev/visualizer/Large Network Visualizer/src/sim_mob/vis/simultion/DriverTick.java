@@ -3,6 +3,7 @@ package sim_mob.vis.simultion;
 import java.awt.BasicStroke;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
@@ -182,26 +183,60 @@ public class DriverTick extends AgentTick {
 	}
 	
 	
-	public void draw(Graphics2D g,double scale, boolean drawFake,boolean debug){
+	public void draw(Graphics2D g,double scale, boolean drawFake,boolean debug, Dimension size100Percent){
 		AffineTransform oldAT = g.getTransform();
 
 		AffineTransform at = AffineTransform.getTranslateInstance(pos.getX(), pos.getY());
 		
-		//HACK: Modify the angle slightly based on the quadrant
+		//Your visible angle depends on the skew of the current viewport. 
+		//  For now we just project and return the angle each time, but this can
+		//  probably be cached in the same way ScaledPoint is... it only needs to change
+		//  when the viewport skew changes.
+		//TODO: Cache this somehow, see above.
+		//TODO: There should be a much easier mathematical way of doing this.
 		double angleD = angle;
-		/*if (angleD<90) {
-			//Moving down-right
-			angleD -= 7;
-		} else if (angle<180) {
-			//Moving down-left
-			angleD += 7;
-		} else if (angle<270) {
-			//Moving up-left
-			angleD -= 7;
-		} else if (angle<360) {
-			//Moving up-right
-			angleD += 7;
-		}*/
+		if (size100Percent.width != size100Percent.height) {
+			if (angle>0 && angle!=90 && angle!=180 && angle!=270 && angle<360) {
+				//Guaranteed to be working with angles with non-zero x/y components, and a non-trivial skew factor.
+				double xScale = (double)(size100Percent.width) / Math.max(size100Percent.width, size100Percent.height);
+				double yScale = (double)(size100Percent.height) / Math.max(size100Percent.width, size100Percent.height);
+				
+				//System.out.println("Original angle: " + angleD);
+				
+				//Save the quadrant (y-mirrored). Also reduce angleD to Q1 (real)
+				int quadrant = 0;
+				if (angle<90) {
+					quadrant = 1;
+				} else if (angle<180) {
+					quadrant = 2;
+					angleD -= 90;
+				} else if (angle<270) {
+					quadrant = 3;
+					angleD -= 180;
+				} else if (angle<360) {
+					quadrant = 4;
+					angleD -= 270;
+				} else { throw new RuntimeException("Bad angle: " + angle); }
+				
+				//Project the angle, scale it
+				xScale *= Math.cos(angleD * Math.PI/180);
+				yScale *= Math.sin(angleD * Math.PI/180);
+				
+				//Now retrieve the visual angle
+				angleD = Math.atan(yScale/xScale) * 180/Math.PI;
+				
+				//Factor in quadrants again.
+				if (quadrant==2) {
+					angleD = 180 - angleD;
+				} else if (quadrant==3) {
+					angleD = 180 + angleD;
+				} else if (quadrant==4) {
+					angleD = 360 - angleD;
+				} else if (quadrant!=1) { throw new RuntimeException("Bad quadrant: " + quadrant); }
+				
+				//System.out.println("   Fixed angle: " + angleD);
+			}
+		}
 		
 		SimpleVectorImage svi = null;
 		

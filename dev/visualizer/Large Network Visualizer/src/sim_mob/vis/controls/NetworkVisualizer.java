@@ -307,12 +307,12 @@ public class NetworkVisualizer {
 		
 		//Now draw simulation data: cars, etc.
 		//if(currPercentZoom>ZOOM_IN_CRITICAL){
-
+		Dimension sz100Percent = new Dimension(width100Percent, height100Percent);
 			Hashtable<Integer, AgentTick> agents = simRes.ticks.get(frameTick).agentTicks;
 			for (Integer key : agents.keySet()) {
 				AgentTick at = agents.get(key);
 				boolean highlight = this.debugOn || (key.intValue()==currHighlightID);
-				at.draw(g,currPercentZoom,this.showFakeAgent,highlight);
+				at.draw(g,currPercentZoom,this.showFakeAgent,highlight, sz100Percent);
 			}
 
 		//}		

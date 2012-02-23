@@ -209,13 +209,13 @@ public class DriverTick extends AgentTick {
 					quadrant = 1;
 				} else if (angle<180) {
 					quadrant = 2;
-					angleD -= 90;
+					angleD = 180-angleD;
 				} else if (angle<270) {
 					quadrant = 3;
 					angleD -= 180;
 				} else if (angle<360) {
 					quadrant = 4;
-					angleD -= 270;
+					angleD = 360-angleD;
 				} else { throw new RuntimeException("Bad angle: " + angle); }
 				
 				//Project the angle, scale it

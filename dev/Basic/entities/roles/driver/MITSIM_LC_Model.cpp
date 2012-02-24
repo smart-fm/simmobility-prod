@@ -93,28 +93,28 @@ double sim_mob::MITSIM_LC_Model::lcCriticalGap(DriverUpdateParams& p, int type,	
 
 	//The code below is from MITSIMLab. While the calculation result not suit for current unit.
 	//So now, I just put them here.
-	/*double dis=unit2Feet(dis_);
-	double spd=unit2Feet(spd_);
-	double dv=unit2Feet(dv_);
-	double rem_dist_impact = (type < 3) ?
-		0.0 : (1.0 - 1.0 / (1 + exp(GA_parameters[type][2] * dis)));
-	double dvNegative = (dv < 0) ? dv : 0.0;
-	double dvPositive = (dv > 0) ? dv : 0.0;
-	double gap = GA_parameters[type][3] + GA_parameters[type][4] * rem_dist_impact +
-			GA_parameters[type][5] * dv + GA_parameters[type][6] * dvNegative + GA_parameters[type][7] *  dvPositive;
-	double u = gap + nRandom(0, GA_parameters[type][8]);
-	double cri_gap ;
-
-	if (u < -4.0) {
-		cri_gap = 0.0183 * GA_parameters[type][0] ;		// exp(-4)=0.0183
-	}
-	else if (u > 6.0) {
-		cri_gap = 403.4 * GA_parameters[type][0] ;   	// exp(6)=403.4
-	}
-	else cri_gap = GA_parameters[type][0] * exp(u) ;
-
-	if (cri_gap < GA_parameters[type][1]) return feet2Unit(GA_parameters[type][1]) ;
-	else return feet2Unit(cri_gap) ;*/
+//	double dis = meter2Feet(dis_);
+//	double spd = meter2Feet(spd_);
+//	double dv  = meter2Feet(dv_);
+//	double rem_dist_impact = (type < 3) ?
+//		0.0 : (1.0 - 1.0 / (1 + exp(GA_parameters[type].lambda * dis)));
+//	double dvNegative = (dv < 0) ? dv : 0.0;
+//	double dvPositive = (dv > 0) ? dv : 0.0;
+//	double gap = GA_parameters[type].beta0 + GA_parameters[type].beta1 * rem_dist_impact +
+//			GA_parameters[type].beta2 * dv + GA_parameters[type].beta3 * dvNegative + GA_parameters[type].beta4 *  dvPositive;
+//	double u = gap + GA_parameters[type].stddev;
+//	double cri_gap ;
+//
+//	if (u < -4.0) {
+//		cri_gap = 0.0183 * GA_parameters[type].scale ;		// exp(-4)=0.0183
+//	}
+//	else if (u > 6.0) {
+//		cri_gap = 403.4 * GA_parameters[type].scale ;   	// exp(6)=403.4
+//	}
+//	else cri_gap = GA_parameters[type].scale * exp(u) ;
+//
+//	if (cri_gap < GA_parameters[type].alpha) return feet2Meter(GA_parameters[type].alpha) ;
+//	else return feet2Meter(cri_gap) ;
 }
 
 
@@ -125,34 +125,33 @@ LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(DriverUpdateParams& p, int type
 	LeadLag<double> otherDistance[2];	//the distance to the closest vehicle in adjacent lane
 
 	const Lane* adjacentLanes[2] = {p.leftLane, p.rightLane};
-	const Driver* fwd;
-	const Driver* back;
+	const NearestVehicle * fwd;
+	const NearestVehicle * back;
 	for(int i=0;i<2;i++){
-		fwd = (i==0) ? p.nvLeftFwd.driver : p.nvRightFwd.driver;
-		back = (i==0) ? p.nvLeftBack.driver : p.nvRightBack.driver;
+		fwd = (i==0) ? &p.nvLeftFwd : &p.nvRightFwd;
+		back = (i==0) ? &p.nvLeftBack : &p.nvRightBack;
 
 		if(adjacentLanes[i]){	//the left/right side exists
-
-			if(!fwd||!fwd->getVehicle()) {		//no vehicle ahead on current lane
-				otherSpeed[i].lead=MAX_NUM;
-				otherDistance[i].lead=MAX_NUM;
+			if(!fwd->exists()) {		//no vehicle ahead on current lane
+				otherSpeed[i].lead=5000;
+				otherDistance[i].lead=5000;
 			} else {				//has vehicle ahead
-				otherSpeed[i].lead = fwd->getVehicle()->getVelocity();
-				otherDistance[i].lead=(i==0)? p.nvLeftFwd.distance : p.nvRightFwd.distance;
+				otherSpeed[i].lead = fwd->driver->getVehicle()->getVelocity();
+				otherDistance[i].lead= fwd->distance;
 			}
 
-			if(!back||!back->getVehicle()){//no vehicle behind
-				otherSpeed[i].lag=-MAX_NUM;
-				otherDistance[i].lag=MAX_NUM;
+			if(!back->exists()){//no vehicle behind
+				otherSpeed[i].lag=-5000;
+				otherDistance[i].lag=5000;
 			}
 			else{		//has vehicle behind, check the gap
-				otherSpeed[i].lag=back->getVehicle()->getVelocity();
-				otherDistance[i].lag=(i==0)? p.nvLeftBack.distance : p.nvRightBack.distance;
+				otherSpeed[i].lag=back->driver->getVehicle()->getVelocity();
+				otherDistance[i].lag= back->distance;
 			}
 		} else {			// no left/right side exists
-			otherSpeed[i].lead    = -MAX_NUM;
+			otherSpeed[i].lead    = 0;
 			otherDistance[i].lead = 0;
-			otherSpeed[i].lag     = MAX_NUM;
+			otherSpeed[i].lag     = 0;
 			otherDistance[i].lag  = 0;
 		}
 	}
@@ -166,7 +165,6 @@ LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(DriverUpdateParams& p, int type
 				double dv     = otherSpeed[i].lead - v;
 				flags[i].lead = (otherDistance[i].lead > lcCriticalGap(p, j+type,p.dis2stop,v,dv));
 			} else {
-
 				double v 	 = otherSpeed[i].lag;
 				double dv 	 = p.perceivedFwdVelocity - otherSpeed[i].lag;
 				flags[i].lag = (otherDistance[i].lag > lcCriticalGap(p, j+type,p.dis2stop,v,dv));
@@ -203,7 +201,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision
 		return LCS_SAME;		//neither gap is available, stay in current lane
 	}
 	double s = p.nvFwd.distance;
-	const double satisfiedDistance = 5000;
+	const double satisfiedDistance = 3000;
 	if(s>satisfiedDistance) {
 		return LCS_SAME;	// space ahead is satisfying, stay in current lane
 	}
@@ -243,7 +241,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision
 double sim_mob::MITSIM_LC_Model::checkIfMandatory(DriverUpdateParams& p)
 {
 	if(p.fromLaneIndex == p.currLaneIndex)
-		p.dis2stop = 1000;//defalut 1000m
+		p.dis2stop = 5000;//defalut 5000m
 	//The code below is MITSIMLab model
 	double num		=	1;		//now we just assume that MLC only need to change to the adjacent lane
 	double y		=	0.5;	//segment density/jam density, now assume that it is 0.5
@@ -311,6 +309,7 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 		double randNum = (double)(zero_to_max(p.gen)%1000)/1000;
 		double mandCheck = checkIfMandatory(p);
 		LANE_CHANGE_MODE changeMode;  //DLC or MLC
+
 		if(randNum<mandCheck){
 			changeMode = MLC;
 		} else {
@@ -321,8 +320,10 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 		//make decision depending on current lane changing mode
 		LANE_CHANGE_SIDE decision = LCS_SAME;
 		if(changeMode==DLC) {
+
 			decision = makeDiscretionaryLaneChangingDecision(p);
 		} else {
+
 			decision = makeMandatoryLaneChangingDecision(p);
 
 		}

@@ -539,7 +539,6 @@ bool sim_mob::Driver::AvoidCrashWhenLaneChanging(DriverUpdateParams& p)
 	//the subject vehicle isn't doing lane changing
 	if(vehicle->getLatVelocity()==0)
 		return false;
-
 	//the subject vehicle is changing to left lane
 	if(vehicle->getLatVelocity()>0 && p.nvLeftFwd2.exists() && p.nvLeftFwd2.distance < distanceRange
 			&& p.nvLeftFwd2.driver->getVehicle()->getLatVelocity()<0)
@@ -553,6 +552,7 @@ bool sim_mob::Driver::AvoidCrashWhenLaneChanging(DriverUpdateParams& p)
 //vehicle movement on link, perform acceleration, lane changing if necessary
 //the movement is based on relative position
 double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
+
 
 	if (!vehicle->hasNextSegment(true)) {
 		p.dis2stop = vehicle->getAllRestRoadSegmentsLength() - vehicle->getDistanceMovedInSegment() - vehicle->length
@@ -595,7 +595,7 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 	if(AvoidCrashWhenLaneChanging(p))
 	{
 		vehicle->setLatVelocity(0);
-		vehicle->setAcceleration(vehicle->getAcceleration()*0.5);
+		vehicle->setAcceleration(0);
 	}
 
 	return updatePositionOnLink(p);
@@ -1058,6 +1058,7 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 		} else if (other_lane == params.rightLane2) { //The vehicle is on the second right lane
 			check_and_set_min_car_dist((fwd ? params.nvRightFwd2 : params.nvRightBack2), distance, vehicle,other_driver);
 		}
+
 	} else if (otherRoadSegment->getLink() == vehicle->getCurrLink()) { //We are in the same link.
 		if (vehicle->getNextSegment() == otherRoadSegment) { //Vehicle is on the next segment.
 			//Retrieve the next node we are moving to, cast it to a UniNode.
@@ -1215,8 +1216,8 @@ void sim_mob::Driver::updateNearbyAgents(DriverUpdateParams& params) {
 	params.nvRightBack = NearestVehicle();
 	params.nvLeftFwd2 = NearestVehicle();
 	params.nvLeftBack2 = NearestVehicle();
+	params.nvRightFwd2 = NearestVehicle();
 	params.nvRightBack2 = NearestVehicle();
-	params.nvRightBack = NearestVehicle();
 
 	for (vector<const Agent*>::iterator it = nearby_agents.begin(); it != nearby_agents.end(); it++) {
 		//Perform no action on non-Persons

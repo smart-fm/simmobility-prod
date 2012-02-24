@@ -46,7 +46,7 @@ struct NearestVehicle {
 	NearestVehicle() : driver(nullptr), distance(5000) {}
 
 	//TODO: This is probably not needed. We should really set "distance" to DOUBLE_MAX.
-	bool exists() { return distance < 5000; }
+	bool exists() const { return distance < 5000; }
 	const Driver* driver;
 	double distance;
 };

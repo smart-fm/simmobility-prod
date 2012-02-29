@@ -48,7 +48,7 @@ public:
 	virtual bool update(frame_t frameNumber) final;
 
 	///Update a Person's subscription list.
-	virtual void buildSubscriptionList();
+	virtual void buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList);
 
 	///Change the role of this person: Driver, Passenger, Pedestrian
 	void changeRole(sim_mob::Role* newRole);

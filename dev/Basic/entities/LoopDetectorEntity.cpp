@@ -546,13 +546,13 @@ LoopDetectorEntity::init(Signal const & signal)
 }
 
 /* virtual */ void
-LoopDetectorEntity::buildSubscriptionList()
+LoopDetectorEntity::buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList)
 {
     std::map<Lane const *, Shared<CountAndTimePair> *>::iterator iter;
     for (iter = data_.begin(); iter != data_.end(); ++iter)
     {
         Shared<CountAndTimePair> * pair = iter->second;
-        subscriptionList_cached.push_back(pair);
+        subsList.push_back(pair);
     }
 }
 

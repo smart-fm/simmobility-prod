@@ -61,14 +61,14 @@ sim_mob::Agent::~Agent()
 
 }
 
-void sim_mob::Agent::buildSubscriptionList()
+void sim_mob::Agent::buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList)
 {
-	subscriptionList_cached.push_back(&xPos);
-	subscriptionList_cached.push_back(&yPos);
-	subscriptionList_cached.push_back(&fwdVel);
-	subscriptionList_cached.push_back(&latVel);
-	subscriptionList_cached.push_back(&xAcc);
-	subscriptionList_cached.push_back(&yAcc);
+	subsList.push_back(&xPos);
+	subsList.push_back(&yPos);
+	subsList.push_back(&fwdVel);
+	subsList.push_back(&latVel);
+	subsList.push_back(&xAcc);
+	subsList.push_back(&yAcc);
 	//subscriptionList_cached.push_back(&currentLink);
 	//subscriptionList_cached.push_back(&currentCrossing);
 

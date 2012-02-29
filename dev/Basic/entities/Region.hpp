@@ -28,7 +28,7 @@ public:
 
 	virtual bool update(frame_t frameNumber);
 
-	virtual void buildSubscriptionList() {} //Nothing for now
+	virtual void buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList) {} //Nothing for now
 
 private:
 	std::vector<sim_mob::Signal*> signals;

@@ -192,14 +192,14 @@ void sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) {
 
 
 
-void sim_mob::Person::buildSubscriptionList() {
+void sim_mob::Person::buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList) {
 	//First, add the x and y co-ordinates
-	Agent::buildSubscriptionList();
+	Agent::buildSubscriptionList(subsList);
 
 	//Now, add our own properties.
 	vector<BufferedBase*> roleParams = this->getRole()->getSubscriptionParams();
 	for (vector<BufferedBase*>::iterator it = roleParams.begin(); it != roleParams.end(); it++) {
-		subscriptionList_cached.push_back(*it);
+		subsList.push_back(*it);
 	}
 }
 

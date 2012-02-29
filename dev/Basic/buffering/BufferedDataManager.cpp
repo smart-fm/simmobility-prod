@@ -42,14 +42,14 @@ void sim_mob::BufferedDataManager::stopManaging(BufferedBase* datum)
 	}
 }
 
-void sim_mob::BufferedDataManager::beginManaging(vector<sim_mob::BufferedBase*> data)
+void sim_mob::BufferedDataManager::beginManaging(vector<sim_mob::BufferedBase*>& data)
 {
 	for (vector<sim_mob::BufferedBase*>::iterator it=data.begin(); it!=data.end(); it++) {
 		beginManaging(*it);
 	}
 }
 
-void sim_mob::BufferedDataManager::stopManaging(vector<sim_mob::BufferedBase*> data)
+void sim_mob::BufferedDataManager::stopManaging(vector<sim_mob::BufferedBase*>& data)
 {
 	for (vector<sim_mob::BufferedBase*>::iterator it=data.begin(); it!=data.end(); it++) {
 		stopManaging(*it);

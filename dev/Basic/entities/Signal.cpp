@@ -862,11 +862,11 @@ double Signal::fmax(const double proDS[]) {
 	return max;
 }
 
-void Signal::buildSubscriptionList() {
+void Signal::buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList) {
 	//First, add the x and y co-ordinates
-	Agent::buildSubscriptionList();
+	Agent::buildSubscriptionList(subsList);
 
-	subscriptionList_cached.push_back(&buffered_TC);
+	subsList.push_back(&buffered_TC);
 }
 
 //find the minimum among the max projected DS

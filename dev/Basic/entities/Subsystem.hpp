@@ -60,7 +60,7 @@ public:
 	void updateOffset(int flow1[], int flow2[]);
 
 	virtual bool update(frame_t frameNumber) = 0;
-	virtual void buildSubscriptionList() = 0;
+	virtual void buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList) = 0;
 
 	static int findmax(std::vector<int>);
 

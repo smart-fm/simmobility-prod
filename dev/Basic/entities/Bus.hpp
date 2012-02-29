@@ -30,7 +30,7 @@ public:
 	explicit Bus(unsigned int id=-1) : Vehicle(std::vector<sim_mob::WayPoint>(), 0), busroute(nullptr), passenger_count_standing(0), passenger_count_sitting(0), passenger_capacity(0) {}
 
 	virtual void update(frame_t frameNumber);
-	virtual void buildSubscriptionList();	
+	virtual void buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList);
 protected:
 	bool setRoute(const BusRoute* bus_route);
 	void updateAtNewStop(const BusStop* prevStop, const BusStop* nextStop);  //sets current bus stop to previous busstop and nextbus stop to current bus stop

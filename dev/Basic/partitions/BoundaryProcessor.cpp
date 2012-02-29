@@ -300,7 +300,7 @@ void BoundaryProcessor::processPackageData(std::string data) {
 			//std::cout << partition_config->partition_id << ",Step 4.2.1.3:" << std::endl;
 
 			if (isCrossAgentShouldBeInsert(one_person)) {
-				one_person->buildSubscriptionList();
+				//one_person->buildSubscriptionList();
 				insertOneAgentToWorkerGroup(one_person);
 			}
 			//std::cout << partition_config->partition_id << ",Step 4.2.1.1.5:" << std::endl;
@@ -319,7 +319,7 @@ void BoundaryProcessor::processPackageData(std::string data) {
 			//std::cout << partition_config->partition_id << ",Step 4.2.1.4:" << std::endl;
 
 			if (isCrossAgentShouldBeInsert(one_person)) {
-				one_person->buildSubscriptionList();
+				//one_person->buildSubscriptionList();
 				insertOneAgentToWorkerGroup(one_person);
 			}
 			//std::cout << partition_config->partition_id << ",Step 4.2.1.2.5:" << std::endl;

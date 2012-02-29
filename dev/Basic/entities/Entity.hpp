@@ -31,7 +31,7 @@ class PartitionManager;
 class Entity {
 public:
 	///Construct an entity with an immutable ID
-	explicit Entity(unsigned int id) : id(id), isSubscriptionListBuilt(false), startTime(0), currWorker(nullptr), isFake(false) {}
+	explicit Entity(unsigned int id) : id(id),  startTime(0), currWorker(nullptr), isFake(false) {}
 	virtual ~Entity() {
 		if (currWorker) {
 			//Note: If a worker thread is still active for this agent, that's a major problem. But
@@ -68,12 +68,12 @@ protected:
 	 * class's buildSubscriptionList() method, which will construct the subscription list up to
 	 * this point. Then, any Buffered types in the current class should be added to subscriptionList_cached.
 	 */
-	virtual void buildSubscriptionList() = 0;
-	std::vector<sim_mob::BufferedBase*> subscriptionList_cached;
+	virtual void buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList) = 0;
+	//std::vector<sim_mob::BufferedBase*> subscriptionList_cached;
 
 protected:
 	unsigned int id;
-	bool isSubscriptionListBuilt;
+	//bool isSubscriptionListBuilt;
 
 	//When (in ms) does this Entity start?
 	unsigned int startTime;
@@ -111,13 +111,13 @@ public:
 	 * Entity sub-classes should override buildSubscriptionList() to help with
 	 * this process.
 	 */
-	std::vector<sim_mob::BufferedBase*>& getSubscriptionList() {
-		if (!isSubscriptionListBuilt) {
-			subscriptionList_cached.clear();
-			buildSubscriptionList();
-			isSubscriptionListBuilt = true;
-		}
-		return subscriptionList_cached;
+	std::vector<sim_mob::BufferedBase*> getSubscriptionList() {
+		std::vector<sim_mob::BufferedBase*> subsList;
+		//subscriptionList_cached.clear();
+		buildSubscriptionList(subsList);
+		//isSubscriptionListBuilt = true;
+		//return subscriptionList_cached;
+		return subsList;
 	}
 
 	bool isFake;

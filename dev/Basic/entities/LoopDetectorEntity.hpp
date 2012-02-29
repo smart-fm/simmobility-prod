@@ -72,7 +72,7 @@ public:
     void reset(Lane const & lane);
 
 protected:
-    virtual void buildSubscriptionList();
+    virtual void buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList);
 
 private:
     Node const & node_;

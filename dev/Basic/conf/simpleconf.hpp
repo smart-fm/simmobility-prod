@@ -71,6 +71,8 @@ public:
 	//Locking strategy
 	sim_mob::MutexStrategy mutexStategy;
 
+	int signalAlgorithm;
+
 	//When the simulation begins
 	DailyTime simStartTime;
 

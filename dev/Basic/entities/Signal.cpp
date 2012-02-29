@@ -38,6 +38,8 @@ const double CLmax = 140, CLmed = 100, CLmin = 60;
 //parameters for calculating next Offset
 const double CL_low = 70, CL_up = 120;
 const double Off_low = 5, Off_up = 26;
+
+const double fixedCL = 60;
 }
 
 const double Signal::SplitPlan1[] = { 0.30, 0.30, 0.20, 0.20 };
@@ -45,6 +47,7 @@ const double Signal::SplitPlan2[] = { 0.20, 0.35, 0.20, 0.25 };
 const double Signal::SplitPlan3[] = { 0.35, 0.35, 0.20, 0.10 };
 const double Signal::SplitPlan4[] = { 0.35, 0.30, 0.10, 0.25 };
 const double Signal::SplitPlan5[] = { 0.20, 0.35, 0.25, 0.20 };
+const double Signal::fixedSplitPlan[] = { 0.30, 0.30, 0.20, 0.20 };
 
 //Signal* sim_mob::Signal::instance_ = NULL;
 
@@ -71,6 +74,8 @@ Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id)
   , buffered_TC(mtxStrat, SignalStatus())
   , loopDetector_(*this, mtxStrat)
 {
+	ConfigParams& config = ConfigParams::GetInstance();
+	signalAlgorithm = config.signalAlgorithm;
     initializeSignal();
     setupIndexMaps();
 }
@@ -364,24 +369,36 @@ bool Signal::update(frame_t frameNumber) {
 //Update Signal Light
 void Signal::updateSignal(double DS[]) {
 	if (phaseCounter == 0) {
-		//find the maximum DS
-		DS_all = fmax(DS);
+		// 0 is fixed phase, 1 is scats
+		if(signalAlgorithm == 0)
+		{
+			nextCL = fixedCL;
+			nextSplitPlan.assign(fixedSplitPlan, fixedSplitPlan + 4);
+		}
+		else if(signalAlgorithm == 1)
+		{
+			//find the maximum DS
+			DS_all = fmax(DS);
 
-		//use DS_all for calculating next cycle length
-		setnextCL(DS_all);
+			//use DS_all for calculating next cycle length
+			setnextCL(DS_all);
 
-		//use next cycle length to calculate next Offset
-		setnextOffset(getnextCL());
+			//use next cycle length to calculate next Offset
+			setnextOffset(getnextCL());
 
-		updateOffset();
-		updateprevCL();
-		updatecurrCL();
-		setnextSplitPlan(DS);
-		updatecurrSplitPlan();
+			updateOffset();
+			updateprevCL();
+			updatecurrCL();
+			setnextSplitPlan(DS);
+			updatecurrSplitPlan();
+			loopDetector_.reset();
+		}
+
 		currPhase = 0;
-		loopDetector_.reset();
 		phaseCounter += currOffset;
 	}
+
+	// 0 is fixed phase, 1 is scats
 
 	int prePhase = currPhase;
 	if (phaseCounter < nextCL * nextSplitPlan[0]) {
@@ -410,15 +427,19 @@ void Signal::updateSignal(double DS[]) {
 		phaseCounter = 0;
 	}
 
-	if(currPhase%10!=prePhase%10||phaseCounter==0)
+	// 0 is fixed phase, 1 is scats
+	if(signalAlgorithm == 1)
 	{
-		double total_g = (nextCL * nextSplitPlan[prePhase%10])*1000;
+		if(currPhase%10!=prePhase%10||phaseCounter==0)
+		{
+			double total_g = (nextCL * nextSplitPlan[prePhase%10])*1000;
 
-		double currPhaseDS = computeDS(total_g);
-//		if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
-//			std::cout<<"currDS "<<currPhaseDS<<std::endl;
-		DS[prePhase%10] = currPhaseDS;
-		loopDetector_.reset();
+			double currPhaseDS = computeDS(total_g);
+			//		if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
+			//			std::cout<<"currDS "<<currPhaseDS<<std::endl;
+			DS[prePhase%10] = currPhaseDS;
+			loopDetector_.reset();
+		}
 	}
 	updateTrafficLights();
 }

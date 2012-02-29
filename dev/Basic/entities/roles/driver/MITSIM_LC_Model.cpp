@@ -201,8 +201,9 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision
 		return LCS_SAME;		//neither gap is available, stay in current lane
 	}
 	double s = p.nvFwd.distance;
-	const double satisfiedDistance = 3000;
-	if(s>satisfiedDistance) {
+	const double satisfiedDistance = 2000;
+	const double minDistance = 1000;
+	if(s>satisfiedDistance || s<minDistance) {
 		return LCS_SAME;	// space ahead is satisfying, stay in current lane
 	}
 
@@ -261,7 +262,6 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(Dri
 	//now manually set to 1, it should be replaced by target lane index
 	//i am going to fix it.
 	int direction = p.fromLaneIndex - p.currLaneIndex;
-	//int direction = 1 - p.currLaneIndex;
 	//direction = 0; //Otherwise drivers always merge.
 
 	//current lane is target lane
@@ -297,10 +297,10 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 	if(currLaneChangeDir != LCS_SAME) { //Performing a lane change.
 		//Set the lateral velocity of the vehicle; move it.
 		int lcsSign = (currLaneChangeDir==LCS_RIGHT) ? -1 : 1;
-		return lcsSign*p.laneChangingVelocity;
+		return lcsSign*150;//p.laneChangingVelocity;
 	} else {
 		//If too close to node, don't do lane changing, distance should be larger than 3m
-		if(p.currLaneLength - p.currLaneOffset - vehLen/2 <= 300) {
+		if(p.nvFwd.distance <= 2000) {
 			return 0;
 		}
 
@@ -331,7 +331,7 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 
 		//Finally, if we've decided to change lanes, set our intention.
 		if(decision!=LCS_SAME) {
-			const int lane_shift_velocity = 100;  //TODO: What is our lane changing velocity? Just entering this for now...
+			const int lane_shift_velocity = 150;  //TODO: What is our lane changing velocity? Just entering this for now...
 
 			return decision==LCS_LEFT?lane_shift_velocity:-lane_shift_velocity;
 		}

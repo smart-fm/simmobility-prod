@@ -106,6 +106,7 @@ private:
 	FixedDelayed<DPoint*> perceivedVelocityOfFwdCar;
 	FixedDelayed<double> perceivedAccelerationOfFwdCar;
 	FixedDelayed<centimeter_t> perceivedDistToFwdCar;
+	FixedDelayed<double> perceivedTrafficSignalStop;
 
 	NodePoint origin;
 	NodePoint goal;    //first, assume that each vehicle moves towards a goal
@@ -155,7 +156,7 @@ protected:
 	void setOrigin(DriverUpdateParams& p);
 
 private:
-	NearestVehicle & vehicleChangingToCurrentLane(DriverUpdateParams& p);
+	NearestVehicle & nearestVehicle(DriverUpdateParams& p);
 	bool AvoidCrashWhenLaneChanging(DriverUpdateParams& p);
 	bool isCloseToLinkEnd(DriverUpdateParams& p) const;
 	bool isPedestrianOnTargetCrossing() const;
@@ -178,11 +179,13 @@ private:
 	void updatePositionDuringLaneChange(DriverUpdateParams& p, LANE_CHANGE_SIDE relative);
 	void saveCurrTrafficSignal();
 
-	void setTrafficSignalParams(DriverUpdateParams& p) const;
+	void setTrafficSignalParams(DriverUpdateParams& p);
 	void intersectionDriving(DriverUpdateParams& p);
 	double linkDriving(DriverUpdateParams& p);
 
 	void findCrossing(DriverUpdateParams& p);
+
+	void perceivedDataProcess(NearestVehicle & nv, DriverUpdateParams& params);
 
 	/***********FOR DRIVING BEHAVIOR MODEL**************/
 private:

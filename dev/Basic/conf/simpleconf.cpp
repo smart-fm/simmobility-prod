@@ -780,11 +780,19 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	int reacTime_LeadingVehicle = ReadGranularity(handle,"reacTime_LeadingVehicle");
 	int reacTime_SubjectVehicle = ReadGranularity(handle,"reacTime_SubjectVehicle");
 	int reacTime_Gap = ReadGranularity(handle,"reacTime_Gap");
+	int signalAlgorithm;
 
 
 	//Save simulation start time
 	TiXmlElement* node = handle.FirstChild("start_time").ToElement();
 	const char* simStartStr = node ? node->Attribute("value") : nullptr;
+
+	node = handle.FirstChild("signalAlgorithm").ToElement();
+	if(node)
+	{
+		node->Attribute("value", &signalAlgorithm);
+	}
+
 
 
 
@@ -824,6 +832,8 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 			return string("Unknown mutex strategy: ") + mutexStrat;
 		}
 	}
+
+
 
 	//Miscelaneous settings
 	handle = TiXmlHandle(&document);
@@ -881,6 +891,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	config.reacTime_SubjectVehicle = reacTime_SubjectVehicle;
     	config.reacTime_Gap = reacTime_Gap;
     	config.mutexStategy = mtStrat;
+    	config.signalAlgorithm = signalAlgorithm;
     }
 
 

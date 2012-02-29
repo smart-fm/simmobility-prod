@@ -249,6 +249,8 @@ public:
         /** \endcond doNotExpose -- End of block to be ignored by doxygen.  */
 
 private:
+
+    int signalAlgorithm;
     double Density[4];
     double DS_all;
 
@@ -261,7 +263,7 @@ private:
 	double prevRL1,prevRL2;
 
 	//SplitPlan that can be chosen to use
-	static const double SplitPlan1[], SplitPlan2[], SplitPlan3[], SplitPlan4[], SplitPlan5[];
+	static const double SplitPlan1[], SplitPlan2[], SplitPlan3[], SplitPlan4[], SplitPlan5[], fixedSplitPlan[];
 
 	//current and next SplitPlan
 	std::vector<double>currSplitPlan;

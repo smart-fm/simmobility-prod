@@ -17,12 +17,6 @@ using boost::function;
 using namespace sim_mob;
 
 
-
-//////////////////////////////////////////////
-// Template implementation
-//////////////////////////////////////////////
-
-
 void sim_mob::Worker::addEntity(Entity* entity)
 {
 	//Save this entity in the data vector.
@@ -201,7 +195,7 @@ void sim_mob::Worker::migrateOut(Entity& ag)
 	//Sanity check
 	if (ag.currWorker != this) {
 		std::stringstream msg;
-		msg <<"Error: Entity has somehow switched workers: " <<ag.currWorker <<"," <<this;
+		msg <<"Error: Entity (" <<ag.getId() <<") has somehow switched workers: " <<ag.currWorker <<"," <<this;
 		throw std::runtime_error(msg.str().c_str());
 	}
 
@@ -210,9 +204,6 @@ void sim_mob::Worker::migrateOut(Entity& ag)
 
 	//Update our Entity's pointer.
 	ag.currWorker = nullptr;
-
-	//Remove this entity from our Agent mappings.
-	//agentMapping.erase(ag);
 
 	//Remove this entity's Buffered<> types from our list
 	stopManaging(ag.getSubscriptionList());
@@ -242,9 +233,6 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 
 	//Update our Entity's pointer.
 	ag.currWorker = this;
-
-	//Add this entity to our Agent mappings.
-	//agentMapping[ag] = toID;
 
 	//Add this entity's Buffered<> types to our list
 	beginManaging(ag.getSubscriptionList());

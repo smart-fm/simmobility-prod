@@ -833,6 +833,36 @@ void sim_mob::Driver::calculateIntersectionTrajectory(DPoint movingFrom, double 
 	intModel->startDriving(movingFrom, DPoint(entry.getX(), entry.getY()), overflow);
 }
 
+
+void sim_mob::Driver::initLoopSpecialString(vector<WayPoint>& path, const string& value) {
+	//In special cases, we may be manually specifying a loop, e.g., "loop:A:5" in the special string.
+	// In this case, "value" will contain ":A:5"; the "loop" having been parsed.
+	if (value.size()<=1) {
+		throw std::runtime_error("Bad \"loop\" special string.");
+	}
+	//Repeat this path X times.
+	vector<WayPoint> part = LoadSpecialPath(parent->originNode, value[1]);
+
+	size_t ind = value.find(':', 1);
+	if (ind != string::npos && ++ind < value.length()) {
+		int amount = -1;
+		std::istringstream(value.substr(ind, string::npos)) >> amount;
+
+		for (size_t i = 0; static_cast<int> (i) < amount && amount > 1; i++) {
+			path.insert(path.end(), part.begin(), part.end());
+		}
+	} else {
+		throw std::runtime_error("Bad \"loop\" special string.");
+	}
+
+	//Just in case one of these failed.
+	if (path.empty()) {
+		path.insert(path.end(), part.begin(), part.end());
+	}
+}
+
+
+
 //link path should be retrieved from other class
 //for now, it serves as this purpose
 void sim_mob::Driver::initializePath() {
@@ -857,26 +887,13 @@ void sim_mob::Driver::initializePath() {
 	} else {
 		errorMsg << "...special path." << std::endl;
 
-		//In special cases, we may be manually specifying a loop, e.g., "loop:A:5" in the special string.
+		//Retrieve the special string.
 		size_t cInd = parentP->specialStr.find(':');
-		if (cInd != string::npos && cInd + 1 < parentP->specialStr.length()) {
-			//Repeat this path X times.
-			vector<WayPoint> part = LoadSpecialPath(parent->originNode, parentP->specialStr[cInd + 1]);
-
-			cInd = parentP->specialStr.find(':', cInd + 1);
-			if (cInd != string::npos && cInd + 1 < parentP->specialStr.length()) {
-				int amount = -1;
-				std::istringstream(parentP->specialStr.substr(cInd + 1, string::npos)) >> amount;
-
-				for (size_t i = 0; static_cast<int> (i) < amount && amount > 1; i++) {
-					path.insert(path.end(), part.begin(), part.end());
-				}
-			}
-
-			//Just in case one of these failed.
-			if (path.empty()) {
-				path = part;
-			}
+		string specialType = parentP->specialStr.substr(0, cInd);
+		if (specialType=="loop") {
+			initLoopSpecialString(path, parentP->specialStr.substr(cInd, std::string::npos));
+		} else {
+			throw std::runtime_error("Unknown special string type.");
 		}
 	}
 

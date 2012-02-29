@@ -155,6 +155,9 @@ protected:
 	void initializePath();
 	void setOrigin(DriverUpdateParams& p);
 
+	//Helper: for special strings
+	void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);
+
 private:
 	NearestVehicle & nearestVehicle(DriverUpdateParams& p);
 	bool AvoidCrashWhenLaneChanging(DriverUpdateParams& p);

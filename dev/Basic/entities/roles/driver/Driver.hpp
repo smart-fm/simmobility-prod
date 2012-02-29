@@ -157,6 +157,7 @@ protected:
 
 	//Helper: for special strings
 	void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);
+	void initTripChainSpecialString(const std::string& value);
 
 private:
 	NearestVehicle & nearestVehicle(DriverUpdateParams& p);

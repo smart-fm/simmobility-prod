@@ -55,6 +55,13 @@ public:
 	sim_mob::Role* getRole() const;
 
 	///Set this person's trip chain
+	///
+	///\todo
+	///Currently, there are two types of trip chains. Type 1 is from the database, and
+	///  can be shared among multiple Agents. Type 2 is created "ad hoc" for a single Agent.
+	///  Creating the second type of TripChain will leak memory when the Person is remoed
+	///  from the simulation. This is exactly the kind of thing which std::shared_pointer
+	///  is good for. Maybe we should use the boost:: version?
 	void setTripChain(sim_mob::TripChain* newTripChain) { currTripChain = newTripChain; }
 	sim_mob::TripChain* getTripChain() { return currTripChain; }
 

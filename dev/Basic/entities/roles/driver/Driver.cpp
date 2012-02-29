@@ -14,6 +14,7 @@
 #include "entities/Signal.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/UpdateParams.hpp"
+#include "entities/misc/TripChain.hpp"
 #include "buffering/BufferedDataManager.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/RoadSegment.hpp"
@@ -834,7 +835,8 @@ void sim_mob::Driver::calculateIntersectionTrajectory(DPoint movingFrom, double 
 }
 
 
-void sim_mob::Driver::initLoopSpecialString(vector<WayPoint>& path, const string& value) {
+void sim_mob::Driver::initLoopSpecialString(vector<WayPoint>& path, const string& value)
+{
 	//In special cases, we may be manually specifying a loop, e.g., "loop:A:5" in the special string.
 	// In this case, "value" will contain ":A:5"; the "loop" having been parsed.
 	if (value.size()<=1) {
@@ -859,6 +861,60 @@ void sim_mob::Driver::initLoopSpecialString(vector<WayPoint>& path, const string
 	if (path.empty()) {
 		path.insert(path.end(), part.begin(), part.end());
 	}
+}
+
+
+namespace {
+//Helper function for reading points; similar to the one in simpleconf, but it throws an
+//  exception if it fails.
+Point2D readPoint(const string& str) {
+	//Does it match the pattern?
+	size_t commaPos = str.find(',');
+	if (commaPos==string::npos) {
+		throw std::runtime_error("Point string badly formatted.");
+	}
+
+	//Try to parse its substrings
+	int xPos, yPos;
+	std::istringstream(str.substr(0, commaPos)) >> xPos;
+	std::istringstream(str.substr(commaPos+1, string::npos)) >> yPos;
+
+	return Point2D(xPos, yPos);
+}
+} //End anon namespace
+void sim_mob::Driver::initTripChainSpecialString(const string& value)
+{
+	//Sanity check
+	if (value.length()<=1) {
+		throw std::runtime_error("Invalid special tripchain string.");
+	}
+	Person* p = dynamic_cast<Person*>(parent);
+	if (!p) {
+		throw std::runtime_error("Parent is not of type Person");
+	}
+
+	//The path has already been set; now, we need to create a new trip chain.
+	//value contains "tripchain:x,y", so our new trip chain is:
+	//   (origin->dest by car), (dest->value by foot)
+	//Note that since TripChains are currently limited, we only model the latter.
+	TripChain* tc = new TripChain();
+	tc->mode = "Walk";
+	tc->flexible = false;
+	tc->primary = true;
+	//tc.startTime = DailyTime(); //Note: This is ignored for now.
+	tc->from.description = "Home";
+	tc->to.description = "Work";
+	tc->from.location = parent->destNode;
+
+	//The destination is slightly trickier to retrieve
+	Point2D pt = readPoint(value.substr(1, string::npos));
+	tc->to.location = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);
+	if (!tc->to.location) {
+		throw std::runtime_error("Tripchain special string references unknown Node.");
+	}
+
+	//Now save this as the "TripChain" (this needs to be re-named; it's only one part of the trip chain)
+	p->setTripChain(tc);
 }
 
 
@@ -890,8 +946,13 @@ void sim_mob::Driver::initializePath() {
 		//Retrieve the special string.
 		size_t cInd = parentP->specialStr.find(':');
 		string specialType = parentP->specialStr.substr(0, cInd);
+		string specialValue = parentP->specialStr.substr(cInd, std::string::npos);
 		if (specialType=="loop") {
-			initLoopSpecialString(path, parentP->specialStr.substr(cInd, std::string::npos));
+			initLoopSpecialString(path, specialValue);
+		} else if (specialType=="tripchain") {
+			path = StreetDirectory::instance().shortestDrivingPath(*origin.node, *goal.node);
+			int x = path.size();
+			initTripChainSpecialString(specialValue);
 		} else {
 			throw std::runtime_error("Unknown special string type.");
 		}

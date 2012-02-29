@@ -370,12 +370,7 @@ bool Signal::update(frame_t frameNumber) {
 void Signal::updateSignal(double DS[]) {
 	if (phaseCounter == 0) {
 		// 0 is fixed phase, 1 is scats
-		if(signalAlgorithm == 0)
-		{
-			nextCL = fixedCL;
-			nextSplitPlan.assign(fixedSplitPlan, fixedSplitPlan + 4);
-		}
-		else if(signalAlgorithm == 1)
+		if(signalAlgorithm == 1)
 		{
 			//find the maximum DS
 			DS_all = fmax(DS);
@@ -392,6 +387,11 @@ void Signal::updateSignal(double DS[]) {
 			setnextSplitPlan(DS);
 			updatecurrSplitPlan();
 			loopDetector_.reset();
+		}
+		else
+		{
+			nextCL = fixedCL;
+			nextSplitPlan.assign(fixedSplitPlan, fixedSplitPlan + 4);
 		}
 
 		currPhase = 0;

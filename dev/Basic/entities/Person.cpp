@@ -22,7 +22,7 @@ using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
 
 sim_mob::Person::Person(const MutexStrategy& mtxStrat, int id) :
-	Agent(mtxStrat, id), currRole(nullptr), currTripChain(nullptr), firstFrameTick(true) {
+	Agent(mtxStrat, id), prevRole(nullptr), currRole(nullptr), currTripChain(nullptr), firstFrameTick(true) {
 
 }
 
@@ -62,6 +62,7 @@ Person* sim_mob::Person::GeneratePersonFromPending(const PendingEntity& p)
 }
 
 UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
+	UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
 	try {
 		//First, we need to retrieve an UpdateParams subclass appropriate for this Agent.
 		unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
@@ -120,7 +121,7 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 		// This is not strictly the right way to do things (we shouldn't use "isToBeRemoved()"
 		// in this manner), but it's the easiest solution that uses the current API.
 		if (isToBeRemoved()) {
-			checkAndReactToTripChain(currTimeMS);
+			retVal = checkAndReactToTripChain(currTimeMS);
 		}
 
 		//Output if removal requested.
@@ -152,21 +153,37 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 	//Return true unless we are scheduled for removal.
 	//NOTE: Make sure you set this flag AFTER performing your final output.
 	if (isToBeRemoved()) {
-		return UpdateStatus::Done;
+		retVal.status = UpdateStatus::RS_DONE;
 	}
-	return UpdateStatus::Continue;
+	return retVal;
 }
 
 
-void sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) {
+UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) {
 	//Do we have at least one more item in our Trip Chain?
 	TripChain* currTrip = getTripChain();
 	if (!currTrip) {
-		return;
+		return UpdateStatus::Done;
 	}
 
-	//Delete the previous Role.
-	safe_delete_item(currRole);  //TODO: Dangerous! Do this in the worker thread.
+	//Prepare to delete the previous Role. We _could_ delete it now somewhat safely, but
+	// it's better to avoid possible errors (e.g., if the equality operator is defined)
+	// by saving it until the next time tick.
+	safe_delete_item(prevRole);
+	prevRole = currRole;
+
+	//Create a new Role based on the trip chain type
+	if (currTrip->mode == "Car") {
+		//Temp. (Easy to add in later)
+		throw std::runtime_error("Cars not supported in Trip Chain role change.");
+	} else if (currTrip->mode == "Walk") {
+		currRole = new Pedestrian(this, gen);
+	} else {
+		throw std::runtime_error("Unknown role type for trip chain role change.");
+	}
+
+	//Create a return type based on the differences in these Roles
+	UpdateStatus res(UpdateStatus::RS_CONTINUE, prevRole->getSubscriptionParams(), currRole->getSubscriptionParams());
 
 	//Update our origin/dest pair.
 	//TODO: This might "teleport" us to the origin; might need to fix that later.
@@ -179,19 +196,10 @@ void sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) {
 	setStartTime(currTimeMS + ConfigParams::GetInstance().baseGranMS);
 	firstFrameTick = false;
 
-	//Create a new Role based on the trip chain type
-	if (currTrip->mode == "Car") {
-		//Temp. (Easy to add in later)
-		throw std::runtime_error("Cars not supported in Trip Chain role change.");
-	} else if (currTrip->mode == "Walk") {
-		currRole = new Pedestrian(this, gen);
-	} else {
-		throw std::runtime_error("Unknown role type for trip chain role change.");
-	}
-
 	//Null out our trip chain, remove the "removed" flag, and return
 	setTripChain(nullptr);
 	clearToBeRemoved();
+	return res;
 }
 
 
@@ -207,6 +215,7 @@ void sim_mob::Person::buildSubscriptionList(vector<BufferedBase*>& subsList) {
 	}
 }
 
+//TODO: If we're going to use this, we'll have to integrate property management somewhere sensible (maybe here).
 void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 	if (this->currRole) {
 		this->currRole->setParent(nullptr);

@@ -55,7 +55,7 @@ public:
 	sim_mob::Role* getRole() const;
 
 	///Check if any role changing is required.
-	void checkAndReactToTripChain(unsigned int currTimeMS);
+	Entity::UpdateStatus checkAndReactToTripChain(unsigned int currTimeMS);
 
 
 	///Set this person's trip chain
@@ -74,6 +74,7 @@ public:
 
 private:
 	//Properties
+	sim_mob::Role* prevRole;  ///< To be deleted on the next time tick.
 	sim_mob::Role* currRole;
 	sim_mob::TripChain* currTripChain;
 

@@ -5,6 +5,7 @@
 #include <queue>
 #include <sstream>
 
+using std::set;
 using std::vector;
 using std::priority_queue;
 using boost::barrier;
@@ -259,6 +260,16 @@ void sim_mob::Worker::perform_main(frame_t frameNumber)
 #ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 			scheduleForRemoval(*it);
 #endif
+		} else if (res.status == UpdateStatus::RS_CONTINUE) {
+			//Still going, but we may have properties to start/stop managing
+			for (set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {
+				stopManaging(*it);
+			}
+			for (set<BufferedBase*>::iterator it=res.toAdd.begin(); it!=res.toAdd.end(); it++) {
+				beginManaging(*it);
+			}
+		} else {
+			throw std::runtime_error("Unknown/unexpected update() return status.");
 		}
 	}
 }

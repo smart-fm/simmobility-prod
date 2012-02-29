@@ -5,6 +5,9 @@
 namespace sim_mob
 {
 
+class Node;
+class Person;
+
 ///Type of entities that can be "Pending"
 enum KNOWN_ENTITY_TYPES {
 	ENTITY_DRIVER,      ///<A Driver entity.
@@ -23,8 +26,11 @@ enum KNOWN_ENTITY_TYPES {
  * only use it for ns3 agents).
  */
 struct PendingEntity {
-	explicit PendingEntity(KNOWN_ENTITY_TYPES type)
-		: type(type), origin(nullptr), dest(nullptr), rawAgent(nullptr), start(0) {}
+	//Make an entity.
+	explicit PendingEntity(KNOWN_ENTITY_TYPES type);
+
+	//Helper: make a raw entity.
+	explicit PendingEntity(Person* rawAgent);
 
 	KNOWN_ENTITY_TYPES type;  ///<Entity type.
 	Node* origin;             ///<Entity's origin. Null if ENTITY_RAWAGENT is the type.

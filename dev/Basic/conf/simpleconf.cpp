@@ -8,6 +8,7 @@
 #include <boost/lexical_cast.hpp>
 
 //Include here (forward-declared earlier) to avoid include-cycles.
+#include "entities/PendingEntity.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
@@ -296,12 +297,10 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 				candidate.start = valueI;
 			} else if (name=="special") {
 				//Can't "pend" this agent any longer
-				Person* pend = Person::GeneratePersonFromPending(candidate);
-				candidate = PendingEntity(ENTITY_RAWAGENT);
-				candidate.rawAgent = pend;
+				candidate = PendingEntity(Person::GeneratePersonFromPending(candidate));
 
 				//Set the special string.
-				pend->specialStr = value;
+				candidate.rawAgent->specialStr = value;
 			} else {
 				return false;
 			}

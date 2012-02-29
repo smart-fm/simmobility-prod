@@ -9,6 +9,7 @@
 #include "util/DebugFlags.hpp"
 
 #include "geospatial/Node.hpp"
+#include "entities/misc/TripChain.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -114,6 +115,13 @@ bool sim_mob::Person::update(frame_t frameNumber) {
 			currRole->frame_tick_output(params);
 		}
 
+		//If we're "done", try checking to see if we have any more items in our Trip Chain.
+		// This is not strictly the right way to do things (we shouldn't use "isToBeRemoved()"
+		// in this manner), but it's the easiest solution that uses the current API.
+		if (isToBeRemoved()) {
+			checkAndReactToTripChain(currTimeMS);
+		}
+
 		//Output if removal requested.
 		if (Debug::WorkGroupSemantics && isToBeRemoved()) {
 #ifndef SIMMOB_DISABLE_OUTPUT
@@ -144,6 +152,44 @@ bool sim_mob::Person::update(frame_t frameNumber) {
 	//NOTE: Make sure you set this flag AFTER performing your final output.
 	return !isToBeRemoved();
 }
+
+
+void sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) {
+	//Do we have at least one more item in our Trip Chain?
+	TripChain* currTrip = getTripChain();
+	if (!currTrip) {
+		return;
+	}
+
+	//Delete the previous Role.
+	safe_delete_item(currRole);  //TODO: Dangerous! Do this in the worker thread.
+
+	//Update our origin/dest pair.
+	//TODO: This might "teleport" us to the origin; might need to fix that later.
+	originNode = currTrip->from.location;
+	destNode = currTrip->to.location;
+
+	//Set our start time to the NEXT time tick so that frame_init is called
+	//  on the first pass through.
+	//TODO: This might also be better handled in the worker class.
+	setStartTime(currTimeMS + ConfigParams::GetInstance().baseGranMS);
+	firstFrameTick = false;
+
+	//Create a new Role based on the trip chain type
+	if (currTrip->mode == "Car") {
+		//Temp. (Easy to add in later)
+		throw std::runtime_error("Cars not supported in Trip Chain role change.");
+	} else if (currTrip->mode == "Walk") {
+		currRole = new Pedestrian(this, gen);
+	} else {
+		throw std::runtime_error("Unknown role type for trip chain role change.");
+	}
+
+	//Null out our trip chain, remove the "removed" flag, and return
+	setTripChain(nullptr);
+	clearToBeRemoved();
+}
+
 
 
 void sim_mob::Person::buildSubscriptionList() {

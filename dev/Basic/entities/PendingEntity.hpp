@@ -19,6 +19,8 @@ enum KNOWN_ENTITY_TYPES {
 /**
  * Lightweight entity container. Used to hold Entities waiting to be scheduled.
  *
+ * \author Seth N. Hetu
+ *
  * \note
  * Use the RAWAGENT type only if the Agent type in question is truly complex enough to warrant it.
  * The entire point of PendingEntity is to delay creating an Agent until it is scheduled for an update,

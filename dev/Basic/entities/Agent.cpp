@@ -82,6 +82,10 @@ void sim_mob::Agent::setToBeRemoved() {
 	toRemoved = true;
 }
 
+void sim_mob::Agent::clearToBeRemoved() {
+	toRemoved = false;
+}
+
 
 #ifndef SIMMOB_DISABLE_MPI
 void sim_mob::Agent::pack(PackageUtils& packageUtil) {

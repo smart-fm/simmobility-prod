@@ -54,6 +54,10 @@ public:
 	void changeRole(sim_mob::Role* newRole);
 	sim_mob::Role* getRole() const;
 
+	///Check if any role changing is required.
+	void checkAndReactToTripChain(unsigned int currTimeMS);
+
+
 	///Set this person's trip chain
 	///
 	///\todo

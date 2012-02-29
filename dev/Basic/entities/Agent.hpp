@@ -68,6 +68,7 @@ public:
 	//Removal methods
 	bool isToBeRemoved();
 	void setToBeRemoved();
+	void clearToBeRemoved(); ///<Temporary function.
 
 public:
 	//The agent's start/end nodes.

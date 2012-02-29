@@ -32,6 +32,11 @@ Person* sim_mob::Person::GeneratePersonFromPending(const PendingEntity& p)
 {
 	const ConfigParams& config = ConfigParams::GetInstance();
 
+	//Raw agents can simply be returned as-is.
+	if (p.type == ENTITY_RAWAGENT) {
+		return p.rawAgent;
+	}
+
 	//Create a person object.
 	Person* res = new Person(config.mutexStategy);
 

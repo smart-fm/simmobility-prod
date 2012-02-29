@@ -159,30 +159,27 @@ void addOrStashEntity(const PendingEntity& p, std::vector<Entity*>& active_agent
 	}
 }
 
+namespace {
+  //Simple helper function
+  KNOWN_ENTITY_TYPES EntityTypeFromTripChainString(const std::string& str) {
+		//Decode the mode.
+		if (str == "Car") {
+			return ENTITY_DRIVER;
+		}
+		if (str == "Walk") {
+			return ENTITY_PEDESTRIAN;
+		}
+		throw std::runtime_error("Unknown agent mode");
+  }
 
+} //End anon namespace
 bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
 	ConfigParams& config = ConfigParams::GetInstance();
 	const vector<TripChain*>& tcs = ConfigParams::GetInstance().getTripChains();
 	for (vector<TripChain*>::const_iterator it=tcs.begin(); it!=tcs.end(); it++) {
-		//Create an Agent candidate
-		PendingEntity p;
-
-		//Create a new agent, add it to the list of agents.
-		//Person* curr = new Person(ConfigParams::GetInstance().mutexStategy);
-		//agents.push_back(curr);
-
-		//Set its mode.
-		if ((*it)->mode == "Car") {
-			p.type = ENTITY_DRIVER;
-			//curr->changeRole(new Driver(curr, config.mutexStategy, config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
-		} else if ((*it)->mode == "Walk") {
-			p.type = ENTITY_PEDESTRIAN;
-			//curr->changeRole(new Pedestrian(curr, curr->getGenerator()));
-		} else {
-			cout <<"Unknown agent mode" <<endl;
-			return false;
-		}
+		//Create an Agent candidate based on the type.
+		PendingEntity p(EntityTypeFromTripChainString((*it)->mode));
 
 		//Origin, destination
 		//curr->originNode =
@@ -204,6 +201,24 @@ bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 
 
 
+
+namespace {
+  //Simple helper function
+  KNOWN_ENTITY_TYPES EntityTypeFromConfigString(const std::string& str) {
+		//Decode the mode.
+		if (str == "driver") {
+			return ENTITY_DRIVER;
+		}
+		if (str == "pedestrian") {
+			return ENTITY_PEDESTRIAN;
+		}
+		if (str == "bus") {
+			return ENTITY_PEDESTRIAN;
+		}
+		throw std::runtime_error("Unknown agent mode");
+  }
+
+} //End anon namespace
 bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType)
 {
 	//Quick check.
@@ -228,14 +243,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 		bool foundDestPos = false;
 
 		//Create an agent candidate
-		PendingEntity candidate;
-		if (agentType=="driver") {
-			candidate.type = ENTITY_DRIVER;
-		} else if (agentType=="pedestrian") {
-			candidate.type = ENTITY_PEDESTRIAN;
-		} else if (agentType=="bus") {
-			candidate.type = ENTITY_BUSDRIVER;
-		}
+		PendingEntity candidate(EntityTypeFromConfigString(agentType));
 
 		//Loop through attributes
 		for (TiXmlAttribute* attr=node->FirstAttribute(); attr; attr=attr->Next()) {
@@ -254,18 +262,6 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 			if (name=="id") {
 				throw std::runtime_error("Error: Agents should no longer specify IDs in the config file.");
 			}
-
-			//Create the agent if it doesn't exist
-			/*if (!agent) {
-				//Actually create the agent.
-				agent = new Person(config.mutexStategy);
-				if (agentType=="pedestrian") {
-					agent->changeRole(new Pedestrian(agent, agent->getGenerator()));
-				} else if (agentType=="driver") {
-					agent->changeRole(new Driver(agent, config.mutexStategy, config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
-				}
-			}*/
-
 
 			//Assign it.
 			if (name=="xPos") {
@@ -299,8 +295,13 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 			} else if (name=="time") {
 				candidate.start = valueI;
 			} else if (name=="special") {
-				throw std::runtime_error("Special strings currently disabled.");
-				//agent->specialStr = value;
+				//Can't "pend" this agent any longer
+				Person* pend = Person::GeneratePersonFromPending(candidate);
+				candidate = PendingEntity(ENTITY_RAWAGENT);
+				candidate.rawAgent = pend;
+
+				//Set the special string.
+				pend->specialStr = value;
 			} else {
 				return false;
 			}
@@ -334,34 +335,21 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 
 			//Is this Agent invalid?
 			if (skip) {
-				std::cout <<"Skipping agent; can't find route from: " <<candidate.origin->originalDB_ID.getLogItem() <<" to: " <<candidate.dest->originalDB_ID.getLogItem();
-				std::cout <<"   {" <<candidate.origin->location <<"=>" <<candidate.dest->location <<"}" <<std::endl;
+				std::cout <<"Skipping agent; can't find route from: " <<(candidate.origin?candidate.origin->originalDB_ID.getLogItem():"<null>") <<" to: " <<(candidate.dest?candidate.dest->originalDB_ID.getLogItem():"<null>");
+				if (candidate.origin && candidate.dest) {
+					std::cout <<"   {" <<candidate.origin->location <<"=>" <<candidate.dest->location <<"}";
+				}
+				std::cout <<std::endl;
 
 				config.numAgentsSkipped++;
-				//delete agent;
+				safe_delete(candidate.rawAgent);
 				continue;
 			}
 		}
 
-		//Simple checks
-		/*bool foundOldPos = foundXPos && foundYPos;
-		if (!foundOldPos && !foundOrigPos && !foundDestPos) {
-			std::cout <<"agent position information not found.\n";
-			return false;
-		}*/
-
-		//Slightly more complex checks
-		/*if (foundOldPos && (foundOrigPos || foundDestPos)) {
-			std::cout <<"agent contains both old and new-style position information.\n";
-			return false;
-		}*/
-
 
 		//Add it or stash it
 		addOrStashEntity(candidate, active_agents, pending_agents);
-
-		//Save it.
-		//agents.push_back(agent);
 	}
 
 	return true;

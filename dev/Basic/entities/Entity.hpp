@@ -4,6 +4,8 @@
 
 #include <iostream>
 #include <string>
+#include <set>
+#include <vector>
 #include <stdexcept>
 #include <sstream>
 
@@ -22,6 +24,8 @@ class WorkGroup;
 class PartitionManager;
 #endif
 
+
+
 /**
  * Base class of all agents and other "decision-making" entities.
  * \author Seth N. Hetu
@@ -31,17 +35,37 @@ class PartitionManager;
 class Entity {
 public:
 	///Construct an entity with an immutable ID
-	explicit Entity(unsigned int id) : id(id),  startTime(0), currWorker(nullptr), isFake(false) {}
-	virtual ~Entity() {
-		if (currWorker) {
-			//Note: If a worker thread is still active for this agent, that's a major problem. But
-			//      we can't throw an exception since that may lead to a call of terminate().
-			//      So we'll output a message and terminate manually, since throwing exceptions from
-			//      a destructor is iffy at best.
-			std::cout <<"Error: Deleting an Entity which is still being managed by a Worker." <<std::endl;
-			abort();
-		}
-	}
+	explicit Entity(unsigned int id);
+	virtual ~Entity();
+
+
+	/**
+	 * Value returned from update() and used to signal changes to the parent Worker class.
+	 */
+	struct UpdateStatus {
+		///Return status of the update() function.
+		enum RET_STATUS {
+			RS_CONTINUE,     ///< Continue processing next time tick.
+			RS_DONE          ///< Done; remove from the simulation.
+		};
+
+		///Helper variable: represents a simple "Done" state with no changed variables.
+		static const UpdateStatus Continue;
+		static const UpdateStatus Done;
+
+		///Construction requires at least the return code
+		///More complex construction takes two vectors of variables and extracts which ones are old/new.
+		explicit UpdateStatus(RET_STATUS status, const std::vector<BufferedBase*>& currTickVals=std::vector<BufferedBase*>(), const std::vector<BufferedBase*>& nextTickVals=std::vector<BufferedBase*>());
+
+		///The return status
+		RET_STATUS status;
+
+		///BufferedBase* items to remove from the parent worker after this time tick.
+		std::set<BufferedBase*> toRemove;
+
+		///BufferedBase* items to add to the parent worker for the next time tick.
+		std::set<BufferedBase*> toAdd;
+	};
 
 
 	/**
@@ -99,11 +123,7 @@ public:
 	///\note
 	///This function currently assumes one machine (localhost); it should be modified once our MPI code is
 	//   finished.
-	std::string getGlobalId() const {
-		std::stringstream res;
-		res <<"127.0.0.1:" <<id;
-		return res.str();
-	}
+	std::string getGlobalId() const;
 
 
 	/**
@@ -111,14 +131,7 @@ public:
 	 * Entity sub-classes should override buildSubscriptionList() to help with
 	 * this process.
 	 */
-	std::vector<sim_mob::BufferedBase*> getSubscriptionList() {
-		std::vector<sim_mob::BufferedBase*> subsList;
-		//subscriptionList_cached.clear();
-		buildSubscriptionList(subsList);
-		//isSubscriptionListBuilt = true;
-		//return subscriptionList_cached;
-		return subsList;
-	}
+	std::vector<BufferedBase*> getSubscriptionList();
 
 	bool isFake;
 	bool receiveTheFakeEntityAgain;

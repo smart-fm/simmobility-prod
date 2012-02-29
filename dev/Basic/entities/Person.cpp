@@ -192,7 +192,7 @@ void sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) {
 
 
 
-void sim_mob::Person::buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList) {
+void sim_mob::Person::buildSubscriptionList(vector<BufferedBase*>& subsList) {
 	//First, add the x and y co-ordinates
 	Agent::buildSubscriptionList(subsList);
 

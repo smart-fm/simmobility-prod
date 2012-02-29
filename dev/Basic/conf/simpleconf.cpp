@@ -246,6 +246,9 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 		//Create an agent candidate
 		PendingEntity candidate(EntityTypeFromConfigString(agentType));
 
+		//TODO: Migrate this flag into the config file.
+		bool checkBadPaths = true;
+
 		//Loop through attributes
 		for (TiXmlAttribute* attr=node->FirstAttribute(); attr; attr=attr->Next()) {
 			//Read each attribute.
@@ -299,15 +302,15 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 				//Can't "pend" this agent any longer
 				candidate = PendingEntity(Person::GeneratePersonFromPending(candidate));
 
-				//Set the special string.
+				//Set the special string, disable path checking.
 				candidate.rawAgent->specialStr = value;
+				checkBadPaths = false;
 			} else {
 				return false;
 			}
 		}
 
 		//Optional: Only add this Agent if a path exists for it from start to finish.
-		bool checkBadPaths = true; //TODO: Migrate this flag into the config file.
 		StreetDirectory& sd = StreetDirectory::instance();
 		if (foundOrigPos && foundDestPos && checkBadPaths) {
 			bool skip = false;

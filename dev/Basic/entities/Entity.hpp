@@ -74,12 +74,15 @@ public:
 	 * the entity may call any Buffered data type's "get" method, but may only "set" its own
 	 * Buffered data. Flip is called after each update phase.
 	 *
-	 * Returns true if the Entity should be scheduled for at least one more time tick.
+	 * Return value is specified by the UpdateStatus class, which allows for an Entity to "Continue"
+	 *  processing, be considered "Done" processing, and optionally to manually register and deregister
+	 *  several buffered types.
 	 *
-	 * If this function returns false, the Entity should be considered finished with its work
-	 *   and may be removed from the Simulation and deleted.
+	 * If this function returns Done, the Entity should be considered finished with its work
+	 *   and may be removed from the Simulation and deleted. Buffered types should all be considered
+	 *   moot at this point.
 	 */
-	virtual bool update(frame_t frameNumber) = 0;
+	virtual UpdateStatus update(frame_t frameNumber) = 0;
 
 
 	virtual void setStartTime(unsigned int value) { startTime = value; }

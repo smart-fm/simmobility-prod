@@ -25,6 +25,8 @@ using std::map;
 using std::vector;
 using std::string;
 
+typedef sim_mob::Entity::UpdateStatus UpdateStatus;
+
 namespace sim_mob
 {
 
@@ -358,13 +360,13 @@ double Signal::LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,double 
 	return used_g/total_g;
 }
 
-bool Signal::update(frame_t frameNumber) {
+UpdateStatus Signal::update(frame_t frameNumber) {
 	updateSignal(Density);
 	outputToVisualizer(frameNumber);
 	if (ConfigParams::GetInstance().is_run_on_many_computers == false)
 		frame_output(frameNumber);
 
-	return true;
+	return UpdateStatus::Continue;
 }
 
 //Update Signal Light

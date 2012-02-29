@@ -59,7 +59,7 @@ public:
 	//update offset for each intersection
 	void updateOffset(int flow1[], int flow2[]);
 
-	virtual bool update(frame_t frameNumber) = 0;
+	virtual Entity::UpdateStatus update(frame_t frameNumber) = 0;
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList) = 0;
 
 	static int findmax(std::vector<int>);

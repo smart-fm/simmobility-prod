@@ -3,6 +3,7 @@
 #include "Region.hpp"
 
 using namespace sim_mob;
+typedef Entity::UpdateStatus UpdateStatus;
 
 
 sim_mob::Region::Region(unsigned int id) : Entity(id) {
@@ -12,13 +13,13 @@ sim_mob::Region::Region(unsigned int id) : Entity(id) {
 }
 
 
-bool sim_mob::Region::update(frame_t frameNumber) {
+UpdateStatus sim_mob::Region::update(frame_t frameNumber) {
 	//Trivial. Todo: Update signals
 	for (std::vector<Signal*>::iterator it=signals.begin(); it!=signals.end(); it++) {
 		//trivial(it->id);  //Again, for now do nothing.
 	}
 
-	return true;
+	return UpdateStatus::Continue;
 }
 
 

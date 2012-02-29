@@ -113,7 +113,7 @@ public:
 	double getnextOffset() {return nextOffset;}
 
 	//Abstract methods. You will have to implement these eventually.
-	virtual bool update(frame_t frameNumber);
+	virtual Entity::UpdateStatus update(frame_t frameNumber);
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 
 	void frame_output(frame_t frameNumber);

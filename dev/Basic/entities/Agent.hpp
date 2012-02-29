@@ -59,7 +59,7 @@ public:
 	explicit Agent(const MutexStrategy& mtxStrat, int id=-1);
 	virtual ~Agent();
 
-	virtual bool update(frame_t frameNumber) = 0;  ///<Update agent behvaior
+	virtual Entity::UpdateStatus update(frame_t frameNumber) = 0;  ///<Update agent behvaior
 
 	///Subscribe this agent to a data manager.
 	//virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew);

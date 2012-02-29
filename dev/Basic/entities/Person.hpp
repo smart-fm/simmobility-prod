@@ -45,7 +45,7 @@ public:
 	static Person* GeneratePersonFromPending(const PendingEntity& p);
 
 	///Update Person behavior
-	virtual bool update(frame_t frameNumber) final;
+	virtual Entity::UpdateStatus update(frame_t frameNumber) final;
 
 	///Update a Person's subscription list.
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);

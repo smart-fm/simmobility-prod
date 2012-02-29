@@ -15,6 +15,7 @@ using boost::function;
 #include "conf/simpleconf.hpp"
 
 using namespace sim_mob;
+typedef Entity::UpdateStatus UpdateStatus;
 
 
 void sim_mob::Worker::addEntity(Entity* entity)
@@ -252,7 +253,8 @@ void sim_mob::Worker::perform_main(frame_t frameNumber)
 {
 	//All Entity workers perform the same tasks for their set of managedEntities.
 	for (vector<Entity*>::iterator it=managedEntities.begin(); it!=managedEntities.end(); it++) {
-		if (!(*it)->update(frameNumber)) {
+		UpdateStatus res = (*it)->update(frameNumber);
+		if (res.status == UpdateStatus::RS_DONE) {
 			//This Entity is done; schedule for deletion.
 #ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 			scheduleForRemoval(*it);

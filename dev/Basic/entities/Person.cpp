@@ -19,6 +19,7 @@
 
 using std::vector;
 using namespace sim_mob;
+typedef Entity::UpdateStatus UpdateStatus;
 
 sim_mob::Person::Person(const MutexStrategy& mtxStrat, int id) :
 	Agent(mtxStrat, id), currRole(nullptr), currTripChain(nullptr), firstFrameTick(true) {
@@ -60,7 +61,7 @@ Person* sim_mob::Person::GeneratePersonFromPending(const PendingEntity& p)
 	return res;
 }
 
-bool sim_mob::Person::update(frame_t frameNumber) {
+UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 	try {
 		//First, we need to retrieve an UpdateParams subclass appropriate for this Agent.
 		unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
@@ -76,7 +77,7 @@ bool sim_mob::Person::update(frame_t frameNumber) {
 						<< "; this indicates an error, and should be handled automatically.";
 				throw std::runtime_error(msg.str().c_str());
 			}
-			return true;
+			return UpdateStatus::Continue;
 		}
 
 		//Has update() been called too late?
@@ -85,7 +86,7 @@ bool sim_mob::Person::update(frame_t frameNumber) {
 			if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 				throw std::runtime_error("Agent is already done, but hasn't been removed.");
 			}
-			return true;
+			return UpdateStatus::Continue;
 		}
 
 		//Is this the first frame tick for this Agent?
@@ -150,7 +151,10 @@ bool sim_mob::Person::update(frame_t frameNumber) {
 
 	//Return true unless we are scheduled for removal.
 	//NOTE: Make sure you set this flag AFTER performing your final output.
-	return !isToBeRemoved();
+	if (isToBeRemoved()) {
+		return UpdateStatus::Done;
+	}
+	return UpdateStatus::Continue;
 }
 
 

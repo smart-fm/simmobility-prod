@@ -47,7 +47,7 @@ public:
     LoopDetectorEntity(Signal const & signal, MutexStrategy const & mutexStrategy);
     ~LoopDetectorEntity();
 
-    virtual bool update(frame_t frameNumber);
+    virtual Entity::UpdateStatus update(frame_t frameNumber);
 
     virtual void output(frame_t frameNumber) {}
 

@@ -16,10 +16,12 @@
 #include "geospatial/RoadSegment.hpp"
 
 using std::vector;
+typedef sim_mob::Entity::UpdateStatus UpdateStatus;
 
 
 namespace sim_mob
 {
+
 
 /** \cond ignoreLoopDetectorEntityInnards -- Start of block to be ignored by doxygen.  */
 
@@ -559,13 +561,12 @@ LoopDetectorEntity::buildSubscriptionList(vector<BufferedBase*>& subsList)
     }
 }
 
-/* virtual */ bool
+/* virtual */ UpdateStatus
 LoopDetectorEntity::update(frame_t frameNumber)
 {
     if (pimpl_)
-        return pimpl_->check(frameNumber);
-
-    return false;
+        return pimpl_->check(frameNumber) ? UpdateStatus::Continue : UpdateStatus::Done;
+    return UpdateStatus::Done;
 }
 
 void

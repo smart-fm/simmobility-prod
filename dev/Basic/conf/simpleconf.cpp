@@ -214,7 +214,7 @@ namespace {
 			return ENTITY_PEDESTRIAN;
 		}
 		if (str == "bus") {
-			return ENTITY_PEDESTRIAN;
+			return ENTITY_BUSDRIVER;
 		}
 		throw std::runtime_error("Unknown agent mode");
   }

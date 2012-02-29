@@ -53,6 +53,12 @@
 .car-body2 {
   background: #FF9595;
 }
+.car-body5 {
+  background: #00FFFF;
+}
+.car-body6 {
+  background: #00FFFF;
+}
 .car-body-outline {
   border: 1px solid #712C2C;
 }
@@ -100,7 +106,12 @@
 .car-debug-body-outline {
   border: 1px solid #2C2C71;
 }
-
+.car-debug-body5 {
+  background: #4040FF;
+}
+.car-debug-body6 {
+  background: #4040FF;
+}
 
 /* pedestrian colors */
 /* NOTE: border-width is ignored for now */

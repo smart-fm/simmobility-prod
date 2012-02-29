@@ -43,7 +43,7 @@ public class DriverTick extends AgentTick {
 	protected static Color debugClr = new Color(0x00, 0x00, 0x66);
 	protected static Font idFont = new Font("Arial", Font.PLAIN, 10);
 	private static final String[] CarBkgdColorIDs = new String[] {
-		"body1", "body2", "window1", "window2", "wheel"
+		"body1", "body2", "body5", "body6", "window1", "window2", "wheel"
 	};
 	private static final String[] CarLineColorIDs = new String[] {
 		"body-outline", "window-outline", "wheel-outline"

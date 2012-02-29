@@ -14,18 +14,6 @@
  */
 
 
-
-//This allows us to delete pointers without getting compiler errors on value-types.
-//NOTE: Untested, but should work.
-template <typename T>
-void delete_possible_pointer(T& item) {}
-
-template <typename T>
-void delete_possible_pointer(T* item) { delete item; }
-
-
-
-
 #ifndef SIMMOB_LATEST_STANDARD
 ///Temporary definitions of final and override. These are keywords in the new standard, and it is
 /// useful to be able to tag (some) methods with these during the design stage. Feel free to ignore
@@ -71,16 +59,22 @@ private:
 #endif
 
 
-
-
-
-
-//Deleting a possibly-null pointer and setting it to null.
-//TODO: We might be able to merge this with delete_possible_pointer.
+///Delete a (non-pointer) value. This function does nothing, but it allows you to call
+/// safe_delete_item() on "T" without knowing if T is a pointer or a value type.
 template <typename T>
-void safe_delete(T*& item) {
+void safe_delete_item(T& item) {}
+
+///Delete and null a pointer, if not null. This function is intended as a counterpart to the value-type
+/// version. In addition to deleting the pointer, it also sets its \i primary parent reference
+/// to nullptr, thus catching errors in some cases. Don't rely on this behavior to unilaterally null out
+/// a pointer as there may be multiple references to it. Still, it provides a useful fallback.
+template <typename T>
+void safe_delete_item(T*& item) {
 	if (item) {
 		delete item;
 		item = nullptr;
 	}
 }
+
+
+

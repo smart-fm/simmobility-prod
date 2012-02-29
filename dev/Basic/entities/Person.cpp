@@ -25,7 +25,7 @@ sim_mob::Person::Person(const MutexStrategy& mtxStrat, int id) :
 }
 
 sim_mob::Person::~Person() {
-	safe_delete(currRole);
+	safe_delete_item(currRole);
 }
 
 Person* sim_mob::Person::GeneratePersonFromPending(const PendingEntity& p)

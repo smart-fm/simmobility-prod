@@ -322,12 +322,12 @@ sim_mob::UpdateParams& sim_mob::Driver::make_frame_tick_params(frame_t frameNumb
 ///  this should occur elsewhere.
 sim_mob::Driver::~Driver() {
 	//Our movement models.
-	safe_delete(lcModel);
-	safe_delete(cfModel);
-	safe_delete(intModel);
+	safe_delete_item(lcModel);
+	safe_delete_item(cfModel);
+	safe_delete_item(intModel);
 
 	//Our vehicle
-	safe_delete(vehicle);
+	safe_delete_item(vehicle);
 }
 
 vector<BufferedBase*> sim_mob::Driver::getSubscriptionParams() {

@@ -342,7 +342,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 				std::cout <<std::endl;
 
 				config.numAgentsSkipped++;
-				safe_delete(candidate.rawAgent);
+				safe_delete_item(candidate.rawAgent);
 				continue;
 			}
 		}

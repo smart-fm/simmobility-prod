@@ -122,7 +122,7 @@ public:
 
 			//Otherwise, remove the first element.
 			if (reclaimPtrs) {
-				delete_possible_pointer(history.front().item);
+				safe_delete_item(history.front().item);
 				history.pop_front();
 			}
 		}

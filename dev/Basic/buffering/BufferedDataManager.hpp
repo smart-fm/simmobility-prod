@@ -91,8 +91,8 @@ public:
     void stopManaging(BufferedBase* datum);
 
     //For multiple items
-    void beginManaging(std::vector<sim_mob::BufferedBase*>& data);
-    void stopManaging(std::vector<sim_mob::BufferedBase*>& data);
+    void beginManaging(std::vector<BufferedBase*> data);
+    void stopManaging(std::vector<BufferedBase*> data);
 
     ///Flip (update the current value of) all buffered data items under your control.
     void flip();

@@ -15,6 +15,9 @@
 #include "geospatial/Lane.hpp"
 #include "geospatial/RoadSegment.hpp"
 
+using std::vector;
+
+
 namespace sim_mob
 {
 
@@ -546,7 +549,7 @@ LoopDetectorEntity::init(Signal const & signal)
 }
 
 /* virtual */ void
-LoopDetectorEntity::buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList)
+LoopDetectorEntity::buildSubscriptionList(vector<BufferedBase*>& subsList)
 {
     std::map<Lane const *, Shared<CountAndTimePair> *>::iterator iter;
     for (iter = data_.begin(); iter != data_.end(); ++iter)

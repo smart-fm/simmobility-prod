@@ -22,12 +22,13 @@
 #endif
 
 using std::map;
+using std::vector;
 using std::string;
 
 namespace sim_mob
 {
 
-/* static */std::vector<Signal*> Signal::all_signals_;
+std::vector<Signal*> Signal::all_signals_;
 
 //Private namespace
 namespace {
@@ -862,7 +863,7 @@ double Signal::fmax(const double proDS[]) {
 	return max;
 }
 
-void Signal::buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList) {
+void Signal::buildSubscriptionList(vector<BufferedBase*>& subsList) {
 	//First, add the x and y co-ordinates
 	Agent::buildSubscriptionList(subsList);
 

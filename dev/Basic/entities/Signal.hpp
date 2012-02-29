@@ -114,7 +114,7 @@ public:
 
 	//Abstract methods. You will have to implement these eventually.
 	virtual bool update(frame_t frameNumber);
-	virtual void buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList);
+	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 
 	void frame_output(frame_t frameNumber);
 

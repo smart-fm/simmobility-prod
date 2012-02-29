@@ -63,7 +63,7 @@ public:
 
 	///Subscribe this agent to a data manager.
 	//virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew);
-	virtual void buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList);
+	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 
 	//Removal methods
 	bool isToBeRemoved();

@@ -61,7 +61,7 @@ sim_mob::Agent::~Agent()
 
 }
 
-void sim_mob::Agent::buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList)
+void sim_mob::Agent::buildSubscriptionList(vector<BufferedBase*>& subsList)
 {
 	subsList.push_back(&xPos);
 	subsList.push_back(&yPos);

@@ -7,6 +7,7 @@
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "util/DebugFlags.hpp"
+#include "util/OutputUtil.hpp"
 
 #include "geospatial/Node.hpp"
 #include "entities/misc/TripChain.hpp"
@@ -177,7 +178,7 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) 
 		//Temp. (Easy to add in later)
 		throw std::runtime_error("Cars not supported in Trip Chain role change.");
 	} else if (currTrip->mode == "Walk") {
-		currRole = new Pedestrian(this, gen);
+		changeRole(new Pedestrian(this, gen));
 	} else {
 		throw std::runtime_error("Unknown role type for trip chain role change.");
 	}
@@ -194,7 +195,7 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) 
 	//  on the first pass through.
 	//TODO: This might also be better handled in the worker class.
 	setStartTime(currTimeMS + ConfigParams::GetInstance().baseGranMS);
-	firstFrameTick = false;
+	firstFrameTick = true;
 
 	//Null out our trip chain, remove the "removed" flag, and return
 	setTripChain(nullptr);

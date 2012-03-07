@@ -171,26 +171,31 @@ void sim_mob::FixedDelayed<T>::update(uint32_t currTimeMS)
 	if (currTimeMS<currTime) {
 		throw std::runtime_error("Error: FixedDelayed<> can't move backwards in time.");
 	}
-	if (currTimeMS == currTime) {
+	if (currTimeMS==currTime) {
 		return;
 	}
 	currTime = currTimeMS;
 
-	//Loop, discard items which are past the maximum sensing window.
-	uint32_t minTime = currTimeMS - maxDelayMS;
-	while (!history.empty()) {
-		if (history.front().observedTime <= minTime) {
-			//This value only needs to be kept if there's nothing to replace it
-			if (history.size()>1 && (++history.begin())->observedTime <= minTime) {
-				//Delete it and keep scanning.
-				if (reclaimPtrs) {
-					safe_delete_item(history.front().item);
+	if (currTime >= maxDelayMS) {
+		//Loop, discard items which are past the maximum sensing window.
+		uint32_t minTime = currTimeMS - maxDelayMS;
+		while (!history.empty()) {
+			bool found = false;
+			if (history.front().observedTime <= minTime) {
+				//This value only needs to be kept if there's nothing to replace it
+				if (history.size()>1 && (++history.begin())->observedTime <= minTime) {
+					//Delete it and keep scanning.
+					if (reclaimPtrs) {
+						safe_delete_item(history.front().item);
+					}
 					history.pop_front();
+					found = true;
 				}
-				continue;
+			}
+			if (!found) {
+				break;
 			}
 		}
-		break;
 	}
 
 	//Now we need to update our pseudo-"front" pointer

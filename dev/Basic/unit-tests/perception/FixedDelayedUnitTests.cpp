@@ -99,20 +99,28 @@ void unit_tests::FixedDelayedUnitTests::test_FixedDelayed_sanity_checks()
 
 
 namespace {
-struct DelStruct {
-	explicit DelStruct(bool& flag) : flag(flag) { flag = false; }  //Sets flag to "true" if delete called.
-	~DelStruct() { flag = true; }
-	bool& flag;
+struct DelStruct { //Sets flag to "true" if delete called.
+	explicit DelStruct(int& refCount) : refCount(refCount) {
+		refCount = 1;
+	}
+	DelStruct(const DelStruct& copy) : refCount(copy.refCount) {
+		refCount++; //Needed for vector<> to not mess up our results.
+	}
+	~DelStruct() {
+		refCount--;
+	}
+	int& refCount;
 };
 } //End anon namespace
 void unit_tests::FixedDelayedUnitTests::test_FixedDelayed_false_delete()
 {
 	{
 	//Destructor called inappropriately on a pointer
-	bool obj1Deleted = false;
-	bool obj2Deleted = false;
-	DelStruct* o1 = new DelStruct(obj1Deleted);
-	DelStruct* o2 = new DelStruct(obj2Deleted);
+	int obj1Refs = 0;
+	int obj2Refs = 0;
+	DelStruct* o1 = new DelStruct(obj1Refs);
+	CPPUNIT_ASSERT_MESSAGE("DelStruct not initializing properly", (obj1Refs==1)&&(obj2Refs==0));
+	DelStruct* o2 = new DelStruct(obj2Refs);
 	{
 		FixedDelayed<DelStruct*> z(10, false);
 		z.update(100);
@@ -120,22 +128,22 @@ void unit_tests::FixedDelayedUnitTests::test_FixedDelayed_false_delete()
 		z.update(105);
 		z.delay(o2);
 		z.update(200);
-		CPPUNIT_ASSERT_MESSAGE("Unmanaged type deleted (1).", !obj1Deleted);
+		CPPUNIT_ASSERT_MESSAGE("Unmanaged type deleted (1).", obj1Refs==1);
 	}
-	CPPUNIT_ASSERT_MESSAGE("Unmanaged type deleted (2).", !obj2Deleted);
+	CPPUNIT_ASSERT_MESSAGE("Unmanaged type deleted (2).", obj2Refs==1);
 
 	//Avoid leaking memory
 	delete o1;
 	delete o2;
-	CPPUNIT_ASSERT_MESSAGE("Destructor not called when it was supposed to", obj1Deleted&&obj2Deleted);
+	CPPUNIT_ASSERT_MESSAGE("Destructor not called when it was supposed to", (obj1Refs==0)&&(obj2Refs==0));
 	}
 
 	//Destructor called inappropriately on a non-pointer
 	{
-	bool obj1Deleted = false;
-	bool obj2Deleted = false;
-	DelStruct o1(obj1Deleted);
-	DelStruct o2(obj2Deleted);
+	int obj1Refs = 0;
+	int obj2Refs = 0;
+	DelStruct o1(obj1Refs);
+	DelStruct o2(obj2Refs);
 	{
 		FixedDelayed<DelStruct> z(10, true);
 		z.update(100);
@@ -143,9 +151,9 @@ void unit_tests::FixedDelayedUnitTests::test_FixedDelayed_false_delete()
 		z.update(105);
 		z.delay(o2);
 		z.update(200);
-		CPPUNIT_ASSERT_MESSAGE("Managed value type deleted (1).", !obj1Deleted);
+		CPPUNIT_ASSERT_MESSAGE("Managed value type deleted (1).", obj1Refs==1);
 	}
-	CPPUNIT_ASSERT_MESSAGE("Managed value type deleted (2).", !obj2Deleted);
+	CPPUNIT_ASSERT_MESSAGE("Managed value type deleted (2).", obj2Refs==1);
 	}
 }
 
@@ -153,10 +161,10 @@ void unit_tests::FixedDelayedUnitTests::test_FixedDelayed_skipped_delete()
 {
 	{
 	//Destructor called inappropriately on a pointer
-	bool obj1Deleted = false;
-	bool obj2Deleted = false;
-	DelStruct* o1 = new DelStruct(obj1Deleted);
-	DelStruct* o2 = new DelStruct(obj2Deleted);
+	int obj1Refs = 0;
+	int obj2Refs = 0;
+	DelStruct* o1 = new DelStruct(obj1Refs);
+	DelStruct* o2 = new DelStruct(obj2Refs);
 	{
 		FixedDelayed<DelStruct*> z(10, true);
 		z.update(100);
@@ -164,20 +172,22 @@ void unit_tests::FixedDelayedUnitTests::test_FixedDelayed_skipped_delete()
 		z.update(105);
 		z.delay(o2);
 		z.update(200);
-		CPPUNIT_ASSERT_MESSAGE("Managed type leaked (1).", obj1Deleted);
+		CPPUNIT_ASSERT_MESSAGE("Managed type leaked (1).", obj1Refs==0);
 	}
-	CPPUNIT_ASSERT_MESSAGE("Managed type leaked (2).", obj2Deleted);
+	CPPUNIT_ASSERT_MESSAGE("Managed type leaked (2).", obj2Refs==0);  //Fails
 	}
 
 	//Ensure our copy semantics work; this will matter for our lists.
+	int obj1Refs = 0;
 	{
-	bool obj1Deleted = false;
-	DelStruct o1(obj1Deleted);
+	DelStruct o1(obj1Refs);
 	{
-		DelStruct o2(o1);
+		DelStruct o2 = o1;
+		CPPUNIT_ASSERT_MESSAGE("Copy semantics error in DelStruct (1)", obj1Refs==2);
 	}
-	CPPUNIT_ASSERT_MESSAGE("Copy semantics error in DelStruct", obj1Deleted);
+	CPPUNIT_ASSERT_MESSAGE("Copy semantics error in DelStruct (2)", obj1Refs==1);
 	}
+	CPPUNIT_ASSERT_MESSAGE("Copy semantics error in DelStruct (3)", obj1Refs==0);
 }
 
 

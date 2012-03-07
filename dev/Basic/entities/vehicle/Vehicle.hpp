@@ -43,6 +43,8 @@ public:
 	//Call once
 	void initPath(std::vector<sim_mob::WayPoint> wp_path, int startLaneID);
 
+	void resetPath(std::vector<sim_mob::WayPoint> wp_path);
+
 	//Accessors
 	double getX() const;   ///<Retrieve the vehicle's absolute position, x
 	double getY() const;   ///<Retrieve the vehicle's absolute position, y

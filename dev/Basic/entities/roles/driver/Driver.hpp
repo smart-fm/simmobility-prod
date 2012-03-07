@@ -153,6 +153,7 @@ public:
 protected:
 	virtual double updatePositionOnLink(DriverUpdateParams& p);
 	void initializePath();
+	void resetPath(DriverUpdateParams& p);
 	void setOrigin(DriverUpdateParams& p);
 
 	//Helper: for special strings

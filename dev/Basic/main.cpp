@@ -31,6 +31,7 @@
 #include "entities/Signal.hpp"
 #include "conf/simpleconf.hpp"
 #include "entities/AuraManager.hpp"
+#include "entities/TrafficWatch.hpp"
 #include "entities/Bus.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/Role.hpp"
@@ -176,6 +177,9 @@ bool performMain(const std::string& configFileName) {
 	AuraManager& auraMgr = AuraManager::instance();
 	auraMgr.init();
 
+	//Inititalize the traffic watch
+	TrafficWatch& trafficWatch = TrafficWatch::instance();
+
 	//Start work groups and all threads.
 	agentWorkers.startAll();
 #ifndef TEMP_FORCE_ONE_WORK_GROUP
@@ -264,7 +268,10 @@ bool performMain(const std::string& configFileName) {
 #endif
 
 		auraMgr.update(currTick);
+//		trafficWatch.update(currTick);
 		agentWorkers.waitExternAgain(); // The workers wait on the AuraManager.
+
+
 
 		//Surveillance update
 		//updateSurveillanceData(agents);

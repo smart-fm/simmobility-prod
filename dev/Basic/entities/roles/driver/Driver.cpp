@@ -183,6 +183,7 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, unsigned int rea
 	}
 
 	trafficSignal = nullptr;
+	vehicle = nullptr;
 
 	//Initialize our models. These should be swapable later.
 	lcModel = new MITSIM_LC_Model();
@@ -213,6 +214,7 @@ void sim_mob::Driver::frame_init(UpdateParams& p)
 //Main update functionality
 void sim_mob::Driver::frame_tick(UpdateParams& p)
 {
+
 	DriverUpdateParams& p2 = dynamic_cast<DriverUpdateParams&>(p);
 
 	//Are we done already?
@@ -496,7 +498,10 @@ bool sim_mob::Driver::update_post_movement(DriverUpdateParams& params, frame_t f
 	if (!vehicle->isInIntersection() && params.justChangedToNewSegment) {
 		//Make pre-intersection decisions?
 		if (!vehicle->hasNextSegment(true))
+		{
 			saveCurrTrafficSignal();
+//			resetPath(params);
+		}
 	}
 	if (!vehicle->isInIntersection() && !vehicle->hasNextSegment(true) && vehicle->hasNextSegment(false))
 		chooseNextLaneForNextLink(params);
@@ -937,7 +942,7 @@ void sim_mob::Driver::initializePath() {
 	errorMsg << "Attempting to generate a vehicle" << std::endl;
 	if (!parentP || parentP->specialStr.empty()) {
 		path = StreetDirectory::instance().shortestDrivingPath(*origin.node, *goal.node);
-
+//		path = StreetDirectory::instance().GetShortestDrivingPath(*origin.node, *goal.node);
 		errorMsg << "...from node: " << origin.node->originalDB_ID.getLogItem() << " to node: "
 				<< goal.node->originalDB_ID.getLogItem() << std::endl;
 	} else {
@@ -972,10 +977,10 @@ void sim_mob::Driver::initializePath() {
 //		else//car
 //			length = 500;
 		int startlaneID = 0;
-//		if(parent->getId()%2==0)
-//			startlaneID = 0;
-//		else
-//			startlaneID = 2;
+		if(parent->getId()%2==0)
+			startlaneID = 0;
+		else
+			startlaneID = 2;
 		vehicle = new Vehicle(path, startlaneID, length, width);
 	} catch (std::exception& ex) {
 		errorMsg << "ERROR: " << ex.what();
@@ -984,9 +989,26 @@ void sim_mob::Driver::initializePath() {
 	}
 }
 
+
+//link path should be retrieved from other class
+//for now, it serves as this purpose
+void sim_mob::Driver::resetPath(DriverUpdateParams& p) {
+	const Node * node = vehicle->getCurrSegment()->getEnd();
+	//Retrieve the shortest path from the current intersection node to destination and save all RoadSegments in this path.
+	vector<WayPoint> path;
+	path = StreetDirectory::instance().GetShortestDrivingPath(*node, *goal.node);
+//	std::cout<<"path size"<<path.size()<<std::endl;
+//	if(path.size()==0)
+//		return;
+	vector<WayPoint>::iterator it;
+	it = path.begin();
+	path.insert(it, WayPoint(vehicle->getCurrSegment()));
+	vehicle->resetPath(path);
+}
+
 void sim_mob::Driver::setOrigin(DriverUpdateParams& p) {
 	//Set the max speed and target speed.
-	maxLaneSpeed = vehicle->getCurrSegment()->maxSpeed / 3.6;//slow down
+	maxLaneSpeed = vehicle->getCurrSegment()->maxSpeed / 3.6;
 	targetSpeed = maxLaneSpeed;
 
 	//Set our current and target lanes.

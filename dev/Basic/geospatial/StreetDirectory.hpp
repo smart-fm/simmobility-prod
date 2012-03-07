@@ -278,6 +278,8 @@ public:
     void
     printStatistics() const;
 
+    void updateDrivingMap();
+
 private:
     StreetDirectory()
       : pimpl_(nullptr)

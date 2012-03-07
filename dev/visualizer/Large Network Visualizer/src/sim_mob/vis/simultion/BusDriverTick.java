@@ -3,6 +3,7 @@ package sim_mob.vis.simultion;
 import java.awt.BasicStroke;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -108,9 +109,8 @@ public class BusDriverTick extends DriverTick {
 		FakeTempBusImg.phaseColors(0xFF/2);
 	}
 	
-
-	
-	public void draw(Graphics2D g,double scale, boolean drawFake,boolean debug){
+	public void draw(Graphics2D g,double scale, boolean drawFake,boolean debug, Dimension size100Percent){
+		
 		AffineTransform oldAT = g.getTransform();
 		AffineTransform at = AffineTransform.getTranslateInstance(pos.getX(), pos.getY());
 		

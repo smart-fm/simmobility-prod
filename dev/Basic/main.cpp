@@ -178,7 +178,7 @@ bool performMain(const std::string& configFileName) {
 	auraMgr.init();
 
 	//Inititalize the traffic watch
-	TrafficWatch& trafficWatch = TrafficWatch::instance();
+//	TrafficWatch& trafficWatch = TrafficWatch::instance();
 
 	//Start work groups and all threads.
 	agentWorkers.startAll();

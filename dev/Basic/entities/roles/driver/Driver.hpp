@@ -83,6 +83,13 @@ public:
 	Shared<double> currLaneLength_;
 	Shared<bool> isInIntersection;
 
+	//need to store these values in the double buffer, because it is needed by other drivers.
+	Shared<double> latMovement;
+	Shared<double> fwdVelocity;
+	Shared<double> latVelocity;
+	Shared<double> fwdAccel;
+	Shared<LANE_CHANGE_SIDE> turningDirection;
+
 //Basic data
 protected:
 	//unsigned int currTimeMS;

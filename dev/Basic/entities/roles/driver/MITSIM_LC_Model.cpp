@@ -136,7 +136,7 @@ LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(DriverUpdateParams& p, int type
 				otherSpeed[i].lead=5000;
 				otherDistance[i].lead=5000;
 			} else {				//has vehicle ahead
-				otherSpeed[i].lead = fwd->driver->getVehicle()->getVelocity();
+				otherSpeed[i].lead = fwd->driver->fwdVelocity.get();
 				otherDistance[i].lead= fwd->distance;
 			}
 
@@ -145,7 +145,7 @@ LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(DriverUpdateParams& p, int type
 				otherDistance[i].lag=5000;
 			}
 			else{		//has vehicle behind, check the gap
-				otherSpeed[i].lag=back->driver->getVehicle()->getVelocity();
+				otherSpeed[i].lag=back->driver->fwdVelocity.get();
 				otherDistance[i].lag= back->distance;
 			}
 		} else {			// no left/right side exists
@@ -300,9 +300,9 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 		return lcsSign*150;//p.laneChangingVelocity;
 	} else {
 		//If too close to node, don't do lane changing, distance should be larger than 3m
-		if(p.nvFwd.distance <= 2000) {
-			return 0;
-		}
+//		if(p.nvFwd.distance <= 2000) {
+//			return 0;
+//		}
 
 		//Get a random number, use it to determine if we're making a discretionary or a mandatory lane change
 		boost::uniform_int<> zero_to_max(0, RAND_MAX);

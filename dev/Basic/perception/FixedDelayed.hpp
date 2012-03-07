@@ -2,7 +2,9 @@
 
 #pragma once
 
+#include <stdint.h>
 #include <list>
+#include <stdexcept>
 
 #include "util/LangHelpers.hpp"
 

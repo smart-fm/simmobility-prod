@@ -46,6 +46,8 @@ public:
 	 */
 	explicit FixedDelayed(uint32_t maxDelayMS, bool reclaimPtrs=true);
 
+	~FixedDelayed();
+
 
 	/**
 	 * Remove all delayed perceptions.
@@ -98,7 +100,9 @@ public:
 	 */
 	bool can_sense();
 
-
+private:
+	//Helper function: delete the first item in the history array. Return true if there's more to delete.
+	bool del_history_front();
 
 private:
 	//Internal class to store an item and its observed time.
@@ -142,7 +146,8 @@ private:
 	friend class UnPackageUtils;
 };
 
-}
+} //End sim_mob namespace
+
 
 
 
@@ -158,11 +163,29 @@ sim_mob::FixedDelayed<T>::FixedDelayed(uint32_t maxDelayMS, bool reclaimPtrs)
 }
 
 
-/*template <typename T>
-void sim_mob::FixedDelayed<T>::clear()
+template <typename T>
+sim_mob::FixedDelayed<T>::~FixedDelayed()
 {
-	history.clear();
-}*/
+	//Reclaim memory
+	while (del_history_front());
+}
+
+
+template <typename T>
+bool sim_mob::FixedDelayed<T>::del_history_front()
+{
+	//Failsafe
+	if (history.empty()) { return false; }
+
+	//Reclaim memory, pop the list
+	if (reclaimPtrs) {
+		safe_delete_item(history.front().item);
+	}
+	history.pop_front();
+
+	return !history.empty();
+}
+
 
 template <typename T>
 void sim_mob::FixedDelayed<T>::update(uint32_t currTimeMS)
@@ -185,10 +208,7 @@ void sim_mob::FixedDelayed<T>::update(uint32_t currTimeMS)
 				//This value only needs to be kept if there's nothing to replace it
 				if (history.size()>1 && (++history.begin())->observedTime <= minTime) {
 					//Delete it and keep scanning.
-					if (reclaimPtrs) {
-						safe_delete_item(history.front().item);
-					}
-					history.pop_front();
+					del_history_front();
 					found = true;
 				}
 			}

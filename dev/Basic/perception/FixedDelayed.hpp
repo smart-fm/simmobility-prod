@@ -222,6 +222,7 @@ template <typename T>
 void sim_mob::FixedDelayed<T>::delay(const T& value)
 {
 	history.push_back(HistItem(value, currTime));
+	set_delay(currDelayMS);
 }
 
 template <typename T>

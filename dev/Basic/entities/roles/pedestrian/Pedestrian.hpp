@@ -30,10 +30,11 @@
 namespace sim_mob
 {
 
-#ifndef SIMMOB_DISABLE_MPI
-class PartitionManager;
 class PackageUtils;
 class UnPackageUtils;
+
+#ifndef SIMMOB_DISABLE_MPI
+class PartitionManager;
 #endif
 
 //Stages
@@ -151,11 +152,11 @@ private:
 	// here to avoid constantly allocating and clearing memory each time tick.
 	PedestrianUpdateParams params;
 
-	//Serialization
-#ifndef SIMMOB_DISABLE_MPI
-public:
-	friend class sim_mob::PartitionManager;
+	//Serialization-related friends
+	friend class PackageUtils;
+	friend class UnPackageUtils;
 
+#ifndef SIMMOB_DISABLE_MPI
 public:
 	virtual void pack(PackageUtils& packageUtil);
 	virtual void unpack(UnPackageUtils& unpackageUtil);

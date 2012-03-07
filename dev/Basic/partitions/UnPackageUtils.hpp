@@ -24,6 +24,9 @@
 #include "util/DynamicVector.hpp"
 #include "geospatial/Point2D.hpp"
 
+#endif
+
+
 namespace sim_mob
 {
 
@@ -31,10 +34,17 @@ namespace sim_mob
  * \author Xu Yan
  * Function:
  * UnPackageUtils is used in receiver side to unpack basic data type (like: vector<int>) and some SimMobility data type (like: Node).
- * Note:
+ *
+ * \note
  * PackageUtils/UnPackageUtils have matching functions, if you add/edit/remove one function in this class, you need to check class PackageUtils
+ *
+ * \note
+ * If the flag SIMMOB_DISABLE_MPI is defined, then this class is completely empty. It still exists as a friend class to anything
+ * which can be serialized so that we can avoid lots of #idefs elsewhere in the code. ~Seth
  */
 class UnPackageUtils {
+#ifndef SIMMOB_DISABLE_MPI
+
 private:
 	std::stringstream buffer;
 	boost::archive::text_iarchive* package;
@@ -165,6 +175,8 @@ public:
 //private:
 //	void initializePackage(std::string value);
 //	void clearPackage();
+
+#endif
 };
 }
-#endif
+

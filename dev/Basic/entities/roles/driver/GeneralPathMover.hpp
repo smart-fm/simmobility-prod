@@ -17,10 +17,9 @@ namespace sim_mob
 class RoadSegment;
 class Link;
 
-#ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
 class UnPackageUtils;
-#endif
+
 
 
 /**
@@ -175,12 +174,9 @@ private:
 	void throwIf(bool conditional, const std::string& msg) const;
 
 
-#ifndef SIMMOB_DISABLE_MPI
-public:
-	friend class sim_mob::PackageUtils;
-	friend class sim_mob::UnPackageUtils;
-#endif
-
+	//Serialization-related friends
+	friend class PackageUtils;
+	friend class UnPackageUtils;
 
 
 };

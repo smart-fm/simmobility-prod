@@ -12,10 +12,8 @@
 namespace sim_mob
 {
 
-#ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
 class UnPackageUtils;
-#endif
 
 /**
  * Templatized wrapper for data values with a fixed delay.
@@ -96,12 +94,9 @@ private:
 			return observedTime + delayMS <= currTimeMS;
 		}
 
-		//add by xuyan
-		#ifndef SIMMOB_DISABLE_MPI
-		public:
-			friend class sim_mob::PackageUtils;
-			friend class sim_mob::UnPackageUtils;
-		#endif
+		//Serialization-related friends
+		friend class PackageUtils;
+		friend class UnPackageUtils;
 	};
 
 	//Private data
@@ -109,13 +104,9 @@ private:
 	size_t maxDelayMS;
 	bool reclaimPtrs;
 
-
-#ifndef SIMMOB_DISABLE_MPI
-public:
-	friend class sim_mob::PackageUtils;
-	friend class sim_mob::UnPackageUtils;
-#endif
-
+	//Serialization-related friends
+	friend class PackageUtils;
+	friend class UnPackageUtils;
 };
 
 }

@@ -24,6 +24,8 @@
 #include "util/DynamicVector.hpp"
 #include "geospatial/Point2D.hpp"
 
+#endif
+
 namespace sim_mob {
 
 class BoundaryProcessor;
@@ -38,10 +40,17 @@ class SimpleIntDrivingModel;
  * \author Xu Yan
  * Function:
  * PackageUtils is used in sender side to pack basic data type (like: vector<int>) and some SimMobility data type (like: Node).
- * Note:
+ *
+ * \note
  * PackageUtils/UnPackageUtils have matching functions, if you add/edit/remove one function in this class, you need to check class UnPackageUtils
+ *
+ * \note
+ * If the flag SIMMOB_DISABLE_MPI is defined, then this class is completely empty. It still exists as a friend class to anything
+ * which can be serialized so that we can avoid lots of #idefs elsewhere in the code. ~Seth
  */
 class PackageUtils {
+#ifndef SIMMOB_DISABLE_MPI
+
 private:
 	std::stringstream buffer;
 	boost::archive::text_oarchive* package;
@@ -222,7 +231,9 @@ private:
 
 public:
 	friend class BoundaryProcessor;
+
+#endif
 };
 
 }
-#endif
+

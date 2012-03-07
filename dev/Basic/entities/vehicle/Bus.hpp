@@ -14,10 +14,8 @@
 
 namespace sim_mob {
 
-#ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
 class UnPackageUtils;
-#endif
 
 /**
  * A bus is similar to a Vehicle, except that it follows a BusRoute and has a passenger count.
@@ -36,12 +34,9 @@ private:
 	int passengerCount;
 	BusRoute route;
 
-
-#ifndef SIMMOB_DISABLE_MPI
-public:
-	friend class sim_mob::PackageUtils;
-	friend class sim_mob::UnPackageUtils;
-#endif
+	//Serialization-related friends
+	friend class PackageUtils;
+	friend class UnPackageUtils;
 };
 
 } // namespace sim_mob

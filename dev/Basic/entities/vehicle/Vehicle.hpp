@@ -21,10 +21,8 @@
 
 namespace sim_mob {
 
-#ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
 class UnPackageUtils;
-#endif
 
 class Vehicle {
 public:
@@ -140,11 +138,9 @@ public:
 		item.scaleVectTo(oldMag);
 	}*/
 
-#ifndef SIMMOB_DISABLE_MPI
-public:
-	friend class sim_mob::PackageUtils;
-	friend class sim_mob::UnPackageUtils;
-#endif
+	//Serialization-related friends
+	friend class PackageUtils;
+	friend class UnPackageUtils;
 };
 
 } // namespace sim_mob

@@ -36,6 +36,18 @@ public:
 	///Ensure memory isn't leaked
 	void test_FixedDelayed_skipped_delete();
 
+	///Do a comprehensive sense check; push back several values and read them in order.
+	void test_FixedDelayed_comprehensive_sense();
+
+	///Ensure that we can shrink our delayed value without causing invalid reads.
+	void test_FixedDelayed_dimminishing_reaction_time();
+
+	///Ensure that we can recover back to the maximum after shrinking our reaction time.
+	void test_FixedDelayed_expanding_reaction_time();
+
+	///Perform a comprehensive test of variable reaction time.
+	void test_FixedDelayed_comprehensive_variable_reaction();
+
 
 
 
@@ -49,6 +61,10 @@ private:
         CPPUNIT_TEST(test_FixedDelayed_sanity_checks);
         CPPUNIT_TEST(test_FixedDelayed_false_delete);
         CPPUNIT_TEST(test_FixedDelayed_skipped_delete);
+        CPPUNIT_TEST(test_FixedDelayed_comprehensive_sense);
+        CPPUNIT_TEST(test_FixedDelayed_dimminishing_reaction_time);
+        CPPUNIT_TEST(test_FixedDelayed_expanding_reaction_time);
+        CPPUNIT_TEST(test_FixedDelayed_comprehensive_variable_reaction);
     CPPUNIT_TEST_SUITE_END();
 };
 

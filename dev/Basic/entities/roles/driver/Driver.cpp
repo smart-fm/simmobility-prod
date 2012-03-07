@@ -224,10 +224,17 @@ void sim_mob::Driver::frame_tick(UpdateParams& p)
 	//Just a bit glitchy...
 	updateAdjacentLanes(p2);
 
+	//Update "current" time
+	perceivedVelocity.update(p.currTimeMS);
+	perceivedDistToFwdCar.update(params.currTimeMS);
+	perceivedVelocityOfFwdCar.update(params.currTimeMS);
+	perceivedAccelerationOfFwdCar.update(params.currTimeMS);
+	perceivedTrafficSignalStop.update(params.currTimeMS);
+
 	//retrieved their current "sensed" values.
-	if (perceivedVelocity.can_sense(p.currTimeMS)) {
-		p2.perceivedFwdVelocity = perceivedVelocity.sense(p.currTimeMS,0)->x;
-		p2.perceivedLatVelocity = perceivedVelocity.sense(p.currTimeMS,0)->y;
+	if (perceivedVelocity.can_sense()) {
+		p2.perceivedFwdVelocity = perceivedVelocity.sense()->x;
+		p2.perceivedLatVelocity = perceivedVelocity.sense()->y;
 	}
 
 	//General update behavior.
@@ -255,7 +262,7 @@ void sim_mob::Driver::frame_tick(UpdateParams& p)
 
 	isInIntersection.set(vehicle->isInIntersection());
 	//Update your perceptions
-	perceivedVelocity.delay(new DPoint(vehicle->getVelocity(), vehicle->getLatVelocity()), p.currTimeMS);
+	perceivedVelocity.delay(new DPoint(vehicle->getVelocity(), vehicle->getLatVelocity()));
 	//Print output for this frame.
 }
 
@@ -1328,11 +1335,11 @@ void sim_mob::Driver::updateNearbyAgents(DriverUpdateParams& params) {
 void sim_mob::Driver::perceivedDataProcess(NearestVehicle & nv, DriverUpdateParams& params)
 {
 	//Update your perceptions for leading vehicle and gap
-	perceivedDistToFwdCar.delay(nv.distance, params.currTimeMS);
+	perceivedDistToFwdCar.delay(nv.distance);
 	if (params.nvFwd.distance != 5000) {
 		perceivedVelocityOfFwdCar.delay(new DPoint(nv.driver->getVehicle()->getVelocity(),
-				nv.driver->getVehicle()->getLatVelocity()), params.currTimeMS);
-		perceivedAccelerationOfFwdCar.delay(nv.driver->getVehicle()->getAcceleration(), params.currTimeMS);
+				nv.driver->getVehicle()->getLatVelocity()));
+		perceivedAccelerationOfFwdCar.delay(nv.driver->getVehicle()->getAcceleration());
 
 		//retrieve perceptions
 		size_t delayMS = 1500;
@@ -1345,13 +1352,20 @@ void sim_mob::Driver::perceivedDataProcess(NearestVehicle & nv, DriverUpdatePara
 				numV=1;
 			delayMS = delayMS/numV;
 		}
-		if (perceivedVelocityOfFwdCar.can_sense(params.currTimeMS)
-				&&perceivedAccelerationOfFwdCar.can_sense(params.currTimeMS)
-				&&perceivedDistToFwdCar.can_sense(params.currTimeMS)) {
-			params.perceivedFwdVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense(params.currTimeMS,delayMS)->x;
-			params.perceivedLatVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense(params.currTimeMS,delayMS)->y;
-			params.perceivedAccelerationOfFwdCar = perceivedAccelerationOfFwdCar.sense(params.currTimeMS,delayMS);
-			params.perceivedDistToFwdCar = perceivedDistToFwdCar.sense(params.currTimeMS,delayMS);
+
+		//Change perception delay
+		perceivedDistToFwdCar.set_delay(delayMS);
+		perceivedVelocityOfFwdCar.set_delay(delayMS);
+		perceivedAccelerationOfFwdCar.set_delay(delayMS);
+
+		//Now sense.
+		if (perceivedVelocityOfFwdCar.can_sense()
+				&&perceivedAccelerationOfFwdCar.can_sense()
+				&&perceivedDistToFwdCar.can_sense()) {
+			params.perceivedFwdVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense()->x;
+			params.perceivedLatVelocityOfFwdCar = perceivedVelocityOfFwdCar.sense()->y;
+			params.perceivedAccelerationOfFwdCar = perceivedAccelerationOfFwdCar.sense();
+			params.perceivedDistToFwdCar = perceivedDistToFwdCar.sense();
 		}
 		else
 		{
@@ -1547,7 +1561,7 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 
 	if (!trafficSignal) {
 		p.isTrafficLightStop = false;
-		perceivedTrafficSignalStop.delay(p.isTrafficLightStop, p.currTimeMS);
+		perceivedTrafficSignalStop.delay(p.isTrafficLightStop);
 	} else {
 
 		Signal::TrafficColor color;
@@ -1571,11 +1585,14 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 				p.isTrafficLightStop = true;
 			break;
 		}
+
 		size_t delayMS = 0;
-		perceivedTrafficSignalStop.delay(p.isTrafficLightStop, p.currTimeMS);
-		if(perceivedTrafficSignalStop.can_sense(p.currTimeMS))
+		perceivedTrafficSignalStop.set_delay(delayMS);
+
+		perceivedTrafficSignalStop.delay(p.isTrafficLightStop);
+		if(perceivedTrafficSignalStop.can_sense())
 		{
-			p.perceivedTrafficSignal = perceivedTrafficSignalStop.sense(p.currTimeMS,delayMS);
+			p.perceivedTrafficSignal = perceivedTrafficSignalStop.sense();
 			if(p.perceivedTrafficSignal)
 				p.trafficSignalStopDistance = vehicle->getAllRestRoadSegmentsLength() - vehicle->getDistanceMovedInSegment() - vehicle->length / 2;
 		}

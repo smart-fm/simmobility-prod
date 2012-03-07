@@ -20,6 +20,7 @@ class UnPackageUtils;
  *
  * \author Seth N. Hetu
  * \author Xu Yan
+ * \author Li Zhemin
  *
  * Imposes a fixed delay (in ms) on a given object. For example, a FixedDelayed<int> is a
  * "(fixed) delayed integer". Attempting to retrieve the value of a FixedDelayed item will
@@ -27,58 +28,75 @@ class UnPackageUtils;
  *
  * \note
  * The FixedDelayed class copies items frequently, so if you are storing a large class or
- * non-copyable item, you should pass a pointer as the template paramter.
+ * non-copyable item, you should pass a pointer as the template paramter. By default, this pointer
+ * is deleted when it is no longer needed by the FixedDelayed class.
  *
  * \note
  * This class should be used for continuous values. It should NOT be used for things like
- * reactionary signals or threshold values, since a call to sense() may discard values if they
- * do not represent the latest data.
+ * reactionary signals or threshold values, since a call to sense() may discard values which
+ * must trigger an action but are not technically the latest values.
  */
 template <typename T>
 class FixedDelayed {
 public:
 	/**
 	 * Construct a new FixedDelayed item with the given delay in ms.
-	 * \param delayMS The time to delay each sensation.
+	 * \param maxDelayMS The maximum time to hold on to each sensation value. The default "delay" time is equal to this, but it can be set larger to allow variable reaction times.
 	 * \param reclaimPtrs If true, any item discarded by this history list is deleted. Does nothing if the template type is not a pointer.
 	 */
-	explicit FixedDelayed(size_t delayMS, bool reclaimPtrs=true);
+	explicit FixedDelayed(uint32_t maxDelayMS, bool reclaimPtrs=true);
 
 
 	/**
 	 * Remove all delayed perceptions.
+	 *
+	 * \todo
+	 * It's not clear why we need this. Resetting a FixedDelayed object should also take the
+	 * current time into account. Disabling for now. ~Seth
 	 */
-	void clear();
+	//void clear();
+
+
+	/**
+	 * Update the current time for reading and writing values. All calls to delay() and sense()
+	 *  will use this to store and retrieve their values. Causes all sensed values past the maximum
+	 *  delay time to be discarded.
+	 * \param currTimeMS The current time in ms. Must be monotonically increasing.
+	 */
+	void update(uint32_t currTimeMS);
+
+
+	/**
+	 * Set the current perception delay to the given value. All calls to sense() are affected by this value.
+	 * \param currDelayMS The new delay value. Must be less than maxDelayMS
+	 */
+	void set_delay(uint32_t currDelayMS);
 
 
 	/**
 	 * Delay a value, to be returned after the delay time.
 	 * \param value The value to delay.
-	 * \param observedTimeMS The time at which this value physically occurred. It will be sense-able after observedTimeMS + delayMS
 	 *
-	 * \note
-	 * The value of observedTimeMS must always increase monotonically, or an exception is thrown.
+	 * \todo
+	 * If we need to, we can add an "observedTimeMS" parameter (instead of using currTimeMS).
+	 * For now, this is not required, but it is technically not very difficult to do.
 	 */
-	void delay(const T& value, uint32_t observedTimeMS);
+	void delay(const T& value);
 
 
 	/**
 	 * Retrieve the current perceived value of this item.
-	 *
-	 * \param currTimeMS The current time of the simulation.
-	 *
-	 * \note
-	 * currTimeMS must be monotonically increasing; sense() is used to retrieve values at
-	 * the current time tick, not any arbitrary time tick.
 	 */
-	const T& sense(uint32_t currTimeMS, uint32_t delayMS);
+	const T& sense();
 
 
 	/**
 	 * Return true if the current time is sufficiently advanced for sensing to occur.
-	 * Once this function returns true at least once, it will always return true (until clear() is called).
+	 * Sensing will always suceed after the warmup period (of "delayMS") has elapsed.
+	 * If the value of delayMS is constantly changing, then you might want to wait until
+	 * "maxDelayMS" has elapsed before assuming that this function will always succeed.
 	 */
-	bool can_sense(uint32_t currTimeMS);
+	bool can_sense();
 
 
 
@@ -90,7 +108,7 @@ private:
 
 		HistItem(T item, uint32_t observedTime) : item(item), observedTime(observedTime) {}
 
-		bool canObserve(uint32_t currTimeMS, size_t delayMS){
+		bool canObserve(uint32_t currTimeMS, uint32_t delayMS){
 			return observedTime + delayMS <= currTimeMS;
 		}
 
@@ -99,9 +117,24 @@ private:
 		friend class UnPackageUtils;
 	};
 
-	//Private data
+private:
+	//The list of history items
 	std::list<HistItem> history;
-	size_t maxDelayMS;
+
+	//The maximum delay allowed by the system.
+	uint32_t maxDelayMS;
+
+	//The current delay value
+	uint32_t currDelayMS;
+
+	//The current clock time
+	uint32_t currTime;
+
+	//The current "front" of the history list, used to return the correct value via sense().
+	//If equal to history.end(), we can't sense right now.
+	typename std::list<HistItem>::iterator percFront;
+
+	//Whether or not to reclaim memory once a sensed item is no longer needed.
 	bool reclaimPtrs;
 
 	//Serialization-related friends
@@ -118,73 +151,91 @@ private:
 ///////////////////////////////////////////////////////////
 
 template <typename T>
-sim_mob::FixedDelayed<T>::FixedDelayed(size_t delayMS, bool reclaimPtrs)
-	: maxDelayMS(delayMS), reclaimPtrs(reclaimPtrs)
-{}
+sim_mob::FixedDelayed<T>::FixedDelayed(uint32_t maxDelayMS, bool reclaimPtrs)
+	: maxDelayMS(maxDelayMS), currDelayMS(maxDelayMS), currTime(0), reclaimPtrs(reclaimPtrs)
+{
+	percFront = history.end();
+}
 
 
-template <typename T>
+/*template <typename T>
 void sim_mob::FixedDelayed<T>::clear()
 {
 	history.clear();
-}
-
+}*/
 
 template <typename T>
-void sim_mob::FixedDelayed<T>::delay(const T& value, uint32_t observedTimeMS)
+void sim_mob::FixedDelayed<T>::update(uint32_t currTimeMS)
 {
-	//Check consistency
-	if (!history.empty() && history.back().observedTime>observedTimeMS) {
-		throw std::runtime_error("Delay called with an out-of-order observedTimeMS.");
+	//Check and save the current time
+	if (currTimeMS<currTime) {
+		throw std::runtime_error("Error: FixedDelayed<> can't move backwards in time.");
+	}
+	if (currTimeMS == currTime) {
+		return;
+	}
+	currTime = currTimeMS;
+
+	//Loop, discard items which are past the maximum sensing window.
+	uint32_t minTime = currTimeMS - maxDelayMS;
+	while (!history.empty()) {
+		if (history.front().observedTime <= minTime) {
+			//This value only needs to be kept if there's nothing to replace it
+			if (history.size()>1 && (++history.begin())->observedTime <= minTime) {
+				//Delete it and keep scanning.
+				if (reclaimPtrs) {
+					safe_delete_item(history.front().item);
+					history.pop_front();
+				}
+				continue;
+			}
+		}
+		break;
 	}
 
-	//Save it
-	history.push_back(HistItem(value, observedTimeMS));
+	//Now we need to update our pseudo-"front" pointer
+	set_delay(currDelayMS);
+}
+
+
+template <typename T>
+void sim_mob::FixedDelayed<T>::set_delay(uint32_t currDelayMS)
+{
+	//Check, save
+	if (currDelayMS > maxDelayMS) {
+		throw std::runtime_error("Can't delay greater than the maximum delay value of FixedDelayed.");
+	}
+	this->currDelayMS = currDelayMS;
+
+	//Update our "front" pointer, used by the "sense()" function.
+	percFront = history.end();
+	for (typename std::list<HistItem>::iterator it=history.begin(); it!=history.end(); it++) {
+		if (!it->canObserve(currTime, currDelayMS)) {
+			break;
+		}
+		percFront = it;
+	}
+}
+
+
+template <typename T>
+void sim_mob::FixedDelayed<T>::delay(const T& value)
+{
+	history.push_back(HistItem(value, currTime));
 }
 
 template <typename T>
-const T& sim_mob::FixedDelayed<T>::sense(uint32_t currTimeMS, uint32_t delayMS)
+const T& sim_mob::FixedDelayed<T>::sense()
 {
 	//Consistency check, done via update.
-	if (!can_sense(currTimeMS)) {
+	if (!can_sense()) {
 		throw std::runtime_error("Can't sense: not enough time has passed.");
 	}
 
-	//Return the first value in the list; can_sense() will have already performed the necessary updates.
-	//const T& test = history.front().item;
-
-
-	typename std::list<HistItem>::iterator iter = history.begin();
-	while(iter!=history.end())
-	{
-		HistItem& histItem = *iter;
-		if((++iter)==history.end())
-			return histItem.item;
-		HistItem& histItemNext = *iter;
-		if(histItem.canObserve(currTimeMS,delayMS)&&(!histItemNext.canObserve(currTimeMS,delayMS)))
-			return histItem.item;
-	}
-	//if for loop doesn't return
-	return history.front().item; //Debugging....
-	//return history.front().item;
+	return percFront->item;
 }
 
 template <typename T>
-bool sim_mob::FixedDelayed<T>::can_sense(uint32_t currTimeMS) {
-	//Loop while the first value is "sense"-able.
-	while (!history.empty() && history.front().canObserve(currTimeMS, maxDelayMS)) {
-		//If the second element in the list is non-sensable, we're done.
-		if (history.size()==1 || !(++history.begin())->canObserve(currTimeMS, maxDelayMS)) {
-			return true;
-		}
-
-		//Otherwise, remove the first element.
-		if (reclaimPtrs) {
-			safe_delete_item(history.front().item);
-			history.pop_front();
-		}
-	}
-
-	//In this case, nothing can be observed
-	return false;
+bool sim_mob::FixedDelayed<T>::can_sense() {
+	return percFront != history.end();
 }

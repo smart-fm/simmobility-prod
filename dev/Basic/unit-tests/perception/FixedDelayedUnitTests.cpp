@@ -237,7 +237,7 @@ struct View {
 	uint32_t time;
 	int value;
 };
-const View Sequence1[] = {{0, 100}, {100, 98}, {200, 102}, {300, 97}, {400, 96}, {500, -1}, {600, 103}, {700, 95}, {800, 92}, {900, 99}};
+const View Sequence1[] = {{0, 100}, {100, 98}, {200, 102}, {300, 97}, {400, 96}, {500, 1}, {600, 103}, {700, 95}, {800, 92}, {900, 99}};
 
 //Store all.
 void StoreAll(FixedDelayed<int>& store, const View seq[], size_t sz) {
@@ -255,17 +255,19 @@ void MakeFail(const std::string& str1, int testID, const std::string& str2) {
 }
 
 //Check a point
-void CheckPoint(FixedDelayed<int>& store, int& testID, uint32_t timeMS, int expected, int next) {
+void CheckPoint(FixedDelayed<int>& store, int& testID, uint32_t timeMS, int expected, int next, const std::string& failMsg) {
 	store.update(timeMS);
-	if (!store.can_sense() || (store.sense()!=expected)) {
-		MakeFail("Comprehensive sense test failed (", testID, ").");
+	if (   ((expected<0)  && store.can_sense())
+		|| ((expected>=0) && (!store.can_sense() || (store.sense()!=expected)))  ) {
+		MakeFail(failMsg + " (", testID, ").");
 	}
 	testID++;
 	if (next >= 0) {
 		store.delay(next);
 	}
-	if (!store.can_sense() || (store.sense()!=expected)) {
-		MakeFail("Comprehensive sense test failed (", testID, ").");
+	if (   ((expected<0)  && store.can_sense())
+		|| ((expected>=0) && (!store.can_sense() || (store.sense()!=expected)))  ) {
+		MakeFail(failMsg + " (", testID, ").");
 	}
 	testID++;
 }
@@ -300,28 +302,91 @@ void unit_tests::FixedDelayedUnitTests::test_FixedDelayed_comprehensive_sense()
 
 	//Perform automatic checks for the remaining data.
 	int i = 7;
-	CheckPoint(store, i, 1200, 102, 145);
-	CheckPoint(store, i, 1300, 97, 141);
-	CheckPoint(store, i, 1400, 96, 130);
-	CheckPoint(store, i, 1500, -1, 122);  //Stop storing data after this test
-	CheckPoint(store, i, 1600, 103, -1);
-	CheckPoint(store, i, 1700, 95, -1);
-	CheckPoint(store, i, 1800, 92, -1);
-	CheckPoint(store, i, 1900, 99, -1);   //Last automatic value; now just wind down.
-	CheckPoint(store, i, 2000, 105, -1);
-	CheckPoint(store, i, 2100, 144, -1);
-	CheckPoint(store, i, 2200, 145, -1);
-	CheckPoint(store, i, 2300, 141, -1);
-	CheckPoint(store, i, 2400, 130, -1);
+	std::string msg = "Comprehensive sense test failed";
+	CheckPoint(store, i, 1200, 102, 145, msg);
+	CheckPoint(store, i, 1300, 97, 141, msg);
+	CheckPoint(store, i, 1400, 96, 130, msg);
+	CheckPoint(store, i, 1500, 1, 122, msg);   //Stop storing data after this test
+	CheckPoint(store, i, 1600, 103, -1, msg);
+	CheckPoint(store, i, 1700, 95, -1, msg);
+	CheckPoint(store, i, 1800, 92, -1, msg);
+	CheckPoint(store, i, 1900, 99, -1, msg);   //Last automatic value; now just wind down.
+	CheckPoint(store, i, 2000, 105, -1, msg);
+	CheckPoint(store, i, 2100, 144, -1, msg);
+	CheckPoint(store, i, 2200, 145, -1, msg);
+	CheckPoint(store, i, 2300, 141, -1, msg);
+	CheckPoint(store, i, 2400, 130, -1, msg);
 
 	//Last value. Double-check boundaries
-	CheckPoint(store, i, 2499, 130, -1);
-	CheckPoint(store, i, 2500, 122, -1);
-	CheckPoint(store, i, 2501, 122, -1);
-	CheckPoint(store, i, 9999, 122, -1);
+	CheckPoint(store, i, 2499, 130, -1, msg);
+	CheckPoint(store, i, 2500, 122, -1, msg);
+	CheckPoint(store, i, 2501, 122, -1, msg);
+	CheckPoint(store, i, 9999, 122, -1, msg);
 }
 
 
 
+void unit_tests::FixedDelayedUnitTests::test_FixedDelayed_diminishing_reaction_time()
+{
+	//First, load and store up to the limit
+	FixedDelayed<int> store(10);
+	int i = 1;
+	std::string msg = "Diminishing test failed";
+	CheckPoint(store, i, 0, -1, 200, msg);
+	CheckPoint(store, i, 2, -1, 300, msg);
+	CheckPoint(store, i, 4, -1, 100, msg);
+	CheckPoint(store, i, 6, -1, 900, msg);
+	CheckPoint(store, i, 8, -1, 1000, msg);
+	CheckPoint(store, i, 10, 200, 600, msg);
+
+	//Now shorten the reaction time
+	store.set_delay(6);
+	CPPUNIT_ASSERT_MESSAGE("Diminishing test failed (13).", store.can_sense() && (store.sense()==100));
+
+	//Shorten to an odd number
+	store.set_delay(3);
+/*FAIL*/	CPPUNIT_ASSERT_MESSAGE("Diminishing test failed (14).", store.can_sense() && (store.sense()==1000));
+
+	//Shorten to nothing
+	store.set_delay(0);
+	CPPUNIT_ASSERT_MESSAGE("Diminishing test failed (15).", store.can_sense() && (store.sense()==600));
+}
+
+
+void unit_tests::FixedDelayedUnitTests::test_FixedDelayed_expanding_reaction_time()
+{
+	//Load up to a (decreased) limit
+	FixedDelayed<int> store(10);
+	store.set_delay(5);
+	int i = 1;
+	std::string msg = "Expanding test failed";
+	CheckPoint(store, i, 0, -1, 199, msg);
+	CheckPoint(store, i, 2, -1, 299, msg);
+	CheckPoint(store, i, 4, -1, 399, msg);
+	CheckPoint(store, i, 5, 199, -1, msg);
+	CheckPoint(store, i, 6, 199, -1, msg);
+	CheckPoint(store, i, 7, 299, -1, msg);
+
+	//We are directly on a sense-able event. Increase reaction time by 1 and check.
+	store.set_delay(6);
+/*FAIL*/	CPPUNIT_ASSERT_MESSAGE("Expanding test failed (13).", store.can_sense() && (store.sense()==299));
+	store.set_delay(7);
+	CPPUNIT_ASSERT_MESSAGE("Expanding test failed (14).", store.can_sense() && (store.sense()==199));
+	store.set_delay(5);
+	CPPUNIT_ASSERT_MESSAGE("Expanding test failed (15).", store.can_sense() && (store.sense()==299));
+
+	//Now update to one off from a sense-able event and try again.
+	CheckPoint(store, i, 8, 399, -1, msg);
+	store.set_delay(6);
+	CPPUNIT_ASSERT_MESSAGE("Expanding test failed (16).", store.can_sense() && (store.sense()==299));
+	store.set_delay(7);
+	CPPUNIT_ASSERT_MESSAGE("Expanding test failed (17).", store.can_sense() && (store.sense()==299));
+	store.set_delay(5);
+	CPPUNIT_ASSERT_MESSAGE("Expanding test failed (18).", store.can_sense() && (store.sense()==399));
+
+	//Set back to max and check.
+	store.set_delay(10);
+	CPPUNIT_ASSERT_MESSAGE("Expanding test failed (19).", !store.can_sense());
+}
 
 

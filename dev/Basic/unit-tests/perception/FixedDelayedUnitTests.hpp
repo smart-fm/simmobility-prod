@@ -30,6 +30,9 @@ public:
 	///Several common consistency checks
 	void test_FixedDelayed_sanity_checks();
 
+	///Make sure we can store classes correctly.
+	void test_FixedDelayed_class_store();
+
 	///Ensure memory isn't wrongly deleted
 	void test_FixedDelayed_false_delete();
 
@@ -59,6 +62,7 @@ private:
         CPPUNIT_TEST(test_FixedDelayed_exact_retrieve);
         CPPUNIT_TEST(test_FixedDelayed_zero_retrieve);
         CPPUNIT_TEST(test_FixedDelayed_sanity_checks);
+        CPPUNIT_TEST(test_FixedDelayed_class_store);
         CPPUNIT_TEST(test_FixedDelayed_false_delete);
         CPPUNIT_TEST(test_FixedDelayed_skipped_delete);
         CPPUNIT_TEST(test_FixedDelayed_comprehensive_sense);

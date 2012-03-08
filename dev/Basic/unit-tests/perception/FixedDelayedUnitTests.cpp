@@ -2,6 +2,8 @@
 
 #include <cmath>
 #include <limits>
+#include <string>
+#include <sstream>
 
 #include "FixedDelayedUnitTests.hpp"
 
@@ -76,6 +78,44 @@ void unit_tests::FixedDelayedUnitTests::test_FixedDelayed_zero_retrieve()
 	x.update(200);
 	res = x.can_sense() ? x.sense() : 0;
 	CPPUNIT_ASSERT_MESSAGE("Zero-wait FixedDelayed retrieval failed (2).", res==42);
+}
+
+
+namespace {
+//Simple class for testing
+class MyPoint {
+public:
+	MyPoint(int x, int y) : x(x), y(y) {}
+	int getX() { return x; }
+	int getY() { return y; }
+private:
+	int x;
+	int y;
+};
+} //End anon namespace
+void unit_tests::FixedDelayedUnitTests::test_FixedDelayed_class_store()
+{
+	FixedDelayed<MyPoint*> store(10);
+	store.update(1);
+	store.delay(new MyPoint(1,2));
+	store.update(2);
+	store.delay(new MyPoint(3,4));
+	store.update(3);
+	store.delay(new MyPoint(5,6));
+	store.update(10);
+	CPPUNIT_ASSERT_MESSAGE("Storing classes failed (1).", !store.can_sense());
+
+	//Sensible checks
+	store.update(11);
+	CPPUNIT_ASSERT_MESSAGE("Storing classes failed (2).", store.can_sense() && (store.sense()->getX()==1) && (store.sense()->getY()==2));
+	store.update(12);
+	CPPUNIT_ASSERT_MESSAGE("Storing classes failed (3).", store.can_sense() && (store.sense()->getX()==3) && (store.sense()->getY()==4));
+	store.update(13);
+	CPPUNIT_ASSERT_MESSAGE("Storing classes failed (4).", store.can_sense() && (store.sense()->getX()==5) && (store.sense()->getY()==6));
+
+	//Make sure this value persists as the last known value.
+	store.update(1000);
+	CPPUNIT_ASSERT_MESSAGE("Storing classes failed (5).", store.can_sense() && (store.sense()->getX()==5) && (store.sense()->getY()==6));
 }
 
 
@@ -189,6 +229,98 @@ void unit_tests::FixedDelayedUnitTests::test_FixedDelayed_skipped_delete()
 	}
 	CPPUNIT_ASSERT_MESSAGE("Copy semantics error in DelStruct (3)", obj1Refs==0);
 }
+
+
+namespace {
+//Represent a series of views
+struct View {
+	uint32_t time;
+	int value;
+};
+const View Sequence1[] = {{0, 100}, {100, 98}, {200, 102}, {300, 97}, {400, 96}, {500, -1}, {600, 103}, {700, 95}, {800, 92}, {900, 99}};
+
+//Store all.
+void StoreAll(FixedDelayed<int>& store, const View seq[], size_t sz) {
+	for (size_t i=0; i<sz; i++) {
+		store.update(seq[i].time);
+		store.delay(seq[i].value);
+	}
+}
+
+//Make a fail message
+void MakeFail(const std::string& str1, int testID, const std::string& str2) {
+	std::stringstream msg;
+	msg <<str1 <<testID <<str2;
+	CPPUNIT_FAIL(msg.str().c_str());
+}
+
+//Check a point
+void CheckPoint(FixedDelayed<int>& store, int& testID, uint32_t timeMS, int expected, int next) {
+	store.update(timeMS);
+	if (!store.can_sense() || (store.sense()!=expected)) {
+		MakeFail("Comprehensive sense test failed (", testID, ").");
+	}
+	testID++;
+	if (next >= 0) {
+		store.delay(next);
+	}
+	if (!store.can_sense() || (store.sense()!=expected)) {
+		MakeFail("Comprehensive sense test failed (", testID, ").");
+	}
+	testID++;
+}
+} //End anon namespace
+void unit_tests::FixedDelayedUnitTests::test_FixedDelayed_comprehensive_sense()
+{
+	//Try to build a data flow similar to what Sim Mobility might see.
+	// Use "StoreAll" to build the first 9 values easily.
+	FixedDelayed<int> store(1000);
+	StoreAll(store, Sequence1, sizeof(Sequence1)/sizeof(Sequence1[0]));
+
+	//We now have 900ms of buffered data.
+	CPPUNIT_ASSERT_MESSAGE("Comprehensive sense test failed (1).", !store.can_sense());
+	store.update(1000);
+	CPPUNIT_ASSERT_MESSAGE("Comprehensive sense test failed (2).", store.can_sense() && (store.sense()==100));
+	store.delay(105); //Value: {1000, 105}
+	CPPUNIT_ASSERT_MESSAGE("Comprehensive sense test failed (3).", store.can_sense() && (store.sense()==100));
+
+	//We now have 1000ms of buffered data
+	for (unsigned int i=1001; i<=1099; i++) {
+		store.update(i);
+		if (!store.can_sense() || (store.sense()!=100)) {
+			std::stringstream msg;
+			msg <<"Comprehensive sense test failed (4+" <<i <<").";
+			CPPUNIT_FAIL(msg.str().c_str());
+		}
+	}
+	store.update(1100);
+	CPPUNIT_ASSERT_MESSAGE("Comprehensive sense test failed (5).", store.can_sense() && (store.sense()==98));
+	store.delay(144); //Value: {1100, 144}
+	CPPUNIT_ASSERT_MESSAGE("Comprehensive sense test failed (6).", store.can_sense() && (store.sense()==98));
+
+	//Perform automatic checks for the remaining data.
+	int i = 7;
+	CheckPoint(store, i, 1200, 102, 145);
+	CheckPoint(store, i, 1300, 97, 141);
+	CheckPoint(store, i, 1400, 96, 130);
+	CheckPoint(store, i, 1500, -1, 122);  //Stop storing data after this test
+	CheckPoint(store, i, 1600, 103, -1);
+	CheckPoint(store, i, 1700, 95, -1);
+	CheckPoint(store, i, 1800, 92, -1);
+	CheckPoint(store, i, 1900, 99, -1);   //Last automatic value; now just wind down.
+	CheckPoint(store, i, 2000, 105, -1);
+	CheckPoint(store, i, 2100, 144, -1);
+	CheckPoint(store, i, 2200, 145, -1);
+	CheckPoint(store, i, 2300, 141, -1);
+	CheckPoint(store, i, 2400, 130, -1);
+
+	//Last value. Double-check boundaries
+	CheckPoint(store, i, 2499, 130, -1);
+	CheckPoint(store, i, 2500, 122, -1);
+	CheckPoint(store, i, 2501, 122, -1);
+	CheckPoint(store, i, 9999, 122, -1);
+}
+
 
 
 

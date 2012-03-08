@@ -56,6 +56,24 @@ void sim_mob::Vehicle::initPath(vector<WayPoint> wp_path, int startLaneID) {
 	fwdMovement.setPath(path, startLaneID);
 }
 
+
+void sim_mob::Vehicle::resetPath(vector<WayPoint> wp_path) {
+	//Construct a list of RoadSegments.
+	vector<const RoadSegment*> path;
+	for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
+		if (it->type_ == WayPoint::ROAD_SEGMENT) {
+			path.push_back(it->roadSegment_);
+//			std::cout<<it->roadSegment_->getStart()->location.getX()<<std::endl;
+		}
+	}
+
+	//Assume this is sufficient; we will specifically test for error cases later.
+	error_state = false;
+
+	//reset
+	fwdMovement.resetPath(path);
+}
+
 const vector<const RoadSegment*>& sim_mob::Vehicle::getCompletePath() const {
 	return fwdMovement.fullPath;
 }

@@ -12,6 +12,7 @@
 #include "StreetDirectory.hpp"
 #include "buffering/Vector2D.hpp"
 #include "entities/Signal.hpp"
+#include "entities/TrafficWatch.hpp"
 #include "BusStop.hpp"
 #include "Crossing.hpp"
 #include "ZebraCrossing.hpp"
@@ -642,6 +643,9 @@ public:
     std::vector<WayPoint>
     shortestWalkingPath(Point2D const & fromPoint, Point2D const & toPoint) const;
 
+    void updateEdgeProperty();
+    void GeneratePathChoiceSet();
+
 private:
     // We attach a property to each vertex, its name.  We treat the name property as a mean
     // to identify the vertex.  However instead of a textual name, the actual value that we
@@ -651,8 +655,10 @@ private:
     // Each edge has a weight property cascaded with a name property.  Just like the vertex's
     // name property, the edge's name property is the pointer to WayPoint.  The weight property is
     // the length of the road-segment, side-walk or crossing that each edge represent.
-    typedef boost::property<boost::edge_weight_t, centimeter_t,
-                boost::property<boost::edge_name_t, WayPoint> > EdgeProperties;
+//    typedef boost::property<boost::edge_weight_t, centimeter_t,
+//                boost::property<boost::edge_name_t, WayPoint> > EdgeProperties;
+    typedef boost::property<boost::edge_weight_t, double,
+    		boost::property<boost::edge_name_t, WayPoint> > EdgeProperties;
     // The graph contains arrays of integers for the vertices and edges and is a directed graph.
     typedef boost::adjacency_list<boost::vecS,
                                   boost::vecS,
@@ -663,7 +669,7 @@ private:
     typedef Graph::vertex_descriptor Vertex;  // A vertex is an integer into the vertex array.
     typedef Graph::edge_descriptor Edge; // An edge is an integer into the edge array.
 
-private:
+public:
     Graph drivingMap_; // A map for drivers, containing road-segments as edges.
     Graph walkingMap_; // A map for pedestrians, containing side-walks and crossings as edges.
     std::vector<Node *> nodes_; // "Internal" uni-nodes that are created when building the maps.
@@ -672,8 +678,8 @@ private:
 private:
     void process(std::vector<RoadSegment*> const & roads, bool isForward);
     void process(RoadSegment const * road, bool isForward);
+    void clearChoiceSet();
 
-    void GeneratePathChoiceSet(Graph const & graph);
     bool checkIfExist(std::vector<std::vector<WayPoint> > & paths, std::vector<WayPoint> & path);
     // Oh wow!  Overloaded functions with different return types.
     Node const * findVertex(Graph const & graph, Point2D const & point, centimeter_t distance) const;
@@ -684,6 +690,11 @@ private:
 
     void addRoadEdge(Node const * node1, Node const * node2,
                      WayPoint const & wp, centimeter_t length);
+
+    void addRoadEdgeWithTravelTime(Node const * node1, Node const * node2,
+    		         WayPoint const & wp, double travelTime);
+
+
 
     void addSideWalk(Lane const * sideWalk, centimeter_t length);
     void addCrossing(Crossing const * crossing, centimeter_t length);
@@ -852,12 +863,14 @@ inline StreetDirectory::ShortestPathImpl::ShortestPathImpl(RoadNetwork const & n
         process(link->getPath(true), true);
         process(link->getPath(false), false);
     }
-    GeneratePathChoiceSet(drivingMap_);
+    GeneratePathChoiceSet();
 }
 
 void
 StreetDirectory::ShortestPathImpl::process(RoadSegment const * road, bool isForward)
 {
+	double avgSpeed;
+	std::map<const RoadSegment*, double>::iterator avgSpeedRSMapIt;
     // If this road-segment is inside a one-way Link, then there should be 2 side-walks.
     std::vector<Lane*> const & lanes = road->getLanes();
     for (size_t i = 0; i < lanes.size(); ++i)
@@ -889,6 +902,7 @@ StreetDirectory::ShortestPathImpl::process(RoadSegment const * road, bool isForw
         RoadItemAndOffsetPair pair = road->nextObstacle(offset, isForward);
         if (0 == pair.item)
         {
+        	offset = road->length;
             break;
         }
 
@@ -927,7 +941,13 @@ StreetDirectory::ShortestPathImpl::process(RoadSegment const * road, bool isForw
         {
             const Point2D pos = getBusStopPosition(road, offset);
             Node * node2 = new UniNode(pos.getX(), pos.getY());
-            addRoadEdge(node1, node2, WayPoint(busStop), offset);
+//            addRoadEdge(node1, node2, WayPoint(busStop), offset);
+
+
+            avgSpeed = 100*road->maxSpeed/3.6;
+            if(avgSpeed<=0)
+            	avgSpeed = 10;
+            addRoadEdgeWithTravelTime(node1, node2, WayPoint(busStop), offset/avgSpeed);
             nodes_.push_back(node2);
             node1 = node2;
         }
@@ -942,7 +962,15 @@ StreetDirectory::ShortestPathImpl::process(RoadSegment const * road, bool isForw
         Point2D point = polyline[polyline.size() - 1];
         node2 = findNode(point);
     }
-    addRoadEdge(node1, node2, WayPoint(road), offset);
+
+
+    avgSpeed = 100*road->maxSpeed/3.6;
+    if(avgSpeed<=0)
+    	avgSpeed = 10;
+
+//    std::cout<<"node1 "<<node1->location.getX()<<" to node2 "<<node2->location.getX()<<" is "<<offset/(100*road->maxSpeed/3.6)<<std::endl;
+//    addRoadEdge(node1, node2, WayPoint(road), offset);
+    addRoadEdgeWithTravelTime(node1, node2, WayPoint(road), offset/avgSpeed);
 }
 
 // Search for <node> in <graph>.  If any vertex in <graph> has <node> attached to it, return it;
@@ -996,6 +1024,64 @@ StreetDirectory::ShortestPathImpl::addRoadEdge(Node const * node1, Node const * 
     }
 }
 
+
+// Insert a directed edge into the drivingMap_ graph from <node1> to <node2>, which represent
+// vertices in the graph.  <wp> is attached to the edge as its name property and <length> as
+// its weight property.
+void
+StreetDirectory::ShortestPathImpl::addRoadEdgeWithTravelTime(Node const * node1, Node const * node2,
+                                               WayPoint const & wp, double travelTime)
+{
+    Vertex u = findVertex(drivingMap_, node1);
+    Vertex v = findVertex(drivingMap_, node2);
+
+    Edge edge;
+    bool ok;
+    boost::tie(edge, ok) = boost::add_edge(u, v, drivingMap_);
+    boost::put(boost::edge_name, drivingMap_, edge, wp);
+    boost::put(boost::edge_weight, drivingMap_, edge, travelTime);
+
+    //NOTE: With some combinations of boost+gcc+optimizations, this sometimes adds
+    //      a null node. Rather than silently crashing, we will directly check the
+    //      added value here and explicitly fail if corruption occurred. ~Seth
+    //VERY IMPORTANT NOTE: If you are using boost 1.42.0, gcc 4.5.2, and -O2, gcc will
+    //     optimize out the previous boost::put and you wiil get a lot of WayPoint::Invalid
+    //     edges. The following lines of code ensure that, by checking the value of the inserted
+    //     WayPoint, it is not optimized away. This is a bug in gcc, so please do not remove the
+    //     following lines of code. ~Seth
+    WayPoint cp = boost::get(boost::edge_name, drivingMap_, edge);
+    if (cp.type_ != wp.type_) {
+    	throw std::runtime_error("StreetDirectory::addRoadEdge; boost::put corrupted data."
+    		"This sometimes happens with certain versions of boost, gcc, and optimization level 2.");
+    }
+}
+
+
+void
+StreetDirectory::ShortestPathImpl::updateEdgeProperty()
+{
+	double avgSpeed, travelTime;
+	std::map<const RoadSegment*, double>::iterator avgSpeedRSMapIt;
+	Graph::edge_iterator iter, end;
+	for (boost::tie(iter, end) = boost::edges(drivingMap_); iter != end; ++iter)
+	{
+//		std::cout<<"edge"<<std::endl;
+		Edge e = *iter;
+		WayPoint wp = boost::get(boost::edge_name, drivingMap_, e);
+		if (wp.type_ != WayPoint::ROAD_SEGMENT)
+			continue;
+		const RoadSegment * rs = wp.roadSegment_;
+		avgSpeedRSMapIt = sim_mob::TrafficWatch::instance().getAvgSpeedRS().find(rs);
+		if(avgSpeedRSMapIt != sim_mob::TrafficWatch::instance().getAvgSpeedRS().end())
+			avgSpeed = avgSpeedRSMapIt->second;
+		else
+			avgSpeed = 100*rs->maxSpeed/3.6;
+		if(avgSpeed<=0)
+			avgSpeed = 10;
+		travelTime = rs->length / avgSpeed;
+		boost::put(boost::edge_weight, drivingMap_, e, travelTime);
+	}
+}
 // If there is a Node in the walkingMap_ that is within 10 meters from <point>, return the
 // vertex with that node; otherwise create a new "internal" node located at <point>, insert a
 // vertex with the new node, and return the vertex.  "Internal" means the node exists only in the
@@ -1410,35 +1496,43 @@ bool StreetDirectory::ShortestPathImpl::checkIfExist(std::vector<std::vector<Way
 	return false;
 }
 
-void StreetDirectory::ShortestPathImpl::GeneratePathChoiceSet(Graph const & graph)
+void StreetDirectory::ShortestPathImpl::clearChoiceSet()
 {
+	choiceSet.clear();
+
+}
+
+
+void StreetDirectory::ShortestPathImpl::GeneratePathChoiceSet()
+{
+	clearChoiceSet();
 	Graph::vertex_iterator iter, end;
-	for (boost::tie(iter, end) = boost::vertices(graph); iter != end; ++iter)
+	for (boost::tie(iter, end) = boost::vertices(drivingMap_); iter != end; ++iter)
 	{
 		Vertex v = *iter;
-		Node const * node = boost::get(boost::vertex_name, graph, v);
+		Node const * node = boost::get(boost::vertex_name, drivingMap_, v);
 		std::vector<std::vector<std::vector<WayPoint> > > paths_from_v;
 
-		std::vector<Vertex> parent(boost::num_vertices(graph));
-		for (Graph::vertices_size_type i = 0; i < boost::num_vertices(graph); ++i)
+		std::vector<Vertex> parent(boost::num_vertices(drivingMap_));
+		for (Graph::vertices_size_type i = 0; i < boost::num_vertices(drivingMap_); ++i)
 			parent[i] = i;
 
 		//std::cout<<"vertex "<<v<<std::endl;
-		boost::dijkstra_shortest_paths(graph, v, boost::predecessor_map(&parent[0]));
-		for (Graph::vertices_size_type i = 0; i < boost::num_vertices(graph); ++i)
+		boost::dijkstra_shortest_paths(drivingMap_, v, boost::predecessor_map(&parent[0]));
+		for (Graph::vertices_size_type i = 0; i < boost::num_vertices(drivingMap_); ++i)
 		{
 			std::vector<std::vector<WayPoint> > temp_paths;
 			std::vector<Edge> edges;
-			temp_paths.push_back(extractShortestPath(v, i, parent, graph,edges));
+			temp_paths.push_back(extractShortestPath(v, i, parent, drivingMap_,edges));
 			for(size_t j=0; j<edges.size(); j++)
 			{
 				centimeter_t length = boost::get(boost::edge_weight, drivingMap_, edges.at(j));
 				boost::put(boost::edge_weight, drivingMap_, edges.at(j), 10*length);
-				std::vector<Vertex> parent(boost::num_vertices(graph));
-				for (Graph::vertices_size_type k = 0; k < boost::num_vertices(graph); ++k)
+				std::vector<Vertex> parent(boost::num_vertices(drivingMap_));
+				for (Graph::vertices_size_type k = 0; k < boost::num_vertices(drivingMap_); ++k)
 					parent[k] = k;
-				boost::dijkstra_shortest_paths(graph, v, boost::predecessor_map(&parent[0]));
-				std::vector<WayPoint> path = extractShortestPath(v, i, parent, graph);
+				boost::dijkstra_shortest_paths(drivingMap_, v, boost::predecessor_map(&parent[0]));
+				std::vector<WayPoint> path = extractShortestPath(v, i, parent, drivingMap_);
 				if(!checkIfExist(temp_paths, path))
 					temp_paths.push_back(path);
 				boost::put(boost::edge_weight, drivingMap_, edges.at(j), length);
@@ -1464,6 +1558,16 @@ StreetDirectory::init(RoadNetwork const & network, bool keepStats /* = false */,
         stats_ = new Stats;
     pimpl_ = new Impl(network, gridWidth, gridHeight);
     spImpl_ = new ShortestPathImpl(network);
+}
+
+void
+StreetDirectory::updateDrivingMap()
+{
+	if(spImpl_)
+	{
+		spImpl_->updateEdgeProperty();
+		spImpl_->GeneratePathChoiceSet();
+	}
 }
 
 StreetDirectory::LaneAndIndexPair

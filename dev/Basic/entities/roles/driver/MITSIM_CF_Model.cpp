@@ -124,8 +124,8 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 		//when decelerating, don't use reaction time
 		if(p.isApproachingToIntersection&&p.isTrafficLightStop)
 		{
-			p.v_lead = (mode!=AM_VEHICLE) ? 0 : p.nvFwd.driver->getVehicle()->getVelocity()/100;
-			p.a_lead = (mode!=AM_VEHICLE) ? 0 : p.nvFwd.driver->getVehicle()->getAcceleration()/100;
+			p.v_lead = (mode!=AM_VEHICLE) ? 0 : p.nvFwd.driver->fwdVelocity.get()/100;
+			p.a_lead = (mode!=AM_VEHICLE) ? 0 : p.nvFwd.driver->fwdAccel.get()/100;
 		}
 		else
 		{

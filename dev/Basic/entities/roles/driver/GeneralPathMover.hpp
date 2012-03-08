@@ -41,6 +41,12 @@ public:
 	///TODO: I'm not entirely sure that all cases of fwd/rev RoadSegments are handled properly.
 	void setPath(const std::vector<const sim_mob::RoadSegment*>& path, int startLaneID);
 
+
+	//reset path
+	//in route choice model, it will be used when the vehicle is approaching an intersection
+	//and it needs to find a new route
+	void resetPath(const std::vector<const sim_mob::RoadSegment*>& path);
+
 	///Is it possible to move? Attempting to operate on a GeneralPathmover which has no RoadSegments in
 	/// its path is an error.
 	bool isPathSet() const;

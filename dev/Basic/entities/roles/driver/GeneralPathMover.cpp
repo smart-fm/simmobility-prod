@@ -145,6 +145,23 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 
 }
 
+
+void sim_mob::GeneralPathMover::resetPath(const vector<const RoadSegment*>& path) {
+
+	//Determine whether or not the first one is fwd.
+	if (path.empty()) {
+		throw std::runtime_error("Attempting to reset a path with 0 road segments");
+	}
+	//Add RoadSegments to the path.
+	Link* currLink = nullptr;
+	fullPath.clear();
+	for (vector<const RoadSegment*>::const_iterator it = path.begin(); it != path.end(); it++) {
+		fullPath.push_back(*it);
+	}
+	//Re-generate the polylines array, etc.
+	currSegmentIt = fullPath.begin();
+}
+
 void sim_mob::GeneralPathMover::calcNewLaneDistances() {
 	DynamicVector zeroPoly(currLaneZeroPolypoint->getX(), currLaneZeroPolypoint->getY(), nextLaneZeroPolypoint->getX(),
 			nextLaneZeroPolypoint->getY());

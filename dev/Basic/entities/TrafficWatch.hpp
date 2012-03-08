@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include <map>
 #include <vector>
 
 #include "GenConfig.h"
@@ -29,6 +30,8 @@ private:
 	static TrafficWatch instance_;
 	static std::map<const RoadSegment*, double> avgSpeedRS;
 	static std::map<const RoadSegment*, size_t> numVehRS;
+
+	TrafficWatch() {} //Private constructor makes more sense for a singleton.
 public:
     static TrafficWatch &
     instance()

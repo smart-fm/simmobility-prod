@@ -17,9 +17,9 @@
 using std::vector;
 using namespace sim_mob;
 
-/* static */ TrafficWatch TrafficWatch::instance_;
-/* static */ std::map<const RoadSegment*, double> TrafficWatch::avgSpeedRS;
-/* static */ std::map<const RoadSegment*, size_t> TrafficWatch::numVehRS;
+/* static */ TrafficWatch sim_mob::TrafficWatch::instance_;
+/* static */ std::map<const RoadSegment*, double> sim_mob::TrafficWatch::avgSpeedRS;
+/* static */ std::map<const RoadSegment*, size_t> sim_mob::TrafficWatch::numVehRS;
 
 //traffic watch will update each 1000 frames.
 void sim_mob::TrafficWatch::update(frame_t frameNumber) {

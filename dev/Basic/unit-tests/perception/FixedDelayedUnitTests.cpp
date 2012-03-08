@@ -238,6 +238,7 @@ struct View {
 	int value;
 };
 const View Sequence1[] = {{0, 100}, {100, 98}, {200, 102}, {300, 97}, {400, 96}, {500, 1}, {600, 103}, {700, 95}, {800, 92}, {900, 99}};
+const View Sequence2[] = {{0, 199}, {100, 2}, {200, 100}, /*{300, 175},*/ {400, 210}, {500, 185}, {600, 111}, {700, 122}, {800, 221}};
 
 //Store all.
 void StoreAll(FixedDelayed<int>& store, const View seq[], size_t sz) {
@@ -389,5 +390,92 @@ void unit_tests::FixedDelayedUnitTests::test_FixedDelayed_expanding_reaction_tim
 	store.set_delay(10);
 	CPPUNIT_ASSERT_MESSAGE("Expanding test failed (21).", !store.can_sense());
 }
+
+
+
+void unit_tests::FixedDelayedUnitTests::test_FixedDelayed_comprehensive_variable_reaction()
+{
+	//Try to present data that an Agent might see approaching a traffic light
+	//(e.g., perception improves, then degrades as it moves away)
+	FixedDelayed<int> store(1000);
+	store.set_delay(900);
+	StoreAll(store, Sequence2, sizeof(Sequence2)/sizeof(Sequence2[0]));
+
+	//We now have 0..800 added. Ensure we can't detect anything, then upgrade to 900.
+	CPPUNIT_ASSERT_MESSAGE("Comprehensive variable test failed (1).", !store.can_sense());
+	store.update(900);
+	CPPUNIT_ASSERT_MESSAGE("Comprehensive variable test failed (2).", store.can_sense()&&(store.sense()==199));
+	store.delay(223); //Value: {900, 223}
+	CPPUNIT_ASSERT_MESSAGE("Comprehensive variable test failed (3).", store.can_sense()&&(store.sense()==199));
+
+	//Go back to 1000s delay, ensure we can't sense, and update.
+	store.set_delay(1000);
+	CPPUNIT_ASSERT_MESSAGE("Comprehensive variable test failed (4).", !store.can_sense());
+	store.update(1000);
+	CPPUNIT_ASSERT_MESSAGE("Comprehensive variable test failed (5).", store.can_sense()&&(store.sense()==199));
+	store.delay(544); //Value: {1000, 544}
+	CPPUNIT_ASSERT_MESSAGE("Comprehensive variable test failed (6).", store.can_sense()&&(store.sense()==199));
+
+	//Flip back and forth between 900 and 1000 without updating.
+	store.set_delay(900);
+	CPPUNIT_ASSERT_MESSAGE("Comprehensive variable test failed (7).", store.can_sense()&&(store.sense()==2));
+	store.set_delay(1000);
+	CPPUNIT_ASSERT_MESSAGE("Comprehensive variable test failed (8).", store.can_sense()&&(store.sense()==199));
+	store.set_delay(900);
+	CPPUNIT_ASSERT_MESSAGE("Comprehensive variable test failed (9).", store.can_sense()&&(store.sense()==2));
+	store.set_delay(1000);
+	CPPUNIT_ASSERT_MESSAGE("Comprehensive variable test failed (10).", store.can_sense()&&(store.sense()==199));
+
+	//Add a few more values at a sensation of 900
+	store.set_delay(900);
+	int i = 11;
+	std::string msg = "Comprehensive variable test failed";
+	CheckPoint(store, i, 1100, 100, 399, msg);
+	CheckPoint(store, i, 1200, 100, 656, msg);
+	CheckPoint(store, i, 1300, 210, 787, msg); //"skipped" message
+	CheckPoint(store, i, 1400, 185, 900, msg);
+	CheckPoint(store, i, 1500, 111, 338, msg);
+
+	//Approaching traffic light: sensation increases by 50 for the next few values
+	store.set_delay(850);
+	CheckPoint(store, i, 1600, 122, -1, msg);
+	store.set_delay(800);
+	CheckPoint(store, i, 1700, 223, 1001, msg);
+	store.set_delay(750);
+	CheckPoint(store, i, 1800, 544, 987, msg);
+	store.set_delay(700);
+	CheckPoint(store, i, 1900, 656, 634, msg);
+
+	//Much closer: sensation increases by 200 for the next few values
+	store.set_delay(500);
+	CheckPoint(store, i, 2000, 338, 20, msg);
+	store.set_delay(300);
+	CheckPoint(store, i, 2100, 987, 20, msg);
+
+	//Leaving the traffic light:  sensation decreases by 50 for the next few values
+	store.set_delay(350);
+	CheckPoint(store, i, 2200, 987, 20, msg);
+	store.set_delay(400);
+	CheckPoint(store, i, 2300, 634, -1, msg);
+	store.set_delay(450);
+	CheckPoint(store, i, 2400, 634, 20, msg);
+	store.set_delay(500);
+	CheckPoint(store, i, 2400, 634, -1, msg);
+
+	//Moving further away: sensation decreases by 200 back to 900
+	//NOTE: Decreasing sensation this quickly is probably not a good idea from a modelling perspective,
+	//      since the user is now sensing data which is OLDER than that which he sensed one time tick prior.
+	//      However, that is an error of *modelling*, and probably one that we don't need to handle in FixedDelayed<>.
+	store.set_delay(700);
+	CheckPoint(store, i, 2500, 987, 20, msg);
+	store.set_delay(900);
+	CheckPoint(store, i, 2600, 1001, -1, msg);
+
+	//Check a few more points at 900, just to be sure
+	CheckPoint(store, i, 2700, 987, 20, msg);
+	CheckPoint(store, i, 2800, 634, 20, msg);
+}
+
+
 
 

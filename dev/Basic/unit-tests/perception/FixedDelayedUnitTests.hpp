@@ -68,7 +68,7 @@ private:
         CPPUNIT_TEST(test_FixedDelayed_comprehensive_sense);
         CPPUNIT_TEST(test_FixedDelayed_diminishing_reaction_time);
         CPPUNIT_TEST(test_FixedDelayed_expanding_reaction_time);
-     //   CPPUNIT_TEST(test_FixedDelayed_comprehensive_variable_reaction);
+        CPPUNIT_TEST(test_FixedDelayed_comprehensive_variable_reaction);
     CPPUNIT_TEST_SUITE_END();
 };
 

@@ -345,7 +345,7 @@ void unit_tests::FixedDelayedUnitTests::test_FixedDelayed_diminishing_reaction_t
 
 	//Shorten to an odd number
 	store.set_delay(3);
-/*FAIL*/	CPPUNIT_ASSERT_MESSAGE("Diminishing test failed (14).", store.can_sense() && (store.sense()==1000));
+	CPPUNIT_ASSERT_MESSAGE("Diminishing test failed (14).", store.can_sense() && (store.sense()==900));
 
 	//Shorten to nothing
 	store.set_delay(0);
@@ -369,24 +369,25 @@ void unit_tests::FixedDelayedUnitTests::test_FixedDelayed_expanding_reaction_tim
 
 	//We are directly on a sense-able event. Increase reaction time by 1 and check.
 	store.set_delay(6);
-/*FAIL*/	CPPUNIT_ASSERT_MESSAGE("Expanding test failed (13).", store.can_sense() && (store.sense()==299));
+	CPPUNIT_ASSERT_MESSAGE("Expanding test failed (13).", store.can_sense() && (store.sense()==199));
 	store.set_delay(7);
 	CPPUNIT_ASSERT_MESSAGE("Expanding test failed (14).", store.can_sense() && (store.sense()==199));
 	store.set_delay(5);
 	CPPUNIT_ASSERT_MESSAGE("Expanding test failed (15).", store.can_sense() && (store.sense()==299));
 
 	//Now update to one off from a sense-able event and try again.
-	CheckPoint(store, i, 8, 399, -1, msg);
+	i = 16;
+	CheckPoint(store, i, 8, 299, -1, msg);
 	store.set_delay(6);
-	CPPUNIT_ASSERT_MESSAGE("Expanding test failed (16).", store.can_sense() && (store.sense()==299));
+	CPPUNIT_ASSERT_MESSAGE("Expanding test failed (18).", store.can_sense() && (store.sense()==299));
 	store.set_delay(7);
-	CPPUNIT_ASSERT_MESSAGE("Expanding test failed (17).", store.can_sense() && (store.sense()==299));
+	CPPUNIT_ASSERT_MESSAGE("Expanding test failed (19).", store.can_sense() && (store.sense()==199));
 	store.set_delay(5);
-	CPPUNIT_ASSERT_MESSAGE("Expanding test failed (18).", store.can_sense() && (store.sense()==399));
+	CPPUNIT_ASSERT_MESSAGE("Expanding test failed (20).", store.can_sense() && (store.sense()==299));
 
 	//Set back to max and check.
 	store.set_delay(10);
-	CPPUNIT_ASSERT_MESSAGE("Expanding test failed (19).", !store.can_sense());
+	CPPUNIT_ASSERT_MESSAGE("Expanding test failed (21).", !store.can_sense());
 }
 
 

@@ -108,7 +108,9 @@ protected:
 
 private:
 	//Sample stored data which takes reaction time into account.
-	const static size_t reactTime = 1500; //1.5 seconds
+	unsigned int reacTime_LeadingVehicle;
+	unsigned int reacTime_SubjectVehicle;
+	unsigned int reacTime_Gap;
 	FixedDelayed<DPoint*> perceivedVelocity;
 	FixedDelayed<DPoint*> perceivedVelocityOfFwdCar;
 	FixedDelayed<double> perceivedAccelerationOfFwdCar;

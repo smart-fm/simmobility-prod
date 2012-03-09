@@ -176,13 +176,13 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, unsigned int rea
 		unsigned int reacTime_Gap) :
 	Role(parent), currLane_(mtxStrat, nullptr), currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0), isInIntersection(mtxStrat, false),
 	latMovement(mtxStrat,0),fwdVelocity(mtxStrat,0),latVelocity(mtxStrat,0),fwdAccel(mtxStrat,0),turningDirection(mtxStrat,LCS_SAME),vehicle(nullptr),
-	params(parent->getGenerator()), perceivedVelocity(reacTime_SubjectVehicle, true), perceivedVelocityOfFwdCar(
+	params(parent->getGenerator()),reacTime_LeadingVehicle(reacTime_LeadingVehicle), reacTime_SubjectVehicle(reacTime_SubjectVehicle),reacTime_Gap(reacTime_Gap),
+	perceivedVelocity(reacTime_SubjectVehicle, true), perceivedVelocityOfFwdCar(
 					reacTime_LeadingVehicle, true), perceivedAccelerationOfFwdCar(reacTime_LeadingVehicle, true),
 			perceivedDistToFwdCar(reacTime_Gap, true),perceivedTrafficSignalStop(0, true) {
 	if (Debug::Drivers) {
 		DebugStream << "Driver starting: " << parent->getId() << endl;
 	}
-
 	trafficSignal = nullptr;
 	vehicle = nullptr;
 
@@ -598,7 +598,6 @@ bool sim_mob::Driver::AvoidCrashWhenLaneChanging(DriverUpdateParams& p)
 //the movement is based on relative position
 double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 
-
 	if (!vehicle->hasNextSegment(true)) {
 		p.dis2stop = vehicle->getAllRestRoadSegmentsLength() - vehicle->getDistanceMovedInSegment() - vehicle->length
 				/ 2 - 300;
@@ -635,7 +634,9 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 			nv = NearestVehicle();
 		}
 	}
+
 	perceivedDataProcess(nv, p);
+
 	//Retrieve a new acceleration value.
 	double newFwdAcc = 0;
 
@@ -1387,13 +1388,13 @@ void sim_mob::Driver::perceivedDataProcess(NearestVehicle & nv, DriverUpdatePara
 {
 	//Update your perceptions for leading vehicle and gap
 	perceivedDistToFwdCar.delay(nv.distance);
-	if (params.nvFwd.distance != 5000) {
+	if (nv.exists()) {
 		perceivedVelocityOfFwdCar.delay(new DPoint(nv.driver->getVehicle()->getVelocity(),
 				nv.driver->getVehicle()->getLatVelocity()));
 		perceivedAccelerationOfFwdCar.delay(nv.driver->getVehicle()->getAcceleration());
 
 		//retrieve perceptions
-		size_t delayMS = 1500;
+		size_t delayMS = reacTime_LeadingVehicle;
 		//make delay time changeable
 		if(params.isApproachingToIntersection&&!params.isTrafficLightStop)
 		{
@@ -1403,7 +1404,6 @@ void sim_mob::Driver::perceivedDataProcess(NearestVehicle & nv, DriverUpdatePara
 				numV=1;
 			delayMS = delayMS/numV;
 		}
-
 		//Change perception delay
 		perceivedDistToFwdCar.set_delay(delayMS);
 		perceivedVelocityOfFwdCar.set_delay(delayMS);
@@ -1426,6 +1426,7 @@ void sim_mob::Driver::perceivedDataProcess(NearestVehicle & nv, DriverUpdatePara
 			params.perceivedDistToFwdCar = params.nvFwd.distance;
 		}
 	}
+
 
 }
 

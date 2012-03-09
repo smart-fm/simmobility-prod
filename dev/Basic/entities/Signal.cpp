@@ -528,6 +528,11 @@ void Signal::setnextCL(double DS) {
 			nextCL = currCL + sign * 9;
 		}
 	}
+
+	if(nextCL > CLmax)
+		nextCL = CLmax;
+	else if(nextCL < CLmin)
+		nextCL = CLmin;
 //	if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
 //	{
 //		std::cout<<"CL "<<currCL<<std::endl;

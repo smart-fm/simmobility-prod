@@ -1,0 +1,52 @@
+Using config file: ../data/test_road_network.xml
+Starting SimMobility, version 0:1
+Agent Load order: database  drivers  pedestrians  
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+Manual override used for demo intersection.
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+Attempting to connect to remote database... Success.
+Turnings skipped: [60984, 45696, 61684, 61686, 70394, 75826, 75828, 75830, 75836, 
+    85762, 85766, 85768, 90618, 98228, 98230, 102348, 103666, 103668, 103670, 103672, 
+    103674, 103676, 103678, 103680, 103682, 110322, 110324, 110326, 113154, 115438, 
+    115440, 115442, 60898, 60908]
+UniNode/Intersection mismatches: [61682, 70392, 90616, 91218, 98226, 102346, 
+    110320, 113152]
+OVERRIDE: Manually skipping laneID: 4550
+OVERRIDE: Manually skipping laneID: 4550
+Skipped "crossing" laneIDs: [2615, 2778, 2115, 1345, 2134, 2931, 2944, 1098, 
+    434, 500, 3859, 4550, 4550, 265, 998, 1270, 1281, 2563, 1201, 1993]
+Warning: Units are not considered when converting AIMSUN data.
+Warning: Lanes-Left-of-Divider incorrect when converting AIMSUN data.
+the node at (37262150, 14386897) (database-id=45690) does not have 4 links; no signal will be created here.
+the node at (37283599, 14393370) (database-id=75822) does not have 4 links; no signal will be created here.
+AIMSUN Network successfully imported.
+Loaded Database Agents (from Trip Chains).
+Loaded Driver Agents (from config file).
+Loaded Pedestrian Agents (from config file).
+signal at node(37250760, 14355120) already exists; skipping this config file entry
+Config parameters:
+------------------
+  Base Granularity: 100 ms
+  Total Runtime: 2100 ticks
+  Total Warmup: 100 ticks
+  Agent Granularity: 1 ticks
+  Signal Granularity: 10 ticks
+  Paths Granularity: 100 ticks
+  Decomp Granularity: 600 ticks
+  Start time: 08:30:00
+  Mutex strategy: Buffered
+Network details loaded from connection: host=172.18.127.157 port=5432 dbname=SimMobility_DB user=postgres password=***********
+------------------
+------------------
+  Agents Initialized: 20
+------------------
+XML config file loaded.
+Configuration complete.
+  ...Sanity Check Passed
+Initial Agents dispatched or pushed to pending.
+Approximate Tick Boundary: 0, 0 ms   [0%]
+  Warmup; output ignored.
+DS 0
+RL 51.45
+Approximate Tick Boundary: 1, 100 ms   [0%]
+  Warmup; output ignored.

@@ -1,0 +1,66 @@
+warning: InstallSourcePackage at: psm.c:244: Header V3 RSA/SHA256 Signature, key ID 0608b895: NOKEY
+Installing tinyxml-2.6.1-1.el6.src.rpm
+Executing(%prep): /bin/sh -e /var/tmp/rpm-tmp.DeQSjw
++ umask 022
++ cd /home/sethhetu/rpmbuild/BUILD
++ LANG=C
++ export LANG
++ unset DISPLAY
++ cd /home/sethhetu/rpmbuild/BUILD
++ rm -rf tinyxml
++ /bin/gzip -dc /home/sethhetu/rpmbuild/SOURCES/tinyxml_2_6_1.tar.gz
++ /bin/tar -xf -
++ STATUS=0
++ '[' 0 -ne 0 ']'
++ cd tinyxml
++ /bin/chmod -Rf a+rX,u+w,g-w,o-w .
++ echo 'Patch #0 (tinyxml-2.5.3-stl.patch):'
+Patch #0 (tinyxml-2.5.3-stl.patch):
++ /bin/cat /home/sethhetu/rpmbuild/SOURCES/tinyxml-2.5.3-stl.patch
++ /usr/bin/patch -s -p1 -b --suffix .stl --fuzz=0
++ touch -r tinyxml.h.stl tinyxml.h
++ exit 0
+Executing(%build): /bin/sh -e /var/tmp/rpm-tmp.YWAKWa
++ umask 022
++ cd /home/sethhetu/rpmbuild/BUILD
++ cd tinyxml
++ LANG=C
++ export LANG
++ unset DISPLAY
++ for i in tinyxml.cpp tinystr.cpp tinyxmlerror.cpp tinyxmlparser.cpp
++ g++ -O2 -g -fPIC -o tinyxml.cpp.o -c tinyxml.cpp
++ for i in tinyxml.cpp tinystr.cpp tinyxmlerror.cpp tinyxmlparser.cpp
++ g++ -O2 -g -fPIC -o tinystr.cpp.o -c tinystr.cpp
++ for i in tinyxml.cpp tinystr.cpp tinyxmlerror.cpp tinyxmlparser.cpp
++ g++ -O2 -g -fPIC -o tinyxmlerror.cpp.o -c tinyxmlerror.cpp
++ for i in tinyxml.cpp tinystr.cpp tinyxmlerror.cpp tinyxmlparser.cpp
++ g++ -O2 -g -fPIC -o tinyxmlparser.cpp.o -c tinyxmlparser.cpp
++ g++ -O2 -g -shared -o libtinyxml.so.0.2.6.1 -Wl,-soname,libtinyxml.so.0 tinystr.cpp.o tinyxml.cpp.o tinyxmlerror.cpp.o tinyxmlparser.cpp.o
++ exit 0
+Executing(%install): /bin/sh -e /var/tmp/rpm-tmp.h36fp9
++ umask 022
++ cd /home/sethhetu/rpmbuild/BUILD
++ '[' /home/sethhetu/rpmbuild/BUILDROOT/tinyxml-2.6.1-1.el6.tile '!=' / ']'
++ rm -rf /home/sethhetu/rpmbuild/BUILDROOT/tinyxml-2.6.1-1.el6.tile
+++ dirname /home/sethhetu/rpmbuild/BUILDROOT/tinyxml-2.6.1-1.el6.tile
++ mkdir -p /home/sethhetu/rpmbuild/BUILDROOT
++ mkdir /home/sethhetu/rpmbuild/BUILDROOT/tinyxml-2.6.1-1.el6.tile
++ cd tinyxml
++ LANG=C
++ export LANG
++ unset DISPLAY
++ rm -rf /home/sethhetu/rpmbuild/BUILDROOT/tinyxml-2.6.1-1.el6.tile
++ mkdir -p /home/sethhetu/rpmbuild/BUILDROOT/tinyxml-2.6.1-1.el6.tile/usr/lib
++ mkdir -p /home/sethhetu/rpmbuild/BUILDROOT/tinyxml-2.6.1-1.el6.tile/usr/include
++ install -m 755 libtinyxml.so.0.2.6.1 /home/sethhetu/rpmbuild/BUILDROOT/tinyxml-2.6.1-1.el6.tile/usr/lib
++ ln -s libtinyxml.so.0.2.6.1 /home/sethhetu/rpmbuild/BUILDROOT/tinyxml-2.6.1-1.el6.tile/usr/lib/libtinyxml.so.0
++ ln -s libtinyxml.so.0.2.6.1 /home/sethhetu/rpmbuild/BUILDROOT/tinyxml-2.6.1-1.el6.tile/usr/lib/libtinyxml.so
++ install -p -m 644 tinyxml.h /home/sethhetu/rpmbuild/BUILDROOT/tinyxml-2.6.1-1.el6.tile/usr/include
++ /usr/lib/rpm/find-debuginfo.sh --strict-build-id /home/sethhetu/rpmbuild/BUILD/tinyxml
+/var/tmp/rpm-tmp.h36fp9: line 48: /usr/lib/rpm/find-debuginfo.sh: Permission denied
+error: Bad exit status from /var/tmp/rpm-tmp.h36fp9 (%install)
+
+
+RPM build errors:
+    InstallSourcePackage at: psm.c:244: Header V3 RSA/SHA256 Signature, key ID 0608b895: NOKEY
+    Bad exit status from /var/tmp/rpm-tmp.h36fp9 (%install)

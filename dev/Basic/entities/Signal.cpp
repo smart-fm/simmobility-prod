@@ -852,6 +852,13 @@ Signal::TrafficColor Signal::getPedestrianLight(Crossing const & crossing) const
 				<< std::endl;
 		stream << "    Crossing far-line is " << crossing.farLine.first << " to " << crossing.farLine.second
 				<< std::endl;
+
+		stream << "    Looking for pointer: " <<(&crossing) <<"  in {\n";
+		for (std::map<Crossing const *, size_t>::const_iterator it=crossings_map_.begin(); it!=crossings_map_.end(); it++) {
+			stream << "      " <<it->first <<"\n";
+		}
+		stream << "    }" <<std::endl;
+
 		throw stream.str();
 	}
 	size_t index = iter->second;

@@ -20,6 +20,21 @@ public:
 	virtual double makeAcceleratingDecision(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed) = 0;  ///<Decide acceleration
 };
 
+/**
+ *
+ * Simple version of the car following model
+ * The purpose of this model is to demonstrate a very simple (yet reasonably accurate) model
+ * which generates somewhat plausible visuals. This model should NOT be considered valid, but
+ * it can be used for demonstrations and for learning how to write your own *Model subclasses.
+ *
+ * \author Seth N. Hetu
+ */
+class SimpleCarFollowModel : public CarFollowModel {
+public:
+	///Decide acceleration. Simply attempts to reach the target speed.
+	virtual double makeAcceleratingDecision(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed);
+};
+
 //MITSIM version of car following model
 class MITSIM_CF_Model : public CarFollowModel {
 public:

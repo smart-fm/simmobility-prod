@@ -30,6 +30,12 @@ public:
 };
 
 /**
+ *
+ * Simple version of the intersection driving model
+ * The purpose of this model is to demonstrate a very simple (yet reasonably accurate) model
+ * which generates somewhat plausible visuals. This model should NOT be considered valid, but
+ * it can be used for demonstrations and for learning how to write your own *Model subclasses.
+ *
  * \author Seth N. Hetu
  */
 class SimpleIntDrivingModel : public IntersectionDrivingModel {

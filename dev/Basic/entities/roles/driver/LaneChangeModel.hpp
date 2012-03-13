@@ -17,13 +17,26 @@ namespace sim_mob {
  * \author Li Zhemin
  * \author Seth N. Hetu
  */
-
-
 class LaneChangeModel {
 public:
 	///to execute the lane changing, meanwhile, check if crash will happen and avoid it
 	///Return new lateral velocity, or <0 to keep the velocity at its previous value.
 	virtual double executeLaneChanging(sim_mob::DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir) = 0;
+};
+
+
+/**
+ *
+ * Simple version of the lane changing model
+ * The purpose of this model is to demonstrate a very simple (yet reasonably accurate) model
+ * which generates somewhat plausible visuals. This model should NOT be considered valid, but
+ * it can be used for demonstrations and for learning how to write your own *Model subclasses.
+ *
+ * \author Seth N. Hetu
+ */
+class SimpleLaneChangeModel : public LaneChangeModel {
+public:
+	virtual double executeLaneChanging(sim_mob::DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir);
 };
 
 class MITSIM_LC_Model : public LaneChangeModel {

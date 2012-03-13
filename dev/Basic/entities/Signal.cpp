@@ -778,7 +778,7 @@ Signal::VehicleTrafficColors Signal::getDriverLight(Lane const & lane) const {
 	Link const * link = road->getLink();
 	std::map<Link const *, size_t>::const_iterator iter = links_map_.find(link);
 	if (iter == links_map_.end()) {
-		throw mismatchError("Signal::getDriverLight(lane)", *this, *road);
+		throw std::runtime_error(mismatchError("Signal::getDriverLight(lane)", *this, *road).c_str());
 	}
 
 	size_t index = iter->second;
@@ -794,7 +794,7 @@ Signal::TrafficColor Signal::getDriverLight(Lane const & fromLane, Lane const & 
 	Link const * fromLink = fromRoad->getLink();
 	std::map<Link const *, size_t>::const_iterator iter = links_map_.find(fromLink);
 	if (iter == links_map_.end()) {
-		throw mismatchError("Signal::getDriverLight(fromLane, toLane)", *this, *fromRoad);
+		throw std::runtime_error(mismatchError("Signal::getDriverLight(fromLane, toLane)", *this, *fromRoad).c_str());
 	}
 	size_t fromIndex = iter->second;
 
@@ -802,7 +802,7 @@ Signal::TrafficColor Signal::getDriverLight(Lane const & fromLane, Lane const & 
 	Link const * toLink = toRoad->getLink();
 	iter = links_map_.find(toLink);
 	if (iter == links_map_.end()) {
-		throw mismatchError("Signal::getDriverLight(fromLane, toLane)", *this, *toRoad);
+		throw std::runtime_error(mismatchError("Signal::getDriverLight(fromLane, toLane)", *this, *toRoad).c_str());
 	}
 	size_t toIndex = iter->second;
 
@@ -859,7 +859,7 @@ Signal::TrafficColor Signal::getPedestrianLight(Crossing const & crossing) const
 		}
 		stream << "    }" <<std::endl;
 
-		throw stream.str();
+		throw std::runtime_error(stream.str().c_str());
 	}
 	size_t index = iter->second;
 	return convertToTrafficColor(buffered_TC.get().TC_for_Pedestrian[index]);

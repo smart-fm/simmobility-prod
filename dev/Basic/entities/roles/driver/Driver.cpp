@@ -177,9 +177,10 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, unsigned int rea
 	Role(parent), currLane_(mtxStrat, nullptr), currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0), isInIntersection(mtxStrat, false),
 	latMovement(mtxStrat,0),fwdVelocity(mtxStrat,0),latVelocity(mtxStrat,0),fwdAccel(mtxStrat,0),turningDirection(mtxStrat,LCS_SAME),vehicle(nullptr),
 	params(parent->getGenerator()),reacTime_LeadingVehicle(reacTime_LeadingVehicle), reacTime_SubjectVehicle(reacTime_SubjectVehicle),reacTime_Gap(reacTime_Gap),
-	perceivedVelocity(reacTime_SubjectVehicle, true), perceivedVelocityOfFwdCar(
-					reacTime_LeadingVehicle, true), perceivedAccelerationOfFwdCar(reacTime_LeadingVehicle, true),
-			perceivedDistToFwdCar(reacTime_Gap, true),perceivedTrafficSignalStop(0, true) {
+	perceivedVelocity(reacTime_SubjectVehicle, true), perceivedVelocityOfFwdCar(reacTime_LeadingVehicle, true),
+	perceivedAccelerationOfFwdCar(reacTime_LeadingVehicle, true), perceivedDistToFwdCar(reacTime_Gap, true),
+	perceivedTrafficSignalStop(0, true)
+{
 	if (Debug::Drivers) {
 		DebugStream << "Driver starting: " << parent->getId() << endl;
 	}
@@ -1420,9 +1421,9 @@ void sim_mob::Driver::perceivedDataProcess(NearestVehicle & nv, DriverUpdatePara
 		}
 		else
 		{
-			params.perceivedFwdVelocityOfFwdCar = params.nvFwd.driver->fwdVelocity.get();
-			params.perceivedLatVelocityOfFwdCar = params.nvFwd.driver->latVelocity.get();
-			params.perceivedAccelerationOfFwdCar = params.nvFwd.driver->fwdAccel.get();
+			params.perceivedFwdVelocityOfFwdCar = params.nvFwd.driver?params.nvFwd.driver->fwdVelocity.get():0;
+			params.perceivedLatVelocityOfFwdCar = params.nvFwd.driver?params.nvFwd.driver->latVelocity.get():0;
+			params.perceivedAccelerationOfFwdCar = params.nvFwd.driver?params.nvFwd.driver->fwdAccel.get():0;
 			params.perceivedDistToFwdCar = params.nvFwd.distance;
 		}
 	}

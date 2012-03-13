@@ -154,12 +154,8 @@ struct AngleCalculator {
 Crossing const *
 getCrossing(RoadSegment const * road) {
 	//Crossing const * result = 0;
-	double offset = std::numeric_limits<double>::max();
-
-	//std::map<int, RoadItem const *> const & obstacles = road->obstacles;
-	//std::map<int, RoadItem const *>::const_iterator iter;
-
-	int currOffset = static_cast<int> (offset);
+	//double offset = std::numeric_limits<double>::max();
+	int currOffset = 0;
 	for (;;) {
 		//Get the next item, if any.
 		RoadItemAndOffsetPair res = road->nextObstacle(currOffset, true);
@@ -176,6 +172,7 @@ getCrossing(RoadSegment const * road) {
 		//Increment
 		currOffset += res.offset;
 	}
+	std::cout <<"]";
 
 	//Failure.
 	return nullptr;

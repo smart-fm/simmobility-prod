@@ -228,7 +228,10 @@ void sim_mob::FixedDelayed<T>::set_delay(uint32_t currDelayMS)
 {
 	//Check, save
 	if (currDelayMS > maxDelayMS) {
-		throw std::runtime_error("Can't delay greater than the maximum delay value of FixedDelayed.");
+		std::stringstream msg;
+		msg <<"FixedDelayed: Can't set delay to (" <<currDelayMS <<") since it is greater than the maximum ("
+				<<maxDelayMS <<") specified in the constructor.";
+		throw std::runtime_error(msg.str().c_str());
 	}
 	this->currDelayMS = currDelayMS;
 

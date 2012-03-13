@@ -241,6 +241,10 @@ void Signal::setupIndexMaps() {
 		links_map_.insert(std::make_pair(tuple.link, i));
 		crossings_map_.insert(std::make_pair(tuple.crossing, i));
 
+		/*if (!tuple.crossing) {
+			throw 1;
+		}*/
+
 		//Append to output
 		char letter = static_cast<char> ('a' + i);
 		output << ",\"v" << letter << "\":\"" << tuple.link << "\",\"a" << letter << "\":\"" << 180 * (tuple.angle

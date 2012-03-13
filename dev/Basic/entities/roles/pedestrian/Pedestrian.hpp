@@ -158,6 +158,8 @@ private:
 
 #ifndef SIMMOB_DISABLE_MPI
 public:
+	friend class PartitionManager;
+
 	virtual void pack(PackageUtils& packageUtil);
 	virtual void unpack(UnPackageUtils& unpackageUtil);
 

@@ -27,13 +27,6 @@ public:
 	virtual DPoint continueDriving(double amount) = 0;
 	virtual bool isDone() = 0;
 	virtual double getCurrentAngle() = 0;
-
-	//add by xuyan, do nothing
-#ifndef SIMMOB_DISABLE_MPI
-public:
-	static void pack(PackageUtils& package, const IntersectionDrivingModel* params);
-	static void unpack(UnPackageUtils& unpackage, IntersectionDrivingModel* params);
-#endif
 };
 
 /**

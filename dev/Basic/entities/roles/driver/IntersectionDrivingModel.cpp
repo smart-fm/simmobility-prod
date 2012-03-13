@@ -8,14 +8,6 @@
 
 using namespace sim_mob;
 
-void IntersectionDrivingModel::pack(PackageUtils& package, const IntersectionDrivingModel* params) {
-
-}
-
-void IntersectionDrivingModel::unpack(UnPackageUtils& unpackage, IntersectionDrivingModel* params) {
-
-}
-
 void SimpleIntDrivingModel::pack(PackageUtils& package, const SimpleIntDrivingModel* params) {
 	if (params == NULL) {
 		bool is_NULL = true;

@@ -92,7 +92,7 @@ void sim_mob::Agent::pack(PackageUtils& packageUtil) {
 	//std::cout << "Agent package Called" <<this->getId()<< std::endl;
 
 	packageUtil.packBasicData(id);
-	packageUtil.packBasicData(isSubscriptionListBuilt);
+	//packageUtil.packBasicData(isSubscriptionListBuilt);
 	packageUtil.packBasicData(startTime);
 
 	sim_mob::Node::pack(packageUtil, originNode);
@@ -116,7 +116,7 @@ void sim_mob::Agent::unpack(UnPackageUtils& unpackageUtil) {
 
 	id = unpackageUtil.unpackBasicData<int> ();
 	//std::cout << "Agent unpackage Called:" <<this->getId() << std::endl;
-	isSubscriptionListBuilt = unpackageUtil.unpackBasicData<bool> ();
+	//isSubscriptionListBuilt = unpackageUtil.unpackBasicData<bool> ();
 	startTime = unpackageUtil.unpackBasicData<int> ();
 
 	originNode = Node::unpack(unpackageUtil);
@@ -147,7 +147,7 @@ void sim_mob::Agent::unpack(UnPackageUtils& unpackageUtil) {
 void sim_mob::Agent::packProxy(PackageUtils& packageUtil)
 {
 	packageUtil.packBasicData(id);
-	packageUtil.packBasicData(isSubscriptionListBuilt);
+	//packageUtil.packBasicData(isSubscriptionListBuilt);
 	packageUtil.packBasicData(startTime);
 
 	packageUtil.packBasicData(xPos.get());
@@ -163,7 +163,7 @@ void sim_mob::Agent::packProxy(PackageUtils& packageUtil)
 
 void sim_mob::Agent::unpackProxy(UnPackageUtils& unpackageUtil) {
 	id = unpackageUtil.unpackBasicData<int> ();
-	isSubscriptionListBuilt = unpackageUtil.unpackBasicData<bool> ();
+	//isSubscriptionListBuilt = unpackageUtil.unpackBasicData<bool> ();
 	startTime = unpackageUtil.unpackBasicData<int> ();
 
 	int x_pos, y_pos;

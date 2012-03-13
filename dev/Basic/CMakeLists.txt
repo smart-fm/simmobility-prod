@@ -1,5 +1,5 @@
 #Required version of cmake
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 2.6)
 
 #Project name. Used to tag resources in cmake. 
 project (Basic)

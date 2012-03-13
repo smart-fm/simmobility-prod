@@ -29,7 +29,7 @@ void sim_mob::Worker::addEntity(Entity* entity)
 void sim_mob::Worker::remEntity(Entity* entity)
 {
 	//Remove this entity from the data vector.
-	typename std::vector<Entity*>::iterator it = std::find(managedEntities.begin(), managedEntities.end(), entity);
+	std::vector<Entity*>::iterator it = std::find(managedEntities.begin(), managedEntities.end(), entity);
 	if (it!=managedEntities.end()) {
 		managedEntities.erase(it);
 	}

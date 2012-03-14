@@ -385,6 +385,7 @@ void sim_mob::DriverUpdateParams::reset(frame_t frameNumber, unsigned int currTi
 	perceivedFwdVelocity = 0;
 	perceivedLatVelocity = 0;
 	isTrafficLightStop = false;
+	perceivedTrafficColor = Signal::Green;
 	trafficSignalStopDistance = 5000;
 	elapsedSeconds = ConfigParams::GetInstance().baseGranMS / 1000.0;
 
@@ -435,6 +436,8 @@ void sim_mob::DriverUpdateParams::reset(frame_t frameNumber, unsigned int currTi
 	//If we've just moved into an intersection, is set to the amount of overflow (e.g.,
 	//  how far into it we already are.)
 	overflowIntoIntersection = 0;
+
+	turningDirection = LCS_SAME;
 
 	nvFwd.distance = 5000;
 	nvFwd = NearestVehicle();
@@ -624,6 +627,7 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 	if (vehicle->getVelocity() <= 0) {
 		vehicle->setLatVelocity(0);
 	}
+	p.turningDirection = vehicle->getTurningDirection();
 
 	//get nearest car, if not making lane changing, the nearest car should be the leading car in current lane.
 	//if making lane changing, adjacent car need to be taken into account.
@@ -1390,9 +1394,9 @@ void sim_mob::Driver::perceivedDataProcess(NearestVehicle & nv, DriverUpdatePara
 	//Update your perceptions for leading vehicle and gap
 	perceivedDistToFwdCar.delay(nv.distance);
 	if (nv.exists()) {
-		perceivedVelocityOfFwdCar.delay(new DPoint(nv.driver->getVehicle()->getVelocity(),
-				nv.driver->getVehicle()->getLatVelocity()));
-		perceivedAccelerationOfFwdCar.delay(nv.driver->getVehicle()->getAcceleration());
+		perceivedVelocityOfFwdCar.delay(new DPoint(nv.driver->fwdVelocity.get(),
+				nv.driver->latVelocity.get()));
+		perceivedAccelerationOfFwdCar.delay(nv.driver->fwdAccel.get());
 
 		//retrieve perceptions
 		size_t delayMS = reacTime_LeadingVehicle;
@@ -1638,7 +1642,7 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 				p.isTrafficLightStop = true;
 			break;
 		}
-
+		p.perceivedTrafficColor = color;
 		size_t delayMS = 0;
 		perceivedTrafficSignalStop.set_delay(delayMS);
 

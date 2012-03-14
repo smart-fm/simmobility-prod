@@ -7,6 +7,7 @@
 #include "util/DynamicVector.hpp"
 #include <boost/random.hpp>
 #include "util/LangHelpers.hpp"
+#include "entities/Signal.hpp"
 
 namespace sim_mob
 {
@@ -97,6 +98,9 @@ struct DriverUpdateParams : public UpdateParams {
 	double perceivedDistToFwdCar;
 
 	bool perceivedTrafficSignal;
+	Signal::TrafficColor perceivedTrafficColor;
+
+	LANE_CHANGE_SIDE turningDirection;
 
 	//Nearest vehicles in the current lane, and left/right (including fwd/back for each).
 	//Nearest vehicles' distances are initialized to threshold values.

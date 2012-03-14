@@ -32,7 +32,7 @@ public:
 class SimpleCarFollowModel : public CarFollowModel {
 public:
 	///Decide acceleration. Simply attempts to reach the target speed.
-	virtual double makeAcceleratingDecision(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed);
+	virtual double makeAcceleratingDecision(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed) = 0;
 };
 
 //MITSIM version of car following model
@@ -41,11 +41,20 @@ public:
 	virtual double makeAcceleratingDecision(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed);
 
 private:
+	double carFollowingRate(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed,NearestVehicle& nv);
+	double calcSignalRate(sim_mob::DriverUpdateParams& p);
+	double calcYieldingRate(sim_mob::DriverUpdateParams& p,double targetSpeed, double maxLaneSpeed);
+	double waitExitLaneRate(sim_mob::DriverUpdateParams& p);
+	double calcForwardRate(sim_mob::DriverUpdateParams& p);
+	double calcBackwardRate(sim_mob::DriverUpdateParams& p);
+	double calcAdjacentRate(sim_mob::DriverUpdateParams& p);
 	double breakToTargetSpeed(sim_mob::DriverUpdateParams& p);  ///<return the acc to a target speed within a specific distance
+	double brakeToStop(DriverUpdateParams& p, double dis);
 	double accOfEmergencyDecelerating(sim_mob::DriverUpdateParams& p);  ///<when headway < lower threshold, use this function
 	double accOfCarFollowing(sim_mob::DriverUpdateParams& p);  ///<when lower threshold < headway < upper threshold, use this function
 	double accOfFreeFlowing(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed);  ///<when upper threshold < headway, use this funcion
 	double accOfMixOfCFandFF(sim_mob::DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed); 	///<mix of car following and free flowing
+	void distanceToNormalStop(sim_mob::DriverUpdateParams& p);
 };
 
 

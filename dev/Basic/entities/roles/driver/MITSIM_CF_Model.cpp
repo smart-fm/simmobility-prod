@@ -55,6 +55,8 @@ const CarFollowParam CF_parameters[2] = {
 	{-0.0418, 0.0000, 0.1510, 0.6840, 0.6800, 0.8020}
 };
 
+const double targetGapAccParm[] = {0.604, 0.385, 0.323, 0.0678, 0.217,
+		0.583, -0.596, -0.219, 0.0832, -0.170, 1.478, 0.131, 0.300};
 
 //Acceleration mode
 enum ACCEL_MODE {
@@ -93,45 +95,37 @@ double speed;//if reaction time disable, speed is current velocity
 double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {
 	speed = p.perceivedFwdVelocity/100;
-//	speed = p.currSpeed;
-	//Set our mode.
-	ACCEL_MODE mode;
-	if(p.nvFwd.distance != 5000 && p.nvFwd.distance <= p.trafficSignalStopDistance && p.nvFwd.distance <= p.npedFwd.distance) {
-//		p.space = p.nvFwd.distance/100;
-		p.space = p.perceivedDistToFwdCar/100;
-		mode = AM_VEHICLE;
-	} else if(p.npedFwd.distance != 5000 && p.npedFwd.distance <= p.nvFwd.distance && p.npedFwd.distance <= p.trafficSignalStopDistance) {
-		p.space = p.npedFwd.distance/100;
-		mode = AM_PEDESTRIAN;
-	} else if(p.trafficSignalStopDistance != 5000 && p.trafficSignalStopDistance <= p.npedFwd.distance && p.trafficSignalStopDistance <= p.nvFwd.distance) {
-		p.space = p.trafficSignalStopDistance/100;
-		mode = AM_TRAFF_LIGHT;
-	} else {
-		p.space = p.trafficSignalStopDistance/100;//which should be default value 50m
-		mode = AM_NONE;
-	}
+	distanceToNormalStop(p);
+	double acc = maxAcceleration;
+	double aA = calcSignalRate(p);
+	double aB = calcYieldingRate(p, targetSpeed, maxLaneSpeed);
+	double aC = waitExitLaneRate(p);
+	double aD = calcAdjacentRate(p);
+	double aE = calcBackwardRate(p);
+	double aF = calcForwardRate(p);
+	double aG = carFollowingRate(p, targetSpeed, maxLaneSpeed, p.nvFwd);
+	if(acc > aA) acc = aA;
+	if(acc > aB) acc = aB;
+	if(acc > aC) acc = aC;
+	if(acc > aD) acc = aD;
+	if(acc > aE) acc = aE;
+	if(acc > aF) acc = aF;
+	if(acc > aG) acc = aG;
 
+	return acc;
+}
 
-
+double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed,NearestVehicle& nv)
+{
+	p.space = nv.distance/100;
 	//If we have no space left to move, immediately cut off acceleration.
 	double res = 0;
 	if(p.space > 0) {
-		if(mode == AM_NONE) {
+		if(!nv.exists()) {
 			return accOfFreeFlowing(p, targetSpeed, maxLaneSpeed);
 		}
-
-		//Retrieve velocity/acceleration in m/s
-		//when decelerating, don't use reaction time
-		if(p.isApproachingToIntersection&&p.isTrafficLightStop)
-		{
-			p.v_lead = (mode!=AM_VEHICLE) ? 0 : p.nvFwd.driver->fwdVelocity.get()/100;
-			p.a_lead = (mode!=AM_VEHICLE) ? 0 : p.nvFwd.driver->fwdAccel.get()/100;
-		}
-		else
-		{
-			p.v_lead = (mode!=AM_VEHICLE) ? 0 : p.perceivedFwdVelocityOfFwdCar/100;
-			p.a_lead = (mode!=AM_VEHICLE) ? 0 : p.perceivedAccelerationOfFwdCar/100;
-		}
+		p.v_lead = nv.driver->fwdVelocity.get()/100;
+		p.a_lead = nv.driver->fwdAccel.get()/100;
 
 		double dt	=	p.elapsedSeconds;
 		double headway = 0;  //distance/speed
@@ -154,6 +148,150 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 	}
 	return res;
 }
+
+
+double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p)
+{
+	double minacc = maxAcceleration;
+	double yellowStopHeadway = 1; //1 second
+	double minSpeedYellow = 2.2352;//5 mph = 2.2352 m / s
+
+	if(p.trafficSignalStopDistance < 5000)
+	{
+		double dis = p.trafficSignalStopDistance/100;
+
+		if(p.perceivedTrafficColor == Signal::Red)
+		{
+			double a = brakeToStop(p, dis);
+			if(a < minacc)
+				minacc = a;
+		}
+		else if(p.perceivedTrafficColor == Signal::Amber)
+		{
+			double maxSpeed = (speed>minSpeedYellow)?speed:minSpeedYellow;
+			if(dis/maxSpeed > yellowStopHeadway)
+			{
+				double a = brakeToStop(p, dis);
+				if(a < minacc)
+					minacc = a;
+			}
+		}
+		else if(p.perceivedTrafficColor == Signal::Green)
+		{
+			minacc = maxAcceleration;
+		}
+	}
+	return minacc;
+}
+
+double sim_mob::MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed)
+{
+	if(p.turningDirection == LCS_LEFT)
+	{
+		return carFollowingRate(p, targetSpeed, maxLaneSpeed, p.nvLeftFwd);
+	}
+	else if(p.turningDirection == LCS_RIGHT)
+	{
+		return carFollowingRate(p, targetSpeed, maxLaneSpeed, p.nvRightFwd);
+	}
+	return maxAcceleration;
+}
+
+double sim_mob::MITSIM_CF_Model::waitExitLaneRate(DriverUpdateParams& p)
+{
+	double dx = p.trafficSignalStopDistance/100 - 5;
+	if(p.turningDirection == LCS_SAME || dx > p.distanceToNormalStop)
+		return maxAcceleration;
+	else
+		return brakeToStop(p, dx);
+}
+
+double sim_mob::MITSIM_CF_Model::calcForwardRate(DriverUpdateParams& p)
+{
+	if(p.turningDirection == LCS_SAME)
+		return maxAcceleration;
+	NearestVehicle& nv = (p.turningDirection == LCS_LEFT)?p.nvLeftFwd:p.nvRightFwd;
+	if(!nv.exists())
+		return maxAcceleration;
+	double dis = nv.distance/100 + targetGapAccParm[0];
+	double dv = nv.driver->fwdVelocity.get()/100 - speed;
+	double acc = targetGapAccParm[1] * pow(dis, targetGapAccParm[2]);
+
+	if (dv > 0) {
+		acc *= pow(dv, targetGapAccParm[3]);
+	} else if (dv < 0) {
+		acc *= pow (-dv, targetGapAccParm[4]);
+	}
+	acc += targetGapAccParm[5] /0.824 ;
+	return acc;
+}
+
+double sim_mob::MITSIM_CF_Model::calcBackwardRate(DriverUpdateParams& p)
+{
+	if(p.turningDirection == LCS_SAME)
+		return maxAcceleration;
+	NearestVehicle& nv = (p.turningDirection == LCS_LEFT)?p.nvLeftFwd:p.nvRightFwd;
+	if(!nv.exists())
+		return maxAcceleration;
+
+	double dis = nv.distance/100 + targetGapAccParm[0];
+	double dv = nv.driver->fwdVelocity.get()/100 - speed;
+
+	double acc = targetGapAccParm[6] * pow(dis, targetGapAccParm[7]);
+
+	if (dv > 0) {
+		acc *= pow(dv, targetGapAccParm[8]);
+	} else if (dv < 0) {
+		acc *= pow (-dv, targetGapAccParm[9]);
+	}
+	acc += targetGapAccParm[10] / 0.824 ;
+	return acc;
+}
+
+double sim_mob::MITSIM_CF_Model::calcAdjacentRate(DriverUpdateParams& p)
+{
+	if(p.turningDirection == LCS_SAME)
+		return maxAcceleration;
+	NearestVehicle& av = (p.turningDirection == LCS_LEFT)?p.nvLeftFwd:p.nvRightFwd;
+	NearestVehicle& bv = (p.turningDirection == LCS_LEFT)?p.nvLeftBack:p.nvRightBack;
+	if(!av.exists())
+		return maxAcceleration;
+	if(!bv.exists())
+		return normalDeceleration;
+	double gap = bv.distance/100 + av.distance/100;
+	double position = bv.distance/100;
+	double acc = targetGapAccParm[11] * (targetGapAccParm[0] * gap - position);
+
+	acc += targetGapAccParm[12] / 0.824 ;
+	return acc;
+}
+
+double sim_mob::MITSIM_CF_Model::brakeToStop(DriverUpdateParams& p, double dis)
+{
+	double DIS_EPSILON =	0.001;
+	if (dis > DIS_EPSILON) {
+		double u2 = speed*speed;
+		double acc = - u2 / dis * 0.5;
+		if (acc <= normalDeceleration) return acc;
+		double dt = p.elapsedSeconds;
+		double vt = speed * dt;
+		double a = dt * dt;
+		double b = 2.0 * vt - normalDeceleration * a;
+		double c = u2 + 2.0 * normalDeceleration * (dis - vt);
+		double d = b * b - 4.0 * a * c;
+
+		if (d < 0 || a <= 0.0) return acc;
+
+		return (sqrt(d) - b) / a * 0.5;
+	}
+	else {
+
+		double dt = p.elapsedSeconds;
+		return (dt > 0.0) ? -speed / dt : maxDeceleration;
+	}
+}
+
+
 
 double sim_mob::MITSIM_CF_Model::breakToTargetSpeed(DriverUpdateParams& p)
 {
@@ -226,6 +364,15 @@ double sim_mob::MITSIM_CF_Model::accOfFreeFlowing(DriverUpdateParams& p, double 
 
 double sim_mob::MITSIM_CF_Model::accOfMixOfCFandFF(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {
+	if(p.space > p.distanceToNormalStop ) {
+		return accOfFreeFlowing(p, targetSpeed, maxLaneSpeed);
+	} else {
+		return breakToTargetSpeed(p);
+	}
+}
+
+void sim_mob::MITSIM_CF_Model::distanceToNormalStop(DriverUpdateParams& p)
+{
 	double minSpeed = 0.1;
 	double minResponseDistance = 5;
 	double DIS_EPSILON = 0.001;
@@ -237,10 +384,5 @@ double sim_mob::MITSIM_CF_Model::accOfMixOfCFandFF(DriverUpdateParams& p, double
 		}
 	} else {
 		p.distanceToNormalStop = minResponseDistance;
-	}
-	if(p.space > p.distanceToNormalStop ) {
-		return accOfFreeFlowing(p, targetSpeed, maxLaneSpeed);
-	} else {
-		return breakToTargetSpeed(p);
 	}
 }

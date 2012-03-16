@@ -1,4 +1,17 @@
 
+
+class Node
+  def initialize(nodeID)
+    @nodeID = nodeID
+    @x = 0
+    @y = 0
+  end  
+
+  attr_reader :nodeID
+  attr_accessor :x
+  attr_accessor :y
+end
+
 class Driver
   def initialize(agentID)
     @agentID = agentID
@@ -116,18 +129,33 @@ end
 
 def read_convert_file(list, dict)
   File.open('ms_sm_node_convert.txt').each { |line|
-    next if line =~ /^#/
+    next if line =~ /^#/ or line.strip.empty?
     if line =~ /([0-9]+) *=> *([0-9]+)/
       from = $1.to_i
       to = $2.to_i
       if dict.has_key? from
-        raise "Comparison error" if dict[from] != to
+        raise "Comparison error" if dict[from].nodeID != to
       else
-        dict[from] = to
+        dict[from] = Node.new(to)
       end
+    elsif line =~ /([0-9]+) *= *\(([0-9]+),([0-9]+)\)/
+      found = false
+      dict.each_value{|nd|
+        if nd.nodeID == $1.to_i
+          nd.x = $2.to_i
+          nd.y = $3.to_i
+          found = true
+        end
+      }
+      raise "Couldn't find node: #{$1}" unless found
     else
       puts "Skipped line: #{line}"
     end
+  }
+
+  #Final check
+  dict.each_value{|nd|
+    raise "Node ID not translated: #{nd.nodeID}" if nd.x==0 or nd.y==0
   }
 end
 
@@ -162,7 +190,7 @@ def run_main()
   puts '-'*20
   drivers.keys.sort.each{|id|
     dr = drivers[id]
-    puts "<driver id='#{id}' origin='#{dr.originNode}' dest='#{dr.destNode}' startTime='#{dr.departure}'/>"
+    puts "<driver id='#{id}' originPos='(#{dr.originNode.x},#{dr.originNode.y})' destPos='(#{dr.destNode.x},#{dr.destNode.y})' startTime='#{dr.departure}'/>"
   }
   puts '-'*20
 

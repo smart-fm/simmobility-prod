@@ -114,9 +114,31 @@ def read_veh_file(list)
 end
 
 
-def final_validate(list)
-  list.each{|id, dr|
-    #Nothing for now
+def read_convert_file(list, dict)
+  File.open('ms_sm_node_convert.txt').each { |line|
+    next if line =~ /^#/
+    if line =~ /([0-9]+) *=> *([0-9]+)/
+      from = $1.to_i
+      to = $2.to_i
+      if dict.has_key? from
+        raise "Comparison error" if dict[from] != to
+      else
+        dict[from] = to
+      end
+    else
+      puts "Skipped line: #{line}"
+    end
+  }
+end
+
+
+def final_validate(agents, nodeConv)
+  agents.each{|id, dr|
+    #Make sure sim mobility node IDs exist
+    raise "No Sim Mobility node id for: #{dr.originNode}" unless nodeConv.has_key? dr.originNode
+    raise "No Sim Mobility node id for: #{dr.destNode}" unless nodeConv.has_key? dr.destNode
+    dr.originNode = nodeConv[dr.originNode]
+    dr.destNode = nodeConv[dr.destNode]
   }
 end
 
@@ -129,8 +151,20 @@ def run_main()
   #Cross-reference with the vehicles file
   read_veh_file(drivers)
 
+  #Compare with sim mobility nodes
+  nodeConv = {}
+  read_convert_file(drivers, nodeConv)
+
   #Final validation
-  final_validate(drivers)
+  final_validate(drivers, nodeConv)
+
+  #Print the Agents
+  puts '-'*20
+  drivers.keys.sort.each{|id|
+    dr = drivers[id]
+    puts "<driver id='#{id}' origin='#{dr.originNode}' dest='#{dr.destNode}' startTime='#{dr.departure}'/>"
+  }
+  puts '-'*20
 
   #Print some statistics
   printf("%-13s %5s\n", 'Min agent id:', min.agentID)

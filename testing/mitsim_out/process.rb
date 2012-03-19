@@ -12,18 +12,48 @@ class Node
   attr_accessor :y
 end
 
+#class Point
+#  def initialize(x, y)
+#    @x = x
+#    @y = y
+#  end  
+#  attr_accessor :x
+#  attr_accessor :y
+#end
+
+#Get standard deviation and average
+def getStdAvg(list)
+  #Sum, average
+  sum = 0
+  list.each {|item|
+    sum += item
+  }
+  avg = sum / list.length.to_f
+
+  #Sample variance, stdev
+  sVar = 0
+  list.each {|item|
+    sVar += (item-avg)**2
+  }
+  sVar /= list.length.to_f
+  stDev = Math.sqrt(sVar)
+  
+  return [avg, stDev]
+end
+
+
 class Driver
   def initialize(agentID)
     @agentID = agentID
     @departure = 0
     @arrival = 0
     @completed = false
-
-    #Note: Origin and dest might be switched; we can easily confirm this later.
     @originNode = nil
     @destNode = nil
+    @vehicleType = nil
 
-    @tempDep5 = nil #Either vehicle_type or path
+    @firstPos = nil
+
     @tempVeh2 = nil #Something boolean
     @tempVeh6 = nil #Usually equals the destination node except in very rare cases (~38 of them)
 
@@ -39,9 +69,12 @@ class Driver
   attr_accessor :arrival
   attr_accessor :completed
 
+  attr_accessor :firstPos
+
   attr_accessor :originNode
   attr_accessor :destNode
-  attr_accessor :tempDep5
+  attr_accessor :vehicleType
+
   attr_accessor :tempVeh2
   attr_accessor :tempVeh3
   attr_accessor :tempVeh6
@@ -60,6 +93,12 @@ end
 #    vehicle type,
 #    path
 #(Actually: 5 values -1)
+#  time
+#  agentID
+#  originNode
+#  destNode
+#  vehicleType
+#  path, but ONLY if the vehicles have a path
 def read_dep_file(list)
   min = max = nil
   File.open('dep.out').each { |line|
@@ -68,7 +107,7 @@ def read_dep_file(list)
       dr.departure = $1.to_f
       dr.originNode = $3.to_i
       dr.destNode = $4.to_i
-      dr.tempDep5 = $5.to_i
+      dr.vehicleType = $5.to_i
 
       unless list.has_key? dr.agentID
         list[dr.agentID] = dr
@@ -94,6 +133,7 @@ end
 #    speed
 #(Actually: 11 values +5)
 def read_veh_file(list)
+  minDepartureTime = -1
   File.open('vehicle.out').each { |line|
     if line =~ /([0-9]+) +([0-9]+) +([0-9]+) +([0-9]+) +([0-9]+) +([0-9]+) +([0-9]+) +([0-9]+) +([0-9]+) +([0-9.]+) +([0-9]+)/
       id = $1.to_i
@@ -117,12 +157,67 @@ def read_veh_file(list)
         raise "Expected boolean, not: #{t11}" unless t11==0 or t11==1
         dr.tempVeh11 = t11==0 ? false : true
 
+        #Calculate min. departure time
+        minDepartureTime = dr.departure if minDepartureTime==-1 or dr.departure<minDepartureTime
       else
-        raise "Agent ID expected but doesn't exist: #{dr.agentID}"
+        raise "Agent ID expected but doesn't exist: #{id}"
       end
     else 
       puts "Skipped line: #{line}"
     end
+  }
+  return minDepartureTime
+end
+
+
+#For now, this just adds firstPos value for each driver
+#Total of 8 values:
+#  time 
+#  agentID 
+#  segmentID
+#  laneID 
+#  positionInLane 
+#  speed 
+#  acceleration 
+#  vehicleType
+def read_traj_file(list)
+  File.open('traj_compact.txt').each { |line|  #We use a trimmed version of trajectory.out, but loading the original would work too.
+    if line =~ /([0-9]+) +([0-9]+) +([0-9]+) +([0-9]+) +([0-9.]+) +([0-9.]+) +([0-9e.\-]+) +([0-9]+)/
+      id = $2.to_i
+      if list.has_key? id
+        dr = list[id]
+        unless dr.firstPos
+          dr.firstPos = $5.to_f
+        end
+      else
+        raise "Agent ID expected but doesn't exist: #{id}"
+      end
+    else 
+      puts "Skipped line: #{line}"
+    end
+  }
+
+  #Build a lookup of Nodes based on the first location of each driver.
+  node_lookup = {} #Array of offsets, indexed by NodeID
+  list.each{|id, drv| 
+    next unless drv.firstPos
+    node_lookup[drv.originNode] = [] unless node_lookup.has_key? drv.originNode
+    node_lookup[drv.originNode].push(drv.firstPos)
+  }
+
+  #Temp: print
+  node_lookup.each {|id, offsets|
+    min = max = offsets[0]
+    puts "First 'offset' values for agents in Node ID #{id}:"
+    offsets.each {|offset|
+#      puts "  #{offset}"
+      min = offset if offset < min
+      max = offset if offset > max
+    }
+    avg, stddev = getStdAvg(offsets)
+    puts "Average:  #{avg} +/- #{stddev}"
+    puts "Min/max:  #{min} => #{max}"
+    puts '-'*20
   }
 end
 
@@ -155,18 +250,22 @@ def read_convert_file(list, dict)
 
   #Final check
   dict.each_value{|nd|
-    raise "Node ID not translated: #{nd.nodeID}" if nd.x==0 or nd.y==0
+    #raise "Node ID not translated: #{nd.nodeID}" if nd.x==0 or nd.y==0
   }
 end
 
 
-def final_validate(agents, nodeConv)
+def final_validate(agents, nodeConv, minDepTime)
   agents.each{|id, dr|
     #Make sure sim mobility node IDs exist
     raise "No Sim Mobility node id for: #{dr.originNode}" unless nodeConv.has_key? dr.originNode
     raise "No Sim Mobility node id for: #{dr.destNode}" unless nodeConv.has_key? dr.destNode
     dr.originNode = nodeConv[dr.originNode]
     dr.destNode = nodeConv[dr.destNode]
+
+    #Start our departure times at zero, and convert to ms (then int)
+    #TODO: We might want to generate a <simulation> tag instead. For now this is easier.
+    dr.departure =  ((dr.departure - minDepTime)*1000).to_i
   }
 end
 
@@ -177,28 +276,46 @@ def run_main()
   min, max = read_dep_file(drivers)
 
   #Cross-reference with the vehicles file
-  read_veh_file(drivers)
+  minDepTime = read_veh_file(drivers)
+
+  #Parse the trajectory file
+  read_traj_file(drivers)
 
   #Compare with sim mobility nodes
   nodeConv = {}
   read_convert_file(drivers, nodeConv)
 
   #Final validation
-  final_validate(drivers, nodeConv)
+  final_validate(drivers, nodeConv, minDepTime)
 
   #Print the Agents
-  puts '-'*20
-  drivers.keys.sort.each{|id|
-    dr = drivers[id]
-    puts "<driver id='#{id}' originPos='(#{dr.originNode.x},#{dr.originNode.y})' destPos='(#{dr.destNode.x},#{dr.destNode.y})' startTime='#{dr.departure}'/>"
+  File.open('agents.gen.xml', 'w') {|f|
+    f.write("<agents>\n") 
+    drivers.keys.sort.each{|id|
+      dr = drivers[id]
+      f.write("  <driver id='#{id}'")
+      f.write(" originPos='(#{dr.originNode.x},#{dr.originNode.y})'")
+      f.write(" destPos='(#{dr.destNode.x},#{dr.destNode.y})'")
+      f.write(" startTime='#{dr.departure}'/>\n")
+    }
+    f.write("</agents>") 
   }
-  puts '-'*20
+
+  #Some drivers are never started
+  drvSkip = 0
+  drivers.each {|id, dr|
+    drvSkip += 1 unless dr.firstPos
+  }
 
   #Print some statistics
   printf("%-13s %5s\n", 'Min agent id:', min.agentID)
   printf("%-13s %5s\n", 'Max agent id:', max.agentID)
   printf("%-13s %5s\n", 'Num agents:', drivers.length)
   raise "Agent IDs must be monotonic increasing from 1..num_agents" unless min.agentID==1 and max.agentID==drivers.length
+  if drvSkip>0
+    printf("A total of %d Drivers never started driving (%.2f%%)\n", drvSkip, (100.0*drvSkip/drivers.length))
+  end
+  puts 'Agents saved to agents.gen.xml'
 
 
 end

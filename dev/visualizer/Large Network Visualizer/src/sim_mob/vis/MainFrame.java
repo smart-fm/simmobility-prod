@@ -61,6 +61,8 @@ public class MainFrame extends JFrame {
     private ImageIcon debugIcon;
     private ImageIcon displayIcon;
     
+    private JComboBox imgScaleBox;
+    
     private JComboBox trackAgentIDs;
     private JButton renderVideo;
     private JButton squareViewport;
@@ -157,6 +159,8 @@ public class MainFrame extends JFrame {
 	    trackAgentIDs = new JComboBox(new String[]{"", ""});
 	    resetTrackAgentIDs(null);
 	    
+	    imgScaleBox = new JComboBox(new String[] {"1x scale", "2x scale", "3x scale", "4x scale", "5x scale", "6x scale", "7x scale", "8x scale", "9x scale", "10x scale"});
+	    
 	    renderVideo = new JButton("Render Video");
 	    
 	    //Disable our render button if this clearly won't work.
@@ -222,6 +226,7 @@ public class MainFrame extends JFrame {
 		jpLeft.add(debug);
 		jpLeft.add(clockRateComboBox);
 		jpLeft.add(trackAgentIDs);
+		jpLeft.add(imgScaleBox);
 		jpLeft.add(renderVideo);
 		jpLeft.add(squareViewport);
 		
@@ -376,6 +381,13 @@ public class MainFrame extends JFrame {
 				}
 			}
 		});
+		
+		imgScaleBox.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				newViewPnl.setScaleMultiplier(imgScaleBox.getSelectedIndex()+1);
+			}
+		});
+		
 		
 		trackAgentIDs.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {

@@ -32,6 +32,10 @@ public class NetworkVisualizer {
 		currHighlightID=id; 
 	}
 	
+	private int scaleMult;
+	public void setScaleMultiplier(int val) { scaleMult = val; }
+	
+	
 	public int getMaxFrameTick() { return simRes.ticks.size()-1; }
 	public String getFileName(){return fileName;}
 	
@@ -40,6 +44,7 @@ public class NetworkVisualizer {
 		
 	public NetworkVisualizer() {
 		this.currHighlightID = -1;
+		this.scaleMult = 1;
 	}
 	
 	public BufferedImage getImage() {
@@ -307,12 +312,14 @@ public class NetworkVisualizer {
 		
 		//Now draw simulation data: cars, etc.
 		//if(currPercentZoom>ZOOM_IN_CRITICAL){
+		//Use a scale multiplier to allow people to resize the agents as needed.
+		double adjustedZoom = currPercentZoom * scaleMult;
 		Dimension sz100Percent = new Dimension(width100Percent, height100Percent);
 			Hashtable<Integer, AgentTick> agents = simRes.ticks.get(frameTick).agentTicks;
 			for (Integer key : agents.keySet()) {
 				AgentTick at = agents.get(key);
 				boolean highlight = this.debugOn || (key.intValue()==currHighlightID);
-				at.draw(g,currPercentZoom,this.showFakeAgent,highlight, sz100Percent);
+				at.draw(g,adjustedZoom,this.showFakeAgent,highlight, sz100Percent);
 			}
 
 		//}		

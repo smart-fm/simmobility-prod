@@ -35,6 +35,12 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	private Point mouseFirstDown = new Point(0, 0);
 	private static final double DRAG_THRESHOLD = 45;
 	
+	//Current scale multiplier
+	public void setScaleMultiplier(int val) { 
+		if (netViewCache==null) { return; }
+		netViewCache.setScaleMultiplier(val);
+	}
+	
 	//TEMP: This is actually better off somewhere else.
 	private Point offset = new Point(0, 0);
 	private NetworkVisualizer netViewCache;

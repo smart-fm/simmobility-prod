@@ -1,5 +1,6 @@
 package sim_mob.vis.controls;
 import java.awt.*;
+import java.awt.geom.Line2D;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import sim_mob.vis.MainFrame;
@@ -315,12 +316,28 @@ public class NetworkVisualizer {
 		//Use a scale multiplier to allow people to resize the agents as needed.
 		double adjustedZoom = currPercentZoom * scaleMult;
 		Dimension sz100Percent = new Dimension(width100Percent, height100Percent);
-			Hashtable<Integer, AgentTick> agents = simRes.ticks.get(frameTick).agentTicks;
-			for (Integer key : agents.keySet()) {
-				AgentTick at = agents.get(key);
-				boolean highlight = this.debugOn || (key.intValue()==currHighlightID);
-				at.draw(g,adjustedZoom,this.showFakeAgent,highlight, sz100Percent);
+		
+		//Draw all agent ticks
+		Hashtable<Integer, AgentTick> agents = simRes.ticks.get(frameTick).agentTicks;
+		Hashtable<Integer, AgentTick> trackings = simRes.ticks.get(frameTick).trackingTicks;
+		for (Integer key : agents.keySet()) {
+			//Draw the agent
+			AgentTick at = agents.get(key);
+			boolean highlight = this.debugOn || (key.intValue()==currHighlightID);
+			at.draw(g,adjustedZoom,this.showFakeAgent,highlight, sz100Percent);
+			
+			//Draw the tracking agent, if it exists
+			AgentTick tr = trackings.get(key);
+			if (tr!=null) {
+				//Draw it as a "fake" agent.
+				tr.draw(g, adjustedZoom, true, false, sz100Percent);
+				
+				//For now, just draw a line between the two
+				g.setColor(Color.red);
+				Line2D line = new Line2D.Double(at.getPos().getX(), at.getPos().getY(), tr.getPos().getX(), tr.getPos().getY());
+				g.draw(line);
 			}
+		}
 
 		//}		
 		

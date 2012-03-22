@@ -180,9 +180,6 @@ public class SimulationResults {
 	    //Ensure the frame has been created
 	    while (ticks.size()<=frameID) {
 	    	TimeTick t = new TimeTick();
-	    	t.agentTicks = new Hashtable<Integer, AgentTick>();
-	    	t.signalTicks = new Hashtable<Integer, SignalTick>();
-	    	t.signalLineTicks = new Hashtable<Integer,SignalLineTick>();
 	    	ticks.add(t);
 	    }
 	  
@@ -229,16 +226,12 @@ public class SimulationResults {
 	    
 	    //Double-check angle
 	    if (angle<0 || angle>360) {
-
+	    	throw new RuntimeException("Angle must be in bounds.");
 	    }
 	    
 	    //Ensure the frame has been created
 	    while (ticks.size()<=frameID) {
 	    	TimeTick t = new TimeTick();
-	    	t.agentTicks = new Hashtable<Integer, AgentTick>();
-	    	t.signalTicks = new Hashtable<Integer, SignalTick>();
-	    	t.signalLineTicks = new Hashtable<Integer,SignalLineTick>();
-
 	    	ticks.add(t);
 	    }
 	  
@@ -251,6 +244,11 @@ public class SimulationResults {
 	    		tempDriver.setItFake();
 	    	}
 	    }
+	    //Check if it's a "tracking" version of this car
+	    boolean tracking = false;
+	    if (props.containsKey("tracking")) {
+	    	tracking = props.get("tracking").toLowerCase().equals("true");
+	    }
 	    //Check if the car has a length and width or not
 	    if(props.containsKey("length") && props.containsKey("width")){
 	    	tempDriver.setLenth(Integer.parseInt(props.get("length")));
@@ -258,8 +256,17 @@ public class SimulationResults {
 	    }
 	    
 	    tempDriver.setID(objID);
-	    //Add this agent to the proper frame.
-	    ticks.get(frameID).agentTicks.put(objID, tempDriver);
+	    
+	    //Add this agent to the proper frame. If it's a "tracking" item, add it a parallel 
+	    // list which contains tracking Agents
+	    TimeTick currTick = ticks.get(frameID);
+	    if (tracking) {
+	    	//For now, just reuse the "fake" prperty
+	    	tempDriver.setItFake();
+	    	currTick.trackingTicks.put(objID, tempDriver);
+	    } else {
+	    	currTick.agentTicks.put(objID, tempDriver);
+	    }
 	}
 	
 	
@@ -283,10 +290,6 @@ public class SimulationResults {
 	    //Ensure the frame has been created
 	    while (ticks.size()<=frameID) {
 	    	TimeTick t = new TimeTick();
-	    	t.agentTicks = new Hashtable<Integer, AgentTick>();
-	    	t.signalTicks = new Hashtable<Integer, SignalTick>();
-	    	t.signalLineTicks = new Hashtable<Integer,SignalLineTick>();
-
 	    	ticks.add(t);
 	    }
 	  
@@ -330,9 +333,6 @@ public class SimulationResults {
 	    //Ensure the frame has been created
 	    while (ticks.size()<=frameID) {
 	    	TimeTick t = new TimeTick();
-	    	t.agentTicks = new Hashtable<Integer, AgentTick>();
-	    	t.signalTicks = new Hashtable<Integer, SignalTick>();
-	    	t.signalLineTicks = new Hashtable<Integer,SignalLineTick>();
 	    	ticks.add(t);
 	    }
 	    

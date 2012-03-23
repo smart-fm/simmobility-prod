@@ -370,10 +370,8 @@ public class NetworkVisualizer {
 	
 	
 	
-	private void drawTrafficLines(Graphics2D g,ArrayList<ArrayList<TrafficSignalLine>> signalLine, ArrayList<Integer> lightColors){
-		
-		for(int i = 0; i<signalLine.size();i++){
-			
+	private void drawTrafficLines(Graphics2D g,ArrayList<ArrayList<TrafficSignalLine>> signalLine, ArrayList<Integer> lightColors) {
+		//for(int i = 0; i<signalLine.size();i++){
 			//Left turn light
 			if (signalLine.size()>0 && lightColors.size()>0 && signalLine.get(0).size()>0) {
 				ArrayList<TrafficSignalLine> leftTurnLight = signalLine.get(0);
@@ -395,7 +393,7 @@ public class NetworkVisualizer {
 			}
 			
 			
-		}
+		//}
 				
 	}
 	

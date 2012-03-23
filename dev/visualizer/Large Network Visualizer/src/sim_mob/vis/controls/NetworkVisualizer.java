@@ -28,6 +28,8 @@ public class NetworkVisualizer {
 	private boolean showFakeAgent;
 	private boolean debugOn = false;
 	
+	private Stroke str1pix = new BasicStroke(1);
+	
 	private int currHighlightID;
 	public void setHighlightID(int id) {
 		currHighlightID=id; 
@@ -175,11 +177,6 @@ public class NetworkVisualizer {
 			}
 		}
 		
-		//Draw links
-		//for (Link ln : network.getLinks().values()) {
-			//ln.draw(g);
-		//}
-		
 		//Draw Cutline
 		if(this.showFakeAgent){
 			for(CutLine ctl : network.getCutLine().values()){
@@ -204,45 +201,6 @@ public class NetworkVisualizer {
 
 		//Draw out lanes only it is zoom to certain scale
 		if(currPercentZoom>ZOOM_IN_CRITICAL){
-
-			
-			if(network.getLaneMarkings().containsKey(149402728))
-			{
-				
-				Hashtable<Integer,LaneMarking> tempLineMarkingTable = network.getLaneMarkings().get(149402728);
-				
-				if(tempLineMarkingTable.containsKey(0) && tempLineMarkingTable.containsKey(1)){
-					//LaneMarking l1 = tempLineMarkingTable.get(0);
-					//LaneMarking l2 = tempLineMarkingTable.get(1);
-					
-					/*double distStartStart = Utility.Distance(l1.getStart().getPos().getX(), 
-							l1.getStart().getPos().getY(), 
-							l2.getStart().getPos().getX(),
-							l2.getStart().getPos().getY());
-				
-					double distStartEnd = Utility.Distance(l1.getStart().getPos().getX(), 
-							l1.getStart().getPos().getY(), 
-							l1.getEnd().getPos().getX(),
-							l1.getEnd().getPos().getY());*/
-						
-					//System.out.println("width: " + distStartStart  + "		length: " + distStartEnd + "		zoom in: "+currPercentZoom );
-					
-					
-					/*double distStartStartU = Utility.Distance(l1.getStart().getPos().getUnscaledX(), 
-							l1.getStart().getPos().getUnscaledY(), 
-							l2.getStart().getPos().getUnscaledX(),
-							l2.getStart().getPos().getUnscaledY());
-				
-					double distStartEndU = Utility.Distance(l1.getStart().getPos().getUnscaledX(), 
-							l1.getStart().getPos().getUnscaledY(), 
-							l1.getEnd().getPos().getUnscaledX(),
-							l1.getEnd().getPos().getUnscaledY());*/
-					
-				}
-			
-			}
-			
-			
 			//Draw Lanes
 			for (Hashtable<Integer,LaneMarking> lineMarkingTable : network.getLaneMarkings().values()) {
 				
@@ -334,7 +292,9 @@ public class NetworkVisualizer {
 				
 				//For now, just draw a line between the two
 				g.setColor(Color.red);
+				g.setStroke(str1pix);
 				Line2D line = new Line2D.Double(at.getPos().getX(), at.getPos().getY(), tr.getPos().getX(), tr.getPos().getY());
+				System.out.println("Line at: " + line.getX1() + "," + line.getY1() + " => " + line.getX2() + "," + line.getY2());
 				g.draw(line);
 			}
 		}

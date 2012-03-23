@@ -33,6 +33,7 @@ public class NetworkVisualizer {
 	private boolean debugOn = false;
 	
 	private Stroke str1pix = new BasicStroke(1);
+	private Color hlColor = new Color(0xFF, 0xAA, 0x55);
 	
 	private int currHighlightID;
 	public void setHighlightID(int id) {
@@ -59,6 +60,7 @@ public class NetworkVisualizer {
 	}
 	
 	private static final Ellipse2D CircleFromPoints(Point2D min, Point2D max, double radius) {
+		//Too simplistic, but it will work for now.
 		Point2D center = new Point2D.Double(min.getX()+(max.getX()-min.getX())/2, min.getY()+(max.getY()-min.getY())/2);
 		Ellipse2D el = new Ellipse2D.Double(center.getX()-radius, center.getY()-radius, radius*2, radius*2);
 		return el;
@@ -310,15 +312,15 @@ public class NetworkVisualizer {
 				tr.draw(g, adjustedZoom, true, false, sz100Percent);
 				
 				//Draw a circle and a line
-				g.setColor(Color.green);
+				g.setColor(hlColor);
 				g.setStroke(str1pix);
 				Point2D min = new Point2D.Double(Math.min(at.getPos().getX(), tr.getPos().getX()), Math.min(at.getPos().getY(), tr.getPos().getY()));
 				Point2D max = new Point2D.Double(Math.max(at.getPos().getX(), tr.getPos().getX()), Math.max(at.getPos().getY(), tr.getPos().getY()));
 				double dist = Distance(min, max);
 				if (dist>1.0) {
-					double diam = Math.max(max.getX()-min.getX(), max.getY()-min.getY());
+					//double diam = Math.max(max.getX()-min.getX(), max.getY()-min.getY());
 					Line2D line = new Line2D.Double(min.getX(), min.getY(), max.getX(), max.getY());
-					Ellipse2D el = CircleFromPoints(min, max, diam/2);
+					Ellipse2D el = CircleFromPoints(min, max, dist/2);
 					g.draw(el);
 					g.draw(line);
 				}

@@ -371,50 +371,14 @@ public class NetworkVisualizer {
 	
 	
 	private void drawTrafficLines(Graphics2D g,ArrayList<ArrayList<TrafficSignalLine>> signalLine, ArrayList<Integer> lightColors) {
-		//for(int i = 0; i<signalLine.size();i++){
-			//Left turn light
-			if (signalLine.size()>0 && lightColors.size()>0 && signalLine.get(0).size()>0) {
-				ArrayList<TrafficSignalLine> leftTurnLight = signalLine.get(0);
-				leftTurnLight.get(0).drawPerLight(g, lightColors.get(0));
+		//0,1,2 = "Left", "Straight", "Right" turn lines.
+		//TODO: Again, this is a bit confusing. Please clean up. ~Seth
+		for (int i=0; i<signalLine.size()&&i<lightColors.size(); i++) {
+			if (!signalLine.get(i).isEmpty()) {
+				signalLine.get(i).get(0).drawPerLight(g, lightColors.get(i));
 			}
-			
-			
-			//Straight turn light
-			if (signalLine.size()>1 && lightColors.size()>1 && signalLine.get(1).size()>0) {
-				ArrayList<TrafficSignalLine> straightTurnLight = signalLine.get(1);				
-				straightTurnLight.get(0).drawPerLight(g, lightColors.get(1));	
-			}
-			
-			
-			//Right turn light
-			if (signalLine.size()>2 && lightColors.size()>2 && signalLine.get(2).size()>0) {
-				ArrayList<TrafficSignalLine> rightTurnLight = signalLine.get(2);
-				rightTurnLight.get(0).drawPerLight(g, lightColors.get(2));
-			}
-			
-			
-		//}
-				
+		}	
 	}
 	
-	public void drawTrafficPedestrainCross(Graphics2D g,ArrayList<TrafficSignalCrossing> signalPedestrainCrossing, ArrayList<Integer> lightColor){
-
-		if(signalPedestrainCrossing != null && signalPedestrainCrossing.size() != 0 &&  lightColor!=null && lightColor.size() != 0
-				 && signalPedestrainCrossing.size() == lightColor.size())
-		{
-			
-			for(int i = 0; i<signalPedestrainCrossing.size();i++)
-			{
-				//Draw crossing signal
-				signalPedestrainCrossing.get(i).drawSignalCrossing(g, lightColor.get(i));			
-			}
-			
-		}
-		else{
-			System.out.println("Error, the signal and crossing are not corresponding to each other -- NetWorkVisualizer, drawTrafficPedestrainCross()");		
-		}
-		
-	}
-
 }
 

@@ -1,11 +1,8 @@
 package sim_mob.vis.controls;
 import java.awt.*;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Line2D;
-import java.awt.geom.Point2D;
-import java.awt.geom.Point2D.Double;
-import java.awt.geom.Point2D.Float;
+
 import java.awt.image.BufferedImage;
+import java.awt.geom.*;
 import java.util.*;
 
 import sim_mob.vis.MainFrame;
@@ -194,8 +191,6 @@ public class NetworkVisualizer {
 	}
 	
 	private void redrawAtCurrScale(BufferedImage dest, int frameTick) {
-		//System.out.println(" refresh");
-		
 		//Retrieve a graphics object; ensure it'll anti-alias
 		Graphics2D g = (Graphics2D)dest.getGraphics();
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -205,159 +200,175 @@ public class NetworkVisualizer {
 		g.clearRect(0, 0, dest.getWidth(), dest.getHeight());
 		
 		//Draw nodes
+		final boolean ZoomCritical = (currPercentZoom>ZOOM_IN_CRITICAL);
+		drawAllNodes(g, !ZoomCritical);
+		
+		//Draw segments
+		drawAllSegments(g, !ZoomCritical);
+		
+		//Draw cut lines
+		drawAllCutlines(g, this.showFakeAgent);
+		
+		//Draw all names
+		drawAllNames(g);
+		
+		//Draw individual lanes
+		drawAllLanes(g, ZoomCritical);
+		
+		//Draw all pedestrian crossings
+		drawAllCrossings(g, ZoomCritical);
+
+		//Draw all pedestrian crossing lights
+		drawAllCrossingSignals(g, frameTick, ZoomCritical);
+
+		//Draw all lane crossing lights
+		drawAllLaneSignals(g, frameTick, ZoomCritical);
+
+		//Draw all Agents now
+		drawAllAgents(g, frameTick);
+	}
+	
+	
+	private void drawAllNodes(Graphics2D g, boolean ShowUniNodes) {
 		for (Node n : network.getNodes().values()) {
-			if(currPercentZoom<=ZOOM_IN_CRITICAL){
+			if (ShowUniNodes || !n.getIsUni()) {
 				n.draw(g);
 			}
-			else{
-				if(n.getIsUni()){
-					continue;
-				}
-				else{
-					n.draw(g);
-				}		
-			}
 		}
-		
-		if(currPercentZoom <= ZOOM_IN_CRITICAL){
-			//Draw segments
-			for (Segment sn : network.getSegments().values()) {
-				sn.draw(g);
-			}
+	}
+	
+	private void drawAllSegments(Graphics2D g, boolean ShowSegments) {
+		if(!ShowSegments) { return; }
+		for (Segment sn : network.getSegments().values()) {
+			sn.draw(g);
 		}
-		
-		//Draw Cutline
-		if(this.showFakeAgent){
-			for(CutLine ctl : network.getCutLine().values()){
-				ctl.draw(g);	
-			}
+	}
+	
+	private void drawAllCutlines(Graphics2D g, boolean ShowCutLines) {
+		if (!ShowCutLines) { return; }
+		for(CutLine ctl : network.getCutLine().values()){
+			ctl.draw(g);	
 		}
-		
-		//Names go on last; make sure we don't draw them twice...
+	}
+	
+	private void drawAllNames(Graphics2D g) {
+		//Keep track and avoid drawing names more than once.
 		Set<String> alreadyDrawn = new HashSet<String>();
 		for (Link ln : network.getLinks().values()) {
-			
-			String key1 = ln.getName() + ln.getStart().toString() + ":" + ln.getEnd().toString();
-			String key2 = ln.getName() + ln.getEnd().toString() + ":" + ln.getStart().toString();
-			
-			if (alreadyDrawn.contains(key1) || alreadyDrawn.contains(key2)) {
-				continue;
+			String key = ln.getAuthoritativeRoadName();
+			if (!alreadyDrawn.contains(key)) {
+				alreadyDrawn.add(key);
+				ln.drawName(g,currPercentZoom);
 			}
-			alreadyDrawn.add(key1);
-			ln.drawName(g,currPercentZoom);
 		}
-		
-
-		//Draw out lanes only it is zoom to certain scale
-		if(currPercentZoom>ZOOM_IN_CRITICAL){
-			//Draw Lanes
-			for (Hashtable<Integer,LaneMarking> lineMarkingTable : network.getLaneMarkings().values()) {
-				
-				for(LaneMarking lineMarking : lineMarkingTable.values()){
-					
-					lineMarking.draw(g);
-				}
-			}
-			//Draw Perdestrain Crossing
-			for(Crossing crossing : network.getCrossings().values()){
-				crossing.draw(g);
-			}
-			
-			//Draw Crossing Light
-			for(SignalLineTick at: simRes.ticks.get(frameTick).signalLineTicks.values()){
-				//Get Intersection ID
-				Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());
-				
-				ArrayList<Integer> allPedestrainLights = at.getPedestrianLights();
-
-				//Get Crossing IDs
-				ArrayList<Integer> crossingIDs = tempIntersection.getSigalCrossingIDs();
-
-				//Draw Crossing Lights
-				for(int i = 0;i<crossingIDs.size();i++){
-					if(network.getTrafficSignalCrossing().containsKey(crossingIDs.get(i))){
-						
-						network.getTrafficSignalCrossing().get(crossingIDs.get(i)).drawSignalCrossing(g, allPedestrainLights.get(i));
-					}
-					else{
-						System.out.println("Error");
-					}
-		
-				}
-				
-			}
+	}
 	
-			//Now draw out signal
-			for(SignalLineTick at: simRes.ticks.get(frameTick).signalLineTicks.values()){
-				
-				//Get Intersection ID
-				Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());
-				//Get Light color
-				ArrayList<ArrayList<Integer>> allVehicleLights =  at.getVehicleLights();
-				
-				//Vehicle Light Colors
-				ArrayList<Integer> vaLights = allVehicleLights.get(0);
-				ArrayList<Integer> vbLights = allVehicleLights.get(1);
-				ArrayList<Integer> vcLights = allVehicleLights.get(2);
-				ArrayList<Integer> vdLights = allVehicleLights.get(3);
+	private void drawAllLanes(Graphics2D g, boolean ShowLanes) {
+		if (!ShowLanes) { return; }
+		for (Hashtable<Integer,LaneMarking> lineMarkingTable : network.getLaneMarkings().values()) {
+			for(LaneMarking lineMarking : lineMarkingTable.values()){
+				lineMarking.draw(g);
+			}
+		}
+	}
+	
+	
+	private void drawAllCrossings(Graphics2D g, boolean ShowCrossings) {
+		if (!ShowCrossings) { return; }
+		for(Crossing crossing : network.getCrossings().values()){
+			crossing.draw(g);
+		}
+	}
+	
+	private void drawAllCrossingSignals(Graphics2D g, int currFrame, boolean ShowCrossingSignals) {
+		if (!ShowCrossingSignals) { return; }
+		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
+			//Get all lights and Crossings at this intersection (by id)
+			Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());
+			ArrayList<Integer> allPedestrainLights = at.getPedestrianLights();
+			ArrayList<Integer> crossingIDs = tempIntersection.getSigalCrossingIDs();
 
-				//Vehicle Light Lines
-				ArrayList<ArrayList<TrafficSignalLine>> vaSignalLine = tempIntersection.getVaTrafficSignal();
-				ArrayList<ArrayList<TrafficSignalLine>> vbSignalLine = tempIntersection.getVbTrafficSignal();
-				ArrayList<ArrayList<TrafficSignalLine>> vcSignalLine = tempIntersection.getVcTrafficSignal();
-				ArrayList<ArrayList<TrafficSignalLine>> vdSignalLine = tempIntersection.getVdTrafficSignal();
+			//Draw Crossing Lights
+			for(int i=0; i<crossingIDs.size(); i++) {
+				if(network.getTrafficSignalCrossing().containsKey(crossingIDs.get(i))) {
+					network.getTrafficSignalCrossing().get(crossingIDs.get(i)).drawSignalCrossing(g, allPedestrainLights.get(i));
+				} else{
+					throw new RuntimeException("Unable to draw pedestrian crossing light; ID does not exist.");
+				}
+			}
+		}
+	}
+	
+	private void drawAllLaneSignals(Graphics2D g, int currFrame, boolean ShowLaneSignals) {
+		if (!ShowLaneSignals) { return; }
+		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
+			//Get Intersection ID and color
+			Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());
+			ArrayList<ArrayList<Integer>> allVehicleLights =  at.getVehicleLights();
 
-				//Draw Vehicle Lights
-				drawTrafficLines(g,vaSignalLine, vaLights);
-				drawTrafficLines(g,vbSignalLine, vbLights);
-				drawTrafficLines(g,vcSignalLine, vcLights);
-				drawTrafficLines(g,vdSignalLine, vdLights);
+			//Draw Vehicle Lights
+			for (int i=0; i<4; i++) {
+				//0,1,2,3 correspond to a,b,c,d
+				//TODO: The classes created are not intuitive. Some are index-based, others are
+				//      name-based. Consider redoing them, adding support for both options (perhaps
+				//      using iterators). ~Seth
+				ArrayList<ArrayList<TrafficSignalLine>> signalLine = null;
+				if (i==0) { signalLine = tempIntersection.getVaTrafficSignal(); }
+				else if (i==1) { signalLine = tempIntersection.getVbTrafficSignal(); }
+				else if (i==2) { signalLine = tempIntersection.getVcTrafficSignal(); }
+				else if (i==3) { signalLine = tempIntersection.getVdTrafficSignal(); }
+				ArrayList<Integer> lightColors = allVehicleLights.get(i);
 				
+				//Draw it
+				drawTrafficLines(g,signalLine, lightColors);
 			}
 			
 		}
-		
-		
-		//Now draw simulation data: cars, etc.
-		//if(currPercentZoom>ZOOM_IN_CRITICAL){
+	}
+	
+	
+	private void drawAllAgents(Graphics2D g, int currFrame) {
 		//Use a scale multiplier to allow people to resize the agents as needed.
 		double adjustedZoom = currPercentZoom * scaleMult;
-		Dimension sz100Percent = new Dimension(naturalSize.width, naturalSize.height);
 		
 		//Draw all agent ticks
-		Hashtable<Integer, AgentTick> agents = simRes.ticks.get(frameTick).agentTicks;
-		Hashtable<Integer, AgentTick> trackings = simRes.ticks.get(frameTick).trackingTicks;
+		Hashtable<Integer, AgentTick> agents = simRes.ticks.get(currFrame).agentTicks;
+		Hashtable<Integer, AgentTick> trackings = simRes.ticks.get(currFrame).trackingTicks;
 		for (Integer key : agents.keySet()) {
-			//Draw the agent
+			//Retrieve the agent
 			AgentTick at = agents.get(key);
-			boolean highlight = this.debugOn || currHighlightIDs.contains(key.intValue());
-			at.draw(g,adjustedZoom,this.showFakeAgent,highlight, sz100Percent);
 			
-			//Draw the tracking agent, if it exists
+			//Highlight?
+			boolean highlight = this.debugOn || currHighlightIDs.contains(key.intValue());
+			
+			//Draw
+			at.draw(g,adjustedZoom,this.showFakeAgent,highlight, naturalSize);
+			
+			//Retrieve the tracking agent; also draw it
 			AgentTick tr = trackings.get(key);
-			if (tr!=null) {
-				//Draw it as a "fake" agent.
-				tr.draw(g, adjustedZoom, true, false, sz100Percent);
-				
-				//Draw a circle and a line
-				g.setColor(hlColor);
-				g.setStroke(str1pix);
-				Point2D min = new Point2D.Double(Math.min(at.getPos().getX(), tr.getPos().getX()), Math.min(at.getPos().getY(), tr.getPos().getY()));
-				Point2D max = new Point2D.Double(Math.max(at.getPos().getX(), tr.getPos().getX()), Math.max(at.getPos().getY(), tr.getPos().getY()));
-				double dist = Distance(min, max);
-				if (dist>1.0) {
-					//double diam = Math.max(max.getX()-min.getX(), max.getY()-min.getY());
-					Line2D line = new Line2D.Double(min.getX(), min.getY(), max.getX(), max.getY());
-					Ellipse2D el = CircleFromPoints(min, max, dist/2);
-					g.draw(el);
-					g.draw(line);
-				}
-			}
-		}
-
-		//}		
-		
+			drawTrackingAgent(g, at, tr, adjustedZoom);
+		}		
 	}
+	
+	private void drawTrackingAgent(Graphics2D g, AgentTick orig, AgentTick tracking, double scaleFactor) {
+		if (orig==null || tracking==null) { return; }
+		tracking.draw(g, scaleFactor, true, false, naturalSize);
+			
+		//Draw a circle and a line
+		g.setColor(hlColor);
+		g.setStroke(str1pix);
+		Point2D min = new Point2D.Double(Math.min(orig.getPos().getX(), tracking.getPos().getX()), Math.min(orig.getPos().getY(), tracking.getPos().getY()));
+		Point2D max = new Point2D.Double(Math.max(orig.getPos().getX(), tracking.getPos().getX()), Math.max(orig.getPos().getY(), tracking.getPos().getY()));
+		double dist = Distance(min, max);
+		if (dist>1.0) {
+			Line2D line = new Line2D.Double(min.getX(), min.getY(), max.getX(), max.getY());
+			Ellipse2D el = CircleFromPoints(min, max, dist/2);
+			g.draw(el);
+			g.draw(line);
+		}
+	}
+	
+	
 	
 	private void drawTrafficLines(Graphics2D g,ArrayList<ArrayList<TrafficSignalLine>> signalLine, ArrayList<Integer> lightColors){
 		

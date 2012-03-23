@@ -38,6 +38,30 @@ public class Link implements DrawableItem {
 	public Node getStart() { return start; }
 	public Node getEnd() { return end; }
 	
+	//Retrieve an "authoritative" road name. If two Links have the same authoritative road
+	// name, it means their start and end points are the same (possibly reversed) and the 
+	// name of the road itself is the same.
+	public String getAuthoritativeRoadName() {
+		return getName() + ":" + NodeNameHelper(getStart(), getEnd());
+	}
+	private static final String NodeNameHelper(Node n1, Node n2) {
+		//A little messy, but good enough for now.
+		if (n1==null && n2==null) { return "<null>:<null>"; }
+		Node smaller = null;
+		Node larger = null;
+		if (n1==null) {
+			smaller = n1; 
+			larger = n2;
+		} else if (n2==null) {
+			smaller = n2; 
+			larger = n1;
+		} else {
+			smaller = n1.hashCode()<n2.hashCode() ? n1 : n2;
+			larger = n1.hashCode()>n2.hashCode() ? n1 : n2;
+		}		
+		return (smaller!=null?smaller.hashCode():"<null>") + ":" + (larger!=null?larger.hashCode():"<null>");
+	}
+	
 	public ArrayList<Integer> getFwdPathSegmentIDs() { return fwdPathSegmentIDs; }
 	public ArrayList<Integer> getRevPathSegmentIDs() { return revPathSegmentIDs; }
 	public void setFwdPathSegmentIDs(ArrayList<Integer> segIDs) { fwdPathSegmentIDs = segIDs; }

@@ -100,6 +100,7 @@ public class TrafficSignalLine implements DrawableItem{
 	}
     
 	public void drawArrow(Graphics2D g, int x1, int y1, int x2, int y2) {
+		AffineTransform oldAt = g.getTransform();
 
         double dx = x2 - x1, dy = y2 - y1;
         double angle = Math.atan2(dy, dx);
@@ -112,6 +113,9 @@ public class TrafficSignalLine implements DrawableItem{
         g.drawLine(0, 0, (int) len, 0);
         g.fillPolygon(new int[] {len, len-ARR_SIZE, len-ARR_SIZE, len},
                       new int[] {0, -ARR_SIZE, ARR_SIZE, 0}, 4);
+        
+        //Restore
+        g.setTransform(oldAt);
     }
 
 }

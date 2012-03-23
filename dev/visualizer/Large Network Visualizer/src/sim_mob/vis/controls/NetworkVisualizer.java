@@ -262,7 +262,7 @@ public class NetworkVisualizer {
 				drawTrafficLines(g,vaSignalLine, vaLights);
 				drawTrafficLines(g,vbSignalLine, vbLights);
 				drawTrafficLines(g,vcSignalLine, vcLights);
-				drawTrafficLines(g,vdSignalLine, vdLights);	
+				drawTrafficLines(g,vdSignalLine, vdLights);
 				
 			}
 			
@@ -294,7 +294,6 @@ public class NetworkVisualizer {
 				g.setColor(Color.red);
 				g.setStroke(str1pix);
 				Line2D line = new Line2D.Double(at.getPos().getX(), at.getPos().getY(), tr.getPos().getX(), tr.getPos().getY());
-				System.out.println("Line at: " + line.getX1() + "," + line.getY1() + " => " + line.getX2() + "," + line.getY2());
 				g.draw(line);
 			}
 		}

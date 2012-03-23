@@ -7,6 +7,7 @@ import java.awt.geom.Point2D.Double;
 import java.awt.geom.Point2D.Float;
 import java.awt.image.BufferedImage;
 import java.util.*;
+
 import sim_mob.vis.MainFrame;
 import sim_mob.vis.network.basic.*;
 import sim_mob.vis.network.*;
@@ -21,34 +22,63 @@ import sim_mob.vis.simultion.*;
  * \author Zhang Shuai
  */
 public class NetworkVisualizer {
+	//The zoom level beyond which we stop drawing Links and start drawing individual Lanes,
+	// Crossing, and Signals.
+	//TODO: This is currently compared against currPercentZoom, but in the future we should
+	//      compare the effective zoom of a single, scaled meter. Currently, if you load in
+	//      a very small and a very large network, they will not reach 'critical' zoom at the 
+	//      same visible zoom level.  ~Seth
+	private static final double  ZOOM_IN_CRITICAL = 1.6;
+	
+	//The distance (pixels) threshold used for calculating "clicks" on a given object. 
+	//If the distance from the mouse to a given object is less than this value, it is 
+	//considered to be "near" enough to click on. 
+	private static final double NEAR_THRESHHOLD = 20;
+	
+	//Some saved strokes, brushes and colors. 
+	private static final Stroke str1pix = new BasicStroke(1);
+	private static final Color hlColor = new Color(0xFF, 0xAA, 0x55);
+	
+	//The current road network, the simulation results we are showing, and the buffer we are printing it on.
 	private RoadNetwork network;
 	private SimulationResults simRes;
 	private BufferedImage buffer;
-	private int width100Percent;
-	private int height100Percent;
-	double currPercentZoom;
-	private static final double  ZOOM_IN_CRITICAL = 1.6;
-	private String fileName;
-	private boolean showFakeAgent;
+	
+	//Turns on drawing of cut lines and fake agents.
+	private boolean showFakeAgent = false;
+	
+	//Used to turn on "debug" mode, which causes all Agents to be highlighted. 
 	private boolean debugOn = false;
 	
-	private Stroke str1pix = new BasicStroke(1);
-	private Color hlColor = new Color(0xFF, 0xAA, 0x55);
+	//The current zoom level. The maximum width and height are multiplied by this value
+	// to obtain the effective new width/height. I.e., increasing it causes you to zoom in.
+	double currPercentZoom;
 	
-	private int currHighlightID;
+	//The size of the canvas at a zoom level of 1.0
+	private Dimension naturalSize;
+
+	
+	//The IDs of the current Agents to highlight. Any Agent whose ID is in this list
+	// will be highlighted and drawn with a target sign overlaid.
+	private HashSet<Integer> currHighlightIDs = new HashSet<Integer>();
 	public void setHighlightID(int id) {
-		currHighlightID=id; 
+		currHighlightIDs.clear();
+		currHighlightIDs.add(id); 
 	}
 	
+	//The amount we are multiplying all Agent images by when drawing them.
+	//Be careful setting this; obviously, scaling Agents will lead to a visually
+	//inaccurate display (since cars are scaled down to the network).
+	//However, this may be useful for visualization or debugging.
 	private int scaleMult;
 	public void setScaleMultiplier(int val) { scaleMult = val; }
 	
-	
+	//The maximum (valid) frame tick.
 	public int getMaxFrameTick() { return simRes.ticks.size()-1; }
-	public String getFileName(){return fileName;}
 	
-	//For clicking
-	private static final double NEAR_THRESHHOLD = 20;
+	//The name of the current file being rendered. 
+	private String fileName;
+	public String getFileName() { return fileName; }
 	
 	private static final double Distance(double x1, double y1, double x2, double y2) {
 		double dX = x1-x2;
@@ -67,7 +97,6 @@ public class NetworkVisualizer {
 	}
 		
 	public NetworkVisualizer() {
-		this.currHighlightID = -1;
 		this.scaleMult = 1;
 	}
 	
@@ -101,11 +130,8 @@ public class NetworkVisualizer {
 		//Save
 		this.network = network;
 		this.simRes = simRes;
-		this.width100Percent = width100Percent;
-		this.height100Percent = height100Percent;
+		this.naturalSize = new Dimension(width100Percent, height100Percent);
 		this.fileName = fileName;
-		this.showFakeAgent = false;
-		//this.debugOn = false;
 		
 		//Recalc
 		redrawAtScale(initialZoom, 0);
@@ -119,10 +145,12 @@ public class NetworkVisualizer {
 	
 	public void squareZoom(int frameTick) {
 		//First, square it.
-		int min100Percent = Math.min(width100Percent, height100Percent);
-		if (width100Percent != height100Percent) {
-			width100Percent = min100Percent;
-			height100Percent = min100Percent;
+		int min100Percent = Math.min(naturalSize.width, naturalSize.height);
+		if (naturalSize.width != naturalSize.height) {
+			//Note: There's a chance this is causing some error. 
+			//Check the logic here. ~Seth
+			naturalSize.width = min100Percent;
+			naturalSize.height = min100Percent;
 		}
 		
 		//Now redraw
@@ -145,8 +173,8 @@ public class NetworkVisualizer {
 		currPercentZoom = percent;
 		
 		//Determine the width and height of our canvas.
-		int width = (int)(width100Percent * percent);
-		int height = (int)(height100Percent * percent);
+		int width = (int)(naturalSize.width * percent);
+		int height = (int)(naturalSize.height * percent);
 		buffer = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		
 		//Make sure our canvas is always slightly bigger than the original size...
@@ -294,7 +322,7 @@ public class NetworkVisualizer {
 		//if(currPercentZoom>ZOOM_IN_CRITICAL){
 		//Use a scale multiplier to allow people to resize the agents as needed.
 		double adjustedZoom = currPercentZoom * scaleMult;
-		Dimension sz100Percent = new Dimension(width100Percent, height100Percent);
+		Dimension sz100Percent = new Dimension(naturalSize.width, naturalSize.height);
 		
 		//Draw all agent ticks
 		Hashtable<Integer, AgentTick> agents = simRes.ticks.get(frameTick).agentTicks;
@@ -302,7 +330,7 @@ public class NetworkVisualizer {
 		for (Integer key : agents.keySet()) {
 			//Draw the agent
 			AgentTick at = agents.get(key);
-			boolean highlight = this.debugOn || (key.intValue()==currHighlightID);
+			boolean highlight = this.debugOn || currHighlightIDs.contains(key.intValue());
 			at.draw(g,adjustedZoom,this.showFakeAgent,highlight, sz100Percent);
 			
 			//Draw the tracking agent, if it exists

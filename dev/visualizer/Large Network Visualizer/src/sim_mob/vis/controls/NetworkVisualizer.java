@@ -1,6 +1,10 @@
 package sim_mob.vis.controls;
 import java.awt.*;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
+import java.awt.geom.Point2D.Double;
+import java.awt.geom.Point2D.Float;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import sim_mob.vis.MainFrame;
@@ -44,6 +48,21 @@ public class NetworkVisualizer {
 	
 	//For clicking
 	private static final double NEAR_THRESHHOLD = 20;
+	
+	private static final double Distance(double x1, double y1, double x2, double y2) {
+		double dX = x1-x2;
+		double dY = y1-y2;
+		return Math.sqrt(dX*dX + dY*dY);
+	}
+	private static final double Distance(Point2D start, Point2D end) {
+		return Distance(start.getX(), start.getY(), end.getX(), end.getY());
+	}
+	
+	private static final Ellipse2D CircleFromPoints(Point2D min, Point2D max, double radius) {
+		Point2D center = new Point2D.Double(min.getX()+(max.getX()-min.getX())/2, min.getY()+(max.getY()-min.getY())/2);
+		Ellipse2D el = new Ellipse2D.Double(center.getX()-radius, center.getY()-radius, radius*2, radius*2);
+		return el;
+	}
 		
 	public NetworkVisualizer() {
 		this.currHighlightID = -1;
@@ -290,11 +309,19 @@ public class NetworkVisualizer {
 				//Draw it as a "fake" agent.
 				tr.draw(g, adjustedZoom, true, false, sz100Percent);
 				
-				//For now, just draw a line between the two
-				g.setColor(Color.red);
+				//Draw a circle and a line
+				g.setColor(Color.green);
 				g.setStroke(str1pix);
-				Line2D line = new Line2D.Double(at.getPos().getX(), at.getPos().getY(), tr.getPos().getX(), tr.getPos().getY());
-				g.draw(line);
+				Point2D min = new Point2D.Double(Math.min(at.getPos().getX(), tr.getPos().getX()), Math.min(at.getPos().getY(), tr.getPos().getY()));
+				Point2D max = new Point2D.Double(Math.max(at.getPos().getX(), tr.getPos().getX()), Math.max(at.getPos().getY(), tr.getPos().getY()));
+				double dist = Distance(min, max);
+				if (dist>1.0) {
+					double diam = Math.max(max.getX()-min.getX(), max.getY()-min.getY());
+					Line2D line = new Line2D.Double(min.getX(), min.getY(), max.getX(), max.getY());
+					Ellipse2D el = CircleFromPoints(min, max, diam/2);
+					g.draw(el);
+					g.draw(line);
+				}
 			}
 		}
 

@@ -12,14 +12,14 @@ class Node
   attr_accessor :y
 end
 
-#class Point
-#  def initialize(x, y)
-#    @x = x
-#    @y = y
-#  end  
-#  attr_accessor :x
-#  attr_accessor :y
-#end
+class Point
+  def initialize(x, y)
+    @x = x
+    @y = y
+  end  
+  attr_accessor :x
+  attr_accessor :y
+end
 
 #Get standard deviation and average
 def getStdAvg(list)
@@ -84,6 +84,22 @@ class Driver
 end
 
 
+class Segment
+  def initialize(segmentID)
+    @segmentID = segmentID
+    @startPos = nil
+    @endPos = nil
+    @upNode = nil
+    @downNode = nil
+  end  
+
+  attr_reader :segmentID
+  attr_accessor :startPos
+  attr_accessor :endPos
+  attr_accessor :upNode
+  attr_accessor :downNode
+end
+
 
 #The network file has a complex format. Basically, we are just extracting
 #  segments for now.
@@ -141,13 +157,9 @@ def read_network_file(segments)
     upNodeID = linkRes[2]
     downNodeID = linkRes[3]
 
-    puts '-'*20
-    puts "Link ID: #{linkID}"
-    puts "UpNode: #{upNodeID}"
-    puts "DownNode: #{downNodeID}"
-
     #Now get segments
     segmentStr = linkRes[5]
+    allSegs = []
     segmentStr.scan(segmentRegex) {|segRes|
       segID = segRes[0]
       segStartX = segRes[4]
@@ -155,19 +167,30 @@ def read_network_file(segments)
       segEndX = segRes[7]
       segEndY = segRes[8]
 
-      puts "Segment [#{segID}],  (#{segStartX}, #{segStartY}) => (#{segEndX}, #{segEndY})"
+      #Save it temporarily
+      seg = Segment.new(segID)
+      seg.startPos = Point.new(segStartX, segStartY)
+      seg.endPos = Point.new(segEndX, segEndY)
+      allSegs.push(seg)
     }
 
-    puts '-'*20
+
+    #Now set each segment's node ids and go from there
+    tempID = 0
+    (0..allSegs.length()-1).each{|id|
+      fromStr = "#{upNodeID}"
+      fromStr = "#{linkID}:#{tempID}" unless id==0
+      tempID += 1
+      toStr = "#{downNodeID}"
+      toStr = "#{linkID}:#{tempID}" unless id==allSegs.length()-1
+
+      seg = allSegs[id]
+      seg.upNode = "#{fromStr}"
+      seg.downNode = "#{toStr}"
+      segments[seg.segmentID] = seg
+    }
   }
 
-
-
-
-
-  
-  
-  
 end
 
 

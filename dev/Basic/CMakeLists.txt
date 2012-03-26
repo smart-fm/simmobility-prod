@@ -66,6 +66,11 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
   ENDIF (GCC_VERSION VERSION_EQUAL 4.7)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
+#Enable threading on Clang
+IF(CMAKE_C_COMPILER MATCHES "/clang$" AND CMAKE_CXX_COMPILER MATCHES "/clang[+][+]$")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -D_GLIBCXX_HAVE_GTHR_DEFAULT")
+ENDIF()
+
 
 #Testing PGO: Have to pass these flags in from the command line.
 SET(TestPgoDirectory "${CMAKE_CURRENT_SOURCE_DIR}/pgo")

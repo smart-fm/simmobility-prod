@@ -84,6 +84,94 @@ class Driver
 end
 
 
+
+#The network file has a complex format. Basically, we are just extracting
+#  segments for now.
+def read_network_file(segments)
+  #First, pre-process and remove comments. Apparently *all* comment types
+  #  are valid for mitsim...
+  bigstring = ""
+  onComment = false
+  File.open('network-BUGIS.dat').each { |line|
+    line.chomp!
+    if onComment
+      #Substitute the comment closing and set onComment to false
+      if line.sub!(/^((?!\*\/).)*\*\//, '') #C style, closing
+        onComment = false
+      else
+        line = '' #Still in the comment
+      end
+    end
+    unless onComment
+      #Single line regexes are easy
+      line.sub!(/#.*$/, '')  #Perl style
+      line.sub!(/\/\/.*$/, '')  #C++ style
+      line.gsub!(/\/\*((?!\*\/).)*\*\//, '') #C style single line
+
+      #Now multi-line C comments
+      onComment = true if line.sub!(/\/\*((?!\*\/).)*$/, '')  #C style, line ending reached
+    end
+    bigstring << line
+  }
+
+  #Now, parse unrelated sections out of the "bigstring".
+  bigstring.sub!(/^.*(?=\[Links\])/, '')
+  bigstring.sub!(/\[(?!Links)[^\]]+\].*/, '')
+  bigstring.gsub!(/[ \t]+/, ' ') #Reduce all spaces/tabs to a single space
+  bigstring.gsub!(/\[Links\][^{]*{/, '') #Avoid a tiny bit of lookahead. There will be an unmatched } at the end, but it won't matter
+
+  #Links start with:  {1 2 3 4 5   #LinkID LinkType UpNodeID DnNodeID LinkLabelID 
+  posInt = '([0-9]+)'
+  posDbl = '([0-9\.]+)'
+  posSci = '([0-9]+\.[0-9]+e[-+][0-9]+)'
+  linkHead = "{ ?#{posInt} #{posInt} #{posInt} #{posInt} #{posInt} ?"
+  #After that is at least one segment: {1 2 3 4  #SegmentID DefaultSpeedLimit FreeSpeed Grad 
+  segmentHead = "{ ?#{posInt} #{posInt} #{posInt} #{posInt} ?"
+  #After that is exactly one descriptor: {1.0e+0 2.0e+0 3.00 4.0e+0 5.0e+0}  #StartingPntX StartingPntY Bulge EndPntX EndPntY
+  segmentDesc = "{ ?#{posSci} #{posSci} #{posDbl} #{posSci} #{posSci} ?} ?"
+  #After that is at least one lane rules group: {1, 2}
+  laneRule = "{ ?#{posInt} #{posInt} ?} ?"
+  #Close each segment with }
+  segmentStr = "#{segmentHead}#{segmentDesc}((#{laneRule})+}) ?"
+  segmentRegex = Regexp.new(segmentStr)
+  #Close the Link with }
+  linkRegex = Regexp.new("#{linkHead}((#{segmentStr})+}) ?")
+  bigstring.scan(linkRegex) {|linkRes|
+    linkID = linkRes[0]
+    upNodeID = linkRes[2]
+    downNodeID = linkRes[3]
+
+    puts '-'*20
+    puts "Link ID: #{linkID}"
+    puts "UpNode: #{upNodeID}"
+    puts "DownNode: #{downNodeID}"
+
+    #Now get segments
+    segmentStr = linkRes[5]
+    segmentStr.scan(segmentRegex) {|segRes|
+      segID = segRes[0]
+      segStartX = segRes[4]
+      segStartY = segRes[5]
+      segEndX = segRes[7]
+      segEndY = segRes[8]
+
+      puts "Segment [#{segID}],  (#{segStartX}, #{segStartY}) => (#{segEndX}, #{segEndY})"
+    }
+
+    puts '-'*20
+  }
+
+
+
+
+
+  
+  
+  
+end
+
+
+
 #The dep.out file contains the departure record of each vehicle in the simulation.
 #This comprises of:
 #    departure time, 
@@ -271,6 +359,10 @@ end
 
 
 def run_main()
+  #Read the network file
+  segments = {}
+  read_network_file(segments)
+
   #Build up a list of all Driver IDs
   drivers = {}
   min, max = read_dep_file(drivers)

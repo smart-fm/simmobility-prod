@@ -19,6 +19,9 @@ namespace sim_mob {
  */
 class LaneChangeModel {
 public:
+	//Allow propagation of delete
+	virtual ~LaneChangeModel() {}
+
 	///to execute the lane changing, meanwhile, check if crash will happen and avoid it
 	///Return new lateral velocity, or <0 to keep the velocity at its previous value.
 	virtual double executeLaneChanging(sim_mob::DriverUpdateParams& p, double totalLinkDistance, double vehLen, LANE_CHANGE_SIDE currLaneChangeDir) = 0;

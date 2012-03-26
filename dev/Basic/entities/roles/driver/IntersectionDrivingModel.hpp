@@ -23,6 +23,9 @@ class UnPackageUtils;
  */
 class IntersectionDrivingModel {
 public:
+	//Allow propagation of delete
+	virtual ~IntersectionDrivingModel() {}
+
 	virtual void startDriving(const DPoint& fromLanePt, const DPoint& toLanePt, double startOffset) = 0;
 	virtual DPoint continueDriving(double amount) = 0;
 	virtual bool isDone() = 0;

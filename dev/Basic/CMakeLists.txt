@@ -66,10 +66,14 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
   ENDIF (GCC_VERSION VERSION_EQUAL 4.7)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
+
 #Enable threading on Clang
-IF(CMAKE_C_COMPILER MATCHES "/clang$" AND CMAKE_CXX_COMPILER MATCHES "/clang[+][+]$")
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -D_GLIBCXX_HAVE_GTHR_DEFAULT")
-ENDIF()
+#NOTE: This is only a problem if GCC 4.7 AND clang are installed. 
+#      If you get errors about "DISABLE_THREADS" being set for boost, you can either enable the next
+#      few lines, or compile against gcc-4.6's standard library. 
+#IF(CMAKE_C_COMPILER MATCHES "/clang$" AND CMAKE_CXX_COMPILER MATCHES "/clang[+][+]$")
+#  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -D_GLIBCXX_HAVE_GTHR_DEFAULT")
+#ENDIF()
 
 
 #Testing PGO: Have to pass these flags in from the command line.

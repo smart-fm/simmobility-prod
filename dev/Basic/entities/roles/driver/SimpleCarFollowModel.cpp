@@ -8,5 +8,5 @@ using namespace sim_mob;
 
 double sim_mob::SimpleCarFollowModel::makeAcceleratingDecision(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed)
 {
-
+	return 1; //TODO
 }

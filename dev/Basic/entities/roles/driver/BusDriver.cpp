@@ -106,9 +106,12 @@ double sim_mob::BusDriver::updatePositionOnLink(DriverUpdateParams& p)
 	}
 
 	//Move
+	double res = 0.0;
 	if (updatePos) {
-		Driver::updatePositionOnLink(p);
+		res = Driver::updatePositionOnLink(p);
 	}
+	
+	return res;
 }
 
 

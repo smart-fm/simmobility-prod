@@ -187,7 +187,7 @@ def read_network_file(segments)
       seg = allSegs[id]
       seg.upNode = "#{fromStr}"
       seg.downNode = "#{toStr}"
-      segments[seg.segmentID] = seg
+      segments[seg.segmentID.to_i] = seg
     }
   }
 
@@ -291,15 +291,44 @@ end
 #  speed 
 #  acceleration 
 #  vehicleType
-def read_traj_file(list)
+def read_traj_file(list, segments, nodes)
+  lastKnownTime = 0
+  unknownNodes = []
   File.open('traj_compact.txt').each { |line|  #We use a trimmed version of trajectory.out, but loading the original would work too.
     if line =~ /([0-9]+) +([0-9]+) +([0-9]+) +([0-9]+) +([0-9.]+) +([0-9.]+) +([0-9e.\-]+) +([0-9]+)/
       id = $2.to_i
       if list.has_key? id
         dr = list[id]
+
+        #Saving firstPos
         unless dr.firstPos
           dr.firstPos = $5.to_f
         end
+
+        #Time
+        time = $1.to_i
+        raise "Error: time must be strictly increasing" if time<lastKnownTime
+
+        #segmentID, laneID, positionInLane
+        segmentID = $3.to_i
+        raise "Segment ID not known: " + segmentID.to_s unless segments.has_key? segmentID
+        laneID = $4.to_i
+        posInLane = $5.to_f
+        
+        #Get the upstream node
+        segment = segments[segmentID]
+        unless segment.upNode.include? ':'  #We don't consider uni-nodes for now.
+          unless nodes.has_key? segment.upNode
+            unknownNodes.push(segment.upNode)
+            #puts "  (downstream node is " + segment.downNode + ")"
+            #puts "  (lane is " + laneID.to_s + ")"
+            #puts "  (pos is " + posInLane.to_s + ")"
+            #raise "Error"
+          end
+        end
+
+        #Increment
+        lastKnownTime = time
       else
         raise "Agent ID expected but doesn't exist: #{id}"
       end
@@ -307,6 +336,9 @@ def read_traj_file(list)
       puts "Skipped line: #{line}"
     end
   }
+
+
+  puts "Unknown node IDs: #{unknownNodes.uniq}" unless unknownNodes.empty?
 
   #Build a lookup of Nodes based on the first location of each driver.
   node_lookup = {} #Array of offsets, indexed by NodeID
@@ -333,20 +365,22 @@ def read_traj_file(list)
 end
 
 
-def read_convert_file(list, dict)
+def read_convert_file(list, mitsimToSM, multiAndUniNodes)
   File.open('ms_sm_node_convert.txt').each { |line|
     next if line =~ /^#/ or line.strip.empty?
     if line =~ /([0-9]+) *=> *([0-9]+)/
       from = $1.to_i
       to = $2.to_i
-      if dict.has_key? from
-        raise "Comparison error" if dict[from].nodeID != to
+      newNode = Node.new(to)
+      if mitsimToSM.has_key? from
+        raise "Comparison error" if mitsimToSM[from].nodeID != to
       else
-        dict[from] = Node.new(to)
+        mitsimToSM[from] = newNode
+        multiAndUniNodes[from.to_s] = newNode
       end
     elsif line =~ /([0-9]+) *= *\(([0-9]+),([0-9]+)\)/
       found = false
-      dict.each_value{|nd|
+      mitsimToSM.each_value{|nd|
         if nd.nodeID == $1.to_i
           nd.x = $2.to_i
           nd.y = $3.to_i
@@ -360,8 +394,8 @@ def read_convert_file(list, dict)
   }
 
   #Final check
-  dict.each_value{|nd|
-    #raise "Node ID not translated: #{nd.nodeID}" if nd.x==0 or nd.y==0
+  mitsimToSM.each_value{|nd|
+    puts "Node ID not translated: #{nd.nodeID}" if nd.x==0 or nd.y==0
   }
 end
 
@@ -393,12 +427,13 @@ def run_main()
   #Cross-reference with the vehicles file
   minDepTime = read_veh_file(drivers)
 
-  #Parse the trajectory file
-  read_traj_file(drivers)
-
   #Compare with sim mobility nodes
-  nodeConv = {}
-  read_convert_file(drivers, nodeConv)
+  nodeConv = {} #Lookup based on Mitsim ID
+  nodes = {}  #By ID as a _string_
+  read_convert_file(drivers, nodeConv, nodes)
+
+  #Parse the trajectory file
+  read_traj_file(drivers, segments, nodes)
 
   #Final validation
   final_validate(drivers, nodeConv, minDepTime)

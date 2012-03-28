@@ -101,6 +101,17 @@ class Segment
 end
 
 
+def ParseScientificToFloat(str)
+  if str =~ /([0-9]+\.[0-9]+)e([-+][0-9]+)/
+    base = $1.to_f
+    subscr = $2.to_f
+    return base * 10.0 ** subscr
+  else
+    raise "String is not in scientific form: " + str
+  end
+end
+
+
 #The network file has a complex format. Basically, we are just extracting
 #  segments for now.
 def read_network_file(segments)
@@ -162,10 +173,10 @@ def read_network_file(segments)
     allSegs = []
     segmentStr.scan(segmentRegex) {|segRes|
       segID = segRes[0]
-      segStartX = segRes[4]
-      segStartY = segRes[5]
-      segEndX = segRes[7]
-      segEndY = segRes[8]
+      segStartX = ParseScientificToFloat(segRes[4])
+      segStartY = ParseScientificToFloat(segRes[5])
+      segEndX = ParseScientificToFloat(segRes[7])
+      segEndY = ParseScientificToFloat(segRes[8])
 
       #Save it temporarily
       seg = Segment.new(segID)
@@ -320,10 +331,6 @@ def read_traj_file(list, segments, nodes)
         unless segment.upNode.include? ':'  #We don't consider uni-nodes for now.
           unless nodes.has_key? segment.upNode
             unknownNodes.push(segment.upNode)
-            #puts "  (downstream node is " + segment.downNode + ")"
-            #puts "  (lane is " + laneID.to_s + ")"
-            #puts "  (pos is " + posInLane.to_s + ")"
-            #raise "Error"
           end
         end
 
@@ -350,6 +357,7 @@ def read_traj_file(list, segments, nodes)
 
   #Temp: print
   node_lookup.each {|id, offsets|
+    next  #Skip for now
     min = max = offsets[0]
     puts "First 'offset' values for agents in Node ID #{id}:"
     offsets.each {|offset|
@@ -363,6 +371,20 @@ def read_traj_file(list, segments, nodes)
     puts '-'*20
   }
 end
+
+
+#outputSMNodeID is just for show
+def compute_error(smNodeLookup, msNode, nodeID, outputSMNodeID, offset)
+  smNode = smNodeLookup[nodeID.to_i]
+  return if smNode.x==0 and smNode.y==0 #Not in our lookup file
+
+  expected = Point.new(msNode.x*100+offset.x, msNode.y*100+offset.y)
+  diff = Point.new(expected.x-smNode.x, expected.y-smNode.y)
+  #puts "Mitsim(#{nodeID}) to Sim Mobility(#{outputSMNodeID}) has error of: (#{diff.x},#{diff.y})"
+  #puts "   mitsim: (#{msNode.x*100},#{msNode.y*100})"
+  #puts "   simmob: (#{smNode.x},#{smNode.y})"
+end
+
 
 
 def read_convert_file(list, mitsimToSM, multiAndUniNodes)
@@ -400,7 +422,44 @@ def read_convert_file(list, mitsimToSM, multiAndUniNodes)
 end
 
 
-def final_validate(agents, nodeConv, minDepTime)
+def final_validate(agents, nodeConv, segments, nodes, minDepTime)
+  #Check the offset from sim mobility nodes to mitsim ones
+  sampleNodePos_SM = nodeConv[122] #122 => 60896, the lower-left most node
+  sampleNodePos_MS = nil
+  segments.each{|key, seg|
+    if seg.upNode=='122'
+      sampleNodePos_MS = seg.startPos
+      break
+    elsif seg.downNode=='122'
+      sampleNodePos_MS = seg.endPos
+      break
+    end
+  }
+  raise "Couldn't find sample node!" unless sampleNodePos_MS
+
+  #Offset FROM mitsim points TO sim mobility ones. (Add this to mitsim points)
+  #NOTE: This doesn't work. We'll need to use the Sim Mobility coordinates directly; there's
+  #      far too much error if we just scale by one of the MITSIM points. 
+  offset = Point.new(sampleNodePos_SM.x-sampleNodePos_MS.x*100, sampleNodePos_SM.y-sampleNodePos_MS.y*100)
+  #puts "Mitsim node location: (#{sampleNodePos_MS.x*100},#{sampleNodePos_MS.y*100})"
+  #puts "Sim Mobility node location: (#{sampleNodePos_SM.x},#{sampleNodePos_SM.y})"
+  #puts "Offset (ms+): (#{offset.x},#{offset.y})"
+
+  #Now check how much error we get versus other node IDs:
+  segments.each{|key, seg|
+    unless seg.upNode.include? ':'
+      if nodes.has_key? seg.upNode and nodeConv.has_key? seg.upNode.to_i
+        compute_error(nodeConv, seg.startPos, seg.upNode, nodeConv[seg.upNode.to_i].nodeID, offset)
+      end
+    end
+    unless seg.downNode.include? ':'
+      if nodes.has_key? seg.downNode and nodeConv.has_key? seg.downNode.to_i
+        compute_error(nodeConv, seg.endPos, seg.downNode, nodeConv[seg.downNode.to_i].nodeID, offset)
+      end
+    end
+  }
+
+
   agents.each{|id, dr|
     #Make sure sim mobility node IDs exist
     raise "No Sim Mobility node id for: #{dr.originNode}" unless nodeConv.has_key? dr.originNode
@@ -436,7 +495,29 @@ def run_main()
   read_traj_file(drivers, segments, nodes)
 
   #Final validation
-  final_validate(drivers, nodeConv, minDepTime)
+  final_validate(drivers, nodeConv, segments, nodes, minDepTime)
+
+  #Try printing the MITSIM node network
+  knownNodeIDs = []
+  segments.each{|key, seg|
+    unless seg.upNode.include? ':'
+      if nodes.has_key? seg.upNode and nodeConv.has_key? seg.upNode.to_i
+        knownNodeIDs.push(seg.upNode)
+      end
+    end
+    unless seg.downNode.include? ':'
+      if nodes.has_key? seg.downNode and nodeConv.has_key? seg.downNode.to_i
+        knownNodeIDs.push(seg.downNode)
+      end
+    end
+  }
+  File.open('output_network.txt', 'w') {|f|
+    knownNodeIDs.uniq.each{|nodeID|
+      nd = nodes[nodeID]
+      next if nd.x==0 and nd.y==0
+      f.write("(\"multi-node\", 0, #{nodeID}, {\"xPos\":\"#{(nd.x*100).to_i}\",\"yPos\":\"#{(nd.y*100).to_i}\",})\n")
+    }
+  }
 
   #Print the Agents
   File.open('agents.gen.xml', 'w') {|f|

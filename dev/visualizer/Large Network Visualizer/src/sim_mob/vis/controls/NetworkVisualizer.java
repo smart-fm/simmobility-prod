@@ -328,6 +328,13 @@ public class NetworkVisualizer {
 	
 	
 	private void drawAllAgents(Graphics2D g, int currFrame) {
+		//It is possible (but unlikely) to have absolutely no agents at all.
+		// The only time this makes sense is if currFrame is equal to zero.
+		if (currFrame>=simRes.ticks.size()) {
+			if (currFrame!=0) { throw new RuntimeException("Error: invalid non-zero frame."); }
+			return;
+		}
+		
 		//Use a scale multiplier to allow people to resize the agents as needed.
 		double adjustedZoom = currPercentZoom * scaleMult;
 		

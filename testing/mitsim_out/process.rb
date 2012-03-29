@@ -107,11 +107,13 @@ class Link
     @linkID = linkID
     @upNode = nil
     @downNode = nil
+    @segments = [] #Listed upstream to downstream
   end  
 
   attr_reader :linkID
   attr_accessor :upNode
   attr_accessor :downNode
+  attr_accessor :segments
 end
 
 
@@ -126,9 +128,42 @@ def ParseScientificToFloat(str)
 end
 
 
+def calc_distance(x1, y1, x2, y2)
+  dX = x2 - x1
+  dY = y2 - y1
+  return Math.sqrt(dX**2 + dY**2)
+end
+
+
+#Helper; make sure all nodes exist
+def attemptToGenerateID(linkID, pos, nodeID, currSubID, nodelist)
+  #If no Node ID exists, generate a node and add it to the node list
+  unless nodeID
+    #Somewhat fragile, but should be good enough
+    raise "Too many segments" if currSubID[0]>999
+
+    #Set the ID (string)
+    nodeID = "#{linkID}:#{currSubID[0]}"
+    currSubID[0] += 1
+
+    #Sanity check
+    raise "Node ID collision error: #{nodeID}" if nodelist.has_key? nodeID
+
+    #Make the node
+    nd = Node.new(nodeID)
+    nd.x = pos.x
+    nd.y = pos.y
+    nodelist[nodeID] = nd
+  end
+
+  #Return the (new?) ID
+  return nodeID
+end
+
+
 #The network file has a complex format. Basically, we are just extracting
 #  segments for now.
-def read_network_file(segments)
+def read_network_file(segments, nodes)
   #First, pre-process and remove comments. Apparently *all* comment types
   #  are valid for mitsim...
   bigstring = ""
@@ -186,8 +221,9 @@ def read_network_file(segments)
     link.downNode = downNodeID
 
     #Now get segments
+    #Segments are listed from upstream to downstream
     segmentStr = linkRes[5]
-    allSegs = []
+    lastEndPoint = nil
     segmentStr.scan(segmentRegex) {|segRes|
       segID = segRes[0]
       segStartX = ParseScientificToFloat(segRes[4])
@@ -200,23 +236,31 @@ def read_network_file(segments)
       seg.startPos = Point.new(segStartX, segStartY)
       seg.endPos = Point.new(segEndX, segEndY)
       seg.parentLink = link
-      allSegs.push(seg)
+      link.segments.push(seg)
+
+      #Double-check consistency
+      if lastEndPoint
+        unless seg.startPos.x==lastEndPoint.x and seg.startPos.y==lastEndPoint.y
+          #Skip errors less than 1 m
+          errorVal = calc_distance(seg.startPos.x, seg.startPos.y, lastEndPoint.x, lastEndPoint.y)
+          raise "Segment consistency error on Segment: #{segID} Distance: #{errorVal}" if errorVal >= 1.0 
+        end
+      end
+      lastEndPoint = seg.endPos
     }
 
 
     #Now set each segment's node ids and go from there
-    tempID = 0
-    (0..allSegs.length()-1).each{|id|
-      fromStr = "#{upNodeID}"
-      fromStr = "#{linkID}:#{tempID}" unless id==0
-      tempID += 1
-      toStr = "#{downNodeID}"
-      toStr = "#{linkID}:#{tempID}" unless id==allSegs.length()-1
+    currSubID = [1] #Node ID for segments.
+    link.segments[0].upNode = upNodeID
+    link.segments[-1].downNode = downNodeID
+    link.segments.each{|segment|
+      #Attempt to generate an ID. Even if this fails, save this ID
+      segment.upNode = attemptToGenerateID(linkID, segment.startPos, segment.upNode, currSubID, nodes)
+      segment.downNode = attemptToGenerateID(linkID, segment.endPos, segment.downNode, currSubID, nodes)
 
-      seg = allSegs[id]
-      seg.upNode = "#{fromStr}"
-      seg.downNode = "#{toStr}"
-      segments[seg.segmentID.to_i] = seg
+      #And... add it to the list
+      segments[segment.segmentID.to_i] = segment
     }
   }
 
@@ -492,10 +536,21 @@ def final_validate(agents, nodeConv, segments, nodes, minDepTime)
 end
 
 
+#Generate something that the visualizer can parse.
+def fakeNodeID(nodeID)
+  ind = nodeID.index(':')
+  return nodeID.to_i unless ind
+  prefix = nodeID.slice(0,ind).to_i
+  suffix = nodeID.slice(ind+1, nodeID.length).to_i
+  return prefix*1000 + suffix
+end
+
+
 def run_main()
   #Read the network file
   segments = {}
-  read_network_file(segments)
+  nodes = {}  #By ID as a _string_
+  read_network_file(segments, nodes)
 
   #Build up a list of all Driver IDs
   drivers = {}
@@ -506,7 +561,6 @@ def run_main()
 
   #Compare with sim mobility nodes
   nodeConv = {} #Lookup based on Mitsim ID
-  nodes = {}  #By ID as a _string_
   read_convert_file(drivers, nodeConv, nodes)
 
   #Parse the trajectory file
@@ -575,7 +629,9 @@ def run_main()
     allNodeIDs.each{|nodeID|
       nd = nodes[nodeID]
       next if nd.x==0 and nd.y==0
-      f.write("(\"multi-node\", 0, #{nodeID}, {")  #Header
+      name = 'multi'
+      name = 'uni' if nodeID.include? ':'
+      f.write("(\"#{name}-node\", 0, #{fakeNodeID(nodeID)}, {")  #Header
       f.write("\"xPos\":\"#{(nd.x*100).to_i}\",\"yPos\":\"#{(nd.y*100).to_i}\",") #Guaranteed
       f.write("\"mitsim-id\":\"#{nodeID}\",") if nodes.has_key? nodeID  #Optional (now it's guaranteed though)
       f.write("\"aimsun-id\":\"#{nodeConv[nodeID.to_i].nodeID}\",") if nodeConv.has_key? nodeID.to_i  #Optional

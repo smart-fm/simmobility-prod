@@ -517,6 +517,7 @@ def run_main()
 
   #Try printing the MITSIM node network
   knownNodeIDs = []
+  allNodeIDs = []
   possibleLinks = []
   segments.each{|key, seg|
     numFound = 0
@@ -531,6 +532,14 @@ def run_main()
         knownNodeIDs.push(seg.downNode)
         numFound += 1
       end
+    end
+
+    #Hmm
+    if nodes.has_key?(seg.upNode) and not allNodeIDs.include? seg.upNode
+      allNodeIDs.push(seg.upNode)
+    end
+    if nodes.has_key?(seg.downNode) and not allNodeIDs.include? seg.downNode
+      allNodeIDs.push(seg.downNode)
     end
 
     #Mark this link for later
@@ -562,10 +571,15 @@ def run_main()
     puts "Found: #{link.upNode} => #{link.downNode}" if numFound==2
   }
   File.open('output_network.txt', 'w') {|f|
-    knownNodeIDs.uniq.each{|nodeID|
+#    knownNodeIDs.uniq.each{|nodeID|
+    allNodeIDs.each{|nodeID|
       nd = nodes[nodeID]
       next if nd.x==0 and nd.y==0
-      f.write("(\"multi-node\", 0, #{nodeID}, {\"xPos\":\"#{(nd.x*100).to_i}\",\"yPos\":\"#{(nd.y*100).to_i}\",})\n")
+      f.write("(\"multi-node\", 0, #{nodeID}, {")  #Header
+      f.write("\"xPos\":\"#{(nd.x*100).to_i}\",\"yPos\":\"#{(nd.y*100).to_i}\",") #Guaranteed
+      f.write("\"mitsim-id\":\"#{nodeID}\",") if nodes.has_key? nodeID  #Optional (now it's guaranteed though)
+      f.write("\"aimsun-id\":\"#{nodeConv[nodeID.to_i].nodeID}\",") if nodeConv.has_key? nodeID.to_i  #Optional
+      f.write("})\n") #Footer
     }
   }
 

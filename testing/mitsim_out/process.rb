@@ -254,6 +254,25 @@ def read_network_file(segments, nodes)
     currSubID = [1] #Node ID for segments.
     link.segments[0].upNode = upNodeID
     link.segments[-1].downNode = downNodeID
+
+    #Force add Link start node
+    id = link.segments[0].upNode
+    unless nodes.has_key? id
+      nd = Node.new(id)
+      nd.x = link.segments[0].startPos.x
+      nd.y = link.segments[0].startPos.y
+      nodes[id] = nd
+    end
+
+    #Force add Link end node
+    id = link.segments[-1].downNode
+    unless nodes.has_key? id
+      nd = Node.new(id)
+      nd.x = link.segments[-1].endPos.x
+      nd.y = link.segments[-1].endPos.y
+      nodes[id] = nd
+    end
+
     link.segments.each{|segment|
       #Attempt to generate an ID. Even if this fails, save this ID
       segment.upNode = attemptToGenerateID(linkID, segment.startPos, segment.upNode, currSubID, nodes)
@@ -460,7 +479,7 @@ def read_convert_file(list, mitsimToSM, multiAndUniNodes)
         raise "Comparison error" if mitsimToSM[from].nodeID != to
       else
         mitsimToSM[from] = newNode
-        multiAndUniNodes[from.to_s] = newNode
+        #multiAndUniNodes[from.to_s] = newNode
       end
     elsif line =~ /([0-9]+) *= *\(([0-9]+),([0-9]+)\)/
       found = false
@@ -549,8 +568,13 @@ end
 def run_main()
   #Read the network file
   segments = {}
-  nodes = {}  #By ID as a _string_
+  nodes = {}  #Note, these are MITSIM nodes, and are indexed by id as a STRING.
   read_network_file(segments, nodes)
+
+  #TEMP:
+  #nodes.each{|key, value|
+  # puts "Temp: #{value.x},#{value.y} => #{key.include? ':'}"
+  #}
 
   #Build up a list of all Driver IDs
   drivers = {}

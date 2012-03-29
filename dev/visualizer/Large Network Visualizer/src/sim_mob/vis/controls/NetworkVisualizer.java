@@ -282,6 +282,7 @@ public class NetworkVisualizer {
 	
 	private void drawAllCrossingSignals(Graphics2D g, int currFrame, boolean ShowCrossingSignals) {
 		if (!ShowCrossingSignals) { return; }
+		if (simRes.ticks.isEmpty() && currFrame==0) { return; }
 		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
 			//Get all lights and Crossings at this intersection (by id)
 			Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());
@@ -301,6 +302,7 @@ public class NetworkVisualizer {
 	
 	private void drawAllLaneSignals(Graphics2D g, int currFrame, boolean ShowLaneSignals) {
 		if (!ShowLaneSignals) { return; }
+		if (simRes.ticks.isEmpty() && currFrame==0) { return; }
 		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
 			//Get Intersection ID and color
 			Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());

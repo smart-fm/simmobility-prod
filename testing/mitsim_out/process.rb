@@ -661,6 +661,35 @@ def run_main()
       f.write("\"aimsun-id\":\"#{nodeConv[nodeID.to_i].nodeID}\",") if nodeConv.has_key? nodeID.to_i  #Optional
       f.write("})\n") #Footer
     }
+
+    #Now write all Links
+    possibleLinks.each{|link|
+      f.write("(\"link\", 0, #{link.linkID}, {")  #Header
+      f.write("\"road-name\":\"\",\"start-node\":\"#{fakeNodeID(link.upNode)}\",") #Guaranteed
+      f.write("\"end-node\":\"#{fakeNodeID(link.downNode)}\",") #Also guaranteed
+      f.write("\"fwd-path\":\"[")
+      link.segments.each{|segment|
+        f.write("#{segment.segmentID},")
+      }
+      f.write("]\",") #Close fwd-path
+      f.write("\"rev-path\":\"[")
+      #TODO: Currently there seems to be no way to do this.
+      f.write("]\",") #Close rev-path
+      f.write("})\n") #Footer
+    }
+
+    #Now write all Segments
+    possibleLinks.each{|link|
+      link.segments.each{|segment|
+        f.write("(\"road-segment\", 0, #{segment.segmentID}, {")  #Header
+        f.write("\"parent-link\":\"#{link.linkID}\",") #Guaranteed
+        f.write("\"max-speed\":\"0\",") #Not hooked up yet
+        f.write("\"lanes\":\"1\",") #Not hooked up yet
+        f.write("\"from-node\":\"#{fakeNodeID(segment.upNode)}\",") #Not hooked up yet
+        f.write("\"to-node\":\"#{fakeNodeID(segment.downNode)}\",") #Not hooked up yet
+        f.write("})\n") #Footer
+      }
+    }
   }
 
   #Print the Agents

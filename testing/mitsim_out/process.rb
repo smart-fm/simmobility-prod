@@ -91,11 +91,25 @@ class Segment
     @endPos = nil
     @upNode = nil
     @downNode = nil
+    @parentLink = nil
   end  
 
   attr_reader :segmentID
   attr_accessor :startPos
   attr_accessor :endPos
+  attr_accessor :upNode
+  attr_accessor :downNode
+  attr_accessor :parentLink
+end
+
+class Link
+  def initialize(linkID)
+    @linkID = linkID
+    @upNode = nil
+    @downNode = nil
+  end  
+
+  attr_reader :linkID
   attr_accessor :upNode
   attr_accessor :downNode
 end
@@ -167,6 +181,9 @@ def read_network_file(segments)
     linkID = linkRes[0]
     upNodeID = linkRes[2]
     downNodeID = linkRes[3]
+    link = Link.new(linkID)
+    link.upNode = upNodeID
+    link.downNode = downNodeID
 
     #Now get segments
     segmentStr = linkRes[5]
@@ -182,6 +199,7 @@ def read_network_file(segments)
       seg = Segment.new(segID)
       seg.startPos = Point.new(segStartX, segStartY)
       seg.endPos = Point.new(segEndX, segEndY)
+      seg.parentLink = link
       allSegs.push(seg)
     }
 
@@ -499,17 +517,49 @@ def run_main()
 
   #Try printing the MITSIM node network
   knownNodeIDs = []
+  possibleLinks = []
   segments.each{|key, seg|
+    numFound = 0
     unless seg.upNode.include? ':'
       if nodes.has_key? seg.upNode and nodeConv.has_key? seg.upNode.to_i
         knownNodeIDs.push(seg.upNode)
+        numFound += 1
       end
     end
     unless seg.downNode.include? ':'
       if nodes.has_key? seg.downNode and nodeConv.has_key? seg.downNode.to_i
         knownNodeIDs.push(seg.downNode)
+        numFound += 1
       end
     end
+
+    #Mark this link for later
+    if numFound>0
+      possibleLinks.push(seg.parentLink) unless possibleLinks.include? seg.parentLink
+    end
+  }
+  possibleLinks.each{|link|
+    numFound = 0
+    #puts "Checking: #{link.linkID} => (#{link.upNode},#{link.downNode})"
+    unless link.upNode.include? ':'
+      #puts " up:"
+      if nodes.has_key? link.upNode and nodeConv.has_key? link.upNode.to_i
+        knownNodeIDs.push(link.upNode)
+        numFound += 1
+        #puts " +1A"
+      end
+    end
+    unless link.downNode.include? ':'
+      #puts " down:"
+      if nodes.has_key? link.downNode and nodeConv.has_key? link.downNode.to_i
+        knownNodeIDs.push(link.downNode)
+        numFound += 1
+        #puts " +1B"
+      end
+    end
+
+    #Do we know about this link?
+    puts "Found: #{link.upNode} => #{link.downNode}" if numFound==2
   }
   File.open('output_network.txt', 'w') {|f|
     knownNodeIDs.uniq.each{|nodeID|

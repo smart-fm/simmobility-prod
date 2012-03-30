@@ -226,6 +226,9 @@ public class NetworkVisualizer {
 
 		//Draw all Agents now
 		drawAllAgents(g, frameTick);
+		
+		//Draw all annotations
+		drawAllAnnotations(g, true, true);
 	}
 	
 	
@@ -234,6 +237,13 @@ public class NetworkVisualizer {
 			if (ShowUniNodes || !n.getIsUni()) {
 				n.draw(g);
 			}
+		}
+	}
+	
+	private void drawAllAnnotations(Graphics2D g, boolean showAimsun, boolean showMitsim) {
+		if (!showAimsun && !showMitsim) { return; }
+		for (Node n : network.getNodes().values()) {
+			n.drawAnnotations(g, showAimsun, showMitsim);
 		}
 	}
 	

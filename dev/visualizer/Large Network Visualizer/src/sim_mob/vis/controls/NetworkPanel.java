@@ -212,6 +212,15 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		updateMap();
 	}
 	
+	public void setAnnotationLevel(boolean showAimsun, boolean showMitsim) {
+		if(netViewCache == null){
+			return; 
+		}
+		netViewCache.setAnnotationLevel(showAimsun, showMitsim);
+		this.repaint();
+		updateMap();
+	}
+	
 	private void clickMap(Point pos) {
 		//Anything?
 		if (netViewCache==null) {

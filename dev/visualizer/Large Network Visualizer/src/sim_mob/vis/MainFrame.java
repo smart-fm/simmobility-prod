@@ -67,6 +67,13 @@ public class MainFrame extends JFrame {
     private JButton renderVideo;
     private JButton squareViewport;
     
+    private JButton annotationLevel;
+    private int currAnnotLevel; //0,1,2,3 (simple progression; migrate to an enum if you add more)
+    private ImageIcon alvl_None;
+    private ImageIcon alvl_Aimsun;
+    private ImageIcon alvl_Mitsim;
+    private ImageIcon alvl_Both;
+    
 	
 	//Lower panel
 	private Timer animTimer;
@@ -183,6 +190,14 @@ public class MainFrame extends JFrame {
 	    }
 	    
 	    squareViewport = new JButton("Square viewport");
+	    
+	    alvl_None = new ImageIcon(Utility.LoadImgResource("res/icons/annot_none.png"));
+	    alvl_Mitsim = new ImageIcon(Utility.LoadImgResource("res/icons/annot_mitsim.png"));
+	    alvl_Aimsun = new ImageIcon(Utility.LoadImgResource("res/icons/annot_aimsun.png"));
+	    alvl_Both = new ImageIcon(Utility.LoadImgResource("res/icons/annot_both.png"));
+	    annotationLevel = new JButton("No annotations");
+	    currAnnotLevel = 0;
+	    annotationLevel.setIcon(alvl_None);
 
 	    
 	    openLogFile = new JButton("Open File From...", new ImageIcon(Utility.LoadImgResource("res/icons/open.png")));
@@ -229,6 +244,7 @@ public class MainFrame extends JFrame {
 		jpLeft.add(imgScaleBox);
 		jpLeft.add(renderVideo);
 		jpLeft.add(squareViewport);
+		jpLeft.add(annotationLevel);
 		
 		//Bottom panel
 		JPanel jpLower = new JPanel(new BorderLayout());
@@ -455,6 +471,17 @@ public class MainFrame extends JFrame {
 				}
 			}
 
+		});
+		
+		annotationLevel.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				currAnnotLevel = (currAnnotLevel+1)%4;
+				boolean showAimsun = (currAnnotLevel==1 || currAnnotLevel==3);
+				boolean showMitsim = (currAnnotLevel==2 || currAnnotLevel==3);
+				newViewPnl.setAnnotationLevel(showAimsun, showMitsim);
+				annotationLevel.setText((showAimsun&&showMitsim)?"Both annotations":showAimsun?"Aimsun annotations":showMitsim?"Mitsim annotations":"No annotations");
+				annotationLevel.setIcon((showAimsun&&showMitsim)?alvl_Both:showAimsun?alvl_Aimsun:showMitsim?alvl_Mitsim:alvl_None);
+			}
 		});
 		
 		renderVideo.addActionListener(new ActionListener() {

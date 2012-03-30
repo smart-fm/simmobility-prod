@@ -106,9 +106,10 @@ public class NetworkVisualizer {
 		return buffer;
 	}
 	
-	public void setAnnotationLevel(boolean showAimsun, boolean showMitsim) {
+	public void setAnnotationLevel(boolean showAimsun, boolean showMitsim, int frameTick) {
 		this.showAimsunLabels = showAimsun;
 		this.showMitsimLabels = showMitsim;
+		redrawAtCurrScale(frameTick);
 	}
 
 	public BufferedImage getImageAtTimeTick(int tick) {

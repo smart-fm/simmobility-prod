@@ -213,11 +213,11 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	}
 	
 	public void setAnnotationLevel(boolean showAimsun, boolean showMitsim) {
-		if(netViewCache == null){
+		if(netViewCache == null) {
 			return; 
 		}
-		netViewCache.setAnnotationLevel(showAimsun, showMitsim);
-		this.repaint();
+		netViewCache.setAnnotationLevel(showAimsun, showMitsim, getCurrFrameTick());
+		//this.repaint();
 		updateMap();
 	}
 	
@@ -302,7 +302,8 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	//Resize listener
 	public void componentResized(ComponentEvent e) {
 		buffer = new BufferedImage(this.getWidth(), this.getHeight(), BufferedImage.TYPE_INT_RGB);
-		this.repaint();
+		updateMap();
+		//this.repaint();
 	}
 
 	//Helper class

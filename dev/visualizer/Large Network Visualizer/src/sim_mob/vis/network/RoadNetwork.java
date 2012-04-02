@@ -380,7 +380,15 @@ public class RoadNetwork {
 	    Utility.CheckBounds(xBounds, x);
 	    Utility.CheckBounds(yBounds, y);
 	    
-	    nodes.put(objID, new Node(x, y, isUni,objID));
+	    Node res = new Node(x, y, isUni,objID);
+	    if (props.containsKey("aimsun-id")) {
+	    	res.aimsunID = props.get("aimsun-id");
+	    }
+	    if (props.containsKey("mitsim-id")) {
+	    	res.mitsimID = props.get("mitsim-id");
+	    }
+	    
+	    nodes.put(objID, res);
 	    
 	}
 		

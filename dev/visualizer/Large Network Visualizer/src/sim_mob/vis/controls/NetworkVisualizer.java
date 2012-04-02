@@ -47,6 +47,10 @@ public class NetworkVisualizer {
 	//Used to turn on "debug" mode, which causes all Agents to be highlighted. 
 	private boolean debugOn = false;
 	
+	//Render flags for annotation labels
+	private boolean showAimsunLabels = false;
+	private boolean showMitsimLabels = false;
+	
 	//The current zoom level. The maximum width and height are multiplied by this value
 	// to obtain the effective new width/height. I.e., increasing it causes you to zoom in.
 	double currPercentZoom;
@@ -100,6 +104,12 @@ public class NetworkVisualizer {
 	public BufferedImage getImage() {
 
 		return buffer;
+	}
+	
+	public void setAnnotationLevel(boolean showAimsun, boolean showMitsim, int frameTick) {
+		this.showAimsunLabels = showAimsun;
+		this.showMitsimLabels = showMitsim;
+		redrawAtCurrScale(frameTick);
 	}
 
 	public BufferedImage getImageAtTimeTick(int tick) {
@@ -190,7 +200,7 @@ public class NetworkVisualizer {
 		redrawAtCurrScale(buffer, frameTick);
 	}
 	
-	private void redrawAtCurrScale(BufferedImage dest, int frameTick) {
+	private void redrawAtCurrScale(BufferedImage dest, int frameTick) {		
 		//Retrieve a graphics object; ensure it'll anti-alias
 		Graphics2D g = (Graphics2D)dest.getGraphics();
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -201,7 +211,7 @@ public class NetworkVisualizer {
 		
 		//Draw nodes
 		final boolean ZoomCritical = (currPercentZoom>ZOOM_IN_CRITICAL);
-		drawAllNodes(g, !ZoomCritical);
+		drawAllNodes(g, (!ZoomCritical) || (showAimsunLabels || showMitsimLabels));
 		
 		//Draw segments
 		drawAllSegments(g, !ZoomCritical);
@@ -226,6 +236,9 @@ public class NetworkVisualizer {
 
 		//Draw all Agents now
 		drawAllAgents(g, frameTick);
+		
+		//Draw all annotations
+		drawAllAnnotations(g, showAimsunLabels, showMitsimLabels);
 	}
 	
 	
@@ -234,6 +247,13 @@ public class NetworkVisualizer {
 			if (ShowUniNodes || !n.getIsUni()) {
 				n.draw(g);
 			}
+		}
+	}
+	
+	private void drawAllAnnotations(Graphics2D g, boolean showAimsun, boolean showMitsim) {
+		if (!showAimsun && !showMitsim) { return; }
+		for (Node n : network.getNodes().values()) {
+			n.drawAnnotations(g, showAimsun, showMitsim);
 		}
 	}
 	
@@ -282,6 +302,7 @@ public class NetworkVisualizer {
 	
 	private void drawAllCrossingSignals(Graphics2D g, int currFrame, boolean ShowCrossingSignals) {
 		if (!ShowCrossingSignals) { return; }
+		if (simRes.ticks.isEmpty() && currFrame==0) { return; }
 		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
 			//Get all lights and Crossings at this intersection (by id)
 			Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());
@@ -301,6 +322,7 @@ public class NetworkVisualizer {
 	
 	private void drawAllLaneSignals(Graphics2D g, int currFrame, boolean ShowLaneSignals) {
 		if (!ShowLaneSignals) { return; }
+		if (simRes.ticks.isEmpty() && currFrame==0) { return; }
 		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
 			//Get Intersection ID and color
 			Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());

@@ -91,6 +91,7 @@ class Segment
     @endPos = nil
     @upNode = nil
     @downNode = nil
+    @parentLink = nil
   end  
 
   attr_reader :segmentID
@@ -98,6 +99,21 @@ class Segment
   attr_accessor :endPos
   attr_accessor :upNode
   attr_accessor :downNode
+  attr_accessor :parentLink
+end
+
+class Link
+  def initialize(linkID)
+    @linkID = linkID
+    @upNode = nil
+    @downNode = nil
+    @segments = [] #Listed upstream to downstream
+  end  
+
+  attr_reader :linkID
+  attr_accessor :upNode
+  attr_accessor :downNode
+  attr_accessor :segments
 end
 
 
@@ -112,9 +128,42 @@ def ParseScientificToFloat(str)
 end
 
 
+def calc_distance(x1, y1, x2, y2)
+  dX = x2 - x1
+  dY = y2 - y1
+  return Math.sqrt(dX**2 + dY**2)
+end
+
+
+#Helper; make sure all nodes exist
+def attemptToGenerateID(linkID, pos, nodeID, currSubID, nodelist)
+  #If no Node ID exists, generate a node and add it to the node list
+  unless nodeID
+    #Somewhat fragile, but should be good enough
+    raise "Too many segments" if currSubID[0]>999
+
+    #Set the ID (string)
+    nodeID = "#{linkID}:#{currSubID[0]}"
+    currSubID[0] += 1
+
+    #Sanity check
+    raise "Node ID collision error: #{nodeID}" if nodelist.has_key? nodeID
+
+    #Make the node
+    nd = Node.new(nodeID)
+    nd.x = pos.x
+    nd.y = pos.y
+    nodelist[nodeID] = nd
+  end
+
+  #Return the (new?) ID
+  return nodeID
+end
+
+
 #The network file has a complex format. Basically, we are just extracting
 #  segments for now.
-def read_network_file(segments)
+def read_network_file(segments, nodes)
   #First, pre-process and remove comments. Apparently *all* comment types
   #  are valid for mitsim...
   bigstring = ""
@@ -167,10 +216,14 @@ def read_network_file(segments)
     linkID = linkRes[0]
     upNodeID = linkRes[2]
     downNodeID = linkRes[3]
+    link = Link.new(linkID)
+    link.upNode = upNodeID
+    link.downNode = downNodeID
 
     #Now get segments
+    #Segments are listed from upstream to downstream
     segmentStr = linkRes[5]
-    allSegs = []
+    lastEndPoint = nil
     segmentStr.scan(segmentRegex) {|segRes|
       segID = segRes[0]
       segStartX = ParseScientificToFloat(segRes[4])
@@ -182,23 +235,51 @@ def read_network_file(segments)
       seg = Segment.new(segID)
       seg.startPos = Point.new(segStartX, segStartY)
       seg.endPos = Point.new(segEndX, segEndY)
-      allSegs.push(seg)
+      seg.parentLink = link
+      link.segments.push(seg)
+
+      #Double-check consistency
+      if lastEndPoint
+        unless seg.startPos.x==lastEndPoint.x and seg.startPos.y==lastEndPoint.y
+          #Skip errors less than 1 m
+          errorVal = calc_distance(seg.startPos.x, seg.startPos.y, lastEndPoint.x, lastEndPoint.y)
+          raise "Segment consistency error on Segment: #{segID} Distance: #{errorVal}" if errorVal >= 1.0 
+        end
+      end
+      lastEndPoint = seg.endPos
     }
 
 
     #Now set each segment's node ids and go from there
-    tempID = 0
-    (0..allSegs.length()-1).each{|id|
-      fromStr = "#{upNodeID}"
-      fromStr = "#{linkID}:#{tempID}" unless id==0
-      tempID += 1
-      toStr = "#{downNodeID}"
-      toStr = "#{linkID}:#{tempID}" unless id==allSegs.length()-1
+    currSubID = [1] #Node ID for segments.
+    link.segments[0].upNode = upNodeID
+    link.segments[-1].downNode = downNodeID
 
-      seg = allSegs[id]
-      seg.upNode = "#{fromStr}"
-      seg.downNode = "#{toStr}"
-      segments[seg.segmentID.to_i] = seg
+    #Force add Link start node
+    id = link.segments[0].upNode
+    unless nodes.has_key? id
+      nd = Node.new(id)
+      nd.x = link.segments[0].startPos.x
+      nd.y = link.segments[0].startPos.y
+      nodes[id] = nd
+    end
+
+    #Force add Link end node
+    id = link.segments[-1].downNode
+    unless nodes.has_key? id
+      nd = Node.new(id)
+      nd.x = link.segments[-1].endPos.x
+      nd.y = link.segments[-1].endPos.y
+      nodes[id] = nd
+    end
+
+    link.segments.each{|segment|
+      #Attempt to generate an ID. Even if this fails, save this ID
+      segment.upNode = attemptToGenerateID(linkID, segment.startPos, segment.upNode, currSubID, nodes)
+      segment.downNode = attemptToGenerateID(linkID, segment.endPos, segment.downNode, currSubID, nodes)
+
+      #And... add it to the list
+      segments[segment.segmentID.to_i] = segment
     }
   }
 
@@ -398,7 +479,7 @@ def read_convert_file(list, mitsimToSM, multiAndUniNodes)
         raise "Comparison error" if mitsimToSM[from].nodeID != to
       else
         mitsimToSM[from] = newNode
-        multiAndUniNodes[from.to_s] = newNode
+        #multiAndUniNodes[from.to_s] = newNode
       end
     elsif line =~ /([0-9]+) *= *\(([0-9]+),([0-9]+)\)/
       found = false
@@ -474,10 +555,26 @@ def final_validate(agents, nodeConv, segments, nodes, minDepTime)
 end
 
 
+#Generate something that the visualizer can parse.
+def fakeNodeID(nodeID)
+  ind = nodeID.index(':')
+  return nodeID.to_i unless ind
+  prefix = nodeID.slice(0,ind).to_i
+  suffix = nodeID.slice(ind+1, nodeID.length).to_i
+  return prefix*1000 + suffix
+end
+
+
 def run_main()
   #Read the network file
   segments = {}
-  read_network_file(segments)
+  nodes = {}  #Note, these are MITSIM nodes, and are indexed by id as a STRING.
+  read_network_file(segments, nodes)
+
+  #TEMP:
+  #nodes.each{|key, value|
+  # puts "Temp: #{value.x},#{value.y} => #{key.include? ':'}"
+  #}
 
   #Build up a list of all Driver IDs
   drivers = {}
@@ -488,7 +585,6 @@ def run_main()
 
   #Compare with sim mobility nodes
   nodeConv = {} #Lookup based on Mitsim ID
-  nodes = {}  #By ID as a _string_
   read_convert_file(drivers, nodeConv, nodes)
 
   #Parse the trajectory file
@@ -499,23 +595,100 @@ def run_main()
 
   #Try printing the MITSIM node network
   knownNodeIDs = []
+  allNodeIDs = []
+  possibleLinks = []
   segments.each{|key, seg|
+    numFound = 0
     unless seg.upNode.include? ':'
       if nodes.has_key? seg.upNode and nodeConv.has_key? seg.upNode.to_i
         knownNodeIDs.push(seg.upNode)
+        numFound += 1
       end
     end
     unless seg.downNode.include? ':'
       if nodes.has_key? seg.downNode and nodeConv.has_key? seg.downNode.to_i
         knownNodeIDs.push(seg.downNode)
+        numFound += 1
       end
     end
+
+    #Hmm
+    if nodes.has_key?(seg.upNode) and not allNodeIDs.include? seg.upNode
+      allNodeIDs.push(seg.upNode)
+    end
+    if nodes.has_key?(seg.downNode) and not allNodeIDs.include? seg.downNode
+      allNodeIDs.push(seg.downNode)
+    end
+
+    #Mark this link for later
+    if numFound>0
+      possibleLinks.push(seg.parentLink) unless possibleLinks.include? seg.parentLink
+    end
+  }
+  possibleLinks.each{|link|
+    numFound = 0
+    #puts "Checking: #{link.linkID} => (#{link.upNode},#{link.downNode})"
+    unless link.upNode.include? ':'
+      #puts " up:"
+      if nodes.has_key? link.upNode and nodeConv.has_key? link.upNode.to_i
+        knownNodeIDs.push(link.upNode)
+        numFound += 1
+        #puts " +1A"
+      end
+    end
+    unless link.downNode.include? ':'
+      #puts " down:"
+      if nodes.has_key? link.downNode and nodeConv.has_key? link.downNode.to_i
+        knownNodeIDs.push(link.downNode)
+        numFound += 1
+        #puts " +1B"
+      end
+    end
+
+    #Do we know about this link?
+    puts "Found: #{link.upNode} => #{link.downNode}" if numFound==2
   }
   File.open('output_network.txt', 'w') {|f|
-    knownNodeIDs.uniq.each{|nodeID|
+#    knownNodeIDs.uniq.each{|nodeID|
+    allNodeIDs.each{|nodeID|
       nd = nodes[nodeID]
       next if nd.x==0 and nd.y==0
-      f.write("(\"multi-node\", 0, #{nodeID}, {\"xPos\":\"#{(nd.x*100).to_i}\",\"yPos\":\"#{(nd.y*100).to_i}\",})\n")
+      name = 'multi'
+      name = 'uni' if nodeID.include? ':'
+      f.write("(\"#{name}-node\", 0, #{fakeNodeID(nodeID)}, {")  #Header
+      f.write("\"xPos\":\"#{(nd.x*100).to_i}\",\"yPos\":\"#{(nd.y*100).to_i}\",") #Guaranteed
+      f.write("\"mitsim-id\":\"#{nodeID}\",") if nodes.has_key? nodeID  #Optional (now it's guaranteed though)
+      f.write("\"aimsun-id\":\"#{nodeConv[nodeID.to_i].nodeID}\",") if nodeConv.has_key? nodeID.to_i  #Optional
+      f.write("})\n") #Footer
+    }
+
+    #Now write all Links
+    possibleLinks.each{|link|
+      f.write("(\"link\", 0, #{link.linkID}, {")  #Header
+      f.write("\"road-name\":\"\",\"start-node\":\"#{fakeNodeID(link.upNode)}\",") #Guaranteed
+      f.write("\"end-node\":\"#{fakeNodeID(link.downNode)}\",") #Also guaranteed
+      f.write("\"fwd-path\":\"[")
+      link.segments.each{|segment|
+        f.write("#{segment.segmentID},")
+      }
+      f.write("]\",") #Close fwd-path
+      f.write("\"rev-path\":\"[")
+      #TODO: Currently there seems to be no way to do this.
+      f.write("]\",") #Close rev-path
+      f.write("})\n") #Footer
+    }
+
+    #Now write all Segments
+    possibleLinks.each{|link|
+      link.segments.each{|segment|
+        f.write("(\"road-segment\", 0, #{segment.segmentID}, {")  #Header
+        f.write("\"parent-link\":\"#{link.linkID}\",") #Guaranteed
+        f.write("\"max-speed\":\"0\",") #Not hooked up yet
+        f.write("\"lanes\":\"1\",") #Not hooked up yet
+        f.write("\"from-node\":\"#{fakeNodeID(segment.upNode)}\",") #Not hooked up yet
+        f.write("\"to-node\":\"#{fakeNodeID(segment.downNode)}\",") #Not hooked up yet
+        f.write("})\n") #Footer
+      }
     }
   }
 

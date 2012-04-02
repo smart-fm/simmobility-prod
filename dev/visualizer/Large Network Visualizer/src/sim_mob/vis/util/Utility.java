@@ -136,7 +136,7 @@ public class Utility {
 	//regex-related
 	private static final String rhs = "\\{([^}]*)\\}"; //NOTE: Contains a capture group
 	private static final String sep = ", *";
-	private static final String strn = "\"([^\"]+)\"";
+	private static final String strn = "\"([^\"]*)\"";
 	private static final String num = "([0-9]+)";
 	private static final String numH = "((?:0x)?[0-9a-fA-F]+)";
 	public static final Pattern LOG_LHS_REGEX = Pattern.compile("\\(" + strn + sep + num + sep + numH + sep  + rhs + "\\)");

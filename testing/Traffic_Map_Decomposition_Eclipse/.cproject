@@ -10,20 +10,23 @@
 <extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 <extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 <extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+<extension id="org.eclipse.cdt.core.VCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+<extension id="org.eclipse.cdt.core.MakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<configuration artifactName="Traffic_Map_Decomposition" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.cross.exe.debug.1692805960" name="Debug" parent="cdt.managedbuild.config.gnu.cross.exe.debug">
+<configuration artifactName="Traffic_Map_Decomposition" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.cross.exe.debug.1692805960" name="Debug">
 <folderInfo id="cdt.managedbuild.config.gnu.cross.exe.debug.1692805960." name="/" resourcePath="">
-<toolChain id="cdt.managedbuild.toolchain.gnu.cross.exe.debug.1928530528" name="Cross GCC" superClass="cdt.managedbuild.toolchain.gnu.cross.exe.debug">
-<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.targetPlatform.gnu.cross.587556662" isAbstract="false" osList="all" superClass="cdt.managedbuild.targetPlatform.gnu.cross"/>
-<builder buildPath="${workspace_loc:/Traffic_Map_Decomposition/Debug}" id="cdt.managedbuild.builder.gnu.cross.1513933538" managedBuildOn="true" name="CDT Internal Builder.Debug" superClass="cdt.managedbuild.builder.gnu.cross"/>
-<tool id="cdt.managedbuild.tool.gnu.cross.cpp.compiler.1201491000" name="Cross G++ Compiler" superClass="cdt.managedbuild.tool.gnu.cross.cpp.compiler">
+<toolChain id="cdt.managedbuild.toolchain.gnu.cross.exe.debug.1928530528" name="Cross GCC">
+<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.targetPlatform.gnu.cross.587556662" isAbstract="false" osList="all"/>
+<builder buildPath="${workspace_loc:/Traffic_Map_Decomposition/Debug}" id="cdt.managedbuild.builder.gnu.cross.1513933538" managedBuildOn="true" name="CDT Internal Builder.Debug"/>
+<tool id="cdt.managedbuild.tool.gnu.cross.cpp.compiler.1201491000" name="Cross G++ Compiler">
 <option id="gnu.cpp.compiler.option.optimization.level.1672980205" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 <option id="gnu.cpp.compiler.option.debugging.level.838719851" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 <inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1837580163" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 </tool>
-<tool id="cdt.managedbuild.tool.gnu.cross.cpp.linker.1425306184" name="Cross G++ Linker" superClass="cdt.managedbuild.tool.gnu.cross.cpp.linker">
+<tool id="cdt.managedbuild.tool.gnu.cross.cpp.linker.1425306184" name="Cross G++ Linker">
 <inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1593613983" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 <additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 <additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -343,6 +346,9 @@
 </scannerConfigBuildInfo>
 </storageModule>
 <storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
+<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
 </cconfiguration>
 <cconfiguration id="cdt.managedbuild.config.gnu.cross.exe.release.1400607367">
 <storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.cross.exe.release.1400607367" moduleId="org.eclipse.cdt.core.settings" name="Release">
@@ -351,6 +357,9 @@
 <extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 <extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 <extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+<extension id="org.eclipse.cdt.core.VCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+<extension id="org.eclipse.cdt.core.MakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 </extensions>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
@@ -683,9 +692,13 @@
 </profile>
 </scannerConfigBuildInfo>
 </storageModule>
+<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
+<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
+<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 </cconfiguration>
 </storageModule>
 <storageModule moduleId="cdtBuildSystem" version="4.0.0">
-<project id="Traffic_Map_Decomposition.cdt.managedbuild.target.gnu.cross.exe.2006788593" name="Executable" projectType="cdt.managedbuild.target.gnu.cross.exe"/>
+<project id="Traffic_Map_Decomposition.cdt.managedbuild.target.gnu.cross.exe.2006788593" name="Executable"/>
 </storageModule>
 </cproject>

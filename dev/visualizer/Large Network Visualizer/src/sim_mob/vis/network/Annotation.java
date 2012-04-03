@@ -2,7 +2,6 @@ package sim_mob.vis.network;
 
 import java.awt.*;
 
-import sim_mob.vis.MainFrame;
 import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.network.basic.ScaledPoint;
 

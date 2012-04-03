@@ -180,8 +180,8 @@ public class NetworkVisualizer {
 		currPercentZoom = percent;
 		
 		//Determine the width and height of our canvas.
-		int width = (int)(naturalSize.width * percent);
-		int height = (int)(naturalSize.height * percent);
+		int width =  Math.max(1, (int)(naturalSize.width * percent));
+		int height = Math.max(1, (int)(naturalSize.height * percent));
 		buffer = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		
 		//Make sure our canvas is always slightly bigger than the original size...

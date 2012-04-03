@@ -1,14 +1,6 @@
 package sim_mob.vis.simultion;
 
-import java.awt.BasicStroke;
-
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Stroke;
-
+import java.awt.*;
 import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -16,7 +8,6 @@ import java.util.Hashtable;
 
 import sim_mob.vect.SimpleVectorImage;
 import sim_mob.vis.MainFrame;
-import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.network.basic.ScaledPointGroup;
 import sim_mob.vis.util.Utility;
 

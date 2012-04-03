@@ -75,7 +75,7 @@ public class DriverTick extends AgentTick {
 	private boolean fake;
 	private int length;
 	private int width;
-	private int pickNumber;
+//	private int pickNumber;
 	public int getID(){return ID;}
 	public int getLength(){return length;}
 	public int getWidth() {return width;}

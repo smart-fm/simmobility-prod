@@ -214,7 +214,7 @@ public class NetworkVisualizer {
 		drawAllNodes(g, (!ZoomCritical) || (showAimsunLabels || showMitsimLabels));
 		
 		//Draw segments
-		drawAllSegments(g, !ZoomCritical);
+		drawAllSegments(g, (!ZoomCritical) || (showAimsunLabels || showMitsimLabels));
 		
 		//Draw cut lines
 		drawAllCutlines(g, this.showFakeAgent);

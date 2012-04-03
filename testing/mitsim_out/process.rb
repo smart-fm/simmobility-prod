@@ -657,7 +657,7 @@ def run_main()
       name = 'uni' if nodeID.include? ':'
       f.write("(\"#{name}-node\", 0, #{fakeNodeID(nodeID)}, {")  #Header
       f.write("\"xPos\":\"#{(nd.x*100).to_i}\",\"yPos\":\"#{(nd.y*100).to_i}\",") #Guaranteed
-      f.write("\"mitsim-id\":\"#{nodeID}\",") if nodes.has_key? nodeID  #Optional (now it's guaranteed though)
+      f.write("\"mitsim-id\":\"#{fakeNodeID(nodeID)}\",") if nodes.has_key? nodeID  #Optional (now it's guaranteed though)
       f.write("\"aimsun-id\":\"#{nodeConv[nodeID.to_i].nodeID}\",") if nodeConv.has_key? nodeID.to_i  #Optional
       f.write("})\n") #Footer
     }

@@ -54,13 +54,15 @@ int main(int argc, char* argv[])
 	if (argc != 7)
 	{
 		show_menu();
-		throw "Parameters in main function is not enough, program exit";
+		cout <<"Parameters in main function is not enough, program exit" <<endl;
+		return 1;
 	}
 
 	if (check_user_inputs(argv) == false)
 	{
 		show_menu();
-		throw "Parameters setting not correct, program exit";
+		cout <<"Parameters setting not correct, program exit" <<endl;
+		return 1;
 	}
 
 	//generate decomposition parameters and store them in file
@@ -72,6 +74,7 @@ int main(int argc, char* argv[])
 	{
 		map_decompose_with_infor();
 	}
+	return 0;
 }
 
 void map_decompose_without_infor()

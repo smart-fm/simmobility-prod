@@ -214,6 +214,7 @@ def read_network_file(segments, nodes)
   linkRegex = Regexp.new("#{linkHead}((#{segmentStr})+}) ?")
   bigstring.scan(linkRegex) {|linkRes|
     linkID = linkRes[0]
+
     upNodeID = linkRes[2]
     downNodeID = linkRes[3]
     link = Link.new(linkID)
@@ -268,7 +269,7 @@ def read_network_file(segments, nodes)
       newPos = link.segments[0].startPos
       unless prevPos.x==newPos.x and prevPos.y==newPos.y
         errorVal = calc_distance(prevPos.x, prevPos.y, newPos.x, newPos.y)
-        raise "Node ID/position mismatch[#{id}],\n  prev: (#{prevPos.x},#{prevPos.y}),\n  curr: (#{newPos.x},#{newPos.y}\n  error: #{errorVal})" if errorVal >= 10.0
+        puts "Node ID/position mismatch[#{id}],\n  prev: (#{prevPos.x},#{prevPos.y}),\n  curr: (#{newPos.x},#{newPos.y}\n  error: #{errorVal})" if errorVal >= 10.0
         puts "Node ID/position mismatch[#{id}], off by #{errorVal} meters" if errorVal >= 1.0
       end
     end
@@ -286,7 +287,7 @@ def read_network_file(segments, nodes)
       newPos = link.segments[-1].endPos
       unless prevPos.x==newPos.x and prevPos.y==newPos.y
         errorVal = calc_distance(prevPos.x, prevPos.y, newPos.x, newPos.y)
-        raise "Node ID/position mismatch[#{id}],\n  prev: (#{prevPos.x},#{prevPos.y}),\n  curr: (#{newPos.x},#{newPos.y}\n  error: #{errorVal})" if errorVal >= 10.0
+        puts "Node ID/position mismatch[#{id}],\n  prev: (#{prevPos.x},#{prevPos.y}),\n  curr: (#{newPos.x},#{newPos.y}\n  error: #{errorVal})" if errorVal >= 10.0
         puts "Node ID/position mismatch[#{id}], off by #{errorVal} meters" if errorVal >= 1.0
       end
     end
@@ -639,9 +640,9 @@ def run_main()
     end
 
     #Mark this link for later
-    if numFound>0
-      possibleLinks.push(seg.parentLink) unless possibleLinks.include? seg.parentLink
-    end
+    #if numFound>0
+    possibleLinks.push(seg.parentLink) unless possibleLinks.include? seg.parentLink
+    #end
   }
   possibleLinks.each{|link|
     numFound = 0

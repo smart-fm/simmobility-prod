@@ -713,8 +713,8 @@ public class RoadNetwork {
 	//For now, this is done based on the assumption that coordinates are in centimeters.
 	// Later, we can scale it to screen size.
 	private void spaceNodeAnnotations(Hashtable<Point, Integer> alreadySpaced, ArrayList<Annotation> toSpace) {
-		int amt = 2000;
-		Point[] magnitudes = new Point[] {new Point(0,-amt), new Point(amt/3,-amt/3), new Point(amt/3,amt/3), new Point(0,amt) }; 
+		Point amt = new Point(500, 800);
+		Point[] magnitudes = new Point[] {new Point(0,amt.y), new Point(amt.x,amt.y/2), new Point(amt.x,-amt.y/2), new Point(0,-amt.y) }; 
 		
 		for (Annotation an : toSpace) {
 			//Scale down by 10, start counting if we haven't already.

@@ -223,7 +223,7 @@ def read_network_file(segments, nodes)
     #Now get segments
     #Segments are listed from upstream to downstream
     segmentStr = linkRes[5]
-    lastEndPoint = nil
+    prevEndPoint = nil
     segmentStr.scan(segmentRegex) {|segRes|
       segID = segRes[0]
       segStartX = ParseScientificToFloat(segRes[4])
@@ -239,14 +239,14 @@ def read_network_file(segments, nodes)
       link.segments.push(seg)
 
       #Double-check consistency
-      if lastEndPoint
-        unless seg.startPos.x==lastEndPoint.x and seg.startPos.y==lastEndPoint.y
+      if prevEndPoint
+        unless seg.startPos.x==prevEndPoint.x and seg.startPos.y==prevEndPoint.y
           #Skip errors less than 1 m
-          errorVal = calc_distance(seg.startPos.x, seg.startPos.y, lastEndPoint.x, lastEndPoint.y)
+          errorVal = calc_distance(seg.startPos.x, seg.startPos.y, prevEndPoint.x, prevEndPoint.y)
           raise "Segment consistency error on Segment: #{segID} Distance: #{errorVal}" if errorVal >= 1.0 
         end
       end
-      lastEndPoint = seg.endPos
+      prevEndPoint = seg.endPos
     }
 
 
@@ -262,6 +262,15 @@ def read_network_file(segments, nodes)
       nd.x = link.segments[0].startPos.x
       nd.y = link.segments[0].startPos.y
       nodes[id] = nd
+    else
+      #Check position
+      prevPos = nodes[id]
+      newPos = link.segments[0].startPos
+      unless prevPos.x==newPos.x and prevPos.y==newPos.y
+        errorVal = calc_distance(prevPos.x, prevPos.y, newPos.x, newPos.y)
+        raise "Node ID/position mismatch[#{id}],\n  prev: (#{prevPos.x},#{prevPos.y}),\n  curr: (#{newPos.x},#{newPos.y}\n  error: #{errorVal})" if errorVal >= 10.0
+        puts "Node ID/position mismatch[#{id}], off by #{errorVal} meters" if errorVal >= 1.0
+      end
     end
 
     #Force add Link end node
@@ -271,6 +280,15 @@ def read_network_file(segments, nodes)
       nd.x = link.segments[-1].endPos.x
       nd.y = link.segments[-1].endPos.y
       nodes[id] = nd
+    else
+      #Check position
+      prevPos = nodes[id]
+      newPos = link.segments[-1].endPos
+      unless prevPos.x==newPos.x and prevPos.y==newPos.y
+        errorVal = calc_distance(prevPos.x, prevPos.y, newPos.x, newPos.y)
+        raise "Node ID/position mismatch[#{id}],\n  prev: (#{prevPos.x},#{prevPos.y}),\n  curr: (#{newPos.x},#{newPos.y}\n  error: #{errorVal})" if errorVal >= 10.0
+        puts "Node ID/position mismatch[#{id}], off by #{errorVal} meters" if errorVal >= 1.0
+      end
     end
 
     link.segments.each{|segment|

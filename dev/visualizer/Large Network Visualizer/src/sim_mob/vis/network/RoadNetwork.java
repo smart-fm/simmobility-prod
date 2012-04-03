@@ -177,6 +177,9 @@ public class RoadNetwork {
 		//Fix up connections between segments to look 
 		//pretty where # of lanes changes
 		this.smoothSegmentJoins();
+		
+		//Space node annotations as necessary to avoid distortion
+		this.spaceNodeAnnotations();
 	}
 			
 	private void dispatchConstructionRequest(String objType, int frameID, int objID, String rhs, double[] xBounds, double[] yBounds) throws IOException {
@@ -698,7 +701,44 @@ public class RoadNetwork {
 		
 	}
 	
-	private void smoothSegmentJoins(){
+	//Wrapper
+	private void spaceNodeAnnotations() {
+		Hashtable<Point, Integer> alreadySpaced = new Hashtable<Point, Integer>(); //int = conflicts
+		spaceNodeAnnotations(alreadySpaced, annot_aimsun);
+		spaceNodeAnnotations(alreadySpaced, annot_mitsim);
+	}
+	
+	
+	//Attempt to place each annotation. Avoid overlapping any existing annotations.
+	//For now, this is done based on the assumption that coordinates are in centimeters.
+	// Later, we can scale it to screen size.
+	private void spaceNodeAnnotations(Hashtable<Point, Integer> alreadySpaced, ArrayList<Annotation> toSpace) {
+		int amt = 2000;
+		Point[] magnitudes = new Point[] {new Point(0,-amt), new Point(amt/3,-amt/3), new Point(amt/3,amt/3), new Point(0,amt) }; 
+		
+		for (Annotation an : toSpace) {
+			//Scale down by 10, start counting if we haven't already.
+			Point location = new Point((int)(an.getPos().getUnscaledX()/10), (int)(an.getPos().getUnscaledY()/10));
+			if (!alreadySpaced.containsKey(location)) {
+				alreadySpaced.put(location, 0);
+			}
+			 
+			//Pull out the count, increment
+			int count = alreadySpaced.get(location);
+			alreadySpaced.put(location, count+1);
+			 
+			//We have a handful of magnitudes to choose from. Cycle through and
+			//  pick the next one.
+			Point mag = magnitudes[count%magnitudes.length];
+			int times = (count / magnitudes.length)+1;
+			an.setOffset(new Point((int)an.getPos().getUnscaledX()+mag.x*times, (int)an.getPos().getUnscaledY()+mag.y*times));
+		}
+	}
+	
+	
+	
+	
+	private void smoothSegmentJoins() {
 		for(Link link : links.values()){
 			smoothSegmentJoins(link.getFwdPathSegmentIDs());
 			smoothSegmentJoins(link.getRevPathSegmentIDs());

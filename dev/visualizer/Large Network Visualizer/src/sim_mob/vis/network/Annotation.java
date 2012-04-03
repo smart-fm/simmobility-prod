@@ -9,6 +9,9 @@ import sim_mob.vis.network.basic.ScaledPoint;
 /**
  * Annotations show small bits of additional data and may be offset by an amount.
  * 
+ * \note
+ * For now, "offset", is used to mean "actual position". 
+ * 
  * \author Seth N. Hetu
  */
 public class Annotation implements DrawableItem {
@@ -54,8 +57,8 @@ public class Annotation implements DrawableItem {
 		g.setFont(new Font("Arial", Font.PLAIN, 10));
 		int width = Math.max(g.getFontMetrics().stringWidth(message), MinimumAnnotationWidth);
 		int height = g.getFontMetrics().getHeight() + margin;
-		int startX = (int)(pos.getX() + (offset!=null?offset.getX():0));
-		int startY = (int)(pos.getY() + (offset!=null?offset.getY():0)) - (height + extra);
+		int startX = (int)(offset!=null?offset.getX():pos.getX());
+		int startY = (int)(offset!=null?offset.getY():pos.getY());
 		
 		//Position the baseline accurately
 		int fontH = height/2 + g.getFontMetrics().getAscent()/2 + 1;

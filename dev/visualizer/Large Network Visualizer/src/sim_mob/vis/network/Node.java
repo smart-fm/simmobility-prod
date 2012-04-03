@@ -14,30 +14,15 @@ import sim_mob.vis.network.basic.ScaledPoint;
  */
 public class Node implements DrawableItem {
 	//Constants
-	private static final int NODE_SIZE = 12;
-	//private static Color nodeColor = new Color(0xFF, 0x88, 0x22);
-	//private static Stroke nodeStroke = new BasicStroke(3.0F);
-	//private static Stroke nodeThinStroke = new BasicStroke(1.0F);
-	
-	//Temp; move to config
-	private static final Color aimsunBgColor = new Color(0xFF,0x66, 0x00, 0xAA);
-	private static final Color aimsunFgColor = new Color(0xFF, 0xCC, 0xCC);
-	private static final Color mitsimBgColor = new Color(0x00, 0xCC, 0xFF, 0xAA);
-	private static final Color mitsimFgColor = new Color(0xCC, 0xCC, 0xFF);
-	private static final Color fontColor = new Color(0x00, 0x00, 0x00);
-	private static final Stroke annotationStroke = new BasicStroke(1.0F);
+	private static final int NODE_SIZE = 12;	
 	
 	private ScaledPoint pos;
 	private boolean isUni;   //Rather than having multiple classes....
 	private Integer id;
-	public String aimsunID;
-	public String mitsimID;
 	public Node(double x, double y, boolean isUni, Integer id) {
 		pos = new ScaledPoint(x, y, null);
 		this.isUni = isUni;
 		this.id = id;
-		this.aimsunID = "";
-		this.mitsimID = "";
 	}
 	
 	public ScaledPoint getPos() {
@@ -69,7 +54,7 @@ public class Node implements DrawableItem {
 	}
 	
 	
-	public void drawAnnotations(Graphics2D g, boolean drawAimsunID, boolean drawMitsimID) {
+	/*public void drawAnnotations(Graphics2D g, boolean drawAimsunID, boolean drawMitsimID) {
 		g.setFont(new Font("Arial", Font.PLAIN, 10));
 		final int extra = 4;
 		final int margin = 1;
@@ -104,7 +89,7 @@ public class Node implements DrawableItem {
 			//Increment 
 			startY -= (height+extra);
 		}
-	}
+	}*/
 	
 	
 	public String toString() {

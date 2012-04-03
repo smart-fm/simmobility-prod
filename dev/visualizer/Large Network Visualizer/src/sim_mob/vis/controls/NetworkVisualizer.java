@@ -251,9 +251,15 @@ public class NetworkVisualizer {
 	}
 	
 	private void drawAllAnnotations(Graphics2D g, boolean showAimsun, boolean showMitsim) {
-		if (!showAimsun && !showMitsim) { return; }
-		for (Node n : network.getNodes().values()) {
-			n.drawAnnotations(g, showAimsun, showMitsim);
+		if (showAimsun) {
+			for (Annotation an : network.getAimsunAnnotations()) {
+				an.draw(g);
+			}
+		}
+		if (showMitsim) {
+			for (Annotation an : network.getMitsimAnnotations()) {
+				an.draw(g);
+			}
 		}
 	}
 	

@@ -1,6 +1,7 @@
 package sim_mob.vis.network;
 
 import java.awt.Color;
+import java.awt.Point;
 
 import java.io.*;
 import java.util.*;
@@ -25,10 +26,19 @@ import sim_mob.vis.ProgressUpdateRunner;
  * \author Matthew Bremer Bruchon
  */
 public class RoadNetwork {
+	//Temp; move to config
+	private static final Color Annotations_AimsunBgColor = new Color(0xFF,0x66, 0x00, 0xAA);
+	private static final Color Annotations_AimsunFgColor = new Color(0xFF, 0xCC, 0xCC);
+	private static final Color Annotations_MitsimBgColor = new Color(0x00, 0xCC, 0xFF, 0xAA);
+	private static final Color Annotations_MitsimFgColor = new Color(0xCC, 0xCC, 0xFF);
+	private static final Color Annotations_FontColor = new Color(0x00, 0x00, 0x00);
+	
 	private DPoint cornerTL;
 	private DPoint cornerLR;
 	
 	private Hashtable<Integer, Node> nodes;
+	private ArrayList<Annotation> annot_aimsun;
+	private ArrayList<Annotation> annot_mitsim;
 	private Hashtable<Integer, Link> links;
 	private Hashtable<Integer, Segment> segments;
 	private Hashtable<Integer,Hashtable<Integer,LaneMarking>> linaMarkings;
@@ -54,6 +64,8 @@ public class RoadNetwork {
 	public DPoint getTopLeft() { return cornerTL; }
 	public DPoint getLowerRight() { return cornerLR; }
 	public Hashtable<Integer, Node> getNodes() { return nodes; }
+	public ArrayList<Annotation> getAimsunAnnotations() { return annot_aimsun; }
+	public ArrayList<Annotation> getMitsimAnnotations() { return annot_mitsim; }
 	public Hashtable<Integer, Link> getLinks() { return links; }
 	public Hashtable<Integer, Segment> getSegments() { return segments; }
 	public Hashtable<Integer, Hashtable<Integer,LaneMarking>> getLaneMarkings(){ return linaMarkings; }
@@ -71,6 +83,8 @@ public class RoadNetwork {
 	public void loadFileAndReport(BufferedReader inFile, long fileLength, NetworkPanel progressUpdate) throws IOException {
 
 		nodes = new Hashtable<Integer, Node>();
+		annot_aimsun = new ArrayList<Annotation>();
+		annot_mitsim = new ArrayList<Annotation>();
 		links = new Hashtable<Integer, Link>();
 		segments = new Hashtable<Integer, Segment>();
 		linaMarkings = new Hashtable<Integer,Hashtable<Integer,LaneMarking>>();
@@ -382,10 +396,18 @@ public class RoadNetwork {
 	    
 	    Node res = new Node(x, y, isUni,objID);
 	    if (props.containsKey("aimsun-id")) {
-	    	res.aimsunID = props.get("aimsun-id");
+	    	Annotation an = new Annotation(new Point((int)x, (int)y), props.get("aimsun-id"));
+	    	an.setBackgroundColor(Annotations_AimsunBgColor);
+	    	an.setBorderColor(Annotations_AimsunFgColor);
+	    	an.setFontColor(Annotations_FontColor);
+	    	annot_aimsun.add(an);
 	    }
 	    if (props.containsKey("mitsim-id")) {
-	    	res.mitsimID = props.get("mitsim-id");
+	    	Annotation an = new Annotation(new Point((int)x, (int)y), props.get("mitsim-id"));
+	    	an.setBackgroundColor(Annotations_MitsimBgColor);
+	    	an.setBorderColor(Annotations_MitsimFgColor);
+	    	an.setFontColor(Annotations_FontColor);
+	    	annot_mitsim.add(an);
 	    }
 	    
 	    nodes.put(objID, res);

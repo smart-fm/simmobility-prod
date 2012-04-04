@@ -475,7 +475,7 @@ end
 
 #outputSMNodeID is just for show
 def compute_error(smNodeLookup, msNode, nodeID, outputSMNodeID, offset)
-  smNode = smNodeLookup[nodeID.to_i]
+  smNode = smNodeLookup[nodeID]
   return if smNode.x==0 and smNode.y==0 #Not in our lookup file
 
   expected = Point.new(msNode.x*100+offset.x, msNode.y*100+offset.y)
@@ -491,7 +491,7 @@ def read_convert_file(list, mitsimToSM, multiAndUniNodes)
   File.open('ms_sm_node_convert.txt').each { |line|
     next if line =~ /^#/ or line.strip.empty?
     if line =~ /([0-9]+) *=> *([0-9]+)/
-      from = $1.to_i
+      from = $1
       to = $2.to_i
       newNode = Node.new(to)
       if mitsimToSM.has_key? from
@@ -500,6 +500,18 @@ def read_convert_file(list, mitsimToSM, multiAndUniNodes)
         mitsimToSM[from] = newNode
         #multiAndUniNodes[from.to_s] = newNode
       end
+    elsif line =~ /{((?:[0-9:]+[, ]*)+)} *=> *([0-9]+)/
+      from_ids = $1
+      to_id = $2.to_i
+      newNode = Node.new(to_id)
+      from_ids.scan(/[0-9:]+/) {|line|
+        from_id = line
+        if mitsimToSM.has_key? from_id
+          raise "Comparison error" if mitsimToSM[from_id].nodeID != to_id
+        else
+          mitsimToSM[from_id] = newNode
+        end
+      }
     elsif line =~ /([0-9]+) *= *\(([0-9]+),([0-9]+)\)/
       found = false
       mitsimToSM.each_value{|nd|
@@ -524,7 +536,7 @@ end
 
 def final_validate(agents, nodeConv, segments, nodes, minDepTime)
   #Check the offset from sim mobility nodes to mitsim ones
-  sampleNodePos_SM = nodeConv[122] #122 => 60896, the lower-left most node
+  sampleNodePos_SM = nodeConv['122'] #122 => 60896, the lower-left most node
   sampleNodePos_MS = nil
   segments.each{|key, seg|
     if seg.upNode=='122'
@@ -548,13 +560,13 @@ def final_validate(agents, nodeConv, segments, nodes, minDepTime)
   #Now check how much error we get versus other node IDs:
   segments.each{|key, seg|
     unless seg.upNode.include? ':'
-      if nodes.has_key? seg.upNode and nodeConv.has_key? seg.upNode.to_i
-        compute_error(nodeConv, seg.startPos, seg.upNode, nodeConv[seg.upNode.to_i].nodeID, offset)
+      if nodes.has_key? seg.upNode and nodeConv.has_key? seg.upNode
+        compute_error(nodeConv, seg.startPos, seg.upNode, nodeConv[seg.upNode].nodeID, offset)
       end
     end
     unless seg.downNode.include? ':'
-      if nodes.has_key? seg.downNode and nodeConv.has_key? seg.downNode.to_i
-        compute_error(nodeConv, seg.endPos, seg.downNode, nodeConv[seg.downNode.to_i].nodeID, offset)
+      if nodes.has_key? seg.downNode and nodeConv.has_key? seg.downNode
+        compute_error(nodeConv, seg.endPos, seg.downNode, nodeConv[seg.downNode].nodeID, offset)
       end
     end
   }
@@ -562,10 +574,10 @@ def final_validate(agents, nodeConv, segments, nodes, minDepTime)
 
   agents.each{|id, dr|
     #Make sure sim mobility node IDs exist
-    raise "No Sim Mobility node id for: #{dr.originNode}" unless nodeConv.has_key? dr.originNode
-    raise "No Sim Mobility node id for: #{dr.destNode}" unless nodeConv.has_key? dr.destNode
-    dr.originNode = nodeConv[dr.originNode]
-    dr.destNode = nodeConv[dr.destNode]
+    raise "No Sim Mobility node id for: #{dr.originNode}" unless nodeConv.has_key? dr.originNode.to_s
+    raise "No Sim Mobility node id for: #{dr.destNode}" unless nodeConv.has_key? dr.destNode.to_s
+    dr.originNode = nodeConv[dr.originNode.to_s]
+    dr.destNode = nodeConv[dr.destNode.to_s]
 
     #Start our departure times at zero, and convert to ms (then int)
     #TODO: We might want to generate a <simulation> tag instead. For now this is easier.
@@ -603,7 +615,7 @@ def run_main()
   minDepTime = read_veh_file(drivers)
 
   #Compare with sim mobility nodes
-  nodeConv = {} #Lookup based on Mitsim ID
+  nodeConv = {} #Lookup based on Mitsim ID (string)
   read_convert_file(drivers, nodeConv, nodes)
 
   #Parse the trajectory file
@@ -619,13 +631,13 @@ def run_main()
   segments.each{|key, seg|
     numFound = 0
     unless seg.upNode.include? ':'
-      if nodes.has_key? seg.upNode and nodeConv.has_key? seg.upNode.to_i
+      if nodes.has_key? seg.upNode and nodeConv.has_key? seg.upNode
         knownNodeIDs.push(seg.upNode)
         numFound += 1
       end
     end
     unless seg.downNode.include? ':'
-      if nodes.has_key? seg.downNode and nodeConv.has_key? seg.downNode.to_i
+      if nodes.has_key? seg.downNode and nodeConv.has_key? seg.downNode
         knownNodeIDs.push(seg.downNode)
         numFound += 1
       end
@@ -649,7 +661,7 @@ def run_main()
     #puts "Checking: #{link.linkID} => (#{link.upNode},#{link.downNode})"
     unless link.upNode.include? ':'
       #puts " up:"
-      if nodes.has_key? link.upNode and nodeConv.has_key? link.upNode.to_i
+      if nodes.has_key? link.upNode and nodeConv.has_key? link.upNode
         knownNodeIDs.push(link.upNode)
         numFound += 1
         #puts " +1A"
@@ -657,7 +669,7 @@ def run_main()
     end
     unless link.downNode.include? ':'
       #puts " down:"
-      if nodes.has_key? link.downNode and nodeConv.has_key? link.downNode.to_i
+      if nodes.has_key? link.downNode and nodeConv.has_key? link.downNode
         knownNodeIDs.push(link.downNode)
         numFound += 1
         #puts " +1B"
@@ -677,7 +689,7 @@ def run_main()
       f.write("(\"#{name}-node\", 0, #{fakeNodeID(nodeID)}, {")  #Header
       f.write("\"xPos\":\"#{(nd.x*100).to_i}\",\"yPos\":\"#{(nd.y*100).to_i}\",") #Guaranteed
       f.write("\"mitsim-id\":\"#{nodeID}\",") if nodes.has_key? nodeID  #Optional (now it's guaranteed though)
-      f.write("\"aimsun-id\":\"#{nodeConv[nodeID.to_i].nodeID}\",") if nodeConv.has_key? nodeID.to_i  #Optional
+      f.write("\"aimsun-id\":\"#{nodeConv[nodeID].nodeID}\",") if nodeConv.has_key? nodeID  #Optional
       f.write("})\n") #Footer
     }
 

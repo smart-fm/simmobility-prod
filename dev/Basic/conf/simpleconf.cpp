@@ -55,16 +55,28 @@ bool agent_sort_by_id (Agent* i, Agent* j) { return (i->getId()<j->getId()); }
 //Of the form xxxx,yyyyy, with optional signs
 bool readPoint(const string& str, Point2D& res)
 {
+	//Sanity check
+	if (str.length()<3) {
+		return false;
+	}
+
 	//Does it match the pattern?
 	size_t commaPos = str.find(',');
 	if (commaPos==string::npos) {
 		return false;
 	}
 
+	//Allow for an optional parentheses
+	size_t StrOffset = 0;
+	if (str[0]=='(' && str[str.length()-1]==')') {
+		if (str.length()<5) { return false; }
+		StrOffset = 1;
+	}
+
 	//Try to parse its substrings
 	int xPos, yPos;
-	std::istringstream(str.substr(0, commaPos)) >> xPos;
-	std::istringstream(str.substr(commaPos+1, string::npos)) >> yPos;
+	std::istringstream(str.substr(StrOffset, commaPos-StrOffset)) >> xPos;
+	std::istringstream(str.substr(commaPos+1, str.length()-(commaPos+1)-StrOffset)) >> yPos;
 
 	res = Point2D(xPos, yPos);
 	return true;
@@ -307,6 +319,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 				}
 				candidate.origin = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);
 				if (!candidate.origin) {
+					std::cout <<"Error reading origin position for agent: " <<candidate.manualID <<endl;
 					std::cout <<"Couldn't find position: " <<pt.getX() <<"," <<pt.getY() <<"\n";
 					return false;
 				}
@@ -319,6 +332,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 				}
 				candidate.dest = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);
 				if (!candidate.dest) {
+					std::cout <<"Error reading destination position for agent: " <<candidate.manualID <<endl;
 					std::cout <<"Couldn't find position: " <<pt.getX() <<"," <<pt.getY() <<"\n";
 					return false;
 				}

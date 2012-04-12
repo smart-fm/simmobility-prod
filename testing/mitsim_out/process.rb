@@ -725,16 +725,33 @@ def run_main()
 
   #Print the Agents
   File.open('agents.gen.xml', 'w') {|f|
-    f.write("<agents>\n") 
+    #Regular
+    f.write("<drivers>\n") 
     drivers.keys.sort.each{|id|
       dr = drivers[id]
+      next if (dr.originNode.x==0 and dr.originNode.y==0) or (dr.destNode.x==0 and dr.destNode.y==0)
+
       f.write("  <driver id='#{id}'")
       f.write(" originPos='(#{dr.originNode.x},#{dr.originNode.y})'")
       f.write(" destPos='(#{dr.destNode.x},#{dr.destNode.y})'")
-      f.write(" startTime='#{dr.departure}'/>\n")
+      f.write(" time='#{dr.departure}'/>\n")
     }
-    f.write("</agents>") 
+    f.write("</drivers>\n") 
+
+    #Skipped
+    f.write("<drivers_SKIPPED>\n") 
+    drivers.keys.sort.each{|id|
+      dr = drivers[id]
+      next unless (dr.originNode.x==0 and dr.originNode.y==0) or (dr.destNode.x==0 and dr.destNode.y==0)
+
+      f.write("  <driver id='#{id}'")
+      f.write(" originPos='(#{dr.originNode.x},#{dr.originNode.y})'")
+      f.write(" destPos='(#{dr.destNode.x},#{dr.destNode.y})'")
+      f.write(" time='#{dr.departure}'/>\n")
+    }
+    f.write("</drivers_SKIPPED>") 
   }
+
 
   #Some drivers are never started
   drvSkip = 0

@@ -48,6 +48,25 @@ unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID) {
 #endif
 }
 
+
+void sim_mob::Agent::SetIncrementIDStartValue(int startID, bool failIfAlreadyUsed)
+{
+	//Check fail condition
+	if (failIfAlreadyUsed && Agent::next_agent_id!=0) {
+		throw std::runtime_error("Can't call SetIncrementIDStartValue(); Agent ID has already been used.");
+	}
+
+	//Fail if we've already passed this ID.
+	if(Agent::next_agent_id>startID) {
+		throw std::runtime_error("Can't call SetIncrementIDStartValue(); Agent ID has already been assigned.");
+	}
+
+	//Set
+	Agent::next_agent_id = startID;
+}
+
+
+
 sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncrementID(id)),
 	originNode(nullptr), destNode(nullptr), xPos(mtxStrat, 0), yPos(mtxStrat, 0),
 	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0)

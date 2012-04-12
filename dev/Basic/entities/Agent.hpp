@@ -56,6 +56,10 @@ class StartTimePriorityQueue : public std::priority_queue<PendingEntity, std::ve
  */
 class Agent : public sim_mob::Entity {
 public:
+	///Construct an Agent with an immutable ID.
+	///Note that, if -1, the Agent's ID will be assigned automatically. This is the preferred
+	///  way of dealing with agent ids. In the case of explicit ID assignment (anything >=0),
+	///  the Agent class will take NO measures to ensure that no Agents share IDs.
 	explicit Agent(const MutexStrategy& mtxStrat, int id=-1);
 	virtual ~Agent();
 
@@ -100,6 +104,11 @@ public:
 	///\note
 	///Passing in a negative number will always auto-assign an ID, and is recommended.
 	static unsigned int GetAndIncrementID(int preferredID);
+
+	///Set the start ID for automatically generated IDs.
+	///\param startID Must be >0
+	///\param failIfAlreadyUsed If true, fails with an exception if the auto ID has already been used or set.
+	static void SetIncrementIDStartValue(int startID, bool failIfAlreadyUsed);
 
 	///Note: Calling this function from another Agent is extremely dangerous if you
 	/// don't know what you're doing.

@@ -810,6 +810,20 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	}
 	cout <<endl;
 
+
+	//Determine the first ID for automatically generated Agents
+	int startingAutoAgentID = 0; //(We'll need this later)
+	handle = TiXmlHandle(&document);
+	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("auto_id_start");
+	node = handle.ToElement();
+	if (node) {
+		if (node->Attribute("value", &startingAutoAgentID) && startingAutoAgentID>0) {
+			Agent::SetIncrementIDStartValue(startingAutoAgentID, true);
+			cout <<"Starting ID for automatic agents: " <<startingAutoAgentID <<endl;
+		}
+	}
+
+
 	//Buffering strategy (optional)
 	handle = TiXmlHandle(&document);
 	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("mutex_enforcement");

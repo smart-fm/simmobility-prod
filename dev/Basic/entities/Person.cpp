@@ -41,7 +41,7 @@ Person* sim_mob::Person::GeneratePersonFromPending(const PendingEntity& p)
 	}
 
 	//Create a person object.
-	Person* res = new Person(config.mutexStategy);
+	Person* res = new Person(config.mutexStategy, p.manualID);
 
 	//Set its mode.
 	if (p.type == ENTITY_DRIVER) {

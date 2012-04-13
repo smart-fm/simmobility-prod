@@ -1,0 +1,460 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!-- geo3 adds kurblines and makes improvement on element types -->
+<!-- geo5 added targetNamespace, editted crossing, RoadBump name, 
+  added segment and connector information to roundabout and intersection (inheritted from multinode -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:geo="http://www.smart.mit.edu/geo"
+  targetNamespace="http://www.smart.mit.edu/geo">
+  <!-- definition of simple elements -->
+  <!--<xs:simpleType name="SimMobId_t">
+    <xs:restriction base="xs:string"/>
+  </xs:simpleType>-->
+
+  <!--   <xs:simpleType name="SimMobString_t">
+    <xs:restriction base="xs:string"/>
+  </xs:simpleType>-->
+
+  <!--<xs:simpleType name="width_t">
+    <xs:restriction base="xs:positiveInteger"/>
+  </xs:simpleType>-->
+
+  <!--  <xs:simpleType name="xpos_t">
+    <xs:restriction base="xs:positiveInteger"/>
+  </xs:simpleType>-->
+
+  <!--<xs:simpleType name="ypos_t">
+    <xs:restriction base="xs:positiveInteger"/>
+  </xs:simpleType>-->
+
+  <!--  <xs:simpleType name="LinkId_t">
+    <xs:restriction base="xs:string"/>
+  </xs:simpleType>-->
+
+  <!--  <xs:simpleType name="SegmentId_t">
+    <xs:restriction base="xs:string"/>
+  </xs:simpleType>-->
+
+  <!--  <xs:simpleType name="NodeId_t">
+    <xs:restriction base="xs:string"/>
+  </xs:simpleType>-->
+
+  <!--  <xs:simpleType name="LaneId_t">
+    <xs:restriction base="xs:string"/>
+  </xs:simpleType>-->
+
+  <xs:simpleType name="SegmentType_t">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="FWD"/>
+      <xs:enumeration value="BKD"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="ObstacleType_t">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="CROSSING"/>
+      <xs:enumeration value="ROADBUMP"/>
+      <xs:enumeration value="ERP"/>
+      <xs:enumeration value="BUSSTOP"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- <xs:simpleType name="speed_t">
+    <xs:restriction base="xs:short"/>
+  </xs:simpleType>-->
+
+  <xs:simpleType name="LaneType_t">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="ROAD_LANE"/>
+      <xs:enumeration value="SIDE_WALK"/>
+      <xs:enumeration value="CYCLE_LANE"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <!-- definition of complex elements -->
+  <xs:complexType name="obstacle_t">
+    <xs:sequence>
+      <xs:element name="obstacleID" type="xs:string"/>
+      <xs:element name="obstacleType" type="geo:ObstacleType_t"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="obstacles_t">
+    <xs:sequence>
+      <xs:element name="obstacle" type="geo:obstacle_t" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="Point2D_t">
+    <xs:sequence>
+      <xs:element name="xPos" type="xs:positiveInteger" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="yPos" type="xs:positiveInteger" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="PolyPoint_t">
+    <xs:sequence>
+      <xs:element name="pointID" type="xs:string"/>
+      <xs:element name="location" type="geo:Point2D_t"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="PolyLine_t">
+    <xs:sequence>
+      <xs:element name="PolyPoint" type="geo:PolyPoint_t" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="lane_t">
+    <xs:sequence>
+      <xs:element name="laneID" type="xs:string"/>
+      <xs:element name="laneType" type="geo:LaneType_t"/>
+      <xs:element name="Width" type="xs:positiveInteger" maxOccurs="1"/>
+      <xs:element name="PolyLine" type="geo:PolyLine_t" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="can_go_straight" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="can_turn_left" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="can_turn_right" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="can_turn_on_red_signal" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="can_change_lane_left" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="can_change_lane_right" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="is_road_shoulder" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="is_bicycle_lane" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="is_pedestrian_lane" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="is_vehicle_lane" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="is_standard_bus_lane" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="is_whole_day_bus_lane" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="is_high_occupancy_vehicle_lane" type="xs:boolean" minOccurs="0"
+        maxOccurs="1"/>
+      <xs:element name="can_freely_park_here" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="can_stop_here" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="is_u_turn_allowed" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="connector_t">
+    <xs:sequence>
+      <xs:element name="laneFrom" type="xs:string"/>
+      <xs:element name="laneTo" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="connectors_t">
+    <xs:sequence>
+      <xs:element name="Connector" type="geo:connector_t" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="fwdBckSegments_t">
+    <xs:sequence>
+      <xs:element name="segment" type="geo:segment_t" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="RoadSegmentsAt_t">
+    <xs:sequence>
+      <xs:element name="segmentID" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="segment_t">
+    <xs:sequence>
+      <xs:element name="segmentID" type="xs:string" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="segmentType" type="geo:SegmentType_t" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="parentLink" type="xs:string" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="StartingNode" type="xs:string" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="EndingNode" type="xs:string" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="Maxspeed" type="xs:short"/>
+      <xs:element name="LanesLeftOfDivider" type="xs:positiveInteger"/>
+      <xs:element name="Lanes" minOccurs="1">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="Lane" type="geo:lane_t" minOccurs="1" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="KurbLine" type="geo:PolyLine_t" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="link_t">
+    <xs:sequence>
+      <xs:element name="linkID" type="xs:string" maxOccurs="1" minOccurs="1"/>
+      <xs:element name="roadName" type="xs:string" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="StartingNode" type="xs:string" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="EndingNode" type="xs:string" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="Segments" minOccurs="1" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="FWDSegments" type="geo:fwdBckSegments_t" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="BKDSegments" type="geo:fwdBckSegments_t" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="separator_t">
+    <xs:sequence>
+      <xs:element name="separator_ID" type="xs:unsignedShort"/>
+      <xs:element name="separator_value" type="xs:boolean"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="separators_t">
+    <xs:sequence>
+      <xs:element name="Separator" type="geo:separator_t" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DomainIsland_t">
+    <xs:sequence>
+      <xs:element name="domainIsland_ID" type="xs:unsignedShort"/>
+      <xs:element name="domainIsland_value" type="xs:boolean"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DomainIslands_t">
+    <xs:sequence>
+      <xs:element name="domainIslands" type="geo:DomainIsland_t" minOccurs="0" maxOccurs="unbounded"
+      />
+    </xs:sequence>
+  </xs:complexType>
+
+
+  <xs:complexType name="offset_t">
+    <xs:sequence>
+      <xs:element name="offset_ID" type="xs:unsignedShort"/>
+      <xs:element name="offset_value" type="xs:positiveInteger"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="offsets_t">
+    <xs:sequence>
+      <xs:element name="offset" type="geo:offset_t" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ChunkLength_t">
+    <xs:sequence>
+      <xs:element name="chunklength_ID" type="xs:unsignedShort"/>
+      <xs:element name="chunklength_value" type="xs:positiveInteger"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ChunkLengths_t">
+    <xs:sequence>
+      <xs:element name="chunklength" type="geo:ChunkLength_t" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="LanesVector_t">
+    <xs:sequence>
+      <xs:element name="laneID" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="EntranceAngle_t">
+    <xs:sequence>
+      <xs:element name="entranceAngle_ID" type="xs:unsignedShort"/>
+      <xs:element name="entranceAngle_value" type="xs:positiveInteger"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="EntranceAngles_t">
+    <xs:sequence>
+      <xs:element name="entranceAngle" type="geo:EntranceAngle_t" minOccurs="0"
+        maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="UniNode_t">
+    <xs:sequence>
+      <xs:element name="nodeID" type="xs:string" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="location" type="geo:Point2D_t" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="Conectors" type="geo:connectors_t"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="roundabout_t">
+    <xs:sequence>
+      <xs:element name="nodeID" type="xs:string" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="location" type="geo:Point2D_t" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="roadSegmentsAt" type="geo:RoadSegmentsAt_t" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="Conectors" type="geo:connectors_t"/>
+      <xs:element name="ChunkLengths" type="geo:ChunkLengths_t" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="Offsets" type="geo:offsets_t" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="Separators" type="geo:separators_t" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="addDominantLane" type="geo:LanesVector_t" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="roundaboutDominantIslands" type="xs:float" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="roundaboutNumberOfLanes" type="xs:int" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="entranceAngles" type="geo:EntranceAngles_t" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="obstacles" type="geo:obstacles_t" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="intersection_t">
+    <xs:sequence>
+      <xs:element name="nodeID" type="xs:string" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="location" type="geo:Point2D_t" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="roadSegmentsAt" type="geo:RoadSegmentsAt_t" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="Conectors" type="geo:connectors_t"/>
+      <xs:element name="ChunkLengths" type="geo:ChunkLengths_t" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="Offsets" type="geo:offsets_t" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="Separators" type="geo:separators_t" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="additionalDominantLanes" type="geo:LanesVector_t" minOccurs="0"
+        maxOccurs="1"/>
+      <xs:element name="additionalSubdominantLanes" type="geo:LanesVector_t" minOccurs="0"
+        maxOccurs="1"/>
+      <xs:element name="domainIslands" type="geo:DomainIslands_t" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="obstacles" type="geo:obstacles_t" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="RoadItem_t">
+    <xs:sequence>
+      <xs:element name="start" type="geo:Point2D_t"/>
+      <xs:element name="end" type="geo:Point2D_t"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="BusStop_t">
+    <xs:complexContent>
+      <xs:extension base="geo:RoadItem_t">
+        <xs:sequence>
+          <xs:element name="busStopID" type="xs:string"/>
+          <xs:element name="lane_location" type="xs:string"/>
+          <xs:element name="is_Terminal" type="xs:boolean"/>
+          <xs:element name="is_Bay" type="xs:boolean"/>
+          <xs:element name="has_shelter" type="xs:boolean"/>
+          <xs:element name="busCapacityAsLength" type="xs:unsignedInt"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="ERP_Gantry_t">
+    <xs:complexContent>
+      <xs:extension base="geo:RoadItem_t">
+        <xs:sequence>
+          <xs:element name="ERP_GantryID" type="xs:string"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="PointPair_t">
+    <xs:sequence>
+      <xs:element name="First" type="geo:Point2D_t"/>
+      <xs:element name="Second" type="geo:Point2D_t"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="crossing_t">
+    <xs:complexContent>
+      <xs:extension base="geo:RoadItem_t">
+        <xs:sequence>
+          <xs:element name="crossingID" type="xs:string"/>
+          <!-- I guess either of start/end or near/far needs to be used -->
+          <xs:element name="nearLine" type="geo:PointPair_t"/>
+          <xs:element name="farLine" type="geo:PointPair_t"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="RoadBump_t">
+    <xs:complexContent>
+      <xs:extension base="geo:RoadItem_t">
+        <xs:sequence>
+          <xs:element name="roadBumpID" type="xs:string"/>
+          <xs:element name="segmentID" type="xs:string" minOccurs="1"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="RoadNetwork_t">
+    <xs:sequence>
+      <xs:element name="Links">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="Link" type="geo:link_t" minOccurs="1" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="Nodes">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="UniNodes" minOccurs="0" maxOccurs="1">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="UniNode" type="geo:UniNode_t" minOccurs="1"
+                    maxOccurs="unbounded"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="Intersections" minOccurs="0" maxOccurs="1">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="Intersection" type="geo:intersection_t" minOccurs="1"
+                    maxOccurs="unbounded"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+            <xs:element name="roundabouts" minOccurs="0" maxOccurs="1">
+              <xs:complexType>
+                <xs:sequence>
+                  <xs:element name="roundabout" type="geo:roundabout_t" minOccurs="1"
+                    maxOccurs="unbounded"/>
+                </xs:sequence>
+              </xs:complexType>
+            </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="RoadItems_t">
+    <xs:sequence>
+      <xs:element name="BusStops">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="BusStop" type="geo:BusStop_t"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="ERP_Gantries">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="ERP_Gantry" type="geo:ERP_Gantry_t"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="Crossings">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="Crossing" type="geo:crossing_t"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="RoadBumps">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="RoadBump" type="geo:RoadBump_t"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+
+  <!-- Main Schema starts here -->
+  <xs:complexType name="GeoSpatial_t">
+    <xs:sequence>
+      <xs:element name="RoadNetwork" type="geo:RoadNetwork_t"/>
+      <xs:element name="RoadItems" type="geo:RoadItems_t"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="SimMobility_t">
+    <xs:sequence>
+      <xs:element name="GeoSpatial" type="geo:GeoSpatial_t"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- And Now Declaring the root element, I called it geo, but fell free to call it anything like Bugis, Clementi, Singapore... -->
+  <xs:element name="SimMobility" type="geo:SimMobility_t"/>
+</xs:schema>

@@ -75,6 +75,7 @@ public:
 public:
 	///The road link's name. E.g., "Main Street"
 	std::string roadName;
+	std::string linkID;
 
 protected:
 	//List of pointers to RoadSegments in each direction

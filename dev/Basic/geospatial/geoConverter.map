@@ -1,0 +1,53 @@
+namespace http://www.smart.mit.edu/geo  {
+ include "Link.hpp";
+ include "RoadItem.hpp";
+ include "RoadNetwork.hpp";
+ include "Roundabout.hpp";
+ include "MultiNode.hpp";
+ include "Intersection.hpp";
+ include "Lane.hpp";
+ include "LaneConnector.hpp";
+ include "Crossing.hpp";
+ 
+Links std::vector<sim_mob::Link*> std::vector<sim_mob::Link*>;
+link_t sim_mob::Link* sim_mob::Link*;
+
+Segments std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*>>   std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*>>;
+fwdBckSegments_t std::vector<sim_mob::RoadSegment*> std::vector<sim_mob::RoadSegment*>;
+segment_t sim_mob::RoadSegment* sim_mob::RoadSegment*;
+SegmentType_t std::string std::string;
+
+RoadItem_t  sim_mob::RoadItem*; 
+obstacle_t  sim_mob::RoadItem*;
+obstacles_t std::vector<sim_mob::RoadItem> std::vector<sim_mob::RoadItem>;
+
+lane_t sim_mob::Lane* sim_mob::Lane*;
+Lanes std::vector<sim_mob::Lane*> std::vector<sim_mob::Lane*>;
+
+connector_t sim_mob::LaneConnector* sim_mob::LaneConnector*;
+PolyLine_t std::vector<sim_mob::Point2D> std::vector<sim_mob::Point2D>;
+
+
+
+
+UniNodes std::set<sim_mob::UniNode*> std::set<sim_mob::UniNode*>;
+UniNode_t sim_mob::UniNode* sim_mob::UniNode*;
+
+Intersections std::vector<sim_mob::MultiNode*> std::vector<sim_mob::MultiNode*>;
+intersection_t sim_mob::MultiNode* sim_mob::MultiNode*;
+
+roundabouts std::vector<sim_mob::MultiNode*> std::vector<sim_mob::MultiNode*>;
+roundabout_t sim_mob::MultiNode* sim_mob::MultiNode*;
+
+crossing_t sim_mob::Crossing* sim_mob::Crossing*; 
+
+
+}
+
+
+
+
+
+
+
+

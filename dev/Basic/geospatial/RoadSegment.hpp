@@ -42,7 +42,7 @@ class LaneLoader;
 class RoadSegment : public sim_mob::Pavement {
 public:
 	///Create a RoadSegment as part of a given Link.
-	explicit RoadSegment(sim_mob::Link* parent);
+	explicit RoadSegment(sim_mob::Link* parent=nullptr);
 
 	///Return the Link this RoadSegment is part of.
 	sim_mob::Link* getLink() const { return parentLink; }
@@ -81,7 +81,7 @@ public:
 
 	///TODO This should be made private again.
 	mutable std::vector< std::vector<sim_mob::Point2D> > laneEdgePolylines_cached;
-
+	void setLanes(std::vector<sim_mob::Lane*>);
 private:
 	///Collection of lanes. All road segments must have at least one lane.
 	std::vector<sim_mob::Lane*> lanes;
@@ -91,6 +91,7 @@ private:
 	void specifyEdgePolylines(const std::vector< std::vector<sim_mob::Point2D> >& calcdPolylines);
 	void makeLanePolylineFromEdges(sim_mob::Lane* lane, const std::vector<sim_mob::Point2D>& inner, const std::vector<sim_mob::Point2D>& outer) const;
 	std::vector<sim_mob::Point2D> makeLaneEdgeFromPolyline(sim_mob::Lane* refLane, bool edgeIsRight) const;
+
 	//mutable std::vector< std::vector<sim_mob::Point2D> > laneEdgePolylines_cached;
 
 	///Helps to identify road segments which are bi-directional.

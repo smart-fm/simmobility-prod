@@ -7,8 +7,14 @@
 
 #include "Point2D.hpp"
 #include "RoadSegment.hpp"
+//#include "geo5-pimpl.hpp"
 
-
+//using namespace geo;
+namespace geo
+{
+class lane_t_pimpl;
+class Lanes_pimpl;
+}
 namespace sim_mob
 {
 
@@ -25,6 +31,7 @@ namespace aimsun
 //Forward declaration
 class Loader;
 } //End aimsun namespace
+
 
 
 /**
@@ -90,6 +97,8 @@ class Loader;
  *   \endcode
  */
 class Lane {
+	friend class geo::lane_t_pimpl;
+	friend class geo::Lanes_pimpl;
 private:
     /**
      * Lane movement rules.
@@ -256,7 +265,7 @@ private:
     friend class sim_mob::aimsun::Loader;
 
     /** Create a Lane using the \c bit_pattern to initialize the lane's rules.  */
-    explicit Lane(sim_mob::RoadSegment* segment, unsigned int laneID, const std::string& bit_pattern="") : parentSegment_(segment), rules_(bit_pattern), width_(0), laneID_(laneID) {}
+    explicit Lane(sim_mob::RoadSegment* segment=nullptr, unsigned int laneID=-1, const std::string& bit_pattern="") : parentSegment_(segment), rules_(bit_pattern), width_(0), laneID_(laneID) {}
 
     /** Set the lane's rules using the \c bit_pattern.  */
     void set(const std::string& bit_pattern) {
@@ -325,6 +334,7 @@ private:
 	mutable std::vector<Point2D> polyline_;
 
 	friend class RoadSegment;
+
 
 
 };

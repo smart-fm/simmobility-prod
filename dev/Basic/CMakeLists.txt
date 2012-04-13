@@ -1,5 +1,5 @@
 #Required version of cmake
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 2.8)
 
 #Project name. Used to tag resources in cmake. 
 project (Basic)
@@ -11,7 +11,6 @@ set (Basic_VERSION_MINOR 1)
 #Flags for each configuration type
 SET(CMAKE_CXX_FLAGS_RELEASE "-O2")
 SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g")
-
 
 #Option: strict error handling. Use the cmake gui to change this on a per-user basis.
 option (SIMMOB_STRICT_AGENT_ERRORS  "All unexpected and potentially dangerous behavior causes Agents to throw exceptions. If OFF, Agents will generally just remove themselves from the simulation in case of error." ON)
@@ -58,24 +57,6 @@ IF (SIMMOB_LATEST_STANDARD)
 ENDIF(SIMMOB_LATEST_STANDARD)
 
 
-#Enable threading on GCC-4.7
-IF(CMAKE_COMPILER_IS_GNUCXX)
-  execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
-  IF (GCC_VERSION VERSION_EQUAL 4.7)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -D_GLIBCXX_HAVE_GTHR_DEFAULT")
-  ENDIF (GCC_VERSION VERSION_EQUAL 4.7)
-ENDIF(CMAKE_COMPILER_IS_GNUCXX)
-
-
-#Enable threading on Clang
-#NOTE: This is only a problem if GCC 4.7 AND clang are installed. 
-#      If you get errors about "DISABLE_THREADS" being set for boost, you can either enable the next
-#      few lines, or compile against gcc-4.6's standard library. 
-#IF(CMAKE_C_COMPILER MATCHES "/clang$" AND CMAKE_CXX_COMPILER MATCHES "/clang[+][+]$")
-#  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -D_GLIBCXX_HAVE_GTHR_DEFAULT")
-#ENDIF()
-
-
 #Testing PGO: Have to pass these flags in from the command line.
 SET(TestPgoDirectory "${CMAKE_CURRENT_SOURCE_DIR}/pgo")
 IF (SIMMOBTEST_GENERATE_PROFILE)
@@ -113,6 +94,7 @@ find_package(TinyXML REQUIRED)
 include_directories(${TINYXML_INCLUDE_DIR})
 LIST(APPEND LibraryList ${TINYXML_LIBRARIES})
 
+
 #Find PQ
 find_package(PostgreSQL REQUIRED)
 include_directories(${PostgreSQL_INCLUDE_DIRS})
@@ -127,27 +109,26 @@ LIST(APPEND LibraryList ${SOCI_LIBRARIES})
 find_package(SOCIPostgreSQL REQUIRED)
 include_directories(${SOCIPOSTGRESQL_INCLUDE_DIRS})
 LIST(APPEND LibraryList ${SOCIPOSTGRESQL_LIBRARIES})
-
 #Optionally find: MPI, CGAL
 IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   #Find boost-mpi
   find_package(Boost COMPONENTS mpi REQUIRED)
   LIST(APPEND LibraryList ${Boost_LIBRARIES})
-  
   #Find any MPI implementation
   set(MPI_COMPILER ${MPI_ROOT}/bin/mpicxx)
   find_package(MPI REQUIRED)
   include_directories(${MPI_CXX_INCLUDE_PATH})
   LIST(APPEND LibraryList ${MPI_CXX_LIBRARIES})
-  
   #More mpi-related flags
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
   SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MPI_CXX_LINK_FLAGS}")
-  
   #Find cgal
   find_package(CGAL REQUIRED)
   #include_directories(${CGAL_INCLUDE_DIR})  #This messes up gmpxx...
   LIST(APPEND LibraryList ${CGAL_LIBRARIES})
+  MESSAGE(STATUS "Vahid Packages start")
+
+  
   
   #Use the mpi compiler.
   SET(CMAKE_C_COMPILER ${MPI_C_COMPILER})
@@ -155,6 +136,13 @@ IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   MESSAGE("INFO: Overriding c++ compiler: ${CMAKE_CXX_COMPILER}")
 ENDIF(${SIMMOB_DISABLE_MPI} MATCHES "OFF")
 
+  #Find Xerces
+  find_package(XercesC REQUIRED)
+  include_directories(${XERCESC_INCLUDE_DIR})
+  LIST(APPEND LibraryList ${XERCESC_LIBRARIES})
+  #Find xsd
+  find_package(Xsd REQUIRED)
+  include_directories(${XSD_INCLUDE_DIR})
 #Remove duplicates, just in case
 #TODO: We should probably build up a list of IncludeDirs and LibraryDirs too (duplicates removed)
 #      Not a real priority right now, but should allow better porting later on.

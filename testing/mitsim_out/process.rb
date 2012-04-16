@@ -1,25 +1,6 @@
+require 'simmob_classes'
+require 'mitsim_classes'
 
-
-class Node
-  def initialize(nodeID)
-    @nodeID = nodeID
-    @x = 0
-    @y = 0
-  end  
-
-  attr_reader :nodeID
-  attr_accessor :x
-  attr_accessor :y
-end
-
-class Point
-  def initialize(x, y)
-    @x = x
-    @y = y
-  end  
-  attr_accessor :x
-  attr_accessor :y
-end
 
 #Get standard deviation and average
 def getStdAvg(list)
@@ -39,81 +20,6 @@ def getStdAvg(list)
   stDev = Math.sqrt(sVar)
   
   return [avg, stDev]
-end
-
-
-class Driver
-  def initialize(agentID)
-    @agentID = agentID
-    @departure = 0
-    @arrival = 0
-    @completed = false
-    @originNode = nil
-    @destNode = nil
-    @vehicleType = nil
-
-    @firstPos = nil
-
-    @tempVeh2 = nil #Something boolean
-    @tempVeh6 = nil #Usually equals the destination node except in very rare cases (~38 of them)
-
-    @tempVeh3 = nil #Might be distance in meters
-    @tempVeh9 = nil #Same
-
-    @tempVeh10 = nil #Almost definitely speed in m/s
-    @tempVeh11 = nil #Always zero
-  end  
-
-  attr_reader :agentID
-  attr_accessor :departure
-  attr_accessor :arrival
-  attr_accessor :completed
-
-  attr_accessor :firstPos
-
-  attr_accessor :originNode
-  attr_accessor :destNode
-  attr_accessor :vehicleType
-
-  attr_accessor :tempVeh2
-  attr_accessor :tempVeh3
-  attr_accessor :tempVeh6
-  attr_accessor :tempVeh9
-  attr_accessor :tempVeh10
-  attr_accessor :tempVeh11
-end
-
-
-class Segment
-  def initialize(segmentID)
-    @segmentID = segmentID
-    @startPos = nil
-    @endPos = nil
-    @upNode = nil
-    @downNode = nil
-    @parentLink = nil
-  end  
-
-  attr_reader :segmentID
-  attr_accessor :startPos
-  attr_accessor :endPos
-  attr_accessor :upNode
-  attr_accessor :downNode
-  attr_accessor :parentLink
-end
-
-class Link
-  def initialize(linkID)
-    @linkID = linkID
-    @upNode = nil
-    @downNode = nil
-    @segments = [] #Listed upstream to downstream
-  end  
-
-  attr_reader :linkID
-  attr_accessor :upNode
-  attr_accessor :downNode
-  attr_accessor :segments
 end
 
 
@@ -761,5 +667,7 @@ end
 if __FILE__ == $PROGRAM_NAME
   run_main()
 end
+
+
 
 

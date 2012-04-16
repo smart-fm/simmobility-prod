@@ -1,142 +1,11 @@
+require 'simmob_classes'
+require 'mitsim_classes'
+require 'misc_compute'
 
-
-class Node
-  def initialize(nodeID)
-    @nodeID = nodeID
-    @x = 0
-    @y = 0
-  end  
-
-  attr_reader :nodeID
-  attr_accessor :x
-  attr_accessor :y
-end
-
-class Point
-  def initialize(x, y)
-    @x = x
-    @y = y
-  end  
-  attr_accessor :x
-  attr_accessor :y
-end
-
-#Get standard deviation and average
-def getStdAvg(list)
-  #Sum, average
-  sum = 0
-  list.each {|item|
-    sum += item
-  }
-  avg = sum / list.length.to_f
-
-  #Sample variance, stdev
-  sVar = 0
-  list.each {|item|
-    sVar += (item-avg)**2
-  }
-  sVar /= list.length.to_f
-  stDev = Math.sqrt(sVar)
-  
-  return [avg, stDev]
-end
-
-
-class Driver
-  def initialize(agentID)
-    @agentID = agentID
-    @departure = 0
-    @arrival = 0
-    @completed = false
-    @originNode = nil
-    @destNode = nil
-    @vehicleType = nil
-
-    @firstPos = nil
-
-    @tempVeh2 = nil #Something boolean
-    @tempVeh6 = nil #Usually equals the destination node except in very rare cases (~38 of them)
-
-    @tempVeh3 = nil #Might be distance in meters
-    @tempVeh9 = nil #Same
-
-    @tempVeh10 = nil #Almost definitely speed in m/s
-    @tempVeh11 = nil #Always zero
-  end  
-
-  attr_reader :agentID
-  attr_accessor :departure
-  attr_accessor :arrival
-  attr_accessor :completed
-
-  attr_accessor :firstPos
-
-  attr_accessor :originNode
-  attr_accessor :destNode
-  attr_accessor :vehicleType
-
-  attr_accessor :tempVeh2
-  attr_accessor :tempVeh3
-  attr_accessor :tempVeh6
-  attr_accessor :tempVeh9
-  attr_accessor :tempVeh10
-  attr_accessor :tempVeh11
-end
-
-
-class Segment
-  def initialize(segmentID)
-    @segmentID = segmentID
-    @startPos = nil
-    @endPos = nil
-    @upNode = nil
-    @downNode = nil
-    @parentLink = nil
-  end  
-
-  attr_reader :segmentID
-  attr_accessor :startPos
-  attr_accessor :endPos
-  attr_accessor :upNode
-  attr_accessor :downNode
-  attr_accessor :parentLink
-end
-
-class Link
-  def initialize(linkID)
-    @linkID = linkID
-    @upNode = nil
-    @downNode = nil
-    @segments = [] #Listed upstream to downstream
-  end  
-
-  attr_reader :linkID
-  attr_accessor :upNode
-  attr_accessor :downNode
-  attr_accessor :segments
-end
-
-
-def ParseScientificToFloat(str)
-  if str =~ /([0-9]+\.[0-9]+)e([-+][0-9]+)/
-    base = $1.to_f
-    subscr = $2.to_f
-    return base * 10.0 ** subscr
-  else
-    raise "String is not in scientific form: " + str
-  end
-end
-
-
-def calc_distance(x1, y1, x2, y2)
-  dX = x2 - x1
-  dY = y2 - y1
-  return Math.sqrt(dX**2 + dY**2)
-end
 
 
 #Helper; make sure all nodes exist
-def attemptToGenerateID(linkID, pos, nodeID, currSubID, nodelist)
+def attemptToGenerateID(nw, linkID, pos, nodeID, currSubID)
   #If no Node ID exists, generate a node and add it to the node list
   unless nodeID
     #Somewhat fragile, but should be good enough
@@ -146,14 +15,9 @@ def attemptToGenerateID(linkID, pos, nodeID, currSubID, nodelist)
     nodeID = "#{linkID}:#{currSubID[0]}"
     currSubID[0] += 1
 
-    #Sanity check
-    raise "Node ID collision error: #{nodeID}" if nodelist.has_key? nodeID
-
     #Make the node
-    nd = Node.new(nodeID)
-    nd.x = pos.x
-    nd.y = pos.y
-    nodelist[nodeID] = nd
+    nd = nw.newNode(nodeID)
+    nd.pos = Mitsim::Point.new(pos.x, pos.y)
   end
 
   #Return the (new?) ID
@@ -161,14 +25,11 @@ def attemptToGenerateID(linkID, pos, nodeID, currSubID, nodelist)
 end
 
 
-#The network file has a complex format. Basically, we are just extracting
-#  segments for now.
-def read_network_file(segments, nodes)
-  #First, pre-process and remove comments. Apparently *all* comment types
-  #  are valid for mitsim...
-  bigstring = ""
+#Parse a file, removing C, C++, and Perl-style comments.
+def parse_file_remove_comments(fileName)
+  stream = ''
   onComment = false
-  File.open('network-BUGIS.dat').each { |line|
+  File.open(fileName).each { |line|
     line.chomp!
     if onComment
       #Substitute the comment closing and set onComment to false
@@ -187,14 +48,41 @@ def read_network_file(segments, nodes)
       #Now multi-line C comments
       onComment = true if line.sub!(/\/\*((?!\*\/).)*$/, '')  #C style, line ending reached
     end
-    bigstring << line
+    stream << line
   }
 
-  #Now, parse unrelated sections out of the "bigstring".
-  bigstring.sub!(/^.*(?=\[Links\])/, '')
-  bigstring.sub!(/\[(?!Links)[^\]]+\].*/, '')
-  bigstring.gsub!(/[ \t]+/, ' ') #Reduce all spaces/tabs to a single space
-  bigstring.gsub!(/\[Links\][^{]*{/, '') #Avoid a tiny bit of lookahead. There will be an unmatched } at the end, but it won't matter
+  #Now, parse unrelated sections out of the stream.
+  stream.sub!(/^.*(?=\[Links\])/, '')
+  stream.sub!(/\[(?!Links)[^\]]+\].*/, '')
+  stream.gsub!(/[ \t]+/, ' ') #Reduce all spaces/tabs to a single space
+  stream.gsub!(/\[Links\][^{]*{/, '') #Avoid a tiny bit of lookahead. There will be an unmatched } at the end, but it won't matter
+
+  return stream
+end
+
+
+#Either add a Node (by position) or, if it exists, ensure that it
+# hasn't moved much.
+def addOrCheckNode(nw, id, currentPos)
+  nd = nw.getOrAddNode(id)
+  unless nd.pos
+    nd.pos = Mitsim::Point.new(currentPos.x, currentPos.y)
+  else
+    #Ensure the position hasn't changed.
+    errorVal = Distance(nd.pos, currentPos)
+    puts "Node ID/position mismatch[#{id}],\n  prev: #{nd.pos},\n  curr: #{currentPos}\n  error: #{errorVal})" if errorVal >= 10.0
+    puts "Node ID/position mismatch[#{id}], off by #{errorVal} meters" if errorVal >= 1.0
+  end
+end
+
+
+
+#The network file has a complex format. Basically, we are just extracting
+#  segments for now.
+def read_network_file(nwFileName, nw)
+  #First, pre-process and remove comments. Apparently *all* comment types
+  #  are valid for mitsim...
+  bigstring = parse_file_remove_comments(nwFileName)
 
   #Links start with:  {1 2 3 4 5   #LinkID LinkType UpNodeID DnNodeID LinkLabelID 
   posInt = '([0-9]+)'
@@ -217,7 +105,7 @@ def read_network_file(segments, nodes)
 
     upNodeID = linkRes[2]
     downNodeID = linkRes[3]
-    link = Link.new(linkID)
+    link = nw.newLink(linkID)
     link.upNode = upNodeID
     link.downNode = downNodeID
 
@@ -233,9 +121,9 @@ def read_network_file(segments, nodes)
       segEndY = ParseScientificToFloat(segRes[8])
 
       #Save it temporarily
-      seg = Segment.new(segID)
-      seg.startPos = Point.new(segStartX, segStartY)
-      seg.endPos = Point.new(segEndX, segEndY)
+      seg = nw.newSegment(segID)
+      seg.startPos = Mitsim::Point.new(segStartX, segStartY)
+      seg.endPos = Mitsim::Point.new(segEndX, segEndY)
       seg.parentLink = link
       link.segments.push(seg)
 
@@ -243,7 +131,7 @@ def read_network_file(segments, nodes)
       if prevEndPoint
         unless seg.startPos.x==prevEndPoint.x and seg.startPos.y==prevEndPoint.y
           #Skip errors less than 1 m
-          errorVal = calc_distance(seg.startPos.x, seg.startPos.y, prevEndPoint.x, prevEndPoint.y)
+          errorVal = Distance(seg.startPos, prevEndPoint)
           raise "Segment consistency error on Segment: #{segID} Distance: #{errorVal}" if errorVal >= 1.0 
         end
       end
@@ -256,49 +144,16 @@ def read_network_file(segments, nodes)
     link.segments[0].upNode = upNodeID
     link.segments[-1].downNode = downNodeID
 
-    #Force add Link start node
-    id = link.segments[0].upNode
-    unless nodes.has_key? id
-      nd = Node.new(id)
-      nd.x = link.segments[0].startPos.x
-      nd.y = link.segments[0].startPos.y
-      nodes[id] = nd
-    else
-      #Check position
-      prevPos = nodes[id]
-      newPos = link.segments[0].startPos
-      unless prevPos.x==newPos.x and prevPos.y==newPos.y
-        errorVal = calc_distance(prevPos.x, prevPos.y, newPos.x, newPos.y)
-        puts "Node ID/position mismatch[#{id}],\n  prev: (#{prevPos.x},#{prevPos.y}),\n  curr: (#{newPos.x},#{newPos.y}\n  error: #{errorVal})" if errorVal >= 10.0
-        puts "Node ID/position mismatch[#{id}], off by #{errorVal} meters" if errorVal >= 1.0
-      end
-    end
+    #Force add Link start/end node
+    addOrCheckNode(nw, link.segments[0].upNode, link.segments[0].startPos)
+    addOrCheckNode(nw, link.segments[-1].downNode, link.segments[-1].endPos)
 
-    #Force add Link end node
-    id = link.segments[-1].downNode
-    unless nodes.has_key? id
-      nd = Node.new(id)
-      nd.x = link.segments[-1].endPos.x
-      nd.y = link.segments[-1].endPos.y
-      nodes[id] = nd
-    else
-      #Check position
-      prevPos = nodes[id]
-      newPos = link.segments[-1].endPos
-      unless prevPos.x==newPos.x and prevPos.y==newPos.y
-        errorVal = calc_distance(prevPos.x, prevPos.y, newPos.x, newPos.y)
-        puts "Node ID/position mismatch[#{id}],\n  prev: (#{prevPos.x},#{prevPos.y}),\n  curr: (#{newPos.x},#{newPos.y}\n  error: #{errorVal})" if errorVal >= 10.0
-        puts "Node ID/position mismatch[#{id}], off by #{errorVal} meters" if errorVal >= 1.0
-      end
-    end
-
+    #Add UniNodes for each segment. These will have generated names, with ":1" appended for the 
+    # Node closest to upstream, and so forth.
     link.segments.each{|segment|
       #Attempt to generate an ID. Even if this fails, save this ID
-      segment.upNode = attemptToGenerateID(linkID, segment.startPos, segment.upNode, currSubID, nodes)
-      segment.downNode = attemptToGenerateID(linkID, segment.endPos, segment.downNode, currSubID, nodes)
-
-      #And... add it to the list
-      segments[segment.segmentID.to_i] = segment
+      segment.upNode = attemptToGenerateID(nw, linkID, segment.startPos, segment.upNode, currSubID)
+      segment.downNode = attemptToGenerateID(nw, linkID, segment.endPos, segment.downNode, currSubID)
     }
   }
 
@@ -321,18 +176,24 @@ end
 #  destNode
 #  vehicleType
 #  path, but ONLY if the vehicles have a path
-def read_dep_file(list)
+def read_dep_file(depFileName, nw, drivers)
   min = max = nil
-  File.open('dep.out').each { |line|
+  File.open(depFileName).each { |line|
     if line =~ /([0-9.]+) +([0-9]+) +([0-9]+) +([0-9]+) +([0-9]+)/
-      dr = Driver.new($2.to_i)
+      dr = Mitsim::Driver.new($2.to_i)
       dr.departure = $1.to_f
-      dr.originNode = $3.to_i
-      dr.destNode = $4.to_i
+      dr.originNode = $3
+      dr.destNode = $4
       dr.vehicleType = $5.to_i
 
-      unless list.has_key? dr.agentID
-        list[dr.agentID] = dr
+      #Make sure these nodes exist in mitsim, then substitute them in place of the IDs
+      raise "Origin Node doesn't exist: #{dr.originNode}" unless nw.nodes.has_key? dr.originNode
+      raise "Destination Node doesn't exist: #{dr.destNode}" unless nw.nodes.has_key? dr.destNode
+      dr.originNode = nw.nodes[dr.originNode]
+      dr.destNode = nw.nodes[dr.destNode]
+
+      unless drivers.has_key? dr.agentID
+        drivers[dr.agentID] = dr
         min = dr unless min and min.agentID<=dr.agentID
         max = dr unless max and max.agentID>=dr.agentID
       else
@@ -354,36 +215,36 @@ end
 #    mileage
 #    speed
 #(Actually: 11 values +5)
-def read_veh_file(list)
+def read_veh_file(vehFileName, drivers)
   minDepartureTime = -1
-  File.open('vehicle.out').each { |line|
+  File.open(vehFileName).each { |line|
     if line =~ /([0-9]+) +([0-9]+) +([0-9]+) +([0-9]+) +([0-9]+) +([0-9]+) +([0-9]+) +([0-9]+) +([0-9]+) +([0-9.]+) +([0-9]+)/
+      #Retrieve and check the ID
       id = $1.to_i
-      if list.has_key? id
-        dr = list[id]
-        raise "Agent completed twice: #{id}" if dr.completed
-        dr.arrival = $8.to_i
-        dr.completed = true
-        raise "Origin mismatch for agent: #{id}" if dr.originNode != $4.to_i
-        raise "Dest mismatch for agent: #{id}" if dr.destNode != $5.to_i
-        raise "Departure time mismatch for agent: #{id}" if dr.departure.round != $7.to_i
-        raise "Arrived before departure for agent: #{id}" if dr.arrival < dr.departure
-        t2 = $2.to_i
-        raise "Expected boolean, not: #{t2}" unless t2==0 or t2==1
-        dr.tempVeh2 = t2==0 ? false : true
-        dr.tempVeh3 = $3.to_i
-        dr.tempVeh6 = $6.to_i
-        dr.tempVeh9 = $9.to_i
-        dr.tempVeh10 = $10.to_f
-        t11 = $11.to_i
-        raise "Expected boolean, not: #{t11}" unless t11==0 or t11==1
-        dr.tempVeh11 = t11==0 ? false : true
+      raise "Agent ID expected but doesn't exist: #{id}" unless drivers.has_key? id
 
-        #Calculate min. departure time
-        minDepartureTime = dr.departure if minDepartureTime==-1 or dr.departure<minDepartureTime
-      else
-        raise "Agent ID expected but doesn't exist: #{id}"
-      end
+      #Retrieve and check the driver.
+      dr = drivers[id]
+      raise "Agent completed twice: #{id}" if dr.completed
+      dr.arrival = $8.to_i
+      dr.completed = true
+      raise "Origin mismatch for agent: #{id} => #{$4}" if dr.originNode.nodeID != $4
+      raise "Dest mismatch for agent: #{id} => #{$5}" if dr.destNode.nodeID != $5
+      raise "Departure time mismatch for agent: #{id}" if dr.departure.round != $7.to_i
+      raise "Arrived before departure for agent: #{id}" if dr.arrival < dr.departure
+      t2 = $2.to_i
+      raise "Expected boolean, not: #{t2}" unless t2==0 or t2==1
+      dr.tempVeh2 = t2==0 ? false : true
+      dr.tempVeh3 = $3.to_i
+      dr.tempVeh6 = $6.to_i
+      dr.tempVeh9 = $9.to_i
+      dr.tempVeh10 = $10.to_f
+      t11 = $11.to_i
+      raise "Expected boolean, not: #{t11}" unless t11==0 or t11==1
+      dr.tempVeh11 = t11==0 ? false : true
+
+      #Calculate min. departure time
+      minDepartureTime = dr.departure if minDepartureTime==-1 or dr.departure<minDepartureTime
     else 
       puts "Skipped line: #{line}"
     end
@@ -402,14 +263,14 @@ end
 #  speed 
 #  acceleration 
 #  vehicleType
-def read_traj_file(list, segments, nodes)
+def read_traj_file(trajFileName, nw, drivers)
   lastKnownTime = 0
   unknownNodes = []
-  File.open('traj_compact.txt').each { |line|  #We use a trimmed version of trajectory.out, but loading the original would work too.
+  File.open(trajFileName).each { |line|
     if line =~ /([0-9]+) +([0-9]+) +([0-9]+) +([0-9]+) +([0-9.]+) +([0-9.]+) +([0-9e.\-]+) +([0-9]+)/
       id = $2.to_i
-      if list.has_key? id
-        dr = list[id]
+      if drivers.has_key? id
+        dr = drivers[id]
 
         #Saving firstPos
         unless dr.firstPos
@@ -421,15 +282,15 @@ def read_traj_file(list, segments, nodes)
         raise "Error: time must be strictly increasing" if time<lastKnownTime
 
         #segmentID, laneID, positionInLane
-        segmentID = $3.to_i
-        raise "Segment ID not known: " + segmentID.to_s unless segments.has_key? segmentID
-        laneID = $4.to_i
+        segmentID = $3
+        raise "Segment ID not known: " + segmentID.to_s unless nw.segments.has_key? segmentID
+        laneID = $4
         posInLane = $5.to_f
         
         #Get the upstream node
-        segment = segments[segmentID]
+        segment = nw.segments[segmentID]
         unless segment.upNode.include? ':'  #We don't consider uni-nodes for now.
-          unless nodes.has_key? segment.upNode
+          unless nw.nodes.has_key? segment.upNode
             unknownNodes.push(segment.upNode)
           end
         end
@@ -449,7 +310,7 @@ def read_traj_file(list, segments, nodes)
 
   #Build a lookup of Nodes based on the first location of each driver.
   node_lookup = {} #Array of offsets, indexed by NodeID
-  list.each{|id, drv| 
+  drivers.each{|id, drv| 
     next unless drv.firstPos
     node_lookup[drv.originNode] = [] unless node_lookup.has_key? drv.originNode
     node_lookup[drv.originNode].push(drv.firstPos)
@@ -465,7 +326,7 @@ def read_traj_file(list, segments, nodes)
       min = offset if offset < min
       max = offset if offset > max
     }
-    avg, stddev = getStdAvg(offsets)
+    avg, stddev = GetStdDevAndAverage(offsets)
     puts "Average:  #{avg} +/- #{stddev}"
     puts "Min/max:  #{min} => #{max}"
     puts '-'*20
@@ -474,110 +335,124 @@ end
 
 
 #outputSMNodeID is just for show
-def compute_error(smNodeLookup, msNode, nodeID, outputSMNodeID, offset)
-  smNode = smNodeLookup[nodeID]
-  return if smNode.x==0 and smNode.y==0 #Not in our lookup file
+#def compute_error(smNodeLookup, msNode, nodeID, outputSMNodeID, offset)
+#  smNode = smNodeLookup[nodeID]
+#  return if smNode.x==0 and smNode.y==0 #Not in our lookup file
+#
+#  expected = Point.new(msNode.x*100+offset.x, msNode.y*100+offset.y)
+#  diff = Point.new(expected.x-smNode.x, expected.y-smNode.y)
+#  #puts "Mitsim(#{nodeID}) to Sim Mobility(#{outputSMNodeID}) has error of: (#{diff.x},#{diff.y})"
+#  #puts "   mitsim: (#{msNode.x*100},#{msNode.y*100})"
+#  #puts "   simmob: (#{smNode.x},#{smNode.y})"
+#end
 
-  expected = Point.new(msNode.x*100+offset.x, msNode.y*100+offset.y)
-  diff = Point.new(expected.x-smNode.x, expected.y-smNode.y)
-  #puts "Mitsim(#{nodeID}) to Sim Mobility(#{outputSMNodeID}) has error of: (#{diff.x},#{diff.y})"
-  #puts "   mitsim: (#{msNode.x*100},#{msNode.y*100})"
-  #puts "   simmob: (#{smNode.x},#{smNode.y})"
+
+
+def ms_sm_nodeset(nw, mitsim, simmob)
+  raise "Unknown mitsim node: #{mitsim}" unless nw.nodes.has_key? mitsim
+  mitsim = nw.nodes[mitsim]
+
+  #Set or check
+  unless mitsim.sm_node
+    mitsim.sm_node = nw.sm_network.getOrAddNode(simmob)
+  else
+    raise "Comparison error" if mitsim.sm_node.aimsunID != simmob
+  end
 end
 
 
-
-def read_convert_file(list, mitsimToSM, multiAndUniNodes)
-  File.open('ms_sm_node_convert.txt').each { |line|
+#Read our (manually built) Node conversion file.
+def read_convert_file(convFileName, nw, drivers)
+  File.open(convFileName).each { |line|
+    #Skip comments
     next if line =~ /^#/ or line.strip.empty?
+
+    #Lines of the form "38 => 98088" specify that Mitsim node (38) is mapped to
+    #  Sim Mobility node (98088)
     if line =~ /([0-9]+) *=> *([0-9]+)/
-      from = $1
-      to = $2.to_i
-      newNode = Node.new(to)
-      if mitsimToSM.has_key? from
-        raise "Comparison error" if mitsimToSM[from].nodeID != to
-      else
-        mitsimToSM[from] = newNode
-        #multiAndUniNodes[from.to_s] = newNode
-      end
+      ms_sm_nodeset(nw, $1, $2)
+
+    #It's also common for Mitsim to "break up" Sim Mobility nodes into several pieces:
+    #  {111,1111} => 98226
     elsif line =~ /{((?:[0-9:]+[, ]*)+)} *=> *([0-9]+)/
-      from_ids = $1
-      to_id = $2.to_i
-      newNode = Node.new(to_id)
-      from_ids.scan(/[0-9:]+/) {|line|
-        from_id = line
-        if mitsimToSM.has_key? from_id
-          raise "Comparison error" if mitsimToSM[from_id].nodeID != to_id
-        else
-          mitsimToSM[from_id] = newNode
-        end
+      mitsim_ids = $1
+      simmob = $2
+      mitsim_ids.scan(/[0-9:]+/) {|line|
+        ms_sm_nodeset(nw, line, simmob)
       }
+
+    #We also (temporarily) require Sim Mobility nodes to specify their own positions.
+    #  48732 = (37232859,14308003)
+    #This will be removed as soon as we start parsing Sim Mobility output files.
     elsif line =~ /([0-9]+) *= *\(([0-9]+),([0-9]+)\)/
-      found = false
-      mitsimToSM.each_value{|nd|
-        if nd.nodeID == $1.to_i
-          nd.x = $2.to_i
-          nd.y = $3.to_i
-          found = true
-        end
-      }
-      raise "Couldn't find node: #{$1}" unless found
+      nodeid = $1
+      pos = SimMob::Point.new($2.to_i, $3.to_i)
+      raise "Couldn't find node: #{nodeid}" unless nw.sm_network.nodes.has_key? nodeid
+      node = nw.sm_network.nodes[nodeid]
+
+      unless node.pos
+        node.pos = pos
+      else
+        raise "Position mismatch" unless Distance(node.pos, pos)==0
+      end      
+
+    #Anything else is reported as unexpected
     else
       puts "Skipped line: #{line}"
     end
   }
 
   #Final check
-  mitsimToSM.each_value{|nd|
-    puts "Node ID not translated: #{nd.nodeID}" if nd.x==0 or nd.y==0
+  nw.sm_network.nodes.each_value{|nd|
+    puts "Node ID not translated: #{nd.aimsunID}" unless nd.pos
   }
 end
 
 
-def final_validate(agents, nodeConv, segments, nodes, minDepTime)
+def final_validate(network, drivers, minDepTime)
   #Check the offset from sim mobility nodes to mitsim ones
-  sampleNodePos_SM = nodeConv['122'] #122 => 60896, the lower-left most node
-  sampleNodePos_MS = nil
-  segments.each{|key, seg|
-    if seg.upNode=='122'
-      sampleNodePos_MS = seg.startPos
-      break
-    elsif seg.downNode=='122'
-      sampleNodePos_MS = seg.endPos
-      break
-    end
-  }
-  raise "Couldn't find sample node!" unless sampleNodePos_MS
-
+  #sampleNodePos_SM = nodeConv['122'] #122 => 60896, the lower-left most node
+  #sampleNodePos_MS = nil
+  #segments.each{|key, seg|
+  #  if seg.upNode=='122'
+  #    sampleNodePos_MS = seg.startPos
+  #    break
+  #  elsif seg.downNode=='122'
+  #    sampleNodePos_MS = seg.endPos
+  #    break
+  #  end
+  #}
+  #raise "Couldn't find sample node!" unless sampleNodePos_MS
+  #
   #Offset FROM mitsim points TO sim mobility ones. (Add this to mitsim points)
   #NOTE: This doesn't work. We'll need to use the Sim Mobility coordinates directly; there's
   #      far too much error if we just scale by one of the MITSIM points. 
-  offset = Point.new(sampleNodePos_SM.x-sampleNodePos_MS.x*100, sampleNodePos_SM.y-sampleNodePos_MS.y*100)
+  #offset = Point.new(sampleNodePos_SM.x-sampleNodePos_MS.x*100, sampleNodePos_SM.y-sampleNodePos_MS.y*100)
   #puts "Mitsim node location: (#{sampleNodePos_MS.x*100},#{sampleNodePos_MS.y*100})"
   #puts "Sim Mobility node location: (#{sampleNodePos_SM.x},#{sampleNodePos_SM.y})"
   #puts "Offset (ms+): (#{offset.x},#{offset.y})"
-
+  #
   #Now check how much error we get versus other node IDs:
-  segments.each{|key, seg|
-    unless seg.upNode.include? ':'
-      if nodes.has_key? seg.upNode and nodeConv.has_key? seg.upNode
-        compute_error(nodeConv, seg.startPos, seg.upNode, nodeConv[seg.upNode].nodeID, offset)
-      end
-    end
-    unless seg.downNode.include? ':'
-      if nodes.has_key? seg.downNode and nodeConv.has_key? seg.downNode
-        compute_error(nodeConv, seg.endPos, seg.downNode, nodeConv[seg.downNode].nodeID, offset)
-      end
-    end
-  }
+  #segments.each{|key, seg|
+  #  unless seg.upNode.include? ':'
+  #    if nodes.has_key? seg.upNode and nodeConv.has_key? seg.upNode
+  #      compute_error(nodeConv, seg.startPos, seg.upNode, nodeConv[seg.upNode].nodeID, offset)
+  #    end
+  #  end
+  #  unless seg.downNode.include? ':'
+  #    if nodes.has_key? seg.downNode and nodeConv.has_key? seg.downNode
+  #      compute_error(nodeConv, seg.endPos, seg.downNode, nodeConv[seg.downNode].nodeID, offset)
+  #    end
+  #  end
+  #}
 
 
-  agents.each{|id, dr|
+  drivers.each{|id, dr|
     #Make sure sim mobility node IDs exist
-    raise "No Sim Mobility node id for: #{dr.originNode}" unless nodeConv.has_key? dr.originNode.to_s
-    raise "No Sim Mobility node id for: #{dr.destNode}" unless nodeConv.has_key? dr.destNode.to_s
-    dr.originNode = nodeConv[dr.originNode.to_s]
-    dr.destNode = nodeConv[dr.destNode.to_s]
+    raise "No Sim Mobility node id for: #{dr.originNode}" unless dr.originNode.sm_node
+    raise "No Sim Mobility node id for: #{dr.destNode}" unless dr.destNode.sm_node
+#    dr.originNode = nodeConv[dr.originNode.to_s]
+#    dr.destNode = nodeConv[dr.destNode.to_s]
 
     #Start our departure times at zero, and convert to ms (then int)
     #TODO: We might want to generate a <simulation> tag instead. For now this is easier.
@@ -596,58 +471,33 @@ def fakeNodeID(nodeID)
 end
 
 
-def run_main()
-  #Read the network file
-  segments = {}
-  nodes = {}  #Note, these are MITSIM nodes, and are indexed by id as a STRING.
-  read_network_file(segments, nodes)
 
-  #TEMP:
-  #nodes.each{|key, value|
-  # puts "Temp: #{value.x},#{value.y} => #{key.include? ':'}"
-  #}
 
-  #Build up a list of all Driver IDs
-  drivers = {}
-  min, max = read_dep_file(drivers)
-
-  #Cross-reference with the vehicles file
-  minDepTime = read_veh_file(drivers)
-
-  #Compare with sim mobility nodes
-  nodeConv = {} #Lookup based on Mitsim ID (string)
-  read_convert_file(drivers, nodeConv, nodes)
-
-  #Parse the trajectory file
-  read_traj_file(drivers, segments, nodes)
-
-  #Final validation
-  final_validate(drivers, nodeConv, segments, nodes, minDepTime)
-
+def print_network(nw)
   #Try printing the MITSIM node network
   knownNodeIDs = []
   allNodeIDs = []
   possibleLinks = []
-  segments.each{|key, seg|
+  nw.segments.each{|key, seg|
     numFound = 0
     unless seg.upNode.include? ':'
-      if nodes.has_key? seg.upNode and nodeConv.has_key? seg.upNode
+      if nw.nodes.has_key? seg.upNode and nw.nodes[seg.upNode].sm_node
         knownNodeIDs.push(seg.upNode)
         numFound += 1
       end
     end
     unless seg.downNode.include? ':'
-      if nodes.has_key? seg.downNode and nodeConv.has_key? seg.downNode
+      if nw.nodes.has_key? seg.downNode and nw.nodes[seg.downNode].sm_node
         knownNodeIDs.push(seg.downNode)
         numFound += 1
       end
     end
 
     #Hmm
-    if nodes.has_key?(seg.upNode) and not allNodeIDs.include? seg.upNode
+    if nw.nodes.has_key?(seg.upNode) and not allNodeIDs.include? seg.upNode
       allNodeIDs.push(seg.upNode)
     end
-    if nodes.has_key?(seg.downNode) and not allNodeIDs.include? seg.downNode
+    if nw.nodes.has_key?(seg.downNode) and not allNodeIDs.include? seg.downNode
       allNodeIDs.push(seg.downNode)
     end
 
@@ -661,7 +511,7 @@ def run_main()
     #puts "Checking: #{link.linkID} => (#{link.upNode},#{link.downNode})"
     unless link.upNode.include? ':'
       #puts " up:"
-      if nodes.has_key? link.upNode and nodeConv.has_key? link.upNode
+      if nw.nodes.has_key? link.upNode and nw.nodes[link.upNode].sm_node
         knownNodeIDs.push(link.upNode)
         numFound += 1
         #puts " +1A"
@@ -669,7 +519,7 @@ def run_main()
     end
     unless link.downNode.include? ':'
       #puts " down:"
-      if nodes.has_key? link.downNode and nodeConv.has_key? link.downNode
+      if nw.nodes.has_key? link.downNode and nw.nodes[link.downNode].sm_node
         knownNodeIDs.push(link.downNode)
         numFound += 1
         #puts " +1B"
@@ -682,14 +532,14 @@ def run_main()
   File.open('output_network.txt', 'w') {|f|
 #    knownNodeIDs.uniq.each{|nodeID|
     allNodeIDs.each{|nodeID|
-      nd = nodes[nodeID]
-      next if nd.x==0 and nd.y==0
+      nd = nw.nodes[nodeID]
+      next unless nd.pos
       name = 'multi'
       name = 'uni' if nodeID.include? ':'
       f.write("(\"#{name}-node\", 0, #{fakeNodeID(nodeID)}, {")  #Header
-      f.write("\"xPos\":\"#{(nd.x*100).to_i}\",\"yPos\":\"#{(nd.y*100).to_i}\",") #Guaranteed
-      f.write("\"mitsim-id\":\"#{nodeID}\",") if nodes.has_key? nodeID  #Optional (now it's guaranteed though)
-      f.write("\"aimsun-id\":\"#{nodeConv[nodeID].nodeID}\",") if nodeConv.has_key? nodeID  #Optional
+      f.write("\"xPos\":\"#{(nd.pos.x*100).to_i}\",\"yPos\":\"#{(nd.pos.y*100).to_i}\",") #Guaranteed
+      f.write("\"mitsim-id\":\"#{nodeID}\",") if nw.nodes.has_key? nodeID  #Optional (now it's guaranteed though)
+      f.write("\"aimsun-id\":\"#{nw.nodes[nodeID].sm_node}\",") if nw.nodes[nodeID].sm_node  #Optional
       f.write("})\n") #Footer
     }
 
@@ -722,16 +572,26 @@ def run_main()
       }
     }
   }
+end
 
+
+def print_agents(nw, drivers, min, max)
   #Print the Agents
+  skipped = 0
+  total = 0
   File.open('agents.gen.xml', 'w') {|f|
     f.write("<agents>\n") 
     drivers.keys.sort.each{|id|
+      skipped += 1
+      total += 1
       dr = drivers[id]
+      next unless dr.originNode.sm_node and dr.destNode.sm_node
+      next unless dr.originNode.sm_node.pos and dr.destNode.sm_node.pos
       f.write("  <driver id='#{id}'")
-      f.write(" originPos='(#{dr.originNode.x},#{dr.originNode.y})'")
-      f.write(" destPos='(#{dr.destNode.x},#{dr.destNode.y})'")
+      f.write(" originPos='(#{dr.originNode.sm_node.pos.x},#{dr.originNode.sm_node.pos.y})'")
+      f.write(" destPos='(#{dr.destNode.sm_node.pos.x},#{dr.destNode.sm_node.pos.y})'")
       f.write(" startTime='#{dr.departure}'/>\n")
+      skipped -= 1
     }
     f.write("</agents>") 
   }
@@ -751,7 +611,44 @@ def run_main()
     printf("A total of %d Drivers never started driving (%.2f%%)\n", drvSkip, (100.0*drvSkip/drivers.length))
   end
   puts 'Agents saved to agents.gen.xml'
+  unless skipped == 0
+    puts '-'*40
+    printf("WARNING: %d agents (%.2f%%) were SKIPPED\n", skipped, (100.0*skipped/total))
+    puts 'Your simulation will not be accurate unless these Agents are eventually added back in.'
+    puts '-'*40
+  end
+end
 
+
+
+def run_main()
+  #Internal data structures
+  network = Mitsim::RoadNetwork.new()
+  network.sm_network = SimMob::RoadNetwork.new()
+  drivers = {}
+
+  #Read the network file
+  read_network_file('network-BUGIS.dat', network)
+
+  #Build up a list of all Driver IDs
+  min, max = read_dep_file('dep.out', network, drivers)
+
+  #Cross-reference with the vehicles file
+  minDepTime = read_veh_file('vehicle.out', drivers)
+
+  #Compare with sim mobility nodes
+  read_convert_file('ms_sm_node_convert.txt', network, drivers)
+
+  #Parse the trajectory file
+  #We use a trimmed version of trajectory.out, but loading the original would work too.
+  read_traj_file('traj_compact.txt', network, drivers)
+
+  #Final validation
+  final_validate(network, drivers, minDepTime)
+
+  #Print 
+  print_network(network)
+  print_agents(network, drivers, min, max)
 
 end
 
@@ -761,5 +658,7 @@ end
 if __FILE__ == $PROGRAM_NAME
   run_main()
 end
+
+
 
 

@@ -4,6 +4,27 @@ module SimMob
 
 class RoadNetwork
   def initialize()
+    #List of various road components, indexed by ID.
+    @nodes = {}
+  end
+
+  attr_accessor :nodes
+
+  #Helper methods for making a new item and ensuring it is unique
+  #  They also convert the ID explicitly to a string; we've had some trouble with 1 != "1"
+  def newNode(id)
+    id = id.to_s
+    raise "Duplicate Node id: #{id}" if @nodes.has_key? id
+    res = Node.new(id)
+    @nodes[id] = res
+    return res
+  end
+
+  #Helper for getting/adding a Node
+  def getOrAddNode(id)
+    id = id.to_s
+    return newNode(id) unless @nodes.has_key? id
+    return @nodes[id]
   end
 end
 
@@ -21,7 +42,7 @@ end
 class Node
   def initialize(aimsunID)
     @aimsunID = aimsunID
-    @pos = Point.new(0, 0)
+    @pos = nil
   end  
 
   attr_reader :aimsunID

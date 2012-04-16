@@ -14,6 +14,47 @@ module Mitsim
 
 class RoadNetwork
   def initialize()
+    #List of various road components, indexed by ID.
+    @nodes = {}
+    @segments = {}
+    @links = {}
+    @sm_network = nil
+  end
+
+  attr_accessor :nodes
+  attr_accessor :segments
+  attr_accessor :links
+  attr_accessor :sm_network
+
+  #Helper methods for making a new item and ensuring it is unique
+  #  They also convert the ID explicitly to a string; we've had some trouble with 130 != "130"
+  def newLink(id)
+    id = id.to_s
+    raise "Duplicate Link id: #{id}" if @links.has_key? id
+    res = Link.new(id)
+    @links[id] = res
+    return res
+  end
+  def newSegment(id)
+    id = id.to_s
+    raise "Duplicate Segment id: #{id}" if @segments.has_key? id
+    res = Segment.new(id)
+    @segments[id] = res
+    return res
+  end
+  def newNode(id)
+    id = id.to_s
+    raise "Duplicate Node id: #{id}" if @nodes.has_key? id
+    res = Node.new(id)
+    @nodes[id] = res
+    return res
+  end
+
+  #Helper for getting/adding a Node
+  def getOrAddNode(id)
+    id = id.to_s
+    return newNode(id) unless @nodes.has_key? id
+    return @nodes[id]
   end
 end
 
@@ -27,13 +68,17 @@ class Point
   attr_accessor :x
   attr_accessor :y
   attr_accessor :sm_point
+
+  def to_s()
+    return "(#{x},#{y})"
+  end
 end
 
 
 class Node
   def initialize(nodeID)
-    @aimsunID = nodeID
-    @pos = Point.new(0, 0)
+    @nodeID = nodeID
+    @pos = nil
     @sm_node = nil
   end  
 

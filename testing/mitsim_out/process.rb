@@ -478,26 +478,26 @@ def print_network(nw)
   knownNodeIDs = []
   allNodeIDs = []
   possibleLinks = []
-  segments.each{|key, seg|
+  nw.segments.each{|key, seg|
     numFound = 0
     unless seg.upNode.include? ':'
-      if nodes.has_key? seg.upNode and nodeConv.has_key? seg.upNode
+      if nw.nodes.has_key? seg.upNode and nw.nodes[seg.upNode].sm_node
         knownNodeIDs.push(seg.upNode)
         numFound += 1
       end
     end
     unless seg.downNode.include? ':'
-      if nodes.has_key? seg.downNode and nodeConv.has_key? seg.downNode
+      if nw.nodes.has_key? seg.downNode and nw.nodes[seg.downNode].sm_node
         knownNodeIDs.push(seg.downNode)
         numFound += 1
       end
     end
 
     #Hmm
-    if nodes.has_key?(seg.upNode) and not allNodeIDs.include? seg.upNode
+    if nw.nodes.has_key?(seg.upNode) and not allNodeIDs.include? seg.upNode
       allNodeIDs.push(seg.upNode)
     end
-    if nodes.has_key?(seg.downNode) and not allNodeIDs.include? seg.downNode
+    if nw.nodes.has_key?(seg.downNode) and not allNodeIDs.include? seg.downNode
       allNodeIDs.push(seg.downNode)
     end
 
@@ -511,7 +511,7 @@ def print_network(nw)
     #puts "Checking: #{link.linkID} => (#{link.upNode},#{link.downNode})"
     unless link.upNode.include? ':'
       #puts " up:"
-      if nodes.has_key? link.upNode and nodeConv.has_key? link.upNode
+      if nw.nodes.has_key? link.upNode and nw.nodes[link.upNode].sm_node
         knownNodeIDs.push(link.upNode)
         numFound += 1
         #puts " +1A"
@@ -519,7 +519,7 @@ def print_network(nw)
     end
     unless link.downNode.include? ':'
       #puts " down:"
-      if nodes.has_key? link.downNode and nodeConv.has_key? link.downNode
+      if nw.nodes.has_key? link.downNode and nw.nodes[link.downNode].sm_node
         knownNodeIDs.push(link.downNode)
         numFound += 1
         #puts " +1B"
@@ -532,14 +532,14 @@ def print_network(nw)
   File.open('output_network.txt', 'w') {|f|
 #    knownNodeIDs.uniq.each{|nodeID|
     allNodeIDs.each{|nodeID|
-      nd = nodes[nodeID]
-      next if nd.x==0 and nd.y==0
+      nd = nw.nodes[nodeID]
+      next unless nd.pos
       name = 'multi'
       name = 'uni' if nodeID.include? ':'
       f.write("(\"#{name}-node\", 0, #{fakeNodeID(nodeID)}, {")  #Header
-      f.write("\"xPos\":\"#{(nd.x*100).to_i}\",\"yPos\":\"#{(nd.y*100).to_i}\",") #Guaranteed
-      f.write("\"mitsim-id\":\"#{nodeID}\",") if nodes.has_key? nodeID  #Optional (now it's guaranteed though)
-      f.write("\"aimsun-id\":\"#{nodeConv[nodeID].nodeID}\",") if nodeConv.has_key? nodeID  #Optional
+      f.write("\"xPos\":\"#{(nd.pos.x*100).to_i}\",\"yPos\":\"#{(nd.pos.y*100).to_i}\",") #Guaranteed
+      f.write("\"mitsim-id\":\"#{nodeID}\",") if nw.nodes.has_key? nodeID  #Optional (now it's guaranteed though)
+      f.write("\"aimsun-id\":\"#{nw.nodes[nodeID].sm_node}\",") if nw.nodes[nodeID].sm_node  #Optional
       f.write("})\n") #Footer
     }
 
@@ -575,16 +575,23 @@ def print_network(nw)
 end
 
 
-def print_agents(nw)
+def print_agents(nw, drivers, min, max)
   #Print the Agents
+  skipped = 0
+  total = 0
   File.open('agents.gen.xml', 'w') {|f|
     f.write("<agents>\n") 
     drivers.keys.sort.each{|id|
+      skipped += 1
+      total += 1
       dr = drivers[id]
+      next unless dr.originNode.sm_node and dr.destNode.sm_node
+      next unless dr.originNode.sm_node.pos and dr.destNode.sm_node.pos
       f.write("  <driver id='#{id}'")
-      f.write(" originPos='(#{dr.originNode.sm_node.x},#{dr.originNode.sm_node.y})'")
-      f.write(" destPos='(#{dr.destNode.sm_node.x},#{dr.destNode.sm_node.y})'")
+      f.write(" originPos='(#{dr.originNode.sm_node.pos.x},#{dr.originNode.sm_node.pos.y})'")
+      f.write(" destPos='(#{dr.destNode.sm_node.pos.x},#{dr.destNode.sm_node.pos.y})'")
       f.write(" startTime='#{dr.departure}'/>\n")
+      skipped -= 1
     }
     f.write("</agents>") 
   }
@@ -604,6 +611,12 @@ def print_agents(nw)
     printf("A total of %d Drivers never started driving (%.2f%%)\n", drvSkip, (100.0*drvSkip/drivers.length))
   end
   puts 'Agents saved to agents.gen.xml'
+  unless skipped == 0
+    puts '-'*40
+    printf("WARNING: %d agents (%.2f%%) were SKIPPED\n", skipped, (100.0*skipped/total))
+    puts 'Your simulation will not be accurate unless these Agents are eventually added back in.'
+    puts '-'*40
+  end
 end
 
 
@@ -635,7 +648,7 @@ def run_main()
 
   #Print 
   print_network(network)
-  print_agents(network)
+  print_agents(network, drivers, min, max)
 
 end
 

@@ -932,7 +932,7 @@ DatabaseLoader::createSignals()
                 links.insert(road->getLink());
             }
         }
-        if (links.size() != 4)
+        if (links.size() != 4)//should chang to what?
         {
             if (badNodes.count(node) == 0)
             {

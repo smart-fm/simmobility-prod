@@ -733,7 +733,7 @@ void Signal::updateTrafficLights() {
 
 	//Update
 	SignalStatus new_status;
-	for (size_t i = 0; i < 4; i++) {
+	for (size_t i = 0; i < 4; i++) {//changed to what? vahid
 		for (size_t j = 0; j < 3; j++) {
 			TC_for_Driver[i][j] = TC_for_DriverTemplate[relID][i][j];
 			new_status.TC_for_Driver[i][j] = TC_for_DriverTemplate[relID][i][j];

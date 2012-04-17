@@ -27,6 +27,7 @@ namespace sim_mob
  * \author Seth N. Hetu
  * \author LIM Fung Chai
  * \author Li Zhemin
+ * \author Vahid Saber
  *
  * NOTES:
  *1.Each subsystem has only one critical intersection. The cycle length of

@@ -134,10 +134,12 @@ class DriverTick
   def initialize(driver)
     @driver = driver
     @pos = nil
+    @angle = nil
   end
 
   attr_reader   :driver #The actual driver object
   attr_accessor :pos #Translated position of that driver
+  attr_accessor :angle
 end
 
 

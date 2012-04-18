@@ -21,6 +21,14 @@ class DynamicVector
     return 0 if @isZero
     return Math.sqrt(@mag[0]**2 + @mag[1]**2)
   end
+  def getAngle()
+    #Edge case; only happens if the vector is specifically initialized with no size.
+    raise "Can't retrieve vector's angle; no initial size" if (@mag[0]==0 and @mag[1]==0)
+
+    #Bound to 0...2*PI
+    calcAngle = Math.atan2(@mag[1], @mag[0]);
+    return (calcAngle < 0 ? calcAngle + 2 * Math::PI : calcAngle)
+  end
 
   def scaleTo(value)
     #Will this vector have no size after the scaling operation?
@@ -42,11 +50,17 @@ class DynamicVector
     @pos[0] += dX
     @pos[1] += dY
   end
-  def flipRight()
-    sign = 1
+  def flipNormal(clockwise)
+    sign = clockwise ? 1 : -1
     newX = @mag[1]*sign
     newY = -@mag[0]*sign
     @mag = [newX, newY]
+  end
+  def flipRight()
+    flipNormal(true)
+  end
+  def flipLeft()
+    flipNormal(false)
   end
 end
 

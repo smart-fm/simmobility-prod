@@ -55,15 +55,15 @@ def self.read_traj_file(trajFileName, nw, timeticks, drivers)
       #Now, determine its position at that time tick.
       #NOTE: This assumes that segment.startPos/endPos are consistent across all Node definitions
       #      (the parser will output a warning if this is not true).
-      laneWidth = 3.5 #TODO: Use the actual value!
       segment = nw.segments[segmentID]
       pos = DynamicVector.new(segment.startPos, segment.endPos)
       pos.scaleTo(posInLane)
       pos.translate()
-      pos.flipRight()
-      pos.scaleTo(segment.lanes[laneID]*laneWidth + laneWidth/2.0)
+      pos.flipNormal($FlipRight)
+      pos.scaleTo(segment.lanes[laneID]*$LaneWidth + $LaneWidth/2.0)
       pos.translate()
       newDrvTick.pos = Mitsim::Point.new(pos.getX(), pos.getY())
+      newDrvTick.angle = pos.getAngle()
       
       #Consider unknown nodes
       unless segment.upNode.include? ':'  #We don't consider uni-nodes for now.

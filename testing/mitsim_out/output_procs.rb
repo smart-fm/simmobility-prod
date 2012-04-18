@@ -115,13 +115,30 @@ def self.print_network(nw, timeticks)
         f.write("(\"road-segment\", 0, #{segment.segmentID}, {")  #Header
         f.write("\"parent-link\":\"#{link.linkID}\",") #Guaranteed
         f.write("\"max-speed\":\"0\",") #Not hooked up yet
-        f.write("\"lanes\":\"1\",") #Not hooked up yet
+        f.write("\"lanes\":\"#{segment.lanes.length}\",") 
         f.write("\"from-node\":\"#{help.fakeNodeID(segment.upNode)}\",") #Not hooked up yet
         f.write("\"to-node\":\"#{help.fakeNodeID(segment.downNode)}\",") #Not hooked up yet
         f.write("})\n") #Footer
+
+        #Create a "start" and "end" DynamicVector, rotate, and scale to the size of a lane line
+        startVec = DynamicVector.new(segment.startPos, segment.endPos)
+        startVec.flipNormal($FlipRight)
+        startVec.scaleTo($LaneWidth)
+        endVec = DynamicVector.new(segment.endPos, segment.startPos)
+        endVec.flipNormal(!$FlipRight)
+        endVec.scaleTo($LaneWidth)
+
+        #Write lanes
+        f.write("(\"lane\", 0, #{segment.lanes.object_id}, {")  #Header; IDs merely have to be unique.
+        f.write("\"parent-segment\":\"#{segment.segmentID}\",") #Guaranteed
+        (0..segment.lanes.length).each{|lineID|
+          f.write("\"line-#{lineID}\":\"[(#{(startVec.getX()*100).to_i},#{(startVec.getY()*100).to_i}),(#{(endVec.getX()*100).to_i},#{(endVec.getY()*100).to_i}),]\",")
+          startVec.translate()
+          endVec.translate()
+        }
+        f.write("})\n") #Footer
       }
     }
-
 
     #Write drivers
     timeticks.keys.sort.each{|tick|
@@ -130,7 +147,7 @@ def self.print_network(nw, timeticks)
         f.write("(\"Driver\", #{tick}, #{driverID}, {")  #Header
         f.write("\"xPos\":\"#{driverTick.pos.x*100}\",") #Guaranteed
         f.write("\"yPos\":\"#{driverTick.pos.y*100}\",") #Guaranteed
-        f.write("\"angle\":\"0\",") #Not hooked up yet
+        f.write("\"angle\":\"#{driverTick.angle*180/Math::PI}\",")
         f.write("\"length\":\"400\",") #Not hooked up yet
         f.write("\"width\":\"200\",") #Not hooked up yet
         f.write("})\n") #Footer

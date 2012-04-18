@@ -13,6 +13,10 @@ require 'output_procs'
 #false => Same, but also process the entire trajectory file.
 $ProcessSimple = true
 
+#Workaround
+$FlipRight = true
+$LaneWidth = 3.5 #TODO: Use the actual value!
+
 
 #TODO: We can overcome some of these checks by writing our own <simulation> tag. 
 #      This is not an issue now; might want to clean it up later.

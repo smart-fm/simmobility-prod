@@ -97,6 +97,7 @@ class Segment
     @upNode = nil
     @downNode = nil
     @parentLink = nil
+    @lanes = {}  #<lane id> => <position, from left to right>  --not sure how driving side is implemented.
     @sm_segment = nil
   end  
 
@@ -107,6 +108,7 @@ class Segment
   attr_accessor :downNode
   attr_accessor :parentLink
   attr_accessor :sm_segment
+  attr_accessor :lanes
 end
 
 

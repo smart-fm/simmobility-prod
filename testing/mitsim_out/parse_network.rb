@@ -76,6 +76,7 @@ SegmentDesc = "{ ?#{PosSci} #{PosSci} #{PosDbl} #{PosSci} #{PosSci} ?} ?"
 
 #After that is at least one lane rules group: {1, 2}
 LaneRule = "{ ?#{PosInt} #{PosInt} ?} ?"
+LaneRegex = Regexp.new(LaneRule)
 
 #Close each segment with }
 SegmentStr = "#{SegmentHead}#{SegmentDesc}((#{LaneRule})+}) ?"
@@ -188,6 +189,10 @@ def self.read_network_file(nwFileName, nw)
       segStartY = ParseScientificToFloat(segRes[5])
       segEndX = ParseScientificToFloat(segRes[7])
       segEndY = ParseScientificToFloat(segRes[8])
+      lanesStr = segRes[9]
+
+      #Check the bulge
+      raise 'Error: currently no support for non-zero "bulge" values.' if (segRes[6]).to_f != 0
 
       #Save it temporarily
       seg = nw.newSegment(segID)
@@ -205,6 +210,11 @@ def self.read_network_file(nwFileName, nw)
         end
       end
       prevEndPoint = seg.endPos
+
+      #Add lanes
+      lanesStr.scan(LaneRegex) {|laneRes|
+        seg.lanes[laneRes[0]] = seg.lanes.length()
+      }
     }
 
 

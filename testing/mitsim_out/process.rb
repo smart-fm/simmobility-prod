@@ -8,6 +8,11 @@ require 'parse_traject'
 require 'parse_convert'
 require 'output_procs'
 
+#Type of processing (set via the command line)
+#true => Perform agent and network processing.
+#false => Same, but also process the entire trajectory file.
+$ProcessSimple = true
+
 
 #TODO: We can overcome some of these checks by writing our own <simulation> tag. 
 #      This is not an issue now; might want to clean it up later.
@@ -24,10 +29,29 @@ end
 
 
 def run_main()
+  #Simple
+  if ARGV.length < 1
+    puts 'Please specify a command line argument:'
+    puts '  basic => Process all Nodes and Agent starting positions'
+    puts '  all => Same as basic, but also read the entire trajectory file and'
+    puts '         generate a trace (this can take some time).'
+    puts 'Example:'
+    puts '  ruby  process.rb  basic'
+    exit
+  end
+  if (ARGV[0] == 'basic')
+    $ProcessSimple = true
+  elsif (ARGV[0] == 'all')
+    $ProcessSimple = false
+  else
+    raise "Error, unknown argument: #{ARGV[0]}"
+  end
+
   #Internal data structures
   network = Mitsim::RoadNetwork.new()
   network.sm_network = SimMob::RoadNetwork.new()
   drivers = {}
+  time_ticks = {} #<tick_id> => {<driver_id>=>driver_tick, <driver_id>=>driver_tick,...]
 
   #Read the network file
   MS_NetworkParser.read_network_file('network-BUGIS.dat', network)
@@ -43,14 +67,23 @@ def run_main()
 
   #Parse the trajectory file
   #We use a trimmed version of trajectory.out, but loading the original would work too.
-  MS_TrajectoryParser.read_traj_file('traj_compact.txt', network, drivers)
+  #If we are asked to perform a comprehensive analysis, read in the (entire) trajectory file.
+  puts 'Parsing trajectory file (this may take a while).'
+  if $ProcessSimple
+    MS_TrajectoryParser.read_traj_file('traj_compact.txt', network, time_ticks, drivers)
+  else 
+    MS_TrajectoryParser.read_traj_file('trajectory.out', network, time_ticks, drivers)
+  end
+  puts 'Trajectory file done.'
 
   #Final validation
   final_validate(network, drivers, minDepTime)
 
   #Print 
-  Output.print_network(network)
-  Output.print_agents(network, drivers, min, max)
+  puts 'Saving output files (this may take a while).'
+  Output.print_network(network, time_ticks)
+  Output.print_agents(network, time_ticks, drivers, min, max)
+  puts 'Done saving output.'
 
 end
 

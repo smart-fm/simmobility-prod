@@ -21,7 +21,7 @@ end #class Helper
 
 
 
-def self.print_network(nw)
+def self.print_network(nw, timeticks)
   help = Helper.new
 
   #Try printing the MITSIM node network
@@ -77,7 +77,7 @@ def self.print_network(nw)
     end
 
     #Do we know about this link?
-    puts "Found: #{link.upNode} => #{link.downNode}" if numFound==2
+    #puts "Found: #{link.upNode} => #{link.downNode}" if numFound==2
   }
   File.open('output_network.txt', 'w') {|f|
 #    knownNodeIDs.uniq.each{|nodeID|
@@ -121,11 +121,26 @@ def self.print_network(nw)
         f.write("})\n") #Footer
       }
     }
+
+
+    #Write drivers
+    timeticks.keys.sort.each{|tick|
+      timeticks[tick].each_key{|driverID|
+        driverTick = timeticks[tick][driverID]
+        f.write("(\"Driver\", #{tick}, #{driverID}, {")  #Header
+        f.write("\"xPos\":\"#{driverTick.pos.x*100}\",") #Guaranteed
+        f.write("\"yPos\":\"#{driverTick.pos.y*100}\",") #Guaranteed
+        f.write("\"angle\":\"0\",") #Not hooked up yet
+        f.write("\"length\":\"400\",") #Not hooked up yet
+        f.write("\"width\":\"200\",") #Not hooked up yet
+        f.write("})\n") #Footer
+      }
+    }
   }
 end
 
 
-def self.print_agents(nw, drivers, min, max)
+def self.print_agents(nw, timeticks, drivers, min, max)
   #Print the Agents
   skipped = 0
   total = 0
@@ -149,7 +164,7 @@ def self.print_agents(nw, drivers, min, max)
   #Some drivers are never started
   drvSkip = 0
   drivers.each {|id, dr|
-    drvSkip += 1 unless dr.firstPos
+    drvSkip += 1 unless dr.hasAtLeastOneTick
   }
 
   #Print some statistics

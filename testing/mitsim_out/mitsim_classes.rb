@@ -129,6 +129,18 @@ class Link
 end
 
 
+#A driver at a given time tick
+class DriverTick
+  def initialize(driver)
+    @driver = driver
+    @pos = nil
+  end
+
+  attr_reader   :driver #The actual driver object
+  attr_accessor :pos #Translated position of that driver
+end
+
+
 #A driver in the mitsim output
 class Driver
   def initialize(agentID)
@@ -139,8 +151,7 @@ class Driver
     @originNode = nil
     @destNode = nil
     @vehicleType = nil
-
-    @firstPos = nil
+    @hasAtLeastOneTick = nil
 
     @tempVeh2 = nil #Something boolean
     @tempVeh6 = nil #Usually equals the destination node except in very rare cases (~38 of them)
@@ -157,11 +168,11 @@ class Driver
   attr_accessor :arrival
   attr_accessor :completed
 
-  attr_accessor :firstPos
-
   attr_accessor :originNode
   attr_accessor :destNode
   attr_accessor :vehicleType
+
+  attr_accessor :hasAtLeastOneTick
 
   attr_accessor :tempVeh2
   attr_accessor :tempVeh3

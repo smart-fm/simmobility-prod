@@ -2,9 +2,7 @@ require 'simmob_classes'
 require 'mitsim_classes'
 require 'misc_compute'
 
-
-#For now, this just adds firstPos value for each driver
-#Total of 8 values:
+#This parses a trajectory file, which contains the following 8 values:
 #  time 
 #  agentID 
 #  segmentID
@@ -13,79 +11,73 @@ require 'misc_compute'
 #  speed 
 #  acceleration 
 #  vehicleType
+#
+#The goal is to convert this to a series of time ticks (only one, if simple parsing is enabled)
+# which contain actual (mitsim) x,y positions for each driver at that tick.
+#
 
 
 module MS_TrajectoryParser
 
 
-def self.read_traj_file(trajFileName, nw, drivers)
+def self.read_traj_file(trajFileName, nw, timeticks, drivers)
   lastKnownTime = 0
   unknownNodes = []
   File.open(trajFileName).each { |line|
     if line =~ /([0-9]+) +([0-9]+) +([0-9]+) +([0-9]+) +([0-9.]+) +([0-9.]+) +([0-9e.\-]+) +([0-9]+)/
-      id = $2.to_i
-      if drivers.has_key? id
-        dr = drivers[id]
+      #Save temporaries
+      timeS = $1.to_i
+      driverID = $2.to_i
+      segmentID = $3
+      laneID = $4
+      posInLane = $5.to_f
 
-        #Saving firstPos
-        unless dr.firstPos
-          dr.firstPos = $5.to_f
+      #Ensure the timestep is increasing
+      raise "Error: time must be strictly increasing" if timeS<lastKnownTime
+      lastKnownTime = timeS
+
+      #Convert this time (s) to a "tick" value. 
+      #TODO: For now, this is hardcoded.
+      timeTick = timeS * 5    #ticks are 200ms, times are listed in seconds
+
+      #Ensure this driver/segment/lane exist; ensure time tick is ready; ensure no duplicates
+      raise "Unknown segment: #{segmentID}" unless nw.segments.has_key? segmentID
+      raise "Unknown lane: #{laneID}" unless nw.segments[segmentID].lanes.has_key? laneID
+      raise "Unknown driver id: #{driverID}" unless drivers.has_key? driverID
+      timeticks[timeTick] = {} unless timeticks.has_key? timeTick
+      raise "Driver (#{driverID}) already set for time: #{timeS}ms" if timeticks[timeTick].has_key? driverID
+
+      #Set a new driver tick entry
+      drivers[driverID].hasAtLeastOneTick = true
+      newDrvTick = Mitsim::DriverTick.new(drivers[driverID])
+      timeticks[timeTick][driverID] = newDrvTick
+
+      #Now, determine its position at that time tick.
+      #NOTE: This assumes that segment.startPos/endPos are consistent across all Node definitions
+      #      (the parser will output a warning if this is not true).
+      laneWidth = 3.5 #TODO: Use the actual value!
+      segment = nw.segments[segmentID]
+      pos = DynamicVector.new(segment.startPos, segment.endPos)
+      pos.scaleTo(posInLane)
+      pos.translate()
+      pos.flipRight()
+      pos.scaleTo(segment.lanes[laneID]*laneWidth + laneWidth/2.0)
+      pos.translate()
+      newDrvTick.pos = Mitsim::Point.new(pos.getX(), pos.getY())
+      
+      #Consider unknown nodes
+      unless segment.upNode.include? ':'  #We don't consider uni-nodes for now.
+        unless nw.nodes.has_key? segment.upNode
+          unknownNodes.push(segment.upNode)
         end
-
-        #Time
-        time = $1.to_i
-        raise "Error: time must be strictly increasing" if time<lastKnownTime
-
-        #segmentID, laneID, positionInLane
-        segmentID = $3
-        raise "Segment ID not known: " + segmentID.to_s unless nw.segments.has_key? segmentID
-        laneID = $4
-        posInLane = $5.to_f
-        
-        #Get the upstream node
-        segment = nw.segments[segmentID]
-        unless segment.upNode.include? ':'  #We don't consider uni-nodes for now.
-          unless nw.nodes.has_key? segment.upNode
-            unknownNodes.push(segment.upNode)
-          end
-        end
-
-        #Increment
-        lastKnownTime = time
-      else
-        raise "Agent ID expected but doesn't exist: #{id}"
       end
     else 
       puts "Skipped line: #{line}"
     end
   }
 
-
   puts "Unknown node IDs: #{unknownNodes.uniq}" unless unknownNodes.empty?
 
-  #Build a lookup of Nodes based on the first location of each driver.
-  node_lookup = {} #Array of offsets, indexed by NodeID
-  drivers.each{|id, drv| 
-    next unless drv.firstPos
-    node_lookup[drv.originNode] = [] unless node_lookup.has_key? drv.originNode
-    node_lookup[drv.originNode].push(drv.firstPos)
-  }
-
-  #Temp: print
-  node_lookup.each {|id, offsets|
-    next  #Skip for now
-    min = max = offsets[0]
-    puts "First 'offset' values for agents in Node ID #{id}:"
-    offsets.each {|offset|
-#      puts "  #{offset}"
-      min = offset if offset < min
-      max = offset if offset > max
-    }
-    avg, stddev = GetStdDevAndAverage(offsets)
-    puts "Average:  #{avg} +/- #{stddev}"
-    puts "Min/max:  #{min} => #{max}"
-    puts '-'*20
-  }
 end
 
 end #module MS_TrajectoryParser

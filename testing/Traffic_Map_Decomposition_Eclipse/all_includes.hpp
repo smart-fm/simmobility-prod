@@ -1,9 +1,4 @@
-/*
- * includes.hpp
- *
- *  Created on: 18-Mar-2012
- *      Author: xuyan
- */
+/* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #pragma once
 

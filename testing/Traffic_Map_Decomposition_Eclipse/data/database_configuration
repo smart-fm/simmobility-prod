@@ -1,0 +1,11 @@
+/**
+/** Scenario Setting
+/** Program check the scenario in database, and then relate the partitioning with the scenario  
+/**
+ROAD_NETWORK:BUGIS
+DAY_IN_WEEK:WEEKDAY
+FROM_TIME:00-00-00
+TO_TIME:24-00-00
+HOLIDAY:NO
+INCIDENT:ANY
+WEATHER:ANY

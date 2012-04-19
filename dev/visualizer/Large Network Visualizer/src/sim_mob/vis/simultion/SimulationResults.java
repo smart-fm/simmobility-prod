@@ -71,6 +71,10 @@ public class SimulationResults {
 		    		    
 		}
 		
+		if (frame_length_ms==-1) {
+			throw new RuntimeException("Error: missing \"simulation\" tag.");
+		}
+		
 		//Modify traffic signal to make it stable
 		Hashtable<Integer,SignalLineTick> oldSignal = new Hashtable<Integer, SignalLineTick>();
 

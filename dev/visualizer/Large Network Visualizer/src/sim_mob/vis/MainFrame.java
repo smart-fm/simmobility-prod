@@ -660,7 +660,9 @@ public class MainFrame extends JFrame {
 			try {			
 				IMediaWriter writer = ToolFactory.makeWriter(fileName);
 				IRational frameRate = IRational.make(30,1); 
-				writer.addVideoStream(0, 0, frameRate, newViewPnl.getWidth(), newViewPnl.getHeight());
+				if (writer.addVideoStream(0, 0, frameRate, newViewPnl.getWidth(), newViewPnl.getHeight())<0) {
+					throw new RuntimeException("Couldn't add video stream.");
+				}
 		
 				//Make sure we're encoding at quality 0 (highest)
 				writer.getContainer().getStream(0).getStreamCoder().setGlobalQuality(quality);

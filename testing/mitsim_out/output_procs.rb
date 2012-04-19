@@ -95,6 +95,11 @@ def self.print_network(nw, timeticks)
     #puts "Found: #{link.upNode} => #{link.downNode}" if numFound==2
   }
   File.open('output_network.txt', 'w') {|f|
+    #Write the "simulation" tag 
+    #TODO: pull from mitsim input.
+    f.write('("simulation", 0, 0, {"frame-time-ms":"200",})\n')
+
+
 #    knownNodeIDs.uniq.each{|nodeID|
     allNodeIDs.each{|nodeID|
       nd = nw.nodes[nodeID]

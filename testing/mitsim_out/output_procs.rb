@@ -20,10 +20,10 @@ class Helper
 
   #We use this to "fill in" ticks which aren't specified (to prevent flickering) but we could
   # just as easily interpolate the data points.
-  def write_ticks(f, tick, driverID, driverTick, nextTick, nextDriverTick)
+  def write_ticks(f, tick, driverID, driverTick, nextTick, nextDriverTick, minDriverTick)
     endTick = nextDriverTick ? nextTick-1 : tick
     (tick..endTick).each{|tickID|
-      f.write("(\"Driver\", #{tickID}, #{driverID}, {")  #Header
+      f.write("(\"Driver\", #{tickID-minDriverTick}, #{driverID}, {")  #Header
       f.write("\"xPos\":\"#{driverTick.pos.x*100}\",") #Guaranteed
       f.write("\"yPos\":\"#{driverTick.pos.y*100}\",") #Guaranteed
       f.write("\"angle\":\"#{driverTick.angle*180/Math::PI}\",")
@@ -156,9 +156,11 @@ def self.print_network(nw, timeticks)
     }
 
     #Write drivers
+    minDriverTick = nil
     sorted_ticks = timeticks.keys.sort
     (0..sorted_ticks.length-1).each{|id|
       tick = sorted_ticks[id]
+      minDriverTick = tick unless minDriverTick
       timeticks[tick].each_key{|driverID|
         driverTick = timeticks[tick][driverID]
         nextTick = -1
@@ -169,7 +171,7 @@ def self.print_network(nw, timeticks)
             nextDriverTick = timeticks[nextTick][driverID]
           end
         end
-        help.write_ticks(f, tick, driverID, driverTick, nextTick, nextDriverTick)
+        help.write_ticks(f, tick, driverID, driverTick, nextTick, nextDriverTick, minDriverTick)
       }
     }
   }

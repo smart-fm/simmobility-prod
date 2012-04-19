@@ -162,7 +162,7 @@ def self.print_agents(nw, timeticks, drivers, min, max)
   skipped = 0
   total = 0
   File.open('agents.gen.xml', 'w') {|f|
-    f.write("<agents>\n") 
+    f.write("<drivers>\n") 
     drivers.keys.sort.each{|id|
       skipped += 1
       total += 1
@@ -175,7 +175,7 @@ def self.print_agents(nw, timeticks, drivers, min, max)
       f.write(" startTime='#{dr.departure}'/>\n")
       skipped -= 1
     }
-    f.write("</agents>") 
+    f.write("</drivers>") 
   }
 
   #Some drivers are never started

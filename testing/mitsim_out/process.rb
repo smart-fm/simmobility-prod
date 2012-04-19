@@ -1,12 +1,20 @@
-require 'simmob_classes'
-require 'mitsim_classes'
-require 'misc_compute'
-require 'parse_network'
-require 'parse_deps'
-require 'parse_vehs'
-require 'parse_traject'
-require 'parse_convert'
-require 'output_procs'
+begin
+  require 'simmob_classes'
+  require 'mitsim_classes'
+  require 'misc_compute'
+  require 'parse_network'
+  require 'parse_deps'
+  require 'parse_vehs'
+  require 'parse_traject'
+  require 'parse_convert'
+  require 'output_procs'
+rescue LoadError => e
+  puts "ERROR: #{e.message}"
+  puts "If this file exists in the current directory, add this to your .bashrc file:"
+  puts "  export RUBYLIB=\".\""
+  puts "...but make sure you know the implications of this."
+  exit
+end
 
 #Type of processing (set via the command line)
 #true => Perform agent and network processing.

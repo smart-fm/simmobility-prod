@@ -22,7 +22,7 @@ public class NetworkVisualizer extends PCanvas {
 	//private PLayer layer;
 	private int currFrameNum;
 
-	private static Font roadNameFont = new Font("Arial", Font.PLAIN, 5);
+	//private static Font roadNameFont = new Font("Arial", Font.PLAIN, 5);
 
 
 	//Keep track the agent in layer
@@ -169,9 +169,9 @@ public class NetworkVisualizer extends PCanvas {
 		
 		for(Link vl : rn.getLinks().values()) {
 			//vl.repaint();
-			//layer.addChild(vl);
-			parent.addChild(makeTextNode(vl.getName(),vl.getStart(),vl.getEnd()));
-			
+			//layer.addChild(vl);			
+			PNode tn = new RoadName(vl.getName(), vl.getStart(), vl.getEnd());
+			parent.addChild(tn);
 		}
 		
 		for(Hashtable<Integer,LaneMarking> vlmtable :  rn.getLaneMarkings().values()){
@@ -196,27 +196,7 @@ public class NetworkVisualizer extends PCanvas {
 		
 		
 	}
-	
-	private PText makeTextNode(String name, Node start, Node end){
-		
-		PText tempText = new PText(name);
-		tempText.setFont(roadNameFont);
-		float targetX = (float)(start.getLocalPos().getX()+(end.getLocalPos().getX()-start.getLocalPos().getX())/2);
-		float targetY = (float)(start.getLocalPos().getY()+(end.getLocalPos().getY()-start.getLocalPos().getY())/2);
-		
-		float halfStrWidth = 10 / 2.0F;
-		//Create a new translation matrix which is located at the center of the string.
-		AffineTransform trans = AffineTransform.getTranslateInstance(targetX, targetY);
-		
-		//Figure out the rotational matrix of this line, from start to end.
-		Vect line = new Vect(start.getLocalPos().getX(), start.getLocalPos().getY(), end.getLocalPos().getX(), end.getLocalPos().getY());
-		trans.rotate(line.getMagX(), line.getMagY());
-		trans.translate(-16, -18);
 
-		tempText.setPaint(Color.white);
-		tempText.setTransform(trans);
-		return tempText;
-	}
 	
 	
 	public void updateAgent(int frameTick){

@@ -36,25 +36,25 @@ public class TrafficSignalLine {
 	
 	
 	private void findNode(){
-		double distStartStart = Utility.Distance(fromLane.getStartMiddleNode().getLocalPos().getUnscaledX(), 
-													fromLane.getStartMiddleNode().getLocalPos().getUnscaledY(), 
-													toLane.getStartMiddleNode().getLocalPos().getUnscaledX(), 
-													toLane.getStartMiddleNode().getLocalPos().getUnscaledY());
+		double distStartStart = Utility.Distance(fromLane.getStartMiddleNode().getX(), 
+													fromLane.getStartMiddleNode().getY(), 
+													toLane.getStartMiddleNode().getX(), 
+													toLane.getStartMiddleNode().getY());
 	
-		double distStartEnd = Utility.Distance(fromLane.getStartMiddleNode().getLocalPos().getUnscaledX(), 
-				fromLane.getStartMiddleNode().getLocalPos().getUnscaledY(), 
-				toLane.getEndMiddleNode().getLocalPos().getUnscaledX(), 
-				toLane.getEndMiddleNode().getLocalPos().getUnscaledY());
+		double distStartEnd = Utility.Distance(fromLane.getStartMiddleNode().getX(), 
+				fromLane.getStartMiddleNode().getY(), 
+				toLane.getEndMiddleNode().getX(), 
+				toLane.getEndMiddleNode().getY());
 
-		double distEndStart = Utility.Distance(fromLane.getEndMiddleNode().getLocalPos().getUnscaledX(), 
-				fromLane.getEndMiddleNode().getLocalPos().getUnscaledY(), 
-				toLane.getStartMiddleNode().getLocalPos().getUnscaledX(), 
-				toLane.getStartMiddleNode().getLocalPos().getUnscaledY());
+		double distEndStart = Utility.Distance(fromLane.getEndMiddleNode().getX(), 
+				fromLane.getEndMiddleNode().getY(), 
+				toLane.getStartMiddleNode().getX(), 
+				toLane.getStartMiddleNode().getY());
 
-		double distEndEnd = Utility.Distance(fromLane.getEndMiddleNode().getLocalPos().getUnscaledX(), 
-				fromLane.getEndMiddleNode().getLocalPos().getUnscaledY(), 
-				toLane.getEndMiddleNode().getLocalPos().getUnscaledX(), 
-				toLane.getEndMiddleNode().getLocalPos().getUnscaledY());
+		double distEndEnd = Utility.Distance(fromLane.getEndMiddleNode().getX(), 
+				fromLane.getEndMiddleNode().getY(), 
+				toLane.getEndMiddleNode().getX(), 
+				toLane.getEndMiddleNode().getY());
 
 		double miniMumDistance = findMinimum(distStartStart,distStartEnd,distEndStart,distEndEnd);
 		

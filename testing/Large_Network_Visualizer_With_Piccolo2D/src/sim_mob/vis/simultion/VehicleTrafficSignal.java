@@ -32,11 +32,11 @@ public class VehicleTrafficSignal extends PPath{
 	public void paint(PPaintContext paintContext){
 
 		Graphics2D g = paintContext.getGraphics();
-		double x1 = fromNode.getLocalPos().getX();
-		double y1 = fromNode.getLocalPos().getY();
+		double x1 = fromNode.getX();
+		double y1 = fromNode.getY();
 
-		double x2 =	toNode.getLocalPos().getX();
-		double y2 = toNode.getLocalPos().getY();
+		double x2 =	toNode.getX();
+		double y2 = toNode.getY();
 		
 		AffineTransform oldAt = g.getTransform();
 

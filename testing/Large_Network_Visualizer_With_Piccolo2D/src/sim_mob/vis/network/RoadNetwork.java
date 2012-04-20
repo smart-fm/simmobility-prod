@@ -22,7 +22,7 @@ public class RoadNetwork {
 	private int canvasHeight;
 	
 	private Hashtable<Integer, Node> nodes;
-	private ArrayList<Node> localPoints;
+	//private ArrayList<Node> localPoints;
 	private Hashtable<Integer,Link> links;
 	private Hashtable<Integer, RoadName> roadNames;
 	private Hashtable<Integer, Segment> segments;
@@ -48,7 +48,7 @@ public class RoadNetwork {
 	public int getCanvasHeight() { return canvasHeight; }
 
 	public Hashtable<Integer, Node> getNodes(){ return nodes; }
-	public ArrayList<Node> getLocalPosPoints(){return localPoints;}
+	//public ArrayList<Node> getLocalPosPoints(){return localPoints;}
 	public Hashtable<Integer, Link> getLinks() { return links; }
 	public Hashtable<Integer, RoadName> getRoadNames() { return roadNames; }
 	public Hashtable<Integer, Segment> getSegments() { return segments; }
@@ -72,7 +72,7 @@ public class RoadNetwork {
 		this.canvasHeight = canvasHeight;
 		
 		nodes = new Hashtable<Integer, Node>();
-		localPoints = new ArrayList<Node>();
+		//localPoints = new ArrayList<Node>();
 		
 		links = new Hashtable<Integer, Link>();
 		roadNames = new Hashtable<Integer, RoadName>();
@@ -252,8 +252,8 @@ public class RoadNetwork {
 	    		//TODO
 	    		tempVirtualLaneTable.put(lineNumber, new LaneMarking(vStartNode,vEndNode,false,lineNumber,parentKey));
 	    
-	    		localPoints.add(vStartNode);
-	    		localPoints.add(vEndNode);
+	    		//localPoints.add(vStartNode);
+	    		//localPoints.add(vEndNode);
 	    		
 	    		//Add lane number to the tracking list
 		    	if(lineNumber != null){
@@ -289,8 +289,8 @@ public class RoadNetwork {
 	    	Node tempEndMiddleNode = new Node(endMiddleX,endMiddleY,false,null);
 	    	Lane tempLane = new Lane(i,tempStartMiddleNode,tempEndMiddleNode);	    		
 	    	
-	    	localPoints.add(tempStartMiddleNode);
-	    	localPoints.add(tempEndMiddleNode);
+	    	//localPoints.add(tempStartMiddleNode);
+	    	//localPoints.add(tempEndMiddleNode);
 	    	tempLaneTable.put(i,tempLane);
 
 	    	if(segmentToLanesTable.containsKey(parentKey)){
@@ -422,7 +422,7 @@ public class RoadNetwork {
 	    nodes.put(objID, tempVirtualNode);
 	    
 	    //Testing
-	    localPoints.add(tempVirtualNode);
+	    //localPoints.add(tempVirtualNode);
 	    
 	}
 		
@@ -441,10 +441,10 @@ public class RoadNetwork {
 	    Node farOneNode = Utility.ParseCrossingNodePos(props.get("far-1"));
 	    Node farTwoNode = Utility.ParseCrossingNodePos(props.get("far-2"));
 	   
-	    localPoints.add(nearOneNode);
-	    localPoints.add(nearTwoNode);
-	    localPoints.add(farOneNode);
-	    localPoints.add(farTwoNode);
+	    //localPoints.add(nearOneNode);
+	    //localPoints.add(nearTwoNode);
+	    //localPoints.add(farOneNode);
+	    //localPoints.add(farTwoNode);
 	    
 	    //Create a new Crossing, save it
 	    crossings.put(objID, new Crossing(nearOneNode,nearTwoNode,farOneNode,farTwoNode,objID));

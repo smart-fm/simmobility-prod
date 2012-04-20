@@ -56,7 +56,7 @@ public class LaneMarking extends PPath{
 	}
 	
 	protected void paint(PPaintContext paintContext){
-		line = new Line2D.Double(start.getLocalPos().getX(),start.getLocalPos().getY(),end.getLocalPos().getX(),end.getLocalPos().getY());
+		line = new Line2D.Double(start.getX(),start.getY(),end.getX(),end.getY());
 		this.setPathTo(line);
 		
 		Color clr = MainFrame.Config.getLineColor(isSideWalk?"sidewalk":"lane");

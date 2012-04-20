@@ -100,6 +100,7 @@ public class MainFrame extends JFrame {
 		public void mouseDragged(MouseEvent e) {
 			//Provide some feedback.
 			if (startPoint != null) {
+				virtual_newViewPnl.repaint();  //NOTE: This is probably better done with a camera-constant object.
 				Graphics2D g = (Graphics2D)virtual_newViewPnl.getGraphics();
 				g.setColor(Color.red);
 				g.setStroke(onePtStroke);

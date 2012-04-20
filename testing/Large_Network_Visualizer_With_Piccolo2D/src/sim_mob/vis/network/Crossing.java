@@ -59,10 +59,10 @@ public class Crossing extends PPath{
 		Graphics2D g = paintContext.getGraphics();
 		poly = new Path2D.Double();
 		
-		poly.moveTo(nearOne.getLocalPos().getX(), nearOne.getLocalPos().getY());
-		poly.lineTo(nearTwo.getLocalPos().getX(), nearTwo.getLocalPos().getY());
-		poly.lineTo(farTwo.getLocalPos().getX(), farTwo.getLocalPos().getY());
-		poly.lineTo(farOne.getLocalPos().getX(), farOne.getLocalPos().getY());
+		poly.moveTo(nearOne.getX(), nearOne.getY());
+		poly.lineTo(nearTwo.getX(), nearTwo.getY());
+		poly.lineTo(farTwo.getX(), farTwo.getY());
+		poly.lineTo(farOne.getX(), farOne.getY());
 		poly.closePath();
 		
 		this.setPathTo(poly);

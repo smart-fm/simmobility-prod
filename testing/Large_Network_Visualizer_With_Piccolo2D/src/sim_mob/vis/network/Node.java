@@ -26,16 +26,13 @@ public class Node extends PNode {
 	private boolean isUni;   //Rather than having multiple classes....
 	private Integer id;
 
-	//Testing
-	private LocalPoint localPos; //TODO: Don't use
-	
-	public LocalPoint getLocalPos() {
-		return localPos;
+	public String toString() {
+		return "(" + getX() + "," + getY() + ")";
 	}
         
 	public Node(double x, double y, boolean isUni, Integer id) {
 		
-		this.localPos = new LocalPoint(x,y);		
+//		this.localPos = new LocalPoint(x,y);		
 		this.isUni = isUni;
 		this.id = id;
 
@@ -47,7 +44,7 @@ public class Node extends PNode {
 	public boolean setBounds(double x, double y, double w, double h) {
 		boolean res = super.setBounds(x,  y, w, h);
 		if (res) {
-			this.localPos = new LocalPoint(x,y);	
+	//		this.localPos = new LocalPoint(x,y);	
 			//this.ellipse = new Ellipse2D.Double(x, y, w, h);
 		}
 		return res;

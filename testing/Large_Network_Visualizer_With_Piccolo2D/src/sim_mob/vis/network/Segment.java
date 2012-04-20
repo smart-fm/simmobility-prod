@@ -42,7 +42,7 @@ public class Segment extends PPath{
 	public int getparentLinkID(){ return parentLinkID;}
 
 	protected void paint(PPaintContext paintContext){
-		line = new Line2D.Double(from.getLocalPos().getX(), from.getLocalPos().getY(), to.getLocalPos().getX(), to.getLocalPos().getY());	
+		line = new Line2D.Double(from.getX(), from.getY(), to.getX(), to.getY());	
 		this.setPathTo(line);
 	
 		Graphics2D g = paintContext.getGraphics();

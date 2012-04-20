@@ -45,11 +45,11 @@ class Graphics_scene(QtGui.QGraphicsScene):
 
     def draw_kerb_lines(self, kerb_lines):
         for kerb_line in kerb_lines:
-            graphics_item = self.draw_polyline(kerb_line)
+            graphics_item = self.draw_polyline(kerb_line, QtCore.Qt.green)
             kerb_line.visual_item = graphics_item
             self.selector.add_kerb_line(graphics_item)
             for point in kerb_line.polyline:
-                graphics_item = self.draw_point(point, kerb_line)
+                graphics_item = self.draw_point(point, kerb_line, QtCore.Qt.green)
                 graphics_item.setVisible(False)
                 self.selector.add_dot(graphics_item)
 
@@ -128,25 +128,26 @@ class Graphics_scene(QtGui.QGraphicsScene):
         lane_edge.visual_item = graphics_item
         self.selector.add_lane_edge(graphics_item)
 
-    def draw_polyline(self, road_item):
+    def draw_polyline(self, road_item, pen_color=QtCore.Qt.black):
         polyline = road_item.polyline
         point = polyline[0]
         path = QtGui.QPainterPath(QtCore.QPointF(point.x, point.y))
         for point in polyline[1:]:
             path.lineTo(point.x, point.y)
         graphics_item = QtGui.QGraphicsPathItem(path)
-        graphics_item.setPen(QtCore.Qt.black)
+        graphics_item.setPen(pen_color)
         self.addItem(graphics_item)
         graphics_item.road_item = road_item
         graphics_item.is_selectable = True
         return graphics_item
 
-    def draw_point(self, point, road_item):
+    def draw_point(self, point, road_item, color=QtCore.Qt.black):
         w = 0.3
         h = 0.3
         graphics_item = QtGui.QGraphicsEllipseItem(-w/2.0, -h/2.0, w, h)
         graphics_item.setPos(point.x, point.y)
-        graphics_item.setBrush(QtCore.Qt.black)
+        graphics_item.setPen(color)
+        graphics_item.setBrush(color)
         self.addItem(graphics_item)
         graphics_item.road_item = road_item
         graphics_item.is_selectable = True

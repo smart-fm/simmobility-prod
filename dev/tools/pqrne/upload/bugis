@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+
+# Copyright (2012) Singapore-MIT Alliance for Research and Technology
+
+import sys
+
+from upload import Uploader
+
+base_dir = "LTA Road Map/LTAGDMDR20100914-002/Bugis"
+shape_files = { "road-attributes" : "%s/RoadAttributeLine_15Sep10_104252.shp" % base_dir,
+                "lane-markings"   : "%s/LaneMarking_15Sep10_104241.shp" % base_dir,
+                "kerb-lines"      : "%s/KerbLine_15Sep10_104924.shp" % base_dir,
+                "arrow-markings"  : "%s/ArrowMarking_15Sep10_104237.shp" % base_dir,
+                "bus-stops"       : "%s/BusStop_15Sep10_104241.shp" % base_dir,
+                "traffic-signals" : "%s/TrafficSignalAspect_15Sep10_104655.shp" % base_dir }
+database_name = "postgres://postgres:S!Mm0bility@172.18.127.157/Bugis_15_Sept_2010"
+
+if len(sys.argv) > 1 and sys.argv[1] == "--local-db":
+    del sys.argv[1]
+    database_name = "sqlite:///../Bugis_15_Sept_2010.sqlite"
+
+try:
+    uploader = Uploader(database_name)
+    uploader.upload(shape_files)
+except:
+    print "%s: unexpected error:" % sys.argv[0], sys.exc_info()[1]
+
+# vim:columns=100:smartindent:shiftwidth=4:expandtab:softtabstop=4:

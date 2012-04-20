@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# Copyright (2012) Singapore-MIT Alliance for Research and Technology
+
+shape_files_db="postgres://postgres:S!Mm0bility@172.18.127.157/Bugis_15_Sept_2010"
+road_network_db="postgres://postgres:S!Mm0bility@172.18.127.157/simmob-bugis"
+if [ $# -eq 1 -a $1 = "--local-db" ]
+then
+    shape_files_db="sqlite:///Bugis_15_Sept_2010.sqlite"
+    road_network_db="sqlite:///simmob-bugis.sqlite"
+fi
+
+./pqrne --shape-files $shape_files_db --road-network-database $road_network_db
+
+# vim:columns=100:smartindent:shiftwidth=4:expandtab:softtabstop=4:

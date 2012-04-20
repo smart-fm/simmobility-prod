@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+
+# Copyright (2012) Singapore-MIT Alliance for Research and Technology
+
+import sys
+import argparse
+from PyQt4 import QtGui
+
+from window import Main_window
+
+app = QtGui.QApplication(sys.argv)
+
+parser = argparse.ArgumentParser(description=\
+            "Extract and edit SimMobility road network data from shape files.")
+parser.add_argument("-s", "--shape-files",
+            help="specify the database containing the shape-file data")
+parser.add_argument("-r", "--road-network-database",
+            help="specify the database containing the edited SimMobility road network data")
+command_line_args = parser.parse_args()
+
+window = Main_window()
+window.show()
+if command_line_args.shape_files and command_line_args.road_network_database:
+    window.set_databases(command_line_args.shape_files, command_line_args.road_network_database)
+sys.exit(app.exec_())
+
+# vim:columns=100:smartindent:shiftwidth=4:expandtab:softtabstop=4:

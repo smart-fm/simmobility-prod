@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>multiple_edit_form</class>
+ <widget class="QDialog" name="multiple_edit_form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>500</width>
+    <height>500</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <widget class="QDialogButtonBox" name="button_box">
+   <property name="geometry">
+    <rect>
+     <x>9</x>
+     <y>464</y>
+     <width>176</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <property name="standardButtons">
+    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>9</x>
+     <y>9</y>
+     <width>482</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>You have selected several road-items.  To edit an item, select one from the list and change its attributes below.  If you want to delete an item, check its &quot;Delete this&quot; tick-box.</string>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QTreeWidget" name="edit_items_tree_widget">
+   <property name="geometry">
+    <rect>
+     <x>9</x>
+     <y>66</y>
+     <width>482</width>
+     <height>147</height>
+    </rect>
+   </property>
+   <property name="alternatingRowColors">
+    <bool>true</bool>
+   </property>
+   <attribute name="headerStretchLastSection">
+    <bool>true</bool>
+   </attribute>
+   <column>
+    <property name="text">
+     <string>#</string>
+    </property>
+    <property name="toolTip">
+     <string>Thr presence of &quot;*&quot; means that you have made changes to this item.</string>
+    </property>
+    <property name="statusTip">
+     <string>Thr presence of &quot;*&quot; means that you have made changes to this item.</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>Delete this</string>
+    </property>
+    <property name="toolTip">
+     <string>If this box is ticked, the item will be deleted when you press the &lt;Ok&gt; button.</string>
+    </property>
+    <property name="statusTip">
+     <string>If this box is ticked, the item will be deleted when you press the &lt;Ok&gt; button.</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>Item</string>
+    </property>
+    <property name="toolTip">
+     <string>Select this item and edit its attribute below.</string>
+    </property>
+    <property name="statusTip">
+     <string>Select this item and edit its attribute below.</string>
+    </property>
+   </column>
+  </widget>
+  <widget class="QLabel" name="label_3">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>220</y>
+     <width>67</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Change the attribute if you think it has the wrong value.  To change any point of the polyline, click the left mouse button and drag the point to its new position.  To change the point's z-value, double-click the cell and type in the new value.</string>
+   </property>
+   <property name="wordWrap">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>9</x>
+     <y>257</y>
+     <width>482</width>
+     <height>201</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QLabel" name="name_label">
+      <property name="text">
+       <string>Road name:</string>
+      </property>
+      <property name="buddy">
+       <cstring>name_combo_box</cstring>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QComboBox" name="name_combo_box"/>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="type_label">
+      <property name="text">
+       <string>Road type:</string>
+      </property>
+      <property name="buddy">
+       <cstring>type_combo_box</cstring>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QComboBox" name="type_combo_box"/>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>Polyline</string>
+      </property>
+      <property name="buddy">
+       <cstring>polyline_tree_widget</cstring>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0" colspan="2">
+     <widget class="QTreeWidget" name="polyline_tree_widget">
+      <property name="alternatingRowColors">
+       <bool>true</bool>
+      </property>
+      <attribute name="headerStretchLastSection">
+       <bool>false</bool>
+      </attribute>
+      <column>
+       <property name="text">
+        <string>#</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>x</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>y</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>z</string>
+       </property>
+       <property name="toolTip">
+        <string>Double click on this cell and type in the new Z value.</string>
+       </property>
+       <property name="statusTip">
+        <string>Double click on this cell and type in the new Z value.</string>
+       </property>
+      </column>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>button_box</sender>
+   <signal>accepted()</signal>
+   <receiver>multiple_edit_form</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_box</sender>
+   <signal>rejected()</signal>
+   <receiver>multiple_edit_form</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

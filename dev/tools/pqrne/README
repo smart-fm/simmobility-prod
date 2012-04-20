@@ -1,0 +1,14 @@
+You need to install the following packages:
+    * python
+    * pyqt4-dev-tools
+    * python-sqlalchemy
+    * python-sqlalchemy-ext
+    * python-elixir
+    * python-gdal
+
+You need to run "make" once.
+
+If you want to use pqrne on a local-database, copy /home/fclim/Bugis_15_Sept_2010.sqlite from
+the SimMobility server 172.18.127.157 into the current directory.  Then run
+    ./bugis --local-db
+If you have corrupted the Bugis_15_Sept_2010.sqlite file, get it again from the server.

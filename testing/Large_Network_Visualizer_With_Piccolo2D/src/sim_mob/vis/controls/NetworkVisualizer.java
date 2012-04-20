@@ -167,23 +167,23 @@ public class NetworkVisualizer extends PCanvas {
 
 		}
 		
-		for(Link vl : rn.getLinks().values()) {
-			//vl.repaint();
-			//layer.addChild(vl);			
+		//Add all Links (labels)
+		for(Link vl : rn.getLinks().values()) {			
 			PNode tn = new RoadName(vl.getName(), vl.getStart(), vl.getEnd());
 			parent.addChild(tn);
 		}
+		
+		//Add all Segments
+		for(Segment vs : rn.getSegments().values()){
+			parent.addChild(vs);
+		}
+		
 		
 		for(Hashtable<Integer,LaneMarking> vlmtable :  rn.getLaneMarkings().values()){
 			for(LaneMarking vlm : vlmtable.values()){
 				//vlm.repaint();
 				parent.addChild(vlm);
 			}
-		}
-		
-		for(Segment vs : rn.getSegments().values()){
-			//vs.repaint();
-			//parent.addChild(vs);
 		}
 		
 		for(Crossing vc : rn.getCrossing().values()){

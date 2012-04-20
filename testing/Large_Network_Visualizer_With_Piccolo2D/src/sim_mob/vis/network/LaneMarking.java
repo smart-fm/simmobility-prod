@@ -39,8 +39,9 @@ public class LaneMarking extends PPath{
 		this.parentSegment = parentSegment;
 		
 		this.setPathTo(new Line2D.Double(0,0,0,0));
+		//System.out.println(this.getBounds().toString());
 		
-		repaint();
+		//repaint(); //Shouldn't need a repaint immediately.
 
 	}
 	
@@ -55,7 +56,6 @@ public class LaneMarking extends PPath{
 	}
 	
 	protected void paint(PPaintContext paintContext){
-		
 		line = new Line2D.Double(start.getLocalPos().getX(),start.getLocalPos().getY(),end.getLocalPos().getX(),end.getLocalPos().getY());
 		this.setPathTo(line);
 		

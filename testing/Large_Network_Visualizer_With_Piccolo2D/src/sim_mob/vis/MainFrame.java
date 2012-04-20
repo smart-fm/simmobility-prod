@@ -2,11 +2,17 @@ package sim_mob.vis;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.Point2D.Double;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.text.html.HTMLDocument.Iterator;
+
+import edu.umd.cs.piccolo.PCamera;
+import edu.umd.cs.piccolo.util.PBounds;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -43,7 +49,9 @@ public class MainFrame extends JFrame {
 	//LHS panel
 	private JButton openLogFile;
 	private JButton openEmbeddedFile;
+	private JToggleButton zoomSquare;
 	private JButton zoomIn;
+	private JButton zoomOut;
     private JComboBox clockRateComboBox;
 
 	//Lower panel
@@ -57,6 +65,47 @@ public class MainFrame extends JFrame {
 	
 	//Colors
 	public static CSS_Interface Config;
+	
+	//For zooming
+	private static final Stroke onePtStroke = new BasicStroke(1.0F);
+	private MouseAdapter currZoomer;
+	class MouseRectZoomer extends MouseAdapter {
+		Point startPoint;
+		
+		public void mousePressed(MouseEvent e) {
+			startPoint = e.getPoint();
+		}
+		public void mouseExited(MouseEvent e) {
+			//startPoint = null;  
+		}
+		public void mouseReleased(MouseEvent e) {
+			if (startPoint!=null) {
+				//Translate.
+				//NOTE: Currently only works once.
+				PCamera c = virtual_newViewPnl.getCamera();
+				Point2D startPos = c.viewToLocal(new Point2D.Double(startPoint.x, startPoint.y));
+				Point2D endPos = c.viewToLocal(new Point2D.Double(e.getPoint().x, e.getPoint().y));
+				//Point2D startPos = new Point2D.Double(startPoint.x, startPoint.y);
+				//Point2D endPos = new Point2D.Double(e.getPoint().x, e.getPoint().y);
+				
+				//Zoom in
+				Rectangle2D bounds = new Rectangle2D.Double(startPos.getX(), startPos.getY(), endPos.getX()-startPos.getX(), endPos.getY()-startPos.getY());
+				c.animateViewToCenterBounds(bounds, true, 1000);
+				//startPoint = virtual_newViewPnl.getCamera().setBounds(null);
+			}
+			releaseZoomSquare();
+		}
+		public void mouseDragged(MouseEvent e) {
+			//Provide some feedback.
+			if (startPoint != null) {
+				Graphics2D g = (Graphics2D)virtual_newViewPnl.getGraphics();
+				g.setColor(Color.red);
+				g.setStroke(onePtStroke);
+				Rectangle2D rect = new Rectangle2D.Double(startPoint.x, startPoint.y, e.getX()-startPoint.x, e.getY()-startPoint.y);
+				g.draw(rect);
+			}
+		}
+	}
 
 	
 	public MainFrame(CSS_Interface config) {
@@ -93,6 +142,10 @@ public class MainFrame extends JFrame {
 		openLogFile = new JButton("Open Logfile", new ImageIcon(Utility.LoadImgResource("res/icons/open.png")));
 		openEmbeddedFile = new JButton("Open Default", new ImageIcon(Utility.LoadImgResource("res/icons/embed.png")));
 	    clockRateComboBox = new JComboBox(clockRateList);
+	    zoomSquare = new JToggleButton("Zoom Box");
+	    zoomIn = new JButton("+");
+	    zoomOut = new JButton("-");
+	    
 
 		frameTickSlider = new JSlider(JSlider.HORIZONTAL);
 		revBtn = new JButton(new ImageIcon(Utility.LoadImgResource("res/icons/rev.png")));
@@ -113,6 +166,12 @@ public class MainFrame extends JFrame {
 		jpLeft.add(openLogFile);
 		jpLeft.add(openEmbeddedFile);
 		jpLeft.add(clockRateComboBox);
+		
+		JPanel zoomPnl = new JPanel(new FlowLayout());
+		zoomPnl.add(zoomSquare);
+		zoomPnl.add(zoomIn);
+		zoomPnl.add(zoomOut);
+		jpLeft.add(zoomPnl);
 
 		
 		//Bottom panel
@@ -191,6 +250,33 @@ public class MainFrame extends JFrame {
 				openAFile(false);
 			}
 		});
+		
+		zoomIn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				factorZoom(1.1);
+			}
+		});
+		zoomOut.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				factorZoom(0.9);
+			}
+		});
+		
+		zoomSquare.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (zoomSquare.isSelected()) {
+					//Start zoom-select
+					virtual_newViewPnl.setEnabled(false);
+					currZoomer = new MouseRectZoomer();
+					virtual_newViewPnl.addMouseListener(currZoomer);
+					virtual_newViewPnl.addMouseMotionListener(currZoomer);
+				} else {
+					//Cancel
+					releaseZoomSquare();
+				}
+			}
+		});
+		
 		
 
 		
@@ -312,6 +398,25 @@ public class MainFrame extends JFrame {
 			}
 		});
 		*/
+	}
+	
+	
+	private void releaseZoomSquare() {
+		if (zoomSquare.isSelected()) {
+			zoomSquare.setSelected(false);
+		}
+		virtual_newViewPnl.removeMouseListener(currZoomer);
+		virtual_newViewPnl.removeMouseMotionListener(currZoomer);
+		currZoomer = null;
+		virtual_newViewPnl.setEnabled(true);
+	}
+	
+	
+	private void factorZoom(double amt) {
+		//Test
+		PCamera c = virtual_newViewPnl.getCamera();
+		PBounds vb = c.getViewBounds();
+		c.scaleViewAboutPoint(amt, vb.getCenterX(), vb.getCenterY());
 	}
 	
 	

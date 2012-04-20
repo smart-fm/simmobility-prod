@@ -672,7 +672,8 @@ void Signal::updateOffset() {
 //NOTE: Helper arrays for setting TC_* data (in an anonymous namespace).
 namespace {
 //Pedestrian template
-const int TC_for_PedestrianTemplate[][4] = { { 1, 3, 1, 3 }, //Case  0
+const int TC_for_PedestrianTemplate[][4] = {
+		{ 1, 3, 1, 3 }, //Case  0
 		{ 1, 3, 1, 3 }, //Case 10
 		{ 1, 1, 1, 1 }, //Case  1
 		{ 1, 1, 1, 1 }, //Case 11
@@ -683,7 +684,8 @@ const int TC_for_PedestrianTemplate[][4] = { { 1, 3, 1, 3 }, //Case  0
 		};
 
 //Driver template
-const int TC_for_DriverTemplate[][4][3] = { { { 3, 3, 1 }, { 1, 1, 1 }, { 3, 3, 1 }, { 1, 1, 1 } }, //Case  0
+const int TC_for_DriverTemplate[][4][3] = {
+		{ { 3, 3, 1 }, { 1, 1, 1 }, { 3, 3, 1 }, { 1, 1, 1 } }, //Case  0
 		{ { 2, 2, 1 }, { 1, 1, 1 }, { 2, 2, 1 }, { 1, 1, 1 } }, //Case 10
 		{ { 1, 1, 3 }, { 1, 1, 1 }, { 1, 1, 3 }, { 1, 1, 1 } }, //Case  1
 		{ { 1, 1, 2 }, { 1, 1, 1 }, { 1, 1, 2 }, { 1, 1, 1 } }, //Case 11

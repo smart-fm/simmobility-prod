@@ -28,7 +28,7 @@ class Signal;
  *
  * The LoopDetectorEntity expects its Signal object to reset the vehicle count and space-time
  * attributes periodically via the reset() method.
- *xsvfnvdslmnvfkhflaks
+ *
  * There will definitely be a race condition with respect to calls to the update() and reset()
  * methods.  Although the LoopDetectorEntity objects run at a more frequent rate than the Signal
  * objects, there will be frames during which both objects run.  Because the objects are managed

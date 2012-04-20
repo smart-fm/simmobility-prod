@@ -17,6 +17,21 @@ class Helper
     suffix = nodeID.slice(ind+1, nodeID.length).to_i
     return prefix*1000 + suffix
   end
+
+  #We use this to "fill in" ticks which aren't specified (to prevent flickering) but we could
+  # just as easily interpolate the data points.
+  def write_ticks(f, tick, driverID, driverTick, nextTick, nextDriverTick, minDriverTick)
+    endTick = nextDriverTick ? nextTick-1 : tick
+    (tick..endTick).each{|tickID|
+      f.write("(\"Driver\", #{tickID-minDriverTick}, #{driverID}, {")  #Header
+      f.write("\"xPos\":\"#{driverTick.pos.x*100}\",") #Guaranteed
+      f.write("\"yPos\":\"#{driverTick.pos.y*100}\",") #Guaranteed
+      f.write("\"angle\":\"#{driverTick.angle*180/Math::PI}\",")
+      f.write("\"length\":\"400\",") #Not hooked up yet
+      f.write("\"width\":\"200\",") #Not hooked up yet
+      f.write("})\n") #Footer
+    }
+  end
 end #class Helper
 
 
@@ -80,6 +95,11 @@ def self.print_network(nw, timeticks)
     #puts "Found: #{link.upNode} => #{link.downNode}" if numFound==2
   }
   File.open('output_network.txt', 'w') {|f|
+    #Write the "simulation" tag 
+    #TODO: pull from mitsim input.
+    f.write('("simulation", 0, 0, {"frame-time-ms":"200",})\n')
+
+
 #    knownNodeIDs.uniq.each{|nodeID|
     allNodeIDs.each{|nodeID|
       nd = nw.nodes[nodeID]
@@ -141,16 +161,22 @@ def self.print_network(nw, timeticks)
     }
 
     #Write drivers
-    timeticks.keys.sort.each{|tick|
+    minDriverTick = nil
+    sorted_ticks = timeticks.keys.sort
+    (0..sorted_ticks.length-1).each{|id|
+      tick = sorted_ticks[id]
+      minDriverTick = tick unless minDriverTick
       timeticks[tick].each_key{|driverID|
         driverTick = timeticks[tick][driverID]
-        f.write("(\"Driver\", #{tick}, #{driverID}, {")  #Header
-        f.write("\"xPos\":\"#{driverTick.pos.x*100}\",") #Guaranteed
-        f.write("\"yPos\":\"#{driverTick.pos.y*100}\",") #Guaranteed
-        f.write("\"angle\":\"#{driverTick.angle*180/Math::PI}\",")
-        f.write("\"length\":\"400\",") #Not hooked up yet
-        f.write("\"width\":\"200\",") #Not hooked up yet
-        f.write("})\n") #Footer
+        nextTick = -1
+        nextDriverTick = nil
+        if (id<sorted_ticks.length-1) 
+          nextTick = sorted_ticks[id+1]
+          if timeticks[nextTick].has_key? driverID
+            nextDriverTick = timeticks[nextTick][driverID]
+          end
+        end
+        help.write_ticks(f, tick, driverID, driverTick, nextTick, nextDriverTick, minDriverTick)
       }
     }
   }

@@ -12,3 +12,54 @@ If you want to use pqrne on a local-database, copy /home/fclim/Bugis_15_Sept_201
 the SimMobility server 172.18.127.157 into the current directory.  Then run
     ./bugis --local-db
 If you have corrupted the Bugis_15_Sept_2010.sqlite file, get it again from the server.
+
+Short manual
+============
+
+To zoom, use the mouse-wheel or +/= to zoom in and - to zoom out.
+
+To rotate, press 'A' for anti-clockwise and 'C' for clockwise.  Can also <Control> + mouse-wheel.
+Press 'O' (letter O) to revert to original orientation.
+
+To pan left and right, drag mouse with left-mouse-button pressed.
+
+To select a road-item (whether lane-marking or lane-edge), hover mouse over item and use
+<Control> + left-mouse-click.
+
+To make a road-item (whether lane-marking or lane-edge) unselectable, either make it invisible
+or untick the Selectable check box.  For Roads, Lane-markings, Traffic-signals, and Lane-edges you
+have control over individual types.
+
+To delete a lane-edge (cannot delete a lane-marking), select the item and click on 
+Tools -> Delete lane-edge.
+
+To create a rubber-band selection region, drag mouse while pressing <Control> + <Alt> + left-mouse.
+
+To edit the attribute of a road-item, such as its type or its polyline, select the item first and
+then click Tools -> Edit selected road-item.
+
+    To change the type, choose a new value from the pull-down menu.
+    To change the polyline point, hover over the point and drag it with left-mouse-button pressed.
+    If the point is an end-point, then <Shift> will restricted the movement in a straight-line,
+    <Control> will snap to any point of the road-item near to the mouse, and <Shift> + <Control>
+    does both.
+    To change the z-value, click on the cell in the table and type in the new value.
+
+To automatically extract yellow-boxes, create a selection region containing one or more
+yellow-boxes and then click Tools -> Extract yellow-boxes.  If there is no selection region, pqrne
+will attempt to extract all yellow-boxes in the digital map.
+
+To automatically extract pedestrian crossings and stop-lines, create a selection region containing
+one or more crossings and stop-lines and then click Tools -> Extract crossings and stop-lines.
+Better to restrict selection region around one intersection; include all crossings and stop-lines.
+If there is no selection region, pqrne will attempt to extract all crossings and stop-lines in the
+digital map.
+
+To generate a missing stop-line, crreate a selection region that contain a crossing and the
+lane-markings and (at least) 2 kerb-lines.  Do not include the lane-markings going in the opposite
+direction.  It is better if you rotate the map so that the lane-markings are horizontal.  Then
+click Tool->Create missing stop-line.
+
+To "string" several lane-markings to form lane-edges, hover over each item and press
+right-mouse-button.  After the last item has been added, use double-right-mouse-click, the
+edit-dialog box will pop up.

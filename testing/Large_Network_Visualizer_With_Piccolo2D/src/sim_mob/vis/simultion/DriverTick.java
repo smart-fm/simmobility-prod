@@ -7,6 +7,8 @@ import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
+import java.awt.geom.Point2D;
+import java.awt.geom.Point2D.Double;
 
 import sim_mob.vis.network.basic.LocalPoint;
 import edu.umd.cs.piccolo.nodes.PPath;
@@ -35,7 +37,7 @@ public class DriverTick extends AgentTick{
 	//private Path2D.Double poly;
 
 	public DriverTick(double posX, double posY, double angle){
-		this.localPos = new LocalPoint(posX,posY);
+		this.pos = new Point2D.Double(posX,posY);
 		this.angle = angle;
 
 	}

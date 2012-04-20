@@ -134,7 +134,7 @@ public class RoadNetwork {
 		this.populateIntersections();
 
 		//Convert points to local coordinate system
-		convertToLocal(this.canvasWidth, this.canvasHeight);
+		//convertToLocal(this.canvasWidth, this.canvasHeight);
 	}
 	
 			
@@ -776,7 +776,7 @@ public class RoadNetwork {
 	}
 	
 	//Coordinate conversion 
-	private void convertToLocal(int width, int height){
+	/*private void convertToLocal(int width, int height){
 		double width5Percent = 0.05 * (cornerLR.x - cornerTL.x);
 		double height5Percent = 0.05 * (cornerLR.y - cornerTL.y);
 		
@@ -786,8 +786,7 @@ public class RoadNetwork {
 		for(int i=0;i<localPoints.size();i++){			
 			localPoints.get(i).getLocalPos().scaleVia(newTL, newLR, width, height);
 		}
-		
-	}
+	}*/
 }
 
 

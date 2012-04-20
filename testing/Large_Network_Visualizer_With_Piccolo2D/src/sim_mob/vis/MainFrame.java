@@ -2,6 +2,7 @@ package sim_mob.vis;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.Dimension2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D.Double;
@@ -13,6 +14,7 @@ import javax.swing.text.html.HTMLDocument.Iterator;
 
 import edu.umd.cs.piccolo.PCamera;
 import edu.umd.cs.piccolo.util.PBounds;
+import edu.umd.cs.piccolo.util.PDimension;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -41,7 +43,7 @@ public class MainFrame extends JFrame {
 		return bytes / MEGABYTE;
 	}
 	//Canvas that make use of the PCanvas
-	private NetworkPanel virtual_newViewPnl;
+	private NetworkVisualizer virtual_newViewPnl;
 	private SimulationResults simData;
 	
 	private JTextField console;
@@ -152,7 +154,7 @@ public class MainFrame extends JFrame {
 		playBtn = new JButton(playIcon);
 		fwdBtn = new JButton(new ImageIcon(Utility.LoadImgResource("res/icons/fwd.png")));
 
-		virtual_newViewPnl = new NetworkPanel(300,300);
+		virtual_newViewPnl = new NetworkVisualizer(300,300);
 
 	}
 	
@@ -422,6 +424,9 @@ public class MainFrame extends JFrame {
 	
 	private void openAFile(boolean isEmbedded) {
 		
+		//System.out.println(virtual_newViewPnl.getCamera().getScale());
+		//System.out.println(virtual_newViewPnl.getLayer().getScale());
+		
 		//Use a FileChooser
 		File f = null;
 		if (!isEmbedded) {
@@ -487,12 +492,25 @@ public class MainFrame extends JFrame {
 			
 		//System.out.println(virtual_newViewPnl.);
 		
-		NetworkVisualizer vis = new NetworkVisualizer(virtual_newViewPnl.getWidth(), virtual_newViewPnl.getHeight());
-				
-		vis.setVis(rn, simData, uniqueAgentIDs);
+		//Remove all children (if reloading)
+		virtual_newViewPnl.getLayer().removeAllChildren();
 		
-		virtual_newViewPnl.iniMapCache(vis);
+		//Now add all children again
+		virtual_newViewPnl.buildSceneGraph(rn, simData, uniqueAgentIDs);
+		
+		
+		//NetworkVisualizer vis = new NetworkVisualizer(virtual_newViewPnl.getWidth(), virtual_newViewPnl.getHeight());
+				
+		//vis.setVis(rn, simData, uniqueAgentIDs);
+		
+		//virtual_newViewPnl.iniMapCache(vis);
 		//virtual_newViewPnl.drawMap(rn, simData);
+		
+		
+		//Reset the view
+		Rectangle2D initialBounds = virtual_newViewPnl.getNaturalBounds();
+		virtual_newViewPnl.getCamera().animateViewToCenterBounds(initialBounds, true, 1000);
+		
 		
 		// Get the Java runtime
 		Runtime runtime = Runtime.getRuntime();

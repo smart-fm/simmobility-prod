@@ -1,4 +1,4 @@
-package sim_mob.vis.controls;
+/*package sim_mob.vis.controls;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -71,7 +71,7 @@ public class NetworkPanel extends PCanvas{
 		//Update the slider, if it exists
 		if (slider!=null) {
 			slider.setEnabled(false);
-			slider.setValue(getCurrFrameTick());
+			slidernetViewCache.setValue(getCurrFrameTick());
 			slider.setEnabled(true);
 		}
 
@@ -119,3 +119,4 @@ public class NetworkPanel extends PCanvas{
 
 
 
+*/

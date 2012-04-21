@@ -2,10 +2,7 @@ package sim_mob.vis.simultion;
 
 import java.awt.geom.Point2D;
 
-import sim_mob.vis.network.basic.LocalPoint;
-import edu.umd.cs.piccolo.nodes.PPath;
-
-public class AgentTick{
+public class AgentTick {
 	
 	//protected LocalPoint localPos;
 	protected Point2D pos;

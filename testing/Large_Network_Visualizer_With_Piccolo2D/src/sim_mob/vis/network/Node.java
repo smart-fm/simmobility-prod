@@ -1,20 +1,11 @@
 package sim_mob.vis.network;
 
-import java.awt.BasicStroke;
-import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.Stroke;
-import java.awt.geom.Dimension2D;
+import java.awt.*;
 import java.awt.geom.Ellipse2D;
-import java.awt.geom.Ellipse2D.Double;
-import java.util.Date;
 
 import edu.umd.cs.piccolo.PNode;
-import edu.umd.cs.piccolo.nodes.PPath;
-import edu.umd.cs.piccolo.util.PDimension;
 import edu.umd.cs.piccolo.util.PPaintContext;
 import sim_mob.vis.MainFrame;
-import sim_mob.vis.network.basic.LocalPoint;
 
 public class Node extends PNode {
 

@@ -1,7 +1,5 @@
 package sim_mob.vis.network;
 
-import java.awt.Graphics2D;
-
 /**
  * \author Zhang Shuai
  * \author Seth N. Hetu

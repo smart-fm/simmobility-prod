@@ -2,15 +2,12 @@ package sim_mob.vis.simultion;
 
 
 import java.awt.Dimension;
+
 import java.io.*;
 import java.util.*;
 import java.util.regex.Matcher;
 
-import edu.umd.cs.piccolo.nodes.PPath;
-
 import sim_mob.vis.network.*;
-import sim_mob.vis.network.basic.DPoint;
-import sim_mob.vis.network.basic.LocalPoint;
 import sim_mob.vis.util.Utility;
 
 

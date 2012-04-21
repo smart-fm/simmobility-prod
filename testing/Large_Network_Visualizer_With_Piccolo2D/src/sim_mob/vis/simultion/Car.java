@@ -1,21 +1,14 @@
 package sim_mob.vis.simultion;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Shape;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Line2D;
-import java.awt.geom.Path2D;
-import java.awt.geom.Path2D.Double;
+import java.awt.*;
+import java.awt.geom.*;
 
-import sim_mob.vis.network.basic.LocalPoint;
 import edu.umd.cs.piccolo.nodes.PPath;
 import edu.umd.cs.piccolo.util.PPaintContext;
 
-public class Car extends PPath{
+public class Car extends PPath {
+	private static final long serialVersionUID = 1L;
 
-	
 	private int ID;
 	private boolean fake;
 	private int length;
@@ -29,7 +22,7 @@ public class Car extends PPath{
 	public int getFirstFrameID() { return firstFrameID; }
 
 	//TODO : this is test, to be changed
-	private static final int NODE_SIZE = 4;
+	//private static final int NODE_SIZE = 4;
 	private Path2D.Double poly;
 
 	public Car(){

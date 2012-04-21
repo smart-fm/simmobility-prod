@@ -1,13 +1,5 @@
 package sim_mob.vis.network;
 
-import static java.awt.geom.AffineTransform.getRotateInstance;
-
-import static java.awt.geom.AffineTransform.getTranslateInstance;
-
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.geom.AffineTransform;
-
 import sim_mob.vis.util.Utility;
 
 /**
@@ -21,7 +13,7 @@ public class TrafficSignalLine {
 	private Node fromNode;
 	private Node toNode;
 	
-	private final int ARR_SIZE = 6; 
+	//private final int ARR_SIZE = 6; 
 	
 	public Node getFromNode (){return fromNode;}
 	public Node getToNode (){return toNode;}

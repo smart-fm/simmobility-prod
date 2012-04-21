@@ -2,34 +2,18 @@ package sim_mob.vis;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.Dimension2D;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.Point2D.Double;
-
+import java.awt.geom.*;
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.text.html.HTMLDocument.Iterator;
-
+import javax.swing.event.*;
 import edu.umd.cs.piccolo.PCamera;
-import edu.umd.cs.piccolo.util.PBounds;
-import edu.umd.cs.piccolo.util.PDimension;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import edu.umd.cs.piccolo.util.*;
+import java.io.*;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Hashtable;
 import sim_mob.conf.CSS_Interface;
-
 import sim_mob.vis.controls.*;
 import sim_mob.vis.network.RoadNetwork;
 import sim_mob.vis.simultion.SimulationResults;
-import sim_mob.vis.util.StringSetter;
 import sim_mob.vis.util.Utility;
 
 
@@ -453,17 +437,17 @@ public class MainFrame extends JFrame {
 
 		//Load the default visualization
 		RoadNetwork rn = null;
-		String fileName;
+		//String fileName;
 		try {
 			BufferedReader br = null;
-			long fileSize = 0;
+			//long fileSize = 0;
 			if (isEmbedded) {
 				br = Utility.LoadFileResource("res/data/default.log.txt");
-				fileName = "default.log";
+				//fileName = "default.log";
 			} else {
 				br = new BufferedReader(new FileReader(f));
-				fileSize = f.length();
-				fileName = f.getName();
+				//fileSize = f.length();
+				//fileName = f.getName();
 			}
  
 			rn = new RoadNetwork(br,netViewPanel.getWidth(), netViewPanel.getHeight());

@@ -5,8 +5,6 @@ import java.util.*;
 import java.util.regex.*;
 
 import sim_mob.vis.network.basic.DPoint;
-import sim_mob.vis.network.basic.LocalPoint;
-import sim_mob.vis.network.basic.Vect;
 import sim_mob.vis.util.Mapping;
 import sim_mob.vis.util.Utility;
 

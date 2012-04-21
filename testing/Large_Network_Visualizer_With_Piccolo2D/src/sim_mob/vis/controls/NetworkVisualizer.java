@@ -4,31 +4,16 @@ import java.awt.*;
 import java.awt.geom.*;
 import java.util.*;
 
-import javax.swing.JSlider;
-
 import sim_mob.vis.MainFrame;
 import sim_mob.vis.network.*;
-import sim_mob.vis.network.basic.Vect;
 import sim_mob.vis.simultion.*;
 import edu.umd.cs.piccolo.*;
-import edu.umd.cs.piccolo.nodes.PText;
-import edu.umd.cs.piccolo.util.PDimension;
+
+
 
 public class NetworkVisualizer extends PCanvas {
 	private static final long serialVersionUID = 1L;
 
-	//private RoadNetwork network;
-	private SimulationResults simRes;
-	//private PLayer layer;
-	private int currFrameNum;
-
-	//private static Font roadNameFont = new Font("Arial", Font.PLAIN, 5);
-
-
-	//Keep track the agent in layer
-	//private Integer[] uniqueCarIDs;
-	//private Hashtable<Integer,Integer> carIDtoIndex;
-	//private ArrayList<Integer> visibleCars;
 	private Hashtable<Integer, Car> cars;
 	
 	//Keep track the Index of crossing light in layer
@@ -37,10 +22,7 @@ public class NetworkVisualizer extends PCanvas {
 	//The size of the canvas at a zoom level of 1.0
 	//private Dimension naturalSize;
 	private Rectangle2D naturalBounds;
-	public Rectangle2D getNaturalBounds() { return naturalBounds; }
-	
-	//The maximum (valid) frame tick.
-	public int getMaxFrameTick() { return simRes.ticks.size()-1; }	
+	public Rectangle2D getNaturalBounds() { return naturalBounds; }	
 	
 	public NetworkVisualizer( int width, int height){
 		this.naturalBounds = new Rectangle2D.Double(0, 0, 10, 10); //Doesn't matter.
@@ -53,19 +35,11 @@ public class NetworkVisualizer extends PCanvas {
 	}
 	
 	public void buildSceneGraph(RoadNetwork rn, SimulationResults simRes, HashSet<Integer> uniqueAgentIDs){
-		
 		//Set up resources 
-		//this.network = rn;
-		this.simRes = simRes;
 		Integer[] uniqueCarIDs = uniqueAgentIDs.toArray(new Integer[]{});
-		this.currFrameNum = 0;
 		
 		//Keep track agent's ID and its Index
 		crossLightIDtoIndex = new Hashtable<Integer, Integer>();		
-		//carIDtoIndex = new Hashtable<Integer,Integer>();
-		
-		//Visible Car's Index
-		//visibleCars  = new ArrayList<Integer>();
 		
 		//Used to create car image
 		cars = new Hashtable<Integer, Car>();
@@ -80,7 +54,7 @@ public class NetworkVisualizer extends PCanvas {
 		addAgentsToGraph(uniqueCarIDs, cars, getLayer());
 		
 		//Draw agents in current frame
-		redrawAtCurrFrame(currFrameNum);
+		//redrawAtCurrFrame(currFrameNum);
 		
 		
 		for(Intersection it : rn.getIntersection().values()){
@@ -135,9 +109,13 @@ public class NetworkVisualizer extends PCanvas {
 		}
 	}
 	
-	public void redrawAtCurrFrame(int frameTick){	
-		currFrameNum = frameTick;
-		updateAgent(currFrameNum);
+	public void redrawAtCurrFrame(TimeTick tick){
+		if (tick==null) { return; }
+		
+		//TODO: If we can somehow "disable repaints" before this starts, then enable them after,
+		//      that would really help.
+		drawCars(tick);
+		drawCrossingLight(tick);
 	}
 	
 	private static final void UpdateBounds(double x, double y, Point2D minPt, Point2D maxPt) {
@@ -197,31 +175,11 @@ public class NetworkVisualizer extends PCanvas {
 		
 	}
 
-	
-	
-	public void updateAgent(int frameTick){
-		drawAgent(frameTick);
-	}
 
-	private void drawAgent(int currFrame){
-		//It is possible (but unlikely) to have absolutely no agents at all.
-		// The only time this makes sense is if currFrame is equal to zero.
-		if (currFrame>=simRes.ticks.size()) {
-			if (currFrame!=0) { throw new RuntimeException("Error: invalid non-zero frame."); }
-			return;
-		}
-		
-		//TODO: If we can somehow "disable repaints" before this starts, then enable them after,
-		//      that would really help.
-		drawCars(currFrame);
-		drawCrossingLight(currFrame);
-		
-		//repaint();
-	}
 	
-	private void drawCrossingLight(int currFrame){
+	private void drawCrossingLight(TimeTick currFrameTick){
 		//Get crossing light information in this frame tick
-		Hashtable<Integer, CrossingLightTick> crossingLightTicks = simRes.ticks.get(currFrame).crossingLightTicks;
+		Hashtable<Integer, CrossingLightTick> crossingLightTicks = currFrameTick.crossingLightTicks;
 		
 		//Draw out Crossing Light		
 		for(CrossingLightTick clt : crossingLightTicks.values()){
@@ -252,18 +210,18 @@ public class NetworkVisualizer extends PCanvas {
 		}
 	}
 	
-	private void drawCars(int currFrame){		
+	private void drawCars(TimeTick currFrameTick){		
 		//Start by setting all Agents to invisible
 		for (Car c : cars.values()) {
 			c.setVisible(false);
 		}
 		
 		//Now, update all car positions and set them to visible if they exist in this time tick.
-		ArrayList<Integer> agentIDs = simRes.ticks.get(currFrame).agentIDs;
+		ArrayList<Integer> agentIDs = currFrameTick.agentIDs;
 		for (int agID : agentIDs) {
 			//Retrieve the vehicle and its associated Agent Tick
 			Car c = cars.get(agID);
-			AgentTick at = simRes.ticks.get(currFrame).agentTicks.get(agID);
+			AgentTick at = currFrameTick.agentTicks.get(agID);
 			if (c==null || at==null) { continue; }
 			
 			//Update it, set it visible.
@@ -275,61 +233,5 @@ public class NetworkVisualizer extends PCanvas {
 			c.setVisible(true);
 		}
 	}
-	
-	
-	/////////////////////////////////////////////////////////////
-	//TODO: Figure out where to put these functions later
-	//      The Simulation should really be saved in an "Animator" class which
-	//      drives the animation and tracks how close we are to the end.
-	/////////////////////////////////////////////////////////////
-	public boolean jumpAnim(int toTick, JSlider slider){
-		//Set
-		if (simRes==null || !setCurrFrameTick(toTick)) {
-			return false;
-		}
-		//Update the slider, if it exists
-		if (slider!=null) {
-			slider.setEnabled(false);
-			slider.setValue(getCurrFrameTick());
-			slider.setEnabled(true);
-		}
 
-		redrawAtCurrFrame(getCurrFrameTick());
-		return true;
-	}
-	
-	public boolean setCurrFrameTick(int newVal) {
-		if (newVal<0 || simRes==null || newVal>=getMaxFrameTick()) {
-			return false;
-		}
-		currFrameNum = newVal;
-		return true;
-	}
-	public int getCurrFrameTick() {
-		return currFrameNum;
-	}
-	
-	
-	public boolean advanceAnim(int ticks, JSlider slider) {
-		//Increment
-		if (simRes==null || !incrementCurrFrameTick(1)) {
-			return false;
-		}
-		
-		return jumpAnim(getCurrFrameTick(), slider);
-	}
-	
-	public boolean advanceAnimbyStep(int ticks, JSlider slider) {
-		//Increment
-		if (simRes==null || !incrementCurrFrameTick(ticks)) {
-			return false;
-		}
-		
-		return jumpAnim(getCurrFrameTick(), slider);
-	}
-
-	public boolean incrementCurrFrameTick(int amt) {
-		return setCurrFrameTick(getCurrFrameTick()+amt);
-	}
-	
 }

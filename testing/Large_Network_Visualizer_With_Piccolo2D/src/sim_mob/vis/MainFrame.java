@@ -42,8 +42,10 @@ public class MainFrame extends JFrame {
 	public static long bytesToMegabytes(long bytes) {
 		return bytes / MEGABYTE;
 	}
+	
 	//Canvas that make use of the PCanvas
-	private NetworkVisualizer virtual_newViewPnl;
+	private NetworkVisualizer netViewPanel;
+	private NetSimAnimator netViewAnimator;
 	private SimulationResults simData;
 	
 	private JTextField console;
@@ -84,7 +86,7 @@ public class MainFrame extends JFrame {
 			if (startPoint!=null) {
 				//Translate.
 				//NOTE: Currently only works once.
-				PCamera c = virtual_newViewPnl.getCamera();
+				PCamera c = netViewPanel.getCamera();
 				Point2D startPos = c.viewToLocal(new Point2D.Double(startPoint.x, startPoint.y));
 				Point2D endPos = c.viewToLocal(new Point2D.Double(e.getPoint().x, e.getPoint().y));
 				//Point2D startPos = new Point2D.Double(startPoint.x, startPoint.y);
@@ -93,15 +95,14 @@ public class MainFrame extends JFrame {
 				//Zoom in
 				Rectangle2D bounds = new Rectangle2D.Double(startPos.getX(), startPos.getY(), endPos.getX()-startPos.getX(), endPos.getY()-startPos.getY());
 				c.animateViewToCenterBounds(bounds, true, 1000);
-				//startPoint = virtual_newViewPnl.getCamera().setBounds(null);
 			}
 			releaseZoomSquare();
 		}
 		public void mouseDragged(MouseEvent e) {
 			//Provide some feedback.
 			if (startPoint != null) {
-				virtual_newViewPnl.repaint();  //NOTE: This is probably better done with a camera-constant object.
-				Graphics2D g = (Graphics2D)virtual_newViewPnl.getGraphics();
+				netViewPanel.repaint();  //NOTE: This is probably better done with a camera-constant object.
+				Graphics2D g = (Graphics2D)netViewPanel.getGraphics();
 				g.setColor(Color.red);
 				g.setStroke(onePtStroke);
 				Rectangle2D rect = new Rectangle2D.Double(startPoint.x, startPoint.y, e.getX()-startPoint.x, e.getY()-startPoint.y);
@@ -155,8 +156,7 @@ public class MainFrame extends JFrame {
 		playBtn = new JButton(playIcon);
 		fwdBtn = new JButton(new ImageIcon(Utility.LoadImgResource("res/icons/fwd.png")));
 
-		virtual_newViewPnl = new NetworkVisualizer(300,300);
-
+		netViewPanel = new NetworkVisualizer(300,300);
 	}
 	
 	/**
@@ -222,7 +222,7 @@ public class MainFrame extends JFrame {
 		gbc.weighty = 0.9;
 		gbc.fill = GridBagConstraints.BOTH;
 		//cp.add(newViewPnl, gbc);
-		cp.add(virtual_newViewPnl, gbc);
+		cp.add(netViewPanel, gbc);
 		
 
 		//Add to the main controller: right panel
@@ -269,10 +269,10 @@ public class MainFrame extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				if (zoomSquare.isSelected()) {
 					//Start zoom-select
-					virtual_newViewPnl.setEnabled(false);
+					netViewPanel.setEnabled(false);
 					currZoomer = new MouseRectZoomer();
-					virtual_newViewPnl.addMouseListener(currZoomer);
-					virtual_newViewPnl.addMouseMotionListener(currZoomer);
+					netViewPanel.addMouseListener(currZoomer);
+					netViewPanel.addMouseMotionListener(currZoomer);
 				} else {
 					//Cancel
 					releaseZoomSquare();
@@ -286,11 +286,11 @@ public class MainFrame extends JFrame {
 		//Frame tick slider
 		frameTickSlider.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg0) {
-				if (simData==null) {
+				if (simData==null || netViewAnimator==null) {
 					return;
 				}
 				if (frameTickSlider.isEnabled()) {
-					virtual_newViewPnl.jumpAnim(frameTickSlider.getValue(), frameTickSlider);
+					netViewAnimator.jumpAnim(frameTickSlider.getValue(), frameTickSlider);
 				}
 			}
 		});
@@ -299,7 +299,7 @@ public class MainFrame extends JFrame {
 		playBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				//Anything to play?
-				if (simData==null) {
+				if (simData==null || netViewAnimator==null) {
 					return;
 				}
 				
@@ -316,7 +316,7 @@ public class MainFrame extends JFrame {
 		fwdBtn.addActionListener(new ActionListener(){
 			
 			public void actionPerformed(ActionEvent arg0) {
-				if (virtual_newViewPnl.advanceAnimbyStep(1, frameTickSlider)) {
+				if (netViewAnimator.advanceAnimbyStep(1, frameTickSlider)) {
 					animTimer.stop();
 					playBtn.setIcon(playIcon);
 					console.setText("Input File Name: "+frameTickSlider.getValue());
@@ -331,7 +331,7 @@ public class MainFrame extends JFrame {
 		revBtn.addActionListener(new ActionListener(){
 			
 			public void actionPerformed(ActionEvent arg0) {
-				if (virtual_newViewPnl.advanceAnimbyStep(-1, frameTickSlider)) {
+				if (netViewAnimator.advanceAnimbyStep(-1, frameTickSlider)) {
 					animTimer.stop();
 					playBtn.setIcon(playIcon);
 					console.setText("Input File Name: "+frameTickSlider.getValue());
@@ -345,7 +345,7 @@ public class MainFrame extends JFrame {
 		animTimer = new Timer(50, new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 
-				if (virtual_newViewPnl.advanceAnim(1, frameTickSlider)) {
+				if (netViewAnimator.advanceAnim(1, frameTickSlider)) {
 					console.setText("Input File Name: "+frameTickSlider.getValue());
 				
 				}else{
@@ -371,9 +371,8 @@ public class MainFrame extends JFrame {
 					animTimer = new Timer(clockRate, new ActionListener() {
 						public void actionPerformed(ActionEvent arg0) {
 							
-							if (virtual_newViewPnl.advanceAnim(1, frameTickSlider)) {
+							if (netViewAnimator.advanceAnim(1, frameTickSlider)) {
 								console.setText("Input File Name: "+frameTickSlider.getValue());
-							
 							}else{
 								animTimer.stop();
 								playBtn.setIcon(playIcon);
@@ -408,16 +407,16 @@ public class MainFrame extends JFrame {
 		if (zoomSquare.isSelected()) {
 			zoomSquare.setSelected(false);
 		}
-		virtual_newViewPnl.removeMouseListener(currZoomer);
-		virtual_newViewPnl.removeMouseMotionListener(currZoomer);
+		netViewPanel.removeMouseListener(currZoomer);
+		netViewPanel.removeMouseMotionListener(currZoomer);
 		currZoomer = null;
-		virtual_newViewPnl.setEnabled(true);
+		netViewPanel.setEnabled(true);
 	}
 	
 	
 	private void factorZoom(double amt) {
 		//Test
-		PCamera c = virtual_newViewPnl.getCamera();
+		PCamera c = netViewPanel.getCamera();
 		PBounds vb = c.getViewBounds();
 		c.scaleViewAboutPoint(amt, vb.getCenterX(), vb.getCenterY());
 	}
@@ -453,7 +452,7 @@ public class MainFrame extends JFrame {
 				fileName = f.getName();
 			}
  
-			rn = new RoadNetwork(br,virtual_newViewPnl.getWidth(), virtual_newViewPnl.getHeight());
+			rn = new RoadNetwork(br,netViewPanel.getWidth(), netViewPanel.getHeight());
 			br.close();
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
@@ -494,10 +493,11 @@ public class MainFrame extends JFrame {
 		//System.out.println(virtual_newViewPnl.);
 		
 		//Remove all children (if reloading)
-		virtual_newViewPnl.getLayer().removeAllChildren();
+		netViewPanel.getLayer().removeAllChildren();
 		
 		//Now add all children again
-		virtual_newViewPnl.buildSceneGraph(rn, simData, uniqueAgentIDs);
+		netViewPanel.buildSceneGraph(rn, simData, uniqueAgentIDs);
+		netViewAnimator = new NetSimAnimator(netViewPanel, simData, frameTickSlider);
 		
 		
 		//NetworkVisualizer vis = new NetworkVisualizer(virtual_newViewPnl.getWidth(), virtual_newViewPnl.getHeight());
@@ -509,8 +509,8 @@ public class MainFrame extends JFrame {
 		
 		
 		//Reset the view
-		Rectangle2D initialBounds = virtual_newViewPnl.getNaturalBounds();
-		virtual_newViewPnl.getCamera().animateViewToCenterBounds(initialBounds, true, 1000);
+		Rectangle2D initialBounds = netViewPanel.getNaturalBounds();
+		netViewPanel.getCamera().animateViewToCenterBounds(initialBounds, true, 1000);
 		
 		
 		// Get the Java runtime

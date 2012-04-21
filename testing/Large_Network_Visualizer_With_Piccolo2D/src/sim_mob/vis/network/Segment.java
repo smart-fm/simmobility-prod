@@ -36,26 +36,37 @@ public class Segment extends PPath {
 	
 	public Node getFrom() { return from; }
 	public Node getTo() { return to; }
-	//public Link getParent() { return parent; }
 	public int getparentLinkID(){ return parentLinkID;}
 
 	protected void paint(PPaintContext paintContext){
-		//line = new Line2D.Double(from.getX(), from.getY(), to.getX(), to.getY());	
-		//this.setPathTo(line);
-	
 		Graphics2D g = paintContext.getGraphics();
-		
+		double oneMeterActual = 1 / paintContext.getScale(); 
+		if (oneMeterActual<100) {
+			paintLanes(g, paintContext.getScale());
+		} else {
+			paintSegmentLine(g, paintContext.getScale());
+		}
+	}
+	
+	private void paintSegmentLine(Graphics2D g, double contextScale) {
 		Stroke str = roadStroke;
 		if (str instanceof BasicStroke) {
 			//We can scale the stroke too
 			BasicStroke bs = (BasicStroke)(str);
-			str = new BasicStroke((float)(bs.getLineWidth()/paintContext.getScale()), bs.getEndCap(), bs.getLineJoin(), bs.getMiterLimit());
+			str = new BasicStroke((float)(bs.getLineWidth()/contextScale), bs.getEndCap(), bs.getLineJoin(), bs.getMiterLimit());
 		}
 		
-		PBounds bnd = getBounds();
-		Line2D line = new Line2D.Double(bnd.getX(), bnd.getY(), bnd.getX()+bnd.getWidth(), bnd.getY()+bnd.getHeight());
+		Line2D line = new Line2D.Double(from.getX(), from.getY(), to.getX(), to.getY());
 		g.setColor(roadColor);
 		g.setStroke(str);
+		g.draw(line);
+	}
+	
+	private void paintLanes(Graphics2D g, double contextScale) {
+		//TEMP
+		g.setColor(Color.blue);
+		g.setStroke(new BasicStroke(1.0F));
+		Line2D line = new Line2D.Double(from.getX(), from.getY(), to.getX(), to.getY());
 		g.draw(line);
 	}
 

@@ -70,17 +70,8 @@ public class MainFrame extends JFrame {
 		}
 		public void mouseReleased(MouseEvent e) {
 			if (startPoint!=null) {
-				//Translate.
-				//NOTE: Currently only works once.
-				PCamera c = netViewPanel.getCamera();
-				Point2D startPos = c.viewToLocal(new Point2D.Double(startPoint.x, startPoint.y));
-				Point2D endPos = c.viewToLocal(new Point2D.Double(e.getPoint().x, e.getPoint().y));
-				//Point2D startPos = new Point2D.Double(startPoint.x, startPoint.y);
-				//Point2D endPos = new Point2D.Double(e.getPoint().x, e.getPoint().y);
-				
-				//Zoom in
-				Rectangle2D bounds = new Rectangle2D.Double(startPos.getX(), startPos.getY(), endPos.getX()-startPos.getX(), endPos.getY()-startPos.getY());
-				c.animateViewToCenterBounds(bounds, true, 1000);
+				netViewPanel.setZoomBox(new Rectangle2D.Double(startPoint.x, startPoint.y, e.getX()-startPoint.x, e.getY()-startPoint.y));
+				netViewPanel.zoomToBox();
 			}
 			netViewPanel.setZoomBox(null);
 			releaseZoomSquare();

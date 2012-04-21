@@ -47,6 +47,21 @@ public class NetworkVisualizer extends PCanvas {
 		}
 	}
 	
+	public void zoomToBox() {
+		Rectangle2D bounds = getCamera().getBounds();
+		Rectangle2D viewBounds = getCamera().getViewBounds();
+		Rectangle2D zoom = zoomBox.getBounds();
+		
+		Rectangle2D newZoom = new Rectangle2D.Double(
+			zoom.getX()*viewBounds.getWidth()/bounds.getWidth() + viewBounds.getX(),
+			zoom.getY()*viewBounds.getHeight()/bounds.getHeight() + viewBounds.getY(),
+			zoom.getWidth()*viewBounds.getWidth()/bounds.getWidth(),
+			zoom.getHeight()*viewBounds.getHeight()/bounds.getHeight()
+		);
+		
+		getCamera().animateViewToCenterBounds(newZoom, true, 1000);
+	}
+	
 	
 	public void buildSceneGraph(RoadNetwork rn, SimulationResults simRes, HashSet<Integer> uniqueAgentIDs){
 		//Set up resources 

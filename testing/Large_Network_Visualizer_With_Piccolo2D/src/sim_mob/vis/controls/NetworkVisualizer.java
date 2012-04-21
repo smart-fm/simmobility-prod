@@ -127,7 +127,12 @@ public class NetworkVisualizer extends PCanvas {
 		//      that would really help.
 		drawCars(tick);
 		drawCrossingLight(tick);
+
+		//NOTE: This is a hack to force clean painting. In actuality, specifying bounds
+		//      correctly should allow the interface to repaint smoothly.
+		repaint();
 	}
+
 	
 	private static final void UpdateBounds(double x, double y, Point2D minPt, Point2D maxPt) {
 		minPt.setLocation(Math.min(x,  minPt.getX()),  Math.min(y,  minPt.getY()));

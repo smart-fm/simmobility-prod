@@ -125,6 +125,8 @@ public class Utility {
 	public static final Pattern LOG_RHS_REGEX = Pattern.compile(strn + ":" + strn + ",?");
 	public static final Pattern NUM_REGEX = Pattern.compile(num);
 	public static final Pattern NUMH_REGEX = Pattern.compile(numH);
+	public static final Pattern LANE_SIDEWALK_REGEX = Pattern.compile("line-"+num+"-?is-sidewalk");
+	public static final Pattern LANE_LINE_REGEX = Pattern.compile("line-"+num);
 
 }
 

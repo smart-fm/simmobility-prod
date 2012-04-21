@@ -197,9 +197,7 @@ public class RoadNetwork {
 	private void parseLineMarking(int frameID, int objID, String rhs) throws IOException {
 	 
 		//Check frameID
-	    if (frameID!=0) {
-	    	throw new IOException("Unexpected frame ID, should be zero");
-	    }
+	    if (frameID!=0) { throw new IOException("Unexpected frame ID, should be zero"); }
 	    
 	    //Check and parse properties. for lanes, it checks only parent-segment only as the number of lanes is not fixed
 	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"parent-segment"});
@@ -209,58 +207,38 @@ public class RoadNetwork {
 	    Enumeration<String> keys = props.keys();	   
 	    
 	    Hashtable<Integer,LaneMarking> tempVirtualLaneTable = new Hashtable<Integer, LaneMarking>();
-	    Hashtable<Integer,Lane> tempLaneTable = new Hashtable<Integer,Lane>();
-
-	    
 	    ArrayList<Integer> lineNumbers = new ArrayList<Integer>();
 	    Hashtable<Integer, ArrayList<Integer>> lineMarkingPositions = new Hashtable<Integer, ArrayList<Integer>>();
 	    
 	    int sideWalkLane = -1;
-	    while(keys.hasMoreElements()){
-		    
+	    while(keys.hasMoreElements()){		    
 	    	String key = keys.nextElement().toString();
-
-	    	//Get Segment
-	    	if(key.contains("parent-segment")){
-	    		continue;
-	    	}
+	    	if(key.contains("parent-segment")){ continue; } //Already parsed it.
 	    	
 	    	//Check whether the lane is a sidewalk
-	    	Matcher m = Utility.NUM_REGEX.matcher(key);
-	    	Integer lineNumber = null;
-	    	while(m.find()){
-	    		lineNumber = Integer.parseInt(m.group());		
-	    	}
-	    	
-	    	
-	    	//Extract node information
-	    	if(key.contains("sidewalk")){
-	    		//keep track the side walk lane number
+	    	Matcher mS = Utility.LANE_SIDEWALK_REGEX.matcher(key);
+	    	Matcher mL = Utility.LANE_LINE_REGEX.matcher(key);
+	    	int lineNumber = -1;
+	    	if (mS.matches()) {
+	    		lineNumber = Integer.parseInt(mS.group(1));
 	    		sideWalkLane = lineNumber;
+	    	} else if (mL.matches()) {
+	    		lineNumber = Integer.parseInt(mL.group(1));
 	    		
-	    	}else{
-	    		
-	    		ArrayList<Integer> pos = new ArrayList<Integer>();
-	    		pos = Utility.ParseLaneNodePos(props.get(key));
-	    		
-	    		Node vStartNode = new Node(pos.get(0), pos.get(1), false,null);
-	    		
-	    		Node vEndNode = new Node(pos.get(2), pos.get(3), false,null);
+	    		//Extract Node information
+	    		ArrayList<Integer> pos = Utility.ParseLaneNodePos(props.get(key));
 	    	
 	    		//TODO
-	    		tempVirtualLaneTable.put(lineNumber, new LaneMarking(vStartNode,vEndNode,false,lineNumber,parentKey));
+	    		tempVirtualLaneTable.put(lineNumber, new LaneMarking(pos,false,lineNumber,parentKey));
 	    
-	    		//localPoints.add(vStartNode);
-	    		//localPoints.add(vEndNode);
-	    		
 	    		//Add lane number to the tracking list
-		    	if(lineNumber != null){
+		    	if(lineNumber != -1) {
 		    		lineNumbers.add(lineNumber);
+		    		lineMarkingPositions.put(lineNumber, pos);
 		    	}
-		    		
-	    		lineMarkingPositions.put(lineNumber, pos);	
-	    	}
-	   
+	    	} else {
+	    		throw new RuntimeException("Badly-formatted lane line: " + key); 
+	    	}	   
 	    } 
 	    
 	    //Find the sidewalk line and mark it 
@@ -272,8 +250,8 @@ public class RoadNetwork {
 	    }
 	    
 	    //Sort array list to ascending order
+	    Hashtable<Integer,Lane> tempLaneTable = new Hashtable<Integer,Lane>();
 	    Collections.sort(lineNumbers);
-	    	   	    
 	    for(int i = 0;i<lineMarkingPositions.size()-1;i++){
 	    	int j=i+1;
 

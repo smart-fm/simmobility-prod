@@ -20,6 +20,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -37,9 +38,8 @@ public class MainFrame extends JFrame {
 		
 	private static final String clockRateList[] = {"default-50ms","10 ms", "50 ms", "100 ms", "200 ms","500 ms","1000 ms"};
 	
-	private static final long MEGABYTE = 1024L * 1024L;
-
-	public static long bytesToMegabytes(long bytes) {
+	private static final double MEGABYTE = 1024.0 * 1024.0;
+	public static double bytesToMegabytes(long bytes) {
 		return bytes / MEGABYTE;
 	}
 	
@@ -51,6 +51,8 @@ public class MainFrame extends JFrame {
 	private JTextField console;
 	
 	//LHS panel
+	private Timer memoryUsageTimer;
+	private JLabel memoryUsage;
 	private JButton openLogFile;
 	private JButton openEmbeddedFile;
 	private JToggleButton zoomSquare;
@@ -143,6 +145,7 @@ public class MainFrame extends JFrame {
 		
 		
 		console = new JTextField();
+		memoryUsage = new JLabel();
 		openLogFile = new JButton("Open Logfile", new ImageIcon(Utility.LoadImgResource("res/icons/open.png")));
 		openEmbeddedFile = new JButton("Open Default", new ImageIcon(Utility.LoadImgResource("res/icons/embed.png")));
 	    clockRateComboBox = new JComboBox(clockRateList);
@@ -165,7 +168,8 @@ public class MainFrame extends JFrame {
 	private void addComponents(Container cp) {
 		//Left panel
 		GridLayout gl = new GridLayout(0,1,0,2);
-		JPanel jpLeft = new JPanel(gl);		
+		JPanel jpLeft = new JPanel(gl);
+		jpLeft.add(memoryUsage);
 		jpLeft.add(openLogFile);
 		jpLeft.add(openEmbeddedFile);
 		jpLeft.add(clockRateComboBox);
@@ -342,6 +346,16 @@ public class MainFrame extends JFrame {
 			
 		});
 		
+		memoryUsageTimer = new Timer(1000, new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				Runtime runtime = Runtime.getRuntime();
+				long memory = runtime.totalMemory() - runtime.freeMemory();
+				String memTxt = new DecimalFormat("#.#").format(bytesToMegabytes(memory)); //"1.2"
+				memoryUsage.setText("Memory: " + memTxt + " Mb");
+			}
+		});
+		memoryUsageTimer.start();
+		
 		animTimer = new Timer(50, new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 
@@ -511,17 +525,6 @@ public class MainFrame extends JFrame {
 		//Reset the view
 		Rectangle2D initialBounds = netViewPanel.getNaturalBounds();
 		netViewPanel.getCamera().animateViewToCenterBounds(initialBounds, true, 1000);
-		
-		
-		// Get the Java runtime
-		Runtime runtime = Runtime.getRuntime();
-		// Run the garbage collector
-		//runtime.gc();
-		// Calculate the used memory
-		long memory = runtime.totalMemory() - runtime.freeMemory();
-		System.out.println("Used memory is bytes: " + memory);
-		System.out.println("Used memory is megabytes: "
-				+ bytesToMegabytes(memory));
 		
 	}
 	

@@ -53,41 +53,25 @@ public class NetworkVisualizer extends PCanvas {
 		//Initialize agents
 		addAgentsToGraph(uniqueCarIDs, cars, getLayer());
 		
-		//Draw agents in current frame
-		//redrawAtCurrFrame(currFrameNum);
-		
-		
-		for(Intersection it : rn.getIntersection().values()){
-			//System.out.println(it.getVaTrafficSignal().size());
+		//Add intersections (?)
+		/*for(Intersection it : rn.getIntersection().values()){
 			for(int i = 0 ; i<it.getVaTrafficSignal().size();i++){
 				if(it.getVaTrafficSignal().get(i).size()>0){
-					//System.out.println(it.getVaTrafficSignal().get(i).get(0).getFromNode().getLocalPos().getX());
 				}
 			}
-			//System.out.println(it.getVbTrafficSignal().size());
 			for(int i = 0 ; i<it.getVbTrafficSignal().size();i++){
-				
 				if(it.getVbTrafficSignal().get(i).size()>0){
-					//System.out.println(it.getVbTrafficSignal().get(i).get(0).getFromNode().getLocalPos().getX());
 				}
 			}
-			//System.out.println(it.getVcTrafficSignal().size());
-
 			for(int i = 0 ; i<it.getVcTrafficSignal().size();i++){
 				if(it.getVcTrafficSignal().get(i).size()>0){
-					//System.out.println(it.getVcTrafficSignal().get(i).get(0).getFromNode().getLocalPos().getX());
 				}
 			}
-			//System.out.println(it.getVdTrafficSignal().size());
-
 			for(int i = 0 ; i<it.getVdTrafficSignal().size();i++){
 				if(it.getVdTrafficSignal().get(i).size()>0){
-					//System.out.println(it.getVdTrafficSignal().get(i).get(0).getFromNode().getLocalPos().getX());
-			
 				}
 			}
-			System.out.println();
-		}	
+		}*/	
 	
 		
 	}
@@ -104,12 +88,10 @@ public class NetworkVisualizer extends PCanvas {
 			
 			//Now add it to the scene graph
 			parent.addChild(tempCar);
-			//int index = layer.indexOfChild(tempCar);
-			//carIDtoIndex.put((Integer)uniqueCarIDs[i], index);
 		}
 	}
 	
-	public void redrawAtCurrFrame(TimeTick tick){
+	/*package-private*/ void redrawAtCurrFrame(TimeTick tick){
 		if (tick==null) { return; }
 		
 		//TODO: If we can somehow "disable repaints" before this starts, then enable them after,

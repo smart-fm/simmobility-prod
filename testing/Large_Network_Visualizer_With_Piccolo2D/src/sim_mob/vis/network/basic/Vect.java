@@ -1,5 +1,7 @@
 package sim_mob.vis.network.basic;
 
+import java.awt.geom.Point2D;
+
 
 /**
  * Vector class, with convenience methods for scaling, etc.
@@ -13,6 +15,10 @@ public class Vect {
 	public Vect(double fromX, double fromY, double toX, double toY) {
 		this.pos = new DPoint(fromX, fromY);
 		this.mag = new DPoint(toX-fromX, toY-fromY);
+	}
+	
+	public Vect(Point2D from, Point2D to) {
+		this(from.getX(), from.getY(), to.getX(), to.getY());
 	}
 	  
 	public Vect(double magX, double magY) {

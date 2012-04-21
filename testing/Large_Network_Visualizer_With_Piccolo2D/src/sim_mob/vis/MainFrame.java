@@ -82,17 +82,19 @@ public class MainFrame extends JFrame {
 				Rectangle2D bounds = new Rectangle2D.Double(startPos.getX(), startPos.getY(), endPos.getX()-startPos.getX(), endPos.getY()-startPos.getY());
 				c.animateViewToCenterBounds(bounds, true, 1000);
 			}
+			netViewPanel.setZoomBox(null);
 			releaseZoomSquare();
 		}
 		public void mouseDragged(MouseEvent e) {
 			//Provide some feedback.
 			if (startPoint != null) {
-				netViewPanel.repaint();  //NOTE: This is probably better done with a camera-constant object.
-				Graphics2D g = (Graphics2D)netViewPanel.getGraphics();
-				g.setColor(Color.red);
-				g.setStroke(onePtStroke);
-				Rectangle2D rect = new Rectangle2D.Double(startPoint.x, startPoint.y, e.getX()-startPoint.x, e.getY()-startPoint.y);
-				g.draw(rect);
+				//netViewPanel.repaint();  //NOTE: This is probably better done with a camera-constant object.
+				//Graphics2D g = (Graphics2D)netViewPanel.getGraphics();
+				//g.setColor(Color.red);
+				//g.setStroke(onePtStroke);
+				netViewPanel.setZoomBox(new Rectangle2D.Double(startPoint.x, startPoint.y, e.getX()-startPoint.x, e.getY()-startPoint.y));
+				//Rectangle2D rect = new Rectangle2D.Double(startPoint.x, startPoint.y, e.getX()-startPoint.x, e.getY()-startPoint.y);
+				//g.draw(rect);
 			}
 		}
 	}

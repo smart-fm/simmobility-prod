@@ -8,6 +8,7 @@ import sim_mob.vis.MainFrame;
 import sim_mob.vis.network.*;
 import sim_mob.vis.simultion.*;
 import edu.umd.cs.piccolo.*;
+import edu.umd.cs.piccolo.util.PPaintContext;
 
 
 
@@ -22,17 +23,30 @@ public class NetworkVisualizer extends PCanvas {
 	//The size of the canvas at a zoom level of 1.0
 	//private Dimension naturalSize;
 	private Rectangle2D naturalBounds;
-	public Rectangle2D getNaturalBounds() { return naturalBounds; }	
+	public Rectangle2D getNaturalBounds() { return naturalBounds; }
+	
+	private RectNode zoomBox;
+	
+	private static final Stroke onePtStroke = new BasicStroke(1);
 	
 	public NetworkVisualizer( int width, int height){
 		this.naturalBounds = new Rectangle2D.Double(0, 0, 10, 10); //Doesn't matter.
 		setPreferredSize(new Dimension(width, height));
 		this.setBackground(MainFrame.Config.getBackground("panel"));
  
-		//layer = new PLayer();
-    	//this.getCamera().addChild(layer);
-    	
+		this.zoomBox = new RectNode(100, 100, 200, 300);
+		this.zoomBox.setVisible(false);
+		getCamera().addChild(zoomBox);
 	}
+	
+	
+	public void setZoomBox(Rectangle2D rect) {
+		this.zoomBox.setVisible(rect!=null);
+		if (rect!=null) {
+			this.zoomBox.setBounds(rect);
+		}
+	}
+	
 	
 	public void buildSceneGraph(RoadNetwork rn, SimulationResults simRes, HashSet<Integer> uniqueAgentIDs){
 		//Set up resources 
@@ -82,7 +96,7 @@ public class NetworkVisualizer extends PCanvas {
 	private void addAgentsToGraph(Integer[] uniqueCarIDs, Hashtable<Integer, Car> carArray, PLayer parent) {		
 		for(int id : uniqueCarIDs) {
 			//Make a new, invisible car for this Agent
-			Car tempCar = new Car();
+			Car tempCar = new Car(id);
 			tempCar.setVisible(false);
 			carArray.put(id, tempCar);
 			
@@ -205,15 +219,32 @@ public class NetworkVisualizer extends PCanvas {
 			Car c = cars.get(agID);
 			AgentTick at = currFrameTick.agentTicks.get(agID);
 			if (c==null || at==null) { continue; }
+			c.setVisible(true);
 			
 			//Update it, set it visible.
 			//TODO: We might be able to do this with translations; 
 			//      for now, I'm just changing their positions manually.
+			//double angle = (Math.PI * at.getAngle())/180;
 			c.setX(at.getPos().getX());
 			c.setY(at.getPos().getY());
-			c.setRotation((Math.PI * at.getAngle())/180);
-			c.setVisible(true);
+			//c.rotateAboutPoint(angle, at.getPos().getX(), at.getPos().getY());
 		}
 	}
+	
+	
+	//For zoom display
+	class RectNode extends PNode {
+		public RectNode(double x, double y, double w, double h) {
+			this.setBounds(x, y, w, h);
+		}
+		protected void paint(PPaintContext pc) {
+			Graphics2D g = pc.getGraphics();
+			g.setStroke(onePtStroke);
+			g.setColor(Color.red);
+			g.draw(getBounds());
+		}
+	}
+	
+	
 
 }

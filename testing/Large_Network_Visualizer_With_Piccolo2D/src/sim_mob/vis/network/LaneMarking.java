@@ -1,10 +1,10 @@
 package sim_mob.vis.network;
 
 import java.awt.*;
+
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.Rectangle2D.Double;
 import java.util.ArrayList;
 import sim_mob.vis.MainFrame;
 import edu.umd.cs.piccolo.PNode;

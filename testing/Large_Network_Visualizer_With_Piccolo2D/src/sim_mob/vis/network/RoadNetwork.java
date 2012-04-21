@@ -1,8 +1,6 @@
 package sim_mob.vis.network;
 
-import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
-import java.awt.geom.Point2D.Double;
 import java.io.*;
 import java.util.*;
 import java.util.regex.*;

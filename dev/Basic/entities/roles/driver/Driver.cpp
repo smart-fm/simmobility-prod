@@ -1668,6 +1668,11 @@ void sim_mob::Driver::pack(PackageUtils& packageUtil) {
 	packageUtil.packBasicData(currLaneLength_.get());
 	packageUtil.packBasicData(isInIntersection.get());
 
+	packageUtil.packBasicData(latMovement.get());
+	packageUtil.packBasicData(fwdVelocity.get());
+	packageUtil.packBasicData(latVelocity.get());
+	packageUtil.packBasicData(fwdAccel.get());
+
 	//part 2
 	//no need to package params, params will be rebuild in the next time step
 	//packageUtil.packDriverUpdateParams(params);
@@ -1688,11 +1693,20 @@ void sim_mob::Driver::pack(PackageUtils& packageUtil) {
 		packageUtil.packBasicData<bool>(hasSomething);
 	}
 
+
+
 	//Part 3
-	packageUtil.packFixedDelayedDPoint(perceivedVelocity);
-	packageUtil.packFixedDelayedDPoint(perceivedVelocityOfFwdCar);
-	packageUtil.packFixedDelayedDouble(perceivedAccelerationOfFwdCar);
-	packageUtil.packFixedDelayedInt(perceivedDistToFwdCar);
+	packageUtil.packBasicData(reacTime_LeadingVehicle);
+	packageUtil.packBasicData(reacTime_SubjectVehicle);
+	packageUtil.packBasicData(reacTime_Gap);
+
+//	std::cout << "B0027," << reacTime_Gap << std::endl;
+
+//	packageUtil.packFixedDelayedDPoint(perceivedVelocity);
+//	packageUtil.packFixedDelayedDPoint(perceivedVelocityOfFwdCar);
+//	packageUtil.packFixedDelayedDouble(perceivedAccelerationOfFwdCar);
+//	packageUtil.packFixedDelayedInt(perceivedDistToFwdCar);
+//	packageUtil.packFixedDelayedDouble(perceivedTrafficSignalStop);
 
 	packageUtil.packPoint2D(origin.point);
 	Node::pack(packageUtil, origin.node);
@@ -1742,12 +1756,26 @@ void sim_mob::Driver::unpack(UnPackageUtils& unpackageUtil) {
 	bool value_inIntersection = unpackageUtil.unpackBasicData<bool> ();
 	isInIntersection.force(value_inIntersection);
 
+//	std::cout << "A001" << this->getParent()->getId() << std::endl;
+
+	double latMovement_buffer = unpackageUtil.unpackBasicData<double> ();
+	latMovement.force(latMovement_buffer);
+	double fwdVelocity_buffer = unpackageUtil.unpackBasicData<double> ();
+	fwdVelocity.force(fwdVelocity_buffer);
+	double latVelocity_buffer = unpackageUtil.unpackBasicData<double> ();
+	latVelocity.force(latVelocity_buffer);
+	double fwdAccel_buffer = unpackageUtil.unpackBasicData<double> ();
+	fwdAccel.force(fwdAccel_buffer);
+
+//	std::cout << "A002" << this->getParent()->getId() << std::endl;
+
 	//no need to unpackage params, params will be rebuild in the next time step
 	//unpackageUtil.unpackDriverUpdateParams(params);
 
 	//part 2
 	//currTimeMS = unpackageUtil.unpackBasicData<int> ();
 	vehicle = Vehicle::unpack(unpackageUtil) ;
+//	std::cout << "A0025" << this->getParent()->getId() << std::endl;
 
 	bool hasSomething = unpackageUtil.unpackBasicData<bool> ();
 	if (hasSomething) {
@@ -1755,12 +1783,21 @@ void sim_mob::Driver::unpack(UnPackageUtils& unpackageUtil) {
 		SimpleIntDrivingModel::unpack(unpackageUtil, dynamic_cast<SimpleIntDrivingModel *>(intModel)) ;
 	}
 
+//	std::cout << "A0026" << this->getParent()->getId() << std::endl;
+
 	//Part 3
-	perceivedVelocity = unpackageUtil.unpackFixedDelayedDPoint();
-	perceivedVelocityOfFwdCar = unpackageUtil.unpackFixedDelayedDPoint();
-	perceivedAccelerationOfFwdCar = unpackageUtil.unpackFixedDelayedDouble();
-	perceivedDistToFwdCar = unpackageUtil.unpackFixedDelayedInt();
-	std::cout << "A003" << this->getParent()->getId() << std::endl;
+	reacTime_LeadingVehicle = unpackageUtil.unpackBasicData<int> ();
+	reacTime_SubjectVehicle = unpackageUtil.unpackBasicData<int> ();
+	reacTime_Gap = unpackageUtil.unpackBasicData<int> ();
+
+//	std::cout << "A0027," << reacTime_Gap << std::endl;
+
+//	perceivedVelocity = unpackageUtil.unpackFixedDelayedDPoint();
+//	perceivedVelocityOfFwdCar = unpackageUtil.unpackFixedDelayedDPoint();
+//	perceivedAccelerationOfFwdCar = unpackageUtil.unpackFixedDelayedDouble();
+//	perceivedDistToFwdCar = unpackageUtil.unpackFixedDelayedInt();
+//	perceivedTrafficSignalStop = unpackageUtil.unpackFixedDelayedDouble();
+//	std::cout << "A003" << this->getParent()->getId() << std::endl;
 
 	origin.point = *(unpackageUtil.unpackPoint2D());
 	origin.node = Node::unpack(unpackageUtil);
@@ -1801,6 +1838,11 @@ void sim_mob::Driver::packProxy(PackageUtils& packageUtil) {
 	packageUtil.packBasicData(currLaneOffset_.get());
 	packageUtil.packBasicData(currLaneLength_.get());
 	packageUtil.packBasicData(isInIntersection.get());
+
+	packageUtil.packBasicData(latMovement.get());
+	packageUtil.packBasicData(fwdVelocity.get());
+	packageUtil.packBasicData(latVelocity.get());
+	packageUtil.packBasicData(fwdAccel.get());
 
 	//packageUtil.packBasicData(currTimeMS);
 	Vehicle::pack(packageUtil, vehicle);
@@ -1887,6 +1929,16 @@ void sim_mob::Driver::unpackProxy(UnPackageUtils& unpackageUtil) {
 	bool value_inIntersection = unpackageUtil.unpackBasicData<bool> ();
 	isInIntersection.force(value_inIntersection);
 //	std::cout << "Step 4.2.7.4:" << std::endl;
+
+	double latMovement_buffer = unpackageUtil.unpackBasicData<double> ();
+	latMovement.force(latMovement_buffer);
+	double fwdVelocity_buffer = unpackageUtil.unpackBasicData<double> ();
+	fwdVelocity.force(fwdVelocity_buffer);
+	double latVelocity_buffer = unpackageUtil.unpackBasicData<double> ();
+	latVelocity.force(latVelocity_buffer);
+	double fwdAccel_buffer = unpackageUtil.unpackBasicData<double> ();
+	fwdAccel.force(fwdAccel_buffer);
+//	std::cout << "Step 4.2.7.5.1111:" << std::endl;
 
 //	if(this->getParent()->getId() < 1000)
 //		std::cout << this->getParent()->getId() << "1-1-6-4" << std::endl;

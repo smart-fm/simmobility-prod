@@ -113,6 +113,8 @@ private:
 	//The links that will get a green light at this phase
 
 	/*vahid:
+	 * In the phase class we need to store the links associated with a phase.
+	 * Also, we need to
 	 * the following map is used to store the links associated with this phase
 	 * as well as the colors associated with those links.
 	 */

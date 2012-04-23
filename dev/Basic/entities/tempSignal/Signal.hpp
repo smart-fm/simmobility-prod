@@ -18,7 +18,7 @@
 #include "metrics/Length.hpp"
 #include "util/SignalStatus.hpp"
 #include "entities/LoopDetectorEntity.hpp"
-#include "phase.hpp"
+#include "plan.hpp"
 
 namespace sim_mob
 {
@@ -87,11 +87,13 @@ public:
     LoopDetectorEntity const & loopDetector() const { return loopDetector_; }
 private:
 
+    sim_mob::SplitPlan plan_;
     int signalAlgorithm;
     std::vector<double> Density; //donna what this is, still change it to vector
     double DS_all;
 
-        Node const & node_;
+
+    Node const & node_;
 
 	//previous,current and next cycle length
 	double prevCL,currCL,nextCL;
@@ -102,12 +104,7 @@ private:
 	//SplitPlan that can be chosen to use
 	static const double fixedSplitPlan[];
 	static std::vector< std::vector<double> > SplitPlan;
-	//current and next SplitPlan
-//	std::vector<double>currSplitPlan;
 	sim_mob::SplitPlan currSplitPlan,nextSplitPlan;
-//	std::vector<double>nextSplitPlan;
-	//double currSplitPlan[4],nextSplitPlan[4];
-
 
 	int currSplitPlanID,nextSplitPlanID;//Don't think I will need it anymore
 

@@ -227,7 +227,7 @@ int Signal::getPlanId_w_MaxVote()
 void Signal::setnextSplitPlan(std::vector<double> DS) {
 	std::vector<int> vote(SplitPlan.size(),0);
 	std::vector<double> proDS(DS.size(),0);// projected DS
-	std::vector<double>  maxproDS(SplitPlan.size(),0);// max projected DS of each SplitPlan
+	std::vector<double>  maxproDS(plan_.getPhases().size(),0);// max projected DS of each SplitPlan
 	int i,j;
 
 	//step 1:Calculate the projected DS for each approach (and find the maximum projected DS)

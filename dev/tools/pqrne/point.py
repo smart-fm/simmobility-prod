@@ -67,7 +67,8 @@ def cross_product(v, w):
     return (v.x * w.y) - (v.y * w.x)
 
 def intersection_point(p1, p2, p3, p4):
-    """Return the intersection point between line L1 from p1 to p2 and line L2 from p3 to p4."""
+    """Return the intersection point between line L1 from p1 to p2 and line L2 from p3 to p4;
+    if L1 is parallel to L2, return a point very far away."""
     # The intersection point p is given by p1 + t * (p2 - p1) where
     # t = ((y4-y3)(x3-x1) - (x4-x3)(y3-y1)) / ((y4-y3)(x2-x1)-(x4-x3)(y2-y1))
     v1 = p2 - p1    # p2.__sub__(p1)

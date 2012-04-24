@@ -87,6 +87,7 @@ protected:
 
 friend class sim_mob::aimsun::Loader;
 friend class sim_mob::RoadNetworkPackageManager;
+friend class sim_mob::Signal;
 
 };
 

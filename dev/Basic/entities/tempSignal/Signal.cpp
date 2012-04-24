@@ -62,36 +62,6 @@ const double fixedCL = 60;
  *
  */
 
-namespace {
-
-
-//Driver template
-const int TC_for_DriverTemplate[][4][3] = {
-		{ { 3, 3, 1 }, { 1, 1, 1 }, { 3, 3, 1 }, { 1, 1, 1 } }, //Case  0
-		{ { 2, 2, 1 }, { 1, 1, 1 }, { 2, 2, 1 }, { 1, 1, 1 } }, //Case 10
-		{ { 1, 1, 3 }, { 1, 1, 1 }, { 1, 1, 3 }, { 1, 1, 1 } }, //Case  1
-		{ { 1, 1, 2 }, { 1, 1, 1 }, { 1, 1, 2 }, { 1, 1, 1 } }, //Case 11
-		{ { 1, 1, 1 }, { 3, 3, 1 }, { 1, 1, 1 }, { 3, 3, 1 } }, //Case  2
-		{ { 1, 1, 1 }, { 2, 2, 1 }, { 1, 1, 1 }, { 2, 2, 1 } }, //Case 12
-		{ { 1, 1, 1 }, { 1, 1, 3 }, { 1, 1, 1 }, { 1, 1, 3 } }, //Case  3
-		{ { 1, 1, 1 }, { 1, 1, 2 }, { 1, 1, 1 }, { 1, 1, 2 } }, //Case 13
-		};
-
-//Pedestrian template
-const int TC_for_PedestrianTemplate[][4] = {
-		{ 1, 3, 1, 3 }, //Case  0
-		{ 1, 3, 1, 3 }, //Case 10
-		{ 1, 1, 1, 1 }, //Case  1
-		{ 1, 1, 1, 1 }, //Case 11
-		{ 3, 1, 3, 1 }, //Case  2
-		{ 3, 1, 3, 1 }, //Case 12
-		{ 1, 1, 1, 1 }, //Case  3
-		{ 1, 1, 1, 1 }, //Case 13
-		};
-
-} //End anon namespace
-
-const double Signal::fixedSplitPlan[] = { 0.30, 0.30, 0.20, 0.20 };
 ///////////////////// Implementation ///////////////////////
 Signal const &
 Signal::signalAt(Node const & node, const MutexStrategy& mtxStrat) {
@@ -105,28 +75,33 @@ Signal::signalAt(Node const & node, const MutexStrategy& mtxStrat) {
 	return *sig;
 }
 
-//todo
-void Signal::addSignalSite(centimeter_t /* xpos */, centimeter_t /* ypos */,
-		std::string const & /* typeCode */, double /* bearing */) {
-	// Not implemented yet.
-}
-
 Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id)
   : Agent(mtxStrat, id)
   , node_(node)
-  , buffered_TC(mtxStrat, SignalStatus())
   , loopDetector_(*this, mtxStrat)
 {
+
+	findIncomingLanes();
 	ConfigParams& config = ConfigParams::GetInstance();
 	signalAlgorithm = config.signalAlgorithm;
+	Density.resize(IncomingLanes_.size(), 0);
     initializeSignal();
 //    setupIndexMaps();  I guess this function is Not needed any more
 }
-
+/* Set Split plan and Initialize its Indicators in the signal class*/
+void Signal::setSplitPlan(sim_mob::SplitPlan plan)
+{
+	plan_ = plan;
+}
+/* Set the cycle length and Initialize its Indicators in the signal class*/
+void Signal::setCycleLength(sim_mob::Cycle cycle)
+{
+	cycle_ = cycle;
+}
 void Signal::initializeSignal() {
-	Density[0]=0,Density[1]=0,Density[2]=0,Density[3]=0;
-	setCL(60, 60, 60);//default initial cycle length for SCATS
-	setRL(60, 60);//default initial RL for SCATS
+
+//	setCL(0, 60, 0);//default initial cycle length for SCATS
+//	setRL(60, 60);//default initial RL for SCATS
 	startSplitPlan();
 	currPhase = 0;
 	phaseCounter = 0;
@@ -135,6 +110,39 @@ void Signal::initializeSignal() {
 	updateTrafficLights();
 
 }
+
+void Signal::addSignalSite(centimeter_t /* xpos */, centimeter_t /* ypos */,
+		std::string const & /* typeCode */, double /* bearing */) {
+	// Not implemented yet.
+}
+/*
+ * this class needs to access lanes coming to it, mostly to calculate DS
+ * It is not feasible to extract the lanes from every traffic signal every time
+ * we need to calculate DS. Rather, we book-keep  the lane information.
+ * It is a trade-off between process and memory.
+ * In order to save memory, we only keep the record of Lane pointers-vahid
+ */
+int Signal::findIncomingLanes()
+{
+	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&node_);
+	if(! mNode) retunrn -1;
+	const std::set<sim_mob::RoadSegment*>& rs = mNode->getRoadSegments();
+	for (std::set<sim_mob::RoadSegment*>::const_iterator it = rs.begin(); it!= rs.end(); it++) {
+		if ((*it)->getEnd() != &node_)//consider only the segments that end here
+			continue;
+		IncomingLanes_.reserve(IncomingLanes_.size() + (*it)->getLanes().size());
+		IncomingLanes_.insert(IncomingLanes_.end(), (*it)->getLanes().begin(), (*it)->getLanes().end());
+	}
+}
+
+//initialize SplitPlan
+void Signal::startSplitPlan() {
+	//CurrSplitPlan
+	currSplitPlanID = plan_.CurrSplitPlanID();//1; -vahid
+	currSplitPlan = plan_.CurrSplitPlan();
+	nextSplitPlan.assign(plan_.nofPhases(), 0); //Initialize to the number 0, four times.
+}
+
 //find the max projected DS in each SplitPlan
 double Signal::fmax(std::vector<double> proDS) {
 	double max = proDS[0];
@@ -159,6 +167,8 @@ int Signal::fmin_ID(std::vector<double> maxproDS) {
 	return min;
 }
 
+std::vector<double> Signal::getNextSplitPlan() {return nextSplitPlan;}
+std::vector<double> Signal::getCurrSplitPlan() {return currSplitPlan;}
 ////determine next SplitPlan according to the votes in last certain number of cycles
 //int Signal::calvote(std::vector<unsigned int >vote) {
 //
@@ -254,6 +264,55 @@ void Signal::updatecurrSplitPlan() {
 //		currSplitPlan[i] = nextSplitPlan[i];
 //	}
 }
+
+/*
+ * This function calculates the Degree of Saturation based on the "lanes"(so a part of the effort will be devoted to finding lanes)
+ * Previous implementation had a mechanism to filter out unnecessary lanes but since it was based on the default
+ * 4-junction intersection scenario only, I had to replace it.
+ */
+double Signal::computeDS(double total_g)
+{
+	double maxDS = 0;
+	std::set<sim_mob::links_map>::iterator it_LM = plan_.CurrPhase().LinksMap().begin();
+	for(;it_LM!= plan_.CurrPhase().LinksMap().end(); it_LM++)
+	{
+		sim_mob::Link *link = (*it_LM).LinkFrom;
+		std::set<sim_mob::RoadSegment*>::iterator it = (*link).uniqueSegments.begin();
+		for(; it != (*link).uniqueSegments.end(); it++)
+		{
+			//discard the segments that don't end here(coz those who don't end here, don't cross the intersection neither)
+			if((*it)->getEnd()!=&node_)//sim_mob::Link is bi-directionl so we use RoadSegment's start and end to imply direction
+				continue;
+		}
+		const std::vector<sim_mob::Lane*>& lanes = (*it)->getLanes();
+		for(size_t i=0;i<lanes.size();i++)
+		{
+			const Lane* lane = lanes.at(i);
+			if(lane->is_pedestrian_lane())
+				continue;
+			const LoopDetectorEntity::CountAndTimePair& ctPair = loopDetector_.getCountAndTimePair(*lane);
+			double lane_DS = LaneDS(ctPair,total_g);
+			if(lane_DS > maxDS) maxDS = lane_DS;
+		}
+	}
+//	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&node_); is history :)
+	return maxDS;
+}
+
+/*
+ * The actual DS computation formula is here!
+ */
+double Signal::LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,double total_g)
+{
+//	CountAndTimePair would give you T and n of the formula 2 in section 3.2 of the memurandum (page 3)
+	size_t vehicleCount = ctPair.vehicleCount;
+	unsigned int spaceTime = ctPair.spaceTimeInMilliSeconds;
+	double standard_space_time = 1.04*1000;//1.04 seconds
+	/*this is formula 2 in section 3.2 of the memurandum (page 3)*/
+	double used_g = (vehicleCount==0)?0:total_g - (spaceTime - standard_space_time*vehicleCount);
+	return used_g/total_g;//And this is formula 1 in section 3.2 of the memurandum (page 3)
+}
+
 
 //use next cycle length to calculate next Offset
 void Signal::setnextOffset(double nextCL) {

@@ -10,20 +10,8 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.io.IOException;
 
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.JSlider;
-import javax.swing.JTextField;
-import javax.swing.JToggleButton;
-import javax.swing.Timer;
+import javax.swing.*;
 
-import sim_mob.conf.BatikCSS_Loader;
-import sim_mob.conf.CSS_Interface;
 import sim_mob.vis.controls.NetworkVisualizer;
 import sim_mob.vis.util.Utility;
 
@@ -44,39 +32,53 @@ import sim_mob.vis.util.Utility;
 public class MainFrameUI  extends JFrame {
 	private static final long serialVersionUID = 1L;
 	
+	//NOTE: Is this doing what we want it to?
 	private static final String clockRateList[] = {"default-50ms","10 ms", "50 ms", "100 ms", "200 ms","500 ms","1000 ms"};
 	
-	//Our network panel is placed within a FlowLayout'd JPanel to make swapping 
-	// items out easier later.
-	protected JPanel rhsLayout;
-	protected JProgressBar generalProgress;
-	protected FileOpenThread progressData;
-	protected Timer progressChecker;
+	//Shared resources. Loaded once
+	private static ImageIcon playIcon;
+	private static ImageIcon pauseIcon;
+	private static ImageIcon revIcon;
+	private static ImageIcon fwdIcon;
+	private static ImageIcon loadFileIcon;
+	private static ImageIcon loadEmbeddedIcon;
+	private static ImageIcon zoomInIcon;
+	private static ImageIcon zoomOutIcon;
+	private static boolean ResourcesLoaded = false;
 	
-	protected JTextField console;
+	//Leftover layout panels. TODO: Remove these if possible:
+	private JPanel rhsLayout;
+	private JPanel jpLeft;
+	private JPanel zoomPnl;
+	private JPanel jpLower;
+	private JPanel jpLower2;
 	
-	//Canvas that make use of the PCanvas
-	protected NetworkVisualizer netViewPanel;
-	
-	//LHS panel
-	protected Timer memoryUsageTimer;
+	//Left panel buttons
 	protected JLabel memoryUsage;
 	protected JButton openLogFile;
 	protected JButton openEmbeddedFile;
+	protected JComboBox clockRateComboBox;
+	
+	//Left panel: zoom buttons
 	protected JToggleButton zoomSquare;
 	protected JButton zoomIn;
 	protected JButton zoomOut;
-	protected JComboBox clockRateComboBox;
-
-	//Lower panel
-	protected Timer animTimer;
+	
+	//Lower panel: play, pause, seek
 	protected JSlider frameTickSlider;
 	protected JButton fwdBtn;
-	protected JButton playBtn;
+	protected JToggleButton playBtn;
 	protected JButton revBtn;
-	protected ImageIcon playIcon;
-	protected ImageIcon pauseIcon;
 	
+	//Right panel: display surface, zoomable interface.
+	protected NetworkVisualizer netViewPanel;
+	
+	//Various feedback components
+	protected JProgressBar generalProgress;
+	protected JTextField console;
+	
+	
+
 	public MainFrameUI(String title) {
 		super(title);
 		
@@ -84,54 +86,99 @@ public class MainFrameUI  extends JFrame {
 		this.setLocation(150, 100);
 		this.setSize(1024, 768);
 		
+		if (!ResourcesLoaded) {
+			LoadResources();
+			ResourcesLoaded = true;
+		}
 		loadComponents();
 		layoutComponents(this.getContentPane());
 	}
 	
-	protected void loadComponents() {
-		//TODO: These can go into a "load resources" function; we might want to allow optionally 
-		//      running with a warning if some icons are missing, or having a fallback (e.g., "+" instead of zoom in)
+	private static final ImageIcon MakeImageIcon(String resourcePath) {
+		ImageIcon res = null;
 		try {
-			playIcon = new ImageIcon(Utility.LoadImgResource("res/icons/play.png"));
-			pauseIcon = new ImageIcon(Utility.LoadImgResource("res/icons/pause.png"));
-			openLogFile = new JButton("Open Logfile", new ImageIcon(Utility.LoadImgResource("res/icons/open.png")));
-			openEmbeddedFile = new JButton("Open Default", new ImageIcon(Utility.LoadImgResource("res/icons/embed.png")));
-			revBtn = new JButton(new ImageIcon(Utility.LoadImgResource("res/icons/rev.png")));
-			fwdBtn = new JButton(new ImageIcon(Utility.LoadImgResource("res/icons/fwd.png")));
-		} catch (IOException ex) {
-			throw new RuntimeException(ex);
+			res = new ImageIcon(Utility.LoadImgResource(resourcePath));
+		} catch (IOException ex) { 
+			System.out.println("WARNING: Couldn't find resource: " + resourcePath); 
 		}
+		return res;
+	}
+	
+	///After this function has been called, any resources which are null simply weren't found.
+	private static final void LoadResources() {
+		playIcon = MakeImageIcon("res/icons/play.png");
+		pauseIcon = MakeImageIcon("res/icons/pause.png");
+		revIcon = MakeImageIcon("res/icons/rev.png");
+		fwdIcon = MakeImageIcon("res/icons/fwd.png");
+		loadFileIcon = MakeImageIcon("res/icons/open.png");
+		loadEmbeddedIcon = MakeImageIcon("res/icons/embed.png");
+		zoomInIcon = MakeImageIcon("res/icons/zoom_in.png");
+		zoomOutIcon = MakeImageIcon("res/icons/zoom_out.png");
+	}
+	
+	
+	protected void loadComponents() {
+		//"Open" buttons
+		openLogFile = new JButton("Open Logfile", loadFileIcon);
+		openEmbeddedFile = new JButton("Open Default", loadEmbeddedIcon);
 		
-		console = new JTextField();
+		//Feedback items
 		memoryUsage = new JLabel("Memory Usage: X mb");
-	    clockRateComboBox = new JComboBox(clockRateList);
-	    zoomSquare = new JToggleButton("Zoom Box");
-	    zoomIn = new JButton("+");
-	    zoomOut = new JButton("-");
-	    
-
-		frameTickSlider = new JSlider(JSlider.HORIZONTAL);
-		playBtn = new JButton(playIcon);
-
-		netViewPanel = new NetworkVisualizer(300,300);
+		console = new JTextField();
+		
+		//Progress bar for loading files/saving video.
 		generalProgress = new JProgressBar();
 		generalProgress.setMinimum(0);
 		generalProgress.setMaximum(100);
 		generalProgress.setValue(45);
 		generalProgress.setForeground(new Color(0x33, 0x99, 0xEE));
 		generalProgress.setStringPainted(true);
+		
+		//Buttons for controlling simulation playback.
+		revBtn = new JButton(revIcon);
+		fwdBtn = new JButton(fwdIcon);
+		frameTickSlider = new JSlider(JSlider.HORIZONTAL);
+		playBtn = new JToggleButton(playIcon);
+		playBtn.setSelectedIcon(pauseIcon);
+		
+		//TODO: We'll probably have to subclass ToggleButton to get the behavior we want. 
+		//This comes close:
+		//playBtn.setBorderPainted(false);
+		//playBtn.setFocusPainted(false);
+		//playBtn.setBackground(new Color(0, true));
+		
+		//Changing the clock rate? Can we do this differently...?
+		clockRateComboBox = new JComboBox(clockRateList);
+		
+		//Zoom buttons
+	    zoomSquare = new JToggleButton("Zoom Box");
+	    zoomIn = new JButton("");
+	    if (zoomInIcon!=null) {
+	    	zoomIn.setIcon(zoomInIcon);
+	    } else {
+	    	zoomIn.setText("+");
+	    }
+	    zoomOut = new JButton("");
+	    if (zoomOutIcon!=null) {
+	    	zoomOut.setIcon(zoomOutIcon);
+	    } else {
+	    	zoomOut.setText("-");
+	    }
+	    
+	    //The main zoomable interface
+		netViewPanel = new NetworkVisualizer(300,300);
 	}
 	
 	private void layoutComponents(Container cp) {
 		//Left panel
 		GridLayout gl = new GridLayout(0,1,0,2);
-		JPanel jpLeft = new JPanel(gl);
+		jpLeft = new JPanel(gl);
 		jpLeft.add(memoryUsage);
 		jpLeft.add(openLogFile);
 		jpLeft.add(openEmbeddedFile);
 		jpLeft.add(clockRateComboBox);
 		
-		JPanel zoomPnl = new JPanel(new FlowLayout());
+		zoomPnl = new JPanel(new FlowLayout());
 		zoomPnl.add(zoomSquare);
 		zoomPnl.add(zoomIn);
 		zoomPnl.add(zoomOut);
@@ -139,9 +186,9 @@ public class MainFrameUI  extends JFrame {
 
 		
 		//Bottom panel
-		JPanel jpLower = new JPanel(new BorderLayout());
+		jpLower = new JPanel(new BorderLayout());
 		jpLower.add(BorderLayout.NORTH, frameTickSlider);
-		JPanel jpLower2 = new JPanel(new GridLayout(1, 0, 10, 0));
+		jpLower2 = new JPanel(new GridLayout(1, 0, 10, 0));
 		jpLower2.add(revBtn);
 		jpLower2.add(playBtn);
 		jpLower2.add(fwdBtn);

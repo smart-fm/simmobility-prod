@@ -28,11 +28,17 @@ public class CSS_Interface {
 		Color res = backgroundColors.get(className);
 		return res!=null ? res : defaultColor;
 	}
-	public Color getLineColor(String className) {
-		return lineColors.get(className);
+	
+	public Color getLineColor(String className) { return getLineColor(className, null); }
+	public Color getLineColor(String className, Color defaultColor) {
+		Color res = lineColors.get(className);
+		return res!=null ? res : defaultColor;
 	}
-	public Stroke getLineStroke(String className) {
-		return lineStrokes.get(className);
+	
+	public Stroke getLineStroke(String className) { return getLineStroke(className, null); }
+	public Stroke getLineStroke(String className, Stroke defaultStroke) {
+		Stroke res = lineStrokes.get(className);
+		return res!=null ? res : defaultStroke;
 	}
 
 }

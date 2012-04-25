@@ -15,7 +15,7 @@ public class Utility {
 	public static BufferedImage LoadImgResource(String path) throws IOException {
 		InputStream input = Main.class.getClassLoader().getResourceAsStream(path);
 		if (input==null) {
-			System.out.println("Could not find image resource: " + path);
+			throw new IOException("Could not find image resource: " + path);
 		}
 		return ImageIO.read(input);
 	}
@@ -23,7 +23,7 @@ public class Utility {
 	public static BufferedReader LoadFileResource(String path) throws IOException {
 		InputStream input = Main.class.getClassLoader().getResourceAsStream(path);
 		if (input==null) {
-			System.out.println("Could not find image resource: " + path);
+			throw new IOException("Could not find file resource: " + path);
 		}
 		return new BufferedReader(new InputStreamReader(input));
 	}

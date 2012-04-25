@@ -25,6 +25,11 @@ public class MainFrame extends MainFrameUI {
 	private NetSimAnimator netViewAnimator;
 	private SimulationResults simData;
 	
+	private Timer memoryUsageTimer;
+	private FileOpenThread progressData;
+	private Timer progressChecker;
+	protected Timer animTimer;
+	
 	//Colors
 	public static CSS_Interface Config = new CSS_Interface(); //An empty config allows us to use "default"
 	
@@ -179,10 +184,12 @@ public class MainFrame extends MainFrameUI {
 				
 				if (!animTimer.isRunning()) {
 					animTimer.start();
-					playBtn.setIcon(pauseIcon);
+					playBtn.setSelected(true);
+					//playBtn.setIcon(MainFrameUI.pauseIcon);
 				} else {
 					animTimer.stop();
-					playBtn.setIcon(playIcon);
+					playBtn.setSelected(false);
+					//playBtn.setIcon(MainFrameUI.playIcon);
 				}
 			}
 		});
@@ -192,7 +199,8 @@ public class MainFrame extends MainFrameUI {
 			public void actionPerformed(ActionEvent arg0) {
 				if (netViewAnimator.advanceAnimbyStep(1, frameTickSlider)) {
 					animTimer.stop();
-					playBtn.setIcon(playIcon);
+					playBtn.setSelected(false);
+					//playBtn.setIcon(MainFrameUI.playIcon);
 					console.setText("Input File Name: "+frameTickSlider.getValue());
 
 					return;
@@ -207,7 +215,8 @@ public class MainFrame extends MainFrameUI {
 			public void actionPerformed(ActionEvent arg0) {
 				if (netViewAnimator.advanceAnimbyStep(-1, frameTickSlider)) {
 					animTimer.stop();
-					playBtn.setIcon(playIcon);
+					playBtn.setSelected(false);
+					//playBtn.setIcon(MainFrameUI.playIcon);
 					console.setText("Input File Name: "+frameTickSlider.getValue());
 					return;
 				}
@@ -234,7 +243,8 @@ public class MainFrame extends MainFrameUI {
 				
 				}else{
 					animTimer.stop();
-					playBtn.setIcon(playIcon);
+					playBtn.setSelected(false);
+					//playBtn.setIcon(MainFrameUI.playIcon);
 					return;
 						
 				}
@@ -259,7 +269,8 @@ public class MainFrame extends MainFrameUI {
 								console.setText("Input File Name: "+frameTickSlider.getValue());
 							}else{
 								animTimer.stop();
-								playBtn.setIcon(playIcon);
+								playBtn.setSelected(false);
+								//playBtn.setIcon(MainFrameUI.playIcon);
 								return;
 									
 							}
@@ -335,7 +346,8 @@ public class MainFrame extends MainFrameUI {
 	private void pauseAnimation() {
 		if (animTimer.isRunning()) {
 			animTimer.stop();
-			playBtn.setIcon(playIcon);
+			playBtn.setSelected(false);
+			//playBtn.setIcon(MainFrameUI.playIcon);
 		}
 	}
 	

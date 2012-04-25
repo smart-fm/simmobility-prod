@@ -20,7 +20,8 @@
 #include "entities/LoopDetectorEntity.hpp"
 #include "plan.hpp"
 #include "Cycle.hpp"
-
+#include "Offset.hpp"
+#include "defaults.hpp"
 namespace sim_mob
 {
 
@@ -70,12 +71,6 @@ public:
 	int getphaseCounter(){return phaseCounter;}
 
 
-	/*--------Offset----------*/
-	void setnextOffset(double nextCL);
-	double getcurrOffset();
-	double getnextOffset();
-
-
 	/*--------Degree of Saturation----------*/
 	double computeDS(double total_g);
 	double LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,double total_g);
@@ -122,8 +117,6 @@ private:
 	std::vector<double> currSplitPlan,nextSplitPlan;//the percentages only
 	int currSplitPlanID,nextSplitPlanID;//Don't think I will need it anymore
 	int phaseCounter;
-	sim_mob::Phase currPhase;//perhapse currPhaseId is more preferred
-
 
     /*-------------------------------------------------------------------------
      * -------------------Density Indicators-----------------------------------
@@ -149,6 +142,7 @@ private:
      * -------------------Offset Indicators------------------------------
      * ------------------------------------------------------------------------*/
 	//current and next Offset
+	sim_mob::Offset offset_;
 	double currOffset,nextOffset;
 
 

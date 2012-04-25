@@ -32,18 +32,7 @@ namespace sim_mob
 
 std::vector<Signal*> Signal::all_signals_;
 
-//Private namespace
-namespace {
-//parameters for calculating next cycle length
-const double DSmax = 0.9, DSmed = 0.5, DSmin = 0.3;
-const double CLmax = 140, CLmed = 100, CLmin = 60;
 
-//parameters for calculating next Offset
-const double CL_low = 70, CL_up = 120;
-const double Off_low = 5, Off_up = 26;
-
-const double fixedCL = 60;
-}
 /*
  * The folowing are Helper arrays for setting TC_* data (in an anonymous namespace).
  * Vahid:
@@ -256,15 +245,6 @@ void Signal::setnextSplitPlan(std::vector<double> DS) {
 	nextSplitPlan = SplitPlan[nextSplitPlanID];
 }
 
-void Signal::updatecurrSplitPlan() {
-	currSplitPlanID = nextSplitPlanID;
-	currSplitPlan = nextSplitPlan;
-	//why didn't you just copy the vectors?(as i did above)
-//	for (int i = 0; i < 4; i++) {
-//		currSplitPlan[i] = nextSplitPlan[i];
-//	}
-}
-
 /*
  * This function calculates the Degree of Saturation based on the "lanes"(so a part of the effort will be devoted to finding lanes)
  * Previous implementation had a mechanism to filter out unnecessary lanes but since it was based on the default
@@ -313,22 +293,98 @@ double Signal::LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,double 
 	return used_g/total_g;//And this is formula 1 in section 3.2 of the memurandum (page 3)
 }
 
+//Update Signal Light
+void Signal::updateSignal(double DS[]) {
+	if (phaseCounter == 0) {
+		// 0 is fixed phase, 1 is scats
+		if(signalAlgorithm == 1)
+		{
+			//find the maximum DS
+			DS_all = fmax(DS);
 
-//use next cycle length to calculate next Offset
-void Signal::setnextOffset(double nextCL) {
-//	std::cout<<"nextCL "<<nextCL<<std::endl;
-	if (nextCL <= CL_low) {
-		nextOffset = Off_low;
-	} else if (nextCL > CL_low && nextCL <= CL_up) {
-		nextOffset = Off_low + (nextCL - CL_low) * (Off_up - Off_low) / (CL_up - CL_low);
-	} else {
-		nextOffset = Off_up;
+			//use DS_all for calculating next cycle length
+			cycle_.setnextCL(DS_all);
+
+			//use next cycle length to calculate next Offset
+			offset_.setnextOffset(getnextCL());
+			offset_.updateOffset();
+
+			cycle_.updateprevCL();
+			cycle_.updatecurrCL();
+			plan_.findNextPlanIndex();
+			plan_.updatecurrSplitPlan();
+			loopDetector_.reset();
+		}
+		else
+		{
+			nextCL = fixedCL;
+			nextSplitPlan.assign(fixedSplitPlan, fixedSplitPlan + 4);
+		}
+
+		currPhase = 0;
+		phaseCounter += currOffset;
 	}
-}
 
-void Signal::updateOffset() {
-	currOffset = nextOffset;
+	// 0 is fixed phase, 1 is scats
+
+	int prePhase = currPhase;
+	if (phaseCounter < nextCL * nextSplitPlan[0]) {
+		if (phaseCounter <= (nextCL * nextSplitPlan[0] - 3))
+			currPhase = 0;
+		else
+			currPhase = 10;
+	} else if (phaseCounter < nextCL * (nextSplitPlan[0] + nextSplitPlan[1])) {
+		if (phaseCounter <= (nextCL * (nextSplitPlan[0] + nextSplitPlan[1]) - 3))
+			currPhase = 1;
+		else
+			currPhase = 11;
+	} else if (phaseCounter < nextCL * (nextSplitPlan[0] + nextSplitPlan[1] + nextSplitPlan[2])) {
+		if (phaseCounter <= (nextCL * (nextSplitPlan[0] + nextSplitPlan[1] + nextSplitPlan[2]) - 3))
+			currPhase = 2;
+		else
+			currPhase = 12;
+	} else if (phaseCounter <= (nextCL - 3))
+		currPhase = 3;
+	else
+		currPhase = 13;
+
+	phaseCounter++;
+
+	if (phaseCounter == floor(nextCL)) {
+		phaseCounter = 0;
+	}
+
+	// 0 is fixed phase, 1 is scats
+	if(signalAlgorithm == 1)
+	{
+		if(currPhase%10!=prePhase%10||phaseCounter==0)
+		{
+			double total_g = (nextCL * nextSplitPlan[prePhase%10])*1000;
+
+			double currPhaseDS = computeDS(total_g);
+			//		if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
+			//			std::cout<<"currDS "<<currPhaseDS<<std::endl;
+			DS[prePhase%10] = currPhaseDS;
+			loopDetector_.reset();
+		}
+	}
+	updateTrafficLights();
 }
+////use next cycle length to calculate next Offset
+//void Signal::setnextOffset(double nextCL) {
+////	std::cout<<"nextCL "<<nextCL<<std::endl;
+//	if (nextCL <= CL_low) {
+//		nextOffset = Off_low;
+//	} else if (nextCL > CL_low && nextCL <= CL_up) {
+//		nextOffset = Off_low + (nextCL - CL_low) * (Off_up - Off_low) / (CL_up - CL_low);
+//	} else {
+//		nextOffset = Off_up;
+//	}
+//}
+//
+//void Signal::updateOffset() {
+//	currOffset = nextOffset;
+//}
 
 namespace {
 std::string mismatchError(char const * const func_name, Signal const & signal, RoadSegment const & road) {

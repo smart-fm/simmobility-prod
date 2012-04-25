@@ -1,14 +1,16 @@
 package sim_mob.vis.simultion;
 
-import sim_mob.vis.network.basic.LocalPoint;
-import edu.umd.cs.piccolo.nodes.PPath;
+import java.awt.geom.Point2D;
 
-public class AgentTick{
+public class AgentTick {
 	
-	protected LocalPoint localPos;
+	//protected LocalPoint localPos;
+	protected Point2D pos;
+	//public LocalPoint getLocalPos() { return localPos; }
+	public Point2D getPos() { return pos; }
+	
 	protected double angle;
 	protected int type;
-	public LocalPoint getLocalPos() { return localPos; }
 	public double getAngle(){	return angle;	}
 	public int getType(){	return type; }
 	

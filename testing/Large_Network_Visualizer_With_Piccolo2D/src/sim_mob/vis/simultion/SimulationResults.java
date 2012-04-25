@@ -2,15 +2,12 @@ package sim_mob.vis.simultion;
 
 
 import java.awt.Dimension;
+
 import java.io.*;
 import java.util.*;
 import java.util.regex.Matcher;
 
-import edu.umd.cs.piccolo.nodes.PPath;
-
 import sim_mob.vis.network.*;
-import sim_mob.vis.network.basic.DPoint;
-import sim_mob.vis.network.basic.LocalPoint;
 import sim_mob.vis.util.Utility;
 
 
@@ -81,16 +78,16 @@ public class SimulationResults {
 		}
 
 		//To fix those points that out of bounds
-		for (TimeTick tt : ticks) {
+		/*for (TimeTick tt : ticks) {
 			for (AgentTick at : tt.agentTicks.values()) {
 				convertToLocalContext(at, rn);
 			}
-		}
+		}*/
 		
 		//TODO: Set up the initial position, currently this way is not efficient since it does twice
-		for(DriverTick dt : virtualDrivers.values()){
+		/*for(DriverTick dt : virtualDrivers.values()){
 			convertToLocalContext(dt,rn);
-		}
+		}*/
 						
 	}
 	
@@ -256,7 +253,7 @@ public class SimulationResults {
 	    this.frame_length_ms = Integer.parseInt(props.get("frame-time-ms"));
 	}
 
-	private void convertToLocalContext(AgentTick at, RoadNetwork rn){
+	/*private void convertToLocalContext(AgentTick at, RoadNetwork rn){
 		if (!OutOfBounds(at.getLocalPos().getUnscaledX(), at.getLocalPos().getUnscaledY(), rn)) {
 			
 			//Convert The coordinates to local system
@@ -290,7 +287,7 @@ public class SimulationResults {
 		
 		//Convert The coordinates to local system
 		at.localPos.scaleVia(rn.getTopLeft(), rn.getLowerRight(), rn.getCanvasWidth(), rn.getCanvasHeight());
-	}
+	}*/
 	
 	public double findProperAngle(double angle, Dimension naturalSize){
 		double angleD = angle;

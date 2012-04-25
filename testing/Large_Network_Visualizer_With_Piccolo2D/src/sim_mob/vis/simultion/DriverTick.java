@@ -1,16 +1,6 @@
 package sim_mob.vis.simultion;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Shape;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Line2D;
-import java.awt.geom.Path2D;
-
-import sim_mob.vis.network.basic.LocalPoint;
-import edu.umd.cs.piccolo.nodes.PPath;
-import edu.umd.cs.piccolo.util.PPaintContext;
+import java.awt.geom.Point2D;
 
 public class DriverTick extends AgentTick{
 
@@ -31,11 +21,11 @@ public class DriverTick extends AgentTick{
 		this.type = type;
 	}
 	//TODO : this is test, to be changed
-	private static final int NODE_SIZE = 4;
+	//private static final int NODE_SIZE = 4;
 	//private Path2D.Double poly;
 
 	public DriverTick(double posX, double posY, double angle){
-		this.localPos = new LocalPoint(posX,posY);
+		this.pos = new Point2D.Double(posX,posY);
 		this.angle = angle;
 
 	}

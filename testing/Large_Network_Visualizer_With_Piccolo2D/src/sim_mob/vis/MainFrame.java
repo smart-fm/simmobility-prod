@@ -2,31 +2,18 @@ package sim_mob.vis;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.Point2D.Double;
-
+import java.awt.geom.*;
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.text.html.HTMLDocument.Iterator;
-
+import javax.swing.event.*;
 import edu.umd.cs.piccolo.PCamera;
-import edu.umd.cs.piccolo.util.PBounds;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
+import edu.umd.cs.piccolo.util.*;
+import java.io.*;
+import java.text.DecimalFormat;
 import java.util.HashSet;
-import java.util.Hashtable;
 import sim_mob.conf.CSS_Interface;
-
 import sim_mob.vis.controls.*;
 import sim_mob.vis.network.RoadNetwork;
 import sim_mob.vis.simultion.SimulationResults;
-import sim_mob.vis.util.StringSetter;
 import sim_mob.vis.util.Utility;
 
 
@@ -35,18 +22,21 @@ public class MainFrame extends JFrame {
 		
 	private static final String clockRateList[] = {"default-50ms","10 ms", "50 ms", "100 ms", "200 ms","500 ms","1000 ms"};
 	
-	private static final long MEGABYTE = 1024L * 1024L;
-
-	public static long bytesToMegabytes(long bytes) {
+	private static final double MEGABYTE = 1024.0 * 1024.0;
+	public static double bytesToMegabytes(long bytes) {
 		return bytes / MEGABYTE;
 	}
+	
 	//Canvas that make use of the PCanvas
-	private NetworkPanel virtual_newViewPnl;
+	private NetworkVisualizer netViewPanel;
+	private NetSimAnimator netViewAnimator;
 	private SimulationResults simData;
 	
 	private JTextField console;
 	
 	//LHS panel
+	private Timer memoryUsageTimer;
+	private JLabel memoryUsage;
 	private JButton openLogFile;
 	private JButton openEmbeddedFile;
 	private JToggleButton zoomSquare;
@@ -80,29 +70,22 @@ public class MainFrame extends JFrame {
 		}
 		public void mouseReleased(MouseEvent e) {
 			if (startPoint!=null) {
-				//Translate.
-				//NOTE: Currently only works once.
-				PCamera c = virtual_newViewPnl.getCamera();
-				Point2D startPos = c.viewToLocal(new Point2D.Double(startPoint.x, startPoint.y));
-				Point2D endPos = c.viewToLocal(new Point2D.Double(e.getPoint().x, e.getPoint().y));
-				//Point2D startPos = new Point2D.Double(startPoint.x, startPoint.y);
-				//Point2D endPos = new Point2D.Double(e.getPoint().x, e.getPoint().y);
-				
-				//Zoom in
-				Rectangle2D bounds = new Rectangle2D.Double(startPos.getX(), startPos.getY(), endPos.getX()-startPos.getX(), endPos.getY()-startPos.getY());
-				c.animateViewToCenterBounds(bounds, true, 1000);
-				//startPoint = virtual_newViewPnl.getCamera().setBounds(null);
+				netViewPanel.setZoomBox(new Rectangle2D.Double(startPoint.x, startPoint.y, e.getX()-startPoint.x, e.getY()-startPoint.y));
+				netViewPanel.zoomToBox();
 			}
+			netViewPanel.setZoomBox(null);
 			releaseZoomSquare();
 		}
 		public void mouseDragged(MouseEvent e) {
 			//Provide some feedback.
 			if (startPoint != null) {
-				Graphics2D g = (Graphics2D)virtual_newViewPnl.getGraphics();
-				g.setColor(Color.red);
-				g.setStroke(onePtStroke);
-				Rectangle2D rect = new Rectangle2D.Double(startPoint.x, startPoint.y, e.getX()-startPoint.x, e.getY()-startPoint.y);
-				g.draw(rect);
+				//netViewPanel.repaint();  //NOTE: This is probably better done with a camera-constant object.
+				//Graphics2D g = (Graphics2D)netViewPanel.getGraphics();
+				//g.setColor(Color.red);
+				//g.setStroke(onePtStroke);
+				netViewPanel.setZoomBox(new Rectangle2D.Double(startPoint.x, startPoint.y, e.getX()-startPoint.x, e.getY()-startPoint.y));
+				//Rectangle2D rect = new Rectangle2D.Double(startPoint.x, startPoint.y, e.getX()-startPoint.x, e.getY()-startPoint.y);
+				//g.draw(rect);
 			}
 		}
 	}
@@ -139,6 +122,7 @@ public class MainFrame extends JFrame {
 		
 		
 		console = new JTextField();
+		memoryUsage = new JLabel();
 		openLogFile = new JButton("Open Logfile", new ImageIcon(Utility.LoadImgResource("res/icons/open.png")));
 		openEmbeddedFile = new JButton("Open Default", new ImageIcon(Utility.LoadImgResource("res/icons/embed.png")));
 	    clockRateComboBox = new JComboBox(clockRateList);
@@ -152,8 +136,7 @@ public class MainFrame extends JFrame {
 		playBtn = new JButton(playIcon);
 		fwdBtn = new JButton(new ImageIcon(Utility.LoadImgResource("res/icons/fwd.png")));
 
-		virtual_newViewPnl = new NetworkPanel(300,300);
-
+		netViewPanel = new NetworkVisualizer(300,300);
 	}
 	
 	/**
@@ -162,7 +145,8 @@ public class MainFrame extends JFrame {
 	private void addComponents(Container cp) {
 		//Left panel
 		GridLayout gl = new GridLayout(0,1,0,2);
-		JPanel jpLeft = new JPanel(gl);		
+		JPanel jpLeft = new JPanel(gl);
+		jpLeft.add(memoryUsage);
 		jpLeft.add(openLogFile);
 		jpLeft.add(openEmbeddedFile);
 		jpLeft.add(clockRateComboBox);
@@ -219,7 +203,7 @@ public class MainFrame extends JFrame {
 		gbc.weighty = 0.9;
 		gbc.fill = GridBagConstraints.BOTH;
 		//cp.add(newViewPnl, gbc);
-		cp.add(virtual_newViewPnl, gbc);
+		cp.add(netViewPanel, gbc);
 		
 
 		//Add to the main controller: right panel
@@ -266,10 +250,10 @@ public class MainFrame extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				if (zoomSquare.isSelected()) {
 					//Start zoom-select
-					virtual_newViewPnl.setEnabled(false);
+					netViewPanel.setEnabled(false);
 					currZoomer = new MouseRectZoomer();
-					virtual_newViewPnl.addMouseListener(currZoomer);
-					virtual_newViewPnl.addMouseMotionListener(currZoomer);
+					netViewPanel.addMouseListener(currZoomer);
+					netViewPanel.addMouseMotionListener(currZoomer);
 				} else {
 					//Cancel
 					releaseZoomSquare();
@@ -283,11 +267,11 @@ public class MainFrame extends JFrame {
 		//Frame tick slider
 		frameTickSlider.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg0) {
-				if (simData==null) {
+				if (simData==null || netViewAnimator==null) {
 					return;
 				}
 				if (frameTickSlider.isEnabled()) {
-					virtual_newViewPnl.jumpAnim(frameTickSlider.getValue(), frameTickSlider);
+					netViewAnimator.jumpAnim(frameTickSlider.getValue(), frameTickSlider);
 				}
 			}
 		});
@@ -296,7 +280,7 @@ public class MainFrame extends JFrame {
 		playBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				//Anything to play?
-				if (simData==null) {
+				if (simData==null || netViewAnimator==null) {
 					return;
 				}
 				
@@ -313,7 +297,7 @@ public class MainFrame extends JFrame {
 		fwdBtn.addActionListener(new ActionListener(){
 			
 			public void actionPerformed(ActionEvent arg0) {
-				if (virtual_newViewPnl.advanceAnimbyStep(1, frameTickSlider)) {
+				if (netViewAnimator.advanceAnimbyStep(1, frameTickSlider)) {
 					animTimer.stop();
 					playBtn.setIcon(playIcon);
 					console.setText("Input File Name: "+frameTickSlider.getValue());
@@ -328,7 +312,7 @@ public class MainFrame extends JFrame {
 		revBtn.addActionListener(new ActionListener(){
 			
 			public void actionPerformed(ActionEvent arg0) {
-				if (virtual_newViewPnl.advanceAnimbyStep(-1, frameTickSlider)) {
+				if (netViewAnimator.advanceAnimbyStep(-1, frameTickSlider)) {
 					animTimer.stop();
 					playBtn.setIcon(playIcon);
 					console.setText("Input File Name: "+frameTickSlider.getValue());
@@ -339,10 +323,20 @@ public class MainFrame extends JFrame {
 			
 		});
 		
+		memoryUsageTimer = new Timer(1000, new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				Runtime runtime = Runtime.getRuntime();
+				long memory = runtime.totalMemory() - runtime.freeMemory();
+				String memTxt = new DecimalFormat("#.#").format(bytesToMegabytes(memory)); //"1.2"
+				memoryUsage.setText("Memory: " + memTxt + " Mb");
+			}
+		});
+		memoryUsageTimer.start();
+		
 		animTimer = new Timer(50, new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 
-				if (virtual_newViewPnl.advanceAnim(1, frameTickSlider)) {
+				if (netViewAnimator.advanceAnim(1, frameTickSlider)) {
 					console.setText("Input File Name: "+frameTickSlider.getValue());
 				
 				}else{
@@ -368,9 +362,8 @@ public class MainFrame extends JFrame {
 					animTimer = new Timer(clockRate, new ActionListener() {
 						public void actionPerformed(ActionEvent arg0) {
 							
-							if (virtual_newViewPnl.advanceAnim(1, frameTickSlider)) {
+							if (netViewAnimator.advanceAnim(1, frameTickSlider)) {
 								console.setText("Input File Name: "+frameTickSlider.getValue());
-							
 							}else{
 								animTimer.stop();
 								playBtn.setIcon(playIcon);
@@ -405,22 +398,25 @@ public class MainFrame extends JFrame {
 		if (zoomSquare.isSelected()) {
 			zoomSquare.setSelected(false);
 		}
-		virtual_newViewPnl.removeMouseListener(currZoomer);
-		virtual_newViewPnl.removeMouseMotionListener(currZoomer);
+		netViewPanel.removeMouseListener(currZoomer);
+		netViewPanel.removeMouseMotionListener(currZoomer);
 		currZoomer = null;
-		virtual_newViewPnl.setEnabled(true);
+		netViewPanel.setEnabled(true);
 	}
 	
 	
 	private void factorZoom(double amt) {
 		//Test
-		PCamera c = virtual_newViewPnl.getCamera();
+		PCamera c = netViewPanel.getCamera();
 		PBounds vb = c.getViewBounds();
 		c.scaleViewAboutPoint(amt, vb.getCenterX(), vb.getCenterY());
 	}
 	
 	
 	private void openAFile(boolean isEmbedded) {
+		
+		//System.out.println(virtual_newViewPnl.getCamera().getScale());
+		//System.out.println(virtual_newViewPnl.getLayer().getScale());
 		
 		//Use a FileChooser
 		File f = null;
@@ -434,20 +430,20 @@ public class MainFrame extends JFrame {
 
 		//Load the default visualization
 		RoadNetwork rn = null;
-		String fileName;
+		//String fileName;
 		try {
 			BufferedReader br = null;
-			long fileSize = 0;
+			//long fileSize = 0;
 			if (isEmbedded) {
 				br = Utility.LoadFileResource("res/data/default.log.txt");
-				fileName = "default.log";
+				//fileName = "default.log";
 			} else {
 				br = new BufferedReader(new FileReader(f));
-				fileSize = f.length();
-				fileName = f.getName();
+				//fileSize = f.length();
+				//fileName = f.getName();
 			}
  
-			rn = new RoadNetwork(br,virtual_newViewPnl.getWidth(), virtual_newViewPnl.getHeight());
+			rn = new RoadNetwork(br,netViewPanel.getWidth(), netViewPanel.getHeight());
 			br.close();
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
@@ -487,22 +483,25 @@ public class MainFrame extends JFrame {
 			
 		//System.out.println(virtual_newViewPnl.);
 		
-		NetworkVisualizer vis = new NetworkVisualizer(virtual_newViewPnl.getWidth(), virtual_newViewPnl.getHeight());
-				
-		vis.setVis(rn, simData, uniqueAgentIDs);
+		//Remove all children (if reloading)
+		netViewPanel.getLayer().removeAllChildren();
 		
-		virtual_newViewPnl.iniMapCache(vis);
+		//Now add all children again
+		netViewPanel.buildSceneGraph(rn, simData, uniqueAgentIDs);
+		netViewAnimator = new NetSimAnimator(netViewPanel, simData, frameTickSlider);
+		
+		
+		//NetworkVisualizer vis = new NetworkVisualizer(virtual_newViewPnl.getWidth(), virtual_newViewPnl.getHeight());
+				
+		//vis.setVis(rn, simData, uniqueAgentIDs);
+		
+		//virtual_newViewPnl.iniMapCache(vis);
 		//virtual_newViewPnl.drawMap(rn, simData);
 		
-		// Get the Java runtime
-		Runtime runtime = Runtime.getRuntime();
-		// Run the garbage collector
-		//runtime.gc();
-		// Calculate the used memory
-		long memory = runtime.totalMemory() - runtime.freeMemory();
-		System.out.println("Used memory is bytes: " + memory);
-		System.out.println("Used memory is megabytes: "
-				+ bytesToMegabytes(memory));
+		
+		//Reset the view
+		Rectangle2D initialBounds = netViewPanel.getNaturalBounds();
+		netViewPanel.getCamera().animateViewToCenterBounds(initialBounds, true, 1000);
 		
 	}
 	

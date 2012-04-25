@@ -1,16 +1,15 @@
 package sim_mob.vis.simultion;
 
-import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Path2D;
 
 import sim_mob.vis.network.Node;
 import edu.umd.cs.piccolo.nodes.PPath;
 import edu.umd.cs.piccolo.util.PPaintContext;
 
 public class VehicleTrafficSignal extends PPath{
+	private static final long serialVersionUID = 1L;
 	
 	private Node fromNode;
 	private Node toNode;
@@ -27,16 +26,16 @@ public class VehicleTrafficSignal extends PPath{
 		this.fromNode = fromNode;
 		this.toNode = toNode;
 		
-		this.createPolyline(x, y);
+		VehicleTrafficSignal.createPolyline(x, y);
 	}
 	public void paint(PPaintContext paintContext){
 
 		Graphics2D g = paintContext.getGraphics();
-		double x1 = fromNode.getLocalPos().getX();
-		double y1 = fromNode.getLocalPos().getY();
+		double x1 = fromNode.getX();
+		double y1 = fromNode.getY();
 
-		double x2 =	toNode.getLocalPos().getX();
-		double y2 = toNode.getLocalPos().getY();
+		double x2 =	toNode.getX();
+		double y2 = toNode.getY();
 		
 		AffineTransform oldAt = g.getTransform();
 

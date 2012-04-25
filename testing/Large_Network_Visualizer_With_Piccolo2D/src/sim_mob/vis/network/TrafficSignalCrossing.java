@@ -1,9 +1,8 @@
 package sim_mob.vis.network;
 
-import java.awt.AlphaComposite;
+
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.Polygon;
 
 
 /**
@@ -11,7 +10,7 @@ import java.awt.Polygon;
  */
 public class TrafficSignalCrossing{
 
-	private float alpha = 0.5f;
+//	private float alpha = 0.5f;
 	
 	private Node nearOne;
 	private Node nearTwo;

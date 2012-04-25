@@ -1,133 +1,106 @@
 package sim_mob.vis.controls;
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.geom.AffineTransform;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Hashtable;
+import java.awt.*;
+import java.awt.geom.*;
+import java.util.*;
 
-import sim_mob.vis.network.Intersection;
-import sim_mob.vis.network.RoadNetwork;
-import sim_mob.vis.network.Crossing;
-import sim_mob.vis.network.LaneMarking;
-import sim_mob.vis.network.Link;
-import sim_mob.vis.network.Node;
-import sim_mob.vis.network.RoadName;
-import sim_mob.vis.network.Segment;
-import sim_mob.vis.network.basic.DPoint;
-import sim_mob.vis.network.basic.Vect;
-import sim_mob.vis.simultion.AgentTick;
-import sim_mob.vis.simultion.Car;
-import sim_mob.vis.simultion.CrossingLightTick;
-import sim_mob.vis.simultion.DriverTick;
-import sim_mob.vis.simultion.SimulationResults;
-import sim_mob.vis.simultion.TimeTick;
-import edu.umd.cs.piccolo.PCanvas;
-import edu.umd.cs.piccolo.PLayer;
-import edu.umd.cs.piccolo.PNode;
-import edu.umd.cs.piccolo.activities.PActivity;
-import edu.umd.cs.piccolo.activities.PInterpolatingActivity;
-import edu.umd.cs.piccolo.nodes.PPath;
-import edu.umd.cs.piccolo.nodes.PText;
-
-public class NetworkVisualizer extends PCanvas{
-
-	private RoadNetwork network;
-	private SimulationResults simRes;
-	private PLayer layer;
-	private int currFrameNum;
-
-	private static Font roadNameFont = new Font("Arial", Font.PLAIN, 5);
+import sim_mob.vis.MainFrame;
+import sim_mob.vis.network.*;
+import sim_mob.vis.simultion.*;
+import edu.umd.cs.piccolo.*;
+import edu.umd.cs.piccolo.util.PPaintContext;
 
 
-	//Keep track the agent in layer
-	private Object[] uniqueCarIDs;
-	private Hashtable<Integer,Integer> carIDtoIndex;
-	private ArrayList<Integer> visibleCars;
+
+public class NetworkVisualizer extends PCanvas {
+	private static final long serialVersionUID = 1L;
+
 	private Hashtable<Integer, Car> cars;
 	
 	//Keep track the Index of crossing light in layer
 	private Hashtable<Integer, Integer> crossLightIDtoIndex;
 	
 	//The size of the canvas at a zoom level of 1.0
-	private Dimension naturalSize;		
+	//private Dimension naturalSize;
+	private Rectangle2D naturalBounds;
+	public Rectangle2D getNaturalBounds() { return naturalBounds; }
 	
-	public PLayer getMyLayer() { return this.layer; }
+	private RectNode zoomBox;
 	
-	//The maximum (valid) frame tick.
-	public int getMaxFrameTick() { return simRes.ticks.size()-1; }	
+	private static final Stroke onePtStroke = new BasicStroke(1);
 	
 	public NetworkVisualizer( int width, int height){
-    	this.naturalSize = new Dimension(width, height);
-		setPreferredSize(this.naturalSize);	
+		this.naturalBounds = new Rectangle2D.Double(0, 0, 10, 10); //Doesn't matter.
+		setPreferredSize(new Dimension(width, height));
+		this.setBackground(MainFrame.Config.getBackground("panel"));
  
-		layer = new PLayer();
-    	this.getCamera().addChild(layer);
-    	
+		this.zoomBox = new RectNode(100, 100, 200, 300);
+		this.zoomBox.setVisible(false);
+		getCamera().addChild(zoomBox);
 	}
 	
-	public void setVis(RoadNetwork rn, SimulationResults simRes, HashSet<Integer> uniqueAgentIDs){
+	
+	public void setZoomBox(Rectangle2D rect) {
+		this.zoomBox.setVisible(rect!=null);
+		if (rect!=null) {
+			this.zoomBox.setBounds(rect);
+		}
+	}
+	
+	public void zoomToBox() {
+		Rectangle2D bounds = getCamera().getBounds();
+		Rectangle2D viewBounds = getCamera().getViewBounds();
+		Rectangle2D zoom = zoomBox.getBounds();
 		
+		Rectangle2D newZoom = new Rectangle2D.Double(
+			zoom.getX()*viewBounds.getWidth()/bounds.getWidth() + viewBounds.getX(),
+			zoom.getY()*viewBounds.getHeight()/bounds.getHeight() + viewBounds.getY(),
+			zoom.getWidth()*viewBounds.getWidth()/bounds.getWidth(),
+			zoom.getHeight()*viewBounds.getHeight()/bounds.getHeight()
+		);
+		
+		getCamera().animateViewToCenterBounds(newZoom, true, 1000);
+	}
+	
+	
+	public void buildSceneGraph(RoadNetwork rn, SimulationResults simRes, HashSet<Integer> uniqueAgentIDs){
 		//Set up resources 
-		this.network = rn;
-		this.simRes = simRes;
-		this.uniqueCarIDs = uniqueAgentIDs.toArray();
-		this.currFrameNum = 0;
+		Integer[] uniqueCarIDs = uniqueAgentIDs.toArray(new Integer[]{});
 		
 		//Keep track agent's ID and its Index
 		crossLightIDtoIndex = new Hashtable<Integer, Integer>();		
-		carIDtoIndex = new Hashtable<Integer,Integer>();
-		
-		//Visible Car's Index
-		visibleCars  = new ArrayList<Integer>();
 		
 		//Used to create car image
 		cars = new Hashtable<Integer, Car>();
 		
-		//Draw static map
-		drawRoadnetworkMap();	
+		//Add static items to the scene graph
+		Point2D minPt = new Point2D.Double();
+		Point2D maxPt = new Point2D.Double();
+		addRoadNetworkItemsToGraph(rn, getLayer(), minPt, maxPt);
+		this.naturalBounds = new Rectangle2D.Double(minPt.getX(), minPt.getY(), maxPt.getX()-minPt.getX(), maxPt.getY()-minPt.getY());
 		
 		//Initialize agents
-		prepareAgent();
+		addAgentsToGraph(uniqueCarIDs, cars, getLayer());
 		
-		//Draw agents in current frame
-		redrawAtCurrFrame(currFrameNum);
-		
-		
-		for(Intersection it : rn.getIntersection().values()){
-			//System.out.println(it.getVaTrafficSignal().size());
+		//Add intersections (?)
+		/*for(Intersection it : rn.getIntersection().values()){
 			for(int i = 0 ; i<it.getVaTrafficSignal().size();i++){
 				if(it.getVaTrafficSignal().get(i).size()>0){
-					//System.out.println(it.getVaTrafficSignal().get(i).get(0).getFromNode().getLocalPos().getX());
 				}
 			}
-			//System.out.println(it.getVbTrafficSignal().size());
 			for(int i = 0 ; i<it.getVbTrafficSignal().size();i++){
-				
 				if(it.getVbTrafficSignal().get(i).size()>0){
-					//System.out.println(it.getVbTrafficSignal().get(i).get(0).getFromNode().getLocalPos().getX());
 				}
 			}
-			//System.out.println(it.getVcTrafficSignal().size());
-
 			for(int i = 0 ; i<it.getVcTrafficSignal().size();i++){
 				if(it.getVcTrafficSignal().get(i).size()>0){
-					//System.out.println(it.getVcTrafficSignal().get(i).get(0).getFromNode().getLocalPos().getX());
 				}
 			}
-			//System.out.println(it.getVdTrafficSignal().size());
-
 			for(int i = 0 ; i<it.getVdTrafficSignal().size();i++){
 				if(it.getVdTrafficSignal().get(i).size()>0){
-					//System.out.println(it.getVdTrafficSignal().get(i).get(0).getFromNode().getLocalPos().getX());
-			
 				}
 			}
-			System.out.println();
-		}	
+		}*/	
 	
 		
 	}
@@ -135,121 +108,94 @@ public class NetworkVisualizer extends PCanvas{
 	
 	//Create agents according to their IDs and take note its corresponding Index in layer. 
 	//For now, we only have car agent available.
-	public void prepareAgent(){		
-		
-		for(int i = 0; i<uniqueCarIDs.length;i++){
-
-			Car tempCar = new Car();
-			
-			cars.put((Integer)uniqueCarIDs[i], tempCar);
-			
+	private void addAgentsToGraph(Integer[] uniqueCarIDs, Hashtable<Integer, Car> carArray, PLayer parent) {		
+		for(int id : uniqueCarIDs) {
+			//Make a new, invisible car for this Agent
+			Car tempCar = new Car(id);
 			tempCar.setVisible(false);
+			carArray.put(id, tempCar);
 			
-			layer.addChild(tempCar);
-			int index = layer.indexOfChild(tempCar);
-			carIDtoIndex.put((Integer)uniqueCarIDs[i], index);
+			//Now add it to the scene graph
+			parent.addChild(tempCar);
 		}
 	}
 	
-	public void redrawAtCurrFrame(int frameTick){	
-		currFrameNum = frameTick;
-		updateAgent(currFrameNum);
+	/*package-private*/ void redrawAtCurrFrame(TimeTick tick){
+		if (tick==null) { return; }
+		
+		//TODO: If we can somehow "disable repaints" before this starts, then enable them after,
+		//      that would really help.
+		drawCars(tick);
+		drawCrossingLight(tick);
+
+		//NOTE: This is a hack to force clean painting. In actuality, specifying bounds
+		//      correctly should allow the interface to repaint smoothly.
+		repaint();
+	}
+
+	
+	private static final void UpdateBounds(double x, double y, Point2D minPt, Point2D maxPt) {
+		minPt.setLocation(Math.min(x,  minPt.getX()),  Math.min(y,  minPt.getY()));
+		maxPt.setLocation(Math.max(x,  maxPt.getX()),  Math.max(y,  maxPt.getY()));
 	}
 	
-	public void drawRoadnetworkMap(){
-		if (network==null) {
-			return;
-		}
+	private void addRoadNetworkItemsToGraph(RoadNetwork rn, PLayer parent, Point2D minPt, Point2D maxPt){
+		if (rn==null) { throw new RuntimeException("Can't add null road network to the scene graph."); }
+		if (rn.getNodes().size()<2) { throw new RuntimeException("The road network needs at least two nodes."); }
 		
-		Hashtable<Integer, Node> virtualNodeList = network.getNodes();
-		Hashtable<Integer, Link> virtualLinkList = network.getLinks();
-		Hashtable<Integer, Hashtable<Integer, LaneMarking>> virtualLaneMarkingList = network.getLaneMarkings();
-		Hashtable<Integer, Segment> virtualSegmentList = network.getSegments();
-		Hashtable<Integer, Crossing> virtualCrossingList = network.getCrossing();
+		boolean firstNode = true;
 		
-		
-		
-		for(Node vn : virtualNodeList.values()){
-			//vn.repaint();		
-			if(!vn.getIsUni())
-				layer.addChild(vn);
+		//Add all Nodes
+		for(Node vn : rn.getNodes().values()){
+			//vn.repaint();
+			if(!vn.getIsUni()) {
+				if (firstNode) {
+					minPt.setLocation(vn.getX(), vn.getY());
+					maxPt.setLocation(vn.getX(), vn.getY());
+					firstNode = false;
+				}
+				
+				parent.addChild(vn);
+				UpdateBounds(vn.getX(), vn.getY(), minPt, maxPt);
+			}
 
 		}
 		
-		for(Link vl : virtualLinkList.values()){
-			//vl.repaint();
-			//layer.addChild(vl);
-			layer.addChild(drawText(vl.getName(),vl.getStart(),vl.getEnd()));
-			
+		//Add all Links (labels)
+		for(Link vl : rn.getLinks().values()) {			
+			PNode tn = new RoadName(vl.getName(), vl.getStart(), vl.getEnd());
+			parent.addChild(tn);
 		}
 		
-		for(Hashtable<Integer,LaneMarking> vlmtable :  virtualLaneMarkingList.values()){
+		//Add all Segments
+		for(Segment vs : rn.getSegments().values()){
+			parent.addChild(vs);
+		}
+		
+		
+		/*for(Hashtable<Integer,LaneMarking> vlmtable :  rn.getLaneMarkings().values()){
 			for(LaneMarking vlm : vlmtable.values()){
 				//vlm.repaint();
-				layer.addChild(vlm);
+				parent.addChild(vlm);
 			}
-		}
+		}*/
 		
-		for(Segment vs : virtualSegmentList.values()){
-			//vs.repaint();
-			//layer.addChild(vs);
-		}
-		
-		for(Crossing vc : virtualCrossingList.values()){
+		for(Crossing vc : rn.getCrossing().values()){
 
-			layer.addChild(vc);
-			crossLightIDtoIndex.put(vc.getId(),layer.indexOfChild(vc));
+			parent.addChild(vc);
+			crossLightIDtoIndex.put(vc.getId(),parent.indexOfChild(vc));
 
 		}
 
 		
 		
 	}
-	
-	public PText drawText(String name, Node start, Node end){
-		
-		PText tempText = new PText(name);
-		tempText.setFont(roadNameFont);
-		float targetX = (float)(start.getLocalPos().getX()+(end.getLocalPos().getX()-start.getLocalPos().getX())/2);
-		float targetY = (float)(start.getLocalPos().getY()+(end.getLocalPos().getY()-start.getLocalPos().getY())/2);
-		
-		float halfStrWidth = 10 / 2.0F;
-		//Create a new translation matrix which is located at the center of the string.
-		AffineTransform trans = AffineTransform.getTranslateInstance(targetX, targetY);
-		
-		//Figure out the rotational matrix of this line, from start to end.
-		Vect line = new Vect(start.getLocalPos().getX(), start.getLocalPos().getY(), end.getLocalPos().getX(), end.getLocalPos().getY());
-		trans.rotate(line.getMagX(), line.getMagY());
-		trans.translate(-16, -18);
 
-		tempText.setPaint(Color.white);
-		tempText.setTransform(trans);
-		return tempText;
-	}
-	
-	
-	public void updateAgent(int frameTick){
-		drawAgent(frameTick);
-	}
 
-	public void drawAgent(int currFrame){
-				
-		drawCars(currFrame);
-		drawCrossingLight(currFrame);
-				
-	}
 	
-	public void drawCrossingLight(int currFrame){
-		
-		//It is possible (but unlikely) to have absolutely no agents at all.
-		// The only time this makes sense is if currFrame is equal to zero.
-		if (currFrame>=simRes.ticks.size()) {
-			if (currFrame!=0) { throw new RuntimeException("Error: invalid non-zero frame."); }
-			return;
-		}
-		
+	private void drawCrossingLight(TimeTick currFrameTick){
 		//Get crossing light information in this frame tick
-		Hashtable<Integer, CrossingLightTick> crossingLightTicks = simRes.ticks.get(currFrame).crossingLightTicks;
+		Hashtable<Integer, CrossingLightTick> crossingLightTicks = currFrameTick.crossingLightTicks;
 		
 		//Draw out Crossing Light		
 		for(CrossingLightTick clt : crossingLightTicks.values()){
@@ -259,7 +205,7 @@ public class NetworkVisualizer extends PCanvas{
 				if(crossLightIDtoIndex.containsKey(clt.getCrossingIDs().get(i))){
 					
 					int index = crossLightIDtoIndex.get(clt.getCrossingIDs().get(i));
-					Crossing tempCrossing = (Crossing) layer.getChild(index);
+					Crossing tempCrossing = (Crossing) getLayer().getChild(index);
 					
 					//Change Crossing's Light
 					if(clt.getCrossingLights().get(i) == 1){
@@ -280,57 +226,45 @@ public class NetworkVisualizer extends PCanvas{
 		}
 	}
 	
-	public void drawCars(int currFrame){
-		//It is possible (but unlikely) to have absolutely no agents at all.
-		// The only time this makes sense is if currFrame is equal to zero.
-		if (currFrame>=simRes.ticks.size()) {
-			if (currFrame!=0) { throw new RuntimeException("Error: invalid non-zero frame."); }
-			return;
+	private void drawCars(TimeTick currFrameTick){		
+		//Start by setting all Agents to invisible
+		for (Car c : cars.values()) {
+			c.setVisible(false);
 		}
 		
-		Hashtable<Integer, AgentTick> agents = simRes.ticks.get(currFrame).agentTicks;
-		ArrayList<Integer> agentIDs = simRes.ticks.get(currFrame).agentIDs;
-	
-		
-		//If agent is no longer visible, set it invisible
-		for(int i = 0; i<visibleCars.size();i++){
-			int id = visibleCars.get(i);
+		//Now, update all car positions and set them to visible if they exist in this time tick.
+		ArrayList<Integer> agentIDs = currFrameTick.agentIDs;
+		for (int agID : agentIDs) {
+			//Retrieve the vehicle and its associated Agent Tick
+			Car c = cars.get(agID);
+			AgentTick at = currFrameTick.agentTicks.get(agID);
+			if (c==null || at==null) { continue; }
+			c.setVisible(true);
 			
-			//The agent is no longer visible
-			if(!agentIDs.contains(id)){
-				int index = carIDtoIndex.get(id);
-				//Set the agent invisible
-				layer.getChild(index).setVisible(false);
-
-				//Update the visible agent list
-				visibleCars.remove(i);
-			}
-			
-		}
-		
-		//Set agent Visible
-		for(int i = 0; i<agentIDs.size();i++){
-			int id = agentIDs.get(i);
-			int index = carIDtoIndex.get(id);
-			
-			
-			Car tempDriver = (Car) layer.getChild(index);
-			
-			AgentTick tempAgent = agents.get(id);
-			
-			if(!tempDriver.getVisible())
-			{
-				tempDriver.setVisible(true);
-				visibleCars.add(id);
-			}
-			
-			//Translate visible cars to its position and angle in this frame
-			AffineTransform newPos = new AffineTransform();
-			newPos.translate(tempAgent.getLocalPos().getX(),tempAgent.getLocalPos().getY());
-			newPos.rotate((Math.PI * tempAgent.getAngle())/180);
-			tempDriver.setTransform(newPos);
-			
-
+			//Update it, set it visible.
+			//TODO: We might be able to do this with translations; 
+			//      for now, I'm just changing their positions manually.
+			//double angle = (Math.PI * at.getAngle())/180;
+			c.setX(at.getPos().getX());
+			c.setY(at.getPos().getY());
+			//c.rotateAboutPoint(angle, at.getPos().getX(), at.getPos().getY());
 		}
 	}
+	
+	
+	//For zoom display
+	class RectNode extends PNode {
+		public RectNode(double x, double y, double w, double h) {
+			this.setBounds(x, y, w, h);
+		}
+		protected void paint(PPaintContext pc) {
+			Graphics2D g = pc.getGraphics();
+			g.setStroke(onePtStroke);
+			g.setColor(Color.red);
+			g.draw(getBounds());
+		}
+	}
+	
+	
+
 }

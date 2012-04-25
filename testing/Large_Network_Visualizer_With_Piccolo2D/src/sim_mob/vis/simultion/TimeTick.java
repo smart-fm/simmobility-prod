@@ -1,9 +1,8 @@
 package sim_mob.vis.simultion;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
 
-import edu.umd.cs.piccolo.nodes.PPath;
+import java.util.Hashtable;
 
 /**
  * One time tick of a simulation

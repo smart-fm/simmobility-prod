@@ -84,27 +84,31 @@ std::string PartitionManager::startMPIEnvironment(int argc, char* argv[], bool c
 	//      even though OpenMPI returns MPI_THREAD_SINGLE, it can be used as
 	//      MPI_THREAD_FUNNELED. Note that OpenMPI support for MPI_THREAD_MULTIPLE
 	//      is incredibly slow (and I doubt we need _MULTIPLE anyway). ~Seth
-	int pmode;
-	MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &pmode);
-	if (pmode != MPI_THREAD_MULTIPLE)
-	{
-		std::cout << "Thread Multiple not supported by the MPI implementation" << std::endl;
-		std::cout <<"Supported level is: ";
-		if (pmode==MPI_THREAD_SINGLE) {
-			std::cout <<"Single";
-		} else if (pmode==MPI_THREAD_FUNNELED) {
-			std::cout <<"Funneled";
-		} else if (pmode==MPI_THREAD_SERIALIZED) {
-			std::cout <<"Serialized";
-		} else if (pmode==MPI_THREAD_MULTIPLE) {
-			std::cout <<"Multiple (Unexpected)";
-		} else {
-			std::cout <<"<Unknown: " <<pmode <<">";
-		}
-		std::cout <<std::endl;
-		//MPI_Abort(MPI_COMM_WORLD, -1);
-		//return "MPI start failed";
-	}
+//	int pmode;
+//	MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &pmode);
+
+	//Let is try on MPI_Init firstly. ~xuyan
+	MPI_Init(&argc, &argv);
+
+//	if (pmode != MPI_THREAD_MULTIPLE)
+//	{
+//		std::cout << "Thread Multiple not supported by the MPI implementation" << std::endl;
+//		std::cout <<"Supported level is: ";
+//		if (pmode==MPI_THREAD_SINGLE) {
+//			std::cout <<"Single";
+//		} else if (pmode==MPI_THREAD_FUNNELED) {
+//			std::cout <<"Funneled";
+//		} else if (pmode==MPI_THREAD_SERIALIZED) {
+//			std::cout <<"Serialized";
+//		} else if (pmode==MPI_THREAD_MULTIPLE) {
+//			std::cout <<"Multiple (Unexpected)";
+//		} else {
+//			std::cout <<"<Unknown: " <<pmode <<">";
+//		}
+//		std::cout <<std::endl;
+//		//MPI_Abort(MPI_COMM_WORLD, -1);
+//		//return "MPI start failed";
+//	}
 
 	mpi::communicator world;
 	int computer_size = world.size();

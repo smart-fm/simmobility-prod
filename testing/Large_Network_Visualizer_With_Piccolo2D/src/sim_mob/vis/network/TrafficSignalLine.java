@@ -1,12 +1,6 @@
 package sim_mob.vis.network;
 
-import static java.awt.geom.AffineTransform.getRotateInstance;
-
-import static java.awt.geom.AffineTransform.getTranslateInstance;
-
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 
 import sim_mob.vis.util.Utility;
 
@@ -18,13 +12,13 @@ public class TrafficSignalLine {
 	
 	private Lane fromLane;
 	private Lane toLane;
-	private Node fromNode;
-	private Node toNode;
+	private Point2D fromPoint;
+	private Point2D toPoint;
 	
-	private final int ARR_SIZE = 6; 
+	//private final int ARR_SIZE = 6; 
 	
-	public Node getFromNode (){return fromNode;}
-	public Node getToNode (){return toNode;}
+	public Point2D getFromPoint (){return fromPoint;}
+	public Point2D getToPoint (){return toPoint;}
 	
 	
 	public TrafficSignalLine(Lane fromLane, Lane toLane){
@@ -36,40 +30,40 @@ public class TrafficSignalLine {
 	
 	
 	private void findNode(){
-		double distStartStart = Utility.Distance(fromLane.getStartMiddleNode().getLocalPos().getUnscaledX(), 
-													fromLane.getStartMiddleNode().getLocalPos().getUnscaledY(), 
-													toLane.getStartMiddleNode().getLocalPos().getUnscaledX(), 
-													toLane.getStartMiddleNode().getLocalPos().getUnscaledY());
+		double distStartStart = Utility.Distance(fromLane.getStartMiddlePoint().getX(), 
+													fromLane.getStartMiddlePoint().getY(), 
+													toLane.getStartMiddlePoint().getX(), 
+													toLane.getStartMiddlePoint().getY());
 	
-		double distStartEnd = Utility.Distance(fromLane.getStartMiddleNode().getLocalPos().getUnscaledX(), 
-				fromLane.getStartMiddleNode().getLocalPos().getUnscaledY(), 
-				toLane.getEndMiddleNode().getLocalPos().getUnscaledX(), 
-				toLane.getEndMiddleNode().getLocalPos().getUnscaledY());
+		double distStartEnd = Utility.Distance(fromLane.getStartMiddlePoint().getX(), 
+				fromLane.getStartMiddlePoint().getY(), 
+				toLane.getEndMiddlePoint().getX(), 
+				toLane.getEndMiddlePoint().getY());
 
-		double distEndStart = Utility.Distance(fromLane.getEndMiddleNode().getLocalPos().getUnscaledX(), 
-				fromLane.getEndMiddleNode().getLocalPos().getUnscaledY(), 
-				toLane.getStartMiddleNode().getLocalPos().getUnscaledX(), 
-				toLane.getStartMiddleNode().getLocalPos().getUnscaledY());
+		double distEndStart = Utility.Distance(fromLane.getEndMiddlePoint().getX(), 
+				fromLane.getEndMiddlePoint().getY(), 
+				toLane.getStartMiddlePoint().getX(), 
+				toLane.getStartMiddlePoint().getY());
 
-		double distEndEnd = Utility.Distance(fromLane.getEndMiddleNode().getLocalPos().getUnscaledX(), 
-				fromLane.getEndMiddleNode().getLocalPos().getUnscaledY(), 
-				toLane.getEndMiddleNode().getLocalPos().getUnscaledX(), 
-				toLane.getEndMiddleNode().getLocalPos().getUnscaledY());
+		double distEndEnd = Utility.Distance(fromLane.getEndMiddlePoint().getX(), 
+				fromLane.getEndMiddlePoint().getY(), 
+				toLane.getEndMiddlePoint().getX(), 
+				toLane.getEndMiddlePoint().getY());
 
 		double miniMumDistance = findMinimum(distStartStart,distStartEnd,distEndStart,distEndEnd);
 		
 		if(miniMumDistance == distStartStart){
-			fromNode = fromLane.getStartMiddleNode();
-			toNode = toLane.getStartMiddleNode();
+			fromPoint = fromLane.getStartMiddlePoint();
+			toPoint = toLane.getStartMiddlePoint();
 		} else if(miniMumDistance == distStartEnd){
-			fromNode = fromLane.getStartMiddleNode();
-			toNode = toLane.getEndMiddleNode();		
+			fromPoint = fromLane.getStartMiddlePoint();
+			toPoint = toLane.getEndMiddlePoint();		
 		} else if(miniMumDistance == distEndStart){
-			fromNode = fromLane.getEndMiddleNode();
-			toNode = toLane.getStartMiddleNode();
+			fromPoint = fromLane.getEndMiddlePoint();
+			toPoint = toLane.getStartMiddlePoint();
 		} else if(miniMumDistance == distEndEnd){
-			fromNode = fromLane.getEndMiddleNode();
-			toNode = toLane.getEndMiddleNode();
+			fromPoint = fromLane.getEndMiddlePoint();
+			toPoint = toLane.getEndMiddlePoint();
 		} else{
 			System.out.println("Error, No minimum distance -- TrafficSignalLine, findNode()");
 		}

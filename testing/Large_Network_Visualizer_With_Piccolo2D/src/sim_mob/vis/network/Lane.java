@@ -1,6 +1,6 @@
 package sim_mob.vis.network;
 
-import java.awt.Graphics2D;
+import java.awt.geom.Point2D;
 
 /**
  * \author Zhang Shuai
@@ -8,18 +8,18 @@ import java.awt.Graphics2D;
  */
 public class Lane {
 	private int laneNumber;
-	private Node startMiddleNode;
-	private Node endMiddleNode;
+	private Point2D startMiddlePt;
+	private Point2D endMiddlePt;
 
 	
 	public int getLaneNumber(){return laneNumber;}
-	public Node getStartMiddleNode(){return startMiddleNode;}
-	public Node getEndMiddleNode(){return endMiddleNode;}
+	public Point2D getStartMiddlePoint(){return startMiddlePt;}
+	public Point2D getEndMiddlePoint(){return endMiddlePt;}
 	
-	public Lane(int laneNumber, Node startMiddleNode, Node endMiddleNode){
+	public Lane(int laneNumber, Point2D startMiddlePt, Point2D endMiddlePt){
 		this.laneNumber = laneNumber;
-		this.startMiddleNode = startMiddleNode;
-		this.endMiddleNode = endMiddleNode;
+		this.startMiddlePt = startMiddlePt;
+		this.endMiddlePt = endMiddlePt;
 		
 	}
 				

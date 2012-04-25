@@ -52,7 +52,7 @@ public class Link extends PPath{
 	protected void paint(PPaintContext paintContext){
 
 		//Set New Path
-		link = new Line2D.Double(start.getLocalPos().getX(),start.getLocalPos().getY(),end.getLocalPos().getX(),end.getLocalPos().getY());
+		link = new Line2D.Double(start.getX(),start.getY(),end.getX(),end.getY());
 		setPathTo(link);
 		
 		Graphics2D g = paintContext.getGraphics();

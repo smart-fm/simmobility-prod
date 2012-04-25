@@ -1,7 +1,6 @@
 package sim_mob.vis.simultion;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
 
 public class CrossingLightTick {
 	//Signal Location

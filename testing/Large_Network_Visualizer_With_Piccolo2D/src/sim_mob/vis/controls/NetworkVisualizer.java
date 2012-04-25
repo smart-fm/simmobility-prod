@@ -32,7 +32,7 @@ public class NetworkVisualizer extends PCanvas {
 	public NetworkVisualizer( int width, int height){
 		this.naturalBounds = new Rectangle2D.Double(0, 0, 10, 10); //Doesn't matter.
 		setPreferredSize(new Dimension(width, height));
-		this.setBackground(MainFrame.Config.getBackground("panel"));
+		this.setBackground(MainFrame.Config.getBackground("panel", Color.black));
  
 		this.zoomBox = new RectNode(100, 100, 200, 300);
 		this.zoomBox.setVisible(false);

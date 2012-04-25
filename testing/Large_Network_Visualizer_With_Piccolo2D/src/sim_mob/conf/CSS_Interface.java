@@ -22,9 +22,11 @@ public class CSS_Interface {
 		lineStrokes = new Hashtable<String, Stroke>();
 	}
 	
-	//Retrieve a property
-	public Color getBackground(String className) {
-		return backgroundColors.get(className);
+	//Retrieve a property.
+	public Color getBackground(String className) { return getBackground(className, null); }
+	public Color getBackground(String className, Color defaultColor) {
+		Color res = backgroundColors.get(className);
+		return res!=null ? res : defaultColor;
 	}
 	public Color getLineColor(String className) {
 		return lineColors.get(className);

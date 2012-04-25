@@ -18,51 +18,15 @@ import sim_mob.vis.simultion.SimulationResults;
 import sim_mob.vis.util.Utility;
 
 
-public class MainFrame extends JFrame {
-	public static final long serialVersionUID = 1L;
-		
-	private static final String clockRateList[] = {"default-50ms","10 ms", "50 ms", "100 ms", "200 ms","500 ms","1000 ms"};
+public class MainFrame extends MainFrameUI {
+	private static final long serialVersionUID = 1L;
 	
-	private static final double MEGABYTE = 1024.0 * 1024.0;
-	public static double bytesToMegabytes(long bytes) {
-		return bytes / MEGABYTE;
-	}
-	
-	//Canvas that make use of the PCanvas
-	private NetworkVisualizer netViewPanel;
+	//For controlling the simulation.
 	private NetSimAnimator netViewAnimator;
 	private SimulationResults simData;
 	
-	//Our network panel is placed within a FlowLayout'd JPanel to make swapping 
-	// items out easier later.
-	private JPanel rhsLayout;
-	private JProgressBar generalProgress;
-	private FileOpenThread progressData;
-	private Timer progressChecker;
-	
-	private JTextField console;
-	
-	//LHS panel
-	private Timer memoryUsageTimer;
-	private JLabel memoryUsage;
-	private JButton openLogFile;
-	private JButton openEmbeddedFile;
-	private JToggleButton zoomSquare;
-	private JButton zoomIn;
-	private JButton zoomOut;
-    private JComboBox clockRateComboBox;
-
-	//Lower panel
-	private Timer animTimer;
-	private JSlider frameTickSlider;
-	private JButton fwdBtn;
-	private JButton playBtn;
-	private JButton revBtn;
-	private ImageIcon playIcon;
-	private ImageIcon pauseIcon;
-	
 	//Colors
-	public static CSS_Interface Config;
+	public static CSS_Interface Config = new CSS_Interface(); //An empty config allows us to use "default"
 	
 	//For zooming
 	private static final Stroke onePtStroke = new BasicStroke(1.0F);
@@ -102,138 +66,22 @@ public class MainFrame extends JFrame {
 	public MainFrame(CSS_Interface config) {
 		//Initial setup: FRAME
 		super("Sim Mobility Visualization");
-
-		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		this.setLocation(150, 100);
 		MainFrame.Config = config;
-
-		//Initial setup: FRAME AND APPLET
-		this.setSize(1024, 768);	
+			
 		//Components and layout
-		try {
-			loadComponents();
-			createListeners();
-			addComponents(this.getContentPane());
-		} catch (Exception ex) {
-			throw new RuntimeException(ex);
-		}
-	
+		createListeners();
 	}
 	
-	/**
-	 * Load all components and initialize them properly.
-	 */
-	private void loadComponents() throws IOException {
-
-		playIcon = new ImageIcon(Utility.LoadImgResource("res/icons/play.png"));
-		pauseIcon = new ImageIcon(Utility.LoadImgResource("res/icons/pause.png"));
+	
+	@Override
+	protected void loadComponents() {
+		super.loadComponents();
 		
-		
-		console = new JTextField();
-		memoryUsage = new JLabel();
-		openLogFile = new JButton("Open Logfile", new ImageIcon(Utility.LoadImgResource("res/icons/open.png")));
-		openEmbeddedFile = new JButton("Open Default", new ImageIcon(Utility.LoadImgResource("res/icons/embed.png")));
-	    clockRateComboBox = new JComboBox(clockRateList);
-	    zoomSquare = new JToggleButton("Zoom Box");
-	    zoomIn = new JButton("+");
-	    zoomOut = new JButton("-");
-	    
-
-		frameTickSlider = new JSlider(JSlider.HORIZONTAL);
-		revBtn = new JButton(new ImageIcon(Utility.LoadImgResource("res/icons/rev.png")));
-		playBtn = new JButton(playIcon);
-		fwdBtn = new JButton(new ImageIcon(Utility.LoadImgResource("res/icons/fwd.png")));
-
-		netViewPanel = new NetworkVisualizer(300,300);
-		generalProgress = new JProgressBar();
+		memoryUsage.setText("");
 		generalProgress.setVisible(false);
-		generalProgress.setMinimum(0);
-		generalProgress.setMaximum(100);
-		generalProgress.setForeground(new Color(0x33, 0x99, 0xEE));
 	}
 	
-	/**
-	 * Add all components to the frame.
-	 */
-	private void addComponents(Container cp) {
-		//Left panel
-		GridLayout gl = new GridLayout(0,1,0,2);
-		JPanel jpLeft = new JPanel(gl);
-		jpLeft.add(memoryUsage);
-		jpLeft.add(openLogFile);
-		jpLeft.add(openEmbeddedFile);
-		jpLeft.add(clockRateComboBox);
-		
-		JPanel zoomPnl = new JPanel(new FlowLayout());
-		zoomPnl.add(zoomSquare);
-		zoomPnl.add(zoomIn);
-		zoomPnl.add(zoomOut);
-		jpLeft.add(zoomPnl);
 
-		
-		//Bottom panel
-		JPanel jpLower = new JPanel(new BorderLayout());
-		jpLower.add(BorderLayout.NORTH, frameTickSlider);
-		JPanel jpLower2 = new JPanel(new GridLayout(1, 0, 10, 0));
-		jpLower2.add(revBtn);
-		jpLower2.add(playBtn);
-		jpLower2.add(fwdBtn);
-		jpLower.add(BorderLayout.CENTER, jpLower2);
-		
-		
-		//Main Frame uses a grid bag layout
-		GridBagConstraints gbc;
-		cp.setLayout(new GridBagLayout());
-		
-		//Add to the main controller: left panel
-		gbc = new GridBagConstraints();
-		gbc.gridx = 0;
-		gbc.gridy = 0;
-		gbc.gridwidth = 1;
-		gbc.gridheight = GridBagConstraints.REMAINDER;
-		gbc.weightx = 0.1;
-		gbc.weighty = 0.1;
-		gbc.anchor = GridBagConstraints.PAGE_START;
-		gbc.insets = new Insets(10, 5, 10, 5);
-		cp.add(jpLeft, gbc);
-		
-		//Add (and stretch) the console
-		gbc = new GridBagConstraints();
-		gbc.gridx = 1;
-		gbc.gridy = 0;
-		gbc.weightx = 0.1;
-		gbc.weighty = 0.1;
-		gbc.fill = GridBagConstraints.HORIZONTAL;
-		cp.add(console, gbc);
-		
-		//Add to the main controller: center panel
-		gbc = new GridBagConstraints();
-		gbc.gridx = 1;
-		gbc.gridy = 1;
-		gbc.ipadx = 800;
-		gbc.ipady = 600;
-		gbc.weightx = 0.9;
-		gbc.weighty = 0.9;
-		gbc.fill = GridBagConstraints.BOTH;
-		//cp.add(netViewPanel, gbc);
-		rhsLayout = new JPanel(new BorderLayout());
-		rhsLayout.add(BorderLayout.CENTER, netViewPanel);
-		rhsLayout.add(BorderLayout.SOUTH, generalProgress);
-		cp.add(rhsLayout, gbc);
-		
-		
-
-		//Add to the main controller: right panel
-		gbc = new GridBagConstraints();
-		gbc.gridx = 1;
-		gbc.gridy = 2;
-		gbc.weightx = 0.1;
-		gbc.weighty = 0.1;
-		gbc.anchor = GridBagConstraints.PAGE_END;
-		cp.add(jpLower, gbc);
-
-	
-	}
 	
 	/**
 	 * Create all Listeners and hook them up to callback functions.
@@ -244,6 +92,7 @@ public class MainFrame extends JFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				if (progressChecker==null) {
 					pauseAnimation();
+					generalProgress.setValue(0);
 					generalProgress.setVisible(true);
 					generalProgress.setIndeterminate(true);
 					generalProgress.setStringPainted(false);
@@ -263,6 +112,7 @@ public class MainFrame extends JFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				if (progressChecker==null) {
 					pauseAnimation();
+					generalProgress.setValue(0);
 					generalProgress.setVisible(true);
 					generalProgress.setIndeterminate(false);
 					generalProgress.setStringPainted(true);
@@ -370,7 +220,7 @@ public class MainFrame extends JFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				Runtime runtime = Runtime.getRuntime();
 				long memory = runtime.totalMemory() - runtime.freeMemory();
-				String memTxt = new DecimalFormat("#.#").format(bytesToMegabytes(memory)); //"1.2"
+				String memTxt = new DecimalFormat("#.#").format(memory / Math.pow(1024, 2)); //e.g. "1.2"
 				memoryUsage.setText("Memory: " + memTxt + " Mb");
 			}
 		});

@@ -3,6 +3,7 @@ package sim_mob.vis;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
+
 import javax.swing.*;
 import javax.swing.event.*;
 import edu.umd.cs.piccolo.PCamera;
@@ -31,6 +32,13 @@ public class MainFrame extends JFrame {
 	private NetworkVisualizer netViewPanel;
 	private NetSimAnimator netViewAnimator;
 	private SimulationResults simData;
+	
+	//Our network panel is placed within a FlowLayout'd JPanel to make swapping 
+	// items out easier later.
+	private JPanel rhsLayout;
+	private JProgressBar generalProgress;
+	private FileOpenThread progressData;
+	private Timer progressChecker;
 	
 	private JTextField console;
 	
@@ -137,6 +145,11 @@ public class MainFrame extends JFrame {
 		fwdBtn = new JButton(new ImageIcon(Utility.LoadImgResource("res/icons/fwd.png")));
 
 		netViewPanel = new NetworkVisualizer(300,300);
+		generalProgress = new JProgressBar();
+		generalProgress.setVisible(false);
+		generalProgress.setMinimum(0);
+		generalProgress.setMaximum(100);
+		generalProgress.setForeground(new Color(0x33, 0x99, 0xEE));
 	}
 	
 	/**
@@ -202,8 +215,12 @@ public class MainFrame extends JFrame {
 		gbc.weightx = 0.9;
 		gbc.weighty = 0.9;
 		gbc.fill = GridBagConstraints.BOTH;
-		//cp.add(newViewPnl, gbc);
-		cp.add(netViewPanel, gbc);
+		//cp.add(netViewPanel, gbc);
+		rhsLayout = new JPanel(new BorderLayout());
+		rhsLayout.add(BorderLayout.CENTER, netViewPanel);
+		rhsLayout.add(BorderLayout.SOUTH, generalProgress);
+		cp.add(rhsLayout, gbc);
+		
 		
 
 		//Add to the main controller: right panel
@@ -225,13 +242,39 @@ public class MainFrame extends JFrame {
 
 		openEmbeddedFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				openAFile(true);
+				if (progressChecker==null) {
+					pauseAnimation();
+					generalProgress.setVisible(true);
+					generalProgress.setIndeterminate(true);
+					generalProgress.setStringPainted(false);
+					progressData = new FileOpenThread(MainFrame.this, true);
+					progressData.start();
+					progressChecker = new Timer(200, new ActionListener() {
+						public void actionPerformed(ActionEvent e) {
+							checkProgress();
+						}
+					});
+					progressChecker.start();
+				}
 			}
 		});
 		
 		openLogFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				openAFile(false);
+				if (progressChecker==null) {
+					pauseAnimation();
+					generalProgress.setVisible(true);
+					generalProgress.setIndeterminate(false);
+					generalProgress.setStringPainted(true);
+					progressData = new FileOpenThread(MainFrame.this, false);
+					progressData.start();
+					progressChecker = new Timer(200, new ActionListener() {
+						public void actionPerformed(ActionEvent e) {
+							checkProgress();
+						}
+					});
+					progressChecker.start();
+				}
 			}
 		});
 		
@@ -394,6 +437,59 @@ public class MainFrame extends JFrame {
 	}
 	
 	
+	//Check our loading progress. Respond if done
+	private void checkProgress() {
+		//First, are we done?
+		simData = progressData.getResults();
+		if (progressData.isDone()) {
+			//Stop our timer.
+			progressChecker.stop();
+			
+			//Hide the progress bar
+			generalProgress.setVisible(false);
+			
+			//We might be done but not actually have a simulation to work with (cancelled dialog) 
+			if (simData!=null) {
+				//Update the slider
+				frameTickSlider.setMinimum(0);
+				frameTickSlider.setMaximum(simData.ticks.size()-1);
+				frameTickSlider.setMajorTickSpacing(simData.ticks.size()/10);
+				frameTickSlider.setMinorTickSpacing(simData.ticks.size()/50);
+				frameTickSlider.setValue(0);
+				
+				console.setText("Input File Name: "+frameTickSlider.getValue());
+				
+				//Remove all children (if reloading)
+				netViewPanel.getLayer().removeAllChildren();
+				
+				//Now add all children again
+				netViewPanel.buildSceneGraph(progressData.getRoadNetwork(), simData, progressData.getUniqueAgentIDs());
+				netViewAnimator = new NetSimAnimator(netViewPanel, simData, frameTickSlider);
+				
+				//Reset the view
+				Rectangle2D initialBounds = netViewPanel.getNaturalBounds();
+				netViewPanel.getCamera().animateViewToCenterBounds(initialBounds, true, 1000);
+			}
+			
+			//Done, set to null
+			progressData = null;
+			progressChecker = null;
+		} else {
+			//If not done, just update our progress.
+			generalProgress.setValue((int)(progressData.getPercentDone() * generalProgress.getMaximum()));
+		}
+	}
+	
+	
+	
+	private void pauseAnimation() {
+		if (animTimer.isRunning()) {
+			animTimer.stop();
+			playBtn.setIcon(playIcon);
+		}
+	}
+	
+	
 	private void releaseZoomSquare() {
 		if (zoomSquare.isSelected()) {
 			zoomSquare.setSelected(false);
@@ -412,98 +508,6 @@ public class MainFrame extends JFrame {
 		c.scaleViewAboutPoint(amt, vb.getCenterX(), vb.getCenterY());
 	}
 	
-	
-	private void openAFile(boolean isEmbedded) {
-		
-		//System.out.println(virtual_newViewPnl.getCamera().getScale());
-		//System.out.println(virtual_newViewPnl.getLayer().getScale());
-		
-		//Use a FileChooser
-		File f = null;
-		if (!isEmbedded) {
-			final JFileChooser fc = new JFileChooser("src/res/data");
-			if (fc.showOpenDialog(MainFrame.this)!=JFileChooser.APPROVE_OPTION) {
-				return;
-			}
-			f = fc.getSelectedFile();
-		}
-
-		//Load the default visualization
-		RoadNetwork rn = null;
-		//String fileName;
-		try {
-			BufferedReader br = null;
-			//long fileSize = 0;
-			if (isEmbedded) {
-				br = Utility.LoadFileResource("res/data/default.log.txt");
-				//fileName = "default.log";
-			} else {
-				br = new BufferedReader(new FileReader(f));
-				//fileSize = f.length();
-				//fileName = f.getName();
-			}
- 
-			rn = new RoadNetwork(br,netViewPanel.getWidth(), netViewPanel.getHeight());
-			br.close();
-		} catch (IOException ex) {
-			throw new RuntimeException(ex);
-		}
-
-		//Store all Agents returned by this.
-		HashSet<Integer> uniqueAgentIDs = new HashSet<Integer>();
-		
-		//Load the simulation's results
-		try {
-			BufferedReader br = null;
-			if (isEmbedded) {
-				br = Utility.LoadFileResource("res/data/default.log.txt");
-			} else {
-				br = new BufferedReader(new FileReader(f));
-			}
-			simData = new SimulationResults(br, rn, uniqueAgentIDs);
-			br.close();
-		} catch (IOException ex) {
-			throw new RuntimeException(ex);
-		}		
-		
-		
-		//Update the slider
-		frameTickSlider.setMinimum(0);
-		frameTickSlider.setMaximum(simData.ticks.size()-1);
-		frameTickSlider.setMajorTickSpacing(simData.ticks.size()/10);
-		frameTickSlider.setMinorTickSpacing(simData.ticks.size()/50);
-		frameTickSlider.setValue(0);
-		
-		console.setText("Input File Name: "+frameTickSlider.getValue());
-
-		//Clear canvas
-		//virtual_newViewPnl.getCamera().removeAllChildren();
-	
-		//virtual_newViewPnl.getCamera().repaint();		
-			
-		//System.out.println(virtual_newViewPnl.);
-		
-		//Remove all children (if reloading)
-		netViewPanel.getLayer().removeAllChildren();
-		
-		//Now add all children again
-		netViewPanel.buildSceneGraph(rn, simData, uniqueAgentIDs);
-		netViewAnimator = new NetSimAnimator(netViewPanel, simData, frameTickSlider);
-		
-		
-		//NetworkVisualizer vis = new NetworkVisualizer(virtual_newViewPnl.getWidth(), virtual_newViewPnl.getHeight());
-				
-		//vis.setVis(rn, simData, uniqueAgentIDs);
-		
-		//virtual_newViewPnl.iniMapCache(vis);
-		//virtual_newViewPnl.drawMap(rn, simData);
-		
-		
-		//Reset the view
-		Rectangle2D initialBounds = netViewPanel.getNaturalBounds();
-		netViewPanel.getCamera().animateViewToCenterBounds(initialBounds, true, 1000);
-		
-	}
 	
 }
 

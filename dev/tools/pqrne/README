@@ -5,6 +5,7 @@ You need to install the following packages:
     * python-sqlalchemy-ext
     * python-elixir
     * python-gdal
+    * python-psycopg2
 
 You need to run "make" once.
 
@@ -24,7 +25,8 @@ Press 'O' (letter O) to revert to original orientation.
 To pan left and right, drag mouse with left-mouse-button pressed.
 
 To select a road-item (whether lane-marking or lane-edge), hover mouse over item and use
-<Control> + left-mouse-click.
+<Control> + left-mouse-click.  If the mouse is hovering over several road-items, all of them will 
+be selected.  See next paragraph if you want to control the selection mechanism.
 
 To make a road-item (whether lane-marking or lane-edge) unselectable, either make it invisible
 or untick the Selectable check box.  For Roads, Lane-markings, Traffic-signals, and Lane-edges you

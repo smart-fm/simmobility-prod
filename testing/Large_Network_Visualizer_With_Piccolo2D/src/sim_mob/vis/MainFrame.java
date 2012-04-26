@@ -17,27 +17,38 @@ import sim_mob.vis.controls.*;
 import sim_mob.vis.simultion.SimulationResults;
 
 
+/**
+ * The main frame of our simulation visualizer. This extends the MainFrameUI class
+ * and connects all controls with their respective Action Listeners. 
+ * 
+ * \author Seth N. Hetu
+ */
 public class MainFrame extends MainFrameUI {
 	private static final long serialVersionUID = 1L;
 	
-	//For controlling the simulation.
-	private NetSimAnimator netViewAnimator;
+	//Colors and strokes
+	//An empty config allows us to use "default" successfully.
+	public static CSS_Interface Config = new CSS_Interface();
+	
+	//Our current simulation.
 	private SimulationResults simData;
 	
-	private Timer memoryUsageTimer;
+	//Related to opening the simulation file.
 	private FileOpenThread progressData;
-	private Timer progressChecker;
-	protected Timer animTimer;
-	
-	//Our current loading activity
 	BifurcatedActivity loadingAFile;
 	
-	//Colors
-	public static CSS_Interface Config = new CSS_Interface(); //An empty config allows us to use "default"
+	//For controlling the visualization's animation.
+	private NetSimAnimator netViewAnimator;
 	
+	//Various Swing timers.
+	private Timer memoryUsageTimer;
+	private Timer progressChecker;
+	protected Timer animTimer;
+
 	//For zooming
-	//private static final Stroke onePtStroke = new BasicStroke(1.0F);
 	private MouseAdapter currZoomer;
+	
+	
 	
 	public MainFrame(CSS_Interface config) {
 		//Initial setup: FRAME
@@ -88,7 +99,9 @@ public class MainFrame extends MainFrameUI {
 	}
 	
 	
-	//Check our loading progress. Respond if done
+	/**
+	 * Check our loading progress. Respond if done. 
+	 */
 	private void checkProgress() {
 		//First, are we done?
 		simData = progressData.getResults();
@@ -112,6 +125,19 @@ public class MainFrame extends MainFrameUI {
 		}
 	}
 	
+	
+	
+	/////////////////////////////////////////////////////////////////////////////
+	// Many of the following functions were added to allow MouseRectZoomer and FileOpenThread
+	// to be moved into separate files. Basically, MainFrame used to be a single, gigantic class,
+	// so these functions became needlessly interconnected. As more functionality is migrated
+	// OUT of MainFrame, some of these functions will disappear. For example, the play/fwd/rev
+	// buttons should be moved into their own "simulation playback" interface, so "resetFrameTickSlider()"
+	// will no longer be needed (or will become part of that class instead".
+	/////////////////////////////////////////////////////////////////////////////
+	
+	
+	//Convenient activity wrapper for releaseZoomSquare()
 	private final Activity releaseZoomActivity = new Activity() {
 		public Object run(Object... args) {
 			releaseZoomSquare();
@@ -129,8 +155,8 @@ public class MainFrame extends MainFrameUI {
 	}
 	
 	
+	//Zoom by a given factor. 
 	private void factorZoom(double amt) {
-		//Test
 		PCamera c = netViewPanel.getCamera();
 		PBounds vb = c.getViewBounds();
 		c.scaleViewAboutPoint(amt, vb.getCenterX(), vb.getCenterY());
@@ -140,6 +166,8 @@ public class MainFrame extends MainFrameUI {
 		return simData;
 	}
 	
+	
+	///Reset the frame tick slider to range from 0...ticks animation ticks, and set it to 0.
 	public void resetFrameTickSlider(int ticks) {
 		frameTickSlider.setMinimum(0);
 		frameTickSlider.setMaximum(ticks-1);
@@ -148,6 +176,7 @@ public class MainFrame extends MainFrameUI {
 		frameTickSlider.setValue(0);
 	}
 	
+	///Start a thread which will open the simulation file.
 	public Timer openAFile(boolean embedded) {
 		progressData = new FileOpenThread(this, embedded);
 		progressData.start();
@@ -160,16 +189,29 @@ public class MainFrame extends MainFrameUI {
 		return progressChecker;
 	}
 	
+	///Nullify the progress checker and the thread used to open the simulation file.
+	///Calling this function when the thread is still working may be dangerous.
 	public void clearProgressData() {
 		progressData = null;
 		progressChecker = null;
 	}
 	
+	///Reload the network visualizer's scene graph from the current Simulation Results object.
 	public void rebuildSceneGraph() {
 		netViewPanel.buildSceneGraph(progressData.getRoadNetwork(), simData, progressData.getUniqueAgentIDs());
 		netViewAnimator = new NetSimAnimator(netViewPanel, simData, frameTickSlider);
 	}
 
+	
+	
+	/////////////////////////////////////////////////////////////////////////////
+	// The following classes are used as Listeners to respond to the GUI's various
+	// button presses, mouse clicks, and combo box selections. Most of them should be
+	// extracted into their own generic classes (and files). In addition, some of them
+	// are very heavy-handed (e.g., trying to keep the play button's icon in sync
+	// could be done much more easily with an MVC-style approach) and should be simplified.
+	/////////////////////////////////////////////////////////////////////////////
+	
 	
 	class OpenFileListener implements ActionListener {
 		private boolean embedded;

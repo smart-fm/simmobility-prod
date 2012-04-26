@@ -12,7 +12,7 @@ import sim_mob.vis.simultion.SimulationResults;
 
 /**
  * Handles all of the necessary GUI adjustments for beginning to open a file and then 
- * completing/canceling that file load.
+ * completing/cancelling that file load.
  * 
  * \author Seth N. Hetu
  */

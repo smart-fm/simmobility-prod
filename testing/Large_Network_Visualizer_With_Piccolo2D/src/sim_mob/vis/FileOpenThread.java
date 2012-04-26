@@ -9,7 +9,12 @@ import sim_mob.vis.simultion.SimulationResults;
 import sim_mob.vis.util.Utility;
 
 
-//Helper class that loads a file and provides progress updates.
+/**
+ * Helper class for loading a large simulation output file. This class operates in its own thread, and
+ * provides several synchronized functions for detecting the progress of loading that file. 
+ * 
+ * \author Seth N. Hetu
+ */
 public class FileOpenThread extends Thread {
 	private MainFrame parent;
 	private boolean isEmbedded;

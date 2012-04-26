@@ -11,7 +11,14 @@ import edu.umd.cs.piccolo.*;
 import edu.umd.cs.piccolo.util.PPaintContext;
 
 
-
+/**
+ * A component canvas for the Piccolo2D framework. This class can construct a scene 
+ *   graph for a simulation results object, and can be advanced to any "frame" 
+ *   within the simulation time ticks.
+ *   
+ * \author Zhang Shuai
+ * \author Seth N. Hetu
+ */
 public class NetworkVisualizer extends PCanvas {
 	private static final long serialVersionUID = 1L;
 

@@ -101,6 +101,7 @@ public class MainFrame extends MainFrameUI {
 					generalProgress.setVisible(true);
 					generalProgress.setIndeterminate(true);
 					generalProgress.setStringPainted(false);
+					generalProgress.requestFocusInWindow();
 					progressData = new FileOpenThread(MainFrame.this, true);
 					progressData.start();
 					progressChecker = new Timer(200, new ActionListener() {
@@ -121,6 +122,7 @@ public class MainFrame extends MainFrameUI {
 					generalProgress.setVisible(true);
 					generalProgress.setIndeterminate(false);
 					generalProgress.setStringPainted(true);
+					generalProgress.requestFocusInWindow();
 					progressData = new FileOpenThread(MainFrame.this, false);
 					progressData.start();
 					progressChecker = new Timer(200, new ActionListener() {

@@ -1,16 +1,11 @@
 package sim_mob.vis;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Container;
-import java.awt.FlowLayout;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.GridLayout;
-import java.awt.Insets;
+import java.awt.*;
 import java.io.IOException;
 
 import javax.swing.*;
+
+import net.miginfocom.swing.MigLayout;
 
 import sim_mob.vis.controls.NetworkVisualizer;
 import sim_mob.vis.util.Utility;
@@ -32,6 +27,9 @@ import sim_mob.vis.util.Utility;
 public class MainFrameUI  extends JFrame {
 	private static final long serialVersionUID = 1L;
 	
+	//Turn this on to draw dotted boxes around all laid out components. Very useful for fixing layout glitches.
+	private static final boolean DebugLayout = false;
+	
 	//NOTE: Is this doing what we want it to?
 	private static final String clockRateList[] = {"default-50ms","10 ms", "50 ms", "100 ms", "200 ms","500 ms","1000 ms"};
 	
@@ -44,6 +42,7 @@ public class MainFrameUI  extends JFrame {
 	private static ImageIcon loadEmbeddedIcon;
 	private static ImageIcon zoomInIcon;
 	private static ImageIcon zoomOutIcon;
+	private static ImageIcon zoomSquareIcon;
 	private static boolean ResourcesLoaded = false;
 	
 	//Leftover layout panels. TODO: Remove these if possible:
@@ -91,7 +90,7 @@ public class MainFrameUI  extends JFrame {
 			ResourcesLoaded = true;
 		}
 		loadComponents();
-		layoutComponents(this.getContentPane());
+		getContentPane().add(BorderLayout.CENTER, layoutComponents());
 	}
 	
 	private static final ImageIcon MakeImageIcon(String resourcePath) {
@@ -114,6 +113,7 @@ public class MainFrameUI  extends JFrame {
 		loadEmbeddedIcon = MakeImageIcon("res/icons/embed.png");
 		zoomInIcon = MakeImageIcon("res/icons/zoom_in.png");
 		zoomOutIcon = MakeImageIcon("res/icons/zoom_out.png");
+		zoomSquareIcon = MakeImageIcon("res/icons/zoom_square.png");
 	}
 	
 	
@@ -151,14 +151,20 @@ public class MainFrameUI  extends JFrame {
 		clockRateComboBox = new JComboBox(clockRateList);
 		
 		//Zoom buttons
-	    zoomSquare = new JToggleButton("Zoom Box");
-	    zoomIn = new JButton("");
+	    zoomSquare = new JToggleButton();
+	    if (zoomSquareIcon!=null) {
+	    	zoomSquare.setIcon(zoomSquareIcon);
+	    	zoomSquare.setText("Box");
+	    } else {
+	    	zoomSquare.setText("Zoom Box");
+	    }
+	    zoomIn = new JButton();
 	    if (zoomInIcon!=null) {
 	    	zoomIn.setIcon(zoomInIcon);
 	    } else {
 	    	zoomIn.setText("+");
 	    }
-	    zoomOut = new JButton("");
+	    zoomOut = new JButton();
 	    if (zoomOutIcon!=null) {
 	    	zoomOut.setIcon(zoomOutIcon);
 	    } else {
@@ -169,82 +175,48 @@ public class MainFrameUI  extends JFrame {
 		netViewPanel = new NetworkVisualizer(300,300);
 	}
 	
-	private void layoutComponents(Container cp) {
-		//Left panel
-		GridLayout gl = new GridLayout(0,1,0,2);
-		jpLeft = new JPanel(gl);
-		jpLeft.add(memoryUsage);
-		jpLeft.add(openLogFile);
-		jpLeft.add(openEmbeddedFile);
-		jpLeft.add(clockRateComboBox);
+	
+	
+	private JPanel layoutComponents() {
+		MigLayout ml = new MigLayout((DebugLayout?"debug":"")+",insets 5px 5px 5px 5px", "[left]rel[center]", "[top]rel[bottom]rel[bottom]");
+		JPanel jp = new JPanel(ml);
 		
-		zoomPnl = new JPanel(new FlowLayout());
+		//LHS
+		String sg = "sizegroup lhs_sz,";
+		jp.add(memoryUsage, sg+"cell 0 0, split, flowy");
+		jp.add(openLogFile, sg);
+		jp.add(openEmbeddedFile, sg);
+		jp.add(clockRateComboBox, sg);
+		
+		//Zoom: here we cheat a little
+		JPanel zoomPnl = new JPanel();
+		zoomPnl.setLayout(new BoxLayout(zoomPnl, BoxLayout.X_AXIS));
 		zoomPnl.add(zoomSquare);
 		zoomPnl.add(zoomIn);
 		zoomPnl.add(zoomOut);
-		jpLeft.add(zoomPnl);
-
+		jp.add(zoomPnl, sg+"skip");
 		
-		//Bottom panel
-		jpLower = new JPanel(new BorderLayout());
-		jpLower.add(BorderLayout.NORTH, frameTickSlider);
-		jpLower2 = new JPanel(new GridLayout(1, 0, 10, 0));
-		jpLower2.add(revBtn);
-		jpLower2.add(playBtn);
-		jpLower2.add(fwdBtn);
-		jpLower.add(BorderLayout.CENTER, jpLower2);
+		//
+		jp.add(netViewPanel, "id netView, cell 1 0, width 100%, height 100%");
 		
-		
-		//Main Frame uses a grid bag layout
-		GridBagConstraints gbc;
-		cp.setLayout(new GridBagLayout());
-		
-		//Add to the main controller: left panel
-		gbc = new GridBagConstraints();
-		gbc.gridx = 0;
-		gbc.gridy = 0;
-		gbc.gridwidth = 1;
-		gbc.gridheight = GridBagConstraints.REMAINDER;
-		gbc.weightx = 0.1;
-		gbc.weighty = 0.1;
-		gbc.anchor = GridBagConstraints.PAGE_START;
-		gbc.insets = new Insets(10, 5, 10, 5);
-		cp.add(jpLeft, gbc);
-		
-		//Add (and stretch) the console
-		gbc = new GridBagConstraints();
-		gbc.gridx = 1;
-		gbc.gridy = 0;
-		gbc.weightx = 0.1;
-		gbc.weighty = 0.1;
-		gbc.fill = GridBagConstraints.HORIZONTAL;
-		cp.add(console, gbc);
-		
-		//Add to the main controller: center panel
-		gbc = new GridBagConstraints();
-		gbc.gridx = 1;
-		gbc.gridy = 1;
-		gbc.ipadx = 800;
-		gbc.ipady = 600;
-		gbc.weightx = 0.9;
-		gbc.weighty = 0.9;
-		gbc.fill = GridBagConstraints.BOTH;
-		//cp.add(netViewPanel, gbc);
-		rhsLayout = new JPanel(new BorderLayout());
-		rhsLayout.add(BorderLayout.CENTER, netViewPanel);
-		rhsLayout.add(BorderLayout.SOUTH, generalProgress);
-		cp.add(rhsLayout, gbc);
+		//
+		String sg2 = "sizegroup play_sz,";
+		jp.add(playBtn, sg2+"id playBtn, cell 1 1");
+		jp.add(revBtn, sg2+"id revBtn, pos null (playBtn.y+(playBtn.h/2)-(revBtn.h/2)) (playBtn.x - rel)");
+		jp.add(fwdBtn, sg2+"id fwdBtn, pos (playBtn.x2 + rel) (playBtn.y+(playBtn.h/2)-(fwdBtn.h/2))");
 		
 		
-
-		//Add to the main controller: right panel
-		gbc = new GridBagConstraints();
-		gbc.gridx = 1;
-		gbc.gridy = 2;
-		gbc.weightx = 0.1;
-		gbc.weighty = 0.1;
-		gbc.anchor = GridBagConstraints.PAGE_END;
-		cp.add(jpLower, gbc);
+		//Attachment makes the most sense for the progress bar
+		//TODO: The progress bar will disappear when the netView panel is clicked on. Should
+		//      be simple enough to put it back on top when we update its value. 
+		jp.add(generalProgress, "pos (netView.x) null (netView.x2) (netView.y2)");
+		jp.setComponentZOrder(generalProgress, 0);
+		
+		
+		//
+		jp.add(console, "dock south");
+		
+		return jp;
 	}
 	
 	public static void main(String[] args) {

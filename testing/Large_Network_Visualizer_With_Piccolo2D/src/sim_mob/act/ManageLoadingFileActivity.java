@@ -1,15 +1,11 @@
 package sim_mob.act;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.geom.Rectangle2D;
 
 import javax.swing.JProgressBar;
 import javax.swing.Timer;
 
-import sim_mob.vis.FileOpenThread;
 import sim_mob.vis.MainFrame;
-import sim_mob.vis.controls.NetSimAnimator;
 import sim_mob.vis.controls.NetworkVisualizer;
 import sim_mob.vis.simultion.SimulationResults;
 

@@ -12,6 +12,7 @@ import java.io.*;
 import java.text.DecimalFormat;
 import java.util.HashSet;
 
+import sim_mob.act.Activity;
 import sim_mob.act.BifurcatedActivity;
 import sim_mob.act.ManageLoadingFileActivity;
 import sim_mob.conf.CSS_Interface;
@@ -42,37 +43,6 @@ public class MainFrame extends MainFrameUI {
 	//For zooming
 	private static final Stroke onePtStroke = new BasicStroke(1.0F);
 	private MouseAdapter currZoomer;
-	class MouseRectZoomer extends MouseAdapter {
-		Point startPoint;
-		
-		public void mousePressed(MouseEvent e) {
-			startPoint = e.getPoint();
-		}
-		public void mouseExited(MouseEvent e) {
-			//startPoint = null;  
-		}
-		public void mouseReleased(MouseEvent e) {
-			if (startPoint!=null) {
-				netViewPanel.setZoomBox(new Rectangle2D.Double(startPoint.x, startPoint.y, e.getX()-startPoint.x, e.getY()-startPoint.y));
-				netViewPanel.zoomToBox();
-			}
-			netViewPanel.setZoomBox(null);
-			releaseZoomSquare();
-		}
-		public void mouseDragged(MouseEvent e) {
-			//Provide some feedback.
-			if (startPoint != null) {
-				//netViewPanel.repaint();  //NOTE: This is probably better done with a camera-constant object.
-				//Graphics2D g = (Graphics2D)netViewPanel.getGraphics();
-				//g.setColor(Color.red);
-				//g.setStroke(onePtStroke);
-				netViewPanel.setZoomBox(new Rectangle2D.Double(startPoint.x, startPoint.y, e.getX()-startPoint.x, e.getY()-startPoint.y));
-				//Rectangle2D rect = new Rectangle2D.Double(startPoint.x, startPoint.y, e.getX()-startPoint.x, e.getY()-startPoint.y);
-				//g.draw(rect);
-			}
-		}
-	}
-	
 	
 	public MainFrame(CSS_Interface config) {
 		//Initial setup: FRAME
@@ -133,7 +103,7 @@ public class MainFrame extends MainFrameUI {
 				if (zoomSquare.isSelected()) {
 					//Start zoom-select
 					netViewPanel.setEnabled(false);
-					currZoomer = new MouseRectZoomer();
+					currZoomer = new MouseRectZoomer(MainFrame.this, netViewPanel, releaseZoomActivity);
 					netViewPanel.addMouseListener(currZoomer);
 					netViewPanel.addMouseMotionListener(currZoomer);
 				} else {
@@ -264,21 +234,6 @@ public class MainFrame extends MainFrameUI {
 				}
 			}
 		});
-		/*
-		animTimer = new Timer(50, new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				//if (!newViewPnl.advanceAnim(1, frameTickSlider)) {
-					if(!virtual_newViewPnl.testTimer())
-					{	
-						animTimer.stop();
-						playBtn.setIcon(playIcon);
-						return;
-					}
-					
-				//}
-			}
-		});
-		*/
 	}
 	
 	
@@ -306,7 +261,12 @@ public class MainFrame extends MainFrameUI {
 		}
 	}
 	
-	
+	private final Activity releaseZoomActivity = new Activity() {
+		public Object run(Object... args) {
+			releaseZoomSquare();
+			return null;
+		}
+	};
 	private void releaseZoomSquare() {
 		if (zoomSquare.isSelected()) {
 			zoomSquare.setSelected(false);

@@ -11,6 +11,9 @@ import edu.umd.cs.piccolo.util.*;
 import java.io.*;
 import java.text.DecimalFormat;
 import java.util.HashSet;
+
+import sim_mob.act.BifurcatedActivity;
+import sim_mob.act.ManageLoadingFileActivity;
 import sim_mob.conf.CSS_Interface;
 import sim_mob.vis.controls.*;
 import sim_mob.vis.network.RoadNetwork;
@@ -29,6 +32,9 @@ public class MainFrame extends MainFrameUI {
 	private FileOpenThread progressData;
 	private Timer progressChecker;
 	protected Timer animTimer;
+	
+	//Our current loading activity
+	BifurcatedActivity loadingAFile;
 	
 	//Colors
 	public static CSS_Interface Config = new CSS_Interface(); //An empty config allows us to use "default"
@@ -66,7 +72,7 @@ public class MainFrame extends MainFrameUI {
 			}
 		}
 	}
-
+	
 	
 	public MainFrame(CSS_Interface config) {
 		//Initial setup: FRAME
@@ -96,20 +102,8 @@ public class MainFrame extends MainFrameUI {
 		openEmbeddedFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (progressChecker==null) {
-					pauseAnimation();
-					generalProgress.setValue(0);
-					generalProgress.setVisible(true);
-					generalProgress.setIndeterminate(true);
-					generalProgress.setStringPainted(false);
-					generalProgress.requestFocusInWindow();
-					progressData = new FileOpenThread(MainFrame.this, true);
-					progressData.start();
-					progressChecker = new Timer(200, new ActionListener() {
-						public void actionPerformed(ActionEvent e) {
-							checkProgress();
-						}
-					});
-					progressChecker.start();
+					loadingAFile = new ManageLoadingFileActivity(MainFrame.this, netViewPanel, generalProgress, true);
+					loadingAFile.begin();
 				}
 			}
 		});
@@ -117,20 +111,8 @@ public class MainFrame extends MainFrameUI {
 		openLogFile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (progressChecker==null) {
-					pauseAnimation();
-					generalProgress.setValue(0);
-					generalProgress.setVisible(true);
-					generalProgress.setIndeterminate(false);
-					generalProgress.setStringPainted(true);
-					generalProgress.requestFocusInWindow();
-					progressData = new FileOpenThread(MainFrame.this, false);
-					progressData.start();
-					progressChecker = new Timer(200, new ActionListener() {
-						public void actionPerformed(ActionEvent e) {
-							checkProgress();
-						}
-					});
-					progressChecker.start();
+					loadingAFile = new ManageLoadingFileActivity(MainFrame.this, netViewPanel, generalProgress, false);
+					loadingAFile.begin();
 				}
 			}
 		});
@@ -305,38 +287,7 @@ public class MainFrame extends MainFrameUI {
 		//First, are we done?
 		simData = progressData.getResults();
 		if (progressData.isDone()) {
-			//Stop our timer.
-			progressChecker.stop();
-			
-			//Hide the progress bar
-			generalProgress.setVisible(false);
-			
-			//We might be done but not actually have a simulation to work with (cancelled dialog) 
-			if (simData!=null) {
-				//Update the slider
-				frameTickSlider.setMinimum(0);
-				frameTickSlider.setMaximum(simData.ticks.size()-1);
-				frameTickSlider.setMajorTickSpacing(simData.ticks.size()/10);
-				frameTickSlider.setMinorTickSpacing(simData.ticks.size()/50);
-				frameTickSlider.setValue(0);
-				
-				console.setText("Input File Name: "+frameTickSlider.getValue());
-				
-				//Remove all children (if reloading)
-				netViewPanel.getLayer().removeAllChildren();
-				
-				//Now add all children again
-				netViewPanel.buildSceneGraph(progressData.getRoadNetwork(), simData, progressData.getUniqueAgentIDs());
-				netViewAnimator = new NetSimAnimator(netViewPanel, simData, frameTickSlider);
-				
-				//Reset the view
-				Rectangle2D initialBounds = netViewPanel.getNaturalBounds();
-				netViewPanel.getCamera().animateViewToCenterBounds(initialBounds, true, 1000);
-			}
-			
-			//Done, set to null
-			progressData = null;
-			progressChecker = null;
+			loadingAFile.end();
 		} else {
 			//If not done, just update our progress.
 			generalProgress.setValue((int)(progressData.getPercentDone() * generalProgress.getMaximum()));
@@ -345,11 +296,13 @@ public class MainFrame extends MainFrameUI {
 	
 	
 	
-	private void pauseAnimation() {
+	/**
+	 * Request this frame to stop animating the current simulation. 
+	 */
+	public void pauseAnimation() {
 		if (animTimer.isRunning()) {
 			animTimer.stop();
 			playBtn.setSelected(false);
-			//playBtn.setIcon(MainFrameUI.playIcon);
 		}
 	}
 	
@@ -371,6 +324,41 @@ public class MainFrame extends MainFrameUI {
 		PBounds vb = c.getViewBounds();
 		c.scaleViewAboutPoint(amt, vb.getCenterX(), vb.getCenterY());
 	}
+	
+	public SimulationResults getSimulationResults() {
+		return simData;
+	}
+	
+	public void resetFrameTickSlider(int ticks) {
+		frameTickSlider.setMinimum(0);
+		frameTickSlider.setMaximum(ticks-1);
+		frameTickSlider.setMajorTickSpacing(ticks/10);
+		frameTickSlider.setMinorTickSpacing(ticks/50);
+		frameTickSlider.setValue(0);
+	}
+	
+	public Timer openAFile(boolean embedded) {
+		progressData = new FileOpenThread(this, embedded);
+		progressData.start();
+		progressChecker = new Timer(200, new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				checkProgress();
+			}
+		});
+		progressChecker.start();
+		return progressChecker;
+	}
+	
+	public void clearProgressData() {
+		progressData = null;
+		progressChecker = null;
+	}
+	
+	public void rebuildSceneGraph() {
+		netViewPanel.buildSceneGraph(progressData.getRoadNetwork(), simData, progressData.getUniqueAgentIDs());
+		netViewAnimator = new NetSimAnimator(netViewPanel, simData, frameTickSlider);
+	}
+
 	
 	
 }

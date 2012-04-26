@@ -1,25 +1,20 @@
 package sim_mob.vis;
 
-import java.awt.*;
+
 import java.awt.event.*;
-import java.awt.geom.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
 import edu.umd.cs.piccolo.PCamera;
 import edu.umd.cs.piccolo.util.*;
-import java.io.*;
 import java.text.DecimalFormat;
-import java.util.HashSet;
 
 import sim_mob.act.Activity;
 import sim_mob.act.BifurcatedActivity;
 import sim_mob.act.ManageLoadingFileActivity;
 import sim_mob.conf.CSS_Interface;
 import sim_mob.vis.controls.*;
-import sim_mob.vis.network.RoadNetwork;
 import sim_mob.vis.simultion.SimulationResults;
-import sim_mob.vis.util.Utility;
 
 
 public class MainFrame extends MainFrameUI {
@@ -41,7 +36,7 @@ public class MainFrame extends MainFrameUI {
 	public static CSS_Interface Config = new CSS_Interface(); //An empty config allows us to use "default"
 	
 	//For zooming
-	private static final Stroke onePtStroke = new BasicStroke(1.0F);
+	//private static final Stroke onePtStroke = new BasicStroke(1.0F);
 	private MouseAdapter currZoomer;
 	
 	public MainFrame(CSS_Interface config) {
@@ -51,6 +46,9 @@ public class MainFrame extends MainFrameUI {
 			
 		//Components and layout
 		createListeners();
+		
+		//Start running the memory timer
+		memoryUsageTimer.start();
 	}
 	
 	
@@ -68,172 +66,25 @@ public class MainFrame extends MainFrameUI {
 	 * Create all Listeners and hook them up to callback functions.
 	 */
 	private void createListeners() {
-
-		openEmbeddedFile.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				if (progressChecker==null) {
-					loadingAFile = new ManageLoadingFileActivity(MainFrame.this, netViewPanel, generalProgress, true);
-					loadingAFile.begin();
-				}
-			}
-		});
+		openEmbeddedFile.addActionListener(new OpenFileListener(true));		
+		openLogFile.addActionListener(new OpenFileListener(false));
 		
-		openLogFile.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				if (progressChecker==null) {
-					loadingAFile = new ManageLoadingFileActivity(MainFrame.this, netViewPanel, generalProgress, false);
-					loadingAFile.begin();
-				}
-			}
-		});
-		
-		zoomIn.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				factorZoom(1.1);
-			}
-		});
-		zoomOut.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				factorZoom(0.9);
-			}
-		});
-		
-		zoomSquare.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				if (zoomSquare.isSelected()) {
-					//Start zoom-select
-					netViewPanel.setEnabled(false);
-					currZoomer = new MouseRectZoomer(MainFrame.this, netViewPanel, releaseZoomActivity);
-					netViewPanel.addMouseListener(currZoomer);
-					netViewPanel.addMouseMotionListener(currZoomer);
-				} else {
-					//Cancel
-					releaseZoomSquare();
-				}
-			}
-		});
-		
-		
-
+		zoomIn.addActionListener(new ZoomMapListener(1.1));
+		zoomOut.addActionListener(new ZoomMapListener(0.9));
+		zoomSquare.addActionListener(new ZoomSquareListener());
 		
 		//Frame tick slider
-		frameTickSlider.addChangeListener(new ChangeListener() {
-			public void stateChanged(ChangeEvent arg0) {
-				if (simData==null || netViewAnimator==null) {
-					return;
-				}
-				if (frameTickSlider.isEnabled()) {
-					netViewAnimator.jumpAnim(frameTickSlider.getValue(), frameTickSlider);
-				}
-			}
-		});
+		frameTickSlider.addChangeListener(new FrameTickChangeListener());
 		
 		//Play/pause
-		playBtn.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				//Anything to play?
-				if (simData==null || netViewAnimator==null) {
-					return;
-				}
-				
-				if (!animTimer.isRunning()) {
-					animTimer.start();
-					playBtn.setSelected(true);
-					//playBtn.setIcon(MainFrameUI.pauseIcon);
-				} else {
-					animTimer.stop();
-					playBtn.setSelected(false);
-					//playBtn.setIcon(MainFrameUI.playIcon);
-				}
-			}
-		});
-		
-		fwdBtn.addActionListener(new ActionListener(){
-			
-			public void actionPerformed(ActionEvent arg0) {
-				if (netViewAnimator.advanceAnimbyStep(1, frameTickSlider)) {
-					animTimer.stop();
-					playBtn.setSelected(false);
-					//playBtn.setIcon(MainFrameUI.playIcon);
-					console.setText("Input File Name: "+frameTickSlider.getValue());
+		playBtn.addActionListener(new PlayPauseListener());
+		fwdBtn.addActionListener(new FwdRevListener(true));
+		revBtn.addActionListener(new FwdRevListener(false));
 
-					return;
-				}
+		memoryUsageTimer = new Timer(1000, new MemoryUsageAction()); 
+		animTimer = new Timer(50, new AnimTimerAction());
 				
-			}
-			
-		});
-		
-		revBtn.addActionListener(new ActionListener(){
-			
-			public void actionPerformed(ActionEvent arg0) {
-				if (netViewAnimator.advanceAnimbyStep(-1, frameTickSlider)) {
-					animTimer.stop();
-					playBtn.setSelected(false);
-					//playBtn.setIcon(MainFrameUI.playIcon);
-					console.setText("Input File Name: "+frameTickSlider.getValue());
-					return;
-				}
-				
-			}
-			
-		});
-		
-		memoryUsageTimer = new Timer(1000, new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				Runtime runtime = Runtime.getRuntime();
-				long memory = runtime.totalMemory() - runtime.freeMemory();
-				String memTxt = new DecimalFormat("#.#").format(memory / Math.pow(1024, 2)); //e.g. "1.2"
-				memoryUsage.setText("Memory: " + memTxt + " Mb");
-			}
-		});
-		memoryUsageTimer.start();
-		
-		animTimer = new Timer(50, new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-
-				if (netViewAnimator.advanceAnim(1, frameTickSlider)) {
-					console.setText("Input File Name: "+frameTickSlider.getValue());
-				
-				}else{
-					animTimer.stop();
-					playBtn.setSelected(false);
-					//playBtn.setIcon(MainFrameUI.playIcon);
-					return;
-						
-				}
-			}
-		});
-		
-		clockRateComboBox.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				
-				String speed = (String) clockRateComboBox.getSelectedItem();
-				if(!speed.contains("default")){
-					String [] items = speed.split(" ");
-					
-					int clockRate = Integer.parseInt(items[0]);
-					
-					animTimer.stop();
-					
-					animTimer = new Timer(clockRate, new ActionListener() {
-						public void actionPerformed(ActionEvent arg0) {
-							
-							if (netViewAnimator.advanceAnim(1, frameTickSlider)) {
-								console.setText("Input File Name: "+frameTickSlider.getValue());
-							}else{
-								animTimer.stop();
-								playBtn.setSelected(false);
-								//playBtn.setIcon(MainFrameUI.playIcon);
-								return;
-									
-							}
-						}
-					});
-					animTimer.start();
-				}
-			}
-		});
+		clockRateComboBox.addActionListener(new ClockRateListener());
 	}
 	
 	
@@ -319,6 +170,147 @@ public class MainFrame extends MainFrameUI {
 		netViewAnimator = new NetSimAnimator(netViewPanel, simData, frameTickSlider);
 	}
 
+	
+	class OpenFileListener implements ActionListener {
+		private boolean embedded;
+		OpenFileListener(boolean embedded) {
+			this.embedded = embedded;
+		}
+		public void actionPerformed(ActionEvent arg0) {
+			if (progressChecker==null) {
+				loadingAFile = new ManageLoadingFileActivity(MainFrame.this, netViewPanel, generalProgress, embedded);
+				loadingAFile.begin();
+			}
+		}
+	}
+	
+	class ZoomMapListener implements ActionListener {
+		private double zoomFactor;
+		ZoomMapListener(double zoomFactor) {
+			this.zoomFactor = zoomFactor;
+		}
+		public void actionPerformed(ActionEvent e) {
+			factorZoom(zoomFactor);
+		}
+	}
+	
+	class ZoomSquareListener implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+			if (zoomSquare.isSelected()) {
+				//Start zoom-select
+				netViewPanel.setEnabled(false);
+				currZoomer = new MouseRectZoomer(MainFrame.this, netViewPanel, releaseZoomActivity);
+				netViewPanel.addMouseListener(currZoomer);
+				netViewPanel.addMouseMotionListener(currZoomer);
+			} else {
+				//Cancel
+				releaseZoomSquare();
+			}
+		}
+	}
+
+	
+	class FrameTickChangeListener implements ChangeListener {
+		public void stateChanged(ChangeEvent arg0) {
+			if (simData==null || netViewAnimator==null) {
+				return;
+			}
+			if (frameTickSlider.isEnabled()) {
+				netViewAnimator.jumpAnim(frameTickSlider.getValue(), frameTickSlider);
+			}
+		}
+	}
+
+	
+	class PlayPauseListener implements ActionListener {
+		public void actionPerformed(ActionEvent arg0) {
+			//Anything to play?
+			if (simData==null || netViewAnimator==null) {
+				return;
+			}
+			
+			if (!animTimer.isRunning()) {
+				animTimer.start();
+				playBtn.setSelected(true);
+				//playBtn.setIcon(MainFrameUI.pauseIcon);
+			} else {
+				animTimer.stop();
+				playBtn.setSelected(false);
+				//playBtn.setIcon(MainFrameUI.playIcon);
+			}
+		}
+	}
+	
+	class FwdRevListener implements ActionListener {
+		private int amtFwd;
+		FwdRevListener(boolean fwd) {
+			this.amtFwd = fwd ? 1 : -1;
+		}
+		public void actionPerformed(ActionEvent arg0) {
+			if (netViewAnimator.advanceAnimbyStep(amtFwd, frameTickSlider)) {
+				animTimer.stop();
+				playBtn.setSelected(false);
+				
+				//NOTE: Why is this here? It seems completely out of place. ~Seth
+				console.setText("Input File Name: "+frameTickSlider.getValue());
+			}
+		}
+	}
+	
+	class MemoryUsageAction implements ActionListener {
+		public void actionPerformed(ActionEvent arg0) {
+			Runtime runtime = Runtime.getRuntime();
+			long memory = runtime.totalMemory() - runtime.freeMemory();
+			String memTxt = new DecimalFormat("#.#").format(memory / Math.pow(1024, 2)); //e.g. "1.2"
+			memoryUsage.setText("Memory: " + memTxt + " Mb");
+		}
+	}
+
+	class AnimTimerAction implements ActionListener {
+		public void actionPerformed(ActionEvent arg0) {
+
+			if (netViewAnimator.advanceAnim(1, frameTickSlider)) {
+				console.setText("Input File Name: "+frameTickSlider.getValue());
+			
+			}else{
+				animTimer.stop();
+				playBtn.setSelected(false);
+				//playBtn.setIcon(MainFrameUI.playIcon);
+				return;
+					
+			}
+		}
+	}
+
+	class ClockRateListener implements ActionListener {
+		public void actionPerformed(ActionEvent arg0) {
+			
+			String speed = (String) clockRateComboBox.getSelectedItem();
+			if(!speed.contains("default")){
+				String [] items = speed.split(" ");
+				
+				int clockRate = Integer.parseInt(items[0]);
+				
+				animTimer.stop();
+				
+				animTimer = new Timer(clockRate, new ActionListener() {
+					public void actionPerformed(ActionEvent arg0) {
+						
+						if (netViewAnimator.advanceAnim(1, frameTickSlider)) {
+							console.setText("Input File Name: "+frameTickSlider.getValue());
+						}else{
+							animTimer.stop();
+							playBtn.setSelected(false);
+							//playBtn.setIcon(MainFrameUI.playIcon);
+							return;
+								
+						}
+					}
+				});
+				animTimer.start();
+			}
+		}
+	}
 	
 	
 }

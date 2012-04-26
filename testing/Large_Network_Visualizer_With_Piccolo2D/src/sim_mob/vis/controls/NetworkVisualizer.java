@@ -254,6 +254,8 @@ public class NetworkVisualizer extends PCanvas {
 	
 	//For zoom display
 	class RectNode extends PNode {
+		private static final long serialVersionUID = 1L;
+		
 		public RectNode(double x, double y, double w, double h) {
 			this.setBounds(x, y, w, h);
 		}

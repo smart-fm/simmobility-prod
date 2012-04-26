@@ -15,14 +15,14 @@ import sim_mob.vis.controls.NetworkVisualizer;
  * \author Seth N. Hetu
  */
 public class MouseRectZoomer extends MouseAdapter {
-	private MainFrame parentFrame;
+	//private MainFrame parentFrame;
 	private NetworkVisualizer netView;
 	private Activity releaseZoomActivity;
 	
 	private Point startPoint;
 	
 	public MouseRectZoomer(MainFrame parentFrame, NetworkVisualizer netView, Activity releaseZoomActivity) {
-		this.parentFrame = parentFrame;
+		//this.parentFrame = parentFrame;
 		this.netView = netView;
 		this.releaseZoomActivity = releaseZoomActivity;
 	}

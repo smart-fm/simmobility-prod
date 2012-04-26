@@ -1,12 +1,9 @@
 package sim_mob.vis;
 
-import java.awt.Component;
-import java.awt.geom.Rectangle2D;
 import java.io.*;
 import java.util.HashSet;
 import javax.swing.*;
 
-import sim_mob.vis.controls.NetSimAnimator;
 import sim_mob.vis.network.RoadNetwork;
 import sim_mob.vis.simultion.SimulationResults;
 import sim_mob.vis.util.Utility;

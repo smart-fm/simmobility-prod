@@ -45,13 +45,6 @@ public class MainFrameUI  extends JFrame {
 	private static ImageIcon zoomSquareIcon;
 	private static boolean ResourcesLoaded = false;
 	
-	//Leftover layout panels. TODO: Remove these if possible:
-	private JPanel rhsLayout;
-	private JPanel jpLeft;
-	private JPanel zoomPnl;
-	private JPanel jpLower;
-	private JPanel jpLower2;
-	
 	//Left panel buttons
 	protected JLabel memoryUsage;
 	protected JButton openLogFile;

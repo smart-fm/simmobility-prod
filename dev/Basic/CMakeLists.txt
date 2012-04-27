@@ -56,9 +56,15 @@ configure_file (
 #Cflags for C++0x support via gcc
 IF (SIMMOB_LATEST_STANDARD)
   IF(CMAKE_COMPILER_IS_GNUCXX)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
   ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+ELSE (SIMMOB_LATEST_STANDARD)
+  #Needed for profiling Agent updates (timing)
+  #IF (${SIMMOB_AGENT_UPDATE_PROFILE} MATCHES "ON")
+  #  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_XOPEN_SOURCE=700")
+  #ENDIF (${SIMMOB_AGENT_UPDATE_PROFILE} MATCHES "ON")
 ENDIF(SIMMOB_LATEST_STANDARD)
+
 
 
 #Enable threading on GCC-4.7
@@ -158,6 +164,8 @@ IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   MESSAGE("INFO: Overriding c++ compiler: ${CMAKE_CXX_COMPILER}")
 ENDIF(${SIMMOB_DISABLE_MPI} MATCHES "OFF")
 
+
+
 #Remove duplicates, just in case
 #TODO: We should probably build up a list of IncludeDirs and LibraryDirs too (duplicates removed)
 #      Not a real priority right now, but should allow better porting later on.
@@ -203,6 +211,11 @@ add_executable(SimMobility main.cpp ${BASIC_CPP})
 
 #Libraries to link, ported over from Eclipse.
 target_link_libraries (SimMobility ${LibraryList})
+
+#Timer:
+IF (${SIMMOB_AGENT_UPDATE_PROFILE} MATCHES "ON")
+  target_link_libraries (SimMobility "rt")
+ENDIF (${SIMMOB_AGENT_UPDATE_PROFILE} MATCHES "ON")
 
 # Based on http://majewsky.wordpress.com/2010/08/14/tip-of-the-day-cmake-and-doxygen/
 # Add a target to generate API documentation with Doxygen

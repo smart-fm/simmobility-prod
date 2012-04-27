@@ -4,11 +4,16 @@
 
 #include <string>
 #include <fstream>
+#include <sstream>
 #include <boost/thread.hpp>
+
+#include "metrics/Frame.hpp"
 
 
 namespace sim_mob
 {
+
+class Agent;
 
 
 
@@ -36,17 +41,35 @@ public:
 	static void InitLogFile(const std::string& path);
 
 
+	void logAgentUpdateBegin(const Agent& ag, frame_t tickID);
+	void logAgentUpdateEnd(const Agent& ag, frame_t tickID);
+	void logAgentCreated(const Agent& ag);
+	void logAgentDeleted(const Agent& ag);
+
 
 private:
 	//Increase or decrease the shared reference count. Returns the total reference count after
 	// accounting for the new amount to be added. Thread-safe.
 	static int RefCountUpdate(int amount);
 
+	static std::string GetCurrentTime();
+
+	void flushLogFile();
+	void logAgentUpdateGeneric(const Agent& ag, const frame_t* const tickID, const std::string& action);
+
+
+private:
+
 	//Used for maintaining the shared log file.
 	static boost::mutex profile_mutex;
 	static std::ofstream LogFile;
 	static int ref_count;
+
+	//Local buffer
+	std::stringstream currLog;
 };
+
+
 
 }
 

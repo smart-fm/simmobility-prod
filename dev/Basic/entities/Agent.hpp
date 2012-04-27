@@ -133,7 +133,7 @@ protected:
 	boost::mt19937 gen;
 
 #ifdef SIMMOB_AGENT_UPDATE_PROFILE
-	ProfileBuilder profile;
+	sim_mob::ProfileBuilder profile;
 #endif
 
 public:

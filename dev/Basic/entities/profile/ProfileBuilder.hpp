@@ -5,9 +5,11 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <stdexcept>
 #include <boost/thread.hpp>
 
 #include "metrics/Frame.hpp"
+#include "util/LangHelpers.hpp"
 
 
 namespace sim_mob
@@ -45,6 +47,7 @@ public:
 	void logAgentUpdateEnd(const Agent& ag, frame_t tickID);
 	void logAgentCreated(const Agent& ag);
 	void logAgentDeleted(const Agent& ag);
+	void logAgentException(const Agent& ag, frame_t tickID, const std::exception& ex);
 
 
 private:
@@ -55,7 +58,7 @@ private:
 	static std::string GetCurrentTime();
 
 	void flushLogFile();
-	void logAgentUpdateGeneric(const Agent& ag, const frame_t* const tickID, const std::string& action);
+	void logAgentUpdateGeneric(const Agent& ag, const std::string& action, const frame_t* const tickID=nullptr, const std::string& message="");
 
 
 private:

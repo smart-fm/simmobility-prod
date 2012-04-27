@@ -3,8 +3,6 @@
 #include "entities/Agent.hpp"
 #include "ProfileBuilder.hpp"
 
-#include <stdexcept>
-
 //Somewhat hackish way of getting "timespec" defined.
 #ifdef SIMMOB_AGENT_UPDATE_PROFILE
 #define _XOPEN_SOURCE 700
@@ -84,9 +82,11 @@ string ProfileBuilder::GetCurrentTime()
 	timespec timeres;
 	int res;
 
-	{ //Unfortunately, this almost definitely requires locking. Fortunately, it should be fast.
-	boost::mutex::scoped_lock local_lock(profile_mutex);
-	res = clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timeres); //Might also try: CLOCK_REALTIME
+	{
+	//The documentation claims that clock_gettime() is thread-safe
+	//boost::mutex::scoped_lock local_lock(profile_mutex);
+	res = clock_gettime(CLOCK_REALTIME, &timeres); //For epoch time.
+	//res = clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timeres); //For time since the process started
 	}
 
 	//Error?
@@ -107,35 +107,44 @@ string ProfileBuilder::GetCurrentTime() { return "<not_supported>"; }
 
 void ProfileBuilder::logAgentUpdateBegin(const Agent& ag, frame_t tickID)
 {
-	logAgentUpdateGeneric(ag, &tickID, "update-begin");
+	logAgentUpdateGeneric(ag, "update-begin", &tickID);
 }
 
 void ProfileBuilder::logAgentUpdateEnd(const Agent& ag, frame_t tickID)
 {
-	logAgentUpdateGeneric(ag, &tickID, "update-end");
+	logAgentUpdateGeneric(ag, "update-end", &tickID);
 }
 
 void ProfileBuilder::logAgentCreated(const Agent& ag)
 {
-	logAgentUpdateGeneric(ag, nullptr, "constructed");
+	logAgentUpdateGeneric(ag, "constructed");
+}
+
+void ProfileBuilder::logAgentException(const Agent& ag, frame_t tickID, const std::exception& ex)
+{
+	logAgentUpdateGeneric(ag, "exception", &tickID, ex.what());
 }
 
 void ProfileBuilder::logAgentDeleted(const Agent& ag)
 {
-	logAgentUpdateGeneric(ag, nullptr, "destructed");
+	logAgentUpdateGeneric(ag, "destructed");
 }
 
 
-void ProfileBuilder::logAgentUpdateGeneric(const Agent& ag, const frame_t* const tickID, const string& action)
+void ProfileBuilder::logAgentUpdateGeneric(const Agent& ag, const string& action, const frame_t* const tickID, const string& message)
 {
 	currLog <<"{"
 			<<"\"" <<"action" <<"\"" <<":" <<"\"" <<action <<"\"" <<","
-			<<"\"" <<"agent" <<"\"" <<":" <<"\"" <<ag.getId() <<"\"" <<",";
+			<<"\"" <<"agent" <<"\"" <<":" <<"\"" <<ag.getId() <<"\"" <<","
+			<<"\"" <<"worker" <<"\"" <<":" <<"\"" <<ag.currWorker <<"\"" <<",";
 	if (tickID) {
 		currLog	<<"\"" <<"tick" <<"\"" <<":" <<"\"" <<*tickID <<"\"" <<",";
 	}
-	currLog <<"\"" <<"real-time" <<"\"" <<":" <<"\"" <<GetCurrentTime() <<"\"" <<","
-			<<"}\n";
+	currLog <<"\"" <<"real-time" <<"\"" <<":" <<"\"" <<GetCurrentTime() <<"\"" <<",";
+	if (!message.empty()) {
+		currLog <<"\"" <<"message" <<"\"" <<":" <<"\"" <<message <<"\"" <<",";
+	}
+	currLog <<"}\n";
 }
 
 

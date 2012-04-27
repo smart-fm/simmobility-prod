@@ -28,8 +28,11 @@ option (SIMMOB_DISABLE_DYNAMIC_DISPATCH  "Disable dynamic dispatch of Agents. Al
 #Option: compile with c++0x. Use the cmake gui to change this on a per-user basis.
 option (SIMMOB_LATEST_STANDARD  "Attempt to compile Sim Mobility with the latest version of C++ (2011). Untested." OFF)
 
+#Option: generate parallel profile. Use the cmake gui to change this on a per-user basis.
+option(SIMMOB_AGENT_UPDATE_PROFILE "Log all Agent update ticks per thread and start time. Useful for debugging parallelization errors, but very slow." OFF)
+
 #Option: build tests. Use the cmake gui to change this on a per-user basis.
-option(BUILD_TESTS "Build unit tests." OFF) 
+option(BUILD_TESTS "Build unit tests." OFF)  
 
 #Turn on verbose output
 SET(CMAKE_VERBOSE_MAKEFILE ON)

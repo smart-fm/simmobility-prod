@@ -17,6 +17,7 @@
 #include "buffering/BufferedDataManager.hpp"
 #include "geospatial/Point2D.hpp"
 #include "conf/simpleconf.hpp"
+#include "entities/profile/ProfileBuilder.hpp"
 
 #include "Entity.hpp"
 #include "PendingEntity.hpp"
@@ -130,6 +131,10 @@ protected:
 	//TODO: For now (for thread safety) I am giving each Agent control over its own random
 	//      number stream. We can probably raise this to the Worker level if we require it.
 	boost::mt19937 gen;
+
+#ifdef SIMMOB_AGENT_UPDATE_PROFILE
+	ProfileBuilder profile;
+#endif
 
 public:
 	int getOwnRandomNumber();

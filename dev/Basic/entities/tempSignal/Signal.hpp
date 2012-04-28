@@ -18,7 +18,7 @@
 #include "metrics/Length.hpp"
 #include "util/SignalStatus.hpp"
 #include "entities/LoopDetectorEntity.hpp"
-#include "plan.hpp"
+#include "SplitPlan.hpp"
 #include "Cycle.hpp"
 #include "Offset.hpp"
 #include "defaults.hpp"
@@ -117,6 +117,7 @@ private:
 	std::vector<double> currSplitPlan,nextSplitPlan;//the percentages only
 	int currSplitPlanID,nextSplitPlanID;//Don't think I will need it anymore
 	int phaseCounter;
+	double currCycleTimer;//The amount of time passed since the current cycle started.(in millisecond)
 
     /*-------------------------------------------------------------------------
      * -------------------Density Indicators-----------------------------------
@@ -137,6 +138,8 @@ private:
 
 	//two previous RL for calculating the current RL0
 	double prevRL1,prevRL2;
+
+	bool newCycle; //indicates whether operations pertaining to a new cycle should be performed
 
     /*-------------------------------------------------------------------------
      * -------------------Offset Indicators------------------------------

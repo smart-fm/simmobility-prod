@@ -247,6 +247,7 @@ void Signal::setnextSplitPlan(std::vector<double> DS) {
 
 /*
  * This function calculates the Degree of Saturation based on the "lanes"(so a part of the effort will be devoted to finding lanes)
+ * The return Value of this function is, however,the max DS among all -corresponding- lanes.
  * Previous implementation had a mechanism to filter out unnecessary lanes but since it was based on the default
  * 4-junction intersection scenario only, I had to replace it.
  */
@@ -281,6 +282,7 @@ double Signal::computeDS(double total_g)
 
 /*
  * The actual DS computation formula is here!
+ * It calculates the DS on a specific Lane
  */
 double Signal::LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,double total_g)
 {
@@ -370,21 +372,28 @@ void Signal::updateSignal(double DS[]) {
 	}
 	updateTrafficLights();
 }
-////use next cycle length to calculate next Offset
-//void Signal::setnextOffset(double nextCL) {
-////	std::cout<<"nextCL "<<nextCL<<std::endl;
-//	if (nextCL <= CL_low) {
-//		nextOffset = Off_low;
-//	} else if (nextCL > CL_low && nextCL <= CL_up) {
-//		nextOffset = Off_low + (nextCL - CL_low) * (Off_up - Off_low) / (CL_up - CL_low);
-//	} else {
-//		nextOffset = Off_up;
-//	}
-//}
+
+double updateCurrCycleTimer(frame_t frameNumber) {
+
+}
+UpdateStatus Signal::update(frame_t frameNumber) {
+	//todo (= or some range )
+	newCycle = updateCurrCycleTimer(frameNumber);
+
+	if(newCycle) DS_all = computeDS();
+	if(newCycle) cycle_.Update(currCycleTimer,DS_all);
+	plan_.Update(newCycle,currCycleTimer,DS_all);
+		offset_.update();
+
+	updateIndicators();//i guess except currCycleTimer which was updated first to serv the other functions.
+//	updateSignal(Density);
+//	outputToVisualizer(frameNumber);
+//	if (ConfigParams::GetInstance().is_run_on_many_computers == false)
+//		frame_output(frameNumber);
 //
-//void Signal::updateOffset() {
-//	currOffset = nextOffset;
-//}
+//	return UpdateStatus::Continue;
+}
+
 
 namespace {
 std::string mismatchError(char const * const func_name, Signal const & signal, RoadSegment const & road) {

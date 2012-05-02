@@ -23,7 +23,8 @@ $ProcessSimple = true
 
 #Workaround
 $FlipRight = true
-$LaneWidth = 3.5 #TODO: Use the actual value!
+$LaneWidthMS = 3.6 #Lane width in Mitsim
+$LaneWidthSM = 3.5 #Lane width in Sim Mobility (for estimated lanes)
 
 
 #TODO: We can overcome some of these checks by writing our own <simulation> tag. 

@@ -34,6 +34,7 @@ class Helper
       f.write("\"angle\":\"#{angle}\",")
       f.write("\"length\":\"400\",") #Not hooked up yet
       f.write("\"width\":\"200\",") #Not hooked up yet
+      f.write("\"tracking\":\"true\",") unless mitsim
       f.write("})\n") #Footer
     }
   end
@@ -44,12 +45,13 @@ end #class Helper
 
 def self.print_comparison_file(nw, timeticks)
   help = Helper.new
-  File.open('output_comparison.txt', 'w') {|f|
+  File.open('compare.txt', 'w') {|f|
     #First, print the "old" lines
-    $SM_Lines_To_Print.each{|line|
-      #TODO: We should modfiy each line if there's an "aimsun-id" in there that we know
-      f.write("#{line}\n")
-    }
+    #$SM_Lines_To_Print.each{|line|
+    #  #TODO: We should modfiy each line if there's an "aimsun-id" in there that we know
+    #  f.write("#{line}\n")
+    #}
+    f.write("#This is an intermediate file; use merge.rb to combine it with a typical simulation output file.\n")
 
     #Now write all known trajectory information.
     #This can later be combined with an existing output trace using a similar script.
@@ -142,7 +144,7 @@ def self.print_network(nw, timeticks)
   File.open('output_network.txt', 'w') {|f|
     #Write the "simulation" tag 
     #TODO: pull from mitsim input.
-    f.write('("simulation", 0, 0, {"frame-time-ms":"200",})\n')
+    f.write("(\"simulation\", 0, 0, {\"frame-time-ms\":\"200\",})\n")
 
 
 #    knownNodeIDs.uniq.each{|nodeID|

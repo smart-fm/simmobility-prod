@@ -161,9 +161,6 @@ end
 def self.read_output_file(outputFileName, nw, drivers)
   $SM_Lines_To_Print = []
 
-  #Try not to flood the console with warnings.
-  alreadyWarned = false
-
   #Build a reverse lookup of Sim Mobility Nodes to Mitsim Nodes
   help = Helper.new()
   revNodeLookup = help.buildRevLookup(nw.nodes)
@@ -192,13 +189,8 @@ def self.read_output_file(outputFileName, nw, drivers)
       elsif type=='link'
         #Maybe later? For now, save it anyway.
       elsif type=='driver' or type=='pedestrian' or type=='signal'
-        saveThis = false
-        unless alreadyWarned
-          puts "NOTE: Your Sim Mobility output class contains agent tick data."
-          puts "      You can significantly speed up reading of this log file by"
-          puts "      removing everything except the network specification."
-          alreadyWarned = true
-        end
+        #We've entered the update portion. Definitely no need to go beyond here.
+        break
       else
         saveThis = false
       end

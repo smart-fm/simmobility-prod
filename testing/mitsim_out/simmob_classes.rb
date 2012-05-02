@@ -97,12 +97,18 @@ class Polyline
       break if resID>=@points.length or remDistance <= @points[resID].length
 
       #Increment
-      resID += 1
       remDistance -= @points[resID].length
+      resID += 1
     end
-    raise "Couldn't find polypoint at length #{distAlong} in polyline of length #{@length}" if resID>=@points.length
 
-    return @points[resID].startPt, @points[resID].endPt, remDistance
+    #Best case: we found it.
+    if resID<@points.length
+      return @points[resID].startPt, @points[resID].endPt, remDistance
+    end
+
+    #Else, hope for the best
+    puts "WARNING: Couldn't find polypoint at length #{distAlong} in polyline of length #{@length}" 
+    return @points[-1].startPt, @points[-1].endPt, 0
   end
 end
 

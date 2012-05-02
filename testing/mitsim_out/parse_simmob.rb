@@ -9,6 +9,11 @@ require 'misc_compute'
 #    ("obj_type", frame_tick, object_id, {"prop":"value",...,})
 #...where "frame_tick" is an integer and "object_id" is a (possible hex) integer. Properties and values define their own internal structures.
 
+
+#We cheat a little and save all the lines we want to print later in the output file.
+$SM_Lines_To_Print = []
+
+
 module SM_ConvertSimMobOutput
 
 #Useful numeric format regexes.
@@ -154,6 +159,8 @@ end
 
 
 def self.read_output_file(outputFileName, nw, drivers)
+  $SM_Lines_To_Print = []
+
   #Try not to flood the console with warnings.
   alreadyWarned = false
 
@@ -175,22 +182,28 @@ def self.read_output_file(outputFileName, nw, drivers)
       props = help.parsePropsStr(m[4])
 
       #Dispatch
+      saveThis = true
       if type=='uni-node' or type=='multi-node'
         parse_node(frameID, objID, props, revNodeLookup, simmobNodeLookup)
       elsif type=='road-segment'
         parse_segment(frameID, objID, props, revNodeLookup, simmobNodeLookup, segPairLookup, simmobSegmentLookup)
       elsif type=='lane'
         parse_lane(frameID, objID, props, revNodeLookup, simmobSegmentLookup)
+      elsif type=='link'
+        #Maybe later? For now, save it anyway.
       elsif type=='driver' or type=='pedestrian' or type=='signal'
+        saveThis = false
         unless alreadyWarned
           puts "NOTE: Your Sim Mobility output class contains agent tick data."
           puts "      You can significantly speed up reading of this log file by"
           puts "      removing everything except the network specification."
           alreadyWarned = true
         end
+      else
+        saveThis = false
       end
       
-
+      $SM_Lines_To_Print.push(line) if saveThis
 
     else
 #      puts "Skipping line: #{line}"

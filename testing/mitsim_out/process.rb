@@ -99,6 +99,7 @@ def run_main()
   #Print 
   puts 'Saving output files (this may take a while).'
   Output.print_network(network, time_ticks)
+  Output.print_comparison_file(network, time_ticks)
   Output.print_agents(network, time_ticks, drivers, min, max)
   puts 'Done saving output.'
 

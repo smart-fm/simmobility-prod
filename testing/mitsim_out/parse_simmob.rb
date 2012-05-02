@@ -37,6 +37,43 @@ class Helper
     }
     return res
   end
+
+  def buildRevLookup(msNodes)
+    res = {}
+    msNodes.values.each{|msNode|
+      res[msNode.sm_node.aimsunID] = msNode if msNode.sm_node
+    }
+    return res
+  end
+
+  def ensureProps(props, required)
+    required.each{|prop|
+      raise "Missing property: #{prop}" unless props.has_key? prop
+    }
+  end
+end
+
+
+def self.parse_node(frameID, objID, props, revNodeLookup)
+  help = Helper.new()
+
+  #Make sure we have all the properties we need
+  help.ensureProps(props, ['xPos', 'yPos'])
+  return unless props.has_key? 'aimsun-id'
+
+  #Get
+  xPos = props['xPos']
+  yPos = props['yPos']
+  aimID = props['aimsun-id']
+
+  #Find
+  return unless revNodeLookup.has_key? aimID
+  node = revNodeLookup[aimID].sm_node
+  return unless node #shouldn't happen
+  
+  #Set
+  raise "Node already set: #{aimID}" if node.pos
+  node.pos = SimMob::Point.new(xPos, yPos)
 end
 
 
@@ -44,9 +81,11 @@ def self.read_output_file(outputFileName, nw, drivers)
   #Try not to flood the console with warnings.
   alreadyWarned = false
 
-  #TODO: We need a reverse lookup of SM->MS nodes.
-
+  #Build a reverse lookup of Sim Mobility Nodes to Mitsim Nodes
   help = Helper.new()
+  revNodeLookup = help.buildRevLookup(nw.nodes)
+
+  #Parse the file
   File.open(outputFileName).each { |line|
     line.chomp!
     if m = line.match(HeaderRegex)
@@ -58,11 +97,11 @@ def self.read_output_file(outputFileName, nw, drivers)
 
       #Dispatch
       if type=='uni-node' or type=='multi-node'
-        parse_node(frameID, objID, props)
+        parse_node(frameID, objID, props, revNodeLookup)
       elsif type=='road-segment'
-        parse_segment(frameID, objID, props)
+        parse_segment(frameID, objID, props, revNodeLookup)
       elsif type=='lane'
-        parse_lane(frameID, objID, props)
+        parse_lane(frameID, objID, props, revNodeLookup)
       elsif type=='driver' or type=='pedestrian' or type=='signal'
         unless alreadyWarned
           puts "NOTE: Your Sim Mobility output class contains agent tick data."

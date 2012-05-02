@@ -2,16 +2,19 @@
 
 # Copyright (2012) Singapore-MIT Alliance for Research and Technology
 
+import math
 from PyQt4 import QtGui, QtCore
 
 from paper import Tracing_paper
 from digital_map import Lane_marking, Kerb_line, Road_section
 from network import Lane_edge
 from point import Point, nearest_point, re_arrange_co_linear_points, simplify_polyline, \
-                  intersection_point, is_between
+                  intersection_point, is_between, cross_product
 from error import show_error_message, show_info_message
 
 class Wanderlust:
+    debug = True
+
     def __init__(self, main_window):
         self.main_window = main_window
         self.tracing_paper = Tracing_paper()
@@ -461,5 +464,269 @@ class Wanderlust:
         for point in polyline[1:]:
             path.lineTo(point.x, point.y)
         lane_marking.visual_item.setPath(path)
+
+################################################################################
+# Extract road segments
+################################################################################
+
+    def extract_road_segments(self, path):
+        lane_edges = list()
+        bounding_box = QtCore.QRectF()
+        for graphics_item in self.tracing_paper.items(path):
+            road_item = graphics_item.road_item
+            if isinstance(road_item, Lane_edge) and road_item.marking_type == "e":
+                for point in road_item.polyline:
+                    if not path.contains(QtCore.QPointF(point.x, point.y)):
+                        break
+                else:
+                    lane_edges.append(road_item)
+                    point1 = QtCore.QPointF(road_item.polyline[0].x, road_item.polyline[0].y)
+                    point2 = QtCore.QPointF(road_item.polyline[-1].x, road_item.polyline[-1].y)
+                    bounding_box = bounding_box.united(QtCore.QRectF(point1, point2))
+
+        if len(lane_edges) < 4:
+            show_error_message("Sorry, this feature is not supported when there are 3 or less "
+                "lane edges.")
+            return
+
+        crossings = list()
+        stop_lines = list()
+        for graphics_item in self.tracing_paper.items(bounding_box):
+            road_item = graphics_item.road_item
+            if isinstance(road_item, Lane_edge) and road_item.marking_type == "J":
+                crossings.append(road_item)
+            elif isinstance(road_item, Lane_edge) and road_item.marking_type == "M":
+                stop_lines.append(road_item)
+
+        for stop_line in stop_lines:
+            self.get_lane_edges_ending_at_stop_line(lane_edges, stop_line)
+            self.order_lane_edges(stop_line.lane_edges, stop_line)
+
+        for stop_line in stop_lines:
+            self.get_crossing_at_start_of_lane_edges(stop_line.lane_edges, crossings)
+
+        self.create_side_walk_edges(stop_lines)
+        self.create_lanes(stop_lines)
+
+        for stop_line in stop_lines:
+            self.redraw(stop_line)
+            for lane_edge in stop_line.lane_edges:
+                self.redraw(lane_edge)
+            self.redraw(stop_line.lane_edges[-1].crossing)
+
+        bus_zones = list()
+        yellow_boxes = list()
+
+        #if len(stop_lines) == 1:
+        #    point = stop_lines[0].polyline[0]
+        #    outer_path = QtGui.QPainterPath(QtCore.QPointF(point.x, point.y))
+        #    for point in stop_lines[0].polyline[1:]:
+        #        outer_path.lineTo(point.x, point.y)
+        #    for point in stop_lines[0].lane_edges[-1].
+        #else:
+        #    outer_path
+
+        #for graphics_item in self.tracing_paper.items(outer_path):
+        #    if isinstance(road_item, Lane_edge) and road_item.marking_type == "R":
+        #        bus_zones.append(road_item)
+        #    elif isinstance(road_item, Lane_edge) and road_item.marking_type == "N":
+        #        yellow_boxes.append(road_item)
+
+        return lane_edges
+
+    def get_lane_edges_ending_at_stop_line(self, lane_edges, stop_line):
+        stop_line.lane_edges = list()
+        path = self.make_rectangle_around_line(stop_line.polyline[0], stop_line.polyline[-1])
+        for graphics_item in self.tracing_paper.items(path):
+            road_item = graphics_item.road_item
+            if isinstance(road_item, Lane_edge) and road_item.marking_type == 'e':
+                if road_item in lane_edges:
+                    stop_line.lane_edges.append(road_item)
+        #if self.debug:
+        #    print "stop-line={"
+        #    print "    polyline={"
+        #    for p in stop_line.polyline:
+        #        print "        %s" % p
+        #    print "    }"
+        #    for l in stop_line.lane_edges:
+        #        print "    lane-edge={"
+        #        for p in l.polyline:
+        #            print "        %s" % p
+        #        print "    }"
+        #    print "}"
+
+    def make_rectangle_around_line(self, point1, point2, extension=0.5, width=3.0):
+        dx = point2.x - point1.x
+        dy = point2.y - point1.y
+        mag = math.hypot(dx, dy)
+        x = dx * extension / mag
+        y = dy * extension / mag
+        dx = dx * width / mag
+        dy = dy * width / mag
+
+        path = QtGui.QPainterPath(QtCore.QPointF(point1.x - x - dy, point1.y - y + dx))
+        path.lineTo(point1.x - x + dy, point1.y - y - dx)
+        path.lineTo(point2.x + x + dy, point2.y + y - dx)
+        path.lineTo(point2.x + x - dy, point2.y + y + dx)
+        path.closeSubpath()
+        return path
+
+    def order_lane_edges(self, lane_edges, stop_line):
+        p1 = stop_line.polyline[0]
+        p2 = stop_line.polyline[-1]
+        for lane_edge in lane_edges:
+            if p1.distance(lane_edge.polyline[0]) < p1.distance(lane_edge.polyline[-1]):
+                # The lane-edge's first point is closer to the closer to the stop-line than its
+                # last point.  Reverse its polyline so that it points towards the stop-line.
+                lane_edge.polyline.reverse()
+            lane_edge.stop_line = stop_line
+
+            p3 = lane_edge.polyline[-1]
+            p4 = lane_edge.polyline[-2]
+            # Extends the lane-edge so that it touches the stop-line.
+            lane_edge.polyline[-1] = intersection_point(p1, p2, p3, p4)
+        # Re-arrange the order of the lane-edges, although at this point we do not know if the
+        # ordering is from left to right or vice versa.
+        stop_line.lane_edges.sort(key = lambda lane_edge : lane_edge.polyline[-1].x)
+
+        # Make sure that the order of the lane-edges is from right to left when looking at the
+        # stop-line while standing before the lane-edges' last points.  Also make sure that the
+        # stop-line's polyline moves from right to left.
+        if p1.distance(lane_edges[0].polyline[-1]) < p1.distance(lane_edges[-1].polyline[-1]):
+            # The stop-line's first point is closer to lane_edges[0] than to the last lane_edge. 
+            p2 = stop_line.polyline[1]
+            vec1 = p2 - p1
+            p4 = lane_edges[0].polyline[-1]
+            p3 = lane_edges[0].polyline[-2]
+            vec2 = p4 - p3
+            if cross_product(vec1, vec2) > 0:
+                lane_edges.reverse()
+                stop_line.polyline.reverse()
+        else:
+            p2 = stop_line.polyline[1]
+            vec1 = p2 - p1
+            p4 = lane_edges[-1].polyline[-1]
+            p3 = lane_edges[-1].polyline[-2]
+            vec2 = p4 - p3
+            if cross_product(vec1, vec2) < 0:
+                lane_edges.reverse()
+            else:
+                stop_line.polyline.reverse()
+        # Extends the stop-line so that the stop-line touches the first and last lane-edges.
+        stop_line.polyline[0] = lane_edges[0].polyline[-1]
+        stop_line.polyline[-1] = lane_edges[-1].polyline[-1]
+
+    def get_crossing_at_start_of_lane_edges(self, lane_edges, crossings):
+        distances = list()
+        for i, crossing in enumerate(crossings):
+            d = 0.0
+            n = 0
+            p = crossing.polyline[0]
+            for lane_edge in lane_edges:
+                d = d + p.distance(lane_edge.polyline[0])
+                n = n + 1
+            p = crossing.polyline[-1]
+            for lane_edge in lane_edges:
+                d = d + p.distance(lane_edge.polyline[0])
+                n = n + 1
+            distances.append(d / n)
+
+        the_crossing = None
+        big_number = 999999
+        for i, d in enumerate(distances):
+            if big_number > d:
+                big_number = d
+                the_crossing = crossings[i]
+
+        p1 = the_crossing.polyline[0]
+        p2 = the_crossing.polyline[-1]
+        for lane_edge in lane_edges:
+            discard, distance = nearest_point(p1, lane_edge.polyline[0], p2)
+            if distance < 3.0:
+                lane_edge.crossing = the_crossing
+                p3 = lane_edge.polyline[0]
+                p4 = lane_edge.polyline[1]
+                lane_edge.polyline[0] = intersection_point(p1, p2, p3, p4)
+
+        if p2.distance(lane_edges[0].polyline[0]) < p2.distance(lane_edges[-1].polyline[0]):
+            the_crossing.polyline.reverse()
+        the_crossing.polyline[-1] = lane_edges[-1].polyline[0]
+        the_crossing.lane_edges = lane_edges
+
+    def create_side_walk_edges(self, stop_lines):
+        for stop_line in stop_lines:
+            stop_line.side_walk_edges = list()
+            lane_edge = stop_line.lane_edges[-1]
+            edge = self.create_side_walk_edge(lane_edge.polyline, 2.0)
+            stop_line.side_walk_edges.append(edge)
+            edge = self.create_side_walk_edge(lane_edge.polyline, 4.0)
+            stop_line.side_walk_edges.append(edge)
+        if len(stop_lines) == 1:
+            lane_edge = stop_line.lane_edges[0]
+            edge = self.create_side_walk_edge(lane_edge.polyline, -2.0)
+            stop_line.side_walk_edges.insert(0, edge)
+            edge = self.create_side_walk_edge(lane_edge.polyline, -4.0)
+            stop_line.side_walk_edges.insert(0, edge)
+
+    def create_side_walk_edge(self, polyline, distance):
+        line = self.calc_parallel_line(polyline, distance)
+        lane_edge = self.main_window.road_network.add_lane_edge("se", line)
+        self.main_window.scene.draw_lane_edge(lane_edge)
+        self.load_lane_edge(lane_edge)
+        return lane_edge
+
+    def calc_parallel_line(self, polyline, distance):
+        line = list()
+        for i in range(len(polyline) - 1):
+            p1 = polyline[i]
+            p2 = polyline[i + 1]
+            dx = p2.x - p1.x
+            dy = p2.y - p1.y
+            hypot = math.hypot(dx, dy)
+            normal = Point(-dy, dx)
+            line.append(p1 + (distance / hypot) * normal)
+            line.append(p2 + (distance / hypot) * normal)
+        return simplify_polyline(line)
+
+    def create_lanes(self, stop_lines):
+        for stop_line in stop_lines:
+            stop_line.lanes = list()
+            lane = self.create_lane(stop_line.side_walk_edges[0], stop_line.side_walk_edges[1])
+            stop_line.lanes.append(lane)
+            for i in range(len(stop_line.lane_edges) - 1):
+                #if i == 0 or i == len(stop_line.lane_edges) - 2:
+                if i == len(stop_line.lane_edges) - 2:
+                    lane = self.create_lane(stop_line.lane_edges[i+1], stop_line.lane_edges[i])
+                else:
+                    lane = self.create_lane(stop_line.lane_edges[i], stop_line.lane_edges[i+1])
+                stop_line.lanes.append(lane)
+            if len(stop_line.side_walk_edges) == 4:
+                lane = self.create_lane(stop_line.side_walk_edges[2], stop_line.side_walk_edges[3])
+                stop_line.lanes.append(lane)
+
+    def create_lane(self, edge1, edge2):
+        line = list()
+        for point in edge1.polyline:
+            for i in range(len(edge2.polyline) - 1):
+                p1 = edge2.polyline[i]
+                p2 = edge2.polyline[i + 1]
+                p, distance = nearest_point(p1, point, p2)
+                if is_between(p, p1, p2) or p.is_almost_equal(p1) or p.is_almost_equal(p2):
+                    line.append(Point((point.x + p.x) / 2.0, (point.y + p.y) / 2.0))
+        p = line[0]
+        path = QtGui.QPainterPath(QtCore.QPointF(p.x, p.y))
+        for p in line[1:]:
+            path.lineTo(p.x, p.y)
+        item = QtGui.QGraphicsPathItem(path)
+        item.is_selectable = False
+        item.setPen(QtCore.Qt.red)
+        self.main_window.scene.addItem(item)
+
+    def redraw(self, lane_edge):
+        point = lane_edge.polyline[0]
+        path = QtGui.QPainterPath(QtCore.QPointF(point.x, point.y))
+        for point in lane_edge.polyline[1:]:
+            path.lineTo(point.x, point.y)
+        lane_edge.visual_item.setPath(path)
 
 # vim:columns=100:smartindent:shiftwidth=4:expandtab:softtabstop=4:

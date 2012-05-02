@@ -130,11 +130,23 @@ class Main_window(QtGui.QMainWindow, Ui_main_window):
         if not self.view.selections.selection_region:
             show_error_message("You must select a rectangular region which includes a crossing "
                 "and the lane-markings that would end at the (missing) stop-line.  Use <Control> "
-                "+ Right-mouse-button to create the selection region.")
+                "+ <Alt> + Right-mouse-button to create the selection region.")
             return
         path = self.view.selections.selection_region.path()
         self.view.selections.reset_selection_region()
         self.wanderlust.create_missing_stop_line(path)
+
+    @QtCore.pyqtSignature("bool")
+    def on_action_extract_road_segments_triggered(self, is_checked):
+        if not self.view.selections.selection_region:
+            show_error_message("You must select a rectangular region which includes the "
+                "lane-markings between two intersections and the crossings and stop-lines at the "
+                "start/end of those lane-markings.  Use <Control> + <Alt> + Right-mouse-button "
+                "to create the selection region.")
+            return
+        path = self.view.selections.selection_region.path()
+        self.view.selections.reset_selection_region()
+        self.wanderlust.extract_road_segments(path)
 
     @QtCore.pyqtSignature("bool")
     def on_action_edit_selected_road_item_triggered(self, is_checked):

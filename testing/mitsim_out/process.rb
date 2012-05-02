@@ -5,6 +5,7 @@ begin
   require 'parse_network'
   require 'parse_deps'
   require 'parse_vehs'
+  require 'parse_simmob'
   require 'parse_traject'
   require 'parse_convert'
   require 'output_procs'
@@ -23,7 +24,8 @@ $ProcessSimple = true
 
 #Workaround
 $FlipRight = true
-$LaneWidth = 3.5 #TODO: Use the actual value!
+$LaneWidthMS = 3.6 #Lane width in Mitsim
+$LaneWidthSM = 3.5 #Lane width in Sim Mobility (for estimated lanes)
 
 
 #TODO: We can overcome some of these checks by writing our own <simulation> tag. 
@@ -76,6 +78,9 @@ def run_main()
 
   #Compare with sim mobility nodes
   MS_ConvertParser.read_convert_file('ms_sm_node_convert.txt', network, drivers)
+
+  #Now 
+  SM_ConvertSimMobOutput.read_output_file('output.simmob.txt', network, drivers)
 
   #Parse the trajectory file
   #We use a trimmed version of trajectory.out, but loading the original would work too.

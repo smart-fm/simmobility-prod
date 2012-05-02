@@ -5,6 +5,7 @@ import java.io.*;
 import java.util.*;
 import java.util.regex.*;
 
+import sim_mob.vis.FileOpenThread;
 import sim_mob.vis.network.basic.DPoint;
 import sim_mob.vis.network.basic.Vect;
 import sim_mob.vis.util.Mapping;
@@ -18,8 +19,8 @@ public class RoadNetwork {
 	private DPoint cornerTL;
 	private DPoint cornerLR;
 	
-	private int canvasWidth;
-	private int canvasHeight;
+	//private int canvasWidth;
+	//private int canvasHeight;
 	
 	private Hashtable<Integer, Node> nodes;
 	//private ArrayList<Node> localPoints;
@@ -47,8 +48,8 @@ public class RoadNetwork {
 		
 	public DPoint getTopLeft() { return cornerTL; }
 	public DPoint getLowerRight() { return cornerLR; }
-	public int getCanvasWidth() { return canvasWidth; }
-	public int getCanvasHeight() { return canvasHeight; }
+	//public int getCanvasWidth() { return canvasWidth; }
+	//public int getCanvasHeight() { return canvasHeight; }
 
 	public Hashtable<Integer, Node> getNodes(){ return nodes; }
 	//public ArrayList<Node> getLocalPosPoints(){return localPoints;}
@@ -68,10 +69,10 @@ public class RoadNetwork {
 	 * Load the network from a filestream.
 	 */
 	
-	public RoadNetwork(BufferedReader inFile, int canvasWidth, int canvasHeight) throws IOException {
+	public RoadNetwork(BufferedReader inFile, long totalFileSize, FileOpenThread progressUpdater) throws IOException {
 
-		this.canvasWidth = canvasWidth;
-		this.canvasHeight = canvasHeight;
+		//this.canvasWidth = canvasWidth;
+		//this.canvasHeight = canvasHeight;
 		
 		nodes = new Hashtable<Integer, Node>();
 		//localPoints = new ArrayList<Node>();
@@ -98,7 +99,11 @@ public class RoadNetwork {
 		
 		//Read
 		String line;
+		double totalBytesRead = 0;
 		while ((line=inFile.readLine())!=null) {
+			//Update bytes read
+			totalBytesRead += line.length();
+			
 			//Comment?
 			line = line.trim();
 			if (line.isEmpty() || !line.startsWith("(") || !line.endsWith(")")) {
@@ -126,6 +131,9 @@ public class RoadNetwork {
 		    } catch (IOException ex) {
 		    	throw new IOException(ex.getMessage() + "\n...on line: " + line);
 		    }
+		    
+		    //Update bytes parsed.
+		    progressUpdater.setPercentDone(totalBytesRead / totalFileSize);
 		}
 		
 		

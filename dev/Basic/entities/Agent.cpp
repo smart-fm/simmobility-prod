@@ -73,11 +73,17 @@ sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncr
 {
 	toRemoved = false;
 	dynamic_seed = id;
+
+#ifdef SIMMOB_AGENT_UPDATE_PROFILE
+	profile.logAgentCreated(*this);
+#endif
 }
 
 sim_mob::Agent::~Agent()
 {
-
+#ifdef SIMMOB_AGENT_UPDATE_PROFILE
+	profile.logAgentDeleted(*this);
+#endif
 }
 
 void sim_mob::Agent::buildSubscriptionList(vector<BufferedBase*>& subsList)

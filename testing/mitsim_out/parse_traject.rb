@@ -23,6 +23,7 @@ module MS_TrajectoryParser
 def self.read_traj_file(trajFileName, nw, timeticks, drivers)
   lastKnownTime = 0
   unknownNodes = []
+  unknownSegments = []
   File.open(trajFileName).each { |line|
     if line =~ /([0-9]+) +([0-9]+) +([0-9]+) +([0-9]+) +([0-9.]+) +([0-9.]+) +([0-9e.\-]+) +([0-9]+)/
       #Save temporaries
@@ -60,10 +61,28 @@ def self.read_traj_file(trajFileName, nw, timeticks, drivers)
       pos.scaleTo(posInLane)
       pos.translate()
       pos.flipNormal($FlipRight)
-      pos.scaleTo(segment.lanes[laneID]*$LaneWidth + $LaneWidth/2.0)
+      pos.scaleTo(segment.lanes[laneID]*$LaneWidthMS + $LaneWidthMS/2.0)
       pos.translate()
       newDrvTick.pos = Mitsim::Point.new(pos.getX(), pos.getY())
       newDrvTick.angle = pos.getAngle()
+
+      #Determine its comparable position in Sim Mobility
+      smSeg = segment.sm_segment
+      if smSeg
+        #Get the total "percent" traveled in the mitsim segment, convert to SM
+        smPolyDist = (posInLane*smSeg.polyline.length)/Distance(segment.startPos, segment.endPos)
+        startPoly,endPoly,remDist = smSeg.polyline.getPolyPoints(smPolyDist)
+        pos = DynamicVector.new(startPoly, endPoly)
+        pos.scaleTo(smPolyDist)
+        pos.translate()
+        pos.flipNormal($FlipRight)
+        pos.scaleTo(segment.lanes[laneID]*$LaneWidthSM + $LaneWidthSM/2.0)
+        pos.translate()
+        newDrvTick.pos.sm_point = SimMob::Point.new(pos.getX(), pos.getY())
+        newDrvTick.sm_angle = pos.getAngle()
+      else
+        unknownSegments.push(segmentID) unless unknownSegments.include? segmentID
+      end
       
       #Consider unknown nodes
       unless segment.upNode.include? ':'  #We don't consider uni-nodes for now.
@@ -77,6 +96,7 @@ def self.read_traj_file(trajFileName, nw, timeticks, drivers)
   }
 
   puts "Unknown node IDs: #{unknownNodes.uniq}" unless unknownNodes.empty?
+  puts "Segment IDs missing conversion: #{unknownSegments}" unless unknownSegments.empty?
 
 end
 

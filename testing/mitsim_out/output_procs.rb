@@ -143,10 +143,10 @@ def self.print_network(nw, timeticks)
         #Create a "start" and "end" DynamicVector, rotate, and scale to the size of a lane line
         startVec = DynamicVector.new(segment.startPos, segment.endPos)
         startVec.flipNormal($FlipRight)
-        startVec.scaleTo($LaneWidth)
+        startVec.scaleTo($LaneWidthMS)
         endVec = DynamicVector.new(segment.endPos, segment.startPos)
         endVec.flipNormal(!$FlipRight)
-        endVec.scaleTo($LaneWidth)
+        endVec.scaleTo($LaneWidthMS)
 
         #Write lanes
         f.write("(\"lane\", 0, #{segment.lanes.object_id}, {")  #Header; IDs merely have to be unique.

@@ -135,11 +135,13 @@ class DriverTick
     @driver = driver
     @pos = nil
     @angle = nil
+    @sm_angle = nil
   end
 
   attr_reader   :driver #The actual driver object
   attr_accessor :pos #Translated position of that driver
   attr_accessor :angle
+  attr_accessor :sm_angle  #Angle in SimMob. We break encapsulation a bit here because I don't want to add properties to integers.
 end
 
 

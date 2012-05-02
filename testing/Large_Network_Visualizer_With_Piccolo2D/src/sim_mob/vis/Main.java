@@ -11,6 +11,12 @@ import sim_mob.conf.BatikCSS_Loader;
 import sim_mob.conf.CSS_Interface;
 import sim_mob.vis.util.Utility;
 
+/**
+ * Holds the main method for loading our visualizer. Also contains several 
+ * auxiliary functions (such as loading config files).
+ * 
+ * \author Seth N. Hetu
+ */
 public class Main {	
 	private static ArrayList<BufferedReader> GetConfigFiles() {
 		ArrayList<BufferedReader> files = new ArrayList<BufferedReader>();

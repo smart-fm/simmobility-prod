@@ -11,7 +11,14 @@ import edu.umd.cs.piccolo.*;
 import edu.umd.cs.piccolo.util.PPaintContext;
 
 
-
+/**
+ * A component canvas for the Piccolo2D framework. This class can construct a scene 
+ *   graph for a simulation results object, and can be advanced to any "frame" 
+ *   within the simulation time ticks.
+ *   
+ * \author Zhang Shuai
+ * \author Seth N. Hetu
+ */
 public class NetworkVisualizer extends PCanvas {
 	private static final long serialVersionUID = 1L;
 
@@ -32,7 +39,7 @@ public class NetworkVisualizer extends PCanvas {
 	public NetworkVisualizer( int width, int height){
 		this.naturalBounds = new Rectangle2D.Double(0, 0, 10, 10); //Doesn't matter.
 		setPreferredSize(new Dimension(width, height));
-		this.setBackground(MainFrame.Config.getBackground("panel"));
+		this.setBackground(MainFrame.Config.getBackground("panel", Color.black));
  
 		this.zoomBox = new RectNode(100, 100, 200, 300);
 		this.zoomBox.setVisible(false);
@@ -254,6 +261,8 @@ public class NetworkVisualizer extends PCanvas {
 	
 	//For zoom display
 	class RectNode extends PNode {
+		private static final long serialVersionUID = 1L;
+		
 		public RectNode(double x, double y, double w, double h) {
 			this.setBounds(x, y, w, h);
 		}

@@ -55,15 +55,67 @@ class Segment
   def initialize(aimsunID)
     @aimsunID = aimsunID
 
+    #Converted property: only lane line zero matters for now
+    @polyline = nil
+
     #Some properties to enable, later.
     #@startNode = nil
     #@endNode = nil
-    #@isFwd = nil
     #@parentLink = nil
+    #@isFwd = nil  #Probably don't need this
   end  
 
-  attr_reader :aimsunID
+  attr_reader   :aimsunID
+  attr_accessor :polyline
 end
+
+
+class Polyline
+  attr_reader   :length
+
+  def initialize(points)
+    #Create a list of polyline pairs, counting the length as you go
+    @length = 0
+    @points = []
+    (0..points.length).each{|id|
+      pt = PolyPoint.new(points[id], points[id+1])
+      @points.push(pt)
+      @length += pt.length
+    }
+  end
+
+  #Return the two points (start, end) and the remaining length left after traversing to
+  #  "distAlong" length on the polyline. Note that points exactly ON a polypoint are somewhat 
+  #  indeterminate, but this shouldn't affect the result of this algorithm.
+  def getPolyPoints(distAlong)
+    resID = 0
+    remDistance = distAlong
+    loop do
+      #Stopping condition
+      break if resID>=@points.length or remDistance <= @points[resID].length
+
+      #Increment
+      resID += 1
+      remDistance -= @points[resID].length
+    end
+    raise "Couldn't find polypoint at length #{distAlong} in polyline of length #{@length}" if resID>=@points.length
+
+    return @points[resID].startPt, @points[resID].endPt, remDistance
+  end
+end
+
+class PolyPoint
+  attr_reader :startPt
+  attr_reader :endPt
+  attr_reader :length
+
+  def initialize(startPt, endPoint)
+    @startPt = startPt
+    @endPt = endPt
+    @length = Distance(startPt, endPt)
+  end
+end
+
 
 
 #Later:

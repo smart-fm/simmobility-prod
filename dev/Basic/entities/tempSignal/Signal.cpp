@@ -7,7 +7,7 @@
  *      Author: xrm
  */
 
-#include "Signal.hpp"
+#include "./Signal.hpp"
 #include <math.h>
 #include "geospatial/Lane.hpp"
 #include "geospatial/Crossing.hpp"
@@ -245,44 +245,99 @@ void Signal::setnextSplitPlan(std::vector<double> DS) {
 	nextSplitPlan = SplitPlan[nextSplitPlanID];
 }
 
+///*
+// * This function calculates the Degree of Saturation of the entire intersection
+// * based on the "lanes"(so a part of the effort will be devoted to finding lanes)
+// * The return Value of this function is the max DS among all -corresponding- lanes.
+// * Previous implementation had a mechanism to filter out unnecessary lanes but since it was based on the default
+// * 4-junction intersection scenario only, I had to replace it.
+// */
+//double Signal::computeMaxDS(double total_g)
+//{
+//	double maxDS = 0;
+//	std::set<sim_mob::links_map>::iterator it_LM = plan_.CurrPhase().LinksMap().begin();
+//	for(;it_LM!= plan_.CurrPhase().LinksMap().end(); it_LM++)
+//	{
+//		sim_mob::Link *link = (*it_LM).LinkFrom;
+//		std::set<sim_mob::RoadSegment*>::iterator it = (*link).uniqueSegments.begin();
+//		for(; it != (*link).uniqueSegments.end(); it++)
+//		{
+//			//discard the segments that don't end here(coz those who don't end here, don't cross the intersection neither)
+//			if((*it)->getEnd()!=&node_)//sim_mob::Link is bi-directionl so we use RoadSegment's start and end to imply direction
+//				continue;
+//		}
+//		const std::vector<sim_mob::Lane*>& lanes = (*it)->getLanes();
+//		for(size_t i=0;i<lanes.size();i++)
+//		{
+//			const Lane* lane = lanes.at(i);
+//			if(lane->is_pedestrian_lane())
+//				continue;
+//			const LoopDetectorEntity::CountAndTimePair& ctPair = loopDetector_.getCountAndTimePair(*lane);
+//			double lane_DS = LaneDS(ctPair,total_g);
+//			if(lane_DS > maxDS) maxDS = lane_DS;
+//		}
+//	}
+////	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&node_); is history :)
+//	return maxDS;
+//}
 /*
- * This function calculates the Degree of Saturation based on the "lanes"(so a part of the effort will be devoted to finding lanes)
- * The return Value of this function is, however,the max DS among all -corresponding- lanes.
- * Previous implementation had a mechanism to filter out unnecessary lanes but since it was based on the default
- * 4-junction intersection scenario only, I had to replace it.
+ * This function calculates the Degree of Saturation based on the "lanes" of phases.
+ * There are two types of outputs produced by this funtion:
+ * 1-maximum DS of each phase, which will be stored in Signal::Density member variable
+ * 2-the maximum Density observed at this junction which will be returned by is function.
+ * The DS of phases is stored in Density vector. Note that DS of each phase is the max DS observed in its lanes.
+ * The return Value of this function is the max DS among all -corresponding- lanes.
+ * why does a phase DS represented by max DS of all lanes in that phase? coz I say so! jungle rule!
+ * Previous implementation had a mechanism to filter out unnecessary lanes but since it was
+ * based on the default 4-junction intersection scenario only. I had to replace it.
+ * For code readers,the for loops are nested as:
+ * for(phases)
+ * 		for(Links)
+ * 				for(Road Segments)
+ * 							for(Lanes)
+ * 						 		 getlaneDS()
+ * 								 getMaxDS
+ * 								 getMaxPhaseDS
  */
-double Signal::computeDS(double total_g)
-{
-	double maxDS = 0;
-	std::set<sim_mob::links_map>::iterator it_LM = plan_.CurrPhase().LinksMap().begin();
-	for(;it_LM!= plan_.CurrPhase().LinksMap().end(); it_LM++)
+double Signal::computeDS() {
+	double lane_DS, maxPhaseDS, maxDS;
+	std::vector<sim_mob::Phase>::const_iterator p_it = plan_.phases_.begin();
+	for(int i = 0 ;p_it != plan_.phases_.end(); p_it++)//Loop1===>phase
 	{
-		sim_mob::Link *link = (*it_LM).LinkFrom;
-		std::set<sim_mob::RoadSegment*>::iterator it = (*link).uniqueSegments.begin();
-		for(; it != (*link).uniqueSegments.end(); it++)
-		{
-			//discard the segments that don't end here(coz those who don't end here, don't cross the intersection neither)
-			if((*it)->getEnd()!=&node_)//sim_mob::Link is bi-directionl so we use RoadSegment's start and end to imply direction
-				continue;
+		maxPhaseDS = 0;
+		double total_g = (*p_it).computeTotalG();//todo: I guess we can avoid calling this function EVERY time by adding an extra container at split plan level.(mapped to percentage container)
+		std::set<sim_mob::links_map> & links = (*p_it).links_map_;//just for simplicity
+		std::set<sim_mob::links_map>::iterator link_it = links.begin();
+		for (; link_it != links.end(); link_it++) {//Loop2===>link
+			std::set<sim_mob::RoadSegment*> segments = (*link_it).LinkFrom->uniqueSegments;
+			std::set<sim_mob::RoadSegment*>::iterator seg_it =	segments.begin();
+			for (; seg_it != segments.end(); seg_it++) {//Loop3===>road segment
+				//discard the segments that don't end here(coz those who don't end here, don't cross the intersection neither)
+				//sim_mob::Link is bi-directionl so we use RoadSegment's start and end to imply direction
+				if ((*seg_it)->getEnd() != &node_)	continue;
+				const std::vector<sim_mob::Lane*> lanes = (*seg_it)->getLanes();
+				for (size_t i = 0; i < lanes.size(); i++) {//Loop4===>lane
+					const Lane* lane = lanes.at(i);
+					if (lane->is_pedestrian_lane())	continue;
+					const LoopDetectorEntity::CountAndTimePair& ctPair = loopDetector_.getCountAndTimePair(*lane);
+					lane_DS = LaneDS(ctPair, total_g);
+					if (lane_DS > maxPhaseDS)	maxDS = lane_DS;
+					if (lane_DS > maxDS)		maxDS = lane_DS;
+				}
+			}
+
 		}
-		const std::vector<sim_mob::Lane*>& lanes = (*it)->getLanes();
-		for(size_t i=0;i<lanes.size();i++)
-		{
-			const Lane* lane = lanes.at(i);
-			if(lane->is_pedestrian_lane())
-				continue;
-			const LoopDetectorEntity::CountAndTimePair& ctPair = loopDetector_.getCountAndTimePair(*lane);
-			double lane_DS = LaneDS(ctPair,total_g);
-			if(lane_DS > maxDS) maxDS = lane_DS;
-		}
+		Density[i++] = maxPhaseDS;
 	}
-//	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&node_); is history :)
-	return maxDS;
+	DS_all = maxDS;
+	return (DS_all);
 }
 
 /*
  * The actual DS computation formula is here!
  * It calculates the DS on a specific Lane
+ * at the moment total_g amounts to total_g at each phase,
+ * However this function doesn't care total_g comes from which scop(phase level, cycle level....)
  */
 double Signal::LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,double total_g)
 {
@@ -372,28 +427,64 @@ void Signal::updateSignal(double DS[]) {
 	}
 	updateTrafficLights();
 }
+//This is a part of signal::update function that is executed only if a new cycle has reached
+void Signal::newCycleUpdate()
+{
+	//	4-Compute DS for cycle length, split plan and offset selection
+		DS_all = computeDS();
+	//	5-update cycle length
+		cycle_.Update(DS_all);
 
-double updateCurrCycleTimer(frame_t frameNumber) {
+	//	6-update split plan
+		plan_.Update(currCycleTimer,Density);
+	//	7-update offset
+		offset_.update(cycle_.getnextCL());
+
+		updateIndicators();//i guess except currCycleTimer which was updated first to serv the other functions.
+	//	updateSignal(Density);
+		loopDetector_.reset();
+}
+
+double Signal::updateCurrCycleTimer(frame_t frameNumber) {
 
 }
+/*
+ * 1- update current cycle timer
+ * 2- update current phase color
+ * 3- update current phase
+ * if current cycle timer indicates end of cycle:
+ * 4-compute DS
+ * 5-update cycle length
+ * 6-update split plan
+ * 7-update offset
+ * end of if
+ * 8-reset the loop detector to make it ready for the next cycle
+ * 8-start
+ */
 UpdateStatus Signal::update(frame_t frameNumber) {
 	//todo (= or some range )
-	newCycle = updateCurrCycleTimer(frameNumber);
+//	1- update current cycle timer( Signal::currCycleTimer)
+	isNewCycle = updateCurrCycleTimer(frameNumber);
+//	2- update current phase color
+	plan_.phases_.at(currPhase).update(currCycleTimer);
+//	3-Update Current Phase
+	currPhase = plan_.computeCurrPhase(currCycleTimer);
 
-	if(newCycle) DS_all = computeDS();
-	if(newCycle) cycle_.Update(currCycleTimer,DS_all);
-	plan_.Update(newCycle,currCycleTimer,DS_all);
-		offset_.update();
+	if(isNewCycle)	newCycleUpdate();//major update!
 
-	updateIndicators();//i guess except currCycleTimer which was updated first to serv the other functions.
-//	updateSignal(Density);
 //	outputToVisualizer(frameNumber);
 //	if (ConfigParams::GetInstance().is_run_on_many_computers == false)
 //		frame_output(frameNumber);
 //
-//	return UpdateStatus::Continue;
+	return UpdateStatus::Continue;
 }
-
+void Signal::updateIndicators()
+{
+	currCL = cycle_.getcurrCL();
+	currPhase = plan_.CurrPhase();
+	currOffset = offset_.getcurrOffset();
+	currSplitPlanID = plan_.CurrSplitPlanID();
+}
 
 namespace {
 std::string mismatchError(char const * const func_name, Signal const & signal, RoadSegment const & road) {
@@ -473,4 +564,52 @@ Signal::TrafficColor Signal::getDriverLight(Lane const & fromLane, Lane const & 
 	}
 
 	return Red;
+}
+//todo talk to xuyan or seth on who should decide the format
+void Signal::outputToVisualizer(frame_t frameNumber) {
+#ifndef SIMMOB_DISABLE_OUTPUT
+	std::stringstream logout;
+	logout << "(\"Signal\"," << frameNumber << "," << this << ",{\"va\":\"";
+	for (int i = 0; i < 3; i++) {
+		logout << TC_for_Driver[0][i];
+		if (i == 2) {
+			logout << "\",";
+		} else {
+			logout << ",";
+		}
+	}
+	logout << "\"vb\":\"";
+	for (int i = 0; i < 3; i++) {
+		logout << TC_for_Driver[1][i];
+		if (i == 2) {
+			logout << "\",";
+		} else {
+			logout << ",";
+		}
+	}
+	logout << "\"vc\":\"";
+	for (int i = 0; i < 3; i++) {
+		logout << TC_for_Driver[2][i];
+		if (i == 2) {
+			logout << "\",";
+		} else {
+			logout << ",";
+		}
+	}
+	logout << "\"vd\":\"";
+	for (int i = 0; i < 3; i++) {
+		logout << TC_for_Driver[3][i];
+		if (i == 2) {
+			logout << "\",";
+		} else {
+			logout << ",";
+		}
+	}
+
+	logout << "\"pa\":\"" << TC_for_Pedestrian[0] << "\",";
+	logout << "\"pb\":\"" << TC_for_Pedestrian[1] << "\",";
+	logout << "\"pc\":\"" << TC_for_Pedestrian[2] << "\",";
+	logout << "\"pd\":\"" << TC_for_Pedestrian[3] << "\"})" << std::endl;
+	LogOut(logout.str());
+#endif
 }

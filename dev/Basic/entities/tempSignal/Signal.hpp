@@ -19,6 +19,7 @@
 #include "util/SignalStatus.hpp"
 #include "entities/LoopDetectorEntity.hpp"
 #include "SplitPlan.hpp"
+#include "Phase.hpp"
 #include "Cycle.hpp"
 #include "Offset.hpp"
 #include "defaults.hpp"
@@ -92,6 +93,7 @@ public:
 
 
     static std::vector<Signal*> all_signals_;
+    void updateIndicators();
 private:
     /* Fixed time or adaptive control */
     int signalAlgorithm;
@@ -114,10 +116,11 @@ private:
      */
     sim_mob::SplitPlan plan_;
 
-	std::vector<double> currSplitPlan,nextSplitPlan;//the percentages only
-	int currSplitPlanID,nextSplitPlanID;//Don't think I will need it anymore
-	int phaseCounter;
+	std::vector<double> currSplitPlan;//a chunk in "percentage" container,Don't think I will need it anymore coz job is distributed to a different class
+	int currSplitPlanID;//Don't think I will need it anymore
+	int phaseCounter;//Don't think I will need it anymore coz apparently currCycleTimer will replace it
 	double currCycleTimer;//The amount of time passed since the current cycle started.(in millisecond)
+	double currOffset;
 
     /*-------------------------------------------------------------------------
      * -------------------Density Indicators-----------------------------------
@@ -134,12 +137,12 @@ private:
      * ------------------------------------------------------------------------*/
     sim_mob::Cycle cycle_;
 	//previous,current and next cycle length
-	double prevCL,currCL,nextCL;
+	double currCL;
 
 	//two previous RL for calculating the current RL0
 	double prevRL1,prevRL2;
 
-	bool newCycle; //indicates whether operations pertaining to a new cycle should be performed
+	bool isNewCycle; //indicates whether operations pertaining to a new cycle should be performed
 
     /*-------------------------------------------------------------------------
      * -------------------Offset Indicators------------------------------

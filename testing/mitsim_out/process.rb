@@ -5,6 +5,7 @@ begin
   require 'parse_network'
   require 'parse_deps'
   require 'parse_vehs'
+  require 'parse_simmob'
   require 'parse_traject'
   require 'parse_convert'
   require 'output_procs'
@@ -77,6 +78,9 @@ def run_main()
 
   #Compare with sim mobility nodes
   MS_ConvertParser.read_convert_file('ms_sm_node_convert.txt', network, drivers)
+
+  #Now 
+  SM_ConvertSimMobOutput.read_output_file('output.simmob.txt', network, drivers)
 
   #Parse the trajectory file
   #We use a trimmed version of trajectory.out, but loading the original would work too.

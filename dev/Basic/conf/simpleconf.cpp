@@ -26,6 +26,9 @@
 
 #include "entities/misc/TripChain.hpp"
 
+//add by xuyan
+#include "partitions/PartitionManager.hpp"
+
 using std::cout;
 using std::endl;
 using std::map;
@@ -825,10 +828,11 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		node->Attribute("value", &signalAlgorithm);
 	}
 
-
-
-
-
+#ifndef SIMMOB_DISABLE_MPI
+	//Save mpi parameters, not used when running on one-pc.
+	node = handle.FirstChild("partitioning_solution_id").ToElement();
+	int partition_solution_id = boost::lexical_cast<int>(node->Attribute("value")) ;
+#endif
 
 	//Save more granularities
 	handle = TiXmlHandle(&document);
@@ -938,6 +942,15 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	config.reacTime_Gap = reacTime_Gap;
     	config.mutexStategy = mtStrat;
     	config.signalAlgorithm = signalAlgorithm;
+
+    	//add for MPI
+#ifndef SIMMOB_DISABLE_MPI
+    	sim_mob::PartitionManager& partitionImpl = sim_mob::PartitionManager::instance();
+    	std::cout << "partition_solution_id:" << partition_solution_id << std::endl;
+
+    	partitionImpl.partition_config->partition_solution_id = partition_solution_id;
+#endif
+
     }
 
 

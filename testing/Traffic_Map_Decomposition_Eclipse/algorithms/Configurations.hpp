@@ -24,5 +24,15 @@ public:
 
 	//the ratio of heaviest load over average load, should  > 1
 	double load_imbalance;
+
+	bool contiguous;
+
+	std::string node_sql;
+	std::string section_sql;
+
+	std::string network_node_file;
+	std::string network_section_file;
+
+	std::string partition_file;
 };
 }

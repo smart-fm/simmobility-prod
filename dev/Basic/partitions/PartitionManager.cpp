@@ -47,7 +47,7 @@ void initMPIConfigurationParameters(PartitionConfigure* partition_config, Simula
 	partition_config->measurem_performance = false;
 	partition_config->maximum_agent_id = 10000;
 	partition_config->measure_output_file = "";
-	partition_config->partition_solution_id = 1;
+	partition_config->partition_solution_id = 1; //default value, will be overloaded by the configured value
 
 	//should be used later to find the best partition solution
 	scenario->day_of_week = "Mon";

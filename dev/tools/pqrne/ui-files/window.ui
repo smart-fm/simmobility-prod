@@ -52,6 +52,7 @@
     <addaction name="action_extract_crossings_and_stop_lines"/>
     <addaction name="action_extract_yellow_box"/>
     <addaction name="action_create_missing_stop_line"/>
+    <addaction name="action_extract_road_segments"/>
     <addaction name="action_edit_selected_road_item"/>
     <addaction name="action_delete_lane_edge"/>
    </widget>
@@ -213,7 +214,7 @@
   </action>
   <action name="action_extract_yellow_box">
    <property name="icon">
-    <iconset resource="pqrne.qrc">
+    <iconset>
      <normaloff>:/images/lettery.jpg</normaloff>:/images/lettery.jpg</iconset>
    </property>
    <property name="text">
@@ -287,6 +288,11 @@
    </property>
    <property name="text">
     <string>Snap to line</string>
+   </property>
+  </action>
+  <action name="action_extract_road_segments">
+   <property name="text">
+    <string>Extract road segments</string>
    </property>
   </action>
  </widget>

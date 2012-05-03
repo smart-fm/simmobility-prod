@@ -173,7 +173,7 @@ def self.read_output_file(outputFileName, nw, drivers)
     line.chomp!
     if m = line.match(HeaderRegex)
       #Retrieve
-      type = m[1]
+      type = m[1].downcase!
       frameID = m[2]
       objID = m[3]
       props = help.parsePropsStr(m[4])

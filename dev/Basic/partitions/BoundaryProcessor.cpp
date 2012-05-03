@@ -32,7 +32,7 @@
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/Role.hpp"
 
-#include "entities/Signal.hpp"
+#include "entities/Signal/Signal.hpp"
 #include "partitions/PartitionManager.hpp"
 
 #include <CGAL/Homogeneous.h>

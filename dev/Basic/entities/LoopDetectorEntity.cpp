@@ -5,7 +5,7 @@
 
 #include "LoopDetectorEntity.hpp"
 #include "geospatial/Node.hpp"
-#include "Signal.hpp"
+#include "Signal/Signal.hpp"
 #include "AuraManager.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/Role.hpp"
@@ -146,7 +146,7 @@ LoopDetector::LoopDetector(Lane const * lane, centimeter_t innerLength, centimet
   , vehicle_(nullptr)
 {
     std::vector<Point2D> const & polyline = lane->getPolyline();
-    size_t count = polyline.size();
+    std::size_t count = polyline.size();
     // The last line of the lane's polyline is from <p1> to <p2>.
     Point2D const & p1 = polyline[count - 2];
     Point2D const & p2 = polyline[count - 1];
@@ -366,9 +366,9 @@ void
 LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetectorEntity & entity)
 {
     Node const & node = signal.getNode();
-    std::map<Link const *, size_t> const & links_map = signal.links_map();
+    std::map<Link const *, std::size_t> const & links_map = signal.links_map();
 
-    std::map<Link const *, size_t>::const_iterator iter;
+    std::map<Link const *, std::size_t>::const_iterator iter;
     for (iter = links_map.begin(); iter != links_map.end(); ++iter)
     {
         Link const * link  = iter->first;
@@ -410,10 +410,10 @@ void
 LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> const & roads,
                                               LoopDetectorEntity & entity)
 {
-    size_t count = roads.size();
+    std::size_t count = roads.size();
     RoadSegment const * road = roads[count - 1];
     std::vector<Lane *> const & lanes = road->getLanes();
-    for (size_t i = 0; i < lanes.size(); ++i)
+    for (std::size_t i = 0; i < lanes.size(); ++i)
     {
         Lane const * lane = lanes[i];
         if (lane->is_pedestrian_lane())
@@ -455,7 +455,7 @@ LoopDetectorEntity::Impl::check(frame_t frameNumber)
     boost::unordered_set<Vehicle const *> vehicles;
     std::vector<Agent const *> const agents
         = AuraManager::instance().agentsInRect(monitorArea_.lowerLeft_, monitorArea_.upperRight_);
-    for (size_t i = 0; i < agents.size(); ++i)
+    for (std::size_t i = 0; i < agents.size(); ++i)
     {
         Agent const * agent = agents[i];
         if (Person const * person = dynamic_cast<Person const *>(agent))

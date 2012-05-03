@@ -7,7 +7,7 @@
 #include "util/DynamicVector.hpp"
 #include <boost/random.hpp>
 #include "util/LangHelpers.hpp"
-#include "entities/Signal.hpp"
+#include "entities/Signal/Signal.hpp"
 
 namespace sim_mob
 {
@@ -98,7 +98,7 @@ struct DriverUpdateParams : public UpdateParams {
 	double perceivedDistToFwdCar;
 
 	bool perceivedTrafficSignal;
-	Signal::TrafficColor perceivedTrafficColor;
+	sim_mob::TrafficColor perceivedTrafficColor;
 
 	LANE_CHANGE_SIDE turningDirection;
 

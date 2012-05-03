@@ -15,7 +15,7 @@
 
 #include <vector>
 #include "entities/Person.hpp"
-#include "entities/Signal.hpp"
+#include "entities/Signal/Signal.hpp"
 
 namespace sim_mob {
 

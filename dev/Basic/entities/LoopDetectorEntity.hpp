@@ -89,7 +89,7 @@ struct LoopDetectorEntity::CountAndTimePair
      * The number of vehicles that has crossed the loop detector during the cycle since
      * the last call to reset().
      */
-    size_t vehicleCount;
+    std::size_t vehicleCount;
 
     /**
      * The total amount of time in milli-seconds during which no vehicle is hovering over the

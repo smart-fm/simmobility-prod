@@ -51,7 +51,7 @@
 #include "entities/misc/TripChain.hpp"
 #include "entities/misc/aimsun/TripChain.hpp"
 #include "entities/misc/aimsun/SOCI_Converters.hpp"
-#include "entities/Signal.hpp"
+#include "entities/Signal/Signal.hpp"
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"

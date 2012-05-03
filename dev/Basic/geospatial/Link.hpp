@@ -19,6 +19,7 @@ namespace sim_mob
 class RoadSegment;
 class MultiNode;
 class RoadNetworkPackageManager;
+class Signal;
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;

@@ -1,7 +1,7 @@
 =begin
 ** Form generated from reading ui file 'mainwindow.ui'
 **
-** Created: Mon Apr 30 16:37:58 2012
+** Created: Thu May 3 10:53:36 2012
 **      by: Qt User Interface Compiler version 4.7.4
 **
 ** WARNING! All changes made in this file will be lost when recompiling ui file!
@@ -19,6 +19,7 @@ class Ui_Main_window
     attr_reader :horizontalLayout
     attr_reader :viewCreateDestroy
     attr_reader :viewUpdates
+    attr_reader :agTicksCmb
     attr_reader :horizontalSpacer
     attr_reader :menubar
     attr_reader :menuFile
@@ -62,6 +63,12 @@ class Ui_Main_window
 
     @horizontalLayout.addWidget(@viewUpdates)
 
+    @agTicksCmb = Qt::ComboBox.new(@centralwidget)
+    @agTicksCmb.objectName = "agTicksCmb"
+    @agTicksCmb.enabled = false
+
+    @horizontalLayout.addWidget(@agTicksCmb)
+
     @horizontalSpacer = Qt::SpacerItem.new(40, 20, Qt::SizePolicy::Expanding, Qt::SizePolicy::Minimum)
 
     @horizontalLayout.addItem(@horizontalSpacer)
@@ -100,6 +107,7 @@ class Ui_Main_window
     @menuItemQuit.text = Qt::Application.translate("main_window", "Quit", nil, Qt::Application::UnicodeUTF8)
     @viewCreateDestroy.text = Qt::Application.translate("main_window", "Show Create/Destroy", nil, Qt::Application::UnicodeUTF8)
     @viewUpdates.text = Qt::Application.translate("main_window", "Show Agent Updates", nil, Qt::Application::UnicodeUTF8)
+    @agTicksCmb.insertItems(0, [Qt::Application.translate("main_window", "(Update Ticks)", nil, Qt::Application::UnicodeUTF8)])
     @menuFile.title = Qt::Application.translate("main_window", "File", nil, Qt::Application::UnicodeUTF8)
     end # retranslateUi
 

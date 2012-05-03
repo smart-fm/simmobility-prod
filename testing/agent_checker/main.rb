@@ -1,6 +1,9 @@
 require 'Qt4'
 require 'mainwindow_ui'
 
+#Determines how many ticks we load in at once when viewing agent updates.
+# Anything much over 500 will probably hang the system.
+$MaxTick = 200
 
 #Regexes for parsing log lines, which are built like so:
 #  {"key":"value",...}
@@ -280,7 +283,7 @@ end
 #  Currently does to much; need to modularize it.
 class MyWindow < Qt::MainWindow
   #Qt slots
-  slots('open_trace_file()', 'read_trace_file()', 'switch_view()')
+  slots('open_trace_file()', 'read_trace_file()', 'switch_view()', 'update_view()')
 
   def initialize()
     super()
@@ -306,6 +309,7 @@ class MyWindow < Qt::MainWindow
     #Now connect our own signals.
     Qt::Object.connect(@ui.menuOpenTraceFile, SIGNAL('activated()'), self, SLOT('open_trace_file()'))
     Qt::Object.connect(@toolbarGroup, SIGNAL('buttonClicked(QAbstractButton *)'), self, SLOT('switch_view()'))
+    Qt::Object.connect(@ui.agTicksCmb, SIGNAL('currentIndexChanged(int)'), self, SLOT('update_view()'))
   end
 
 ############################################
@@ -456,6 +460,14 @@ class MyWindow < Qt::MainWindow
       end
     }
 
+    #Break the agent update ticks into discrete chunks.
+    #Convert keys to integer values here so we avoid sorting issues like 12 > 100
+    @ui.agTicksCmb.clear()
+    sorted_keys = @simRes.ticks.keys.sort{|t1, t2| t1.to_i <=> t2.to_i }
+    sorted_keys.each_slice($MaxTick){|chunk|
+      @ui.agTicksCmb.addItem("Ticks (#{chunk[0]}-#{chunk[-1]})")
+    }
+
     #Sort the knownWorkerIDs array
     @simRes.knownWorkerIDs.sort! #Worker IDs are written as 0xXX; no need for to_i
     puts "Known worker IDs: #{@simRes.knownWorkerIDs}"
@@ -499,11 +511,15 @@ class MyWindow < Qt::MainWindow
     #      some point in the future and you will get weird errors. 
     @scene = Qt::GraphicsScene.new()
     @ui.agViewCanvas.scene = @scene
+    @ui.agTicksCmb.enabled = false
 
     if @toolbarGroup.checkedButton() == @ui.viewCreateDestroy
       make_create_destroy_objects() if @simRes
-    else
-      make_agent_update_objects() if @simRes
+    elsif @toolbarGroup.checkedButton() == @ui.viewUpdates
+      if @simRes
+        @ui.agTicksCmb.enabled = true
+        make_agent_update_objects()
+      end
     end
 
     #Take the focus, for key events
@@ -512,6 +528,19 @@ class MyWindow < Qt::MainWindow
     #Zoom to default
     @currScaleX = 1.0
     @ui.agViewCanvas.resetTransform()
+  end
+
+
+  def update_view()
+    if @toolbarGroup.checkedButton() == @ui.viewCreateDestroy
+      #Nothing to update
+    elsif @toolbarGroup.checkedButton() == @ui.viewUpdates
+      if @simRes
+        @scene = Qt::GraphicsScene.new()
+        @ui.agViewCanvas.scene = @scene
+        make_agent_update_objects()
+      end
+    end
   end
 
 
@@ -559,17 +588,16 @@ class MyWindow < Qt::MainWindow
   def make_agent_update_objects()
     @miscDrawings = []
 
-    #TODO: Add a combo box for the first X ticks
-    maxTick = 200
-
-    #Convert tick ID to_i, or we get weird ordering
-    ticksSorted = @simRes.ticks.values.sort{|t1, t2| t1.tickID.to_i <=> t2.tickID.to_i}
+    #Determine our min/max ticks. This is a little hackish at the moment, since 
+    # it seems QtRuby doesn't preserve the "userData" field of "addItem"
+    return unless m = @ui.agTicksCmb.currentText.match(/[(]([0-9]+)[-]+([0-9]+)[)]/)
+    minVal = m[1]
+    maxVal = m[2]
 
     #Step 1: Add rectangles over each of these describing the worker ID and tick ID. 
     tickColumn = 0
-    ticksSorted.each {|tick|
-      tickI = tick.tickID.to_i
-      break if tickI > maxTick
+    (minVal..maxVal).each {|tickI|
+      tick = @simRes.ticks[tickI.to_s]
 
       workerRow = 0
       @simRes.knownWorkerIDs.each{|workerID|

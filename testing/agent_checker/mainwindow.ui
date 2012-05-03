@@ -48,6 +48,18 @@
        </widget>
       </item>
       <item>
+       <widget class="QComboBox" name="agTicksCmb">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <item>
+         <property name="text">
+          <string>(Update Ticks)</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>

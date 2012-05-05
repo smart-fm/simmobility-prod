@@ -31,7 +31,7 @@ def self.read_traj_file(trajFileName, nw, timeticks, drivers)
       driverID = $2.to_i
       segmentID = $3
       laneID = $4
-      posInLane = $5.to_f
+      posInLane = $5.to_f      
 
       #Ensure the timestep is increasing
       raise "Error: time must be strictly increasing" if timeS<lastKnownTime
@@ -53,10 +53,14 @@ def self.read_traj_file(trajFileName, nw, timeticks, drivers)
       newDrvTick = Mitsim::DriverTick.new(drivers[driverID])
       timeticks[timeTick][driverID] = newDrvTick
 
+      #Note: posInLane is REVERSED
+      segment = nw.segments[segmentID]
+      totalSegmentLength = Distance(segment.startPos, segment.endPos)
+      posInLane = totalSegmentLength - posInLane
+
       #Now, determine its position at that time tick.
       #NOTE: This assumes that segment.startPos/endPos are consistent across all Node definitions
       #      (the parser will output a warning if this is not true).
-      segment = nw.segments[segmentID]
       pos = DynamicVector.new(segment.startPos, segment.endPos)
       pos.scaleTo(posInLane)
       pos.translate()
@@ -70,7 +74,14 @@ def self.read_traj_file(trajFileName, nw, timeticks, drivers)
       smSeg = segment.sm_segment
       if smSeg
         #Get the total "percent" traveled in the mitsim segment, convert to SM
-        smPolyDist = (posInLane*smSeg.polyline.length)/Distance(segment.startPos, segment.endPos)
+        smPolyDist = (posInLane*smSeg.polyline.length)/totalSegmentLength
+
+
+        #DEBUG
+        #if driverID==17
+        #  puts "#{posInLane} of #{Distance(segment.startPos, segment.endPos)} => #{smPolyDist} of #{smSeg.polyline.length}"
+        #end
+
         startPoly,endPoly,remDist = smSeg.polyline.getPolyPoints(smPolyDist)
         pos = DynamicVector.new(startPoly, endPoly)
         pos.scaleTo(smPolyDist)

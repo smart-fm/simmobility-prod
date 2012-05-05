@@ -29,6 +29,9 @@ bool sim_mob::cmp_agent_start::operator()(const PendingEntity& x, const PendingE
 
 unsigned int sim_mob::Agent::next_agent_id = 0;
 unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID) {
+	//std::cout <<"Asking for agent ID: " <<preferredID <<std::endl;
+
+
 	//If the ID is valid, modify next_agent_id;
 	if (preferredID > static_cast<int> (next_agent_id)) {
 		next_agent_id = static_cast<unsigned int> (preferredID);
@@ -40,12 +43,16 @@ unsigned int sim_mob::Agent::GetAndIncrementID(int preferredID) {
 		int mpi_id = partitionImpl.partition_config->partition_id;
 		int cycle = partitionImpl.partition_config->maximum_agent_id;
 		return (next_agent_id++) + cycle * mpi_id;
-	} else {
-#endif
-		return next_agent_id++;
-#ifndef SIMMOB_DISABLE_MPI
 	}
 #endif
+
+	//Assign either the value asked for (assume it will not conflict) or
+	//  the value of next_agent_id (if it's <0)
+	unsigned int res = (preferredID>=0) ? static_cast<unsigned int>(preferredID) : next_agent_id++;
+
+	//std::cout <<"  assigned: " <<res <<std::endl;
+
+	return res;
 }
 
 

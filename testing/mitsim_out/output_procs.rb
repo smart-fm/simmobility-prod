@@ -245,7 +245,7 @@ def self.print_agents(nw, timeticks, drivers, min, max)
       f.write("  <driver id='#{id}'")
       f.write(" originPos='(#{dr.originNode.sm_node.pos.x},#{dr.originNode.sm_node.pos.y})'")
       f.write(" destPos='(#{dr.destNode.sm_node.pos.x},#{dr.destNode.sm_node.pos.y})'")
-      f.write(" startTime='#{dr.departure}'/>\n")
+      f.write(" time='#{dr.departure}'/>\n")
       skipped -= 1
     }
     f.write("</drivers>") 

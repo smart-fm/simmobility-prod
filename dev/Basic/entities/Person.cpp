@@ -23,8 +23,9 @@ using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
 
 sim_mob::Person::Person(const MutexStrategy& mtxStrat, int id) :
-	Agent(mtxStrat, id), prevRole(nullptr), currRole(nullptr), currTripChain(nullptr), firstFrameTick(true) {
-
+	Agent(mtxStrat, id), prevRole(nullptr), currRole(nullptr), currTripChain(nullptr), firstFrameTick(true)
+{
+	//throw 1;
 }
 
 sim_mob::Person::~Person() {

@@ -14,13 +14,24 @@
  */
 
 
-#ifndef SIMMOB_LATEST_STANDARD
 ///Temporary definitions of final and override. These are keywords in the new standard, and it is
 /// useful to be able to tag (some) methods with these during the design stage. Feel free to ignore
 /// these if you don't see the need; just be aware of what they do if you see them after a function name.
-#define final
-#define override
+///
+///\note
+///We use "newstd_" because boost has their own "final" keyword in multi-index. When we switch to the new
+///  standard, this problem will go away (because "final" is not a keyword, but a context-dependant identifier).
+#ifndef SIMMOB_LATEST_STANDARD
+#define newstd_final
+#define newstd_override
+#else
+#define newstd_final  final
+#define newstd_override  override
+#endif
 
+
+
+#ifndef SIMMOB_LATEST_STANDARD
 
 /**
  * Temporary definition of nullptr. The new standard (C++11) will have "nullptr" as a builtin

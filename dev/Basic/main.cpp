@@ -197,6 +197,8 @@ bool performMain(const std::string& configFileName) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.setEntityWorkGroup(&agentWorkers, &signalStatusWorkers);
 
+		std::cout << "partition_solution_id in main function:" << partitionImpl.partition_config->partition_solution_id << std::endl;
+		//std::cout << partitionImpl. << partitionImpl.partition_config->partition_solution_id << std::endl;
 		//temp no need
 //		if (config.is_simulation_repeatable) {
 //			partitionImpl.updateRandomSeed();
@@ -262,12 +264,17 @@ bool performMain(const std::string& configFileName) {
 #ifndef SIMMOB_DISABLE_MPI
 		if (config.is_run_on_many_computers) {
 			PartitionManager& partitionImpl = PartitionManager::instance();
+
+			cout <<"0" <<endl;
 			partitionImpl.crossPCBarrier();
 
+			cout <<"1" <<endl;
 			partitionImpl.crossPCboundaryProcess(currTick);
 
+			cout <<"2" <<endl;
 			partitionImpl.crossPCBarrier();
 
+			cout <<"3" <<endl;
 			partitionImpl.outputAllEntities(currTick);
 		}
 #endif

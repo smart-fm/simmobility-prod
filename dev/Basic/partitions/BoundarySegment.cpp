@@ -13,35 +13,35 @@
 
 namespace sim_mob {
 void BoundarySegment::buildBoundaryBox(double boundary_length, double boundary_width) {
-	double start_offset = cutLineOffset + boundary_length / 100;
-	double end_offset = cutLineOffset - boundary_length / 100;
+	double down_offset = cutLineOffset + boundary_length / 100;
+	double up_offset = cutLineOffset - boundary_length / 100;
 
-	Point2D upper_point = sim_mob::getMiddlePoint2D(&boundarySegment->getStart()->location,
-			&boundarySegment->getEnd()->location, start_offset);
 	Point2D down_point = sim_mob::getMiddlePoint2D(&boundarySegment->getStart()->location,
-			&boundarySegment->getEnd()->location, end_offset);
+			&boundarySegment->getEnd()->location, down_offset);
+	Point2D up_point = sim_mob::getMiddlePoint2D(&boundarySegment->getStart()->location,
+			&boundarySegment->getEnd()->location, up_offset);
 
-	double length = sim_mob::dist(upper_point, down_point);
+	double length = sim_mob::dist(down_point, up_point);
 //	LogOut("length:" << length << "\n");
 	double ratio = boundary_width * 1.0 / length;
 
 //	LogOut("ratio:" << ratio << "\n");
 
-	int x_dis = (int) ((upper_point.getY() - down_point.getY()) * ratio);
-	int y_dis = (int) ((upper_point.getX() - down_point.getX()) * ratio);
+	int x_dis = (int) ((down_point.getY() - up_point.getY()) * ratio);
+	int y_dis = (int) ((down_point.getX() - up_point.getX()) * ratio);
 
-	if (x_dis < 0)
-		x_dis = -x_dis;
-	if (y_dis < 0)
-		y_dis = -y_dis;
+//	if (x_dis < 0)
+//		x_dis = -x_dis;
+//	if (y_dis < 0)
+//		y_dis = -y_dis;
 
 //	LogOut("x_dis:" << x_dis << "\n");
 //	LogOut("y_dis:" << y_dis << "\n");
 
-	Point2D firstPoint(upper_point.getX() + x_dis, upper_point.getY() - y_dis);
-	Point2D secondPoint(upper_point.getX() - x_dis, upper_point.getY() + y_dis);
-	Point2D thirdPoint(down_point.getX() - x_dis, down_point.getY() + y_dis);
-	Point2D forthPoint(down_point.getX() + x_dis, down_point.getY() - y_dis);
+	Point2D firstPoint(down_point.getX() + x_dis, down_point.getY() - y_dis);
+	Point2D secondPoint(down_point.getX() - x_dis, down_point.getY() + y_dis);
+	Point2D thirdPoint(up_point.getX() - x_dis, up_point.getY() + y_dis);
+	Point2D forthPoint(up_point.getX() + x_dis, up_point.getY() - y_dis);
 
 	bounary_box.push_back(firstPoint);
 	bounary_box.push_back(secondPoint);

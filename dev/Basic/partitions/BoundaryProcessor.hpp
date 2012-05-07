@@ -44,12 +44,15 @@ enum Agent_Type {
 class BoundaryProcessor {
 public:
 
-	BoundaryProcessor()
+	BoundaryProcessor(): BOUNDARY_PROCOSS_TAG(2)
 	{
 		entity_group = NULL;
 		singal_group = NULL;
 		scenario = NULL;
 		partition_config = NULL;
+
+		upstream_ips.clear();
+		downstream_ips.clear();
 	}
 	/**
 	 * initialization
@@ -74,7 +77,9 @@ public:
 
 private:
 
+	//one item might need to be sent to many other partitions
 	std::set<const Entity*> boundaryRealTrafficItems;
+	std::map<int, int > traffic_items_mapping_to;
 
 	std::map<std::string, BoundarySegment*> boundary_segments;
 //	std::map<std::string, std::vector<Agent*>*> fake_agents;
@@ -85,6 +90,12 @@ private:
 	PartitionConfigure* partition_config;
 	SimulationScenario* scenario;
 
+	std::set<int> upstream_ips;
+	std::set<int> downstream_ips;
+
+	//the Tag for MPI Messages
+	const int BOUNDARY_PROCOSS_TAG;
+
 private:
 	/**
 	 * Step 1: set each fake agent to be "can be removed", before boundary processing
@@ -94,7 +105,7 @@ private:
 	/**
 	 * Step 2: Check agent
 	 */
-	std::string checkBoundaryAgents(BoundaryProcessingPackage& package);
+	std::string checkBoundaryAgents(BoundaryProcessingPackage downstream_packs[]);
 
 
 	/**
@@ -106,8 +117,7 @@ private:
 	/**
 	 * Step 4: processing packages
 	 */
-	std::string processBoundaryPackages(
-			std::vector<std::string>& all_packages);
+	std::string processBoundaryPackages(std::string all_packages[], int size);
 
 
 private:

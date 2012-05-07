@@ -946,7 +946,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	//add for MPI
 #ifndef SIMMOB_DISABLE_MPI
     	sim_mob::PartitionManager& partitionImpl = sim_mob::PartitionManager::instance();
-    	std::cout << "partition_solution_id:" << partition_solution_id << std::endl;
+    	std::cout << "partition_solution_id in configuration:" << partition_solution_id << std::endl;
 
     	partitionImpl.partition_config->partition_solution_id = partition_solution_id;
 #endif

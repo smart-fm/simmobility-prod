@@ -42,8 +42,8 @@ int PartitionManager::count = 0;
 void initMPIConfigurationParameters(PartitionConfigure* partition_config, SimulationScenario* scenario)
 {
 	partition_config->adaptive_load_balance = false;
-	partition_config->boundary_length = 100 * 100; //mm
-	partition_config->boundary_width = 20 * 100; //mm
+	partition_config->boundary_length = 100 * 100; //feet
+	partition_config->boundary_width = 20 * 100; //feet
 	partition_config->measurem_performance = false;
 	partition_config->maximum_agent_id = 10000;
 	partition_config->measure_output_file = "";
@@ -132,11 +132,11 @@ std::string PartitionManager::startMPIEnvironment(int argc, char* argv[], bool c
 		MPI_Finalize();
 		return "";
 	}
-	//temp
-	else if (computer_size > 2)
-	{
-		return "Sorry, currently can not support more than 2 computers, because the configure file is hard coded.";
-	}
+	//working to remove this constrains
+//	else if (computer_size > 2)
+//	{
+//		return "Sorry, currently can not support more than 2 computers, because the configure file is hard coded.";
+//	}
 
 	std::cout << "MPI is started: " << world.size() << std::endl;
 	/*

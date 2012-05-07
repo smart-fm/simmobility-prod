@@ -297,14 +297,22 @@ const sim_mob::RoadSegment* sim_mob::getRoadSegmentBasedOnNodes(const sim_mob::P
 
 	for (; it != buffer_road_segments.end(); it++)
 	{
-		if (   (*it)->getStart()->location == *start_point
-                    && (*it)->getEnd()->location == *end_point)
-                {
-                        return *it;
-                }
+		if ((*it)->getStart()->location == *start_point && (*it)->getEnd()->location == *end_point)
+		{
+			return *it;
+		}
 	}
 
-	std::cout << "Error: can not find one boundary road segment in Loader.cpp" << std::endl;
+	//Temp Setting used in Loadding
+	for (; it != buffer_road_segments.end(); it++)
+	{
+		if ((*it)->getStart()->location == *end_point && (*it)->getEnd()->location == *start_point)
+		{
+			return *it;
+		}
+	}
+
+	std::cout << "Error: can not find one boundary road segment in Loader.cpp:" << start_point->getX() << "," << start_point->getY() << "," << end_point->getX() << "," << end_point->getY() << std::endl;
 	return 0;
 }
 

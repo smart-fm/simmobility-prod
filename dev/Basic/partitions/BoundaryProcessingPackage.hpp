@@ -25,6 +25,9 @@ namespace sim_mob {
 class BoundaryProcessingPackage {
 
 public:
+	int from_id;
+	int to_id;
+
 	std::vector<Person const*> cross_persons;
 	std::vector<Person const*> feedback_persons;
 	std::vector<Signal const*> boundary_signals;

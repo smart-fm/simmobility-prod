@@ -49,6 +49,12 @@ public:
 		ar & xPos;
 		ar & yPos;
 	}
+
+public:
+	bool nearToPoint(Point2D another)
+	{
+
+	}
 };
 
 inline std::ostream&

@@ -33,7 +33,8 @@
 #include "entities/roles/Role.hpp"
 
 #include "entities/Signal.hpp"
-#include "partitions/PartitionManager.hpp"
+#include "PartitionManager.hpp"
+#include "ParitionDebugOutput.hpp"
 
 #include <CGAL/Homogeneous.h>
 #include <CGAL/Point_2.h>
@@ -68,7 +69,7 @@ std::string BoundaryProcessor::boundaryProcessing(int time_step)
 	clearFakeAgentFlag();
 	//	std::cout << partition_config->partition_id <<"Step 1" << std::endl;
 
-	//	std::cout << "Step 2" << std::endl;
+//	ParitionDebugOutput::outputToConsole("Step 2");
 	//step 2, check the agents that should be send to downstream partitions
 	int downstream_id_size = downstream_ips.size();
 	//	std::cout << "downstream_id_size:" << downstream_id_size << std::endl;
@@ -82,18 +83,31 @@ std::string BoundaryProcessor::boundaryProcessing(int time_step)
 		index++;
 		downstream_package[index].from_id = partition_config->partition_id;
 		downstream_package[index].to_id = (*itr_downstream);
+
+		downstream_package[index].boundary_signals.clear();
+		downstream_package[index].cross_persons.clear();
+		downstream_package[index].feedback_persons.clear();
+
+//		ParitionDebugOutput::outputToConsole("CCCCCC");
+//		ParitionDebugOutput::outputToConsole(index);
+//		ParitionDebugOutput::outputToConsole(downstream_package[index].feedback_persons.size());
 	}
 
 	//	std::cout << "Step 2.2" << std::endl;
 
-	checkBoundaryAgents(downstream_package);
+//	checkBoundaryAgents(downstream_package);
+
+//	ParitionDebugOutput::outputToConsole("GGGGGGG");
+//	ParitionDebugOutput::outputToConsole(downstream_package[0].feedback_persons.size());
+
 	//	std::cout << partition_config->partition_id <<"Step 2 : Feedback Size" << own_package.feedback_persons.size() << std::endl;
 
 	//	std::string data = getDataInPackage(own_package);
 	//	//	std::cout << partition_config->partition_id <<"Step 3" << std::endl;
 
 	//Step 3, commmunicate with downstream
-	//	std::cout << "Step 3" << std::endl;
+//	ParitionDebugOutput::outputToConsole("Step 3");
+
 	mpi::communicator world;
 
 	int upstream_id_size = upstream_ips.size();
@@ -101,7 +115,7 @@ std::string BoundaryProcessor::boundaryProcessing(int time_step)
 	mpi::request sends[downstream_id_size];
 	std::string all_received_package_data[upstream_id_size];
 
-	//	std::cout << "Step 3.1" << std::endl;
+//	ParitionDebugOutput::outputToConsole("Step 3.1");
 
 	//ready to receive
 	std::set<int>::iterator itr_upstream = upstream_ips.begin();
@@ -115,35 +129,41 @@ std::string BoundaryProcessor::boundaryProcessing(int time_step)
 		recvs[index] = world.irecv(upstream_id, (time_step) % 99 + 1, all_received_package_data[index]);
 	}
 
-	//	std::cout << "Step 3.2" << std::endl;
+//	ParitionDebugOutput::outputToConsole("Step 3.2");
 
 	//ready to send
 	itr_downstream = downstream_ips.begin();
 	index = -1;
 	for (; itr_downstream != downstream_ips.end(); itr_downstream++)
 	{
+//		ParitionDebugOutput::outputToConsole(downstream_ips.size());
+//		ParitionDebugOutput::outputToConsole("Step 3.2.5");
 		index++;
 		std::string data = getDataInPackage(downstream_package[index]);
+//		ParitionDebugOutput::outputToConsole("Step 3.2.6");
 		sends[index] = world.isend(downstream_package[index].to_id, (time_step) % 99 + 1, data);
-
-		std::cout << "send: " << data << std::endl;
+//		ParitionDebugOutput::outputToConsole("Step 3.2.7");
+//		std::cout << "send: " << data << std::endl;
 	}
 
-	std::cout << "Step 3.5: " << downstream_id_size << "," << upstream_id_size << std::endl;
+//	std::cout << "Step 3.5: " << downstream_id_size << "," << upstream_id_size << std::endl;
 
+//	ParitionDebugOutput::outputToConsole("Step 3.3");
 	//waiting for the end of sending and recving
 	mpi::wait_all(recvs, recvs + upstream_id_size);
 	mpi::wait_all(sends, sends + downstream_id_size);
 
+//	ParitionDebugOutput::outputToConsole("Step 3.4");
+
 	//	all_gather(world, data, all_package_data);
 	//	std::cout << partition_config->partition_id <<"Step 4" << std::endl;
 
-	std::cout << "Step 4" << std::endl;
+//	ParitionDebugOutput::outputToConsole("Step 4");
 	//Step 4
 	processBoundaryPackages(all_received_package_data, upstream_id_size);
 	//	std::cout << partition_config->partition_id << "Step 5" << std::endl;
 
-	//	std::cout << "Step 5" << std::endl;
+//	ParitionDebugOutput::outputToConsole("Step 5");
 
 	return "";
 }
@@ -191,7 +211,7 @@ void BoundaryProcessor::clearFakeAgentFlag()
 	}
 }
 
-std::string BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage downstream_packs[])
+std::string BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage* downstream_packs)
 {
 	std::map<std::string, BoundarySegment*>::iterator loopRoadSegment;
 
@@ -211,10 +231,14 @@ std::string BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage dow
 			}
 		}
 
+		ParitionDebugOutput::outputToConsole(downstream_packs[0].feedback_persons.size());
+
 		//std::cout << "1.1.1.2.1" << std::endl;
 		//get all agents in box
 		std::vector<Agent const*> allAgentsInBoundary;
 		allAgentsInBoundary = agentsInSegmentBoundary(segment);
+
+//		ParitionDebugOutput::outputToConsole(allAgentsInBoundary.size());
 
 		if (segment->responsible_side == -1)
 		{
@@ -265,15 +289,19 @@ std::string BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage dow
 				{
 					if ((*agent_pointer)->isFake == false)
 					{
+						ParitionDebugOutput::outputToConsole("TTTTTTTTTTTTT");
 						const Person *person = dynamic_cast<const Person *> (*agent_pointer);
 						if (person)
 							downstream_packs[downstream_index].feedback_persons.push_back(person);
 					}
 				}
 			}
+
+			ParitionDebugOutput::outputToConsole(downstream_packs[0].feedback_persons.size());
 		}
 		else
 		{
+			ParitionDebugOutput::outputToConsole(allAgentsInBoundary.size());
 			std::vector<Agent const*>::iterator agent_pointer;
 			for (agent_pointer = allAgentsInBoundary.begin(); agent_pointer != allAgentsInBoundary.end(); ++agent_pointer)
 			{
@@ -292,8 +320,12 @@ std::string BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage dow
 						downstream_packs[downstream_index].feedback_persons.push_back(person);
 				}
 			}
+
+			ParitionDebugOutput::outputToConsole(downstream_packs[0].feedback_persons.size());
 		}
 	}
+
+	ParitionDebugOutput::outputToConsole(downstream_packs[0].feedback_persons.size());
 
 	std::set<const Entity*>::iterator itr = boundaryRealTrafficItems.begin();
 
@@ -339,8 +371,9 @@ std::string BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& packa
 	//package cross agents
 	packageUtil.packBasicData(package.cross_persons.size());
 	//	std::cout << "Step 2.2" << PartitionManager::instance().partition_config->partition_id << std::endl;
-
-	std::cout << "Out cross_persons:" << package.cross_persons.size() << std::endl;
+//	ParitionDebugOutput::outputToConsole("Step 3.2.6.1");
+//	ParitionDebugOutput::outputToConsole(package.cross_persons.size());
+//	std::cout << "Out cross_persons:" << package.cross_persons.size() << std::endl;
 
 	std::vector<Person const*>::iterator itr_cross = package.cross_persons.begin();
 	for (; itr_cross != package.cross_persons.end(); itr_cross++)
@@ -362,22 +395,28 @@ std::string BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& packa
 	}
 
 	//	std::cout << "Step 2.5" << PartitionManager::instance().partition_config->partition_id << std::endl;
-
+//	ParitionDebugOutput::outputToConsole("Step 3.2.6.2");
+//	ParitionDebugOutput::outputToConsole(package.feedback_persons.size());
 	//package feedback agents
 	packageUtil.packBasicData(package.feedback_persons.size());
-		std::cout << "package.feedback_persons.size():" << package.feedback_persons.size() << std::endl;
-
+//	std::cout << "package.feedback_persons.size():" << package.feedback_persons.size() << std::endl;
+//	ParitionDebugOutput::outputToConsole(package.feedback_persons.size());
 	//	std::cout << "Step 2.6" << PartitionManager::instance().partition_config->partition_id << std::endl;
 
 	std::vector<Person const*>::iterator itr_feedback = package.feedback_persons.begin();
 
 	for (; itr_feedback != package.feedback_persons.end(); itr_feedback++)
 	{
+//		ParitionDebugOutput::outputToConsole("AAAAAAAAAA");
 		Agent_Type type = getAgentTypeForSerialization(*itr_feedback);
 		packageUtil.packBasicData((int) (type));
 
+//		ParitionDebugOutput::outputToConsole("BBBBBBBB");
+
 		int agent_id = (*itr_feedback)->getId();
 		packageUtil.packBasicData(agent_id);
+
+//		ParitionDebugOutput::outputToConsole("CCCCCCCCC");
 
 		Person* one_person = const_cast<Person*> (*itr_feedback);
 
@@ -386,7 +425,7 @@ std::string BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& packa
 	}
 
 	//	std::cout << "Step 2.7" << PartitionManager::instance().partition_config->partition_id << std::endl;
-
+//	ParitionDebugOutput::outputToConsole("Step 3.2.6.3");
 	//package signal
 	packageUtil.packBasicData(package.boundary_signals.size());
 
@@ -400,13 +439,14 @@ std::string BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& packa
 		one_signal->packProxy(packageUtil);
 	}
 
+//	ParitionDebugOutput::outputToConsole("Step 3.2.6.4");
 	//	std::cout << "Step 2.8:" << PartitionManager::instance().partition_config->partition_id << std::endl;
 	return (packageUtil.getPackageData());
 }
 
 void BoundaryProcessor::processPackageData(std::string data)
 {
-	std::cout << partition_config->partition_id << ",Received, " << data << std::endl;
+//	std::cout << partition_config->partition_id << ",Received, " << data << std::endl;
 
 	UnPackageUtils unpackageUtil(data);
 
@@ -416,7 +456,7 @@ void BoundaryProcessor::processPackageData(std::string data)
 
 	int cross_size = unpackageUtil.unpackBasicData<int> ();
 
-	std::cout << partition_config->partition_id << ",Step 4.1, " << cross_size << std::endl;
+//	std::cout << partition_config->partition_id << ",Step 4.1, " << cross_size << std::endl;
 
 	//std::cout << partition_config->partition_id << ",In cross_size:" << cross_size << std::endl;
 	for (int i = 0; i < cross_size; i++)
@@ -471,11 +511,11 @@ void BoundaryProcessor::processPackageData(std::string data)
 	}
 
 	//	if(partition_config->partition_id == 0)
-//	std::cout << partition_config->partition_id << ",Step 4.2" << std::endl;
+	//	std::cout << partition_config->partition_id << ",Step 4.2" << std::endl;
 
 	//feedback agents
 	int feedback_size = unpackageUtil.unpackBasicData<int> ();
-		std::cout << "recevived package.feedback_persons.size():" << feedback_size << std::endl;
+//	std::cout << "recevived package.feedback_persons.size():" << feedback_size << std::endl;
 	//	std::cout << PartitionManager::instance().partition_config->partition_id  << ", In feedback_size:" << feedback_size << std::endl;
 
 	//if(partition_config->partition_id == 1)
@@ -571,7 +611,7 @@ void BoundaryProcessor::processPackageData(std::string data)
 	}
 
 	//	if(partition_config->partition_id == 1)
-//	std::cout << partition_config->partition_id << ",Step 4.3" << std::endl;
+	//	std::cout << partition_config->partition_id << ",Step 4.3" << std::endl;
 
 	//feedback signal
 	int signal_size = unpackageUtil.unpackBasicData<int> ();
@@ -1020,8 +1060,11 @@ void BoundaryProcessor::loadInBoundarySegment(std::string id, BoundarySegment* b
 	else if (boundary->responsible_side < 0)
 		upstream_ips.insert(boundary->connected_partition_id - 1);
 
-	//	std::cout << "downstream_ips:" << downstream_ips.size() << std::endl;
-	//	std::cout << "upstream_ips:" << upstream_ips.size() << std::endl;
+//	ParitionDebugOutput::outputToConsoleWithoutNewLine("downstream_ips");
+//	ParitionDebugOutput::outputToConsole(downstream_ips.size());
+//
+//	ParitionDebugOutput::outputToConsoleWithoutNewLine("upstream_ips");
+//	ParitionDebugOutput::outputToConsole(upstream_ips.size());
 
 	boundary->buildBoundaryBox(partition_config->boundary_length, partition_config->boundary_width);
 	boundary->output();

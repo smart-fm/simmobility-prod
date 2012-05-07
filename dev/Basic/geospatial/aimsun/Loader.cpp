@@ -440,7 +440,7 @@ void DatabaseLoader::TransferBoundaryRoadSegment()
 		sim_mob::Point2D end_point(end_x, end_y);
 
 		(*it)->boundarySegment = sim_mob::getRoadSegmentBasedOnNodes(&start_point, &end_point);
-		std::cout << " Has one partition segment! " << std::endl;
+//		std::cout << " Has one partition segment! " << std::endl;
 		partitionImpl.loadInBoundarySegment((*it)->boundarySegment->getId(), (*it));
 	}
 }

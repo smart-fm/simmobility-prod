@@ -105,7 +105,7 @@ private:
 	/**
 	 * Step 2: Check agent
 	 */
-	std::string checkBoundaryAgents(BoundaryProcessingPackage downstream_packs[]);
+	std::string checkBoundaryAgents(BoundaryProcessingPackage* downstream_packs);
 
 
 	/**

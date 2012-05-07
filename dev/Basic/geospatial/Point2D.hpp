@@ -51,9 +51,15 @@ public:
 	}
 
 public:
-	bool nearToPoint(Point2D another)
+	bool nearToPoint(Point2D another, double distance) const
 	{
+		double x_dis = xPos - another.getX();
+		double y_dis = yPos - another.getY();
 
+		if(x_dis < distance && x_dis > -distance)
+			if(y_dis < distance && y_dis > -distance)
+				return true;
+		return false;
 	}
 };
 

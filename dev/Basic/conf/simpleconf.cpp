@@ -972,6 +972,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		}
     	} else if (geomType && string(geomType) == "aimsun") {
     		//Ensure we're loading from a database
+    		if (prof) { prof->logGenericStart("Database", "main-prof"); }
     		const char* geomSrc = geomElem->Attribute("source");
     		if (!geomSrc || "database" != string(geomSrc)) {
     			return "Unknown geometry source: " + (geomSrc?string(geomSrc):"");
@@ -1135,12 +1136,12 @@ bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 {
 	//Load our config file into an XML document object.
 	TiXmlDocument doc(configPath);
-	if (prof) { prof->logGenericStart("XML", "main-prof"); }
+	if (prof) { prof->logGenericStart("XML", "main-prof-xml"); }
 	if (!doc.LoadFile()) {
 		std::cout <<"Error loading config file: " <<doc.ErrorDesc() <<std::endl;
 		return false;
 	}
-	if (prof) { prof->logGenericEnd("XML", "main-prof"); }
+	if (prof) { prof->logGenericEnd("XML", "main-prof-xml"); }
 
 	//Parse it
 	string errorMsg = loadXMLConf(doc, active_agents, pending_agents, prof);

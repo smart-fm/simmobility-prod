@@ -1372,7 +1372,6 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
             std::cout << " Success." << std::endl;
 
 		//Step One: Load
-        if (prof) { prof->logGenericStart("Database", "main-prof"); }
 		loader.LoadBasicAimsunObjects(storedProcs);
 		if (prof) { prof->logGenericEnd("Database", "main-prof"); }
 

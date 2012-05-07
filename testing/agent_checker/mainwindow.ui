@@ -32,6 +32,9 @@
         <property name="text">
          <string>Show Generic Messages</string>
         </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item>

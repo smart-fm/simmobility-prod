@@ -19,6 +19,10 @@ LogLineRegex = Regexp.new(LL_Line)
 LogTimeRegex = /\( *sec *, *([0-9]+) *\) *, *\( *nano *, *([0-9]+) *\)/
 
 
+#Colors used to paint generic messages
+GenColors = [Qt::Color.new(0x33, 0x99, 0xEE), Qt::Color.new(0x44, 0xBB, 0x55), Qt::Color.new(0xDD, 0x11, 0x11)]
+
+
 #####################
 # Data-only classes.
 #####################
@@ -291,6 +295,53 @@ class WorkerFrameTickItem < Qt::GraphicsItem
     }
   end
 end
+
+
+
+#Visual representation of a generic message
+class GenericMessageItem < Qt::GraphicsItem
+  #Note: We should really generalize these view classes. For example, the AgentLifecycleItem might extend this.
+  @@SecondsW =  1000  #1 second is X pixels
+  @@SecondsH =  40  #Each agent (recorded in seconds) is X pixels in height
+  def self.getSecondsW()
+    return @@SecondsW
+  end
+  def self.getSecondsH()
+    return @@SecondsH
+  end
+
+  def initialize(capt, earliestTime, currRow, currColor)
+    super()
+
+    @caption = capt.caption
+    @color = currColor
+
+    #Convert start/end times to offsets (s)
+    @startTime = time_diff_ms(earliestTime, capt.startTime)
+    @liveDuration = time_diff_ms(capt.startTime, capt.endTime)
+
+    #Set its initial position
+    setPos((@startTime*@@SecondsW)/1000, currRow*@@SecondsH)
+  end
+
+  def boundingRect()
+    #Local (0,0) is centered on the start time
+    return Qt::RectF.new(0, 0, (@liveDuration*@@SecondsW)/1000, @@SecondsH)
+  end
+
+  def paint(painter, option, widget)
+    painter.brush = Qt::Brush.new(@color)
+
+    painter.pen = Qt::Pen.new(Qt::Color.new(0x33, 0x33, 0x33))
+    painter.drawRoundedRect(boundingRect(), 5, 5)
+
+    painter.pen = Qt::Pen.new(Qt::Color.new(0x00, 0x00, 0x00))
+    painter.font = Qt::Font.new("Arial", 12)
+    painter.drawText(5, 5+painter.fontMetrics.ascent(), @caption)
+  end
+
+end
+
 
 
 
@@ -575,7 +626,7 @@ class MyWindow < Qt::MainWindow
         make_agent_update_objects()
       end
     elsif @toolbarGroup.checkedButton() == @ui.viewGeneral
-      make_generic_objects()
+      make_generic_objects() if @simRes
     end
 
     #Take the focus, for key events
@@ -604,6 +655,53 @@ class MyWindow < Qt::MainWindow
 
   #Create all objects which aren't specific to agents. Group by category vertically.
   def make_generic_objects()
+    @miscDrawings = []
+    @maxEndTime = nil
+
+    #Generics are sorted (vertically) by their id. This id is not shown, but
+    # could easily be toggled (later) in some dialog.
+    currRow = 0
+    @simRes.generics.keys.sort.each{|groupID|
+      grp = @simRes.generics[groupID]
+
+      #Now retrieve each caption. Cycle through colors as required.
+      colorID = 0
+      grp.keys.sort.each{|captID|
+        capt = grp[captID]
+
+        #Update end time
+        @maxEndTime = capt.endTime unless @maxEndTime 
+        @maxEndTime = capt.endTime if capt.endTime > @maxEndTime
+
+        #Add a new graphics item
+        genMsg = GenericMessageItem.new(capt, @minGenericTime, currRow, GenColors[colorID])
+        @miscDrawings.push(genMsg)
+        @ui.agViewCanvas.scene().addItem(genMsg)
+
+        colorID = (colorID+1)%GenColors.length
+      }
+      currRow += 1
+    }
+
+    #Add seconds markers
+    (0...(@maxEndTime-@minGenericTime)).step(1){|secs|
+      xPos = secs*GenericMessageItem.getSecondsW
+      yPos = currRow*GenericMessageItem.getSecondsH
+          
+      #Make a line
+      line = Qt::GraphicsLineItem.new(xPos, 0, xPos, yPos)
+      @miscDrawings.push(line)
+      @ui.agViewCanvas.scene().addItem(line)
+
+      #Make a label
+      label = Qt::GraphicsSimpleTextItem.new("#{secs}s")
+      label.setFont(Qt::Font.new("Arial", 10))
+      label.setPos(xPos+2, yPos-10-2) #10 is just a guess based on font size.
+      @miscDrawings.push(label)
+      @ui.agViewCanvas.scene().addItem(label)
+    }
+
+
   end
 
 

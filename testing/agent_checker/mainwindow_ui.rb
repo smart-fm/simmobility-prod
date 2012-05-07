@@ -1,7 +1,7 @@
 =begin
 ** Form generated from reading ui file 'mainwindow.ui'
 **
-** Created: Mon May 7 15:22:27 2012
+** Created: Mon May 7 15:52:39 2012
 **      by: Qt User Interface Compiler version 4.7.4
 **
 ** WARNING! All changes made in this file will be lost when recompiling ui file!
@@ -54,6 +54,7 @@ class Ui_Main_window
     @horizontalLayout.objectName = "horizontalLayout"
     @viewGeneral = Qt::PushButton.new(@centralwidget)
     @viewGeneral.objectName = "viewGeneral"
+    @viewGeneral.checkable = true
 
     @horizontalLayout.addWidget(@viewGeneral)
 

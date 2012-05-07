@@ -1,0 +1,520 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
+/*
+ * Signal.cpp
+ *
+ *  Created on: 2011-7-18
+ *      Author: xrm
+ */
+
+#include "Signal.hpp"
+#include <math.h>
+#include "geospatial/Lane.hpp"
+#include "geospatial/Crossing.hpp"
+#include "geospatial/MultiNode.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "geospatial/StreetDirectory.hpp"
+#include "util/OutputUtil.hpp"
+
+
+#ifndef SIMMOB_DISABLE_MPI
+#include "partitions/PackageUtils.hpp"
+#include "partitions/UnPackageUtils.hpp"
+#endif
+
+using std::map;
+using std::vector;
+using std::string;
+
+typedef sim_mob::Entity::UpdateStatus UpdateStatus;
+
+namespace sim_mob
+{
+
+std::vector<Signal*> Signal::all_signals_;
+
+
+/*
+ * The folowing are Helper arrays for setting TC_* data (in an anonymous namespace).
+ * Vahid:
+ * what they are:
+ * a-they are color indications(Red=1,Amber=2,Green=3)
+ *   flashing green is missing.Actually many things are missing but it's ok, we are "simulating" SCATS which is almost a "closed" specification.
+ * b-each template(pedestrian and Driver) has 8 rows of data.
+ * c-there are 2 rows for each phase.(there are 4 phases, so 4X2=8)
+ * d-why 2 rows: one row for when driver light is green and one for when driver light is amber(yellow)
+ *   therefore pedestrian also gets 2 identical rows ,for each phase,to be compatible with driver data.
+ * e-each row has 4 "set"s of data(one "set" for each approach of the intersection).
+ *  what do I mean by "set" of data! : for pedestrian there is only one value in each "set", but driver has 3 values for left,forward,right enclosed like { 3, 3, 1 },...
+ *  Note: Had the respected programmer dropped a few lines as I did above, i wouldn't be itching my brain for two days to
+ *  figure out what they are :))
+ *  I still don't know what TC stands for!(same unclarity goes with case 0, case 10.... what do you mean by case?)
+ *
+ */
+
+///////////////////// Implementation ///////////////////////
+Signal const &
+Signal::signalAt(Node const & node, const MutexStrategy& mtxStrat) {
+	Signal const * signal = StreetDirectory::instance().signalAt(node);
+	if (signal)
+		return *signal;
+
+	Signal * sig = new Signal(node, mtxStrat);
+	all_signals_.push_back(sig);
+	StreetDirectory::instance().registerSignal(*sig);
+	return *sig;
+}
+
+Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id)
+  : Agent(mtxStrat, id)
+  , node_(node)
+  , loopDetector_(*this, mtxStrat)
+{
+
+	findIncomingLanes();//what was it used for? dont remember
+	ConfigParams& config = ConfigParams::GetInstance();
+	signalAlgorithm = config.signalAlgorithm;
+	Density.resize(IncomingLanes_.size(), 0);//todo wrong ! Density has changed to contain phase DS
+    initializeSignal();
+//    setupIndexMaps();  I guess this function is Not needed any more
+}
+/* Set Split plan and Initialize its Indicators in the signal class*/
+void Signal::setSplitPlan(sim_mob::SplitPlan plan)
+{
+	plan_ = plan;
+}
+/* Set the cycle length and Initialize its Indicators in the signal class*/
+void Signal::setCycleLength(sim_mob::Cycle cycle)
+{
+	cycle_ = cycle;
+}
+void Signal::initializeSignal() {
+
+//	setCL(0, 60, 0);//default initial cycle length for SCATS
+//	setRL(60, 60);//default initial RL for SCATS
+	startSplitPlan();//todo : must do, I guess!
+	currPhaseID = 0;
+	phaseCounter = 0;
+	currOffset = 0;
+//	updateTrafficLights(); //todo what is that?
+
+}
+
+void Signal::addSignalSite(centimeter_t /* xpos */, centimeter_t /* ypos */,
+		std::string const & /* typeCode */, double /* bearing */) {
+	// Not implemented yet.
+}
+/*
+ * this class needs to access lanes coming to it, mostly to calculate DS
+ * It is not feasible to extract the lanes from every traffic signal every time
+ * we need to calculate DS. Rather, we book-keep  the lane information.
+ * It is a trade-off between process and memory.
+ * In order to save memory, we only keep the record of Lane pointers-vahid
+ */
+void Signal::findIncomingLanes()
+{
+	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&node_);
+	if(! mNode) return ;
+	const std::set<sim_mob::RoadSegment*>& rs = mNode->getRoadSegments();
+	for (std::set<sim_mob::RoadSegment*>::const_iterator it = rs.begin(); it!= rs.end(); it++) {
+		if ((*it)->getEnd() != &node_)//consider only the segments that end here
+			continue;
+		IncomingLanes_.reserve(IncomingLanes_.size() + (*it)->getLanes().size());
+		IncomingLanes_.insert(IncomingLanes_.end(), (*it)->getLanes().begin(), (*it)->getLanes().end());
+	}
+}
+
+//initialize SplitPlan
+void Signal::startSplitPlan() {
+	//CurrSplitPlan
+	currSplitPlanID = plan_.CurrSplitPlanID();//todo check what .CurrSplitPlanID() is giving? where is it initializing?
+	currSplitPlan = plan_.CurrSplitPlan();//todo check if we really need this
+}
+
+//find the minimum among the max projected DS
+int Signal::fmin_ID(const std::vector<double> maxproDS) {
+	int min = 0;
+	for (int i = 1; i < maxproDS.size(); i++) {
+		if (maxproDS[i] < maxproDS[min]) {
+			min = i;
+		}
+		//else{}
+	}
+	return min;
+}
+
+//std::vector<double> Signal::getNextSplitPlan() {return nextSplitPlan;}
+//std::vector<double> Signal::getCurrSplitPlan() {return currSplitPlan;}
+
+
+
+
+
+///*
+// * This function calculates the Degree of Saturation of the entire intersection
+// * based on the "lanes"(so a part of the effort will be devoted to finding lanes)
+// * The return Value of this function is the max DS among all -corresponding- lanes.
+// * Previous implementation had a mechanism to filter out unnecessary lanes but since it was based on the default
+// * 4-junction intersection scenario only, I had to replace it.
+// */
+//double Signal::computeMaxDS(double total_g)
+//{
+//	double maxDS = 0;
+//	std::set<sim_mob::links_map>::iterator it_LM = plan_.CurrPhase().LinksMap().begin();
+//	for(;it_LM!= plan_.CurrPhase().LinksMap().end(); it_LM++)
+//	{
+//		sim_mob::Link *link = (*it_LM).LinkFrom;
+//		std::set<sim_mob::RoadSegment*>::iterator it = (*link).uniqueSegments.begin();
+//		for(; it != (*link).uniqueSegments.end(); it++)
+//		{
+//			//discard the segments that don't end here(coz those who don't end here, don't cross the intersection neither)
+//			if((*it)->getEnd()!=&node_)//sim_mob::Link is bi-directionl so we use RoadSegment's start and end to imply direction
+//				continue;
+//		}
+//		const std::vector<sim_mob::Lane*>& lanes = (*it)->getLanes();
+//		for(std::size_t i=0;i<lanes.size();i++)
+//		{
+//			const Lane* lane = lanes.at(i);
+//			if(lane->is_pedestrian_lane())
+//				continue;
+//			const LoopDetectorEntity::CountAndTimePair& ctPair = loopDetector_.getCountAndTimePair(*lane);
+//			double lane_DS = LaneDS(ctPair,total_g);
+//			if(lane_DS > maxDS) maxDS = lane_DS;
+//		}
+//	}
+////	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&node_); is history :)
+//	return maxDS;
+//}
+/*
+ * This function calculates the Degree of Saturation based on the "lanes" of phases.
+ * There are two types of outputs produced by this funtion:
+ * 1-maximum DS of each phase, which will be stored in Signal::Density member variable
+ * 2-the maximum Density observed at this junction which will be returned by is function.
+ * The DS of phases is stored in Density vector. Note that DS of each phase is the max DS observed in its lanes.
+ * The return Value of this function is the max DS among all -corresponding- lanes.
+ * why does a phase DS represented by max DS of all lanes in that phase? coz I say so! jungle rule!
+ * Previous implementation had a mechanism to filter out unnecessary lanes but since it was
+ * based on the default 4-junction intersection scenario only. I had to replace it.
+ * For code readers,the for loops are nested as:
+ * for(phases)
+ * 		for(Links)
+ * 				for(Road Segments)
+ * 							for(Lanes)
+ * 						 		 getlaneDS()
+ * 								 getMaxDS
+ * 								 getMaxPhaseDS
+ */
+double Signal::computeDS() {
+	double lane_DS, maxPhaseDS, maxDS;
+	std::vector<sim_mob::Phase>::iterator p_it = plan_.phases_.begin();
+	for(int i = 0 ;p_it != plan_.phases_.end(); p_it++)//Loop1===>phase
+	{
+		maxPhaseDS = 0;
+		double total_g = (*p_it).computeTotalG();//todo: I guess we can avoid calling this function EVERY time by adding an extra container at split plan level.(mapped to percentage container)
+		std::vector<sim_mob::links_map> & links = (*p_it).LinksMap();//just for simplicity
+		std::vector<sim_mob::links_map>::iterator link_it = links.begin();
+		for (; link_it != links.end(); link_it++) {//Loop2===>link
+			std::set<sim_mob::RoadSegment*> segments = (*link_it).LinkFrom->uniqueSegments;
+			std::set<sim_mob::RoadSegment*>::iterator seg_it =	segments.begin();
+			for (; seg_it != segments.end(); seg_it++) {//Loop3===>road segment
+				//discard the segments that don't end here(coz those who don't end here, don't cross the intersection neither)
+				//sim_mob::Link is bi-directionl so we use RoadSegment's start and end to imply direction
+				if ((*seg_it)->getEnd() != &node_)	continue;
+				const std::vector<sim_mob::Lane*> lanes = (*seg_it)->getLanes();
+				for (std::size_t i = 0; i < lanes.size(); i++) {//Loop4===>lane
+					const Lane* lane = lanes.at(i);
+					if (lane->is_pedestrian_lane())	continue;
+					const LoopDetectorEntity::CountAndTimePair& ctPair = loopDetector_.getCountAndTimePair(*lane);
+					lane_DS = LaneDS(ctPair, total_g);
+					if (lane_DS > maxPhaseDS)	maxDS = lane_DS;
+					if (lane_DS > maxDS)		maxDS = lane_DS;
+				}
+			}
+
+		}
+		Density[i++] = maxPhaseDS;
+	}
+	DS_all = maxDS;
+	return (DS_all);
+}
+
+/*
+ * The actual DS computation formula is here!
+ * It calculates the DS on a specific Lane
+ * at the moment total_g amounts to total_g at each phase,
+ * However this function doesn't care total_g comes from which scop(phase level, cycle level....)
+ */
+double Signal::LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,double total_g)
+{
+//	CountAndTimePair would give you T and n of the formula 2 in section 3.2 of the memurandum (page 3)
+	std::size_t vehicleCount = ctPair.vehicleCount;
+	unsigned int spaceTime = ctPair.spaceTimeInMilliSeconds;
+	double standard_space_time = 1.04*1000;//1.04 seconds
+	/*this is formula 2 in section 3.2 of the memurandum (page 3)*/
+	double used_g = (vehicleCount==0)?0:total_g - (spaceTime - standard_space_time*vehicleCount);
+	return used_g/total_g;//And this is formula 1 in section 3.2 of the memurandum (page 3)
+}
+
+////Update Signal Light
+//void Signal::updateSignal(double DS[]) {
+//	if (phaseCounter == 0) {
+//		// 0 is fixed phase, 1 is scats
+//		if(signalAlgorithm == 1)
+//		{
+//			//find the maximum DS
+//			DS_all = fmax(DS);
+//
+//			//use DS_all for calculating next cycle length
+//			cycle_.setnextCL(DS_all);
+//
+//			//use next cycle length to calculate next Offset
+//			offset_.setnextOffset(getnextCL());
+//			offset_.updateOffset();
+//
+//			cycle_.updateprevCL();
+//			cycle_.updatecurrCL();
+//			plan_.findNextPlanIndex();
+//			plan_.updatecurrSplitPlan();
+//			loopDetector_.reset();
+//		}
+//		else
+//		{
+//			nextCL = fixedCL;
+//			nextSplitPlan.assign(fixedSplitPlan, fixedSplitPlan + 4);
+//		}
+//
+//		currPhase = 0;
+//		phaseCounter += currOffset;
+//	}
+//
+//	// 0 is fixed phase, 1 is scats
+//
+//	int prePhase = currPhase;
+//	if (phaseCounter < nextCL * nextSplitPlan[0]) {
+//		if (phaseCounter <= (nextCL * nextSplitPlan[0] - 3))
+//			currPhase = 0;
+//		else
+//			currPhase = 10;
+//	} else if (phaseCounter < nextCL * (nextSplitPlan[0] + nextSplitPlan[1])) {
+//		if (phaseCounter <= (nextCL * (nextSplitPlan[0] + nextSplitPlan[1]) - 3))
+//			currPhase = 1;
+//		else
+//			currPhase = 11;
+//	} else if (phaseCounter < nextCL * (nextSplitPlan[0] + nextSplitPlan[1] + nextSplitPlan[2])) {
+//		if (phaseCounter <= (nextCL * (nextSplitPlan[0] + nextSplitPlan[1] + nextSplitPlan[2]) - 3))
+//			currPhase = 2;
+//		else
+//			currPhase = 12;
+//	} else if (phaseCounter <= (nextCL - 3))
+//		currPhase = 3;
+//	else
+//		currPhase = 13;
+//
+//	phaseCounter++;
+//
+//	if (phaseCounter == floor(nextCL)) {
+//		phaseCounter = 0;
+//	}
+//
+//	// 0 is fixed phase, 1 is scats
+//	if(signalAlgorithm == 1)
+//	{
+//		if(currPhase%10!=prePhase%10||phaseCounter==0)
+//		{
+//			double total_g = (nextCL * nextSplitPlan[prePhase%10])*1000;
+//
+//			double currPhaseDS = computeDS(total_g);
+//			//		if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
+//			//			std::cout<<"currDS "<<currPhaseDS<<std::endl;
+//			DS[prePhase%10] = currPhaseDS;
+//			loopDetector_.reset();
+//		}
+//	}
+//	updateTrafficLights();
+//}
+//This is a part of signal::update function that is executed only if a new cycle has reached
+void Signal::newCycleUpdate()
+{
+	//	4-Compute DS for cycle length, split plan and offset selection
+		DS_all = computeDS();
+	//	5-update cycle length
+		cycle_.Update(DS_all);
+
+	//	6-update split plan
+		plan_.Update(Density);
+	//	7-update offset
+		offset_.update(cycle_.getnextCL());
+
+		updateIndicators();//i guess except currCycleTimer which was updated first to serv the other functions.
+	//	updateSignal(Density);
+		loopDetector_.reset();
+}
+
+double Signal::updateCurrCycleTimer(frame_t frameNumber) {
+
+}
+/*
+ * 1- update current cycle timer
+ * 2- update current phase color
+ * 3- update current phase
+ * if current cycle timer indicates end of cycle:
+ * 4-compute DS
+ * 5-update cycle length
+ * 6-update split plan
+ * 7-update offset
+ * end of if
+ * 8-reset the loop detector to make it ready for the next cycle
+ * 8-start
+ */
+UpdateStatus Signal::update(frame_t frameNumber) {
+	//todo (= or some range )
+//	1- update current cycle timer( Signal::currCycleTimer)
+	isNewCycle = updateCurrCycleTimer(frameNumber);
+//	2- update current phase color
+	plan_.phases_[currPhaseID].update(currCycleTimer);
+//	3-Update Current Phase
+	currPhaseID = plan_.computeCurrPhase(currCycleTimer);
+
+	if(isNewCycle)	newCycleUpdate();//major update!
+
+//	outputToVisualizer(frameNumber);
+//	if (ConfigParams::GetInstance().is_run_on_many_computers == false)
+//		frame_output(frameNumber);
+//
+	return UpdateStatus::Continue;
+}
+void Signal::updateIndicators()
+{
+	currCL = cycle_.getcurrCL();
+	currPhaseID = plan_.CurrPhaseID();
+	currOffset = offset_.getcurrOffset();
+	currSplitPlanID = plan_.CurrSplitPlanID();
+}
+
+namespace {
+std::string mismatchError(char const * const func_name, Signal const & signal, RoadSegment const & road) {
+	std::ostringstream stream;
+	stream << func_name << ": mismatch in Signal and Lane; Details as follows" << std::endl;
+	stream << "    Signal is located at (" << signal.getNode().location << std::endl;
+	stream << "    Lane is part of RoadSegment going from " << road.getStart()->location << " to "
+			<< road.getEnd()->location << std::endl;
+	return stream.str();
+}
+}
+/*I will try to change only the Data structure, not the algorithm-vahid
+ * This function will tell you what lights a driver is gonna get when he is at the traffic signal
+ * this is done based on the lan->rs->link he is in.
+ * He will get three colors for three options of heading directions(left, forward,right)
+ */
+TrafficColor Signal::getDriverLight(Lane const & lane) const {
+	RoadSegment const * road = lane.getRoadSegment();
+	Link const * link = road->getLink();
+	//todo check if this link is listed in the links associated with the currSplitPlan.phases.links
+	std::set<sim_mob::Link *>::iterator it=currPhase.links.find(link);
+	if(it == currPhase.links.end()) {
+		throw std::runtime_error(mismatchError("Signal::getDriverLight(lane)", *this, *road).c_str());
+	}
+	std::map<sim_mob::Link *, struct VehicleTrafficColors>::iter = currPhase.links_colors.find(link);
+	return iter->second;
+}
+
+TrafficColor Signal::getDriverLight(Lane const & fromLane, Lane const & toLane) const {
+	RoadSegment const * fromRoad = fromLane.getRoadSegment();
+	Link const * fromLink = fromRoad->getLink();
+	std::map<Link const *, std::size_t>::const_iterator iter = links_map_.find(fromLink);
+	if (iter == links_map_.end()) {
+		throw std::runtime_error(mismatchError("Signal::getDriverLight(fromLane, toLane)", *this, *fromRoad).c_str());
+	}
+	std::size_t fromIndex = iter->second;
+
+	RoadSegment const * toRoad = toLane.getRoadSegment();
+	Link const * toLink = toRoad->getLink();
+	iter = links_map_.find(toLink);
+	if (iter == links_map_.end()) {
+		throw std::runtime_error(mismatchError("Signal::getDriverLight(fromLane, toLane)", *this, *toRoad).c_str());
+	}
+	std::size_t toIndex = iter->second;
+
+	// When links_map was populated in setupIndexMaps(), the links were numbered in anti-clockwise
+	// direction.  The following switches are based on this fact.
+	VehicleTrafficColors colors = getDriverLight(fromLane);
+	if (fromIndex > toIndex) {
+		int diff = fromIndex - toIndex;
+		switch (diff) {
+		case 0:
+			return Red; // U-turn is not supported currently.
+		case 1:
+			return colors.left;
+		case 2:
+			return colors.forward;
+		case 3:
+			return colors.right;
+		default:
+			return Red;
+		}
+	} else {
+		int diff = toIndex - fromIndex;
+		switch (diff) {
+		case 0:
+			return Red; // U-turn is not supported currently.
+		case 1:
+			return colors.right;
+		case 2:
+			return colors.forward;
+		case 3:
+			return colors.left;
+		default:
+			return Red;
+		}
+	}
+
+	return Red;
+}
+//todo talk to xuyan or seth on who should decide the format
+void Signal::outputToVisualizer(frame_t frameNumber) {
+#ifndef SIMMOB_DISABLE_OUTPUT
+	std::stringstream logout;
+	logout << "(\"Signal\"," << frameNumber << "," << this << ",{\"va\":\"";
+	for (int i = 0; i < 3; i++) {
+		logout << TC_for_Driver[0][i];
+		if (i == 2) {
+			logout << "\",";
+		} else {
+			logout << ",";
+		}
+	}
+	logout << "\"vb\":\"";
+	for (int i = 0; i < 3; i++) {
+		logout << TC_for_Driver[1][i];
+		if (i == 2) {
+			logout << "\",";
+		} else {
+			logout << ",";
+		}
+	}
+	logout << "\"vc\":\"";
+	for (int i = 0; i < 3; i++) {
+		logout << TC_for_Driver[2][i];
+		if (i == 2) {
+			logout << "\",";
+		} else {
+			logout << ",";
+		}
+	}
+	logout << "\"vd\":\"";
+	for (int i = 0; i < 3; i++) {
+		logout << TC_for_Driver[3][i];
+		if (i == 2) {
+			logout << "\",";
+		} else {
+			logout << ",";
+		}
+	}
+
+	logout << "\"pa\":\"" << TC_for_Pedestrian[0] << "\",";
+	logout << "\"pb\":\"" << TC_for_Pedestrian[1] << "\",";
+	logout << "\"pc\":\"" << TC_for_Pedestrian[2] << "\",";
+	logout << "\"pd\":\"" << TC_for_Pedestrian[3] << "\"})" << std::endl;
+	LogOut(logout.str());
+#endif
+}

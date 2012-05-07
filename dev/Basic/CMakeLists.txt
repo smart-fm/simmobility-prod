@@ -1,5 +1,6 @@
 #Required version of cmake
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 2.6)
+cmake_policy(SET CMP0017 NEW)
 
 #Project name. Used to tag resources in cmake. 
 project (Basic)
@@ -55,6 +56,24 @@ IF (SIMMOB_LATEST_STANDARD)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
   ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 ENDIF(SIMMOB_LATEST_STANDARD)
+
+#Enable threading on GCC-4.7
+IF(CMAKE_COMPILER_IS_GNUCXX)
+  execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
+  IF (GCC_VERSION VERSION_EQUAL 4.7)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -D_GLIBCXX_HAVE_GTHR_DEFAULT")
+  ENDIF (GCC_VERSION VERSION_EQUAL 4.7)
+ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+
+
+#Enable threading on Clang
+#NOTE: This is only a problem if GCC 4.7 AND clang are installed.
+#      If you get errors about "DISABLE_THREADS" being set for boost, you can either enable the next
+#      few lines, or compile against gcc-4.6's standard library.
+#IF(CMAKE_C_COMPILER MATCHES "/clang$" AND CMAKE_CXX_COMPILER MATCHES "/clang[+][+]$")
+#  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -D_GLIBCXX_HAVE_GTHR_DEFAULT")
+#ENDIF()
+
 
 
 #Testing PGO: Have to pass these flags in from the command line.

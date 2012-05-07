@@ -3,6 +3,12 @@
 #include "Color.hpp"
 #include<vector>
 #include<string>
+//#include <boost/multi_index_container.hpp>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/sequenced_index.hpp>
+#include <boost/multi_index/identity.hpp>
+#include <boost/multi_index/member.hpp>
 namespace sim_mob
 {
 //Forward declarations
@@ -16,7 +22,15 @@ typedef struct
 	sim_mob::Link *LinkFrom;
 	ColorSequence colorSequence;
 	TrafficColor currColor;
-} links_map;
+} linkToLink;
+
+typedef boost::multi_index::multi_index_container<
+	links_map,
+    boost::multi_index::indexed_by<                                                                    // index
+        boost::multi_index::sequenced<>,                                                               // 0
+        boost::multi_index::ordered_non_unique< boost::multi_index::member<linkToLink,sim_mob::Link *, &linkToLink::LinkTo> >,  // 1
+    >
+> links_map;
 
 typedef struct
 {

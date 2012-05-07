@@ -13,6 +13,7 @@
 #include "entities/Person.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/driver/Driver.hpp"
+#include "entities/profile/ProfileBuilder.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/UniNode.hpp"
@@ -802,7 +803,7 @@ void PrintDB_Network()
 
 
 //Returns the error message, or an empty string if no error.
-std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
+std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
 {
 	//Save granularities: system
 	TiXmlHandle handle(&document);
@@ -971,6 +972,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		}
     	} else if (geomType && string(geomType) == "aimsun") {
     		//Ensure we're loading from a database
+    		if (prof) { prof->logGenericStart("Database", "main-prof"); }
     		const char* geomSrc = geomElem->Attribute("source");
     		if (!geomSrc || "database" != string(geomSrc)) {
     			return "Unknown geometry source: " + (geomSrc?string(geomSrc):"");
@@ -983,7 +985,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		}
 
     		//Actually load it
-    		string dbErrorMsg = sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetworkRW(), ConfigParams::GetInstance().getTripChains());
+    		string dbErrorMsg = sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetworkRW(), ConfigParams::GetInstance().getTripChains(), prof);
     		if (!dbErrorMsg.empty()) {
     			return "Database loading error: " + dbErrorMsg;
     		}
@@ -1130,17 +1132,19 @@ ConfigParams sim_mob::ConfigParams::instance;
 // Main external method
 //////////////////////////////////////////
 
-bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
+bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
 {
 	//Load our config file into an XML document object.
 	TiXmlDocument doc(configPath);
+	if (prof) { prof->logGenericStart("XML", "main-prof-xml"); }
 	if (!doc.LoadFile()) {
 		std::cout <<"Error loading config file: " <<doc.ErrorDesc() <<std::endl;
 		return false;
 	}
+	if (prof) { prof->logGenericEnd("XML", "main-prof-xml"); }
 
 	//Parse it
-	string errorMsg = loadXMLConf(doc, active_agents, pending_agents);
+	string errorMsg = loadXMLConf(doc, active_agents, pending_agents, prof);
 	if (errorMsg.empty()) {
 		std::cout <<"XML config file loaded." <<std::endl;
 	} else {

@@ -148,6 +148,29 @@ void ProfileBuilder::logAgentUpdateGeneric(const Agent& ag, const string& action
 }
 
 
+void ProfileBuilder::logGenericStart(const string& caption, const string& group)
+{
+	logGeneric("generic-start", group, caption);
+}
+
+void ProfileBuilder::logGenericEnd(const string& caption, const string& group)
+{
+	logGeneric("generic-end", group, caption);
+}
+
+void ProfileBuilder::logGeneric(const string& action, const string& group, const string& caption)
+{
+	currLog <<"{"
+			<<"\"" <<"action" <<"\"" <<":" <<"\"" <<action <<"\"" <<","
+			<<"\"" <<"group" <<"\"" <<":" <<"\"" <<group <<"\"" <<",";
+	currLog <<"\"" <<"real-time" <<"\"" <<":" <<"\"" <<GetCurrentTime() <<"\"" <<",";
+	if (!caption.empty()) {
+		currLog <<"\"" <<"caption" <<"\"" <<":" <<"\"" <<caption <<"\"" <<",";
+	}
+	currLog <<"}\n";
+}
+
+
 
 
 

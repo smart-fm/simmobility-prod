@@ -28,6 +28,16 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
+       <widget class="QPushButton" name="viewGeneral">
+        <property name="text">
+         <string>Show Generic Messages</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="viewCreateDestroy">
         <property name="text">
          <string>Show Create/Destroy</string>

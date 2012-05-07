@@ -7,8 +7,8 @@ $MaxTick = 200
 
 #Regexes for parsing log lines, which are built like so:
 #  {"key":"value",...}
-LL_Key = '\"([a-zA-Z0-9_\-]+)\"'
-LL_Value = '\"([a-zA-Z0-9_\-,()]+)\"'
+LL_Key = '\"([^"]+)\"'
+LL_Value = '\"([^"]+)\"'
 LL_Property = " *#{LL_Key} *: *#{LL_Value},? *"
 LL_Line = "{(?:#{LL_Property})+}"
 LogPropRegex = Regexp.new(LL_Property)
@@ -19,19 +19,38 @@ LogLineRegex = Regexp.new(LL_Line)
 LogTimeRegex = /\( *sec *, *([0-9]+) *\) *, *\( *nano *, *([0-9]+) *\)/
 
 
+#Colors used to paint generic messages
+GenColors = [Qt::Color.new(0x33, 0x99, 0xEE), Qt::Color.new(0x44, 0xBB, 0x55), Qt::Color.new(0xDD, 0x11, 0x11)]
+
+
 #####################
 # Data-only classes.
 #####################
 
 class Simulation
   attr_accessor :agents
+  attr_accessor :generics
   attr_accessor :ticks
   attr_accessor :knownWorkerIDs
 
   def initialize()
     @agents = {} #agentID => Agent
+    @generics = {} #group => {caption => GenCaption}
     @ticks = {} #tickID => FrameTick
     @knownWorkerIDs = [] #string IDs, sorted
+  end
+end
+
+
+class GenCaption
+  attr_reader :caption
+  attr_accessor :startTime
+  attr_accessor :endTime
+
+  def initialize(caption)
+    @caption = caption
+    @startTime = nil
+    @endTime = nil
   end
 end
 
@@ -279,6 +298,53 @@ end
 
 
 
+#Visual representation of a generic message
+class GenericMessageItem < Qt::GraphicsItem
+  #Note: We should really generalize these view classes. For example, the AgentLifecycleItem might extend this.
+  @@SecondsW =  1000  #1 second is X pixels
+  @@SecondsH =  40  #Each agent (recorded in seconds) is X pixels in height
+  def self.getSecondsW()
+    return @@SecondsW
+  end
+  def self.getSecondsH()
+    return @@SecondsH
+  end
+
+  def initialize(capt, earliestTime, currRow, currColor)
+    super()
+
+    @caption = capt.caption
+    @color = currColor
+
+    #Convert start/end times to offsets (s)
+    @startTime = time_diff_ms(earliestTime, capt.startTime)
+    @liveDuration = time_diff_ms(capt.startTime, capt.endTime)
+
+    #Set its initial position
+    setPos((@startTime*@@SecondsW)/1000, currRow*@@SecondsH)
+  end
+
+  def boundingRect()
+    #Local (0,0) is centered on the start time
+    return Qt::RectF.new(0, 0, (@liveDuration*@@SecondsW)/1000, @@SecondsH)
+  end
+
+  def paint(painter, option, widget)
+    painter.brush = Qt::Brush.new(@color)
+
+    painter.pen = Qt::Pen.new(Qt::Color.new(0x33, 0x33, 0x33))
+    painter.drawRoundedRect(boundingRect(), 5, 5)
+
+    painter.pen = Qt::Pen.new(Qt::Color.new(0x00, 0x00, 0x00))
+    painter.font = Qt::Font.new("Arial", 12)
+    painter.drawText(5, 5+painter.fontMetrics.ascent(), @caption)
+  end
+
+end
+
+
+
+
 #A custom MainWindow class for holding all our components.
 #  Currently does to much; need to modularize it.
 class MyWindow < Qt::MainWindow
@@ -299,6 +365,7 @@ class MyWindow < Qt::MainWindow
     @toolbarGroup = Qt::ButtonGroup.new(@ui.centralwidget)
     @toolbarGroup.addButton(@ui.viewCreateDestroy)
     @toolbarGroup.addButton(@ui.viewUpdates)
+    @toolbarGroup.addButton(@ui.viewGeneral)
 
     #More component/variable initialization
     @ui.fileProgress.setVisible(false)
@@ -328,17 +395,15 @@ class MyWindow < Qt::MainWindow
     return Time.at(m[1].to_i, m[2].to_i/1000)
   end
 
-  def dispatch_line(timeticks, knownWorkerIDs, agents, properties, unknown_types)
-    agID = get_property(properties, "agent", true)
+  def dispatch_line(timeticks, knownWorkerIDs, agents, generics, properties, unknown_types)
     type = get_property(properties, "action", true)
     time = get_property(properties, "real-time", true)
+
+    agRequired = ['constructed', 'destructed', 'exception', 'update-begin', 'update-end']
+    agID = get_property(properties, "agent", agRequired.include?(type))
+
     if type=="constructed"
       dispatch_construction(agents, properties, agID, time)
-
-      #Update minTime
-      time = agents[agID].constTime
-      @minStartTime = time unless @minStartTime
-      @minStartTime = time if time < @minStartTime
     elsif type=="destructed"
       dispatch_destruction(agents, properties, agID, time)
     elsif type=="exception"
@@ -347,16 +412,55 @@ class MyWindow < Qt::MainWindow
       dispatch_startupdate(timeticks, agents, properties, agID, time, knownWorkerIDs)
     elsif type=="update-end"
       dispatch_endupdate(timeticks, agents, properties, agID, time, knownWorkerIDs)
+    elsif type=="generic-start"
+      dispatch_generic_start(generics, properties, time)
+    elsif type=="generic-end"
+      dispatch_generic_end(generics, properties, time)
     else
       unknown_types[type]=0 unless unknown_types.has_key? type
       unknown_types[type] += 1
     end
   end
 
+
+  def dispatch_generic_start(generics, properties, time)
+    #Retrieve group, caption. Make and check as needed.
+    group = get_property(properties, "group", true)
+    caption = get_property(properties, "caption", true)
+    generics[group] = {} unless generics.has_key? group
+    raise "Double-construction for Caption #{group}:#{caption}" if generics[group].has_key? caption
+
+    #Make, set
+    generics[group][caption] = GenCaption.new(caption)
+    generics[group][caption].startTime = parse_time(time)
+
+    #Update minGenericTime
+    time = generics[group][caption].startTime
+    @minGenericTime = time unless @minGenericTime
+    @minGenericTime = time if time < @minGenericTime
+  end
+
+  def dispatch_generic_end(generics, properties, time)
+    #Retrieve group, caption. Make and check as needed.
+    group = get_property(properties, "group", true)
+    caption = get_property(properties, "caption", true)
+    raise "Unknown generic group: #{group}" unless generics.has_key? group
+    raise "Unknown generic caption: #{group}:#{caption}" unless generics[group].has_key? caption
+    raise "Double end-time for caption: #{group}:#{caption}" if generics[group][caption].endTime
+
+    #Set
+    generics[group][caption].endTime = parse_time(time)
+  end
+
   def dispatch_construction(agents, properties, agID, time)
     raise "Double-construction for Agent #{agID}" if agents.has_key? agID
     agents[agID] = Agent.new(agID)
     agents[agID].constTime = parse_time(time)
+
+    #Update minTime
+    time = agents[agID].constTime
+    @minStartTime = time unless @minStartTime
+    @minStartTime = time if time < @minStartTime
   end
 
   def dispatch_destruction(agents, properties, agID, time)
@@ -430,6 +534,7 @@ class MyWindow < Qt::MainWindow
     @simRes = Simulation.new()
     bytesLoaded = 0
     @minStartTime = nil
+    @minGenericTime = nil
     lastBytesLoaded = 0
     f.each { |line|
       #Update progress bar
@@ -454,7 +559,7 @@ class MyWindow < Qt::MainWindow
           raise "Duplicate property: #{key}=>#{val}" if props.has_key? key
           props[key] = val
         }
-        dispatch_line(@simRes.ticks, @simRes.knownWorkerIDs, @simRes.agents, props, unknown_types)
+        dispatch_line(@simRes.ticks, @simRes.knownWorkerIDs, @simRes.agents, @simRes.generics, props, unknown_types)
       else
         puts "Skipped: #{line}"
       end
@@ -520,6 +625,8 @@ class MyWindow < Qt::MainWindow
         @ui.agTicksCmb.enabled = true
         make_agent_update_objects()
       end
+    elsif @toolbarGroup.checkedButton() == @ui.viewGeneral
+      make_generic_objects() if @simRes
     end
 
     #Take the focus, for key events
@@ -540,8 +647,63 @@ class MyWindow < Qt::MainWindow
         @ui.agViewCanvas.scene = @scene
         make_agent_update_objects()
       end
+    elsif @toolbarGroup.checkedButton() == @ui.viewGeneral
+      #Nothing to update
     end
   end
+
+
+  #Create all objects which aren't specific to agents. Group by category vertically.
+  def make_generic_objects()
+    @miscDrawings = []
+    @maxEndTime = nil
+
+    #Generics are sorted (vertically) by their id. This id is not shown, but
+    # could easily be toggled (later) in some dialog.
+    currRow = 0
+    @simRes.generics.keys.sort.each{|groupID|
+      grp = @simRes.generics[groupID]
+
+      #Now retrieve each caption. Cycle through colors as required.
+      colorID = 0
+      grp.keys.sort.each{|captID|
+        capt = grp[captID]
+
+        #Update end time
+        @maxEndTime = capt.endTime unless @maxEndTime 
+        @maxEndTime = capt.endTime if capt.endTime > @maxEndTime
+
+        #Add a new graphics item
+        genMsg = GenericMessageItem.new(capt, @minGenericTime, currRow, GenColors[colorID])
+        @miscDrawings.push(genMsg)
+        @ui.agViewCanvas.scene().addItem(genMsg)
+
+        colorID = (colorID+1)%GenColors.length
+      }
+      currRow += 1
+    }
+
+    #Add seconds markers
+    (0...(@maxEndTime-@minGenericTime)).step(1){|secs|
+      xPos = secs*GenericMessageItem.getSecondsW
+      yPos = currRow*GenericMessageItem.getSecondsH
+          
+      #Make a line
+      line = Qt::GraphicsLineItem.new(xPos, 0, xPos, yPos)
+      @miscDrawings.push(line)
+      @ui.agViewCanvas.scene().addItem(line)
+
+      #Make a label
+      label = Qt::GraphicsSimpleTextItem.new("#{secs}s")
+      label.setFont(Qt::Font.new("Arial", 10))
+      label.setPos(xPos+2, yPos-10-2) #10 is just a guess based on font size.
+      @miscDrawings.push(label)
+      @ui.agViewCanvas.scene().addItem(label)
+    }
+
+
+  end
+
 
 
   #Create all objects relevant to the Agent Lifecycle view.

@@ -104,8 +104,11 @@ bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents);
 bool performMain(const std::string& configFileName) {
 	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
 	
+	ProfileBuilder* prof = nullptr;
 #ifdef SIMMOB_AGENT_UPDATE_PROFILE
 	ProfileBuilder::InitLogFile("agent_update_trace.txt");
+	ProfileBuilder prof_i;
+	prof = &prof_i;
 #endif
 
 	//Loader params for our Agents
@@ -114,7 +117,7 @@ bool performMain(const std::string& configFileName) {
 #endif
 
 	//Load our user config file; save a handle to the shared definition of it.
-	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents)) { //Note: Agent "shells" are loaded here.
+	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof)) { //Note: Agent "shells" are loaded here.
 		return false;
 	}
 	const ConfigParams& config = ConfigParams::GetInstance();

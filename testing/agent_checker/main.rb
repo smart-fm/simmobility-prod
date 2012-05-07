@@ -7,8 +7,8 @@ $MaxTick = 200
 
 #Regexes for parsing log lines, which are built like so:
 #  {"key":"value",...}
-LL_Key = '\"([a-zA-Z0-9_\-]+)\"'
-LL_Value = '\"([a-zA-Z0-9_\-,()]+)\"'
+LL_Key = '\"([^"]+)\"'
+LL_Value = '\"([^"]+)\"'
 LL_Property = " *#{LL_Key} *: *#{LL_Value},? *"
 LL_Line = "{(?:#{LL_Property})+}"
 LogPropRegex = Regexp.new(LL_Property)
@@ -25,13 +25,28 @@ LogTimeRegex = /\( *sec *, *([0-9]+) *\) *, *\( *nano *, *([0-9]+) *\)/
 
 class Simulation
   attr_accessor :agents
+  attr_accessor :generics
   attr_accessor :ticks
   attr_accessor :knownWorkerIDs
 
   def initialize()
     @agents = {} #agentID => Agent
+    @generics = {} #group => {caption => GenCaption}
     @ticks = {} #tickID => FrameTick
     @knownWorkerIDs = [] #string IDs, sorted
+  end
+end
+
+
+class GenCaption
+  attr_reader :caption
+  attr_accessor :startTime
+  attr_accessor :endTime
+
+  def initialize(caption)
+    @caption = caption
+    @startTime = nil
+    @endTime = nil
   end
 end
 
@@ -299,6 +314,7 @@ class MyWindow < Qt::MainWindow
     @toolbarGroup = Qt::ButtonGroup.new(@ui.centralwidget)
     @toolbarGroup.addButton(@ui.viewCreateDestroy)
     @toolbarGroup.addButton(@ui.viewUpdates)
+    @toolbarGroup.addButton(@ui.viewGeneral)
 
     #More component/variable initialization
     @ui.fileProgress.setVisible(false)
@@ -328,17 +344,15 @@ class MyWindow < Qt::MainWindow
     return Time.at(m[1].to_i, m[2].to_i/1000)
   end
 
-  def dispatch_line(timeticks, knownWorkerIDs, agents, properties, unknown_types)
-    agID = get_property(properties, "agent", true)
+  def dispatch_line(timeticks, knownWorkerIDs, agents, generics, properties, unknown_types)
     type = get_property(properties, "action", true)
     time = get_property(properties, "real-time", true)
+
+    agRequired = ['constructed', 'destructed', 'exception', 'update-begin', 'update-end']
+    agID = get_property(properties, "agent", agRequired.include?(type))
+
     if type=="constructed"
       dispatch_construction(agents, properties, agID, time)
-
-      #Update minTime
-      time = agents[agID].constTime
-      @minStartTime = time unless @minStartTime
-      @minStartTime = time if time < @minStartTime
     elsif type=="destructed"
       dispatch_destruction(agents, properties, agID, time)
     elsif type=="exception"
@@ -347,16 +361,55 @@ class MyWindow < Qt::MainWindow
       dispatch_startupdate(timeticks, agents, properties, agID, time, knownWorkerIDs)
     elsif type=="update-end"
       dispatch_endupdate(timeticks, agents, properties, agID, time, knownWorkerIDs)
+    elsif type=="generic-start"
+      dispatch_generic_start(generics, properties, time)
+    elsif type=="generic-end"
+      dispatch_generic_end(generics, properties, time)
     else
       unknown_types[type]=0 unless unknown_types.has_key? type
       unknown_types[type] += 1
     end
   end
 
+
+  def dispatch_generic_start(generics, properties, time)
+    #Retrieve group, caption. Make and check as needed.
+    group = get_property(properties, "group", true)
+    caption = get_property(properties, "caption", true)
+    generics[group] = {} unless generics.has_key? group
+    raise "Double-construction for Caption #{group}:#{caption}" if generics[group].has_key? caption
+
+    #Make, set
+    generics[group][caption] = GenCaption.new(caption)
+    generics[group][caption].startTime = parse_time(time)
+
+    #Update minGenericTime
+    time = generics[group][caption].startTime
+    @minGenericTime = time unless @minGenericTime
+    @minGenericTime = time if time < @minGenericTime
+  end
+
+  def dispatch_generic_end(generics, properties, time)
+    #Retrieve group, caption. Make and check as needed.
+    group = get_property(properties, "group", true)
+    caption = get_property(properties, "caption", true)
+    raise "Unknown generic group: #{group}" unless generics.has_key? group
+    raise "Unknown generic caption: #{group}:#{caption}" unless generics[group].has_key? caption
+    raise "Double end-time for caption: #{group}:#{caption}" if generics[group][caption].endTime
+
+    #Set
+    generics[group][caption].endTime = parse_time(time)
+  end
+
   def dispatch_construction(agents, properties, agID, time)
     raise "Double-construction for Agent #{agID}" if agents.has_key? agID
     agents[agID] = Agent.new(agID)
     agents[agID].constTime = parse_time(time)
+
+    #Update minTime
+    time = agents[agID].constTime
+    @minStartTime = time unless @minStartTime
+    @minStartTime = time if time < @minStartTime
   end
 
   def dispatch_destruction(agents, properties, agID, time)
@@ -430,6 +483,7 @@ class MyWindow < Qt::MainWindow
     @simRes = Simulation.new()
     bytesLoaded = 0
     @minStartTime = nil
+    @minGenericTime = nil
     lastBytesLoaded = 0
     f.each { |line|
       #Update progress bar
@@ -454,7 +508,7 @@ class MyWindow < Qt::MainWindow
           raise "Duplicate property: #{key}=>#{val}" if props.has_key? key
           props[key] = val
         }
-        dispatch_line(@simRes.ticks, @simRes.knownWorkerIDs, @simRes.agents, props, unknown_types)
+        dispatch_line(@simRes.ticks, @simRes.knownWorkerIDs, @simRes.agents, @simRes.generics, props, unknown_types)
       else
         puts "Skipped: #{line}"
       end
@@ -520,6 +574,8 @@ class MyWindow < Qt::MainWindow
         @ui.agTicksCmb.enabled = true
         make_agent_update_objects()
       end
+    elsif @toolbarGroup.checkedButton() == @ui.viewGeneral
+      make_generic_objects()
     end
 
     #Take the focus, for key events
@@ -540,8 +596,16 @@ class MyWindow < Qt::MainWindow
         @ui.agViewCanvas.scene = @scene
         make_agent_update_objects()
       end
+    elsif @toolbarGroup.checkedButton() == @ui.viewGeneral
+      #Nothing to update
     end
   end
+
+
+  #Create all objects which aren't specific to agents. Group by category vertically.
+  def make_generic_objects()
+  end
+
 
 
   #Create all objects relevant to the Agent Lifecycle view.

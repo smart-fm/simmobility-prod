@@ -1,7 +1,7 @@
 =begin
 ** Form generated from reading ui file 'mainwindow.ui'
 **
-** Created: Thu May 3 10:53:36 2012
+** Created: Mon May 7 15:22:27 2012
 **      by: Qt User Interface Compiler version 4.7.4
 **
 ** WARNING! All changes made in this file will be lost when recompiling ui file!
@@ -17,6 +17,7 @@ class Ui_Main_window
     attr_reader :agViewCanvas
     attr_reader :fileProgress
     attr_reader :horizontalLayout
+    attr_reader :viewGeneral
     attr_reader :viewCreateDestroy
     attr_reader :viewUpdates
     attr_reader :agTicksCmb
@@ -51,6 +52,11 @@ class Ui_Main_window
 
     @horizontalLayout = Qt::HBoxLayout.new()
     @horizontalLayout.objectName = "horizontalLayout"
+    @viewGeneral = Qt::PushButton.new(@centralwidget)
+    @viewGeneral.objectName = "viewGeneral"
+
+    @horizontalLayout.addWidget(@viewGeneral)
+
     @viewCreateDestroy = Qt::PushButton.new(@centralwidget)
     @viewCreateDestroy.objectName = "viewCreateDestroy"
     @viewCreateDestroy.checkable = true
@@ -105,6 +111,7 @@ class Ui_Main_window
     main_window.windowTitle = Qt::Application.translate("main_window", "Agent Concurrency Checker", nil, Qt::Application::UnicodeUTF8)
     @menuOpenTraceFile.text = Qt::Application.translate("main_window", "Open Trace File", nil, Qt::Application::UnicodeUTF8)
     @menuItemQuit.text = Qt::Application.translate("main_window", "Quit", nil, Qt::Application::UnicodeUTF8)
+    @viewGeneral.text = Qt::Application.translate("main_window", "Show Generic Messages", nil, Qt::Application::UnicodeUTF8)
     @viewCreateDestroy.text = Qt::Application.translate("main_window", "Show Create/Destroy", nil, Qt::Application::UnicodeUTF8)
     @viewUpdates.text = Qt::Application.translate("main_window", "Show Agent Updates", nil, Qt::Application::UnicodeUTF8)
     @agTicksCmb.insertItems(0, [Qt::Application.translate("main_window", "(Update Ticks)", nil, Qt::Application::UnicodeUTF8)])

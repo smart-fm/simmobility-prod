@@ -94,17 +94,15 @@ void outputLineT(Point2D& start_p, Point2D& end_p, std::string color)
 				<< "\"endPointY\":\"" << end_p.getY() << "\"," << "\"color\":\"" << color << "\"" << "})" << std::endl);
 }
 
-const Signal* findOneSignalByNode(const Point2D* point)
+const Signal* findOneSignalByNode(const Point2D& point)
 {
-	for (size_t i = 0; i < Signal::all_signals_.size(); i++)
-	{
-		if (Signal::all_signals_[i]->getNode().location.getX() == point->getX() && Signal::all_signals_[i]->getNode().location.getY() == point->getY())
-		{
-			return Signal::all_signals_[i];
+	for (size_t i=0; i<Signal::all_signals_.size(); i++) {
+		if (Signal::all_signals_.at(i)->getNode().location == point) {
+			return Signal::all_signals_.at(i);
 		}
 	}
 
-	return 0;
+	return nullptr;
 }
 
 } //End anonymous namespace
@@ -842,7 +840,7 @@ void sim_mob::BoundaryProcessor::initBoundaryTrafficItems()
 		//if the road segment is in the upper side
 		if (one_segment->responsible_side == -1)
 		{
-			const Signal* startNodeSignal = findOneSignalByNode(&one_segment->boundarySegment->getStart()->location);
+			const Signal* startNodeSignal = findOneSignalByNode(one_segment->boundarySegment->getStart()->location);
 
 			if (startNodeSignal)
 			{
@@ -852,7 +850,7 @@ void sim_mob::BoundaryProcessor::initBoundaryTrafficItems()
 				boundaryRealTrafficItems.insert(startNodeSignal);
 			}
 
-			const Signal* endNodeSignal = findOneSignalByNode(&one_segment->boundarySegment->getEnd()->location);
+			const Signal* endNodeSignal = findOneSignalByNode(one_segment->boundarySegment->getEnd()->location);
 			if (endNodeSignal)
 			{
 				Signal* one_signal = const_cast<Signal*> (endNodeSignal);
@@ -862,7 +860,7 @@ void sim_mob::BoundaryProcessor::initBoundaryTrafficItems()
 		//down stream
 		else if (one_segment->responsible_side == 1)
 		{
-			const Signal* startNodeSignal = findOneSignalByNode(&one_segment->boundarySegment->getStart()->location);
+			const Signal* startNodeSignal = findOneSignalByNode(one_segment->boundarySegment->getStart()->location);
 
 			if (startNodeSignal)
 			{
@@ -873,7 +871,7 @@ void sim_mob::BoundaryProcessor::initBoundaryTrafficItems()
 				}
 			}
 
-			const Signal* endNodeSignal = findOneSignalByNode(&one_segment->boundarySegment->getEnd()->location);
+			const Signal* endNodeSignal = findOneSignalByNode(one_segment->boundarySegment->getEnd()->location);
 			if (endNodeSignal)
 			{
 				int downstream_id = one_segment->connected_partition_id - 1;

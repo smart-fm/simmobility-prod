@@ -893,23 +893,26 @@ string sim_mob::BoundaryProcessor::releaseMPIEnvironment()
 
 	MPI_Finalize();
 
-	if (scenario)
+	safe_delete_item(scenario);
+	/*if (scenario)
 	{
 		delete scenario;
-	}
+	}*/
 
-	if (partition_config)
+	safe_delete_item(partition_config);
+	/*if (partition_config)
 	{
 		delete partition_config;
-	}
+	}*/
 
 	std::map<string, BoundarySegment*>::iterator it2 = boundary_segments.begin();
 	for (; it2 != boundary_segments.end(); it2++)
 	{
-		if (it2->second)
+		safe_delete_item(it2->second);
+		/*if (it2->second)
 		{
 			delete it2->second;
-		}
+		}*/
 	}
 
 	return "";

@@ -13,6 +13,7 @@
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
+#include "partitions/ParitionDebugOutput.hpp"
 #endif
 
 using namespace sim_mob;
@@ -333,17 +334,20 @@ bool sim_mob::Vehicle::isDone() const {
 void sim_mob::Vehicle::pack(PackageUtils& package, Vehicle* one_vehicle) {
 //	package.packBasicData<double> (one_vehicle->length);
 //	package.packBasicData<double> (one_vehicle->width);
-
+//	ParitionDebugOutput::outputToConsole("11111111");
 	GeneralPathMover::pack(package, &(one_vehicle->fwdMovement));
 
+//	ParitionDebugOutput::outputToConsole("22222222");
 	package.packBasicData<double> (one_vehicle->latMovement);
 	package.packBasicData<double> (one_vehicle->fwdVelocity);
 	package.packBasicData<double> (one_vehicle->latVelocity);
 	package.packBasicData<double> (one_vehicle->fwdAccel);
 
+//	ParitionDebugOutput::outputToConsole("33333333");
 	package.packBasicData<double> (one_vehicle->posInIntersection.x);
 	package.packBasicData<double> (one_vehicle->posInIntersection.y);
 
+//	ParitionDebugOutput::outputToConsole("444444444");
 	package.packBasicData<bool> (one_vehicle->error_state);
 }
 

@@ -426,15 +426,15 @@ void DatabaseLoader::TransferBoundaryRoadSegment()
 	vector<sim_mob::BoundarySegment*>::iterator it = boundary_segments.begin();
 	for (; it != boundary_segments.end(); it++)
 	{
-//		int start_x = static_cast<int> ((*it)->start_node_x * 100 + 0.5);
-//		int start_y = static_cast<int> ((*it)->start_node_y * 100 + 0.5);
-//		int end_x = static_cast<int> ((*it)->end_node_x * 100 + 0.5);
-//		int end_y = static_cast<int> ((*it)->end_node_y * 100 + 0.5);
+		int start_x = static_cast<int> ((*it)->start_node_x * 100 + 0.5);
+		int start_y = static_cast<int> ((*it)->start_node_y * 100 + 0.5);
+		int end_x = static_cast<int> ((*it)->end_node_x * 100 + 0.5);
+		int end_y = static_cast<int> ((*it)->end_node_y * 100 + 0.5);
 
-		int start_x = static_cast<int> ((*it)->start_node_x * 100 );
-		int start_y = static_cast<int> ((*it)->start_node_y * 100 );
-		int end_x = static_cast<int> ((*it)->end_node_x * 100 );
-		int end_y = static_cast<int> ((*it)->end_node_y * 100 );
+//		int start_x = static_cast<int> ((*it)->start_node_x * 100 );
+//		int start_y = static_cast<int> ((*it)->start_node_y * 100 );
+//		int end_x = static_cast<int> ((*it)->end_node_x * 100 );
+//		int end_y = static_cast<int> ((*it)->end_node_y * 100 );
 
 		sim_mob::Point2D start_point(start_x, start_y);
 		sim_mob::Point2D end_point(end_x, end_y);

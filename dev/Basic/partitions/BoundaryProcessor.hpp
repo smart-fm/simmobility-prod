@@ -51,8 +51,8 @@ public:
 		scenario = NULL;
 		partition_config = NULL;
 
-		upstream_ips.clear();
-		downstream_ips.clear();
+		neighbor_ips.clear();
+//		downstream_ips.clear();
 	}
 	/**
 	 * initialization
@@ -90,8 +90,9 @@ private:
 	PartitionConfigure* partition_config;
 	SimulationScenario* scenario;
 
-	std::set<int> upstream_ips;
-	std::set<int> downstream_ips;
+	std::set<int> neighbor_ips;
+//	std::set<int> upstream_ips;
+//	std::set<int> downstream_ips;
 
 	//the Tag for MPI Messages
 	const int BOUNDARY_PROCOSS_TAG;

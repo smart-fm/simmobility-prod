@@ -35,6 +35,7 @@
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
+#include "partitions/ParitionDebugOutput.hpp"
 #endif
 
 using namespace sim_mob;
@@ -1834,19 +1835,30 @@ void sim_mob::Driver::unpack(UnPackageUtils& unpackageUtil) {
 
 void sim_mob::Driver::packProxy(PackageUtils& packageUtil) {
 	//Part 1
+
+//	ParitionDebugOutput::outputToConsole("RRRRRRRRRRRRR");
+
 	Lane::pack(packageUtil, currLane_.get());
+//	ParitionDebugOutput::outputToConsole("00");
+
 	packageUtil.packBasicData(currLaneOffset_.get());
 	packageUtil.packBasicData(currLaneLength_.get());
 	packageUtil.packBasicData(isInIntersection.get());
+
+//	ParitionDebugOutput::outputToConsole("000");
 
 	packageUtil.packBasicData(latMovement.get());
 	packageUtil.packBasicData(fwdVelocity.get());
 	packageUtil.packBasicData(latVelocity.get());
 	packageUtil.packBasicData(fwdAccel.get());
 
+//	ParitionDebugOutput::outputToConsole("111");
+
 	//packageUtil.packBasicData(currTimeMS);
 	Vehicle::pack(packageUtil, vehicle);
 //	packageUtil.packVehicle(vehicle);
+
+//	ParitionDebugOutput::outputToConsole("222");
 
 	bool hasSomething = false;
 	if(intModel)
@@ -1868,6 +1880,8 @@ void sim_mob::Driver::packProxy(PackageUtils& packageUtil) {
 	{
 		packageUtil.packBasicData(hasSomething);
 	}
+
+//	ParitionDebugOutput::outputToConsole("333");
 
 	//Part 2
 //	packageUtil.packFixedDelayedDPoint(perceivedVelocity);

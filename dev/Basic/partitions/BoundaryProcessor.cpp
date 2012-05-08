@@ -98,45 +98,13 @@ std::string BoundaryProcessor::boundaryProcessing(int time_step)
 		sendout_package[index].from_id = partition_config->partition_id;
 		sendout_package[index].to_id = (*itr_neighbor);
 
-<<<<<<< HEAD
-		//		ParitionDebugOutput::outputToConsole("PPPPPPPPPPPPP");
-		//		ParitionDebugOutput::outputToConsole(downstream_package[index].to_id);
-
-		sendout_package[index].boundary_signals.clear();
-		sendout_package[index].cross_persons.clear();
-		sendout_package[index].feedback_persons.clear();
-
-		//		ParitionDebugOutput::outputToConsole("CCCCCC");
-		//		ParitionDebugOutput::outputToConsole(index);
-		//		ParitionDebugOutput::outputToConsole(downstream_package[index].feedback_persons.size());
-	}
-
-	//	std::cout << "Step 2.2" << std::endl;
-
-	//	ParitionDebugOutput::outputToConsole(downstream_package[0].feedback_persons.size());
-
-	checkBoundaryAgents(sendout_package);
-
-	//	ParitionDebugOutput::outputToConsole("GGGGGGG");
-	//	ParitionDebugOutput::outputToConsole(downstream_package[0].feedback_persons.size());
-
-	//	std::cout << partition_config->partition_id <<"Step 2 : Feedback Size" << own_package.feedback_persons.size() << std::endl;
-
-	//	std::string data = getDataInPackage(own_package);
-	//	//	std::cout << partition_config->partition_id <<"Step 3" << std::endl;
-
-	//Step 3, commmunicate with downstream
-	//	ParitionDebugOutput::outputToConsole("Step 3");
-=======
 		sendout_package[index].boundary_signals.clear();
 		sendout_package[index].cross_persons.clear();
 		sendout_package[index].feedback_persons.clear();
 	}
-
 	checkBoundaryAgents(sendout_package);
 
 	//Step 3, commmunicate with downstream
->>>>>>> 399322a7f8c882d8ec24d9cf5a3bf2d8024ec190
 
 	mpi::communicator world;
 
@@ -144,11 +112,6 @@ std::string BoundaryProcessor::boundaryProcessing(int time_step)
 	mpi::request sends[neighbor_size];
 	std::string all_received_package_data[neighbor_size];
 
-<<<<<<< HEAD
-	//	ParitionDebugOutput::outputToConsole("Step 3.1");
-
-=======
->>>>>>> 399322a7f8c882d8ec24d9cf5a3bf2d8024ec190
 	//ready to receive
 	std::set<int>::iterator itr_upstream = neighbor_ips.begin();
 	index = -1;
@@ -161,57 +124,22 @@ std::string BoundaryProcessor::boundaryProcessing(int time_step)
 		recvs[index] = world.irecv(upstream_id, (time_step) % 99 + 1, all_received_package_data[index]);
 	}
 
-<<<<<<< HEAD
-	//	ParitionDebugOutput::outputToConsole("Step 3.2");
-
-=======
->>>>>>> 399322a7f8c882d8ec24d9cf5a3bf2d8024ec190
 	//ready to send
 	itr_neighbor = neighbor_ips.begin();
 	index = -1;
 	for (; itr_neighbor != neighbor_ips.end(); itr_neighbor++)
 	{
-<<<<<<< HEAD
-		//		ParitionDebugOutput::outputToConsole(downstream_ips.size());
-		//		ParitionDebugOutput::outputToConsole("Step 3.2.5");
-		index++;
-		std::string data = getDataInPackage(sendout_package[index]);
-		//		ParitionDebugOutput::outputToConsole("Step 3.2.6");
-		sends[index] = world.isend(sendout_package[index].to_id, (time_step) % 99 + 1, data);
-		//		ParitionDebugOutput::outputToConsole("Step 3.2.7");
-		//		std::cout << "send: " << data << std::endl;
-	}
-
-	//	std::cout << "Step 3.5: " << downstream_id_size << "," << upstream_id_size << std::endl;
-
-	//	ParitionDebugOutput::outputToConsole("Step 3.3");
-=======
 		index++;
 		std::string data = getDataInPackage(sendout_package[index]);
 		sends[index] = world.isend(sendout_package[index].to_id, (time_step) % 99 + 1, data);
 	}
 
->>>>>>> 399322a7f8c882d8ec24d9cf5a3bf2d8024ec190
 	//waiting for the end of sending and recving
 	mpi::wait_all(recvs, recvs + neighbor_size);
 	mpi::wait_all(sends, sends + neighbor_size);
 
-<<<<<<< HEAD
-	//	ParitionDebugOutput::outputToConsole("Step 3.4");
-
-	//	all_gather(world, data, all_package_data);
-	//	std::cout << partition_config->partition_id <<"Step 4" << std::endl;
-
-	//	ParitionDebugOutput::outputToConsole("Step 4");
 	//Step 4
 	processBoundaryPackages(all_received_package_data, neighbor_size);
-	//	std::cout << partition_config->partition_id << "Step 5" << std::endl;
-
-	//	ParitionDebugOutput::outputToConsole("Step 5");
-=======
-	//Step 4
-	processBoundaryPackages(all_received_package_data, neighbor_size);
->>>>>>> 399322a7f8c882d8ec24d9cf5a3bf2d8024ec190
 
 	return "";
 }
@@ -281,31 +209,9 @@ std::string BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage* se
 			}
 		}
 
-<<<<<<< HEAD
-//		ParitionDebugOutput::outputToConsole(segment->boundarySegment->getId());
-
-		//		ParitionDebugOutput::outputToConsole("AAAAAAAAAA");
-		//		ParitionDebugOutput::outputToConsole(downstream_index);
-		//		ParitionDebugOutput::outputToConsole(downstream_id);
-
-		//		ParitionDebugOutput::outputToConsole(sendout_package[0].feedback_persons.size());
-
-		//std::cout << "1.1.1.2.1" << std::endl;
-=======
->>>>>>> 399322a7f8c882d8ec24d9cf5a3bf2d8024ec190
 		//get all agents in box
 		std::vector<Agent const*> allAgentsInBoundary;
 		allAgentsInBoundary = agentsInSegmentBoundary(segment);
-
-<<<<<<< HEAD
-		//		ParitionDebugOutput::outputToConsole("BBBBBBBBBBBB");
-		//		ParitionDebugOutput::outputToConsole(allAgentsInBoundary.size());
-
-//		ParitionDebugOutput::outputToConsole(segment->boundarySegment->getId());
-
-		//upper side
-=======
->>>>>>> 399322a7f8c882d8ec24d9cf5a3bf2d8024ec190
 		if (segment->responsible_side == -1)
 		{
 //			ParitionDebugOutput::outputToConsole("AAAAAAAAAAA");
@@ -377,17 +283,9 @@ std::string BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage* se
 				}
 			}
 
-<<<<<<< HEAD
-			//			ParitionDebugOutput::outputToConsole(sendout_package[0].feedback_persons.size());
 		}
 		else
 		{
-			//			ParitionDebugOutput::outputToConsole(allAgentsInBoundary.size());
-=======
-		}
-		else
-		{
->>>>>>> 399322a7f8c882d8ec24d9cf5a3bf2d8024ec190
 			std::vector<Agent const*>::iterator agent_pointer;
 			for (agent_pointer = allAgentsInBoundary.begin(); agent_pointer != allAgentsInBoundary.end(); ++agent_pointer)
 			{
@@ -409,20 +307,9 @@ std::string BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage* se
 					}
 				}
 			}
-<<<<<<< HEAD
-
-			//			ParitionDebugOutput::outputToConsole(sendout_package[0].feedback_persons.size());
 		}
 	}
 
-	//	ParitionDebugOutput::outputToConsole(sendout_package[0].feedback_persons.size());
-	//	ParitionDebugOutput::outputToConsole(boundaryRealTrafficItems.size());
-	//
-=======
-		}
-	}
-
->>>>>>> 399322a7f8c882d8ec24d9cf5a3bf2d8024ec190
 	std::set<const Entity*>::iterator itr = boundaryRealTrafficItems.begin();
 
 	for (; itr != boundaryRealTrafficItems.end(); itr++)
@@ -455,25 +342,9 @@ std::string BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage* se
 					sendout_package[downstream_index].boundary_signals.push_back(one_signal);
 				}
 
-<<<<<<< HEAD
-				//				ParitionDebugOutput::outputToConsole("TTTTTTTTTTTTT");
-				//				ParitionDebugOutput::outputToConsole(downstream_id);
-				//				ParitionDebugOutput::outputToConsole(downstream_index);
-				//				ParitionDebugOutput::outputToConsole(sendout_package[0].to_id);
-				//
-				//				ParitionDebugOutput::outputToConsole(sendout_package[0].feedback_persons.size());
-				//
-				//				ParitionDebugOutput::outputToConsole(sendout_package[0].feedback_persons.size());
 			}
 		}
 	}
-
-	//	ParitionDebugOutput::outputToConsole(sendout_package[0].feedback_persons.size());
-=======
-			}
-		}
-	}
->>>>>>> 399322a7f8c882d8ec24d9cf5a3bf2d8024ec190
 	return "";
 }
 
@@ -483,13 +354,6 @@ std::string BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& packa
 
 	//package cross agents
 	packageUtil.packBasicData(package.cross_persons.size());
-<<<<<<< HEAD
-	//	std::cout << "Step 2.2" << PartitionManager::instance().partition_config->partition_id << std::endl;
-	//	ParitionDebugOutput::outputToConsole("Step 3.2.6.1");
-	//	ParitionDebugOutput::outputToConsole(package.cross_persons.size());
-	//	std::cout << "Out cross_persons:" << package.cross_persons.size() << std::endl;
-=======
->>>>>>> 399322a7f8c882d8ec24d9cf5a3bf2d8024ec190
 
 	std::vector<Person const*>::iterator itr_cross = package.cross_persons.begin();
 	for (; itr_cross != package.cross_persons.end(); itr_cross++)
@@ -506,50 +370,13 @@ std::string BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& packa
 
 	}
 
-<<<<<<< HEAD
-	//	std::cout << "Step 2.5" << PartitionManager::instance().partition_config->partition_id << std::endl;
-	//	ParitionDebugOutput::outputToConsole("Step 3.2.6.2");
-	//	ParitionDebugOutput::outputToConsole(package.feedback_persons.size());
 	//package feedback agents
 	packageUtil.packBasicData(package.feedback_persons.size());
-	//	std::cout << "package.feedback_persons.size():" << package.feedback_persons.size() << std::endl;
-	//	ParitionDebugOutput::outputToConsole(package.feedback_persons.size());
-	//	std::cout << "Step 2.6" << PartitionManager::instance().partition_config->partition_id << std::endl;
-=======
-	//package feedback agents
-	packageUtil.packBasicData(package.feedback_persons.size());
->>>>>>> 399322a7f8c882d8ec24d9cf5a3bf2d8024ec190
 
 	std::vector<Person const*>::iterator itr_feedback = package.feedback_persons.begin();
 
 	for (; itr_feedback != package.feedback_persons.end(); itr_feedback++)
 	{
-<<<<<<< HEAD
-		//		ParitionDebugOutput::outputToConsole("AAAAAAAAAA");
-		Agent_Type type = getAgentTypeForSerialization(*itr_feedback);
-		packageUtil.packBasicData((int) (type));
-
-		//		ParitionDebugOutput::outputToConsole("BBBBBBBB");
-
-		int agent_id = (*itr_feedback)->getId();
-		packageUtil.packBasicData(agent_id);
-
-		//		ParitionDebugOutput::outputToConsole("CCCCCCCCC");
-
-		Person* one_person = const_cast<Person*> (*itr_feedback);
-
-		one_person->packProxy(packageUtil);
-		//		ParitionDebugOutput::outputToConsole("XXXXXXSSSSSSSSS");
-
-		one_person->getRole()->packProxy(packageUtil);
-
-		//		ParitionDebugOutput::outputToConsole("DDDDDDDDDDD");
-	}
-
-	//	std::cout << "Step 2.7" << PartitionManager::instance().partition_config->partition_id << std::endl;
-	//	ParitionDebugOutput::outputToConsole("Step 3.2.6.3");
-	//	ParitionDebugOutput::outputToConsole(package.boundary_signals.size());
-=======
 		BoundaryProcessor::Agent_Type type = getAgentTypeForSerialization(*itr_feedback);
 		packageUtil.packBasicData((int) (type));
 
@@ -562,7 +389,6 @@ std::string BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& packa
 		one_person->getRole()->packProxy(packageUtil);
 	}
 
->>>>>>> 399322a7f8c882d8ec24d9cf5a3bf2d8024ec190
 	//package signal
 	packageUtil.packBasicData(package.boundary_signals.size());
 
@@ -575,31 +401,15 @@ std::string BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& packa
 		one_signal->packProxy(packageUtil);
 	}
 
-<<<<<<< HEAD
-	//	ParitionDebugOutput::outputToConsole("Step 3.2.6.4");
-	//	std::cout << "Step 2.8:" << PartitionManager::instance().partition_config->partition_id << std::endl;
-=======
->>>>>>> 399322a7f8c882d8ec24d9cf5a3bf2d8024ec190
 	return (packageUtil.getPackageData());
 }
 
 void BoundaryProcessor::processPackageData(std::string data)
 {
-<<<<<<< HEAD
-	//	std::cout << partition_config->partition_id << ",Received, " << data << std::endl;
-
-=======
->>>>>>> 399322a7f8c882d8ec24d9cf5a3bf2d8024ec190
 	UnPackageUtils unpackageUtil(data);
 
 	int cross_size = unpackageUtil.unpackBasicData<int> ();
 
-<<<<<<< HEAD
-	//	std::cout << partition_config->partition_id << ",Step 4.1, " << cross_size << std::endl;
-
-	//std::cout << partition_config->partition_id << ",In cross_size:" << cross_size << std::endl;
-=======
->>>>>>> 399322a7f8c882d8ec24d9cf5a3bf2d8024ec190
 	for (int i = 0; i < cross_size; i++)
 	{
 		int type = unpackageUtil.unpackBasicData<int> ();
@@ -644,15 +454,6 @@ void BoundaryProcessor::processPackageData(std::string data)
 
 	//feedback agents
 	int feedback_size = unpackageUtil.unpackBasicData<int> ();
-<<<<<<< HEAD
-	//	std::cout << "recevived package.feedback_persons.size():" << feedback_size << std::endl;
-	//	std::cout << PartitionManager::instance().partition_config->partition_id  << ", In feedback_size:" << feedback_size << std::endl;
-
-	//if(partition_config->partition_id == 1)
-	//	std::cout << partition_config->partition_id << ",Step 4.2.1:" << feedback_size << std::endl;
-
-=======
->>>>>>> 399322a7f8c882d8ec24d9cf5a3bf2d8024ec190
 	for (int i = 0; i < feedback_size; i++)
 	{
 
@@ -1076,10 +877,6 @@ void BoundaryProcessor::initBoundaryTrafficItems()
 	for (itr = boundary_segments.begin(); itr != boundary_segments.end(); itr++)
 	{
 		BoundarySegment* one_segment = itr->second;
-<<<<<<< HEAD
-		//		ParitionDebugOutput::outputToConsole(one_segment->boundarySegment->getId());
-=======
->>>>>>> 399322a7f8c882d8ec24d9cf5a3bf2d8024ec190
 
 		//if the road segment is in the upper side
 		if (one_segment->responsible_side == -1)
@@ -1090,17 +887,7 @@ void BoundaryProcessor::initBoundaryTrafficItems()
 			{
 				int downstream_id = one_segment->connected_partition_id - 1;
 				int signal_id = startNodeSignal->getId();
-<<<<<<< HEAD
-
-				//				ParitionDebugOutput::outputToConsole("DDDDDDDDDDDDD");
-				//				ParitionDebugOutput::outputToConsole(signal_id);
 				traffic_items_mapping_to[signal_id] = downstream_id;
-
-				//				ParitionDebugOutput::outputToConsole(downstream_id);
-
-=======
-				traffic_items_mapping_to[signal_id] = downstream_id;
->>>>>>> 399322a7f8c882d8ec24d9cf5a3bf2d8024ec190
 				boundaryRealTrafficItems.insert(startNodeSignal);
 			}
 
@@ -1130,15 +917,7 @@ void BoundaryProcessor::initBoundaryTrafficItems()
 			{
 				int downstream_id = one_segment->connected_partition_id - 1;
 				int signal_id = endNodeSignal->getId();
-<<<<<<< HEAD
-
-				//				ParitionDebugOutput::outputToConsole("DDDDDDDDDDDDD");
-				//				ParitionDebugOutput::outputToConsole(signal_id);
 				traffic_items_mapping_to[signal_id] = downstream_id;
-				//				ParitionDebugOutput::outputToConsole(downstream_id);
-=======
-				traffic_items_mapping_to[signal_id] = downstream_id;
->>>>>>> 399322a7f8c882d8ec24d9cf5a3bf2d8024ec190
 
 				boundaryRealTrafficItems.insert(endNodeSignal);
 			}
@@ -1189,20 +968,6 @@ void BoundaryProcessor::loadInBoundarySegment(std::string id, BoundarySegment* b
 	//update neighbour ids
 	neighbor_ips.insert(boundary->connected_partition_id - 1);
 
-<<<<<<< HEAD
-	//	if (boundary->responsible_side > 0)
-	//		downstream_ips.insert(boundary->connected_partition_id - 1);
-	//	else if (boundary->responsible_side < 0)
-	//		upstream_ips.insert(boundary->connected_partition_id - 1);
-
-	//	ParitionDebugOutput::outputToConsoleWithoutNewLine("downstream_ips");
-	//	ParitionDebugOutput::outputToConsole(downstream_ips.size());
-	//
-	//	ParitionDebugOutput::outputToConsoleWithoutNewLine("upstream_ips");
-	//	ParitionDebugOutput::outputToConsole(upstream_ips.size());
-
-=======
->>>>>>> 399322a7f8c882d8ec24d9cf5a3bf2d8024ec190
 	boundary->buildBoundaryBox(partition_config->boundary_length, partition_config->boundary_width);
 	boundary->output();
 }

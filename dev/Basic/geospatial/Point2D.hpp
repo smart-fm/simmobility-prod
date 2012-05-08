@@ -47,22 +47,6 @@ public:
 	friend class boost::serialization::access;
 
 	bool nearToPoint(Point2D another, double distance) const;
-
-<<<<<<< HEAD
-public:
-	bool nearToPoint(Point2D another, double distance) const
-	{
-		double x_dis = xPos - another.getX();
-		double y_dis = yPos - another.getY();
-
-		if(x_dis < distance && x_dis > -distance)
-			if(y_dis < distance && y_dis > -distance)
-				return true;
-
-		return false;
-	}
-=======
->>>>>>> 399322a7f8c882d8ec24d9cf5a3bf2d8024ec190
 };
 
 

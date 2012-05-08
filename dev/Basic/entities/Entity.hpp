@@ -139,9 +139,7 @@ public:
 	bool isFake;
 	bool receiveTheFakeEntityAgain;
 
-#ifndef SIMMOB_DISABLE_MPI
 	friend class PartitionManager;
-#endif
 
 };
 

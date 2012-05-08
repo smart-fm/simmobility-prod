@@ -3,10 +3,9 @@
  *
  */
 
-#include "GenConfig.h"
+#include "PartitionManager.hpp"
 #ifndef SIMMOB_DISABLE_MPI
 
-#include "PartitionManager.hpp"
 #include <iostream>
 
 //#include "mpi.h"

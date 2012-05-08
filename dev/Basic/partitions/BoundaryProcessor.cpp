@@ -3,16 +3,24 @@
  *
  */
 
-#include "GenConfig.h"
-#ifndef SIMMOB_DISABLE_MPI
-
 #include "BoundaryProcessor.hpp"
 
+#ifndef SIMMOB_DISABLE_MPI
 #include "mpi.h"
-#include <limits>
 #include <boost/mpi.hpp>
 #include <boost/mpi/environment.hpp>
 #include <boost/mpi/communicator.hpp>
+
+#include <CGAL/Homogeneous.h>
+#include <CGAL/Point_2.h>
+#include <CGAL/Polygon_2.h>
+
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/serialization/vector.hpp>
+#endif
+
+#include <limits>
 
 #include "PackageUtils.hpp"
 #include "UnPackageUtils.hpp"
@@ -36,17 +44,28 @@
 #include "PartitionManager.hpp"
 #include "ParitionDebugOutput.hpp"
 
-#include <CGAL/Homogeneous.h>
-#include <CGAL/Point_2.h>
-#include <CGAL/Polygon_2.h>
 
+#ifndef SIMMOB_DISABLE_MPI
 typedef CGAL::Homogeneous<double> Rep_class;
 typedef CGAL::Polygon_2<Rep_class> Polygon_2;
 typedef CGAL::Point_2<Rep_class> Point;
 
 namespace mpi = boost::mpi;
+#endif
+
 
 namespace sim_mob {
+
+BoundaryProcessor::BoundaryProcessor(): BOUNDARY_PROCOSS_TAG(2)
+{
+	entity_group = NULL;
+	singal_group = NULL;
+	scenario = NULL;
+	partition_config = NULL;
+
+	neighbor_ips.clear();
+//		downstream_ips.clear();
+}
 
 const sim_mob::Signal* findOneSignalByNode(const sim_mob::Point2D* point)
 {
@@ -65,6 +84,7 @@ const sim_mob::Signal* findOneSignalByNode(const sim_mob::Point2D* point)
 
 std::string BoundaryProcessor::boundaryProcessing(int time_step)
 {
+#ifndef SIMMOB_DISABLE_MPI
 	//step 1, update fake agents (received in previous time step)
 	clearFakeAgentFlag();
 	//	std::cout << partition_config->partition_id <<"Step 1" << std::endl;
@@ -127,6 +147,7 @@ std::string BoundaryProcessor::boundaryProcessing(int time_step)
 	processBoundaryPackages(all_received_package_data, neighbor_size);
 
 	return "";
+#endif
 }
 
 /**
@@ -318,6 +339,7 @@ std::string BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage* se
 
 std::string BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& package)
 {
+#ifndef SIMMOB_DISABLE_MPI
 	sim_mob::PackageUtils packageUtil;
 
 	//package cross agents
@@ -327,7 +349,7 @@ std::string BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& packa
 	for (; itr_cross != package.cross_persons.end(); itr_cross++)
 	{
 
-		Agent_Type type = getAgentTypeForSerialization(*itr_cross);
+		BoundaryProcessor::Agent_Type type = getAgentTypeForSerialization(*itr_cross);
 		packageUtil.packBasicData((int) (type));
 
 		Person* one_person = const_cast<Person*> (*itr_cross);
@@ -345,7 +367,7 @@ std::string BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& packa
 
 	for (; itr_feedback != package.feedback_persons.end(); itr_feedback++)
 	{
-		Agent_Type type = getAgentTypeForSerialization(*itr_feedback);
+		BoundaryProcessor::Agent_Type type = getAgentTypeForSerialization(*itr_feedback);
 		packageUtil.packBasicData((int) (type));
 
 		int agent_id = (*itr_feedback)->getId();
@@ -370,10 +392,14 @@ std::string BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& packa
 	}
 
 	return (packageUtil.getPackageData());
+#else
+	return ""; //Todo: something more sensible.
+#endif
 }
 
 void BoundaryProcessor::processPackageData(std::string data)
 {
+#ifndef SIMMOB_DISABLE_MPI
 	UnPackageUtils unpackageUtil(data);
 
 	int cross_size = unpackageUtil.unpackBasicData<int> ();
@@ -493,7 +519,7 @@ void BoundaryProcessor::processPackageData(std::string data)
 
 		one_signal->unpackProxy(unpackageUtil);
 	}
-
+#endif
 }
 
 std::string BoundaryProcessor::processBoundaryPackages(std::string all_packages[], int size)
@@ -623,21 +649,25 @@ bool BoundaryProcessor::isAgentInFeedbackorForward(BoundarySegment* segment, Age
 
 void BoundaryProcessor::changeAgentToFake(Agent * agent)
 {
+#ifndef SIMMOB_DISABLE_MPI
 	agent->isFake = true;
 	agent->receiveTheFakeEntityAgain = true;
 	agent->toRemoved = false;
 
 	entity_group->removeAgentFromWorker(agent);
+#endif
 }
 
 void BoundaryProcessor::insertOneAgentToWorkerGroup(Agent * agent)
 {
+#ifndef SIMMOB_DISABLE_MPI
 	agent->isFake = false;
 	agent->receiveTheFakeEntityAgain = false;
 	agent->toRemoved = false;
 
 	Agent::all_agents.push_back(agent);
 	entity_group->addAgentInWorker(agent);
+#endif
 }
 
 void BoundaryProcessor::insertOneFakeAgentToWorkerGroup(Agent * agent)
@@ -710,8 +740,9 @@ std::string BoundaryProcessor::outputAllEntities(frame_t time_step)
 
 		Person* one_agent = dynamic_cast<Person*> (*it);
 
-		if ((one_agent) && (one_agent->toRemoved == false))
+		if ((one_agent) && (one_agent->toRemoved == false)) {
 			one_agent->currRole->frame_tick_output_mpi(time_step);
+		}
 	}
 
 	//signal output every 10 seconds
@@ -738,6 +769,7 @@ void BoundaryProcessor::releaseFakeAgentMemory(sim_mob::Entity* agent)
 
 bool isOneagentInPolygon(int location_x, int location_y, sim_mob::BoundarySegment* boundary_segment)
 {
+#ifndef SIMMOB_DISABLE_MPI
 	Point agent_location(location_x, location_y);
 	std::vector<Point> points;
 
@@ -757,6 +789,7 @@ bool isOneagentInPolygon(int location_x, int location_y, sim_mob::BoundarySegmen
 	case CGAL::ON_UNBOUNDED_SIDE:
 		return false;
 	}
+#endif
 
 	return false;
 }
@@ -876,6 +909,7 @@ void BoundaryProcessor::initBoundaryTrafficItems()
 
 std::string BoundaryProcessor::releaseMPIEnvironment()
 {
+#ifndef SIMMOB_DISABLE_MPI
 	if (partition_config->partition_size < 1)
 		return "";
 
@@ -899,6 +933,8 @@ std::string BoundaryProcessor::releaseMPIEnvironment()
 			delete it2->second;
 		}
 	}
+
+#endif
 
 	return "";
 }
@@ -926,7 +962,7 @@ void BoundaryProcessor::setConfigure(PartitionConfigure* partition_config, Simul
 	this ->scenario = scenario;
 }
 
-Agent_Type BoundaryProcessor::getAgentTypeForSerialization(Agent const* agent)
+BoundaryProcessor::Agent_Type BoundaryProcessor::getAgentTypeForSerialization(Agent const* agent)
 {
 	const Person *person = dynamic_cast<const Person *> (agent);
 	if (!person)
@@ -969,4 +1005,3 @@ Agent_Type BoundaryProcessor::getAgentTypeForSerialization(Agent const* agent)
 
 }
 
-#endif

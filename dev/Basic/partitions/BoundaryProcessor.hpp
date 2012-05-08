@@ -15,7 +15,6 @@
 #pragma once
 
 #include "GenConfig.h"
-#ifndef SIMMOB_DISABLE_MPI
 
 #include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
@@ -33,10 +32,6 @@
 
 namespace sim_mob {
 
-enum Agent_Type {
-	NO_TYPE = 0, DRIVER_TYPE, PEDESTRIAN_TYPE, PASSENGER_TYPE, SIGNAL_TYPE
-};
-
 
 /**
  * \author Xu Yan
@@ -44,16 +39,8 @@ enum Agent_Type {
 class BoundaryProcessor {
 public:
 
-	BoundaryProcessor(): BOUNDARY_PROCOSS_TAG(2)
-	{
-		entity_group = NULL;
-		singal_group = NULL;
-		scenario = NULL;
-		partition_config = NULL;
+	BoundaryProcessor();
 
-		neighbor_ips.clear();
-//		downstream_ips.clear();
-	}
 	/**
 	 * initialization
 	 */
@@ -146,9 +133,18 @@ private:
 	std::vector<Agent const *> agentsInSegmentBoundary(BoundarySegment* boundary_segment);
 
 	void releaseFakeAgentMemory(Entity* agent);
+
+	//This enum is only used internally, so declare it as a private class member.
+	enum Agent_Type {
+		NO_TYPE = 0,
+		DRIVER_TYPE,
+		PEDESTRIAN_TYPE,
+		PASSENGER_TYPE,
+		SIGNAL_TYPE
+	};
+
 	Agent_Type getAgentTypeForSerialization(Agent const* agent);
 };
 
 }
 
-#endif

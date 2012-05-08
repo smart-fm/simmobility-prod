@@ -13,7 +13,6 @@
 #pragma once
 
 #include "GenConfig.h"
-#ifndef SIMMOB_DISABLE_MPI
 
 #include <vector>
 #include <string>
@@ -37,7 +36,7 @@ class BoundaryProcessor;
  */
 class PartitionManager
 {
-
+#ifndef SIMMOB_DISABLE_MPI
 public:
 
 	/**
@@ -90,7 +89,10 @@ private:
 
 	PartitionManager() {}
 
+#endif
+
 };
+
 }
 
-#endif
+

@@ -15,7 +15,7 @@
 #pragma once
 
 #include "GenConfig.h"
-#ifndef SIMMOB_DISABLE_MPI
+#include "util/LangHelpers.hpp"
 
 #include "entities/Entity.hpp"
 #include "entities/Agent.hpp"
@@ -33,10 +33,6 @@
 
 namespace sim_mob {
 
-enum Agent_Type {
-	NO_TYPE = 0, DRIVER_TYPE, PEDESTRIAN_TYPE, PASSENGER_TYPE, SIGNAL_TYPE
-};
-
 
 /**
  * \author Xu Yan
@@ -44,36 +40,24 @@ enum Agent_Type {
 class BoundaryProcessor {
 public:
 
-	BoundaryProcessor(): BOUNDARY_PROCOSS_TAG(2)
-	{
-		entity_group = NULL;
-		singal_group = NULL;
-		scenario = NULL;
-		partition_config = NULL;
+	BoundaryProcessor();
 
-		neighbor_ips.clear();
-//		downstream_ips.clear();
-	}
 	/**
 	 * initialization
 	 */
-
-	void setEntityWorkGroup(WorkGroup* entity_group, WorkGroup* singal_group);
-
-	void loadInBoundarySegment(std::string boundary_segment_id, BoundarySegment* boundary);
-
-	void setConfigure(PartitionConfigure* partition_config, SimulationScenario* scenario);
-
-	void initBoundaryTrafficItems();
+	void setEntityWorkGroup(WorkGroup* entity_group, WorkGroup* singal_group) CHECK_MPI_THROW ;
+	void loadInBoundarySegment(std::string boundary_segment_id, BoundarySegment* boundary) CHECK_MPI_THROW ;
+	void setConfigure(PartitionConfigure* partition_config, SimulationScenario* scenario) CHECK_MPI_THROW ;
+	void initBoundaryTrafficItems() CHECK_MPI_THROW ;
 
 	/**
 	 * Service
 	 */
-	std::string boundaryProcessing(int time_step);
+	std::string boundaryProcessing(int time_step) CHECK_MPI_THROW ;
 
-	std::string outputAllEntities(frame_t time_step);
+	std::string outputAllEntities(frame_t time_step) CHECK_MPI_THROW ;
 
-	std::string releaseMPIEnvironment();
+	std::string releaseMPIEnvironment() CHECK_MPI_THROW ;
 
 private:
 
@@ -101,54 +85,63 @@ private:
 	/**
 	 * Step 1: set each fake agent to be "can be removed", before boundary processing
 	 */
-	void clearFakeAgentFlag();
+	void clearFakeAgentFlag() CHECK_MPI_THROW ;
 
 	/**
 	 * Step 2: Check agent
 	 */
-	std::string checkBoundaryAgents(BoundaryProcessingPackage* downstream_packs);
+	std::string checkBoundaryAgents(BoundaryProcessingPackage* downstream_packs) CHECK_MPI_THROW ;
 
 
 	/**
 	 * Step 3: Get Data
 	 */
-	std::string getDataInPackage(BoundaryProcessingPackage& package);
-	void processPackageData(std::string data);
+	std::string getDataInPackage(BoundaryProcessingPackage& package) CHECK_MPI_THROW ;
+	void processPackageData(std::string data) CHECK_MPI_THROW ;
 
 	/**
 	 * Step 4: processing packages
 	 */
-	std::string processBoundaryPackages(std::string all_packages[], int size);
+	std::string processBoundaryPackages(std::string all_packages[], int size) CHECK_MPI_THROW ;
 
 
 private:
 	/**
 	 * location decision
 	 */
-	bool isAgentCrossed(BoundarySegment* boundary, Agent const* agent, bool is_down_boundary);
+	bool isAgentCrossed(BoundarySegment* boundary, Agent const* agent, bool is_down_boundary) CHECK_MPI_THROW ;
 	bool isAgentInFeedbackorForward(BoundarySegment* boundary,
-			Agent const* agent, bool is_down_boundary);
+			Agent const* agent, bool is_down_boundary) CHECK_MPI_THROW ;
 
 private:
 
 	//process agents and Worker Group
-	void changeAgentToFake(Agent * agent);
-	void insertOneAgentToWorkerGroup(Agent * agent);
-	void insertOneFakeAgentToWorkerGroup(Agent * agent);
-	void removeOneFakeAgentFromWorkerGroup(Agent * agent);
+	void changeAgentToFake(Agent * agent) CHECK_MPI_THROW ;
+	void insertOneAgentToWorkerGroup(Agent * agent) CHECK_MPI_THROW ;
+	void insertOneFakeAgentToWorkerGroup(Agent * agent) CHECK_MPI_THROW ;
+	void removeOneFakeAgentFromWorkerGroup(Agent * agent) CHECK_MPI_THROW ;
 
 private:
 	//Others
-	BoundarySegment* getBoundarySegmentByID(std::string segmentID);
-	bool isAgentInLocalPartition(unsigned int agent_id, bool includeFakeAgent);
-	bool isCrossAgentShouldBeInsert(const Agent* agent);
-	Person* getFakePersonById(unsigned int agent_id);
-	std::vector<Agent const *> agentsInSegmentBoundary(BoundarySegment* boundary_segment);
+	BoundarySegment* getBoundarySegmentByID(std::string segmentID) CHECK_MPI_THROW ;
+	bool isAgentInLocalPartition(unsigned int agent_id, bool includeFakeAgent) CHECK_MPI_THROW ;
+	bool isCrossAgentShouldBeInsert(const Agent* agent) CHECK_MPI_THROW ;
+	Person* getFakePersonById(unsigned int agent_id) CHECK_MPI_THROW ;
+	std::vector<Agent const *> agentsInSegmentBoundary(BoundarySegment* boundary_segment) CHECK_MPI_THROW ;
 
-	void releaseFakeAgentMemory(Entity* agent);
-	Agent_Type getAgentTypeForSerialization(Agent const* agent);
+	void releaseFakeAgentMemory(Entity* agent) CHECK_MPI_THROW ;
+
+	//This enum is only used internally, so declare it as a private class member.
+	enum Agent_Type {
+		NO_TYPE = 0,
+		DRIVER_TYPE,
+		PEDESTRIAN_TYPE,
+		PASSENGER_TYPE,
+		SIGNAL_TYPE
+	};
+
+	Agent_Type getAgentTypeForSerialization(Agent const* agent) CHECK_MPI_THROW ;
 };
 
 }
 
-#endif

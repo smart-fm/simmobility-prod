@@ -34,6 +34,10 @@
 #include "geospatial/Node.hpp"
 #include "geospatial/RoadSegment.hpp"
 
+#include "entities/Entity.hpp"
+#include "entities/Agent.hpp"
+#include "entities/Person.hpp"
+
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/driver/Driver.hpp"

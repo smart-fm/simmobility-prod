@@ -17,14 +17,12 @@
 #include "GenConfig.h"
 #include "util/LangHelpers.hpp"
 
-#include "entities/Entity.hpp"
-#include "entities/Agent.hpp"
-#include "entities/Person.hpp"
-
 #include "BoundaryProcessingPackage.hpp"
 #include "BoundarySegment.hpp"
 #include "PartitionConfigure.hpp"
 #include "SimulationScenario.hpp"
+
+#include "metrics/Frame.hpp"
 
 #include <map>
 #include <vector>
@@ -33,6 +31,10 @@
 
 namespace sim_mob {
 
+class WorkGroup;
+class Entity;
+class Agent;
+class Person;
 
 /**
  * \author Xu Yan

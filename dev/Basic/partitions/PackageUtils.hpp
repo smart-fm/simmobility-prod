@@ -11,28 +11,26 @@
 #include <string>
 
 #ifndef SIMMOB_DISABLE_MPI
-
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/list.hpp>
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/map.hpp>
-
 #endif
 
 #include <boost/unordered_set.hpp>
 #include <boost/unordered_map.hpp>
 
 #include "perception/FixedDelayed.hpp"
-#include "util/DailyTime.hpp"
-#include "util/DynamicVector.hpp"
-#include "geospatial/Point2D.hpp"
 
 namespace sim_mob {
 
 class BoundaryProcessor;
+class DynamicVector;
 class DPoint;
+class DailyTime;
+class Point2D;
 class IntersectionDrivingModel;
 class SimpleIntDrivingModel;
 

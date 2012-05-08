@@ -6,6 +6,9 @@
 
 #include "util/GeomHelpers.hpp"
 #include "partitions/PartitionManager.hpp"
+#include "util/DailyTime.hpp"
+#include "util/DynamicVector.hpp"
+#include "geospatial/Point2D.hpp"
 
 namespace sim_mob {
 std::string PackageUtils::getPackageData() {

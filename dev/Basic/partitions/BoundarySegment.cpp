@@ -7,36 +7,45 @@
 
 #include "BoundarySegment.hpp"
 
+#include "geospatial/Lane.hpp"
+
 #include "geospatial/RoadSegment.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/OutputUtil.hpp"
 
 namespace sim_mob {
-void BoundarySegment::buildBoundaryBox(double boundary_length, double boundary_width) {
+void BoundarySegment::buildBoundaryBox(double boundary_length, double boundary_width)
+{
 	double down_offset = cutLineOffset + boundary_length / 100;
 	double up_offset = cutLineOffset - boundary_length / 100;
 
-	Point2D down_point = sim_mob::getMiddlePoint2D(&boundarySegment->getStart()->location,
-			&boundarySegment->getEnd()->location, down_offset);
-	Point2D up_point = sim_mob::getMiddlePoint2D(&boundarySegment->getStart()->location,
-			&boundarySegment->getEnd()->location, up_offset);
+	//change to use the start and end node in the polyline.
+	int lane_count = boundarySegment->getLanes().size();
+	int middle_lane = lane_count / 2;
+	sim_mob::Lane* the_lane = boundarySegment->getLanes()[middle_lane];
+	const std::vector<sim_mob::Point2D>& the_lines = the_lane->getPolyline();
+	const Point2D& start_node = the_lines[0];
+	const Point2D& end_node = the_lines[the_lines.size() - 1];
+
+	Point2D down_point = sim_mob::getMiddlePoint2D(&start_node, &end_node, down_offset);
+	Point2D up_point = sim_mob::getMiddlePoint2D(&start_node, &end_node, up_offset);
 
 	double length = sim_mob::dist(down_point, up_point);
-//	LogOut("length:" << length << "\n");
+	//	LogOut("length:" << length << "\n");
 	double ratio = boundary_width * 1.0 / length;
 
-//	LogOut("ratio:" << ratio << "\n");
+	//	LogOut("ratio:" << ratio << "\n");
 
 	int x_dis = (int) ((down_point.getY() - up_point.getY()) * ratio);
 	int y_dis = (int) ((down_point.getX() - up_point.getX()) * ratio);
 
-//	if (x_dis < 0)
-//		x_dis = -x_dis;
-//	if (y_dis < 0)
-//		y_dis = -y_dis;
+	//	if (x_dis < 0)
+	//		x_dis = -x_dis;
+	//	if (y_dis < 0)
+	//		y_dis = -y_dis;
 
-//	LogOut("x_dis:" << x_dis << "\n");
-//	LogOut("y_dis:" << y_dis << "\n");
+	//	LogOut("x_dis:" << x_dis << "\n");
+	//	LogOut("y_dis:" << y_dis << "\n");
 
 	Point2D firstPoint(down_point.getX() + x_dis, down_point.getY() - y_dis);
 	Point2D secondPoint(down_point.getX() - x_dis, down_point.getY() + y_dis);
@@ -55,14 +64,31 @@ void BoundarySegment::buildBoundaryBox(double boundary_length, double boundary_w
 	int middle_2_x = (secondPoint.getX() + thirdPoint.getX()) / 2;
 	int middle_2_y = (secondPoint.getY() + thirdPoint.getY()) / 2;
 
-	Point2D* middlePoint_1 = new Point2D(middle_1_x, middle_1_y);
-	Point2D* middlePoint_2 = new Point2D(middle_2_x, middle_2_y);
+	Point2D middlePoint_1(middle_1_x, middle_1_y);
+	Point2D middlePoint_2(middle_2_x, middle_2_y);
 
-	cut_line_start = middlePoint_1;
-	cut_line_to = middlePoint_2;
+	int width_of_section = 3 * 100 * lane_count;
+	double length_points = sim_mob::dist(middlePoint_1, middlePoint_2);
+	double dis_short = length_points / 2 - width_of_section / 2;
+	double dis_long = length_points / 2 + width_of_section / 2;
+
+	int short_x = middle_1_x + (middle_2_x - middle_1_x) / length_points * dis_short;
+	int short_y = middle_1_y + (middle_2_y- middle_1_y) / length_points * dis_short;
+	int long_x = middle_1_x + (middle_2_x - middle_1_x) / length_points * dis_long;
+	int long_y = middle_1_y + (middle_2_y- middle_1_y) / length_points * dis_long;
+
+//	std::cout << "length_points:" << length_points << std::endl;
+//	std::cout << "width_of_section:" << width_of_section << std::endl;
+
+//	Point2D cut_from_node = sim_mob::getMiddlePoint2D(&middlePoint_1, &middlePoint_2, length_points/2 - width_of_section/2);
+//	Point2D cut_to_node = sim_mob::getMiddlePoint2D(&middlePoint_1, &middlePoint_2, length_points/2 + width_of_section/2);
+
+	cut_line_start = new Point2D(short_x, short_y);
+	cut_line_to = new Point2D(long_x, long_y);
 }
 
-void outputLine(Point2D& start_p, Point2D& end_p, std::string color) {
+void outputLine(Point2D& start_p, Point2D& end_p, std::string color)
+{
 	static int line_id = 100;
 
 #ifndef SIMMOB_DISABLE_OUTPUT
@@ -72,8 +98,10 @@ void outputLine(Point2D& start_p, Point2D& end_p, std::string color) {
 #endif
 }
 
-void BoundarySegment::output() {
-	if (bounary_box.size() < 3) {
+void BoundarySegment::output()
+{
+	if (bounary_box.size() < 3)
+	{
 #ifndef SIMMOB_DISABLE_OUTPUT
 		LogOut("Error: Boundary box has < 3 points");
 #endif
@@ -84,7 +112,8 @@ void BoundarySegment::output() {
 
 	std::vector<Point2D>::iterator itr = bounary_box.begin();
 
-	for (unsigned int i = 0; i < bounary_box.size() - 1; i++) {
+	for (unsigned int i = 0; i < bounary_box.size() - 1; i++)
+	{
 		outputLine(*(itr + i), *(itr + i + 1), "blue");
 	}
 

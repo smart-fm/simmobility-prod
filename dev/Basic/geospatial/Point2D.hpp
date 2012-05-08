@@ -59,6 +59,7 @@ public:
 		if(x_dis < distance && x_dis > -distance)
 			if(y_dis < distance && y_dis > -distance)
 				return true;
+
 		return false;
 	}
 };

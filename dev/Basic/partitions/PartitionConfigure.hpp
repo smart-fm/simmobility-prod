@@ -28,6 +28,5 @@ public:
 	bool adaptive_load_balance; //whether to start adaptive load balance
 	bool measurem_performance; //whether to measure load balance
 	std::string measure_output_file; //measurement file
-
 };
 }

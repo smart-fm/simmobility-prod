@@ -138,7 +138,7 @@ void ChangeDatabasePartition::push_to_DB(DBConnection& connection, Configuration
 			//currently, cut in the middle, in future, it will check whether there are road elements nearby
 			double offset = boost::lexical_cast<double>(strs[7]) / 2.0;
 
-			//upper boundary
+			//upper boundary: -1
 			std::string
 					sql_command =
 							"INSERT INTO \"Partition_Boundary_Section\"(\"Partition_Solution_ID\", \"Partition_ID\", \"Boundary_Section_ID\",\"Section_Cut_Point_Offset\", \"Connect_Partition_ID\", \"In_Partition_Side\") VALUES ('";
@@ -148,11 +148,11 @@ void ChangeDatabasePartition::push_to_DB(DBConnection& connection, Configuration
 			sql_command += strs[0] + "','";
 			sql_command += boost::lexical_cast<std::string>(offset) + "','";
 			sql_command += boost::lexical_cast<std::string>(to_node_partition) + "',";
-			sql_command += "'1' )";
+			sql_command += "'-1' )";
 
 			connection.insertSQL(sql_command);
 
-			//down boundary
+			//down boundary: 1
 			sql_command
 					= "INSERT INTO \"Partition_Boundary_Section\"(\"Partition_Solution_ID\", \"Partition_ID\", \"Boundary_Section_ID\",\"Section_Cut_Point_Offset\", \"Connect_Partition_ID\", \"In_Partition_Side\") VALUES ('";
 
@@ -161,7 +161,7 @@ void ChangeDatabasePartition::push_to_DB(DBConnection& connection, Configuration
 			sql_command += strs[0] + "','";
 			sql_command += boost::lexical_cast<std::string>(offset) + "','";
 			sql_command += boost::lexical_cast<std::string>(from_node_partition) + "',";
-			sql_command += "'-1' )";
+			sql_command += "'1' )";
 
 			connection.insertSQL(sql_command);
 		}

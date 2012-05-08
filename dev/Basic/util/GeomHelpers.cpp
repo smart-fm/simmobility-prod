@@ -316,7 +316,7 @@ const sim_mob::RoadSegment* sim_mob::getRoadSegmentBasedOnNodes(const sim_mob::P
 
 	for (; it != buffer_road_segments.end(); it++)
 	{
-		if ((*it)->getStart()->location.nearToPoint(*start_point, 100.0) && (*it)->getEnd()->location.nearToPoint(*end_point, 100.0))
+		if ((*it)->getStart()->location.nearToPoint(*start_point, 10.0) && (*it)->getEnd()->location.nearToPoint(*end_point, 10.0))
 		{
 			return *it;
 		}

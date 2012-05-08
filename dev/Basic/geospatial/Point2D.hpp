@@ -47,7 +47,6 @@ public:
 	friend class boost::serialization::access;
 
 	bool nearToPoint(Point2D another, double distance) const;
-
 };
 
 

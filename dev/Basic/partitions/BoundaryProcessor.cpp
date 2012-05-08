@@ -34,10 +34,6 @@
 #include "geospatial/Node.hpp"
 #include "geospatial/RoadSegment.hpp"
 
-#include "entities/Entity.hpp"
-#include "entities/Agent.hpp"
-#include "entities/Person.hpp"
-
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/driver/Driver.hpp"
@@ -54,123 +50,88 @@ typedef CGAL::Point_2<Rep_class> Point;
 
 namespace mpi = boost::mpi;
 
-using std::string;
-using std::vector;
-using namespace sim_mob;
 
+namespace sim_mob {
 
-
-//Anonymous namespace for private, helper functions.
-namespace {
-bool isOneagentInPolygon(int location_x, int location_y, BoundarySegment* boundary_segment)
+BoundaryProcessor::BoundaryProcessor(): BOUNDARY_PROCOSS_TAG(2)
 {
-	vector<Point> points;
-	vector<Point2D>::iterator itr = boundary_segment->bounary_box.begin();
-	for (; itr != boundary_segment->bounary_box.end(); itr++)
-	{
-		Point point((*itr).getX(), (*itr).getY());
-		points.push_back(point);
-	}
-
-	Point agent_location(location_x, location_y);
-	switch (CGAL::bounded_side_2(points.begin(), points.end(), agent_location))
-	{
-	case CGAL::ON_BOUNDED_SIDE:
-		return true;
-
-	case CGAL::ON_BOUNDARY:
-	case CGAL::ON_UNBOUNDED_SIDE:
-		return false;
-	}
-
-	return false;
-}
-
-void outputLineT(Point2D& start_p, Point2D& end_p, string color)
-{
-	static int line_id = 100;
-	if (line_id < 105) {
-		LogOut("(" << "\"CutLine\"," << "0," << line_id++ << "," << "{\"startPointX\":\"" << start_p.getX() << "\","
-				<< "\"startPointY\":\"" << start_p.getY() << "\"," << "\"endPointX\":\"" << end_p.getX() << "\","
-				<< "\"endPointY\":\"" << end_p.getY() << "\"," << "\"color\":\"" << color << "\"" << "})" << std::endl);
-	}
-}
-
-const Signal* findOneSignalByNode(const Point2D& point)
-{
-	for (size_t i=0; i<Signal::all_signals_.size(); i++) {
-		if (Signal::all_signals_.at(i)->getNode().location == point) {
-			return Signal::all_signals_.at(i);
-		}
-	}
-
-	return nullptr;
-}
-
-} //End anonymous namespace
-
-
-
-sim_mob::BoundaryProcessor::BoundaryProcessor(): BOUNDARY_PROCOSS_TAG(2)
-{
-	entity_group = nullptr;
-	singal_group = nullptr;
-	scenario = nullptr;
-	partition_config = nullptr;
+	entity_group = NULL;
+	singal_group = NULL;
+	scenario = NULL;
+	partition_config = NULL;
 
 	neighbor_ips.clear();
 //		downstream_ips.clear();
 }
 
+const sim_mob::Signal* findOneSignalByNode(const sim_mob::Point2D* point)
+{
+	//std::cout << "sim_mob::Signal::all_signals_.size():" << sim_mob::Signal::all_signals_.size() << std::endl;
 
-string sim_mob::BoundaryProcessor::boundaryProcessing(int time_step)
+	for (size_t i = 0; i < sim_mob::Signal::all_signals_.size(); i++)
+	{
+		if (sim_mob::Signal::all_signals_[i]->getNode().location.getX() == point->getX() && sim_mob::Signal::all_signals_[i]->getNode().location.getY() == point->getY())
+		{
+			return sim_mob::Signal::all_signals_[i];
+		}
+	}
+
+	return 0;
+}
+
+std::string BoundaryProcessor::boundaryProcessing(int time_step)
 {
 	//step 1, update fake agents (received in previous time step)
 	clearFakeAgentFlag();
+	//	std::cout << partition_config->partition_id <<"Step 1" << std::endl;
 
+	//	ParitionDebugOutput::outputToConsole("Step 2");
 	//step 2, check the agents that should be send to downstream partitions
 	int neighbor_size = neighbor_ips.size();
 	BoundaryProcessingPackage sendout_package[neighbor_size];
 
-	size_t index = 0;
+	int index = -1;
 	std::set<int>::iterator itr_neighbor = neighbor_ips.begin();
 	for (; itr_neighbor != neighbor_ips.end(); itr_neighbor++)
 	{
-		BoundaryProcessingPackage& currPackage = sendout_package[index++];
-		currPackage.from_id = partition_config->partition_id;
-		currPackage.to_id = (*itr_neighbor);
+		index++;
+		sendout_package[index].from_id = partition_config->partition_id;
+		sendout_package[index].to_id = (*itr_neighbor);
 
-		currPackage.boundary_signals.clear();
-		currPackage.cross_persons.clear();
-		currPackage.feedback_persons.clear();
+		sendout_package[index].boundary_signals.clear();
+		sendout_package[index].cross_persons.clear();
+		sendout_package[index].feedback_persons.clear();
 	}
-
 	checkBoundaryAgents(sendout_package);
 
 	//Step 3, commmunicate with downstream
+
 	mpi::communicator world;
+
 	mpi::request recvs[neighbor_size];
 	mpi::request sends[neighbor_size];
-	string all_received_package_data[neighbor_size];
+	std::string all_received_package_data[neighbor_size];
 
 	//ready to receive
 	std::set<int>::iterator itr_upstream = neighbor_ips.begin();
-	index = 0;
+	index = -1;
 	for (; itr_upstream != neighbor_ips.end(); itr_upstream++)
 	{
-		int upstream_id = (*itr_upstream);
-		recvs[index] = world.irecv(upstream_id, (time_step) % 99 + 1, all_received_package_data[index]);
 		index++;
+		int upstream_id = (*itr_upstream);
+
+		//		std::cout << partition_config->partition_id  << "upstream_id:" << upstream_id << std::endl;
+		recvs[index] = world.irecv(upstream_id, (time_step) % 99 + 1, all_received_package_data[index]);
 	}
 
 	//ready to send
 	itr_neighbor = neighbor_ips.begin();
-	index = 0;
+	index = -1;
 	for (; itr_neighbor != neighbor_ips.end(); itr_neighbor++)
 	{
-		string data = getDataInPackage(sendout_package[index]);
+		index++;
+		std::string data = getDataInPackage(sendout_package[index]);
 		sends[index] = world.isend(sendout_package[index].to_id, (time_step) % 99 + 1, data);
-		index = 0;
 	}
 
 	//waiting for the end of sending and recving
@@ -190,14 +151,18 @@ string sim_mob::BoundaryProcessor::boundaryProcessing(int time_step)
  * then, it means the fake agent has moved outside of the boundary area,
  * So, we need to remove the fake agent.
  */
-void sim_mob::BoundaryProcessor::clearFakeAgentFlag()
+void BoundaryProcessor::clearFakeAgentFlag()
 {
-	vector<Entity*>::iterator itr = Agent::all_agents.begin();
-	while (itr != Agent::all_agents.end()) {
-		if (((*itr)->isFake) && ((*itr)->receiveTheFakeEntityAgain == false)) {
-			itr = Agent::all_agents.erase(itr);
+	std::vector<Entity*>::iterator itr = Agent::all_agents.begin();
+	for (; itr != Agent::all_agents.end();)
+	{
+		if (((*itr)->isFake) && ((*itr)->receiveTheFakeEntityAgain == false))
+		{
+			Agent::all_agents.erase(itr);
 			releaseFakeAgentMemory(*itr);
-		} else {
+		}
+		else
+		{
 			itr++;
 		}
 	}
@@ -222,13 +187,16 @@ void sim_mob::BoundaryProcessor::clearFakeAgentFlag()
 	}
 }
 
-string sim_mob::BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage* sendout_package)
+std::string BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage* sendout_package)
 {
-	std::map<string, BoundarySegment*>::iterator loopRoadSegment;
+	std::map<std::string, BoundarySegment*>::iterator loopRoadSegment;
+//	ParitionDebugOutput::outputToConsole(boundary_segments.size());
 
 	for (loopRoadSegment = boundary_segments.begin(); loopRoadSegment != boundary_segments.end(); ++loopRoadSegment)
 	{
-		BoundarySegment* segment = loopRoadSegment->second;
+		//std::cout << "1.1.1.1" << std::endl;
+		sim_mob::BoundarySegment* segment = loopRoadSegment->second;
+//		ParitionDebugOutput::outputToConsole(segment->boundarySegment->getId());
 
 		int downstream_id = segment->connected_partition_id - 1;
 		int downstream_index = -1;
@@ -242,12 +210,14 @@ string sim_mob::BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage
 		}
 
 		//get all agents in box
-		vector<Agent const*> allAgentsInBoundary;
+		std::vector<Agent const*> allAgentsInBoundary;
 		allAgentsInBoundary = agentsInSegmentBoundary(segment);
-
 		if (segment->responsible_side == -1)
 		{
-			vector<Agent const*>::iterator agent_pointer;
+//			ParitionDebugOutput::outputToConsole("AAAAAAAAAAA");
+//			ParitionDebugOutput::outputToConsole(segment->boundarySegment->getId());
+
+			std::vector<Agent const*>::iterator agent_pointer;
 
 			for (agent_pointer = allAgentsInBoundary.begin(); agent_pointer != allAgentsInBoundary.end(); agent_pointer++)
 			{
@@ -273,10 +243,19 @@ string sim_mob::BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage
 					}
 				}
 
+//				ParitionDebugOutput::outputToConsole("BBBBBBBBB");
+//				ParitionDebugOutput::outputToConsole(segment->boundarySegment->getId());
+
 				if ((getAgentTypeForSerialization(*agent_pointer) != DRIVER_TYPE) && (getAgentTypeForSerialization(*agent_pointer) != PEDESTRIAN_TYPE))
 				{
 					continue;
 				}
+
+				//				ParitionDebugOutput::outputToConsole("Test Vehicle Crossed:");
+				//				ParitionDebugOutput::outputToConsole((*agent_pointer)->getId());
+
+//				ParitionDebugOutput::outputToConsole("CCCCCCCC");
+//				ParitionDebugOutput::outputToConsole(segment->boundarySegment->getId());
 
 				if (isAgentCrossed(segment, *agent_pointer, false))
 				{
@@ -284,6 +263,8 @@ string sim_mob::BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage
 					if (person)
 					{
 						sendout_package[downstream_index].cross_persons.push_back(person);
+
+						ParitionDebugOutput::outputToConsole("One vehicle Crossed");
 
 						Person *one_person = const_cast<Person *> (person);
 						changeAgentToFake(one_person);
@@ -294,6 +275,7 @@ string sim_mob::BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage
 				{
 					if ((*agent_pointer)->isFake == false)
 					{
+						ParitionDebugOutput::outputToConsole("One vehicle Feedback on upper side");
 						const Person *person = dynamic_cast<const Person *> (*agent_pointer);
 						if (person)
 							sendout_package[downstream_index].feedback_persons.push_back(person);
@@ -304,7 +286,7 @@ string sim_mob::BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage
 		}
 		else
 		{
-			vector<Agent const*>::iterator agent_pointer;
+			std::vector<Agent const*>::iterator agent_pointer;
 			for (agent_pointer = allAgentsInBoundary.begin(); agent_pointer != allAgentsInBoundary.end(); ++agent_pointer)
 			{
 				if ((*agent_pointer)->isFake || (*agent_pointer)->toRemoved)
@@ -319,7 +301,10 @@ string sim_mob::BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage
 				{
 					const Person *person = dynamic_cast<const Person *> (*agent_pointer);
 					if (person)
+					{
+//						ParitionDebugOutput::outputToConsole("One vehicle Feedback on down side");
 						sendout_package[downstream_index].feedback_persons.push_back(person);
+					}
 				}
 			}
 		}
@@ -352,7 +337,7 @@ string sim_mob::BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage
 					}
 				}
 
-				if(downstream_index > -1)
+				if (downstream_index > -1)
 				{
 					sendout_package[downstream_index].boundary_signals.push_back(one_signal);
 				}
@@ -363,14 +348,14 @@ string sim_mob::BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage
 	return "";
 }
 
-string sim_mob::BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& package)
+std::string BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& package)
 {
-	PackageUtils packageUtil;
+	sim_mob::PackageUtils packageUtil;
 
 	//package cross agents
 	packageUtil.packBasicData(package.cross_persons.size());
 
-	vector<Person const*>::iterator itr_cross = package.cross_persons.begin();
+	std::vector<Person const*>::iterator itr_cross = package.cross_persons.begin();
 	for (; itr_cross != package.cross_persons.end(); itr_cross++)
 	{
 
@@ -388,7 +373,7 @@ string sim_mob::BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& p
 	//package feedback agents
 	packageUtil.packBasicData(package.feedback_persons.size());
 
-	vector<Person const*>::iterator itr_feedback = package.feedback_persons.begin();
+	std::vector<Person const*>::iterator itr_feedback = package.feedback_persons.begin();
 
 	for (; itr_feedback != package.feedback_persons.end(); itr_feedback++)
 	{
@@ -407,7 +392,7 @@ string sim_mob::BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& p
 	//package signal
 	packageUtil.packBasicData(package.boundary_signals.size());
 
-	vector<Signal const*>::iterator itr_signal = package.boundary_signals.begin();
+	std::vector<Signal const*>::iterator itr_signal = package.boundary_signals.begin();
 	for (; itr_signal != package.boundary_signals.end(); itr_signal++)
 	{
 		packageUtil.packPoint2D((*itr_signal)->getNode().location);
@@ -419,7 +404,7 @@ string sim_mob::BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& p
 	return (packageUtil.getPackageData());
 }
 
-void sim_mob::BoundaryProcessor::processPackageData(string data)
+void BoundaryProcessor::processPackageData(std::string data)
 {
 	UnPackageUtils unpackageUtil(data);
 
@@ -441,6 +426,7 @@ void sim_mob::BoundaryProcessor::processPackageData(string data)
 
 			if (isCrossAgentShouldBeInsert(one_person))
 			{
+				//one_person->buildSubscriptionList();
 				insertOneAgentToWorkerGroup(one_person);
 			}
 		}
@@ -456,6 +442,7 @@ void sim_mob::BoundaryProcessor::processPackageData(string data)
 
 			if (isCrossAgentShouldBeInsert(one_person))
 			{
+				//one_person->buildSubscriptionList();
 				insertOneAgentToWorkerGroup(one_person);
 			}
 		}
@@ -533,14 +520,14 @@ void sim_mob::BoundaryProcessor::processPackageData(string data)
 
 	for (int i = 0; i < signal_size; i++)
 	{
-		Point2D* location = unpackageUtil.unpackPoint2D();
-		Signal* one_signal = const_cast<Signal*> (getSignalBasedOnNode(location));
+		sim_mob::Point2D* location = unpackageUtil.unpackPoint2D();
+		sim_mob::Signal* one_signal = const_cast<Signal*> (sim_mob::getSignalBasedOnNode(location));
 
 		one_signal->unpackProxy(unpackageUtil);
 	}
 }
 
-string sim_mob::BoundaryProcessor::processBoundaryPackages(string all_packages[], int size)
+std::string BoundaryProcessor::processBoundaryPackages(std::string all_packages[], int size)
 {
 	for (int i = 0; i < size; i++)
 	{
@@ -550,9 +537,9 @@ string sim_mob::BoundaryProcessor::processBoundaryPackages(string all_packages[]
 	return "";
 }
 
-Person* sim_mob::BoundaryProcessor::getFakePersonById(unsigned int agent_id)
+Person* BoundaryProcessor::getFakePersonById(unsigned int agent_id)
 {
-	vector<Entity*>::iterator itr = Agent::all_agents.begin();
+	std::vector<Entity*>::iterator itr = Agent::all_agents.begin();
 
 	for (; itr != Agent::all_agents.end(); itr++)
 	{
@@ -564,10 +551,10 @@ Person* sim_mob::BoundaryProcessor::getFakePersonById(unsigned int agent_id)
 		}
 	}
 
-	return nullptr;
+	return NULL;
 }
 
-bool sim_mob::BoundaryProcessor::isAgentCrossed(BoundarySegment* segment, Agent const* agent, bool is_down_boundary)
+bool BoundaryProcessor::isAgentCrossed(BoundarySegment* segment, Agent const* agent, bool is_down_boundary)
 {
 	if (agent->isFake)
 		return false;
@@ -581,6 +568,17 @@ bool sim_mob::BoundaryProcessor::isAgentCrossed(BoundarySegment* segment, Agent 
 		const Person *person = dynamic_cast<const Person *> (agent);
 		Person* p = const_cast<Person*> (person);
 		const Driver *driver = dynamic_cast<const Driver *> (p->getRole());
+
+		if (PartitionManager::instance().partition_config->partition_id == 2)
+		{
+//			ParitionDebugOutput::outputToConsole(agent->getId());
+//			ParitionDebugOutput::outputToConsole(driver->getVehicle()->getCurrSegment()->getStart()->location.getX());
+//			ParitionDebugOutput::outputToConsole(driver->getVehicle()->getCurrSegment()->getStart()->location.getY());
+//			ParitionDebugOutput::outputToConsole(driver->getVehicle()->getCurrSegment()->getEnd()->location.getX());
+//			ParitionDebugOutput::outputToConsole(driver->getVehicle()->getCurrSegment()->getEnd()->location.getY());
+//			ParitionDebugOutput::outputToConsole(segment->boundarySegment->getId());
+//			ParitionDebugOutput::outputToConsole(segment->boundarySegment->getStart()->location.getX());
+		}
 
 		//normal check
 		if (driver->getVehicle()->getCurrSegment()->getStart()->location.getX() != segment->boundarySegment->getStart()->location.getX())
@@ -601,6 +599,8 @@ bool sim_mob::BoundaryProcessor::isAgentCrossed(BoundarySegment* segment, Agent 
 			return false;
 		}
 
+		//		ParitionDebugOutput::outputToConsole("222");
+
 		int x_cut_dis = segment->cut_line_to->getX() - segment->cut_line_start->getX();
 		int y_cut_dis = segment->cut_line_to->getY() - segment->cut_line_start->getY();
 
@@ -611,6 +611,8 @@ bool sim_mob::BoundaryProcessor::isAgentCrossed(BoundarySegment* segment, Agent 
 		if (pos_line == 0)
 			return false;
 
+		//		ParitionDebugOutput::outputToConsole("333");
+
 		int upper_x_pos = segment->boundarySegment->getStart()->location.getX();
 		int upper_y_pos = segment->boundarySegment->getStart()->location.getY();
 
@@ -619,8 +621,12 @@ bool sim_mob::BoundaryProcessor::isAgentCrossed(BoundarySegment* segment, Agent 
 		if (upper_pos_line > 0 && pos_line > 0)
 			return false;
 
+		//		ParitionDebugOutput::outputToConsole("444");
+
 		if (upper_pos_line < 0 && pos_line < 0)
 			return false;
+
+		//		ParitionDebugOutput::outputToConsole("555");
 
 		return true;
 
@@ -657,7 +663,7 @@ bool sim_mob::BoundaryProcessor::isAgentCrossed(BoundarySegment* segment, Agent 
 	return false;
 }
 
-bool sim_mob::BoundaryProcessor::isAgentInFeedbackorForward(BoundarySegment* segment, Agent const* agent, bool is_down_boundary)
+bool BoundaryProcessor::isAgentInFeedbackorForward(BoundarySegment* segment, Agent const* agent, bool is_down_boundary)
 {
 	if (agent->isFake)
 		return false; //Error, should not happen;
@@ -665,7 +671,7 @@ bool sim_mob::BoundaryProcessor::isAgentInFeedbackorForward(BoundarySegment* seg
 	return true;
 }
 
-void sim_mob::BoundaryProcessor::changeAgentToFake(Agent * agent)
+void BoundaryProcessor::changeAgentToFake(Agent * agent)
 {
 	agent->isFake = true;
 	agent->receiveTheFakeEntityAgain = true;
@@ -674,7 +680,7 @@ void sim_mob::BoundaryProcessor::changeAgentToFake(Agent * agent)
 	entity_group->removeAgentFromWorker(agent);
 }
 
-void sim_mob::BoundaryProcessor::insertOneAgentToWorkerGroup(Agent * agent)
+void BoundaryProcessor::insertOneAgentToWorkerGroup(Agent * agent)
 {
 	agent->isFake = false;
 	agent->receiveTheFakeEntityAgain = false;
@@ -684,7 +690,7 @@ void sim_mob::BoundaryProcessor::insertOneAgentToWorkerGroup(Agent * agent)
 	entity_group->addAgentInWorker(agent);
 }
 
-void sim_mob::BoundaryProcessor::insertOneFakeAgentToWorkerGroup(Agent * agent)
+void BoundaryProcessor::insertOneFakeAgentToWorkerGroup(Agent * agent)
 {
 	agent->isFake = true;
 	agent->receiveTheFakeEntityAgain = true;
@@ -693,9 +699,9 @@ void sim_mob::BoundaryProcessor::insertOneFakeAgentToWorkerGroup(Agent * agent)
 	Agent::all_agents.push_back(agent);
 }
 
-void sim_mob::BoundaryProcessor::removeOneFakeAgentFromWorkerGroup(Agent * agent)
+void BoundaryProcessor::removeOneFakeAgentFromWorkerGroup(Agent * agent)
 {
-	vector<Entity*>::iterator position = std::find(Agent::all_agents.begin(), Agent::all_agents.end(), agent);
+	std::vector<Entity*>::iterator position = std::find(Agent::all_agents.begin(), Agent::all_agents.end(), agent);
 
 	if (position != Agent::all_agents.end())
 	{
@@ -703,10 +709,10 @@ void sim_mob::BoundaryProcessor::removeOneFakeAgentFromWorkerGroup(Agent * agent
 	}
 }
 
-bool sim_mob::BoundaryProcessor::isAgentInLocalPartition(unsigned int agent_id, bool includeFakeAgent)
+bool BoundaryProcessor::isAgentInLocalPartition(unsigned int agent_id, bool includeFakeAgent)
 {
 
-	vector<Entity*>::iterator it = Agent::all_agents.begin();
+	std::vector<Entity*>::iterator it = Agent::all_agents.begin();
 	for (; it != Agent::all_agents.end(); it++)
 	{
 		if (includeFakeAgent)
@@ -724,7 +730,7 @@ bool sim_mob::BoundaryProcessor::isAgentInLocalPartition(unsigned int agent_id, 
 	return false;
 }
 
-bool sim_mob::BoundaryProcessor::isCrossAgentShouldBeInsert(const Agent* agent)
+bool BoundaryProcessor::isCrossAgentShouldBeInsert(const sim_mob::Agent* agent)
 {
 	if (isAgentInLocalPartition(agent->getId(), false))
 	{
@@ -734,9 +740,9 @@ bool sim_mob::BoundaryProcessor::isCrossAgentShouldBeInsert(const Agent* agent)
 	return true;
 }
 
-BoundarySegment* sim_mob::BoundaryProcessor::getBoundarySegmentByID(string segmentID)
+sim_mob::BoundarySegment* BoundaryProcessor::getBoundarySegmentByID(std::string segmentID)
 {
-	std::map<string, BoundarySegment*>::iterator it;
+	std::map<std::string, BoundarySegment*>::iterator it;
 	it = boundary_segments.find(segmentID);
 
 	if (it != boundary_segments.end())
@@ -745,10 +751,10 @@ BoundarySegment* sim_mob::BoundaryProcessor::getBoundarySegmentByID(string segme
 	return 0;
 }
 
-string sim_mob::BoundaryProcessor::outputAllEntities(frame_t time_step)
+std::string BoundaryProcessor::outputAllEntities(frame_t time_step)
 {
 
-	vector<Entity*>::iterator it = Agent::all_agents.begin();
+	std::vector<Entity*>::iterator it = Agent::all_agents.begin();
 	for (; it != Agent::all_agents.end(); it++)
 	{
 
@@ -765,7 +771,7 @@ string sim_mob::BoundaryProcessor::outputAllEntities(frame_t time_step)
 		return "";
 	}
 
-	vector<Signal*>::iterator itr_sig = Signal::all_signals_.begin();
+	std::vector<Signal*>::iterator itr_sig = Signal::all_signals_.begin();
 	for (; itr_sig != Signal::all_signals_.end(); itr_sig++)
 	{
 		Signal* one_signal = (*itr_sig);
@@ -777,13 +783,46 @@ string sim_mob::BoundaryProcessor::outputAllEntities(frame_t time_step)
 
 //very simply version
 //need to build virtual destructors
-void sim_mob::BoundaryProcessor::releaseFakeAgentMemory(Entity* agent)
+void BoundaryProcessor::releaseFakeAgentMemory(sim_mob::Entity* agent)
 {
 }
 
+bool isOneagentInPolygon(int location_x, int location_y, sim_mob::BoundarySegment* boundary_segment)
+{
+	Point agent_location(location_x, location_y);
+	std::vector<Point> points;
+
+	std::vector<Point2D>::iterator itr = boundary_segment->bounary_box.begin();
+	for (; itr != boundary_segment->bounary_box.end(); itr++)
+	{
+		Point point((*itr).getX(), (*itr).getY());
+		points.push_back(point);
+	}
+
+	switch (CGAL::bounded_side_2(points.begin(), points.end(), agent_location))
+	{
+	case CGAL::ON_BOUNDED_SIDE:
+		return true;
+	case CGAL::ON_BOUNDARY:
+		return false;
+	case CGAL::ON_UNBOUNDED_SIDE:
+		return false;
+	}
+
+	return false;
+}
+
+void outputLineT(Point2D& start_p, Point2D& end_p, std::string color)
+{
+	static int line_id = 100;
+	if (line_id < 105)
+		LogOut("(" << "\"CutLine\"," << "0," << line_id++ << "," << "{\"startPointX\":\"" << start_p.getX() << "\","
+				<< "\"startPointY\":\"" << start_p.getY() << "\"," << "\"endPointX\":\"" << end_p.getX() << "\","
+				<< "\"endPointY\":\"" << end_p.getY() << "\"," << "\"color\":\"" << color << "\"" << "})" << std::endl);
+}
 
 //need to be changed to polygon2D
-vector<Agent const *> sim_mob::BoundaryProcessor::agentsInSegmentBoundary(BoundarySegment* boundary_segment)
+std::vector<Agent const *> BoundaryProcessor::agentsInSegmentBoundary(sim_mob::BoundarySegment* boundary_segment)
 {
 
 	//	//get the boundary box
@@ -793,7 +832,7 @@ vector<Agent const *> sim_mob::BoundaryProcessor::agentsInSegmentBoundary(Bounda
 	int box_minumum_y = std::numeric_limits<int>::max();
 
 	//get all agents in the box
-	vector<Point2D>::iterator itr = boundary_segment->bounary_box.begin();
+	std::vector<Point2D>::iterator itr = boundary_segment->bounary_box.begin();
 	for (; itr != boundary_segment->bounary_box.end(); itr++)
 	{
 		if ((*itr).getX() > box_maximum_x)
@@ -813,10 +852,10 @@ vector<Agent const *> sim_mob::BoundaryProcessor::agentsInSegmentBoundary(Bounda
 	Point2D upper_right_point(box_maximum_x, box_maximum_y);
 
 	AuraManager& auraMgr = AuraManager::instance();
-	vector<Agent const *> all_agents = auraMgr.agentsInRect(lower_left_point, upper_right_point);
+	std::vector<Agent const *> all_agents = auraMgr.agentsInRect(lower_left_point, upper_right_point);
 
-	vector<Agent const *> agents_after_filter;
-	vector<Agent const *>::iterator filter_itr = all_agents.begin();
+	std::vector<Agent const *> agents_after_filter;
+	std::vector<Agent const *>::iterator filter_itr = all_agents.begin();
 	for (; filter_itr != all_agents.end(); filter_itr++)
 	{
 		if ((*filter_itr)->isFake)
@@ -831,9 +870,9 @@ vector<Agent const *> sim_mob::BoundaryProcessor::agentsInSegmentBoundary(Bounda
 	return agents_after_filter;
 }
 
-void sim_mob::BoundaryProcessor::initBoundaryTrafficItems()
+void BoundaryProcessor::initBoundaryTrafficItems()
 {
-	std::map<string, BoundarySegment*>::iterator itr;
+	std::map<std::string, BoundarySegment*>::iterator itr;
 
 	for (itr = boundary_segments.begin(); itr != boundary_segments.end(); itr++)
 	{
@@ -842,7 +881,7 @@ void sim_mob::BoundaryProcessor::initBoundaryTrafficItems()
 		//if the road segment is in the upper side
 		if (one_segment->responsible_side == -1)
 		{
-			const Signal* startNodeSignal = findOneSignalByNode(one_segment->boundarySegment->getStart()->location);
+			const sim_mob::Signal* startNodeSignal = findOneSignalByNode(&one_segment->boundarySegment->getStart()->location);
 
 			if (startNodeSignal)
 			{
@@ -852,28 +891,28 @@ void sim_mob::BoundaryProcessor::initBoundaryTrafficItems()
 				boundaryRealTrafficItems.insert(startNodeSignal);
 			}
 
-			const Signal* endNodeSignal = findOneSignalByNode(one_segment->boundarySegment->getEnd()->location);
+			const sim_mob::Signal* endNodeSignal = findOneSignalByNode(&one_segment->boundarySegment->getEnd()->location);
 			if (endNodeSignal)
 			{
-				Signal* one_signal = const_cast<Signal*> (endNodeSignal);
+				sim_mob::Signal* one_signal = const_cast<sim_mob::Signal*> (endNodeSignal);
 				one_signal->isFake = true;
 			}
 		}
 		//down stream
 		else if (one_segment->responsible_side == 1)
 		{
-			const Signal* startNodeSignal = findOneSignalByNode(one_segment->boundarySegment->getStart()->location);
+			const sim_mob::Signal* startNodeSignal = findOneSignalByNode(&one_segment->boundarySegment->getStart()->location);
 
 			if (startNodeSignal)
 			{
 				if (startNodeSignal->isFake == false)
 				{
-					Signal* one_signal = const_cast<Signal*> (startNodeSignal);
+					sim_mob::Signal* one_signal = const_cast<sim_mob::Signal*> (startNodeSignal);
 					one_signal->isFake = true;
 				}
 			}
 
-			const Signal* endNodeSignal = findOneSignalByNode(one_segment->boundarySegment->getEnd()->location);
+			const sim_mob::Signal* endNodeSignal = findOneSignalByNode(&one_segment->boundarySegment->getEnd()->location);
 			if (endNodeSignal)
 			{
 				int downstream_id = one_segment->connected_partition_id - 1;
@@ -886,48 +925,46 @@ void sim_mob::BoundaryProcessor::initBoundaryTrafficItems()
 	}
 }
 
-string sim_mob::BoundaryProcessor::releaseMPIEnvironment()
+std::string BoundaryProcessor::releaseMPIEnvironment()
 {
 	if (partition_config->partition_size < 1)
 		return "";
 
 	MPI_Finalize();
 
-	safe_delete_item(scenario);
-	/*if (scenario)
+	if (scenario)
 	{
 		delete scenario;
-	}*/
+	}
 
-	safe_delete_item(partition_config);
-	/*if (partition_config)
+	if (partition_config)
 	{
 		delete partition_config;
-	}*/
+	}
 
-	std::map<string, BoundarySegment*>::iterator it2 = boundary_segments.begin();
+	std::map<std::string, BoundarySegment*>::iterator it2 = boundary_segments.begin();
 	for (; it2 != boundary_segments.end(); it2++)
 	{
-		safe_delete_item(it2->second);
-		/*if (it2->second)
+		if (it2->second)
 		{
 			delete it2->second;
-		}*/
+		}
 	}
 
 	return "";
 }
 
-void sim_mob::BoundaryProcessor::setEntityWorkGroup(WorkGroup* entity_group, WorkGroup* singal_group)
+void BoundaryProcessor::setEntityWorkGroup(WorkGroup* entity_group, WorkGroup* singal_group)
 {
 	this->entity_group = entity_group;
 	this->singal_group = singal_group;
 }
 
-void sim_mob::BoundaryProcessor::loadInBoundarySegment(string id, BoundarySegment* boundary)
+void BoundaryProcessor::loadInBoundarySegment(std::string id, BoundarySegment* boundary)
 {
 	boundary_segments[id] = boundary;
 
+//	ParitionDebugOutput::outputToConsole(id);
 	//update neighbour ids
 	neighbor_ips.insert(boundary->connected_partition_id - 1);
 
@@ -935,13 +972,13 @@ void sim_mob::BoundaryProcessor::loadInBoundarySegment(string id, BoundarySegmen
 	boundary->output();
 }
 
-void sim_mob::BoundaryProcessor::setConfigure(PartitionConfigure* partition_config, SimulationScenario* scenario)
+void BoundaryProcessor::setConfigure(PartitionConfigure* partition_config, SimulationScenario* scenario)
 {
 	this ->partition_config = partition_config;
 	this ->scenario = scenario;
 }
 
-BoundaryProcessor::Agent_Type sim_mob::BoundaryProcessor::getAgentTypeForSerialization(Agent const* agent)
+BoundaryProcessor::Agent_Type BoundaryProcessor::getAgentTypeForSerialization(Agent const* agent)
 {
 	const Person *person = dynamic_cast<const Person *> (agent);
 	if (!person)
@@ -982,5 +1019,6 @@ BoundaryProcessor::Agent_Type sim_mob::BoundaryProcessor::getAgentTypeForSeriali
 	}
 }
 
+}
 
 #endif

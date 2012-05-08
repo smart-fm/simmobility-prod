@@ -39,7 +39,7 @@ namespace {
 void initMPIConfigurationParameters(PartitionConfigure* partition_config, SimulationScenario* scenario)
 {
 	partition_config->adaptive_load_balance = false;
-	partition_config->boundary_length = 100 * 100; //feet
+	partition_config->boundary_length = 60 * 100; //feet
 	partition_config->boundary_width = 20 * 100; //feet
 	partition_config->measurem_performance = false;
 	partition_config->maximum_agent_id = 10000;

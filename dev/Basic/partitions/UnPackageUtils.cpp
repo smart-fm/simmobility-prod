@@ -1,5 +1,3 @@
-#include "GenConfig.h"
-
 #include "UnPackageUtils.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -7,6 +5,8 @@
 #include "conf/simpleconf.hpp"
 #include "util/GeomHelpers.hpp"
 #include "util/DynamicVector.hpp"
+#include "util/DailyTime.hpp"
+#include "geospatial/Point2D.hpp"
 
 namespace sim_mob {
 

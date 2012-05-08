@@ -1,5 +1,5 @@
 /*
- * PartitionManager.hpp
+ * \file PartitionManager.hpp
  * Target:
  * 1. Support functions for main function
  *    [Map decomposition]
@@ -18,8 +18,6 @@
 #include <vector>
 #include <string>
 
-#include "PartitionConfigure.hpp"
-#include "SimulationScenario.hpp"
 #include "BoundaryProcessor.hpp"
 #include "metrics/Frame.hpp"
 
@@ -27,9 +25,7 @@ namespace sim_mob {
 
 class SimulationScenario;
 class BoundarySegment;
-class SimulationScenario;
 class PartitionConfigure;
-class BoundaryProcessor;
 
 
 /**

@@ -22,13 +22,16 @@
 #include <boost/unordered_map.hpp>
 
 #include "perception/FixedDelayed.hpp"
-#include "util/DailyTime.hpp"
-#include "util/DynamicVector.hpp"
-#include "geospatial/Point2D.hpp"
 
 
 namespace sim_mob
 {
+
+class DailyTime;
+class DPoint;
+class DynamicVector;
+class Point2D;
+
 
 /**
  * \author Xu Yan

@@ -62,9 +62,7 @@ using namespace sim_mob;
 namespace {
 bool isOneagentInPolygon(int location_x, int location_y, BoundarySegment* boundary_segment)
 {
-	Point agent_location(location_x, location_y);
 	std::vector<Point> points;
-
 	std::vector<Point2D>::iterator itr = boundary_segment->bounary_box.begin();
 	for (; itr != boundary_segment->bounary_box.end(); itr++)
 	{
@@ -72,6 +70,7 @@ bool isOneagentInPolygon(int location_x, int location_y, BoundarySegment* bounda
 		points.push_back(point);
 	}
 
+	Point agent_location(location_x, location_y);
 	switch (CGAL::bounded_side_2(points.begin(), points.end(), agent_location))
 	{
 	case CGAL::ON_BOUNDED_SIDE:

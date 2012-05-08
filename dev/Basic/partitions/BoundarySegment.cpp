@@ -22,21 +22,10 @@ void BoundarySegment::buildBoundaryBox(double boundary_length, double boundary_w
 			&boundarySegment->getEnd()->location, up_offset);
 
 	double length = sim_mob::dist(down_point, up_point);
-//	LogOut("length:" << length << "\n");
 	double ratio = boundary_width * 1.0 / length;
-
-//	LogOut("ratio:" << ratio << "\n");
 
 	int x_dis = (int) ((down_point.getY() - up_point.getY()) * ratio);
 	int y_dis = (int) ((down_point.getX() - up_point.getX()) * ratio);
-
-//	if (x_dis < 0)
-//		x_dis = -x_dis;
-//	if (y_dis < 0)
-//		y_dis = -y_dis;
-
-//	LogOut("x_dis:" << x_dis << "\n");
-//	LogOut("y_dis:" << y_dis << "\n");
 
 	Point2D firstPoint(down_point.getX() + x_dis, down_point.getY() - y_dis);
 	Point2D secondPoint(down_point.getX() - x_dis, down_point.getY() + y_dis);

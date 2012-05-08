@@ -14,10 +14,7 @@
 #include <boost/mpi/communicator.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
-
-#ifndef SIMMOB_DISABLE_OUTPUT
 #include <boost/thread/mutex.hpp>
-#endif
 
 #include "BoundarySegment.hpp"
 #include "util/MathUtil.hpp"
@@ -37,6 +34,11 @@ namespace sim_mob {
 
 PartitionManager PartitionManager::instance_;
 int PartitionManager::count = 0;
+
+PartitionManager& PartitionManager::instance()
+{
+	return instance_;
+}
 
 void initMPIConfigurationParameters(PartitionConfigure* partition_config, SimulationScenario* scenario)
 {

@@ -1,8 +1,10 @@
 #pragma once
 
-#include "PartitionManager.hpp"
 #include <string>
 #include <iostream>
+
+#include "GenConfig.h"
+#include "PartitionManager.hpp"
 
 namespace sim_mob {
 /**

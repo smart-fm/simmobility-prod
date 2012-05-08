@@ -1,5 +1,15 @@
 #pragma once
 
+#include "GenConfig.h"
+#include "util/LangHelpers.hpp"
+
+#include <sstream>
+#include <set>
+#include <list>
+#include <vector>
+#include <map>
+#include <string>
+
 #ifndef SIMMOB_DISABLE_MPI
 
 #include <boost/archive/text_oarchive.hpp>
@@ -9,12 +19,7 @@
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/map.hpp>
 
-#include <sstream>
-#include <set>
-#include <list>
-#include <vector>
-#include <map>
-#include <string>
+#endif
 
 #include <boost/unordered_set.hpp>
 #include <boost/unordered_map.hpp>
@@ -24,15 +29,10 @@
 #include "util/DynamicVector.hpp"
 #include "geospatial/Point2D.hpp"
 
-#endif
-
 namespace sim_mob {
 
 class BoundaryProcessor;
-
-class Point2D;
 class DPoint;
-
 class IntersectionDrivingModel;
 class SimpleIntDrivingModel;
 
@@ -49,15 +49,10 @@ class SimpleIntDrivingModel;
  * which can be serialized so that we can avoid lots of #idefs elsewhere in the code. ~Seth
  */
 class PackageUtils {
-#ifndef SIMMOB_DISABLE_MPI
-
-private:
-	std::stringstream buffer;
-	boost::archive::text_oarchive* package;
 
 public:
-	PackageUtils();
-	~PackageUtils();
+	PackageUtils() CHECK_MPI_THROW ;
+	~PackageUtils() CHECK_MPI_THROW ;
 public:
 	/**
 	 * DATA_TYPE can be:
@@ -66,29 +61,16 @@ public:
 	 * (3)bool
 	 */
 	template<class DATA_TYPE>
-	inline void packBasicData(DATA_TYPE value) {
-		(*package) & value;
-	}
+	void packBasicData(DATA_TYPE value) CHECK_MPI_THROW ;
 
 	template<class DATA_TYPE>
-	inline void operator<<(DATA_TYPE& value) {
-		packBasicData(value);
-	}
+	void operator<<(DATA_TYPE& value) CHECK_MPI_THROW ;
 
 	/**
 	 *Check whether the double value is NaN.
 	 */
-	inline void packBasicData(double value) {
-		double buffer = 0;
-		if (value != value)
-			(*package) & buffer;
-		else
-			(*package) & value;
-	}
-
-	inline void operator<<(double value) {
-		packBasicData(value);
-	}
+	void packBasicData(double value) CHECK_MPI_THROW ;
+	void operator<<(double value) CHECK_MPI_THROW ;
 
 	/**
 	 * DATA_TYPE can be:
@@ -97,19 +79,10 @@ public:
 	 * (3)bool
 	 */
 	template<class DATA_TYPE>
-	inline void packBasicDataList(const std::list<DATA_TYPE>& value) {
-		(*package) & value;
-	}
+	void packBasicDataList(const std::list<DATA_TYPE>& value) CHECK_MPI_THROW ;
 
 	template<class DATA_TYPE>
-	inline void operator<<(const std::list<DATA_TYPE>& value) {
-		packBasicDataList(value);
-	}
-
-	//	template<class DATA_TYPE>
-	//	inline void operator<<(const std::list<DATA_TYPE>& value) {
-	//		(*package) & value;
-	//	}
+	void operator<<(const std::list<DATA_TYPE>& value) CHECK_MPI_THROW ;
 
 	/**
 	 * DATA_TYPE can be:
@@ -118,19 +91,10 @@ public:
 	 * (3)bool
 	 */
 	template<class DATA_TYPE>
-	inline void packBasicDataVector(const std::vector<DATA_TYPE>& value) {
-		(*package) & value;
-	}
+	void packBasicDataVector(const std::vector<DATA_TYPE>& value) CHECK_MPI_THROW ;
 
 	template<class DATA_TYPE>
-	inline void operator<<(const std::vector<DATA_TYPE>& value) {
-		packBasicDataVector(value);
-	}
-
-	//	template<class DATA_TYPE>
-	//	inline void operator<<(const std::list<DATA_TYPE>& value) {
-	//		(*package) & value;
-	//	}
+	void operator<<(const std::vector<DATA_TYPE>& value) CHECK_MPI_THROW ;
 
 	/**
 	 * DATA_TYPE can be:
@@ -139,14 +103,10 @@ public:
 	 * (3)bool
 	 */
 	template<class DATA_TYPE>
-	inline void packBasicDataSet(const std::set<DATA_TYPE>& value) {
-		(*package) & value;
-	}
+	void packBasicDataSet(const std::set<DATA_TYPE>& value) CHECK_MPI_THROW ;
 
 	template<class DATA_TYPE>
-	inline void operator<<(const std::set<DATA_TYPE>& value) {
-		packBasicDataSet(value);
-	}
+	void operator<<(const std::set<DATA_TYPE>& value) CHECK_MPI_THROW ;
 
 	/**
 	 * DATA_TYPE can be:
@@ -155,14 +115,10 @@ public:
 	 * (3)bool
 	 */
 	template<class DATA_TYPE_1, class DATA_TYPE_2>
-	inline void packBasicDataMap(const std::map<DATA_TYPE_1, DATA_TYPE_2>& value) {
-		(*package) & value;
-	}
+	void packBasicDataMap(const std::map<DATA_TYPE_1, DATA_TYPE_2>& value) CHECK_MPI_THROW ;
 
 	template<class DATA_TYPE_1, class DATA_TYPE_2>
-	inline void operator<<(const std::map<DATA_TYPE_1, DATA_TYPE_2>& value) {
-		packBasicDataMap(value);
-	}
+	void operator<<(const std::map<DATA_TYPE_1, DATA_TYPE_2>& value) CHECK_MPI_THROW ;
 
 	/**
 	 * DATA_TYPE can be:
@@ -172,14 +128,10 @@ public:
 	 * (not tested yet)
 	 */
 	template<class DATA_TYPE_1, class DATA_TYPE_2>
-	inline void packUnorderedMap(const boost::unordered_map<DATA_TYPE_1, DATA_TYPE_2>& value) {
-		(*package) & value;
-	}
+	void packUnorderedMap(const boost::unordered_map<DATA_TYPE_1, DATA_TYPE_2>& value) CHECK_MPI_THROW ;
 
 	template<class DATA_TYPE_1, class DATA_TYPE_2>
-	inline void operator<<(const boost::unordered_map<DATA_TYPE_1, DATA_TYPE_2>& value) {
-		packUnorderedMap(value);
-	}
+	void operator<<(const boost::unordered_map<DATA_TYPE_1, DATA_TYPE_2>& value) CHECK_MPI_THROW ;
 
 	/**
 	 * DATA_TYPE can be:
@@ -189,51 +141,112 @@ public:
 	 * (not tested yet)
 	 */
 	template<class DATA_TYPE>
-	inline void packUnorderedSet(const boost::unordered_set<DATA_TYPE>& value) {
-		(*package) & value;
-	}
+	void packUnorderedSet(const boost::unordered_set<DATA_TYPE>& value) CHECK_MPI_THROW ;
 
 	template<class DATA_TYPE>
-	inline void operator<<(const boost::unordered_set<DATA_TYPE>& value) {
-		packUnorderedSet(value);
-	}
-
-	//Road Network
-	//void packNode(const Node* one_node);
-	//void packRoadSegment(const RoadSegment* roadsegment);
-	//void packLink(const Link* one_link);
-	//void packLane(const Lane* one_lane);
-//	void packTripChain(const TripChain* tripChain);
-//	void packTripActivity(const TripActivity* tripActivity);
-
-	//Road Item
-	//void packVehicle(const Vehicle* one_vehicle);
-	//void packGeneralPathMover(const sim_mob::GeneralPathMover* mover);
-	//void packCrossing(const Crossing* one_crossing);
+	void operator<<(const boost::unordered_set<DATA_TYPE>& value) CHECK_MPI_THROW ;
 
 	//Other struct
-//	void packIntersectionDrivingModel(const SimpleIntDrivingModel* one_model);
-	void packFixedDelayedDPoint(const FixedDelayed<DPoint*>& one_delay);
-	void packFixedDelayedDouble(const FixedDelayed<double>& one_delay);
-	void packFixedDelayedInt(const FixedDelayed<int>& one_delay);
-	void packPoint2D(const Point2D& one_point);
-//	void packDriverUpdateParams(const DriverUpdateParams& one_driver);
-//	void packPedestrianUpdateParams(const PedestrianUpdateParams& one_pedestrain);
+	void packFixedDelayedDPoint(const FixedDelayed<DPoint*>& one_delay) CHECK_MPI_THROW ;
+	void packFixedDelayedDouble(const FixedDelayed<double>& one_delay) CHECK_MPI_THROW ;
+	void packFixedDelayedInt(const FixedDelayed<int>& one_delay) CHECK_MPI_THROW ;
+	void packPoint2D(const Point2D& one_point) CHECK_MPI_THROW ;
 
-	void packDailyTime(const DailyTime& time);
-	void packDPoint(const DPoint& point);
-	void packDynamicVector(const DynamicVector& vector);
+	void packDailyTime(const DailyTime& time) CHECK_MPI_THROW ;
+	void packDPoint(const DPoint& point) CHECK_MPI_THROW ;
+	void packDynamicVector(const DynamicVector& vector) CHECK_MPI_THROW ;
 
 private:
-	std::string getPackageData();
-//	void initializePackage();
-//	void clearPackage();
+	std::string getPackageData() CHECK_MPI_THROW ;
 
-public:
+
+private:
 	friend class BoundaryProcessor;
 
+#ifndef SIMMOB_DISABLE_MPI
+	std::stringstream buffer;
+	boost::archive::text_oarchive* package;
 #endif
+
 };
+
+
+//Template definitions. These are essentially source, so they are #ifdef'd like everything else.
+
+#ifndef SIMMOB_DISABLE_MPI
+
+template<class DATA_TYPE>
+inline void sim_mob::PackageUtils::packBasicData(DATA_TYPE value) {
+	(*package) & value;
+}
+
+template<class DATA_TYPE>
+inline void sim_mob::PackageUtils::operator<<(DATA_TYPE& value) {
+	packBasicData(value);
+}
+
+template<class DATA_TYPE>
+inline void sim_mob::PackageUtils::packBasicDataList(const std::list<DATA_TYPE>& value) {
+	(*package) & value;
+}
+
+template<class DATA_TYPE>
+inline void sim_mob::PackageUtils::operator<<(const std::list<DATA_TYPE>& value) {
+	packBasicDataList(value);
+}
+
+template<class DATA_TYPE>
+inline void sim_mob::PackageUtils::packBasicDataVector(const std::vector<DATA_TYPE>& value) {
+	(*package) & value;
+}
+
+template<class DATA_TYPE>
+inline void sim_mob::PackageUtils::operator<<(const std::vector<DATA_TYPE>& value) {
+	packBasicDataVector(value);
+}
+
+template<class DATA_TYPE>
+inline void sim_mob::PackageUtils::packBasicDataSet(const std::set<DATA_TYPE>& value) {
+	(*package) & value;
+}
+
+template<class DATA_TYPE>
+inline void sim_mob::PackageUtils::operator<<(const std::set<DATA_TYPE>& value) {
+	packBasicDataSet(value);
+}
+
+template<class DATA_TYPE_1, class DATA_TYPE_2>
+inline void sim_mob::PackageUtils::packBasicDataMap(const std::map<DATA_TYPE_1, DATA_TYPE_2>& value) {
+	(*package) & value;
+}
+
+template<class DATA_TYPE_1, class DATA_TYPE_2>
+inline void sim_mob::PackageUtils::operator<<(const std::map<DATA_TYPE_1, DATA_TYPE_2>& value) {
+	packBasicDataMap(value);
+}
+
+template<class DATA_TYPE_1, class DATA_TYPE_2>
+inline void sim_mob::PackageUtils::packUnorderedMap(const boost::unordered_map<DATA_TYPE_1, DATA_TYPE_2>& value) {
+	(*package) & value;
+}
+
+template<class DATA_TYPE_1, class DATA_TYPE_2>
+inline void sim_mob::PackageUtils::operator<<(const boost::unordered_map<DATA_TYPE_1, DATA_TYPE_2>& value) {
+	packUnorderedMap(value);
+}
+
+template<class DATA_TYPE>
+inline void sim_mob::PackageUtils::packUnorderedSet(const boost::unordered_set<DATA_TYPE>& value) {
+	(*package) & value;
+}
+
+template<class DATA_TYPE>
+inline void sim_mob::PackageUtils::operator<<(const boost::unordered_set<DATA_TYPE>& value) {
+	packUnorderedSet(value);
+}
+
+#endif
+
 
 }
 

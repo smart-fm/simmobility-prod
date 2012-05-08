@@ -193,15 +193,11 @@ std::string sim_mob::BoundaryProcessor::boundaryProcessing(int time_step)
 void sim_mob::BoundaryProcessor::clearFakeAgentFlag()
 {
 	std::vector<Entity*>::iterator itr = Agent::all_agents.begin();
-	for (; itr != Agent::all_agents.end();)
-	{
-		if (((*itr)->isFake) && ((*itr)->receiveTheFakeEntityAgain == false))
-		{
-			Agent::all_agents.erase(itr);
+	while (itr != Agent::all_agents.end()) {
+		if (((*itr)->isFake) && ((*itr)->receiveTheFakeEntityAgain == false)) {
+			itr = Agent::all_agents.erase(itr);
 			releaseFakeAgentMemory(*itr);
-		}
-		else
-		{
+		} else {
 			itr++;
 		}
 	}

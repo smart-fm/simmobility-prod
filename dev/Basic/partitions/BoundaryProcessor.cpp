@@ -113,10 +113,10 @@ const Signal* findOneSignalByNode(const Point2D* point)
 
 sim_mob::BoundaryProcessor::BoundaryProcessor(): BOUNDARY_PROCOSS_TAG(2)
 {
-	entity_group = NULL;
-	singal_group = NULL;
-	scenario = NULL;
-	partition_config = NULL;
+	entity_group = nullptr;
+	singal_group = nullptr;
+	scenario = nullptr;
+	partition_config = nullptr;
 
 	neighbor_ips.clear();
 //		downstream_ips.clear();
@@ -564,7 +564,7 @@ Person* sim_mob::BoundaryProcessor::getFakePersonById(unsigned int agent_id)
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 bool sim_mob::BoundaryProcessor::isAgentCrossed(BoundarySegment* segment, Agent const* agent, bool is_down_boundary)

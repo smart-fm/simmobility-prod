@@ -19,10 +19,11 @@ sim_mob::UnPackageUtils::UnPackageUtils(std::string data)
 sim_mob::UnPackageUtils::~UnPackageUtils()
 {
 	buffer.clear();
-	if (package) {
-		delete package;
-		package = NULL;
-	}
+	safe_delete_item(package);
+	//if (package) {
+		//delete package;
+		//package = nullptr;
+	//}
 }
 
 

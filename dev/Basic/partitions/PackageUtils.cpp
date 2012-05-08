@@ -24,10 +24,11 @@ sim_mob::PackageUtils::PackageUtils()
 sim_mob::PackageUtils::~PackageUtils()
 {
 	buffer.clear();
-	if (package) {
-		delete package;
-		package = NULL;
-	}
+	safe_delete_item(package);
+	//if (package) {
+		//delete package;
+		//package = nullptr;
+	//}
 }
 
 void sim_mob::PackageUtils::packFixedDelayedDPoint(const FixedDelayed<DPoint*>& one_delay) {

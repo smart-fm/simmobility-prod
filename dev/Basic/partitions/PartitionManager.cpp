@@ -30,16 +30,12 @@
 
 namespace mpi = boost::mpi;
 
-namespace sim_mob {
+using std::string;
+using namespace sim_mob;
 
-PartitionManager PartitionManager::instance_;
-int PartitionManager::count = 0;
 
-PartitionManager& PartitionManager::instance()
-{
-	return instance_;
-}
-
+//Use an anonymous namespace for private, helper functions.
+namespace {
 void initMPIConfigurationParameters(PartitionConfigure* partition_config, SimulationScenario* scenario)
 {
 	partition_config->adaptive_load_balance = false;
@@ -62,54 +58,36 @@ void initMPIConfigurationParameters(PartitionConfigure* partition_config, Simula
 
 void changeInputOutputFile(int argc, char* argv[], int partition_id)
 {
-	std::string input = argv[1];
-	std::string id = MathUtil::getStringFromNumber(partition_id + 1);
+	string input = argv[1];
+	string id = MathUtil::getStringFromNumber(partition_id + 1);
 	input += "_";
 	input += id;
 	input += ".xml";
 	argv[1] = (char*) input.c_str();
 
-	std::string output = argv[2];
+	string output = argv[2];
 	output += id;
 	output += ".txt";
 	argv[2] = (char*) output.c_str();
 }
+} //End anon namespace
 
-std::string PartitionManager::startMPIEnvironment(int argc, char* argv[], bool config_adaptive_load_balance,
+
+
+PartitionManager sim_mob::PartitionManager::instance_;
+int sim_mob::PartitionManager::count = 0;
+
+PartitionManager& sim_mob::PartitionManager::instance()
+{
+	return instance_;
+}
+
+
+string sim_mob::PartitionManager::startMPIEnvironment(int argc, char* argv[], bool config_adaptive_load_balance,
 		bool config_measure_cost)
 {
-	//start MPI
-	//	MPI_Init(&argc, &argv);
-
-	//NOTE: We actually need MPI_THREAD_FUNNELED. According to the OpenMPI docs,
-	//      even though OpenMPI returns MPI_THREAD_SINGLE, it can be used as
-	//      MPI_THREAD_FUNNELED. Note that OpenMPI support for MPI_THREAD_MULTIPLE
-	//      is incredibly slow (and I doubt we need _MULTIPLE anyway). ~Seth
-//	int pmode;
-//	MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &pmode);
-
 	//Let is try on MPI_Init firstly. ~xuyan
 	MPI_Init(&argc, &argv);
-
-//	if (pmode != MPI_THREAD_MULTIPLE)
-//	{
-//		std::cout << "Thread Multiple not supported by the MPI implementation" << std::endl;
-//		std::cout <<"Supported level is: ";
-//		if (pmode==MPI_THREAD_SINGLE) {
-//			std::cout <<"Single";
-//		} else if (pmode==MPI_THREAD_FUNNELED) {
-//			std::cout <<"Funneled";
-//		} else if (pmode==MPI_THREAD_SERIALIZED) {
-//			std::cout <<"Serialized";
-//		} else if (pmode==MPI_THREAD_MULTIPLE) {
-//			std::cout <<"Multiple (Unexpected)";
-//		} else {
-//			std::cout <<"<Unknown: " <<pmode <<">";
-//		}
-//		std::cout <<std::endl;
-//		//MPI_Abort(MPI_COMM_WORLD, -1);
-//		//return "MPI start failed";
-//	}
 
 	mpi::communicator world;
 	int computer_size = world.size();
@@ -121,23 +99,13 @@ std::string PartitionManager::startMPIEnvironment(int argc, char* argv[], bool c
 	}
 	else if (computer_size == 1)
 	{
-		std::string input = argv[1];
+		string input = argv[1];
 		input += ".xml";
 		argv[1] = (char*) input.c_str();
-
-		//		ConfigParams& config = ConfigParams::GetInstance();
-		//		config.is_run_on_many_computers = false;
-		//for internal use
-		//		is_on_many_computers = false;
 
 		MPI_Finalize();
 		return "";
 	}
-	//working to remove this constrains
-//	else if (computer_size > 2)
-//	{
-//		return "Sorry, currently can not support more than 2 computers, because the configure file is hard coded.";
-//	}
 
 	std::cout << "MPI is started: " << world.size() << std::endl;
 	/*
@@ -159,32 +127,23 @@ std::string PartitionManager::startMPIEnvironment(int argc, char* argv[], bool c
 	return "";
 }
 
-void PartitionManager::setEntityWorkGroup(sim_mob::WorkGroup* entity_group,
-		sim_mob::WorkGroup* singal_group)
+void sim_mob::PartitionManager::setEntityWorkGroup(WorkGroup* entity_group,
+		WorkGroup* singal_group)
 {
-	//	if (is_on_many_computers == false)
-	//		return;
-
 	processor.setEntityWorkGroup(entity_group, singal_group);
 }
 
-void PartitionManager::initBoundaryTrafficItems()
+void sim_mob::PartitionManager::initBoundaryTrafficItems()
 {
-	//	if (is_on_many_computers == false)
-	//		return;
-
 	processor.initBoundaryTrafficItems();
 }
 
-void PartitionManager::loadInBoundarySegment(std::string boundary_segment_id, BoundarySegment* boundary)
+void sim_mob::PartitionManager::loadInBoundarySegment(string boundary_segment_id, BoundarySegment* boundary)
 {
-	//	if (is_on_many_computers == false)
-	//		return;
-
 	processor.loadInBoundarySegment(boundary_segment_id, boundary);
 }
 
-void PartitionManager::updateRandomSeed()
+void sim_mob::PartitionManager::updateRandomSeed()
 {
 	std::vector<Entity*> all_agents = Agent::all_agents;
 	//
@@ -218,46 +177,35 @@ void PartitionManager::updateRandomSeed()
 	}
 }
 
-std::string PartitionManager::crossPCboundaryProcess(int time_step)
+string sim_mob::PartitionManager::crossPCboundaryProcess(int time_step)
 {
-	//	if (is_on_many_computers == false)
-	//		return "";
-
 	return processor.boundaryProcessing(time_step);
 }
 
-std::string PartitionManager::crossPCBarrier()
+string sim_mob::PartitionManager::crossPCBarrier()
 {
-	//	if (is_on_many_computers == false)
-	//		return "";
-
 	mpi::communicator world;
 	world.barrier();
 
 	return "";
 }
 
-std::string PartitionManager::outputAllEntities(frame_t time_step)
+string sim_mob::PartitionManager::outputAllEntities(frame_t time_step)
 {
 	return processor.outputAllEntities(time_step);
 }
 
-std::string PartitionManager::stopMPIEnvironment()
+string sim_mob::PartitionManager::stopMPIEnvironment()
 {
-	//	if (is_on_many_computers == false)
-	//		return "";
-
 	MPI_Finalize();
 	std::cout << "Finished" << std::endl;
 	return ""; //processor.releaseMPIEnvironment();
 }
 
-std::string PartitionManager::adaptiveLoadBalance()
+string sim_mob::PartitionManager::adaptiveLoadBalance()
 {
 	//do nothing now
-
 	return "";
-}
 }
 
 #endif

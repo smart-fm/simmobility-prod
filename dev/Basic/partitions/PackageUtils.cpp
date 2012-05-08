@@ -10,17 +10,18 @@
 #include "util/DynamicVector.hpp"
 #include "geospatial/Point2D.hpp"
 
-namespace sim_mob {
-std::string PackageUtils::getPackageData() {
+using namespace sim_mob;
+
+std::string sim_mob::PackageUtils::getPackageData() {
 	return buffer.str().data();
 }
 
-PackageUtils::PackageUtils()
+sim_mob::PackageUtils::PackageUtils()
 {
 	package = new boost::archive::text_oarchive(buffer);
 }
 
-PackageUtils::~PackageUtils()
+sim_mob::PackageUtils::~PackageUtils()
 {
 	buffer.clear();
 	if (package) {
@@ -29,7 +30,7 @@ PackageUtils::~PackageUtils()
 	}
 }
 
-void PackageUtils::packFixedDelayedDPoint(const FixedDelayed<DPoint*>& one_delay) {
+void sim_mob::PackageUtils::packFixedDelayedDPoint(const FixedDelayed<DPoint*>& one_delay) {
 	//(*package) & (one_delay.delayMS);
 	(*package) & (one_delay.reclaimPtrs);
 
@@ -47,7 +48,7 @@ void PackageUtils::packFixedDelayedDPoint(const FixedDelayed<DPoint*>& one_delay
 	}
 }
 
-void PackageUtils::packFixedDelayedDouble(const FixedDelayed<double>& one_delay) {
+void sim_mob::PackageUtils::packFixedDelayedDouble(const FixedDelayed<double>& one_delay) {
 	//(*package) & (one_delay.delayMS);
 	(*package) & (one_delay.reclaimPtrs);
 
@@ -66,7 +67,7 @@ void PackageUtils::packFixedDelayedDouble(const FixedDelayed<double>& one_delay)
 	}
 }
 
-void PackageUtils::packFixedDelayedInt(const FixedDelayed<int>& one_delay) {
+void sim_mob::PackageUtils::packFixedDelayedInt(const FixedDelayed<int>& one_delay) {
 	//(*package) & (one_delay.delayMS);
 	(*package) & (one_delay.reclaimPtrs);
 
@@ -84,37 +85,36 @@ void PackageUtils::packFixedDelayedInt(const FixedDelayed<int>& one_delay) {
 	}
 }
 
-void PackageUtils::packPoint2D(const Point2D& one_point) {
+void sim_mob::PackageUtils::packPoint2D(const Point2D& one_point) {
 	(*package) & (one_point);
 }
 
-void PackageUtils::packDailyTime(const DailyTime& time)
+void sim_mob::PackageUtils::packDailyTime(const DailyTime& time)
 {
 	(*package) & time;
 }
 
-void PackageUtils::packDPoint(const DPoint& point)
+void sim_mob::PackageUtils::packDPoint(const DPoint& point)
 {
 	(*package) & point;
 }
 
-void PackageUtils::packDynamicVector(const DynamicVector& vector)
+void sim_mob::PackageUtils::packDynamicVector(const DynamicVector& vector)
 {
 	(*package) & vector;
 }
 
-void PackageUtils::packBasicData(double value) {
+void sim_mob::PackageUtils::packBasicData(double value) {
 	double buffer = 0;
-	if (value != value)
+	if (value != value) {
 		(*package) & buffer;
-	else
+	} else {
 		(*package) & value;
+	}
 }
-void PackageUtils::operator<<(double value) {
+void sim_mob::PackageUtils::operator<<(double value) {
 	packBasicData(value);
 }
 
 
-
-}
 #endif

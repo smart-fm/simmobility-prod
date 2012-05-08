@@ -11,17 +11,35 @@
 #include "util/GeomHelpers.hpp"
 #include "util/OutputUtil.hpp"
 
-namespace sim_mob {
-void BoundarySegment::buildBoundaryBox(double boundary_length, double boundary_width) {
+using namespace sim_mob;
+
+
+//Use anonymous namespaces for private helper functions.
+namespace {
+void outputLine(Point2D& start_p, Point2D& end_p, std::string color)
+{
+	static int line_id = 100;
+
+#ifndef SIMMOB_DISABLE_OUTPUT
+	LogOut("(" << "\"CutLine\"," << "0," << line_id++ << "," << "{\"startPointX\":\"" << start_p.getX() << "\","
+			<< "\"startPointY\":\"" << start_p.getY() << "\"," << "\"endPointX\":\"" << end_p.getX() << "\","
+			<< "\"endPointY\":\"" << end_p.getY() << "\"," << "\"color\":\"" << color << "\"" << "})" << std::endl);
+#endif
+}
+} //End anonymous namespace
+
+
+void sim_mob::BoundarySegment::buildBoundaryBox(double boundary_length, double boundary_width)
+{
 	double down_offset = cutLineOffset + boundary_length / 100;
 	double up_offset = cutLineOffset - boundary_length / 100;
 
-	Point2D down_point = sim_mob::getMiddlePoint2D(&boundarySegment->getStart()->location,
+	Point2D down_point = getMiddlePoint2D(&boundarySegment->getStart()->location,
 			&boundarySegment->getEnd()->location, down_offset);
-	Point2D up_point = sim_mob::getMiddlePoint2D(&boundarySegment->getStart()->location,
+	Point2D up_point = getMiddlePoint2D(&boundarySegment->getStart()->location,
 			&boundarySegment->getEnd()->location, up_offset);
 
-	double length = sim_mob::dist(down_point, up_point);
+	double length = dist(down_point, up_point);
 	double ratio = boundary_width * 1.0 / length;
 
 	int x_dis = (int) ((down_point.getY() - up_point.getY()) * ratio);
@@ -51,17 +69,9 @@ void BoundarySegment::buildBoundaryBox(double boundary_length, double boundary_w
 	cut_line_to = middlePoint_2;
 }
 
-void outputLine(Point2D& start_p, Point2D& end_p, std::string color) {
-	static int line_id = 100;
 
-#ifndef SIMMOB_DISABLE_OUTPUT
-	LogOut("(" << "\"CutLine\"," << "0," << line_id++ << "," << "{\"startPointX\":\"" << start_p.getX() << "\","
-			<< "\"startPointY\":\"" << start_p.getY() << "\"," << "\"endPointX\":\"" << end_p.getX() << "\","
-			<< "\"endPointY\":\"" << end_p.getY() << "\"," << "\"color\":\"" << color << "\"" << "})" << std::endl);
-#endif
-}
-
-void BoundarySegment::output() {
+void sim_mob::BoundarySegment::output()
+{
 	if (bounary_box.size() < 3) {
 #ifndef SIMMOB_DISABLE_OUTPUT
 		LogOut("Error: Boundary box has < 3 points");
@@ -79,5 +89,5 @@ void BoundarySegment::output() {
 
 	outputLine(*(bounary_box.end() - 1), *(bounary_box.begin()), "blue");
 }
-}
+
 

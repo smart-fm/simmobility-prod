@@ -8,15 +8,15 @@
 #include "util/DailyTime.hpp"
 #include "geospatial/Point2D.hpp"
 
-namespace sim_mob {
+using namespace sim_mob;
 
-UnPackageUtils::UnPackageUtils(std::string data)
+sim_mob::UnPackageUtils::UnPackageUtils(std::string data)
 {
 	buffer << data;
 	package = new boost::archive::text_iarchive(buffer);
 }
 
-UnPackageUtils::~UnPackageUtils()
+sim_mob::UnPackageUtils::~UnPackageUtils()
 {
 	buffer.clear();
 	if (package) {
@@ -26,7 +26,7 @@ UnPackageUtils::~UnPackageUtils()
 }
 
 
-FixedDelayed<DPoint*>& UnPackageUtils::unpackFixedDelayedDPoint() const {
+FixedDelayed<DPoint*>& sim_mob::UnPackageUtils::unpackFixedDelayedDPoint() const {
 	int delayMS;
 	(*package) & delayMS;
 
@@ -55,7 +55,7 @@ FixedDelayed<DPoint*>& UnPackageUtils::unpackFixedDelayedDPoint() const {
 	return (*one_delay);
 }
 
-FixedDelayed<double>& UnPackageUtils::unpackFixedDelayedDouble() const {
+FixedDelayed<double>& sim_mob::UnPackageUtils::unpackFixedDelayedDouble() const {
 	int delayMS;
 	(*package) & delayMS;
 
@@ -83,7 +83,7 @@ FixedDelayed<double>& UnPackageUtils::unpackFixedDelayedDouble() const {
 	return (*one_delay);
 }
 
-FixedDelayed<int>& UnPackageUtils::unpackFixedDelayedInt() const {
+FixedDelayed<int>& sim_mob::UnPackageUtils::unpackFixedDelayedInt() const {
 	int delayMS;
 	(*package) & delayMS;
 
@@ -111,7 +111,7 @@ FixedDelayed<int>& UnPackageUtils::unpackFixedDelayedInt() const {
 	return (*one_delay);
 }
 
-Point2D* UnPackageUtils::unpackPoint2D() const {
+Point2D* sim_mob::UnPackageUtils::unpackPoint2D() const {
 	Point2D* one_point = new Point2D(0, 0);
 	(*package) & (*one_point);
 
@@ -119,19 +119,19 @@ Point2D* UnPackageUtils::unpackPoint2D() const {
 }
 
 
-void UnPackageUtils::unpackDailyTime(DailyTime& time) const {
+void sim_mob::UnPackageUtils::unpackDailyTime(DailyTime& time) const
+{
 	(*package) & time;
 }
 
-void UnPackageUtils::unpackDPoint(DPoint& point) const
+void sim_mob::UnPackageUtils::unpackDPoint(DPoint& point) const
 {
 	(*package) & (point);
 }
 
-void UnPackageUtils::unpackDynamicVector(DynamicVector& vector) const
+void sim_mob::UnPackageUtils::unpackDynamicVector(DynamicVector& vector) const
 {
 	(*package) & vector;
 }
 
-}
 #endif

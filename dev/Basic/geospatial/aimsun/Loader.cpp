@@ -400,8 +400,6 @@ void DatabaseLoader::LoadBoundarySegments()
 	std::string sql_str = "select * from get_boundary_segments_in_partition(" + sqlPara + ")";
 	soci::rowset<soci::row> rs = (sql_.prepare << sql_str);
 
-	//std::cout << "sql_str" << sql_str << std::endl;
-
 	for (soci::rowset<soci::row>::const_iterator it = rs.begin(); it != rs.end(); it++)
 	{
 		soci::row const& row = *it;
@@ -440,7 +438,6 @@ void DatabaseLoader::TransferBoundaryRoadSegment()
 		sim_mob::Point2D end_point(end_x, end_y);
 
 		(*it)->boundarySegment = sim_mob::getRoadSegmentBasedOnNodes(&start_point, &end_point);
-//		std::cout << " Has one partition segment! " << std::endl;
 		partitionImpl.loadInBoundarySegment((*it)->boundarySegment->getId(), (*it));
 	}
 }
@@ -464,8 +461,6 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	if (config.is_run_on_many_computers) {
 		LoadBoundarySegments();
 	}
-//#else
-//	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal"));
 #endif
 
 }

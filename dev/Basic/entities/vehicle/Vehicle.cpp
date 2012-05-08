@@ -223,20 +223,8 @@ double sim_mob::Vehicle::getAngle() const {
 		return 0; //Shouldn't matter.
 	}
 
-	//	LogOut("X1:" << fwdMovement.getCurrPolypoint().getX() <<"\n");
-	//	LogOut( "X2:" << fwdMovement.getNextPolypoint().getX()<<"\n" );
-	//	LogOut("X3:" << fwdMovement.getCurrPolypoint().getY()<<"\n" );
-	//	LogOut("X4:" << fwdMovement.getNextPolypoint().getY()<<"\n");
-
 	DynamicVector temp(fwdMovement.getCurrPolypoint().getX(), fwdMovement.getCurrPolypoint().getY(),
 			fwdMovement.getNextPolypoint().getX(), fwdMovement.getNextPolypoint().getY());
-
-	//	if(fwdMovement.getNextPolypoint().getX() < 1000)
-	//	{
-	//		std::cout << "------------------------" << std::endl;
-	//		std::cout << "X:" << fwdMovement.getNextPolypoint().getX() << std::endl;
-	//		std::cout << "Y:" << fwdMovement.getNextPolypoint().getY() << std::endl;
-	//	}
 
 	return temp.getAngle();
 }
@@ -298,66 +286,26 @@ bool sim_mob::Vehicle::isDone() const {
 	return fwdMovement.isDoneWithEntireRoute();
 }
 
-/*void sim_mob::Vehicle::newPolyline(sim_mob::Point2D firstPoint, sim_mob::Point2D secondPoint)
- {
- //Get a generic vector pointing in the magnitude of the current polyline
- DynamicVector currDir(0, 0,
- secondPoint.getX() - firstPoint.getX(),
- secondPoint.getY() - firstPoint.getY()
- );
-
- //Double check that we're not doing something silly.
- error_state = currDir.getMagnitude()==0;
- throw_if_error();
-
- //Sync velocity.
- repositionAndScale(velocity, currDir);
- repositionAndScale(velocity_lat, currDir);
- velocity_lat.flipLeft();
-
- //Sync acceleration
- repositionAndScale(accel, currDir);
-
- //Sync position
- position.moveToNewVect(DynamicVector(
- firstPoint.getX(), firstPoint.getY(),
- secondPoint.getX(), secondPoint.getY()
- ));
- }*/
-
-/*const DynamicVector& TEMP_retrieveFwdVelocityVector() {
- throw_if_error();
- return velocity;
- }*/
 
 #ifndef SIMMOB_DISABLE_MPI
 void sim_mob::Vehicle::pack(PackageUtils& package, Vehicle* one_vehicle) {
-//	package.packBasicData<double> (one_vehicle->length);
-//	package.packBasicData<double> (one_vehicle->width);
-//	ParitionDebugOutput::outputToConsole("11111111");
 	GeneralPathMover::pack(package, &(one_vehicle->fwdMovement));
 
-//	ParitionDebugOutput::outputToConsole("22222222");
 	package.packBasicData<double> (one_vehicle->latMovement);
 	package.packBasicData<double> (one_vehicle->fwdVelocity);
 	package.packBasicData<double> (one_vehicle->latVelocity);
 	package.packBasicData<double> (one_vehicle->fwdAccel);
 
-//	ParitionDebugOutput::outputToConsole("33333333");
 	package.packBasicData<double> (one_vehicle->posInIntersection.x);
 	package.packBasicData<double> (one_vehicle->posInIntersection.y);
 
-//	ParitionDebugOutput::outputToConsole("444444444");
 	package.packBasicData<bool> (one_vehicle->error_state);
 }
 
 Vehicle* sim_mob::Vehicle::unpack(UnPackageUtils& unpackage) {
 	Vehicle* one_vehicle = new Vehicle();
-//	one_vehicle->length = unpackage.unpackBasicData<double> ();
-//	one_vehicle->width = unpackage.unpackBasicData<double> ();
 
 	GeneralPathMover::unpack(unpackage, &(one_vehicle->fwdMovement));
-//	one_vehicle->fwdMovement = GeneralPathMover::unpack(unpackage);
 
 	one_vehicle->latMovement = unpackage.unpackBasicData<double> ();
 	one_vehicle->fwdVelocity = unpackage.unpackBasicData<double> ();

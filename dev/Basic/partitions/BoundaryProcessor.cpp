@@ -76,8 +76,8 @@ bool isOneagentInPolygon(int location_x, int location_y, BoundarySegment* bounda
 	{
 	case CGAL::ON_BOUNDED_SIDE:
 		return true;
+
 	case CGAL::ON_BOUNDARY:
-		return false;
 	case CGAL::ON_UNBOUNDED_SIDE:
 		return false;
 	}

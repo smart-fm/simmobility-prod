@@ -1,6 +1,10 @@
 #Required version of cmake
 cmake_minimum_required (VERSION 2.6)
-cmake_policy(SET CMP0017 NEW)
+
+#Set our module override policy:
+IF (POLICY CMP0017)
+  cmake_policy(SET CMP0017 NEW)
+ENDIF (POLICY CMP0017)
 
 #Project name. Used to tag resources in cmake. 
 project (Basic)

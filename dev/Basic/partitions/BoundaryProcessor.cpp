@@ -88,10 +88,11 @@ bool isOneagentInPolygon(int location_x, int location_y, BoundarySegment* bounda
 void outputLineT(Point2D& start_p, Point2D& end_p, std::string color)
 {
 	static int line_id = 100;
-	if (line_id < 105)
+	if (line_id < 105) {
 		LogOut("(" << "\"CutLine\"," << "0," << line_id++ << "," << "{\"startPointX\":\"" << start_p.getX() << "\","
 				<< "\"startPointY\":\"" << start_p.getY() << "\"," << "\"endPointX\":\"" << end_p.getX() << "\","
 				<< "\"endPointY\":\"" << end_p.getY() << "\"," << "\"color\":\"" << color << "\"" << "})" << std::endl);
+	}
 }
 
 const Signal* findOneSignalByNode(const Point2D& point)

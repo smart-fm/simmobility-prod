@@ -40,47 +40,32 @@ private:
 	int xPos;
 	int yPos;
 
-	//add by xuyan
 public:
-	friend class boost::serialization::access;
 	template<class Archive>
-	void serialize(Archive & ar, const unsigned int version)
-	{
-		ar & xPos;
-		ar & yPos;
-	}
+	void serialize(Archive & ar, const unsigned int version);
 
-public:
-	bool nearToPoint(Point2D another, double distance) const
-	{
-		double x_dis = xPos - another.getX();
-		double y_dis = yPos - another.getY();
+	friend class boost::serialization::access;
 
-		if(x_dis < distance && x_dis > -distance)
-			if(y_dis < distance && y_dis > -distance)
-				return true;
-		return false;
-	}
+	bool nearToPoint(Point2D another, double distance) const;
+
 };
 
-inline std::ostream&
-operator<<(std::ostream& stream, Point2D const & point)
-{
-    stream << "(" << point.getX() << ", " << point.getY() << ")";
-    return stream;
-}
 
-inline bool
-operator==(Point2D const & p1, Point2D const & p2)
-{
-    return (p1.getX() == p2.getX()) && (p1.getY() == p2.getY());
-}
-inline bool
-operator!=(Point2D const & p1, Point2D const & p2)
-{
-    return !(p1 == p2);
-}
+//Non-member output and comparison functions
+//NOTE: These used to be inline, but << doesn't need it (console output is slow anyway)
+//      and == and != can be made into inline member functions if this is actually required.
+std::ostream& operator<<(std::ostream& stream, Point2D const & point);
+bool operator==(Point2D const & p1, Point2D const & p2);
+bool operator!=(Point2D const & p1, Point2D const & p2);
 
+
+// Template implementation.
+template<class Archive>
+void Point2D::serialize(Archive & ar, const unsigned int version)
+{
+	ar & xPos;
+	ar & yPos;
+}
 
 
 

@@ -130,17 +130,17 @@ std::string sim_mob::BoundaryProcessor::boundaryProcessing(int time_step)
 	int neighbor_size = neighbor_ips.size();
 	BoundaryProcessingPackage sendout_package[neighbor_size];
 
-	int index = -1;
+	size_t index = 0;
 	std::set<int>::iterator itr_neighbor = neighbor_ips.begin();
 	for (; itr_neighbor != neighbor_ips.end(); itr_neighbor++)
 	{
-		index++;
-		sendout_package[index].from_id = partition_config->partition_id;
-		sendout_package[index].to_id = (*itr_neighbor);
+		BoundaryProcessingPackage& currPackage = sendout_package[index++];
+		currPackage.from_id = partition_config->partition_id;
+		currPackage.to_id = (*itr_neighbor);
 
-		sendout_package[index].boundary_signals.clear();
-		sendout_package[index].cross_persons.clear();
-		sendout_package[index].feedback_persons.clear();
+		currPackage.boundary_signals.clear();
+		currPackage.cross_persons.clear();
+		currPackage.feedback_persons.clear();
 	}
 
 	checkBoundaryAgents(sendout_package);
@@ -153,22 +153,22 @@ std::string sim_mob::BoundaryProcessor::boundaryProcessing(int time_step)
 
 	//ready to receive
 	std::set<int>::iterator itr_upstream = neighbor_ips.begin();
-	index = -1;
+	index = 0;
 	for (; itr_upstream != neighbor_ips.end(); itr_upstream++)
 	{
-		index++;
 		int upstream_id = (*itr_upstream);
 		recvs[index] = world.irecv(upstream_id, (time_step) % 99 + 1, all_received_package_data[index]);
+		index++;
 	}
 
 	//ready to send
 	itr_neighbor = neighbor_ips.begin();
-	index = -1;
+	index = 0;
 	for (; itr_neighbor != neighbor_ips.end(); itr_neighbor++)
 	{
-		index++;
 		std::string data = getDataInPackage(sendout_package[index]);
 		sends[index] = world.isend(sendout_package[index].to_id, (time_step) % 99 + 1, data);
+		index = 0;
 	}
 
 	//waiting for the end of sending and recving

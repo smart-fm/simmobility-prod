@@ -694,8 +694,7 @@ class Wanderlust:
             lane = self.create_lane(stop_line.side_walk_edges[0], stop_line.side_walk_edges[1])
             stop_line.lanes.append(lane)
             for i in range(len(stop_line.lane_edges) - 1):
-                #if i == 0 or i == len(stop_line.lane_edges) - 2:
-                if i == len(stop_line.lane_edges) - 2:
+                if i == 0:
                     lane = self.create_lane(stop_line.lane_edges[i+1], stop_line.lane_edges[i])
                 else:
                     lane = self.create_lane(stop_line.lane_edges[i], stop_line.lane_edges[i+1])
@@ -706,13 +705,22 @@ class Wanderlust:
 
     def create_lane(self, edge1, edge2):
         line = list()
-        for point in edge1.polyline:
-            for i in range(len(edge2.polyline) - 1):
-                p1 = edge2.polyline[i]
-                p2 = edge2.polyline[i + 1]
-                p, distance = nearest_point(p1, point, p2)
-                if is_between(p, p1, p2) or p.is_almost_equal(p1) or p.is_almost_equal(p2):
-                    line.append(Point((point.x + p.x) / 2.0, (point.y + p.y) / 2.0))
+        for p in edge1.polyline:
+            j = 0
+            d = 999999
+            for i, p2 in enumerate(edge2.polyline):
+                dd = p.distance(p2)
+                if d > dd:
+                    d = dd
+                    j = i
+            if j == 0:
+                p1 = edge2.polyline[0]
+                p2 = edge2.polyline[1]
+            else:
+                p1 = edge2.polyline[j]
+                p2 = edge2.polyline[j - 1]
+            n, d = nearest_point(p1, p, p2)
+            line.append(Point((n.x + p.x) / 2.0, (n.y + p.y) / 2.0))
         p = line[0]
         path = QtGui.QPainterPath(QtCore.QPointF(p.x, p.y))
         for p in line[1:]:

@@ -24,7 +24,7 @@ class Signal;
  *
  * For each loop detector, the entity counts the number of vehicles crossing the detector and
  * the total amount of time that no vehicle is hovering over the detector.  The time attribute
- * is known as the total "space-time"(T in the memurandum).
+ * is known as the total "space-time".
  *
  * The LoopDetectorEntity expects its Signal object to reset the vehicle count and space-time
  * attributes periodically via the reset() method.
@@ -89,7 +89,7 @@ struct LoopDetectorEntity::CountAndTimePair
      * The number of vehicles that has crossed the loop detector during the cycle since
      * the last call to reset().
      */
-    std::size_t vehicleCount;
+    size_t vehicleCount;
 
     /**
      * The total amount of time in milli-seconds during which no vehicle is hovering over the

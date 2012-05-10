@@ -47,6 +47,8 @@ public:
     static Signal const & signalAt(Node const & node, const MutexStrategy& mtxStrat);
     void addSignalSite(centimeter_t xpos, centimeter_t ypos,std::string const & typeCode, double bearing);
     void findIncomingLanes();
+    void findSignalLinks();
+    const std::vector<sim_mob::Link const *> & getSignalLinks() const;
     LoopDetectorEntity const & loopDetector() const { return loopDetector_; }
 
 
@@ -90,7 +92,7 @@ public:
 
 	/*--------The cause of this Module----------*/
 	struct VehicleTrafficColors getDriverLight(Lane const & lane) const;
-    TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const;
+    TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const ;
 	TrafficColor getPedestrianLight(Crossing const & crossing) const;
 
 
@@ -106,6 +108,8 @@ private:
     sim_mob::Node const & node_;
     //todo check whether we realy need it? (this container and the function filling it)
     std::vector<sim_mob::Lane const *>  IncomingLanes_;//The data for this vector is generated
+    //used (probabely in createloopdetectors()
+    std::vector<sim_mob::Link const *>  SignalLinks;//The data for this vector is generated
 
     /*-------------------------------------------------------------------------
      * -------------------split plan Indicators--------------------------------
@@ -140,6 +144,7 @@ private:
 	//previous,current and next cycle length
 	double currCL;
 	int currPhaseID;
+	sim_mob::Phase currPhase;
 
 	bool isNewCycle; //indicates whether operations pertaining to a new cycle should be performed
 

@@ -28,7 +28,6 @@ namespace sim_mob
  */
 class RoadItem {
 public:
-	RoadItem() {}
 	virtual ~RoadItem() {} //A virtual destructor allows this type to be polymorphic
 
 	const sim_mob::Point2D& getStart() { return start; }

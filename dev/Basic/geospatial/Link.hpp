@@ -63,6 +63,7 @@ public:
 	///The name of the particular segment. E.g., "Main Street 01".
 	///Useful for debugging by location. May be auto-numbered.
 	std::string getSegmentName(const sim_mob::RoadSegment* segment);
+	const std::set<sim_mob::RoadSegment*> & getUniqueSegments();
 
 #ifndef SIMMOB_DISABLE_MPI
 	///The identification of Link is packed using PackageUtils;

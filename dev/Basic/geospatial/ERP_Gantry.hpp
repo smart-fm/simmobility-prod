@@ -14,7 +14,7 @@ namespace sim_mob
  */
 class ERP_Gantry : public sim_mob::RoadItem {
 public:
-	ERP_Gantry():RoadItem(){};
+	ERP_Gantry() : RoatItem() {}
 
 
 private:

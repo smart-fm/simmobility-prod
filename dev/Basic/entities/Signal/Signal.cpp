@@ -67,11 +67,12 @@ Signal::signalAt(Node const & node, const MutexStrategy& mtxStrat) {
 
 Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id)
   : Agent(mtxStrat, id)
-  , node_(node)
-  , loopDetector_(*this, mtxStrat)
+	, loopDetector_(*this, mtxStrat)
+	, node_(node)
 {
 
 	findIncomingLanes();//what was it used for? dont remember
+	findSignalLinks();
 	ConfigParams& config = ConfigParams::GetInstance();
 	signalAlgorithm = config.signalAlgorithm;
 	Density.resize(IncomingLanes_.size(), 0);//todo wrong ! Density has changed to contain phase DS
@@ -122,6 +123,29 @@ void Signal::findIncomingLanes()
 		IncomingLanes_.reserve(IncomingLanes_.size() + (*it)->getLanes().size());
 		IncomingLanes_.insert(IncomingLanes_.end(), (*it)->getLanes().begin(), (*it)->getLanes().end());
 	}
+}
+
+/*
+ * this class needs to access lanes coming to it, mostly to calculate DS
+ * It is not feasible to extract the lanes from every traffic signal every time
+ * we need to calculate DS. Rather, we book-keep  the lane information.
+ * It is a trade-off between process and memory.
+ * In order to save memory, we only keep the record of Lane pointers-vahid
+ */
+void Signal::findSignalLinks()
+{
+	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&node_);
+	if(! mNode) return ;
+	const std::set<sim_mob::RoadSegment*>& rs = mNode->getRoadSegments();
+	for (std::set<sim_mob::RoadSegment*>::const_iterator it = rs.begin(); it!= rs.end(); it++) {
+		SignalLinks.push_back((*it)->getLink());
+//		SignalLinks.reserve(SignalLinks.size() + (*it)->getLink);
+//		SignalLinks.insert(SignalLinks.end(), (*it)->getLanes().begin(), (*it)->getLanes().end());
+	}
+}
+const std::vector<sim_mob::Link const *> & Signal::getSignalLinks() const
+{
+	return SignalLinks;
 }
 
 //initialize SplitPlan
@@ -211,10 +235,9 @@ double Signal::computeDS() {
 	{
 		maxPhaseDS = 0;
 		double total_g = (*p_it).computeTotalG();//todo: I guess we can avoid calling this function EVERY time by adding an extra container at split plan level.(mapped to percentage container)
-		std::vector<sim_mob::links_map> & links = (*p_it).LinksMap();//just for simplicity
-		std::vector<sim_mob::links_map>::iterator link_it = links.begin();
-		for (; link_it != links.end(); link_it++) {//Loop2===>link
-			std::set<sim_mob::RoadSegment*> segments = (*link_it).LinkFrom->uniqueSegments;
+		links_map_iterator link_it = (*p_it).LinkFrom_begin();
+		for (; link_it != (*p_it).LinkFrom_end(); link_it++) {//Loop2===>link
+			std::set<sim_mob::RoadSegment*> segments = (*link_it).first->getUniqueSegments();//optimization: use either fwd or bed segments
 			std::set<sim_mob::RoadSegment*>::iterator seg_it =	segments.begin();
 			for (; seg_it != segments.end(); seg_it++) {//Loop3===>road segment
 				//discard the segments that don't end here(coz those who don't end here, don't cross the intersection neither)
@@ -406,115 +429,119 @@ std::string mismatchError(char const * const func_name, Signal const & signal, R
  * this is done based on the lan->rs->link he is in.
  * He will get three colors for three options of heading directions(left, forward,right)
  */
-TrafficColor Signal::getDriverLight(Lane const & lane) const {
-	RoadSegment const * road = lane.getRoadSegment();
-	Link const * link = road->getLink();
-	//todo check if this link is listed in the links associated with the currSplitPlan.phases.links
-	std::set<sim_mob::Link *>::iterator it=currPhase.links.find(link);
-	if(it == currPhase.links.end()) {
-		throw std::runtime_error(mismatchError("Signal::getDriverLight(lane)", *this, *road).c_str());
-	}
-	std::map<sim_mob::Link *, struct VehicleTrafficColors>::iter = currPhase.links_colors.find(link);
-	return iter->second;
-}
+//TrafficColor Signal::getDriverLight(Lane const & lane) const {
+//	RoadSegment const * road = lane.getRoadSegment();
+//	Link const * link = road->getLink();
+//	//todo check if this link is listed in the links associated with the currSplitPlan.phases.links
+//	std::set<sim_mob::Link *>::iterator it=currPhase.links.find(link);
+//	if(it == currPhase.links.end()) {
+//		throw std::runtime_error(mismatchError("Signal::getDriverLight(lane)", *this, *road).c_str());
+//	}
+//	std::map<sim_mob::Link *, struct VehicleTrafficColors>::iter = currPhase.links_colors.find(link);
+//	return iter->second;
+//}
 
 TrafficColor Signal::getDriverLight(Lane const & fromLane, Lane const & toLane) const {
 	RoadSegment const * fromRoad = fromLane.getRoadSegment();
 	Link const * fromLink = fromRoad->getLink();
-	std::map<Link const *, std::size_t>::const_iterator iter = links_map_.find(fromLink);
-	if (iter == links_map_.end()) {
-		throw std::runtime_error(mismatchError("Signal::getDriverLight(fromLane, toLane)", *this, *fromRoad).c_str());
-	}
-	std::size_t fromIndex = iter->second;
-
-	RoadSegment const * toRoad = toLane.getRoadSegment();
-	Link const * toLink = toRoad->getLink();
-	iter = links_map_.find(toLink);
-	if (iter == links_map_.end()) {
-		throw std::runtime_error(mismatchError("Signal::getDriverLight(fromLane, toLane)", *this, *toRoad).c_str());
-	}
-	std::size_t toIndex = iter->second;
-
-	// When links_map was populated in setupIndexMaps(), the links were numbered in anti-clockwise
-	// direction.  The following switches are based on this fact.
-	VehicleTrafficColors colors = getDriverLight(fromLane);
-	if (fromIndex > toIndex) {
-		int diff = fromIndex - toIndex;
-		switch (diff) {
-		case 0:
-			return Red; // U-turn is not supported currently.
-		case 1:
-			return colors.left;
-		case 2:
-			return colors.forward;
-		case 3:
-			return colors.right;
-		default:
-			return Red;
-		}
-	} else {
-		int diff = toIndex - fromIndex;
-		switch (diff) {
-		case 0:
-			return Red; // U-turn is not supported currently.
-		case 1:
-			return colors.right;
-		case 2:
-			return colors.forward;
-		case 3:
-			return colors.left;
-		default:
-			return Red;
-		}
-	}
-
-	return Red;
+	//if the link is not listed in the current phase, just return red
+	plan_.getPhases();
+//	links_map_equal_range linkTo_Iteration_Pair = plan_.getPhases().at(currPhaseID).getLinkTos(fromLink);
+//	std::map<Link const *, std::size_t>::const_iterator iter = links_map_.find(fromLink);
+//	if (iter == links_map_.end()) {
+//		throw std::runtime_error(mismatchError("Signal::getDriverLight(fromLane, toLane)", *this, *fromRoad).c_str());
+//	}
+//	std::size_t fromIndex = iter->second;
+//
+//	RoadSegment const * toRoad = toLane.getRoadSegment();
+//	Link const * toLink = toRoad->getLink();
+//	iter = links_map_.find(toLink);
+//	if (iter == links_map_.end()) {
+//		throw std::runtime_error(mismatchError("Signal::getDriverLight(fromLane, toLane)", *this, *toRoad).c_str());
+//	}
+//	std::size_t toIndex = iter->second;
+//
+//	// When links_map was populated in setupIndexMaps(), the links were numbered in anti-clockwise
+//	// direction.  The following switches are based on this fact.
+//	VehicleTrafficColors colors = getDriverLight(fromLane);
+//	if (fromIndex > toIndex) {
+//		int diff = fromIndex - toIndex;
+//		switch (diff) {
+//		case 0:
+//			return Red; // U-turn is not supported currently.
+//		case 1:
+//			return colors.left;
+//		case 2:
+//			return colors.forward;
+//		case 3:
+//			return colors.right;
+//		default:
+//			return Red;
+//		}
+//	} else {
+//		int diff = toIndex - fromIndex;
+//		switch (diff) {
+//		case 0:
+//			return Red; // U-turn is not supported currently.
+//		case 1:
+//			return colors.right;
+//		case 2:
+//			return colors.forward;
+//		case 3:
+//			return colors.left;
+//		default:
+//			return Red;
+//		}
+//	}
+//
+//	return Red;
 }
 //todo talk to xuyan or seth on who should decide the format
 void Signal::outputToVisualizer(frame_t frameNumber) {
-#ifndef SIMMOB_DISABLE_OUTPUT
-	std::stringstream logout;
-	logout << "(\"Signal\"," << frameNumber << "," << this << ",{\"va\":\"";
-	for (int i = 0; i < 3; i++) {
-		logout << TC_for_Driver[0][i];
-		if (i == 2) {
-			logout << "\",";
-		} else {
-			logout << ",";
-		}
-	}
-	logout << "\"vb\":\"";
-	for (int i = 0; i < 3; i++) {
-		logout << TC_for_Driver[1][i];
-		if (i == 2) {
-			logout << "\",";
-		} else {
-			logout << ",";
-		}
-	}
-	logout << "\"vc\":\"";
-	for (int i = 0; i < 3; i++) {
-		logout << TC_for_Driver[2][i];
-		if (i == 2) {
-			logout << "\",";
-		} else {
-			logout << ",";
-		}
-	}
-	logout << "\"vd\":\"";
-	for (int i = 0; i < 3; i++) {
-		logout << TC_for_Driver[3][i];
-		if (i == 2) {
-			logout << "\",";
-		} else {
-			logout << ",";
-		}
-	}
-
-	logout << "\"pa\":\"" << TC_for_Pedestrian[0] << "\",";
-	logout << "\"pb\":\"" << TC_for_Pedestrian[1] << "\",";
-	logout << "\"pc\":\"" << TC_for_Pedestrian[2] << "\",";
-	logout << "\"pd\":\"" << TC_for_Pedestrian[3] << "\"})" << std::endl;
-	LogOut(logout.str());
-#endif
+//#ifndef SIMMOB_DISABLE_OUTPUT
+//	std::stringstream logout;
+//	logout << "(\"Signal\"," << frameNumber << "," << this << ",{\"va\":\"";
+//	for (int i = 0; i < 3; i++) {
+//		logout << TC_for_Driver[0][i];
+//		if (i == 2) {
+//			logout << "\",";
+//		} else {
+//			logout << ",";
+//		}
+//	}
+//	logout << "\"vb\":\"";
+//	for (int i = 0; i < 3; i++) {
+//		logout << TC_for_Driver[1][i];
+//		if (i == 2) {
+//			logout << "\",";
+//		} else {
+//			logout << ",";
+//		}
+//	}
+//	logout << "\"vc\":\"";
+//	for (int i = 0; i < 3; i++) {
+//		logout << TC_for_Driver[2][i];
+//		if (i == 2) {
+//			logout << "\",";
+//		} else {
+//			logout << ",";
+//		}
+//	}
+//	logout << "\"vd\":\"";
+//	for (int i = 0; i < 3; i++) {
+//		logout << TC_for_Driver[3][i];
+//		if (i == 2) {
+//			logout << "\",";
+//		} else {
+//			logout << ",";
+//		}
+//	}
+//
+//	logout << "\"pa\":\"" << TC_for_Pedestrian[0] << "\",";
+//	logout << "\"pb\":\"" << TC_for_Pedestrian[1] << "\",";
+//	logout << "\"pc\":\"" << TC_for_Pedestrian[2] << "\",";
+//	logout << "\"pd\":\"" << TC_for_Pedestrian[3] << "\"})" << std::endl;
+//	LogOut(logout.str());
+//#endif
 }
+}//namespace

@@ -14,7 +14,7 @@ std::size_t SplitPlan::getOffset() {return offset;}
 
 void SplitPlan::setOffset(std::size_t o) {offset = o;}
 
-std::vector<sim_mob::Phase> SplitPlan::getPhases() { return phases_; }
+const std::vector<sim_mob::Phase> & SplitPlan::getPhases() const { return phases_; }
 
 void SplitPlan::addPhase(sim_mob::Phase phase) { phases_.push_back(phase); }
 
@@ -40,18 +40,18 @@ std::size_t SplitPlan::Vote(std::vector<double> maxproDS) {
 //calculate the projected DS and max Projected DS for each split plan (for internal use only, refer to section 4.3 table-4)
 void SplitPlan::calMaxProDS(std::vector<double>  &maxproDS,std::vector<double> DS)
 {
-	double max=0;
+	double maax=0;
 	vector<double> proDS(NOF_Phases, 0);
 	for(int i=0; i < NOF_Plans; i++)//traversing the columns of Phase::percentage matrix
 	{
-		for(int j=0, max = 0; j < NOF_Phases; j++)
+		for(int j=0, maax = 0; j < NOF_Phases; j++)
 		{
 			//calculate the projected DS for this plan
 			proDS[j] = DS[j] * percentages[currSplitPlanID][j]/percentages[i][j];
 			//then find the Maximum Projected DS for each Split plan(used in the next step)
-			if(max < proDS[j]) max = proDS[j];
+			if(maax < proDS[j]) maax = proDS[j];
 		}
-		maxproDS[i] = max;
+		maxproDS[i] = maax;
 	}
 }
 

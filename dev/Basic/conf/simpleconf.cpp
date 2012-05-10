@@ -26,6 +26,9 @@
 
 #include "entities/misc/TripChain.hpp"
 
+//add by xuyan
+#include "partitions/PartitionManager.hpp"
+
 using std::cout;
 using std::endl;
 using std::map;
@@ -38,6 +41,15 @@ using namespace sim_mob;
 
 namespace {
 
+//If any Agents specify manual IDs, we must ensure that:
+//   * the ID is < startingAutoAgentID
+//   * all manual IDs are unique.
+//We do this using the Agent constraints struct
+struct AgentConstraints {
+	int startingAutoAgentID;
+	std::set<unsigned int> manualAgentIDs;
+};
+
 
 //Helper sort
 bool agent_sort_by_id (Agent* i, Agent* j) { return (i->getId()<j->getId()); }
@@ -46,16 +58,28 @@ bool agent_sort_by_id (Agent* i, Agent* j) { return (i->getId()<j->getId()); }
 //Of the form xxxx,yyyyy, with optional signs
 bool readPoint(const string& str, Point2D& res)
 {
+	//Sanity check
+	if (str.length()<3) {
+		return false;
+	}
+
 	//Does it match the pattern?
 	size_t commaPos = str.find(',');
 	if (commaPos==string::npos) {
 		return false;
 	}
 
+	//Allow for an optional parentheses
+	size_t StrOffset = 0;
+	if (str[0]=='(' && str[str.length()-1]==')') {
+		if (str.length()<5) { return false; }
+		StrOffset = 1;
+	}
+
 	//Try to parse its substrings
 	int xPos, yPos;
-	std::istringstream(str.substr(0, commaPos)) >> xPos;
-	std::istringstream(str.substr(commaPos+1, string::npos)) >> yPos;
+	std::istringstream(str.substr(StrOffset, commaPos-StrOffset)) >> xPos;
+	std::istringstream(str.substr(commaPos+1, str.length()-(commaPos+1)-StrOffset)) >> yPos;
 
 	res = Point2D(xPos, yPos);
 	return true;
@@ -174,7 +198,9 @@ namespace {
   }
 
 } //End anon namespace
-bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
+
+//NOTE: "constraints" are not used here, but they could be (for manual ID specification).
+bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, AgentConstraints& constraints)
 {
 	ConfigParams& config = ConfigParams::GetInstance();
 	const vector<TripChain*>& tcs = ConfigParams::GetInstance().getTripChains();
@@ -220,10 +246,11 @@ namespace {
   }
 
 } //End anon namespace
-bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType)
+bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, AgentConstraints& constraints)
 {
 	//Quick check.
 	if (agentType!="pedestrian" && agentType!="driver" && agentType!="bus") {
+		std::cout <<"Unexpected agent type: " <<agentType <<endl;
 		return false;
 	}
 
@@ -255,6 +282,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 			std::string name = attr->NameTStr();
 			std::string value = attr->ValueStr();
 			if (name.empty() || value.empty()) {
+				std::cout <<"Empty name/value pair for attribute: " <<name <<endl;
 				return false;
 			}
 			int valueI=-1;
@@ -262,13 +290,27 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 				std::istringstream(value) >> valueI;
 			}
 
-			//For now, IDs are assigned automatically
+			//It is generally preferred to use the automatic IDs, but if a manual ID is specified we can still
+			//   deal with it.
 			if (name=="id") {
-				throw std::runtime_error("Error: Agents should no longer specify IDs in the config file.");
-			}
+				//Does the name meet our constraints?
+				if (valueI<0) {
+					throw std::runtime_error("Manual ID must not be negative");
+				}
+				if (valueI >= constraints.startingAutoAgentID) {
+					throw std::runtime_error("Manual ID specified which is greater than the specified starting automatic ID.");
+				}
+				unsigned int manualID = static_cast<unsigned int>(valueI);
+				if (constraints.manualAgentIDs.count(manualID)>0) {
+					std::stringstream msg;
+					msg <<"Duplicate manual ID: " <<manualID;
+					throw std::runtime_error(msg.str().c_str());
+				}
 
-			//Assign it.
-			if (name=="xPos") {
+				//Mark it, save it
+				constraints.manualAgentIDs.insert(manualID);
+				candidate.manualID = manualID;
+			} else if (name=="xPos") {
 				throw std::runtime_error("Old-style xPos not supported.");
 			} else if (name=="yPos") {
 				throw std::runtime_error("Old-style yPos not supported.");
@@ -280,6 +322,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 				}
 				candidate.origin = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);
 				if (!candidate.origin) {
+					std::cout <<"Error reading origin position for agent: " <<candidate.manualID <<endl;
 					std::cout <<"Couldn't find position: " <<pt.getX() <<"," <<pt.getY() <<"\n";
 					return false;
 				}
@@ -292,6 +335,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 				}
 				candidate.dest = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);
 				if (!candidate.dest) {
+					std::cout <<"Error reading destination position for agent: " <<candidate.manualID <<endl;
 					std::cout <<"Couldn't find position: " <<pt.getX() <<"," <<pt.getY() <<"\n";
 					return false;
 				}
@@ -306,6 +350,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 				candidate.rawAgent->specialStr = value;
 				checkBadPaths = false;
 			} else {
+				std::cout <<"Error: unknown attribute: " <<agentType <<" => " <<name <<endl;
 				return false;
 			}
 		}
@@ -783,10 +828,11 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		node->Attribute("value", &signalAlgorithm);
 	}
 
-
-
-
-
+#ifndef SIMMOB_DISABLE_MPI
+	//Save mpi parameters, not used when running on one-pc.
+	node = handle.FirstChild("partitioning_solution_id").ToElement();
+	int partition_solution_id = boost::lexical_cast<int>(node->Attribute("value")) ;
+#endif
 
 	//Save more granularities
 	handle = TiXmlHandle(&document);
@@ -809,6 +855,20 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		}
 	}
 	cout <<endl;
+
+
+	//Determine the first ID for automatically generated Agents
+	int startingAutoAgentID = 0; //(We'll need this later)
+	handle = TiXmlHandle(&document);
+	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("auto_id_start");
+	node = handle.ToElement();
+	if (node) {
+		if (node->Attribute("value", &startingAutoAgentID) && startingAutoAgentID>0) {
+			Agent::SetIncrementIDStartValue(startingAutoAgentID, true);
+			cout <<"Starting ID for automatic agents: " <<startingAutoAgentID <<endl;
+		}
+	}
+
 
 	//Buffering strategy (optional)
 	handle = TiXmlHandle(&document);
@@ -882,6 +942,15 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	config.reacTime_Gap = reacTime_Gap;
     	config.mutexStategy = mtStrat;
     	config.signalAlgorithm = signalAlgorithm;
+
+    	//add for MPI
+#ifndef SIMMOB_DISABLE_MPI
+    	sim_mob::PartitionManager& partitionImpl = sim_mob::PartitionManager::instance();
+    	std::cout << "partition_solution_id:" << partition_solution_id << std::endl;
+
+    	partitionImpl.partition_config->partition_solution_id = partition_solution_id;
+#endif
+
     }
 
 
@@ -940,24 +1009,29 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
 
 
+    //Maintain unique/non-colliding IDs.
+    AgentConstraints constraints;
+    constraints.startingAutoAgentID = startingAutoAgentID;
+
+
     //Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder
     for (vector<string>::iterator it=loadAgentOrder.begin(); it!=loadAgentOrder.end(); it++) {
     	if ((*it) == "database") {
     	    //Create an agent for each Trip Chain in the database.
-    	    if (!generateAgentsFromTripChain(active_agents, pending_agents)) {
+    	    if (!generateAgentsFromTripChain(active_agents, pending_agents, constraints)) {
     	    	return "Couldn't generate agents from trip chains.";
     	    }
     	    cout <<"Loaded Database Agents (from Trip Chains)." <<endl;
     	} else if ((*it) == "drivers") {
-    	    if (!loadXMLAgents(document, active_agents, pending_agents, "driver")) {
+    	    if (!loadXMLAgents(document, active_agents, pending_agents, "driver", constraints)) {
     	    	return	 "Couldn't load drivers";
     	    }
-    	    if (!loadXMLAgents(document, active_agents, pending_agents, "bus")) {
+    	    if (!loadXMLAgents(document, active_agents, pending_agents, "bus", constraints)) {
     	    	return	 "Couldn't load bus drivers";
     	    }
     		cout <<"Loaded Driver Agents (from config file)." <<endl;
     	} else if ((*it) == "pedestrians") {
-    		if (!loadXMLAgents(document, active_agents, pending_agents, "pedestrian")) {
+    		if (!loadXMLAgents(document, active_agents, pending_agents, "pedestrian", constraints)) {
     			return "Couldn't load pedestrians";
     		}
     		cout <<"Loaded Pedestrian Agents (from config file)." <<endl;

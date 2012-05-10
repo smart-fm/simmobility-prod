@@ -66,7 +66,7 @@ public:
 	void updatecurrSplitPlan();
 	std::size_t getOffset();
 	void setOffset(std::size_t);
-	std::vector<sim_mob::Phase> getPhases();
+	const std::vector<sim_mob::Phase> & getPhases() const;
 	std::vector< vector<double> > getPercentages();
 	void addPhase(sim_mob::Phase);
 	void Update(std::vector<double> DS);

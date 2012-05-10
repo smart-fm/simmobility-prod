@@ -23,8 +23,9 @@ using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
 
 sim_mob::Person::Person(const MutexStrategy& mtxStrat, int id) :
-	Agent(mtxStrat, id), prevRole(nullptr), currRole(nullptr), currTripChain(nullptr), firstFrameTick(true) {
-
+	Agent(mtxStrat, id), prevRole(nullptr), currRole(nullptr), currTripChain(nullptr), firstFrameTick(true)
+{
+	//throw 1;
 }
 
 sim_mob::Person::~Person() {
@@ -41,7 +42,7 @@ Person* sim_mob::Person::GeneratePersonFromPending(const PendingEntity& p)
 	}
 
 	//Create a person object.
-	Person* res = new Person(config.mutexStategy);
+	Person* res = new Person(config.mutexStategy, p.manualID);
 
 	//Set its mode.
 	if (p.type == ENTITY_DRIVER) {
@@ -63,6 +64,10 @@ Person* sim_mob::Person::GeneratePersonFromPending(const PendingEntity& p)
 }
 
 UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
+#ifdef SIMMOB_AGENT_UPDATE_PROFILE
+		profile.logAgentUpdateBegin(*this, frameNumber);
+#endif
+
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
 	try {
 		//First, we need to retrieve an UpdateParams subclass appropriate for this Agent.
@@ -134,6 +139,10 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 #endif
 		}
 	} catch (std::exception& ex) {
+#ifdef SIMMOB_AGENT_UPDATE_PROFILE
+		profile.logAgentException(*this, frameNumber, ex);
+#endif
+
 		if (ConfigParams::GetInstance().StrictAgentErrors()) {
 			//Provide diagnostics for all errors
 			std::stringstream msg;
@@ -156,6 +165,10 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 	if (isToBeRemoved()) {
 		retVal.status = UpdateStatus::RS_DONE;
 	}
+
+#ifdef SIMMOB_AGENT_UPDATE_PROFILE
+		profile.logAgentUpdateEnd(*this, frameNumber);
+#endif
 	return retVal;
 }
 

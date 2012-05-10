@@ -3,10 +3,11 @@
 #include "Color.hpp"
 #include<vector>
 #include<string>
+#include <map>
 //#include <boost/multi_index_container.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/sequenced_index.hpp>
+#include <boost/multi_index/random_access_index.hpp>
 #include <boost/multi_index/identity.hpp>
 #include <boost/multi_index/member.hpp>
 namespace sim_mob
@@ -16,22 +17,21 @@ class Crossing;
 class Link;
 
 //////////////some bundling ///////////////////
+using namespace ::boost;
+using namespace ::boost::multi_index;
+
 typedef struct
 {
 	sim_mob::Link *LinkTo;
-	sim_mob::Link *LinkFrom;
+//	sim_mob::Link *LinkFrom;
 	ColorSequence colorSequence;
 	TrafficColor currColor;
 } linkToLink;
 
-typedef boost::multi_index::multi_index_container<
-	links_map,
-    boost::multi_index::indexed_by<                                                                    // index
-        boost::multi_index::sequenced<>,                                                               // 0
-        boost::multi_index::ordered_non_unique< boost::multi_index::member<linkToLink,sim_mob::Link *, &linkToLink::LinkTo> >,  // 1
-    >
-> links_map;
-
+typedef std::multimap<sim_mob::Link *, sim_mob::linkToLink> links_map; //mapping of LinkFrom to linkToLink{which is LinkTo,colorSequence,currColor}
+typedef links_map::iterator links_map_iterator;
+typedef links_map::const_iterator links_map_const_iterator;
+typedef std::pair<links_map_iterator, links_map_iterator> links_map_equal_range;
 typedef struct
 {
 	sim_mob::Crossing crossig();
@@ -45,9 +45,12 @@ typedef struct
 class Phase
 {
 public:
+
 	Phase(double CycleLenght,std::size_t start, std::size_t percent): cycleLength(CycleLenght),startPecentage(start),percentage(percent){
 		updatePhaseParams();
 	};
+	Phase(){}
+
 	void setPercentage(std::size_t p)
 	{
 		percentage = p;
@@ -56,10 +59,19 @@ public:
 	{
 		cycleLength = c;
 	}
-	std::vector<sim_mob::links_map> & LinksMap()
+	links_map_equal_range LinkFrom_Range(sim_mob::Link *LinkFrom)
 	{
-		return links_map_;
+		return links_map_.equal_range(LinkFrom);
 	}
+	links_map_iterator LinkFrom_begin()
+	{
+		return links_map_.begin();
+	}
+	links_map_iterator LinkFrom_end()
+	{
+		return links_map_.end();
+	}
+	links_map_equal_range getLinkTos(sim_mob::Link *LinkFrom);
 	void updatePhaseParams();
 	/* Used in computing DS for split plan selection
 	 * the argument is the output
@@ -76,7 +88,7 @@ private:
 	double total_g;
 
 	//The links that will get a green light at this phase
-	std::vector<sim_mob::links_map> links_map_;
+	sim_mob::links_map links_map_;
 	//The crossings that will get a green light at this phase
 	std::vector<sim_mob::crossings_map> crossings_map_;
 

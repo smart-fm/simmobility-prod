@@ -38,6 +38,7 @@
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
+#include "entities/profile/ProfileBuilder.hpp"
 #include "geospatial/BusStop.hpp"
 #include "geospatial/Route.hpp"
 #include "geospatial/BusRoute.hpp"
@@ -102,6 +103,10 @@ bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents);
  */
 bool performMain(const std::string& configFileName) {
 	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
+	
+#ifdef SIMMOB_AGENT_UPDATE_PROFILE
+	ProfileBuilder::InitLogFile("agent_update_trace.txt");
+#endif
 
 	//Loader params for our Agents
 #ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH

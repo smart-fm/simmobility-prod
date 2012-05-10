@@ -139,6 +139,10 @@ string sim_mob::Link::getSegmentName(const RoadSegment* segment)
 	return res.str();
 }
 
+const std::set<sim_mob::RoadSegment*> & sim_mob::Link::getUniqueSegments()
+{
+	return uniqueSegments;
+}
 #ifndef SIMMOB_DISABLE_MPI
 void sim_mob::Link::pack(PackageUtils& package,const Link* one_link)
 {

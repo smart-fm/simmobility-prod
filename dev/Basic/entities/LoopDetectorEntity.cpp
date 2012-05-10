@@ -146,7 +146,7 @@ LoopDetector::LoopDetector(Lane const * lane, centimeter_t innerLength, centimet
   , vehicle_(nullptr)
 {
     std::vector<Point2D> const & polyline = lane->getPolyline();
-    std::size_t count = polyline.size();
+    size_t count = polyline.size();
     // The last line of the lane's polyline is from <p1> to <p2>.
     Point2D const & p1 = polyline[count - 2];
     Point2D const & p2 = polyline[count - 1];
@@ -365,13 +365,14 @@ LoopDetectorEntity::Impl::~Impl()
 void
 LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetectorEntity & entity)
 {
+	std::vector<sim_mob::Link const *>::const_iterator iter = signal.getSignalLinks().begin();
     Node const & node = signal.getNode();
-    std::map<Link const *, std::size_t> const & links_map = signal.links_map();
-
-    std::map<Link const *, std::size_t>::const_iterator iter;
-    for (iter = links_map.begin(); iter != links_map.end(); ++iter)
+//    std::map<Link const *, size_t> const & links_map = signal.links_map();
+//
+//    std::map<Link const *, size_t>::const_iterator iter;
+    for (; iter != signal.getSignalLinks().end(); ++iter)
     {
-        Link const * link  = iter->first;
+        Link const * link  = (*iter);
         if (link->getEnd() == &node)
         {
             // <link> is approaching <node>.  The loop-detectors should be at the end of the
@@ -410,10 +411,10 @@ void
 LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> const & roads,
                                               LoopDetectorEntity & entity)
 {
-    std::size_t count = roads.size();
+    size_t count = roads.size();
     RoadSegment const * road = roads[count - 1];
     std::vector<Lane *> const & lanes = road->getLanes();
-    for (std::size_t i = 0; i < lanes.size(); ++i)
+    for (size_t i = 0; i < lanes.size(); ++i)
     {
         Lane const * lane = lanes[i];
         if (lane->is_pedestrian_lane())
@@ -455,7 +456,7 @@ LoopDetectorEntity::Impl::check(frame_t frameNumber)
     boost::unordered_set<Vehicle const *> vehicles;
     std::vector<Agent const *> const agents
         = AuraManager::instance().agentsInRect(monitorArea_.lowerLeft_, monitorArea_.upperRight_);
-    for (std::size_t i = 0; i < agents.size(); ++i)
+    for (size_t i = 0; i < agents.size(); ++i)
     {
         Agent const * agent = agents[i];
         if (Person const * person = dynamic_cast<Person const *>(agent))

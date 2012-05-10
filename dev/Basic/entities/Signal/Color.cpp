@@ -5,7 +5,7 @@ namespace sim_mob
 TrafficColor ColorSequence::computeColor(double Duration)
 {
 	std::size_t sum = 0;
-	std::vector< std::pair<TrafficColor,std::size_t> >::const_iterator it = ColorDuration.begin();
+	std::vector< std::pair<TrafficColor,std::size_t> >::iterator it = ColorDuration.begin();
 
 	for(; it != ColorDuration.end(); it++)
 	{

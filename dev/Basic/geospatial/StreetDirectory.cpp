@@ -863,7 +863,7 @@ inline StreetDirectory::ShortestPathImpl::ShortestPathImpl(RoadNetwork const & n
         process(link->getPath(true), true);
         process(link->getPath(false), false);
     }
-    GeneratePathChoiceSet();
+//    GeneratePathChoiceSet();
 }
 
 void

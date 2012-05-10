@@ -385,7 +385,7 @@ void sim_mob::DriverUpdateParams::reset(frame_t frameNumber, unsigned int currTi
 	perceivedFwdVelocity = 0;
 	perceivedLatVelocity = 0;
 	isTrafficLightStop = false;
-	perceivedTrafficColor = Signal::Green;
+	perceivedTrafficColor = sim_mob::Green;
 	trafficSignalStopDistance = 5000;
 	elapsedSeconds = ConfigParams::GetInstance().baseGranMS / 1000.0;
 

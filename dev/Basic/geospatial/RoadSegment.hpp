@@ -42,7 +42,7 @@ class LaneLoader;
 class RoadSegment : public sim_mob::Pavement {
 public:
 	///Create a RoadSegment as part of a given Link.
-	explicit RoadSegment(sim_mob::Link* parent=nullptr);
+	explicit RoadSegment(sim_mob::Link* parent);
 
 	///Return the Link this RoadSegment is part of.
 	sim_mob::Link* getLink() const { return parentLink; }

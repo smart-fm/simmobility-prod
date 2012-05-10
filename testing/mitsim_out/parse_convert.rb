@@ -70,7 +70,8 @@ def self.read_convert_file(convFileName, nw, drivers)
 
   #Final check
   nw.sm_network.nodes.each_value{|nd|
-    puts "Node ID not translated: #{nd.aimsunID}" unless nd.pos
+    #TODO: This could go somewhere else, like in the "final validate" step.
+    #puts "Node ID not translated: #{nd.aimsunID}" unless nd.pos
   }
 end
 

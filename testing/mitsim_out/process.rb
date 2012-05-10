@@ -51,6 +51,8 @@ def run_main()
     puts '         generate a trace (this can take some time).'
     puts 'Example:'
     puts '  ruby  process.rb  basic'
+    puts 'After running this file, you can use merge.rb to combine the result'
+    puts '  (which is stored in compare.txt)'
     exit
   end
   if (ARGV[0] == 'basic')
@@ -80,7 +82,7 @@ def run_main()
   MS_ConvertParser.read_convert_file('ms_sm_node_convert.txt', network, drivers)
 
   #Now 
-  SM_ConvertSimMobOutput.read_output_file('output.simmob.txt', network, drivers)
+  SM_ConvertSimMobOutput.read_output_file('output.simmob_full.txt', network, drivers)
 
   #Parse the trajectory file
   #We use a trimmed version of trajectory.out, but loading the original would work too.
@@ -99,6 +101,7 @@ def run_main()
   #Print 
   puts 'Saving output files (this may take a while).'
   Output.print_network(network, time_ticks)
+  Output.print_comparison_file(network, time_ticks)
   Output.print_agents(network, time_ticks, drivers, min, max)
   puts 'Done saving output.'
 

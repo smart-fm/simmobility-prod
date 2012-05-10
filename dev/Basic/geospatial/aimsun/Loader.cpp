@@ -51,6 +51,7 @@
 #include "entities/misc/TripChain.hpp"
 #include "entities/misc/aimsun/TripChain.hpp"
 #include "entities/misc/aimsun/SOCI_Converters.hpp"
+#include "entities/profile/ProfileBuilder.hpp"
 #include "entities/Signal.hpp"
 
 //add by xuyan
@@ -399,8 +400,6 @@ void DatabaseLoader::LoadBoundarySegments()
 	std::string sql_str = "select * from get_boundary_segments_in_partition(" + sqlPara + ")";
 	soci::rowset<soci::row> rs = (sql_.prepare << sql_str);
 
-	//std::cout << "sql_str" << sql_str << std::endl;
-
 	for (soci::rowset<soci::row>::const_iterator it = rs.begin(); it != rs.end(); it++)
 	{
 		soci::row const& row = *it;
@@ -430,10 +429,15 @@ void DatabaseLoader::TransferBoundaryRoadSegment()
 		int end_x = static_cast<int> ((*it)->end_node_x * 100 + 0.5);
 		int end_y = static_cast<int> ((*it)->end_node_y * 100 + 0.5);
 
+//		int start_x = static_cast<int> ((*it)->start_node_x * 100 );
+//		int start_y = static_cast<int> ((*it)->start_node_y * 100 );
+//		int end_x = static_cast<int> ((*it)->end_node_x * 100 );
+//		int end_y = static_cast<int> ((*it)->end_node_y * 100 );
+
 		sim_mob::Point2D start_point(start_x, start_y);
 		sim_mob::Point2D end_point(end_x, end_y);
-		(*it)->boundarySegment = sim_mob::getRoadSegmentBasedOnNodes(&start_point, &end_point);
 
+		(*it)->boundarySegment = sim_mob::getRoadSegmentBasedOnNodes(&start_point, &end_point);
 		partitionImpl.loadInBoundarySegment((*it)->boundarySegment->getId(), (*it));
 	}
 }
@@ -457,8 +461,6 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	if (config.is_run_on_many_computers) {
 		LoadBoundarySegments();
 	}
-//#else
-//	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal"));
 #endif
 
 }
@@ -1361,7 +1363,7 @@ void sim_mob::aimsun::Loader::ProcessSectionPolylines(sim_mob::RoadNetwork& res,
 
 
 
-string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::vector<sim_mob::TripChain*>& tcs)
+string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::vector<sim_mob::TripChain*>& tcs, ProfileBuilder* prof)
 {
 	try {
             //Connection string will look something like this:
@@ -1372,8 +1374,10 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 
 		//Step One: Load
 		loader.LoadBasicAimsunObjects(storedProcs);
+		if (prof) { prof->logGenericEnd("Database", "main-prof"); }
 
 		//Step Two: Translate
+		if (prof) { prof->logGenericStart("PostProc", "main-prof"); }
 		loader.DecorateAndTranslateObjects();
 
 		//Step Three: Perform data-guided cleanup.
@@ -1387,6 +1391,8 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesStartLineCut, true);
 			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesEndLineCut, false);
 		}
+
+		if (prof) { prof->logGenericEnd("PostProc", "main-prof"); }
 
 		//add by xuyan, load in boundary segments
 		//Step Four: find boundary segment in road network using start-node(x,y) and end-node(x,y)

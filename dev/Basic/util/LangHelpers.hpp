@@ -4,6 +4,8 @@
 
 #include "GenConfig.h"
 
+#include <stdexcept>
+
 
 /**
  * \file LangHelpers.hpp
@@ -14,13 +16,51 @@
  */
 
 
-#ifndef SIMMOB_LATEST_STANDARD
+
+///Useful macro for helping with the mpi classes. When used, it inserts a function body ({}) which
+///  throws an exception. This allows you to define functions in the mpi-function header files as:
+///class X {
+///   int do_something() CHECK_MPI_THROW ;
+///};
+///...and it will fill in a thrown exception if MPI is disabled. Then, in the mpi cpp files,
+///  just do an #ifdef around the entire source ---this is much easier to read than simply disabling
+///  various parts via ifdef.
+///
+///\note
+///Obviously, we want to avoid relying on this function too much. Use this only when necessary, to
+///  avoid introducing a dependency on mpi, boost::mpi, or cgal.
+///
+///\note
+///Early on, I'm just going to tag everything with this. But in reality, there shouldn't be any reason
+///  to tag private methods; they wouldn't be included in the symbol table anyway. Also, throwing an exception
+///  from a destructor is less than copasetic  ---but in this case, the constructor should throw too, so it's
+///  going to terminate anyway. ~Seth
+#ifdef SIMMOB_DISABLE_MPI
+#define CHECK_MPI_THROW   { throw std::runtime_error("MPI function called in a non-mpi context"); }
+#else
+#define CHECK_MPI_THROW
+#endif
+
+
+
 ///Temporary definitions of final and override. These are keywords in the new standard, and it is
 /// useful to be able to tag (some) methods with these during the design stage. Feel free to ignore
 /// these if you don't see the need; just be aware of what they do if you see them after a function name.
-#define final
-#define override
+///
+///\note
+///We use "newstd_" because boost has their own "final" keyword in multi-index. When we switch to the new
+///  standard, this problem will go away (because "final" is not a keyword, but a context-dependant identifier).
+#ifndef SIMMOB_LATEST_STANDARD
+#define newstd_final
+#define newstd_override
+#else
+#define newstd_final  final
+#define newstd_override  override
+#endif
 
+
+
+#ifndef SIMMOB_LATEST_STANDARD
 
 /**
  * Temporary definition of nullptr. The new standard (C++11) will have "nullptr" as a builtin

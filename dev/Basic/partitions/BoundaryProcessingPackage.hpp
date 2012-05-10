@@ -8,16 +8,14 @@
 
 #pragma once
 
-#ifndef SIMMOB_DISABLE_MPI
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/serialization/vector.hpp>
-
 #include <vector>
-#include "entities/Person.hpp"
-#include "entities/Signal.hpp"
 
 namespace sim_mob {
+
+//Forward declarations
+class Person;
+class Signal;
+
 
 /**
  * \author Xu Yan
@@ -25,10 +23,13 @@ namespace sim_mob {
 class BoundaryProcessingPackage {
 
 public:
+	int from_id;
+	int to_id;
+
 	std::vector<Person const*> cross_persons;
 	std::vector<Person const*> feedback_persons;
 	std::vector<Signal const*> boundary_signals;
 };
 
 }
-#endif
+

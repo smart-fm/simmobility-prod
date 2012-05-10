@@ -20,19 +20,66 @@ class Helper
 
   #We use this to "fill in" ticks which aren't specified (to prevent flickering) but we could
   # just as easily interpolate the data points.
-  def write_ticks(f, tick, driverID, driverTick, nextTick, nextDriverTick, minDriverTick)
+  def write_ticks(f, tick, driverID, driverTick, nextTick, nextDriverTick, minDriverTick, mitsim)
+    #Changes based on whether we want mitsim or sim mobility positional information
+    posX = mitsim ? driverTick.pos.x*100 : driverTick.pos.sm_point.x
+    posY = mitsim ? driverTick.pos.y*100 : driverTick.pos.sm_point.y
+    angle = mitsim ? driverTick.angle*180/Math::PI : driverTick.sm_angle*180/Math::PI
+
     endTick = nextDriverTick ? nextTick-1 : tick
     (tick..endTick).each{|tickID|
       f.write("(\"Driver\", #{tickID-minDriverTick}, #{driverID}, {")  #Header
-      f.write("\"xPos\":\"#{driverTick.pos.x*100}\",") #Guaranteed
-      f.write("\"yPos\":\"#{driverTick.pos.y*100}\",") #Guaranteed
-      f.write("\"angle\":\"#{driverTick.angle*180/Math::PI}\",")
+      f.write("\"xPos\":\"#{posX}\",") #Guaranteed
+      f.write("\"yPos\":\"#{posY}\",") #Guaranteed
+      f.write("\"angle\":\"#{angle}\",")
       f.write("\"length\":\"400\",") #Not hooked up yet
       f.write("\"width\":\"200\",") #Not hooked up yet
+      f.write("\"tracking\":\"true\",") unless mitsim
       f.write("})\n") #Footer
     }
   end
 end #class Helper
+
+
+
+
+def self.print_comparison_file(nw, timeticks)
+  help = Helper.new
+  File.open('compare.txt', 'w') {|f|
+    #First, print the "old" lines
+    #$SM_Lines_To_Print.each{|line|
+    #  #TODO: We should modfiy each line if there's an "aimsun-id" in there that we know
+    #  f.write("#{line}\n")
+    #}
+    f.write("#This is an intermediate file; use merge.rb to combine it with a typical simulation output file.\n")
+
+    #Now write all known trajectory information.
+    #This can later be combined with an existing output trace using a similar script.
+    minDriverTick = nil
+    sorted_ticks = timeticks.keys.sort
+    (0..sorted_ticks.length-1).each{|id|
+      tick = sorted_ticks[id]
+      minDriverTick = tick unless minDriverTick
+      timeticks[tick].each_key{|driverID|
+        driverTick = timeticks[tick][driverID]
+        nextTick = -1
+        nextDriverTick = nil
+        if (id<sorted_ticks.length-1) 
+          nextTick = sorted_ticks[id+1]
+          if timeticks[nextTick].has_key? driverID
+            nextDriverTick = timeticks[nextTick][driverID]
+          end
+        end
+
+        #Can't write unless we have output available.
+        next unless driverTick.pos.sm_point and driverTick.sm_angle
+
+        help.write_ticks(f, tick, driverID, driverTick, nextTick, nextDriverTick, minDriverTick, false)
+      }
+    }
+  }
+
+end
 
 
 
@@ -97,7 +144,7 @@ def self.print_network(nw, timeticks)
   File.open('output_network.txt', 'w') {|f|
     #Write the "simulation" tag 
     #TODO: pull from mitsim input.
-    f.write('("simulation", 0, 0, {"frame-time-ms":"200",})\n')
+    f.write("(\"simulation\", 0, 0, {\"frame-time-ms\":\"200\",})\n")
 
 
 #    knownNodeIDs.uniq.each{|nodeID|
@@ -176,7 +223,7 @@ def self.print_network(nw, timeticks)
             nextDriverTick = timeticks[nextTick][driverID]
           end
         end
-        help.write_ticks(f, tick, driverID, driverTick, nextTick, nextDriverTick, minDriverTick)
+        help.write_ticks(f, tick, driverID, driverTick, nextTick, nextDriverTick, minDriverTick, true)
       }
     }
   }
@@ -198,7 +245,7 @@ def self.print_agents(nw, timeticks, drivers, min, max)
       f.write("  <driver id='#{id}'")
       f.write(" originPos='(#{dr.originNode.sm_node.pos.x},#{dr.originNode.sm_node.pos.y})'")
       f.write(" destPos='(#{dr.destNode.sm_node.pos.x},#{dr.destNode.sm_node.pos.y})'")
-      f.write(" startTime='#{dr.departure}'/>\n")
+      f.write(" time='#{dr.departure}'/>\n")
       skipped -= 1
     }
     f.write("</drivers>") 

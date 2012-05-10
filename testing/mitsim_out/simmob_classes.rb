@@ -59,14 +59,16 @@ class Segment
     @polyline = nil
 
     #Some properties to enable, later.
-    #@startNode = nil
-    #@endNode = nil
+    @startNode = nil
+    @endNode = nil
     #@parentLink = nil
     #@isFwd = nil  #Probably don't need this
   end  
 
   attr_reader   :aimsunID
   attr_accessor :polyline
+  attr_accessor :startNode
+  attr_accessor :endNode
 end
 
 
@@ -77,7 +79,7 @@ class Polyline
     #Create a list of polyline pairs, counting the length as you go
     @length = 0
     @points = []
-    (0..points.length).each{|id|
+    (0...points.length-1).each{|id|
       pt = PolyPoint.new(points[id], points[id+1])
       @points.push(pt)
       @length += pt.length
@@ -95,12 +97,18 @@ class Polyline
       break if resID>=@points.length or remDistance <= @points[resID].length
 
       #Increment
-      resID += 1
       remDistance -= @points[resID].length
+      resID += 1
     end
-    raise "Couldn't find polypoint at length #{distAlong} in polyline of length #{@length}" if resID>=@points.length
 
-    return @points[resID].startPt, @points[resID].endPt, remDistance
+    #Best case: we found it.
+    if resID<@points.length
+      return @points[resID].startPt, @points[resID].endPt, remDistance
+    end
+
+    #Else, hope for the best
+    puts "WARNING: Couldn't find polypoint at length #{distAlong} in polyline of length #{@length}" 
+    return @points[-1].startPt, @points[-1].endPt, 0
   end
 end
 
@@ -109,7 +117,7 @@ class PolyPoint
   attr_reader :endPt
   attr_reader :length
 
-  def initialize(startPt, endPoint)
+  def initialize(startPt, endPt)
     @startPt = startPt
     @endPt = endPt
     @length = Distance(startPt, endPt)

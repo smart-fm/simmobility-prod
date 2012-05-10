@@ -45,7 +45,7 @@ public:
 	static Person* GeneratePersonFromPending(const PendingEntity& p);
 
 	///Update Person behavior
-	virtual Entity::UpdateStatus update(frame_t frameNumber) final;
+	virtual Entity::UpdateStatus update(frame_t frameNumber) newstd_final;
 
 	///Update a Person's subscription list.
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
@@ -80,12 +80,11 @@ private:
 
 	bool firstFrameTick;  ///Determines if frame_init() has been done.
 
-	//add by xuyan
-#ifndef SIMMOB_DISABLE_MPI
-public:
 	friend class PartitionManager;
 	friend class BoundaryProcessor;
 
+	//add by xuyan
+#ifndef SIMMOB_DISABLE_MPI
 public:
 	virtual void pack(PackageUtils& packageUtil);
 	virtual void unpack(UnPackageUtils& unpackageUtil);

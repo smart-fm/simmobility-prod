@@ -99,6 +99,10 @@ void sim_mob::WorkGroup::stageEntities()
 	while (!loader->pending_source.empty() && loader->pending_source.top().start <= nextTickMS) {
 		//Remove it.
 		Person* ag = Person::GeneratePersonFromPending(loader->pending_source.top());
+
+		//std::cout <<"Check: " <<loader->pending_source.top().manualID <<" => " <<ag->getId() <<std::endl;
+		//throw 1;
+
 		loader->pending_source.pop();
 
 		if (sim_mob::Debug::WorkGroupSemantics) {

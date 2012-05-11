@@ -65,8 +65,13 @@ public class Vect {
 	public void makeUnit()  {
 		scaleVect(1/getMagnitude());
 	}
+	
+	public void scaleVectTo(double val) {
+		makeUnit();
+		scaleVect(val);
+	}
 	  
-	public void scaleVect(double val) {
+	private void scaleVect(double val) {
 		mag.x *= val;
 		mag.y *= val;
 	}

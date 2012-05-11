@@ -9,6 +9,7 @@ import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
 import edu.umd.cs.piccolo.PNode;
 import edu.umd.cs.piccolo.util.PPaintContext;
@@ -49,7 +50,8 @@ public class TrafficSignalLine extends PNode {
 		this.findNode();
 		
 		//Start at red
-		currColor = Color.red;
+		updateSignal(Color.red);
+		//updateSignal(Color.red, false);
 		
 		setBounds(fromPoint.getX(), fromPoint.getY(), toPoint.getX()-fromPoint.getX(), toPoint.getY()-fromPoint.getY());
 	}
@@ -59,6 +61,9 @@ public class TrafficSignalLine extends PNode {
 	public void updateSignal(Color currColor, boolean visible) {
 		this.currColor = currColor;
 		this.setVisible(visible);
+	}
+	public void updateSignal(Color currColor) { 
+		updateSignal(currColor, true); 
 	}
 	
 	
@@ -109,24 +114,23 @@ public class TrafficSignalLine extends PNode {
 		double dy = toPoint.getY() - fromPoint.getY();
 		double angle = Math.atan2(dy, dx);
 		
-		//TEST
-		g.draw(new Line2D.Double(fromPoint.getX(), fromPoint.getY(), toPoint.getX(), toPoint.getY()));
-		g.setColor(Color.blue);
-		g.setStroke(new BasicStroke((float)(0.5/paintContext.getScale())));
-		g.draw(getBounds());
+		int ArrSzScale = (int)(ARR_SIZE / paintContext.getScale());
 		
 		//Transform this so that we're pointing right.
-		/*AffineTransform oldAT = g.getTransform();
-		AffineTransform at = getTranslateInstance(fromPoint.getX(), fromPoint.getY());
+		AffineTransform oldAT = g.getTransform();
+		AffineTransform at = g.getTransform();
+		at.translate(fromPoint.getX(), fromPoint.getY());
 		at.concatenate(getRotateInstance(angle));
+		g.setTransform(at);
 		
 		//Draw line, arrow
         int len = (int) Math.sqrt(dx*dx + dy*dy);
         g.drawLine(0, 0, (int) len, 0);
-        g.fillPolygon(new int[] {len, len-ARR_SIZE, len-ARR_SIZE, len},
-                      new int[] {0, -ARR_SIZE, ARR_SIZE, 0}, 4);
+        g.fillPolygon(new int[] {len, len-ArrSzScale, len-ArrSzScale, len},
+                      new int[] {0, -ArrSzScale, ArrSzScale, 0}, 
+                      4);
         
         //Restore transformation
-        g.setTransform(oldAT);*/
+        g.setTransform(oldAT);
 	}	
 }

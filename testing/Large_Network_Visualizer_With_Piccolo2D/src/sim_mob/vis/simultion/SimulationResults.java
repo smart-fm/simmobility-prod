@@ -29,10 +29,7 @@ public class SimulationResults {
 	
 	public int frame_length_ms;
 	
-	private static boolean OutOfBounds(double x, double y, RoadNetwork rn) {
-		return     (x < rn.getTopLeft().x) || (x > rn.getLowerRight().x)
-				|| (y < rn.getTopLeft().y) || (y > rn.getLowerRight().y);
-	}
+
 	
 	public SimulationResults(BufferedReader inFile, RoadNetwork rn, HashSet<Integer> uniqueAgentIDs) throws IOException {
 		ticks = new ArrayList<TimeTick>();
@@ -120,7 +117,8 @@ public class SimulationResults {
 	    double angle = Double.parseDouble(props.get("angle"));
 	    	    	    
 	    //TEMP: Hack for out-of-bounds agents
-	    if (OutOfBounds(xPos, yPos, rn)) {
+	    if (rn.OutOfBounds(xPos, yPos)) {
+	    	System.out.println("Driver out of bounds: scaling bounds.");
 	    	Utility.CheckBounds(xBounds, xPos);
 	    	Utility.CheckBounds(yBounds, yPos);
 	    }

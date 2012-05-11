@@ -1,6 +1,7 @@
 package sim_mob.vis.network;
 
 import java.awt.geom.Point2D;
+import java.awt.geom.Point2D.Double;
 import java.io.*;
 import java.util.*;
 import java.util.regex.*;
@@ -40,8 +41,10 @@ public class RoadNetwork {
 	//private Hashtable<Segment, ArrayList<Integer>> segmentRefTable;
 	
 		
-	public DPoint getTopLeft() { return cornerTL; }
-	public DPoint getLowerRight() { return cornerLR; }
+	public boolean OutOfBounds(double x, double y) {
+		return     (x < cornerTL.x) || (x > cornerLR.x)
+				|| (y < cornerTL.y) || (y > cornerLR.y);
+	}
 
 	public Hashtable<Integer, Node> getNodes(){ return nodes; }
 	public Hashtable<Integer, Link> getLinks() { return links; }
@@ -134,8 +137,6 @@ public class RoadNetwork {
 	
 		this.populateIntersections();
 
-		//Convert points to local coordinate system
-		//convertToLocal(this.canvasWidth, this.canvasHeight);
 	}
 	
 			
@@ -196,10 +197,10 @@ public class RoadNetwork {
 	//  which is midway between an outer and an inner Lane Marking.
 	private static final Lane getSimpleMidlane(int laneID, LaneMarking innerLine, LaneMarking outerLine) {
 		Vect startPoint = new Vect(innerLine.getPoint(0), outerLine.getPoint(0));
-		startPoint.scaleVect(startPoint.getMagnitude()/2.0);
+		startPoint.scaleVectTo(startPoint.getMagnitude()/2.0);
 		startPoint.translateVect();
 		Vect endPoint = new Vect(innerLine.getPoint(-1), outerLine.getPoint(-1));
-		endPoint.scaleVect(endPoint.getMagnitude()/2.0);
+		endPoint.scaleVectTo(endPoint.getMagnitude()/2.0);
 		endPoint.translateVect();
 		
 		return new Lane(laneID, new Point2D.Double(startPoint.getX(), startPoint.getY()), new Point2D.Double(endPoint.getX(), endPoint.getY()));
@@ -274,16 +275,6 @@ public class RoadNetwork {
 	    for (int laneID=0; laneID<parent.getNumLaneEdges()-1; laneID++) {
 	    	Lane simpleLane = getSimpleMidlane(laneID, parent.getLaneEdge(laneID), parent.getLaneEdge(laneID+1));
 	    	tempLaneTable.put(laneID, simpleLane);
-
-	    	//For some reason we maintain a lookup? 
-	    	// (NOTE: This should already be part of the segment class.)
-	    	/*if(segmentToLanesTable.containsKey(parent.getSegmentID())) {
-	    		segmentToLanesTable.get(parent.getSegmentID()).put(laneID, objID);
-	    	} else {
-	    		Hashtable<Integer, Integer> lanesOnSegment = new Hashtable<Integer,Integer>();
-	    		lanesOnSegment.put(i, objID);
-	    		segmentToLanesTable.put(parent.getSegmentID(), lanesOnSegment);
-	    	}*/
 	    }
 	    
 	    
@@ -518,20 +509,18 @@ public class RoadNetwork {
 			for (char charKey : sigLinkIDs.keySet()) {
 				populateIntersection(intersection.getIntersectNodeID(), charKey, sigLinkIDs.get(charKey), fromSegmentList, toSegmentList);
 			}
-							
-			ArrayList<SetOfTurnings> signalList = helperAllocateDirection(fromSegmentList,toSegmentList);			
-			//for (Integer linkNumber : signalList.keySet()) {
-			for (SetOfTurnings dirHelp : signalList) {
-				//ArrayList<ArrayList<TrafficSignalLine>> signalListPerLink = signalList.get(linkNumber);
-				
-				if(dirHelp.linkNumber == 0) {
-					intersection.setVaTrafficSignal(dirHelp);
-				} else if (dirHelp.linkNumber == 1) {
-					intersection.setVbTrafficSignal(dirHelp);
-				} else if (dirHelp.linkNumber == 2) {
-					intersection.setVcTrafficSignal(dirHelp);
-				} else if (dirHelp.linkNumber == 3) {
-					intersection.setVdTrafficSignal(dirHelp);
+					
+			//Set either "va", "vb", "vc", or "vd" based on the set of turnings calculated by our helper function.
+			ArrayList<SetOfTurnings> orderedTurnings = helperAllocateDirection(fromSegmentList,toSegmentList);			
+			for (SetOfTurnings setOfTrn : orderedTurnings) {
+				if(setOfTrn.linkNumber == 0) {
+					intersection.setVaTrafficSignal(setOfTrn);
+				} else if (setOfTrn.linkNumber == 1) {
+					intersection.setVbTrafficSignal(setOfTrn);
+				} else if (setOfTrn.linkNumber == 2) {
+					intersection.setVcTrafficSignal(setOfTrn);
+				} else if (setOfTrn.linkNumber == 3) {
+					intersection.setVdTrafficSignal(setOfTrn);
 				}
 			
 			}
@@ -543,10 +532,7 @@ public class RoadNetwork {
 			int linkPbID = crossingIDs.get(1);
 			int linkPcID = crossingIDs.get(2);
 			int linkPdID = crossingIDs.get(3);
-			
-			//System.out.println("Intersection ID: " + Integer.toHexString(intersection.getIntersectNodeID()));
-			//System.out.println("linkPaID: "+ linkPaID +" linkPbID: "+ linkPbID + " linkPcID: "+ linkPcID +" linkPdID: "+ linkPdID);
-					
+								
 			if(trafficSignalCrossings.containsKey(linkPaID) && trafficSignalCrossings.containsKey(linkPbID) 
 		    		&& trafficSignalCrossings.containsKey(linkPcID) && trafficSignalCrossings.containsKey(linkPdID)){	    	
 		    	
@@ -556,8 +542,6 @@ public class RoadNetwork {
 				crossingSignals.add(trafficSignalCrossings.get(linkPdID));
 				
 				intersection.setSignalCrossing(crossingSignals);
-				
-				
 		    }else{
 		    	System.out.println("Error, no such pedestrain crossings -- RoadNetwork, parseSignalLocation");
 		    }

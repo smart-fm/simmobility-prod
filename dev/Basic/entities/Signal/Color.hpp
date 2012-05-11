@@ -6,6 +6,7 @@ namespace sim_mob
 //Forward declarations
 class Phase;
 
+//moved to defaults.hpp for now
 //enum TrafficColor
 //{
 //    Red =1,    			///< Stop, do not go beyond the stop line.
@@ -16,6 +17,7 @@ class Phase;
 //    FlashingGreen = 6	///future use
 //};
 
+//depricated
 struct VehicleTrafficColors
 {
     TrafficColor left;     ///< Traffic-color for the left direction.

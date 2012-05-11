@@ -72,7 +72,7 @@ Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id)
 {
 
 	findIncomingLanes();//what was it used for? dont remember
-	findSignalLinks();
+	findSignalLinksAndCrossings();
 	ConfigParams& config = ConfigParams::GetInstance();
 	signalAlgorithm = config.signalAlgorithm;
 	Density.resize(IncomingLanes_.size(), 0);//todo wrong ! Density has changed to contain phase DS
@@ -125,6 +125,72 @@ void Signal::findIncomingLanes()
 	}
 }
 
+
+// This functor calculates the angle between a link and a reference link, which have a node
+// in common.
+struct AngleCalculator {
+	// <node> is the node in common and <refLink> is the reference link.  Therefore <node>
+	// must be one of the ends of <refLink>.
+	AngleCalculator(Node const & node, Link const * refLink) :
+		center_(node) {
+		assert(refLink->getStart() == &center_ || refLink->getEnd() == &center_);
+		// <refAngle_> is the angle that the <refLink> makes with the X-axis.
+		refAngle_ = angle(refLink);
+	}
+
+	// Calculates the angle between <link> and <refLink>, which have <node> in common.
+	// Therefore <node> must be one of the ends of <link>.
+	double operator()(Link const * link) const {
+		assert(link->getStart() == &center_ || link->getEnd() == &center_);
+		return angle(link) - refAngle_;
+	}
+
+	Node const & center_;
+	double refAngle_;
+
+	// Caculates the angle that <link> with respect to the X-axis.
+	double angle(Link const * link) const {
+		Point2D point;
+		if (link->getStart() == &center_)
+			point = link->getEnd()->location;
+		else
+			point = link->getStart()->location;
+		double xDiff = point.getX() - center_.location.getX();
+		double yDiff = point.getY() - center_.location.getY();
+		return atan2(yDiff, xDiff);
+	}
+};
+
+
+
+// Return the Crossing object, if any, in the specified road segment.  If there are more
+// than one Crossing objects, return the one that has the least offset.
+Crossing const *
+getCrossing(RoadSegment const * road) {
+	//Crossing const * result = 0;
+	//double offset = std::numeric_limits<double>::max();
+	int currOffset = 0;
+	for (;;) {
+		//Get the next item, if any.
+		RoadItemAndOffsetPair res = road->nextObstacle(currOffset, true);
+		if (!res.item) {
+			break;
+		}
+
+		//Check if it's a Crossing.
+		if (Crossing const * crossing = dynamic_cast<Crossing const *>(res.item)) {
+			//Success
+			return crossing;
+		}
+
+		//Increment
+		currOffset += res.offset;
+	}
+	std::cout <<"]";
+
+	//Failure.
+	return nullptr;
+}
 /*
  * this class needs to access lanes coming to it, mostly to calculate DS
  * It is not feasible to extract the lanes from every traffic signal every time
@@ -132,6 +198,53 @@ void Signal::findIncomingLanes()
  * It is a trade-off between process and memory.
  * In order to save memory, we only keep the record of Lane pointers-vahid
  */
+void Signal::findSignalLinksAndCrossings()
+{
+	LinkAndCrossingByLink & inserter = get<2>(LinkAndCrossings_);//2 means that duplicate links will not be allowed
+	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&node_);
+	if(! mNode) return ;
+	const std::set<sim_mob::RoadSegment*>& roads = mNode->getRoadSegments();
+	std::set<RoadSegment*>::const_iterator iter = roads.begin();
+	sim_mob::RoadSegment const * road = *iter;
+	sim_mob::Crossing const * crossing = getCrossing(road);
+	sim_mob::Link const * link = road->getLink();
+	inserter.insert(LinkAndCrossing(0,link,crossing,0));
+	++iter;
+
+	//Prepare output(perhapse this was the best place to accomodate this unrelated part :)
+		std::ostringstream output;
+		output << "(\"Signal-location\", 0, " << this << ", {";
+		output << "\"node\":\"" << &node_ << "\"";
+
+	AngleCalculator angle(node_, link);
+	double angleAngle = 0;
+	size_t id = 1;
+	angleAngle = 0;
+	crossing = nullptr;
+	link = nullptr;
+	for (; iter != roads.end(); ++iter, ++id) {//id=1 coz we have already made an insertion with id=0 above
+		road = *iter;
+		crossing = getCrossing(road);
+		link = road->getLink();
+		angleAngle = angle.angle(link);
+		inserter.insert(LinkAndCrossing(id,link,crossing,angleAngle));
+		//Append to output, again sorry for the inconvenience :)
+		char letter = static_cast<char> ('a' + id);
+		output << ",\"v" << letter << "\":\"" << link << "\",\"a" << letter << "\":\"" << 180 * (angleAngle/ M_PI) << "\",\"p" << letter << "\":\"" << crossing << "\"";
+		crossing = nullptr;
+		link = nullptr;
+	}
+	//Close off and save the string representation.
+	output << "})";
+	strRepr = output.str();//all the aim of the unrelated part
+
+//	for (std::set<sim_mob::RoadSegment*>::const_iterator it = rs.begin(); it!= rs.end(); it++) {
+//		SignalLinks.push_back((*it)->getLink());
+////		SignalLinks.reserve(SignalLinks.size() + (*it)->getLink);
+////		SignalLinks.insert(SignalLinks.end(), (*it)->getLanes().begin(), (*it)->getLanes().end());
+//	}
+}
+//deprecated
 void Signal::findSignalLinks()
 {
 	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&node_);

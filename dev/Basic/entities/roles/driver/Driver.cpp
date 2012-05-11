@@ -714,27 +714,32 @@ bool sim_mob::Driver::isPedestrianOnTargetCrossing() const {
 		return false;
 	}
 
-	map<Link const*, size_t> const linkMap = trafficSignal->links_map();
-	int index = -1;
-	for (map<Link const*, size_t>::const_iterator link_i = linkMap.begin(); link_i != linkMap.end(); link_i++) {
-		if (vehicle->getNextSegment() && link_i->first == vehicle->getNextSegment()->getLink()) {
-			index = (*link_i).second;
-			break;
-		}
-	}
-
-	map<Crossing const *, size_t> const crossingMap = trafficSignal->crossings_map();
+	//oh! we really dont neeeeeeeeed all this! r u going to repeat these two iterations for all the corresponding drivers?
+//	map<Link const*, size_t> const linkMap = trafficSignal->links_map();
+//	int index = -1;
+//	for (map<Link const*, size_t>::const_iterator link_i = linkMap.begin(); link_i != linkMap.end(); link_i++) {
+//		if (vehicle->getNextSegment() && link_i->first == vehicle->getNextSegment()->getLink()) {
+//			index = (*link_i).second;
+//			break;
+//		}
+//	}
+//
+//	map<Crossing const *, size_t> const crossingMap = trafficSignal->crossings_map();
+//	const Crossing* crossing = nullptr;
+//	for (map<Crossing const *, size_t>::const_iterator crossing_i = crossingMap.begin(); crossing_i
+//			!= crossingMap.end(); crossing_i++) {
+//		if (static_cast<int> (crossing_i->second) == index) {
+//			crossing = crossing_i->first;
+//			break;
+//		}
+//	}
 	const Crossing* crossing = nullptr;
-	for (map<Crossing const *, size_t>::const_iterator crossing_i = crossingMap.begin(); crossing_i
-			!= crossingMap.end(); crossing_i++) {
-		if (static_cast<int> (crossing_i->second) == index) {
-			crossing = crossing_i->first;
-			break;
-		}
-	}
-
+	LinkAndCrossingByLink const &LAC = trafficSignal->getLinkAndCrossingsByLink();
+	LinkAndCrossingByLink::iterator it = LAC.find(vehicle->getNextSegment()->getLink());
+	if(it != LAC.end())
+		const Crossing* crossing = (*it).crossing;
 	//Have we found a relevant crossing?
-	if (!crossing) {
+	if (crossing == nullptr) {
 		return false;
 	}
 
@@ -1621,21 +1626,28 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 		perceivedTrafficSignalStop.delay(p.isTrafficLightStop);
 	} else {
 
-		Signal::TrafficColor color;
+		sim_mob::TrafficColor color;
 		if (vehicle->hasNextSegment(false)) {
 			color = trafficSignal->getDriverLight(*p.currLane, *nextLaneInNextLink);
 		} else {
-			color = trafficSignal->getDriverLight(*p.currLane).forward;
+			/*vahid:
+			 * Basically,there is no notion of left, right forward any more.
+			 * (I said "Basically" coz I can think of at least one "if" :left turn in singapore, right turn in US...)
+			 * so it is omitted by  If you insist on having this type of function, I can give you a vector/container
+			 * of a map between lane/link and their corresponding current color with respect to the currLane
+			 * todo:think of something for this else clause! you are going continue with No color!S
+			 */
+//			color = trafficSignal->getDriverLight(*p.currLane).forward;
 		}
 
 
 		switch (color) {
-		case Signal::Red:
+		case sim_mob::Red:
 			p.isTrafficLightStop = true;
 			break;
 
-		case Signal::Amber:
-		case Signal::Green:
+		case sim_mob::Amber:
+		case sim_mob::Green:
 			if (!isPedestrianOnTargetCrossing())
 				p.isTrafficLightStop = false;
 			else

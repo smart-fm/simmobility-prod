@@ -23,18 +23,58 @@
 #include "Cycle.hpp"
 #include "Offset.hpp"
 #include "defaults.hpp"
+
+
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/random_access_index.hpp>
+
+
 namespace sim_mob
 {
-
+using boost::multi_index::multi_index_container;
+using boost::multi_index::ordered_non_unique;
+using boost::multi_index::ordered_unique;
+using boost::multi_index::indexed_by;
+using boost::multi_index::member;
+using boost::multi_index::random_access;
 // Forwared declarations.
 class Node;
 class Lane;
 class Crossing;
+class Link;
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
 class UnPackageUtils;
 #endif
+//Link and crossing of an intersection/traffic signal
+struct LinkAndCrossing
+{
+	LinkAndCrossing(int id_,sim_mob::Link const * link_,sim_mob::Crossing const * crossing_,double angle_):
+		id(id_),
+		link(link_),
+		crossing(crossing_),
+		angle(angle_)
+	{}
+	size_t id;         //index for backward compatibility (setupindexMaps()
+	double angle;         //index for backward compatibility (setupindexMaps()
+	sim_mob::Link const * link;
+	sim_mob::Crossing const * crossing;
+};
+
+typedef multi_index_container<
+		LinkAndCrossing, indexed_by<
+	 random_access<>															//0
+    ,ordered_unique<member<LinkAndCrossing, size_t , &LinkAndCrossing::id> >//1
+	,ordered_unique<member<LinkAndCrossing, sim_mob::Link const * , &LinkAndCrossing::link> >//2
+	,ordered_non_unique<member<LinkAndCrossing, double , &LinkAndCrossing::angle> >//3
+   >
+> LinkAndCrossingC;//Link and Crossing Container(multi index)
+typedef nth_index<LinkAndCrossingC, 2>::type LinkAndCrossingByLink;
+typedef nth_index<LinkAndCrossingC, 3>::type LinkAndCrossingByAngle;
+typedef LinkAndCrossingByAngle::reverse_iterator LinkAndCrossingIterator;
 
 class Signal  : public sim_mob::Agent {
 
@@ -48,6 +88,13 @@ public:
     void addSignalSite(centimeter_t xpos, centimeter_t ypos,std::string const & typeCode, double bearing);
     void findIncomingLanes();
     void findSignalLinks();
+    void findSignalLinksAndCrossings();
+    /*links are sorted in order of their ascending angle with respect to the whole coordinate
+     */
+    LinkAndCrossingIterator LinkAndCrossings_begin()const { return LinkAndCrossings_.get<3>().rbegin(); }
+//    LinkAndCrossingIterator LinkAndCrossings_end()const { return LinkAndCrossings_.get<3>().rend(); }
+//    LinkAndCrossingByLink &getLinkAndCrossingsByLink() {return LinkAndCrossings_.get<2>();}
+    LinkAndCrossingByLink const & getLinkAndCrossingsByLink() const {return LinkAndCrossings_.get<2>();}
     const std::vector<sim_mob::Link const *> & getSignalLinks() const;
     LoopDetectorEntity const & loopDetector() const { return loopDetector_; }
 
@@ -99,6 +146,7 @@ public:
     static std::vector<Signal*> all_signals_;
     void updateIndicators();
 private:
+
     /* Fixed time or adaptive control */
     int signalAlgorithm;
     /*-------------------------------------------------------------------------
@@ -109,6 +157,8 @@ private:
     //todo check whether we realy need it? (this container and the function filling it)
     std::vector<sim_mob::Lane const *>  IncomingLanes_;//The data for this vector is generated
     //used (probabely in createloopdetectors()
+
+    LinkAndCrossingC LinkAndCrossings_;
     std::vector<sim_mob::Link const *>  SignalLinks;//The data for this vector is generated
 
     /*-------------------------------------------------------------------------

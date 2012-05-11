@@ -365,14 +365,15 @@ LoopDetectorEntity::Impl::~Impl()
 void
 LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetectorEntity & entity)
 {
-	std::vector<sim_mob::Link const *>::const_iterator iter = signal.getSignalLinks().begin();
     Node const & node = signal.getNode();
 //    std::map<Link const *, size_t> const & links_map = signal.links_map();
 //
 //    std::map<Link const *, size_t>::const_iterator iter;
-    for (; iter != signal.getSignalLinks().end(); ++iter)
+	LinkAndCrossingByLink const &LAC = signal.getLinkAndCrossingsByLink();
+	LinkAndCrossingByLink::iterator iter = LAC.begin();
+    for (; iter != LAC.end(); ++iter)
     {
-        Link const * link  = (*iter);
+        Link const * link  = (*iter).link;
         if (link->getEnd() == &node)
         {
             // <link> is approaching <node>.  The loop-detectors should be at the end of the

@@ -15,10 +15,10 @@ public class Intersection {
 	private ArrayList <TrafficSignalCrossing> signalCrossings;
 
 	
-	private RoadNetwork.DirectionHelper vaSignalLine = new RoadNetwork.DirectionHelper();
-	private RoadNetwork.DirectionHelper vbSignalLine = new RoadNetwork.DirectionHelper();
-	private RoadNetwork.DirectionHelper vcSignalLine = new RoadNetwork.DirectionHelper();
-	private RoadNetwork.DirectionHelper vdSignalLine = new RoadNetwork.DirectionHelper();
+	private SetOfTurnings vaSignalLine = new SetOfTurnings();
+	private SetOfTurnings vbSignalLine = new SetOfTurnings();
+	private SetOfTurnings vcSignalLine = new SetOfTurnings();
+	private SetOfTurnings vdSignalLine = new SetOfTurnings();
 
 	
 	
@@ -27,10 +27,10 @@ public class Intersection {
 	public ArrayList <Integer> getSigalCrossingIDs(){return signalCrossingIDs;}
 	public ArrayList <TrafficSignalCrossing> getSignalCrossings(){return signalCrossings;}
 	
-	public RoadNetwork.DirectionHelper getVaTrafficSignal(){return vaSignalLine;}
-	public RoadNetwork.DirectionHelper getVbTrafficSignal(){return vbSignalLine;}
-	public RoadNetwork.DirectionHelper getVcTrafficSignal(){return vcSignalLine;}
-	public RoadNetwork.DirectionHelper getVdTrafficSignal(){return vdSignalLine;}
+	public SetOfTurnings getVaTrafficSignal(){return vaSignalLine;}
+	public SetOfTurnings getVbTrafficSignal(){return vbSignalLine;}
+	public SetOfTurnings getVcTrafficSignal(){return vcSignalLine;}
+	public SetOfTurnings getVdTrafficSignal(){return vdSignalLine;}
 	
 	public Intersection(int intersectNodeID, ArrayList <Integer> signalLinkIDs, ArrayList <Integer> signalCrossingIDs){
 		
@@ -48,16 +48,16 @@ public class Intersection {
 	}
 	
 
-	public void setVaTrafficSignal(RoadNetwork.DirectionHelper vaSignalLine) {
+	public void setVaTrafficSignal(SetOfTurnings vaSignalLine) {
 		this.vaSignalLine = vaSignalLine;
 	}
-	public void setVbTrafficSignal(RoadNetwork.DirectionHelper vbSignalLine){
+	public void setVbTrafficSignal(SetOfTurnings vbSignalLine){
 		this.vbSignalLine = vbSignalLine;
 	}
-	public void setVcTrafficSignal(RoadNetwork.DirectionHelper vcSignalLine){
+	public void setVcTrafficSignal(SetOfTurnings vcSignalLine){
 		this.vcSignalLine = vcSignalLine;
 	}
-	public void setVdTrafficSignal(RoadNetwork.DirectionHelper vdSignalLine){
+	public void setVdTrafficSignal(SetOfTurnings vdSignalLine){
 		this.vdSignalLine = vdSignalLine;
 	}
 			

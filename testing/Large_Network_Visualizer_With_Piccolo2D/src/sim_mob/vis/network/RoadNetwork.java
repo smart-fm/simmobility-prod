@@ -519,9 +519,9 @@ public class RoadNetwork {
 				populateIntersection(intersection.getIntersectNodeID(), charKey, sigLinkIDs.get(charKey), fromSegmentList, toSegmentList);
 			}
 							
-			ArrayList<DirectionHelper> signalList = helperAllocateDirection(fromSegmentList,toSegmentList);			
+			ArrayList<SetOfTurnings> signalList = helperAllocateDirection(fromSegmentList,toSegmentList);			
 			//for (Integer linkNumber : signalList.keySet()) {
-			for (DirectionHelper dirHelp : signalList) {
+			for (SetOfTurnings dirHelp : signalList) {
 				//ArrayList<ArrayList<TrafficSignalLine>> signalListPerLink = signalList.get(linkNumber);
 				
 				if(dirHelp.linkNumber == 0) {
@@ -568,21 +568,12 @@ public class RoadNetwork {
 	}
 	
 	
-	public static class DirectionHelper {
-		public int linkNumber;
-		
-		public ArrayList<TrafficSignalLine> leftTurnConnectors = new ArrayList<TrafficSignalLine>();
-		public ArrayList<TrafficSignalLine> rightTurnConnectors = new ArrayList<TrafficSignalLine>();
-		public ArrayList<TrafficSignalLine> straightConnectors = new ArrayList<TrafficSignalLine>();
-	}
-	
-	
-	private ArrayList<DirectionHelper> helperAllocateDirection(int[] fromSegmentList, int [] toSegmentList){
-		ArrayList<DirectionHelper> res = new ArrayList<DirectionHelper>();		
+	private ArrayList<SetOfTurnings> helperAllocateDirection(int[] fromSegmentList, int [] toSegmentList){
+		ArrayList<SetOfTurnings> res = new ArrayList<SetOfTurnings>();		
 		
 		for(int fromSegmentKey : fromSegmentList) {
 			//Prepre a new result item; add it.
-			DirectionHelper currRes = new DirectionHelper();
+			SetOfTurnings currRes = new SetOfTurnings();
 			res.add(currRes);
 			
 			//Set its link number:

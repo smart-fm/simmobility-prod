@@ -509,39 +509,29 @@ public class RoadNetwork {
 	
 	
 	private void populateIntersections(){
-
 		for(Intersection intersection : intersections.values()){		
-			//Hashtable<Integer, Integer> intersectLinkSegmentIDTable = new Hashtable<Integer, Integer>();
-			
 			int[] fromSegmentList = new int[]{-1,-1,-1,-1};
-			int[] toSegmentList = new int[]{-1,-1,-1,-1};
-			
-			int intersectionNodeID = intersection.getIntersectNodeID(); 
+			int[] toSegmentList = new int[]{-1,-1,-1,-1}; 
 						
 			//Search all the Links
-			//for(int i = 0; i<tempIntersectLinkIDs.size();i++ ){
 			Hashtable<Character, Integer> sigLinkIDs = intersection.getSigalLinkIDs();
 			for (char charKey : sigLinkIDs.keySet()) {
-				populateIntersection(intersectionNodeID, charKey, sigLinkIDs.get(charKey), fromSegmentList, toSegmentList);
+				populateIntersection(intersection.getIntersectNodeID(), charKey, sigLinkIDs.get(charKey), fromSegmentList, toSegmentList);
 			}
 							
-			Hashtable<Integer, ArrayList<ArrayList<TrafficSignalLine>>> signalList = helperAllocateDirection(fromSegmentList,toSegmentList);			
-			for (Integer linkNumber : signalList.keySet()) {
-				ArrayList<ArrayList<TrafficSignalLine>> signalListPerLink = signalList.get(linkNumber);
+			ArrayList<DirectionHelper> signalList = helperAllocateDirection(fromSegmentList,toSegmentList);			
+			//for (Integer linkNumber : signalList.keySet()) {
+			for (DirectionHelper dirHelp : signalList) {
+				//ArrayList<ArrayList<TrafficSignalLine>> signalListPerLink = signalList.get(linkNumber);
 				
-				if(linkNumber == 0) {
-					intersection.setVaTrafficSignal(signalListPerLink);
-					
-				}else if (linkNumber == 1){
-					intersection.setVbTrafficSignal(signalListPerLink);
-					
-				}else if (linkNumber == 2){
-
-					intersection.setVcTrafficSignal(signalListPerLink);
-					
-				}else if (linkNumber == 3){
-					intersection.setVdTrafficSignal(signalListPerLink);
-
+				if(dirHelp.linkNumber == 0) {
+					intersection.setVaTrafficSignal(dirHelp);
+				} else if (dirHelp.linkNumber == 1) {
+					intersection.setVbTrafficSignal(dirHelp);
+				} else if (dirHelp.linkNumber == 2) {
+					intersection.setVcTrafficSignal(dirHelp);
+				} else if (dirHelp.linkNumber == 3) {
+					intersection.setVdTrafficSignal(dirHelp);
 				}
 			
 			}
@@ -577,150 +567,85 @@ public class RoadNetwork {
 		
 	}
 	
-	private Hashtable<Integer, ArrayList<ArrayList<TrafficSignalLine>>> helperAllocateDirection(int[] fromSegmentList, int [] toSegmentList){
+	
+	public static class DirectionHelper {
+		public int linkNumber;
 		
-		Hashtable<Integer, ArrayList<ArrayList<TrafficSignalLine>>> list = new Hashtable<Integer,ArrayList<ArrayList<TrafficSignalLine>>>();
+		public ArrayList<TrafficSignalLine> leftTurnConnectors = new ArrayList<TrafficSignalLine>();
+		public ArrayList<TrafficSignalLine> rightTurnConnectors = new ArrayList<TrafficSignalLine>();
+		public ArrayList<TrafficSignalLine> straightConnectors = new ArrayList<TrafficSignalLine>();
+	}
+	
+	
+	private ArrayList<DirectionHelper> helperAllocateDirection(int[] fromSegmentList, int [] toSegmentList){
+		ArrayList<DirectionHelper> res = new ArrayList<DirectionHelper>();		
 		
-		for(int i = 0;i<fromSegmentList.length;i++){
+		for(int fromSegmentKey : fromSegmentList) {
+			//Prepre a new result item; add it.
+			DirectionHelper currRes = new DirectionHelper();
+			res.add(currRes);
 			
-			
-			ArrayList<ArrayList<TrafficSignalLine>> tempDirectionalSignalLines = new ArrayList<ArrayList<TrafficSignalLine>>();
-			
-			int fromSegmentKey = fromSegmentList[i]; 	
-			//if(segmentRefTable.containsKey(fromSegmentKey)){
+			//Set its link number:
+			currRes.linkNumber = res.size()-1;
+
+			//Set relevant segment data (if possible)
 			if (segments.containsKey(fromSegmentKey)) {
-			
-				//ArrayList<Integer> tempToSegmentList = segmentRefTable.get(fromSegmentKey);
 				ArrayList<Segment.LC> tempToSegmentList = segments.get(fromSegmentKey).getAllLaneConnectors();
 
-				ArrayList<TrafficSignalLine> tempLeftTurn = new ArrayList<TrafficSignalLine>();
-				ArrayList<TrafficSignalLine> tempStraightTurn = new ArrayList<TrafficSignalLine>();
-				ArrayList<TrafficSignalLine> tempRightTurn = new ArrayList<TrafficSignalLine>();
-
-				tempDirectionalSignalLines.add(tempLeftTurn);
-				tempDirectionalSignalLines.add(tempStraightTurn);
-				tempDirectionalSignalLines.add(tempRightTurn);
+				//TODO: We don't need a hash table for this, but I want to make sure I match the original algorithm
+				//      exactly. Hopefully we remove this needless complexity later.
+				Hashtable<Integer, Hashtable<Integer, Character>> sideLookup = new Hashtable<Integer, Hashtable<Integer,Character>>();
+				for (int i=0; i<tempToSegmentList.size(); i++) {
+					sideLookup.put(i, new Hashtable<Integer, Character>());
+				}
+				sideLookup.get(0).put(-3, 'L');
+				sideLookup.get(0).put(-2, 'S');
+				sideLookup.get(0).put(-1, 'R');
+				sideLookup.get(1).put(1,  'L');
+				sideLookup.get(1).put(-2, 'S');
+				sideLookup.get(1).put(-1, 'R');
+				sideLookup.get(2).put(1,  'L');
+				sideLookup.get(2).put(2,  'S');
+				sideLookup.get(2).put(-1, 'R');
+				sideLookup.get(3).put(1,  'L');
+				sideLookup.get(3).put(2,  'S');
+				sideLookup.get(3).put(3,  'R');
+				
 	
 				//TODO: This loop is very messy; there's lots of repeated information and copied code. 
 				//      Clean it up using temporary classes (and better math) as needed. ~Seth
 				//for(int j=1;j<tempToSegmentList.size();j+=2){
 				for (Segment.LC connect : tempToSegmentList) {
-
 					for(int k = 0; k < toSegmentList.length;k++){
-					
+						//No U-turns.
+						if (currRes.linkNumber == k) {
+							continue;
+						}
 						
-						if(i == 0)
-						{
-			
-							if(k == 0){
-								//No U-turn
-								continue;
-							}
-							else{
-
-								//if(tempToSegmentList.get(j) == toSegmentList[k]){
-								if(connect.toSegment.getSegmentID() == toSegmentList[k]){
-									
-									int direction = i - k;
-									//TrafficSignalLine tempSignal = trafficSignalLines.get(tempToSegmentList.get(j-1));							
-									TrafficSignalLine tempSignal = trafficSignalLines.get(connect.lcID);
-									
-									if(direction == -3) {							
-										tempLeftTurn.add(tempSignal);
+						//Determine our direction.
+						int direction = currRes.linkNumber - k;
+						char actDir = sideLookup.get(currRes.linkNumber).get(direction);
+						ArrayList<TrafficSignalLine> currTurn = currRes.straightConnectors;
+						if (actDir=='L') {
+							currTurn = currRes.leftTurnConnectors;
+						} else if (actDir=='R') {
+							currTurn = currRes.rightTurnConnectors;
+						} else if (actDir != 'S') {
+							throw new RuntimeException("Unexpected direction: " + actDir);
+						}
 						
-									}else if(direction == -2){
-										tempStraightTurn.add(tempSignal);
-									}else if(direction == -1){
-										tempRightTurn.add(tempSignal);	
-									}
-									
-								}
-									
-							}
-						
-						} else if(i == 1){
-							
-							if(k == 1){
-								//No U-turn
-								continue;
-							}
-							else{
-								//if(tempToSegmentList.get(j) == toSegmentList[k]){
-								if (connect.toSegment.getSegmentID() == toSegmentList[k]) {
-									
-									int direction = i - k;
-									//TrafficSignalLine tempSignal = trafficSignalLines.get(tempToSegmentList.get(j-1));
-									TrafficSignalLine tempSignal = trafficSignalLines.get(connect.lcID);
-									if(direction == 1) {						
-										tempLeftTurn.add(tempSignal);
-									}else if(direction == -2){
-										tempStraightTurn.add(tempSignal);
-									}else if(direction == -1){
-										tempRightTurn.add(tempSignal);
-									}
-									
-								}
-									
-							}
-							
-						} else if(i == 2){
-							if(k == 2){
-								//No U-turn
-								continue;
-							}
-							else{
-								//if(tempToSegmentList.get(j) == toSegmentList[k]){
-								if (connect.toSegment.getSegmentID() == toSegmentList[k]) {
-									
-									int direction = i - k;
-									//TrafficSignalLine tempSignal = trafficSignalLines.get(tempToSegmentList.get(j-1));
-									TrafficSignalLine tempSignal = trafficSignalLines.get(connect.lcID);
-									
-									if(direction == 1) {	
-										tempLeftTurn.add(tempSignal);
-									}else if(direction == 2){
-										tempStraightTurn.add(tempSignal);
-									}else if(direction == -1){
-										tempRightTurn.add(tempSignal);
-									}
-									
-								}
-									
-							}
-						} else if(i == 3){
-							if(k == 3){
-								//No U-turn
-								continue;
-							}
-							else{
-								//if(tempToSegmentList.get(j) == toSegmentList[k]){
-								if (connect.toSegment.getSegmentID() == toSegmentList[k]) {
-									
-									int direction = i - k;
-									//TrafficSignalLine tempSignal = trafficSignalLines.get(tempToSegmentList.get(j-1));
-									TrafficSignalLine tempSignal = trafficSignalLines.get(connect.lcID);
-									if(direction == 1) {			
-										tempLeftTurn.add(tempSignal);
-									}else if(direction == 2){
-										tempStraightTurn.add(tempSignal);
-									}else if(direction == 3){
-										tempRightTurn.add(tempSignal);
-									}
-									
-								}
-											
-							}
-				
-						} 
-						
+						//Add this if the "to" field matches.
+						if (connect.toSegment.getSegmentID() == toSegmentList[k]) {
+							TrafficSignalLine tempSignal = trafficSignalLines.get(connect.lcID);
+							currTurn.add(tempSignal);
+						}
 					} // End k loop
-				} // End j loop
+				} 
 			
 			}
-			list.put(i, tempDirectionalSignalLines);
-		} // End i loop
-	
-		return list;
+		}
+
+		return res;
 	}
 }
 

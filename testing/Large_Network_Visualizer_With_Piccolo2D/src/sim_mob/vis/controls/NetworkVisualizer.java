@@ -180,12 +180,11 @@ public class NetworkVisualizer extends PCanvas {
 		}
 		
 		
-		/*for(Hashtable<Integer,LaneMarking> vlmtable :  rn.getLaneMarkings().values()){
-			for(LaneMarking vlm : vlmtable.values()){
-				//vlm.repaint();
-				parent.addChild(vlm);
-			}
-		}*/
+		//Add all traffic signal lines
+		for (TrafficSignalLine tsl : rn.getTrafficSignalLine().values()) {
+			parent.addChild(tsl);
+		}
+		
 		
 		for(Crossing vc : rn.getCrossing().values()){
 

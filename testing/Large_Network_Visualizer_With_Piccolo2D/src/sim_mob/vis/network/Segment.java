@@ -12,6 +12,14 @@ import edu.umd.cs.piccolo.util.PPaintContext;
 public class Segment extends PPath {
 	private static final long serialVersionUID = 1L;
 	
+	//TEMP: Still not sure why we need this. Seems to aggregate all 
+	//      lane connectors... not really sure why.
+	public static class LC {
+		public int laneID;
+		public int lcID;
+		public Segment toSegment;
+	}
+	
 	//Constants/Resources
 	private static Color roadColor = new Color(0xFF, 0x88, 0x22);
 	private static Stroke roadStroke = new BasicStroke(2.0F);
@@ -22,7 +30,8 @@ public class Segment extends PPath {
 	private int segmentID;
 	
 	//Lane lines (lane edge lines). Can be "sealed" to prevent changes.
-	private ArrayList<LaneMarking> laneEdges;
+	private ArrayList<LaneMarking> laneEdges;  //"Outer" edges
+	private ArrayList<LC> laneConnectorIDs;  //"Inner" lane connectors
 	private boolean laneEdgesSealed;
 	public void addLaneEdge(int lineNumber, LaneMarking edge) {
 		if (laneEdgesSealed) { throw new RuntimeException("Can't modify segment lanes; structure is sealed."); }
@@ -31,6 +40,9 @@ public class Segment extends PPath {
 		while (lineNumber >= laneEdges.size()) {
 			laneEdges.add(null);
 		}
+		/*while (lineNumber-1 >= laneConnectorIDs.size()) {
+			laneConnectorIDs.add(null);
+		}*/
 		
 		//Add, if unique
 		if (laneEdges.get(lineNumber) != null) { throw new RuntimeException("Error: multiple lane edges specified for segment: " + segmentID); }
@@ -57,6 +69,35 @@ public class Segment extends PPath {
 	}
 	
 	
+	
+	public void setLaneConnector(int laneID, int connectorObjID, Segment toSeg) {
+		checkLaneConnector(laneID);
+		//if (laneConnectorIDs.get(laneID) != null) { throw new RuntimeException("Error: Lane connector ID already set."); }
+		
+		LC lc = new LC();
+		lc.laneID = laneID;
+		lc.lcID = connectorObjID;
+		lc.toSegment = toSeg;
+		laneConnectorIDs.add(lc);
+	}
+	/*/public LC getLaneConnector(int laneID) {
+		checkLaneConnector(laneID);
+		return laneConnectorIDs.get(laneID);
+	}*/
+	public ArrayList<LC> getAllLaneConnectors() {
+		checkLaneConnector(0);
+		return laneConnectorIDs;
+	}
+	public boolean hasLaneConnector(int laneID) {
+		checkLaneConnector(laneID);
+		return laneConnectorIDs.get(laneID) != null;
+	}
+	private void checkLaneConnector(int laneID) {
+		if (!this.laneEdgesSealed) { throw new RuntimeException("Can't set lane connector information until the network is sealed."); }
+		//if (laneID >= laneConnectorIDs.size()) { throw new RuntimeException("Error: Lane ID is out of bounds."); }
+	}
+	
+	
 
 	
 	public Segment(Link parent, Node from, Node to, int parentLinkID, int segmentID) {
@@ -65,6 +106,7 @@ public class Segment extends PPath {
 		this.parentLinkID = parentLinkID;
 		this.segmentID = segmentID;
 		this.laneEdges = new ArrayList<LaneMarking>();
+		this.laneConnectorIDs = new ArrayList<LC>();
 		this.laneEdgesSealed = false;
 		
 		this.setBounds(new Rectangle2D.Double(from.getX(), from.getY(), to.getX()-from.getX(), to.getY()-from.getY()));

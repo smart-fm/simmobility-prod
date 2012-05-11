@@ -29,30 +29,21 @@ public class RoadNetwork {
 	private Hashtable<Integer, Segment> segments;
 	private Hashtable<Integer, Crossing> crossings;
 	
-	//NOTE: I'm disabling these for now; you can access Lane Markings from their parent segment. ~Seth
-	//private Hashtable<Integer,Hashtable<Integer,LaneMarking>> laneMarkings;
-	//public Hashtable<Integer,Hashtable<Integer,LaneMarking>> getLaneMarkings() { return laneMarkings; }
-	
 	//For signal
-	private Hashtable<Integer, LaneConnector> laneConnectors;
 	private Hashtable<Integer, Hashtable<Integer,Lane> > lanes;
 	private Hashtable<Integer, TrafficSignalLine> trafficSignalLines;
 	private Hashtable<Integer, TrafficSignalCrossing> trafficSignalCrossings;
 	private Hashtable<Integer, Intersection> intersections; 
 	
-	private Hashtable<String, Integer> fromToSegmentRefTable;
-	private Hashtable<Integer,ArrayList<Integer>> segmentRefTable;
-	//                segID              lane#   laneID
-	//private Hashtable<Integer,Hashtable<Integer,Integer>> segmentToLanesTable;
+	//Stores a reference to Lane Connectors on each segment...? Can we put this in
+	//  the segment class?
+	//private Hashtable<Segment, ArrayList<Integer>> segmentRefTable;
 	
 		
 	public DPoint getTopLeft() { return cornerTL; }
 	public DPoint getLowerRight() { return cornerLR; }
-	//public int getCanvasWidth() { return canvasWidth; }
-	//public int getCanvasHeight() { return canvasHeight; }
 
 	public Hashtable<Integer, Node> getNodes(){ return nodes; }
-	//public ArrayList<Node> getLocalPosPoints(){return localPoints;}
 	public Hashtable<Integer, Link> getLinks() { return links; }
 	public Hashtable<Integer, RoadName> getRoadNames() { return roadNames; }
 	public Hashtable<Integer, Segment> getSegments() { return segments; }
@@ -83,14 +74,14 @@ public class RoadNetwork {
 		//laneMarkings = new Hashtable<Integer,Hashtable<Integer,LaneMarking>>();
 		crossings = new Hashtable<Integer,Crossing>();
 	
-		laneConnectors = new Hashtable<Integer, LaneConnector>();
+		//laneConnectors = new Hashtable<Integer, LaneConnector>();
 		trafficSignalLines = new Hashtable<Integer, TrafficSignalLine>(); 
 		trafficSignalCrossings = new Hashtable<Integer, TrafficSignalCrossing>();
 		intersections = new Hashtable<Integer, Intersection>();
 		lanes = new Hashtable<Integer, Hashtable<Integer,Lane>>();
 
-		fromToSegmentRefTable =  new Hashtable<String, Integer>();
-		segmentRefTable = new  Hashtable<Integer , ArrayList<Integer>>(); 
+		//fromToSegmentRefTable =  new Hashtable<String, Integer>();
+		//segmentRefTable = new  Hashtable<Integer , ArrayList<Integer>>(); 
 		//segmentToLanesTable = new Hashtable<Integer,Hashtable<Integer,Integer>>();
 		
 		//Also track min/max x/y pos
@@ -366,32 +357,22 @@ public class RoadNetwork {
 	    	throw new IOException("Unknown Segment id: " + Integer.toHexString(toSegmentKEY));
 	    }
 	    
-	    
-	    LaneConnector tempLaneConnector = new LaneConnector(fromSegmentKEY, toSegmentKEY, fromLane, toLane);
 	    //Put into lane connector table
-	    laneConnectors.put(objID, new LaneConnector(fromSegmentKEY, toSegmentKEY, fromLane, toLane));
+	    LaneConnector tempLaneConnector = new LaneConnector(fromSegmentKEY, toSegmentKEY, fromLane, toLane);
 	    collectSignalLineInfo(objID,tempLaneConnector);
 	    
 	    //Use from-segment and to-segment form a reference table, to check from-segment & to-segment pair against lane connector id
-	    String fromToSegmentKey = Integer.toHexString(fromSegmentKEY)+"&"+Integer.toHexString(toSegmentKEY);
-	    fromToSegmentRefTable.put(fromToSegmentKey, objID);
-
+	    fromSegment.setLaneConnector(fromLane, objID, toSegment);
 	    
-	    
-/*		System.out.println(fromSegmentKEY +"	" + toSegmentKEY);
-		System.out.println(props.get("from-segment") + "	" + props.get("to-segment"));
-		System.out.println();
-*/				
-	    if(segmentRefTable.containsKey(fromSegmentKEY)){
+	    /*if(segmentRefTable.containsKey(fromSegmentKEY)){
 	    	segmentRefTable.get(fromSegmentKEY).add(objID);	
 	    	segmentRefTable.get(fromSegmentKEY).add(toSegmentKEY);
-	    
 	    } else{
 	    	ArrayList<Integer> toSegmentList = new ArrayList<Integer>();
 	    	toSegmentList.add(objID);
 	    	toSegmentList.add(toSegmentKEY);
 	    	segmentRefTable.put(fromSegmentKEY, toSegmentList);
-	    }
+	    }*/
 	    
 	    
 	}
@@ -493,11 +474,44 @@ public class RoadNetwork {
 		}
 	}
 	
+	
+	private void populateIntersection(int intersectionNodeID, char charKey, int sigLinkID, int[] fromSegmentList, int[] toSegmentList) {
+		//Build up a list of segment IDs which also occur in this parentLink.
+		ArrayList<Integer> tempSegmentIDs = new ArrayList<Integer>();
+		for (Integer segmentID : segments.keySet()) {
+			Segment tempSegment = segments.get(segmentID);
+			int parentLinkID = tempSegment.getparentLinkID();
+			if(sigLinkID == parentLinkID ){
+				tempSegmentIDs.add(segmentID);
+			}
+		}
+		
+		//Find segment that related to intersection node
+		for (int segID : tempSegmentIDs) {
+			if(segments.containsKey(segID)){
+				Segment tempSegment = segments.get(segID);
+				
+				//Convert 'a','b',... to 0,1,...
+				int charKeyVal = ((int)charKey) - ((int)'a');
+				if (charKey<'a' || charKey>'d') { throw new RuntimeException("Invalid character key: " + charKey); }
+				
+				//Check if the segment is come from the intersection node
+				if(tempSegment.getTo().getID() == intersectionNodeID) {
+					fromSegmentList[charKeyVal] = segID;
+				} else if(tempSegment.getFrom().getID() == intersectionNodeID){
+					toSegmentList[charKeyVal] = segID;	
+				}
+			} else {
+				System.out.println("Error, no such segments in segment table "+Integer.toHexString(segID)+" -- RoadNetwork,populateIntersection ");
+			}
+		}	
+	}
+	
+	
 	private void populateIntersections(){
 
 		for(Intersection intersection : intersections.values()){		
-			ArrayList <Integer> tempIntersectLinkIDs = intersection.getSigalLinkIDs();
-			Hashtable<Integer, Integer> intersectLinkSegmentIDTable = new Hashtable<Integer, Integer>();
+			//Hashtable<Integer, Integer> intersectLinkSegmentIDTable = new Hashtable<Integer, Integer>();
 			
 			int[] fromSegmentList = new int[]{-1,-1,-1,-1};
 			int[] toSegmentList = new int[]{-1,-1,-1,-1};
@@ -505,90 +519,17 @@ public class RoadNetwork {
 			int intersectionNodeID = intersection.getIntersectNodeID(); 
 						
 			//Search all the Links
-			for(int i = 0; i<tempIntersectLinkIDs.size();i++ ){	
-				int tempLinkID = tempIntersectLinkIDs.get(i);
-				//ArrayList<Integer> tempSegmentIDs = roadNetworkItemsMapTable.findSegmentIDWithLinkID(tempLinkID);
-				ArrayList<Integer> tempSegmentIDs = new ArrayList<Integer>();
-				Enumeration<Integer> segmentKeys = segments.keys();
-							
-				while(segmentKeys.hasMoreElements()){
-					
-					Object aKey = segmentKeys.nextElement();
-					Integer segmentID = (Integer) aKey;
-					Segment tempSegment = segments.get(aKey);
-					int parentLinkID = tempSegment.getparentLinkID();
-				
-					if(tempLinkID == parentLinkID ){
-						tempSegmentIDs.add(segmentID);
-					}
-				
-				}
-				
-				//Find segment that related to intersection node
-				for(int j = 0; j< tempSegmentIDs.size();j++){
-					
-					if(segments.containsKey(tempSegmentIDs.get(j))){
-						
-						Segment tempSegment = segments.get(tempSegmentIDs.get(j));	
-						
-						//Check if the segment is come from the intersection node
-						if(tempSegment.getTo().getID() == intersectionNodeID)
-						{
-							//Put it into respective table
-							if(i == 0){
-								intersectLinkSegmentIDTable.put(Mapping.VA_FROM_SEGMENT, tempSegmentIDs.get(j));
-								fromSegmentList[0] = tempSegmentIDs.get(j);
-							} else if( i == 1){
-								intersectLinkSegmentIDTable.put(Mapping.VB_FROM_SEGMENT, tempSegmentIDs.get(j));
-								fromSegmentList[1] = tempSegmentIDs.get(j);
-							} else if(i == 2){
-								intersectLinkSegmentIDTable.put(Mapping.VC_FROM_SEGMENT, tempSegmentIDs.get(j));
-								fromSegmentList[2] = tempSegmentIDs.get(j);
-							} else if(i == 3){
-								intersectLinkSegmentIDTable.put(Mapping.VD_FROM_SEGMENT, tempSegmentIDs.get(j));
-								fromSegmentList[3] = tempSegmentIDs.get(j);
-							}
-							
-						} else if(tempSegment.getFrom().getID() == intersectionNodeID){
-					
-							//Put it into respective table
-							if(i == 0){
-								intersectLinkSegmentIDTable.put(Mapping.VA_TO_SEGMENT, tempSegmentIDs.get(j));
-								toSegmentList[0] = tempSegmentIDs.get(j);
-							} else if( i == 1){
-								intersectLinkSegmentIDTable.put(Mapping.VB_TO_SEGMENT, tempSegmentIDs.get(j));
-								toSegmentList[1] = tempSegmentIDs.get(j);
-							} else if(i == 2){
-								intersectLinkSegmentIDTable.put(Mapping.VC_TO_SEGMENT, tempSegmentIDs.get(j));
-								toSegmentList[2] = tempSegmentIDs.get(j);
-							} else if(i == 3){
-								intersectLinkSegmentIDTable.put(Mapping.VD_TO_SEGMENT, tempSegmentIDs.get(j));
-								toSegmentList[3] = tempSegmentIDs.get(j);
-							}	
-						}
-							
-							
-					} else {
-						
-						System.out.println("Error, no such segments in segment table "+Integer.toHexString(tempSegmentIDs.get(j))+" -- RoadNetwork,populateIntersection ");
-						
-					}
-					
-				}	
-						
+			//for(int i = 0; i<tempIntersectLinkIDs.size();i++ ){
+			Hashtable<Character, Integer> sigLinkIDs = intersection.getSigalLinkIDs();
+			for (char charKey : sigLinkIDs.keySet()) {
+				populateIntersection(intersectionNodeID, charKey, sigLinkIDs.get(charKey), fromSegmentList, toSegmentList);
 			}
 							
 			Hashtable<Integer, ArrayList<ArrayList<TrafficSignalLine>>> signalList = helperAllocateDirection(fromSegmentList,toSegmentList);			
-			Enumeration<Integer> signalListKeys = signalList.keys();
-			
-			while(signalListKeys.hasMoreElements()){
-				
-				Object aKey = signalListKeys.nextElement();
-				Integer linkNumber = (Integer)aKey;
+			for (Integer linkNumber : signalList.keySet()) {
 				ArrayList<ArrayList<TrafficSignalLine>> signalListPerLink = signalList.get(linkNumber);
 				
-				if(linkNumber == 0)
-				{
+				if(linkNumber == 0) {
 					intersection.setVaTrafficSignal(signalListPerLink);
 					
 				}else if (linkNumber == 1){
@@ -646,10 +587,11 @@ public class RoadNetwork {
 			ArrayList<ArrayList<TrafficSignalLine>> tempDirectionalSignalLines = new ArrayList<ArrayList<TrafficSignalLine>>();
 			
 			int fromSegmentKey = fromSegmentList[i]; 	
+			//if(segmentRefTable.containsKey(fromSegmentKey)){
+			if (segments.containsKey(fromSegmentKey)) {
 			
-			if(segmentRefTable.containsKey(fromSegmentKey)){	
-			
-				ArrayList<Integer> tempToSegmentList = segmentRefTable.get(fromSegmentKey);
+				//ArrayList<Integer> tempToSegmentList = segmentRefTable.get(fromSegmentKey);
+				ArrayList<Segment.LC> tempToSegmentList = segments.get(fromSegmentKey).getAllLaneConnectors();
 
 				ArrayList<TrafficSignalLine> tempLeftTurn = new ArrayList<TrafficSignalLine>();
 				ArrayList<TrafficSignalLine> tempStraightTurn = new ArrayList<TrafficSignalLine>();
@@ -659,7 +601,10 @@ public class RoadNetwork {
 				tempDirectionalSignalLines.add(tempStraightTurn);
 				tempDirectionalSignalLines.add(tempRightTurn);
 	
-				for(int j=1;j<tempToSegmentList.size();j+=2){				
+				//TODO: This loop is very messy; there's lots of repeated information and copied code. 
+				//      Clean it up using temporary classes (and better math) as needed. ~Seth
+				//for(int j=1;j<tempToSegmentList.size();j+=2){
+				for (Segment.LC connect : tempToSegmentList) {
 
 					for(int k = 0; k < toSegmentList.length;k++){
 					
@@ -673,10 +618,12 @@ public class RoadNetwork {
 							}
 							else{
 
-								if(tempToSegmentList.get(j) == toSegmentList[k]){
+								//if(tempToSegmentList.get(j) == toSegmentList[k]){
+								if(connect.toSegment.getSegmentID() == toSegmentList[k]){
 									
 									int direction = i - k;
-									TrafficSignalLine tempSignal = trafficSignalLines.get(tempToSegmentList.get(j-1));							
+									//TrafficSignalLine tempSignal = trafficSignalLines.get(tempToSegmentList.get(j-1));							
+									TrafficSignalLine tempSignal = trafficSignalLines.get(connect.lcID);
 									
 									if(direction == -3) {							
 										tempLeftTurn.add(tempSignal);
@@ -698,10 +645,12 @@ public class RoadNetwork {
 								continue;
 							}
 							else{
-								if(tempToSegmentList.get(j) == toSegmentList[k]){
+								//if(tempToSegmentList.get(j) == toSegmentList[k]){
+								if (connect.toSegment.getSegmentID() == toSegmentList[k]) {
 									
 									int direction = i - k;
-									TrafficSignalLine tempSignal = trafficSignalLines.get(tempToSegmentList.get(j-1));
+									//TrafficSignalLine tempSignal = trafficSignalLines.get(tempToSegmentList.get(j-1));
+									TrafficSignalLine tempSignal = trafficSignalLines.get(connect.lcID);
 									if(direction == 1) {						
 										tempLeftTurn.add(tempSignal);
 									}else if(direction == -2){
@@ -720,10 +669,12 @@ public class RoadNetwork {
 								continue;
 							}
 							else{
-								if(tempToSegmentList.get(j) == toSegmentList[k]){
+								//if(tempToSegmentList.get(j) == toSegmentList[k]){
+								if (connect.toSegment.getSegmentID() == toSegmentList[k]) {
 									
 									int direction = i - k;
-									TrafficSignalLine tempSignal = trafficSignalLines.get(tempToSegmentList.get(j-1));
+									//TrafficSignalLine tempSignal = trafficSignalLines.get(tempToSegmentList.get(j-1));
+									TrafficSignalLine tempSignal = trafficSignalLines.get(connect.lcID);
 									
 									if(direction == 1) {	
 										tempLeftTurn.add(tempSignal);
@@ -742,10 +693,12 @@ public class RoadNetwork {
 								continue;
 							}
 							else{
-								if(tempToSegmentList.get(j) == toSegmentList[k]){
+								//if(tempToSegmentList.get(j) == toSegmentList[k]){
+								if (connect.toSegment.getSegmentID() == toSegmentList[k]) {
 									
 									int direction = i - k;
-									TrafficSignalLine tempSignal = trafficSignalLines.get(tempToSegmentList.get(j-1));		
+									//TrafficSignalLine tempSignal = trafficSignalLines.get(tempToSegmentList.get(j-1));
+									TrafficSignalLine tempSignal = trafficSignalLines.get(connect.lcID);
 									if(direction == 1) {			
 										tempLeftTurn.add(tempSignal);
 									}else if(direction == 2){
@@ -769,19 +722,6 @@ public class RoadNetwork {
 	
 		return list;
 	}
-	
-	//Coordinate conversion 
-	/*private void convertToLocal(int width, int height){
-		double width5Percent = 0.05 * (cornerLR.x - cornerTL.x);
-		double height5Percent = 0.05 * (cornerLR.y - cornerTL.y);
-		
-		DPoint newTL = new DPoint(cornerTL.x-width5Percent, cornerTL.y-height5Percent);
-		DPoint newLR = new DPoint(cornerLR.x+width5Percent, cornerLR.y+height5Percent);
-		
-		for(int i=0;i<localPoints.size();i++){			
-			localPoints.get(i).getLocalPos().scaleVia(newTL, newLR, width, height);
-		}
-	}*/
 }
 
 

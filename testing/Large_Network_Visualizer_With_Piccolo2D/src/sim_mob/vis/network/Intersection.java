@@ -1,6 +1,7 @@
 package sim_mob.vis.network;
 
 import java.util.ArrayList;
+import java.util.Hashtable;
 
 
 /**
@@ -8,9 +9,8 @@ import java.util.ArrayList;
  * \author Seth N. Hetu
  */
 public class Intersection {
-
 	private int intersectNodeID;
-	private ArrayList <Integer> signalLinkIDs; 
+	private Hashtable<Character, Integer> signalLinkIDs; //e.g., 'a' => XXX 
 	private ArrayList <Integer> signalCrossingIDs;
 	private ArrayList <TrafficSignalCrossing> signalCrossings;
 
@@ -23,7 +23,7 @@ public class Intersection {
 	
 	
 	public int getIntersectNodeID (){return intersectNodeID;}
-	public ArrayList <Integer> getSigalLinkIDs(){return signalLinkIDs;}
+	public Hashtable<Character, Integer> getSigalLinkIDs(){return signalLinkIDs;}
 	public ArrayList <Integer> getSigalCrossingIDs(){return signalCrossingIDs;}
 	public ArrayList <TrafficSignalCrossing> getSignalCrossings(){return signalCrossings;}
 	
@@ -35,7 +35,14 @@ public class Intersection {
 	public Intersection(int intersectNodeID, ArrayList <Integer> signalLinkIDs, ArrayList <Integer> signalCrossingIDs){
 		
 		this.intersectNodeID = intersectNodeID;
-		this.signalLinkIDs = signalLinkIDs;
+		
+		this.signalLinkIDs = new Hashtable<Character, Integer>();
+		for (int linkID : signalLinkIDs) {
+			char charKey = (char)((int)'a'+this.signalLinkIDs.size());
+			this.signalLinkIDs.put(charKey, linkID);
+		}
+				
+		
 		this.signalCrossingIDs = signalCrossingIDs;
 
 	}

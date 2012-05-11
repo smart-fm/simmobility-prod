@@ -1,5 +1,6 @@
 package sim_mob.vis.util;
 
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
@@ -112,6 +113,13 @@ public class Utility {
 		double dx   = x2 - x1;
 		double dy   = y2 - y1;
 		return Math.sqrt(dx*dx + dy*dy);
+	}
+	public static double Distance(Point2D from, Point2D to) {
+		return Distance(from.getX(), from.getY(), to.getX(), to.getY());
+	}
+	
+	public static final String Point2Str(Point2D pt) {
+		return "(" + pt.getX() + "," + pt.getY() + ")";
 	}
 
 	

@@ -1,0 +1,34 @@
+/* Copyright Singapore-MIT Alliance for Research and Technology */
+
+#pragma once
+
+#include "GenConfig.h"
+#include "util/LangHelpers.hpp"
+#include <cppunit/TestCase.h>
+#include <cppunit/extensions/HelperMacros.h>
+
+namespace unit_tests
+{
+
+/**
+ * Unit Tests for packing/unpacking of MPI data.
+ * \author Seth N. Hetu
+ */
+class PackUnpackUnitTests : public CppUnit::TestFixture
+{
+public:
+	///Test simple setting and retrieving
+	void test_PackUnpack_simple_set_get() CHECK_MPI_THROW ;
+
+
+
+
+private:
+#ifndef SIMMOB_DISABLE_MPI
+    CPPUNIT_TEST_SUITE(PackUnpackUnitTests);
+        CPPUNIT_TEST(test_PackUnpack_simple_set_get);
+    CPPUNIT_TEST_SUITE_END();
+#endif
+};
+
+}

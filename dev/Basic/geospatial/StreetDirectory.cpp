@@ -883,18 +883,18 @@ StreetDirectory::ShortestPathImpl::process(RoadSegment const * road, bool isForw
     }
 
     Node const * node1 = road->getStart();
-    if (dynamic_cast<UniNode const *>(node1))
-    {
-        // If this road-segment is side-by-side to another road-segment going in the other
-        // direction, we cannot insert this uni-node into the drivingMap_ graph.  Otherwise,
-        // vehicles on both road-segments would be allowed to make U-turns at the uni-node,
-        // which may not correct.  Currently we do not have info from the database about the
-        // U-turns at the uni-nodes.  Instead of using the uni-node as a vertex in the drivingMap_,
-        // we choose a point in one of the lane's polyline.
-        std::vector<Point2D> const & polyline = road->getLanes()[0]->getPolyline();
-        Point2D point = polyline[0];
-        node1 = findNode(point);
-    }
+//    if (dynamic_cast<UniNode const *>(node1))
+//    {
+//        // If this road-segment is side-by-side to another road-segment going in the other
+//        // direction, we cannot insert this uni-node into the drivingMap_ graph.  Otherwise,
+//        // vehicles on both road-segments would be allowed to make U-turns at the uni-node,
+//        // which may not correct.  Currently we do not have info from the database about the
+//        // U-turns at the uni-nodes.  Instead of using the uni-node as a vertex in the drivingMap_,
+//        // we choose a point in one of the lane's polyline.
+//        std::vector<Point2D> const & polyline = road->getLanes()[0]->getPolyline();
+//        Point2D point = polyline[0];
+//        node1 = findNode(point);
+//    }
 
     centimeter_t offset = 0;
     while (offset < road->length)
@@ -955,13 +955,13 @@ StreetDirectory::ShortestPathImpl::process(RoadSegment const * road, bool isForw
     }
 
     Node const * node2 = road->getEnd();
-    if (dynamic_cast<UniNode const *>(node2))
-    {
-        // See comment above about the road-segment's start-node.
-        std::vector<Point2D> const & polyline = road->getLanes()[0]->getPolyline();
-        Point2D point = polyline[polyline.size() - 1];
-        node2 = findNode(point);
-    }
+//    if (dynamic_cast<UniNode const *>(node2))
+//    {
+//        // See comment above about the road-segment's start-node.
+//        std::vector<Point2D> const & polyline = road->getLanes()[0]->getPolyline();
+//        Point2D point = polyline[polyline.size() - 1];
+//        node2 = findNode(point);
+//    }
 
 
     avgSpeed = 100*road->maxSpeed/3.6;

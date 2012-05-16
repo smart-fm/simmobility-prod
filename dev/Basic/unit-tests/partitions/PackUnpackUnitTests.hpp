@@ -20,13 +20,17 @@ public:
 	///Test simple setting and retrieving
 	void test_PackUnpack_simple_set_get() CHECK_MPI_THROW ;
 
+	//Slightly more complicated template processing.
+	void test_PackUnpack_fixed_delayed() CHECK_MPI_THROW ;
+
 
 
 
 private:
 #ifndef SIMMOB_DISABLE_MPI
     CPPUNIT_TEST_SUITE(PackUnpackUnitTests);
-        CPPUNIT_TEST(test_PackUnpack_simple_set_get);
+      CPPUNIT_TEST(test_PackUnpack_simple_set_get);
+      CPPUNIT_TEST(test_PackUnpack_fixed_delayed);
     CPPUNIT_TEST_SUITE_END();
 #endif
 };

@@ -48,14 +48,44 @@ void unit_tests::PackUnpackUnitTests::test_PackUnpack_simple_set_get()
 	UnPackageUtils up(p.getPackageData());
 	destAgent.unpack(up);
 
-	//Check that x/y positions line up before AND after a call to flip()
+	//Check that x/y positions line up before a call to flip.
+	//NOTE: These will definitely NOT be valid after the flip, since Agents don't perform
+	//      decisions before being transferred to the new partition.
 	CPPUNIT_ASSERT_EQUAL(srcAgent.xPos.get(),destAgent.xPos.get());
 	CPPUNIT_ASSERT_EQUAL(srcAgent.yPos.get(),destAgent.yPos.get());
-	bdm.flip();
+	/*bdm.flip();
 	CPPUNIT_ASSERT_EQUAL(srcAgent.xPos.get(),destAgent.xPos.get());
-	CPPUNIT_ASSERT_EQUAL(srcAgent.yPos.get(),destAgent.yPos.get());
+	CPPUNIT_ASSERT_EQUAL(srcAgent.yPos.get(),destAgent.yPos.get());*/
+}
+
+void unit_tests::PackUnpackUnitTests::test_PackUnpack_fixed_delayed()
+{
+	//Build up a simple sequence.
+	FixedDelayed<double> srcFD(100);  //Max of 100ms delay
+	for (size_t i=0; i<100; i+=10) { //[0,0.0, 10,1.1, ... 90,9.9]
+		srcFD.update(i);
+		srcFD.delay(i*1.1);
+	}
+
+	//Now pack it.
+	PackageUtils p;
+	p << srcFD;
+
+	//Unpack it
+	UnPackageUtils up(p.getPackageData());
+	//TODO
+
+
+
+	CPPUNIT_FAIL("TODO: Implement this test.");
 }
 
 
-
 #endif //SIMMOB_DISABLE_MPI
+
+
+
+
+
+
+

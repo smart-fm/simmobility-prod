@@ -100,6 +100,10 @@ public:
 	 */
 	bool can_sense();
 
+
+	//Serialization code, if MPI is enabled.
+
+
 private:
 	//Helper function: delete the first item in the history array. Return true if there's more to delete.
 	bool del_history_front();

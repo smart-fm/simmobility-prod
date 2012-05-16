@@ -49,7 +49,7 @@ void sim_mob::PackageUtils::packFixedDelayedDPoint(const FixedDelayed<DPoint*>& 
 	}
 }
 
-void sim_mob::PackageUtils::packFixedDelayedDouble(const FixedDelayed<double>& one_delay) {
+/*void sim_mob::PackageUtils::packFixedDelayedDouble(const FixedDelayed<double>& one_delay) {
 	//(*package) & (one_delay.delayMS);
 	(*package) & (one_delay.reclaimPtrs);
 
@@ -84,7 +84,7 @@ void sim_mob::PackageUtils::packFixedDelayedInt(const FixedDelayed<int>& one_del
 		(*package) & (value);
 		(*package) & value2;
 	}
-}
+}*/
 
 void sim_mob::PackageUtils::packPoint2D(const Point2D& one_point) {
 	(*package) & (one_point);

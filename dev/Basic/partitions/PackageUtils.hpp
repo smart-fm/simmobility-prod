@@ -154,8 +154,8 @@ public:
 
 	//Other struct
 	void packFixedDelayedDPoint(const FixedDelayed<DPoint*>& one_delay) CHECK_MPI_THROW ;
-	void packFixedDelayedDouble(const FixedDelayed<double>& one_delay) CHECK_MPI_THROW ;
-	void packFixedDelayedInt(const FixedDelayed<int>& one_delay) CHECK_MPI_THROW ;
+	//void packFixedDelayedDouble(const FixedDelayed<double>& one_delay) CHECK_MPI_THROW ;
+	//void packFixedDelayedInt(const FixedDelayed<int>& one_delay) CHECK_MPI_THROW ;
 	void packPoint2D(const Point2D& one_point) CHECK_MPI_THROW ;
 
 	void packDailyTime(const DailyTime& time) CHECK_MPI_THROW ;

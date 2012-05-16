@@ -9,6 +9,9 @@
 
 #include "perception/FixedDelayed.hpp"
 
+//Just adding this to make sure linking works w/ the template function (it should).
+#include "util/DynamicVector.hpp"
+
 using namespace sim_mob;
 
 CPPUNIT_TEST_SUITE_REGISTRATION(unit_tests::FixedDelayedUnitTests);

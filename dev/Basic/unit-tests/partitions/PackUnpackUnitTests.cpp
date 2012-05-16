@@ -13,6 +13,7 @@
 #include "partitions/UnPackageUtils.hpp"
 
 #include "buffering/BufferedDataManager.hpp"
+#include "util/DynamicVector.hpp"
 #include "entities/Person.hpp"
 #include "entities/Agent.hpp"
 
@@ -83,7 +84,7 @@ void unit_tests::PackUnpackUnitTests::test_PackUnpack_fixed_delayed()
 
 	//Advance 1, then the other. Ensure they're not equal in between.
 	srcFD.update(110);
-	CPPUNIT_ASSERT_ASSERTION_PASS(srcFD.sense()!=destFD.sense());
+	CPPUNIT_ASSERT(srcFD.sense()!=destFD.sense());
 	destFD.update(110);
 	CPPUNIT_ASSERT_EQUAL(srcFD.sense(), destFD.sense());
 
@@ -98,6 +99,37 @@ void unit_tests::PackUnpackUnitTests::test_PackUnpack_fixed_delayed()
 	srcFD.update(190);
 	destFD.update(200);
 	CPPUNIT_ASSERT_EQUAL(srcFD.sense(), destFD.sense());
+}
+
+void unit_tests::PackUnpackUnitTests::test_PackUnpack_fixed_delayed_dpoint()
+{
+	//We only care that one point works.
+	FixedDelayed<DPoint> srcFD(10); //10ms delay
+	srcFD.delay(DPoint(1.1, 3.3));
+	srcFD.update(9);
+
+	//Now pack it.
+	PackageUtils p;
+	p << srcFD;
+
+	//Unpack it
+	UnPackageUtils up(p.getPackageData());
+	FixedDelayed<DPoint> destFD; //Use the default constructor (0ms delay)
+	up >> destFD;
+
+	//Ensure neither one can be sensed
+	CPPUNIT_ASSERT(!srcFD.can_sense());
+	CPPUNIT_ASSERT(!destFD.can_sense());
+
+	//Advance, make sure they can be sensed
+	srcFD.update(10);
+	destFD.update(10);
+	CPPUNIT_ASSERT(srcFD.can_sense());
+	CPPUNIT_ASSERT(destFD.can_sense());
+
+	//Ensure they're equal
+	CPPUNIT_ASSERT_EQUAL(srcFD.sense().x, destFD.sense().x);
+	CPPUNIT_ASSERT_EQUAL(srcFD.sense().y, destFD.sense().y);
 }
 
 

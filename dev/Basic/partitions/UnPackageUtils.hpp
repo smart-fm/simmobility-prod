@@ -126,8 +126,8 @@ public:
 
 	//Others
 	FixedDelayed<DPoint*>& unpackFixedDelayedDPoint() const CHECK_MPI_THROW ;
-	FixedDelayed<double>& unpackFixedDelayedDouble() const CHECK_MPI_THROW ;
-	FixedDelayed<int>& unpackFixedDelayedInt() const CHECK_MPI_THROW ;
+	//FixedDelayed<double>& unpackFixedDelayedDouble() const CHECK_MPI_THROW ;
+	//FixedDelayed<int>& unpackFixedDelayedInt() const CHECK_MPI_THROW ;
 	Point2D* unpackPoint2D() const CHECK_MPI_THROW ;
 
 	void unpackDailyTime(DailyTime& time) const CHECK_MPI_THROW ;

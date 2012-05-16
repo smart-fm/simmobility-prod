@@ -24,6 +24,12 @@
 
 #include "perception/FixedDelayed.hpp"
 
+
+namespace unit_tests {
+class PackUnpackUnitTests;
+}
+
+
 namespace sim_mob {
 
 class BoundaryProcessor;
@@ -33,6 +39,8 @@ class DailyTime;
 class Point2D;
 class IntersectionDrivingModel;
 class SimpleIntDrivingModel;
+
+
 
 /**
  * \author Xu Yan
@@ -146,8 +154,8 @@ public:
 
 	//Other struct
 	void packFixedDelayedDPoint(const FixedDelayed<DPoint*>& one_delay) CHECK_MPI_THROW ;
-	void packFixedDelayedDouble(const FixedDelayed<double>& one_delay) CHECK_MPI_THROW ;
-	void packFixedDelayedInt(const FixedDelayed<int>& one_delay) CHECK_MPI_THROW ;
+	//void packFixedDelayedDouble(const FixedDelayed<double>& one_delay) CHECK_MPI_THROW ;
+	//void packFixedDelayedInt(const FixedDelayed<int>& one_delay) CHECK_MPI_THROW ;
 	void packPoint2D(const Point2D& one_point) CHECK_MPI_THROW ;
 
 	void packDailyTime(const DailyTime& time) CHECK_MPI_THROW ;
@@ -160,6 +168,7 @@ private:
 
 private:
 	friend class BoundaryProcessor;
+	friend class unit_tests::PackUnpackUnitTests;
 
 #ifndef SIMMOB_DISABLE_MPI
 	std::stringstream buffer;

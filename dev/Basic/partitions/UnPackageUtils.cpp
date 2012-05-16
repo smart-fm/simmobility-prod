@@ -56,7 +56,7 @@ FixedDelayed<DPoint*>& sim_mob::UnPackageUtils::unpackFixedDelayedDPoint() const
 	return (*one_delay);
 }
 
-FixedDelayed<double>& sim_mob::UnPackageUtils::unpackFixedDelayedDouble() const {
+/*FixedDelayed<double>& sim_mob::UnPackageUtils::unpackFixedDelayedDouble() const {
 	int delayMS;
 	(*package) & delayMS;
 
@@ -110,7 +110,7 @@ FixedDelayed<int>& sim_mob::UnPackageUtils::unpackFixedDelayedInt() const {
 	}
 
 	return (*one_delay);
-}
+}*/
 
 Point2D* sim_mob::UnPackageUtils::unpackPoint2D() const {
 	Point2D* one_point = new Point2D(0, 0);

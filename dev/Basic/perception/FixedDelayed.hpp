@@ -7,6 +7,7 @@
 #include <stdexcept>
 
 #include "util/LangHelpers.hpp"
+#include "partitions/Serialization.hpp"
 
 
 namespace sim_mob
@@ -44,7 +45,7 @@ public:
 	 * \param maxDelayMS The maximum time to hold on to each sensation value. The default "delay" time is equal to this, but it can be set larger to allow variable reaction times.
 	 * \param reclaimPtrs If true, any item discarded by this history list is deleted. Does nothing if the template type is not a pointer.
 	 */
-	explicit FixedDelayed(uint32_t maxDelayMS, bool reclaimPtrs=true);
+	explicit FixedDelayed(uint32_t maxDelayMS=0, bool reclaimPtrs=true);
 
 	~FixedDelayed();
 
@@ -101,12 +102,34 @@ public:
 	bool can_sense();
 
 
+private:
 	//Serialization code, if MPI is enabled.
+#ifndef SIMMOB_DISABLE_MPI
+    friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive& ar, const unsigned int version) {
+    	//NOTE: We are going for a "naive" implementation first. This should "just work" (the entire
+    	//      STL has serialize() defined), but it wastes space. We should take care to ensure that
+    	//      memory-managed items are deleted properly.
+    	ar & history;
+    	ar & maxDelayMS;
+    	ar & currDelayMS;
+    	ar & currTime;
+    	ar & reclaimPtrs;
+
+    	//Iterators don't serialize; fortunately, we can just cheat here.
+    	//ar & percFront;
+    	update_iterator(); //Un-necessary on serialization; necessary on deserialization.
+    }
+#endif
 
 
 private:
 	//Helper function: delete the first item in the history array. Return true if there's more to delete.
 	bool del_history_front();
+
+	//Helper function: ensure that our percFront iterator is set to the correct (sense-able) History Item.
+	void update_iterator();
 
 private:
 	//Internal class to store an item and its observed time.
@@ -114,15 +137,20 @@ private:
 		T item;
 		uint32_t observedTime;
 
-		HistItem(T item, uint32_t observedTime) : item(item), observedTime(observedTime) {}
+		explicit HistItem(T item=T(), uint32_t observedTime=0) : item(item), observedTime(observedTime) {}
 
 		bool canObserve(uint32_t currTimeMS, uint32_t delayMS){
 			return observedTime + delayMS <= currTimeMS;
 		}
 
-		//Serialization-related friends
-		friend class PackageUtils;
-		friend class UnPackageUtils;
+		//Serialization code, if MPI is enabled.
+	#ifndef SIMMOB_DISABLE_MPI
+	    template<class Archive>
+	    void serialize(Archive& ar, const unsigned int version) {
+	    	ar & item;
+	    	ar & observedTime;
+	    }
+	#endif
 	};
 
 private:
@@ -240,6 +268,13 @@ void sim_mob::FixedDelayed<T>::set_delay(uint32_t currDelayMS)
 	this->currDelayMS = currDelayMS;
 
 	//Update our "front" pointer, used by the "sense()" function.
+	update_iterator();
+}
+
+
+template <typename T>
+void sim_mob::FixedDelayed<T>::update_iterator()
+{
 	percFront = history.end();
 	for (typename std::list<HistItem>::iterator it=history.begin(); it!=history.end(); it++) {
 		if (!it->canObserve(currTime, currDelayMS)) {
@@ -272,3 +307,12 @@ template <typename T>
 bool sim_mob::FixedDelayed<T>::can_sense() {
 	return percFront != history.end();
 }
+
+
+
+
+
+
+
+
+

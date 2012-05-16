@@ -134,6 +134,10 @@ public:
 	void unpackDPoint(DPoint& point) const CHECK_MPI_THROW ;
 	void unpackDynamicVector(DynamicVector& vector) const CHECK_MPI_THROW ;
 
+
+	template<class DATA_TYPE>
+	void operator>>(DATA_TYPE& value) CHECK_MPI_THROW ;
+
 };
 }
 
@@ -142,6 +146,13 @@ public:
 //Template declarations. As this is considered source, it is if-def'd for now.
 
 #ifndef SIMMOB_DISABLE_MPI
+
+
+template<class DATA_TYPE>
+inline void sim_mob::UnPackageUtils::operator>>(DATA_TYPE& value) {
+	(*package) & value;
+}
+
 
 template<class DATA_TYPE>
 inline DATA_TYPE sim_mob::UnPackageUtils::unpackBasicData() const {

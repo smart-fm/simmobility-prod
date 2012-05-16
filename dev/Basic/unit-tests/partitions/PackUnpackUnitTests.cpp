@@ -62,10 +62,12 @@ void unit_tests::PackUnpackUnitTests::test_PackUnpack_fixed_delayed()
 {
 	//Build up a simple sequence.
 	FixedDelayed<double> srcFD(100);  //Max of 100ms delay
+	srcFD.set_delay(90);
 	for (size_t i=0; i<100; i+=10) { //[0,0.0, 10,1.1, ... 90,9.9]
 		srcFD.update(i);
 		srcFD.delay(i*1.1);
 	}
+	srcFD.update(100);
 
 	//Now pack it.
 	PackageUtils p;
@@ -73,11 +75,29 @@ void unit_tests::PackUnpackUnitTests::test_PackUnpack_fixed_delayed()
 
 	//Unpack it
 	UnPackageUtils up(p.getPackageData());
-	//TODO
+	FixedDelayed<double> destFD(10);  //Intentionally create the WRONG time delay.
+	up >> destFD;
 
+	//At this point, the two items should be in lock-step, at time 100, with a delay of 90ms.
+	CPPUNIT_ASSERT_EQUAL(srcFD.sense(), destFD.sense());
 
+	//Advance 1, then the other. Ensure they're not equal in between.
+	srcFD.update(110);
+	CPPUNIT_ASSERT_ASSERTION_PASS(srcFD.sense()!=destFD.sense());
+	destFD.update(110);
+	CPPUNIT_ASSERT_EQUAL(srcFD.sense(), destFD.sense());
 
-	CPPUNIT_FAIL("TODO: Implement this test.");
+	//Step through a few more time steps.
+	for (size_t i=120; i<190; i++) {
+		srcFD.update(i);
+		destFD.update(i);
+		CPPUNIT_ASSERT_EQUAL(srcFD.sense(), destFD.sense());
+	}
+
+	//Ensure that our delay of 90 is enforced by having one point go past it.
+	srcFD.update(190);
+	destFD.update(200);
+	CPPUNIT_ASSERT_EQUAL(srcFD.sense(), destFD.sense());
 }
 
 

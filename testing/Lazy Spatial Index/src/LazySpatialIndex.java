@@ -198,9 +198,11 @@ public class LazySpatialIndex<ItemType> {
 				}
 				
 				//We can stop early if we're processed half of all points on this axis.
-				if (foundPoints >= axis_x.size()/2) {
-					break;
-				}
+				//NOTE: This assumption can still be used if we apply some bookkeeping; but we can't
+				//      just apply it blindly here (since Items may share AxisPoints).
+				//if (foundPoints >= axis_x.size()/2) {
+				//	break;
+				//}
 			}
 		}
 	}

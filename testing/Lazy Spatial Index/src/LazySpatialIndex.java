@@ -101,14 +101,19 @@ public class LazySpatialIndex<ItemType> {
 	}
 	
 	
-	private void expandRectangle(Rectangle2D rect, double expandBy) {
-		Point2D buff = new Point2D.Double(rect.getWidth()*expandBy, rect.getHeight()*expandBy);
-		rect.setRect(
-			rect.getX()-buff.getX()/2, 
-			rect.getY()-buff.getY()/2, 
-			rect.getWidth()+buff.getX(), 
-			rect.getHeight()+buff.getY());
-	}
+  	private void expandRectangle(Rectangle2D rect, double expandBy) {
+  		resizeRectangle(rect, 
+  			rect.getWidth() + rect.getWidth()*expandBy, 
+  			rect.getHeight() + rect.getHeight()*expandBy);
+  	}
+	
+	private void resizeRectangle(Rectangle2D rect, double newWidth, double newHeight) {
+		if ((rect.getWidth()==newWidth) && (rect.getHeight()==newHeight)) { return; }
+  		rect.setRect(
+  			rect.getCenterX()-newWidth/2, 
+  			rect.getCenterY()-newHeight/2, 
+  			newWidth, newHeight);
+  	}
 	
 	
 	public void addItem(ItemType item, Rectangle2D bounds) {
@@ -189,67 +194,118 @@ public class LazySpatialIndex<ItemType> {
 	
 	//Helper class for matching
 	private class AxisMatch {
-		int countX;
-		int countY;
-		int fpX;
-		int fpY;
-		AxisMatch() { countX=0; countY=0; fpX=0; fpY=0;}
+		boolean matchX;
+		boolean isFalsePos; //This must be set before disptach.
+		boolean matchY;     //If "true", we've already dispatched this action()
+			
+		AxisMatch() { matchX=false; matchY=false; isFalsePos = false;}
+	}
+	
+	//Return the "actual" rectangle used for searching.
+	public Rectangle2D getActualSearchRectangle(Rectangle2D src) {
+		if (src.isEmpty()) { return src; }
+		Rectangle2D res = new Rectangle2D.Double(src.getX(), src.getY(), src.getWidth(), src.getHeight());
+		expandRectangle(res, 0.001);
+		return res;
 	}
 	
 	
 	//Perform an action on all items within a given range
 	//toDo and doOnFalsePositives can be null; the first is the action to perform on a given
 	//  match; the second is related to the "health" of the set.
-	public void forAllItemsInRange(Rectangle2D range, Action<ItemType> toDo, Action<ItemType> doOnFalsePositives) {
+	public void forAllItemsInRange(Rectangle2D orig_range, Action<ItemType> toDo, Action<ItemType> doOnFalsePositives) {
 		//Sanity check
-		if (range.isEmpty()) { return; }
+		if (orig_range.isEmpty()) { return; }
+				
+		//Expand range slightly, just to avoid boundary issues.
+		Rectangle2D range = getActualSearchRectangle(orig_range);
  		
  		//Our algorithm will skip long segments entirely (unless a single start or end point is matched). 
  		// There are several solutions to this, but we will simply expand the search box.
  		boolean possibleFP = (range.getWidth()<maxWidth || range.getHeight()<maxHeight);
  		Rectangle2D match_range = new Rectangle2D.Double(range.getX(), range.getY(), range.getWidth(), range.getHeight());
  		if (possibleFP) {
- 			double full_width = Math.max(range.getWidth(), maxWidth);
- 			double full_height = Math.max(range.getHeight(), maxHeight);
- 			match_range.setRect(
- 				range.getCenterX() - full_width/2,
- 				range.getCenterY() - full_height/2,
- 				full_width, full_height);
- 		}
- 		
+ 			resizeRectangle(match_range, Math.max(range.getWidth(), maxWidth), Math.max(range.getHeight(), maxHeight));
+   		} 		
 		
-		//We maintain a simple lookup of items found, counting the number of times each axis has matched. When
- 		//  the y-axis count goes from 0 to 1, we perform the given action.
-		Hashtable<ItemType, AxisMatch> matchedItems = new Hashtable<ItemType, AxisMatch>();
+ 		//Because each point stores whether it is a start or end point (as well as its total size), we can determine
+ 		// whether an item matches *directly*, is a *false positive*, or *doesn't match* at all. 
+ 		//This allows us to dispatch the toDo() and doOnFalsePositives() actions immediately upon encountering a point 
+ 		// in the y-direction.
+ 		//We don't strictly need to "save" which points have already been dispatched (we can recalculate it), but it 
+ 		// makes for a much simpler algorithm (and we need to save data from the x-axis anyway, so it's not very wasteful).
+ 		Hashtable<ItemType, AxisMatch> matchedItems = new Hashtable<ItemType, AxisMatch>();
+ 		
+ 		//Add items on the x-axis, detecting whether they're false-positives or not.
 		NavigableMap<Double, AxisPoint> axis = axis_x.subMap(match_range.getMinX(), true, match_range.getMaxX(), true);
-		for (AxisPoint it : axis.values()) {
-			if (!matchedItems.containsKey(it.item)) {
-				matchedItems.put(it.item, new AxisMatch());
+		for (Entry<Double, AxisPoint> ent : axis.entrySet()) {
+			//Expand the hashtable as required.
+			ItemType item = ent.getValue().item;
+			if (!matchedItems.containsKey(item)) {
+				matchedItems.put(item, new AxisMatch());
 			}
 			
-			//Is this match a false positive?
-			//TODO: We need to know if this is a "start" or "end" point for this to work.
-			boolean isFP = possibleFP ? /*is_false_positive(it)*/false : false; 
+			//If we've already determined that this macthes, there's no need for further math.
+			AxisMatch match = matchedItems.get(item);
+			if (match.matchX) { continue; } 
 			
-			//Update the relevant count
-			if (isFP) {
-				matchedItems.get(it).fpX++;
-			} else {
-				matchedItems.get(it).countX++;
+			//Determine if this is actually a false-positive. Essentially, the shape is false if it doesn't fall
+			//   into the original range rectangle requested.
+			if (possibleFP && !match.isFalsePos) {
+				double startPt = 0;
+				double endPt = 0;
+				if (ent.getValue().isStart) {
+					startPt = ent.getKey();
+					endPt = startPt + ent.getValue().size;
+				} else if (ent.getValue().isEnd()) { 
+					endPt = ent.getKey();
+					startPt = endPt - ent.getValue().size;
+				}
+				match.isFalsePos = !(range.intersects(startPt, range.getCenterY(), endPt-startPt, 1));
 			}
+						
+			//Matched
+			match.matchX = true;
 		}
 		
-		//Match y
+		//Now match on the y-axis. Same logic, but this time we call the relevant function.
+		//TODO: We might want to put this code into a shared subroutine.
 		axis = axis_y.subMap(match_range.getMinY(), true, match_range.getMaxY(), true);
-		for (AxisPoint it : axis.values()) {
-			if (matchedItems.containsKey(it.item) && matchedItems.get(it.item).countX>0) {
-				if (matchedItems.get(it.item).countY==0) {
-					if (toDo!=null) {
-						toDo.doAction(it.item);
-					}
+		for (Entry<Double, AxisPoint> ent : axis.entrySet()) {
+			//Skip if already matched, or if there's no potential for a match (x didn't match)
+			ItemType item = ent.getValue().item;
+			if (!matchedItems.containsKey(item)) { continue; }
+			AxisMatch match = matchedItems.get(item);
+			if (match.matchY) { continue; }
+					
+			//Determine if this is actually a false-positive. Essentially, the shape is false if it doesn't fall
+			//   into the original range rectangle requested.
+			if (possibleFP && !match.isFalsePos) {
+				double startPt = 0;
+				double endPt = 0;
+				if (ent.getValue().isStart) {
+					startPt = ent.getKey();
+					endPt = startPt + ent.getValue().size;
+				} else if (ent.getValue().isEnd()) { 
+					endPt = ent.getKey();
+					startPt = endPt - ent.getValue().size;
 				}
-				matchedItems.get(it.item).countY++;
+				match.isFalsePos = !(range.intersects(range.getCenterX(), startPt, 1, endPt-startPt));
 			}
+			
+			//Fire
+			if (match.isFalsePos) {
+				if (doOnFalsePositives!=null) {
+					doOnFalsePositives.doAction(item);
+				}
+			} else {
+				if (toDo!=null) {
+					toDo.doAction(item);
+				}
+			}
+			
+			//Matched
+			match.matchY = true;
 		}
 	}
 	

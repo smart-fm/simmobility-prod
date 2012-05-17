@@ -1,3 +1,4 @@
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
@@ -82,7 +83,14 @@ public class MainFrame extends JFrame {
 	//Panel is roughly 800 x 500
 	private void addShapes() {
 		//Long, thin item
-		mainPanel.addShape(new Line2D.Double(150, 400, 700, 50));
+		mainPanel.addShape(new Line2D.Double(130, 240, 700, 50));
+  		
+		//Series of circles
+		/*mainPanel.addShape(new Ellipse2D.Double(500, 260, 10, 10));
+		mainPanel.addShape(new Ellipse2D.Double(500, 270, 10, 10));
+		mainPanel.addShape(new Ellipse2D.Double(520, 260, 10, 10));
+		mainPanel.addShape(new Ellipse2D.Double(520, 270, 10, 10));
+		mainPanel.addShape(new Ellipse2D.Double(480, 240, 10, 10));*/
 		
 		
 		//Save the overall health:
@@ -129,13 +137,14 @@ public class MainFrame extends JFrame {
 			
 			//Prepare a painting action that will avoid painting duplicates.
 			DrawAndTagAction painter = new DrawAndTagAction(new HashSet<Shape>(), g);
+			g.setStroke(new BasicStroke(1.0F));
 			
 			//Draw all "matched" items.
 			g.setColor(Color.blue);
 			objects.forAllItemsInRange(currZoom, painter, null);
 			
 			//Draw all "false positive" items.
-			g.setColor(Color.green);
+			g.setColor(new Color(0x00, 0x80, 0x00));
 			objects.forAllItemsInRange(currZoom, null, painter);
 			
 			//Draw all remaining items.
@@ -145,6 +154,13 @@ public class MainFrame extends JFrame {
 			
 			//Draw the current zoom level
 			if (!currZoom.isEmpty()) {
+				//Draw the "actual" zoom box
+				g.setStroke(new BasicStroke(2.0F));
+				g.setColor(new Color(0x00, 0x80, 0x00));
+				g.draw(objects.getActualSearchRectangle(currZoom));
+								
+				//Draw the search rectangle.
+				g.setStroke(new BasicStroke(1.0F));
 				g.setColor(Color.red);
 				g.draw(currZoom);
 			}

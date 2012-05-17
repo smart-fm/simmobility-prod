@@ -368,14 +368,14 @@ string sim_mob::BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& p
 	PackageUtils packageUtil;
 
 	//package cross agents
-	packageUtil.packBasicData(package.cross_persons.size());
+	packageUtil << (package.cross_persons.size());
 
 	vector<Person const*>::iterator itr_cross = package.cross_persons.begin();
 	for (; itr_cross != package.cross_persons.end(); itr_cross++)
 	{
 
 		BoundaryProcessor::Agent_Type type = getAgentTypeForSerialization(*itr_cross);
-		packageUtil.packBasicData((int) (type));
+		packageUtil << ((int) (type));
 
 		Person* one_person = const_cast<Person*> (*itr_cross);
 
@@ -386,17 +386,17 @@ string sim_mob::BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& p
 	}
 
 	//package feedback agents
-	packageUtil.packBasicData(package.feedback_persons.size());
+	packageUtil<<(package.feedback_persons.size());
 
 	vector<Person const*>::iterator itr_feedback = package.feedback_persons.begin();
 
 	for (; itr_feedback != package.feedback_persons.end(); itr_feedback++)
 	{
 		BoundaryProcessor::Agent_Type type = getAgentTypeForSerialization(*itr_feedback);
-		packageUtil.packBasicData((int) (type));
+		packageUtil<<((int) (type));
 
 		int agent_id = (*itr_feedback)->getId();
-		packageUtil.packBasicData(agent_id);
+		packageUtil<<(agent_id);
 
 		Person* one_person = const_cast<Person*> (*itr_feedback);
 
@@ -405,12 +405,12 @@ string sim_mob::BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& p
 	}
 
 	//package signal
-	packageUtil.packBasicData(package.boundary_signals.size());
+	packageUtil<<(package.boundary_signals.size());
 
 	vector<Signal const*>::iterator itr_signal = package.boundary_signals.begin();
 	for (; itr_signal != package.boundary_signals.end(); itr_signal++)
 	{
-		packageUtil.packPoint2D((*itr_signal)->getNode().location);
+		packageUtil << ((*itr_signal)->getNode().location);
 
 		Signal* one_signal = const_cast<Signal*> (*itr_signal);
 		one_signal->packProxy(packageUtil);
@@ -423,11 +423,13 @@ void sim_mob::BoundaryProcessor::processPackageData(string data)
 {
 	UnPackageUtils unpackageUtil(data);
 
-	int cross_size = unpackageUtil.unpackBasicData<int> ();
+	int cross_size = 0;
+	unpackageUtil >> cross_size;
 
 	for (int i = 0; i < cross_size; i++)
 	{
-		int type = unpackageUtil.unpackBasicData<int> ();
+		int type = 0;
+		unpackageUtil >> type;
 
 		switch (type)
 		{
@@ -466,13 +468,14 @@ void sim_mob::BoundaryProcessor::processPackageData(string data)
 	}
 
 	//feedback agents
-	int feedback_size = unpackageUtil.unpackBasicData<int> ();
+	int feedback_size = 0;
+	unpackageUtil >> feedback_size;
 	for (int i = 0; i < feedback_size; i++)
 	{
-
-
-		int value = unpackageUtil.unpackBasicData<int> ();
-		int agent_id = unpackageUtil.unpackBasicData<int> ();
+		int value = 0;
+		unpackageUtil >> value;
+		int agent_id = 0;
+		unpackageUtil >> agent_id;
 		Person* one_person = getFakePersonById(agent_id);
 
 		if (one_person)
@@ -529,12 +532,14 @@ void sim_mob::BoundaryProcessor::processPackageData(string data)
 	}
 
 	//feedback signal
-	int signal_size = unpackageUtil.unpackBasicData<int> ();
+	int signal_size = 0;
+	unpackageUtil >> signal_size;
 
 	for (int i = 0; i < signal_size; i++)
 	{
-		Point2D* location = unpackageUtil.unpackPoint2D();
-		Signal* one_signal = const_cast<Signal*> (getSignalBasedOnNode(location));
+		Point2D location;
+		unpackageUtil >> location;
+		Signal* one_signal = const_cast<Signal*> (getSignalBasedOnNode(&location));
 
 		one_signal->unpackProxy(unpackageUtil);
 	}

@@ -174,6 +174,16 @@ public class LazySpatialIndex<ItemType> {
 				break;
 			}
 		}
+	}
+	
+	
+	//Perform an action on all items within a given range
+	//toDo and doOnFalsePositives can be null; the first is the action to perform on a given
+	//  match; the second is related to the "health" of the set.
+	public void forAllItemsInRange(Rectangle2D range, Action<ItemType> toDo, Action<ItemType> doOnFalsePositives, boolean preventDuplicates) {
+		//Sanity check
+		if (range.isEmpty()) { return; }
+		
 		
 	}
 	

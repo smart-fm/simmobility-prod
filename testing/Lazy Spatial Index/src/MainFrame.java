@@ -8,6 +8,7 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -126,13 +127,21 @@ public class MainFrame extends JFrame {
 			g.setColor(getBackground());
 			g.fillRect(0, 0, getWidth(), getHeight());
 			
-			//Draw all objects
-			objects.forAllItems(new LazySpatialIndex.Action<Shape>() {
-				public void doAction(Shape item) {
-					g.setColor(Color.black);
-					g.draw(item);
-				}
-			}, true);
+			//Prepare a painting action that will avoid painting duplicates.
+			DrawAndTagAction painter = new DrawAndTagAction(new HashSet<Shape>(), g);
+			
+			//Draw all "matched" items.
+			g.setColor(Color.blue);
+			objects.forAllItemsInRange(currZoom, painter, null, true);
+			
+			//Draw all "false positive" items.
+			g.setColor(Color.green);
+			objects.forAllItemsInRange(currZoom, null, painter, true);
+			
+			//Draw all remaining items.
+			g.setColor(Color.black);
+			objects.forAllItems(painter, true);
+
 			
 			//Draw the current zoom level
 			if (!currZoom.isEmpty()) {
@@ -145,6 +154,24 @@ public class MainFrame extends JFrame {
 			g = null;
 		}
 		
+	}
+	
+	
+	class DrawAndTagAction implements LazySpatialIndex.Action<Shape> {
+		private HashSet<Shape> alreadyDrawn;
+		private Graphics2D g;
+		
+		DrawAndTagAction(HashSet<Shape> drawnShapes, Graphics2D g) {
+			alreadyDrawn = drawnShapes;
+			this.g = g;
+		}
+		
+		public void doAction(Shape item) {
+			if (!alreadyDrawn.contains(item)) {
+				alreadyDrawn.add(item);
+				g.draw(item);
+			}
+		}
 	}
 
 

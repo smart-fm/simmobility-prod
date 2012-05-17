@@ -1,9 +1,11 @@
 import java.awt.geom.Point2D;
+
 import java.awt.geom.Rectangle2D;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.NavigableMap;
 import java.util.Set;
 import java.util.TreeMap;
@@ -177,14 +179,71 @@ public class LazySpatialIndex<ItemType> {
 	}
 	
 	
+	//Helper class for matching
+	private class AxisMatch {
+		int countX;
+		int countY;
+		int fpX;
+		int fpY;
+		AxisMatch() { countX=0; countY=0; fpX=0; fpY=0;}
+	}
+	
+	
 	//Perform an action on all items within a given range
 	//toDo and doOnFalsePositives can be null; the first is the action to perform on a given
 	//  match; the second is related to the "health" of the set.
 	public void forAllItemsInRange(Rectangle2D range, Action<ItemType> toDo, Action<ItemType> doOnFalsePositives, boolean preventDuplicates) {
 		//Sanity check
 		if (range.isEmpty()) { return; }
+ 		if (preventDuplicates==false) { throw new RuntimeException("Duplicates not yet supported."); }
+ 		
+ 		//Our algorithm will skip long segments entirely (unless a single start or end point is matched). 
+ 		// There are several solutions to this, but we will simply expand the search box.
+ 		boolean possibleFP = (range.getWidth()<maxWidth || range.getHeight()<maxHeight);
+ 		Rectangle2D match_range = new Rectangle2D.Double(range.getX(), range.getY(), range.getWidth(), range.getHeight());
+ 		if (possibleFP) {
+ 			double full_width = Math.max(range.getWidth(), maxWidth);
+ 			double full_height = Math.max(range.getHeight(), maxHeight);
+ 			match_range.setRect(
+ 				range.getCenterX() - full_width/2,
+ 				range.getCenterY() - full_height/2,
+ 				full_width, full_height);
+ 		}
+ 		
 		
+		//We maintain a simple lookup of items found, counting the number of times each axis has matched. When
+ 		//  the y-axis count goes from 0 to 1, we perform the given action.
+		Hashtable<ItemType, AxisMatch> matchedItems = new Hashtable<ItemType, AxisMatch>();
+		NavigableMap<Double, ItemType> axis = axis_x.subMap(match_range.getMinX(), true, match_range.getMaxX(), true);
+		for (ItemType it : axis.values()) {
+			if (!matchedItems.containsKey(it)) {
+				matchedItems.put(it, new AxisMatch());
+			}
+			
+			//Is this match a false positive?
+			//TODO: We need to know if this is a "start" or "end" point for this to work.
+			boolean isFP = possibleFP ? /*is_false_positive(it)*/false : false; 
+			
+			//Update the relevant count
+			if (isFP) {
+				matchedItems.get(it).fpX++;
+			} else {
+				matchedItems.get(it).countX++;
+			}
+		}
 		
+		//Match y
+		axis = axis_y.subMap(match_range.getMinY(), true, match_range.getMaxY(), true);
+		for (ItemType it : axis.values()) {
+			if (matchedItems.containsKey(it) && matchedItems.get(it).countX>0) {
+				if (matchedItems.get(it).countY==0) {
+					if (toDo!=null) {
+						toDo.doAction(it);
+					}
+				}
+				matchedItems.get(it).countY++;
+			}
+		}
 	}
 	
 	

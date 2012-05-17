@@ -7,7 +7,7 @@ import sim_mob.vis.controls.DrawableItem;
  * \author Zhang Shuai
  * \author Seth N. Hetu
  */
-public class Lane implements DrawableItem{
+public class Lane /*implements DrawableItem*/ {
 	private int laneNumber;
 	private Node startMiddleNode;
 	private Node endMiddleNode;
@@ -24,8 +24,8 @@ public class Lane implements DrawableItem{
 		
 	}
 	
-	@Override
-	public void draw(Graphics2D g) {
+	//@Override
+	//public void draw(Graphics2D g) {
 
 /*
 		g.setColor(MainFrame.Config.getLineColor("lane"));
@@ -60,5 +60,5 @@ public class Lane implements DrawableItem{
 		
 */		
 				
-	}
+	//}
 }

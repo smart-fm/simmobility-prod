@@ -1,10 +1,12 @@
 package sim_mob.vis.network;
 
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 
 import sim_mob.vis.MainFrame;
 import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.network.basic.ScaledPoint;
+import sim_mob.vis.util.Utility;
 
 /**
  * \author Zhang Shuai
@@ -47,6 +49,16 @@ public class LaneMarking implements DrawableItem{
 			this.lastPt = end.getPos();
 		}
 	}
+	
+	
+	public Rectangle2D getBounds() {
+		final double BUFFER_CM = 10*100; //1m
+		Rectangle2D res = new Rectangle2D.Double(start.getPos().getUnscaledX(), start.getPos().getUnscaledY(), 0, 0);
+		res.add(end.getPos().getUnscaledX(), end.getPos().getUnscaledY());
+		Utility.resizeRectangle(res, res.getWidth()+BUFFER_CM, res.getHeight()+BUFFER_CM);
+		return res;
+	}
+	
 
 	public Node getStart() { return start; }
 	public Node getEnd() { return end; }

@@ -7,6 +7,7 @@ import static java.awt.geom.AffineTransform.getTranslateInstance;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 
 import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.util.Utility;
@@ -29,6 +30,14 @@ public class TrafficSignalLine implements DrawableItem{
 		this.fromLane = fromLane;
 		this.toLane = toLane;
 		this.findNode();
+	}
+	
+	public Rectangle2D getBounds() {
+		final double BUFFER_CM = 10*100; //1m
+		Rectangle2D res = new Rectangle2D.Double(fromNode.getPos().getUnscaledX(), fromNode.getPos().getUnscaledY(), 0, 0);
+		res.add(toNode.getPos().getUnscaledX(), toNode.getPos().getUnscaledY());
+		Utility.resizeRectangle(res, res.getWidth()+BUFFER_CM, res.getHeight()+BUFFER_CM);
+		return res;
 	}
 	
 	private void findNode(){

@@ -14,7 +14,7 @@ import sim_mob.vis.network.basic.DPoint;
  *  \author Seth N. Hetu
  *  \author Zhang Shuai
  */
-public class SignalTick implements DrawableItem {
+/*public class SignalTick implements DrawableItem {
 	private DPoint visPos;
 	
 	private static final int SIG_LARGE_SZ = 32;
@@ -113,5 +113,5 @@ public class SignalTick implements DrawableItem {
 		g.setTransform(oldAT);
 		
 	}
-}
+}*/
 

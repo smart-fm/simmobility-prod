@@ -427,10 +427,10 @@ public class RoadNetwork {
 	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"near-1", "near-2", "far-1", "far-2"});
 	    
 	    //Now save the relevant information
-	    Node nearOneNode = Utility.ParseCrossingNodePos(props.get("near-1"));
-	    Node nearTwoNode = Utility.ParseCrossingNodePos(props.get("near-2"));
-	    Node farOneNode = Utility.ParseCrossingNodePos(props.get("far-1"));
-	    Node farTwoNode = Utility.ParseCrossingNodePos(props.get("far-2"));
+	    ScaledPoint nearOneNode = Utility.ParseCrossingNodePos(props.get("near-1"));
+	    ScaledPoint nearTwoNode = Utility.ParseCrossingNodePos(props.get("near-2"));
+	    ScaledPoint farOneNode = Utility.ParseCrossingNodePos(props.get("far-1"));
+	    ScaledPoint farTwoNode = Utility.ParseCrossingNodePos(props.get("far-2"));
 	   
 	    //Create a new Crossing, save it
 	    crossings.put(objID, new Crossing(nearOneNode,nearTwoNode,farOneNode,farTwoNode,objID));
@@ -539,7 +539,7 @@ public class RoadNetwork {
 	    int startPosintY = Integer.parseInt(props.get("startPointY"));
 	    int endPosintY = Integer.parseInt(props.get("endPointY"));
 	    String color = props.get("color");
-	    cutLines.put(objID, new CutLine(new Node(startPosintX,startPosintY, true, -1),new Node(endPosintX,endPosintY, true, -1),color));
+	    cutLines.put(objID, new CutLine(new ScaledPoint(startPosintX,startPosintY, null),new ScaledPoint(endPosintX,endPosintY, null),color));
 		
 	}
 	

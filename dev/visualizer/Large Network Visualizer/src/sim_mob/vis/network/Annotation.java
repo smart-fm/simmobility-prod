@@ -1,9 +1,11 @@
 package sim_mob.vis.network;
 
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 
 import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.network.basic.ScaledPoint;
+import sim_mob.vis.util.Utility;
 
 /**
  * Annotations show small bits of additional data and may be offset by an amount.
@@ -36,6 +38,19 @@ public class Annotation implements DrawableItem {
 		bkgrdColor = Color.gray;
 		borderColor = Color.white;
 		fontColor = Color.black;
+	}
+	
+	//We assume annotations are about 10m (as printed on a node).
+	//Again, this will only cause minor visual errors at certain zoom levels and when part of the 
+	//   annotation is offscreen.
+	public Rectangle2D getBounds() {
+		ScaledPoint at = offset!=null ? offset : pos;
+		
+		final double EST_CM = 100*100; //10m
+		return new Rectangle2D.Double(
+			at.getUnscaledX()-EST_CM/2, 
+			at.getUnscaledY()-EST_CM/2, 
+			EST_CM, EST_CM);
 	}
 	
 	//Accessors/mutators

@@ -19,7 +19,7 @@ public class TimeTick {
 	 */
 	public Hashtable<Integer, AgentTick> trackingTicks;
 	
-	public Hashtable<Integer, SignalTick> signalTicks;
+	//public Hashtable<Integer, SignalTick> signalTicks;
 	public Hashtable<Integer, SignalLineTick> signalLineTicks;
 	public ScaledPointGroup tickScaleGroup = new ScaledPointGroup();
 	
@@ -27,7 +27,7 @@ public class TimeTick {
 	public TimeTick() {
     	trackingTicks = new Hashtable<Integer, AgentTick>();
     	agentTicks = new Hashtable<Integer, AgentTick>();
-    	signalTicks = new Hashtable<Integer, SignalTick>();
+    	//signalTicks = new Hashtable<Integer, SignalTick>();
     	signalLineTicks = new Hashtable<Integer,SignalLineTick>();
 	}
 }

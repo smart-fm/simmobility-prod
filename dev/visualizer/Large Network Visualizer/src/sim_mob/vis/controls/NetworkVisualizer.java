@@ -5,6 +5,7 @@ import java.awt.image.BufferedImage;
 import java.awt.geom.*;
 import java.util.*;
 
+import sim_mob.index.LazySpatialIndex;
 import sim_mob.vis.MainFrame;
 import sim_mob.vis.network.basic.*;
 import sim_mob.vis.network.*;
@@ -57,6 +58,10 @@ public class NetworkVisualizer {
 	
 	//The size of the canvas at a zoom level of 1.0
 	private Dimension naturalSize;
+	
+	//Spatial indexes for our network items and our current agent tick.
+	private LazySpatialIndex<DrawableItem> networkItemsIndex;
+	private LazySpatialIndex<DrawableItem> agentTicksIndex;
 
 	
 	//The IDs of the current Agents to highlight. Any Agent whose ID is in this list
@@ -133,12 +138,50 @@ public class NetworkVisualizer {
 		return null;
 	}
 	
+	private static final void BuildNetworkIndex(LazySpatialIndex<DrawableItem> res, RoadNetwork net) {
+		//Just add them all; we'll worry about drawing/hiding some of them later.
+		for (Node n : net.getNodes().values()) {
+			res.addItem(n, n.getBounds());
+		}
+		for (Link ln : net.getLinks().values()) {
+			res.addItem(ln, ln.getBounds());
+		}
+		for (Segment sg : net.getSegments().values()) {
+			res.addItem(sg, sg.getBounds());
+		}
+		for (Annotation an : net.getAimsunAnnotations()) {
+			res.addItem(an, an.getBounds());
+		}
+		for (Annotation an : net.getMitsimAnnotations()) {
+			res.addItem(an, an.getBounds());
+		}
+		for(CutLine ctl : net.getCutLine().values()){
+			res.addItem(ctl, ctl.getBounds());
+		}
+		for (Hashtable<Integer,LaneMarking> lineMarkingTable : net.getLaneMarkings().values()) {
+			for(LaneMarking lineMarking : lineMarkingTable.values()){
+				res.addItem(lineMarking, lineMarking.getBounds());
+			}
+		}
+		for(Crossing crossing : net.getCrossings().values()){
+			res.addItem(crossing, crossing.getBounds());
+		}
+
+		//TODO:
+		//  1) "Names" are not items yet.
+	}
+	
+	
 	public void setSource(RoadNetwork network, SimulationResults simRes, double initialZoom, int width100Percent, int height100Percent,String fileName) {
 		//Save
 		this.network = network;
 		this.simRes = simRes;
 		this.naturalSize = new Dimension(width100Percent, height100Percent);
 		this.fileName = fileName;
+		
+		//Rebuild the network spatial index.
+		networkItemsIndex = new LazySpatialIndex<DrawableItem>();
+		BuildNetworkIndex(networkItemsIndex, network);
 		
 		//Recalc
 		redrawAtScale(initialZoom, 0);

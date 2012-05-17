@@ -2,11 +2,13 @@ package sim_mob.vis.network;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 
 import sim_mob.vis.MainFrame;
 import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.network.basic.Vect;
+import sim_mob.vis.util.Utility;
 
 /**
  * Links join Intersections and consist of Segments.
@@ -33,6 +35,16 @@ public class Link implements DrawableItem {
 		this.start = start;
 		this.end = end;
 	}
+	
+	//See Segment for discussion 
+	public Rectangle2D getBounds() {
+		final double BUFFER_CM = 10*100; //1m
+		Rectangle2D res = new Rectangle2D.Double(getStart().getPos().getUnscaledX(), getStart().getPos().getUnscaledY(), 0, 0);
+		res.add(getEnd().getPos().getUnscaledX(), getEnd().getPos().getUnscaledY());
+		Utility.resizeRectangle(res, res.getWidth()+BUFFER_CM, res.getHeight()+BUFFER_CM);
+		return res;
+	}
+	
 	
 	public String getName() { return name; }
 	public Node getStart() { return start; }

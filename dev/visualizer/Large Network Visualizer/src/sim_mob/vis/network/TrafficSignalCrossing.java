@@ -4,8 +4,11 @@ import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
+import java.awt.geom.Rectangle2D;
 
 import sim_mob.vis.controls.DrawableItem;
+import sim_mob.vis.network.basic.ScaledPoint;
+import sim_mob.vis.util.Utility;
 
 /**
  * \author Zhang Shuai
@@ -14,25 +17,36 @@ public class TrafficSignalCrossing implements DrawableItem{
 
 	private float alpha = 0.5f;
 	
-	private Node nearOne;
-	private Node nearTwo;
-	private Node farOne;
-	private Node farTwo;
+	private ScaledPoint nearOne;
+	private ScaledPoint nearTwo;
+	private ScaledPoint farOne;
+	private ScaledPoint farTwo;
 	private int id;
 	
-	public TrafficSignalCrossing(Node nearOne, Node nearTwo, Node farOne, Node farTwo,int id){
+	public TrafficSignalCrossing(ScaledPoint nearOne, ScaledPoint nearTwo, ScaledPoint farOne, ScaledPoint farTwo,int id){
 		this.nearOne = nearOne;
 		this.nearTwo = nearTwo;
 		this.farOne = farOne;
 		this.farTwo = farTwo;
 		this.id = id;
-		
-		
 	}
-	public Node getNearOne() { return nearOne; }
-	public Node getNearTwo() { return nearTwo; }
-	public Node getFarOne() { return farOne; }
-	public Node getFarTwo() { return farTwo; }
+	
+	
+	public Rectangle2D getBounds() {
+		final double BUFFER_CM = 10*100; //1m
+		Rectangle2D res = new Rectangle2D.Double(nearOne.getUnscaledX(), nearOne.getUnscaledY(), 0, 0);
+		res.add(nearTwo.getUnscaledX(), nearTwo.getUnscaledY());
+		res.add(farOne.getUnscaledX(), farOne.getUnscaledY());
+		res.add(farTwo.getUnscaledX(), farTwo.getUnscaledY());
+		Utility.resizeRectangle(res, res.getWidth()+BUFFER_CM, res.getHeight()+BUFFER_CM);
+		return res;
+	}
+	
+	
+	public ScaledPoint getNearOne() { return nearOne; }
+	public ScaledPoint getNearTwo() { return nearTwo; }
+	public ScaledPoint getFarOne() { return farOne; }
+	public ScaledPoint getFarTwo() { return farTwo; }
 	public int getId() { return id; }
 
 	
@@ -59,14 +73,14 @@ public class TrafficSignalCrossing implements DrawableItem{
 	
 	public void draw(Graphics2D g){
 	
-		g.drawLine((int)nearOne.getPos().getX(), (int)nearOne.getPos().getY(), (int)nearTwo.getPos().getX(), (int)nearTwo.getPos().getY()); 
-		g.drawLine((int)farOne.getPos().getX(), (int)farOne.getPos().getY(), (int)farTwo.getPos().getX(), (int)farTwo.getPos().getY()); 
+		g.drawLine((int)nearOne.getX(), (int)nearOne.getY(), (int)nearTwo.getX(), (int)nearTwo.getY()); 
+		g.drawLine((int)farOne.getX(), (int)farOne.getY(), (int)farTwo.getX(), (int)farTwo.getY()); 
 
 		Polygon poly = new Polygon();		
-		poly.addPoint((int)nearOne.getPos().getX(), (int)nearOne.getPos().getY());
-		poly.addPoint((int)nearTwo.getPos().getX(), (int)nearTwo.getPos().getY());
-		poly.addPoint((int)farTwo.getPos().getX(), (int)farTwo.getPos().getY());
-		poly.addPoint((int)farOne.getPos().getX(), (int)farOne.getPos().getY());
+		poly.addPoint((int)nearOne.getX(), (int)nearOne.getY());
+		poly.addPoint((int)nearTwo.getX(), (int)nearTwo.getY());
+		poly.addPoint((int)farTwo.getX(), (int)farTwo.getY());
+		poly.addPoint((int)farOne.getX(), (int)farOne.getY());
         
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,alpha));
 		g.fillPolygon(poly);

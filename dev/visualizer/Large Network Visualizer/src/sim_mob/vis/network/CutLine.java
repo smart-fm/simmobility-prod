@@ -4,8 +4,11 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
+import java.awt.geom.Rectangle2D;
 
 import sim_mob.vis.controls.DrawableItem;
+import sim_mob.vis.network.basic.ScaledPoint;
+import sim_mob.vis.util.Utility;
 
 /**
  * \author Zhang Shuai
@@ -13,17 +16,25 @@ import sim_mob.vis.controls.DrawableItem;
 public class CutLine implements DrawableItem{
 
 	
-	private Node start;
-	private Node end;
+	private ScaledPoint start;
+	private ScaledPoint end;
 	private String color;
 
-	public Node getStartNode(){return start;}
-	public Node getEndNode(){return end;}
+	public ScaledPoint getStartNode(){return start;}
+	public ScaledPoint getEndNode(){return end;}
 	
-	public CutLine(Node startNode, Node endNode,String color){
+	public CutLine(ScaledPoint startNode, ScaledPoint endNode,String color){
 		this.start = startNode;
 		this.end = endNode;
 		this.color = color;
+	}
+	
+	public Rectangle2D getBounds() {
+		final double BUFFER_CM = 10*100; //1m
+		Rectangle2D res = new Rectangle2D.Double(start.getUnscaledX(), start.getUnscaledY(), 0, 0);
+		res.add(end.getUnscaledX(), end.getUnscaledY());
+		Utility.resizeRectangle(res, res.getWidth()+BUFFER_CM, res.getHeight()+BUFFER_CM);
+		return res;
 	}
 	
 	@Override
@@ -31,7 +42,7 @@ public class CutLine implements DrawableItem{
 		// TODO Auto-generated method stub
 		if(color.equals("red")){
 			g.setColor(Color.white);
-			g.drawLine((int)start.getPos().getX(), (int)start.getPos().getY(), (int)end.getPos().getX(), (int)end.getPos().getY()); 
+			g.drawLine((int)start.getX(), (int)start.getY(), (int)end.getX(), (int)end.getY()); 
 			
 		}else if(color.equals("blue")){
 			g.setColor(Color.red);
@@ -44,7 +55,7 @@ public class CutLine implements DrawableItem{
 		                                          10.0f, dash1, 0.0f);
 			g.setStroke(dashed);
 		
-			g.drawLine((int)start.getPos().getX(), (int)start.getPos().getY(), (int)end.getPos().getX(), (int)end.getPos().getY()); 
+			g.drawLine((int)start.getX(), (int)start.getY(), (int)end.getX(), (int)end.getY()); 
 			
 			g.setStroke(oldStroke);
 		}

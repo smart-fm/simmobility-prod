@@ -1,6 +1,8 @@
 package sim_mob.vis.network;
 
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.Rectangle2D.Double;
 
 import sim_mob.vis.MainFrame;
 import sim_mob.vis.controls.DrawableItem;
@@ -24,6 +26,19 @@ public class Node implements DrawableItem {
 		this.isUni = isUni;
 		this.id = id;
 	}
+	
+	//NOTE: We are declaring the VISIBLE bounds of Node to be, e.g., (10x10)m in size. 
+	//      This means that, at high zoom levels, it may not appear visible when partly offscreen.
+	//      This is not really such an issue; for most uses it will appear correct. Note that
+	//      similar "non-spatial" items make similar estimations.
+	public Rectangle2D getBounds() {
+		final double NODE_CM = 10*100; //10m square 
+		return new Rectangle2D.Double(
+			pos.getUnscaledX()-NODE_CM/2,
+			pos.getUnscaledY()-NODE_CM/2,
+			NODE_CM, NODE_CM);
+	}
+	
 	
 	public ScaledPoint getPos() {
 		return pos;

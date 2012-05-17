@@ -1,5 +1,6 @@
 package sim_mob.vis.util;
 
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import sim_mob.vis.Main;
 import sim_mob.vis.network.Node;
+import sim_mob.vis.network.basic.ScaledPoint;
 
 /**
  * \author Seth N. Hetu
@@ -72,7 +74,7 @@ public class Utility {
 		}
 		return pos;
 	}
-	public static Node ParseCrossingNodePos(String input)throws IOException{
+	public static ScaledPoint ParseCrossingNodePos(String input)throws IOException{
 		
 		String[] items = input.split(",");
 		
@@ -82,8 +84,10 @@ public class Utility {
 		Double xPos = Double.parseDouble(items[0]);
 		Double yPos = Double.parseDouble(items[1]);
 		
-		Node tempNode = new Node(xPos,yPos,false,null); 
-		return tempNode;
+		return new ScaledPoint(xPos, yPos, null);
+		
+		//Node tempNode = new Node(xPos,yPos,false,null); 
+		//return tempNode;
 	}
 	
 	
@@ -130,6 +134,15 @@ public class Utility {
 		double dx   = x2 - x1;
 		double dy   = y2 - y1;
 		return Math.sqrt(dx*dx + dy*dy);
+	}
+	
+	
+	//Haven't tested downscaling, scale to zero, etc.
+	public static void resizeRectangle(Rectangle2D rect, double newWidth, double newHeight) {
+		rect.setRect(
+			rect.getCenterX() - newWidth/2,
+			rect.getCenterY() - newHeight/2,
+			newWidth, newHeight);
 	}
 
 	

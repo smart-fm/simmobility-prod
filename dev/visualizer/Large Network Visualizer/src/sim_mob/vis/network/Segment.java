@@ -1,7 +1,11 @@
 package sim_mob.vis.network;
 
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.Rectangle2D.Double;
+
 import sim_mob.vis.controls.DrawableItem;
+import sim_mob.vis.util.Utility;
 
 /**
  * Segments join Nodes together
@@ -26,6 +30,18 @@ public class Segment implements DrawableItem {
 		this.to = to;
 		this.parentLinkID = parentLinkID;
 	}
+	
+	
+	//We define a Segment from its start node to its end node, with some buffer space (we don't 
+	//  consider individual lanes right now).
+	public Rectangle2D getBounds() {
+		final double BUFFER_CM = 10*100; //1m
+		Rectangle2D res = new Rectangle2D.Double(from.getPos().getUnscaledX(), from.getPos().getUnscaledY(), 0, 0);
+		res.add(to.getPos().getUnscaledX(), to.getPos().getUnscaledY());
+		Utility.resizeRectangle(res, res.getWidth()+BUFFER_CM, res.getHeight()+BUFFER_CM);
+		return res;
+	}
+	
 	
 	public Node getFrom() { return from; }
 	public Node getTo() { return to; }

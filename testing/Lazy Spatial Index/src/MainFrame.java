@@ -5,6 +5,7 @@ import java.awt.Container;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Shape;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -86,12 +87,18 @@ public class MainFrame extends JFrame {
 		mainPanel.addShape(new Line2D.Double(130, 240, 700, 50));
   		
 		//Series of circles
-		/*mainPanel.addShape(new Ellipse2D.Double(500, 260, 10, 10));
+		mainPanel.addShape(new Ellipse2D.Double(500, 260, 10, 10));
 		mainPanel.addShape(new Ellipse2D.Double(500, 270, 10, 10));
 		mainPanel.addShape(new Ellipse2D.Double(520, 260, 10, 10));
 		mainPanel.addShape(new Ellipse2D.Double(520, 270, 10, 10));
-		mainPanel.addShape(new Ellipse2D.Double(480, 240, 10, 10));*/
+		mainPanel.addShape(new Ellipse2D.Double(480, 240, 10, 10));
 		
+		//Some rectangles WAY away from the center
+		mainPanel.addShape(new Rectangle2D.Double(10, 10, 20, 20));
+		mainPanel.addShape(new Rectangle2D.Double(770, 470, 20, 20));
+		mainPanel.addShape(new Rectangle2D.Double(760, 470, 20, 20));
+		mainPanel.addShape(new Rectangle2D.Double(770, 460, 20, 20));
+		mainPanel.addShape(new Rectangle2D.Double(760, 460, 20, 20));
 		
 		//Save the overall health:
 		Point2D health = mainPanel.getHealth();

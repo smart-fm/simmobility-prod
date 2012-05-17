@@ -1,6 +1,7 @@
 import java.awt.geom.Point2D;
 
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -58,8 +59,8 @@ public class LazySpatialIndex<ItemType> {
 	
 	
 	//Actual objects
-	TreeMap<Double, AxisPoint> axis_x;
-	TreeMap<Double, AxisPoint> axis_y;
+	TreeMap<Double, ArrayList<AxisPoint>> axis_x;
+	TreeMap<Double, ArrayList<AxisPoint>> axis_y;
 	
 	//Bookkeeping
 	double maxWidth;
@@ -71,8 +72,8 @@ public class LazySpatialIndex<ItemType> {
 	}
 	
 	public LazySpatialIndex() {
-		axis_x = new TreeMap<Double, AxisPoint>();
-		axis_y = new TreeMap<Double, AxisPoint>();
+		axis_x = new TreeMap<Double, ArrayList<AxisPoint>>();
+		axis_y = new TreeMap<Double, ArrayList<AxisPoint>>();
 		maxWidth = 0;
 		maxHeight = 0;
 	}
@@ -116,16 +117,25 @@ public class LazySpatialIndex<ItemType> {
   	}
 	
 	
+	//Helper: Add, but deal with arrays
+	private void add_to_axis(TreeMap<Double, ArrayList<AxisPoint>> axis, double key, AxisPoint value) {
+		if (!axis.containsKey(key)) {
+			axis.put(key, new ArrayList<AxisPoint>());
+		}
+		axis.get(key).add(value);
+	}
+	
+	
 	public void addItem(ItemType item, Rectangle2D bounds) {
 		//We can easily support this later, if required.
 		if (bounds.getWidth()==0 || bounds.getHeight()==0) { throw new RuntimeException("width/height must be non-zero."); }
-		temp_check_bounds(bounds);
+		//temp_check_bounds(bounds);
 		
 		//Insert start/end points into both the x and y axis.
-		axis_x.put(bounds.getMinX(), new AxisPoint(item, true, bounds.getWidth()));
-		axis_x.put(bounds.getMaxX(), new AxisPoint(item, false, bounds.getWidth()));
-		axis_y.put(bounds.getMinY(), new AxisPoint(item, true, bounds.getHeight()));
-		axis_y.put(bounds.getMaxY(), new AxisPoint(item, false, bounds.getHeight()));
+		add_to_axis(axis_x, bounds.getMinX(), new AxisPoint(item, true, bounds.getWidth()));
+		add_to_axis(axis_x, bounds.getMaxX(), new AxisPoint(item, false, bounds.getWidth()));
+		add_to_axis(axis_y, bounds.getMinY(), new AxisPoint(item, true, bounds.getHeight()));
+		add_to_axis(axis_y, bounds.getMaxY(), new AxisPoint(item, false, bounds.getHeight()));
 		
 		//Update the maximum width/height
 		maxWidth = Math.max(maxWidth, bounds.getWidth());
@@ -149,14 +159,16 @@ public class LazySpatialIndex<ItemType> {
 		//Now, search all points within this rectangle. We need to find start/end points for x/y, or
 		//  it's an error (this happens inside search_for_item).
 		Double[] res = new Double[] {null, null, null, null}; //startX, endX, startY, endY
-		search_for_item(axis_x, boundsHint.getMinX(), boundsHint.getMaxX(), item, res, 0, 1);
-		search_for_item(axis_y, boundsHint.getMinY(), boundsHint.getMaxY(), item, res, 2, 3);
+		search_and_remove_item(axis_x, boundsHint.getMinX(), boundsHint.getMaxX(), item, res, 0, 1);
+		search_and_remove_item(axis_y, boundsHint.getMinY(), boundsHint.getMaxY(), item, res, 2, 3);
 		
-		//We are guaranteed 4 non-null results; now, remove them:
-		axis_x.remove(res[0]);
-		axis_x.remove(res[1]);
-		axis_y.remove(res[2]);
-		axis_y.remove(res[3]);
+		//We are guaranteed 4 non-null results. If their corresponding arrays are empty, remove them.
+		for (int i=0; i<4; i++) {
+			TreeMap<Double, ArrayList<AxisPoint>> axis = i<2 ? axis_x : axis_y;
+			if (axis.get(res[i]).isEmpty()) {
+				axis.remove(res[i]);
+			}
+		}
 		
 		//Update the maximum width/height
 		double currWidth = res[1] - res[0];
@@ -176,17 +188,19 @@ public class LazySpatialIndex<ItemType> {
 	public void forAllItems(Action<ItemType> toDo) {
 		//When scanning the entire axis, we only need to respond to "start" points.
 		int foundPoints = 0;
-		for (AxisPoint it : axis_x.values()) {
-			//Avoid firing twice:
-			if (it.isStart) {
-				//"do" this action.
-				toDo.doAction(it.item);
-				foundPoints++;
-			}
-			
-			//We can stop early if we're processed half of all points on this axis.
-			if (foundPoints >= axis_x.size()/2) {
-				break;
+		for (ArrayList<AxisPoint> ap : axis_x.values()) {
+			for (AxisPoint it : ap) {
+				//Avoid firing twice:
+				if (it.isStart) {
+					//"do" this action.
+					toDo.doAction(it.item);
+					foundPoints++;
+				}
+				
+				//We can stop early if we're processed half of all points on this axis.
+				if (foundPoints >= axis_x.size()/2) {
+					break;
+				}
 			}
 		}
 	}
@@ -237,86 +251,91 @@ public class LazySpatialIndex<ItemType> {
  		Hashtable<ItemType, AxisMatch> matchedItems = new Hashtable<ItemType, AxisMatch>();
  		
  		//Add items on the x-axis, detecting whether they're false-positives or not.
-		NavigableMap<Double, AxisPoint> axis = axis_x.subMap(match_range.getMinX(), true, match_range.getMaxX(), true);
-		for (Entry<Double, AxisPoint> ent : axis.entrySet()) {
-			//Expand the hashtable as required.
-			ItemType item = ent.getValue().item;
-			if (!matchedItems.containsKey(item)) {
-				matchedItems.put(item, new AxisMatch());
-			}
-			
-			//If we've already determined that this macthes, there's no need for further math.
-			AxisMatch match = matchedItems.get(item);
-			if (match.matchX) { continue; } 
-			
-			//Determine if this is actually a false-positive. Essentially, the shape is false if it doesn't fall
-			//   into the original range rectangle requested.
-			if (possibleFP && !match.isFalsePos) {
-				double startPt = 0;
-				double endPt = 0;
-				if (ent.getValue().isStart) {
-					startPt = ent.getKey();
-					endPt = startPt + ent.getValue().size;
-				} else if (ent.getValue().isEnd()) { 
-					endPt = ent.getKey();
-					startPt = endPt - ent.getValue().size;
+		NavigableMap<Double, ArrayList<AxisPoint>> axis = axis_x.subMap(match_range.getMinX(), true, match_range.getMaxX(), true);
+		for (Entry<Double, ArrayList<AxisPoint>> ent : axis.entrySet()) {
+			for (AxisPoint ap : ent.getValue()) {
+				//Expand the hashtable as required.
+				ItemType item = ap.item;
+				if (!matchedItems.containsKey(item)) {
+					matchedItems.put(item, new AxisMatch());
 				}
-				match.isFalsePos = !(range.intersects(startPt, range.getCenterY(), endPt-startPt, 1));
+				
+				//If we've already determined that this macthes, there's no need for further math.
+				AxisMatch match = matchedItems.get(item);
+				if (match.matchX) { continue; } 
+				
+				//Determine if this is actually a false-positive. Essentially, the shape is false if it doesn't fall
+				//   into the original range rectangle requested.
+				if (possibleFP && !match.isFalsePos) {
+					double startPt = 0;
+					double endPt = 0;
+					if (ap.isStart) {
+						startPt = ent.getKey();
+						endPt = startPt + ap.size;
+					} else if (ap.isEnd()) { 
+						endPt = ent.getKey();
+						startPt = endPt - ap.size;
+					}
+					match.isFalsePos = !(range.intersects(startPt, range.getCenterY(), endPt-startPt, 1));
+				}
+							
+				//Matched
+				match.matchX = true;
 			}
-						
-			//Matched
-			match.matchX = true;
 		}
 		
 		//Now match on the y-axis. Same logic, but this time we call the relevant function.
 		//TODO: We might want to put this code into a shared subroutine.
 		axis = axis_y.subMap(match_range.getMinY(), true, match_range.getMaxY(), true);
-		for (Entry<Double, AxisPoint> ent : axis.entrySet()) {
-			//Skip if already matched, or if there's no potential for a match (x didn't match)
-			ItemType item = ent.getValue().item;
-			if (!matchedItems.containsKey(item)) { continue; }
-			AxisMatch match = matchedItems.get(item);
-			if (match.matchY) { continue; }
-					
-			//Determine if this is actually a false-positive. Essentially, the shape is false if it doesn't fall
-			//   into the original range rectangle requested.
-			if (possibleFP && !match.isFalsePos) {
-				double startPt = 0;
-				double endPt = 0;
-				if (ent.getValue().isStart) {
-					startPt = ent.getKey();
-					endPt = startPt + ent.getValue().size;
-				} else if (ent.getValue().isEnd()) { 
-					endPt = ent.getKey();
-					startPt = endPt - ent.getValue().size;
+		for (Entry<Double, ArrayList<AxisPoint>> ent : axis.entrySet()) {
+			for (AxisPoint ap : ent.getValue()) {
+				//Skip if already matched, or if there's no potential for a match (x didn't match)
+				ItemType item = ap.item;
+				if (!matchedItems.containsKey(item)) { continue; }
+				AxisMatch match = matchedItems.get(item);
+				if (match.matchY) { continue; }
+						
+				//Determine if this is actually a false-positive. Essentially, the shape is false if it doesn't fall
+				//   into the original range rectangle requested.
+				if (possibleFP && !match.isFalsePos) {
+					double startPt = 0;
+					double endPt = 0;
+					if (ap.isStart) {
+						startPt = ent.getKey();
+						endPt = startPt + ap.size;
+					} else if (ap.isEnd()) { 
+						endPt = ent.getKey();
+						startPt = endPt - ap.size;
+					}
+					match.isFalsePos = !(range.intersects(range.getCenterX(), startPt, 1, endPt-startPt));
 				}
-				match.isFalsePos = !(range.intersects(range.getCenterX(), startPt, 1, endPt-startPt));
+				
+				//Fire
+				if (match.isFalsePos) {
+					if (doOnFalsePositives!=null) {
+						doOnFalsePositives.doAction(item);
+					}
+				} else {
+					if (toDo!=null) {
+						toDo.doAction(item);
+					}
+				}
+				
+				//Matched
+				match.matchY = true;
 			}
-			
-			//Fire
-			if (match.isFalsePos) {
-				if (doOnFalsePositives!=null) {
-					doOnFalsePositives.doAction(item);
-				}
-			} else {
-				if (toDo!=null) {
-					toDo.doAction(item);
-				}
-			}
-			
-			//Matched
-			match.matchY = true;
 		}
 	}
-	
+
 	
 	
 	//Helper
-	private void search_for_item(TreeMap<Double, AxisPoint> axisMap, double minVal, double maxVal, ItemType searchFor, Double[] keyResults, int minKeyID, int maxKeyID) {
-		NavigableMap<Double, AxisPoint> partialRes = axisMap.subMap(minVal, true, maxVal, true);
+	//TODO: This probably needs to be modified if we want to support "point" items.
+	private void search_and_remove_item(TreeMap<Double, ArrayList<AxisPoint>> axisMap, double minVal, double maxVal, ItemType searchFor, Double[] keyResults, int minKeyID, int maxKeyID) {
+		NavigableMap<Double, ArrayList<AxisPoint>> partialRes = axisMap.subMap(minVal, true, maxVal, true);
 		int currResID = minKeyID;
-		for (Entry<Double, AxisPoint> point : partialRes.entrySet()) {
-			if (point.getValue().item == searchFor) { //NOTE: I think we want reference equality here vs. value equality.
+		for (Entry<Double, ArrayList<AxisPoint>> point : partialRes.entrySet()) {
+			if (point.getValue().remove(searchFor)) {
 				if (currResID > maxKeyID) { throw new RuntimeException("Error: Possible duplicates"); }
 				if (keyResults[currResID] != null) { throw new RuntimeException("Error: Key overlap (unexpected)."); }
 				keyResults[currResID++] = point.getKey();
@@ -327,7 +346,7 @@ public class LazySpatialIndex<ItemType> {
 
 
 	//Helper: If we are removing the current maximum, we need to search for the new maximum.
-	private double update_maximum(double currVal, double maxVal, TreeMap<Double, AxisPoint> axis) {
+	private double update_maximum(double currVal, double maxVal, TreeMap<Double, ArrayList<AxisPoint>> axis) {
 		//TODO: We should actually perform a search. However, since we never actually remove "static"
 		//      network items (and these are the ones with large width/heights), we can just keep the "old"
 		//      maximum value.
@@ -335,7 +354,7 @@ public class LazySpatialIndex<ItemType> {
 	}
 	
 	//Helper: get the inverse of the health
-	private double getNegHealth(TreeMap<Double, AxisPoint> axis, double max_size) {
+	private double getNegHealth(TreeMap<Double, ArrayList<AxisPoint>> axis, double max_size) {
 		//Sanity check
 		if (axis.size()%2!=0) { throw new RuntimeException("Axis pair imbalance: " + axis.size()); }
 		
@@ -346,18 +365,20 @@ public class LazySpatialIndex<ItemType> {
 		//Iterate, compute the average
 		double average = 0.0;
 		Map<ItemType, Double> startPoints = new HashMap<ItemType, Double>();
-		for (Entry<Double, AxisPoint> entry : axis.entrySet()) {
-			ItemType item = entry.getValue().item;
-			if (!startPoints.containsKey(item)) {
-				startPoints.put(item, entry.getKey());
-			} else {
-				//Get the normalized size.
-				double norm_size = entry.getKey() - startPoints.get(item);
-				norm_size /= size;
-				startPoints.remove(item); //Allows us to check consistency after.
-				
-				//Add it to the average
-				average += norm_size / numPairs;
+		for (Entry<Double, ArrayList<AxisPoint>> entry : axis.entrySet()) {
+			for (AxisPoint ap : entry.getValue()) {
+				ItemType item = ap.item;
+				if (!startPoints.containsKey(item)) {
+					startPoints.put(item, entry.getKey());
+				} else {
+					//Get the normalized size.
+					double norm_size = entry.getKey() - startPoints.get(item);
+					norm_size /= size;
+					startPoints.remove(item); //Allows us to check consistency after.
+					
+					//Add it to the average
+					average += norm_size / numPairs;
+				}
 			}
 		}
 		
@@ -372,7 +393,7 @@ public class LazySpatialIndex<ItemType> {
 	
 	
 	//Remove this restriction as soon as it's stable.
-	private void temp_check_bounds(Rectangle2D bounds) {
+	/*private void temp_check_bounds(Rectangle2D bounds) {
 		if (
 			axis_x.containsKey(bounds.getMinX()) ||
 			axis_x.containsKey(bounds.getMaxX()) ||
@@ -381,7 +402,7 @@ public class LazySpatialIndex<ItemType> {
 		) {
 			throw new RuntimeException("TODO: Need to allow point collisions.");
 		}
-	}
+	}*/
 	
 }
 

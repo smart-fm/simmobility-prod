@@ -43,9 +43,23 @@ import java.util.TreeSet;
  * \author Seth N. Hetu
  */
 public class LazySpatialIndex<ItemType> {
+	//Helper class for storing object data
+	class AxisPoint {
+		ItemType item;
+		boolean isStart;
+		boolean isEnd() { return !isStart; }
+		double size; //start+size = end
+		AxisPoint(ItemType item, boolean isStart, double size) {
+			this.item = item;
+			this.isStart = isStart;
+			this.size = size;
+		}
+	}
+	
+	
 	//Actual objects
-	TreeMap<Double, ItemType> axis_x;
-	TreeMap<Double, ItemType> axis_y;
+	TreeMap<Double, AxisPoint> axis_x;
+	TreeMap<Double, AxisPoint> axis_y;
 	
 	//Bookkeeping
 	double maxWidth;
@@ -57,8 +71,8 @@ public class LazySpatialIndex<ItemType> {
 	}
 	
 	public LazySpatialIndex() {
-		axis_x = new TreeMap<Double, ItemType>();
-		axis_y = new TreeMap<Double, ItemType>();
+		axis_x = new TreeMap<Double, AxisPoint>();
+		axis_y = new TreeMap<Double, AxisPoint>();
 		maxWidth = 0;
 		maxHeight = 0;
 	}
@@ -103,10 +117,10 @@ public class LazySpatialIndex<ItemType> {
 		temp_check_bounds(bounds);
 		
 		//Insert start/end points into both the x and y axis.
-		axis_x.put(bounds.getMinX(), item);
-		axis_x.put(bounds.getMaxX(), item);
-		axis_y.put(bounds.getMinY(), item);
-		axis_y.put(bounds.getMaxY(), item);
+		axis_x.put(bounds.getMinX(), new AxisPoint(item, true, bounds.getWidth()));
+		axis_x.put(bounds.getMaxX(), new AxisPoint(item, false, bounds.getWidth()));
+		axis_y.put(bounds.getMinY(), new AxisPoint(item, true, bounds.getHeight()));
+		axis_y.put(bounds.getMaxY(), new AxisPoint(item, false, bounds.getHeight()));
 		
 		//Update the maximum width/height
 		maxWidth = Math.max(maxWidth, bounds.getWidth());
@@ -117,6 +131,7 @@ public class LazySpatialIndex<ItemType> {
 	//TODO: We aren't using the bounds correctly right now; we need to search for MAX (whatever)
 	//      using a backwards-indexed key set, and MIN (whatever) using a forwards-indexed one.
 	//NOTE: Our current approach is still valid; it's just not as fast as it could be for wide items.
+	//      And I really don't care, since the only items we regularly remove are Agents, which are small.
 	public void removeItem(ItemType item, Rectangle2D boundsHint) {
 		//Search the whole area if no boundsHint is included.
 		if (boundsHint==null) {
@@ -152,27 +167,20 @@ public class LazySpatialIndex<ItemType> {
 		addItem(item, newBounds);
 	}
 	
-	//In case you want all of them. Note that preventDuplicates will be faster but use slightly more memory.
-	public void forAllItems(Action<ItemType> toDo, boolean preventDuplicates) {
-		//Each item will have entries in both the x/y axes, so we only need to scan one.
-		HashSet<ItemType> alreadyDone = new HashSet<ItemType>();
-		for (ItemType it : axis_x.values()) {
+	//In case you want all of them.
+	public void forAllItems(Action<ItemType> toDo) {
+		//When scanning the entire axis, we only need to respond to "start" points.
+		int foundPoints = 0;
+		for (AxisPoint it : axis_x.values()) {
 			//Avoid firing twice:
-			if (alreadyDone.contains(it)) {
-				continue;
+			if (it.isStart) {
+				//"do" this action.
+				toDo.doAction(it.item);
+				foundPoints++;
 			}
 			
-			//"do" this action.
-			toDo.doAction(it);
-			
-			//Save it to prevent duplicates. (By not saving it, we ensure that duplicate actions are taken.)
-			if (preventDuplicates) {
-				alreadyDone.add(it);
-			}
-			
-			//We can stop early if we're processed half of all points on this axis. This only works if
-			//  preventDuplicates is true.
-			if (alreadyDone.size() >= axis_x.size()/2) {
+			//We can stop early if we're processed half of all points on this axis.
+			if (foundPoints >= axis_x.size()/2) {
 				break;
 			}
 		}
@@ -192,10 +200,9 @@ public class LazySpatialIndex<ItemType> {
 	//Perform an action on all items within a given range
 	//toDo and doOnFalsePositives can be null; the first is the action to perform on a given
 	//  match; the second is related to the "health" of the set.
-	public void forAllItemsInRange(Rectangle2D range, Action<ItemType> toDo, Action<ItemType> doOnFalsePositives, boolean preventDuplicates) {
+	public void forAllItemsInRange(Rectangle2D range, Action<ItemType> toDo, Action<ItemType> doOnFalsePositives) {
 		//Sanity check
 		if (range.isEmpty()) { return; }
- 		if (preventDuplicates==false) { throw new RuntimeException("Duplicates not yet supported."); }
  		
  		//Our algorithm will skip long segments entirely (unless a single start or end point is matched). 
  		// There are several solutions to this, but we will simply expand the search box.
@@ -214,10 +221,10 @@ public class LazySpatialIndex<ItemType> {
 		//We maintain a simple lookup of items found, counting the number of times each axis has matched. When
  		//  the y-axis count goes from 0 to 1, we perform the given action.
 		Hashtable<ItemType, AxisMatch> matchedItems = new Hashtable<ItemType, AxisMatch>();
-		NavigableMap<Double, ItemType> axis = axis_x.subMap(match_range.getMinX(), true, match_range.getMaxX(), true);
-		for (ItemType it : axis.values()) {
-			if (!matchedItems.containsKey(it)) {
-				matchedItems.put(it, new AxisMatch());
+		NavigableMap<Double, AxisPoint> axis = axis_x.subMap(match_range.getMinX(), true, match_range.getMaxX(), true);
+		for (AxisPoint it : axis.values()) {
+			if (!matchedItems.containsKey(it.item)) {
+				matchedItems.put(it.item, new AxisMatch());
 			}
 			
 			//Is this match a false positive?
@@ -234,14 +241,14 @@ public class LazySpatialIndex<ItemType> {
 		
 		//Match y
 		axis = axis_y.subMap(match_range.getMinY(), true, match_range.getMaxY(), true);
-		for (ItemType it : axis.values()) {
-			if (matchedItems.containsKey(it) && matchedItems.get(it).countX>0) {
-				if (matchedItems.get(it).countY==0) {
+		for (AxisPoint it : axis.values()) {
+			if (matchedItems.containsKey(it.item) && matchedItems.get(it.item).countX>0) {
+				if (matchedItems.get(it.item).countY==0) {
 					if (toDo!=null) {
-						toDo.doAction(it);
+						toDo.doAction(it.item);
 					}
 				}
-				matchedItems.get(it).countY++;
+				matchedItems.get(it.item).countY++;
 			}
 		}
 	}
@@ -249,14 +256,14 @@ public class LazySpatialIndex<ItemType> {
 	
 	
 	//Helper
-	private void search_for_item(TreeMap<Double, ItemType> axisMap, double minVal, double maxVal, ItemType searchFor, Double[] keyResults, int minKeyID, int maxKeyID) {
-		NavigableMap<Double, ItemType> partialRes = axisMap.subMap(minVal, true, maxVal, true);
+	private void search_for_item(TreeMap<Double, AxisPoint> axisMap, double minVal, double maxVal, ItemType searchFor, Double[] keyResults, int minKeyID, int maxKeyID) {
+		NavigableMap<Double, AxisPoint> partialRes = axisMap.subMap(minVal, true, maxVal, true);
 		int currResID = minKeyID;
-		for (Entry<Double, ItemType> item : partialRes.entrySet()) {
-			if (item.getValue() == searchFor) { //TODO: I think we want reference equality here vs. value equality.
+		for (Entry<Double, AxisPoint> point : partialRes.entrySet()) {
+			if (point.getValue().item == searchFor) { //NOTE: I think we want reference equality here vs. value equality.
 				if (currResID > maxKeyID) { throw new RuntimeException("Error: Possible duplicates"); }
 				if (keyResults[currResID] != null) { throw new RuntimeException("Error: Key overlap (unexpected)."); }
-				keyResults[currResID++] = item.getKey();
+				keyResults[currResID++] = point.getKey();
 			}
 		}
 		if (currResID != maxKeyID+1) { throw new RuntimeException("Error: Couldn't find both keys, missing " + (maxKeyID+1 - currResID)  + "."); }
@@ -264,7 +271,7 @@ public class LazySpatialIndex<ItemType> {
 
 
 	//Helper: If we are removing the current maximum, we need to search for the new maximum.
-	private double update_maximum(double currVal, double maxVal, TreeMap<Double, ItemType> axis) {
+	private double update_maximum(double currVal, double maxVal, TreeMap<Double, AxisPoint> axis) {
 		//TODO: We should actually perform a search. However, since we never actually remove "static"
 		//      network items (and these are the ones with large width/heights), we can just keep the "old"
 		//      maximum value.
@@ -272,7 +279,10 @@ public class LazySpatialIndex<ItemType> {
 	}
 	
 	//Helper: get the inverse of the health
-	private double getNegHealth(TreeMap<Double, ItemType> axis, double max_size) {
+	private double getNegHealth(TreeMap<Double, AxisPoint> axis, double max_size) {
+		//Sanity check
+		if (axis.size()%2!=0) { throw new RuntimeException("Axis pair imbalance: " + axis.size()); }
+		
 		//Normalize
 		double size = axis.lastKey() - axis.firstKey();
 		int numPairs = axis.size() / 2;
@@ -280,14 +290,15 @@ public class LazySpatialIndex<ItemType> {
 		//Iterate, compute the average
 		double average = 0.0;
 		Map<ItemType, Double> startPoints = new HashMap<ItemType, Double>();
-		for (Entry<Double, ItemType> entry : axis.entrySet()) {
-			if (!startPoints.containsKey(entry.getValue())) {
-				startPoints.put(entry.getValue(), entry.getKey());
+		for (Entry<Double, AxisPoint> entry : axis.entrySet()) {
+			ItemType item = entry.getValue().item;
+			if (!startPoints.containsKey(item)) {
+				startPoints.put(item, entry.getKey());
 			} else {
 				//Get the normalized size.
-				double norm_size = entry.getKey() - startPoints.get(entry.getValue());
+				double norm_size = entry.getKey() - startPoints.get(item);
 				norm_size /= size;
-				startPoints.remove(entry.getValue()); //Allows us to check consistency after.
+				startPoints.remove(item); //Allows us to check consistency after.
 				
 				//Add it to the average
 				average += norm_size / numPairs;

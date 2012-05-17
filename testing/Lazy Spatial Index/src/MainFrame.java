@@ -132,15 +132,15 @@ public class MainFrame extends JFrame {
 			
 			//Draw all "matched" items.
 			g.setColor(Color.blue);
-			objects.forAllItemsInRange(currZoom, painter, null, true);
+			objects.forAllItemsInRange(currZoom, painter, null);
 			
 			//Draw all "false positive" items.
 			g.setColor(Color.green);
-			objects.forAllItemsInRange(currZoom, null, painter, true);
+			objects.forAllItemsInRange(currZoom, null, painter);
 			
 			//Draw all remaining items.
 			g.setColor(Color.black);
-			objects.forAllItems(painter, true);
+			objects.forAllItems(painter);
 
 			
 			//Draw the current zoom level

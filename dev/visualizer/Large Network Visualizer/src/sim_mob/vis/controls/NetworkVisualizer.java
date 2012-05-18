@@ -79,6 +79,9 @@ public class NetworkVisualizer {
 		currHighlightIDs.add(id); 
 	}
 	
+	//Note: This is ONLY used for updating the progress bar; we can replace it with a callback later.
+	private MainFrame parent;
+	
 	//The amount we are multiplying all Agent images by when drawing them.
 	//Be careful setting this; obviously, scaling Agents will lead to a visually
 	//inaccurate display (since cars are scaled down to the network).
@@ -109,7 +112,8 @@ public class NetworkVisualizer {
 		return el;
 	}
 		
-	public NetworkVisualizer() {
+	public NetworkVisualizer(MainFrame parent) {
+		this.parent = parent;
 		this.scaleMult = 1;
 	}
 	
@@ -317,6 +321,10 @@ public class NetworkVisualizer {
 			}
 		}
 		
+		//Update our progress bar to show how many items are being culled from view.
+		double percentDrawn = ((double)act.getItemCount()) / networkItemsIndex.getItemCount();
+		parent.updatePercentDrawn(percentDrawn);
+		
 		
 		//Draw nodes
 		final boolean ZoomCritical = ("x".equals("Y")); //(currPercentZoom>ZOOM_IN_CRITICAL); //TODO: Re-enable.
@@ -355,6 +363,7 @@ public class NetworkVisualizer {
 	//Helper class: sort and save items by z-ordering
 	private class DrawSorterAction implements LazySpatialIndex.Action<DrawableItem> {
 		Hashtable<Integer, LinkedList<DrawableItem>> toDraw;
+		int totalItems = 0;
 		
 		DrawSorterAction() {
 			toDraw = new Hashtable<Integer, LinkedList<DrawableItem>>();
@@ -366,6 +375,7 @@ public class NetworkVisualizer {
 				toDraw.put(zOrder, new LinkedList<DrawableItem>());
 			}
 			toDraw.get(zOrder).add(item);
+			totalItems++;
 		}
 		
 		//Retrieve keys
@@ -378,6 +388,10 @@ public class NetworkVisualizer {
 		//Return values for a specific key
 		List<DrawableItem> getValues(int key) {
 			return toDraw.get(key);
+		}
+		
+		int getItemCount() {
+			return totalItems;
 		}
 	}
 

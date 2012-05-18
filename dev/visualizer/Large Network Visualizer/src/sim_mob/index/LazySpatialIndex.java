@@ -58,6 +58,7 @@ public class LazySpatialIndex<ItemType> {
 	//Bookkeeping
 	double maxWidth;
 	double maxHeight;
+	int totalItems;
 	
 	//What to do when we "find" an item
 	public static interface Action<ItemType>  {
@@ -69,6 +70,11 @@ public class LazySpatialIndex<ItemType> {
 		axis_y = new TreeMap<Double, ArrayList<AxisPoint>>();
 		maxWidth = 0;
 		maxHeight = 0;
+		totalItems = 0;
+	}
+	
+	public int getItemCount() {
+		return totalItems;
 	}
 	
 	
@@ -133,6 +139,7 @@ public class LazySpatialIndex<ItemType> {
 		//Update the maximum width/height
 		maxWidth = Math.max(maxWidth, bounds.getWidth());
 		maxHeight = Math.max(maxHeight, bounds.getHeight());
+		totalItems++;
 	}
 	
 	//BoundsHint can be null; searching is faster if it's not.
@@ -168,6 +175,7 @@ public class LazySpatialIndex<ItemType> {
 		maxWidth = update_maximum(currWidth, maxWidth, axis_x);
 		double currHeight = res[3] - res[2];
 		maxHeight = update_maximum(currHeight, maxHeight, axis_y);
+		totalItems--;
 	}
 	
 	

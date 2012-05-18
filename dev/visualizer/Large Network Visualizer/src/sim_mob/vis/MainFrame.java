@@ -50,6 +50,7 @@ public class MainFrame extends JFrame {
 	private JTextField console;
 	
 	//LHS panel
+	private JProgressBar drawnPercent; //How many items are drawn.
 	private JButton openLogFile;
 	private JButton openEmbeddedFile;
 	private JButton showFakeAgent;
@@ -200,6 +201,8 @@ public class MainFrame extends JFrame {
 	    annotationLevel.setIcon(alvl_None);
 
 	    
+	    drawnPercent = new JProgressBar();
+	    drawnPercent.setStringPainted(false);
 	    openLogFile = new JButton("Open File From...", new ImageIcon(Utility.LoadImgResource("res/icons/open.png")));
 		openEmbeddedFile = new JButton("Open Default File", new ImageIcon(Utility.LoadImgResource("res/icons/embed.png")));
 		showFakeAgent = new JButton("Show Proxy Agent", new ImageIcon(Utility.LoadImgResource("res/icons/fake.png")));
@@ -233,6 +236,7 @@ public class MainFrame extends JFrame {
 		//Left panel
 		GridLayout gl = new GridLayout(0,1,0,2);
 		JPanel jpLeft = new JPanel(gl);
+		jpLeft.add(drawnPercent);
 		jpLeft.add(openLogFile);
 		jpLeft.add(openEmbeddedFile);
 		jpLeft.add(showFakeAgent);
@@ -633,13 +637,25 @@ public class MainFrame extends JFrame {
 			frameTickSlider.setValue(0);
 			
 			//Add a visualizer
-			NetworkVisualizer vis = new NetworkVisualizer();
+			NetworkVisualizer vis = new NetworkVisualizer(MainFrame.this);
 			vis.setSource(rn, simData, new Point(newViewPnl.getWidth(), newViewPnl.getHeight()), fileName);
 			
 			//Update the map
 			newViewPnl.initMapCache(vis, 0, 0);
 		}
 	}
+	
+	
+	public void updatePercentDrawn(double percent) {
+		//Set the percent filled
+		drawnPercent.setValue((int)(percent*100));
+		
+		//Color it depending on the health, 10% to 90%
+		percent = (Math.max(Math.min(percent, 0.9), 0.1)-0.1)/0.8;
+		double hue = ((1.0-percent) * 115)/360;
+		drawnPercent.setForeground(new Color(Color.HSBtoRGB((float)hue, 1.0F, 0.9F)));
+	}
+	
 	
 	class RenderToFileThread extends Thread {
 		String fileName;

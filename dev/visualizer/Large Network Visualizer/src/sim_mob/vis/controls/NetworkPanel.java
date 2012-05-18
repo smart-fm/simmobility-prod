@@ -396,7 +396,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		//double oldH = netViewCache.getImage().getHeight();
 		
 		//Zoom
-		netViewCache.zoomIn(number, getCurrFrameTick(), new Point(getWidth(), getHeight()));
+		netViewCache.zoomIn(-number, getCurrFrameTick(), new Point(getWidth(), getHeight()));
 		
 		//NOTE: The math isn't quite right for scaling; will fix this later.
 		//      A correct fix will create a temporary "ScaledPoint" that represents the center

@@ -126,11 +126,14 @@ sim_mob::BoundaryProcessor::BoundaryProcessor(): BOUNDARY_PROCOSS_TAG(2)
 string sim_mob::BoundaryProcessor::boundaryProcessing(int time_step)
 {
 	//step 1, update fake agents (received in previous time step)
+	ParitionDebugOutput debug;
+//	debug.outputToConsole("111");
 	clearFakeAgentFlag();
 
 	//step 2, check the agents that should be send to downstream partitions
 	int neighbor_size = neighbor_ips.size();
 	BoundaryProcessingPackage sendout_package[neighbor_size];
+
 
 	size_t index = 0;
 	std::set<int>::iterator itr_neighbor = neighbor_ips.begin();
@@ -146,6 +149,8 @@ string sim_mob::BoundaryProcessor::boundaryProcessing(int time_step)
 	}
 
 	checkBoundaryAgents(sendout_package);
+//	debug.outputToConsole("222");
+//	debug.outputToConsole(neighbor_size);
 
 	//Step 3, commmunicate with downstream
 	mpi::communicator world;
@@ -169,16 +174,30 @@ string sim_mob::BoundaryProcessor::boundaryProcessing(int time_step)
 	for (; itr_neighbor != neighbor_ips.end(); itr_neighbor++)
 	{
 		string data = getDataInPackage(sendout_package[index]);
+//		debug.outputToConsole(data);
+//		debug.outputToConsole("233");
+
 		sends[index] = world.isend(sendout_package[index].to_id, (time_step) % 99 + 1, data);
 		index = 0;
 	}
+
+	for(int i=0;i<neighbor_size;i++)
+	{
+//		debug.outputToConsole(all_received_package_data[i]);
+//		std::cout << all_received_package_data[] << std::endl;
+	}
+
+//	debug.outputToConsole("255");
 
 	//waiting for the end of sending and recving
 	mpi::wait_all(recvs, recvs + neighbor_size);
 	mpi::wait_all(sends, sends + neighbor_size);
 
+//	debug.outputToConsole("333");
+
 	//Step 4
 	processBoundaryPackages(all_received_package_data, neighbor_size);
+//	debug.outputToConsole("444");
 
 	return "";
 }
@@ -224,7 +243,12 @@ void sim_mob::BoundaryProcessor::clearFakeAgentFlag()
 
 string sim_mob::BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage* sendout_package)
 {
+	ParitionDebugOutput debug;
+
 	std::map<string, BoundarySegment*>::iterator loopRoadSegment;
+
+//	debug.outputToConsole("Start to check checkBoundaryAgents");
+//	debug.outputToConsole(boundary_segments.size());
 
 	for (loopRoadSegment = boundary_segments.begin(); loopRoadSegment != boundary_segments.end(); ++loopRoadSegment)
 	{
@@ -244,6 +268,10 @@ string sim_mob::BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage
 		//get all agents in box
 		vector<Agent const*> allAgentsInBoundary;
 		allAgentsInBoundary = agentsInSegmentBoundary(segment);
+
+		//nothing to process
+		if(allAgentsInBoundary.size() <= 0)
+			continue;
 
 		if (segment->responsible_side == -1)
 		{
@@ -278,17 +306,26 @@ string sim_mob::BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage
 					continue;
 				}
 
+//				debug.outputToConsole("Start to check whether one vehicle cross the line");
+
 				if (isAgentCrossed(segment, *agent_pointer, false))
 				{
+//					debug.outputToConsole("Succeed to cross");
+
 					const Person *person = dynamic_cast<const Person *> (*agent_pointer);
 					if (person)
 					{
+//						debug.outputToConsole("Add the cross vehicle");
 						sendout_package[downstream_index].cross_persons.push_back(person);
 
 						Person *one_person = const_cast<Person *> (person);
 						changeAgentToFake(one_person);
 					}
 				}
+//				else
+//				{
+////					debug.outputToConsole("Did not cross");
+//				}
 
 				if (isAgentInFeedbackorForward(segment, *agent_pointer, false))
 				{
@@ -365,10 +402,14 @@ string sim_mob::BoundaryProcessor::checkBoundaryAgents(BoundaryProcessingPackage
 
 string sim_mob::BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& package)
 {
+	ParitionDebugOutput debug;
 	PackageUtils packageUtil;
+	int cross_size = package.cross_persons.size();
 
 	//package cross agents
-	packageUtil << (package.cross_persons.size());
+	packageUtil << (cross_size);
+//	debug.outputToConsole("cross_size");
+//	debug.outputToConsole(cross_size);
 
 	vector<Person const*>::iterator itr_cross = package.cross_persons.begin();
 	for (; itr_cross != package.cross_persons.end(); itr_cross++)
@@ -378,15 +419,19 @@ string sim_mob::BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& p
 		packageUtil << ((int) (type));
 
 		Person* one_person = const_cast<Person*> (*itr_cross);
-
 		one_person->pack(packageUtil);
-
 		one_person->getRole()->pack(packageUtil);
-
 	}
 
+//	double test_1 = 100.80;
+//	packageUtil<<(test_1);
+
 	//package feedback agents
-	packageUtil<<(package.feedback_persons.size());
+//	std::cout << "package.feedback_persons.size():" << package.feedback_persons.size() << std::endl;
+	int feedback_size = package.feedback_persons.size();
+	packageUtil<<(feedback_size);
+//	debug.outputToConsole("feedback_persons size");
+//	debug.outputToConsole(package.feedback_persons.size());
 
 	vector<Person const*>::iterator itr_feedback = package.feedback_persons.begin();
 
@@ -401,11 +446,26 @@ string sim_mob::BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& p
 		Person* one_person = const_cast<Person*> (*itr_feedback);
 
 		one_person->packProxy(packageUtil);
+//		debug.outputToConsole("packProxy");
+
+//		double test_3 = 13.33;
+//		packageUtil<<(test_3);
+
 		one_person->getRole()->packProxy(packageUtil);
+//		debug.outputToConsole("pack Role");
+
+//		double test_2 = 13.80;
+//		packageUtil<<(test_2);
 	}
 
+//	double test = 12.80;
+//	packageUtil<<(test);
+
 	//package signal
-	packageUtil<<(package.boundary_signals.size());
+	int signal_size = package.boundary_signals.size();
+	packageUtil<<(signal_size);
+//	debug.outputToConsole("package.boundary_signals.size():");
+//	debug.outputToConsole(package.boundary_signals.size());
 
 	vector<Signal const*>::iterator itr_signal = package.boundary_signals.begin();
 	for (; itr_signal != package.boundary_signals.end(); itr_signal++)
@@ -421,10 +481,14 @@ string sim_mob::BoundaryProcessor::getDataInPackage(BoundaryProcessingPackage& p
 
 void sim_mob::BoundaryProcessor::processPackageData(string data)
 {
+	ParitionDebugOutput debug;
 	UnPackageUtils unpackageUtil(data);
 
 	int cross_size = 0;
 	unpackageUtil >> cross_size;
+
+//	std::cout << "DDDDDDDDD:" << cross_size << std::endl;
+//	debug.outputToConsole("receive 11");
 
 	for (int i = 0; i < cross_size; i++)
 	{
@@ -467,47 +531,77 @@ void sim_mob::BoundaryProcessor::processPackageData(string data)
 		}
 	}
 
+//	debug.outputToConsole("receive 22");
+//	double test_1 = 1;
+//	unpackageUtil >> (test_1);
+
+//	debug.outputToConsole("test_1");
+//	debug.outputToConsole(test_1);
+
 	//feedback agents
 	int feedback_size = 0;
 	unpackageUtil >> feedback_size;
+
+//	debug.outputToConsole("feedback_size");
+//	debug.outputToConsole(feedback_size);
+//	std::cout << "receive feedback_size:" << feedback_size << std::endl;
+
 	for (int i = 0; i < feedback_size; i++)
 	{
 		int value = 0;
 		unpackageUtil >> value;
+//		debug.outputToConsole("value");
+//		debug.outputToConsole(value);
+
 		int agent_id = 0;
 		unpackageUtil >> agent_id;
+
 		Person* one_person = getFakePersonById(agent_id);
 
 		if (one_person)
 		{
+//			debug.outputToConsole("receive 23");
 			one_person->unpackProxy(unpackageUtil);
 			one_person->getRole()->unpackProxy(unpackageUtil);
+
 			one_person->isFake = true;
 			one_person->receiveTheFakeEntityAgain = true;
 			one_person->toRemoved = false;
 		}
 		else
 		{
+//			debug.outputToConsole("receive 26");
 			ConfigParams& config = ConfigParams::GetInstance();
 
 			switch (value)
 			{
 			case DRIVER_TYPE:
+
+//				debug.outputToConsole("receive 27");
 				one_person = new Person(ConfigParams::GetInstance().mutexStategy, -1);
 				one_person->changeRole(new Driver(one_person, ConfigParams::GetInstance().mutexStategy, config.reacTime_LeadingVehicle, config.reacTime_SubjectVehicle, config.reacTime_Gap));
 
+//				debug.outputToConsole("receive 28");
 				one_person->unpackProxy(unpackageUtil);
+
+//				debug.outputToConsole("receive 29");
 				one_person->getRole()->unpackProxy(unpackageUtil);
+
+//				debug.outputToConsole("receive 30");
+
 				if (isAgentInLocalPartition(one_person->getId(), false))
 					continue;
+//				debug.outputToConsole("receive 31");
 
 				one_person->isFake = true;
 				one_person->receiveTheFakeEntityAgain = true;
 				one_person->toRemoved = false;
 				insertOneFakeAgentToWorkerGroup(one_person);
+//				debug.outputToConsole("receive 32");
 				break;
 
 			case PEDESTRIAN_TYPE:
+//				debug.outputToConsole("receive 311");
 				one_person = new Person(ConfigParams::GetInstance().mutexStategy, -1);
 				one_person->changeRole(new Pedestrian(one_person, one_person->getGenerator()));
 
@@ -523,15 +617,29 @@ void sim_mob::BoundaryProcessor::processPackageData(string data)
 				insertOneFakeAgentToWorkerGroup(one_person);
 				break;
 			case 3:
+//				debug.outputToConsole("receive 312");
 				break;
 
 			default:
+//				debug.outputToConsole("receive 313");
 				break;
 			}
 		}
+
+//		double test_2 = 1;
+//		unpackageUtil >> (test_2);
+//
+//		debug.outputToConsole("test_2");
+//		debug.outputToConsole(test_2);
 	}
 
-	//feedback signal
+//	double test = 1;
+//	unpackageUtil >> (test);
+//
+//	debug.outputToConsole("receive 33");
+//	debug.outputToConsole(test);
+
+//	//feedback signal
 	int signal_size = 0;
 	unpackageUtil >> signal_size;
 
@@ -539,10 +647,11 @@ void sim_mob::BoundaryProcessor::processPackageData(string data)
 	{
 		Point2D location;
 		unpackageUtil >> location;
-		Signal* one_signal = const_cast<Signal*> (getSignalBasedOnNode(&location));
 
+		Signal* one_signal = const_cast<Signal*> (getSignalBasedOnNode(&location));
 		one_signal->unpackProxy(unpackageUtil);
 	}
+//	debug.outputToConsole("receive 44");
 }
 
 string sim_mob::BoundaryProcessor::processBoundaryPackages(string all_packages[], int size)
@@ -574,24 +683,45 @@ Person* sim_mob::BoundaryProcessor::getFakePersonById(unsigned int agent_id)
 
 bool sim_mob::BoundaryProcessor::isAgentCrossed(BoundarySegment* segment, Agent const* agent, bool is_down_boundary)
 {
+	ParitionDebugOutput debug;
+
 	if (agent->isFake)
 		return false;
+
+//	debug.outputToConsole("Check 1");
 
 	//downside
 	if (is_down_boundary)
 		return false;
 
+//	debug.outputToConsole("Check 2");
+
 	if (getAgentTypeForSerialization(agent) == DRIVER_TYPE)
 	{
+//		debug.outputToConsole("Check 3");
+
 		const Person *person = dynamic_cast<const Person *> (agent);
 		Person* p = const_cast<Person*> (person);
 		const Driver *driver = dynamic_cast<const Driver *> (p->getRole());
 
 		//normal check
+//		debug.outputToConsole("*********************************************************");
+//		debug.outputToConsole(driver->getVehicle()->getCurrSegment()->getStart()->location.getX());
+//		debug.outputToConsole(driver->getVehicle()->getCurrSegment()->getStart()->location.getY());
+//		debug.outputToConsole(driver->getVehicle()->getCurrSegment()->getEnd()->location.getX());
+//		debug.outputToConsole(driver->getVehicle()->getCurrSegment()->getEnd()->location.getY());
+//		debug.outputToConsole("---------------------------------------------------------");
+//		debug.outputToConsole(segment->boundarySegment->getStart()->location.getX());
+//		debug.outputToConsole(segment->boundarySegment->getStart()->location.getY());
+//		debug.outputToConsole(segment->boundarySegment->getEnd()->location.getX());
+//		debug.outputToConsole(segment->boundarySegment->getEnd()->location.getY());
+
 		if (driver->getVehicle()->getCurrSegment()->getStart()->location.getX() != segment->boundarySegment->getStart()->location.getX())
 		{
 			return false;
 		}
+
+//		debug.outputToConsole("Check 4");
 
 		if (driver->getVehicle()->getCurrSegment()->getStart()->location.getY() != segment->boundarySegment->getStart()->location.getY())
 		{
@@ -606,26 +736,38 @@ bool sim_mob::BoundaryProcessor::isAgentCrossed(BoundarySegment* segment, Agent 
 			return false;
 		}
 
+//		debug.outputToConsole("Check 5");
+
 		int x_cut_dis = segment->cut_line_to->getX() - segment->cut_line_start->getX();
 		int y_cut_dis = segment->cut_line_to->getY() - segment->cut_line_start->getY();
 
 		int x_pos = person->xPos.get();
 		int y_pos = person->yPos.get();
 
+
+
 		int pos_line = (x_pos - segment->cut_line_start->getX()) * y_cut_dis - (y_pos - segment->cut_line_start->getY()) * x_cut_dis;
 		if (pos_line == 0)
 			return false;
+//
+//		debug.outputToConsole("Check 6");
 
 		int upper_x_pos = segment->boundarySegment->getStart()->location.getX();
 		int upper_y_pos = segment->boundarySegment->getStart()->location.getY();
 
 		int upper_pos_line = (upper_x_pos - segment->cut_line_start->getX()) * y_cut_dis - (upper_y_pos - segment->cut_line_start->getY()) * x_cut_dis;
 
+//		debug.outputToConsole("Check 7");
+
 		if (upper_pos_line > 0 && pos_line > 0)
 			return false;
 
+//		debug.outputToConsole("Check 8");
+
 		if (upper_pos_line < 0 && pos_line < 0)
 			return false;
+
+//		debug.outputToConsole("Check 9");
 
 		return true;
 
@@ -658,6 +800,8 @@ bool sim_mob::BoundaryProcessor::isAgentCrossed(BoundarySegment* segment, Agent 
 
 		return true;
 	}
+
+//	debug.outputToConsole("Check 10");
 
 	return false;
 }

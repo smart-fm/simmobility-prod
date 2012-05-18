@@ -13,6 +13,7 @@
 
 #include "geospatial/Node.hpp"
 #include "entities/misc/TripChain.hpp"
+#include "partitions/ParitionDebugOutput.hpp"
 
 /*
  * \author Xu Yan
@@ -174,7 +175,7 @@ void sim_mob::Person::unpack(UnPackageUtils& unpackageUtil) {
 
 void sim_mob::Person::packProxy(PackageUtils& packageUtil) {
 	//package Entity
-	sim_mob::Agent::pack(packageUtil);
+	sim_mob::Agent::packProxy(packageUtil);
 
 	//package person
 	packageUtil<<(specialStr);
@@ -182,7 +183,7 @@ void sim_mob::Person::packProxy(PackageUtils& packageUtil) {
 }
 
 void sim_mob::Person::unpackProxy(UnPackageUtils& unpackageUtil) {
-	sim_mob::Agent::unpack(unpackageUtil);
+	sim_mob::Agent::unpackProxy(unpackageUtil);
 
 	unpackageUtil >> specialStr;
 	unpackageUtil >> firstFrameTick;
@@ -222,22 +223,23 @@ void Signal::packProxy(PackageUtils& packageUtil) {
 
 void Signal::unpackProxy(UnPackageUtils& unpackageUtil) {
 
+	ParitionDebugOutput debug;
+//	debug.outputToConsole("signal 0");
+
 	//Agent::unpackageProxy(unpackageUtil);
 	unpackageUtil >> id;
 	unpackageUtil >> currCL;
 	unpackageUtil >> currSplitPlan;
+//	debug.outputToConsole("signal 0.5");
+
 	unpackageUtil >> currOffset;
 	unpackageUtil >> currPhase;
+//	debug.outputToConsole("signal 0.7");
+
 	unpackageUtil >> currSplitPlanID;
 	unpackageUtil >> phaseCounter;
 
-//	id = unpackageUtil.unpackBasicData<int>();
-//	currCL = unpackageUtil.unpackBasicData<double>();
-//	currSplitPlan = unpackageUtil.unpackBasicDataVector<double>();
-//	currOffset = unpackageUtil.unpackBasicData<double>();
-//	currPhase = unpackageUtil.unpackBasicData<int>();
-//	currSplitPlanID = unpackageUtil.unpackBasicData<int>();
-//	phaseCounter = unpackageUtil.unpackBasicData<int>();
+//	debug.outputToConsole("signal 1");
 
 	SignalStatus buffered_signal;
 	//very dangerous, suggest to change
@@ -247,11 +249,14 @@ void Signal::unpackProxy(UnPackageUtils& unpackageUtil) {
 		}
 	}
 
+//	debug.outputToConsole("signal 2");
+
 	for (int i = 0; i < 4; i++) {
 		unpackageUtil >> buffered_signal.TC_for_Pedestrian[i];
 	}
 
 	buffered_TC.force(buffered_signal);
+//	debug.outputToConsole("signal 3");
 }
 
 }

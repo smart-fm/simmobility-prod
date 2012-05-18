@@ -28,7 +28,15 @@ namespace sim_mob {
  * Serialize Class vehicles
  */
 void sim_mob::Vehicle::pack(PackageUtils& package, Vehicle* one_vehicle) {
+
+	ParitionDebugOutput debug;
+//	double test_8 = 888.555;
+//	package << (test_8);
+
 	GeneralPathMover::pack(package, &(one_vehicle->fwdMovement));
+
+//	double test_9 = 999.555;
+//	package << (test_9);
 
 	package << one_vehicle->latMovement;
 	package << one_vehicle->fwdVelocity;
@@ -43,7 +51,20 @@ void sim_mob::Vehicle::pack(PackageUtils& package, Vehicle* one_vehicle) {
 Vehicle* sim_mob::Vehicle::unpack(UnPackageUtils& unpackage) {
 	Vehicle* one_vehicle = new Vehicle();
 
+	ParitionDebugOutput debug;
+//	double test_8 = 1;
+//	unpackage >> (test_8);
+//
+//	debug.outputToConsole("test_8");
+//	debug.outputToConsole(test_8);
+
 	GeneralPathMover::unpack(unpackage, &(one_vehicle->fwdMovement));
+
+//	double test_9 = 1;
+//	unpackage >> (test_9);
+//
+//	debug.outputToConsole("test_9");
+//	debug.outputToConsole(test_9);
 
 	unpackage >> one_vehicle->latMovement;
 	unpackage >> one_vehicle->fwdVelocity;
@@ -63,7 +84,6 @@ Vehicle* sim_mob::Vehicle::unpack(UnPackageUtils& unpackage) {
 
 void sim_mob::GeneralPathMover::pack(PackageUtils& package, GeneralPathMover* fwdMovement)
 {
-
 	if (fwdMovement == NULL)
 	{
 		bool is_NULL = true;
@@ -84,7 +104,6 @@ void sim_mob::GeneralPathMover::pack(PackageUtils& package, GeneralPathMover* fw
 	std::vector<const sim_mob::RoadSegment*>::const_iterator itr = fwdMovement->fullPath.begin();
 	for (; itr != fwdMovement->fullPath.end(); itr++)
 	{
-
 		RoadSegment::pack(package, *itr);
 	}
 
@@ -92,9 +111,9 @@ void sim_mob::GeneralPathMover::pack(PackageUtils& package, GeneralPathMover* fw
 
 	int current_segment = fwdMovement->currSegmentIt - fwdMovement->fullPath.begin();
 	package << (current_segment);
-	ParitionDebugOutput::outputToConsole(current_segment);
+//	ParitionDebugOutput::outputToConsole(current_segment);
 
-	std::cout << "AAA" << std::endl;
+//	std::cout << "BBB" << std::endl;
 
 	//part 2
 	//polypointsList
@@ -165,7 +184,7 @@ void sim_mob::GeneralPathMover::pack(PackageUtils& package, GeneralPathMover* fw
 	package << (fwdMovement->distOfThisSegment);
 	package << (fwdMovement->distOfRestSegments);
 
-	package << (fwdMovement->inIntersection);
+//	package << (fwdMovement->inIntersection);
 	package << (fwdMovement->isMovingForwardsInLink);
 	package << (fwdMovement->currLaneID);
 
@@ -251,7 +270,7 @@ void sim_mob::GeneralPathMover::unpack(UnPackageUtils& unpackage, GeneralPathMov
 	unpackage >> one_motor->distMovedInCurrSegment;
 	unpackage >> one_motor->distOfThisSegment;
 	unpackage >> one_motor->distOfRestSegments;
-	unpackage >> one_motor->inIntersection;
+//	unpackage >> one_motor->inIntersection;
 	unpackage >> one_motor->isMovingForwardsInLink;
 	unpackage >> one_motor->currLaneID;
 
@@ -391,14 +410,21 @@ void SimpleIntDrivingModel::pack(PackageUtils& package, const SimpleIntDrivingMo
 		package << (is_NULL);
 	}
 
-	std::cout << "Before:" << params->intTrajectory.getAngle() << std::endl;
-	std::cout << "Before totalMovement:" << params->totalMovement << std::endl;
+	ParitionDebugOutput debug;
+
+//	std::cout << "Before:" << params->intTrajectory.getAngle() << std::endl;
+//	std::cout << "Before totalMovement:" << params->totalMovement << std::endl;
 
 	package << (params->intTrajectory);
+//	debug.outputToConsole("TAC 11");
+
 	package << (params->totalMovement);
+//	debug.outputToConsole("TAC 22");
 }
 
 void SimpleIntDrivingModel::unpack(UnPackageUtils& unpackage, SimpleIntDrivingModel* params) {
+	ParitionDebugOutput debug;
+
 	bool is_NULL = false;
 	unpackage >> is_NULL;
 	if (is_NULL) {
@@ -406,10 +432,12 @@ void SimpleIntDrivingModel::unpack(UnPackageUtils& unpackage, SimpleIntDrivingMo
 	}
 
 	unpackage >> (params->intTrajectory);
-	std::cout << "After:" << params->intTrajectory.getAngle() << std::endl;
+//	debug.outputToConsole("SimpleIntDrivingModel 11");
+//	std::cout << "After:" << params->intTrajectory.getAngle() << std::endl;
 
 	unpackage >> (params->totalMovement);
-	std::cout << "After totalMovement:" << params->totalMovement << std::endl;
+//	debug.outputToConsole("SimpleIntDrivingModel 22");
+//	std::cout << "After totalMovement:" << params->totalMovement << std::endl;
 //	params->totalMovement = unpackage.unpackBasicData<double> ();
 }
 

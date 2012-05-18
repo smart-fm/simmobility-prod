@@ -14,6 +14,7 @@
 #include "geospatial/RoadSegment.hpp"
 
 #include "util/GeomHelpers.hpp"
+#include "partitions/ParitionDebugOutput.hpp"
 
 /*
  * \author Xu Yan
@@ -129,6 +130,7 @@ void sim_mob::Driver::unpack(UnPackageUtils& unpackageUtil) {
 	bool value_inIntersection = false;
 	unpackageUtil >> value_inIntersection;
 	isInIntersection.force(value_inIntersection);
+	std::cout << "value_inIntersection:" << value_inIntersection << std::endl;
 
 //	bool value_inIntersection = unpackageUtil.unpackBasicData<bool> ();
 //	isInIntersection.force(value_inIntersection);
@@ -220,13 +222,18 @@ void sim_mob::Driver::unpack(UnPackageUtils& unpackageUtil) {
 	unpackageUtil >> buffer;
 	DebugStream << buffer;
 
-	std::cout << "A006" << this->getParent()->getId() << std::endl;
+//	std::cout << "A006" << this->getParent()->getId() << std::endl;
 }
 
 void sim_mob::Driver::packProxy(PackageUtils& packageUtil) {
 	//Part 1
-
+	ParitionDebugOutput debug;
+//	std::cout << "packProxy" << std::endl;
 //	ParitionDebugOutput::outputToConsole("RRRRRRRRRRRRR");
+
+//	double test_5 = 555.555;
+//	packageUtil << (test_5);
+//	debug.outputToConsole("debug sent out");
 
 	Lane::pack(packageUtil, currLane_.get());
 //	ParitionDebugOutput::outputToConsole("00");
@@ -235,14 +242,27 @@ void sim_mob::Driver::packProxy(PackageUtils& packageUtil) {
 	packageUtil<<(currLaneLength_.get());
 	packageUtil<<(isInIntersection.get());
 
-//	ParitionDebugOutput::outputToConsole("000");
+//	ParitionDebugOutput::outputToConsole("latMovement.get()");
+//	ParitionDebugOutput::outputToConsole(latMovement.get());
 
 	packageUtil<<(latMovement.get());
 	packageUtil<<(fwdVelocity.get());
 	packageUtil<<(latVelocity.get());
 	packageUtil<<(fwdAccel.get());
 
+
+//	debug.outputToConsole("packProxy Driver 111");
+//	std::cout << "fwdVelocity.get():" << fwdVelocity.get() << std::endl;
+
+//	double test_6 = 666.555;
+//	packageUtil << (test_6);
+
 	Vehicle::pack(packageUtil, vehicle);
+
+//	double test_7 = 777.555;
+//	packageUtil << (test_7);
+//
+//	debug.outputToConsole("packProxy Driver 222");
 
 	bool hasSomething = false;
 	if(intModel)
@@ -252,6 +272,8 @@ void sim_mob::Driver::packProxy(PackageUtils& packageUtil) {
 		{
 			hasSomething = true;
 			packageUtil<<(hasSomething);
+//			debug.outputToConsole("packProxy Driver 244");
+
 			SimpleIntDrivingModel::pack(packageUtil, simple_model);
 		}
 		else
@@ -264,15 +286,29 @@ void sim_mob::Driver::packProxy(PackageUtils& packageUtil) {
 		packageUtil<<(hasSomething);
 	}
 
+//	debug.outputToConsole("packProxy Driver 255");
+
 	packageUtil<<(currLinkOffset);
 
 	int lane_size = targetLaneIndex;
+
+//	debug.outputToConsole("currLinkOffset");
+//	debug.outputToConsole(currLinkOffset);
+
 	packageUtil<<(lane_size);
+//	debug.outputToConsole("packProxy Driver 333");
 }
 
 void sim_mob::Driver::unpackProxy(UnPackageUtils& unpackageUtil) {
 	//Part 1
 //	std::cout << "Driver::unpackageProxy" << std::endl;
+	ParitionDebugOutput debug;
+
+//	double test_5 = 1;
+//	unpackageUtil >> (test_5);
+//
+//	debug.outputToConsole("test_5");
+//	debug.outputToConsole(test_5);
 
 	const Lane* one_lane = Lane::unpack(unpackageUtil);
 	currLane_.force(one_lane);
@@ -302,9 +338,15 @@ void sim_mob::Driver::unpackProxy(UnPackageUtils& unpackageUtil) {
 	unpackageUtil >> latMovement_buffer;
 	latMovement.force(latMovement_buffer);
 
+//	debug.outputToConsole("test_6");
+//	debug.outputToConsole("received latMovement");
+//	debug.outputToConsole(latMovement_buffer);
+
 	double fwdVelocity_buffer = 0;
 	unpackageUtil >> fwdVelocity_buffer;
 	fwdVelocity.force(fwdVelocity_buffer);
+
+//	std::cout << "fwdVelocity_buffer:" << fwdVelocity_buffer << std::endl;
 
 	double latVelocity_buffer = 0;
 	unpackageUtil >> latVelocity_buffer;
@@ -314,20 +356,45 @@ void sim_mob::Driver::unpackProxy(UnPackageUtils& unpackageUtil) {
 	unpackageUtil >> fwdAccel_buffer;
 	fwdAccel.force(fwdAccel_buffer);
 
+//	double test_6 = 1;
+//	unpackageUtil >> (test_6);
+//
+//	debug.outputToConsole("test_6");
+//	debug.outputToConsole(test_6);
+
+//	debug.outputToConsole("test_7");
 	//currTimeMS = unpackageUtil.unpackBasicData<int> ();
 	vehicle = Vehicle::unpack(unpackageUtil);
 //	std::cout << "Step 4.2.7.5:" << std::endl;
+
+//	double test_7 = 1;
+//	unpackageUtil >> (test_7);
+//
+//	debug.outputToConsole("test_7");
+//	debug.outputToConsole(test_7);
+
+//	debug.outputToConsole("test_8");
 
 	bool hasSomething = false;
 	unpackageUtil >> hasSomething;
 	if(hasSomething)
 	{
 		intModel = new SimpleIntDrivingModel();
+//		debug.outputToConsole("test_8.5");
+
 		SimpleIntDrivingModel::unpack(unpackageUtil, dynamic_cast<SimpleIntDrivingModel *>(intModel));
+//		debug.outputToConsole("test_8.6");
 	}
 
 	unpackageUtil >> currLinkOffset;
-	unpackageUtil >> targetLaneIndex;
+
+//	debug.outputToConsole("test_9");
+
+	int buffer;
+	unpackageUtil >> buffer;
+	targetLaneIndex = buffer;
+
+//	debug.outputToConsole("test_10");
 }
 
 /**
@@ -343,25 +410,6 @@ void sim_mob::Pedestrian::pack(PackageUtils& packageUtil) {
 	packageUtil<<(goalInLane);
 	packageUtil<<(currentStage);
 
-//	if (trafficSignal) {
-//		bool hasSignal = true;
-//		packageUtil<<(hasSignal);
-//		packageUtil<<(trafficSignal->getNode().location);
-//	} else {
-//		bool hasSignal = false;
-//		packageUtil<<(hasSignal);
-//	}
-
-//	if (currCrossing) {
-//		bool hasCrossing = true;
-//		packageUtil<<(hasCrossing);
-//		packageUtil.packCrossing(currCrossing);
-//	} else {
-//		bool hasCrossing = false;
-//		packageUtil<<(hasCrossing);
-//	}
-
-
 	//Part 2
 	packageUtil<<(sigColor);
 	packageUtil<<(curCrossingID);
@@ -372,8 +420,9 @@ void sim_mob::Pedestrian::pack(PackageUtils& packageUtil) {
 	packageUtil<<(cEndY);
 	//packageUtil<<(firstTimeUpdate);
 
-	packageUtil<<(interPoint);
+	std::cout << " CCC " << std::endl;
 
+	packageUtil<<(interPoint);
 	packageUtil<<(xCollisionVector);
 	packageUtil<<(yCollisionVector);
 
@@ -408,17 +457,6 @@ void sim_mob::Pedestrian::unpack(UnPackageUtils& unpackageUtil) {
 	unpackageUtil >> value;
 	currentStage = PedestrianStage(value);
 
-//	bool hasSignal = unpackageUtil.unpackBasicData<bool> ();
-//	if (hasSignal) {
-//		Point2D* signal_location = unpackageUtil.unpackPoint2D();
-//		trafficSignal = sim_mob::getSignalBasedOnNode(signal_location);
-//	}
-
-//	bool hasCrossing = unpackageUtil.unpackBasicData<bool> ();
-//	if (hasCrossing) {
-//		currCrossing = unpackageUtil.unpackCrossing();
-//	}
-
 	//Part 2
 	unpackageUtil >> sigColor;
 	unpackageUtil >> curCrossingID;
@@ -427,16 +465,6 @@ void sim_mob::Pedestrian::unpack(UnPackageUtils& unpackageUtil) {
 	unpackageUtil >> cStartY;
 	unpackageUtil >> cEndX;
 	unpackageUtil >> cEndY;
-
-//	sigColor = unpackageUtil.unpackBasicData<int> ();
-//	curCrossingID = unpackageUtil.unpackBasicData<int> ();
-//	startToCross = unpackageUtil.unpackBasicData<bool> ();
-//	cStartX = unpackageUtil.unpackBasicData<double> ();
-//	cStartY = unpackageUtil.unpackBasicData<double> ();
-//	cEndX = unpackageUtil.unpackBasicData<double> ();
-//	cEndY = unpackageUtil.unpackBasicData<double> ();
-	//firstTimeUpdate = unpackageUtil.unpackBasicData<bool> ();
-
 	unpackageUtil >> interPoint;
 //	interPoint = *(unpackageUtil.unpackPoint2D());
 
@@ -474,39 +502,13 @@ void sim_mob::Pedestrian::packProxy(PackageUtils& packageUtil) {
 	packageUtil<<(goalInLane);
 	packageUtil<<(currentStage);
 
-//	if(trafficSignal)
-//	{
-//		bool hasSignal = true;
-//		packageUtil<<(hasSignal);
-//		packageUtil<<(trafficSignal->getNode().location);
-//	}
-//	else
-//	{
-//		bool hasSignal = false;
-//		packageUtil<<(hasSignal);
-//	}
-//
-//	if (currCrossing) {
-//		bool hasCrossing = true;
-//		packageUtil<<(hasCrossing);
-//		packageUtil.packCrossing(currCrossing);
-//	} else {
-//		bool hasCrossing = false;
-//		packageUtil<<(hasCrossing);
-//	}
-
 	//Part 2
 	packageUtil<<(sigColor);
 	packageUtil<<(curCrossingID);
 	packageUtil<<(startToCross);
 	packageUtil<<(cStartX);
 
-//	if(this->getParent()->getId() > 1000)
-//		{
-//			std::cout << "ID:" << this->getParent()->getId() << std::endl;
-//			std::cout << "Check: cStartX:" << cStartX << std::endl;
-//			std::cout << "Check: cStartY:" << cStartY << std::endl;
-//		}
+	std::cout << " DDD " << std::endl;
 
 	packageUtil<<(cStartY);
 	packageUtil<<(cEndX);

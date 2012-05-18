@@ -7,7 +7,7 @@ public:
 	/*--------Offset----------*/
 	Offset(){}
 	void setnextOffset(double nextCL);
-	double getcurrOffset();
+	double getcurrOffset()const {return currOffset;}
 	double getnextOffset();
 	void updateCurrOffset();
 	void update(double nextCL);

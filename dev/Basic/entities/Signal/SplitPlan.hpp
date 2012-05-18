@@ -52,32 +52,46 @@ private:
 
 
 public:
+	\
+	/*plan methods*/
 	SplitPlan(){}
-	double fmin_ID(std::vector<double> maxproDS);
-	std::size_t getMaxVote();
-	std::size_t getCycleLength();
-	void setCycleLength(std::size_t);
 	std::size_t CurrSplitPlanID();
 	std::vector< double >  CurrSplitPlan();
-	std::size_t & CurrPhaseID();
-	std::vector< double > CurrPlan();
 	void setCurrPlanIndex(std::size_t);
 	std::size_t findNextPlanIndex(std::vector<double> DS);
 	void updatecurrSplitPlan();
-	std::size_t getOffset();
-	void setOffset(std::size_t);
-	const std::vector<sim_mob::Phase> & getPhases() const;
-	std::vector< vector<double> > getPercentages();
-	void addPhase(sim_mob::Phase);
-	void Update(std::vector<double> DS);
-	std::size_t nofPhases();
 	std::size_t nofPlans();
-	std::size_t computeCurrPhase(double currCycleTimer);
-	void calMaxProDS(std::vector<double>  &maxproDS,std::vector<double> DS);
-	std::size_t Vote(std::vector<double> maxproDS);
 	void setcurrSplitPlanID(std::size_t index);
 	void setnextSplitPlan(std::vector<double> DS);
+	std::vector< vector<double> > getPercentages();
+
+	/*cycle length related methods*/
+	std::size_t getCycleLength();
+	void setCycleLength(std::size_t);
+
+	/*phase related methods*/
+	std::size_t & CurrPhaseID();
+	const std::vector<sim_mob::Phase> & getPhases() const;
+	void addPhase(sim_mob::Phase);
+	std::size_t nofPhases();
+	std::size_t computeCurrPhase(double currCycleTimer);
+	const sim_mob::Phase & CurrPhase() const;
+
+	/*offset related methods*/
+	std::size_t getOffset();
+	void setOffset(std::size_t);
+
+	/*main update mehod*/
+	void Update(std::vector<double> DS);
+
+	/*General Methods*/
+	void calMaxProDS(std::vector<double>  &maxproDS,std::vector<double> DS);
+	std::size_t Vote(std::vector<double> maxproDS);
 	int getPlanId_w_MaxVote();
+	double fmin_ID(std::vector<double> maxproDS);
+	std::size_t getMaxVote();
+
+	/*friends*/
 	friend class Signal;
 };
 }

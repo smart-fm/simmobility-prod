@@ -256,10 +256,10 @@ void Signal::findSignalLinks()
 //		SignalLinks.insert(SignalLinks.end(), (*it)->getLanes().begin(), (*it)->getLanes().end());
 	}
 }
-const std::vector<sim_mob::Link const *> & Signal::getSignalLinks() const
-{
-	return SignalLinks;
-}
+//const std::vector<sim_mob::Link const *> & Signal::getSignalLinks() const
+//{
+//	return SignalLinks;
+//}
 
 //initialize SplitPlan
 void Signal::startSplitPlan() {
@@ -554,63 +554,45 @@ std::string mismatchError(char const * const func_name, Signal const & signal, R
 //	return iter->second;
 //}
 
-TrafficColor Signal::getDriverLight(Lane const & fromLane, Lane const & toLane) const {
+
+TrafficColor Signal::getDriverLight(Lane const & fromLane, Lane const & toLane)const  {
 	RoadSegment const * fromRoad = fromLane.getRoadSegment();
-	Link const * fromLink = fromRoad->getLink();
-	//if the link is not listed in the current phase, just return red
-	plan_.getPhases();
-//	links_map_equal_range linkTo_Iteration_Pair = plan_.getPhases().at(currPhaseID).getLinkTos(fromLink);
-//	std::map<Link const *, std::size_t>::const_iterator iter = links_map_.find(fromLink);
-//	if (iter == links_map_.end()) {
-//		throw std::runtime_error(mismatchError("Signal::getDriverLight(fromLane, toLane)", *this, *fromRoad).c_str());
-//	}
-//	std::size_t fromIndex = iter->second;
-//
-//	RoadSegment const * toRoad = toLane.getRoadSegment();
-//	Link const * toLink = toRoad->getLink();
-//	iter = links_map_.find(toLink);
-//	if (iter == links_map_.end()) {
-//		throw std::runtime_error(mismatchError("Signal::getDriverLight(fromLane, toLane)", *this, *toRoad).c_str());
-//	}
-//	std::size_t toIndex = iter->second;
-//
-//	// When links_map was populated in setupIndexMaps(), the links were numbered in anti-clockwise
-//	// direction.  The following switches are based on this fact.
-//	VehicleTrafficColors colors = getDriverLight(fromLane);
-//	if (fromIndex > toIndex) {
-//		int diff = fromIndex - toIndex;
-//		switch (diff) {
-//		case 0:
-//			return Red; // U-turn is not supported currently.
-//		case 1:
-//			return colors.left;
-//		case 2:
-//			return colors.forward;
-//		case 3:
-//			return colors.right;
-//		default:
-//			return Red;
-//		}
-//	} else {
-//		int diff = toIndex - fromIndex;
-//		switch (diff) {
-//		case 0:
-//			return Red; // U-turn is not supported currently.
-//		case 1:
-//			return colors.right;
-//		case 2:
-//			return colors.forward;
-//		case 3:
-//			return colors.left;
-//		default:
-//			return Red;
-//		}
-//	}
-//
-//	return Red;
+	Link * const fromLink = fromRoad->getLink();
+
+	RoadSegment const * toRoad = toLane.getRoadSegment();
+	Link const * toLink = toRoad->getLink();
+
+	const sim_mob::Phase &currPhase = plan_.CurrPhase();
+	links_map_equal_range range = currPhase.getLinkTos(fromLink);
+	links_map_const_iterator iter;
+	for(iter = range.first; iter != range.second ; iter++ )
+	{
+		if((*iter).second.LinkTo == toLink)
+			break;
+	}
+
+	//if the link is not listed in the current phase, just return red(actually it should throw an error)
+	if(iter == range.second)
+		return sim_mob::Red;
+	//		throw std::runtime_error(mismatchError("Signal::getDriverLight(fromLane, toLane)", *this, *fromRoad).c_str());
+	else
+		return (*iter).second.currColor;
+}
+
+TrafficColor Signal::getPedestrianLight(Crossing const & crossing) const
+{
+
 }
 //todo talk to xuyan or seth on who should decide the format
 void Signal::outputToVisualizer(frame_t frameNumber) {
+	std::stringstream logout;
+	logout << "(\"Signal\"," << frameNumber << "," << this << ",{\"";
+//	std::vector<sim_mob::Phase>::const_iterator ph_iter;
+	for(std::vector<sim_mob::Phase>::const_iterator ph_iter = plan_.phases_.begin(), it_end(plan_.phases_.end()); ph_iter != it_end ; ph_iter++)
+	{
+
+	}
+
 //#ifndef SIMMOB_DISABLE_OUTPUT
 //	std::stringstream logout;
 //	logout << "(\"Signal\"," << frameNumber << "," << this << ",{\"va\":\"";

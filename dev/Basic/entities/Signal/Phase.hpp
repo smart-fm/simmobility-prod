@@ -19,25 +19,34 @@ class Link;
 //////////////some bundling ///////////////////
 using namespace ::boost;
 using namespace ::boost::multi_index;
-
+//////////////////// Links ///////////////////////////////////////////////////////////////////////////////////////
 typedef struct
 {
 	sim_mob::Link *LinkTo;
-//	sim_mob::Link *LinkFrom;
 	ColorSequence colorSequence;
 	TrafficColor currColor;
 } linkToLink;
 
-typedef std::multimap<sim_mob::Link *, sim_mob::linkToLink> links_map; //mapping of LinkFrom to linkToLink{which is LinkTo,colorSequence,currColor}
+typedef std::multimap</*linkFrom*/sim_mob::Link *, sim_mob::linkToLink> links_map; //mapping of LinkFrom to linkToLink{which is LinkTo,colorSequence,currColor}
 typedef links_map::iterator links_map_iterator;
 typedef links_map::const_iterator links_map_const_iterator;
-typedef std::pair<links_map_iterator, links_map_iterator> links_map_equal_range;
+typedef std::pair<links_map_const_iterator, links_map_const_iterator> links_map_equal_range;
+////////////////////crossings////////////////////////////////////////////////////////////////////////////////////
 typedef struct
 {
-	sim_mob::Crossing crossig();
-//	struct VehicleTrafficColors colorSequence;
-} crossings_map;
+	sim_mob::Link * link;
+	sim_mob::Crossing *crossig;//same as the key in the corresponding multimap(yes yes: it is redundant)
+	ColorSequence colorSequence;//color and duration
+	TrafficColor currColor;
 
+} Crossings;
+
+///////////////////////////////////////////////////////////////////////////////
+typedef std::multimap<sim_mob::Crossing *, sim_mob::Crossings> crossings_map;
+typedef crossings_map::iterator crossings_map_iterator;
+typedef crossings_map::const_iterator crossings_map_const_iterator;
+typedef std::pair<crossings_map_const_iterator, crossings_map_const_iterator> crossings_map_equal_range;
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*
  * in adaptive signal control, the cycle length, phase percentage and offset are likely to change
  * but the color sequence of a traffic signal, amber time etc are assumed to be intact for many years.
@@ -71,7 +80,9 @@ public:
 	{
 		return links_map_.end();
 	}
-	links_map_equal_range getLinkTos(sim_mob::Link *LinkFrom);
+	const links_map & getLinkMaps();
+//	links_map_equal_range  getLinkTos(sim_mob::Link *LinkFrom) ;
+	links_map_equal_range getLinkTos(sim_mob::Link *const LinkFrom)const ;
 	void updatePhaseParams();
 	/* Used in computing DS for split plan selection
 	 * the argument is the output
@@ -90,7 +101,7 @@ private:
 	//The links that will get a green light at this phase
 	sim_mob::links_map links_map_;
 	//The crossings that will get a green light at this phase
-	std::vector<sim_mob::crossings_map> crossings_map_;
+	sim_mob::crossings_map crossings_map_;
 
 	friend class SplitPlan;
 	friend class Signal;

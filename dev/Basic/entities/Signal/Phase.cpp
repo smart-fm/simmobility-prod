@@ -23,6 +23,13 @@ namespace sim_mob
 		{
 			(*link_it).second.currColor = (*link_it).second.colorSequence.computeColor(lapse);
 		}
+		//update each crossing signal's color
+		//common sense says there is only one crossing per link, but I kept a container for it just in case
+		crossings_map_iterator crossing_it = crossings_map_.begin();
+		for(;crossing_it != crossings_map_.end() ; crossing_it++)
+		{
+			(*crossing_it).second.currColor = (*crossing_it).second.colorSequence.computeColor(lapse);
+		}
 
 	}
 //	assumption : total green time = the whole duration in the color sequence except red!
@@ -46,8 +53,13 @@ namespace sim_mob
 		}
 		return max_green;
 	}
-	links_map_equal_range Phase::getLinkTos(sim_mob::Link *LinkFrom)
+//	 links_map_equal_range  Phase::getLinkTos(sim_mob::Link *LinkFrom)
+//		{
+//			return links_map_.equal_range(LinkFrom);
+//		}
+	links_map_equal_range Phase::getLinkTos(sim_mob::Link  *const LinkFrom)const//dont worry about constantization!! :) links_map_equal_range is using a constant iterator
 	{
-		return links_map_.equal_range(LinkFrom);
+		links_map_equal_range ppp = links_map_.equal_range(LinkFrom);
+		return ppp;
 	}
 }//namespace

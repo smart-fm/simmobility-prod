@@ -70,11 +70,15 @@ typedef multi_index_container<
     ,ordered_unique<member<LinkAndCrossing, size_t , &LinkAndCrossing::id> >//1
 	,ordered_unique<member<LinkAndCrossing, sim_mob::Link const * , &LinkAndCrossing::link> >//2
 	,ordered_non_unique<member<LinkAndCrossing, double , &LinkAndCrossing::angle> >//3
+	,ordered_non_unique<member<LinkAndCrossing, sim_mob::Crossing const * , &LinkAndCrossing::crossing> >//4
    >
 > LinkAndCrossingC;//Link and Crossing Container(multi index)
 typedef nth_index<LinkAndCrossingC, 2>::type LinkAndCrossingByLink;
 typedef nth_index<LinkAndCrossingC, 3>::type LinkAndCrossingByAngle;
+typedef nth_index<LinkAndCrossingC, 4>::type LinkAndCrossingByCrossing;
+
 typedef LinkAndCrossingByAngle::reverse_iterator LinkAndCrossingIterator;
+typedef LinkAndCrossingByCrossing::iterator SignalCrossingIterator;
 
 class Signal  : public sim_mob::Agent {
 
@@ -91,11 +95,11 @@ public:
     void findSignalLinksAndCrossings();
     /*links are sorted in order of their ascending angle with respect to the whole coordinate
      */
-    LinkAndCrossingIterator LinkAndCrossings_begin()const { return LinkAndCrossings_.get<3>().rbegin(); }
+//    LinkAndCrossingIterator LinkAndCrossings_begin()const { return LinkAndCrossings_.get<3>().rbegin(); }
 //    LinkAndCrossingIterator LinkAndCrossings_end()const { return LinkAndCrossings_.get<3>().rend(); }
 //    LinkAndCrossingByLink &getLinkAndCrossingsByLink() {return LinkAndCrossings_.get<2>();}
     LinkAndCrossingByLink const & getLinkAndCrossingsByLink() const {return LinkAndCrossings_.get<2>();}
-    const std::vector<sim_mob::Link const *> & getSignalLinks() const;
+//    const std::vector<sim_mob::Link const *> & getSignalLinks() const;
     LoopDetectorEntity const & loopDetector() const { return loopDetector_; }
 
 
@@ -132,13 +136,13 @@ public:
 
 	/*--------Miscellaneous----------*/
 	Node const & getNode() const { return node_; }
-	std::string toString() const;
 	void frame_output(frame_t frameNumber);
 	int fmin_ID(const  std::vector<double>  maxproDS);
+	///Return the loggable representation of this Signal.
+	std::string toString() const { return strRepr; }
 
 
 	/*--------The cause of this Module----------*/
-	struct VehicleTrafficColors getDriverLight(Lane const & lane) const;
     TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const ;
 	TrafficColor getPedestrianLight(Crossing const & crossing) const;
 
@@ -155,6 +159,11 @@ private:
     /*The node associated with this traffic Signal */
     sim_mob::Node const & node_;
     //todo check whether we realy need it? (this container and the function filling it)
+    /*check done! only Density vector needs it for its size!!! i.e a count for the number of lines would also do
+     * the job. I don't think we need this but I am not ommitting it until I check wether it will be usefull for the loop detector
+     * (how much usful)
+     * else, no need to store so many lane pointers unnecessarily
+     */
     std::vector<sim_mob::Lane const *>  IncomingLanes_;//The data for this vector is generated
     //used (probabely in createloopdetectors()
 

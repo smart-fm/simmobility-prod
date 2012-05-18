@@ -20,6 +20,8 @@ void SplitPlan::addPhase(sim_mob::Phase phase) { phases_.push_back(phase); }
 
 std::size_t & SplitPlan::CurrPhaseID() { return currPhaseID; }
 
+const  sim_mob::Phase & SplitPlan::CurrPhase() const { return phases_[currPhaseID]; }
+
 /*
  * This function has 2 duties
  * 1- Update the Votes data structure

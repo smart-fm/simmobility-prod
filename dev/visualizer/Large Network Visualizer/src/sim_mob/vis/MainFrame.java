@@ -603,7 +603,7 @@ public class MainFrame extends JFrame {
 			console.setText("Input File Name: "+fileName);
 			
 			//Clear our global scaled points array.
-			ScaledPoint.ClearGlobalGroup();
+			ScaledPoint.updateScaleAndTranslate(null, null);
 			
 			//Store all Agents returned by this.
 			HashSet<Integer> uniqueAgentIDs = new HashSet<Integer>();

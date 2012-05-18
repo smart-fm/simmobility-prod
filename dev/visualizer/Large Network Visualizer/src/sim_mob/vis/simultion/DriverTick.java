@@ -2,6 +2,7 @@ package sim_mob.vis.simultion;
 
 import java.awt.BasicStroke;
 
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -16,7 +17,6 @@ import java.util.Hashtable;
 import sim_mob.vect.SimpleVectorImage;
 import sim_mob.vis.MainFrame;
 import sim_mob.vis.network.basic.ScaledPoint;
-import sim_mob.vis.network.basic.ScaledPointGroup;
 import sim_mob.vis.util.Utility;
 
 /**
@@ -88,12 +88,12 @@ public class DriverTick extends AgentTick {
 	 */
 
 
-	public DriverTick(double posX, double posY, double angle, ScaledPointGroup spg) {
-		this(posX, posY, angle, null, spg);
+	public DriverTick(double posX, double posY, double angle) {
+		this(posX, posY, angle, null);
 	}
 	
-	public DriverTick(double posX, double posY, double angle, RxLocation msgLocation, ScaledPointGroup spg) {
-		this.pos = new ScaledPoint(posX, posY, spg);
+	public DriverTick(double posX, double posY, double angle, RxLocation msgLocation) {
+		this.pos = new ScaledPoint(posX, posY, null);
 		this.angle = angle;
 		this.fake = false;
 		//DriverTick.isCar = true;

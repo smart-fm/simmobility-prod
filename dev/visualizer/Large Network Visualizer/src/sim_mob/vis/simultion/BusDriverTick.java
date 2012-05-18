@@ -1,14 +1,13 @@
 package sim_mob.vis.simultion;
 
 import java.awt.*;
+
 import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Hashtable;
-
 import sim_mob.vect.SimpleVectorImage;
 import sim_mob.vis.MainFrame;
-import sim_mob.vis.network.basic.ScaledPointGroup;
 import sim_mob.vis.util.Utility;
 
 /**
@@ -35,8 +34,8 @@ public class BusDriverTick extends DriverTick {
 	private int passengerCount;
 
 	
-	public BusDriverTick(double posX, double posY, double angle, int passengerCount, ScaledPointGroup spg) {
-		super(posX, posY, angle, null, spg);
+	public BusDriverTick(double posX, double posY, double angle, int passengerCount) {
+		super(posX, posY, angle, null);
 		this.passengerCount = passengerCount;
 
 		//Make our images

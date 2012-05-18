@@ -1,10 +1,10 @@
 package sim_mob.vis.network.basic;
-
+/*
 import java.awt.geom.Point2D;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashSet;
-
+*/
 
 /**
  * This is a simple class which allows scaled points to belong to groups. 
@@ -14,7 +14,7 @@ import java.util.HashSet;
  * A group of points will
  * scale on demand according to the globally expected scale value.
  */
-public class ScaledPointGroup {
+/*public class ScaledPointGroup {
 	//Saved variables.
 	private static Point2D GlobalZoomLevel;
 	private static double GlobalHeight;
@@ -22,21 +22,21 @@ public class ScaledPointGroup {
 	//Internal
 	private Point2D localZoomLevel;
 	private HashSet<WeakReference<ScaledPoint>> points = new HashSet<WeakReference<ScaledPoint>>();
-	
+	*/
 	
 	/**
 	 * Update the scale values of all points. This will happen over time, 
 	 * as points check their contexts against the global scale context.
 	 */
-	public static void SetNewScaleContext(Point2D zoomLevel, double totalHeight) {
+	/*public static void SetNewScaleContext(Point2D zoomLevel, double totalHeight) {
 		GlobalZoomLevel = zoomLevel;
 		GlobalHeight = totalHeight;
-	}
+	}*/
 	
 	/**
 	 * Actually update all scaled points in this context. Checks first if a scale is needed.
 	 */
-	public void synchScale() {
+	/*public void synchScale() {
 		if (localZoomLevel!=null && GlobalZoomLevel!=null 
 			&& (localZoomLevel.getX()==GlobalZoomLevel.getX())
 			&& (localZoomLevel.getY()==GlobalZoomLevel.getY())) {
@@ -72,3 +72,4 @@ public class ScaledPointGroup {
 	}
 
 }
+*/

@@ -1,6 +1,7 @@
 package sim_mob.vis.simultion;
 
 import java.awt.BasicStroke;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -15,7 +16,6 @@ import java.util.Hashtable;
 import sim_mob.vect.SimpleVectorImage;
 import sim_mob.vis.MainFrame;
 import sim_mob.vis.network.basic.ScaledPoint;
-import sim_mob.vis.network.basic.ScaledPointGroup;
 import sim_mob.vis.util.Utility;
 
 
@@ -62,8 +62,8 @@ public class PedestrianTick extends AgentTick {
 	 *       When we re-scale, every car on every time tick has its position scaled. We should 
 	 *       limit this to the current frame, and then continue to scale frames as they arrive. 
 	 */
-	public PedestrianTick(double posX, double posY, ScaledPointGroup spg) {
-		this.pos = new ScaledPoint(posX, posY, spg);
+	public PedestrianTick(double posX, double posY) {
+		this.pos = new ScaledPoint(posX, posY, null);
 		this.fake  = false;
 		
 		if (PersonImg==null) {

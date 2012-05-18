@@ -255,7 +255,17 @@ public class NetworkVisualizer {
 			Point2D zoomLevel = new Point2D.Double(
 				size.x / zoomRect.getWidth(),
 				size.y / zoomRect.getHeight());
-			ScaledPointGroup.SetNewScaleContext(zoomLevel, networkItemsIndex.getBounds().getHeight());
+			
+			//Determine the upper-left coordinates of the view area in translated coordinates.
+			Point2D upperLeftPoint = new Point2D.Double(
+				zoomRect.getX() * zoomLevel.getX(),
+				zoomRect.getY() * zoomLevel.getY());
+			
+			//Determine the height of the map in scaled coordinates.
+			//double scaledHeight = size.y * zoomLevel.getY();
+			
+			//Update
+			ScaledPoint.updateScaleAndTranslate(zoomLevel, upperLeftPoint/*, scaledHeight*/);
 			
 			//Save the new zoom
 			currView = zoomRect;
@@ -289,9 +299,6 @@ public class NetworkVisualizer {
 			}
 		}, null);
 		System.out.println("Count: " + count);
-		
-		
-		
 		
 		//NOTE: This *might* not be the correct time to set this:
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

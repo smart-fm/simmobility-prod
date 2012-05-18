@@ -1,5 +1,7 @@
 package sim_mob.vis.network.basic;
 
+import java.awt.geom.Point2D;
+
 
 /**
  * A position which can be dynamically rescaled.
@@ -13,84 +15,85 @@ package sim_mob.vis.network.basic;
 public class ScaledPoint {
 	//private static double LastScaledHeight;
 	//private static HashSet<WeakReference<ScaledPoint>> allPoints = new HashSet<WeakReference<ScaledPoint>>();
-	private static ScaledPointGroup GlobalGroup = new ScaledPointGroup();
+	//private static ScaledPointGroup GlobalGroup = new ScaledPointGroup();
 	
-	private DPoint orig;
-	private DPoint scaled;
-	private ScaledPointGroup group;
-	
-	public static void ClearGlobalGroup() {
-		GlobalGroup = new ScaledPointGroup();
+	//Current, shared scale/translate factors
+	private static Point2D scaleFactors;
+	private static Point2D translateFactors;
+	//private static double scaledCanvasHeight;
+	public static void updateScaleAndTranslate(Point2D scaleFact, Point2D translateFact/*, double scaledHeight*/) {
+		scaleFactors = scaleFact;
+		translateFactors = translateFact;
+		//scaledCanvasHeight = scaledHeight;
 	}
+	
+	
+	//Original Point value.
+	private DPoint orig;
+	//private DPoint scaled;
+	
+	//The group used to perform the scaling.
+	//private ScaledPointGroup group;
+	
+	/*public static void ClearGlobalGroup() {
+		GlobalGroup = new ScaledPointGroup();
+	}*/
 	  
 	/**
 	 * Create a new ScaledPoint at the given x and y coordinates, belonging to a given ScaledPointGroup. If null, use the glboal group. 
 	 */
-	public ScaledPoint(double x, double y, ScaledPointGroup scaleGroup) {
+	public ScaledPoint(double x, double y, Object nothing) {
 		orig = new DPoint(x, y);
-		scaled = new DPoint();
-		group = scaleGroup;
+		//scaled = new DPoint();
+		//group = scaleGroup;
 		
 		//Manage the global group.
-		if (group==null) {
+		/*if (group==null) {
 			group = GlobalGroup;
-		}
+		}*/
 		
 		//Bookkeeping
-		group.addPoint(this);
+		//group.addPoint(this);
 		//allPoints.add(new WeakReference<ScaledPoint>(this));
 	}
 	
-	//Helper: Rescale all known points
-	/*public static void ScaleAllPoints(DPoint origin, DPoint farthestPoint, double canvasWidth, double canvasHeight) {
-		LastScaledHeight = canvasHeight;
-		
-		ArrayList<WeakReference<ScaledPoint>> retired = new ArrayList<WeakReference<ScaledPoint>>();
 	
-		for (WeakReference<ScaledPoint> pt : allPoints) {
-			if (pt.get()!=null) {
-				pt.get().scaleVia(origin, farthestPoint, canvasWidth, canvasHeight); 
-			} else {
-				retired.add(pt);
-			}
-		}
-		
-		for (WeakReference<ScaledPoint> pt : retired) {
-			allPoints.remove(pt);
-		}
-	}*/
-	  
+	///Retrieve the original, unscaled values of x and y
+	public double getUnscaledX() { return orig.x; }
+	public double getUnscaledY() { return orig.y; }
+	
+
+	///Retrieve the scaled and translated values of x and y. 
+	///These values can be directly displayed to the screen.
 	public double getX() {
-		group.synchScale();
-		return scaled.x;
+		double scaledX = orig.x*ScaledPoint.scaleFactors.getX() - ScaledPoint.translateFactors.getX();
+		return scaledX;
 	}
 	
 	public double getY() {
-		group.synchScale();
-		return group.getLastScaledHeight() - scaled.y;
+		double scaledY = orig.y*ScaledPoint.scaleFactors.getY() - ScaledPoint.translateFactors.getY();
+		
+		//Y is slightly different, since its axis is flipped.
+		return scaledY;
+		//return ScaledPoint.scaledCanvasHeight - scaledY;
 	}
 	
-	public double getUnscaledX() {
-		return orig.x;
-	}
-	
-	public double getUnscaledY() {
-		return orig.y;
-	}
 	 
 	/**
-	 * Actually perform the scale. This method is called by ScaledPointGroup
+	 * Actually perform the scale. This method is called by ScaledPointGroup.
+	 * 
+	 * \param scaleFactors Amounts to scale each axis by. 
+	 * Multiply each "original" component by these values.
+	 * 
+	 * \param translateFactors The scaled coordinates of the top-left corner of the screen. 
+	 * Once scaled,  subtract this value from each component. Then, "scaled" will contain
+	 * the position within the canvas. 
 	 */
-	/*Package-protected*/ void scaleVia(double xFactor, double yFactor) {
+	/*void update(Point2D scaleFactors, Point2D translateFactors) { 
 		scaled.x = orig.x * xFactor;
 		scaled.y = orig.y * yFactor;
-	}
-	
-	/*private static double scaleValue(double value, double min, double extent, double newExtent) {
-		//What percent of the original size are we taking up?
-		double percent = (value-min)/extent;
-		return percent * newExtent;
 	}*/
+
 }
 
 

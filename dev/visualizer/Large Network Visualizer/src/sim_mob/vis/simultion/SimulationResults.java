@@ -100,7 +100,7 @@ public class SimulationResults {
 				double resY = amtY + rn.getTopLeft().y;
 				
 				//Save
-				at.pos = new ScaledPoint(resX, resY, tt.tickScaleGroup);
+				at.pos = new ScaledPoint(resX, resY, null);
 			}
 		    
 			
@@ -240,7 +240,7 @@ public class SimulationResults {
 	    }
 	  
 	    //Create temp driver
-	    DriverTick tempDriver = new DriverTick(xPos, yPos, angle, msgLoc, ticks.get(frameID).tickScaleGroup);
+	    DriverTick tempDriver = new DriverTick(xPos, yPos, angle, msgLoc);
 	    
 	    //Check if the driver is fake
 	    if(props.containsKey("fake")){
@@ -298,7 +298,7 @@ public class SimulationResults {
 	    }
 	  
 	    //Create temp driver
-	    BusDriverTick tempBusDriver = new BusDriverTick(xPos, yPos, angle, numPassengers, ticks.get(frameID).tickScaleGroup);
+	    BusDriverTick tempBusDriver = new BusDriverTick(xPos, yPos, angle, numPassengers);
 	    
 	    //Check if the driver is fake
 	    if(props.containsKey("fake")){
@@ -341,7 +341,7 @@ public class SimulationResults {
 	    }
 	    
 	    //Create a temp pedestrian
-	    PedestrianTick tempPedestrian = new PedestrianTick(xPos, yPos, ticks.get(frameID).tickScaleGroup);
+	    PedestrianTick tempPedestrian = new PedestrianTick(xPos, yPos);
 	    
 	    //Check if the pedestrian is fake
 	    if(props.containsKey("fake")){

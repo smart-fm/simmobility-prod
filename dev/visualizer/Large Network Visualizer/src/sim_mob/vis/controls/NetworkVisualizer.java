@@ -3,6 +3,7 @@ import java.awt.*;
 
 import java.awt.image.BufferedImage;
 import java.awt.geom.*;
+import java.awt.geom.Rectangle2D.Double;
 import java.util.*;
 
 import sim_mob.index.LazySpatialIndex;
@@ -10,6 +11,7 @@ import sim_mob.vis.MainFrame;
 import sim_mob.vis.network.basic.*;
 import sim_mob.vis.network.*;
 import sim_mob.vis.simultion.*;
+import sim_mob.vis.util.Utility;
 
 
 /**
@@ -28,6 +30,9 @@ public class NetworkVisualizer {
 	//      same visible zoom level.  ~Seth
 	private static final double  ZOOM_IN_CRITICAL = 1.6;
 	
+	//temp
+	private static int count;
+	
 	//The distance (pixels) threshold used for calculating "clicks" on a given object. 
 	//If the distance from the mouse to a given object is less than this value, it is 
 	//considered to be "near" enough to click on. 
@@ -40,7 +45,7 @@ public class NetworkVisualizer {
 	//The current road network, the simulation results we are showing, and the buffer we are printing it on.
 	private RoadNetwork network;
 	private SimulationResults simRes;
-	private BufferedImage buffer;
+	//private BufferedImage buffer;
 	
 	//Turns on drawing of cut lines and fake agents.
 	private boolean showFakeAgent = false;
@@ -52,12 +57,11 @@ public class NetworkVisualizer {
 	private boolean showAimsunLabels = false;
 	private boolean showMitsimLabels = false;
 	
-	//The current zoom level. The maximum width and height are multiplied by this value
-	// to obtain the effective new width/height. I.e., increasing it causes you to zoom in.
-	double currPercentZoom;
+	//The current real-coordinate bounds of the view.
+	private Rectangle2D currView;
 	
 	//The size of the canvas at a zoom level of 1.0
-	private Dimension naturalSize;
+	//private Dimension naturalSize;
 	
 	//Spatial indexes for our network items and our current agent tick.
 	private LazySpatialIndex<DrawableItem> networkItemsIndex;
@@ -106,23 +110,30 @@ public class NetworkVisualizer {
 		this.scaleMult = 1;
 	}
 	
-	public BufferedImage getImage() {
+	///Retrieve a copy of the current viewport in real-world coordinates.
+	public Rectangle2D getCurrentView() {
+		return new Rectangle2D.Double(currView.getX(), currView.getY(), currView.getWidth(), currView.getHeight());
+	}
+	
+	//NOTE: For now I'm disabling this; I don't want to keep a "buffer" lying around, and it won't matter too much to
+	//      performance. We can enable caching the last-drawn timeTick+rectangle later if we want.
+	/*public BufferedImage getImage() {
 
 		return buffer;
-	}
+	}*/
 	
 	public void setAnnotationLevel(boolean showAimsun, boolean showMitsim, int frameTick) {
 		this.showAimsunLabels = showAimsun;
 		this.showMitsimLabels = showMitsim;
-		redrawAtCurrScale(frameTick);
+		redrawFrame(frameTick);
 	}
 
-	public BufferedImage getImageAtTimeTick(int tick) {
-		return getImageAtTimeTick(tick, BufferedImage.TYPE_INT_RGB);
+	public BufferedImage getImageAtTimeTick(int tick, Point resSize) {
+		return getImageAtTimeTick(tick, resSize, BufferedImage.TYPE_INT_RGB);
 	}
-	public BufferedImage getImageAtTimeTick(int tick, int imageType) {
-		BufferedImage res = new BufferedImage(buffer.getWidth(), buffer.getHeight(), imageType);
-		redrawAtCurrScale(res, tick);
+	public BufferedImage getImageAtTimeTick(int tick, Point resSize, int imageType) {
+		BufferedImage res = new BufferedImage(resSize.x, resSize.y, imageType);
+		redrawFrame(tick, (Graphics2D)res.getGraphics(), new Point(res.getWidth(), res.getHeight()));
 		return res;
 	}
 	
@@ -172,11 +183,11 @@ public class NetworkVisualizer {
 	}
 	
 	
-	public void setSource(RoadNetwork network, SimulationResults simRes, double initialZoom, int width100Percent, int height100Percent,String fileName) {
+	public void setSource(RoadNetwork network, SimulationResults simRes, Point panelSize, String fileName) {
 		//Save
 		this.network = network;
 		this.simRes = simRes;
-		this.naturalSize = new Dimension(width100Percent, height100Percent);
+		//this.naturalSize = new Dimension(width100Percent, height100Percent);
 		this.fileName = fileName;
 		
 		//Rebuild the network spatial index.
@@ -184,76 +195,113 @@ public class NetworkVisualizer {
 		BuildNetworkIndex(networkItemsIndex, network);
 		
 		//Recalc
-		redrawAtScale(initialZoom, 0);
+		Rectangle2D initialZoom = networkItemsIndex.getBounds();
+		redrawFrame(0, panelSize, initialZoom);
 	}
 	
 	//Negative numbers mean zoom out that many times.
-	public void zoomIn(int number, int frameTick) {
+	public void zoomIn(int number, int frameTick, Point panelSize) {
 		//Each tick increases zoom by 10%
-		redrawAtScale(currPercentZoom + currPercentZoom*number*0.10, frameTick);
+		Rectangle2D zoom = getCurrentView();
+		Utility.resizeRectangle(zoom,
+			zoom.getWidth()+zoom.getWidth()*number*0.10,
+			zoom.getHeight()+zoom.getHeight()*number*0.10);
+		
+		//Redraw at this scale.
+		redrawFrame(frameTick, panelSize, zoom);
 	}
 	
-	public void squareZoom(int frameTick) {
-		//First, square it.
-		int min100Percent = Math.min(naturalSize.width, naturalSize.height);
-		if (naturalSize.width != naturalSize.height) {
-			//Note: There's a chance this is causing some error. 
-			//Check the logic here. ~Seth
-			naturalSize.width = min100Percent;
-			naturalSize.height = min100Percent;
-		}
+	public void squareZoom(int frameTick, Point panelSize) {
+		//EASY
+		if (currView.getWidth() == currView.getHeight()) { return; }
+		Rectangle2D zoom = new Rectangle2D.Double(currView.getX(), currView.getY(), currView.getWidth(), currView.getHeight());
+		Utility.resizeRectangle(zoom,
+			Math.max(currView.getWidth(), currView.getHeight()),
+			Math.max(currView.getWidth(), currView.getHeight()));
 		
 		//Now redraw
-		redrawAtScale(currPercentZoom, frameTick);
+		redrawFrame(frameTick, panelSize, zoom);
 	}
 	
 	public void toggleFakeAgent(boolean drawFakeAgent, int frameTick){
 
 		this.showFakeAgent = drawFakeAgent;			
-		redrawAtCurrScale(frameTick);
+		redrawFrame(frameTick);
 	}
 	
 	public void toggleDebugOn(boolean debugOn, int frameTick){
 		this.debugOn = debugOn;
-		redrawAtCurrScale(frameTick);
+		redrawFrame(frameTick);
 	}
 	
-	public void redrawAtScale(double percent, int frameTick) {
-		//Save
-		currPercentZoom = percent;
-		
-		//Determine the width and height of our canvas.
-		int width =  Math.max(1, (int)(naturalSize.width * percent));
-		int height = Math.max(1, (int)(naturalSize.height * percent));
-		buffer = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-		
-		//Make sure our canvas is always slightly bigger than the original size...
-		double width5Percent = 0.05 * (network.getLowerRight().x - network.getTopLeft().x);
-		double height5Percent = 0.05 * (network.getLowerRight().y - network.getTopLeft().y);
-		DPoint newTL = new DPoint(network.getTopLeft().x-width5Percent, network.getTopLeft().y-height5Percent);
-		DPoint newLR = new DPoint(network.getLowerRight().x+width5Percent, network.getLowerRight().y+height5Percent);
-		
-		//Scale all points
-		ScaledPointGroup.SetNewScaleContext(new ScaleContext(percent, newTL, newLR, width, height));
-		//ScaledPoint.ScaleAllPoints(percent, newTL, newLR, width, height);
-		redrawAtCurrScale(buffer, frameTick);
+
+	//This function is a bit bloated; we're basically saying "redraw, except maybe zoom first"
+	public void redrawFrame(int frameTick) {
+		redrawFrame(frameTick, null, null, null);
+	}
+	public void redrawFrame(int frameTick, Graphics2D g, Point size) {
+		redrawFrame(frameTick, g, size, currView);
+	}
+	private void redrawFrame(int frameTick, Point size, Rectangle2D zoomRect) {
+		redrawFrame(frameTick, null, size, zoomRect);
 	}
 	
-	public void redrawAtCurrScale(int frameTick) {
-		redrawAtCurrScale(buffer, frameTick);
+	
+	private void redrawFrame(int frameTick, Graphics2D g, Point size, Rectangle2D zoomRect) {
+		//Check if we need to re-scale all points.
+		boolean sameZoom = (currView!=null) && ((zoomRect==currView) || zoomRect.equals(currView)); //Ref and value check.
+		if (!sameZoom) {
+			//Determine the "scale" value needed to achieve this zoom level.
+			Point2D zoomLevel = new Point2D.Double(
+				size.x / zoomRect.getWidth(),
+				size.y / zoomRect.getHeight());
+			ScaledPointGroup.SetNewScaleContext(zoomLevel, networkItemsIndex.getBounds().getHeight());
+			
+			//Save the new zoom
+			currView = zoomRect;
+		}
+
+		//Old scaling code: probably not relevant anymore.
+		/*if (false) {
+			//Determine the width and height of our canvas.
+			int width =  Math.max(1, (int)(naturalSize.width * percent));
+			int height = Math.max(1, (int)(naturalSize.height * percent));
+			buffer = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+			
+			//Make sure our canvas is always slightly bigger than the original size...
+			double width5Percent = 0.05 * (network.getLowerRight().x - network.getTopLeft().x);
+			double height5Percent = 0.05 * (network.getLowerRight().y - network.getTopLeft().y);
+			DPoint newTL = new DPoint(network.getTopLeft().x-width5Percent, network.getTopLeft().y-height5Percent);
+			DPoint newLR = new DPoint(network.getLowerRight().x+width5Percent, network.getLowerRight().y+height5Percent);
+		}*/
+
+		//Now re-draw the rest.
+		if ((g!=null) && (size!=null)) {
+			redrawNow(frameTick, g, size);
+		}
 	}
 	
-	private void redrawAtCurrScale(BufferedImage dest, int frameTick) {		
-		//Retrieve a graphics object; ensure it'll anti-alias
-		Graphics2D g = (Graphics2D)dest.getGraphics();
+	private void redrawNow(int frameTick, Graphics2D g, Point size) {
+		count = 0;
+		networkItemsIndex.forAllItemsInRange(currView, new LazySpatialIndex.Action<DrawableItem>() {
+			public void doAction(DrawableItem item) {
+				count++;
+			}
+		}, null);
+		System.out.println("Count: " + count);
+		
+		
+		
+		
+		//NOTE: This *might* not be the correct time to set this:
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		
 		//Fill the background
 		g.setBackground(MainFrame.Config.getBackground("network"));
-		g.clearRect(0, 0, dest.getWidth(), dest.getHeight());
+		g.clearRect(0, 0, size.x, size.y);
 		
 		//Draw nodes
-		final boolean ZoomCritical = (currPercentZoom>ZOOM_IN_CRITICAL);
+		final boolean ZoomCritical = ("x".equals("Y")); //(currPercentZoom>ZOOM_IN_CRITICAL); //TODO: Re-enable.
 		drawAllNodes(g, (!ZoomCritical) || (showAimsunLabels || showMitsimLabels));
 		
 		//Draw segments
@@ -283,6 +331,8 @@ public class NetworkVisualizer {
 		//Draw all annotations
 		drawAllAnnotations(g, showAimsunLabels, showMitsimLabels);
 	}
+	
+
 	
 	
 	private void drawAllNodes(Graphics2D g, boolean ShowUniNodes) {
@@ -327,7 +377,7 @@ public class NetworkVisualizer {
 			String key = ln.getAuthoritativeRoadName();
 			if (!alreadyDrawn.contains(key)) {
 				alreadyDrawn.add(key);
-				ln.drawName(g,currPercentZoom);
+				//ln.drawName(g, currPercentZoom);  //TODO: This should use scaled points! 
 			}
 		}
 	}
@@ -407,7 +457,8 @@ public class NetworkVisualizer {
 		}
 		
 		//Use a scale multiplier to allow people to resize the agents as needed.
-		double adjustedZoom = currPercentZoom * scaleMult;
+		//TODO: Do this somewhere else.
+		//double adjustedZoom = currPercentZoom * scaleMult;
 		
 		//Draw all agent ticks
 		Hashtable<Integer, AgentTick> agents = simRes.ticks.get(currFrame).agentTicks;
@@ -420,17 +471,17 @@ public class NetworkVisualizer {
 			boolean highlight = this.debugOn || currHighlightIDs.contains(key.intValue());
 			
 			//Draw
-			at.draw(g,adjustedZoom,this.showFakeAgent,highlight, naturalSize);
+			at.draw(g,scaleMult,this.showFakeAgent,highlight, new Point2D.Double(currView.getWidth(), currView.getHeight()));
 			
 			//Retrieve the tracking agent; also draw it
 			AgentTick tr = trackings.get(key);
-			drawTrackingAgent(g, at, tr, adjustedZoom);
+			drawTrackingAgent(g, at, tr, scaleMult);
 		}		
 	}
 	
-	private void drawTrackingAgent(Graphics2D g, AgentTick orig, AgentTick tracking, double scaleFactor) {
+	private void drawTrackingAgent(Graphics2D g, AgentTick orig, AgentTick tracking, double scaleMult) {
 		if (orig==null || tracking==null) { return; }
-		tracking.draw(g, scaleFactor, true, false, naturalSize);
+		tracking.draw(g, scaleMult, true, false, new Point2D.Double(currView.getWidth(), currView.getHeight()));
 			
 		//Draw a circle and a line
 		g.setColor(hlColor);

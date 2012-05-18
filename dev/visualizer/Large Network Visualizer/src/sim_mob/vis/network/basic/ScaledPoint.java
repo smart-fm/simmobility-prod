@@ -81,16 +81,16 @@ public class ScaledPoint {
 	/**
 	 * Actually perform the scale. This method is called by ScaledPointGroup
 	 */
-	/*Package-protected*/ void scaleVia(DPoint topLeft, DPoint lowerRight, double newWidth, double newHeight) {
-		scaled.x = scaleValue(orig.x, topLeft.x, lowerRight.x-topLeft.x, newWidth);
-		scaled.y = scaleValue(orig.y, topLeft.y, lowerRight.y-topLeft.y, newHeight);
+	/*Package-protected*/ void scaleVia(double xFactor, double yFactor) {
+		scaled.x = orig.x * xFactor;
+		scaled.y = orig.y * yFactor;
 	}
 	
-	private static double scaleValue(double value, double min, double extent, double newExtent) {
+	/*private static double scaleValue(double value, double min, double extent, double newExtent) {
 		//What percent of the original size are we taking up?
 		double percent = (value-min)/extent;
 		return percent * newExtent;
-	}
+	}*/
 }
 
 

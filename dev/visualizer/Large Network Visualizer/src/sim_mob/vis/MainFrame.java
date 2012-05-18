@@ -634,7 +634,7 @@ public class MainFrame extends JFrame {
 			
 			//Add a visualizer
 			NetworkVisualizer vis = new NetworkVisualizer();
-			vis.setSource(rn, simData, 1.0, newViewPnl.getWidth(), newViewPnl.getHeight(), fileName);
+			vis.setSource(rn, simData, new Point(newViewPnl.getWidth(), newViewPnl.getHeight()), fileName);
 			
 			//Update the map
 			newViewPnl.initMapCache(vis, 0, 0);

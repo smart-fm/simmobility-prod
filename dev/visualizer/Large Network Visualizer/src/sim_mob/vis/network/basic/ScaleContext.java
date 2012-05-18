@@ -5,7 +5,7 @@ package sim_mob.vis.network.basic;
  * 
  * \author Seth N. Hetu
  */
-public class ScaleContext {
+/*public class ScaleContext {
 	public double percent;
 	public DPoint origin;
 	public DPoint farthestPoint;
@@ -23,7 +23,7 @@ public class ScaleContext {
 	/**
 	 * Return true if the two scale contexts have the same scale. 
 	 */
-	public boolean sameScale(ScaleContext other) {
-		return percent == other.percent;
-	}
-}
+//	public boolean sameScale(ScaleContext other) {
+//		return percent == other.percent;
+//	}
+//}

@@ -24,9 +24,6 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	//Final display
 	private static Font FrameFont = new Font("Arial", Font.PLAIN, 18);
 	
-	//Double-buffered to prevent flickering.
-	private BufferedImage buffer;
-	
 	//Call backs to the parent
 	private StringSetter statusBarUpdate;
 	
@@ -46,12 +43,27 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	private NetworkVisualizer netViewCache;
 	
 	private int currFrameTick;
-	
+		
 	//Which Agent ID to highlight
 	public void setHighlightID(int id) { 
 		if (netViewCache!=null)  {
 			netViewCache.setHighlightID(id);
 		} //NOTE: This might have to be synchronized.
+	}
+	
+	
+	private ProgressItem currProgressItem;
+	private class ProgressItem {
+		double amt;
+		boolean amtIsPercent;
+		Color color;
+		String caption;
+		ProgressItem(double amt, boolean amtIsPercent, Color color, String caption) {
+			this.amt = amt;
+			this.amtIsPercent = amtIsPercent;
+			this.color = color;
+			this.caption = caption;
+		}
 	}
 	
 	
@@ -64,6 +76,9 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		this.addMouseWheelListener(this);
 		
 		this.statusBarUpdate = statusBarUpdate;
+		
+		//Hack a little
+		this.setBackground(Color.darkGray);
 	}
 	
 	public boolean incrementCurrFrameTick(int amt) {
@@ -76,11 +91,60 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		currFrameTick = newVal;
 		return true;
 	}
+	
+	
+	private void drawCurrProgressItem(Graphics2D g) {
+		//Clear.
+		int width = this.getWidth();
+		int height = this.getHeight();
+		g.setColor(Color.darkGray);
+		g.fillRect(0, 0, width, height);
+		
+		//Calc
+		double percent = currProgressItem.amtIsPercent?currProgressItem.amt:1.0;
+		
+		//Rectangle.
+		int margin = 20;
+		int barSize = 100;
+		Rectangle2D bar = new Rectangle2D.Double(margin, height/2-barSize/2, width-margin*2, barSize);
+		g.setColor(Color.black);
+		g.fillRect((int)bar.getX(), (int)bar.getY(), (int)bar.getWidth(), (int)bar.getHeight());
+		g.setColor(currProgressItem.color);
+		g.fillRect((int)bar.getX(), (int)bar.getY(), (int)(bar.getWidth()*percent), (int)bar.getHeight());
+		g.setColor(Color.white);
+		g.drawRect((int)bar.getX(), (int)bar.getY(), (int)bar.getWidth(), (int)bar.getHeight());
+		
+		//Amount
+		String toDraw = currProgressItem.amtIsPercent ? currProgressItem.caption : "" + (int)(currProgressItem.amt/1024) + " kB";
+		if (!toDraw.isEmpty()) {
+			int toDrawLen = g.getFontMetrics().stringWidth(toDraw);
+			
+			g.setColor(Color.white);
+			g.drawString(toDraw, width/2-toDrawLen/2, height/2-g.getFontMetrics().getHeight()/2);
+		} 
+	}
 
 	
 	protected void paintComponent(Graphics g) {
 		//Paint background
 		super.paintComponent(g);
+		
+		//Progress item to draw?
+		if (this.currProgressItem!=null) {
+			drawCurrProgressItem((Graphics2D)g);
+			this.currProgressItem = null;
+		}
+		
+		//Anything to draw?
+		if (netViewCache==null) {
+			return;
+		}
+		
+		//Make a buffer, draw it.
+		Point size = new Point(this.getWidth(), this.getHeight());
+		BufferedImage buffer = new BufferedImage(size.x, size.y, BufferedImage.TYPE_INT_RGB);
+		BufferedImage drawImg = netViewCache.getImageAtTimeTick(getCurrFrameTick(), size);
+		drawMapOntoImage(buffer, drawImg, getCurrFrameTick());
 		
 		//Paint the bufer
 		g.drawImage(buffer, 0, 0, null);
@@ -89,35 +153,8 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	
 	//Percent is from [0.0 .. 1.0]
 	public void drawBufferAsProgressBar(double amt, boolean amtIsPercent, Color color, String caption) {
-		//Clear.
-		Graphics2D g = (Graphics2D)buffer.getGraphics();
-		g.setColor(Color.darkGray);
-		g.fillRect(0, 0, buffer.getWidth(), buffer.getHeight());
-		
-		//Calc
-		double percent = amtIsPercent?amt:1.0;
-		
-		//Rectangle.
-		int margin = 20;
-		int barSize = 100;
-		Rectangle2D bar = new Rectangle2D.Double(margin, buffer.getHeight()/2-barSize/2, buffer.getWidth()-margin*2, barSize);
-		g.setColor(Color.black);
-		g.fillRect((int)bar.getX(), (int)bar.getY(), (int)bar.getWidth(), (int)bar.getHeight());
-		g.setColor(color);
-		g.fillRect((int)bar.getX(), (int)bar.getY(), (int)(bar.getWidth()*percent), (int)bar.getHeight());
-		g.setColor(Color.white);
-		g.drawRect((int)bar.getX(), (int)bar.getY(), (int)bar.getWidth(), (int)bar.getHeight());
-		
-		//Amount
-		String toDraw = amtIsPercent ? caption : "" + (int)(amt/1024) + " kB";
-		if (!toDraw.isEmpty()) {
-			int toDrawLen = g.getFontMetrics().stringWidth(toDraw);
-			
-			g.setColor(Color.white);
-			g.drawString(toDraw, buffer.getWidth()/2-toDrawLen/2, buffer.getHeight()/2-g.getFontMetrics().getHeight()/2);
-		} 
-		
-		//Repaint.
+		//Delay
+		this.currProgressItem = new ProgressItem(amt, amtIsPercent, color, caption);
 		this.repaint();
 	}
 
@@ -149,8 +186,8 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 			slider.setEnabled(true);
 		}
 
-		netViewCache.redrawAtCurrScale(getCurrFrameTick());
-		updateMap();
+		netViewCache.redrawFrame(getCurrFrameTick());  //NOTE: This is probably redundant.
+		repaint();
 		return true;
 	}
 	
@@ -189,7 +226,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		netViewCache = nv;
 		currFrameTick = 0;
 		
-		updateMap();
+		repaint();
 	}
 	
 	public void showFakeAgent(boolean drawFakeAgent){
@@ -198,8 +235,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 			return;
 		}
 		netViewCache.toggleFakeAgent(drawFakeAgent, getCurrFrameTick());
-		this.repaint();
-		updateMap();
+		repaint();
 	}
 	
 	public void showDebugMode(boolean debugOn){
@@ -208,8 +244,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 			return;
 		}
 		netViewCache.toggleDebugOn(debugOn, getCurrFrameTick());
-		this.repaint();
-		updateMap();
+		repaint();
 	}
 	
 	public void setAnnotationLevel(boolean showAimsun, boolean showMitsim) {
@@ -217,8 +252,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 			return; 
 		}
 		netViewCache.setAnnotationLevel(showAimsun, showMitsim, getCurrFrameTick());
-		//this.repaint();
-		updateMap();
+		repaint();
 	}
 	
 	private void clickMap(Point pos) {
@@ -249,7 +283,8 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		BufferedImage resImg = new BufferedImage(this.getWidth(), this.getHeight(), imageType);
 		
 		//Step 2: re-draw the original image.
-		BufferedImage drawImg = netViewCache.getImageAtTimeTick(tick, imageType);
+		Point size = new Point(getWidth(), getHeight());
+		BufferedImage drawImg = netViewCache.getImageAtTimeTick(tick, size, imageType);
 		drawMapOntoImage(resImg, drawImg, tick, showFrameNumber);
 		
 		return resImg;
@@ -286,24 +321,10 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		}
 	}
 	
-	
-	private void updateMap() {
-		//Anything?
-		if (netViewCache==null) {
-			return;
-		}
-		BufferedImage drawImg = netViewCache.getImage();
-		drawMapOntoImage(buffer, drawImg, getCurrFrameTick());
 		
-		//Repaint
-		this.repaint();
-	}
-	
 	//Resize listener
 	public void componentResized(ComponentEvent e) {
-		buffer = new BufferedImage(this.getWidth(), this.getHeight(), BufferedImage.TYPE_INT_RGB);
-		updateMap();
-		//this.repaint();
+		this.repaint();
 	}
 
 	//Helper class
@@ -352,44 +373,30 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		updateMouseDownPos(e);
 		
 		//Redraw the map at this new offset.
-		updateMap();
+		repaint();
 	}
 	
 	//Zooming with the mouse wheel
 	public void mouseWheelMoved(MouseWheelEvent e) {
-		//Get the old width/height for comparison
-		double oldW = netViewCache.getImage().getWidth();
-		double oldH = netViewCache.getImage().getHeight();
-		
-		//Zoom
-		netViewCache.zoomIn(-e.getWheelRotation(), getCurrFrameTick());
-		
-		//NOTE: The math isn't quite right for scaling; will fix this later.
-		//      A correct fix will create a temporary "ScaledPoint" that represents the center
-		//      of the canvas (offset.x+width/2, offset.y+height/2) as an actual point on the map
-		//      After scaling, just translate this point back to screen co-ordinates and subtract
-		//      width/2, height/2 to get the correct new offset. 
-		//      For now, just "nudging" the value slightly.
-		
-		double modAmtX = netViewCache.getImage().getWidth()>oldW ? 1.1 : 0.9;
-		double modAmtY = netViewCache.getImage().getHeight()>oldH ? 1.1 : 0.9;
-		
-		//Modify the offset accordingly
-		offset.x = (int)((modAmtX*offset.x*netViewCache.getImage().getWidth())/oldW);
-		offset.y = (int)((modAmtY*offset.y*netViewCache.getImage().getHeight())/oldH);
-		
-		updateMap();
-		
+		zoomView(-e.getWheelRotation());
 	}
 	
 	//Zooming with button click
 	public void zoomWithButtonClick(int number){
+		zoomView(number);
+	}
+	
+	
+	private void zoomView(int number) {
+		//Get the current view.
+		Rectangle2D view = netViewCache.getCurrentView();
+		
 		//Get the old width/height for comparison
-		double oldW = netViewCache.getImage().getWidth();
-		double oldH = netViewCache.getImage().getHeight();
+		//double oldW = netViewCache.getImage().getWidth();
+		//double oldH = netViewCache.getImage().getHeight();
 		
 		//Zoom
-		netViewCache.zoomIn(number, getCurrFrameTick());
+		netViewCache.zoomIn(number, getCurrFrameTick(), new Point(getWidth(), getHeight()));
 		
 		//NOTE: The math isn't quite right for scaling; will fix this later.
 		//      A correct fix will create a temporary "ScaledPoint" that represents the center
@@ -397,21 +404,20 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		//      After scaling, just translate this point back to screen co-ordinates and subtract
 		//      width/2, height/2 to get the correct new offset. 
 		//      For now, just "nudging" the value slightly.
-		
-		double modAmtX = netViewCache.getImage().getWidth()>oldW ? 1.1 : 0.9;
-		double modAmtY = netViewCache.getImage().getHeight()>oldH ? 1.1 : 0.9;
+		//double modAmtX = netViewCache.getImage().getWidth()>oldW ? 1.1 : 0.9;
+		//double modAmtY = netViewCache.getImage().getHeight()>oldH ? 1.1 : 0.9;
 		
 		//Modify the offset accordingly
-		offset.x = (int)((modAmtX*offset.x*netViewCache.getImage().getWidth())/oldW);
-		offset.y = (int)((modAmtY*offset.y*netViewCache.getImage().getHeight())/oldH);
+		//offset.x = (int)((modAmtX*offset.x*netViewCache.getImage().getWidth())/oldW);
+		//offset.y = (int)((modAmtY*offset.y*netViewCache.getImage().getHeight())/oldH);
 		
-		updateMap();	
+		repaint();
 	}
 	
 	
 	public void zoomFitSquare() {
-		netViewCache.squareZoom(getCurrFrameTick());
-		updateMap();
+		netViewCache.squareZoom(getCurrFrameTick(), new Point(getWidth(), getHeight()));
+		repaint();
 	}
 	
 	

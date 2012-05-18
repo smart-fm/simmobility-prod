@@ -7,6 +7,7 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Hashtable;
@@ -124,7 +125,7 @@ public class PedestrianTick extends AgentTick {
 		this.ID = id;
 	}
 
-	public void draw(Graphics2D g, double scale, boolean drawFake, boolean debug, Dimension size100Percent){
+	public void draw(Graphics2D g, double scaleMultiplier, boolean drawFake, boolean debug, Point2D size100Percent){
 		
 		
 		//Save old transformation.
@@ -138,7 +139,7 @@ public class PedestrianTick extends AgentTick {
 		
 		//Retrieve the image to draw
 		SimpleVectorImage svi = (drawFake&&fake) ? FakePersonImg : debug ? DebugPersonImg : PersonImg;
-		BufferedImage toDraw = svi.getImage(1/scale + 0.2, 0);
+		BufferedImage toDraw = svi.getImage(1/scaleMultiplier + 0.2, 0);
 		
 		//Translate to top-left corner
 		at.translate(-toDraw.getWidth()/2, -toDraw.getHeight()/2);

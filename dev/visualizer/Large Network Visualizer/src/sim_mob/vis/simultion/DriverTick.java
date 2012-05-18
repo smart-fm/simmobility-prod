@@ -183,7 +183,7 @@ public class DriverTick extends AgentTick {
 	}
 	
 	
-	public void draw(Graphics2D g,double scale, boolean drawFake,boolean debug, Dimension size100Percent){
+	public void draw(Graphics2D g,double scaleMultiplier, boolean drawFake,boolean debug, Point2D size100Percent){
 		AffineTransform oldAT = g.getTransform();
 
 		AffineTransform at = AffineTransform.getTranslateInstance(pos.getX(), pos.getY());
@@ -195,11 +195,11 @@ public class DriverTick extends AgentTick {
 		//TODO: Cache this somehow, see above.
 		//TODO: There should be a much easier mathematical way of doing this.
 		double angleD = angle;
-		if (size100Percent.width != size100Percent.height) {
+		if (size100Percent.getX() != size100Percent.getY()) {
 			if (angle>0 && angle!=90 && angle!=180 && angle!=270 && angle<360) {
 				//Guaranteed to be working with angles with non-zero x/y components, and a non-trivial skew factor.
-				double xScale = (double)(size100Percent.width) / Math.max(size100Percent.width, size100Percent.height);
-				double yScale = (double)(size100Percent.height) / Math.max(size100Percent.width, size100Percent.height);
+				double xScale = (double)(size100Percent.getX()) / Math.max(size100Percent.getX(), size100Percent.getY());
+				double yScale = (double)(size100Percent.getY()) / Math.max(size100Percent.getX(), size100Percent.getY());
 				
 				//System.out.println("Original angle: " + angleD);
 				
@@ -256,7 +256,7 @@ public class DriverTick extends AgentTick {
 			 System.out.println("Error, No such length, use car image instead -- DriverTick, draw()");
 		}
 		
-		BufferedImage toDraw = svi.getImage(scale, angleD, true);
+		BufferedImage toDraw = svi.getImage(scaleMultiplier, angleD, true);
 		
 		//Rotate
 		//at.rotate((Math.PI*angle)/180);

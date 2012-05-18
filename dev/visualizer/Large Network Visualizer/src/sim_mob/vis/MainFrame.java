@@ -641,7 +641,7 @@ public class MainFrame extends JFrame {
 			vis.setSource(rn, simData, new Point(newViewPnl.getWidth(), newViewPnl.getHeight()), fileName);
 			
 			//Update the map
-			newViewPnl.initMapCache(vis, 0, 0);
+			newViewPnl.initMapCache(vis);
 		}
 	}
 	

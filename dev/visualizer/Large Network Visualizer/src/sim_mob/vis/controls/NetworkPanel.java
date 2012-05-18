@@ -39,7 +39,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	}
 	
 	//TEMP: This is actually better off somewhere else.
-	private Point offset = new Point(0, 0);
+	//private Point offset = new Point(0, 0);
 	private NetworkVisualizer netViewCache;
 	
 	private int currFrameTick;
@@ -219,10 +219,10 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	
 	
 	//Draw the map
-	public void initMapCache(NetworkVisualizer nv, int offsetX, int offsetY) {
+	public void initMapCache(NetworkVisualizer nv) {
 		//Save for later.
-		offset.x = offsetX;
-		offset.y = offsetY;
+		//offset.x = offsetX;
+		//offset.y = offsetY;
 		netViewCache = nv;
 		currFrameTick = 0;
 		
@@ -262,7 +262,9 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		}
 		
 		//First, add the offset
-		pos.x += offset.x;
+		//NOTE: This won't work at the moment. We can get this easily be multiplying by the inverse
+		//      of the scale factor, but no-one's using this functionality anyway.
+		/*pos.x += offset.x;
 		pos.y += offset.y;
 		
 		//Now scale it to the map's co-ordinate system and get
@@ -271,7 +273,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		if (n!=null) {
 			String str = String.format("NODE: %.0f , %.0f", n.getPos().getUnscaledX(), n.getPos().getUnscaledY());
 			statusBarUpdate.set(str);
-		}
+		}*/
 	}
 	
 	
@@ -301,8 +303,8 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		
 		//If the image is smaller than the canvas to draw it on, always center it.
 		//Check bounds too; we don't want to scroll the map off the screen.
-		offset.x = CenterAndBoundsCheck(offset.x, drawImg.getWidth(), destImg.getWidth());
-		offset.y = CenterAndBoundsCheck(offset.y, drawImg.getHeight(), destImg.getHeight());
+		//offset.x = CenterAndBoundsCheck(offset.x, drawImg.getWidth(), destImg.getWidth());
+		//offset.y = CenterAndBoundsCheck(offset.y, drawImg.getHeight(), destImg.getHeight());
 		
 		//If the image is smaller in at least one dimension;we should re-fill the background with light-gray.
 		if ((drawImg.getWidth()<destImg.getWidth()) || (drawImg.getHeight()<destImg.getHeight())) {
@@ -311,7 +313,8 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		}
 		
 		//Draw the network at the given offset
-		g.drawImage(drawImg, offset.x, offset.y, null);
+		//g.drawImage(drawImg, offset.x, offset.y, null);
+		g.drawImage(drawImg, 0, 0, null);
 		
 		//Draw the current frame ID
 		if (showFrameNumber) {
@@ -367,9 +370,8 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		}
 	}
 	public void mouseDragged(MouseEvent e) {
-		//Update mouse's position; get offset 
-		offset.x += e.getX()-mouseDown.x;
-		offset.y += e.getY()-mouseDown.y;
+		//Update mouse's position; get offset
+		netViewCache.translateBy(getCurrFrameTick(), new Point(getWidth(), getHeight()), -(e.getX()-mouseDown.x), -(e.getY()-mouseDown.y));
 		updateMouseDownPos(e);
 		
 		//Redraw the map at this new offset.

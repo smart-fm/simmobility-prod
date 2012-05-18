@@ -26,6 +26,9 @@ public class ScaledPoint {
 		translateFactors = translateFact;
 		//scaledCanvasHeight = scaledHeight;
 	}
+	public static Point2D getScaleFactor() {
+		return new Point2D.Double(scaleFactors.getX(), scaleFactors.getY());
+	}
 	
 	
 	//Original Point value.

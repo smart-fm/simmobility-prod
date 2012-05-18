@@ -206,6 +206,25 @@ public class NetworkVisualizer {
 		redrawFrame(0, panelSize, initialZoom);
 	}
 	
+	
+	public void translateBy(int frameTick, Point panelSize, int plusX, int plusY) {
+		//Convert pixels to meters
+		Point2D plusM = new Point2D.Double(
+			plusX / ScaledPoint.getScaleFactor().getX(),
+			plusY / ScaledPoint.getScaleFactor().getY());
+		
+		//Move the current view by that amount.
+		Rectangle2D zoom = getCurrentView();
+		zoom.setRect(
+			zoom.getX() + plusM.getX(),
+			zoom.getY() + plusM.getY(),
+			zoom.getWidth(), zoom.getHeight());
+
+		//Redraw at this translation
+		redrawFrame(frameTick, panelSize, zoom);
+	}
+	
+	
 	//Negative numbers mean zoom out that many times.
 	public void zoomIn(int number, int frameTick, Point panelSize) {
 		//Each tick increases zoom by 10%

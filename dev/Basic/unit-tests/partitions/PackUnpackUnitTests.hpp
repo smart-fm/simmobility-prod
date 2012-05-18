@@ -26,6 +26,10 @@ public:
 	//Ensure serialization chaining works.
 	void test_PackUnpack_fixed_delayed_dpoint() CHECK_MPI_THROW ;
 
+	//Check serialization of the dynamic vector class.
+	void test_PackUnpack_dynamic_vector() CHECK_MPI_THROW ;
+	void test_PackUnpack_dynamic_vector2() CHECK_MPI_THROW ;
+
 
 
 
@@ -35,6 +39,8 @@ private:
       CPPUNIT_TEST(test_PackUnpack_simple_set_get);
       CPPUNIT_TEST(test_PackUnpack_fixed_delayed);
       CPPUNIT_TEST(test_PackUnpack_fixed_delayed_dpoint);
+      CPPUNIT_TEST(test_PackUnpack_dynamic_vector);
+      CPPUNIT_TEST(test_PackUnpack_dynamic_vector2);
     CPPUNIT_TEST_SUITE_END();
 #endif
 };

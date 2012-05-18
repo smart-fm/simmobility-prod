@@ -133,6 +133,57 @@ void unit_tests::PackUnpackUnitTests::test_PackUnpack_fixed_delayed_dpoint()
 }
 
 
+
+void unit_tests::PackUnpackUnitTests::test_PackUnpack_dynamic_vector()
+{
+	DynamicVector srcVec(10, 20, 50, 60);
+
+	//Now pack it.
+	PackageUtils p;
+	p << srcVec;
+
+	//Unpack it
+	UnPackageUtils up(p.getPackageData());
+	DynamicVector destVec; //Default constructor will leave destVec in an invalid state.
+	up >> destVec;
+
+	//Ensure that the two are equal
+	CPPUNIT_ASSERT_EQUAL(srcVec.getX(), destVec.getX());
+	CPPUNIT_ASSERT_EQUAL(srcVec.getY(), destVec.getY());
+	CPPUNIT_ASSERT_EQUAL(srcVec.getEndX(), destVec.getEndX());
+	CPPUNIT_ASSERT_EQUAL(srcVec.getEndY(), destVec.getEndY());
+	CPPUNIT_ASSERT_EQUAL(srcVec.getMagnitude(), destVec.getMagnitude());
+	CPPUNIT_ASSERT_EQUAL(srcVec.getAngle(), destVec.getAngle());
+}
+
+void unit_tests::PackUnpackUnitTests::test_PackUnpack_dynamic_vector2()
+{
+	//Make a "zero-length" vector.
+	DynamicVector srcVec(10, 20, 10, 20);
+
+	//Now pack it.
+	PackageUtils p;
+	p << srcVec;
+
+	//Unpack it
+	UnPackageUtils up(p.getPackageData());
+	DynamicVector destVec(1,2,3,4); //Default constructor is "valid".
+	up >> destVec;
+
+	//Ensure that the two are equal
+	CPPUNIT_ASSERT_EQUAL(srcVec.getX(), destVec.getX());
+	CPPUNIT_ASSERT_EQUAL(srcVec.getY(), destVec.getY());
+	CPPUNIT_ASSERT_EQUAL(srcVec.getEndX(), destVec.getEndX());
+	CPPUNIT_ASSERT_EQUAL(srcVec.getEndY(), destVec.getEndY());
+	CPPUNIT_ASSERT_EQUAL(srcVec.getMagnitude(), destVec.getMagnitude());
+
+	//Ensure these fail
+	CPPUNIT_ASSERT_THROW(srcVec.getAngle(), std::runtime_error);
+	CPPUNIT_ASSERT_THROW(destVec.getAngle(), std::runtime_error);
+}
+
+
+
 #endif //SIMMOB_DISABLE_MPI
 
 

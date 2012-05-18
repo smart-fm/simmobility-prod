@@ -32,6 +32,11 @@ public class TrafficSignalCrossing implements DrawableItem{
 	}
 	
 	
+	public int getZOrder() {
+		return DrawableItem.Z_ORDER_TSC;
+	}
+	
+	
 	public Rectangle2D getBounds() {
 		final double BUFFER_CM = 10*100; //1m
 		Rectangle2D res = new Rectangle2D.Double(nearOne.getUnscaledX(), nearOne.getUnscaledY(), 0, 0);

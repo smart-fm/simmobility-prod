@@ -30,6 +30,12 @@ public class Link implements DrawableItem {
 	private ArrayList<Integer> fwdPathSegmentIDs;
 	private ArrayList<Integer> revPathSegmentIDs;
 	
+	
+	public int getZOrder() {
+		return DrawableItem.Z_ORDER_LINK;
+	}
+	
+	
 	public Link(String name, Node start, Node end) {
 		this.name = name;
 		this.start = start;

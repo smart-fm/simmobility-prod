@@ -24,6 +24,12 @@ public class Crossing implements DrawableItem{
 	private ScaledPoint farTwo;
 	private int id;
 	
+	
+	public int getZOrder() {
+		return DrawableItem.Z_ORDER_CROSSING;
+	}
+	
+	
 	public Crossing(ScaledPoint nearOne, ScaledPoint nearTwo, ScaledPoint farOne, ScaledPoint farTwo,int id) {
 		this.nearOne = nearOne;
 		this.nearTwo = nearTwo;

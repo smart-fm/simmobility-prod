@@ -29,6 +29,12 @@ public class LaneMarking implements DrawableItem{
 	
 	private boolean isSideWalk;
 	private int laneNumber;
+	
+	
+	public int getZOrder() {
+		return DrawableItem.Z_ORDER_LANEMARKING;
+	}
+	
 
 	public LaneMarking(Node start, Node end, boolean isSideWalk, int lineNumber, Integer parentSegment) {
 		

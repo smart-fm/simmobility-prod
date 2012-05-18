@@ -32,6 +32,10 @@ public class TrafficSignalLine implements DrawableItem{
 		this.findNode();
 	}
 	
+	public int getZOrder() {
+		return DrawableItem.Z_ORDER_TSL;
+	}
+	
 	public Rectangle2D getBounds() {
 		final double BUFFER_CM = 10*100; //1m
 		Rectangle2D res = new Rectangle2D.Double(fromNode.getPos().getUnscaledX(), fromNode.getPos().getUnscaledY(), 0, 0);

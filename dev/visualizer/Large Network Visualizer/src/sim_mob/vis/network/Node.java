@@ -27,6 +27,11 @@ public class Node implements DrawableItem {
 		this.id = id;
 	}
 	
+	public int getZOrder() {
+		return DrawableItem.Z_ORDER_NODE;
+	}
+	
+	
 	//NOTE: We are declaring the VISIBLE bounds of Node to be, e.g., (10x10)m in size. 
 	//      This means that, at high zoom levels, it may not appear visible when partly offscreen.
 	//      This is not really such an issue; for most uses it will appear correct. Note that

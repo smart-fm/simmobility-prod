@@ -32,6 +32,11 @@ public class Segment implements DrawableItem {
 	}
 	
 	
+	public int getZOrder() {
+		return DrawableItem.Z_ORDER_SEGMENT;
+	}
+	
+	
 	//We define a Segment from its start node to its end node, with some buffer space (we don't 
 	//  consider individual lanes right now).
 	public Rectangle2D getBounds() {

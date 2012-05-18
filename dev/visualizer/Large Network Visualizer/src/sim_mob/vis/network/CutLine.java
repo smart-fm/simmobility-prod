@@ -29,6 +29,12 @@ public class CutLine implements DrawableItem{
 		this.color = color;
 	}
 	
+	
+	public int getZOrder() {
+		return DrawableItem.Z_ORDER_CUTLINE;
+	}
+	
+	
 	public Rectangle2D getBounds() {
 		final double BUFFER_CM = 10*100; //1m
 		Rectangle2D res = new Rectangle2D.Double(start.getUnscaledX(), start.getUnscaledY(), 0, 0);

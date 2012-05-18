@@ -32,6 +32,11 @@ public class Annotation implements DrawableItem {
 	public String message;
 	
 	
+	public int getZOrder() {
+		return DrawableItem.Z_ORDER_ANNOTATION;
+	}
+	
+	
 	public Annotation(Point position, String message) {
 		pos = new ScaledPoint(position.x, position.y, null);
 		this.message = message;

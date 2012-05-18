@@ -5,6 +5,9 @@ import java.awt.image.BufferedImage;
 import java.awt.geom.*;
 import java.awt.geom.Rectangle2D.Double;
 import java.util.*;
+import java.util.List;
+
+import javax.swing.UIDefaults.LazyValue;
 
 import sim_mob.index.LazySpatialIndex;
 import sim_mob.vis.MainFrame;
@@ -292,14 +295,10 @@ public class NetworkVisualizer {
 	}
 	
 	private void redrawNow(int frameTick, Graphics2D g, Point size) {
-		count = 0;
-		networkItemsIndex.forAllItemsInRange(currView, new LazySpatialIndex.Action<DrawableItem>() {
-			public void doAction(DrawableItem item) {
-				count++;
-			}
-		}, null);
-		System.out.println("Count: " + count);
-		
+		//Save all points to be drawn into a list, grouped by z-order:
+		DrawSorterAction act = new DrawSorterAction();
+		networkItemsIndex.forAllItemsInRange(currView, act, null);
+
 		//NOTE: This *might* not be the correct time to set this:
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		
@@ -307,12 +306,24 @@ public class NetworkVisualizer {
 		g.setBackground(MainFrame.Config.getBackground("network"));
 		g.clearRect(0, 0, size.x, size.y);
 		
+		//Draw all items, sorted by key
+		for (int key : act.getKeys()) {
+			for (DrawableItem item : act.getValues(key)) {
+				//TEMP: restrict
+				if ((item.getZOrder()==DrawableItem.Z_ORDER_NODE) || 
+					(item.getZOrder()==DrawableItem.Z_ORDER_SEGMENT)) {
+					item.draw(g);
+				}
+			}
+		}
+		
+		
 		//Draw nodes
 		final boolean ZoomCritical = ("x".equals("Y")); //(currPercentZoom>ZOOM_IN_CRITICAL); //TODO: Re-enable.
-		drawAllNodes(g, (!ZoomCritical) || (showAimsunLabels || showMitsimLabels));
+		//drawAllNodes(g, (!ZoomCritical) || (showAimsunLabels || showMitsimLabels));
 		
 		//Draw segments
-		drawAllSegments(g, (!ZoomCritical) || (showAimsunLabels || showMitsimLabels));
+		//drawAllSegments(g, (!ZoomCritical) || (showAimsunLabels || showMitsimLabels));
 		
 		//Draw cut lines
 		drawAllCutlines(g, this.showFakeAgent);
@@ -339,6 +350,36 @@ public class NetworkVisualizer {
 		drawAllAnnotations(g, showAimsunLabels, showMitsimLabels);
 	}
 	
+	
+	
+	//Helper class: sort and save items by z-ordering
+	private class DrawSorterAction implements LazySpatialIndex.Action<DrawableItem> {
+		Hashtable<Integer, LinkedList<DrawableItem>> toDraw;
+		
+		DrawSorterAction() {
+			toDraw = new Hashtable<Integer, LinkedList<DrawableItem>>();
+		}
+		
+		public void doAction(DrawableItem item) {
+			int zOrder = item.getZOrder();
+			if (!toDraw.containsKey(zOrder)) {
+				toDraw.put(zOrder, new LinkedList<DrawableItem>());
+			}
+			toDraw.get(zOrder).add(item);
+		}
+		
+		//Retrieve keys
+		Integer[] getKeys() {
+			Integer[] keys = toDraw.keySet().toArray(new Integer[]{});
+			Arrays.sort(keys);
+			return keys;
+		}
+		
+		//Return values for a specific key
+		List<DrawableItem> getValues(int key) {
+			return toDraw.get(key);
+		}
+	}
 
 	
 	

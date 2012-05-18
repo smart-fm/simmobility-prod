@@ -87,6 +87,14 @@ const std::vector<sim_mob::Point2D>& Lane::getPolyline() const
     return polyline_;
 }
 
+void Lane::insertNewPolylinePoint(Point2D p, bool isPre)
+{
+	if(isPre)
+		polyline_.push_back(p);
+	else
+		polyline_.insert(polyline_.begin(), p);
+}
+
 #ifndef SIMMOB_DISABLE_MPI
 
 #endif

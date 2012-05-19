@@ -133,6 +133,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		if (this.currProgressItem!=null) {
 			drawCurrProgressItem((Graphics2D)g);
 			this.currProgressItem = null;
+			return;
 		}
 		
 		//Anything to draw?

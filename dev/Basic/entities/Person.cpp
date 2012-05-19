@@ -250,41 +250,41 @@ sim_mob::Role* sim_mob::Person::getRole() const {
 /*
  * package Entity, Agent, Person and Role
  */
-void sim_mob::Person::pack(PackageUtils& packageUtil) {
-	//package Entity
-	//std::cout << "Person package Called" << this->getId() << std::endl;
-	sim_mob::Agent::pack(packageUtil);
-
-	//package person
-	packageUtil.packBasicData(specialStr);
-	sim_mob::TripChain::pack(packageUtil, currTripChain);
-	packageUtil.packBasicData(firstFrameTick);
-}
-
-void sim_mob::Person::unpack(UnPackageUtils& unpackageUtil) {
-
-	sim_mob::Agent::unpack(unpackageUtil);
-	//std::cout << "Person unpackage Called" << this->getId() << std::endl;
-
-	specialStr = unpackageUtil.unpackBasicData<std::string> ();
-	currTripChain = sim_mob::TripChain::unpack(unpackageUtil);
-	firstFrameTick = unpackageUtil.unpackBasicData<bool> ();
-}
-
-void sim_mob::Person::packProxy(PackageUtils& packageUtil) {
-	//package Entity
-	sim_mob::Agent::pack(packageUtil);
-
-	//package person
-	packageUtil.packBasicData(specialStr);
-	packageUtil.packBasicData(firstFrameTick);
-}
-
-void sim_mob::Person::unpackProxy(UnPackageUtils& unpackageUtil) {
-	sim_mob::Agent::unpack(unpackageUtil);
-
-	specialStr = unpackageUtil.unpackBasicData<std::string> ();
-	firstFrameTick = unpackageUtil.unpackBasicData<bool> ();
-}
+//void sim_mob::Person::pack(PackageUtils& packageUtil) {
+//	//package Entity
+//	//std::cout << "Person package Called" << this->getId() << std::endl;
+//	sim_mob::Agent::pack(packageUtil);
+//
+//	//package person
+//	packageUtil.packBasicData(specialStr);
+//	sim_mob::TripChain::pack(packageUtil, currTripChain);
+//	packageUtil.packBasicData(firstFrameTick);
+//}
+//
+//void sim_mob::Person::unpack(UnPackageUtils& unpackageUtil) {
+//
+//	sim_mob::Agent::unpack(unpackageUtil);
+//	//std::cout << "Person unpackage Called" << this->getId() << std::endl;
+//
+//	specialStr = unpackageUtil.unpackBasicData<std::string> ();
+//	currTripChain = sim_mob::TripChain::unpack(unpackageUtil);
+//	firstFrameTick = unpackageUtil.unpackBasicData<bool> ();
+//}
+//
+//void sim_mob::Person::packProxy(PackageUtils& packageUtil) {
+//	//package Entity
+//	sim_mob::Agent::pack(packageUtil);
+//
+//	//package person
+//	packageUtil.packBasicData(specialStr);
+//	packageUtil.packBasicData(firstFrameTick);
+//}
+//
+//void sim_mob::Person::unpackProxy(UnPackageUtils& unpackageUtil) {
+//	sim_mob::Agent::unpack(unpackageUtil);
+//
+//	specialStr = unpackageUtil.unpackBasicData<std::string> ();
+//	firstFrameTick = unpackageUtil.unpackBasicData<bool> ();
+//}
 
 #endif

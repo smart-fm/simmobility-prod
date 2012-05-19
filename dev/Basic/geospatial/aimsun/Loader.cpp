@@ -1392,6 +1392,10 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesEndLineCut, false);
 		}
 
+		for(vector<sim_mob::Link*>::iterator it = rn.links.begin(); it!= rn.links.end();it++)
+			(*it)->extendPolylinesBetweenRoadSegments();
+
+
 		if (prof) { prof->logGenericEnd("PostProc", "main-prof"); }
 
 		//add by xuyan, load in boundary segments

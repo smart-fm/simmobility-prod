@@ -6,7 +6,8 @@
 #include <algorithm>
 
 #include "RoadSegment.hpp"
-
+#include "Lane.hpp"
+#include "util/GeomHelpers.hpp"
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
@@ -139,39 +140,59 @@ string sim_mob::Link::getSegmentName(const RoadSegment* segment)
 	return res.str();
 }
 
-#ifndef SIMMOB_DISABLE_MPI
-void sim_mob::Link::pack(PackageUtils& package,const Link* one_link)
+void sim_mob::Link::extendPolylinesBetweenRoadSegments()
 {
-	if (one_link == NULL) {
-		bool is_NULL = true;
-		package.packBasicData(is_NULL);
+	extendPolylinesBetweenRoadSegments(fwdSegments);
+	extendPolylinesBetweenRoadSegments(revSegments);
+}
+
+void sim_mob::Link::extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>& segments)
+{
+	if(segments.size()<=1)
 		return;
-	} else {
-		bool is_NULL = false;
-		package.packBasicData(is_NULL);
+	for(int i=0;i<segments.size()-1;i++)
+	{
+		RoadSegment* seg1 = segments.at(i);
+		RoadSegment* seg2 = segments.at(i+1);
+		for(size_t j=0;j<seg1->getLanes().size();j++)
+		{
+			bool test = false;
+
+			if(j>=seg2->getLanes().size())
+				break;
+			Lane* preLane = seg1->getLanes().at(j);
+
+			//-------compare the same point, inconsistent
+			int firstX = preLane->getPolyline().at(0).getX();
+			int secondX = seg1->getLanes().at(j)->getPolyline().at(0).getX();
+			std::cout<<"compare "<<firstX<<" "<<secondX;
+			if(firstX == secondX)
+				std::cout<<std::endl;
+			else
+				std::cout<<"  different"<<std::endl;
+			//--------------------------------------------
+
+			Lane* nextLane = seg2->getLanes().at(j);
+			const std::vector<sim_mob::Point2D>& prePolyline = preLane->getPolyline();
+			const std::vector<sim_mob::Point2D>& nextPolyline = nextLane->getPolyline();
+			size_t size1 = prePolyline.size();
+			size_t size2 = nextPolyline.size();
+//			Point2D newPoint = LineLineIntersect(prePolyline.at(size1-2),prePolyline.at(size1-1),
+//					nextPolyline.at(0),nextPolyline.at(1));
+			//use middle point between the end point of the previous lane and start point of the next lane
+			int newX = prePolyline.at(size1-1).getX()/2 + nextPolyline.at(0).getX()/2;
+			int newY = prePolyline.at(size1-1).getY()/2 + nextPolyline.at(0).getY()/2;
+			Point2D newPoint(newX,newY);
+
+			preLane->insertNewPolylinePoint(newPoint, true);
+			nextLane->insertNewPolylinePoint(newPoint, false);
+		}
 	}
-
-	sim_mob::Point2D point_1 = one_link->getStart()->location;
-	sim_mob::Point2D point_2 = one_link->getEnd()->location;
-
-	package.packPoint2D(point_1);
-	package.packPoint2D(point_2);
 }
 
-const Link* sim_mob::Link::unpack(UnPackageUtils& unpackage)
-{
-	bool is_NULL = unpackage.unpackBasicData<bool> ();
-	if (is_NULL) {
-		return NULL;
-	}
 
-	sim_mob::Point2D point_1;
-	sim_mob::Point2D point_2;
 
-	point_1 = *(unpackage.unpackPoint2D());
-	point_2 = *(unpackage.unpackPoint2D());
+#ifndef SIMMOB_DISABLE_MPI
 
-	return sim_mob::getLinkBetweenNodes(&point_1, &point_2);
-}
 #endif
 

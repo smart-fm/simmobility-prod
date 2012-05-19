@@ -288,35 +288,5 @@ bool sim_mob::Vehicle::isDone() const {
 
 
 #ifndef SIMMOB_DISABLE_MPI
-void sim_mob::Vehicle::pack(PackageUtils& package, Vehicle* one_vehicle) {
-	GeneralPathMover::pack(package, &(one_vehicle->fwdMovement));
 
-	package.packBasicData<double> (one_vehicle->latMovement);
-	package.packBasicData<double> (one_vehicle->fwdVelocity);
-	package.packBasicData<double> (one_vehicle->latVelocity);
-	package.packBasicData<double> (one_vehicle->fwdAccel);
-
-	package.packBasicData<double> (one_vehicle->posInIntersection.x);
-	package.packBasicData<double> (one_vehicle->posInIntersection.y);
-
-	package.packBasicData<bool> (one_vehicle->error_state);
-}
-
-Vehicle* sim_mob::Vehicle::unpack(UnPackageUtils& unpackage) {
-	Vehicle* one_vehicle = new Vehicle();
-
-	GeneralPathMover::unpack(unpackage, &(one_vehicle->fwdMovement));
-
-	one_vehicle->latMovement = unpackage.unpackBasicData<double> ();
-	one_vehicle->fwdVelocity = unpackage.unpackBasicData<double> ();
-	one_vehicle->latVelocity = unpackage.unpackBasicData<double> ();
-	one_vehicle->fwdAccel = unpackage.unpackBasicData<double> ();
-
-	one_vehicle->posInIntersection.x = unpackage.unpackBasicData<double> ();
-	one_vehicle->posInIntersection.y = unpackage.unpackBasicData<double> ();
-
-	one_vehicle->error_state = unpackage.unpackBasicData<bool> ();
-
-	return one_vehicle;
-}
 #endif

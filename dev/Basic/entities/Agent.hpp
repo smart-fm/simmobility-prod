@@ -137,6 +137,7 @@ protected:
 #endif
 
 public:
+	//xuyan: old code, might not used any more
 	int getOwnRandomNumber();
 
 	friend class BoundaryProcessor;

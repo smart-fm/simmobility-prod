@@ -277,7 +277,7 @@ public class NetworkVisualizer {
 
 	//This function is a bit bloated; we're basically saying "redraw, except maybe zoom first"
 	public void redrawFrame(int frameTick) {
-		redrawFrame(frameTick, null, null, null);
+		redrawFrame(frameTick, null, null, currView);
 	}
 	public void redrawFrame(int frameTick, Graphics2D g, Point size) {
 		redrawFrame(frameTick, g, size, currView);

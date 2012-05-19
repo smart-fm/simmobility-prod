@@ -48,7 +48,8 @@ public class NetworkVisualizer {
 	//The current road network, the simulation results we are showing, and the buffer we are printing it on.
 	private RoadNetwork network;
 	private SimulationResults simRes;
-	//private BufferedImage buffer;
+	
+	private int lastKnownFrame;
 	
 	//Turns on drawing of cut lines and fake agents.
 	private boolean showFakeAgent = false;
@@ -207,7 +208,7 @@ public class NetworkVisualizer {
 		//Save
 		this.network = network;
 		this.simRes = simRes;
-		//this.naturalSize = new Dimension(width100Percent, height100Percent);
+		this.lastKnownFrame = -1; //For caching purposed only; DON'T draw anything based on this.
 		this.fileName = fileName;
 		
 		//Rebuild the network spatial index.
@@ -310,19 +311,15 @@ public class NetworkVisualizer {
 			currView = zoomRect;
 		}
 
-		//Old scaling code: probably not relevant anymore.
-		/*if (false) {
-			//Determine the width and height of our canvas.
-			int width =  Math.max(1, (int)(naturalSize.width * percent));
-			int height = Math.max(1, (int)(naturalSize.height * percent));
-			buffer = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+		//Rebuild the Agent index.
+		if (lastKnownFrame != frameTick) {
+			lastKnownFrame = frameTick;
 			
-			//Make sure our canvas is always slightly bigger than the original size...
-			double width5Percent = 0.05 * (network.getLowerRight().x - network.getTopLeft().x);
-			double height5Percent = 0.05 * (network.getLowerRight().y - network.getTopLeft().y);
-			DPoint newTL = new DPoint(network.getTopLeft().x-width5Percent, network.getTopLeft().y-height5Percent);
-			DPoint newLR = new DPoint(network.getLowerRight().x+width5Percent, network.getLowerRight().y+height5Percent);
-		}*/
+			agentTicksIndex = new LazySpatialIndex<DrawableItem>();
+			addAllCrossingSignals(agentTicksIndex, frameTick);
+			addAllLaneSignals(agentTicksIndex, frameTick);
+		}
+		
 
 		//Now re-draw the rest.
 		if ((g!=null) && (size!=null)) {
@@ -341,6 +338,9 @@ public class NetworkVisualizer {
 		params.ShowCutLines = this.showFakeAgent;
 		params.ShowAimsunAnnotations = showAimsunLabels;
 		params.ShowMitsimAnnotations = showMitsimLabels;
+		params.CurrentViewSize = new Point2D.Double(currView.getWidth(), currView.getHeight());
+		params.DebugOn = debugOn;
+		params.DrawFakeOn = showFakeAgent;
 
 		//NOTE: This *might* not be the correct time to set this:
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -381,13 +381,13 @@ public class NetworkVisualizer {
 		//drawAllCrossings(g, ZoomCritical);
 
 		//Draw all pedestrian crossing lights
-		drawAllCrossingSignals(g, frameTick, params.PastCriticalZoom);
+		//drawAllCrossingSignals(g, frameTick, params.PastCriticalZoom);
 
 		//Draw all lane crossing lights
-		drawAllLaneSignals(g, frameTick, params.PastCriticalZoom);
+		//drawAllLaneSignals(g, frameTick, params.PastCriticalZoom);
 
 		//Draw all Agents now
-		drawAllAgents(g, frameTick);
+		//drawAllAgents(g, frameTick);
 		
 		//Draw all annotations
 		//drawAllAnnotations(g, showAimsunLabels, showMitsimLabels);
@@ -486,23 +486,27 @@ public class NetworkVisualizer {
 		}
 	}*/
 	
-	private void drawAllCrossingSignals(Graphics2D g, int currFrame, boolean ShowCrossingSignals) {
-		if (!ShowCrossingSignals) { return; }
+	private void addAllCrossingSignals(LazySpatialIndex<DrawableItem> index, int currFrame) {
 		if (simRes.ticks.isEmpty() && currFrame==0) { return; }
+		
 		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
 			//Get all lights and Crossings at this intersection (by id)
 			Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());
 			ArrayList<Integer> allPedestrainLights = at.getPedestrianLights();
 			ArrayList<Integer> crossingIDs = tempIntersection.getSigalCrossingIDs();
 
-			//Draw Crossing Lights
+			//Add all crossing lights to the spatial index.
 			for(int i=0; i<crossingIDs.size(); i++) {
 				if(network.getTrafficSignalCrossing().containsKey(crossingIDs.get(i))) {
 					DrawParams p = new DrawParams();
 					p.PastCriticalZoom = pastCriticalZoom();
 					
+					//NOTE: This is kind of hackish, but it WILL work. We should abstract TrafficSignalCrossing better later.
 					network.getTrafficSignalCrossing().get(crossingIDs.get(i)).setCurrColor(allPedestrainLights.get(i));
-					network.getTrafficSignalCrossing().get(crossingIDs.get(i)).draw(g, p);
+					
+					//Add it to the index.
+					DrawableItem item = network.getTrafficSignalCrossing().get(crossingIDs.get(i));
+					index.addItem(item, item.getBounds());
 				} else{
 					throw new RuntimeException("Unable to draw pedestrian crossing light; ID does not exist.");
 				}
@@ -510,9 +514,9 @@ public class NetworkVisualizer {
 		}
 	}
 	
-	private void drawAllLaneSignals(Graphics2D g, int currFrame, boolean ShowLaneSignals) {
-		if (!ShowLaneSignals) { return; }
+	private void addAllLaneSignals(LazySpatialIndex<DrawableItem> index, int currFrame) {
 		if (simRes.ticks.isEmpty() && currFrame==0) { return; }
+		
 		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
 			//Get Intersection ID and color
 			Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());
@@ -532,14 +536,14 @@ public class NetworkVisualizer {
 				ArrayList<Integer> lightColors = allVehicleLights.get(i);
 				
 				//Draw it
-				drawTrafficLines(g,signalLine, lightColors);
+				addTrafficLines(index, signalLine, lightColors);
 			}
 			
 		}
 	}
 	
 	
-	private void drawAllAgents(Graphics2D g, int currFrame) {
+	private void addAllAgents(LazySpatialIndex<DrawableItem> index, int currFrame) {
 		//It is possible (but unlikely) to have absolutely no agents at all.
 		// The only time this makes sense is if currFrame is equal to zero.
 		if (currFrame>=simRes.ticks.size()) {
@@ -561,21 +565,25 @@ public class NetworkVisualizer {
 			//Highlight?
 			boolean highlight = this.debugOn || currHighlightIDs.contains(key.intValue());
 			
-			//Draw
-			at.draw(g,scaleMult,this.showFakeAgent,highlight, new Point2D.Double(currView.getWidth(), currView.getHeight()));
+			//Add this agent
+			index.addItem(at, at.getBounds());
+			//at.draw(g,scaleMult,this.showFakeAgent,highlight, new Point2D.Double(currView.getWidth(), currView.getHeight()));
 			
 			//Retrieve the tracking agent; also draw it
 			AgentTick tr = trackings.get(key);
-			drawTrackingAgent(g, at, tr, scaleMult);
+			addTrackingAgent(index, at, tr, scaleMult);
 		}		
 	}
 	
-	private void drawTrackingAgent(Graphics2D g, AgentTick orig, AgentTick tracking, double scaleMult) {
+	private void addTrackingAgent(LazySpatialIndex<DrawableItem> index, AgentTick orig, AgentTick tracking, double scaleMult) {
 		if (orig==null || tracking==null) { return; }
-		tracking.draw(g, scaleMult, true, false, new Point2D.Double(currView.getWidth(), currView.getHeight()));
+		
+		index.addItem(tracking, tracking.getBounds());
+		//tracking.draw(g, scaleMult, true, false, new Point2D.Double(currView.getWidth(), currView.getHeight()));
 			
 		//Draw a circle and a line
-		g.setColor(hlColor);
+		//TODO: Re-enable this later.
+		/*g.setColor(hlColor);
 		g.setStroke(str1pix);
 		Point2D min = new Point2D.Double(Math.min(orig.getPos().getX(), tracking.getPos().getX()), Math.min(orig.getPos().getY(), tracking.getPos().getY()));
 		Point2D max = new Point2D.Double(Math.max(orig.getPos().getX(), tracking.getPos().getX()), Math.max(orig.getPos().getY(), tracking.getPos().getY()));
@@ -585,20 +593,25 @@ public class NetworkVisualizer {
 			Ellipse2D el = CircleFromPoints(min, max, dist/2);
 			g.draw(el);
 			g.draw(line);
-		}
+		}*/
 	}
 	
 	
 	
-	private void drawTrafficLines(Graphics2D g,ArrayList<ArrayList<TrafficSignalLine>> signalLine, ArrayList<Integer> lightColors) {
+	private void addTrafficLines(LazySpatialIndex<DrawableItem> index, ArrayList<ArrayList<TrafficSignalLine>> signalLine, ArrayList<Integer> lightColors) {
 		//0,1,2 = "Left", "Straight", "Right" turn lines.
 		//TODO: Again, this is a bit confusing. Please clean up. ~Seth
 		for (int i=0; i<signalLine.size()&&i<lightColors.size(); i++) {
 			if (!signalLine.get(i).isEmpty()) {
 				DrawParams p = new DrawParams();
 				p.PastCriticalZoom = pastCriticalZoom();
+				
+				//Again, hackish but it still works.
 				signalLine.get(i).get(0).setLightColor(lightColors.get(i));
-				signalLine.get(i).get(0).draw(g, p);
+				
+				//Add it to the index.
+				DrawableItem item = signalLine.get(i).get(0);
+				index.addItem(item, item.getBounds());
 			}
 		}	
 	}

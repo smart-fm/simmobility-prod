@@ -20,6 +20,10 @@ public interface DrawableItem {
 	public static final int Z_ORDER_TSL           =  80;
 	public static final int Z_ORDER_ANNOTATION    =  90;
 	
+	//We don't really care about the order of drivers/pedestrians
+	public static final int Z_ORDER_DRIVER        = 400;
+	public static final int Z_ORDER_PEDESTIRAN    = 400;
+	
 	///Draw this item.
 	public void draw(Graphics2D g, DrawParams params);
 	

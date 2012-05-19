@@ -95,6 +95,7 @@ public class TrafficSignalLine implements DrawableItem{
 	@Override
 	public void draw(Graphics2D g, DrawParams params) {
 		if (currColor==null) { return; }
+		if (!params.PastCriticalZoom) { return; }
 		g.setColor(currColor);
 			
 		drawArrow(g, (int)fromNode.getPos().getX(), (int)fromNode.getPos().getY(),(int)toNode.getPos().getX(),(int)toNode.getPos().getY());

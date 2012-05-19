@@ -41,7 +41,7 @@ public class TrafficSignalCrossing implements DrawableItem{
 	
 	
 	public Rectangle2D getBounds() {
-		final double BUFFER_CM = 10*100; //1m
+		final double BUFFER_CM = 10*100; //10m
 		Rectangle2D res = new Rectangle2D.Double(nearOne.getUnscaledX(), nearOne.getUnscaledY(), 0, 0);
 		res.add(nearTwo.getUnscaledX(), nearTwo.getUnscaledY());
 		res.add(farOne.getUnscaledX(), farOne.getUnscaledY());
@@ -73,6 +73,7 @@ public class TrafficSignalCrossing implements DrawableItem{
 	
 	public void draw(Graphics2D g, DrawParams params) {
 		if (currColor==null) { return; }
+		if (!params.PastCriticalZoom) { return; }
 		g.setColor(currColor);
 	
 		g.drawLine((int)nearOne.getX(), (int)nearOne.getY(), (int)nearTwo.getX(), (int)nearTwo.getY()); 

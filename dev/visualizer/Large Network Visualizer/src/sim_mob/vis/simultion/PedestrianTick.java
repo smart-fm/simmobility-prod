@@ -9,12 +9,15 @@ import java.awt.Graphics2D;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Hashtable;
 
 import sim_mob.vect.SimpleVectorImage;
 import sim_mob.vis.MainFrame;
+import sim_mob.vis.controls.DrawParams;
+import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.network.basic.FlippedScaledPoint;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.util.Utility;
@@ -78,6 +81,21 @@ public class PedestrianTick extends AgentTick {
 		}
 	}
 	
+	//Let's assume a person is 1m square?
+	public Rectangle2D getBounds() {
+		final double NODE_CM = 1*100; //1m square 
+		return new Rectangle2D.Double(
+			pos.getUnscaledX()-NODE_CM/2,
+			pos.getUnscaledY()-NODE_CM/2,
+			NODE_CM, NODE_CM);
+	}
+	
+	
+	public int getZOrder() {
+		return DrawableItem.Z_ORDER_PEDESTIRAN;
+	}
+	
+	
 	private static void MakePersonImage() {
 		//Load it.
 		try {
@@ -125,8 +143,11 @@ public class PedestrianTick extends AgentTick {
 	public void setID(int id){
 		this.ID = id;
 	}
-
-	public void draw(Graphics2D g, double scaleMultiplier, boolean drawFake, boolean debug, Point2D size100Percent){
+	
+	
+	public void draw(Graphics2D g, DrawParams params) {
+	//}
+	//public void draw(Graphics2D g, double scaleMultiplier, boolean drawFake, boolean debug, Point2D size100Percent){
 		
 		
 		//Save old transformation.
@@ -138,8 +159,11 @@ public class PedestrianTick extends AgentTick {
 		//Scale
 		//at.scale(1/scale + 0.2, 1/scale + 0.2);
 		
+		//TEMP
+		double scaleMultiplier = Math.max(ScaledPoint.getScaleFactor().getX(), ScaledPoint.getScaleFactor().getY());
+		
 		//Retrieve the image to draw
-		SimpleVectorImage svi = (drawFake&&fake) ? FakePersonImg : debug ? DebugPersonImg : PersonImg;
+		SimpleVectorImage svi = (params.DrawFakeOn&&fake) ? FakePersonImg : params.DebugOn ? DebugPersonImg : PersonImg;
 		BufferedImage toDraw = svi.getImage(1/scaleMultiplier + 0.2, 0);
 		
 		//Translate to top-left corner
@@ -166,7 +190,7 @@ public class PedestrianTick extends AgentTick {
 		
 		
 		//Sample debug output
-		if (debug) {
+		if (params.DebugOn) {
 			int sz = 3;
 			int x = (int)pos.getX();
 			int y = (int)pos.getY();

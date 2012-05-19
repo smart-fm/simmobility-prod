@@ -16,6 +16,8 @@ import java.util.Hashtable;
 
 import sim_mob.vect.SimpleVectorImage;
 import sim_mob.vis.MainFrame;
+import sim_mob.vis.controls.DrawParams;
+import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.network.basic.FlippedScaledPoint;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.util.Utility;
@@ -92,6 +94,21 @@ public class DriverTick extends AgentTick {
 	public DriverTick(double posX, double posY, double angle) {
 		this(posX, posY, angle, null);
 	}
+	
+	//Let's assume a car is 3m square?
+	public Rectangle2D getBounds() {
+		final double NODE_CM = 3*100; //3m square 
+		return new Rectangle2D.Double(
+			pos.getUnscaledX()-NODE_CM/2,
+			pos.getUnscaledY()-NODE_CM/2,
+			NODE_CM, NODE_CM);
+	}
+	
+	
+	public int getZOrder() {
+		return DrawableItem.Z_ORDER_DRIVER;
+	}
+	
 	
 	public DriverTick(double posX, double posY, double angle, RxLocation msgLocation) {
 		this.pos = new FlippedScaledPoint(posX, posY);
@@ -184,7 +201,10 @@ public class DriverTick extends AgentTick {
 	}
 	
 	
-	public void draw(Graphics2D g,double scaleMultiplier, boolean drawFake,boolean debug, Point2D size100Percent){
+	public void draw(Graphics2D g, DrawParams params) {
+		
+	//}
+	//public void draw(Graphics2D g,double scaleMultiplier, boolean drawFake,boolean debug, Point2D size100Percent){
 		AffineTransform oldAT = g.getTransform();
 
 		AffineTransform at = AffineTransform.getTranslateInstance(pos.getX(), pos.getY());
@@ -196,11 +216,11 @@ public class DriverTick extends AgentTick {
 		//TODO: Cache this somehow, see above.
 		//TODO: There should be a much easier mathematical way of doing this.
 		double angleD = angle;
-		if (size100Percent.getX() != size100Percent.getY()) {
+		if (params.CurrentViewSize.getX() != params.CurrentViewSize.getY()) {
 			if (angle>0 && angle!=90 && angle!=180 && angle!=270 && angle<360) {
 				//Guaranteed to be working with angles with non-zero x/y components, and a non-trivial skew factor.
-				double xScale = (double)(size100Percent.getX()) / Math.max(size100Percent.getX(), size100Percent.getY());
-				double yScale = (double)(size100Percent.getY()) / Math.max(size100Percent.getX(), size100Percent.getY());
+				double xScale = (double)(params.CurrentViewSize.getX()) / Math.max(params.CurrentViewSize.getX(), params.CurrentViewSize.getY());
+				double yScale = (double)(params.CurrentViewSize.getY()) / Math.max(params.CurrentViewSize.getX(), params.CurrentViewSize.getY());
 				
 				//System.out.println("Original angle: " + angleD);
 				
@@ -245,17 +265,22 @@ public class DriverTick extends AgentTick {
 
 		
 		if(this.length == 400){
-			 svi = (drawFake&&fake) ? FakeCarImg : debug ? DebugCarImg : CarImg;		
+			 svi = (params.DrawFakeOn&&fake) ? FakeCarImg : params.DebugOn ? DebugCarImg : CarImg;		
 		
 		}else if(this.length == 1200){
-			 svi = (drawFake&&fake) ? FakeBusImg : debug ? DebugBusImg : BusImg;		
+			 svi = (params.DrawFakeOn&&fake) ? FakeBusImg : params.DebugOn ? DebugBusImg : BusImg;		
 			
 		}else if(this.length == 1500){
-			 svi = (drawFake&&fake) ? FakeTruckImg : debug ? DebugTruckImg : TruckImg;		
+			 svi = (params.DrawFakeOn&&fake) ? FakeTruckImg : params.DebugOn ? DebugTruckImg : TruckImg;		
 		}else{
-			 svi = (drawFake&&fake) ? FakeCarImg : debug ? DebugCarImg : CarImg;
+			 svi = (params.DrawFakeOn&&fake) ? FakeCarImg : params.DebugOn ? DebugCarImg : CarImg;
 			 System.out.println("Error, No such length, use car image instead -- DriverTick, draw()");
 		}
+		
+		
+		//TEMP
+		double scaleMultiplier = Math.max(ScaledPoint.getScaleFactor().getX(), ScaledPoint.getScaleFactor().getY());
+		
 		
 		BufferedImage toDraw = svi.getImage(scaleMultiplier, angleD, true);
 		
@@ -289,7 +314,7 @@ public class DriverTick extends AgentTick {
 		g.setTransform(oldAT);
 		
 		//Sample debug output
-		if (debug) {
+		if (params.DebugOn) {
 			int sz = 12;
 			int x = (int)pos.getX();
 			int y = (int)pos.getY();

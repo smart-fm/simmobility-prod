@@ -331,6 +331,7 @@ public class NetworkVisualizer {
 		//Save all points to be drawn into a list, grouped by z-order:
 		DrawSorterAction act = new DrawSorterAction();
 		networkItemsIndex.forAllItemsInRange(currView, act, null);
+		agentTicksIndex.forAllItemsInRange(currView, act, null);
 		
 		//Draw parameters 
 		DrawParams params = new DrawParams();
@@ -357,7 +358,7 @@ public class NetworkVisualizer {
 		}
 		
 		//Update our progress bar to show how many items are being culled from view.
-		double percentDrawn = ((double)act.getItemCount()) / networkItemsIndex.getItemCount();
+		double percentDrawn = ((double)act.getItemCount()) / (networkItemsIndex.getItemCount()+agentTicksIndex.getItemCount());
 		parent.updatePercentDrawn(percentDrawn);
 		
 		
@@ -563,6 +564,7 @@ public class NetworkVisualizer {
 			AgentTick at = agents.get(key);
 			
 			//Highlight?
+			//TODO: This currently isn't hooked up anywhere; need to re-enable it.
 			boolean highlight = this.debugOn || currHighlightIDs.contains(key.intValue());
 			
 			//Add this agent

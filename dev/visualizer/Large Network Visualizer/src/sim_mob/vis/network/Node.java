@@ -56,7 +56,10 @@ public class Node implements DrawableItem {
 		return id;
 	}
 	
-	public void draw(Graphics2D g) {
+	public void draw(Graphics2D g, boolean pastCriticalZoom) {
+		//Skip if we're zoomed in and this is a uni-node
+		if (pastCriticalZoom && isUni) { return; }
+		
 		int[] coords = new int[]{(int)pos.getX()-NODE_SIZE/2, (int)pos.getY()-NODE_SIZE/2};
 		g.setColor(MainFrame.Config.getBackground("node"));
 			

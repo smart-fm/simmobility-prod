@@ -22,6 +22,7 @@ public class TrafficSignalLine implements DrawableItem{
 	private Lane toLane;
 	private Node fromNode;
 	private Node toNode;
+	private Color currColor;
 	
 	private final int ARR_SIZE = 6; 
 	
@@ -91,26 +92,25 @@ public class TrafficSignalLine implements DrawableItem{
 	}
 	
 	@Override
-	public void draw(Graphics2D g) {
+	public void draw(Graphics2D g, boolean pastCriticalZoom) {
+		if (currColor==null) { return; }
+		g.setColor(currColor);
 			
 		drawArrow(g, (int)fromNode.getPos().getX(), (int)fromNode.getPos().getY(),(int)toNode.getPos().getX(),(int)toNode.getPos().getY());
 		
 	}
 	
 	
-	
-	public void drawPerLight(Graphics2D g, Integer light){
-		
-			// Do not draw out red lights			
-			if(light == 2){	
-				g.setColor(Color.yellow);
-				draw(g);
-			} else if( light == 3){
-				g.setColor(Color.green);
-				draw(g);
-			}	
-		
+	public void setLightColor(Integer color) {
+		if (color == 2) {
+			currColor = Color.yellow;
+		} else if (color==3) {
+			currColor = Color.green;
+		} else {
+			currColor = null;
+		}
 	}
+	
     
 	public void drawArrow(Graphics2D g, int x1, int y1, int x2, int y2) {
 		AffineTransform oldAt = g.getTransform();

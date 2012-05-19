@@ -82,7 +82,7 @@ public class LaneMarking implements DrawableItem{
 	}
 	
 	@Override
-	public void draw(Graphics2D g) {
+	public void draw(Graphics2D g, boolean pastCriticalZoom) {
 		//Retrieve
 		Color clr = MainFrame.Config.getLineColor(isSideWalk?"sidewalk":"lane");
 		Stroke strk = MainFrame.Config.getLineStroke(isSideWalk?"sidewalk":"lane");

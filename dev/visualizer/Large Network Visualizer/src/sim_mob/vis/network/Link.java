@@ -85,7 +85,7 @@ public class Link implements DrawableItem {
 	public void setFwdPathSegmentIDs(ArrayList<Integer> segIDs) { fwdPathSegmentIDs = segIDs; }
 	public void setRevPathSegmentIDs(ArrayList<Integer> segIDs) { revPathSegmentIDs = segIDs; }
 	
-	public void draw(Graphics2D g) {
+	public void draw(Graphics2D g, boolean pastCriticalZoom) {
 		g.setColor(roadColor);
 		g.setStroke(roadStroke);
 		g.drawLine((int)start.getPos().getX(), (int)start.getPos().getY(), (int)end.getPos().getX(), (int)end.getPos().getY()); 

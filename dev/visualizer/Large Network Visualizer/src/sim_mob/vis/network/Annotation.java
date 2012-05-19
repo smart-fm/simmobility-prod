@@ -66,7 +66,7 @@ public class Annotation implements DrawableItem {
 	public ScaledPoint getPos() { return pos; }
 	
 
-	public void draw(Graphics2D g) {
+	public void draw(Graphics2D g, boolean pastCriticalZoom) {
 		//Skip?
 		if (message.isEmpty()) { return; }
 		

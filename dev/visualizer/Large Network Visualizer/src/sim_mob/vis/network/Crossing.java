@@ -59,7 +59,7 @@ public class Crossing implements DrawableItem{
 	
 	
 	
-	public void draw(Graphics2D g){
+	public void draw(Graphics2D g, boolean pastCriticalZoom){
 		g.setColor(crossingColor);
 		g.setStroke(crossingStroke);    
 

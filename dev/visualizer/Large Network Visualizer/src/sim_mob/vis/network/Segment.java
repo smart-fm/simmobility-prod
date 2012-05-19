@@ -53,7 +53,9 @@ public class Segment implements DrawableItem {
 	public Link getParent() { return parent; }
 	public int getparentLinkID(){ return parentLinkID;}
 	
-	public void draw(Graphics2D g) {
+	public void draw(Graphics2D g, boolean pastCriticalZoom) {
+		if (pastCriticalZoom) { return; }
+		
 		g.setColor(roadColor);
 		g.setStroke(roadStroke);
 		g.drawLine((int)from.getPos().getX(), (int)from.getPos().getY(), (int)to.getPos().getX(), (int)to.getPos().getY());

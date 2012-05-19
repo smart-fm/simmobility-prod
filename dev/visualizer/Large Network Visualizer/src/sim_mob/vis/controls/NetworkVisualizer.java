@@ -96,6 +96,16 @@ public class NetworkVisualizer {
 	private String fileName;
 	public String getFileName() { return fileName; }
 	
+	
+	//Are we past the "critical zoom" point?
+	public static boolean PastCriticalZoom() {
+		//Just an estimate.
+		//0.04
+		double oneM = 100 * Math.min(ScaledPoint.getScaleFactor().getX(), ScaledPoint.getScaleFactor().getY());
+		return oneM > 4;
+	}
+	
+	
 	private static final double Distance(double x1, double y1, double x2, double y2) {
 		double dX = x1-x2;
 		double dY = y1-y2;
@@ -335,7 +345,7 @@ public class NetworkVisualizer {
 				//TEMP: restrict
 				if ((item.getZOrder()==DrawableItem.Z_ORDER_NODE) || 
 					(item.getZOrder()==DrawableItem.Z_ORDER_SEGMENT)) {
-					item.draw(g);
+					item.draw(g, PastCriticalZoom());
 				}
 			}
 		}
@@ -416,38 +426,38 @@ public class NetworkVisualizer {
 
 	
 	
-	private void drawAllNodes(Graphics2D g, boolean ShowUniNodes) {
+	/*private void drawAllNodes(Graphics2D g, boolean ShowUniNodes) {
 		for (Node n : network.getNodes().values()) {
 			if (ShowUniNodes || !n.getIsUni()) {
-				n.draw(g);
+				n.draw(g, PastCriticalZoom());
 			}
 		}
-	}
+	}*/
 	
 	private void drawAllAnnotations(Graphics2D g, boolean showAimsun, boolean showMitsim) {
 		if (showAimsun) {
 			for (Annotation an : network.getAimsunAnnotations()) {
-				an.draw(g);
+				an.draw(g, PastCriticalZoom());
 			}
 		}
 		if (showMitsim) {
 			for (Annotation an : network.getMitsimAnnotations()) {
-				an.draw(g);
+				an.draw(g, PastCriticalZoom());
 			}
 		}
 	}
 	
-	private void drawAllSegments(Graphics2D g, boolean ShowSegments) {
+	/*private void drawAllSegments(Graphics2D g, boolean ShowSegments) {
 		if(!ShowSegments) { return; }
 		for (Segment sn : network.getSegments().values()) {
-			sn.draw(g);
+			sn.draw(g, PastCriticalZoom());
 		}
-	}
+	}*/
 	
 	private void drawAllCutlines(Graphics2D g, boolean ShowCutLines) {
 		if (!ShowCutLines) { return; }
 		for(CutLine ctl : network.getCutLine().values()){
-			ctl.draw(g);	
+			ctl.draw(g, PastCriticalZoom());	
 		}
 	}
 	
@@ -467,7 +477,7 @@ public class NetworkVisualizer {
 		if (!ShowLanes) { return; }
 		for (Hashtable<Integer,LaneMarking> lineMarkingTable : network.getLaneMarkings().values()) {
 			for(LaneMarking lineMarking : lineMarkingTable.values()){
-				lineMarking.draw(g);
+				lineMarking.draw(g, PastCriticalZoom());
 			}
 		}
 	}
@@ -476,7 +486,7 @@ public class NetworkVisualizer {
 	private void drawAllCrossings(Graphics2D g, boolean ShowCrossings) {
 		if (!ShowCrossings) { return; }
 		for(Crossing crossing : network.getCrossings().values()){
-			crossing.draw(g);
+			crossing.draw(g, PastCriticalZoom());
 		}
 	}
 	
@@ -492,7 +502,8 @@ public class NetworkVisualizer {
 			//Draw Crossing Lights
 			for(int i=0; i<crossingIDs.size(); i++) {
 				if(network.getTrafficSignalCrossing().containsKey(crossingIDs.get(i))) {
-					network.getTrafficSignalCrossing().get(crossingIDs.get(i)).drawSignalCrossing(g, allPedestrainLights.get(i));
+					network.getTrafficSignalCrossing().get(crossingIDs.get(i)).setCurrColor(allPedestrainLights.get(i));
+					network.getTrafficSignalCrossing().get(crossingIDs.get(i)).draw(g, PastCriticalZoom());
 				} else{
 					throw new RuntimeException("Unable to draw pedestrian crossing light; ID does not exist.");
 				}
@@ -585,7 +596,8 @@ public class NetworkVisualizer {
 		//TODO: Again, this is a bit confusing. Please clean up. ~Seth
 		for (int i=0; i<signalLine.size()&&i<lightColors.size(); i++) {
 			if (!signalLine.get(i).isEmpty()) {
-				signalLine.get(i).get(0).drawPerLight(g, lightColors.get(i));
+				signalLine.get(i).get(0).setLightColor(lightColors.get(i));
+				signalLine.get(i).get(0).draw(g, PastCriticalZoom());
 			}
 		}	
 	}

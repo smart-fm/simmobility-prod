@@ -23,6 +23,8 @@ public class TrafficSignalCrossing implements DrawableItem{
 	private ScaledPoint farTwo;
 	private int id;
 	
+	private Color currColor;
+	
 	public TrafficSignalCrossing(ScaledPoint nearOne, ScaledPoint nearTwo, ScaledPoint farOne, ScaledPoint farTwo,int id){
 		this.nearOne = nearOne;
 		this.nearTwo = nearTwo;
@@ -55,28 +57,22 @@ public class TrafficSignalCrossing implements DrawableItem{
 	public int getId() { return id; }
 
 	
-	
-	public void drawSignalCrossing(Graphics2D g, Integer light){
-		
-		if(light == 1)
-		{
-			g.setColor(Color.RED);
-			draw(g);
-		} else if(light == 2){
-			g.setColor(Color.YELLOW);
-			draw(g);
-		} else if(light == 3){
-			g.setColor(Color.GREEN);
-			draw(g);
-		} else{
-			
+	public void setCurrColor(Integer color) {
+		if (color==1) {
+			currColor = Color.red;
+		} else if (color==2) {
+			currColor = Color.yellow;
+		} else if (color==3) {
+			currColor = Color.green;
+		} else {
 			System.out.println("Error, No such kind of traffic light -- TrafficSignalCrossing, drawSignalCrossing()");
 		}
-
 	}
 	
 	
-	public void draw(Graphics2D g){
+	public void draw(Graphics2D g, boolean pastCriticalZoom) {
+		if (currColor==null) { return; }
+		g.setColor(currColor);
 	
 		g.drawLine((int)nearOne.getX(), (int)nearOne.getY(), (int)nearTwo.getX(), (int)nearTwo.getY()); 
 		g.drawLine((int)farOne.getX(), (int)farOne.getY(), (int)farTwo.getX(), (int)farTwo.getY()); 

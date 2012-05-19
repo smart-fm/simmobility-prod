@@ -44,7 +44,7 @@ public class CutLine implements DrawableItem{
 	}
 	
 	@Override
-	public void draw(Graphics2D g) {
+	public void draw(Graphics2D g, boolean pastCriticalZoom) {
 		// TODO Auto-generated method stub
 		if(color.equals("red")){
 			g.setColor(Color.white);

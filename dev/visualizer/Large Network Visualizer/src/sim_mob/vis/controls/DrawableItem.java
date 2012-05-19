@@ -20,7 +20,7 @@ public interface DrawableItem {
 	public static final int Z_ORDER_ANNOTATION    =  90;
 	
 	///Draw this item.
-	public void draw(Graphics2D g);
+	public void draw(Graphics2D g, boolean pastCriticalZoom);
 	
 	///Returns the bounds (in real, unscaled x,y coordinates) of this item.
 	///  These bounds are not expected to change; if they do change, then the 

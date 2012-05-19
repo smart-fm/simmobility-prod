@@ -318,6 +318,7 @@ public class NetworkVisualizer {
 			agentTicksIndex = new LazySpatialIndex<DrawableItem>();
 			addAllCrossingSignals(agentTicksIndex, frameTick);
 			addAllLaneSignals(agentTicksIndex, frameTick);
+			addAllAgents(agentTicksIndex, frameTick);
 		}
 		
 

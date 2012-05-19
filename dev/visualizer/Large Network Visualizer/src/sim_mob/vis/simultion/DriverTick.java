@@ -207,7 +207,15 @@ public class DriverTick extends AgentTick {
 	//public void draw(Graphics2D g,double scaleMultiplier, boolean drawFake,boolean debug, Point2D size100Percent){
 		AffineTransform oldAT = g.getTransform();
 
-		AffineTransform at = AffineTransform.getTranslateInstance(pos.getX(), pos.getY());
+		
+		//System.out.println("Drawing at: " + pos.getX() + "," + pos.getY());
+		
+
+		//AffineTransform at = AffineTransform.getTranslateInstance(pos.getX(), pos.getY());
+		AffineTransform at = new AffineTransform(oldAT);
+		at.translate(pos.getX(), pos.getY());
+		
+		
 		
 		//Your visible angle depends on the skew of the current viewport. 
 		//  For now we just project and return the angle each time, but this can
@@ -280,6 +288,7 @@ public class DriverTick extends AgentTick {
 		
 		//TEMP
 		double scaleMultiplier = Math.max(ScaledPoint.getScaleFactor().getX(), ScaledPoint.getScaleFactor().getY());
+		scaleMultiplier = 8;
 		
 		
 		BufferedImage toDraw = svi.getImage(scaleMultiplier, angleD, true);
@@ -337,7 +346,11 @@ public class DriverTick extends AgentTick {
 		float targetY = (float)(pos.getY());
 		
 		//Create a new translation matrix which is located at the center of the string.
-		AffineTransform trans = AffineTransform.getTranslateInstance(targetX, targetY);
+		//AffineTransform trans = AffineTransform.getTranslateInstance(targetX, targetY);
+		AffineTransform trans = new AffineTransform(oldTrans);
+		trans.translate(targetX, targetY);
+		
+		
 		//Apply the transformation, draw the string at the origin.
 		g.setTransform(trans);
 		

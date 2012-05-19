@@ -154,17 +154,23 @@ public class PedestrianTick extends AgentTick {
 		AffineTransform oldAT = g.getTransform();
 		
 		//Translate
-		AffineTransform at = AffineTransform.getTranslateInstance(pos.getX(), pos.getY());
+		//AffineTransform at = AffineTransform.getTranslateInstance(pos.getX(), pos.getY());
+		AffineTransform at = new AffineTransform(oldAT);
+		at.translate(pos.getX(), pos.getY());
 		
 		//Scale
 		//at.scale(1/scale + 0.2, 1/scale + 0.2);
 		
 		//TEMP
 		double scaleMultiplier = Math.max(ScaledPoint.getScaleFactor().getX(), ScaledPoint.getScaleFactor().getY());
+		scaleMultiplier = 8;
+		
+		//System.out.println("Scale multiplier: " + scaleMultiplier + " => " + (1/scaleMultiplier + 0.2));
 		
 		//Retrieve the image to draw
 		SimpleVectorImage svi = (params.DrawFakeOn&&fake) ? FakePersonImg : params.DebugOn ? DebugPersonImg : PersonImg;
-		BufferedImage toDraw = svi.getImage(1/scaleMultiplier + 0.2, 0);
+		//BufferedImage toDraw = svi.getImage(1/scaleMultiplier + 0.2, 0);
+		BufferedImage toDraw = svi.getImage(scaleMultiplier, 0);
 		
 		//Translate to top-left corner
 		at.translate(-toDraw.getWidth()/2, -toDraw.getHeight()/2);

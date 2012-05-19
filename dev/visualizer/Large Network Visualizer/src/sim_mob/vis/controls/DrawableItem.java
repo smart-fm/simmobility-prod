@@ -13,6 +13,7 @@ public interface DrawableItem {
 	public static final int Z_ORDER_LINK          =  20;
 	public static final int Z_ORDER_SEGMENT       =  30;
 	public static final int Z_ORDER_CUTLINE       =  40;
+	public static final int Z_ORDER_SEGMENT_NAMES =  45;
 	public static final int Z_ORDER_LANEMARKING   =  50;
 	public static final int Z_ORDER_CROSSING      =  60;
 	public static final int Z_ORDER_TSC           =  70;

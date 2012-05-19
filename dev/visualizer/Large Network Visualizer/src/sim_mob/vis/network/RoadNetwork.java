@@ -1,6 +1,7 @@
 package sim_mob.vis.network;
 
 import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.Point;
 
 import java.io.*;
@@ -41,6 +42,7 @@ public class RoadNetwork {
 	private ArrayList<Annotation> annot_aimsun;
 	private ArrayList<Annotation> annot_mitsim;
 	private Hashtable<Integer, Link> links;
+	private Hashtable<String, LinkName> linkNames;
 	private Hashtable<Integer, Segment> segments;
 	private Hashtable<Integer,Hashtable<Integer,LaneMarking>> linaMarkings;
 	private Hashtable<Integer, Crossing> crossings;
@@ -68,6 +70,7 @@ public class RoadNetwork {
 	public ArrayList<Annotation> getAimsunAnnotations() { return annot_aimsun; }
 	public ArrayList<Annotation> getMitsimAnnotations() { return annot_mitsim; }
 	public Hashtable<Integer, Link> getLinks() { return links; }
+	public Hashtable<String, LinkName> getLinkNames() { return linkNames; }
 	public Hashtable<Integer, Segment> getSegments() { return segments; }
 	public Hashtable<Integer, Hashtable<Integer,LaneMarking>> getLaneMarkings(){ return linaMarkings; }
 	public Hashtable<Integer, Crossing> getCrossings() { return crossings; }
@@ -87,6 +90,7 @@ public class RoadNetwork {
 		annot_aimsun = new ArrayList<Annotation>();
 		annot_mitsim = new ArrayList<Annotation>();
 		links = new Hashtable<Integer, Link>();
+		linkNames = new Hashtable<String, LinkName>();
 		segments = new Hashtable<Integer, Segment>();
 		linaMarkings = new Hashtable<Integer,Hashtable<Integer,LaneMarking>>();
 		lanes = new Hashtable<Integer, Hashtable<Integer,Lane>>();
@@ -172,6 +176,9 @@ public class RoadNetwork {
 		cornerLR = new DPoint(xBounds[1], yBounds[1]);
 	
 		
+		//Add Link n ames
+		this.addLinkNames();
+		
 		//Populate Intersections
 		this.populateIntersections();
 		
@@ -182,6 +189,20 @@ public class RoadNetwork {
 		//Space node annotations as necessary to avoid distortion
 		this.spaceNodeAnnotations();
 	}
+	
+	
+	private void addLinkNames() {
+		//Keep track and avoid drawing names more than once.
+		Set<String> alreadyDrawn = new HashSet<String>();
+		for (Link ln : getLinks().values()) {
+			String key = ln.getAuthoritativeRoadName();
+			if (!alreadyDrawn.contains(key)) {
+				alreadyDrawn.add(key);
+				this.linkNames.put(key, new LinkName(ln, ln.getName())); 
+			}
+		}
+	}
+	
 			
 	private void dispatchConstructionRequest(String objType, int frameID, int objID, String rhs, double[] xBounds, double[] yBounds) throws IOException {
 		//Nodes are displayed the same
@@ -231,7 +252,7 @@ public class RoadNetwork {
 	    }
 	    
 	    //Create a new Link, save it
-	    Link toAdd = new Link(name, startNode, endNode);
+	    Link toAdd = new Link(name, startNode, endNode, objID);
 	    toAdd.setFwdPathSegmentIDs(Utility.ParseLinkPaths(props.get("fwd-path")));
 	    toAdd.setRevPathSegmentIDs(Utility.ParseLinkPaths(props.get("rev-path")));
 	    links.put(objID, toAdd);
@@ -377,7 +398,7 @@ public class RoadNetwork {
 	    }
 	    
 	    //Create a new Link, save it
-	    segments.put(objID, new Segment(parent, fromNode, toNode, parentLinkID));
+	    segments.put(objID, new Segment(parent, fromNode, toNode));
 
 	    
 	}
@@ -585,7 +606,7 @@ public class RoadNetwork {
 					Object aKey = segmentKeys.nextElement();
 					Integer segmentID = (Integer) aKey;
 					Segment tempSegment = segments.get(aKey);
-					int parentLinkID = tempSegment.getparentLinkID();
+					int parentLinkID = tempSegment.getParent().getId();
 				
 					if(tempLinkID == parentLinkID ){
 						tempSegmentIDs.add(segmentID);

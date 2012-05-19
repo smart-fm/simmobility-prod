@@ -174,6 +174,9 @@ public class NetworkVisualizer {
 		for (Link ln : net.getLinks().values()) {
 			res.addItem(ln, ln.getBounds());
 		}
+		for (LinkName ln : net.getLinkNames().values()) {
+			res.addItem(ln, ln.getBounds());
+		}
 		for (Segment sg : net.getSegments().values()) {
 			res.addItem(sg, sg.getBounds());
 		}
@@ -369,7 +372,7 @@ public class NetworkVisualizer {
 		//drawAllCutlines(g, this.showFakeAgent);
 		
 		//Draw all names
-		drawAllNames(g);
+		//drawAllNames(g);
 		
 		//Draw individual lanes
 		//drawAllLanes(g, ZoomCritical);
@@ -464,17 +467,7 @@ public class NetworkVisualizer {
 		}
 	}*/
 	
-	private void drawAllNames(Graphics2D g) {
-		//Keep track and avoid drawing names more than once.
-		Set<String> alreadyDrawn = new HashSet<String>();
-		for (Link ln : network.getLinks().values()) {
-			String key = ln.getAuthoritativeRoadName();
-			if (!alreadyDrawn.contains(key)) {
-				alreadyDrawn.add(key);
-				//ln.drawName(g, currPercentZoom);  //TODO: This should use scaled points! 
-			}
-		}
-	}
+
 	
 	/*private void drawAllLanes(Graphics2D g, boolean ShowLanes) {
 		if (!ShowLanes) { return; }

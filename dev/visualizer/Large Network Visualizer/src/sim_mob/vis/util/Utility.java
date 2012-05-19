@@ -138,6 +138,11 @@ public class Utility {
 	}
 	
 	
+	public static final String printRect(Rectangle2D rect) {
+		return rect.getX() + "," + rect.getY() + " => " + rect.getWidth() + "," + rect.getHeight();
+	}
+	
+	
 	//Haven't tested downscaling, scale to zero, etc.
 	public static void resizeRectangle(Rectangle2D rect, double newWidth, double newHeight) {
 		rect.setRect(

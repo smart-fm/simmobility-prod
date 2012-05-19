@@ -319,6 +319,11 @@ public class NetworkVisualizer {
 			addAllCrossingSignals(agentTicksIndex, frameTick);
 			addAllLaneSignals(agentTicksIndex, frameTick);
 			addAllAgents(agentTicksIndex, frameTick);
+			
+			
+			//TEMP:
+			//System.out.println("Network bounds: " + Utility.printRect(networkItemsIndex.getBounds()));
+			//System.out.println(" Agents bounds: " + Utility.printRect(agentTicksIndex.getBounds()));
 		}
 		
 
@@ -411,6 +416,7 @@ public class NetworkVisualizer {
 			if (!toDraw.containsKey(zOrder)) {
 				toDraw.put(zOrder, new LinkedList<DrawableItem>());
 			}
+			
 			toDraw.get(zOrder).add(item);
 			totalItems++;
 		}

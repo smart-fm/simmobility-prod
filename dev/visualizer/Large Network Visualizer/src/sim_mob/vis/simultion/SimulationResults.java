@@ -25,10 +25,10 @@ public class SimulationResults {
 	
 	public int frame_length_ms;
 	
-	private static boolean OutOfBounds(double x, double y, RoadNetwork rn) {
+	/*private static boolean OutOfBounds(double x, double y, RoadNetwork rn) {
 		return     (x < rn.getTopLeft().x) || (x > rn.getLowerRight().x)
 				|| (y < rn.getTopLeft().y) || (y > rn.getLowerRight().y);
-	}
+	}*/
 	
 	public SimulationResults(BufferedReader inFile, RoadNetwork rn, HashSet<Integer> uniqueAgentIDs) throws IOException {
 		ticks = new ArrayList<TimeTick>();
@@ -83,7 +83,7 @@ public class SimulationResults {
 		for (TimeTick tt : ticks) {
 			for (AgentTick at : tt.agentTicks.values()) {
 				//Skip pedestrians; they're already using the right coordinates
-				if (!OutOfBounds(at.getPos().getUnscaledX(), at.getPos().getUnscaledY(), rn)) {
+				/*if (!OutOfBounds(at.getPos().getUnscaledX(), at.getPos().getUnscaledY(), rn)) {
 					continue;
 				}
 				
@@ -100,7 +100,7 @@ public class SimulationResults {
 				double resY = amtY + rn.getTopLeft().y;
 				
 				//Save
-				at.pos = new ScaledPoint(resX, resY);
+				at.pos = new ScaledPoint(resX, resY);*/
 			}
 		    
 			
@@ -223,10 +223,10 @@ public class SimulationResults {
 	    
 	    
 	    //TEMP: Hack for out-of-bounds agents
-	    if (OutOfBounds(xPos, yPos, rn)) {
+	    /*if (OutOfBounds(xPos, yPos, rn)) {
 	    	Utility.CheckBounds(xBounds, xPos);
 	    	Utility.CheckBounds(yBounds, yPos);
-	    }
+	    }*/
 	    
 	    //Double-check angle
 	    if (angle<0 || angle>360) {
@@ -286,10 +286,10 @@ public class SimulationResults {
 	    int numPassengers = Integer.parseInt(props.get("passengers"));
 	    
 	    //TEMP: Hack for out-of-bounds agents
-	    if (OutOfBounds(xPos, yPos, rn)) {
+	    /*if (OutOfBounds(xPos, yPos, rn)) {
 	    	Utility.CheckBounds(xBounds, xPos);
 	    	Utility.CheckBounds(yBounds, yPos);
-	    }
+	    }*/
 	    
 	    //Ensure the frame has been created
 	    while (ticks.size()<=frameID) {
@@ -329,10 +329,10 @@ public class SimulationResults {
 	    //Integer.parseInt(props.get("pedSig")); //Currently not used
 	    
 	    //TEMP: Hack for out-of-bounds agents
-	    if (OutOfBounds(xPos, yPos, rn)) {
+	    /*if (OutOfBounds(xPos, yPos, rn)) {
 	    	Utility.CheckBounds(xBounds, xPos);
 	    	Utility.CheckBounds(yBounds, yPos);
-	    }
+	    }*/
 	    
 	    //Ensure the frame has been created
 	    while (ticks.size()<=frameID) {

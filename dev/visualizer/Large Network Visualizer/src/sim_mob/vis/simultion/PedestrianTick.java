@@ -163,7 +163,7 @@ public class PedestrianTick extends AgentTick {
 		
 		//TEMP
 		double scaleMultiplier = Math.max(ScaledPoint.getScaleFactor().getX(), ScaledPoint.getScaleFactor().getY());
-		scaleMultiplier = 8;
+		scaleMultiplier = 2;
 		
 		//System.out.println("Scale multiplier: " + scaleMultiplier + " => " + (1/scaleMultiplier + 0.2));
 		

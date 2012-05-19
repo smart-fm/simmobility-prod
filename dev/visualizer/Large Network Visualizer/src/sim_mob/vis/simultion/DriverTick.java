@@ -98,10 +98,14 @@ public class DriverTick extends AgentTick {
 	//Let's assume a car is 3m square?
 	public Rectangle2D getBounds() {
 		final double NODE_CM = 3*100; //3m square 
-		return new Rectangle2D.Double(
+		Rectangle2D res = new Rectangle2D.Double(
 			pos.getUnscaledX()-NODE_CM/2,
 			pos.getUnscaledY()-NODE_CM/2,
 			NODE_CM, NODE_CM);
+		
+		//System.out.println("Driver bounds: " + Utility.printRect(res));
+		
+		return res;
 	}
 	
 	
@@ -115,6 +119,8 @@ public class DriverTick extends AgentTick {
 		this.angle = angle;
 		this.fake = false;
 		//DriverTick.isCar = true;
+		
+		//System.out.println(posY + " : " + this.pos.getUnscaledY());
 		
 		this.msgLocation = msgLocation;
 		if(CarImg==null){

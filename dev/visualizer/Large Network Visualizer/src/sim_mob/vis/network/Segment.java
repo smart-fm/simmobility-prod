@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Rectangle2D.Double;
 
+import sim_mob.vis.controls.DrawParams;
 import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.util.Utility;
 
@@ -53,8 +54,8 @@ public class Segment implements DrawableItem {
 	public Link getParent() { return parent; }
 	public int getparentLinkID(){ return parentLinkID;}
 	
-	public void draw(Graphics2D g, boolean pastCriticalZoom) {
-		if (pastCriticalZoom) { return; }
+	public void draw(Graphics2D g, DrawParams params) {
+		if (params.PastCriticalZoom) { return; }
 		
 		g.setColor(roadColor);
 		g.setStroke(roadStroke);

@@ -5,6 +5,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.Rectangle2D.Double;
 
 import sim_mob.vis.MainFrame;
+import sim_mob.vis.controls.DrawParams;
 import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.network.basic.ScaledPoint;
 
@@ -56,9 +57,9 @@ public class Node implements DrawableItem {
 		return id;
 	}
 	
-	public void draw(Graphics2D g, boolean pastCriticalZoom) {
+	public void draw(Graphics2D g, DrawParams params) {
 		//Skip if we're zoomed in and this is a uni-node
-		if (pastCriticalZoom && isUni) { return; }
+		if (params.PastCriticalZoom && isUni) { return; }
 		
 		int[] coords = new int[]{(int)pos.getX()-NODE_SIZE/2, (int)pos.getY()-NODE_SIZE/2};
 		g.setColor(MainFrame.Config.getBackground("node"));

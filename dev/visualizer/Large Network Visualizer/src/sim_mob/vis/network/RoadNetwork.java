@@ -399,14 +399,14 @@ public class RoadNetwork {
 	    
 	    Node res = new Node(x, y, isUni,objID);
 	    if (props.containsKey("aimsun-id")) {
-	    	Annotation an = new Annotation(new Point((int)x, (int)y), props.get("aimsun-id"));
+	    	Annotation an = new Annotation(new Point((int)x, (int)y), props.get("aimsun-id"), 'A');
 	    	an.setBackgroundColor(Annotations_AimsunBgColor);
 	    	an.setBorderColor(Annotations_AimsunFgColor);
 	    	an.setFontColor(Annotations_FontColor);
 	    	annot_aimsun.add(an);
 	    }
 	    if (props.containsKey("mitsim-id")) {
-	    	Annotation an = new Annotation(new Point((int)x, (int)y), props.get("mitsim-id"));
+	    	Annotation an = new Annotation(new Point((int)x, (int)y), props.get("mitsim-id"), 'M');
 	    	an.setBackgroundColor(Annotations_MitsimBgColor);
 	    	an.setBorderColor(Annotations_MitsimFgColor);
 	    	an.setFontColor(Annotations_FontColor);

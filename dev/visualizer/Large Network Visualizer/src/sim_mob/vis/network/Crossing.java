@@ -3,6 +3,7 @@ package sim_mob.vis.network;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
+import sim_mob.vis.controls.DrawParams;
 import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.util.Utility;
@@ -59,7 +60,9 @@ public class Crossing implements DrawableItem{
 	
 	
 	
-	public void draw(Graphics2D g, boolean pastCriticalZoom){
+	public void draw(Graphics2D g, DrawParams params){
+		if (!params.PastCriticalZoom) { return; }
+		
 		g.setColor(crossingColor);
 		g.setStroke(crossingStroke);    
 

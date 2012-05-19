@@ -3,6 +3,7 @@ package sim_mob.vis.network;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
+import sim_mob.vis.controls.DrawParams;
 import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.util.Utility;
@@ -22,6 +23,10 @@ public class Annotation implements DrawableItem {
 	private Color bkgrdColor;
 	private Color borderColor;
 	private Color fontColor;
+	
+	//Workaround
+	private boolean isAimsun;
+	private boolean isMitsim;
 
 	//Position to draw this annotation
 	//The offset is a magnitude (x,y) amount to offset the position by.
@@ -37,12 +42,15 @@ public class Annotation implements DrawableItem {
 	}
 	
 	
-	public Annotation(Point position, String message) {
+	///For now, type=='A' for aimsun, 'M' for mitsim, or anything else for neither.
+	public Annotation(Point position, String message, char type) {
 		pos = new ScaledPoint(position.x, position.y, null);
 		this.message = message;
 		bkgrdColor = Color.gray;
 		borderColor = Color.white;
 		fontColor = Color.black;
+		this.isAimsun = (type=='A');
+		this.isMitsim = (type=='M');
 	}
 	
 	//We assume annotations are about 10m (as printed on a node).
@@ -66,9 +74,11 @@ public class Annotation implements DrawableItem {
 	public ScaledPoint getPos() { return pos; }
 	
 
-	public void draw(Graphics2D g, boolean pastCriticalZoom) {
+	public void draw(Graphics2D g, DrawParams params) {
 		//Skip?
 		if (message.isEmpty()) { return; }
+		if (isMitsim && (!params.ShowMitsimAnnotations)) { return; }
+		if (isAimsun && (!params.ShowAimsunAnnotations)) { return; }
 		
 		//Measure
 		final int extra = 4;

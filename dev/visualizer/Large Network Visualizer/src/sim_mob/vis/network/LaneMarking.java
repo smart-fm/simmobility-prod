@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.geom.Rectangle2D;
 
 import sim_mob.vis.MainFrame;
+import sim_mob.vis.controls.DrawParams;
 import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.util.Utility;
@@ -82,7 +83,9 @@ public class LaneMarking implements DrawableItem{
 	}
 	
 	@Override
-	public void draw(Graphics2D g, boolean pastCriticalZoom) {
+	public void draw(Graphics2D g, DrawParams params) {
+		if (!params.PastCriticalZoom) { return; }
+		
 		//Retrieve
 		Color clr = MainFrame.Config.getLineColor(isSideWalk?"sidewalk":"lane");
 		Stroke strk = MainFrame.Config.getLineStroke(isSideWalk?"sidewalk":"lane");

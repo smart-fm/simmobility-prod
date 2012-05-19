@@ -9,6 +9,7 @@ import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 
+import sim_mob.vis.controls.DrawParams;
 import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.util.Utility;
 
@@ -92,7 +93,7 @@ public class TrafficSignalLine implements DrawableItem{
 	}
 	
 	@Override
-	public void draw(Graphics2D g, boolean pastCriticalZoom) {
+	public void draw(Graphics2D g, DrawParams params) {
 		if (currColor==null) { return; }
 		g.setColor(currColor);
 			

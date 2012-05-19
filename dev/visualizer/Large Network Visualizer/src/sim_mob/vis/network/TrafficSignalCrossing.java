@@ -6,6 +6,7 @@ import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.geom.Rectangle2D;
 
+import sim_mob.vis.controls.DrawParams;
 import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.util.Utility;
@@ -70,7 +71,7 @@ public class TrafficSignalCrossing implements DrawableItem{
 	}
 	
 	
-	public void draw(Graphics2D g, boolean pastCriticalZoom) {
+	public void draw(Graphics2D g, DrawParams params) {
 		if (currColor==null) { return; }
 		g.setColor(currColor);
 	

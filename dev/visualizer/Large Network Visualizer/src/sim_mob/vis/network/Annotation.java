@@ -5,6 +5,7 @@ import java.awt.geom.Rectangle2D;
 
 import sim_mob.vis.controls.DrawParams;
 import sim_mob.vis.controls.DrawableItem;
+import sim_mob.vis.network.basic.FlippedScaledPoint;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.util.Utility;
 
@@ -44,7 +45,7 @@ public class Annotation implements DrawableItem {
 	
 	///For now, type=='A' for aimsun, 'M' for mitsim, or anything else for neither.
 	public Annotation(Point position, String message, char type) {
-		pos = new ScaledPoint(position.x, position.y, null);
+		pos = new FlippedScaledPoint(position.x, position.y);
 		this.message = message;
 		bkgrdColor = Color.gray;
 		borderColor = Color.white;
@@ -70,7 +71,7 @@ public class Annotation implements DrawableItem {
 	public void setBackgroundColor(Color clr) { bkgrdColor = clr; }
 	public void setBorderColor(Color clr) { borderColor = clr; }
 	public void setFontColor(Color clr) { fontColor = clr; }
-	public void setOffset(Point offset) { this.offset = new ScaledPoint(offset.x, offset.y, null); }
+	public void setOffset(Point offset) { this.offset = new ScaledPoint(offset.x, offset.y); }
 	public ScaledPoint getPos() { return pos; }
 	
 

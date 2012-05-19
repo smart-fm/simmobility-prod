@@ -11,6 +11,7 @@ import javax.swing.SwingUtilities;
 
 import sim_mob.vis.controls.NetworkPanel;
 import sim_mob.vis.network.basic.DPoint;
+import sim_mob.vis.network.basic.FlippedScaledPoint;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.network.basic.Vect;
 import sim_mob.vis.util.Mapping;
@@ -534,12 +535,14 @@ public class RoadNetwork {
 	    //Check and parse properties.
 	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"startPointX", "startPointY", "endPointX", "endPointY","color"});
 	    
-	    int startPosintX = Integer.parseInt(props.get("startPointX"));
-	    int endPosintX = Integer.parseInt(props.get("endPointX"));
-	    int startPosintY = Integer.parseInt(props.get("startPointY"));
-	    int endPosintY = Integer.parseInt(props.get("endPointY"));
+	    ScaledPoint startPoint = new FlippedScaledPoint(
+	    	Integer.parseInt(props.get("startPointX")),
+	    	Integer.parseInt(props.get("endPointX")));
+	    ScaledPoint endPoint = new FlippedScaledPoint(
+	    	Integer.parseInt(props.get("startPointY")),
+	    	Integer.parseInt(props.get("endPointY")));
 	    String color = props.get("color");
-	    cutLines.put(objID, new CutLine(new ScaledPoint(startPosintX,startPosintY, null),new ScaledPoint(endPosintX,endPosintY, null),color));
+	    cutLines.put(objID, new CutLine(startPoint, endPoint, color));
 		
 	}
 	
@@ -839,20 +842,20 @@ public class RoadNetwork {
 						//Fix up 1st sidewalk lane						
 						currSidewalk1.scaleVect((currSidewalk1.getMagnitude()-750.0)/currSidewalk1.getMagnitude());
 						currSidewalk2.scaleVect((currSidewalk2.getMagnitude()-750.0)/currSidewalk2.getMagnitude());
-						currSegSidewalkLane1.setPenultimatePt(new ScaledPoint(currSegStart1.x + currSidewalk1.getMagX(), currSegStart1.y + currSidewalk1.getMagY(), null));
-						currSegSidewalkLane2.setPenultimatePt(new ScaledPoint(currSegStart2.x + currSidewalk2.getMagX(), currSegStart2.y + currSidewalk2.getMagY(), null));
-						currSegSidewalkLane1.setLastPt(new ScaledPoint(nextSegStart1.x, nextSegStart1.y, null));
-						currSegSidewalkLane2.setLastPt(new ScaledPoint(nextSegStart2.x, nextSegStart2.y, null));
+						currSegSidewalkLane1.setPenultimatePt(new ScaledPoint(currSegStart1.x + currSidewalk1.getMagX(), currSegStart1.y + currSidewalk1.getMagY()));
+						currSegSidewalkLane2.setPenultimatePt(new ScaledPoint(currSegStart2.x + currSidewalk2.getMagX(), currSegStart2.y + currSidewalk2.getMagY()));
+						currSegSidewalkLane1.setLastPt(new ScaledPoint(nextSegStart1.x, nextSegStart1.y));
+						currSegSidewalkLane2.setLastPt(new ScaledPoint(nextSegStart2.x, nextSegStart2.y));
 					}
 					else if(nextSegLanes.size() > currentSegLanes.size())
 					{
 						//Fix up second sidewalk lane
 						nextSidewalk1.scaleVect((nextSidewalk1.getMagnitude()-750.0)/nextSidewalk1.getMagnitude());
 						nextSidewalk2.scaleVect((nextSidewalk2.getMagnitude()-750.0)/nextSidewalk2.getMagnitude());
-						nextSegSidewalkLane1.setSecondPt(new ScaledPoint(nextSegEnd1.x - nextSidewalk1.getMagX(), nextSegEnd1.y - nextSidewalk1.getMagY(), null));
-						nextSegSidewalkLane2.setSecondPt(new ScaledPoint(nextSegEnd2.x - nextSidewalk2.getMagX(), nextSegEnd2.y - nextSidewalk2.getMagY(), null));
-						nextSegSidewalkLane1.setStartPt(new ScaledPoint(currSegEnd1.x, currSegEnd1.y, null));
-						nextSegSidewalkLane2.setStartPt(new ScaledPoint(currSegEnd2.x, currSegEnd2.y, null));
+						nextSegSidewalkLane1.setSecondPt(new ScaledPoint(nextSegEnd1.x - nextSidewalk1.getMagX(), nextSegEnd1.y - nextSidewalk1.getMagY()));
+						nextSegSidewalkLane2.setSecondPt(new ScaledPoint(nextSegEnd2.x - nextSidewalk2.getMagX(), nextSegEnd2.y - nextSidewalk2.getMagY()));
+						nextSegSidewalkLane1.setStartPt(new ScaledPoint(currSegEnd1.x, currSegEnd1.y));
+						nextSegSidewalkLane2.setStartPt(new ScaledPoint(currSegEnd2.x, currSegEnd2.y));
 					}
 				}
 					

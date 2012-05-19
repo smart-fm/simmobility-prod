@@ -6,6 +6,9 @@ import java.awt.geom.Point2D;
 /**
  * A position which can be dynamically rescaled.
  * 
+ * \note
+ * If you're reading points in from a file, consider using FlippedScaledPoint. 
+ * 
  *  \author Seth N. Hetu
  *  \author Zhang Shuai
  * 
@@ -45,7 +48,7 @@ public class ScaledPoint {
 	/**
 	 * Create a new ScaledPoint at the given x and y coordinates, belonging to a given ScaledPointGroup. If null, use the glboal group. 
 	 */
-	public ScaledPoint(double x, double y, Object nothing) {
+	public ScaledPoint(double x, double y) {
 		orig = new DPoint(x, y);
 		//scaled = new DPoint();
 		//group = scaleGroup;

@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import sim_mob.vis.Main;
 import sim_mob.vis.network.Node;
+import sim_mob.vis.network.basic.FlippedScaledPoint;
 import sim_mob.vis.network.basic.ScaledPoint;
 
 /**
@@ -84,7 +85,7 @@ public class Utility {
 		Double xPos = Double.parseDouble(items[0]);
 		Double yPos = Double.parseDouble(items[1]);
 		
-		return new ScaledPoint(xPos, yPos, null);
+		return new FlippedScaledPoint(xPos, yPos);
 		
 		//Node tempNode = new Node(xPos,yPos,false,null); 
 		//return tempNode;

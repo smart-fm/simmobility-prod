@@ -100,7 +100,7 @@ public class SimulationResults {
 				double resY = amtY + rn.getTopLeft().y;
 				
 				//Save
-				at.pos = new ScaledPoint(resX, resY, null);
+				at.pos = new ScaledPoint(resX, resY);
 			}
 		    
 			

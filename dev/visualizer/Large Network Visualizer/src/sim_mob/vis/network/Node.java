@@ -7,6 +7,7 @@ import java.awt.geom.Rectangle2D.Double;
 import sim_mob.vis.MainFrame;
 import sim_mob.vis.controls.DrawParams;
 import sim_mob.vis.controls.DrawableItem;
+import sim_mob.vis.network.basic.FlippedScaledPoint;
 import sim_mob.vis.network.basic.ScaledPoint;
 
 /**
@@ -23,7 +24,7 @@ public class Node implements DrawableItem {
 	private boolean isUni;   //Rather than having multiple classes....
 	private Integer id;
 	public Node(double x, double y, boolean isUni, Integer id) {
-		pos = new ScaledPoint(x, y, null);
+		pos = new FlippedScaledPoint(x, y);
 		this.isUni = isUni;
 		this.id = id;
 	}

@@ -16,6 +16,7 @@ import java.util.Hashtable;
 
 import sim_mob.vect.SimpleVectorImage;
 import sim_mob.vis.MainFrame;
+import sim_mob.vis.network.basic.FlippedScaledPoint;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.util.Utility;
 
@@ -93,7 +94,7 @@ public class DriverTick extends AgentTick {
 	}
 	
 	public DriverTick(double posX, double posY, double angle, RxLocation msgLocation) {
-		this.pos = new ScaledPoint(posX, posY, null);
+		this.pos = new FlippedScaledPoint(posX, posY);
 		this.angle = angle;
 		this.fake = false;
 		//DriverTick.isCar = true;

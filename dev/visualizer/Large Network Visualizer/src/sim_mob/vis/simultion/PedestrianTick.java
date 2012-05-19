@@ -15,6 +15,7 @@ import java.util.Hashtable;
 
 import sim_mob.vect.SimpleVectorImage;
 import sim_mob.vis.MainFrame;
+import sim_mob.vis.network.basic.FlippedScaledPoint;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.util.Utility;
 
@@ -63,7 +64,7 @@ public class PedestrianTick extends AgentTick {
 	 *       limit this to the current frame, and then continue to scale frames as they arrive. 
 	 */
 	public PedestrianTick(double posX, double posY) {
-		this.pos = new ScaledPoint(posX, posY, null);
+		this.pos = new FlippedScaledPoint(posX, posY);
 		this.fake  = false;
 		
 		if (PersonImg==null) {

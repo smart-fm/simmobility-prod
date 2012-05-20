@@ -516,7 +516,7 @@ public class NetworkVisualizer {
 					DrawableItem item = network.getTrafficSignalCrossing().get(crossingIDs.get(i));
 					index.addItem(item, item.getBounds());
 				} else{
-					throw new RuntimeException("Unable to draw pedestrian crossing light; ID does not exist.");
+					//throw new RuntimeException("Unable to draw pedestrian crossing light; ID does not exist.");
 				}
 			}
 		}

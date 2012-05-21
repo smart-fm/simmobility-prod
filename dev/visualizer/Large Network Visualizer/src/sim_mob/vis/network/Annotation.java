@@ -108,4 +108,3 @@ public class Annotation implements DrawableItem {
 		return "(" + pos.getUnscaledX() + "," + pos.getUnscaledY() + ")"; 
 	}
 }
-

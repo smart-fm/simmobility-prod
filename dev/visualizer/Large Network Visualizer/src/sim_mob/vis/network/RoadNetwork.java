@@ -33,14 +33,21 @@ public class RoadNetwork {
 	private static final Color Annotations_AimsunFgColor = new Color(0xFF, 0xCC, 0xCC);
 	private static final Color Annotations_MitsimBgColor = new Color(0x00, 0xCC, 0xFF, 0xAA);
 	private static final Color Annotations_MitsimFgColor = new Color(0xCC, 0xCC, 0xFF);
+	private static final Color Annotations_AimsunnBgColor = new Color(0xFF,0x00,0x00);
+	private static final Color Annotations_AimsunnFgColor = new Color(0xFF,0xFF,0x00);
+	private static final Color Annotations_MitsimmBgColor = new Color(0x00, 0xCC, 0xFF, 0xAA);
+	private static final Color Annotations_MitsimmFgColor = new Color(0xCC, 0xCC, 0xFF);
 	private static final Color Annotations_FontColor = new Color(0x00, 0x00, 0x00);
 	
 	private DPoint cornerTL;
 	private DPoint cornerLR;
 	
 	private Hashtable<Integer, Node> nodes;
+	private Hashtable<Integer, BusStop> busstop;
 	private ArrayList<Annotation> annot_aimsun;
 	private ArrayList<Annotation> annot_mitsim;
+	private ArrayList<Annotation> annot_aimsunn;
+	private ArrayList<Annotation> annot_mitsimm;
 	private Hashtable<Integer, Link> links;
 	private Hashtable<String, LinkName> linkNames;
 	private Hashtable<Integer, Segment> segments;
@@ -67,8 +74,11 @@ public class RoadNetwork {
 	public DPoint getTopLeft() { return cornerTL; }
 	public DPoint getLowerRight() { return cornerLR; }
 	public Hashtable<Integer, Node> getNodes() { return nodes; }
+	public Hashtable<Integer, BusStop> getBusStop() { return busstop; }
 	public ArrayList<Annotation> getAimsunAnnotations() { return annot_aimsun; }
 	public ArrayList<Annotation> getMitsimAnnotations() { return annot_mitsim; }
+	public ArrayList<Annotation> getAimsunnAnnotations() { return annot_aimsunn; }
+	public ArrayList<Annotation> getMitsimmAnnotations() { return annot_mitsimm; }
 	public Hashtable<Integer, Link> getLinks() { return links; }
 	public Hashtable<String, LinkName> getLinkNames() { return linkNames; }
 	public Hashtable<Integer, Segment> getSegments() { return segments; }
@@ -87,8 +97,13 @@ public class RoadNetwork {
 	public void loadFileAndReport(BufferedReader inFile, long fileLength, NetworkPanel progressUpdate) throws IOException {
 
 		nodes = new Hashtable<Integer, Node>();
+		busstop = new Hashtable<Integer, BusStop>();
 		annot_aimsun = new ArrayList<Annotation>();
 		annot_mitsim = new ArrayList<Annotation>();
+		annot_aimsun = new ArrayList<Annotation>();
+		annot_mitsim = new ArrayList<Annotation>();
+		annot_aimsunn = new ArrayList<Annotation>();
+		annot_mitsimm = new ArrayList<Annotation>();
 		links = new Hashtable<Integer, Link>();
 		linkNames = new Hashtable<String, LinkName>();
 		segments = new Hashtable<Integer, Segment>();
@@ -188,6 +203,7 @@ public class RoadNetwork {
 		
 		//Space node annotations as necessary to avoid distortion
 		this.spaceNodeAnnotations();
+		this.spaceBusStopAnnotations();
 	}
 	
 	
@@ -222,6 +238,8 @@ public class RoadNetwork {
 			parseSignalLocation(frameID, objID, rhs);
 		} else if(objType.equals("CutLine")){
 			parseCutLine(frameID, objID, rhs);
+		} else if(objType.equals("BusStop")){
+			parseBusStop(frameID, objID, rhs,true , xBounds, yBounds);
 		}
 
 		
@@ -439,6 +457,45 @@ public class RoadNetwork {
 	    
 	}
 		
+	//my trial
+		private void parseBusStop(int frameID, int objID, String rhs, boolean isUni, double[] xBounds, double[] yBounds) throws IOException {
+		    //Check frameID
+		    if (frameID!=0) {
+		    	throw new IOException("Unexpected frame ID, should be zero");
+		    }
+		    
+		    //Check and parse properties.
+		    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"xPos", "yPos"});
+		    
+		    //Now save the position information
+		    double x = Double.parseDouble(props.get("xPos"));
+		    double y = Double.parseDouble(props.get("yPos"));
+		    
+		    Utility.CheckBounds(xBounds, x);
+		    Utility.CheckBounds(yBounds, y);
+		    
+		    BusStop res = new BusStop(x, y, isUni,objID);
+		   // @amit:Not sure why to use Annotation 
+		    if (props.containsKey("aimsunn-id")) {
+		    	Annotation an = new Annotation(new Point((int)x, (int)y), props.get("aimsunn-id"), 'A');
+		    	an.setBackgroundColor(Annotations_AimsunnBgColor);
+		    	an.setBorderColor(Annotations_AimsunnFgColor);
+		    	an.setFontColor(Annotations_FontColor);
+		    	annot_aimsunn.add(an);
+		    }
+		    
+		    if (props.containsKey("mitsimm-id")) {
+		    	Annotation an = new Annotation(new Point((int)x, (int)y), props.get("mitsimm-id"), 'A');
+		    	an.setBackgroundColor(Annotations_MitsimmBgColor);
+		    	an.setBorderColor(Annotations_MitsimmFgColor);
+		    	an.setFontColor(Annotations_FontColor);
+		    	annot_mitsimm.add(an);
+		    }
+		    
+		    busstop.put(objID, res);
+		    
+		}
+	//
 	private void parseCrossing(int frameID, int objID, String rhs) throws IOException {
 	    //Check frameID
 	    if (frameID!=0) {
@@ -731,6 +788,11 @@ public class RoadNetwork {
 		spaceNodeAnnotations(alreadySpaced, annot_aimsun);
 		spaceNodeAnnotations(alreadySpaced, annot_mitsim);
 	}
+	private void spaceBusStopAnnotations() {
+		Hashtable<Point, Integer> alreadySpaced = new Hashtable<Point, Integer>(); //int = conflicts
+		spaceBusStopAnnotations(alreadySpaced, annot_aimsunn);
+		spaceBusStopAnnotations(alreadySpaced, annot_mitsimm);
+	}
 	
 	
 	//Attempt to place each annotation. Avoid overlapping any existing annotations.
@@ -759,7 +821,30 @@ public class RoadNetwork {
 		}
 	}
 	
-	
+	//
+	private void spaceBusStopAnnotations(Hashtable<Point, Integer> alreadySpaced, ArrayList<Annotation> toSpace) {
+		Point amt = new Point(500, 800);
+		Point[] magnitudes = new Point[] {new Point(0,amt.y), new Point(amt.x,amt.y/2), new Point(amt.x,-amt.y/2), new Point(0,-amt.y) }; 
+		
+		for (Annotation an : toSpace) {
+			//Scale down by 10, start counting if we haven't already.
+			Point location = new Point((int)(an.getPos().getUnscaledX()/10), (int)(an.getPos().getUnscaledY()/10));
+			if (!alreadySpaced.containsKey(location)) {
+				alreadySpaced.put(location, 0);
+			}
+			 
+			//Pull out the count, increment
+			int count = alreadySpaced.get(location);
+			alreadySpaced.put(location, count+1);
+			 
+			//We have a handful of magnitudes to choose from. Cycle through and
+			//  pick the next one.
+			Point mag = magnitudes[count%magnitudes.length];
+			int times = (count / magnitudes.length)+1;
+			an.setOffset(new Point((int)an.getPos().getUnscaledX()+mag.x*times, (int)an.getPos().getUnscaledY()+mag.y*times));
+		}
+	}
+	//
 	
 	
 	private void smoothSegmentJoins() {

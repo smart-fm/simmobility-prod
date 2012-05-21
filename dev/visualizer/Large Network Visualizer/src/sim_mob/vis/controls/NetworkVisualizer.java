@@ -167,9 +167,24 @@ public class NetworkVisualizer {
 		return null;
 	}
 	
+	//Retrieve the busstop at the given screen position, or null if there's none.
+		public BusStop getBusStopAt(Point screenPos) {
+			//First, convert the screen coordinates to centimeters
+			//DPoint realPos = new DPoint();  //Note: Might be needed later; for now, we can just use ScaledPoints
+			for (BusStop n : network.getBusStop().values()) {
+				if (screenPos.distance(n.getPos().getX(), n.getPos().getY()) <= NEAR_THRESHHOLD) {
+					return n;
+				}
+			}
+			return null;
+		}
+		
 	private static final void BuildNetworkIndex(LazySpatialIndex<DrawableItem> res, RoadNetwork net) {
 		//Just add them all; we'll worry about drawing/hiding some of them later.
 		for (Node n : net.getNodes().values()) {
+			res.addItem(n, n.getBounds());
+		}
+		for (BusStop n : net.getBusStop().values()) {
 			res.addItem(n, n.getBounds());
 		}
 		for (Link ln : net.getLinks().values()) {
@@ -215,7 +230,7 @@ public class NetworkVisualizer {
 		networkItemsIndex = new LazySpatialIndex<DrawableItem>();
 		BuildNetworkIndex(networkItemsIndex, network);
 		
-		//Recalc
+		//Re-calc
 		Rectangle2D initialZoom = networkItemsIndex.getBounds();
 		redrawFrame(0, panelSize, initialZoom);
 	}
@@ -367,7 +382,10 @@ public class NetworkVisualizer {
 		double percentDrawn = ((double)act.getItemCount()) / (networkItemsIndex.getItemCount()+agentTicksIndex.getItemCount());
 		parent.updatePercentDrawn(percentDrawn);
 		
+		//Draw Busstop
 		
+		// drawAllBusStop(g, true);
+				
 		//Draw nodes
 		//final boolean ZoomCritical = ("x".equals("Y")); //(currPercentZoom>ZOOM_IN_CRITICAL); //TODO: Re-enable.
 		//drawAllNodes(g, (!ZoomCritical) || (showAimsunLabels || showMitsimLabels));
@@ -437,9 +455,15 @@ public class NetworkVisualizer {
 			return totalItems;
 		}
 	}
-
-	
-	
+/*
+	private void drawAllBusStop(Graphics2D g, boolean ShowBusStop) {
+		for (BusStop n : network.getBusStop().values()) {
+			if (ShowBusStop || !n.getIsUni()) {
+				n.draw(g,PastCriticalZoom());
+			}
+		}
+	}
+	*/
 	/*private void drawAllNodes(Graphics2D g, boolean ShowUniNodes) {
 		for (Node n : network.getNodes().values()) {
 			if (ShowUniNodes || !n.getIsUni()) {

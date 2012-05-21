@@ -66,6 +66,24 @@ ELSE (SIMMOB_LATEST_STANDARD)
   #ENDIF (${SIMMOB_AGENT_UPDATE_PROFILE} MATCHES "ON")
 ENDIF(SIMMOB_LATEST_STANDARD)
 
+#Enable threading on GCC-4.7
+IF(CMAKE_COMPILER_IS_GNUCXX)
+  execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
+  IF (GCC_VERSION VERSION_EQUAL 4.7)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -D_GLIBCXX_HAVE_GTHR_DEFAULT")
+  ENDIF (GCC_VERSION VERSION_EQUAL 4.7)
+ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+
+
+#Enable threading on Clang
+#NOTE: This is only a problem if GCC 4.7 AND clang are installed.
+#      If you get errors about "DISABLE_THREADS" being set for boost, you can either enable the next
+#      few lines, or compile against gcc-4.6's standard library.
+#IF(CMAKE_C_COMPILER MATCHES "/clang$" AND CMAKE_CXX_COMPILER MATCHES "/clang[+][+]$")
+#  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -D_GLIBCXX_HAVE_GTHR_DEFAULT")
+#ENDIF()
+
+
 
 
 #Enable threading on GCC-4.7

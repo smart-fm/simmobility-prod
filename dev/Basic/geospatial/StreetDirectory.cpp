@@ -957,7 +957,7 @@ StreetDirectory::ShortestPathImpl::process(RoadSegment const * road, bool isForw
     if (dynamic_cast<UniNode const *>(node2))
     {
         // See comment above about the road-segment's start-node.
-        std::vector<Point2D> const & polyline = road->getLanes()[0]->getPolyline();
+    	std::vector<Point2D> const & polyline = road->getLanes()[0]->getPolyline();
         Point2D point = polyline[polyline.size() - 1];
         node2 = findNode(point);
     }

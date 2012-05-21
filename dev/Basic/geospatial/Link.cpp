@@ -154,25 +154,19 @@ void sim_mob::Link::extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>
 	{
 		RoadSegment* seg1 = segments.at(i);
 		RoadSegment* seg2 = segments.at(i+1);
-		for(size_t j=0;j<seg1->getLanes().size();j++)
-		{
-			bool test = false;
+		size_t j=0;
+		for(;j<seg1->getLanes().size();j++)
+			seg1->getLanes()[j]->getPolyline();
+		for(j=0;j<seg2->getLanes().size();j++)
+			seg2->getLanes()[j]->getPolyline();
 
+		for(j=0;j<seg1->getLanes().size();j++)
+		{
 			if(j>=seg2->getLanes().size())
 				break;
 			Lane* preLane = seg1->getLanes().at(j);
-
-			//-------compare the same point, inconsistent
-			int firstX = preLane->getPolyline().at(0).getX();
-			int secondX = seg1->getLanes().at(j)->getPolyline().at(0).getX();
-			std::cout<<"compare "<<firstX<<" "<<secondX;
-			if(firstX == secondX)
-				std::cout<<std::endl;
-			else
-				std::cout<<"  different"<<std::endl;
-			//--------------------------------------------
-
 			Lane* nextLane = seg2->getLanes().at(j);
+
 			const std::vector<sim_mob::Point2D>& prePolyline = preLane->getPolyline();
 			const std::vector<sim_mob::Point2D>& nextPolyline = nextLane->getPolyline();
 			size_t size1 = prePolyline.size();

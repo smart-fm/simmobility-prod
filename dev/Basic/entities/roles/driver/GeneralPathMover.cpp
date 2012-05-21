@@ -51,8 +51,8 @@ sim_mob::GeneralPathMover::GeneralPathMover(const GeneralPathMover& copyFrom) :
 	nextPolypoint = polypointsList.begin() + (copyFrom.nextPolypoint - copyFrom.polypointsList.begin());
 
 	//Lane-zero iterators are a little trickier
-	const vector<Point2D>& myLaneZero = const_cast<RoadSegment*> (*currSegmentIt)->getLaneEdgePolyline(0);
-	const vector<Point2D>& otherLaneZero = const_cast<RoadSegment*> (*copyFrom.currSegmentIt)->getLaneEdgePolyline(0);
+	const vector<Point2D>& myLaneZero = const_cast<RoadSegment*> (*currSegmentIt)->getLanes()[0]->getPolyline();
+	const vector<Point2D>& otherLaneZero = const_cast<RoadSegment*> (*copyFrom.currSegmentIt)->getLanes()[0]->getPolyline();
 	currLaneZeroPolypoint = myLaneZero.begin() + (copyFrom.currLaneZeroPolypoint - otherLaneZero.begin());
 	nextLaneZeroPolypoint = myLaneZero.begin() + (copyFrom.nextLaneZeroPolypoint - otherLaneZero.begin());
 }
@@ -197,7 +197,7 @@ double sim_mob::GeneralPathMover::CalcSegmentLaneZeroDist(vector<const RoadSegme
 	double res = 0.0;
 	if (it != end)
 	{
-		const vector<Point2D>& polyLine = const_cast<RoadSegment*> (*it)->getLaneEdgePolyline(0);
+		const vector<Point2D>& polyLine = const_cast<RoadSegment*> (*it)->getLanes()[0]->getPolyline();
 		for (vector<Point2D>::const_iterator it2 = polyLine.begin(); (it2 + 1) != polyLine.end(); it2++)
 		{
 			res += dist(it2->getX(), it2->getY(), (it2 + 1)->getX(), (it2 + 1)->getY());
@@ -212,7 +212,7 @@ double sim_mob::GeneralPathMover::CalcRestSegmentsLaneZeroDist(vector<const Road
 	for (vector<const RoadSegment*>::const_iterator it = start; it != end; it++)
 	{
 		//Add all polylines in this Segment
-		const vector<Point2D>& polyLine = const_cast<RoadSegment*> (*it)->getLaneEdgePolyline(0);
+		const vector<Point2D>& polyLine = const_cast<RoadSegment*> (*it)->getLanes()[0]->getPolyline();
 		for (vector<Point2D>::const_iterator it2 = polyLine.begin(); (it2 + 1) != polyLine.end(); it2++)
 		{
 			res += dist(it2->getX(), it2->getY(), (it2 + 1)->getX(), (it2 + 1)->getY());
@@ -243,7 +243,7 @@ void sim_mob::GeneralPathMover::generateNewPolylineArray()
 	//currPolylineLength = sim_mob::dist(&(*currPolypoint), &(*nextPolypoint));
 
 	//Set our lane zero polypoint-ers.
-	const vector<Point2D>& tempLaneZero = const_cast<RoadSegment*> (*currSegmentIt)->getLaneEdgePolyline(0);
+	const vector<Point2D>& tempLaneZero = const_cast<RoadSegment*> (*currSegmentIt)->getLanes()[0]->getPolyline();
 	currLaneZeroPolypoint = tempLaneZero.begin();
 	nextLaneZeroPolypoint = tempLaneZero.begin() + 1;
 

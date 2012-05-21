@@ -4,7 +4,6 @@
 #include<vector>
 #include<string>
 #include <map>
-//#include <boost/multi_index_container.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/random_access_index.hpp>
@@ -20,6 +19,35 @@ class Link;
 using namespace ::boost;
 using namespace ::boost::multi_index;
 //////////////////// Links ///////////////////////////////////////////////////////////////////////////////////////
+//todo: performance improvement
+//typedef struct
+//{
+//	linkToLink_signal *link2link;
+//	ColorSequence colorSequence;
+//} linkToLink_phase;
+//
+//typedef multi_index_container<
+//		linkToLink_phase,
+//		indexed_by<
+//		random_access<>
+//  >
+//> linkToLink_ck_C;
+//
+//
+//typedef multi_index_container<
+//		linkToLink_phase,
+//  indexed_by<
+//    ordered_non_unique<
+//      key_from_key<
+//        boost::tuple(linkToLink_signal::LinkFrom,linkToLink_signal::LinkTo),
+//        member<linkToLink_phase,linkToLink_signal *,link2link>
+//      >
+//    >
+//  >
+//> car_table;
+
+
+
 typedef struct
 {
 	sim_mob::Link *LinkTo;
@@ -34,7 +62,7 @@ typedef std::pair<links_map_const_iterator, links_map_const_iterator> links_map_
 ////////////////////crossings////////////////////////////////////////////////////////////////////////////////////
 typedef struct
 {
-	sim_mob::Link * link;
+	sim_mob::Link * link;//this is extra but keep it until you are sure!
 	sim_mob::Crossing *crossig;//same as the key in the corresponding multimap(yes yes: it is redundant)
 	ColorSequence colorSequence;//color and duration
 	TrafficColor currColor;

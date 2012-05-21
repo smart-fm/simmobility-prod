@@ -582,13 +582,14 @@ TrafficColor Signal::getDriverLight(Lane const & fromLane, Lane const & toLane)c
 TrafficColor Signal::getPedestrianLight(Crossing const & crossing) const
 {
 
+
 }
 //todo talk to xuyan or seth on who should decide the format
 void Signal::outputToVisualizer(frame_t frameNumber) {
 	std::stringstream logout;
 	logout << "(\"Signal\"," << frameNumber << "," << this << ",{\"";
 //	std::vector<sim_mob::Phase>::const_iterator ph_iter;
-	for(std::vector<sim_mob::Phase>::const_iterator ph_iter = plan_.phases_.begin(), it_end(plan_.phases_.end()); ph_iter != it_end ; ph_iter++)
+	for(std::vector<sim_mob::Phase>::const_iterator ph_iter = plan_.phases_.begin(), it_end(plan_.phases_.end()); ph_iter != it_end ; ph_iter++)//upper bound
 	{
 
 	}

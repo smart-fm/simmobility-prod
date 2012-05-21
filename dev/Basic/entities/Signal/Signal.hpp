@@ -29,6 +29,7 @@
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/random_access_index.hpp>
+#include <boost/multi_index/composite_key.hpp>
 
 
 namespace sim_mob
@@ -44,6 +45,27 @@ class Node;
 class Lane;
 class Crossing;
 class Link;
+
+typedef struct
+{
+    sim_mob::Link* LinkTo;
+    sim_mob::Link* LinkFrom;
+    mutable TrafficColor currColor;//can change it directly as it is not a member of any key and it is mutable
+}linkToLink_signal;
+
+typedef multi_index_container<
+		linkToLink_signal,
+		indexed_by<
+		random_access<>
+//    ,ordered_unique<
+//      composite_key<
+//      sim_mob::Link*,
+//        member<linkToLink_signal,sim_mob::Link*,&linkToLink_signal::LinkTo>,
+//        member<linkToLink_signal,sim_mob::Link*,&linkToLink_signal::LinkFrom>
+//      >
+//    >
+  >
+> linkToLink_ck_C;
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;

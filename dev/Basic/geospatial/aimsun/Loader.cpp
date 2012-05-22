@@ -99,6 +99,7 @@ private:
     multimap<int, Polyline> polylines_;
     vector<TripChain> tripchains_;
     map<int, Signal> signals_;
+    vector<Phase> phases_;
 
     vector<sim_mob::BoundarySegment*> boundary_segments;
 
@@ -111,6 +112,7 @@ private:
     void LoadPolylines(const std::string& storedProc);
     void LoadTripchains(const std::string& storedProc);
     void LoadTrafficSignals(const std::string& storedProc);
+    void LoadPhase(const std::string& storedProc);
 
 #ifndef SIMMOB_DISABLE_MPI
     void LoadBoundarySegments();
@@ -174,6 +176,19 @@ void DatabaseLoader::LoadSections(const std::string& storedProc)
 		it->fromNode = &nodes_[it->TMP_FromNodeID];
 		it->toNode = &nodes_[it->TMP_ToNodeID];
 		sections_[it->id] = *it;
+	}
+}
+
+void DatabaseLoader::LoadPhase(const std::string& storedProc)
+{
+	soci::rowset<Phase> rs = (sql_.prepare <<"select * from " + storedProc);
+	phases_.clear();
+	int i=0;
+	for(soci::rowset<Phase>::const_iterator it=rs.begin(); it!=rs.end(); ++it,i++)
+	{
+		std::cout << "LoadPhase iteration " << i ;
+		std::cout << "  Node Id: " << it->nodeId <<std::endl;
+		phases_.push_back(*it);
 	}
 }
 
@@ -349,6 +364,7 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 void
 DatabaseLoader::LoadTrafficSignals(std::string const & storedProcedure)
 {
+	return;//testing-vahid
     // For testing purpose, we can disable automatic signal creation via database lookup
     // by putting an empty string for the 'signal' stored procedure in the config file.
     // Manual creation can be achieved by specifying the signal locations in the top level
@@ -448,7 +464,13 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
 	LoadTripchains(getStoredProcedure(storedProcs, "tripchain"));
-	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal"));
+	std::cout << "TripChain Done, Starting LoadPhase" << std::endl;
+	getchar();
+//	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal"));
+	LoadPhase(getStoredProcedure(storedProcs, "signal"));
+	std::cout << "LoadPhase Done, Congrates" << std::endl;
+	getchar();
+
 
 	//add by xuyan
 	//load in boundary segments (not finished!)

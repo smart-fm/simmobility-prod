@@ -23,6 +23,7 @@ enum TrafficControlMode
 class SplitPlan
 {
 private:
+	unsigned int TMP_PlanID;//to identify "this" object(totally different from choice set related terms like currSplitPlanID,nextSplitPlanID....)
     int signalAlgorithm;//Fixed plan or adaptive control
 	double cycleLength,offset;
 	std::size_t NOF_Plans; //NOF_Plans= number of split plans = percentages.size()

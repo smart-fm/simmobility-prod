@@ -74,7 +74,34 @@ template<> struct type_conversion<Section>
     }
 };
 
-
+template<> struct type_conversion<Phase>
+{
+    typedef values base_type;
+    static void from_base(const soci::values& vals, soci::indicator& ind, Phase &res)
+    {
+    	res.name = vals.get<string>("Phase","");
+    	res.nodeId = vals.get<int>("Node_Id",0);
+    	res.sectionFrom = vals.get<int>("From_Section",0);
+    	res.sectionTo = vals.get<int>("To_Section",0);
+    	res.laneFrom_A = vals.get<int>("From_Lane_A", 0);
+    	res.laneTo_A = vals.get<int>("To_Lane_A", 0);
+    	res.laneFrom_B = vals.get<int>("From_Lane_B", 0);
+    	res.laneTo_B = vals.get<int>("To_Lane_B", 0);
+    }
+    static void to_base(const Phase& src, soci::values& vals, soci::indicator& ind)
+    {
+//    	vals.set("id", src.id);
+        vals.set("Phase", src.name);
+        vals.set("Node_Id", src.nodeId);
+        vals.set("From_Section", src.sectionFrom);
+        vals.set("To_Section", src.sectionTo);
+        vals.set("From_Lane_A", src.laneFrom_A);
+        vals.set("From_Lane_B", src.laneFrom_B);
+        vals.set("To_Lane_A", src.laneTo_A);
+        vals.set("To_Lane_B", src.laneTo_B);
+        ind = i_ok;
+    }
+};
 
 template<> struct type_conversion<Turning>
 {

@@ -173,6 +173,7 @@ public:
     void updateIndicators();
 private:
 
+    unsigned int TMP_SignalID;
     /* Fixed time or adaptive control */
     int signalAlgorithm;
     /*-------------------------------------------------------------------------

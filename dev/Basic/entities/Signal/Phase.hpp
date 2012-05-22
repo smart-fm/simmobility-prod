@@ -119,6 +119,7 @@ public:
 	double computeTotalG();//total green time
 	std::string name; //we can assign a name to a phase for ease of identification
 private:
+	unsigned int TMP_PhaseID;
 	std::size_t startPecentage;
 	std::size_t percentage;
 	double cycleLength;

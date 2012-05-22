@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Base.hpp"
+#include "Phase.hpp"
 
 namespace sim_mob
 {

@@ -262,4 +262,3 @@ public class SimpleVectorImage {
 		return indexedColors.get(key);
 	}
 }
-

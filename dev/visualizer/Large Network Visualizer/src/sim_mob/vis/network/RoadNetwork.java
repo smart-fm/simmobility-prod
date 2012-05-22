@@ -238,7 +238,9 @@ public class RoadNetwork {
 			parseSignalLocation(frameID, objID, rhs);
 		} else if(objType.equals("CutLine")){
 			parseCutLine(frameID, objID, rhs);
-		} else if(objType.equals("BusStop")){
+		}
+		// "true" is to be checked if it is operational or not
+		else if(objType.equals("BusStop")){
 			parseBusStop(frameID, objID, rhs,true , xBounds, yBounds);
 		}
 

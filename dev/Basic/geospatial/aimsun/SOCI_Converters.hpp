@@ -15,6 +15,7 @@
 #include "Crossing.hpp"
 #include "Turning.hpp"
 #include "Polyline.hpp"
+#include "BusStop.hpp"
 #include "Signal.hpp"
 
 
@@ -164,6 +165,28 @@ template<> struct type_conversion<Lane>
     	vals.set("xpos", src.xPos);
     	vals.set("ypos", src.yPos);
         vals.set("rowno", src.rowNo);
+        ind = i_ok;
+    }
+};
+
+template<> struct type_conversion<BusStop>
+{
+    typedef values base_type;
+    static void from_base(const soci::values& vals, soci::indicator& ind, BusStop &res)
+    {
+    	res.id = vals.get<int>("bus_stop_id", 0);
+    	res.TMP_AtLaneID = vals.get<int>("lane_id", 0);
+    	res.TMP_AtSectionID = vals.get<int>("section", 0);
+    	res.xPos = vals.get<double>("xpos", 0.0);
+    	res.yPos = vals.get<double>("ypos", 0.0);
+    }
+    static void to_base(const BusStop& src, soci::values& vals, soci::indicator& ind)
+    {
+    	vals.set("bus_stop_id", src.id);
+    	vals.set("lane_id", src.atLane->id);
+    	vals.set("section", src.atSection->id);
+        vals.set("xpos", src.xPos);
+        vals.set("ypos", src.yPos);
         ind = i_ok;
     }
 };

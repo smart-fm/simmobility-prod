@@ -31,7 +31,7 @@ public class BusStop implements DrawableItem {
 	// four corner joined by line for zooming.? why co-ordinates are in int why not float
 
 	
-	public double[] rotatebusstop (int centre_x, int centre_y,float len,float wid,float angle){
+	public double[] rotatebusstop (int centre_x, int centre_y,float len,float wid,double angle){
 		double Diagonal_len = Math.hypot(len, wid);
 		double angle_rad = 3.14159265*angle/180;
 		double theta = Math.atan(wid/len);
@@ -49,11 +49,11 @@ public class BusStop implements DrawableItem {
 	return corner_pt;
 	}
 	
-	// For trial let angle=60;
-	float BusStop_angle=140;
+	// For trial let angle=140;
+	// float BusStop_angle=140;
 	
-	private static Color BusStopColor = new Color(0xff, 0xff, 0xff);
-	private static Stroke BusStopStroke = new BasicStroke(1.0F);
+	private static Color BusStopColor = new Color(0xff, 0x45, 0x00);
+	private static Stroke BusStopStroke = new BasicStroke(2.0F);
 	
 	private int BusStop_Length= 40;
 	private int BusStop_Width = 20;
@@ -61,10 +61,12 @@ public class BusStop implements DrawableItem {
 	private ScaledPoint pos;
 	private boolean isUni;   //Rather than having multiple classes....
 	private Integer id;
-	public BusStop (double x, double y, boolean isUni, Integer id) {
+	private double BusStop_angle;
+	public BusStop (double x, double y, boolean isUni, Integer id,double angle) {
 		pos = new FlippedScaledPoint(x, y);
 		this.isUni = isUni;
 		this.id = id;
+		this.BusStop_angle=angle;
 	}
 	
 	public int getZOrder() {
@@ -73,7 +75,7 @@ public class BusStop implements DrawableItem {
 	
 	
 	public Rectangle2D getBounds() {
-		final double BusStop_CM = 10*100; //10m square 
+		final double BusStop_CM = 10*10; //10m square 
 		return new Rectangle2D.Double(
 			pos.getUnscaledX(),
 			pos.getUnscaledY(),

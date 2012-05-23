@@ -472,11 +472,12 @@ public class RoadNetwork {
 		    //Now save the position information
 		    double x = Double.parseDouble(props.get("xPos"));
 		    double y = Double.parseDouble(props.get("yPos"));
+		    double angle = Double.parseDouble(props.get("angle"));
 		    
 		    Utility.CheckBounds(xBounds, x);
 		    Utility.CheckBounds(yBounds, y);
 		    
-		    BusStop res = new BusStop(x, y, isUni,objID);
+		    BusStop res = new BusStop(x, y, isUni,objID,angle);
 		   // @amit:Not sure why to use Annotation 
 		    if (props.containsKey("aimsunn-id")) {
 		    	Annotation an = new Annotation(new Point((int)x, (int)y), props.get("aimsunn-id"), 'A');

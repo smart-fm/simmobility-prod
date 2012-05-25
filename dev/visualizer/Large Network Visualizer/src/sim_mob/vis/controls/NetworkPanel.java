@@ -387,6 +387,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	//Zooming with button click
 	public void zoomWithButtonClick(int number){
 		zoomView(number);
+		
 	}
 	
 	
@@ -395,8 +396,8 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		Rectangle2D view = netViewCache.getCurrentView();
 		
 		//Get the old width/height for comparison
-		//double oldW = netViewCache.getImage().getWidth();
-		//double oldH = netViewCache.getImage().getHeight();
+		// double oldW =  netViewCache.getImage().getWidth();
+		//double oldH =  netViewCache.getImage().getHeight();
 		
 		//Zoom
 		netViewCache.zoomIn(-number, getCurrFrameTick(), new Point(getWidth(), getHeight()));

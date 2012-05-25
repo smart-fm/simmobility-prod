@@ -26,36 +26,48 @@ private:
 	unsigned int TMP_PlanID;//to identify "this" object(totally different from choice set related terms like currSplitPlanID,nextSplitPlanID....)
     int signalAlgorithm;//Fixed plan or adaptive control
 	double cycleLength,offset;
-	std::size_t NOF_Plans; //NOF_Plans= number of split plans = percentages.size()
+	std::size_t NOF_Plans; //NOF_Plans= number of split plans = choiceSet.size()
 	std::size_t NOF_Phases; //NOF_Phases = number of phases = phases_.size()
 	std::size_t currSplitPlanID;
 	std::size_t nextSplitPlanID;
 	std::size_t currPhaseID;//Better Name is: phaseAtGreen (according to TE terminology)The phase which is currently undergoing green, f green, amber etc..
 
 
-	std::vector<sim_mob::Phase> phases_;
+//	std::vector<sim_mob::Phase> phases_;
+	typedef multi_index_container<
+			sim_mob::Phase,
+			indexed_by<
+			random_access<>
+			,ordered_non_unique<sim_mob::Phase, std::string, &sim_mob::Phase::name>
+	  >
+	> phases;
+	phases phases_;
+
 	/*
-	 * the following variable will specify the various percentage combinations that
+	 * the following variable will specify the various choiceSet combinations that
 	 * can be assigned to phases.
 	 * therefore we can note that in this matrix the outer vector denote columns and inner vector denotes rows(reverse to common sense):
 	 * 1- the size of the inner vector = the number of phases(= the size of the above phases_ vector)
 	 * 2- currPlanIndex is actually one of the index values of the outer vector.
-	 * everytime a voting procedure is performed, one of the sets of percentaged are orderly assigned to phases.
+	 * everytime a voting procedure is performed, one of the sets of choiceSet are orderly assigned to phases.
 	 */
 
-	std::vector< vector<double> > percentages; //percentages[Plan][phase]
+	std::vector< vector<double> > choiceSet; //choiceSet[Plan][phase]
 
-	/* the following variable keeps track of the votes obtained by each splitplan(I mean phase percentage combination)
+	/* the following variable keeps track of the votes obtained by each splitplan(I mean phase choiceSet combination)
 	 * ususally a history of the last 5 votings are kept
 	 */
 	std::vector< std::vector<int> > votes;  //votes[cycle][vote]
 
-
-
 public:
-	\
+	typedef nth_index_iterator<phases,1>::type plan_phases_iterator;
+	typedef nth_index<phases,1>::type plan_phases_view;
+	plan_phases_view & get_PlanPhasesByName()
+	{
+		return get<1>(phases_);
+	}
 	/*plan methods*/
-	SplitPlan(){}
+	SplitPlan();
 	std::size_t CurrSplitPlanID();
 	std::vector< double >  CurrSplitPlan();
 	void setCurrPlanIndex(std::size_t);
@@ -73,10 +85,12 @@ public:
 	/*phase related methods*/
 	std::size_t & CurrPhaseID();
 	const std::vector<sim_mob::Phase> & getPhases() const;
+	std::vector<sim_mob::Phase> & getPhases();//over load for database loader
 	void addPhase(sim_mob::Phase);
 	std::size_t nofPhases();
 	std::size_t computeCurrPhase(double currCycleTimer);
 	const sim_mob::Phase & CurrPhase() const;
+	int getPhaseIndex(std::string);
 
 	/*offset related methods*/
 	std::size_t getOffset();

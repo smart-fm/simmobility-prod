@@ -31,7 +31,8 @@ typedef sim_mob::Entity::UpdateStatus UpdateStatus;
 namespace sim_mob
 {
 
-std::vector<Signal*> Signal::all_signals_;
+//std::vector<Signal*> Signal::all_signals_;
+Signal::all_signals Signal::all_signals_;
 
 
 /*
@@ -55,13 +56,19 @@ std::vector<Signal*> Signal::all_signals_;
 ///////////////////// Implementation ///////////////////////
 Signal const &
 Signal::signalAt(Node const & node, const MutexStrategy& mtxStrat) {
+//	std::cout << " in sSignal::ignalAt" << std::endl;
 	Signal const * signal = StreetDirectory::instance().signalAt(node);
+//	std::cout << " in Signal::signalAt 2" << std::endl;
 	if (signal)
+	{
+//		std::cout << "Signal available, successfully returning" << std::endl;
 		return *signal;
-
+	}
+//	std::cout << "Signal Not available, creating a new signal" << std::endl;
 	Signal * sig = new Signal(node, mtxStrat);
 	all_signals_.push_back(sig);
 	StreetDirectory::instance().registerSignal(*sig);
+	std::cout << "Signal created, pushed and registered, returning" << std::endl;
 	return *sig;
 }
 
@@ -70,7 +77,17 @@ Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id)
 	, loopDetector_(*this, mtxStrat)
 	, node_(node)
 {
+	//some inits
+	currSplitPlanID = -1;
+	phaseCounter = -1;
+	currCycleTimer = -1;
+	DS_all = -1;
+	currCL = -1;
+	currPhaseID = -1;
+	isNewCycle = false;
+	currOffset = -1;
 
+	TMP_SignalID = node.getID();//the best id for a signal is the node id itself
 	findIncomingLanes();//what was it used for? dont remember
 	findSignalLinksAndCrossings();
 	ConfigParams& config = ConfigParams::GetInstance();
@@ -93,12 +110,16 @@ void Signal::initializeSignal() {
 
 //	setCL(0, 60, 0);//default initial cycle length for SCATS
 //	setRL(60, 60);//default initial RL for SCATS
-	startSplitPlan();//todo : must do, I guess!
+	startSplitPlan();//todo : must be shifted from here, I guess!
 	currPhaseID = 0;
 	phaseCounter = 0;
 	currOffset = 0;
 //	updateTrafficLights(); //todo what is that?
 
+}
+sim_mob::SplitPlan & Signal::getPlan()
+{
+	return plan_;
 }
 
 void Signal::addSignalSite(centimeter_t /* xpos */, centimeter_t /* ypos */,
@@ -347,7 +368,7 @@ double Signal::computeDS() {
 	for(int i = 0 ;p_it != plan_.phases_.end(); p_it++)//Loop1===>phase
 	{
 		maxPhaseDS = 0;
-		double total_g = (*p_it).computeTotalG();//todo: I guess we can avoid calling this function EVERY time by adding an extra container at split plan level.(mapped to percentage container)
+		double total_g = (*p_it).computeTotalG();//todo: I guess we can avoid calling this function EVERY time by adding an extra container at split plan level.(mapped to choiceSet container)
 		links_map_iterator link_it = (*p_it).LinkFrom_begin();
 		for (; link_it != (*p_it).LinkFrom_end(); link_it++) {//Loop2===>link
 			std::set<sim_mob::RoadSegment*> segments = (*link_it).first->getUniqueSegments();//optimization: use either fwd or bed segments

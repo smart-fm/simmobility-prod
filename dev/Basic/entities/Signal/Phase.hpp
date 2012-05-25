@@ -4,6 +4,7 @@
 #include<vector>
 #include<string>
 #include <map>
+#include<util/LangHelpers.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/random_access_index.hpp>
@@ -48,12 +49,15 @@ using namespace ::boost::multi_index;
 
 
 
-typedef struct
+struct ll
 {
+	ll(sim_mob::Link *linkto = nullptr):LinkTo(linkto){currColor = sim_mob::Red;}
+
 	sim_mob::Link *LinkTo;
 	ColorSequence colorSequence;
 	TrafficColor currColor;
-} linkToLink;
+};
+typedef ll linkToLink;
 
 typedef std::multimap</*linkFrom*/sim_mob::Link *, sim_mob::linkToLink> links_map; //mapping of LinkFrom to linkToLink{which is LinkTo,colorSequence,currColor}
 typedef links_map::iterator links_map_iterator;
@@ -83,10 +87,11 @@ class Phase
 {
 public:
 
-	Phase(double CycleLenght,std::size_t start, std::size_t percent): cycleLength(CycleLenght),startPecentage(start),percentage(percent){
+	Phase(std::string name_,double CycleLenght,std::size_t start, std::size_t percent): name(name_), cycleLength(CycleLenght),startPecentage(start),percentage(percent){
 		updatePhaseParams();
 	};
-	Phase(){}
+//	Phase(){}
+	Phase(std::string name_):name(name_){}
 
 	void setPercentage(std::size_t p)
 	{
@@ -108,6 +113,7 @@ public:
 	{
 		return links_map_.end();
 	}
+	void addLinkMaping(sim_mob::Link * lf, sim_mob::linkToLink ll) { links_map_.insert(std::pair<sim_mob::Link *, sim_mob::linkToLink>(lf,ll));}
 	const links_map & getLinkMaps();
 //	links_map_equal_range  getLinkTos(sim_mob::Link *LinkFrom) ;
 	links_map_equal_range getLinkTos(sim_mob::Link *const LinkFrom)const ;
@@ -117,7 +123,8 @@ public:
 	 * */
 	void update(double lapse);
 	double computeTotalG();//total green time
-	std::string name; //we can assign a name to a phase for ease of identification
+	const std::string & getPhaseName() { return name;}
+	const std::string name; //we can assign a name to a phase for ease of identification
 private:
 	unsigned int TMP_PhaseID;
 	std::size_t startPecentage;

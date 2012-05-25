@@ -34,7 +34,7 @@ namespace sim_mob
 	}
 //	assumption : total green time = the whole duration in the color sequence except red!
 //	formula : for a given phase, total_g is maximum (G+FG+...+A - All_red, red...) of the linkFrom(s)
-	/*todo a container should be created(probabely at splitPlan level and mapped to "percentage" container)
+	/*todo a container should be created(probabely at splitPlan level and mapped to "choiceSet" container)
 	to store total_g for all phases once the phase is met, so that this function is not called for the second time
 	if any plan is selected for the second time.*/
 	double Phase::computeTotalG()

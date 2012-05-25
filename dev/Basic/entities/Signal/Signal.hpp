@@ -30,6 +30,7 @@
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/random_access_index.hpp>
 #include <boost/multi_index/composite_key.hpp>
+#include <boost/multi_index/mem_fun.hpp>
 
 
 namespace sim_mob
@@ -40,6 +41,7 @@ using boost::multi_index::ordered_unique;
 using boost::multi_index::indexed_by;
 using boost::multi_index::member;
 using boost::multi_index::random_access;
+using boost::multi_index::mem_fun;
 // Forwared declarations.
 class Node;
 class Lane;
@@ -86,6 +88,7 @@ struct LinkAndCrossing
 	sim_mob::Crossing const * crossing;
 };
 
+
 typedef multi_index_container<
 		LinkAndCrossing, indexed_by<
 	 random_access<>															//0
@@ -105,6 +108,7 @@ typedef LinkAndCrossingByCrossing::iterator SignalCrossingIterator;
 class Signal  : public sim_mob::Agent {
 
 public:
+
 	/*--------Initialization----------*/
 	void initializeSignal();
 	void setSplitPlan(sim_mob::SplitPlan);
@@ -140,12 +144,13 @@ public:
 //	void setnextSplitPlan(double DS[]);
 	int getcurrSplitPlanID();
 	int getnextSplitPlanID();
+	sim_mob::SplitPlan & getPlan();
 
 //	std::vector<double> getNextSplitPlan();
 //	std::vector<double> getCurrSplitPlan();
 
 
-	/*--------Split Plan----------*/
+	/*--------Phase----------*/
 	int getcurrPhase();
 	int getphaseCounter(){return phaseCounter;}
 
@@ -157,23 +162,30 @@ public:
 
 
 	/*--------Miscellaneous----------*/
-	Node const & getNode() const { return node_; }
+	Node  const & getNode() const { return node_; }
 	void frame_output(frame_t frameNumber);
 	int fmin_ID(const  std::vector<double>  maxproDS);
 	///Return the loggable representation of this Signal.
 	std::string toString() const { return strRepr; }
-
+	unsigned int getSignalId()  {return TMP_SignalID;}
 
 	/*--------The cause of this Module----------*/
     TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const ;
 	TrafficColor getPedestrianLight(Crossing const & crossing) const;
 
+	typedef multi_index_container<
+			sim_mob::Signal *, indexed_by<
+		 random_access<>															//0
+	    ,ordered_unique<mem_fun<Signal, unsigned int ,&Signal::getSignalId> >//1
+	   >
+	> all_signals;
+	static Signal::all_signals all_signals_;
 
-    static std::vector<Signal*> all_signals_;
     void updateIndicators();
+
 private:
 
-    unsigned int TMP_SignalID;
+    unsigned int TMP_SignalID;//todo change the name to withouth TMP
     /* Fixed time or adaptive control */
     int signalAlgorithm;
     /*-------------------------------------------------------------------------
@@ -199,12 +211,12 @@ private:
     /*
      * the split plan(s) used in this traffic signal are represented using this single variable
      * This variable has two main tasks
-     * 1-hold plans' phase information and different combinations of phase time shares(percentage)
-     * 2-decides/outputs/selects the next split plan(percentage combination) based on the the inputted DS
+     * 1-hold plans' phase information and different combinations of phase time shares(choiceSet)
+     * 2-decides/outputs/selects the next split plan(choiceSet combination) based on the the inputted DS
      */
     sim_mob::SplitPlan plan_;
 
-	std::vector<double> currSplitPlan;//a chunk in "percentage" container,Don't think I will need it anymore coz job is distributed to a different class
+	std::vector<double> currSplitPlan;//a chunk in "choiceSet" container,Don't think I will need it anymore coz job is distributed to a different class
 	int currSplitPlanID;//Don't think I will need it anymore
 	int phaseCounter;//Don't think I will need it anymore coz apparently currCycleTimer will replace it
 	double currCycleTimer;//The amount of time passed since the current cycle started.(in millisecond)
@@ -244,6 +256,9 @@ private:
 	std::string strRepr;
 //	sim_mob::Shared<SignalStatus> buffered_TC;
 
+//	//private override for friends ;)
+//	static Signal & signal_at(Node const & node, const MutexStrategy& mtxStrat);
+	friend class DatabaseLoader;
 protected:
         LoopDetectorEntity loopDetector_;
 
@@ -259,7 +274,10 @@ public:
 	virtual void packProxy(PackageUtils& packageUtil);
 	virtual void unpackProxy(UnPackageUtils& unpackageUtil);
 #endif
-
 //	static std::vector< std::vector<double> > SplitPlan;
 };//class Signal
+typedef nth_index_iterator<Signal::all_signals, 0>::type all_signals_Iterator;
+typedef nth_index_const_iterator<Signal::all_signals, 0>::type all_signals_const_Iterator;
+
+
 }//namespace sim_mob

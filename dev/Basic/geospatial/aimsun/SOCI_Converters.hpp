@@ -79,26 +79,26 @@ template<> struct type_conversion<Phase>
     typedef values base_type;
     static void from_base(const soci::values& vals, soci::indicator& ind, Phase &res)
     {
-    	res.name = vals.get<string>("Phase","");
-    	res.nodeId = vals.get<int>("Node_Id",0);
-    	res.sectionFrom = vals.get<int>("From_Section",0);
-    	res.sectionTo = vals.get<int>("To_Section",0);
-    	res.laneFrom_A = vals.get<int>("From_Lane_A", 0);
-    	res.laneTo_A = vals.get<int>("To_Lane_A", 0);
-    	res.laneFrom_B = vals.get<int>("From_Lane_B", 0);
-    	res.laneTo_B = vals.get<int>("To_Lane_B", 0);
+    	res.name = vals.get<string>("phases","");
+    	res.nodeId = vals.get<int>("node_id",0);
+    	res.sectionFrom = vals.get<int>("from_section",0);
+    	res.sectionTo = vals.get<int>("to_section",0);
+    	res.laneFrom_A = vals.get<int>("from_lane_a", 0);
+    	res.laneTo_A = vals.get<int>("to_lane_a", 0);
+    	res.laneFrom_B = vals.get<int>("from_lane_b", 0);
+    	res.laneTo_B = vals.get<int>("to_lane_b", 0);
     }
     static void to_base(const Phase& src, soci::values& vals, soci::indicator& ind)
     {
 //    	vals.set("id", src.id);
-        vals.set("Phase", src.name);
-        vals.set("Node_Id", src.nodeId);
-        vals.set("From_Section", src.sectionFrom);
-        vals.set("To_Section", src.sectionTo);
-        vals.set("From_Lane_A", src.laneFrom_A);
-        vals.set("From_Lane_B", src.laneFrom_B);
-        vals.set("To_Lane_A", src.laneTo_A);
-        vals.set("To_Lane_B", src.laneTo_B);
+        vals.set("phases", src.name);
+        vals.set("node_id", src.nodeId);
+        vals.set("from_section", src.sectionFrom);
+        vals.set("to_section", src.sectionTo);
+        vals.set("from_lane_a", src.laneFrom_A);
+        vals.set("from_lane_b", src.laneFrom_B);
+        vals.set("to_lane_a", src.laneTo_A);
+        vals.set("to_lane_b", src.laneTo_B);
         ind = i_ok;
     }
 };

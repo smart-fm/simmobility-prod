@@ -311,9 +311,14 @@ inline Signal const *
 StreetDirectory::signalAt(Node const & node)
 const
 {
+//	std::cout << " in StreetDirectory::ignalAt" << std::endl;
     boost::unordered_map<const Node *, Signal const *>::const_iterator iter = signals_.find(&node);
     if (signals_.end() == iter)
+    {
+//    	std::cout << " in StreetDirectory::ignalAt returning 0" << std::endl;
         return 0;
+    }
+//    std::cout << " in StreetDirectory::ignalAt returning something other than 0" << std::endl;
     return iter->second;
 }
 

@@ -58,6 +58,16 @@ private:
 	void getBusArrivalVMS() {  }
 
 
+	//Temporary items required for compiling
+private:
+	const std::vector<sim_mob :: Lane*>& getLanes() const { return lanes;}
+	int bus_stop_lane(const RoadSegment& segment);
+	sim_mob::Point2D getNearestPolyline(const sim_mob::Point2D &position);
+	float getSumDistance();
+
+	std::vector<sim_mob :: Lane*> lanes;
+
+
 };
 
 

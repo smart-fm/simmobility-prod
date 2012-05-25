@@ -72,7 +72,7 @@ float sim_mob:: BusStop:: getSumDistance()
 {
 
 	getNearestPolyline(position);
-	float m = (y2-y1)/(x2-x1);
+	float m = (y2-y1)/(x2-x1); //
 	float n = -1/m;
 	float Y = position.getY();
 	float X = position.getX();

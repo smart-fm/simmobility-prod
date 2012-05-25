@@ -49,7 +49,10 @@ public:
 
 	///Retrieve the Lanes within this segment.
 	//TEMP: For now, returning a const vector of non-const lanes. Will fix later. ~Seth
-	const std::vector<sim_mob::Lane*>& getLanes() const { return lanes; }
+	void end1(){};
+	const std::vector<sim_mob::Lane*>& getLanes() const {
+		void end1();
+		return lanes; }
 
 	///Retrieve whether this is a single or bidirectional Road Segment.
 	bool isSingleDirectional();

@@ -1,7 +1,7 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
+
 #include "Pavement.hpp"
-//#include "Pavement.cpp"
 #include "BusStop.hpp"
 #include "RoadSegment.hpp"
 #include "Lane.hpp"
@@ -18,16 +18,10 @@ using std::set;
 using std::string;
 
 
-//namespace sim_mob{
+namespace sim_mob{
 
-//namespace {
-/*
-  a) Find the nearest polyline (pair of polypoints) on that Lane's polyline.
-*/
-
-//Moved to header file
-//const std::vector<sim_mob :: Lane*>& getLanes() const { return lanes;}
-
+// this was supposed to be a function to return the left most lane of a segment but since that can directly be accessed
+// as in 'Point A' so it has no further functionality
 int sim_mob::BusStop::bus_stop_lane(const RoadSegment& segment)
    {
         if (segment.width==0) {
@@ -35,38 +29,29 @@ int sim_mob::BusStop::bus_stop_lane(const RoadSegment& segment)
        }
         else
         {
-        	unsigned int laneID = segment.getLanes().back()->getLaneID();
-
-
-        	//Temporarily disabling:
-        	//const std::vector<sim_mob :: Point2D>& getLaneEdgePolyline(laneID);
-        	//return getLaneEdgePolyline(laneID);
-
+        	unsigned int laneID = segment.getLanes().back()->getLaneID(); // Point A
         	const std::vector<sim_mob::Point2D>& res = lane_location->getRoadSegment()->getLaneEdgePolyline(laneID);
-        	return res.size(); //Not sure what you're trying to return here.
+        	return res.size();
         }
        }
 
+// this is a funtion to determine the distance between two 2D points
+float getDistance(sim_mob::Point2D a,sim_mob::Point2D b){};
 
+int count = 0;
+int x2, x1, y2, y1, x_base, y_base;
 
-sim_mob::Point2D sim_mob::BusStop::getNearestPolyline(const sim_mob::Point2D &position)
+// This function is used to get the nearest polyline to the given location of Bus Stop passed as an argument to this function
+sim_mob::Point2D sim_mob::BusStop:: getNearestPolyline(const sim_mob::Point2D &position)
 {
-	int count = 0;
-	int x2, x1, y2, y1;
-
-	//Not sure what you're trying to do here. ~Seth
-	const std::vector<Point2D> poly = lane_location->getRoadSegment()->getLaneEdgePolyline(0);
-	for (std::vector<Point2D>::const_iterator it=poly.begin(); it!=poly.end(); it++) {
-				//Temporarily disabled: Seth
-	        	//float distance_measured = getDistance(position,it);
-				//float other_distance = getDistance(position,it);
-				float distance_measured = 0;
-				float other_distance = 0;
-
-	        	if (distance_measured > other_distance) {
-	        		//Temporarily disabled: Seth
-	               //distance_measured = getDistance(position,it);
-
+	const std::vector<sim_mob::Point2D> poly = lane_location->getRoadSegment()->getLaneEdgePolyline(0);
+	std ::vector<sim_mob::Point2D>:: const_iterator it= poly.begin();
+	float distance_measured = getDistance(position,*it); // distance between the position of Bus Stop and the position at which iterator points initially
+	for (it= poly.begin()+1; it!=poly.end(); it++) {
+	        	// this would find the pair of polypoints which are closest to the current Bus Stop and also calculates the value of count as
+		        // the number of polypoint pairs that need to be considered while calculating the sum of polylines
+	        	if (distance_measured > getDistance(position,*it)) {
+	               distance_measured = getDistance(position,*it);
 	               sim_mob::Point2D first_PP = *it;
 	               sim_mob::Point2D second_PP = *(it-1);
 	               x2 = first_PP.getX();
@@ -80,72 +65,41 @@ sim_mob::Point2D sim_mob::BusStop::getNearestPolyline(const sim_mob::Point2D &po
 }
 
 
-
-/*
-  b) Find the intersection point between the bus stop and that
-polyline. Determine how far along that polypoint you are currently
-located (e.g, 5m).
-*/
-
-/*
-  c) Add the result from (b) to the sum of all polyline lengths
-*before* the current polyline. (For example, if you are polyling 5 out
-of 6, you have to add the lengths of polylines 1,2,3, and 4).
-*/
-
-
-float sim_mob::BusStop::getSumDistance()
+float SumofDistances = 0;
+sim_mob::Point2D position;
+// this function is used to calculate the sum of all polyline lengths *before* the current polyline
+float sim_mob:: BusStop:: getSumDistance()
 {
-	float SumofDistances = 0;
 
-	//Added:
-	sim_mob::Point2D position(0,0);
-
-	//NOTE: I changed a lot of the following to get it to compile; please double-check your
-	//      algorithm. ~Seth
-	int x1 = position.getX();
-	int y1 = position.getY();
-	int x2 = position.getX();
-	int y2 = position.getY();
 	getNearestPolyline(position);
 	float m = (y2-y1)/(x2-x1);
 	float n = -1/m;
 	float Y = position.getY();
 	float X = position.getX();
-	int x_base = (m*x1-n*X+Y-y1)/(m-n);
-	int y_base = (X-x1+m*Y-n*y1)/(m-n);
+	x_base = (m*x1-n*X+Y-y1)/(m-n);
+	y_base = (X-x1+m*Y-n*y1)/(m-n);
 
-	//NOTE: Disabled for now; this is kind of buggy. ~Seth
-	/*sim_mob::vector<Point2D*>::const_iterator it=getLaneEdgePolyline(segment.getlanes.end()).begin()+1;
-    sim_mob::Point2D first_PP = it;
-	sim_mob::Point2D second_PP = it-1;
+	std::vector<Point2D>::const_iterator it = lane_location->getRoadSegment()->getLaneEdgePolyline(0).begin()+1;
+    sim_mob ::Point2D first_PP = *it;
+	sim_mob::Point2D second_PP = *(it-1);
 	for (int i = 0; i< count; i++) {
 	        SumofDistances = SumofDistances + sqrt((first_PP.getX()-second_PP.getX())^2 + (first_PP.getY()-second_PP.getY())^2);
 	        it++;
-	}*/
-	//SumofDistances = SumofDistances + sqrt((x_base-first_PP.getX())^2 + (y_base-first_PP.getY())^2);
+	}
+	SumofDistances = SumofDistances + sqrt((x_base-first_PP.getX())^2 + (y_base-first_PP.getY())^2);
 
 	return SumofDistances;
+
 }
 
 
-
-
-
-
-
 /*
-  d) Set this Bus Stop as an obstacle at that distance (we use
+ Set this Bus Stop as an obstacle at that distance (we use
 distance, not percentages).
+// I tried the following code but its giving some 'does not name a type error' and i am not getting how to remove it using forward declaration
+//Pavement* rs;
+//int location = getSumDistance();
+//rs->obstacles[location] = new BusStop();
 */
 
-
-//RoadItem* item = /* "get next obstacle" */;
-
-// Yet to implement. ~ Saurabh
-//Lane* laneOfBusStop = dynamic_cast<BusStop*>(item)->lane_location;
-
-
-
-//}
-//}
+}

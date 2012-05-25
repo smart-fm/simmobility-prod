@@ -15,6 +15,7 @@ import sim_mob.vis.network.basic.DPoint;
 import sim_mob.vis.network.basic.FlippedScaledPoint;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.network.basic.Vect;
+import sim_mob.vis.simultion.DriverTick;
 import sim_mob.vis.util.Mapping;
 import sim_mob.vis.util.Utility;
 import sim_mob.vis.ProgressUpdateRunner;
@@ -32,11 +33,7 @@ public class RoadNetwork {
 	private static final Color Annotations_AimsunBgColor = new Color(0xFF,0x66, 0x00, 0xAA);
 	private static final Color Annotations_AimsunFgColor = new Color(0xFF, 0xCC, 0xCC);
 	private static final Color Annotations_MitsimBgColor = new Color(0x00, 0xCC, 0xFF, 0xAA);
-	private static final Color Annotations_MitsimFgColor = new Color(0xCC, 0xCC, 0xFF);
-	private static final Color Annotations_AimsunnBgColor = new Color(0xFF,0x00,0x00);
-	private static final Color Annotations_AimsunnFgColor = new Color(0xFF,0xFF,0x00);
-	private static final Color Annotations_MitsimmBgColor = new Color(0x00, 0xCC, 0xFF, 0xAA);
-	private static final Color Annotations_MitsimmFgColor = new Color(0xCC, 0xCC, 0xFF);
+	private static final Color Annotations_MitsimFgColor = new Color(0xCC, 0xCC, 0xFF);	
 	private static final Color Annotations_FontColor = new Color(0x00, 0x00, 0x00);
 	
 	private DPoint cornerTL;
@@ -46,8 +43,7 @@ public class RoadNetwork {
 	private Hashtable<Integer, BusStop> busstop;
 	private ArrayList<Annotation> annot_aimsun;
 	private ArrayList<Annotation> annot_mitsim;
-	private ArrayList<Annotation> annot_aimsunn;
-	private ArrayList<Annotation> annot_mitsimm;
+
 	private Hashtable<Integer, Link> links;
 	private Hashtable<String, LinkName> linkNames;
 	private Hashtable<Integer, Segment> segments;
@@ -59,6 +55,7 @@ public class RoadNetwork {
 	private Hashtable<Integer, TrafficSignalCrossing> trafficSignalCrossings;
 	private Hashtable<Integer, Intersection> intersections; 
 	private Hashtable<Integer, CutLine> cutLines;
+	private Hashtable<Integer, DriverTick> drivertick;
 
 	private Hashtable<String, Integer> fromToSegmentRefTable;
 	
@@ -77,8 +74,7 @@ public class RoadNetwork {
 	public Hashtable<Integer, BusStop> getBusStop() { return busstop; }
 	public ArrayList<Annotation> getAimsunAnnotations() { return annot_aimsun; }
 	public ArrayList<Annotation> getMitsimAnnotations() { return annot_mitsim; }
-	public ArrayList<Annotation> getAimsunnAnnotations() { return annot_aimsunn; }
-	public ArrayList<Annotation> getMitsimmAnnotations() { return annot_mitsimm; }
+	
 	public Hashtable<Integer, Link> getLinks() { return links; }
 	public Hashtable<String, LinkName> getLinkNames() { return linkNames; }
 	public Hashtable<Integer, Segment> getSegments() { return segments; }
@@ -89,6 +85,7 @@ public class RoadNetwork {
 	public Hashtable<Integer, TrafficSignalCrossing> getTrafficSignalCrossing() {return trafficSignalCrossings;}
 	public Hashtable<Integer, Intersection> getIntersection(){return intersections;}
 	public Hashtable<Integer, CutLine> getCutLine(){return cutLines;}
+	public Hashtable<Integer, DriverTick> getDriverTick(){return drivertick;}
 	
 
 	/**
@@ -102,8 +99,7 @@ public class RoadNetwork {
 		annot_mitsim = new ArrayList<Annotation>();
 		annot_aimsun = new ArrayList<Annotation>();
 		annot_mitsim = new ArrayList<Annotation>();
-		annot_aimsunn = new ArrayList<Annotation>();
-		annot_mitsimm = new ArrayList<Annotation>();
+	
 		links = new Hashtable<Integer, Link>();
 		linkNames = new Hashtable<String, LinkName>();
 		segments = new Hashtable<Integer, Segment>();
@@ -115,6 +111,7 @@ public class RoadNetwork {
 		trafficSignalCrossings = new Hashtable<Integer, TrafficSignalCrossing>();
 		intersections = new Hashtable<Integer, Intersection>();
 		cutLines =  new Hashtable<Integer, CutLine>();
+		drivertick =  new Hashtable<Integer, DriverTick>();
 
 		fromToSegmentRefTable =  new Hashtable<String, Integer>();
 		segmentRefTable = new  Hashtable<Integer , ArrayList<Integer>>(); 
@@ -203,7 +200,7 @@ public class RoadNetwork {
 		
 		//Space node annotations as necessary to avoid distortion
 		this.spaceNodeAnnotations();
-		this.spaceBusStopAnnotations();
+		// this.spaceBusStopAnnotations();
 	}
 	
 	
@@ -479,6 +476,7 @@ public class RoadNetwork {
 		    
 		    BusStop res = new BusStop(x, y, isUni,objID,angle);
 		   // @amit:Not sure why to use Annotation 
+		    /*
 		    if (props.containsKey("aimsunn-id")) {
 		    	Annotation an = new Annotation(new Point((int)x, (int)y), props.get("aimsunn-id"), 'A');
 		    	an.setBackgroundColor(Annotations_AimsunnBgColor);
@@ -494,7 +492,7 @@ public class RoadNetwork {
 		    	an.setFontColor(Annotations_FontColor);
 		    	annot_mitsimm.add(an);
 		    }
-		    
+		    */
 		    busstop.put(objID, res);
 		    
 		}
@@ -793,8 +791,8 @@ public class RoadNetwork {
 	}
 	private void spaceBusStopAnnotations() {
 		Hashtable<Point, Integer> alreadySpaced = new Hashtable<Point, Integer>(); //int = conflicts
-		spaceBusStopAnnotations(alreadySpaced, annot_aimsunn);
-		spaceBusStopAnnotations(alreadySpaced, annot_mitsimm);
+		spaceBusStopAnnotations(alreadySpaced, annot_aimsun);
+		spaceBusStopAnnotations(alreadySpaced, annot_mitsim);
 	}
 	
 	

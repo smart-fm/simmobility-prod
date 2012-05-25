@@ -18,13 +18,13 @@ import sim_mob.vis.network.basic.ScaledPoint;
  */
 public class Node implements DrawableItem {
 	//Constants
-	private static final int NODE_SIZE = 12;	
+	private  int NODE_SIZE = 12;	
 	
 	private ScaledPoint pos;
 	private boolean isUni;   //Rather than having multiple classes....
 	private Integer id;
 	public Node(double x, double y, boolean isUni, Integer id) {
-		pos = new FlippedScaledPoint(x, y);
+		pos = new ScaledPoint(x, -y);
 		this.isUni = isUni;
 		this.id = id;
 	}
@@ -60,6 +60,10 @@ public class Node implements DrawableItem {
 	
 	public void draw(Graphics2D g, DrawParams params) {
 		//Skip if we're zoomed in and this is a uni-node
+		
+	// NODE_SIZE=NODE_SIZE+1;
+		
+		
 		if (params.PastCriticalZoom && isUni) { return; }
 		
 		int[] coords = new int[]{(int)pos.getX()-NODE_SIZE/2, (int)pos.getY()-NODE_SIZE/2};

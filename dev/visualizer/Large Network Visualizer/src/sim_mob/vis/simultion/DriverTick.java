@@ -293,8 +293,9 @@ public class DriverTick extends AgentTick {
 		
 		
 		//TEMP
-		double scaleMultiplier = Math.max(ScaledPoint.getScaleFactor().getX(), ScaledPoint.getScaleFactor().getY());
-		scaleMultiplier = 8;
+		double onePixelInM = 50; //Assume pixels are 15m		
+	
+		double scaleMultiplier = (ScaledPoint.getScaleFactor().getX()*onePixelInM);
 		
 		
 		BufferedImage toDraw = svi.getImage(scaleMultiplier, angleD, true);

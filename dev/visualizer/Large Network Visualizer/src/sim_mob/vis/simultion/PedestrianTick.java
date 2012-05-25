@@ -131,7 +131,7 @@ public class PedestrianTick extends AgentTick {
 			throw new RuntimeException(ex);
 		}
 		
-		//Recolor per the user's config file.
+		// Recolor per the user's config file.
 		Hashtable<String, Color> overrides = MainFrame.GetOverrides("pedestrian-debug", PedBkgdColorIDs, PedLineColorIDs);
 		DebugPersonImg.buildColorIndex(overrides);
 	}
@@ -162,15 +162,19 @@ public class PedestrianTick extends AgentTick {
 		//at.scale(1/scale + 0.2, 1/scale + 0.2);
 		
 		//TEMP
-		double scaleMultiplier = Math.max(ScaledPoint.getScaleFactor().getX(), ScaledPoint.getScaleFactor().getY());
-		scaleMultiplier = 2;
+		// double scaleMultiplier = Math.max(ScaledPoint.getScaleFactor().getX(), ScaledPoint.getScaleFactor().getY());
+		double onePixelInM = 10; //Assume pixels are 15m
+		
+		SimpleVectorImage svi = (params.DrawFakeOn&&fake) ? FakePersonImg : params.DebugOn ? DebugPersonImg : PersonImg;
+		double scaleMultiplier = (ScaledPoint.getScaleFactor().getX()*onePixelInM);
+		//BufferedImage toDraw = svi.getImage(scaleMultiplier, angleD, true);
 		
 		//System.out.println("Scale multiplier: " + scaleMultiplier + " => " + (1/scaleMultiplier + 0.2));
-		
+		// scaleMultiplier=2;
 		//Retrieve the image to draw
-		SimpleVectorImage svi = (params.DrawFakeOn&&fake) ? FakePersonImg : params.DebugOn ? DebugPersonImg : PersonImg;
+		
 		//BufferedImage toDraw = svi.getImage(1/scaleMultiplier + 0.2, 0);
-		BufferedImage toDraw = svi.getImage(scaleMultiplier, 0);
+		BufferedImage toDraw = svi.getImage(scaleMultiplier,0);
 		
 		//Translate to top-left corner
 		at.translate(-toDraw.getWidth()/2, -toDraw.getHeight()/2);
@@ -179,8 +183,8 @@ public class PedestrianTick extends AgentTick {
 		g.setTransform(at);
 
 		//Enable Draw fake agent
-		/*if(drawFake)
-		{
+		/* if(drawFake)
+		   {
 			if(fake){
 				g.drawImage(FakePedImg, 0, 0, null);
 			}else{

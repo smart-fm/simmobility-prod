@@ -1,4 +1,4 @@
-package sim_mob.vis.controls;
+ package sim_mob.vis.controls;
 import java.awt.*;
 
 import java.awt.image.BufferedImage;
@@ -16,7 +16,6 @@ import sim_mob.vis.network.BusStop;
 import sim_mob.vis.network.*;
 import sim_mob.vis.simultion.*;
 import sim_mob.vis.util.Utility;
-
 
 /**
  * Represents an actual visualizer for the network. Handles scaling, etc. 
@@ -185,8 +184,8 @@ public class NetworkVisualizer {
 		for (Node n : net.getNodes().values()) {
 			res.addItem(n, n.getBounds());
 		}
-		for (BusStop n : net.getBusStop().values()) {
-			res.addItem(n, n.getBounds());
+		for (BusStop bs : net.getBusStop().values()) {
+			res.addItem(bs, bs.getBounds());
 		}
 		for (Link ln : net.getLinks().values()) {
 			res.addItem(ln, ln.getBounds());
@@ -261,8 +260,8 @@ public class NetworkVisualizer {
 		//Each tick increases zoom by 10%
 		Rectangle2D zoom = getCurrentView();
 		Utility.resizeRectangle(zoom,
-			zoom.getWidth()+zoom.getWidth()*number*0.10,
-			zoom.getHeight()+zoom.getHeight()*number*0.10);
+			zoom.getWidth()+zoom.getWidth()*number*0.20,
+			zoom.getHeight()+zoom.getHeight()*number*0.20);
 		
 		//Redraw at this scale.
 		redrawFrame(frameTick, panelSize, zoom);
@@ -336,7 +335,7 @@ public class NetworkVisualizer {
 			addAllCrossingSignals(agentTicksIndex, frameTick);
 			addAllLaneSignals(agentTicksIndex, frameTick);
 			addAllAgents(agentTicksIndex, frameTick);
-			
+			addAllCrossingSignals(agentTicksIndex, frameTick);
 			
 			//TEMP:
 			//System.out.println("Network bounds: " + Utility.printRect(networkItemsIndex.getBounds()));
@@ -386,38 +385,40 @@ public class NetworkVisualizer {
 		
 		//Draw Busstop
 		
-		// drawAllBusStop(g, true);
+		//drawAllBusStop(g, true);
 				
 		//Draw nodes
 		//final boolean ZoomCritical = ("x".equals("Y")); //(currPercentZoom>ZOOM_IN_CRITICAL); //TODO: Re-enable.
-		//drawAllNodes(g, (!ZoomCritical) || (showAimsunLabels || showMitsimLabels));
+		drawAllNodes(g,  true /* (!ZoomCritical) || (showAimsunLabels || showMitsimLabels)*/);
 		
 		//Draw segments
-		//drawAllSegments(g, (!ZoomCritical) || (showAimsunLabels || showMitsimLabels));
+		drawAllSegments(g, true /* (!ZoomCritical) || (showAimsunLabels || showMitsimLabels)*/);
 		
 		//Draw cut lines
-		//drawAllCutlines(g, this.showFakeAgent);
+		drawAllCutlines(g, this.showFakeAgent);
 		
 		//Draw all names
 		//drawAllNames(g);
 		
 		//Draw individual lanes
-		//drawAllLanes(g, ZoomCritical);
+		drawAllLanes(g, true);
 		
 		//Draw all pedestrian crossings
-		//drawAllCrossings(g, ZoomCritical);
+		drawAllCrossings(g, true);
 
 		//Draw all pedestrian crossing lights
-		//drawAllCrossingSignals(g, frameTick, params.PastCriticalZoom);
+		//drawAllCrossingSignals(g, frameTick, true);
 
 		//Draw all lane crossing lights
-		//drawAllLaneSignals(g, frameTick, params.PastCriticalZoom);
+		//drawAllLaneSignals(g, frameTick, true);
 
 		//Draw all Agents now
 		//drawAllAgents(g, frameTick);
 		
 		//Draw all annotations
-		//drawAllAnnotations(g, showAimsunLabels, showMitsimLabels);
+		drawAllAnnotations(g, showAimsunLabels, showMitsimLabels);
+		
+		drawAllDriverTick( g,true); 
 	}
 	
 	
@@ -457,68 +458,73 @@ public class NetworkVisualizer {
 			return totalItems;
 		}
 	}
-/*
+
+	private DrawParams p = new DrawParams();
 	private void drawAllBusStop(Graphics2D g, boolean ShowBusStop) {
 		for (BusStop n : network.getBusStop().values()) {
 			if (ShowBusStop || !n.getIsUni()) {
-				n.draw(g,PastCriticalZoom());
+				n.draw(g,p);
 			}
 		}
 	}
-	*/
-	/*private void drawAllNodes(Graphics2D g, boolean ShowUniNodes) {
+	private void drawAllNodes(Graphics2D g, boolean ShowUniNodes) {
 		for (Node n : network.getNodes().values()) {
 			if (ShowUniNodes || !n.getIsUni()) {
-				n.draw(g, PastCriticalZoom());
+				n.draw(g,p);
 			}
 		}
-	}*/
-	
-	/*private void drawAllAnnotations(Graphics2D g, boolean showAimsun, boolean showMitsim) {
+	}
+	private void drawAllAnnotations(Graphics2D g, boolean showAimsun, boolean showMitsim) {
 		if (showAimsun) {
 			for (Annotation an : network.getAimsunAnnotations()) {
-				an.draw(g, PastCriticalZoom());
+				an.draw(g,p);
 			}
 		}
 		if (showMitsim) {
 			for (Annotation an : network.getMitsimAnnotations()) {
-				an.draw(g, PastCriticalZoom());
+				an.draw(g,p);
 			}
 		}
-	}*/
+	}
 	
-	/*private void drawAllSegments(Graphics2D g, boolean ShowSegments) {
+	private void drawAllSegments(Graphics2D g, boolean ShowSegments) {
 		if(!ShowSegments) { return; }
 		for (Segment sn : network.getSegments().values()) {
-			sn.draw(g, PastCriticalZoom());
+			sn.draw(g,p);
 		}
-	}*/
+	}
 	
-	/*private void drawAllCutlines(Graphics2D g, boolean ShowCutLines) {
+	private void drawAllCutlines(Graphics2D g, boolean ShowCutLines) {
 		if (!ShowCutLines) { return; }
 		for(CutLine ctl : network.getCutLine().values()){
-			ctl.draw(g, PastCriticalZoom());	
+			ctl.draw(g,p);	
 		}
-	}*/
+	}
 	
 
 	
-	/*private void drawAllLanes(Graphics2D g, boolean ShowLanes) {
+	private void drawAllLanes(Graphics2D g, boolean ShowLanes) {
 		if (!ShowLanes) { return; }
 		for (Hashtable<Integer,LaneMarking> lineMarkingTable : network.getLaneMarkings().values()) {
 			for(LaneMarking lineMarking : lineMarkingTable.values()){
-				lineMarking.draw(g, PastCriticalZoom());
+				lineMarking.draw(g,p);
 			}
 		}
-	}*/
+	}
 	
 	
-	/*private void drawAllCrossings(Graphics2D g, boolean ShowCrossings) {
+	private void drawAllCrossings(Graphics2D g, boolean ShowCrossings) {
 		if (!ShowCrossings) { return; }
 		for(Crossing crossing : network.getCrossings().values()){
-			crossing.draw(g, PastCriticalZoom());
+			crossing.draw(g,p);
 		}
-	}*/
+	}
+	private void drawAllDriverTick(Graphics2D g, boolean ShowCrossings) {
+		if (!ShowCrossings) { return; }
+		for(DriverTick drivertick : network.getDriverTick().values()){
+			drivertick.draw(g,p);
+		}
+	}
 	
 	private void addAllCrossingSignals(LazySpatialIndex<DrawableItem> index, int currFrame) {
 		if (simRes.ticks.isEmpty() && currFrame==0) { return; }

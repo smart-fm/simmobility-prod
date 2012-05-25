@@ -15,7 +15,7 @@
 #include "Crossing.hpp"
 #include "Turning.hpp"
 #include "Polyline.hpp"
-#include "BusStops.hpp"
+#include "BusStop.hpp"
 #include "Signal.hpp"
 
 

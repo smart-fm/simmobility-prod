@@ -14,8 +14,8 @@ std::size_t SplitPlan::getOffset() {return offset;}
 
 void SplitPlan::setOffset(std::size_t o) {offset = o;}
 
-const std::vector<sim_mob::Phase> & SplitPlan::getPhases() const { return phases_; }
-std::vector<sim_mob::Phase> & SplitPlan::getPhases() { return phases_; }
+//const std::vector<sim_mob::Phase> & SplitPlan::getPhases() const { return phases_; }
+//std::vector<sim_mob::Phase> & SplitPlan::getPhases() { return phases_; }
 
 void SplitPlan::addPhase(sim_mob::Phase phase) { phases_.push_back(phase); }
 
@@ -23,17 +23,6 @@ std::size_t & SplitPlan::CurrPhaseID() { return currPhaseID; }
 
 const  sim_mob::Phase & SplitPlan::CurrPhase() const { return phases_[currPhaseID]; }
 
-int SplitPlan::getPhase(std::string name, sim_mob::Phase &phase)
-{
-	std::vector<sim_mob::Phase>::iterator it = phases_.begin();
-	for(int i= 0; it != phases_.end(); it++,i++)
-		if((*it).name == name)
-		{
-			phase = (*it);
-			return i;
-		}
-	return -1;
-}
 /*
  * This function has 2 duties
  * 1- Update the Votes data structure

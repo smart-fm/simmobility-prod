@@ -22,6 +22,14 @@ enum TrafficControlMode
 
 class SplitPlan
 {
+public:
+	typedef multi_index_container<
+			sim_mob::Phase,
+			indexed_by<
+			random_access<>
+			,ordered_non_unique<member<sim_mob::Phase,const std::string, &Phase::name> >
+	  >
+	> phases;
 private:
 	unsigned int TMP_PlanID;//to identify "this" object(totally different from choice set related terms like currSplitPlanID,nextSplitPlanID....)
     int signalAlgorithm;//Fixed plan or adaptive control
@@ -34,13 +42,7 @@ private:
 
 
 //	std::vector<sim_mob::Phase> phases_;
-	typedef multi_index_container<
-			sim_mob::Phase,
-			indexed_by<
-			random_access<>
-			,ordered_non_unique<sim_mob::Phase, std::string, &sim_mob::Phase::name>
-	  >
-	> phases;
+
 	phases phases_;
 
 	/*
@@ -60,11 +62,12 @@ private:
 	std::vector< std::vector<int> > votes;  //votes[cycle][vote]
 
 public:
-	typedef nth_index_iterator<phases,1>::type plan_phases_iterator;
+	typedef nth_index_iterator<phases,0>::type phases_iterator;
+	typedef nth_index_iterator<phases,1>::type phases_name_iterator;
 	typedef nth_index<phases,1>::type plan_phases_view;
-	plan_phases_view & get_PlanPhasesByName()
+	void get_PlanPhasesByName(plan_phases_view & v) const
 	{
-		return get<1>(phases_);
+		v = get<1>(phases_);
 	}
 	/*plan methods*/
 	SplitPlan();
@@ -84,13 +87,14 @@ public:
 
 	/*phase related methods*/
 	std::size_t & CurrPhaseID();
-	const std::vector<sim_mob::Phase> & getPhases() const;
-	std::vector<sim_mob::Phase> & getPhases();//over load for database loader
+//	const std::vector<sim_mob::Phase> & getPhases() const;
+//	std::vector<sim_mob::Phase> & getPhases();//over load for database loader
 	void addPhase(sim_mob::Phase);
 	std::size_t nofPhases();
 	std::size_t computeCurrPhase(double currCycleTimer);
 	const sim_mob::Phase & CurrPhase() const;
 	int getPhaseIndex(std::string);
+	const phases & getPhases(){return phases_;}
 
 	/*offset related methods*/
 	std::size_t getOffset();

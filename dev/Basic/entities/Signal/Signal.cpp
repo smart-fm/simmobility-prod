@@ -364,10 +364,11 @@ int Signal::fmin_ID(const std::vector<double> maxproDS) {
  */
 double Signal::computeDS() {
 	double lane_DS, maxPhaseDS, maxDS;
-	std::vector<sim_mob::Phase>::iterator p_it = plan_.phases_.begin();
+	sim_mob::SplitPlan::phases_iterator p_it = plan_.phases_.begin();
 	for(int i = 0 ;p_it != plan_.phases_.end(); p_it++)//Loop1===>phase
 	{
 		maxPhaseDS = 0;
+		const std::string name = (*p_it).name;
 		double total_g = (*p_it).computeTotalG();//todo: I guess we can avoid calling this function EVERY time by adding an extra container at split plan level.(mapped to choiceSet container)
 		links_map_iterator link_it = (*p_it).LinkFrom_begin();
 		for (; link_it != (*p_it).LinkFrom_end(); link_it++) {//Loop2===>link
@@ -610,7 +611,7 @@ void Signal::outputToVisualizer(frame_t frameNumber) {
 	std::stringstream logout;
 	logout << "(\"Signal\"," << frameNumber << "," << this << ",{\"";
 //	std::vector<sim_mob::Phase>::const_iterator ph_iter;
-	for(std::vector<sim_mob::Phase>::const_iterator ph_iter = plan_.phases_.begin(), it_end(plan_.phases_.end()); ph_iter != it_end ; ph_iter++)//upper bound
+	for(SplitPlan::phases_iterator ph_iter = plan_.phases_.begin(), it_end(plan_.phases_.end()); ph_iter != it_end ; ph_iter++)//upper bound
 	{
 
 	}

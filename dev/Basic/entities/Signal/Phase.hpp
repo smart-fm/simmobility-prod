@@ -20,42 +20,14 @@ class Link;
 using namespace ::boost;
 using namespace ::boost::multi_index;
 //////////////////// Links ///////////////////////////////////////////////////////////////////////////////////////
-//todo: performance improvement
-//typedef struct
-//{
-//	linkToLink_signal *link2link;
-//	ColorSequence colorSequence;
-//} linkToLink_phase;
-//
-//typedef multi_index_container<
-//		linkToLink_phase,
-//		indexed_by<
-//		random_access<>
-//  >
-//> linkToLink_ck_C;
-//
-//
-//typedef multi_index_container<
-//		linkToLink_phase,
-//  indexed_by<
-//    ordered_non_unique<
-//      key_from_key<
-//        boost::tuple(linkToLink_signal::LinkFrom,linkToLink_signal::LinkTo),
-//        member<linkToLink_phase,linkToLink_signal *,link2link>
-//      >
-//    >
-//  >
-//> car_table;
-
-
 
 struct ll
 {
 	ll(sim_mob::Link *linkto = nullptr):LinkTo(linkto){currColor = sim_mob::Red;}
 
 	sim_mob::Link *LinkTo;
-	ColorSequence colorSequence;
-	TrafficColor currColor;
+	mutable ColorSequence colorSequence;
+	mutable TrafficColor currColor;
 };
 typedef ll linkToLink;
 
@@ -90,7 +62,7 @@ public:
 	Phase(std::string name_,double CycleLenght,std::size_t start, std::size_t percent): name(name_), cycleLength(CycleLenght),startPecentage(start),percentage(percent){
 		updatePhaseParams();
 	};
-//	Phase(){}
+	Phase(){}
 	Phase(std::string name_):name(name_){}
 
 	void setPercentage(std::size_t p)
@@ -105,15 +77,15 @@ public:
 	{
 		return links_map_.equal_range(LinkFrom);
 	}
-	links_map_iterator LinkFrom_begin()
+	links_map_iterator LinkFrom_begin() const
 	{
 		return links_map_.begin();
 	}
-	links_map_iterator LinkFrom_end()
+	links_map_iterator LinkFrom_end() const
 	{
 		return links_map_.end();
 	}
-	void addLinkMaping(sim_mob::Link * lf, sim_mob::linkToLink ll) { links_map_.insert(std::pair<sim_mob::Link *, sim_mob::linkToLink>(lf,ll));}
+	void addLinkMaping(sim_mob::Link * lf, sim_mob::linkToLink ll)const { links_map_.insert(std::pair<sim_mob::Link *, sim_mob::linkToLink>(lf,ll));}
 	const links_map & getLinkMaps();
 //	links_map_equal_range  getLinkTos(sim_mob::Link *LinkFrom) ;
 	links_map_equal_range getLinkTos(sim_mob::Link *const LinkFrom)const ;
@@ -121,8 +93,8 @@ public:
 	/* Used in computing DS for split plan selection
 	 * the argument is the output
 	 * */
-	void update(double lapse);
-	double computeTotalG();//total green time
+	void update(double lapse) const;
+	double computeTotalG() const;//total green time
 	const std::string & getPhaseName() { return name;}
 	const std::string name; //we can assign a name to a phase for ease of identification
 private:
@@ -135,9 +107,9 @@ private:
 	double total_g;
 
 	//The links that will get a green light at this phase
-	sim_mob::links_map links_map_;
+	mutable sim_mob::links_map links_map_;
 	//The crossings that will get a green light at this phase
-	sim_mob::crossings_map crossings_map_;
+	mutable sim_mob::crossings_map crossings_map_;
 
 	friend class SplitPlan;
 	friend class Signal;

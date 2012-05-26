@@ -5,7 +5,7 @@
 #include <cmath>
 #include <algorithm>
 #include <stdexcept>
-
+#include <boost/multi_index_container.hpp>
 //NOTE: Ubuntu is pretty bad about where it puts the SOCI headers.
 //      "soci-postgresql.h" is supposed to be in "$INC/soci", but Ubuntu puts it in
 //      "$INC/soci/postgresql". For now, I'm just referencing it manually, but
@@ -1007,20 +1007,31 @@ DatabaseLoader::createPhases()
 		ppp = phases_.equal_range(sid);
 		multimap<int,sim_mob::aimsun::Phase>::iterator ph_it = ppp.first;
 		sim_mob::SplitPlan & plan = (*sig_it)->getPlan();
+		//some-initially weird looking- boost multi_index provisions to search for a phase by its name, instead of having loops to do that.
+		sim_mob::SplitPlan::phases_name_iterator sim_ph_it;
+		const sim_mob::SplitPlan::plan_phases_view & ppv = plan.getPhases().get<1>();
+
 		for(; ph_it != ppp.second; ph_it++)
 		{
-			std::string name = (*ph_it).second.name;
-			if(plan.getPhaseIndex(name) >= 0)
-			{
 
-			}
-			sim_mob::Phase phase(name);//for general copy
 			sim_mob::Link * linkFrom = (*ph_it).second.FromSection->generatedSegment->getLink();
 			sim_mob::Link * linkTo = (*ph_it).second.ToSection->generatedSegment->getLink();
 			sim_mob::linkToLink ll(linkTo);
-			phase.addLinkMaping(linkFrom,ll);
-			plan.addPhase(phase);//congrates
-			std::cout << "Phase " <<  (*ph_it).second.name << " Links from :" << linkFrom << " to: "  << linkTo << " added to singnal " << sid << std::endl;
+			std::string name = (*ph_it).second.name;
+			if((sim_ph_it = ppv.find(name)) != ppv.end()) //means: if a phase with this name already exists in this plan...(usually u need a loop but with boost multi index, well, you don't :)
+			{
+				sim_ph_it->addLinkMaping(linkFrom,ll);
+				std::cout << "Phase " <<  (*ph_it).second.name << " Links from :" << linkFrom << " to: "  << linkTo << " updated to singnal " << sid << std::endl;
+			}
+			else //new phase, new mapping
+			{
+				sim_mob::Phase phase(name);//for general copy
+				phase.addLinkMaping(linkFrom,ll);
+				plan.addPhase(phase);//congrates
+				std::cout << "Phase " <<  (*ph_it).second.name << " Links from :" << linkFrom << " to: "  << linkTo << " added to singnal " << sid << std::endl;
+			}
+
+
 		}
 	}
 }

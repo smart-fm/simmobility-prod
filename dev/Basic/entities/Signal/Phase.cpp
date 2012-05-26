@@ -13,7 +13,7 @@ namespace sim_mob
 	 * Functionalities of this function will be listed here as they emerge:
 	 * 1- update the color of the link_maps
 	 */
-	void Phase::update(double currentCycleTimer)
+	void Phase::update(double currentCycleTimer) const
 	{
 		//todo: avoid color updation if already end of cycle
 		double lapse = currentCycleTimer - phaseOffset;
@@ -37,10 +37,10 @@ namespace sim_mob
 	/*todo a container should be created(probabely at splitPlan level and mapped to "choiceSet" container)
 	to store total_g for all phases once the phase is met, so that this function is not called for the second time
 	if any plan is selected for the second time.*/
-	double Phase::computeTotalG()
+	double Phase::computeTotalG ()const
 	{
 		double green, max_green;
-		links_map_iterator link_it = links_map_.begin();
+		links_map_const_iterator link_it = links_map_.begin();
 		for(max_green = 0; link_it != links_map_.end() ; link_it++)
 		{
 			std::vector< std::pair<TrafficColor,std::size_t> >::const_iterator  color_it = (*link_it).second.colorSequence.ColorDuration.begin();

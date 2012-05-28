@@ -389,22 +389,22 @@ public class NetworkVisualizer {
 				
 		//Draw nodes
 		//final boolean ZoomCritical = ("x".equals("Y")); //(currPercentZoom>ZOOM_IN_CRITICAL); //TODO: Re-enable.
-		drawAllNodes(g,  true /* (!ZoomCritical) || (showAimsunLabels || showMitsimLabels)*/);
+		//drawAllNodes(g,  true /* (!ZoomCritical) || (showAimsunLabels || showMitsimLabels)*/);
 		
 		//Draw segments
-		drawAllSegments(g, true /* (!ZoomCritical) || (showAimsunLabels || showMitsimLabels)*/);
+		//drawAllSegments(g, true /* (!ZoomCritical) || (showAimsunLabels || showMitsimLabels)*/);
 		
 		//Draw cut lines
-		drawAllCutlines(g, this.showFakeAgent);
+		//drawAllCutlines(g, this.showFakeAgent);
 		
 		//Draw all names
 		//drawAllNames(g);
 		
 		//Draw individual lanes
-		drawAllLanes(g, true);
+		//drawAllLanes(g, true);
 		
 		//Draw all pedestrian crossings
-		drawAllCrossings(g, true);
+		//drawAllCrossings(g, true);
 
 		//Draw all pedestrian crossing lights
 		//drawAllCrossingSignals(g, frameTick, true);
@@ -416,9 +416,9 @@ public class NetworkVisualizer {
 		//drawAllAgents(g, frameTick);
 		
 		//Draw all annotations
-		drawAllAnnotations(g, showAimsunLabels, showMitsimLabels);
+		//drawAllAnnotations(g, showAimsunLabels, showMitsimLabels);
 		
-		drawAllDriverTick( g,true); 
+		//drawAllDriverTick( g,true); 
 	}
 	
 	
@@ -460,7 +460,7 @@ public class NetworkVisualizer {
 	}
 
 	private DrawParams p = new DrawParams();
-	private void drawAllBusStop(Graphics2D g, boolean ShowBusStop) {
+	/*private void drawAllBusStop(Graphics2D g, boolean ShowBusStop) {
 		for (BusStop n : network.getBusStop().values()) {
 			if (ShowBusStop || !n.getIsUni()) {
 				n.draw(g,p);
@@ -473,7 +473,7 @@ public class NetworkVisualizer {
 				n.draw(g,p);
 			}
 		}
-	}
+	}*/
 	private void drawAllAnnotations(Graphics2D g, boolean showAimsun, boolean showMitsim) {
 		if (showAimsun) {
 			for (Annotation an : network.getAimsunAnnotations()) {
@@ -486,7 +486,7 @@ public class NetworkVisualizer {
 			}
 		}
 	}
-	
+	/*
 	private void drawAllSegments(Graphics2D g, boolean ShowSegments) {
 		if(!ShowSegments) { return; }
 		for (Segment sn : network.getSegments().values()) {
@@ -525,7 +525,7 @@ public class NetworkVisualizer {
 			drivertick.draw(g,p);
 		}
 	}
-	
+*/	
 	private void addAllCrossingSignals(LazySpatialIndex<DrawableItem> index, int currFrame) {
 		if (simRes.ticks.isEmpty() && currFrame==0) { return; }
 		

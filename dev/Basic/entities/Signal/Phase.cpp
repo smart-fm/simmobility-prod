@@ -57,9 +57,5 @@ namespace sim_mob
 //		{
 //			return links_map_.equal_range(LinkFrom);
 //		}
-	links_map_equal_range Phase::getLinkTos(sim_mob::Link  *const LinkFrom)const//dont worry about constantization!! :) links_map_equal_range is using a constant iterator
-	{
-		links_map_equal_range ppp = links_map_.equal_range(LinkFrom);
-		return ppp;
-	}
+
 }//namespace

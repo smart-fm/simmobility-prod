@@ -1624,6 +1624,7 @@ void
 StreetDirectory::registerSignal(Signal const & signal)
 {
     Node const * node = &(signal.getNode());
+
     if (signals_.count(node) == 0)
     {
         signals_.insert(std::make_pair(node, &signal));

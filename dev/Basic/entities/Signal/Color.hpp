@@ -57,12 +57,13 @@ public:
 	TrafficLightType getTrafficLightType();
 
 	void addColorPair(std::pair<TrafficColor,std::size_t> p);
-
+	void addColorDuration(TrafficColor,std::size_t);
 	void removeColorPair(int position);
 
 	void changeColorDuration(std::size_t color,std::size_t duration);
 	//computes the supposed color of the sequence after a give time lapse
 	TrafficColor computeColor(double Duration);
+	void setColorDuration(std::vector< std::pair<TrafficColor,std::size_t> >);
 private:
 	std::vector< std::pair<TrafficColor,std::size_t> > ColorDuration;
 	TrafficLightType type;

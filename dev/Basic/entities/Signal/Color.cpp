@@ -16,9 +16,19 @@ TrafficColor ColorSequence::computeColor(double Duration)
 	return (*it).first; //will return the last color in the sequence if there is an error!
 }
 
+void ColorSequence::setColorDuration(std::vector< std::pair<TrafficColor,std::size_t> > cs)
+{
+	ColorDuration = cs;
+}
+
 std::vector< std::pair<TrafficColor,std::size_t> > ColorSequence::getColorDuration() { return ColorDuration; }
 TrafficLightType ColorSequence::getTrafficLightType() { return type; }
 
+void ColorSequence::addColorDuration(TrafficColor color,std::size_t duration)
+{
+	ColorDuration.push_back(std::make_pair(color,duration));
+
+}
 void ColorSequence::addColorPair(std::pair<TrafficColor,std::size_t> p)
 {
 	ColorDuration.push_back(p);

@@ -79,7 +79,8 @@ public:
 	std::size_t nofPlans();
 	void setcurrSplitPlanID(std::size_t index);
 	void setnextSplitPlan(std::vector<double> DS);
-	std::vector< vector<double> > getPercentages();
+	void setCoiceSet(std::vector< vector<double> >);
+	void setDefaultSplitPlan(int);
 
 	/*cycle length related methods*/
 	std::size_t getCycleLength();
@@ -91,6 +92,7 @@ public:
 //	std::vector<sim_mob::Phase> & getPhases();//over load for database loader
 	void addPhase(sim_mob::Phase);
 	std::size_t nofPhases();
+	std::size_t find_NOF_Phases();
 	std::size_t computeCurrPhase(double currCycleTimer);
 	const sim_mob::Phase & CurrPhase() const;
 	int getPhaseIndex(std::string);

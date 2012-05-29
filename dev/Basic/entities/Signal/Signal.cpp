@@ -56,19 +56,16 @@ Signal::all_signals Signal::all_signals_;
 ///////////////////// Implementation ///////////////////////
 Signal const &
 Signal::signalAt(Node const & node, const MutexStrategy& mtxStrat) {
-//	std::cout << " in sSignal::ignalAt" << std::endl;
 	Signal const * signal = StreetDirectory::instance().signalAt(node);
-//	std::cout << " in Signal::signalAt 2" << std::endl;
 	if (signal)
 	{
-//		std::cout << "Signal available, successfully returning" << std::endl;
+		std::cout << "Node : " << node.getID() <<" Already has a Signal !" << std::endl;
 		return *signal;
 	}
-//	std::cout << "Signal Not available, creating a new signal" << std::endl;
+	std::cout << "Node : " << node.getID() <<" creating a Signal !" << std::endl;
 	Signal * sig = new Signal(node, mtxStrat);
 	all_signals_.push_back(sig);
 	StreetDirectory::instance().registerSignal(*sig);
-	std::cout << "Signal created, pushed and registered, returning" << std::endl;
 	return *sig;
 }
 
@@ -370,7 +367,7 @@ double Signal::computeDS() {
 		maxPhaseDS = 0;
 		const std::string name = (*p_it).name;
 		double total_g = (*p_it).computeTotalG();//todo: I guess we can avoid calling this function EVERY time by adding an extra container at split plan level.(mapped to choiceSet container)
-		links_map_iterator link_it = (*p_it).LinkFrom_begin();
+		sim_mob::Phase::links_map_iterator link_it = (*p_it).LinkFrom_begin();
 		for (; link_it != (*p_it).LinkFrom_end(); link_it++) {//Loop2===>link
 			std::set<sim_mob::RoadSegment*> segments = (*link_it).first->getUniqueSegments();//optimization: use either fwd or bed segments
 			std::set<sim_mob::RoadSegment*>::iterator seg_it =	segments.begin();
@@ -585,8 +582,8 @@ TrafficColor Signal::getDriverLight(Lane const & fromLane, Lane const & toLane)c
 	Link const * toLink = toRoad->getLink();
 
 	const sim_mob::Phase &currPhase = plan_.CurrPhase();
-	links_map_equal_range range = currPhase.getLinkTos(fromLink);
-	links_map_const_iterator iter;
+	sim_mob::Phase::links_map_equal_range range = currPhase.getLinkTos(fromLink);
+	sim_mob::Phase::links_map_const_iterator iter;
 	for(iter = range.first; iter != range.second ; iter++ )
 	{
 		if((*iter).second.LinkTo == toLink)

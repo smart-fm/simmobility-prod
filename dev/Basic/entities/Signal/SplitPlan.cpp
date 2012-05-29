@@ -2,17 +2,23 @@
 
 namespace sim_mob
 {
-std::size_t SplitPlan::getCycleLength() {return cycleLength;}
 
-void SplitPlan::setCycleLength(std::size_t c) {cycleLength = c;}
+
+void SplitPlan::setCycleLength(std::size_t c = 96) {cycleLength = c;}
+void SplitPlan::setcurrSplitPlanID(std::size_t index) { currSplitPlanID = index; }
+void SplitPlan::setCoiceSet(std::vector< vector<double> > choiceset){choiceSet = choiceset;}
+
 
 std::size_t SplitPlan::CurrSplitPlanID() { return currSplitPlanID; }
+std::size_t SplitPlan::getCycleLength() {return cycleLength;}
 
-void SplitPlan::setcurrSplitPlanID(std::size_t index) { currSplitPlanID = index; }
+
 
 std::size_t SplitPlan::getOffset() {return offset;}
 
 void SplitPlan::setOffset(std::size_t o) {offset = o;}
+
+
 
 //const std::vector<sim_mob::Phase> & SplitPlan::getPhases() const { return phases_; }
 //std::vector<sim_mob::Phase> & SplitPlan::getPhases() { return phases_; }
@@ -119,6 +125,11 @@ std::size_t SplitPlan::nofPhases()
 {
 	return NOF_Phases;
 }
+
+std::size_t SplitPlan::find_NOF_Phases()
+{
+	return NOF_Phases=phases_.size();
+}
 std::size_t SplitPlan::nofPlans()
 {
 	return NOF_Plans;
@@ -172,6 +183,59 @@ SplitPlan::SplitPlan()
 			choiceSet[i][j] = defaultChoiceSet[i][j];
 }
 
+void SplitPlan::setDefaultSplitPlan(int approaches)
+{
+	double defaultChoiceSet_4[5][4] = {
+			{30,30,20,20},
+			{20,35,20,25},
+			{35,35,20,10},
+			{35,30,10,25},
+			{20,35,25,20}
+	};
+	double defaultChoiceSet_2[5][2] = {
+			{50,50},
+			{30,70},
+			{75,25},
+			{60,40},
+			{40,60}
+	};
+	double defaultChoiceSet_3[5][3] = {
+			{40,40,20},
+			{40,30,30},
+			{30,30,40},
+			{25,25,50},
+			{50,20,30}
+	};
+	double defaultChoiceSet_5[5][5] = {
+			{20,20,20,20,20},
+			{15,15,25,25,20},
+			{30,30,20,10,10},
+			{25,25,20,15,15},
+			{10,15,20,25,30}
+	};
+	choiceSet.resize(5, vector<double>(approaches));
+	double **defaultChoiceSet;
+	switch(approaches)
+	{
+	case 2:
+		defaultChoiceSet = (double **)defaultChoiceSet_2;
+		break;
+	case 3:
+		defaultChoiceSet = (double **)defaultChoiceSet_3;
+		break;
+	case 4:
+		defaultChoiceSet = (double **)defaultChoiceSet_4;
+		break;
+	case 5:
+		defaultChoiceSet = (double **)defaultChoiceSet_5;
+		break;
+
+	}
+	for(int i = 0; i < 5; i++)
+		for(int j = 0; j < approaches; j++)
+			choiceSet[i][j] = defaultChoiceSet[i][j];
+
+}
 };//namespace
 
 ////find te split plan Id which currently has the maximum vote

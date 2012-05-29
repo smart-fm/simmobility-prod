@@ -70,7 +70,7 @@ public:
 		v = get<1>(phases_);
 	}
 	/*plan methods*/
-	SplitPlan();
+	SplitPlan(double i=90,double j=0);
 	std::size_t CurrSplitPlanID();
 	std::vector< double >  CurrSplitPlan();
 	void setCurrPlanIndex(std::size_t);
@@ -83,7 +83,7 @@ public:
 	void setDefaultSplitPlan(int);
 
 	/*cycle length related methods*/
-	std::size_t getCycleLength();
+	double getCycleLength();
 	void setCycleLength(std::size_t);
 
 	/*phase related methods*/
@@ -111,6 +111,7 @@ public:
 	int getPlanId_w_MaxVote();
 	double fmin_ID(std::vector<double> maxproDS);
 	std::size_t getMaxVote();
+	void fill(double defaultChoiceSet[5][10], int approaches);
 
 	/*friends*/
 	friend class Signal;

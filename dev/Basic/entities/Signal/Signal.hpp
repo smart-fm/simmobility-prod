@@ -136,7 +136,7 @@ public:
 	void updateOffset();
 	virtual Entity::UpdateStatus update(frame_t frameNumber);
 	void newCycleUpdate();
-	double updateCurrCycleTimer(frame_t frameNumber);
+	bool updateCurrCycleTimer(frame_t frameNumber);
 
 
 	/*--------Split Plan----------*/
@@ -179,13 +179,16 @@ public:
 	    ,ordered_unique<mem_fun<Signal, unsigned int ,&Signal::getSignalId> >//1
 	   >
 	> all_signals;
+
 	static Signal::all_signals all_signals_;
+	static const double updateInterval;
 
     void updateIndicators();
 
 private:
 
     unsigned int TMP_SignalID;//todo change the name to withouth TMP
+
     /* Fixed time or adaptive control */
     int signalAlgorithm;
     /*-------------------------------------------------------------------------

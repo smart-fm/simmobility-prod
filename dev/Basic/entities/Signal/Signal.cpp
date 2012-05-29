@@ -33,6 +33,7 @@ namespace sim_mob
 
 //std::vector<Signal*> Signal::all_signals_;
 Signal::all_signals Signal::all_signals_;
+const double Signal::updateInterval = ConfigParams::GetInstance().granSignalsTicks * ConfigParams::GetInstance().baseGranMS / 1000;
 
 
 /*
@@ -65,6 +66,7 @@ Signal::signalAt(Node const & node, const MutexStrategy& mtxStrat) {
 	std::cout << "Node : " << node.getID() <<" creating a Signal !" << std::endl;
 	Signal * sig = new Signal(node, mtxStrat);
 	all_signals_.push_back(sig);
+	std::cout << "Signal Created" << std::endl;
 	StreetDirectory::instance().registerSignal(*sig);
 	return *sig;
 }
@@ -75,22 +77,21 @@ Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id)
 	, node_(node)
 {
 	//some inits
-	currSplitPlanID = -1;
-	phaseCounter = -1;
-	currCycleTimer = -1;
-	DS_all = -1;
-	currCL = -1;
-	currPhaseID = -1;
+	currSplitPlanID = 0;
+	phaseCounter = 0;
+	currCycleTimer = 0;
+	DS_all = 0;
+	currCL = 0;
+	currPhaseID = 0;
 	isNewCycle = false;
-	currOffset = -1;
-
+	currOffset = 0;
 	TMP_SignalID = node.getID();//the best id for a signal is the node id itself
 	findIncomingLanes();//what was it used for? dont remember
 	findSignalLinksAndCrossings();
 	ConfigParams& config = ConfigParams::GetInstance();
 	signalAlgorithm = config.signalAlgorithm;
 	Density.resize(IncomingLanes_.size(), 0);//todo wrong ! Density has changed to contain phase DS
-    initializeSignal();
+    std::cout << "after initializeSignal" << std::endl;
 //    setupIndexMaps();  I guess this function is Not needed any more
 }
 /* Set Split plan and Initialize its Indicators in the signal class*/
@@ -107,7 +108,6 @@ void Signal::initializeSignal() {
 
 //	setCL(0, 60, 0);//default initial cycle length for SCATS
 //	setRL(60, 60);//default initial RL for SCATS
-	startSplitPlan();//todo : must be shifted from here, I guess!
 	currPhaseID = 0;
 	phaseCounter = 0;
 	currOffset = 0;
@@ -505,8 +505,12 @@ void Signal::newCycleUpdate()
 		loopDetector_.reset();
 }
 
-double Signal::updateCurrCycleTimer(frame_t frameNumber) {
-
+bool Signal::updateCurrCycleTimer(frame_t frameNumber) {
+	bool is_NewCycle = false;
+	if(currCycleTimer + updateInterval > plan_.getCycleLength()) is_NewCycle = true;
+	//even if it is a new cycle(and a ew cycle length, the currCycleTimer will hold the amount of time system has proceeded to the new cycle
+	currCycleTimer =fmod((currCycleTimer + updateInterval) , plan_.getCycleLength());
+	return is_NewCycle;
 }
 /*
  * 1- update current cycle timer

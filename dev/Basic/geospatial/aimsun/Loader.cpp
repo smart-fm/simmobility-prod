@@ -917,13 +917,14 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
          * lots of these data are still default(cycle length, offset, choice set.
          * They will be replaced by more realistic value(and input feeders) as the project proceeeds
          */
+        std::cout << "out of createsignals()" << std::endl;
         createPlans();
 }
 
 void
 DatabaseLoader::createSignals()
 {
-	std::cout << "Inside createsignals()" << std::endl;
+
     //std::set<sim_mob::Node const *> uniNodes;
     std::set<sim_mob::Node const *> badNodes;
     int j = 0, nof_signals = 0;
@@ -996,27 +997,34 @@ DatabaseLoader::createSignals()
 //        std::cout << "addSignalSite Done! returned" << std::endl;
 
     }
-    std::cout << "Number of signals created : " << nof_signals << " : "<< sim_mob::Signal::all_signals_.size() << std::endl;
-    getchar();
+    std::cout << "Number of signals created : " << nof_signals << " : "<<  sim_mob::Signal::all_signals_.size() << std::endl;
 }
 
 void
 DatabaseLoader::createPlans()
 {
+	std::cout << "in createPlans..with "<< sim_mob::Signal::all_signals_.size() << " Signals" << std::endl; ;
+	unsigned int sid ;
 	sim_mob::all_signals_Iterator sig_it ;
 	for(sig_it = sim_mob::Signal::all_signals_.begin(); sig_it !=sim_mob::Signal::all_signals_.end();  sig_it++)
 	{
-
-		unsigned int sid = (*sig_it)->getSignalId();//remember our assumption!  : node id and signal id(whtever their name is) are same
-//		std::cout << "creating Phases for Signal " << sid << std::endl;
+		sid = (*sig_it)->getSignalId();//remember our assumption!  : node id and signal id(whtever their name is) are same
 		sim_mob::SplitPlan & plan = (*sig_it)->getPlan();
 		createPhases(sid,plan);
+
 		//now that we have the number of phases, we can continue initializing our split plan.
 		int nof_phases = plan.find_NOF_Phases();
-		std::cout << sid << ": Number of Phases : " << nof_phases ;
-		plan.setDefaultSplitPlan(nof_phases);//i hope the nof phases is within the range of 2-5
-		std::cout << "iterating "<< std::endl;
+		std::cout << " Signal(" << sid << "):Number of Phases : " << nof_phases << " ";
+		if(nof_phases > 0)
+			if((nof_phases > 5)||(nof_phases < 2))
+				std::cout << sid << " igonred due to lack of default choice set" << nof_phases ;
+			else
+				plan.setDefaultSplitPlan(nof_phases);//i hope the nof phases is within the range of 2-5
+		else
+			std::cout << sid << " igonred due to no phases" << nof_phases ;
+		std::cout << "..iterating "<< std::endl;
 	}
+	std::cout << "getting out of createPlans.." << std::endl;;
 }
 
 
@@ -1041,14 +1049,15 @@ DatabaseLoader::createPhases(unsigned int sid,sim_mob::SplitPlan & plan)
 		if((sim_ph_it = ppv.find(name)) != ppv.end()) //means: if a phase with this name already exists in this plan...(usually u need a loop but with boost multi index, well, you don't :)
 		{
 			sim_ph_it->addLinkMaping(linkFrom,ll);
-			std::cout << "Phase " <<  (*ph_it).second.name << " Links from :" << linkFrom << " to: "  << linkTo << " updated to singnal " << sid << std::endl;
+//			std::cout << "Phase " <<  (*ph_it).second.name << " Links from :" << linkFrom << " to: "  << linkTo << " updated to singnal " << sid << std::endl;
 		}
 		else //new phase, new mapping
 		{
 			sim_mob::Phase phase(name,&plan);//for general copy
 			phase.addLinkMaping(linkFrom,ll);
+			phase.addDefaultCrossings();
 			plan.addPhase(phase);//congrates
-			std::cout << "Phase " <<  (*ph_it).second.name << " Links from :" << linkFrom << " to: "  << linkTo << " added to singnal " << sid << std::endl;
+//			std::cout << "Phase " <<  (*ph_it).second.name << " Links from :" << linkFrom << " to: "  << linkTo << " added to singnal " << sid << std::endl;
 		}
 	}
 }

@@ -38,6 +38,10 @@ void ColorSequence::removeColorPair(int position = 0)
 {
 	ColorDuration.erase(ColorDuration.begin() + position );
 }
+void ColorSequence::clear()
+{
+	ColorDuration.clear();
+}
 
 void ColorSequence::changeColorDuration(std::size_t color,std::size_t duration)
 {

@@ -1,5 +1,5 @@
 #include "SplitPlan.hpp"
-
+#include<stdio.h>
 namespace sim_mob
 {
 
@@ -10,7 +10,7 @@ void SplitPlan::setCoiceSet(std::vector< vector<double> > choiceset){choiceSet =
 
 
 std::size_t SplitPlan::CurrSplitPlanID() { return currSplitPlanID; }
-std::size_t SplitPlan::getCycleLength() {return cycleLength;}
+double SplitPlan::getCycleLength() {return cycleLength;}
 
 
 
@@ -117,7 +117,9 @@ std::size_t SplitPlan::getMaxVote()
 std::vector< double >  SplitPlan::CurrSplitPlan()
 {
 	if(choiceSet.size() == 0)
+	{
 		std::cout << "Choice Set is empty the progrma can crash without it" << std::endl;
+	}
 	return choiceSet[currSplitPlanID];
 }
 
@@ -160,53 +162,49 @@ std::size_t SplitPlan::computeCurrPhase(double currCycleTimer)
 	return (std::size_t)(i-1);
 }
 
-SplitPlan::SplitPlan()
+SplitPlan::SplitPlan(double cycleLength_,double offset_):cycleLength(cycleLength_),offset(offset_)
 {
 	currPhaseID = 0;
 	nextSplitPlanID = 0;
 	currSplitPlanID = 0;
 	NOF_Phases = 0;
 	NOF_Plans = 0;
-	cycleLength = 0;
-	offset = 0;
-	/*default choice set(percentage)*/
-	double defaultChoiceSet[5][4] = {
-			{30,30,20,20},
-			{20,35,20,25},
-			{35,35,20,10},
-			{35,30,10,25},
-			{20,35,25,20}
-	};
-	choiceSet.resize(5, vector<double>(4));
+}
+void SplitPlan::fill(double defaultChoiceSet[5][10], int approaches)
+{
 	for(int i = 0; i < 5; i++)
-		for(int j = 0; j < 4; j++)
+		for(int j = 0; j < approaches; j++)
+		{
 			choiceSet[i][j] = defaultChoiceSet[i][j];
+		}
 }
 
 void SplitPlan::setDefaultSplitPlan(int approaches)
 {
-	double defaultChoiceSet_4[5][4] = {
+	int ii=5,jj=0;
+	std::cout << "..setDefaultSplitPlan:" << approaches;
+	double defaultChoiceSet_4[5][10] = {
 			{30,30,20,20},
 			{20,35,20,25},
 			{35,35,20,10},
 			{35,30,10,25},
 			{20,35,25,20}
 	};
-	double defaultChoiceSet_2[5][2] = {
+	double defaultChoiceSet_2[5][10] = {
 			{50,50},
 			{30,70},
 			{75,25},
 			{60,40},
 			{40,60}
 	};
-	double defaultChoiceSet_3[5][3] = {
+	double defaultChoiceSet_3[5][10] = {
 			{40,40,20},
 			{40,30,30},
 			{30,30,40},
 			{25,25,50},
 			{50,20,30}
 	};
-	double defaultChoiceSet_5[5][5] = {
+	double defaultChoiceSet_5[5][10] = {
 			{20,20,20,20,20},
 			{15,15,25,25,20},
 			{30,30,20,10,10},
@@ -214,28 +212,26 @@ void SplitPlan::setDefaultSplitPlan(int approaches)
 			{10,15,20,25,30}
 	};
 	choiceSet.resize(5, vector<double>(approaches));
-	double **defaultChoiceSet;
 	switch(approaches)
 	{
 	case 2:
-		defaultChoiceSet = (double **)defaultChoiceSet_2;
+		fill(defaultChoiceSet_2,2);
 		break;
 	case 3:
-		defaultChoiceSet = (double **)defaultChoiceSet_3;
+		fill(defaultChoiceSet_3,3);
 		break;
 	case 4:
-		defaultChoiceSet = (double **)defaultChoiceSet_4;
+		fill(defaultChoiceSet_4,4);
 		break;
 	case 5:
-		defaultChoiceSet = (double **)defaultChoiceSet_5;
+		fill(defaultChoiceSet_5,5);
 		break;
 
 	}
-	for(int i = 0; i < 5; i++)
-		for(int j = 0; j < approaches; j++)
-			choiceSet[i][j] = defaultChoiceSet[i][j];
+
 
 }
+
 };//namespace
 
 ////find te split plan Id which currently has the maximum vote

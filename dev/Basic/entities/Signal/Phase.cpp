@@ -57,5 +57,20 @@ namespace sim_mob
 //		{
 //			return links_map_.equal_range(LinkFrom);
 //		}
+	void Phase::addCrossingMapping(sim_mob::Link * link,sim_mob::Crossing * crossing, ColorSequence cs)
+	{
+		sim_mob::Crossings crossing_(link,crossing);
+		crossing_.colorSequence.clear();
+		crossing_.colorSequence = cs;
+		crossings_map_.insert(std::make_pair(crossing,crossing_));
+	}
+	void Phase::addCrossingMapping(sim_mob::Link * link,sim_mob::Crossing * crossing)
+	{
+		Crossings crossing_(link,crossing);
+		crossings_map_.insert(std::make_pair(crossing,crossing_));
+	}
+	void Phase::addDefaultCrossings()
+	{
 
+	}
 }//namespace

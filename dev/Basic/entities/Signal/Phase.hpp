@@ -26,9 +26,11 @@ using namespace ::boost::multi_index;
 struct ll
 {
 	ll(sim_mob::Link *linkto = nullptr):LinkTo(linkto) {
-			colorSequence.addColorDuration(Red,1);//All red moment ususally takes 1 second
-			colorSequence.addColorDuration(Amber,3);//a portion of the total time of the phase length is taken by amber
+
 			colorSequence.addColorDuration(Green,0);
+			colorSequence.addColorDuration(Amber,3);//a portion of the total time of the phase length is taken by amber
+			colorSequence.addColorDuration(Red,1);//All red moment ususally takes 1 second
+
 		currColor = sim_mob::Red;
 	}
 
@@ -43,14 +45,22 @@ typedef std::multimap</*linkFrom*/sim_mob::Link *, sim_mob::linkToLink> links_ma
 //typedef links_map::const_iterator links_map_const_iterator;
 
 ////////////////////crossings////////////////////////////////////////////////////////////////////////////////////
-typedef struct
+struct crossings
 {
+	crossings(sim_mob::Link *link_,sim_mob::Crossing *crossig_):link(link_),crossig(crossig_){
+		colorSequence.addColorDuration(Green,0);
+		colorSequence.addColorDuration(FlashingGreen,0);
+		colorSequence.addColorDuration(Red,1);//All red moment ususally takes 1 second
+		currColor = sim_mob::Red;
+	}
 	sim_mob::Link * link;//this is extra but keep it until you are sure!
 	sim_mob::Crossing *crossig;//same as the key in the corresponding multimap(yes yes: it is redundant)
 	ColorSequence colorSequence;//color and duration
 	TrafficColor currColor;
+} ;
 
-} Crossings;
+typedef struct crossings Crossings;
+
 
 ////////////////////////////////phase communication to plan///////////////////////////////////////////////
 typedef struct
@@ -108,6 +118,10 @@ public:
 //		return ppp;
 	}
 	void addLinkMaping(sim_mob::Link * lf, sim_mob::linkToLink ll)const { links_map_.insert(std::pair<sim_mob::Link *, sim_mob::linkToLink>(lf,ll));}
+	void addCrossingMapping(sim_mob::Link *,sim_mob::Crossing *, ColorSequence);
+	void addCrossingMapping(sim_mob::Link *,sim_mob::Crossing *);
+	//add crossing to any link of this node which is not involved in this phase
+	void addDefaultCrossings();
 	const links_map & getLinkMaps();
 //	links_map_equal_range  getLinkTos(sim_mob::Link *LinkFrom) ;
 	void updatePhaseParams();

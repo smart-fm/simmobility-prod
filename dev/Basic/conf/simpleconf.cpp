@@ -470,7 +470,6 @@ bool loadXMLSignals(TiXmlDocument& document, Signal::all_signals all_signals, co
                               << "no signal will be created here." << std::endl;
                     continue;
                 }
-                std::cout << "Middle of the loop!" << std::endl;
                 Signal const * signal = streetDirectory.signalAt(*road_node);
                 if (signal)
                 {
@@ -484,7 +483,6 @@ bool loadXMLSignals(TiXmlDocument& document, Signal::all_signals all_signals, co
                 	std::cout << "register signal again!" << std::endl;
                     Signal::signalAt(*road_node, ConfigParams::GetInstance().mutexStategy);
                 }
-                std::cout << "b4 catch!" << std::endl;
             }
             catch (boost::bad_lexical_cast &)
             {
@@ -493,7 +491,6 @@ bool loadXMLSignals(TiXmlDocument& document, Signal::all_signals all_signals, co
                 return false;
             }
 	}
-	std::cout << "returning true from loadXMLSignals!" << std::endl;
 	return true;
 }
 

@@ -15,6 +15,7 @@ namespace sim_mob
 
 //Forward declarations
 class Lane;
+class BusStop;
 class RoadNetworkPackageManager;
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -54,6 +55,10 @@ public:
 		void end1();
 		return lanes; }
 
+
+	sim_mob :: BusStop* getBusStop() {
+			return busstop; }
+
 	///Retrieve whether this is a single or bidirectional Road Segment.
 	bool isSingleDirectional();
 	bool isBiDirectional();
@@ -88,7 +93,8 @@ public:
 private:
 	///Collection of lanes. All road segments must have at least one lane.
 	std::vector<sim_mob::Lane*> lanes;
-
+	sim_mob::BusStop* busstop;
+	//int getBustStopID;
 	///Computed polylines are cached here.
 	///These run from 0 (for the median) to lanes.size()+1 (for the outer edge).
 	void specifyEdgePolylines(const std::vector< std::vector<sim_mob::Point2D> >& calcdPolylines);

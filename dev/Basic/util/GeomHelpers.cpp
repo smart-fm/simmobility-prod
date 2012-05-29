@@ -11,6 +11,7 @@
 #include "geospatial/aimsun/Node.hpp"
 #include "geospatial/aimsun/Section.hpp"
 #include "geospatial/aimsun/Crossing.hpp"
+#include "geospatial/aimsun/Loader.hpp"
 
 //add by xuyan
 #include "geospatial/RoadNetwork.hpp"

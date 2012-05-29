@@ -23,6 +23,7 @@
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/StreetDirectory.hpp"
+#include "geospatial/BusStop.hpp"
 #include "util/OutputUtil.hpp"
 
 #include "entities/misc/TripChain.hpp"
@@ -693,8 +694,12 @@ void PrintDB_Network()
 		LogOutNotSync("})" <<endl);
 	}
 
+
+
+
 	//Now print all Segments
 	std::set<const Crossing*> cachedCrossings;
+	std::set<const BusStop*> cachedBusStops;
 	for (std::set<const RoadSegment*>::const_iterator it=cachedSegments.begin(); it!=cachedSegments.end(); it++) {
 		LogOutNotSync("(\"road-segment\", 0, " <<*it <<", {");
 		LogOutNotSync("\"parent-link\":\"" <<(*it)->getLink() <<"\",");
@@ -718,10 +723,28 @@ void PrintDB_Network()
 			LogOutNotSync("})" <<endl);
 		}
 
+
+		const std::map<centimeter_t, const RoadItem*>& mapBusStops = (*it)->obstacles;
+				for(std::map<centimeter_t, const RoadItem*>::const_iterator itBusStops = mapBusStops.begin(); itBusStops != mapBusStops.end(); ++itBusStops)
+				{
+					std::cout<<"inside itBusStops loop...";
+					const RoadItem* ri = itBusStops->second;
+					const BusStop* resBS = dynamic_cast<const BusStop*>(ri);
+						if (resBS) {
+							std::cout<<"inserting busstop";
+						cachedBusStops.insert(resBS);
+					} else {
+						std::cout<<"this is not a busstop";
+//						std::cout <<"NOTE: Unknown obstacle!\n";
+					}
+						std::cout<< std::endl;
+				}
+				std::cout<<"itBusStops size : " <<  cachedBusStops.size() << std::endl;
+
+
 		//Save crossing info for later
 		const std::map<centimeter_t, const RoadItem*>& mapCrossings = (*it)->obstacles;
-		for(std::map<centimeter_t, const RoadItem*>::const_iterator itCrossings = mapCrossings.begin();
-				itCrossings != mapCrossings.end(); ++itCrossings)
+		for(std::map<centimeter_t, const RoadItem*>::const_iterator itCrossings = mapCrossings.begin();	itCrossings != mapCrossings.end(); ++itCrossings)
 		{
 			const RoadItem* ri = itCrossings->second;
 			const Crossing* resC = dynamic_cast<const Crossing*>(ri);
@@ -765,6 +788,44 @@ void PrintDB_Network()
 		LogOutNotSync("\"far-2\":\"" <<(*it)->farLine.second.getX() <<"," <<(*it)->farLine.second.getY() <<"\",");
 		LogOutNotSync("})" <<endl);
 	}
+
+	//Bus Stops are part of Segments
+		for (std::set<const BusStop*>::iterator it=cachedBusStops.begin(); it!=cachedBusStops.end(); it++) {
+			//LogOutNotSync("Surav's loop  is here!");
+		LogOutNotSync("(\"Bus Stop\", 0, " <<*it <<", {");
+		//	LogOutNotSync("\"bus stop id\":\"" <<(*it)->busstopno_<<"\",");
+			// LogOutNotSync("\"xPos\":\"" <<(*it)->xPos<<"\",");
+		//	LogOutNotSync("\"yPos\":\"" <<(*it)->yPos<<"\",");
+			double x = (*it)->xPos;
+			double y = (*it)->yPos;
+			                                int length = 40;
+							        		int width = 30;
+							        		int theta = atan(4/3);
+							        		double phi = 10;
+							                double x1 = length/2;
+							        		double y1 = width/2;
+							        		double x2 = -length/2;
+							        		double y2 =  width/2;
+							        		double x3 = -length/2;
+							        		double y3 = -width/2;
+							        		double x4 =  length/2;
+							        		double y4 = -width/2;
+
+
+							        		double x1d = x + x1*cos(phi)-y1*sin(phi);
+							        		double y1d = y + x1*sin(phi)+y1*cos(phi);
+							        		double x2d = x + x1*cos(phi)-y1*sin(phi);
+							        		double y2d = y + x1*sin(phi)+y1*cos(phi);
+							        		double x3d = x + x1*cos(phi)-y1*sin(phi);
+							        		double y3d = y + x1*sin(phi)+y1*cos(phi);
+							        		double x4d = x + x1*cos(phi)-y1*sin(phi);
+							        		double y4d = y + x1*sin(phi)+y1*cos(phi);
+			LogOutNotSync("\"near-1\":\""<<x1d<<","<<y1d<<"\",");
+			LogOutNotSync("\"near-2\":\""<<x2d<<","<<y2d<<"\",");
+			LogOutNotSync("\"far-1\":\""<<x3d<<","<<y3d<<"\",");
+			LogOutNotSync("\"far-2\":\""<<x4d<<","<<y4d<<"\",");
+			LogOutNotSync("})" <<endl);
+		}
 
 
 	//Now print all Connectors

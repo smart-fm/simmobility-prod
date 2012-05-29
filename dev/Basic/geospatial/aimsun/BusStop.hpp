@@ -28,12 +28,16 @@ class Polyline;
 
 class BusStop : public Base {
 public:
-	int bus_stop_id;
+	std::string  bus_stop_no;
+	std::string status;
+	std::string  lane_type;
+	std::string  road_name;
 	Section* atSection;
-	Lane* atLane;
 
 	double xPos;
 	double yPos;
+
+
 
 	BusStop() : Base(), atSection(nullptr) {}
 

@@ -9,6 +9,11 @@
 #include "Route.hpp"
 #include "Lane.hpp"
 
+namespace aimsun
+{
+//Forward declaration
+class Loader;
+} //End
 
 namespace sim_mob
 {
@@ -26,7 +31,12 @@ class BusRoute;
 class BusStop : public sim_mob::RoadItem {
 	
 public:
-	BusStop(unsigned int id=0, std::vector<BusRoute*> busroutes=std::vector<BusRoute*>(), Point2D point_location=Point2D()) {}
+	BusStop() : RoadItem() {}
+
+	/* int getBusStopID() {
+		   int busstopno = atoi(busstopno_);
+	    	return busstopno;
+	    }*/
 public:
 	///Which RoadItem and lane is this bus stop located at?
 	Lane* lane_location;
@@ -64,9 +74,30 @@ private:
 	int bus_stop_lane(const RoadSegment& segment);
 	sim_mob::Point2D getNearestPolyline(const sim_mob::Point2D &position);
 	float getSumDistance();
+public:
+	sim_mob::RoadSegment* parentSegment_;
+	std::string busstopno_;
+		double xPos;
+		double yPos;
+		double x1d;
+		double y1d;
+		double x2d;
+		double y2d;
+		double x3d;
+		double y3d;
+		double x4d;
+		double y4d;
 
+
+#ifndef SIMMOB_DISABLE_MPI
+	///The identification of Crossing is packed using PackageUtils;
+	static void pack(PackageUtils& package, BusStop* one_bs);
+
+	///UnPackageUtils use the identification of Crossing to find the Crossing Object
+	static const BusStop* unpack(UnPackageUtils& unpackage);
+#endif
 	std::vector<sim_mob :: Lane*> lanes;
-
+	friend class RoadSegment;
 
 };
 

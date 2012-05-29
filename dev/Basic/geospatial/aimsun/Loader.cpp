@@ -18,6 +18,7 @@
 #include "LaneLoader.hpp"
 
 #include "GenConfig.h"
+#include "util/GeomHelpers.hpp"
 
 #include "geospatial/Point2D.hpp"
 #include "geospatial/Node.hpp"
@@ -30,6 +31,7 @@
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/Lane.hpp"
+#include "geospatial/BusStop.hpp"
 
 #include "conf/simpleconf.hpp"
 
@@ -38,12 +40,14 @@
 #include "util/DailyTime.hpp"
 #include "util/GeomHelpers.hpp"
 
+#include "BusStop.hpp"
 #include "Node.hpp"
 #include "Section.hpp"
 #include "Crossing.hpp"
 #include "Turning.hpp"
 #include "Polyline.hpp"
 #include "SOCI_Converters.hpp"
+
 
 //Note: These will eventually have to be put into a separate Loader for non-AIMSUN data.
 // fclim: I plan to move $topdir/geospatial/aimsun/* and entities/misc/aimsun/* to
@@ -100,6 +104,7 @@ private:
     multimap<int, Polyline> polylines_;
     vector<TripChain> tripchains_;
     map<int, Signal> signals_;
+    map<std::string,BusStop> busstop_;
 
     vector<sim_mob::BoundarySegment*> boundary_segments;
 
@@ -112,6 +117,7 @@ private:
     void LoadPolylines(const std::string& storedProc);
     void LoadTripchains(const std::string& storedProc);
     void LoadTrafficSignals(const std::string& storedProc);
+    void LoadBusStop(const std::string& storedProc);
 
 #ifndef SIMMOB_DISABLE_MPI
     void LoadBoundarySegments();
@@ -361,7 +367,6 @@ DatabaseLoader::LoadTrafficSignals(std::string const & storedProcedure)
                   << "will not lookup the database to create any signal found in there" << std::endl;
         return;
     }
-
     soci::rowset<Signal> rows = (sql_.prepare <<"select * from " + storedProcedure);
     for (soci::rowset<Signal>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
     {
@@ -370,8 +375,89 @@ DatabaseLoader::LoadTrafficSignals(std::string const & storedProcedure)
         signal.xPos *= 100;
         signal.yPos *= 100;
         signals_.insert(std::make_pair(signal.id, signal));
+        std::cout<<"Signal_id is:"<<signal.id<<std::endl;
+
     }
 }
+
+void DatabaseLoader::LoadBusStop(const std::string& storedProc)
+{
+	soci::rowset<BusStop> rows = (sql_.prepare <<"select * from " + storedProc);
+	for (soci::rowset<BusStop>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
+	{
+		BusStop busstop = *iter;
+//		         Convert from meters to centimeters.
+		        busstop.xPos *= 100;
+		        busstop.yPos *= 100;
+	        busstop_.insert(std::make_pair(busstop.bus_stop_no, busstop));
+		        std :: cout.precision(15);
+		        std :: cout << "Bus Stop ID is: "<< busstop.bus_stop_no <<"    "<< busstop.xPos << "     "<< busstop.yPos  <<std::endl;
+
+		        //it->atSection = &sections_[it->TMP_AtSectionID];
+		        	//	busstop_.push_back(*it);
+	}
+}
+/*
+double getDistance(sim_mob::Point2D a,sim_mob::Point2D b){};
+int count = 0;
+double x2, x1, y2, y1, x_base, y_base;
+double SumofDistances = 0;
+sim_mob::Point2D position;
+
+sim_mob::Point2D getNearestPolyline(const sim_mob::Point2D &position)
+{
+	const std::vector<sim_mob::Point2D> poly = lane_location->getRoadSegment()->getLaneEdgePolyline(0);
+	std ::vector<sim_mob::Point2D>:: const_iterator it= poly.begin();
+	float distance_measured = getDistance(position,*it); // distance between the position of Bus Stop and the position at which iterator points initially
+	for (it= poly.begin()+1; it!=poly.end(); it++) {
+	        	// this would find the pair of polypoints which are closest to the current Bus Stop and also calculates the value of count as
+		        // the number of polypoint pairs that need to be considered while calculating the sum of polylines
+	        	if (distance_measured > getDistance(position,*it)) {
+	               distance_measured = getDistance(position,*it);
+	               sim_mob::Point2D first_PP = *it;
+	               sim_mob::Point2D second_PP = *(it-1);
+	               x2 = first_PP.getX();
+	               y2 = first_PP.getY();
+	               x1 = second_PP.getX();
+	               y1 = second_PP.getY();
+	               count++;
+	            }
+	      }
+
+}
+
+
+
+// this function is used to calculate the sum of all polyline lengths *before* the current polyline
+float getSumDistance()
+{
+
+	getNearestPolyline(position);
+	double m = (y2-y1)/(x2-x1); //
+	double n = -1/m;
+	double Y = position.getY();
+	double X = position.getX();
+	x_base = (m*x1-n*X+Y-y1)/(m-n);
+	y_base = (X-x1+m*Y-n*y1)/(m-n);
+
+	std::vector<Point2D>::const_iterator it = lane_location->getRoadSegment()->getLaneEdgePolyline(0).begin()+1;
+    sim_mob ::Point2D first_PP = *it;
+	sim_mob::Point2D second_PP = *(it-1);
+	for (int i = 0; i< count; i++) {
+	        SumofDistances = SumofDistances + sqrt((first_PP.getX()-second_PP.getX())^2 + (first_PP.getY()-second_PP.getY())^2);
+	        it++;
+	}
+	SumofDistances = SumofDistances + sqrt((x_base-first_PP.getX())^2 + (y_base-first_PP.getY())^2);
+std::cout<<"sum of distances"<<std::endl;
+	return SumofDistances;
+
+}
+
+
+*/
+
+
+
 
 std::string const &
 getStoredProcedure(map<string, string> const & storedProcs, string const & procedureName)
@@ -453,6 +539,7 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
 	LoadTripchains(getStoredProcedure(storedProcs, "tripchain"));
 	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal"));
+	LoadBusStop(getStoredProcedure(storedProcs, "busstop"));
 
 	//add by xuyan
 	//load in boundary segments (not finished!)
@@ -857,7 +944,27 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 		tcs.back()->flexible = it->flexible;
 		tcs.back()->startTime = it->startTime;
 	}
+//
 
+
+	for(map<std::string,BusStop>::iterator it = busstop_.begin(); it != busstop_.end(); it++)
+	{
+
+		sim_mob::BusStop *busstop = new sim_mob::BusStop();
+		busstop->parentSegment_ = sections_[(*it).second.TMP_AtSectionID].generatedSegment;
+		busstop->busstopno_ = (*it).second.bus_stop_no;
+		busstop->xPos = (*it).second.xPos;
+		busstop->yPos = (*it).second.yPos;
+		sim_mob::Point2D p((*it).second.xPos,(*it).second.yPos);
+
+		 double x = busstop->xPos;
+				    		    double y = busstop->yPos;
+
+
+
+		double distOrigin = (((*it).second.xPos)+((*it).second.yPos));
+		busstop->parentSegment_->obstacles[distOrigin] = busstop;
+	}
 
 
 #if 0

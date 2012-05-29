@@ -237,8 +237,8 @@ public class RoadNetwork {
 			parseCutLine(frameID, objID, rhs);
 		}
 		// "true" is to be checked if it is operational or not
-		else if(objType.equals("BusStop")){
-			parseBusStop(frameID, objID, rhs,true , xBounds, yBounds);
+		else if(objType.equals("busstop")){
+			parseBusStop(frameID, objID, rhs);
 		}
 
 		
@@ -457,24 +457,23 @@ public class RoadNetwork {
 	}
 		
 	//my trial
-		private void parseBusStop(int frameID, int objID, String rhs, boolean isUni, double[] xBounds, double[] yBounds) throws IOException {
+		private void parseBusStop(int frameID, int objID, String rhs) throws IOException {
 		    //Check frameID
 		    if (frameID!=0) {
 		    	throw new IOException("Unexpected frame ID, should be zero");
 		    }
 		    
 		    //Check and parse properties.
-		    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"xPos", "yPos"});
+		    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"near-1", "near-2", "far-1", "far-2"});
 		    
-		    //Now save the position information
-		    double x = Double.parseDouble(props.get("xPos"));
-		    double y = Double.parseDouble(props.get("yPos"));
-		    double angle = Double.parseDouble(props.get("angle"));
+		    //Now save the relevant information
+		    ScaledPoint nearOneNode = Utility.ParseCrossingNodePos(props.get("near-1"));
+		    ScaledPoint nearTwoNode = Utility.ParseCrossingNodePos(props.get("near-2"));
+		    ScaledPoint farOneNode = Utility.ParseCrossingNodePos(props.get("far-1"));
+		    ScaledPoint farTwoNode = Utility.ParseCrossingNodePos(props.get("far-2"));
 		    
-		    Utility.CheckBounds(xBounds, x);
-		    Utility.CheckBounds(yBounds, y);
 		    
-		    BusStop res = new BusStop(x, y, isUni,objID,angle);
+		    BusStop res = new BusStop(nearOneNode, nearTwoNode, farOneNode,farTwoNode,objID);
 		   // @amit:Not sure why to use Annotation 
 		    /*
 		    if (props.containsKey("aimsunn-id")) {
@@ -493,6 +492,7 @@ public class RoadNetwork {
 		    	annot_mitsimm.add(an);
 		    }
 		    */
+		    
 		    busstop.put(objID, res);
 		    
 		}

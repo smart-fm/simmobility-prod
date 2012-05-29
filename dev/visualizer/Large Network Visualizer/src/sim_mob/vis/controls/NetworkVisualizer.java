@@ -166,7 +166,7 @@ public class NetworkVisualizer {
 		}
 		return null;
 	}
-	
+	/*
 	//Retrieve the busstop at the given screen position, or null if there's none.
 		public BusStop getBusStopAt(Point screenPos) {
 			//First, convert the screen coordinates to centimeters
@@ -178,7 +178,8 @@ public class NetworkVisualizer {
 			}
 			return null;
 		}
-		
+	*/
+	
 	private static final void BuildNetworkIndex(LazySpatialIndex<DrawableItem> res, RoadNetwork net) {
 		//Just add them all; we'll worry about drawing/hiding some of them later.
 		for (Node n : net.getNodes().values()) {

@@ -1082,11 +1082,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     constraints.startingAutoAgentID = startingAutoAgentID;
 
 
-    //Maintain unique/non-colliding IDs.
-    AgentConstraints constraints;
-    constraints.startingAutoAgentID = startingAutoAgentID;
-
-
     //Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder
     for (vector<string>::iterator it=loadAgentOrder.begin(); it!=loadAgentOrder.end(); it++) {
     	if ((*it) == "database") {

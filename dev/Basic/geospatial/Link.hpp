@@ -68,9 +68,6 @@ public:
 	void extendPolylinesBetweenRoadSegments();
 	void extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>& segments);
 
-	void extendPolylinesBetweenRoadSegments();
-	void extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>& segments);
-
 #ifndef SIMMOB_DISABLE_MPI
 	///The identification of Link is packed using PackageUtils;
 	static void pack(sim_mob::PackageUtils& package, const Link* one_link);

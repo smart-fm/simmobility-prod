@@ -12,7 +12,6 @@ import javax.swing.UIDefaults.LazyValue;
 import sim_mob.index.LazySpatialIndex;
 import sim_mob.vis.MainFrame;
 import sim_mob.vis.network.basic.*;
-import sim_mob.vis.network.BusStop;
 import sim_mob.vis.network.*;
 import sim_mob.vis.simultion.*;
 import sim_mob.vis.util.Utility;

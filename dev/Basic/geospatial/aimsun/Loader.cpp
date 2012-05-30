@@ -41,14 +41,16 @@
 #include "util/DailyTime.hpp"
 #include "util/GeomHelpers.hpp"
 
+#include "SOCI_Converters.hpp"
+//todo: almost all the following are already included in the above include-SOCI_Converters.hpp -->vahid
 #include "BusStop.hpp"
 #include "Node.hpp"
 #include "Section.hpp"
 #include "Crossing.hpp"
 #include "Turning.hpp"
 #include "Polyline.hpp"
-#include "SOCI_Converters.hpp"
-
+#include "Signal.hpp"
+#include "Phase.hpp"
 
 //Note: These will eventually have to be put into a separate Loader for non-AIMSUN data.
 // fclim: I plan to move $topdir/geospatial/aimsun/* and entities/misc/aimsun/* to

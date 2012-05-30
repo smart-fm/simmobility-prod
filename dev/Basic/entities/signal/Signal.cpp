@@ -6,7 +6,7 @@
  *  Created on: 2011-7-18
  *      Author: xrm
  */
-
+#if NEW_SIGNAL
 #include "Signal.hpp"
 #include <math.h>
 #include "geospatial/Lane.hpp"
@@ -664,3 +664,4 @@ void Signal::outputToVisualizer(frame_t frameNumber) {
 //#endif
 }
 }//namespace
+#endif

@@ -59,7 +59,11 @@
 #include "entities/misc/aimsun/TripChain.hpp"
 #include "entities/misc/aimsun/SOCI_Converters.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
+#ifdef NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
+#else
+#include "entities/Signal.hpp"
+#endif
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
@@ -135,8 +139,10 @@ private:
 #endif
 
     void createSignals();
+#ifdef NEW_SIGNAL
     void createPlans();
     void createPhases(unsigned int sid,sim_mob::SplitPlan & plan);
+#endif
 };
 
 DatabaseLoader::DatabaseLoader(string const & connectionString)
@@ -1029,10 +1035,11 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
          * lots of these data are still default(cycle length, offset, choice set.
          * They will be replaced by more realistic value(and input feeders) as the project proceeeds
          */
-        std::cout << "out of createsignals()" << std::endl;
+#ifdef NEW_SIGNAL
         createPlans();
+#endif
 }
-
+#ifdef NEW_SIGNAL
 void
 DatabaseLoader::createSignals()
 {
@@ -1176,6 +1183,72 @@ DatabaseLoader::createPhases(unsigned int sid,sim_mob::SplitPlan & plan)
 		}
 	}
 }
+#else
+void
+DatabaseLoader::createSignals()
+{
+    //std::set<sim_mob::Node const *> uniNodes;
+    std::set<sim_mob::Node const *> badNodes;
+
+    for (map<int, Signal>::const_iterator iter = signals_.begin(); iter != signals_.end(); ++iter)
+    {
+        Signal const & dbSignal = iter->second;
+        map<int, Node>::const_iterator iter2 = nodes_.find(dbSignal.nodeId);
+        if (iter2 == nodes_.end())
+        {
+            std::ostringstream stream;
+            stream << "cannot find node (id=" << dbSignal.nodeId
+                   << ") in the database for signal id=" << iter->first;
+//            throw std::runtime_error(stream.str());
+            continue;
+        }
+
+        Node const & dbNode = iter2->second;
+        sim_mob::Node const * node = dbNode.generatedNode;
+
+        // There are 2 factors determining whether the following code fragment remains or should
+        // be deleted in the near future.  Firstly, in the current version, Signal is designed
+        // only for intersections with 4 links, the code in Signal.cpp and the visualizer expects
+        // to access 4 links and 4 crossings.  This needs to be fixed, Signal.cpp needs to be
+        // extended to model traffic signals at all kinds of intersections or at uni-nodes.
+        //
+        // However, even when Signal.cpp is fixed, the following code fragment may still remain
+        // here, although it may be modified.  The reason is that the entire road network may not
+        // be loaded.  There will be signal sites, especially at the edges of the loaded road
+        // networks, with missing links.  In some cases, it may not make any sense to create a
+        // Signal object there, even though a signal is present at that site in the database.
+        // One example is an intersection with 4 links, but only one link is loaded in.  That
+        // intersection would look like a dead-end to the Driver and Pedestrian objects.  Or
+        // an intersection with 4-way traffic, but only 3 links are loaded in.  This would "turn"
+        // the intersection into a T-junction.
+        std::set<sim_mob::Link const *> links;
+        if (sim_mob::MultiNode const * multi_node = dynamic_cast<sim_mob::MultiNode const *>(node))
+        {
+            std::set<sim_mob::RoadSegment*> const & roads = multi_node->getRoadSegments();
+            std::set<sim_mob::RoadSegment*>::const_iterator iter;
+            for (iter = roads.begin(); iter != roads.end(); ++iter)
+            {
+                sim_mob::RoadSegment const * road = *iter;
+                links.insert(road->getLink());
+            }
+        }
+        if (links.size() != 4)
+        {
+            if (badNodes.count(node) == 0)
+            {
+                badNodes.insert(node);
+                std::cerr << "the node at " << node->location << " (database-id="
+                          << dbSignal.nodeId << ") does not have 4 links; "
+                          << "no signal will be created here." << std::endl;
+            }
+            continue;
+        }
+
+        sim_mob::Signal const & signal = sim_mob::Signal::signalAt(*node, sim_mob::ConfigParams::GetInstance().mutexStategy);
+        const_cast<sim_mob::Signal &>(signal).addSignalSite(dbSignal.xPos, dbSignal.yPos, dbSignal.typeCode, dbSignal.bearing);
+    }
+}
+#endif
 
 } //End anon namespace
 

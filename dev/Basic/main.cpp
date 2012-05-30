@@ -28,7 +28,11 @@
 #include "util/DailyTime.hpp"
 
 //Just temporarily, so we know it compiles:
+#ifdef NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
+#else
+#include "entities/Signal.hpp"
+#endif
 #include "conf/simpleconf.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/TrafficWatch.hpp"
@@ -260,10 +264,8 @@ bool performMain(const std::string& configFileName) {
 #ifndef TEMP_FORCE_ONE_WORK_GROUP
 		signalStatusWorkers.wait();
 #endif
-		cout << " b4 agentWorkers.wait()" << endl;
 		//Agent-based cycle
 		agentWorkers.wait();
-		cout << " after agentWorkers.wait()" << endl;
 #ifndef SIMMOB_DISABLE_MPI
 		if (config.is_run_on_many_computers) {
 			PartitionManager& partitionImpl = PartitionManager::instance();

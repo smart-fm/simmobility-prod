@@ -11,7 +11,11 @@
 #include "entities/PendingEntity.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
+#ifdef NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
+#else
+#include "entities/Signal.hpp"
+#endif
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
@@ -405,8 +409,12 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 	return true;
 }
 
-
+#ifdef NEW_SIGNAL
 bool loadXMLSignals(TiXmlDocument& document, Signal::all_signals all_signals, const std::string& signalKeyID)
+#else
+bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal*> all_signals, const std::string& signalKeyID)
+#endif
+
 {
 	std::cout << "inside loadXMLSignals !" << std::endl;
 	//Quick check.
@@ -627,9 +635,15 @@ void PrintDB_Network()
 	LogOutNotSync("\"frame-time-ms\":\"" <<ConfigParams::GetInstance().baseGranMS <<"\",");
 	LogOutNotSync("})" <<endl);
 
+	;
 
+#ifdef NEW_SIGNAL
+	for (all_signals_const_Iterator it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++)
+#else
+	for (std::vector<Signal*>::const_iterator it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++)
+#endif
 	//Print the Signal representation.
-	for (all_signals_const_Iterator it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++) {
+	{
 		LogOutNotSync((*it)->toString() <<endl);
 	}
 

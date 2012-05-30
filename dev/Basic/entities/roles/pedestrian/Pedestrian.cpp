@@ -21,8 +21,13 @@
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Crossing.hpp"
+#ifdef NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
 #include "entities/signal/Color.hpp"
+#else
+#include "entities/Signal.hpp"
+#endif
+
 #include "util/GeomHelpers.hpp"
 #include "geospatial/Point2D.hpp"
 
@@ -81,7 +86,11 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent, boost::mt19937& gen) :
 	}
 
 	//Init
+#ifdef NEW_SIGNAL
 	sigColor = sim_mob::Green; //Green by default
+#else
+	sigColor = Signal::Green; //Green by default
+#endif
 	currentStage = ApproachingIntersection;
 	startToCross = false;
 
@@ -168,6 +177,7 @@ void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 	} else if (currentStage == NavigatingIntersection) {
 		//Check whether to start to cross or not
 		updatePedestrianSignal();
+#ifdef NEW_SIGNAL
 		if (!startToCross) {
 			if (sigColor == sim_mob::Green) //Green phase
 				startToCross = true;
@@ -183,7 +193,26 @@ void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 			else if (sigColor == sim_mob::Red) //Red phase
 				updateVelocity(2);
 			updatePosition();
-		} else {
+		}
+#else
+		if (!startToCross) {
+			if (sigColor == Signal::Green) //Green phase
+				startToCross = true;
+			else if (sigColor == Signal::Red) { //Red phase
+				if (checkGapAcceptance() == true)
+					startToCross = true;
+			}
+		}
+
+		if (startToCross) {
+			if (sigColor == Signal::Green) //Green phase
+				updateVelocity(1);
+			else if (sigColor == Signal::Red) //Red phase
+				updateVelocity(2);
+			updatePosition();
+		}
+#endif
+		else {
 			//Output (temp)
 #ifndef SIMMOB_DISABLE_OUTPUT
 			LogOut("Pedestrian " <<parent->getId() <<" is waiting at the crossing" <<std::endl);

@@ -10,7 +10,11 @@
 
 #include <vector>
 #include "entities/Person.hpp"
+#ifdef NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
+#else
+#include "entities/Signal.hpp"
+#endif
 
 namespace sim_mob {
 

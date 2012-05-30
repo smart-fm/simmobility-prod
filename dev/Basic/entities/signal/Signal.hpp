@@ -9,7 +9,7 @@
  */
 
 #pragma once
-
+#if NEW_SIGNAL
 #include <map>
 #include <vector>
 
@@ -284,3 +284,4 @@ typedef nth_index_const_iterator<Signal::all_signals, 0>::type all_signals_const
 
 
 }//namespace sim_mob
+#endif

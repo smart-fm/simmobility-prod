@@ -5,7 +5,11 @@
 
 #include "LoopDetectorEntity.hpp"
 #include "geospatial/Node.hpp"
+#ifdef NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
+#else
+#include "entities/Signal.hpp"
+#endif
 #include "AuraManager.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/Role.hpp"
@@ -362,6 +366,7 @@ LoopDetectorEntity::Impl::~Impl()
     }
 }
 
+#ifdef NEW_SIGNAL
 void
 LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetectorEntity & entity)
 {
@@ -396,6 +401,40 @@ LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetecto
         }
     }
 }
+#else
+void
+LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetectorEntity & entity)
+{
+    Node const & node = signal.getNode();
+    std::map<Link const *, size_t> const & links_map = signal.links_map();
+
+    std::map<Link const *, size_t>::const_iterator iter;
+    for (iter = links_map.begin(); iter != links_map.end(); ++iter)
+    {
+        Link const * link  = iter->first;
+        if (link->getEnd() == &node)
+        {
+            // <link> is approaching <node>.  The loop-detectors should be at the end of the
+            // last road segment in the forward direction, if any.
+            std::vector<RoadSegment *> const & roads = link->getPath(true);
+            if (! roads.empty())
+            {
+                createLoopDetectors(roads, entity);
+            }
+        }
+        else
+        {
+            // <link> is receding away from <node>.  The loop-detectors should be at the end
+            // of the last segment in the non-forward direction, if any.
+            std::vector<RoadSegment *> const & roads = link->getPath(false);
+            if (! roads.empty())
+            {
+                createLoopDetectors(roads, entity);
+            }
+        }
+    }
+}
+#endif
 
 namespace
 {

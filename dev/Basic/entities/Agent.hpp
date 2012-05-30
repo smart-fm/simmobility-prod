@@ -137,11 +137,13 @@ protected:
 #endif
 
 public:
+	//xuyan: old code, might not used any more
 	int getOwnRandomNumber();
+
+	friend class BoundaryProcessor;
 
 #ifndef SIMMOB_DISABLE_MPI
 public:
-	friend class BoundaryProcessor;
 	/**
 	 * Used for crossing agents
 	 */

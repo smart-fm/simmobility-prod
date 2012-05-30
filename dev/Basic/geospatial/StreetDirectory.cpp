@@ -881,7 +881,6 @@ StreetDirectory::ShortestPathImpl::process(RoadSegment const * road, bool isForw
             addSideWalk(lane, road->length);
         }
     }
-
     Node const * node1 = road->getStart();
     if (dynamic_cast<UniNode const *>(node1))
     {
@@ -958,7 +957,7 @@ StreetDirectory::ShortestPathImpl::process(RoadSegment const * road, bool isForw
     if (dynamic_cast<UniNode const *>(node2))
     {
         // See comment above about the road-segment's start-node.
-        std::vector<Point2D> const & polyline = road->getLanes()[0]->getPolyline();
+    	std::vector<Point2D> const & polyline = road->getLanes()[0]->getPolyline();
         Point2D point = polyline[polyline.size() - 1];
         node2 = findNode(point);
     }
@@ -969,8 +968,8 @@ StreetDirectory::ShortestPathImpl::process(RoadSegment const * road, bool isForw
     	avgSpeed = 10;
 
 //    std::cout<<"node1 "<<node1->location.getX()<<" to node2 "<<node2->location.getX()<<" is "<<offset/(100*road->maxSpeed/3.6)<<std::endl;
-//    addRoadEdge(node1, node2, WayPoint(road), offset);
-    addRoadEdgeWithTravelTime(node1, node2, WayPoint(road), offset/avgSpeed);
+    addRoadEdge(node1, node2, WayPoint(road), offset);
+//    addRoadEdgeWithTravelTime(node1, node2, WayPoint(road), offset/avgSpeed);
 }
 
 // Search for <node> in <graph>.  If any vertex in <graph> has <node> attached to it, return it;
@@ -1220,7 +1219,7 @@ const
     toVertex = graphSize + 1;
 
     Node const * from = (dynamic_cast<UniNode const *>(&fromNode)) ? &fromNode : nullptr;
-    Node const * to = (dynamic_cast<UniNode const *>(&fromNode)) ? &toNode : nullptr;
+    Node const * to = (dynamic_cast<UniNode const *>(&toNode)) ? &toNode : nullptr;
 
     Graph::vertex_iterator iter, end;
     for (boost::tie(iter, end) = boost::vertices(drivingMap_); iter != end; ++iter)

@@ -143,22 +143,7 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 }
 
 #ifndef SIMMOB_DISABLE_MPI
-void sim_mob::RoadSegment::pack(PackageUtils& package, const RoadSegment* one_segment)
-{
-	package.packPoint2D(one_segment->getStart()->location);
-	package.packPoint2D(one_segment->getEnd()->location);
-}
 
-const RoadSegment* sim_mob::RoadSegment::unpack(UnPackageUtils& unpackage)
-{
-	sim_mob::Point2D point_1;
-	sim_mob::Point2D point_2;
-
-	point_1 = *(unpackage.unpackPoint2D());
-	point_2 = *(unpackage.unpackPoint2D());
-
-	return sim_mob::getRoadSegmentBasedOnNodes(&point_1, &point_2);
-}
 
 #endif
 

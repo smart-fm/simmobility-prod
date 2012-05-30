@@ -247,6 +247,8 @@ public:
     /** Return the polyline of the Lane, which traces the middle of the lane.  */
     const std::vector<sim_mob::Point2D>& getPolyline() const;
 
+    void insertNewPolylinePoint(Point2D p, bool isPre);
+
 public:
 
 #ifndef SIMMOB_DISABLE_MPI

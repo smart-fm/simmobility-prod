@@ -13,6 +13,7 @@
 #include <boost/archive/binary_iarchive.hpp>
 #endif
 
+
 namespace sim_mob
 {
 
@@ -25,19 +26,39 @@ struct DPoint {
 	double x;
 	double y;
 	explicit DPoint(double x=0.0, double y=0.0) : x(x), y(y) {}
-
-	//add by xuyan
-#ifndef SIMMOB_DISABLE_MPI
-public:
-	friend class boost::serialization::access;
-	template<class Archive>
-	void serialize(Archive & ar, const unsigned int version)
-	{
-		ar & x;
-		ar & y;
-	}
-#endif
 };
+
+} //namespace sim_mob
+
+
+
+////////////////////////////////////////////////
+// Serialization for DPoint. This is how one would
+//  serialize *outside* the class itself. You can also
+//  put the serialize() function inside DPoint; see
+//  FixedDelayed<> for an example of this alternate approach.
+////////////////////////////////////////////////
+#ifndef SIMMOB_DISABLE_MPI
+namespace boost {
+namespace serialization {
+template<class Archive>
+void serialize(Archive & ar, sim_mob::DPoint& pt, const unsigned int version)
+{
+    ar & pt.x;
+    ar & pt.y;
+}
+
+} // namespace serialization
+} // namespace boost
+#endif
+////////////////////////////////////////////////
+// End serialization code
+////////////////////////////////////////////////
+
+
+
+namespace sim_mob {
+
 
 
 /**

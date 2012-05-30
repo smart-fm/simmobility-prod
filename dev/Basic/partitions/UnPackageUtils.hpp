@@ -1,5 +1,6 @@
 #pragma once
 #include "GenConfig.h"
+#include "util/LangHelpers.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include <boost/archive/text_iarchive.hpp>
@@ -8,23 +9,10 @@
 #include <boost/serialization/list.hpp>
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/map.hpp>
+#endif
 
 #include <sstream>
-#include <set>
-#include <list>
-#include <vector>
-#include <map>
 #include <string>
-
-#include <boost/unordered_set.hpp>
-#include <boost/unordered_map.hpp>
-
-#include "perception/FixedDelayed.hpp"
-#include "util/DailyTime.hpp"
-#include "util/DynamicVector.hpp"
-#include "geospatial/Point2D.hpp"
-
-#endif
 
 
 namespace sim_mob
@@ -43,140 +31,35 @@ namespace sim_mob
  * which can be serialized so that we can avoid lots of #idefs elsewhere in the code. ~Seth
  */
 class UnPackageUtils {
-#ifndef SIMMOB_DISABLE_MPI
+
 
 private:
 	std::stringstream buffer;
+
+#ifndef SIMMOB_DISABLE_MPI
 	boost::archive::text_iarchive* package;
+#endif
 
 public:
-	UnPackageUtils(std::string data);
-	~UnPackageUtils();
+	UnPackageUtils(std::string data) CHECK_MPI_THROW ;
+	~UnPackageUtils() CHECK_MPI_THROW ;
 
-	/**
-	 * DATA_TYPE can be:
-	 * (1)int {unsigned, signed}, long, short
-	 * (2)float, double, char
-	 * (3)bool
-	 */
 	template<class DATA_TYPE>
-	inline DATA_TYPE unpackBasicData() const {
-		DATA_TYPE value;
-		(*package) & value;
-		return value;
-	}
+	void operator>>(DATA_TYPE& value) CHECK_MPI_THROW ;
 
-	/**
-	 * DATA_TYPE can be:
-	 * (1)int {unsigned, signed}, long, short
-	 * (2)float, double, char
-	 * (3)bool
-	 */
-	template<class DATA_TYPE>
-	inline std::list<DATA_TYPE> unpackBasicDataList() const {
-		std::list<DATA_TYPE> value;
-		(*package) & value;
-		return value;
-	}
-
-	/**
-	 * DATA_TYPE can be:
-	 * (1)int {unsigned, signed}, long, short
-	 * (2)float, double, char
-	 * (3)bool
-	 */
-	template<class DATA_TYPE>
-	inline std::vector<DATA_TYPE> unpackBasicDataVector() const {
-		std::vector<DATA_TYPE> value;
-		(*package) & value;
-		return value;
-	}
-
-	/**
-	 * DATA_TYPE can be:
-	 * (1)int {unsigned, signed}, long, short
-	 * (2)float, double, char
-	 * (3)bool
-	 */
-	template<class DATA_TYPE>
-	inline std::set<DATA_TYPE> unpackBasicDataSet() const {
-		std::set<DATA_TYPE> value;
-		(*package) & value;
-		return value;
-	}
-
-	/**
-	 * DATA_TYPE can be:
-	 * (1)int {unsigned, signed}, long, short
-	 * (2)float, double, char
-	 * (3)bool
-	 */
-	template<class DATA_TYPE_1, class DATA_TYPE_2>
-	inline std::map<DATA_TYPE_1, DATA_TYPE_2> unpackBasicDataMap() const {
-		std::map<DATA_TYPE_1, DATA_TYPE_2> value;
-		(*package) & value;
-		return value;
-	}
-
-	/**
-	 * DATA_TYPE can be:
-	 * (1)int {unsigned, signed}, long, short
-	 * (2)float, double, char
-	 * (3)bool
-	 * (not tested yet)
-	 */
-	template<class DATA_TYPE_1, class DATA_TYPE_2>
-	inline boost::unordered_map<DATA_TYPE_1, DATA_TYPE_2> unpackUnorderedMap() const {
-		boost::unordered_map<DATA_TYPE_1, DATA_TYPE_2> value;
-		(*package) & value;
-		return value;
-	}
-
-	/**
-	 * DATA_TYPE can be:
-	 * (1)int {unsigned, signed}, long, short
-	 * (2)float, double, char
-	 * (3)bool
-	 * (not tested yet)
-	 */
-	template<class DATA_TYPE>
-	inline boost::unordered_set<DATA_TYPE> packUnorderedSet() const {
-		boost::unordered_set<DATA_TYPE> value;
-		(*package) & value;
-		return value;
-	}
-
-	//Road Network
-//	const Node* unpackNode() const;
-//	const RoadSegment* unpackRoadSegment() const;
-//	const Link* unpackLink() const;
-//	const Lane* unpackLane() const;
-//	const TripChain* unpackTripChain() const;
-//	const TripActivity* unpackTripActivity() const;
-
-	//Road Item
-//	const Vehicle* unpackVehicle() const;
-//	void unpackGeneralPathMover(GeneralPathMover* one_motor) const;
-//	const Crossing* unpackCrossing() const;
-
-	//Others
-//	IntersectionDrivingModel* unpackIntersectionDrivingModel() const;
-	FixedDelayed<DPoint*>& unpackFixedDelayedDPoint() const;
-	FixedDelayed<double>& unpackFixedDelayedDouble() const;
-	FixedDelayed<int>& unpackFixedDelayedInt() const;
-	Point2D* unpackPoint2D() const;
-//	void unpackDriverUpdateParams(DriverUpdateParams& one_driver) const;
-//	void unpackPedestrianUpdateParams(PedestrianUpdateParams& one_pedestrain) const;
-
-	void unpackDailyTime(DailyTime& time) const;
-	void unpackDPoint(DPoint& point) const;
-	void unpackDynamicVector(DynamicVector& vector) const;
-
-//private:
-//	void initializePackage(std::string value);
-//	void clearPackage();
-
-#endif
 };
 }
+
+
+
+//Template declarations. As this is considered source, it is if-def'd for now.
+
+#ifndef SIMMOB_DISABLE_MPI
+
+template<class DATA_TYPE>
+inline void sim_mob::UnPackageUtils::operator>>(DATA_TYPE& value) {
+	(*package) & value;
+}
+
+#endif
 

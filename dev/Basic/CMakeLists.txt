@@ -40,6 +40,9 @@ option(SIMMOB_AGENT_UPDATE_PROFILE "Log all Agent update ticks per thread and st
 #Option: build tests. Use the cmake gui to change this on a per-user basis.
 option(BUILD_TESTS "Build unit tests." OFF)  
 
+#Option: use new signal model. Use the cmake gui to change this on a per-user basis.
+option(NEW_SIGNAL "Use the new signal Model ." OFF)
+
 #Turn on verbose output
 SET(CMAKE_VERBOSE_MAKEFILE ON)
 

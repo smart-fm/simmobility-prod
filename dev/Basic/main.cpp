@@ -260,10 +260,10 @@ bool performMain(const std::string& configFileName) {
 #ifndef TEMP_FORCE_ONE_WORK_GROUP
 		signalStatusWorkers.wait();
 #endif
-
+		cout << " b4 agentWorkers.wait()" << endl;
 		//Agent-based cycle
 		agentWorkers.wait();
-
+		cout << " after agentWorkers.wait()" << endl;
 #ifndef SIMMOB_DISABLE_MPI
 		if (config.is_run_on_many_computers) {
 			PartitionManager& partitionImpl = PartitionManager::instance();
@@ -365,6 +365,11 @@ bool performMain(const std::string& configFileName) {
 
 int main(int argc, char* argv[])
 {
+#ifdef NEW_SIGNAL
+	std::cout << "Using New Signal Model" << std::endl;
+#else
+	std::cout << "Not Using New Signal Model" << std::endl;
+#endif
 	//Save start time
 	gettimeofday(&start_time, nullptr);
 

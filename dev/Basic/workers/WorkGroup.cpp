@@ -177,23 +177,26 @@ sim_mob::Worker* sim_mob::WorkGroup::getWorker(int id)
 
 void sim_mob::WorkGroup::wait()
 {
+	std::cout << "int WorkGroup::wait " << std::endl;
 	if (--tickOffset>0) {
+		std::cout << "int WorkGroup::wait returning" << std::endl;
 		return;
 	}
 	tickOffset = tickStep;
 
 	//Stay in sync with the workers.
 	nextTimeTickToStage += tickStep;
-
+	std::cout << "int WorkGroup::wait 1" << std::endl;
 	shared_barr.wait();
-
+	std::cout << "int WorkGroup::wait 2" << std::endl;
 	//Stage Agent updates based on nextTimeTickToStage
 	stageEntities();
-
+	std::cout << "int WorkGroup::wait 3" << std::endl;
 	//Remove any Agents staged for removal.
 	collectRemovedEntities();
-
+	std::cout << "int WorkGroup::wait 4" << std::endl;
 	external_barr.wait();
+	std::cout << "int WorkGroup::wait 5" << std::endl;
 }
 
 

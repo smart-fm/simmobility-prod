@@ -11,7 +11,7 @@
 
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/Person.hpp"
-#include "entities/Signal/Signal.hpp"
+#include "entities/signal/Signal.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/UpdateParams.hpp"
 #include "entities/misc/TripChain.hpp"

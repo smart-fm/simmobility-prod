@@ -22,7 +22,7 @@
 #include "entities/roles/Role.hpp"
 #include "geospatial/Point2D.hpp"
 #include "conf/simpleconf.hpp"
-#include "entities/Signal/Signal.hpp"
+#include "entities/signal/Signal.hpp"
 #include "geospatial/Crossing.hpp"
 #include "entities/roles/driver/GeneralPathMover.hpp"
 #include "entities/UpdateParams.hpp"

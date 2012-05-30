@@ -11,7 +11,7 @@
 #include "entities/PendingEntity.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
-#include "entities/Signal/Signal.hpp"
+#include "entities/signal/Signal.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/profile/ProfileBuilder.hpp"

@@ -23,6 +23,28 @@ using namespace sim_mob::aimsun;
 using std::string;
 
 
+
+//TEMPORARY: Class definition, until "Phase" becomes available.
+namespace sim_mob { namespace aimsun {
+class Phase {
+public:
+	Section* ToSection;
+	int sectionTo;
+	Section* FromSection;
+	int sectionFrom;
+	int nodeId;
+	std::string name;
+	int laneFrom_A;
+	int laneFrom_B;
+	int laneTo_A;
+	int laneTo_B;
+};
+}}
+//END TEMPORARY CODE
+
+
+
+
 namespace soci
 {
 

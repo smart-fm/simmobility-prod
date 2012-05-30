@@ -57,7 +57,7 @@
 #include "entities/misc/aimsun/TripChain.hpp"
 #include "entities/misc/aimsun/SOCI_Converters.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
-#include "entities/Signal/Signal.hpp"
+#include "entities/signal/Signal.hpp"
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
@@ -75,7 +75,9 @@ using std::pair;
 using std::multimap;
 
 
+
 namespace {
+
 
 class DatabaseLoader : private boost::noncopyable
 {

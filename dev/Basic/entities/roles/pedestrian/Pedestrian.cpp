@@ -21,8 +21,8 @@
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Crossing.hpp"
-#include "entities/Signal/Signal.hpp"
-#include "entities/Signal/Color.hpp"
+#include "entities/signal/Signal.hpp"
+#include "entities/signal/Color.hpp"
 #include "util/GeomHelpers.hpp"
 #include "geospatial/Point2D.hpp"
 

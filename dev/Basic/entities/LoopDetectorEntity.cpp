@@ -5,7 +5,7 @@
 
 #include "LoopDetectorEntity.hpp"
 #include "geospatial/Node.hpp"
-#include "Signal/Signal.hpp"
+#include "entities/signal/Signal.hpp"
 #include "AuraManager.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/Role.hpp"

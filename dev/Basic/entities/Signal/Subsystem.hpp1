@@ -27,6 +27,7 @@ namespace sim_mob
  * \author Seth N. Hetu
  * \author LIM Fung Chai
  * \author Li Zhemin
+ * \author Vahid Saber
  *
  * NOTES:
  *1.Each subsystem has only one critical intersection. The cycle length of
@@ -68,20 +69,24 @@ public:
 private:
 	//signal of critical intersection, slaved intersection1 and slaved intersection2
 	sim_mob::Signal* Critical;
-	sim_mob::Signal* S1;
-	sim_mob::Signal* S2;
+	std::vector<sim_mob::Signal*> Slaves;
+//	sim_mob::Signal* S1;
+//	sim_mob::Signal* S2;
 
 	// all intersections in one subsystem share a common cycle length
 	int currCycleLength;
 
 	// SplitPlan of critical intersection, slaved intersection1 and slaved intersection2
 	std::vector<double>currSplitPlan_C;
-	std::vector<double>currSplitPlan_S1;
-	std::vector<double>currSplitPlan_S2;
+//	std::vector<std::vector<double> > currSplitPlan_S;
+	std::map<sim_mob::Signal*,std::vector<double> > currSplitPlan_S;
+//	std::vector<double>currSplitPlan_S1;
+//	std::vector<double>currSplitPlan_S2;
 
 	// SplitPlan ofslaved intersection1 and slaved intersection2
-	int Offset_S1;
-	int Offset_S2;
+//	int Offset_S1;
+//	int Offset_S2;
+	std::map<sim_mob::Signal*,int > Offset_S;
 
 	//Direction Bias for each offset plan of each link
 	static const int DB_Link1[], DB_Link2[], DB_Link3[], DB_Link4[];

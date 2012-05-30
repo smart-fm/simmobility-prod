@@ -2,10 +2,11 @@
 
 #include "Loader.hpp"
 
+#include<set>
 #include <cmath>
 #include <algorithm>
 #include <stdexcept>
-
+#include <boost/multi_index_container.hpp>
 //NOTE: Ubuntu is pretty bad about where it puts the SOCI headers.
 //      "soci-postgresql.h" is supposed to be in "$INC/soci", but Ubuntu puts it in
 //      "$INC/soci/postgresql". For now, I'm just referencing it manually, but
@@ -56,7 +57,7 @@
 #include "entities/misc/aimsun/TripChain.hpp"
 #include "entities/misc/aimsun/SOCI_Converters.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
-#include "entities/Signal.hpp"
+#include "entities/Signal/Signal.hpp"
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
@@ -104,7 +105,9 @@ private:
     multimap<int, Polyline> polylines_;
     vector<TripChain> tripchains_;
     map<int, Signal> signals_;
+
     map<std::string,BusStop> busstop_;
+    multimap<int,Phase> phases_;//one node_id is mapped to many phases
 
     vector<sim_mob::BoundarySegment*> boundary_segments;
 
@@ -117,13 +120,19 @@ private:
     void LoadPolylines(const std::string& storedProc);
     void LoadTripchains(const std::string& storedProc);
     void LoadTrafficSignals(const std::string& storedProc);
+
     void LoadBusStop(const std::string& storedProc);
+
+    void LoadPhase(const std::string& storedProc);
+
 
 #ifndef SIMMOB_DISABLE_MPI
     void LoadBoundarySegments();
 #endif
 
     void createSignals();
+    void createPlans();
+    void createPhases(unsigned int sid,sim_mob::SplitPlan & plan);
 };
 
 DatabaseLoader::DatabaseLoader(string const & connectionString)
@@ -181,6 +190,21 @@ void DatabaseLoader::LoadSections(const std::string& storedProc)
 		it->fromNode = &nodes_[it->TMP_FromNodeID];
 		it->toNode = &nodes_[it->TMP_ToNodeID];
 		sections_[it->id] = *it;
+	}
+}
+
+void DatabaseLoader::LoadPhase(const std::string& storedProc)
+{
+	soci::rowset<Phase> rs = (sql_.prepare <<"select * from " + storedProc);
+	phases_.clear();
+	int i=0;
+	for(soci::rowset<Phase>::const_iterator it=rs.begin(); it!=rs.end(); ++it,i++)
+	{
+//		std::cout << "LoadPhase iteration " << i ;
+//		std::cout << "  Node Id: " << it->nodeId <<std::endl;
+		it->ToSection = &sections_[it->sectionTo];
+		it->FromSection = &sections_[it->sectionFrom];
+		phases_.insert(pair<int,Phase>(it->nodeId,*it));
 	}
 }
 
@@ -245,7 +269,11 @@ void DatabaseLoader::LoadLanes(const std::string& storedProc)
 	}
 }
 
-
+/*
+ * this function caters the section level not lane level
+ * (Turning contains four columns four columns pertaining to lanes)
+ * vahid
+ */
 void DatabaseLoader::LoadTurnings(const std::string& storedProc)
 {
 	//Our SQL statement
@@ -538,8 +566,16 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
 	LoadTripchains(getStoredProcedure(storedProcs, "tripchain"));
+	std::cout << "TripChain Done, Starting signals" << std::endl;
 	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal"));
+
 	LoadBusStop(getStoredProcedure(storedProcs, "busstop"));
+
+	std::cout << "signals Done, Starting LoadPhase" << std::endl;
+	LoadPhase(getStoredProcedure(storedProcs, "phase"));
+	std::cout << "LoadPhase Done, Congrates" << std::endl;
+
+
 
 	//add by xuyan
 	//load in boundary segments (not finished!)
@@ -992,16 +1028,25 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 #endif
 
         createSignals();
+        /*vahid:
+         * and Now we extend the signal functionality by adding extra information for signal's split plans, offset, cycle length, phases
+         * lots of these data are still default(cycle length, offset, choice set.
+         * They will be replaced by more realistic value(and input feeders) as the project proceeeds
+         */
+        std::cout << "out of createsignals()" << std::endl;
+        createPlans();
 }
 
 void
 DatabaseLoader::createSignals()
 {
+
     //std::set<sim_mob::Node const *> uniNodes;
     std::set<sim_mob::Node const *> badNodes;
-
-    for (map<int, Signal>::const_iterator iter = signals_.begin(); iter != signals_.end(); ++iter)
+    int j = 0, nof_signals = 0;
+    for (map<int, Signal>::const_iterator iter = signals_.begin(); iter != signals_.end(); ++iter,j++)
     {
+//    	std::cout << "createsignals() iteration " << j << std::endl;
         Signal const & dbSignal = iter->second;
         map<int, Node>::const_iterator iter2 = nodes_.find(dbSignal.nodeId);
         if (iter2 == nodes_.end())
@@ -1015,50 +1060,123 @@ DatabaseLoader::createSignals()
         Node const & dbNode = iter2->second;
         sim_mob::Node const * node = dbNode.generatedNode;
 
-        // There are 2 factors determining whether the following code fragment remains or should
-        // be deleted in the near future.  Firstly, in the current version, Signal is designed
-        // only for intersections with 4 links, the code in Signal.cpp and the visualizer expects
-        // to access 4 links and 4 crossings.  This needs to be fixed, Signal.cpp needs to be
-        // extended to model traffic signals at all kinds of intersections or at uni-nodes.
-        //
-        // However, even when Signal.cpp is fixed, the following code fragment may still remain
-        // here, although it may be modified.  The reason is that the entire road network may not
-        // be loaded.  There will be signal sites, especially at the edges of the loaded road
-        // networks, with missing links.  In some cases, it may not make any sense to create a
-        // Signal object there, even though a signal is present at that site in the database.
-        // One example is an intersection with 4 links, but only one link is loaded in.  That
-        // intersection would look like a dead-end to the Driver and Pedestrian objects.  Or
-        // an intersection with 4-way traffic, but only 3 links are loaded in.  This would "turn"
-        // the intersection into a T-junction.
-        std::set<sim_mob::Link const *> links;
-        if (sim_mob::MultiNode const * multi_node = dynamic_cast<sim_mob::MultiNode const *>(node))
-        {
-            std::set<sim_mob::RoadSegment*> const & roads = multi_node->getRoadSegments();
-            std::set<sim_mob::RoadSegment*>::const_iterator iter;
-            for (iter = roads.begin(); iter != roads.end(); ++iter)
-            {
-                sim_mob::RoadSegment const * road = *iter;
-                links.insert(road->getLink());
-            }
-        }
-        if (links.size() != 4)
-        {
-            if (badNodes.count(node) == 0)
-            {
-                badNodes.insert(node);
-                std::cerr << "the node at " << node->location << " (database-id="
-                          << dbSignal.nodeId << ") does not have 4 links; "
-                          << "no signal will be created here." << std::endl;
-            }
-            continue;
-        }
-
-        sim_mob::Signal const & signal = sim_mob::Signal::signalAt(*node, sim_mob::ConfigParams::GetInstance().mutexStategy);
+//        // There are 2 factors determining whether the following code fragment remains or should
+//        // be deleted in the near future.  Firstly, in the current version, Signal is designed
+//        // only for intersections with 4 links, the code in Signal.cpp and the visualizer expects
+//        // to access 4 links and 4 crossings.  This needs to be fixed, Signal.cpp needs to be
+//        // extended to model traffic signals at all kinds of intersections or at uni-nodes.
+//        //
+//        // However, even when Signal.cpp is fixed, the following code fragment may still remain
+//        // here, although it may be modified.  The reason is that the entire road network may not
+//        // be loaded.  There will be signal sites, especially at the edges of the loaded road
+//        // networks, with missing links.  In some cases, it may not make any sense to create a
+//        // Signal object there, even though a signal is present at that site in the database.
+//        // One example is an intersection with 4 links, but only one link is loaded in.  That
+//        // intersection would look like a dead-end to the Driver and Pedestrian objects.  Or
+//        // an intersection with 4-way traffic, but only 3 links are loaded in.  This would "turn"
+//        // the intersection into a T-junction.
+//        std::set<sim_mob::Link const *> links;//links at the target node
+//        if (sim_mob::MultiNode const * multi_node = dynamic_cast<sim_mob::MultiNode const *>(node))
+//        {
+//            std::set<sim_mob::RoadSegment*> const & roads = multi_node->getRoadSegments();
+//            std::set<sim_mob::RoadSegment*>::const_iterator iter;
+//            for (iter = roads.begin(); iter != roads.end(); ++iter)
+//            {
+//                sim_mob::RoadSegment const * road = *iter;
+//                links.insert(road->getLink());//collecting links at the target node
+//            }
+//        }
+//        if (links.size() != 4)//should change to what?
+//        {
+//            if (badNodes.count(node) == 0)
+//            {
+//                badNodes.insert(node);
+//                std::cerr << "Hi, the node at " << node->location << " (database-id="
+//                          << dbSignal.nodeId << ") does not have 4 links; "
+//                          << "no signal will be created here." << std::endl;
+//            }
+//            continue;
+//        }
+        /*vahid:
+         * the following two lines are the major tasks of this function
+         * the first line checks for availability of he signal in the street directory based on the node
+         * (if not available, it will create a signal entry in the street directory)
+         * the second line will add a signal site there are-on average- 16 sites for a signal
+         * to clarify more the signal and signal site terms, think of a signal as a traffic controller box located at
+         * an intersection. And think of signal site as the traffic light units installed at an intersection
+         */
+//        std::cout << "Inside createsignals() b4 signalAt" << std::endl;
+        const sim_mob::Signal & signal = sim_mob::Signal::signalAt(*node, sim_mob::ConfigParams::GetInstance().mutexStategy);
+        nof_signals++;
+//        std::cout << "signalAt, returned" << std::endl;
         const_cast<sim_mob::Signal &>(signal).addSignalSite(dbSignal.xPos, dbSignal.yPos, dbSignal.typeCode, dbSignal.bearing);
+//        std::cout << "addSignalSite Done! returned" << std::endl;
+
     }
+    std::cout << "Number of signals created : " << nof_signals << " : "<<  sim_mob::Signal::all_signals_.size() << std::endl;
+}
+
+void
+DatabaseLoader::createPlans()
+{
+	std::cout << "in createPlans..with "<< sim_mob::Signal::all_signals_.size() << " Signals" << std::endl; ;
+	unsigned int sid ;
+	sim_mob::all_signals_Iterator sig_it ;
+	for(sig_it = sim_mob::Signal::all_signals_.begin(); sig_it !=sim_mob::Signal::all_signals_.end();  sig_it++)
+	{
+		sid = (*sig_it)->getSignalId();//remember our assumption!  : node id and signal id(whtever their name is) are same
+		sim_mob::SplitPlan & plan = (*sig_it)->getPlan();
+		createPhases(sid,plan);
+
+		//now that we have the number of phases, we can continue initializing our split plan.
+		int nof_phases = plan.find_NOF_Phases();
+		std::cout << " Signal(" << sid << "):Number of Phases : " << nof_phases << " ";
+		if(nof_phases > 0)
+			if((nof_phases > 5)||(nof_phases < 2))
+				std::cout << sid << " igonred due to lack of default choice set" << nof_phases ;
+			else
+				plan.setDefaultSplitPlan(nof_phases);//i hope the nof phases is within the range of 2-5
+		else
+			std::cout << sid << " igonred due to no phases" << nof_phases ;
+		std::cout << "..iterating "<< std::endl;
+	}
+	std::cout << "getting out of createPlans.." << std::endl;;
 }
 
 
+void
+DatabaseLoader::createPhases(unsigned int sid,sim_mob::SplitPlan & plan)
+{
+	pair<multimap<int,sim_mob::aimsun::Phase>::iterator, multimap<int,sim_mob::aimsun::Phase>::iterator> ppp;
+	ppp = phases_.equal_range(sid);
+	multimap<int,sim_mob::aimsun::Phase>::iterator ph_it = ppp.first;
+
+	//some-initially weird looking- boost multi_index provisions to search for a phase by its name, instead of having loops to do that.
+	sim_mob::SplitPlan::phases_name_iterator sim_ph_it;
+	const sim_mob::SplitPlan::plan_phases_view & ppv = plan.getPhases().get<1>();
+
+	for(; ph_it != ppp.second; ph_it++)
+	{
+
+		sim_mob::Link * linkFrom = (*ph_it).second.FromSection->generatedSegment->getLink();
+		sim_mob::Link * linkTo = (*ph_it).second.ToSection->generatedSegment->getLink();
+		sim_mob::linkToLink ll(linkTo);
+		std::string name = (*ph_it).second.name;
+		if((sim_ph_it = ppv.find(name)) != ppv.end()) //means: if a phase with this name already exists in this plan...(usually u need a loop but with boost multi index, well, you don't :)
+		{
+			sim_ph_it->addLinkMaping(linkFrom,ll);
+//			std::cout << "Phase " <<  (*ph_it).second.name << " Links from :" << linkFrom << " to: "  << linkTo << " updated to singnal " << sid << std::endl;
+		}
+		else //new phase, new mapping
+		{
+			sim_mob::Phase phase(name,&plan);//for general copy
+			phase.addLinkMaping(linkFrom,ll);
+			phase.addDefaultCrossings();
+			plan.addPhase(phase);//congrates
+//			std::cout << "Phase " <<  (*ph_it).second.name << " Links from :" << linkFrom << " to: "  << linkTo << " added to singnal " << sid << std::endl;
+		}
+	}
+}
 
 } //End anon namespace
 
@@ -1208,6 +1326,8 @@ void sim_mob::aimsun::Loader::ProcessGeneralNode(sim_mob::RoadNetwork& res, Node
 		res.segmentnodes.insert(dynamic_cast<UniNode*>(newNode));
 	}
 
+	//vahid
+	newNode->setID(src.id);
 	//For future reference
 	src.generatedNode = newNode;
 }
@@ -1291,6 +1411,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	Section* currSect = &src;
 	sim_mob::Link* ln = new sim_mob::Link();
 	src.generatedSegment = new sim_mob::RoadSegment(ln);
+	std::cout << src.id << "," << std::endl;
 	ln->roadName = currSect->roadName;
 	ln->start = currSect->fromNode->generatedNode;
 	set<RoadSegment*> linkSegments;
@@ -1475,35 +1596,34 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 	try {
             //Connection string will look something like this:
             //"host=localhost port=5432 dbname=SimMobility_DB user=postgres password=XXXXX"
-            std::cout << "Attempting to connect to remote database..." << std::flush;
             DatabaseLoader loader(connectionStr);
             std::cout << " Success." << std::endl;
 
 		//Step One: Load
 		loader.LoadBasicAimsunObjects(storedProcs);
+
 		if (prof) { prof->logGenericEnd("Database", "main-prof"); }
 
 		//Step Two: Translate
 		if (prof) { prof->logGenericStart("PostProc", "main-prof"); }
 		loader.DecorateAndTranslateObjects();
-
 		//Step Three: Perform data-guided cleanup.
 		loader.PostProcessNetwork();
-
 		//Step Four: Save
 		loader.SaveSimMobilityNetwork(rn, tcs);
-
 		//Temporary workaround; Cut lanes short/extend them as reuquired.
 		for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {
 			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesStartLineCut, true);
 			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesEndLineCut, false);
 		}
 
+
 		for(vector<sim_mob::Link*>::iterator it = rn.links.begin(); it!= rn.links.end();it++)
 			(*it)->extendPolylinesBetweenRoadSegments();
 
 
 		if (prof) { prof->logGenericEnd("PostProc", "main-prof"); }
+
 
 		//add by xuyan, load in boundary segments
 		//Step Four: find boundary segment in road network using start-node(x,y) and end-node(x,y)

@@ -42,12 +42,17 @@ sim_mob :: Subsystem :: Subsystem(Node const & node, const MutexStrategy& mtxStr
 {
 	Critical->setCL(60,60,60);//default initial cycle length for SCATS
 	Critical->setRL(60,60);//default initial RL for SCATS
-	S1->setCL(60,60,60);
-	S2->setCL(60,60,60);
+	std::vector<sim_mob::Signal*>::iterator it;
+	for(it = Slaves.begin(); it!=Slaves.end();it++)
+		(*it)->setCL(60,60,60);
+//	S1->setCL(60,60,60);
+//	S2->setCL(60,60,60);
 
 	Critical->startSplitPlan();
-	S1->startSplitPlan();
-	S2->startSplitPlan();
+//	S1->startSplitPlan();
+//	S2->startSplitPlan();
+	for(it = Slaves.begin(); it!=Slaves.end();it++)
+		(*it)->startSplitPlan();
 }
 
 
@@ -69,12 +74,20 @@ void sim_mob :: Subsystem :: updateSubsystem(double DS_C[],double DS_S1[], doubl
 void sim_mob :: Subsystem ::updateSplitPlan(double DS_S1[], double DS_S2[])
 {
 	//update SplitPlan of slaved intersection1
-	S1->setnextSplitPlan(DS_S1);
-	currSplitPlan_S1.assign(S1->getnextSplitPlan(),S1->getnextSplitPlan()+3);
 
-	//update SplitPlan of slaved intersection2
-	S2->setnextSplitPlan(DS_S2);
-	currSplitPlan_S2.assign(S2->getnextSplitPlan(),S2->getnextSplitPlan()+3);
+	std::vector<sim_mob::Signal*>::iterator it;
+	for(it = Slaves.begin(); it!=Slaves.end();it++)
+	{
+		(*it)->setnextSplitPlan(DS_S1);
+		currSplitPlan_S[*it].assign((*it)->getnextSplitPlan(),(*it)->getnextSplitPlan()+3);//why +3?? -vahid
+	}
+
+//	S1->setnextSplitPlan(DS_S1);
+//	currSplitPlan_S1.assign(S1->getnextSplitPlan(),S1->getnextSplitPlan()+3);
+//
+//	//update SplitPlan of slaved intersection2
+//	S2->setnextSplitPlan(DS_S2);
+//	currSplitPlan_S2.assign(S2->getnextSplitPlan(),S2->getnextSplitPlan()+3);
 
 }
 
@@ -186,10 +199,16 @@ void sim_mob :: Subsystem :: updateOffset(int flow1[], int flow2[])
 		Offset2 = Off_up;
 	}
 
+	//modify offsets for slaved intersection1 & intersection2
+//	Offset_S1 = currCycleLength*(currSplitPlan_C[0] - currSplitPlan_S1[0]) + Offset1;
+//	Offset_S2 = currCycleLength*(currSplitPlan_C[0] - currSplitPlan_S2[0]) + Offset2;
 
 	//modify offsets for slaved intersection1 & intersection2
-	Offset_S1 = currCycleLength*(currSplitPlan_C[0] - currSplitPlan_S1[0]) + Offset1;
-	Offset_S2 = currCycleLength*(currSplitPlan_C[0] - currSplitPlan_S2[0]) + Offset2;
+	std::vector<sim_mob::Signal*>::iterator it;
+	for(it = Slaves.begin(); it!=Slaves.end();it++)
+	{
+		Offset_S[*it] = currCycleLength*(currSplitPlan_C[0] - currSplitPlan_S[*it].at(0) ) + Offset_S[*it];
+	}
 
 }
 

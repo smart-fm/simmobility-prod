@@ -11,6 +11,7 @@
 #include "entities/PendingEntity.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
+#include "entities/Signal/Signal.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
@@ -405,10 +406,12 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 }
 
 
-bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal *>& all_signals, const std::string& signalKeyID)
+bool loadXMLSignals(TiXmlDocument& document, Signal::all_signals all_signals, const std::string& signalKeyID)
 {
+	std::cout << "inside loadXMLSignals !" << std::endl;
 	//Quick check.
 	if (signalKeyID!="signal") {
+		std::cout << "oops! returning false!" << std::endl;
 		return false;
 	}
 
@@ -417,6 +420,7 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal *>& all_signals,
 	TiXmlElement* node = handle.FirstChild("config").FirstChild(signalKeyID+"s").FirstChild(signalKeyID).ToElement();
 	if (!node) {
 		//Signals are optional
+		std::cout << "oops! returning true!" << std::endl;
 		return true;
 	}
 
@@ -428,6 +432,7 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal *>& all_signals,
             char const * yPosAttr = node->Attribute("ypos");
             if (0 == xPosAttr || 0 == yPosAttr)
             {
+
                 std::cerr << "signals must have 'xpos', and 'ypos' attributes in the config file." << std::endl;
                 return false;
             }
@@ -467,7 +472,6 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal *>& all_signals,
                               << "no signal will be created here." << std::endl;
                     continue;
                 }
-
                 Signal const * signal = streetDirectory.signalAt(*road_node);
                 if (signal)
                 {
@@ -478,16 +482,17 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal *>& all_signals,
                 {
                     // The following call will create and register the signal with the
                     // street-directory.
+                	std::cout << "register signal again!" << std::endl;
                     Signal::signalAt(*road_node, ConfigParams::GetInstance().mutexStategy);
                 }
             }
             catch (boost::bad_lexical_cast &)
             {
+            	std::cout << "catch the loop error try!" << std::endl;
                 std::cerr << "signals must have 'id', 'xpos', and 'ypos' attributes with numerical values in the config file." << std::endl;
                 return false;
             }
 	}
-
 	return true;
 }
 
@@ -624,7 +629,7 @@ void PrintDB_Network()
 
 
 	//Print the Signal representation.
-	for (vector<Signal*>::const_iterator it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++) {
+	for (all_signals_const_Iterator it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++) {
 		LogOutNotSync((*it)->toString() <<endl);
 	}
 
@@ -1067,9 +1072,14 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
     //Seal the network; no more changes can be made after this.
     ConfigParams::GetInstance().sealNetwork();
-
+    std::cout << "Network Sealed" << std::endl;
     //Now that the network has been loaded, initialize our street directory (so that lookup succeeds).
     StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
+    std::cout << "Street Directory initialized" << std::endl;
+
+    //Maintain unique/non-colliding IDs.
+    AgentConstraints constraints;
+    constraints.startingAutoAgentID = startingAutoAgentID;
 
 
     //Maintain unique/non-colliding IDs.
@@ -1102,10 +1112,11 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		return string("Unknown item in load_agents: ") + (*it);
     	}
     }
-
+    std::cout << "Loading Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder Success!" << std::endl;
 
     //Load signals, which are currently agents
     if (!loadXMLSignals(document, Signal::all_signals_, "signal")) {
+    	std::cout << "loadXMLSignals Failed!" << std::endl;
     	return	 "Couldn't load signals";
     }
 

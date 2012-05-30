@@ -7,8 +7,14 @@
 
 #include "Point2D.hpp"
 #include "RoadSegment.hpp"
+//#include "geo5-pimpl.hpp"
 
-
+//using namespace geo;
+namespace geo
+{
+class lane_t_pimpl;
+class Lanes_pimpl;
+}
 namespace sim_mob
 {
 
@@ -25,6 +31,7 @@ namespace aimsun
 //Forward declaration
 class Loader;
 } //End aimsun namespace
+
 
 
 /**
@@ -90,6 +97,8 @@ class Loader;
  *   \endcode
  */
 class Lane {
+	friend class geo::lane_t_pimpl;
+	friend class geo::Lanes_pimpl;
 private:
     /**
      * Lane movement rules.
@@ -327,6 +336,7 @@ private:
 	mutable std::vector<Point2D> polyline_;
 
 	friend class RoadSegment;
+
 
 
 };

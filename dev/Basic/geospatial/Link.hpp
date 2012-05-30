@@ -19,6 +19,7 @@ namespace sim_mob
 class RoadSegment;
 class MultiNode;
 class RoadNetworkPackageManager;
+class Signal;
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
@@ -62,6 +63,10 @@ public:
 	///The name of the particular segment. E.g., "Main Street 01".
 	///Useful for debugging by location. May be auto-numbered.
 	std::string getSegmentName(const sim_mob::RoadSegment* segment);
+	const std::set<sim_mob::RoadSegment*> & getUniqueSegments();
+
+	void extendPolylinesBetweenRoadSegments();
+	void extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>& segments);
 
 	void extendPolylinesBetweenRoadSegments();
 	void extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>& segments);
@@ -78,6 +83,7 @@ public:
 public:
 	///The road link's name. E.g., "Main Street"
 	std::string roadName;
+	std::string linkID;
 
 protected:
 	//List of pointers to RoadSegments in each direction
@@ -89,6 +95,7 @@ protected:
 
 friend class sim_mob::aimsun::Loader;
 friend class sim_mob::RoadNetworkPackageManager;
+friend class sim_mob::Signal;
 
 };
 

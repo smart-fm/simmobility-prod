@@ -28,7 +28,7 @@
 #include "util/DailyTime.hpp"
 
 //Just temporarily, so we know it compiles:
-#include "entities/Signal.hpp"
+#include "entities/Signal/Signal.hpp"
 #include "conf/simpleconf.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/TrafficWatch.hpp"

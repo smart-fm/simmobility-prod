@@ -288,5 +288,10 @@ bool sim_mob::Vehicle::isDone() const {
 
 
 #ifndef SIMMOB_DISABLE_MPI
+void sim_mob::Vehicle::pack(PackageUtils& package, Vehicle* one_vehicle) {
+//	package.packBasicData<double> (one_vehicle->length);
+//	package.packBasicData<double> (one_vehicle->width);
+}
+
 
 #endif

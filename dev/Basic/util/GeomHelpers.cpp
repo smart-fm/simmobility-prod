@@ -23,7 +23,7 @@
 #include "geospatial/Link.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/RoadSegment.hpp"
-#include "entities/Signal.hpp"
+#include "entities/Signal/Signal.hpp"
 #include "geospatial/Crossing.hpp"
 
 using namespace sim_mob;

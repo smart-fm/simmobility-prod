@@ -311,9 +311,14 @@ inline Signal const *
 StreetDirectory::signalAt(Node const & node)
 const
 {
+//	std::cout << "StreetDirectory: " << signals_.size() << std::endl;
     boost::unordered_map<const Node *, Signal const *>::const_iterator iter = signals_.find(&node);
     if (signals_.end() == iter)
+    {
+//    	std::cout << " Signal Not found... ";
         return 0;
+    }
+//    std::cout << " Signal found at node "  <<  std::endl;
     return iter->second;
 }
 

@@ -16,6 +16,7 @@ class LoopDetector : public sim_mob::RoadItem {
 public:
 	LoopDetector() : RoatItem() {}
 
+//vahid:  also declared in loopdetectorentity , shouldn't one of them be cancelled?
 
 private:
 

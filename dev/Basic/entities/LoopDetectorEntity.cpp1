@@ -366,14 +366,12 @@ void
 LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetectorEntity & entity)
 {
     Node const & node = signal.getNode();
-//    std::map<Link const *, size_t> const & links_map = signal.links_map();
-//
-//    std::map<Link const *, size_t>::const_iterator iter;
-	LinkAndCrossingByLink const &LAC = signal.getLinkAndCrossingsByLink();
-	LinkAndCrossingByLink::iterator iter = LAC.begin();
-    for (; iter != LAC.end(); ++iter)
+    std::map<Link const *, size_t> const & links_map = signal.links_map();
+
+    std::map<Link const *, size_t>::const_iterator iter;
+    for (iter = links_map.begin(); iter != links_map.end(); ++iter)
     {
-        Link const * link  = (*iter).link;
+        Link const * link  = iter->first;
         if (link->getEnd() == &node)
         {
             // <link> is approaching <node>.  The loop-detectors should be at the end of the

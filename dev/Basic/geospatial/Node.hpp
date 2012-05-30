@@ -39,11 +39,13 @@ class UnPackageUtils;
  * more comprehensive functionality, and their sub-classes provide even more.
  */
 class Node {
+	unsigned int nodeId;//read from DB
 public:
 	virtual ~Node() {} //A virtual destructor allows dynamic casting
 
 	///The location of this Node.
 	Point2D const location;
+
 
 	//Nodes may have hidden properties useful only in for the visualizer.
 	OpaqueProperty<int> originalDB_ID;
@@ -58,6 +60,9 @@ public:
 
 protected:
     Node(int x, int y) : location(x, y) {}
+public:
+    void setID(unsigned int);
+    unsigned int getID()const;
 };
 
 

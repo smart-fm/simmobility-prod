@@ -1,10 +1,15 @@
 package sim_mob.vis.simultion;
 
 
+import java.awt.Color;
 import java.io.*;
 import java.util.*;
 import java.util.regex.Matcher;
 
+import javax.swing.SwingUtilities;
+
+import sim_mob.vis.ProgressUpdateRunner;
+import sim_mob.vis.controls.NetworkPanel;
 import sim_mob.vis.network.*;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.util.Utility;
@@ -30,9 +35,20 @@ public class SimulationResults {
 				|| (y < rn.getTopLeft().y) || (y > rn.getLowerRight().y);
 	}*/
 	
-	public SimulationResults(BufferedReader inFile, RoadNetwork rn, HashSet<Integer> uniqueAgentIDs) throws IOException {
+	public SimulationResults() {}
+	
+	
+	
+	public void loadFileAndReport(BufferedReader inFile, RoadNetwork rn, HashSet<Integer> uniqueAgentIDs, long fileLength, NetworkPanel progressUpdate) throws IOException {
 		ticks = new ArrayList<TimeTick>();
 		frame_length_ms = -1;
+		
+		//Provide feedback to the user
+		long totalBytesRead = 0;
+		long lastKnownTotalBytesRead = 0;
+		if (progressUpdate!=null) {
+			SwingUtilities.invokeLater(new ProgressUpdateRunner(progressUpdate, 0.0, false, new Color(0x00, 0x00, 0xFF), ""));
+		}
 		
 		//TEMP: Hack for agents which are out of bounds
 		xBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
@@ -41,6 +57,20 @@ public class SimulationResults {
 		//Read
 		String line;
 		while ((line=inFile.readLine())!=null) {
+			//Update
+			totalBytesRead += line.length();
+			boolean pushUpdate = (totalBytesRead - lastKnownTotalBytesRead) > 1024;
+			
+			//Send a message
+			if (pushUpdate && progressUpdate!=null) {
+				lastKnownTotalBytesRead = totalBytesRead;
+				if (fileLength>0) {
+					SwingUtilities.invokeLater(new ProgressUpdateRunner(progressUpdate, totalBytesRead/((double)fileLength), true, new Color(0x00, 0x00, 0xFF), ""));
+				} else {
+					SwingUtilities.invokeLater(new ProgressUpdateRunner(progressUpdate, totalBytesRead, false, new Color(0x00, 0x00, 0xFF), ""));
+				}
+			}
+			
 			//Comment?
 			line = line.trim();
 			if (line.isEmpty() || !line.startsWith("(") || !line.endsWith(")")) {

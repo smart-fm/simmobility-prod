@@ -122,7 +122,9 @@ public class RoadNetwork {
 		//Provide feedback to the user
 		long totalBytesRead = 0;
 		long lastKnownTotalBytesRead = 0;
-		SwingUtilities.invokeLater(new ProgressUpdateRunner(progressUpdate, 0.0, false, new Color(0x00, 0x00, 0xFF), ""));
+		if (progressUpdate!=null) {
+			SwingUtilities.invokeLater(new ProgressUpdateRunner(progressUpdate, 0.0, false, new Color(0x00, 0x00, 0xFF), ""));
+		}
 
 		//Also track min/max x/y pos
 		double[] xBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
@@ -136,7 +138,7 @@ public class RoadNetwork {
 			boolean pushUpdate = (totalBytesRead - lastKnownTotalBytesRead) > 1024;
 			
 			//Send a message
-			if (pushUpdate) {
+			if (pushUpdate && progressUpdate!=null) {
 				lastKnownTotalBytesRead = totalBytesRead;
 				if (fileLength>0) {
 					SwingUtilities.invokeLater(new ProgressUpdateRunner(progressUpdate, totalBytesRead/((double)fileLength), true, new Color(0x00, 0x00, 0xFF), ""));

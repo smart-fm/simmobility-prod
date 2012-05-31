@@ -25,8 +25,8 @@ class Helper
     posX = mitsim ? driverTick.pos.x*100 : driverTick.pos.sm_point.x
     posY = mitsim ? driverTick.pos.y*100 : driverTick.pos.sm_point.y
     angle = mitsim ? driverTick.angle*180/Math::PI : driverTick.sm_angle*180/Math::PI
-
     endTick = nextDriverTick ? nextTick-1 : tick
+
     (tick..endTick).each{|tickID|
       f.write("(\"Driver\", #{tickID-minDriverTick}, #{driverID}, {")  #Header
       f.write("\"xPos\":\"#{posX}\",") #Guaranteed

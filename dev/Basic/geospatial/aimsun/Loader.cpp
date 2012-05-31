@@ -208,6 +208,11 @@ void DatabaseLoader::LoadSections(const std::string& storedProc)
 
 void DatabaseLoader::LoadPhase(const std::string& storedProc)
 {
+	//Optional
+	if (storedProc.empty()) {
+		return;
+	}
+
 	soci::rowset<Phase> rs = (sql_.prepare <<"select * from " + storedProc);
 	phases_.clear();
 	int i=0;
@@ -424,6 +429,11 @@ DatabaseLoader::LoadTrafficSignals(std::string const & storedProcedure)
 
 void DatabaseLoader::LoadBusStop(const std::string& storedProc)
 {
+	//Bus stops are optional
+	if (storedProc.empty()) {
+		return;
+	}
+
 	soci::rowset<BusStop> rows = (sql_.prepare <<"select * from " + storedProc);
 	for (soci::rowset<BusStop>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
 	{
@@ -501,12 +511,15 @@ std::cout<<"sum of distances"<<std::endl;
 
 
 
-std::string const &
-getStoredProcedure(map<string, string> const & storedProcs, string const & procedureName)
+std::string getStoredProcedure(map<string, string> const & storedProcs, string const & procedureName, bool mandatory=true)
 {
     map<string, string>::const_iterator iter = storedProcs.find(procedureName);
     if (iter != storedProcs.end())
         return iter->second;
+    if (!mandatory) {
+    	std::cout <<"Skipping optional database property: " + procedureName <<std::endl;
+    	return "";
+    }
     throw std::runtime_error("expected to find stored-procedure named '" + procedureName
                              + "' in the config file");
 }
@@ -581,9 +594,9 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
 	LoadTripchains(getStoredProcedure(storedProcs, "tripchain"));
 	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal"));
-	LoadBusStop(getStoredProcedure(storedProcs, "busstop"));
+	LoadBusStop(getStoredProcedure(storedProcs, "busstop", false));
 	std::cout << "signals Done, Starting LoadPhase" << std::endl;
-	LoadPhase(getStoredProcedure(storedProcs, "phase"));
+	LoadPhase(getStoredProcedure(storedProcs, "phase", false));
 	std::cout << "LoadPhase Done, Congrates" << std::endl;
 
 

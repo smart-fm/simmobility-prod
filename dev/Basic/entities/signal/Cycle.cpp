@@ -1,5 +1,5 @@
 #include "Cycle.hpp"
-#include <cstdlib>
+#include <cmath>
 namespace sim_mob
 {
 void Cycle::Update(double DS/*,sim_mob::Node node*/) {

@@ -6,7 +6,8 @@
  *  Created on: 2011-7-18
  *      Author: xrm
  */
-
+#define  NEW_SIGNAL
+#ifndef NEW_SIGNAL
 #include "Signal.hpp"
 #include <math.h>
 #include "geospatial/Lane.hpp"
@@ -227,6 +228,7 @@ void Signal::setupIndexMaps() {
 
 	//Prepare output
 	std::ostringstream output;
+	std::cout << "Here I am in the old signal\n";
 	output << "(\"Signal-location\", 0, " << this << ", {";
 	output << "\"node\":\"" << &node_ << "\"";
 
@@ -1043,4 +1045,6 @@ void Signal::frame_output(frame_t frameNumber) {
 //}
 #endif
 
+
 }
+#endif

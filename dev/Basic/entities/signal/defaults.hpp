@@ -1,6 +1,9 @@
 #ifndef TC_DEFAULTS_
 #define TC_DEFAULTS_
+#include<iostream>
+#include<stdio.h>
 namespace sim_mob {
+using namespace std;
 
 enum TrafficColor
 {

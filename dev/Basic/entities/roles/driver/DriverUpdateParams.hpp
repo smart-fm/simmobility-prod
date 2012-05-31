@@ -9,6 +9,7 @@
 #include "util/LangHelpers.hpp"
 #ifdef NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
+
 #else
 #include "entities/Signal.hpp"
 #endif

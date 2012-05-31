@@ -3,13 +3,12 @@
 /*
  * Signal.hpp
  *
- *  Created on: 2011-7-18
+ *  Created on: 2011-5-1
  *      Author: xrm
  *      Autore: vahid
  */
 
 #pragma once
-#if NEW_SIGNAL
 #include <map>
 #include <vector>
 
@@ -266,7 +265,7 @@ protected:
         LoopDetectorEntity loopDetector_;
 
 protected:
-        void setupIndexMaps();
+//        void setupIndexMaps();
         void outputToVisualizer(frame_t frameNumber);
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -284,4 +283,3 @@ typedef nth_index_const_iterator<Signal::all_signals, 0>::type all_signals_const
 
 
 }//namespace sim_mob
-#endif

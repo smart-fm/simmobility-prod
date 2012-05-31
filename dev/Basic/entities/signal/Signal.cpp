@@ -6,8 +6,7 @@
  *  Created on: 2011-7-18
  *      Author: xrm
  */
-#if NEW_SIGNAL
-#include "Signal.hpp"
+#include "./Signal.hpp" //just a precaution
 #include <math.h>
 #include "geospatial/Lane.hpp"
 #include "geospatial/Crossing.hpp"
@@ -229,10 +228,10 @@ void Signal::findSignalLinksAndCrossings()
 	inserter.insert(LinkAndCrossing(0,link,crossing,0));
 	++iter;
 
-	//Prepare output(perhapse this was the best place to accomodate this unrelated part :)
+	//Prepare output(perhapse this was the best place to accommodate this unrelated part :)
 		std::ostringstream output;
-		output << "(\"Signal-location\", 0, " << this << ", {";
-		output << "\"node\":\"" << &node_ << "\"";
+		output << "(\"Signal-location\", 0, " <<  TMP_SignalID << ", {";
+		output << "\"node\":\"" << node_.getID() << "\"";
 
 	AngleCalculator angle(node_, link);
 	double angleAngle = 0;
@@ -530,12 +529,13 @@ UpdateStatus Signal::update(frame_t frameNumber) {
 //	1- update current cycle timer( Signal::currCycleTimer)
 	isNewCycle = updateCurrCycleTimer(frameNumber);
 //	2- update current phase color
+//	std::cout << "in Signal(" << this->TMP_SignalID << ") Updating  plan_.phases_[" << currPhaseID << "]\n"; getchar();
 	plan_.phases_[currPhaseID].update(currCycleTimer);
+//	std::cout << "in Signal::update-plan_.phases_[currPhaseID].update done\n"; getchar();
 //	3-Update Current Phase
 	currPhaseID = plan_.computeCurrPhase(currCycleTimer);
 
 	if(isNewCycle)	newCycleUpdate();//major update!
-
 //	outputToVisualizer(frameNumber);
 //	if (ConfigParams::GetInstance().is_run_on_many_computers == false)
 //		frame_output(frameNumber);
@@ -664,4 +664,3 @@ void Signal::outputToVisualizer(frame_t frameNumber) {
 //#endif
 }
 }//namespace
-#endif

@@ -20,7 +20,7 @@ SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g")
 
 
 #Option: strict error handling. Use the cmake gui to change this on a per-user basis.
-option (SIMMOB_STRICT_AGENT_ERRORS  "All unexpected and potentially dangerous behavior causes Agents to throw exceptions. If OFF, Agents will generally just remove themselves from the simulation in case of error." ON)
+option (SIMMOB_STRICT_AGENT_ERRORS  "All unexpected and potentially dangerous behavior causes Agents to throw exceptions. If OFF, Agents will generally just remove themselves from the simulation in case of error." OFF)
 
 #Option: disable output. Use the cmake gui to change this on a per-user basis.
 option (SIMMOB_DISABLE_OUTPUT  "Disable all mutex-locked output and all additional non-trivial output. Avoid all use of mutexes w.r.t. output." OFF)
@@ -41,7 +41,7 @@ option(SIMMOB_AGENT_UPDATE_PROFILE "Log all Agent update ticks per thread and st
 option(BUILD_TESTS "Build unit tests." OFF)  
 
 #Option: use new signal model. Use the cmake gui to change this on a per-user basis.
-option(NEW_SIGNAL "Use the new signal Model ." OFF)
+option(NEW_SIGNAL "Use the new signal Model ." ON)
 
 #Turn on verbose output
 SET(CMAKE_VERBOSE_MAKEFILE ON)

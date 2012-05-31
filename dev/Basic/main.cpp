@@ -10,6 +10,8 @@
  * \author LIM Fung Chai
  * \author Xu Yan
  */
+#define  NEW_SIGNAL
+
 #include <vector>
 #include <string>
 #include <ctime>

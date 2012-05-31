@@ -6,14 +6,27 @@ namespace sim_mob
 TrafficColor ColorSequence::computeColor(double Duration)
 {
 	std::size_t sum = 0;
+//	std::cout << "Inside computecolor " ; getchar();
+	if(ColorDuration.size() > 0) std::cout << "ColorDuration.size > 0 ";
+	else
+		 std::cout << "ColorDuration.size <= 0 ";
+//	getchar();
+//	std::cout << "ColorDuration.size=" << ColorDuration.size() << std::endl; getchar();
 	std::vector< std::pair<TrafficColor,std::size_t> >::iterator it = ColorDuration.begin();
-
+//	std::cout << "Inside computecolor-ColorDuration.begin\n"; getchar();
 	for(; it != ColorDuration.end(); it++)
 	{
+//		std::cout << "Inside computecolor-loop\n"; getchar();
 		sum += (*it).second;
-		if(Duration < sum ) return (*it).first;
+//		std::cout << "Inside computecolor-loop-if\n"; getchar();
+		if(Duration < sum )
+			{
+//				std::cout<< "getting out computecolor_\n"; getchar();
+				return (*it).first;
+			}
 	}
 	//the return inside the loop must execute befor the loop exits otherwise something is wrong!
+//	std::cout<< "getting out computecolor\n"; getchar();
 	return (*it).first; //will return the last color in the sequence if there is an error!
 }
 

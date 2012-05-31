@@ -6,7 +6,8 @@
  *  Created on: 2011-7-18
  *      Author: xrm
  */
-
+#define  NEW_SIGNAL
+#ifndef NEW_SIGNAL
 #pragma once
 
 #include <map>
@@ -313,3 +314,4 @@ public:
 };
 
 }
+#endif

@@ -22,6 +22,7 @@ namespace sim_mob
 		for(;link_it != links_map_.end() ; link_it++)
 		{
 			(*link_it).second.currColor = (*link_it).second.colorSequence.computeColor(lapse);
+//			std::cout << "Got the computecolor result\n"; getchar();
 		}
 		//update each crossing signal's color
 		//common sense says there is only one crossing per link, but I kept a container for it just in case
@@ -29,6 +30,7 @@ namespace sim_mob
 		for(;crossing_it != crossings_map_.end() ; crossing_it++)
 		{
 			(*crossing_it).second.currColor = (*crossing_it).second.colorSequence.computeColor(lapse);
+//			std::cout << "Got the computecolor result_\n"; getchar();
 		}
 
 	}

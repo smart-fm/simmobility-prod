@@ -1,5 +1,4 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
-
 #include "Loader.hpp"
 
 #include<set>
@@ -49,7 +48,7 @@
 #include "Crossing.hpp"
 #include "Turning.hpp"
 #include "Polyline.hpp"
-#include "Signal.hpp"
+#include "./Signal.hpp" //just a precaution
 #include "Phase.hpp"
 
 //Note: These will eventually have to be put into a separate Loader for non-AIMSUN data.
@@ -581,10 +580,9 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
 	LoadTripchains(getStoredProcedure(storedProcs, "tripchain"));
 	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal"));
-	LoadBusStop(getStoredProcedure(storedProcs, "busstop"));
-	std::cout << "signals Done, Starting LoadPhase" << std::endl;
 	LoadPhase(getStoredProcedure(storedProcs, "phase"));
-	std::cout << "LoadPhase Done, Congrates" << std::endl;
+	LoadBusStop(getStoredProcedure(storedProcs, "busstop"));
+
 
 
 
@@ -808,11 +806,15 @@ void DatabaseLoader::PostProcessNetwork()
 
 void DatabaseLoader::DecorateAndTranslateObjects()
 {
-	std::cout << "DecorateAndTranslateObjects 0" << std::endl;
+
 	//Step 1: Tag all Nodes with the Sections that meet there.
 	for (map<int,Section>::iterator it=sections_.begin(); it!=sections_.end(); it++) {
-		if(it->second.fromNode) it->second.fromNode->sectionsAtNode.push_back(&(it->second));
-		if(it->second.toNode) it->second.toNode->sectionsAtNode.push_back(&(it->second));
+//		if(it->second.fromNode) it->second.fromNode->sectionsAtNode.push_back(&(it->second));
+//		if(it->second.toNode) it->second.toNode->sectionsAtNode.push_back(&(it->second));
+		std::cout << "DecorateAndTranslateObjects before crash point" << std::endl;
+		it->second.fromNode->sectionsAtNode.push_back(&(it->second));
+		it->second.toNode->sectionsAtNode.push_back(&(it->second));
+		std::cout << "DecorateAndTranslateObjects after crash point" << std::endl;
 	}
 
 	//Step 2: Tag all Nodes that might be "UniNodes". These fit the following criteria:
@@ -1043,6 +1045,7 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 void
 DatabaseLoader::createSignals()
 {
+	std::cout << " Inside the new createsignal() \n"  << std::endl;
 
     //std::set<sim_mob::Node const *> uniNodes;
     std::set<sim_mob::Node const *> badNodes;
@@ -1112,6 +1115,14 @@ DatabaseLoader::createSignals()
          * an intersection. And think of signal site as the traffic light units installed at an intersection
          */
 //        std::cout << "Inside createsignals() b4 signalAt" << std::endl;
+        //check validity of this signal cnadidate in terms of if availability of any phases
+    	pair<multimap<int,sim_mob::aimsun::Phase>::iterator, multimap<int,sim_mob::aimsun::Phase>::iterator> ppp;
+    	ppp = phases_.equal_range(node->getID()); //I repeate: Assumption is that node id and signal id are same
+    	if(ppp.first == ppp.second)
+    	{
+    		std::cout << "There is no phase associated with this signal candidate, sorry\n";// getchar();
+    		continue;
+    	}
         const sim_mob::Signal & signal = sim_mob::Signal::signalAt(*node, sim_mob::ConfigParams::GetInstance().mutexStategy);
         nof_signals++;
 //        std::cout << "signalAt, returned" << std::endl;
@@ -1136,17 +1147,16 @@ DatabaseLoader::createPlans()
 
 		//now that we have the number of phases, we can continue initializing our split plan.
 		int nof_phases = plan.find_NOF_Phases();
-		std::cout << " Signal(" << sid << "):Number of Phases : " << nof_phases << " ";
+		std::cout << " Signal(" << sid << ") : Number of Phases : " << nof_phases << " ";
 		if(nof_phases > 0)
-			if((nof_phases > 5)||(nof_phases < 2))
+			if((nof_phases > 5)||(nof_phases < 1))
 				std::cout << sid << " igonred due to lack of default choice set" << nof_phases ;
 			else
 				plan.setDefaultSplitPlan(nof_phases);//i hope the nof phases is within the range of 2-5
 		else
-			std::cout << sid << " igonred due to no phases" << nof_phases ;
-		std::cout << "..iterating "<< std::endl;
+			std::cout << sid << " igonred due to no phases" << nof_phases <<  std::endl;
+		std::cout <<  std::endl;
 	}
-	std::cout << "getting out of createPlans.." << std::endl;;
 }
 
 
@@ -1187,6 +1197,7 @@ DatabaseLoader::createPhases(unsigned int sid,sim_mob::SplitPlan & plan)
 void
 DatabaseLoader::createSignals()
 {
+	std::cout << " Inside the old createsignal() \n"  << std::endl;
     //std::set<sim_mob::Node const *> uniNodes;
     std::set<sim_mob::Node const *> badNodes;
 
@@ -1682,19 +1693,19 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 		loader.PostProcessNetwork();
 		//Step Four: Save
 		loader.SaveSimMobilityNetwork(rn, tcs);
+//		std::cout << " after SaveSimMobilityNetwork" << std::endl; getchar();
 		//Temporary workaround; Cut lanes short/extend them as reuquired.
 		for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {
 			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesStartLineCut, true);
 			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesEndLineCut, false);
 		}
-
-
+//		std::cout << "after TMP_TrimAllLaneLines" << std::endl; getchar();
 		for(vector<sim_mob::Link*>::iterator it = rn.links.begin(); it!= rn.links.end();it++)
 			(*it)->extendPolylinesBetweenRoadSegments();
-
-
-		if (prof) { prof->logGenericEnd("PostProc", "main-prof"); }
-
+//		std::cout << "after extendPolylinesBetweenRoadSegments" << std::endl; getchar();
+		if (prof) {
+			prof->logGenericEnd("PostProc", "main-prof");
+		}
 
 		//add by xuyan, load in boundary segments
 		//Step Four: find boundary segment in road network using start-node(x,y) and end-node(x,y)

@@ -183,13 +183,7 @@ void SplitPlan::setDefaultSplitPlan(int approaches)
 {
 	int ii=5,jj=0;
 	std::cout << "..setDefaultSplitPlan:" << approaches;
-	double defaultChoiceSet_4[5][10] = {
-			{30,30,20,20},
-			{20,35,20,25},
-			{35,35,20,10},
-			{35,30,10,25},
-			{20,35,25,20}
-	};
+	double defaultChoiceSet_1[5][10] = {{100}};
 	double defaultChoiceSet_2[5][10] = {
 			{50,50},
 			{30,70},
@@ -204,6 +198,13 @@ void SplitPlan::setDefaultSplitPlan(int approaches)
 			{25,25,50},
 			{50,20,30}
 	};
+	double defaultChoiceSet_4[5][10] = {
+			{30,30,20,20},
+			{20,35,20,25},
+			{35,35,20,10},
+			{35,30,10,25},
+			{20,35,25,20}
+	};
 	double defaultChoiceSet_5[5][10] = {
 			{20,20,20,20,20},
 			{15,15,25,25,20},
@@ -214,6 +215,9 @@ void SplitPlan::setDefaultSplitPlan(int approaches)
 	choiceSet.resize(5, vector<double>(approaches));
 	switch(approaches)
 	{
+	case 1:
+		fill(defaultChoiceSet_1,1);
+		break;
 	case 2:
 		fill(defaultChoiceSet_2,2);
 		break;

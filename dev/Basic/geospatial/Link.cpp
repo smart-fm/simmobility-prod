@@ -194,7 +194,7 @@ void sim_mob::Link::extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>
 #ifndef SIMMOB_DISABLE_MPI
 
 //TODO: I think this merged incorrectly. ~Seth
-void sim_mob::Link::pack(PackageUtils& package,const Link* one_link) {}
+//void sim_mob::Link::pack(PackageUtils& package,const Link* one_link) {}
 
 #endif
 

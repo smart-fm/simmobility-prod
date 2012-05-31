@@ -792,34 +792,27 @@ void PrintDB_Network()
 	//Bus Stops are part of Segments
 		for (std::set<const BusStop*>::iterator it=cachedBusStops.begin(); it!=cachedBusStops.end(); it++) {
 			//LogOutNotSync("Surav's loop  is here!");
-		LogOutNotSync("(\"Bus Stop\", 0, " <<*it <<", {");
+		LogOutNotSync("(\"busstop\", 0, " <<*it <<", {");
 		//	LogOutNotSync("\"bus stop id\":\"" <<(*it)->busstopno_<<"\",");
 			// LogOutNotSync("\"xPos\":\"" <<(*it)->xPos<<"\",");
 		//	LogOutNotSync("\"yPos\":\"" <<(*it)->yPos<<"\",");
-			double x = (*it)->xPos;
+		double x = (*it)->xPos;
 			double y = (*it)->yPos;
-			                                int length = 40;
-							        		int width = 30;
-							        		int theta = atan(4/3);
-							        		double phi = 10;
-							                double x1 = length/2;
-							        		double y1 = width/2;
-							        		double x2 = -length/2;
-							        		double y2 =  width/2;
-							        		double x3 = -length/2;
-							        		double y3 = -width/2;
-							        		double x4 =  length/2;
-							        		double y4 = -width/2;
+			int angle = 40;
+			                                double length = 400;
+							        		double width = 250;
+							        		double theta = atan(width/length);
+							        		double phi = M_PI*angle/180;
+							                double diagonal_half = (sqrt(length*length + width*width))/2;
 
-
-							        		double x1d = x + x1*cos(phi)-y1*sin(phi);
-							        		double y1d = y + x1*sin(phi)+y1*cos(phi);
-							        		double x2d = x + x1*cos(phi)-y1*sin(phi);
-							        		double y2d = y + x1*sin(phi)+y1*cos(phi);
-							        		double x3d = x + x1*cos(phi)-y1*sin(phi);
-							        		double y3d = y + x1*sin(phi)+y1*cos(phi);
-							        		double x4d = x + x1*cos(phi)-y1*sin(phi);
-							        		double y4d = y + x1*sin(phi)+y1*cos(phi);
+							        		double x1d = x + diagonal_half*cos(phi+theta);
+							        		double y1d = y + diagonal_half*sin(phi+theta);
+							        		double x2d = x + diagonal_half*cos(M_PI+phi-theta);
+							        		double y2d = y + diagonal_half*sin(M_PI+phi-theta);
+							        		double x3d = x + diagonal_half*cos(M_PI+phi+theta);
+							        		double y3d = y + diagonal_half*sin(M_PI+phi+theta);
+							        		double x4d = x + diagonal_half*cos(phi-theta);
+							        		double y4d = y + diagonal_half*sin(phi-theta);
 			LogOutNotSync("\"near-1\":\""<<x1d<<","<<y1d<<"\",");
 			LogOutNotSync("\"near-2\":\""<<x2d<<","<<y2d<<"\",");
 			LogOutNotSync("\"far-1\":\""<<x3d<<","<<y3d<<"\",");

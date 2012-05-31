@@ -127,7 +127,7 @@ public class SimulationResults {
 	}
 	
 	//We assume the x/y bounds will be within those saved by the RoadNetwork.
-	private void dispatchConstructionRequest(String objType, int frameID, int objID, String rhs, RoadNetwork rn, HashSet<Integer> uniqueAgentIDs) throws IOException {
+	private boolean dispatchConstructionRequest(String objType, int frameID, int objID, String rhs, RoadNetwork rn, HashSet<Integer> uniqueAgentIDs) throws IOException {
 		if (objType.equals("Driver")) {
 			parseDriver(frameID, objID, rhs, rn);
 			uniqueAgentIDs.add(objID);
@@ -143,7 +143,10 @@ public class SimulationResults {
 			uniqueAgentIDs.add(objID);
 		} else if (objType.equals("simulation")) {
 			parseSimulation(frameID, objID, rhs, rn);
+		} else {
+			return false; //Done
 		}
+		return true;
 	}
 
 	private static ArrayList<Integer> parseEachSignal(String signal){

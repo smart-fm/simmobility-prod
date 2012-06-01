@@ -223,7 +223,9 @@ public class SimulationResults {
 			//Synchronize on all adds
 			synchronized (sim) {
 				//Save the simulation time tick.
-				sim.frame_length_ms = resObj.tempFrameLenMS;
+				if (resObj.tempFrameLenMS != -1) {
+					sim.frame_length_ms = resObj.tempFrameLenMS;
+				}
 				
 				//Add all agents
 				for (Entry<Integer, ArrayList<AgentTick>> agTimeTick : resObj.agentTicksToAdd.entrySet()) {

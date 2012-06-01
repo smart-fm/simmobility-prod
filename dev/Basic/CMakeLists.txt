@@ -1,5 +1,6 @@
 #Required version of cmake
 cmake_minimum_required (VERSION 2.6)
+cmake_policy(SET CMP0017 NEW)
 
 #Set our module override policy:
 IF (POLICY CMP0017)
@@ -39,6 +40,9 @@ option(SIMMOB_AGENT_UPDATE_PROFILE "Log all Agent update ticks per thread and st
 #Option: build tests. Use the cmake gui to change this on a per-user basis.
 option(BUILD_TESTS "Build unit tests." OFF)  
 
+#Option: use new signal model. Use the cmake gui to change this on a per-user basis.
+option(NEW_SIGNAL "Use the new signal Model ." OFF)
+
 #Turn on verbose output
 SET(CMAKE_VERBOSE_MAKEFILE ON)
 
@@ -69,6 +73,25 @@ ELSE (SIMMOB_LATEST_STANDARD)
   #  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_XOPEN_SOURCE=700")
   #ENDIF (${SIMMOB_AGENT_UPDATE_PROFILE} MATCHES "ON")
 ENDIF(SIMMOB_LATEST_STANDARD)
+
+#Enable threading on GCC-4.7
+IF(CMAKE_COMPILER_IS_GNUCXX)
+  execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
+  IF (GCC_VERSION VERSION_EQUAL 4.7)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -D_GLIBCXX_HAVE_GTHR_DEFAULT")
+  ENDIF (GCC_VERSION VERSION_EQUAL 4.7)
+ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+
+
+#Enable threading on Clang
+#NOTE: This is only a problem if GCC 4.7 AND clang are installed.
+#      If you get errors about "DISABLE_THREADS" being set for boost, you can either enable the next
+#      few lines, or compile against gcc-4.6's standard library.
+#IF(CMAKE_C_COMPILER MATCHES "/clang$" AND CMAKE_CXX_COMPILER MATCHES "/clang[+][+]$")
+#  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -D_GLIBCXX_HAVE_GTHR_DEFAULT")
+#ENDIF()
+
+
 
 
 

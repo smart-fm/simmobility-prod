@@ -43,9 +43,13 @@
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/Role.hpp"
 
-#include "entities/Signal.hpp"
-#include "PartitionManager.hpp"
 #include "ParitionDebugOutput.hpp"
+#ifdef NEW_SIGNAL
+#include "entities/signal/Signal.hpp"
+#else
+#include "entities/Signal.hpp"
+#endif
+#include "partitions/PartitionManager.hpp"
 
 
 typedef CGAL::Homogeneous<double> Rep_class;

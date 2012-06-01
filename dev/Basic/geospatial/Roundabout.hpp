@@ -5,6 +5,7 @@
 #include <vector>
 #include "Node.hpp"
 #include "Lane.hpp"
+#include "MultiNode.hpp"
 
 namespace sim_mob
 {
@@ -30,7 +31,7 @@ namespace sim_mob
  */
 class Roundabout : public sim_mob::MultiNode {
 public:
-	Roundabout() : MultiNode() {}
+	Roundabout(int x, int y) : MultiNode(x, y) {}
 
 protected:
 	///The length of each chunk. As each RoadSegment approaches a Roundabout, a "chunk" of

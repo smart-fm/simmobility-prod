@@ -17,10 +17,17 @@
 #include "Polyline.hpp"
 #include "BusStop.hpp"
 #include "Signal.hpp"
+#include "Phase.hpp"
 //
 
 using namespace sim_mob::aimsun;
 using std::string;
+
+
+
+
+
+
 
 
 namespace soci
@@ -75,7 +82,34 @@ template<> struct type_conversion<Section>
     }
 };
 
-
+template<> struct type_conversion<Phase>
+{
+    typedef values base_type;
+    static void from_base(const soci::values& vals, soci::indicator& ind, Phase &res)
+    {
+    	res.name = vals.get<string>("phases","");
+    	res.nodeId = vals.get<int>("node_id",0);
+    	res.sectionFrom = vals.get<int>("from_section",0);
+    	res.sectionTo = vals.get<int>("to_section",0);
+    	res.laneFrom_A = vals.get<int>("from_lane_a", 0);
+    	res.laneTo_A = vals.get<int>("to_lane_a", 0);
+    	res.laneFrom_B = vals.get<int>("from_lane_b", 0);
+    	res.laneTo_B = vals.get<int>("to_lane_b", 0);
+    }
+    static void to_base(const Phase& src, soci::values& vals, soci::indicator& ind)
+    {
+//    	vals.set("id", src.id);
+        vals.set("phases", src.name);
+        vals.set("node_id", src.nodeId);
+        vals.set("from_section", src.sectionFrom);
+        vals.set("to_section", src.sectionTo);
+        vals.set("from_lane_a", src.laneFrom_A);
+        vals.set("from_lane_b", src.laneFrom_B);
+        vals.set("to_lane_a", src.laneTo_A);
+        vals.set("to_lane_b", src.laneTo_B);
+        ind = i_ok;
+    }
+};
 
 template<> struct type_conversion<Turning>
 {

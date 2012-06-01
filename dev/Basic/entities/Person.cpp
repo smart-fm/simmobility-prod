@@ -69,7 +69,9 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 #endif
 
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
+#ifndef SIMMOB_STRICT_AGENT_ERRORS
 	try {
+#endif
 		//First, we need to retrieve an UpdateParams subclass appropriate for this Agent.
 		unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
 		UpdateParams& params = currRole->make_frame_tick_params(frameNumber, currTimeMS);
@@ -138,27 +140,27 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 					: dynamic_cast<Pedestrian*> (currRole) ? "Pedestrian" : "Other") << "\n";
 #endif
 		}
+
+
+//Respond to errors only if STRICT is off; otherwise, throw it (so we can catch it in the debugger).
+#ifndef SIMMOB_STRICT_AGENT_ERRORS
 	} catch (std::exception& ex) {
 #ifdef SIMMOB_AGENT_UPDATE_PROFILE
 		profile.logAgentException(*this, frameNumber, ex);
 #endif
 
-		if (ConfigParams::GetInstance().StrictAgentErrors()) {
-			//Provide diagnostics for all errors
+			//Add a line to the output file.
+#ifndef SIMMOB_DISABLE_OUTPUT
 			std::stringstream msg;
-			msg <<"Error updating Agent[" <<getId() <<"]";
+			msg <<"Error updating Agent[" <<getId() <<"], will be removed from the simulation.";
 			msg <<"\nFrom node: " <<(originNode?originNode->originalDB_ID.getLogItem():"<Unknown>");
 			msg <<"\nTo node: " <<(destNode?destNode->originalDB_ID.getLogItem():"<Unknown>");
 			msg <<"\n" <<ex.what();
-			throw std::runtime_error(msg.str().c_str());
-		} else {
-			//Add a line to the output file.
-#ifndef SIMMOB_DISABLE_OUTPUT
-			LogOut("ERROR: Agent " <<getId() <<" encountered an error and will be removed from the simulation." <<std::endl);
+			LogOut(msg.str() <<std::endl);
 #endif
 			setToBeRemoved();
-		}
 	}
+#endif
 
 	//Return true unless we are scheduled for removal.
 	//NOTE: Make sure you set this flag AFTER performing your final output.

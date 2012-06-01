@@ -184,15 +184,11 @@ void sim_mob::WorkGroup::wait()
 
 	//Stay in sync with the workers.
 	nextTimeTickToStage += tickStep;
-
 	shared_barr.wait();
-
 	//Stage Agent updates based on nextTimeTickToStage
 	stageEntities();
-
 	//Remove any Agents staged for removal.
 	collectRemovedEntities();
-
 	external_barr.wait();
 }
 

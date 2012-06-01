@@ -89,7 +89,7 @@ public:
 
 	///TODO This should be made private again.
 	mutable std::vector< std::vector<sim_mob::Point2D> > laneEdgePolylines_cached;
-
+	void setLanes(std::vector<sim_mob::Lane*>);
 private:
 	///Collection of lanes. All road segments must have at least one lane.
 	std::vector<sim_mob::Lane*> lanes;
@@ -100,6 +100,7 @@ private:
 	void specifyEdgePolylines(const std::vector< std::vector<sim_mob::Point2D> >& calcdPolylines);
 	void makeLanePolylineFromEdges(sim_mob::Lane* lane, const std::vector<sim_mob::Point2D>& inner, const std::vector<sim_mob::Point2D>& outer) const;
 	std::vector<sim_mob::Point2D> makeLaneEdgeFromPolyline(sim_mob::Lane* refLane, bool edgeIsRight) const;
+
 	//mutable std::vector< std::vector<sim_mob::Point2D> > laneEdgePolylines_cached;
 
 	///Helps to identify road segments which are bi-directional.

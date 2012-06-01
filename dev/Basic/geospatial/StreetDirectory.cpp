@@ -11,7 +11,11 @@
 #include "RoadNetwork.hpp"
 #include "StreetDirectory.hpp"
 #include "buffering/Vector2D.hpp"
+#ifdef NEW_SIGNAL
+#include "entities/signal/Signal.hpp"
+#else
 #include "entities/Signal.hpp"
+#endif
 #include "entities/TrafficWatch.hpp"
 #include "BusStop.hpp"
 #include "Crossing.hpp"
@@ -1623,6 +1627,7 @@ void
 StreetDirectory::registerSignal(Signal const & signal)
 {
     Node const * node = &(signal.getNode());
+
     if (signals_.count(node) == 0)
     {
         signals_.insert(std::make_pair(node, &signal));

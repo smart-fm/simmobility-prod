@@ -140,6 +140,11 @@ string sim_mob::Link::getSegmentName(const RoadSegment* segment)
 	return res.str();
 }
 
+const std::set<sim_mob::RoadSegment*> & sim_mob::Link::getUniqueSegments()
+{
+	return uniqueSegments;
+}
+
 void sim_mob::Link::extendPolylinesBetweenRoadSegments()
 {
 	extendPolylinesBetweenRoadSegments(fwdSegments);
@@ -187,6 +192,9 @@ void sim_mob::Link::extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>
 
 
 #ifndef SIMMOB_DISABLE_MPI
+
+//TODO: I think this merged incorrectly. ~Seth
+//void sim_mob::Link::pack(PackageUtils& package,const Link* one_link) {}
 
 #endif
 

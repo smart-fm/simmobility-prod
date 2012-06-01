@@ -53,7 +53,6 @@ public:
 	void logGenericStart(const std::string& caption, const std::string& group);
 	void logGenericEnd(const std::string& caption, const std::string& group);
 
-
 private:
 	//Increase or decrease the shared reference count. Returns the total reference count after
 	// accounting for the new amount to be added. Thread-safe.
@@ -64,7 +63,6 @@ private:
 	void flushLogFile();
 	void logAgentUpdateGeneric(const Agent& ag, const std::string& action, const frame_t* const tickID=nullptr, const std::string& message="");
 	void logGeneric(const std::string& action, const std::string& group, const std::string& caption="");
-
 
 private:
 

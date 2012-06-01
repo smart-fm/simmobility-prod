@@ -264,7 +264,6 @@ private:
 
 	//SplitPlan that can be chosen to use
 	static const double SplitPlan1[], SplitPlan2[], SplitPlan3[], SplitPlan4[], SplitPlan5[], fixedSplitPlan[];
-
 	//current and next SplitPlan
 	std::vector<double>currSplitPlan;
 	std::vector<double>nextSplitPlan;

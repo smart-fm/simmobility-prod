@@ -17,6 +17,10 @@ using namespace sim_mob;
 using std::pair;
 using std::vector;
 
+void sim_mob::RoadSegment::setLanes(std::vector<sim_mob::Lane*> lanes)
+{
+	this->lanes = lanes;
+}
 
 sim_mob::RoadSegment::RoadSegment(Link* parent) : Pavement(), parentLink(parent)
 {

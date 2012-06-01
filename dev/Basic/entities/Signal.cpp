@@ -319,6 +319,7 @@ void Signal::outputToVisualizer(frame_t frameNumber) {
 #endif
 }
 
+//You mean eVVVry time you want to draw to lanes? why not have a vector to store references?
 double Signal::computeDS(double total_g)
 {
 	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&node_);
@@ -351,10 +352,11 @@ double Signal::computeDS(double total_g)
 
 double Signal::LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,double total_g)
 {
-
+//	CountAndTimePair would give you T and n of the formula 2 in section 3.2 of the memurandum (page 3)
 	size_t vehicleCount = ctPair.vehicleCount;
 	unsigned int spaceTime = ctPair.spaceTimeInMilliSeconds;
 	double standard_space_time = 1.04*1000;//1.04 seconds
+	/*this is formula 2 in section 3.2 of the memurandum (page 3)*/
 	double used_g = (vehicleCount==0)?0:total_g - (spaceTime - standard_space_time*vehicleCount);
 //	if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
 //			std::cout<<"laneDS "<<vehicleCount<<" "<<used_g/total_g<<std::endl;
@@ -672,7 +674,8 @@ void Signal::updateOffset() {
 //NOTE: Helper arrays for setting TC_* data (in an anonymous namespace).
 namespace {
 //Pedestrian template
-const int TC_for_PedestrianTemplate[][4] = { { 1, 3, 1, 3 }, //Case  0
+const int TC_for_PedestrianTemplate[][4] = {
+		{ 1, 3, 1, 3 }, //Case  0
 		{ 1, 3, 1, 3 }, //Case 10
 		{ 1, 1, 1, 1 }, //Case  1
 		{ 1, 1, 1, 1 }, //Case 11
@@ -683,7 +686,8 @@ const int TC_for_PedestrianTemplate[][4] = { { 1, 3, 1, 3 }, //Case  0
 		};
 
 //Driver template
-const int TC_for_DriverTemplate[][4][3] = { { { 3, 3, 1 }, { 1, 1, 1 }, { 3, 3, 1 }, { 1, 1, 1 } }, //Case  0
+const int TC_for_DriverTemplate[][4][3] = {
+		{ { 3, 3, 1 }, { 1, 1, 1 }, { 3, 3, 1 }, { 1, 1, 1 } }, //Case  0
 		{ { 2, 2, 1 }, { 1, 1, 1 }, { 2, 2, 1 }, { 1, 1, 1 } }, //Case 10
 		{ { 1, 1, 3 }, { 1, 1, 1 }, { 1, 1, 3 }, { 1, 1, 1 } }, //Case  1
 		{ { 1, 1, 2 }, { 1, 1, 1 }, { 1, 1, 2 }, { 1, 1, 1 } }, //Case 11
@@ -733,7 +737,7 @@ void Signal::updateTrafficLights() {
 
 	//Update
 	SignalStatus new_status;
-	for (size_t i = 0; i < 4; i++) {
+	for (size_t i = 0; i < 4; i++) {//changed to what? vahid
 		for (size_t j = 0; j < 3; j++) {
 			TC_for_Driver[i][j] = TC_for_DriverTemplate[relID][i][j];
 			new_status.TC_for_Driver[i][j] = TC_for_DriverTemplate[relID][i][j];

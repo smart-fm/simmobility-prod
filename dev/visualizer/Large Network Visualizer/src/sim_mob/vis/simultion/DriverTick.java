@@ -91,8 +91,8 @@ public class DriverTick extends AgentTick {
 	 */
 
 
-	public DriverTick(double posX, double posY, double angle) {
-		this(posX, posY, angle, null);
+	public DriverTick(int id, double posX, double posY, double angle) {
+		this(id, posX, posY, angle, null);
 	}
 	
 	//Let's assume a car is 3m square?
@@ -114,7 +114,9 @@ public class DriverTick extends AgentTick {
 	}
 	
 	
-	public DriverTick(double posX, double posY, double angle, RxLocation msgLocation) {
+	public DriverTick(int id, double posX, double posY, double angle, RxLocation msgLocation) {
+		super(id);
+		
 		this.pos = new FlippedScaledPoint(posX, posY);
 		this.angle = angle;
 		this.fake = false;

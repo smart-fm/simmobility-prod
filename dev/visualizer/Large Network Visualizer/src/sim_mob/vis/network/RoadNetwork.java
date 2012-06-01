@@ -222,6 +222,7 @@ public class RoadNetwork {
 	}
 	
 			
+	//Returns true if we should continue processing.
 	private boolean dispatchConstructionRequest(String objType, int frameID, int objID, String rhs, double[] xBounds, double[] yBounds) throws IOException {
 		//Nodes are displayed the same
 		if (objType.equals("multi-node") || objType.equals("uni-node")) {

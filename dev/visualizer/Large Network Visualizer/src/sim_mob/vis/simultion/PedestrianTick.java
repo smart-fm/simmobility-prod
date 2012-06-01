@@ -67,7 +67,9 @@ public class PedestrianTick extends AgentTick {
 	 *       When we re-scale, every car on every time tick has its position scaled. We should 
 	 *       limit this to the current frame, and then continue to scale frames as they arrive. 
 	 */
-	public PedestrianTick(double posX, double posY) {
+	public PedestrianTick(int id, double posX, double posY) {
+		super(id);
+		
 		this.pos = new FlippedScaledPoint(posX, posY);
 		this.fake  = false;
 		

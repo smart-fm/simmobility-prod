@@ -187,24 +187,15 @@ public class SimulationResults {
 		public Object begin(Object... args) {
 			try {
 				for (String line : lines) {
-					//Parse basic
-				    Matcher m = Utility.LOG_LHS_REGEX.matcher(line);
-				    if (!m.matches()) {
-				      throw new IOException("Invalid line: " + line);
-				    }
-				    if (m.groupCount()!=4) {
-				      throw new IOException("Unexpected group count (" + m.groupCount() + ") for: " + line);
-				    }
-		
-				    //Known fields: type, id, rhs
-				    String type = m.group(1);
-				    int frameID = Integer.parseInt(m.group(2));
-				    int objID = Utility.ParseIntOptionalHex(m.group(3));
-				    String rhs = m.group(4);
-				    
+					//Parse this line.
+					Utility.ParseResults pRes = Utility.ParseLogLine(line);
+					if (pRes.isError()) {
+						throw new RuntimeException("Error parsing line: \n  " + pRes.errorMsg);
+					}
+
 				    //Pass this off to a different function based on the type
 				    try {
-				    	dispatchConstructionRequest(type, frameID, objID, rhs);
+				    	dispatchConstructionRequest(pRes);
 				    } catch (IOException ex) {
 				    	throw new IOException(ex.getMessage() + "\n...on line: " + line);
 				    }
@@ -280,17 +271,17 @@ public class SimulationResults {
 		
 		
 		//Returns true if this was a known property
-		boolean dispatchConstructionRequest(String objType, int frameID, int objID, String rhs) throws IOException {
-			if (objType.equals("Driver")) {
-				parseDriver(frameID, objID, rhs);
-			} else if (objType.equals("BusDriver")) {
-				parseBusDriver(frameID, objID, rhs);
-			} else if (objType.equals("Signal")) {
-				parseSignalLines(frameID, objID, rhs);
-			} else if (objType.equals("pedestrian")) {
-				parsePedestrian(frameID, objID, rhs);
-			} else if (objType.equals("simulation")) {
-				parseSimulation(frameID, objID, rhs);
+		boolean dispatchConstructionRequest(Utility.ParseResults pRes) throws IOException {
+			if (pRes.type.equals("Driver")) {
+				parseDriver(pRes);
+			} else if (pRes.type.equals("BusDriver")) {
+				parseBusDriver(pRes);
+			} else if (pRes.type.equals("Signal")) {
+				parseSignalLines(pRes);
+			} else if (pRes.type.equals("pedestrian")) {
+				parsePedestrian(pRes);
+			} else if (pRes.type.equals("simulation")) {
+				parseSimulation(pRes);
 			} else {
 				return false; //Done
 			}
@@ -317,21 +308,23 @@ public class SimulationResults {
 		}
 		
 		
-		void parseDriver(int frameID, int objID, String rhs) throws IOException {
+		void parseDriver(Utility.ParseResults pRes) throws IOException {
 		    //Check and parse properties.
-		    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"xPos", "yPos", "angle"});
+			if (!pRes.confirmProps(new String[]{"xPos", "yPos", "angle"})) {
+				throw new IOException("Missing required key in type: " + pRes.type);
+			}
 		    
 		    //Now save the relevant information
-		    double xPos = Double.parseDouble(props.get("xPos"));
-		    double yPos = Double.parseDouble(props.get("yPos"));
-		    double angle = Double.parseDouble(props.get("angle"));
+		    double xPos = Double.parseDouble(pRes.properties.get("xPos"));
+		    double yPos = Double.parseDouble(pRes.properties.get("yPos"));
+		    double angle = Double.parseDouble(pRes.properties.get("angle"));
 		    
 		    //See if we have a message icon to show
 		    DriverTick.RxLocation msgLoc = null;
-		    if (props.containsKey("rxLong") && props.containsKey("rxLat")) {
+		    if (pRes.properties.containsKey("rxLong") && pRes.properties.containsKey("rxLat")) {
 		    	msgLoc = new DriverTick.RxLocation();
-		    	msgLoc.longitude = Double.parseDouble(props.get("rxLong"));
-		    	msgLoc.latitude = Double.parseDouble(props.get("rxLat"));
+		    	msgLoc.longitude = Double.parseDouble(pRes.properties.get("rxLong"));
+		    	msgLoc.latitude = Double.parseDouble(pRes.properties.get("rxLat"));
 		    }
 		    
 		    //Double-check angle
@@ -340,25 +333,24 @@ public class SimulationResults {
 		    }
 		  
 		    //Create temp driver
-		    DriverTick tempDriver = new DriverTick(objID, xPos, yPos, angle, msgLoc);
+		    DriverTick tempDriver = new DriverTick(pRes.objID, xPos, yPos, angle, msgLoc);
 		    
 		    //Check if the driver is fake
-		    if(props.containsKey("fake")){
-		    	if(props.get("fake").equals("true")){
+		    if(pRes.properties.containsKey("fake")){
+		    	if(pRes.properties.get("fake").equals("true")){
 		    		tempDriver.setItFake();
 		    	}
 		    }
 		    //Check if it's a "tracking" version of this car
 		    boolean tracking = false;
-		    if (props.containsKey("tracking")) {
-		    	tracking = props.get("tracking").toLowerCase().equals("true");
+		    if (pRes.properties.containsKey("tracking")) {
+		    	tracking = pRes.properties.get("tracking").toLowerCase().equals("true");
 		    }
 		    //Check if the car has a length and width or not
-		    if(props.containsKey("length") && props.containsKey("width")){
-		    	tempDriver.setLenth(Integer.parseInt(props.get("length")));
-		    	tempDriver.setWidth(Integer.parseInt(props.get("width")));
+		    if(pRes.properties.containsKey("length") && pRes.properties.containsKey("width")){
+		    	tempDriver.setLenth(Integer.parseInt(pRes.properties.get("length")));
+		    	tempDriver.setWidth(Integer.parseInt(pRes.properties.get("width")));
 		    }
-		    tempDriver.setID(objID);
 		    
 		    
 		    if (tracking) {
@@ -368,112 +360,117 @@ public class SimulationResults {
 		    
 		    
 		  //Add it to our temporary list
-		  saveTempAgent(frameID, tempDriver, tracking);
+		  saveTempAgent(pRes.frame, tempDriver, tracking);
 		}
 		
 		
 		//TODO: This shares a lot of functionality with parseDriver(). Can we merge some of it?
-		void parseBusDriver(int frameID, int objID, String rhs) throws IOException {
+		void parseBusDriver(Utility.ParseResults pRes) throws IOException {
 		    //Check and parse properties.
-		    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"xPos", "yPos", "angle", "passengers"});
+			if (!pRes.confirmProps(new String[]{"xPos", "yPos", "angle", "passengers"})) {
+				throw new IOException("Missing required key in type: " + pRes.type);
+			}
 		    
 		    //Now save the relevant information
-		    double xPos = Double.parseDouble(props.get("xPos"));
-		    double yPos = Double.parseDouble(props.get("yPos"));
-		    double angle = Double.parseDouble(props.get("angle"));
-		    int numPassengers = Integer.parseInt(props.get("passengers"));
+		    double xPos = Double.parseDouble(pRes.properties.get("xPos"));
+		    double yPos = Double.parseDouble(pRes.properties.get("yPos"));
+		    double angle = Double.parseDouble(pRes.properties.get("angle"));
+		    int numPassengers = Integer.parseInt(pRes.properties.get("passengers"));
 		  
 		    //Create temp driver
-		    BusDriverTick tempBusDriver = new BusDriverTick(objID, xPos, yPos, angle, numPassengers);
+		    BusDriverTick tempBusDriver = new BusDriverTick(pRes.objID, xPos, yPos, angle, numPassengers);
 		    
 		    //Check if the driver is fake
-		    if(props.containsKey("fake")){
-		    	if(props.get("fake").equals("true")){
+		    if(pRes.properties.containsKey("fake")){
+		    	if(pRes.properties.get("fake").equals("true")){
 		    		tempBusDriver.setItFake();
 		    	}
 		    }
 		    //Check if the car has a length and width or not
-		    if(props.containsKey("length") && props.containsKey("width")){
-		    	tempBusDriver.setLenth(Integer.parseInt(props.get("length")));
-		    	tempBusDriver.setWidth(Integer.parseInt(props.get("width")));
+		    if(pRes.properties.containsKey("length") && pRes.properties.containsKey("width")){
+		    	tempBusDriver.setLenth(Integer.parseInt(pRes.properties.get("length")));
+		    	tempBusDriver.setWidth(Integer.parseInt(pRes.properties.get("width")));
 		    }
-		    tempBusDriver.setID(objID);
 
 		    //Add it to our temporary list
-		    saveTempAgent(frameID, tempBusDriver, false);
+		    saveTempAgent(pRes.frame, tempBusDriver, false);
 		}
 		
 		
-		void parsePedestrian(int frameID, int objID, String rhs) throws IOException {
+		void parsePedestrian(Utility.ParseResults pRes) throws IOException {
 		    //Check and parse properties.
-		    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"xPos", "yPos"});
+			if (!pRes.confirmProps(new String[]{"xPos", "yPos"})) {
+				throw new IOException("Missing required key in type: " + pRes.type);
+			}
 		    
 		    //Now save the relevant information
-		    double xPos = Double.parseDouble(props.get("xPos"));
-		    double yPos = Double.parseDouble(props.get("yPos"));
+		    double xPos = Double.parseDouble(pRes.properties.get("xPos"));
+		    double yPos = Double.parseDouble(pRes.properties.get("yPos"));
 
 		    
 		    //Create a temp pedestrian
-		    PedestrianTick tempPedestrian = new PedestrianTick(objID, xPos, yPos);
+		    PedestrianTick tempPedestrian = new PedestrianTick(pRes.objID, xPos, yPos);
 		    
 		    //Check if the pedestrian is fake
-		    if(props.containsKey("fake")){
-		    	if(props.get("fake").equals("true")){
+		    if(pRes.properties.containsKey("fake")){
+		    	if(pRes.properties.get("fake").equals("true")){
 		    		tempPedestrian.setItFake();
 		    	}
 		    }
-		  	
-		    //Set ID
-		    tempPedestrian.setID(objID);
+
 		    
 		    //Add this agent to the proper frame.
-		    saveTempAgent(frameID, tempPedestrian, false);
+		    saveTempAgent(pRes.frame, tempPedestrian, false);
 		}
 		
 		
-		void parseSignalLines(int frameID, int objID, String rhs) throws IOException{
+		void parseSignalLines(Utility.ParseResults pRes) throws IOException {
 		    //Check and parse properties.
-		    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"va", "vb", "vc", "vd", "pa", "pb", "pc", "pd"});
+			if (!pRes.confirmProps(new String[]{"va", "vb", "vc", "vd", "pa", "pb", "pc", "pd"})) {
+				throw new IOException("Missing required key in type: " + pRes.type);
+			}
 		    
 		    //Now save the relevant information.  
 		    ArrayList<ArrayList<Integer>> allVehicleLights = new ArrayList<ArrayList<Integer>>();
-		    allVehicleLights.add(parseEachSignal(props.get("va")));
-		    allVehicleLights.add(parseEachSignal(props.get("vb")));
-		    allVehicleLights.add(parseEachSignal(props.get("vc")));
-		    allVehicleLights.add(parseEachSignal(props.get("vd")));
+		    allVehicleLights.add(parseEachSignal(pRes.properties.get("va")));
+		    allVehicleLights.add(parseEachSignal(pRes.properties.get("vb")));
+		    allVehicleLights.add(parseEachSignal(pRes.properties.get("vc")));
+		    allVehicleLights.add(parseEachSignal(pRes.properties.get("vd")));
 		    
 		    ArrayList<Integer> allPedestrainLights = new ArrayList<Integer>();
-		    allPedestrainLights.add(Integer.parseInt(props.get("pa")));
-		    allPedestrainLights.add(Integer.parseInt(props.get("pb")));
-		    allPedestrainLights.add(Integer.parseInt(props.get("pc")));
-		    allPedestrainLights.add(Integer.parseInt(props.get("pd")));
+		    allPedestrainLights.add(Integer.parseInt(pRes.properties.get("pa")));
+		    allPedestrainLights.add(Integer.parseInt(pRes.properties.get("pb")));
+		    allPedestrainLights.add(Integer.parseInt(pRes.properties.get("pc")));
+		    allPedestrainLights.add(Integer.parseInt(pRes.properties.get("pd")));
 		    
 		  
 		    //Create a temp signal
-		    SignalLineTick tempSignalLineTick = new SignalLineTick(objID, allVehicleLights, allPedestrainLights ,objID);
+		    SignalLineTick tempSignalLineTick = new SignalLineTick(pRes.objID, allVehicleLights, allPedestrainLights ,pRes.objID);
 
 		    //Check if signal is fake
-		    if(props.containsKey("fake")){
-		    	if(props.get("fake").equals("true")){
+		    if(pRes.properties.containsKey("fake")){
+		    	if(pRes.properties.get("fake").equals("true")){
 		    		tempSignalLineTick.setItFake();
 		    	}
 		    }
 		    
 		    //Save it to add later
-		    saveTempSignal(frameID, tempSignalLineTick);
+		    saveTempSignal(pRes.frame, tempSignalLineTick);
 
 		}
 		
-		void parseSimulation(int frameID, int objID, String rhs) throws IOException {
+		void parseSimulation(Utility.ParseResults pRes) throws IOException {
 		    //Check and parse properties.
-		    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"frame-time-ms"});
+			if (!pRes.confirmProps(new String[]{"frame-time-ms"})) {
+				throw new IOException("Missing required key in type: " + pRes.type);
+			}
 		    
 		    //Check
-		    if (frameID!=0) { throw new RuntimeException("Simulation block must have frame-id=0"); }
-		    if (objID!=0) { throw new RuntimeException("Simulation block must have agent-id=0"); }
+		    if (pRes.frame!=0) { throw new RuntimeException("Simulation block must have frame-id=0"); }
+		    if (pRes.objID!=0) { throw new RuntimeException("Simulation block must have agent-id=0"); }
 		    
 		    //Now save the relevant information
-		    resObj.tempFrameLenMS = Integer.parseInt(props.get("frame-time-ms"));
+		    resObj.tempFrameLenMS = Integer.parseInt(pRes.properties.get("frame-time-ms"));
 		}
 	}
 	

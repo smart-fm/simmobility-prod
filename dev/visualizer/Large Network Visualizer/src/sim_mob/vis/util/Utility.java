@@ -58,10 +58,10 @@ public class Utility {
 	}
 	
 	
-	public static void CheckBounds(double[] bounds, double newVal) {
+	/*public static void CheckBounds(double[] bounds, double newVal) {
 		bounds[0] = Math.min(bounds[0], newVal);
 		bounds[1] = Math.max(bounds[1], newVal);
-	}
+	}*/
 	
 	public static ArrayList<Integer> ParseLaneNodePos(String input){
 		ArrayList<Integer> pos = new ArrayList<Integer>();
@@ -93,32 +93,25 @@ public class Utility {
 	}
 	
 	
-	public static Hashtable<String, String> ParseLogRHS(String rhs, String[] ensure) throws IOException {
+	private static Hashtable<String, String> ParseLogRHS(String rhs) {
 		//Json-esque matching
 		Hashtable<String, String> properties = new Hashtable<String, String>();
 		Matcher m = Utility.LOG_RHS_REGEX.matcher(rhs);
 		while (m.find()) {
 			if (m.groupCount()!=2) {
-				throw new IOException("Unexpected group count (" + m.groupCount() + ") for: " + rhs);
+				properties.put("@@EXCEPTION@@", "Unexpected group count (" + m.groupCount() + ") for: " + rhs);
+				return properties;
 			}
 			
 			String keyStr = m.group(1);
 			String value = m.group(2);
 			if (properties.containsKey(keyStr)) {
-				throw new IOException("Duplicate key: " + keyStr);
+				properties.put("@@EXCEPTION@@", "Duplicate key: " + keyStr);
+				return properties;
 			}
 			properties.put(keyStr, value);
 		}
-		
-		//Now confirm
-		for (String reqKey : ensure) {
-			if (!properties.containsKey(reqKey)) {
-				throw new IOException("Missing key: " + reqKey + " in: " + rhs);
-			}
-		}
-		
 		return properties;
-		
 	}
 	
 	public static ArrayList<Integer> ParseLinkPaths(String input){
@@ -157,6 +150,55 @@ public class Utility {
 		return Distance(start.getX(), start.getY(), end.getX(), end.getY());
 	}
 	
+	public static class ParseResults {
+		public String type;
+		public int frame;
+		public int objID;
+		public Hashtable<String, String> properties = new Hashtable<String, String>();
+		
+		//Confirm
+		public boolean confirmProps(String[] required) {
+			for (String key : required) {
+				if (!properties.containsKey(key)) {
+					return false;
+				}
+			}
+			return true;
+		}
+		
+		//Error handling
+		public String errorMsg;
+		public boolean isError() { return (errorMsg!=null); }
+	}
+	
+	
+	public static ParseResults ParseLogLine(String line) {
+		ParseResults res = new ParseResults();
+		
+		//Parse basic
+	    Matcher m = Utility.LOG_LHS_REGEX.matcher(line);
+	    if (!m.matches()) {
+	    	res.errorMsg = "Invalid line: " + line;
+	    	return res;
+	    }
+	    if (m.groupCount()!=4) {
+	    	res.errorMsg = "Unexpected group count (" + m.groupCount() + ") for: " + line;
+	    	return res;
+	    }
+	    
+	    //Retrieve known fields: type, id, rhs
+	    res.type = m.group(1);
+	    res.frame = Integer.parseInt(m.group(2));
+	    res.objID = Utility.ParseIntOptionalHex(m.group(3));
+	    
+	    //Parse RHS
+	    res.properties = Utility.ParseLogRHS(m.group(4));
+	    
+	    //TODO: Better way of propagating errors.
+	    res.errorMsg = res.properties.get("@@EXCEPTION@@");
+	    return res;
+	}
+	
 	
 	//regex-related
 	private static final String rhs = "\\{([^}]*)\\}"; //NOTE: Contains a capture group
@@ -164,9 +206,9 @@ public class Utility {
 	private static final String strn = "\"([^\"]*)\"";
 	private static final String num = "([0-9]+)";
 	private static final String numH = "((?:0x)?[0-9a-fA-F]+)";
-	public static final Pattern LOG_LHS_REGEX = Pattern.compile("\\(" + strn + sep + num + sep + numH + sep  + rhs + "\\)");
-	public static final Pattern LOG_RHS_REGEX = Pattern.compile(strn + ":" + strn + ",?");
+	private static final Pattern LOG_LHS_REGEX = Pattern.compile("\\(" + strn + sep + num + sep + numH + sep  + rhs + "\\)");
+	private static final Pattern LOG_RHS_REGEX = Pattern.compile(strn + ":" + strn + ",?");
 	public static final Pattern NUM_REGEX = Pattern.compile(num);
-	public static final Pattern NUMH_REGEX = Pattern.compile(numH);
+	private static final Pattern NUMH_REGEX = Pattern.compile(numH);
 }
 

@@ -143,9 +143,7 @@ public class PedestrianTick extends AgentTick {
 	public void setItFake(){
 		fake = true;
 	}
-	public void setID(int id){
-		this.ID = id;
-	}
+
 	
 	private static Random r = new Random();
 	

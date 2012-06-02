@@ -204,9 +204,6 @@ public class DriverTick extends AgentTick {
 	public void setWidth(int width){
 		this.width = width;
 	}
-	public void setID(int id){
-		this.ID = id;
-	}
 	
 	
 	public void draw(Graphics2D g, DrawParams params) {

@@ -73,13 +73,11 @@ public class DriverTick extends AgentTick {
 	
 	
 	private RxLocation msgLocation; //If null, display no message
-	private int ID;
 	private double angle;
 	private boolean fake;
 	private int length;
 	private int width;
 //	private int pickNumber;
-	public int getID(){return ID;}
 	public int getLength(){return length;}
 	public int getWidth() {return width;}
 	public double getAngle() { return angle; } 
@@ -364,7 +362,7 @@ public class DriverTick extends AgentTick {
 		g.setFont(idFont);
 		g.setStroke(new BasicStroke(0.5F));
 		
-		String id = Integer.toString(ID);
+		String id = Integer.toString(getID());
 		g.drawString(id, 0, 0);
 
 		//Restore AffineTransform matrix.

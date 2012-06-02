@@ -58,8 +58,6 @@ public class PedestrianTick extends AgentTick {
 		}
 	} */
 	private boolean fake;
-	private int ID;
-	public int getID(){return ID;}
 
 	
 	/**
@@ -234,7 +232,7 @@ public class PedestrianTick extends AgentTick {
 		g.setFont(idFont);
 		g.setStroke(new BasicStroke(0.5F));
 		
-		String id = Integer.toString(ID);
+		String id = Integer.toString(getID());
 		g.drawString(id, 0, 0);
 
 		//Restore AffineTransform matrix.

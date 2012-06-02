@@ -283,7 +283,10 @@ public class SimulationResults {
 			} else if (pRes.type.equals("simulation")) {
 				parseSimulation(pRes);
 			} else {
-				return false; //Done
+				if (pRes.frame>0) {
+					System.out.println("WARNING: Unknown type: " + pRes.type);
+				}
+				return false; //Couldn't process
 			}
 			return true;
 		}
@@ -308,7 +311,7 @@ public class SimulationResults {
 		}
 		
 		
-		void parseDriver(Utility.ParseResults pRes) throws IOException {
+		void parseDriver(Utility.ParseResults pRes) throws IOException {			
 		    //Check and parse properties.
 			if (!pRes.confirmProps(new String[]{"xPos", "yPos", "angle"})) {
 				throw new IOException("Missing required key in type: " + pRes.type);

@@ -20,6 +20,11 @@ import sim_mob.vis.network.basic.ScaledPoint;
  * \author Matthew Bremer Bruchon
  */
 public class Utility {
+	//Use the new parser for log files?
+	private static final boolean USE_NEW_PARSER = true;
+	
+	
+	
 	/**
 	 * Helper method: load an image resource using the classpath. 
 	 *   (This is required if we package the visualizer as a JAR, e.g., if we create an applet.)
@@ -172,7 +177,8 @@ public class Utility {
 	}
 	
 	
-	public static ParseResults ParseLogLine(String line) {
+	
+	private static ParseResults ParseLogLine_Old(String line) {
 		ParseResults res = new ParseResults();
 		
 		//Parse basic
@@ -197,6 +203,17 @@ public class Utility {
 	    //TODO: Better way of propagating errors.
 	    res.errorMsg = res.properties.get("@@EXCEPTION@@");
 	    return res;
+	}
+	
+	
+	
+	public static ParseResults ParseLogLine(String line) {
+		if (USE_NEW_PARSER) {
+			FastLineParser flp = new FastLineParser(line);
+			return flp.getResults();
+		} else {
+			return ParseLogLine_Old(line);
+		}
 	}
 	
 	

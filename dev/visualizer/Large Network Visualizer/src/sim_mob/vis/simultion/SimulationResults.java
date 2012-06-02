@@ -16,6 +16,7 @@ import sim_mob.vis.ProgressUpdateRunner;
 import sim_mob.vis.controls.NetworkPanel;
 import sim_mob.vis.network.*;
 import sim_mob.vis.network.basic.ScaledPoint;
+import sim_mob.vis.util.FastLineParser;
 import sim_mob.vis.util.Utility;
 
 
@@ -177,18 +178,23 @@ public class SimulationResults {
 		HashSet<Integer> uniqueAgentIDs;
 		TemporarySimObjects resObj;
 		
+		//TEMP
+		FastLineParser flp;
+		
 		SimResLineParser(ArrayList<String> lines, SimulationResults sim, HashSet<Integer> uniqueAgentIDs) {
 			this.lines = lines;
 			this.sim = sim;
 			this.uniqueAgentIDs = uniqueAgentIDs;
 			this.resObj = new TemporarySimObjects();
+			
+			flp = new FastLineParser();
 		}
 		
 		public Object begin(Object... args) {
 			try {
 				for (String line : lines) {
 					//Parse this line.
-					Utility.ParseResults pRes = Utility.ParseLogLine(line);
+					Utility.ParseResults pRes = Utility.ParseLogLine(flp, line);
 					if (pRes.isError()) {
 						throw new RuntimeException("Error parsing line: \n  " + pRes.errorMsg);
 					}

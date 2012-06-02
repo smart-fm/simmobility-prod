@@ -207,10 +207,9 @@ public class Utility {
 	
 	
 	
-	public static ParseResults ParseLogLine(String line) {
+	public static ParseResults ParseLogLine(FastLineParser flp, String line) {
 		if (USE_NEW_PARSER) {
-			FastLineParser flp = new FastLineParser(line);
-			return flp.getResults();
+			return flp.getResults(line);
 		} else {
 			return ParseLogLine_Old(line);
 		}

@@ -17,6 +17,7 @@ import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.network.basic.Vect;
 import sim_mob.vis.simultion.DriverTick;
 import sim_mob.vis.simultion.SimulationResults;
+import sim_mob.vis.util.FastLineParser;
 import sim_mob.vis.util.Mapping;
 import sim_mob.vis.util.Utility;
 import sim_mob.vis.ProgressUpdateRunner;
@@ -93,7 +94,6 @@ public class RoadNetwork {
 	 * Load the network from a filestream.
 	 */
 	public void loadFileAndReport(BufferedReader inFile, long fileLength, NetworkPanel progressUpdate) throws IOException {
-
 		nodes = new Hashtable<Integer, Node>();
 		busstop = new Hashtable<Integer, BusStop>();
 		annot_aimsun = new ArrayList<Annotation>();
@@ -117,6 +117,9 @@ public class RoadNetwork {
 		fromToSegmentRefTable =  new Hashtable<String, Integer>();
 		segmentRefTable = new  Hashtable<Integer , ArrayList<Integer>>(); 
 		segmentToLanesTable = new Hashtable<Integer,Hashtable<Integer,Integer>>();
+		
+		//temp
+		FastLineParser flp = new FastLineParser();
 	
 		
 		//Provide feedback to the user
@@ -150,7 +153,7 @@ public class RoadNetwork {
 			}
 			
 			//Parse basic
-			Utility.ParseResults pRes = Utility.ParseLogLine(line);
+			Utility.ParseResults pRes = Utility.ParseLogLine(flp, line);
 			if (pRes.isError()) {
 				throw new RuntimeException(pRes.errorMsg);
 			}

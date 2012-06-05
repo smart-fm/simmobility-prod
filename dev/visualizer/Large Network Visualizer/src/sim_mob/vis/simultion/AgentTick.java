@@ -11,7 +11,13 @@ import sim_mob.vis.network.basic.ScaledPoint;
  * \author Zhang Shuai
  */
 public abstract class AgentTick implements DrawableAgent {
+	public AgentTick(int id) {
+		this.id = id;
+	}
+	
+	protected int id;
 	protected ScaledPoint pos;
 	public ScaledPoint getPos() { return pos; }
+	public int getID() { return id; }
 	
 }

@@ -17,6 +17,7 @@ import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.network.basic.Vect;
 import sim_mob.vis.simultion.DriverTick;
 import sim_mob.vis.simultion.SimulationResults;
+import sim_mob.vis.util.FastLineParser;
 import sim_mob.vis.util.Mapping;
 import sim_mob.vis.util.Utility;
 import sim_mob.vis.ProgressUpdateRunner;
@@ -37,8 +38,8 @@ public class RoadNetwork {
 	private static final Color Annotations_MitsimFgColor = new Color(0xCC, 0xCC, 0xFF);	
 	private static final Color Annotations_FontColor = new Color(0x00, 0x00, 0x00);
 	
-	private DPoint cornerTL;
-	private DPoint cornerLR;
+	//private DPoint cornerTL;
+	//private DPoint cornerLR;
 	
 	private Hashtable<Integer, Node> nodes;
 	private Hashtable<Integer, BusStop> busstop;
@@ -69,8 +70,8 @@ public class RoadNetwork {
 	//Testing on intersections
 	//private ArrayList<Integer> intersecSegmentID;
 	
-	public DPoint getTopLeft() { return cornerTL; }
-	public DPoint getLowerRight() { return cornerLR; }
+	//public DPoint getTopLeft() { return cornerTL; }
+	//public DPoint getLowerRight() { return cornerLR; }
 	public Hashtable<Integer, Node> getNodes() { return nodes; }
 	public Hashtable<Integer, BusStop> getBusStop() { return busstop; }
 	public ArrayList<Annotation> getAimsunAnnotations() { return annot_aimsun; }
@@ -93,7 +94,6 @@ public class RoadNetwork {
 	 * Load the network from a filestream.
 	 */
 	public void loadFileAndReport(BufferedReader inFile, long fileLength, NetworkPanel progressUpdate) throws IOException {
-
 		nodes = new Hashtable<Integer, Node>();
 		busstop = new Hashtable<Integer, BusStop>();
 		annot_aimsun = new ArrayList<Annotation>();
@@ -117,6 +117,9 @@ public class RoadNetwork {
 		fromToSegmentRefTable =  new Hashtable<String, Integer>();
 		segmentRefTable = new  Hashtable<Integer , ArrayList<Integer>>(); 
 		segmentToLanesTable = new Hashtable<Integer,Hashtable<Integer,Integer>>();
+		
+		//temp
+		FastLineParser flp = new FastLineParser();
 	
 		
 		//Provide feedback to the user
@@ -125,10 +128,6 @@ public class RoadNetwork {
 		if (progressUpdate!=null) {
 			SwingUtilities.invokeLater(new ProgressUpdateRunner(progressUpdate, 0.0, false, new Color(0x00, 0x00, 0xFF), ""));
 		}
-
-		//Also track min/max x/y pos
-		double[] xBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
-		double[] yBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
 		
 		//Read
 		String line;
@@ -154,23 +153,14 @@ public class RoadNetwork {
 			}
 			
 			//Parse basic
-		    Matcher m = Utility.LOG_LHS_REGEX.matcher(line);
-		    if (!m.matches()) {
-		      throw new IOException("Invalid line: " + line);
-		    }
-		    if (m.groupCount()!=4) {
-		      throw new IOException("Unexpected group count (" + m.groupCount() + ") for: " + line);
-		    }
-
-		    //Known fields: type, id, rhs
-		    String type = m.group(1);
-		    int frameID = Integer.parseInt(m.group(2));
-		    int objID = Utility.ParseIntOptionalHex(m.group(3));
-		    String rhs = m.group(4);
-		    
+			Utility.ParseResults pRes = Utility.ParseLogLine(flp, line);
+			if (pRes.isError()) {
+				throw new RuntimeException(pRes.errorMsg);
+			}
+					    
 		    //Pass this off to a different function based on the type
 		    try {
-		    	if (!dispatchConstructionRequest(type, frameID, objID, rhs, xBounds, yBounds)) {
+		    	if (!dispatchConstructionRequest(pRes)) {
 		    		break;
 		    	}
 		    } catch (IOException ex) {
@@ -189,8 +179,8 @@ public class RoadNetwork {
 		
 		
 		//Save bounds
-		cornerTL = new DPoint(xBounds[0], yBounds[0]);
-		cornerLR = new DPoint(xBounds[1], yBounds[1]);
+		//cornerTL = new DPoint(xBounds[0], yBounds[0]);
+		//cornerLR = new DPoint(xBounds[1], yBounds[1]);
 	
 		
 		//Add Link n ames
@@ -222,27 +212,35 @@ public class RoadNetwork {
 	}
 	
 			
-	private boolean dispatchConstructionRequest(String objType, int frameID, int objID, String rhs, double[] xBounds, double[] yBounds) throws IOException {
+	//Returns true if we should continue processing.
+	private boolean dispatchConstructionRequest(Utility.ParseResults pRes) throws IOException {
+		//Check frameID
+		//TODO: Re-enable once we're sure that we will only get NETWORK results in this function 
+		//      (right now we read the log file twice).
+	    //if (pRes.frame!=0) {
+	    //	throw new IOException("Unexpected frame ID, should be zero");
+	    //}
+		
 		//Nodes are displayed the same
-		if (objType.equals("multi-node") || objType.equals("uni-node")) {
-			parseNode(frameID, objID, rhs, objType.equals("uni-node"), xBounds, yBounds);
-		} else if (objType.equals("link")) {
-			parseLink(frameID, objID, rhs);
-		} else if (objType.equals("road-segment")) {
-			parseSegment(frameID, objID, rhs);
-		} else if (objType.equals("lane")){
-			parseLineMarking(frameID, objID, rhs);
-		} else if(objType.equals("crossing")){
-			parseCrossing(frameID, objID, rhs);
-		} else if(objType.equals("lane-connector")){
-			parseLaneConnector(frameID, objID, rhs);
-		} else if(objType.equals("Signal-location")){
-			parseSignalLocation(frameID, objID, rhs);
-		} else if(objType.equals("CutLine")){
-			parseCutLine(frameID, objID, rhs);
-		} else if(objType.equals("busstop")){
-			parseBusStop(frameID, objID, rhs);
-		} else if (frameID>0) {
+		if (pRes.type.equals("multi-node") || pRes.type.equals("uni-node")) {
+			parseNode(pRes, pRes.type.equals("uni-node"));
+		} else if (pRes.type.equals("link")) {
+			parseLink(pRes);
+		} else if (pRes.type.equals("road-segment")) {
+			parseSegment(pRes);
+		} else if (pRes.type.equals("lane")){
+			parseLineMarking(pRes);
+		} else if(pRes.type.equals("crossing")){
+			parseCrossing(pRes);
+		} else if(pRes.type.equals("lane-connector")){
+			parseLaneConnector(pRes);
+		} else if(pRes.type.equals("Signal-location")){
+			parseSignalLocation(pRes);
+		} else if(pRes.type.equals("CutLine")){
+			parseCutLine(pRes);
+		} else if(pRes.type.equals("busstop")){
+			parseBusStop(pRes);
+		} else if (pRes.frame>0) {
 			//We've started on runtime data.
 			return false;
 		}
@@ -252,19 +250,18 @@ public class RoadNetwork {
 		
 	}
 		
-	private void parseLink(int frameID, int objID, String rhs) throws IOException {
-	    //Check frameID
-	    if (frameID!=0) {
-	    	throw new IOException("Unexpected frame ID, should be zero");
-	    }
+	private void parseLink(Utility.ParseResults pRes) throws IOException {
+
 	    
 	    //Check and parse properties.
-	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"road-name", "start-node", "end-node", "fwd-path", "rev-path"});
+		if (!pRes.confirmProps(new String[]{"road-name", "start-node", "end-node", "fwd-path", "rev-path"})) {
+			throw new IOException("Missing required key in type: " + pRes.type);
+		}
 	    
 	    //Now save the relevant information
-	    String name = props.get("road-name");
-	    int startNodeKEY = Utility.ParseIntOptionalHex(props.get("start-node"));
-	    int endNodeKEY = Utility.ParseIntOptionalHex(props.get("end-node"));
+	    String name = pRes.properties.get("road-name");
+	    int startNodeKEY = Utility.ParseIntOptionalHex(pRes.properties.get("start-node"));
+	    int endNodeKEY = Utility.ParseIntOptionalHex(pRes.properties.get("end-node"));
 	    Node startNode = nodes.get(startNodeKEY);
 	    Node endNode = nodes.get(endNodeKEY);
 	    
@@ -277,35 +274,28 @@ public class RoadNetwork {
 	    }
 	    
 	    //Create a new Link, save it
-	    Link toAdd = new Link(name, startNode, endNode, objID);
-	    toAdd.setFwdPathSegmentIDs(Utility.ParseLinkPaths(props.get("fwd-path")));
-	    toAdd.setRevPathSegmentIDs(Utility.ParseLinkPaths(props.get("rev-path")));
-	    links.put(objID, toAdd);
+	    Link toAdd = new Link(name, startNode, endNode, pRes.objID);
+	    toAdd.setFwdPathSegmentIDs(Utility.ParseLinkPaths(pRes.properties.get("fwd-path")));
+	    toAdd.setRevPathSegmentIDs(Utility.ParseLinkPaths(pRes.properties.get("rev-path")));
+	    links.put(pRes.objID, toAdd);
 	}
 	
-	private void parseLineMarking(int frameID, int objID, String rhs) throws IOException {
-	 
-		//Check frameID
-	    if (frameID!=0) {
-	    	throw new IOException("Unexpected frame ID, should be zero");
-	    }
+	private void parseLineMarking(Utility.ParseResults pRes) throws IOException {
 	    
 	    //Check and parse properties. for lanes, it checks only parent-segment only as the number of lanes is not fixed
-	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"parent-segment"});
+		if (!pRes.confirmProps(new String[]{"parent-segment"})) {
+			throw new IOException("Missing required key in type: " + pRes.type);
+		}
 	    
 	    
-	    int parentKey = Utility.ParseIntOptionalHex(props.get("parent-segment"));
-	    Enumeration<String> keys = props.keys();	   
+	    int parentKey = Utility.ParseIntOptionalHex(pRes.properties.get("parent-segment"));	   
 	    Hashtable<Integer,LaneMarking> tempLineTable = new Hashtable<Integer,LaneMarking>();
 	    Hashtable<Integer,Lane> tempLaneTable = new Hashtable<Integer,Lane>();
 	    ArrayList<Integer> lineNumbers = new ArrayList<Integer>();
 	    Hashtable<Integer, ArrayList<Integer>> lineMarkingPositions = new Hashtable<Integer, ArrayList<Integer>>();
 	    int sideWalkLane1 = -1;
 	    int sideWalkLane2 = -1;
-	    while(keys.hasMoreElements()){
-		    
-	    	String key = keys.nextElement().toString();
-
+	    for (String key : pRes.properties.keySet()) {
 	    	//Get Segment
 	    	if(key.contains("parent-segment")){
 	    		continue;
@@ -334,7 +324,7 @@ public class RoadNetwork {
 	    	}else{
 	    		
 	    		ArrayList<Integer> pos = new ArrayList<Integer>();
-	    		pos = Utility.ParseLaneNodePos(props.get(key));
+	    		pos = Utility.ParseLaneNodePos(pRes.properties.get(key));
 	    		Node startNode = new Node(pos.get(0), pos.get(1), false,null);
 	    		Node endNode = new Node(pos.get(2), pos.get(3), false,null);
 	    		tempLineTable.put(lineNumber, new LaneMarking(startNode,endNode,false,lineNumber,parentKey));
@@ -379,11 +369,11 @@ public class RoadNetwork {
 	    	tempLaneTable.put(i,tempLane);
 
 	    	if(segmentToLanesTable.containsKey(parentKey)){
-	    		segmentToLanesTable.get(parentKey).put(i, objID);
+	    		segmentToLanesTable.get(parentKey).put(i, pRes.objID);
 	    	}	
 	    	else{
 	    		Hashtable<Integer, Integer> lanesOnSegment = new Hashtable<Integer,Integer>();
-	    		lanesOnSegment.put(i, objID);
+	    		lanesOnSegment.put(i, pRes.objID);
 	    		segmentToLanesTable.put(parentKey, lanesOnSegment);
 	    	}
 	    }
@@ -391,23 +381,22 @@ public class RoadNetwork {
 	    
 	    
 	    //Create a new Lane, save it
-	    linaMarkings.put(objID, tempLineTable);    
+	    linaMarkings.put(pRes.objID, tempLineTable);    
 	}
 	
-	private void parseSegment(int frameID, int objID, String rhs) throws IOException {
-	    //Check frameID
-	    if (frameID!=0) {
-	    	throw new IOException("Unexpected frame ID, should be zero");
-	    }
+	private void parseSegment(Utility.ParseResults pRes) throws IOException {
+
 	    
 	    //Check and parse properties.
-	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"parent-link", "max-speed", "lanes", "from-node", "to-node"});
+		if (!pRes.confirmProps(new String[]{"parent-link", "max-speed", "lanes", "from-node", "to-node"})) {
+			throw new IOException("Missing required key in type: " + pRes.type);
+		}
 	    
 	    //Now save the relevant information
-	    int parentLinkID = Utility.ParseIntOptionalHex(props.get("parent-link"));
+	    int parentLinkID = Utility.ParseIntOptionalHex(pRes.properties.get("parent-link"));
 	    Link parent = links.get(parentLinkID);
-	    int fromNodeID = Utility.ParseIntOptionalHex(props.get("from-node"));
-	    int toNodeID = Utility.ParseIntOptionalHex(props.get("to-node"));
+	    int fromNodeID = Utility.ParseIntOptionalHex(pRes.properties.get("from-node"));
+	    int toNodeID = Utility.ParseIntOptionalHex(pRes.properties.get("to-node"));
 	    Node fromNode = nodes.get(fromNodeID);
 	    Node toNode = nodes.get(toNodeID);
 	    
@@ -423,69 +412,65 @@ public class RoadNetwork {
 	    }
 	    
 	    //Create a new Link, save it
-	    segments.put(objID, new Segment(parent, fromNode, toNode));
+	    segments.put(pRes.objID, new Segment(parent, fromNode, toNode));
 
 	    
 	}
 	
-	private void parseNode(int frameID, int objID, String rhs, boolean isUni, double[] xBounds, double[] yBounds) throws IOException {
-	    //Check frameID
-	    if (frameID!=0) {
-	    	throw new IOException("Unexpected frame ID, should be zero");
-	    }
+	private void parseNode(Utility.ParseResults pRes, boolean isUni) throws IOException {
+
 	    
 	    //Check and parse properties.
-	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"xPos", "yPos"});
+		if (!pRes.confirmProps(new String[]{"xPos", "yPos"})) {
+			throw new IOException("Missing required key in type: " + pRes.type);
+		}
 	    
 	    //Now save the position information
-	    double x = Double.parseDouble(props.get("xPos"));
-	    double y = Double.parseDouble(props.get("yPos"));
+	    double x = Double.parseDouble(pRes.properties.get("xPos"));
+	    double y = Double.parseDouble(pRes.properties.get("yPos"));
 	    
-	    Utility.CheckBounds(xBounds, x);
-	    Utility.CheckBounds(yBounds, y);
+	    //Utility.CheckBounds(xBounds, x);
+	    //Utility.CheckBounds(yBounds, y);
 	    
-	    Node res = new Node(x, y, isUni,objID);
-	    if (props.containsKey("aimsun-id")) {
-	    	Annotation an = new Annotation(new Point((int)x, (int)y), props.get("aimsun-id"), 'A');
+	    Node res = new Node(x, y, isUni, pRes.objID);
+	    if (pRes.properties.containsKey("aimsun-id")) {
+	    	Annotation an = new Annotation(new Point((int)x, (int)y), pRes.properties.get("aimsun-id"), 'A');
 	    	an.setBackgroundColor(Annotations_AimsunBgColor);
 	    	an.setBorderColor(Annotations_AimsunFgColor);
 	    	an.setFontColor(Annotations_FontColor);
 	    	annot_aimsun.add(an);
 	    }
-	    if (props.containsKey("mitsim-id")) {
-	    	Annotation an = new Annotation(new Point((int)x, (int)y), props.get("mitsim-id"), 'M');
+	    if (pRes.properties.containsKey("mitsim-id")) {
+	    	Annotation an = new Annotation(new Point((int)x, (int)y), pRes.properties.get("mitsim-id"), 'M');
 	    	an.setBackgroundColor(Annotations_MitsimBgColor);
 	    	an.setBorderColor(Annotations_MitsimFgColor);
 	    	an.setFontColor(Annotations_FontColor);
 	    	annot_mitsim.add(an);
 	    }
 	    
-	    nodes.put(objID, res);
+	    nodes.put(pRes.objID, res);
 	    
 	}
 		
-	//my trial
-		private void parseBusStop(int frameID, int objID, String rhs) throws IOException {
-		    //Check frameID
-		    if (frameID!=0) {
-		    	throw new IOException("Unexpected frame ID, should be zero");
-		    }
+		private void parseBusStop(Utility.ParseResults pRes) throws IOException {
 		    
 		    //Check and parse properties.
-		    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"near-1", "near-2", "far-1", "far-2"});
+			if (!pRes.confirmProps(new String[]{"near-1", "near-2", "far-1", "far-2"})) {
+				throw new IOException("Missing required key in type: " + pRes.type);
+			}
 		    
 		    //Now save the relevant information
-		    ScaledPoint nearOneNode = Utility.ParseCrossingNodePos(props.get("near-1"));
-		    ScaledPoint nearTwoNode = Utility.ParseCrossingNodePos(props.get("near-2"));
-		    ScaledPoint farOneNode = Utility.ParseCrossingNodePos(props.get("far-1"));
-		    ScaledPoint farTwoNode = Utility.ParseCrossingNodePos(props.get("far-2"));
+		    ScaledPoint nearOneNode = Utility.ParseCrossingNodePos(pRes.properties.get("near-1"));
+		    ScaledPoint nearTwoNode = Utility.ParseCrossingNodePos(pRes.properties.get("near-2"));
+		    ScaledPoint farOneNode = Utility.ParseCrossingNodePos(pRes.properties.get("far-1"));
+		    ScaledPoint farTwoNode = Utility.ParseCrossingNodePos(pRes.properties.get("far-2"));
 		    
 		    
-		    BusStop res = new BusStop(nearOneNode, nearTwoNode, farOneNode,farTwoNode,objID);
+		    BusStop res = new BusStop(nearOneNode, nearTwoNode, farOneNode,farTwoNode, pRes.objID);
 		   // @amit:Not sure why to use Annotation 
 		    /*
 		    if (props.containsKey("aimsunn-id")) {
-		    	Annotation an = new Annotation(new Point((int)x, (int)y), props.get("aimsunn-id"), 'A');
+		    	Annotation an = new Annotation(new Point((int)x, (int)y), pRes.properties.get("aimsunn-id"), 'A');
 		    	an.setBackgroundColor(Annotations_AimsunnBgColor);
 		    	an.setBorderColor(Annotations_AimsunnFgColor);
 		    	an.setFontColor(Annotations_FontColor);
@@ -493,7 +478,7 @@ public class RoadNetwork {
 		    }
 		    
 		    if (props.containsKey("mitsimm-id")) {
-		    	Annotation an = new Annotation(new Point((int)x, (int)y), props.get("mitsimm-id"), 'A');
+		    	Annotation an = new Annotation(new Point((int)x, (int)y), pRes.properties.get("mitsimm-id"), 'A');
 		    	an.setBackgroundColor(Annotations_MitsimmBgColor);
 		    	an.setBorderColor(Annotations_MitsimmFgColor);
 		    	an.setFontColor(Annotations_FontColor);
@@ -501,46 +486,43 @@ public class RoadNetwork {
 		    }
 		    */
 		    
-		    busstop.put(objID, res);
+		    busstop.put(pRes.objID, res);
 		    
 		}
 	//
-	private void parseCrossing(int frameID, int objID, String rhs) throws IOException {
-	    //Check frameID
-	    if (frameID!=0) {
-	    	throw new IOException("Unexpected frame ID, should be zero");
-	    }
+	private void parseCrossing(Utility.ParseResults pRes) throws IOException {
+
 	    
 	    //Check and parse properties.
-	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"near-1", "near-2", "far-1", "far-2"});
+		if (!pRes.confirmProps(new String[]{"near-1", "near-2", "far-1", "far-2"})) {
+			throw new IOException("Missing required key in type: " + pRes.type);
+		}
+
 	    
 	    //Now save the relevant information
-	    ScaledPoint nearOneNode = Utility.ParseCrossingNodePos(props.get("near-1"));
-	    ScaledPoint nearTwoNode = Utility.ParseCrossingNodePos(props.get("near-2"));
-	    ScaledPoint farOneNode = Utility.ParseCrossingNodePos(props.get("far-1"));
-	    ScaledPoint farTwoNode = Utility.ParseCrossingNodePos(props.get("far-2"));
+	    ScaledPoint nearOneNode = Utility.ParseCrossingNodePos(pRes.properties.get("near-1"));
+	    ScaledPoint nearTwoNode = Utility.ParseCrossingNodePos(pRes.properties.get("near-2"));
+	    ScaledPoint farOneNode = Utility.ParseCrossingNodePos(pRes.properties.get("far-1"));
+	    ScaledPoint farTwoNode = Utility.ParseCrossingNodePos(pRes.properties.get("far-2"));
 	   
 	    //Create a new Crossing, save it
-	    crossings.put(objID, new Crossing(nearOneNode,nearTwoNode,farOneNode,farTwoNode,objID));
-	    trafficSignalCrossings.put(objID, new TrafficSignalCrossing(nearOneNode,nearTwoNode,farOneNode,farTwoNode,objID));
+	    crossings.put(pRes.objID, new Crossing(nearOneNode,nearTwoNode,farOneNode,farTwoNode,pRes.objID));
+	    trafficSignalCrossings.put(pRes.objID, new TrafficSignalCrossing(nearOneNode,nearTwoNode,farOneNode,farTwoNode,pRes.objID));
 	}
 	
-	private void parseLaneConnector(int frameID, int objID, String rhs) throws IOException{
-
-		//Check frameID
-	    if (frameID!=0) {
-	    	throw new IOException("Unexpected frame ID, should be zero");
-	    }
+	private void parseLaneConnector(Utility.ParseResults pRes) throws IOException{
 	    
 		//Check and parse properties.
-	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"from-segment", "from-lane","to-segment","to-lane"});
+		if (!pRes.confirmProps(new String[]{"from-segment", "from-lane","to-segment","to-lane"})) {
+			throw new IOException("Missing required key in type: " + pRes.type);
+		}
 
 	    
 	    //Now save the relevant information
-	    int fromSegmentKEY = Utility.ParseIntOptionalHex(props.get("from-segment"));
-	    int toSegmentKEY = Utility.ParseIntOptionalHex(props.get("to-segment"));
-	    int fromLane = Utility.ParseIntOptionalHex(props.get("from-lane"));
-	    int toLane = Utility.ParseIntOptionalHex(props.get("to-lane"));
+	    int fromSegmentKEY = Utility.ParseIntOptionalHex(pRes.properties.get("from-segment"));
+	    int toSegmentKEY = Utility.ParseIntOptionalHex(pRes.properties.get("to-segment"));
+	    int fromLane = Utility.ParseIntOptionalHex(pRes.properties.get("from-lane"));
+	    int toLane = Utility.ParseIntOptionalHex(pRes.properties.get("to-lane"));
 	    Segment fromSegment = segments.get(fromSegmentKEY);
 	    Segment toSegment = segments.get(toSegmentKEY);
 
@@ -555,26 +537,26 @@ public class RoadNetwork {
 	    
 	    LaneConnector tempLaneConnector = new LaneConnector(fromSegmentKEY, toSegmentKEY, fromLane, toLane);
 	    //Put into lane connector table
-	    laneConnectors.put(objID, new LaneConnector(fromSegmentKEY, toSegmentKEY, fromLane, toLane));
-	    collectSignalLineInfo(objID,tempLaneConnector);
+	    laneConnectors.put(pRes.objID, new LaneConnector(fromSegmentKEY, toSegmentKEY, fromLane, toLane));
+	    collectSignalLineInfo(pRes.objID,tempLaneConnector);
 	    
 	    //Use from-segment and to-segment form a reference table, to check from-segment & to-segment pair against lane connector id
 	    String fromToSegmentKey = Integer.toHexString(fromSegmentKEY)+"&"+Integer.toHexString(toSegmentKEY);
-	    fromToSegmentRefTable.put(fromToSegmentKey, objID);
+	    fromToSegmentRefTable.put(fromToSegmentKey, pRes.objID);
 
 	    
 	    
 /*		System.out.println(fromSegmentKEY +"	" + toSegmentKEY);
-		System.out.println(props.get("from-segment") + "	" + props.get("to-segment"));
+		System.out.println(pRes.properties.get("from-segment") + "	" + pRes.properties.get("to-segment"));
 		System.out.println();
 */				
 	    if(segmentRefTable.containsKey(fromSegmentKEY)){
-	    	segmentRefTable.get(fromSegmentKEY).add(objID);	
+	    	segmentRefTable.get(fromSegmentKEY).add(pRes.objID);	
 	    	segmentRefTable.get(fromSegmentKEY).add(toSegmentKEY);
 	    
 	    } else{
 	    	ArrayList<Integer> toSegmentList = new ArrayList<Integer>();
-	    	toSegmentList.add(objID);
+	    	toSegmentList.add(pRes.objID);
 	    	toSegmentList.add(toSegmentKEY);
 	    	segmentRefTable.put(fromSegmentKEY, toSegmentList);
 	    }
@@ -582,26 +564,24 @@ public class RoadNetwork {
 	    
 	}
 
-	private void parseSignalLocation(int frameID, int objID, String rhs) throws IOException{
-		
-		//Check frameID
-	    if (frameID!=0) {
-	    	throw new IOException("Unexpected frame ID, should be zero");
-	    }
+	private void parseSignalLocation(Utility.ParseResults pRes) throws IOException{		
+
 	    
 		//Check and parse properties.
-	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"node","va","aa","pa","vb","ab","pb","vc","ac","pc","vd","ad","pd"});
+		if (!pRes.confirmProps(new String[]{"node","va","aa","pa","vb","ab","pb","vc","ac","pc","vd","ad","pd"})) {
+			throw new IOException("Missing required key in type: " + pRes.type);
+		}
 
 	    //Now save the relevant information
-	    int intersectionNodeID = Utility.ParseIntOptionalHex(props.get("node"));
-	    int linkVaID = Utility.ParseIntOptionalHex(props.get("va"));
-	    int linkVbID = Utility.ParseIntOptionalHex(props.get("vb"));
-	    int linkVcID = Utility.ParseIntOptionalHex(props.get("vc"));
-	    int linkVdID = Utility.ParseIntOptionalHex(props.get("vd"));
-	    int linkPaID = Utility.ParseIntOptionalHex(props.get("pa"));
-	    int linkPbID = Utility.ParseIntOptionalHex(props.get("pb"));
-	    int linkPcID = Utility.ParseIntOptionalHex(props.get("pc"));
-	    int linkPdID = Utility.ParseIntOptionalHex(props.get("pd"));
+	    int intersectionNodeID = Utility.ParseIntOptionalHex(pRes.properties.get("node"));
+	    int linkVaID = Utility.ParseIntOptionalHex(pRes.properties.get("va"));
+	    int linkVbID = Utility.ParseIntOptionalHex(pRes.properties.get("vb"));
+	    int linkVcID = Utility.ParseIntOptionalHex(pRes.properties.get("vc"));
+	    int linkVdID = Utility.ParseIntOptionalHex(pRes.properties.get("vd"));
+	    int linkPaID = Utility.ParseIntOptionalHex(pRes.properties.get("pa"));
+	    int linkPbID = Utility.ParseIntOptionalHex(pRes.properties.get("pb"));
+	    int linkPcID = Utility.ParseIntOptionalHex(pRes.properties.get("pc"));
+	    int linkPdID = Utility.ParseIntOptionalHex(pRes.properties.get("pd"));
 
 	    ArrayList <Integer>  tempLinkIDs = new ArrayList<Integer>(
 	    			Arrays.asList(linkVaID, linkVbID, linkVcID, linkVdID)); 
@@ -609,27 +589,26 @@ public class RoadNetwork {
 	    ArrayList <Integer> tempCrossingIDs = new ArrayList<Integer>(
 	    			Arrays.asList(linkPaID,linkPbID,linkPcID,linkPdID));
 	    
-	    intersections.put(objID, new Intersection(intersectionNodeID,tempLinkIDs, tempCrossingIDs));		
+	    intersections.put(pRes.objID, new Intersection(intersectionNodeID,tempLinkIDs, tempCrossingIDs));		
 	
 	}
 	
-	private void parseCutLine(int frameID, int objID, String rhs) throws IOException{
-	    //Check frameID
-	    if (frameID!=0) {
-	    	throw new IOException("Unexpected frame ID, should be zero");
-	    }
+	private void parseCutLine(Utility.ParseResults pRes) throws IOException{
+
 	    
 	    //Check and parse properties.
-	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"startPointX", "startPointY", "endPointX", "endPointY","color"});
+		if (!pRes.confirmProps(new String[]{"startPointX", "startPointY", "endPointX", "endPointY","color"})) {
+			throw new IOException("Missing required key in type: " + pRes.type);
+		}
 	    
 	    ScaledPoint startPoint = new FlippedScaledPoint(
-	    	Integer.parseInt(props.get("startPointX")),
-	    	Integer.parseInt(props.get("endPointX")));
+	    	Integer.parseInt(pRes.properties.get("startPointX")),
+	    	Integer.parseInt(pRes.properties.get("endPointX")));
 	    ScaledPoint endPoint = new FlippedScaledPoint(
-	    	Integer.parseInt(props.get("startPointY")),
-	    	Integer.parseInt(props.get("endPointY")));
-	    String color = props.get("color");
-	    cutLines.put(objID, new CutLine(startPoint, endPoint, color));
+	    	Integer.parseInt(pRes.properties.get("startPointY")),
+	    	Integer.parseInt(pRes.properties.get("endPointY")));
+	    String color = pRes.properties.get("color");
+	    cutLines.put(pRes.objID, new CutLine(startPoint, endPoint, color));
 		
 	}
 	

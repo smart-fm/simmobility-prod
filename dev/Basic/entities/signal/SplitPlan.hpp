@@ -1,4 +1,4 @@
-//dont worry guys, i will create the cpp file(s) later.
+#pragma once
 #include<map>
 #include<vector>
 #include "geospatial/Link.hpp"
@@ -39,10 +39,8 @@ private:
 	std::size_t nextSplitPlanID;
 	std::size_t currPhaseID;//Better Name is: phaseAtGreen (according to TE terminology)The phase which is currently undergoing green, f green, amber etc..
 
-
-//	std::vector<sim_mob::Phase> phases_;
-
 	phases phases_;
+	sim_mob::Signal *parentSignal;
 
 	/*
 	 * the following variable will specify the various choiceSet combinations that
@@ -58,7 +56,15 @@ private:
 	/* the following variable keeps track of the votes obtained by each splitplan(I mean phase choiceSet combination)
 	 * ususally a history of the last 5 votings are kept
 	 */
-	std::vector< std::vector<int> > votes;  //votes[cycle][vote]
+	/*
+	 * 			plan1	plan2	plan3	plan4	plan5
+	 * 	iter1	1		0		0		0		0
+	 * 	iter2	0		1		0		0		0
+	 * 	iter3	0		1		0		0		0
+	 * 	iter5	1		0		0		0		0
+	 * 	iter5	0		0		0		1		0
+	 */
+	std::vector< std::vector<int> > votes;  //votes[cycle][plan]
 
 public:
 	typedef boost::multi_index::nth_index_iterator<phases,0>::type phases_iterator;
@@ -80,9 +86,10 @@ public:
 	void setnextSplitPlan(std::vector<double> DS);
 	void setCoiceSet(std::vector< std::vector<double> >);
 	void setDefaultSplitPlan(int);
+	void initialize();
 
 	/*cycle length related methods*/
-	double getCycleLength();
+	double getCycleLength() const ;
 	void setCycleLength(std::size_t);
 
 	/*phase related methods*/
@@ -111,6 +118,9 @@ public:
 	double fmin_ID(std::vector<double> maxproDS);
 	std::size_t getMaxVote();
 	void fill(double defaultChoiceSet[5][10], int approaches);
+	std::string createStringRepresentation();
+	void setParentSignal(sim_mob::Signal * signal) { parentSignal = signal;}
+	sim_mob::Signal * getParentSignal() { return parentSignal;}
 
 	/*friends*/
 	friend class Signal;

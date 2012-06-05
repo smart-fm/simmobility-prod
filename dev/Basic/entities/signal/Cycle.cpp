@@ -1,5 +1,5 @@
 #include "Cycle.hpp"
-#include <cstdlib>
+#include <cmath>
 namespace sim_mob
 {
 void Cycle::Update(double DS/*,sim_mob::Node node*/) {
@@ -25,7 +25,6 @@ double Cycle::setnextCL(double DS/*,sim_mob::Node node*/) {
 //	if(node.location.getX()==37250760 && node.location.getY()==14355120) {
 //#ifndef SIMMOB_DISABLE_OUTPUT
 //		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-//		std::cout<<"DS "<<DS<<std::endl;
 //#endif
 //	}
 
@@ -72,7 +71,7 @@ double Cycle::setnextCL(double DS/*,sim_mob::Node node*/) {
 	 }*/
 
 	//set the maximum change as 6s
-	if (abs(RL - currCL) <= 6) {
+	if (std::abs(RL - currCL) <= 6) {
 		nextCL = RL;
 	} else {
 		nextCL = currCL + sign * 6;
@@ -80,7 +79,7 @@ double Cycle::setnextCL(double DS/*,sim_mob::Node node*/) {
 
 	//when the maximum changes in last two cycle are both larger than 6s, the value can be set as 9s
 	if (((nextCL - currCL) >= 6 && (currCL - prevCL) >= 6) || ((nextCL - currCL) <= -6 && (currCL - prevCL) <= -6)) {
-		if (abs(RL - currCL) <= 9) {
+		if (std::abs(RL - currCL) <= 9) {
 			nextCL = RL;
 		} else {
 			nextCL = currCL + sign * 9;

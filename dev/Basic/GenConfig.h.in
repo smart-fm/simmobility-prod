@@ -27,7 +27,11 @@
 #cmakedefine SIMMOB_DISABLE_DYNAMIC_DISPATCH
 #cmakedefine SIMMOB_LATEST_STANDARD
 #cmakedefine SIMMOB_AGENT_UPDATE_PROFILE
+<<<<<<< HEAD
+#cmakedefine NEW_SIGNAL
+=======
 #cmakedefine SIMMOB_NEW_SIGNAL
+>>>>>>> 4e538568a390d42f0d37932bdc49a2d8e8291ffc
 
 
 ///Sizes of workgroups. (Note that enums are allowed to overlap values)

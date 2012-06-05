@@ -715,7 +715,7 @@ vector<const Agent*> GetAgentsInCrossing(const Crossing* crossing) {
 
 
 bool sim_mob::Driver::isPedestrianOnTargetCrossing() const {
-	if (!trafficSignal) {
+	if ((!trafficSignal)||(!vehicle->getNextSegment())) {
 		return false;
 	}
 

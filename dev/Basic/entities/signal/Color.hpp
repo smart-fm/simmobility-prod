@@ -6,17 +6,6 @@ namespace sim_mob
 //Forward declarations
 class Phase;
 
-//moved to defaults.hpp for now
-//enum TrafficColor
-//{
-//    Red =1,    			///< Stop, do not go beyond the stop line.
-//    Amber = 2,  		///< Slow-down, prepare to stop before the stop line.
-//    Green = 3,   		///< Proceed either in the forward, left, or right direction.
-//    FlashingRed = 4,	///future use
-//    FlashingAmber = 5,	///future use
-//    FlashingGreen = 6	///future use
-//};
-
 //depricated
 struct VehicleTrafficColors
 {
@@ -43,17 +32,17 @@ class ColorSequence
 public:
 	ColorSequence(TrafficLightType TrafficColorType = Driver_Light)
 	{
-		ColorDuration.push_back(std::make_pair(Red,1));//All red moment ususally takes 1 second
-		ColorDuration.push_back(std::make_pair(Amber,3));//a portion of the total time of the phase length is taken by amber
-		ColorDuration.push_back(std::make_pair(Green,0));//Green is phase at green and should be calculated using the corresponding phase length
-		type = TrafficColorType;
+//		ColorDuration.push_back(std::make_pair(Amber,3));//a portion of the total time of the phase length is taken by amber
+//		ColorDuration.push_back(std::make_pair(Green,0));//Green is phase at green and should be calculated using the corresponding phase length
+//		ColorDuration.push_back(std::make_pair(Red,1));//All red moment ususally takes 1 second
+//		type = TrafficColorType;
 	}
 
 	ColorSequence(std::vector< std::pair<TrafficColor,std::size_t> > ColorDurationInput, TrafficLightType TrafficColorType = Driver_Light) :
 		ColorDuration(ColorDurationInput),
 		type(TrafficColorType){}
 
-	std::vector< std::pair<TrafficColor,std::size_t> > getColorDuration();
+	std::vector< std::pair<TrafficColor,std::size_t> > & getColorDuration();
 	TrafficLightType getTrafficLightType();
 
 	void addColorPair(std::pair<TrafficColor,std::size_t> p);

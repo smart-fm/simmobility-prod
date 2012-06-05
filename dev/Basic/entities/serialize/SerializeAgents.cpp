@@ -5,11 +5,7 @@
 #ifndef SIMMOB_DISABLE_MPI
 
 #include "entities/Agent.hpp"
-#ifdef NEW_SIGNAL
-#include "entities/signal/Signal.hpp"
-#else
 #include "entities/Signal.hpp"
-#endif
 #include "entities/Person.hpp"
 
 #include "partitions/PackageUtils.hpp"

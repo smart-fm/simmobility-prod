@@ -1,5 +1,6 @@
-#ifndef TC_DEFAULTS_
-#define TC_DEFAULTS_
+#pragma once
+
+
 namespace sim_mob {
 
 enum TrafficColor
@@ -11,7 +12,10 @@ enum TrafficColor
     FlashingAmber = 5,	///future use
     FlashingGreen = 6	///future use
 };
+
+
 //Private namespace
+//TODO: Might want to move this private namespace out of the header file. ~Seth
 namespace {
 //parameters for calculating next cycle length
 const double DSmax = 0.9, DSmed = 0.5, DSmin = 0.3;
@@ -24,4 +28,3 @@ const double Off_low = 5, Off_up = 26;
 const double fixedCL = 60;
 }
 }
-#endif

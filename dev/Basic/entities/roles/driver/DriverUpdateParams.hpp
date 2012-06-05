@@ -7,7 +7,7 @@
 #include "util/DynamicVector.hpp"
 #include <boost/random.hpp>
 #include "util/LangHelpers.hpp"
-#include "entities/Signal.hpp"
+#include "entities/signal/Signal.hpp"
 
 namespace sim_mob
 {

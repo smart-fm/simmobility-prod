@@ -8,6 +8,9 @@
  */
 
 #include "Signal.hpp"
+
+#ifndef SIMMOB_NEW_SIGNAL
+
 #include <math.h>
 #include "geospatial/Lane.hpp"
 #include "geospatial/Crossing.hpp"
@@ -1044,3 +1047,4 @@ void Signal::frame_output(frame_t frameNumber) {
 #endif
 
 }
+#endif

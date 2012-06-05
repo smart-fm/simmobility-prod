@@ -26,6 +26,8 @@ using std::map;
 using std::vector;
 using std::string;
 
+using namespace boost::multi_index;
+
 typedef sim_mob::Entity::UpdateStatus UpdateStatus;
 
 namespace sim_mob

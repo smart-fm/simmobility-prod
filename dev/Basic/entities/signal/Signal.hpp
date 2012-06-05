@@ -39,13 +39,7 @@
 
 namespace sim_mob
 {
-using boost::multi_index::multi_index_container;
-using boost::multi_index::ordered_non_unique;
-using boost::multi_index::ordered_unique;
-using boost::multi_index::indexed_by;
-using boost::multi_index::member;
-using boost::multi_index::random_access;
-using boost::multi_index::mem_fun;
+
 // Forwared declarations.
 class Node;
 class Lane;
@@ -59,10 +53,10 @@ typedef struct
     mutable TrafficColor currColor;//can change it directly as it is not a member of any key and it is mutable
 }linkToLink_signal;
 
-typedef multi_index_container<
+typedef boost::multi_index_container<
 		linkToLink_signal,
-		indexed_by<
-		random_access<>
+		boost::multi_index::indexed_by<
+		boost::multi_index::random_access<>
 //    ,ordered_unique<
 //      composite_key<
 //      sim_mob::Link*,
@@ -93,18 +87,18 @@ struct LinkAndCrossing
 };
 
 
-typedef multi_index_container<
-		LinkAndCrossing, indexed_by<
-	 random_access<>															//0
-    ,ordered_unique<member<LinkAndCrossing, size_t , &LinkAndCrossing::id> >//1
-	,ordered_unique<member<LinkAndCrossing, sim_mob::Link const * , &LinkAndCrossing::link> >//2
-	,ordered_non_unique<member<LinkAndCrossing, double , &LinkAndCrossing::angle> >//3
-	,ordered_non_unique<member<LinkAndCrossing, sim_mob::Crossing const * , &LinkAndCrossing::crossing> >//4
+typedef boost::multi_index_container<
+		LinkAndCrossing, boost::multi_index::indexed_by<
+		boost::multi_index::random_access<>															//0
+    ,boost::multi_index::ordered_unique<boost::multi_index::member<LinkAndCrossing, size_t , &LinkAndCrossing::id> >//1
+	,boost::multi_index::ordered_unique<boost::multi_index::member<LinkAndCrossing, sim_mob::Link const * , &LinkAndCrossing::link> >//2
+	,boost::multi_index::ordered_non_unique<boost::multi_index::member<LinkAndCrossing, double , &LinkAndCrossing::angle> >//3
+	,boost::multi_index::ordered_non_unique<boost::multi_index::member<LinkAndCrossing, sim_mob::Crossing const * , &LinkAndCrossing::crossing> >//4
    >
 > LinkAndCrossingC;//Link and Crossing Container(multi index)
-typedef nth_index<LinkAndCrossingC, 2>::type LinkAndCrossingByLink;
-typedef nth_index<LinkAndCrossingC, 3>::type LinkAndCrossingByAngle;
-typedef nth_index<LinkAndCrossingC, 4>::type LinkAndCrossingByCrossing;
+typedef boost::multi_index::nth_index<LinkAndCrossingC, 2>::type LinkAndCrossingByLink;
+typedef boost::multi_index::nth_index<LinkAndCrossingC, 3>::type LinkAndCrossingByAngle;
+typedef boost::multi_index::nth_index<LinkAndCrossingC, 4>::type LinkAndCrossingByCrossing;
 
 typedef LinkAndCrossingByAngle::reverse_iterator LinkAndCrossingIterator;
 typedef LinkAndCrossingByCrossing::iterator SignalCrossingIterator;
@@ -177,14 +171,14 @@ public:
     TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const ;
 	TrafficColor getPedestrianLight(Crossing const & crossing) const;
 
-	typedef multi_index_container<
-			sim_mob::Signal *, indexed_by<
-		 random_access<>															//0
-	    ,ordered_unique<mem_fun<Signal, unsigned int ,&Signal::getSignalId> >//1
+	typedef boost::multi_index_container<
+			sim_mob::Signal *, boost::multi_index::indexed_by<
+			boost::multi_index::random_access<>															//0
+	    ,boost::multi_index::ordered_unique<boost::multi_index::mem_fun<Signal, unsigned int ,&Signal::getSignalId> >//1
 	   >
 	> all_signals;
 
-	static Signal::all_signals all_signals_;
+	static sim_mob::Signal::all_signals all_signals_;
 	static const double updateInterval;
 
     void updateIndicators();
@@ -283,8 +277,8 @@ public:
 #endif
 //	static std::vector< std::vector<double> > SplitPlan;
 };//class Signal
-typedef nth_index_iterator<Signal::all_signals, 0>::type all_signals_Iterator;
-typedef nth_index_const_iterator<Signal::all_signals, 0>::type all_signals_const_Iterator;
+typedef boost::multi_index::nth_index_iterator<Signal::all_signals, 0>::type all_signals_Iterator;
+typedef boost::multi_index::nth_index_const_iterator<Signal::all_signals, 0>::type all_signals_const_Iterator;
 
 
 }//namespace sim_mob

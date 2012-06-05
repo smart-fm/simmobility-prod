@@ -259,6 +259,11 @@ void Signal::unpackProxy(UnPackageUtils& unpackageUtil) {
 	buffered_TC.force(buffered_signal);
 //	debug.outputToConsole("signal 3");
 }
+#else
+//Note: The new signal class will require packing, but don't do it yet
+//       ---we will remove the old Signal class anyway. ~Seth
+void Signal::packProxy(PackageUtils& packageUtil) {}
+void Signal::unpackProxy(UnPackageUtils& unpackageUtil) {}
 #endif
 
 }

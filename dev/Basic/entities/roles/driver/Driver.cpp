@@ -719,7 +719,7 @@ vector<const Agent*> GetAgentsInCrossing(const Crossing* crossing) {
 
 
 bool sim_mob::Driver::isPedestrianOnTargetCrossing() const {
-	if (!trafficSignal) {
+	if ((!trafficSignal)||(!vehicle->getNextSegment())) {
 		return false;
 	}
 
@@ -746,6 +746,9 @@ bool sim_mob::Driver::isPedestrianOnTargetCrossing() const {
 
 	const Crossing* crossing = nullptr;
 	LinkAndCrossingByLink const &LAC = trafficSignal->getLinkAndCrossingsByLink();
+	std::cout << "vehicle(" << vehicle << ")->getNextSegment("; getchar();
+	std::cout << vehicle->getNextSegment() << ")->getLink(" ;  getchar();
+	std::cout << vehicle->getNextSegment()->getLink() << ")";  getchar();
 	LinkAndCrossingByLink::iterator it = LAC.find(vehicle->getNextSegment()->getLink());
 	if(it != LAC.end())
 		const Crossing* crossing = (*it).crossing;

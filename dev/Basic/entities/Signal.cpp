@@ -8,7 +8,7 @@
  */
 #define  NEW_SIGNAL
 #ifndef NEW_SIGNAL
-#include "Signal.hpp"
+#include "./Signal.hpp"
 #include <math.h>
 #include "geospatial/Lane.hpp"
 #include "geospatial/Crossing.hpp"
@@ -30,7 +30,6 @@ typedef sim_mob::Entity::UpdateStatus UpdateStatus;
 
 namespace sim_mob
 {
-
 std::vector<Signal*> Signal::all_signals_;
 
 //Private namespace
@@ -80,6 +79,7 @@ Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id)
 {
 	ConfigParams& config = ConfigParams::GetInstance();
 	signalAlgorithm = config.signalAlgorithm;
+	std::cout << "Signal Algorithm : " <<  signalAlgorithm << std::endl;
     initializeSignal();
     setupIndexMaps();
 }
@@ -228,7 +228,6 @@ void Signal::setupIndexMaps() {
 
 	//Prepare output
 	std::ostringstream output;
-	std::cout << "Here I am in the old signal\n";
 	output << "(\"Signal-location\", 0, " << this << ", {";
 	output << "\"node\":\"" << &node_ << "\"";
 
@@ -444,7 +443,7 @@ void Signal::updateSignal(double DS[]) {
 
 			double currPhaseDS = computeDS(total_g);
 			//		if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
-			//			std::cout<<"currDS "<<currPhaseDS<<std::endl;
+						std::cout<<"currDS "<<currPhaseDS<<std::endl; getchar();
 			DS[prePhase%10] = currPhaseDS;
 			loopDetector_.reset();
 		}
@@ -674,6 +673,23 @@ void Signal::updateOffset() {
 }
 
 //NOTE: Helper arrays for setting TC_* data (in an anonymous namespace).
+/*
+ * The folowing are Helper arrays for setting TC_* data (in an anonymous namespace).
+ * Vahid:
+ * what they are:
+ * a-they are color indications(Red=1,Amber=2,Green=3)
+ *   flashing green is missing.Actually many things are missing but it's ok, we are "simulating" SCATS which is almost a "closed" specification.
+ * b-each template(pedestrian and Driver) has 8 rows of data.
+ * c-there are 2 rows for each phase.(there are 4 phases, so 4X2=8)
+ * d-why 2 rows: one row for when driver light is green and one for when driver light is amber(yellow)
+ *   therefore pedestrian also gets 2 identical rows ,for each phase,to be compatible with driver data.
+ * e-each row has 4 "set"s of data(one "set" for each approach of the intersection).
+ *  what do I mean by "set" of data! : for pedestrian there is only one value in each "set", but driver has 3 values for left,forward,right enclosed like { 3, 3, 1 },...
+ *  Note: Had the respected programmer dropped a few lines as I did above, i wouldn't be itching my brain for two days to
+ *  figure out what they are :))
+ *  I still don't know what TC stands for!(same unclarity goes with case 0, case 10.... what do you mean by case?)
+ *
+ */
 namespace {
 //Pedestrian template
 const int TC_for_PedestrianTemplate[][4] = {

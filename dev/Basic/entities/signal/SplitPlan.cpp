@@ -8,9 +8,8 @@ void SplitPlan::setCycleLength(std::size_t c = 96) {cycleLength = c;}
 void SplitPlan::setcurrSplitPlanID(std::size_t index) { currSplitPlanID = index; }
 void SplitPlan::setCoiceSet(std::vector< vector<double> > choiceset){choiceSet = choiceset;}
 
-
 std::size_t SplitPlan::CurrSplitPlanID() { return currSplitPlanID; }
-double SplitPlan::getCycleLength() {return cycleLength;}
+double SplitPlan::getCycleLength() const {return cycleLength;}
 
 
 
@@ -32,8 +31,9 @@ const  sim_mob::Phase & SplitPlan::CurrPhase() const { return phases_[currPhaseI
 /*
  * This function has 2 duties
  * 1- Update the Votes data structure
- * 2- Return the index having the highst value(vote) with the help of another function(getMaxVote())
+ * 2- Return the index having the highest value(vote) with the help of another function(getMaxVote())
  */
+
 std::size_t SplitPlan::Vote(std::vector<double> maxproDS) {
 	std::vector<int> vote(NOF_Plans,0);//choiceSet.size()=no of plans
 	vote[fmin_ID(maxproDS)]++;//the corresponding split plan's vote is incremented by one(the rests are zero)
@@ -49,11 +49,12 @@ std::size_t SplitPlan::Vote(std::vector<double> maxproDS) {
 //calculate the projected DS and max Projected DS for each split plan (for internal use only, refer to section 4.3 table-4)
 void SplitPlan::calMaxProDS(std::vector<double>  &maxproDS,std::vector<double> DS)
 {
-	double maax=0;
+	double maax=0.0;
 	vector<double> proDS(NOF_Phases, 0);
 	for(int i=0; i < NOF_Plans; i++)//traversing the columns of Phase::choiceSet matrix
 	{
-		for(int j=0, maax = 0; j < NOF_Phases; j++)
+		maax = 0.0;
+		for(int j=0; j < NOF_Phases; j++)
 		{
 			//calculate the projected DS for this plan
 			proDS[j] = DS[j] * choiceSet[currSplitPlanID][j]/choiceSet[i][j];
@@ -84,6 +85,31 @@ void SplitPlan::updatecurrSplitPlan() {
 	currSplitPlanID = nextSplitPlanID;
 }
 
+void SplitPlan::initialize()
+{
+	/*
+	 * Now you know the each phase percentage from the choice set,
+		so you may set the phase percntage and phase offset of each phase,
+		then initialize phases(calculate its phase length, green time ...)
+	 */
+	std::vector<double> choice = CurrSplitPlan();
+	if(choice.size() != find_NOF_Phases())
+		throw std::runtime_error("Mismatch on number of phases");
+	int i = 0 ; double percentage_sum =0;
+	//setting percentage and phaseoffset for each phase
+	for(sim_mob::SplitPlan::phases_iterator ph_it = getPhases().begin();ph_it != getPhases().end(); ph_it++, i++)
+	{
+		//this ugly line of code is due to the fact that multi index renders constant versions of its elements
+		sim_mob::Phase & target_phase = const_cast<sim_mob::Phase &>(*ph_it);
+		if( i > 0) percentage_sum += choice[i - 1]; // i > 0 : the first phase has phase offset equal to zero,
+		(target_phase).setPercentage(choice[i]);
+		(target_phase).setPhaseOffset(percentage_sum);
+	}
+	//Now Initialize the phases(later you  may put this back to the above phase iteration loop
+	for(phases_iterator it = phases_.begin(); it != phases_.end()  ; it++)
+		const_cast<sim_mob::Phase &>(*it).initialize();
+}
+
 ///////////////////////////////Not so Important //////////////////////////////////////////////////////////////////////
 
 //find the minimum among the max projected DS
@@ -93,18 +119,24 @@ double SplitPlan::fmin_ID(std::vector<double> maxproDS) {
 		if (maxproDS[i] < maxproDS[min]) {
 			min = i;
 		}
-		//else{}
 	}
 	return min;//(Note: not minimum value ! but minimum value's "index")
 }
 
 //find the split plan Id which currently has the maximum vote
+//remember : in votes, columns represent split plan vote
 std::size_t SplitPlan::getMaxVote()
 {
-	int PlanId_w_MaxVote = -1 , SplitPlanID , max_vote_value = -1, vote_sum = 0;
-	for(SplitPlanID = 0 ; SplitPlanID < NOF_Plans; SplitPlanID++)
+	int PlanId_w_MaxVote = -1;
+	int SplitPlanID;
+	int max_vote_value = -1;
+	int vote_sum = 0;
+	for(SplitPlanID = 0 ; SplitPlanID < NOF_Plans; SplitPlanID++)//column iterator(plans)
 	{
-		for(int i=0, vote_sum = 0; i < NUMBER_OF_VOTING_CYCLES ; vote_sum += votes[SplitPlanID][i++]);//calculating sum of votes in each column
+		//calculating sum of votes in each column
+		vote_sum = 0;
+		for(int i=0; i < votes.size() ; i++)//row iterator(cycles)
+			vote_sum += votes[i][SplitPlanID];
 		if(max_vote_value < vote_sum)
 		{
 			max_vote_value = vote_sum;
@@ -118,7 +150,7 @@ std::vector< double >  SplitPlan::CurrSplitPlan()
 {
 	if(choiceSet.size() == 0)
 	{
-		std::cout << "Choice Set is empty the progrma can crash without it" << std::endl;
+		throw std::runtime_error( "Choice Set is empty the program can crash without it");
 	}
 	return choiceSet[currSplitPlanID];
 }
@@ -181,9 +213,15 @@ void SplitPlan::fill(double defaultChoiceSet[5][10], int approaches)
 
 void SplitPlan::setDefaultSplitPlan(int approaches)
 {
+	NOF_Plans = 5;
 	int ii=5,jj=0;
-	std::cout << "..setDefaultSplitPlan:" << approaches;
-	double defaultChoiceSet_1[5][10] = {{100}};
+	double defaultChoiceSet_1[5][10] = {
+			{100},
+			{100},
+			{100},
+			{100},
+			{100}
+	};
 	double defaultChoiceSet_2[5][10] = {
 			{50,50},
 			{30,70},
@@ -233,7 +271,26 @@ void SplitPlan::setDefaultSplitPlan(int approaches)
 
 	}
 
+	currSplitPlanID = 0;
+	currPhaseID = 0; //what the hell :)
+}
 
+std::string SplitPlan::createStringRepresentation()
+{
+	if(phases_.size() == 0)
+		{
+			return 0;
+		}
+	std::ostringstream output;
+	phases_iterator it = phases_.begin();
+	while(it !=phases_.end())
+	{
+		output << (*it).createStringRepresentation();
+		it++;
+		if(it !=phases_.end())
+			output << ",";
+	}
+	return output.str();
 }
 
 };//namespace

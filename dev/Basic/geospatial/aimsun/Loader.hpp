@@ -1,7 +1,5 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
-#define  NEW_SIGNAL
-
 #pragma once
 
 #include <vector>

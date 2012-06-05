@@ -352,7 +352,6 @@ LoopDetectorEntity::Impl::Impl(Signal const & signal, LoopDetectorEntity & entit
     // If the vehicle falls within this area, we will use both the vehicle's position and length
     // to determine if any part of the vehicle is over the loop detector. 
     outerLength_ = innerLength_ + 20 * 100 / 2;
-
     createLoopDetectors(signal, entity);
 }
 
@@ -376,6 +375,10 @@ LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetecto
 //    std::map<Link const *, size_t>::const_iterator iter;
 	LinkAndCrossingByLink const &LAC = signal.getLinkAndCrossingsByLink();
 	LinkAndCrossingByLink::iterator iter = LAC.begin();
+	if(iter == LAC.end())
+	{
+		std::cout << "Couldn't find the links associated with this signal" << signal.getSignalId();
+	}
     for (; iter != LAC.end(); ++iter)
     {
         Link const * link  = (*iter).link;
@@ -388,6 +391,12 @@ LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetecto
             {
                 createLoopDetectors(roads, entity);
             }
+            else
+            {
+            	std::cout << "Missed the first chance to create loop detector\n";
+            }
+
+
         }
         else
         {
@@ -398,6 +407,10 @@ LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetecto
             {
                 createLoopDetectors(roads, entity);
             }
+            else
+            {
+            	std::cout << "Missed the second chance to create loop detector\n";
+            }
         }
     }
 }
@@ -407,7 +420,6 @@ LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetecto
 {
     Node const & node = signal.getNode();
     std::map<Link const *, size_t> const & links_map = signal.links_map();
-
     std::map<Link const *, size_t>::const_iterator iter;
     for (iter = links_map.begin(); iter != links_map.end(); ++iter)
     {
@@ -452,13 +464,21 @@ LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> const &
                                               LoopDetectorEntity & entity)
 {
     size_t count = roads.size();
-    RoadSegment const * road = roads[count - 1];
+    size_t createdLDs = 0;
+    RoadSegment const * road = roads[count - 1]; //create LD only for the last road segment in the vector
     std::vector<Lane *> const & lanes = road->getLanes();
+    if(! lanes.size())
+    	{
+    		std::ostringstream str;
+    		str << " There is no lane associated with road segment " << road->getId();
+    		throw std::runtime_error(str.str());
+    	}
     for (size_t i = 0; i < lanes.size(); ++i)
     {
         Lane const * lane = lanes[i];
         if (lane->is_pedestrian_lane())
         {
+        	std::cout << "Bypassing a pedestrian lane\n";
             continue;
         }
 
@@ -475,6 +495,7 @@ LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> const &
 
         LoopDetector* detector = new LoopDetector(lane, innerLength_, outerLength_, *pair);
         loopDetectors_.insert(std::make_pair(lane, detector));
+        std::cout << "loop detecto created for lane " << lane << std::endl;
 
         if (isNotInitialized(monitorArea_))
         {
@@ -486,6 +507,20 @@ LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> const &
             // Subsequent detector; expand monitorArea_ to include the subsequent detectors.
             monitorArea_.united(detector->getAABB());
         }
+        createdLDs++;
+    }
+    if(createdLDs == 0)
+    {
+    	std::ostringstream str;
+    	str << " could not create any loop detector in road segment " << road->getId()
+        		<< " this will create problem for you later if you dont watch out !\n"
+        		"for instance, while calculating laneDS";
+    	throw std::runtime_error(str.str());
+    }
+    else
+    {
+
+    	std::cout << "Number of loop detectors created for this rs=" << createdLDs << std::endl;
     }
 }
 
@@ -634,9 +669,10 @@ const
         Shared<CountAndTimePair> const * pair = iter->second;
         return pair->get();
     }
+//    std::cout << "I am going to generate an error\nLoopDetectorEntity::getCountAndTimePair() was called on invalid lane"; getchar();
     std::ostringstream stream;
-    stream << "LoopDetectorEntity::getCountAndTimePair() was called on invalid lane";
-    throw stream.str();
+    stream << "LoopDetectorEntity::getCountAndTimePair() was called on invalid lane" << &lane;
+    throw std::runtime_error(stream.str());
 }
 
 }

@@ -155,13 +155,11 @@ void ProfileBuilder::logGenericStart(const string& caption, const string& group)
 
 void ProfileBuilder::logGenericEnd(const string& caption, const string& group)
 {
-	std::cout <<"inside  ProfileBuilder::logGenericEnd\n"; getchar();
 	logGeneric("generic-end", group, caption);
 }
 
 void ProfileBuilder::logGeneric(const string& action, const string& group, const string& caption)
 {
-	std::cout <<"inside  ProfileBuilder::logGeneric\n"; getchar();
 	currLog <<"{"
 			<<"\"" <<"action" <<"\"" <<":" <<"\"" <<action <<"\"" <<","
 			<<"\"" <<"group" <<"\"" <<":" <<"\"" <<group <<"\"" <<",";

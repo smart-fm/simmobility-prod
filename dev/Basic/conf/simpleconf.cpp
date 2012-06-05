@@ -638,7 +638,7 @@ void PrintDB_Network()
 	;
 
 #ifdef NEW_SIGNAL
-	for (all_signals_const_Iterator it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++)
+	for (sim_mob::Signal::all_signals_const_Iterator it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++)
 #else
 	for (std::vector<Signal*>::const_iterator it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++)
 #endif

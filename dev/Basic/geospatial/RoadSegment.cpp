@@ -113,7 +113,7 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 	width += swLane->width_;
 
 	vector<Point2D> res = makeLaneEdgeFromPolyline(lanes.back(), false);
-	std::cout << "Inside syncLanePolylines() :Before the crash point \n";
+//	std::cout << "Inside syncLanePolylines() :Before the crash point \n";
 	laneEdgePolylines_cached.push_back(res);//crash -vahid
 	//Add an extra sidewalk on the other side if it's a road segment on a one-way link.
 	sim_mob::Link* parentLink = getLink();

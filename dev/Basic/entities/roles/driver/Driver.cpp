@@ -738,7 +738,7 @@ bool sim_mob::Driver::isPedestrianOnTargetCrossing() const {
 //			break;
 //		}
 //	}
-#if SIMMOB_NEW_SIGNAL
+#ifdef SIMMOB_NEW_SIGNAL
 
 	const Crossing* crossing = nullptr;
 	LinkAndCrossingByLink const &LAC = trafficSignal->getLinkAndCrossingsByLink();

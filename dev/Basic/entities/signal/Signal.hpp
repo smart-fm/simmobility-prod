@@ -7,13 +7,17 @@
  *      Author: xrm
  *      Autore: vahid
  */
-#define  NEW_SIGNAL
-#ifdef NEW_SIGNAL
+
 #pragma once
+
+//If we're not using the "new signal" flag, just forward this header file to the old location.
+//  This allows us to simply include "entities/signal/Signal.hpp" without reservation.
+#include "GenConfig.h"
+#ifndef SIMMOB_NEW_SIGNAL
+#include "entities/Signal.hpp"
+#else
 #include <map>
 #include <vector>
-
-#include "GenConfig.h"
 #include "entities/Agent.hpp"
 #include "metrics/Length.hpp"
 #include "util/SignalStatus.hpp"

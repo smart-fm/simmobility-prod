@@ -1,4 +1,5 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
+
 #include "Loader.hpp"
 
 #include<set>
@@ -58,11 +59,7 @@
 #include "entities/misc/aimsun/TripChain.hpp"
 #include "entities/misc/aimsun/SOCI_Converters.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
-#ifdef NEW_SIGNAL
-#include "entities/signal/Signal.hpp"
-#else
 #include "entities/Signal.hpp"
-#endif
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
@@ -138,8 +135,8 @@ private:
 #endif
 
     void createSignals();
-#ifdef NEW_SIGNAL
-    void createPlans(sim_mob::Signal &);
+#ifdef SIMMOB_NEW_SIGNAL
+    void createPlans();
     void createPhases(unsigned int sid,sim_mob::SplitPlan & plan);
 #endif
 };
@@ -205,6 +202,11 @@ void DatabaseLoader::LoadSections(const std::string& storedProc)
 
 void DatabaseLoader::LoadPhase(const std::string& storedProc)
 {
+	//Optional
+	if (storedProc.empty()) {
+		return;
+	}
+
 	soci::rowset<Phase> rs = (sql_.prepare <<"select * from " + storedProc);
 	phases_.clear();
 	int i=0;
@@ -420,6 +422,11 @@ DatabaseLoader::LoadTrafficSignals(std::string const & storedProcedure)
 
 void DatabaseLoader::LoadBusStop(const std::string& storedProc)
 {
+	//Bus stops are optional
+	if (storedProc.empty()) {
+		return;
+	}
+
 	soci::rowset<BusStop> rows = (sql_.prepare <<"select * from " + storedProc);
 	for (soci::rowset<BusStop>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
 	{
@@ -496,12 +503,15 @@ float getSumDistance()
 
 
 
-std::string const &
-getStoredProcedure(map<string, string> const & storedProcs, string const & procedureName)
+std::string getStoredProcedure(map<string, string> const & storedProcs, string const & procedureName, bool mandatory=true)
 {
     map<string, string>::const_iterator iter = storedProcs.find(procedureName);
     if (iter != storedProcs.end())
         return iter->second;
+    if (!mandatory) {
+    	std::cout <<"Skipping optional database property: " + procedureName <<std::endl;
+    	return "";
+    }
     throw std::runtime_error("expected to find stored-procedure named '" + procedureName
                              + "' in the config file");
 }
@@ -576,9 +586,10 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
 	LoadTripchains(getStoredProcedure(storedProcs, "tripchain"));
 	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal"));
-	LoadPhase(getStoredProcedure(storedProcs, "phase"));
-	LoadBusStop(getStoredProcedure(storedProcs, "busstop"));
-
+	LoadBusStop(getStoredProcedure(storedProcs, "busstop", false));
+	std::cout << "signals Done, Starting LoadPhase" << std::endl;
+	LoadPhase(getStoredProcedure(storedProcs, "phase", false));
+	std::cout << "LoadPhase Done, Congrates" << std::endl;
 
 
 
@@ -723,7 +734,7 @@ vector<Crossing*>& GetCrossing(Node& atNode, Node& toNode, size_t crossingID)
 	}
 	throw std::runtime_error("Can't find crossing in temporary cleanup function.");
 }
-void RebuildCrossing(Node& atNode, Node& toNode, size_t baseCrossingID, size_t resCrossingID, bool flipLeft, unsigned int crossingWidthCM, unsigned int paddingCM)
+bool RebuildCrossing(Node& atNode, Node& toNode, size_t baseCrossingID, size_t resCrossingID, bool flipLeft, unsigned int crossingWidthCM, unsigned int paddingCM)
 {
 	//Retrieve the base Crossing and the Crossing we will store the result in.
 	vector<Crossing*>& baseCrossing = GetCrossing(atNode, toNode, baseCrossingID);
@@ -733,30 +744,37 @@ void RebuildCrossing(Node& atNode, Node& toNode, size_t baseCrossingID, size_t r
 	ResizeTo2(baseCrossing);
 	ResizeTo2(resCrossing);
 
-	//Set point 1:
-	{
-		DynamicVector vec(baseCrossing.front()->xPos, baseCrossing.front()->yPos, baseCrossing.back()->xPos, baseCrossing.back()->yPos);
-		vec.scaleVectTo(paddingCM).translateVect().flipNormal(!flipLeft);
-		vec.scaleVectTo(crossingWidthCM).translateVect();
-		resCrossing.front()->xPos = vec.getX();
-		resCrossing.front()->yPos = vec.getY();
-	}
+	try {
+		//Set point 1:
+		{
+			DynamicVector vec(baseCrossing.front()->xPos, baseCrossing.front()->yPos, baseCrossing.back()->xPos, baseCrossing.back()->yPos);
+			vec.scaleVectTo(paddingCM).translateVect().flipNormal(!flipLeft);
+			vec.scaleVectTo(crossingWidthCM).translateVect();
+			resCrossing.front()->xPos = vec.getX();
+			resCrossing.front()->yPos = vec.getY();
+		}
 
-	//Set point 2:
-	{
-		DynamicVector vec(baseCrossing.back()->xPos, baseCrossing.back()->yPos, baseCrossing.front()->xPos, baseCrossing.front()->yPos);
-		vec.scaleVectTo(paddingCM).translateVect().flipNormal(flipLeft);
-		vec.scaleVectTo(crossingWidthCM).translateVect();
-		resCrossing.back()->xPos = vec.getX();
-		resCrossing.back()->yPos = vec.getY();
+		//Set point 2:
+		{
+			DynamicVector vec(baseCrossing.back()->xPos, baseCrossing.back()->yPos, baseCrossing.front()->xPos, baseCrossing.front()->yPos);
+			vec.scaleVectTo(paddingCM).translateVect().flipNormal(flipLeft);
+			vec.scaleVectTo(crossingWidthCM).translateVect();
+			resCrossing.back()->xPos = vec.getX();
+			resCrossing.back()->yPos = vec.getY();
+		}
+	} catch (std::exception& ex) {
+		std::cout <<"Warning! Skipped crossing; error occurred (this should be fixed)." <<std::endl;
+		baseCrossing.clear();
+		resCrossing.clear();
+		return false;
 	}
-
+	return true;
 
 }
 void ManuallyFixVictoriaStreetMiddleRoadIntersection(map<int, Node>& nodes, map<int, Section>& sections, vector<Crossing>& crossings, vector<Lane>& lanes, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
 {
 	//Step 1: Tidy up the crossings.
-	RebuildCrossing(nodes[66508], nodes[93730], 683, 721, true, 450, 200);
+	/*RebuildCrossing(nodes[66508], nodes[93730], 683, 721, true, 450, 200);
 	RebuildCrossing(nodes[66508], nodes[65120], 2419, 2111, false, 400, 200);
 	RebuildCrossing(nodes[66508], nodes[75956], 3956, 3719, true, 450, 200);
 	RebuildCrossing(nodes[66508], nodes[84882], 4579, 1251, true, 450, 200);
@@ -769,7 +787,7 @@ void ManuallyFixVictoriaStreetMiddleRoadIntersection(map<int, Node>& nodes, map<
 	ScaleLanesToCrossing(nodes[75956], nodes[66508], true);
 	ScaleLanesToCrossing(nodes[66508], nodes[75956], false);
 	ScaleLanesToCrossing(nodes[84882], nodes[66508], true);
-	ScaleLanesToCrossing(nodes[66508], nodes[84882], false);
+	ScaleLanesToCrossing(nodes[66508], nodes[84882], false);*/
 }
 
 
@@ -1032,12 +1050,11 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
          * lots of these data are still default(cycle length, offset, choice set.
          * They will be replaced by more realistic value(and input feeders) as the project proceeeds
          */
-        //this is extra, commmenting....before permanentlt deleteing
-//#ifdef NEW_SIGNAL
-//        createPlans();
-//#endif
+#ifdef SIMMOB_NEW_SIGNAL
+        createPlans();
+#endif
 }
-#ifdef NEW_SIGNAL
+#ifdef SIMMOB_NEW_SIGNAL
 void
 DatabaseLoader::createSignals()
 {
@@ -1691,7 +1708,7 @@ void sim_mob::aimsun::Loader::ProcessSectionPolylines(sim_mob::RoadNetwork& res,
 
 string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::vector<sim_mob::TripChain*>& tcs, ProfileBuilder* prof)
 {
-	try {
+	//try {
             //Connection string will look something like this:
             //"host=localhost port=5432 dbname=SimMobility_DB user=postgres password=XXXXX"
             DatabaseLoader loader(connectionStr);
@@ -1730,9 +1747,9 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 #endif
 
 
-	} catch (std::exception& ex) {
-		return string(ex.what());
-	}
+	//} catch (std::exception& ex) {
+	//	return string(ex.what());
+	//}
 
 	std::cout <<"AIMSUN Network successfully imported.\n";
 	return "";

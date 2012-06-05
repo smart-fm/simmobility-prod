@@ -6,9 +6,11 @@
  *  Created on: 2011-7-18
  *      Author: xrm
  */
-#define  NEW_SIGNAL
-#ifndef NEW_SIGNAL
-#include "./Signal.hpp"
+
+#include "Signal.hpp"
+
+#ifndef SIMMOB_NEW_SIGNAL
+
 #include <math.h>
 #include "geospatial/Lane.hpp"
 #include "geospatial/Crossing.hpp"
@@ -79,7 +81,6 @@ Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id)
 {
 	ConfigParams& config = ConfigParams::GetInstance();
 	signalAlgorithm = config.signalAlgorithm;
-	std::cout << "Signal Algorithm : " <<  signalAlgorithm << std::endl;
     initializeSignal();
     setupIndexMaps();
 }
@@ -443,7 +444,7 @@ void Signal::updateSignal(double DS[]) {
 
 			double currPhaseDS = computeDS(total_g);
 			//		if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
-						std::cout<<"currDS "<<currPhaseDS<<std::endl; getchar();
+			//			std::cout<<"currDS "<<currPhaseDS<<std::endl;
 			DS[prePhase%10] = currPhaseDS;
 			loopDetector_.reset();
 		}

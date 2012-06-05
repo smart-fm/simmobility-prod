@@ -6,10 +6,9 @@
  *  Created on: 2011-7-18
  *      Author: Vahid Saber
  */
-#define  NEW_SIGNAL
-#ifdef NEW_SIGNAL
-#include "./Signal.hpp" //just a precaution
-#include <cmath>
+#include "Signal.hpp"
+#ifdef SIMMOB_NEW_SIGNAL
+#include <math.h>
 #include "geospatial/Lane.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/MultiNode.hpp"

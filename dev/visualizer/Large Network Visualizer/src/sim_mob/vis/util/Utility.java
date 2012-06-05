@@ -1,5 +1,6 @@
 package sim_mob.vis.util;
 
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -131,11 +132,6 @@ public class Utility {
 		return pos;
 	}
 
-	public static double Distance(double x1, double y1, double x2, double y2) { 
-		double dx   = x2 - x1;
-		double dy   = y2 - y1;
-		return Math.sqrt(dx*dx + dy*dy);
-	}
 	
 	
 	public static final String printRect(Rectangle2D rect) {
@@ -151,6 +147,16 @@ public class Utility {
 			newWidth, newHeight);
 	}
 
+	
+	public static final double Distance(double x1, double y1, double x2, double y2) {
+		double dX = x1-x2;
+		double dY = y1-y2;
+		return Math.sqrt(dX*dX + dY*dY);
+	}
+	public static final double Distance(Point2D start, Point2D end) {
+		return Distance(start.getX(), start.getY(), end.getX(), end.getY());
+	}
+	
 	
 	//regex-related
 	private static final String rhs = "\\{([^}]*)\\}"; //NOTE: Contains a capture group

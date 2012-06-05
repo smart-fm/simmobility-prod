@@ -16,6 +16,7 @@ import sim_mob.vis.network.basic.FlippedScaledPoint;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.network.basic.Vect;
 import sim_mob.vis.simultion.DriverTick;
+import sim_mob.vis.simultion.SimulationResults;
 import sim_mob.vis.util.Mapping;
 import sim_mob.vis.util.Utility;
 import sim_mob.vis.ProgressUpdateRunner;
@@ -121,7 +122,9 @@ public class RoadNetwork {
 		//Provide feedback to the user
 		long totalBytesRead = 0;
 		long lastKnownTotalBytesRead = 0;
-		SwingUtilities.invokeLater(new ProgressUpdateRunner(progressUpdate, 0.0, false, new Color(0x00, 0x00, 0xFF), ""));
+		if (progressUpdate!=null) {
+			SwingUtilities.invokeLater(new ProgressUpdateRunner(progressUpdate, 0.0, false, new Color(0x00, 0x00, 0xFF), ""));
+		}
 
 		//Also track min/max x/y pos
 		double[] xBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
@@ -135,7 +138,7 @@ public class RoadNetwork {
 			boolean pushUpdate = (totalBytesRead - lastKnownTotalBytesRead) > 1024;
 			
 			//Send a message
-			if (pushUpdate) {
+			if (pushUpdate && progressUpdate!=null) {
 				lastKnownTotalBytesRead = totalBytesRead;
 				if (fileLength>0) {
 					SwingUtilities.invokeLater(new ProgressUpdateRunner(progressUpdate, totalBytesRead/((double)fileLength), true, new Color(0x00, 0x00, 0xFF), ""));
@@ -167,7 +170,9 @@ public class RoadNetwork {
 		    
 		    //Pass this off to a different function based on the type
 		    try {
-		    	dispatchConstructionRequest(type, frameID, objID, rhs, xBounds, yBounds);
+		    	if (!dispatchConstructionRequest(type, frameID, objID, rhs, xBounds, yBounds)) {
+		    		break;
+		    	}
 		    } catch (IOException ex) {
 		    	throw new IOException(ex.getMessage() + "\n...on line: " + line);
 		    }
@@ -217,7 +222,7 @@ public class RoadNetwork {
 	}
 	
 			
-	private void dispatchConstructionRequest(String objType, int frameID, int objID, String rhs, double[] xBounds, double[] yBounds) throws IOException {
+	private boolean dispatchConstructionRequest(String objType, int frameID, int objID, String rhs, double[] xBounds, double[] yBounds) throws IOException {
 		//Nodes are displayed the same
 		if (objType.equals("multi-node") || objType.equals("uni-node")) {
 			parseNode(frameID, objID, rhs, objType.equals("uni-node"), xBounds, yBounds);
@@ -235,11 +240,14 @@ public class RoadNetwork {
 			parseSignalLocation(frameID, objID, rhs);
 		} else if(objType.equals("CutLine")){
 			parseCutLine(frameID, objID, rhs);
-		}
-		// "true" is to be checked if it is operational or not
-		else if(objType.equals("busstop")){
+		} else if(objType.equals("busstop")){
 			parseBusStop(frameID, objID, rhs);
+		} else if (frameID>0) {
+			//We've started on runtime data.
+			return false;
 		}
+		
+		return true;
 
 		
 	}

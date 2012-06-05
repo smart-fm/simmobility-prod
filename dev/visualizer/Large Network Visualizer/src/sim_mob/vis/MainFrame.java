@@ -586,18 +586,16 @@ public class MainFrame extends JFrame {
 			String fileName;
 			try {
 				BufferedReader br = null;
-				long fileSize = 0;
 				if (isEmbedded) {
 					br = Utility.LoadFileResource("res/data/default.log.txt");
 					fileName = "default.log";
 				} else {
 					br = new BufferedReader(new FileReader(f));
-					fileSize = f.length();
 					fileName = f.getName();
 				}
 
 				rn = new RoadNetwork();
-				rn.loadFileAndReport(br, fileSize, newViewPnl);
+				rn.loadFileAndReport(br, 0, null);
 				
 				br.close();
 			} catch (IOException ex) {
@@ -615,12 +613,15 @@ public class MainFrame extends JFrame {
 			//Load the simulation's results
 			try {
 				BufferedReader br = null;
+				long fileSize = 0;
 				if (isEmbedded) {
 					br = Utility.LoadFileResource("res/data/default.log.txt");
 				} else {
 					br = new BufferedReader(new FileReader(f));
+					fileSize = f.length();
 				}
-				simData = new SimulationResults(br, rn, uniqueAgentIDs);
+				simData = new SimulationResults();
+				simData.loadFileAndReport(br, rn, uniqueAgentIDs, fileSize, newViewPnl);
 				br.close();
 			} catch (IOException ex) {
 				throw new RuntimeException(ex);

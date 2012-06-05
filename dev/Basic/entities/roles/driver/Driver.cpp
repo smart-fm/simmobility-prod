@@ -11,11 +11,7 @@
 
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/Person.hpp"
-#ifdef NEW_SIGNAL
-#include "entities/signal/Signal.hpp"
-#else
 #include "entities/Signal.hpp"
-#endif
 #include "entities/AuraManager.hpp"
 #include "entities/UpdateParams.hpp"
 #include "entities/misc/TripChain.hpp"
@@ -390,7 +386,7 @@ void sim_mob::DriverUpdateParams::reset(frame_t frameNumber, unsigned int currTi
 	perceivedFwdVelocity = 0;
 	perceivedLatVelocity = 0;
 	isTrafficLightStop = false;
-#ifdef NEW_SIGNAL
+#ifdef SIMMOB_NEW_SIGNAL
 	perceivedTrafficColor = sim_mob::Green;
 #else
 	perceivedTrafficColor = Signal::Green; //Green by default
@@ -742,13 +738,10 @@ bool sim_mob::Driver::isPedestrianOnTargetCrossing() const {
 //			break;
 //		}
 //	}
-#ifdef NEW_SIGNAL
+#ifdef SIMMOB_NEW_SIGNAL
 
 	const Crossing* crossing = nullptr;
 	LinkAndCrossingByLink const &LAC = trafficSignal->getLinkAndCrossingsByLink();
-	std::cout << "vehicle(" << vehicle << ")->getNextSegment("; getchar();
-	std::cout << vehicle->getNextSegment() << ")->getLink(" ;  getchar();
-	std::cout << vehicle->getNextSegment()->getLink() << ")";  getchar();
 	LinkAndCrossingByLink::iterator it = LAC.find(vehicle->getNextSegment()->getLink());
 	if(it != LAC.end())
 		const Crossing* crossing = (*it).crossing;
@@ -774,7 +767,7 @@ bool sim_mob::Driver::isPedestrianOnTargetCrossing() const {
 #endif
 
 	//Have we found a relevant crossing?
-	if (crossing == nullptr) {
+	if (!crossing) {
 		return false;
 	}
 
@@ -1660,7 +1653,7 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 		p.isTrafficLightStop = false;
 		perceivedTrafficSignalStop.delay(p.isTrafficLightStop);
 	} else {
-#ifdef NEW_SIGNAL
+#ifdef SIMMOB_NEW_SIGNAL
 		sim_mob::TrafficColor color;
 #else
 		Signal::TrafficColor color;
@@ -1678,7 +1671,7 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 //			color = trafficSignal->getDriverLight(*p.currLane).forward;
 		}
 		switch (color) {
-#ifdef NEW_SIGNAL
+#ifdef SIMMOB_NEW_SIGNAL
 		case sim_mob::Red:
 #else
 		case Signal::Red:
@@ -1687,7 +1680,7 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 
 			p.isTrafficLightStop = true;
 			break;
-#ifdef NEW_SIGNAL
+#ifdef SIMMOB_NEW_SIGNAL
 		case sim_mob::Amber:
 		case sim_mob::Green:
 #else

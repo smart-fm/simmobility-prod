@@ -44,11 +44,7 @@
 #include "entities/roles/Role.hpp"
 
 #include "ParitionDebugOutput.hpp"
-#ifdef NEW_SIGNAL
-#include "entities/signal/Signal.hpp"
-#else
 #include "entities/Signal.hpp"
-#endif
 #include "partitions/PartitionManager.hpp"
 
 

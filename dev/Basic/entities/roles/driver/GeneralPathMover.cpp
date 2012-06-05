@@ -145,10 +145,15 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 		}
 	}
 
+
 	//Re-generate the polylines array, etc.
 	currSegmentIt = fullPath.begin();
 	isMovingForwardsInLink = isFwd;
-	currLaneID = startLaneID;
+
+	//Ensure that the current lane is valid
+	currLaneID = std::max(std::min(startLaneID, static_cast<int>((*currSegmentIt)->getLanes().size())-1), 0);
+
+	//Generate a polyline array
 	generateNewPolylineArray();
 	distAlongPolyline = 0;
 	inIntersection = false;

@@ -742,7 +742,7 @@ vector<Crossing*>& GetCrossing(Node& atNode, Node& toNode, size_t crossingID)
 	}
 	throw std::runtime_error("Can't find crossing in temporary cleanup function.");
 }
-void RebuildCrossing(Node& atNode, Node& toNode, size_t baseCrossingID, size_t resCrossingID, bool flipLeft, unsigned int crossingWidthCM, unsigned int paddingCM)
+bool RebuildCrossing(Node& atNode, Node& toNode, size_t baseCrossingID, size_t resCrossingID, bool flipLeft, unsigned int crossingWidthCM, unsigned int paddingCM)
 {
 	//Retrieve the base Crossing and the Crossing we will store the result in.
 	vector<Crossing*>& baseCrossing = GetCrossing(atNode, toNode, baseCrossingID);
@@ -752,30 +752,37 @@ void RebuildCrossing(Node& atNode, Node& toNode, size_t baseCrossingID, size_t r
 	ResizeTo2(baseCrossing);
 	ResizeTo2(resCrossing);
 
-	//Set point 1:
-	{
-		DynamicVector vec(baseCrossing.front()->xPos, baseCrossing.front()->yPos, baseCrossing.back()->xPos, baseCrossing.back()->yPos);
-		vec.scaleVectTo(paddingCM).translateVect().flipNormal(!flipLeft);
-		vec.scaleVectTo(crossingWidthCM).translateVect();
-		resCrossing.front()->xPos = vec.getX();
-		resCrossing.front()->yPos = vec.getY();
-	}
+	try {
+		//Set point 1:
+		{
+			DynamicVector vec(baseCrossing.front()->xPos, baseCrossing.front()->yPos, baseCrossing.back()->xPos, baseCrossing.back()->yPos);
+			vec.scaleVectTo(paddingCM).translateVect().flipNormal(!flipLeft);
+			vec.scaleVectTo(crossingWidthCM).translateVect();
+			resCrossing.front()->xPos = vec.getX();
+			resCrossing.front()->yPos = vec.getY();
+		}
 
-	//Set point 2:
-	{
-		DynamicVector vec(baseCrossing.back()->xPos, baseCrossing.back()->yPos, baseCrossing.front()->xPos, baseCrossing.front()->yPos);
-		vec.scaleVectTo(paddingCM).translateVect().flipNormal(flipLeft);
-		vec.scaleVectTo(crossingWidthCM).translateVect();
-		resCrossing.back()->xPos = vec.getX();
-		resCrossing.back()->yPos = vec.getY();
+		//Set point 2:
+		{
+			DynamicVector vec(baseCrossing.back()->xPos, baseCrossing.back()->yPos, baseCrossing.front()->xPos, baseCrossing.front()->yPos);
+			vec.scaleVectTo(paddingCM).translateVect().flipNormal(flipLeft);
+			vec.scaleVectTo(crossingWidthCM).translateVect();
+			resCrossing.back()->xPos = vec.getX();
+			resCrossing.back()->yPos = vec.getY();
+		}
+	} catch (std::exception& ex) {
+		std::cout <<"Warning! Skipped crossing; error occurred (this should be fixed)." <<std::endl;
+		baseCrossing.clear();
+		resCrossing.clear();
+		return false;
 	}
-
+	return true;
 
 }
 void ManuallyFixVictoriaStreetMiddleRoadIntersection(map<int, Node>& nodes, map<int, Section>& sections, vector<Crossing>& crossings, vector<Lane>& lanes, map<int, Turning>& turnings, multimap<int, Polyline>& polylines)
 {
 	//Step 1: Tidy up the crossings.
-	RebuildCrossing(nodes[66508], nodes[93730], 683, 721, true, 450, 200);
+	/*RebuildCrossing(nodes[66508], nodes[93730], 683, 721, true, 450, 200);
 	RebuildCrossing(nodes[66508], nodes[65120], 2419, 2111, false, 400, 200);
 	RebuildCrossing(nodes[66508], nodes[75956], 3956, 3719, true, 450, 200);
 	RebuildCrossing(nodes[66508], nodes[84882], 4579, 1251, true, 450, 200);
@@ -788,7 +795,7 @@ void ManuallyFixVictoriaStreetMiddleRoadIntersection(map<int, Node>& nodes, map<
 	ScaleLanesToCrossing(nodes[75956], nodes[66508], true);
 	ScaleLanesToCrossing(nodes[66508], nodes[75956], false);
 	ScaleLanesToCrossing(nodes[84882], nodes[66508], true);
-	ScaleLanesToCrossing(nodes[66508], nodes[84882], false);
+	ScaleLanesToCrossing(nodes[66508], nodes[84882], false);*/
 }
 
 
@@ -1677,7 +1684,7 @@ void sim_mob::aimsun::Loader::ProcessSectionPolylines(sim_mob::RoadNetwork& res,
 
 string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::vector<sim_mob::TripChain*>& tcs, ProfileBuilder* prof)
 {
-	try {
+	//try {
             //Connection string will look something like this:
             //"host=localhost port=5432 dbname=SimMobility_DB user=postgres password=XXXXX"
             DatabaseLoader loader(connectionStr);
@@ -1719,9 +1726,9 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 #endif
 
 
-	} catch (std::exception& ex) {
-		return string(ex.what());
-	}
+	//} catch (std::exception& ex) {
+	//	return string(ex.what());
+	//}
 
 	std::cout <<"AIMSUN Network successfully imported.\n";
 	return "";

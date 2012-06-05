@@ -767,7 +767,7 @@ bool sim_mob::Driver::isPedestrianOnTargetCrossing() const {
 #endif
 
 	//Have we found a relevant crossing?
-	if (crossing == nullptr) {
+	if (!crossing) {
 		return false;
 	}
 

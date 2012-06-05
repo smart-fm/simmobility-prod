@@ -6,8 +6,8 @@
  *  Created on: 2011-7-18
  *      Author: xrm
  */
-#ifdef SIMMOB_NEW_SIGNAL
 #include "Signal.hpp"
+#ifdef SIMMOB_NEW_SIGNAL
 #include <math.h>
 #include "geospatial/Lane.hpp"
 #include "geospatial/Crossing.hpp"

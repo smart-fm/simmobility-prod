@@ -156,9 +156,9 @@ double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p)
 	double yellowStopHeadway = 1; //1 second
 	double minSpeedYellow = 2.2352;//5 mph = 2.2352 m / s
 
-	if(p.trafficSignalStopDistance < 5000)
+	if(p.perceivedDistToTrafficSignal < 5000)
 	{
-		double dis = p.trafficSignalStopDistance/100;
+		double dis = p.perceivedDistToTrafficSignal/100;
 #ifdef NEW_SIGNAL
 		if(p.perceivedTrafficColor == sim_mob::Red)
 				{

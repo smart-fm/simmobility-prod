@@ -64,7 +64,10 @@ private:
 
 //Constructor and overridden methods.
 public:
-	Driver(Person* parent, sim_mob::MutexStrategy mtxStrat, unsigned int reacTime_LeadingVehicle, unsigned int reacTime_SubjectVehicle, unsigned int reacTime_Gap);		//to initiate
+	const static int distanceInFront = 2000;
+	const static int distanceBehind = 500;
+	const static int maxVisibleDis = 5000;
+	Driver(Person* parent, sim_mob::MutexStrategy mtxStrat, size_t distributionType1, size_t distributionType2);		//to initiate
 	virtual ~Driver();
 
 	//Virtual implementations
@@ -108,14 +111,17 @@ protected:
 
 private:
 	//Sample stored data which takes reaction time into account.
-	unsigned int reacTime_LeadingVehicle;
-	unsigned int reacTime_SubjectVehicle;
-	unsigned int reacTime_Gap;
-	FixedDelayed<DPoint*> perceivedVelocity;
-	FixedDelayed<DPoint*> perceivedVelocityOfFwdCar;
-	FixedDelayed<double> perceivedAccelerationOfFwdCar;
-	FixedDelayed<centimeter_t> perceivedDistToFwdCar;
-	FixedDelayed<double> perceivedTrafficSignalStop;
+
+	size_t distributionType1;
+	size_t distributionType2;
+	size_t reacTime;
+	FixedDelayed<double> *perceivedFwdVel;
+	FixedDelayed<double> *perceivedFwdAcc;
+	FixedDelayed<double> *perceivedVelOfFwdCar;
+	FixedDelayed<double> *perceivedAccOfFwdCar;
+	FixedDelayed<centimeter_t> *perceivedDistToFwdCar;
+	FixedDelayed<double> *perceivedTrafficSignalStop;
+	FixedDelayed<centimeter_t> *perceivedDistToTrafficSignal;
 
 	NodePoint origin;
 	NodePoint goal;    //first, assume that each vehicle moves towards a goal

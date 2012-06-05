@@ -100,6 +100,7 @@ struct DriverUpdateParams : public UpdateParams {
 	double perceivedLatVelocityOfFwdCar;
 	double perceivedAccelerationOfFwdCar;
 	double perceivedDistToFwdCar;
+	double perceivedDistToTrafficSignal;
 
 	bool perceivedTrafficSignal;
 #ifdef NEW_SIGNAL

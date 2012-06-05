@@ -195,6 +195,7 @@ void sim_mob::Person::unpackProxy(UnPackageUtils& unpackageUtil) {
 /**
  * Serialization of Signal
  */
+#ifndef SIMMOB_NEW_SIGNAL
 void Signal::packProxy(PackageUtils& packageUtil) {
 
 	//Agent::packageProxy(packageUtil);
@@ -258,6 +259,7 @@ void Signal::unpackProxy(UnPackageUtils& unpackageUtil) {
 	buffered_TC.force(buffered_signal);
 //	debug.outputToConsole("signal 3");
 }
+#endif
 
 }
 

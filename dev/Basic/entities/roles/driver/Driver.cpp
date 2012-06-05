@@ -12,11 +12,7 @@
 
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/Person.hpp"
-#ifdef NEW_SIGNAL
-#include "entities/signal/Signal.hpp"
-#else
 #include "entities/Signal.hpp"
-#endif
 #include "entities/AuraManager.hpp"
 #include "entities/UpdateParams.hpp"
 #include "entities/misc/TripChain.hpp"
@@ -397,7 +393,7 @@ void sim_mob::DriverUpdateParams::reset(frame_t frameNumber, unsigned int currTi
 	perceivedFwdVelocity = 0;
 	perceivedLatVelocity = 0;
 	isTrafficLightStop = false;
-#ifdef NEW_SIGNAL
+#ifdef SIMMOB_NEW_SIGNAL
 	perceivedTrafficColor = sim_mob::Green;
 #else
 	perceivedTrafficColor = Signal::Green; //Green by default
@@ -727,7 +723,7 @@ vector<const Agent*> GetAgentsInCrossing(const Crossing* crossing) {
 
 
 bool sim_mob::Driver::isPedestrianOnTargetCrossing() const {
-	if (!trafficSignal) {
+	if ((!trafficSignal)||(!vehicle->getNextSegment())) {
 		return false;
 	}
 
@@ -750,7 +746,7 @@ bool sim_mob::Driver::isPedestrianOnTargetCrossing() const {
 //			break;
 //		}
 //	}
-#if NEW_SIGNAL
+#ifdef SIMMOB_NEW_SIGNAL
 
 	const Crossing* crossing = nullptr;
 	LinkAndCrossingByLink const &LAC = trafficSignal->getLinkAndCrossingsByLink();
@@ -779,9 +775,9 @@ bool sim_mob::Driver::isPedestrianOnTargetCrossing() const {
 #endif
 
 	//Have we found a relevant crossing?
-	if (crossing) {
-		return false;
-	}
+		if (!crossing) {
+			branch 'master' of ssh://gitremote@soccf-cs-003.ddns.comp.nus.edu.sg/home/gitremote/simmob_remote
+		}
 
 	//Search through the list of agents in that crossing.
 	//------------this cause error
@@ -1652,7 +1648,7 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 		p.isTrafficLightStop = false;
 		perceivedTrafficSignalStop->delay(p.isTrafficLightStop);
 	} else {
-#ifdef NEW_SIGNAL
+#ifdef SIMMOB_NEW_SIGNAL
 		sim_mob::TrafficColor color;
 #else
 		Signal::TrafficColor color;
@@ -1670,7 +1666,7 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 //			color = trafficSignal->getDriverLight(*p.currLane).forward;
 		}
 		switch (color) {
-#ifdef NEW_SIGNAL
+#ifdef SIMMOB_NEW_SIGNAL
 		case sim_mob::Red:
 #else
 		case Signal::Red:
@@ -1679,7 +1675,7 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 
 			p.isTrafficLightStop = true;
 			break;
-#ifdef NEW_SIGNAL
+#ifdef SIMMOB_NEW_SIGNAL
 		case sim_mob::Amber:
 		case sim_mob::Green:
 #else

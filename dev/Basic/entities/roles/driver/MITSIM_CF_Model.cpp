@@ -158,8 +158,10 @@ double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p)
 
 	if(p.perceivedDistToTrafficSignal < 5000)
 	{
-		double dis = p.perceivedDistToTrafficSignal/100;
+
+	double dis = p.perceivedDistToTrafficSignal/100;
 #ifdef NEW_SIGNAL
+#ifdef SIMMOB_NEW_SIGNAL
 		if(p.perceivedTrafficColor == sim_mob::Red)
 				{
 					double a = brakeToStop(p, dis);

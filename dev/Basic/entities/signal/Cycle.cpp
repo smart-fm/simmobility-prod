@@ -1,5 +1,5 @@
 #include "Cycle.hpp"
-#include <cstdlib>
+#include <cmath>
 namespace sim_mob
 {
 void Cycle::Update(double DS/*,sim_mob::Node node*/) {
@@ -25,7 +25,6 @@ double Cycle::setnextCL(double DS/*,sim_mob::Node node*/) {
 //	if(node.location.getX()==37250760 && node.location.getY()==14355120) {
 //#ifndef SIMMOB_DISABLE_OUTPUT
 //		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-//		std::cout<<"DS "<<DS<<std::endl;
 //#endif
 //	}
 

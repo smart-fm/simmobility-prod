@@ -9,7 +9,12 @@
  */
 
 #pragma once
-#if NEW_SIGNAL
+
+//If we're not using the "new signal" flag, just forward this header file to the old location.
+//  This allows us to simply include "entities/signal/Signal.hpp" without reservation.
+#ifndef SIMMOB_NEW_SIGNAL
+#include "entities/Signal.hpp"
+#else
 #include <map>
 #include <vector>
 

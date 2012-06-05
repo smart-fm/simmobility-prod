@@ -59,11 +59,7 @@
 #include "entities/misc/aimsun/TripChain.hpp"
 #include "entities/misc/aimsun/SOCI_Converters.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
-#ifdef NEW_SIGNAL
-#include "entities/signal/Signal.hpp"
-#else
 #include "entities/Signal.hpp"
-#endif
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
@@ -139,7 +135,7 @@ private:
 #endif
 
     void createSignals();
-#ifdef NEW_SIGNAL
+#ifdef SIMMOB_NEW_SIGNAL
     void createPlans();
     void createPhases(unsigned int sid,sim_mob::SplitPlan & plan);
 #endif
@@ -1055,11 +1051,11 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
          * lots of these data are still default(cycle length, offset, choice set.
          * They will be replaced by more realistic value(and input feeders) as the project proceeeds
          */
-#ifdef NEW_SIGNAL
+#ifdef SIMMOB_NEW_SIGNAL
         createPlans();
 #endif
 }
-#ifdef NEW_SIGNAL
+#ifdef SIMMOB_NEW_SIGNAL
 void
 DatabaseLoader::createSignals()
 {

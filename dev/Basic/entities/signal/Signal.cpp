@@ -6,7 +6,7 @@
  *  Created on: 2011-7-18
  *      Author: xrm
  */
-#if NEW_SIGNAL
+#if SIMMOB_NEW_SIGNAL
 #include "Signal.hpp"
 #include <math.h>
 #include "geospatial/Lane.hpp"

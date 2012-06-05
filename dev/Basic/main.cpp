@@ -28,11 +28,7 @@
 #include "util/DailyTime.hpp"
 
 //Just temporarily, so we know it compiles:
-#ifdef NEW_SIGNAL
-#include "entities/signal/Signal.hpp"
-#else
 #include "entities/Signal.hpp"
-#endif
 #include "conf/simpleconf.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/TrafficWatch.hpp"
@@ -367,7 +363,7 @@ bool performMain(const std::string& configFileName) {
 
 int main(int argc, char* argv[])
 {
-#ifdef NEW_SIGNAL
+#ifdef SIMMOB_NEW_SIGNAL
 	std::cout << "Using New Signal Model" << std::endl;
 #else
 	std::cout << "Not Using New Signal Model" << std::endl;

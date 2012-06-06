@@ -61,6 +61,9 @@ public:
 	unsigned int granPathsTicks;      ///<Number of ticks to wait before updating all paths.
 	unsigned int granDecompTicks;     ///<Number of ticks to wait before updating agent decomposition.
 
+	unsigned int agentWorkGroupSize;   ///<Number of workers handling Agents.
+	unsigned int signalWorkGroupSize;  ///<Number of workers handling Signals.
+
 	//reaction time parameters
 	unsigned int reacTime_LeadingVehicle;
 	unsigned int reacTime_SubjectVehicle;

@@ -140,8 +140,8 @@ bool performMain(const std::string& configFileName) {
 
 
 	//Initialize our work groups.
-	bool NoDynamicDispatch = ConfigParams::GetInstance().DynamicDispatchDisabled();
-	WorkGroup agentWorkers(WG_AGENTS_SIZE, config.totalRuntimeTicks, config.granAgentsTicks, true);
+	bool NoDynamicDispatch = config.DynamicDispatchDisabled();
+	WorkGroup agentWorkers(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, true);
 	agentWorkers.initWorkers(NoDynamicDispatch ? nullptr :  &entLoader);
 
 	//Add all agents to workers. If they are in all_agents, then their start times have already been taken
@@ -155,7 +155,7 @@ bool performMain(const std::string& configFileName) {
 	//Initialize our signal status work groups
 	//  TODO: There needs to be a more general way to do this.
 #ifndef TEMP_FORCE_ONE_WORK_GROUP
-	WorkGroup signalStatusWorkers(WG_SIGNALS_SIZE, config.totalRuntimeTicks, config.granSignalsTicks);
+	WorkGroup signalStatusWorkers(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
 	//Worker::ActionFunction spWork = boost::bind(signal_status_worker, _1, _2);
 	signalStatusWorkers.initWorkers(/*&spWork,*/ nullptr);
 #endif

@@ -132,6 +132,23 @@ int ReadGranularity(TiXmlHandle& handle, const std::string& granName)
 }
 
 
+
+int ReadValue(TiXmlHandle& handle, const std::string& propName)
+{
+	TiXmlElement* node = handle.FirstChild(propName).ToElement();
+	if (!node) {
+		return -1;
+	}
+
+	int value;
+	if (!node->Attribute("value", &value)) {
+		return -1;
+	}
+
+	return value;
+}
+
+
 void SplitAndAddString(vector<string>& arr, string str)
 {
     std::istringstream iss(str);
@@ -920,6 +937,11 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	int granPaths = ReadGranularity(handle, "paths");
 	int granDecomp = ReadGranularity(handle, "decomp");
 
+	//Save work group sizes: system
+	handle = handle.FirstChild("config").FirstChild("system").FirstChild("workgroup_sizes");
+	int agentWgSize = ReadValue(handle, "agent");
+	int signalWgSize = ReadValue(handle, "signal");
+
 	//Determine what order we will load Agents in
 	handle = TiXmlHandle(&document);
 	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("load_agents");
@@ -994,7 +1016,8 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
 	//Check
     if(    baseGran==-1 || totalRuntime==-1 || totalWarmup==-1
-    	|| granAgent==-1 || granSignal==-1 || granPaths==-1 || granDecomp==-1 || !simStartStr) {
+    	|| granAgent==-1 || granSignal==-1 || granPaths==-1 || granDecomp==-1 || !simStartStr
+    	|| agentWgSize==-1 || signalWgSize==-1) {
         return "Unable to read config file.";
     }
 
@@ -1034,6 +1057,8 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	config.granSignalsTicks = granSignal/baseGran;
     	config.granPathsTicks = granPaths/baseGran;
     	config.granDecompTicks = granDecomp/baseGran;
+    	config.agentWorkGroupSize = agentWgSize;
+    	config.signalWorkGroupSize = signalWgSize;
     	config.simStartTime = DailyTime(simStartStr);
     	config.reacTime_LeadingVehicle = reacTime_LeadingVehicle;
     	config.reacTime_SubjectVehicle = reacTime_SubjectVehicle;

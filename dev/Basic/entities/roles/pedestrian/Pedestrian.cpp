@@ -21,12 +21,7 @@
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Crossing.hpp"
-#ifdef NEW_SIGNAL
-#include "entities/signal/Signal.hpp"
-#include "entities/signal/Color.hpp"
-#else
 #include "entities/Signal.hpp"
-#endif
 
 #include "util/GeomHelpers.hpp"
 #include "geospatial/Point2D.hpp"
@@ -86,7 +81,7 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent, boost::mt19937& gen) :
 	}
 
 	//Init
-#ifdef NEW_SIGNAL
+#ifdef SIMMOB_NEW_SIGNAL
 	sigColor = sim_mob::Green; //Green by default
 #else
 	sigColor = Signal::Green; //Green by default
@@ -177,7 +172,7 @@ void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 	} else if (currentStage == NavigatingIntersection) {
 		//Check whether to start to cross or not
 		updatePedestrianSignal();
-#ifdef NEW_SIGNAL
+#ifdef SIMMOB_NEW_SIGNAL
 		if (!startToCross) {
 			if (sigColor == sim_mob::Green) //Green phase
 				startToCross = true;

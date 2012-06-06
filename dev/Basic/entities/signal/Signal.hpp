@@ -3,17 +3,21 @@
 /*
  * Signal.hpp
  *
- *  Created on: 2011-7-18
+ *  Created on: 2011-5-1
  *      Author: xrm
  *      Autore: vahid
  */
 
 #pragma once
-#if NEW_SIGNAL
+
+//If we're not using the "new signal" flag, just forward this header file to the old location.
+//  This allows us to simply include "entities/signal/Signal.hpp" without reservation.
+#include "GenConfig.h"
+#ifndef SIMMOB_NEW_SIGNAL
+#include "entities/Signal.hpp"
+#else
 #include <map>
 #include <vector>
-
-#include "GenConfig.h"
 #include "entities/Agent.hpp"
 #include "metrics/Length.hpp"
 #include "util/SignalStatus.hpp"
@@ -32,16 +36,9 @@
 #include <boost/multi_index/composite_key.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 
-
 namespace sim_mob
 {
-using boost::multi_index::multi_index_container;
-using boost::multi_index::ordered_non_unique;
-using boost::multi_index::ordered_unique;
-using boost::multi_index::indexed_by;
-using boost::multi_index::member;
-using boost::multi_index::random_access;
-using boost::multi_index::mem_fun;
+
 // Forwared declarations.
 class Node;
 class Lane;
@@ -55,10 +52,10 @@ typedef struct
     mutable TrafficColor currColor;//can change it directly as it is not a member of any key and it is mutable
 }linkToLink_signal;
 
-typedef multi_index_container<
+typedef boost::multi_index_container<
 		linkToLink_signal,
-		indexed_by<
-		random_access<>
+		boost::multi_index::indexed_by<
+		boost::multi_index::random_access<>
 //    ,ordered_unique<
 //      composite_key<
 //      sim_mob::Link*,
@@ -89,18 +86,18 @@ struct LinkAndCrossing
 };
 
 
-typedef multi_index_container<
-		LinkAndCrossing, indexed_by<
-	 random_access<>															//0
-    ,ordered_unique<member<LinkAndCrossing, size_t , &LinkAndCrossing::id> >//1
-	,ordered_unique<member<LinkAndCrossing, sim_mob::Link const * , &LinkAndCrossing::link> >//2
-	,ordered_non_unique<member<LinkAndCrossing, double , &LinkAndCrossing::angle> >//3
-	,ordered_non_unique<member<LinkAndCrossing, sim_mob::Crossing const * , &LinkAndCrossing::crossing> >//4
+typedef boost::multi_index_container<
+		LinkAndCrossing, boost::multi_index::indexed_by<
+		boost::multi_index::random_access<>															//0
+    ,boost::multi_index::ordered_unique<boost::multi_index::member<LinkAndCrossing, size_t , &LinkAndCrossing::id> >//1
+	,boost::multi_index::ordered_unique<boost::multi_index::member<LinkAndCrossing, sim_mob::Link const * , &LinkAndCrossing::link> >//2
+	,boost::multi_index::ordered_non_unique<boost::multi_index::member<LinkAndCrossing, double , &LinkAndCrossing::angle> >//3
+	,boost::multi_index::ordered_non_unique<boost::multi_index::member<LinkAndCrossing, sim_mob::Crossing const * , &LinkAndCrossing::crossing> >//4
    >
 > LinkAndCrossingC;//Link and Crossing Container(multi index)
-typedef nth_index<LinkAndCrossingC, 2>::type LinkAndCrossingByLink;
-typedef nth_index<LinkAndCrossingC, 3>::type LinkAndCrossingByAngle;
-typedef nth_index<LinkAndCrossingC, 4>::type LinkAndCrossingByCrossing;
+typedef boost::multi_index::nth_index<LinkAndCrossingC, 2>::type LinkAndCrossingByLink;
+typedef boost::multi_index::nth_index<LinkAndCrossingC, 3>::type LinkAndCrossingByAngle;
+typedef boost::multi_index::nth_index<LinkAndCrossingC, 4>::type LinkAndCrossingByCrossing;
 
 typedef LinkAndCrossingByAngle::reverse_iterator LinkAndCrossingIterator;
 typedef LinkAndCrossingByCrossing::iterator SignalCrossingIterator;
@@ -110,11 +107,11 @@ class Signal  : public sim_mob::Agent {
 public:
 
 	/*--------Initialization----------*/
-	void initializeSignal();
+	void initialize();
 	void setSplitPlan(sim_mob::SplitPlan);
 	void setCycleLength(sim_mob::Cycle);
 	Signal(Node const & node, const MutexStrategy& mtxStrat, int id=-1);
-    static Signal const & signalAt(Node const & node, const MutexStrategy& mtxStrat);
+    static Signal const & signalAt(Node const & node, const MutexStrategy& mtxStrat,bool *isNew = false);//bool isNew : since this function will create and return new signal if already existing signals not found, a switch to indicate what happened in the function would be nice
     void addSignalSite(centimeter_t xpos, centimeter_t ypos,std::string const & typeCode, double bearing);
     void findIncomingLanes();
     void findSignalLinks();
@@ -130,13 +127,13 @@ public:
 
 
 	/*--------Updation----------*/
-	void updateSignal(double DS[]);
 	void updateTrafficLights();
 	void updatecurrSplitPlan();
 	void updateOffset();
 	virtual Entity::UpdateStatus update(frame_t frameNumber);
 	void newCycleUpdate();
-	bool updateCurrCycleTimer(frame_t frameNumber);
+	bool updateCurrCycleTimer();
+//	void updateSignal(double DS[]);(not int use)
 
 
 	/*--------Split Plan----------*/
@@ -157,6 +154,7 @@ public:
 
 	/*--------Degree of Saturation----------*/
 	double computeDS();
+	double computePhaseDS(int phaseId);
 	double LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,double total_g);
 	void calProDS_MaxProDS(std::vector<double> &proDS,std::vector<double>  &maxproDS);
 
@@ -167,26 +165,39 @@ public:
 	int fmin_ID(const  std::vector<double>  maxproDS);
 	///Return the loggable representation of this Signal.
 	std::string toString() const { return strRepr; }
-	unsigned int getSignalId()  {return TMP_SignalID;}
+	unsigned int getSignalId()   {return TMP_SignalID;}
+	unsigned int getSignalId() const  {return TMP_SignalID;}
+	bool isIntersection() { return isIntersection_;}
+	void createStringRepresentation();
 
 	/*--------The cause of this Module----------*/
     TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const ;
 	TrafficColor getPedestrianLight(Crossing const & crossing) const;
+	double getUpdateInterval(){return updateInterval; }
+	void cycle_reset();
+	double fmax(std::vector<double> DS);
 
-	typedef multi_index_container<
-			sim_mob::Signal *, indexed_by<
-		 random_access<>															//0
-	    ,ordered_unique<mem_fun<Signal, unsigned int ,&Signal::getSignalId> >//1
+	typedef boost::multi_index_container<
+			sim_mob::Signal *, boost::multi_index::indexed_by<
+			boost::multi_index::random_access<>															//0
+	    ,boost::multi_index::ordered_unique<boost::multi_index::mem_fun<Signal, unsigned int ,&Signal::getSignalId> >//1
 	   >
 	> all_signals;
 
-	static Signal::all_signals all_signals_;
-	static const double updateInterval;
+	static sim_mob::Signal::all_signals all_signals_;
+	//static const double updateInterval;
 
     void updateIndicators();
 
-private:
+    typedef boost::multi_index::nth_index_iterator<Signal::all_signals, 0>::type all_signals_Iterator;
+    typedef boost::multi_index::nth_index_const_iterator<Signal::all_signals, 0>::type all_signals_const_Iterator;
+    typedef boost::multi_index::nth_index<Signal::all_signals, 1>::type all_signals_ID;
+    typedef boost::multi_index::nth_index_iterator<Signal::all_signals, 1>::type all_signals_ID_Iterator;
+    typedef boost::multi_index::nth_index_const_iterator<Signal::all_signals, 1>::type all_signals_ID_const_Iterator;
 
+private:
+    bool isIntersection_;
+    double updateInterval;
     unsigned int TMP_SignalID;//todo change the name to withouth TMP
 
     /* Fixed time or adaptive control */
@@ -197,7 +208,7 @@ private:
     /*The node associated with this traffic Signal */
     sim_mob::Node const & node_;
     //todo check whether we realy need it? (this container and the function filling it)
-    /*check done! only Density vector needs it for its size!!! i.e a count for the number of lines would also do
+    /*check done! only Phase_Density vector needs it for its size!!! i.e a count for the number of lines would also do
      * the job. I don't think we need this but I am not ommitting it until I check wether it will be usefull for the loop detector
      * (how much usful)
      * else, no need to store so many lane pointers unnecessarily
@@ -225,13 +236,13 @@ private:
 	double currCycleTimer;//The amount of time passed since the current cycle started.(in millisecond)
 
     /*-------------------------------------------------------------------------
-     * -------------------Density Indicators-----------------------------------
+     * -------------------Phase_Density Indicators-----------------------------------
      * ------------------------------------------------------------------------*/
      /* -donna what this is, still change it to vector-----
      * update 1: it is used as an argument in updateSignal
      * update 2: probabely this is the DS at each lane(curent assumption) */
-    std::vector<double> Density;
-    //so far this value is used to store the max value in the above(Density) vector
+    std::vector<double> Phase_Density;
+    //so far this value is used to store the max value in the above(Phase_Density) vector
     double DS_all;
 
     /*-------------------------------------------------------------------------
@@ -266,7 +277,7 @@ protected:
         LoopDetectorEntity loopDetector_;
 
 protected:
-        void setupIndexMaps();
+//        void setupIndexMaps();
         void outputToVisualizer(frame_t frameNumber);
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -279,9 +290,6 @@ public:
 #endif
 //	static std::vector< std::vector<double> > SplitPlan;
 };//class Signal
-typedef nth_index_iterator<Signal::all_signals, 0>::type all_signals_Iterator;
-typedef nth_index_const_iterator<Signal::all_signals, 0>::type all_signals_const_Iterator;
-
 
 }//namespace sim_mob
 #endif

@@ -9,10 +9,13 @@
 
 #pragma once
 
+//See entities/signal/Signal.hpp; we're just cross-dispatching here.
+#include "GenConfig.h"
+#ifdef SIMMOB_NEW_SIGNAL
+#include "entities/signal/Signal.hpp"
+#else
 #include <map>
 #include <vector>
-
-#include "GenConfig.h"
 #include "Agent.hpp"
 #include "metrics/Length.hpp"
 #include "util/SignalStatus.hpp"
@@ -313,3 +316,4 @@ public:
 };
 
 }
+#endif

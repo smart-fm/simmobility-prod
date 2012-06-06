@@ -5,11 +5,7 @@
 #ifndef SIMMOB_DISABLE_MPI
 
 #include "entities/Agent.hpp"
-#ifdef NEW_SIGNAL
-#include "entities/signal/Signal.hpp"
-#else
 #include "entities/Signal.hpp"
-#endif
 #include "entities/Person.hpp"
 
 #include "partitions/PackageUtils.hpp"
@@ -199,6 +195,7 @@ void sim_mob::Person::unpackProxy(UnPackageUtils& unpackageUtil) {
 /**
  * Serialization of Signal
  */
+#ifndef SIMMOB_NEW_SIGNAL
 void Signal::packProxy(PackageUtils& packageUtil) {
 
 	//Agent::packageProxy(packageUtil);
@@ -262,6 +259,12 @@ void Signal::unpackProxy(UnPackageUtils& unpackageUtil) {
 	buffered_TC.force(buffered_signal);
 //	debug.outputToConsole("signal 3");
 }
+#else
+//Note: The new signal class will require packing, but don't do it yet
+//       ---we will remove the old Signal class anyway. ~Seth
+void Signal::packProxy(PackageUtils& packageUtil) {}
+void Signal::unpackProxy(UnPackageUtils& unpackageUtil) {}
+#endif
 
 }
 

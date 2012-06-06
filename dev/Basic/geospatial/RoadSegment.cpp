@@ -78,14 +78,12 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
     if (width == 0) {
     	width = totalWidth;
     }
-
 	//First, rebuild the Lane polylines; these will never be specified in advance.
 	bool edgesExist = !laneEdgePolylines_cached.empty();
 	/*if (!edgesExist) {
 		//TODO: The segment width should be saved in the DB somehow? It shouldn't be stored here, that's for sure.
 		width = 300 * lanes.size();
 	}*/
-
 	for (size_t i=0; i<lanes.size(); i++) {
 		if (edgesExist) {
 			makeLanePolylineFromEdges(lanes[i], laneEdgePolylines_cached[i], laneEdgePolylines_cached[i+1]);
@@ -93,7 +91,6 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 			lanes[i]->makePolylineFromParentSegment();
 		}
 	}
-
 	//Next, if our edges array doesn't exist, re-generate it from the computed lanes.
 	if (!edgesExist) {
 		for (size_t i=0; i<=lanes.size(); i++) {
@@ -101,7 +98,6 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 			laneEdgePolylines_cached.push_back(makeLaneEdgeFromPolyline(lanes[edgeIsRight?i:i-1], edgeIsRight));
 		}
 	}
-
 	//TEMP FIX
 	//Now, add one more edge and one more lane representing the sidewalk.
 	//TODO: This requires our function (and several others) to be declared non-const.
@@ -112,14 +108,16 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 	swLane->is_pedestrian_lane(true);
 	swLane->width_ = lanes.back()->width_/2;
 	swLane->polyline_ = sim_mob::ShiftPolyline(lanes.back()->polyline_, lanes.back()->getWidth()/2+swLane->getWidth()/2);
-
 	//Add it, update
 	lanes.push_back(swLane);
 	width += swLane->width_;
-	laneEdgePolylines_cached.push_back(makeLaneEdgeFromPolyline(lanes.back(), false));
 
+	vector<Point2D> res = makeLaneEdgeFromPolyline(lanes.back(), false);
+//	std::cout << "Inside syncLanePolylines() :Before the crash point \n";
+	laneEdgePolylines_cached.push_back(res);//crash -vahid
 	//Add an extra sidewalk on the other side if it's a road segment on a one-way link.
 	sim_mob::Link* parentLink = getLink();
+
 	if(parentLink)
 	{
 		//Check whether the link is one-way
@@ -129,7 +127,6 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 			{
 				lanes[i]->laneID_++;
 			}
-
 			//Add a sidewalk on the other side of the road segment
 			Lane* swLane2 = new Lane(this, 0);
 			swLane2->is_pedestrian_lane(true);
@@ -180,10 +177,9 @@ vector<Point2D> sim_mob::RoadSegment::makeLaneEdgeFromPolyline(Lane* refLane, bo
 	}
 
 	//TEMP:
-	/*std::cout <<"Line: " <<edgeIsRight <<"\n";
-	std::cout <<"  Median:" <<refLane->polyline_.front().getX() <<"," <<refLane->polyline_.front().getY() <<" => " <<refLane->polyline_.back().getX() <<"," <<refLane->polyline_.back().getY()  <<"\n";
-	std::cout <<"  Edge:" <<res.front().getX() <<"," <<res.front().getY() <<" => " <<res.back().getX() <<"," <<res.back().getY()  <<"\n";*/
-
+//	std::cout <<"Line: " <<edgeIsRight <<"\n";
+//	std::cout <<"  Median:" <<refLane->polyline_.front().getX() <<"," <<refLane->polyline_.front().getY() <<" => " <<refLane->polyline_.back().getX() <<"," <<refLane->polyline_.back().getY()  <<"\n";
+//	std::cout <<"  Edge:" <<res.front().getX() <<"," <<res.front().getY() <<" => " <<res.back().getX() <<"," <<res.back().getY()  <<"\n";
 	return res;
 }
 

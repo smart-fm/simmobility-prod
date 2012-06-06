@@ -8,8 +8,6 @@
 #ifndef SIMMOB_DISABLE_MPI
 #include "mpi.h"
 #include <boost/mpi.hpp>
-#include <boost/mpi/environment.hpp>
-#include <boost/mpi/communicator.hpp>
 
 #include <CGAL/Homogeneous.h>
 #include <CGAL/Point_2.h>
@@ -44,11 +42,7 @@
 #include "entities/roles/Role.hpp"
 
 #include "ParitionDebugOutput.hpp"
-#ifdef NEW_SIGNAL
-#include "entities/signal/Signal.hpp"
-#else
 #include "entities/Signal.hpp"
-#endif
 #include "partitions/PartitionManager.hpp"
 
 
@@ -918,12 +912,14 @@ string sim_mob::BoundaryProcessor::outputAllEntities(frame_t time_step)
 		return "";
 	}
 
-	vector<Signal*>::iterator itr_sig = Signal::all_signals_.begin();
+#ifndef SIMMOB_NEW_SIGNAL
+	std::vector<Signal*>::iterator itr_sig = Signal::all_signals_.begin();
 	for (; itr_sig != Signal::all_signals_.end(); itr_sig++)
 	{
 		Signal* one_signal = (*itr_sig);
 		one_signal->frame_output(time_step);
 	}
+#endif
 
 	return "";
 }

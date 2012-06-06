@@ -1,4 +1,4 @@
-//dont worry guys, i will create the cpp file(s) later.
+#pragma once
 #include<map>
 #include<vector>
 #include "geospatial/Link.hpp"
@@ -7,7 +7,6 @@
 //#include "Offset.hpp"
 
 #define NUMBER_OF_VOTING_CYCLES 5
-using namespace std;
 
 namespace sim_mob
 {
@@ -23,11 +22,11 @@ enum TrafficControlMode
 class SplitPlan
 {
 public:
-	typedef multi_index_container<
+	typedef boost::multi_index_container<
 			sim_mob::Phase,
-			indexed_by<
-			random_access<>
-			,ordered_non_unique<member<sim_mob::Phase,const std::string, &Phase::name> >
+			boost::multi_index::indexed_by<
+			boost::multi_index::random_access<>
+			,boost::multi_index::ordered_non_unique<boost::multi_index::member<sim_mob::Phase,const std::string, &Phase::name> >
 	  >
 	> phases;
 private:
@@ -40,10 +39,8 @@ private:
 	std::size_t nextSplitPlanID;
 	std::size_t currPhaseID;//Better Name is: phaseAtGreen (according to TE terminology)The phase which is currently undergoing green, f green, amber etc..
 
-
-//	std::vector<sim_mob::Phase> phases_;
-
 	phases phases_;
+	sim_mob::Signal *parentSignal;
 
 	/*
 	 * the following variable will specify the various choiceSet combinations that
@@ -54,20 +51,28 @@ private:
 	 * everytime a voting procedure is performed, one of the sets of choiceSet are orderly assigned to phases.
 	 */
 
-	std::vector< vector<double> > choiceSet; //choiceSet[Plan][phase]
+	std::vector< std::vector<double> > choiceSet; //choiceSet[Plan][phase]
 
 	/* the following variable keeps track of the votes obtained by each splitplan(I mean phase choiceSet combination)
 	 * ususally a history of the last 5 votings are kept
 	 */
-	std::vector< std::vector<int> > votes;  //votes[cycle][vote]
+	/*
+	 * 			plan1	plan2	plan3	plan4	plan5
+	 * 	iter1	1		0		0		0		0
+	 * 	iter2	0		1		0		0		0
+	 * 	iter3	0		1		0		0		0
+	 * 	iter5	1		0		0		0		0
+	 * 	iter5	0		0		0		1		0
+	 */
+	std::vector< std::vector<int> > votes;  //votes[cycle][plan]
 
 public:
-	typedef nth_index_iterator<phases,0>::type phases_iterator;
-	typedef nth_index_iterator<phases,1>::type phases_name_iterator;
-	typedef nth_index<phases,1>::type plan_phases_view;
+	typedef boost::multi_index::nth_index_iterator<phases,0>::type phases_iterator;
+	typedef boost::multi_index::nth_index_iterator<phases,1>::type phases_name_iterator;
+	typedef boost::multi_index::nth_index<phases,1>::type plan_phases_view;
 	void get_PlanPhasesByName(plan_phases_view & v) const
 	{
-		v = get<1>(phases_);
+		v = boost::multi_index::get<1>(phases_);
 	}
 	/*plan methods*/
 	SplitPlan(double i=90,double j=0);
@@ -79,11 +84,12 @@ public:
 	std::size_t nofPlans();
 	void setcurrSplitPlanID(std::size_t index);
 	void setnextSplitPlan(std::vector<double> DS);
-	void setCoiceSet(std::vector< vector<double> >);
+	void setCoiceSet(std::vector< std::vector<double> >);
 	void setDefaultSplitPlan(int);
+	void initialize();
 
 	/*cycle length related methods*/
-	double getCycleLength();
+	double getCycleLength() const ;
 	void setCycleLength(std::size_t);
 
 	/*phase related methods*/
@@ -112,6 +118,9 @@ public:
 	double fmin_ID(std::vector<double> maxproDS);
 	std::size_t getMaxVote();
 	void fill(double defaultChoiceSet[5][10], int approaches);
+	std::string createStringRepresentation();
+	void setParentSignal(sim_mob::Signal * signal) { parentSignal = signal;}
+	sim_mob::Signal * getParentSignal() { return parentSignal;}
 
 	/*friends*/
 	friend class Signal;

@@ -19,14 +19,12 @@ class SplitPlan;
 
 
 //////////////some bundling ///////////////////
-using namespace ::boost;
-using namespace ::boost::multi_index;
+
 //////////////////// Links ///////////////////////////////////////////////////////////////////////////////////////
 
 struct ll
 {
 	ll(sim_mob::Link *linkto = nullptr):LinkTo(linkto) {
-
 			colorSequence.addColorDuration(Green,0);
 			colorSequence.addColorDuration(Amber,3);//a portion of the total time of the phase length is taken by amber
 			colorSequence.addColorDuration(Red,1);//All red moment ususally takes 1 second
@@ -41,8 +39,6 @@ struct ll
 typedef ll linkToLink;
 
 typedef std::multimap</*linkFrom*/sim_mob::Link *, sim_mob::linkToLink> links_map; //mapping of LinkFrom to linkToLink{which is LinkTo,colorSequence,currColor}
-//typedef links_map::iterator links_map_iterator;
-//typedef links_map::const_iterator links_map_const_iterator;
 
 ////////////////////crossings////////////////////////////////////////////////////////////////////////////////////
 struct crossings
@@ -71,7 +67,7 @@ typedef struct
 }PhaseUpdateResult;
 /////////////////////////////////////////////////////////////////////////////
 typedef std::multimap<sim_mob::Crossing *, sim_mob::Crossings> crossings_map;
-typedef crossings_map::iterator crossings_map_iterator;
+
 typedef crossings_map::const_iterator crossings_map_const_iterator;
 typedef std::pair<crossings_map_const_iterator, crossings_map_const_iterator> crossings_map_equal_range;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -85,19 +81,19 @@ public:
 	typedef links_map::iterator links_map_iterator;
 	typedef links_map::const_iterator links_map_const_iterator;
 	typedef std::pair<links_map_const_iterator, links_map_const_iterator> links_map_equal_range;
-//	Phase(std::string name_,double CycleLenght,std::size_t start, std::size_t percent): name(name_), cycleLength(CycleLenght),startPecentage(start),percentage(percent){
-//		updatePhaseParams();
-//	};
+
+	typedef crossings_map::iterator crossings_map_iterator;
+
 	Phase(){}
 	Phase(std::string name_, sim_mob::SplitPlan *parent = nullptr):name(name_),parentPlan(parent){}
 
-	void setPercentage(std::size_t p)
+	void setPercentage(double p)
 	{
 		percentage = p;
 	}
-	void setCycleLength(std::size_t c)
+	void setPhaseOffset(double p)
 	{
-		cycleLength = c;
+		phaseOffset = p;
 	}
 	links_map_equal_range LinkFrom_Range(sim_mob::Link *LinkFrom)
 	{
@@ -114,33 +110,35 @@ public:
 	links_map_equal_range getLinkTos(sim_mob::Link  *const LinkFrom)const//dont worry about constantization!! :) links_map_equal_range is using a constant iterator
 	{
 		return links_map_.equal_range(LinkFrom);
-//		links_map_equal_range ppp = links_map_.equal_range(LinkFrom);
-//		return ppp;
 	}
-	void addLinkMaping(sim_mob::Link * lf, sim_mob::linkToLink ll)const { links_map_.insert(std::pair<sim_mob::Link *, sim_mob::linkToLink>(lf,ll));}
+	void addLinkMaping(sim_mob::Link * lf, sim_mob::linkToLink ll)const {
+
+		links_map_.insert(std::pair<sim_mob::Link *, sim_mob::linkToLink>(lf,ll));
+	}
 	void addCrossingMapping(sim_mob::Link *,sim_mob::Crossing *, ColorSequence);
 	void addCrossingMapping(sim_mob::Link *,sim_mob::Crossing *);
 	//add crossing to any link of this node which is not involved in this phase
 	void addDefaultCrossings();
 	const links_map & getLinkMaps();
 //	links_map_equal_range  getLinkTos(sim_mob::Link *LinkFrom) ;
-	void updatePhaseParams();
+	void updatePhaseParams(double phaseOffset_, double percentage_);
 	/* Used in computing DS for split plan selection
 	 * the argument is the output
 	 * */
 	void update(double lapse) const;
 	double computeTotalG() const;//total green time
 	const std::string & getPhaseName() { return name;}
-
-
-
+	std::string createStringRepresentation() const;
+	void initialize();
+	void calculateGreen();
+	void calculatePhaseLength();
+	void printColorDuration() ;
 
 	const std::string name; //we can assign a name to a phase for ease of identification
 private:
 	unsigned int TMP_PhaseID;
 	std::size_t startPecentage;
-	std::size_t percentage;
-	double cycleLength;
+	mutable std::size_t percentage;
 	double phaseOffset; //the amount of time from cycle start until this phase start
 	double phaseLength;
 	double total_g;

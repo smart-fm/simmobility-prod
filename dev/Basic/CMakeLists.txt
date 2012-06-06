@@ -29,9 +29,6 @@ option (SIMMOB_DISABLE_OUTPUT  "Disable all mutex-locked output and all addition
 #Option: disable MPI. Use the cmake gui to change this on a per-user basis.
 option (SIMMOB_DISABLE_MPI  "Disable all included files, libraries, and code segments that require MPI." ON)
 
-#Option: disable dynamic dispatch. Use the cmake gui to change this on a per-user basis.
-option (SIMMOB_DISABLE_DYNAMIC_DISPATCH  "Disable dynamic dispatch of Agents. All Agents will be started at time tick zero and will silently skup updates until before their startTime (or after they are done)." OFF)
-
 #Option: compile with c++0x. Use the cmake gui to change this on a per-user basis.
 option (SIMMOB_LATEST_STANDARD  "Attempt to compile Sim Mobility with the latest version of C++ (2011). Untested." OFF)
 

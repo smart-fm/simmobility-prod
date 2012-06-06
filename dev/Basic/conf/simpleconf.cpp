@@ -534,7 +534,7 @@ bool LoadDatabaseDetails(TiXmlElement& parentElem, string& connectionString, map
 		if (!value) {
 			return false;
 		}
-		if (storedProcedures.count(name)!=0) {
+		if (storedProcedures.count(name)>0) {
 			return false;
 		}
 
@@ -938,8 +938,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	//Determine the first ID for automatically generated Agents
 	int startingAutoAgentID = 0; //(We'll need this later)
 	handle = TiXmlHandle(&document);
-	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("auto_id_start");
-	node = handle.ToElement();
+	node = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("auto_id_start").ToElement();
 	if (node) {
 		if (node->Attribute("value", &startingAutoAgentID) && startingAutoAgentID>0) {
 			Agent::SetIncrementIDStartValue(startingAutoAgentID, true);
@@ -963,14 +962,35 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
 
 
-	//Miscelaneous settings
+	//Miscellaneous settings
 	handle = TiXmlHandle(&document);
-	if (handle.FirstChild("config").FirstChild("system").FirstChild("misc").FirstChild("manual_fix_demo_intersection").ToElement()) {
+	node = handle.FirstChild("config").FirstChild("system").FirstChild("misc").FirstChild("manual_fix_demo_intersection").ToElement();
+	if (node) {
 		ConfigParams::GetInstance().TEMP_ManualFixDemoIntersection = true;
 		cout <<">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" <<endl;
 		cout <<"Manual override used for demo intersection." <<endl;
 		cout <<"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" <<endl;
 	}
+
+	//Misc.: disable dynamic dispatch?
+	handle = TiXmlHandle(&document);
+	node = handle.FirstChild("config").FirstChild("system").FirstChild("misc").FirstChild("disable_dynamic_dispatch").ToElement();
+	if (node) {
+		const char* valStr_c = node->Attribute("value");
+		if (valStr_c) {
+			std::string valStr(valStr_c);
+			if (valStr == "true") {
+				ConfigParams::GetInstance().dynamicDispatchDisabled = true;
+			} else if (valStr == "false") {
+				ConfigParams::GetInstance().dynamicDispatchDisabled = false;
+			} else {
+				return "Invalid parameter; expecting boolean.";
+			}
+		}
+	}
+
+	std::cout <<"Dynamic dispatch: " <<(ConfigParams::GetInstance().dynamicDispatchDisabled ? "DISABLED" : "Enabled") <<std::endl;
+
 
 	//Check
     if(    baseGran==-1 || totalRuntime==-1 || totalWarmup==-1

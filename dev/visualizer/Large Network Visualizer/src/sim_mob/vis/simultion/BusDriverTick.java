@@ -34,8 +34,8 @@ public class BusDriverTick extends DriverTick {
 	private int passengerCount;
 
 	
-	public BusDriverTick(double posX, double posY, double angle, int passengerCount) {
-		super(posX, posY, angle, null);
+	public BusDriverTick(int id, double posX, double posY, double angle, int passengerCount) {
+		super(id, posX, posY, angle, null);
 		this.passengerCount = passengerCount;
 
 		//Make our images

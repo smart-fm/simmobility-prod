@@ -71,7 +71,7 @@ double Cycle::setnextCL(double DS/*,sim_mob::Node node*/) {
 	 }*/
 
 	//set the maximum change as 6s
-	if (abs(RL - currCL) <= 6) {
+	if (std::abs(RL - currCL) <= 6) {
 		nextCL = RL;
 	} else {
 		nextCL = currCL + sign * 6;
@@ -79,7 +79,7 @@ double Cycle::setnextCL(double DS/*,sim_mob::Node node*/) {
 
 	//when the maximum changes in last two cycle are both larger than 6s, the value can be set as 9s
 	if (((nextCL - currCL) >= 6 && (currCL - prevCL) >= 6) || ((nextCL - currCL) <= -6 && (currCL - prevCL) <= -6)) {
-		if (abs(RL - currCL) <= 9) {
+		if (std::abs(RL - currCL) <= 9) {
 			nextCL = RL;
 		} else {
 			nextCL = currCL + sign * 9;

@@ -6,8 +6,7 @@
  *  Created on: 2011-7-18
  *      Author: xrm
  */
-#define  NEW_SIGNAL
-#ifndef NEW_SIGNAL
+
 #pragma once
 
 //See entities/signal/Signal.hpp; we're just cross-dispatching here.

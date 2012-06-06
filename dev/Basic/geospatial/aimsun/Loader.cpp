@@ -136,7 +136,7 @@ private:
 
     void createSignals();
 #ifdef SIMMOB_NEW_SIGNAL
-    void createPlans();
+    void createPlans(sim_mob::Signal & signal);
     void createPhases(unsigned int sid,sim_mob::SplitPlan & plan);
 #endif
 };
@@ -1051,7 +1051,8 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
          * They will be replaced by more realistic value(and input feeders) as the project proceeeds
          */
 #ifdef SIMMOB_NEW_SIGNAL
-        createPlans();
+        //NOTE: I am disabling this for now; it seems to be done in createSignals() ~Seth
+        //createPlans();
 #endif
 }
 #ifdef SIMMOB_NEW_SIGNAL

@@ -1,5 +1,9 @@
 #include "SplitPlan.hpp"
 #include<stdio.h>
+
+using namespace boost::multi_index;
+using std::vector;
+
 namespace sim_mob
 {
 

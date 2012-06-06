@@ -58,8 +58,6 @@ public class PedestrianTick extends AgentTick {
 		}
 	} */
 	private boolean fake;
-	private int ID;
-	public int getID(){return ID;}
 
 	
 	/**
@@ -67,7 +65,9 @@ public class PedestrianTick extends AgentTick {
 	 *       When we re-scale, every car on every time tick has its position scaled. We should 
 	 *       limit this to the current frame, and then continue to scale frames as they arrive. 
 	 */
-	public PedestrianTick(double posX, double posY) {
+	public PedestrianTick(int id, double posX, double posY) {
+		super(id);
+		
 		this.pos = new FlippedScaledPoint(posX, posY);
 		this.fake  = false;
 		
@@ -141,9 +141,7 @@ public class PedestrianTick extends AgentTick {
 	public void setItFake(){
 		fake = true;
 	}
-	public void setID(int id){
-		this.ID = id;
-	}
+
 	
 	private static Random r = new Random();
 	
@@ -234,7 +232,7 @@ public class PedestrianTick extends AgentTick {
 		g.setFont(idFont);
 		g.setStroke(new BasicStroke(0.5F));
 		
-		String id = Integer.toString(ID);
+		String id = Integer.toString(getID());
 		g.drawString(id, 0, 0);
 
 		//Restore AffineTransform matrix.

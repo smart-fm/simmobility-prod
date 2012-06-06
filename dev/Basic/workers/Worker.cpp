@@ -42,30 +42,27 @@ std::vector<Entity*>& sim_mob::Worker::getEntities() {
 }
 
 
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 void sim_mob::Worker::scheduleForAddition(Entity* entity)
 {
-	//Save for later
-	toBeAdded.push_back(entity);
+	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+		//Add it now.
+		migrateIn(*entity);
+	} else {
+		//Save for later
+		toBeAdded.push_back(entity);
+	}
 }
 
 
 void sim_mob::Worker::scheduleForRemoval(Entity* entity)
 {
-	//Save for later
-	toBeRemoved.push_back(entity);
+	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+		//Nothing to be done.
+	} else {
+		//Save for later
+		toBeRemoved.push_back(entity);
+	}
 }
-
-#else
-
-void sim_mob::Worker::scheduleEntityNow(Entity* entity)
-{
-	//Add it now.
-	migrateIn(*entity);
-}
-
-
-#endif
 
 
 
@@ -258,9 +255,7 @@ void sim_mob::Worker::perform_main(frame_t frameNumber)
 		UpdateStatus res = (*it)->update(frameNumber);
 		if (res.status == UpdateStatus::RS_DONE) {
 			//This Entity is done; schedule for deletion.
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 			scheduleForRemoval(*it);
-#endif
 		} else if (res.status == UpdateStatus::RS_CONTINUE) {
 			//Still going, but we may have properties to start/stop managing
 			for (set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {

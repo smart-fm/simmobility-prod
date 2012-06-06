@@ -65,12 +65,8 @@ public:
 	void remEntity(Entity* entity);
 	std::vector<Entity*>& getEntities();
 
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	void scheduleForAddition(Entity* entity);
 	void scheduleForRemoval(Entity* entity);
-#else
-	void scheduleEntityNow(Entity* entity);
-#endif
 
 	int getAgentSize() { return managedEntities.size(); }
 

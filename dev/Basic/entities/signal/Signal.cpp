@@ -53,8 +53,8 @@ Signal::signalAt(Node const & node, const MutexStrategy& mtxStrat, bool *isNew )
 void Signal::createStringRepresentation()
 {
 	std::ostringstream output;
-			output << "(\"Signal-location\":\"" <<  TMP_SignalID << "\",";
-			output << "{\"node\":\"" << node_.getID() << "\",";
+			output << "(\"Signal-location\", " << this << ",{\"id\":\"" <<  TMP_SignalID << "\",";
+			output << "\"node\": " << &node_ << ",";
 			output << plan_.createStringRepresentation();
 			output << "})";
 			strRepr = output.str();//all the aim of the unrelated part
@@ -401,26 +401,22 @@ bool Signal::updateCurrCycleTimer() {
  */
 UpdateStatus Signal::update(frame_t frameNumber) {
 	if(!isIntersection_) return UpdateStatus::Continue;
-
+	LogOut("(TrafficLightUpdate, " << this << std::endl << plan_.outputTrafficLights() << ")" << std::endl);
 //	1- update current cycle timer( Signal::currCycleTimer)
 	isNewCycle = updateCurrCycleTimer();
 	//if the phase has changed, here we dont update currPhaseID to a new value coz we still need some info(like DS) obtained during the last phase
+	//	3-Update Current Phase
 	int temp_PhaseId = plan_.computeCurrPhase(currCycleTimer);
-	if((plan_.phases_[currPhaseID].getName() == "C")&&(plan_.phases_[temp_PhaseId].getName() == "D"))
-	{
-		std::cout << "suspecious C to D phase CHANGE ,currCycleTimer( " << currCycleTimer << ")" << std::endl;
-	}
+
 //	2- update current phase color
-	if(currPhaseID < plan_.phases_.size())
+	if(temp_PhaseId < plan_.phases_.size())
 		{
 			plan_.phases_[temp_PhaseId].update(currCycleTimer);
 			plan_.printColors(currCycleTimer);
-//			getchar();
 		}
 	else
 		throw std::runtime_error("currPhaseID out of range");
-//	3-Update Current Phase
-//	int temp_PhaseId = plan_.computeCurrPhase(currCycleTimer);
+
 	if(currPhaseID != temp_PhaseId)//separated coz we may need to transfer computeDS here
 		{
 			std::cout << "The New Phase is : " << plan_.phases_[temp_PhaseId].getName() << std::endl;

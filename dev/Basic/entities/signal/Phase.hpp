@@ -135,6 +135,7 @@ public:
 	void printColorDuration() ;
 	void printPhaseColors(double currCycleTimer) const;
 	const std::string & getName() const;
+	 std::string outputPhaseTrafficLight() const;
 
 	const std::string name; //we can assign a name to a phase for ease of identification
 private:

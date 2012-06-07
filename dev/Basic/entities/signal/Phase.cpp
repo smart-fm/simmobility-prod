@@ -214,4 +214,48 @@ const std::string & Phase::getName() const
 {
 	return name;
 }
+
+std::string Phase::outputPhaseTrafficLight() const
+{
+	std::ostringstream output;
+	if(links_map_.size() == 0 && crossings_map_.size() == 0) return 0;
+	output << "\"Phase_" << name << "\"{";
+	int i = 0;
+	if(links_map_.size())
+	{
+		output << "\"Link\"{";
+		links_map_iterator it = links_map_.begin();
+		while(it != links_map_.end())
+		{
+			output << (*it).first << ":";             //linkFrom
+			output << (*it).second.LinkTo << ":";     //linkTo
+			output << (*it).second.currColor;         //currentColor
+			it++;
+			if(it != links_map_.end())
+				output << ",";
+
+		}
+		output << "}";
+	}
+
+
+	if(crossings_map_.size())
+	{
+		output << "\"Crossing\"{";
+		crossings_map_iterator it = crossings_map_.begin();
+		while(it != crossings_map_.end())
+		{
+			output << (*it).first ;            //crossing *
+			output << (*it).second.currColor ; // current color
+			it++;
+			if(it != crossings_map_.end())
+				output << ",";
+
+		}
+		output << "}";
+	}
+
+	output << "}";
+	return output.str();
+}
 }//namespace

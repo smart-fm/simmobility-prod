@@ -1,5 +1,6 @@
 #include "SplitPlan.hpp"
 #include<stdio.h>
+#include<sstream>
 
 using namespace boost::multi_index;
 using std::vector;
@@ -326,6 +327,27 @@ SplitPlan::printColors(double currCycleTimer)
 		it++;
 	}
 }
+
+std::string SplitPlan::outputTrafficLights(int phaseId)
+{
+//	if (phaseId > phases_.size())
+//	{
+//		std::ostringstream err;
+//		err << "phaseId out of range.. phaseId:" << phaseId << " phases_.size():"<<  phases_.size() << std::endl;
+//		throw std::runtime_error(err.str());
+//	}
+	if (phaseId >= 0)
+		return phases_[phaseId].outputPhaseTrafficLight();
+	std::ostringstream output;
+	phases_iterator it = phases_.begin();
+	while (it != phases_.end())
+	{
+		output  << (*it).outputPhaseTrafficLight() << "\n";
+		it++;
+	}
+	return output.str();
+}
+
 
 };//namespace
 

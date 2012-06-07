@@ -212,9 +212,20 @@ void DatabaseLoader::LoadPhase(const std::string& storedProc)
 	int i=0;
 	for(soci::rowset<Phase>::const_iterator it=rs.begin(); it!=rs.end(); ++it,i++)
 	{
+//		if(it->nodeId == 115436) { std::cout << " node 115436 is in the LoadPhase game\n"; getchar();}
 		map<int, Section>::iterator from = sections_.find(it->sectionFrom), to = sections_.find(it->sectionTo);
 		//since the section index in sections_ and phases_ are read from two different tables, inconsistecy check is a must
-		if((from ==sections_.end())||(to ==sections_.end())) continue; //you are not in the sections_ container
+		if((from ==sections_.end())||(to ==sections_.end()))
+			{
+				if(it->nodeId == 115436) {
+					std::cout << " but node 115436 was kicked out the LoadPhase game ---reason:\n";
+					if(from ==sections_.end()) std::cout << " from section not found \n";
+					if(to ==sections_.end()) std::cout << " to section not found \n";
+					 getchar();
+				}
+
+				continue; //you are not in the sections_ container
+			}
 		it->ToSection = &sections_[it->sectionTo];
 		it->FromSection = &sections_[it->sectionFrom];
 		phases_.insert(pair<int,Phase>(it->nodeId,*it));
@@ -416,6 +427,7 @@ DatabaseLoader::LoadTrafficSignals(std::string const & storedProcedure)
         signal.xPos *= 100;
         signal.yPos *= 100;
         signals_.insert(std::make_pair(signal.id, signal));
+//        if(signal.nodeId == 115436) { std::cout << "We have a signal 115436 oin our DB\n"; getchar();}
 
     }
 }
@@ -1066,6 +1078,7 @@ DatabaseLoader::createSignals()
     for (map<int, Signal>::const_iterator iter = signals_.begin(); iter != signals_.end(); ++iter,j++)
     {
         Signal const & dbSignal = iter->second;
+//        if(dbSignal.nodeId == 115436) { std::cout << " node115436 is in the createSignals game\n"; getchar();}
         map<int, Node>::const_iterator iter2 = nodes_.find(dbSignal.nodeId);
         //filter out signals which are not in the territory of our nodes_
         if (iter2 == nodes_.end())
@@ -1074,6 +1087,7 @@ DatabaseLoader::createSignals()
             stream << "cannot find node (id=" << dbSignal.nodeId
                    << ") in the database for signal id=" << iter->first;
 //            throw std::runtime_error(stream.str());
+            if(dbSignal.nodeId == 115436) { std::cout << " node 115436 is getting kicked out 1\n"; getchar();}
             continue;
         }
 
@@ -1131,15 +1145,19 @@ DatabaseLoader::createSignals()
     	if(ppp.first == ppp.second)
     	{
     		std::cout << "There is no phase associated with this signal candidate, bypassing\n";
+    		 if(node->getID() == 115436) { std::cout << " node 115436 is getting kicked out 2\n"; getchar();}
     		continue;
     	}
+//    	if( node->getID() != 66508) continue;//todo remove after testing
     	bool isNew = false;
         const sim_mob::Signal & signal = sim_mob::Signal::signalAt(*node, sim_mob::ConfigParams::GetInstance().mutexStategy, &isNew);
-
+//        if(node->getID() == 115436) { std::cout << " node 115436 sofar has a signal\n"; getchar();}
         //sorry I am calling the following function out of signal constructor. I am heavily dependent on the existing code
-        //so sometimes a new functionality needs to be taken care of separately-vahid
+        //so sometimes a new functionality(initialize) needs to be taken care of separately
+        //while it should be called with in other functions(constructor)-vahid
         if(isNew)
         {
+//        	if(node->getID() == 115436) { std::cout << " node 115436's signal is going to create plans....\n"; getchar();}
         	createPlans(const_cast<sim_mob::Signal &>(signal));
         	const_cast<sim_mob::Signal &>(signal).initialize();
         	nof_signals++;

@@ -15,20 +15,43 @@ namespace sim_mob
 	 */
 	void Phase::update(double currentCycleTimer) const
 	{
-		//todo: avoid color updation if already end of cycle
+		std::ostringstream o;
+
 		double lapse = currentCycleTimer - phaseOffset;
+		//todo: avoid color updation if already end of cycle--update the following line just did that:
+		//when time lapse i= zero it means either
+		//1-signal update was called at time zero(which is not likely)
+		//or
+		//2-you are at the beginning of this phase so the rest(computeColor) will be ok
+		if(lapse < 0)
+			{
+			std::cout << "Phase " << name << " update: " << "RETURNING lapse( " << lapse << ")=currentCycleTimer(" << currentCycleTimer << ") - phaseOffset(" << phaseOffset << ")" << std::endl;
+				return;
+			}
 		//update each link-link signal's color
 		links_map_iterator link_it = links_map_.begin();
 		for(;link_it != links_map_.end() ; link_it++)
 		{
+			/*
+			 * if no time lapse, don't change the color
+			 * this is especialy important when a full cycle has passed and current cycle timer is zero!
+			 * then instead of moving to the first phase , again the last phase may reset to green
+			 */
+			//
+//			std::cout << "Phase " << name << " update: " << "lapse( " << lapse << ")=currentCycleTimer(" << currentCycleTimer << ") - phaseOffset(" << phaseOffset << ")" << std::endl;
 			(*link_it).second.currColor = (*link_it).second.colorSequence.computeColor(lapse);
+			if(((*link_it).second.currColor > sim_mob::FlashingGreen) || ((*link_it).second.currColor < sim_mob::Red))
+			{
+				o << "currentCycleTimer :" << currentCycleTimer << "  phaseOffset :" << phaseOffset  << "--->lapse :" << lapse << "\n creates out of range color";
+				throw std::runtime_error(o.str());
+			}
 		}
 		//update each crossing signal's color
 		//common sense says there is only one crossing per link, but I kept a container for it just in case
 		crossings_map_iterator crossing_it = crossings_map_.begin();
 		for(;crossing_it != crossings_map_.end() ; crossing_it++)
 		{
-			(*crossing_it).second.currColor = (*crossing_it).second.colorSequence.computeColor(lapse);
+			if(lapse > 0) (*crossing_it).second.currColor = (*crossing_it).second.colorSequence.computeColor(lapse);
 		}
 
 	}
@@ -114,7 +137,8 @@ namespace sim_mob
 void Phase::initialize(){
 	calculatePhaseLength();
 	calculateGreen();
-	printColorDuration();
+//	printColorDuration();
+	std::cout << "phase: " << name << "   PhaseLength: " << phaseLength << "   offset: " << phaseOffset << std::endl;
 }
 void Phase::printColorDuration()
 {
@@ -126,7 +150,7 @@ void Phase::printColorDuration()
 		int greenIndex=-1, tempgreenIndex = -1;
 		for(; it_color != cd.end(); it_color++)
 		{
-			std::cout << "	color id(" <<  it_color->first << ") : " << it_color->second <<  std::endl;
+			std::cout << "	color id(" <<  sim_mob::getColor(it_color->first) << ") : " << it_color->second <<  std::endl;
 		}
 		std::cout << "----------------------------------------------------------------" << std::endl;
 	}
@@ -174,6 +198,20 @@ void Phase::calculateGreen(){
 			cs.getColorDuration().at(greenIndex).second = phaseLength - other_than_green;
 		}
 	}
+}
 
+void Phase::printPhaseColors(double currCycleTimer) const
+{
+	for(links_map_iterator it = links_map_.begin()  ; it != links_map_.end(); it++)
+	{
+//		std::cout << name << " (" << (*it).first << " : " << (*it).second.LinkTo << ") ::" << sim_mob::getColor((*it).second.currColor) << "  currCycleTimer: " << currCycleTimer < std::endl;
+		std::cout << name << "(currCycleTimer: " << currCycleTimer<< " , phaseLength: " <<  phaseLength << ") ::"<< sim_mob::getColor((*it).second.currColor)  << std::endl;
+	}
+
+
+}
+const std::string & Phase::getName() const
+{
+	return name;
 }
 }//namespace

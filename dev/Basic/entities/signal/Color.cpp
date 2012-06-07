@@ -5,6 +5,7 @@ namespace sim_mob
 
 TrafficColor ColorSequence::computeColor(double Duration)
 {
+
 	std::size_t sum = 0;
 	std::vector< std::pair<TrafficColor,std::size_t> >::iterator it = ColorDuration.begin();
 	for(; it != ColorDuration.end(); it++)
@@ -16,7 +17,9 @@ TrafficColor ColorSequence::computeColor(double Duration)
 			}
 	}
 	//the return inside the loop must execute befor the loop exits otherwise something is wrong!
-	return (*it).first; //will return the last color in the sequence if there is an error!
+//	std::cout << "returniung " << sim_mob::getColor((*it).first); getchar();
+//	return ColorDuration[ColorDuration.size() -1].first; //will return the last color in the sequence if there is an error!
+	return sim_mob::Red;
 }
 
 void ColorSequence::setColorDuration(std::vector< std::pair<TrafficColor,std::size_t> > cs)

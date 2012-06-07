@@ -35,16 +35,7 @@ namespace sim_mob
 
 Signal::all_signals Signal::all_signals_;
 
-//find the max DS
-double Signal::fmax(std::vector<double> DS) {
-	double max = DS[0];
-	for (int i = 0; i < DS.size(); i++) {
-		if (DS[i] > max) {
-			max = DS[i];
-		}
-	}
-	return max;
-}
+
 Signal const &
 Signal::signalAt(Node const & node, const MutexStrategy& mtxStrat, bool *isNew ) {
 	*isNew = false;
@@ -82,7 +73,7 @@ Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id)
 	currSplitPlanID = 0;
 	phaseCounter = 0;
 	currCycleTimer = 0;
-	DS_all = 0;
+//	DS_all = 0;
 	currCL = 0;
 	currPhaseID = 0;
 	isNewCycle = false;
@@ -96,14 +87,15 @@ Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id)
 	findIncomingLanes();//what was it used for? only Density?
 	//it would be better to declare it as static const
 	updateInterval = sim_mob::ConfigParams::GetInstance().granSignalsTicks * sim_mob::ConfigParams::GetInstance().baseGranMS / 1000;
+	currCycleTimer = 0;
 //    setupIndexMaps();  I guess this function is Not needed any more
 }
 
-/* Set the cycle length and Initialize its Indicators in the signal class*/
-void Signal::setCycleLength(sim_mob::Cycle cycle)
-{
-	cycle_ = cycle;
-}
+///* Set the cycle length and Initialize its Indicators in the signal class*/
+//void Signal::setCycleLength(sim_mob::Cycle cycle)
+//{
+//	cycle_ = cycle;
+//}
 
 // Return the Crossing object, if any, in the specified road segment.  If there are more
 // than one Crossing objects, return the one that has the least offset.
@@ -257,40 +249,40 @@ int Signal::fmin_ID(const std::vector<double> maxproDS) {
  * 								 getMaxDS
  * 								 getMaxPhaseDS
  */
-double Signal::computeDS() {
-	double lane_DS = 0, maxPhaseDS = 0, maxDS = 0;
-	sim_mob::SplitPlan::phases_iterator p_it = plan_.phases_.begin();
-	for(int i = 0 ;p_it != plan_.phases_.end(); p_it++)//Loop1===>phase
-	{
-		maxPhaseDS = 0;
-
-		double total_g = (*p_it).computeTotalG();//todo: I guess we can avoid calling this function EVERY time by adding an extra container at split plan level.(mapped to choiceSet container)
-		sim_mob::Phase::links_map_iterator link_it = (*p_it).LinkFrom_begin();
-		for (; link_it != (*p_it).LinkFrom_end(); link_it++) {//Loop2===>link
-			std::set<sim_mob::RoadSegment*> segments = (*link_it).first->getUniqueSegments();//optimization: use either fwd or bed segments
-			std::set<sim_mob::RoadSegment*>::iterator seg_it =	segments.begin();
-			for (; seg_it != segments.end(); seg_it++) {//Loop3===>road segment
-				//discard the segments that don't end here(coz those who don't end here, don't cross the intersection neither)
-				//sim_mob::Link is bi-directionl so we use RoadSegment's start and end to imply direction
-				if ((*seg_it)->getEnd() != &node_)	continue;
-				const std::vector<sim_mob::Lane*> lanes = (*seg_it)->getLanes();
-				for (std::size_t i = 0; i < lanes.size(); i++) {//Loop4===>lane
-					const Lane* lane = nullptr;
-					lane = lanes.at(i);
-					if (lane->is_pedestrian_lane())	continue;
-					const LoopDetectorEntity::CountAndTimePair& ctPair = loopDetector_.getCountAndTimePair(*lane);
-					lane_DS = LaneDS(ctPair, total_g);
-					if (lane_DS > maxPhaseDS)	maxPhaseDS = lane_DS;
-					if (lane_DS > maxDS)		maxDS = lane_DS;
-				}
-			}
-
-		}
-		Phase_Density[i++] = maxPhaseDS;
-	}
-	DS_all = maxDS;
-	return (DS_all);
-}
+//double Signal::computeDS() {
+//	double lane_DS = 0, maxPhaseDS = 0, maxDS = 0;
+//	sim_mob::SplitPlan::phases_iterator p_it = plan_.phases_.begin();
+//	for(int i = 0 ;p_it != plan_.phases_.end(); p_it++)//Loop1===>phase
+//	{
+//		maxPhaseDS = 0;
+//
+//		double total_g = (*p_it).computeTotalG();//todo: I guess we can avoid calling this function EVERY time by adding an extra container at split plan level.(mapped to choiceSet container)
+//		sim_mob::Phase::links_map_iterator link_it = (*p_it).LinkFrom_begin();
+//		for (; link_it != (*p_it).LinkFrom_end(); link_it++) {//Loop2===>link
+//			std::set<sim_mob::RoadSegment*> segments = (*link_it).first->getUniqueSegments();//optimization: use either fwd or bed segments
+//			std::set<sim_mob::RoadSegment*>::iterator seg_it =	segments.begin();
+//			for (; seg_it != segments.end(); seg_it++) {//Loop3===>road segment
+//				//discard the segments that don't end here(coz those who don't end here, don't cross the intersection neither)
+//				//sim_mob::Link is bi-directionl so we use RoadSegment's start and end to imply direction
+//				if ((*seg_it)->getEnd() != &node_)	continue;
+//				const std::vector<sim_mob::Lane*> lanes = (*seg_it)->getLanes();
+//				for (std::size_t i = 0; i < lanes.size(); i++) {//Loop4===>lane
+//					const Lane* lane = nullptr;
+//					lane = lanes.at(i);
+//					if (lane->is_pedestrian_lane())	continue;
+//					const LoopDetectorEntity::CountAndTimePair& ctPair = loopDetector_.getCountAndTimePair(*lane);
+//					lane_DS = LaneDS(ctPair, total_g);
+//					if (lane_DS > maxPhaseDS)	maxPhaseDS = lane_DS;
+//					if (lane_DS > maxDS)		maxDS = lane_DS;
+//				}
+//			}
+//
+//		}
+//		Phase_Density[i++] = maxPhaseDS;
+//	}
+//	DS_all = maxDS;
+//	return (DS_all);
+//}
 
 //This function will calculate the DS at the end of each phase considering only the max DS of lane in the LinkFrom(s)
 //LinkFrom(s) are the links from which vehicles enter the intersection during the corresponding phase
@@ -355,28 +347,32 @@ void Signal::cycle_reset()
 {
 	loopDetector_.reset();//extra
 	isNewCycle = false;
-	DS_all = 0;
+//	DS_all = 0;
 	for(int i = 0; i < Phase_Density.size(); Phase_Density[i++] = 0);
 }
 
 //This is a part of signal::update function that is executed only if a new cycle has reached
 void Signal::newCycleUpdate()
 {
+	std::cout << "Inside newCycleUpdate \n";
+
 	//	4-Compute DS for cycle length, split plan and offset selection---update, DS is computed during phase change, and will be presented here
 //	std::cout << "DS_all = " << DS_all << std::endl;
-		DS_all = fmax(Phase_Density);
-		std::cout << "DS_all = " << DS_all << std::endl;
+//		DS_all = fmax(Phase_Density);
+//		std::cout << "DS_all = " << DS_all << std::endl;
 	//	5-update cycle length
-		cycle_.Update(DS_all);
+
 	//	6-update split plan
 		plan_.Update(Phase_Density);
 	//	7-update offset
-		offset_.update(cycle_.getnextCL());
-		updateIndicators();//i guess except currCycleTimer which was updated first to serv the other functions.
+//		offset_.update(cycle_.getnextCL());
+//		updateIndicators();//i guess except currCycleTimer which was updated first to serv the other functions.
 	//	updateSignal(Phase_Density);
 		cycle_reset();
 		loopDetector_.reset();//extra
 		isNewCycle = false;
+//		getchar();
+
 }
 
 bool Signal::updateCurrCycleTimer() {
@@ -386,6 +382,7 @@ bool Signal::updateCurrCycleTimer() {
 			is_NewCycle = true;
 		}
 	//even if it is a new cycle(and a ew cycle length, the currCycleTimer will hold the amount of time system has proceeded to the new cycle
+
 	currCycleTimer =  std::fmod((currCycleTimer + updateInterval) , plan_.getCycleLength());
 	return is_NewCycle;
 }
@@ -404,16 +401,29 @@ bool Signal::updateCurrCycleTimer() {
  */
 UpdateStatus Signal::update(frame_t frameNumber) {
 	if(!isIntersection_) return UpdateStatus::Continue;
+
 //	1- update current cycle timer( Signal::currCycleTimer)
 	isNewCycle = updateCurrCycleTimer();
+	//if the phase has changed, here we dont update currPhaseID to a new value coz we still need some info(like DS) obtained during the last phase
+	int temp_PhaseId = plan_.computeCurrPhase(currCycleTimer);
+	if((plan_.phases_[currPhaseID].getName() == "C")&&(plan_.phases_[temp_PhaseId].getName() == "D"))
+	{
+		std::cout << "suspecious C to D phase CHANGE ,currCycleTimer( " << currCycleTimer << ")" << std::endl;
+	}
 //	2- update current phase color
-	if(currPhaseID < plan_.phases_.size())	plan_.phases_[currPhaseID].update(currCycleTimer);
+	if(currPhaseID < plan_.phases_.size())
+		{
+			plan_.phases_[temp_PhaseId].update(currCycleTimer);
+			plan_.printColors(currCycleTimer);
+//			getchar();
+		}
 	else
 		throw std::runtime_error("currPhaseID out of range");
 //	3-Update Current Phase
-	int temp_PhaseId = plan_.computeCurrPhase(currCycleTimer);
+//	int temp_PhaseId = plan_.computeCurrPhase(currCycleTimer);
 	if(currPhaseID != temp_PhaseId)//separated coz we may need to transfer computeDS here
 		{
+			std::cout << "The New Phase is : " << plan_.phases_[temp_PhaseId].getName() << std::endl;
 			computePhaseDS(currPhaseID);
 			currPhaseID  = temp_PhaseId;
 		}
@@ -428,7 +438,7 @@ UpdateStatus Signal::update(frame_t frameNumber) {
 
 void Signal::updateIndicators()
 {
-	currCL = cycle_.getcurrCL();
+//	currCL = cycle_.getcurrCL();
 	currPhaseID = plan_.CurrPhaseID();
 	currOffset = offset_.getcurrOffset();
 	currSplitPlanID = plan_.CurrSplitPlanID();

@@ -1,5 +1,6 @@
 #include "defaults.hpp"
 
+#pragma once
 namespace sim_mob {
 
 class Cycle {
@@ -22,6 +23,7 @@ public:
 	void Update(double DS);
 	void updateprevCL();
 	void updatecurrCL();
+	void setCurrCL(double length) { currCL = length; }//used for initial feed
 };
 
 

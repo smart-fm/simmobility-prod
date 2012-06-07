@@ -524,6 +524,7 @@ bool LoadDatabaseDetails(TiXmlElement& parentElem, string& connectionString, map
 	//Now, load the stored procedure mappings
 	elem = handle.FirstChild("mappings").FirstChild().ToElement();
 	if (!elem) {
+
 		return false;
 	}
 
@@ -532,6 +533,7 @@ bool LoadDatabaseDetails(TiXmlElement& parentElem, string& connectionString, map
 		string name = elem->ValueStr();
 		const char* value = elem->Attribute("procedure");
 		if (!value) {
+
 			return false;
 		}
 		if (storedProcedures.count(name)!=0) {

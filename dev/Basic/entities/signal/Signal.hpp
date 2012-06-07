@@ -109,7 +109,7 @@ public:
 	/*--------Initialization----------*/
 	void initialize();
 	void setSplitPlan(sim_mob::SplitPlan);
-	void setCycleLength(sim_mob::Cycle);
+//	void setCycleLength(sim_mob::Cycle);
 	Signal(Node const & node, const MutexStrategy& mtxStrat, int id=-1);
     static Signal const & signalAt(Node const & node, const MutexStrategy& mtxStrat,bool *isNew = false);//bool isNew : since this function will create and return new signal if already existing signals not found, a switch to indicate what happened in the function would be nice
     void addSignalSite(centimeter_t xpos, centimeter_t ypos,std::string const & typeCode, double bearing);
@@ -175,7 +175,7 @@ public:
 	TrafficColor getPedestrianLight(Crossing const & crossing) const;
 	double getUpdateInterval(){return updateInterval; }
 	void cycle_reset();
-	double fmax(std::vector<double> DS);
+
 
 	typedef boost::multi_index_container<
 			sim_mob::Signal *, boost::multi_index::indexed_by<
@@ -248,7 +248,7 @@ private:
     /*-------------------------------------------------------------------------
      * -------------------Cycle Length Indicators------------------------------
      * ------------------------------------------------------------------------*/
-    sim_mob::Cycle cycle_;
+
 	//previous,current and next cycle length
 	double currCL;
 	int currPhaseID;

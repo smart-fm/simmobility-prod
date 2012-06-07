@@ -474,7 +474,7 @@ LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> const &
         Lane const * lane = lanes[i];
         if (lane->is_pedestrian_lane())
         {
-        	std::cout << "Bypassing a pedestrian lane\n";
+//        	std::cout << "Bypassing a pedestrian lane\n";
             continue;
         }
 
@@ -491,7 +491,7 @@ LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> const &
 
         LoopDetector* detector = new LoopDetector(lane, innerLength_, outerLength_, *pair);
         loopDetectors_.insert(std::make_pair(lane, detector));
-        std::cout << "loop detecto created for lane " << lane << std::endl;
+//        std::cout << "loop detecto created for lane " << lane << std::endl;
 
         if (isNotInitialized(monitorArea_))
         {
@@ -516,7 +516,7 @@ LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> const &
     else
     {
 
-    	std::cout << "Number of loop detectors created for this rs=" << createdLDs << std::endl;
+//    	std::cout << "Number of loop detectors created for this rs=" << createdLDs << std::endl;
     }
 }
 

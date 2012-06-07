@@ -1,7 +1,10 @@
 
 //#ifndef TC_DEFAULTS_
 //#define TC_DEFAULTS_
-//#include<iostream>
+#include<string>
+#include<sstream>
+#include<iostream>
+#include<stdio.h>
 //#include<stdio.h>
 
 #pragma once
@@ -19,7 +22,32 @@ enum TrafficColor
     FlashingAmber = 5,	///future use
     FlashingGreen = 6	///future use
 };
-
+namespace {
+std::string getColor(size_t id)
+{
+	std::ostringstream o;
+	switch(id)
+	{
+	case sim_mob::Red:
+		return "Red";
+	case sim_mob::Amber:
+		return "Amber";
+	case sim_mob::Green:
+		return "Green";
+	case sim_mob::FlashingRed:
+		return "FlashingRed";
+	case sim_mob::FlashingAmber:
+		return "FlashingAmber";
+	case sim_mob::FlashingGreen:
+		return "FlashingGreen";
+	default:
+		o << id << " Unknown";
+		return o.str();
+	}
+	o << id << " Unknown__";
+	return o.str();
+}
+}
 
 //Private namespace
 //TODO: Might want to move this private namespace out of the header file. ~Seth

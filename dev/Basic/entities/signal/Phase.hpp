@@ -133,6 +133,8 @@ public:
 	void calculateGreen();
 	void calculatePhaseLength();
 	void printColorDuration() ;
+	void printPhaseColors(double currCycleTimer) const;
+	const std::string & getName() const;
 
 	const std::string name; //we can assign a name to a phase for ease of identification
 private:

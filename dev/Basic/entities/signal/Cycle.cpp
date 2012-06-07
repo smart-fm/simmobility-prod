@@ -6,7 +6,9 @@ void Cycle::Update(double DS/*,sim_mob::Node node*/) {
 	setnextCL(DS/*,node*/);
 	updateprevCL();
 	updatecurrCL();
+	std::cout << "The new Cycle Length is : " << currCL << std::endl;
 }
+
 //use SCATS to determine next cyecle length
 //determine next cycle length using the max DS of all lanes
 //we chose the max of all DSs as input to this function(base on the memurandum, section 4.2, first line)

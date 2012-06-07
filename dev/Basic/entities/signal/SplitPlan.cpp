@@ -107,11 +107,12 @@ void SplitPlan::initialize()
 		sim_mob::Phase & target_phase = const_cast<sim_mob::Phase &>(*ph_it);
 		if( i > 0) percentage_sum += choice[i - 1]; // i > 0 : the first phase has phase offset equal to zero,
 		(target_phase).setPercentage(choice[i]);
-		(target_phase).setPhaseOffset(percentage_sum);
+		(target_phase).setPhaseOffset(percentage_sum * cycleLength / 100);
 	}
 	//Now Initialize the phases(later you  may put this back to the above phase iteration loop
 	for(phases_iterator it = phases_.begin(); it != phases_.end()  ; it++)
 		const_cast<sim_mob::Phase &>(*it).initialize();
+//	getchar();
 }
 
 ///////////////////////////////Not so Important //////////////////////////////////////////////////////////////////////
@@ -172,15 +173,31 @@ std::size_t SplitPlan::nofPlans()
 {
 	return NOF_Plans;
 }
-
-void SplitPlan::Update(std::vector<double> DS)
+//find the max DS
+double SplitPlan::fmax(std::vector<double> &DS) {
+	double max = DS[0];
+	for (int i = 0; i < DS.size(); i++) {
+		if (DS[i] > max) {
+			max = DS[i];
+		}
+	}
+	return max;
+}
+void SplitPlan::Update(std::vector<double> &DS)
 {
+	double DS_all = fmax(DS);
+	cycle_.Update(DS_all);
+	cycleLength = cycle_.getcurrCL();
+	std::cout << "currplan index changed from " << currSplitPlanID  << " to " ;
 		findNextPlanIndex(DS);
 		updatecurrSplitPlan();
+		std::cout << currSplitPlanID << std::endl;
+		initialize();
 }
 /*
  * find out which phase we are in the current plan
  * based on the currCycleTimer(= cycle-time lapse so far)
+ * at the moment, this function just returns what phase it is going to be(does not set any thing)
  */
 std::size_t SplitPlan::computeCurrPhase(double currCycleTimer)
 {
@@ -188,14 +205,15 @@ std::size_t SplitPlan::computeCurrPhase(double currCycleTimer)
 
 	double sum = 0;
 	int i;
-	for(i = 0; i < NOF_Phases; )
+	for(i = 0; i < NOF_Phases; i++)
 	{
 		//expanded the single line for loop for better understanding of future readers
-		sum += cycleLength * currSplitPlan[i++] / 100;
+		sum += cycleLength * currSplitPlan[i] / 100;
 		if(sum > currCycleTimer) break;
 	}
 
-	return (std::size_t)(i-1);
+	if(i >= NOF_Phases) throw std::runtime_error("CouldNot computeCurrPhase for the given currCycleTimer");
+	return (std::size_t)(i);
 }
 
 SplitPlan::SplitPlan(double cycleLength_,double offset_):cycleLength(cycleLength_),offset(offset_)
@@ -205,6 +223,7 @@ SplitPlan::SplitPlan(double cycleLength_,double offset_):cycleLength(cycleLength
 	currSplitPlanID = 0;
 	NOF_Phases = 0;
 	NOF_Plans = 0;
+	cycle_.setCurrCL(cycleLength_);
 }
 void SplitPlan::fill(double defaultChoiceSet[5][10], int approaches)
 {
@@ -295,6 +314,17 @@ std::string SplitPlan::createStringRepresentation()
 			output << ",";
 	}
 	return output.str();
+}
+
+void
+SplitPlan::printColors(double currCycleTimer)
+{
+	phases_iterator it = phases_.begin();
+	while(it !=phases_.end())
+	{
+		(*it).printPhaseColors(currCycleTimer);
+		it++;
+	}
 }
 
 };//namespace

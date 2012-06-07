@@ -92,6 +92,22 @@ namespace sim_mob
 	{
 
 	}
+
+	sim_mob::RoadSegment * Phase::findRoadSegment(sim_mob::Link * link, sim_mob::MultiNode * node) const
+	{
+		sim_mob::RoadSegment *rs = 0;
+		std::set<sim_mob::RoadSegment*>::iterator  itrs = (*link).getUniqueSegments().begin();
+		for(;itrs !=(*link).getUniqueSegments().end(); itrs++)
+		{
+			if(node->canFindRoadSegment(*itrs))
+			{
+				rs = *itrs;
+				break;
+			}
+		}
+
+		return rs;
+	}
 	std::string Phase::createStringRepresentation() const
 	{
 		std::ostringstream output;
@@ -104,6 +120,7 @@ namespace sim_mob
 			links_map_iterator it = links_map_.begin();
 			while(it != links_map_.end())
 			{
+
 				output << (*it).first << ":"; //linkFrom
 				output << (*it).second.LinkTo;
 				it++;

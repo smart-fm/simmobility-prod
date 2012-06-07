@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Color.hpp"
+#include "geospatial/MultiNode.hpp"
 #include<vector>
 #include<string>
 #include <map>
@@ -16,6 +17,8 @@ namespace sim_mob
 class Crossing;
 class Link;
 class SplitPlan;
+class RoadSegment;
+//class MultiNode;
 
 
 //////////////some bundling ///////////////////
@@ -24,7 +27,7 @@ class SplitPlan;
 
 struct ll
 {
-	ll(sim_mob::Link *linkto = nullptr):LinkTo(linkto) {
+	ll(sim_mob::Link *linkto):LinkTo(linkto) {
 			colorSequence.addColorDuration(Green,0);
 			colorSequence.addColorDuration(Amber,3);//a portion of the total time of the phase length is taken by amber
 			colorSequence.addColorDuration(Red,1);//All red moment ususally takes 1 second
@@ -35,6 +38,9 @@ struct ll
 	sim_mob::Link *LinkTo;
 	mutable ColorSequence colorSequence;
 	mutable TrafficColor currColor;
+	//just in case you need to use segment instead of link
+	sim_mob::RoadSegment *RS_From;
+	sim_mob::RoadSegment *RS_To;
 };
 typedef ll linkToLink;
 
@@ -111,8 +117,9 @@ public:
 	{
 		return links_map_.equal_range(LinkFrom);
 	}
-	void addLinkMaping(sim_mob::Link * lf, sim_mob::linkToLink ll)const {
-
+	void addLinkMaping(sim_mob::Link * lf, sim_mob::linkToLink ll, sim_mob::MultiNode *node)const {
+		ll.RS_From = findRoadSegment(lf,node);
+		ll.RS_To = findRoadSegment(ll.LinkTo,node);
 		links_map_.insert(std::pair<sim_mob::Link *, sim_mob::linkToLink>(lf,ll));
 	}
 	void addCrossingMapping(sim_mob::Link *,sim_mob::Crossing *, ColorSequence);
@@ -136,6 +143,7 @@ public:
 	void printPhaseColors(double currCycleTimer) const;
 	const std::string & getName() const;
 	 std::string outputPhaseTrafficLight() const;
+	 sim_mob::RoadSegment * findRoadSegment(sim_mob::Link *, sim_mob::MultiNode *) const;
 
 	const std::string name; //we can assign a name to a phase for ease of identification
 private:

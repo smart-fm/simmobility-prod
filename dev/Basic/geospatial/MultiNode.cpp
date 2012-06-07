@@ -61,7 +61,12 @@ void InsertIntoVector(vector< pair<RoadSegment*, bool> >& vec, vector< pair<Road
 
 } //End unnamed namespace
 
-
+bool sim_mob::MultiNode::canFindRoadSegment(sim_mob::RoadSegment* rs) const
+{
+	std::set<sim_mob::RoadSegment*>::const_iterator it = roadSegmentsAt.find(rs);
+	if(it != roadSegmentsAt.end()) return true;
+	return false;
+}
 
 bool sim_mob::MultiNode::hasOutgoingLanes(const RoadSegment& from) const
 {

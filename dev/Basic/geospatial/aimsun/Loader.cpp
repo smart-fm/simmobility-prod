@@ -1233,12 +1233,12 @@ DatabaseLoader::createPhases(unsigned int sid,sim_mob::SplitPlan & plan)
 		std::string name = (*ph_it).second.name;
 		if((sim_ph_it = ppv.find(name)) != ppv.end()) //means: if a phase with this name already exists in this plan...(usually u need a loop but with boost multi index, well, you don't :)
 		{
-			sim_ph_it->addLinkMaping(linkFrom,ll);
+			sim_ph_it->addLinkMaping(linkFrom,ll,dynamic_cast<sim_mob::MultiNode *>(nodes_[(*ph_it).second.nodeId].generatedNode));
 		}
 		else //new phase, new mapping
 		{
 			sim_mob::Phase phase(name,&plan);//for general copy
-			phase.addLinkMaping(linkFrom,ll);
+			phase.addLinkMaping(linkFrom,ll,dynamic_cast<sim_mob::MultiNode *>(nodes_[(*ph_it).second.nodeId].generatedNode));
 			phase.addDefaultCrossings();
 			plan.addPhase(phase);//congrates
 		}

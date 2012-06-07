@@ -53,7 +53,7 @@ public:
 
 	///Retrieve a list of all RoadSegments at this node.
 	const std::set<sim_mob::RoadSegment*>& getRoadSegments() const { return roadSegmentsAt; }
-
+	bool canFindRoadSegment(sim_mob::RoadSegment* rs) const;
 	//Determine which RoadSegments (and in which direction) you have to cross as a pedestrian approaching this
 	//  MultiNode
 	//TODO: The return value will _definitely_ be a class.

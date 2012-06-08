@@ -112,9 +112,7 @@ bool performMain(const std::string& configFileName) {
 #endif
 
 	//Loader params for our Agents
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
-#endif
 
 	//Load our user config file; save a handle to the shared definition of it.
 	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof)) { //Note: Agent "shells" are loaded here.
@@ -140,20 +138,11 @@ bool performMain(const std::string& configFileName) {
 	}
 #endif
 
-	//Initialize our work groups.
-	WorkGroup agentWorkers(WG_AGENTS_SIZE, config.totalRuntimeTicks,
-			config.granAgentsTicks, true);
-	//Agent::TMP_AgentWorkGroup = &agentWorkers;
-	//Worker::ActionFunction entityWork = boost::bind(entity_worker, _1, _2);
-	agentWorkers.initWorkers(//&entityWork,
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
-		&entLoader
-#else
-		nullptr
-#endif
-	);
 
-	bool NoDynamicDispatch = ConfigParams::GetInstance().DynamicDispatchDisabled();
+	//Initialize our work groups.
+	bool NoDynamicDispatch = config.DynamicDispatchDisabled();
+	WorkGroup agentWorkers(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, true);
+	agentWorkers.initWorkers(NoDynamicDispatch ? nullptr :  &entLoader);
 
 	//Add all agents to workers. If they are in all_agents, then their start times have already been taken
 	//  into account; just add them. Otherwise, by definition, they will be in pending_agents.
@@ -166,7 +155,7 @@ bool performMain(const std::string& configFileName) {
 	//Initialize our signal status work groups
 	//  TODO: There needs to be a more general way to do this.
 #ifndef TEMP_FORCE_ONE_WORK_GROUP
-	WorkGroup signalStatusWorkers(WG_SIGNALS_SIZE, config.totalRuntimeTicks, config.granSignalsTicks);
+	WorkGroup signalStatusWorkers(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
 	//Worker::ActionFunction spWork = boost::bind(signal_status_worker, _1, _2);
 	signalStatusWorkers.initWorkers(/*&spWork,*/ nullptr);
 #endif

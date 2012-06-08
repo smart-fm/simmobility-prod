@@ -61,6 +61,9 @@ public:
 	unsigned int granPathsTicks;      ///<Number of ticks to wait before updating all paths.
 	unsigned int granDecompTicks;     ///<Number of ticks to wait before updating agent decomposition.
 
+	unsigned int agentWorkGroupSize;   ///<Number of workers handling Agents.
+	unsigned int signalWorkGroupSize;  ///<Number of workers handling Signals.
+
 	//reaction time parameters
 	unsigned int reacTime_LeadingVehicle;
 	unsigned int reacTime_SubjectVehicle;
@@ -71,6 +74,14 @@ public:
 
 	//Locking strategy
 	sim_mob::MutexStrategy mutexStategy;
+
+//TODO: Add infrastructure for private members; some things like "dynamicDispatch" should NOT
+//      be modified once set.
+//private:
+	//Is dynamic dispatch disabled?
+	bool dynamicDispatchDisabled;
+
+public:
 
 	int signalAlgorithm;
 
@@ -96,11 +107,7 @@ public:
 
 	///Synced to the value of SIMMOB_DISABLE_DYNAMIC_DISPATCH; used for runtime checks.
 	bool DynamicDispatchDisabled() const {
-#ifdef SIMMOB_DISABLE_DYNAMIC_DISPATCH
-		return true;
-#else
-		return false;
-#endif
+		return dynamicDispatchDisabled;
 	}
 
 	///Synced to the value of SIMMOB_DISABLE_MPI; used for runtime checks.
@@ -194,7 +201,7 @@ public:
 
 
 private:
-	ConfigParams() : mutexStategy(MtxStrat_Buffered), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false) { }
+	ConfigParams() : mutexStategy(MtxStrat_Buffered), dynamicDispatchDisabled(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false) { }
 	static ConfigParams instance;
 
 	sim_mob::RoadNetwork network;

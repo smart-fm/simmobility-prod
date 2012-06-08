@@ -31,19 +31,15 @@ void sim_mob::WorkGroup::initWorkers(/*Worker::ActionFunction* action, */EntityL
 	this->loader = loader;
 
 	//Init our worker list-backs
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
-	entToBeRemovedPerWorker.resize(total_size, vector<Entity*>());
-#endif
+	const bool UseDynamicDispatch = !ConfigParams::GetInstance().DynamicDispatchDisabled();
+	if (UseDynamicDispatch) {
+		entToBeRemovedPerWorker.resize(total_size, vector<Entity*>());
+	}
 
 	//Init the workers themselves.
 	for (size_t i=0; i<total_size; i++) {
-		workers.push_back(new Worker(this, shared_barr, external_barr,
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
-			&entToBeRemovedPerWorker.at(i),
-#else
-			nullptr,
-#endif
-			/*action,*/ endTick, tickStep, auraManagerActive));
+		std::vector<Entity*>* entWorker = UseDynamicDispatch ? &entToBeRemovedPerWorker.at(i) : nullptr;
+		workers.push_back(new Worker(this, shared_barr, external_barr, entWorker, endTick, tickStep, auraManagerActive));
 	}
 }
 
@@ -147,11 +143,7 @@ void sim_mob::WorkGroup::collectRemovedEntities()
 
 void sim_mob::WorkGroup::assignAWorker(Entity* ag)
 {
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	workers.at(nextWorkerID++)->scheduleForAddition(ag);
-#else
-	workers.at(nextWorkerID++)->scheduleEntityNow(ag);
-#endif
 	nextWorkerID %= workers.size();
 }
 

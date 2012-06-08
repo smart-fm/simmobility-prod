@@ -24,7 +24,6 @@
 #cmakedefine SIMMOB_STRICT_AGENT_ERRORS
 #cmakedefine SIMMOB_DISABLE_OUTPUT
 #cmakedefine SIMMOB_DISABLE_MPI
-#cmakedefine SIMMOB_DISABLE_DYNAMIC_DISPATCH
 #cmakedefine SIMMOB_LATEST_STANDARD
 #cmakedefine SIMMOB_AGENT_UPDATE_PROFILE
 #cmakedefine SIMMOB_NEW_SIGNAL
@@ -32,10 +31,9 @@
 
 ///Sizes of workgroups. (Note that enums are allowed to overlap values)
 ///\todo
-///See if we can define these via cmake, or in the config file. Hardcoding them
-///  doesn't make a lot of sense.
-enum WORKGROUP_SIZES {
-	WG_AGENTS_SIZE = 2,           ///<Number of agent workers in group.
-	WG_SIGNALS_SIZE = 2,          ///<Number of signal workers in group.
-};
+///Note: These have been moved to the config files
+//enum WORKGROUP_SIZES {
+//	WG_AGENTS_SIZE = 2,           ///<Number of agent workers in group.
+//	WG_SIGNALS_SIZE = 2,          ///<Number of signal workers in group.
+//};
 

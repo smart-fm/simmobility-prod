@@ -1020,7 +1020,10 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     if(    baseGran==-1 || totalRuntime==-1 || totalWarmup==-1
     	|| granAgent==-1 || granSignal==-1 || granPaths==-1 || granDecomp==-1 || !simStartStr
     	|| agentWgSize==-1 || signalWgSize==-1) {
-        return "Unable to read config file.";
+    	std::cout << "An error will be generated -->" << "baseGran :" << baseGran <<  " totalRuntime: " << totalRuntime << " totalWarmup: " << totalWarmup
+    			<< "\n granAgent: " << granAgent << " granSignal :" << granSignal << " granPaths: " << granPaths
+    			<< "\n granDecomp:"<< granDecomp << " simStartStr:" << simStartStr << " agentWgSize: " << agentWgSize << "  signalWgSize: " << signalWgSize << std::endl;
+        return "\nUnable to read config file.";
     }
 
     //Granularity check

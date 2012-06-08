@@ -479,13 +479,16 @@ TrafficColor Signal::getDriverLight(Lane const & fromLane, Lane const & toLane)c
 //		return sim_mob::Red;
 			throw std::runtime_error("the specified combination of source and destination lanes are not assigned to this signal");
 	else
+	{
+		std::cout << "getDriverLight RETURNING " << getColor((*iter).second.currColor) << std::endl;
 		return (*iter).second.currColor;
+	}
 }
 
 TrafficColor Signal::getPedestrianLight(Crossing const & crossing) const
 {
 
-
+	return sim_mob::Green;
 }
 
 void Signal::outputToVisualizer(frame_t frameNumber) {

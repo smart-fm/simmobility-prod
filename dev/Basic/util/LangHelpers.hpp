@@ -50,13 +50,32 @@
 ///\note
 ///We use "newstd_" because boost has their own "final" keyword in multi-index. When we switch to the new
 ///  standard, this problem will go away (because "final" is not a keyword, but a context-dependant identifier).
-#ifndef SIMMOB_LATEST_STANDARD
+///
+///\note
+///"Final" doesn't seem to be supported in gcc yet. Disabling this for now; it's more trouble than it's worth to
+///  support.
+//#ifndef SIMMOB_LATEST_STANDARD
 #define newstd_final
 #define newstd_override
+//#else
+//#define newstd_final  final
+//#define newstd_override  override
+//#endif
+
+
+
+///Transitional namespace "sm_trans::" can be used when "boost::" is required pre-C++0x, and "std::" is required
+///  for the new standard. This is actually quite common, as many of the new standard libraries were taken from boost.
+///Note that we can't use typedefs here because of template-typedef issues. The new standard adds a fix for that, of course...
+///
+///\note
+///As with all macros, be careful with these.
+#ifndef SIMMOB_LATEST_STANDARD
+#define sm_trans      boost
 #else
-#define newstd_final  final
-#define newstd_override  override
+#define sm_trans      std
 #endif
+
 
 
 

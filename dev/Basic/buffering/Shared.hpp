@@ -72,9 +72,8 @@ public:
     const T& get() const {
     	if (strategy_==MtxStrat_Locked) {
     		boost::shared_lock<boost::shared_mutex> lock_(mutex_);
+    		return current_;
     	}
-
-    	return current_;
     }
 
 	/**

@@ -146,6 +146,12 @@ const sim_mob::RoadSegment* getRoadSegmentBasedOnNodes(const sim_mob::Point2D* s
 const sim_mob::Signal* getSignalBasedOnNode(const sim_mob::Point2D* one_point);
 const sim_mob::Crossing* getCrossingBasedOnNode(const sim_mob::Point2D* one_near_point, const sim_mob::Point2D* two_near_point, const sim_mob::Point2D* one_far_point, const sim_mob::Point2D* two_far_point);
 
+//add by xuyan
+//Check whether one point is in the polygon, whose size is N
+//Note: the polygon is closed, which means the first node is the same with the last node
+//We use CGAL for this function before, and then we decide to remove CGAL for cluster/Tilera
+bool PointInsidePolygon(const sim_mob::Point2D* polygon, int N, const sim_mob::Point2D p);
+
 /**
  * Calculates the projection of a point onto a line defined by two other points.
  *

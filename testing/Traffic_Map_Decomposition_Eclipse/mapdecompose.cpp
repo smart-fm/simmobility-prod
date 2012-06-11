@@ -53,8 +53,8 @@ int main(int argc, char* argv[])
 	}
 
 	//load in road network from database
-	config.node_sql = "get_node()";
-	config.section_sql = "get_section()";
+	config.node_sql = "get_node_bugis()";
+	config.section_sql = "get_section_bugis()";
 
 	config.network_node_file = "data/nodes.txt";
 	config.network_section_file = "data/sections.txt";
@@ -104,6 +104,7 @@ int main(int argc, char* argv[])
 	{
 		ChangeDatabasePartition database_util;
 		database_util.push_partitions_to_database(connection, config);
+		std::cout << "You have updated the database!" << std::endl;
 	}
 
 	std::cout << "You have succeed to do partitioning!" << std::endl;

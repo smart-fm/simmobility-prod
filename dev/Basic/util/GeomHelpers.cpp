@@ -29,6 +29,11 @@
 using namespace sim_mob;
 using std::vector;
 
+//add by xuyan
+//used in function PointInsidePolygon
+#define MIN(x,y) (x < y ? x : y)
+#define MAX(x,y) (x > y ? x : y)
+
 double sim_mob::dist(double x1, double y1, double x2, double y2)
 {
 	double dx = x2 - x1;
@@ -336,6 +341,48 @@ const sim_mob::Signal* sim_mob::getSignalBasedOnNode(const sim_mob::Point2D* one
 
 	sim_mob::StreetDirectory& directory = sim_mob::StreetDirectory::instance();
 	return directory.signalAt(*one_node);
+}
+
+//add by xuyan
+//To determine the status of a point (xp,yp) consider a horizontal ray emanating from (xp,yp) and to the right.
+//If the number of times this ray intersects the line segments making up the polygon is even then the point is outside the polygon.
+//Whereas if the number of intersections is odd then the point (xp,yp) lies inside the polygon.
+bool sim_mob::PointInsidePolygon(const sim_mob::Point2D* polygon, int N, const sim_mob::Point2D p)
+{
+	int counter = 0;
+	int i;
+	double xinters;
+	sim_mob::Point2D p1, p2;
+
+	p1 = polygon[0];
+	for (i = 1; i <= N; i++)
+	{
+		p2 = polygon[i % N];
+		if (p.getY() > MIN(p1.getY(), p2.getY()))
+		{
+			if (p.getY() <= MAX(p1.getY(), p2.getY()))
+			{
+				if (p.getX() <= MAX(p1.getX(), p2.getX()))
+				{
+					if (p1.getY() != p2.getY())
+					{
+						xinters = (p.getY() - p1.getY()) * (p2.getX() - p1.getX()) / (p2.getY() - p1.getY()) + p1.getX();
+						if (p1.getX() == p2.getX() || p.getX() <= xinters)
+							counter++;
+					}
+				}
+			}
+		}
+		p1 = p2;
+	}
+
+	//if there is even intersections
+	if (counter % 2 == 0)
+		return (false);
+
+	//if there is odd intersections
+	else
+		return (true);
 }
 
 bool isRoadItemTheCrossing(const sim_mob::RoadItem* one_item, const sim_mob::Point2D* one_near_point, const sim_mob::Point2D* two_near_point, const sim_mob::Point2D* one_far_point,

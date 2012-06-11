@@ -177,24 +177,14 @@ public:
 	void cycle_reset();
 
 
-	typedef boost::multi_index_container<
-			sim_mob::Signal *, boost::multi_index::indexed_by<
-			boost::multi_index::random_access<>															//0
-	    ,boost::multi_index::ordered_unique<boost::multi_index::mem_fun<Signal, unsigned int ,&Signal::getSignalId> >//1
-	   >
-	> all_signals;
+	typedef std::vector<sim_mob::Signal *> all_signals;
 
 	static sim_mob::Signal::all_signals all_signals_;
-	//static const double updateInterval;
 
     void updateIndicators();
 
-    typedef boost::multi_index::nth_index_iterator<Signal::all_signals, 0>::type all_signals_Iterator;
-    typedef boost::multi_index::nth_index_const_iterator<Signal::all_signals, 0>::type all_signals_const_Iterator;
-    typedef boost::multi_index::nth_index<Signal::all_signals, 1>::type all_signals_ID;
-    typedef boost::multi_index::nth_index_iterator<Signal::all_signals, 1>::type all_signals_ID_Iterator;
-    typedef boost::multi_index::nth_index_const_iterator<Signal::all_signals, 1>::type all_signals_ID_const_Iterator;
-
+    typedef std::vector<sim_mob::Signal *>::const_iterator all_signals_const_Iterator;
+    typedef std::vector<sim_mob::Signal *>::iterator all_signals_Iterator;
 private:
     bool isIntersection_;
     double updateInterval;

@@ -28,6 +28,7 @@ using std::vector;
 using std::string;
 
 using namespace boost::multi_index;
+using boost::multi_index::get;
 
 typedef sim_mob::Entity::UpdateStatus UpdateStatus;
 namespace sim_mob
@@ -50,6 +51,16 @@ Signal::signalAt(Node const & node, const MutexStrategy& mtxStrat, bool *isNew )
 	StreetDirectory::instance().registerSignal(*sig);
 	return *sig;
 }
+
+//Signal::all_signals_Iterator  Signal::getAllSignals()
+//{
+//	typedef boost::multi_index::nth_index<Signal::all_signals, 0>::type v;
+//	all_signals_Iterator vit;
+//	v & vv = get<0>(all_signals_);
+//	vit = vv.begin();
+//	return vit;
+//}
+
 void Signal::createStringRepresentation()
 {
 	std::ostringstream output;

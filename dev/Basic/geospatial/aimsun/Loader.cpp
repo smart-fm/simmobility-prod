@@ -217,12 +217,12 @@ void DatabaseLoader::LoadPhase(const std::string& storedProc)
 		//since the section index in sections_ and phases_ are read from two different tables, inconsistecy check is a must
 		if((from ==sections_.end())||(to ==sections_.end()))
 			{
-				if(it->nodeId == 115436) {
-					std::cout << " but node 115436 was kicked out the LoadPhase game ---reason:\n";
-					if(from ==sections_.end()) std::cout << " from section not found \n";
-					if(to ==sections_.end()) std::cout << " to section not found \n";
-					 getchar();
-				}
+//				if(it->nodeId == 115436) {
+//					std::cout << " but node 115436 was kicked out the LoadPhase game ---reason:\n";
+//					if(from ==sections_.end()) std::cout << " from section not found \n";
+//					if(to ==sections_.end()) std::cout << " to section not found \n";
+//					 getchar();
+//				}
 
 				continue; //you are not in the sections_ container
 			}
@@ -1087,7 +1087,7 @@ DatabaseLoader::createSignals()
             stream << "cannot find node (id=" << dbSignal.nodeId
                    << ") in the database for signal id=" << iter->first;
 //            throw std::runtime_error(stream.str());
-            if(dbSignal.nodeId == 115436) { std::cout << " node 115436 is getting kicked out 1\n"; getchar();}
+//            if(dbSignal.nodeId == 115436) { std::cout << " node 115436 is getting kicked out 1\n"; getchar();}
             continue;
         }
 
@@ -1144,8 +1144,8 @@ DatabaseLoader::createSignals()
     	ppp = phases_.equal_range(node->getID()); //I repeate: Assumption is that node id and signal id are same
     	if(ppp.first == ppp.second)
     	{
-    		std::cout << "There is no phase associated with this signal candidate, bypassing\n";
-    		 if(node->getID() == 115436) { std::cout << " node 115436 is getting kicked out 2\n"; getchar();}
+    		std::cout << "There is no phase associated with this signal candidate("<< node->getID() <<"), bypassing\n";
+//    		 if(node->getID() == 115436) { std::cout << " node 115436 is getting kicked out 2\n"; getchar();}
     		continue;
     	}
 //    	if( node->getID() != 66508) continue;//todo remove after testing
@@ -1164,8 +1164,16 @@ DatabaseLoader::createSignals()
         }
         else
         	continue;
-        const_cast<sim_mob::Signal &>(signal).addSignalSite(dbSignal.xPos, dbSignal.yPos, dbSignal.typeCode, dbSignal.bearing);
+
+//        const_cast<sim_mob::Signal &>(signal).addSignalSite(dbSignal.xPos, dbSignal.yPos, dbSignal.typeCode, dbSignal.bearing);
     }
+    std::cout << "A Total of " << nof_signals << " were successfully created\n";
+    for(sim_mob::Signal::all_signals_Iterator sigit = sim_mob::Signal::all_signals_.begin(), itend(sim_mob::Signal::all_signals_.end()); sigit != itend; sigit++)
+    {
+
+    	std::cout << (*sigit)->getSignalId() << ",\n";
+    }
+    getchar();
 }
 
 /*prepares the plan member of signal class by assigning phases, choiceset and other parameters of the plan(splitplan)*/

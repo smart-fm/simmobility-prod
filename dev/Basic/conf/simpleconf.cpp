@@ -137,11 +137,13 @@ int ReadValue(TiXmlHandle& handle, const std::string& propName)
 {
 	TiXmlElement* node = handle.FirstChild(propName).ToElement();
 	if (!node) {
+		std::cout << "No Child Name \"" << propName << "\" exist\n";
 		return -1;
 	}
 
 	int value;
 	if (!node->Attribute("value", &value)) {
+		std::cout << "No attribute Name \"" << value << "\" exist\n";
 		return -1;
 	}
 
@@ -903,6 +905,9 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 {
 	//Save granularities: system
 	TiXmlHandle handle(&document);
+	TiXmlHandle handle_orig(&document);
+
+
 	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation");
 	int baseGran = ReadGranularity(handle, "base_granularity");
 	int totalRuntime = ReadGranularity(handle, "total_runtime");
@@ -940,7 +945,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	int granDecomp = ReadGranularity(handle, "decomp");
 
 	//Save work group sizes: system
-	handle = handle.FirstChild("config").FirstChild("system").FirstChild("workgroup_sizes");
+	handle = handle_orig.FirstChild("config").FirstChild("system").FirstChild("workgroup_sizes");
 	int agentWgSize = ReadValue(handle, "agent");
 	int signalWgSize = ReadValue(handle, "signal");
 
@@ -1020,9 +1025,9 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     if(    baseGran==-1 || totalRuntime==-1 || totalWarmup==-1
     	|| granAgent==-1 || granSignal==-1 || granPaths==-1 || granDecomp==-1 || !simStartStr
     	|| agentWgSize==-1 || signalWgSize==-1) {
-    	std::cout << "An error will be generated -->" << "baseGran :" << baseGran <<  " totalRuntime: " << totalRuntime << " totalWarmup: " << totalWarmup
-    			<< "\n granAgent: " << granAgent << " granSignal :" << granSignal << " granPaths: " << granPaths
-    			<< "\n granDecomp:"<< granDecomp << " simStartStr:" << simStartStr << " agentWgSize: " << agentWgSize << "  signalWgSize: " << signalWgSize << std::endl;
+    	std::cout << "An error will be generated -->\n" << "baseGran :" << baseGran <<  "\ntotalRuntime: " << totalRuntime << "\ntotalWarmup: " << totalWarmup
+    			<< "\ngranAgent: " << granAgent << "\ngranSignal :" << granSignal << "\ngranPaths: " << granPaths
+    			<< "\ngranDecomp:"<< granDecomp << "\nsimStartStr:" << simStartStr << "\nagentWgSize: " << agentWgSize << "\nsignalWgSize: " << signalWgSize << std::endl;
         return "\nUnable to read config file.";
     }
 

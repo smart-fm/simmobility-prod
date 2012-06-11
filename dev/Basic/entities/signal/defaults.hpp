@@ -6,6 +6,15 @@
 #include<iostream>
 #include<stdio.h>
 //#include<stdio.h>
+#include "geospatial/Link.hpp"
+#include "geospatial/Crossing.hpp"
+
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/random_access_index.hpp>
+#include <boost/multi_index/composite_key.hpp>
+#include <boost/multi_index/mem_fun.hpp>
 
 #pragma once
 
@@ -62,4 +71,37 @@ const double Off_low = 5, Off_up = 26;
 
 const double fixedCL = 60;
 }
+
+//Link and crossing of an intersection/traffic signal
+struct LinkAndCrossing
+{
+	LinkAndCrossing(int id_,sim_mob::Link const * link_,sim_mob::Crossing const * crossing_,double angle_):
+		id(id_),
+		link(link_),
+		crossing(crossing_),
+		angle(angle_)
+	{}
+	size_t id;         //index for backward compatibility (setupindexMaps()
+	double angle;         //index for backward compatibility (setupindexMaps()
+	sim_mob::Link const * link;
+	sim_mob::Crossing const * crossing;
+};
+
+
+typedef boost::multi_index_container<
+		LinkAndCrossing, boost::multi_index::indexed_by<
+		boost::multi_index::random_access<>															//0
+    ,boost::multi_index::ordered_unique<boost::multi_index::member<LinkAndCrossing, size_t , &LinkAndCrossing::id> >//1
+	,boost::multi_index::ordered_unique<boost::multi_index::member<LinkAndCrossing, sim_mob::Link const * , &LinkAndCrossing::link> >//2
+	,boost::multi_index::ordered_non_unique<boost::multi_index::member<LinkAndCrossing, double , &LinkAndCrossing::angle> >//3
+	,boost::multi_index::ordered_non_unique<boost::multi_index::member<LinkAndCrossing, sim_mob::Crossing const * , &LinkAndCrossing::crossing> >//4
+   >
+> LinkAndCrossingC;//Link and Crossing Container(multi index)
+typedef boost::multi_index::nth_index<LinkAndCrossingC, 2>::type LinkAndCrossingByLink;
+typedef boost::multi_index::nth_index<LinkAndCrossingC, 3>::type LinkAndCrossingByAngle;
+typedef boost::multi_index::nth_index<LinkAndCrossingC, 4>::type LinkAndCrossingByCrossing;
+
+typedef LinkAndCrossingByAngle::reverse_iterator LinkAndCrossingIterator;
+typedef LinkAndCrossingByCrossing::iterator SignalCrossingIterator;
 }
+

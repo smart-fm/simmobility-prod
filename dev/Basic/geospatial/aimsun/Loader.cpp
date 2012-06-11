@@ -137,7 +137,7 @@ private:
     void createSignals();
 #ifdef SIMMOB_NEW_SIGNAL
     void createPlans(sim_mob::Signal & signal);
-    void createPhases(unsigned int sid,sim_mob::SplitPlan & plan);
+    void createPhases(sim_mob::Signal & signal);
 #endif
 };
 
@@ -1173,7 +1173,6 @@ DatabaseLoader::createSignals()
 
     	std::cout << (*sigit)->getSignalId() << ",\n";
     }
-    getchar();
 }
 
 /*prepares the plan member of signal class by assigning phases, choiceset and other parameters of the plan(splitplan)*/
@@ -1186,7 +1185,7 @@ DatabaseLoader::createPlans(sim_mob::Signal & signal)
 		sid = signal.getSignalId();//remember our assumption!  : node id and signal id(whtever their name is) are same
 		sim_mob::SplitPlan & plan = signal.getPlan();
 		plan.setParentSignal(&signal);
-		createPhases(sid,plan);
+		createPhases(signal);
 
 		//now that we have the number of phases, we can continue initializing our split plan.
 		int nof_phases = plan.find_NOF_Phases();
@@ -1221,16 +1220,16 @@ DatabaseLoader::createPlans(sim_mob::Signal & signal)
 
 
 void
-DatabaseLoader::createPhases(unsigned int sid,sim_mob::SplitPlan & plan)
+DatabaseLoader::createPhases(sim_mob::Signal & signal)
 {
 	pair<multimap<int,sim_mob::aimsun::Phase>::iterator, multimap<int,sim_mob::aimsun::Phase>::iterator> ppp;
 
-	ppp = phases_.equal_range(sid);
+	ppp = phases_.equal_range(signal.getSignalId());
 	multimap<int,sim_mob::aimsun::Phase>::iterator ph_it = ppp.first;
 
 	//some-initially weird looking- boost multi_index provisions to search for a phase by its name, instead of having loops to do that.
 	sim_mob::SplitPlan::phases_name_iterator sim_ph_it;
-	const sim_mob::SplitPlan::plan_phases_view & ppv = plan.getPhases().get<1>();
+	const sim_mob::SplitPlan::plan_phases_view & ppv = signal.getPlan().getPhases().get<1>();
 
 	for(; ph_it != ppp.second; ph_it++)
 	{
@@ -1241,14 +1240,14 @@ DatabaseLoader::createPhases(unsigned int sid,sim_mob::SplitPlan & plan)
 		std::string name = (*ph_it).second.name;
 		if((sim_ph_it = ppv.find(name)) != ppv.end()) //means: if a phase with this name already exists in this plan...(usually u need a loop but with boost multi index, well, you don't :)
 		{
-			sim_ph_it->addLinkMaping(linkFrom,ll,dynamic_cast<sim_mob::MultiNode *>(nodes_[(*ph_it).second.nodeId].generatedNode));
+			sim_ph_it->addLinkMapping(linkFrom,ll,dynamic_cast<sim_mob::MultiNode *>(nodes_[(*ph_it).second.nodeId].generatedNode));
 		}
 		else //new phase, new mapping
 		{
-			sim_mob::Phase phase(name,&plan);//for general copy
-			phase.addLinkMaping(linkFrom,ll,dynamic_cast<sim_mob::MultiNode *>(nodes_[(*ph_it).second.nodeId].generatedNode));
-			phase.addDefaultCrossings();
-			plan.addPhase(phase);//congrates
+			sim_mob::Phase phase(name,&(signal.getPlan()));//for general copy
+			phase.addLinkMapping(linkFrom,ll,dynamic_cast<sim_mob::MultiNode *>(nodes_[(*ph_it).second.nodeId].generatedNode));
+			phase.addDefaultCrossings(signal.getLinkAndCrossingsByLink(),dynamic_cast<sim_mob::MultiNode *>(nodes_[(*ph_it).second.nodeId].generatedNode));
+			signal.getPlan().addPhase(phase);//congrates
 		}
 	}
 }

@@ -13,15 +13,16 @@
 //If we're not using the "new signal" flag, just forward this header file to the old location.
 //  This allows us to simply include "entities/signal/Signal.hpp" without reservation.
 #include "GenConfig.h"
-#ifndef SIMMOB_NEW_SIGNAL
-#include "entities/Signal.hpp"
-#else
 #include <map>
 #include <vector>
 #include "entities/Agent.hpp"
 #include "metrics/Length.hpp"
-#include "util/SignalStatus.hpp"
 #include "entities/LoopDetectorEntity.hpp"
+
+#ifndef SIMMOB_NEW_SIGNAL
+#include "entities/Signal.hpp"
+#include "util/SignalStatus.hpp"
+#else
 #include "SplitPlan.hpp"
 #include "Phase.hpp"
 #include "Cycle.hpp"
@@ -70,37 +71,37 @@ typedef boost::multi_index_container<
 class PackageUtils;
 class UnPackageUtils;
 #endif
-//Link and crossing of an intersection/traffic signal
-struct LinkAndCrossing
-{
-	LinkAndCrossing(int id_,sim_mob::Link const * link_,sim_mob::Crossing const * crossing_,double angle_):
-		id(id_),
-		link(link_),
-		crossing(crossing_),
-		angle(angle_)
-	{}
-	size_t id;         //index for backward compatibility (setupindexMaps()
-	double angle;         //index for backward compatibility (setupindexMaps()
-	sim_mob::Link const * link;
-	sim_mob::Crossing const * crossing;
-};
-
-
-typedef boost::multi_index_container<
-		LinkAndCrossing, boost::multi_index::indexed_by<
-		boost::multi_index::random_access<>															//0
-    ,boost::multi_index::ordered_unique<boost::multi_index::member<LinkAndCrossing, size_t , &LinkAndCrossing::id> >//1
-	,boost::multi_index::ordered_unique<boost::multi_index::member<LinkAndCrossing, sim_mob::Link const * , &LinkAndCrossing::link> >//2
-	,boost::multi_index::ordered_non_unique<boost::multi_index::member<LinkAndCrossing, double , &LinkAndCrossing::angle> >//3
-	,boost::multi_index::ordered_non_unique<boost::multi_index::member<LinkAndCrossing, sim_mob::Crossing const * , &LinkAndCrossing::crossing> >//4
-   >
-> LinkAndCrossingC;//Link and Crossing Container(multi index)
-typedef boost::multi_index::nth_index<LinkAndCrossingC, 2>::type LinkAndCrossingByLink;
-typedef boost::multi_index::nth_index<LinkAndCrossingC, 3>::type LinkAndCrossingByAngle;
-typedef boost::multi_index::nth_index<LinkAndCrossingC, 4>::type LinkAndCrossingByCrossing;
-
-typedef LinkAndCrossingByAngle::reverse_iterator LinkAndCrossingIterator;
-typedef LinkAndCrossingByCrossing::iterator SignalCrossingIterator;
+////Link and crossing of an intersection/traffic signal
+//struct LinkAndCrossing
+//{
+//	LinkAndCrossing(int id_,sim_mob::Link const * link_,sim_mob::Crossing const * crossing_,double angle_):
+//		id(id_),
+//		link(link_),
+//		crossing(crossing_),
+//		angle(angle_)
+//	{}
+//	size_t id;         //index for backward compatibility (setupindexMaps()
+//	double angle;         //index for backward compatibility (setupindexMaps()
+//	sim_mob::Link const * link;
+//	sim_mob::Crossing const * crossing;
+//};
+//
+//
+//typedef boost::multi_index_container<
+//		LinkAndCrossing, boost::multi_index::indexed_by<
+//		boost::multi_index::random_access<>															//0
+//    ,boost::multi_index::ordered_unique<boost::multi_index::member<LinkAndCrossing, size_t , &LinkAndCrossing::id> >//1
+//	,boost::multi_index::ordered_unique<boost::multi_index::member<LinkAndCrossing, sim_mob::Link const * , &LinkAndCrossing::link> >//2
+//	,boost::multi_index::ordered_non_unique<boost::multi_index::member<LinkAndCrossing, double , &LinkAndCrossing::angle> >//3
+//	,boost::multi_index::ordered_non_unique<boost::multi_index::member<LinkAndCrossing, sim_mob::Crossing const * , &LinkAndCrossing::crossing> >//4
+//   >
+//> LinkAndCrossingC;//Link and Crossing Container(multi index)
+//typedef boost::multi_index::nth_index<LinkAndCrossingC, 2>::type LinkAndCrossingByLink;
+//typedef boost::multi_index::nth_index<LinkAndCrossingC, 3>::type LinkAndCrossingByAngle;
+//typedef boost::multi_index::nth_index<LinkAndCrossingC, 4>::type LinkAndCrossingByCrossing;
+//
+//typedef LinkAndCrossingByAngle::reverse_iterator LinkAndCrossingIterator;
+//typedef LinkAndCrossingByCrossing::iterator SignalCrossingIterator;
 
 class Signal  : public sim_mob::Agent {
 
@@ -121,7 +122,9 @@ public:
 //    LinkAndCrossingIterator LinkAndCrossings_begin()const { return LinkAndCrossings_.get<3>().rbegin(); }
 //    LinkAndCrossingIterator LinkAndCrossings_end()const { return LinkAndCrossings_.get<3>().rend(); }
 //    LinkAndCrossingByLink &getLinkAndCrossingsByLink() {return LinkAndCrossings_.get<2>();}
+
     LinkAndCrossingByLink const & getLinkAndCrossingsByLink() const {return LinkAndCrossings_.get<2>();}
+
 //    const std::vector<sim_mob::Link const *> & getSignalLinks() const;
     LoopDetectorEntity const & loopDetector() const { return loopDetector_; }
 

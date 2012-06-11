@@ -88,8 +88,40 @@ namespace sim_mob
 		Crossings crossing_(link,crossing);
 		crossings_map_.insert(std::make_pair(crossing,crossing_));
 	}
-	void Phase::addDefaultCrossings()
+	/*this function will find those crossings in the intersection
+	 * which are not CFG (conflict green) with the rest of the phase movements
+	 * Developer note: the difficult point is that I don't have node information
+	 * in this class(Signal class has it) and I am not intending to spaghetti mix everything.
+	 * So I guess I will call this from outside(perhapse from loader.cpp, just like
+	 * addLinkMapping).
+	 * todo: update this part
+	 */
+	void Phase::addDefaultCrossings(LinkAndCrossingByLink const & LAC, sim_mob::MultiNode *node)
 	{
+		if(links_map_.size() == 0) throw std::runtime_error("Link maps empty, crossing mapping can not continue\n");
+		LinkAndCrossingByLink::iterator it = LAC.begin();
+		//filter the crossings which are in the links_maps_ container(both link from s and link To s)
+		//the crossings passing this filter are our winners
+		for(LinkAndCrossingByLink::iterator it = LAC.begin(), it_end(LAC.end()); it != it_end; it++)
+		{
+			sim_mob::Link* link = const_cast<sim_mob::Link*>((*it).link);
+			//link from
+			links_map_const_iterator l_it = links_map_.find(link);//const_cast used coz multi index container elements are constant
+			if(l_it != links_map_.end()) continue; //this link is involved, so we don't need to green light its crossing
+			//link to
+			l_it = links_map_.begin();
+			for(links_map_const_iterator l_it1 = links_map_.begin(),l_it_end(links_map_.end()); l_it1 != l_it_end; l_it1++)
+			{
+				if(link == (*l_it1).second.LinkTo) continue;
+			}
+			//un-involved crossing- successful candidate to get a green light in this phase
+			sim_mob::Crossing * crossing = const_cast<sim_mob::Crossing *>((*it).crossing);
+//			for the line below,please look at the sim_mob::Crossings container and crossings_map for clearance
+			crossings_map_.insert(std::pair<sim_mob::Crossing *, sim_mob::Crossings>(crossing,sim_mob::Crossings(link ,crossing)));
+		}
+
+//		std::cout << "\nAdded " << crossings_map_.size() << " crossings to phase " << name << std::endl;
+//		getchar();
 
 	}
 
@@ -178,8 +210,8 @@ void Phase::calculatePhaseLength(){
 
 }
 
-//amber, flashing green, red are fixed but green time is calculated by cycle length and percentage given to that phase
-void Phase::calculateGreen(){
+//amber, red are fixed but green time is calculated by cycle length and percentage given to that phase
+void Phase::calculateGreen_Links(){
 	/*
 	 * here is the drill:
 	 * 1.what is the amount of time that is assigned to this phase,(phaseLength might be already calculated)
@@ -215,6 +247,58 @@ void Phase::calculateGreen(){
 			cs.getColorDuration().at(greenIndex).second = phaseLength - other_than_green;
 		}
 	}
+}
+
+//red is fixed but green time is one third of flashing green and they are calculated by cycle length and percentage given to that phase
+void Phase::calculateGreen_Crossings(){
+	/*
+	 * here is the drill:
+	 * 1.what is the amount of time that is assigned to this phase,(phaseLength might be already calculated)
+	 * 2.find out how long the colors other than green and flashing green will take
+	 * 3.subtract them
+	 * what is the output? yes, it is the green time and flashing green. yes yes, i know! you are a Genuis!
+	 */
+
+	for(crossings_map_iterator it = crossings_map_.begin()  ; it != crossings_map_.end(); it++)
+	{
+		//1.what is the amount of time that is assigned to this phase
+//		phaseLength is a member
+		//2.find out how long the colors other than green will take
+		ColorSequence & cs = it->second.colorSequence;
+		std::vector< std::pair<TrafficColor,std::size_t> > & cd = cs.getColorDuration();
+		std::vector< std::pair<TrafficColor,std::size_t> >::iterator it_color = cd.begin();
+		size_t other_than_green = 0;
+		int greenIndex=-1, FgreenIndex = -1;
+		int tempGreenIndex = 0, tempFGreenIndex = 0;
+		for(; it_color != cd.end(); it_color++)
+		{
+			if((it_color->first != sim_mob::Green) && (it_color->first != sim_mob::FlashingGreen))
+			{
+				other_than_green += it_color->second;
+			}
+			else
+			{
+				if(it_color->first == sim_mob::Green)
+					greenIndex = tempGreenIndex;//we need to know the location of green, right after this loop ends
+				else
+					FgreenIndex = tempGreenIndex;//we also need to know the location of flashing green, right after this loop ends
+			}
+
+			tempGreenIndex ++;
+		}
+		//3.subtract(the genius part)
+		if((greenIndex > -1)&&(FgreenIndex > -1))
+		{
+			cs.getColorDuration().at(greenIndex).second = (phaseLength - other_than_green) / 3; //green time is one third of flashing green
+			cs.getColorDuration().at(FgreenIndex).second = ((phaseLength - other_than_green) / 3) * 2 ;//f green time is two third of available time
+		}
+	}
+}
+
+//amber, red are fixed but green time is calculated by cycle length and percentage given to that phase
+void Phase::calculateGreen(){
+	calculateGreen_Links();
+	calculateGreen_Crossings();
 }
 
 void Phase::printPhaseColors(double currCycleTimer) const

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "defaults.hpp"
 #include "Color.hpp"
 #include "geospatial/MultiNode.hpp"
 #include<vector>
@@ -14,8 +15,8 @@
 namespace sim_mob
 {
 //Forward declarations
-class Crossing;
-class Link;
+//class Crossing;
+//class Link;
 class SplitPlan;
 class RoadSegment;
 //class MultiNode;
@@ -72,9 +73,10 @@ typedef struct
 	Crossings crossings;//the required field in this container are:link , crossing, current color(all but ColorSequence)
 }PhaseUpdateResult;
 /////////////////////////////////////////////////////////////////////////////
-typedef std::multimap<sim_mob::Crossing *, sim_mob::Crossings> crossings_map;
+typedef std::map<sim_mob::Crossing *, sim_mob::Crossings> crossings_map;
 
 typedef crossings_map::const_iterator crossings_map_const_iterator;
+typedef crossings_map::iterator crossings_map_iterator;
 typedef std::pair<crossings_map_const_iterator, crossings_map_const_iterator> crossings_map_equal_range;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*
@@ -117,7 +119,7 @@ public:
 	{
 		return links_map_.equal_range(LinkFrom);
 	}
-	void addLinkMaping(sim_mob::Link * lf, sim_mob::linkToLink ll, sim_mob::MultiNode *node)const {
+	void addLinkMapping(sim_mob::Link * lf, sim_mob::linkToLink ll, sim_mob::MultiNode *node)const {
 		ll.RS_From = findRoadSegment(lf,node);
 		ll.RS_To = findRoadSegment(ll.LinkTo,node);
 		links_map_.insert(std::pair<sim_mob::Link *, sim_mob::linkToLink>(lf,ll));
@@ -125,7 +127,7 @@ public:
 	void addCrossingMapping(sim_mob::Link *,sim_mob::Crossing *, ColorSequence);
 	void addCrossingMapping(sim_mob::Link *,sim_mob::Crossing *);
 	//add crossing to any link of this node which is not involved in this phase
-	void addDefaultCrossings();
+	void addDefaultCrossings(sim_mob::LinkAndCrossingByLink const & ,sim_mob::MultiNode *node);
 	const links_map & getLinkMaps();
 //	links_map_equal_range  getLinkTos(sim_mob::Link *LinkFrom) ;
 	void updatePhaseParams(double phaseOffset_, double percentage_);
@@ -138,6 +140,8 @@ public:
 	std::string createStringRepresentation() const;
 	void initialize();
 	void calculateGreen();
+	void calculateGreen_Crossings();
+	void calculateGreen_Links();
 	void calculatePhaseLength();
 	void printColorDuration() ;
 	void printPhaseColors(double currCycleTimer) const;

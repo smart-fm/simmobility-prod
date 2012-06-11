@@ -102,12 +102,6 @@ Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id)
 //    setupIndexMaps();  I guess this function is Not needed any more
 }
 
-///* Set the cycle length and Initialize its Indicators in the signal class*/
-//void Signal::setCycleLength(sim_mob::Cycle cycle)
-//{
-//	cycle_ = cycle;
-//}
-
 // Return the Crossing object, if any, in the specified road segment.  If there are more
 // than one Crossing objects, return the one that has the least offset.
 Crossing const *

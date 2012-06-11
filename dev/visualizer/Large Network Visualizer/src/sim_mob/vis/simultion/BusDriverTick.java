@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.util.Hashtable;
 import sim_mob.vect.SimpleVectorImage;
 import sim_mob.vis.MainFrame;
+import sim_mob.vis.controls.DrawParams;
+import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.util.Utility;
 
 /**
@@ -99,7 +101,7 @@ public class BusDriverTick extends DriverTick {
 		FakeTempBusImg.phaseColors(0xFF/2);
 	}
 	
-	public void draw(Graphics2D g,double scale, boolean drawFake,boolean debug, Dimension size100Percent){
+	public void draw(Graphics2D g, DrawParams params) {
 		
 		AffineTransform oldAT = g.getTransform();
 		AffineTransform at = AffineTransform.getTranslateInstance(pos.getX(), pos.getY());
@@ -120,12 +122,13 @@ public class BusDriverTick extends DriverTick {
 			angleD += 7;
 		}
 		
-		//Our bus image is significantly larger than our car image. So scale it.
-		final double ScaleFact = 0.2;
+		//TEMP
+		double onePixelInM = 50; //Assume pixels are 15m		
+		double scaleMultiplier = (ScaledPoint.getScaleFactor().getX()*onePixelInM);
 		
 		//Retrieve the image to draw
-		SimpleVectorImage svi = (drawFake&&getFake()) ? FakeTempBusImg: debug ? DebugTempBusImg : TempBusImg;			
-		BufferedImage toDraw = svi.getImage((1/scale + 0.2)*ScaleFact, angleD, true);
+		SimpleVectorImage svi = (params.DrawFakeOn&&getFake()) ? FakeTempBusImg: params.DebugOn ? DebugTempBusImg : TempBusImg;			
+		BufferedImage toDraw = svi.getImage(scaleMultiplier, angleD, true);
 			
 		//Translate to top-left corner
 		at.translate(-toDraw.getWidth()/2, -toDraw.getHeight()/2);
@@ -158,7 +161,7 @@ public class BusDriverTick extends DriverTick {
 		g.setTransform(oldAT);
 		
 		//Sample debug output
-		if (debug) {
+		if (params.DebugOn) {
 			int sz = 12;
 			int x = (int)pos.getX();
 			int y = (int)pos.getY();

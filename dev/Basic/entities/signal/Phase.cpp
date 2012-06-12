@@ -88,101 +88,102 @@ namespace sim_mob
 		Crossings crossing_(link,crossing);
 		crossings_map_.insert(std::make_pair(crossing,crossing_));
 	}
-	/*this function will find those crossings in the intersection
-	 * which are not CFG (conflict green) with the rest of the phase movements
-	 * Developer note: the difficult point is that I don't have node information
-	 * in this class(Signal class has it) and I am not intending to spaghetti mix everything.
-	 * So I guess I will call this from outside(perhapse from loader.cpp, just like
-	 * addLinkMapping).
-	 * todo: update this part
-	 */
-	void Phase::addDefaultCrossings(LinkAndCrossingByLink const & LAC, sim_mob::MultiNode *node)
-	{
-		if(links_map_.size() == 0) throw std::runtime_error("Link maps empty, crossing mapping can not continue\n");
-		LinkAndCrossingByLink::iterator it = LAC.begin();
-		//filter the crossings which are in the links_maps_ container(both link from s and link To s)
-		//the crossings passing this filter are our winners
-		for(LinkAndCrossingByLink::iterator it = LAC.begin(), it_end(LAC.end()); it != it_end; it++)
-		{
-			sim_mob::Link* link = const_cast<sim_mob::Link*>((*it).link);
-			//link from
-			links_map_const_iterator l_it = links_map_.find(link);//const_cast used coz multi index container elements are constant
-			if(l_it != links_map_.end()) continue; //this link is involved, so we don't need to green light its crossing
-			//link to
-			l_it = links_map_.begin();
-			for(links_map_const_iterator l_it1 = links_map_.begin(),l_it_end(links_map_.end()); l_it1 != l_it_end; l_it1++)
-			{
-				if(link == (*l_it1).second.LinkTo) continue;
-			}
-			//un-involved crossing- successful candidate to get a green light in this phase
-			sim_mob::Crossing * crossing = const_cast<sim_mob::Crossing *>((*it).crossing);
+/*this function will find those crossings in the intersection
+ * which are not CFG (conflict green) with the rest of the phase movements
+ * Developer note: the difficult point is that I don't have node information
+ * in this class(Signal class has it) and I am not intending to spaghetti mix everything.
+ * So I guess I will call this from outside(perhapse from loader.cpp, just like
+ * addLinkMapping).
+ * todo: update this part
+ */
+void Phase::addDefaultCrossings(LinkAndCrossingByLink const & LAC,
+		sim_mob::MultiNode *node) {
+	if (links_map_.size() == 0)
+		throw std::runtime_error(
+				"Link maps empty, crossing mapping can not continue\n");
+	LinkAndCrossingByLink::iterator it = LAC.begin();
+	//filter the crossings which are in the links_maps_ container(both link from s and link To s)
+	//the crossings passing this filter are our winners
+	for (LinkAndCrossingByLink::iterator it = LAC.begin(), it_end(LAC.end());
+			it != it_end; it++) {
+		sim_mob::Link* link = const_cast<sim_mob::Link*>((*it).link);
+		//link from
+		links_map_const_iterator l_it = links_map_.find(link); //const_cast used coz multi index container elements are constant
+		if (l_it != links_map_.end())
+			continue; //this link is involved, so we don't need to green light its crossing
+		//link to
+		l_it = links_map_.begin();
+		for (links_map_const_iterator l_it1 = links_map_.begin(), l_it_end(links_map_.end()); l_it1 != l_it_end; l_it1++) {
+			if (link == (*l_it1).second.LinkTo)
+				continue;
+		}
+		//un-involved crossing- successful candidate to get a green light in this phase
+		sim_mob::Crossing * crossing = const_cast<sim_mob::Crossing *>((*it).crossing);
 //			for the line below,please look at the sim_mob::Crossings container and crossings_map for clearance
-			crossings_map_.insert(std::pair<sim_mob::Crossing *, sim_mob::Crossings>(crossing,sim_mob::Crossings(link ,crossing)));
+		crossings_map_.insert(std::pair<sim_mob::Crossing *, sim_mob::Crossings>(crossing, sim_mob::Crossings(link, crossing)));
+	}
+}
+
+sim_mob::RoadSegment * Phase::findRoadSegment(sim_mob::Link * link,
+		sim_mob::MultiNode * node) const {
+	sim_mob::RoadSegment *rs = 0;
+	std::set<sim_mob::RoadSegment*>::iterator itrs =
+			(*link).getUniqueSegments().begin();
+	for (; itrs != (*link).getUniqueSegments().end(); itrs++) {
+		if (node->canFindRoadSegment(*itrs)) {
+			rs = *itrs;
+			break;
 		}
-
-//		std::cout << "\nAdded " << crossings_map_.size() << " crossings to phase " << name << std::endl;
-//		getchar();
-
 	}
 
-	sim_mob::RoadSegment * Phase::findRoadSegment(sim_mob::Link * link, sim_mob::MultiNode * node) const
-	{
-		sim_mob::RoadSegment *rs = 0;
-		std::set<sim_mob::RoadSegment*>::iterator  itrs = (*link).getUniqueSegments().begin();
-		for(;itrs !=(*link).getUniqueSegments().end(); itrs++)
-		{
-			if(node->canFindRoadSegment(*itrs))
-			{
-				rs = *itrs;
-				break;
-			}
-		}
+	return rs;
+}
 
-		return rs;
+void Phase::addLinkMapping(sim_mob::Link * lf, sim_mob::linkToLink & ll,
+		sim_mob::MultiNode *node) const {
+	ll.RS_From = findRoadSegment(lf, node);
+	ll.RS_To = findRoadSegment(ll.LinkTo, node);
+	links_map_.insert(std::pair<sim_mob::Link *, sim_mob::linkToLink>(lf, ll));
+}
+
+std::string Phase::createStringRepresentation() const {
+	std::ostringstream output;
+	if (links_map_.size() == 0 && crossings_map_.size() == 0)
+		return 0;
+	output << "\n{\n";
+	output << "\"name\": \"" << name << "\",\n";
+	int i = 0;
+	if (links_map_.size()) {
+		output << "\"links\":\n[\n";
+		links_map_iterator it = links_map_.begin();
+		while (it != links_map_.end()) {
+			output << "{";
+			output << "\"link_from\":\"" << (*it).first << "\" ,"; //linkFrom
+			output << "\"link_to\":\"" << (*it).second.LinkTo << "\"}";
+			it++;
+			if (it != links_map_.end())
+				output << ",\n";
+
+		}
+		output << "\n],\n";
 	}
-	std::string Phase::createStringRepresentation() const
-	{
-		std::ostringstream output;
-		if(links_map_.size() == 0 && crossings_map_.size() == 0) return 0;
-		output << "\"Phase_" << name << "\"{";
-		int i = 0;
-		if(links_map_.size())
-		{
-			output << "\"Link\"{";
-			links_map_iterator it = links_map_.begin();
-			while(it != links_map_.end())
-			{
 
-				output << (*it).first << ":"; //linkFrom
-				output << (*it).second.LinkTo;
-				it++;
-				if(it != links_map_.end())
-					output << ",";
+	if (crossings_map_.size()) {
+		output << "\"crossings\":\n[\n";
+		crossings_map_iterator it = crossings_map_.begin();
+		while (it != crossings_map_.end()) {
+			output << "\"" << (*it).first << "\""; //crossing *
+			it++;
+			if (it != crossings_map_.end())
+				output << ",\n";
 
-			}
-			output << "}";
-//			std::cout <<  output.str();
 		}
-
-
-		if(crossings_map_.size())
-		{
-			output << "\"Crossing\"{";
-			crossings_map_iterator it = crossings_map_.begin();
-			while(it != crossings_map_.end())
-			{
-				output << (*it).first ; //crossing *
-				it++;
-				if(it != crossings_map_.end())
-					output << ",";
-
-			}
-			output << "}";
-		}
-
-		output << "}";
-		return output.str();
+		output << "\n]";
 	}
+
+	output << "\n}\n";
+	return output.str();
+}
 void Phase::initialize(){
 	calculatePhaseLength();
 	calculateGreen();
@@ -319,44 +320,85 @@ const std::string & Phase::getName() const
 std::string Phase::outputPhaseTrafficLight() const
 {
 	std::ostringstream output;
-	if(links_map_.size() == 0 && crossings_map_.size() == 0) return 0;
-	output << "\"Phase_" << name << "\"{";
+	if (links_map_.size() == 0 && crossings_map_.size() == 0)
+		return 0;
+	output << "\n{\n";
+	output << "\"name\": \"" << name << "\",\n";
 	int i = 0;
-	if(links_map_.size())
-	{
-		output << "\"Link\"{";
+	if (links_map_.size()) {
+		output << "\"links\":\n[\n";
 		links_map_iterator it = links_map_.begin();
-		while(it != links_map_.end())
-		{
-			output << (*it).first << ":";             //linkFrom
-			output << (*it).second.LinkTo << ":";     //linkTo
-			output << (*it).second.currColor;         //currentColor
+		while (it != links_map_.end()) {
+			output << "{";
+			output << "\"link_from\":\"" << (*it).first << "\" ,"; //linkFrom
+			output << "\"link_to\":\"" << (*it).second.LinkTo << "\",";//linkTo
+			output <<"\"current_color\":" << (*it).second.currColor << "}";//currColor
 			it++;
-			if(it != links_map_.end())
-				output << ",";
+			if (it != links_map_.end())
+				output << ",\n";
 
 		}
-		output << "}";
+		output << "\n],\n";
 	}
 
-
-	if(crossings_map_.size())
-	{
-		output << "\"Crossing\"{";
+	if (crossings_map_.size()) {
+		output << "\"crossings\":\n[\n";
 		crossings_map_iterator it = crossings_map_.begin();
-		while(it != crossings_map_.end())
-		{
-			output << (*it).first ;            //crossing *
-			output << (*it).second.currColor ; // current color
+		while (it != crossings_map_.end()) {
+			output << "{\"id\":\"" << (*it).first << "\","; //crossing *
+			output <<"\"current_color\":" << (*it).second.currColor << "}";//currColor
 			it++;
-			if(it != crossings_map_.end())
-				output << ",";
+			if (it != crossings_map_.end())
+				output << ",\n";
 
 		}
-		output << "}";
+		output << "\n]";
 	}
 
-	output << "}";
+	output << "\n}\n";
 	return output.str();
+
+
+//	std::ostringstream output;
+//	if(links_map_.size() == 0 && crossings_map_.size() == 0) return 0;
+//
+//	output << "\"Phase_" << name << "\"{";
+//	int i = 0;
+//	if(links_map_.size())
+//	{
+//		output << "\"Link\"{";
+//		links_map_iterator it = links_map_.begin();
+//		while(it != links_map_.end())
+//		{
+//			output << (*it).first << ":";             //linkFrom
+//			output << (*it).second.LinkTo << ":";     //linkTo
+//			output << (*it).second.currColor;         //currentColor
+//			it++;
+//			if(it != links_map_.end())
+//				output << ",";
+//
+//		}
+//		output << "}";
+//	}
+//
+//
+//	if(crossings_map_.size())
+//	{
+//		output << "\"Crossing\"{";
+//		crossings_map_iterator it = crossings_map_.begin();
+//		while(it != crossings_map_.end())
+//		{
+//			output << (*it).first ;            //crossing *
+//			output << (*it).second.currColor ; // current color
+//			it++;
+//			if(it != crossings_map_.end())
+//				output << ",";
+//
+//		}
+//		output << "}";
+//	}
+//
+//	output << "}";
+//	return output.str();
 }
 }//namespace

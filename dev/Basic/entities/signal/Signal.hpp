@@ -185,6 +185,7 @@ public:
 	static sim_mob::Signal::all_signals all_signals_;
 
     void updateIndicators();
+    void outputTrafficLights(frame_t frameNumber)const;
 
     typedef std::vector<sim_mob::Signal *>::const_iterator all_signals_const_Iterator;
     typedef std::vector<sim_mob::Signal *>::iterator all_signals_Iterator;

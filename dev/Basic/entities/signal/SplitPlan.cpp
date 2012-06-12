@@ -306,6 +306,7 @@ std::string SplitPlan::createStringRepresentation()
 			return 0;
 		}
 	std::ostringstream output;
+	output << "\"phases\":\n[";
 	phases_iterator it = phases_.begin();
 	while(it !=phases_.end())
 	{
@@ -314,6 +315,7 @@ std::string SplitPlan::createStringRepresentation()
 		if(it !=phases_.end())
 			output << ",";
 	}
+	output << "\n]";
 	return output.str();
 }
 
@@ -328,7 +330,7 @@ SplitPlan::printColors(double currCycleTimer)
 	}
 }
 
-std::string SplitPlan::outputTrafficLights(int phaseId)
+std::string SplitPlan::outputTrafficLights(int phaseId) const
 {
 //	if (phaseId > phases_.size())
 //	{
@@ -336,16 +338,25 @@ std::string SplitPlan::outputTrafficLights(int phaseId)
 //		err << "phaseId out of range.. phaseId:" << phaseId << " phases_.size():"<<  phases_.size() << std::endl;
 //		throw std::runtime_error(err.str());
 //	}
-	if (phaseId >= 0)
-		return phases_[phaseId].outputPhaseTrafficLight();
+
+
+	if(phases_.size() == 0)
+		{
+			return 0;
+		}
 	std::ostringstream output;
+	output << "\"phases\":\n[";
 	phases_iterator it = phases_.begin();
-	while (it != phases_.end())
+	while(it !=phases_.end())
 	{
-		output  << (*it).outputPhaseTrafficLight() << "\n";
+		output << (*it).outputPhaseTrafficLight();
 		it++;
+		if(it !=phases_.end())
+			output << ",";
 	}
+	output << "\n]";
 	return output.str();
+
 }
 
 

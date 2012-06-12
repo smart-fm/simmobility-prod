@@ -64,10 +64,12 @@ Signal::signalAt(Node const & node, const MutexStrategy& mtxStrat, bool *isNew )
 void Signal::createStringRepresentation()
 {
 	std::ostringstream output;
-			output << "(\"Signal-location\", " << this << ",{\"id\":\"" <<  TMP_SignalID << "\",";
-			output << "\"node\": " << &node_ << ",";
+			output << "{\n\"TrafficSignal\":\n{\n";
+			output << "\"hex_id\":\""<< this << "\",\n";
+			output << "\"simmob_id\":" <<  TMP_SignalID << "\",\n";
+			output << "\"node\": \"" << &node_ << "\",\n";
 			output << plan_.createStringRepresentation();
-			output << "})";
+			output << "\n}\n}";
 			strRepr = output.str();//all the aim of the unrelated part
 }
 
@@ -391,6 +393,14 @@ bool Signal::updateCurrCycleTimer() {
 	currCycleTimer =  std::fmod((currCycleTimer + updateInterval) , plan_.getCycleLength());
 	return is_NewCycle;
 }
+void Signal::outputTrafficLights(frame_t frameNumber) const{
+	std::stringstream output;
+	output << "\n{\n\"TrafficSignal-Update\":\n{\n";
+	output << "\"hex_id\":\""<< this << "\",\n";
+	output << "\"frame\": " << frameNumber << ",\n";
+	output << plan_.outputTrafficLights();
+	LogOut( output.str() << "\n}\n}\n");
+}
 /*
  * 1- update current cycle timer
  * 2- update current phase color
@@ -406,7 +416,7 @@ bool Signal::updateCurrCycleTimer() {
  */
 UpdateStatus Signal::update(frame_t frameNumber) {
 	if(!isIntersection_) return UpdateStatus::Continue;
-	LogOut("(TrafficLightUpdate, " << this << std::endl << plan_.outputTrafficLights() << ")" << std::endl);
+	outputTrafficLights(frameNumber);
 //	1- update current cycle timer( Signal::currCycleTimer)
 	isNewCycle = updateCurrCycleTimer();
 	//if the phase has changed, here we dont update currPhaseID to a new value coz we still need some info(like DS) obtained during the last phase

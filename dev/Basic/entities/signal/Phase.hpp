@@ -34,6 +34,7 @@ struct ll
 			colorSequence.addColorDuration(Red,1);//All red moment ususally takes 1 second
 
 		currColor = sim_mob::Red;
+		RS_From = RS_To = 0;
 	}
 
 	sim_mob::Link *LinkTo;
@@ -119,11 +120,15 @@ public:
 	{
 		return links_map_.equal_range(LinkFrom);
 	}
-	void addLinkMapping(sim_mob::Link * lf, sim_mob::linkToLink ll, sim_mob::MultiNode *node)const {
-		ll.RS_From = findRoadSegment(lf,node);
-		ll.RS_To = findRoadSegment(ll.LinkTo,node);
-		links_map_.insert(std::pair<sim_mob::Link *, sim_mob::linkToLink>(lf,ll));
-	}
+	void addLinkMapping(sim_mob::Link * lf, sim_mob::linkToLink &ll, sim_mob::MultiNode *node)const ;
+//	{
+//		std::cout << "RS_From b4:" << ll.RS_From << std::endl;
+//		ll.RS_From = findRoadSegment(lf,node);
+//		ll.RS_To = findRoadSegment(ll.LinkTo,node);
+//		std::cout << "RS_From after:" << ll.RS_From << std::endl;
+//		getchar();
+//		links_map_.insert(std::pair<sim_mob::Link *, sim_mob::linkToLink>(lf,ll));
+//	}
 	void addCrossingMapping(sim_mob::Link *,sim_mob::Crossing *, ColorSequence);
 	void addCrossingMapping(sim_mob::Link *,sim_mob::Crossing *);
 	//add crossing to any link of this node which is not involved in this phase

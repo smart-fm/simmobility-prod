@@ -125,7 +125,7 @@ public:
 	sim_mob::Signal * getParentSignal() { return parentSignal;}
 	void printColors(double printColors);
 	double fmax(std::vector<double> &DS);
-	std::string  outputTrafficLights(int phaseId = -1);
+	std::string  outputTrafficLights(int phaseId = -1)const;
 
 	/*friends*/
 	friend class Signal;

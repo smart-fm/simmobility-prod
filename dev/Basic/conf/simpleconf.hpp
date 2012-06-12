@@ -197,7 +197,7 @@ public:
 	}
 
 	///Retrieve a reference to the list of trip chains.
-	std::vector<sim_mob::TripChain*>& getTripChains() { return tripchains; }
+	std::vector<sim_mob::TripChainItem*>& getTripChains() { return tripchains; }
 
 
 private:
@@ -205,7 +205,7 @@ private:
 	static ConfigParams instance;
 
 	sim_mob::RoadNetwork network;
-	std::vector<sim_mob::TripChain*> tripchains;
+	std::vector<sim_mob::TripChainItem*> tripchains;
 	bool sealedNetwork;
 };
 

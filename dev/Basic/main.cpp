@@ -159,14 +159,14 @@ bool performMain(const std::string& configFileName) {
 	//Worker::ActionFunction spWork = boost::bind(signal_status_worker, _1, _2);
 	signalStatusWorkers.initWorkers(/*&spWork,*/ nullptr);
 #endif
-	for (size_t i = 0; i < Signal::all_signals_.size(); i++) {
+	for (size_t i = 0; i < sim_mob::Signal::all_signals_.size(); i++) {
 		//add by xuyan
 //		if(Signal::all_signals_[i]->isFake)
 //			continue;
 #ifdef TEMP_FORCE_ONE_WORK_GROUP
 		agentWorkers.assignAWorker(Signal::all_signals_[i]);
 #else
-		signalStatusWorkers.assignAWorker(Signal::all_signals_[i]);
+		signalStatusWorkers.assignAWorker(sim_mob::Signal::all_signals_[i]);
 #endif
 	}
 

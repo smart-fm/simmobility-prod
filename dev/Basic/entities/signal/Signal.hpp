@@ -57,13 +57,6 @@ typedef boost::multi_index_container<
 		linkToLink_signal,
 		boost::multi_index::indexed_by<
 		boost::multi_index::random_access<>
-//    ,ordered_unique<
-//      composite_key<
-//      sim_mob::Link*,
-//        member<linkToLink_signal,sim_mob::Link*,&linkToLink_signal::LinkTo>,
-//        member<linkToLink_signal,sim_mob::Link*,&linkToLink_signal::LinkFrom>
-//      >
-//    >
   >
 > linkToLink_ck_C;
 
@@ -71,39 +64,34 @@ typedef boost::multi_index_container<
 class PackageUtils;
 class UnPackageUtils;
 #endif
-////Link and crossing of an intersection/traffic signal
-//struct LinkAndCrossing
-//{
-//	LinkAndCrossing(int id_,sim_mob::Link const * link_,sim_mob::Crossing const * crossing_,double angle_):
-//		id(id_),
-//		link(link_),
-//		crossing(crossing_),
-//		angle(angle_)
-//	{}
-//	size_t id;         //index for backward compatibility (setupindexMaps()
-//	double angle;         //index for backward compatibility (setupindexMaps()
-//	sim_mob::Link const * link;
-//	sim_mob::Crossing const * crossing;
-//};
-//
-//
-//typedef boost::multi_index_container<
-//		LinkAndCrossing, boost::multi_index::indexed_by<
-//		boost::multi_index::random_access<>															//0
-//    ,boost::multi_index::ordered_unique<boost::multi_index::member<LinkAndCrossing, size_t , &LinkAndCrossing::id> >//1
-//	,boost::multi_index::ordered_unique<boost::multi_index::member<LinkAndCrossing, sim_mob::Link const * , &LinkAndCrossing::link> >//2
-//	,boost::multi_index::ordered_non_unique<boost::multi_index::member<LinkAndCrossing, double , &LinkAndCrossing::angle> >//3
-//	,boost::multi_index::ordered_non_unique<boost::multi_index::member<LinkAndCrossing, sim_mob::Crossing const * , &LinkAndCrossing::crossing> >//4
-//   >
-//> LinkAndCrossingC;//Link and Crossing Container(multi index)
-//typedef boost::multi_index::nth_index<LinkAndCrossingC, 2>::type LinkAndCrossingByLink;
-//typedef boost::multi_index::nth_index<LinkAndCrossingC, 3>::type LinkAndCrossingByAngle;
-//typedef boost::multi_index::nth_index<LinkAndCrossingC, 4>::type LinkAndCrossingByCrossing;
-//
-//typedef LinkAndCrossingByAngle::reverse_iterator LinkAndCrossingIterator;
-//typedef LinkAndCrossingByCrossing::iterator SignalCrossingIterator;
 
-class Signal  : public sim_mob::Agent {
+class Signal_Parent  : public sim_mob::Agent
+{
+public:
+	Signal_Parent(Node const & node, const MutexStrategy& mtxStrat, int id=-1)
+	  : Agent(mtxStrat, id), node_(node){}
+   virtual LinkAndCrossingByLink const & getLinkAndCrossingsByLink() const = 0;
+   virtual LinkAndCrossingByCrossing const & getLinkAndCrossingsByCrossing() const= 0;
+   virtual TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const = 0 ;
+   virtual TrafficColor getPedestrianLight(Crossing const & crossing) const = 0;
+   virtual std::string toString() const;
+   Node  const & getNode() const { return node_; }
+
+//   virtual unsigned int getSignalId()   {return TMP_SignalID;}
+//   virtual unsigned int getSignalId() const  {return TMP_SignalID;}
+
+   static std::vector<Signal_Parent *> all_signals_;
+   typedef std::vector<sim_mob::Signal_Parent *>::const_iterator all_signals_const_Iterator;
+   typedef std::vector<sim_mob::Signal_Parent *>::iterator all_signals_Iterator;
+
+//	static sim_mob::Signal_Parent::all_signals all_signals_;
+private:
+   /*The node associated with this traffic Signal */
+   sim_mob::Node const & node_;
+};
+
+
+class Signal  : public sim_mob::Signal_Parent {
 
 public:
 
@@ -111,20 +99,14 @@ public:
 	void initialize();
 	void setSplitPlan(sim_mob::SplitPlan);
 //	void setCycleLength(sim_mob::Cycle);
-	Signal(Node const & node, const MutexStrategy& mtxStrat, int id=-1);
+	Signal(Node const & node,const MutexStrategy& mtxStrat,int id=-1);
     static Signal const & signalAt(Node const & node, const MutexStrategy& mtxStrat,bool *isNew = false);//bool isNew : since this function will create and return new signal if already existing signals not found, a switch to indicate what happened in the function would be nice
     void addSignalSite(centimeter_t xpos, centimeter_t ypos,std::string const & typeCode, double bearing);
     void findIncomingLanes();
     void findSignalLinks();
     void findSignalLinksAndCrossings();
-    /*links are sorted in order of their ascending angle with respect to the whole coordinate
-     */
-//    LinkAndCrossingIterator LinkAndCrossings_begin()const { return LinkAndCrossings_.get<3>().rbegin(); }
-//    LinkAndCrossingIterator LinkAndCrossings_end()const { return LinkAndCrossings_.get<3>().rend(); }
-//    LinkAndCrossingByLink &getLinkAndCrossingsByLink() {return LinkAndCrossings_.get<2>();}
-
     LinkAndCrossingByLink const & getLinkAndCrossingsByLink() const {return LinkAndCrossings_.get<2>();}
-
+    LinkAndCrossingByCrossing const & getLinkAndCrossingsByCrossing() const {return LinkAndCrossings_.get<4>();}
 //    const std::vector<sim_mob::Link const *> & getSignalLinks() const;
     LoopDetectorEntity const & loopDetector() const { return loopDetector_; }
 
@@ -136,8 +118,6 @@ public:
 	virtual Entity::UpdateStatus update(frame_t frameNumber);
 	void newCycleUpdate();
 	bool updateCurrCycleTimer();
-//	void updateSignal(double DS[]);(not int use)
-
 
 	/*--------Split Plan----------*/
 	void startSplitPlan();
@@ -146,14 +126,9 @@ public:
 	int getnextSplitPlanID();
 	sim_mob::SplitPlan & getPlan();
 
-//	std::vector<double> getNextSplitPlan();
-//	std::vector<double> getCurrSplitPlan();
-
-
 	/*--------Phase----------*/
 	int getcurrPhase();
 	int getphaseCounter(){return phaseCounter;}
-
 
 	/*--------Degree of Saturation----------*/
 	double computeDS();
@@ -161,9 +136,8 @@ public:
 	double LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,double total_g);
 	void calProDS_MaxProDS(std::vector<double> &proDS,std::vector<double>  &maxproDS);
 
-
 	/*--------Miscellaneous----------*/
-	Node  const & getNode() const { return node_; }
+//	Node  const & getNode() const { return node_; }
 	void frame_output(frame_t frameNumber);
 	int fmin_ID(const  std::vector<double>  maxproDS);
 	///Return the loggable representation of this Signal.
@@ -179,16 +153,13 @@ public:
 	double getUpdateInterval(){return updateInterval; }
 	void cycle_reset();
 
-
-	typedef std::vector<sim_mob::Signal *> all_signals;
-
-	static sim_mob::Signal::all_signals all_signals_;
+//	typedef std::vector<sim_mob::Signal *> all_signals;
+//
+//	static sim_mob::Signal::all_signals all_signals_;
 
     void updateIndicators();
     void outputTrafficLights(frame_t frameNumber)const;
 
-    typedef std::vector<sim_mob::Signal *>::const_iterator all_signals_const_Iterator;
-    typedef std::vector<sim_mob::Signal *>::iterator all_signals_Iterator;
 private:
     bool isIntersection_;
     double updateInterval;
@@ -199,8 +170,8 @@ private:
     /*-------------------------------------------------------------------------
      * -------------------Geo Spatial indicators--------------------------------
      * ------------------------------------------------------------------------*/
-    /*The node associated with this traffic Signal */
-    sim_mob::Node const & node_;
+//    /*The node associated with this traffic Signal */
+//    sim_mob::Node const & node_;
     //todo check whether we realy need it? (this container and the function filling it)
     /*check done! only Phase_Density vector needs it for its size!!! i.e a count for the number of lines would also do
      * the job. I don't think we need this but I am not ommitting it until I check wether it will be usefull for the loop detector

@@ -87,7 +87,12 @@ struct LinkAndCrossing
 	sim_mob::Crossing const * crossing;
 };
 
-
+/*
+ * obtaining link and -its corresponding- crossong information from node variable(as amember of signal)
+ * is time consuming, especially when it needs to be repeated for every signal every - number of- ticks
+ * therefore this container is filled up initially to save a huge amount of processing time in return for
+ * a small extra storage
+ */
 typedef boost::multi_index_container<
 		LinkAndCrossing, boost::multi_index::indexed_by<
 		boost::multi_index::random_access<>															//0

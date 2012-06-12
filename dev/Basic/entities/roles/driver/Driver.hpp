@@ -25,7 +25,7 @@ namespace sim_mob
 
 //Forward declarations
 class Pedestrian;
-class Signal;
+class Signal_Parent;
 class Link;
 class RoadSegment;
 class Lane;
@@ -219,7 +219,7 @@ public:
 
 private:
 	//The current traffic signal in our Segment. May be null.
-	const Signal* trafficSignal;
+	const Signal_Parent* trafficSignal;
 
 	//For generating a debugging trace
 	mutable std::stringstream DebugStream;

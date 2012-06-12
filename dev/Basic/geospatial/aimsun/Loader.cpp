@@ -1168,11 +1168,11 @@ DatabaseLoader::createSignals()
 //        const_cast<sim_mob::Signal &>(signal).addSignalSite(dbSignal.xPos, dbSignal.yPos, dbSignal.typeCode, dbSignal.bearing);
     }
     std::cout << "A Total of " << nof_signals << " were successfully created\n";
-    for(sim_mob::Signal::all_signals_Iterator sigit = sim_mob::Signal::all_signals_.begin(), itend(sim_mob::Signal::all_signals_.end()); sigit != itend; sigit++)
-    {
-
-    	std::cout << (*sigit)->getSignalId() << ",\n";
-    }
+//    for(sim_mob::Signal::all_signals_Iterator sigit = sim_mob::Signal::all_signals_.begin(), itend(sim_mob::Signal::all_signals_.end()); sigit != itend; sigit++)
+//    {
+//
+//    	std::cout << (*sigit)->getSignalId() << ",\n";
+//    }
 }
 
 /*prepares the plan member of signal class by assigning phases, choiceset and other parameters of the plan(splitplan)*/

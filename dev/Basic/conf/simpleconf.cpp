@@ -423,7 +423,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 }
 
 #ifdef SIMMOB_NEW_SIGNAL
-bool loadXMLSignals(TiXmlDocument& document, Signal::all_signals all_signals, const std::string& signalKeyID)
+bool loadXMLSignals(TiXmlDocument& document, const std::string& signalKeyID)
 #else
 bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal*> all_signals, const std::string& signalKeyID)
 #endif
@@ -493,7 +493,7 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal*> all_signals, c
                               << "no signal will be created here." << std::endl;
                     continue;
                 }
-                Signal const * signal = streetDirectory.signalAt(*road_node);
+                Signal_Parent const * signal = streetDirectory.signalAt(*road_node);
                 if (signal)
                 {
                     std::cout << "signal at node(" << xpos << ", " << ypos << ") already exists; "
@@ -501,10 +501,11 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal*> all_signals, c
                 }
                 else
                 {
-                    // The following call will create and register the signal with the
-                    // street-directory.
-                	std::cout << "register signal again!" << std::endl;
-                    Signal::signalAt(*road_node, ConfigParams::GetInstance().mutexStategy);
+                	std::cout << "signal at node(" << xpos << ", " << ypos << ") was not found; No more action will be taken\n ";
+//                    // The following call will create and register the signal with the
+//                    // street-directory.
+//                	std::cout << "register signal again!" << std::endl;
+//                    Signal_Parent::signalAt(*road_node, ConfigParams::GetInstance().mutexStategy);
                 }
             }
             catch (boost::bad_lexical_cast &)
@@ -653,7 +654,7 @@ void PrintDB_Network()
 	;
 
 #ifdef SIMMOB_NEW_SIGNAL
-	Signal::all_signals_const_Iterator it;
+	Signal_Parent::all_signals_const_Iterator it;
 	for (it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++)
 #else
 	for (std::vector<Signal*>::const_iterator it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++)
@@ -1172,7 +1173,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     std::cout << "Loading Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder Success!" << std::endl;
 
     //Load signals, which are currently agents
-    if (!loadXMLSignals(document, Signal::all_signals_, "signal")) {
+    if (!loadXMLSignals(document, "signal")) {
     	std::cout << "loadXMLSignals Failed!" << std::endl;
     	return	 "Couldn't load signals";
     }
@@ -1234,9 +1235,12 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     //
     // Since the LoopDetectorEntity::init() function needs the lanes information, we can only call
     // it here.
+    //todo I think when a loop detector data are dynamically assigned to signal rather that being read from data base,
+    //they should be handled with in the signal constructor, not here
     for (size_t i = 0; i < Signal::all_signals_.size(); ++i)
     {
-        Signal const * signal = Signal::all_signals_[i];
+    	Signal  * signal = dynamic_cast<Signal  *>(Signal::all_signals_[i]);
+//        Signal const * signal = const_cast<Signal_Parent *>(Signal::all_signals_[i]);
         LoopDetectorEntity & loopDetector = const_cast<LoopDetectorEntity&>(signal->loopDetector());
         loopDetector.init(*signal);
         active_agents.push_back(&loopDetector);

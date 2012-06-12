@@ -34,13 +34,13 @@ typedef sim_mob::Entity::UpdateStatus UpdateStatus;
 namespace sim_mob
 {
 
-Signal::all_signals Signal::all_signals_;
+//Signal::all_signals Signal::all_signals_;
 
 
 Signal const &
 Signal::signalAt(Node const & node, const MutexStrategy& mtxStrat, bool *isNew ) {
 	*isNew = false;
-	Signal const * signal = StreetDirectory::instance().signalAt(node);
+	Signal const * signal = dynamic_cast<Signal const *>(StreetDirectory::instance().signalAt(node));
 	if (signal)
 	{
 		return *signal;
@@ -67,19 +67,18 @@ void Signal::createStringRepresentation()
 			output << "{\n\"TrafficSignal\":\n{\n";
 			output << "\"hex_id\":\""<< this << "\",\n";
 			output << "\"simmob_id\":" <<  TMP_SignalID << "\",\n";
-			output << "\"node\": \"" << &node_ << "\",\n";
+			output << "\"node\": \"" << &getNode() << "\",\n";
 			output << plan_.createStringRepresentation();
 			output << "\n}\n}";
 			strRepr = output.str();//all the aim of the unrelated part
 }
 
 /*Signal Sonstructor*/
-Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id)
-  : Agent(mtxStrat, id)
-	, loopDetector_(*this, mtxStrat)
-	, node_(node)
+Signal::Signal(Node const & node,const MutexStrategy& mtxStrat,  int id)
+  : loopDetector_(*this, mtxStrat)
+	,Signal_Parent(node,mtxStrat,id)
 {
-	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&node_);
+	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&getNode());
 	if(! mNode) isIntersection_ = false ;
 	else isIntersection_ = true;
 	//some inits
@@ -179,7 +178,7 @@ struct AngleCalculator {
 void Signal::findSignalLinksAndCrossings()
 {
 	LinkAndCrossingByLink & inserter = get<2>(LinkAndCrossings_);//2 means that duplicate links will not be allowed
-	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&node_);
+	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&getNode());
 	if(! mNode) return ;
 	const std::set<sim_mob::RoadSegment*>& roads = mNode->getRoadSegments();
 	std::set<RoadSegment*>::const_iterator iter = roads.begin();
@@ -191,7 +190,7 @@ void Signal::findSignalLinksAndCrossings()
 
 
 		std::pair<LinkAndCrossingByLink::iterator, bool>  p;
-	AngleCalculator angle(node_, link);
+	AngleCalculator angle(getNode(), link);
 	double angleAngle = 0;
 	size_t id = 1;
 	angleAngle = 0;
@@ -210,7 +209,7 @@ void Signal::findSignalLinksAndCrossings()
 //deprecated
 void Signal::findSignalLinks()
 {
-	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&node_);
+	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&getNode());
 	if(! mNode) return ;
 	const std::set<sim_mob::RoadSegment*>& rs = mNode->getRoadSegments();
 	for (std::set<sim_mob::RoadSegment*>::const_iterator it = rs.begin(); it!= rs.end(); it++) {
@@ -306,7 +305,7 @@ double Signal::computePhaseDS(int phaseId) {
 		for (; seg_it != segments.end(); seg_it++) { //Loop3===>road segment
 			//discard the segments that don't end here(coz those who don't end here, don't cross the intersection neither)
 			//sim_mob::Link is bi-directionl so we use RoadSegment's start and end to imply direction
-			if ((*seg_it)->getEnd() != &node_)
+			if ((*seg_it)->getEnd() != &getNode())
 				continue;
 			const std::vector<sim_mob::Lane*> lanes = (*seg_it)->getLanes();
 			for (std::size_t i = 0; i < lanes.size(); i++) { //Loop4===>lane
@@ -571,11 +570,11 @@ void Signal::outputToVisualizer(frame_t frameNumber) {
 //might not be very necessary(not in use) except for resizing Density vector
 void Signal::findIncomingLanes()
 {
-	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&node_);
+	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&getNode());
 	if(! mNode) return ;
 	const std::set<sim_mob::RoadSegment*>& rs = mNode->getRoadSegments();
 	for (std::set<sim_mob::RoadSegment*>::const_iterator it = rs.begin(); it!= rs.end(); it++) {
-		if ((*it)->getEnd() != &node_)//consider only the segments that end here
+		if ((*it)->getEnd() != &getNode())//consider only the segments that end here
 			continue;
 		IncomingLanes_.reserve(IncomingLanes_.size() + (*it)->getLanes().size());
 		IncomingLanes_.insert(IncomingLanes_.end(), (*it)->getLanes().begin(), (*it)->getLanes().end());

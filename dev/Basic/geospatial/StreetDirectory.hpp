@@ -24,7 +24,7 @@ class Point2D;
 class RoadNetwork;
 class RoadSegment;
 class Node;
-class Signal;
+class Signal_Parent;
 class BusStop;
 class Crossing;
 
@@ -220,7 +220,7 @@ public:
      * It is possible that the intersection, specified by \c node, is an unsignalized junction.
      * All road users must observe the highway code.
      */
-    Signal const *
+    Signal_Parent const *
     signalAt(Node const & node) const;
 
     /**
@@ -275,7 +275,7 @@ public:
      * Register the Signal object with the StreetDirectory (to be invoked by the simulator kernel).
      */
     void
-    registerSignal(Signal const & signal);
+    registerSignal(Signal_Parent const & signal);
 
     /**
      * Print statistics collected on internal operationss.
@@ -311,15 +311,15 @@ private:
     class Stats;
     Stats* stats_;
 
-    sm_trans::unordered_map<const Node *, Signal const *> signals_;
+    sm_trans::unordered_map<const Node *, Signal_Parent const *> signals_;
 };
 
-inline Signal const *
+inline Signal_Parent const *
 StreetDirectory::signalAt(Node const & node)
 const
 {
 //	std::cout << "StreetDirectory: " << signals_.size() << std::endl;
-	sm_trans::unordered_map<const Node *, Signal const *>::const_iterator iter = signals_.find(&node);
+	sm_trans::unordered_map<const Node *, Signal_Parent const *>::const_iterator iter = signals_.find(&node);
     if (signals_.end() == iter)
     {
 //    	std::cout << " Signal Not found... ";

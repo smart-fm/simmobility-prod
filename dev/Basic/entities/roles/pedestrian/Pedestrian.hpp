@@ -109,7 +109,7 @@ private:
 	PedestrianStage currentStage;
 
 //	Signal sig;
-	const Signal* trafficSignal;
+	const Signal_Parent* trafficSignal;
 	const Crossing* currCrossing;
 	int sigColor; //0-red, 1-yellow, 2-green
 //	unsigned int phaseCounter; //To be replaced by traffic management system

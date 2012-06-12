@@ -6,7 +6,7 @@
 
 namespace sim_mob_partitioning {
 DBConnection::DBConnection() :
-	sql_(soci::postgresql, "host=172.18.127.157 port=5432 dbname=SimMobility_DB user=postgres password=S!Mm0bility")
+	sql_(soci::postgresql, "host=172.18.127.157 port=5432 dbname=SimMobility_DB user=postgres password=5M_S1mM0bility")
 {
 }
 

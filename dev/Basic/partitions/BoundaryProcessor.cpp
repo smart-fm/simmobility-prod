@@ -9,10 +9,6 @@
 #include "mpi.h"
 #include <boost/mpi.hpp>
 
-#include <CGAL/Homogeneous.h>
-#include <CGAL/Point_2.h>
-#include <CGAL/Polygon_2.h>
-
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
@@ -45,10 +41,7 @@
 #include "entities/Signal.hpp"
 #include "partitions/PartitionManager.hpp"
 
-
-typedef CGAL::Homogeneous<double> Rep_class;
-typedef CGAL::Polygon_2<Rep_class> Polygon_2;
-typedef CGAL::Point_2<Rep_class> Point;
+#define BOUNDARY_BOX_SIZE 4
 
 namespace mpi = boost::mpi;
 
@@ -56,32 +49,32 @@ using std::string;
 using std::vector;
 using namespace sim_mob;
 
-
-
 //Anonymous namespace for private, helper functions.
 namespace {
 bool isOneagentInPolygon(int location_x, int location_y, BoundarySegment* boundary_segment)
 {
-	vector<Point> points;
+	int node_size = boundary_segment->bounary_box.size();
+	if (node_size != BOUNDARY_BOX_SIZE)
+	{
+		std::cerr << "Boundary Segment's boundary should have 4 nodes, but not." << std::endl;
+	}
+
+	Point2D pointlist[BOUNDARY_BOX_SIZE + 1];
+	Point2D agent_location(location_x, location_y);
+
+	int index = 0;
 	vector<Point2D>::iterator itr = boundary_segment->bounary_box.begin();
 	for (; itr != boundary_segment->bounary_box.end(); itr++)
 	{
-		Point point((*itr).getX(), (*itr).getY());
-		points.push_back(point);
+		Point2D point((*itr).getX(), (*itr).getY());
+		pointlist[index] = point;
+		index++;
 	}
 
-	Point agent_location(location_x, location_y);
-	switch (CGAL::bounded_side_2(points.begin(), points.end(), agent_location))
-	{
-	case CGAL::ON_BOUNDED_SIDE:
-		return true;
+	Point2D last_point(pointlist[0].getX(), pointlist[0].getY());
+	pointlist[index] = last_point;
 
-	case CGAL::ON_BOUNDARY:
-	case CGAL::ON_UNBOUNDED_SIDE:
-		return false;
-	}
-
-	return false;
+	return sim_mob::PointInsidePolygon(pointlist, BOUNDARY_BOX_SIZE + 1, agent_location);
 }
 
 void outputLineT(Point2D& start_p, Point2D& end_p, string color)

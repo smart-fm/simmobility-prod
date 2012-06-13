@@ -208,13 +208,14 @@ std::size_t SplitPlan::computeCurrPhase(double currCycleTimer)
 	int i;
 	for(i = 0; i < NOF_Phases; i++)
 	{
-		//expanded the single line for loop for better understanding of future readers
+		//expanded the single line loop, for better understanding of future readers
 		sum += cycleLength * currSplitPlan[i] / 100;
 		if(sum > currCycleTimer) break;
 	}
 
 	if(i >= NOF_Phases) throw std::runtime_error("CouldNot computeCurrPhase for the given currCycleTimer");
-	return (std::size_t)(i);
+	currPhaseID = (std::size_t)(i);
+	return currPhaseID;
 }
 
 SplitPlan::SplitPlan(double cycleLength_,double offset_):cycleLength(cycleLength_),offset(offset_)

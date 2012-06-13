@@ -69,12 +69,12 @@ class Signal_Parent  : public sim_mob::Agent
 {
 public:
 	Signal_Parent(Node const & node, const MutexStrategy& mtxStrat, int id=-1)
-	  : Agent(mtxStrat, id), node_(node){}
-   virtual LinkAndCrossingByLink const & getLinkAndCrossingsByLink() const = 0;
-   virtual LinkAndCrossingByCrossing const & getLinkAndCrossingsByCrossing() const= 0;
-   virtual TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const = 0 ;
-   virtual TrafficColor getPedestrianLight(Crossing const & crossing) const = 0;
-   virtual std::string toString() const;
+	  : Agent(mtxStrat, id), node_(node){};
+   virtual LinkAndCrossingByLink const & getLinkAndCrossingsByLink() const {};
+   virtual LinkAndCrossingByCrossing const & getLinkAndCrossingsByCrossing() const{};
+   virtual TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const {} ;
+   virtual TrafficColor getPedestrianLight(Crossing const & crossing) const {};
+   virtual std::string toString() const{};
    Node  const & getNode() const { return node_; }
 
 //   virtual unsigned int getSignalId()   {return TMP_SignalID;}
@@ -195,7 +195,7 @@ private:
      */
     sim_mob::SplitPlan plan_;
 
-	std::vector<double> currSplitPlan;//a chunk in "choiceSet" container,Don't think I will need it anymore coz job is distributed to a different class
+//	std::vector<double> currSplitPlan;//a chunk in "choiceSet" container,Don't think I will need it anymore coz job is distributed to a different class
 	int currSplitPlanID;//Don't think I will need it anymore
 	int phaseCounter;//Don't think I will need it anymore coz apparently currCycleTimer will replace it
 	double currCycleTimer;//The amount of time passed since the current cycle started.(in millisecond)
@@ -250,8 +250,8 @@ public:
     virtual void pack(PackageUtils& packageUtil){}
     virtual void unpack(UnPackageUtils& unpackageUtil){}
 
-	virtual void packProxy(PackageUtils& packageUtil);
-	virtual void unpackProxy(UnPackageUtils& unpackageUtil);
+	virtual void packProxy(PackageUtils& packageUtil){};
+	virtual void unpackProxy(UnPackageUtils& unpackageUtil){};
 #endif
 //	static std::vector< std::vector<double> > SplitPlan;
 };//class Signal

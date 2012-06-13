@@ -92,6 +92,7 @@ public:
 	typedef std::pair<links_map_const_iterator, links_map_const_iterator> links_map_equal_range;
 
 	typedef crossings_map::iterator crossings_map_iterator;
+	typedef crossings_map::const_iterator crossings_map_const_iterator;
 
 	Phase(){}
 	Phase(std::string name_, sim_mob::SplitPlan *parent = nullptr):name(name_),parentPlan(parent){}
@@ -133,7 +134,8 @@ public:
 	void addCrossingMapping(sim_mob::Link *,sim_mob::Crossing *);
 	//add crossing to any link of this node which is not involved in this phase
 	void addDefaultCrossings(sim_mob::LinkAndCrossingByLink const & ,sim_mob::MultiNode *node);
-	const links_map & getLinkMaps();
+	const links_map & getLinkMaps();//apparently not needed, getLinkTos is good enough for getdriverlight()
+	const crossings_map & getCrossingMaps() const;
 //	links_map_equal_range  getLinkTos(sim_mob::Link *LinkFrom) ;
 	void updatePhaseParams(double phaseOffset_, double percentage_);
 	/* Used in computing DS for split plan selection

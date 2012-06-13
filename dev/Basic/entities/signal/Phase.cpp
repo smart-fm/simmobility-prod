@@ -9,6 +9,7 @@ namespace sim_mob
 		phaseOffset = phaseOffset_;
 		phaseLength = percentage_;
 	}
+	const crossings_map & Phase::getCrossingMaps() const { return crossings_map_ ; }
 	/*
 	 * Functionalities of this function will be listed here as they emerge:
 	 * 1- update the color of the link_maps

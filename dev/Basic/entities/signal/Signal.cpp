@@ -8,6 +8,7 @@
  */
 #include "Signal.hpp"
 #ifdef SIMMOB_NEW_SIGNAL
+
 #include <math.h>
 #include "geospatial/Lane.hpp"
 #include "geospatial/Crossing.hpp"
@@ -221,7 +222,7 @@ void Signal::findSignalLinks()
 void Signal::startSplitPlan() {
 	//CurrSplitPlan
 	currSplitPlanID = plan_.CurrSplitPlanID();//todo check what .CurrSplitPlanID() is giving? where is it initializing?
-	currSplitPlan = plan_.CurrSplitPlan();//todo check if we really need this
+//	currSplitPlan = plan_.CurrSplitPlan();//todo check if we really need this
 }
 
 //find the minimum among the max projected DS
@@ -494,15 +495,24 @@ TrafficColor Signal::getDriverLight(Lane const & fromLane, Lane const & toLane)c
 			throw std::runtime_error("the specified combination of source and destination lanes are not assigned to this signal");
 	else
 	{
-		std::cout << "getDriverLight RETURNING " << getColor((*iter).second.currColor) << std::endl;
+//		std::cout << "getDriverLight RETURNING " << getColor((*iter).second.currColor) << std::endl;
 		return (*iter).second.currColor;
 	}
 }
-
+/*checks current phase for the current color of the crossing(if the crossing found),
+ * other cases and phases, just return red.
+ */
 TrafficColor Signal::getPedestrianLight(Crossing const & crossing) const
 {
-
-	return sim_mob::Green;
+	const sim_mob::Phase & phase = plan_.CurrPhase();
+	const sim_mob::Phase::crossings_map_const_iterator it = phase.getCrossingMaps().find((const_cast<Crossing *>(&crossing)));
+	if(it != phase.getCrossingMaps().end())
+	{
+//		std::cout << "Crossing Returning " << getColor((*it).second.currColor) << std::endl;
+		return (*it).second.currColor;
+	}
+//	std::cout << "Crossing Returning Red" << std::endl;
+	return sim_mob::Red;
 }
 
 void Signal::outputToVisualizer(frame_t frameNumber) {

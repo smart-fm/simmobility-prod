@@ -1239,7 +1239,8 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     //they should be handled with in the signal constructor, not here
     for (size_t i = 0; i < Signal::all_signals_.size(); ++i)
     {
-    	Signal  * signal = dynamic_cast<Signal  *>(Signal::all_signals_[i]);
+
+    	Signal  * signal =  dynamic_cast<Signal  *>(Signal_Parent::all_signals_[i]);
 //        Signal const * signal = const_cast<Signal_Parent *>(Signal::all_signals_[i]);
         LoopDetectorEntity & loopDetector = const_cast<LoopDetectorEntity&>(signal->loopDetector());
         loopDetector.init(*signal);

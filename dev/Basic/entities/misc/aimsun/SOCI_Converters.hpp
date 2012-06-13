@@ -23,10 +23,10 @@ template<> struct type_conversion<aimsun::TripChainItem>
     typedef values base_type;
     static void from_base(const soci::values& vals, soci::indicator& ind, aimsun::TripChainItem &res)
     {
-    	res.tmp_personID = vals.get<int>("PersonId",0);
+    	res.entityID = vals.get<int>("EntityID",0);
     	res.setSequenceNumber(vals.get<int>("Trip_Chain_Sequence_Number",0));
-    	res.tmp_itemType = vals.get<std::string>("Trip_Chain_Item_Type","");
-    	if(res.tmp_itemType.compare("Trip") == 0){
+    	res.itemType = aimsun::TripChainItem::getItemType(vals.get<std::string>("Trip_Chain_Item_Type",""));
+    	if(res.itemType == aimsun::TripChainItemType::trip){
     		aimsun::SubTrip *aSubTrip = dynamic_cast<aimsun::SubTrip>(res);
     		aSubTrip->tripID = vals.get<int>("Trip_ID", 0);
     		aSubTrip->tmp_subTripID = vals.get<int>("Sub_Trip_Id",0);
@@ -37,7 +37,7 @@ template<> struct type_conversion<aimsun::TripChainItem>
     		aSubTrip->mode = vals.get<int>("Description",0);
     		aSubTrip->startTime = vals.get<std::string>("Start_Time",0);
     	}
-    	else if(res.tmp_itemType.compare("Activity") == 0){
+    	else if(res.itemType == aimsun::TripChainItemType::activity){
     		aimsun::Activity *anActivity = dynamic_cast<aimsun::Activity>(res);
     		anActivity->tmp_activityID = vals.get<int>("Activity_Id", 0);
     		anActivity->description = vals.get<std::string>("Activity_Description", "");

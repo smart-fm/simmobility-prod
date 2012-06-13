@@ -23,7 +23,7 @@ using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
 
 sim_mob::Person::Person(const MutexStrategy& mtxStrat, int id) :
-	Agent(mtxStrat, id), prevRole(nullptr), currRole(nullptr), currTripChain(nullptr), firstFrameTick(true)
+	Agent(mtxStrat, id), prevRole(nullptr), currRole(nullptr), currTripChainItem(nullptr), firstFrameTick(true)
 {
 	//throw 1;
 }
@@ -177,7 +177,7 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 
 UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) {
 	//Do we have at least one more item in our Trip Chain?
-	TripChain* currTrip = getTripChain();
+	TripChainItem* currTrip = getTripChainItem();
 	if (!currTrip) {
 		return UpdateStatus::Done;
 	}
@@ -213,7 +213,7 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) 
 	firstFrameTick = true;
 
 	//Null out our trip chain, remove the "removed" flag, and return
-	setTripChain(nullptr);
+	setTripChainItem(nullptr);
 	clearToBeRemoved();
 	return res;
 }

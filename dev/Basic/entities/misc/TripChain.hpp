@@ -17,28 +17,26 @@
 namespace sim_mob
 {
 
-enum location_type{
-	building, node, link, bus_stop
+enum Location_Type{
+	building, node, link, publicTansitStop
+};
+
+enum TripChainItemType {
+	trip, activity
 };
 
 /**
  * Base class for elements in a trip chain.
  * \author Harish L
  */
-class sim_mob::TripChainItem {
+class TripChainItem {
 protected:
-	sim_mob::Entity* parentEntity;
+	// sim_mob::Entity* parentEntity; // Keeping only ID for now. Entity objects will have to be created when Person table has data.//sim_mob::Entity* parentEntity;
 	unsigned int sequenceNumber;
 public:
+	TripChainItemType itemType;
 	sim_mob::DailyTime startTime;
-
-	sim_mob::Entity* getParentEntity() const {
-		return parentEntity;
-	}
-
-	void setParentEntity(sim_mob::Entity* parentEntity) {
-		this->parentEntity = parentEntity;
-	}
+	int entityID;
 
 	unsigned int getSequenceNumber() const {
 		return sequenceNumber;
@@ -48,6 +46,19 @@ public:
 		this->sequenceNumber = sequenceNumber;
 	}
 	
+	static Location_Type getLocationType(std::string locType) {
+		if(locType.compare("building") == 0) return building;
+		else if(locType.compare("node") == 0) return node;
+		else if(locType.compare("link") == 0) return link;
+		else if(locType.compare("stop") == 0) return publicTansitStop;
+		return node;
+	}
+
+	static TripChainItemType getItemType(std::string itemType){
+		if(itemType.compare("Activity") == 0) return activity;
+		else return trip;
+	}
+
 };
 
 /**
@@ -55,37 +66,31 @@ public:
  * \author Seth N. Hetu
  * \author Harish L
  */
-class sim_mob::Activity : sim_mob::TripChainItem {
+class Activity : sim_mob::TripChainItem {
 public:
 	std::string description;
 	sim_mob::Node* location;
-	location_type locationType;
+	Location_Type locationType;
 	bool isPrimary;
 	bool isFlexible;
 	sim_mob::DailyTime activityStartTime;
 	sim_mob::DailyTime activityEndTime;
 };
 
-/**
- * \author Harish
- */
-class sim_mob::SubTrip : sim_mob::Trip {
-public:
-	Trip* parentTrip;
-	std::string mode;
-};
+//Forward Declaration
+class SubTrip;
 
 /**
  * \author Seth N. Hetu
  * \author Harish
  */
-class sim_mob::Trip : sim_mob::TripChainItem
+class Trip : sim_mob::TripChainItem
 {
 public:
     sim_mob::Node* fromLocation;
-    location_type fromLocationType;
+    Location_Type fromLocationType;
     sim_mob::Node* toLocation;
-    location_type toLocationType;
+    Location_Type toLocationType;
     int tripID;
 
     std::vector<SubTrip*> getSubTrips() const
@@ -104,6 +109,15 @@ public:
 
 private:
     std::vector<SubTrip*> subTrips;
+};
+
+/**
+ * \author Harish
+ */
+class SubTrip : sim_mob::Trip {
+public:
+	sim_mob::Trip* parentTrip;
+	std::string mode;
 };
 
 }

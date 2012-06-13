@@ -17,8 +17,12 @@
 namespace aimsun
 {
 
-enum location_type{
+enum Location_Type{
 	building, node, link, publicTansitStop
+};
+
+enum TripChainItemType {
+	trip, activity
 };
 
 /**
@@ -27,19 +31,12 @@ enum location_type{
  */
 class aimsun::TripChainItem {
 protected:
-	sim_mob::Entity* parentEntity;
+	// sim_mob::Entity* parentEntity; // Keeping only ID for now. Entity objects will have to be created when Person table has data.
 	unsigned int sequenceNumber;
 public:
+	TripChainItemType itemType;
 	sim_mob::DailyTime startTime;
-	int tmp_personID;
-	std::string tmp_itemType;
-	sim_mob::Entity* getParentEntity() const {
-		return parentEntity;
-	}
-
-	void setParentEntity(sim_mob::Entity* parentEntity) {
-		this->parentEntity = parentEntity;
-	}
+	int entityID;
 
 	unsigned int getSequenceNumber() const {
 		return sequenceNumber;
@@ -49,18 +46,18 @@ public:
 		this->sequenceNumber = sequenceNumber;
 	}
 
-	static location_type getLocationType(std::string locType) {
-		if(locType.compare("building") == 0){
-			return building;
-		} else if(locType.compare("node") == 0){
-			return node;
-		} else if(locType.compare("link") == 0){
-			return link;
-		} else if(locType.compare("stop") == 0){
-			return publicTansitStop;
-		} else return "";
+	static Location_Type getLocationType(std::string locType) {
+		if(locType.compare("building") == 0) return building;
+		else if(locType.compare("node") == 0) return node;
+		else if(locType.compare("link") == 0) return link;
+		else if(locType.compare("stop") == 0) return publicTansitStop;
+		return node;
 	}
 
+	static TripChainItemType getItemType(std::string itemType){
+		if(itemType.compare("Activity") == 0) return activity;
+		else return trip;
+	}
 };
 
 /**
@@ -72,7 +69,7 @@ class aimsun::Activity : aimsun::TripChainItem {
 public:
 	std::string description;
 	sim_mob::Node* location;
-	location_type locationType;
+	Location_Type locationType;
 	bool isPrimary;
 	bool isFlexible;
 	sim_mob::DailyTime activityStartTime;
@@ -103,9 +100,9 @@ class aimsun::Trip : aimsun::TripChainItem
 {
 public:
     sim_mob::Node* fromLocation;
-    location_type fromLocationType;
+    Location_Type fromLocationType;
     sim_mob::Node* toLocation;
-    location_type toLocationType;
+    Location_Type toLocationType;
     int tripID;
 
     //Temporaries for SOCI conversion

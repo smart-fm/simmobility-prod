@@ -41,7 +41,7 @@ class Entity;
 class Agent;
 class Person;
 class Region;
-class TripChain;
+class TripChainItem;
 class StartTimePriorityQueue;
 class ProfileBuilder;
 

@@ -11,11 +11,12 @@
 #include "roles/driver/Driver.hpp"
 #include "buffering/Shared.hpp"
 #include "entities/UpdateParams.hpp"
+#include "entities/misc/TripChain.hpp"
 
 namespace sim_mob
 {
 
-class TripChain;
+class TripChainItem;
 
 #ifndef SIMMOB_DISABLE_MPI
 class PartitionManager;
@@ -31,6 +32,7 @@ class UnPackageUtils;
  * \author Luo Linbo
  * \author Li Zhemin
  * \author Xu Yan
+ * \author Harish Loganathan
  *
  * A person may perform one of several roles which
  *  change over time. For example: Drivers, Pedestrians, and Passengers are
@@ -66,8 +68,8 @@ public:
 	///  Creating the second type of TripChain will leak memory when the Person is remoed
 	///  from the simulation. This is exactly the kind of thing which std::shared_pointer
 	///  is good for. Maybe we should use the boost:: version?
-	void setTripChain(sim_mob::TripChain* newTripChain) { currTripChain = newTripChain; }
-	sim_mob::TripChain* getTripChain() { return currTripChain; }
+	void setTripChainItem(sim_mob::TripChainItem* newTripChainItem) { currTripChainItem = newTripChainItem; }
+	sim_mob::TripChainItem* getTripChainItem() { return currTripChainItem; }
 
 	//Used for passing various debug data. Do not rely on this for anything long-term.
 	std::string specialStr;
@@ -76,7 +78,7 @@ private:
 	//Properties
 	sim_mob::Role* prevRole;  ///< To be deleted on the next time tick.
 	sim_mob::Role* currRole;
-	sim_mob::TripChain* currTripChain;
+	sim_mob::TripChainItem* currTripChainItem;
 
 	bool firstFrameTick;  ///Determines if frame_init() has been done.
 

@@ -387,7 +387,7 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 	//Exectue as a rowset to avoid repeatedly building the query.
 	tripchains_.clear();
 	for (soci::rowset<aimsun::TripChainItem>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
-		if(it->tmp_itemType.compare("Trip") == 0){
+		if(it->itemType == sim_mob::TripChainItemType::trip){
 			//if Trip
 
 			aimsun::SubTrip *aSubTrip = dynamic_cast<aimsun::SubTrip>(it);
@@ -406,7 +406,7 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 			aSubTrip->fromLocation = &nodes_[aSubTrip->tmp_fromLocationNodeID];
 			aSubTrip->toLocation = &nodes_[aSubTrip->tmp_toLocationNodeID];
 		}
-		else if(it->tmp_itemType.compare("Activity") == 0) {
+		else if(it->itemType == sim_mob::TripChainItemType::activity) {
 			//if Activity
 
 			aimsun::Activity *anActivity = dynamic_cast<aimsun::Activity>(it);
@@ -1014,16 +1014,21 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 	aimsun::SubTrip *aSubTrip = nullptr;
 	sim_mob::Trip *tripToSave = nullptr;
 	sim_mob::SubTrip *aSubTripInTrip = nullptr;
-	int currTripId = 0;
+	sim_mob::Activity *anActivity = nullptr;
+	sim_mob::Activity *activityToSave = nullptr;
+
+	int currEntityId = 0;
 	for (vector<aimsun::TripChainItem>::iterator it=tripchains_.begin(); it!=tripchains_.end(); it++) {
-		if(it->tmp_itemType.compare("Trip") == 0){
+		if(it->itemType == sim_mob::TripChainItemType::trip){
 			// TODO: Gotta make use of Person Id to be able to group trips and activities of a person.
 			*aSubTrip = dynamic_cast<aimsun::SubTrip>(it);
 			*tripToSave = new sim_mob::Trip();
-			currTripId = tripToSave->tripID = aSubTrip->tripID;
+			currEntityId = tripToSave->entityID = aSubTrip->entityID;
 
 			//First item
 			*aSubTripInTrip = new sim_mob::SubTrip();
+			aSubTripInTrip->entityID = aSubTrip->entityID;
+			aSubTripInTrip->setSequenceNumber(aSubTrip->getSequenceNumber());
 			aSubTripInTrip->fromLocation = aSubTrip->fromLocation;
 			aSubTripInTrip->fromLocationType = aSubTrip->fromLocationType;
 			aSubTripInTrip->toLocation = aSubTrip->toLocation;
@@ -1039,15 +1044,18 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 
 			//Remaining items of the same trip
 			do{
-				if(++it->tmp_itemType.compare("Trip") != 0){
+				if(it->itemType == sim_mob::TripChainItemType::trip){
 					//Encountered an activity. Last subtrip was reached in the previous iteration.
 					//Last subtrip's to location is the to location for the parent trip
 					tripToSave->toLocation = aSubTrip->toLocation;
 					tripToSave->toLocationType = aSubTrip->toLocationType;
+					--it; // So that the next iteration of the for loop points to this activity
 					break;
 				}
 				*aSubTrip = dynamic_cast<aimsun::SubTrip>(it);
 				sim_mob::SubTrip *aSubTripInTrip = new sim_mob::SubTrip();
+				aSubTripInTrip->entityID = aSubTrip->entityID;
+				aSubTripInTrip->setSequenceNumber(aSubTrip->getSequenceNumber());
 				aSubTripInTrip->fromLocation = aSubTrip->fromLocation;
 				aSubTripInTrip->fromLocationType = aSubTrip->fromLocationType;
 				aSubTripInTrip->toLocation = aSubTrip->toLocation;
@@ -1055,12 +1063,25 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 				aSubTripInTrip->mode = aSubTrip->mode;
 				aSubTripInTrip->startTime = aSubTrip->startTime;
 				tripToSave->addSubTrip(*aSubTripInTrip);
-			} while(currTripId == aSubTrip->tripID && it!=tripchains_.end());
+			} while(currEntityId == aSubTrip->entityID && it!=tripchains_.end());
 
 			tcs.push_back(tripToSave);
 		}
-		else if (it->tmp_itemType.compare("Activity") == 0){
-			// TODO: Construct and load activity
+		else if (it->itemType == sim_mob::TripChainItemType::activity){
+			//TODO: Person related work
+			*anActivity = dynamic_cast<sim_mob::Activity>(it);
+			*activityToSave = new sim_mob::Activity();
+			activityToSave->entityID = anActivity->entityID;
+			activityToSave->setSequenceNumber(anActivity->getSequenceNumber());
+			activityToSave->description= anActivity->description;
+			activityToSave->isPrimary = anActivity->isPrimary;
+			activityToSave->isFlexible = anActivity->isFlexible;
+			activityToSave->location = anActivity->location;
+			activityToSave->locationType = anActivity->locationType;
+			activityToSave->activityStartTime = anActivity->activityStartTime;
+			activityToSave->activityEndTime = anActivity->activityEndTime;
+
+			tcs.push_back(activityToSave);
 		}
 	}
 //

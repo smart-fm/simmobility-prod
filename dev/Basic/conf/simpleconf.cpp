@@ -223,21 +223,22 @@ namespace {
 bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, AgentConstraints& constraints)
 {
 	ConfigParams& config = ConfigParams::GetInstance();
-	const vector<TripChain*>& tcs = ConfigParams::GetInstance().getTripChains();
-	for (vector<TripChain*>::const_iterator it=tcs.begin(); it!=tcs.end(); it++) {
+	const vector<TripChainItem*>& tcs = ConfigParams::GetInstance().getTripChains();
+	int currentEntityID = 0;
+	for (vector<TripChainItem*>::const_iterator it=tcs.begin(); it!=tcs.end(); it++) {
 		//Create an Agent candidate based on the type.
-		PendingEntity p(EntityTypeFromTripChainString((*it)->mode));
+		if(currentEntityID == (*it)->entityID) continue;
+		if((*it)->itemType == sim_mob::TripChainItemType::activity) continue; //Just in case. First item for a Person (Home?) may be an activity.
+
+		sim_mob::SubTrip *firstSubTripForEntity = dynamic_cast<sim_mob::SubTrip>(*it);
+		PendingEntity p(EntityTypeFromTripChainString(firstSubTripForEntity->mode));
 
 		//Origin, destination
-		//curr->originNode =
-		p.origin = (*it)->from.location;
-		//curr->destNode =
-		p.dest = (*it)->to.location;
+		p.origin = firstSubTripForEntity->fromLocation;
+		p.dest = firstSubTripForEntity->toLocation;
 
 		//Start time
-		//curr->setStartTime(
-		p.start = (*it)->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
-
+		p.start = firstSubTripForEntity->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 
 		//Add it or stash it
 		addOrStashEntity(p, active_agents, pending_agents);

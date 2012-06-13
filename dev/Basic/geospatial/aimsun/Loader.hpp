@@ -13,7 +13,7 @@ namespace sim_mob
 {
 
 //Forward declarations
-class TripChain;
+class TripChainItem;
 class RoadNetwork;
 class RoadSegment;
 class DynamicVector;

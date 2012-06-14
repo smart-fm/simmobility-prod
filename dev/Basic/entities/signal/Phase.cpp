@@ -147,15 +147,15 @@ void Phase::addLinkMapping(sim_mob::Link * lf, sim_mob::linkToLink & ll,
 	links_map_.insert(std::pair<sim_mob::Link *, sim_mob::linkToLink>(lf, ll));
 }
 
-std::string Phase::createStringRepresentation() const {
+std::string Phase::createStringRepresentation(std::string newLine) const {
 	std::ostringstream output;
 	if (links_map_.size() == 0 && crossings_map_.size() == 0)
 		return 0;
-	output << "\n{\n";
-	output << "\"name\": \"" << name << "\",\n";
+	output << newLine << "{" << newLine;
+	output << "\"name\": \"" << name << "\"," << newLine;
 	int i = 0;
 	if (links_map_.size()) {
-		output << "\"links\":\n[\n";
+		output << "\"links\":" << newLine << "[" << newLine;
 		links_map_iterator it = links_map_.begin();
 		while (it != links_map_.end()) {
 			output << "{";
@@ -163,26 +163,26 @@ std::string Phase::createStringRepresentation() const {
 			output << "\"link_to\":\"" << (*it).second.LinkTo << "\"}";
 			it++;
 			if (it != links_map_.end())
-				output << ",\n";
+				output << "," << newLine;
 
 		}
-		output << "\n],\n";
+		output << newLine << "]," << newLine;
 	}
 
 	if (crossings_map_.size()) {
-		output << "\"crossings\":\n[\n";
+		output << "\"crossings\":" << newLine << "[" << newLine;
 		crossings_map_iterator it = crossings_map_.begin();
 		while (it != crossings_map_.end()) {
 			output << "\"" << (*it).first << "\""; //crossing *
 			it++;
 			if (it != crossings_map_.end())
-				output << ",\n";
+				output << "," << newLine;
 
 		}
-		output << "\n]";
+		output << newLine << "]";
 	}
 
-	output << "\n}\n";
+	output << newLine << "}" << newLine;
 	return output.str();
 }
 void Phase::initialize(){
@@ -318,16 +318,16 @@ const std::string & Phase::getName() const
 	return name;
 }
 
-std::string Phase::outputPhaseTrafficLight() const
+std::string Phase::outputPhaseTrafficLight(std::string newLine) const
 {
 	std::ostringstream output;
 	if (links_map_.size() == 0 && crossings_map_.size() == 0)
 		return 0;
-	output << "\n{\n";
-	output << "\"name\": \"" << name << "\",\n";
+	output << newLine << "{" << newLine;
+	output << "\"name\": \"" << name << "\"," << newLine;
 	int i = 0;
 	if (links_map_.size()) {
-		output << "\"links\":\n[\n";
+		output << "\"links\":" << newLine << "[" << newLine;
 		links_map_iterator it = links_map_.begin();
 		while (it != links_map_.end()) {
 			output << "{";
@@ -336,27 +336,27 @@ std::string Phase::outputPhaseTrafficLight() const
 			output <<"\"current_color\":" << (*it).second.currColor << "}";//currColor
 			it++;
 			if (it != links_map_.end())
-				output << ",\n";
+				output << "," << newLine;
 
 		}
-		output << "\n],\n";
+		output << newLine << "]," << newLine;
 	}
 
 	if (crossings_map_.size()) {
-		output << "\"crossings\":\n[\n";
+		output << "\"crossings\":" << newLine << "[" << newLine;
 		crossings_map_iterator it = crossings_map_.begin();
 		while (it != crossings_map_.end()) {
 			output << "{\"id\":\"" << (*it).first << "\","; //crossing *
 			output <<"\"current_color\":" << (*it).second.currColor << "}";//currColor
 			it++;
 			if (it != crossings_map_.end())
-				output << ",\n";
+				output << "," << newLine;
 
 		}
-		output << "\n]";
+		output << newLine << "]";
 	}
 
-	output << "\n}\n";
+	output << newLine << "}" << newLine;
 	return output.str();
 
 

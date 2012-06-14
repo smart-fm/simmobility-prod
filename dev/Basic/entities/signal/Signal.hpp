@@ -145,7 +145,7 @@ public:
 	unsigned int getSignalId()   {return TMP_SignalID;}
 	unsigned int getSignalId() const  {return TMP_SignalID;}
 	bool isIntersection() { return isIntersection_;}
-	void createStringRepresentation();
+	void createStringRepresentation(std::string newLine = "\n");
 
 	/*--------The cause of this Module----------*/
     TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const ;
@@ -158,7 +158,7 @@ public:
 //	static sim_mob::Signal::all_signals all_signals_;
 
     void updateIndicators();
-    void outputTrafficLights(frame_t frameNumber)const;
+    void outputTrafficLights(frame_t frameNumber,std::string newLine)const;
 
 private:
     bool isIntersection_;

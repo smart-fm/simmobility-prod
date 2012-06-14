@@ -62,15 +62,15 @@ Signal::signalAt(Node const & node, const MutexStrategy& mtxStrat, bool *isNew )
 //	return vit;
 //}
 
-void Signal::createStringRepresentation()
+void Signal::createStringRepresentation(std::string newLine)
 {
 	std::ostringstream output;
-			output << "{\n\"TrafficSignal\":\n{\n";
-			output << "\"hex_id\":\""<< this << "\",\n";
-			output << "\"simmob_id\":" <<  TMP_SignalID << "\",\n";
-			output << "\"node\": \"" << &getNode() << "\",\n";
-			output << plan_.createStringRepresentation();
-			output << "\n}\n}";
+			output << "{" << newLine << "\"TrafficSignal\":" << "{" << newLine;
+			output << "\"hex_id\":\""<< this << "\"," << newLine;
+			output << "\"simmob_id\":" <<  TMP_SignalID << "\"," << newLine;
+			output << "\"node\": \"" << &getNode() << "\"," << newLine;
+			output << plan_.createStringRepresentation(newLine);
+			output  << newLine << "}"  << newLine << "}";
 			strRepr = output.str();//all the aim of the unrelated part
 }
 
@@ -393,13 +393,13 @@ bool Signal::updateCurrCycleTimer() {
 	currCycleTimer =  std::fmod((currCycleTimer + updateInterval) , plan_.getCycleLength());
 	return is_NewCycle;
 }
-void Signal::outputTrafficLights(frame_t frameNumber) const{
+void Signal::outputTrafficLights(frame_t frameNumber,std::string newLine) const{
 	std::stringstream output;
-	output << "\n{\n\"TrafficSignal-Update\":\n{\n";
-	output << "\"hex_id\":\""<< this << "\",\n";
-	output << "\"frame\": " << frameNumber << ",\n";
-	output << plan_.outputTrafficLights();
-	LogOut( output.str() << "\n}\n}\n");
+	output << newLine << "{" << newLine << "\"TrafficSignal-Update\":" << newLine <<"{" << newLine ;
+	output << "\"hex_id\":\""<< this << "\"," << newLine;
+	output << "\"frame\": " << frameNumber << "," << newLine;
+	output << plan_.outputTrafficLights(newLine);
+	LogOut( output.str() << newLine << "}" << newLine << "}" << std::endl);
 }
 /*
  * 1- update current cycle timer
@@ -416,7 +416,7 @@ void Signal::outputTrafficLights(frame_t frameNumber) const{
  */
 UpdateStatus Signal::update(frame_t frameNumber) {
 	if(!isIntersection_) return UpdateStatus::Continue;
-	outputTrafficLights(frameNumber);
+	outputTrafficLights(frameNumber,"");
 //	1- update current cycle timer( Signal::currCycleTimer)
 	isNewCycle = updateCurrCycleTimer();
 	//if the phase has changed, here we dont update currPhaseID to a new value coz we still need some info(like DS) obtained during the last phase
@@ -608,7 +608,7 @@ void Signal::setSplitPlan(sim_mob::SplitPlan plan)
 /*Signal Initialization */
 //might not be very necessary(not in use)
 void Signal::initialize() {
-	createStringRepresentation();
+	createStringRepresentation("");
 	plan_.initialize();
 	Phase_Density.resize(plan_.find_NOF_Phases(), 0);//todo wrong ! Density has changed to contain phase DS--update:corrected, now decide what to do with findIncomingLanes
 

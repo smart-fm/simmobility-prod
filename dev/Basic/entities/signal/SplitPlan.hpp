@@ -120,12 +120,12 @@ public:
 	double fmin_ID(std::vector<double> maxproDS);
 	std::size_t getMaxVote();
 	void fill(double defaultChoiceSet[5][10], int approaches);
-	std::string createStringRepresentation();
+	std::string createStringRepresentation(std::string newLine);
 	void setParentSignal(sim_mob::Signal * signal) { parentSignal = signal;}
 	sim_mob::Signal * getParentSignal() { return parentSignal;}
 	void printColors(double printColors);
 	double fmax(std::vector<double> &DS);
-	std::string  outputTrafficLights(int phaseId = -1)const;
+	std::string  outputTrafficLights(std::string newLine, int phaseId = -1)const;
 
 	/*friends*/
 	friend class Signal;

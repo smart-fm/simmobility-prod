@@ -300,23 +300,23 @@ void SplitPlan::setDefaultSplitPlan(int approaches)
 	currPhaseID = 0; //what the hell :)
 }
 
-std::string SplitPlan::createStringRepresentation()
+std::string SplitPlan::createStringRepresentation(std::string newLine)
 {
 	if(phases_.size() == 0)
 		{
 			return 0;
 		}
 	std::ostringstream output;
-	output << "\"phases\":\n[";
+	output << "\"phases\":" << newLine << "[";
 	phases_iterator it = phases_.begin();
 	while(it !=phases_.end())
 	{
-		output << (*it).createStringRepresentation();
+		output << (*it).createStringRepresentation(newLine);
 		it++;
 		if(it !=phases_.end())
 			output << ",";
 	}
-	output << "\n]";
+	output << newLine << "]";
 	return output.str();
 }
 
@@ -331,7 +331,7 @@ SplitPlan::printColors(double currCycleTimer)
 	}
 }
 
-std::string SplitPlan::outputTrafficLights(int phaseId) const
+std::string SplitPlan::outputTrafficLights(std::string newLine, int phaseId) const
 {
 //	if (phaseId > phases_.size())
 //	{
@@ -346,16 +346,16 @@ std::string SplitPlan::outputTrafficLights(int phaseId) const
 			return 0;
 		}
 	std::ostringstream output;
-	output << "\"phases\":\n[";
+	output << "\"phases\":" << newLine << "[";
 	phases_iterator it = phases_.begin();
 	while(it !=phases_.end())
 	{
-		output << (*it).outputPhaseTrafficLight();
+		output << (*it).outputPhaseTrafficLight(newLine);
 		it++;
 		if(it !=phases_.end())
 			output << ",";
 	}
-	output << "\n]";
+	output << newLine << "]";
 	return output.str();
 
 }

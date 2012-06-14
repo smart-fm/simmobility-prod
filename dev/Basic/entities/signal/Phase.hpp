@@ -144,7 +144,7 @@ public:
 	void update(double lapse) const;
 	double computeTotalG() const;//total green time
 	const std::string & getPhaseName() { return name;}
-	std::string createStringRepresentation() const;
+	std::string createStringRepresentation(std::string newLine) const;
 	void initialize();
 	void calculateGreen();
 	void calculateGreen_Crossings();
@@ -153,7 +153,7 @@ public:
 	void printColorDuration() ;
 	void printPhaseColors(double currCycleTimer) const;
 	const std::string & getName() const;
-	 std::string outputPhaseTrafficLight() const;
+	 std::string outputPhaseTrafficLight(std::string newLine) const;
 	 sim_mob::RoadSegment * findRoadSegment(sim_mob::Link *, sim_mob::MultiNode *) const;
 
 	const std::string name; //we can assign a name to a phase for ease of identification

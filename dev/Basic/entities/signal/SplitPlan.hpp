@@ -1,7 +1,7 @@
 #pragma once
 #include<map>
 #include<vector>
-#include "geospatial/Link.hpp"
+//#include "geospatial/Link.hpp"
 #include "defaults.hpp"
 #include "Phase.hpp"
 #include "Cycle.hpp"

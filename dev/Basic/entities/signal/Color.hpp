@@ -1,6 +1,8 @@
 #pragma once
+
 #include<vector>
 #include"defaults.hpp"
+
 namespace sim_mob
 {
 //Forward declarations
@@ -9,9 +11,9 @@ class Phase;
 //depricated
 struct VehicleTrafficColors
 {
-    TrafficColor left;     ///< Traffic-color for the left direction.
-    TrafficColor forward;  ///< Traffic-color for the forward direction.
-    TrafficColor right;    ///< Traffic-color for the right direction.
+	sim_mob::TrafficColor left;     ///< Traffic-color for the left direction.
+	sim_mob::TrafficColor forward;  ///< Traffic-color for the forward direction.
+	sim_mob::TrafficColor right;    ///< Traffic-color for the right direction.
 
     /// Constructor.
     VehicleTrafficColors(TrafficColor l, TrafficColor f, TrafficColor r)

@@ -1173,7 +1173,11 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     std::cout << "Loading Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder Success!" << std::endl;
 
     //Load signals, which are currently agents
-    if (!loadXMLSignals(document, "signal")) {
+    if (!loadXMLSignals(document,
+#ifndef SIMMOB_NEW_SIGNAL
+    		Signal::all_signals_,
+#endif
+    		"signal")) {
     	std::cout << "loadXMLSignals Failed!" << std::endl;
     	return	 "Couldn't load signals";
     }
@@ -1237,10 +1241,16 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     // it here.
     //todo I think when a loop detector data are dynamically assigned to signal rather that being read from data base,
     //they should be handled with in the signal constructor, not here
-    for (size_t i = 0; i < Signal::all_signals_.size(); ++i)
+#ifndef SIMMOB_NEW_SIGNAL
+    std::vector<Signal*>& all_signals = Signal::all_signals_;
+#else
+    std::vector<Signal_Parent*>& all_signals = Signal_Parent::all_signals_;
+#endif
+
+    for (size_t i = 0; i < all_signals.size(); ++i)
     {
 
-    	Signal  * signal =  dynamic_cast<Signal  *>(Signal_Parent::all_signals_[i]);
+    	Signal  * signal =  dynamic_cast<Signal  *>(all_signals[i]);
 //        Signal const * signal = const_cast<Signal_Parent *>(Signal::all_signals_[i]);
         LoopDetectorEntity & loopDetector = const_cast<LoopDetectorEntity&>(signal->loopDetector());
         loopDetector.init(*signal);

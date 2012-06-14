@@ -19,10 +19,11 @@
 
 #include "DynamicVector.hpp"
 
+//TODO: Once the new signal class is stabilized, replace this include with a forward declaration:
+#include "entities/signal_transitional.hpp"
 
 namespace sim_mob {
 class Point2D;
-class Signal_Parent;
 class RoadSegment;
 class Link;
 class Crossing;

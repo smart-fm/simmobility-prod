@@ -1,6 +1,7 @@
+#pragma once
+
 #include "defaults.hpp"
 
-#pragma once
 namespace sim_mob {
 
 class Cycle {

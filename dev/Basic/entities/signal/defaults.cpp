@@ -1,39 +1,20 @@
-#pragma once
+#include "defaults.hpp"
 
-#include <boost/multi_index_container.hpp>
-#include <boost/multi_index/member.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/random_access_index.hpp>
-#include <boost/multi_index/composite_key.hpp>
-#include <boost/multi_index/mem_fun.hpp>
+#include<string>
+#include<sstream>
+#include<iostream>
 
+#include "geospatial/Link.hpp"
+#include "geospatial/Crossing.hpp"
 
 namespace sim_mob {
 
-//Forward declarations
-class Crossing;
-class Link;
-
-
-enum TrafficColor
-{
-    Red =1,    			///< Stop, do not go beyond the stop line.
-    Amber = 2,  		///< Slow-down, prepare to stop before the stop line.
-    Green = 3,   		///< Proceed either in the forward, left, or right direction.
-    FlashingRed = 4,	///future use
-    FlashingAmber = 5,	///future use
-    FlashingGreen = 6	///future use
-};
-
-//Link and crossing of an intersection/traffic signal
-struct LinkAndCrossing
-{
-	LinkAndCrossing(int id_,sim_mob::Link const * link_,sim_mob::Crossing const * crossing_,double angle_);
-	size_t id;         //index for backward compatibility (setupindexMaps()
-	double angle;         //index for backward compatibility (setupindexMaps()
-	sim_mob::Link const * link;
-	sim_mob::Crossing const * crossing;
-};
+sim_mob::LinkAndCrossing::LinkAndCrossing(int id_,sim_mob::Link const * link_,sim_mob::Crossing const * crossing_,double angle_):
+			id(id_),
+			link(link_),
+			crossing(crossing_),
+			angle(angle_)
+{}
 
 /*
  * obtaining link and -its corresponding- crossong information from node variable(as amember of signal)
@@ -56,7 +37,5 @@ typedef boost::multi_index::nth_index<LinkAndCrossingC, 4>::type LinkAndCrossing
 
 typedef LinkAndCrossingByAngle::reverse_iterator LinkAndCrossingIterator;
 typedef LinkAndCrossingByCrossing::iterator SignalCrossingIterator;
-
-
 }
 

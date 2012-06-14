@@ -18,6 +18,13 @@
 #include "util/OutputUtil.hpp"
 #include "conf/simpleconf.hpp"
 
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/random_access_index.hpp>
+#include <boost/multi_index/composite_key.hpp>
+#include <boost/multi_index/mem_fun.hpp>
+
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -32,6 +39,9 @@ using namespace boost::multi_index;
 using boost::multi_index::get;
 
 typedef sim_mob::Entity::UpdateStatus UpdateStatus;
+
+std::vector<sim_mob::Signal_Parent *> sim_mob::Signal_Parent::all_signals_;
+
 namespace sim_mob
 {
 

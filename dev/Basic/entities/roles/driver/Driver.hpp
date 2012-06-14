@@ -20,12 +20,15 @@
 #include "IntersectionDrivingModel.hpp"
 #include "DriverUpdateParams.hpp"
 
+//TODO: Once the new signal class is stabilized, replace this include with a forward declaration:
+#include "entities/signal_transitional.hpp"
+
 namespace sim_mob
 {
 
 //Forward declarations
 class Pedestrian;
-class Signal_Parent;
+//class Signal_Parent;
 class Link;
 class RoadSegment;
 class Lane;

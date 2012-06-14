@@ -16,6 +16,9 @@
 #include <boost/utility.hpp>
 #include "metrics/Length.hpp"
 
+//Pull in our typedefs
+#include "entities/signal_transitional.hpp"
+
 namespace sim_mob
 {
 
@@ -24,7 +27,6 @@ class Point2D;
 class RoadNetwork;
 class RoadSegment;
 class Node;
-class Signal_Parent;
 class BusStop;
 class Crossing;
 

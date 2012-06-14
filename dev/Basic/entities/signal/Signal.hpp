@@ -13,16 +13,15 @@
 //If we're not using the "new signal" flag, just forward this header file to the old location.
 //  This allows us to simply include "entities/signal/Signal.hpp" without reservation.
 #include "GenConfig.h"
+#ifndef SIMMOB_NEW_SIGNAL
+#include "entities/Signal.hpp"
+#include "util/SignalStatus.hpp"
+#else
 #include <map>
 #include <vector>
 #include "entities/Agent.hpp"
 #include "metrics/Length.hpp"
 #include "entities/LoopDetectorEntity.hpp"
-
-#ifndef SIMMOB_NEW_SIGNAL
-#include "entities/Signal.hpp"
-#include "util/SignalStatus.hpp"
-#else
 #include "SplitPlan.hpp"
 #include "Phase.hpp"
 #include "Cycle.hpp"
@@ -50,7 +49,7 @@ typedef struct
 {
     sim_mob::Link* LinkTo;
     sim_mob::Link* LinkFrom;
-    mutable TrafficColor currColor;//can change it directly as it is not a member of any key and it is mutable
+    mutable sim_mob::TrafficColor currColor;//can change it directly as it is not a member of any key and it is mutable
 }linkToLink_signal;
 
 typedef boost::multi_index_container<

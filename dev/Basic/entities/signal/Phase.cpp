@@ -2,8 +2,40 @@
 #include "SplitPlan.hpp"
 #include <vector>
 #include <sstream>
+
+#include "geospatial/Link.hpp"
+
+
 namespace sim_mob
 {
+namespace {
+std::string getColor(size_t id)
+{
+	std::ostringstream o;
+	switch(id)
+	{
+	case sim_mob::Red:
+		return "Red";
+	case sim_mob::Amber:
+		return "Amber";
+	case sim_mob::Green:
+		return "Green";
+	case sim_mob::FlashingRed:
+		return "FlashingRed";
+	case sim_mob::FlashingAmber:
+		return "FlashingAmber";
+	case sim_mob::FlashingGreen:
+		return "FlashingGreen";
+	default:
+		o << id << " Unknown";
+		return o.str();
+	}
+	o << id << " Unknown__";
+	return o.str();
+}
+} //End un-named namespace
+
+
 	void Phase::updatePhaseParams(double phaseOffset_, double percentage_)
 	{
 		phaseOffset = phaseOffset_;

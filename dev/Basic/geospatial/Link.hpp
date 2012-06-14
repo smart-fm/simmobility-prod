@@ -12,6 +12,9 @@
 
 #include "Traversable.hpp"
 
+//TODO: Once the new signal class is stabilized, replace this include with a forward declaration:
+#include "entities/signal_transitional.hpp"
+
 namespace sim_mob
 {
 
@@ -19,8 +22,8 @@ namespace sim_mob
 class RoadSegment;
 class MultiNode;
 class RoadNetworkPackageManager;
-class Signal_Parent;
-class Signal;
+//class Signal_Parent;
+//class Signal;
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;

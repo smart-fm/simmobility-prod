@@ -992,6 +992,10 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 		tcs.back()->from.location = it->from.location->generatedNode;
 		tcs.back()->to.description = it->to.description;
 		tcs.back()->to.location = it->to.location->generatedNode;
+		if(it->mode != "Car")
+		{
+			std::cout<<it->mode<<std::endl;
+		}
 		tcs.back()->mode = it->mode;
 		tcs.back()->primary = it->primary;
 		tcs.back()->flexible = it->flexible;

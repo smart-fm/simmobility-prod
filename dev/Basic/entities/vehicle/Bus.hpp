@@ -10,6 +10,7 @@
 
 #include "Vehicle.hpp"
 #include "BusRoute.hpp"
+#include "entities/BusController.hpp"
 
 
 namespace sim_mob {
@@ -35,6 +36,7 @@ private:
 	BusRoute route;
 
 	//Serialization-related friends
+	friend class BusController;
 	friend class PackageUtils;
 	friend class UnPackageUtils;
 };

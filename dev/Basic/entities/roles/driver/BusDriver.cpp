@@ -121,6 +121,8 @@ void sim_mob::BusDriver::frame_tick(UpdateParams& p)
 	//Call the parent's tick function
 	Driver::frame_tick(p);
 
+	std::cout<<"BusDriver ID:-->"<<this->getParent()->getId()<<std::endl;
+	std::cout<<this->getVehicle()->getPosition().x<<std::endl;
 	//Driver::frame_tick() will move the Bus along its route.
 	// If a Bus Stop has been reached, then a forced stop is performed,
 	// and the variable "waitAtStopMS" is set to >0. This is where we react to it.

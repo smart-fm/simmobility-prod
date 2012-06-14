@@ -18,12 +18,12 @@ sim_mob::BusController::~BusController()
 
 }
 
-UpdateStatus sim_mob::BusController::update(frame_t frameNumber)
-{
-
-}
-
-void sim_mob::BusController::buildSubscriptionList(vector<BufferedBase*>& subsList)
-{
-
-}
+//UpdateStatus sim_mob::BusController::update(frame_t frameNumber)
+//{
+//
+//}
+//
+//void sim_mob::BusController::buildSubscriptionList(vector<BufferedBase*>& subsList)
+//{
+//
+//}

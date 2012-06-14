@@ -273,6 +273,7 @@ void sim_mob::Driver::frame_tick(UpdateParams& p)
 	turningDirection.set(vehicle->getTurningDirection());
 	//Update your perceptions
 	perceivedVelocity.delay(new DPoint(vehicle->getVelocity(), vehicle->getLatVelocity()));
+	//std::cout<<"frame number:-->"<<p.frameNumber<<"--->Vehicle position: ---->("<<vehicle->getX()<<","<<vehicle->getY()<<")"<<std::endl;
 	//Print output for this frame.
 }
 

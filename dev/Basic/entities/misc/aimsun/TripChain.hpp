@@ -16,6 +16,9 @@
 
 namespace aimsun
 {
+//Forward Declaration
+class sim_mob::aimsun::Node;
+class SubTrip;
 
 enum Location_Type{
 	building, node, link, publicTansitStop
@@ -29,14 +32,16 @@ enum TripChainItemType {
  * Base class for elements in a trip chain.
  * \author Harish L
  */
-class aimsun::TripChainItem {
+class TripChainItem {
 protected:
 	// sim_mob::Entity* parentEntity; // Keeping only ID for now. Entity objects will have to be created when Person table has data.
 	unsigned int sequenceNumber;
 public:
-	TripChainItemType itemType;
+	sim_mob::TripChainItemType itemType;
 	sim_mob::DailyTime startTime;
 	int entityID;
+
+	std::string tmp_startTime;
 
 	unsigned int getSequenceNumber() const {
 		return sequenceNumber;
@@ -65,11 +70,11 @@ public:
  * \author Seth N. Hetu
  * \author Harish L
  */
-class aimsun::Activity : aimsun::TripChainItem {
+class Activity : public aimsun::TripChainItem {
 public:
 	std::string description;
-	sim_mob::Node* location;
-	Location_Type locationType;
+	sim_mob::aimsun::Node* location;
+	sim_mob::Location_Type locationType;
 	bool isPrimary;
 	bool isFlexible;
 	sim_mob::DailyTime activityStartTime;
@@ -84,25 +89,16 @@ public:
 };
 
 /**
- * \author Harish
- */
-class aimsun::SubTrip : aimsun::Trip {
-public:
-	Trip* parentTrip;
-	std::string mode;
-};
-
-/**
  * \author Seth N. Hetu
  * \author Harish
  */
-class aimsun::Trip : aimsun::TripChainItem
+class Trip : public aimsun::TripChainItem
 {
 public:
-    sim_mob::Node* fromLocation;
-    Location_Type fromLocationType;
-    sim_mob::Node* toLocation;
-    Location_Type toLocationType;
+	sim_mob::aimsun::Node* fromLocation;
+	sim_mob::Location_Type fromLocationType;
+    sim_mob::aimsun::Node* toLocation;
+    sim_mob::Location_Type toLocationType;
     int tripID;
 
     //Temporaries for SOCI conversion
@@ -124,6 +120,15 @@ public:
 
 private:
     std::vector<SubTrip*> subTrips;
+};
+
+/**
+ * \author Harish
+ */
+class SubTrip : public aimsun::Trip {
+public:
+	Trip* parentTrip;
+	std::string mode;
 };
 
 }

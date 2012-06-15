@@ -23,30 +23,30 @@ template<> struct type_conversion<aimsun::TripChainItem>
     typedef values base_type;
     static void from_base(const soci::values& vals, soci::indicator& ind, aimsun::TripChainItem &res)
     {
-    	res.entityID = vals.get<int>("EntityID",0);
-    	res.setSequenceNumber(vals.get<int>("Trip_Chain_Sequence_Number",0));
-    	res.itemType = aimsun::TripChainItem::getItemType(vals.get<std::string>("Trip_Chain_Item_Type",""));
-    	if(res.itemType == aimsun::TripChainItemType::trip){
-    		aimsun::SubTrip *aSubTrip = dynamic_cast<aimsun::SubTrip>(res);
-    		aSubTrip->tripID = vals.get<int>("Trip_ID", 0);
-    		aSubTrip->tmp_subTripID = vals.get<int>("Sub_Trip_Id",0);
-    		aSubTrip->tmp_fromLocationNodeID = vals.get<int>("From_Location_Id",0);
-    		aSubTrip->fromLocationType = aimsun::TripChainItem::getLocationType(vals.get<std::string>("From_Location_Type",""));
-    		aSubTrip->tmp_toLocationNodeID = vals.get<int>("To_Location_Id",0);
-    		aSubTrip->toLocationType = aimsun::TripChainItem::getLocationType(vals.get<std::string>("To_Location_Type",""));
-    		aSubTrip->mode = vals.get<int>("Description",0);
-    		aSubTrip->startTime = vals.get<std::string>("Start_Time",0);
+    	res.entityID = vals.get<int>("entityid",0);
+    	res.setSequenceNumber(vals.get<int>("trip_chain_sequence_number",0));
+    	res.itemType = sim_mob::TripChainItem::getItemType(vals.get<std::string>("trip_chain_item_type",""));
+    	if(res.itemType == sim_mob::trip){
+    		aimsun::SubTrip& aSubTrip = static_cast<aimsun::SubTrip&>(res);
+    		aSubTrip.tripID = vals.get<int>("trip_id", 0);
+    		aSubTrip.tmp_subTripID = vals.get<int>("sub_trip_id",0);
+    		aSubTrip.tmp_fromLocationNodeID = vals.get<int>("from_location_id",0);
+    		aSubTrip.fromLocationType = sim_mob::TripChainItem::getLocationType(vals.get<std::string>("from_location_type",""));
+    		aSubTrip.tmp_toLocationNodeID = vals.get<int>("to_location_id",0);
+    		aSubTrip.toLocationType = sim_mob::TripChainItem::getLocationType(vals.get<std::string>("to_location_type",""));
+    		aSubTrip.mode = vals.get<std::string>("description","");
+    		aSubTrip.tmp_startTime = vals.get<std::string>("start_time","");
     	}
-    	else if(res.itemType == aimsun::TripChainItemType::activity){
-    		aimsun::Activity *anActivity = dynamic_cast<aimsun::Activity>(res);
-    		anActivity->tmp_activityID = vals.get<int>("Activity_Id", 0);
-    		anActivity->description = vals.get<std::string>("Activity_Description", "");
-    		anActivity->isPrimary = vals.get<bool>("Primary_Activity", false);
-    		anActivity->isFlexible = vals.get<bool>("Flexible_Activity", false);
-    		anActivity->tmp_locationID = vals.get<int>("Location_ID", 0);
-    		anActivity->locationType = aimsun::TripChainItem::getLocationType(vals.get<std::string>("Location_Type", ""));
-    		anActivity->tmp_activityStartTime = vals.get<std::string>("Activity_Start_Time", "");
-    		anActivity->tmp_activityEndTime = vals.get<std::string>("Activity_End_Time", "");
+    	else if(res.itemType == sim_mob::activity){
+    		aimsun::Activity& anActivity = static_cast<aimsun::Activity&>(res);
+    		anActivity.tmp_activityID = vals.get<int>("activity_id", 0);
+    		anActivity.description = vals.get<std::string>("activity_description", "");
+    		anActivity.isPrimary = vals.get<bool>("primary_activity", false);
+    		anActivity.isFlexible = vals.get<bool>("flexible_activity", false);
+    		anActivity.tmp_locationID = vals.get<int>("location_id", 0);
+    		anActivity.locationType = sim_mob::TripChainItem::getLocationType(vals.get<std::string>("location_type", ""));
+    		anActivity.tmp_activityStartTime = vals.get<std::string>("activity_start_time", "");
+    		anActivity.tmp_activityEndTime = vals.get<std::string>("activity_end_time", "");
     	}
     	else {
     		// error

@@ -189,22 +189,22 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) 
 	prevRole = currRole;
 
 	//Create a new Role based on the trip chain type
-	if (currTrip->mode == "Car") {
+	/*if (currTrip->mode == "Car") {
 		//Temp. (Easy to add in later)
 		throw std::runtime_error("Cars not supported in Trip Chain role change.");
 	} else if (currTrip->mode == "Walk") {
 		changeRole(new Pedestrian(this, gen));
 	} else {
 		throw std::runtime_error("Unknown role type for trip chain role change.");
-	}
+	}--------------*/
 
 	//Create a return type based on the differences in these Roles
 	UpdateStatus res(UpdateStatus::RS_CONTINUE, prevRole->getSubscriptionParams(), currRole->getSubscriptionParams());
 
 	//Update our origin/dest pair.
 	//TODO: This might "teleport" us to the origin; might need to fix that later.
-	originNode = currTrip->from.location;
-	destNode = currTrip->to.location;
+	//originNode = currTrip->from.location; ----------
+	//destNode = currTrip->to.location; ------------
 
 	//Set our start time to the NEXT time tick so that frame_init is called
 	//  on the first pass through.

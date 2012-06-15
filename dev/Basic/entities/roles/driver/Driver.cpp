@@ -976,7 +976,7 @@ void sim_mob::Driver::initTripChainSpecialString(const string& value)
 	//value contains "tripchain:x,y", so our new trip chain is:
 	//   (origin->dest by car), (dest->value by foot)
 	//Note that since TripChains are currently limited, we only model the latter.
-	TripChain* tc = new TripChain();
+/*	TripChain* tc = new TripChain();
 	tc->mode = "Walk";
 	tc->flexible = false;
 	tc->primary = true;
@@ -993,7 +993,7 @@ void sim_mob::Driver::initTripChainSpecialString(const string& value)
 	}
 
 	//Now save this as the "TripChain" (this needs to be re-named; it's only one part of the trip chain)
-	p->setTripChain(tc);
+	p->setTripChain(tc);*/
 }
 
 

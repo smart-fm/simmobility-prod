@@ -228,9 +228,9 @@ bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	for (vector<TripChainItem*>::const_iterator it=tcs.begin(); it!=tcs.end(); it++) {
 		//Create an Agent candidate based on the type.
 		if(currentEntityID == (*it)->entityID) continue;
-		if((*it)->itemType == sim_mob::TripChainItemType::activity) continue; //Just in case. First item for a Person (Home?) may be an activity.
+		if((*it)->itemType == sim_mob::activity) continue; //Just in case. First item for a Person (Home?) may be an activity.
 
-		sim_mob::SubTrip *firstSubTripForEntity = dynamic_cast<sim_mob::SubTrip>(*it);
+		sim_mob::SubTrip* firstSubTripForEntity = static_cast<sim_mob::SubTrip*>(*it);
 		PendingEntity p(EntityTypeFromTripChainString(firstSubTripForEntity->mode));
 
 		//Origin, destination

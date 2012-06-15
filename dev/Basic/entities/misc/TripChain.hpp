@@ -17,6 +17,9 @@
 namespace sim_mob
 {
 
+//Forward declarations
+class Node;
+
 enum Location_Type{
 	building, node, link, publicTansitStop
 };
@@ -30,9 +33,7 @@ enum TripChainItemType {
  * \author Harish L
  */
 class TripChainItem {
-protected:
-	// sim_mob::Entity* parentEntity; // Keeping only ID for now. Entity objects will have to be created when Person table has data.//sim_mob::Entity* parentEntity;
-	unsigned int sequenceNumber;
+
 public:
 	TripChainItemType itemType;
 	sim_mob::DailyTime startTime;
@@ -59,6 +60,10 @@ public:
 		else return trip;
 	}
 
+protected:
+	// sim_mob::Entity* parentEntity; // Keeping only ID for now. Entity objects will have to be created when Person table has data.//sim_mob::Entity* parentEntity;
+	unsigned int sequenceNumber;
+
 };
 
 /**
@@ -66,7 +71,7 @@ public:
  * \author Seth N. Hetu
  * \author Harish L
  */
-class Activity : sim_mob::TripChainItem {
+class Activity : public sim_mob::TripChainItem {
 public:
 	std::string description;
 	sim_mob::Node* location;
@@ -84,7 +89,7 @@ class SubTrip;
  * \author Seth N. Hetu
  * \author Harish
  */
-class Trip : sim_mob::TripChainItem
+class Trip : public sim_mob::TripChainItem
 {
 public:
     sim_mob::Node* fromLocation;
@@ -114,7 +119,7 @@ private:
 /**
  * \author Harish
  */
-class SubTrip : sim_mob::Trip {
+class SubTrip : public sim_mob::Trip {
 public:
 	sim_mob::Trip* parentTrip;
 	std::string mode;

@@ -173,6 +173,6 @@ private:
 	sim_mob::SplitPlan *parentPlan;
 
 	friend class SplitPlan;
-	friend class Signal;
+	friend class Signal_SCATS;
 };
 }//namespace

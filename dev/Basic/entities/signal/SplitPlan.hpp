@@ -12,7 +12,7 @@
 namespace sim_mob
 {
 //Forward dseclaration
-class Signal;
+class Signal_SCATS;
 
 enum TrafficControlMode
 {
@@ -42,7 +42,7 @@ private:
 
 	sim_mob::Cycle cycle_;
 	phases phases_;
-	sim_mob::Signal *parentSignal;
+	sim_mob::Signal_SCATS *parentSignal;
 
 	/*
 	 * the following variable will specify the various choiceSet combinations that
@@ -121,13 +121,13 @@ public:
 	std::size_t getMaxVote();
 	void fill(double defaultChoiceSet[5][10], int approaches);
 	std::string createStringRepresentation(std::string newLine);
-	void setParentSignal(sim_mob::Signal * signal) { parentSignal = signal;}
-	sim_mob::Signal * getParentSignal() { return parentSignal;}
+	void setParentSignal(sim_mob::Signal_SCATS * signal) { parentSignal = signal;}
+	sim_mob::Signal_SCATS * getParentSignal() { return parentSignal;}
 	void printColors(double printColors);
 	double fmax(std::vector<double> &DS);
 	std::string  outputTrafficLights(std::string newLine, int phaseId = -1)const;
 
 	/*friends*/
-	friend class Signal;
+	friend class Signal_SCATS;
 };
 }

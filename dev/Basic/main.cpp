@@ -27,8 +27,13 @@
 #include "util/OutputUtil.hpp"
 #include "util/DailyTime.hpp"
 
-//Just temporarily, so we know it compiles:
-#include "entities/Signal.hpp"
+#ifdef SIMMOB_NEW_SIGNAL
+	#include "entities/signal/Signal.hpp"
+#else
+	#include "entities/Signal.hpp"
+#endif
+
+
 #include "conf/simpleconf.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/TrafficWatch.hpp"

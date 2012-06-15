@@ -136,8 +136,8 @@ private:
 
     void createSignals();
 #ifdef SIMMOB_NEW_SIGNAL
-    void createPlans(sim_mob::Signal & signal);
-    void createPhases(sim_mob::Signal & signal);
+    void createPlans(sim_mob::Signal_SCATS & signal);
+    void createPhases(sim_mob::Signal_SCATS & signal);
 #endif
 };
 
@@ -1132,6 +1132,8 @@ DatabaseLoader::createSignals()
 //            continue;
 //        }
         /*vahid:
+         * ATTENTION: THIS PART OF THE FUNCTION ONWARDS IS DEPENDENT ON THE SCATS IMPLEMENTATION OF TRAFFIC SIGNAL
+         * IF YOU ARE DEVELOPING A TRAFFIC SIGNAL BASED ON ANOTHER MODEL, YOU MUST CHANGED THIS PART ACCORDINGLY.
          * the following lines are the major tasks of this function(signalAt and addSignalSite functions)
          * the first line checks for availability of he signal in the street directory based on the node
          * (if not available, it will create a signal entry in the street directory)
@@ -1145,43 +1147,34 @@ DatabaseLoader::createSignals()
     	if(ppp.first == ppp.second)
     	{
     		std::cout << "There is no phase associated with this signal candidate("<< node->getID() <<"), bypassing\n";
-//    		 if(node->getID() == 115436) { std::cout << " node 115436 is getting kicked out 2\n"; getchar();}
     		continue;
     	}
-//    	if( node->getID() != 66508) continue;//todo remove after testing
     	bool isNew = false;
-        const sim_mob::Signal & signal = sim_mob::Signal::signalAt(*node, sim_mob::ConfigParams::GetInstance().mutexStategy, &isNew);
-//        if(node->getID() == 115436) { std::cout << " node 115436 sofar has a signal\n"; getchar();}
+        const sim_mob::Signal_SCATS & signal = sim_mob::Signal_SCATS::signalAt(*node, sim_mob::ConfigParams::GetInstance().mutexStategy, &isNew);
         //sorry I am calling the following function out of signal constructor. I am heavily dependent on the existing code
         //so sometimes a new functionality(initialize) needs to be taken care of separately
         //while it should be called with in other functions(constructor)-vahid
         if(isNew)
         {
-//        	if(node->getID() == 115436) { std::cout << " node 115436's signal is going to create plans....\n"; getchar();}
-        	createPlans(const_cast<sim_mob::Signal &>(signal));
-        	const_cast<sim_mob::Signal &>(signal).initialize();
+        	createPlans(const_cast<sim_mob::Signal_SCATS &>(signal));
+        	const_cast<sim_mob::Signal_SCATS &>(signal).initialize();
         	nof_signals++;
         }
         else
         	continue;
-
+//		  not needed for the time being
 //        const_cast<sim_mob::Signal &>(signal).addSignalSite(dbSignal.xPos, dbSignal.yPos, dbSignal.typeCode, dbSignal.bearing);
     }
     std::cout << "A Total of " << nof_signals << " were successfully created\n";
-//    for(sim_mob::Signal::all_signals_Iterator sigit = sim_mob::Signal::all_signals_.begin(), itend(sim_mob::Signal::all_signals_.end()); sigit != itend; sigit++)
-//    {
-//
-//    	std::cout << (*sigit)->getSignalId() << ",\n";
-//    }
 }
 
-/*prepares the plan member of signal class by assigning phases, choiceset and other parameters of the plan(splitplan)*/
+/*SCATS IMPLEMENTATION ONLY.
+ * prepares the plan member of signal class by assigning phases, choiceset and other parameters of the plan(splitplan)
+ */
 void
-DatabaseLoader::createPlans(sim_mob::Signal & signal)
+DatabaseLoader::createPlans(sim_mob::Signal_SCATS & signal)
 {
 	unsigned int sid ;
-//	for(sig_it = sim_mob::Signal::all_signals_.begin(); sig_it !=sim_mob::Signal::all_signals_.end();  sig_it++)
-//	{
 		sid = signal.getSignalId();//remember our assumption!  : node id and signal id(whtever their name is) are same
 		sim_mob::SplitPlan & plan = signal.getPlan();
 		plan.setParentSignal(&signal);
@@ -1189,7 +1182,7 @@ DatabaseLoader::createPlans(sim_mob::Signal & signal)
 
 		//now that we have the number of phases, we can continue initializing our split plan.
 		int nof_phases = plan.find_NOF_Phases();
-		std::cout << " Signal(" << sid << ") : Number of Phases : " << nof_phases << std::endl;
+//		std::cout << " Signal(" << sid << ") : Number of Phases : " << nof_phases << std::endl;
 		if(nof_phases > 0)
 			if((nof_phases > 5)||(nof_phases < 1))
 				std::cout << sid << " ignored due to lack of default choice set" << nof_phases ;
@@ -1215,12 +1208,11 @@ DatabaseLoader::createPlans(sim_mob::Signal & signal)
 			}
 		else
 			std::cout << sid << " ignored due to no phases" << nof_phases <<  std::endl;
-//	}
 }
 
 
 void
-DatabaseLoader::createPhases(sim_mob::Signal & signal)
+DatabaseLoader::createPhases(sim_mob::Signal_SCATS & signal)
 {
 	pair<multimap<int,sim_mob::aimsun::Phase>::iterator, multimap<int,sim_mob::aimsun::Phase>::iterator> ppp;
 

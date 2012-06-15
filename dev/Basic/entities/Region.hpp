@@ -12,7 +12,7 @@ namespace sim_mob
 
 
 //Forward declaration
-class Signal_Parent;
+class Signal;
 
 
 
@@ -31,7 +31,7 @@ public:
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList) {} //Nothing for now
 
 private:
-	std::vector<sim_mob::Signal_Parent*> signals;
+	std::vector<sim_mob::Signal*> signals;
 };
 
 }

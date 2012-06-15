@@ -1620,7 +1620,7 @@ StreetDirectory::printStatistics() const
 }
 
 void
-StreetDirectory::registerSignal(Signal_Parent const & signal)
+StreetDirectory::registerSignal(Signal const & signal)
 {
     Node const * node = &(signal.getNode());
 

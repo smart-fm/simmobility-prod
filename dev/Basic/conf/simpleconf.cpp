@@ -493,7 +493,7 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal*> all_signals, c
                               << "no signal will be created here." << std::endl;
                     continue;
                 }
-                Signal_Parent const * signal = streetDirectory.signalAt(*road_node);
+                Signal const * signal = streetDirectory.signalAt(*road_node);
                 if (signal)
                 {
                     std::cout << "signal at node(" << xpos << ", " << ypos << ") already exists; "
@@ -505,7 +505,7 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal*> all_signals, c
 //                    // The following call will create and register the signal with the
 //                    // street-directory.
 //                	std::cout << "register signal again!" << std::endl;
-//                    Signal_Parent::signalAt(*road_node, ConfigParams::GetInstance().mutexStategy);
+//                    Signal::signalAt(*road_node, ConfigParams::GetInstance().mutexStategy);
                 }
             }
             catch (boost::bad_lexical_cast &)
@@ -654,8 +654,8 @@ void PrintDB_Network()
 	;
 
 #ifdef SIMMOB_NEW_SIGNAL
-	Signal_Parent::all_signals_const_Iterator it;
-	for (it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++)
+	sim_mob::Signal::all_signals_const_Iterator it;
+	for (it = sim_mob::Signal::all_signals_.begin(); it!= sim_mob::Signal::all_signals_.end(); it++)
 #else
 	for (std::vector<Signal*>::const_iterator it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++)
 #endif
@@ -1244,15 +1244,20 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 #ifndef SIMMOB_NEW_SIGNAL
     std::vector<Signal*>& all_signals = Signal::all_signals_;
 #else
-    std::vector<Signal_Parent*>& all_signals = Signal_Parent::all_signals_;
+    std::vector<Signal*>& all_signals = sim_mob::Signal::all_signals_;
 #endif
 
     for (size_t i = 0; i < all_signals.size(); ++i)
     {
 
     	Signal  * signal =  dynamic_cast<Signal  *>(all_signals[i]);
-//        Signal const * signal = const_cast<Signal_Parent *>(Signal::all_signals_[i]);
-        LoopDetectorEntity & loopDetector = const_cast<LoopDetectorEntity&>(signal->loopDetector());
+//        Signal const * signal = const_cast<Signal *>(Signal::all_signals_[i]);
+	#ifndef SIMMOB_NEW_SIGNAL
+    	LoopDetectorEntity & loopDetector = const_cast<LoopDetectorEntity&>(signal->loopDetector());
+	#else
+    	LoopDetectorEntity & loopDetector = const_cast<LoopDetectorEntity&>(dynamic_cast<Signal_SCATS  *>(signal)->loopDetector());
+	#endif
+
         loopDetector.init(*signal);
         active_agents.push_back(&loopDetector);
     }

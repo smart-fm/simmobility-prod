@@ -144,7 +144,7 @@ sim_mob::Point2D getMiddlePoint2D(const sim_mob::Point2D* start_point, const sim
 //Suggest to be part of StreetDirectory.
 const sim_mob::Link* getLinkBetweenNodes(const sim_mob::Point2D* start_point, const sim_mob::Point2D* end_point);
 const sim_mob::RoadSegment* getRoadSegmentBasedOnNodes(const sim_mob::Point2D* start_point, const sim_mob::Point2D* end_point);
-const sim_mob::Signal_Parent* getSignalBasedOnNode(const sim_mob::Point2D* one_point);
+const sim_mob::Signal* getSignalBasedOnNode(const sim_mob::Point2D* one_point);
 const sim_mob::Crossing* getCrossingBasedOnNode(const sim_mob::Point2D* one_near_point, const sim_mob::Point2D* two_near_point, const sim_mob::Point2D* one_far_point, const sim_mob::Point2D* two_far_point);
 
 //add by xuyan

@@ -18,7 +18,7 @@ namespace sim_mob {
 
 //Forward declarations
 class Person;
-//class Signal_Parent;
+//class Signal;
 
 
 /**

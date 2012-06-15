@@ -14,8 +14,8 @@
 //  This allows us to simply include "entities/signal/Signal.hpp" without reservation.
 #include "GenConfig.h"
 #ifndef SIMMOB_NEW_SIGNAL
-#include "entities/Signal.hpp"
-#include "util/SignalStatus.hpp"
+//	#include "entities/Signal.hpp"
+//	#include "util/SignalStatus.hpp"
 #else
 #include <map>
 #include <vector>
@@ -54,9 +54,7 @@ typedef struct
 
 typedef boost::multi_index_container<
 		linkToLink_signal,
-		boost::multi_index::indexed_by<
-		boost::multi_index::random_access<>
-  >
+		boost::multi_index::indexed_by<	boost::multi_index::random_access<> >
 > linkToLink_ck_C;
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -64,10 +62,10 @@ class PackageUtils;
 class UnPackageUtils;
 #endif
 
-class Signal_Parent  : public sim_mob::Agent
+class Signal  : public sim_mob::Agent
 {
 public:
-	Signal_Parent(Node const & node, const MutexStrategy& mtxStrat, int id=-1)
+	Signal(Node const & node, const MutexStrategy& mtxStrat, int id=-1)
 	  : Agent(mtxStrat, id), node_(node){};
    virtual LinkAndCrossingByLink const & getLinkAndCrossingsByLink() const {};
    virtual LinkAndCrossingByCrossing const & getLinkAndCrossingsByCrossing() const{};
@@ -76,21 +74,17 @@ public:
    virtual std::string toString() const{};
    Node  const & getNode() const { return node_; }
 
-//   virtual unsigned int getSignalId()   {return TMP_SignalID;}
-//   virtual unsigned int getSignalId() const  {return TMP_SignalID;}
+   static std::vector<Signal *> all_signals_;
+   typedef std::vector<sim_mob::Signal *>::const_iterator all_signals_const_Iterator;
+   typedef std::vector<sim_mob::Signal *>::iterator all_signals_Iterator;
 
-   static std::vector<Signal_Parent *> all_signals_;
-   typedef std::vector<sim_mob::Signal_Parent *>::const_iterator all_signals_const_Iterator;
-   typedef std::vector<sim_mob::Signal_Parent *>::iterator all_signals_Iterator;
-
-//	static sim_mob::Signal_Parent::all_signals all_signals_;
 private:
    /*The node associated with this traffic Signal */
    sim_mob::Node const & node_;
 };
 
 
-class Signal  : public sim_mob::Signal_Parent {
+class Signal_SCATS  : public sim_mob::Signal {
 
 public:
 
@@ -98,15 +92,14 @@ public:
 	void initialize();
 	void setSplitPlan(sim_mob::SplitPlan);
 //	void setCycleLength(sim_mob::Cycle);
-	Signal(Node const & node,const MutexStrategy& mtxStrat,int id=-1);
-    static Signal const & signalAt(Node const & node, const MutexStrategy& mtxStrat,bool *isNew = false);//bool isNew : since this function will create and return new signal if already existing signals not found, a switch to indicate what happened in the function would be nice
+	Signal_SCATS(Node const & node,const MutexStrategy& mtxStrat,int id=-1);
+    static Signal_SCATS const & signalAt(Node const & node, const MutexStrategy& mtxStrat,bool *isNew = false);//bool isNew : since this function will create and return new signal if already existing signals not found, a switch to indicate what happened in the function would be nice
     void addSignalSite(centimeter_t xpos, centimeter_t ypos,std::string const & typeCode, double bearing);
     void findIncomingLanes();
     void findSignalLinks();
     void findSignalLinksAndCrossings();
     LinkAndCrossingByLink const & getLinkAndCrossingsByLink() const {return LinkAndCrossings_.get<2>();}
     LinkAndCrossingByCrossing const & getLinkAndCrossingsByCrossing() const {return LinkAndCrossings_.get<4>();}
-//    const std::vector<sim_mob::Link const *> & getSignalLinks() const;
     LoopDetectorEntity const & loopDetector() const { return loopDetector_; }
 
 
@@ -125,36 +118,27 @@ public:
 	int getnextSplitPlanID();
 	sim_mob::SplitPlan & getPlan();
 
-	/*--------Phase----------*/
-	int getcurrPhase();
-	int getphaseCounter(){return phaseCounter;}
-
 	/*--------Degree of Saturation----------*/
 	double computeDS();
 	double computePhaseDS(int phaseId);
 	double LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,double total_g);
-	void calProDS_MaxProDS(std::vector<double> &proDS,std::vector<double>  &maxproDS);
 
 	/*--------Miscellaneous----------*/
-//	Node  const & getNode() const { return node_; }
 	void frame_output(frame_t frameNumber);
 	int fmin_ID(const  std::vector<double>  maxproDS);
 	///Return the loggable representation of this Signal.
-	std::string toString() const { return strRepr; }
-	unsigned int getSignalId()   {return TMP_SignalID;}
-	unsigned int getSignalId() const  {return TMP_SignalID;}
-	bool isIntersection() { return isIntersection_;}
+	std::string toString() const;
+	unsigned int getSignalId();
+	unsigned int getSignalId() const;
+	bool isIntersection();
 	void createStringRepresentation(std::string newLine = "\n");
+	void cycle_reset();
 
 	/*--------The cause of this Module----------*/
     TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const ;
 	TrafficColor getPedestrianLight(Crossing const & crossing) const;
 	double getUpdateInterval(){return updateInterval; }
-	void cycle_reset();
 
-//	typedef std::vector<sim_mob::Signal *> all_signals;
-//
-//	static sim_mob::Signal::all_signals all_signals_;
 
     void updateIndicators();
     void outputTrafficLights(frame_t frameNumber,std::string newLine)const;
@@ -227,15 +211,10 @@ private:
 	sim_mob::Offset offset_;
 	double currOffset;
 
-
-
-
 	//String representation, so that we can retrieve this information at any time.
 	std::string strRepr;
 //	sim_mob::Shared<SignalStatus> buffered_TC;
 
-//	//private override for friends ;)
-//	static Signal & signal_at(Node const & node, const MutexStrategy& mtxStrat);
 	friend class DatabaseLoader;
 protected:
         LoopDetectorEntity loopDetector_;
@@ -252,8 +231,7 @@ public:
 	virtual void packProxy(PackageUtils& packageUtil){};
 	virtual void unpackProxy(UnPackageUtils& unpackageUtil){};
 #endif
-//	static std::vector< std::vector<double> > SplitPlan;
-};//class Signal
+};//class Signal_SCATS
 
 }//namespace sim_mob
 #endif

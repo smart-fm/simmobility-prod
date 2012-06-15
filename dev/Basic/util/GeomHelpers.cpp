@@ -334,7 +334,7 @@ const sim_mob::RoadSegment* sim_mob::getRoadSegmentBasedOnNodes(const sim_mob::P
 }
 
 //add by xuyan
-const sim_mob::Signal_Parent* sim_mob::getSignalBasedOnNode(const sim_mob::Point2D* one_point)
+const sim_mob::Signal* sim_mob::getSignalBasedOnNode(const sim_mob::Point2D* one_point)
 {
 	const sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetwork();
 	sim_mob::Node* one_node = rn.locateNode(*one_point, true);

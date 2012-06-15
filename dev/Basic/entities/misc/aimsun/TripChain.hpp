@@ -18,7 +18,7 @@ namespace aimsun
 {
 //Forward Declaration
 class sim_mob::aimsun::Node;
-class SubTrip;
+//class SubTrip;
 
 enum Location_Type{
 	building, node, link, publicTansitStop
@@ -33,15 +33,36 @@ enum TripChainItemType {
  * \author Harish L
  */
 class TripChainItem {
-protected:
-	// sim_mob::Entity* parentEntity; // Keeping only ID for now. Entity objects will have to be created when Person table has data.
-	unsigned int sequenceNumber;
-public:
+public: // Activity related
 	sim_mob::TripChainItemType itemType;
 	sim_mob::DailyTime startTime;
 	int entityID;
+	std::string description;
+	sim_mob::aimsun::Node* location;
+	sim_mob::Location_Type locationType;
+	bool isPrimary;
+	bool isFlexible;
+	sim_mob::DailyTime activityStartTime;
+	sim_mob::DailyTime activityEndTime;
+	sim_mob::aimsun::Node* fromLocation;
+	sim_mob::Location_Type fromLocationType;
+    sim_mob::aimsun::Node* toLocation;
+    sim_mob::Location_Type toLocationType;
+    int tripID;
+	std::string mode;
 
+    //Temporaries for SOCI conversion
+	int tmp_subTripID;
+	int tmp_fromLocationNodeID;
+	std::string tmp_fromlocationType;
+	int  tmp_toLocationNodeID;
+	std::string tmp_tolocationType;
 	std::string tmp_startTime;
+	int tmp_activityID;
+	int tmp_locationID;
+	std::string  tmp_locationType;
+	std::string tmp_activityStartTime;
+	std::string tmp_activityEndTime;
 
 	unsigned int getSequenceNumber() const {
 		return sequenceNumber;
@@ -63,6 +84,9 @@ public:
 		if(itemType.compare("Activity") == 0) return activity;
 		else return trip;
 	}
+	// sim_mob::Entity* parentEntity; // Keeping only ID for now. Entity objects will have to be created when Person table has data.
+	int sequenceNumber;
+
 };
 
 /**
@@ -70,7 +94,7 @@ public:
  * \author Seth N. Hetu
  * \author Harish L
  */
-class Activity : public aimsun::TripChainItem {
+/*class Activity : public aimsun::TripChainItem {
 public:
 	std::string description;
 	sim_mob::aimsun::Node* location;
@@ -85,14 +109,13 @@ public:
 	std::string  tmp_locationType;
 	std::string tmp_activityStartTime;
 	std::string tmp_activityEndTime;
-
-};
+};*/
 
 /**
  * \author Seth N. Hetu
  * \author Harish
  */
-class Trip : public aimsun::TripChainItem
+/*class Trip : public aimsun::TripChainItem
 {
 public:
 	sim_mob::aimsun::Node* fromLocation;
@@ -120,15 +143,20 @@ public:
 
 private:
     std::vector<SubTrip*> subTrips;
-};
+
+
+public: // SubTrip related
+	//Trip* parentTrip;
+	std::string mode;
+};*/
 
 /**
  * \author Harish
  */
-class SubTrip : public aimsun::Trip {
+/*class SubTrip : public aimsun::Trip {
 public:
 	Trip* parentTrip;
 	std::string mode;
-};
+};*/
 
 }

@@ -23,30 +23,29 @@ template<> struct type_conversion<aimsun::TripChainItem>
     typedef values base_type;
     static void from_base(const soci::values& vals, soci::indicator& ind, aimsun::TripChainItem &res)
     {
+    	unsigned int ii = 0;
     	res.entityID = vals.get<int>("entityid",0);
-    	res.setSequenceNumber(vals.get<int>("trip_chain_sequence_number",0));
+    	res.sequenceNumber = vals.get<int>("trip_chain_sequence_number",0);
     	res.itemType = sim_mob::TripChainItem::getItemType(vals.get<std::string>("trip_chain_item_type",""));
     	if(res.itemType == sim_mob::trip){
-    		aimsun::SubTrip& aSubTrip = static_cast<aimsun::SubTrip&>(res);
-    		aSubTrip.tripID = vals.get<int>("trip_id", 0);
-    		aSubTrip.tmp_subTripID = vals.get<int>("sub_trip_id",0);
-    		aSubTrip.tmp_fromLocationNodeID = vals.get<int>("from_location_id",0);
-    		aSubTrip.fromLocationType = sim_mob::TripChainItem::getLocationType(vals.get<std::string>("from_location_type",""));
-    		aSubTrip.tmp_toLocationNodeID = vals.get<int>("to_location_id",0);
-    		aSubTrip.toLocationType = sim_mob::TripChainItem::getLocationType(vals.get<std::string>("to_location_type",""));
-    		aSubTrip.mode = vals.get<std::string>("description","");
-    		aSubTrip.tmp_startTime = vals.get<std::string>("start_time","");
+    		res.tripID = vals.get<int>("trip_id", 0);
+    		res.tmp_subTripID = vals.get<int>("sub_trip_id",0);
+    		res.tmp_fromLocationNodeID = vals.get<int>("from_location_id",0);
+    		res.fromLocationType = sim_mob::TripChainItem::getLocationType(vals.get<std::string>("from_location_type",""));
+    		res.tmp_toLocationNodeID = vals.get<int>("to_location_id",0);
+    		res.toLocationType = sim_mob::TripChainItem::getLocationType(vals.get<std::string>("to_location_type",""));
+    		res.mode = vals.get<std::string>("description","");
+    		res.tmp_startTime = vals.get<std::string>("start_time","");
     	}
     	else if(res.itemType == sim_mob::activity){
-    		aimsun::Activity& anActivity = static_cast<aimsun::Activity&>(res);
-    		anActivity.tmp_activityID = vals.get<int>("activity_id", 0);
-    		anActivity.description = vals.get<std::string>("activity_description", "");
-    		anActivity.isPrimary = vals.get<bool>("primary_activity", false);
-    		anActivity.isFlexible = vals.get<bool>("flexible_activity", false);
-    		anActivity.tmp_locationID = vals.get<int>("location_id", 0);
-    		anActivity.locationType = sim_mob::TripChainItem::getLocationType(vals.get<std::string>("location_type", ""));
-    		anActivity.tmp_activityStartTime = vals.get<std::string>("activity_start_time", "");
-    		anActivity.tmp_activityEndTime = vals.get<std::string>("activity_end_time", "");
+    		res.tmp_activityID = vals.get<int>("activity_id", 0);
+    		res.description = vals.get<std::string>("activity_description", "");
+    		res.isPrimary = vals.get<int>("primary_activity", 0);
+    		res.isFlexible = vals.get<int>("flexible_activity", 0);
+    		res.tmp_locationID = vals.get<int>("location_id", 0);
+    		res.locationType = sim_mob::TripChainItem::getLocationType(vals.get<std::string>("location_type", ""));
+    		res.tmp_activityStartTime = vals.get<std::string>("activity_start_time", "");
+    		res.tmp_activityEndTime = vals.get<std::string>("activity_end_time", "");
     	}
     	else {
     		// error

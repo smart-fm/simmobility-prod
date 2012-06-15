@@ -390,31 +390,31 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 		if(it->itemType == sim_mob::trip){
 			//if Trip
 
-			aimsun::SubTrip& aSubTrip = static_cast<aimsun::SubTrip&>(*it);
+			//aimsun::SubTrip& aSubTrip = static_cast<aimsun::SubTrip&>(*it);
 			//check nodes
-			if(nodes_.count(aSubTrip.tmp_fromLocationNodeID)==0) {
+			if(nodes_.count((*it).tmp_fromLocationNodeID)==0) {
 				throw std::runtime_error("Invalid trip chain from node reference.");
 			}
-			if(nodes_.count(aSubTrip.tmp_toLocationNodeID)==0) {
+			if(nodes_.count((*it).tmp_toLocationNodeID)==0) {
 				throw std::runtime_error("Invalid trip chain to node reference.");
 			}
 
 			//Set date
-			aSubTrip.startTime = sim_mob::DailyTime(aSubTrip.tmp_startTime);
+			(*it).startTime = sim_mob::DailyTime((*it).tmp_startTime);
 
 			//Note: Make sure not to resize the Node map after referencing its elements.
-			aSubTrip.fromLocation = &nodes_[aSubTrip.tmp_fromLocationNodeID];
-			aSubTrip.toLocation = &nodes_[aSubTrip.tmp_toLocationNodeID];
-			tripchains_.push_back(aSubTrip);
+			(*it).fromLocation = &nodes_[(*it).tmp_fromLocationNodeID];
+			(*it).toLocation = &nodes_[(*it).tmp_toLocationNodeID];
+			tripchains_.push_back(*it);
 		}
 		else if(it->itemType == sim_mob::activity) {
 			//if Activity
 
-			aimsun::Activity& anActivity = static_cast<aimsun::Activity&>(*it);
-			anActivity.activityStartTime = sim_mob::DailyTime(anActivity.tmp_activityStartTime);
-			anActivity.activityEndTime = sim_mob::DailyTime(anActivity.tmp_activityEndTime);
-			anActivity.location = &nodes_[anActivity.tmp_locationID];
-			tripchains_.push_back(anActivity);
+			//aimsun::Activity& anActivity = static_cast<aimsun::Activity&>(*it);
+			(*it).activityStartTime = sim_mob::DailyTime((*it).tmp_activityStartTime);
+			(*it).activityEndTime = sim_mob::DailyTime((*it).tmp_activityEndTime);
+			(*it).location = &nodes_[(*it).tmp_locationID];
+			tripchains_.push_back(*it);
 		}
 
 	}
@@ -1013,75 +1013,78 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 
 	sim_mob::aimsun::Loader::FixupLanesAndCrossings(res);
 	//Save all trip chains
-	aimsun::SubTrip *aSubTrip = nullptr;
+	//aimsun::SubTrip *aSubTrip = nullptr;
 	sim_mob::Trip *tripToSave = nullptr;
 	sim_mob::SubTrip *aSubTripInTrip = nullptr;
-	aimsun::Activity *anActivity = nullptr;
+	//aimsun::Activity *anActivity = nullptr;
 	sim_mob::Activity *activityToSave = nullptr;
 
 	int currEntityId = 0;
 	for (vector<aimsun::TripChainItem>::iterator it=tripchains_.begin(); it!=tripchains_.end(); it++) {
 		if(it->itemType == sim_mob::trip){
 			// TODO: Gotta make use of Person Id to be able to group trips and activities of a person.
-			*aSubTrip = static_cast<aimsun::SubTrip&>(*it);
+			//*aSubTrip = static_cast<aimsun::SubTrip&>(*it);
 			tripToSave = new sim_mob::Trip();
-			currEntityId = tripToSave->entityID = aSubTrip->entityID;
+			currEntityId = tripToSave->entityID = it->entityID;
 
 			//First item
 			aSubTripInTrip = new sim_mob::SubTrip();
-			aSubTripInTrip->entityID = aSubTrip->entityID;
-			aSubTripInTrip->setSequenceNumber(aSubTrip->getSequenceNumber());
-			aSubTripInTrip->fromLocation = aSubTrip->fromLocation->generatedNode;
-			aSubTripInTrip->fromLocationType = aSubTrip->fromLocationType;
-			aSubTripInTrip->toLocation = aSubTrip->toLocation->generatedNode;
-			aSubTripInTrip->toLocationType = aSubTrip->toLocationType;
-			aSubTripInTrip->mode = aSubTrip->mode;
-			aSubTripInTrip->startTime = aSubTrip->startTime;
+			aSubTripInTrip->entityID = it->entityID;
+			aSubTripInTrip->setSequenceNumber(it->getSequenceNumber());
+			aSubTripInTrip->fromLocation = it->fromLocation->generatedNode;
+			aSubTripInTrip->fromLocationType = it->fromLocationType;
+			aSubTripInTrip->toLocation = it->toLocation->generatedNode;
+			aSubTripInTrip->toLocationType = it->toLocationType;
+			aSubTripInTrip->mode = it->mode;
+			aSubTripInTrip->startTime = it->startTime;
+			aSubTripInTrip->parentTrip = tripToSave;
 
 			//First subtrip's from location is the from location of the parent trip
-			tripToSave->fromLocation = aSubTrip->fromLocation->generatedNode;
-			tripToSave->fromLocationType = aSubTrip->fromLocationType;
+			tripToSave->fromLocation = it->fromLocation->generatedNode;
+			tripToSave->fromLocationType = it->fromLocationType;
 
 			tripToSave->addSubTrip(*aSubTripInTrip);
 
 			//Remaining items of the same trip
 			do{
-				if((++it)->itemType == sim_mob::trip){
+				if((++it)->itemType != sim_mob::trip){
 					//Encountered an activity. Last subtrip was reached in the previous iteration.
 					//Last subtrip's to location is the to location for the parent trip
-					tripToSave->toLocation = aSubTrip->toLocation->generatedNode;
-					tripToSave->toLocationType = aSubTrip->toLocationType;
+					tripToSave->toLocation = it->toLocation->generatedNode;
+					tripToSave->toLocationType = it->toLocationType;
 					--it; // So that the next iteration of the for loop points to this activity
 					break;
 				}
-				*aSubTrip = static_cast<aimsun::SubTrip&>(*it);
+
 				sim_mob::SubTrip *aSubTripInTrip = new sim_mob::SubTrip();
-				aSubTripInTrip->entityID = aSubTrip->entityID;
-				aSubTripInTrip->setSequenceNumber(aSubTrip->getSequenceNumber());
-				aSubTripInTrip->fromLocation = aSubTrip->fromLocation->generatedNode;
-				aSubTripInTrip->fromLocationType = aSubTrip->fromLocationType;
-				aSubTripInTrip->toLocation = aSubTrip->toLocation->generatedNode;
-				aSubTripInTrip->toLocationType = aSubTrip->toLocationType;
-				aSubTripInTrip->mode = aSubTrip->mode;
-				aSubTripInTrip->startTime = aSubTrip->startTime;
+				aSubTripInTrip->entityID = it->entityID;
+				aSubTripInTrip->setSequenceNumber(it->getSequenceNumber());
+				aSubTripInTrip->fromLocation = it->fromLocation->generatedNode;
+				aSubTripInTrip->fromLocationType = it->fromLocationType;
+				aSubTripInTrip->toLocation = it->toLocation->generatedNode;
+				aSubTripInTrip->toLocationType = it->toLocationType;
+				aSubTripInTrip->mode = it->mode;
+				aSubTripInTrip->startTime = it->startTime;
+				aSubTripInTrip->parentTrip = tripToSave;
+
 				tripToSave->addSubTrip(*aSubTripInTrip);
-			} while(currEntityId == aSubTrip->entityID && it!=tripchains_.end());
+			} while(currEntityId == it->entityID && it!=tripchains_.end());
 
 			tcs.push_back(tripToSave);
 		}
 		else if (it->itemType == sim_mob::activity){
 			//TODO: Person related work
-			*anActivity = static_cast<aimsun::Activity&>(*it);
+			//*anActivity = static_cast<aimsun::Activity&>(*it);
 			activityToSave = new sim_mob::Activity();
-			activityToSave->entityID = anActivity->entityID;
-			activityToSave->setSequenceNumber(anActivity->getSequenceNumber());
-			activityToSave->description= anActivity->description;
-			activityToSave->isPrimary = anActivity->isPrimary;
-			activityToSave->isFlexible = anActivity->isFlexible;
-			activityToSave->location = anActivity->location->generatedNode;
-			activityToSave->locationType = anActivity->locationType;
-			activityToSave->activityStartTime = anActivity->activityStartTime;
-			activityToSave->activityEndTime = anActivity->activityEndTime;
+			activityToSave->entityID = it->entityID;
+			activityToSave->setSequenceNumber(it->getSequenceNumber());
+			activityToSave->description= it->description;
+			activityToSave->isPrimary = it->isPrimary;
+			activityToSave->isFlexible = it->isFlexible;
+			activityToSave->location = it->location->generatedNode;
+			activityToSave->locationType = it->locationType;
+			activityToSave->activityStartTime = it->activityStartTime;
+			activityToSave->activityEndTime = it->activityEndTime;
 
 			tcs.push_back(activityToSave);
 		}

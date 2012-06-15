@@ -26,19 +26,19 @@ class Bus;
 class BusController : public sim_mob::Agent
 {
 public:
-	explicit BusController(const MutexStrategy& mtxStrat, int id=-1);
-	virtual ~BusController();
-
-	//virtual Entity::UpdateStatus update(frame_t frameNumber);
-
-	//virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
-
+	static BusController & getInstance() {return sim_mob::BusController::instance_;}
+	void update(DPoint pt);
+	virtual Entity::UpdateStatus update(frame_t frameNumber);
 	unsigned int getId() const { return id; }
 
 private:
+	explicit BusController(const MutexStrategy& mtxStrat = sim_mob::ConfigParams::GetInstance().mutexStategy, int id=-1);
+	~BusController();
+	static BusController instance_;
+
 	frame_t frameNumberCheck;// check some frame number to do control
 	std::vector<Bus*> managedBuses;
-	DPoint posCheck;// check position of a given bus ,only for test
+	DPoint posBus;// The sent position of a given bus ,only for test
 
 };
 

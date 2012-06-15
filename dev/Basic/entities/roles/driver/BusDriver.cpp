@@ -122,7 +122,17 @@ void sim_mob::BusDriver::frame_tick(UpdateParams& p)
 	Driver::frame_tick(p);
 
 	std::cout<<"BusDriver ID:-->"<<this->getParent()->getId()<<std::endl;
-	std::cout<<this->getVehicle()->getPosition().x<<std::endl;
+	std::cout<<"===========  ("<<(this->getVehicle()->getPosition().x)/1000<<","<<(this->getVehicle()->getPosition().y)/1000<<"=========== "<<std::endl;
+	DPoint pt = Driver::getVehicle()->getPosition();
+	DPoint ptCheck(37222842, 14331273);
+	double distance = dist(pt.x, pt.y, ptCheck.x, ptCheck.y);
+	BusController& busctrller = BusController::getInstance();
+	if(distance < 0.46136)
+	{
+		std::cout<<"distance == "<<distance<<std::endl;
+		busctrller.update(pt);//communication and update
+	}
+
 	//Driver::frame_tick() will move the Bus along its route.
 	// If a Bus Stop has been reached, then a forced stop is performed,
 	// and the variable "waitAtStopMS" is set to >0. This is where we react to it.

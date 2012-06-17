@@ -16,6 +16,7 @@ import sim_mob.vis.network.basic.FlippedScaledPoint;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.network.basic.Vect;
 import sim_mob.vis.simultion.DriverTick;
+import sim_mob.vis.simultion.GsonResObj;
 import sim_mob.vis.simultion.SimulationResults;
 import sim_mob.vis.util.FastLineParser;
 import sim_mob.vis.util.Mapping;
@@ -148,24 +149,37 @@ public class RoadNetwork {
 			
 			//Comment?
 			line = line.trim();
-			if (line.isEmpty() || !line.startsWith("(") || !line.endsWith(")")) {
+			if (line.isEmpty() || line.startsWith("#")) { continue; }
+			
+			//New-style json strings use {}, while old-style ones use ().
+			boolean oldStyle = line.startsWith("(") && line.endsWith(")");
+			boolean newStyle = line.startsWith("{") && line.endsWith("}");
+			if (!oldStyle && !newStyle) {
 				continue;
 			}
 			
-			//Parse basic
-			Utility.ParseResults pRes = Utility.ParseLogLine(flp, line);
-			if (pRes.isError()) {
-				throw new RuntimeException(pRes.errorMsg);
+			//Parsing depends on how the line is structured.
+			if (newStyle) {
+				//Parse this line as json.
+				GsonResObj gRes = Utility.ParseGsonLine(line);
+				int tTick = gRes.getTimeTick();
+				
+				//Add this object to the simulation
+				gRes.addSelfToSimulation(this, null);
+			} else {
+				//Parse this line as text and pseudo-json.
+				Utility.ParseResults pRes = Utility.ParseLogLine(flp, line);
+				if (pRes.isError()) {
+					throw new RuntimeException("Error parsing line: \n  " + pRes.errorMsg);
+				}
+
+			    //Pass this off to a different function based on the type
+			    try {
+			    	dispatchConstructionRequest(pRes);
+			    } catch (IOException ex) {
+			    	throw new IOException(ex.getMessage() + "\n...on line: " + line);
+			    }
 			}
-					    
-		    //Pass this off to a different function based on the type
-		    try {
-		    	if (!dispatchConstructionRequest(pRes)) {
-		    		break;
-		    	}
-		    } catch (IOException ex) {
-		    	throw new IOException(ex.getMessage() + "\n...on line: " + line);
-		    }
 		    
 		    
 		    if (pushUpdate) {

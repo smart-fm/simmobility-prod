@@ -31,13 +31,18 @@ public:
 	virtual Entity::UpdateStatus update(frame_t frameNumber);
 	unsigned int getId() const { return id; }
 
+	///Retrieve a reference to the list of managedBuses.
+	std::vector<sim_mob::Bus*>& getManagedBuses() { return managedBuses; }
+	const sim_mob::RoadNetwork& getNetwork() { return network; }
+
 private:
 	explicit BusController(const MutexStrategy& mtxStrat = sim_mob::ConfigParams::GetInstance().mutexStategy, int id=-1);
 	~BusController();
 	static BusController instance_;
 
 	frame_t frameNumberCheck;// check some frame number to do control
-	std::vector<Bus*> managedBuses;
+	std::vector<sim_mob::Bus*> managedBuses;// Saved managedBuses
+	sim_mob::RoadNetwork network;// Saved RoadNetwork
 	DPoint posBus;// The sent position of a given bus ,only for test
 
 };

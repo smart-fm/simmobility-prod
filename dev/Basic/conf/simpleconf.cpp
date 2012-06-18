@@ -230,7 +230,11 @@ bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 		if(currentEntityID == (*it)->entityID) continue;
 		if((*it)->itemType == sim_mob::activity) continue; //Just in case. First item for a Person (Home?) may be an activity.
 
-		sim_mob::SubTrip* firstSubTripForEntity = static_cast<sim_mob::SubTrip*>(*it);
+		if((*it)->itemType == sim_mob::trip){
+		currentEntityID = (*it)->entityID;
+		sim_mob::Trip* firstTripForEntity = dynamic_cast<Trip*>(*it);
+		sim_mob::SubTrip* firstSubTripForEntity = dynamic_cast<SubTrip*>(firstTripForEntity->getSubTrips().front());
+
 		PendingEntity p(EntityTypeFromTripChainString(firstSubTripForEntity->mode));
 
 		//Origin, destination
@@ -242,6 +246,7 @@ bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 
 		//Add it or stash it
 		addOrStashEntity(p, active_agents, pending_agents);
+		}
 	}
 
 	return true;

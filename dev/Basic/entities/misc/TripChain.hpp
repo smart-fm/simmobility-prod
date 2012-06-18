@@ -60,6 +60,8 @@ public:
 		else return trip;
 	}
 
+    virtual ~TripChainItem() {}
+
 protected:
 	// sim_mob::Entity* parentEntity; // Keeping only ID for now. Entity objects will have to be created when Person table has data.//sim_mob::Entity* parentEntity;
 	unsigned int sequenceNumber;
@@ -80,6 +82,8 @@ public:
 	bool isFlexible;
 	sim_mob::DailyTime activityStartTime;
 	sim_mob::DailyTime activityEndTime;
+
+	virtual ~Activity() {}
 };
 
 //Forward Declaration
@@ -112,6 +116,8 @@ public:
     	subTrips.push_back(&aSubTrip);
     }
 
+    virtual ~Trip() {}
+
 private:
     std::vector<SubTrip*> subTrips;
 };
@@ -123,6 +129,8 @@ class SubTrip : public sim_mob::Trip {
 public:
 	sim_mob::Trip* parentTrip;
 	std::string mode;
+
+	virtual ~SubTrip() {}
 };
 
 }

@@ -313,6 +313,7 @@ void sim_mob::Driver::frame_tick_output_mpi(frame_t frameNumber)
 
 	logout << "(\"Driver\"" << "," << frameNumber << "," << parent->getId() << ",{" << "\"xPos\":\""
 			<< static_cast<int> (vehicle->getX()) << "\",\"yPos\":\"" << static_cast<int> (vehicle->getY())
+			<< "\",\"segment\":\"" << vehicle->getCurrSegment()->getId()
 			<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI)) << "\",\"length\":\""
 			<< static_cast<int> (vehicle->length) << "\",\"width\":\"" << static_cast<int> (vehicle->width);
 

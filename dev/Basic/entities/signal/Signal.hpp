@@ -73,8 +73,11 @@ public:
    virtual TrafficColor getPedestrianLight(Crossing const & crossing) const {};
    virtual std::string toString() const{};
    Node  const & getNode() const { return node_; }
+   virtual void outputTrafficLights(frame_t frameNumber,std::string newLine)const{};
+   virtual void createStringRepresentation(std::string){};
 
    static std::vector<Signal *> all_signals_;
+   typedef std::vector<Signal *> All_Signals;
    typedef std::vector<sim_mob::Signal *>::const_iterator all_signals_const_Iterator;
    typedef std::vector<sim_mob::Signal *>::iterator all_signals_Iterator;
 
@@ -219,9 +222,6 @@ private:
 protected:
         LoopDetectorEntity loopDetector_;
 
-protected:
-//        void setupIndexMaps();
-        void outputToVisualizer(frame_t frameNumber);
 
 #ifndef SIMMOB_DISABLE_MPI
 public:

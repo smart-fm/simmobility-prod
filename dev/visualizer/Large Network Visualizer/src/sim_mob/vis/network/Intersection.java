@@ -1,16 +1,26 @@
 package sim_mob.vis.network;
 
 import java.util.ArrayList;
+import java.util.Hashtable;
+
+import sim_mob.vis.network.TrafficSignal.Crossing;
+import sim_mob.vis.network.TrafficSignal.Link;
+import sim_mob.vis.network.TrafficSignal.SignalHelper;
 
 
 /**
  * \author Zhang Shuai
  * \author Seth N. Hetu
  */
+
 public class Intersection {
 
 	private int intersectNodeID;
 	private ArrayList <Integer> signalLinkIDs; 
+
+	private SignalHelper signalHelper;
+	
+	private ArrayList <Integer> signalLinkIDs_new; 
 	private ArrayList <Integer> signalCrossingIDs;
 	private ArrayList <TrafficSignalCrossing> signalCrossings;
 
@@ -23,6 +33,8 @@ public class Intersection {
 	
 	
 	public int getIntersectNodeID (){return intersectNodeID;}
+	public SignalHelper getSignalHelper() {return signalHelper;}
+	public void setSignalHelper(SignalHelper signalHelper_) { signalHelper = signalHelper_; }
 	public ArrayList <Integer> getSigalLinkIDs(){return signalLinkIDs;}
 	public ArrayList <Integer> getSigalCrossingIDs(){return signalCrossingIDs;}
 	public ArrayList <TrafficSignalCrossing> getSignalCrossings(){return signalCrossings;}
@@ -39,6 +51,7 @@ public class Intersection {
 		this.signalCrossingIDs = signalCrossingIDs;
 
 	}
+	public Intersection(SignalHelper signalHelper_) { signalHelper = signalHelper_; }
 	
 
 	public void setVaTrafficSignal(ArrayList<ArrayList<TrafficSignalLine>> vaSignalLine){

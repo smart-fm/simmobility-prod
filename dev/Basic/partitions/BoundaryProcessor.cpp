@@ -912,6 +912,13 @@ string sim_mob::BoundaryProcessor::outputAllEntities(frame_t time_step)
 		Signal* one_signal = (*itr_sig);
 		one_signal->frame_output(time_step);
 	}
+#else
+	All_Signals::iterator itr_sig = Signal::all_signals_.begin();
+	for (; itr_sig != Signal::all_signals_.end(); itr_sig++)
+	{
+		Signal* one_signal = (*itr_sig);
+		one_signal->outputTrafficLights(time_step,"");
+	}
 #endif
 
 	return "";

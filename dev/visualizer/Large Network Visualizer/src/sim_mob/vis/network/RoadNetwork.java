@@ -86,7 +86,7 @@ public class RoadNetwork {
 	public Hashtable<Integer, Hashtable<Integer,Lane> > getLanes(){return lanes;}
 	public Hashtable<Integer, TrafficSignalLine> getTrafficSignalLine(){return trafficSignalLines;}
 	public Hashtable<Integer, TrafficSignalCrossing> getTrafficSignalCrossing() {return trafficSignalCrossings;}
-	public Hashtable<Integer, Intersection> getIntersection(){return intersections;}
+	public Hashtable<Integer, Intersection> getIntersections(){return intersections;}
 	public Hashtable<Integer, CutLine> getCutLine(){return cutLines;}
 	public Hashtable<Integer, DriverTick> getDriverTick(){return drivertick;}
 	
@@ -579,6 +579,35 @@ public class RoadNetwork {
 	}
 
 	private void parseSignalLocation(Utility.ParseResults pRes) throws IOException{		
+
+	    
+		//Check and parse properties.
+		if (!pRes.confirmProps(new String[]{"node","va","aa","pa","vb","ab","pb","vc","ac","pc","vd","ad","pd"})) {
+			throw new IOException("Missing required key in type: " + pRes.type);
+		}
+
+	    //Now save the relevant information
+	    int intersectionNodeID = Utility.ParseIntOptionalHex(pRes.properties.get("node"));
+	    int linkVaID = Utility.ParseIntOptionalHex(pRes.properties.get("va"));
+	    int linkVbID = Utility.ParseIntOptionalHex(pRes.properties.get("vb"));
+	    int linkVcID = Utility.ParseIntOptionalHex(pRes.properties.get("vc"));
+	    int linkVdID = Utility.ParseIntOptionalHex(pRes.properties.get("vd"));
+	    int linkPaID = Utility.ParseIntOptionalHex(pRes.properties.get("pa"));
+	    int linkPbID = Utility.ParseIntOptionalHex(pRes.properties.get("pb"));
+	    int linkPcID = Utility.ParseIntOptionalHex(pRes.properties.get("pc"));
+	    int linkPdID = Utility.ParseIntOptionalHex(pRes.properties.get("pd"));
+
+	    ArrayList <Integer>  tempLinkIDs = new ArrayList<Integer>(
+	    			Arrays.asList(linkVaID, linkVbID, linkVcID, linkVdID)); 
+	    
+	    ArrayList <Integer> tempCrossingIDs = new ArrayList<Integer>(
+	    			Arrays.asList(linkPaID,linkPbID,linkPcID,linkPdID));
+	    
+	    intersections.put(pRes.objID, new Intersection(intersectionNodeID,tempLinkIDs, tempCrossingIDs));		
+	
+	}
+	
+	private void gParseSignalLocation(Utility.ParseResults pRes) throws IOException{		
 
 	    
 		//Check and parse properties.

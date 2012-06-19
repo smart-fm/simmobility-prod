@@ -223,33 +223,46 @@ namespace {
 bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, AgentConstraints& constraints)
 {
 	ConfigParams& config = ConfigParams::GetInstance();
-	const vector<TripChainItem*>& tcs = ConfigParams::GetInstance().getTripChains();
+	const vector<TripChainItem*>& tcs =
+			ConfigParams::GetInstance().getTripChains();
 	int currentEntityID = 0;
-	for (vector<TripChainItem*>::const_iterator it=tcs.begin(); it!=tcs.end(); it++) {
+	for (vector<TripChainItem*>::const_iterator it = tcs.begin();
+			it != tcs.end(); it++) {
 		//Create an Agent candidate based on the type.
-		if(currentEntityID == (*it)->entityID) continue;
-		if((*it)->itemType == sim_mob::activity) continue; //Just in case. First item for a Person (Home?) may be an activity.
-
-		if((*it)->itemType == sim_mob::trip){
-		currentEntityID = (*it)->entityID;
-		sim_mob::Trip* firstTripForEntity = dynamic_cast<Trip*>(*it);
-		sim_mob::SubTrip* firstSubTripForEntity = dynamic_cast<SubTrip*>(firstTripForEntity->getSubTrips().front());
-
-		PendingEntity p(EntityTypeFromTripChainString(firstSubTripForEntity->mode));
-
-		//Origin, destination
-		p.origin = firstSubTripForEntity->fromLocation;
-		p.dest = firstSubTripForEntity->toLocation;
-
-		//Start time
-		p.start = firstSubTripForEntity->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
-
-		//Add it or stash it
-		addOrStashEntity(p, active_agents, pending_agents);
+		if (currentEntityID != (*it)->entityID) {
+			//trip chain for new entity starts
+			PendingEntity p;
+			vector<TripChainItem*> tripChainForEntity;
+			bool firstTripReached = false; //First trip is yet to be seen
+			do {
+				currentEntityID = (*it)->entityID;
+				if ((*it)->itemType == sim_mob::trip && !firstTripReached) {
+					sim_mob::Trip* firstTripForEntity = dynamic_cast<Trip*>(*it);
+					sim_mob::SubTrip* firstSubTripForEntity =
+							dynamic_cast<SubTrip*>(firstTripForEntity->getSubTrips().front());
+					p(EntityTypeFromTripChainString(firstSubTripForEntity->mode));
+					//Origin, destination, Start time
+					p.origin = firstSubTripForEntity->fromLocation;
+					p.dest = firstSubTripForEntity->toLocation;
+					p.start = firstSubTripForEntity->startTime.offsetMS_From(
+							ConfigParams::GetInstance().simStartTime);
+					firstTripReached = true; // First trip has been iterated
+				}
+				//Collect the TripChainItems for this entity
+				tripChainForEntity.push_back(*it);
+				it++;
+			} while (currentEntityID == (*it)->entityID);
+			//Add it or stash it
+			p.entityTripChain = tripChainForEntity;
+			addOrStashEntity(p, active_agents, pending_agents);
 		}
+		if (it == tcs.end())
+			break;
 	}
-
 	return true;
+}
+
+
 }
 
 

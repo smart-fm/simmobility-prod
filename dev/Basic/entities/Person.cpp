@@ -4,6 +4,7 @@
 
 //For debugging
 #include "entities/roles/driver/Driver.hpp"
+#include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "util/DebugFlags.hpp"
@@ -59,8 +60,20 @@ Person* sim_mob::Person::GeneratePersonFromPending(const PendingEntity& p)
 	res->originNode = p.origin;
 	res->destNode = p.dest;
 	res->setStartTime(p.start);
-
+	res->setTripChain(p.entityTripChain);
+	res->currTripChainItem = res->getTripChain().begin();
+	res->getFirstTripInChain(res->currSubTrip);
 	return res;
+}
+
+ void sim_mob::Person::getFirstTripInChain(std::vector<sim_mob::SubTrip*>::iterator& subTripPtr){
+	std::vector<sim_mob::TripChainItem*>::iterator it = this->getTripChain().begin();
+	do{
+		if((*it)->itemType == sim_mob::trip){
+			subTripPtr = dynamic_cast<sim_mob::Trip*>((*it))->getSubTrips().begin();
+		}
+		it++;
+	}while(it != this->getTripChain().end());
 }
 
 UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
@@ -176,9 +189,7 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 
 
 UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) {
-	//Do we have at least one more item in our Trip Chain?
-	TripChainItem* currTrip = getTripChainItem();
-	if (!currTrip) {
+	if (!this->currTripChainItem == this->getTripChain().end()) {
 		return UpdateStatus::Done;
 	}
 
@@ -189,14 +200,20 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) 
 	prevRole = currRole;
 
 	//Create a new Role based on the trip chain type
-	/*if (currTrip->mode == "Car") {
-		//Temp. (Easy to add in later)
-		throw std::runtime_error("Cars not supported in Trip Chain role change.");
-	} else if (currTrip->mode == "Walk") {
-		changeRole(new Pedestrian(this, gen));
-	} else {
-		throw std::runtime_error("Unknown role type for trip chain role change.");
-	}--------------*/
+	if(this->currTripChainItem->itemType == sim_mob::trip){
+		if (this->currSubTrip->mode == "Car") {
+			//Temp. (Easy to add in later)
+			throw std::runtime_error("Cars not supported in Trip Chain role change.");
+		} else if (this->currSubTrip->mode == "Walk") {
+			changeRole(new Pedestrian(this, gen));
+		} else {
+			throw std::runtime_error("Unknown role type for trip chain role change.");
+		}
+	}
+	else {
+		changeRole(new ActivityPerformer(this));
+	}
+
 
 	//Create a return type based on the differences in these Roles
 	UpdateStatus res(UpdateStatus::RS_CONTINUE, prevRole->getSubscriptionParams(), currRole->getSubscriptionParams());

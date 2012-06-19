@@ -1019,7 +1019,6 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 	//aimsun::Activity *anActivity = nullptr;
 	sim_mob::Activity *activityToSave = nullptr;
 
-	int currEntityId = 0;
 	int currTripId = 0;
 
 	for (vector<aimsun::TripChainItem>::iterator it=tripchains_.begin(); it!=tripchains_.end(); it++) {
@@ -1028,6 +1027,7 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 			//*anActivity = static_cast<aimsun::Activity&>(*it);
 			activityToSave = new sim_mob::Activity();
 			activityToSave->entityID = it->entityID;
+			activityToSave->itemType = it->itemType;
 			activityToSave->setSequenceNumber(it->getSequenceNumber());
 			activityToSave->description = it->description;
 			activityToSave->isPrimary = it->isPrimary;
@@ -1044,7 +1044,8 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 			do{
 				if(currTripId != it->tripID){
 					tripToSave = new sim_mob::Trip();
-					currEntityId = tripToSave->entityID = it->entityID;
+					tripToSave->entityID = it->entityID;
+					tripToSave->itemType = it->itemType;
 					currTripId = tripToSave->tripID = it->tripID;
 
 					tripToSave->fromLocation = it->fromLocation->generatedNode;
@@ -1053,6 +1054,7 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 
 				sim_mob::SubTrip *aSubTripInTrip = new sim_mob::SubTrip();
 				aSubTripInTrip->entityID = it->entityID;
+				aSubTripInTrip->itemType = it->itemType;
 				aSubTripInTrip->setSequenceNumber(it->getSequenceNumber());
 				aSubTripInTrip->fromLocation = it->fromLocation->generatedNode;
 				aSubTripInTrip->fromLocationType = it->fromLocationType;

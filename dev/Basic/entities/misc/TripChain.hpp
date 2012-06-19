@@ -64,6 +64,7 @@ public:
 
 protected:
 	// sim_mob::Entity* parentEntity; // Keeping only ID for now. Entity objects will have to be created when Person table has data.//sim_mob::Entity* parentEntity;
+
 	unsigned int sequenceNumber;
 
 };

@@ -40,6 +40,7 @@ struct PendingEntity {
 	Person* rawAgent;         ///<The actual entity. Null \b unless ENTITY_RAWAGENT is the type.
 	unsigned int start;       ///<Entity's destination. Null if ENTITY_RAWAGENT is the type.
 	int manualID;             ///<Manual ID for this entity. If -1, it is assigned an ID
+	std::vector<TripChainItem*> entityTripChain; ///<TripChain for this entity.
 };
 
 }

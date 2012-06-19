@@ -95,7 +95,8 @@ public:
     void DecorateAndTranslateObjects();
     void PostProcessNetwork();
     void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::TripChain*>& tcs);
-
+    void LoadBusStop(const std::string& storedProc);
+    map<std::string,BusStop> & getAimSunBusStops(){return busstop_;}
     map<int, Section> const & sections() const { return sections_; }
 
 private:
@@ -109,8 +110,9 @@ private:
     multimap<int, Polyline> polylines_;
     vector<TripChain> tripchains_;
     map<int, Signal> signals_;
-
     map<std::string,BusStop> busstop_;
+
+
     multimap<int,Phase> phases_;//one node_id is mapped to many phases
 
     vector<sim_mob::BoundarySegment*> boundary_segments;
@@ -125,7 +127,7 @@ private:
     void LoadTripchains(const std::string& storedProc);
     void LoadTrafficSignals(const std::string& storedProc);
 
-    void LoadBusStop(const std::string& storedProc);
+
 
     void LoadPhase(const std::string& storedProc);
 
@@ -1010,8 +1012,8 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 		busstop->yPos = (*it).second.yPos;
 		sim_mob::Point2D p((*it).second.xPos,(*it).second.yPos);
 
-		 double x = busstop->xPos;
-				    		    double y = busstop->yPos;
+		double x = busstop->xPos;
+		double y = busstop->yPos;
 
 
 

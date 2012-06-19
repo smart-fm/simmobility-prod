@@ -40,8 +40,8 @@ public:
 	Traversable() : start(nullptr), end(nullptr) {}
 
 	//NOTE: Shouldn't these return const Node* const ?
-	const sim_mob::Node* getStart() const { return start; }
-	const sim_mob::Node* getEnd() const { return end; }
+	 sim_mob::Node* getStart() const { return start; }
+	 sim_mob::Node* getEnd() const { return end; }
 
 
 protected:

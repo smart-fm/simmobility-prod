@@ -13,6 +13,7 @@
 #endif
 //
 using namespace sim_mob;
+using namespace std;
 using std::vector;
 using std::set;
 using std::string;

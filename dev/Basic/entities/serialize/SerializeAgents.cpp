@@ -262,8 +262,8 @@ void Signal::unpackProxy(UnPackageUtils& unpackageUtil) {
 #else
 //Note: The new signal class will require packing, but don't do it yet
 //       ---we will remove the old Signal class anyway. ~Seth
-void Signal::packProxy(PackageUtils& packageUtil) {}
-void Signal::unpackProxy(UnPackageUtils& unpackageUtil) {}
+//void Signal::packProxy(PackageUtils& packageUtil) {}
+//void Signal::unpackProxy(UnPackageUtils& unpackageUtil) {}
 #endif
 
 }

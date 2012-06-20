@@ -915,7 +915,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	int reacTime_Gap = ReadGranularity(handle,"reacTime_Gap");
 	int signalAlgorithm;
 
-
 	//Save simulation start time
 	TiXmlElement* node = handle.FirstChild("start_time").ToElement();
 	const char* simStartStr = node ? node->Attribute("value") : nullptr;
@@ -960,6 +959,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	}
 	cout <<endl;
 
+//	std::cout << "333" << endl;
 
 	//Determine the first ID for automatically generated Agents
 	int startingAutoAgentID = 0; //(We'll need this later)
@@ -986,6 +986,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		}
 	}
 
+//	std::cout << "555" << endl;
 
 
 	//Miscellaneous settings
@@ -1075,10 +1076,12 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
     	//add for MPI
 #ifndef SIMMOB_DISABLE_MPI
-    	sim_mob::PartitionManager& partitionImpl = sim_mob::PartitionManager::instance();
-    	std::cout << "partition_solution_id in configuration:" << partition_solution_id << std::endl;
+    	if (config.is_run_on_many_computers) {
+			sim_mob::PartitionManager& partitionImpl = sim_mob::PartitionManager::instance();
+			std::cout << "partition_solution_id in configuration:" << partition_solution_id << std::endl;
 
-    	partitionImpl.partition_config->partition_solution_id = partition_solution_id;
+			partitionImpl.partition_config->partition_solution_id = partition_solution_id;
+    	}
 #endif
 
     }
@@ -1261,6 +1264,8 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
         loopDetector.init(*signal);
         active_agents.push_back(&loopDetector);
     }
+
+//    std::cout << "999" << endl;
 
 	//No error
 	return "";

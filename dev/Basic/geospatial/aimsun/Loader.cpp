@@ -585,6 +585,7 @@ void DatabaseLoader::TransferBoundaryRoadSegment()
 		(*it)->boundarySegment = sim_mob::getRoadSegmentBasedOnNodes(&start_point, &end_point);
 		partitionImpl.loadInBoundarySegment((*it)->boundarySegment->getId(), (*it));
 	}
+
 }
 #endif
 
@@ -1734,17 +1735,28 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
             std::cout << ">Success." << std::endl;
 
 		//Step One: Load
+
+        std::cout << "xuyan:1." << std::endl;
 		loader.LoadBasicAimsunObjects(storedProcs);
+		std::cout << "xuyan:2." << std::endl;
 
 		if (prof) { prof->logGenericEnd("Database", "main-prof"); }
+		std::cout << "xuyan:2.1" << std::endl;
 
 		//Step Two: Translate
 		if (prof) { prof->logGenericStart("PostProc", "main-prof"); }
+		std::cout << "xuyan:2.2" << std::endl;
+
 		loader.DecorateAndTranslateObjects();
+		std::cout << "xuyan:2.3" << std::endl;
 		//Step Three: Perform data-guided cleanup.
 		loader.PostProcessNetwork();
+		std::cout << "xuyan:2.4" << std::endl;
 		//Step Four: Save
 		loader.SaveSimMobilityNetwork(rn, tcs);
+
+		std::cout << "xuyan:2.5" << std::endl;
+
 		//Temporary workaround; Cut lanes short/extend them as reuquired.
 		for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {
 			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesStartLineCut, true);
@@ -1761,7 +1773,9 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 #ifndef SIMMOB_DISABLE_MPI
 		if (ConfigParams::GetInstance().is_run_on_many_computers)
 		{
+			std::cout << "xuyan:3." << std::endl;
 			loader.TransferBoundaryRoadSegment();
+			std::cout << "xuyan:4." << std::endl;
 		}
 #endif
 

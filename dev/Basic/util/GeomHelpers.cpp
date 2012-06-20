@@ -264,8 +264,8 @@ const sim_mob::RoadSegment* sim_mob::getRoadSegmentBasedOnNodes(const sim_mob::P
 	sim_mob::Node* start_node = rn.locateNode(*start_point, true);
 	sim_mob::Node* end_node = rn.locateNode(*end_point, true);
 
-//	std::cout << start_node->location.getX() << "," << start_node->location.getY() << std::endl;
-//	std::cout << end_node->location.getX() << "," << end_node->location.getY() << std::endl;
+//	std::cout << "START:" << start_node->location.getX() << "," << start_node->location.getY() << std::endl;
+//	std::cout << "END:" << end_node->location.getX() << "," << end_node->location.getY() << std::endl;
 
 	std::vector<sim_mob::RoadSegment*> buffer_road_segments;
 

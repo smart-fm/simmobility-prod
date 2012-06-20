@@ -54,6 +54,7 @@
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
+#include "partitions/ParitionDebugOutput.hpp"
 
 //Note: This must be the LAST include, so that other header files don't have
 //      access to cout if SIMMOB_DISABLE_OUTPUT is true.
@@ -217,6 +218,8 @@ bool performMain(const std::string& configFileName) {
 	gettimeofday(&loop_start_time, nullptr);
 	int loop_start_offset = diff_ms(loop_start_time, start_time);
 
+	ParitionDebugOutput debug;
+
 #ifdef SIMMOB_DISABLE_OUTPUT
 	int lastTickPercent = 0; //So we have some idea how much time is left.
 #endif
@@ -260,16 +263,16 @@ bool performMain(const std::string& configFileName) {
 		if (config.is_run_on_many_computers) {
 			PartitionManager& partitionImpl = PartitionManager::instance();
 
-//			cout <<"0" <<endl;
+//			debug.outputToConsole("0");
 			partitionImpl.crossPCBarrier();
 
-//			cout <<"1" <<endl;
+//			debug.outputToConsole("1");
 			partitionImpl.crossPCboundaryProcess(currTick);
 
-//			cout <<"2" <<endl;
+//			debug.outputToConsole("2");
 			partitionImpl.crossPCBarrier();
 
-//			cout <<"3" <<endl;
+//			debug.outputToConsole("3");
 			partitionImpl.outputAllEntities(currTick);
 		}
 #endif

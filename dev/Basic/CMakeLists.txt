@@ -181,7 +181,7 @@ FILE(GLOB_RECURSE BASIC_CPP *.cpp)
 #Create a list of items to remove from the Build.
 # Adding main.cpp to this list makes a good starting point, and ensures
 # we always have at least one item to remove from BASIC_CPP
-FILE(GLOB IgnoreList main.cpp)
+FILE(GLOB IgnoreList main*.cpp)
 
 #Remove tests
 FILE(GLOB_RECURSE TESTING_CPP "unit-tests/*.cpp" "unit-tests/*.c")
@@ -212,9 +212,11 @@ ENDIF (${BUILD_TESTS} MATCHES "ON")
 
 #Our output executable and its input sources. List *.c files manually
 add_executable(SimMobility main.cpp ${BASIC_CPP})
+add_executable(SimMobility_Med main_med.cpp ${BASIC_CPP})
 
 #Libraries to link, ported over from Eclipse.
 target_link_libraries (SimMobility ${LibraryList})
+target_link_libraries (SimMobility_Med ${LibraryList})
 
 #Timer:
 IF (${SIMMOB_AGENT_UPDATE_PROFILE} MATCHES "ON")

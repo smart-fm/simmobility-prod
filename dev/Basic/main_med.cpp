@@ -356,7 +356,7 @@ bool performMainMed(const std::string& configFileName) {
 	return true;
 }
 
-int main_med(int argc, char* argv[])
+int main(int argc, char* argv[])
 {
 #ifdef SIMMOB_NEW_SIGNAL
 	std::cout << "Using New Signal Model" << std::endl;

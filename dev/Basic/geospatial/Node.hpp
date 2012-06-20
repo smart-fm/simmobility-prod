@@ -5,16 +5,13 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <string>
 
 #include "util/LangHelpers.hpp"
 #include "util/OpaqueProperty.hpp"
-
 #include "Point2D.hpp"
-
 namespace sim_mob
 {
-
-
 //Forward declarations
 class Link;
 class Lane;
@@ -60,9 +57,15 @@ public:
 
 protected:
     Node(int x, int y) : location(x, y) {}
+
+private:
+    sim_mob::Link* linkLoc;
+
 public:
     void setID(unsigned int);
     unsigned int getID()const;
+    void setLinkLoc(sim_mob::Link* link);
+    sim_mob::Link* getLinkLoc();
 };
 
 

@@ -20,6 +20,7 @@ class RoadSegment;
 class MultiNode;
 class RoadNetworkPackageManager;
 class Signal;
+class Worker;
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
@@ -68,6 +69,10 @@ public:
 	void extendPolylinesBetweenRoadSegments();
 	void extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>& segments);
 
+	//added methods to access the worker who is managing this link
+	Worker* getCurrWorker();
+	void setCurrWorker(Worker* w);
+
 #ifndef SIMMOB_DISABLE_MPI
 	///The identification of Link is packed using PackageUtils;
 	static void pack(sim_mob::PackageUtils& package, const Link* one_link);
@@ -88,11 +93,15 @@ protected:
 	std::vector<sim_mob::RoadSegment*> revSegments;
 	std::set<sim_mob::RoadSegment*> uniqueSegments;
 
+	//who is currently managing this link
+	//added by Jenny
+	sim_mob::Worker* currWorker;
 
 
 friend class sim_mob::aimsun::Loader;
 friend class sim_mob::RoadNetworkPackageManager;
 friend class sim_mob::Signal;
+//friend class sim_mob::Worker;
 
 };
 

@@ -200,7 +200,7 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, unsigned int rea
 
 void sim_mob::Driver::frame_init(UpdateParams& p)
 {
-	//Save the path from orign to destination in allRoadSegments
+	//Save the path from orign to next activity location in allRoadSegments
 	initializePath();
 
 	//Set some properties about the current path, such as the current polyline, etc.
@@ -274,6 +274,14 @@ void sim_mob::Driver::frame_tick(UpdateParams& p)
 	//Update your perceptions
 	perceivedVelocity.delay(new DPoint(vehicle->getVelocity(), vehicle->getLatVelocity()));
 	//Print output for this frame.
+}
+
+void sim_mob::Driver::frame_tick_med(UpdateParams& p){
+	/* To be added by supply team to update location of driver after every frame tick
+	 * remember
+	 * 		1. Update all the activity parameters of the agent after every ACTIVITY_END event,
+	 * 		2. Update the nextPathPlanned flag to indicate whether agent needs to request for next detailed path
+	 */
 }
 
 void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
@@ -1000,12 +1008,34 @@ void sim_mob::Driver::initTripChainSpecialString(const string& value)
 
 //link path should be retrieved from other class
 //for now, it serves as this purpose
+/**Edited by Jenny (11th June)
+ * Try to initialize only the path from the current location to the next activity location
+ * Added in a parameter for the function call: next
+ *
+ *
+ *
+ *
+ */
 void sim_mob::Driver::initializePath() {
-	//Save local copies of the parent's origin/destination nodes.
-	origin.node = parent->originNode;
-	origin.point = origin.node->location;
-	goal.node = parent->destNode;
-	goal.point = goal.node->location;
+
+	if(!parent->getNextPathPlanned()){
+	TripActivity* nextActivity = parent->getNextActivity();
+
+	//if there's no activity during the current trip
+	if(nextActivity==nullptr){
+		//Save local copies of the parent's origin/destination nodes.
+		origin.node = parent->originNode;
+		origin.point = origin.node->location;
+		goal.node = parent->destNode;
+		goal.point = goal.node->location;
+	}
+	else{
+		//Save local copies of the parent's origin/destination nodes.
+		origin.node = parent->originNode;
+		origin.point = origin.node->location;
+		goal.node = nextActivity->location;
+		goal.point = goal.node->location;
+	}
 
 	//TEMP
 	std::stringstream errorMsg;
@@ -1061,6 +1091,9 @@ void sim_mob::Driver::initializePath() {
 		std::cout << errorMsg.str() << std::endl;
 		throw ex;
 	}
+	}
+	//to indicate that the path to next activity is already planned
+	parent->setNextPathPlanned(true);
 }
 
 

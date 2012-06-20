@@ -21,6 +21,7 @@
 
 #include "Entity.hpp"
 #include "PendingEntity.hpp"
+#include "PendingEvent.hpp"
 
 namespace sim_mob
 {
@@ -39,8 +40,16 @@ struct cmp_agent_start : public std::less<PendingEntity> {
   bool operator() (const PendingEntity& x, const PendingEntity& y) const;
 };
 
+struct cmp_event_start : public std::less<PendingEvent> {
+  bool operator() (const PendingEvent& x, const PendingEvent& y) const;
+};
+
 //C++ static constructors...
 class StartTimePriorityQueue : public std::priority_queue<PendingEntity, std::vector<PendingEntity>, cmp_agent_start> {
+};
+
+//C++ static constructors...
+class EventTimePriorityQueue : public std::priority_queue<PendingEvent, std::vector<PendingEvent>, cmp_event_start> {
 };
 
 
@@ -65,6 +74,7 @@ public:
 	virtual ~Agent();
 
 	virtual Entity::UpdateStatus update(frame_t frameNumber) = 0;  ///<Update agent behvaior
+
 
 	///Subscribe this agent to a data manager.
 	//virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew);
@@ -99,6 +109,9 @@ public:
 	static std::vector<Entity*> all_agents;
 	static StartTimePriorityQueue pending_agents; //Agents waiting to be added to the simulation, prioritized by start time.
 
+	static std::vector<Entity*> agents_on_event; //Agents are conducting event
+	static EventTimePriorityQueue agents_with_pending_event; //Agents with upcoming event, prioritized by start time.
+
 
 	///Retrieve a monotonically-increasing unique ID value.
 	///\param preferredID Will be returned if it is greater than the current maximum-assigned ID.
@@ -117,11 +130,46 @@ public:
 		return gen;
 	}
 
+	/*Set this person's activities
+	 *
+	 */
+	void setActivities(std::vector<TripActivity*> activities) { currActivities = activities; }
+	std::vector<TripActivity*> getActivities() { return currActivities; }
+
+	void setNextActivity(TripActivity* activity) { nextActivity = activity; }
+	TripActivity* getNextActivity() { return nextActivity; }
+
+	void setCurrActivity(TripActivity* activity) { currActivity = activity; }
+	TripActivity* getCurrActivity() { return currActivity; }
+
+	void setOnActivity(bool value) { onActivity = value; }
+	bool getOnActivity() { return onActivity; }
+
+	void setNextPathPlanned(bool value) { nextPathPlanned = value; }
+	bool getNextPathPlanned() { return nextPathPlanned; }
+
+	void setNextEvent(PendingEvent* value) { nextEvent = value; }
+	PendingEvent* getNextEvent() { return nextEvent; }
+
+	void setCurrEvent(PendingEvent* value) { currEvent = value; }
+	PendingEvent* getCurrEvent() { return currEvent; }
+
 
 private:
 	//unsigned int currMode;
 	bool toRemoved;
 	static unsigned int next_agent_id;
+
+	//added by Jenny (11th June)
+	std::vector<TripActivity*> currActivities;
+	TripActivity* nextActivity;
+	TripActivity* currActivity;
+	PendingEvent* currEvent;
+	PendingEvent* nextEvent;
+
+	bool nextPathPlanned; //determines if the detailed path for the current subtrip is already planned
+
+	bool onActivity; //Determines if the person is conducting any activity
 
 	//add by xuyan
 protected:

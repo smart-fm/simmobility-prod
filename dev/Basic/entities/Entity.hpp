@@ -13,6 +13,7 @@
 #include "util/LangHelpers.hpp"
 #include "metrics/Frame.hpp"
 #include "buffering/BufferedDataManager.hpp"
+#include "entities/misc/TripChain.hpp"
 
 namespace sim_mob
 {
@@ -84,9 +85,18 @@ public:
 	 */
 	virtual UpdateStatus update(frame_t frameNumber) = 0;
 
+	virtual Link* getCurrLink() = 0;
+	virtual void setCurrLink(Link* link)= 0;
 
 	virtual void setStartTime(unsigned int value) { startTime = value; }
 	virtual unsigned int getStartTime() const { return startTime; }
+
+	virtual void setActivities(std::vector<TripActivity*> value) { activities = value; }
+	virtual std::vector<TripActivity*> getActivities() const { return activities; }
+
+	virtual void setNextActivity(TripActivity* value) { nextActivity = value; }
+	virtual TripActivity* getNextActivity() const { return nextActivity; }
+
 
 protected:
 	/**
@@ -104,6 +114,12 @@ protected:
 
 	//When (in ms) does this Entity start?
 	unsigned int startTime;
+
+	std::vector<TripActivity*> activities;
+
+	TripActivity* nextActivity;
+
+	Link* currLink;
 
 	//temp setting, I set Worker group to be friend class, but worker group still can not get it;
 public:

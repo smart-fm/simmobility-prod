@@ -143,7 +143,44 @@ void sim_mob::WorkGroup::collectRemovedEntities()
 	}
 }
 
+//method to randomly assign links to workers
+void sim_mob::WorkGroup::assignLinkWorker(){
+	std::vector<Link*> allLinks = ConfigParams::GetInstance().getNetworkRW().getLinks();
+	//randomly assign link to worker
+	//each worker is expected to manage approximately the same number of links
+	for(vector<sim_mob::Link*>::iterator it = allLinks.begin(); it!= allLinks.end();it++){
+		Link* link = *it;
+		Worker* w = workers.at(nextWorkerID);
+		w->addLink(link);
+		link->setCurrWorker(w);
+		nextWorkerID++;
+	}
+	nextWorkerID%=workers.size();
+	//reset nextworkerID to 0
+	nextWorkerID=0;
+}
 
+//method to assign agents on same link to the same worker
+void sim_mob::WorkGroup::assignAWorkerConstraint(Entity* ag){
+	assignLinkWorker();
+	Agent* agent = dynamic_cast<Agent*>(ag);
+	if(agent){
+		Link* link = agent->originNode->getLinkLoc();
+		link->getCurrWorker()->scheduleForAddition(ag);
+	}
+}
+
+//method to find the worker which manages the specified linkID
+sim_mob::Worker* sim_mob::WorkGroup::locateWorker(std::string linkID){
+	std::vector<Link*> allLinks = ConfigParams::GetInstance().getNetworkRW().getLinks();
+	for(vector<sim_mob::Link*>::iterator it = allLinks.begin(); it!= allLinks.end();it++){
+		Link* link = *it;
+		if(link->linkID==linkID){
+			return link->getCurrWorker();
+		}
+	}
+	return nullptr;
+}
 
 void sim_mob::WorkGroup::assignAWorker(Entity* ag)
 {
@@ -154,7 +191,6 @@ void sim_mob::WorkGroup::assignAWorker(Entity* ag)
 #endif
 	nextWorkerID %= workers.size();
 }
-
 
 
 size_t sim_mob::WorkGroup::size()

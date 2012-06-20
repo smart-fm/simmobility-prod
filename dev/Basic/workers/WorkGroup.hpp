@@ -41,13 +41,13 @@ public:
 	struct EntityLoadParams {
 		StartTimePriorityQueue& pending_source;
 		std::vector<Entity*>& entity_dest;
-		EventTimePriorityQueue& agents_with_pending_event;
-		std::vector<Entity*>& agents_on_activity;
-		//EntityLoadParams(StartTimePriorityQueue& pending_source, std::vector<Entity*>& entity_dest)
-		//			: pending_source(pending_source), entity_dest(entity_dest) {}
+		//EventTimePriorityQueue& agents_with_pending_event;
+		//std::vector<Entity*>& agents_on_activity;
+		EntityLoadParams(StartTimePriorityQueue& pending_source, std::vector<Entity*>& entity_dest)
+					: pending_source(pending_source), entity_dest(entity_dest) {}
 
-		EntityLoadParams(StartTimePriorityQueue& pending_source, std::vector<Entity*>& entity_dest, EventTimePriorityQueue& agents_with_pending_event, std::vector<Entity*>& agents_on_activity)
-			: pending_source(pending_source), entity_dest(entity_dest), agents_with_pending_event(agents_with_pending_event), agents_on_activity(agents_on_activity) {}
+		//EntityLoadParams(StartTimePriorityQueue& pending_source, std::vector<Entity*>& entity_dest, EventTimePriorityQueue& agents_with_pending_event, std::vector<Entity*>& agents_on_activity)
+			//: pending_source(pending_source), entity_dest(entity_dest), agents_with_pending_event(agents_with_pending_event), agents_on_activity(agents_on_activity) {}
 	};
 
 

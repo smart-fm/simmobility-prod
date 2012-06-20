@@ -178,7 +178,7 @@ string ReadLowercase(TiXmlHandle& handle, const std::string& attrName)
 
 
 
-void addOrStashEntity(const PendingEntity& p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, std::vector<Entity*>& active_activities, EventTimePriorityQueue& pending_activities)
+void addOrStashEntity(const PendingEntity& p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
 	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p.start==0) {
 		//Only agents with a start time of zero should start immediately in the all_agents list.
@@ -195,15 +195,15 @@ void addOrStashEntity(const PendingEntity& p, std::vector<Entity*>& active_agent
 				PendingEvent pe(t, activity->location, activity->endTime);
 				person->setNextEvent(&pe);
 				//add this person into the queue of agents with active activities
-				active_activities.push_back(person);
+				//active_activities.push_back(person);
 				//add the pending event to the pending activities queue
-				pending_activities.push(pe);
+				//pending_activities.push(pe);
 			}
 			else{
 				KNOWN_EVENT_TYPES t = ACTIVITY_START;
 				PendingEvent pe(t, activity->location, activity->startTime);
 				person->setNextEvent(&pe);
-				pending_activities.push(pe);
+				//pending_activities.push(pe);
 			}
 		}
 	} else {
@@ -228,7 +228,7 @@ namespace {
 } //End anon namespace
 
 //NOTE: "constraints" are not used here, but they could be (for manual ID specification).
-bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, std::vector<Entity*>& active_activities, EventTimePriorityQueue& pending_activities, AgentConstraints& constraints)
+bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, AgentConstraints& constraints)
 {
 	ConfigParams& config = ConfigParams::GetInstance();
 	const vector<TripChain*>& tcs = ConfigParams::GetInstance().getTripChains();
@@ -251,7 +251,7 @@ bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 		p.activities = (*it)->activities;
 
 		//Add it or stash it
-		addOrStashEntity(p, active_agents, pending_agents, active_activities, pending_activities);
+		addOrStashEntity(p, active_agents, pending_agents);
 	}
 
 	return true;
@@ -277,7 +277,7 @@ namespace {
   }
 
 } //End anon namespace
-bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, std::vector<Entity*>& active_activities, EventTimePriorityQueue& pending_activities, const std::string& agentType, AgentConstraints& constraints)
+bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, AgentConstraints& constraints)
 {
 	//Quick check.
 	if (agentType!="pedestrian" && agentType!="driver" && agentType!="bus") {
@@ -427,7 +427,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 
 
 		//Add it or stash it
-		addOrStashEntity(candidate, active_agents, pending_agents, active_activities, pending_activities);
+		addOrStashEntity(candidate, active_agents, pending_agents);
 	}
 
 	return true;
@@ -908,7 +908,7 @@ void PrintDB_Network()
 
 
 //Returns the error message, or an empty string if no error.
-std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, std::vector<Entity*>& active_activities, EventTimePriorityQueue& pending_activities, ProfileBuilder* prof)
+std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
 {
 	//Save granularities: system
 	TiXmlHandle handle(&document);
@@ -1125,20 +1125,20 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     for (vector<string>::iterator it=loadAgentOrder.begin(); it!=loadAgentOrder.end(); it++) {
     	if ((*it) == "database") {
     	    //Create an agent for each Trip Chain in the database.
-    	    if (!generateAgentsFromTripChain(active_agents, pending_agents, active_activities, pending_activities, constraints)) {
+    	    if (!generateAgentsFromTripChain(active_agents, pending_agents, constraints)) {
     	    	return "Couldn't generate agents from trip chains.";
     	    }
     	    cout <<"Loaded Database Agents (from Trip Chains)." <<endl;
     	} else if ((*it) == "drivers") {
-    	    if (!loadXMLAgents(document, active_agents, pending_agents, active_activities, pending_activities, "driver", constraints)) {
+    	    if (!loadXMLAgents(document, active_agents, pending_agents, "driver", constraints)) {
     	    	return	 "Couldn't load drivers";
     	    }
-    	    if (!loadXMLAgents(document, active_agents, pending_agents, active_activities, pending_activities, "bus", constraints)) {
+    	    if (!loadXMLAgents(document, active_agents, pending_agents, "bus", constraints)) {
     	    	return	 "Couldn't load bus drivers";
     	    }
     		cout <<"Loaded Driver Agents (from config file)." <<endl;
     	} else if ((*it) == "pedestrians") {
-    		if (!loadXMLAgents(document, active_agents, pending_agents, active_activities, pending_activities, "pedestrian", constraints)) {
+    		if (!loadXMLAgents(document, active_agents, pending_agents, "pedestrian", constraints)) {
     			return "Couldn't load pedestrians";
     		}
     		cout <<"Loaded Pedestrian Agents (from config file)." <<endl;
@@ -1238,7 +1238,7 @@ ConfigParams sim_mob::ConfigParams::instance;
 // Main external method
 //////////////////////////////////////////
 
-bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, std::vector<Entity*>& active_activities, EventTimePriorityQueue& pending_activities, ProfileBuilder* prof)
+bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
 {
 	//Load our config file into an XML document object.
 	TiXmlDocument doc(configPath);
@@ -1250,7 +1250,7 @@ bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 	if (prof) { prof->logGenericEnd("XML", "main-prof-xml"); }
 
 	//Parse it
-	string errorMsg = loadXMLConf(doc, active_agents, pending_agents, active_activities, pending_activities, prof);
+	string errorMsg = loadXMLConf(doc, active_agents, pending_agents, prof);
 	if (errorMsg.empty()) {
 		std::cout <<"XML config file loaded." <<std::endl;
 	} else {

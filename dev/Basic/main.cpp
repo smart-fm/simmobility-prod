@@ -113,11 +113,11 @@ bool performMain(const std::string& configFileName) {
 
 	//Loader params for our Agents
 #ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
-	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents, Agent::agents_with_pending_event, Agent::agents_on_event);
+	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
 #endif
 
 	//Load our user config file; save a handle to the shared definition of it.
-	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, Agent::agents_on_event, Agent::agents_with_pending_event, prof)) { //Note: Agent "shells" are loaded here.
+	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof)) { //Note: Agent "shells" are loaded here.
 		return false;
 	}
 	const ConfigParams& config = ConfigParams::GetInstance();

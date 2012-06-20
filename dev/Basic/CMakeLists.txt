@@ -1,5 +1,5 @@
 #Required version of cmake
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 2.8.8)
 
 #Set our module override policy:
 IF (POLICY CMP0017)
@@ -205,16 +205,20 @@ LIST(REMOVE_ITEM BASIC_CPP ${IgnoreList})
 #Include the top-level source/binary directories
 include_directories("${PROJECT_SOURCE_DIR}")
 
+#Build a shared object file for short-term, mid-term, and tests to use
+add_library(Sm_Shared OBJECT ${BASIC_CPP})
+
 #Build tests?
 IF (${BUILD_TESTS} MATCHES "ON")
 	add_subdirectory(unit-tests)
 ENDIF (${BUILD_TESTS} MATCHES "ON")
 
-#Our output executable and its input sources. List *.c files manually
-add_executable(SimMobility main.cpp ${BASIC_CPP})
-add_executable(SimMobility_Med main_med.cpp ${BASIC_CPP})
+#Our output executable and its input sources.
+# Include our shared object
+add_executable(SimMobility main.cpp $<TARGET_OBJECTS:Sm_Shared>)
+add_executable(SimMobility_Med main_med.cpp $<TARGET_OBJECTS:Sm_Shared>)
 
-#Libraries to link, ported over from Eclipse.
+#Libraries to link.
 target_link_libraries (SimMobility ${LibraryList})
 target_link_libraries (SimMobility_Med ${LibraryList})
 

@@ -87,7 +87,17 @@ private:
     ///Determines if frame_init() has been done.
     friend class PartitionManager;
     friend class BoundaryProcessor;
+    
     //add by xuyan
+#ifndef SIMMOB_DISABLE_MPI
+public:
+	virtual void pack(PackageUtils& packageUtil);
+	virtual void unpack(UnPackageUtils& unpackageUtil);
+
+	virtual void packProxy(PackageUtils& packageUtil);
+	virtual void unpackProxy(UnPackageUtils& unpackageUtil);
+
+#endif
 };
 
 

@@ -189,7 +189,8 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 
 
 UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) {
-	if (!this->currTripChainItem == this->getTripChain().end()) {
+	this->currTripChainItem++;
+	if (this->currTripChainItem == this->getTripChain().end()) {
 		return UpdateStatus::Done;
 	}
 
@@ -200,15 +201,19 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) 
 	prevRole = currRole;
 
 	//Create a new Role based on the trip chain type
-	if(this->currTripChainItem->itemType == sim_mob::trip){
-		if (this->currSubTrip->mode == "Car") {
+	if((*(this->currTripChainItem))->itemType == sim_mob::trip){
+		if ((*(this->currSubTrip))->mode == "Car") {
 			//Temp. (Easy to add in later)
 			throw std::runtime_error("Cars not supported in Trip Chain role change.");
-		} else if (this->currSubTrip->mode == "Walk") {
+		} else if ((*(this->currSubTrip))->mode == "Walk") {
 			changeRole(new Pedestrian(this, gen));
 		} else {
 			throw std::runtime_error("Unknown role type for trip chain role change.");
 		}
+
+		//Update our origin/dest pair.
+		originNode = (*(this->currSubTrip))->fromLocation;
+		destNode = (*(this->currSubTrip))->toLocation;
 	}
 	else {
 		changeRole(new ActivityPerformer(this));
@@ -218,11 +223,6 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) 
 	//Create a return type based on the differences in these Roles
 	UpdateStatus res(UpdateStatus::RS_CONTINUE, prevRole->getSubscriptionParams(), currRole->getSubscriptionParams());
 
-	//Update our origin/dest pair.
-	//TODO: This might "teleport" us to the origin; might need to fix that later.
-	//originNode = currTrip->from.location; ----------
-	//destNode = currTrip->to.location; ------------
-
 	//Set our start time to the NEXT time tick so that frame_init is called
 	//  on the first pass through.
 	//TODO: This might also be better handled in the worker class.
@@ -230,7 +230,7 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) 
 	firstFrameTick = true;
 
 	//Null out our trip chain, remove the "removed" flag, and return
-	setTripChainItem(nullptr);
+//	setTripChainItem(nullptr);
 	clearToBeRemoved();
 	return res;
 }

@@ -23,6 +23,255 @@
 namespace sim_mob {
 
 /**
+ * Serialization for Class ActivityPerformer
+ */
+void sim_mob::ActivityPerformer::pack(PackageUtils& packageUtil) {
+}
+
+void sim_mob::ActivityPerformer::unpack(UnPackageUtils& unpackageUtil) {
+}
+
+void sim_mob::ActivityPerformer::packProxy(PackageUtils& packageUtil) {
+}
+
+void sim_mob::ActivityPerformer::unpackProxy(UnPackageUtils& unpackageUtil) {
+}
+
+/**
+ * Serialization for Class Pedestrain
+ */
+void sim_mob::Pedestrian::pack(PackageUtils& packageUtil) {
+	//Part 1
+
+	packageUtil<<(speed);
+	packageUtil<<(xVel);
+	packageUtil<<(yVel);
+	packageUtil<<(goal);
+	packageUtil<<(goalInLane);
+	packageUtil<<(currentStage);
+
+	//Part 2
+	packageUtil<<(sigColor);
+	packageUtil<<(curCrossingID);
+	packageUtil<<(startToCross);
+	packageUtil<<(cStartX);
+	packageUtil<<(cStartY);
+	packageUtil<<(cEndX);
+	packageUtil<<(cEndY);
+	//packageUtil<<(firstTimeUpdate);
+
+	std::cout << " CCC " << std::endl;
+
+	packageUtil<<(interPoint);
+	packageUtil<<(xCollisionVector);
+	packageUtil<<(yCollisionVector);
+
+	GeneralPathMover::pack(packageUtil, &fwdMovement);
+//	packageUtil.packGeneralPathMover(&fwdMovement);
+
+	if (prevSeg) {
+		bool hasSegment = true;
+		packageUtil<<(hasSegment);
+		RoadSegment::pack(packageUtil, prevSeg);
+//		packageUtil.packRoadSegment(prevSeg);
+	} else {
+		bool hasSegment = false;
+		packageUtil<<(hasSegment);
+	}
+
+	packageUtil<<(isUsingGenPathMover);
+
+	//no need to package params, params will be rebuild in the next time step
+	//packageUtil.packPedestrianUpdateParams(params);
+}
+
+void sim_mob::Pedestrian::unpack(UnPackageUtils& unpackageUtil) {
+	//Part 1
+	unpackageUtil >> speed;
+	unpackageUtil >> xVel;
+	unpackageUtil >> yVel;
+	unpackageUtil >> goal;
+	unpackageUtil >> goalInLane;
+
+	int value = 0;
+	unpackageUtil >> value;
+	currentStage = PedestrianStage(value);
+
+	//Part 2
+	unpackageUtil >> sigColor;
+	unpackageUtil >> curCrossingID;
+	unpackageUtil >> startToCross;
+	unpackageUtil >> cStartX;
+	unpackageUtil >> cStartY;
+	unpackageUtil >> cEndX;
+	unpackageUtil >> cEndY;
+	unpackageUtil >> interPoint;
+//	interPoint = *(unpackageUtil.unpackPoint2D());
+
+	unpackageUtil >> xCollisionVector;
+	unpackageUtil >> yCollisionVector;
+
+//	xCollisionVector = unpackageUtil.unpackBasicData<double> ();
+//	yCollisionVector = unpackageUtil.unpackBasicData<double> ();
+
+	GeneralPathMover::unpack(unpackageUtil, &fwdMovement);
+//	unpackageUtil.unpackGeneralPathMover(&fwdMovement);
+	//fwdMovement = *(unpackageUtil.unpackGeneralPathMover());
+	bool hasSegment = false;
+	unpackageUtil >> hasSegment;
+	if (hasSegment) {
+		prevSeg = RoadSegment::unpack(unpackageUtil);
+//		prevSeg = unpackageUtil.unpackRoadSegment();
+	}
+
+	unpackageUtil >> isUsingGenPathMover;
+//	isUsingGenPathMover = unpackageUtil.unpackBasicData<bool> ();
+
+	//no need to unpackage params, params will be rebuild in the next time step
+	//unpackageUtil.unpackPedestrianUpdateParams(params);
+}
+
+void sim_mob::Pedestrian::packProxy(PackageUtils& packageUtil) {
+	//Part 1
+	//std::cout << "1-1-6-1" << std::endl;
+	//Part 1
+	packageUtil<<(speed);
+	packageUtil<<(xVel);
+	packageUtil<<(yVel);
+	packageUtil<<(goal);
+	packageUtil<<(goalInLane);
+	packageUtil<<(currentStage);
+
+	//Part 2
+	packageUtil<<(sigColor);
+	packageUtil<<(curCrossingID);
+	packageUtil<<(startToCross);
+	packageUtil<<(cStartX);
+
+	std::cout << " DDD " << std::endl;
+
+	packageUtil<<(cStartY);
+	packageUtil<<(cEndX);
+	packageUtil<<(cEndY);
+	//packageUtil<<(firstTimeUpdate);
+	packageUtil<<(interPoint);
+
+	packageUtil<<(xCollisionVector);
+	packageUtil<<(yCollisionVector);
+
+	GeneralPathMover::pack(packageUtil, &fwdMovement);
+//	packageUtil.packGeneralPathMover(&fwdMovement);
+//
+//	if(prevSeg)
+//	{
+//		bool hasSegment = true;
+//		packageUtil<<(hasSegment);
+//		packageUtil.packRoadSegment(prevSeg);
+//	}
+//	else
+//	{
+//		bool hasSegment = false;
+//		packageUtil<<(hasSegment);
+//	}
+
+	packageUtil<<(isUsingGenPathMover);
+
+}
+
+void sim_mob::Pedestrian::unpackProxy(UnPackageUtils& unpackageUtil) {
+//Part 1
+
+//	if(this->getParent()->getId() > 1000)
+//	std::cout << "1-1-6-2" << std::endl;
+//
+	unpackageUtil >> speed;
+	unpackageUtil >> xVel;
+	unpackageUtil >> yVel;
+
+//	speed = unpackageUtil.unpackBasicData<double> ();
+//	xVel = unpackageUtil.unpackBasicData<double> ();
+//	yVel = unpackageUtil.unpackBasicData<double> ();
+
+//	if(this->getParent()->getId() > 1000)
+//	std::cout << "1-1-6-23" << std::endl;
+
+	unpackageUtil >> goal;
+	unpackageUtil >> goalInLane;
+
+	int value = 0;
+	unpackageUtil >> value;
+	currentStage = PedestrianStage(value);
+
+//	unpackageUtil >> speed;
+//
+//	goal = *(unpackageUtil.unpackPoint2D());
+//	goalInLane = *(unpackageUtil.unpackPoint2D());
+//	int value = unpackageUtil.unpackBasicData<int> ();
+//	currentStage = PedestrianStage(value);
+//	if(this->getParent()->getId() > 1000)
+//	std::cout << "1-1-6-4" << std::endl;
+//
+//	bool hasSignal = unpackageUtil.unpackBasicData<bool> ();
+//	if (hasSignal) {
+//		Point2D* signal_location = unpackageUtil.unpackPoint2D();
+//		trafficSignal = sim_mob::getSignalBasedOnNode(signal_location);
+//	}
+//
+//	bool hasCrossing = unpackageUtil.unpackBasicData<bool> ();
+//	if (hasCrossing) {
+//		currCrossing = unpackageUtil.unpackCrossing();
+//	}
+//	if(this->getParent()->getId() > 1000)
+//	std::cout << "1-1-6-5" << std::endl;
+	//Part 2
+
+	unpackageUtil >> sigColor;
+	unpackageUtil >> curCrossingID;
+	unpackageUtil >> startToCross;
+	unpackageUtil >> cStartX;
+	unpackageUtil >> cStartY;
+	unpackageUtil >> cEndX;
+	unpackageUtil >> cEndY;
+
+//	sigColor = unpackageUtil.unpackBasicData<int> ();
+//	curCrossingID = unpackageUtil.unpackBasicData<int> ();
+//	startToCross = unpackageUtil.unpackBasicData<bool> ();
+//	if(this->getParent()->getId() > 1000)
+//		std::cout << "1-1-6-5-1" << std::endl;
+
+//	cEndX = unpackageUtil.unpackBasicData<double> ();
+//	cEndY = unpackageUtil.unpackBasicData<double> ();
+	//firstTimeUpdate = unpackageUtil.unpackBasicData<bool> ();
+//	if(this->getParent()->getId() > 1000)
+//	std::cout << "1-1-6-6" << std::endl;
+
+	unpackageUtil >> interPoint;
+//	interPoint = *(unpackageUtil.unpackPoint2D());
+
+	unpackageUtil >> xCollisionVector;
+	unpackageUtil >> yCollisionVector;
+
+//	xCollisionVector = unpackageUtil.unpackBasicData<double> ();
+//	yCollisionVector = unpackageUtil.unpackBasicData<double> ();
+
+	GeneralPathMover::unpack(unpackageUtil, &fwdMovement);
+//	unpackageUtil.unpackGeneralPathMover(&fwdMovement);
+//	if(this->getParent()->getId() > 1000)
+//	std::cout << "1-1-6-7" << std::endl;
+//	//fwdMovement = *(unpackageUtil.unpackGeneralPathMover());
+//	bool hasSegment = unpackageUtil.unpackBasicData<bool> ();
+//	if (hasSegment) {
+//		prevSeg = unpackageUtil.unpackRoadSegment();
+//	}
+
+	unpackageUtil >> isUsingGenPathMover;
+//	isUsingGenPathMover = unpackageUtil.unpackBasicData<bool> ();
+//	if(this->getParent()->getId() > 1000)
+//	std::cout << "1-1-6-8" << std::endl;
+
+}
+
+/**
  * Serialize Class Driver
  */
 void sim_mob::Driver::pack(PackageUtils& packageUtil) {
@@ -395,240 +644,6 @@ void sim_mob::Driver::unpackProxy(UnPackageUtils& unpackageUtil) {
 	targetLaneIndex = buffer;
 
 //	debug.outputToConsole("test_10");
-}
-
-/**
- * Serialization for Class Pedestrain
- */
-void sim_mob::Pedestrian::pack(PackageUtils& packageUtil) {
-	//Part 1
-
-	packageUtil<<(speed);
-	packageUtil<<(xVel);
-	packageUtil<<(yVel);
-	packageUtil<<(goal);
-	packageUtil<<(goalInLane);
-	packageUtil<<(currentStage);
-
-	//Part 2
-	packageUtil<<(sigColor);
-	packageUtil<<(curCrossingID);
-	packageUtil<<(startToCross);
-	packageUtil<<(cStartX);
-	packageUtil<<(cStartY);
-	packageUtil<<(cEndX);
-	packageUtil<<(cEndY);
-	//packageUtil<<(firstTimeUpdate);
-
-	std::cout << " CCC " << std::endl;
-
-	packageUtil<<(interPoint);
-	packageUtil<<(xCollisionVector);
-	packageUtil<<(yCollisionVector);
-
-	GeneralPathMover::pack(packageUtil, &fwdMovement);
-//	packageUtil.packGeneralPathMover(&fwdMovement);
-
-	if (prevSeg) {
-		bool hasSegment = true;
-		packageUtil<<(hasSegment);
-		RoadSegment::pack(packageUtil, prevSeg);
-//		packageUtil.packRoadSegment(prevSeg);
-	} else {
-		bool hasSegment = false;
-		packageUtil<<(hasSegment);
-	}
-
-	packageUtil<<(isUsingGenPathMover);
-
-	//no need to package params, params will be rebuild in the next time step
-	//packageUtil.packPedestrianUpdateParams(params);
-}
-
-void sim_mob::Pedestrian::unpack(UnPackageUtils& unpackageUtil) {
-	//Part 1
-	unpackageUtil >> speed;
-	unpackageUtil >> xVel;
-	unpackageUtil >> yVel;
-	unpackageUtil >> goal;
-	unpackageUtil >> goalInLane;
-
-	int value = 0;
-	unpackageUtil >> value;
-	currentStage = PedestrianStage(value);
-
-	//Part 2
-	unpackageUtil >> sigColor;
-	unpackageUtil >> curCrossingID;
-	unpackageUtil >> startToCross;
-	unpackageUtil >> cStartX;
-	unpackageUtil >> cStartY;
-	unpackageUtil >> cEndX;
-	unpackageUtil >> cEndY;
-	unpackageUtil >> interPoint;
-//	interPoint = *(unpackageUtil.unpackPoint2D());
-
-	unpackageUtil >> xCollisionVector;
-	unpackageUtil >> yCollisionVector;
-
-//	xCollisionVector = unpackageUtil.unpackBasicData<double> ();
-//	yCollisionVector = unpackageUtil.unpackBasicData<double> ();
-
-	GeneralPathMover::unpack(unpackageUtil, &fwdMovement);
-//	unpackageUtil.unpackGeneralPathMover(&fwdMovement);
-	//fwdMovement = *(unpackageUtil.unpackGeneralPathMover());
-	bool hasSegment = false;
-	unpackageUtil >> hasSegment;
-	if (hasSegment) {
-		prevSeg = RoadSegment::unpack(unpackageUtil);
-//		prevSeg = unpackageUtil.unpackRoadSegment();
-	}
-
-	unpackageUtil >> isUsingGenPathMover;
-//	isUsingGenPathMover = unpackageUtil.unpackBasicData<bool> ();
-
-	//no need to unpackage params, params will be rebuild in the next time step
-	//unpackageUtil.unpackPedestrianUpdateParams(params);
-}
-
-void sim_mob::Pedestrian::packProxy(PackageUtils& packageUtil) {
-	//Part 1
-	//std::cout << "1-1-6-1" << std::endl;
-	//Part 1
-	packageUtil<<(speed);
-	packageUtil<<(xVel);
-	packageUtil<<(yVel);
-	packageUtil<<(goal);
-	packageUtil<<(goalInLane);
-	packageUtil<<(currentStage);
-
-	//Part 2
-	packageUtil<<(sigColor);
-	packageUtil<<(curCrossingID);
-	packageUtil<<(startToCross);
-	packageUtil<<(cStartX);
-
-	std::cout << " DDD " << std::endl;
-
-	packageUtil<<(cStartY);
-	packageUtil<<(cEndX);
-	packageUtil<<(cEndY);
-	//packageUtil<<(firstTimeUpdate);
-	packageUtil<<(interPoint);
-
-	packageUtil<<(xCollisionVector);
-	packageUtil<<(yCollisionVector);
-
-	GeneralPathMover::pack(packageUtil, &fwdMovement);
-//	packageUtil.packGeneralPathMover(&fwdMovement);
-//
-//	if(prevSeg)
-//	{
-//		bool hasSegment = true;
-//		packageUtil<<(hasSegment);
-//		packageUtil.packRoadSegment(prevSeg);
-//	}
-//	else
-//	{
-//		bool hasSegment = false;
-//		packageUtil<<(hasSegment);
-//	}
-
-	packageUtil<<(isUsingGenPathMover);
-
-}
-
-void sim_mob::Pedestrian::unpackProxy(UnPackageUtils& unpackageUtil) {
-//Part 1
-
-//	if(this->getParent()->getId() > 1000)
-//	std::cout << "1-1-6-2" << std::endl;
-//
-	unpackageUtil >> speed;
-	unpackageUtil >> xVel;
-	unpackageUtil >> yVel;
-
-//	speed = unpackageUtil.unpackBasicData<double> ();
-//	xVel = unpackageUtil.unpackBasicData<double> ();
-//	yVel = unpackageUtil.unpackBasicData<double> ();
-
-//	if(this->getParent()->getId() > 1000)
-//	std::cout << "1-1-6-23" << std::endl;
-
-	unpackageUtil >> goal;
-	unpackageUtil >> goalInLane;
-
-	int value = 0;
-	unpackageUtil >> value;
-	currentStage = PedestrianStage(value);
-
-//	unpackageUtil >> speed;
-//
-//	goal = *(unpackageUtil.unpackPoint2D());
-//	goalInLane = *(unpackageUtil.unpackPoint2D());
-//	int value = unpackageUtil.unpackBasicData<int> ();
-//	currentStage = PedestrianStage(value);
-//	if(this->getParent()->getId() > 1000)
-//	std::cout << "1-1-6-4" << std::endl;
-//
-//	bool hasSignal = unpackageUtil.unpackBasicData<bool> ();
-//	if (hasSignal) {
-//		Point2D* signal_location = unpackageUtil.unpackPoint2D();
-//		trafficSignal = sim_mob::getSignalBasedOnNode(signal_location);
-//	}
-//
-//	bool hasCrossing = unpackageUtil.unpackBasicData<bool> ();
-//	if (hasCrossing) {
-//		currCrossing = unpackageUtil.unpackCrossing();
-//	}
-//	if(this->getParent()->getId() > 1000)
-//	std::cout << "1-1-6-5" << std::endl;
-	//Part 2
-
-	unpackageUtil >> sigColor;
-	unpackageUtil >> curCrossingID;
-	unpackageUtil >> startToCross;
-	unpackageUtil >> cStartX;
-	unpackageUtil >> cStartY;
-	unpackageUtil >> cEndX;
-	unpackageUtil >> cEndY;
-
-//	sigColor = unpackageUtil.unpackBasicData<int> ();
-//	curCrossingID = unpackageUtil.unpackBasicData<int> ();
-//	startToCross = unpackageUtil.unpackBasicData<bool> ();
-//	if(this->getParent()->getId() > 1000)
-//		std::cout << "1-1-6-5-1" << std::endl;
-
-//	cEndX = unpackageUtil.unpackBasicData<double> ();
-//	cEndY = unpackageUtil.unpackBasicData<double> ();
-	//firstTimeUpdate = unpackageUtil.unpackBasicData<bool> ();
-//	if(this->getParent()->getId() > 1000)
-//	std::cout << "1-1-6-6" << std::endl;
-
-	unpackageUtil >> interPoint;
-//	interPoint = *(unpackageUtil.unpackPoint2D());
-
-	unpackageUtil >> xCollisionVector;
-	unpackageUtil >> yCollisionVector;
-
-//	xCollisionVector = unpackageUtil.unpackBasicData<double> ();
-//	yCollisionVector = unpackageUtil.unpackBasicData<double> ();
-
-	GeneralPathMover::unpack(unpackageUtil, &fwdMovement);
-//	unpackageUtil.unpackGeneralPathMover(&fwdMovement);
-//	if(this->getParent()->getId() > 1000)
-//	std::cout << "1-1-6-7" << std::endl;
-//	//fwdMovement = *(unpackageUtil.unpackGeneralPathMover());
-//	bool hasSegment = unpackageUtil.unpackBasicData<bool> ();
-//	if (hasSegment) {
-//		prevSeg = unpackageUtil.unpackRoadSegment();
-//	}
-
-	unpackageUtil >> isUsingGenPathMover;
-//	isUsingGenPathMover = unpackageUtil.unpackBasicData<bool> ();
-//	if(this->getParent()->getId() > 1000)
-//	std::cout << "1-1-6-8" << std::endl;
-
 }
 
 }

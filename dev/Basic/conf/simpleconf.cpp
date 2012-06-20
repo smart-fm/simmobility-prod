@@ -231,8 +231,10 @@ bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 		//Create an Agent candidate based on the type.
 		if (currentEntityID != (*it)->entityID) {
 			//trip chain for new entity starts
-			PendingEntity p;
-			vector<TripChainItem*> tripChainForEntity;
+
+			// Dummy. p is reassigned correctly in the loop below. Gotta declare p here in a better way.
+			PendingEntity p(sim_mob::ENTITY_RAWAGENT);
+
 			bool firstTripReached = false; //First trip is yet to be seen
 			do {
 				currentEntityID = (*it)->entityID;
@@ -240,7 +242,7 @@ bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 					sim_mob::Trip* firstTripForEntity = dynamic_cast<Trip*>(*it);
 					sim_mob::SubTrip* firstSubTripForEntity =
 							dynamic_cast<SubTrip*>(firstTripForEntity->getSubTrips().front());
-					p(EntityTypeFromTripChainString(firstSubTripForEntity->mode));
+					p = PendingEntity(EntityTypeFromTripChainString(firstSubTripForEntity->mode));
 					//Origin, destination, Start time
 					p.origin = firstSubTripForEntity->fromLocation;
 					p.dest = firstSubTripForEntity->toLocation;
@@ -249,20 +251,16 @@ bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 					firstTripReached = true; // First trip has been iterated
 				}
 				//Collect the TripChainItems for this entity
-				tripChainForEntity.push_back(*it);
+				p.entityTripChain.push_back(*it);
 				it++;
 			} while (currentEntityID == (*it)->entityID);
 			//Add it or stash it
-			p.entityTripChain = tripChainForEntity;
 			addOrStashEntity(p, active_agents, pending_agents);
 		}
 		if (it == tcs.end())
 			break;
 	}
 	return true;
-}
-
-
 }
 
 
@@ -285,6 +283,7 @@ namespace {
   }
 
 } //End anon namespace
+
 bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, AgentConstraints& constraints)
 {
 	//Quick check.

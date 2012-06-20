@@ -105,6 +105,8 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent, boost::mt19937& gen) :
 sim_mob::Pedestrian::~Pedestrian() {
 }
 
+sim_mob::PedestrianUpdateParams::~PedestrianUpdateParams(){}
+
 vector<BufferedBase*> sim_mob::Pedestrian::getSubscriptionParams() {
 	vector<BufferedBase*> res;
 	return res;

@@ -1,12 +1,13 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #pragma once
-
+#include <vector>
 namespace sim_mob
 {
 
 class Node;
 class Person;
+class TripChainItem;
 
 ///Type of entities that can be "Pending"
 enum KNOWN_ENTITY_TYPES {
@@ -20,6 +21,7 @@ enum KNOWN_ENTITY_TYPES {
  * Lightweight entity container. Used to hold Entities waiting to be scheduled.
  *
  * \author Seth N. Hetu
+ * \author Harish
  *
  * \note
  * Use the RAWAGENT type only if the Agent type in question is truly complex enough to warrant it.
@@ -40,7 +42,7 @@ struct PendingEntity {
 	Person* rawAgent;         ///<The actual entity. Null \b unless ENTITY_RAWAGENT is the type.
 	unsigned int start;       ///<Entity's destination. Null if ENTITY_RAWAGENT is the type.
 	int manualID;             ///<Manual ID for this entity. If -1, it is assigned an ID
-	std::vector<TripChainItem*> entityTripChain; ///<TripChain for this entity.
+	std::vector<sim_mob::TripChainItem*> entityTripChain; ///<TripChain for this entity.
 };
 
 }

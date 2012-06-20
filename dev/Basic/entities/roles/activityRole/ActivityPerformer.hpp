@@ -44,9 +44,9 @@ struct ActivityPerformerUpdateParams : public sim_mob::UpdateParams {
 	bool skipThisFrame;
 
 #ifndef SIMMOB_DISABLE_MPI
-	static void pack(PackageUtils& package, const PedestrianUpdateParams* params);
+	static void pack(PackageUtils& package, const ActivityPerformerUpdateParams* params);
 
-	static void unpack(UnPackageUtils& unpackage, PedestrianUpdateParams* params);
+	static void unpack(UnPackageUtils& unpackage, ActivityPerformerUpdateParams* params);
 #endif
 };
 
@@ -57,6 +57,7 @@ struct ActivityPerformerUpdateParams : public sim_mob::UpdateParams {
  */
 class ActivityPerformer : public sim_mob::Role {
 public:
+
 	ActivityPerformer(Agent* parent);
 	virtual ~ActivityPerformer();
 
@@ -102,6 +103,17 @@ private:
 	//Serialization-related friends
 	friend class PackageUtils;
 	friend class UnPackageUtils;
+
+#ifndef SIMMOB_DISABLE_MPI
+public:
+	friend class PartitionManager;
+
+	virtual void pack(PackageUtils& packageUtil);
+	virtual void unpack(UnPackageUtils& unpackageUtil);
+
+	virtual void packProxy(PackageUtils& packageUtil);
+	virtual void unpackProxy(UnPackageUtils& unpackageUtil);
+#endif
 };
 
 

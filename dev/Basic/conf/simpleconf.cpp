@@ -10,7 +10,7 @@
 //Include here (forward-declared earlier) to avoid include-cycles.
 #include "entities/PendingEntity.hpp"
 #include "entities/PendingEvent.hpp"
-#include "entities/PendingEvent.cpp"
+//#include "entities/PendingEvent.cpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "entities/signal/Signal.hpp"

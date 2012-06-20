@@ -136,7 +136,7 @@ bool performMainMed(const std::string& configFileName) {
 #endif
 
 	//Initialize our work groups.
-	WorkGroup agentWorkers(WG_AGENTS_SIZE, config.totalRuntimeTicks,
+	WorkGroup agentWorkers(config.agentWorkGroupSize, config.totalRuntimeTicks,
 			config.granAgentsTicks, true);
 	//Agent::TMP_AgentWorkGroup = &agentWorkers;
 	//Worker::ActionFunction entityWork = boost::bind(entity_worker, _1, _2);
@@ -161,7 +161,7 @@ bool performMainMed(const std::string& configFileName) {
 	//Initialize our signal status work groups
 	//  TODO: There needs to be a more general way to do this.
 #ifndef TEMP_FORCE_ONE_WORK_GROUP
-	WorkGroup signalStatusWorkers(WG_SIGNALS_SIZE, config.totalRuntimeTicks, config.granSignalsTicks);
+	WorkGroup signalStatusWorkers(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
 	//Worker::ActionFunction spWork = boost::bind(signal_status_worker, _1, _2);
 	signalStatusWorkers.initWorkers(/*&spWork,*/ nullptr);
 #endif

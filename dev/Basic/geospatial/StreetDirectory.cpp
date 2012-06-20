@@ -7,6 +7,7 @@
 #include <iostream>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
+#include <math.h>
 
 #include "Lane.hpp"
 #include "RoadNetwork.hpp"

@@ -267,14 +267,60 @@ void sim_mob::Worker::perform_main(frame_t frameNumber)
 		} else {
 			throw std::runtime_error("Unknown/unexpected update() return status.");
 		}
+
+		//added by Jenny to update the list of agents that this worker manages
+		//to be uncommented for medium term simulator
+		/*
+		 *
+		Link* currLink = (*it)->getCurrLink();
+		//if the current link is not managed by this thread
+		if(!isThisLinkManaged(currLink->linkID)){
+			//remove the agent from this worker
+			toBeRemoved.push_back(*it);
+			//add the agent to the worker that manages the current link
+			currLink->getCurrWorker()->toBeAdded.push_back(*it);
+		}
+		*/
 	}
 }
 
-
+bool sim_mob::Worker::isThisLinkManaged(std::string linkID){
+	for(vector<Link*>::iterator it=managedLinks.begin(); it!=managedLinks.end();it++){
+		if((*it)->linkID==linkID){
+			return true;
+		}
+	}
+	return false;
+}
 void sim_mob::Worker::perform_flip()
 {
 	//Flip all data managed by this worker.
 	this->flip();
 }
 
+//Methods to manage list of links managed by the worker
+//added by Jenny
+void sim_mob::Worker::addLink(Link* link)
+{
+	//Save this entity in the data vector.
+	managedLinks.push_back(link);
+}
 
+
+void sim_mob::Worker::remLink(Link* link)
+{
+	//Remove this entity from the data vector.
+	std::vector<Link*>::iterator it = std::find(managedLinks.begin(), managedLinks.end(), link);
+	if (it!=managedLinks.end()) {
+		managedLinks.erase(it);
+	}
+}
+bool sim_mob::Worker::isLinkManaged(Link* link)
+{
+	//Remove this entity from the data vector.
+	std::vector<Link*>::iterator it = std::find(managedLinks.begin(), managedLinks.end(), link);
+	if (it!=managedLinks.end()) {
+		return true;
+	}
+	return false;
+}

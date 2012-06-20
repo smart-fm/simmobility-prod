@@ -9,6 +9,8 @@
 
 //Include here (forward-declared earlier) to avoid include-cycles.
 #include "entities/PendingEntity.hpp"
+#include "entities/PendingEvent.hpp"
+#include "entities/PendingEvent.cpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "entities/signal/Signal.hpp"
@@ -197,7 +199,30 @@ void addOrStashEntity(const PendingEntity& p, std::vector<Entity*>& active_agent
 {
 	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p.start==0) {
 		//Only agents with a start time of zero should start immediately in the all_agents list.
-		active_agents.push_back(Person::GeneratePersonFromPending(p));
+		Person* person = Person::GeneratePersonFromPending(p);
+		active_agents.push_back(person);
+		if (!p.activities.empty()){
+			TripActivity* activity = *(p.activities.begin());
+			if(activity->startTime == 0){
+				//set up person's current activity
+				person->setCurrActivity(activity);
+				person->setOnActivity(true);
+				//set up person's next event
+				KNOWN_EVENT_TYPES t = ACTIVITY_END;
+				PendingEvent pe(t, activity->location, activity->endTime);
+				person->setNextEvent(&pe);
+				//add this person into the queue of agents with active activities
+				//active_activities.push_back(person);
+				//add the pending event to the pending activities queue
+				//pending_activities.push(pe);
+			}
+			else{
+				KNOWN_EVENT_TYPES t = ACTIVITY_START;
+				PendingEvent pe(t, activity->location, activity->startTime);
+				person->setNextEvent(&pe);
+				//pending_activities.push(pe);
+			}
+		}
 	} else {
 		//Start later.
 		pending_agents.push(p);
@@ -238,6 +263,9 @@ bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 		//curr->setStartTime(
 		p.start = (*it)->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 
+		//added to handle activities
+		//by Jenny
+		p.activities = (*it)->activities;
 
 		//Add it or stash it
 		addOrStashEntity(p, active_agents, pending_agents);
@@ -1314,3 +1342,5 @@ bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 	return errorMsg.empty();
 
 }
+
+

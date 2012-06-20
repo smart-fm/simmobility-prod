@@ -401,6 +401,10 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 		//Note: Make sure not to resize the Node map after referencing its elements.
 		it->from.location = &nodes_[it->from.TMP_locationNodeID];
 		it->to.location = &nodes_[it->to.TMP_locationNodeID];
+
+		//added by Syiu to model activities during trips
+		//it->activities =
+
 		tripchains_.push_back(*it);
 	}
 }
@@ -1548,6 +1552,8 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	src.generatedSegment = new sim_mob::RoadSegment(ln);
 	ln->roadName = currSect->roadName;
 	ln->start = currSect->fromNode->generatedNode;
+	//added by Jenny to tag node to one link
+	ln->start->setLinkLoc(ln);
 	set<RoadSegment*> linkSegments;
 
 	//Make sure the link's start node is represented at the Node level.
@@ -1555,6 +1561,8 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	for (;;) {
 		//Update
 		ln->end = currSect->toNode->generatedNode;
+		//added by Jenny to tag node to one link
+		ln->end->setLinkLoc(ln);
 
 		//Now, check for segments going both forwards and backwards. Add both.
 		for (size_t i=0; i<2; i++) {

@@ -43,6 +43,7 @@ class Person;
 class Region;
 class TripChain;
 class StartTimePriorityQueue;
+class EventTimePriorityQueue;
 class ProfileBuilder;
 
 

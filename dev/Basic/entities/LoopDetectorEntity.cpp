@@ -670,5 +670,4 @@ const
     stream << "LoopDetectorEntity::getCountAndTimePair() was called on invalid lane" << &lane;
     throw std::runtime_error(stream.str());
 }
-
 }

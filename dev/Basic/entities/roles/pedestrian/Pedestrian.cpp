@@ -216,6 +216,11 @@ void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 	}
 }
 
+void sim_mob::Pedestrian::frame_tick_med(UpdateParams& p){
+	/*to be implemented by supply team to move the pedestrian after each time tick
+	 *
+	 */
+}
 
 void sim_mob::Pedestrian::frame_tick_output(const UpdateParams& p)
 {

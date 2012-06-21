@@ -12,7 +12,7 @@
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 #include "util/GeomHelpers.hpp"
-#include "workers/worker.hpp"
+#include "workers/Worker.hpp"
 #endif
 
 using namespace sim_mob;

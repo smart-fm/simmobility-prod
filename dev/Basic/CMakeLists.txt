@@ -9,6 +9,9 @@ ENDIF (POLICY CMP0017)
 #Project name. Used to tag resources in cmake. 
 project (Basic)
 
+#Ensure that all executables get placed in the top-level build directory.
+set (EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
+
 # Also: version number. This will go into the generated header file.
 set (Basic_VERSION_MAJOR 0)
 set (Basic_VERSION_MINOR 1)
@@ -158,9 +161,9 @@ IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MPI_CXX_LINK_FLAGS}")
   
   #Find cgal
-  find_package(CGAL REQUIRED)
+#  find_package(CGAL REQUIRED)
   #include_directories(${CGAL_INCLUDE_DIR})  #This messes up gmpxx...
-  LIST(APPEND LibraryList ${CGAL_LIBRARIES})
+#  LIST(APPEND LibraryList ${CGAL_LIBRARIES})
   
   #Use the mpi compiler.
   SET(CMAKE_C_COMPILER ${MPI_C_COMPILER})

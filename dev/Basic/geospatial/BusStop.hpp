@@ -72,8 +72,19 @@ private:
 private:
 	const std::vector<sim_mob :: Lane*>& getLanes() const { return lanes;}
 	int bus_stop_lane(const RoadSegment& segment);
-	sim_mob::Point2D getNearestPolyline(const sim_mob::Point2D &position);
+
 	float getSumDistance();
+
+public:
+    /** Return the RoadSegment this Bus Stop is in. */
+
+	void getNearestPolyline()
+	{
+		std::cout<<xPos<<yPos<<std::endl;;
+	}
+    sim_mob::RoadSegment* getRoadSegment() const {
+        return parentSegment_;
+    }
 public:
 	sim_mob::RoadSegment* parentSegment_;
 	std::string busstopno_;
@@ -88,7 +99,7 @@ public:
 		double x4d;
 		double y4d;
 
-
+		std::vector<Point2D> position_;
 #ifndef SIMMOB_DISABLE_MPI
 	///The identification of Crossing is packed using PackageUtils;
 	static void pack(PackageUtils& package, BusStop* one_bs);

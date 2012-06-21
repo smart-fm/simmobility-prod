@@ -42,9 +42,14 @@ float getDistance(sim_mob::Point2D a,sim_mob::Point2D b){};
 int count = 0;
 int x2, x1, y2, y1, x_base, y_base;
 
+
+
+
+
 // This function is used to get the nearest polyline to the given location of Bus Stop passed as an argument to this function
-sim_mob::Point2D sim_mob::BusStop:: getNearestPolyline(const sim_mob::Point2D &position)
+/*void sim_mob::BusStop:: getNearestPolyline()
 {
+	cout<<"Wassup??"<<position_.at(1).getX()<<"      "<<position_.at(1).getY();/*
 	const std::vector<sim_mob::Point2D> poly = lane_location->getRoadSegment()->getLaneEdgePolyline(0);
 	std ::vector<sim_mob::Point2D>:: const_iterator it= poly.begin();
 	float distance_measured = getDistance(position,*it); // distance between the position of Bus Stop and the position at which iterator points initially
@@ -65,14 +70,14 @@ sim_mob::Point2D sim_mob::BusStop:: getNearestPolyline(const sim_mob::Point2D &p
 
 }
 
-
+*/
 float SumofDistances = 0;
-sim_mob::Point2D position;
 // this function is used to calculate the sum of all polyline lengths *before* the current polyline
+/*
 float sim_mob:: BusStop:: getSumDistance()
 {
 
-	getNearestPolyline(position);
+	//getNearestPolyline(position);
 	float m = (y2-y1)/(x2-x1); //
 	float n = -1/m;
 	float Y = position.getY();
@@ -91,7 +96,7 @@ float sim_mob:: BusStop:: getSumDistance()
 
 	return SumofDistances;
 
-}
+}*/
 
 
 /*

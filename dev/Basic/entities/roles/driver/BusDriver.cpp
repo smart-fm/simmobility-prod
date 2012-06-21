@@ -26,8 +26,6 @@ DemoBusStop newbs;
 
 
 
-double xbs[2] = {37274610,37259818},ybs[2]={14364177,14383558};
-
 /*
         double xbs= 37259818;
         double ybs= 14383558;
@@ -36,7 +34,7 @@ double xbs[2] = {37274610,37259818},ybs[2]={14364177,14383558};
         double ybs= 14364177;
 
 */
-
+int c=0;
 BusRoute MakeSampleRoute1(const vector<const RoadSegment*>& path)
 {
 	vector<DemoBusStop> res;
@@ -48,93 +46,74 @@ BusRoute MakeSampleRoute1(const vector<const RoadSegment*>& path)
         Node* start = next.seg->getStart();
         Node* end = next.seg->getEnd();
 
+double xbs[10];
+double ybs[10];
+        vector<const RoadSegment*>::const_iterator it = path.begin();
+        for(it = path.begin(); it != path.end() ; it++)
+        {
+        	const RoadSegment* rs = (*it);
+        	const std::map<centimeter_t, const RoadItem*> & obstacles = rs->obstacles;
+        	for(std::map<centimeter_t, const RoadItem*>::const_iterator o_it = obstacles.begin(); o_it != obstacles.end() ; o_it++)
+        	{
+        		RoadItem* ri = const_cast<RoadItem*>(o_it->second);
+//
+        		BusStop *bs = dynamic_cast<BusStop *>(ri);
+        		if(bs)
+        		{
+        			xbs[c] = bs->xPos;
+        			ybs[c] = bs->yPos;
+        			std::cout << "Bus stop position : " << xbs[c] << " " << ybs[c]<<"    "<<c << std::endl;
 
 
 
+        			double remDist;
+        			        std::cout<<"kya"<<next.seg->getId()<<std::endl;
+
+        			        DynamicVector SegmentLength(end->location.getX(),end->location.getY(),start->location.getX(),start->location.getY());
+        			        DynamicVector BusStopDistfromStart(xbs[c],ybs[c],start->location.getX(),start->location.getY());
+        			        DynamicVector BusStopDistfromEnd(end->location.getX(),end->location.getY(),xbs[c],ybs[c]);
 
 
-        double remDist;
-        std::cout<<"kya"<<next.seg->getId()<<std::endl;
+        					std::cout<<"Distance before 3     "<<next.seg->length <<"      "<<next.distance<<std::endl;
+        					if(BusStopDistfromStart.getMagnitude()<=SegmentLength.getMagnitude() && BusStopDistfromEnd.getMagnitude()<=SegmentLength.getMagnitude())
+        					        {
+        						    remDist = BusStopDistfromStart.getMagnitude();
 
-        DynamicVector SegmentLength(end->location.getX(),end->location.getY(),start->location.getX(),start->location.getY());
-        DynamicVector BusStopDistfromStart(xbs[1],ybs[1],start->location.getX(),start->location.getY());
-        DynamicVector BusStopDistfromEnd(end->location.getX(),end->location.getY(),xbs[1],ybs[1]);
+        					        std::cout<<"kya"<<next.seg->getId()<<"      "<<remDist<<"      "<<BusStopDistfromStart.getMagnitude()<<"       "<<BusStopDistfromEnd.getMagnitude()<<"      "<<SegmentLength.getMagnitude()<<"     "<<next.percent<<std::endl;
+        					        }
+        					else
+        					{
+        						remDist=0;
+        					}
+
+        					                next.finalDist = remDist;
+        							        next.percent = next.finalDist/SegmentLength.getMagnitude();
+        							        next.distance = next.distance + next.seg->length;
+        							        std::cout<<"See here is Distance"<<next.finalDist<<"      "<<next.distance<<std::endl;
+
+        					//std::cout<<"Hello path.size()    "<<path.size()<<"    "<<next.percent<<"       "<<a<<"       "<<start->location.getX()<<"       "<<end->location.getX()<<"       "<<start->location.getY()<<"       "<<end->location.getY()<<std::endl;
+        					res.push_back(next);
+        					c++;
+        			        }
 
 
-		std::cout<<"Distance before 3     "<<next.seg->length <<"      "<<next.distance<<std::endl;
-		if(BusStopDistfromStart.getMagnitude()<=SegmentLength.getMagnitude() && BusStopDistfromEnd.getMagnitude()<=SegmentLength.getMagnitude())
-		        {
-			    remDist = BusStopDistfromStart.getMagnitude();
+        		else
+        		{
+        			std::cout << "Didn't fine a Bus stop position : " << std::endl;
+        		}}
+        	}
 
-		        std::cout<<"kya"<<next.seg->getId()<<"      "<<remDist<<"      "<<BusStopDistfromStart.getMagnitude()<<"       "<<BusStopDistfromEnd.getMagnitude()<<"      "<<SegmentLength.getMagnitude()<<"     "<<next.percent<<std::endl;
-		        }
-		else
-		{
-			remDist=0;
-		}
 
-		                next.finalDist = remDist;
-				        next.percent = next.finalDist/SegmentLength.getMagnitude();
-				        next.distance = next.distance + next.seg->length;
-				        std::cout<<"See here is Distance"<<next.finalDist<<"      "<<next.distance<<std::endl;
-
-		//std::cout<<"Hello path.size()    "<<path.size()<<"    "<<next.percent<<"       "<<a<<"       "<<start->location.getX()<<"       "<<end->location.getX()<<"       "<<start->location.getY()<<"       "<<end->location.getY()<<std::endl;
-		res.push_back(next);
         }
+
+
+
+
+
 	return BusRoute(res);
 
 }
 
-
-
-
-BusRoute MakeSampleRoute2(const vector<const RoadSegment*>& path)
-{
-	vector<DemoBusStop> res;
-	for (size_t i=0; i<path.size(); i+=1) {
-		DemoBusStop next;
-		next.seg=path.at(i);
-
-		centimeter_t a = next.seg->length;
-        Node* start = next.seg->getStart();
-        Node* end = next.seg->getEnd();
-
-
-
-
-
-
-        double remDist;
-        std::cout<<"kya"<<next.seg->getId()<<std::endl;
-
-        DynamicVector SegmentLength(end->location.getX(),end->location.getY(),start->location.getX(),start->location.getY());
-        DynamicVector BusStopDistfromStart(xbs[2],ybs[2],start->location.getX(),start->location.getY());
-        DynamicVector BusStopDistfromEnd(end->location.getX(),end->location.getY(),xbs[2],ybs[2]);
-
-
-		std::cout<<"Distance before 3     "<<next.seg->length <<"      "<<next.distance<<std::endl;
-		if(BusStopDistfromStart.getMagnitude()<=SegmentLength.getMagnitude() && BusStopDistfromEnd.getMagnitude()<=SegmentLength.getMagnitude())
-		        {
-			    remDist = BusStopDistfromStart.getMagnitude();
-
-		        std::cout<<"kya"<<next.seg->getId()<<"      "<<remDist<<"      "<<BusStopDistfromStart.getMagnitude()<<"       "<<BusStopDistfromEnd.getMagnitude()<<"      "<<SegmentLength.getMagnitude()<<"     "<<next.percent<<std::endl;
-		        }
-		else
-		{
-			remDist=0;
-		}
-
-		                next.finalDist = remDist;
-				        next.percent = next.finalDist/SegmentLength.getMagnitude();
-				        next.distance = next.distance + next.seg->length;
-				        std::cout<<"See here is Distance"<<next.finalDist<<"      "<<next.distance<<std::endl;
-
-		//std::cout<<"Hello path.size()    "<<path.size()<<"    "<<next.percent<<"       "<<a<<"       "<<start->location.getX()<<"       "<<end->location.getX()<<"       "<<start->location.getY()<<"       "<<end->location.getY()<<std::endl;
-		res.push_back(next);
-        }
-	return BusRoute(res);
-
-}
 } //End anonymous namespace
 
 sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat, unsigned int reacTime_LeadingVehicle, unsigned int reacTime_SubjectVehicle, unsigned int reacTime_Gap)

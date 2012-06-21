@@ -1016,7 +1016,7 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 		double y = busstop->yPos;
 
 
-
+std::cout<<"I am doing it"<<x<<"      "<<y<<std::endl;
 		double distOrigin = (((*it).second.xPos)+((*it).second.yPos));
 		busstop->parentSegment_->obstacles[distOrigin] = busstop;
 	}

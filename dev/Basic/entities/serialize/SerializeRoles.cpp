@@ -59,17 +59,17 @@ void sim_mob::Driver::pack(PackageUtils& packageUtil) {
 	}
 
 	//Part 3
-	packageUtil<<(reacTime_LeadingVehicle);
-	packageUtil<<(reacTime_SubjectVehicle);
-	packageUtil<<(reacTime_Gap);
+//	packageUtil<<(reacTime_LeadingVehicle);
+//	packageUtil<<(reacTime_SubjectVehicle);
+//	packageUtil<<(reacTime_Gap);
 
 //	std::cout << "B0027," << reacTime_Gap << std::endl;
 
-	packageUtil << perceivedVelocity;
-	packageUtil << perceivedVelocityOfFwdCar;
-	packageUtil << perceivedAccelerationOfFwdCar;
+//	packageUtil << perceivedVelocity;
+//	packageUtil << perceivedVelocityOfFwdCar;
+//	packageUtil << perceivedAccelerationOfFwdCar;
 	packageUtil << perceivedDistToFwdCar;
-	packageUtil << perceivedTrafficSignalStop;
+//	packageUtil << perceivedTrafficSignalStop;
 
 	packageUtil << (origin.point);
 	Node::pack(packageUtil, origin.node);
@@ -173,17 +173,17 @@ void sim_mob::Driver::unpack(UnPackageUtils& unpackageUtil) {
 //	std::cout << "A0026" << this->getParent()->getId() << std::endl;
 
 	//Part 3
-	unpackageUtil >> reacTime_LeadingVehicle;
-	unpackageUtil >> reacTime_SubjectVehicle;
-	unpackageUtil >> reacTime_Gap;
+//	unpackageUtil >> reacTime_LeadingVehicle;
+//	unpackageUtil >> reacTime_SubjectVehicle;
+//	unpackageUtil >> reacTime_Gap;
 
 //	std::cout << "A0027," << reacTime_Gap << std::endl;
 
-	unpackageUtil >> perceivedVelocity;
-	unpackageUtil >> perceivedVelocityOfFwdCar;
-	unpackageUtil >> perceivedAccelerationOfFwdCar;
+//	unpackageUtil >> perceivedVelocity;
+//	unpackageUtil >> perceivedVelocityOfFwdCar;
+//	unpackageUtil >> perceivedAccelerationOfFwdCar;
 	unpackageUtil >> perceivedDistToFwdCar;
-	unpackageUtil >> perceivedTrafficSignalStop;
+//	unpackageUtil >> perceivedTrafficSignalStop;
 
 	unpackageUtil >> origin.point;
 	origin.node = Node::unpack(unpackageUtil);

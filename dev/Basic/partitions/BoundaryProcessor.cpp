@@ -490,7 +490,7 @@ void sim_mob::BoundaryProcessor::processPackageData(string data)
 		{
 		case DRIVER_TYPE: {
 			Person* one_person = new Person(ConfigParams::GetInstance().mutexStategy);
-			Driver* one_driver = new Driver(one_person, ConfigParams::GetInstance().mutexStategy, 0, 0, 0);
+			Driver* one_driver = new Driver(one_person, ConfigParams::GetInstance().mutexStategy);
 			one_person->changeRole(one_driver);
 
 			one_person->unpack(unpackageUtil);
@@ -570,7 +570,7 @@ void sim_mob::BoundaryProcessor::processPackageData(string data)
 
 //				debug.outputToConsole("receive 27");
 				one_person = new Person(ConfigParams::GetInstance().mutexStategy, -1);
-				one_person->changeRole(new Driver(one_person, ConfigParams::GetInstance().mutexStategy, config.reacTime_LeadingVehicle, config.reacTime_SubjectVehicle, config.reacTime_Gap));
+				one_person->changeRole(new Driver(one_person, ConfigParams::GetInstance().mutexStategy));
 
 //				debug.outputToConsole("receive 28");
 				one_person->unpackProxy(unpackageUtil);

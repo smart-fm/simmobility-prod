@@ -310,14 +310,14 @@ void DriverUpdateParams::pack(PackageUtils& package, const DriverUpdateParams* p
 
 	sim_mob::Lane::pack(package, params->currLane);
 	package << (params->currLaneIndex);
-	package << (params->fromLaneIndex);
+//	package << (params->fromLaneIndex);
 	sim_mob::Lane::pack(package, params->leftLane);
 	sim_mob::Lane::pack(package, params->rightLane);
 
 	package << (params->currSpeed);
 	package << (params->currLaneOffset);
 	package << (params->currLaneLength);
-	package << (params->isTrafficLightStop);
+//	package << (params->isTrafficLightStop);
 
 	package << (params->trafficSignalStopDistance);
 	package << (params->elapsedSeconds);
@@ -363,14 +363,14 @@ void DriverUpdateParams::unpack(UnPackageUtils& unpackage, DriverUpdateParams* p
 
 	params->currLane = sim_mob::Lane::unpack(unpackage);
 	unpackage >> params->currLaneIndex;
-	unpackage >> params->fromLaneIndex;
+//	unpackage >> params->fromLaneIndex;
 	params->leftLane = sim_mob::Lane::unpack(unpackage);
 	params->rightLane = sim_mob::Lane::unpack(unpackage);
 
 	unpackage >> params->currSpeed;
 	unpackage >> params->currLaneOffset;
 	unpackage >> params->currLaneLength;
-	unpackage >> params->isTrafficLightStop;
+//	unpackage >> params->isTrafficLightStop;
 
 //	params->currSpeed = unpackage.unpackBasicData<double> ();
 //	params->currLaneOffset = unpackage.unpackBasicData<double> ();

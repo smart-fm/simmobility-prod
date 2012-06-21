@@ -95,12 +95,7 @@ double ybs[10];
         					res.push_back(next);
         					c++;
         			        }
-
-
-        		else
-        		{
-        			std::cout << "Didn't fine a Bus stop position : " << std::endl;
-        		}}
+                  }
         	}
 
 

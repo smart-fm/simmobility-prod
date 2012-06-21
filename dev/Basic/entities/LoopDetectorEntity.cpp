@@ -373,7 +373,7 @@ LoopDetectorEntity::Impl::createLoopDetectors(Signal const & signal, LoopDetecto
 	LinkAndCrossingByLink::iterator iter = LAC.begin();
 	if(iter == LAC.end())
 	{
-		std::cout << "Couldn't find the links associated with this signal" << signal.getSignalId();
+//		std::cout << "Couldn't find the links associated with this signal" << signal.getSignalId();
 	}
     for (; iter != LAC.end(); ++iter)
     {
@@ -474,7 +474,7 @@ LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> const &
         Lane const * lane = lanes[i];
         if (lane->is_pedestrian_lane())
         {
-        	std::cout << "Bypassing a pedestrian lane\n";
+//        	std::cout << "Bypassing a pedestrian lane\n";
             continue;
         }
 
@@ -491,7 +491,7 @@ LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> const &
 
         LoopDetector* detector = new LoopDetector(lane, innerLength_, outerLength_, *pair);
         loopDetectors_.insert(std::make_pair(lane, detector));
-        std::cout << "loop detecto created for lane " << lane << std::endl;
+//        std::cout << "loop detecto created for lane " << lane << std::endl;
 
         if (isNotInitialized(monitorArea_))
         {
@@ -516,7 +516,7 @@ LoopDetectorEntity::Impl::createLoopDetectors(std::vector<RoadSegment *> const &
     else
     {
 
-    	std::cout << "Number of loop detectors created for this rs=" << createdLDs << std::endl;
+//    	std::cout << "Number of loop detectors created for this rs=" << createdLDs << std::endl;
     }
 }
 
@@ -670,5 +670,4 @@ const
     stream << "LoopDetectorEntity::getCountAndTimePair() was called on invalid lane" << &lane;
     throw std::runtime_error(stream.str());
 }
-
 }

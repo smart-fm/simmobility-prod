@@ -1,18 +1,16 @@
 ####Weight Analysis####
 ########################################
-4
-4757.0
-4824.0
-4704.0
-4789.0
+2
+29713.0
+30761.0
 ########################################
-####MAX weight: 4824.0
-####MIN weight: 4704.0
-####AVG weight: 4768.5
-####imbalance ratio: 1.0116388801509908
+####MAX weight: 30761.0
+####MIN weight: 29713.0
+####AVG weight: 30237.0
+####imbalance ratio: 1.0173297615504184
 ########################################
 ####Communication Analysis####
 ########################################
-####Total Cost: 51.0
-####Traffic Flow Cut: 51.0
+####Total Cost: 27.0
+####Traffic Flow Cut: 27.0
 ####Traffic Message Cut: 0.0

@@ -6,6 +6,7 @@
 #include <vector>
 #include <stdexcept>
 #include <boost/thread.hpp>
+#include <string>
 
 #include "GenConfig.h"
 
@@ -20,6 +21,7 @@ namespace sim_mob
 {
 
 class StartTimePriorityQueue;
+class EventTimePriorityQueue;
 
 
 /*
@@ -39,8 +41,13 @@ public:
 	struct EntityLoadParams {
 		StartTimePriorityQueue& pending_source;
 		std::vector<Entity*>& entity_dest;
+		//EventTimePriorityQueue& agents_with_pending_event;
+		//std::vector<Entity*>& agents_on_activity;
 		EntityLoadParams(StartTimePriorityQueue& pending_source, std::vector<Entity*>& entity_dest)
-			: pending_source(pending_source), entity_dest(entity_dest) {}
+					: pending_source(pending_source), entity_dest(entity_dest) {}
+
+		//EntityLoadParams(StartTimePriorityQueue& pending_source, std::vector<Entity*>& entity_dest, EventTimePriorityQueue& agents_with_pending_event, std::vector<Entity*>& agents_on_activity)
+			//: pending_source(pending_source), entity_dest(entity_dest), agents_with_pending_event(agents_with_pending_event), agents_on_activity(agents_on_activity) {}
 	};
 
 
@@ -69,6 +76,12 @@ public:
 	std::vector< std::vector<Entity*> > entToBeRemovedPerWorker;
 
 	void assignAWorker(Entity* ag);
+
+	void assignLinkWorker();
+
+	void assignAWorkerConstraint(Entity* ag);
+
+	Worker* locateWorker(std::string linkID);
 
 	//void scheduleEntForRemoval(Entity* ag);
 

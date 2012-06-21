@@ -10,13 +10,15 @@
 
 #include <vector>
 #include "entities/Person.hpp"
-#include "entities/Signal.hpp"
+
+//TODO: Once the new signal class is stabilized, replace this include with a forward declaration:
+#include "entities/signal_transitional.hpp"
 
 namespace sim_mob {
 
 //Forward declarations
 class Person;
-class Signal;
+//class Signal;
 
 
 /**

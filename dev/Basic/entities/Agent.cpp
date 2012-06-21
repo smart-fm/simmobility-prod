@@ -20,9 +20,17 @@ using std::priority_queue;
 
 StartTimePriorityQueue sim_mob::Agent::pending_agents;
 vector<Entity*> sim_mob::Agent::all_agents;
+EventTimePriorityQueue sim_mob::Agent::agents_with_pending_event;
+vector<Entity*> sim_mob::Agent::agents_on_event;
 
 //Implementation of our comparison function for Agents by start time.
 bool sim_mob::cmp_agent_start::operator()(const PendingEntity& x, const PendingEntity& y) const {
+	//We want a lower start time to translate into a higher priority.
+	return x.start > y.start;
+}
+
+//Implementation of our comparison function for events by start time.
+bool sim_mob::cmp_event_start::operator()(const PendingEvent& x, const PendingEvent& y) const {
 	//We want a lower start time to translate into a higher priority.
 	return x.start > y.start;
 }

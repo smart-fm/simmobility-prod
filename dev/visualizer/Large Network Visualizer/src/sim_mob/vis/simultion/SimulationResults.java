@@ -37,10 +37,15 @@ public class SimulationResults {
 	
 	public int frame_length_ms;
 	
-	/*private static boolean OutOfBounds(double x, double y, RoadNetwork rn) {
-		return     (x < rn.getTopLeft().x) || (x > rn.getLowerRight().x)
-				|| (y < rn.getTopLeft().y) || (y > rn.getLowerRight().y);
-	}*/
+	//Class for holding log lines and a tag as to the type
+	public static class LogFileLine {
+		public String line;
+		public boolean isNewStyle;
+		public LogFileLine(String line, boolean isNewStyle) {
+			this.line = line;
+			this.isNewStyle = isNewStyle;
+		}
+	}
 	
 	public SimulationResults() {}
 	
@@ -63,7 +68,7 @@ public class SimulationResults {
 		
 		//Read
 		String line;
-		ArrayList<String> lineBuffer = new ArrayList<String>();
+		ArrayList<LogFileLine> lineBuffer = new ArrayList<LogFileLine>();
 		SimpleThreadPool stp = new SimpleThreadPool(10); //No more than 10 threads at once.
 		while ((line=inFile.readLine())!=null) {
 			//Update
@@ -82,16 +87,22 @@ public class SimulationResults {
 			
 			//Comment?
 			line = line.trim();
-			if (line.isEmpty() || !line.startsWith("(") || !line.endsWith(")")) {
+			if (line.isEmpty() || line.startsWith("#")) { continue; }
+			
+			//There are three types of lines. "Old style" begin and end with (, ). "New style" are 
+			// json-formatted and begin/end with {,}. Anything else is a comment.
+			boolean oldStyle = line.startsWith("(") && line.endsWith(")");
+			boolean newStyle = line.startsWith("{") && line.endsWith("}");
+			if (!oldStyle && !newStyle) {
 				continue;
 			}
 			
 			//Add to array
-			lineBuffer.add(line);
+			lineBuffer.add(new LogFileLine(line, newStyle));
 			if (lineBuffer.size()>LINE_BUFFER_LIMIT) {
 				//Push to thread, clear buffer.
-				ArrayList<String> temp = lineBuffer;
-				lineBuffer = new ArrayList<String>(); //Can't "clear", because we keep a reference.
+				ArrayList<LogFileLine> temp = lineBuffer;
+				lineBuffer = new ArrayList<LogFileLine>(); //Can't "clear", because we keep a reference.
 				stp.newTask(new SimResLineParser(temp, this, uniqueAgentIDs));
 			}
 		}
@@ -165,6 +176,7 @@ public class SimulationResults {
 		Hashtable<Integer, ArrayList<AgentTick>> agentTicksToAdd = new Hashtable<Integer, ArrayList<AgentTick>>();
 		Hashtable<Integer, ArrayList<AgentTick>> trackingTicksToAdd = new Hashtable<Integer, ArrayList<AgentTick>>();
 		Hashtable<Integer, ArrayList<SignalLineTick>> signalLineTicksToAdd = new Hashtable<Integer, ArrayList<SignalLineTick>>();
+		Hashtable<Integer, ArrayList<GsonResObj>> gsonObjectsToAdd = new Hashtable<Integer, ArrayList<GsonResObj>>();
 		int tempFrameLenMS = -1;
 	}
 	
@@ -173,7 +185,7 @@ public class SimulationResults {
 	//Begin = parse all objects (no sync.)
 	//End = save all objects (sync)
 	private static class SimResLineParser extends BifurcatedActivity {
-		ArrayList<String> lines;
+		ArrayList<LogFileLine> lines;
 		SimulationResults sim;
 		HashSet<Integer> uniqueAgentIDs;
 		TemporarySimObjects resObj;
@@ -181,7 +193,7 @@ public class SimulationResults {
 		//TEMP
 		FastLineParser flp;
 		
-		SimResLineParser(ArrayList<String> lines, SimulationResults sim, HashSet<Integer> uniqueAgentIDs) {
+		SimResLineParser(ArrayList<LogFileLine> lines, SimulationResults sim, HashSet<Integer> uniqueAgentIDs) {
 			this.lines = lines;
 			this.sim = sim;
 			this.uniqueAgentIDs = uniqueAgentIDs;
@@ -192,19 +204,32 @@ public class SimulationResults {
 		
 		public Object begin(Object... args) {
 			try {
-				for (String line : lines) {
-					//Parse this line.
-					Utility.ParseResults pRes = Utility.ParseLogLine(flp, line);
-					if (pRes.isError()) {
-						throw new RuntimeException("Error parsing line: \n  " + pRes.errorMsg);
-					}
+				for (LogFileLine logLine : lines) {
+					//Parsing depends on how the line is structured.
+					if (logLine.isNewStyle) {
+						//Parse this line as json.
+						GsonResObj gRes = Utility.ParseGsonLine(logLine.line);
+						int tTick = gRes.getTimeTick();
+						
+						//Save this object for later.
+						if (!resObj.gsonObjectsToAdd.containsKey(tTick)) {
+							resObj.gsonObjectsToAdd.put(tTick, new ArrayList<GsonResObj>());
+						}
+						resObj.gsonObjectsToAdd.get(tTick).add(gRes);
+					} else {
+						//Parse this line as text and pseudo-json.
+						Utility.ParseResults pRes = Utility.ParseLogLine(flp, logLine.line);
+						if (pRes.isError()) {
+							throw new RuntimeException("Error parsing line: \n  " + pRes.errorMsg);
+						}
 
-				    //Pass this off to a different function based on the type
-				    try {
-				    	dispatchConstructionRequest(pRes);
-				    } catch (IOException ex) {
-				    	throw new IOException(ex.getMessage() + "\n...on line: " + line);
-				    }
+					    //Pass this off to a different function based on the type
+					    try {
+					    	dispatchConstructionRequest(pRes);
+					    } catch (IOException ex) {
+					    	throw new IOException(ex.getMessage() + "\n...on line: " + logLine.line);
+					    }
+					}
 				}
 			} catch (IOException ex) {
 				//TODO: Handle in a more thread-safe way.
@@ -222,6 +247,13 @@ public class SimulationResults {
 				//Save the simulation time tick.
 				if (resObj.tempFrameLenMS != -1) {
 					sim.frame_length_ms = resObj.tempFrameLenMS;
+				}
+				
+				//Add all Gson items
+				for (Entry<Integer, ArrayList<GsonResObj>> gsonResObjs : resObj.gsonObjectsToAdd.entrySet()) {
+					for (GsonResObj gRes : gsonResObjs.getValue()) {
+						gRes.addSelfToSimulation(null, sim);
+					}
 				}
 				
 				//Add all agents

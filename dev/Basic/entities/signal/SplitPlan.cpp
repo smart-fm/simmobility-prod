@@ -1,5 +1,6 @@
 #include "SplitPlan.hpp"
 #include<stdio.h>
+#include<sstream>
 
 using namespace boost::multi_index;
 using std::vector;
@@ -107,11 +108,12 @@ void SplitPlan::initialize()
 		sim_mob::Phase & target_phase = const_cast<sim_mob::Phase &>(*ph_it);
 		if( i > 0) percentage_sum += choice[i - 1]; // i > 0 : the first phase has phase offset equal to zero,
 		(target_phase).setPercentage(choice[i]);
-		(target_phase).setPhaseOffset(percentage_sum);
+		(target_phase).setPhaseOffset(percentage_sum * cycleLength / 100);
 	}
 	//Now Initialize the phases(later you  may put this back to the above phase iteration loop
 	for(phases_iterator it = phases_.begin(); it != phases_.end()  ; it++)
 		const_cast<sim_mob::Phase &>(*it).initialize();
+//	getchar();
 }
 
 ///////////////////////////////Not so Important //////////////////////////////////////////////////////////////////////
@@ -172,15 +174,31 @@ std::size_t SplitPlan::nofPlans()
 {
 	return NOF_Plans;
 }
-
-void SplitPlan::Update(std::vector<double> DS)
+//find the max DS
+double SplitPlan::fmax(std::vector<double> &DS) {
+	double max = DS[0];
+	for (int i = 0; i < DS.size(); i++) {
+		if (DS[i] > max) {
+			max = DS[i];
+		}
+	}
+	return max;
+}
+void SplitPlan::Update(std::vector<double> &DS)
 {
+	double DS_all = fmax(DS);
+	cycle_.Update(DS_all);
+	cycleLength = cycle_.getcurrCL();
+	std::cout << "currplan index changed from " << currSplitPlanID  << " to " ;
 		findNextPlanIndex(DS);
 		updatecurrSplitPlan();
+		std::cout << currSplitPlanID << std::endl;
+		initialize();
 }
 /*
  * find out which phase we are in the current plan
  * based on the currCycleTimer(= cycle-time lapse so far)
+ * at the moment, this function just returns what phase it is going to be(does not set any thing)
  */
 std::size_t SplitPlan::computeCurrPhase(double currCycleTimer)
 {
@@ -188,14 +206,16 @@ std::size_t SplitPlan::computeCurrPhase(double currCycleTimer)
 
 	double sum = 0;
 	int i;
-	for(i = 0; i < NOF_Phases; )
+	for(i = 0; i < NOF_Phases; i++)
 	{
-		//expanded the single line for loop for better understanding of future readers
-		sum += cycleLength * currSplitPlan[i++] / 100;
+		//expanded the single line loop, for better understanding of future readers
+		sum += cycleLength * currSplitPlan[i] / 100;
 		if(sum > currCycleTimer) break;
 	}
 
-	return (std::size_t)(i-1);
+	if(i >= NOF_Phases) throw std::runtime_error("CouldNot computeCurrPhase for the given currCycleTimer");
+	currPhaseID = (std::size_t)(i);
+	return currPhaseID;
 }
 
 SplitPlan::SplitPlan(double cycleLength_,double offset_):cycleLength(cycleLength_),offset(offset_)
@@ -205,6 +225,7 @@ SplitPlan::SplitPlan(double cycleLength_,double offset_):cycleLength(cycleLength
 	currSplitPlanID = 0;
 	NOF_Phases = 0;
 	NOF_Plans = 0;
+	cycle_.setCurrCL(cycleLength_);
 }
 void SplitPlan::fill(double defaultChoiceSet[5][10], int approaches)
 {
@@ -279,23 +300,66 @@ void SplitPlan::setDefaultSplitPlan(int approaches)
 	currPhaseID = 0; //what the hell :)
 }
 
-std::string SplitPlan::createStringRepresentation()
+std::string SplitPlan::createStringRepresentation(std::string newLine)
 {
 	if(phases_.size() == 0)
 		{
 			return 0;
 		}
 	std::ostringstream output;
+	output << "\"phases\":" << newLine << "[";
 	phases_iterator it = phases_.begin();
 	while(it !=phases_.end())
 	{
-		output << (*it).createStringRepresentation();
+		output << (*it).createStringRepresentation(newLine);
 		it++;
 		if(it !=phases_.end())
 			output << ",";
 	}
+	output << newLine << "]";
 	return output.str();
 }
+
+void
+SplitPlan::printColors(double currCycleTimer)
+{
+	phases_iterator it = phases_.begin();
+	while(it !=phases_.end())
+	{
+		(*it).printPhaseColors(currCycleTimer);
+		it++;
+	}
+}
+
+std::string SplitPlan::outputTrafficLights(std::string newLine, int phaseId) const
+{
+//	if (phaseId > phases_.size())
+//	{
+//		std::ostringstream err;
+//		err << "phaseId out of range.. phaseId:" << phaseId << " phases_.size():"<<  phases_.size() << std::endl;
+//		throw std::runtime_error(err.str());
+//	}
+
+
+	if(phases_.size() == 0)
+		{
+			return 0;
+		}
+	std::ostringstream output;
+	output << "\"phases\":" << newLine << "[";
+	phases_iterator it = phases_.begin();
+	while(it !=phases_.end())
+	{
+		output << (*it).outputPhaseTrafficLight(newLine);
+		it++;
+		if(it !=phases_.end())
+			output << ",";
+	}
+	output << newLine << "]";
+	return output.str();
+
+}
+
 
 };//namespace
 

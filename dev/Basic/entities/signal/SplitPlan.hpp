@@ -1,9 +1,10 @@
 #pragma once
 #include<map>
 #include<vector>
-#include "geospatial/Link.hpp"
+//#include "geospatial/Link.hpp"
 #include "defaults.hpp"
 #include "Phase.hpp"
+#include "Cycle.hpp"
 //#include "Offset.hpp"
 
 #define NUMBER_OF_VOTING_CYCLES 5
@@ -11,7 +12,7 @@
 namespace sim_mob
 {
 //Forward dseclaration
-class Signal;
+class Signal_SCATS;
 
 enum TrafficControlMode
 {
@@ -39,8 +40,9 @@ private:
 	std::size_t nextSplitPlanID;
 	std::size_t currPhaseID;//Better Name is: phaseAtGreen (according to TE terminology)The phase which is currently undergoing green, f green, amber etc..
 
+	sim_mob::Cycle cycle_;
 	phases phases_;
-	sim_mob::Signal *parentSignal;
+	sim_mob::Signal_SCATS *parentSignal;
 
 	/*
 	 * the following variable will specify the various choiceSet combinations that
@@ -109,7 +111,7 @@ public:
 	void setOffset(std::size_t);
 
 	/*main update mehod*/
-	void Update(std::vector<double> DS);
+	void Update(std::vector<double> &DS);
 
 	/*General Methods*/
 	void calMaxProDS(std::vector<double>  &maxproDS,std::vector<double> DS);
@@ -118,11 +120,14 @@ public:
 	double fmin_ID(std::vector<double> maxproDS);
 	std::size_t getMaxVote();
 	void fill(double defaultChoiceSet[5][10], int approaches);
-	std::string createStringRepresentation();
-	void setParentSignal(sim_mob::Signal * signal) { parentSignal = signal;}
-	sim_mob::Signal * getParentSignal() { return parentSignal;}
+	std::string createStringRepresentation(std::string newLine);
+	void setParentSignal(sim_mob::Signal_SCATS * signal) { parentSignal = signal;}
+	sim_mob::Signal_SCATS * getParentSignal() { return parentSignal;}
+	void printColors(double printColors);
+	double fmax(std::vector<double> &DS);
+	std::string  outputTrafficLights(std::string newLine, int phaseId = -1)const;
 
 	/*friends*/
-	friend class Signal;
+	friend class Signal_SCATS;
 };
 }

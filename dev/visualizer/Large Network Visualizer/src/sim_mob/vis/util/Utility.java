@@ -4,15 +4,24 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
+
 import sim_mob.vis.Main;
 import sim_mob.vis.network.Node;
+import sim_mob.vis.network.TrafficSignal;
 import sim_mob.vis.network.basic.FlippedScaledPoint;
 import sim_mob.vis.network.basic.ScaledPoint;
+import sim_mob.vis.simultion.GsonResObj;
+import sim_mob.vis.simultion.TrafficSignalUpdate;
 
 /**
  * \author Seth N. Hetu
@@ -22,6 +31,38 @@ import sim_mob.vis.network.basic.ScaledPoint;
 public class Utility {
 	//Use the new parser for log files?
 	private static final boolean USE_NEW_PARSER = true;
+	
+	//NOTE: The fields in this class are VERY important; make sure you add a single field 
+	//      for each object you want to be able to parse with the Gson parser. 
+	//      Do NOT add any extra fields to this class; we use reflection to scan all fields
+	//      and return ONLY the one which is valid.
+	private final class GsonWrapper {
+		//NOTE: These names are mildly confusing, but just follow the pattern for new fields
+		//      and everything will work.
+		TrafficSignal TrafficSignal;
+		TrafficSignalUpdate TrafficSignalUpdate;
+
+		GsonResObj getResult() {
+			ArrayList<GsonResObj> possible = new ArrayList<GsonResObj>();
+			Class<GsonWrapper> c = GsonWrapper.class;
+			for (Field f : c.getDeclaredFields()) {
+				GsonResObj gRes = null;
+				try {
+					gRes = GsonResObj.class.cast(f.get(this));
+				} catch (ClassCastException cex) { continue; 
+				} catch (IllegalAccessException iex) { throw new RuntimeException(iex); }
+				
+				if (gRes==null) { continue; }
+				
+				possible.add(gRes);
+			}
+			
+			if (possible.size()!=1) {
+				throw new ClassCastException("GsonWrapper expected to have one field, not " + possible.size());
+			}
+			return possible.get(0);
+		}
+	}
 	
 	
 	
@@ -213,6 +254,25 @@ public class Utility {
 		} else {
 			return ParseLogLine_Old(line);
 		}
+	}
+
+	
+	/*private static Gson getGsonReader() {
+		RuntimeTypeAdapter<GsonResObj> rtta = RuntimeTypeAdapterFactory.of(GsonResObj.class);
+		rtta.registerSubtype(TrafficSignal.class);
+		rtta.registerSubtype(TrafficSignalUpdate.class);
+		
+		GsonBuilder gsb = new GsonBuilder();
+		gsb.registerTypeAdapter(GsonResObj.class, rtta);
+		return gsb.create();
+	}*/
+	
+	
+	public static GsonResObj ParseGsonLine(String line) {
+		//Couldn't be easier!
+		Gson gson = new Gson();
+		GsonResObj res = gson.fromJson(line, GsonWrapper.class).getResult();
+		return res;
 	}
 	
 	

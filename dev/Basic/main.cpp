@@ -27,8 +27,13 @@
 #include "util/OutputUtil.hpp"
 #include "util/DailyTime.hpp"
 
-//Just temporarily, so we know it compiles:
-#include "entities/Signal.hpp"
+#ifdef SIMMOB_NEW_SIGNAL
+	#include "entities/signal/Signal.hpp"
+#else
+	#include "entities/Signal.hpp"
+#endif
+
+
 #include "conf/simpleconf.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/TrafficWatch.hpp"
@@ -49,6 +54,7 @@
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
+#include "partitions/ParitionDebugOutput.hpp"
 
 //Note: This must be the LAST include, so that other header files don't have
 //      access to cout if SIMMOB_DISABLE_OUTPUT is true.
@@ -112,9 +118,7 @@ bool performMain(const std::string& configFileName) {
 #endif
 
 	//Loader params for our Agents
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
-#endif
 
 	//Load our user config file; save a handle to the shared definition of it.
 	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof)) { //Note: Agent "shells" are loaded here.
@@ -140,20 +144,11 @@ bool performMain(const std::string& configFileName) {
 	}
 #endif
 
-	//Initialize our work groups.
-	WorkGroup agentWorkers(WG_AGENTS_SIZE, config.totalRuntimeTicks,
-			config.granAgentsTicks, true);
-	//Agent::TMP_AgentWorkGroup = &agentWorkers;
-	//Worker::ActionFunction entityWork = boost::bind(entity_worker, _1, _2);
-	agentWorkers.initWorkers(//&entityWork,
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
-		&entLoader
-#else
-		nullptr
-#endif
-	);
 
-	bool NoDynamicDispatch = ConfigParams::GetInstance().DynamicDispatchDisabled();
+	//Initialize our work groups.
+	bool NoDynamicDispatch = config.DynamicDispatchDisabled();
+	WorkGroup agentWorkers(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, true);
+	agentWorkers.initWorkers(NoDynamicDispatch ? nullptr :  &entLoader);
 
 	//Add all agents to workers. If they are in all_agents, then their start times have already been taken
 	//  into account; just add them. Otherwise, by definition, they will be in pending_agents.
@@ -166,18 +161,18 @@ bool performMain(const std::string& configFileName) {
 	//Initialize our signal status work groups
 	//  TODO: There needs to be a more general way to do this.
 #ifndef TEMP_FORCE_ONE_WORK_GROUP
-	WorkGroup signalStatusWorkers(WG_SIGNALS_SIZE, config.totalRuntimeTicks, config.granSignalsTicks);
+	WorkGroup signalStatusWorkers(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
 	//Worker::ActionFunction spWork = boost::bind(signal_status_worker, _1, _2);
 	signalStatusWorkers.initWorkers(/*&spWork,*/ nullptr);
 #endif
-	for (size_t i = 0; i < Signal::all_signals_.size(); i++) {
+	for (size_t i = 0; i < sim_mob::Signal::all_signals_.size(); i++) {
 		//add by xuyan
 //		if(Signal::all_signals_[i]->isFake)
 //			continue;
 #ifdef TEMP_FORCE_ONE_WORK_GROUP
 		agentWorkers.assignAWorker(Signal::all_signals_[i]);
 #else
-		signalStatusWorkers.assignAWorker(Signal::all_signals_[i]);
+		signalStatusWorkers.assignAWorker(sim_mob::Signal::all_signals_[i]);
 #endif
 	}
 
@@ -223,6 +218,8 @@ bool performMain(const std::string& configFileName) {
 	gettimeofday(&loop_start_time, nullptr);
 	int loop_start_offset = diff_ms(loop_start_time, start_time);
 
+	ParitionDebugOutput debug;
+
 #ifdef SIMMOB_DISABLE_OUTPUT
 	int lastTickPercent = 0; //So we have some idea how much time is left.
 #endif
@@ -266,16 +263,16 @@ bool performMain(const std::string& configFileName) {
 		if (config.is_run_on_many_computers) {
 			PartitionManager& partitionImpl = PartitionManager::instance();
 
-//			cout <<"0" <<endl;
+//			debug.outputToConsole("0");
 			partitionImpl.crossPCBarrier();
 
-//			cout <<"1" <<endl;
+//			debug.outputToConsole("1");
 			partitionImpl.crossPCboundaryProcess(currTick);
 
-//			cout <<"2" <<endl;
+//			debug.outputToConsole("2");
 			partitionImpl.crossPCBarrier();
 
-//			cout <<"3" <<endl;
+//			debug.outputToConsole("3");
 			partitionImpl.outputAllEntities(currTick);
 		}
 #endif

@@ -1,5 +1,5 @@
 #Required version of cmake
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 2.8.8)
 
 #Set our module override policy:
 IF (POLICY CMP0017)
@@ -8,6 +8,9 @@ ENDIF (POLICY CMP0017)
 
 #Project name. Used to tag resources in cmake. 
 project (Basic)
+
+#Ensure that all executables get placed in the top-level build directory.
+set (EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 
 # Also: version number. This will go into the generated header file.
 set (Basic_VERSION_MAJOR 0)
@@ -28,9 +31,6 @@ option (SIMMOB_DISABLE_OUTPUT  "Disable all mutex-locked output and all addition
 
 #Option: disable MPI. Use the cmake gui to change this on a per-user basis.
 option (SIMMOB_DISABLE_MPI  "Disable all included files, libraries, and code segments that require MPI." ON)
-
-#Option: disable dynamic dispatch. Use the cmake gui to change this on a per-user basis.
-option (SIMMOB_DISABLE_DYNAMIC_DISPATCH  "Disable dynamic dispatch of Agents. All Agents will be started at time tick zero and will silently skup updates until before their startTime (or after they are done)." OFF)
 
 #Option: compile with c++0x. Use the cmake gui to change this on a per-user basis.
 option (SIMMOB_LATEST_STANDARD  "Attempt to compile Sim Mobility with the latest version of C++ (2011). Untested." OFF)
@@ -161,9 +161,9 @@ IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MPI_CXX_LINK_FLAGS}")
   
   #Find cgal
-  find_package(CGAL REQUIRED)
+#  find_package(CGAL REQUIRED)
   #include_directories(${CGAL_INCLUDE_DIR})  #This messes up gmpxx...
-  LIST(APPEND LibraryList ${CGAL_LIBRARIES})
+#  LIST(APPEND LibraryList ${CGAL_LIBRARIES})
   
   #Use the mpi compiler.
   SET(CMAKE_C_COMPILER ${MPI_C_COMPILER})
@@ -184,7 +184,7 @@ FILE(GLOB_RECURSE BASIC_CPP *.cpp)
 #Create a list of items to remove from the Build.
 # Adding main.cpp to this list makes a good starting point, and ensures
 # we always have at least one item to remove from BASIC_CPP
-FILE(GLOB IgnoreList main.cpp)
+FILE(GLOB IgnoreList main*.cpp)
 
 #Remove tests
 FILE(GLOB_RECURSE TESTING_CPP "unit-tests/*.cpp" "unit-tests/*.c")
@@ -208,16 +208,22 @@ LIST(REMOVE_ITEM BASIC_CPP ${IgnoreList})
 #Include the top-level source/binary directories
 include_directories("${PROJECT_SOURCE_DIR}")
 
+#Build a shared object file for short-term, mid-term, and tests to use
+add_library(Sm_Shared OBJECT ${BASIC_CPP})
+
 #Build tests?
 IF (${BUILD_TESTS} MATCHES "ON")
 	add_subdirectory(unit-tests)
 ENDIF (${BUILD_TESTS} MATCHES "ON")
 
-#Our output executable and its input sources. List *.c files manually
-add_executable(SimMobility main.cpp ${BASIC_CPP})
+#Our output executable and its input sources.
+# Include our shared object
+add_executable(SimMobility main.cpp $<TARGET_OBJECTS:Sm_Shared>)
+add_executable(SimMobility_Med main_med.cpp $<TARGET_OBJECTS:Sm_Shared>)
 
-#Libraries to link, ported over from Eclipse.
+#Libraries to link.
 target_link_libraries (SimMobility ${LibraryList})
+target_link_libraries (SimMobility_Med ${LibraryList})
 
 #Timer:
 IF (${SIMMOB_AGENT_UPDATE_PROFILE} MATCHES "ON")

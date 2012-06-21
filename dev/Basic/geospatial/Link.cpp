@@ -12,6 +12,7 @@
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 #include "util/GeomHelpers.hpp"
+#include "workers/Worker.hpp"
 #endif
 
 using namespace sim_mob;
@@ -211,7 +212,12 @@ void sim_mob::Link::extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>
 	std::cout << " \n";
 }
 
-
+sim_mob::Worker* sim_mob::Link::getCurrWorker(){
+		return currWorker;
+	}
+void sim_mob::Link::setCurrWorker(sim_mob::Worker* w){
+		currWorker = w;
+	}
 
 #ifndef SIMMOB_DISABLE_MPI
 

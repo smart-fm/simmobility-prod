@@ -1,5 +1,0 @@
-This is a short list of changes  to visualize two nodes pinging each other.
-1. There is a field called rxLat, and rxLong that records, for each car, it's received latitude and longitude in each time step. The pinging app ensures that each car pings the other with it's own coordinates.
-2. These fields rxLat and rxLong have been added to DriverTicks.java as attributes.
-3. These fields have also been added to the trace parser in simulationResults.java so that the new attributes can actually be parsed.
-4. Finally, in the draw Method within DriverTicks, these fields are used to create a long,lat string which is then displayed on a blue background whenever the car is displayed. 

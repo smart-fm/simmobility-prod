@@ -136,8 +136,8 @@ private:
 
     void createSignals();
 #ifdef SIMMOB_NEW_SIGNAL
-    void createPlans(sim_mob::Signal & signal);
-    void createPhases(unsigned int sid,sim_mob::SplitPlan & plan);
+    void createPlans(sim_mob::Signal_SCATS & signal);
+    void createPhases(sim_mob::Signal_SCATS & signal);
 #endif
 };
 
@@ -212,9 +212,20 @@ void DatabaseLoader::LoadPhase(const std::string& storedProc)
 	int i=0;
 	for(soci::rowset<Phase>::const_iterator it=rs.begin(); it!=rs.end(); ++it,i++)
 	{
+//		if(it->nodeId == 115436) { std::cout << " node 115436 is in the LoadPhase game\n"; getchar();}
 		map<int, Section>::iterator from = sections_.find(it->sectionFrom), to = sections_.find(it->sectionTo);
 		//since the section index in sections_ and phases_ are read from two different tables, inconsistecy check is a must
-		if((from ==sections_.end())||(to ==sections_.end())) continue; //you are not in the sections_ container
+		if((from ==sections_.end())||(to ==sections_.end()))
+			{
+//				if(it->nodeId == 115436) {
+//					std::cout << " but node 115436 was kicked out the LoadPhase game ---reason:\n";
+//					if(from ==sections_.end()) std::cout << " from section not found \n";
+//					if(to ==sections_.end()) std::cout << " to section not found \n";
+//					 getchar();
+//				}
+
+				continue; //you are not in the sections_ container
+			}
 		it->ToSection = &sections_[it->sectionTo];
 		it->FromSection = &sections_[it->sectionFrom];
 		phases_.insert(pair<int,Phase>(it->nodeId,*it));
@@ -390,6 +401,10 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 		//Note: Make sure not to resize the Node map after referencing its elements.
 		it->from.location = &nodes_[it->from.TMP_locationNodeID];
 		it->to.location = &nodes_[it->to.TMP_locationNodeID];
+
+		//added by Syiu to model activities during trips
+		//it->activities =
+
 		tripchains_.push_back(*it);
 	}
 }
@@ -416,6 +431,7 @@ DatabaseLoader::LoadTrafficSignals(std::string const & storedProcedure)
         signal.xPos *= 100;
         signal.yPos *= 100;
         signals_.insert(std::make_pair(signal.id, signal));
+//        if(signal.nodeId == 115436) { std::cout << "We have a signal 115436 oin our DB\n"; getchar();}
 
     }
 }
@@ -573,6 +589,7 @@ void DatabaseLoader::TransferBoundaryRoadSegment()
 		(*it)->boundarySegment = sim_mob::getRoadSegmentBasedOnNodes(&start_point, &end_point);
 		partitionImpl.loadInBoundarySegment((*it)->boundarySegment->getId(), (*it));
 	}
+
 }
 #endif
 
@@ -1066,6 +1083,7 @@ DatabaseLoader::createSignals()
     for (map<int, Signal>::const_iterator iter = signals_.begin(); iter != signals_.end(); ++iter,j++)
     {
         Signal const & dbSignal = iter->second;
+//        if(dbSignal.nodeId == 115436) { std::cout << " node115436 is in the createSignals game\n"; getchar();}
         map<int, Node>::const_iterator iter2 = nodes_.find(dbSignal.nodeId);
         //filter out signals which are not in the territory of our nodes_
         if (iter2 == nodes_.end())
@@ -1074,6 +1092,7 @@ DatabaseLoader::createSignals()
             stream << "cannot find node (id=" << dbSignal.nodeId
                    << ") in the database for signal id=" << iter->first;
 //            throw std::runtime_error(stream.str());
+//            if(dbSignal.nodeId == 115436) { std::cout << " node 115436 is getting kicked out 1\n"; getchar();}
             continue;
         }
 
@@ -1118,6 +1137,8 @@ DatabaseLoader::createSignals()
 //            continue;
 //        }
         /*vahid:
+         * ATTENTION: THIS PART OF THE FUNCTION ONWARDS IS DEPENDENT ON THE SCATS IMPLEMENTATION OF TRAFFIC SIGNAL
+         * IF YOU ARE DEVELOPING A TRAFFIC SIGNAL BASED ON ANOTHER MODEL, YOU MUST CHANGED THIS PART ACCORDINGLY.
          * the following lines are the major tasks of this function(signalAt and addSignalSite functions)
          * the first line checks for availability of he signal in the street directory based on the node
          * (if not available, it will create a signal entry in the street directory)
@@ -1130,41 +1151,43 @@ DatabaseLoader::createSignals()
     	ppp = phases_.equal_range(node->getID()); //I repeate: Assumption is that node id and signal id are same
     	if(ppp.first == ppp.second)
     	{
-    		std::cout << "There is no phase associated with this signal candidate, bypassing\n";
+    		std::cout << "There is no phase associated with this signal candidate("<< node->getID() <<"), bypassing\n";
     		continue;
     	}
     	bool isNew = false;
-        const sim_mob::Signal & signal = sim_mob::Signal::signalAt(*node, sim_mob::ConfigParams::GetInstance().mutexStategy, &isNew);
-
+        const sim_mob::Signal_SCATS & signal = sim_mob::Signal_SCATS::signalAt(*node, sim_mob::ConfigParams::GetInstance().mutexStategy, &isNew);
         //sorry I am calling the following function out of signal constructor. I am heavily dependent on the existing code
-        //so sometimes a new functionality needs to be taken care of separately-vahid
+        //so sometimes a new functionality(initialize) needs to be taken care of separately
+        //while it should be called with in other functions(constructor)-vahid
         if(isNew)
         {
-        	createPlans(const_cast<sim_mob::Signal &>(signal));
-        	const_cast<sim_mob::Signal &>(signal).initialize();
+        	createPlans(const_cast<sim_mob::Signal_SCATS &>(signal));
+        	const_cast<sim_mob::Signal_SCATS &>(signal).initialize();
         	nof_signals++;
         }
         else
         	continue;
-        const_cast<sim_mob::Signal &>(signal).addSignalSite(dbSignal.xPos, dbSignal.yPos, dbSignal.typeCode, dbSignal.bearing);
+//		  not needed for the time being
+//        const_cast<sim_mob::Signal &>(signal).addSignalSite(dbSignal.xPos, dbSignal.yPos, dbSignal.typeCode, dbSignal.bearing);
     }
+    std::cout << "A Total of " << nof_signals << " were successfully created\n";
 }
 
-/*prepares the plan member of signal class by assigning phases, choiceset and other parameters of the plan(splitplan)*/
+/*SCATS IMPLEMENTATION ONLY.
+ * prepares the plan member of signal class by assigning phases, choiceset and other parameters of the plan(splitplan)
+ */
 void
-DatabaseLoader::createPlans(sim_mob::Signal & signal)
+DatabaseLoader::createPlans(sim_mob::Signal_SCATS & signal)
 {
 	unsigned int sid ;
-//	for(sig_it = sim_mob::Signal::all_signals_.begin(); sig_it !=sim_mob::Signal::all_signals_.end();  sig_it++)
-//	{
 		sid = signal.getSignalId();//remember our assumption!  : node id and signal id(whtever their name is) are same
 		sim_mob::SplitPlan & plan = signal.getPlan();
 		plan.setParentSignal(&signal);
-		createPhases(sid,plan);
+		createPhases(signal);
 
 		//now that we have the number of phases, we can continue initializing our split plan.
 		int nof_phases = plan.find_NOF_Phases();
-		std::cout << " Signal(" << sid << ") : Number of Phases : " << nof_phases << std::endl;
+//		std::cout << " Signal(" << sid << ") : Number of Phases : " << nof_phases << std::endl;
 		if(nof_phases > 0)
 			if((nof_phases > 5)||(nof_phases < 1))
 				std::cout << sid << " ignored due to lack of default choice set" << nof_phases ;
@@ -1190,21 +1213,20 @@ DatabaseLoader::createPlans(sim_mob::Signal & signal)
 			}
 		else
 			std::cout << sid << " ignored due to no phases" << nof_phases <<  std::endl;
-//	}
 }
 
 
 void
-DatabaseLoader::createPhases(unsigned int sid,sim_mob::SplitPlan & plan)
+DatabaseLoader::createPhases(sim_mob::Signal_SCATS & signal)
 {
 	pair<multimap<int,sim_mob::aimsun::Phase>::iterator, multimap<int,sim_mob::aimsun::Phase>::iterator> ppp;
 
-	ppp = phases_.equal_range(sid);
+	ppp = phases_.equal_range(signal.getSignalId());
 	multimap<int,sim_mob::aimsun::Phase>::iterator ph_it = ppp.first;
 
 	//some-initially weird looking- boost multi_index provisions to search for a phase by its name, instead of having loops to do that.
 	sim_mob::SplitPlan::phases_name_iterator sim_ph_it;
-	const sim_mob::SplitPlan::plan_phases_view & ppv = plan.getPhases().get<1>();
+	const sim_mob::SplitPlan::plan_phases_view & ppv = signal.getPlan().getPhases().get<1>();
 
 	for(; ph_it != ppp.second; ph_it++)
 	{
@@ -1215,14 +1237,14 @@ DatabaseLoader::createPhases(unsigned int sid,sim_mob::SplitPlan & plan)
 		std::string name = (*ph_it).second.name;
 		if((sim_ph_it = ppv.find(name)) != ppv.end()) //means: if a phase with this name already exists in this plan...(usually u need a loop but with boost multi index, well, you don't :)
 		{
-			sim_ph_it->addLinkMaping(linkFrom,ll);
+			sim_ph_it->addLinkMapping(linkFrom,ll,dynamic_cast<sim_mob::MultiNode *>(nodes_[(*ph_it).second.nodeId].generatedNode));
 		}
 		else //new phase, new mapping
 		{
-			sim_mob::Phase phase(name,&plan);//for general copy
-			phase.addLinkMaping(linkFrom,ll);
-			phase.addDefaultCrossings();
-			plan.addPhase(phase);//congrates
+			sim_mob::Phase phase(name,&(signal.getPlan()));//for general copy
+			phase.addLinkMapping(linkFrom,ll,dynamic_cast<sim_mob::MultiNode *>(nodes_[(*ph_it).second.nodeId].generatedNode));
+			phase.addDefaultCrossings(signal.getLinkAndCrossingsByLink(),dynamic_cast<sim_mob::MultiNode *>(nodes_[(*ph_it).second.nodeId].generatedNode));
+			signal.getPlan().addPhase(phase);//congrates
 		}
 	}
 }
@@ -1530,6 +1552,8 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	src.generatedSegment = new sim_mob::RoadSegment(ln);
 	ln->roadName = currSect->roadName;
 	ln->start = currSect->fromNode->generatedNode;
+	//added by Jenny to tag node to one link
+	ln->start->setLinkLoc(ln);
 	set<RoadSegment*> linkSegments;
 
 	//Make sure the link's start node is represented at the Node level.
@@ -1537,6 +1561,8 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	for (;;) {
 		//Update
 		ln->end = currSect->toNode->generatedNode;
+		//added by Jenny to tag node to one link
+		ln->end->setLinkLoc(ln);
 
 		//Now, check for segments going both forwards and backwards. Add both.
 		for (size_t i=0; i<2; i++) {
@@ -1710,23 +1736,35 @@ void sim_mob::aimsun::Loader::ProcessSectionPolylines(sim_mob::RoadNetwork& res,
 string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::vector<sim_mob::TripChain*>& tcs, ProfileBuilder* prof)
 {
 	//try {
+	std::cout << "Attempting to connect to database...." << std::endl;
             //Connection string will look something like this:
             //"host=localhost port=5432 dbname=SimMobility_DB user=postgres password=XXXXX"
             DatabaseLoader loader(connectionStr);
-            std::cout << " Success." << std::endl;
+            std::cout << ">Success." << std::endl;
 
 		//Step One: Load
+
+        std::cout << "xuyan:1." << std::endl;
 		loader.LoadBasicAimsunObjects(storedProcs);
+		std::cout << "xuyan:2." << std::endl;
 
 		if (prof) { prof->logGenericEnd("Database", "main-prof"); }
+		std::cout << "xuyan:2.1" << std::endl;
 
 		//Step Two: Translate
 		if (prof) { prof->logGenericStart("PostProc", "main-prof"); }
+		std::cout << "xuyan:2.2" << std::endl;
+
 		loader.DecorateAndTranslateObjects();
+		std::cout << "xuyan:2.3" << std::endl;
 		//Step Three: Perform data-guided cleanup.
 		loader.PostProcessNetwork();
+		std::cout << "xuyan:2.4" << std::endl;
 		//Step Four: Save
 		loader.SaveSimMobilityNetwork(rn, tcs);
+
+		std::cout << "xuyan:2.5" << std::endl;
+
 		//Temporary workaround; Cut lanes short/extend them as reuquired.
 		for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {
 			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesStartLineCut, true);
@@ -1743,7 +1781,9 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 #ifndef SIMMOB_DISABLE_MPI
 		if (ConfigParams::GetInstance().is_run_on_many_computers)
 		{
+			std::cout << "xuyan:3." << std::endl;
 			loader.TransferBoundaryRoadSegment();
+			std::cout << "xuyan:4." << std::endl;
 		}
 #endif
 

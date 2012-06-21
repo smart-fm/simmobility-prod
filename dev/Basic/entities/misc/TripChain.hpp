@@ -19,23 +19,25 @@ namespace sim_mob
 
 //Forward declarations
 class Node;
-
-enum Location_Type{
-	building, node, link, publicTansitStop
-};
-
-enum TripChainItemType {
-	trip, activity
-};
+class SubTrip;
 
 /**
  * Base class for elements in a trip chain.
  * \author Harish L
  */
 class TripChainItem {
-
 public:
-	TripChainItemType itemType;
+	//Type of location of this trip chain item.
+	enum LocationType{
+		LT_BUILDING, LT_NODE, LT_LINK, LT_PUBLIC_TRANSIT_STOP
+	};
+
+	//Type of this trip chain item.
+	enum ItemType {
+		IT_TRIP, IT_ACTIVITY
+	};
+
+	ItemType itemType;
 	sim_mob::DailyTime startTime;
 	int entityID;
 
@@ -47,17 +49,16 @@ public:
 		this->sequenceNumber = sequenceNumber;
 	}
 	
-	static Location_Type getLocationType(std::string locType) {
-		if(locType.compare("building") == 0) return building;
-		else if(locType.compare("node") == 0) return node;
-		else if(locType.compare("link") == 0) return link;
-		else if(locType.compare("stop") == 0) return publicTansitStop;
-		return node;
-	}
+	static LocationType getLocationType(std::string locType);
 
-	static TripChainItemType getItemType(std::string itemType){
-		if(itemType.compare("Activity") == 0) return activity;
-		else return trip;
+	static ItemType getItemType(std::string itemType){
+		if(itemType == "Activity") {
+			return IT_ACTIVITY;
+		} else if(itemType == "Trip") {
+			return IT_TRIP;
+		} else {
+			throw std::runtime_error("Unknown trip chain item type.");
+		}
 	}
 
     virtual ~TripChainItem() {}
@@ -77,17 +78,19 @@ class Activity : public sim_mob::TripChainItem {
 public:
 	std::string description;
 	sim_mob::Node* location;
-	Location_Type locationType;
+	TripChainItem::LocationType locationType;
 	bool isPrimary;
 	bool isFlexible;
-	sim_mob::DailyTime activityStartTime;
+
 	sim_mob::DailyTime activityEndTime;
+
+	sim_mob::DailyTime& activityStartTime() {
+		return startTime;
+	}
 
 	virtual ~Activity() {}
 };
 
-//Forward Declaration
-class SubTrip;
 
 /**
  * \author Seth N. Hetu
@@ -97,9 +100,9 @@ class Trip : public sim_mob::TripChainItem
 {
 public:
     sim_mob::Node* fromLocation;
-    Location_Type fromLocationType;
+    TripChainItem::LocationType fromLocationType;
     sim_mob::Node* toLocation;
-    Location_Type toLocationType;
+    TripChainItem::LocationType toLocationType;
     int tripID;
 
     std::vector<SubTrip*> getSubTrips() const
@@ -107,13 +110,13 @@ public:
         return subTrips;
     }
 
-    void setSubTrips(std::vector<SubTrip*> subTrips)
+    void setSubTrips(const std::vector<SubTrip*>& subTrips)
     {
         this->subTrips = subTrips;
     }
 
-    void addSubTrip(sim_mob::SubTrip& aSubTrip) {
-    	subTrips.push_back(&aSubTrip);
+    void addSubTrip(sim_mob::SubTrip* aSubTrip) {
+    	subTrips.push_back(aSubTrip);
     }
 
     virtual ~Trip() {}

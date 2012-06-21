@@ -227,25 +227,29 @@ bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	int currentEntityID = 0;
 	for (vector<TripChainItem*>::const_iterator it=tcs.begin(); it!=tcs.end(); it++) {
 		//Create an Agent candidate based on the type.
-		if(currentEntityID == (*it)->entityID) continue;
-		if((*it)->itemType == sim_mob::activity) continue; //Just in case. First item for a Person (Home?) may be an activity.
+		if(currentEntityID == (*it)->entityID) {
+			continue;
+		}
+		if((*it)->itemType == TripChainItem::IT_ACTIVITY) {
+			continue; //Just in case. First item for a Person (Home?) may be an activity.
+		}
 
-		if((*it)->itemType == sim_mob::trip){
-		currentEntityID = (*it)->entityID;
-		sim_mob::Trip* firstTripForEntity = dynamic_cast<Trip*>(*it);
-		sim_mob::SubTrip* firstSubTripForEntity = dynamic_cast<SubTrip*>(firstTripForEntity->getSubTrips().front());
+		if((*it)->itemType == TripChainItem::IT_TRIP){
+			currentEntityID = (*it)->entityID;
+			sim_mob::Trip* firstTripForEntity = dynamic_cast<Trip*>(*it);
+			sim_mob::SubTrip* firstSubTripForEntity = dynamic_cast<SubTrip*>(firstTripForEntity->getSubTrips().front());
 
-		PendingEntity p(EntityTypeFromTripChainString(firstSubTripForEntity->mode));
+			PendingEntity p(EntityTypeFromTripChainString(firstSubTripForEntity->mode));
 
-		//Origin, destination
-		p.origin = firstSubTripForEntity->fromLocation;
-		p.dest = firstSubTripForEntity->toLocation;
+			//Origin, destination
+			p.origin = firstSubTripForEntity->fromLocation;
+			p.dest = firstSubTripForEntity->toLocation;
 
-		//Start time
-		p.start = firstSubTripForEntity->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
+			//Start time
+			p.start = firstSubTripForEntity->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 
-		//Add it or stash it
-		addOrStashEntity(p, active_agents, pending_agents);
+			//Add it or stash it
+			addOrStashEntity(p, active_agents, pending_agents);
 		}
 	}
 

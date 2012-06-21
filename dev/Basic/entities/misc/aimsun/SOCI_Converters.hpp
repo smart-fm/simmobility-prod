@@ -27,7 +27,7 @@ template<> struct type_conversion<aimsun::TripChainItem>
     	res.entityID = vals.get<int>("entityid",0);
     	res.sequenceNumber = vals.get<int>("trip_chain_sequence_number",0);
     	res.itemType = sim_mob::TripChainItem::getItemType(vals.get<std::string>("trip_chain_item_type",""));
-    	if(res.itemType == sim_mob::trip){
+    	if(res.itemType == sim_mob::TripChainItem::IT_TRIP){
     		res.tripID = vals.get<int>("trip_id", 0);
     		res.tmp_subTripID = vals.get<int>("sub_trip_id",0);
     		res.tmp_fromLocationNodeID = vals.get<int>("from_location_id",0);
@@ -37,7 +37,7 @@ template<> struct type_conversion<aimsun::TripChainItem>
     		res.mode = vals.get<std::string>("description","");
     		res.tmp_startTime = vals.get<std::string>("start_time","");
     	}
-    	else if(res.itemType == sim_mob::activity){
+    	else if(res.itemType == sim_mob::TripChainItem::IT_ACTIVITY){
     		res.tmp_activityID = vals.get<int>("activity_id", 0);
     		res.description = vals.get<std::string>("activity_description", "");
     		res.isPrimary = vals.get<int>("primary_activity", 0);
@@ -48,12 +48,13 @@ template<> struct type_conversion<aimsun::TripChainItem>
     		res.tmp_activityEndTime = vals.get<std::string>("activity_end_time", "");
     	}
     	else {
-    		// error
+    		throw std::runtime_error("Couldn't load Trip Chain; unexpected type.");
     	}
     }
 
     static void to_base(const aimsun::TripChainItem& src, soci::values& vals, soci::indicator& ind)
     {
+    	throw std::runtime_error("TripChainItem::to_base() not implemented");
     	/*vals.set("activity_id", src.EMPTY_activityID);
     	vals.set("from_activity_desc", src.from.description);
     	vals.set("from_location", src.from.location->id);

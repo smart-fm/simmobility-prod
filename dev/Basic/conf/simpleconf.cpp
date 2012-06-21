@@ -11,6 +11,7 @@
 #include "entities/PendingEntity.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
+#include "entities/roles/driver/ReactionTimeDistributions.hpp"
 #include "entities/signal/Signal.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/driver/Driver.hpp"
@@ -890,9 +891,28 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	int totalWarmup = ReadGranularity(handle, "total_warmup");
 
 	//Save reaction time parameters
-	int reacTime_LeadingVehicle = ReadGranularity(handle,"reacTime_LeadingVehicle");
-	int reacTime_SubjectVehicle = ReadGranularity(handle,"reacTime_SubjectVehicle");
-	int reacTime_Gap = ReadGranularity(handle,"reacTime_Gap");
+	int distributionType1, distributionType2;
+    int mean1, mean2;
+    int standardDev1, standardDev2;
+	handle.FirstChild("reacTime_distributionType1").ToElement()->Attribute("value",&distributionType1);
+	handle.FirstChild("reacTime_distributionType2").ToElement()->Attribute("value",&distributionType2);
+	handle.FirstChild("reacTime_mean1").ToElement()->Attribute("value",&mean1);
+	handle.FirstChild("reacTime_mean2").ToElement()->Attribute("value",&mean2);
+	handle.FirstChild("reacTime_standardDev1").ToElement()->Attribute("value",&standardDev1);
+	handle.FirstChild("reacTime_standardDev2").ToElement()->Attribute("value",&standardDev2);
+
+	ReactionTimeDistributions & instance = ReactionTimeDistributions::instance();
+	instance.distributionType1 = distributionType1;
+	instance.distributionType2 = distributionType2;
+	instance.mean1 = mean1;
+	instance.mean2 = mean2;
+	instance.standardDev1 = standardDev1;
+	instance.standardDev2 = standardDev2;
+
+	instance.setupDistribution1();
+	instance.setupDistribution2();
+
+//	Driver::distributionType1 = distributionType1;
 	int signalAlgorithm;
 
 
@@ -1015,9 +1035,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	config.granPathsTicks = granPaths/baseGran;
     	config.granDecompTicks = granDecomp/baseGran;
     	config.simStartTime = DailyTime(simStartStr);
-    	config.reacTime_LeadingVehicle = reacTime_LeadingVehicle;
-    	config.reacTime_SubjectVehicle = reacTime_SubjectVehicle;
-    	config.reacTime_Gap = reacTime_Gap;
     	config.mutexStategy = mtStrat;
     	config.signalAlgorithm = signalAlgorithm;
 

@@ -68,6 +68,8 @@ public:
 	 */
 	void update(uint32_t currTimeMS);
 
+	void clear();
+
 
 	/**
 	 * Set the current perception delay to the given value. All calls to sense() are affected by this value.
@@ -216,6 +218,13 @@ bool sim_mob::FixedDelayed<T>::del_history_front()
 	history.pop_front();
 
 	return !history.empty();
+}
+
+
+template <typename T>
+void sim_mob::FixedDelayed<T>::clear()
+{
+	history.clear();
 }
 
 

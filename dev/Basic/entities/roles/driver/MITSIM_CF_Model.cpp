@@ -117,15 +117,16 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 
 double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed,NearestVehicle& nv)
 {
-	p.space = nv.distance/100;
-	//If we have no space left to move, immediately cut off acceleration.
+//	p.space = nv.distance/100;
+	p.space = p.perceivedDistToFwdCar;
 	double res = 0;
+	//If we have no space left to move, immediately cut off acceleration.
 	if(p.space > 0) {
 		if(!nv.exists()) {
 			return accOfFreeFlowing(p, targetSpeed, maxLaneSpeed);
 		}
-		p.v_lead = nv.driver->fwdVelocity.get()/100;
-		p.a_lead = nv.driver->fwdAccel.get()/100;
+		p.v_lead = p.perceivedFwdVelocityOfFwdCar/100;
+		p.a_lead = p.perceivedAccelerationOfFwdCar/100;
 
 		double dt	=	p.elapsedSeconds;
 		double headway = 0;  //distance/speed
@@ -155,13 +156,14 @@ double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p)
 	double minacc = maxAcceleration;
 	double yellowStopHeadway = 1; //1 second
 	double minSpeedYellow = 2.2352;//5 mph = 2.2352 m / s
-
-	if(p.perceivedDistToTrafficSignal < 5000)
+    Signal::TrafficColor color;
+    double distanceToTrafficSignal;
+    distanceToTrafficSignal = p.perceivedDistToTrafficSignal;
+    color = p.perceivedTrafficColor;
+	if(distanceToTrafficSignal < 5000)
 	{
-
-	double dis = p.perceivedDistToTrafficSignal/100;
+	double dis = distanceToTrafficSignal/100;
 #ifdef NEW_SIGNAL
-#ifdef SIMMOB_NEW_SIGNAL
 		if(p.perceivedTrafficColor == sim_mob::Red)
 				{
 					double a = brakeToStop(p, dis);
@@ -183,26 +185,26 @@ double sim_mob::MITSIM_CF_Model::calcSignalRate(DriverUpdateParams& p)
 					minacc = maxAcceleration;
 				}
 #else
-		if(p.perceivedTrafficColor == Signal::Red)
-				{
-					double a = brakeToStop(p, dis);
-					if(a < minacc)
-						minacc = a;
-				}
-				else if(p.perceivedTrafficColor == Signal::Amber)
-				{
-					double maxSpeed = (speed>minSpeedYellow)?speed:minSpeedYellow;
-					if(dis/maxSpeed > yellowStopHeadway)
-					{
-						double a = brakeToStop(p, dis);
-						if(a < minacc)
-							minacc = a;
-					}
-				}
-				else if(p.perceivedTrafficColor == Signal::Green)
-				{
-					minacc = maxAcceleration;
-				}
+		if(color == Signal::Red)
+		{
+			double a = brakeToStop(p, dis);
+			if(a < minacc)
+				minacc = a;
+		}
+		else if(color == Signal::Amber)
+		{
+			double maxSpeed = (speed>minSpeedYellow)?speed:minSpeedYellow;
+			if(dis/maxSpeed > yellowStopHeadway)
+			{
+				double a = brakeToStop(p, dis);
+				if(a < minacc)
+					minacc = a;
+			}
+		}
+		else if(color == Signal::Green)
+		{
+			minacc = maxAcceleration;
+		}
 
 #endif
 
@@ -225,7 +227,7 @@ double sim_mob::MITSIM_CF_Model::calcYieldingRate(DriverUpdateParams& p, double 
 
 double sim_mob::MITSIM_CF_Model::waitExitLaneRate(DriverUpdateParams& p)
 {
-	double dx = p.trafficSignalStopDistance/100 - 5;
+	double dx = p.perceivedDistToFwdCar/100 - 5;
 	if(p.turningDirection == LCS_SAME || dx > p.distanceToNormalStop)
 		return maxAcceleration;
 	else
@@ -276,10 +278,10 @@ double sim_mob::MITSIM_CF_Model::calcBackwardRate(DriverUpdateParams& p)
 
 double sim_mob::MITSIM_CF_Model::calcAdjacentRate(DriverUpdateParams& p)
 {
-	if(p.turningDirection == LCS_SAME)
+	if(p.nextLaneIndex == p.currLaneIndex)
 		return maxAcceleration;
-	NearestVehicle& av = (p.turningDirection == LCS_LEFT)?p.nvLeftFwd:p.nvRightFwd;
-	NearestVehicle& bv = (p.turningDirection == LCS_LEFT)?p.nvLeftBack:p.nvRightBack;
+	NearestVehicle& av = (p.nextLaneIndex > p.currLaneIndex)?p.nvLeftFwd:p.nvRightFwd;
+	NearestVehicle& bv = (p.nextLaneIndex > p.currLaneIndex)?p.nvLeftBack:p.nvRightBack;
 	if(!av.exists())
 		return maxAcceleration;
 	if(!bv.exists())

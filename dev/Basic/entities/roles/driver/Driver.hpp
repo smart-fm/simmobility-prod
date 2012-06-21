@@ -64,10 +64,13 @@ private:
 
 //Constructor and overridden methods.
 public:
-	const static int distanceInFront = 2000;
+	const static int distanceInFront = 3000;
 	const static int distanceBehind = 500;
 	const static int maxVisibleDis = 5000;
-	Driver(Person* parent, sim_mob::MutexStrategy mtxStrat, size_t distributionType1, size_t distributionType2);		//to initiate
+
+
+
+	Driver(Person* parent, sim_mob::MutexStrategy mtxStrat);		//to initiate
 	virtual ~Driver();
 
 	//Virtual implementations
@@ -112,22 +115,23 @@ protected:
 private:
 	//Sample stored data which takes reaction time into account.
 
-	size_t distributionType1;
-	size_t distributionType2;
 	size_t reacTime;
 	FixedDelayed<double> *perceivedFwdVel;
 	FixedDelayed<double> *perceivedFwdAcc;
 	FixedDelayed<double> *perceivedVelOfFwdCar;
 	FixedDelayed<double> *perceivedAccOfFwdCar;
-	FixedDelayed<centimeter_t> *perceivedDistToFwdCar;
-	FixedDelayed<double> *perceivedTrafficSignalStop;
-	FixedDelayed<centimeter_t> *perceivedDistToTrafficSignal;
+	FixedDelayed<double> *perceivedDistToFwdCar;
+	FixedDelayed<Signal::TrafficColor> *perceivedTrafficColor;
+	FixedDelayed<double> *perceivedDistToTrafficSignal;
 
 	NodePoint origin;
 	NodePoint goal;    //first, assume that each vehicle moves towards a goal
 
 
 	double maxLaneSpeed;
+	double disToFwdVehicleLastFrame; //to find whether vehicle is going to crash in current frame.
+	                                     //so distance in last frame need to be remembered.
+
 
 public:
 	//for coordinate transform

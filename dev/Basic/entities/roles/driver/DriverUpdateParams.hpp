@@ -75,7 +75,7 @@ struct DriverUpdateParams : public UpdateParams {
 
 	const Lane* currLane;  //TODO: This should really be tied to PolyLineMover, but for now it's not important.
 	size_t currLaneIndex; //Cache of currLane's index.
-	size_t fromLaneIndex; //for lane changing model
+	size_t nextLaneIndex; //for lane changing model
 	const Lane* leftLane;
 	const Lane* rightLane;
 	const Lane* leftLane2; //the second left lane
@@ -85,9 +85,9 @@ struct DriverUpdateParams : public UpdateParams {
 
 	double currLaneOffset;
 	double currLaneLength;
-	bool isTrafficLightStop;
 	double trafficSignalStopDistance;
 	double elapsedSeconds;
+	Signal::TrafficColor trafficColor;
 
 	double perceivedFwdVelocity;
 	double perceivedLatVelocity;
@@ -98,7 +98,6 @@ struct DriverUpdateParams : public UpdateParams {
 	double perceivedDistToFwdCar;
 	double perceivedDistToTrafficSignal;
 
-	bool perceivedTrafficSignal;
 #ifdef SIMMOB_NEW_SIGNAL
 	sim_mob::TrafficColor perceivedTrafficColor;
 #else
@@ -135,6 +134,7 @@ struct DriverUpdateParams : public UpdateParams {
 	double v_lead;
 	double space_star;
 	double distanceToNormalStop;
+
 
 	//Related to our lane changing model.
 	double dis2stop;

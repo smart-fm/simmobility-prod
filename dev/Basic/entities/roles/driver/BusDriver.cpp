@@ -35,8 +35,8 @@ BusRoute MakeSampleRoute(const vector<const RoadSegment*>& path)
 } //End anonymous namespace
 
 
-sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat, size_t distributionType)
-	: Driver(parent, mtxStrat, distributionType), nextStop(nullptr), waitAtStopMS(0.0)
+sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat)
+	: Driver(parent, mtxStrat), nextStop(nullptr), waitAtStopMS(0.0)
 {
 }
 

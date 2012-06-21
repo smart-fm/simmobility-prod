@@ -50,7 +50,6 @@ using std::endl;
 
 //Helper functions
 namespace {
-
 //Helpful constants
 
 //Output helper
@@ -173,10 +172,10 @@ vector<WayPoint> LoadSpecialPath(const Node* origin, char pathLetter) {
 
 
 //Initialize
-sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, size_t distributionType1, size_t distributionType2) :
+sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat) :
 	Role(parent), currLane_(mtxStrat, nullptr), currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0), isInIntersection(mtxStrat, false),
 	latMovement(mtxStrat,0),fwdVelocity(mtxStrat,0),latVelocity(mtxStrat,0),fwdAccel(mtxStrat,0),turningDirection(mtxStrat,LCS_SAME),vehicle(nullptr),
-	params(parent->getGenerator()),distributionType1(distributionType1),distributionType2(distributionType2)
+	params(parent->getGenerator())
 {
 	if (Debug::Drivers) {
 		DebugStream << "Driver starting: " << parent->getId() << endl;
@@ -184,14 +183,16 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, size_t distribut
 	trafficSignal = nullptr;
 	vehicle = nullptr;
 
-	reacTime = ReactionTimeDistributions::instance().normal();
+	reacTime = ReactionTimeDistributions::instance().reactionTime1() +
+		ReactionTimeDistributions::instance().reactionTime2();
+
 	perceivedFwdVel = new FixedDelayed<double>(reacTime,true);
 	perceivedFwdAcc = new FixedDelayed<double>(reacTime,true);
 	perceivedVelOfFwdCar = new FixedDelayed<double>(reacTime,true);
 	perceivedAccOfFwdCar = new FixedDelayed<double>(reacTime,true);
-	perceivedDistToFwdCar = new FixedDelayed<centimeter_t>(reacTime,true);
-	perceivedTrafficSignalStop = new FixedDelayed<double>(reacTime,true);
-	perceivedDistToTrafficSignal = new FixedDelayed<centimeter_t>(reacTime,true);
+	perceivedDistToFwdCar = new FixedDelayed<double>(reacTime,true);
+	perceivedTrafficColor = new FixedDelayed<Signal::TrafficColor>(reacTime,true);
+	perceivedDistToTrafficSignal = new FixedDelayed<double>(reacTime,true);
 
 
 
@@ -202,6 +203,8 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat, size_t distribut
 
 	//Some one-time flags and other related defaults.
 	nextLaneInNextLink = nullptr;
+	disToFwdVehicleLastFrame = maxVisibleDis;
+
 }
 
 
@@ -238,15 +241,25 @@ void sim_mob::Driver::frame_tick(UpdateParams& p)
 
 	//Update "current" time
 	perceivedFwdVel->update(params.currTimeMS);
+	perceivedFwdAcc->update(params.currTimeMS);
 	perceivedDistToFwdCar->update(params.currTimeMS);
 	perceivedVelOfFwdCar->update(params.currTimeMS);
 	perceivedAccOfFwdCar->update(params.currTimeMS);
-	perceivedTrafficSignalStop->update(params.currTimeMS);
+	perceivedTrafficColor->update(params.currTimeMS);
+	perceivedDistToTrafficSignal->update(params.currTimeMS);
+
+
+
+
+
+
 
 	//retrieved their current "sensed" values.
 	if (perceivedFwdVel->can_sense()) {
 		p2.perceivedFwdVelocity = perceivedFwdVel->sense();
 	}
+	else
+		p2.perceivedFwdVelocity = vehicle->getVelocity();
 
 	//General update behavior.
 	//Note: For now, most updates cannot take place unless there is a Lane and vehicle.
@@ -281,6 +294,7 @@ void sim_mob::Driver::frame_tick(UpdateParams& p)
 	perceivedFwdVel->delay(vehicle->getVelocity());
 	perceivedFwdAcc->delay(vehicle->getAcceleration());
 	//Print output for this frame.
+	disToFwdVehicleLastFrame = p2.nvFwd.distance;
 }
 
 void sim_mob::Driver::frame_tick_output(const UpdateParams& p)
@@ -379,7 +393,7 @@ void sim_mob::DriverUpdateParams::reset(frame_t frameNumber, unsigned int currTi
 	currLaneIndex = getLaneIndex(currLane);
 	currLaneLength = owner.currLaneLength_.get();
 	currLaneOffset = owner.currLaneOffset_.get();
-	fromLaneIndex = currLaneIndex;
+	nextLaneIndex = currLaneIndex;
 
 	//Current lanes to the left and right. May be null
 	leftLane = nullptr;
@@ -392,7 +406,7 @@ void sim_mob::DriverUpdateParams::reset(frame_t frameNumber, unsigned int currTi
 	currSpeed = 0;
 	perceivedFwdVelocity = 0;
 	perceivedLatVelocity = 0;
-	isTrafficLightStop = false;
+	trafficColor = Signal::Green;
 #ifdef SIMMOB_NEW_SIGNAL
 	perceivedTrafficColor = sim_mob::Green;
 #else
@@ -407,7 +421,7 @@ void sim_mob::DriverUpdateParams::reset(frame_t frameNumber, unsigned int currTi
 	perceivedDistToFwdCar = Driver::maxVisibleDis;
 	perceivedDistToTrafficSignal = Driver::maxVisibleDis;
 
-	perceivedTrafficSignal = true;
+	perceivedTrafficColor = Signal::Green;
 	//Lateral velocity of lane changing.
 	laneChangingVelocity = 100;
 
@@ -483,7 +497,9 @@ bool sim_mob::Driver::update_sensors(DriverUpdateParams& params, frame_t frameNu
 	if (!vehicle->getNextSegment() && !vehicle->isInIntersection()) {
 		params.isApproachingToIntersection = true;
 		setTrafficSignalParams(params);
+
 	}
+
 
 	updateNearbyAgents(params);
 
@@ -519,6 +535,8 @@ bool sim_mob::Driver::update_movement(DriverUpdateParams& params, frame_t frameN
 
 	//First, handle driving behavior inside an intersection.
 	if (vehicle->isInIntersection()) {
+		perceivedDistToTrafficSignal->clear();
+		perceivedTrafficColor->clear();
 		intersectionDriving(params);
 	}
 
@@ -558,6 +576,7 @@ bool sim_mob::Driver::update_post_movement(DriverUpdateParams& params, frame_t f
 //			resetPath(params);
 		}
 	}
+
 	if (!vehicle->isInIntersection() && !vehicle->hasNextSegment(true) && vehicle->hasNextSegment(false))
 		chooseNextLaneForNextLink(params);
 
@@ -615,6 +634,7 @@ bool sim_mob::Driver::AvoidCrashWhenLaneChanging(DriverUpdateParams& p)
 //the movement is based on relative position
 double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 
+
 	if (!vehicle->hasNextSegment(true)) {
 		p.dis2stop = vehicle->getAllRestRoadSegmentsLength() - vehicle->getDistanceMovedInSegment() - vehicle->length
 				/ 2 - 300;
@@ -622,13 +642,23 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 			p.dis2stop = p.nvFwd.distance;
 		p.dis2stop /= 100;
 	} else
-		p.dis2stop = 1000;//defalut 1000m
-
-	if (p.fromLaneIndex >= p.currLane->getRoadSegment()->getLanes().size())
-		p.fromLaneIndex = p.currLaneIndex;
+	{
+		p.nextLaneIndex = std::min<int>(p.currLaneIndex, vehicle->getNextSegment()->getLanes().size() - 1);
+		if(vehicle->getNextSegment()->getLanes().at(p.nextLaneIndex)->is_pedestrian_lane())
+		{
+			p.nextLaneIndex--;
+			p.dis2stop = vehicle->getCurrPolylineLength() - vehicle->getDistanceMovedInSegment() + 1000;
+		}
+		else
+			p.dis2stop = 1000;//defalut 1000m
+	}
+//
+//	if (p.nextLaneIndex >= p.currLane->getRoadSegment()->getLanes().size())
+//		p.nextLaneIndex = p.currLaneIndex;
 	//Check if we should change lanes.
-	double newLatVel = lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length,
-			vehicle->getTurningDirection());
+	double newLatVel;
+	newLatVel = 0;//lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length,
+//			vehicle->getTurningDirection());
 	vehicle->setLatVelocity(newLatVel);
 	if(vehicle->getLatVelocity()>0)
 		vehicle->setTurningDirection(LCS_LEFT);
@@ -653,6 +683,7 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 		}
 	}
 
+
 	perceivedDataProcess(nv, p);
 
 	//Retrieve a new acceleration value.
@@ -663,15 +694,12 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 	p.currSpeed = vehicle->getVelocity() / 100;
 	//Call our model
 
+
 	newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed);
+
 
 	//Update our chosen acceleration; update our position on the link.
 	vehicle->setAcceleration(newFwdAcc * 100);
-	if(AvoidCrashWhenLaneChanging(p))
-	{
-		vehicle->setLatVelocity(0);
-		vehicle->setAcceleration(0);
-	}
 
 	return updatePositionOnLink(p);
 }
@@ -776,7 +804,6 @@ bool sim_mob::Driver::isPedestrianOnTargetCrossing() const {
 
 	//Have we found a relevant crossing?
 		if (!crossing) {
-			branch 'master' of ssh://gitremote@soccf-cs-003.ddns.comp.nus.edu.sg/home/gitremote/simmob_remote
 		}
 
 	//Search through the list of agents in that crossing.
@@ -856,7 +883,7 @@ void sim_mob::Driver::syncCurrLaneCachedInfo(DriverUpdateParams& p) {
 //currently it just chooses the first lane from the targetLane
 //Note that this also sets the target lane so that we (hopefully) merge before the intersection.
 void sim_mob::Driver::chooseNextLaneForNextLink(DriverUpdateParams& p) {
-	p.fromLaneIndex = p.currLaneIndex;
+	p.nextLaneIndex = p.currLaneIndex;
 	//Retrieve the node we're on, and determine if this is in the forward direction.
 	const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (vehicle->getNodeMovingTowards());
 	const RoadSegment* nextSegment = vehicle->getNextSegment(false);
@@ -1059,9 +1086,9 @@ void sim_mob::Driver::initializePath() {
 //			length = 1500;
 //		else//car
 //			length = 500;
-		int startlaneID = 0;
+		int startlaneID;
 		if(parent->getId()%2==0)
-			startlaneID = 0;
+			startlaneID = 1;
 		else
 			startlaneID = 2;
 		vehicle = new Vehicle(path, startlaneID, length, width);
@@ -1147,11 +1174,14 @@ double sim_mob::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 			* p.elapsedSeconds * p.elapsedSeconds;
 	if (fwdDistance < 0)
 		fwdDistance = 0;
+
+
 	//double fwdDistance = vehicle->getVelocity()*p.elapsedSeconds;
 	double latDistance = vehicle->getLatVelocity() * p.elapsedSeconds;
 
 	//Increase the vehicle's velocity based on its acceleration.
 	vehicle->setVelocity(vehicle->getVelocity() + vehicle->getAcceleration() * p.elapsedSeconds);
+
 
 	//TEMP: For ns3
 	Person* parentP = dynamic_cast<Person*> (parent);
@@ -1238,8 +1268,6 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 	if (!(other_driver && this != other_driver && !other_driver->isInIntersection.get())) {
 		return;
 	}
-
-
 
 	//Retrieve the other driver's lane, road segment, and lane offset.
 	const Lane* other_lane = other_driver->currLane_.get();
@@ -1412,6 +1440,7 @@ void sim_mob::Driver::updateNearbyPedestrian(DriverUpdateParams& params, const P
 
 void sim_mob::Driver::updateNearbyAgents(DriverUpdateParams& params) {
 	//Retrieve a list of nearby agents
+
 	vector<const Agent*> nearby_agents = AuraManager::instance().nearbyAgents(
 			Point2D(vehicle->getX(), vehicle->getY()), *params.currLane, distanceInFront, distanceBehind);
 
@@ -1434,10 +1463,8 @@ void sim_mob::Driver::updateNearbyAgents(DriverUpdateParams& params) {
 void sim_mob::Driver::perceivedDataProcess(NearestVehicle & nv, DriverUpdateParams& params)
 {
 	//Update your perceptions for leading vehicle and gap
-	perceivedDistToFwdCar->delay(nv.distance);
 	if (nv.exists()) {
-		perceivedVelOfFwdCar->delay(nv.driver->fwdVelocity.get());
-		perceivedAccOfFwdCar->delay(nv.driver->fwdAccel.get());
+
 		//Change perception delay
 		perceivedDistToFwdCar->set_delay(reacTime);
 		perceivedVelOfFwdCar->set_delay(reacTime);
@@ -1458,6 +1485,9 @@ void sim_mob::Driver::perceivedDataProcess(NearestVehicle & nv, DriverUpdatePara
 			params.perceivedAccelerationOfFwdCar = params.nvFwd.driver?params.nvFwd.driver->fwdAccel.get():0;
 			params.perceivedDistToFwdCar = params.nvFwd.distance;
 		}
+		perceivedDistToFwdCar->delay(nv.distance);
+		perceivedVelOfFwdCar->delay(nv.driver->fwdVelocity.get());
+		perceivedAccOfFwdCar->delay(nv.driver->fwdAccel.get());
 	}
 
 
@@ -1637,7 +1667,12 @@ void sim_mob::Driver::updatePositionDuringLaneChange(DriverUpdateParams& p, LANE
 
 //Retrieve the current traffic signal based on our RoadSegment's end node.
 void sim_mob::Driver::saveCurrTrafficSignal() {
-	const Node* node = vehicle->getCurrSegment()->getEnd();
+//	const Node* node = vehicle->getCurrSegment()->getEnd();
+	const Node* node;
+	if(vehicle->isMovingForwardsInLink())
+		node = vehicle->getCurrLink()->getEnd();
+	else
+		node = vehicle->getCurrLink()->getStart();
 	trafficSignal = node ? StreetDirectory::instance().signalAt(*node) : nullptr;
 }
 
@@ -1645,8 +1680,8 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 
 
 	if (!trafficSignal) {
-		p.isTrafficLightStop = false;
-		perceivedTrafficSignalStop->delay(p.isTrafficLightStop);
+		p.trafficColor = Signal::Green;
+		perceivedTrafficColor->delay(p.trafficColor);
 	} else {
 #ifdef SIMMOB_NEW_SIGNAL
 		sim_mob::TrafficColor color;
@@ -1673,7 +1708,7 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 #endif
 
 
-			p.isTrafficLightStop = true;
+			p.trafficColor = color;
 			break;
 #ifdef SIMMOB_NEW_SIGNAL
 		case sim_mob::Amber:
@@ -1684,19 +1719,21 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 #endif
 
 			if (!isPedestrianOnTargetCrossing())
-				p.isTrafficLightStop = false;
+				p.trafficColor = color;
 			else
-				p.isTrafficLightStop = true;
+				p.trafficColor = Signal::Red;
 			break;
 		}
-		p.perceivedTrafficColor = color;
 
-		perceivedTrafficSignalStop->set_delay(reacTime);
-		if(perceivedTrafficSignalStop->can_sense())
+		perceivedTrafficColor->set_delay(reacTime);
+		if(perceivedTrafficColor->can_sense())
 		{
-			p.perceivedTrafficSignal = perceivedTrafficSignalStop->sense();
+			p.perceivedTrafficColor = perceivedTrafficColor->sense();
 		}
-		perceivedTrafficSignalStop->delay(p.isTrafficLightStop);
+		else
+			p.perceivedTrafficColor = color;
+
+		perceivedTrafficColor->delay(p.trafficColor);
 
 
 		p.trafficSignalStopDistance = vehicle->getAllRestRoadSegmentsLength() - vehicle->getDistanceMovedInSegment() - vehicle->length / 2;
@@ -1705,7 +1742,8 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 		{
 			p.perceivedDistToTrafficSignal = perceivedDistToTrafficSignal->sense();
 		}
+		else
+			p.perceivedDistToTrafficSignal = p.trafficSignalStopDistance;
 		perceivedDistToTrafficSignal->delay(p.trafficSignalStopDistance);
-
 	}
 }

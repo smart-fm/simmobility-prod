@@ -132,6 +132,10 @@ bool sim_mob::Vehicle::hasPath() const {
 	return fwdMovement.isPathSet();
 }
 
+bool sim_mob::Vehicle::isMovingForwardsInLink() const {
+	return fwdMovement.isMovingForwardsInLink;
+}
+
 double sim_mob::Vehicle::getX() const {
 	throw_if_error();
 	return getPosition().x;
@@ -185,6 +189,11 @@ double sim_mob::Vehicle::getDistanceMovedInSegment() const {
 double sim_mob::Vehicle::getCurrLinkLaneZeroLength() const {
 	throw_if_error();
 	return fwdMovement.getTotalRoadSegmentLength();
+}
+
+double sim_mob::Vehicle::getCurrPolylineLength() const {
+	throw_if_error();
+	return fwdMovement.getCurrPolylineTotalDist();
 }
 
 double sim_mob::Vehicle::getAllRestRoadSegmentsLength() const {

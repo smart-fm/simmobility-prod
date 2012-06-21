@@ -57,6 +57,7 @@ public:
 	bool isInIntersection() const;   ///<Are we now in an intersection?
 	bool isDone() const; ///<Are we fully done with our path?
 	bool hasPath() const; ///<Do we have a path to move on?
+	bool isMovingForwardsInLink() const;
 
 	//Special
 	double getAngle() const;  ///<For display purposes only.
@@ -76,6 +77,7 @@ public:
 	const sim_mob::Node* getNodeMovingTowards() const;
 	const sim_mob::Node* getNodeMovingFrom() const;
 	double getCurrLinkLaneZeroLength() const;
+	double getCurrPolylineLength() const;
 	double getAllRestRoadSegmentsLength() const;
 	double getCurrLinkReportedLength() const;
 	void shiftToNewLanePolyline(bool moveLeft);

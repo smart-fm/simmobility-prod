@@ -46,11 +46,11 @@ Person* sim_mob::Person::GeneratePersonFromPending(const PendingEntity& p)
 
 	//Set its mode.
 	if (p.type == ENTITY_DRIVER) {
-		res->changeRole(new Driver(res, config.mutexStategy, config.distributionType1, config.distributionType2));
+		res->changeRole(new Driver(res, config.mutexStategy));
 	} else if (p.type == ENTITY_PEDESTRIAN) {
 		res->changeRole(new Pedestrian(res, res->getGenerator()));
 	} else if (p.type == ENTITY_BUSDRIVER) {
-		res->changeRole(new BusDriver(res, config.mutexStategy, config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
+		res->changeRole(new BusDriver(res, config.mutexStategy));
 	} else {
 		throw std::runtime_error("PendingEntity currently only supports Drivers and Pedestrians.");
 	}

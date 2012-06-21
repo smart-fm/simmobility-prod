@@ -188,12 +188,22 @@ void sim_mob::Link::extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>
 //			Point2D newPoint = LineLineIntersect(prePolyline.at(size1-2),prePolyline.at(size1-1),
 //					nextPolyline.at(0),nextPolyline.at(1));
 			//use middle point between the end point of the previous lane and start point of the next lane
+
 			int newX = prePolyline.at(size1-1).getX()/2 + nextPolyline.at(0).getX()/2;
 			int newY = prePolyline.at(size1-1).getY()/2 + nextPolyline.at(0).getY()/2;
 			Point2D newPoint(newX,newY);
 //			std::cout << " 4";
-			preLane->insertNewPolylinePoint(newPoint, true);
-			nextLane->insertNewPolylinePoint(newPoint, false);
+			int dx = prePolyline.at(size1-1).getX() - newX;
+			int dy = prePolyline.at(size1-1).getY() - newY;
+			//two points are very close, don't insert new point
+			int dis = sqrt(dx*dx + dy*dy);
+			if(dis>=20)
+				preLane->insertNewPolylinePoint(newPoint, true);
+			dx = nextPolyline.at(0).getX() - newX;
+			dy = nextPolyline.at(0).getY() - newY;
+			dis = sqrt(dx*dx + dy*dy);
+			if(dis>=20)
+				nextLane->insertNewPolylinePoint(newPoint, false);
 //			std::cout << " 5\n";
 		}
 //		std::cout << " \n";

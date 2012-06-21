@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry kind="lib" path="libs/batik-css.jar" sourcepath="libs/batik-src-1.4.zip"/>
+	<classpathentry kind="lib" path="libs/sac.jar" sourcepath="libs/sac-src-1.3.zip"/>
+	<classpathentry kind="lib" path="libs/batik-util.jar"/>
+	<classpathentry kind="lib" path="libs/gson-2.0.jar" sourcepath="libs/gson-2.0-sources.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/Large Network Visualizer/libs/gson-2.0-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="libs/xuggle-xuggler.jar"/>
+	<classpathentry kind="lib" path="libs/slf4j-api.jar"/>
+	<classpathentry kind="lib" path="libs/logback-classic.jar"/>
+	<classpathentry kind="lib" path="libs/logback-core.jar"/>
+	<classpathentry kind="lib" path="libs/commons-cli.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

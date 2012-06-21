@@ -1,0 +1,43 @@
+#Vector drawing of our car, using a simple JSON format.
+# Json was used to preserve ordering of array elements. 
+# Perl-style comments are supported. 
+
+{
+  #100% zoom coordinate system.
+  "coordinates" :
+  {
+    "width":"12",
+    "height":"3"
+  },
+
+  #Index of colors used by this image. Allows easy substitution.
+  "colors" : 
+  [
+    #Wheels
+    {"id":"header1",  "rgb":"FFD700"},
+    {"id":"header2",  "rgb":"FFD700"},
+
+    #Car body
+    {"id":"body5",          "rgb":"FF0000"},
+    {"id":"body6",          "rgb":"FF0000"},
+    {"id":"body-outline",   "rgb":"712C2C"}
+  ],
+
+  #Items to draw, in order, when rendering this car. Coordinate system
+  # is from [0 .. width/height-1]. Stroke is scaled accordingly.
+  #A "poly" has pairs of x/y coordinates, and is assumed closed.
+  "drawOrder" :
+  [
+    #Car body
+    { "gradient":["body5","body6"], "stroke":"body-outline", "width":"0", "shape":"poly",
+      "points":[0,0, 11,0, 11,2, 0,2]
+    },
+    #Car header
+    { "gradient":["header1","header2"], "stroke":"body-outline", "width":"0", "shape":"poly",
+      "points":[10,0, 11,0, 11,2, 10,2]
+    }
+
+  ]
+
+}
+

@@ -37,37 +37,15 @@ public:
 		IT_TRIP, IT_ACTIVITY
 	};
 
-	ItemType itemType;
-	sim_mob::DailyTime startTime;
 	int entityID;
-
-	unsigned int getSequenceNumber() const {
-		return sequenceNumber;
-	}
-
-	void setSequenceNumber(unsigned int sequenceNumber) {
-		this->sequenceNumber = sequenceNumber;
-	}
-	
-	static LocationType getLocationType(std::string locType);
-
-	static ItemType getItemType(std::string itemType){
-		if(itemType == "Activity") {
-			return IT_ACTIVITY;
-		} else if(itemType == "Trip") {
-			return IT_TRIP;
-		} else {
-			throw std::runtime_error("Unknown trip chain item type.");
-		}
-	}
-
-    virtual ~TripChainItem() {}
-
-protected:
-	// sim_mob::Entity* parentEntity; // Keeping only ID for now. Entity objects will have to be created when Person table has data.//sim_mob::Entity* parentEntity;
-
+	ItemType itemType;
 	unsigned int sequenceNumber;
+	sim_mob::DailyTime startTime;
+	sim_mob::DailyTime endTime;
 
+    virtual ~TripChainItem();
+	static LocationType getLocationType(std::string locType);
+	static ItemType getItemType(std::string itemType);
 };
 
 /**
@@ -82,14 +60,9 @@ public:
 	TripChainItem::LocationType locationType;
 	bool isPrimary;
 	bool isFlexible;
+	bool isMandatory;
 
-	sim_mob::DailyTime activityEndTime;
-
-	sim_mob::DailyTime& activityStartTime() {
-		return startTime;
-	}
-
-	virtual ~Activity() {}
+	virtual ~Activity();
 };
 
 
@@ -100,27 +73,22 @@ public:
 class Trip : public sim_mob::TripChainItem
 {
 public:
+    int tripID;
     sim_mob::Node* fromLocation;
     TripChainItem::LocationType fromLocationType;
     sim_mob::Node* toLocation;
     TripChainItem::LocationType toLocationType;
-    int tripID;
 
-    std::vector<SubTrip*> getSubTrips() const
-    {
+    virtual ~Trip();
+    void addSubTrip(sim_mob::SubTrip* aSubTrip);
+
+    std::vector<SubTrip*> getSubTrips() const {
         return subTrips;
     }
 
-    void setSubTrips(const std::vector<SubTrip*>& subTrips)
-    {
+    void setSubTrips(const std::vector<SubTrip*>& subTrips) {
         this->subTrips = subTrips;
     }
-
-    void addSubTrip(sim_mob::SubTrip* aSubTrip) {
-    	subTrips.push_back(aSubTrip);
-    }
-
-    virtual ~Trip() {}
 
 private:
     std::vector<SubTrip*> subTrips;
@@ -133,8 +101,10 @@ class SubTrip : public sim_mob::Trip {
 public:
 	sim_mob::Trip* parentTrip;
 	std::string mode;
+	bool isPrimaryMode;
+	std::string ptLineId; //Public transit (bus or train) line identifier.
 
-	virtual ~SubTrip() {}
+	virtual ~SubTrip();
 };
 
 }

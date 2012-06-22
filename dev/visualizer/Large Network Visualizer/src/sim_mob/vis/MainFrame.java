@@ -172,7 +172,7 @@ public class MainFrame extends JFrame {
 	    renderVideo = new JButton("Render Video");
 	    
 	    //Disable our render button if this clearly won't work.
-	    renderVideo.setEnabled(false);
+	    renderVideo.setEnabled(true);
 	    String osName = System.getProperty("os.name").toLowerCase();
 	    if (osName.indexOf("nix")>=0 || osName.indexOf("nux")>=0) {
 	    	try {
@@ -586,16 +586,18 @@ public class MainFrame extends JFrame {
 			String fileName;
 			try {
 				BufferedReader br = null;
+				long fileSize = 0;
 				if (isEmbedded) {
 					br = Utility.LoadFileResource("res/data/default.log.txt");
 					fileName = "default.log";
 				} else {
 					br = new BufferedReader(new FileReader(f));
+					fileSize = f.length();
 					fileName = f.getName();
 				}
 
 				rn = new RoadNetwork();
-				rn.loadFileAndReport(br, 0, null);
+				rn.loadFileAndReport(br, fileSize, newViewPnl);
 				
 				br.close();
 			} catch (IOException ex) {
@@ -613,15 +615,12 @@ public class MainFrame extends JFrame {
 			//Load the simulation's results
 			try {
 				BufferedReader br = null;
-				long fileSize = 0;
 				if (isEmbedded) {
 					br = Utility.LoadFileResource("res/data/default.log.txt");
 				} else {
 					br = new BufferedReader(new FileReader(f));
-					fileSize = f.length();
 				}
-				simData = new SimulationResults();
-				simData.loadFileAndReport(br, rn, uniqueAgentIDs, fileSize, newViewPnl);
+				simData = new SimulationResults(br, rn, uniqueAgentIDs);
 				br.close();
 			} catch (IOException ex) {
 				throw new RuntimeException(ex);

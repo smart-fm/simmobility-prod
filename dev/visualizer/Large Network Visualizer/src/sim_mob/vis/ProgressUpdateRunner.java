@@ -17,8 +17,6 @@ public class ProgressUpdateRunner extends Thread {
 	String caption;
 	
 	public ProgressUpdateRunner(NetworkPanel pnl, double value, boolean knownSize, Color color, String caption) {
-		if (pnl==null) { throw new RuntimeException("Can't create progress runner with a null panel."); }
-		
 		this.pnl = pnl;
 		this.value = value;
 		this.knownSize = knownSize;

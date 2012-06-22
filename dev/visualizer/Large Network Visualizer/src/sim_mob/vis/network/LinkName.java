@@ -105,7 +105,7 @@ public class LinkName implements DrawableItem {
 
 		//Apply the transformation, draw the string at the origin.
 		g.setTransform(trans);
-		//g.drawString(name, 0, 0);
+		g.drawString(name, 0, 0);
 
 		//Restore AffineTransform matrix.
 		g.setTransform(oldTrans);

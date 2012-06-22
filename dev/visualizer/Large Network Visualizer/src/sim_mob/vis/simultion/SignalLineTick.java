@@ -8,7 +8,7 @@ import java.util.ArrayList;
  * \author Zhang Shuai
  */
 public class SignalLineTick{
-	private int id;
+	
 	private ArrayList<ArrayList<Integer>> allVehicleLights;
 	private ArrayList<Integer> allPedestrianLights;	
 	private Integer intersectionID;
@@ -18,16 +18,11 @@ public class SignalLineTick{
 	public ArrayList<ArrayList<Integer>> getVehicleLights(){ return allVehicleLights;}
 	public ArrayList<Integer> getPedestrianLights(){return allPedestrianLights;}
 	public boolean getFake(){ return fake; }
-	public SignalLineTick(int id, ArrayList<ArrayList<Integer>> allVehicleLights, ArrayList<Integer> allPedestrainLights,Integer intersectionID){
-		this.id = id;
+	public SignalLineTick(ArrayList<ArrayList<Integer>> allVehicleLights, ArrayList<Integer> allPedestrainLights,Integer intersectionID){
 		this.allVehicleLights = allVehicleLights;
 		this.allPedestrianLights =  allPedestrainLights;
 		this.intersectionID = intersectionID;
 		this.fake = false;
-	}
-	
-	public int getID() {
-		return id;
 	}
 	
 	public void setItFake(){ 

@@ -12,6 +12,7 @@ import javax.swing.UIDefaults.LazyValue;
 import sim_mob.index.LazySpatialIndex;
 import sim_mob.vis.MainFrame;
 import sim_mob.vis.network.basic.*;
+import sim_mob.vis.network.BusStop;
 import sim_mob.vis.network.*;
 import sim_mob.vis.simultion.*;
 import sim_mob.vis.util.Utility;
@@ -39,6 +40,10 @@ public class NetworkVisualizer {
 	//If the distance from the mouse to a given object is less than this value, it is 
 	//considered to be "near" enough to click on. 
 	private static final double NEAR_THRESHHOLD = 20;
+	
+	//Some saved strokes, brushes and colors. 
+	private static final Stroke str1pix = new BasicStroke(1);
+	private static final Color hlColor = new Color(0xFF, 0xAA, 0x55);
 	
 	//The current road network, the simulation results we are showing, and the buffer we are printing it on.
 	private RoadNetwork network;
@@ -101,7 +106,22 @@ public class NetworkVisualizer {
 		return oneM > 1;
 	}
 	
-
+	
+	private static final double Distance(double x1, double y1, double x2, double y2) {
+		double dX = x1-x2;
+		double dY = y1-y2;
+		return Math.sqrt(dX*dX + dY*dY);
+	}
+	private static final double Distance(Point2D start, Point2D end) {
+		return Distance(start.getX(), start.getY(), end.getX(), end.getY());
+	}
+	
+	private static final Ellipse2D CircleFromPoints(Point2D min, Point2D max, double radius) {
+		//Too simplistic, but it will work for now.
+		Point2D center = new Point2D.Double(min.getX()+(max.getX()-min.getX())/2, min.getY()+(max.getY()-min.getY())/2);
+		Ellipse2D el = new Ellipse2D.Double(center.getX()-radius, center.getY()-radius, radius*2, radius*2);
+		return el;
+	}
 		
 	public NetworkVisualizer(MainFrame parent) {
 		this.parent = parent;
@@ -455,7 +475,7 @@ public class NetworkVisualizer {
 			}
 		}
 	}*/
-	/*private void drawAllAnnotations(Graphics2D g, boolean showAimsun, boolean showMitsim) {
+	private void drawAllAnnotations(Graphics2D g, boolean showAimsun, boolean showMitsim) {
 		if (showAimsun) {
 			for (Annotation an : network.getAimsunAnnotations()) {
 				an.draw(g,p);
@@ -466,7 +486,7 @@ public class NetworkVisualizer {
 				an.draw(g,p);
 			}
 		}
-	}*/
+	}
 	/*
 	private void drawAllSegments(Graphics2D g, boolean ShowSegments) {
 		if(!ShowSegments) { return; }
@@ -601,11 +621,21 @@ public class NetworkVisualizer {
 		if (orig==null || tracking==null) { return; }
 		
 		index.addItem(tracking, tracking.getBounds());
-		
-		//Add the tracking item too
-		//TODO: This is kind of hackish; need to think of a better way to do it (e.g., have the agent store it?)
-		TrackAgentItem ti = new TrackAgentItem(orig.getPos(), tracking.getPos());
-		index.addItem(ti, ti.getBounds());
+		//tracking.draw(g, scaleMult, true, false, new Point2D.Double(currView.getWidth(), currView.getHeight()));
+			
+		//Draw a circle and a line
+		//TODO: Re-enable this later.
+		/*g.setColor(hlColor);
+		g.setStroke(str1pix);
+		Point2D min = new Point2D.Double(Math.min(orig.getPos().getX(), tracking.getPos().getX()), Math.min(orig.getPos().getY(), tracking.getPos().getY()));
+		Point2D max = new Point2D.Double(Math.max(orig.getPos().getX(), tracking.getPos().getX()), Math.max(orig.getPos().getY(), tracking.getPos().getY()));
+		double dist = Distance(min, max);
+		if (dist>1.0) {
+			Line2D line = new Line2D.Double(min.getX(), min.getY(), max.getX(), max.getY());
+			Ellipse2D el = CircleFromPoints(min, max, dist/2);
+			g.draw(el);
+			g.draw(line);
+		}*/
 	}
 	
 	

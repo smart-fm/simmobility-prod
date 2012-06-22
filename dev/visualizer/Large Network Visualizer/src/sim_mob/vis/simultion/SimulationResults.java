@@ -1,22 +1,12 @@
 package sim_mob.vis.simultion;
 
 
-import java.awt.Color;
 import java.io.*;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.regex.Matcher;
 
-import javax.lang.model.element.Element;
-import javax.swing.SwingUtilities;
-
-import sim_mob.act.BifurcatedActivity;
-import sim_mob.act.SimpleThreadPool;
-import sim_mob.vis.ProgressUpdateRunner;
-import sim_mob.vis.controls.NetworkPanel;
 import sim_mob.vis.network.*;
 import sim_mob.vis.network.basic.ScaledPoint;
-import sim_mob.vis.util.FastLineParser;
 import sim_mob.vis.util.Utility;
 
 
@@ -28,8 +18,6 @@ import sim_mob.vis.util.Utility;
  * \author Anirudh Sivaraman
  */
 public class SimulationResults {
-	private static final int LINE_BUFFER_LIMIT = 50; //X lines per thread.
-	
 	public ArrayList<TimeTick> ticks;
 	
 	private static double[] xBounds;
@@ -47,20 +35,9 @@ public class SimulationResults {
 		}
 	}
 	
-	public SimulationResults() {}
-	
-	
-	
-	public void loadFileAndReport(BufferedReader inFile, RoadNetwork rn, HashSet<Integer> uniqueAgentIDs, long fileLength, NetworkPanel progressUpdate) throws IOException {
+	public SimulationResults(BufferedReader inFile, RoadNetwork rn, HashSet<Integer> uniqueAgentIDs) throws IOException {
 		ticks = new ArrayList<TimeTick>();
 		frame_length_ms = -1;
-		
-		//Provide feedback to the user
-		long totalBytesRead = 0;
-		long lastKnownTotalBytesRead = 0;
-		if (progressUpdate!=null) {
-			SwingUtilities.invokeLater(new ProgressUpdateRunner(progressUpdate, 0.0, false, new Color(0x00, 0x00, 0xFF), ""));
-		}
 		
 		//TEMP: Hack for agents which are out of bounds
 		xBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
@@ -71,20 +48,6 @@ public class SimulationResults {
 		ArrayList<LogFileLine> lineBuffer = new ArrayList<LogFileLine>();
 		SimpleThreadPool stp = new SimpleThreadPool(10); //No more than 10 threads at once.
 		while ((line=inFile.readLine())!=null) {
-			//Update
-			totalBytesRead += line.length();
-			boolean pushUpdate = (totalBytesRead - lastKnownTotalBytesRead) > 1024;
-			
-			//Send a message
-			if (pushUpdate && progressUpdate!=null) {
-				lastKnownTotalBytesRead = totalBytesRead;
-				if (fileLength>0) {
-					SwingUtilities.invokeLater(new ProgressUpdateRunner(progressUpdate, totalBytesRead/((double)fileLength), true, new Color(0x00, 0x00, 0xFF), ""));
-				} else {
-					SwingUtilities.invokeLater(new ProgressUpdateRunner(progressUpdate, totalBytesRead, false, new Color(0x00, 0x00, 0xFF), ""));
-				}
-			}
-			
 			//Comment?
 			line = line.trim();
 			if (line.isEmpty() || line.startsWith("#")) { continue; }
@@ -96,7 +59,6 @@ public class SimulationResults {
 			if (!oldStyle && !newStyle) {
 				continue;
 			}
-			
 			//Add to array
 			lineBuffer.add(new LogFileLine(line, newStyle));
 			if (lineBuffer.size()>LINE_BUFFER_LIMIT) {
@@ -113,10 +75,6 @@ public class SimulationResults {
 			//Push to thread
 			stp.newTask(new SimResLineParser(lineBuffer, this, uniqueAgentIDs), true);
 		}
-		
-		//Wait
-		stp.joinAll();
-		
 		
 		if (frame_length_ms==-1) {
 			throw new RuntimeException("Error: missing \"simulation\" tag.");
@@ -436,106 +394,29 @@ public class SimulationResults {
 		    //Add it to our temporary list
 		    saveTempAgent(pRes.frame, tempBusDriver, false);
 		}
-		
-		
-		void parsePedestrian(Utility.ParseResults pRes) throws IOException {
-		    //Check and parse properties.
-			if (!pRes.confirmProps(new String[]{"xPos", "yPos"})) {
-				throw new IOException("Missing required key in type: " + pRes.type);
-			}
-		    
-		    //Now save the relevant information
-		    double xPos = Double.parseDouble(pRes.properties.get("xPos"));
-		    double yPos = Double.parseDouble(pRes.properties.get("yPos"));
 
-		    
-		    //Create a temp pedestrian
-		    PedestrianTick tempPedestrian = new PedestrianTick(pRes.objID, xPos, yPos);
-		    
-		    //Check if the pedestrian is fake
-		    if(pRes.properties.containsKey("fake")){
-		    	if(pRes.properties.get("fake").equals("true")){
-		    		tempPedestrian.setItFake();
-		    	}
-		    }
-
-		    
-		    //Add this agent to the proper frame.
-		    saveTempAgent(pRes.frame, tempPedestrian, false);
-		}
 		
-		
-		void parseSignalLines(Utility.ParseResults pRes) throws IOException {
-		    //Check and parse properties.
-			if (!pRes.confirmProps(new String[]{"va", "vb", "vc", "vd", "pa", "pb", "pc", "pd"})) {
-				throw new IOException("Missing required key in type: " + pRes.type);
-			}
-		    
-		    //Now save the relevant information.  
-		    ArrayList<ArrayList<Integer>> allVehicleLights = new ArrayList<ArrayList<Integer>>();
-		    allVehicleLights.add(parseEachSignal(pRes.properties.get("va")));
-		    allVehicleLights.add(parseEachSignal(pRes.properties.get("vb")));
-		    allVehicleLights.add(parseEachSignal(pRes.properties.get("vc")));
-		    allVehicleLights.add(parseEachSignal(pRes.properties.get("vd")));
-		    
-		    ArrayList<Integer> allPedestrainLights = new ArrayList<Integer>();
-		    allPedestrainLights.add(Integer.parseInt(pRes.properties.get("pa")));
-		    allPedestrainLights.add(Integer.parseInt(pRes.properties.get("pb")));
-		    allPedestrainLights.add(Integer.parseInt(pRes.properties.get("pc")));
-		    allPedestrainLights.add(Integer.parseInt(pRes.properties.get("pd")));
-		    
-		  
-		    //Create a temp signal
-		    SignalLineTick tempSignalLineTick = new SignalLineTick(pRes.objID, allVehicleLights, allPedestrainLights ,pRes.objID);
-
-		    //Check if signal is fake
-		    if(pRes.properties.containsKey("fake")){
-		    	if(pRes.properties.get("fake").equals("true")){
-		    		tempSignalLineTick.setItFake();
-		    	}
-		    }
-		    
-		    //Save it to add later
-		    saveTempSignal(pRes.frame, tempSignalLineTick);
-
-		}
-		
-		void parseSimulation(Utility.ParseResults pRes) throws IOException {
-		    //Check and parse properties.
-			if (!pRes.confirmProps(new String[]{"frame-time-ms"})) {
-				throw new IOException("Missing required key in type: " + pRes.type);
-			}
-		    
-		    //Check
-		    if (pRes.frame!=0) { throw new RuntimeException("Simulation block must have frame-id=0"); }
-		    if (pRes.objID!=0) { throw new RuntimeException("Simulation block must have agent-id=0"); }
-		    
-		    //Now save the relevant information
-		    resObj.tempFrameLenMS = Integer.parseInt(pRes.properties.get("frame-time-ms"));
-		}
 	}
 	
-	
-	public void reserveTimeTick(int frameID) {
-	    while (ticks.size()<=frameID) {
-	    	TimeTick t = new TimeTick();
-	    	ticks.add(t);
-	    }
-	}
-	
-	public void addAgent(int frameID, AgentTick agTick, boolean isReal) {
-		TimeTick t = ticks.get(frameID);
-		if (isReal) {
-			t.agentTicks.put(agTick.getID(), agTick);
-		} else {
-			t.trackingTicks.put(agTick.getID(), agTick);
+	//We assume the x/y bounds will be within those saved by the RoadNetwork.
+	private void dispatchConstructionRequest(String objType, int frameID, int objID, String rhs, RoadNetwork rn, HashSet<Integer> uniqueAgentIDs) throws IOException {
+		if (objType.equals("Driver")) {
+			parseDriver(frameID, objID, rhs, rn);
+			uniqueAgentIDs.add(objID);
+		} else if (objType.equals("BusDriver")) {
+			parseBusDriver(frameID, objID, rhs, rn);
+			uniqueAgentIDs.add(objID);
+		} else if (objType.equals("Signal")) {
+//			parseSignal(frameID, objID, rhs);
+			parseSignalLines(frameID, objID, rhs);
+			//uniqueAgentIDs.add(objID); //NOTE: This should work! Need to check Signal ID code....
+		} else if (objType.equals("pedestrian")) {
+			parsePedestrian(frameID, objID, rhs, rn);
+			uniqueAgentIDs.add(objID);
+		} else if (objType.equals("simulation")) {
+			parseSimulation(frameID, objID, rhs, rn);
 		}
 	}
-	
-	public void addSignal(int frameID, SignalLineTick sigTick) {
-		ticks.get(frameID).signalLineTicks.put(sigTick.getID(), sigTick);
-	}
-
 
 	private static ArrayList<Integer> parseEachSignal(String signal){
 		ArrayList<Integer> signalLights =  new ArrayList<Integer>();
@@ -552,6 +433,241 @@ public class SimulationResults {
 		
 		
 		return signalLights;	
+	}
+		
+	private void parseSignalLines(int frameID, int objID, String rhs) throws IOException{
+	    //Check and parse properties.
+	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"va", "vb", "vc", "vd", "pa", "pb", "pc", "pd"});
+	    
+	    //Now save the relevant information.  
+	    ArrayList<ArrayList<Integer>> allVehicleLights = new ArrayList<ArrayList<Integer>>();
+	    allVehicleLights.add(parseEachSignal(props.get("va")));
+	    allVehicleLights.add(parseEachSignal(props.get("vb")));
+	    allVehicleLights.add(parseEachSignal(props.get("vc")));
+	    allVehicleLights.add(parseEachSignal(props.get("vd")));
+	    
+	    ArrayList<Integer> allPedestrainLights = new ArrayList<Integer>();
+	    allPedestrainLights.add(Integer.parseInt(props.get("pa")));
+	    allPedestrainLights.add(Integer.parseInt(props.get("pb")));
+	    allPedestrainLights.add(Integer.parseInt(props.get("pc")));
+	    allPedestrainLights.add(Integer.parseInt(props.get("pd")));
+	    
+	    
+	    //Ensure the frame has been created
+	    while (ticks.size()<=frameID) {
+	    	TimeTick t = new TimeTick();
+	    	ticks.add(t);
+	    }
+	  
+	    //Create a temp signal
+	    SignalLineTick tempSignalLineTick = new SignalLineTick(allVehicleLights, allPedestrainLights ,objID);
+
+	    //Check if signal is fake
+	    if(props.containsKey("fake")){
+	    	if(props.get("fake").equals("true")){
+	    		tempSignalLineTick.setItFake();
+	    	}
+	    }
+	    
+	    //Add it to current time tick
+	    ticks.get(frameID).signalLineTicks.put(objID, tempSignalLineTick);
+
+	}
+	
+	private void parseDriver(int frameID, int objID, String rhs, RoadNetwork rn) throws IOException {
+	    //Check and parse properties.
+	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"xPos", "yPos", "angle"});
+	    
+	    //Now save the relevant information
+	    double xPos = Double.parseDouble(props.get("xPos"));
+	    double yPos = Double.parseDouble(props.get("yPos"));
+	    double angle = Double.parseDouble(props.get("angle"));
+	    //double rxLong=Double.parseDouble(props.get("rxLong"));
+	    //double rxLat=Double.parseDouble(props.get("rxLat"));
+	    
+	    //See if we have a message icon to show
+	    DriverTick.RxLocation msgLoc = null;
+	    if (props.containsKey("rxLong") && props.containsKey("rxLat")) {
+	    	msgLoc = new DriverTick.RxLocation();
+	    	msgLoc.longitude = Double.parseDouble(props.get("rxLong"));
+	    	msgLoc.latitude = Double.parseDouble(props.get("rxLat"));
+	    }
+	    
+	    
+	    //TEMP: Hack for out-of-bounds agents
+	    /*if (OutOfBounds(xPos, yPos, rn)) {
+	    	Utility.CheckBounds(xBounds, xPos);
+	    	Utility.CheckBounds(yBounds, yPos);
+	    }*/
+	    
+	    //Double-check angle
+	    if (angle<0 || angle>360) {
+	    	throw new RuntimeException("Angle must be in bounds.");
+	    }
+	    
+	    //Ensure the frame has been created
+	    while (ticks.size()<=frameID) {
+	    	TimeTick t = new TimeTick();
+	    	ticks.add(t);
+	    }
+	  
+	    //Create temp driver
+	    DriverTick tempDriver = new DriverTick(xPos, yPos, angle, msgLoc);
+	    
+	    //Check if the driver is fake
+	    if(props.containsKey("fake")){
+	    	if(props.get("fake").equals("true")){
+	    		tempDriver.setItFake();
+	    	}
+	    }
+	    //Check if it's a "tracking" version of this car
+	    boolean tracking = false;
+	    if (props.containsKey("tracking")) {
+	    	tracking = props.get("tracking").toLowerCase().equals("true");
+	    }
+	    //Check if the car has a length and width or not
+	    if(props.containsKey("length") && props.containsKey("width")){
+	    	tempDriver.setLenth(Integer.parseInt(props.get("length")));
+	    	tempDriver.setWidth(Integer.parseInt(props.get("width")));
+	    }
+	    
+	    tempDriver.setID(objID);
+	    
+	    //Add this agent to the proper frame. If it's a "tracking" item, add it a parallel 
+	    // list which contains tracking Agents
+	    TimeTick currTick = ticks.get(frameID);
+	    if (tracking) {
+	    	//For now, just reuse the "fake" prperty
+	    	tempDriver.setItFake();
+	    	currTick.trackingTicks.put(objID, tempDriver);
+	    } else {
+	    	currTick.agentTicks.put(objID, tempDriver);
+	    }
+	}
+	
+	
+	//TODO: This shares a lot of functionality with parseDriver(). Can we merge some of it?
+	private void parseBusDriver(int frameID, int objID, String rhs, RoadNetwork rn) throws IOException {
+	    //Check and parse properties.
+	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"xPos", "yPos", "angle","passengers"});
+	    
+	    //Now save the relevant information
+	    double xPos = Double.parseDouble(props.get("xPos"));
+	    double yPos = Double.parseDouble(props.get("yPos"));
+	    double angle = Double.parseDouble(props.get("angle"));
+	    int numPassengers = Integer.parseInt(props.get("passengers"));
+	    //double rxLong=Double.parseDouble(props.get("rxLong"));
+	    //double rxLat=Double.parseDouble(props.get("rxLat"));
+	    
+	    //See if we have a message icon to show
+	    BusDriverTick.RxLocation msgLoc = null;
+	    if (props.containsKey("rxLong") && props.containsKey("rxLat")) {
+	    	msgLoc = new BusDriverTick.RxLocation();
+	    	msgLoc.longitude = Double.parseDouble(props.get("rxLong"));
+	    	msgLoc.latitude = Double.parseDouble(props.get("rxLat"));
+	    }
+	    
+	    
+	    //TEMP: Hack for out-of-bounds agents
+	    /*if (OutOfBounds(xPos, yPos, rn)) {
+	    	Utility.CheckBounds(xBounds, xPos);
+	    	Utility.CheckBounds(yBounds, yPos);
+	    }*/
+	    
+	    //Double-check angle
+	    if (angle<0 || angle>360) {
+	    	throw new RuntimeException("Angle must be in bounds.");
+	    }
+	    
+	    //Ensure the frame has been created
+	    while (ticks.size()<=frameID) {
+	    	TimeTick t = new TimeTick();
+	    	ticks.add(t);
+	    }
+	  
+	    //Create temp Busdriver
+	    BusDriverTick tempBusDriver = new BusDriverTick(xPos, yPos, angle,numPassengers, msgLoc);
+	    
+	    //Check if the Busdriver is fake
+	    if(props.containsKey("fake")){
+	    	if(props.get("fake").equals("true")){
+	    		tempBusDriver.setItFake();
+	    	}
+	    }
+	    //Check if it's a "tracking" version of this car
+	    boolean tracking = false;
+	    if (props.containsKey("tracking")) {
+	    	tracking = props.get("tracking").toLowerCase().equals("true");
+	    }
+	    //Check if the car has a length and width or not
+	    if(props.containsKey("length") && props.containsKey("width")){
+	    	tempBusDriver.setLenth(Integer.parseInt(props.get("length")));
+	    	tempBusDriver.setWidth(Integer.parseInt(props.get("width")));
+	    }
+	    
+	    tempBusDriver.setID(objID);
+	    
+	    //Add this agent to the proper frame. If it's a "tracking" item, add it a parallel 
+	    // list which contains tracking Agents
+	    TimeTick currTick = ticks.get(frameID);
+	    if (tracking) {
+	    	//For now, just reuse the "fake" prperty
+	    	tempBusDriver.setItFake();
+	    	currTick.trackingTicks.put(objID, tempBusDriver);
+	    } else {
+	    	currTick.agentTicks.put(objID, tempBusDriver);
+	    }
+	}
+	
+	private void parsePedestrian(int frameID, int objID, String rhs, RoadNetwork rn) throws IOException {
+	    //Check and parse properties.
+	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"xPos", "yPos"});
+	    
+	    //Now save the relevant information
+	    double xPos = Double.parseDouble(props.get("xPos"));
+	    double yPos = Double.parseDouble(props.get("yPos"));
+	    //Integer.parseInt(props.get("pedSig")); //Currently not used
+	    
+	    //TEMP: Hack for out-of-bounds agents
+	    /*if (OutOfBounds(xPos, yPos, rn)) {
+	    	Utility.CheckBounds(xBounds, xPos);
+	    	Utility.CheckBounds(yBounds, yPos);
+	    }*/
+	    
+	    //Ensure the frame has been created
+	    while (ticks.size()<=frameID) {
+	    	TimeTick t = new TimeTick();
+	    	ticks.add(t);
+	    }
+	    
+	    //Create a temp pedestrian
+	    PedestrianTick tempPedestrian = new PedestrianTick(xPos, yPos);
+	    
+	    //Check if the pedestrian is fake
+	    if(props.containsKey("fake")){
+	    	if(props.get("fake").equals("true")){
+	    		tempPedestrian.setItFake();
+	    	}
+	    }
+	  	
+	    //Set ID
+	    tempPedestrian.setID(objID);
+	    
+	    //Add this agent to the proper frame.
+	    ticks.get(frameID).agentTicks.put(objID, tempPedestrian);
+	}
+
+	
+	private void parseSimulation(int frameID, int objID, String rhs, RoadNetwork rn) throws IOException {
+	    //Check and parse properties.
+	    Hashtable<String, String> props = Utility.ParseLogRHS(rhs, new String[]{"frame-time-ms"});
+	    
+	    //Check
+	    if (frameID!=0) { throw new RuntimeException("Simulation block must have frame-id=0"); }
+	    if (objID!=0) { throw new RuntimeException("Simulation block must have agent-id=0"); }
+	    
+	    //Now save the relevant information
+	    this.frame_length_ms = Integer.parseInt(props.get("frame-time-ms"));
 	}
 
 

@@ -69,7 +69,7 @@ Person* sim_mob::Person::GeneratePersonFromPending(const PendingEntity& p)
  void sim_mob::Person::getFirstTripInChain(std::vector<sim_mob::SubTrip*>::iterator& subTripPtr){
 	std::vector<sim_mob::TripChainItem*>::iterator it = this->getTripChain().begin();
 	do{
-		if((*it)->itemType == sim_mob::trip){
+		if((*it)->itemType == sim_mob::TripChainItem::IT_TRIP){
 			subTripPtr = dynamic_cast<sim_mob::Trip*>((*it))->getSubTrips().begin();
 		}
 		it++;
@@ -201,7 +201,7 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) 
 	prevRole = currRole;
 
 	//Create a new Role based on the trip chain type
-	if((*(this->currTripChainItem))->itemType == sim_mob::trip){
+	if((*(this->currTripChainItem))->itemType == sim_mob::TripChainItem::IT_TRIP){
 		if ((*(this->currSubTrip))->mode == "Car") {
 			//Temp. (Easy to add in later)
 			throw std::runtime_error("Cars not supported in Trip Chain role change.");

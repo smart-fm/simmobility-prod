@@ -17,7 +17,7 @@
 namespace aimsun
 {
 //Forward Declaration
-class sim_mob::aimsun::Node;
+//class sim_mob::aimsun::Node;
 //class SubTrip;
 
 enum Location_Type{
@@ -34,20 +34,20 @@ enum TripChainItemType {
  */
 class TripChainItem {
 public: // Activity related
-	sim_mob::TripChainItemType itemType;
+	sim_mob::TripChainItem::ItemType itemType;
 	sim_mob::DailyTime startTime;
 	int entityID;
 	std::string description;
 	sim_mob::aimsun::Node* location;
-	sim_mob::Location_Type locationType;
+	sim_mob::TripChainItem::LocationType locationType;
 	bool isPrimary;
 	bool isFlexible;
 	sim_mob::DailyTime activityStartTime;
 	sim_mob::DailyTime activityEndTime;
 	sim_mob::aimsun::Node* fromLocation;
-	sim_mob::Location_Type fromLocationType;
+	sim_mob::TripChainItem::LocationType fromLocationType;
     sim_mob::aimsun::Node* toLocation;
-    sim_mob::Location_Type toLocationType;
+    sim_mob::TripChainItem::LocationType toLocationType;
     int tripID;
 	std::string mode;
 

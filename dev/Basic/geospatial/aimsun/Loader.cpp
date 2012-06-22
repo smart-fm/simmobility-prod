@@ -387,7 +387,7 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 	//Exectue as a rowset to avoid repeatedly building the query.
 	tripchains_.clear();
 	for (soci::rowset<aimsun::TripChainItem>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
-		if(it->itemType == sim_mob::trip){
+		if(it->itemType == sim_mob::TripChainItem::IT_TRIP){
 			//if Trip
 
 			//aimsun::SubTrip& aSubTrip = static_cast<aimsun::SubTrip&>(*it);
@@ -407,7 +407,7 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 			(*it).toLocation = &nodes_[(*it).tmp_toLocationNodeID];
 			tripchains_.push_back(*it);
 		}
-		else if(it->itemType == sim_mob::activity) {
+		else if(it->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
 			//if Activity
 
 			//aimsun::Activity& anActivity = static_cast<aimsun::Activity&>(*it);
@@ -415,6 +415,8 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 			(*it).activityEndTime = sim_mob::DailyTime((*it).tmp_activityEndTime);
 			(*it).location = &nodes_[(*it).tmp_locationID];
 			tripchains_.push_back(*it);
+		} else {
+			throw std::runtime_error("Unexpected trip chain type.");
 		}
 
 	}
@@ -1022,7 +1024,7 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 	int currTripId = 0;
 
 	for (vector<aimsun::TripChainItem>::iterator it=tripchains_.begin(); it!=tripchains_.end(); it++) {
-		if (it->itemType == sim_mob::activity){
+		if (it->itemType == sim_mob::TripChainItem::IT_ACTIVITY){
 			//TODO: Person related work
 			//*anActivity = static_cast<aimsun::Activity&>(*it);
 			activityToSave = new sim_mob::Activity();
@@ -1034,12 +1036,12 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 			activityToSave->isFlexible = it->isFlexible;
 			activityToSave->location = it->location->generatedNode;
 			activityToSave->locationType = it->locationType;
-			activityToSave->activityStartTime = it->activityStartTime;
+			activityToSave->activityStartTime() = it->activityStartTime;
 			activityToSave->activityEndTime = it->activityEndTime;
 
 			tcs.push_back(activityToSave);
 		}
-		else if(it->itemType == sim_mob::trip){
+		else if(it->itemType == sim_mob::TripChainItem::IT_TRIP){
 			// Reads the set of sub trips for this trip and saves the trip in the trip chains
 			do{
 				if(currTripId != it->tripID){
@@ -1064,13 +1066,13 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 				aSubTripInTrip->startTime = it->startTime;
 				aSubTripInTrip->parentTrip = tripToSave;
 
-				tripToSave->addSubTrip(*aSubTripInTrip);
+				tripToSave->addSubTrip(aSubTripInTrip);
 
 				// Update the trip destination
 				tripToSave->toLocation = it->toLocation->generatedNode;
 				tripToSave->toLocationType = it->toLocationType;
 				++it;
-				if(it->itemType != sim_mob::trip){
+				if(it->itemType != sim_mob::TripChainItem::IT_TRIP){
 					//Encountered an activity or end of trip chain. Last subtrip was reached in this iteration.
 					--it; // So that the next iteration of the for loop points to this activity
 					break;

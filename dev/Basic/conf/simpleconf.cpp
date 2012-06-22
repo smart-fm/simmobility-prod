@@ -238,7 +238,7 @@ bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 			bool firstTripReached = false; //First trip is yet to be seen
 			do {
 				currentEntityID = (*it)->entityID;
-				if ((*it)->itemType == sim_mob::trip && !firstTripReached) {
+				if ((*it)->itemType == sim_mob::TripChainItem::IT_TRIP && !firstTripReached) {
 					sim_mob::Trip* firstTripForEntity = dynamic_cast<Trip*>(*it);
 					sim_mob::SubTrip* firstSubTripForEntity =
 							dynamic_cast<SubTrip*>(firstTripForEntity->getSubTrips().front());

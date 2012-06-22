@@ -1,5 +1,6 @@
 package sim_mob.vis.util;
 
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -64,6 +65,7 @@ public class Utility {
 	}
 	
 	
+	
 	/**
 	 * Helper method: load an image resource using the classpath. 
 	 *   (This is required if we package the visualizer as a JAR, e.g., if we create an applet.)
@@ -102,10 +104,10 @@ public class Utility {
 	}
 	
 	
-	public static void CheckBounds(double[] bounds, double newVal) {
+	/*public static void CheckBounds(double[] bounds, double newVal) {
 		bounds[0] = Math.min(bounds[0], newVal);
 		bounds[1] = Math.max(bounds[1], newVal);
-	}
+	}*/
 	
 	public static ArrayList<Integer> ParseLaneNodePos(String input){
 		ArrayList<Integer> pos = new ArrayList<Integer>();
@@ -137,32 +139,25 @@ public class Utility {
 	}
 	
 	
-	public static Hashtable<String, String> ParseLogRHS(String rhs, String[] ensure) throws IOException {
+	private static Hashtable<String, String> ParseLogRHS(String rhs) {
 		//Json-esque matching
 		Hashtable<String, String> properties = new Hashtable<String, String>();
 		Matcher m = Utility.LOG_RHS_REGEX.matcher(rhs);
 		while (m.find()) {
 			if (m.groupCount()!=2) {
-				throw new IOException("Unexpected group count (" + m.groupCount() + ") for: " + rhs);
+				properties.put("@@EXCEPTION@@", "Unexpected group count (" + m.groupCount() + ") for: " + rhs);
+				return properties;
 			}
 			
 			String keyStr = m.group(1);
 			String value = m.group(2);
 			if (properties.containsKey(keyStr)) {
-				throw new IOException("Duplicate key: " + keyStr);
+				properties.put("@@EXCEPTION@@", "Duplicate key: " + keyStr);
+				return properties;
 			}
 			properties.put(keyStr, value);
 		}
-		
-		//Now confirm
-		for (String reqKey : ensure) {
-			if (!properties.containsKey(reqKey)) {
-				throw new IOException("Missing key: " + reqKey + " in: " + rhs);
-			}
-		}
-		
 		return properties;
-		
 	}
 	
 	public static ArrayList<Integer> ParseLinkPaths(String input){
@@ -176,11 +171,6 @@ public class Utility {
 		return pos;
 	}
 
-	public static double Distance(double x1, double y1, double x2, double y2) { 
-		double dx   = x2 - x1;
-		double dy   = y2 - y1;
-		return Math.sqrt(dx*dx + dy*dy);
-	}
 	
 	
 	public static final String printRect(Rectangle2D rect) {
@@ -285,16 +275,16 @@ public class Utility {
 		return res;
 	}
 	
-
+	
 	//regex-related
 	private static final String rhs = "\\{([^}]*)\\}"; //NOTE: Contains a capture group
 	private static final String sep = ", *";
 	private static final String strn = "\"([^\"]*)\"";
 	private static final String num = "([0-9]+)";
 	private static final String numH = "((?:0x)?[0-9a-fA-F]+)";
-	public static final Pattern LOG_LHS_REGEX = Pattern.compile("\\(" + strn + sep + num + sep + numH + sep  + rhs + "\\)");
-	public static final Pattern LOG_RHS_REGEX = Pattern.compile(strn + ":" + strn + ",?");
+	private static final Pattern LOG_LHS_REGEX = Pattern.compile("\\(" + strn + sep + num + sep + numH + sep  + rhs + "\\)");
+	private static final Pattern LOG_RHS_REGEX = Pattern.compile(strn + ":" + strn + ",?");
 	public static final Pattern NUM_REGEX = Pattern.compile(num);
-	public static final Pattern NUMH_REGEX = Pattern.compile(numH);
+	private static final Pattern NUMH_REGEX = Pattern.compile(numH);
 }
 

@@ -1,27 +1,14 @@
 package sim_mob.vis.simultion;
 
-import java.awt.BasicStroke;
-
-
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.Stroke;
+import java.awt.*;
 
 import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Hashtable;
-
 import sim_mob.vect.SimpleVectorImage;
 import sim_mob.vis.MainFrame;
 import sim_mob.vis.controls.DrawParams;
-<<<<<<< Updated upstream
-=======
-import sim_mob.vis.controls.DrawableItem;
-import sim_mob.vis.network.basic.FlippedScaledPoint;
->>>>>>> Stashed changes
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.util.Utility;
 
@@ -29,256 +16,112 @@ import sim_mob.vis.util.Utility;
  * BusDriver "Agent Tick"
  * 
  * \author Seth N. Hetu
- * \author Zhang Shuai
- * \author Anirudh Sivaraman
  */
-public class BusDriverTick extends AgentTick {
-	private static SimpleVectorImage CarImg;
-	private static SimpleVectorImage BusImg;
-	private static SimpleVectorImage TruckImg;
+public class BusDriverTick extends DriverTick {
+	private static SimpleVectorImage TempBusImg;
+	private static SimpleVectorImage DebugTempBusImg;
+	private static SimpleVectorImage FakeTempBusImg;
 	
-	private static SimpleVectorImage DebugCarImg;
-	private static SimpleVectorImage DebugBusImg;
-	private static SimpleVectorImage DebugTruckImg;
 	
-	private static SimpleVectorImage FakeCarImg;
-	private static SimpleVectorImage FakeBusImg;
-	private static SimpleVectorImage FakeTruckImg;
-	
-	protected static Stroke debugStr = new BasicStroke(1.0F);
-	protected static Color debugClr = new Color(0x00, 0x00, 0x66);
-	protected static Font idFont = new Font("Arial", Font.PLAIN, 10);
-	private static final String[] BusBkgdColorIDs = new String[] {
-		"body1", "body2", "body5", "body6", "window1", "window2", "wheel"
+	//Later: custom colors
+	private static final String[] TmpBusBkgdColorIDs = new String[] {
+		"body", "body-lower", "lower-stripe", "upper-stripe", "light", "window"
 	};
-	private static final String[] BusLineColorIDs = new String[] {
-		"body-outline", "window-outline", "wheel-outline"
+	private static final String[] TmpBusLineColorIDs = new String[] {
+		"body-outline", "window-outline"
 	};
 
-	
-	
-	/*private static BufferedImage CarImg;
-	private static BufferedImage FakeCarImg;
-	static {
-		try {
-			CarImg = Utility.LoadImgResource("res/entities/car.png");
-			FakeCarImg = Utility.LoadImgResource("res/entities/fake_car.png");
-		} catch (IOException ex) {
-			throw new RuntimeException(ex);
-		}
-	}*/
-	//private static boolean isCar;
-	
-	public static class RxLocation {
-		public double longitude;
-		public double latitude;
-	}
-	
-	
-	private RxLocation msgLocation; //If null, display no message
-	private int ID;
-	private double angle;
-	private boolean fake;
-	private int length;
-	private int width;
+
+	//The only field unique to BusDrivers (for now
 	private int passengerCount;
-	public int getID(){return ID;}
-	public int getLength(){return length;}
-	public int getWidth() {return width;}
-	public double getAngle() { return angle; } 
-	public boolean getFake() { return fake; }
-	/**
-	 * NOTE: Here is where we start to see some inefficiencies with our ScaledPoint implementation.
-	 *       When we re-scale, every car on every time tick has its position scaled. We should 
-	 *       limit this to the current frame, and then continue to scale frames as they arrive. 
-	 */
-
 
 	
-	
-	//Let's assume a car is 3m square?
-	public Rectangle2D getBounds() {
-		final double NODE_CM = 3*100; //3m square 
-		Rectangle2D res = new Rectangle2D.Double(
-			pos.getUnscaledX()-NODE_CM/2,
-			pos.getUnscaledY()-NODE_CM/2,
-			NODE_CM, NODE_CM);
-		
-		//System.out.println("BusDriver bounds: " + Utility.printRect(res));
-		
-		return res;
-	}
-	
-	
-	public int getZOrder() {
-		return DrawableItem.Z_ORDER_BUSDRIVER;
-	}
-	
-	
-	public BusDriverTick(double posX, double posY, double angle,int passengerCount,RxLocation msgLocation) {
-		this.pos = new FlippedScaledPoint(posX, posY);
-		this.angle = angle;
-		this.fake = false;
+	public BusDriverTick(int id, double posX, double posY, double angle, int passengerCount) {
+		super(id, posX, posY, angle, null);
 		this.passengerCount = passengerCount;
-		//BusDriverTick.isCar = true;
-		
-		//System.out.println(posY + " : " + this.pos.getUnscaledY());
-		
-		this.msgLocation = msgLocation;
-		if(BusImg==null){
-			MakeBusImage();
-		}
 
-		if (DebugBusImg==null) {
-			MakeDebugBusImage();
+		//Make our images
+		if(TempBusImg==null){
+			MakeTempBusImg();
 		}
-		if (FakeBusImg==null) {
-			MakeFakeBusImage();
+		if (DebugTempBusImg==null) {
+			MakeDebugTempBusImg();
+		}
+		if (FakeTempBusImg==null) {
+			MakeFakeTempBusImg();
 		}
 
 	}
 	
-	private static void MakeBusImage() {
+	private static void MakeTempBusImg() {
 		//Load it.
 		try {
-			
-			CarImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/car_v1.json.txt"));
-			BusImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/bus.json.txt"));
-			TruckImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/truck.json.txt"));
+			TempBusImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/tmp_bus.json.txt"));
 			
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
 		}
 		
 		//Recolor per the user's config file.
-		Hashtable<String, Color> overrides = MainFrame.GetOverrides("bus", BusBkgdColorIDs, BusLineColorIDs);
-		BusImg.buildColorIndex(overrides);
+		Hashtable<String, Color> overrides = MainFrame.GetOverrides("tmp-bus", TmpBusBkgdColorIDs, TmpBusLineColorIDs);
+		TempBusImg.buildColorIndex(overrides);
 	}
 	
-	private static void MakeDebugBusImage() {
+	private static void MakeDebugTempBusImg() {
 		//Load it.
 		try {
-			DebugCarImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/car_v1.json.txt"));
-			DebugBusImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/bus.json.txt"));
-			DebugTruckImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/truck.json.txt"));
+			DebugTempBusImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/tmp_bus.json.txt"));
 			
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
 		}
 		
 		//Recolor per the user's config file.
-		Hashtable<String, Color> overrides = MainFrame.GetOverrides("bus-debug", BusBkgdColorIDs, BusLineColorIDs);
-		DebugBusImg.buildColorIndex(overrides);
+		Hashtable<String, Color> overrides = MainFrame.GetOverrides("tmp-bus-debug", TmpBusBkgdColorIDs, TmpBusLineColorIDs);
+		DebugTempBusImg.buildColorIndex(overrides);
 	}
 	
-	private static void MakeFakeBusImage() {
+	private static void MakeFakeTempBusImg() {
 		//Load it.
 		try {
-			FakeCarImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/car_v1.json.txt"));
-			FakeBusImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/bus.json.txt"));
-			FakeTruckImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/truck.json.txt"));
-
+			FakeTempBusImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/tmp_bus.json.txt"));
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
 		}
 		
 		//Recolor per the user's config file.
-		Hashtable<String, Color> overrides = MainFrame.GetOverrides("bus-fake", BusBkgdColorIDs, BusLineColorIDs);
-		FakeCarImg.buildColorIndex(overrides);
-		FakeCarImg.phaseColors(0xFF/2);
+		Hashtable<String, Color> overrides = MainFrame.GetOverrides("tmp-bus-fake", TmpBusBkgdColorIDs, TmpBusLineColorIDs);
+		FakeTempBusImg.buildColorIndex(overrides);
+		FakeTempBusImg.phaseColors(0xFF/2);
 
-		FakeBusImg.buildColorIndex(overrides);
-		FakeBusImg.phaseColors(0xFF/2);
+		FakeTempBusImg.buildColorIndex(overrides);
+		FakeTempBusImg.phaseColors(0xFF/2);
 		
-		FakeTruckImg.buildColorIndex(overrides);
-		FakeTruckImg.phaseColors(0xFF/2);
+		FakeTempBusImg.buildColorIndex(overrides);
+		FakeTempBusImg.phaseColors(0xFF/2);
 	}
 	
-<<<<<<< Updated upstream
-=======
-	
-	public void setItFake(){
-		fake = true;
-	}
-	public void setLenth(int length){
-		this.length = length;
-	}
-	public void setWidth(int width){
-		this.width = width;
-	}
-	public void setID(int id){
-		this.ID = id;
-	}
-	
-	
->>>>>>> Stashed changes
 	public void draw(Graphics2D g, DrawParams params) {
 		
-	//}
-	//public void draw(Graphics2D g,double scaleMultiplier, boolean drawFake,boolean debug, Point2D size100Percent){
 		AffineTransform oldAT = g.getTransform();
-
+		AffineTransform at = AffineTransform.getTranslateInstance(pos.getX(), pos.getY());
 		
-		//System.out.println("Drawing at: " + pos.getX() + "," + pos.getY());
-		
-
-		//AffineTransform at = AffineTransform.getTranslateInstance(pos.getX(), pos.getY());
-		AffineTransform at = new AffineTransform(oldAT);
-		at.translate(pos.getX(), pos.getY());
-		
-		
-		
-		//Your visible angle depends on the skew of the current viewport. 
-		//  For now we just project and return the angle each time, but this can
-		//  probably be cached in the same way ScaledPoint is... it only needs to change
-		//  when the viewport skew changes.
-		//TODO: Cache this somehow, see above.
-		//TODO: There should be a much easier mathematical way of doing this.
-		double angleD = angle;
-		if (params.CurrentViewSize.getX() != params.CurrentViewSize.getY()) {
-			if (angle>0 && angle!=90 && angle!=180 && angle!=270 && angle<360) {
-				//Guaranteed to be working with angles with non-zero x/y components, and a non-trivial skew factor.
-				double xScale = (double)(params.CurrentViewSize.getX()) / Math.max(params.CurrentViewSize.getX(), params.CurrentViewSize.getY());
-				double yScale = (double)(params.CurrentViewSize.getY()) / Math.max(params.CurrentViewSize.getX(), params.CurrentViewSize.getY());
-				
-				//System.out.println("Original angle: " + angleD);
-				
-				//Save the quadrant (y-mirrored). Also reduce angleD to Q1 (real)
-				int quadrant = 0;
-				if (angle<90) {
-					quadrant = 1;
-				} else if (angle<180) {
-					quadrant = 2;
-					angleD = 180-angleD;
-				} else if (angle<270) {
-					quadrant = 3;
-					angleD -= 180;
-				} else if (angle<360) {
-					quadrant = 4;
-					angleD = 360-angleD;
-				} else { throw new RuntimeException("Bad angle: " + angle); }
-				
-				//Project the angle, scale it
-				xScale *= Math.cos(angleD * Math.PI/180);
-				yScale *= Math.sin(angleD * Math.PI/180);
-				
-				//Now retrieve the visual angle
-				angleD = Math.atan(yScale/xScale) * 180/Math.PI;
-				
-				//Factor in quadrants again.
-				if (quadrant==2) {
-					angleD = 180 - angleD;
-				} else if (quadrant==3) {
-					angleD = 180 + angleD;
-				} else if (quadrant==4) {
-					angleD = 360 - angleD;
-				} else if (quadrant!=1) { throw new RuntimeException("Bad quadrant: " + quadrant); }
-				
-				//System.out.println("   Fixed angle: " + angleD);
-			}
+		//HACK: Modify the angle slightly based on the quadrant
+		double angleD = getAngle();
+		if (angleD<90) {
+			//Moving down-right
+			angleD -= 7;
+		} else if (getAngle()<180) {
+			//Moving down-left
+			angleD += 7;
+		} else if (getAngle()<270) {
+			//Moving up-left
+			angleD -= 7;
+		} else if (getAngle()<360) {
+			//Moving up-right
+			angleD += 7;
 		}
 		
-<<<<<<< Updated upstream
 		//TEMP
 		double onePixelInM = 50; //Assume pixels are 15m		
 		double scaleMultiplier = (ScaledPoint.getScaleFactor().getX()*onePixelInM);
@@ -286,44 +129,8 @@ public class BusDriverTick extends AgentTick {
 		//Retrieve the image to draw
 		SimpleVectorImage svi = (params.DrawFakeOn&&getFake()) ? FakeTempBusImg: params.DebugOn ? DebugTempBusImg : TempBusImg;			
 		BufferedImage toDraw = svi.getImage(scaleMultiplier, angleD, true);
-=======
-		SimpleVectorImage svi = null;
-		
-		//Retrieve the image to draw
-
-		
-		if(this.length == 400){
-			System.out.println("data");
-			svi = (params.DrawFakeOn&&fake) ? FakeCarImg : params.DebugOn ? DebugCarImg : CarImg;		
-		
-		}else if(this.length == 1200){
-			 svi = (params.DrawFakeOn&&fake) ? FakeBusImg : params.DebugOn ? DebugBusImg : BusImg;		
-			
-		}else if(this.length == 1500){
-			 svi = (params.DrawFakeOn&&fake) ? FakeTruckImg : params.DebugOn ? DebugTruckImg : TruckImg;		
-		}else{
-			 svi = (params.DrawFakeOn&&fake) ? FakeBusImg : params.DebugOn ? DebugBusImg : CarImg;
-			 System.out.println("Error, No such length, use car image instead -- BusDriverTick, draw()");
-		}
-		
-		
-		//TEMP
-		double onePixelInM = 200; //Assume pixels are 15m		
-	
-		double scaleMultiplier = (ScaledPoint.getScaleFactor().getX()*onePixelInM);
-		
-		
-		BufferedImage toDraw = svi.getImage(scaleMultiplier, angleD, true);
-		
-		//Rotate
-		//at.rotate((Math.PI*angle)/180);
-		
-		//Scale
-		//at.scale(1/scale + 0.2, 1/scale + 0.2);
->>>>>>> Stashed changes
 			
 		//Translate to top-left corner
-		//at.translate(-CarImg.getWidth()/2, -CarImg.getHeight()/2);
 		at.translate(-toDraw.getWidth()/2, -toDraw.getHeight()/2);
 
 		//Set new transformation matrix
@@ -332,14 +139,22 @@ public class BusDriverTick extends AgentTick {
 		//Draw the car
 		g.drawImage(toDraw, 0, 0, null);
 		
-		//Draw its message
-		if (msgLocation != null) {
-			g.setBackground(Color.RED);
-			g.clearRect(+6, -10, 170,20);
-			//double roundedLong=((int)(msgLocation.longitude*100000))/100000;
-			//double roundedLat=((int)(msgLocation.latitude*100000))/100000;
-			String loc=String.format("%.5f,%.5f", msgLocation.longitude, msgLocation.latitude);
-			g.drawString(loc, 10, 10);
+		//Draw a circle with its passenger count
+		if (passengerCount>0) {
+			Point center = new Point(toDraw.getWidth()/2, toDraw.getHeight()/2-20);
+			final int Size = 20;
+			
+			//Background
+			g.setColor(Color.BLUE);
+			g.fillOval(center.x-Size/2, center.y-Size/2, Size, Size);
+			g.setColor(Color.CYAN);
+			g.drawOval(center.x-Size/2, center.y-Size/2, Size, Size);
+			
+			//Text
+			g.setColor(Color.WHITE);
+			g.setFont(DriverTick.idFont);
+			int strW = g.getFontMetrics().stringWidth(""+passengerCount);
+			g.drawString(""+passengerCount, center.x-strW/2+1, center.y+4);
 		}
 		
 		//Restore old transformation matrix
@@ -350,45 +165,13 @@ public class BusDriverTick extends AgentTick {
 			int sz = 12;
 			int x = (int)pos.getX();
 			int y = (int)pos.getY();
-			g.setColor(debugClr);
-			g.setStroke(debugStr);
+			g.setColor(DriverTick.debugClr);
+			g.setStroke(DriverTick.debugStr);
 			g.drawOval(x-sz, y-sz, 2*sz, 2*sz);
 			g.drawLine(x-3*sz/2, y, x+3*sz/2,y);
 			g.drawLine(x, y-3*sz/2, x, y+3*sz/2);
-			
-			//drawString(g);
 		}
 	}
-	
-	public void drawString(Graphics2D g)
-	{
-		//Save old transformation.
-		AffineTransform oldTrans = g.getTransform();
-		
-		float targetX = (float)(pos.getX());
-		float targetY = (float)(pos.getY());
-		
-		//Create a new translation matrix which is located at the center of the string.
-		//AffineTransform trans = AffineTransform.getTranslateInstance(targetX, targetY);
-		AffineTransform trans = new AffineTransform(oldTrans);
-		trans.translate(targetX, targetY);
-		
-		
-		//Apply the transformation, draw the string at the origin.
-		g.setTransform(trans);
-		
-		g.setColor(Color.GREEN);
-		g.setFont(idFont);
-		g.setStroke(new BasicStroke(0.5F));
-		
-		String id = Integer.toString(ID);
-		g.drawString(id, 0, 0);
-
-		//Restore AffineTransform matrix.
-		g.setTransform(oldTrans);
-		
-	}
-	
 	
 }
 

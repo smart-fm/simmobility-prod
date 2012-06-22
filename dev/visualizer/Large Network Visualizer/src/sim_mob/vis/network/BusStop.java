@@ -107,17 +107,15 @@ public class BusStop implements DrawableItem {
 		g.setStroke(BusStopStroke);    
 
 		g.drawLine((int)nearOne.getX(), (int)nearOne.getY(), (int)nearTwo.getX(), (int)nearTwo.getY()); 
-		g.drawLine((int)nearOne.getX(), (int)nearOne.getY(), (int)farTwo.getX(), (int)farTwo.getY()); 
 		g.drawLine((int)farOne.getX(), (int)farOne.getY(), (int)farTwo.getX(), (int)farTwo.getY()); 
-		g.drawLine((int)nearTwo.getX(), (int)nearTwo.getY(), (int)farOne.getX(), (int)farOne.getY()); 
 
 		Polygon poly = new Polygon();		
-		poly.addPoint((int)nearOne.getX(), (int)nearOne.getY());		
+		poly.addPoint((int)nearOne.getX(), (int)nearOne.getY());
 		poly.addPoint((int)nearTwo.getX(), (int)nearTwo.getY());
-		poly.addPoint((int)farOne.getX(), (int)farOne.getY());
 		poly.addPoint((int)farTwo.getX(), (int)farTwo.getY());
-       
-		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,0.2f));
+		poly.addPoint((int)farOne.getX(), (int)farOne.getY());
+        
+		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,0.5f));
 		g.fillPolygon(poly);
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,1.0f));
 		

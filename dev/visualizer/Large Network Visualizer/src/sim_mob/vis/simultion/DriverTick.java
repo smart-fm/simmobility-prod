@@ -73,13 +73,11 @@ public class DriverTick extends AgentTick {
 	
 	
 	private RxLocation msgLocation; //If null, display no message
-	private int ID;
 	private double angle;
 	private boolean fake;
 	private int length;
 	private int width;
 //	private int pickNumber;
-	public int getID(){return ID;}
 	public int getLength(){return length;}
 	public int getWidth() {return width;}
 	public double getAngle() { return angle; } 
@@ -91,8 +89,8 @@ public class DriverTick extends AgentTick {
 	 */
 
 
-	public DriverTick(double posX, double posY, double angle) {
-		this(posX, posY, angle, null);
+	public DriverTick(int id, double posX, double posY, double angle) {
+		this(id, posX, posY, angle, null);
 	}
 	
 	//Let's assume a car is 3m square?
@@ -114,11 +112,12 @@ public class DriverTick extends AgentTick {
 	}
 	
 	
-	public DriverTick(double posX, double posY, double angle, RxLocation msgLocation) {
+	public DriverTick(int id, double posX, double posY, double angle, RxLocation msgLocation) {
+		super(id);
+		
 		this.pos = new FlippedScaledPoint(posX, posY);
 		this.angle = angle;
 		this.fake = false;
-		
 		//DriverTick.isCar = true;
 		
 		//System.out.println(posY + " : " + this.pos.getUnscaledY());
@@ -202,9 +201,6 @@ public class DriverTick extends AgentTick {
 	}
 	public void setWidth(int width){
 		this.width = width;
-	}
-	public void setID(int id){
-		this.ID = id;
 	}
 	
 	
@@ -294,7 +290,7 @@ public class DriverTick extends AgentTick {
 		
 		
 		//TEMP
-		double onePixelInM = 200; //Assume pixels are 15m		
+		double onePixelInM = 50; //Assume pixels are 15m		
 	
 		double scaleMultiplier = (ScaledPoint.getScaleFactor().getX()*onePixelInM);
 		
@@ -366,7 +362,7 @@ public class DriverTick extends AgentTick {
 		g.setFont(idFont);
 		g.setStroke(new BasicStroke(0.5F));
 		
-		String id = Integer.toString(ID);
+		String id = Integer.toString(getID());
 		g.drawString(id, 0, 0);
 
 		//Restore AffineTransform matrix.

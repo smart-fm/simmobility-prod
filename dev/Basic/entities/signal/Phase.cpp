@@ -191,8 +191,13 @@ std::string Phase::createStringRepresentation(std::string newLine) const {
 		links_map_iterator it = links_map_.begin();
 		while (it != links_map_.end()) {
 			output << "{";
-			output << "\"link_from\":\"" << (*it).first << "\" ,"; //linkFrom
-			output << "\"link_to\":\"" << (*it).second.LinkTo << "\"}";
+			//link_based
+//			output << "\"link_from\":\"" << (*it).first << "\" ,"; //linkFrom
+//			output << "\"link_to\":\"" << (*it).second.LinkTo << "\"}";
+			//segment_based
+			output << "\"segment_from\":\"" << (*it).second.RS_From << "\" ,"; //segmentFrom
+			output << "\"segment_to\":\"" << (*it).second.RS_To << "\"}";
+
 			it++;
 			if (it != links_map_.end())
 				output << "," << newLine;
@@ -363,8 +368,12 @@ std::string Phase::outputPhaseTrafficLight(std::string newLine) const
 		links_map_iterator it = links_map_.begin();
 		while (it != links_map_.end()) {
 			output << "{";
-			output << "\"link_from\":\"" << (*it).first << "\" ,"; //linkFrom
-			output << "\"link_to\":\"" << (*it).second.LinkTo << "\",";//linkTo
+			//link based
+//			output << "\"link_from\":\"" << (*it).first << "\" ,"; //linkFrom
+//			output << "\"link_to\":\"" << (*it).second.LinkTo << "\",";//linkTo
+			//segment based
+			output << "\"segment_from\":\"" << (*it).second.RS_From << "\" ,"; //linkFrom
+			output << "\"segment_to\":\"" << (*it).second.RS_To << "\",";//linkTo
 			output <<"\"current_color\":" << (*it).second.currColor << "}";//currColor
 			it++;
 			if (it != links_map_.end())

@@ -1,5 +1,6 @@
 package sim_mob.vis.network;
 import sim_mob.vis.network.Intersection;
+import sim_mob.vis.network.SignalHelper;
 import sim_mob.vis.util.Utility;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
@@ -43,44 +44,6 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 		private Crossing[] crossings;
 //		public Link[] getLinks(){ return links;}
 	}
-///////////////////////////////////
-	//This class is used to store the int representation of the parent class's private members
-	//since all these information has be sent to intersection, they are bundled in a helpre class called SignalHelper
-	//so SignalHelper has a member variable in intersection+get/set functions
-	public class SignalHelper {
-		public SignalHelper(){}
-		private class Link {		
-		public Link(){};
-		public Link(int link_from_, int link_to_){
-			link_from = link_from_;
-			link_to = link_to_;
-		}
-			private int link_from;
-			private int link_to;
-			}
-
-		private class Crossing {
-			public Crossing(){};
-			public Crossing(int id_){
-				id = id_;
-			}
-			private int id;
-			// private Integer current_color;
-		}
-
-		private class Phase {
-			public Phase(){};
-			public Phase(String name_){name = name_;};
-			private String name;
-			private ArrayList<Link> links;
-			private ArrayList<Crossing> crossings;
-		}
-		private int hex_id;
-		private int node;
-		private ArrayList<Phase> phases;
-
-	}
-///////////////////////////////////
 	private String hex_id;
 	private String simmob_id;
 	private String node;
@@ -89,8 +52,8 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 	SignalHelper signalHelper;
 	public void addSelfToSimulation(RoadNetwork rdNet, SimulationResults simRes) {
 		//TODO: Here is where you'd add this traffic signal to the road network.
-		int intersectionNodeID = Utility.ParseIntOptionalHex(node);
-		int intersectionID = Utility.ParseIntOptionalHex(hex_id);
+		signalHelper.nodeId = Utility.ParseIntOptionalHex(node);
+		signalHelper.hex_id = Utility.ParseIntOptionalHex(hex_id);//intersection id
 		for(Phase ph: phases)
 		{
 			SignalHelper.Phase phase = signalHelper.new Phase(ph.name);
@@ -109,7 +72,7 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 			signalHelper.phases.add(phase);
 		}
 		//Something like this?....
-		rdNet.getIntersections().put(intersectionID, new Intersection(signalHelper));
+		rdNet.getIntersections().put(signalHelper.hex_id, new Intersection(signalHelper));
 	}
 	
 	public void draw(Graphics2D g, DrawParams params) {

@@ -1,6 +1,8 @@
 #pragma once
 
+#include "defaults.hpp"
 #include "Color.hpp"
+#include "geospatial/MultiNode.hpp"
 #include<vector>
 #include<string>
 #include <map>
@@ -13,9 +15,11 @@
 namespace sim_mob
 {
 //Forward declarations
-class Crossing;
-class Link;
+//class Crossing;
+//class Link;
 class SplitPlan;
+class RoadSegment;
+//class MultiNode;
 
 
 //////////////some bundling ///////////////////
@@ -24,17 +28,21 @@ class SplitPlan;
 
 struct ll
 {
-	ll(sim_mob::Link *linkto = nullptr):LinkTo(linkto) {
+	ll(sim_mob::Link *linkto):LinkTo(linkto) {
 			colorSequence.addColorDuration(Green,0);
 			colorSequence.addColorDuration(Amber,3);//a portion of the total time of the phase length is taken by amber
 			colorSequence.addColorDuration(Red,1);//All red moment ususally takes 1 second
 
 		currColor = sim_mob::Red;
+		RS_From = RS_To = 0;
 	}
 
 	sim_mob::Link *LinkTo;
 	mutable ColorSequence colorSequence;
 	mutable TrafficColor currColor;
+	//just in case you need to use segment instead of link
+	sim_mob::RoadSegment *RS_From;
+	sim_mob::RoadSegment *RS_To;
 };
 typedef ll linkToLink;
 
@@ -66,9 +74,10 @@ typedef struct
 	Crossings crossings;//the required field in this container are:link , crossing, current color(all but ColorSequence)
 }PhaseUpdateResult;
 /////////////////////////////////////////////////////////////////////////////
-typedef std::multimap<sim_mob::Crossing *, sim_mob::Crossings> crossings_map;
+typedef std::map<sim_mob::Crossing *, sim_mob::Crossings> crossings_map;
 
 typedef crossings_map::const_iterator crossings_map_const_iterator;
+typedef crossings_map::iterator crossings_map_iterator;
 typedef std::pair<crossings_map_const_iterator, crossings_map_const_iterator> crossings_map_equal_range;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*
@@ -83,6 +92,7 @@ public:
 	typedef std::pair<links_map_const_iterator, links_map_const_iterator> links_map_equal_range;
 
 	typedef crossings_map::iterator crossings_map_iterator;
+	typedef crossings_map::const_iterator crossings_map_const_iterator;
 
 	Phase(){}
 	Phase(std::string name_, sim_mob::SplitPlan *parent = nullptr):name(name_),parentPlan(parent){}
@@ -111,15 +121,21 @@ public:
 	{
 		return links_map_.equal_range(LinkFrom);
 	}
-	void addLinkMaping(sim_mob::Link * lf, sim_mob::linkToLink ll)const {
-
-		links_map_.insert(std::pair<sim_mob::Link *, sim_mob::linkToLink>(lf,ll));
-	}
+	void addLinkMapping(sim_mob::Link * lf, sim_mob::linkToLink &ll, sim_mob::MultiNode *node)const ;
+//	{
+//		std::cout << "RS_From b4:" << ll.RS_From << std::endl;
+//		ll.RS_From = findRoadSegment(lf,node);
+//		ll.RS_To = findRoadSegment(ll.LinkTo,node);
+//		std::cout << "RS_From after:" << ll.RS_From << std::endl;
+//		getchar();
+//		links_map_.insert(std::pair<sim_mob::Link *, sim_mob::linkToLink>(lf,ll));
+//	}
 	void addCrossingMapping(sim_mob::Link *,sim_mob::Crossing *, ColorSequence);
 	void addCrossingMapping(sim_mob::Link *,sim_mob::Crossing *);
 	//add crossing to any link of this node which is not involved in this phase
-	void addDefaultCrossings();
-	const links_map & getLinkMaps();
+	void addDefaultCrossings(sim_mob::LinkAndCrossingByLink const & ,sim_mob::MultiNode *node);
+	const links_map & getLinkMaps();//apparently not needed, getLinkTos is good enough for getdriverlight()
+	const crossings_map & getCrossingMaps() const;
 //	links_map_equal_range  getLinkTos(sim_mob::Link *LinkFrom) ;
 	void updatePhaseParams(double phaseOffset_, double percentage_);
 	/* Used in computing DS for split plan selection
@@ -128,11 +144,17 @@ public:
 	void update(double lapse) const;
 	double computeTotalG() const;//total green time
 	const std::string & getPhaseName() { return name;}
-	std::string createStringRepresentation() const;
+	std::string createStringRepresentation(std::string newLine) const;
 	void initialize();
 	void calculateGreen();
+	void calculateGreen_Crossings();
+	void calculateGreen_Links();
 	void calculatePhaseLength();
 	void printColorDuration() ;
+	void printPhaseColors(double currCycleTimer) const;
+	const std::string & getName() const;
+	 std::string outputPhaseTrafficLight(std::string newLine) const;
+	 sim_mob::RoadSegment * findRoadSegment(sim_mob::Link *, sim_mob::MultiNode *) const;
 
 	const std::string name; //we can assign a name to a phase for ease of identification
 private:
@@ -151,6 +173,6 @@ private:
 	sim_mob::SplitPlan *parentPlan;
 
 	friend class SplitPlan;
-	friend class Signal;
+	friend class Signal_SCATS;
 };
 }//namespace

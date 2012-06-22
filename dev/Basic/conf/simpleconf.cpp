@@ -9,8 +9,11 @@
 
 //Include here (forward-declared earlier) to avoid include-cycles.
 #include "entities/PendingEntity.hpp"
+#include "entities/PendingEvent.hpp"
+//#include "entities/PendingEvent.cpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
+#include "entities/roles/driver/ReactionTimeDistributions.hpp"
 #include "entities/signal/Signal.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/driver/Driver.hpp"
@@ -132,6 +135,23 @@ int ReadGranularity(TiXmlHandle& handle, const std::string& granName)
 }
 
 
+
+int ReadValue(TiXmlHandle& handle, const std::string& propName)
+{
+	TiXmlElement* node = handle.FirstChild(propName).ToElement();
+	if (!node) {
+		return -1;
+	}
+
+	int value;
+	if (!node->Attribute("value", &value)) {
+		return -1;
+	}
+
+	return value;
+}
+
+
 void SplitAndAddString(vector<string>& arr, string str)
 {
     std::istringstream iss(str);
@@ -180,7 +200,30 @@ void addOrStashEntity(const PendingEntity& p, std::vector<Entity*>& active_agent
 {
 	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p.start==0) {
 		//Only agents with a start time of zero should start immediately in the all_agents list.
-		active_agents.push_back(Person::GeneratePersonFromPending(p));
+		Person* person = Person::GeneratePersonFromPending(p);
+		active_agents.push_back(person);
+		if (!p.activities.empty()){
+			TripActivity* activity = *(p.activities.begin());
+			if(activity->startTime == 0){
+				//set up person's current activity
+				person->setCurrActivity(activity);
+				person->setOnActivity(true);
+				//set up person's next event
+				KNOWN_EVENT_TYPES t = ACTIVITY_END;
+				PendingEvent pe(t, activity->location, activity->endTime);
+				person->setNextEvent(&pe);
+				//add this person into the queue of agents with active activities
+				//active_activities.push_back(person);
+				//add the pending event to the pending activities queue
+				//pending_activities.push(pe);
+			}
+			else{
+				KNOWN_EVENT_TYPES t = ACTIVITY_START;
+				PendingEvent pe(t, activity->location, activity->startTime);
+				person->setNextEvent(&pe);
+				//pending_activities.push(pe);
+			}
+		}
 	} else {
 		//Start later.
 		pending_agents.push(p);
@@ -221,6 +264,9 @@ bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 		//curr->setStartTime(
 		p.start = (*it)->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 
+		//added to handle activities
+		//by Jenny
+		p.activities = (*it)->activities;
 
 		//Add it or stash it
 		addOrStashEntity(p, active_agents, pending_agents);
@@ -406,7 +452,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 }
 
 #ifdef SIMMOB_NEW_SIGNAL
-bool loadXMLSignals(TiXmlDocument& document, Signal::all_signals all_signals, const std::string& signalKeyID)
+bool loadXMLSignals(TiXmlDocument& document, const std::string& signalKeyID)
 #else
 bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal*> all_signals, const std::string& signalKeyID)
 #endif
@@ -484,10 +530,11 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal*> all_signals, c
                 }
                 else
                 {
-                    // The following call will create and register the signal with the
-                    // street-directory.
-                	std::cout << "register signal again!" << std::endl;
-                    Signal::signalAt(*road_node, ConfigParams::GetInstance().mutexStategy);
+                	std::cout << "signal at node(" << xpos << ", " << ypos << ") was not found; No more action will be taken\n ";
+//                    // The following call will create and register the signal with the
+//                    // street-directory.
+//                	std::cout << "register signal again!" << std::endl;
+//                    Signal::signalAt(*road_node, ConfigParams::GetInstance().mutexStategy);
                 }
             }
             catch (boost::bad_lexical_cast &)
@@ -524,6 +571,7 @@ bool LoadDatabaseDetails(TiXmlElement& parentElem, string& connectionString, map
 	//Now, load the stored procedure mappings
 	elem = handle.FirstChild("mappings").FirstChild().ToElement();
 	if (!elem) {
+
 		return false;
 	}
 
@@ -532,9 +580,10 @@ bool LoadDatabaseDetails(TiXmlElement& parentElem, string& connectionString, map
 		string name = elem->ValueStr();
 		const char* value = elem->Attribute("procedure");
 		if (!value) {
+
 			return false;
 		}
-		if (storedProcedures.count(name)!=0) {
+		if (storedProcedures.count(name)>0) {
 			return false;
 		}
 
@@ -634,8 +683,8 @@ void PrintDB_Network()
 	;
 
 #ifdef SIMMOB_NEW_SIGNAL
-	Signal::all_signals_const_Iterator it;
-	for (it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++)
+	sim_mob::Signal::all_signals_const_Iterator it;
+	for (it = sim_mob::Signal::all_signals_.begin(); it!= sim_mob::Signal::all_signals_.end(); it++)
 #else
 	for (std::vector<Signal*>::const_iterator it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++)
 #endif
@@ -883,11 +932,29 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	int totalWarmup = ReadGranularity(handle, "total_warmup");
 
 	//Save reaction time parameters
-	int reacTime_LeadingVehicle = ReadGranularity(handle,"reacTime_LeadingVehicle");
-	int reacTime_SubjectVehicle = ReadGranularity(handle,"reacTime_SubjectVehicle");
-	int reacTime_Gap = ReadGranularity(handle,"reacTime_Gap");
-	int signalAlgorithm;
+	int distributionType1, distributionType2;
+    int mean1, mean2;
+    int standardDev1, standardDev2;
+	handle.FirstChild("reacTime_distributionType1").ToElement()->Attribute("value",&distributionType1);
+	handle.FirstChild("reacTime_distributionType2").ToElement()->Attribute("value",&distributionType2);
+	handle.FirstChild("reacTime_mean1").ToElement()->Attribute("value",&mean1);
+	handle.FirstChild("reacTime_mean2").ToElement()->Attribute("value",&mean2);
+	handle.FirstChild("reacTime_standardDev1").ToElement()->Attribute("value",&standardDev1);
+	handle.FirstChild("reacTime_standardDev2").ToElement()->Attribute("value",&standardDev2);
 
+	ReactionTimeDistributions & instance = ReactionTimeDistributions::instance();
+	instance.distributionType1 = distributionType1;
+	instance.distributionType2 = distributionType2;
+	instance.mean1 = mean1;
+	instance.mean2 = mean2;
+	instance.standardDev1 = standardDev1;
+	instance.standardDev2 = standardDev2;
+
+	instance.setupDistribution1();
+	instance.setupDistribution2();
+
+//	Driver::distributionType1 = distributionType1;
+	int signalAlgorithm;
 
 	//Save simulation start time
 	TiXmlElement* node = handle.FirstChild("start_time").ToElement();
@@ -913,6 +980,12 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	int granPaths = ReadGranularity(handle, "paths");
 	int granDecomp = ReadGranularity(handle, "decomp");
 
+	//Save work group sizes: system
+	handle = TiXmlHandle(&document);
+	handle = handle.FirstChild("config").FirstChild("system").FirstChild("workgroup_sizes");
+	int agentWgSize = ReadValue(handle, "agent");
+	int signalWgSize = ReadValue(handle, "signal");
+
 	//Determine what order we will load Agents in
 	handle = TiXmlHandle(&document);
 	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("load_agents");
@@ -927,12 +1000,12 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	}
 	cout <<endl;
 
+//	std::cout << "333" << endl;
 
 	//Determine the first ID for automatically generated Agents
 	int startingAutoAgentID = 0; //(We'll need this later)
 	handle = TiXmlHandle(&document);
-	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("auto_id_start");
-	node = handle.ToElement();
+	node = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("auto_id_start").ToElement();
 	if (node) {
 		if (node->Attribute("value", &startingAutoAgentID) && startingAutoAgentID>0) {
 			Agent::SetIncrementIDStartValue(startingAutoAgentID, true);
@@ -954,22 +1027,48 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		}
 	}
 
+//	std::cout << "555" << endl;
 
 
-	//Miscelaneous settings
+	//Miscellaneous settings
 	handle = TiXmlHandle(&document);
-	if (handle.FirstChild("config").FirstChild("system").FirstChild("misc").FirstChild("manual_fix_demo_intersection").ToElement()) {
+	node = handle.FirstChild("config").FirstChild("system").FirstChild("misc").FirstChild("manual_fix_demo_intersection").ToElement();
+	if (node) {
 		ConfigParams::GetInstance().TEMP_ManualFixDemoIntersection = true;
 		cout <<">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" <<endl;
 		cout <<"Manual override used for demo intersection." <<endl;
 		cout <<"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" <<endl;
 	}
 
-	//Check
-    if(    baseGran==-1 || totalRuntime==-1 || totalWarmup==-1
-    	|| granAgent==-1 || granSignal==-1 || granPaths==-1 || granDecomp==-1 || !simStartStr) {
-        return "Unable to read config file.";
-    }
+	//Misc.: disable dynamic dispatch?
+	handle = TiXmlHandle(&document);
+	node = handle.FirstChild("config").FirstChild("system").FirstChild("misc").FirstChild("disable_dynamic_dispatch").ToElement();
+	if (node) {
+		const char* valStr_c = node->Attribute("value");
+		if (valStr_c) {
+			std::string valStr(valStr_c);
+			if (valStr == "true") {
+				ConfigParams::GetInstance().dynamicDispatchDisabled = true;
+			} else if (valStr == "false") {
+				ConfigParams::GetInstance().dynamicDispatchDisabled = false;
+			} else {
+				return "Invalid parameter; expecting boolean.";
+			}
+		}
+	}
+
+	std::cout <<"Dynamic dispatch: " <<(ConfigParams::GetInstance().dynamicDispatchDisabled ? "DISABLED" : "Enabled") <<std::endl;
+
+
+	//Series of one-line checks.
+	if(baseGran == -1) { return "Config file fails to specify base granularity."; }
+	if(totalRuntime == -1) { return "Config file fails to specify total runtime."; }
+	if(totalWarmup == -1) { return "Config file fails to specify total warmup."; }
+	if(granAgent == -1) { return "Config file fails to specify agent granularity."; }
+	if(granSignal == -1) { return "Config file fails to specify signal granularity."; }
+	if(agentWgSize == -1) { return "Config file fails to specify agent workgroup size."; }
+	if(signalWgSize == -1) { return "Config file fails to specify signal workgroup size."; }
+	if (!simStartStr) { return "Config file fails to specify simulation start time."; }
 
     //Granularity check
     if (granAgent < baseGran) return "Agent granularity cannot be smaller than base granularity.";
@@ -1007,19 +1106,20 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	config.granSignalsTicks = granSignal/baseGran;
     	config.granPathsTicks = granPaths/baseGran;
     	config.granDecompTicks = granDecomp/baseGran;
+    	config.agentWorkGroupSize = agentWgSize;
+    	config.signalWorkGroupSize = signalWgSize;
     	config.simStartTime = DailyTime(simStartStr);
-    	config.reacTime_LeadingVehicle = reacTime_LeadingVehicle;
-    	config.reacTime_SubjectVehicle = reacTime_SubjectVehicle;
-    	config.reacTime_Gap = reacTime_Gap;
     	config.mutexStategy = mtStrat;
     	config.signalAlgorithm = signalAlgorithm;
 
     	//add for MPI
 #ifndef SIMMOB_DISABLE_MPI
-    	sim_mob::PartitionManager& partitionImpl = sim_mob::PartitionManager::instance();
-    	std::cout << "partition_solution_id in configuration:" << partition_solution_id << std::endl;
+    	if (config.is_run_on_many_computers) {
+			sim_mob::PartitionManager& partitionImpl = sim_mob::PartitionManager::instance();
+			std::cout << "partition_solution_id in configuration:" << partition_solution_id << std::endl;
 
-    	partitionImpl.partition_config->partition_solution_id = partition_solution_id;
+			partitionImpl.partition_config->partition_solution_id = partition_solution_id;
+    	}
 #endif
 
     }
@@ -1114,7 +1214,11 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     std::cout << "Loading Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder Success!" << std::endl;
 
     //Load signals, which are currently agents
-    if (!loadXMLSignals(document, Signal::all_signals_, "signal")) {
+    if (!loadXMLSignals(document,
+#ifndef SIMMOB_NEW_SIGNAL
+    		Signal::all_signals_,
+#endif
+    		"signal")) {
     	std::cout << "loadXMLSignals Failed!" << std::endl;
     	return	 "Couldn't load signals";
     }
@@ -1176,13 +1280,30 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     //
     // Since the LoopDetectorEntity::init() function needs the lanes information, we can only call
     // it here.
-    for (size_t i = 0; i < Signal::all_signals_.size(); ++i)
+    //todo I think when a loop detector data are dynamically assigned to signal rather that being read from data base,
+    //they should be handled with in the signal constructor, not here
+#ifndef SIMMOB_NEW_SIGNAL
+    std::vector<Signal*>& all_signals = Signal::all_signals_;
+#else
+    std::vector<Signal*>& all_signals = sim_mob::Signal::all_signals_;
+#endif
+
+    for (size_t i = 0; i < all_signals.size(); ++i)
     {
-        Signal const * signal = Signal::all_signals_[i];
-        LoopDetectorEntity & loopDetector = const_cast<LoopDetectorEntity&>(signal->loopDetector());
+
+    	Signal  * signal =  dynamic_cast<Signal  *>(all_signals[i]);
+//        Signal const * signal = const_cast<Signal *>(Signal::all_signals_[i]);
+	#ifndef SIMMOB_NEW_SIGNAL
+    	LoopDetectorEntity & loopDetector = const_cast<LoopDetectorEntity&>(signal->loopDetector());
+	#else
+    	LoopDetectorEntity & loopDetector = const_cast<LoopDetectorEntity&>(dynamic_cast<Signal_SCATS  *>(signal)->loopDetector());
+	#endif
+
         loopDetector.init(*signal);
         active_agents.push_back(&loopDetector);
     }
+
+//    std::cout << "999" << endl;
 
 	//No error
 	return "";
@@ -1231,3 +1352,5 @@ bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 	return errorMsg.empty();
 
 }
+
+

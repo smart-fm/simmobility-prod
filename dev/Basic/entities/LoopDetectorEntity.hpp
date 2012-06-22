@@ -12,6 +12,7 @@ namespace sim_mob
 class Node;
 class Lane;
 class Signal;
+class Link;
 
 /**
  * The LoopDetectorEntity is an entity that models all the loop-detectors located just before the
@@ -52,6 +53,9 @@ public:
     virtual void output(frame_t frameNumber) {}
 
     Node const & getNode() const { return node_; }
+
+    void setCurrLink(sim_mob::Link* link){currLink = link;}
+    sim_mob::Link* getCurrLink() {return currLink;}
 
     void init(Signal const & signal);
 

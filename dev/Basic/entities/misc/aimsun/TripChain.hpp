@@ -39,9 +39,24 @@ struct TripActivity {
 
 	//Placeholder
 	int TMP_locationNodeID;
+
+	//added to handle start time and end time of activity
+	//by Jenny (07 Jun, 2012)
+	sim_mob::DailyTime startTime;
+	sim_mob::DailyTime endTime;
 };
 
+/*
+ * A subtrip within a trip train. Has startnode, endnode, mode
+ * Added by Jenny
+ */
+struct SubTrip {
+	TripActivity from;
+	TripActivity to;
+	std::string mode;
 
+	sim_mob::DailyTime startTime;
+};
 
 ///A trip chain. Not technically part of AIMSUN; we may have to rename this folder later.
 /// \author Seth N. Hetu
@@ -57,10 +72,18 @@ public:
 
 	std::string mode;
 
+	//added to handle activity in trip chain
+		//by Jenny (07 Jun, 2012)
+	std::vector<TripActivity*> activities;
+	std::vector<SubTrip*> subTrips;
+
 	TripChain() /*: Base()*/ {
 		from.location = nullptr;
 		to.location = nullptr;
 	}
+
+	TripChain(TripActivity from, TripActivity to, std::string mode, std::vector<TripActivity*> activities, std::vector<SubTrip*> subTrips)
+			: from(from), to(to), mode(mode),activities(activities), subTrips(subTrips){}
 
 	//Placeholder
 	std::string TMP_startTimeStr;

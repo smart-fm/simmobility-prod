@@ -44,6 +44,12 @@ enum MutexStrategy {
  *  if we want to keep Shared<> or if it's better to use Locked/Buffered, so please do not
  *  delete these other classes for now.
  *
+ *  \note
+ *  If you are getting weird errors about "::move" being ambiguous, you might be using an older
+ *  version of boost 1.48. You can upgrade boost, or you can set SIMMOB_LATEST_STANDARD to true
+ *  to fix this problem. There is also a patch for boost 1.48 that fixes this:
+ *  https://svn.boost.org/trac/boost/ticket/6141#comment:10
+ *
  *  \par
  *  The Locked<> type is written with an "Upgradable Lock", which should be fast for multiple
  *  reads and one write.
@@ -71,9 +77,12 @@ public:
 	 */
     const T& get() const {
     	if (strategy_==MtxStrat_Locked) {
+    		//NOTE: I'm not entirely sure if this will work or is even needed.
+    		//      Have to double-check mutex-locking in boost (but no-one uses locking
+    		//      right now anyway). ~Seth
     		boost::shared_lock<boost::shared_mutex> lock_(mutex_);
+    		return current_;
     	}
-
     	return current_;
     }
 

@@ -11,6 +11,7 @@
 #include "roles/driver/Driver.hpp"
 #include "buffering/Shared.hpp"
 #include "entities/UpdateParams.hpp"
+#include "entities/misc/TripChain.hpp"
 
 namespace sim_mob
 {
@@ -54,6 +55,10 @@ public:
 	void changeRole(sim_mob::Role* newRole);
 	sim_mob::Role* getRole() const;
 
+	sim_mob::Link* getCurrLink();
+
+	void setCurrLink(sim_mob::Link* link);
+
 	///Check if any role changing is required.
 	Entity::UpdateStatus checkAndReactToTripChain(unsigned int currTimeMS);
 
@@ -77,6 +82,7 @@ private:
 	sim_mob::Role* prevRole;  ///< To be deleted on the next time tick.
 	sim_mob::Role* currRole;
 	sim_mob::TripChain* currTripChain;
+	sim_mob::Link* currLink;
 
 	bool firstFrameTick;  ///Determines if frame_init() has been done.
 

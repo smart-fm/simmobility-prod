@@ -2,12 +2,22 @@
 
 #pragma once
 
-#include <boost/unordered_map.hpp>
-#include <boost/utility.hpp>
-
+#include "GenConfig.h"
 #include "util/LangHelpers.hpp"
 
+#ifdef SIMMOB_LATEST_STANDARD
+#include <unordered_map>
+#else
+#include <boost/unordered_map.hpp>
+#endif
+
+#include <vector>
+
+#include <boost/utility.hpp>
 #include "metrics/Length.hpp"
+
+//Pull in our typedefs
+#include "entities/signal_transitional.hpp"
 
 namespace sim_mob
 {
@@ -17,7 +27,6 @@ class Point2D;
 class RoadNetwork;
 class RoadSegment;
 class Node;
-class Signal;
 class BusStop;
 class Crossing;
 
@@ -304,7 +313,7 @@ private:
     class Stats;
     Stats* stats_;
 
-    boost::unordered_map<const Node *, Signal const *> signals_;
+    sm_trans::unordered_map<const Node *, Signal const *> signals_;
 };
 
 inline Signal const *
@@ -312,7 +321,7 @@ StreetDirectory::signalAt(Node const & node)
 const
 {
 //	std::cout << "StreetDirectory: " << signals_.size() << std::endl;
-    boost::unordered_map<const Node *, Signal const *>::const_iterator iter = signals_.find(&node);
+	sm_trans::unordered_map<const Node *, Signal const *>::const_iterator iter = signals_.find(&node);
     if (signals_.end() == iter)
     {
 //    	std::cout << " Signal Not found... ";

@@ -31,19 +31,15 @@ void sim_mob::WorkGroup::initWorkers(/*Worker::ActionFunction* action, */EntityL
 	this->loader = loader;
 
 	//Init our worker list-backs
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
-	entToBeRemovedPerWorker.resize(total_size, vector<Entity*>());
-#endif
+	const bool UseDynamicDispatch = !ConfigParams::GetInstance().DynamicDispatchDisabled();
+	if (UseDynamicDispatch) {
+		entToBeRemovedPerWorker.resize(total_size, vector<Entity*>());
+	}
 
 	//Init the workers themselves.
 	for (size_t i=0; i<total_size; i++) {
-		workers.push_back(new Worker(this, shared_barr, external_barr,
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
-			&entToBeRemovedPerWorker.at(i),
-#else
-			nullptr,
-#endif
-			/*action,*/ endTick, tickStep, auraManagerActive));
+		std::vector<Entity*>* entWorker = UseDynamicDispatch ? &entToBeRemovedPerWorker.at(i) : nullptr;
+		workers.push_back(new Worker(this, shared_barr, external_barr, entWorker, endTick, tickStep, auraManagerActive));
 	}
 }
 
@@ -143,18 +139,50 @@ void sim_mob::WorkGroup::collectRemovedEntities()
 	}
 }
 
+//method to randomly assign links to workers
+void sim_mob::WorkGroup::assignLinkWorker(){
+	std::vector<Link*> allLinks = ConfigParams::GetInstance().getNetworkRW().getLinks();
+	//randomly assign link to worker
+	//each worker is expected to manage approximately the same number of links
+	for(vector<sim_mob::Link*>::iterator it = allLinks.begin(); it!= allLinks.end();it++){
+		Link* link = *it;
+		Worker* w = workers.at(nextWorkerID);
+		w->addLink(link);
+		link->setCurrWorker(w);
+		nextWorkerID++;
+	}
+	nextWorkerID%=workers.size();
+	//reset nextworkerID to 0
+	nextWorkerID=0;
+}
 
+//method to assign agents on same link to the same worker
+void sim_mob::WorkGroup::assignAWorkerConstraint(Entity* ag){
+	assignLinkWorker();
+	Agent* agent = dynamic_cast<Agent*>(ag);
+	if(agent){
+		Link* link = agent->originNode->getLinkLoc();
+		link->getCurrWorker()->scheduleForAddition(ag);
+	}
+}
+
+//method to find the worker which manages the specified linkID
+sim_mob::Worker* sim_mob::WorkGroup::locateWorker(std::string linkID){
+	std::vector<Link*> allLinks = ConfigParams::GetInstance().getNetworkRW().getLinks();
+	for(vector<sim_mob::Link*>::iterator it = allLinks.begin(); it!= allLinks.end();it++){
+		Link* link = *it;
+		if(link->linkID==linkID){
+			return link->getCurrWorker();
+		}
+	}
+	return nullptr;
+}
 
 void sim_mob::WorkGroup::assignAWorker(Entity* ag)
 {
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	workers.at(nextWorkerID++)->scheduleForAddition(ag);
-#else
-	workers.at(nextWorkerID++)->scheduleEntityNow(ag);
-#endif
 	nextWorkerID %= workers.size();
 }
-
 
 
 size_t sim_mob::WorkGroup::size()

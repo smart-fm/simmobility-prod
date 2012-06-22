@@ -28,7 +28,8 @@ else ()
       /usr/include/soci
       /sw/include # Fink
       /opt/local/include # DarwinPorts
-      /opt/csw/include # Blastwave
+      /opt/local/include/soci # MacPorts location
+      /opt/csw/include # Blast wave
       /opt/include
   )
 

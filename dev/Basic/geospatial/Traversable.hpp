@@ -8,13 +8,14 @@
 #include "Node.hpp"
 #include "Point2D.hpp"
 #include "util/MathUtil.hpp"
+#include "Node.hpp"
 
 namespace sim_mob
 {
 
-
 //Forward declarations
-class Node;
+//class Node;
+class Link;
 class RoadNetworkPackageManager;
 
 namespace aimsun {
@@ -67,9 +68,5 @@ public:
 	friend class sim_mob::RoadNetworkPackageManager;
 
 };
-
-
-
-
 
 }

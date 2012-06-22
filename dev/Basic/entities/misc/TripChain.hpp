@@ -5,9 +5,11 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <string>
 
 #include "util/LangHelpers.hpp"
 #include "util/DailyTime.hpp"
+#include "geospatial/Node.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -28,9 +30,25 @@ class Node;
  */
 struct TripActivity {
 	std::string description;
-	sim_mob::Node* location;
+	Node * location;
+
+	//added to handle start time and end time of activity
+	//by Jenny (07 Jun, 2012)
+	unsigned int startTime;
+	unsigned int endTime;
 };
 
+/*
+ * A subtrip within a trip train. Has startnode, endnode, mode
+ * Added by Jenny
+ */
+struct SubTrip {
+	TripActivity from;
+	TripActivity to;
+	std::string mode;
+
+	sim_mob::DailyTime startTime;
+};
 
 
 /**
@@ -49,12 +67,20 @@ public:
 	//double startTime; //Note: Do we have a time class yet for our special format?
 	sim_mob::DailyTime startTime;
 
-	std::string mode;
+	std::string mode; //primamry mode
+
+	//added to handle activity in trip chain
+	//by Jenny (07 Jun, 2012)
+	std::vector<TripActivity*> activities;
+	std::vector<SubTrip*> subTrips;
 
 	TripChain() {
 		from.location = nullptr;
 		to.location = nullptr;
 	}
+
+	TripChain(TripActivity from, TripActivity to, std::string mode, std::vector<TripActivity*> activities, std::vector<SubTrip*> subTrips)
+		: from(from), to(to), mode(mode),activities(activities), subTrips(subTrips){}
 
 public:
 #ifndef SIMMOB_DISABLE_MPI

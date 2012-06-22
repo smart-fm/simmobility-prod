@@ -31,6 +31,7 @@ else ()
       /usr/include/soci/postgresql
       /sw/include # Fink
       /opt/local/include # DarwinPorts
+      /opt/local/include/soci/postgresql # MacPorts location
       /opt/csw/include # Blastwave
       /opt/include
   )

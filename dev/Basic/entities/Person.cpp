@@ -46,11 +46,11 @@ Person* sim_mob::Person::GeneratePersonFromPending(const PendingEntity& p)
 
 	//Set its mode.
 	if (p.type == ENTITY_DRIVER) {
-		res->changeRole(new Driver(res, config.mutexStategy, config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
+		res->changeRole(new Driver(res, config.mutexStategy));
 	} else if (p.type == ENTITY_PEDESTRIAN) {
 		res->changeRole(new Pedestrian(res, res->getGenerator()));
 	} else if (p.type == ENTITY_BUSDRIVER) {
-		res->changeRole(new BusDriver(res, config.mutexStategy, config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
+		res->changeRole(new BusDriver(res, config.mutexStategy));
 	} else {
 		throw std::runtime_error("PendingEntity currently only supports Drivers and Pedestrians.");
 	}
@@ -59,6 +59,12 @@ Person* sim_mob::Person::GeneratePersonFromPending(const PendingEntity& p)
 	res->originNode = p.origin;
 	res->destNode = p.dest;
 	res->setStartTime(p.start);
+	//added by Jenny to handle activities
+	res->setActivities(p.activities);
+	res->setNextEvent(nullptr);
+	res->setNextActivity(nullptr);
+	res->setOnActivity(false);
+	res->setNextPathPlanned(false);
 
 	return res;
 }
@@ -117,12 +123,18 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 
 		//Now perform the main update tick
 		if (!isToBeRemoved()) {
+			//added to get the detailed plan before next activity
+			currRole->frame_init(params);
 			currRole->frame_tick(params);
+			//if mid-term
+			//currRole->frame_tick_med(params);
 		}
 
 		//Finally, save the output
 		if (!isToBeRemoved()) {
 			currRole->frame_tick_output(params);
+			//if mid-term
+			//currRole->frame_tick_med(params);
 		}
 
 		//If we're "done", try checking to see if we have any more items in our Trip Chain.
@@ -246,6 +258,13 @@ void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 
 sim_mob::Role* sim_mob::Person::getRole() const {
 	return currRole;
+}
+
+sim_mob::Link* sim_mob::Person::getCurrLink(){
+	return currLink;
+}
+void sim_mob::Person::setCurrLink(sim_mob::Link* link){
+	currLink = link;
 }
 
 #ifndef SIMMOB_DISABLE_MPI

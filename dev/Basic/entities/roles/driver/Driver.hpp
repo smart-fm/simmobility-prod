@@ -20,12 +20,15 @@
 #include "IntersectionDrivingModel.hpp"
 #include "DriverUpdateParams.hpp"
 
+//TODO: Once the new signal class is stabilized, replace this include with a forward declaration:
+#include "entities/signal_transitional.hpp"
+
 namespace sim_mob
 {
 
 //Forward declarations
 class Pedestrian;
-class Signal;
+//class Signal;
 class Link;
 class RoadSegment;
 class Lane;
@@ -64,12 +67,19 @@ private:
 
 //Constructor and overridden methods.
 public:
-	Driver(Person* parent, sim_mob::MutexStrategy mtxStrat, unsigned int reacTime_LeadingVehicle, unsigned int reacTime_SubjectVehicle, unsigned int reacTime_Gap);		//to initiate
+	const static int distanceInFront = 3000;
+	const static int distanceBehind = 500;
+	const static int maxVisibleDis = 5000;
+
+
+
+	Driver(Person* parent, sim_mob::MutexStrategy mtxStrat);		//to initiate
 	virtual ~Driver();
 
 	//Virtual implementations
 	virtual void frame_init(UpdateParams& p);
 	virtual void frame_tick(UpdateParams& p);
+	virtual void frame_tick_med(UpdateParams& p);
 	virtual void frame_tick_output(const UpdateParams& p);
 	virtual void frame_tick_output_mpi(frame_t frameNumber);
 
@@ -108,20 +118,24 @@ protected:
 
 private:
 	//Sample stored data which takes reaction time into account.
-	unsigned int reacTime_LeadingVehicle;
-	unsigned int reacTime_SubjectVehicle;
-	unsigned int reacTime_Gap;
-	FixedDelayed<DPoint*> perceivedVelocity;
-	FixedDelayed<DPoint*> perceivedVelocityOfFwdCar;
-	FixedDelayed<double> perceivedAccelerationOfFwdCar;
-	FixedDelayed<centimeter_t> perceivedDistToFwdCar;
-	FixedDelayed<double> perceivedTrafficSignalStop;
+
+	size_t reacTime;
+	FixedDelayed<double> *perceivedFwdVel;
+	FixedDelayed<double> *perceivedFwdAcc;
+	FixedDelayed<double> *perceivedVelOfFwdCar;
+	FixedDelayed<double> *perceivedAccOfFwdCar;
+	FixedDelayed<double> *perceivedDistToFwdCar;
+	FixedDelayed<Signal::TrafficColor> *perceivedTrafficColor;
+	FixedDelayed<double> *perceivedDistToTrafficSignal;
 
 	NodePoint origin;
 	NodePoint goal;    //first, assume that each vehicle moves towards a goal
 
 
 	double maxLaneSpeed;
+	double disToFwdVehicleLastFrame; //to find whether vehicle is going to crash in current frame.
+	                                     //so distance in last frame need to be remembered.
+
 
 public:
 	//for coordinate transform

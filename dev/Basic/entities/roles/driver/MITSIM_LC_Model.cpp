@@ -241,7 +241,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision
 
 double sim_mob::MITSIM_LC_Model::checkIfMandatory(DriverUpdateParams& p)
 {
-	if(p.fromLaneIndex == p.currLaneIndex)
+	if(p.nextLaneIndex == p.currLaneIndex)
 		p.dis2stop = 5000;//defalut 5000m
 	//The code below is MITSIMLab model
 	double num		=	1;		//now we just assume that MLC only need to change to the adjacent lane
@@ -261,7 +261,7 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(Dri
 	//find which lane it should get to and choose which side to change
 	//now manually set to 1, it should be replaced by target lane index
 	//i am going to fix it.
-	int direction = p.fromLaneIndex - p.currLaneIndex;
+	int direction = p.nextLaneIndex - p.currLaneIndex;
 	//direction = 0; //Otherwise drivers always merge.
 
 	//current lane is target lane

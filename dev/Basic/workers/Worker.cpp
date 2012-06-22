@@ -42,30 +42,27 @@ std::vector<Entity*>& sim_mob::Worker::getEntities() {
 }
 
 
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 void sim_mob::Worker::scheduleForAddition(Entity* entity)
 {
-	//Save for later
-	toBeAdded.push_back(entity);
+	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+		//Add it now.
+		migrateIn(*entity);
+	} else {
+		//Save for later
+		toBeAdded.push_back(entity);
+	}
 }
 
 
 void sim_mob::Worker::scheduleForRemoval(Entity* entity)
 {
-	//Save for later
-	toBeRemoved.push_back(entity);
+	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+		//Nothing to be done.
+	} else {
+		//Save for later
+		toBeRemoved.push_back(entity);
+	}
 }
-
-#else
-
-void sim_mob::Worker::scheduleEntityNow(Entity* entity)
-{
-	//Add it now.
-	migrateIn(*entity);
-}
-
-
-#endif
 
 
 
@@ -258,9 +255,7 @@ void sim_mob::Worker::perform_main(frame_t frameNumber)
 		UpdateStatus res = (*it)->update(frameNumber);
 		if (res.status == UpdateStatus::RS_DONE) {
 			//This Entity is done; schedule for deletion.
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 			scheduleForRemoval(*it);
-#endif
 		} else if (res.status == UpdateStatus::RS_CONTINUE) {
 			//Still going, but we may have properties to start/stop managing
 			for (set<BufferedBase*>::iterator it=res.toRemove.begin(); it!=res.toRemove.end(); it++) {
@@ -272,14 +267,60 @@ void sim_mob::Worker::perform_main(frame_t frameNumber)
 		} else {
 			throw std::runtime_error("Unknown/unexpected update() return status.");
 		}
+
+		//added by Jenny to update the list of agents that this worker manages
+		//to be uncommented for medium term simulator
+		/*
+		 *
+		Link* currLink = (*it)->getCurrLink();
+		//if the current link is not managed by this thread
+		if(!isThisLinkManaged(currLink->linkID)){
+			//remove the agent from this worker
+			toBeRemoved.push_back(*it);
+			//add the agent to the worker that manages the current link
+			currLink->getCurrWorker()->toBeAdded.push_back(*it);
+		}
+		*/
 	}
 }
 
-
+bool sim_mob::Worker::isThisLinkManaged(std::string linkID){
+	for(vector<Link*>::iterator it=managedLinks.begin(); it!=managedLinks.end();it++){
+		if((*it)->linkID==linkID){
+			return true;
+		}
+	}
+	return false;
+}
 void sim_mob::Worker::perform_flip()
 {
 	//Flip all data managed by this worker.
 	this->flip();
 }
 
+//Methods to manage list of links managed by the worker
+//added by Jenny
+void sim_mob::Worker::addLink(Link* link)
+{
+	//Save this entity in the data vector.
+	managedLinks.push_back(link);
+}
 
+
+void sim_mob::Worker::remLink(Link* link)
+{
+	//Remove this entity from the data vector.
+	std::vector<Link*>::iterator it = std::find(managedLinks.begin(), managedLinks.end(), link);
+	if (it!=managedLinks.end()) {
+		managedLinks.erase(it);
+	}
+}
+bool sim_mob::Worker::isLinkManaged(Link* link)
+{
+	//Remove this entity from the data vector.
+	std::vector<Link*>::iterator it = std::find(managedLinks.begin(), managedLinks.end(), link);
+	if (it!=managedLinks.end()) {
+		return true;
+	}
+	return false;
+}

@@ -1,12 +1,40 @@
 #include "Cycle.hpp"
+
+#include "Offset.hpp"
+
 #include <cmath>
+
+
+//For convenience, redeclare some of the public static constants in Offset.
+namespace {
+	//parameters for calculating next cycle length
+	const static double DSmax = sim_mob::Offset::DSmax;
+	const static double DSmed = sim_mob::Offset::DSmed;
+	const static double DSmin = sim_mob::Offset::DSmin;
+
+	const static double CLmax = sim_mob::Offset::CLmax;
+	const static double CLmed = sim_mob::Offset::CLmed;
+	const static double CLmin = sim_mob::Offset::CLmin;
+
+	//parameters for calculating next Offset
+	const static double CL_low = sim_mob::Offset::CL_low;
+	const static double CL_up = sim_mob::Offset::CL_up;
+	const static double Off_low = sim_mob::Offset::Off_low;
+	const static double Off_up = sim_mob::Offset::Off_up;
+
+	const static double fixedCL = sim_mob::Offset::fixedCL;
+}
+
+
 namespace sim_mob
 {
 void Cycle::Update(double DS/*,sim_mob::Node node*/) {
 	setnextCL(DS/*,node*/);
 	updateprevCL();
 	updatecurrCL();
+//	std::cout << "The new Cycle Length is : " << currCL << std::endl;
 }
+
 //use SCATS to determine next cyecle length
 //determine next cycle length using the max DS of all lanes
 //we chose the max of all DSs as input to this function(base on the memurandum, section 4.2, first line)

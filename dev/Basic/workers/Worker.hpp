@@ -33,13 +33,13 @@
 #include "util/LangHelpers.hpp"
 #include "buffering/Buffered.hpp"
 #include "buffering/BufferedDataManager.hpp"
+#include "geospatial/Link.hpp"
 
 
 namespace sim_mob
 {
 
 class WorkGroup;
-
 
 
 class Worker : public BufferedDataManager {
@@ -65,12 +65,14 @@ public:
 	void remEntity(Entity* entity);
 	std::vector<Entity*>& getEntities();
 
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
+	//Manage Links
+	void addLink(Link* link);
+	void remLink(Link* link);
+	bool isLinkManaged(Link* link);
+	bool isThisLinkManaged(std::string linkID);
+
 	void scheduleForAddition(Entity* entity);
 	void scheduleForRemoval(Entity* entity);
-#else
-	void scheduleEntityNow(Entity* entity);
-#endif
 
 	int getAgentSize() { return managedEntities.size(); }
 
@@ -124,6 +126,7 @@ private:
 
 	///Entities managed by this worker
 	std::vector<Entity*> managedEntities;
+	std::vector<Link*> managedLinks;
 
 	//add by xuyan, in order to call migrate in and migrate out
 public:

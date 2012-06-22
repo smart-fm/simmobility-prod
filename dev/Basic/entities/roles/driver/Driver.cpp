@@ -1059,7 +1059,7 @@ void sim_mob::Driver::initializePath() {
 	TripActivity* nextActivity = parent->getNextActivity();
 
 	//if there's no activity during the current trip
-	if(nextActivity){
+	if(!nextActivity){
 		//Save local copies of the parent's origin/destination nodes.
 		origin.node = parent->originNode;
 		origin.point = origin.node->location;

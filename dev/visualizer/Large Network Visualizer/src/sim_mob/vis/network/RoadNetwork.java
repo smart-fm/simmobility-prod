@@ -755,7 +755,7 @@ public class RoadNetwork {
 				}	
 						
 			}
-							
+		    //     segmentFrom,2D matrix segmentToX[left,straight,right]	still ambiguous!!				
 			Hashtable<Integer, ArrayList<ArrayList<TrafficSignalLine>>> signalList = helperAllocateDirection(fromSegmentList,toSegmentList);			
 			Enumeration<Integer> signalListKeys = signalList.keys();
 			

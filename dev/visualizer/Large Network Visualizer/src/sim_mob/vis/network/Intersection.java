@@ -40,7 +40,6 @@ public class Intersection {
 
 	}
 	
-
 	public void setVaTrafficSignal(ArrayList<ArrayList<TrafficSignalLine>> vaSignalLine){
 		this.vaSignalLine = vaSignalLine;
 	}

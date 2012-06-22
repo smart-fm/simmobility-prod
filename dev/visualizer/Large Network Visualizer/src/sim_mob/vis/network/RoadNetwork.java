@@ -784,6 +784,149 @@ public class RoadNetwork {
 		
 	}
 	
+	private void populateIntersections_newStyle(){
+
+		
+		for(Intersection intersection : intersections.values()){		
+			ArrayList <Integer> tempIntersectLinkIDs = intersection.getSigalLinkIDs();
+			Hashtable<Integer, Integer> intersectLinkSegmentIDTable = new Hashtable<Integer, Integer>();
+			
+			int[] fromSegmentList = new int[]{-1,-1,-1,-1};
+			int[] toSegmentList = new int[]{-1,-1,-1,-1};
+			
+			int intersectionNodeID = intersection.getIntersectNodeID(); 
+						
+			//Search all the Links
+			for(int i = 0; i<tempIntersectLinkIDs.size();i++ ){	
+				int tempLinkID = tempIntersectLinkIDs.get(i);
+				//ArrayList<Integer> tempSegmentIDs = roadNetworkItemsMapTable.findSegmentIDWithLinkID(tempLinkID);
+				ArrayList<Integer> tempSegmentIDs = new ArrayList<Integer>();
+				Enumeration<Integer> segmentKeys = segments.keys();
+							
+				while(segmentKeys.hasMoreElements()){
+					
+					Object aKey = segmentKeys.nextElement();
+					Integer segmentID = (Integer) aKey;
+					Segment tempSegment = segments.get(aKey);
+					int parentLinkID = tempSegment.getParent().getId();
+				
+					if(tempLinkID == parentLinkID ){
+						tempSegmentIDs.add(segmentID);
+					}
+				
+				}
+				
+				//Find segment that related to intersection node
+				for(int j = 0; j< tempSegmentIDs.size();j++){
+					
+					if(segments.containsKey(tempSegmentIDs.get(j))){
+						
+						Segment tempSegment = segments.get(tempSegmentIDs.get(j));	
+						
+						//Check if the segment is come from the intersection node
+						if(tempSegment.getTo().getID() == intersectionNodeID)
+						{
+							//Put it into respective table
+							if(i == 0){
+								intersectLinkSegmentIDTable.put(Mapping.VA_FROM_SEGMENT, tempSegmentIDs.get(j));
+								fromSegmentList[0] = tempSegmentIDs.get(j);
+							} else if( i == 1){
+								intersectLinkSegmentIDTable.put(Mapping.VB_FROM_SEGMENT, tempSegmentIDs.get(j));
+								fromSegmentList[1] = tempSegmentIDs.get(j);
+							} else if(i == 2){
+								intersectLinkSegmentIDTable.put(Mapping.VC_FROM_SEGMENT, tempSegmentIDs.get(j));
+								fromSegmentList[2] = tempSegmentIDs.get(j);
+							} else if(i == 3){
+								intersectLinkSegmentIDTable.put(Mapping.VD_FROM_SEGMENT, tempSegmentIDs.get(j));
+								fromSegmentList[3] = tempSegmentIDs.get(j);
+							}
+							
+						} else if(tempSegment.getFrom().getID() == intersectionNodeID){
+					
+							//Put it into respective table
+							if(i == 0){
+								intersectLinkSegmentIDTable.put(Mapping.VA_TO_SEGMENT, tempSegmentIDs.get(j));
+								toSegmentList[0] = tempSegmentIDs.get(j);
+							} else if( i == 1){
+								intersectLinkSegmentIDTable.put(Mapping.VB_TO_SEGMENT, tempSegmentIDs.get(j));
+								toSegmentList[1] = tempSegmentIDs.get(j);
+							} else if(i == 2){
+								intersectLinkSegmentIDTable.put(Mapping.VC_TO_SEGMENT, tempSegmentIDs.get(j));
+								toSegmentList[2] = tempSegmentIDs.get(j);
+							} else if(i == 3){
+								intersectLinkSegmentIDTable.put(Mapping.VD_TO_SEGMENT, tempSegmentIDs.get(j));
+								toSegmentList[3] = tempSegmentIDs.get(j);
+							}	
+						}
+							
+							
+					} else {
+						
+						System.out.println("Error, no such segments in segment table "+Integer.toHexString(tempSegmentIDs.get(j))+" -- RoadNetwork,populateIntersection ");
+						
+					}
+					
+				}	
+						
+			}
+							
+			Hashtable<Integer, ArrayList<ArrayList<TrafficSignalLine>>> signalList = helperAllocateDirection(fromSegmentList,toSegmentList);			
+			Enumeration<Integer> signalListKeys = signalList.keys();
+			
+			while(signalListKeys.hasMoreElements()){
+				
+				Object aKey = signalListKeys.nextElement();
+				Integer linkNumber = (Integer)aKey;
+				ArrayList<ArrayList<TrafficSignalLine>> signalListPerLink = signalList.get(linkNumber);
+				
+				if(linkNumber == 0)
+				{
+					intersection.setVaTrafficSignal(signalListPerLink);
+					
+				}else if (linkNumber == 1){
+					intersection.setVbTrafficSignal(signalListPerLink);
+					
+				}else if (linkNumber == 2){
+
+					intersection.setVcTrafficSignal(signalListPerLink);
+					
+				}else if (linkNumber == 3){
+					intersection.setVdTrafficSignal(signalListPerLink);
+
+				}
+			
+			}
+			
+			//Fill crossing signals
+			ArrayList<Integer> crossingIDs = intersection.getSigalCrossingIDs();
+			ArrayList<TrafficSignalCrossing> crossingSignals =  new ArrayList<TrafficSignalCrossing>();
+			int linkPaID = crossingIDs.get(0);	
+			int linkPbID = crossingIDs.get(1);
+			int linkPcID = crossingIDs.get(2);
+			int linkPdID = crossingIDs.get(3);
+			
+			//System.out.println("Intersection ID: " + Integer.toHexString(intersection.getIntersectNodeID()));
+			//System.out.println("linkPaID: "+ linkPaID +" linkPbID: "+ linkPbID + " linkPcID: "+ linkPcID +" linkPdID: "+ linkPdID);
+					
+			if(trafficSignalCrossings.containsKey(linkPaID) && trafficSignalCrossings.containsKey(linkPbID) 
+		    		&& trafficSignalCrossings.containsKey(linkPcID) && trafficSignalCrossings.containsKey(linkPdID)){	    	
+		    	
+				crossingSignals.add(trafficSignalCrossings.get(linkPaID));
+				crossingSignals.add(trafficSignalCrossings.get(linkPbID));
+				crossingSignals.add(trafficSignalCrossings.get(linkPcID));
+				crossingSignals.add(trafficSignalCrossings.get(linkPdID));
+				
+				intersection.setSignalCrossing(crossingSignals);
+				
+		    }else{
+		    	System.out.println("Error, no such pedestrain crossings -- RoadNetwork, parseSignalLocation");
+		    }
+			
+			
+		} // End for loop
+		
+	}
+	
 	//Wrapper
 	private void spaceNodeAnnotations() {
 		Hashtable<Point, Integer> alreadySpaced = new Hashtable<Point, Integer>(); //int = conflicts
@@ -998,7 +1141,7 @@ public class RoadNetwork {
 				tempDirectionalSignalLines.add(tempStraightTurn);
 				tempDirectionalSignalLines.add(tempRightTurn);
 	
-				for(int j=1;j<tempToSegmentList.size();j+=2){				
+				for(int j=1;j<tempToSegmentList.size();j+=2){				//why alternate?-->vahid
 
 					for(int k = 0; k < toSegmentList.length;k++){
 					

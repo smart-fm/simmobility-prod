@@ -115,11 +115,14 @@ ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 #Additional module find scripts
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake_modules/")
 
+#MinGW helpers
+include_directories("/mingw/include")
+
 #List of libraries to link
 SET(LibraryList "")
 
 #Find boost
-set(Boost_ADDITIONAL_VERSIONS "1.47" "1.47.0" "1.48" "1.48.0")
+set(Boost_ADDITIONAL_VERSIONS "1.47" "1.47.0" "1.48" "1.48.0" "1.49" "1.49.0")
 find_package(Boost COMPONENTS thread serialization date_time REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 LIST(APPEND LibraryList ${Boost_LIBRARIES})

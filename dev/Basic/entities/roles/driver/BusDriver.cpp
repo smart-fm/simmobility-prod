@@ -112,7 +112,9 @@ double ybs[10];
 } //End anonymous namespace
 
 sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat, unsigned int reacTime_LeadingVehicle, unsigned int reacTime_SubjectVehicle, unsigned int reacTime_Gap)
-	: Driver(parent, mtxStrat, reacTime_LeadingVehicle, reacTime_SubjectVehicle, reacTime_Gap), nextStop(nullptr), waitAtStopMS(0.0)
+//	: Driver(parent, mtxStrat, reacTime_LeadingVehicle, reacTime_SubjectVehicle, reacTime_Gap), nextStop(nullptr), waitAtStopMS(0.0)
+//TODO: Fix this. ~Seth
+	: Driver(parent, mtxStrat), nextStop(nullptr), waitAtStopMS(0.0)
 {
 }
 
@@ -214,7 +216,7 @@ double sim_mob::BusDriver::updatePositionOnLink(DriverUpdateParams& p)
 	if (updatePos) {
 		res = Driver::updatePositionOnLink(p);
 	}
-	
+
 	return res;
 }
 

@@ -507,6 +507,8 @@ else(_boost_IN_CACHE)
   set(_boost_INCLUDE_SEARCH_DIRS_SYSTEM
     C:/boost/include
     C:/boost
+    C:/MinGW/include
+    C:/MinGW32/include
     "$ENV{ProgramFiles}/boost/include"
     "$ENV{ProgramFiles}/boost"
     /sw/local/include

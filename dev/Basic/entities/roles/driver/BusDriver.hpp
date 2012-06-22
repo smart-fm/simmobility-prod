@@ -22,7 +22,7 @@ namespace sim_mob
  */
 class BusDriver : public sim_mob::Driver {
 public:
-	BusDriver(sim_mob::Person* parent, sim_mob::MutexStrategy mtxStrat);
+	BusDriver(sim_mob::Person* parent, sim_mob::MutexStrategy mtxStrat, unsigned int reacTime_LeadingVehicle=0, unsigned int reacTime_SubjectVehicle=0, unsigned int reacTime_Gap=0);
 
 	//Overrides
 	virtual void frame_init(UpdateParams& p);

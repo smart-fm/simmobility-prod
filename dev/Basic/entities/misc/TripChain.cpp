@@ -12,6 +12,7 @@ sim_mob::SubTrip::~SubTrip() {}
 
 TripChainItem::LocationType sim_mob::TripChainItem::getLocationType(string locType)
 {
+	std::cout<< "locType " << locType << "\n";
 	if(locType == "building"){
 		return TripChainItem::LT_BUILDING;
 	} else if(locType == "node"){

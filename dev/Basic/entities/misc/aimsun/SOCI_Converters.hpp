@@ -23,7 +23,6 @@ template<> struct type_conversion<aimsun::TripChainItem>
     typedef values base_type;
     static void from_base(const soci::values& vals, soci::indicator& ind, aimsun::TripChainItem &res)
     {
-    	unsigned int ii = 0;
     	res.entityID = vals.get<int>("entityid",0);
     	res.sequenceNumber = vals.get<int>("trip_chain_sequence_number",0);
     	res.itemType = sim_mob::TripChainItem::getItemType(vals.get<std::string>("trip_chain_item_type",""));

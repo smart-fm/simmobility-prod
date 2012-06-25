@@ -1084,9 +1084,6 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 			tcs.push_back(tripToSave);
 			if(it==tripchains_.end()) break;
 		}
-		else {
-			throw std::runtime_error("Couldn't load Trip Chain: unexpected type.");
-		}
 	}
 
 	for(map<std::string,BusStop>::iterator it = busstop_.begin(); it != busstop_.end(); it++)

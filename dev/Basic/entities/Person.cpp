@@ -61,6 +61,8 @@ Person* sim_mob::Person::GeneratePersonFromPending(const PendingEntity& p)
 	res->destNode = p.dest;
 	res->setStartTime(p.start);
 	res->setTripChain(p.entityTripChain);
+	int size = p.entityTripChain.size();
+	size = res->getTripChain().size();
 	res->currTripChainItem = res->getTripChain().begin();
 	res->getFirstTripInChain(res->currSubTrip);
 	return res;

@@ -433,6 +433,12 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 				safe_delete_item(candidate.rawAgent);
 				continue;
 			}
+
+			//construct rudimentary trip chain for candidate based on origin and destination
+			sim_mob::Trip* generatedTrip = new sim_mob::Trip(-1, "Trip", 1, DailyTime(candidate.start), DailyTime(), 0, candidate.origin, "node", candidate.dest, "node");
+			sim_mob::SubTrip* generatedSubTrip = new sim_mob::SubTrip(-1, "Trip", 1, DailyTime(candidate.start), DailyTime(), candidate.origin, "node", candidate.dest, "node", generatedTrip, "Car", true, "");
+			generatedTrip->addSubTrip(generatedSubTrip);
+			candidate.entityTripChain.push_back(generatedTrip);
 		}
 
 

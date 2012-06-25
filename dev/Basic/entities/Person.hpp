@@ -68,7 +68,7 @@ public:
         this->tripChain = tripChain;
     }
 
-    void getFirstTripInChain(std::vector<sim_mob::SubTrip*>::iterator& subTripPtr);
+    void getFirstTripInChain(std::vector<sim_mob::SubTrip*>::iterator subTripPtr);
 
     std::vector<TripChainItem*>::iterator currTripChainItem; // pointer to current item in trip chain
     std::vector<SubTrip*>::iterator currSubTrip; //pointer to current subtrip in the current trip (if  current item is trip)

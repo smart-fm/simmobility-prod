@@ -66,7 +66,7 @@ Person* sim_mob::Person::GeneratePersonFromPending(const PendingEntity& p)
 	return res;
 }
 
- void sim_mob::Person::getFirstTripInChain(std::vector<sim_mob::SubTrip*>::iterator& subTripPtr){
+ void sim_mob::Person::getFirstTripInChain(std::vector<sim_mob::SubTrip*>::iterator subTripPtr){
 	std::vector<sim_mob::TripChainItem*>::iterator it = this->getTripChain().begin();
 	do{
 		if((*it)->itemType == sim_mob::TripChainItem::IT_TRIP){

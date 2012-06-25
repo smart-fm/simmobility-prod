@@ -1,6 +1,7 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "TripChain.hpp"
+#include <algorithm>
 
 using std::string;
 using namespace sim_mob;
@@ -12,7 +13,7 @@ sim_mob::SubTrip::~SubTrip() {}
 
 TripChainItem::LocationType sim_mob::TripChainItem::getLocationType(string locType)
 {
-	std::cout<< "locType " << locType << "\n";
+	locType.erase(remove_if(locType.begin(), locType.end(), isspace), locType.end());
 	if(locType == "building"){
 		return TripChainItem::LT_BUILDING;
 	} else if(locType == "node"){
@@ -27,6 +28,7 @@ TripChainItem::LocationType sim_mob::TripChainItem::getLocationType(string locTy
 }
 
 TripChainItem::ItemType sim_mob::TripChainItem::getItemType(std::string itemType){
+	itemType.erase(remove_if(itemType.begin(), itemType.end(), isspace), itemType.end());
 	if(itemType == "Activity") {
 		return IT_ACTIVITY;
 	} else if(itemType == "Trip") {

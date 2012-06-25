@@ -253,12 +253,15 @@ bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 				//Collect the TripChainItems for this entity
 				p.entityTripChain.push_back(*it);
 				it++;
+				if (it == tcs.end()){
+					it--; // so that the for loop will break in the next iteration
+					break;
+				}
 			} while (currentEntityID == (*it)->entityID);
 			//Add it or stash it
 			addOrStashEntity(p, active_agents, pending_agents);
 		}
-		if (it == tcs.end())
-			break;
+
 	}
 	return true;
 }

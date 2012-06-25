@@ -34,6 +34,7 @@
 #include "entities/TrafficWatch.hpp"
 #include "entities/Bus.hpp"
 #include "entities/Person.hpp"
+#include "entities/BusController.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
@@ -284,6 +285,8 @@ bool performMain(const std::string& configFileName) {
 //		trafficWatch.update(currTick);
 		agentWorkers.waitExternAgain(); // The workers wait on the AuraManager.
 
+		BusController& busctrller = BusController::getInstance();
+		busctrller.update(frame_t(currTick));// update in the output file, add by Yao Jin
 
 
 		//Surveillance update

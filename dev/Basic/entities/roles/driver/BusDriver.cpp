@@ -124,13 +124,13 @@ void sim_mob::BusDriver::frame_tick(UpdateParams& p)
 	std::cout<<"BusDriver ID:-->"<<this->getParent()->getId()<<std::endl;
 	std::cout<<"===========  ("<<(this->getVehicle()->getPosition().x)/1000<<","<<(this->getVehicle()->getPosition().y)/1000<<"=========== "<<std::endl;
 	DPoint pt = Driver::getVehicle()->getPosition();
-	DPoint ptCheck(37222842, 14331273);
+	DPoint ptCheck(37223035, 14331504);
 	double distance = dist(pt.x, pt.y, ptCheck.x, ptCheck.y);
 	BusController& busctrller = BusController::getInstance();
-	if(distance < 0.46136)
+	if(this->getParent()->getId() == 3 && distance < 1)// check id and distance
 	{
 		std::cout<<"distance == "<<distance<<std::endl;
-		busctrller.update(pt);//communication and update
+		busctrller.updateBusInformation(pt);//communication and updateupdateBusInformation
 	}
 
 	//Driver::frame_tick() will move the Bus along its route.

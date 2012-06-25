@@ -11,6 +11,7 @@
 #include "entities/PendingEntity.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
+#include "entities/BusController.hpp"
 #include "entities/signal/Signal.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/driver/Driver.hpp"
@@ -1109,6 +1110,12 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	    	return	 "Couldn't load bus drivers";
     	    }
     		cout <<"Loaded Driver Agents (from config file)." <<endl;
+
+    	} else if ((*it) == "buscontrollers") {
+//			if (!loadXMLAgents(document, active_agents, pending_agents, "buscontroller", constraints)) {
+//				return	  "Couldn't load bus controllers";
+//			}
+    		BusController::getInstance().setTobeUpdated();
     	} else if ((*it) == "pedestrians") {
     		if (!loadXMLAgents(document, active_agents, pending_agents, "pedestrian", constraints)) {
     			return "Couldn't load pedestrians";

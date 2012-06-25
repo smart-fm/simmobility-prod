@@ -10,6 +10,7 @@
 #include "Driver.hpp"
 
 #include "entities/roles/pedestrian/Pedestrian.hpp"
+#include "entities/roles/driver/BusDriver.hpp"
 #include "entities/Person.hpp"
 #include "entities/Signal.hpp"
 #include "entities/AuraManager.hpp"
@@ -1042,8 +1043,20 @@ void sim_mob::Driver::initializePath() {
 	//TODO: Start in lane 0?
 	try {
 		//vehicle length and width
-		double length = 400;
-		double width = 200;
+
+		//Only for Test, Yao Jin
+		double length;
+		double width;
+		if(dynamic_cast<BusDriver*>(this))// Bus should be at least 1200 to be displayed on Visualizer
+		{
+			length = 1200;
+			width = 200;
+		} else {
+			length = 400;
+			width = 200;
+		}
+		// Only for Test, Yao Jin
+
 //		size_t type = parent->getId()%10;
 //		if(type==0)//bus
 //			length = 1200;

@@ -40,6 +40,7 @@ namespace sim_mob
 class Entity;
 class Agent;
 class Person;
+class BusController;// add by Yao Jin
 class Region;
 class TripChain;
 class StartTimePriorityQueue;

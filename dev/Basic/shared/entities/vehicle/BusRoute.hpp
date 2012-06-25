@@ -52,10 +52,10 @@ public:
 			if (it!=poly.begin()) {
 				DynamicVector currSegmentLength(it->getX(), it->getY(), (it-1)->getX(), (it-1)->getY());
 				totalDist += currSegmentLength.getMagnitude();
-				std::cout<<"SURPRISE SURPRISE    "<<it->getX()<<"      "<<it->getY()<<"      "<<(it-1)->getX()<<"      "<<(it-1)->getY()<<std::endl;
+				//std::cout<<"SURPRISE SURPRISE    "<<it->getX()<<"      "<<it->getY()<<"      "<<(it-1)->getX()<<"      "<<(it-1)->getY()<<std::endl;
 				i++;
 			}
-			std::cout<<"POLYPOINTS ARE   "<<(poly.end()-1)->getX()<<" , "<<(poly.end()-1)->getY()<<" , "<<(poly.begin())->getX()<<" , "<< (poly.begin())->getY()<<std::endl;
+			//std::cout<<"POLYPOINTS ARE   "<<(poly.end()-1)->getX()<<" , "<<(poly.end()-1)->getY()<<" , "<<(poly.begin())->getX()<<" , "<< (poly.begin())->getY()<<std::endl;
 
 		}
 
@@ -64,8 +64,8 @@ public:
 			std::cout <<"Test: " <<distTraveledOnSegmentZeroLane <<" => " <<percent*totalDist <<"   (" <<(isBusStopOnCurrSegment(curr) && (distTraveledOnSegmentZeroLane >= percent*totalDist)) <<")" <<"\n";
 		}*/
 
-		std::cout<<"Total Distance is     "<<totalDist<<std::endl;
-		std::cout<<"Distance travelled on segment"<<distTraveledOnSegmentZeroLane<<"and distance else is"<<curr->length<<"      "<<percent<<"       "<<percent*totalDist<<"      "<<std::endl;
+		//std::cout<<"Total Distance is     "<<totalDist<<std::endl;
+		//std::cout<<"Distance travelled on segment"<<distTraveledOnSegmentZeroLane<<"and distance else is"<<curr->length<<"      "<<percent<<"       "<<percent*totalDist<<"      "<<std::endl;
 		if (percent>0){
 		return (distTraveledOnSegmentZeroLane > percent*totalDist);
 		}

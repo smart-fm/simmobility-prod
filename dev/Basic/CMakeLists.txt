@@ -7,7 +7,10 @@ IF (POLICY CMP0017)
 ENDIF (POLICY CMP0017)
 
 #Project name. Used to tag resources in cmake. 
-project (Basic)
+project (SimMob)
+
+#Turn on verbose output.
+SET(CMAKE_VERBOSE_MAKEFILE ON)
 
 #Ensure that all executables get placed in the top-level build directory.
 set (EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
@@ -39,10 +42,16 @@ option (SIMMOB_LATEST_STANDARD  "Attempt to compile Sim Mobility with the latest
 option(SIMMOB_AGENT_UPDATE_PROFILE "Log all Agent update ticks per thread and start time. Useful for debugging parallelization errors, but very slow." OFF)
 
 #Option: build tests. Use the cmake gui to change this on a per-user basis.
-option(BUILD_TESTS "Build unit tests." OFF)  
+option(BUILD_TESTS "Build unit tests." OFF)
 
-#Turn on verbose output
-SET(CMAKE_VERBOSE_MAKEFILE ON)
+#Option: build short term. Use the cmake gui to change this on a per-user basis.
+option(BUILD_SHORT "Build short-term simulator." ON)
+
+#Option: build medium term. Use the cmake gui to change this on a per-user basis.
+option(BUILD_MEDIUM "Build medium-term simulator." ON)
+
+#Option: build long term. Use the cmake gui to change this on a per-user basis.
+option(BUILD_LONG "Build long-term simulator." ON)    
 
 #Force gcc to output single line errors. 
 # This makes it easier for Eclipse to parse and understand each error.
@@ -56,8 +65,8 @@ ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 #Generate a header file to contain configuration settings. This is useful
 #  for, e.g., cmake variable which can then be set via the gui. 
 configure_file (
-  "${PROJECT_SOURCE_DIR}/GenConfig.h.in"
-  "${PROJECT_SOURCE_DIR}/GenConfig.h"
+  "${PROJECT_SOURCE_DIR}/shared/GenConfig.h.in"
+  "${PROJECT_SOURCE_DIR}/shared/GenConfig.h"
 )
 
 #Cflags for C++0x support via gcc
@@ -93,17 +102,18 @@ ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 
 #Testing PGO: Have to pass these flags in from the command line.
-SET(TestPgoDirectory "${CMAKE_CURRENT_SOURCE_DIR}/pgo")
-IF (SIMMOBTEST_GENERATE_PROFILE)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-generate=${TestPgoDirectory}")
-  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-generate=${TestPgoDirectory}")
-  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-generate=${TestPgoDirectory}")
-ENDIF(SIMMOBTEST_GENERATE_PROFILE)
-IF (SIMMOBTEST_USE_PROFILE)
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-use=${TestPgoDirectory}")
-  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-use=${TestPgoDirectory}")
-  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-use=${TestPgoDirectory}")
-ENDIF (SIMMOBTEST_USE_PROFILE)
+#NOTE: PGO currently doesn't work right.
+#SET(TestPgoDirectory "${CMAKE_CURRENT_SOURCE_DIR}/pgo")
+#IF (SIMMOBTEST_GENERATE_PROFILE)
+#  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-generate=${TestPgoDirectory}")
+#  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-generate=${TestPgoDirectory}")
+#  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-generate=${TestPgoDirectory}")
+#ENDIF(SIMMOBTEST_GENERATE_PROFILE)
+#IF (SIMMOBTEST_USE_PROFILE)
+#  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-use=${TestPgoDirectory}")
+#  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-use=${TestPgoDirectory}")
+#  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-use=${TestPgoDirectory}")
+#ENDIF (SIMMOBTEST_USE_PROFILE)
 
 
 #Avoid deprecation warnings in boost by declaring that this platform has no hash_set
@@ -163,11 +173,6 @@ IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
   SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MPI_CXX_LINK_FLAGS}")
   
-  #Find cgal
-#  find_package(CGAL REQUIRED)
-  #include_directories(${CGAL_INCLUDE_DIR})  #This messes up gmpxx...
-#  LIST(APPEND LibraryList ${CGAL_LIBRARIES})
-  
   #Use the mpi compiler.
   SET(CMAKE_C_COMPILER ${MPI_C_COMPILER})
   SET(CMAKE_CXX_COMPILER ${MPI_CXX_COMPILER})
@@ -175,63 +180,44 @@ IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
 ENDIF(${SIMMOB_DISABLE_MPI} MATCHES "OFF")
 
 
-
 #Remove duplicates, just in case
 #TODO: We should probably build up a list of IncludeDirs and LibraryDirs too (duplicates removed)
 #      Not a real priority right now, but should allow better porting later on.
 list(REMOVE_DUPLICATES LibraryList)
 
-#Group as many files as possible together automatically
-FILE(GLOB_RECURSE BASIC_CPP *.cpp)
-
-#Create a list of items to remove from the Build.
-# Adding main.cpp to this list makes a good starting point, and ensures
-# we always have at least one item to remove from BASIC_CPP
-FILE(GLOB IgnoreList main*.cpp)
+#Find all of our Shared source files
+FILE(GLOB_RECURSE SharedCode_CPP shared/*.cpp)
 
 #Remove tests
-FILE(GLOB_RECURSE TESTING_CPP "unit-tests/*.cpp" "unit-tests/*.c")
-LIST(APPEND IgnoreList ${TESTING_CPP})
+FILE(GLOB_RECURSE SharedCode_TEST "shared/unit-tests/*.cpp" "shared/unit-tests/*.c")
+LIST(REMOVE_ITEM SharedCode_CPP ${SharedCode_TEST})
 
-#Remove the "Build" directory
-FILE(GLOB_RECURSE IgnoreTmp "Build/*.c" "Build/*.cpp")
-LIST(APPEND IgnoreList ${IgnoreTmp})
+#All code has access to "shared/"
+include_directories("${PROJECT_SOURCE_DIR}/shared")
 
-#Remove the "Debug" directories
-FILE(GLOB_RECURSE IgnoreTmp "Debug/*.c" "Debug/*.cpp")
-LIST(APPEND IgnoreList ${IgnoreTmp})
-FILE(GLOB_RECURSE IgnoreTmp "Debug_M/*.c" "Debug_M/*.cpp")
-LIST(APPEND IgnoreList ${IgnoreTmp})
-FILE(GLOB_RECURSE IgnoreTmp "Release/*.c" "Release/*.cpp")
-LIST(APPEND IgnoreList ${IgnoreTmp})
+#Build a shared object file for short-term, mid-term, long-term, and tests to use
+add_library(SimMob_Shared OBJECT ${SharedCode_CPP})
 
-#Actually remove these
-LIST(REMOVE_ITEM BASIC_CPP ${IgnoreList})
+#Build the Short term?
+IF (${BUILD_SHORT} MATCHES "ON")
+	add_subdirectory(short)
+ENDIF (${BUILD_SHORT} MATCHES "ON")
 
-#Include the top-level source/binary directories
-include_directories("${PROJECT_SOURCE_DIR}")
+#Build the Medium term?
+IF (${BUILD_MEDIUM} MATCHES "ON")
+	add_subdirectory(medium)
+ENDIF (${BUILD_MEDIUM} MATCHES "ON")
 
-#Build a shared object file for short-term, mid-term, and tests to use
-add_library(Sm_Shared OBJECT ${BASIC_CPP})
+#Build the Long term?
+IF (${BUILD_LONG} MATCHES "ON")
+	add_subdirectory(long)
+ENDIF (${BUILD_LONG} MATCHES "ON")
 
-#Build tests?
+#Build tests? 
 IF (${BUILD_TESTS} MATCHES "ON")
-	add_subdirectory(unit-tests)
+	add_subdirectory(shared/unit-tests)
 ENDIF (${BUILD_TESTS} MATCHES "ON")
 
-#Our output executable and its input sources.
-# Include our shared object
-add_executable(SimMobility main.cpp $<TARGET_OBJECTS:Sm_Shared>)
-add_executable(SimMobility_Med main_med.cpp $<TARGET_OBJECTS:Sm_Shared>)
-
-#Libraries to link.
-target_link_libraries (SimMobility ${LibraryList})
-target_link_libraries (SimMobility_Med ${LibraryList})
-
-#Timer:
-IF (${SIMMOB_AGENT_UPDATE_PROFILE} MATCHES "ON")
-  target_link_libraries (SimMobility "rt")
-ENDIF (${SIMMOB_AGENT_UPDATE_PROFILE} MATCHES "ON")
 
 # Based on http://majewsky.wordpress.com/2010/08/14/tip-of-the-day-cmake-and-doxygen/
 # Add a target to generate API documentation with Doxygen

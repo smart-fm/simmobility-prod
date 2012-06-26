@@ -194,7 +194,7 @@ std::string Phase::createStringRepresentation(std::string newLine) const {
 			//link_based
 //			output << "\"link_from\":\"" << (*it).first << "\" ,"; //linkFrom
 //			output << "\"link_to\":\"" << (*it).second.LinkTo << "\"}";
-			//segment_based
+//			//segment_based
 			output << "\"segment_from\":\"" << (*it).second.RS_From << "\" ,"; //segmentFrom
 			output << "\"segment_to\":\"" << (*it).second.RS_To << "\"}";
 

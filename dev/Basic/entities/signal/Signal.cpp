@@ -59,6 +59,7 @@ Signal_SCATS::signalAt(Node const & node, const MutexStrategy& mtxStrat, bool *i
 	all_signals_.push_back(sig);
 	*isNew = true;
 	StreetDirectory::instance().registerSignal(*sig);
+	std::cout << "Signal Created\n";
 	return *sig;
 }
 std::string Signal_SCATS::toString() const { return strRepr; }
@@ -71,7 +72,7 @@ void Signal_SCATS::createStringRepresentation(std::string newLine)
 	std::ostringstream output;
 			output << "{" << newLine << "\"TrafficSignal\":" << "{" << newLine;
 			output << "\"hex_id\":\""<< this << "\"," << newLine;
-			output << "\"simmob_id\":" <<  TMP_SignalID << "\"," << newLine;
+			output << "\"simmob_id\":\"" <<  TMP_SignalID << "\"," << newLine;
 			output << "\"node\": \"" << &getNode() << "\"," << newLine;
 			output << plan_.createStringRepresentation(newLine);
 			output  << newLine << "}"  << newLine << "}";

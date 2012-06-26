@@ -31,8 +31,8 @@ public:
 	virtual Entity::UpdateStatus update(frame_t frameNumber);
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 	void updateBusInformation(DPoint pt);
-	bool isTobeUpdated() { return TobeUpdated; }
-	void setTobeUpdated() { TobeUpdated = true; }
+	bool isTobeUpdated() { return TobeOutput; }
+	void setTobeUpdated() { TobeOutput = true; }
 
 	///Retrieve a reference to the list of managedBuses.
 	std::vector<sim_mob::Bus*>& getManagedBuses() { return managedBuses; }
@@ -47,7 +47,7 @@ private:
 
 	frame_t frameNumberCheck;// check some frame number to do control
 	bool firstFrameTick;  ///Determines if frame_init() has been done.
-	bool TobeUpdated;// Determines whether Xml has buscontroller thus to be updated in output file
+	bool TobeOutput;// Determines whether Xml has buscontroller thus to be updated in output file
 	std::vector<sim_mob::Bus*> managedBuses;// Saved managedBuses
 	//sim_mob::RoadNetwork network;// Saved RoadNetwork
 	DPoint posBus;// The sent position of a given bus ,only for test

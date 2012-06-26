@@ -8,7 +8,7 @@ typedef Entity::UpdateStatus UpdateStatus;
 BusController sim_mob::BusController::instance_;
 
 sim_mob::BusController::BusController(const MutexStrategy& mtxStrat, int id) :
-	Agent(mtxStrat, id), frameNumberCheck(0), firstFrameTick(true), TobeUpdated(false)
+	Agent(mtxStrat, id), frameNumberCheck(0), firstFrameTick(true), TobeOutput(false)
 {
 
 }
@@ -61,7 +61,7 @@ UpdateStatus sim_mob::BusController::update(frame_t frameNumber)
 		}
 
 		//save the output, if no buscontroller in the loadorder, no output
-		if (TobeUpdated) {
+		if (TobeOutput) {
 			frame_tick_output(frameNumber);
 		}
 
@@ -80,7 +80,7 @@ UpdateStatus sim_mob::BusController::update(frame_t frameNumber)
 		msg <<ex.what();
 		LogOut(msg.str() <<std::endl);
 #endif
-		TobeUpdated = false;
+		TobeOutput = false;
 }
 #endif
 

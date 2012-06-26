@@ -71,7 +71,7 @@ void Signal_SCATS::createStringRepresentation(std::string newLine)
 	std::ostringstream output;
 			output << "{" << newLine << "\"TrafficSignal\":" << "{" << newLine;
 			output << "\"hex_id\":\""<< this << "\"," << newLine;
-			output << "\"simmob_id\":" <<  TMP_SignalID << "\"," << newLine;
+			output << "\"simmob_id\":\"" <<  TMP_SignalID << "\"," << newLine;
 			output << "\"node\": \"" << &getNode() << "\"," << newLine;
 			output << plan_.createStringRepresentation(newLine);
 			output  << newLine << "}"  << newLine << "}";

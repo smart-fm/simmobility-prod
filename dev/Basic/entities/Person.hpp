@@ -63,15 +63,17 @@ public:
     }
 
     ///Set this person's trip chain
-    void setTripChain(const std::vector<TripChainItem*> tripChain)
+    void setTripChain(std::vector<TripChainItem*> tripChain)
     {
         this->tripChain = tripChain;
     }
 
-    void getFirstTripInChain(std::vector<sim_mob::SubTrip*>::iterator subTripPtr);
+    sim_mob::SubTrip* getNextSubTripInTrip(sim_mob::Trip* currTrip, sim_mob::SubTrip* currSubTrip);
 
-    std::vector<TripChainItem*>::iterator currTripChainItem; // pointer to current item in trip chain
-    std::vector<SubTrip*>::iterator currSubTrip; //pointer to current subtrip in the current trip (if  current item is trip)
+    void findNextItemInTripChain();
+
+    TripChainItem* currTripChainItem; // pointer to current item in trip chain
+    SubTrip* currSubTrip; //pointer to current subtrip in the current trip (if  current item is trip)
 
     //Used for passing various debug data. Do not rely on this for anything long-term.
     std::string specialStr;

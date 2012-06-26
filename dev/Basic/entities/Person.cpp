@@ -24,7 +24,7 @@ using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
 
 sim_mob::Person::Person(const MutexStrategy& mtxStrat, int id) :
-	Agent(mtxStrat, id), prevRole(nullptr), currRole(nullptr), currTripChainItem(nullptr), firstFrameTick(true)
+	Agent(mtxStrat, id), prevRole(nullptr), currRole(nullptr), currTripChainItem(nullptr), currSubTrip(nullptr), firstFrameTick(true)
 {
 	//throw 1;
 }
@@ -61,21 +61,40 @@ Person* sim_mob::Person::GeneratePersonFromPending(const PendingEntity& p)
 	res->destNode = p.dest;
 	res->setStartTime(p.start);
 	res->setTripChain(p.entityTripChain);
-	int size = p.entityTripChain.size();
-	size = res->getTripChain().size();
-	res->currTripChainItem = res->getTripChain().begin();
-	res->getFirstTripInChain(res->currSubTrip);
+	res->findNextItemInTripChain(); //definitely trip for entities loaded from xml
+	if(res->currTripChainItem->itemType == sim_mob::TripChainItem::IT_TRIP){
+		res->currSubTrip = res->getNextSubTripInTrip(dynamic_cast<sim_mob::Trip*>(res->currTripChainItem), res->currSubTrip);
+	}
+	else{
+		throw "Unexpected trip chain item type. Trip was expected";
+	}
+
 	return res;
 }
 
- void sim_mob::Person::getFirstTripInChain(std::vector<sim_mob::SubTrip*>::iterator subTripPtr){
-	std::vector<sim_mob::TripChainItem*>::iterator it = this->getTripChain().begin();
-	do{
-		if((*it)->itemType == sim_mob::TripChainItem::IT_TRIP){
-			subTripPtr = dynamic_cast<sim_mob::Trip*>((*it))->getSubTrips().begin();
-		}
-		it++;
-	}while(it != this->getTripChain().end());
+sim_mob::SubTrip* sim_mob::Person::getNextSubTripInTrip(sim_mob::Trip* currTrip, sim_mob::SubTrip* currSubTrip){
+	if(currSubTrip == nullptr){
+		//Return the first sub trip if the current sub trip which is passed in is null
+		return currTrip->getSubTrips().front();
+	}
+	// else return the next sub trip if available; return NULL otherwise.
+	std::vector<sim_mob::SubTrip*>::iterator subTripIterator = std::find(currTrip->getSubTrips().begin(), currTrip->getSubTrips().end(), currSubTrip);
+	return (((subTripIterator == currTrip->getSubTrips().end())
+			|| ((++subTripIterator) == currTrip->getSubTrips().end())) ?
+					nullptr : *(subTripIterator));
+}
+
+void sim_mob::Person::findNextItemInTripChain() {
+	if(this->currTripChainItem == nullptr){
+		//set the first item if the current sub trip which is passed in is null
+		this->currTripChainItem = this->tripChain.front();
+		return;
+	}
+	// else set the next item if available; return NULL otherwise.
+	std::vector<sim_mob::TripChainItem*>::iterator itemIterator = std::find(tripChain.begin(), tripChain.end(), this->currTripChainItem);
+	this->currTripChainItem = (((itemIterator == tripChain.end())
+			|| ((++itemIterator) == tripChain.end())) ?
+					nullptr : *(itemIterator));
 }
 
 UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
@@ -191,8 +210,8 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 
 
 UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) {
-	this->currTripChainItem++;
-	if (this->currTripChainItem == this->getTripChain().end()) {
+	this->findNextItemInTripChain();
+	if (this->currTripChainItem == nullptr) {
 		return UpdateStatus::Done;
 	}
 
@@ -203,19 +222,19 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) 
 	prevRole = currRole;
 
 	//Create a new Role based on the trip chain type
-	if((*(this->currTripChainItem))->itemType == sim_mob::TripChainItem::IT_TRIP){
-		if ((*(this->currSubTrip))->mode == "Car") {
+	if(this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_TRIP){
+		if (this->currSubTrip->mode == "Car") {
 			//Temp. (Easy to add in later)
 			throw std::runtime_error("Cars not supported in Trip Chain role change.");
-		} else if ((*(this->currSubTrip))->mode == "Walk") {
+		} else if (this->currSubTrip->mode == "Walk") {
 			changeRole(new Pedestrian(this, gen));
 		} else {
 			throw std::runtime_error("Unknown role type for trip chain role change.");
 		}
 
 		//Update our origin/dest pair.
-		originNode = (*(this->currSubTrip))->fromLocation;
-		destNode = (*(this->currSubTrip))->toLocation;
+		originNode = this->currSubTrip->fromLocation;
+		destNode = this->currSubTrip->toLocation;
 	}
 	else {
 		changeRole(new ActivityPerformer(this));
@@ -266,6 +285,7 @@ void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 sim_mob::Role* sim_mob::Person::getRole() const {
 	return currRole;
 }
+
 
 #ifndef SIMMOB_DISABLE_MPI
 /*

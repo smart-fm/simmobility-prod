@@ -512,7 +512,7 @@ public class NetworkVisualizer {
 		
 		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
 			//Get all lights and Crossings at this intersection (by id)
-			Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());
+			Intersection tempIntersection = network.getIntersections().get(at.getIntersectionID());
 			ArrayList<Integer> allPedestrainLights = at.getPedestrianLights();
 			ArrayList<Integer> crossingIDs = tempIntersection.getSigalCrossingIDs();
 
@@ -540,25 +540,28 @@ public class NetworkVisualizer {
 		
 		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
 			//Get Intersection ID and color
-			Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());
+			Intersection tempIntersection = network.getIntersections().get(at.getIntersectionID());
 			ArrayList<ArrayList<Integer>> allVehicleLights =  at.getVehicleLights();
 
 			//Draw Vehicle Lights
-			for (int i=0; i<4; i++) {
-				//0,1,2,3 correspond to a,b,c,d
-				//TODO: The classes created are not intuitive. Some are index-based, others are
-				//      name-based. Consider redoing them, adding support for both options (perhaps
-				//      using iterators). ~Seth
-				ArrayList<ArrayList<TrafficSignalLine>> signalLine = null;
-				if (i==0) { signalLine = tempIntersection.getVaTrafficSignal(); }
-				else if (i==1) { signalLine = tempIntersection.getVbTrafficSignal(); }
-				else if (i==2) { signalLine = tempIntersection.getVcTrafficSignal(); }
-				else if (i==3) { signalLine = tempIntersection.getVdTrafficSignal(); }
-				ArrayList<Integer> lightColors = allVehicleLights.get(i);
-				
-				//Draw it
-				addTrafficLines(index, signalLine, lightColors);
-			}
+//			for (int i=0; i<4; i++) {
+//				//0,1,2,3 correspond to a,b,c,d
+//				//TODO: The classes created are not intuitive. Some are index-based, others are
+//				//      name-based. Consider redoing them, adding support for both options (perhaps
+//				//      using iterators). ~Seth
+//				ArrayList<ArrayList<TrafficSignalLine>> signalLine = null;
+//				if (i==0) { signalLine = tempIntersection.getVaTrafficSignal(); }
+//				else if (i==1) { signalLine = tempIntersection.getVbTrafficSignal(); }
+//				else if (i==2) { signalLine = tempIntersection.getVcTrafficSignal(); }
+//				else if (i==3) { signalLine = tempIntersection.getVdTrafficSignal(); }
+//				ArrayList<Integer> lightColors = allVehicleLights.get(i);
+//				
+//				//Draw it
+//				addTrafficLines(index, signalLine, lightColors);
+//			}
+			
+			//my solution:
+			
 			
 		}
 	}

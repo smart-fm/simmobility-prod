@@ -22,6 +22,7 @@ import sim_mob.vis.util.FastLineParser;
 import sim_mob.vis.util.Mapping;
 import sim_mob.vis.util.Utility;
 import sim_mob.vis.ProgressUpdateRunner;
+import sim_mob.vis.network.Intersection;
 
 /**
  * The RoadNetwork is the top-level object containing all relevant details about our 
@@ -54,8 +55,8 @@ public class RoadNetwork {
 	private Hashtable<Integer, Crossing> crossings;
 	private Hashtable<Integer, LaneConnector> laneConnectors;
 	private Hashtable<Integer, Hashtable<Integer,Lane> > lanes;
-	private Hashtable<Integer, TrafficSignalLine> trafficSignalLines;
-	private Hashtable<Integer, TrafficSignalCrossing> trafficSignalCrossings;
+	private Hashtable<Integer, TrafficSignalLine> trafficSignalLines;//at present this relatively container and its get function are mainly used in addAllLaneSignals and populate intersection, it can be ommited if the mentioned functions are its primary users
+	private Hashtable<Integer, TrafficSignalCrossing> trafficSignalCrossings;//but this container may need to remain here coz unlike trafficSignalLines, it is directly created from input file
 	private Hashtable<Integer, Intersection> intersections; 
 	private Hashtable<Integer, CutLine> cutLines;
 	private Hashtable<Integer, DriverTick> drivertick;
@@ -160,6 +161,7 @@ public class RoadNetwork {
 			
 			//Parsing depends on how the line is structured.
 			if (newStyle) {
+				System.out.println("parsing line: "+line);
 				//Parse this line as json.
 				GsonResObj gRes = Utility.ParseGsonLine(line);
 				int tTick = gRes.getTimeTick();
@@ -673,8 +675,11 @@ public class RoadNetwork {
 	private void populateIntersections_newStyle(){
 
 		
-		for(Intersection intersection : intersections.values()){		
-			ArrayList <Integer> tempIntersectLinkIDs = intersection.getSigalLinkIDs();
+		for(Intersection intersection : intersections.values()){
+			intersection.populateTrafficSignal(this);
+			if(true) continue;//todo crossings will be left off
+			ArrayList<Integer> tempIntersectLinkIDs = new ArrayList<Integer>();
+			tempIntersectLinkIDs = 	intersection.getSigalLinkIDs();
 			Hashtable<Integer, Integer> intersectLinkSegmentIDTable = new Hashtable<Integer, Integer>();
 			
 			int[] fromSegmentList = new int[]{-1,-1,-1,-1};

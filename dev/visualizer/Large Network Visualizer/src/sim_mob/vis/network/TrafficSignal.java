@@ -23,6 +23,7 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 //		}
 //		private String link_from;
 //		private String link_to;
+	
 	//segment based
 	private class Segment {
 	public Segment(){};
@@ -69,14 +70,14 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 		for(Phase ph: phases)
 		{
 			SignalHelper.Phase phase = signalHelper.new Phase(ph.name);
-			//link based
+//			link based
 //			for(Link ln : ph.links)
 //			{
 //				SignalHelper.Link link = signalHelper.new Link(Utility.ParseIntOptionalHex(ln.link_from), Utility.ParseIntOptionalHex(ln.link_to));
 //				phase.links.add(link);
 //			}
 			
-			//Segment based
+//			Segment based
 			for(Segment rs : ph.segments)
 			{
 				SignalHelper.Segment segment = signalHelper.new Segment(Utility.ParseIntOptionalHex(rs.segment_from), Utility.ParseIntOptionalHex(rs.segment_to));

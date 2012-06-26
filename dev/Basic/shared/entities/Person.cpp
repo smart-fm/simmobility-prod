@@ -124,7 +124,6 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 		//Now perform the main update tick
 		if (!isToBeRemoved()) {
 			//added to get the detailed plan before next activity
-			currRole->frame_init(params);
 			currRole->frame_tick(params);
 			//if mid-term
 			//currRole->frame_tick_med(params);

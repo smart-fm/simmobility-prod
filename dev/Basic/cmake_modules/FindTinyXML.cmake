@@ -12,10 +12,12 @@ IF( TINYXML_INCLUDE_DIR )
 ENDIF( TINYXML_INCLUDE_DIR )
 	
 FIND_PATH( TINYXML_INCLUDE_DIR tinyxml.h
+           HINTS C:/MinGW/include  C:/MinGW32/include
            PATH_SUFFIXES tinyxml )
 
 FIND_LIBRARY( TINYXML_LIBRARIES
               NAMES tinyxml
+              PATHS  C:/MinGW/lib  C:/MinGW32/lib
               PATH_SUFFIXES tinyxml )
 
 # handle the QUIETLY and REQUIRED arguments and set TINYXML_FOUND to TRUE if

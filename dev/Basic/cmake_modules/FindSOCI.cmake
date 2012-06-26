@@ -20,6 +20,10 @@ else ()
       $ENV{SOCI_DIR}/include
       $ENV{SOCI_DIR}/include/soci
       $ENV{SOCI_DIR}
+      C:/MinGW/include
+      C:/MinGW/include/soci
+      C:/MinGW32/include
+      C:/MinGW32/include/soci
       ~/Library/Frameworks
       /Library/Frameworks
       /usr/local/include
@@ -34,8 +38,10 @@ else ()
   )
 
   FIND_LIBRARY(SOCI_LIBRARIES
-      NAMES soci_core  soci_core-gcc-3_0
+      NAMES soci_core  soci_core-gcc-3_0  soci_core_3_0  soci_core-gcc-3_1  soci_core_3_1
       PATHS
+      C:/MinGW/lib
+      C:/MinGW32/lib
       ${SOCI_DIR}/lib
       $ENV{SOCI_DIR}/lib
       $ENV{SOCI_DIR}
@@ -48,6 +54,7 @@ else ()
       /opt/csw/lib
       /opt/lib
   )
+  
 
   IF(SOCI_LIBRARIES)
       IF (NOT SOCI_FIND_QUIETLY)

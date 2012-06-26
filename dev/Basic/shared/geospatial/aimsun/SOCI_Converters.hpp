@@ -218,6 +218,7 @@ template<> struct type_conversion<BusStop>
     }
     static void to_base(const BusStop& src, soci::values& vals, soci::indicator& ind)
     {
+    	std::cout<<"I am here"<<src.xPos<<"    "<<src.yPos<<std::endl;
     	vals.set("bus_stop_id", src.bus_stop_no);
     	vals.set("section_id", src.atSection->id);
     	vals.set("status", src.status);

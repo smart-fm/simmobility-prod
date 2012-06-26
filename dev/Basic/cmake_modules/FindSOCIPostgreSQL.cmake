@@ -23,6 +23,12 @@ else ()
       $ENV{SOCI_DIR}/include
       $ENV{SOCI_DIR}/include/soci
       $ENV{SOCI_DIR}
+      C:/MinGW/include
+      C:/MinGW/include/soci
+      C:/MinGW/include/soci/postgresql
+      C:/MinGW32/include
+      C:/MinGW32/include/soci
+      C:/MinGW32/include/soci/postgresql
       ~/Library/Frameworks
       /Library/Frameworks
       /usr/local/include
@@ -36,12 +42,15 @@ else ()
       /opt/include
   )
 
+  #Hope the user isn't doing something risky (like installing 3_0 of soci and 3_1 of soci_pg)
   FIND_LIBRARY(SOCIPOSTGRESQL_LIBRARIES
-      NAMES soci_postgresql  soci_postgresql-gcc-3_0
+      NAMES soci_postgresql  soci_postgresql-gcc-3_0  soci_postgresql_3_0  soci_postgresql-gcc-3_1  soci_postgresql_3_1
       PATHS
       ${SOCI_DIR}/lib
       $ENV{SOCI_DIR}/lib
       $ENV{SOCI_DIR}
+      C:/MinGW/lib
+      C:/MinGW32/lib
       ~/Library/Frameworks
       /Library/Frameworks
       /usr/local/lib

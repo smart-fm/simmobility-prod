@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "geospatial/RoadSegment.hpp"
+#include "geospatial/Point2D.hpp"
 #include "util/LangHelpers.hpp"
 #include "util/GeomHelpers.hpp"
 #include "metrics/Frame.hpp"
@@ -30,7 +31,11 @@ class UnPackageUtils;
 class DemoBusStop {
 public:
 	const sim_mob::RoadSegment* seg;
+	double distance;
 	double percent;
+	double finalDist;
+	const sim_mob::Point2D* position;
+
 
 	///Is there a bus stop on the current road segment?
 	bool isBusStopOnCurrSegment(const RoadSegment* curr) const {
@@ -41,17 +46,31 @@ public:
 	bool atOrPastBusStop(const RoadSegment* curr, const double distTraveledOnSegmentZeroLane) const {
 		const std::vector<Point2D>& poly = const_cast<RoadSegment*>(seg)->getLaneEdgePolyline(0);
 		double totalDist = 0.0;
+		int i;
+		DynamicVector currSegmentLengthA(poly.end()->getX(), poly.end()->getY(), poly.begin()->getX(), poly.begin()->getY());
 		for (std::vector<Point2D>::const_iterator it=poly.begin(); it!=poly.end(); it++) {
 			if (it!=poly.begin()) {
-				totalDist += sim_mob::dist(*it, *(it-1));
+				DynamicVector currSegmentLength(it->getX(), it->getY(), (it-1)->getX(), (it-1)->getY());
+				totalDist += currSegmentLength.getMagnitude();
+				//std::cout<<"SURPRISE SURPRISE    "<<it->getX()<<"      "<<it->getY()<<"      "<<(it-1)->getX()<<"      "<<(it-1)->getY()<<std::endl;
+				i++;
 			}
+			//std::cout<<"POLYPOINTS ARE   "<<(poly.end()-1)->getX()<<" , "<<(poly.end()-1)->getY()<<" , "<<(poly.begin())->getX()<<" , "<< (poly.begin())->getY()<<std::endl;
+
 		}
 
-		/*if (isBusStopOnCurrSegment(curr)) {
+/*
+		if (isBusStopOnCurrSegment(curr)) {
 			std::cout <<"Test: " <<distTraveledOnSegmentZeroLane <<" => " <<percent*totalDist <<"   (" <<(isBusStopOnCurrSegment(curr) && (distTraveledOnSegmentZeroLane >= percent*totalDist)) <<")" <<"\n";
 		}*/
 
-		return isBusStopOnCurrSegment(curr) && (distTraveledOnSegmentZeroLane >= percent*totalDist);
+		//std::cout<<"Total Distance is     "<<totalDist<<std::endl;
+		//std::cout<<"Distance travelled on segment"<<distTraveledOnSegmentZeroLane<<"and distance else is"<<curr->length<<"      "<<percent<<"       "<<percent*totalDist<<"      "<<std::endl;
+		if (percent>0){
+		return (distTraveledOnSegmentZeroLane > percent*totalDist);
+		}
+		else return 0;
+
 	}
 };
 

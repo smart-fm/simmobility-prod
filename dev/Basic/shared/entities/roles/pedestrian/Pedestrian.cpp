@@ -298,10 +298,10 @@ void sim_mob::Pedestrian::setGoal(PedestrianStage currStage, const RoadSegment* 
 
 		} else { //New code
 			{
-#ifndef SIMMOB_DISABLE_OUTPUT
+/*#ifndef SIMMOB_DISABLE_OUTPUT
 				boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 				std::cout << "Pedestrian: " << parent->getId() << " is using the NEW movement model." << std::endl;
-#endif
+#endif*/
 			}
 
 			//Sanity check

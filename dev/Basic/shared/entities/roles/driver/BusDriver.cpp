@@ -6,8 +6,10 @@
 
 #include "entities/vehicle/BusRoute.hpp"
 #include "entities/vehicle/Bus.hpp"
-
-
+#include "geospatial/Point2D.hpp"
+#include "geospatial/BusStop.hpp"
+#include "geospatial/RoadSegment.hpp"
+#include "geospatial/aimsun/Loader.hpp"
 using namespace sim_mob;
 using std::vector;
 
@@ -19,23 +21,99 @@ namespace {
 //      bus stop.
 //   2) The first of these is located 30% down the road, the second is
 //      60% down the road, and all others are 50% down the road.
+DemoBusStop newbs;
 
-BusRoute MakeSampleRoute(const vector<const RoadSegment*>& path)
+
+
+
+/*
+        double xbs= 37259818;
+        double ybs= 14383558;
+
+         double xbs= 37274610;
+        double ybs= 14364177;
+
+*/
+int c=0;
+BusRoute MakeSampleRoute1(const vector<const RoadSegment*>& path)
 {
 	vector<DemoBusStop> res;
-	for (size_t i=0; i<path.size(); i+=2) {
+	for (size_t i=0; i<path.size(); i+=1) {
 		DemoBusStop next;
-		next.seg = path.at(i);
-		next.percent = (i==1?0.3:i==3?0.6:0.5);
-		res.push_back(next);
-	}
+		next.seg=path.at(i);
+
+		centimeter_t a = next.seg->length;
+        Node* start = next.seg->getStart();
+        Node* end = next.seg->getEnd();
+
+double xbs[10];
+double ybs[10];
+        vector<const RoadSegment*>::const_iterator it = path.begin();
+        for(it = path.begin(); it != path.end() ; it++)
+        {
+        	const RoadSegment* rs = (*it);
+        	const std::map<centimeter_t, const RoadItem*> & obstacles = rs->obstacles;
+        	for(std::map<centimeter_t, const RoadItem*>::const_iterator o_it = obstacles.begin(); o_it != obstacles.end() ; o_it++)
+        	{
+        		RoadItem* ri = const_cast<RoadItem*>(o_it->second);
+//
+        		BusStop *bs = dynamic_cast<BusStop *>(ri);
+        		if(bs)
+        		{
+        			xbs[c] = bs->xPos;
+        			ybs[c] = bs->yPos;
+        			//std::cout << "Bus stop position : " << xbs[c] << " " << ybs[c]<<"    "<<c << std::endl;
+
+
+
+        			double remDist;
+        			        //std::cout<<"kya"<<next.seg->getId()<<std::endl;
+
+        			        DynamicVector SegmentLength(end->location.getX(),end->location.getY(),start->location.getX(),start->location.getY());
+        			        DynamicVector BusStopDistfromStart(xbs[c],ybs[c],start->location.getX(),start->location.getY());
+        			        DynamicVector BusStopDistfromEnd(end->location.getX(),end->location.getY(),xbs[c],ybs[c]);
+
+
+        					//std::cout<<"Distance before 3     "<<next.seg->length <<"      "<<next.distance<<std::endl;
+        					if(BusStopDistfromStart.getMagnitude()<=SegmentLength.getMagnitude() && BusStopDistfromEnd.getMagnitude()<=SegmentLength.getMagnitude())
+        					        {
+        						    remDist = BusStopDistfromStart.getMagnitude();
+
+        					        //std::cout<<"kya"<<next.seg->getId()<<"      "<<remDist<<"      "<<BusStopDistfromStart.getMagnitude()<<"       "<<BusStopDistfromEnd.getMagnitude()<<"      "<<SegmentLength.getMagnitude()<<"     "<<next.percent<<std::endl;
+        					        }
+        					else
+        					{
+        						remDist=0;
+        					}
+
+        					                next.finalDist = remDist;
+        							        next.percent = next.finalDist/SegmentLength.getMagnitude();
+        							        next.distance = next.distance + next.seg->length;
+        							        //std::cout<<"See here is Distance"<<next.finalDist<<"      "<<next.distance<<std::endl;
+
+        					//std::cout<<"Hello path.size()    "<<path.size()<<"    "<<next.percent<<"       "<<a<<"       "<<start->location.getX()<<"       "<<end->location.getX()<<"       "<<start->location.getY()<<"       "<<end->location.getY()<<std::endl;
+        					res.push_back(next);
+        					c++;
+        			        }
+                  }
+        	}
+
+
+        }
+
+
+
+
+
 	return BusRoute(res);
+
 }
 
 } //End anonymous namespace
 
-
-sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat)
+sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat, unsigned int reacTime_LeadingVehicle, unsigned int reacTime_SubjectVehicle, unsigned int reacTime_Gap)
+//	: Driver(parent, mtxStrat, reacTime_LeadingVehicle, reacTime_SubjectVehicle, reacTime_Gap), nextStop(nullptr), waitAtStopMS(0.0)
+//TODO: Fix this. ~Seth
 	: Driver(parent, mtxStrat), nextStop(nullptr), waitAtStopMS(0.0)
 {
 }
@@ -60,9 +138,15 @@ void sim_mob::BusDriver::frame_init(UpdateParams& p)
 	//initializePath() actually creates a Vehicle. We want Vehicle to be a "Bus",
 	// so we need to recreate it here. This will require a new property, "route", which
 	// contains the Bus route. For now, we can just generate a simple route.
-	Bus* bus = new Bus(MakeSampleRoute(vehicle->getCompletePath()), vehicle);
+	Bus* bus;
+
+	bus = new Bus(MakeSampleRoute1(vehicle->getCompletePath()), vehicle);
+
+
+	//std::cout<<"Help I am a bus"<<vehicle->getCompletePath().size()<<std::endl;
 	delete vehicle;
 	vehicle = bus;
+
 
 	//This code is used by Driver to set a few properties of the Vehicle/Bus.
 	if (vehicle && vehicle->hasPath()) {
@@ -74,7 +158,22 @@ void sim_mob::BusDriver::frame_init(UpdateParams& p)
 	//Unique to BusDrivers: reset your route
 	bus->getRoute().reset();
 	nextStop = bus->getRoute().getCurrentStop();
+	//std::cout<<"NextStopis   "<<bus->getRoute().getCurrentStop()<<std::endl;
 	waitAtStopMS = 0.0;
+/*
+	bus[2] = new Bus(MakeSampleRoute2(vehicle->getCompletePath()), vehicle);
+	delete vehicle;
+		vehicle = bus[2];
+
+	if (vehicle && vehicle->hasPath()) {
+			setOrigin(params);
+		} else {
+			throw std::runtime_error("Vehicle could not be created for bus driver; no route!");
+		}
+	bus[2]->getRoute().reset();
+		nextStop = bus[2]->getRoute().getCurrentStop();
+		std::cout<<"NextStopis   "<<bus[2]->getRoute().getCurrentStop()<<std::endl;
+		waitAtStopMS = 0.0;*/
 }
 
 
@@ -82,16 +181,21 @@ double sim_mob::BusDriver::updatePositionOnLink(DriverUpdateParams& p)
 {
 	//First, have we just passed a bus stop? (You'll have to modify this to
 	//   detect them in advance, but the concept's similar)
-	bool atBusStop = nextStop && nextStop->atOrPastBusStop(vehicle->getCurrSegment(), vehicle->getDistanceMovedInSegment());
-	bool updatePos = false;
+	bool atBusStop = nextStop&&nextStop->atOrPastBusStop(vehicle->getCurrSegment(), vehicle->getDistanceMovedInSegment());
 
+
+	bool updatePos = false;
+	//std::cout<<"SEGMENT LENGTH    "<<vehicle->getCurrSegment()->getId()<<"        "<<vehicle->getCurrSegment()->laneEdgePolylines_cached.size()<<std::endl;
 	//If we are moving, then (optionally) decelerate and call normal update behavior.
 	if (vehicle->getVelocity()>0 || vehicle->getLatVelocity()>0) {
 		if (atBusStop) {
 			//vehicle->setAcceleration(-300); //Force stop.
+
 			vehicle->setAcceleration(0);
 			vehicle->setVelocity(0); //TEMP: Need to really force it.
 			waitAtStopMS = p.currTimeMS; //TEMP: Need to force this too.
+			//std::cout<<"SEGMENT LENGTH    "<<vehicle->getCurrSegment()->getId()<<"        "<<vehicle->getCurrSegment()->laneEdgePolylines_cached.size()<<std::endl;
+			//std::cout<<"Yay we are at bus stop"<<vehicle->getX()<<"      "<<vehicle->getY()<<std::endl;
 		}
 		updatePos = true;
 	} else {
@@ -99,9 +203,11 @@ double sim_mob::BusDriver::updatePositionOnLink(DriverUpdateParams& p)
 		if (atBusStop) {
 			if (waitAtStopMS==0.0) {
 				waitAtStopMS = p.currTimeMS;
+
 			}
 		} else {
 			updatePos = true;
+			//std::cout<<"This is not a Bus Stop"<<std::endl;
 		}
 	}
 
@@ -110,7 +216,7 @@ double sim_mob::BusDriver::updatePositionOnLink(DriverUpdateParams& p)
 	if (updatePos) {
 		res = Driver::updatePositionOnLink(p);
 	}
-	
+
 	return res;
 }
 
@@ -162,12 +268,13 @@ void sim_mob::BusDriver::frame_tick_output(const UpdateParams& p)
 	LogOut("(\"BusDriver\""
 			<<","<<p.frameNumber
 			<<","<<parent->getId()
+			//<<"distance  "<<static_cast<int>(vehicle->getDistanceMovedInSegment())/(vehicle->getCurrLinkLaneZeroLength())
 			<<",{"
 			<<"\"xPos\":\""<<static_cast<int>(vehicle->getX())
 			<<"\",\"yPos\":\""<<static_cast<int>(vehicle->getY())
 			<<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI))
-			<<"\",\"length\":\""<<static_cast<int>(vehicle->length)
-			<<"\",\"width\":\""<<static_cast<int>(vehicle->width)
+			<<"\",\"length\":\""<<static_cast<int>(3*vehicle->length)
+			<<"\",\"width\":\""<<static_cast<int>(2*vehicle->width)
 			<<"\",\"passengers\":\""<<(bus?bus->getPassengerCount():0)
 			<<"\"})"<<std::endl);
 #endif

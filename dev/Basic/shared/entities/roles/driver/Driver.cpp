@@ -666,8 +666,8 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 //		p.nextLaneIndex = p.currLaneIndex;
 	//Check if we should change lanes.
 	double newLatVel;
-	newLatVel = 0;//lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length,
-//			vehicle->getTurningDirection());
+	newLatVel = lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length,
+			vehicle->getTurningDirection());
 	vehicle->setLatVelocity(newLatVel);
 	if(vehicle->getLatVelocity()>0)
 		vehicle->setTurningDirection(LCS_LEFT);
@@ -1117,11 +1117,11 @@ void sim_mob::Driver::initializePath() {
 //			length = 1500;
 //		else//car
 //			length = 500;
-		int startlaneID;
-		if(parent->getId()%2==0)
-			startlaneID = 1;
-		else
-			startlaneID = 2;
+		int startlaneID = 0;
+//		if(parent->getId()%2==0)
+//			startlaneID = 1;
+//		else
+//			startlaneID = 2;
 		vehicle = new Vehicle(path, startlaneID, length, width);
 	} catch (std::exception& ex) {
 		errorMsg << "ERROR: " << ex.what();
@@ -1214,6 +1214,7 @@ double sim_mob::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 	double latDistance = vehicle->getLatVelocity() * p.elapsedSeconds;
 
 	//Increase the vehicle's velocity based on its acceleration.
+
 	vehicle->setVelocity(vehicle->getVelocity() + vehicle->getAcceleration() * p.elapsedSeconds);
 
 

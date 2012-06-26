@@ -110,7 +110,7 @@ public:
 
 //private:
 	//temp
-public:
+private:
 	//Trying a slightly more dynamic moving model.
 	GeneralPathMover fwdMovement;
 	double latMovement;

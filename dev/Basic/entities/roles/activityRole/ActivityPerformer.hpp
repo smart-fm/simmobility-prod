@@ -31,7 +31,7 @@ class PartitionManager;
 
 //Helper struct
 struct ActivityPerformerUpdateParams : public sim_mob::UpdateParams {
-	explicit ActivityPerformerUpdateParams(boost::mt19937& gen) : UpdateParams(gen) {}
+	explicit ActivityPerformerUpdateParams(boost::mt19937& gen);
 	virtual ~ActivityPerformerUpdateParams();
 
 	virtual void reset(frame_t frameNumber, unsigned int currTimeMS)
@@ -57,6 +57,7 @@ struct ActivityPerformerUpdateParams : public sim_mob::UpdateParams {
  */
 class ActivityPerformer : public sim_mob::Role {
 public:
+	int remainingTimeToComplete;
 
 	ActivityPerformer(Agent* parent);
 	virtual ~ActivityPerformer();
@@ -68,52 +69,26 @@ public:
 	virtual void frame_tick_output_mpi(frame_t frameNumber);
 	virtual UpdateParams& make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
-
-	sim_mob::DailyTime getActivityEndTime() const {
-		return activityEndTime;
-	}
-
-	void setActivityEndTime(sim_mob::DailyTime activityEndTime) {
-		this->activityEndTime = activityEndTime;
-	}
-
-	sim_mob::DailyTime getActivityStartTime() const {
-		return activityStartTime;
-	}
-
-	void setActivityStartTime(sim_mob::DailyTime activityStartTime) {
-		this->activityStartTime = activityStartTime;
-	}
-
-	sim_mob::Node* getLocation() const {
-		return location;
-	}
-
-	void setLocation(sim_mob::Node* location) {
-		this->location = location;
-	}
+	sim_mob::DailyTime getActivityEndTime() const;
+	void setActivityEndTime(sim_mob::DailyTime activityEndTime);
+	sim_mob::DailyTime getActivityStartTime() const;
+	void setActivityStartTime(sim_mob::DailyTime activityStartTime);
+	sim_mob::Node* getLocation() const;
+	void setLocation(sim_mob::Node* location);
+	void initializeRemainingTime();
+	void updateRemainingTime();
 
 private:
 	sim_mob::DailyTime activityStartTime;
 	sim_mob::DailyTime activityEndTime;
 	sim_mob::Node* location;
+
 	//Temporary variable which will be flushed each time tick. We save it
 	// here to avoid constantly allocating and clearing memory each time tick.
 	ActivityPerformerUpdateParams params;
 	//Serialization-related friends
 	friend class PackageUtils;
 	friend class UnPackageUtils;
-
-#ifndef SIMMOB_DISABLE_MPI
-public:
-	friend class PartitionManager;
-
-	virtual void pack(PackageUtils& packageUtil);
-	virtual void unpack(UnPackageUtils& unpackageUtil);
-
-	virtual void packProxy(PackageUtils& packageUtil);
-	virtual void unpackProxy(UnPackageUtils& unpackageUtil);
-#endif
 };
 
 

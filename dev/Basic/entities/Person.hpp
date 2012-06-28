@@ -68,7 +68,7 @@ public:
         this->tripChain = tripChain;
     }
 
-    sim_mob::SubTrip* getNextSubTripInTrip(sim_mob::Trip* currTrip, sim_mob::SubTrip* currSubTrip);
+    void getNextSubTripInTrip();
 
     void findNextItemInTripChain();
 
@@ -101,9 +101,5 @@ public:
 
 #endif
 };
-
-
-
-
 
 }

@@ -1056,7 +1056,7 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 				sim_mob::SubTrip *aSubTripInTrip = new sim_mob::SubTrip();
 				aSubTripInTrip->entityID = it->entityID;
 				aSubTripInTrip->itemType = it->itemType;
-
+				aSubTripInTrip->tripID = it->tmp_subTripID;
 				aSubTripInTrip->fromLocation = it->fromLocation->generatedNode;
 				aSubTripInTrip->fromLocationType = it->fromLocationType;
 				aSubTripInTrip->toLocation = it->toLocation->generatedNode;

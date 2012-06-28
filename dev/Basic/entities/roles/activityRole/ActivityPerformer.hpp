@@ -24,6 +24,7 @@ namespace sim_mob
 
 class PackageUtils;
 class UnPackageUtils;
+class Activity;
 
 #ifndef SIMMOB_DISABLE_MPI
 class PartitionManager;
@@ -60,6 +61,7 @@ public:
 	int remainingTimeToComplete;
 
 	ActivityPerformer(Agent* parent);
+	ActivityPerformer(Agent* parent, sim_mob::Activity* currActivity);
 	virtual ~ActivityPerformer();
 
 	//Virtual overrides

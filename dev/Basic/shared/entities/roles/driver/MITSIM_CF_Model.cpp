@@ -118,7 +118,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed,NearestVehicle& nv)
 {
 //	p.space = nv.distance/100;
-	p.space = p.perceivedDistToFwdCar;
+	p.space = p.perceivedDistToFwdCar/100;
 	double res = 0;
 	//If we have no space left to move, immediately cut off acceleration.
 	if(p.space > 0) {
@@ -300,7 +300,8 @@ double sim_mob::MITSIM_CF_Model::brakeToStop(DriverUpdateParams& p, double dis)
 	if (dis > DIS_EPSILON) {
 		double u2 = speed*speed;
 		double acc = - u2 / dis * 0.5;
-		if (acc <= normalDeceleration) return acc;
+//		if (acc <= normalDeceleration)
+			return acc;
 		double dt = p.elapsedSeconds;
 		double vt = speed * dt;
 		double a = dt * dt;

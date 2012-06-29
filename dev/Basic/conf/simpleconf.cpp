@@ -231,33 +231,42 @@ bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 		//Create an Agent candidate based on the type.
 		if (currentEntityID != (*it)->entityID) {
 			//trip chain for new entity starts
+			PendingEntity p(sim_mob::ENTITY_RAWAGENT); // p is reassigned correctly in the loop below.
+			bool isFirstItem = true; //First trip is yet to be seen
 
-			// Dummy. p is reassigned correctly in the loop below. Gotta declare p here in a better way.
-			PendingEntity p(sim_mob::ENTITY_RAWAGENT);
-
-			bool firstTripReached = false; //First trip is yet to be seen
 			do {
 				currentEntityID = (*it)->entityID;
-				if ((*it)->itemType == sim_mob::TripChainItem::IT_TRIP && !firstTripReached) {
-					sim_mob::Trip* firstTripForEntity = dynamic_cast<Trip*>(*it);
-					sim_mob::SubTrip* firstSubTripForEntity =
-							dynamic_cast<SubTrip*>(firstTripForEntity->getSubTrips().front());
-					p = PendingEntity(EntityTypeFromTripChainString(firstSubTripForEntity->mode));
-					//Origin, destination, Start time
-					p.origin = firstSubTripForEntity->fromLocation;
-					p.dest = firstSubTripForEntity->toLocation;
-					p.start = firstSubTripForEntity->startTime.offsetMS_From(
-							ConfigParams::GetInstance().simStartTime);
-					firstTripReached = true; // First trip has been iterated
+				if(isFirstItem){
+					if((*it)->itemType == sim_mob::TripChainItem::IT_ACTIVITY){
+						p = PendingEntity(sim_mob::ENTITY_ACTIVITYPERFORMER);
+						sim_mob::Activity* firstActivity = dynamic_cast<sim_mob::Activity*>(*it);
+						//Origin, destination, Start time
+						p.origin = p.dest = firstActivity->location;
+						p.start = firstActivity->startTime.offsetMS_From(
+													ConfigParams::GetInstance().simStartTime);
+					}
+					else if ((*it)->itemType == sim_mob::TripChainItem::IT_TRIP) {
+						sim_mob::Trip* firstTripForEntity = dynamic_cast<Trip*>(*it);
+						sim_mob::SubTrip* firstSubTripForEntity =
+								dynamic_cast<SubTrip*>(firstTripForEntity->getSubTrips().front());
+						p = PendingEntity(EntityTypeFromTripChainString(firstSubTripForEntity->mode));
+						//Origin, destination, Start time
+						p.origin = firstSubTripForEntity->fromLocation;
+						p.dest = firstSubTripForEntity->toLocation;
+						p.start = firstSubTripForEntity->startTime.offsetMS_From(
+								ConfigParams::GetInstance().simStartTime);
+					}
+					else{
+						throw std::runtime_error("Unknown trip chain item type.");
+					}
+					isFirstItem = false; // First trip has been iterated
 				}
 				//Collect the TripChainItems for this entity
 				p.entityTripChain.push_back(*it);
 				it++;
-				if (it == tcs.end()){
-					it--; // so that the for loop will break in the next iteration
-					break;
-				}
-			} while (currentEntityID == (*it)->entityID);
+			} while (it != tcs.end() && currentEntityID == (*it)->entityID);
+			// countering the extra increment in the while loop so that the next iteration of the for loop will point to the correct tripchain item.
+			it--;
 			//Add it or stash it
 			addOrStashEntity(p, active_agents, pending_agents);
 		}

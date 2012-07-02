@@ -30,6 +30,11 @@ class Activity;
 class PartitionManager;
 #endif
 
+#ifndef SIMMOB_DISABLE_MPI
+class PackageUtils;
+class UnPackageUtils;
+#endif
+
 //Helper struct
 struct ActivityPerformerUpdateParams : public sim_mob::UpdateParams {
 	explicit ActivityPerformerUpdateParams(boost::mt19937& gen);

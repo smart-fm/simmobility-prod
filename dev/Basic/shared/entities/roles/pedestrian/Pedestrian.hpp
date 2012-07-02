@@ -26,6 +26,8 @@
 #include "geospatial/Crossing.hpp"
 #include "entities/roles/driver/GeneralPathMover.hpp"
 #include "entities/UpdateParams.hpp"
+#include "geospatial/RoadSegment.hpp"
+using std::vector;
 
 namespace sim_mob
 {
@@ -105,19 +107,13 @@ private:
 	double speed;
 	double xVel;
 	double yVel;
-	Point2D goal;
 	Point2D goalInLane;
-	PedestrianStage currentStage;
 
-//	Signal sig;
 	const Signal* trafficSignal;
 	const Crossing* currCrossing;
 	int sigColor; //0-red, 1-yellow, 2-green
-//	unsigned int phaseCounter; //To be replaced by traffic management system
-	int curCrossingID;
 	bool startToCross;
 	double cStartX, cStartY, cEndX, cEndY;
-	Point2D interPoint;
 
 	//For collisions
 	double xCollisionVector;
@@ -125,20 +121,28 @@ private:
 	static double collisionForce;
 	static double agentRadius;
 
+	//New attributes
+	bool atSidewalk;
+	bool atCrossing;
+	vector<const RoadSegment*> currPath;
+	vector<const Crossing*> currCrossings;
+	int crossingCount;
+	bool gotoCrossing;
+
 	//The following methods are to be moved to agent's sub-systems in future
 	bool isGoalReached();
 	bool isDestReached();
-	void setGoal(PedestrianStage currStage,const RoadSegment* prevSegment);
+	void setSubPath();
 	void updateVelocity(int);
 	void updatePosition();
 	void updatePedestrianSignal();
 	void checkForCollisions();
-//	bool reachStartOfCrossing();
 	bool checkGapAcceptance();
-	void setCrossingParas(const RoadSegment* prevSegment, boost::mt19937& gen); //Temp helper function
-	void setSidewalkParas(Node* start, Node* end, bool isStartMulti);
 	void absToRel(double, double, double &, double &);
 	void relToAbs(double, double, double &, double &);
+
+	//New functions
+	void initCrossing(const Crossing* currCross, boost::mt19937& gen);
 
 	//Attempting to replace stage-one movement (TO the intersection) with the GeneralPathMover. ~Seth
 	GeneralPathMover fwdMovement;

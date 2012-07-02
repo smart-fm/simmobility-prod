@@ -110,6 +110,8 @@ void sim_mob::WorkGroup::stageEntities()
 
 		//Find a worker to assign this to and send it the Entity to manage.
 		assignAWorker(ag);
+		//in the future, replaced by
+		//assignAWorkerConstraint(ag);
 	}
 }
 
@@ -141,7 +143,7 @@ void sim_mob::WorkGroup::collectRemovedEntities()
 
 //method to randomly assign links to workers
 void sim_mob::WorkGroup::assignLinkWorker(){
-	std::vector<Link*> allLinks = ConfigParams::GetInstance().getNetworkRW().getLinks();
+	std::vector<Link*> allLinks = ConfigParams::GetInstance().getNetwork().getLinks();
 	//randomly assign link to worker
 	//each worker is expected to manage approximately the same number of links
 	for(vector<sim_mob::Link*>::iterator it = allLinks.begin(); it!= allLinks.end();it++){
@@ -158,7 +160,6 @@ void sim_mob::WorkGroup::assignLinkWorker(){
 
 //method to assign agents on same link to the same worker
 void sim_mob::WorkGroup::assignAWorkerConstraint(Entity* ag){
-	assignLinkWorker();
 	Agent* agent = dynamic_cast<Agent*>(ag);
 	if(agent){
 		Link* link = agent->originNode->getLinkLoc();
@@ -168,7 +169,7 @@ void sim_mob::WorkGroup::assignAWorkerConstraint(Entity* ag){
 
 //method to find the worker which manages the specified linkID
 sim_mob::Worker* sim_mob::WorkGroup::locateWorker(std::string linkID){
-	std::vector<Link*> allLinks = ConfigParams::GetInstance().getNetworkRW().getLinks();
+	std::vector<Link*> allLinks = ConfigParams::GetInstance().getNetwork().getLinks();
 	for(vector<sim_mob::Link*>::iterator it = allLinks.begin(); it!= allLinks.end();it++){
 		Link* link = *it;
 		if(link->linkID==linkID){

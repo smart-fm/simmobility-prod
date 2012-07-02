@@ -73,7 +73,7 @@ double Pedestrian::agentRadius = 0.5; //Shoulder width of a person is about 0.5 
 
 
 sim_mob::Pedestrian::Pedestrian(Agent* parent, boost::mt19937& gen) :
-	Role(parent), prevSeg(nullptr), isUsingGenPathMover(false), params(parent->getGenerator()) {
+	Role(parent), prevSeg(nullptr), isUsingGenPathMover(true), params(parent->getGenerator()) {
 	//Check non-null parent. Perhaps references may be of use here?
 	if (!parent) {
 		std::cout << "Role constructed with no parent Agent." << std::endl;
@@ -86,7 +86,7 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent, boost::mt19937& gen) :
 #else
 	sigColor = Signal::Green; //Green by default
 #endif
-	currentStage = ApproachingIntersection;
+
 	startToCross = false;
 
 	//Set default speed in the range of 1.2m/s to 1.6m/s
@@ -97,6 +97,11 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent, boost::mt19937& gen) :
 
 	xCollisionVector = 0;
 	yCollisionVector = 0;
+
+	atSidewalk = true;
+	atCrossing = false;
+	gotoCrossing = false;
+	crossingCount = 0;
 
 }
 
@@ -114,7 +119,7 @@ vector<BufferedBase*> sim_mob::Pedestrian::getSubscriptionParams() {
 
 void sim_mob::Pedestrian::frame_init(UpdateParams& p)
 {
-	setGoal(currentStage, nullptr);
+	setSubPath();
 	dynamic_cast<PedestrianUpdateParams&>(p).skipThisFrame = true;
 }
 
@@ -137,18 +142,19 @@ void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 	}
 
 	//Check if the agent has reached the destination
+
 	if (isDestReached()) {
 		parent->setToBeRemoved();
 		return;
 	}
 
 	if (isGoalReached()) {
-		++currentStage;
-		setGoal(currentStage, prevSeg); //Set next goal
+		//++currentStage;
+		setSubPath(); //Set next goal
 		return;
 	}
 
-	if (currentStage == ApproachingIntersection && isUsingGenPathMover) {
+	if(atSidewalk){
 		double vel = speed * 1.2 * 100 * ConfigParams::GetInstance().agentTimeStepInMilliSeconds() / 1000.0;
 
 		prevSeg = fwdMovement.getCurrSegment();
@@ -162,16 +168,12 @@ void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 
 		parent->xPos.set(fwdMovement.getPosition().x);
 		parent->yPos.set(fwdMovement.getPosition().y);
-	} else if (currentStage == ApproachingIntersection || currentStage == LeavingIntersection) {
-		updateVelocity(0);
-		updatePosition();
 
-#ifndef SIMMOB_DISABLE_OUTPUT
-		LogOut("Pedestrian " <<parent->getId() <<" is walking on sidewalk" <<std::endl);
-#endif
-	} else if (currentStage == NavigatingIntersection) {
+	}
+	else if(atCrossing){
 		//Check whether to start to cross or not
 		updatePedestrianSignal();
+
 #ifdef SIMMOB_NEW_SIGNAL
 		if (!startToCross) {
 			if (sigColor == sim_mob::Green) //Green phase
@@ -253,266 +255,245 @@ void sim_mob::Pedestrian::frame_tick_output_mpi(frame_t frameNumber)
 
 /*---------------------Perception-related functions----------------------*/
 
-void sim_mob::Pedestrian::setGoal(PedestrianStage currStage, const RoadSegment* prevSegment) {
-	if (currStage == ApproachingIntersection) {
-		//Retrieve the walking path to the next intersection.
+void sim_mob::Pedestrian::setSubPath() {
+
+	if(atSidewalk){
 		vector<WayPoint> wp_path = StreetDirectory::instance().shortestWalkingPath(parent->originNode->location,
 				parent->destNode->location);
 
-		//Create a vector of RoadSegments, which the GeneralPathMover will expect.
-		const Lane* nextSideWalk = nullptr; //For the old code
-		vector<const RoadSegment*> path;
-		int laneID = -1; //Also save the lane id.
-		for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
-			if (it->type_ == WayPoint::SIDE_WALK) {
-				//Save
-				if (!nextSideWalk) {
-					nextSideWalk = it->lane_;
-				}
+		//For debug ---------------------------------------
+		std::cout<<"Size: "<< wp_path.size()<<std::endl;
+		for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++){
+			if (it->type_ == WayPoint::SIDE_WALK){
+				std::cout<<"Side_walk start node "<<it->lane_->getRoadSegment()->getStart()->getID()<<"("<<it->lane_->getRoadSegment()->getStart()->location.getX()<<","<<it->lane_->getRoadSegment()->getStart()->location.getY()<<") end node "<<it->lane_->getRoadSegment()->getEnd()->getID()<<"("<<it->lane_->getRoadSegment()->getEnd()->location.getX()<<","<<it->lane_->getRoadSegment()->getEnd()->location.getY()<<")"<<std::endl;
+//				const Lane* side_walk = it->lane_;
+//				const std::vector<Point2D> polyline = side_walk->getPolyline();
+//				std::cout << "side-walk start=" << polyline[0] << " end=" << polyline[polyline.size() - 1] << std::endl;
 
-				//If we're changing Links, stop. Thus, "path" contains only the Segments needed to reach the Intersection, and no more.
-				//NOTE: Later, you can send the ENTIRE shortestWalkingPath to fwdMovement and just handle "isInIntersection()"
-				RoadSegment* rs = it->lane_->getRoadSegment();
-				if (!path.empty() && path.back()->getLink() != rs->getLink()) {
-					break;
-				}
-
-				//Add it.
-				path.push_back(rs);
-				laneID = it->lane_->getLaneID();
 			}
+			else if (it->type_ == WayPoint::ROAD_SEGMENT)
+				std::cout<<"Road_segment"<<std::endl;
+			else if (it->type_ == WayPoint::BUS_STOP)
+				std::cout<<"Bus_stop"<<std::endl;
+			else if (it->type_ == WayPoint::CROSSING){
+//				std::cout<<"Crossing"<<std::endl;
+				std::cout << "crossing near-line start=" << it->crossing_->nearLine.first << " end=" << it->crossing_->nearLine.second << std::endl;
+			}
+			else if (it->type_ == WayPoint::NODE){
+//				std::cout<<"Node at xPos "<<it->node_->location.getX()<<" ,yPos "<<it->node_->location.getY()<<std::endl;
+				std::cout << "node location=" << it->node_->location << std::endl;
+			}
+			else if (it->type_ == WayPoint::INVALID)
+				std::cout<<"Invalid"<<std::endl;
+			else
+				std::cout<<"No_match"<<std::endl;
 		}
 
-		//If there is exactly 1 Road Segment before the intersection, use the old movement code.
-		isUsingGenPathMover = path.size() != 1;
-		if (!isUsingGenPathMover) {
-			//Old code
-			if (nextSideWalk->getRoadSegment()->getStart() == parent->originNode) {
-				goal = Point2D(nextSideWalk->getRoadSegment()->getEnd()->location);
-				interPoint = Point2D(nextSideWalk->getRoadSegment()->getEnd()->location);
-			} else {
-				goal = Point2D(nextSideWalk->getRoadSegment()->getStart()->location);
-				interPoint = Point2D(nextSideWalk->getRoadSegment()->getStart()->location);
-			}
-			setSidewalkParas(parent->originNode, ConfigParams::GetInstance().getNetwork().locateNode(goal, true), false);
+		//----------------------------------------------------
 
-		} else { //New code
-			{
-/*#ifndef SIMMOB_DISABLE_OUTPUT
-				boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-				std::cout << "Pedestrian: " << parent->getId() << " is using the NEW movement model." << std::endl;
-#endif*/
+		const Lane* nextSideWalk = nullptr; //For the old code
+		vector<const RoadSegment*> path;
+			int laneID = -1; //Also save the lane id.
+			bool isPassedSeg=false;
+			for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
+				if (it->type_ == WayPoint::SIDE_WALK) {
+					//Save
+					if (!nextSideWalk) {
+						nextSideWalk = it->lane_;
+					}
+
+					//If we're changing Links, stop. Thus, "path" contains only the Segments needed to reach the Intersection, and no more.
+					//NOTE: Later, you can send the ENTIRE shortestWalkingPath to fwdMovement and just handle "isInIntersection()"
+					RoadSegment* rs = it->lane_->getRoadSegment();
+					isPassedSeg=false;
+					if(!currPath.empty()){
+						for (int i =0; i<currPath.size(); i++){
+							if((currPath.at(i)->getStart()==rs->getStart()&&currPath.at(i)->getEnd()==rs->getEnd())||(currPath.at(i)->getStart()==rs->getEnd()&&currPath.at(i)->getEnd()==rs->getStart()))
+								isPassedSeg=true;
+						}
+					}
+					if(isPassedSeg)
+						continue;
+
+					if (!path.empty() && path.back()->getLink() != rs->getLink()) {
+						if((it-1)->type_==WayPoint::CROSSING)
+							gotoCrossing=true;
+						break;
+					}
+
+					//Add it.
+					path.push_back(rs);
+					laneID = it->lane_->getLaneID();
+				}
 			}
 
-			//Sanity check
 			if (path.empty() || laneID == -1) {
 				throw std::runtime_error("Can't find path for Pedestrian.");
 			}
 
 			//TEMP: Currently, GeneralPathMover doesn't like walking on Segments in reverse. This is not too
 			//      difficult to fix, but for now I'm just flipping the path.
-			if (path.front()->getEnd() == parent->originNode) {
-				path = ForceForwardSubpath(path.front(), path.front()->getLink()->getPath(true),
-						path.front()->getLink()->getPath(false));
-				laneID = path.front()->getLanes().size() - 1;
+			if (currPath.empty()){
+				if(path.front()->getEnd() == parent->originNode) {
+					path = ForceForwardSubpath(path.front(), path.front()->getLink()->getPath(true),
+							path.front()->getLink()->getPath(false));
+					laneID = path.front()->getLanes().size() - 1;
+				}
+			}
+			else{
+				if(path.front()->getEnd() == currPath.back()->getEnd()) {
+					path = ForceForwardSubpath(path.front(), path.front()->getLink()->getPath(true),
+							path.front()->getLink()->getPath(false));
+					laneID = path.front()->getLanes().size() - 1;
+				}
 			}
 
 			//Set the path
 			fwdMovement.setPath(path, laneID);
 
-			//NOTE: "goal" and "interPoint" are not really needed. We will keep them for now, but
-			//      later we can just use the "isInIntersection()" check.
-			goal = Point2D(path.back()->getEnd()->location);
-			interPoint = Point2D(path.back()->getEnd()->location);
+			currPath.insert(currPath.end(),path.begin(),path.end());
 
-			//Update the Parent
 			parent->xPos.set(fwdMovement.getPosition().x);
 			parent->yPos.set(fwdMovement.getPosition().y);
-		}
-	} else if (currStage == NavigatingIntersection) {
-		//Set the agent's position at the start of crossing and set the goal to the end of crossing
-		setCrossingParas(prevSegment, parent->getGenerator());
-	} else if (currStage == LeavingIntersection) {
-		goal = Point2D(parent->destNode->location);
-		setSidewalkParas(ConfigParams::GetInstance().getNetwork().locateNode(interPoint, true), parent->destNode, true);
-	}
 
+	}
+	else if(atCrossing){
+
+		vector<WayPoint> wp_path = StreetDirectory::instance().shortestWalkingPath(parent->originNode->location,
+				parent->destNode->location);
+		bool isPassedCrossing=false;
+		vector<const Crossing*> newCrossings;
+		if(currCrossings.empty()){
+			for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
+
+				if(it->type_ == WayPoint::CROSSING){
+					currCrossings.push_back(it->crossing_);
+					if((it+1)->type_!= WayPoint::CROSSING){
+						break;
+					}
+				}
+			}
+			initCrossing(currCrossings.at(crossingCount),parent->getGenerator());
+			crossingCount++;
+		}
+		else{
+			if(currCrossings.size()==crossingCount){
+
+				for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
+
+					if(it->type_ == WayPoint::CROSSING){
+						isPassedCrossing=false;
+						for (int i =0; i<currCrossings.size(); i++){
+							if(currCrossings.at(i)==it->crossing_)
+								isPassedCrossing=true;
+						}
+						if(isPassedCrossing)
+							continue;
+						newCrossings.push_back(it->crossing_);
+						if((it+1)->type_!= WayPoint::CROSSING){
+							break;
+						}
+					}
+				}
+				currCrossings.clear();
+				currCrossings.assign(newCrossings.begin(),newCrossings.end());
+				crossingCount=0;
+				initCrossing(currCrossings.at(crossingCount),parent->getGenerator());
+				crossingCount++;
+			}
+			else{
+				initCrossing(currCrossings.at(crossingCount),parent->getGenerator());
+				crossingCount++;
+			}
+		}
+	}
 }
 
-void sim_mob::Pedestrian::setSidewalkParas(Node* start, Node* end, bool isStartMulti) {
+void sim_mob::Pedestrian::initCrossing(const Crossing* currCross,boost::mt19937& gen){
 
-	unsigned int numOfLanes;
-	const RoadSegment* segToWalk = nullptr;
-	//bool isForward;
-	//	const Lane* sideWalk;
-	Point2D startPt, endPt;
-	const std::vector<sim_mob::Point2D>* sidewalkPolyLine;
-	if (isStartMulti) {
-		const MultiNode* startNode = dynamic_cast<const MultiNode*> (start);
-		if (startNode) {
-			std::set<sim_mob::RoadSegment*>::const_iterator i;
-			const std::set<sim_mob::RoadSegment*>& roadsegments = startNode->getRoadSegments();
-			//			std::cout<<"Multinode Road segments size: "<<roadsegments.size()<<std::endl;
-			for (i = roadsegments.begin(); i != roadsegments.end(); i++) {
-				if ((*i)->getStart() == end && (*i)->getEnd() == start) {
-					segToWalk = (*i);
-					//					isForward=false;
-					break;
-				}
-				//				else if ((*i)->getStart()==start&&(*i)->getEnd()==end){
-				//					segToWalk = (*i);
-				//					isForward=true;
-				//					break;
-				//				}
-			}
-			if (segToWalk) {
-				numOfLanes = (unsigned int) segToWalk->getLanes().size();
-				sidewalkPolyLine = &(const_cast<RoadSegment*> (segToWalk)->getLaneEdgePolyline(numOfLanes));
-				//				if(isForward){
-				//					startPt=sidewalkPolyLine->at(0);
-				//					endPt=sidewalkPolyLine->at(sidewalkPolyLine->size()-1);
-				//				}
-				//				else{
-				endPt = sidewalkPolyLine->at(0);
-				startPt = sidewalkPolyLine->at(sidewalkPolyLine->size() - 1);
-				//				}
-				parent->xPos.set(startPt.getX());
-				parent->yPos.set(startPt.getY());
-				goalInLane = Point2D(endPt.getX(), endPt.getY());
-			} else
-				std::cout << "Cannot find segment from multinode!" << std::endl;
-		} else
-			std::cout << "Cannot cast to Multinode!" << std::endl;
+	double xRel, yRel;
+	double xAbs, yAbs;
+	double width, length, tmp;
+	currCrossing = currCross;
+	startToCross = false;
 
-	} else {
-		const UniNode* startNode = dynamic_cast<const UniNode*> (start);
-		if (startNode) {
-			std::vector<const sim_mob::RoadSegment*>::const_iterator i;
-			std::vector<sim_mob::Lane*>::const_iterator j;
-			const std::vector<const sim_mob::RoadSegment*>& roadsegments = startNode->getRoadSegments();
-			//			std::cout<<"Uninode Road segments size: "<<roadsegments.size()<<std::endl;
-			for (i = roadsegments.begin(); i != roadsegments.end(); i++) {
-				if ((*i)->getStart() == end && (*i)->getEnd() == start) {
-					segToWalk = (*i);
-					break;
-				}
-			}
-			numOfLanes = (unsigned int) segToWalk->getLanes().size();
-			sidewalkPolyLine = &(const_cast<RoadSegment*> (segToWalk)->getLaneEdgePolyline(numOfLanes));
-			endPt = sidewalkPolyLine->at(0);
-			startPt = sidewalkPolyLine->at(sidewalkPolyLine->size() - 1);
-			parent->xPos.set(startPt.getX());
-			parent->yPos.set(startPt.getY());
-			goalInLane = Point2D(endPt.getX(), endPt.getY());
-			//	const std::vector<sim_mob::Lane*>& lanes = segToWalk->getLanes();
-			//	for (j=lanes.begin();j!=lanes.end();j++){
-			//		if((*j)->is_pedestrian_lane()){
-			//			sideWalk = (*j);
-			//			break;
-			//		}
-			//	}
-			//	sidewalkPolyLine = &(sideWalk->getPolyline());
-		} else
-			std::cout << "Cannot cast to Uninode!" << std::endl;
-	}
+	Point2D far1 = currCross->farLine.first;
+	Point2D far2 = currCross->farLine.second;
+	Point2D near1 = currCross->nearLine.first;
+	Point2D near2 = currCross->nearLine.second;
 
-	//	if(startNode){
-	//		std::vector<const sim_mob::RoadSegment*>::const_iterator i;
-	//		std::vector<sim_mob::Lane*>::const_iterator j;
-	//		const std::vector<const sim_mob::RoadSegment*>& roadsegments=startNode->getRoadSegments();
-	//		for(i=roadsegments.begin();i!=roadsegments.end();i++){
-	//			if((*i)->getStart()==end&&(*i)->getEnd()==start){
-	//				segToWalk = (*i);
-	//				break;
-	//			}
-	//		}
-	//		numOfLanes=(unsigned int)segToWalk->getLanes().size();
-	//		sidewalkPolyLine = &(const_cast<RoadSegment*>(segToWalk)->getLaneEdgePolyline(numOfLanes));
-	//	//	const std::vector<sim_mob::Lane*>& lanes = segToWalk->getLanes();
-	//	//	for (j=lanes.begin();j!=lanes.end();j++){
-	//	//		if((*j)->is_pedestrian_lane()){
-	//	//			sideWalk = (*j);
-	//	//			break;
-	//	//		}
-	//	//	}
-	//	//	sidewalkPolyLine = &(sideWalk->getPolyline());
-	//		endPt=sidewalkPolyLine->at(0);
-	//		startPt=sidewalkPolyLine->at(sidewalkPolyLine->size()-1);
-	//		parent->xPos.set(startPt.getX());
-	//		parent->yPos.set(startPt.getY());
-	//		goalInLane = Point2D(endPt.getX(),endPt.getY());
-	//	}
-	//	else{
-	//		std::cout<<"Cannot cast to Uninode!"<<std::endl;
-	////		const MultiNode* startNode=dynamic_cast<const MultiNode*>(start);
-	////		std::set<sim_mob::RoadSegment*>::const_iterator i;
-	////		const std::set<sim_mob::RoadSegment*>& roadsegments=startNode->getRoadSegments();
-	////		for(i=roadsegments.begin();i!=roadsegments.end();i++){
-	////			if((*i)->getStart()==end&&(*i)->getEnd()==start){
-	////				segToWalk = (*i);
-	////				break;
-	////			}
-	////		}
-	////		numOfLanes=(unsigned int)segToWalk->getLanes().size();
-	////		sidewalkPolyLine = &(const_cast<RoadSegment*>(segToWalk)->getLaneEdgePolyline(numOfLanes));
-	////	//	const std::vector<sim_mob::Lane*>& lanes = segToWalk->getLanes();
-	////	//	for (j=lanes.begin();j!=lanes.end();j++){
-	////	//		if((*j)->is_pedestrian_lane()){
-	////	//			sideWalk = (*j);
-	////	//			break;
-	////	//		}
-	////	//	}
-	////	//	sidewalkPolyLine = &(sideWalk->getPolyline());
-	////		startPt=sidewalkPolyLine->at(0);
-	////		endPt=sidewalkPolyLine->at(sidewalkPolyLine->size()-1);
-	////		parent->xPos.set(startPt.getX());
-	////		parent->yPos.set(startPt.getY());
-	////		goalInLane = Point2D(endPt.getX(),endPt.getY());
-	//	}
+	cStartX = (double) near1.getX();
+	cStartY = (double) near1.getY();
+	cEndX = (double) near2.getX();
+	cEndY = (double) near2.getY();
+	absToRel(cEndX, cEndY, length, tmp);
+	absToRel((double) far1.getX(), (double) far1.getY(), tmp, width);
+
+	xRel = 0;
+	if(width<0)
+		yRel = -((double)(zero_to_max(gen)%(int(abs(width)/2+1)))+(double)(zero_to_max(gen)%(int(abs(width)/2+1))));
+	else
+		yRel = (double)(zero_to_max(gen)%(int(width/2+1)))+(double)(zero_to_max(gen)%(int(width/2+1)));
+	xRel = (yRel*tmp)/width;
+	relToAbs(xRel,yRel,xAbs,yAbs);
+	parent->xPos.set((int)xAbs);
+	parent->yPos.set((int)yAbs);
+	xRel = xRel+length;
+	relToAbs(xRel,yRel,xAbs,yAbs);
+	goalInLane = Point2D((int)xAbs,(int)yAbs);
 
 }
 
 bool sim_mob::Pedestrian::isDestReached() {
-	if (currentStage == LeavingIntersection) {
-		double dX = ((double) abs(goalInLane.getX() - parent->xPos.get())) / 100;
-		double dY = ((double) abs(goalInLane.getY() - parent->yPos.get())) / 100;
-		double dis = sqrt(dX * dX + dY * dY);
-		return dis < agentRadius * 4;
+	if(atSidewalk){
+		if(fwdMovement.isDoneWithEntireRoute() && (currPath.back()->getEnd()==parent->destNode||currPath.back()->getStart()==parent->destNode)){
+			return true;
+		}
 	}
 	return false;
 }
 
 bool sim_mob::Pedestrian::isGoalReached() {
-	if (currentStage == ApproachingIntersection && isUsingGenPathMover) {
-		return fwdMovement.isDoneWithEntireRoute();
+	if (atSidewalk){
+		if(fwdMovement.isDoneWithEntireRoute()){
+			if(gotoCrossing){
+				atCrossing=true;
+				atSidewalk=false;
+				gotoCrossing=false;
+			}
+			else{
+				atCrossing=false;
+				atSidewalk=true;
+			}
+			return true;
+		}
+
+	}
+	else if (atCrossing){
+
+		double dX = ((double) abs(goalInLane.getX() - parent->xPos.get())) / 100;
+		double dY = ((double) abs(goalInLane.getY() - parent->yPos.get())) / 100;
+		double dis = sqrt(dX * dX + dY * dY);
+		if (dis < agentRadius * 4){
+			if(currCrossings.size()==crossingCount){
+				atCrossing=false;
+				atSidewalk=true;
+			}
+			return true;
+		}
 	}
 
-	double dX = ((double) abs(goalInLane.getX() - parent->xPos.get())) / 100;
-	double dY = ((double) abs(goalInLane.getY() - parent->yPos.get())) / 100;
-	double dis = sqrt(dX * dX + dY * dY);
-	return dis < agentRadius * 4;
+	return false;
 }
 
-//bool sim_mob::Pedestrian::reachStartOfCrossing()
-//{
-//
-//
-//	return false;
-//
-////	int lowerRightCrossingY = ConfigParams::GetInstance().crossings["lowerright"].getY();
-////
-////	if(parent->yPos.get()<=lowerRightCrossingY){
-////		double dist = lowerRightCrossingY - parent->yPos.get();
-////		if(dist<speed*1)
-////			return true;
-////		else
-////			return false;
-////	}
-////	else
-////		return false;
-//}
-
 void sim_mob::Pedestrian::updatePedestrianSignal() {
+
+	const Node* node = ConfigParams::GetInstance().getNetwork().locateNode(currPath.back()->getEnd()->location, true);
+	if (node)
+		trafficSignal = StreetDirectory::instance().signalAt(*node);
+	else
+		trafficSignal = nullptr;
+
 	if (!trafficSignal)
 		std::cout << "Traffic signal not found!" << std::endl;
 	else {
@@ -522,40 +503,6 @@ void sim_mob::Pedestrian::updatePedestrianSignal() {
 		} else
 			std::cout << "Current crossing not found!" << std::endl;
 	}
-
-	//	Agent* a = nullptr;
-	//	Signal* s = nullptr;
-	//	for (size_t i=0; i<Agent::all_agents.size(); i++) {
-	//		//Skip self
-	//		a = Agent::all_agents[i];
-	//		if (a->getId()==parent->getId()) {
-	//			a = nullptr;
-	//			continue;
-	//		}
-	//
-	//		if (dynamic_cast<Signal*>(a)) {
-	//		   s = dynamic_cast<Signal*>(a);
-	//		   currPhase=1;//s->get_Pedestrian_Light(0);
-	//			//It's a signal
-	//		}
-	//		s = nullptr;
-	//		a = nullptr;
-	//	}
-	//	s = nullptr;
-	//	a = nullptr;
-
-	//	currPhase = sig.get_Pedestrian_Light(0);
-	//	if(phaseCounter==60){ //1 minute period for switching phases (testing only)
-	//		phaseCounter=0;
-	//		if(currPhase==0)
-	//			currPhase = 1;
-	//		else
-	//			currPhase = 0;
-	//	}
-	//	else
-	//		phaseCounter++;
-	//	currPhase=1 ;
-
 }
 
 /*---------------------Decision-related functions------------------------*/
@@ -709,141 +656,6 @@ void sim_mob::Pedestrian::checkForCollisions() {
 
 /*---------------------Other helper functions----------------------------*/
 
-void sim_mob::Pedestrian::setCrossingParas(const RoadSegment* prevSegment, boost::mt19937& gen) {
-	double xRel, yRel;
-	double xAbs, yAbs;
-	double width, length, tmp;
-
-	//Get traffic signal
-	const Node* node = ConfigParams::GetInstance().getNetwork().locateNode(goal, true);
-	if (node)
-		trafficSignal = StreetDirectory::instance().signalAt(*node);
-	else
-		trafficSignal = nullptr;
-
-	std::set<sim_mob::RoadSegment*>::const_iterator i;
-	const Node* currNodeA = ConfigParams::GetInstance().getNetwork().locateNode(goal, true);
-	if (!currNodeA) {
-		std::stringstream msg;
-		msg << "Could not retrieve node at position: " << goal.getX() << "," << goal.getY();
-		msg << "\n   for Pedestrian traveling from: " << parent->originNode->originalDB_ID.getLogItem() << "  to: "
-				<< parent->destNode->originalDB_ID.getLogItem();
-		throw std::runtime_error(msg.str().c_str());
-	}
-	const MultiNode* currNode = dynamic_cast<const MultiNode*> (currNodeA);
-	if (!currNode) {
-		std::stringstream msg;
-		msg << "Node is not a multiNode: " << currNodeA->originalDB_ID.getLogItem();
-		msg << "\n   for Pedestrian traveling from: " << parent->originNode->originalDB_ID.getLogItem() << "  to: "
-				<< parent->destNode->originalDB_ID.getLogItem();
-		throw std::runtime_error(msg.str().c_str());
-	}
-
-	//Determine the Segment that we need to cross.
-	const RoadSegment* segToCross = nullptr;
-	const std::set<sim_mob::RoadSegment*>& roadsegments = currNode->getRoadSegments();
-	for (i = roadsegments.begin(); i != roadsegments.end(); i++) {
-		if ((*i)->getStart() != parent->originNode && (*i)->getEnd() != parent->originNode && (*i)->getStart()
-				!= parent->destNode && (*i)->getEnd() != parent->destNode) {
-			cStartX = (double) goal.getX();
-			cStartY = (double) goal.getY();
-			cEndX = (double) parent->destNode->location.getX();
-			cEndY = (double) parent->destNode->location.getY();
-			if ((*i)->getStart() == currNode) {
-				absToRel((*i)->getEnd()->location.getX(), (*i)->getEnd()->location.getY(), xRel, yRel);
-				if (yRel < 0) {
-					segToCross = (*i);
-					break;
-				}
-			} else {
-				absToRel((*i)->getStart()->location.getX(), (*i)->getStart()->location.getY(), xRel, yRel);
-				if (yRel < 0) {
-					segToCross = (*i);
-					break;
-				}
-			}
-		}
-	}
-
-	//TEMP: We can fold this in later
-	if (!segToCross) {
-		//Create a vector in the direction that we were moving.
-		DynamicVector dir(prevSegment->getStart()->location.getX(), prevSegment->getStart()->location.getY(),
-				prevSegment->getEnd()->location.getX(), prevSegment->getEnd()->location.getY());
-		if (prevSegment->getStart() == currNode) {
-			dir.translateVect().flipMirror();
-		}
-		dir.scaleVectTo(dir.getMagnitude() * 2); //Just to make sure we have something to work with.
-
-		//Now, check all outgoing segments and stop when we find one which starts "left" of the current one.
-		//TODO: This is not the best way to check this. Eventually we should use "getCircular()" to retrieve
-		//      an entire path around the intersection. But it should be solid enough for now.
-		for (i = roadsegments.begin(); i != roadsegments.end(); i++) {
-			const Node* check = (*i)->getStart() == currNode ? (*i)->getEnd() : (*i)->getStart();
-			if (PointIsLeftOfVector(dir, check->location.getX(), check->location.getY())) {
-				segToCross = *i;
-				break;
-			}
-		}
-	}
-
-	if (!segToCross) {
-		throw std::runtime_error("Can't find segment to cross.");
-	}
-
-	if (segToCross->getStart() == currNode) {
-		currCrossing = dynamic_cast<const Crossing*> (segToCross->nextObstacle(0, true).item);
-	} else {
-		currCrossing = dynamic_cast<const Crossing*> (segToCross->nextObstacle(segToCross->length, true).item);
-	}
-
-	if (currCrossing) {
-		Point2D far1 = currCrossing->farLine.first;
-		Point2D far2 = currCrossing->farLine.second;
-		Point2D near1 = currCrossing->nearLine.first;
-		Point2D near2 = currCrossing->nearLine.second;
-
-		//Determine the direction of two points
-		if ((near1.getY() > near2.getY() && goal.getY() > parent->originNode->location.getY()) || (near1.getY()
-				< near2.getY() && goal.getY() < parent->originNode->location.getY())) {
-			cStartX = (double) near2.getX();
-			cStartY = (double) near2.getY();
-			cEndX = (double) near1.getX();
-			cEndY = (double) near1.getY();
-			absToRel(cEndX, cEndY, length, tmp);
-			absToRel((double) far2.getX(), (double) far2.getY(), tmp, width);
-		} else {
-			cStartX = (double) near1.getX();
-			cStartY = (double) near1.getY();
-			cEndX = (double) near2.getX();
-			cEndY = (double) near2.getY();
-			absToRel(cEndX, cEndY, length, tmp);
-			absToRel((double) far1.getX(), (double) far1.getY(), tmp, width);
-		}
-
-		xRel = 0;
-		if(width<0)
-			yRel = -((double)(zero_to_max(gen)%(int(abs(width)/2+1)))+(double)(zero_to_max(gen)%(int(abs(width)/2+1))));
-		else
-			yRel = (double)(zero_to_max(gen)%(int(width/2+1)))+(double)(zero_to_max(gen)%(int(width/2+1)));
-		xRel = (yRel*tmp)/width;
-		relToAbs(xRel,yRel,xAbs,yAbs);
-		parent->xPos.set((int)xAbs);
-		parent->yPos.set((int)yAbs);
-		xRel = xRel+length;
-		relToAbs(xRel,yRel,xAbs,yAbs);
-		goal = Point2D((int)xAbs,(int)yAbs);
-		goalInLane = Point2D((int)xAbs,(int)yAbs);
-
-//		double slope1, slope2;
-//		slope1 = (double)(far2.getY()-far1.getY())/(far2.getX()-far1.getX());
-
-	}
-	else
-		std::cout<<"Crossing not found!"<<std::endl;
-
-}
-
 
 void sim_mob::Pedestrian::absToRel(double xAbs, double yAbs, double & xRel, double & yRel) {
 
@@ -869,7 +681,7 @@ void sim_mob::Pedestrian::relToAbs(double xRel, double yRel, double & xAbs, doub
 }
 
 bool sim_mob::Pedestrian::isOnCrossing() const {
-	if (currentStage == NavigatingIntersection && startToCross == true)
+	if (atCrossing && startToCross == true)
 		return true;
 	else
 		return false;

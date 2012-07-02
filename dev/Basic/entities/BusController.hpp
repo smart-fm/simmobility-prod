@@ -31,8 +31,8 @@ public:
 	virtual Entity::UpdateStatus update(frame_t frameNumber);
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 	void updateBusInformation(DPoint pt);
-	bool isTobeUpdated() { return TobeOutput; }
-	void setTobeUpdated() { TobeOutput = true; }
+	bool isTobeOutput() { return TobeOutput; }
+	void setTobeOutput() { TobeOutput = true; }
 
 	///Retrieve a reference to the list of managedBuses.
 	std::vector<sim_mob::Bus*>& getManagedBuses() { return managedBuses; }

@@ -298,6 +298,9 @@ void sim_mob::Driver::frame_tick(UpdateParams& p)
 }
 
 void sim_mob::Driver::frame_tick_med(UpdateParams& p){
+	//first, plan the next path if not yet planned
+	initializePathMed();
+
 	/* To be added by supply team to update location of driver after every frame tick
 	 * remember
 	 * 		1. Update all the activity parameters of the agent after every ACTIVITY_END event,
@@ -1133,6 +1136,62 @@ void sim_mob::Driver::initializePath() {
 	parent->setNextPathPlanned(true);
 }
 
+void sim_mob::Driver::initializePathMed() {
+
+	if(!parent->getNextPathPlanned()){
+	TripActivity* nextActivity = parent->getNextActivity();
+
+	//if there's no activity during the current trip
+	if(!nextActivity){
+		//Save local copies of the parent's origin/destination nodes.
+		origin.node = parent->originNode;
+		origin.point = origin.node->location;
+		goal.node = parent->destNode;
+		goal.point = goal.node->location;
+	}
+	else{
+		//Save local copies of the parent's origin/destination nodes.
+		origin.node = parent->originNode;
+		origin.point = origin.node->location;
+		goal.node = nextActivity->location;
+		goal.point = goal.node->location;
+	}
+
+	//TEMP
+	std::stringstream errorMsg;
+
+	//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
+	vector<WayPoint> path;
+	Person* parentP = dynamic_cast<Person*> (parent);
+	errorMsg << "Attempting to generate a vehicle" << std::endl;
+	if (!parentP || parentP->specialStr.empty()) {
+		path = StreetDirectory::instance().shortestDrivingPath(*origin.node, *goal.node);
+//		path = StreetDirectory::instance().GetShortestDrivingPath(*origin.node, *goal.node);
+		errorMsg << "...from node: " << origin.node->originalDB_ID.getLogItem() << " to node: "
+				<< goal.node->originalDB_ID.getLogItem() << std::endl;
+	} else {
+		errorMsg << "...special path." << std::endl;
+
+		//Retrieve the special string.
+		size_t cInd = parentP->specialStr.find(':');
+		string specialType = parentP->specialStr.substr(0, cInd);
+		string specialValue = parentP->specialStr.substr(cInd, std::string::npos);
+		if (specialType=="loop") {
+			initLoopSpecialString(path, specialValue);
+		} else if (specialType=="tripchain") {
+			path = StreetDirectory::instance().shortestDrivingPath(*origin.node, *goal.node);
+			int x = path.size();
+			initTripChainSpecialString(specialValue);
+		} else {
+			throw std::runtime_error("Unknown special string type.");
+		}
+	}
+	//do not create new vehicle now
+
+	}
+	//to indicate that the path to next activity is already planned
+	parent->setNextPathPlanned(true);
+}
 
 //link path should be retrieved from other class
 //for now, it serves as this purpose

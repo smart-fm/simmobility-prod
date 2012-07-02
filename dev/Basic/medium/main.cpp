@@ -149,6 +149,8 @@ bool performMainMed(const std::string& configFileName) {
 	);
 
 	bool NoDynamicDispatch = ConfigParams::GetInstance().DynamicDispatchDisabled();
+	//randomly assign link to workers
+	agentWorkers.assignLinkWorker();
 
 	//Add all agents to workers. If they are in all_agents, then their start times have already been taken
 	//  into account; just add them. Otherwise, by definition, they will be in pending_agents.

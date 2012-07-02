@@ -176,6 +176,7 @@ public:
 protected:
 	virtual double updatePositionOnLink(DriverUpdateParams& p);
 	void initializePath();
+	void initializePathMed();
 	void resetPath(DriverUpdateParams& p);
 	void setOrigin(DriverUpdateParams& p);
 

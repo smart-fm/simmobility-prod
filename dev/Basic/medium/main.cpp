@@ -155,7 +155,7 @@ bool performMainMed(const std::string& configFileName) {
 	//Add all agents to workers. If they are in all_agents, then their start times have already been taken
 	//  into account; just add them. Otherwise, by definition, they will be in pending_agents.
 	for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
-		agentWorkers.assignAWorkerConstraint(*it);
+			agentWorkers.assignAWorkerConstraint(*it);
 	}
 
 	cout << "Initial Agents dispatched or pushed to pending." << endl;

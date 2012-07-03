@@ -151,9 +151,8 @@ void sim_mob::WorkGroup::assignLinkWorker(){
 		Worker* w = workers.at(nextWorkerID);
 		w->addLink(link);
 		link->setCurrWorker(w);
-		nextWorkerID++;
+		nextWorkerID = (++nextWorkerID) % workers.size();
 	}
-	nextWorkerID%=workers.size();
 	//reset nextworkerID to 0
 	nextWorkerID=0;
 }
@@ -162,8 +161,17 @@ void sim_mob::WorkGroup::assignLinkWorker(){
 void sim_mob::WorkGroup::assignAWorkerConstraint(Entity* ag){
 	Agent* agent = dynamic_cast<Agent*>(ag);
 	if(agent){
-		Link* link = agent->originNode->getLinkLoc();
-		link->getCurrWorker()->scheduleForAddition(ag);
+		if(agent->originNode){
+			Link* link = agent->originNode->getLinkLoc();
+			link->getCurrWorker()->scheduleForAddition(ag);
+		}
+		else{
+			LoopDetectorEntity* loopDetector = dynamic_cast<LoopDetectorEntity*>(ag);
+			if(loopDetector){
+				Link* link = (loopDetector->getNode()).getLinkLoc();
+				link->getCurrWorker()->scheduleForAddition(ag);
+			}
+		}
 	}
 }
 

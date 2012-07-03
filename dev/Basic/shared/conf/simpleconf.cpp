@@ -257,6 +257,7 @@ bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 		//Origin, destination
 		//curr->originNode =
 		p.origin = (*it)->from.location;
+
 		//curr->destNode =
 		p.dest = (*it)->to.location;
 
@@ -1264,7 +1265,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	}
     }*/
     std::cout <<"------------------\n";
-
     // PrintDB_Network() calls getLaneEdgePolyline() which inserts side-walks into the
     // road-segments.  We can only only initialize the StreetDirectory only now, not before.
     //StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
@@ -1302,7 +1302,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
         loopDetector.init(*signal);
         active_agents.push_back(&loopDetector);
     }
-
 //    std::cout << "999" << endl;
 
 	//No error

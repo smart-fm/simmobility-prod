@@ -4,7 +4,7 @@
 
 unsigned int sim_mob::Node::getID()const {return nodeId;}
 void sim_mob::Node::setID(unsigned int id) { nodeId = id; }
-sim_mob::Link* sim_mob::Node::getLinkLoc(){return linkLoc;}
+sim_mob::Link* sim_mob::Node::getLinkLoc() const {return linkLoc;}
 void sim_mob::Node::setLinkLoc(sim_mob::Link* link) { linkLoc=link; }
 
 #ifndef SIMMOB_DISABLE_MPI

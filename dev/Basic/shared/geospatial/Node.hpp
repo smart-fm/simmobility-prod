@@ -65,7 +65,7 @@ public:
     void setID(unsigned int);
     unsigned int getID()const;
     void setLinkLoc(sim_mob::Link* link);
-    sim_mob::Link* getLinkLoc();
+    sim_mob::Link* getLinkLoc() const;
 };
 
 

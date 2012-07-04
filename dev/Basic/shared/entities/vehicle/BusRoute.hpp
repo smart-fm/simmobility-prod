@@ -39,40 +39,38 @@ public:
 
 	///Is there a bus stop on the current road segment?
 	bool isBusStopOnCurrSegment(const RoadSegment* curr) const {
-		return seg==curr;
+		return curr->obstacles.size()>0;
 	}
 
 	///Have we reached this bus stop?
-	bool atOrPastBusStop(const RoadSegment* curr, const double distTraveledOnSegmentZeroLane) const {
-		const std::vector<Point2D>& poly = const_cast<RoadSegment*>(seg)->getLaneEdgePolyline(0);
-		double totalDist = 0.0;
-		int i;
-		DynamicVector currSegmentLengthA(poly.end()->getX(), poly.end()->getY(), poly.begin()->getX(), poly.begin()->getY());
-		for (std::vector<Point2D>::const_iterator it=poly.begin(); it!=poly.end(); it++) {
-			if (it!=poly.begin()) {
-				DynamicVector currSegmentLength(it->getX(), it->getY(), (it-1)->getX(), (it-1)->getY());
-				totalDist += currSegmentLength.getMagnitude();
-				//std::cout<<"SURPRISE SURPRISE    "<<it->getX()<<"      "<<it->getY()<<"      "<<(it-1)->getX()<<"      "<<(it-1)->getY()<<std::endl;
-				i++;
+	///Have we reached this bus stop?
+		bool atOrPastBusStop(const RoadSegment* curr, const double distTraveledOnSegmentZeroLane) const {
+			const std::vector<Point2D>& poly = const_cast<RoadSegment*>(seg)->getLaneEdgePolyline(0);
+			double totalDist = 0.0;
+			for (std::vector<Point2D>::const_iterator it=poly.begin(); it!=poly.end(); it++) {
+				if (it!=poly.begin()) {
+					totalDist += sim_mob::dist(*it, *(it-1));
+				}
 			}
-			//std::cout<<"POLYPOINTS ARE   "<<(poly.end()-1)->getX()<<" , "<<(poly.end()-1)->getY()<<" , "<<(poly.begin())->getX()<<" , "<< (poly.begin())->getY()<<std::endl;
+
+			/*if (isBusStopOnCurrSegment(curr)) {
+				std::cout <<"Test: " <<distTraveledOnSegmentZeroLane <<" => " <<percent*totalDist <<"   (" <<(isBusStopOnCurrSegment(curr) && (distTraveledOnSegmentZeroLane >= percent*totalDist)) <<")" <<"\n";
+			}*/
+//std::cout<<"CEILING"<<percent<<ceil(percent)<<std::endl;
+//if(ceil(percent))
+//{
+			//std::cout<<"OSTACLES"<<<<"HELLO"<<std::endl;
+
+
+			                                return isBusStopOnCurrSegment(curr) && percent>0;
+
+
+
+			                               // else return 0;
+//}
 
 		}
-
-/*
-		if (isBusStopOnCurrSegment(curr)) {
-			std::cout <<"Test: " <<distTraveledOnSegmentZeroLane <<" => " <<percent*totalDist <<"   (" <<(isBusStopOnCurrSegment(curr) && (distTraveledOnSegmentZeroLane >= percent*totalDist)) <<")" <<"\n";
-		}*/
-
-		//std::cout<<"Total Distance is     "<<totalDist<<std::endl;
-		//std::cout<<"Distance travelled on segment"<<distTraveledOnSegmentZeroLane<<"and distance else is"<<curr->length<<"      "<<percent<<"       "<<percent*totalDist<<"      "<<std::endl;
-		if (percent>0){
-		return (distTraveledOnSegmentZeroLane > percent*totalDist);
-		}
-		else return 0;
-
-	}
-};
+	};
 
 /**
  * A bus route defines how a bus traverses the road network. It consists of the waypoint path

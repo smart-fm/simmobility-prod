@@ -426,6 +426,19 @@ int main(int argc, char* argv[])
 		Logger::log_init("");
 		cout << "No output file specified; using cout." << endl;
 	}
+
+	if (argc > 4) {
+			if (!Logger::log_init1(argv[4]))
+			{
+				cout << "Loading output file failed; using cout" << endl;
+				cout << argv[4] << endl;
+			}
+		} else {
+			Logger::log_init("");
+			cout << "No output file specified; using cout." << endl;
+		}
+
+
 #endif
 
 	//This should be moved later, but we'll likely need to manage random numbers

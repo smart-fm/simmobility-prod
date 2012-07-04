@@ -453,8 +453,8 @@ void DatabaseLoader::LoadBusStop(const std::string& storedProc)
 		        busstop.xPos *= 100;
 		        busstop.yPos *= 100;
 	        busstop_.insert(std::make_pair(busstop.bus_stop_no, busstop));
-		        std :: cout.precision(15);
-		        std :: cout << "Bus Stop ID is: "<< busstop.bus_stop_no <<"    "<< busstop.xPos << "     "<< busstop.yPos  <<std::endl;
+		        //std :: cout.precision(15);
+		        //std :: cout << "Bus Stop ID is: "<< busstop.bus_stop_no <<"    "<< busstop.xPos << "     "<< busstop.yPos  <<std::endl;
 
 		        //it->atSection = &sections_[it->TMP_AtSectionID];
 		        	//	busstop_.push_back(*it);
@@ -600,12 +600,13 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadNodes(getStoredProcedure(storedProcs, "node"));
 	LoadSections(getStoredProcedure(storedProcs, "section"));
 	LoadCrossings(getStoredProcedure(storedProcs, "crossing"));
+	LoadBusStop(getStoredProcedure(storedProcs, "busstop",true));
 	LoadLanes(getStoredProcedure(storedProcs, "lane"));
 	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
 	LoadTripchains(getStoredProcedure(storedProcs, "tripchain"));
-	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal"));
-	LoadBusStop(getStoredProcedure(storedProcs, "busstop", false));
+	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal",false));
+
 	std::cout << "signals Done, Starting LoadPhase" << std::endl;
 	LoadPhase(getStoredProcedure(storedProcs, "phase", false));
 	std::cout << "LoadPhase Done, Congrates" << std::endl;

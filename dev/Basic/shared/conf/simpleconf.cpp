@@ -879,7 +879,7 @@ void PrintDB_Network()
 							        		double y3d = y + diagonal_half*sin(M_PI+phi+theta);
 							        		double x4d = x + diagonal_half*cos(phi-theta);
 							        		double y4d = y + diagonal_half*sin(phi-theta);
-			LogOutNotSync("\"near-1\":\""<<x<<","<<y<<"\",");
+			LogOutNotSync("\"near-1\":\""<<std::setprecision(8)<<x<<","<<y<<"\",");
 			LogOutNotSync("\"near-2\":\""<<x2d<<","<<y2d<<"\",");
 			LogOutNotSync("\"far-1\":\""<<x3d<<","<<y3d<<"\",");
 			LogOutNotSync("\"far-2\":\""<<x4d<<","<<y4d<<"\",");

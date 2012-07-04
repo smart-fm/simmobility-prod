@@ -203,32 +203,7 @@ template<> struct type_conversion<Lane>
     }
 };
 
-template<> struct type_conversion<BusStop>
-{
-    typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, BusStop &res)
-    {
-    	res.bus_stop_no = vals.get<std::string>("bus_stop_no", "");
-    	res.TMP_AtSectionID= vals.get<int>("section_id", 0);
-    	res.status = vals.get<std::string>("status", "");
-    	res.lane_type = vals.get<std::string>("lane_type", "");
-    	res.road_name = vals.get<std::string>("road_name", "");
-    	res.xPos = vals.get<double>("x_pos", 0.0);
-    	res.yPos = vals.get<double>("y_pos", 0.0);
-    }
-    static void to_base(const BusStop& src, soci::values& vals, soci::indicator& ind)
-    {
-    	std::cout<<"I am here"<<src.xPos<<"    "<<src.yPos<<std::endl;
-    	vals.set("bus_stop_id", src.bus_stop_no);
-    	vals.set("section_id", src.atSection->id);
-    	vals.set("status", src.status);
-    	vals.set("lane_type", src.lane_type);
-    	vals.set("road_name", src.road_name);
-        vals.set("x_pos", src.xPos);
-        vals.set("y_pos", src.yPos);
-        ind = i_ok;
-    }
-};
+
 
 template<>
 struct type_conversion<Signal>
@@ -258,6 +233,35 @@ struct type_conversion<Signal>
         indicator = i_ok;
     }
 };
+
+
+template<> struct type_conversion<BusStop>
+{
+    typedef values base_type;
+    static void from_base(const soci::values& vals, soci::indicator& ind, BusStop &res)
+    {
+    	res.bus_stop_no = vals.get<std::string>("bus_stop_no", "");
+    	res.TMP_AtSectionID= vals.get<int>("section_id", 0);
+    	res.status = vals.get<std::string>("status", "");
+    	res.lane_type = vals.get<std::string>("lane_type", "");
+    	res.road_name = vals.get<std::string>("road_name", "");
+    	res.xPos = vals.get<double>("x_pos", 0.0);
+    	res.yPos = vals.get<double>("y_pos", 0.0);
+    }
+    static void to_base(const BusStop& src, soci::values& vals, soci::indicator& ind)
+    {
+    	//std::cout<<"I am here"<<src.xPos<<"    "<<src.yPos<<std::endl;
+    	vals.set("bus_stop_id", src.bus_stop_no);
+    	vals.set("section_id", src.atSection->id);
+    	vals.set("status", src.status);
+    	vals.set("lane_type", src.lane_type);
+    	vals.set("road_name", src.road_name);
+        vals.set("x_pos", src.xPos);
+        vals.set("y_pos", src.yPos);
+        ind = i_ok;
+    }
+};
+
 
 
 }

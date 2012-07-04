@@ -937,11 +937,11 @@ StreetDirectory::ShortestPathImpl::process(RoadSegment const * road, bool isForw
         {
         }
 #endif
-        else if (BusStop const * busStop = dynamic_cast<BusStop const *>(pair.item))
+      else if (BusStop const * busStop = dynamic_cast<BusStop const *>(pair.item))
         {
             const Point2D pos = getBusStopPosition(road, offset);
             Node * node2 = new UniNode(pos.getX(), pos.getY());
-//            addRoadEdge(node1, node2, WayPoint(busStop), offset);
+            addRoadEdge(node1, node2, WayPoint(busStop), offset);
 
 
             avgSpeed = 100*road->maxSpeed/3.6;

@@ -34,8 +34,11 @@ public:
 	bool isTobeOutput() { return TobeOutput; }
 	void setTobeOutput() { TobeOutput = true; }
 
+	// Manage Buses
+	void addBus(Bus* bus);
+	void remBus(Bus* bus);
 	///Retrieve a reference to the list of managedBuses.
-	std::vector<sim_mob::Bus*>& getManagedBuses() { return managedBuses; }
+	std::vector<Bus*>& getManagedBuses() { return managedBuses; }
 	//const sim_mob::RoadNetwork& getNetwork() { return network; }
 
 private:
@@ -48,7 +51,7 @@ private:
 	frame_t frameNumberCheck;// check some frame number to do control
 	bool firstFrameTick;  ///Determines if frame_init() has been done.
 	bool TobeOutput;// Determines whether Xml has buscontroller thus to be updated in output file
-	std::vector<sim_mob::Bus*> managedBuses;// Saved managedBuses
+	std::vector<Bus*> managedBuses;// Saved managedBuses
 	//sim_mob::RoadNetwork network;// Saved RoadNetwork
 	DPoint posBus;// The sent position of a given bus ,only for test
 

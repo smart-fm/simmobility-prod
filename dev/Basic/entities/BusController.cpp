@@ -23,7 +23,20 @@ sim_mob::BusController::~BusController() {
 		managedBuses.clear();
 	}
 }
-//
+
+void sim_mob::BusController::addBus(Bus* bus)
+{
+	managedBuses.push_back(bus);
+}
+
+void sim_mob::BusController::remBus(Bus* bus)
+{
+	std::vector<Bus*>::iterator it = std::find(managedBuses.begin(), managedBuses.end(), bus);
+	if (it!=managedBuses.end()) {
+		managedBuses.erase(it);
+	}
+}
+
 void sim_mob::BusController::updateBusInformation(DPoint pt) {
 	posBus = pt;
 	std::cout<<"Report Given Bus postion: --->("<<posBus.x<<","<<posBus.y<<")"<<std::endl;

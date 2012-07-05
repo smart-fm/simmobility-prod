@@ -38,7 +38,7 @@ class UnPackageUtils;
 //Helper struct
 struct ActivityPerformerUpdateParams : public sim_mob::UpdateParams {
 	explicit ActivityPerformerUpdateParams(boost::mt19937& gen);
-	virtual ~ActivityPerformerUpdateParams();
+	virtual ~ActivityPerformerUpdateParams() {}
 
 	virtual void reset(frame_t frameNumber, unsigned int currTimeMS)
 	{
@@ -66,8 +66,8 @@ public:
 	int remainingTimeToComplete;
 
 	ActivityPerformer(Agent* parent);
-	ActivityPerformer(Agent* parent, sim_mob::Activity* currActivity);
-	virtual ~ActivityPerformer();
+	ActivityPerformer(Agent* parent, const sim_mob::Activity& currActivity);
+	virtual ~ActivityPerformer() {}
 
 	//Virtual overrides
 	virtual void frame_init(UpdateParams& p);

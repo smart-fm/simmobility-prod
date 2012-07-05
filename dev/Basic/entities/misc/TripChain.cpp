@@ -30,9 +30,9 @@ sim_mob::Trip::Trip(int entId, std::string type, unsigned int seqNumber,
 
 sim_mob::SubTrip::SubTrip(int entId, std::string type, unsigned int seqNumber,
 		DailyTime start, DailyTime end, Node* from,
-		std::string fromLocType, Node* to, std::string toLocType, Trip* parent, std::string mode,
+		std::string fromLocType, Node* to, std::string toLocType, /*Trip* parent,*/ std::string mode,
 		bool isPrimary, std::string ptLineId) : Trip(entId, type, seqNumber, start, end, 0, from, fromLocType, to, toLocType),
-		parentTrip(parent), mode(mode) , isPrimaryMode(isPrimary), ptLineId(ptLineId)
+		/*parentTrip(parent),*/ mode(mode) , isPrimaryMode(isPrimary), ptLineId(ptLineId)
 {
 }
 
@@ -69,7 +69,23 @@ TripChainItem::ItemType sim_mob::TripChainItem::getItemType(
 	}
 }
 
-void sim_mob::Trip::addSubTrip(sim_mob::SubTrip* aSubTrip)
+void sim_mob::Trip::addSubTrip(const sim_mob::SubTrip& aSubTrip)
 {
 	subTrips.push_back(aSubTrip);
 }
+
+
+bool sim_mob::operator==(const SubTrip& s1, const SubTrip& s2)
+{
+	//For now, just assume two items are equal if their entity IDs are equal.
+    return (s1.entityID == s2.entityID);
+}
+
+
+bool sim_mob::operator!=(const SubTrip& s1, const SubTrip& s2)
+{
+    return !(s1 == s2);
+}
+
+
+

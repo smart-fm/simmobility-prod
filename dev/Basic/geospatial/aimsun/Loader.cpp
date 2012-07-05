@@ -1016,16 +1016,12 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 	sim_mob::aimsun::Loader::FixupLanesAndCrossings(res);
 
 	//Save all trip chains
-	sim_mob::Trip *tripToSave = nullptr;
-	sim_mob::SubTrip *aSubTripInTrip = nullptr;
-	sim_mob::Activity *activityToSave = nullptr;
-
 	int currTripId = 0;
 
 	for (vector<aimsun::TripChainItem>::iterator it=tripchains_.begin(); it!=tripchains_.end(); it++) {
 		if (it->itemType == sim_mob::TripChainItem::IT_ACTIVITY){
 			//TODO: Person related work
-			activityToSave = new sim_mob::Activity();
+			sim_mob::Activity* activityToSave = new sim_mob::Activity();
 			activityToSave->entityID = it->entityID;
 			activityToSave->itemType = it->itemType;
 			activityToSave->sequenceNumber = it->sequenceNumber;
@@ -1039,9 +1035,9 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 			activityToSave->endTime = it->endTime;
 
 			tcs.push_back(activityToSave);
-		}
-		else if(it->itemType == sim_mob::TripChainItem::IT_TRIP){
+		} else if(it->itemType == sim_mob::TripChainItem::IT_TRIP){
 			// Reads the set of sub trips for this trip and saves the trip in the trip chains
+			sim_mob::Trip *tripToSave = nullptr;
 			do{
 				if(currTripId != it->tripID){
 					tripToSave = new sim_mob::Trip();
@@ -1053,21 +1049,22 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 					tripToSave->fromLocationType = it->fromLocationType;
 				}
 
-				sim_mob::SubTrip *aSubTripInTrip = new sim_mob::SubTrip();
-				aSubTripInTrip->entityID = it->entityID;
-				aSubTripInTrip->itemType = it->itemType;
-				aSubTripInTrip->tripID = it->tmp_subTripID;
-				aSubTripInTrip->fromLocation = it->fromLocation->generatedNode;
-				aSubTripInTrip->fromLocationType = it->fromLocationType;
-				aSubTripInTrip->toLocation = it->toLocation->generatedNode;
-				aSubTripInTrip->toLocationType = it->toLocationType;
-				aSubTripInTrip->mode = it->mode;
-				aSubTripInTrip->isPrimaryMode = it->isPrimaryMode;
-				aSubTripInTrip->ptLineId = it->ptLineId;
-				aSubTripInTrip->startTime = it->startTime;
-				aSubTripInTrip->parentTrip = tripToSave;
-
+				{
+				sim_mob::SubTrip aSubTripInTrip;
+				aSubTripInTrip.entityID = it->entityID;
+				aSubTripInTrip.itemType = it->itemType;
+				aSubTripInTrip.tripID = it->tmp_subTripID;
+				aSubTripInTrip.fromLocation = it->fromLocation->generatedNode;
+				aSubTripInTrip.fromLocationType = it->fromLocationType;
+				aSubTripInTrip.toLocation = it->toLocation->generatedNode;
+				aSubTripInTrip.toLocationType = it->toLocationType;
+				aSubTripInTrip.mode = it->mode;
+				aSubTripInTrip.isPrimaryMode = it->isPrimaryMode;
+				aSubTripInTrip.ptLineId = it->ptLineId;
+				aSubTripInTrip.startTime = it->startTime;
+				//aSubTripInTrip.parentTrip = tripToSave;
 				tripToSave->addSubTrip(aSubTripInTrip);
+				}
 
 				// Update the trip destination so that toLocation eventually points to the destination of the trip.
 				tripToSave->toLocation = it->toLocation->generatedNode;
@@ -1081,7 +1078,9 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 
 			} while(currTripId == it->tripID);
 
-			tcs.push_back(tripToSave);
+			if (tripToSave) {
+				tcs.push_back(tripToSave);
+			}
 			if(it==tripchains_.end()) break;
 		}
 	}

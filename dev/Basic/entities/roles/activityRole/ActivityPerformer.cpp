@@ -24,24 +24,18 @@ sim_mob::ActivityPerformer::ActivityPerformer(Agent* parent) :
 }
 
 sim_mob::ActivityPerformer::ActivityPerformer(Agent* parent,
-		sim_mob::Activity* currActivity) :
+		const sim_mob::Activity& currActivity) :
 		Role(parent), params(parent->getGenerator()){
 	//Check non-null parent. Perhaps references may be of use here?
 	if (!parent) {
 		std::cout << "Role constructed with no parent Agent." << std::endl;
 		throw 1;
 	}
-	activityStartTime = currActivity->startTime;
-	activityEndTime = currActivity->endTime;
-	location = currActivity->location;
+	activityStartTime = currActivity.startTime;
+	activityEndTime = currActivity.endTime;
+	location = currActivity.location;
 }
 
-sim_mob::ActivityPerformer::~ActivityPerformer() {
-}
-
-sim_mob::ActivityPerformerUpdateParams::~ActivityPerformerUpdateParams() {
-}
-;
 sim_mob::ActivityPerformerUpdateParams::ActivityPerformerUpdateParams(
 		boost::mt19937& gen) :
 		UpdateParams(gen) {

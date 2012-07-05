@@ -57,13 +57,13 @@ public:
     Entity::UpdateStatus checkAndReactToTripChain(unsigned int currTimeMS);
 
     ///get this person's trip chain
-    std::vector<TripChainItem*> getTripChain() const
+    const std::vector<const TripChainItem*>& getTripChain() const
     {
         return tripChain;
     }
 
     ///Set this person's trip chain
-    void setTripChain(std::vector<TripChainItem*> tripChain)
+    void setTripChain(const std::vector<const TripChainItem*>& tripChain)
     {
         this->tripChain = tripChain;
     }
@@ -72,8 +72,8 @@ public:
 
     void findNextItemInTripChain();
 
-    TripChainItem* currTripChainItem; // pointer to current item in trip chain
-    SubTrip* currSubTrip; //pointer to current subtrip in the current trip (if  current item is trip)
+    const TripChainItem* currTripChainItem; // pointer to current item in trip chain
+    const SubTrip* currSubTrip; //pointer to current subtrip in the current trip (if  current item is trip)
 
     //Used for passing various debug data. Do not rely on this for anything long-term.
     std::string specialStr;
@@ -84,7 +84,7 @@ private:
     sim_mob::Role* currRole;
     //sim_mob::TripChainItem* currTripChainItem;
     int currTripChainSequenceNumber;
-    std::vector<TripChainItem*> tripChain;
+    std::vector<const TripChainItem*> tripChain;
     bool firstFrameTick;
     ///Determines if frame_init() has been done.
     friend class PartitionManager;

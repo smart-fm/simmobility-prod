@@ -2,6 +2,8 @@
 
 #include "Person.hpp"
 
+#include <algorithm>
+
 //For debugging
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
@@ -53,7 +55,7 @@ Person* sim_mob::Person::GeneratePersonFromPending(const PendingEntity& p)
 	} else if (p.type == ENTITY_BUSDRIVER) {
 		res->changeRole(new BusDriver(res, config.mutexStategy, config.reacTime_LeadingVehicle,config.reacTime_SubjectVehicle,config.reacTime_Gap));
 	} else if (p.type == ENTITY_ACTIVITYPERFORMER){
-		res->changeRole(new ActivityPerformer(res, dynamic_cast<sim_mob::Activity*>(p.entityTripChain.front()))); // First trip chain item is Activity when Person is generated from Pending
+		res->changeRole(new ActivityPerformer(res, dynamic_cast<const sim_mob::Activity&>(*(p.entityTripChain.front())))); // First trip chain item is Activity when Person is generated from Pending
 	} else {
 		throw std::runtime_error("PendingEntity currently only supports Drivers, Pedestrians and Activity performers.");
 	}
@@ -69,22 +71,25 @@ Person* sim_mob::Person::GeneratePersonFromPending(const PendingEntity& p)
 }
 
 void sim_mob::Person::getNextSubTripInTrip(){
-	if(this->currTripChainItem == nullptr || this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_ACTIVITY){
-		this->currSubTrip = nullptr;
+	if(!currTripChainItem || currTripChainItem->itemType == sim_mob::TripChainItem::IT_ACTIVITY){
+		currSubTrip = nullptr;
 	}
 	else if(this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_TRIP){
-		sim_mob::Trip* currTrip = dynamic_cast<sim_mob::Trip*>(this->currTripChainItem);
-		vector<sim_mob::SubTrip*> currSubTripsList = currTrip->getSubTrips();
-		if(currSubTrip == nullptr){
+		const Trip* currTrip = dynamic_cast<const Trip*>(this->currTripChainItem);
+		const vector<SubTrip>& currSubTripsList = currTrip->getSubTrips();
+		if(!currSubTrip) {
 			//Return the first sub trip if the current sub trip which is passed in is null
-			this->currSubTrip = currSubTripsList.front();
-		}
-		else {
-		// else return the next sub trip if available; return nullptr otherwise.
-		std::vector<sim_mob::SubTrip*>::iterator subTripIterator = std::find(currSubTripsList.begin(), currSubTripsList.end(), this->currSubTrip);
-		this->currSubTrip = ((subTripIterator == currSubTripsList.end()) // if current item is not found
-				|| ((++subTripIterator) == currSubTripsList.end())) ? // or if current item is the last in the trip chain (next item is end) (itemIterator incremented here)
-						nullptr : *(subTripIterator); // return nullptr. else return the next item.
+			currSubTrip = &currSubTripsList.front();
+		} else {
+			// else return the next sub trip if available; return nullptr otherwise.
+			vector<SubTrip>::const_iterator subTripIterator = std::find(currSubTripsList.begin(), currSubTripsList.end(), (*currSubTrip));
+			currSubTrip = nullptr;
+			if (subTripIterator!=currSubTripsList.end()) {
+				//Set it equal to the next item, assuming we are not at the end of the list.
+				if (++subTripIterator != currSubTripsList.end()) {
+					currSubTrip = &(*subTripIterator);
+				}
+			}
 		}
 	}
 	else{
@@ -93,16 +98,19 @@ void sim_mob::Person::getNextSubTripInTrip(){
 }
 
 void sim_mob::Person::findNextItemInTripChain() {
-	if(this->currTripChainItem == nullptr){
+	if(!this->currTripChainItem){
 		//set the first item if the current item is null
 		this->currTripChainItem = this->tripChain.front();
-	}
-	else {
+	} else {
 		// else set the next item if available; return nullptr otherwise.
-		std::vector<sim_mob::TripChainItem*>::iterator itemIterator = std::find(tripChain.begin(), tripChain.end(), this->currTripChainItem);
-		this->currTripChainItem = (((itemIterator == tripChain.end()) // if current item is not found
-				|| ((++itemIterator) == tripChain.end())) ? // or if current item is the last in the trip chain (next item is end) (itemIterator incremented here)
-						nullptr : *(itemIterator)); // return nullptr. else return the next item.
+		std::vector<const TripChainItem*>::const_iterator itemIterator = std::find(tripChain.begin(), tripChain.end(), currTripChainItem);
+		currTripChainItem = nullptr;
+		if (itemIterator!=tripChain.end()) {
+			//Set it equal to the next item, assuming we are not at the end of the list.
+			if (++itemIterator != tripChain.end()) {
+				currTripChainItem = *itemIterator;
+			}
+		}
 	}
 
 	this->getNextSubTripInTrip(); //if currTripChainItem is Trip, set currSubTrip as well
@@ -252,14 +260,12 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) 
 		//Update our origin/dest pair.
 		originNode = this->currSubTrip->fromLocation;
 		destNode = this->currSubTrip->toLocation;
-	}
-	else if(this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_ACTIVITY){
-		sim_mob::Activity *currActivity = dynamic_cast<sim_mob::Activity*>(this->currTripChainItem);
+	} else if(this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_ACTIVITY){
+		const Activity& currActivity = dynamic_cast<const Activity&>(*currTripChainItem);
 		changeRole(new ActivityPerformer(this, currActivity));
 		//Update our origin/dest pair.
-		originNode = destNode = currActivity->location;
-	}
-	else {
+		originNode = destNode = currActivity.location;
+	} else {
 		throw std::runtime_error("Unknown item type in trip chain");
 	}
 

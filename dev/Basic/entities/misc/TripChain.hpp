@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <map>
+#include <string>
 #include <set>
 
 #include "util/LangHelpers.hpp"
@@ -87,18 +88,18 @@ public:
 			Node* to=nullptr, std::string toLocType="node");
 	virtual ~Trip() {}
 
-	void addSubTrip(sim_mob::SubTrip* aSubTrip);
+	void addSubTrip(const sim_mob::SubTrip& aSubTrip);
 
-	std::vector<SubTrip*> getSubTrips() const {
+	const std::vector<SubTrip>& getSubTrips() const {
 		return subTrips;
 	}
 
-	void setSubTrips(const std::vector<SubTrip*>& subTrips) {
+	/*void setSubTrips(const std::vector<SubTrip>& subTrips) {
 		this->subTrips = subTrips;
-	}
+	}*/
 
 private:
-	std::vector<SubTrip*> subTrips;
+	std::vector<SubTrip> subTrips;
 };
 
 /**
@@ -106,7 +107,7 @@ private:
  */
 class SubTrip: public sim_mob::Trip {
 public:
-	sim_mob::Trip* parentTrip;
+	//sim_mob::Trip* parentTrip;
 	std::string mode;
 	bool isPrimaryMode;
 	std::string ptLineId; //Public transit (bus or train) line identifier.
@@ -114,8 +115,15 @@ public:
 	SubTrip(int entId=0, std::string type="Trip", unsigned int seqNumber=0,
 			DailyTime start=DailyTime(), DailyTime end=DailyTime(), Node* from=nullptr,
 			std::string fromLocType="node", Node* to=nullptr, std::string toLocType="node",
-			Trip* parent=nullptr, std::string mode="", bool isPrimary=true, std::string ptLineId="");
+			/*Trip* parent=nullptr,*/ std::string mode="", bool isPrimary=true, std::string ptLineId="");
 	virtual ~SubTrip() {}
 };
+
+
+//Non-member comparison functions
+bool operator==(const SubTrip& s1, const SubTrip& s2);
+bool operator!=(const SubTrip& s1, const SubTrip& s2);
+
+
 
 }

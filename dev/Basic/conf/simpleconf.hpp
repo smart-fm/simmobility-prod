@@ -32,6 +32,8 @@
 #include "geospatial/Point2D.hpp"
 #include "geospatial/RoadNetwork.hpp"
 
+#include "entities/misc/TripChain.hpp"
+
 
 namespace sim_mob
 {
@@ -41,7 +43,6 @@ class Entity;
 class Agent;
 class Person;
 class Region;
-class TripChainItem;
 class StartTimePriorityQueue;
 class ProfileBuilder;
 

@@ -42,10 +42,12 @@ public:
 	sim_mob::DailyTime startTime;
 	sim_mob::DailyTime endTime;
 
-	TripChainItem();
-	TripChainItem(int entId, std::string type,
-			DailyTime start, DailyTime end, unsigned int seqNumber);
-	virtual ~TripChainItem();
+	//TripChainItem();
+	TripChainItem(int entId=0, std::string type="Trip",
+				DailyTime start=DailyTime(), DailyTime end=DailyTime(),
+				unsigned int seqNumber=0);
+	virtual ~TripChainItem() {}
+
 	static LocationType getLocationType(std::string locType);
 	static ItemType getItemType(std::string itemType);
 };
@@ -64,8 +66,7 @@ public:
 	bool isFlexible;
 	bool isMandatory;
 
-	Activity();
-	virtual ~Activity();
+	Activity(std::string locType="node");
 };
 
 /**
@@ -80,11 +81,12 @@ public:
 	sim_mob::Node* toLocation;
 	TripChainItem::LocationType toLocationType;
 
-	Trip();
-	Trip(int entId, std::string type, unsigned int seqNumber, DailyTime start,
-			DailyTime end, int tripId, Node* from, std::string fromLocType,
-			Node* to, std::string toLocType);
-	virtual ~Trip();
+	Trip(int entId=0, std::string type="Trip", unsigned int seqNumber=0,
+			DailyTime start=DailyTime(), DailyTime end=DailyTime(),
+			int tripId=0, Node* from=nullptr, std::string fromLocType="node",
+			Node* to=nullptr, std::string toLocType="node");
+	virtual ~Trip() {}
+
 	void addSubTrip(sim_mob::SubTrip* aSubTrip);
 
 	std::vector<SubTrip*> getSubTrips() const {
@@ -109,12 +111,11 @@ public:
 	bool isPrimaryMode;
 	std::string ptLineId; //Public transit (bus or train) line identifier.
 
-	SubTrip();
-	SubTrip(int entId, std::string type, unsigned int seqNumber,
-			DailyTime start, DailyTime end, Node* from,
-			std::string fromLocType, Node* to, std::string toLocType, Trip* parent, std::string mode,
-			bool isPrimary, std::string ptLineId);
-	virtual ~SubTrip();
+	SubTrip(int entId=0, std::string type="Trip", unsigned int seqNumber=0,
+			DailyTime start=DailyTime(), DailyTime end=DailyTime(), Node* from=nullptr,
+			std::string fromLocType="node", Node* to=nullptr, std::string toLocType="node",
+			Trip* parent=nullptr, std::string mode="", bool isPrimary=true, std::string ptLineId="");
+	virtual ~SubTrip() {}
 };
 
 }

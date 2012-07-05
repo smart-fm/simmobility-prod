@@ -103,7 +103,7 @@ void sim_mob::BusController::frame_tick_output(frame_t frameNumber)
 			<<","<<getId()
 			<<",{"
 			<<"\"managedBuses size\":\""<<static_cast<int>(managedBuses.size())
-			<<"\"Bus_xPos\":\""<<static_cast<int>(posBus.x)
+			<<"\",\"Bus_xPos\":\""<<static_cast<int>(posBus.x)
 			<<"\",\"Bus_yPos\":\""<<static_cast<int>(posBus.y)
 			<<"\"})"<<std::endl);
 #endif

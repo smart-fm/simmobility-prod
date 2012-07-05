@@ -286,7 +286,7 @@ bool performMain(const std::string& configFileName) {
 		agentWorkers.waitExternAgain(); // The workers wait on the AuraManager.
 
 		BusController& busctrller = BusController::getInstance();
-		busctrller.update(frame_t(currTick));// update in the output file, add by Yao Jin
+		busctrller.update((frame_t)currTick);// update in the output file, add by Yao Jin
 
 
 		//Surveillance update

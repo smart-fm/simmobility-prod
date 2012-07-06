@@ -119,6 +119,13 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
 {
 //	p.space = nv.distance/100;
 	p.space = p.perceivedDistToFwdCar/100;
+
+	{
+		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+		std::cout << "Observed: " <<p.perceivedDistToFwdCar <<"  , actual: " <<nv.distance <<"\n";
+	}
+
+
 	double res = 0;
 	//If we have no space left to move, immediately cut off acceleration.
 	if(p.space > 0) {

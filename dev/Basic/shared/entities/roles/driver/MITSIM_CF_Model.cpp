@@ -87,6 +87,17 @@ double nRandom(boost::mt19937& gen, double mean,double stddev)
 	   if (r > 0.0) return (mean + stddev * sqrt(r) * sin(2 * 3.1415926 * r2));
 	   else return (mean);
 }
+
+
+double CalcHeadway(double space, double speed, double elapsedSeconds, double maxAcceleration)
+{
+	if (speed == 0) {
+		return 2 * space * 100000;
+	} else {
+		return 2 * space / (speed+speed+elapsedSeconds*maxAcceleration);
+	}
+}
+
 } //End anon namespace
 
 double speed;//if reaction time disable, speed is current velocity
@@ -117,14 +128,7 @@ double sim_mob::MITSIM_CF_Model::makeAcceleratingDecision(DriverUpdateParams& p,
 
 double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double targetSpeed, double maxLaneSpeed,NearestVehicle& nv)
 {
-//	p.space = nv.distance/100;
 	p.space = p.perceivedDistToFwdCar/100;
-
-	{
-		//boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-		//std::cout << "Observed: " <<p.perceivedDistToFwdCar <<"  , actual: " <<nv.distance <<"\n";
-	}
-
 
 	double res = 0;
 	//If we have no space left to move, immediately cut off acceleration.
@@ -136,12 +140,19 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
 		p.a_lead = p.perceivedAccelerationOfFwdCar/100;
 
 		double dt	=	p.elapsedSeconds;
-		double headway = 0;  //distance/speed
-		if (speed == 0) {
-			headway = 2 * p.space * 100000;
-		} else {
-			headway = 2 * p.space / (speed+speed+p.elapsedSeconds*maxAcceleration);
+		double headway = CalcHeadway(p.space, speed, p.elapsedSeconds, maxAcceleration);
+
+		//Emergency deceleration overrides the perceived distance; check for it.
+		{
+			double emergSpace = nv.distance/100;
+			double emergHeadway = CalcHeadway(emergHeadway, speed, p.elapsedSeconds, maxAcceleration);
+			if (emergHeadway < hBufferLower) {
+				//We need to brake. Override.
+				p.space = emergSpace;
+				headway = emergHeadway;
+			}
 		}
+
 		p.space_star	=	p.space + p.v_lead * dt + 0.5 * p.a_lead * dt * dt;
 
 		if(headway < hBufferLower) {

@@ -427,7 +427,7 @@ int main(int argc, char* argv[])
 		cout << "No output file specified; using cout." << endl;
 	}
 
-	if (argc > 4) {
+	/*if (argc > 4) {
 			if (!Logger::log_init1(argv[4]))
 			{
 				cout << "Loading output file failed; using cout" << endl;
@@ -436,7 +436,7 @@ int main(int argc, char* argv[])
 		} else {
 			Logger::log_init("");
 			cout << "No output file specified; using cout." << endl;
-		}
+		}*/
 
 
 #endif

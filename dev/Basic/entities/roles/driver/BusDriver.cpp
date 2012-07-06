@@ -84,6 +84,7 @@ double sim_mob::BusDriver::updatePositionOnLink(DriverUpdateParams& p)
 	//   detect them in advance, but the concept's similar)
 	bool atBusStop = nextStop && nextStop->atOrPastBusStop(vehicle->getCurrSegment(), vehicle->getDistanceMovedInSegment());
 	bool updatePos = false;
+	BusController& busctrller = BusController::getInstance();
 
 	//If we are moving, then (optionally) decelerate and call normal update behavior.
 	if (vehicle->getVelocity()>0 || vehicle->getLatVelocity()>0) {
@@ -92,6 +93,7 @@ double sim_mob::BusDriver::updatePositionOnLink(DriverUpdateParams& p)
 			vehicle->setAcceleration(0);
 			vehicle->setVelocity(0); //TEMP: Need to really force it.
 			waitAtStopMS = p.currTimeMS; //TEMP: Need to force this too.
+			busctrller.updateBusInformation(vehicle->getPosition());// communicate position once it arrives the busstop
 		}
 		updatePos = true;
 	} else {
@@ -121,17 +123,17 @@ void sim_mob::BusDriver::frame_tick(UpdateParams& p)
 	//Call the parent's tick function
 	Driver::frame_tick(p);
 
-	std::cout<<"BusDriver ID:-->"<<this->getParent()->getId()<<std::endl;
-	std::cout<<"===========  ("<<(this->getVehicle()->getPosition().x)/1000<<","<<(this->getVehicle()->getPosition().y)/1000<<"=========== "<<std::endl;
-	DPoint pt = Driver::getVehicle()->getPosition();
-	DPoint ptCheck(37222842, 14331273);
-	double distance = dist(pt.x, pt.y, ptCheck.x, ptCheck.y);
-	BusController& busctrller = BusController::getInstance();
-	if(this->getParent()->getId() == 3 && distance < 2)// check id and distance
-	{
-		std::cout<<"distance == "<<distance<<std::endl;
-		busctrller.updateBusInformation(pt);//communication and updateupdateBusInformation
-	}
+//	std::cout<<"BusDriver ID:-->"<<this->getParent()->getId()<<std::endl;
+//	std::cout<<"===========  ("<<(this->getVehicle()->getPosition().x)/1000<<","<<(this->getVehicle()->getPosition().y)/1000<<"=========== "<<std::endl;
+//	DPoint pt = Driver::getVehicle()->getPosition();
+//	DPoint ptCheck(37222842, 14331273);
+//	double distance = dist(pt.x, pt.y, ptCheck.x, ptCheck.y);
+//	BusController& busctrller = BusController::getInstance();
+//	if(this->getParent()->getId() == 3 && distance < 2)// check id and distance
+//	{
+//		std::cout<<"distance == "<<distance<<std::endl;
+//		busctrller.updateBusInformation(pt);//communication and updateupdateBusInformation
+//	}
 
 	//Driver::frame_tick() will move the Bus along its route.
 	// If a Bus Stop has been reached, then a forced stop is performed,

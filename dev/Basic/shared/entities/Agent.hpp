@@ -130,17 +130,16 @@ public:
 		return gen;
 	}
 
-	/*Set this person's activities
-	 *
-	 */
-	void setActivities(std::vector<TripActivity*> activities) { currActivities = activities; }
+	//Set this person's activities
+	//NOTE: I commented a lot of this out; ensure that nothing required is missing. ~Seth
+	/*void setActivities(std::vector<TripActivity*> activities) { currActivities = activities; }
 	std::vector<TripActivity*> getActivities() { return currActivities; }
 
 	void setNextActivity(TripActivity* activity) { nextActivity = activity; }
 	TripActivity* getNextActivity() { return nextActivity; }
 
 	void setCurrActivity(TripActivity* activity) { currActivity = activity; }
-	TripActivity* getCurrActivity() { return currActivity; }
+	TripActivity* getCurrActivity() { return currActivity; }*/
 
 	void setOnActivity(bool value) { onActivity = value; }
 	bool getOnActivity() { return onActivity; }
@@ -161,9 +160,10 @@ private:
 	static unsigned int next_agent_id;
 
 	//added by Jenny (11th June)
-	std::vector<TripActivity*> currActivities;
-	TripActivity* nextActivity;
-	TripActivity* currActivity;
+	//NOTE: I'm disabling this in favor of Harish's code; please double-check. ~Seth
+	//std::vector<TripActivity*> currActivities;
+	//TripActivity* nextActivity;
+	//TripActivity* currActivity;
 	PendingEvent* currEvent;
 	PendingEvent* nextEvent;
 

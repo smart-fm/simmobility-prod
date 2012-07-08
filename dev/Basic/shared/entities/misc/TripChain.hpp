@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <map>
+#include <string>
 #include <set>
 #include <string>
 
@@ -16,79 +17,116 @@
 #include "partitions/UnPackageUtils.hpp"
 #endif
 
-namespace sim_mob
-{
+namespace sim_mob {
 
 //Forward declarations
 class Node;
+class SubTrip;
 
+/**
+ * Base class for elements in a trip chain.
+ * \author Harish L
+ */
+class TripChainItem {
+public:
+	//Type of location of this trip chain item.
+	enum LocationType {
+		LT_BUILDING, LT_NODE, LT_LINK, LT_PUBLIC_TRANSIT_STOP
+	};
+
+	//Type of this trip chain item.
+	enum ItemType {
+		IT_TRIP, IT_ACTIVITY
+	};
+
+	int entityID;
+	ItemType itemType;
+	unsigned int sequenceNumber;
+	sim_mob::DailyTime startTime;
+	sim_mob::DailyTime endTime;
+
+	//TripChainItem();
+	TripChainItem(int entId=0, std::string type="Trip",
+				DailyTime start=DailyTime(), DailyTime end=DailyTime(),
+				unsigned int seqNumber=0);
+	virtual ~TripChainItem() {}
+
+	static LocationType getLocationType(std::string locType);
+	static ItemType getItemType(std::string itemType);
+};
 
 /**
  * An activity within a trip chain. Has a location and a description.
- *
  * \author Seth N. Hetu
+ * \author Harish L
  */
-struct TripActivity {
+class Activity: public sim_mob::TripChainItem {
+public:
+	//NOTE: I've gone with Harish's implementation here. Please double-check. ~Seth
 	std::string description;
-	Node * location;
+	sim_mob::Node* location;
+	TripChainItem::LocationType locationType;
+	bool isPrimary;
+	bool isFlexible;
+	bool isMandatory;
 
-	//added to handle start time and end time of activity
-	//by Jenny (07 Jun, 2012)
-	unsigned int startTime;
-	unsigned int endTime;
+	Activity(std::string locType="node");
 };
 
-/*
- * A subtrip within a trip train. Has startnode, endnode, mode
- * Added by Jenny
+/**
+ * \author Seth N. Hetu
+ * \author Harish
  */
-struct SubTrip {
-	TripActivity from;
-	TripActivity to;
-	std::string mode;
+class Trip: public sim_mob::TripChainItem {
+public:
+	int tripID;
+	sim_mob::Node* fromLocation;
+	TripChainItem::LocationType fromLocationType;
+	sim_mob::Node* toLocation;
+	TripChainItem::LocationType toLocationType;
 
-	sim_mob::DailyTime startTime;
+	Trip(int entId=0, std::string type="Trip", unsigned int seqNumber=0,
+			DailyTime start=DailyTime(), DailyTime end=DailyTime(),
+			int tripId=0, Node* from=nullptr, std::string fromLocType="node",
+			Node* to=nullptr, std::string toLocType="node");
+	virtual ~Trip() {}
+
+	void addSubTrip(const sim_mob::SubTrip& aSubTrip);
+
+	const std::vector<SubTrip>& getSubTrips() const {
+		return subTrips;
+	}
+
+	/*void setSubTrips(const std::vector<SubTrip>& subTrips) {
+		this->subTrips = subTrips;
+	}*/
+
+private:
+	std::vector<SubTrip> subTrips;
 };
 
 
 /**
- * A chain of activities.
- *
- * \author Seth N. Hetu
+ * \author Harish
  */
-class TripChain {
+class SubTrip: public sim_mob::Trip {
 public:
-	TripActivity from;
-	TripActivity to;
+	//sim_mob::Trip* parentTrip;
+	std::string mode;
+	bool isPrimaryMode;
+	std::string ptLineId; //Public transit (bus or train) line identifier.
 
-	bool primary;
-	bool flexible;
-
-	//double startTime; //Note: Do we have a time class yet for our special format?
-	sim_mob::DailyTime startTime;
-
-	std::string mode; //primamry mode
-
-	//added to handle activity in trip chain
-	//by Jenny (07 Jun, 2012)
-	std::vector<TripActivity*> activities;
-	std::vector<SubTrip*> subTrips;
-
-	TripChain() {
-		from.location = nullptr;
-		to.location = nullptr;
-	}
-
-	TripChain(TripActivity from, TripActivity to, std::string mode, std::vector<TripActivity*> activities, std::vector<SubTrip*> subTrips)
-		: from(from), to(to), mode(mode),activities(activities), subTrips(subTrips){}
-
-public:
-#ifndef SIMMOB_DISABLE_MPI
-	static void pack(PackageUtils& package, const TripChain* chain);
-
-	static TripChain* unpack(UnPackageUtils& unpackage);
-#endif
+	SubTrip(int entId=0, std::string type="Trip", unsigned int seqNumber=0,
+			DailyTime start=DailyTime(), DailyTime end=DailyTime(), Node* from=nullptr,
+			std::string fromLocType="node", Node* to=nullptr, std::string toLocType="node",
+			/*Trip* parent=nullptr,*/ std::string mode="", bool isPrimary=true, std::string ptLineId="");
+	virtual ~SubTrip() {}
 };
+
+
+//Non-member comparison functions
+bool operator==(const SubTrip& s1, const SubTrip& s2);
+bool operator!=(const SubTrip& s1, const SubTrip& s2);
 
 
 

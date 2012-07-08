@@ -3,18 +3,21 @@
 #pragma once
 
 #include "entities/misc/TripChain.hpp"
+#include <vector>
 
 namespace sim_mob
 {
 
 class Node;
 class Person;
+class TripChainItem;
 
 ///Type of entities that can be "Pending"
 enum KNOWN_ENTITY_TYPES {
 	ENTITY_DRIVER,      ///<A Driver entity.
 	ENTITY_PEDESTRIAN,  ///<A Pedestrian entity.
 	ENTITY_BUSDRIVER,   ///<A BusDriver entity.
+	ENTITY_ACTIVITYPERFORMER, ///<An entity performing an activity
 	ENTITY_RAWAGENT,    ///<Any Person which cannot be represented generically.
 };
 
@@ -22,6 +25,7 @@ enum KNOWN_ENTITY_TYPES {
  * Lightweight entity container. Used to hold Entities waiting to be scheduled.
  *
  * \author Seth N. Hetu
+ * \author Harish
  *
  * \note
  * Use the RAWAGENT type only if the Agent type in question is truly complex enough to warrant it.
@@ -43,8 +47,9 @@ struct PendingEntity {
 	unsigned int start;       ///<Entity's destination. Null if ENTITY_RAWAGENT is the type.
 	int manualID;             ///<Manual ID for this entity. If -1, it is assigned an ID
 
-	//added to handle activities
-	std::vector<TripActivity*> activities;
+	//NOTE: Please double-check this; I'm fairly sure we only want ONE of these. ~Seth
+	//std::vector<TripActivity*> activities;
+	std::vector<const sim_mob::TripChainItem*> entityTripChain; ///<TripChain for this entity.
 };
 
 }

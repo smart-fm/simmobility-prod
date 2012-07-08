@@ -91,11 +91,12 @@ public:
 	virtual void setStartTime(unsigned int value) { startTime = value; }
 	virtual unsigned int getStartTime() const { return startTime; }
 
-	virtual void setActivities(std::vector<TripActivity*> value) { activities = value; }
+	//Disabling; see Agent.hpp for details. ~Seth
+	/*virtual void setActivities(std::vector<TripActivity*> value) { activities = value; }
 	virtual std::vector<TripActivity*> getActivities() const { return activities; }
 
 	virtual void setNextActivity(TripActivity* value) { nextActivity = value; }
-	virtual TripActivity* getNextActivity() const { return nextActivity; }
+	virtual TripActivity* getNextActivity() const { return nextActivity; }*/
 
 
 protected:
@@ -115,9 +116,9 @@ protected:
 	//When (in ms) does this Entity start?
 	unsigned int startTime;
 
-	std::vector<TripActivity*> activities;
-
-	TripActivity* nextActivity;
+	//Disabling; see Agent.hpp for details. ~Seth
+	//std::vector<TripActivity*> activities;
+	//TripActivity* nextActivity;
 
 	Link* currLink;
 

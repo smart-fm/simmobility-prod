@@ -16,7 +16,7 @@
 namespace sim_mob
 {
 
-class TripChain;
+class TripChainItem;
 
 #ifndef SIMMOB_DISABLE_MPI
 class PartitionManager;
@@ -32,6 +32,7 @@ class UnPackageUtils;
  * \author Luo Linbo
  * \author Li Zhemin
  * \author Xu Yan
+ * \author Harish Loganathan
  *
  * A person may perform one of several roles which
  *  change over time. For example: Drivers, Pedestrians, and Passengers are
@@ -46,50 +47,53 @@ public:
 	static Person* GeneratePersonFromPending(const PendingEntity& p);
 
 	///Update Person behavior
-	virtual Entity::UpdateStatus update(frame_t frameNumber) newstd_final;
+	virtual Entity::UpdateStatus update(frame_t frameNumber);
+    ///Update a Person's subscription list.
+    virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
+    ///Change the role of this person: Driver, Passenger, Pedestrian
+    void changeRole(sim_mob::Role* newRole);
+    sim_mob::Role* getRole() const;
 
-	///Update a Person's subscription list.
-	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
+    ///Check if any role changing is required.
+    Entity::UpdateStatus checkAndReactToTripChain(unsigned int currTimeMS);
 
-	///Change the role of this person: Driver, Passenger, Pedestrian
-	void changeRole(sim_mob::Role* newRole);
-	sim_mob::Role* getRole() const;
+    ///get this person's trip chain
+    const std::vector<const TripChainItem*>& getTripChain() const
+    {
+        return tripChain;
+    }
+
+    ///Set this person's trip chain
+    void setTripChain(const std::vector<const TripChainItem*>& tripChain)
+    {
+        this->tripChain = tripChain;
+    }
 
 	sim_mob::Link* getCurrLink();
-
 	void setCurrLink(sim_mob::Link* link);
 
-	///Check if any role changing is required.
-	Entity::UpdateStatus checkAndReactToTripChain(unsigned int currTimeMS);
+    void getNextSubTripInTrip();
+    void findNextItemInTripChain();
 
+    const TripChainItem* currTripChainItem; // pointer to current item in trip chain
+    const SubTrip* currSubTrip; //pointer to current subtrip in the current trip (if  current item is trip)
 
-	///Set this person's trip chain
-	///
-	///\todo
-	///Currently, there are two types of trip chains. Type 1 is from the database, and
-	///  can be shared among multiple Agents. Type 2 is created "ad hoc" for a single Agent.
-	///  Creating the second type of TripChain will leak memory when the Person is remoed
-	///  from the simulation. This is exactly the kind of thing which std::shared_pointer
-	///  is good for. Maybe we should use the boost:: version?
-	void setTripChain(sim_mob::TripChain* newTripChain) { currTripChain = newTripChain; }
-	sim_mob::TripChain* getTripChain() { return currTripChain; }
-
-	//Used for passing various debug data. Do not rely on this for anything long-term.
-	std::string specialStr;
+    //Used for passing various debug data. Do not rely on this for anything long-term.
+    std::string specialStr;
 
 private:
-	//Properties
-	sim_mob::Role* prevRole;  ///< To be deleted on the next time tick.
-	sim_mob::Role* currRole;
-	sim_mob::TripChain* currTripChain;
-	sim_mob::Link* currLink;
+    //Properties
+    sim_mob::Role* prevRole; ///< To be deleted on the next time tick.
+    sim_mob::Role* currRole;
+    sim_mob::Link* currLink;
 
-	bool firstFrameTick;  ///Determines if frame_init() has been done.
+    int currTripChainSequenceNumber;
+    std::vector<const TripChainItem*> tripChain;
+    bool firstFrameTick;
+    ///Determines if frame_init() has been done.
+    friend class PartitionManager;
+    friend class BoundaryProcessor;
 
-	friend class PartitionManager;
-	friend class BoundaryProcessor;
-
-	//add by xuyan
 #ifndef SIMMOB_DISABLE_MPI
 public:
 	virtual void pack(PackageUtils& packageUtil);
@@ -99,11 +103,6 @@ public:
 	virtual void unpackProxy(UnPackageUtils& unpackageUtil);
 
 #endif
-
 };
-
-
-
-
 
 }

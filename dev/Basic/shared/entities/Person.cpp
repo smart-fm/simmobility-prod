@@ -2,8 +2,11 @@
 
 #include "Person.hpp"
 
+#include <algorithm>
+
 //For debugging
 #include "entities/roles/driver/Driver.hpp"
+#include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "util/DebugFlags.hpp"
@@ -23,7 +26,7 @@ using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
 
 sim_mob::Person::Person(const MutexStrategy& mtxStrat, int id) :
-	Agent(mtxStrat, id), prevRole(nullptr), currRole(nullptr), currTripChain(nullptr), firstFrameTick(true)
+	Agent(mtxStrat, id), prevRole(nullptr), currRole(nullptr), currTripChainItem(nullptr), currSubTrip(nullptr), firstFrameTick(true)
 {
 	//throw 1;
 }
@@ -51,22 +54,76 @@ Person* sim_mob::Person::GeneratePersonFromPending(const PendingEntity& p)
 		res->changeRole(new Pedestrian(res, res->getGenerator()));
 	} else if (p.type == ENTITY_BUSDRIVER) {
 		res->changeRole(new BusDriver(res, config.mutexStategy));
+	} else if (p.type == ENTITY_ACTIVITYPERFORMER){
+		// First trip chain item is Activity when Person is generated from Pending
+		res->changeRole(new ActivityPerformer(res, dynamic_cast<const sim_mob::Activity&>(*(p.entityTripChain.front())))); 
 	} else {
-		throw std::runtime_error("PendingEntity currently only supports Drivers and Pedestrians.");
+		throw std::runtime_error("PendingEntity currently only supports Drivers, Pedestrians and Activity performers.");
 	}
 
-	//Set its origin, destination, and startTime
+	//Set its origin, destination, startTime, etc.
 	res->originNode = p.origin;
 	res->destNode = p.dest;
 	res->setStartTime(p.start);
+
 	//added by Jenny to handle activities
-	res->setActivities(p.activities);
-	res->setNextEvent(nullptr);
-	res->setNextActivity(nullptr);
-	res->setOnActivity(false);
-	res->setNextPathPlanned(false);
+	//NOTE: I am disabling these for now; please check Harish's work and selectively enable them as needed. ~Seth
+	//res->setActivities(p.activities);
+	//res->setNextEvent(nullptr);
+	//res->setNextActivity(nullptr);
+	//res->setOnActivity(false);
+	//res->setNextPathPlanned(false);
+	res->setTripChain(p.entityTripChain);
+	res->findNextItemInTripChain();
 
 	return res;
+}
+
+void sim_mob::Person::getNextSubTripInTrip(){
+	if(!currTripChainItem || currTripChainItem->itemType == sim_mob::TripChainItem::IT_ACTIVITY){
+		currSubTrip = nullptr;
+	}
+	else if(this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_TRIP){
+		const Trip* currTrip = dynamic_cast<const Trip*>(this->currTripChainItem);
+		const vector<SubTrip>& currSubTripsList = currTrip->getSubTrips();
+		if(!currSubTrip) {
+			//Return the first sub trip if the current sub trip which is passed in is null
+			currSubTrip = &currSubTripsList.front();
+		} else {
+			// else return the next sub trip if available; return nullptr otherwise.
+			vector<SubTrip>::const_iterator subTripIterator = std::find(currSubTripsList.begin(), currSubTripsList.end(), (*currSubTrip));
+			currSubTrip = nullptr;
+			if (subTripIterator!=currSubTripsList.end()) {
+				//Set it equal to the next item, assuming we are not at the end of the list.
+				if (++subTripIterator != currSubTripsList.end()) {
+					currSubTrip = &(*subTripIterator);
+				}
+			}
+		}
+	}
+	else{
+		throw std::runtime_error("Invalid trip chain item type!");
+	}
+}
+
+void sim_mob::Person::findNextItemInTripChain() {
+	if(!this->currTripChainItem){
+		//set the first item if the current item is null
+		this->currTripChainItem = this->tripChain.front();
+	} else {
+		// else set the next item if available; return nullptr otherwise.
+		std::vector<const TripChainItem*>::const_iterator itemIterator = std::find(tripChain.begin(), tripChain.end(), currTripChainItem);
+		currTripChainItem = nullptr;
+		if (itemIterator!=tripChain.end()) {
+			//Set it equal to the next item, assuming we are not at the end of the list.
+			if (++itemIterator != tripChain.end()) {
+				currTripChainItem = *itemIterator;
+			}
+		}
+	}
+
+	this->getNextSubTripInTrip(); //if currTripChainItem is Trip, set currSubTrip as well
+
 }
 
 UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
@@ -187,9 +244,13 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 
 
 UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) {
-	//Do we have at least one more item in our Trip Chain?
-	TripChain* currTrip = getTripChain();
-	if (!currTrip) {
+	this->getNextSubTripInTrip();
+
+	if(this->currSubTrip == nullptr){
+		this->findNextItemInTripChain();
+	}
+
+	if (this->currTripChainItem == nullptr) {
 		return UpdateStatus::Done;
 	}
 
@@ -200,22 +261,31 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) 
 	prevRole = currRole;
 
 	//Create a new Role based on the trip chain type
-	if (currTrip->mode == "Car") {
-		//Temp. (Easy to add in later)
-		throw std::runtime_error("Cars not supported in Trip Chain role change.");
-	} else if (currTrip->mode == "Walk") {
-		changeRole(new Pedestrian(this, gen));
+	if(this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_TRIP){
+		if (this->currSubTrip->mode == "Car") {
+			//Temp. (Easy to add in later)
+			throw std::runtime_error("Cars not supported in Trip Chain role change.");
+		} else if (this->currSubTrip->mode == "Walk") {
+			changeRole(new Pedestrian(this, gen));
+		} else {
+			throw std::runtime_error("Unknown role type for trip chain role change.");
+		}
+
+		//Update our origin/dest pair.
+		originNode = this->currSubTrip->fromLocation;
+		destNode = this->currSubTrip->toLocation;
+	} else if(this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_ACTIVITY){
+		const Activity& currActivity = dynamic_cast<const Activity&>(*currTripChainItem);
+		changeRole(new ActivityPerformer(this, currActivity));
+		//Update our origin/dest pair.
+		originNode = destNode = currActivity.location;
 	} else {
-		throw std::runtime_error("Unknown role type for trip chain role change.");
+		throw std::runtime_error("Unknown item type in trip chain");
 	}
+
 
 	//Create a return type based on the differences in these Roles
 	UpdateStatus res(UpdateStatus::RS_CONTINUE, prevRole->getSubscriptionParams(), currRole->getSubscriptionParams());
-
-	//Update our origin/dest pair.
-	//TODO: This might "teleport" us to the origin; might need to fix that later.
-	originNode = currTrip->from.location;
-	destNode = currTrip->to.location;
 
 	//Set our start time to the NEXT time tick so that frame_init is called
 	//  on the first pass through.
@@ -224,7 +294,7 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) 
 	firstFrameTick = true;
 
 	//Null out our trip chain, remove the "removed" flag, and return
-	setTripChain(nullptr);
+//	setTripChainItem(nullptr);
 	clearToBeRemoved();
 	return res;
 }

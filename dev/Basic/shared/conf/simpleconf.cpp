@@ -30,8 +30,6 @@
 #include "geospatial/BusStop.hpp"
 #include "util/OutputUtil.hpp"
 
-#include "entities/misc/TripChain.hpp"
-
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
 
@@ -202,7 +200,9 @@ void addOrStashEntity(const PendingEntity& p, std::vector<Entity*>& active_agent
 		//Only agents with a start time of zero should start immediately in the all_agents list.
 		Person* person = Person::GeneratePersonFromPending(p);
 		active_agents.push_back(person);
-		if (!p.activities.empty()){
+
+		//NOTE: I had to comment a lot of this out. Please make sure required functionality is still present. ~Seth
+		/*if (!p.activities.empty()){
 			TripActivity* activity = *(p.activities.begin());
 			if(activity->startTime == 0){
 				//set up person's current activity
@@ -223,7 +223,7 @@ void addOrStashEntity(const PendingEntity& p, std::vector<Entity*>& active_agent
 				person->setNextEvent(&pe);
 				//pending_activities.push(pe);
 			}
-		}
+		}*/
 	} else {
 		//Start later.
 		pending_agents.push(p);
@@ -246,34 +246,62 @@ namespace {
 } //End anon namespace
 
 //NOTE: "constraints" are not used here, but they could be (for manual ID specification).
-bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, AgentConstraints& constraints)
+void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, AgentConstraints& constraints)
 {
 	ConfigParams& config = ConfigParams::GetInstance();
-	const vector<TripChain*>& tcs = ConfigParams::GetInstance().getTripChains();
-	for (vector<TripChain*>::const_iterator it=tcs.begin(); it!=tcs.end(); it++) {
+	const vector<TripChainItem*>& tcs = ConfigParams::GetInstance().getTripChains();
+	int currentEntityID = 0;
+
+	//TODO: This code has been changed between Jenny's branch and Harish's. 
+	//      Please coordinate; Harish has updated activities significantly. ~Seth
+	//p.activities = (*it)->activities;
+
+	typedef vector<TripChainItem*>::const_iterator TCVectIt;
+	for (TCVectIt it = tcs.begin(); it != tcs.end(); it++) {
+		const TripChainItem* const tc = *it;
+
 		//Create an Agent candidate based on the type.
-		PendingEntity p(EntityTypeFromTripChainString((*it)->mode));
+		if (currentEntityID != tc->entityID) {
+			//trip chain for new entity starts
+			PendingEntity p(sim_mob::ENTITY_RAWAGENT); // p is reassigned correctly in the loop below.
+			bool isFirstItem = true; //First trip is yet to be seen
 
-		//Origin, destination
-		//curr->originNode =
-		p.origin = (*it)->from.location;
+			do {
+				currentEntityID = tc->entityID;
+				if(isFirstItem){
+					if(tc->itemType == sim_mob::TripChainItem::IT_ACTIVITY){
+						p = PendingEntity(sim_mob::ENTITY_ACTIVITYPERFORMER);
+						const Activity& firstActivity = dynamic_cast<const Activity&>(*tc);
+						//Origin, destination, Start time
+						p.origin = p.dest = firstActivity.location;
+						p.start = firstActivity.startTime.offsetMS_From(
+													ConfigParams::GetInstance().simStartTime);
+					} else if (tc->itemType == sim_mob::TripChainItem::IT_TRIP) {
+						const Trip& firstTripForEntity = dynamic_cast<const Trip&>(*tc);
+						const sim_mob::SubTrip& firstSubTripForEntity =
+								dynamic_cast<const SubTrip&>(firstTripForEntity.getSubTrips().front());
+						p = PendingEntity(EntityTypeFromTripChainString(firstSubTripForEntity.mode));
+						//Origin, destination, Start time
+						p.origin = firstSubTripForEntity.fromLocation;
+						p.dest = firstSubTripForEntity.toLocation;
+						p.start = firstSubTripForEntity.startTime.offsetMS_From(
+								ConfigParams::GetInstance().simStartTime);
+					} else{
+						throw std::runtime_error("Unknown trip chain item type.");
+					}
+					isFirstItem = false; // First trip has been iterated
+				}
+				//Collect the TripChainItems for this entity
+				p.entityTripChain.push_back(tc);
+				it++;
+			} while (it != tcs.end() && currentEntityID == tc->entityID);
+			// countering the extra increment in the while loop so that the next iteration of the for loop will point to the correct tripchain item.
+			it--;
+			//Add it or stash it
+			addOrStashEntity(p, active_agents, pending_agents);
+		}
 
-		//curr->destNode =
-		p.dest = (*it)->to.location;
-
-		//Start time
-		//curr->setStartTime(
-		p.start = (*it)->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
-
-		//added to handle activities
-		//by Jenny
-		p.activities = (*it)->activities;
-
-		//Add it or stash it
-		addOrStashEntity(p, active_agents, pending_agents);
 	}
-
-	return true;
 }
 
 
@@ -296,6 +324,7 @@ namespace {
   }
 
 } //End anon namespace
+
 bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, AgentConstraints& constraints)
 {
 	//Quick check.
@@ -442,6 +471,12 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 				safe_delete_item(candidate.rawAgent);
 				continue;
 			}
+
+			//construct rudimentary trip chain for candidate based on origin and destination
+			Trip* generatedTrip = new Trip(-1, "Trip", 1, DailyTime(candidate.start), DailyTime(), 0, candidate.origin, "node", candidate.dest, "node");
+			SubTrip generatedSubTrip(-1, "Trip", 1, DailyTime(candidate.start), DailyTime(), candidate.origin, "node", candidate.dest, "node", /*generatedTrip,*/ "Car", true, "");
+			generatedTrip->addSubTrip(generatedSubTrip);
+			candidate.entityTripChain.push_back(generatedTrip);
 		}
 
 
@@ -1191,9 +1226,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     for (vector<string>::iterator it=loadAgentOrder.begin(); it!=loadAgentOrder.end(); it++) {
     	if ((*it) == "database") {
     	    //Create an agent for each Trip Chain in the database.
-    	    if (!generateAgentsFromTripChain(active_agents, pending_agents, constraints)) {
-    	    	return "Couldn't generate agents from trip chains.";
-    	    }
+    	    generateAgentsFromTripChain(active_agents, pending_agents, constraints);
     	    cout <<"Loaded Database Agents (from Trip Chains)." <<endl;
     	} else if ((*it) == "drivers") {
     	    if (!loadXMLAgents(document, active_agents, pending_agents, "driver", constraints)) {

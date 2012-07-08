@@ -1024,7 +1024,7 @@ void sim_mob::Driver::initTripChainSpecialString(const string& value)
 	//value contains "tripchain:x,y", so our new trip chain is:
 	//   (origin->dest by car), (dest->value by foot)
 	//Note that since TripChains are currently limited, we only model the latter.
-	TripChain* tc = new TripChain();
+/*	TripChain* tc = new TripChain();
 	tc->mode = "Walk";
 	tc->flexible = false;
 	tc->primary = true;
@@ -1041,7 +1041,7 @@ void sim_mob::Driver::initTripChainSpecialString(const string& value)
 	}
 
 	//Now save this as the "TripChain" (this needs to be re-named; it's only one part of the trip chain)
-	p->setTripChain(tc);
+	p->setTripChain(tc);*/
 }
 
 
@@ -1058,24 +1058,25 @@ void sim_mob::Driver::initTripChainSpecialString(const string& value)
  */
 void sim_mob::Driver::initializePath() {
 
+	//TODO: I disabled this, but it's clearly required. Please have a look. ~Seth
 	if(!parent->getNextPathPlanned()){
-	TripActivity* nextActivity = parent->getNextActivity();
+	//TripActivity* nextActivity = parent->getNextActivity();
 
 	//if there's no activity during the current trip
-	if(!nextActivity){
+	//if(!nextActivity){
 		//Save local copies of the parent's origin/destination nodes.
 		origin.node = parent->originNode;
 		origin.point = origin.node->location;
 		goal.node = parent->destNode;
 		goal.point = goal.node->location;
-	}
+	/*}
 	else{
 		//Save local copies of the parent's origin/destination nodes.
 		origin.node = parent->originNode;
 		origin.point = origin.node->location;
 		goal.node = nextActivity->location;
 		goal.point = goal.node->location;
-	}
+	}*/
 
 	//TEMP
 	std::stringstream errorMsg;
@@ -1138,24 +1139,25 @@ void sim_mob::Driver::initializePath() {
 
 void sim_mob::Driver::initializePathMed() {
 
+	//NOTE: I disabled these, but some of this is clearly required. ~Seth
 	if(!parent->getNextPathPlanned()){
-	TripActivity* nextActivity = parent->getNextActivity();
+	//TripActivity* nextActivity = parent->getNextActivity();
 
 	//if there's no activity during the current trip
-	if(!nextActivity){
+	//if(!nextActivity){
 		//Save local copies of the parent's origin/destination nodes.
 		origin.node = parent->originNode;
 		origin.point = origin.node->location;
 		goal.node = parent->destNode;
 		goal.point = goal.node->location;
-	}
+	/*}
 	else{
 		//Save local copies of the parent's origin/destination nodes.
 		origin.node = parent->originNode;
 		origin.point = origin.node->location;
 		goal.node = nextActivity->location;
 		goal.point = goal.node->location;
-	}
+	}*/
 
 	//TEMP
 	std::stringstream errorMsg;

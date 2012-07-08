@@ -64,6 +64,7 @@ inline void operator++(PedestrianStage& rhs) {
 struct PedestrianUpdateParams : public sim_mob::UpdateParams {
 	explicit PedestrianUpdateParams(boost::mt19937& gen) : UpdateParams(gen) {}
 
+	virtual ~PedestrianUpdateParams() {}
 	virtual void reset(frame_t frameNumber, unsigned int currTimeMS)
 	{
 		sim_mob::UpdateParams::reset(frameNumber, currTimeMS);
@@ -164,7 +165,10 @@ private:
 #ifndef SIMMOB_DISABLE_MPI
 public:
 	friend class PartitionManager;
+#endif
 
+#ifndef SIMMOB_DISABLE_MPI
+public:
 	virtual void pack(PackageUtils& packageUtil);
 	virtual void unpack(UnPackageUtils& unpackageUtil);
 

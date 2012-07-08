@@ -1,101 +1,73 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
-//
-//NOTE:
-//
-// I realize that the naming is off; a Trip Chain isn't part of the AIMSUN data. However, all the
-//   database-specific items are in an "aimsun" folder AND in the "aimsun" namespace. If you are
-//   going to rename this folder, make sure you consider what to do about "aimsun" database data versus
-//   simmobility database data.
-//
-
-
 #pragma once
 
-#include <string>
+#include <vector>
+#include <map>
+#include <set>
 
-#include "geospatial/aimsun/Base.hpp"
+#include "util/LangHelpers.hpp"
 #include "util/DailyTime.hpp"
 
-namespace sim_mob
-{
-
-//Forward declarations
-class TripChain;
+#ifndef SIMMOB_DISABLE_MPI
+#include "partitions/PackageUtils.hpp"
+#include "partitions/UnPackageUtils.hpp"
+#endif
 
 namespace aimsun
 {
 
-//Forward declarations
-class Node;
-
-
-
-///An activity within a trip chain
-/// \author Seth N. Hetu
-struct TripActivity {
-	std::string description;
-	Node* location;
-
-	//Placeholder
-	int TMP_locationNodeID;
-
-	//added to handle start time and end time of activity
-	//by Jenny (07 Jun, 2012)
+/**
+ * Aimsun class to read from database.
+ * Hoping to be able to remove this and load data directly into corresponding sim_mob classes.
+ * \author Harish L
+ */
+class TripChainItem {
+public:
+	sim_mob::TripChainItem::ItemType itemType;
+	int sequenceNumber;
 	sim_mob::DailyTime startTime;
 	sim_mob::DailyTime endTime;
-};
-
-/*
- * A subtrip within a trip train. Has startnode, endnode, mode
- * Added by Jenny
- */
-struct SubTrip {
-	TripActivity from;
-	TripActivity to;
+	int entityID;
+	std::string description;
+	sim_mob::aimsun::Node* location;
+	sim_mob::TripChainItem::LocationType locationType;
+	bool isPrimary;
+	bool isFlexible;
+	bool isMandatory;
+	sim_mob::DailyTime EndTime;
+	sim_mob::TripChainItem::LocationType tripfromLocationType;
+	sim_mob::TripChainItem::LocationType triptoLocationType;
+	sim_mob::aimsun::Node* fromLocation;
+	sim_mob::TripChainItem::LocationType fromLocationType;
+    sim_mob::aimsun::Node* toLocation;
+    sim_mob::TripChainItem::LocationType toLocationType;
+    int tripID;
 	std::string mode;
+	bool isPrimaryMode;
+	std::string ptLineId; //Public transit (bus or train) line identifier.
 
-	sim_mob::DailyTime startTime;
-};
+    //Temporaries for SOCI conversion
+	int tmp_subTripID;
+	int tmp_tripfromLocationNodeID;
+	int tmp_triptoLocationNodeID;
+	int tmp_fromLocationNodeID;
+	std::string tmp_fromlocationType;
+	int tmp_toLocationNodeID;
+	std::string tmp_tolocationType;
+	std::string tmp_startTime;
+	std::string tmp_endTime;
+	int tmp_activityID;
+	int tmp_locationID;
+	std::string  tmp_locationType;
 
-///A trip chain. Not technically part of AIMSUN; we may have to rename this folder later.
-/// \author Seth N. Hetu
-class TripChain /*: public Base*/ {
-public:
-	TripActivity from;
-	TripActivity to;
-
-	bool primary;
-	bool flexible;
-
-	sim_mob::DailyTime startTime;
-
-	std::string mode;
-
-	//added to handle activity in trip chain
-		//by Jenny (07 Jun, 2012)
-	std::vector<TripActivity*> activities;
-	std::vector<SubTrip*> subTrips;
-
-	TripChain() /*: Base()*/ {
-		from.location = nullptr;
-		to.location = nullptr;
+	unsigned int getSequenceNumber() const {
+		return sequenceNumber;
 	}
 
-	TripChain(TripActivity from, TripActivity to, std::string mode, std::vector<TripActivity*> activities, std::vector<SubTrip*> subTrips)
-			: from(from), to(to), mode(mode),activities(activities), subTrips(subTrips){}
-
-	//Placeholder
-	std::string TMP_startTimeStr;
-
-	//Unused
-	int EMPTY_activityID;
-
-	//Reference to saved object
-	sim_mob::TripChain* generatedTC;
-
+	void setSequenceNumber(unsigned int sequenceNumber) {
+		this->sequenceNumber = sequenceNumber;
+	}
 };
 
-
-}
 }

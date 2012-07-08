@@ -84,59 +84,56 @@ namespace {
 class DatabaseLoader : private boost::noncopyable
 {
 public:
-    explicit DatabaseLoader(string const & connectionString);
+	explicit DatabaseLoader(string const & connectionString);
 
-    void LoadBasicAimsunObjects(map<string, string> const & storedProcedures);
+	void LoadBasicAimsunObjects(map<string, string> const & storedProcedures);
 
 #ifndef SIMMOB_DISABLE_MPI
-    void TransferBoundaryRoadSegment();
+	void TransferBoundaryRoadSegment();
 #endif
 
-    void DecorateAndTranslateObjects();
-    void PostProcessNetwork();
-    void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::TripChain*>& tcs);
-    void LoadBusStop(const std::string& storedProc);
-    map<std::string,BusStop> & getAimSunBusStops(){return busstop_;}
-    map<int, Section> const & sections() const { return sections_; }
+	void DecorateAndTranslateObjects();
+	void PostProcessNetwork();
+	void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::TripChainItem*>& tcs);
+	map<int, Section> const & sections() const { return sections_; }
 
 private:
-    soci::session sql_;
+	soci::session sql_;
 
-    map<int, Node> nodes_;
-    map<int, Section> sections_;
-    vector<Crossing> crossings_;
-    vector<Lane> lanes_;
-    map<int, Turning> turnings_;
-    multimap<int, Polyline> polylines_;
-    vector<TripChain> tripchains_;
-    map<int, Signal> signals_;
-    map<std::string,BusStop> busstop_;
+	map<int, Node> nodes_;
+	map<int, Section> sections_;
+	vector<Crossing> crossings_;
+	vector<Lane> lanes_;
+	map<int, Turning> turnings_;
+	multimap<int, Polyline> polylines_;
+	vector<aimsun::TripChainItem> tripchains_;
+	map<int, Signal> signals_;
 
+	map<std::string,BusStop> busstop_;
+	multimap<int,Phase> phases_;//one node_id is mapped to many phases
 
-    multimap<int,Phase> phases_;//one node_id is mapped to many phases
-
-    vector<sim_mob::BoundarySegment*> boundary_segments;
+	vector<sim_mob::BoundarySegment*> boundary_segments;
 
 private:
-    void LoadNodes(const std::string& storedProc);
-    void LoadSections(const std::string& storedProc);
-    void LoadCrossings(const std::string& storedProc);
-    void LoadLanes(const std::string& storedProc);
-    void LoadTurnings(const std::string& storedProc);
-    void LoadPolylines(const std::string& storedProc);
-    void LoadTripchains(const std::string& storedProc);
-    void LoadTrafficSignals(const std::string& storedProc);
+	void LoadNodes(const std::string& storedProc);
+	void LoadSections(const std::string& storedProc);
+	void LoadCrossings(const std::string& storedProc);
+	void LoadLanes(const std::string& storedProc);
+	void LoadTurnings(const std::string& storedProc);
+	void LoadPolylines(const std::string& storedProc);
+	void LoadTripchains(const std::string& storedProc);
+	void LoadTrafficSignals(const std::string& storedProc);
 
 
-
-    void LoadPhase(const std::string& storedProc);
+	void LoadBusStop(const std::string& storedProc);
+	void LoadPhase(const std::string& storedProc);
 
 
 #ifndef SIMMOB_DISABLE_MPI
-    void LoadBoundarySegments();
+	void LoadBoundarySegments();
 #endif
 
-    void createSignals();
+	void createSignals();
 #ifdef SIMMOB_NEW_SIGNAL
     void createPlans(sim_mob::Signal_SCATS & signal);
     void createPhases(sim_mob::Signal_SCATS & signal);
@@ -144,7 +141,7 @@ private:
 };
 
 DatabaseLoader::DatabaseLoader(string const & connectionString)
-  : sql_(soci::postgresql, connectionString)
+: sql_(soci::postgresql, connectionString)
 {
 }
 
@@ -214,7 +211,7 @@ void DatabaseLoader::LoadPhase(const std::string& storedProc)
 	int i=0;
 	for(soci::rowset<Phase>::const_iterator it=rs.begin(); it!=rs.end(); ++it,i++)
 	{
-//		if(it->nodeId == 115436) { std::cout << " node 115436 is in the LoadPhase game\n"; getchar();}
+		//		if(it->nodeId == 115436) { std::cout << " node 115436 is in the LoadPhase game\n"; getchar();}
 		map<int, Section>::iterator from = sections_.find(it->sectionFrom), to = sections_.find(it->sectionTo);
 		//since the section index in sections_ and phases_ are read from two different tables, inconsistecy check is a must
 		if((from ==sections_.end())||(to ==sections_.end()))
@@ -228,6 +225,7 @@ void DatabaseLoader::LoadPhase(const std::string& storedProc)
 
 				continue; //you are not in the sections_ container
 			}
+
 		it->ToSection = &sections_[it->sectionTo];
 		it->FromSection = &sections_[it->sectionFrom];
 		phases_.insert(pair<int,Phase>(it->nodeId,*it));
@@ -282,10 +280,10 @@ void DatabaseLoader::LoadLanes(const std::string& storedProc)
 
 		//Exclude lane markings which are not relevant to actual lane geometry
 		if (it->laneType=="R" || it->laneType=="M" || it->laneType=="D" || it->laneType=="N"
-			|| it->laneType=="Q" || it->laneType=="T" || it->laneType=="G" || it->laneType=="O"
-			|| it->laneType=="A1" || it->laneType=="A3" || it->laneType=="L" || it->laneType=="H"
-			|| it->laneType=="\\N"
-			) {
+				|| it->laneType=="Q" || it->laneType=="T" || it->laneType=="G" || it->laneType=="O"
+						|| it->laneType=="A1" || it->laneType=="A3" || it->laneType=="L" || it->laneType=="H"
+								|| it->laneType=="\\N"
+		) {
 			continue;
 		}
 
@@ -378,64 +376,76 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 	}
 	else
 #else
-	if (true)
+		if (true)
 #endif
-	{
-		sql_str = "select * from " + storedProc;
-	}
+		{
+			sql_str = "select * from " + storedProc;
+		}
 
-	soci::rowset<TripChain> rs = (sql_.prepare << sql_str);
+	soci::rowset<aimsun::TripChainItem> rs = (sql_.prepare << sql_str);
 
 	//Exectue as a rowset to avoid repeatedly building the query.
 	tripchains_.clear();
-	for (soci::rowset<TripChain>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
-		//Check nodes
-		if(nodes_.count(it->from.TMP_locationNodeID)==0) {
-			throw std::runtime_error("Invalid trip chain from node reference.");
+	for (soci::rowset<aimsun::TripChainItem>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+		if(it->itemType == sim_mob::TripChainItem::IT_TRIP){
+			//if Trip
+
+			//aimsun::SubTrip& aSubTrip = static_cast<aimsun::SubTrip&>(*it);
+			//check nodes
+			if(nodes_.count((*it).tmp_fromLocationNodeID)==0) {
+				throw std::runtime_error("Invalid trip chain from node reference.");
+			}
+			if(nodes_.count((*it).tmp_toLocationNodeID)==0) {
+				throw std::runtime_error("Invalid trip chain to node reference.");
+			}
+
+			//Set date
+			(*it).startTime = sim_mob::DailyTime((*it).tmp_startTime);
+
+			//Note: Make sure not to resize the Node map after referencing its elements.
+			(*it).fromLocation = &nodes_[(*it).tmp_fromLocationNodeID];
+			(*it).toLocation = &nodes_[(*it).tmp_toLocationNodeID];
+			tripchains_.push_back(*it);
 		}
-		if(nodes_.count(it->to.TMP_locationNodeID)==0) {
-			throw std::runtime_error("Invalid trip chain to node reference.");
+		else if(it->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
+			//if Activity
+
+			//aimsun::Activity& anActivity = static_cast<aimsun::Activity&>(*it);
+			(*it).startTime = sim_mob::DailyTime((*it).tmp_startTime);
+			(*it).endTime = sim_mob::DailyTime((*it).tmp_endTime);
+			(*it).location = &nodes_[(*it).tmp_locationID];
+			tripchains_.push_back(*it);
+		} else {
+			throw std::runtime_error("Unexpected trip chain type.");
 		}
-
-		//Set date
-		it->startTime = sim_mob::DailyTime(it->TMP_startTimeStr);
-
-		//Note: Make sure not to resize the Node map after referencing its elements.
-		it->from.location = &nodes_[it->from.TMP_locationNodeID];
-		it->to.location = &nodes_[it->to.TMP_locationNodeID];
-
-		//added by Syiu to model activities during trips
-		//it->activities =
-
-		tripchains_.push_back(*it);
 	}
 }
 
 void
 DatabaseLoader::LoadTrafficSignals(std::string const & storedProcedure)
 {
-    // For testing purpose, we can disable automatic signal creation via database lookup
-    // by putting an empty string for the 'signal' stored procedure in the config file.
-    // Manual creation can be achieved by specifying the signal locations in the top level
-    // <signals> section of the config file.  This feature will be removed soon
-    // and without notice.
-    if (storedProcedure.empty())
-    {
-        std::cout << "WARNING: An empty 'signal' stored-procedure was specified in the config file; "
-                  << "will not lookup the database to create any signal found in there" << std::endl;
-        return;
-    }
-    soci::rowset<Signal> rows = (sql_.prepare <<"select * from " + storedProcedure);
-    for (soci::rowset<Signal>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
-    {
-        Signal signal = *iter;
-        // Convert from meters to centimeters.
-        signal.xPos *= 100;
-        signal.yPos *= 100;
-        signals_.insert(std::make_pair(signal.id, signal));
-//        if(signal.nodeId == 115436) { std::cout << "We have a signal 115436 oin our DB\n"; getchar();}
+	// For testing purpose, we can disable automatic signal creation via database lookup
+	// by putting an empty string for the 'signal' stored procedure in the config file.
+	// Manual creation can be achieved by specifying the signal locations in the top level
+	// <signals> section of the config file.  This feature will be removed soon
+	// and without notice.
+	if (storedProcedure.empty())
+	{
+		std::cout << "WARNING: An empty 'signal' stored-procedure was specified in the config file; "
+				<< "will not lookup the database to create any signal found in there" << std::endl;
+		return;
+	}
+	soci::rowset<Signal> rows = (sql_.prepare <<"select * from " + storedProcedure);
+	for (soci::rowset<Signal>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
+	{
+		Signal signal = *iter;
+		// Convert from meters to centimeters.
+		signal.xPos *= 100;
+		signal.yPos *= 100;
+		signals_.insert(std::make_pair(signal.id, signal));
+		//        if(signal.nodeId == 115436) { std::cout << "We have a signal 115436 oin our DB\n"; getchar();}
 
-    }
+	}
 }
 
 void DatabaseLoader::LoadBusStop(const std::string& storedProc)
@@ -516,22 +526,22 @@ float getSumDistance()
 }
 
 
-*/
+ */
 
 
 
 
 std::string getStoredProcedure(map<string, string> const & storedProcs, string const & procedureName, bool mandatory=true)
 {
-    map<string, string>::const_iterator iter = storedProcs.find(procedureName);
-    if (iter != storedProcs.end())
-        return iter->second;
-    if (!mandatory) {
-    	std::cout <<"Skipping optional database property: " + procedureName <<std::endl;
-    	return "";
-    }
-    throw std::runtime_error("expected to find stored-procedure named '" + procedureName
-                             + "' in the config file");
+	map<string, string>::const_iterator iter = storedProcs.find(procedureName);
+	if (iter != storedProcs.end())
+		return iter->second;
+	if (!mandatory) {
+		std::cout <<"Skipping optional database property: " + procedureName <<std::endl;
+		return "";
+	}
+	throw std::runtime_error("expected to find stored-procedure named '" + procedureName
+			+ "' in the config file");
 }
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -580,10 +590,10 @@ void DatabaseLoader::TransferBoundaryRoadSegment()
 		int end_x = static_cast<int> ((*it)->end_node_x * 100 + 0.5);
 		int end_y = static_cast<int> ((*it)->end_node_y * 100 + 0.5);
 
-//		int start_x = static_cast<int> ((*it)->start_node_x * 100 );
-//		int start_y = static_cast<int> ((*it)->start_node_y * 100 );
-//		int end_x = static_cast<int> ((*it)->end_node_x * 100 );
-//		int end_y = static_cast<int> ((*it)->end_node_y * 100 );
+		//		int start_x = static_cast<int> ((*it)->start_node_x * 100 );
+		//		int start_y = static_cast<int> ((*it)->start_node_y * 100 );
+		//		int end_x = static_cast<int> ((*it)->end_node_x * 100 );
+		//		int end_y = static_cast<int> ((*it)->end_node_y * 100 );
 
 		sim_mob::Point2D start_point(start_x, start_y);
 		sim_mob::Point2D end_point(end_x, end_y);
@@ -678,8 +688,8 @@ DynamicVector GetCrossingNearLine(Node& atNode, Node& toNode)
 			if (crossingIt!=atNode.crossingsAtNode.end()) {
 				//Now make a vector for it.
 				DynamicVector currPoint(
-					crossingIt->second.front()->xPos, crossingIt->second.front()->yPos,
-					crossingIt->second.back()->xPos, crossingIt->second.back()->yPos
+						crossingIt->second.front()->xPos, crossingIt->second.front()->yPos,
+						crossingIt->second.back()->xPos, crossingIt->second.back()->yPos
 				);
 				DynamicVector midPoint(currPoint);
 				midPoint.scaleVectTo(midPoint.getMagnitude()/2).translateVect();
@@ -736,7 +746,7 @@ void ResizeTo2(vector<Crossing*>& vec)
 	vec.resize(2, nullptr);
 }
 vector<Crossing*>& GetCrossing(Node& atNode, Node& toNode, size_t crossingID)
-{
+		{
 	//Get the outgoing set of crossing IDs
 	map<Node*, vector<int> >::iterator outgoing = atNode.crossingLaneIdsByOutgoingNode.find(&toNode);
 	if (outgoing!=atNode.crossingLaneIdsByOutgoingNode.end()) {
@@ -753,7 +763,7 @@ vector<Crossing*>& GetCrossing(Node& atNode, Node& toNode, size_t crossingID)
 		}
 	}
 	throw std::runtime_error("Can't find crossing in temporary cleanup function.");
-}
+		}
 bool RebuildCrossing(Node& atNode, Node& toNode, size_t baseCrossingID, size_t resCrossingID, bool flipLeft, unsigned int crossingWidthCM, unsigned int paddingCM)
 {
 	//Retrieve the base Crossing and the Crossing we will store the result in.
@@ -843,11 +853,11 @@ void DatabaseLoader::DecorateAndTranslateObjects()
 
 	//Step 1: Tag all Nodes with the Sections that meet there.
 	for (map<int,Section>::iterator it=sections_.begin(); it!=sections_.end(); it++) {
-//		if(it->second.fromNode) it->second.fromNode->sectionsAtNode.push_back(&(it->second));
-//		if(it->second.toNode) it->second.toNode->sectionsAtNode.push_back(&(it->second));
+		//		if(it->second.fromNode) it->second.fromNode->sectionsAtNode.push_back(&(it->second));
+		//		if(it->second.toNode) it->second.toNode->sectionsAtNode.push_back(&(it->second));
 		it->second.fromNode->sectionsAtNode.push_back(&(it->second));
 		it->second.toNode->sectionsAtNode.push_back(&(it->second));
-//		std::cout << "DecorateAndTranslateObjects after crash point" << std::endl;
+		//		std::cout << "DecorateAndTranslateObjects after crash point" << std::endl;
 	}
 
 	//Step 2: Tag all Nodes that might be "UniNodes". These fit the following criteria:
@@ -903,8 +913,8 @@ void DatabaseLoader::DecorateAndTranslateObjects()
 		//One final check
 		if (n->candidateForSegmentNode) {
 			bool flagMatch =   (flags.first==3 && flags.second==3)  //Bidirectional
-							|| (flags.first==1 && flags.second==2)  //One-way
-							|| (flags.first==2 && flags.second==1); //One-way
+									|| (flags.first==1 && flags.second==2)  //One-way
+									|| (flags.first==2 && flags.second==1); //One-way
 
 			n->candidateForSegmentNode = others.first && others.second && flagMatch;
 		}
@@ -952,7 +962,7 @@ void CutSingleLanePolyline(vector<Point2D>& laneLine, const DynamicVector& cutLi
 	laneLine[trimStart?0:laneLine.size()-1] = intPt;
 }
 
-void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::TripChain*>& tcs)
+void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::TripChainItem*>& tcs)
 {
 	//First, Nodes. These match cleanly to the Sim Mobility data structures
 	std::cout <<"Warning: Units are not considered when converting AIMSUN data.\n";
@@ -1005,20 +1015,76 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 	LaneLoader::GenerateLinkLanes(res, nodes_, sections_);
 
 	sim_mob::aimsun::Loader::FixupLanesAndCrossings(res);
-	//Save all trip chains
-	for (vector<TripChain>::iterator it=tripchains_.begin(); it!=tripchains_.end(); it++) {
-		tcs.push_back(new sim_mob::TripChain());
-		tcs.back()->from.description = it->from.description;
-		tcs.back()->from.location = it->from.location->generatedNode;
-		tcs.back()->to.description = it->to.description;
-		tcs.back()->to.location = it->to.location->generatedNode;
-		tcs.back()->mode = it->mode;
-		tcs.back()->primary = it->primary;
-		tcs.back()->flexible = it->flexible;
-		tcs.back()->startTime = it->startTime;
-	}
-//
 
+	//Save all trip chains
+	int currTripId = 0;
+
+	for (vector<aimsun::TripChainItem>::iterator it=tripchains_.begin(); it!=tripchains_.end(); it++) {
+		if (it->itemType == sim_mob::TripChainItem::IT_ACTIVITY){
+			//TODO: Person related work
+			sim_mob::Activity* activityToSave = new sim_mob::Activity();
+			activityToSave->entityID = it->entityID;
+			activityToSave->itemType = it->itemType;
+			activityToSave->sequenceNumber = it->sequenceNumber;
+			activityToSave->description = it->description;
+			activityToSave->isPrimary = it->isPrimary;
+			activityToSave->isFlexible = it->isFlexible;
+			activityToSave->isMandatory = it->isMandatory;
+			activityToSave->location = it->location->generatedNode;
+			activityToSave->locationType = it->locationType;
+			activityToSave->startTime = it->startTime;
+			activityToSave->endTime = it->endTime;
+
+			tcs.push_back(activityToSave);
+		} else if(it->itemType == sim_mob::TripChainItem::IT_TRIP){
+			// Reads the set of sub trips for this trip and saves the trip in the trip chains
+			sim_mob::Trip *tripToSave = nullptr;
+			do{
+				if(currTripId != it->tripID){
+					tripToSave = new sim_mob::Trip();
+					currTripId = tripToSave->tripID = it->tripID;
+					tripToSave->entityID = it->entityID;
+					tripToSave->itemType = it->itemType;
+					tripToSave->sequenceNumber = it->sequenceNumber;
+					tripToSave->fromLocation = it->fromLocation->generatedNode;
+					tripToSave->fromLocationType = it->fromLocationType;
+				}
+
+				{
+				sim_mob::SubTrip aSubTripInTrip;
+				aSubTripInTrip.entityID = it->entityID;
+				aSubTripInTrip.itemType = it->itemType;
+				aSubTripInTrip.tripID = it->tmp_subTripID;
+				aSubTripInTrip.fromLocation = it->fromLocation->generatedNode;
+				aSubTripInTrip.fromLocationType = it->fromLocationType;
+				aSubTripInTrip.toLocation = it->toLocation->generatedNode;
+				aSubTripInTrip.toLocationType = it->toLocationType;
+				aSubTripInTrip.mode = it->mode;
+				aSubTripInTrip.isPrimaryMode = it->isPrimaryMode;
+				aSubTripInTrip.ptLineId = it->ptLineId;
+				aSubTripInTrip.startTime = it->startTime;
+				//aSubTripInTrip.parentTrip = tripToSave;
+				tripToSave->addSubTrip(aSubTripInTrip);
+				}
+
+				// Update the trip destination so that toLocation eventually points to the destination of the trip.
+				tripToSave->toLocation = it->toLocation->generatedNode;
+				tripToSave->toLocationType = it->toLocationType;
+				++it;
+				if(it->itemType != sim_mob::TripChainItem::IT_TRIP){
+					//Encountered an activity or end of trip chain. Last subtrip was reached in this iteration.
+					--it; // So that the next iteration of the for loop points to this activity
+					break;
+				}
+
+			} while(currTripId == it->tripID);
+
+			if (tripToSave) {
+				tcs.push_back(tripToSave);
+			}
+			if(it==tripchains_.end()) break;
+		}
+	}
 
 	for(map<std::string,BusStop>::iterator it = busstop_.begin(); it != busstop_.end(); it++)
 	{
@@ -1033,8 +1099,6 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 		double x = busstop->xPos;
 		double y = busstop->yPos;
 
-
-std::cout<<"I am doing it"<<x<<"      "<<y<<std::endl;
 		double distOrigin = (((*it).second.xPos)+((*it).second.yPos));
 		busstop->parentSegment_->obstacles[distOrigin] = busstop;
 	}
@@ -1064,22 +1128,21 @@ std::cout<<"I am doing it"<<x<<"      "<<y<<std::endl;
 	throw 1;
 #endif
 
-        createSignals();
-        /*vahid:
-         * and Now we extend the signal functionality by adding extra information for signal's split plans, offset, cycle length, phases
-         * lots of these data are still default(cycle length, offset, choice set.
-         * They will be replaced by more realistic value(and input feeders) as the project proceeeds
-         */
+	createSignals();
+	/*vahid:
+	 * and Now we extend the signal functionality by adding extra information for signal's split plans, offset, cycle length, phases
+	 * lots of these data are still default(cycle length, offset, choice set.
+	 * They will be replaced by more realistic value(and input feeders) as the project proceeeds
+	 */
 #ifdef SIMMOB_NEW_SIGNAL
-        //NOTE: I am disabling this for now; it seems to be done in createSignals() ~Seth
-        //createPlans();
+	//NOTE: I am disabling this for now; it seems to be done in createSignals() ~Seth
+	//createPlans();
 #endif
 }
 #ifdef SIMMOB_NEW_SIGNAL
 void
 DatabaseLoader::createSignals()
 {
-
     //std::set<sim_mob::Node const *> uniNodes;
     std::set<sim_mob::Node const *> badNodes;
     int j = 0, nof_signals = 0;
@@ -1257,66 +1320,66 @@ DatabaseLoader::createSignals()
 {
 	int tempcnt = 0;
 	std::cout << " Inside the old createsignal() \n"  << std::endl;
-    //std::set<sim_mob::Node const *> uniNodes;
-    std::set<sim_mob::Node const *> badNodes;
+	//std::set<sim_mob::Node const *> uniNodes;
+	std::set<sim_mob::Node const *> badNodes;
 
-    for (map<int, Signal>::const_iterator iter = signals_.begin(); iter != signals_.end(); ++iter)
-    {
-        Signal const & dbSignal = iter->second;
-        map<int, Node>::const_iterator iter2 = nodes_.find(dbSignal.nodeId);
-        if (iter2 == nodes_.end())
-        {
-            std::ostringstream stream;
-            stream << "cannot find node (id=" << dbSignal.nodeId
-                   << ") in the database for signal id=" << iter->first;
-//            throw std::runtime_error(stream.str());
-            continue;
-        }
+	for (map<int, Signal>::const_iterator iter = signals_.begin(); iter != signals_.end(); ++iter)
+	{
+		Signal const & dbSignal = iter->second;
+		map<int, Node>::const_iterator iter2 = nodes_.find(dbSignal.nodeId);
+		if (iter2 == nodes_.end())
+		{
+			std::ostringstream stream;
+			stream << "cannot find node (id=" << dbSignal.nodeId
+					<< ") in the database for signal id=" << iter->first;
+			//            throw std::runtime_error(stream.str());
+			continue;
+		}
 
-        Node const & dbNode = iter2->second;
-        sim_mob::Node const * node = dbNode.generatedNode;
+		Node const & dbNode = iter2->second;
+		sim_mob::Node const * node = dbNode.generatedNode;
 
-        // There are 2 factors determining whether the following code fragment remains or should
-        // be deleted in the near future.  Firstly, in the current version, Signal is designed
-        // only for intersections with 4 links, the code in Signal.cpp and the visualizer expects
-        // to access 4 links and 4 crossings.  This needs to be fixed, Signal.cpp needs to be
-        // extended to model traffic signals at all kinds of intersections or at uni-nodes.
-        //
-        // However, even when Signal.cpp is fixed, the following code fragment may still remain
-        // here, although it may be modified.  The reason is that the entire road network may not
-        // be loaded.  There will be signal sites, especially at the edges of the loaded road
-        // networks, with missing links.  In some cases, it may not make any sense to create a
-        // Signal object there, even though a signal is present at that site in the database.
-        // One example is an intersection with 4 links, but only one link is loaded in.  That
-        // intersection would look like a dead-end to the Driver and Pedestrian objects.  Or
-        // an intersection with 4-way traffic, but only 3 links are loaded in.  This would "turn"
-        // the intersection into a T-junction.
-        std::set<sim_mob::Link const *> links;
-        if (sim_mob::MultiNode const * multi_node = dynamic_cast<sim_mob::MultiNode const *>(node))
-        {
-            std::set<sim_mob::RoadSegment*> const & roads = multi_node->getRoadSegments();
-            std::set<sim_mob::RoadSegment*>::const_iterator iter;
-            for (iter = roads.begin(); iter != roads.end(); ++iter)
-            {
-                sim_mob::RoadSegment const * road = *iter;
-                links.insert(road->getLink());
-            }
-        }
-        if (links.size() != 4)
-        {
-            if (badNodes.count(node) == 0)
-            {
-                badNodes.insert(node);
-                std::cerr << "the node at " << node->location << " (database-id="
-                          << dbSignal.nodeId << ") does not have 4 links; "
-                          << "no signal will be created here." << std::endl;
-            }
-            continue;
-        }
+		// There are 2 factors determining whether the following code fragment remains or should
+		// be deleted in the near future.  Firstly, in the current version, Signal is designed
+		// only for intersections with 4 links, the code in Signal.cpp and the visualizer expects
+		// to access 4 links and 4 crossings.  This needs to be fixed, Signal.cpp needs to be
+		// extended to model traffic signals at all kinds of intersections or at uni-nodes.
+		//
+		// However, even when Signal.cpp is fixed, the following code fragment may still remain
+		// here, although it may be modified.  The reason is that the entire road network may not
+		// be loaded.  There will be signal sites, especially at the edges of the loaded road
+		// networks, with missing links.  In some cases, it may not make any sense to create a
+		// Signal object there, even though a signal is present at that site in the database.
+		// One example is an intersection with 4 links, but only one link is loaded in.  That
+		// intersection would look like a dead-end to the Driver and Pedestrian objects.  Or
+		// an intersection with 4-way traffic, but only 3 links are loaded in.  This would "turn"
+		// the intersection into a T-junction.
+		std::set<sim_mob::Link const *> links;
+		if (sim_mob::MultiNode const * multi_node = dynamic_cast<sim_mob::MultiNode const *>(node))
+		{
+			std::set<sim_mob::RoadSegment*> const & roads = multi_node->getRoadSegments();
+			std::set<sim_mob::RoadSegment*>::const_iterator iter;
+			for (iter = roads.begin(); iter != roads.end(); ++iter)
+			{
+				sim_mob::RoadSegment const * road = *iter;
+				links.insert(road->getLink());
+			}
+		}
+		if (links.size() != 4)
+		{
+			if (badNodes.count(node) == 0)
+			{
+				badNodes.insert(node);
+				std::cerr << "the node at " << node->location << " (database-id="
+						<< dbSignal.nodeId << ") does not have 4 links; "
+						<< "no signal will be created here." << std::endl;
+			}
+			continue;
+		}
 
-        sim_mob::Signal const & signal = sim_mob::Signal::signalAt(*node, sim_mob::ConfigParams::GetInstance().mutexStategy);
-        const_cast<sim_mob::Signal &>(signal).addSignalSite(dbSignal.xPos, dbSignal.yPos, dbSignal.typeCode, dbSignal.bearing);
-    }
+		sim_mob::Signal const & signal = sim_mob::Signal::signalAt(*node, sim_mob::ConfigParams::GetInstance().mutexStategy);
+		const_cast<sim_mob::Signal &>(signal).addSignalSite(dbSignal.xPos, dbSignal.yPos, dbSignal.typeCode, dbSignal.bearing);
+	}
 }
 #endif
 
@@ -1336,16 +1399,16 @@ void sim_mob::aimsun::Loader::TMP_TrimAllLaneLines(sim_mob::RoadSegment* seg, co
 
 	//Now go through and manually edit all of them. This includes lane lines and lane edge lines
 	{
-	vector< vector<Point2D> >::iterator it = seg->laneEdgePolylines_cached.begin();
-	for (;it!=seg->laneEdgePolylines_cached.end(); it++) {
-		CutSingleLanePolyline(*it, cutLine, trimStart);
-	}
+		vector< vector<Point2D> >::iterator it = seg->laneEdgePolylines_cached.begin();
+		for (;it!=seg->laneEdgePolylines_cached.end(); it++) {
+			CutSingleLanePolyline(*it, cutLine, trimStart);
+		}
 	}
 	{
-	vector<sim_mob::Lane*>::iterator it = seg->lanes.begin();
-	for (;it!=seg->lanes.end(); it++) {
-		CutSingleLanePolyline((*it)->polyline_, cutLine, trimStart);
-	}
+		vector<sim_mob::Lane*>::iterator it = seg->lanes.begin();
+		for (;it!=seg->lanes.end(); it++) {
+			CutSingleLanePolyline((*it)->polyline_, cutLine, trimStart);
+		}
 	}
 }
 
@@ -1389,14 +1452,14 @@ void sim_mob::aimsun::Loader::FixupLanesAndCrossings(sim_mob::RoadNetwork& res)
 				cross->farLine.second = Point2D(cross->nearLine.second.getX() + offset.getX(), cross->nearLine.second.getY() + offset.getY());
 #endif
 				sim_mob::Point2D nearLinemidPoint((cross->nearLine.second.getX()-cross->nearLine.first.getX())/2 + cross->nearLine.first.getX(),
-										(cross->nearLine.second.getY()-cross->nearLine.first.getY())/2 + cross->nearLine.first.getY());
+						(cross->nearLine.second.getY()-cross->nearLine.first.getY())/2 + cross->nearLine.first.getY());
 
 				//Translate the crossing left or right to be centered on the link's median line.
 				//This is imperfect but is an improvement.
 				const sim_mob::Node* start = link->getStart();
 				const sim_mob::Node* end = link->getEnd();
 				if(	end && end->location.getX() !=0 && end->location.getY() !=0 &&
-					start && start->location.getX() !=0 && start->location.getY() !=0)
+						start && start->location.getX() !=0 && start->location.getY() !=0)
 				{
 					sim_mob::Point2D medianProjection = LineLineIntersect(cross->nearLine.first, cross->nearLine.second, link->getStart()->location, link->getEnd()->location);
 					Point2D shift(medianProjection.getX()-nearLinemidPoint.getX(), medianProjection.getY()-nearLinemidPoint.getY());
@@ -1736,58 +1799,46 @@ void sim_mob::aimsun::Loader::ProcessSectionPolylines(sim_mob::RoadNetwork& res,
 
 
 
-string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::vector<sim_mob::TripChain*>& tcs, ProfileBuilder* prof)
+string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::vector<sim_mob::TripChainItem*>& tcs, ProfileBuilder* prof)
 {
 	//try {
 	std::cout << "Attempting to connect to database...." << std::endl;
-            //Connection string will look something like this:
-            //"host=localhost port=5432 dbname=SimMobility_DB user=postgres password=XXXXX"
-            DatabaseLoader loader(connectionStr);
-            std::cout << ">Success." << std::endl;
 
-		//Step One: Load
+	//Connection string will look something like this:
+	//"host=localhost port=5432 dbname=SimMobility_DB user=postgres password=XXXXX"
+	DatabaseLoader loader(connectionStr);
+	std::cout << ">Success." << std::endl;
 
-        std::cout << "xuyan:1." << std::endl;
-		loader.LoadBasicAimsunObjects(storedProcs);
-		std::cout << "xuyan:2." << std::endl;
+	//Step One: Load
+	loader.LoadBasicAimsunObjects(storedProcs);
 
-		if (prof) { prof->logGenericEnd("Database", "main-prof"); }
-		std::cout << "xuyan:2.1" << std::endl;
+	if (prof) { prof->logGenericEnd("Database", "main-prof"); }
 
-		//Step Two: Translate
-		if (prof) { prof->logGenericStart("PostProc", "main-prof"); }
-		std::cout << "xuyan:2.2" << std::endl;
+	//Step Two: Translate
+	if (prof) { prof->logGenericStart("PostProc", "main-prof"); }
+	loader.DecorateAndTranslateObjects();
+	//Step Three: Perform data-guided cleanup.
+	loader.PostProcessNetwork();
+	//Step Four: Save
+	loader.SaveSimMobilityNetwork(rn, tcs);
+	//Temporary workaround; Cut lanes short/extend them as reuquired.
+	for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {
+		TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesStartLineCut, true);
+		TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesEndLineCut, false);
+	}
+	for(vector<sim_mob::Link*>::iterator it = rn.links.begin(); it!= rn.links.end();it++)
+		(*it)->extendPolylinesBetweenRoadSegments();
+	if (prof) {
+		prof->logGenericEnd("PostProc", "main-prof");
+	}
 
-		loader.DecorateAndTranslateObjects();
-		std::cout << "xuyan:2.3" << std::endl;
-		//Step Three: Perform data-guided cleanup.
-		loader.PostProcessNetwork();
-		std::cout << "xuyan:2.4" << std::endl;
-		//Step Four: Save
-		loader.SaveSimMobilityNetwork(rn, tcs);
-
-		std::cout << "xuyan:2.5" << std::endl;
-
-		//Temporary workaround; Cut lanes short/extend them as reuquired.
-		for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {
-			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesStartLineCut, true);
-			TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesEndLineCut, false);
-		}
-		for(vector<sim_mob::Link*>::iterator it = rn.links.begin(); it!= rn.links.end();it++)
-			(*it)->extendPolylinesBetweenRoadSegments();
-		if (prof) {
-			prof->logGenericEnd("PostProc", "main-prof");
-		}
-
-		//add by xuyan, load in boundary segments
-		//Step Four: find boundary segment in road network using start-node(x,y) and end-node(x,y)
+	//add by xuyan, load in boundary segments
+	//Step Four: find boundary segment in road network using start-node(x,y) and end-node(x,y)
 #ifndef SIMMOB_DISABLE_MPI
-		if (ConfigParams::GetInstance().is_run_on_many_computers)
-		{
-			std::cout << "xuyan:3." << std::endl;
-			loader.TransferBoundaryRoadSegment();
-			std::cout << "xuyan:4." << std::endl;
-		}
+	if (ConfigParams::GetInstance().is_run_on_many_computers)
+	{
+		loader.TransferBoundaryRoadSegment();
+	}
 #endif
 
 

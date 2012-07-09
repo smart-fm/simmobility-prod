@@ -49,8 +49,10 @@ public class Utility {
 				GsonResObj gRes = null;
 				try {
 					gRes = GsonResObj.class.cast(f.get(this));
-				} catch (ClassCastException cex) { continue; 
-				} catch (IllegalAccessException iex) { throw new RuntimeException(iex); }
+				} catch (ClassCastException cex) { 
+					continue; 
+				} catch (IllegalAccessException iex) { 
+					throw new RuntimeException(iex); }
 				
 				if (gRes==null) { continue; }
 				

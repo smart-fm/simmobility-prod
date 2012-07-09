@@ -4,7 +4,7 @@
 #include <sstream>
 
 #include "geospatial/Link.hpp"
-
+#include "geospatial/RoadSegment.hpp"
 
 namespace sim_mob
 {
@@ -157,13 +157,12 @@ void Phase::addDefaultCrossings(LinkAndCrossingByLink const & LAC,
 	}
 }
 
-sim_mob::RoadSegment * Phase::findRoadSegment(sim_mob::Link * link,
-		sim_mob::MultiNode * node) const {
+sim_mob::RoadSegment * Phase::findRoadSegment(sim_mob::Link * link,sim_mob::MultiNode * node) const {
 	sim_mob::RoadSegment *rs = 0;
-	std::set<sim_mob::RoadSegment*>::iterator itrs =
-			(*link).getUniqueSegments().begin();
+	std::set<sim_mob::RoadSegment*>::iterator itrs = (*link).getUniqueSegments().begin();
 	for (; itrs != (*link).getUniqueSegments().end(); itrs++) {
-		if (node->canFindRoadSegment(*itrs)) {
+		if((dynamic_cast<sim_mob::MultiNode *>(const_cast<sim_mob::Node*>((*itrs)->getEnd())) == node)||(dynamic_cast<sim_mob::MultiNode *>(const_cast<sim_mob::Node*>((*itrs)->getStart())) == node)){
+//		if (node->canFindRoadSegment(*itrs)) {
 			rs = *itrs;
 			break;
 		}
@@ -172,10 +171,14 @@ sim_mob::RoadSegment * Phase::findRoadSegment(sim_mob::Link * link,
 	return rs;
 }
 
-void Phase::addLinkMapping(sim_mob::Link * lf, sim_mob::linkToLink & ll,
-		sim_mob::MultiNode *node) const {
-	ll.RS_From = findRoadSegment(lf, node);
-	ll.RS_To = findRoadSegment(ll.LinkTo, node);
+void Phase::addLinkMapping(sim_mob::Link * lf, sim_mob::linkToLink & ll,sim_mob::MultiNode *node) const {
+	//findRoadSegment is buggy, no need now, coz I have set the values already in loader.cpp throuh ll constructor
+//	ll.RS_From = findRoadSegment(lf, node);
+//	ll.RS_To = findRoadSegment(ll.LinkTo, node);
+	if(name == "C")
+	{
+		std::cout << "addLinkMapping ::" <<  ll.RS_From << ":" << ll.RS_To << "\n";
+	}
 	links_map_.insert(std::pair<sim_mob::Link *, sim_mob::linkToLink>(lf, ll));
 }
 
@@ -187,7 +190,10 @@ std::string Phase::createStringRepresentation(std::string newLine) const {
 	output << "\"name\": \"" << name << "\"," << newLine;
 	int i = 0;
 	if (links_map_.size()) {
-		output << "\"links\":" << newLine << "[" << newLine;
+//		segment_based
+		output << "\"segments\":" << newLine << "[" << newLine;
+		//link_based
+//		output << "\"links\":" << newLine << "[" << newLine;
 		links_map_iterator it = links_map_.begin();
 		while (it != links_map_.end()) {
 			output << "{";
@@ -210,7 +216,7 @@ std::string Phase::createStringRepresentation(std::string newLine) const {
 		output << "\"crossings\":" << newLine << "[" << newLine;
 		crossings_map_iterator it = crossings_map_.begin();
 		while (it != crossings_map_.end()) {
-			output << "\"" << (*it).first << "\""; //crossing *
+			output << "{\"id\":\"" << (*it).first << "\"}"; //crossing *
 			it++;
 			if (it != crossings_map_.end())
 				output << "," << newLine;
@@ -364,7 +370,10 @@ std::string Phase::outputPhaseTrafficLight(std::string newLine) const
 	output << "\"name\": \"" << name << "\"," << newLine;
 	int i = 0;
 	if (links_map_.size()) {
-		output << "\"links\":" << newLine << "[" << newLine;
+		//link based
+//		output << "\"links\":" << newLine << "[" << newLine;
+		//segment based
+		output << "\"segments\":" << newLine << "[" << newLine;
 		links_map_iterator it = links_map_.begin();
 		while (it != links_map_.end()) {
 			output << "{";

@@ -346,6 +346,7 @@ std::string SplitPlan::outputTrafficLights(std::string newLine, int phaseId) con
 			return 0;
 		}
 	std::ostringstream output;
+	output << "\"currPhase\": \"" << phases_[currPhaseID].getName() << "\"," << newLine;
 	output << "\"phases\":" << newLine << "[";
 	phases_iterator it = phases_.begin();
 	while(it !=phases_.end())

@@ -34,6 +34,12 @@ public class TrafficSignalLine implements DrawableItem{
 		this.findNode();
 	}
 	
+	public Lane getFromLane() { return fromLane; }
+	public Lane getToLane() { return toLane; }
+	public Node getFromNode() { return fromNode; }
+	public Node getToNode() { return toNode; }
+	public Color getCurrColor() { return currColor; }
+	
 	public int getZOrder() {
 		return DrawableItem.Z_ORDER_TSL;
 	}
@@ -97,20 +103,44 @@ public class TrafficSignalLine implements DrawableItem{
 		if (currColor==null) { return; }
 		if (!params.PastCriticalZoom) { return; }
 		g.setColor(currColor);
-			
+		String color_ = "Unknown";
+		if (currColor == Color.red)
+			color_ = "Red";
+		if (currColor ==  Color.green)
+			color_ = "green";
+		if (currColor ==  Color.yellow)
+			color_ = "Amber";
+		
+//		System.out.println("Drawing An Arrow from " + (int)fromNode.getPos().getX() + ":" + (int)fromNode.getPos().getY() + "  TO  " + (int)toNode.getPos().getX()+ ":" +(int)toNode.getPos().getY()+ "   color: " + currColor );
+		System.out.println("Drawing An Arrow from " + (int)fromNode.getPos().getX() + ":" + (int)fromNode.getPos().getY() + "  TO  " + (int)toNode.getPos().getX()+ ":" +(int)toNode.getPos().getY()+ "   color: " + color_ );
+		g.setColor(currColor);
 		drawArrow(g, (int)fromNode.getPos().getX(), (int)fromNode.getPos().getY(),(int)toNode.getPos().getX(),(int)toNode.getPos().getY());
 		
 	}
 	
 	
 	public void setLightColor(Integer color) {
-		if (color == 2) {
+		switch(color)
+		{
+		case 1:
+			currColor = Color.red;
+			break;
+		case 2:
 			currColor = Color.yellow;
-		} else if (color==3) {
+			break;
+		case 3:
 			currColor = Color.green;
-		} else {
-			currColor = null;
+			break;
+		default:
+			currColor = Color.cyan;
 		}
+//		if (color == 2) {
+//			currColor = Color.yellow;
+//		} else if (color==3) {
+//			currColor = Color.green;
+//		} else {
+//			currColor = null;
+//		}
 	}
 	
     

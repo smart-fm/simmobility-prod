@@ -1,6 +1,7 @@
 package sim_mob.vis.network;
 import sim_mob.vis.network.Intersection;
 import sim_mob.vis.network.SignalHelper;
+import sim_mob.vis.network.SignalHelper.Segment;
 import sim_mob.vis.util.Utility;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
@@ -25,7 +26,7 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 //		private String link_to;
 	
 	//segment based
-	private class Segment {
+	public class Segment {
 	public Segment(){};
 	public Segment(String segment_from_, String segment_to_){
 		segment_from = segment_from_;
@@ -33,12 +34,15 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 	}
 	private String segment_from;
 	private String segment_to;
-		
-		//This will be "null" for TrafficSignal; it will be set properly in "TrafficSignalUpdate"
-		private Integer current_color;  
+	//This will be "null" for TrafficSignal; it will be set properly in "TrafficSignalUpdate"
+	private Integer current_color;
+	
+	public String getSegmentFrom(){ return segment_from; }
+	public String getSegmentTo(){ return segment_to; }
+	public Integer getCurrColor() { return current_color;}
 	}
 	
-	private class Crossing {
+	public class Crossing {
 		public Crossing(){};
 		public Crossing(String id_){
 			id = id_;
@@ -56,20 +60,38 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 		//link based
 //		private Link[] links;
 		private Crossing[] crossings;
+		
+		//getters
+		public String getName() {
+			return name;
+		}
+		public Segment[] getSegmens(){
+			return segments;
+		}
+		public Crossing[] getCrossings(){
+			return crossings;
+		}
+		
 	}
 	private String hex_id;
+	private Integer frame;
 	private String simmob_id;
 	private String node;
 	private Phase[] phases;
 	
-	SignalHelper signalHelper;
+	
 	public void addSelfToSimulation(RoadNetwork rdNet, SimulationResults simRes) {
+//		System.out.println("Inside TS.addSelfToSimulation");
+		SignalHelper signalHelper = new SignalHelper();
+		signalHelper.phases = new ArrayList<SignalHelper.Phase>();
 		//TODO: Here is where you'd add this traffic signal to the road network.
-		signalHelper.nodeId = Utility.ParseIntOptionalHex(node);
+		signalHelper.node = Utility.ParseIntOptionalHex(node);
 		signalHelper.hex_id = Utility.ParseIntOptionalHex(hex_id);//intersection id
 		for(Phase ph: phases)
 		{
 			SignalHelper.Phase phase = signalHelper.new Phase(ph.name);
+			phase.segments = new ArrayList<SignalHelper.Segment>();
+			phase.crossings = new ArrayList<SignalHelper.Crossing>();
 //			link based
 //			for(Link ln : ph.links)
 //			{
@@ -78,6 +100,7 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 //			}
 			
 //			Segment based
+//			System.out.println("ph.segments length= "+ph.segments.length);
 			for(Segment rs : ph.segments)
 			{
 				SignalHelper.Segment segment = signalHelper.new Segment(Utility.ParseIntOptionalHex(rs.segment_from), Utility.ParseIntOptionalHex(rs.segment_to));
@@ -92,6 +115,7 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 			signalHelper.phases.add(phase);
 		}
 		//Something like this?....
+//		System.out.println("Adding intersection "+ signalHelper.hex_id + " to road network");
 		rdNet.getIntersections().put(signalHelper.hex_id, new Intersection(signalHelper));
 	}
 	
@@ -108,7 +132,7 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 
 	
 	public int getTimeTick() {
-		return 0; //All network items have time tick 0.
+		return frame; //All network items have time tick 0.
 	}
 	
 	public int getZOrder() {

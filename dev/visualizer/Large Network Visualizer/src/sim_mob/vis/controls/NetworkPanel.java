@@ -131,7 +131,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		
 		//Progress item to draw?
 		if (this.currProgressItem!=null) {
-			drawCurrProgressItem((Graphics2D)g);
+			drawCurrProgressItem((Graphics2D)g);//initial "uploading" part
 			this.currProgressItem = null;
 			return;
 		}
@@ -148,7 +148,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		drawMapOntoImage(buffer, drawImg, getCurrFrameTick());
 		
 		//Paint the bufer
-		g.drawImage(buffer, 0, 0, null);
+		g.drawImage(buffer, 0, 0, null);//road network part
 	}
 	
 	

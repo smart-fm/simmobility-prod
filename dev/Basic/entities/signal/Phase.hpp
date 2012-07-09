@@ -34,7 +34,17 @@ struct ll
 			colorSequence.addColorDuration(Red,1);//All red moment ususally takes 1 second
 
 		currColor = sim_mob::Red;
+		std::cout << "Setting RS to " << "Zero\n";
 		RS_From = RS_To = 0;
+	}
+	ll(sim_mob::Link *linkto,sim_mob::RoadSegment *RS_From_, sim_mob::RoadSegment *RS_To_):LinkTo(linkto) {
+			colorSequence.addColorDuration(Green,0);
+			colorSequence.addColorDuration(Amber,3);//a portion of the total time of the phase length is taken by amber
+			colorSequence.addColorDuration(Red,1);//All red moment ususally takes 1 second
+			std::cout << "Setting RS to " << RS_To << " And " << RS_From << "\n";
+		RS_To = RS_To_;
+		RS_From = RS_From_;
+		currColor = sim_mob::Red;
 	}
 
 	sim_mob::Link *LinkTo;

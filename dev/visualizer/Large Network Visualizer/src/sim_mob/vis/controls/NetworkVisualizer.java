@@ -285,6 +285,7 @@ public class NetworkVisualizer {
 	
 	
 	private void redrawFrame(int frameTick, Graphics2D g, Point size, Rectangle2D zoomRect) {
+		System.out.println("Redrawing for Frame " + frameTick);
 		//Check if we need to re-scale all points.
 		boolean sameZoom = (currView!=null) && ((zoomRect==currView) || zoomRect.equals(currView)); //Ref and value check.
 		if (!sameZoom) {
@@ -313,10 +314,10 @@ public class NetworkVisualizer {
 			lastKnownFrame = frameTick;
 			
 			agentTicksIndex = new LazySpatialIndex<DrawableItem>();
-			addAllCrossingSignals(agentTicksIndex, frameTick);
+//			addAllCrossingSignals(agentTicksIndex, frameTick);//TODO:enable this later
 			addAllLaneSignals(agentTicksIndex, frameTick);
 			addAllAgents(agentTicksIndex, frameTick);
-			addAllCrossingSignals(agentTicksIndex, frameTick);
+//			addAllCrossingSignals(agentTicksIndex, frameTick);//TODO: why is this function repeated ? -vahid
 			
 			//TEMP:
 			//System.out.println("Network bounds: " + Utility.printRect(networkItemsIndex.getBounds()));
@@ -540,10 +541,11 @@ public class NetworkVisualizer {
 		
 		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
 			//Get Intersection ID and color
-			Intersection tempIntersection = network.getIntersections().get(at.getIntersectionID());
-			ArrayList<ArrayList<Integer>> allVehicleLights =  at.getVehicleLights();
+//			Intersection tempIntersection = network.getIntersections().get(at.getIntersectionID());
+			
+//			ArrayList<ArrayList<Integer>> allVehicleLights =  at.getVehicleLights();
 
-			//Draw Vehicle Lights
+//			//Draw Vehicle Lights
 //			for (int i=0; i<4; i++) {
 //				//0,1,2,3 correspond to a,b,c,d
 //				//TODO: The classes created are not intuitive. Some are index-based, others are
@@ -560,7 +562,15 @@ public class NetworkVisualizer {
 //				addTrafficLines(index, signalLine, lightColors);
 //			}
 			
+			
+			
 			//my solution:
+			//Since here we HAVDE intersection, therefore we have all trafficsignallines 
+			//so we can reuse the addTrafficLines() method, can't be any simpler
+			//...update, I had to write a variation(override) of addTrafficLines as the old one was hakish and I had already corrected the root-vahid
+			Hashtable<String, ArrayList<TrafficSignalLine>> TSLs = at.getAllTrafficSignalLines();
+			for(ArrayList<TrafficSignalLine> tsls : TSLs.values())
+				addTrafficLines(index, tsls);
 			
 			
 		}
@@ -629,6 +639,25 @@ public class NetworkVisualizer {
 				index.addItem(item, item.getBounds());
 			}
 		}	
+	}
+	//my variation -vahid
+	private void addTrafficLines(LazySpatialIndex<DrawableItem> index, ArrayList<TrafficSignalLine> signalLine) {
+		
+		for(TrafficSignalLine tsl : signalLine)
+		{			
+			//I don't know what these two lines are, so I dont touch them
+			DrawParams p = new DrawParams();
+			p.PastCriticalZoom = pastCriticalZoom();
+//			if (tsl.getCurrColor() == Color.yellow)
+//				System.out.println("addTrafficLines from " +  tsl.getFromNode().getPos().getX() + ":" + (int)tsl.getFromNode().getPos().getY() + "  TO  " + (int)tsl.getToNode().getPos().getX()+ ":" +(int)tsl.getToNode().getPos().getY()+ "   color: Yellow" );
+//			else if (tsl.getCurrColor() == Color.green)
+//				System.out.println("addTrafficLines from " +  tsl.getFromNode().getPos().getX() + ":" + (int)tsl.getFromNode().getPos().getY() + "  TO  " + (int)tsl.getToNode().getPos().getX()+ ":" +(int)tsl.getToNode().getPos().getY()+ "   color: Green" );
+//			else if (tsl.getCurrColor() == Color.red)
+//				System.out.println("addTrafficLines from " +  tsl.getFromNode().getPos().getX() + ":" + (int)tsl.getFromNode().getPos().getY() + "  TO  " + (int)tsl.getToNode().getPos().getX()+ ":" +(int)tsl.getToNode().getPos().getY()+ "   color: Red" );
+			//Add it to the index.
+			DrawableItem item = tsl;
+			index.addItem(item, item.getBounds());
+		}
 	}
 	
 }

@@ -229,6 +229,11 @@ void DatabaseLoader::LoadPhase(const std::string& storedProc)
 		it->ToSection = &sections_[it->sectionTo];
 		it->FromSection = &sections_[it->sectionFrom];
 		phases_.insert(pair<int,Phase>(it->nodeId,*it));
+		//TODO delete debugging
+		if((it->nodeId == 66508)&&(it->name == "C"))
+		{
+			std::cout << "Node 66508, sections in phase " << it->name << " :: " << it->FromSection << " : " << it->ToSection << "\n";
+		}
 	}
 }
 
@@ -426,7 +431,12 @@ DatabaseLoader::LoadTrafficSignals(std::string const & storedProcedure)
         // Convert from meters to centimeters.
         signal.xPos *= 100;
         signal.yPos *= 100;
-        signals_.insert(std::make_pair(signal.id, signal));
+        //TODO remove if
+        if(signal.nodeId == 66508){
+
+        	signals_.insert(std::make_pair(signal.id, signal));
+        }
+
 //        if(signal.nodeId == 115436) { std::cout << "We have a signal 115436 oin our DB\n"; getchar();}
 
     }
@@ -1214,6 +1224,7 @@ DatabaseLoader::createPlans(sim_mob::Signal_SCATS & signal)
 void
 DatabaseLoader::createPhases(sim_mob::Signal_SCATS & signal)
 {
+
 	pair<multimap<int,sim_mob::aimsun::Phase>::iterator, multimap<int,sim_mob::aimsun::Phase>::iterator> ppp;
 
 	ppp = phases_.equal_range(signal.getSignalId());
@@ -1225,10 +1236,17 @@ DatabaseLoader::createPhases(sim_mob::Signal_SCATS & signal)
 
 	for(; ph_it != ppp.second; ph_it++)
 	{
-
+		//TODO delete debugging
+		if(((*ph_it).second.nodeId == 66508)&&((*ph_it).second.name == "C"))
+		{
+			std::cout << "Node 66508, sections in phase " << (*ph_it).second.name << " :: " << (*ph_it).second.FromSection << " : " << (*ph_it).second.ToSection << "\n";
+			std::cout << "Node 66508, SeGments in phase " << (*ph_it).second.name << " :: " << (*ph_it).second.FromSection->generatedSegment << " : " << (*ph_it).second.ToSection->generatedSegment << "\n";
+		}
 		sim_mob::Link * linkFrom = (*ph_it).second.FromSection->generatedSegment->getLink();
 		sim_mob::Link * linkTo = (*ph_it).second.ToSection->generatedSegment->getLink();
-		sim_mob::linkToLink ll(linkTo);
+		sim_mob::linkToLink ll(linkTo,(*ph_it).second.FromSection->generatedSegment,(*ph_it).second.ToSection->generatedSegment);
+//		ll.RS_From = (*ph_it).second.FromSection->generatedSegment;
+//		ll.RS_To = (*ph_it).second.ToSection->generatedSegment;
 		std::string name = (*ph_it).second.name;
 		if((sim_ph_it = ppv.find(name)) != ppv.end()) //means: if a phase with this name already exists in this plan...(usually u need a loop but with boost multi index, well, you don't :)
 		{

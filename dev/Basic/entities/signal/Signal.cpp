@@ -72,6 +72,7 @@ void Signal_SCATS::createStringRepresentation(std::string newLine)
 	std::ostringstream output;
 			output << "{" << newLine << "\"TrafficSignal\":" << "{" << newLine;
 			output << "\"hex_id\":\""<< this << "\"," << newLine;
+			output << "\"frame\": " << -1 << "," << newLine; //this is added to indicate that
 			output << "\"simmob_id\":\"" <<  TMP_SignalID << "\"," << newLine;
 			output << "\"node\": \"" << &getNode() << "\"," << newLine;
 			output << plan_.createStringRepresentation(newLine);
@@ -387,7 +388,7 @@ bool Signal_SCATS::updateCurrCycleTimer() {
 //Output To Visualizer
 void Signal_SCATS::outputTrafficLights(frame_t frameNumber,std::string newLine) const{
 	std::stringstream output;
-	output << newLine << "{" << newLine << "\"TrafficSignal-Update\":" << newLine <<"{" << newLine ;
+	output << newLine << "{" << newLine << "\"TrafficSignalUpdate\":" << newLine <<"{" << newLine ;
 	output << "\"hex_id\":\""<< this << "\"," << newLine;
 	output << "\"frame\": " << frameNumber << "," << newLine;
 	output << plan_.outputTrafficLights(newLine);

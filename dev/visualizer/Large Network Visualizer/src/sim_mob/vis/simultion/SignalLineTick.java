@@ -1,6 +1,10 @@
 package sim_mob.vis.simultion;
 
 import java.util.ArrayList;
+import java.util.Hashtable;
+
+import sim_mob.vis.network.TrafficSignal.Phase;
+import sim_mob.vis.network.TrafficSignalLine;
 
 /**
  * 
@@ -12,8 +16,12 @@ public class SignalLineTick{
 	private ArrayList<ArrayList<Integer>> allVehicleLights;
 	private ArrayList<Integer> allPedestrianLights;	
 	private Integer intersectionID;
+//	private Phase [] phases; 
 	private boolean fake;
 	
+	//my solution:
+	private Hashtable<String ,ArrayList<TrafficSignalLine>> TrafficSignalLines;	//String is phase (A,B,C,...)
+	public Hashtable<String ,ArrayList<TrafficSignalLine>> getAllTrafficSignalLines(){ return TrafficSignalLines;}
 	public Integer getIntersectionID(){ return intersectionID;}
 	public ArrayList<ArrayList<Integer>> getVehicleLights(){ return allVehicleLights;}
 	public ArrayList<Integer> getPedestrianLights(){return allPedestrianLights;}
@@ -26,6 +34,24 @@ public class SignalLineTick{
 		this.fake = false;
 	}
 	
+//	public SignalLineTick(int id,Phase[] phases_){
+	public SignalLineTick(int id,Hashtable<String, ArrayList<TrafficSignalLine>> TrafficSignalLines_){
+		this.id = id;
+		//at present we leverage the similarity of signal id and intersectionId.
+		//In case one day they decided them to be different,this method should 
+		//change along with the following items:
+		//SimResLineParser class should add another member for road network,
+		//this member should be initialized through its constructor 
+		//this constructor is idally called from within simulationResult.LoadFileAndReport(..., RoadNetwork rn,...) method
+		//which, as you can see, has the rn that can be supplied to SimResLineParser,
+		//then SimResLineParser finds the corrsponding intersection,
+		//intersection has all the necessary signalline objects necessary
+		this.intersectionID = id;
+		TrafficSignalLines = TrafficSignalLines_;
+//		this.phases = phases_;
+		this.fake = false;
+	}
+	
 	public int getID() {
 		return id;
 	}
@@ -33,5 +59,9 @@ public class SignalLineTick{
 	public void setItFake(){ 
 		fake = true;
 	}
+//	public Phase[] getPhases()
+//	{
+//		return phases;
+//	}
 	
 }

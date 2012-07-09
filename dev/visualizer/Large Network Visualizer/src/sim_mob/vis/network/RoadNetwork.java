@@ -130,7 +130,7 @@ public class RoadNetwork {
 		if (progressUpdate!=null) {
 			SwingUtilities.invokeLater(new ProgressUpdateRunner(progressUpdate, 0.0, false, new Color(0x00, 0x00, 0xFF), ""));
 		}
-		
+//		System.out.println("Inside rn.loadFileAndReport(br, 0, null);");
 		//Read
 		String line;
 		while ((line=inFile.readLine())!=null) {
@@ -155,18 +155,20 @@ public class RoadNetwork {
 			//New-style json strings use {}, while old-style ones use ().
 			boolean oldStyle = line.startsWith("(") && line.endsWith(")");
 			boolean newStyle = line.startsWith("{") && line.endsWith("}");
+			
 			if (!oldStyle && !newStyle) {
 				continue;
 			}
-			
 			//Parsing depends on how the line is structured.
 			if (newStyle) {
-				System.out.println("parsing line: "+line);
+//				System.out.println("Inside rn.loadFileAndReport.newstyle");
 				//Parse this line as json.
 				GsonResObj gRes = Utility.ParseGsonLine(line);
 				int tTick = gRes.getTimeTick();
-				
 				//Add this object to the simulation
+				if(tTick < 0)//TODO find a way to get rid of this. time tick 0 i creating problem as it is common between static network and simulation data
+				//Add this object to the simulation
+//				System.out.println("before gRes.addSelfToSimulation");
 				gRes.addSelfToSimulation(this, null);
 			} else {
 				//Parse this line as text and pseudo-json.
@@ -183,7 +185,6 @@ public class RoadNetwork {
 			    }
 			}
 		    
-		    
 		    if (pushUpdate) {
 			    try {
 			    	Thread.sleep(1);
@@ -191,8 +192,7 @@ public class RoadNetwork {
 			    	throw new RuntimeException(ex);
 			    }
 		    }
-		}
-		
+		}//while loop
 		
 		//Save bounds
 		//cornerTL = new DPoint(xBounds[0], yBounds[0]);
@@ -203,7 +203,7 @@ public class RoadNetwork {
 		this.addLinkNames();
 		
 		//Populate Intersections
-		this.populateIntersections();
+		this.populateIntersections_newStyle();
 		
 		//Fix up connections between segments to look 
 		//pretty where # of lanes changes
@@ -609,35 +609,7 @@ public class RoadNetwork {
 	
 	}
 	
-	private void gParseSignalLocation(Utility.ParseResults pRes) throws IOException{		
 
-	    
-		//Check and parse properties.
-		if (!pRes.confirmProps(new String[]{"node","va","aa","pa","vb","ab","pb","vc","ac","pc","vd","ad","pd"})) {
-			throw new IOException("Missing required key in type: " + pRes.type);
-		}
-
-	    //Now save the relevant information
-	    int intersectionNodeID = Utility.ParseIntOptionalHex(pRes.properties.get("node"));
-	    int linkVaID = Utility.ParseIntOptionalHex(pRes.properties.get("va"));
-	    int linkVbID = Utility.ParseIntOptionalHex(pRes.properties.get("vb"));
-	    int linkVcID = Utility.ParseIntOptionalHex(pRes.properties.get("vc"));
-	    int linkVdID = Utility.ParseIntOptionalHex(pRes.properties.get("vd"));
-	    int linkPaID = Utility.ParseIntOptionalHex(pRes.properties.get("pa"));
-	    int linkPbID = Utility.ParseIntOptionalHex(pRes.properties.get("pb"));
-	    int linkPcID = Utility.ParseIntOptionalHex(pRes.properties.get("pc"));
-	    int linkPdID = Utility.ParseIntOptionalHex(pRes.properties.get("pd"));
-
-	    ArrayList <Integer>  tempLinkIDs = new ArrayList<Integer>(
-	    			Arrays.asList(linkVaID, linkVbID, linkVcID, linkVdID)); 
-	    
-	    ArrayList <Integer> tempCrossingIDs = new ArrayList<Integer>(
-	    			Arrays.asList(linkPaID,linkPbID,linkPcID,linkPdID));
-	    
-	    intersections.put(pRes.objID, new Intersection(intersectionNodeID,tempLinkIDs, tempCrossingIDs));		
-	
-	}
-	
 	private void parseCutLine(Utility.ParseResults pRes) throws IOException{
 
 	    
@@ -674,145 +646,17 @@ public class RoadNetwork {
 
 	private void populateIntersections_newStyle(){
 
-		
-		for(Intersection intersection : intersections.values()){
+//		System.out.println("Inside this.populateIntersections_newStyle()");
+		for(Intersection intersection: intersections.values()){
 			intersection.populateTrafficSignal(this);
-			if(true) continue;//todo crossings will be left off
-			ArrayList<Integer> tempIntersectLinkIDs = new ArrayList<Integer>();
-			tempIntersectLinkIDs = 	intersection.getSigalLinkIDs();
-			Hashtable<Integer, Integer> intersectLinkSegmentIDTable = new Hashtable<Integer, Integer>();
-			
-			int[] fromSegmentList = new int[]{-1,-1,-1,-1};
-			int[] toSegmentList = new int[]{-1,-1,-1,-1};
-			
-			int intersectionNodeID = intersection.getIntersectNodeID(); 
-						
-			//Search all the Links
-			for(int i = 0; i<tempIntersectLinkIDs.size();i++ ){	
-				int tempLinkID = tempIntersectLinkIDs.get(i);
-				//ArrayList<Integer> tempSegmentIDs = roadNetworkItemsMapTable.findSegmentIDWithLinkID(tempLinkID);
-				ArrayList<Integer> tempSegmentIDs = new ArrayList<Integer>();
-				Enumeration<Integer> segmentKeys = segments.keys();
-							
-				while(segmentKeys.hasMoreElements()){
-					
-					Object aKey = segmentKeys.nextElement();
-					Integer segmentID = (Integer) aKey;
-					Segment tempSegment = segments.get(aKey);
-					int parentLinkID = tempSegment.getParent().getId();
-				
-					if(tempLinkID == parentLinkID ){
-						tempSegmentIDs.add(segmentID);
-					}
-				
-				}
-				
-				//Find segment that related to intersection node
-				for(int j = 0; j< tempSegmentIDs.size();j++){
-					
-					if(segments.containsKey(tempSegmentIDs.get(j))){
-						
-						Segment tempSegment = segments.get(tempSegmentIDs.get(j));	
-						
-						//Check if the segment is come from the intersection node
-						if(tempSegment.getTo().getID() == intersectionNodeID)
-						{
-							//Put it into respective table
-							if(i == 0){
-								fromSegmentList[0] = tempSegmentIDs.get(j);
-							} else if( i == 1){
-								fromSegmentList[1] = tempSegmentIDs.get(j);
-							} else if(i == 2){
-								fromSegmentList[2] = tempSegmentIDs.get(j);
-							} else if(i == 3){
-								fromSegmentList[3] = tempSegmentIDs.get(j);
-							}
-							
-						} else if(tempSegment.getFrom().getID() == intersectionNodeID){
-					
-							//Put it into respective table
-							if(i == 0){
-								toSegmentList[0] = tempSegmentIDs.get(j);
-							} else if( i == 1){
-								toSegmentList[1] = tempSegmentIDs.get(j);
-							} else if(i == 2){
-								toSegmentList[2] = tempSegmentIDs.get(j);
-							} else if(i == 3){
-								toSegmentList[3] = tempSegmentIDs.get(j);
-							}	
-						}
-							
-							
-					} else {
-						
-						System.out.println("Error, no such segments in segment table "+Integer.toHexString(tempSegmentIDs.get(j))+" -- RoadNetwork,populateIntersection ");
-						
-					}
-					
-				}	
-						
-			}
-		    //     segmentFrom,2D matrix segmentToX[left,straight,right]	still ambiguous!!				
-			Hashtable<Integer, ArrayList<ArrayList<TrafficSignalLine>>> signalList = helperAllocateDirection(fromSegmentList,toSegmentList);			
-			Enumeration<Integer> signalListKeys = signalList.keys();
-			
-			while(signalListKeys.hasMoreElements()){
-				
-				Object aKey = signalListKeys.nextElement();
-				Integer linkNumber = (Integer)aKey;
-				ArrayList<ArrayList<TrafficSignalLine>> signalListPerLink = signalList.get(linkNumber);
-				
-				if(linkNumber == 0)
-				{
-					intersection.setVaTrafficSignal(signalListPerLink);
-					
-				}else if (linkNumber == 1){
-					intersection.setVbTrafficSignal(signalListPerLink);
-					
-				}else if (linkNumber == 2){
-
-					intersection.setVcTrafficSignal(signalListPerLink);
-					
-				}else if (linkNumber == 3){
-					intersection.setVdTrafficSignal(signalListPerLink);
-
-				}
-			
-			}
-			
-			//Fill crossing signals
-			ArrayList<Integer> crossingIDs = intersection.getSigalCrossingIDs();
-			ArrayList<TrafficSignalCrossing> crossingSignals =  new ArrayList<TrafficSignalCrossing>();
-			int linkPaID = crossingIDs.get(0);	
-			int linkPbID = crossingIDs.get(1);
-			int linkPcID = crossingIDs.get(2);
-			int linkPdID = crossingIDs.get(3);
-			
-			//System.out.println("Intersection ID: " + Integer.toHexString(intersection.getIntersectNodeID()));
-			//System.out.println("linkPaID: "+ linkPaID +" linkPbID: "+ linkPbID + " linkPcID: "+ linkPcID +" linkPdID: "+ linkPdID);
-					
-			if(trafficSignalCrossings.containsKey(linkPaID) && trafficSignalCrossings.containsKey(linkPbID) 
-		    		&& trafficSignalCrossings.containsKey(linkPcID) && trafficSignalCrossings.containsKey(linkPdID)){	    	
-		    	
-				crossingSignals.add(trafficSignalCrossings.get(linkPaID));
-				crossingSignals.add(trafficSignalCrossings.get(linkPbID));
-				crossingSignals.add(trafficSignalCrossings.get(linkPcID));
-				crossingSignals.add(trafficSignalCrossings.get(linkPdID));
-				
-				intersection.setSignalCrossing(crossingSignals);
-				
-		    }else{
-		    	System.out.println("Error, no such pedestrain crossings -- RoadNetwork, parseSignalLocation");
-		    }
-			
-			
-		} // End for loop
-		
+		}
 	}
-	private void populateIntersections(){
+	private void populateIntersections() throws IOException{
 
-		
-		for(Intersection intersection : intersections.values()){		
+		System.out.println("Inside the populate intersection with intersection size of " + intersections.size());
+//		System.in.read();
+		for(Intersection intersection : intersections.values()){	
+			System.out.println("Inside the populate intersection loop");
 			ArrayList <Integer> tempIntersectLinkIDs = intersection.getSigalLinkIDs();
 			Hashtable<Integer, Integer> intersectLinkSegmentIDTable = new Hashtable<Integer, Integer>();
 			

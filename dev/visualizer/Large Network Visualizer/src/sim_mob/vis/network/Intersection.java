@@ -19,6 +19,7 @@ import sim_mob.vis.network.SignalHelper;
 
 public class Intersection {
 
+	private int intersectionID;
 	private int intersectNodeID;
 	private ArrayList <Integer> signalLinkIDs; 
 	private ArrayList <Integer> signalCrossingIDs;
@@ -45,6 +46,7 @@ public class Intersection {
 		}
 	
 	public int getIntersectNodeID (){return intersectNodeID;}
+	public int getIntersectID (){return intersectionID;}
 	
 	public ArrayList<ArrayList<TrafficSignalLine>> getVaTrafficSignal(){return vaSignalLine;}
 	public ArrayList<ArrayList<TrafficSignalLine>> getVbTrafficSignal(){return vbSignalLine;}
@@ -55,7 +57,20 @@ public class Intersection {
 	{
 		return trafficSignalLines.get(phase);
 	}
-	public Hashtable<String, ArrayList<TrafficSignalLine>> getAllTrafficSignalLines(String phase)
+	//since there can be 2 phases each having a trafficsignalline 
+	//with identical combination of lanefrom-laneto, we need to 
+	//locate the traficsignalline based on the phase also(usually current phase is our target search space)
+	public TrafficSignalLine getTrafficSignalLine(String phase, Lane laneFrom, Lane laneTo)
+	{
+		ArrayList<TrafficSignalLine> TSLs = trafficSignalLines.get(phase);
+		for(TrafficSignalLine tsl : TSLs)
+		{
+			if((laneFrom == tsl.getFromLane())&&(laneTo == tsl.getToLane()))
+				return tsl;
+		}
+		return null;
+	}
+	public Hashtable<String, ArrayList<TrafficSignalLine>> getAllTrafficSignalLines()
 	{
 		return trafficSignalLines;
 	}
@@ -66,20 +81,23 @@ public class Intersection {
 		this.signalCrossingIDs = signalCrossingIDs;
 
 	}
-	public Intersection(SignalHelper signalHelper_) { signalHelper = signalHelper_; intersectNodeID = signalHelper.nodeId;}
+	public Intersection(SignalHelper signalHelper_) { 
+		signalHelper = signalHelper_; 
+		intersectNodeID = signalHelper.node; 
+		intersectionID = signalHelper.hex_id;
+	}
 
 	public void setVaTrafficSignal(ArrayList<ArrayList<TrafficSignalLine>> vaSignalLine){ this.vaSignalLine = vaSignalLine;}
 	public void setVbTrafficSignal(ArrayList<ArrayList<TrafficSignalLine>> vbSignalLine){this.vbSignalLine = vbSignalLine;}
 	public void setVcTrafficSignal(ArrayList<ArrayList<TrafficSignalLine>> vcSignalLine){this.vcSignalLine = vcSignalLine;}
 	public void setVdTrafficSignal(ArrayList<ArrayList<TrafficSignalLine>> vdSignalLine){this.vdSignalLine = vdSignalLine;}
 	//my solution: phases replace approaches
-	@SuppressWarnings("unchecked")//donna what this is. it came following eclipse recommendation when assigning a set to arraylist
 	public void populateTrafficSignal(RoadNetwork rn)
 	{
 		Set<Integer> tempSet = new HashSet<Integer>(); //for temporary use only
-		
 		this.trafficSignalLines = new Hashtable<String, ArrayList<TrafficSignalLine>>();
 		this.trafficSignalCrossings = new   Hashtable<String, ArrayList <Integer>>();
+		
 		for (SignalHelper.Phase ph : signalHelper.phases) {
 			//step 1: populate trafficSignalLines
 			ArrayList<TrafficSignalLine> tempPhaseTrafficSignalLine = new ArrayList<TrafficSignalLine>();
@@ -97,7 +115,9 @@ public class Intersection {
 				 * this is only because I am willing to reuse trafficsignalline class
 				 */
 				Lane fromLane = rn.getLanes().get(rs.segment_from).get(0);
-				Lane toLane = rn.getLanes().get(rs.segment_from).get(0);
+				Lane toLane = rn.getLanes().get(rs.segment_to).get(0);
+//				System.out.println("Creatinf a trafficSignalLine with lanes " + fromLane.getStartMiddleNode().getPos().getX() + "  TO  " + toLane.getLaneNumber() );
+
 				/*
 				 * there is this container "trafficSignalLines" in thetrafficSignalLines
 				 * roadnetwork which is used in helperAllocateDirection
@@ -115,6 +135,8 @@ public class Intersection {
 				 */
 				TrafficSignalLine tempSignalLine = new TrafficSignalLine(fromLane, toLane);
 				tempPhaseTrafficSignalLine.add(tempSignalLine);
+				//and an additional book keeping for trafficsignalupdate
+				rs.generatedTrafficSignalLine = tempSignalLine;
 			}
 			this.trafficSignalLines.put(ph.name, tempPhaseTrafficSignalLine);
 			
@@ -140,7 +162,10 @@ public class Intersection {
 			}
 			this.trafficSignalCrossings.put(ph.name, tempCrossingIds);
 		}
-		this.signalCrossingIDs = (ArrayList<Integer>) tempSet;
+		//TODO: change the containers later so that we dont run into such a loop
+		this.signalCrossingIDs = new ArrayList <Integer>();
+		for(Integer s : tempSet) this.signalCrossingIDs.add(s);
+
 	}
 			
 	public void setSignalCrossing (ArrayList <TrafficSignalCrossing> signalCrossings){

@@ -72,6 +72,8 @@ public class ScaledPoint {
 	///Retrieve the scaled and translated values of x and y. 
 	///These values can be directly displayed to the screen.
 	public double getX() {
+//		if(ScaledPoint.scaleFactors == null) System.out.println("ScaledPoint.scaleFactors Null");
+//		if(ScaledPoint.translateFactors == null) System.out.println("ScaledPoint.translateFactors Null");
 		double scaledX = orig.x*ScaledPoint.scaleFactors.getX() - ScaledPoint.translateFactors.getX();
 		return scaledX;
 	}

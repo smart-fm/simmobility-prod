@@ -1,5 +1,6 @@
 package sim_mob.vis.network;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -133,10 +134,11 @@ public class Intersection {
 				 * to phase based design(still reusing the concept of
 				 * trafficSignalLine) and create
 				 */
-				TrafficSignalLine tempSignalLine = new TrafficSignalLine(fromLane, toLane);
+				TrafficSignalLine tempSignalLine = new TrafficSignalLine(fromLane, toLane,ph.name);
 				tempPhaseTrafficSignalLine.add(tempSignalLine);
 				//and an additional book keeping for trafficsignalupdate
 				rs.generatedTrafficSignalLine = tempSignalLine;
+
 			}
 			this.trafficSignalLines.put(ph.name, tempPhaseTrafficSignalLine);
 			
@@ -165,6 +167,29 @@ public class Intersection {
 		//TODO: change the containers later so that we dont run into such a loop
 		this.signalCrossingIDs = new ArrayList <Integer>();
 		for(Integer s : tempSet) this.signalCrossingIDs.add(s);
+		
+		//debug
+		System.out.println("debugging populateTrafficSignal of intersection "+ this.getIntersectID()); 
+		for(ArrayList<TrafficSignalLine> tsls1 : this.getAllTrafficSignalLines().values())
+			for(TrafficSignalLine tsl:tsls1)
+			{
+				if((tsl.getPhaseName().equals("C"))){
+					System.out.print(" phase " +tsl.getPhaseName() + "  reached   " );
+				if (tsl.getCurrColor() == Color.yellow)
+					System.out.println("populateTrafficSignal  yellow");
+				else if (tsl.getCurrColor() == Color.green)
+				{
+					System.out.println("populateTrafficSignal green");
+				}
+				else if (tsl.getCurrColor() == Color.red)
+					System.out.println("populateTrafficSignal   red\n");
+				else
+					System.out.println("populateTrafficSignal [but has no color]\n");
+			}
+//				else
+//				System.out.println("while debugging populateTrafficSignal, phase " +tsl.getPhaseName() + "  skipped" );
+			}
+		//debug...ends
 
 	}
 			

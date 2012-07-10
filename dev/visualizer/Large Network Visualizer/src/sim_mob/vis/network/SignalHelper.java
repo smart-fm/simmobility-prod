@@ -42,7 +42,6 @@ public class SignalHelper {
 		public int segment_to;
 		
 		public TrafficSignalLine generatedTrafficSignalLine;
-		public int tempVal;
 	}
 
 	public class Crossing {
@@ -69,7 +68,14 @@ public class SignalHelper {
 //		public ArrayList<Link> links;
 		public ArrayList<Segment> segments;
 		public ArrayList<Crossing> crossings;
-		public int PTempVal;
+		
+		public Segment getSegmentPair(int segFrom, int segTo)
+		{
+			for(Segment segment:segments)
+				if((segment.segment_from == segFrom)&&(segment.segment_to == segTo))
+					return segment;
+			return null;
+		}
 		
 	}
 

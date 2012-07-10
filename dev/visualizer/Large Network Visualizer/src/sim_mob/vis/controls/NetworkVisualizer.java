@@ -127,6 +127,7 @@ public class NetworkVisualizer {
 	}
 
 	public BufferedImage getImageAtTimeTick(int tick, Point resSize) {
+		System.out.println("1");
 		return getImageAtTimeTick(tick, resSize, BufferedImage.TYPE_INT_RGB);
 	}
 	public BufferedImage getImageAtTimeTick(int tick, Point resSize, int imageType) {
@@ -277,7 +278,9 @@ public class NetworkVisualizer {
 		redrawFrame(frameTick, null, null, currView);
 	}
 	public void redrawFrame(int frameTick, Graphics2D g, Point size) {
+		System.out.println("Redrawing tick " + frameTick);
 		redrawFrame(frameTick, g, size, currView);
+		System.out.println("Redrawing tick " + frameTick + " Done");
 	}
 	private void redrawFrame(int frameTick, Point size, Rectangle2D zoomRect) {
 		redrawFrame(frameTick, null, size, zoomRect);
@@ -285,7 +288,7 @@ public class NetworkVisualizer {
 	
 	
 	private void redrawFrame(int frameTick, Graphics2D g, Point size, Rectangle2D zoomRect) {
-		System.out.println("Redrawing for Frame " + frameTick);
+//		System.out.println("Redrawing for Frame " + frameTick + "with g = " + g);
 		//Check if we need to re-scale all points.
 		boolean sameZoom = (currView!=null) && ((zoomRect==currView) || zoomRect.equals(currView)); //Ref and value check.
 		if (!sameZoom) {
@@ -315,6 +318,7 @@ public class NetworkVisualizer {
 			
 			agentTicksIndex = new LazySpatialIndex<DrawableItem>();
 //			addAllCrossingSignals(agentTicksIndex, frameTick);//TODO:enable this later
+			
 			addAllLaneSignals(agentTicksIndex, frameTick);
 			addAllAgents(agentTicksIndex, frameTick);
 //			addAllCrossingSignals(agentTicksIndex, frameTick);//TODO: why is this function repeated ? -vahid
@@ -324,7 +328,7 @@ public class NetworkVisualizer {
 			//System.out.println(" Agents bounds: " + Utility.printRect(agentTicksIndex.getBounds()));
 		}
 		
-
+		
 		//Now re-draw the rest.
 		if ((g!=null) && (size!=null)) {
 			redrawNow(frameTick, g, size);
@@ -353,14 +357,19 @@ public class NetworkVisualizer {
 		//Fill the background
 		g.setBackground(MainFrame.Config.getBackground("network"));
 		g.clearRect(0, 0, size.x, size.y);
-		
 		//Draw all items, sorted by key
 		for (int key : act.getKeys()) {
 			for (DrawableItem item : act.getValues(key)) {
-				item.draw(g, params);
+				if((frameTick == 230)||(frameTick == 240)||(frameTick == 250))
+				{
+//					System.out.println("Drawing in ticks 230 240 250");
+					item.draw(g, params);
+//					System.out.println("Drawing in ticks 230 240 250 Done");
+				}
+				else
+					item.draw(g, params);
 			}
 		}
-		
 		//Update our progress bar to show how many items are being culled from view.
 		double percentDrawn = ((double)act.getItemCount()) / (networkItemsIndex.getItemCount()+agentTicksIndex.getItemCount());
 		parent.updatePercentDrawn(percentDrawn);
@@ -569,8 +578,23 @@ public class NetworkVisualizer {
 			//so we can reuse the addTrafficLines() method, can't be any simpler
 			//...update, I had to write a variation(override) of addTrafficLines as the old one was hakish and I had already corrected the root-vahid
 			Hashtable<String, ArrayList<TrafficSignalLine>> TSLs = at.getAllTrafficSignalLines();
+
 			for(ArrayList<TrafficSignalLine> tsls : TSLs.values())
+			{
+				if((currFrame == 230)||(currFrame == 240)||(currFrame == 250))
+				{
+					System.out.println("\nNOW---------Testing In addAllLaneSignals");
+					for(TrafficSignalLine tsl : tsls)
+						if (tsl.getPhaseName().equals("C"))
+							if (tsl.getCurrColor() == Color.yellow)
+								System.out.println("In addAllLaneSignals: "+ "Tick " + currFrame + " color has been set to  yellow");
+							else if (tsl.getCurrColor() == Color.green)
+								System.out.println("In addAllLaneSignals: "+ "Tick " + currFrame + " color has been set to green");
+							else if (tsl.getCurrColor() == Color.red)
+								System.out.println("In addAllLaneSignals: " + "Tick " + currFrame + " color has been set to red");
+				}
 				addTrafficLines(index, tsls);
+			}
 			
 			
 		}

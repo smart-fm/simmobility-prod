@@ -75,7 +75,7 @@ public class TrafficSignalUpdate implements DrawableItem, GsonResObj {
 			}
 		}
 		//2.
-		Hashtable<String, ArrayList<TrafficSignalLine>> TSLs = new Hashtable<String, ArrayList<TrafficSignalLine>>();
+		Hashtable<String, ArrayList<TrafficSignalLine>> TSLs ;//  allocate memory and create a copy in the SignalLineTick constructor = new Hashtable<String, ArrayList<TrafficSignalLine>>();
 		TSLs = tempIntersection.getAllTrafficSignalLines();//we now give a copy of intersection's trafficsignallines with updated colors to the to-be-created SignalLineTick
 //		//debug
 		

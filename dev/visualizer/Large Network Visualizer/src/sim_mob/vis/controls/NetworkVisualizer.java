@@ -127,7 +127,7 @@ public class NetworkVisualizer {
 	}
 
 	public BufferedImage getImageAtTimeTick(int tick, Point resSize) {
-		System.out.println("1");
+//		if((tick == 230)||(tick == 240)||(tick == 250))			addAllLaneSignals_debug(tick);
 		return getImageAtTimeTick(tick, resSize, BufferedImage.TYPE_INT_RGB);
 	}
 	public BufferedImage getImageAtTimeTick(int tick, Point resSize, int imageType) {
@@ -544,9 +544,36 @@ public class NetworkVisualizer {
 			}
 		}
 	}
-	
+	public void addAllLaneSignals_debug(int currFrame)
+	{
+		System.out.println("\nNOW---------Testing In addAllLaneSignals for frame " + currFrame);
+		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
+
+			Hashtable<String, ArrayList<TrafficSignalLine>> TSLs = at.getAllTrafficSignalLines();
+
+			for(ArrayList<TrafficSignalLine> tsls : TSLs.values())
+			{
+					
+					for(TrafficSignalLine tsl : tsls)
+						if (tsl.getPhaseName().equals("C"))
+							if (tsl.getCurrColor() == Color.yellow)
+								System.out.println("In addAllLaneSignals: "+ "Tick " + currFrame + " color has been set to  yellow");
+							else if (tsl.getCurrColor() == Color.green)
+								System.out.println("In addAllLaneSignals: "+ "Tick " + currFrame + " color has been set to green");
+							else if (tsl.getCurrColor() == Color.red)
+								System.out.println("In addAllLaneSignals: " + "Tick " + currFrame + " color has been set to red");
+			}
+			
+			
+		}
+		System.out.println("out of addAllLaneSignals");
+	}
 	private void addAllLaneSignals(LazySpatialIndex<DrawableItem> index, int currFrame) {
 		if (simRes.ticks.isEmpty() && currFrame==0) { return; }
+	//debug
+		
+//		if((currFrame == 230)||(currFrame == 240)||(currFrame == 250))			addAllLaneSignals_debug(currFrame);
+	//debug ends
 		
 		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
 			//Get Intersection ID and color
@@ -581,18 +608,18 @@ public class NetworkVisualizer {
 
 			for(ArrayList<TrafficSignalLine> tsls : TSLs.values())
 			{
-				if((currFrame == 230)||(currFrame == 240)||(currFrame == 250))
-				{
-					System.out.println("\nNOW---------Testing In addAllLaneSignals");
-					for(TrafficSignalLine tsl : tsls)
-						if (tsl.getPhaseName().equals("C"))
-							if (tsl.getCurrColor() == Color.yellow)
-								System.out.println("In addAllLaneSignals: "+ "Tick " + currFrame + " color has been set to  yellow");
-							else if (tsl.getCurrColor() == Color.green)
-								System.out.println("In addAllLaneSignals: "+ "Tick " + currFrame + " color has been set to green");
-							else if (tsl.getCurrColor() == Color.red)
-								System.out.println("In addAllLaneSignals: " + "Tick " + currFrame + " color has been set to red");
-				}
+//				if((currFrame == 230)||(currFrame == 240)||(currFrame == 250))
+//				{
+//					System.out.println("\nNOW---------Testing In addAllLaneSignals");
+//					for(TrafficSignalLine tsl : tsls)
+//						if (tsl.getPhaseName().equals("C"))
+//							if (tsl.getCurrColor() == Color.yellow)
+//								System.out.println("In addAllLaneSignals: "+ "Tick " + currFrame + " color has been set to  yellow");
+//							else if (tsl.getCurrColor() == Color.green)
+//								System.out.println("In addAllLaneSignals: "+ "Tick " + currFrame + " color has been set to green");
+//							else if (tsl.getCurrColor() == Color.red)
+//								System.out.println("In addAllLaneSignals: " + "Tick " + currFrame + " color has been set to red");
+//				}
 				addTrafficLines(index, tsls);
 			}
 			

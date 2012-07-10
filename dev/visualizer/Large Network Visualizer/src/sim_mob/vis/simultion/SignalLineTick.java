@@ -51,7 +51,8 @@ public class SignalLineTick{
 		//then SimResLineParser finds the corrsponding intersection,
 		//intersection has all the necessary signalline objects necessary
 		this.intersectionID = id;
-		TrafficSignalLines = TrafficSignalLines_;
+		this.TrafficSignalLines = new Hashtable<String, ArrayList<TrafficSignalLine>>();
+		this.TrafficSignalLines = TrafficSignalLines_;//memory deficiency
 //		//debug		
 		
 		for(ArrayList<TrafficSignalLine> tsls1 : TrafficSignalLines.values())

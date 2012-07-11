@@ -636,7 +636,7 @@ public class RoadNetwork {
 			int toLaneNo = laneConnector.getToLane();
 			Lane fromLane = lanes.get(laneConnector.getFromSegment()).get(fromLaneNo);
 			Lane toLane = lanes.get(laneConnector.getToSegment()).get(toLaneNo);
-			TrafficSignalLine tempSignalLine = new TrafficSignalLine(fromLane, toLane,null); 
+			TrafficSignalLine tempSignalLine = new TrafficSignalLine(fromLane, toLane,null, -1); 
 			trafficSignalLines.put(objID, tempSignalLine);	
 			
 		} else{

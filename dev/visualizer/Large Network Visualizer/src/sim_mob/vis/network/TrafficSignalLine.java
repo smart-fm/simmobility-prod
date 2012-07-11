@@ -29,11 +29,12 @@ public class TrafficSignalLine implements DrawableItem{
 	private final int ARR_SIZE = 6; 
 	
 	
-	public TrafficSignalLine(Lane fromLane, Lane toLane,String temPhaseName_){
+	public TrafficSignalLine(Lane fromLane, Lane toLane,String temPhaseName_, int startingColor){
 		this.fromLane = fromLane;
 		this.toLane = toLane;
 		this.findNode();
 		this.temPhaseName = temPhaseName_;
+		setLightColor(startingColor);
 	}
 	
 	public String getPhaseName() { return temPhaseName; }

@@ -620,6 +620,7 @@ public class NetworkVisualizer {
 //							else if (tsl.getCurrColor() == Color.red)
 //								System.out.println("In addAllLaneSignals: " + "Tick " + currFrame + " color has been set to red");
 //				}
+				
 				addTrafficLines(index, tsls);
 			}
 			
@@ -697,14 +698,20 @@ public class NetworkVisualizer {
 		for(TrafficSignalLine tsl : signalLine)
 		{			
 			//I don't know what these two lines are, so I dont touch them
-			DrawParams p = new DrawParams();
-			p.PastCriticalZoom = pastCriticalZoom();
+			//DrawParams p = new DrawParams();
+			//p.PastCriticalZoom = pastCriticalZoom();
 //			if (tsl.getCurrColor() == Color.yellow)
 //				System.out.println("addTrafficLines from " +  tsl.getFromNode().getPos().getX() + ":" + (int)tsl.getFromNode().getPos().getY() + "  TO  " + (int)tsl.getToNode().getPos().getX()+ ":" +(int)tsl.getToNode().getPos().getY()+ "   color: Yellow" );
 //			else if (tsl.getCurrColor() == Color.green)
 //				System.out.println("addTrafficLines from " +  tsl.getFromNode().getPos().getX() + ":" + (int)tsl.getFromNode().getPos().getY() + "  TO  " + (int)tsl.getToNode().getPos().getX()+ ":" +(int)tsl.getToNode().getPos().getY()+ "   color: Green" );
 //			else if (tsl.getCurrColor() == Color.red)
 //				System.out.println("addTrafficLines from " +  tsl.getFromNode().getPos().getX() + ":" + (int)tsl.getFromNode().getPos().getY() + "  TO  " + (int)tsl.getToNode().getPos().getX()+ ":" +(int)tsl.getToNode().getPos().getY()+ "   color: Red" );
+			
+			
+			//Update that line's color:
+			//System.out.println("Check: " + tsl.getPhaseName()+ " => " + tsl.getCurrColor());
+			//tsl.setLightColor(x);
+			
 			//Add it to the index.
 			DrawableItem item = tsl;
 			index.addItem(item, item.getBounds());

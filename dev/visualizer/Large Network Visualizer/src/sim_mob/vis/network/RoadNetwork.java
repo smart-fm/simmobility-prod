@@ -481,25 +481,7 @@ public class RoadNetwork {
 		    
 		    
 		    BusStop res = new BusStop(nearOneNode, nearTwoNode, farOneNode,farTwoNode, pRes.objID);
-		   // @amit:Not sure why to use Annotation 
-		    /*
-		    if (props.containsKey("aimsunn-id")) {
-		    	Annotation an = new Annotation(new Point((int)x, (int)y), pRes.properties.get("aimsunn-id"), 'A');
-		    	an.setBackgroundColor(Annotations_AimsunnBgColor);
-		    	an.setBorderColor(Annotations_AimsunnFgColor);
-		    	an.setFontColor(Annotations_FontColor);
-		    	annot_aimsunn.add(an);
-		    }
-		    
-		    if (props.containsKey("mitsimm-id")) {
-		    	Annotation an = new Annotation(new Point((int)x, (int)y), pRes.properties.get("mitsimm-id"), 'A');
-		    	an.setBackgroundColor(Annotations_MitsimmBgColor);
-		    	an.setBorderColor(Annotations_MitsimmFgColor);
-		    	an.setFontColor(Annotations_FontColor);
-		    	annot_mitsimm.add(an);
-		    }
-		    */
-		    
+		
 		    busstop.put(pRes.objID, res);
 		    
 		}
@@ -791,13 +773,7 @@ public class RoadNetwork {
 		spaceNodeAnnotations(alreadySpaced, annot_aimsun);
 		spaceNodeAnnotations(alreadySpaced, annot_mitsim);
 	}
-	private void spaceBusStopAnnotations() {
-		Hashtable<Point, Integer> alreadySpaced = new Hashtable<Point, Integer>(); //int = conflicts
-		spaceBusStopAnnotations(alreadySpaced, annot_aimsun);
-		spaceBusStopAnnotations(alreadySpaced, annot_mitsim);
-	}
-	
-	
+		
 	//Attempt to place each annotation. Avoid overlapping any existing annotations.
 	//For now, this is done based on the assumption that coordinates are in centimeters.
 	// Later, we can scale it to screen size.

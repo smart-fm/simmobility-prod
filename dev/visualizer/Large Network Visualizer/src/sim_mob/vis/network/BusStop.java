@@ -112,8 +112,9 @@ public class BusStop implements DrawableItem {
 		Polygon poly = new Polygon();		
 		poly.addPoint((int)nearOne.getX(), (int)nearOne.getY());
 		poly.addPoint((int)nearTwo.getX(), (int)nearTwo.getY());
-		poly.addPoint((int)farTwo.getX(), (int)farTwo.getY());
 		poly.addPoint((int)farOne.getX(), (int)farOne.getY());
+		poly.addPoint((int)farTwo.getX(), (int)farTwo.getY());
+		
         
 		g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,0.5f));
 		g.fillPolygon(poly);

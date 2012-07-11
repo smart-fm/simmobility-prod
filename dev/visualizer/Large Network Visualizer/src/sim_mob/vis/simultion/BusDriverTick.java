@@ -123,7 +123,7 @@ public class BusDriverTick extends DriverTick {
 		}
 		
 		//TEMP
-		double onePixelInM = 50; //Assume pixels are 15m		
+		double onePixelInM = 3; //Assume pixels are 15m		
 		double scaleMultiplier = (ScaledPoint.getScaleFactor().getX()*onePixelInM);
 		
 		//Retrieve the image to draw

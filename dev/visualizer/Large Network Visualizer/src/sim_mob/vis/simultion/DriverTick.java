@@ -290,7 +290,7 @@ public class DriverTick extends AgentTick {
 		
 		
 		//TEMP
-		double onePixelInM = 50; //Assume pixels are 15m		
+		double onePixelInM = 100; //Assume pixels are 15m		
 	
 		double scaleMultiplier = (ScaledPoint.getScaleFactor().getX()*onePixelInM);
 		

@@ -19,8 +19,11 @@ import sim_mob.vis.util.Utility;
  */
 public class BusDriverTick extends DriverTick {
 	private static SimpleVectorImage TempBusImg;
+	private static SimpleVectorImage TempBusImg_flip;
 	private static SimpleVectorImage DebugTempBusImg;
+	private static SimpleVectorImage DebugTempBusImg_flip;
 	private static SimpleVectorImage FakeTempBusImg;
+	private static SimpleVectorImage FakeTempBusImg_flip;
 	
 	
 	//Later: custom colors
@@ -57,6 +60,7 @@ public class BusDriverTick extends DriverTick {
 		//Load it.
 		try {
 			TempBusImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/tmp_bus.json.txt"));
+			TempBusImg_flip = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/tmp_bus_flip.json.txt"));
 			
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
@@ -71,6 +75,7 @@ public class BusDriverTick extends DriverTick {
 		//Load it.
 		try {
 			DebugTempBusImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/tmp_bus.json.txt"));
+			DebugTempBusImg_flip = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/tmp_bus_flip.json.txt"));
 			
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
@@ -85,6 +90,7 @@ public class BusDriverTick extends DriverTick {
 		//Load it.
 		try {
 			FakeTempBusImg = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/tmp_bus.json.txt"));
+			FakeTempBusImg_flip = SimpleVectorImage.LoadFromFile(Utility.LoadFileResource("res/entities/tmp_bus_flip.json.txt"));
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);
 		}
@@ -125,9 +131,15 @@ public class BusDriverTick extends DriverTick {
 		//TEMP
 		double onePixelInM = 3; //Assume pixels are 15m		
 		double scaleMultiplier = (ScaledPoint.getScaleFactor().getX()*onePixelInM);
-		
+		SimpleVectorImage svi = null;
 		//Retrieve the image to draw
-		SimpleVectorImage svi = (params.DrawFakeOn&&getFake()) ? FakeTempBusImg: params.DebugOn ? DebugTempBusImg : TempBusImg;			
+		if(getAngle()<90 || getAngle()>270){
+			svi = (params.DrawFakeOn&&getFake()) ? FakeTempBusImg: params.DebugOn ? DebugTempBusImg : TempBusImg;			
+		}
+		else  {
+			svi = (params.DrawFakeOn&&getFake()) ? FakeTempBusImg_flip: params.DebugOn ? DebugTempBusImg_flip : TempBusImg_flip;
+		}
+		
 		BufferedImage toDraw = svi.getImage(scaleMultiplier, angleD, true);
 			
 		//Translate to top-left corner

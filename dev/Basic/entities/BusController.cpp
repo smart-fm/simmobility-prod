@@ -49,7 +49,7 @@ void sim_mob::BusController::updateBusInformation(DPoint pt) {
 
 void sim_mob::BusController::DispatchInit()
 {
-
+	//currWorker->scheduleForAddition();
 }
 
 void sim_mob::BusController::DispatchFrameTick(frame_t frameTick)

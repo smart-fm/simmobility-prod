@@ -360,6 +360,8 @@ bool performMain(const std::string& configFileName) {
 		}
 	}
 
+	//busctrller.currWorker = nullptr; //Update our Entity's pointer before ending main()
+	busctrller.currWorker->migrateOut(&busctrller);//Update our Entity's pointer before ending main()
 	cout << "Simulation complete; closing worker threads." << endl;
 	return true;
 }

@@ -5,10 +5,11 @@
 //using std::vector;
 using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
-BusController sim_mob::BusController::instance_;
+//BusController sim_mob::BusController::instance_;
+sim_mob::BusController busctrller(ConfigParams::GetInstance().mutexStategy, 0);
 
 sim_mob::BusController::BusController(const MutexStrategy& mtxStrat, int id) :
-	Agent(mtxStrat, id), frameNumberCheck(0), firstFrameTick(true), TobeOutput(false)
+	Agent(mtxStrat, id),frameNumberCheck(0), tickStep(1), nextTimeTickToStage(0), firstFrameTick(true), TobeOutput(false)
 {
 
 }
@@ -21,6 +22,10 @@ sim_mob::BusController::~BusController() {
 			delete *it;
 		}
 		managedBuses.clear();
+	}
+	if(currWorker) {
+		//Update our Entity's pointer after it migrated out
+		currWorker = nullptr;
 	}
 }
 
@@ -40,6 +45,35 @@ void sim_mob::BusController::remBus(Bus* bus)
 void sim_mob::BusController::updateBusInformation(DPoint pt) {
 	posBus = pt;
 	std::cout<<"Report Given Bus postion: --->("<<posBus.x<<","<<posBus.y<<")"<<std::endl;
+}
+
+void sim_mob::BusController::DispatchInit()
+{
+
+}
+
+void sim_mob::BusController::DispatchFrameTick(frame_t frameTick)
+{
+//	nextTimeTickToStage += tickStep;
+//	unsigned int nextTickMS = nextTimeTickToStage*ConfigParams::GetInstance().baseGranMS;
+//	while (!pending_Entity.empty() && pending_Entity.top().start <= nextTickMS) {
+//		Person* ag = Person::GeneratePersonFromPending(pending_Entity.top());
+//
+//		//std::cout <<"Check: " <<loader->pending_source.top().manualID <<" => " <<ag->getId() <<std::endl;
+//		//throw 1;
+//
+//		pending_Entity.pop();
+
+//		if (sim_mob::Debug::WorkGroupSemantics) {
+//			std::cout <<"Staging agent ID: " <<ag->getId() <<" in time for tick: " <<nextTimeTickToStage <<"\n";
+//		}
+
+//		//Add it to our global list.
+//		agentWorkers->loader->entity_dest.push_back(ag);
+// 		add a virtual Bus here  just like the real bus to be assigned to the Person
+//
+//		//Find a worker to assign this to and send it the Entity to manage.
+//		agentWorkers->assignAWorker(ag);
 }
 
 UpdateStatus sim_mob::BusController::update(frame_t frameNumber)

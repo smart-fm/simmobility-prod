@@ -179,7 +179,9 @@ string ReadLowercase(TiXmlHandle& handle, const std::string& attrName)
 
 void addOrStashEntity(const PendingEntity& p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
-	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p.start==0) {
+	if (ENTITY_BUSCONTROLLER == p.type) {
+		active_agents.push_back(&busctrller);
+	} else if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p.start==0) {
 		//Only agents with a start time of zero should start immediately in the all_agents list.
 		active_agents.push_back(Person::GeneratePersonFromPending(p));
 	} else {
@@ -246,6 +248,9 @@ namespace {
 		if (str == "bus") {
 			return ENTITY_BUSDRIVER;
 		}
+		if (str == "buscontroller") {
+			return ENTITY_BUSCONTROLLER;
+		}
 		throw std::runtime_error("Unknown agent mode");
   }
 
@@ -253,7 +258,7 @@ namespace {
 bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, AgentConstraints& constraints)
 {
 	//Quick check.
-	if (agentType!="pedestrian" && agentType!="driver" && agentType!="bus") {
+	if (agentType!="pedestrian" && agentType!="driver" && agentType!="bus" && agentType!="buscontroller") {
 		std::cout <<"Unexpected agent type: " <<agentType <<endl;
 		return false;
 	}
@@ -1112,10 +1117,10 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		cout <<"Loaded Driver Agents (from config file)." <<endl;
 
     	} else if ((*it) == "buscontrollers") {
-//			if (!loadXMLAgents(document, active_agents, pending_agents, "buscontroller", constraints)) {
-//				return	  "Couldn't load bus controllers";
-//			}
-    		BusController::getInstance().setTobeOutput();
+			if (!loadXMLAgents(document, active_agents, pending_agents, "buscontroller", constraints)) {
+				return	  "Couldn't load bus controllers";
+			}
+			busctrller.setTobeOutput();
     	} else if ((*it) == "pedestrians") {
     		if (!loadXMLAgents(document, active_agents, pending_agents, "pedestrian", constraints)) {
     			return "Couldn't load pedestrians";

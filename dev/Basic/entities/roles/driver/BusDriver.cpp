@@ -84,7 +84,7 @@ double sim_mob::BusDriver::updatePositionOnLink(DriverUpdateParams& p)
 	//   detect them in advance, but the concept's similar)
 	bool atBusStop = nextStop && nextStop->atOrPastBusStop(vehicle->getCurrSegment(), vehicle->getDistanceMovedInSegment());
 	bool updatePos = false;
-	BusController& busctrller = BusController::getInstance();
+	//BusController& busctrller = BusController::getInstance();
 
 	//If we are moving, then (optionally) decelerate and call normal update behavior.
 	if (vehicle->getVelocity()>0 || vehicle->getLatVelocity()>0) {
@@ -93,7 +93,8 @@ double sim_mob::BusDriver::updatePositionOnLink(DriverUpdateParams& p)
 			vehicle->setAcceleration(0);
 			vehicle->setVelocity(0); //TEMP: Need to really force it.
 			waitAtStopMS = p.currTimeMS; //TEMP: Need to force this too.
-			busctrller.updateBusInformation(vehicle->getPosition());// communicate position once it arrives the busstop
+			busctrller.updateBusInformation(vehicle->getPosition());
+			//busctrller.updateBusInformation(vehicle->getPosition());// communicate position once it arrives the busstop
 		}
 		updatePos = true;
 	} else {

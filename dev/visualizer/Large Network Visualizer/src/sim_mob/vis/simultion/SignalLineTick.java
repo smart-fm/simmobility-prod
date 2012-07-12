@@ -25,9 +25,11 @@ public class SignalLineTick{
 	private String tempPhase;
 	//my solution:
 	private Hashtable<String ,ArrayList<TrafficSignalLine>> TrafficSignalLines;	//String is phase (A,B,C,...)
-	private HashMap<TrafficSignalLine, Color> TrafficSignalLines_Map;	//String is phase (A,B,C,...)
+	private HashMap<TrafficSignalLine, Color> TrafficSignalLines_Map;
+	private HashMap<Integer, Integer> CrossingID_Map;
 	public Hashtable<String ,ArrayList<TrafficSignalLine>> getAllTrafficSignalLines(){ return TrafficSignalLines;}
 	public HashMap<TrafficSignalLine, Color> getAllTrafficSignalLines_Map(){ return TrafficSignalLines_Map;}
+	public HashMap<Integer, Integer> getCrossingID_Map(){ return CrossingID_Map;}
 	public Integer getIntersectionID(){ return intersectionID;}
 	public ArrayList<ArrayList<Integer>> getVehicleLights(){ return allVehicleLights;}
 	public ArrayList<Integer> getPedestrianLights(){return allPedestrianLights;}
@@ -41,7 +43,7 @@ public class SignalLineTick{
 	}
 	
 //	public SignalLineTick(int id,Phase[] phases_){
-	public SignalLineTick(int id,ArrayList<TrafficSignalLine> TrafficSignalLines_,int tempTick_, String tempPhase_){
+	public SignalLineTick(int id,ArrayList<TrafficSignalLine> TrafficSignalLines_,HashMap<Integer, Integer> CrossingIDs_map,int tempTick_, String tempPhase_){
 		this.id = id;
 		tempTick = tempTick_;
 		tempPhase = tempPhase_;
@@ -63,6 +65,8 @@ public class SignalLineTick{
 			System.out.println("Current color " + tsl.getCurrColor());
 			TrafficSignalLines_Map.put(tsl, tsl.getCurrColor());
 		}
+		CrossingID_Map = CrossingIDs_map;//ready made for you :)
+		
 ////		//debug		
 //		
 //		for(ArrayList<TrafficSignalLine> tsls1 : TrafficSignalLines.values())

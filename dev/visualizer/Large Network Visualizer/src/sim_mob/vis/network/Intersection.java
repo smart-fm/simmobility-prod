@@ -58,6 +58,10 @@ public class Intersection {
 	{
 		return trafficSignalLines.get(phase);
 	}
+	public ArrayList<Integer> getPhaseCrossingIDs(String phase)
+	{
+		return trafficSignalCrossings.get(phase);
+	}
 	//since there can be 2 phases each having a trafficsignalline 
 	//with identical combination of lanefrom-laneto, we need to 
 	//locate the traficsignalline based on the phase also(usually current phase is our target search space)
@@ -165,31 +169,32 @@ public class Intersection {
 			this.trafficSignalCrossings.put(ph.name, tempCrossingIds);
 		}
 		//TODO: change the containers later so that we dont run into such a loop
+		//TODO:see if we really need this container: signalCrossingIDs
 		this.signalCrossingIDs = new ArrayList <Integer>();
 		for(Integer s : tempSet) this.signalCrossingIDs.add(s);
 		
-		//debug
-		System.out.println("debugging populateTrafficSignal of intersection "+ this.getIntersectID()); 
-		for(ArrayList<TrafficSignalLine> tsls1 : this.getAllTrafficSignalLines().values())
-			for(TrafficSignalLine tsl:tsls1)
-			{
-				if((tsl.getPhaseName().equals("C"))){
-					System.out.print(" phase " +tsl.getPhaseName() + "  reached   " );
-				if (tsl.getCurrColor() == Color.yellow)
-					System.out.println("populateTrafficSignal  yellow");
-				else if (tsl.getCurrColor() == Color.green)
-				{
-					System.out.println("populateTrafficSignal green");
-				}
-				else if (tsl.getCurrColor() == Color.red)
-					System.out.println("populateTrafficSignal   red\n");
-				else
-					System.out.println("populateTrafficSignal [but has no color]\n");
-			}
+//		//debug
+//		System.out.println("debugging populateTrafficSignal of intersection "+ this.getIntersectID()); 
+//		for(ArrayList<TrafficSignalLine> tsls1 : this.getAllTrafficSignalLines().values())
+//			for(TrafficSignalLine tsl:tsls1)
+//			{
+//				if((tsl.getPhaseName().equals("C"))){
+//					System.out.print(" phase " +tsl.getPhaseName() + "  reached   " );
+//				if (tsl.getCurrColor() == Color.yellow)
+//					System.out.println("populateTrafficSignal  yellow");
+//				else if (tsl.getCurrColor() == Color.green)
+//				{
+//					System.out.println("populateTrafficSignal green");
+//				}
+//				else if (tsl.getCurrColor() == Color.red)
+//					System.out.println("populateTrafficSignal   red\n");
 //				else
-//				System.out.println("while debugging populateTrafficSignal, phase " +tsl.getPhaseName() + "  skipped" );
-			}
-		//debug...ends
+//					System.out.println("populateTrafficSignal [but has no color]\n");
+//			}
+////				else
+////				System.out.println("while debugging populateTrafficSignal, phase " +tsl.getPhaseName() + "  skipped" );
+//			}
+//		//debug...ends
 
 	}
 			

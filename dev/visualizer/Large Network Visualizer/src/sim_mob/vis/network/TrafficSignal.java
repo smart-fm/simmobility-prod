@@ -51,6 +51,8 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 		
 		//This will be "null" for TrafficSignal; it will be set properly in "TrafficSignalUpdate"
 		private Integer current_color;
+		public String getId() { return id;}
+		public Integer getCurrColor() { return current_color;}
 	}
 	
 	public class Phase {
@@ -105,6 +107,7 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 //			System.out.println("ph.segments length= "+ph.segments.length);
 			for(Segment rs : ph.segments)
 			{
+				//TODO: for sync purpose, change all ParseIntOptionalHex() to the local signalhelper converter function
 				SignalHelper.Segment segment = signalHelper.new Segment(Utility.ParseIntOptionalHex(rs.segment_from), Utility.ParseIntOptionalHex(rs.segment_to));
 				phase.segments.add(segment);
 			}

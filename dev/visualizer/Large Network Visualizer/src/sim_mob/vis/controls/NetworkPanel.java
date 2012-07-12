@@ -144,7 +144,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		//Make a buffer, draw it.
 		Point size = new Point(this.getWidth(), this.getHeight());
 		BufferedImage buffer = new BufferedImage(size.x, size.y, BufferedImage.TYPE_INT_RGB);
-		if((getCurrFrameTick() == 230)||(getCurrFrameTick() == 240)||(getCurrFrameTick() == 250))		netViewCache.addAllLaneSignals_debug(getCurrFrameTick());
+//		if((getCurrFrameTick() == 230)||(getCurrFrameTick() == 240)||(getCurrFrameTick() == 250))		netViewCache.addAllLaneSignals_debug(getCurrFrameTick());
 		BufferedImage drawImg = netViewCache.getImageAtTimeTick(getCurrFrameTick(), size);
 		drawMapOntoImage(buffer, drawImg, getCurrFrameTick());
 		

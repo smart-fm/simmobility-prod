@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Hashtable;
 
 import sim_mob.vis.controls.DrawParams;
@@ -58,42 +59,55 @@ public class TrafficSignalUpdate implements DrawableItem, GsonResObj {
 		
 		//1.
 //		System.out.println("Looking for Intersection " + id + "  which must be equal to " + rdNet.getIntersections().get(id).getIntersectID());
+		
 		Intersection tempIntersection = rdNet.getIntersections().get(id);
 		SignalHelper signalHelper = tempIntersection.getSignalHelper();
+		//since we dont have a mechanism like TrafficSignalLine for crossing, we build its signallinetick requirement right here
+		HashMap<Integer,Integer> CRSs = new HashMap<Integer,Integer>(); //key: crossing id,  value: current color
 		
 		for(TrafficSignal.Phase updatingPhase:phases)
-		for(TrafficSignal.Segment updatingSegment:updatingPhase.getSegmens())
 		{
-			
-			int updatingSegmentFrom = signalHelper.HexStringToInt(updatingSegment.getSegmentFrom());
-			int updatingSegmentTo = signalHelper.HexStringToInt(updatingSegment.getSegmentTo());
-			SignalHelper.Phase originalPhaseHelper = signalHelper.getPhase(updatingPhase.getName());
-			SignalHelper.Segment originalSegmentHelper = originalPhaseHelper.getSegmentPair(updatingSegmentFrom, updatingSegmentTo);
-			if(originalSegmentHelper !=null)
+			//segment part
+			for(TrafficSignal.Segment updatingSegment:updatingPhase.getSegmens())
 			{
-				originalSegmentHelper.generatedTrafficSignalLine.setLightColor(updatingSegment.getCurrColor());//this were previously being done in the addTrafficLines() of NetworkVisualizer class !!!
+			
+				int updatingSegmentFrom = signalHelper.HexStringToInt(updatingSegment.getSegmentFrom());
+				int updatingSegmentTo = signalHelper.HexStringToInt(updatingSegment.getSegmentTo());
+				SignalHelper.Phase originalPhaseHelper = signalHelper.getPhase(updatingPhase.getName());
+				SignalHelper.Segment originalSegmentHelper = originalPhaseHelper.getSegmentPair(updatingSegmentFrom, updatingSegmentTo);
+				if(originalSegmentHelper !=null)
+				{
+					originalSegmentHelper.generatedTrafficSignalLine.setLightColor(updatingSegment.getCurrColor());//this were previously being done in the addTrafficLines() of NetworkVisualizer class !!!
+				}
+			}
+			//crossing part
+			for(TrafficSignal.Crossing updatingCrossing:updatingPhase.getCrossings())
+			{
+				int updatingCrossingId = signalHelper.HexStringToInt(updatingCrossing.getId());
+				CRSs.put(updatingCrossingId, updatingCrossing.getCurrColor());
 			}
 		}
 		//2.
 		ArrayList<TrafficSignalLine> TSLs ;//  allocate memory and create a copy in the SignalLineTick constructor = new Hashtable<String, ArrayList<TrafficSignalLine>>();
-		TSLs = tempIntersection.getPhaseTrafficSignalLines(currPhase);//we now give a reference of intersection's trafficsignallines with updated colors to the to-be-created SignalLineTick
-//		//debug
 		
-			for(TrafficSignalLine tsl:TSLs)
-			{
-				if((tsl.getPhaseName().equals("C")) &&((this.getTimeTick() == 230)||(this.getTimeTick() == 240)||(this.getTimeTick() == 250))){
-					System.out.println("AddSelfToSimulation0 before adding updated color to signalLineTicks");
-				if (tsl.getCurrColor() == Color.yellow)
-					System.out.println("AddSelfToSimulation0 Tick " + this.getTimeTick() +   " yellow");
-				else if (tsl.getCurrColor() == Color.green)
-					System.out.println("AddSelfToSimulation0 Tick " + this.getTimeTick() +  "  green");
-				else if (tsl.getCurrColor() == Color.red)
-					System.out.println("AddSelfToSimulation0 Tick " + this.getTimeTick() + "  red\n");
-				}
-//		//debug ends
+		TSLs = tempIntersection.getPhaseTrafficSignalLines(currPhase);//we now give a reference of intersection's trafficsignallines with updated colors to the to-be-created SignalLineTick
+		////		//debug
+//		
+//			for(TrafficSignalLine tsl:TSLs)
+//			{
+//				if((tsl.getPhaseName().equals("C")) &&((this.getTimeTick() == 230)||(this.getTimeTick() == 240)||(this.getTimeTick() == 250))){
+//					System.out.println("AddSelfToSimulation0 before adding updated color to signalLineTicks");
+//				if (tsl.getCurrColor() == Color.yellow)
+//					System.out.println("AddSelfToSimulation0 Tick " + this.getTimeTick() +   " yellow");
+//				else if (tsl.getCurrColor() == Color.green)
+//					System.out.println("AddSelfToSimulation0 Tick " + this.getTimeTick() +  "  green");
+//				else if (tsl.getCurrColor() == Color.red)
+//					System.out.println("AddSelfToSimulation0 Tick " + this.getTimeTick() + "  red\n");
+//				}
+////		//debug ends
 //		SignalLineTick tempSignalLineTick = new SignalLineTick(id,phases);
-		System.out.println("Tick " + this.getTimeTick());
-		SignalLineTick tempSignalLineTick = new SignalLineTick(id,TSLs,this.getTimeTick(),currPhase);
+//		System.out.println("Tick " + this.getTimeTick());
+		SignalLineTick tempSignalLineTick = new SignalLineTick(id,TSLs,CRSs,this.getTimeTick(),currPhase);
 		//Now add it to the place holder as it used to add in SimResLineParser.end(). 
 		simRes.reserveTimeTick(this.getTimeTick());
 		simRes.ticks.get(this.getTimeTick()).signalLineTicks.put(tempSignalLineTick.getID(), tempSignalLineTick);
@@ -116,7 +130,7 @@ public class TrafficSignalUpdate implements DrawableItem, GsonResObj {
 //					System.out.println("AddSelfToSimulation1 Tick " + this.getTimeTick() +  "  red\n");
 //				
 //				}
-			}
+//			}
 	
 
 		

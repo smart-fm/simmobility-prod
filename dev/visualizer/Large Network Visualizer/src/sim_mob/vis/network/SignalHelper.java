@@ -1,5 +1,6 @@
 package sim_mob.vis.network;
 
+import java.awt.Color;
 import java.util.ArrayList;
 
 //This class is used to store the int representation of the parent class's public members
@@ -108,5 +109,23 @@ public class SignalHelper {
 		}
 		return Integer.parseInt(sb.toString(), 16);
 	}
-
+	
+	public Color getColorObject(Integer color) {
+		switch(color)
+		{
+		case 1:
+			return Color.red;
+		case 2:
+			return Color.yellow;
+		case 3:
+			return Color.green;
+		case 4:
+		case 5:
+		case 6:
+			return Color.cyan;//just for now
+		default:
+			return null;
+		}
+	}
+	
 }

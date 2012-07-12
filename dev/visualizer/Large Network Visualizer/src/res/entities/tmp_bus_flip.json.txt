@@ -1,0 +1,102 @@
+#Vector drawing of our car, using a simple JSON format.
+# Json was used to preserve ordering of array elements. 
+# Perl-style comments are supported. 
+
+{
+  #100% zoom coordinate system.
+  "coordinates" :
+  {
+    "width":"119",
+    "height":"68"
+  },
+
+  #Index of colors used by this image. Allows easy substitution.
+  "colors" : 
+  [
+    #Stripes/body
+    {"id":"body",           "rgb":"FFFFFF"},
+    {"id":"body-lower",     "rgb":"AAAAAA"},
+    {"id":"body-outline",   "rgb":"666666"},
+    {"id":"lower-stripe",   "rgb":"AA1188"},
+    {"id":"upper-stripe",   "rgb":"FF3C3C"},
+
+    #Light, window
+    {"id":"light",          "rgb":"FFFF66"},
+    {"id":"window",         "rgb":"333333"},
+    {"id":"window-outline", "rgb":"000000"}
+
+  ],
+
+  #Items to draw, in order, when rendering this car. Coordinate system
+  # is from [0 .. width/height-1]. Stroke is scaled accordingly.
+  #A "poly" has pairs of x/y coordinates, and is assumed closed.
+  "drawOrder" :
+  [
+    #Car body background
+    { "bkgrd":"body", "stroke":"body-outline", "width":"2", "shape":"poly",
+      "points":[2,19, 116,19, 116,65, 114,66, 4,66, 1,62, 1,19]
+    },
+
+    #Car body, lower part
+    { "bkgrd":"body-lower", "stroke":"body-outline", "width":"2", "shape":"poly",
+      "points":[3,18, 1,16, 1,12, 3,11, 115,11, 117,12, 117,61, 115,18]
+    },
+
+    #Car body light
+    { "bkgrd":"light", "stroke":"body-outline", "width":"2", "shape":"poly",
+      "points":[104,19, 104,23, 115,23, 115,19]
+    },
+
+    #SBS color pattern: upper
+    { "bkgrd":"upper-stripe", "stroke":"upper-stripe", "width":"1", "shape":"poly",
+      "points":[4,36, 23,28, 74,4, 4,4]
+    },
+
+    #SBS color pattern: lower
+    { "bkgrd":"lower-stripe", "stroke":"lower-stripe", "width":"1", "shape":"poly",
+      "points":[4,20, 56,20, 42,29, 22,33, 4,34]
+    },
+
+    #Wheel, big (left)
+    { "bkgrd":"body-lower", "stroke":"body-outline", "width":"3", "shape":"poly",
+      "points":[13,12, 13,18, 17,25, 24,28, 28,28, 33,15, 38,19, 38,12, 35,6, 29,3, 22,3, 17,5, 14,9]
+    },
+
+    #Wheel, small (left)
+    { "bkgrd":"body-lower", "stroke":"body-outline", "width":"2", "shape":"poly",
+      "points":[20,13, 20,17, 23,22, 29,22, 32,18, 32,13, 29,9, 24,9]
+    },
+
+    #Wheel, big (right)
+    { "bkgrd":"body-lower", "stroke":"body-outline", "width":"3", "shape":"poly",
+      "points":[68,12, 68,18, 72,25, 79,28, 83,28, 88,25, 93,19, 93,12, 90,6, 84,3, 77,3, 72,5, 69,9]
+    },
+
+    #Wheel, small (right)
+    { "bkgrd":"body-lower", "stroke":"body-outline", "width":"2", "shape":"poly",
+      "points":[75,13, 75,17, 78,12, 84,12, 87,18, 87,13, 84,9, 79,9]
+    },
+
+    #Window 1, small
+    { "bkgrd":"window", "stroke":"window-outline", "width":"2", "shape":"poly",
+      "points":[11,41, 9,43, 9,57, 11,59, 25,59, 25,41]
+    },
+
+    #Window 2
+    { "bkgrd":"window", "stroke":"window-outline", "width":"2", "shape":"poly",
+      "points":[25,59, 25,41, 57,41, 57,59]
+    },
+
+    #Window 3
+    { "bkgrd":"window", "stroke":"window-outline", "width":"2", "shape":"poly",
+      "points":[57,59, 57,41, 89,41, 89,59]
+    },
+
+    #Window 4, big
+    { "bkgrd":"window", "stroke":"window-outline", "width":"2", "shape":"poly",
+      "points":[89,59, 115,59, 115,31, 93,31, 91,32, 89,34]
+    }
+  ]
+
+}
+

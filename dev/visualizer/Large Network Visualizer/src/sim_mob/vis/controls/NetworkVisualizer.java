@@ -604,10 +604,15 @@ public class NetworkVisualizer {
 			//Since here we HAVDE intersection, therefore we have all trafficsignallines 
 			//so we can reuse the addTrafficLines() method, can't be any simpler
 			//...update, I had to write a variation(override) of addTrafficLines as the old one was hakish and I had already corrected the root-vahid
-			Hashtable<String, ArrayList<TrafficSignalLine>> TSLs = at.getAllTrafficSignalLines();
-
-			for(ArrayList<TrafficSignalLine> tsls : TSLs.values())
-			{
+			HashMap<TrafficSignalLine, Color> at_Tsls_Map = at.getAllTrafficSignalLines_Map();
+			
+			
+//			Hashtable<String, ArrayList<TrafficSignalLine>> TSLs = at.getAllTrafficSignalLines();
+//
+//			for(ArrayList<TrafficSignalLine> tsls : TSLs.values())
+//			{
+				
+				
 //				if((currFrame == 230)||(currFrame == 240)||(currFrame == 250))
 //				{
 //					System.out.println("\nNOW---------Testing In addAllLaneSignals");
@@ -621,8 +626,12 @@ public class NetworkVisualizer {
 //								System.out.println("In addAllLaneSignals: " + "Tick " + currFrame + " color has been set to red");
 //				}
 				
-				addTrafficLines(index, tsls);
-			}
+				addTrafficLines(index, at_Tsls_Map);
+				
+				
+//			}
+			
+			
 			
 			
 		}
@@ -693,9 +702,10 @@ public class NetworkVisualizer {
 		}	
 	}
 	//my variation -vahid
-	private void addTrafficLines(LazySpatialIndex<DrawableItem> index, ArrayList<TrafficSignalLine> signalLine) {
+	private void addTrafficLines(LazySpatialIndex<DrawableItem> index, HashMap<TrafficSignalLine, Color> at_Tsls_Map) {
+		Set<TrafficSignalLine> tsls = at_Tsls_Map.keySet();
 		
-		for(TrafficSignalLine tsl : signalLine)
+		for(TrafficSignalLine tsl : tsls)
 		{			
 			//I don't know what these two lines are, so I dont touch them
 			//DrawParams p = new DrawParams();
@@ -709,8 +719,8 @@ public class NetworkVisualizer {
 			
 			
 			//Update that line's color:
-			//System.out.println("Check: " + tsl.getPhaseName()+ " => " + tsl.getCurrColor());
-			//tsl.setLightColor(x);
+			System.out.println("Check: " + tsl.getPhaseName()+ " => " + tsl.getCurrColor());
+			tsl.setLightColor(at_Tsls_Map.get(tsl));
 			
 			//Add it to the index.
 			DrawableItem item = tsl;

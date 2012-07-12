@@ -148,6 +148,10 @@ public class TrafficSignalLine implements DrawableItem{
 //		}
 	}
 	
+	public void setLightColor(Color color) {
+		currColor = color;
+	}
+	
     
 	public void drawArrow(Graphics2D g, int x1, int y1, int x2, int y2) {
 		AffineTransform oldAt = g.getTransform();

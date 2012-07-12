@@ -34,22 +34,22 @@
   [
     #Car body background
     { "bkgrd":"body", "stroke":"body-outline", "width":"2", "shape":"poly",
-      "points":[2,19, 116,19, 116,65, 114,66, 4,66, 1,62, 1,19]
+      "points":[2,19, 116,19, 116,66, 114,67, 4,67, 1,64, 1,19]
     },
 
     #Car body, lower part
     { "bkgrd":"body-lower", "stroke":"body-outline", "width":"2", "shape":"poly",
-      "points":[3,18, 1,16, 1,12, 3,11, 115,11, 117,12, 117,61, 115,18]
+      "points":[3,18, 1,16, 1,12, 3,11, 115,11, 117,12, 117,16, 115,18]
     },
 
     #Car body light
     { "bkgrd":"light", "stroke":"body-outline", "width":"2", "shape":"poly",
-      "points":[104,19, 104,23, 115,23, 115,19]
+      "points":[104,19, 104,13, 115,13, 115,19]
     },
 
     #SBS color pattern: upper
     { "bkgrd":"upper-stripe", "stroke":"upper-stripe", "width":"1", "shape":"poly",
-      "points":[4,36, 23,28, 74,4, 4,4]
+      "points":[4,32, 23,40, 74,64, 4,64]
     },
 
     #SBS color pattern: lower
@@ -59,12 +59,12 @@
 
     #Wheel, big (left)
     { "bkgrd":"body-lower", "stroke":"body-outline", "width":"3", "shape":"poly",
-      "points":[13,12, 13,18, 17,25, 24,28, 28,28, 33,15, 38,19, 38,12, 35,6, 29,3, 22,3, 17,5, 14,9]
+      "points":[13,12, 13,18, 17,25, 24,28, 28,28, 33,25, 38,19, 38,12, 35,2, 29,3, 22,3, 17,5, 14,19]
     },
 
     #Wheel, small (left)
     { "bkgrd":"body-lower", "stroke":"body-outline", "width":"2", "shape":"poly",
-      "points":[20,13, 20,17, 23,22, 29,22, 32,18, 32,13, 29,9, 24,9]
+      "points":[20,13, 20,17, 23,22, 29,22, 32,16, 32,13, 29,9, 24,9]
     },
 
     #Wheel, big (right)
@@ -74,7 +74,7 @@
 
     #Wheel, small (right)
     { "bkgrd":"body-lower", "stroke":"body-outline", "width":"2", "shape":"poly",
-      "points":[75,13, 75,17, 78,12, 84,12, 87,18, 87,13, 84,9, 79,9]
+      "points":[75,13, 75,17, 78,22, 84,22, 87,18, 87,13, 84,9, 79,9]
     },
 
     #Window 1, small

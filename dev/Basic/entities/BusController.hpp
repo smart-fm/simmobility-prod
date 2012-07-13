@@ -51,8 +51,8 @@ private:
 	static BusController instance_;
 
 	frame_t frameNumberCheck;// check some frame number to do control
-	unsigned int tickStep;
 	frame_t nextTimeTickToStage;// next timeTick to be checked
+	unsigned int tickStep;
 	bool firstFrameTick;  ///Determines if frame_init() has been done.
 	bool TobeOutput;// Determines whether Xml has buscontroller thus to be updated in output file
 	std::vector<Bus*> managedBuses;// Saved managedBuses

@@ -9,7 +9,7 @@ typedef Entity::UpdateStatus UpdateStatus;
 sim_mob::BusController busctrller(ConfigParams::GetInstance().mutexStategy, 0);
 
 sim_mob::BusController::BusController(const MutexStrategy& mtxStrat, int id) :
-	Agent(mtxStrat, id),frameNumberCheck(0), tickStep(1), nextTimeTickToStage(0), firstFrameTick(true), TobeOutput(false)
+	Agent(mtxStrat, id),frameNumberCheck(0), nextTimeTickToStage(0), tickStep(1), firstFrameTick(true), TobeOutput(false)
 {
 
 }
@@ -24,7 +24,7 @@ sim_mob::BusController::~BusController() {
 		managedBuses.clear();
 	}
 	if(currWorker) {
-		//Update our Entity's pointer after it migrated out
+		//Update our Entity's pointer if it has migrated out but not updated
 		currWorker = nullptr;
 	}
 }

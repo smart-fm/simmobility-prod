@@ -278,9 +278,7 @@ public class NetworkVisualizer {
 		redrawFrame(frameTick, null, null, currView);
 	}
 	public void redrawFrame(int frameTick, Graphics2D g, Point size) {
-		System.out.println("Redrawing tick " + frameTick);
 		redrawFrame(frameTick, g, size, currView);
-		System.out.println("Redrawing tick " + frameTick + " Done");
 	}
 	private void redrawFrame(int frameTick, Point size, Rectangle2D zoomRect) {
 		redrawFrame(frameTick, null, size, zoomRect);
@@ -318,7 +316,6 @@ public class NetworkVisualizer {
 			
 			agentTicksIndex = new LazySpatialIndex<DrawableItem>();
 			addAllCrossingSignals(agentTicksIndex, frameTick);//TODO:enable this later
-			
 			addAllLaneSignals(agentTicksIndex, frameTick);
 			addAllAgents(agentTicksIndex, frameTick);
 //			addAllCrossingSignals(agentTicksIndex, frameTick);//TODO: why is this function repeated ? -vahid
@@ -521,41 +518,30 @@ public class NetworkVisualizer {
 		if (simRes.ticks.isEmpty() && currFrame==0) { return; }
 		
 		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
-//			////////////////////to be deleted later/////////////////////////////
-//			//Get all lights and Crossings at this intersection (by id)
-//			Intersection tempIntersection = network.getIntersections().get(at.getIntersectionID());
-//			ArrayList<Integer> allPedestrainLights = at.getPedestrianLights();
-//			ArrayList<Integer> crossingIDs = tempIntersection.getSigalCrossingIDs();
-//
-//			//Add all crossing lights to the spatial index.
-//			for(int i=0; i<crossingIDs.size(); i++) {
-//				if(network.getTrafficSignalCrossing().containsKey(crossingIDs.get(i))) {
-//					DrawParams p = new DrawParams();
-//					p.PastCriticalZoom = pastCriticalZoom();
-//					
-//					//NOTE: This is kind of hackish, but it WILL work. We should abstract TrafficSignalCrossing better later.
-//					network.getTrafficSignalCrossing().get(crossingIDs.get(i)).setCurrColor(allPedestrainLights.get(i));
-//					
-//					//Add it to the index.
-//					DrawableItem item = network.getTrafficSignalCrossing().get(crossingIDs.get(i));
-//					index.addItem(item, item.getBounds());
-//				} else{
-//					//throw new RuntimeException("Unable to draw pedestrian crossing light; ID does not exist.");
-//				}
-//			}
-			
-			////////////////////////////////////////////////////////
 			Set<Integer> crossingIds = at.getCrossingID_Map().keySet();
+			System.out.println("\nFrame " + currFrame + " Analysing intersection " +at.getID() + " with " + at.getCrossingID_Map().keySet().size() +" crossing IDs");
 			for(Integer crossingId:crossingIds)
 			{
 				DrawParams p = new DrawParams();
 				p.PastCriticalZoom = pastCriticalZoom();
-				network.getTrafficSignalCrossing().get(crossingId).setCurrColor(at.getCrossingID_Map().get(crossingId));
+//				if((currFrame == 230)&& at.getPhase().equals("D"))
+//					System.out.println("Tick 230 Phase D Setting crossing " + crossingId + "  color to " + at.getCrossingID_Map().get(crossingId));
+				System.out.println("checking crossing ID" + crossingId);
+				if(network.getTrafficSignalCrossing() == null)
+					System.out.println("network.getTrafficSignalCrossing() is NULL");
+				if(network.getTrafficSignalCrossing().get(crossingId)==null)
+					System.out.println("Frame " + currFrame + " network.getTrafficSignalCrossing().get(crossingId) is NULL for intersection" + at.getIntersectionID());
+				else
+				{
+					network.getTrafficSignalCrossing().get(crossingId).setCurrColor(at.getCrossingID_Map().get(crossingId));
+					
+				}
 				//Add it to the index.
 				DrawableItem item = network.getTrafficSignalCrossing().get(crossingId);
 				index.addItem(item, item.getBounds());
+				System.out.println("checking crossing ID" + crossingId + ".........Done");
 			}
-			
+			System.out.println("\nFrame " + currFrame + " Analysing intersection " +at.getID() + " Done..");
 		}
 	}
 //	public void addAllLaneSignals_debug(int currFrame)

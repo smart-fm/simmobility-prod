@@ -23,6 +23,7 @@ public class SignalLineTick{
 	private boolean fake;
 	private int tempTick;
 	private String tempPhase;
+	public String getPhase() { return tempPhase;}
 	//my solution:
 	private Hashtable<String ,ArrayList<TrafficSignalLine>> TrafficSignalLines;	//String is phase (A,B,C,...)
 	private HashMap<TrafficSignalLine, Color> TrafficSignalLines_Map;
@@ -62,10 +63,17 @@ public class SignalLineTick{
 		TrafficSignalLines_Map = new HashMap<TrafficSignalLine, Color>();
 		for(TrafficSignalLine tsl : TrafficSignalLines_)
 		{
-			System.out.println("Current color " + tsl.getCurrColor());
 			TrafficSignalLines_Map.put(tsl, tsl.getCurrColor());
 		}
-		CrossingID_Map = CrossingIDs_map;//ready made for you :)
+		
+		CrossingID_Map = new HashMap<Integer, Integer>();
+		for(Integer i:CrossingIDs_map.keySet())
+		{
+//			if((tempTick == 230)&& tempPhase.equals("D"))
+//				System.out.println("Tick 230 Phase D Setting crossing " + i + "  color to " + CrossingIDs_map.get(i));
+			CrossingID_Map.put(i, CrossingIDs_map.get(i));
+		}
+		
 		
 ////		//debug		
 //		

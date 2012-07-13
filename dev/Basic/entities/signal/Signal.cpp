@@ -113,27 +113,45 @@ Signal_SCATS::Signal_SCATS(Node const & node,const MutexStrategy& mtxStrat,  int
 // Return the Crossing object, if any, in the specified road segment.  If there are more
 // than one Crossing objects, return the one that has the least offset.
 Crossing const *
-getCrossing(RoadSegment const * road) {
+Signal_SCATS::getCrossing(RoadSegment const * road) {
 	//Crossing const * result = 0;
 	//double offset = std::numeric_limits<double>::max();
 	int currOffset = 0;
-	for (;;) {
+	int minus = 1;
+	int i;
+	if(road->getStart() == &(this->getNode()))
+	{
+		currOffset = 0;
+		minus = 1;//increment offset
+	}
+	else
+	{
+		currOffset = road->length;
+//		minus = -1;//decrement offset
+	}
+	for (i =0;;i++) {
 		//Get the next item, if any.
 		RoadItemAndOffsetPair res = road->nextObstacle(currOffset, true);
 		if (!res.item) {
+			std::cout << "breaking after " << i <<" iterations " << std::endl;
 			break;
 		}
 
 		//Check if it's a Crossing.
 		if (Crossing const * crossing = dynamic_cast<Crossing const *>(res.item)) {
+			if(getNode().getID()== 115436)
+			{
+				std::cout << "Crossing for node 115436 found at offset " << currOffset << "minus is : " << minus << std::endl;
+//				getchar();
+			}
 			//Success
 			return crossing;
 		}
 
-		//Increment
-		currOffset += res.offset;
+		//Increment OR Decrement
+		currOffset += (minus) * (res.offset);
 	}
-	std::cout <<"]";
+		std::cout << "No Crossing for this segment of node 115436 found after " << i <<" iterations minus was : " << minus << std::endl;
 
 	//Failure.
 	return nullptr;
@@ -183,6 +201,7 @@ struct AngleCalculator {
  * In order to save memory, we only keep the record of Lane pointers-vahid
  */
 void Signal_SCATS::findSignalLinksAndCrossings() {
+	std::pair<LinkAndCrossingByLink::iterator, bool> p;
 	LinkAndCrossingByLink & inserter = get<2>(LinkAndCrossings_); //2 means that duplicate links will not be allowed
 	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&getNode());
 	if (!mNode)
@@ -190,12 +209,16 @@ void Signal_SCATS::findSignalLinksAndCrossings() {
 	const std::set<sim_mob::RoadSegment*>& roads = mNode->getRoadSegments();
 	std::set<RoadSegment*>::const_iterator iter = roads.begin();
 	sim_mob::RoadSegment const * road = *iter;
+	std::cout << "Analysing Road Segment_ " << road->getLink()->getSegmentName(road) <<  std::endl;
 	sim_mob::Crossing const * crossing = getCrossing(road);
+	if((crossing == nullptr)&&(getSignalId() == 115436))
+		std::cout << "Road Segment " << road->getLink()->getSegmentName(road) << "Has No Crossing" << std::endl;
 	sim_mob::Link const * link = road->getLink();
-	inserter.insert(LinkAndCrossing(0, link, crossing, 0));
+	p = inserter.insert(LinkAndCrossing(0, link, crossing, 0));
+//	if(getSignalId() == 115436) std::cout << "Inserting LAC for " << road->getLink()->getSegmentName(road) << (p.second?" Succeeded_ " : " Failed_ ") << std::endl;
 	++iter;
 
-	std::pair<LinkAndCrossingByLink::iterator, bool> p;
+
 	AngleCalculator angle(getNode(), link);
 	double angleAngle = 0;
 	size_t id = 1;
@@ -204,13 +227,23 @@ void Signal_SCATS::findSignalLinksAndCrossings() {
 	link = nullptr;
 	for (; iter != roads.end(); ++iter, ++id) { //id=1 coz we have already made an insertion with id=0 above
 		road = *iter;
+		std::cout << "Analysing Road Segment " << road->getLink()->getSegmentName(road) <<  std::endl;
 		crossing = getCrossing(road);
+		if((crossing == nullptr)&&(getSignalId() == 115436))
+			std::cout << "Road Segment " << road->getLink()->getSegmentName(road) << "Has No Crossing" << std::endl;
 		link = road->getLink();
 		angleAngle = angle.angle(link);
-		inserter.insert(LinkAndCrossing(id, link, crossing, angleAngle));
+
+		p = inserter.insert(LinkAndCrossing(id, link, crossing, angleAngle));
+//		if(getSignalId() == 115436) std::cout << "Inserting LAC for " << road->getLink()->getSegmentName(road) << (p.second?" Succeeded " : " Failed ") << std::endl;
 		crossing = nullptr;
 		link = nullptr;
 	}
+	if(getSignalId() == 115436)
+		{
+			std::cout << "Size of LAC for 115436 is : " << inserter.size() << std::endl;
+			getchar();
+		}
 }
 //deprecated
 void Signal_SCATS::findSignalLinks()
@@ -409,6 +442,7 @@ void Signal_SCATS::outputTrafficLights(frame_t frameNumber,std::string newLine) 
  */
 UpdateStatus Signal_SCATS::update(frame_t frameNumber) {
 	if(!isIntersection_) return UpdateStatus::Continue;
+	isNewCycle = false;
 	outputTrafficLights(frameNumber,"");
 //	1- update current cycle timer( Signal_SCATS::currCycleTimer)
 	isNewCycle = updateCurrCycleTimer();
@@ -425,13 +459,13 @@ UpdateStatus Signal_SCATS::update(frame_t frameNumber) {
 	else
 		throw std::runtime_error("currPhaseID out of range");
 
-	if(currPhaseID != temp_PhaseId)//separated coz we may need to transfer computeDS here
+	if((currPhaseID != temp_PhaseId) && signalAlgorithm)//separated coz we may need to transfer computeDS here
 		{
 			std::cout << "The New Phase is : " << plan_.phases_[temp_PhaseId].getName() << std::endl;
 			computePhaseDS(currPhaseID);
 			currPhaseID  = temp_PhaseId;
 		}
-	if(isNewCycle)
+	if(isNewCycle && signalAlgorithm)
 		newCycleUpdate();//major update!
 
 //	outputToVisualizer(frameNumber);
@@ -439,7 +473,7 @@ UpdateStatus Signal_SCATS::update(frame_t frameNumber) {
 	return UpdateStatus::Continue;
 }
 
-
+//obsolete
 void Signal_SCATS::updateIndicators()
 {
 //	currCL = cycle_.getcurrCL();

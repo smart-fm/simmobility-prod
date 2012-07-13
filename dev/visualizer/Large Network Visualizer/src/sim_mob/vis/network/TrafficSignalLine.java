@@ -116,8 +116,8 @@ public class TrafficSignalLine implements DrawableItem{
 			color_ = "green";
 		if (currColor ==  Color.yellow)
 			color_ = "yellow";
-		if(temPhaseName.equals("C"))
-		System.out.println("Phase : " + temPhaseName + "   Arrow [" + (int)fromNode.getPos().getX() + ":" + (int)fromNode.getPos().getY() + "] ---->> [" + (int)toNode.getPos().getX()+ ":" +(int)toNode.getPos().getY()+ "]   color: " + color_ );
+//		if(temPhaseName.equals("C"))
+//		System.out.println("Phase : " + temPhaseName + "   Arrow [" + (int)fromNode.getPos().getX() + ":" + (int)fromNode.getPos().getY() + "] ---->> [" + (int)toNode.getPos().getX()+ ":" +(int)toNode.getPos().getY()+ "]   color: " + color_ );
 		g.setColor(currColor);
 		drawArrow(g, (int)fromNode.getPos().getX(), (int)fromNode.getPos().getY(),(int)toNode.getPos().getX(),(int)toNode.getPos().getY());
 		
@@ -136,8 +136,11 @@ public class TrafficSignalLine implements DrawableItem{
 		case 3:
 			currColor = Color.green;
 			break;
-		default:
+		case 6:
 			currColor = Color.cyan;
+			break;
+		default:
+			currColor = Color.darkGray;
 		}
 //		if (color == 2) {
 //			currColor = Color.yellow;

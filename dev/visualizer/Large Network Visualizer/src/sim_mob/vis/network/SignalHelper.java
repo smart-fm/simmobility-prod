@@ -119,12 +119,11 @@ public class SignalHelper {
 			return Color.yellow;
 		case 3:
 			return Color.green;
-		case 4:
-		case 5:
 		case 6:
 			return Color.cyan;//just for now
 		default:
-			return null;
+			System.out.println("getColorObject Error, No such kind of traffic light[" + color + "  -- TrafficSignalCrossing, drawSignalCrossing()");
+			return Color.darkGray;
 		}
 	}
 	

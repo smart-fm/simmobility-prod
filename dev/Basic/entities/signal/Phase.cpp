@@ -129,32 +129,55 @@ std::string getColor(size_t id)
  * addLinkMapping).
  * todo: update this part
  */
-void Phase::addDefaultCrossings(LinkAndCrossingByLink const & LAC,
-		sim_mob::MultiNode *node) {
+void Phase::addDefaultCrossings(LinkAndCrossingByLink const & LAC,sim_mob::MultiNode *node) const {
+	bool flag = false;
 	if (links_map_.size() == 0)
-		throw std::runtime_error(
-				"Link maps empty, crossing mapping can not continue\n");
+		throw std::runtime_error("Link maps empty, crossing mapping can not continue\n");
+
 	LinkAndCrossingByLink::iterator it = LAC.begin();
+	if(it == LAC.end())
+	{
+		std::cout << "Link and crossing container for this node is empty, crossing mapping can not continue\n";
+		return;
+	}
 	//filter the crossings which are in the links_maps_ container(both link from s and link To s)
 	//the crossings passing this filter are our winners
-	for (LinkAndCrossingByLink::iterator it = LAC.begin(), it_end(LAC.end());
-			it != it_end; it++) {
+	for (LinkAndCrossingByLink::iterator it = LAC.begin(), it_end(LAC.end()); it != it_end; it++) {
+		flag = false;
 		sim_mob::Link* link = const_cast<sim_mob::Link*>((*it).link);
 		//link from
 		links_map_const_iterator l_it = links_map_.find(link); //const_cast used coz multi index container elements are constant
 		if (l_it != links_map_.end())
-			continue; //this link is involved, so we don't need to green light its crossing
+			continue; //this linkFrom is involved, so we don't need to green light its crossing
 		//link to
-		l_it = links_map_.begin();
-		for (links_map_const_iterator l_it1 = links_map_.begin(), l_it_end(links_map_.end()); l_it1 != l_it_end; l_it1++) {
-			if (link == (*l_it1).second.LinkTo)
-				continue;
-		}
+//		for (links_map_const_iterator l_it1 = links_map_.begin(), l_it_end(links_map_.end()); l_it1 != l_it_end; l_it1++) {
+//			if (link == (*l_it1).second.LinkTo)
+//			{
+//				flag = true;//linkTo matches, so this is also disqualified
+//				break;
+//			}
+//		}
+//		if(flag) continue;
 		//un-involved crossing- successful candidate to get a green light in this phase
 		sim_mob::Crossing * crossing = const_cast<sim_mob::Crossing *>((*it).crossing);
 //			for the line below,please look at the sim_mob::Crossings container and crossings_map for clearance
-		crossings_map_.insert(std::pair<sim_mob::Crossing *, sim_mob::Crossings>(crossing, sim_mob::Crossings(link, crossing)));
+		if(crossing)
+			crossings_map_.insert(std::pair<sim_mob::Crossing *, sim_mob::Crossings>(crossing, sim_mob::Crossings(link, crossing)));
+		else
+		{
+			if(node->getID() == 115436)
+				std::cout << " Node ID 115436 has a NULL crossing\n";
+		}
 	}
+	if(node->getID() == 115436)
+		{
+			std::cout << " Phase  " <<  name << " Has " << crossings_map_.size() << "/" << LAC.size() << "  Crossings :" << std::endl;
+			crossings_map_iterator it = crossings_map_.begin();
+			for(;it != crossings_map_.end(); it++)
+				std::cout << it->first << "\n";
+			std::cout <<  "\n";
+		}
+	std::cout << " out of addDefaultCrossings\n";
 }
 
 sim_mob::RoadSegment * Phase::findRoadSegment(sim_mob::Link * link,sim_mob::MultiNode * node) const {
@@ -211,9 +234,9 @@ std::string Phase::createStringRepresentation(std::string newLine) const {
 		}
 		output << newLine << "]," << newLine;
 	}
-
+	output << "\"crossings\":" << newLine << "[" << newLine;
 	if (crossings_map_.size()) {
-		output << "\"crossings\":" << newLine << "[" << newLine;
+
 		crossings_map_iterator it = crossings_map_.begin();
 		while (it != crossings_map_.end()) {
 			output << "{\"id\":\"" << (*it).first << "\"}"; //crossing *
@@ -222,8 +245,9 @@ std::string Phase::createStringRepresentation(std::string newLine) const {
 				output << "," << newLine;
 
 		}
-		output << newLine << "]";
+
 	}
+	output << newLine << "]";
 
 	output << newLine << "}" << newLine;
 	return output.str();
@@ -232,7 +256,7 @@ void Phase::initialize(){
 	calculatePhaseLength();
 	calculateGreen();
 //	printColorDuration();
-	std::cout << "phase: " << name << "   PhaseLength: " << phaseLength << "   offset: " << phaseOffset << std::endl;
+//	std::cout << "phase: " << name << "   PhaseLength: " << phaseLength << "   offset: " << phaseOffset << std::endl;
 }
 void Phase::printColorDuration()
 {
@@ -392,8 +416,9 @@ std::string Phase::outputPhaseTrafficLight(std::string newLine) const
 		output << newLine << "]," << newLine;
 	}
 
+	output << "\"crossings\":" << newLine << "[" << newLine;
 	if (crossings_map_.size()) {
-		output << "\"crossings\":" << newLine << "[" << newLine;
+
 		crossings_map_iterator it = crossings_map_.begin();
 		while (it != crossings_map_.end()) {
 			output << "{\"id\":\"" << (*it).first << "\","; //crossing *
@@ -403,8 +428,8 @@ std::string Phase::outputPhaseTrafficLight(std::string newLine) const
 				output << "," << newLine;
 
 		}
-		output << newLine << "]";
 	}
+	output << newLine << "]";
 
 	output << newLine << "}" << newLine;
 	return output.str();

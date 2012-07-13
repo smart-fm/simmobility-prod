@@ -217,23 +217,12 @@ void DatabaseLoader::LoadPhase(const std::string& storedProc)
 		//since the section index in sections_ and phases_ are read from two different tables, inconsistecy check is a must
 		if((from ==sections_.end())||(to ==sections_.end()))
 			{
-//				if(it->nodeId == 115436) {
-//					std::cout << " but node 115436 was kicked out the LoadPhase game ---reason:\n";
-//					if(from ==sections_.end()) std::cout << " from section not found \n";
-//					if(to ==sections_.end()) std::cout << " to section not found \n";
-//					 getchar();
-//				}
 
 				continue; //you are not in the sections_ container
 			}
 		it->ToSection = &sections_[it->sectionTo];
 		it->FromSection = &sections_[it->sectionFrom];
 		phases_.insert(pair<int,Phase>(it->nodeId,*it));
-		//TODO delete debugging
-		if((it->nodeId == 66508)&&(it->name == "C"))
-		{
-			std::cout << "Node 66508, sections in phase " << it->name << " :: " << it->FromSection << " : " << it->ToSection << "\n";
-		}
 	}
 }
 
@@ -432,10 +421,9 @@ DatabaseLoader::LoadTrafficSignals(std::string const & storedProcedure)
         signal.xPos *= 100;
         signal.yPos *= 100;
         //TODO remove if
-        if(signal.nodeId == 66508){
-
+//        if(signal.nodeId == 66508){
+//        if(signal.nodeId == 45666)
         	signals_.insert(std::make_pair(signal.id, signal));
-        }
 
 //        if(signal.nodeId == 115436) { std::cout << "We have a signal 115436 oin our DB\n"; getchar();}
 
@@ -609,9 +597,9 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadTripchains(getStoredProcedure(storedProcs, "tripchain"));
 	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal"));
 	LoadBusStop(getStoredProcedure(storedProcs, "busstop", false));
-	std::cout << "signals Done, Starting LoadPhase" << std::endl;
+//	std::cout << "signals Done, Starting LoadPhase" << std::endl;
 	LoadPhase(getStoredProcedure(storedProcs, "phase", false));
-	std::cout << "LoadPhase Done, Congrates" << std::endl;
+//	std::cout << "LoadPhase Done, Congrates" << std::endl;
 
 
 
@@ -1087,6 +1075,7 @@ DatabaseLoader::createSignals()
     int j = 0, nof_signals = 0;
     for (map<int, Signal>::const_iterator iter = signals_.begin(); iter != signals_.end(); ++iter,j++)
     {
+
         Signal const & dbSignal = iter->second;
 //        if(dbSignal.nodeId == 115436) { std::cout << " node115436 is in the createSignals game\n"; getchar();}
         map<int, Node>::const_iterator iter2 = nodes_.find(dbSignal.nodeId);
@@ -1103,7 +1092,9 @@ DatabaseLoader::createSignals()
 
         Node const & dbNode = iter2->second;
         sim_mob::Node const * node = dbNode.generatedNode;
-
+    	//the traffic signal currently works with multinode only. so, although we have done conversions wherever necessary it
+    	//would have been better to discard non multi nodes here only
+    	if(!dynamic_cast<const sim_mob::MultiNode*>(node)) continue;
 //        // There are 2 factors determining whether the following code fragment remains or should
 //        // be deleted in the near future.  Firstly, in the current version, Signal is designed
 //        // only for intersections with 4 links, the code in Signal.cpp and the visualizer expects
@@ -1237,11 +1228,11 @@ DatabaseLoader::createPhases(sim_mob::Signal_SCATS & signal)
 	for(; ph_it != ppp.second; ph_it++)
 	{
 		//TODO delete debugging
-		if(((*ph_it).second.nodeId == 66508)&&((*ph_it).second.name == "C"))
-		{
-			std::cout << "Node 66508, sections in phase " << (*ph_it).second.name << " :: " << (*ph_it).second.FromSection << " : " << (*ph_it).second.ToSection << "\n";
-			std::cout << "Node 66508, SeGments in phase " << (*ph_it).second.name << " :: " << (*ph_it).second.FromSection->generatedSegment << " : " << (*ph_it).second.ToSection->generatedSegment << "\n";
-		}
+//		if(((*ph_it).second.nodeId == 66508)&&((*ph_it).second.name == "C"))
+//		{
+//			std::cout << "Node 66508, sections in phase " << (*ph_it).second.name << " :: " << (*ph_it).second.FromSection << " : " << (*ph_it).second.ToSection << "\n";
+//			std::cout << "Node 66508, SeGments in phase " << (*ph_it).second.name << " :: " << (*ph_it).second.FromSection->generatedSegment << " : " << (*ph_it).second.ToSection->generatedSegment << "\n";
+//		}
 		sim_mob::Link * linkFrom = (*ph_it).second.FromSection->generatedSegment->getLink();
 		sim_mob::Link * linkTo = (*ph_it).second.ToSection->generatedSegment->getLink();
 		sim_mob::linkToLink ll(linkTo,(*ph_it).second.FromSection->generatedSegment,(*ph_it).second.ToSection->generatedSegment);
@@ -1255,8 +1246,14 @@ DatabaseLoader::createPhases(sim_mob::Signal_SCATS & signal)
 		else //new phase, new mapping
 		{
 			sim_mob::Phase phase(name,&(signal.getPlan()));//for general copy
-			phase.addLinkMapping(linkFrom,ll,dynamic_cast<sim_mob::MultiNode *>(nodes_[(*ph_it).second.nodeId].generatedNode));
-			phase.addDefaultCrossings(signal.getLinkAndCrossingsByLink(),dynamic_cast<sim_mob::MultiNode *>(nodes_[(*ph_it).second.nodeId].generatedNode));
+			sim_mob::MultiNode * mNode = dynamic_cast<sim_mob::MultiNode *>(nodes_[(*ph_it).second.nodeId].generatedNode);
+			if(!mNode)
+			{
+				std::cout << "We have a null MultiNode for " << nodes_[(*ph_it).second.nodeId].generatedNode->getID() << "here\n";
+				continue;
+			}
+			phase.addLinkMapping(linkFrom,ll,mNode);
+			phase.addDefaultCrossings(signal.getLinkAndCrossingsByLink(),mNode);
 			signal.getPlan().addPhase(phase);//congrates
 		}
 	}

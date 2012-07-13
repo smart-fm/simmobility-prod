@@ -79,6 +79,10 @@ public class Intersection {
 	{
 		return trafficSignalLines;
 	}
+	public Hashtable<String, ArrayList <Integer>> getAllSignalCrossings()
+	{
+		return trafficSignalCrossings;
+	}
 	
 	public Intersection(int intersectNodeID, ArrayList <Integer> signalLinkIDs, ArrayList <Integer> signalCrossingIDs){
 		this.intersectNodeID = intersectNodeID;
@@ -102,6 +106,7 @@ public class Intersection {
 		Set<Integer> tempSet = new HashSet<Integer>(); //for temporary use only
 		this.trafficSignalLines = new Hashtable<String, ArrayList<TrafficSignalLine>>();
 		this.trafficSignalCrossings = new   Hashtable<String, ArrayList <Integer>>();
+		this.signalCrossingIDs = new ArrayList <Integer>();
 		
 		for (SignalHelper.Phase ph : signalHelper.phases) {
 			//step 1: populate trafficSignalLines
@@ -160,6 +165,7 @@ public class Intersection {
 			ArrayList <Integer> tempCrossingIds = new ArrayList <Integer>();
 			for (SignalHelper.Crossing cr : ph.crossings) 
 			{
+//				System.out.println("Crossing "+ cr.id + " is read in the visualizer");
 //				if(!tempSet.contains(cr.id))//to avoid duplicates
 //				{
 					tempSet.add(cr.id);//to avoid duplicates. This container may be used to reuse signalCrossingIDs. this container is used in other part.so, just in case :)

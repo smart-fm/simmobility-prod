@@ -91,6 +91,7 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 //		signalHelper.hex_id = Utility.ParseIntOptionalHex(hex_id);//intersection id
 		signalHelper.node = SignalHelper.HexStringToInt(node);
 		signalHelper.hex_id = SignalHelper.HexStringToInt(hex_id);//intersection id
+		System.out.println("Intersection " + hex_id + " got the id " + signalHelper.hex_id);
 		for(Phase ph: phases)
 		{
 			SignalHelper.Phase phase = signalHelper.new Phase(ph.name);

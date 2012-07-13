@@ -63,8 +63,17 @@ public class TrafficSignalUpdate implements DrawableItem, GsonResObj {
 		Intersection tempIntersection = rdNet.getIntersections().get(id);
 		SignalHelper signalHelper = tempIntersection.getSignalHelper();
 		//since we dont have a mechanism like TrafficSignalLine for crossing, we build its signallinetick requirement right here
-		HashMap<Integer,Integer> CRSs = new HashMap<Integer,Integer>(); //key: crossing id,  value: current color
-		
+		HashMap<Integer,Integer> CRSs= new HashMap<Integer,Integer>();//this initialization is useless. the actuall initialization is done inside the following for loop.this one is just to avoid the errors
+//		System.out.println("This crossing has " + tempIntersection.getAllSignalCrossings().values().size() + " Crossings");
+//		System.out.println("");
+		for(ArrayList<Integer> origCrossings:tempIntersection.getAllSignalCrossings().values())
+			for(Integer origCrossing:origCrossings)
+			{
+				CRSs.put(origCrossing, 1);
+//				if((frame == 230))
+//					System.out.println("crossing " + origCrossing + " initialized to red");
+			}
+//		System.out.println("Total of " +CRSs.size()+ " Was set to red" );
 		for(TrafficSignal.Phase updatingPhase:phases)
 		{
 			//segment part
@@ -81,11 +90,29 @@ public class TrafficSignalUpdate implements DrawableItem, GsonResObj {
 				}
 			}
 			//crossing part
-			for(TrafficSignal.Crossing updatingCrossing:updatingPhase.getCrossings())
-			{
-				int updatingCrossingId = signalHelper.HexStringToInt(updatingCrossing.getId());
-				CRSs.put(updatingCrossingId, updatingCrossing.getCurrColor());
-			}
+				//since we dont have a mechanism like TrafficSignalLine for crossing, we build its signallinetick requirement right here
+//				CRSs = new HashMap<Integer,Integer>(); //key: crossing id,  value: current color
+				//I had the fear of overwriting crossing color of the current phase by common crossing IDs which might be repeated in subsequent phases(if any)
+				//therefore, I first put them all in the hashmap and set them to red, them overwrite the values of the crossings in the current phase
+
+//				
+//				if((frame == 230))
+//					System.out.println("frame = 230 has " + CRSs.size() + " crossings\n");
+				if(updatingPhase.getName().equals(currPhase))
+				{
+					for (TrafficSignal.Crossing updatingCrossing : updatingPhase.getCrossings()) {
+						if(updatingCrossing != null)
+							if(updatingCrossing.getId() != null)
+							if(updatingCrossing.getId().length() > 1)	
+							{
+								int updatingCrossingId = signalHelper.HexStringToInt(updatingCrossing.getId());
+								CRSs.put(updatingCrossingId,updatingCrossing.getCurrColor());
+							}
+					}
+				}
+//				if((frame == 230) &&(updatingPhase.getName().equals("D")))
+//						System.out.println("frame = 230 phase D has " + CRSs.size() + "crossings");
+
 		}
 		//2.
 		ArrayList<TrafficSignalLine> TSLs ;//  allocate memory and create a copy in the SignalLineTick constructor = new Hashtable<String, ArrayList<TrafficSignalLine>>();
@@ -111,8 +138,6 @@ public class TrafficSignalUpdate implements DrawableItem, GsonResObj {
 		//Now add it to the place holder as it used to add in SimResLineParser.end(). 
 		simRes.reserveTimeTick(this.getTimeTick());
 		simRes.ticks.get(this.getTimeTick()).signalLineTicks.put(tempSignalLineTick.getID(), tempSignalLineTick);
-		if((this.getTimeTick() == 230)||(this.getTimeTick() == 240)||(this.getTimeTick() == 250))
-			System.out.println("AddSelfToSimulation0 after adding a color updated set of TSL to signalLineTicks");
 		
 		
 //		for(ArrayList<TrafficSignalLine> tsls1 : simRes.ticks.get(this.getTimeTick()).signalLineTicks.get(tempSignalLineTick.getID()).getAllTrafficSignalLines().values())

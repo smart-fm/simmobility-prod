@@ -136,6 +136,7 @@ public:
 	bool isIntersection();
 	void createStringRepresentation(std::string newLine = "\n");
 	void cycle_reset();
+	Crossing const * getCrossing(RoadSegment const * road);
 
 	/*--------The cause of this Module----------*/
     TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const ;

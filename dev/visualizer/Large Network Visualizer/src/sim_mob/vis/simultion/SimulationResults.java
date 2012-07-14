@@ -103,7 +103,7 @@ public class SimulationResults {
 				//Push to thread, clear buffer.
 				ArrayList<LogFileLine> temp = lineBuffer;
 				lineBuffer = new ArrayList<LogFileLine>(); //Can't "clear", because we keep a reference.
-				stp.newTask(new SimResLineParser(temp, this, uniqueAgentIDs));
+				stp.newTask(new SimResLineParser(temp, this, rn, uniqueAgentIDs));
 			}
 		}
 		
@@ -111,7 +111,7 @@ public class SimulationResults {
 		//Any remaining lines?
 		if (!lineBuffer.isEmpty()) {
 			//Push to thread
-			stp.newTask(new SimResLineParser(lineBuffer, this, uniqueAgentIDs), true);
+			stp.newTask(new SimResLineParser(lineBuffer, this, rn, uniqueAgentIDs), true);
 		}
 		
 		//Wait
@@ -189,16 +189,16 @@ public class SimulationResults {
 		SimulationResults sim;
 		HashSet<Integer> uniqueAgentIDs;
 		TemporarySimObjects resObj;
-		
+		RoadNetwork network;
 		//TEMP
 		FastLineParser flp;
 		
-		SimResLineParser(ArrayList<LogFileLine> lines, SimulationResults sim, HashSet<Integer> uniqueAgentIDs) {
+		SimResLineParser(ArrayList<LogFileLine> lines, SimulationResults sim, RoadNetwork rn, HashSet<Integer> uniqueAgentIDs) {
 			this.lines = lines;
 			this.sim = sim;
 			this.uniqueAgentIDs = uniqueAgentIDs;
 			this.resObj = new TemporarySimObjects();
-			
+			network = rn;
 			flp = new FastLineParser();
 		}
 		
@@ -210,7 +210,7 @@ public class SimulationResults {
 						//Parse this line as json.
 						GsonResObj gRes = Utility.ParseGsonLine(logLine.line);
 						int tTick = gRes.getTimeTick();
-						
+						if(tTick < 0) continue;//TODO find a way to get rid of this. time tick 0 i creating problem
 						//Save this object for later.
 						if (!resObj.gsonObjectsToAdd.containsKey(tTick)) {
 							resObj.gsonObjectsToAdd.put(tTick, new ArrayList<GsonResObj>());
@@ -252,7 +252,8 @@ public class SimulationResults {
 				//Add all Gson items
 				for (Entry<Integer, ArrayList<GsonResObj>> gsonResObjs : resObj.gsonObjectsToAdd.entrySet()) {
 					for (GsonResObj gRes : gsonResObjs.getValue()) {
-						gRes.addSelfToSimulation(null, sim);
+						
+						gRes.addSelfToSimulation(network, sim);
 					}
 				}
 				
@@ -294,7 +295,7 @@ public class SimulationResults {
 						
 						//Add it
 						sim.addSignal(sigTimeTick.getKey(), sigTick);
-						
+						//ticks.get(sigTimeTick.getKey()).signalLineTicks.put(sigTick.getID(), sigTick);
 
 						//TODO: This should work! Check signal code.
 						//uniqueAgentIDs.add(agTick.getID());

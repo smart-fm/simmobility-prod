@@ -65,8 +65,10 @@ public class TrafficSignalCrossing implements DrawableItem{
 			currColor = Color.yellow;
 		} else if (color==3) {
 			currColor = Color.green;
+		} else if (color==6) {
+			currColor = Color.cyan;
 		} else {
-			System.out.println("Error, No such kind of traffic light -- TrafficSignalCrossing, drawSignalCrossing()");
+			System.out.println("Error, No such kind of traffic light[" + color + "  -- TrafficSignalCrossing, drawSignalCrossing()");
 		}
 	}
 	

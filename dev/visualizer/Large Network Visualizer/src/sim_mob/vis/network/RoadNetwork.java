@@ -22,6 +22,7 @@ import sim_mob.vis.util.FastLineParser;
 import sim_mob.vis.util.Mapping;
 import sim_mob.vis.util.Utility;
 import sim_mob.vis.ProgressUpdateRunner;
+import sim_mob.vis.network.Intersection;
 
 /**
  * The RoadNetwork is the top-level object containing all relevant details about our 
@@ -54,8 +55,8 @@ public class RoadNetwork {
 	private Hashtable<Integer, Crossing> crossings;
 	private Hashtable<Integer, LaneConnector> laneConnectors;
 	private Hashtable<Integer, Hashtable<Integer,Lane> > lanes;
-	private Hashtable<Integer, TrafficSignalLine> trafficSignalLines;
-	private Hashtable<Integer, TrafficSignalCrossing> trafficSignalCrossings;
+	private Hashtable<Integer, TrafficSignalLine> trafficSignalLines;//at present this relatively container and its get function are mainly used in addAllLaneSignals and populate intersection, it can be ommited if the mentioned functions are its primary users
+	private Hashtable<Integer, TrafficSignalCrossing> trafficSignalCrossings;//but this container may need to remain here coz unlike trafficSignalLines, it is directly created from input file
 	private Hashtable<Integer, Intersection> intersections; 
 	private Hashtable<Integer, CutLine> cutLines;
 	private Hashtable<Integer, DriverTick> drivertick;
@@ -86,7 +87,7 @@ public class RoadNetwork {
 	public Hashtable<Integer, Hashtable<Integer,Lane> > getLanes(){return lanes;}
 	public Hashtable<Integer, TrafficSignalLine> getTrafficSignalLine(){return trafficSignalLines;}
 	public Hashtable<Integer, TrafficSignalCrossing> getTrafficSignalCrossing() {return trafficSignalCrossings;}
-	public Hashtable<Integer, Intersection> getIntersection(){return intersections;}
+	public Hashtable<Integer, Intersection> getIntersections(){return intersections;}
 	public Hashtable<Integer, CutLine> getCutLine(){return cutLines;}
 	public Hashtable<Integer, DriverTick> getDriverTick(){return drivertick;}
 	
@@ -129,7 +130,7 @@ public class RoadNetwork {
 		if (progressUpdate!=null) {
 			SwingUtilities.invokeLater(new ProgressUpdateRunner(progressUpdate, 0.0, false, new Color(0x00, 0x00, 0xFF), ""));
 		}
-		
+//		System.out.println("Inside rn.loadFileAndReport(br, 0, null);");
 		//Read
 		String line;
 		while ((line=inFile.readLine())!=null) {
@@ -154,17 +155,20 @@ public class RoadNetwork {
 			//New-style json strings use {}, while old-style ones use ().
 			boolean oldStyle = line.startsWith("(") && line.endsWith(")");
 			boolean newStyle = line.startsWith("{") && line.endsWith("}");
+			
 			if (!oldStyle && !newStyle) {
 				continue;
 			}
-			
 			//Parsing depends on how the line is structured.
 			if (newStyle) {
+//				System.out.println("Inside rn.loadFileAndReport.newstyle");
 				//Parse this line as json.
 				GsonResObj gRes = Utility.ParseGsonLine(line);
 				int tTick = gRes.getTimeTick();
-				
 				//Add this object to the simulation
+				if(tTick < 0)//TODO find a way to get rid of this. time tick 0 i creating problem as it is common between static network and simulation data
+				//Add this object to the simulation
+//				System.out.println("before gRes.addSelfToSimulation");
 				gRes.addSelfToSimulation(this, null);
 			} else {
 				//Parse this line as text and pseudo-json.
@@ -181,7 +185,6 @@ public class RoadNetwork {
 			    }
 			}
 		    
-		    
 		    if (pushUpdate) {
 			    try {
 			    	Thread.sleep(1);
@@ -189,8 +192,7 @@ public class RoadNetwork {
 			    	throw new RuntimeException(ex);
 			    }
 		    }
-		}
-		
+		}//while loop
 		
 		//Save bounds
 		//cornerTL = new DPoint(xBounds[0], yBounds[0]);
@@ -201,7 +203,7 @@ public class RoadNetwork {
 		this.addLinkNames();
 		
 		//Populate Intersections
-		this.populateIntersections();
+		this.populateIntersections_newStyle();
 		
 		//Fix up connections between segments to look 
 		//pretty where # of lanes changes
@@ -589,6 +591,7 @@ public class RoadNetwork {
 	
 	}
 	
+
 	private void parseCutLine(Utility.ParseResults pRes) throws IOException{
 
 	    
@@ -615,7 +618,7 @@ public class RoadNetwork {
 			int toLaneNo = laneConnector.getToLane();
 			Lane fromLane = lanes.get(laneConnector.getFromSegment()).get(fromLaneNo);
 			Lane toLane = lanes.get(laneConnector.getToSegment()).get(toLaneNo);
-			TrafficSignalLine tempSignalLine = new TrafficSignalLine(fromLane, toLane); 
+			TrafficSignalLine tempSignalLine = new TrafficSignalLine(fromLane, toLane,null, -1); 
 			trafficSignalLines.put(objID, tempSignalLine);	
 			
 		} else{
@@ -623,10 +626,19 @@ public class RoadNetwork {
 		}
 	}
 
-	private void populateIntersections(){
+	private void populateIntersections_newStyle(){
 
-		
-		for(Intersection intersection : intersections.values()){		
+//		System.out.println("Inside this.populateIntersections_newStyle()");
+		for(Intersection intersection: intersections.values()){
+			intersection.populateTrafficSignal(this);
+		}
+	}
+	private void populateIntersections() throws IOException{
+
+		System.out.println("Inside the populate intersection with intersection size of " + intersections.size());
+//		System.in.read();
+		for(Intersection intersection : intersections.values()){	
+			System.out.println("Inside the populate intersection loop");
 			ArrayList <Integer> tempIntersectLinkIDs = intersection.getSigalLinkIDs();
 			Hashtable<Integer, Integer> intersectLinkSegmentIDTable = new Hashtable<Integer, Integer>();
 			
@@ -708,7 +720,7 @@ public class RoadNetwork {
 				}	
 						
 			}
-							
+		    //     segmentFrom,2D matrix segmentToX[left,straight,right]	still ambiguous!!				
 			Hashtable<Integer, ArrayList<ArrayList<TrafficSignalLine>>> signalList = helperAllocateDirection(fromSegmentList,toSegmentList);			
 			Enumeration<Integer> signalListKeys = signalList.keys();
 			

@@ -220,6 +220,7 @@ std::size_t SplitPlan::computeCurrPhase(double currCycleTimer)
 
 SplitPlan::SplitPlan(double cycleLength_,double offset_):cycleLength(cycleLength_),offset(offset_)
 {
+	signalAlgorithm = ConfigParams::GetInstance().signalAlgorithm;
 	currPhaseID = 0;
 	nextSplitPlanID = 0;
 	currSplitPlanID = 0;
@@ -229,7 +230,7 @@ SplitPlan::SplitPlan(double cycleLength_,double offset_):cycleLength(cycleLength
 }
 void SplitPlan::fill(double defaultChoiceSet[5][10], int approaches)
 {
-	for(int i = 0; i < 5; i++)
+	for(int i = 0; i < NOF_Plans; i++)
 		for(int j = 0; j < approaches; j++)
 		{
 			choiceSet[i][j] = defaultChoiceSet[i][j];
@@ -239,6 +240,8 @@ void SplitPlan::fill(double defaultChoiceSet[5][10], int approaches)
 void SplitPlan::setDefaultSplitPlan(int approaches)
 {
 	NOF_Plans = 5;
+	if(signalAlgorithm == 0)//fixed plan
+		NOF_Plans = 1;
 	int ii=5,jj=0;
 	double defaultChoiceSet_1[5][10] = {
 			{100},
@@ -255,14 +258,14 @@ void SplitPlan::setDefaultSplitPlan(int approaches)
 			{40,60}
 	};
 	double defaultChoiceSet_3[5][10] = {
-			{40,40,20},
-			{40,30,30},
-			{30,30,40},
+			{33,33,33},
+			{40,20,40},
+			{25,50,25},
 			{25,25,50},
-			{50,20,30}
+			{50,25,25}
 	};
 	double defaultChoiceSet_4[5][10] = {
-			{30,30,20,20},
+			{25,25,25,25},
 			{20,35,20,25},
 			{35,35,20,10},
 			{35,30,10,25},
@@ -275,7 +278,7 @@ void SplitPlan::setDefaultSplitPlan(int approaches)
 			{25,25,20,15,15},
 			{10,15,20,25,30}
 	};
-	choiceSet.resize(5, vector<double>(approaches));
+	choiceSet.resize(NOF_Plans, vector<double>(approaches));
 	switch(approaches)
 	{
 	case 1:
@@ -346,6 +349,7 @@ std::string SplitPlan::outputTrafficLights(std::string newLine, int phaseId) con
 			return 0;
 		}
 	std::ostringstream output;
+	output << "\"currPhase\": \"" << phases_[currPhaseID].getName() << "\"," << newLine;
 	output << "\"phases\":" << newLine << "[";
 	phases_iterator it = phases_.begin();
 	while(it !=phases_.end())

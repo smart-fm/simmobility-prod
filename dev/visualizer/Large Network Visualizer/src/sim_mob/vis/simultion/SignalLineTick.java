@@ -1,6 +1,13 @@
 package sim_mob.vis.simultion;
 
+import java.awt.Color;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Map;
+
+import sim_mob.vis.network.TrafficSignal.Phase;
+import sim_mob.vis.network.TrafficSignalLine;
 
 /**
  * 
@@ -12,8 +19,18 @@ public class SignalLineTick{
 	private ArrayList<ArrayList<Integer>> allVehicleLights;
 	private ArrayList<Integer> allPedestrianLights;	
 	private Integer intersectionID;
+//	private Phase [] phases; 
 	private boolean fake;
-	
+	private int tempTick;
+	private String tempPhase;
+	public String getPhase() { return tempPhase;}
+	//my solution:
+	private Hashtable<String ,ArrayList<TrafficSignalLine>> TrafficSignalLines;	//String is phase (A,B,C,...)
+	private HashMap<TrafficSignalLine, Color> TrafficSignalLines_Map;
+	private HashMap<Integer, Integer> CrossingID_Map;
+	public Hashtable<String ,ArrayList<TrafficSignalLine>> getAllTrafficSignalLines(){ return TrafficSignalLines;}
+	public HashMap<TrafficSignalLine, Color> getAllTrafficSignalLines_Map(){ return TrafficSignalLines_Map;}
+	public HashMap<Integer, Integer> getCrossingID_Map(){ return CrossingID_Map;}
 	public Integer getIntersectionID(){ return intersectionID;}
 	public ArrayList<ArrayList<Integer>> getVehicleLights(){ return allVehicleLights;}
 	public ArrayList<Integer> getPedestrianLights(){return allPedestrianLights;}
@@ -26,6 +43,60 @@ public class SignalLineTick{
 		this.fake = false;
 	}
 	
+//	public SignalLineTick(int id,Phase[] phases_){
+	public SignalLineTick(int id,ArrayList<TrafficSignalLine> TrafficSignalLines_,HashMap<Integer, Integer> CrossingIDs_map,int tempTick_, String tempPhase_){
+		this.id = id;
+		tempTick = tempTick_;
+		tempPhase = tempPhase_;
+		//at present we leverage the similarity of signal id and intersectionId.
+		//In case one day they decided them to be different,this method should 
+		//change along with the following items:
+		//SimResLineParser class should add another member for road network,
+		//this member should be initialized through its constructor 
+		//this constructor is idally called from within simulationResult.LoadFileAndReport(..., RoadNetwork rn,...) method
+		//which, as you can see, has the rn that can be supplied to SimResLineParser,
+		//then SimResLineParser finds the corrsponding intersection,
+		//intersection has all the necessary signalline objects necessary
+		this.intersectionID = id;
+//		this.TrafficSignalLines = new Hashtable<String, ArrayList<TrafficSignalLine>>(); let's see if it work just with pointers without copying
+//		this.TrafficSignalLines = TrafficSignalLines_;//memory deficiency
+		TrafficSignalLines_Map = new HashMap<TrafficSignalLine, Color>();
+		for(TrafficSignalLine tsl : TrafficSignalLines_)
+		{
+			TrafficSignalLines_Map.put(tsl, tsl.getCurrColor());
+		}
+		
+		CrossingID_Map = new HashMap<Integer, Integer>();
+		for(Integer i:CrossingIDs_map.keySet())
+		{
+//			if((tempTick == 230)&& tempPhase.equals("D"))
+//				System.out.println("Tick 230 Phase D Setting crossing " + i + "  color to " + CrossingIDs_map.get(i));
+			CrossingID_Map.put(i, CrossingIDs_map.get(i));
+		}
+		
+		
+////		//debug		
+//		
+//		for(ArrayList<TrafficSignalLine> tsls1 : TrafficSignalLines.values())
+//		for(TrafficSignalLine tsl:tsls1)
+//		{
+//			if(!tsl.getPhaseName().equals("C")) continue;
+//			if(!((tempTick ==230)||(tempTick ==240)||(tempTick ==250))) continue;
+//			System.out.println("creating New SignalLineTick");
+//			if (tsl.getCurrColor() == Color.yellow)
+//				System.out.println("ID: " + id + "Tick " + tempTick + " color has been set to  yellow");
+//			else if (tsl.getCurrColor() == Color.green)
+//				System.out.println("ID: " + id + "Tick " + tempTick + " color has been set to green");
+//			else if (tsl.getCurrColor() == Color.red)
+//				System.out.println("ID: " + id + "Tick " + tempTick + " color has been set to red");
+//			System.out.println("New SignalLineTick............");
+//		}
+//		
+////	//debug ends
+//		this.phases = phases_;
+		this.fake = false;
+	}
+	
 	public int getID() {
 		return id;
 	}
@@ -33,5 +104,9 @@ public class SignalLineTick{
 	public void setItFake(){ 
 		fake = true;
 	}
+//	public Phase[] getPhases()
+//	{
+//		return phases;
+//	}
 	
 }

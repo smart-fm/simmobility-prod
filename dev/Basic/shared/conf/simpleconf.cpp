@@ -1318,7 +1318,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 #ifndef SIMMOB_NEW_SIGNAL
     std::vector<Signal*>& all_signals = Signal::all_signals_;
 #else
-    std::vector<Signal*>& all_signals = sim_mob::Signal::all_signals_;
+    sim_mob::Signal::All_Signals & all_signals = sim_mob::Signal::all_signals_;
 #endif
 
     for (size_t i = 0; i < all_signals.size(); ++i)

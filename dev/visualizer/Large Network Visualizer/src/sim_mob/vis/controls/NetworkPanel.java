@@ -128,10 +128,10 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	protected void paintComponent(Graphics g) {
 		//Paint background
 		super.paintComponent(g);
-		
+
 		//Progress item to draw?
 		if (this.currProgressItem!=null) {
-			drawCurrProgressItem((Graphics2D)g);
+			drawCurrProgressItem((Graphics2D)g);//initial "uploading" part
 			this.currProgressItem = null;
 			return;
 		}
@@ -144,11 +144,12 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		//Make a buffer, draw it.
 		Point size = new Point(this.getWidth(), this.getHeight());
 		BufferedImage buffer = new BufferedImage(size.x, size.y, BufferedImage.TYPE_INT_RGB);
+//		if((getCurrFrameTick() == 230)||(getCurrFrameTick() == 240)||(getCurrFrameTick() == 250))		netViewCache.addAllLaneSignals_debug(getCurrFrameTick());
 		BufferedImage drawImg = netViewCache.getImageAtTimeTick(getCurrFrameTick(), size);
 		drawMapOntoImage(buffer, drawImg, getCurrFrameTick());
 		
 		//Paint the bufer
-		g.drawImage(buffer, 0, 0, null);
+		g.drawImage(buffer, 0, 0, null);//road network part
 	}
 	
 	

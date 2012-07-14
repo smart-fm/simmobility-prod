@@ -595,21 +595,18 @@ public class MainFrame extends JFrame {
 				}
 
 				rn = new RoadNetwork();
+//				System.out.println("before rn.loadFileAndReport");
 				rn.loadFileAndReport(br, 0, null);
-				
 				br.close();
 			} catch (IOException ex) {
 				throw new RuntimeException(ex);
 			}
-		
 			console.setText("Input File Name: "+fileName);
 			
 			//Clear our global scaled points array.
 			ScaledPoint.updateScaleAndTranslate(null, null);
-			
 			//Store all Agents returned by this.
 			HashSet<Integer> uniqueAgentIDs = new HashSet<Integer>();
-			
 			//Load the simulation's results
 			try {
 				BufferedReader br = null;
@@ -643,8 +640,8 @@ public class MainFrame extends JFrame {
 			
 			//Update the map
 			newViewPnl.initMapCache(vis);
-		}
-	}
+		}//run()
+	}//class Thread
 	
 	
 	public void updatePercentDrawn(double percent) {

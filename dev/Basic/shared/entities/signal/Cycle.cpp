@@ -32,7 +32,7 @@ void Cycle::Update(double DS/*,sim_mob::Node node*/) {
 	setnextCL(DS/*,node*/);
 	updateprevCL();
 	updatecurrCL();
-//	std::cout << "The new Cycle Length is : " << currCL << std::endl;
+	std::cout << "The new Cycle Length is : " << currCL << std::endl;
 }
 
 //use SCATS to determine next cyecle length

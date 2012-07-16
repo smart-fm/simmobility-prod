@@ -418,33 +418,6 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 void
 DatabaseLoader::LoadTrafficSignals(std::string const & storedProcedure)
 {
-<<<<<<< HEAD
-	// For testing purpose, we can disable automatic signal creation via database lookup
-	// by putting an empty string for the 'signal' stored procedure in the config file.
-	// Manual creation can be achieved by specifying the signal locations in the top level
-	// <signals> section of the config file.  This feature will be removed soon
-	// and without notice.
-	if (storedProcedure.empty())
-	{
-		std::cout << "WARNING: An empty 'signal' stored-procedure was specified in the config file; "
-				<< "will not lookup the database to create any signal found in there" << std::endl;
-		return;
-	}
-	soci::rowset<Signal> rows = (sql_.prepare <<"select * from " + storedProcedure);
-	for (soci::rowset<Signal>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
-	{
-		Signal signal = *iter;
-		// Convert from meters to centimeters.
-		signal.xPos *= 100;
-		signal.yPos *= 100;
-		signals_.insert(std::make_pair(signal.id, signal));
-		//        if(signal.nodeId == 115436) { std::cout << "We have a signal 115436 oin our DB\n"; getchar();}
-=======
-    // For testing purpose, we can disable automatic signal creation via database lookup
-    // by putting an empty string for the 'signal' stored procedure in the config file.
-    // Manual creation can be achieved by specifying the signal locations in the top level
-    // <signals> section of the config file.  This feature will be removed soon
-    // and without notice.
     if (storedProcedure.empty())
     {
         std::cout << "WARNING: An empty 'signal' stored-procedure was specified in the config file; "
@@ -464,9 +437,8 @@ DatabaseLoader::LoadTrafficSignals(std::string const & storedProcedure)
         	signals_.insert(std::make_pair(signal.id, signal));
 
 //        if(signal.nodeId == 115436) { std::cout << "We have a signal 115436 oin our DB\n"; getchar();}
->>>>>>> vahid_visualizer0
 
-	}
+    }
 }
 
 void DatabaseLoader::LoadBusStop(const std::string& storedProc)
@@ -636,19 +608,9 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
 	LoadTripchains(getStoredProcedure(storedProcs, "tripchain"));
-<<<<<<< HEAD
-	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal",false));
-
-	std::cout << "signals Done, Starting LoadPhase" << std::endl;
-=======
 	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal"));
 	LoadBusStop(getStoredProcedure(storedProcs, "busstop", false));
-//	std::cout << "signals Done, Starting LoadPhase" << std::endl;
->>>>>>> vahid_visualizer0
-	LoadPhase(getStoredProcedure(storedProcs, "phase", false));
-//	std::cout << "LoadPhase Done, Congrates" << std::endl;
-
-
+	LoadPhase(getStoredProcedure(storedProcs, "phase"));
 
 	//add by xuyan
 	//load in boundary segments (not finished!)

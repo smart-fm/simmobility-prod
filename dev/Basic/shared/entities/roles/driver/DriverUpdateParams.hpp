@@ -91,7 +91,12 @@ struct DriverUpdateParams : public UpdateParams {
 	double currLaneLength;
 	double trafficSignalStopDistance;
 	double elapsedSeconds;
+#ifdef SIMMOB_NEW_SIGNAL
+	sim_mob::TrafficColor trafficColor;
+#else
 	Signal::TrafficColor trafficColor;
+#endif
+
 
 	double perceivedFwdVelocity;
 	double perceivedLatVelocity;

@@ -125,7 +125,11 @@ private:
 	FixedDelayed<double> *perceivedVelOfFwdCar;
 	FixedDelayed<double> *perceivedAccOfFwdCar;
 	FixedDelayed<double> *perceivedDistToFwdCar;
+#ifdef SIMMOB_NEW_SIGNAL
+	FixedDelayed<sim_mob::TrafficColor> *perceivedTrafficColor;
+#else
 	FixedDelayed<Signal::TrafficColor> *perceivedTrafficColor;
+#endif
 	FixedDelayed<double> *perceivedDistToTrafficSignal;
 
 	NodePoint origin;

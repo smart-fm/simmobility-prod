@@ -191,9 +191,12 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat) :
 	perceivedVelOfFwdCar = new FixedDelayed<double>(reacTime,true);
 	perceivedAccOfFwdCar = new FixedDelayed<double>(reacTime,true);
 	perceivedDistToFwdCar = new FixedDelayed<double>(reacTime,true);
-	perceivedTrafficColor = new FixedDelayed<Signal::TrafficColor>(reacTime,true);
-	perceivedDistToTrafficSignal = new FixedDelayed<double>(reacTime,true);
 
+#ifdef SIMMOB_NEW_SIGNAL
+	perceivedTrafficColor = new FixedDelayed<sim_mob::TrafficColor>(reacTime,true);
+#else
+	perceivedTrafficColor = new FixedDelayed<Signal::TrafficColor>(reacTime,true);
+#endif
 
 
 	//Initialize our models. These should be swapable later.
@@ -418,12 +421,15 @@ void sim_mob::DriverUpdateParams::reset(frame_t frameNumber, unsigned int currTi
 	currSpeed = 0;
 	perceivedFwdVelocity = 0;
 	perceivedLatVelocity = 0;
-	trafficColor = Signal::Green;
+
 #ifdef SIMMOB_NEW_SIGNAL
+	trafficColor = sim_mob::Green;
 	perceivedTrafficColor = sim_mob::Green;
 #else
+	trafficColor = Signal::Green;
 	perceivedTrafficColor = Signal::Green; //Green by default
 #endif
+
 	trafficSignalStopDistance = Driver::maxVisibleDis;
 	elapsedSeconds = ConfigParams::GetInstance().baseGranMS / 1000.0;
 
@@ -433,7 +439,11 @@ void sim_mob::DriverUpdateParams::reset(frame_t frameNumber, unsigned int currTi
 	perceivedDistToFwdCar = Driver::maxVisibleDis;
 	perceivedDistToTrafficSignal = Driver::maxVisibleDis;
 
-	perceivedTrafficColor = Signal::Green;
+#ifdef SIMMOB_NEW_SIGNAL
+	perceivedTrafficColor  = sim_mob::Green;
+#else
+	perceivedTrafficColor  = Signal::Green; //Green by default
+#endif
 	//Lateral velocity of lane changing.
 	laneChangingVelocity = 100;
 
@@ -1776,7 +1786,11 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 
 
 	if (!trafficSignal) {
-		p.trafficColor = Signal::Green;
+#ifdef SIMMOB_NEW_SIGNAL
+			p.trafficColor = sim_mob::Green;
+#else
+			p.trafficColor = Signal::Green;
+#endif
 		perceivedTrafficColor->delay(p.trafficColor);
 	} else {
 #ifdef SIMMOB_NEW_SIGNAL
@@ -1817,7 +1831,11 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 			if (!isPedestrianOnTargetCrossing())
 				p.trafficColor = color;
 			else
-				p.trafficColor = Signal::Red;
+	#ifdef SIMMOB_NEW_SIGNAL
+				p.trafficColor = sim_mob::Red;
+	#else
+			p.trafficColor = Signal::Red;
+	#endif
 			break;
 		}
 

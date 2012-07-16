@@ -607,7 +607,6 @@ bool LoadDatabaseDetails(TiXmlElement& parentElem, string& connectionString, map
 	//Now, load the stored procedure mappings
 	elem = handle.FirstChild("mappings").FirstChild().ToElement();
 	if (!elem) {
-
 		return false;
 	}
 
@@ -1187,7 +1186,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		//Load the AIMSUM network details
     		map<string, string> storedProcedures; //Of the form "node" -> "get_node()"
     		if (!LoadDatabaseDetails(*geomElem, ConfigParams::GetInstance().connectionString, storedProcedures)) {
-    			return "Unable to load database connection settings.";
+    			return "Unable to load database connection settings....";
     		}
 
     		//Actually load it

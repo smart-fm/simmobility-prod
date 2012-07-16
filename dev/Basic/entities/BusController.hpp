@@ -48,7 +48,7 @@ public:
 private:
 	void frame_init(frame_t frameNumber);
 	void frame_tick_output(frame_t frameNumber);
-	static BusController instance_;
+	//static BusController instance_;
 
 	frame_t frameNumberCheck;// check some frame number to do control
 	frame_t nextTimeTickToStage;// next timeTick to be checked

@@ -360,7 +360,7 @@ bool performMain(const std::string& configFileName) {
 		}
 	}
 
-	if(busctrller.isTobeOutput()) {// if there is buscontroller inside the Xml
+	if(busctrller.getTobeInList()) {// if there is buscontroller inside the Xml
 		busctrller.currWorker = nullptr;// Update our Entity's pointer before ending main()
 	}
 	cout << "Simulation complete; closing worker threads." << endl;

@@ -64,6 +64,7 @@ public:
 	void addEntity(Entity* entity);
 	void remEntity(Entity* entity);
 	std::vector<Entity*>& getEntities();
+	WorkGroup* const getParent() { return parent; }
 
 #ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	void scheduleForAddition(Entity* entity);

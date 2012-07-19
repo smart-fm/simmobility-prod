@@ -18,6 +18,8 @@
 #include "vehicle/Bus.hpp"
 #include "roles/driver/Driver.hpp"
 #include "util/DynamicVector.hpp"
+#include "workers/Worker.hpp"
+#include "workers/WorkGroup.hpp"
 
 namespace sim_mob
 {
@@ -35,8 +37,8 @@ public:
 	void updateBusInformation(DPoint pt);
 	void DispatchInit();// similar to AddandStash --> p.start = 0
 	void DispatchFrameTick(frame_t frameTick);
-	bool isTobeOutput() { return TobeOutput; }
-	void setTobeOutput() { TobeOutput = true; }
+	bool getTobeInList() { return isTobeInList; }
+	void setTobeInList() { isTobeInList = true; }
 
 	// Manage Buses
 	void addBus(Bus* bus);
@@ -54,8 +56,10 @@ private:
 	frame_t nextTimeTickToStage;// next timeTick to be checked
 	unsigned int tickStep;
 	bool firstFrameTick;  ///Determines if frame_init() has been done.
-	bool TobeOutput;// Determines whether Xml has buscontroller thus to be updated in output file
-	std::vector<Bus*> managedBuses;// Saved managedBuses
+	bool isTobeInList;// Determines whether Xml has buscontroller thus to be updated in output file
+	std::vector<Bus*> managedBuses;// Saved all virtual managedBuses
+	std::vector<Bus*> active_buses;// Saved all active buses(from frame 0)
+	StartTimePriorityQueue pending_buses; //Buses waiting to be added to the simulation, prioritized by start time.
 	//sim_mob::RoadNetwork network;// Saved RoadNetwork
 	DPoint posBus;// The sent position of a given bus ,only for test
 

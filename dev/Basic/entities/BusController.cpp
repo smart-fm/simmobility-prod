@@ -1,6 +1,7 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "BusController.hpp"
+#include "entities/Person.hpp"
 
 //using std::vector;
 using namespace sim_mob;
@@ -9,7 +10,7 @@ typedef Entity::UpdateStatus UpdateStatus;
 sim_mob::BusController busctrller(ConfigParams::GetInstance().mutexStategy, 0);
 
 sim_mob::BusController::BusController(const MutexStrategy& mtxStrat, int id) :
-	Agent(mtxStrat, id),frameNumberCheck(0), nextTimeTickToStage(0), tickStep(1), firstFrameTick(true), TobeOutput(false)
+	Agent(mtxStrat, id),frameNumberCheck(0), nextTimeTickToStage(0), tickStep(1), firstFrameTick(true), isTobeInList(false)
 {
 
 }
@@ -22,6 +23,13 @@ sim_mob::BusController::~BusController() {
 			delete *it;
 		}
 		managedBuses.clear();
+	}
+	if (!active_buses.empty()) {
+		std::vector<Bus*>::iterator iter;
+		for (iter = active_buses.begin(); iter != active_buses.end(); ++iter) {
+			delete *iter;
+		}
+		active_buses.clear();
 	}
 	if(currWorker) {
 		//Update our Entity's pointer if it has migrated out but not updated
@@ -54,26 +62,26 @@ void sim_mob::BusController::DispatchInit()
 
 void sim_mob::BusController::DispatchFrameTick(frame_t frameTick)
 {
-//	nextTimeTickToStage += tickStep;
-//	unsigned int nextTickMS = nextTimeTickToStage*ConfigParams::GetInstance().baseGranMS;
-//	while (!pending_Entity.empty() && pending_Entity.top().start <= nextTickMS) {
-//		Person* ag = Person::GeneratePersonFromPending(pending_Entity.top());
-//
-//		//std::cout <<"Check: " <<loader->pending_source.top().manualID <<" => " <<ag->getId() <<std::endl;
-//		//throw 1;
-//
-//		pending_Entity.pop();
+	nextTimeTickToStage += tickStep;
+	unsigned int nextTickMS = nextTimeTickToStage*ConfigParams::GetInstance().baseGranMS;
+	while (!pending_buses.empty() && pending_buses.top().start <= nextTickMS) {
+		Person* ag = Person::GeneratePersonFromPending(pending_buses.top());
+		//std::cout <<"Check: " <<loader->pending_source.top().manualID <<" => " <<ag->getId() <<std::endl;
+		//throw 1;
+
+		pending_buses.pop();
 
 //		if (sim_mob::Debug::WorkGroupSemantics) {
 //			std::cout <<"Staging agent ID: " <<ag->getId() <<" in time for tick: " <<nextTimeTickToStage <<"\n";
 //		}
 
-//		//Add it to our global list.
-//		agentWorkers->loader->entity_dest.push_back(ag);
-// 		add a virtual Bus here  just like the real bus to be assigned to the Person
-//
-//		//Find a worker to assign this to and send it the Entity to manage.
-//		agentWorkers->assignAWorker(ag);
+		//Add it to our global list.
+		Agent::all_agents.push_back(ag);
+ 		//add a virtual Bus here  just like the real bus to be assigned to the Person
+
+		//Find a worker to assign this to and send it the Entity to manage.
+		currWorker->getParent()->assignAWorker(ag);
+	}
 }
 
 UpdateStatus sim_mob::BusController::update(frame_t frameNumber)
@@ -108,7 +116,7 @@ UpdateStatus sim_mob::BusController::update(frame_t frameNumber)
 		}
 
 		//save the output, if no buscontroller in the loadorder, no output
-		if (TobeOutput) {
+		if (isTobeInList) {
 			frame_tick_output(frameNumber);
 		}
 
@@ -127,7 +135,7 @@ UpdateStatus sim_mob::BusController::update(frame_t frameNumber)
 		msg <<ex.what();
 		LogOut(msg.str() <<std::endl);
 #endif
-		TobeOutput = false;
+		isTobeInList = false;
 }
 #endif
 

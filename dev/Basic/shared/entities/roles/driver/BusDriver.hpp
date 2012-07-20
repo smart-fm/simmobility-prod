@@ -45,6 +45,8 @@ protected:
 private:
 	//BusRoute route;
 	const DemoBusStop* nextStop;
+	std::vector<DemoBusStop> stops;
+	std::vector<DemoBusStop> arrivedStops;
 	double waitAtStopMS;
 
 

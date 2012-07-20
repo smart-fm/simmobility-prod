@@ -15,7 +15,7 @@
 #include "util/LangHelpers.hpp"
 #include "util/GeomHelpers.hpp"
 #include "metrics/Frame.hpp"
-
+#include "geospatial/BusStop.hpp"
 
 
 namespace sim_mob {
@@ -30,16 +30,32 @@ class UnPackageUtils;
  */
 class DemoBusStop {
 public:
+	//DemoBusStop(RoadSegment *rs){};
 	const sim_mob::RoadSegment* seg;
 	double distance;
 	double percent;
 	double finalDist;
 	const sim_mob::Point2D* position;
 
+	bool operator== (const DemoBusStop& a) const
+	{
+	    return (a.seg==seg)&&(a.percent==percent);
+	}
+
 
 	///Is there a bus stop on the current road segment?
 	bool isBusStopOnCurrSegment(const RoadSegment* curr) const {
-		return curr->obstacles.size()>0;
+		bool isStop = false;
+		const std::map<centimeter_t, const RoadItem*> & obstacles = curr->obstacles;
+		for(std::map<centimeter_t, const RoadItem*>::const_iterator o_it = obstacles.begin(); o_it != obstacles.end() ; o_it++)
+		{
+		        		RoadItem* ri = const_cast<RoadItem*>(o_it->second);
+		//
+		        		BusStop *bs = dynamic_cast<BusStop *>(ri);
+		        		if(bs)
+		        			isStop=true;
+		}
+		return isStop;
 	}
 
 	///Have we reached this bus stop?
@@ -61,8 +77,9 @@ public:
 //{
 			//std::cout<<"OSTACLES"<<<<"HELLO"<<std::endl;
 
-
-			                                return isBusStopOnCurrSegment(curr) && percent>0;
+			std::cout<<"atOrPastBusStop: isBusStopOnCurrSegment <"<<isBusStopOnCurrSegment(curr)<<">"
+					<<" percent<"<<percent<<">"<<std::endl;
+			return isBusStopOnCurrSegment(curr) && percent>0;
 
 
 
@@ -103,6 +120,11 @@ public:
 			return &(*currStop);
 		}
 		return nullptr;
+	}
+
+	const std::vector<DemoBusStop> getStops() const
+	{
+		return stops;
 	}
 
 

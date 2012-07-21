@@ -70,7 +70,7 @@ BusRoute MakeSampleRoute1(const vector<const RoadSegment*>& path)
         			DemoBusStop busStop;
         			xbs[c] = bs->xPos;
         			ybs[c] = bs->yPos;
-        			/*std::cout << "Bus stop position : " << xbs[c] << " " << ybs[c]<<"    "<<c << std::endl;*/
+        			std::cout << "MakeSampleRoute1: Bus stop position : " << xbs[c] << " " << ybs[c]<<"    "<<c << std::endl;
         			double remDist;
         			        /*std::cout<<"kya"<<next.seg->getId()<<std::endl;*/
         			        DynamicVector SegmentLength(end->location.getX(),end->location.getY(),start->location.getX(),start->location.getY());
@@ -160,18 +160,18 @@ void sim_mob::BusDriver::frame_init(UpdateParams& p)
 	//initializePath() actually creates a Vehicle. We want Vehicle to be a "Bus",
 	// so we need to recreate it here. This will require a new property, "route", which
 	// contains the Bus route. For now, we can just generate a simple route.
-	Bus* bus;
+//	Bus* bus;
 
 	bus = new Bus(MakeSampleRoute1(vehicle->getCompletePath()), vehicle);
 
 
 	//std::cout<<"Help I am a bus"<<vehicle->getCompletePath().size()<<std::endl;
-	delete vehicle;
-	vehicle = bus;
+//	delete vehicle;
+//	vehicle = bus;
 
 
 	//This code is used by Driver to set a few properties of the Vehicle/Bus.
-	if (vehicle && vehicle->hasPath()) {
+	if (bus && bus->hasPath()) {
 		setOrigin(params);
 	} else {
 		throw std::runtime_error("Vehicle could not be created for bus driver; no route!");
@@ -202,7 +202,7 @@ double sim_mob::BusDriver::updatePositionOnLink(DriverUpdateParams& p)
 			continue;
 		}
 
-		atBusStop = s.atOrPastBusStop(vehicle->getCurrSegment(), vehicle->getDistanceMovedInSegment());
+		atBusStop = s.atOrPastBusStop(bus->getCurrSegment(), bus->getDistanceMovedInSegment());
 		if (atBusStop)
 		{
 			std::cout<<"BusDriver::updatePositionOnLink:find bus stop"<<std::endl;
@@ -210,6 +210,12 @@ double sim_mob::BusDriver::updatePositionOnLink(DriverUpdateParams& p)
 			break;
 		}
 	}
+
+	if (DistanceToNextBusStop() < 50)
+	{
+		std::cout<<"BusDriver::updatePositionOnLink: bus stop coming <"<<DistanceToNextBusStop()<<"> meter"<<std::endl;
+	}
+
 	const RoadSegment *rseg = vehicle->getCurrSegment();
 	std::cout<<"BusDriver.updatePositionOnLink: current vehicle x: "<<rseg->getStart()->location.getX()
 			<<" y: "<<rseg->getStart()->location.getY()<<std::endl;
@@ -226,15 +232,15 @@ double sim_mob::BusDriver::updatePositionOnLink(DriverUpdateParams& p)
 	bool updatePos = false;
 	//std::cout<<"SEGMENT LENGTH    "<<vehicle->getCurrSegment()->getId()<<"        "<<vehicle->getCurrSegment()->laneEdgePolylines_cached.size()<<std::endl;
 	//If we are moving, then (optionally) decelerate and call normal update behavior.
-	if (vehicle->getVelocity()>0 || vehicle->getLatVelocity()>0) {
+	if (bus->getVelocity()>0 || bus->getLatVelocity()>0) {
 		if (atBusStop) {
 			//vehicle->setAcceleration(-300); //Force stop.
 
-			vehicle->setAcceleration(0);
-			vehicle->setVelocity(0); //TEMP: Need to really force it.
+			bus->setAcceleration(0);
+			bus->setVelocity(0); //TEMP: Need to really force it.
 			waitAtStopMS = p.currTimeMS; //TEMP: Need to force this too.
-			std::cout<<"SEGMENT LENGTH    "<<vehicle->getCurrSegment()->getId()<<"        "<<vehicle->getDistanceMovedInSegment()<<std::endl;
-			std::cout<<"Yay we are at bus stop"<<vehicle->getX()<<"      "<<vehicle->getY()<<std::endl;
+			std::cout<<"SEGMENT LENGTH    "<<bus->getCurrSegment()->getId()<<"        "<<bus->getDistanceMovedInSegment()<<std::endl;
+			std::cout<<"Yay we are at bus stop"<<bus->getX()<<"      "<<bus->getY()<<std::endl;
 		}
 		updatePos = true;
 	} else {
@@ -259,7 +265,30 @@ double sim_mob::BusDriver::updatePositionOnLink(DriverUpdateParams& p)
 	return res;
 }
 
+double sim_mob::BusDriver::DistanceToNextBusStop()
+{
+	double distance = -1;
+	double currentX = bus->getX();
+	double currentY = bus->getY();
+	bus->getRoute().getCurrentStop();
+	const RoadSegment* rs = bus->getCurrSegment();
+	const std::map<centimeter_t, const RoadItem*> & obstacles = rs->obstacles;
+	for(std::map<centimeter_t, const RoadItem*>::const_iterator o_it = obstacles.begin(); o_it != obstacles.end() ; o_it++)
+	{
+	   RoadItem* ri = const_cast<RoadItem*>(o_it->second);
+	   BusStop *bs = dynamic_cast<BusStop *>(ri);
+	   if(bs)
+	   {
+		   double busStopX = bs->xPos;
+		   double busStopY = bs->yPos;
+		   double dis = sqrt((currentX-busStopX)*(currentX-busStopX) + (currentY-busStopY)*(currentY-busStopY));
+		   if (distance == -1 || dis < distance) // in case more than one stop at the segment
+			   distance = dis;
+	   }
+	}
 
+	return distance;
+}
 //Main update functionality
 void sim_mob::BusDriver::frame_tick(UpdateParams& p)
 {
@@ -275,7 +304,7 @@ void sim_mob::BusDriver::frame_tick(UpdateParams& p)
 		}
 		if (waitAtStopMS == 0.0) {
 			//Done waiting at the bus stop.
-			Bus* bus = dynamic_cast<Bus*>(vehicle);
+			//Bus* bus = dynamic_cast<Bus*>(vehicle);
 			if (!bus) {
 				return; //TODO: Bus drivers should always have a Bus, by design...
 			}
@@ -294,28 +323,28 @@ void sim_mob::BusDriver::frame_tick(UpdateParams& p)
 void sim_mob::BusDriver::frame_tick_output(const UpdateParams& p)
 {
 	//Skip?
-	if (vehicle->isDone() || ConfigParams::GetInstance().is_run_on_many_computers) {
+	if (bus->isDone() || ConfigParams::GetInstance().is_run_on_many_computers) {
 		return;
 	}
 
 	//Vehicle should be a Bus
-	const Bus* bus = dynamic_cast<const Bus*>(vehicle);
+	//const Bus* bus = dynamic_cast<const Bus*>(vehicle);
 
-	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
+	double baseAngle = bus->isInIntersection() ? intModel->getCurrentAngle() : bus->getAngle();
 
 #ifndef SIMMOB_DISABLE_OUTPUT
 	LogOut("(\"BusDriver\""
 			<<","<<p.frameNumber
 			<<","<<parent->getId()
-			//<<","<<vehicle->getCurrSegment()->obstacles.size()<<"+"<<vehicle->getCurrSegment()->getId()
+			//<<","<<bus->getCurrSegment()->obstacles.size()<<"+"<<bus->getCurrSegment()->getId()
 
-			//<<"distance  "<<static_cast<int>(vehicle->getDistanceMovedInSegment())/(vehicle->getCurrLinkLaneZeroLength())
+			//<<"distance  "<<static_cast<int>(bus->getDistanceMovedInSegment())/(bus->getCurrLinkLaneZeroLength())
 			<<",{"
-			<<"\"xPos\":\""<<static_cast<int>(vehicle->getX())
-			<<"\",\"yPos\":\""<<static_cast<int>(vehicle->getY())
+			<<"\"xPos\":\""<<static_cast<int>(bus->getX())
+			<<"\",\"yPos\":\""<<static_cast<int>(bus->getY())
 			<<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI))
-			<<"\",\"length\":\""<<static_cast<int>(3*vehicle->length)
-			<<"\",\"width\":\""<<static_cast<int>(2*vehicle->width)
+			<<"\",\"length\":\""<<static_cast<int>(3*bus->length)
+			<<"\",\"width\":\""<<static_cast<int>(2*bus->width)
 			<<"\",\"passengers\":\""<<(bus?bus->getPassengerCount():0)
 			<<"\"})"<<std::endl);
 #endif
@@ -324,22 +353,22 @@ void sim_mob::BusDriver::frame_tick_output(const UpdateParams& p)
 void sim_mob::BusDriver::frame_tick_output_mpi(frame_t frameNumber)
 {
 	//Skip output?
-	if (frameNumber<parent->getStartTime() || vehicle->isDone()) {
+	if (frameNumber<parent->getStartTime() || bus->isDone()) {
 		return;
 	}
 
 #ifndef SIMMOB_DISABLE_OUTPUT
-	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
+	double baseAngle = bus->isInIntersection() ? intModel->getCurrentAngle() : bus->getAngle();
 
-	//Vehicle should be a Bus
-	const Bus* bus = dynamic_cast<const Bus*>(vehicle);
+	//bus should be a Bus
+	const Bus* bus = dynamic_cast<const Bus*>(bus);
 
 	std::stringstream logout;
 	logout << "(\"Driver\"" << "," << frameNumber << "," << parent->getId() << ",{" << "\"xPos\":\""
-			<< static_cast<int> (vehicle->getX()) << "\",\"yPos\":\"" << static_cast<int> (vehicle->getY())
-			<< "\",\"segment\":\"" << vehicle->getCurrSegment()->getId()
+			<< static_cast<int> (bus->getX()) << "\",\"yPos\":\"" << static_cast<int> (bus->getY())
+			<< "\",\"segment\":\"" << bus->getCurrSegment()->getId()
 			<< "\",\"angle\":\"" << (360 - (baseAngle * 180 / M_PI)) << "\",\"length\":\""
-			<< static_cast<int> (vehicle->length) << "\",\"width\":\"" << static_cast<int> (vehicle->width)
+			<< static_cast<int> (bus->length) << "\",\"width\":\"" << static_cast<int> (bus->width)
 			<<"\",\"passengers\":\""<<(bus?bus->getPassengerCount():0);
 
 	if (this->parent->isFake) {

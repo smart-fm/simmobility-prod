@@ -4,6 +4,7 @@
 
 #include "Driver.hpp"
 #include "entities/vehicle/BusRoute.hpp"
+#include "entities/vehicle/Bus.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -33,6 +34,9 @@ public:
 	//Functionality
 	//void setRoute(const BusRoute& route);
 
+	// get distance to bus stop (meter)
+	double DistanceToNextBusStop();
+
 //Basic data
 protected:
 	//Pointer to the vehicle this (bus) driver is controlling.
@@ -41,6 +45,8 @@ protected:
 
 	//Override the following behavior
 	virtual double updatePositionOnLink(DriverUpdateParams& p);
+
+	Bus* bus;
 
 private:
 	//BusRoute route;

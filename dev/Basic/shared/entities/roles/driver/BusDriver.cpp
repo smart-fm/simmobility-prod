@@ -211,9 +211,23 @@ double sim_mob::BusDriver::updatePositionOnLink(DriverUpdateParams& p)
 		}
 	}
 
-	if (DistanceToNextBusStop() < 50)
+	//if (DistanceToNextBusStop() < 50)
+	//bus approaching bus stop reduce speed
+	//and if its left has lane, merge to left lane
+	if (isBusApproachingBusStop())
 	{
+		// reduce speed
+		//...
 		std::cout<<"BusDriver::updatePositionOnLink: bus stop coming <"<<DistanceToNextBusStop()<<"> meter"<<std::endl;
+		//merge left lane
+		if (p.leftLane) //has lane in left?
+		{
+			//Lateral movement
+			if (!bus->isInIntersection()) {
+				bus->setTurningDirection(LCS_LEFT);
+			}
+		} else
+			bus->setLatVelocity(0);
 	}
 
 	const RoadSegment *rseg = vehicle->getCurrSegment();

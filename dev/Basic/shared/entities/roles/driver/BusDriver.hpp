@@ -37,6 +37,8 @@ public:
 	// get distance to bus stop (meter)
 	double DistanceToNextBusStop();
 
+	bool isBusApproachingBusStop();
+
 //Basic data
 protected:
 	//Pointer to the vehicle this (bus) driver is controlling.

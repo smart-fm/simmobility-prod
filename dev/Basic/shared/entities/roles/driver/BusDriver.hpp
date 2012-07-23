@@ -36,8 +36,14 @@ public:
 
 	// get distance to bus stop (meter)
 	double DistanceToNextBusStop();
+	// get distance to bus stop of particular segment (meter)
+	double getDistanceToBusStopOfSegment(const RoadSegment& roadSegment);
 
 	bool isBusApproachingBusStop();
+	bool isBusArriveBusStop();
+	bool isBusLeavingBusStop();
+
+	double lastTickDistanceToBusStop;
 
 //Basic data
 protected:

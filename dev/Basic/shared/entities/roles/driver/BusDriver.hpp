@@ -5,6 +5,7 @@
 #include "Driver.hpp"
 #include "entities/vehicle/BusRoute.hpp"
 #include "entities/vehicle/Bus.hpp"
+#include "DriverUpdateParams.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -39,11 +40,13 @@ public:
 	// get distance to bus stop of particular segment (meter)
 	double getDistanceToBusStopOfSegment(const RoadSegment& roadSegment);
 
+	bool isBusFarawayBusStop();
 	bool isBusApproachingBusStop();
 	bool isBusArriveBusStop();
 	bool isBusLeavingBusStop();
-
+	void busAccelerating(DriverUpdateParams& p);
 	double lastTickDistanceToBusStop;
+	DriverUpdateParams* myDriverUpdateParams;
 
 //Basic data
 protected:
@@ -52,7 +55,8 @@ protected:
 	//                   //      the PARENT class maintains a vehicle but we maintain a Bus*.
 
 	//Override the following behavior
-	virtual double updatePositionOnLink(DriverUpdateParams& p);
+//	virtual double updatePositionOnLink(DriverUpdateParams& p);
+	virtual double linkDriving(DriverUpdateParams& p);
 
 	Bus* bus;
 
@@ -62,6 +66,10 @@ private:
 	std::vector<DemoBusStop> stops;
 	std::vector<DemoBusStop> arrivedStops;
 	double waitAtStopMS;
+
+	MITSIM_LC_Model* mitsim_lc_model;
+
+
 
 
 	//Serialization, not implemented

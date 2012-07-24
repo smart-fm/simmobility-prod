@@ -132,14 +132,20 @@ private:
 	NodePoint goal;    //first, assume that each vehicle moves towards a goal
 
 
-	double maxLaneSpeed;
+
 	double disToFwdVehicleLastFrame; //to find whether vehicle is going to crash in current frame.
 	                                     //so distance in last frame need to be remembered.
 
 
 public:
+	double maxLaneSpeed;
 	//for coordinate transform
 	void setParentBufferedData();			///<set next data to parent buffer data
+
+	Agent* getDriverParent(const Driver *self)
+	{
+		return self->parent;
+	}
 	//void output(frame_t frameNumber);
 
 	/****************IN REAL NETWORK****************/
@@ -176,8 +182,10 @@ public:
 	void updateAdjacentLanes(DriverUpdateParams& p);
 	void updatePositionDuringLaneChange(DriverUpdateParams& p, LANE_CHANGE_SIDE relative);
 
+
 protected:
 	virtual double updatePositionOnLink(DriverUpdateParams& p);
+	virtual double linkDriving(DriverUpdateParams& p);
 	void initializePath();
 	void initializePathMed();
 	void resetPath(DriverUpdateParams& p);
@@ -186,9 +194,13 @@ protected:
 	//Helper: for special strings
 	void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);
 	void initTripChainSpecialString(const std::string& value);
+	NearestVehicle & nearestVehicle(DriverUpdateParams& p);
+
+	void perceivedDataProcess(NearestVehicle & nv, DriverUpdateParams& params);
+
+
 
 private:
-	NearestVehicle & nearestVehicle(DriverUpdateParams& p);
 	bool AvoidCrashWhenLaneChanging(DriverUpdateParams& p);
 	bool isCloseToLinkEnd(DriverUpdateParams& p) const;
 	bool isPedestrianOnTargetCrossing() const;
@@ -213,18 +225,18 @@ private:
 
 	void setTrafficSignalParams(DriverUpdateParams& p);
 	void intersectionDriving(DriverUpdateParams& p);
-	double linkDriving(DriverUpdateParams& p);
+
 
 	void findCrossing(DriverUpdateParams& p);
 
-	void perceivedDataProcess(NearestVehicle & nv, DriverUpdateParams& params);
 
 	/***********FOR DRIVING BEHAVIOR MODEL**************/
 private:
-	double targetSpeed;			//the speed which the vehicle is going to achieve
 
 	/**************BEHAVIOR WHEN APPROACHING A INTERSECTION***************/
 public:
+	double targetSpeed;			//the speed which the vehicle is going to achieve
+
 	void intersectionVelocityUpdate();
 
 	//This always returns the lane we are moving towards; regardless of if we've passed the

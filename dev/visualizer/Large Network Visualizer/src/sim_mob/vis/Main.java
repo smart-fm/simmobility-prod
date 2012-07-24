@@ -36,7 +36,7 @@ public class Main {
 		return files;
 	}
 	
-	
+	public static final boolean NEW_SIGNAL = false;
 	public static void main(String[] args) {
 		CSS_Interface config = BatikCSS_Loader.LoadCSS_Interface(GetConfigFiles());
 		new MainFrame(config).setVisible(true);

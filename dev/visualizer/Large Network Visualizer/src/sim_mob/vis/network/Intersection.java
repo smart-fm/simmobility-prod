@@ -85,6 +85,7 @@ public class Intersection {
 	}
 	
 	public Intersection(int intersectNodeID, ArrayList <Integer> signalLinkIDs, ArrayList <Integer> signalCrossingIDs){
+		
 		this.intersectNodeID = intersectNodeID;
 		this.signalLinkIDs = signalLinkIDs;
 		this.signalCrossingIDs = signalCrossingIDs;
@@ -143,7 +144,7 @@ public class Intersection {
 				 * to phase based design(still reusing the concept of
 				 * trafficSignalLine) and create
 				 */
-				TrafficSignalLine tempSignalLine = new TrafficSignalLine(fromLane, toLane,ph.name,-1);
+				TrafficSignalLine tempSignalLine = new TrafficSignalLine(fromLane, toLane,-1);
 				tempPhaseTrafficSignalLine.add(tempSignalLine);
 				//and an additional book keeping for trafficsignalupdate
 				rs.generatedTrafficSignalLine = tempSignalLine;

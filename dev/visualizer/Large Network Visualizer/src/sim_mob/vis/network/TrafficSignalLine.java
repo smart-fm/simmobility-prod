@@ -24,20 +24,17 @@ public class TrafficSignalLine implements DrawableItem{
 	private Node fromNode;
 	private Node toNode;
 	private Color currColor;
-	private String temPhaseName;
 	
 	private final int ARR_SIZE = 6; 
 	
 	
-	public TrafficSignalLine(Lane fromLane, Lane toLane,String temPhaseName_, int startingColor){
+	public TrafficSignalLine(Lane fromLane, Lane toLane, int startingColor){
 		this.fromLane = fromLane;
 		this.toLane = toLane;
 		this.findNode();
-		this.temPhaseName = temPhaseName_;
 		setLightColor(startingColor);
 	}
 	
-	public String getPhaseName() { return temPhaseName; }
 	public Lane getFromLane() { return fromLane; }
 	public Lane getToLane() { return toLane; }
 	public Node getFromNode() { return fromNode; }
@@ -82,18 +79,15 @@ public class TrafficSignalLine implements DrawableItem{
 		if(miniMumDistance == distStartStart){
 			fromNode = fromLane.getStartMiddleNode();
 			toNode = toLane.getStartMiddleNode();
-			System.out.println("FromNode, ToNode of the trafficsignal line selected 1");
 		} else if(miniMumDistance == distStartEnd){
 			fromNode = fromLane.getStartMiddleNode();
-			toNode = toLane.getEndMiddleNode();	
-			System.out.println("FromNode, ToNode of the trafficsignal line selected 2");	
+			toNode = toLane.getEndMiddleNode();		
 		} else if(miniMumDistance == distEndStart){
 			fromNode = fromLane.getEndMiddleNode();
 			toNode = toLane.getStartMiddleNode();
 		} else if(miniMumDistance == distEndEnd){
 			fromNode = fromLane.getEndMiddleNode();
 			toNode = toLane.getEndMiddleNode();
-			System.out.println("FromNode, ToNode of the trafficsignal line selected 4");
 		} else{
 			System.out.println("Error, No minimum distance -- TrafficSignalLine, findNode()");
 		}
@@ -109,15 +103,6 @@ public class TrafficSignalLine implements DrawableItem{
 	public void draw(Graphics2D g, DrawParams params) {
 		if (currColor==null) { return; }
 		if (!params.PastCriticalZoom) { return; }
-		String color_ = "Unknown";
-		if (currColor == Color.red)
-			color_ = "Red";
-		if (currColor ==  Color.green)
-			color_ = "green";
-		if (currColor ==  Color.yellow)
-			color_ = "yellow";
-//		if(temPhaseName.equals("C"))
-//		System.out.println("Phase : " + temPhaseName + "   Arrow [" + (int)fromNode.getPos().getX() + ":" + (int)fromNode.getPos().getY() + "] ---->> [" + (int)toNode.getPos().getX()+ ":" +(int)toNode.getPos().getY()+ "]   color: " + color_ );
 		g.setColor(currColor);
 		drawArrow(g, (int)fromNode.getPos().getX(), (int)fromNode.getPos().getY(),(int)toNode.getPos().getX(),(int)toNode.getPos().getY());
 		

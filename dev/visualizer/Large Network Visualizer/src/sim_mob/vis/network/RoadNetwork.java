@@ -21,6 +21,7 @@ import sim_mob.vis.simultion.SimulationResults;
 import sim_mob.vis.util.FastLineParser;
 import sim_mob.vis.util.Mapping;
 import sim_mob.vis.util.Utility;
+import sim_mob.vis.Main;
 import sim_mob.vis.ProgressUpdateRunner;
 import sim_mob.vis.network.Intersection;
 
@@ -155,7 +156,6 @@ public class RoadNetwork {
 			//New-style json strings use {}, while old-style ones use ().
 			boolean oldStyle = line.startsWith("(") && line.endsWith(")");
 			boolean newStyle = line.startsWith("{") && line.endsWith("}");
-			
 			if (!oldStyle && !newStyle) {
 				continue;
 			}
@@ -185,6 +185,7 @@ public class RoadNetwork {
 			    }
 			}
 		    
+		    
 		    if (pushUpdate) {
 			    try {
 			    	Thread.sleep(1);
@@ -201,9 +202,11 @@ public class RoadNetwork {
 		
 		//Add Link n ames
 		this.addLinkNames();
-		
+		if(Main.NEW_SIGNAL) //this is definitly a temporary fix (and definitly works :)) )
 		//Populate Intersections
-		this.populateIntersections_newStyle();
+			this.populateIntersections_newStyle();
+		else
+			this.populateIntersections();
 		
 		//Fix up connections between segments to look 
 		//pretty where # of lanes changes
@@ -618,7 +621,7 @@ public class RoadNetwork {
 			int toLaneNo = laneConnector.getToLane();
 			Lane fromLane = lanes.get(laneConnector.getFromSegment()).get(fromLaneNo);
 			Lane toLane = lanes.get(laneConnector.getToSegment()).get(toLaneNo);
-			TrafficSignalLine tempSignalLine = new TrafficSignalLine(fromLane, toLane,null, -1); 
+			TrafficSignalLine tempSignalLine = new TrafficSignalLine(fromLane, toLane, -1); 
 			trafficSignalLines.put(objID, tempSignalLine);	
 			
 		} else{

@@ -38,6 +38,11 @@ public:
 	    	return busstopno;
 	    }*/
 public:
+	virtual int GetKindOf() const
+	{
+		return 3;
+	}
+
 	///Which RoadItem and lane is this bus stop located at?
 	Lane* lane_location;
 
@@ -56,6 +61,8 @@ public:
 
 	///Is the pedestrian waiting area sheltered? Currently does not affect anything.
 	bool has_shelter;
+
+	//static const bool isBus = true;
 
 
 private:

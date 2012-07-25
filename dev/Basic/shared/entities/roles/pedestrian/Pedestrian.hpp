@@ -64,7 +64,6 @@ inline void operator++(PedestrianStage& rhs) {
 struct PedestrianUpdateParams : public sim_mob::UpdateParams {
 	explicit PedestrianUpdateParams(boost::mt19937& gen) : UpdateParams(gen) {}
 
-	virtual ~PedestrianUpdateParams() {}
 	virtual void reset(frame_t frameNumber, unsigned int currTimeMS)
 	{
 		sim_mob::UpdateParams::reset(frameNumber, currTimeMS);
@@ -91,6 +90,8 @@ class Pedestrian : public sim_mob::Role {
 public:
 	Pedestrian(Agent* parent, boost::mt19937& gen);
 	virtual ~Pedestrian();
+
+	//sim_mob::GeneralPathMover::PathWithDirection pathWithDirection;
 
 	//Virtual overrides
 	virtual void frame_init(UpdateParams& p);
@@ -136,11 +137,13 @@ private:
 	void setSubPath();
 	void updateVelocity(int);
 	void updatePosition();
-	void updatePedestrianSignal();
+	void updatePedestrianSignal(bool isFwd);
 	void checkForCollisions();
 	bool checkGapAcceptance();
 	void absToRel(double, double, double &, double &);
 	void relToAbs(double, double, double &, double &);
+	int calcDistance(Agent* parent, Point2D point);
+	int calcDistance(double xPos1, double yPos1, double xPos2, double yPos2);
 
 	//New functions
 	void initCrossing(const Crossing* currCross, boost::mt19937& gen);
@@ -165,10 +168,7 @@ private:
 #ifndef SIMMOB_DISABLE_MPI
 public:
 	friend class PartitionManager;
-#endif
 
-#ifndef SIMMOB_DISABLE_MPI
-public:
 	virtual void pack(PackageUtils& packageUtil);
 	virtual void unpack(UnPackageUtils& unpackageUtil);
 

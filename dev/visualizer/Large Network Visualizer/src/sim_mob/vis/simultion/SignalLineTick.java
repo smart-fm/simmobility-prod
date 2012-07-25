@@ -27,7 +27,7 @@ public class SignalLineTick{
 	//my solution:
 	private Hashtable<String ,ArrayList<TrafficSignalLine>> TrafficSignalLines;	//String is phase (A,B,C,...)
 	private HashMap<TrafficSignalLine, Color> TrafficSignalLines_Map;
-	private HashMap<Integer, Integer> CrossingID_Map;
+	private HashMap<Integer, Integer> CrossingID_Map;//<id,color>
 	public Hashtable<String ,ArrayList<TrafficSignalLine>> getAllTrafficSignalLines(){ return TrafficSignalLines;}
 	public HashMap<TrafficSignalLine, Color> getAllTrafficSignalLines_Map(){ return TrafficSignalLines_Map;}
 	public HashMap<Integer, Integer> getCrossingID_Map(){ return CrossingID_Map;}

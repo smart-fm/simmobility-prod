@@ -334,9 +334,11 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 		busAccelerating(p);
 
 	}
-	std::cout<<"BusDriver::updatePositionOnLink: bus velocity: "<<bus->getVelocity()/100.0<<std::endl;
-	std::cout<<"BusDriver::updatePositionOnLink: bus lateral velocity: "<<bus->getLatVelocity()/100.0<<std::endl;
-	std::cout<<"BusDriver::updatePositionOnLink: bus stop distance: "<<DistanceToNextBusStop()<<std::endl;
+	std::cout<<"BusDriver::updatePositionOnLink:tick: "<<p.currTimeMS/1000.0<<std::endl;
+	std::cout<<"BusDriver::updatePositionOnLink:busvelocity: "<<bus->getVelocity()/100.0<<std::endl;
+	std::cout<<"BusDriver::updatePositionOnLink:busacceleration: "<<bus->getAcceleration()/100.0<<std::endl;
+	std::cout<<"BusDriver::updatePositionOnLink:buslateralvelocity: "<<bus->getLatVelocity()/100.0<<std::endl;
+	std::cout<<"BusDriver::updatePositionOnLink:busstopdistance: "<<DistanceToNextBusStop()<<std::endl;
 
 	double rest = updatePositionOnLink(p);
 //	myDriverUpdateParams->currLaneIndex = p.currLaneIndex;
@@ -425,8 +427,8 @@ bool sim_mob::BusDriver::isBusLeavingBusStop()
 }
 double sim_mob::BusDriver::DistanceToNextBusStop()
 {
-	double distanceToCurrentSegmentBusStop = -100;
-	double distanceToNextSegmentBusStop = -100;
+	double distanceToCurrentSegmentBusStop = -1;
+	double distanceToNextSegmentBusStop = -1;
 	const RoadSegment* rsCurrent = bus->getCurrSegment();
 	const RoadSegment* rsNext = bus->getNextSegment(true);
 

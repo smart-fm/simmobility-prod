@@ -39,8 +39,8 @@ public:
 	///Set the path of RoadSegments contained in our path. These segments need not
 	/// necessarily be in the same Link.
 	///TODO: I'm not entirely sure that all cases of fwd/rev RoadSegments are handled properly.
+	void setPath(const std::vector<const sim_mob::RoadSegment*>& path, std::vector<bool>& areFwds, int startLaneID);
 	void setPath(const std::vector<const sim_mob::RoadSegment*>& path, int startLaneID);
-
 
 	//reset path
 	//in route choice model, it will be used when the vehicle is approaching an intersection
@@ -55,6 +55,7 @@ public:
 	///  road segment as applicable.
 	//Returns any "overflow" distance if we are in an intersection, 0 otherwise.
 	double advance(double fwdDistance);
+	double advance(const RoadSegment* currSegment, std::vector<const RoadSegment*> path, std::vector<bool> areFwds, double fwdDistance);
 
 	///Are we completely done?
 	bool isDoneWithEntireRoute() const;
@@ -165,11 +166,17 @@ public:
 	//Debug, the debug message also will be transformed and reset PC
 	mutable std::stringstream DebugStream;
 
+	struct PathWithDirection{
+		std::vector<const RoadSegment*> path;
+		std::vector<bool> areFwds;
+	}pathWithDirection;
+
 private:
 	//Helper functions
-	double advanceToNextPolyline();
+	double advanceToNextPolyline(bool isFwd);
 	double advanceToNextRoadSegment();
 	const Lane* actualMoveToNextSegmentAndUpdateDir();
+	void generateNewPolylineArray(const RoadSegment* currSegment, std::vector<const RoadSegment*> path, std::vector<bool> areFwds);
 	void generateNewPolylineArray();
 	void calcNewLaneDistances();
 	static double CalcSegmentLaneZeroDist(std::vector<const sim_mob::RoadSegment*>::const_iterator start, std::vector<const sim_mob::RoadSegment*>::const_iterator end);

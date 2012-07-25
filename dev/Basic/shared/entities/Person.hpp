@@ -43,6 +43,11 @@ public:
 	explicit Person(const MutexStrategy& mtxStrat, int id=-1);
 	virtual ~Person();
 
+	virtual int GetKindOf() const
+	{
+		return 3;
+	}
+
 	///Generate a person from a PendingEntity. Currently only works for Drivers/Pedestrians
 	static Person* GeneratePersonFromPending(const PendingEntity& p);
 

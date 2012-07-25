@@ -86,6 +86,12 @@ public:
 	virtual UpdateParams& make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
+	virtual int GetKindOf() const
+	{
+		return 2;
+	}
+
+
 //Buffered data
 public:
 	Shared<const Lane*> currLane_;

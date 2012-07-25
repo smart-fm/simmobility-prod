@@ -77,6 +77,7 @@ BusRoute MakeSampleRoute1(const vector<const RoadSegment*>& path)
         			DemoBusStop busStop;
         			xbs[c] = bs->xPos;
         			ybs[c] = bs->yPos;
+        			std::cout.precision(10);
         			std::cout << "MakeSampleRoute1: Bus stop position : " << xbs[c] << " " << ybs[c]<<"    "<<c << std::endl;
         			double remDist;
         			        /*std::cout<<"kya"<<next.seg->getId()<<std::endl;*/
@@ -174,7 +175,6 @@ void sim_mob::BusDriver::frame_init(UpdateParams& p)
 
 	bus = new Bus(MakeSampleRoute1(vehicle->getCompletePath()), vehicle);
 
-
 	//std::cout<<"Help I am a bus"<<vehicle->getCompletePath().size()<<std::endl;
 	delete vehicle;
 	vehicle = bus;
@@ -264,8 +264,8 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 	{
 		busAccelerating(p);
 
-		//move to left lane
-		p.nextLaneIndex = bus->getCurrSegment()->getLanes().size()-1;
+		//move to most left lane
+		p.nextLaneIndex = bus->getCurrSegment()->getLanes().back()->getLaneID();
 //		LANE_CHANGE_SIDE lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
 //		bus->setTurningDirection(lcs);
 //		double newLatVel;

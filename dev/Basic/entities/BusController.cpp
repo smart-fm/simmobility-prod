@@ -31,6 +31,13 @@ sim_mob::BusController::~BusController() {
 		}
 		active_buses.clear();
 	}
+
+	// pop all the other pending buses
+	if (!pending_buses.empty()) {
+		pending_buses.pop();
+	}
+	// pop all the other pending buses
+
 	if(currWorker) {
 		//Update our Entity's pointer if it has migrated out but not updated
 		currWorker = nullptr;
@@ -55,10 +62,22 @@ void sim_mob::BusController::updateBusInformation(DPoint pt) {
 	std::cout<<"Report Given Bus postion: --->("<<posBus.x<<","<<posBus.y<<")"<<std::endl;
 }
 
-void sim_mob::BusController::DispatchInit()
+void sim_mob::BusController::addOrStashBuses(const PendingEntity& p, std::vector<Entity*>& active_agents)
 {
-	//currWorker->scheduleForAddition();
+	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p.start==0) {
+		//Only agents with a start time of zero should start immediately in the all_agents list.
+		active_agents.push_back(Person::GeneratePersonFromPending(p));
+	} else {
+		//Start later.
+		pending_buses.push(p);
+		// pending_agents.push(p);---alternate methods
+	}
 }
+
+//void sim_mob::BusController::DispatchInit()
+//{
+//	//currWorker->scheduleForAddition();
+//}
 
 void sim_mob::BusController::DispatchFrameTick(frame_t frameTick)
 {
@@ -114,6 +133,7 @@ UpdateStatus sim_mob::BusController::update(frame_t frameNumber)
 			frame_init(frameNumber);
 			firstFrameTick = false;
 		}
+		DispatchFrameTick(frameNumber);
 
 		//save the output, if no buscontroller in the loadorder, no output
 		if (isTobeInList) {

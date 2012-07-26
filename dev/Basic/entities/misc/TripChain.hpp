@@ -32,7 +32,14 @@ struct TripActivity {
 };
 
 
-
+class BusSchedule
+{
+public:
+	std::string tripid;
+	sim_mob::DailyTime startTime;
+	std::string TMP_startTimeStr;
+	BusSchedule() {}
+};
 /**
  * A chain of activities.
  *

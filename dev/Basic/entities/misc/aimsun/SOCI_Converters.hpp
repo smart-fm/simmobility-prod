@@ -48,5 +48,26 @@ template<> struct type_conversion<TripChain>
     }
 };
 
+template<>
+struct type_conversion<BusSchedule>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, BusSchedule& bus_schedule)
+    {
+    	bus_schedule.tripid = values.get<std::string>("trip_id", "");
+    	bus_schedule.TMP_startTimeStr = values.get<std::string>("start_time", "");
+    }
+
+    static void
+    to_base(BusSchedule const & bus_schedule, soci::values & values, soci::indicator & indicator)
+    {
+        values.set("trip_id", bus_schedule.tripid);
+        values.set("start_time", bus_schedule.startTime.toString());
+        indicator = i_ok;
+    }
+};
+
 
 }

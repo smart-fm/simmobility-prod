@@ -232,9 +232,6 @@ bool generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	return true;
 }
 
-
-
-
 namespace {
   //Simple helper function
   KNOWN_ENTITY_TYPES EntityTypeFromConfigString(const std::string& str) {
@@ -255,6 +252,37 @@ namespace {
   }
 
 } //End anon namespace
+
+// Temporary Test---Yao Jin
+bool generateAgentsFromBusSchedule(std::vector<Entity*>& active_agents, AgentConstraints& constraints)
+{
+	ConfigParams& config = ConfigParams::GetInstance();
+	const vector<BusSchedule*>& busschedule = ConfigParams::GetInstance().getBusSchedule();
+	const vector<TripChain*>& tcs = ConfigParams::GetInstance().getTripChains();
+	for (vector<BusSchedule*>::const_iterator it=busschedule.begin(); it!=busschedule.end(); it++) {
+		//Create an Agent candidate based on the type.
+		PendingEntity p(EntityTypeFromConfigString("bus"));
+
+		//Origin, destination
+		//curr->originNode =
+		p.origin = tcs[0]->from.location;// dummy data
+		//curr->destNode =
+		p.dest = tcs[0]->to.location;// dummy data
+
+		//Start time
+		//curr->setStartTime(
+		p.start = (*it)->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
+
+
+		//Add it or stash it
+		busctrller.addOrStashBuses(p, active_agents);
+		//busctrller
+	}
+
+	return true;
+}
+// Temporary Test---Yao Jin
+
 bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, AgentConstraints& constraints)
 {
 	//Quick check.
@@ -1120,7 +1148,11 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 			if (!loadXMLAgents(document, active_agents, pending_agents, "buscontroller", constraints)) {
 				return	  "Couldn't load bus controllers";
 			}
-			busctrller.setTobeInList();
+			//busctrller.setTobeInList();
+//    	    if (!generateAgentsFromBusSchedule(active_agents, constraints)) {
+//    	    	return "Couldn't generate agents from busschedule by buscontroller.";
+//    	    }
+//    	    cout <<"Loaded Bus Agents (from Bus Control Center)." <<endl;
     	} else if ((*it) == "pedestrians") {
     		if (!loadXMLAgents(document, active_agents, pending_agents, "pedestrian", constraints)) {
     			return "Couldn't load pedestrians";

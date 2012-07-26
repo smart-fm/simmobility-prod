@@ -258,5 +258,4 @@ struct type_conversion<Signal>
     }
 };
 
-
 }

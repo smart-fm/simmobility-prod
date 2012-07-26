@@ -41,7 +41,14 @@ struct TripActivity {
 	int TMP_locationNodeID;
 };
 
-
+class BusSchedule
+{
+public:
+	std::string tripid;
+	sim_mob::DailyTime startTime;
+	std::string TMP_startTimeStr;
+	BusSchedule() {}
+};
 
 ///A trip chain. Not technically part of AIMSUN; we may have to rename this folder later.
 /// \author Seth N. Hetu

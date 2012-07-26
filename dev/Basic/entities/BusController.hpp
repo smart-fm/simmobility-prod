@@ -35,8 +35,9 @@ public:
 	virtual Entity::UpdateStatus update(frame_t frameNumber);
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 	void updateBusInformation(DPoint pt);
-	void DispatchInit();// similar to AddandStash --> p.start = 0
-	void DispatchFrameTick(frame_t frameTick);
+	void addOrStashBuses(const PendingEntity& p, std::vector<Entity*>& active_agents);
+	//void DispatchInit();// similar to AddandStash --> p.start = 0
+
 	bool getTobeInList() { return isTobeInList; }
 	void setTobeInList() { isTobeInList = true; }
 
@@ -48,6 +49,7 @@ public:
 	//const sim_mob::RoadNetwork& getNetwork() { return network; }
 
 private:
+	void DispatchFrameTick(frame_t frameTick);
 	void frame_init(frame_t frameNumber);
 	void frame_tick_output(frame_t frameNumber);
 	//static BusController instance_;

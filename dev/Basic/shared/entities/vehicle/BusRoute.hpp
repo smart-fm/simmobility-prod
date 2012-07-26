@@ -102,7 +102,7 @@ public:
 	}*/
 
 	explicit BusRoute(std::vector<DemoBusStop> stops=std::vector<DemoBusStop>()) : stops(stops) {
-		//Start driving at the beginning
+		//Start driving at the beginningx
 		reset();
 	}
 

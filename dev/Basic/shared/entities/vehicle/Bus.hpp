@@ -22,17 +22,17 @@ class UnPackageUtils;
  */
 class Bus : public sim_mob::Vehicle {
 public:
-	Bus(const BusRoute& route, const Vehicle* clone)
-	: Vehicle(*clone), passengerCount(0), route(route)
+	Bus(const Vehicle* clone)
+	: Vehicle(*clone), passengerCount(0)
 	{}
 
-	BusRoute& getRoute() { return route; }
+//	BusRoute& getRoute() { return route; }
 	int getPassengerCount() const { return passengerCount; }
 	void setPassengerCount(int val) { passengerCount = val; }
 
 private:
 	int passengerCount;
-	BusRoute route;
+//	BusRoute route;
 
 	//Serialization-related friends
 	friend class PackageUtils;

@@ -57,6 +57,10 @@ public:
 	///Is the pedestrian waiting area sheltered? Currently does not affect anything.
 	bool has_shelter;
 
+	// the position bus shall stop in segment from start node
+	//unit cm
+	double stopPoint;
+
 
 private:
 	///Get the bus lines available at this stop. Used for route planning.

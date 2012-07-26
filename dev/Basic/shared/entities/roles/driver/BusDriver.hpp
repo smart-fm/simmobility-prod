@@ -6,15 +6,16 @@
 #include "entities/vehicle/BusRoute.hpp"
 #include "entities/vehicle/Bus.hpp"
 #include "DriverUpdateParams.hpp"
-
+#include <vector>
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 #endif
+using std::vector;
 
 namespace sim_mob
 {
-
+#define BusStopVector vector<BusStop *>
 /**
  * This simple BusDriver class maintains a single, non-looping route with a series of
  *   stops. Most driving behavior is re-used from the Driver class. At bus stops, the
@@ -48,6 +49,8 @@ public:
 	double lastTickDistanceToBusStop;
 	DriverUpdateParams* myDriverUpdateParams;
 
+	BusStopVector findBusStopInPath(const vector<const RoadSegment*>& path);
+
 //Basic data
 protected:
 	//Pointer to the vehicle this (bus) driver is controlling.
@@ -66,6 +69,7 @@ private:
 	std::vector<DemoBusStop> stops;
 	std::vector<DemoBusStop> arrivedStops;
 	double waitAtStopMS;
+	BusStopVector busStops;
 
 	MITSIM_LC_Model* mitsim_lc_model;
 

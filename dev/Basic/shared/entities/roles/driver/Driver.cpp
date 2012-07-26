@@ -1128,7 +1128,7 @@ void sim_mob::Driver::initializePath() {
 //			startlaneID = 2;
 		vehicle = new Vehicle(path, startlaneID, length, width);
 	} catch (std::exception& ex) {
-		errorMsg << "ERROR: " << ex.what();
+		errorMsg << "initializePath: ERROR: " << ex.what();
 		std::cout << errorMsg.str() << std::endl;
 		throw ex;
 	}

@@ -179,6 +179,9 @@ public:
 	//This is probably ok.
 	const double getVehicleLength() const { return vehicle->length; }
 
+	void updateAdjacentLanes(DriverUpdateParams& p);
+	void updatePositionDuringLaneChange(DriverUpdateParams& p, LANE_CHANGE_SIDE relative);
+
 protected:
 	virtual double updatePositionOnLink(DriverUpdateParams& p);
 	void initializePath();
@@ -201,7 +204,7 @@ private:
 	//A bit verbose, but only used in 1 or 2 places.
 	void syncCurrLaneCachedInfo(DriverUpdateParams& p);
 	void justLeftIntersection(DriverUpdateParams& p);
-	void updateAdjacentLanes(DriverUpdateParams& p);
+
 	void updateVelocity();
 	void setBackToOrigin();
 
@@ -211,7 +214,7 @@ private:
 
 	//void updateCurrLaneLength(DriverUpdateParams& p);
 	void updateDisToLaneEnd();
-	void updatePositionDuringLaneChange(DriverUpdateParams& p, LANE_CHANGE_SIDE relative);
+
 	void saveCurrTrafficSignal();
 
 	void setTrafficSignalParams(DriverUpdateParams& p);
@@ -238,12 +241,14 @@ public:
 	// I'm sure we can do this in a less confusion fashion later.
 	LANE_CHANGE_SIDE getCurrLaneSideRelativeToCenter() const;
 
+	mutable std::stringstream DebugStream;
+
 private:
 	//The current traffic signal in our Segment. May be null.
 	const Signal* trafficSignal;
 
 	//For generating a debugging trace
-	mutable std::stringstream DebugStream;
+
 
 	//Serialization
 #ifndef SIMMOB_DISABLE_MPI

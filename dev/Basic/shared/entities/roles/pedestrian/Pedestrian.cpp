@@ -139,11 +139,11 @@ UpdateParams& sim_mob::Pedestrian::make_frame_tick_params(frame_t frameNumber, u
 void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 {
 	if( !fwdMovement.isDoneWithEntireRoute() ){
+		LogOut("noteForDebug look for obstacle, CurrDistAlongRoadSegment is "<< fwdMovement.getCurrDistAlongRoadSegment() << std::endl);
 		RoadItemAndOffsetPair obstacle = fwdMovement.getCurrSegment()->nextObstacle(fwdMovement.getCurrDistAlongRoadSegment(), true);
-		//LogOut("checkPoint_1" << std::endl);
 		if(obstacle.item!=nullptr)
 		{
-			//LogOut(obstacle.item->GetKindOf() << std::endl);
+			LogOut("noteForDebug obstacle is a busStop ?"<< obstacle.item->GetKindOf() << std::endl);
 			if(obstacle.item->GetKindOf() == 3){
 				LogOut("noteForBusStop"<< std::endl);
 				double obsX = ((BusStop *)obstacle.item)->xPos;
@@ -152,11 +152,11 @@ void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 				double pedY = fwdMovement.getPosition().y;
 				//LogOut("Obstacle x:"<<obsX<<" y:"<<obsY<<"  Pedestrian x:"<<pedX<<" y:"<<pedY<<std::endl);
 				//LogOut("offset:"<<(int)obstacle.offset<<" Dist:"<<(int)fwdMovement.getCurrDistAlongRoadSegment()<<std::endl);
-				if( calcDistance(obsX,obsY,pedX,pedY) < 2000 ){
+				if( calcDistance(obsX,obsY,pedX,pedY) < 1800 ){
 				//if( abs( obstacle.offset - fwdMovement.getCurrDistAlongRoadSegment() ) < 200 ){
-					LogOut("noteForDebug ped should stop"<< std::endl);
+					//LogOut("noteForDebug ped should stop"<< std::endl);
 					Agent* other = nullptr;
-					LogOut("all_agents_size:" << int (Agent::all_agents.size() ) << std::endl);
+					//LogOut("all_agents_size:" << int (Agent::all_agents.size() ) << std::endl);
 					for (size_t i = 0; i < Agent::all_agents.size(); i++) {
 						//Skip self
 						other = dynamic_cast<Agent*> (Agent::all_agents[i]);
@@ -169,11 +169,12 @@ void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 						}
 						//Check.
 						if( other->GetKindOf() == 3 ){
+							//LogOut("noteForDebug bus found"<< std::endl);
 							if( ((Person *)other)->getRole()->GetKindOf() == 3 ){
 								double dx = other->xPos.get() - parent->xPos.get();
 								double dy = other->yPos.get() - parent->yPos.get();
 								double distance = sqrt(dx * dx + dy * dy);
-								if (distance < 30 * agentRadius) {
+								if (distance < 1800) {
 									LogOut("noteForGetOnBus"<< std::endl);
 									parent->setToBeRemoved();
 								}

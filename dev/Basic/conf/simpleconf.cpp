@@ -1148,11 +1148,11 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 			if (!loadXMLAgents(document, active_agents, pending_agents, "buscontroller", constraints)) {
 				return	  "Couldn't load bus controllers";
 			}
-			//busctrller.setTobeInList();
-//    	    if (!generateAgentsFromBusSchedule(active_agents, constraints)) {
-//    	    	return "Couldn't generate agents from busschedule by buscontroller.";
-//    	    }
-//    	    cout <<"Loaded Bus Agents (from Bus Control Center)." <<endl;
+			busctrller.setTobeInList();
+    	    if (!generateAgentsFromBusSchedule(active_agents, constraints)) {
+    	    	return "Couldn't generate agents from busschedule by buscontroller.";
+    	    }
+    	    cout <<"Loaded Bus Agents (from Bus Control Center)." <<endl;
     	} else if ((*it) == "pedestrians") {
     		if (!loadXMLAgents(document, active_agents, pending_agents, "pedestrian", constraints)) {
     			return "Couldn't load pedestrians";

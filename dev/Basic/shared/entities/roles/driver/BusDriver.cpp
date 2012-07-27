@@ -1,7 +1,7 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "BusDriver.hpp"
-
+#include <sys/syscall.h>
 #include <vector>
 
 #include "entities/vehicle/BusRoute.hpp"
@@ -100,7 +100,7 @@ BusRoute MakeSampleRoute1(const vector<const RoadSegment*>& path)
         						    busStop.percent = t;
         						    busStop.distance = next->distance;
         						    res.push_back(busStop);
-        						    std::cout<<"PID<"<<getpid()<<"> "<<"MakeSampleRoute1: bus stop, percent is <"<<next->percent<<">"<<std::endl;
+        						    std::cout<<"PID<"<<syscall(SYS_gettid)<<"> "<<"MakeSampleRoute1: bus stop, percent is <"<<next->percent<<">"<<std::endl;
 //        						    std::cout<<"Olay Olay"<<res.at(i).percent<<std::endl;
         					        }
         					else
@@ -267,9 +267,9 @@ double sim_mob::BusDriver::updatePositionOnLink(DriverUpdateParams& p)
 		std::cout<<"BusDriver::updatePositionOnLink: bus isBusLeavingBusStop"<<std::endl;
 		waitAtStopMS = -1;
 	}
-	std::cout<<"PID<"<<getpid()<<"> "<<"BusDriver::updatePositionOnLink: bus velocity: "<<bus->getVelocity()/100.0<<std::endl;
-	std::cout<<"PID<"<<getpid()<<"> "<<"BusDriver::updatePositionOnLink: bus lateral velocity: "<<bus->getLatVelocity()/100.0<<std::endl;
-	std::cout<<"PID<"<<getpid()<<"> "<<"BusDriver::updatePositionOnLink: bus stop distance: "<<DistanceToNextBusStop()<<std::endl;
+	std::cout<<"PID<"<<syscall(SYS_gettid)<<"> "<<"BusDriver::updatePositionOnLink: bus velocity: "<<bus->getVelocity()/100.0<<std::endl;
+	std::cout<<"PID<"<<syscall(SYS_gettid)<<"> "<<"BusDriver::updatePositionOnLink: bus lateral velocity: "<<bus->getLatVelocity()/100.0<<std::endl;
+	std::cout<<"PID<"<<syscall(SYS_gettid)<<"> "<<"BusDriver::updatePositionOnLink: bus stop distance: "<<DistanceToNextBusStop()<<std::endl;
 	//std::cout<<"bus current lane can change left: "<<bus->getCurrLane()->can_change_lane_left()<<std::endl;
 	//std::cout<<"bus current lane can change right: "<<bus->getCurrLane()->can_change_lane_right()<<std::endl;
 

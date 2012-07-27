@@ -24,7 +24,7 @@
 #include "geospatial/Crossing.hpp"
 #include "geospatial/BusStop.hpp"
 #include "entities/Signal.hpp"
-
+#include <sys/syscall.h>
 #include "util/GeomHelpers.hpp"
 #include "geospatial/Point2D.hpp"
 
@@ -183,7 +183,7 @@ void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 										double dx = bdx - parent->xPos.get();
 										double dy = bdy - parent->yPos.get();
 										double distance = sqrt(dx * dx + dy * dy);
-										std::cout<<"PID<"<<getpid()<<"> "<<"bdx speed: "<<bdx<<" distance: "<<distance<<std::endl;
+										std::cout<<"PID<"<<syscall(SYS_gettid)<<"> "<<"bdx speed: "<<bdx<<" distance: "<<distance<<std::endl;
 										if (distance < 1800) {
 											std::cout<<"noteForGetOnBus"<< std::endl;
 											parent->setToBeRemoved();

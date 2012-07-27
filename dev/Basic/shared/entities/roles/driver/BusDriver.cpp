@@ -267,9 +267,9 @@ double sim_mob::BusDriver::updatePositionOnLink(DriverUpdateParams& p)
 		std::cout<<"BusDriver::updatePositionOnLink: bus isBusLeavingBusStop"<<std::endl;
 		waitAtStopMS = -1;
 	}
-	std::cout<<"BusDriver::updatePositionOnLink: bus velocity: "<<bus->getVelocity()/100.0<<std::endl;
-	std::cout<<"BusDriver::updatePositionOnLink: bus lateral velocity: "<<bus->getLatVelocity()/100.0<<std::endl;
-	std::cout<<"BusDriver::updatePositionOnLink: bus stop distance: "<<DistanceToNextBusStop()<<std::endl;
+	std::cout<<"PID<"<<getpid()<<"> "<<"BusDriver::updatePositionOnLink: bus velocity: "<<bus->getVelocity()/100.0<<std::endl;
+	std::cout<<"PID<"<<getpid()<<"> "<<"BusDriver::updatePositionOnLink: bus lateral velocity: "<<bus->getLatVelocity()/100.0<<std::endl;
+	std::cout<<"PID<"<<getpid()<<"> "<<"BusDriver::updatePositionOnLink: bus stop distance: "<<DistanceToNextBusStop()<<std::endl;
 	//std::cout<<"bus current lane can change left: "<<bus->getCurrLane()->can_change_lane_left()<<std::endl;
 	//std::cout<<"bus current lane can change right: "<<bus->getCurrLane()->can_change_lane_right()<<std::endl;
 

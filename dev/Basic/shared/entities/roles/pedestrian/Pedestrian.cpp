@@ -10,6 +10,7 @@
 #include "Pedestrian.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/driver/Driver.hpp"
+#include "entities/roles/driver/BusDriver.hpp"
 #include "geospatial/Node.hpp"
 #include "util/OutputUtil.hpp"
 #include "util/GeomHelpers.hpp"
@@ -140,54 +141,66 @@ void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 {
 	if( !fwdMovement.isDoneWithEntireRoute() ){
 		LogOut("noteForDebug look for obstacle, CurrDistAlongRoadSegment is "<< fwdMovement.getCurrDistAlongRoadSegment() << std::endl);
-		RoadItemAndOffsetPair obstacle = fwdMovement.getCurrSegment()->nextObstacle(fwdMovement.getCurrDistAlongRoadSegment(), true);
-		if(obstacle.item!=nullptr)
+		const RoadSegment* rs = fwdMovement.getCurrSegment();
+		const std::map<centimeter_t, const RoadItem*>  obstacles = rs->obstacles;
+		for(std::map<centimeter_t, const RoadItem*>::const_iterator o_it = obstacles.begin(); o_it != obstacles.end() ; o_it++)
 		{
-			LogOut("noteForDebug obstacle is a busStop ?"<< obstacle.item->GetKindOf() << std::endl);
-			if(obstacle.item->GetKindOf() == 3){
-				LogOut("noteForBusStop"<< std::endl);
-				double obsX = ((BusStop *)obstacle.item)->xPos;
-				double obsY = ((BusStop *)obstacle.item)->yPos;
-				double pedX = fwdMovement.getPosition().x;
-				double pedY = fwdMovement.getPosition().y;
-				//LogOut("Obstacle x:"<<obsX<<" y:"<<obsY<<"  Pedestrian x:"<<pedX<<" y:"<<pedY<<std::endl);
-				//LogOut("offset:"<<(int)obstacle.offset<<" Dist:"<<(int)fwdMovement.getCurrDistAlongRoadSegment()<<std::endl);
-				if( calcDistance(obsX,obsY,pedX,pedY) < 1800 ){
-				//if( abs( obstacle.offset - fwdMovement.getCurrDistAlongRoadSegment() ) < 200 ){
-					//LogOut("noteForDebug ped should stop"<< std::endl);
-					Agent* other = nullptr;
-					//LogOut("all_agents_size:" << int (Agent::all_agents.size() ) << std::endl);
-					for (size_t i = 0; i < Agent::all_agents.size(); i++) {
-						//Skip self
-						other = dynamic_cast<Agent*> (Agent::all_agents[i]);
-						if (!other) {
-							break;
-						} //Shouldn't happen; we might need to write a function for this later.
-						if (other->getId() == parent->getId()) {
-							other = nullptr;
-							continue;
-						}
-						//Check.
-						if( other->GetKindOf() == 3 ){
-							//LogOut("noteForDebug bus found"<< std::endl);
-							if( ((Person *)other)->getRole()->GetKindOf() == 3 ){
-								double dx = other->xPos.get() - parent->xPos.get();
-								double dy = other->yPos.get() - parent->yPos.get();
-								double distance = sqrt(dx * dx + dy * dy);
-								if (distance < 1800) {
-									LogOut("noteForGetOnBus"<< std::endl);
-									parent->setToBeRemoved();
+			RoadItem* ri = const_cast<RoadItem*>(o_it->second);
+			//
+			BusStop *bs = dynamic_cast<BusStop *>(ri);
+			if(bs)
+			{
+				std::cout<<"segment has bus stop"<< std::endl;
+					double obsX = bs->xPos;
+					double obsY = bs->yPos;
+					double pedX = fwdMovement.getPosition().x;
+					double pedY = fwdMovement.getPosition().y;
+
+					if( calcDistance(obsX,obsY,pedX,pedY) < 1800 ){
+						Agent* other = nullptr;
+						for (size_t i = 0; i < Agent::all_agents.size(); i++) {
+							//Skip self
+							other = dynamic_cast<Agent*> (Agent::all_agents[i]);
+							if (!other) {
+								break;
+							} //Shouldn't happen; we might need to write a function for this later.
+							if (other->getId() == parent->getId()) {
+								other = nullptr;
+								continue;
+							}
+							//Check.
+							if( other->GetKindOf() == 3 ){
+								//LogOut("noteForDebug bus found"<< std::endl);
+								if( ((Person *)other)->getRole()->GetKindOf() == 3 ){
+									BusDriver *bd = (BusDriver *)((Person *)other)->getRole();
+									double bdx = 0;
+									double bdy = 0;
+									if (bd)
+									{
+										bdx = bd->getPositionX();
+										bdy = bd->getPositionY();
+
+										double dx = bdx - parent->xPos.get();
+										double dy = bdy - parent->yPos.get();
+										double distance = sqrt(dx * dx + dy * dy);
+										std::cout<<"PID<"<<getpid()<<"> "<<"bdx speed: "<<bdx<<" distance: "<<distance<<std::endl;
+										if (distance < 1800) {
+											std::cout<<"noteForGetOnBus"<< std::endl;
+											parent->setToBeRemoved();
+										}
+									}//if (bd)
+
 								}
 							}
+							other = nullptr;
 						}
-						other = nullptr;
+						return;
+						//}
 					}
-					return;
-					//}
-				}
+				}//if(bs)
 			}
-		}
-	}
+		} // if( !fwdMovement.isDoneWithEntireRoute() ){
+
 	PedestrianUpdateParams& p2 = dynamic_cast<PedestrianUpdateParams&>(p);
 
 	//Is this the first frame tick?

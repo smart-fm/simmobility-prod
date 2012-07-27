@@ -50,6 +50,17 @@ public:
 
 	double lastTickDistanceToBusStop;
 
+	double getPositionX()
+	{
+		if (this->vehicle)
+			return this->bus->getX();
+	}
+	double getPositionY()
+	{
+		if (this->vehicle)
+			return this->bus->getY();
+	}
+
 //Basic data
 protected:
 	//Pointer to the vehicle this (bus) driver is controlling.

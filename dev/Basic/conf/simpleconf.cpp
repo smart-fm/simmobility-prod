@@ -265,9 +265,9 @@ bool generateAgentsFromBusSchedule(std::vector<Entity*>& active_agents, AgentCon
 
 		//Origin, destination
 		//curr->originNode =
-		p.origin = tcs[0]->from.location;// dummy data
+		p.origin = tcs[7]->from.location;// dummy data
 		//curr->destNode =
-		p.dest = tcs[0]->to.location;// dummy data
+		p.dest = tcs[7]->to.location;// dummy data
 
 		//Start time
 		//curr->setStartTime(

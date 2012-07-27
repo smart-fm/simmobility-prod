@@ -31,7 +31,7 @@ class BusRoute;
 class BusStop : public sim_mob::RoadItem {
 	
 public:
-	BusStop() : RoadItem() {}
+	BusStop() : RoadItem(),stopPoint(-1) {}
 
 	/* int getBusStopID() {
 		   int busstopno = atoi(busstopno_);

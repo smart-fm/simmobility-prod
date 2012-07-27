@@ -496,22 +496,50 @@ double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment& road
 //		        		<<rs->getStart()->location.getY()<<" rs end: "<<rs->getEnd()->location.getX()<<"  "
 //		        		<<rs->getEnd()->location.getY()<<std::endl;
 		const std::map<centimeter_t, const RoadItem*> & obstacles = rs->obstacles;
-		int i = 1;
+//		int i = 1;
 		for(std::map<centimeter_t, const RoadItem*>::const_iterator o_it = obstacles.begin(); o_it != obstacles.end() ; o_it++)
 		{
 		   RoadItem* ri = const_cast<RoadItem*>(o_it->second);
 		   BusStop *bs = dynamic_cast<BusStop *>(ri);
 		   if(bs)
 		   {
-//			   std::cout<<"BusDriver::DistanceToNextBusStop: find bus stop <"<<i<<"> in segment"<<std::endl;
-			   double busStopX = bs->xPos;
-			   double busStopY = bs->yPos;
-//				std::cout<<"BusDriver::DistanceToNextBusStop : bus stop position: "<<busStopX<<"  "<<busStopY<<std::endl;
-			   double dis = sqrt((currentX-busStopX)*(currentX-busStopX) + (currentY-busStopY)*(currentY-busStopY));
-			   if (distance < 0 || dis < distance) // in case more than one stop at the segment
-				   distance = dis;
-//				std::cout<<"BusDriver::DistanceToNextBusStop : distance: "<<distance/100.0<<std::endl;
-			   i++;
+			   if (roadSegment == bus->getCurrSegment())
+			   {
+
+				   if (bs->stopPoint < 0)
+				   {
+					   DynamicVector SegmentLength(rs->getEnd()->location.getX(),rs->getEnd()->location.getY(),rs->getStart()->location.getX(),rs->getStart()->location.getY());
+					   DynamicVector BusStopDistfromStart(bs->xPos,bs->yPos,rs->getStart()->location.getX(),rs->getStart()->location.getY());
+					   DynamicVector BusStopDistfromEnd(rs->getEnd()->location.getX(),rs->getEnd()->location.getY(),bs->xPos,bs->yPos);
+					   double a = BusStopDistfromStart.getMagnitude();
+					   double b = BusStopDistfromEnd.getMagnitude();
+					   double c = SegmentLength.getMagnitude();
+					   bs->stopPoint = (-b*b + a*a + c*c)/(2.0*c);
+				   }
+
+				   if (bs->stopPoint >= 0)
+				   {
+						DynamicVector BusDistfromStart(bus->getX(),bus->getY(),rs->getStart()->location.getX(),rs->getStart()->location.getY());
+						std::cout<<"BusDriver::DistanceToNextBusStop: bus move in segment: "<<BusDistfromStart.getMagnitude()<<std::endl;
+						distance = bs->stopPoint - BusDistfromStart.getMagnitude();
+					}
+			   }
+			   else
+			   {
+				   DynamicVector busToSegmentStartDistance(currentX,currentY,
+						   rs->getStart()->location.getX(),rs->getStart()->location.getY());
+				   distance = busToSegmentStartDistance.getMagnitude() + bs->stopPoint;
+			   }
+
+////			   std::cout<<"BusDriver::DistanceToNextBusStop: find bus stop <"<<i<<"> in segment"<<std::endl;
+//			   double busStopX = bs->xPos;
+//			   double busStopY = bs->yPos;
+////				std::cout<<"BusDriver::DistanceToNextBusStop : bus stop position: "<<busStopX<<"  "<<busStopY<<std::endl;
+//			   double dis = sqrt((currentX-busStopX)*(currentX-busStopX) + (currentY-busStopY)*(currentY-busStopY));
+//			   if (distance < 0 || dis < distance) // in case more than one stop at the segment
+//				   distance = dis;
+////				std::cout<<"BusDriver::DistanceToNextBusStop : distance: "<<distance/100.0<<std::endl;
+//			   i++;
 		   }
 		}
 

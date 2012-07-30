@@ -180,7 +180,13 @@ string ReadLowercase(TiXmlHandle& handle, const std::string& attrName)
 void addOrStashEntity(const PendingEntity& p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
 	if (ENTITY_BUSCONTROLLER == p.type) {
+		//NOTE: This is where the problem can easily be corrected. Instead of pushing back the static Agent, push
+		//      back a generated entity. You can look at "Person::GeneratePersonFromPending()" to see how this is
+		//      accomplished for persons.
+		//This is not a critical issue; rather, it is a "code cleanup" tasks that you should perform
+		//      when you have free time. Try to make your code more robust. ~Seth
 		active_agents.push_back(&BusController::busctrller);
+
 	} else if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p.start==0) {
 		//Only agents with a start time of zero should start immediately in the all_agents list.
 		active_agents.push_back(Person::GeneratePersonFromPending(p));
@@ -1148,7 +1154,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 			if (!loadXMLAgents(document, active_agents, pending_agents, "buscontroller", constraints)) {
 				return	  "Couldn't load bus controllers";
 			}
-			BusController::busctrller.setTobeInList();
     	    if (!generateAgentsFromBusSchedule(active_agents, constraints)) {
     	    	return "Couldn't generate agents from busschedule by buscontroller.";
     	    }

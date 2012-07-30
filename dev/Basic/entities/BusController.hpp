@@ -37,8 +37,14 @@ public:
 	void addOrStashBuses(const PendingEntity& p, std::vector<Entity*>& active_agents);
 	//void DispatchInit();// similar to AddandStash --> p.start = 0
 
-	bool getTobeInList() { return isTobeInList; }
-	void setTobeInList() { isTobeInList = true; }
+	//NOTE: There's two problems here:
+	//      1) You use a static "BusController", which is not flexible.
+	//      2) You use a flag "isToBeInList" to determine if output should be produced each time tick.
+	//The proper way to do this is to have BusController(s) load from the config file and NOT be static,
+	//      and then always assume that output will be printed. Remember, we are using an agent-based
+	//      system, so the idea of a "static" agent doesn't make a lot of sense.
+	//For now, I am fixing this by having getToBeInList() always return true.
+	bool getToBeInList() { return true; }
 
 	// Manage Buses
 	void addBus(Bus* bus);
@@ -59,7 +65,6 @@ private:
 	frame_t nextTimeTickToStage;// next timeTick to be checked
 	unsigned int tickStep;
 	bool firstFrameTick;  ///Determines if frame_init() has been done.
-	bool isTobeInList;// Determines whether Xml has buscontroller thus to be updated in output file
 	std::vector<Bus*> managedBuses;// Saved all virtual managedBuses
 	std::vector<Bus*> active_buses;// Saved all active buses(from frame 0)
 	StartTimePriorityQueue pending_buses; //Buses waiting to be added to the simulation, prioritized by start time.

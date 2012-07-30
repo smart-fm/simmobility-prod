@@ -72,7 +72,7 @@ Person* sim_mob::Person::GeneratePersonFromPending(const PendingEntity& p)
 	//res->setNextEvent(nullptr);
 	//res->setNextActivity(nullptr);
 	//res->setOnActivity(false);
-	//res->setNextPathPlanned(false);
+	res->setNextPathPlanned(false);
 	res->setTripChain(p.entityTripChain);
 	res->findNextItemInTripChain();
 

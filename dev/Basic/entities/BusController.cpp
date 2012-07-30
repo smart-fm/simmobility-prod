@@ -51,7 +51,7 @@ void sim_mob::BusController::addOrStashBuses(const PendingEntity& p, std::vector
 }
 
 
-void sim_mob::BusController::DispatchFrameTick(frame_t frameTick)
+void sim_mob::BusController::dispatchFrameTick(frame_t frameTick)
 {
 	nextTimeTickToStage += tickStep;
 	unsigned int nextTickMS = nextTimeTickToStage*ConfigParams::GetInstance().baseGranMS;
@@ -70,63 +70,48 @@ void sim_mob::BusController::DispatchFrameTick(frame_t frameTick)
 
 UpdateStatus sim_mob::BusController::update(frame_t frameNumber)
 {
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
-		profile.logAgentUpdateBegin(*this, frameNumber);
-#endif
+	//NOTE: I am removing the AGENT_UPDATE_PROFILE/STRICT_AGENT_ERRORS check, since it was clearly copied from Person.cpp
+	//      We will (after merging) be migrating the "frame_init"/"frame_tick" pattern out of Person and into Agent, with
+	//      Entity remaining the "minimal" class. To make this easier, it will help if BusController::update() only contains
+	//      what will later go into BusController::frame_tick.
+	// ~Seth
 
-	UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
-#ifndef SIMMOB_STRICT_AGENT_ERRORS
-	try {
-#endif
-		//First, we need to retrieve an UpdateParams subclass appropriate for this Agent.
-		unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
+	unsigned int currTimeMS = frameNumber*ConfigParams::GetInstance().baseGranMS;
 
-		//Has update() been called early?
-		if(currTimeMS < getStartTime()) {
-			//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
-			if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-				std::stringstream msg;
-				msg << "Agent(" << getId() << ") specifies a start time of: " << getStartTime()
-						<< " but it is currently: " << currTimeMS
-						<< "; this indicates an error, and should be handled automatically.";
-				throw std::runtime_error(msg.str().c_str());
-			}
-			return UpdateStatus::Continue;
+	//Has update() been called early?
+	//TODO: This should eventually go into its own helper function in the Agent class.
+	//      Aim for the following API:
+	//      if (updateBeforeStartTime() { return UpdateStatus::Continue; }
+	//      ...and have the parent function take care of throwing the error. ~Seth
+	if (currTimeMS < getStartTime()) {
+		//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
+		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+			std::stringstream msg;
+			msg << "Agent(" << getId() << ") specifies a start time of: "
+					<< getStartTime() << " but it is currently: " << currTimeMS
+					<< "; this indicates an error, and should be handled automatically.";
+			throw std::runtime_error(msg.str().c_str());
 		}
+		return UpdateStatus::Continue;
+	}
 
-		if (firstFrameTick) {
-			frame_init(frameNumber);
-			firstFrameTick = false;
-		}
-		DispatchFrameTick(frameNumber);
+	//TEMPORARY: will exist at the Agent level later.
+	if (firstFrameTick) {
+		frame_init(frameNumber);
+		firstFrameTick = false;
+	}
+	//END TEMPORARY
 
-		//save the output, if no buscontroller in the loadorder, no output
-		if (getToBeInList()) {
-			frame_tick_output(frameNumber);
-		}
+	//TEMPORARY: This will become our frame_tick method.
+	dispatchFrameTick(frameNumber);
+	//END TEMPORARY
 
-//Respond to errors only if STRICT is off; otherwise, throw it (so we can catch it in the debugger).
-#ifndef SIMMOB_STRICT_AGENT_ERRORS
-} catch (std::exception& ex) {
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
-		profile.logAgentException(*this, frameNumber, ex);
-#endif
+	//TEMPORARY: This will become frame_output
+	frame_tick_output(frameNumber);
+	//END TEMPORARY
 
-		//Add a line to the output file.
-#ifndef SIMMOB_DISABLE_OUTPUT
-		std::stringstream msg;
-		msg <<"Error updating BusController[" <<getId() <<"], will be removed from the simulation.";
-		msg <<"Current frame is: " << frameNumber << "\n";
-		msg <<ex.what();
-		LogOut(msg.str() <<std::endl);
-#endif
-}
-#endif
-
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
-	profile.logAgentUpdateEnd(*this, frameNumber);
-#endif
-	return retVal;
+	//The variable UpdateStatus::Continue is a convenient way of returning just the simple status.
+	return UpdateStatus::Continue;
 }
 
 void sim_mob::BusController::frame_init(frame_t frameNumber)
@@ -136,6 +121,11 @@ void sim_mob::BusController::frame_init(frame_t frameNumber)
 
 void sim_mob::BusController::frame_tick_output(frame_t frameNumber)
 {
+	//if no buscontroller in the loadorder, no output
+	if (!getToBeInList()) {
+		return;
+	}
+
 #ifndef SIMMOB_DISABLE_OUTPUT
 	LogOut("(\"BusController\""
 			<<","<<frameNumber

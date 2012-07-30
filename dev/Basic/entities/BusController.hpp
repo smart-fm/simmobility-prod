@@ -54,7 +54,7 @@ public:
 private:
 	explicit BusController(int id=-1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered);
 
-	void DispatchFrameTick(frame_t frameTick);
+	void dispatchFrameTick(frame_t frameTick);
 	void frame_init(frame_t frameNumber);
 	void frame_tick_output(frame_t frameNumber);
 

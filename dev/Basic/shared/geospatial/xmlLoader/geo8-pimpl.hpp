@@ -221,6 +221,7 @@ namespace geo
 
   class fwdBckSegments_t_pimpl: public virtual fwdBckSegments_t_pskel
   {
+	  std::vector<sim_mob::RoadSegment*> Segments;
     public:
     virtual void
     pre ();
@@ -285,6 +286,7 @@ namespace geo
 
   class link_t_pimpl: public virtual link_t_pskel
   {
+	  sim_mob::Link * link;
     public:
     virtual void
     pre ();
@@ -799,6 +801,7 @@ namespace geo
 
   class Segments_pimpl: public virtual Segments_pskel
   {
+	  std::vector<sim_mob::RoadSegment*> fwd,bck,uniq;
     public:
     virtual void
     pre ();

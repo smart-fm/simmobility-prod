@@ -8,7 +8,11 @@
 #include "util/OpaqueProperty.hpp"
 #include "Pavement.hpp"
 #include "Link.hpp"
-
+namespace geo
+{
+class segment_t_pimpl;
+class Segments_pimpl;
+}
 namespace sim_mob
 {
 
@@ -109,7 +113,7 @@ private:
 
 	///Which link this appears in
 	sim_mob::Link* parentLink;
-
+	std::string segmentID;
 friend class sim_mob::aimsun::Loader;
 friend class sim_mob::aimsun::LaneLoader;
 friend class sim_mob::RoadNetworkPackageManager;

@@ -376,16 +376,14 @@ namespace geo
   void fwdBckSegments_t_pimpl::
   Segment (sim_mob::RoadSegment* Segment)
   {
-    // TODO
-    //
+	  Segments.push_back(Segment);
   }
 
   std::vector<sim_mob::RoadSegment*> fwdBckSegments_t_pimpl::
   post_fwdBckSegments_t ()
   {
-    // TODO
-    //
-    // return ... ;
+	  std::cout << "In post_fwdBckSegments_t\n";
+	  return Segments;
   }
 
   // RoadSegmentsAt_t_pimpl
@@ -419,44 +417,45 @@ namespace geo
   void segment_t_pimpl::
   segmentID (const ::std::string& segmentID)
   {
-    std::cout << "segmentID: " << segmentID << std::endl;
+	  this->rs->segmentID = segmentID;
   }
 
   void segment_t_pimpl::
   startingNode (const ::std::string& startingNode)
   {
-    std::cout << "startingNode: " << startingNode << std::endl;
+	  if(this->rs->start)//nodes are loaded after links-segment-lane... so this is null
+		  this->rs->start->setID(atoi(startingNode.c_str()));
   }
 
   void segment_t_pimpl::
   endingNode (const ::std::string& endingNode)
   {
-    std::cout << "endingNode: " << endingNode << std::endl;
+	  if (this->rs->end)
+	  this->rs->end->setID(atoi(endingNode.c_str()));
   }
 
   void segment_t_pimpl::
   maxSpeed (short maxSpeed)
   {
-    std::cout << "maxSpeed: " << maxSpeed << std::endl;
+	  this->rs->maxSpeed = maxSpeed;
   }
 
   void segment_t_pimpl::
   Length (unsigned int Length)
   {
-    std::cout << "Length: " << Length << std::endl;
+	  this->rs->length = Length;
   }
 
   void segment_t_pimpl::
   Width (unsigned int Width)
   {
-    std::cout << "Width: " << Width << std::endl;
+	  this->rs->width = Width;
   }
 
   void segment_t_pimpl::
   Lanes (std::vector<sim_mob::Lane*> Lanes)
   {
-    // TODO
-    //
+	  this->rs->lanes =  Lanes;
   }
 
   void segment_t_pimpl::
@@ -474,9 +473,8 @@ namespace geo
   sim_mob::RoadSegment* segment_t_pimpl::
   post_segment_t ()
   {
-    // TODO
-    //
-    // return ... ;
+	  std::cout << "Returning A segment\n";
+	  return rs;
   }
 
   // link_t_pimpl
@@ -485,17 +483,19 @@ namespace geo
   void link_t_pimpl::
   pre ()
   {
+	  link = new sim_mob::Link();
   }
 
   void link_t_pimpl::
   linkID (const ::std::string& linkID)
   {
-    std::cout << "linkID: " << linkID << std::endl;
+	  link->linkID = linkID;
   }
 
   void link_t_pimpl::
   roadName (const ::std::string& roadName)
   {
+	  link->roadName = roadName;
     std::cout << "roadName: " << roadName << std::endl;
   }
 
@@ -514,8 +514,7 @@ namespace geo
   void link_t_pimpl::
   Segments (std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> > Segments)
   {
-    // TODO
-    //
+
   }
 
   sim_mob::Link* link_t_pimpl::
@@ -1325,23 +1324,19 @@ namespace geo
   void Segments_pimpl::
   FWDSegments (std::vector<sim_mob::RoadSegment*> FWDSegments)
   {
-    // TODO
-    //
+	  fwd = FWDSegments;
   }
 
   void Segments_pimpl::
   BKDSegments (std::vector<sim_mob::RoadSegment*> BKDSegments)
   {
-    // TODO
-    //
+	  bck = BKDSegments;
   }
 
   std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> > Segments_pimpl::
   post_Segments ()
   {
-    // TODO
-    //
-    // return ... ;
+	  return (std::make_pair(fwd,bck));
   }
 
   // Links_pimpl

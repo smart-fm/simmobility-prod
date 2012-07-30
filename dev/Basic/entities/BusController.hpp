@@ -30,7 +30,6 @@ class BusController : public sim_mob::Agent
 public:
 	static BusController busctrller;
 
-	explicit BusController(const MutexStrategy& mtxStrat = sim_mob::ConfigParams::GetInstance().mutexStategy, int id=-1);
 	~BusController();
 	virtual Entity::UpdateStatus update(frame_t frameNumber);
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
@@ -49,6 +48,8 @@ public:
 	//const sim_mob::RoadNetwork& getNetwork() { return network; }
 
 private:
+	explicit BusController(const MutexStrategy& mtxStrat = sim_mob::ConfigParams::GetInstance().mutexStategy, int id=-1);
+
 	void DispatchFrameTick(frame_t frameTick);
 	void frame_init(frame_t frameNumber);
 	void frame_tick_output(frame_t frameNumber);

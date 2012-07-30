@@ -262,9 +262,12 @@ namespace {
 // Temporary Test---Yao Jin
 bool generateAgentsFromBusSchedule(std::vector<Entity*>& active_agents, AgentConstraints& constraints)
 {
+	//Some handy references
 	ConfigParams& config = ConfigParams::GetInstance();
-	const vector<BusSchedule*>& busschedule = ConfigParams::GetInstance().getBusSchedule();
-	const vector<TripChain*>& tcs = ConfigParams::GetInstance().getTripChains();
+	const vector<BusSchedule*>& busschedule = config.getBusSchedule();
+	const vector<TripChain*>& tcs = config.getTripChains();
+
+	//Create a single entity for each bus schedule in the database.
 	for (vector<BusSchedule*>::const_iterator it=busschedule.begin(); it!=busschedule.end(); it++) {
 		//Create an Agent candidate based on the type.
 		PendingEntity p(EntityTypeFromConfigString("bus"));
@@ -277,7 +280,7 @@ bool generateAgentsFromBusSchedule(std::vector<Entity*>& active_agents, AgentCon
 
 		//Start time
 		//curr->setStartTime(
-		p.start = (*it)->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
+		p.start = (*it)->startTime.offsetMS_From(config.simStartTime);
 
 
 		//Add it or stash it

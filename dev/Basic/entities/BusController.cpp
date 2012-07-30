@@ -36,7 +36,7 @@ void sim_mob::BusController::remBus(Bus* bus)
 
 void sim_mob::BusController::updateBusInformation(DPoint pt) {
 	posBus = pt;
-	std::cout<<"Report Given Bus postion: --->("<<posBus.x<<","<<posBus.y<<")"<<std::endl;
+	std::cout<<"Report Given Bus position: --->("<<posBus.x<<","<<posBus.y<<")"<<std::endl;
 }
 
 void sim_mob::BusController::addOrStashBuses(const PendingEntity& p, std::vector<Entity*>& active_agents)
@@ -47,7 +47,6 @@ void sim_mob::BusController::addOrStashBuses(const PendingEntity& p, std::vector
 	} else {
 		//Start later.
 		pending_buses.push(p);
-		// pending_agents.push(p);---alternate methods
 	}
 }
 

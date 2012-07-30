@@ -30,15 +30,9 @@ public:
 	virtual void frame_tick_output(const UpdateParams& p);
 	virtual void frame_tick_output_mpi(frame_t frameNumber);
 
-	//Functionality
-	//void setRoute(const BusRoute& route);
 
 //Basic data
 protected:
-	//Pointer to the vehicle this (bus) driver is controlling.
-	//Vehicle* vehicle;  //NOTE: I'm not sure what the best way is in C++ to say that
-	//                   //      the PARENT class maintains a vehicle but we maintain a Bus*.
-
 	//Override the following behavior
 	virtual double updatePositionOnLink(DriverUpdateParams& p);
 

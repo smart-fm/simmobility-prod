@@ -37,7 +37,6 @@ public:
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 	void updateBusInformation(DPoint pt);
 	void addOrStashBuses(const PendingEntity& p, std::vector<Entity*>& active_agents);
-	//void DispatchInit();// similar to AddandStash --> p.start = 0
 
 	//NOTE: There's two problems here:
 	//      1) You use a static "BusController", which is not flexible.
@@ -51,9 +50,6 @@ public:
 	// Manage Buses
 	void addBus(Bus* bus);
 	void remBus(Bus* bus);
-	///Retrieve a reference to the list of managedBuses.
-	//std::vector<Bus*>& getManagedBuses() { return managedBuses; }
-	//const sim_mob::RoadNetwork& getNetwork() { return network; }
 
 private:
 	explicit BusController(int id=-1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered);
@@ -61,16 +57,13 @@ private:
 	void DispatchFrameTick(frame_t frameTick);
 	void frame_init(frame_t frameNumber);
 	void frame_tick_output(frame_t frameNumber);
-	//static BusController instance_;
 
 	frame_t frameNumberCheck;// check some frame number to do control
 	frame_t nextTimeTickToStage;// next timeTick to be checked
 	unsigned int tickStep;
 	bool firstFrameTick;  ///Determines if frame_init() has been done.
 	std::vector<Bus*> managedBuses;// Saved all virtual managedBuses
-	//std::vector<Bus*> active_buses;// Saved all active buses(from frame 0)
 	StartTimePriorityQueue pending_buses; //Buses waiting to be added to the simulation, prioritized by start time.
-	//sim_mob::RoadNetwork network;// Saved RoadNetwork
 	DPoint posBus;// The sent position of a given bus ,only for test
 
 #ifndef SIMMOB_DISABLE_MPI

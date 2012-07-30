@@ -40,11 +40,6 @@ sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat, unsigned i
 {
 }
 
-/*void sim_mob::BusDriver::setRoute(const BusRoute& route)
-{
-	this->route = route;
-	nextStop = this->route.getCurrentStop();
-}*/
 
 
 void sim_mob::BusDriver::frame_init(UpdateParams& p)

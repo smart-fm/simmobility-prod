@@ -72,7 +72,7 @@ void Signal::createStringRepresentation()
 /*Signal Sonstructor*/
 Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id)
   : Agent(mtxStrat, id)
-	, loopDetector_(*this, mtxStrat)
+	, loopDetector_(new LoopDetectorEntity(*this, mtxStrat))
 	, node_(node)
 {
 	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&node_);

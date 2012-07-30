@@ -127,7 +127,7 @@ public:
 //    LinkAndCrossingByLink &getLinkAndCrossingsByLink() {return LinkAndCrossings_.get<2>();}
     LinkAndCrossingByLink const & getLinkAndCrossingsByLink() const {return LinkAndCrossings_.get<2>();}
 //    const std::vector<sim_mob::Link const *> & getSignalLinks() const;
-    LoopDetectorEntity const & loopDetector() const { return loopDetector_; }
+    LoopDetectorEntity const & loopDetector() const { return *loopDetector_; }
 
 
 	/*--------Updation----------*/
@@ -278,7 +278,8 @@ private:
 //	static Signal & signal_at(Node const & node, const MutexStrategy& mtxStrat);
 	friend class DatabaseLoader;
 protected:
-        LoopDetectorEntity loopDetector_;
+		//NOTE: See the old Signal class for why this has to (temporarily) be a pointer. ~Seth
+        LoopDetectorEntity* loopDetector_;
 
 protected:
 //        void setupIndexMaps();

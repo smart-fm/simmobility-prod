@@ -11,6 +11,7 @@
 
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
+#include "entities/PendingEntity.hpp"
 
 using std::map;
 using std::vector;
@@ -90,6 +91,16 @@ void sim_mob::WorkGroup::startAll()
 }
 
 
+void sim_mob::WorkGroup::scheduleEntity(const PendingEntity& ent)
+{
+	//No-one's using DISABLE_DYNAMIC_DISPATCH anymore; we can eventually remove it.
+	if (!loader) { throw std::runtime_error("Can't schedule an entity with dynamic dispatch disabled."); }
+
+	//Schedule it to start later.
+	loader->pending_source.push(ent);
+}
+
+
 void sim_mob::WorkGroup::stageEntities()
 {
 	//Even with dynamic dispatch enabled, some WorkGroups simply don't manage entities.
@@ -102,9 +113,6 @@ void sim_mob::WorkGroup::stageEntities()
 	while (!loader->pending_source.empty() && loader->pending_source.top().start <= nextTickMS) {
 		//Remove it.
 		Person* ag = Person::GeneratePersonFromPending(loader->pending_source.top());
-
-		//std::cout <<"Check: " <<loader->pending_source.top().manualID <<" => " <<ag->getId() <<std::endl;
-		//throw 1;
 
 		loader->pending_source.pop();
 

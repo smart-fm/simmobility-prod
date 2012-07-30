@@ -53,18 +53,32 @@ void sim_mob::BusController::addOrStashBuses(const PendingEntity& p, std::vector
 
 void sim_mob::BusController::dispatchFrameTick(frame_t frameTick)
 {
+	//Note: The WorkGroup (see below) will delay an entity until its time tick has arrived, so there's nothing wrong
+	//      with dispatching early. To reflect this, I've added +3 to the next time tick. Ideally, the BusController
+	//      would stage the Bus as soon as it was 100% sure that this bus would run. (We can add functionality later for
+	//      updating a pending request). In other words, let the WorkGroup do what it does best. ~Seth
 	nextTimeTickToStage += tickStep;
-	unsigned int nextTickMS = nextTimeTickToStage*ConfigParams::GetInstance().baseGranMS;
-	while (!pending_buses.empty() && pending_buses.top().start <= nextTickMS) {
-		Person* ag = Person::GeneratePersonFromPending(pending_buses.top());
+	unsigned int nextTickMS = (nextTimeTickToStage+3)*ConfigParams::GetInstance().baseGranMS;
 
-		pending_buses.pop();
+	//Stage any pending entities that will start during this time tick.
+	while (!pending_buses.empty() && pending_buses.top().start <= nextTickMS) {
+		//Person* ag = Person::GeneratePersonFromPending(pending_buses.top());
+		//pending_buses.pop();
 
 		//Add it to our global list.
-		Agent::all_agents.push_back(ag);
+		//NOTE: This is extremely likely to corrupt memory; we should NOT be modifying all_agents while
+		//      other agents are reading it.
+		//Agent::all_agents.push_back(ag);
 
 		//Find a worker to assign this to and send it the Entity to manage.
-		currWorker->getParent()->assignAWorker(ag);
+		//NOTE: This is safe (since assignAWorker pushes to a temporary list), but it will result in the Bus being
+		//      dispatched a time tick too late.
+		//currWorker->getParent()->assignAWorker(ag);
+
+		//Instead, we simply let the WorkGroup  handle it (which takes care of all_agents and assignAWorker).
+		//  Remember, duplicated code is evil. ~Seth
+		currWorker->getParent()->scheduleEntity(pending_buses.top());
+		pending_buses.pop();
 	}
 }
 

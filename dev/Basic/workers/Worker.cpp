@@ -192,6 +192,13 @@ void sim_mob::Worker::barrier_mgmt()
 }
 
 
+void sim_mob::Worker::migrateAllOut()
+{
+	while (!managedEntities.empty()) {
+		migrateOut(*managedEntities.back());
+	}
+}
+
 
 void sim_mob::Worker::migrateOut(Entity& ag)
 {

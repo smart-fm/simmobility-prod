@@ -66,10 +66,13 @@ sim_mob::WorkGroup::WorkGroup(size_t size, unsigned int endTick, unsigned int ti
 
 sim_mob::WorkGroup::~WorkGroup()
 {
-	for (size_t i=0; i<workers.size(); i++) {
-		workers[i]->join();  //NOTE: If we don't join all Workers, we get threading exceptions.
-		delete workers[i];
+	for (vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
+		Worker* wk = *it;
+		wk->join();  //NOTE: If we don't join all Workers, we get threading exceptions.
+		wk->migrateAllOut(); //This ensures that Agents can safely delete themselves.
+		delete wk;
 	}
+	workers.clear();
 }
 
 

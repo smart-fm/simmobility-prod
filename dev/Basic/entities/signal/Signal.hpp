@@ -111,6 +111,10 @@ public:
 	void setSplitPlan(sim_mob::SplitPlan);
 	void setCycleLength(sim_mob::Cycle);
 	Signal(Node const & node, const MutexStrategy& mtxStrat, int id=-1);
+
+	//Note: You need a virtual destructor or else superclass destructors won't be called. ~Seth
+	virtual ~Signal() {}
+
     static Signal const & signalAt(Node const & node, const MutexStrategy& mtxStrat,bool *isNew = false);//bool isNew : since this function will create and return new signal if already existing signals not found, a switch to indicate what happened in the function would be nice
     void addSignalSite(centimeter_t xpos, centimeter_t ypos,std::string const & typeCode, double bearing);
     void findIncomingLanes();

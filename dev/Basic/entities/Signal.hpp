@@ -169,6 +169,9 @@ public:
 
 	Signal(Node const & node, const MutexStrategy& mtxStrat, int id=-1);
 
+	//Note: You need a virtual destructor or else superclass destructors won't be called. ~Seth
+	virtual ~Signal() {}
+
         /**
          * Return the road-network node where this Signal is located.
          */

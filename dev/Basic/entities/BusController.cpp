@@ -34,10 +34,11 @@ sim_mob::BusController::~BusController() {
 		pending_buses.pop();
 	}
 
-	if(currWorker) {
+	//NOTE: This is dangerous behavior; the Worker will still be tracking the Agent!
+	/*if(currWorker) {
 		//Update our Entity's pointer if it has migrated out but not updated
 		currWorker = nullptr;
-	}
+	}*/
 }
 
 void sim_mob::BusController::addBus(Bus* bus)

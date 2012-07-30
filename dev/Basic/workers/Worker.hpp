@@ -86,6 +86,8 @@ private:
 	void migrateOut(Entity& ent);
 	void migrateIn(Entity& ent);
 
+	void migrateAllOut();
+
 
 protected:
 	//Properties

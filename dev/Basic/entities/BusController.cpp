@@ -14,28 +14,12 @@ sim_mob::BusController* sim_mob::BusController::busctrller = new sim_mob::BusCon
 sim_mob::BusController::BusController(int id, const MutexStrategy& mtxStrat) :
 	Agent(mtxStrat, id),frameNumberCheck(0), nextTimeTickToStage(0), tickStep(1), firstFrameTick(true)
 {
-
 }
 
-sim_mob::BusController::~BusController() {
-	//Clear all tracked entities
-	//clear_delete_vector(managedBuses);
-
-	//Clear all active buses
-	//clear_delete_vector(active_buses);
-
-	//NOTE: This will only remove 1 item. Are you sure you don't mean "clear"? ~Seth
-	//NOTE: I'm commenting it out anyway, since vectors will naturally clear their contents on destruction. ~Seth
-	/*if (!pending_buses.empty()) {
-		pending_buses.pop();
-	}*/
-
-	//NOTE: This is dangerous behavior; the Worker will still be tracking the Agent!
-	/*if(currWorker) {
-		//Update our Entity's pointer if it has migrated out but not updated
-		currWorker = nullptr;
-	}*/
+sim_mob::BusController::~BusController()
+{
 }
+
 
 void sim_mob::BusController::addBus(Bus* bus)
 {
@@ -67,10 +51,6 @@ void sim_mob::BusController::addOrStashBuses(const PendingEntity& p, std::vector
 	}
 }
 
-//void sim_mob::BusController::DispatchInit()
-//{
-//	//currWorker->scheduleForAddition();
-//}
 
 void sim_mob::BusController::DispatchFrameTick(frame_t frameTick)
 {
@@ -78,18 +58,11 @@ void sim_mob::BusController::DispatchFrameTick(frame_t frameTick)
 	unsigned int nextTickMS = nextTimeTickToStage*ConfigParams::GetInstance().baseGranMS;
 	while (!pending_buses.empty() && pending_buses.top().start <= nextTickMS) {
 		Person* ag = Person::GeneratePersonFromPending(pending_buses.top());
-		//std::cout <<"Check: " <<loader->pending_source.top().manualID <<" => " <<ag->getId() <<std::endl;
-		//throw 1;
 
 		pending_buses.pop();
 
-//		if (sim_mob::Debug::WorkGroupSemantics) {
-//			std::cout <<"Staging agent ID: " <<ag->getId() <<" in time for tick: " <<nextTimeTickToStage <<"\n";
-//		}
-
 		//Add it to our global list.
 		Agent::all_agents.push_back(ag);
- 		//add a virtual Bus here  just like the real bus to be assigned to the Person
 
 		//Find a worker to assign this to and send it the Entity to manage.
 		currWorker->getParent()->assignAWorker(ag);

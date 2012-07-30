@@ -8,6 +8,8 @@
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.MachO64" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.PE" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
@@ -19,7 +21,7 @@
 				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="Cmake-based build" id="cdt.managedbuild.config.gnu.exe.debug.1174903641.48752345" name="Debug" parent="cdt.managedbuild.config.gnu.exe.debug">
 					<folderInfo id="cdt.managedbuild.config.gnu.exe.debug.1174903641.48752345." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.exe.debug.1646435696" name="Linux GCC" resourceTypeBasedDiscovery="true" superClass="cdt.managedbuild.toolchain.gnu.exe.debug">
-							<targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.debug.18922563" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.debug"/>
+							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF;org.eclipse.cdt.core.MachO64;org.eclipse.cdt.core.PE" id="cdt.managedbuild.target.gnu.platform.exe.debug.18922563" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.debug"/>
 							<builder arguments="-C ${ProjDirPath}/Debug VERBOSE=1 -j2" buildPath="" command="make" id="cdt.managedbuild.target.gnu.builder.exe.debug.197986699" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.exe.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.base.1161554787" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 							<tool command="g++" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1746382223" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug">
@@ -63,57 +65,14 @@
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
-			<storageModule moduleId="scannerConfiguration"/>
-			<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
-				<buildTargets>
-					<target name="Run CMake (Debug)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-						<buildCommand>cmake</buildCommand>
-						<buildArguments>-E chdir Debug/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Debug -DBUILD_TESTS:BOOL=OFF -U\*SIMMOBTEST\*</buildArguments>
-						<buildTarget/>
-						<stopOnError>true</stopOnError>
-						<useDefaultCommand>false</useDefaultCommand>
-						<runAllBuilders>false</runAllBuilders>
-					</target>
-					<target name="Run CMake (Release)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-						<buildCommand>cmake</buildCommand>
-						<buildArguments>-E chdir Release/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_TESTS:BOOL=OFF -U\*SIMMOBTEST\*</buildArguments>
-						<buildTarget/>
-						<stopOnError>true</stopOnError>
-						<useDefaultCommand>false</useDefaultCommand>
-						<runAllBuilders>false</runAllBuilders>
-					</target>
-					<target name="Run CMake (Tests)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-						<buildCommand>cmake</buildCommand>
-						<buildArguments>-E chdir Debug/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Debug -DBUILD_TESTS:BOOL=ON -U\*SIMMOBTEST\*</buildArguments>
-						<buildTarget/>
-						<stopOnError>true</stopOnError>
-						<useDefaultCommand>false</useDefaultCommand>
-						<runAllBuilders>false</runAllBuilders>
-					</target>
-					<target name="Run CMake (Z_GenProfile)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-						<buildCommand>cmake</buildCommand>
-						<buildArguments>-E chdir Release/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_TESTS:BOOL=OFF -DSIMMOBTEST_GENERATE_PROFILE:BOOL=ON  -DSIMMOBTEST_USE_PROFILE:BOOL=OFF</buildArguments>
-						<buildTarget/>
-						<stopOnError>true</stopOnError>
-						<useDefaultCommand>false</useDefaultCommand>
-						<runAllBuilders>false</runAllBuilders>
-					</target>
-					<target name="Run CMake (Z_UseProfile)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-						<buildCommand>cmake</buildCommand>
-						<buildArguments>-E chdir Release/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_TESTS:BOOL=OFF -DSIMMOBTEST_USE_PROFILE:BOOL=ON -DSIMMOBTEST_GENERATE_PROFILE:BOOL=OFF</buildArguments>
-						<buildTarget/>
-						<stopOnError>true</stopOnError>
-						<useDefaultCommand>false</useDefaultCommand>
-						<runAllBuilders>false</runAllBuilders>
-					</target>
-				</buildTargets>
-			</storageModule>
 		</cconfiguration>
 		<cconfiguration id="cdt.managedbuild.config.gnu.exe.release.940372817.1365015940">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.release.940372817.1365015940" moduleId="org.eclipse.cdt.core.settings" name="Release">
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.MachO64" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.PE" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
@@ -125,7 +84,7 @@
 				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="Cmake-based build" id="cdt.managedbuild.config.gnu.exe.release.940372817.1365015940" name="Release" parent="cdt.managedbuild.config.gnu.exe.release">
 					<folderInfo id="cdt.managedbuild.config.gnu.exe.release.940372817.1365015940." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.exe.release.443872556" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.exe.release">
-							<targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.release.1298068545" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.release"/>
+							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF;org.eclipse.cdt.core.MachO64;org.eclipse.cdt.core.PE" id="cdt.managedbuild.target.gnu.platform.exe.release.1298068545" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.release"/>
 							<builder arguments="-C ${ProjDirPath}/Release VERBOSE=1 -j2" buildPath="" command="make" id="cdt.managedbuild.target.gnu.builder.exe.release.257536984" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.exe.release"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.base.394001014" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release.1075040931" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.release">
@@ -173,57 +132,14 @@
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
-			<storageModule moduleId="scannerConfiguration"/>
-			<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
-				<buildTargets>
-					<target name="Run CMake (Debug)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-						<buildCommand>cmake</buildCommand>
-						<buildArguments>-E chdir Debug/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Debug -DBUILD_TESTS:BOOL=OFF -U\*SIMMOBTEST\*</buildArguments>
-						<buildTarget/>
-						<stopOnError>true</stopOnError>
-						<useDefaultCommand>false</useDefaultCommand>
-						<runAllBuilders>false</runAllBuilders>
-					</target>
-					<target name="Run CMake (Release)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-						<buildCommand>cmake</buildCommand>
-						<buildArguments>-E chdir Release/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_TESTS:BOOL=OFF -U\*SIMMOBTEST\*</buildArguments>
-						<buildTarget/>
-						<stopOnError>true</stopOnError>
-						<useDefaultCommand>false</useDefaultCommand>
-						<runAllBuilders>false</runAllBuilders>
-					</target>
-					<target name="Run CMake (Tests)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-						<buildCommand>cmake</buildCommand>
-						<buildArguments>-E chdir Debug/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Debug -DBUILD_TESTS:BOOL=ON -U\*SIMMOBTEST\*</buildArguments>
-						<buildTarget/>
-						<stopOnError>true</stopOnError>
-						<useDefaultCommand>false</useDefaultCommand>
-						<runAllBuilders>false</runAllBuilders>
-					</target>
-					<target name="Run CMake (Z_GenProfile)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-						<buildCommand>cmake</buildCommand>
-						<buildArguments>-E chdir Release/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_TESTS:BOOL=OFF -DSIMMOBTEST_GENERATE_PROFILE:BOOL=ON  -DSIMMOBTEST_USE_PROFILE:BOOL=OFF</buildArguments>
-						<buildTarget/>
-						<stopOnError>true</stopOnError>
-						<useDefaultCommand>false</useDefaultCommand>
-						<runAllBuilders>false</runAllBuilders>
-					</target>
-					<target name="Run CMake (Z_UseProfile)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-						<buildCommand>cmake</buildCommand>
-						<buildArguments>-E chdir Release/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_TESTS:BOOL=OFF -DSIMMOBTEST_USE_PROFILE:BOOL=ON -DSIMMOBTEST_GENERATE_PROFILE:BOOL=OFF</buildArguments>
-						<buildTarget/>
-						<stopOnError>true</stopOnError>
-						<useDefaultCommand>false</useDefaultCommand>
-						<runAllBuilders>false</runAllBuilders>
-					</target>
-				</buildTargets>
-			</storageModule>
 		</cconfiguration>
 		<cconfiguration id="cdt.managedbuild.config.gnu.exe.debug.1174903641.48752345.627055805">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.debug.1174903641.48752345.627055805" moduleId="org.eclipse.cdt.core.settings" name="Tests">
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.MachO64" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.PE" point="org.eclipse.cdt.core.BinaryParser"/>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
@@ -235,7 +151,7 @@
 				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="Cmake-based build, tests" id="cdt.managedbuild.config.gnu.exe.debug.1174903641.48752345.627055805" name="Tests" parent="cdt.managedbuild.config.gnu.exe.debug">
 					<folderInfo id="cdt.managedbuild.config.gnu.exe.debug.1174903641.48752345.627055805." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.exe.debug.639052906" name="Linux GCC" resourceTypeBasedDiscovery="true" superClass="cdt.managedbuild.toolchain.gnu.exe.debug">
-							<targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.debug.689736935" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.debug"/>
+							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF;org.eclipse.cdt.core.MachO64;org.eclipse.cdt.core.PE" id="cdt.managedbuild.target.gnu.platform.exe.debug.689736935" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.debug"/>
 							<builder arguments="-C ${ProjDirPath}/Debug VERBOSE=1 -j2" buildPath="" command="make" id="cdt.managedbuild.target.gnu.builder.exe.debug.1981019731" keepEnvironmentInBuildfile="false" managedBuildOn="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.exe.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.base.752464848" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 							<tool command="g++" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG}${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.256902521" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug">
@@ -279,51 +195,6 @@
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 			<storageModule moduleId="org.eclipse.cdt.core.language.mapping"/>
 			<storageModule moduleId="org.eclipse.cdt.internal.ui.text.commentOwnerProjectMappings"/>
-			<storageModule moduleId="scannerConfiguration"/>
-			<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
-				<buildTargets>
-					<target name="Run CMake (Debug)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-						<buildCommand>cmake</buildCommand>
-						<buildArguments>-E chdir Debug/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Debug -DBUILD_TESTS:BOOL=OFF -U\*SIMMOBTEST\*</buildArguments>
-						<buildTarget/>
-						<stopOnError>true</stopOnError>
-						<useDefaultCommand>false</useDefaultCommand>
-						<runAllBuilders>false</runAllBuilders>
-					</target>
-					<target name="Run CMake (Release)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-						<buildCommand>cmake</buildCommand>
-						<buildArguments>-E chdir Release/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_TESTS:BOOL=OFF -U\*SIMMOBTEST\*</buildArguments>
-						<buildTarget/>
-						<stopOnError>true</stopOnError>
-						<useDefaultCommand>false</useDefaultCommand>
-						<runAllBuilders>false</runAllBuilders>
-					</target>
-					<target name="Run CMake (Tests)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-						<buildCommand>cmake</buildCommand>
-						<buildArguments>-E chdir Debug/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Debug -DBUILD_TESTS:BOOL=ON -U\*SIMMOBTEST\*</buildArguments>
-						<buildTarget/>
-						<stopOnError>true</stopOnError>
-						<useDefaultCommand>false</useDefaultCommand>
-						<runAllBuilders>false</runAllBuilders>
-					</target>
-					<target name="Run CMake (Z_GenProfile)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-						<buildCommand>cmake</buildCommand>
-						<buildArguments>-E chdir Release/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_TESTS:BOOL=OFF -DSIMMOBTEST_GENERATE_PROFILE:BOOL=ON  -DSIMMOBTEST_USE_PROFILE:BOOL=OFF</buildArguments>
-						<buildTarget/>
-						<stopOnError>true</stopOnError>
-						<useDefaultCommand>false</useDefaultCommand>
-						<runAllBuilders>false</runAllBuilders>
-					</target>
-					<target name="Run CMake (Z_UseProfile)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
-						<buildCommand>cmake</buildCommand>
-						<buildArguments>-E chdir Release/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_TESTS:BOOL=OFF -DSIMMOBTEST_USE_PROFILE:BOOL=ON -DSIMMOBTEST_GENERATE_PROFILE:BOOL=OFF</buildArguments>
-						<buildTarget/>
-						<stopOnError>true</stopOnError>
-						<useDefaultCommand>false</useDefaultCommand>
-						<runAllBuilders>false</runAllBuilders>
-					</target>
-				</buildTargets>
-			</storageModule>
 		</cconfiguration>
 	</storageModule>
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
@@ -352,5 +223,49 @@
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.exe.debug.1174903641;cdt.managedbuild.config.gnu.exe.debug.1174903641.;cdt.managedbuild.tool.gnu.cpp.compiler.exe.debug.1352657951;cdt.managedbuild.tool.gnu.cpp.compiler.input.1868378277">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 		</scannerConfigBuildInfo>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
+		<buildTargets>
+			<target name="Run CMake (Debug)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>cmake</buildCommand>
+				<buildArguments>-E chdir Debug/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Debug -DBUILD_TESTS:BOOL=OFF -U\*SIMMOBTEST\*</buildArguments>
+				<buildTarget/>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>false</useDefaultCommand>
+				<runAllBuilders>false</runAllBuilders>
+			</target>
+			<target name="Run CMake (Release)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>cmake</buildCommand>
+				<buildArguments>-E chdir Release/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_TESTS:BOOL=OFF -U\*SIMMOBTEST\*</buildArguments>
+				<buildTarget/>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>false</useDefaultCommand>
+				<runAllBuilders>false</runAllBuilders>
+			</target>
+			<target name="Run CMake (Tests)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>cmake</buildCommand>
+				<buildArguments>-E chdir Debug/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Debug -DBUILD_TESTS:BOOL=ON -U\*SIMMOBTEST\*</buildArguments>
+				<buildTarget/>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>false</useDefaultCommand>
+				<runAllBuilders>false</runAllBuilders>
+			</target>
+			<target name="Run CMake (Z_GenProfile)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>cmake</buildCommand>
+				<buildArguments>-E chdir Release/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_TESTS:BOOL=OFF -DSIMMOBTEST_GENERATE_PROFILE:BOOL=ON  -DSIMMOBTEST_USE_PROFILE:BOOL=OFF</buildArguments>
+				<buildTarget/>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>false</useDefaultCommand>
+				<runAllBuilders>false</runAllBuilders>
+			</target>
+			<target name="Run CMake (Z_UseProfile)" path="" targetID="org.eclipse.cdt.build.MakeTargetBuilder">
+				<buildCommand>cmake</buildCommand>
+				<buildArguments>-E chdir Release/ cmake -G "Unix Makefiles" ../ -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_TESTS:BOOL=OFF -DSIMMOBTEST_USE_PROFILE:BOOL=ON -DSIMMOBTEST_GENERATE_PROFILE:BOOL=OFF</buildArguments>
+				<buildTarget/>
+				<stopOnError>true</stopOnError>
+				<useDefaultCommand>false</useDefaultCommand>
+				<runAllBuilders>false</runAllBuilders>
+			</target>
+		</buildTargets>
 	</storageModule>
 </cproject>

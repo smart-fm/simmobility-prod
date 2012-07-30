@@ -28,8 +28,8 @@ class Bus;
 class BusController : public sim_mob::Agent
 {
 public:
-//	static BusController & getInstance() {return sim_mob::BusController::instance_;}
-//	static BusController * get_pInstance() {return &(sim_mob::BusController::instance_);}
+	static BusController busctrller;
+
 	explicit BusController(const MutexStrategy& mtxStrat = sim_mob::ConfigParams::GetInstance().mutexStategy, int id=-1);
 	~BusController();
 	virtual Entity::UpdateStatus update(frame_t frameNumber);
@@ -76,4 +76,4 @@ public:
 };
 
 }
-extern sim_mob::BusController busctrller;
+

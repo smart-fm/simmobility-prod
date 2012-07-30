@@ -28,13 +28,13 @@
 #include "util/DailyTime.hpp"
 
 //Just temporarily, so we know it compiles:
+#include "entities/BusController.hpp"
 #include "entities/Signal.hpp"
 #include "conf/simpleconf.hpp"
 #include "entities/AuraManager.hpp"
 #include "entities/TrafficWatch.hpp"
 #include "entities/Bus.hpp"
 #include "entities/Person.hpp"
-#include "entities/BusController.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
@@ -285,13 +285,6 @@ bool performMain(const std::string& configFileName) {
 //		trafficWatch.update(currTick);
 		agentWorkers.waitExternAgain(); // The workers wait on the AuraManager.
 
-//		BusController& busctrller = BusController::getInstance();
-//		busctrller.update((frame_t)currTick);// update in the output file, add by Yao Jin
-
-
-		//Surveillance update
-		//updateSurveillanceData(agents);
-
 		//Check if the warmup period has ended.
 		if (warmupDone) {
 			//updateGUI(agents);
@@ -360,10 +353,7 @@ bool performMain(const std::string& configFileName) {
 		}
 	}
 
-//	if(busctrller.getTobeInList()) {// if there is buscontroller inside the Xml
-//		busctrller.currWorker = nullptr;// Update our Entity's pointer before ending main()
-//	}
-	busctrller.currWorker = nullptr;// Update our Entity's pointer before ending main()
+	BusController::busctrller.currWorker = nullptr;// Update our Entity's pointer before ending main()
 
 	cout << "Simulation complete; closing worker threads." << endl;
 	return true;

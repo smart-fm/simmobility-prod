@@ -180,7 +180,7 @@ string ReadLowercase(TiXmlHandle& handle, const std::string& attrName)
 void addOrStashEntity(const PendingEntity& p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
 	if (ENTITY_BUSCONTROLLER == p.type) {
-		active_agents.push_back(&busctrller);
+		active_agents.push_back(&BusController::busctrller);
 	} else if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p.start==0) {
 		//Only agents with a start time of zero should start immediately in the all_agents list.
 		active_agents.push_back(Person::GeneratePersonFromPending(p));
@@ -275,7 +275,7 @@ bool generateAgentsFromBusSchedule(std::vector<Entity*>& active_agents, AgentCon
 
 
 		//Add it or stash it
-		busctrller.addOrStashBuses(p, active_agents);
+		BusController::busctrller.addOrStashBuses(p, active_agents);
 		//busctrller
 	}
 
@@ -1148,7 +1148,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 			if (!loadXMLAgents(document, active_agents, pending_agents, "buscontroller", constraints)) {
 				return	  "Couldn't load bus controllers";
 			}
-			busctrller.setTobeInList();
+			BusController::busctrller.setTobeInList();
     	    if (!generateAgentsFromBusSchedule(active_agents, constraints)) {
     	    	return "Couldn't generate agents from busschedule by buscontroller.";
     	    }

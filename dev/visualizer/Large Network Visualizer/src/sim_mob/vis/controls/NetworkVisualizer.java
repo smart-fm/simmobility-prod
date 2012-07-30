@@ -314,8 +314,17 @@ public class NetworkVisualizer {
 			lastKnownFrame = frameTick;
 			
 			agentTicksIndex = new LazySpatialIndex<DrawableItem>();
-			addAllCrossingSignals(agentTicksIndex, frameTick);//TODO:enable this later
-			addAllLaneSignals(agentTicksIndex, frameTick);
+			if(Main.NEW_SIGNAL)
+			{
+				addAllCrossingSignals_newStyle(agentTicksIndex, frameTick);
+				addAllLaneSignals_newStyle(agentTicksIndex, frameTick);	
+			}
+			else
+			{
+				addAllCrossingSignals(agentTicksIndex, frameTick);
+				addAllLaneSignals(agentTicksIndex, frameTick);
+			}
+
 			addAllAgents(agentTicksIndex, frameTick);
 //			addAllCrossingSignals(agentTicksIndex, frameTick);//TODO: why is this function repeated ? -vahid
 			
@@ -508,8 +517,7 @@ public class NetworkVisualizer {
 		}
 	}
 */	
-	private void addAllCrossingSignals(LazySpatialIndex<DrawableItem> index, int currFrame) {
-		if(Main.NEW_SIGNAL){
+	private void addAllCrossingSignals_newStyle(LazySpatialIndex<DrawableItem> index, int currFrame) {
 		if (simRes.ticks.isEmpty() && currFrame==0) { return; }
 		
 		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
@@ -530,132 +538,87 @@ public class NetworkVisualizer {
 				{
 					network.getTrafficSignalCrossing().get(crossingId).setCurrColor(at.getCrossingID_Map().get(crossingId));
 					
-				}
+				
 				//Add it to the index.
 				DrawableItem item = network.getTrafficSignalCrossing().get(crossingId);
 				index.addItem(item, item.getBounds());
-				System.out.println("checking crossing ID" + crossingId + ".........Done");
+				}
 			}
 			System.out.println("\nFrame " + currFrame + " Analysing intersection " +at.getID() + " Done..");
 		}
-		}
-		else
-		{
-			if (simRes.ticks.isEmpty() && currFrame==0) { return; }
-			
-			for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
-				//Get all lights and Crossings at this intersection (by id)
-				Intersection tempIntersection = network.getIntersections().get(at.getIntersectionID());
-				ArrayList<Integer> allPedestrainLights = at.getPedestrianLights();
-				ArrayList<Integer> crossingIDs = tempIntersection.getSigalCrossingIDs();
-
-				//Add all crossing lights to the spatial index.
-				for(int i=0; i<crossingIDs.size(); i++) {
-					if(network.getTrafficSignalCrossing().containsKey(crossingIDs.get(i))) {
-						DrawParams p = new DrawParams();
-						p.PastCriticalZoom = pastCriticalZoom();
-						
-						//NOTE: This is kind of hackish, but it WILL work. We should abstract TrafficSignalCrossing better later.
-						network.getTrafficSignalCrossing().get(crossingIDs.get(i)).setCurrColor(allPedestrainLights.get(i));
-						
-						//Add it to the index.
-						DrawableItem item = network.getTrafficSignalCrossing().get(crossingIDs.get(i));
-						index.addItem(item, item.getBounds());
-					} else{
-						//throw new RuntimeException("Unable to draw pedestrian crossing light; ID does not exist.");
-					}
-				}
-			}
-		}
 	}
-//	public void addAllLaneSignals_debug(int currFrame)
-//	{
-//		System.out.println("\nNOW---------Testing In addAllLaneSignals for frame " + currFrame);
-//		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
-//
-//			Hashtable<String, ArrayList<TrafficSignalLine>> TSLs = at.getAllTrafficSignalLines();
-//
-//			for(ArrayList<TrafficSignalLine> tsls : TSLs.values())
-//			{
-//					
-//					for(TrafficSignalLine tsl : tsls)
-//						if (tsl.getPhaseName().equals("C"))
-//							if (tsl.getCurrColor() == Color.yellow)
-//								System.out.println("In addAllLaneSignals: "+ "Tick " + currFrame + " color has been set to  yellow");
-//							else if (tsl.getCurrColor() == Color.green)
-//								System.out.println("In addAllLaneSignals: "+ "Tick " + currFrame + " color has been set to green");
-//							else if (tsl.getCurrColor() == Color.red)
-//								System.out.println("In addAllLaneSignals: " + "Tick " + currFrame + " color has been set to red");
-//			}
-//			
-//			
-//		}
-//		System.out.println("out of addAllLaneSignals");
-//	}
-	private void addAllLaneSignals(LazySpatialIndex<DrawableItem> index,
-			int currFrame) {
-		if (Main.NEW_SIGNAL) {
-			if (simRes.ticks.isEmpty() && currFrame == 0) {
-				return;
-			}
-
-			for (SignalLineTick at : simRes.ticks.get(currFrame).signalLineTicks
-					.values()) {
-
-				// my solution:
-				// Since here we HAVDE intersection, therefore we have all
-				// trafficsignallines
-				// so we can reuse the addTrafficLines() method, can't be any
-				// simpler
-				// ...update, I had to write a variation(override) of
-				// addTrafficLines as the old one was hakish and I had already
-				// corrected the root-vahid
-				HashMap<TrafficSignalLine, Color> at_Tsls_Map = at
-						.getAllTrafficSignalLines_Map();
+	
+	private void addAllLaneSignals_newStyle(LazySpatialIndex<DrawableItem> index, int currFrame) {
+		if (simRes.ticks.isEmpty() && currFrame==0) { return; }
+		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
+			//my solution:
+			//Since here we HAVDE intersection, therefore we have all trafficsignallines 
+			//so we can reuse the addTrafficLines() method, can't be any simpler
+			//...update, I had to write a variation(override) of addTrafficLines as the old one was hakish and I had already corrected the root-vahid
+			HashMap<TrafficSignalLine, Color> at_Tsls_Map = at.getAllTrafficSignalLines_Map();
 				addTrafficLines(index, at_Tsls_Map);
-			}
-		} else {
-			if (simRes.ticks.isEmpty() && currFrame == 0) {
-				return;
-			}
+		}
+	}
+	///////////////////////////////////////////////////////
+	private void addAllCrossingSignals(LazySpatialIndex<DrawableItem> index, int currFrame) {
+		if (simRes.ticks.isEmpty() && currFrame==0) { return; }
+		
+		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
+			//Get all lights and Crossings at this intersection (by id)
+			Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());
+			ArrayList<Integer> allPedestrainLights = at.getPedestrianLights();
+			ArrayList<Integer> crossingIDs = tempIntersection.getSigalCrossingIDs();
 
-			for (SignalLineTick at : simRes.ticks.get(currFrame).signalLineTicks
-					.values()) {
-				// Get Intersection ID and color
-				Intersection tempIntersection = network.getIntersections().get(
-						at.getIntersectionID());
-				ArrayList<ArrayList<Integer>> allVehicleLights = at
-						.getVehicleLights();
-
-				// Draw Vehicle Lights
-				for (int i = 0; i < 4; i++) {
-					// 0,1,2,3 correspond to a,b,c,d
-					// TODO: The classes created are not intuitive. Some are
-					// index-based, others are
-					// name-based. Consider redoing them, adding support for
-					// both options (perhaps
-					// using iterators). ~Seth
-					ArrayList<ArrayList<TrafficSignalLine>> signalLine = null;
-					if (i == 0) {
-						signalLine = tempIntersection.getVaTrafficSignal();
-					} else if (i == 1) {
-						signalLine = tempIntersection.getVbTrafficSignal();
-					} else if (i == 2) {
-						signalLine = tempIntersection.getVcTrafficSignal();
-					} else if (i == 3) {
-						signalLine = tempIntersection.getVdTrafficSignal();
-					}
-					ArrayList<Integer> lightColors = allVehicleLights.get(i);
-
-					// Draw it
-					addTrafficLines(index, signalLine, lightColors);
+			//Add all crossing lights to the spatial index.
+			for(int i=0; i<crossingIDs.size(); i++) {
+				if(network.getTrafficSignalCrossing().containsKey(crossingIDs.get(i))) {
+					DrawParams p = new DrawParams();
+					p.PastCriticalZoom = pastCriticalZoom();
+					
+					//NOTE: This is kind of hackish, but it WILL work. We should abstract TrafficSignalCrossing better later.
+					network.getTrafficSignalCrossing().get(crossingIDs.get(i)).setCurrColor(allPedestrainLights.get(i));
+					
+					//Add it to the index.
+					DrawableItem item = network.getTrafficSignalCrossing().get(crossingIDs.get(i));
+					index.addItem(item, item.getBounds());
+				} else{
+					//throw new RuntimeException("Unable to draw pedestrian crossing light; ID does not exist.");
 				}
-
 			}
 		}
 	}
 	
+	private void addAllLaneSignals(LazySpatialIndex<DrawableItem> index, int currFrame) {
+		if (simRes.ticks.isEmpty() && currFrame==0) { return; }
+		
+		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
+			//Get Intersection ID and color
+			Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());
+			ArrayList<ArrayList<Integer>> allVehicleLights =  at.getVehicleLights();
+
+			//Draw Vehicle Lights
+			for (int i=0; i<4; i++) {
+				//0,1,2,3 correspond to a,b,c,d
+				//TODO: The classes created are not intuitive. Some are index-based, others are
+				//      name-based. Consider redoing them, adding support for both options (perhaps
+				//      using iterators). ~Seth
+				ArrayList<ArrayList<TrafficSignalLine>> signalLine = null;
+				if (i==0) { signalLine = tempIntersection.getVaTrafficSignal(); }
+				else if (i==1) { signalLine = tempIntersection.getVbTrafficSignal(); }
+				else if (i==2) { signalLine = tempIntersection.getVcTrafficSignal(); }
+				else if (i==3) { signalLine = tempIntersection.getVdTrafficSignal(); }
+				ArrayList<Integer> lightColors = allVehicleLights.get(i);
+				
+				//Draw it
+				addTrafficLines(index, signalLine, lightColors);
+			}
+			
+		}
+	}
+
+	///////////////////////////////////////////////////////
 	
+		
 	private void addAllAgents(LazySpatialIndex<DrawableItem> index, int currFrame) {
 		//It is possible (but unlikely) to have absolutely no agents at all.
 		// The only time this makes sense is if currFrame is equal to zero.

@@ -3,7 +3,7 @@
 #include "BusController.hpp"
 #include "entities/Person.hpp"
 
-//using std::vector;
+using std::vector;
 using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
 
@@ -17,27 +17,22 @@ sim_mob::BusController::BusController(int id, const MutexStrategy& mtxStrat) :
 }
 
 sim_mob::BusController::~BusController() {
-	//Clear all tracked entitites
-	if (!managedBuses.empty()) {
-		std::vector<Bus*>::iterator it;
-		for (it = managedBuses.begin(); it != managedBuses.end(); ++it) {
-			delete *it;
-		}
-		managedBuses.clear();
+	//Clear all tracked entities
+	for (vector<Bus*>::iterator it = managedBuses.begin(); it != managedBuses.end(); ++it) {
+		delete *it;
 	}
-	if (!active_buses.empty()) {
-		std::vector<Bus*>::iterator iter;
-		for (iter = active_buses.begin(); iter != active_buses.end(); ++iter) {
-			delete *iter;
-		}
-		active_buses.clear();
-	}
+	managedBuses.clear();
 
-	// pop all the other pending buses
+	//Clear all active buses
+	for (vector<Bus*>::iterator it = active_buses.begin(); it != active_buses.end(); ++it) {
+		delete *it;
+	}
+	active_buses.clear();
+
+	//NOTE: This will only remove 1 item. Are you sure you don't mean "clear"? ~Seth
 	if (!pending_buses.empty()) {
 		pending_buses.pop();
 	}
-	// pop all the other pending buses
 
 	if(currWorker) {
 		//Update our Entity's pointer if it has migrated out but not updated

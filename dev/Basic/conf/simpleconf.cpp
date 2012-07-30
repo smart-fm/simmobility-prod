@@ -260,7 +260,7 @@ namespace {
 } //End anon namespace
 
 // Temporary Test---Yao Jin
-bool generateAgentsFromBusSchedule(std::vector<Entity*>& active_agents, AgentConstraints& constraints)
+void generateAgentsFromBusSchedule(std::vector<Entity*>& active_agents, AgentConstraints& constraints)
 {
 	//Some handy references
 	ConfigParams& config = ConfigParams::GetInstance();
@@ -273,22 +273,15 @@ bool generateAgentsFromBusSchedule(std::vector<Entity*>& active_agents, AgentCon
 		PendingEntity p(EntityTypeFromConfigString("bus"));
 
 		//Origin, destination
-		//curr->originNode =
 		p.origin = tcs[7]->from.location;// dummy data
-		//curr->destNode =
 		p.dest = tcs[7]->to.location;// dummy data
 
 		//Start time
-		//curr->setStartTime(
 		p.start = (*it)->startTime.offsetMS_From(config.simStartTime);
 
-
-		//Add it or stash it
+		//Either start or save it, depending on the start time.
 		BusController::busctrller->addOrStashBuses(p, active_agents);
-		//busctrller
 	}
-
-	return true;
 }
 // Temporary Test---Yao Jin
 
@@ -1157,9 +1150,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 			if (!loadXMLAgents(document, active_agents, pending_agents, "buscontroller", constraints)) {
 				return	  "Couldn't load bus controllers";
 			}
-    	    if (!generateAgentsFromBusSchedule(active_agents, constraints)) {
-    	    	return "Couldn't generate agents from busschedule by buscontroller.";
-    	    }
+    	    generateAgentsFromBusSchedule(active_agents, constraints);
     	    cout <<"Loaded Bus Agents (from Bus Control Center)." <<endl;
     	} else if ((*it) == "pedestrians") {
     		if (!loadXMLAgents(document, active_agents, pending_agents, "pedestrian", constraints)) {

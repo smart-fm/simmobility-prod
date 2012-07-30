@@ -185,7 +185,7 @@ void addOrStashEntity(const PendingEntity& p, std::vector<Entity*>& active_agent
 		//      accomplished for persons.
 		//This is not a critical issue; rather, it is a "code cleanup" tasks that you should perform
 		//      when you have free time. Try to make your code more robust. ~Seth
-		active_agents.push_back(&BusController::busctrller);
+		active_agents.push_back(BusController::busctrller);
 
 	} else if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p.start==0) {
 		//Only agents with a start time of zero should start immediately in the all_agents list.
@@ -281,7 +281,7 @@ bool generateAgentsFromBusSchedule(std::vector<Entity*>& active_agents, AgentCon
 
 
 		//Add it or stash it
-		BusController::busctrller.addOrStashBuses(p, active_agents);
+		BusController::busctrller->addOrStashBuses(p, active_agents);
 		//busctrller
 	}
 

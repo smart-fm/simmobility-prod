@@ -251,7 +251,9 @@ public:
         // This method is meant for the simulator kernel.  It is a public method because it is
         // needed in another area of the kernel (conf/simpleconf.cpp) and I want to avoid the use
         // of the friend keyword.
-        LoopDetectorEntity const & loopDetector() const { return loopDetector_; }
+        LoopDetectorEntity const & loopDetector() const {
+        	return *loopDetector_;
+        }
         /** \endcond doNotExpose -- End of block to be ignored by doxygen.  */
 
 private:
@@ -302,7 +304,10 @@ protected:
         std::map<Link const *, size_t> links_map_;
         std::map<Crossing const *, size_t> crossings_map_;
 
-        LoopDetectorEntity loopDetector_;
+        //Note: I am making this a pointer, because any item in all_agents will auto-delete when the simulation completes.
+        //      I understand that this is somewhat counter-intuitive, since one would expect the Signal class to manage its
+        //      loop detector. We need a better memory management strategy for Agents (especially long-running ones) later.
+        LoopDetectorEntity* loopDetector_;
 
 protected:
         void setupIndexMaps();

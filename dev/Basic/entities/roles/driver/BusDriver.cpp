@@ -92,7 +92,7 @@ double sim_mob::BusDriver::updatePositionOnLink(DriverUpdateParams& p)
 			vehicle->setAcceleration(0);
 			vehicle->setVelocity(0); //TEMP: Need to really force it.
 			waitAtStopMS = p.currTimeMS; //TEMP: Need to force this too.
-			BusController::busctrller.updateBusInformation(vehicle->getPosition());
+			BusController::busctrller->updateBusInformation(vehicle->getPosition());
 		}
 		updatePos = true;
 	} else {

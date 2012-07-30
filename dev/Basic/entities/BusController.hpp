@@ -28,7 +28,9 @@ class Bus;
 class BusController : public sim_mob::Agent
 {
 public:
-	static BusController busctrller;
+	//Note: I am making this a pointer, since the all_agents array is now cleared and deleted on exit.
+	//      Otherwise, it will attempt to delete itself twice.
+	static BusController* busctrller;
 
 	~BusController();
 	virtual Entity::UpdateStatus update(frame_t frameNumber);
@@ -50,7 +52,7 @@ public:
 	void addBus(Bus* bus);
 	void remBus(Bus* bus);
 	///Retrieve a reference to the list of managedBuses.
-	std::vector<Bus*>& getManagedBuses() { return managedBuses; }
+	//std::vector<Bus*>& getManagedBuses() { return managedBuses; }
 	//const sim_mob::RoadNetwork& getNetwork() { return network; }
 
 private:
@@ -66,7 +68,7 @@ private:
 	unsigned int tickStep;
 	bool firstFrameTick;  ///Determines if frame_init() has been done.
 	std::vector<Bus*> managedBuses;// Saved all virtual managedBuses
-	std::vector<Bus*> active_buses;// Saved all active buses(from frame 0)
+	//std::vector<Bus*> active_buses;// Saved all active buses(from frame 0)
 	StartTimePriorityQueue pending_buses; //Buses waiting to be added to the simulation, prioritized by start time.
 	//sim_mob::RoadNetwork network;// Saved RoadNetwork
 	DPoint posBus;// The sent position of a given bus ,only for test

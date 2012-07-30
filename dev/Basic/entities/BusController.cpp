@@ -9,7 +9,7 @@ using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
 
 //NOTE: Using a shared static variable is MUCH better than using a global variable. ~Seth
-sim_mob::BusController sim_mob::BusController::busctrller(0);
+sim_mob::BusController* sim_mob::BusController::busctrller = new sim_mob::BusController(0);
 
 sim_mob::BusController::BusController(int id, const MutexStrategy& mtxStrat) :
 	Agent(mtxStrat, id),frameNumberCheck(0), nextTimeTickToStage(0), tickStep(1), firstFrameTick(true)
@@ -19,10 +19,10 @@ sim_mob::BusController::BusController(int id, const MutexStrategy& mtxStrat) :
 
 sim_mob::BusController::~BusController() {
 	//Clear all tracked entities
-	clear_delete_vector(managedBuses);
+	//clear_delete_vector(managedBuses);
 
 	//Clear all active buses
-	clear_delete_vector(active_buses);
+	//clear_delete_vector(active_buses);
 
 	//NOTE: This will only remove 1 item. Are you sure you don't mean "clear"? ~Seth
 	//NOTE: I'm commenting it out anyway, since vectors will naturally clear their contents on destruction. ~Seth

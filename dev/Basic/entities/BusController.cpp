@@ -2,6 +2,7 @@
 
 #include "BusController.hpp"
 #include "entities/Person.hpp"
+#include "util/LangHelpers.hpp"
 
 using std::vector;
 using namespace sim_mob;
@@ -18,21 +19,16 @@ sim_mob::BusController::BusController(int id, const MutexStrategy& mtxStrat) :
 
 sim_mob::BusController::~BusController() {
 	//Clear all tracked entities
-	for (vector<Bus*>::iterator it = managedBuses.begin(); it != managedBuses.end(); ++it) {
-		delete *it;
-	}
-	managedBuses.clear();
+	clear_delete_vector(managedBuses);
 
 	//Clear all active buses
-	for (vector<Bus*>::iterator it = active_buses.begin(); it != active_buses.end(); ++it) {
-		delete *it;
-	}
-	active_buses.clear();
+	clear_delete_vector(active_buses);
 
 	//NOTE: This will only remove 1 item. Are you sure you don't mean "clear"? ~Seth
-	if (!pending_buses.empty()) {
+	//NOTE: I'm commenting it out anyway, since vectors will naturally clear their contents on destruction. ~Seth
+	/*if (!pending_buses.empty()) {
 		pending_buses.pop();
-	}
+	}*/
 
 	//NOTE: This is dangerous behavior; the Worker will still be tracking the Agent!
 	/*if(currWorker) {

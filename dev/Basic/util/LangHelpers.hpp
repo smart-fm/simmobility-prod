@@ -4,6 +4,7 @@
 
 #include "GenConfig.h"
 
+#include <vector>
 #include <stdexcept>
 
 
@@ -115,6 +116,17 @@ void safe_delete_item(T*& item) {
 		item = nullptr;
 	}
 }
+
+
+//Delete all items in a vector, then clear that vector. Works on value and pointer types.
+template <typename T>
+void clear_delete_vector(typename std::vector<T>& src) {
+	for (typename std::vector<T>::iterator it=src.begin(); it!=src.end(); it++) {
+		safe_delete_item(*it);
+	}
+	src.clear();
+}
+
 
 
 

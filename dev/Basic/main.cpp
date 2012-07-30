@@ -27,6 +27,7 @@
 #include "geospatial/Lane.hpp"
 #include "util/OutputUtil.hpp"
 #include "util/DailyTime.hpp"
+#include "util/LangHelpers.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"
 
@@ -350,13 +351,9 @@ bool performMain(const std::string& configFileName) {
 	//Instead, we will simply scope-out the WorkGroups, and they will migrate out all remaining Agents.
 	}  //End scope: WorkGroups. (Todo: should move this into its own function later)
 
-	//Test: At this point, it should be possible to delete all Signals (it should also be possible to
-	//      delete all Agents, but we won't force the issue yet.)
-	for (vector<Signal*>::iterator it=Signal::all_signals_.begin(); it!=Signal::all_signals_.end(); it++) {
-		delete *it;
-	}
-	Signal::all_signals_.clear();
-
+	//Test: At this point, it should be possible to delete all Signals and Agents.
+	clear_delete_vector(Signal::all_signals_);
+	clear_delete_vector(Agent::all_agents);
 
 	cout << "Simulation complete; closing worker threads." << endl;
 	return true;

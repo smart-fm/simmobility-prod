@@ -8,9 +8,9 @@ using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
 
 //NOTE: Using a shared static variable is MUCH better than using a global variable. ~Seth
-sim_mob::BusController sim_mob::BusController::busctrller(ConfigParams::GetInstance().mutexStategy, 0);
+sim_mob::BusController sim_mob::BusController::busctrller(0);
 
-sim_mob::BusController::BusController(const MutexStrategy& mtxStrat, int id) :
+sim_mob::BusController::BusController(int id, const MutexStrategy& mtxStrat) :
 	Agent(mtxStrat, id),frameNumberCheck(0), nextTimeTickToStage(0), tickStep(1), firstFrameTick(true), isTobeInList(false)
 {
 

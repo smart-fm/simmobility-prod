@@ -48,7 +48,7 @@ public:
 	//const sim_mob::RoadNetwork& getNetwork() { return network; }
 
 private:
-	explicit BusController(const MutexStrategy& mtxStrat = sim_mob::ConfigParams::GetInstance().mutexStategy, int id=-1);
+	explicit BusController(int id=-1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered);
 
 	void DispatchFrameTick(frame_t frameTick);
 	void frame_init(frame_t frameNumber);

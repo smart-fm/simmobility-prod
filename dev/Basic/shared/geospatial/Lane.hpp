@@ -268,7 +268,10 @@ private:
 
     /** Create a Lane using the \c bit_pattern to initialize the lane's rules.  */
     explicit Lane(sim_mob::RoadSegment* segment, unsigned int laneID, const std::string& bit_pattern="") : parentSegment_(segment), rules_(bit_pattern), width_(0), laneID_(laneID) {}
-
+    Lane(){};//is needed by the xml reader
+    inline void setParentSegment(sim_mob::RoadSegment* segment){parentSegment_ = segment;}
+//    inline void setLaneID(unsigned int laneID){laneID_ = laneID;}no need when xml reader is a friend
+//    inline void setPolypoint(std::vector<Point2D> polyline){polyline_ = polyline;} no need when xml reader is a friend
     /** Set the lane's rules using the \c bit_pattern.  */
     void set(const std::string& bit_pattern) {
         std::istringstream stream(bit_pattern);

@@ -142,6 +142,11 @@ find_package(TinyXML REQUIRED)
 include_directories(${TINYXML_INCLUDE_DIR})
 LIST(APPEND LibraryList ${TINYXML_LIBRARIES})
 
+#Find XercesC
+find_package(XercesC REQUIRED)
+include_directories(${XERCESC_INCLUDE_DIR})
+LIST(APPEND LibraryList ${XERCESC_LIBRARIES})
+
 #Find PQ
 find_package(PostgreSQL REQUIRED)
 include_directories(${PostgreSQL_INCLUDE_DIRS})

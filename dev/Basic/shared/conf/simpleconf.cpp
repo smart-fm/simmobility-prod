@@ -29,6 +29,7 @@
 #include "geospatial/StreetDirectory.hpp"
 #include "geospatial/BusStop.hpp"
 #include "util/OutputUtil.hpp"
+#include "main1.hpp"
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
@@ -959,6 +960,7 @@ void PrintDB_Network()
 //Returns the error message, or an empty string if no error.
 std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
 {
+//	std::cout << ".............................loadXMLConf \n";
 	//Save granularities: system
 	TiXmlHandle handle(&document);
 	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation");
@@ -1183,18 +1185,30 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     			return "Unknown geometry source: " + (geomSrc?string(geomSrc):"");
     		}
 
-    		//Load the AIMSUM network details
-    		map<string, string> storedProcedures; //Of the form "node" -> "get_node()"
-    		if (!LoadDatabaseDetails(*geomElem, ConfigParams::GetInstance().connectionString, storedProcedures)) {
-    			return "Unable to load database connection settings....";
-    		}
+    		/**************************************************
+    		 *
+    		 * ***********  DATABASE **************************
+    		 *
+    		 ***************************************************/
 
-    		//Actually load it
-    		string dbErrorMsg = sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetworkRW(), ConfigParams::GetInstance().getTripChains(), prof);
-    		if (!dbErrorMsg.empty()) {
-    			return "Database loading error: " + dbErrorMsg;
-    		}
-
+//    		//Load the AIMSUM network details
+//    		map<string, string> storedProcedures; //Of the form "node" -> "get_node()"
+//    		if (!LoadDatabaseDetails(*geomElem, ConfigParams::GetInstance().connectionString, storedProcedures)) {
+//    			return "Unable to load database connection settings....";
+//    		}
+//
+//    		//Actually load it
+//    		string dbErrorMsg = sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetworkRW(), ConfigParams::GetInstance().getTripChains(), prof);
+//    		if (!dbErrorMsg.empty()) {
+//    			return "Database loading error: " + dbErrorMsg;
+//    		}
+       		/**************************************************
+       		 *
+       		 * ****************  XML **************************
+        	 *
+        	 ***************************************************/
+    		main1(0,0);
+//////////////////////////////////////////////////////////////////////////////////
     		//Finally, mask the password
     		string& s = ConfigParams::GetInstance().connectionString;
     		size_t check = s.find("password=");

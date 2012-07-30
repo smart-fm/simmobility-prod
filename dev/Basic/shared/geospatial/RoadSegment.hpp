@@ -44,7 +44,7 @@ class RoadSegment : public sim_mob::Pavement {
 public:
 	///Create a RoadSegment as part of a given Link.
 	explicit RoadSegment(sim_mob::Link* parent);
-
+	RoadSegment(){}//needed by xml reader --vahid
 	///Return the Link this RoadSegment is part of.
 	sim_mob::Link* getLink() const { return parentLink; }
 
@@ -113,6 +113,8 @@ private:
 friend class sim_mob::aimsun::Loader;
 friend class sim_mob::aimsun::LaneLoader;
 friend class sim_mob::RoadNetworkPackageManager;
+friend class geo::segment_t_pimpl;
+friend class geo::Segments_pimpl;
 
 };
 

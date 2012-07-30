@@ -35,6 +35,9 @@ public:
 	int getX() const { return xPos; }
 	int getY() const { return yPos; }
 
+	void setX(int xPos_)  { xPos = xPos_; }
+	void setY(int yPos_)  { yPos = yPos_; }
+
 
 private:
 	int xPos;

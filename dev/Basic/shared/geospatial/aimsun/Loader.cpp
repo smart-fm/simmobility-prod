@@ -1814,10 +1814,8 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 	//"host=localhost port=5432 dbname=SimMobility_DB user=postgres password=XXXXX"
 	DatabaseLoader loader(connectionStr);
 	std::cout << ">Success." << std::endl;
-
 	//Step One: Load
 	loader.LoadBasicAimsunObjects(storedProcs);
-
 	if (prof) { prof->logGenericEnd("Database", "main-prof"); }
 
 	//Step Two: Translate

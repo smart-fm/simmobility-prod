@@ -60,6 +60,8 @@
 //      access to cout if SIMMOB_DISABLE_OUTPUT is true.
 #include <iostream>
 
+#include "main1.hpp"
+
 using std::cout;
 using std::endl;
 using std::vector;

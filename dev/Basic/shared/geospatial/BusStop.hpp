@@ -94,14 +94,6 @@ public:
 	std::string busstopno_;
 		double xPos;
 		double yPos;
-		double x1d;
-		double y1d;
-		double x2d;
-		double y2d;
-		double x3d;
-		double y3d;
-		double x4d;
-		double y4d;
 
 		std::vector<Point2D> position_;
 #ifndef SIMMOB_DISABLE_MPI

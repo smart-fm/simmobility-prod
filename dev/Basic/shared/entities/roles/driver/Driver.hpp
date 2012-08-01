@@ -247,14 +247,12 @@ public:
 	// I'm sure we can do this in a less confusion fashion later.
 	LANE_CHANGE_SIDE getCurrLaneSideRelativeToCenter() const;
 
-	mutable std::stringstream DebugStream;
-
 private:
 	//The current traffic signal in our Segment. May be null.
 	const Signal* trafficSignal;
 
 	//For generating a debugging trace
-
+	mutable std::stringstream DebugStream;
 
 	//Serialization
 #ifndef SIMMOB_DISABLE_MPI

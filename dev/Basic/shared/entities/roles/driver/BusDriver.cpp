@@ -365,10 +365,6 @@ double sim_mob::BusDriver::DistanceToNextBusStop()
 	if (rsNext)
 		distanceToNextSegmentBusStop = getDistanceToBusStopOfSegment(*rsNext);
 
-	std::cout.precision(10);
-//	std::cout<<"BusDriver::DistanceToNextBusStop : current segment bs distance: "<<distanceToCurrentSegmentBusStop<<std::endl;
-//	std::cout<<"BusDriver::DistanceToNextBusStop : next segment bs distance: "<<distanceToNextSegmentBusStop<<std::endl;
-
 	if (distanceToCurrentSegmentBusStop >= 0 && distanceToNextSegmentBusStop >= 0)
 		return ((distanceToCurrentSegmentBusStop<=distanceToNextSegmentBusStop) ? distanceToCurrentSegmentBusStop: distanceToNextSegmentBusStop);
 	else if (distanceToCurrentSegmentBusStop > 0)

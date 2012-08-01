@@ -191,6 +191,7 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat) :
 	perceivedVelOfFwdCar = new FixedDelayed<double>(reacTime,true);
 	perceivedAccOfFwdCar = new FixedDelayed<double>(reacTime,true);
 	perceivedDistToFwdCar = new FixedDelayed<double>(reacTime,true);
+	perceivedDistToTrafficSignal = new FixedDelayed<double>(reacTime,true);
 
 #ifdef SIMMOB_NEW_SIGNAL
 	perceivedTrafficColor = new FixedDelayed<sim_mob::TrafficColor>(reacTime,true);

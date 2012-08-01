@@ -45,6 +45,10 @@ public:
 	///Create a RoadSegment as part of a given Link.
 	explicit RoadSegment(sim_mob::Link* parent);
 
+	bool operator== (const RoadSegment* rhs) const
+	{
+		   return (rhs->getStart()==this->getStart())&&(rhs->getEnd()==this->getEnd());
+	}
 	///Return the Link this RoadSegment is part of.
 	sim_mob::Link* getLink() const { return parentLink; }
 

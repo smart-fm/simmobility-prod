@@ -31,7 +31,7 @@ class BusRoute;
 class BusStop : public sim_mob::RoadItem {
 	
 public:
-	BusStop() : RoadItem() {}
+	BusStop() : RoadItem(),stopPoint(-1) {}
 
 	/* int getBusStopID() {
 		   int busstopno = atoi(busstopno_);
@@ -56,6 +56,10 @@ public:
 
 	///Is the pedestrian waiting area sheltered? Currently does not affect anything.
 	bool has_shelter;
+
+	// the position bus shall stop in segment from start node
+	//unit cm
+	double stopPoint;
 
 
 private:
@@ -90,14 +94,6 @@ public:
 	std::string busstopno_;
 		double xPos;
 		double yPos;
-		double x1d;
-		double y1d;
-		double x2d;
-		double y2d;
-		double x3d;
-		double y3d;
-		double x4d;
-		double y4d;
 
 		std::vector<Point2D> position_;
 #ifndef SIMMOB_DISABLE_MPI

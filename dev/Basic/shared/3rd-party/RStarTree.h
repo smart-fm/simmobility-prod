@@ -365,7 +365,7 @@ protected:
 			
 			// Do I4 here for the new root item
 			newRoot->bound.reset();
-			for_each(newRoot->items.begin(), newRoot->items.end(), StretchBoundingBox<BoundedItem>(&newRoot->bound));
+			std::for_each(newRoot->items.begin(), newRoot->items.end(), StretchBoundingBox<BoundedItem>(&newRoot->bound));
 			
 			// and we're done
 			m_root = newRoot;
@@ -443,11 +443,11 @@ protected:
 				
 					// calculate bounding box of R1
 					R1.reset();
-					for_each(node->items.begin(), node->items.begin()+(min_child_items+k), StretchBoundingBox<BoundedItem>(&R1));
+					std::for_each(node->items.begin(), node->items.begin()+(min_child_items+k), StretchBoundingBox<BoundedItem>(&R1));
 							
 					// then do the same for R2
 					R2.reset();
-					for_each(node->items.begin()+(min_child_items+k+1), node->items.end(), StretchBoundingBox<BoundedItem>(&R2));
+					std::for_each(node->items.begin()+(min_child_items+k+1), node->items.end(), StretchBoundingBox<BoundedItem>(&R2));
 					
 					
 					// calculate the three values
@@ -532,7 +532,7 @@ protected:
 		
 		// RI3.B: adjust the bounding rectangle of N
 		node->bound.reset();
-		for_each(node->items.begin(), node->items.end(), StretchBoundingBox<BoundedItem>(&node->bound));
+		std::for_each(node->items.begin(), node->items.end(), StretchBoundingBox<BoundedItem>(&node->bound));
 		
 		// RI4: In the sort, defined in RI2, starting with the 
 		// minimum distance (= close reinsert), invoke Insert 

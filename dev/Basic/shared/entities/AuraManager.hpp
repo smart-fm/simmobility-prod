@@ -4,6 +4,7 @@
 
 #include <boost/utility.hpp>
 #include "metrics/Length.hpp"
+#include "metrics/Frame.hpp"
 
 namespace sim_mob
 {

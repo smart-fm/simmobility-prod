@@ -14,6 +14,7 @@
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/driver/ReactionTimeDistributions.hpp"
+#include "entities/BusController.hpp"
 #include "entities/signal/Signal.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/driver/Driver.hpp"
@@ -196,7 +197,15 @@ string ReadLowercase(TiXmlHandle& handle, const std::string& attrName)
 
 void addOrStashEntity(const PendingEntity& p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
-	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p.start==0) {
+	if (ENTITY_BUSCONTROLLER == p.type) {
+		//NOTE: This is where the problem can easily be corrected. Instead of pushing back the static Agent, push
+		//      back a generated entity. You can look at "Person::GeneratePersonFromPending()" to see how this is
+		//      accomplished for persons.
+		//This is not a critical issue; rather, it is a "code cleanup" tasks that you should perform
+		//      when you have free time. Try to make your code more robust. ~Seth
+		active_agents.push_back(BusController::busctrller);
+
+	} else if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p.start==0) {
 		//Only agents with a start time of zero should start immediately in the all_agents list.
 		Person* person = Person::GeneratePersonFromPending(p);
 		active_agents.push_back(person);
@@ -304,9 +313,6 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	}
 }
 
-
-
-
 namespace {
   //Simple helper function
   KNOWN_ENTITY_TYPES EntityTypeFromConfigString(const std::string& str) {
@@ -320,15 +326,44 @@ namespace {
 		if (str == "bus") {
 			return ENTITY_BUSDRIVER;
 		}
+		if (str == "buscontroller") {
+			return ENTITY_BUSCONTROLLER;
+		}
 		throw std::runtime_error("Unknown agent mode");
   }
 
 } //End anon namespace
 
+// Temporary Test---Yao Jin
+void generateAgentsFromBusSchedule(std::vector<Entity*>& active_agents, AgentConstraints& constraints)
+{
+	//Some handy references
+	ConfigParams& config = ConfigParams::GetInstance();
+	const vector<BusSchedule*>& busschedule = config.getBusSchedule();
+	const vector<TripChain*>& tcs = config.getTripChains();
+
+	//Create a single entity for each bus schedule in the database.
+	for (vector<BusSchedule*>::const_iterator it=busschedule.begin(); it!=busschedule.end(); it++) {
+		//Create an Agent candidate based on the type.
+		PendingEntity p(EntityTypeFromConfigString("bus"));
+
+		//Origin, destination
+		p.origin = tcs[7]->from.location;// dummy data
+		p.dest = tcs[7]->to.location;// dummy data
+
+		//Start time
+		p.start = (*it)->startTime.offsetMS_From(config.simStartTime);
+
+		//Either start or save it, depending on the start time.
+		BusController::busctrller->addOrStashBuses(p, active_agents);
+	}
+}
+// Temporary Test---Yao Jin
+
 bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, AgentConstraints& constraints)
 {
 	//Quick check.
-	if (agentType!="pedestrian" && agentType!="driver" && agentType!="bus") {
+	if (agentType!="pedestrian" && agentType!="driver" && agentType!="bus" && agentType!="buscontroller") {
 		std::cout <<"Unexpected agent type: " <<agentType <<endl;
 		return false;
 	}
@@ -1235,6 +1270,13 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	    	return	 "Couldn't load bus drivers";
     	    }
     		cout <<"Loaded Driver Agents (from config file)." <<endl;
+
+    	} else if ((*it) == "buscontrollers") {
+			if (!loadXMLAgents(document, active_agents, pending_agents, "buscontroller", constraints)) {
+				return	  "Couldn't load bus controllers";
+			}
+    	    generateAgentsFromBusSchedule(active_agents, constraints);
+    	    cout <<"Loaded Bus Agents (from Bus Control Center)." <<endl;
     	} else if ((*it) == "pedestrians") {
     		if (!loadXMLAgents(document, active_agents, pending_agents, "pedestrian", constraints)) {
     			return "Couldn't load pedestrians";

@@ -94,9 +94,12 @@ public:
 	/*--------Initialization----------*/
 	void initialize();
 	void setSplitPlan(sim_mob::SplitPlan);
-//	void setCycleLength(sim_mob::Cycle);
 	Signal_SCATS(Node const & node,const MutexStrategy& mtxStrat,int id=-1);
     static Signal_SCATS const & signalAt(Node const & node, const MutexStrategy& mtxStrat,bool *isNew = false);//bool isNew : since this function will create and return new signal if already existing signals not found, a switch to indicate what happened in the function would be nice
+
+	//Note: You need a virtual destructor or else superclass destructors won't be called. ~Seth
+	virtual ~Signal() {}
+
     void addSignalSite(centimeter_t xpos, centimeter_t ypos,std::string const & typeCode, double bearing);
     void findIncomingLanes();
     void findSignalLinks();
@@ -223,7 +226,8 @@ private:
 
 	friend class DatabaseLoader;
 protected:
-        LoopDetectorEntity loopDetector_;
+		//NOTE: See the old Signal class for why this has to (temporarily) be a pointer. ~Seth
+        LoopDetectorEntity* loopDetector_;
 
 
 #ifndef SIMMOB_DISABLE_MPI

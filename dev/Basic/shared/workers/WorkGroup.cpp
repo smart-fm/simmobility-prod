@@ -11,6 +11,7 @@
 
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
+#include "entities/PendingEntity.hpp"
 
 using std::map;
 using std::vector;
@@ -62,10 +63,13 @@ sim_mob::WorkGroup::WorkGroup(size_t size, unsigned int endTick, unsigned int ti
 
 sim_mob::WorkGroup::~WorkGroup()
 {
-	for (size_t i=0; i<workers.size(); i++) {
-		workers[i]->join();  //NOTE: If we don't join all Workers, we get threading exceptions.
-		delete workers[i];
+	for (vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
+		Worker* wk = *it;
+		wk->join();  //NOTE: If we don't join all Workers, we get threading exceptions.
+		wk->migrateAllOut(); //This ensures that Agents can safely delete themselves.
+		delete wk;
 	}
+	workers.clear();
 }
 
 
@@ -83,6 +87,16 @@ void sim_mob::WorkGroup::startAll()
 }
 
 
+void sim_mob::WorkGroup::scheduleEntity(const PendingEntity& ent)
+{
+	//No-one's using DISABLE_DYNAMIC_DISPATCH anymore; we can eventually remove it.
+	if (!loader) { throw std::runtime_error("Can't schedule an entity with dynamic dispatch disabled."); }
+
+	//Schedule it to start later.
+	loader->pending_source.push(ent);
+}
+
+
 void sim_mob::WorkGroup::stageEntities()
 {
 	//Even with dynamic dispatch enabled, some WorkGroups simply don't manage entities.
@@ -95,9 +109,6 @@ void sim_mob::WorkGroup::stageEntities()
 	while (!loader->pending_source.empty() && loader->pending_source.top().start <= nextTickMS) {
 		//Remove it.
 		Person* ag = Person::GeneratePersonFromPending(loader->pending_source.top());
-
-		//std::cout <<"Check: " <<loader->pending_source.top().manualID <<" => " <<ag->getId() <<std::endl;
-		//throw 1;
 
 		loader->pending_source.pop();
 

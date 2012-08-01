@@ -42,10 +42,12 @@ namespace sim_mob
 class Entity;
 class Agent;
 class Person;
+class BusController;// add by Yao Jin
 class Region;
 class StartTimePriorityQueue;
 class EventTimePriorityQueue;
 class ProfileBuilder;
+class BusSchedule;
 
 
 /**
@@ -197,6 +199,7 @@ public:
 
 	///Retrieve a reference to the list of trip chains.
 	std::vector<sim_mob::TripChainItem*>& getTripChains() { return tripchains; }
+	std::vector<sim_mob::BusSchedule*>& getBusSchedule() { return busschedule;}
 
 
 private:
@@ -205,6 +208,7 @@ private:
 
 	sim_mob::RoadNetwork network;
 	std::vector<sim_mob::TripChainItem*> tripchains;
+	std::vector<sim_mob::BusSchedule*> busschedule;
 	bool sealedNetwork;
 };
 

@@ -298,7 +298,6 @@ void sim_mob::Driver::frame_tick(UpdateParams& p)
 	//Update your perceptions
 	perceivedFwdVel->delay(vehicle->getVelocity());
 	perceivedFwdAcc->delay(vehicle->getAcceleration());
-	perceivedVelocity.delay(new DPoint(vehicle->getVelocity(), vehicle->getLatVelocity()));
 
 	//Print output for this frame.
 	disToFwdVehicleLastFrame = p2.nvFwd.distance;

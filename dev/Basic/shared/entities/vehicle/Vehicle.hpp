@@ -122,8 +122,9 @@ private:
 	//Override for when we're in an intersection.
 	DPoint posInIntersection;
 
-
+public:
 	DPoint getPosition() const;
+private:
 
 
 	//NOTE: The error state is a temporary sanity check to help me debug this class. There are certainly

@@ -340,16 +340,20 @@ void generateAgentsFromBusSchedule(std::vector<Entity*>& active_agents, AgentCon
 	//Some handy references
 	ConfigParams& config = ConfigParams::GetInstance();
 	const vector<BusSchedule*>& busschedule = config.getBusSchedule();
-	const vector<TripChain*>& tcs = config.getTripChains();
+	const vector<TripChainItem*>& tcs = config.getTripChains();
 
 	//Create a single entity for each bus schedule in the database.
 	for (vector<BusSchedule*>::const_iterator it=busschedule.begin(); it!=busschedule.end(); it++) {
 		//Create an Agent candidate based on the type.
 		PendingEntity p(EntityTypeFromConfigString("bus"));
 
+		//Test
+		Trip* toLoad = dynamic_cast<Trip*>(tcs[7]);
+		if (!toLoad) { throw std::runtime_error("Trip chain item does not represent trip."); }
+
 		//Origin, destination
-		p.origin = tcs[7]->from.location;// dummy data
-		p.dest = tcs[7]->to.location;// dummy data
+		p.origin = toLoad->fromLocation;// dummy data
+		p.dest = toLoad->toLocation;// dummy data
 
 		//Start time
 		p.start = (*it)->startTime.offsetMS_From(config.simStartTime);

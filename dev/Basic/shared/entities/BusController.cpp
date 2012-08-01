@@ -20,6 +20,12 @@ sim_mob::BusController::~BusController()
 {
 }
 
+sim_mob::Link* sim_mob::BusController::getCurrLink(){
+	return currLink;
+}
+void sim_mob::BusController::setCurrLink(sim_mob::Link* link){
+	currLink = link;
+}
 
 void sim_mob::BusController::addBus(Bus* bus)
 {

@@ -14,8 +14,22 @@
 #include "partitions/UnPackageUtils.hpp"
 #endif
 
+namespace sim_mob
+{
+
 namespace aimsun
 {
+
+//Again, this belongs elsewhere, but for now it's required by YaoJin's code.
+class BusSchedule
+{
+public:
+	std::string tripid;
+	sim_mob::DailyTime startTime;
+	std::string TMP_startTimeStr;
+	BusSchedule() {}
+};
+
 
 /**
  * Aimsun class to read from database.
@@ -69,5 +83,7 @@ public:
 		this->sequenceNumber = sequenceNumber;
 	}
 };
+
+} //End namespace aimsun
 
 }

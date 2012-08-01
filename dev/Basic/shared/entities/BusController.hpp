@@ -47,6 +47,11 @@ public:
 	//For now, I am fixing this by having getToBeInList() always return true.
 	bool getToBeInList() { return true; }
 
+	//Functions required by Jenny's code.
+	// TODO: These shouldn't have to be duplicated across all entity types.
+	virtual Link* getCurrLink();
+	virtual void setCurrLink(Link* link);
+
 	// Manage Buses
 	void addBus(Bus* bus);
 	void remBus(Bus* bus);
@@ -65,6 +70,9 @@ private:
 	std::vector<Bus*> managedBuses;// Saved all virtual managedBuses
 	StartTimePriorityQueue pending_buses; //Buses waiting to be added to the simulation, prioritized by start time.
 	DPoint posBus;// The sent position of a given bus ,only for test
+
+	//The current Link. Used by Jenny's code (except we don't currently use buses in the medium term)
+    sim_mob::Link* currLink;
 
 #ifndef SIMMOB_DISABLE_MPI
 public:

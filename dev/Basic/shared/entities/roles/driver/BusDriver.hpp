@@ -47,7 +47,7 @@ public:
 	bool isBusLeavingBusStop();
 	void busAccelerating(DriverUpdateParams& p);
 	double lastTickDistanceToBusStop;
-	DriverUpdateParams* myDriverUpdateParams;
+	//DriverUpdateParams* myDriverUpdateParams;
 
 	BusStopVector findBusStopInPath(const vector<const RoadSegment*>& path);
 
@@ -71,7 +71,7 @@ private:
 	double waitAtStopMS;
 	BusStopVector busStops;
 
-	MITSIM_LC_Model* mitsim_lc_model;
+	//MITSIM_LC_Model* mitsim_lc_model;
 
 
 

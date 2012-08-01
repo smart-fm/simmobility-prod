@@ -38,9 +38,8 @@ DemoBusStop newbs;
 sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat)
 	: Driver(parent, mtxStrat), nextStop(nullptr), waitAtStopMS(-1) , lastTickDistanceToBusStop(-1)
 {
-	boost::mt19937 gen;
-	myDriverUpdateParams = new DriverUpdateParams(gen);
-	mitsim_lc_model = new MITSIM_LC_Model();
+	//boost::mt19937 gen;
+	//myDriverUpdateParams = new DriverUpdateParams(gen);
 }
 
 
@@ -170,9 +169,19 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 	}
 
 	//set lateral velocity
-	//p.currLaneIndex = myDriverUpdateParams->currLaneIndex;
-	p.nextLaneIndex = myDriverUpdateParams->nextLaneIndex;
-	LANE_CHANGE_SIDE lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
+	//NOTE: myDriverUpdateParams simply copies p, so we should just be able to use p. ~Seth
+	//p.nextLaneIndex = myDriverUpdateParams->nextLaneIndex;
+	p.nextLaneIndex = p.nextLaneIndex;
+
+	//NOTE: Driver already has a lcModel; we should be able to just use this. ~Seth
+	LANE_CHANGE_SIDE lcs = LCS_SAME;
+	MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*>(lcModel);
+	if (mitsim_lc_model) {
+		lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
+	} else {
+		throw std::runtime_error("TODO: BusDrivers currently require the MITSIM lc model.");
+	}
+
 	bus->setTurningDirection(lcs);
 	double newLatVel;
 	newLatVel = lcModel->executeLaneChanging(p, bus->getAllRestRoadSegmentsLength(), bus->length, bus->getTurningDirection());
@@ -262,7 +271,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 	double rest = updatePositionOnLink(p);
 //	myDriverUpdateParams->currLaneIndex = p.currLaneIndex;
 //	myDriverUpdateParams->nextLaneIndex = p.nextLaneIndex;
-	*myDriverUpdateParams = p;
+	//*myDriverUpdateParams = p;
 	return rest;
 }
 void sim_mob::BusDriver::busAccelerating(DriverUpdateParams& p)

@@ -68,8 +68,7 @@ public:
     unsigned int getID()const;
     void setLinkLoc(sim_mob::Link* link);
     int calcDistance(Point2D point){
-    	int ans = (int)sqrt( (location.getX()-point.getX()) * (location.getX()-point.getX()) + (location.getY()-point.getY()) * (location.getY()-point.getY()) );
-    	return ans;
+    	return (int)sqrt( (location.getX()-point.getX()) * (location.getX()-point.getX()) + (location.getY()-point.getY()) * (location.getY()-point.getY()) );
     }
 
     sim_mob::Link* getLinkLoc() const;

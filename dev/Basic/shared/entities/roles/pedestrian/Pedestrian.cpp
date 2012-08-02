@@ -518,13 +518,11 @@ void sim_mob::Pedestrian::setSubPath() {
 
 
 int sim_mob::Pedestrian::calcDistance(Agent* parent, Point2D point){
-	int ans = (int)sqrt( (parent->xPos.get()-point.getX()) * (parent->xPos.get()-point.getX()) + (parent->yPos.get()-point.getY()) * (parent->yPos.get()-point.getY()) );
-	return ans;
+	return (int)sqrt( (parent->xPos.get()-point.getX()) * (parent->xPos.get()-point.getX()) + (parent->yPos.get()-point.getY()) * (parent->yPos.get()-point.getY()) );
 }
 
 int sim_mob::Pedestrian::calcDistance(double xPos1, double yPos1, double xPos2, double yPos2){
-	int ans = (int)sqrt( (xPos1-xPos2)*(xPos1-xPos2) + (yPos1-yPos2)*(yPos1-yPos2) );
-	return ans;
+	return (int)sqrt( (xPos1-xPos2)*(xPos1-xPos2) + (yPos1-yPos2)*(yPos1-yPos2) );
 }
 
 void sim_mob::Pedestrian::initCrossing(const Crossing* currCross,boost::mt19937& gen){

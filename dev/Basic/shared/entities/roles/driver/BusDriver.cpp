@@ -80,8 +80,12 @@ void sim_mob::BusDriver::frame_init(UpdateParams& p)
 	waitAtStopMS = 0.0;
 
 }
-BusStopVector sim_mob::BusDriver::findBusStopInPath(const vector<const RoadSegment*>& path)
+
+vector<BusStop*> sim_mob::BusDriver::findBusStopInPath(const vector<const RoadSegment*>& path)
 {
+	//NOTE: Use typedefs instead of defines.
+	typedef vector<BusStop*> BusStopVector;
+
 	BusStopVector res;
 	int busStopAmount = 0;
 	vector<const RoadSegment*>::const_iterator it;

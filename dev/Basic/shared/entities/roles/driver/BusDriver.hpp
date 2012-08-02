@@ -11,11 +11,10 @@
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 #endif
-using std::vector;
 
 namespace sim_mob
 {
-#define BusStopVector vector<BusStop *>
+
 /**
  * This simple BusDriver class maintains a single, non-looping route with a series of
  *   stops. Most driving behavior is re-used from the Driver class. At bus stops, the
@@ -46,7 +45,7 @@ public:
 	double lastTickDistanceToBusStop;
 	//DriverUpdateParams* myDriverUpdateParams;
 
-	BusStopVector findBusStopInPath(const vector<const RoadSegment*>& path);
+	std::vector<sim_mob::BusStop *> findBusStopInPath(const std::vector<const sim_mob::RoadSegment*>& path);
 
 	double getPositionX()
 	{
@@ -75,7 +74,7 @@ private:
 	std::vector<DemoBusStop> stops;
 	std::vector<DemoBusStop> arrivedStops;
 	double waitAtStopMS;
-	BusStopVector busStops;
+	std::vector<sim_mob::BusStop *> busStops;
 
 	//MITSIM_LC_Model* mitsim_lc_model;
 

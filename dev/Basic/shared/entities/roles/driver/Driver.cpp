@@ -216,7 +216,11 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat) :
 void sim_mob::Driver::frame_init(UpdateParams& p)
 {
 	//Save the path from orign to next activity location in allRoadSegments
-	initializePath();
+	Vehicle* newVeh = initializePath(true);
+	if (newVeh) {
+		safe_delete_item(vehicle);
+		vehicle = newVeh;
+	}
 
 	//Set some properties about the current path, such as the current polyline, etc.
 	if (vehicle && vehicle->hasPath()) {
@@ -1033,10 +1037,12 @@ void sim_mob::Driver::initTripChainSpecialString(const string& value)
 //Edited by Jenny (11th June)
 //Try to initialize only the path from the current location to the next activity location
 //Added in a parameter for the function call: next
-void sim_mob::Driver::initializePath() {
+///Returns the new vehicle, if requested to build one.
+Vehicle* sim_mob::Driver::initializePath(bool allocateVehicle) {
+	Vehicle* res = nullptr;
 
 	//Only initialize if the next path has not been planned for yet.
-	if(!parent->getNextPathPlanned()){
+	if(!parent->getNextPathPlanned()) {
 		//Save local copies of the parent's origin/destination nodes.
 		origin.node = parent->originNode;
 		origin.point = origin.node->location;
@@ -1072,15 +1078,17 @@ void sim_mob::Driver::initializePath() {
 		const double width = 200;
 
 		//A non-null vehicle means we are moving.
-		vehicle = new Vehicle(path, startlaneID, length, width);
+		if (allocateVehicle) {
+			res = new Vehicle(path, startlaneID, length, width);
+		}
 	}
 
 	//to indicate that the path to next activity is already planned
 	parent->setNextPathPlanned(true);
+	return res;
 }
 
 void sim_mob::Driver::initializePathMed() {
-
 	//Only initialize if the next path has not been planned for yet.
 	if(!parent->getNextPathPlanned()){
 		//Save local copies of the parent's origin/destination nodes.

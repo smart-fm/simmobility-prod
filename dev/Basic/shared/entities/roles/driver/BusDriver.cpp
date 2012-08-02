@@ -31,36 +31,37 @@ sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat)
 
 
 
+//We're recreating the parent class's frame_init() method here.
+// Our goal is to reuse as much of Driver as possible, and then
+// refactor common code out later. We could just call the frame_init() method
+// directly, but there's some unexpected interdependencies.
 void sim_mob::BusDriver::frame_init(UpdateParams& p)
 {
-	//We're recreating the parent class's frame_init() method here.
-	// Our goal is to reuse as much of Driver as possible, and then
-	// refactor common code out later. We could just call the frame_init() method
-	// directly, but there's some unexpected interdependencies.
+	//TODO: "initializePath()" in Driver mixes initialization of the path and
+	//      creation of the Vehicle (e.g., its width/height). These are both
+	//      very different for Cars and Buses, but until we un-tangle the code
+	//      we'll need to rely on hacks like this.
+	Vehicle* newVeh = initializePath(true);
 
 	//Save the path, create a vehicle.
-	initializePath();
+	if (newVeh) {
+		//Use this sample vehicle to build our Bus, then delete the old vehicle.
+		BusRoute nullRoute; //Buses don't use the route at the moment.
+		Bus* bus = new Bus(nullRoute, newVeh);
+		busStops = findBusStopInPath(bus->getCompletePath());
+		delete newVeh;
+		vehicle = bus;
 
-	//initializePath() actually creates a Vehicle. We want Vehicle to be a "Bus",
-	// so we need to recreate it here. This will require a new property, "route", which
-	// contains the Bus route. For now, we can just generate a simple route.
-	BusRoute nullRoute; //Buses don't use the route at the moment.
-	Bus* bus = new Bus(nullRoute, vehicle);
-	busStops = findBusStopInPath(bus->getCompletePath());
-	delete vehicle;
-	vehicle = bus;
+		//This code is used by Driver to set a few properties of the Vehicle/Bus.
+		if (bus->hasPath()) {
+			setOrigin(params);
+		} else {
+			throw std::runtime_error("Vehicle could not be created for bus driver; no route!");
+		}
 
-
-	//This code is used by Driver to set a few properties of the Vehicle/Bus.
-	if (bus && bus->hasPath()) {
-		setOrigin(params);
-	} else {
-		throw std::runtime_error("Vehicle could not be created for bus driver; no route!");
+		//Unique to BusDrivers: reset your route
+		waitAtStopMS = 0.0;
 	}
-
-	//Unique to BusDrivers: reset your route
-	waitAtStopMS = 0.0;
-
 }
 
 vector<BusStop*> sim_mob::BusDriver::findBusStopInPath(const vector<const RoadSegment*>& path) const

@@ -31,14 +31,6 @@ public:
 	virtual void frame_tick_output(const UpdateParams& p);
 	virtual void frame_tick_output_mpi(frame_t frameNumber);
 
-	virtual int GetKindOf() const
-	{
-		return 3;
-	}
-
-	//Functionality
-	//void setRoute(const BusRoute& route);
-
 	// get distance to bus stop (meter)
 	double DistanceToNextBusStop();
 	// get distance to bus stop of particular segment (meter)

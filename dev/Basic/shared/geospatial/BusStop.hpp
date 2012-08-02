@@ -38,11 +38,6 @@ public:
 	    	return busstopno;
 	    }*/
 public:
-	virtual int GetKindOf() const
-	{
-		return 3;
-	}
-
 	///Which RoadItem and lane is this bus stop located at?
 	Lane* lane_location;
 

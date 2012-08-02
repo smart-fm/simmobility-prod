@@ -168,10 +168,13 @@ void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 								other = nullptr;
 								continue;
 							}
-							//Check.
-							if( other->GetKindOf() == 3 ){
+
+							//NOTE: Don't use a "magic number" like 3 to check if this is
+							//      a bus driver. Instead, use a dynamic cast, which returns null
+							//      if the cast failed.
+							if(dynamic_cast<Person*>(other)){
 								//LogOut("noteForDebug bus found"<< std::endl);
-								if( ((Person *)other)->getRole()->GetKindOf() == 3 ){
+								if(dynamic_cast<BusDriver*>(other->getRole())) {
 									BusDriver *bd = (BusDriver *)((Person *)other)->getRole();
 									double bdx = 0;
 									double bdy = 0;

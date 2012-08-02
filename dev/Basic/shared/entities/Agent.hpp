@@ -84,10 +84,6 @@ public:
 	bool isToBeRemoved();
 	void setToBeRemoved();
 	void clearToBeRemoved(); ///<Temporary function.
-	virtual int GetKindOf() const
-	{
-		return 1;
-	}
 
 public:
 	//The agent's start/end nodes.

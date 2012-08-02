@@ -37,11 +37,6 @@ public:
 
 public:
 
-	virtual int GetKindOf() const
-	{
-		return 4;
-	}
-
 #ifndef SIMMOB_DISABLE_MPI
 	///The identification of Crossing is packed using PackageUtils;
 	static void pack(PackageUtils& package, Crossing* one_cross);

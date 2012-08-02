@@ -110,11 +110,6 @@ public:
 		return one_try;
 	}
 
-	virtual int GetKindOf() const
-	{
-		return 1;
-	}
-
 protected:
 	Agent* parent; ///<The owner of this role. Usually a Person, but I could see it possibly being another Agent.
 

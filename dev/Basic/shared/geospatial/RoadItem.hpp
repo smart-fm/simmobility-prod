@@ -30,11 +30,6 @@ class RoadItem {
 public:
 	virtual ~RoadItem() {} //A virtual destructor allows this type to be polymorphic
 
-	virtual int GetKindOf() const
-	{
-		return 1;
-	}
-
 	const sim_mob::Point2D& getStart() { return start; }
 	const sim_mob::Point2D& getEnd() { return end; }
 	//static const bool isBus = false;

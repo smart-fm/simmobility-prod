@@ -534,7 +534,7 @@ void sim_mob::Pedestrian::initCrossing(const Crossing* currCross,boost::mt19937&
 	Point2D near2 = currCross->nearLine.second;
 
 
-		if  (sim_mob::dist(parent, near1) < sim_mob::dist(parent, near2) ){
+		if  (sim_mob::dist(*parent, near1) < sim_mob::dist(*parent, near2) ){
 				std::cout << "ccnear1!" << std::endl;
 				cStartX = (double) near1.getX();
 				cStartY = (double) near1.getY();

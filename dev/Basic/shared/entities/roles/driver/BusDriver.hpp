@@ -46,11 +46,13 @@ public:
 	{
 		if (this->vehicle)
 			return this->bus->getX();
+		return 0;
 	}
 	double getPositionY()
 	{
 		if (this->vehicle)
 			return this->bus->getY();
+		return 0;
 	}
 
 //Basic data

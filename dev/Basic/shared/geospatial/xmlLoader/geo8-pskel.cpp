@@ -983,12 +983,6 @@ namespace geo
   }
 
   void roundabout_t_pskel::
-  obstacles_parser (::geo::obstacles_t_pskel& p)
-  {
-    this->obstacles_parser_ = &p;
-  }
-
-  void roundabout_t_pskel::
   parsers (::xml_schema::string_pskel& nodeID,
            ::geo::Point2D_t_pskel& location,
            ::geo::RoadSegmentsAt_t_pskel& roadSegmentsAt,
@@ -999,8 +993,7 @@ namespace geo
            ::geo::LanesVector_t_pskel& addDominantLane,
            ::xml_schema::float_pskel& roundaboutDominantIslands,
            ::xml_schema::int_pskel& roundaboutNumberOfLanes,
-           ::geo::EntranceAngles_t_pskel& entranceAngles,
-           ::geo::obstacles_t_pskel& obstacles)
+           ::geo::EntranceAngles_t_pskel& entranceAngles)
   {
     this->nodeID_parser_ = &nodeID;
     this->location_parser_ = &location;
@@ -1013,7 +1006,6 @@ namespace geo
     this->roundaboutDominantIslands_parser_ = &roundaboutDominantIslands;
     this->roundaboutNumberOfLanes_parser_ = &roundaboutNumberOfLanes;
     this->entranceAngles_parser_ = &entranceAngles;
-    this->obstacles_parser_ = &obstacles;
   }
 
   roundabout_t_pskel::
@@ -1028,8 +1020,7 @@ namespace geo
     addDominantLane_parser_ (0),
     roundaboutDominantIslands_parser_ (0),
     roundaboutNumberOfLanes_parser_ (0),
-    entranceAngles_parser_ (0),
-    obstacles_parser_ (0)
+    entranceAngles_parser_ (0)
   {
   }
 
@@ -1097,12 +1088,6 @@ namespace geo
   }
 
   void intersection_t_pskel::
-  obstacles_parser (::geo::obstacles_t_pskel& p)
-  {
-    this->obstacles_parser_ = &p;
-  }
-
-  void intersection_t_pskel::
   parsers (::xml_schema::string_pskel& nodeID,
            ::geo::Point2D_t_pskel& location,
            ::geo::RoadSegmentsAt_t_pskel& roadSegmentsAt,
@@ -1112,8 +1097,7 @@ namespace geo
            ::geo::separators_t_pskel& Separators,
            ::geo::LanesVector_t_pskel& additionalDominantLanes,
            ::geo::LanesVector_t_pskel& additionalSubdominantLanes,
-           ::geo::DomainIslands_t_pskel& domainIslands,
-           ::geo::obstacles_t_pskel& obstacles)
+           ::geo::DomainIslands_t_pskel& domainIslands)
   {
     this->nodeID_parser_ = &nodeID;
     this->location_parser_ = &location;
@@ -1125,7 +1109,6 @@ namespace geo
     this->additionalDominantLanes_parser_ = &additionalDominantLanes;
     this->additionalSubdominantLanes_parser_ = &additionalSubdominantLanes;
     this->domainIslands_parser_ = &domainIslands;
-    this->obstacles_parser_ = &obstacles;
   }
 
   intersection_t_pskel::
@@ -1139,8 +1122,7 @@ namespace geo
     Separators_parser_ (0),
     additionalDominantLanes_parser_ (0),
     additionalSubdominantLanes_parser_ (0),
-    domainIslands_parser_ (0),
-    obstacles_parser_ (0)
+    domainIslands_parser_ (0)
   {
   }
 
@@ -1184,18 +1166,32 @@ namespace geo
   }
 
   void RoadItem_t_pskel::
-  parsers (::geo::Point2D_t_pskel& start,
-           ::geo::Point2D_t_pskel& end,
-           ::xml_schema::unsigned_short_pskel& Offset)
+  start_parser (::geo::Point2D_t_pskel& p)
   {
+    this->start_parser_ = &p;
+  }
+
+  void RoadItem_t_pskel::
+  end_parser (::geo::Point2D_t_pskel& p)
+  {
+    this->end_parser_ = &p;
+  }
+
+  void RoadItem_t_pskel::
+  parsers (::xml_schema::unsigned_short_pskel& Offset,
+           ::geo::Point2D_t_pskel& start,
+           ::geo::Point2D_t_pskel& end)
+  {
+    this->Offset_parser_ = &Offset;
     this->start_parser_ = &start;
     this->end_parser_ = &end;
-    this->Offset_parser_ = &Offset;
   }
 
   RoadItem_t_pskel::
   RoadItem_t_pskel ()
-  : Offset_parser_ (0)
+  : Offset_parser_ (0),
+    start_parser_ (0),
+    end_parser_ (0)
   {
   }
 
@@ -1239,9 +1235,9 @@ namespace geo
   }
 
   void BusStop_t_pskel::
-  parsers (::geo::Point2D_t_pskel& start,
+  parsers (::xml_schema::unsigned_short_pskel& Offset,
+           ::geo::Point2D_t_pskel& start,
            ::geo::Point2D_t_pskel& end,
-           ::xml_schema::unsigned_short_pskel& Offset,
            ::xml_schema::string_pskel& busStopID,
            ::xml_schema::string_pskel& lane_location,
            ::xml_schema::boolean_pskel& is_Terminal,
@@ -1249,9 +1245,9 @@ namespace geo
            ::xml_schema::boolean_pskel& has_shelter,
            ::xml_schema::unsigned_int_pskel& busCapacityAsLength)
   {
+    this->Offset_parser_ = &Offset;
     this->start_parser_ = &start;
     this->end_parser_ = &end;
-    this->Offset_parser_ = &Offset;
     this->busStopID_parser_ = &busStopID;
     this->lane_location_parser_ = &lane_location;
     this->is_Terminal_parser_ = &is_Terminal;
@@ -1281,14 +1277,14 @@ namespace geo
   }
 
   void ERP_Gantry_t_pskel::
-  parsers (::geo::Point2D_t_pskel& start,
+  parsers (::xml_schema::unsigned_short_pskel& Offset,
+           ::geo::Point2D_t_pskel& start,
            ::geo::Point2D_t_pskel& end,
-           ::xml_schema::unsigned_short_pskel& Offset,
            ::xml_schema::string_pskel& ERP_GantryID)
   {
+    this->Offset_parser_ = &Offset;
     this->start_parser_ = &start;
     this->end_parser_ = &end;
-    this->Offset_parser_ = &Offset;
     this->ERP_GantryID_parser_ = &ERP_GantryID;
   }
 
@@ -1389,16 +1385,16 @@ namespace geo
   }
 
   void crossing_t_pskel::
-  parsers (::geo::Point2D_t_pskel& start,
+  parsers (::xml_schema::unsigned_short_pskel& Offset,
+           ::geo::Point2D_t_pskel& start,
            ::geo::Point2D_t_pskel& end,
-           ::xml_schema::unsigned_short_pskel& Offset,
            ::xml_schema::string_pskel& crossingID,
            ::geo::PointPair_t_pskel& nearLine,
            ::geo::PointPair_t_pskel& farLine)
   {
+    this->Offset_parser_ = &Offset;
     this->start_parser_ = &start;
     this->end_parser_ = &end;
-    this->Offset_parser_ = &Offset;
     this->crossingID_parser_ = &crossingID;
     this->nearLine_parser_ = &nearLine;
     this->farLine_parser_ = &farLine;
@@ -1428,15 +1424,15 @@ namespace geo
   }
 
   void RoadBump_t_pskel::
-  parsers (::geo::Point2D_t_pskel& start,
+  parsers (::xml_schema::unsigned_short_pskel& Offset,
+           ::geo::Point2D_t_pskel& start,
            ::geo::Point2D_t_pskel& end,
-           ::xml_schema::unsigned_short_pskel& Offset,
            ::xml_schema::string_pskel& roadBumpID,
            ::xml_schema::string_pskel& segmentID)
   {
+    this->Offset_parser_ = &Offset;
     this->start_parser_ = &start;
     this->end_parser_ = &end;
-    this->Offset_parser_ = &Offset;
     this->roadBumpID_parser_ = &roadBumpID;
     this->segmentID_parser_ = &segmentID;
   }
@@ -4027,11 +4023,6 @@ namespace geo
   {
   }
 
-  void roundabout_t_pskel::
-  obstacles (std::vector<sim_mob::RoadItem>)
-  {
-  }
-
   bool roundabout_t_pskel::
   _start_element_impl (const ::xml_schema::ro_string& ns,
                        const ::xml_schema::ro_string& n,
@@ -4148,16 +4139,6 @@ namespace geo
 
       if (this->entranceAngles_parser_)
         this->entranceAngles_parser_->pre ();
-
-      return true;
-    }
-
-    if (n == "obstacles" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->obstacles_parser_;
-
-      if (this->obstacles_parser_)
-        this->obstacles_parser_->pre ();
 
       return true;
     }
@@ -4281,14 +4262,6 @@ namespace geo
       return true;
     }
 
-    if (n == "obstacles" && ns.empty ())
-    {
-      if (this->obstacles_parser_)
-        this->obstacles (this->obstacles_parser_->post_obstacles_t ());
-
-      return true;
-    }
-
     return false;
   }
 
@@ -4342,11 +4315,6 @@ namespace geo
 
   void intersection_t_pskel::
   domainIslands ()
-  {
-  }
-
-  void intersection_t_pskel::
-  obstacles (std::vector<sim_mob::RoadItem>)
   {
   }
 
@@ -4456,16 +4424,6 @@ namespace geo
 
       if (this->domainIslands_parser_)
         this->domainIslands_parser_->pre ();
-
-      return true;
-    }
-
-    if (n == "obstacles" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->obstacles_parser_;
-
-      if (this->obstacles_parser_)
-        this->obstacles_parser_->pre ();
 
       return true;
     }
@@ -4584,14 +4542,6 @@ namespace geo
       return true;
     }
 
-    if (n == "obstacles" && ns.empty ())
-    {
-      if (this->obstacles_parser_)
-        this->obstacles (this->obstacles_parser_->post_obstacles_t ());
-
-      return true;
-    }
-
     return false;
   }
 
@@ -4680,24 +4630,86 @@ namespace geo
   {
   }
 
-  bool RoadItem_t_pskel::
-  _attribute_impl (const ::xml_schema::ro_string& ns,
-                   const ::xml_schema::ro_string& n,
-                   const ::xml_schema::ro_string& v)
+  void RoadItem_t_pskel::
+  start (sim_mob::Point2D)
   {
-    if (this->::geo::RoadItem_No_Attr_t_pskel::_attribute_impl (ns, n, v))
+  }
+
+  void RoadItem_t_pskel::
+  end (sim_mob::Point2D)
+  {
+  }
+
+  bool RoadItem_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "Offset" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Offset_parser_;
+
+      if (this->Offset_parser_)
+        this->Offset_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "start" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->start_parser_;
+
+      if (this->start_parser_)
+        this->start_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "end" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->end_parser_;
+
+      if (this->end_parser_)
+        this->end_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool RoadItem_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
       return true;
 
     if (n == "Offset" && ns.empty ())
     {
       if (this->Offset_parser_)
-      {
-        this->Offset_parser_->pre ();
-        this->Offset_parser_->_pre_impl ();
-        this->Offset_parser_->_characters (v);
-        this->Offset_parser_->_post_impl ();
         this->Offset (this->Offset_parser_->post_unsigned_short ());
-      }
+
+      return true;
+    }
+
+    if (n == "start" && ns.empty ())
+    {
+      if (this->start_parser_)
+        this->start (this->start_parser_->post_Point2D_t ());
+
+      return true;
+    }
+
+    if (n == "end" && ns.empty ())
+    {
+      if (this->end_parser_)
+        this->end (this->end_parser_->post_Point2D_t ());
 
       return true;
     }

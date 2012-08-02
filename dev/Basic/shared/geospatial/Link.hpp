@@ -14,7 +14,10 @@
 
 //TODO: Once the new signal class is stabilized, replace this include with a forward declaration:
 #include "entities/signal_transitional.hpp"
-
+namespace geo
+{
+class link_t_pimpl;
+}
 namespace sim_mob
 {
 
@@ -104,8 +107,7 @@ protected:
 friend class sim_mob::aimsun::Loader;
 friend class sim_mob::RoadNetworkPackageManager;
 friend class sim_mob::Signal;
-//friend class sim_mob::Worker;
-
+friend class geo::link_t_pimpl;
 };
 
 

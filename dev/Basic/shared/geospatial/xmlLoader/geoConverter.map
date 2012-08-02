@@ -19,7 +19,7 @@ SegmentType_t std::string std::string;
 
 RoadItem_t  sim_mob::RoadItem*; 
 obstacle_t  sim_mob::RoadItem*;
-obstacles_t std::vector<sim_mob::RoadItem> std::vector<sim_mob::RoadItem>;
+obstacles_t std::map<centimeter_t,RoadItem_make_constant*> std::map<centimeter_t,RoadItem_make_constant*>;
 
 lane_t sim_mob::Lane* sim_mob::Lane*;
 Lanes std::vector<sim_mob::Lane*> std::vector<sim_mob::Lane*>;

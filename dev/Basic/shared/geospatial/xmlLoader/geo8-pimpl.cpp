@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <iostream>
 
+
 namespace geo
 {
   // SegmentType_t_pimpl
@@ -103,7 +104,7 @@ namespace geo
     //
   }
 
-  std::vector<sim_mob::RoadItem> obstacles_t_pimpl::
+  std::map<centimeter_t,const RoadItem*> obstacles_t_pimpl::
   post_obstacles_t ()
   {
     // TODO
@@ -122,14 +123,12 @@ namespace geo
   void Point2D_t_pimpl::
   xPos (unsigned int xPos)
   {
-    std::cout << "xPos: " << xPos << std::endl;
     point2D.setX(xPos);
   }
 
   void Point2D_t_pimpl::
   yPos (unsigned int yPos)
   {
-    std::cout << "yPos: " << yPos << std::endl;
     point2D.setY(yPos);
   }
 
@@ -145,19 +144,16 @@ namespace geo
   void PolyPoint_t_pimpl::
   pre ()
   {
-	  std::cout << "PolyPoint_t_pimpl::pre\n";
   }
 
   void PolyPoint_t_pimpl::
   pointID (const ::std::string& pointID)
   {
-    std::cout << "PolyPoint_t_pimpl::pointID: " << pointID << std::endl;
   }
 
   void PolyPoint_t_pimpl::
   location (sim_mob::Point2D location)
   {
-	  std::cout << "PolyPoint_t_pimpl::location\n";
 	  point2D = location;
   }
 
@@ -473,7 +469,6 @@ namespace geo
   sim_mob::RoadSegment* segment_t_pimpl::
   post_segment_t ()
   {
-	  std::cout << "Returning A segment\n";
 	  return rs;
   }
 
@@ -496,33 +491,29 @@ namespace geo
   roadName (const ::std::string& roadName)
   {
 	  link->roadName = roadName;
-    std::cout << "roadName: " << roadName << std::endl;
   }
 
   void link_t_pimpl::
   StartingNode (const ::std::string& StartingNode)
   {
-    std::cout << "StartingNode: " << StartingNode << std::endl;
   }
 
   void link_t_pimpl::
   EndingNode (const ::std::string& EndingNode)
   {
-    std::cout << "EndingNode: " << EndingNode << std::endl;
   }
 
   void link_t_pimpl::
   Segments (std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> > Segments)
   {
-
+	  link->fwdSegments = Segments.first;
+	  link->revSegments = Segments.second;
   }
 
   sim_mob::Link* link_t_pimpl::
   post_link_t ()
   {
-    // TODO
-    //
-    // return ... ;
+    return link;
   }
 
   // separator_t_pimpl
@@ -861,13 +852,6 @@ namespace geo
   {
   }
 
-  void roundabout_t_pimpl::
-  obstacles (std::vector<sim_mob::RoadItem> obstacles)
-  {
-    // TODO
-    //
-  }
-
   sim_mob::MultiNode* roundabout_t_pimpl::
   post_roundabout_t ()
   {
@@ -937,13 +921,6 @@ namespace geo
   {
   }
 
-  void intersection_t_pimpl::
-  obstacles (std::vector<sim_mob::RoadItem> obstacles)
-  {
-    // TODO
-    //
-  }
-
   sim_mob::MultiNode* intersection_t_pimpl::
   post_intersection_t ()
   {
@@ -993,10 +970,26 @@ namespace geo
     std::cout << "Offset: " << Offset << std::endl;
   }
 
+  void RoadItem_t_pimpl::
+  start (sim_mob::Point2D start)
+  {
+    // TODO
+    //
+  }
+
+  void RoadItem_t_pimpl::
+  end (sim_mob::Point2D end)
+  {
+    // TODO
+    //
+  }
+
   sim_mob::RoadItem* RoadItem_t_pimpl::
   post_RoadItem_t ()
   {
-    post_RoadItem_No_Attr_t ();
+    // TODO
+    //
+    // return ... ;
   }
 
   // BusStop_t_pimpl
@@ -1139,12 +1132,13 @@ namespace geo
   void crossing_t_pimpl::
   pre ()
   {
+	  crossing = new sim_mob::Crossing();
   }
 
   void crossing_t_pimpl::
   crossingID (const ::std::string& crossingID)
   {
-    std::cout << "crossingID: " << crossingID << std::endl;
+    this->crossing->crossingID = atoi(crossingID.c_str());
   }
 
   void crossing_t_pimpl::
@@ -1161,10 +1155,7 @@ namespace geo
   post_crossing_t ()
   {
     sim_mob::RoadItem* v (post_RoadItem_t ());
-
-    // TODO
-    //
-    // return ... ;
+    return crossing;
   }
 
   // RoadBump_t_pimpl
@@ -1191,14 +1182,13 @@ namespace geo
   post_RoadBump_t ()
   {
     sim_mob::RoadItem* v (post_RoadItem_t ());
-
     // TODO
     //
   }
 
   // RoadNetwork_t_pimpl
   //
-
+  RoadNetwork_t_pimpl::RoadNetwork_t_pimpl():rn(sim_mob::ConfigParams::GetInstance().getNetworkRW()) {}
   void RoadNetwork_t_pimpl::
   pre ()
   {
@@ -1207,8 +1197,7 @@ namespace geo
   void RoadNetwork_t_pimpl::
   Links (std::vector<sim_mob::Link*> Links)
   {
-    // TODO
-    //
+	  rn.links = Links;
   }
 
   void RoadNetwork_t_pimpl::
@@ -1350,16 +1339,13 @@ namespace geo
   void Links_pimpl::
   Link (sim_mob::Link* Link)
   {
-    // TODO
-    //
+	  links.push_back(Link);
   }
 
   std::vector<sim_mob::Link*> Links_pimpl::
   post_Links ()
   {
-    // TODO
-    //
-    // return ... ;
+	  return links;
   }
 
   // Nodes_pimpl

@@ -40,13 +40,13 @@
 // End prologue.
 
 #include <xsd/cxx/config.hxx>
-
+#include "metrics/Length.hpp"
 #if (XSD_INT_VERSION != 3030000L)
 #error XSD runtime version mismatch
 #endif
 
 #include <xsd/cxx/pre.hxx>
-
+using namespace sim_mob;
 // Forward declarations
 //
 namespace geo
@@ -422,7 +422,7 @@ namespace geo
     virtual void
     obstacle (sim_mob::RoadItem*);
 
-    virtual std::vector<sim_mob::RoadItem>
+    virtual std::map<centimeter_t,const RoadItem*>
     post_obstacles_t () = 0;
 
     // Parser construction API.
@@ -1738,9 +1738,6 @@ namespace geo
     virtual void
     entranceAngles ();
 
-    virtual void
-    obstacles (std::vector<sim_mob::RoadItem>);
-
     virtual sim_mob::MultiNode*
     post_roundabout_t () = 0;
 
@@ -1780,9 +1777,6 @@ namespace geo
     entranceAngles_parser (::geo::EntranceAngles_t_pskel&);
 
     void
-    obstacles_parser (::geo::obstacles_t_pskel&);
-
-    void
     parsers (::xml_schema::string_pskel& /* nodeID */,
              ::geo::Point2D_t_pskel& /* location */,
              ::geo::RoadSegmentsAt_t_pskel& /* roadSegmentsAt */,
@@ -1793,8 +1787,7 @@ namespace geo
              ::geo::LanesVector_t_pskel& /* addDominantLane */,
              ::xml_schema::float_pskel& /* roundaboutDominantIslands */,
              ::xml_schema::int_pskel& /* roundaboutNumberOfLanes */,
-             ::geo::EntranceAngles_t_pskel& /* entranceAngles */,
-             ::geo::obstacles_t_pskel& /* obstacles */);
+             ::geo::EntranceAngles_t_pskel& /* entranceAngles */);
 
     // Constructor.
     //
@@ -1824,7 +1817,6 @@ namespace geo
     ::xml_schema::float_pskel* roundaboutDominantIslands_parser_;
     ::xml_schema::int_pskel* roundaboutNumberOfLanes_parser_;
     ::geo::EntranceAngles_t_pskel* entranceAngles_parser_;
-    ::geo::obstacles_t_pskel* obstacles_parser_;
   };
 
   class intersection_t_pskel: public ::xml_schema::complex_content
@@ -1865,9 +1857,6 @@ namespace geo
     virtual void
     domainIslands ();
 
-    virtual void
-    obstacles (std::vector<sim_mob::RoadItem>);
-
     virtual sim_mob::MultiNode*
     post_intersection_t () = 0;
 
@@ -1904,9 +1893,6 @@ namespace geo
     domainIslands_parser (::geo::DomainIslands_t_pskel&);
 
     void
-    obstacles_parser (::geo::obstacles_t_pskel&);
-
-    void
     parsers (::xml_schema::string_pskel& /* nodeID */,
              ::geo::Point2D_t_pskel& /* location */,
              ::geo::RoadSegmentsAt_t_pskel& /* roadSegmentsAt */,
@@ -1916,8 +1902,7 @@ namespace geo
              ::geo::separators_t_pskel& /* Separators */,
              ::geo::LanesVector_t_pskel& /* additionalDominantLanes */,
              ::geo::LanesVector_t_pskel& /* additionalSubdominantLanes */,
-             ::geo::DomainIslands_t_pskel& /* domainIslands */,
-             ::geo::obstacles_t_pskel& /* obstacles */);
+             ::geo::DomainIslands_t_pskel& /* domainIslands */);
 
     // Constructor.
     //
@@ -1946,7 +1931,6 @@ namespace geo
     ::geo::LanesVector_t_pskel* additionalDominantLanes_parser_;
     ::geo::LanesVector_t_pskel* additionalSubdominantLanes_parser_;
     ::geo::DomainIslands_t_pskel* domainIslands_parser_;
-    ::geo::obstacles_t_pskel* obstacles_parser_;
   };
 
   class RoadItem_No_Attr_t_pskel: public ::xml_schema::complex_content
@@ -1999,7 +1983,7 @@ namespace geo
     ::geo::Point2D_t_pskel* end_parser_;
   };
 
-  class RoadItem_t_pskel: public virtual ::geo::RoadItem_No_Attr_t_pskel
+  class RoadItem_t_pskel: public ::xml_schema::complex_content
   {
     public:
     // Parser callbacks. Override them in your implementation.
@@ -2010,6 +1994,12 @@ namespace geo
     virtual void
     Offset (unsigned short);
 
+    virtual void
+    start (sim_mob::Point2D);
+
+    virtual void
+    end (sim_mob::Point2D);
+
     virtual sim_mob::RoadItem*
     post_RoadItem_t () = 0;
 
@@ -2019,9 +2009,15 @@ namespace geo
     Offset_parser (::xml_schema::unsigned_short_pskel&);
 
     void
-    parsers (::geo::Point2D_t_pskel& /* start */,
-             ::geo::Point2D_t_pskel& /* end */,
-             ::xml_schema::unsigned_short_pskel& /* Offset */);
+    start_parser (::geo::Point2D_t_pskel&);
+
+    void
+    end_parser (::geo::Point2D_t_pskel&);
+
+    void
+    parsers (::xml_schema::unsigned_short_pskel& /* Offset */,
+             ::geo::Point2D_t_pskel& /* start */,
+             ::geo::Point2D_t_pskel& /* end */);
 
     // Constructor.
     //
@@ -2031,12 +2027,18 @@ namespace geo
     //
     protected:
     virtual bool
-    _attribute_impl (const ::xml_schema::ro_string&,
-                     const ::xml_schema::ro_string&,
-                     const ::xml_schema::ro_string&);
+    _start_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string*);
+
+    virtual bool
+    _end_element_impl (const ::xml_schema::ro_string&,
+                       const ::xml_schema::ro_string&);
 
     protected:
     ::xml_schema::unsigned_short_pskel* Offset_parser_;
+    ::geo::Point2D_t_pskel* start_parser_;
+    ::geo::Point2D_t_pskel* end_parser_;
   };
 
   class BusStop_t_pskel: public virtual ::geo::RoadItem_t_pskel
@@ -2089,9 +2091,9 @@ namespace geo
     busCapacityAsLength_parser (::xml_schema::unsigned_int_pskel&);
 
     void
-    parsers (::geo::Point2D_t_pskel& /* start */,
+    parsers (::xml_schema::unsigned_short_pskel& /* Offset */,
+             ::geo::Point2D_t_pskel& /* start */,
              ::geo::Point2D_t_pskel& /* end */,
-             ::xml_schema::unsigned_short_pskel& /* Offset */,
              ::xml_schema::string_pskel& /* busStopID */,
              ::xml_schema::string_pskel& /* lane_location */,
              ::xml_schema::boolean_pskel& /* is_Terminal */,
@@ -2144,9 +2146,9 @@ namespace geo
     ERP_GantryID_parser (::xml_schema::string_pskel&);
 
     void
-    parsers (::geo::Point2D_t_pskel& /* start */,
+    parsers (::xml_schema::unsigned_short_pskel& /* Offset */,
+             ::geo::Point2D_t_pskel& /* start */,
              ::geo::Point2D_t_pskel& /* end */,
-             ::xml_schema::unsigned_short_pskel& /* Offset */,
              ::xml_schema::string_pskel& /* ERP_GantryID */);
 
     // Constructor.
@@ -2309,9 +2311,9 @@ namespace geo
     farLine_parser (::geo::PointPair_t_pskel&);
 
     void
-    parsers (::geo::Point2D_t_pskel& /* start */,
+    parsers (::xml_schema::unsigned_short_pskel& /* Offset */,
+             ::geo::Point2D_t_pskel& /* start */,
              ::geo::Point2D_t_pskel& /* end */,
-             ::xml_schema::unsigned_short_pskel& /* Offset */,
              ::xml_schema::string_pskel& /* crossingID */,
              ::geo::PointPair_t_pskel& /* nearLine */,
              ::geo::PointPair_t_pskel& /* farLine */);
@@ -2364,9 +2366,9 @@ namespace geo
     segmentID_parser (::xml_schema::string_pskel&);
 
     void
-    parsers (::geo::Point2D_t_pskel& /* start */,
+    parsers (::xml_schema::unsigned_short_pskel& /* Offset */,
+             ::geo::Point2D_t_pskel& /* start */,
              ::geo::Point2D_t_pskel& /* end */,
-             ::xml_schema::unsigned_short_pskel& /* Offset */,
              ::xml_schema::string_pskel& /* roadBumpID */,
              ::xml_schema::string_pskel& /* segmentID */);
 

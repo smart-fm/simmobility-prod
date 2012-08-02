@@ -15,7 +15,6 @@ main1 (int argc, char* argv[])
 {
 	std::cout << "In main1\n";
 
-
   try
   {
     // Instantiate individual parsers.
@@ -61,9 +60,6 @@ main1 (int argc, char* argv[])
     ::geo::LanesVector_t_pimpl LanesVector_t_p;
     ::geo::DomainIslands_t_pimpl DomainIslands_t_p;
     ::geo::DomainIsland_t_pimpl DomainIsland_t_p;
-    ::geo::obstacles_t_pimpl obstacles_t_p;
-    ::geo::obstacle_t_pimpl obstacle_t_p;
-    ::geo::ObstacleType_t_pimpl ObstacleType_t_p;
     ::geo::roundabouts_pimpl roundabouts_p;
     ::geo::roundabout_t_pimpl roundabout_t_p;
     ::xml_schema::float_pimpl float_p;
@@ -138,9 +134,9 @@ main1 (int argc, char* argv[])
                            crossing_t_p,
                            RoadBump_t_p);
 
-    BusStop_t_p.parsers (Point2D_t_p,
+    BusStop_t_p.parsers (unsigned_short_p,
                          Point2D_t_p,
-                         unsigned_short_p,
+                         Point2D_t_p,
                          string_p,
                          string_p,
                          boolean_p,
@@ -148,14 +144,14 @@ main1 (int argc, char* argv[])
                          boolean_p,
                          unsigned_int_p);
 
-    ERP_Gantry_t_p.parsers (Point2D_t_p,
+    ERP_Gantry_t_p.parsers (unsigned_short_p,
                             Point2D_t_p,
-                            unsigned_short_p,
+                            Point2D_t_p,
                             string_p);
 
-    crossing_t_p.parsers (Point2D_t_p,
+    crossing_t_p.parsers (unsigned_short_p,
                           Point2D_t_p,
-                          unsigned_short_p,
+                          Point2D_t_p,
                           string_p,
                           PointPair_t_p,
                           PointPair_t_p);
@@ -163,9 +159,9 @@ main1 (int argc, char* argv[])
     PointPair_t_p.parsers (Point2D_t_p,
                            Point2D_t_p);
 
-    RoadBump_t_p.parsers (Point2D_t_p,
+    RoadBump_t_p.parsers (unsigned_short_p,
                           Point2D_t_p,
-                          unsigned_short_p,
+                          Point2D_t_p,
                           string_p,
                           string_p);
 
@@ -195,8 +191,7 @@ main1 (int argc, char* argv[])
                               separators_t_p,
                               LanesVector_t_p,
                               LanesVector_t_p,
-                              DomainIslands_t_p,
-                              obstacles_t_p);
+                              DomainIslands_t_p);
 
     RoadSegmentsAt_t_p.parsers (string_p);
 
@@ -222,11 +217,6 @@ main1 (int argc, char* argv[])
     DomainIsland_t_p.parsers (unsigned_short_p,
                               boolean_p);
 
-    obstacles_t_p.parsers (obstacle_t_p);
-
-    obstacle_t_p.parsers (string_p,
-                          ObstacleType_t_p);
-
     roundabouts_p.parsers (roundabout_t_p);
 
     roundabout_t_p.parsers (string_p,
@@ -239,8 +229,7 @@ main1 (int argc, char* argv[])
                             LanesVector_t_p,
                             float_p,
                             int_p,
-                            EntranceAngles_t_p,
-                            obstacles_t_p);
+                            EntranceAngles_t_p);
 
     EntranceAngles_t_p.parsers (EntranceAngle_t_p);
 

@@ -9,6 +9,7 @@
 #define GEO8_PIMPL_HPP
 
 #include "geo8-pskel.hpp"
+#include "conf/simpleconf.hpp"
 
 namespace geo
 {
@@ -63,6 +64,7 @@ namespace geo
 
   class obstacles_t_pimpl: public virtual obstacles_t_pskel
   {
+	  std::map<centimeter_t, const RoadItem*> roadItems;
     public:
     virtual void
     pre ();
@@ -70,7 +72,7 @@ namespace geo
     virtual void
     obstacle (sim_mob::RoadItem*);
 
-    virtual std::vector<sim_mob::RoadItem>
+    virtual std::map<centimeter_t,const RoadItem*>
     post_obstacles_t ();
   };
 
@@ -526,9 +528,6 @@ namespace geo
     virtual void
     entranceAngles ();
 
-    virtual void
-    obstacles (std::vector<sim_mob::RoadItem>);
-
     virtual sim_mob::MultiNode*
     post_roundabout_t ();
   };
@@ -569,9 +568,6 @@ namespace geo
     virtual void
     domainIslands ();
 
-    virtual void
-    obstacles (std::vector<sim_mob::RoadItem>);
-
     virtual sim_mob::MultiNode*
     post_intersection_t ();
   };
@@ -592,8 +588,7 @@ namespace geo
     post_RoadItem_No_Attr_t ();
   };
 
-  class RoadItem_t_pimpl: public virtual RoadItem_t_pskel,
-    public ::geo::RoadItem_No_Attr_t_pimpl
+  class RoadItem_t_pimpl: public virtual RoadItem_t_pskel
   {
     public:
     virtual void
@@ -601,6 +596,12 @@ namespace geo
 
     virtual void
     Offset (unsigned short);
+
+    virtual void
+    start (sim_mob::Point2D);
+
+    virtual void
+    end (sim_mob::Point2D);
 
     virtual sim_mob::RoadItem*
     post_RoadItem_t ();
@@ -687,6 +688,7 @@ namespace geo
   class crossing_t_pimpl: public virtual crossing_t_pskel,
     public ::geo::RoadItem_t_pimpl
   {
+	  sim_mob::Crossing *crossing;
     public:
     virtual void
     pre ();
@@ -723,7 +725,9 @@ namespace geo
 
   class RoadNetwork_t_pimpl: public virtual RoadNetwork_t_pskel
   {
+	  sim_mob::RoadNetwork &rn;
     public:
+	  RoadNetwork_t_pimpl();
     virtual void
     pre ();
 
@@ -818,6 +822,7 @@ namespace geo
 
   class Links_pimpl: public virtual Links_pskel
   {
+	  std::vector<sim_mob::Link*> links;
     public:
     virtual void
     pre ();

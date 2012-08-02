@@ -4,42 +4,6 @@
   added segment and connector information to roundabout and intersection (inheritted from multinode -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:geo="http://www.smart.mit.edu/geo"
   targetNamespace="http://www.smart.mit.edu/geo">
-  <!-- definition of simple elements -->
-  <!--<xs:simpleType name="SimMobId_t">
-    <xs:restriction base="xs:string"/>
-  </xs:simpleType>-->
-
-  <!--   <xs:simpleType name="SimMobString_t">
-    <xs:restriction base="xs:string"/>
-  </xs:simpleType>-->
-
-  <!--<xs:simpleType name="width_t">
-    <xs:restriction base="xs:unsignedInt"/>
-  </xs:simpleType>-->
-
-  <!--  <xs:simpleType name="xpos_t">
-    <xs:restriction base="xs:unsignedInt"/>
-  </xs:simpleType>-->
-
-  <!--<xs:simpleType name="ypos_t">
-    <xs:restriction base="xs:unsignedInt"/>
-  </xs:simpleType>-->
-
-  <!--  <xs:simpleType name="LinkId_t">
-    <xs:restriction base="xs:string"/>
-  </xs:simpleType>-->
-
-  <!--  <xs:simpleType name="SegmentId_t">
-    <xs:restriction base="xs:string"/>
-  </xs:simpleType>-->
-
-  <!--  <xs:simpleType name="NodeId_t">
-    <xs:restriction base="xs:string"/>
-  </xs:simpleType>-->
-
-  <!--  <xs:simpleType name="LaneId_t">
-    <xs:restriction base="xs:string"/>
-  </xs:simpleType>-->
 
   <xs:simpleType name="SegmentType_t">
     <xs:restriction base="xs:string">
@@ -56,10 +20,6 @@
       <xs:enumeration value="BUSSTOP"/>
     </xs:restriction>
   </xs:simpleType>
-
-  <!-- <xs:simpleType name="speed_t">
-    <xs:restriction base="xs:short"/>
-  </xs:simpleType>-->
 
   <xs:simpleType name="LaneType_t">
     <xs:restriction base="xs:string">
@@ -284,7 +244,6 @@
       <xs:element name="roundaboutDominantIslands" type="xs:float" minOccurs="0" maxOccurs="1"/>
       <xs:element name="roundaboutNumberOfLanes" type="xs:int" minOccurs="0" maxOccurs="1"/>
       <xs:element name="entranceAngles" type="geo:EntranceAngles_t" minOccurs="0" maxOccurs="1"/>
-      <xs:element name="obstacles" type="geo:obstacles_t" minOccurs="0" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>
 
@@ -302,7 +261,6 @@
       <xs:element name="additionalSubdominantLanes" type="geo:LanesVector_t" minOccurs="0"
         maxOccurs="1"/>
       <xs:element name="domainIslands" type="geo:DomainIslands_t" minOccurs="0" maxOccurs="1"/>
-      <xs:element name="obstacles" type="geo:obstacles_t" minOccurs="0" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>
 
@@ -314,12 +272,18 @@
   </xs:complexType>
 
   <xs:complexType name="RoadItem_t">
-    <xs:complexContent>
+    <xs:sequence>
+      <xs:element name="Offset" type="xs:unsignedShort"/>
+      <xs:element name="start" type="geo:Point2D_t"/>
+      <xs:element name="end" type="geo:Point2D_t"/>
+    </xs:sequence>
+  </xs:complexType>
+
+<!--  <xs:complexContent>
       <xs:extension base="geo:RoadItem_No_Attr_t">
         <xs:attribute name="Offset" type="xs:unsignedShort"/>
       </xs:extension>
-    </xs:complexContent>
-  </xs:complexType>
+  </xs:complexContent>-->
 
 
   <xs:complexType name="BusStop_t">
@@ -401,21 +365,24 @@
             <xs:element name="UniNodes" minOccurs="0" maxOccurs="1">
               <xs:complexType>
                 <xs:sequence>
-                  <xs:element name="UniNode" type="geo:UniNode_t" minOccurs="0" maxOccurs="unbounded"/>
+                  <xs:element name="UniNode" type="geo:UniNode_t" minOccurs="0"
+                    maxOccurs="unbounded"/>
                 </xs:sequence>
               </xs:complexType>
             </xs:element>
             <xs:element name="Intersections" minOccurs="0" maxOccurs="1">
               <xs:complexType>
                 <xs:sequence>
-                  <xs:element name="Intersection" type="geo:intersection_t" minOccurs="0" maxOccurs="unbounded"/>
+                  <xs:element name="Intersection" type="geo:intersection_t" minOccurs="0"
+                    maxOccurs="unbounded"/>
                 </xs:sequence>
               </xs:complexType>
             </xs:element>
             <xs:element name="roundabouts" minOccurs="0" maxOccurs="1">
               <xs:complexType>
                 <xs:sequence>
-                  <xs:element name="roundabout" type="geo:roundabout_t" minOccurs="0" maxOccurs="unbounded"/>
+                  <xs:element name="roundabout" type="geo:roundabout_t" minOccurs="0"
+                    maxOccurs="unbounded"/>
                 </xs:sequence>
               </xs:complexType>
             </xs:element>

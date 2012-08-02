@@ -5,20 +5,11 @@
 #include <iostream>
 #include <vector>
 #include <set>
-//#include "Link.hpp"
 
-//#include <boost/multi_index_container.hpp>
-//#include <boost/multi_index/random_access_index.hpp>
-//#include <boost/multi_index/ordered_index.hpp>
-//#include <boost/multi_index/identity.hpp>
-//#include <boost/multi_index/member.hpp>
-
-//using boost::multi_index_container;
-//using namespace boost::multi_index;
-
-//using namespace boost::multi_index;
-
-namespace geo {class Links_pimpl;}
+namespace geo {
+class Links_pimpl;
+class RoadNetwork_t_pimpl;
+}
 namespace sim_mob
 {
 
@@ -60,13 +51,6 @@ enum DRIVING_SIDE {
  */
 
 /*Added  by vahid*/
-//typedef multi_index_container<
-//sim_mob::Link,
-//    indexed_by<
-//		random_access<>,
-////	        ordered_unique< member<sim_mob::Link, std::string, &sim_mob::Link::linkID> >
-//    >
-//> Link_m;
 
 class RoadNetwork {
 public:
@@ -108,7 +92,7 @@ private:
 
 
 friend class sim_mob::aimsun::Loader;
-friend class geo::Links_pimpl;
+friend class geo::RoadNetwork_t_pimpl;
 
 };
 

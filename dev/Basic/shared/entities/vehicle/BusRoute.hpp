@@ -49,7 +49,7 @@ public:
 
 		//Scan the obstacles list; return true if any RoadItem on it is a BusStop.
 		for(ObstacleIterator o_it = curr->obstacles.begin(); o_it != curr->obstacles.end() ; o_it++) {
-			if(dynamic_cast<BusStop *>(o_it->second)) {
+			if(dynamic_cast<const BusStop*>(o_it->second)) {
 				return true;
 			}
 		}

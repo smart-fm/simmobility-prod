@@ -156,7 +156,7 @@ void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 					double pedX = fwdMovement.getPosition().x;
 					double pedY = fwdMovement.getPosition().y;
 
-					if( calcDistance(obsX,obsY,pedX,pedY) < 1800 ){
+					if(sim_mob::dist(obsX,obsY,pedX,pedY) < 1800 ){
 						Agent* other = nullptr;
 						for (size_t i = 0; i < Agent::all_agents.size(); i++) {
 							//Skip self
@@ -517,13 +517,6 @@ void sim_mob::Pedestrian::setSubPath() {
 }
 
 
-int sim_mob::Pedestrian::calcDistance(Agent* parent, Point2D point){
-	return (int)sqrt( (parent->xPos.get()-point.getX()) * (parent->xPos.get()-point.getX()) + (parent->yPos.get()-point.getY()) * (parent->yPos.get()-point.getY()) );
-}
-
-int sim_mob::Pedestrian::calcDistance(double xPos1, double yPos1, double xPos2, double yPos2){
-	return (int)sqrt( (xPos1-xPos2)*(xPos1-xPos2) + (yPos1-yPos2)*(yPos1-yPos2) );
-}
 
 void sim_mob::Pedestrian::initCrossing(const Crossing* currCross,boost::mt19937& gen){
 
@@ -541,7 +534,7 @@ void sim_mob::Pedestrian::initCrossing(const Crossing* currCross,boost::mt19937&
 	Point2D near2 = currCross->nearLine.second;
 
 
-		if ( calcDistance(parent, near1) < calcDistance(parent, near2) ){
+		if  (sim_mob::dist(parent, near1) < sim_mob::dist(parent, near2) ){
 				std::cout << "ccnear1!" << std::endl;
 				cStartX = (double) near1.getX();
 				cStartY = (double) near1.getY();

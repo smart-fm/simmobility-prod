@@ -135,8 +135,8 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 				currLink = (*it)->getLink();
 				if (it != path.begin())
 				{
-					fwd = ( (*it)->getLink()->getStart()->calcDistance( (*it)->getStart()->location ) < (*it)->getLink()->getStart()->calcDistance( (*it)->getEnd()->location ) );
-					//fwd = (*it)->getLink()->getStart() == (*it)->getStart();
+					fwd = sim_mob::dist((*it)->getLink()->getStart()->location, (*it)->getStart()->location)
+						< sim_mob::dist((*it)->getLink()->getStart()->location, (*it)->getEnd()->location);
 				}
 				DebugStream << "  Link: " << currLink << " fwd: " << (fwd ? "true" : "false") << "  length: " << Fmt_M(currLink->getLength(fwd)) << "  poly-length: " << Fmt_M(
 						CalcSegmentLaneZeroDist(it, path.end()));
@@ -252,9 +252,6 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 
 		if (it != path.begin())
 		{
-
-			//fwd = ( (*it)->getLink()->getStart()->calcDistance( (*it)->getStart()->location ) < (*it)->getLink()->getStart()->calcDistance( (*it)->getEnd()->location ) );
-			//fwd = (*it)->getLink()->getStart() == (*it)->getStart();
 			areFwds.insert(areFwds.end(), fwd);
 			LogOut("NoteForIsFwd point 5 fwd: "<< (fwd ? "true" : "false") <<std::endl);
 		}

@@ -142,8 +142,6 @@ private:
 	bool checkGapAcceptance();
 	void absToRel(double, double, double &, double &);
 	void relToAbs(double, double, double &, double &);
-	int calcDistance(Agent* parent, Point2D point);
-	int calcDistance(double xPos1, double yPos1, double xPos2, double yPos2);
 
 	//New functions
 	void initCrossing(const Crossing* currCross, boost::mt19937& gen);

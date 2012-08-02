@@ -53,9 +53,6 @@ namespace geo
 {
   class SegmentType_t_pskel;
   class ObstacleType_t_pskel;
-  class LaneType_t_pskel;
-  class obstacle_t_pskel;
-  class obstacles_t_pskel;
   class Point2D_t_pskel;
   class PolyPoint_t_pskel;
   class PolyLine_t_pskel;
@@ -347,110 +344,6 @@ namespace geo
 
     virtual void
     post_ObstacleType_t ();
-  };
-
-  class LaneType_t_pskel: public virtual ::xml_schema::string_pskel
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    post_LaneType_t ();
-  };
-
-  class obstacle_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    obstacleID (const ::std::string&);
-
-    virtual void
-    obstacleType ();
-
-    virtual sim_mob::RoadItem*
-    post_obstacle_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    obstacleID_parser (::xml_schema::string_pskel&);
-
-    void
-    obstacleType_parser (::geo::ObstacleType_t_pskel&);
-
-    void
-    parsers (::xml_schema::string_pskel& /* obstacleID */,
-             ::geo::ObstacleType_t_pskel& /* obstacleType */);
-
-    // Constructor.
-    //
-    obstacle_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::string_pskel* obstacleID_parser_;
-    ::geo::ObstacleType_t_pskel* obstacleType_parser_;
-  };
-
-  class obstacles_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    obstacle (sim_mob::RoadItem*);
-
-    virtual std::map<centimeter_t,const RoadItem*>
-    post_obstacles_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    obstacle_parser (::geo::obstacle_t_pskel&);
-
-    void
-    parsers (::geo::obstacle_t_pskel& /* obstacle */);
-
-    // Constructor.
-    //
-    obstacles_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::obstacle_t_pskel* obstacle_parser_;
   };
 
   class Point2D_t_pskel: public ::xml_schema::complex_content
@@ -2243,8 +2136,8 @@ namespace geo
     virtual void
     second (sim_mob::Point2D);
 
-    virtual void
-    post_PointPair_t ();
+    virtual std::pair<sim_mob::Point2D,sim_mob::Point2D>
+    post_PointPair_t () = 0;
 
     // Parser construction API.
     //
@@ -2291,10 +2184,10 @@ namespace geo
     crossingID (const ::std::string&);
 
     virtual void
-    nearLine ();
+    nearLine (std::pair<sim_mob::Point2D,sim_mob::Point2D>);
 
     virtual void
-    farLine ();
+    farLine (std::pair<sim_mob::Point2D,sim_mob::Point2D>);
 
     virtual sim_mob::Crossing*
     post_crossing_t () = 0;

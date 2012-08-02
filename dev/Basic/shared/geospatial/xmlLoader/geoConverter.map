@@ -28,7 +28,7 @@ connector_t sim_mob::LaneConnector* sim_mob::LaneConnector*;
 PolyLine_t std::vector<sim_mob::Point2D> std::vector<sim_mob::Point2D>;
 PolyPoint_t sim_mob::Point2D sim_mob::Point2D;
 Point2D_t sim_mob::Point2D sim_mob::Point2D;
-
+PointPair_t std::pair<sim_mob::Point2D,sim_mob::Point2D> std::pair<sim_mob::Point2D,sim_mob::Point2D>;
 
 UniNodes std::set<sim_mob::UniNode*> std::set<sim_mob::UniNode*>;
 UniNode_t sim_mob::UniNode* sim_mob::UniNode*;

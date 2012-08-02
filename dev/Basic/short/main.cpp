@@ -124,6 +124,7 @@ bool performMain(const std::string& configFileName) {
 
 	//Load our user config file; save a handle to the shared definition of it.
 	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof)) { //Note: Agent "shells" are loaded here.
+		std::cerr << "InitUserConf failed\n";
 		return false;
 	}
 	const ConfigParams& config = ConfigParams::GetInstance();

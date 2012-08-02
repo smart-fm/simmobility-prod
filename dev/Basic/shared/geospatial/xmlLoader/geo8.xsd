@@ -21,7 +21,7 @@
     </xs:restriction>
   </xs:simpleType>
 
-  <xs:simpleType name="LaneType_t">
+<!--  <xs:simpleType name="LaneType_t">
     <xs:restriction base="xs:string">
       <xs:enumeration value="ROAD_LANE"/>
       <xs:enumeration value="SIDE_WALK"/>
@@ -29,7 +29,7 @@
     </xs:restriction>
   </xs:simpleType>
 
-  <!-- definition of complex elements -->
+  <!-\- definition of complex elements -\->
   <xs:complexType name="obstacle_t">
     <xs:sequence>
       <xs:element name="obstacleID" type="xs:string"/>
@@ -41,7 +41,7 @@
     <xs:sequence>
       <xs:element name="obstacle" type="geo:obstacle_t" minOccurs="1" maxOccurs="unbounded"/>
     </xs:sequence>
-  </xs:complexType>
+  </xs:complexType>-->
 
   <xs:complexType name="Point2D_t">
     <xs:sequence>
@@ -329,11 +329,11 @@
   <xs:complexType name="crossing_t">
     <xs:complexContent>
       <xs:extension base="geo:RoadItem_t">
-        <xs:choice maxOccurs="unbounded">
-          <xs:element name="crossingID" type="xs:string"/>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element name="crossingID" type="xs:string" minOccurs="1"/>
           <!-- I guess either of start/end or near/far needs to be used -->
-          <xs:element name="nearLine" type="geo:PointPair_t"/>
-          <xs:element name="farLine" type="geo:PointPair_t"/>
+          <xs:element name="nearLine" type="geo:PointPair_t" minOccurs="1"/>
+          <xs:element name="farLine" type="geo:PointPair_t" minOccurs="1"/>
         </xs:choice>
       </xs:extension>
     </xs:complexContent>

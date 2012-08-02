@@ -46,72 +46,6 @@ namespace geo
     std::cout << "ObstacleType_t: " << v << std::endl;
   }
 
-  // LaneType_t_pimpl
-  //
-
-  void LaneType_t_pimpl::
-  pre ()
-  {
-  }
-
-  void LaneType_t_pimpl::
-  post_LaneType_t ()
-  {
-    const ::std::string& v (post_string ());
-
-    std::cout << "LaneType_t: " << v << std::endl;
-  }
-
-  // obstacle_t_pimpl
-  //
-
-  void obstacle_t_pimpl::
-  pre ()
-  {
-  }
-
-  void obstacle_t_pimpl::
-  obstacleID (const ::std::string& obstacleID)
-  {
-    std::cout << "obstacleID: " << obstacleID << std::endl;
-  }
-
-  void obstacle_t_pimpl::
-  obstacleType ()
-  {
-  }
-
-  sim_mob::RoadItem* obstacle_t_pimpl::
-  post_obstacle_t ()
-  {
-    // TODO
-    //
-    // return ... ;
-  }
-
-  // obstacles_t_pimpl
-  //
-
-  void obstacles_t_pimpl::
-  pre ()
-  {
-  }
-
-  void obstacles_t_pimpl::
-  obstacle (sim_mob::RoadItem* obstacle)
-  {
-    // TODO
-    //
-  }
-
-  std::map<centimeter_t,const RoadItem*> obstacles_t_pimpl::
-  post_obstacles_t ()
-  {
-    // TODO
-    //
-    // return ... ;
-  }
-
   // Point2D_t_pimpl
   //
 
@@ -484,6 +418,7 @@ namespace geo
   void link_t_pimpl::
   linkID (const ::std::string& linkID)
   {
+	  std::cout << "In linkID \n";
 	  link->linkID = linkID;
   }
 
@@ -506,6 +441,7 @@ namespace geo
   void link_t_pimpl::
   Segments (std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> > Segments)
   {
+	  std::cout << "In link_t_pimpl::Segments()\n";
 	  link->fwdSegments = Segments.first;
 	  link->revSegments = Segments.second;
   }
@@ -1110,20 +1046,19 @@ namespace geo
   void PointPair_t_pimpl::
   first (sim_mob::Point2D first)
   {
-    // TODO
-    //
+	  pointPair.first = first;
   }
 
   void PointPair_t_pimpl::
   second (sim_mob::Point2D second)
   {
-    // TODO
-    //
+	  pointPair.second = second;
   }
 
-  void PointPair_t_pimpl::
+  std::pair<sim_mob::Point2D,sim_mob::Point2D> PointPair_t_pimpl::
   post_PointPair_t ()
   {
+	  return pointPair;
   }
 
   // crossing_t_pimpl
@@ -1138,17 +1073,20 @@ namespace geo
   void crossing_t_pimpl::
   crossingID (const ::std::string& crossingID)
   {
+	  std::cout << "crossingID: " << crossingID << std::endl;
     this->crossing->crossingID = atoi(crossingID.c_str());
   }
 
   void crossing_t_pimpl::
-  nearLine ()
+  nearLine (std::pair<sim_mob::Point2D,sim_mob::Point2D> nearLine)
   {
+	  crossing->nearLine.first = nearLine.first;
   }
 
   void crossing_t_pimpl::
-  farLine ()
+  farLine (std::pair<sim_mob::Point2D,sim_mob::Point2D> farLine)
   {
+	  crossing->farLine.second = farLine.second;
   }
 
   sim_mob::Crossing* crossing_t_pimpl::
@@ -1182,6 +1120,7 @@ namespace geo
   post_RoadBump_t ()
   {
     sim_mob::RoadItem* v (post_RoadItem_t ());
+
     // TODO
     //
   }

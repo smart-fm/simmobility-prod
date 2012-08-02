@@ -35,47 +35,6 @@ namespace geo
     post_ObstacleType_t ();
   };
 
-  class LaneType_t_pimpl: public virtual LaneType_t_pskel,
-    public ::xml_schema::string_pimpl
-  {
-    public:
-    virtual void
-    pre ();
-
-    virtual void
-    post_LaneType_t ();
-  };
-
-  class obstacle_t_pimpl: public virtual obstacle_t_pskel
-  {
-    public:
-    virtual void
-    pre ();
-
-    virtual void
-    obstacleID (const ::std::string&);
-
-    virtual void
-    obstacleType ();
-
-    virtual sim_mob::RoadItem*
-    post_obstacle_t ();
-  };
-
-  class obstacles_t_pimpl: public virtual obstacles_t_pskel
-  {
-	  std::map<centimeter_t, const RoadItem*> roadItems;
-    public:
-    virtual void
-    pre ();
-
-    virtual void
-    obstacle (sim_mob::RoadItem*);
-
-    virtual std::map<centimeter_t,const RoadItem*>
-    post_obstacles_t ();
-  };
-
   class Point2D_t_pimpl: public virtual Point2D_t_pskel
   {
 	  sim_mob::Point2D point2D;
@@ -671,6 +630,7 @@ namespace geo
 
   class PointPair_t_pimpl: public virtual PointPair_t_pskel
   {
+	  std::pair<sim_mob::Point2D,sim_mob::Point2D> pointPair;
     public:
     virtual void
     pre ();
@@ -681,7 +641,7 @@ namespace geo
     virtual void
     second (sim_mob::Point2D);
 
-    virtual void
+    virtual std::pair<sim_mob::Point2D,sim_mob::Point2D>
     post_PointPair_t ();
   };
 
@@ -697,10 +657,10 @@ namespace geo
     crossingID (const ::std::string&);
 
     virtual void
-    nearLine ();
+    nearLine (std::pair<sim_mob::Point2D,sim_mob::Point2D>);
 
     virtual void
-    farLine ();
+    farLine (std::pair<sim_mob::Point2D,sim_mob::Point2D>);
 
     virtual sim_mob::Crossing*
     post_crossing_t ();

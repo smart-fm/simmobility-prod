@@ -40,57 +40,6 @@
 
 namespace geo
 {
-  // obstacle_t_pskel
-  //
-
-  void obstacle_t_pskel::
-  obstacleID_parser (::xml_schema::string_pskel& p)
-  {
-    this->obstacleID_parser_ = &p;
-  }
-
-  void obstacle_t_pskel::
-  obstacleType_parser (::geo::ObstacleType_t_pskel& p)
-  {
-    this->obstacleType_parser_ = &p;
-  }
-
-  void obstacle_t_pskel::
-  parsers (::xml_schema::string_pskel& obstacleID,
-           ::geo::ObstacleType_t_pskel& obstacleType)
-  {
-    this->obstacleID_parser_ = &obstacleID;
-    this->obstacleType_parser_ = &obstacleType;
-  }
-
-  obstacle_t_pskel::
-  obstacle_t_pskel ()
-  : obstacleID_parser_ (0),
-    obstacleType_parser_ (0)
-  {
-  }
-
-  // obstacles_t_pskel
-  //
-
-  void obstacles_t_pskel::
-  obstacle_parser (::geo::obstacle_t_pskel& p)
-  {
-    this->obstacle_parser_ = &p;
-  }
-
-  void obstacles_t_pskel::
-  parsers (::geo::obstacle_t_pskel& obstacle)
-  {
-    this->obstacle_parser_ = &obstacle;
-  }
-
-  obstacles_t_pskel::
-  obstacles_t_pskel ()
-  : obstacle_parser_ (0)
-  {
-  }
-
   // Point2D_t_pskel
   //
 
@@ -1747,138 +1696,6 @@ namespace geo
   void ObstacleType_t_pskel::
   post_ObstacleType_t ()
   {
-  }
-
-  // LaneType_t_pskel
-  //
-
-  void LaneType_t_pskel::
-  post_LaneType_t ()
-  {
-  }
-
-  // obstacle_t_pskel
-  //
-
-  void obstacle_t_pskel::
-  obstacleID (const ::std::string&)
-  {
-  }
-
-  void obstacle_t_pskel::
-  obstacleType ()
-  {
-  }
-
-  bool obstacle_t_pskel::
-  _start_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n,
-                       const ::xml_schema::ro_string* t)
-  {
-    XSD_UNUSED (t);
-
-    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-      return true;
-
-    if (n == "obstacleID" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->obstacleID_parser_;
-
-      if (this->obstacleID_parser_)
-        this->obstacleID_parser_->pre ();
-
-      return true;
-    }
-
-    if (n == "obstacleType" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->obstacleType_parser_;
-
-      if (this->obstacleType_parser_)
-        this->obstacleType_parser_->pre ();
-
-      return true;
-    }
-
-    return false;
-  }
-
-  bool obstacle_t_pskel::
-  _end_element_impl (const ::xml_schema::ro_string& ns,
-                     const ::xml_schema::ro_string& n)
-  {
-    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-      return true;
-
-    if (n == "obstacleID" && ns.empty ())
-    {
-      if (this->obstacleID_parser_)
-        this->obstacleID (this->obstacleID_parser_->post_string ());
-
-      return true;
-    }
-
-    if (n == "obstacleType" && ns.empty ())
-    {
-      if (this->obstacleType_parser_)
-      {
-        this->obstacleType_parser_->post_ObstacleType_t ();
-        this->obstacleType ();
-      }
-
-      return true;
-    }
-
-    return false;
-  }
-
-  // obstacles_t_pskel
-  //
-
-  void obstacles_t_pskel::
-  obstacle (sim_mob::RoadItem*)
-  {
-  }
-
-  bool obstacles_t_pskel::
-  _start_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n,
-                       const ::xml_schema::ro_string* t)
-  {
-    XSD_UNUSED (t);
-
-    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-      return true;
-
-    if (n == "obstacle" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->obstacle_parser_;
-
-      if (this->obstacle_parser_)
-        this->obstacle_parser_->pre ();
-
-      return true;
-    }
-
-    return false;
-  }
-
-  bool obstacles_t_pskel::
-  _end_element_impl (const ::xml_schema::ro_string& ns,
-                     const ::xml_schema::ro_string& n)
-  {
-    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-      return true;
-
-    if (n == "obstacle" && ns.empty ())
-    {
-      if (this->obstacle_parser_)
-        this->obstacle (this->obstacle_parser_->post_obstacle_t ());
-
-      return true;
-    }
-
-    return false;
   }
 
   // Point2D_t_pskel
@@ -5053,11 +4870,6 @@ namespace geo
   {
   }
 
-  void PointPair_t_pskel::
-  post_PointPair_t ()
-  {
-  }
-
   bool PointPair_t_pskel::
   _start_element_impl (const ::xml_schema::ro_string& ns,
                        const ::xml_schema::ro_string& n,
@@ -5126,12 +4938,12 @@ namespace geo
   }
 
   void crossing_t_pskel::
-  nearLine ()
+  nearLine (std::pair<sim_mob::Point2D,sim_mob::Point2D>)
   {
   }
 
   void crossing_t_pskel::
-  farLine ()
+  farLine (std::pair<sim_mob::Point2D,sim_mob::Point2D>)
   {
   }
 
@@ -5196,10 +5008,7 @@ namespace geo
     if (n == "nearLine" && ns.empty ())
     {
       if (this->nearLine_parser_)
-      {
-        this->nearLine_parser_->post_PointPair_t ();
-        this->nearLine ();
-      }
+        this->nearLine (this->nearLine_parser_->post_PointPair_t ());
 
       return true;
     }
@@ -5207,10 +5016,7 @@ namespace geo
     if (n == "farLine" && ns.empty ())
     {
       if (this->farLine_parser_)
-      {
-        this->farLine_parser_->post_PointPair_t ();
-        this->farLine ();
-      }
+        this->farLine (this->farLine_parser_->post_PointPair_t ());
 
       return true;
     }

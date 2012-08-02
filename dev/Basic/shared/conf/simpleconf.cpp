@@ -960,25 +960,25 @@ void PrintDB_Network()
 //Returns the error message, or an empty string if no error.
 std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
 {
-//	std::cout << ".............................loadXMLConf \n";
+	std::cout << ".............................loadXMLConf \n";
 	//Save granularities: system
 	TiXmlHandle handle(&document);
 	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation");
 	int baseGran = ReadGranularity(handle, "base_granularity");
 	int totalRuntime = ReadGranularity(handle, "total_runtime");
 	int totalWarmup = ReadGranularity(handle, "total_warmup");
-
+	std::cout << ".............................loadXMLConf0\n";
 	//Save reaction time parameters
 	int distributionType1, distributionType2;
     int mean1, mean2;
     int standardDev1, standardDev2;
-	handle.FirstChild("reacTime_distributionType1").ToElement()->Attribute("value",&distributionType1);
-	handle.FirstChild("reacTime_distributionType2").ToElement()->Attribute("value",&distributionType2);
-	handle.FirstChild("reacTime_mean1").ToElement()->Attribute("value",&mean1);
-	handle.FirstChild("reacTime_mean2").ToElement()->Attribute("value",&mean2);
-	handle.FirstChild("reacTime_standardDev1").ToElement()->Attribute("value",&standardDev1);
-	handle.FirstChild("reacTime_standardDev2").ToElement()->Attribute("value",&standardDev2);
-
+//	handle.FirstChild("reacTime_distributionType1").ToElement()->Attribute("value",&distributionType1);
+//	handle.FirstChild("reacTime_distributionType2").ToElement()->Attribute("value",&distributionType2);
+//	handle.FirstChild("reacTime_mean1").ToElement()->Attribute("value",&mean1);
+//	handle.FirstChild("reacTime_mean2").ToElement()->Attribute("value",&mean2);
+//	handle.FirstChild("reacTime_standardDev1").ToElement()->Attribute("value",&standardDev1);
+//	handle.FirstChild("reacTime_standardDev2").ToElement()->Attribute("value",&standardDev2);
+	std::cout << ".............................loadXMLConf 1\n";
 	ReactionTimeDistributions & instance = ReactionTimeDistributions::instance();
 	instance.distributionType1 = distributionType1;
 	instance.distributionType2 = distributionType2;
@@ -1002,7 +1002,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	{
 		node->Attribute("value", &signalAlgorithm);
 	}
-
+	std::cout << ".............................loadXMLConf 2\n";
 #ifndef SIMMOB_DISABLE_MPI
 	//Save mpi parameters, not used when running on one-pc.
 	node = handle.FirstChild("partitioning_solution_id").ToElement();
@@ -1037,7 +1037,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	}
 	cout <<endl;
 
-//	std::cout << "333" << endl;
+	std::cout << "333" << endl;
 
 	//Determine the first ID for automatically generated Agents
 	int startingAutoAgentID = 0; //(We'll need this later)
@@ -1050,7 +1050,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		}
 	}
 
-
+	std::cout << "444" << endl;
 	//Buffering strategy (optional)
 	handle = TiXmlHandle(&document);
 	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation").FirstChild("mutex_enforcement");
@@ -1064,7 +1064,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		}
 	}
 
-//	std::cout << "555" << endl;
+	std::cout << "555" << endl;
 
 
 	//Miscellaneous settings

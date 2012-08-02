@@ -276,6 +276,20 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 	return rest;
 }
 
+double sim_mob::BusDriver::getPositionX() const
+{
+	if (this->vehicle)
+		return this->bus->getX();
+	return 0;
+}
+
+double sim_mob::BusDriver::getPositionY() const
+{
+	if (this->vehicle)
+		return this->bus->getY();
+	return 0;
+}
+
 
 void sim_mob::BusDriver::busAccelerating(DriverUpdateParams& p)
 {
@@ -296,7 +310,7 @@ void sim_mob::BusDriver::busAccelerating(DriverUpdateParams& p)
 bool sim_mob::BusDriver::isBusFarawayBusStop()
 {
 	bool res = false;
-	double distance = DistanceToNextBusStop();
+	double distance = distanceToNextBusStop();
 	if (distance < 0 || distance > 50)
 		res = true;
 
@@ -304,7 +318,7 @@ bool sim_mob::BusDriver::isBusFarawayBusStop()
 }
 bool sim_mob::BusDriver::isBusApproachingBusStop()
 {
-	double distance = DistanceToNextBusStop();
+	double distance = distanceToNextBusStop();
 	//std::cout<<"BusDriver::updatePositionOnLink: bus stop distance <"<<distance<<"> m"<<std::endl;
 	//std::cout<<"BusDriver::updatePositionOnLink: lastTickDistanceToBusStop <"<<lastTickDistanceToBusStop<<"> m"<<std::endl;
 	if (distance >=10 && distance <= 50)
@@ -325,7 +339,7 @@ bool sim_mob::BusDriver::isBusApproachingBusStop()
 }
 bool sim_mob::BusDriver::isBusArriveBusStop()
 {
-	double distance = DistanceToNextBusStop();
+	double distance = distanceToNextBusStop();
 	if (distance>0 && distance <10)
 	{
 		return true;
@@ -335,7 +349,7 @@ bool sim_mob::BusDriver::isBusArriveBusStop()
 }
 bool sim_mob::BusDriver::isBusLeavingBusStop()
 {
-	double distance = DistanceToNextBusStop();
+	double distance = distanceToNextBusStop();
 //	std::cout<<"BusDriver::isBusLeavingBusStop: bus stop distance <"<<distance<<"> m"<<std::endl;
 //	std::cout<<"BusDriver::isBusLeavingBusStop: lastTickDistanceToBusStop <"<<lastTickDistanceToBusStop<<"> m"<<std::endl;
 	if (distance >=10 && distance < 50)
@@ -356,7 +370,7 @@ bool sim_mob::BusDriver::isBusLeavingBusStop()
 	lastTickDistanceToBusStop = distance;
 	return false;
 }
-double sim_mob::BusDriver::DistanceToNextBusStop()
+double sim_mob::BusDriver::distanceToNextBusStop()
 {
 	double distanceToCurrentSegmentBusStop = -1;
 	double distanceToNextSegmentBusStop = -1;

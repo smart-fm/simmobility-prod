@@ -33,7 +33,7 @@ public:
 	virtual void frame_tick_output_mpi(frame_t frameNumber);
 
 	// get distance to bus stop (meter)
-	double DistanceToNextBusStop();
+	double distanceToNextBusStop();
 	// get distance to bus stop of particular segment (meter)
 	double getDistanceToBusStopOfSegment(const RoadSegment& roadSegment);
 
@@ -47,18 +47,9 @@ public:
 
 	std::vector<sim_mob::BusStop *> findBusStopInPath(const std::vector<const sim_mob::RoadSegment*>& path);
 
-	double getPositionX()
-	{
-		if (this->vehicle)
-			return this->bus->getX();
-		return 0;
-	}
-	double getPositionY()
-	{
-		if (this->vehicle)
-			return this->bus->getY();
-		return 0;
-	}
+	double getPositionX() const;
+	double getPositionY() const;
+
 
 //Basic data
 protected:

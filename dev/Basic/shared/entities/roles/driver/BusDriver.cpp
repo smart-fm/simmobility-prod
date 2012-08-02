@@ -81,7 +81,7 @@ void sim_mob::BusDriver::frame_init(UpdateParams& p)
 
 }
 
-vector<BusStop*> sim_mob::BusDriver::findBusStopInPath(const vector<const RoadSegment*>& path)
+vector<BusStop*> sim_mob::BusDriver::findBusStopInPath(const vector<const RoadSegment*>& path) const
 {
 	//NOTE: Use typedefs instead of defines.
 	typedef vector<BusStop*> BusStopVector;
@@ -307,7 +307,7 @@ void sim_mob::BusDriver::busAccelerating(DriverUpdateParams& p)
 	//Update our chosen acceleration; update our position on the link.
 	vehicle->setAcceleration(newFwdAcc * 100);
 }
-bool sim_mob::BusDriver::isBusFarawayBusStop()
+bool sim_mob::BusDriver::isBusFarawayBusStop() const
 {
 	bool res = false;
 	double distance = distanceToNextBusStop();
@@ -316,7 +316,8 @@ bool sim_mob::BusDriver::isBusFarawayBusStop()
 
 	return res;
 }
-bool sim_mob::BusDriver::isBusApproachingBusStop()
+
+bool sim_mob::BusDriver::isBusApproachingBusStop() const
 {
 	double distance = distanceToNextBusStop();
 	//std::cout<<"BusDriver::updatePositionOnLink: bus stop distance <"<<distance<<"> m"<<std::endl;
@@ -337,7 +338,8 @@ bool sim_mob::BusDriver::isBusApproachingBusStop()
 //	lastTickDistanceToBusStop = distance;
 	return false;
 }
-bool sim_mob::BusDriver::isBusArriveBusStop()
+
+bool sim_mob::BusDriver::isBusArriveBusStop() const
 {
 	double distance = distanceToNextBusStop();
 	if (distance>0 && distance <10)
@@ -347,7 +349,8 @@ bool sim_mob::BusDriver::isBusArriveBusStop()
 
 	return false;
 }
-bool sim_mob::BusDriver::isBusLeavingBusStop()
+
+bool sim_mob::BusDriver::isBusLeavingBusStop() const
 {
 	double distance = distanceToNextBusStop();
 //	std::cout<<"BusDriver::isBusLeavingBusStop: bus stop distance <"<<distance<<"> m"<<std::endl;
@@ -370,7 +373,7 @@ bool sim_mob::BusDriver::isBusLeavingBusStop()
 	lastTickDistanceToBusStop = distance;
 	return false;
 }
-double sim_mob::BusDriver::distanceToNextBusStop()
+double sim_mob::BusDriver::distanceToNextBusStop() const
 {
 	double distanceToCurrentSegmentBusStop = -1;
 	double distanceToNextSegmentBusStop = -1;
@@ -389,7 +392,7 @@ double sim_mob::BusDriver::distanceToNextBusStop()
 	else
 		return distanceToNextSegmentBusStop;
 }
-double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment& roadSegment)
+double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment& roadSegment) const
 {
 	const RoadSegment* rs = &roadSegment;
 

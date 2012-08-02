@@ -33,19 +33,19 @@ public:
 	virtual void frame_tick_output_mpi(frame_t frameNumber);
 
 	// get distance to bus stop (meter)
-	double distanceToNextBusStop();
+	double distanceToNextBusStop() const;
+
 	// get distance to bus stop of particular segment (meter)
-	double getDistanceToBusStopOfSegment(const RoadSegment& roadSegment);
+	double getDistanceToBusStopOfSegment(const RoadSegment& roadSegment) const;
 
-	bool isBusFarawayBusStop();
-	bool isBusApproachingBusStop();
-	bool isBusArriveBusStop();
-	bool isBusLeavingBusStop();
+	bool isBusFarawayBusStop() const;
+	bool isBusApproachingBusStop() const;
+	bool isBusArriveBusStop() const;
+	bool isBusLeavingBusStop() const;
 	void busAccelerating(DriverUpdateParams& p);
-	double lastTickDistanceToBusStop;
-	//DriverUpdateParams* myDriverUpdateParams;
+	mutable double lastTickDistanceToBusStop;
 
-	std::vector<sim_mob::BusStop *> findBusStopInPath(const std::vector<const sim_mob::RoadSegment*>& path);
+	std::vector<sim_mob::BusStop *> findBusStopInPath(const std::vector<const sim_mob::RoadSegment*>& path) const;
 
 	double getPositionX() const;
 	double getPositionY() const;
@@ -66,10 +66,6 @@ private:
 	std::vector<DemoBusStop> arrivedStops;
 	double waitAtStopMS;
 	std::vector<sim_mob::BusStop *> busStops;
-
-	//MITSIM_LC_Model* mitsim_lc_model;
-
-
 
 
 	//Serialization, not implemented

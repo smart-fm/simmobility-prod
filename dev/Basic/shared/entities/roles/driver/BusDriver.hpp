@@ -4,16 +4,17 @@
 
 #include "Driver.hpp"
 #include "entities/vehicle/BusRoute.hpp"
-#include "entities/vehicle/Bus.hpp"
-#include "DriverUpdateParams.hpp"
 #include <vector>
-#ifndef SIMMOB_DISABLE_MPI
-#include "partitions/PackageUtils.hpp"
-#include "partitions/UnPackageUtils.hpp"
-#endif
 
 namespace sim_mob
 {
+
+//Forward declarations
+class DriverUpdateParams;
+class PackageUtils;
+class UnPackageUtils;
+class BusStop;
+
 
 /**
  * This simple BusDriver class maintains a single, non-looping route with a series of

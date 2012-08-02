@@ -3,13 +3,18 @@
 #include "BusDriver.hpp"
 #include <vector>
 
+#include "DriverUpdateParams.hpp"
+
 #include "entities/vehicle/BusRoute.hpp"
 #include "entities/vehicle/Bus.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/BusStop.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/aimsun/Loader.hpp"
+#include "partitions/PackageUtils.hpp"
+#include "partitions/UnPackageUtils.hpp"
 #include "util/DebugFlags.hpp"
+
 using namespace sim_mob;
 using std::vector;
 using std::map;

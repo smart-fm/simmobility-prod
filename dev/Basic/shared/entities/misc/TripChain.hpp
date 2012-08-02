@@ -24,17 +24,6 @@ class Node;
 class SubTrip;
 
 
-//YaoJin's code expects this here.
-//  TODO: Move it somewhere specific to Bus items.
-class BusSchedule
-{
-public:
-	std::string tripid;
-	sim_mob::DailyTime startTime;
-	std::string TMP_startTimeStr;
-	BusSchedule() {}
-};
-
 
 /**
  * Base class for elements in a trip chain.

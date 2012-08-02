@@ -10,7 +10,6 @@
 //Include here (forward-declared earlier) to avoid include-cycles.
 #include "entities/PendingEntity.hpp"
 #include "entities/PendingEvent.hpp"
-//#include "entities/PendingEvent.cpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/driver/ReactionTimeDistributions.hpp"
@@ -19,6 +18,7 @@
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
+#include "entities/misc/BusSchedule.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/UniNode.hpp"

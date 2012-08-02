@@ -56,6 +56,7 @@
 // fclim: I plan to move $topdir/geospatial/aimsun/* and entities/misc/aimsun/* to
 // $topdir/database/ and rename the aimsun namespace to "database".
 #include "entities/misc/TripChain.hpp"
+#include "entities/misc/BusSchedule.hpp"
 #include "entities/misc/aimsun/TripChain.hpp"
 #include "entities/misc/aimsun/SOCI_Converters.hpp"
 #include "entities/profile/ProfileBuilder.hpp"

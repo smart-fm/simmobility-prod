@@ -51,14 +51,11 @@ public:
 	double getPositionY() const;
 
 
-//Basic data
 protected:
 	//Override the following behavior
-//	virtual double updatePositionOnLink(DriverUpdateParams& p);
 	virtual double linkDriving(DriverUpdateParams& p);
 
-	Bus* bus;
-
+//Basic data
 private:
 	//BusRoute route;
 	const DemoBusStop* nextStop;

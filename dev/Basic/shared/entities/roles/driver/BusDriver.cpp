@@ -56,11 +56,9 @@ void sim_mob::BusDriver::frame_init(UpdateParams& p)
 	//initializePath() actually creates a Vehicle. We want Vehicle to be a "Bus",
 	// so we need to recreate it here. This will require a new property, "route", which
 	// contains the Bus route. For now, we can just generate a simple route.
-//	Bus* bus;
 	BusRoute nullRoute; //Buses don't use the route at the moment.
-	bus = new Bus(nullRoute, vehicle);
+	Bus* bus = new Bus(nullRoute, vehicle);
 	busStops = findBusStopInPath(bus->getCompletePath());
-	//std::cout<<"Help I am a bus"<<vehicle->getCompletePath().size()<<std::endl;
 	delete vehicle;
 	vehicle = bus;
 
@@ -177,10 +175,10 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 		throw std::runtime_error("TODO: BusDrivers currently require the MITSIM lc model.");
 	}
 
-	bus->setTurningDirection(lcs);
+	vehicle->setTurningDirection(lcs);
 	double newLatVel;
-	newLatVel = lcModel->executeLaneChanging(p, bus->getAllRestRoadSegmentsLength(), bus->length, bus->getTurningDirection());
-	bus->setLatVelocity(newLatVel * 10);
+	newLatVel = lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length, vehicle->getTurningDirection());
+	vehicle->setLatVelocity(newLatVel * 10);
 	std::cout << "BusDriver::updatePositionOnLink:current lane: "
 			  << p.currLaneIndex << " lat velo: " << newLatVel / 100.0 << "m/s"
 			  << std::endl;
@@ -188,7 +186,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 		busAccelerating(p);
 
 		//move to most left lane
-		p.nextLaneIndex = bus->getCurrSegment()->getLanes().back()->getLaneID();
+		p.nextLaneIndex = vehicle->getCurrSegment()->getLanes().back()->getLaneID();
 		//		LANE_CHANGE_SIDE lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
 		//		bus->setTurningDirection(lcs);
 		//		double newLatVel;
@@ -199,8 +197,8 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 				  << p.currLaneIndex << std::endl;
 
 		// reduce speed
-		if (bus->getVelocity() / 100.0 > 10)
-			bus->setAcceleration(-500);
+		if (vehicle->getVelocity() / 100.0 > 10)
+			vehicle->setAcceleration(-500);
 
 		//		//Check if we should change lanes.
 		//		if (p.leftLane) //has lane in left?
@@ -234,23 +232,24 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 			< BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
 		std::cout
 				<< "BusDriver::updatePositionOnLink: bus isBusArriveBusStop velocity: "
-				<< bus->getVelocity() / 100.0 << std::endl;
+				<< vehicle->getVelocity() / 100.0 << std::endl;
 		//		bus->setLatVelocity(0);
-		if (bus->getVelocity() > 0)
-			bus->setAcceleration(-5000);
-		if (bus->getVelocity() < 0.1 && waitAtStopMS < BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
+		if (vehicle->getVelocity() > 0)
+			vehicle->setAcceleration(-5000);
+		if (vehicle->getVelocity() < 0.1 && waitAtStopMS < BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
 			waitAtStopMS = waitAtStopMS + p.elapsedSeconds;
 			std::cout << "BusDriver::updatePositionOnLink: waitAtStopMS: " << waitAtStopMS << " p.elapsedSeconds: " << p.elapsedSeconds << std::endl;
 
 			//Pick up a semi-random number of passengers
-			if (waitAtStopMS == p.elapsedSeconds) {
+			Bus* bus = dynamic_cast<Bus*>(vehicle);
+			if ((waitAtStopMS == p.elapsedSeconds) && bus) {
 				std::cout << "BusDriver::updatePositionOnLink: pich up passengers" << std::endl;
-				int pCount = reinterpret_cast<intptr_t> (bus) % 50;
+				int pCount = reinterpret_cast<intptr_t> (vehicle) % 50;
 				bus->setPassengerCount(pCount);
 			}
 		}
 	} else if (isBusArriveBusStop()) {
-		bus->setAcceleration(3000);
+		vehicle->setAcceleration(3000);
 	}
 
 	//TODO: Please check from here; the merge was not 100% clean. ~Seth
@@ -279,14 +278,14 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 double sim_mob::BusDriver::getPositionX() const
 {
 	if (this->vehicle)
-		return this->bus->getX();
+		return this->vehicle->getX();
 	return 0;
 }
 
 double sim_mob::BusDriver::getPositionY() const
 {
 	if (this->vehicle)
-		return this->bus->getY();
+		return this->vehicle->getY();
 	return 0;
 }
 
@@ -377,8 +376,8 @@ double sim_mob::BusDriver::distanceToNextBusStop() const
 {
 	double distanceToCurrentSegmentBusStop = -1;
 	double distanceToNextSegmentBusStop = -1;
-	const RoadSegment* rsCurrent = bus->getCurrSegment();
-	const RoadSegment* rsNext = bus->getNextSegment(true);
+	const RoadSegment* rsCurrent = vehicle->getCurrSegment();
+	const RoadSegment* rsNext = vehicle->getNextSegment(true);
 
 	if (rsCurrent)
 		distanceToCurrentSegmentBusStop = getDistanceToBusStopOfSegment(*rsCurrent);
@@ -397,8 +396,8 @@ double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment& road
 	const RoadSegment* rs = &roadSegment;
 
 	double distance = -100;
-	double currentX = bus->getX();
-	double currentY = bus->getY();
+	double currentX = getPositionX();
+	double currentY = getPositionY();
 //	bus->getRoute().getCurrentStop();
 
 		std::cout.precision(10);
@@ -414,7 +413,7 @@ double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment& road
 		   BusStop *bs = dynamic_cast<BusStop *>(ri);
 		   if(bs)
 		   {
-			   if (roadSegment == bus->getCurrSegment())
+			   if (roadSegment == vehicle->getCurrSegment())
 			   {
 
 				   if (bs->stopPoint < 0)
@@ -430,7 +429,7 @@ double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment& road
 
 				   if (bs->stopPoint >= 0)
 				   {
-						DynamicVector BusDistfromStart(bus->getX(),bus->getY(),rs->getStart()->location.getX(),rs->getStart()->location.getY());
+						DynamicVector BusDistfromStart(getPositionX(), getPositionY(),rs->getStart()->location.getX(),rs->getStart()->location.getY());
 						std::cout<<"BusDriver::DistanceToNextBusStop: bus move in segment: "<<BusDistfromStart.getMagnitude()<<std::endl;
 						distance = bs->stopPoint - BusDistfromStart.getMagnitude();
 					}
@@ -490,16 +489,17 @@ void sim_mob::BusDriver::frame_tick(UpdateParams& p)
 void sim_mob::BusDriver::frame_tick_output(const UpdateParams& p)
 {
 	//Skip?
-	if (bus->isDone() || ConfigParams::GetInstance().is_run_on_many_computers) {
+	if (vehicle->isDone() || ConfigParams::GetInstance().is_run_on_many_computers) {
 		return;
 	}
 
 	//Vehicle should be a Bus
 	//const Bus* bus = dynamic_cast<const Bus*>(vehicle);
 
-	double baseAngle = bus->isInIntersection() ? intModel->getCurrentAngle() : bus->getAngle();
+	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
 
 #ifndef SIMMOB_DISABLE_OUTPUT
+	Bus* bus = dynamic_cast<Bus*>(vehicle);
 	LogOut("(\"BusDriver\""
 			<<","<<p.frameNumber
 			<<","<<parent->getId()
@@ -520,15 +520,15 @@ void sim_mob::BusDriver::frame_tick_output(const UpdateParams& p)
 void sim_mob::BusDriver::frame_tick_output_mpi(frame_t frameNumber)
 {
 	//Skip output?
-	if (frameNumber<parent->getStartTime() || bus->isDone()) {
+	if (frameNumber<parent->getStartTime() || vehicle->isDone()) {
 		return;
 	}
 
 #ifndef SIMMOB_DISABLE_OUTPUT
-	double baseAngle = bus->isInIntersection() ? intModel->getCurrentAngle() : bus->getAngle();
+	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
 
-	//bus should be a Bus
-	const Bus* bus = dynamic_cast<const Bus*>(bus);
+	//The BusDriver class will only maintain buses as the current vehicle.
+	const Bus* bus = dynamic_cast<const Bus*>(vehicle);
 
 	std::stringstream logout;
 	logout << "(\"Driver\"" << "," << frameNumber << "," << parent->getId() << ",{" << "\"xPos\":\""

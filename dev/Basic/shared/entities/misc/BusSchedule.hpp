@@ -14,8 +14,12 @@ class BusSchedule {
 public:
 	std::string tripid;
   	sim_mob::DailyTime startTime;
-  	std::string TMP_startTimeStr;
-  	BusSchedule() {}
+
+  	//We don't need this; we'll just save it while loading. ~Seth
+  	//std::string TMP_startTimeStr;
+
+  	//Don't both defining an empty constructor; we get a default one anyway. ~Seth
+  	//BusSchedule() {}
   };
 	
 }

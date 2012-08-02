@@ -47,17 +47,17 @@ void sim_mob::BusDriver::frame_init(UpdateParams& p)
 	if (newVeh) {
 		//Use this sample vehicle to build our Bus, then delete the old vehicle.
 		BusRoute nullRoute; //Buses don't use the route at the moment.
-		Bus* bus = new Bus(nullRoute, newVeh);
-		busStops = findBusStopInPath(bus->getCompletePath());
+		vehicle = new Bus(nullRoute, newVeh);
 		delete newVeh;
-		vehicle = bus;
 
 		//This code is used by Driver to set a few properties of the Vehicle/Bus.
-		if (bus->hasPath()) {
-			setOrigin(params);
-		} else {
+		if (!vehicle->hasPath()) {
 			throw std::runtime_error("Vehicle could not be created for bus driver; no route!");
 		}
+
+		//Set the bus's origin and set of stops.
+		setOrigin(params);
+		busStops = findBusStopInPath(vehicle->getCompletePath());
 
 		//Unique to BusDrivers: reset your route
 		waitAtStopMS = 0.0;

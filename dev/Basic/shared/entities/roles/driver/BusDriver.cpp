@@ -1,7 +1,6 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "BusDriver.hpp"
-
 #include <vector>
 
 #include "entities/vehicle/BusRoute.hpp"
@@ -116,25 +115,22 @@ BusStopVector sim_mob::BusDriver::findBusStopInPath(const vector<const RoadSegme
 double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 
 	if (!vehicle->hasNextSegment(true)) {
-		p.dis2stop = vehicle->getAllRestRoadSegmentsLength() - vehicle->getDistanceMovedInSegment() - vehicle->length
-				/ 2 - 300;
+		p.dis2stop = vehicle->getAllRestRoadSegmentsLength()
+				   - vehicle->getDistanceMovedInSegment() - vehicle->length / 2 - 300;
 		if (p.nvFwd.distance < p.dis2stop)
 			p.dis2stop = p.nvFwd.distance;
 		p.dis2stop /= 100;
-	} else
-	{
+	} else {
 		p.nextLaneIndex = std::min<int>(p.currLaneIndex, vehicle->getNextSegment()->getLanes().size() - 1);
-		if(vehicle->getNextSegment()->getLanes().at(p.nextLaneIndex)->is_pedestrian_lane())
-		{
+		if (vehicle->getNextSegment()->getLanes().at(p.nextLaneIndex)->is_pedestrian_lane()) {
 			p.nextLaneIndex--;
 			p.dis2stop = vehicle->getCurrPolylineLength() - vehicle->getDistanceMovedInSegment() + 1000;
-		}
-		else
+		} else
 			p.dis2stop = 1000;//defalut 1000m
 	}
-//
-//	if (p.nextLaneIndex >= p.currLane->getRoadSegment()->getLanes().size())
-//		p.nextLaneIndex = p.currLaneIndex;
+	//
+	//	if (p.nextLaneIndex >= p.currLane->getRoadSegment()->getLanes().size())
+	//		p.nextLaneIndex = p.currLaneIndex;
 
 	//when vehicle stops, don't do lane changing
 	if (vehicle->getVelocity() <= 0) {
@@ -148,23 +144,18 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 	//get nearest car, if not making lane changing, the nearest car should be the leading car in current lane.
 	//if making lane changing, adjacent car need to be taken into account.
 	NearestVehicle & nv = nearestVehicle(p);
-	if(nv.distance<=0)
-	{
+	if (nv.distance <= 0) {
 		//if (nv.driver->parent->getId() > this->parent->getId())
-		if (getDriverParent(nv.driver)->getId() > this->parent->getId())
-		{
+		if (getDriverParent(nv.driver)->getId() > this->parent->getId()) {
 			nv = NearestVehicle();
 		}
 	}
 
 	perceivedDataProcess(nv, p);
 
-
-
 	//bus approaching bus stop reduce speed
 	//and if its left has lane, merge to left lane
-	if (isBusFarawayBusStop())
-	{
+	if (isBusFarawayBusStop()) {
 		busAccelerating(p);
 	}
 
@@ -175,7 +166,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 
 	//NOTE: Driver already has a lcModel; we should be able to just use this. ~Seth
 	LANE_CHANGE_SIDE lcs = LCS_SAME;
-	MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*>(lcModel);
+	MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
 	if (mitsim_lc_model) {
 		lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
 	} else {
@@ -185,95 +176,103 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 	bus->setTurningDirection(lcs);
 	double newLatVel;
 	newLatVel = lcModel->executeLaneChanging(p, bus->getAllRestRoadSegmentsLength(), bus->length, bus->getTurningDirection());
-	bus->setLatVelocity(newLatVel*10);
-	std::cout<<"BusDriver::updatePositionOnLink:current lane: "<<p.currLaneIndex<<" lat velo: "<<newLatVel/100.0<<"m/s"<<std::endl;
-	if (isBusApproachingBusStop())
-	{
+	bus->setLatVelocity(newLatVel * 10);
+	std::cout << "BusDriver::updatePositionOnLink:current lane: "
+			  << p.currLaneIndex << " lat velo: " << newLatVel / 100.0 << "m/s"
+			  << std::endl;
+	if (isBusApproachingBusStop()) {
 		busAccelerating(p);
 
 		//move to most left lane
 		p.nextLaneIndex = bus->getCurrSegment()->getLanes().back()->getLaneID();
-//		LANE_CHANGE_SIDE lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
-//		bus->setTurningDirection(lcs);
-//		double newLatVel;
-//		newLatVel = lcModel->executeLaneChanging(p, bus->getAllRestRoadSegmentsLength(), bus->length, bus->getTurningDirection());
-//		bus->setLatVelocity(newLatVel);
+		//		LANE_CHANGE_SIDE lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
+		//		bus->setTurningDirection(lcs);
+		//		double newLatVel;
+		//		newLatVel = lcModel->executeLaneChanging(p, bus->getAllRestRoadSegmentsLength(), bus->length, bus->getTurningDirection());
+		//		bus->setLatVelocity(newLatVel);
 
-		std::cout<<"BusDriver::updatePositionOnLink: bus approaching current lane: "<<p.currLaneIndex<<std::endl;
+		std::cout << "BusDriver::updatePositionOnLink: bus approaching current lane: "
+				  << p.currLaneIndex << std::endl;
+
 		// reduce speed
-		if ( bus->getVelocity()/100.0 > 10 )
+		if (bus->getVelocity() / 100.0 > 10)
 			bus->setAcceleration(-500);
 
-//		//Check if we should change lanes.
-//		if (p.leftLane) //has lane in left?
-//		{
-//			//Lateral movement
-//			if (!bus->isInIntersection()) {
-//				bus->setTurningDirection(LCS_LEFT);
-//				bus->setLatVelocity(1000);
-//
-//				double newLatVel;
-//				newLatVel = lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length,
-//							vehicle->getTurningDirection());
-//				vehicle->setLatVelocity(newLatVel);
-//				if(vehicle->getLatVelocity()>0)
-//					vehicle->setTurningDirection(LCS_LEFT);
-//				else if(vehicle->getLatVelocity()<0)
-//					vehicle->setTurningDirection(LCS_RIGHT);
-//				else
-//					vehicle->setTurningDirection(LCS_SAME);
-//
-//
-//			}
-//		} else {
-//			bus->setLatVelocity(0);
-//			bus->setTurningDirection(LCS_SAME);
-//			std::cout<<"BusDriver::updatePositionOnLink: no more left lane"<<std::endl;
-//		}
+		//		//Check if we should change lanes.
+		//		if (p.leftLane) //has lane in left?
+		//		{
+		//			//Lateral movement
+		//			if (!bus->isInIntersection()) {
+		//				bus->setTurningDirection(LCS_LEFT);
+		//				bus->setLatVelocity(1000);
+		//
+		//				double newLatVel;
+		//				newLatVel = lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length,
+		//							vehicle->getTurningDirection());
+		//				vehicle->setLatVelocity(newLatVel);
+		//				if(vehicle->getLatVelocity()>0)
+		//					vehicle->setTurningDirection(LCS_LEFT);
+		//				else if(vehicle->getLatVelocity()<0)
+		//					vehicle->setTurningDirection(LCS_RIGHT);
+		//				else
+		//					vehicle->setTurningDirection(LCS_SAME);
+		//
+		//
+		//			}
+		//		} else {
+		//			bus->setLatVelocity(0);
+		//			bus->setTurningDirection(LCS_SAME);
+		//			std::cout<<"BusDriver::updatePositionOnLink: no more left lane"<<std::endl;
+		//		}
 		waitAtStopMS = 0;
 	}
-	if (isBusArriveBusStop() && waitAtStopMS>=0 && waitAtStopMS < BUS_STOP_WAIT_PASSENGER_TIME_SEC)
-	{
-		std::cout<<"BusDriver::updatePositionOnLink: bus isBusArriveBusStop velocity: "<<bus->getVelocity()/100.0<<std::endl;
-//		bus->setLatVelocity(0);
-		if ( bus->getVelocity()>0 )
+	if (isBusArriveBusStop() && waitAtStopMS >= 0 && waitAtStopMS
+			< BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
+		std::cout
+				<< "BusDriver::updatePositionOnLink: bus isBusArriveBusStop velocity: "
+				<< bus->getVelocity() / 100.0 << std::endl;
+		//		bus->setLatVelocity(0);
+		if (bus->getVelocity() > 0)
 			bus->setAcceleration(-5000);
-		if ( bus->getVelocity() < 0.1 && waitAtStopMS < BUS_STOP_WAIT_PASSENGER_TIME_SEC)
-		{
+		if (bus->getVelocity() < 0.1 && waitAtStopMS < BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
 			waitAtStopMS = waitAtStopMS + p.elapsedSeconds;
-			std::cout<<"BusDriver::updatePositionOnLink: waitAtStopMS: "<<waitAtStopMS<<" p.elapsedSeconds: "<<p.elapsedSeconds<<std::endl;
+			std::cout << "BusDriver::updatePositionOnLink: waitAtStopMS: " << waitAtStopMS << " p.elapsedSeconds: " << p.elapsedSeconds << std::endl;
+
 			//Pick up a semi-random number of passengers
-			if (waitAtStopMS == p.elapsedSeconds)
-			{
-				std::cout<<"BusDriver::updatePositionOnLink: pich up passengers"<<std::endl;
-				int pCount = reinterpret_cast<intptr_t>(bus) % 50;
+			if (waitAtStopMS == p.elapsedSeconds) {
+				std::cout << "BusDriver::updatePositionOnLink: pich up passengers" << std::endl;
+				int pCount = reinterpret_cast<intptr_t> (bus) % 50;
 				bus->setPassengerCount(pCount);
 			}
 		}
-	} else if (isBusArriveBusStop()){
+	} else if (isBusArriveBusStop()) {
 		bus->setAcceleration(3000);
 	}
-	if (isBusLeavingBusStop() || waitAtStopMS >= BUS_STOP_WAIT_PASSENGER_TIME_SEC )
-	{
-		std::cout<<"BusDriver::updatePositionOnLink: bus isBusLeavingBusStop"<<std::endl;
+
+	//TODO: Please check from here; the merge was not 100% clean. ~Seth
+	if (isBusLeavingBusStop() || waitAtStopMS >= BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
+		std::cout << "BusDriver::updatePositionOnLink: bus isBusLeavingBusStop" << std::endl;
 		waitAtStopMS = -1;
-
-		busAccelerating(p);
-
 	}
-	/*std::cout<<"BusDriver::updatePositionOnLink:tick: "<<p.currTimeMS/1000.0<<std::endl;
-	std::cout<<"BusDriver::updatePositionOnLink:busvelocity: "<<bus->getVelocity()/100.0<<std::endl;
-	std::cout<<"BusDriver::updatePositionOnLink:busacceleration: "<<bus->getAcceleration()/100.0<<std::endl;
-	std::cout<<"BusDriver::updatePositionOnLink:buslateralvelocity: "<<bus->getLatVelocity()/100.0<<std::endl;
-	std::cout<<"BusDriver::updatePositionOnLink:busstopdistance: "<<DistanceToNextBusStop()<<std::endl;
-	std::cout<<"bus distance moved in segment: "<<bus->getDistanceToSegmentStart()/100.0<<std::endl;*/
+
+	double fwdDistance = vehicle->getVelocity() * p.elapsedSeconds + 0.5 * vehicle->getAcceleration() * p.elapsedSeconds * p.elapsedSeconds;
+	if (fwdDistance < 0)
+		fwdDistance = 0;
+
+	//double fwdDistance = vehicle->getVelocity()*p.elapsedSeconds;
+	double latDistance = vehicle->getLatVelocity() * p.elapsedSeconds;
+
+	//Increase the vehicle's velocity based on its acceleration.
+	busAccelerating(p);
 
 	double rest = updatePositionOnLink(p);
-//	myDriverUpdateParams->currLaneIndex = p.currLaneIndex;
-//	myDriverUpdateParams->nextLaneIndex = p.nextLaneIndex;
+	//	myDriverUpdateParams->currLaneIndex = p.currLaneIndex;
+	//	myDriverUpdateParams->nextLaneIndex = p.nextLaneIndex;
 	//*myDriverUpdateParams = p;
 	return rest;
 }
+
+
 void sim_mob::BusDriver::busAccelerating(DriverUpdateParams& p)
 {
 	//Retrieve a new acceleration value.

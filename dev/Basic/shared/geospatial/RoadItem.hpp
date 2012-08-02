@@ -32,6 +32,7 @@ public:
 
 	const sim_mob::Point2D& getStart() { return start; }
 	const sim_mob::Point2D& getEnd() { return end; }
+	//static const bool isBus = false;
 
 
 protected:

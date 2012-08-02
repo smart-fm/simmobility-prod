@@ -33,7 +33,6 @@ public:
 	virtual void frame_tick_output(const UpdateParams& p);
 	virtual void frame_tick_output_mpi(frame_t frameNumber);
 
-
 	// get distance to bus stop (meter)
 	double DistanceToNextBusStop();
 	// get distance to bus stop of particular segment (meter)
@@ -48,6 +47,19 @@ public:
 	//DriverUpdateParams* myDriverUpdateParams;
 
 	BusStopVector findBusStopInPath(const vector<const RoadSegment*>& path);
+
+	double getPositionX()
+	{
+		if (this->vehicle)
+			return this->bus->getX();
+		return 0;
+	}
+	double getPositionY()
+	{
+		if (this->vehicle)
+			return this->bus->getY();
+		return 0;
+	}
 
 //Basic data
 protected:

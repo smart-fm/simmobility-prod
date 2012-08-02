@@ -64,35 +64,26 @@ void sim_mob::BusDriver::frame_init(UpdateParams& p)
 	}
 }
 
-vector<BusStop*> sim_mob::BusDriver::findBusStopInPath(const vector<const RoadSegment*>& path) const
+vector<const BusStop*> sim_mob::BusDriver::findBusStopInPath(const vector<const RoadSegment*>& path) const
 {
 	//NOTE: Use typedefs instead of defines.
-	typedef vector<BusStop*> BusStopVector;
+	typedef vector<const BusStop*> BusStopVector;
 
 	BusStopVector res;
 	int busStopAmount = 0;
 	vector<const RoadSegment*>::const_iterator it;
 	for( it = path.begin(); it != path.end(); ++it)
 	{
-		const RoadSegment* rs = (*it);
 		// get obstacles in road segment
+		const RoadSegment* rs = (*it);
 		const std::map<centimeter_t, const RoadItem*> & obstacles = rs->obstacles;
+
+		//Check each of these.
 		std::map<centimeter_t, const RoadItem*>::const_iterator ob_it;
 		for(ob_it = obstacles.begin(); ob_it != obstacles.end(); ++ob_it)
 		{
-			RoadItem* ri = const_cast<RoadItem*>(ob_it->second);
-			BusStop *bs = dynamic_cast<BusStop *>(ri);
-			if(bs)
-			{
-				DynamicVector SegmentLength(rs->getEnd()->location.getX(),rs->getEnd()->location.getY(),rs->getStart()->location.getX(),rs->getStart()->location.getY());
-				DynamicVector BusStopDistfromStart(bs->xPos,bs->yPos,rs->getStart()->location.getX(),rs->getStart()->location.getY());
-				DynamicVector BusStopDistfromEnd(rs->getEnd()->location.getX(),rs->getEnd()->location.getY(),bs->xPos,bs->yPos);
-				double a = BusStopDistfromStart.getMagnitude();
-				double b = BusStopDistfromEnd.getMagnitude();
-				double c = SegmentLength.getMagnitude();
-				bs->stopPoint = (-b*b + a*a + c*c)/(2.0*c);
-				std::cout<<"stopPoint: "<<bs->stopPoint/100.0<<std::endl;
-				// find bus stop in this segment
+			const BusStop *bs = dynamic_cast<const BusStop*>(ob_it->second);
+			if(bs) {
 				res.push_back(bs);
 			}
 		}
@@ -330,13 +321,14 @@ double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment& road
 	   if(bs) {
 		   if (roadSegment == vehicle->getCurrSegment()) {
 			   if (bs->stopPoint < 0) {
-				   DynamicVector SegmentLength(rs->getEnd()->location.getX(),rs->getEnd()->location.getY(),rs->getStart()->location.getX(),rs->getStart()->location.getY());
+				   throw std::runtime_error("Bus stop point should have already been set.");
+				   /*DynamicVector SegmentLength(rs->getEnd()->location.getX(),rs->getEnd()->location.getY(),rs->getStart()->location.getX(),rs->getStart()->location.getY());
 				   DynamicVector BusStopDistfromStart(bs->xPos,bs->yPos,rs->getStart()->location.getX(),rs->getStart()->location.getY());
 				   DynamicVector BusStopDistfromEnd(rs->getEnd()->location.getX(),rs->getEnd()->location.getY(),bs->xPos,bs->yPos);
 				   double a = BusStopDistfromStart.getMagnitude();
 				   double b = BusStopDistfromEnd.getMagnitude();
 				   double c = SegmentLength.getMagnitude();
-				   bs->stopPoint = (-b*b + a*a + c*c)/(2.0*c);
+				   bs->stopPoint = (-b*b + a*a + c*c)/(2.0*c);*/
 			   }
 
 			   if (bs->stopPoint >= 0) {

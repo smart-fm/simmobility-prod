@@ -46,7 +46,7 @@ public:
 	void busAccelerating(DriverUpdateParams& p);
 	mutable double lastTickDistanceToBusStop;
 
-	std::vector<sim_mob::BusStop *> findBusStopInPath(const std::vector<const sim_mob::RoadSegment*>& path) const;
+	std::vector<const sim_mob::BusStop*> findBusStopInPath(const std::vector<const sim_mob::RoadSegment*>& path) const;
 
 	double getPositionX() const;
 	double getPositionY() const;
@@ -63,7 +63,7 @@ private:
 	std::vector<DemoBusStop> stops;
 	std::vector<DemoBusStop> arrivedStops;
 	double waitAtStopMS;
-	std::vector<sim_mob::BusStop *> busStops;
+	std::vector<const sim_mob::BusStop*> busStops;
 
 
 	//Serialization, not implemented

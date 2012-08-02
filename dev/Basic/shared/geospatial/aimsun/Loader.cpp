@@ -1043,52 +1043,26 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 
 	for(map<std::string,BusStop>::iterator it = busstop_.begin(); it != busstop_.end(); it++)
 	{
+		//Estimate the distance of this Bus Stop from the start Node of its parent RoadSegment.
+		double distOrigin = sim_mob::BusStop::EstimateStopPoint(it->second.xPos,it->second.yPos, sections_[it->second.TMP_AtSectionID].generatedSegment);
 
-		sim_mob::BusStop *busstop = new sim_mob::BusStop();
-		busstop->parentSegment_ = sections_[(*it).second.TMP_AtSectionID].generatedSegment;
-		busstop->busstopno_ = (*it).second.bus_stop_no;
-		busstop->xPos = (*it).second.xPos;
-		busstop->yPos = (*it).second.yPos;
-		sim_mob::Point2D p((*it).second.xPos,(*it).second.yPos);
+		//Create the bus stop
+		sim_mob::BusStop *busstop = new sim_mob::BusStop(distOrigin);
+		busstop->parentSegment_ = sections_[it->second.TMP_AtSectionID].generatedSegment;
+		busstop->busstopno_ = it->second.bus_stop_no;
+		busstop->xPos = it->second.xPos;
+		busstop->yPos = it->second.yPos;
 
-		double x = busstop->xPos;
-		double y = busstop->yPos;
-
-		double distOrigin = (((*it).second.xPos)+((*it).second.yPos));
+		//Add the bus stop to its parent segment's obstacle list at this offset.
 		busstop->parentSegment_->obstacles[distOrigin] = busstop;
 	}
 
-
-#if 0
-	map<int,Node>::iterator it=nodes.find(66508);
-	if (it!=nodes.end()) {
-		sim_mob::MultiNode* temp = dynamic_cast<sim_mob::MultiNode*>(it->second.generatedNode);
-		if (temp) {
-			for (set<sim_mob::RoadSegment*>::const_iterator it2=temp->getRoadSegments().begin(); it2!=temp->getRoadSegments().end(); it2++) {
-				if (temp->hasOutgoingLanes(**it2)) {
-					std::cout <<"  Segment crossings for:  " <<(*it2)->getStart()->originalDB_ID.getLogItem() <<" ==> " <<(*it2)->getEnd()->originalDB_ID.getLogItem() <<"\n";
-					std::set<string> res;
-					for (set<sim_mob::LaneConnector*>::const_iterator it3=temp->getOutgoingLanes(**it2).begin(); it3!=temp->getOutgoingLanes(**it2).end(); it3++) {
-						res.insert((*it3)->getLaneTo()->getRoadSegment()->getEnd()->originalDB_ID.getLogItem());
-					}
-
-					for (std::set<string>::iterator it4=res.begin(); it4!=res.end(); it4++) {
-						std::cout <<"    ...to:  " <<*it4 <<"\n";
-					}
-				}
-			}
-
-		}
-	}
-	throw 1;
-#endif
-
-	createSignals();
 	/*vahid:
 	 * and Now we extend the signal functionality by adding extra information for signal's split plans, offset, cycle length, phases
 	 * lots of these data are still default(cycle length, offset, choice set.
 	 * They will be replaced by more realistic value(and input feeders) as the project proceeeds
 	 */
+	createSignals();
 #ifdef SIMMOB_NEW_SIGNAL
 	//NOTE: I am disabling this for now; it seems to be done in createSignals() ~Seth
 	//createPlans();

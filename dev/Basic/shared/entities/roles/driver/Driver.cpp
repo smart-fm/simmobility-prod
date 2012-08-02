@@ -254,12 +254,6 @@ void sim_mob::Driver::frame_tick(UpdateParams& p)
 	perceivedTrafficColor->update(params.currTimeMS);
 	perceivedDistToTrafficSignal->update(params.currTimeMS);
 
-
-
-
-
-
-
 	//retrieved their current "sensed" values.
 	if (perceivedFwdVel->can_sense()) {
 		p2.perceivedFwdVelocity = perceivedFwdVel->sense();
@@ -281,9 +275,6 @@ void sim_mob::Driver::frame_tick(UpdateParams& p)
 
 	//Update our Buffered types
 	//TODO: Update parent buffered properties, or perhaps delegate this.
-	//	currLane_.set(params.currLane);
-	//	currLaneOffset_.set(params.currLaneOffset);
-	//	currLaneLength_.set(params.currLaneLength);
 	if (!vehicle->isInIntersection()) {
 		currLane_.set(vehicle->getCurrLane());
 		currLaneOffset_.set(vehicle->getDistanceMovedInSegment());
@@ -1033,190 +1024,93 @@ void sim_mob::Driver::initTripChainSpecialString(const string& value)
 	if (!p) {
 		throw std::runtime_error("Parent is not of type Person");
 	}
-
-	//The path has already been set; now, we need to create a new trip chain.
-	//value contains "tripchain:x,y", so our new trip chain is:
-	//   (origin->dest by car), (dest->value by foot)
-	//Note that since TripChains are currently limited, we only model the latter.
-/*	TripChain* tc = new TripChain();
-	tc->mode = "Walk";
-	tc->flexible = false;
-	tc->primary = true;
-	//tc.startTime = DailyTime(); //Note: This is ignored for now.
-	tc->from.description = "Home";
-	tc->to.description = "Work";
-	tc->from.location = parent->destNode;
-
-	//The destination is slightly trickier to retrieve
-	Point2D pt = readPoint(value.substr(1, string::npos));
-	tc->to.location = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);
-	if (!tc->to.location) {
-		throw std::runtime_error("Tripchain special string references unknown Node.");
-	}
-
-	//Now save this as the "TripChain" (this needs to be re-named; it's only one part of the trip chain)
-	p->setTripChain(tc);*/
 }
 
 
 
 //link path should be retrieved from other class
 //for now, it serves as this purpose
-/**Edited by Jenny (11th June)
- * Try to initialize only the path from the current location to the next activity location
- * Added in a parameter for the function call: next
- *
- *
- *
- *
- */
+//Edited by Jenny (11th June)
+//Try to initialize only the path from the current location to the next activity location
+//Added in a parameter for the function call: next
 void sim_mob::Driver::initializePath() {
 
-	//TODO: I disabled this, but it's clearly required. Please have a look. ~Seth
+	//Only initialize if the next path has not been planned for yet.
 	if(!parent->getNextPathPlanned()){
-	//TripActivity* nextActivity = parent->getNextActivity();
-
-	//if there's no activity during the current trip
-	//if(!nextActivity){
 		//Save local copies of the parent's origin/destination nodes.
 		origin.node = parent->originNode;
 		origin.point = origin.node->location;
 		goal.node = parent->destNode;
 		goal.point = goal.node->location;
-	/*}
-	else{
-		//Save local copies of the parent's origin/destination nodes.
-		origin.node = parent->originNode;
-		origin.point = origin.node->location;
-		goal.node = nextActivity->location;
-		goal.point = goal.node->location;
-	}*/
 
-	//TEMP
-	std::stringstream errorMsg;
-
-	//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
-	vector<WayPoint> path;
-	Person* parentP = dynamic_cast<Person*> (parent);
-	errorMsg << "Attempting to generate a vehicle" << std::endl;
-	if (!parentP || parentP->specialStr.empty()) {
-		path = StreetDirectory::instance().shortestDrivingPath(*origin.node, *goal.node);
-//		path = StreetDirectory::instance().GetShortestDrivingPath(*origin.node, *goal.node);
-		errorMsg << "...from node: " << origin.node->originalDB_ID.getLogItem() << " to node: "
-				<< goal.node->originalDB_ID.getLogItem() << std::endl;
-	} else {
-		errorMsg << "...special path." << std::endl;
-
-		//Retrieve the special string.
-		size_t cInd = parentP->specialStr.find(':');
-		string specialType = parentP->specialStr.substr(0, cInd);
-		string specialValue = parentP->specialStr.substr(cInd, std::string::npos);
-		if (specialType=="loop") {
-			initLoopSpecialString(path, specialValue);
-		} else if (specialType=="tripchain") {
+		//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
+		vector<WayPoint> path;
+		Person* parentP = dynamic_cast<Person*> (parent);
+		if (!parentP || parentP->specialStr.empty()) {
 			path = StreetDirectory::instance().shortestDrivingPath(*origin.node, *goal.node);
-			int x = path.size();
-			initTripChainSpecialString(specialValue);
 		} else {
-			throw std::runtime_error("Unknown special string type.");
+			//Retrieve the special string.
+			size_t cInd = parentP->specialStr.find(':');
+			string specialType = parentP->specialStr.substr(0, cInd);
+			string specialValue = parentP->specialStr.substr(cInd, std::string::npos);
+			if (specialType=="loop") {
+				initLoopSpecialString(path, specialValue);
+			} else if (specialType=="tripchain") {
+				path = StreetDirectory::instance().shortestDrivingPath(*origin.node, *goal.node);
+				int x = path.size();
+				initTripChainSpecialString(specialValue);
+			} else {
+				throw std::runtime_error("Unknown special string type.");
+			}
 		}
-	}
 
-	//A non-null vehicle means we are moving.
-	//TODO: Start in lane 0?
-	try {
-		//vehicle length and width
-
-		//Only for Test, Yao Jin
-		double length;
-		double width;
-		if(dynamic_cast<BusDriver*>(this))// Bus should be at least 1200 to be displayed on Visualizer
-		{
-			length = 1200;
-			width = 200;
-		} else {
-			length = 400;
-			width = 200;
-		}
-		// Only for Test, Yao Jin
-
-//		size_t type = parent->getId()%10;
-//		if(type==0)//bus
-//			length = 1200;
-//		else if(type==1||type==2)//truck
-//			length = 1500;
-//		else//car
-//			length = 500;
+		//TODO: Start in lane 0?
 		int startlaneID = 0;
-//		if(parent->getId()%2==0)
-//			startlaneID = 1;
-//		else
-//			startlaneID = 2;
+
+		// Bus should be at least 1200 to be displayed on Visualizer
+		const double length = dynamic_cast<BusDriver*>(this) ? 1200 : 400;
+		const double width = 200;
+
+		//A non-null vehicle means we are moving.
 		vehicle = new Vehicle(path, startlaneID, length, width);
-	} catch (std::exception& ex) {
-		errorMsg << "initializePath: ERROR: " << ex.what();
-		std::cout << errorMsg.str() << std::endl;
-		throw ex;
 	}
-	}
+
 	//to indicate that the path to next activity is already planned
 	parent->setNextPathPlanned(true);
 }
 
 void sim_mob::Driver::initializePathMed() {
 
-	//NOTE: I disabled these, but some of this is clearly required. ~Seth
+	//Only initialize if the next path has not been planned for yet.
 	if(!parent->getNextPathPlanned()){
-	//TripActivity* nextActivity = parent->getNextActivity();
-
-	//if there's no activity during the current trip
-	//if(!nextActivity){
 		//Save local copies of the parent's origin/destination nodes.
 		origin.node = parent->originNode;
 		origin.point = origin.node->location;
 		goal.node = parent->destNode;
 		goal.point = goal.node->location;
-	/*}
-	else{
-		//Save local copies of the parent's origin/destination nodes.
-		origin.node = parent->originNode;
-		origin.point = origin.node->location;
-		goal.node = nextActivity->location;
-		goal.point = goal.node->location;
-	}*/
 
-	//TEMP
-	std::stringstream errorMsg;
-
-	//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
-	vector<WayPoint> path;
-	Person* parentP = dynamic_cast<Person*> (parent);
-	errorMsg << "Attempting to generate a vehicle" << std::endl;
-	if (!parentP || parentP->specialStr.empty()) {
-		path = StreetDirectory::instance().shortestDrivingPath(*origin.node, *goal.node);
-//		path = StreetDirectory::instance().GetShortestDrivingPath(*origin.node, *goal.node);
-		errorMsg << "...from node: " << origin.node->originalDB_ID.getLogItem() << " to node: "
-				<< goal.node->originalDB_ID.getLogItem() << std::endl;
-	} else {
-		errorMsg << "...special path." << std::endl;
-
-		//Retrieve the special string.
-		size_t cInd = parentP->specialStr.find(':');
-		string specialType = parentP->specialStr.substr(0, cInd);
-		string specialValue = parentP->specialStr.substr(cInd, std::string::npos);
-		if (specialType=="loop") {
-			initLoopSpecialString(path, specialValue);
-		} else if (specialType=="tripchain") {
+		//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
+		vector<WayPoint> path;
+		Person* parentP = dynamic_cast<Person*> (parent);
+		if (!parentP || parentP->specialStr.empty()) {
 			path = StreetDirectory::instance().shortestDrivingPath(*origin.node, *goal.node);
-			int x = path.size();
-			initTripChainSpecialString(specialValue);
 		} else {
-			throw std::runtime_error("Unknown special string type.");
+			//Retrieve the special string.
+			size_t cInd = parentP->specialStr.find(':');
+			string specialType = parentP->specialStr.substr(0, cInd);
+			string specialValue = parentP->specialStr.substr(cInd, std::string::npos);
+			if (specialType=="loop") {
+				initLoopSpecialString(path, specialValue);
+			} else if (specialType=="tripchain") {
+				path = StreetDirectory::instance().shortestDrivingPath(*origin.node, *goal.node);
+				int x = path.size();
+				initTripChainSpecialString(specialValue);
+			} else {
+				throw std::runtime_error("Unknown special string type.");
+			}
 		}
 	}
-	//do not create new vehicle now
 
-	}
 	//to indicate that the path to next activity is already planned
 	parent->setNextPathPlanned(true);
 }
@@ -1226,13 +1120,9 @@ void sim_mob::Driver::initializePathMed() {
 void sim_mob::Driver::resetPath(DriverUpdateParams& p) {
 	const Node * node = vehicle->getCurrSegment()->getEnd();
 	//Retrieve the shortest path from the current intersection node to destination and save all RoadSegments in this path.
-	vector<WayPoint> path;
-	path = StreetDirectory::instance().GetShortestDrivingPath(*node, *goal.node);
-//	std::cout<<"path size"<<path.size()<<std::endl;
-//	if(path.size()==0)
-//		return;
-	vector<WayPoint>::iterator it;
-	it = path.begin();
+	vector<WayPoint> path = StreetDirectory::instance().GetShortestDrivingPath(*node, *goal.node);
+
+	vector<WayPoint>::iterator it = path.begin();
 	path.insert(it, WayPoint(vehicle->getCurrSegment()));
 	vehicle->resetPath(path);
 }
@@ -1251,9 +1141,6 @@ void sim_mob::Driver::setOrigin(DriverUpdateParams& p) {
 	vehicle->setVelocity(0);
 	vehicle->setLatVelocity(0);
 	vehicle->setAcceleration(0);
-
-	//Scan and save the lanes to the left and right.
-	//updateAdjacentLanes(p);
 
 	//Calculate and save the total length of the current polyline.
 	p.currLaneLength = vehicle->getCurrLinkLaneZeroLength();
@@ -1288,28 +1175,18 @@ double sim_mob::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 	//Determine how far forward we've moved.
 	//TODO: I've disabled the acceleration component because it doesn't really make sense.
 	//      Please re-enable if you think this is expected behavior. ~Seth
-//	if(parent->getId() == 8)
-//	LogOut("8,77\n");
-
 	double fwdDistance = vehicle->getVelocity() * p.elapsedSeconds + 0.5 * vehicle->getAcceleration()
 			* p.elapsedSeconds * p.elapsedSeconds;
-	if (fwdDistance < 0)
+	if (fwdDistance < 0) {
 		fwdDistance = 0;
+	}
 
 
 	//double fwdDistance = vehicle->getVelocity()*p.elapsedSeconds;
 	double latDistance = vehicle->getLatVelocity() * p.elapsedSeconds;
 
 	//Increase the vehicle's velocity based on its acceleration.
-
 	vehicle->setVelocity(vehicle->getVelocity() + vehicle->getAcceleration() * p.elapsedSeconds);
-
-
-	//TEMP: For ns3
-	Person* parentP = dynamic_cast<Person*> (parent);
-	if (parentP && !parentP->specialStr.empty() && parentP->specialStr.at(5) == 'A') {
-		vehicle->setVelocity(vehicle->getVelocity() * 1.1);
-	}
 
 	//when v_lead and a_lead is 0, space is not negative, the Car Following will generate an acceleration based on free flowing model
 	//this causes problem, so i manually set acceleration and velocity to 0
@@ -1322,9 +1199,6 @@ double sim_mob::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 	//Move the vehicle forward.
 	double res = 0.0;
 	try {
-//		if(parent->getId() == 8)
-//		LogOut("8,88\n");
-
 		res = vehicle->moveFwd(fwdDistance);
 	} catch (std::exception& ex) {
 		if (Debug::Drivers) {
@@ -1710,9 +1584,6 @@ void sim_mob::Driver::updatePositionDuringLaneChange(DriverUpdateParams& p, LANE
 	//Basically, we move "halfway" into the next lane, and then move "halfway" back to its midpoint.
 	if (actual == relative) {
 		//Moving "out".
-//		if(parent->getId() == 8)
-//		LogOut("8,33\n");
-
 		double remainder = fabs(vehicle->getLateralMovement()) - halfLaneWidth;
 
 		if (Debug::Drivers) {
@@ -1723,9 +1594,6 @@ void sim_mob::Driver::updatePositionDuringLaneChange(DriverUpdateParams& p, LANE
 			//Update Lanes, polylines, RoadSegments, etc.
 			p.currLane = (actual == LCS_LEFT ? p.leftLane : p.rightLane);
 			syncCurrLaneCachedInfo(p);
-
-//			if(parent->getId() == 8)
-//			LogOut("8,55\n");
 
 			vehicle->shiftToNewLanePolyline(actual == LCS_LEFT);
 

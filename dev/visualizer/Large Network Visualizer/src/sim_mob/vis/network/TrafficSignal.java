@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Rectangle2D.Double;
 import java.util.ArrayList;
+import sim_mob.vis.Main;
 
 import sim_mob.vis.controls.DrawParams;
 import sim_mob.vis.controls.DrawableItem;
@@ -81,6 +82,7 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 	
 	
 	public void addSelfToSimulation(RoadNetwork rdNet, SimulationResults simRes) {
+		Main.NEW_SIGNAL = true;
 //		System.out.println("Inside TS.addSelfToSimulation");
 		SignalHelper signalHelper = new SignalHelper();
 		signalHelper.phases = new ArrayList<SignalHelper.Phase>();

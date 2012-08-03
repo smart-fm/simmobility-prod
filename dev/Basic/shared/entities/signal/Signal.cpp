@@ -213,8 +213,6 @@ void Signal_SCATS::findSignalLinksAndCrossings() {
 	sim_mob::RoadSegment const * road = *iter;
 	std::cout << "Analysing Road Segment_ " << road->getLink()->getSegmentName(road) <<  std::endl;
 	sim_mob::Crossing const * crossing = getCrossing(road);
-	if((crossing == nullptr)&&(getSignalId() == 115436))
-		std::cout << "Road Segment " << road->getLink()->getSegmentName(road) << "Has No Crossing" << std::endl;
 	sim_mob::Link const * link = road->getLink();
 	p = inserter.insert(LinkAndCrossing(0, link, crossing, 0));
 //	if(getSignalId() == 115436) std::cout << "Inserting LAC for " << road->getLink()->getSegmentName(road) << (p.second?" Succeeded_ " : " Failed_ ") << std::endl;
@@ -231,8 +229,6 @@ void Signal_SCATS::findSignalLinksAndCrossings() {
 		road = *iter;
 		std::cout << "Analysing Road Segment " << road->getLink()->getSegmentName(road) <<  std::endl;
 		crossing = getCrossing(road);
-		if((crossing == nullptr)&&(getSignalId() == 115436))
-			std::cout << "Road Segment " << road->getLink()->getSegmentName(road) << "Has No Crossing" << std::endl;
 		link = road->getLink();
 		angleAngle = angle.angle(link);
 

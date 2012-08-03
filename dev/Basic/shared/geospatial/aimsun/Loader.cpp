@@ -1043,17 +1043,15 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 
 	for(map<std::string,BusStop>::iterator it = busstop_.begin(); it != busstop_.end(); it++)
 	{
-		//Estimate the distance of this Bus Stop from the start Node of its parent RoadSegment.
-		double distOrigin = sim_mob::BusStop::EstimateStopPoint(it->second.xPos,it->second.yPos, sections_[it->second.TMP_AtSectionID].generatedSegment);
-
 		//Create the bus stop
-		sim_mob::BusStop *busstop = new sim_mob::BusStop(distOrigin);
+		sim_mob::BusStop *busstop = new sim_mob::BusStop();
 		busstop->parentSegment_ = sections_[it->second.TMP_AtSectionID].generatedSegment;
 		busstop->busstopno_ = it->second.bus_stop_no;
 		busstop->xPos = it->second.xPos;
 		busstop->yPos = it->second.yPos;
 
-		//Add the bus stop to its parent segment's obstacle list at this offset.
+		//Add the bus stop to its parent segment's obstacle list at an estimated offset.
+		double distOrigin = sim_mob::BusStop::EstimateStopPoint(busstop->xPos, busstop->yPos, sections_[it->second.TMP_AtSectionID].generatedSegment);
 		busstop->parentSegment_->obstacles[distOrigin] = busstop;
 	}
 

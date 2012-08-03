@@ -34,7 +34,7 @@ class BusStop : public sim_mob::RoadItem {
 public:
 	///BusStops must be constructed with their stopPt, which must be the same
 	///  as the lane zero offset in their RoadSegment.
-	explicit BusStop(double stopPt) : RoadItem(),stopPoint(stopPt) {}
+	explicit BusStop() : RoadItem() {}
 
 public:
 	///Which RoadItem and lane is this bus stop located at?
@@ -56,26 +56,10 @@ public:
 	///Is the pedestrian waiting area sheltered? Currently does not affect anything.
 	bool has_shelter;
 
-	// the position bus shall stop in segment from start node
-	//unit cm
-	const double stopPoint;
+	//The position bus shall stop in segment from start node
+	//NOTE: This is now correctly stored in the RoadSegment's obstacle list.
+	//const double stopPoint;
 
-
-private:
-	///Get the bus lines available at this stop. Used for route planning.
-	///NOTE: Placeholder method; will obviously not be returning void.
-	//std::vector <BusRoute> getBusLines() { throw std::runtime_error("Not implemented");  }
-
-	///Get a list of bus arrival times. Pedestrians can consult this (assuming the bus stop is VMS-enabled).
-	///NOTE: Placeholder method; will obviously not be returning void.
-	//void getBusArrivalVMS() {  }
-
-
-	//Temporary items required for compiling
-private:
-	const std::vector<sim_mob :: Lane*>& getLanes() const { return lanes;}
-	//int bus_stop_lane(const RoadSegment& segment);
-	//float getSumDistance();
 
 public:
     sim_mob::RoadSegment* getRoadSegment() const {

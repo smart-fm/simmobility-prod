@@ -288,61 +288,34 @@ bool sim_mob::BusDriver::isBusLeavingBusStop() const
 
 double sim_mob::BusDriver::distanceToNextBusStop() const
 {
-	double distanceToCurrentSegmentBusStop = -1;
-	double distanceToNextSegmentBusStop = -1;
-	const RoadSegment* rsCurrent = vehicle->getCurrSegment();
-	const RoadSegment* rsNext = vehicle->getNextSegment(true);
+	double distanceToCurrentSegmentBusStop = getDistanceToBusStopOfSegment(vehicle->getCurrSegment());
+	double distanceToNextSegmentBusStop = getDistanceToBusStopOfSegment(vehicle->getNextSegment(true));
 
-	if (rsCurrent)
-		distanceToCurrentSegmentBusStop = getDistanceToBusStopOfSegment(*rsCurrent);
-	if (rsNext)
-		distanceToNextSegmentBusStop = getDistanceToBusStopOfSegment(*rsNext);
-
-	if (distanceToCurrentSegmentBusStop >= 0 && distanceToNextSegmentBusStop >= 0)
+	if (distanceToCurrentSegmentBusStop >= 0 && distanceToNextSegmentBusStop >= 0) {
 		return ((distanceToCurrentSegmentBusStop<=distanceToNextSegmentBusStop) ? distanceToCurrentSegmentBusStop: distanceToNextSegmentBusStop);
-	else if (distanceToCurrentSegmentBusStop > 0)
+	} else if (distanceToCurrentSegmentBusStop > 0) {
 		return distanceToCurrentSegmentBusStop;
-	else
-		return distanceToNextSegmentBusStop;
+	}
+
+	return distanceToNextSegmentBusStop;
 }
 
-double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment& roadSegment) const
+double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment* roadSegment) const
 {
-	const RoadSegment* rs = &roadSegment;
+	typedef std::map<centimeter_t, const RoadItem*>::const_iterator RoadObstIt;
+	if (!roadSegment) { return -1; }
 
-	double distance = -100;
-	double currentX = getPositionX();
-	double currentY = getPositionY();
-
-	const std::map<centimeter_t, const RoadItem*> & obstacles = rs->obstacles;
-	for(std::map<centimeter_t, const RoadItem*>::const_iterator o_it = obstacles.begin(); o_it != obstacles.end() ; o_it++) {
-	   RoadItem* ri = const_cast<RoadItem*>(o_it->second);
-	   BusStop *bs = dynamic_cast<BusStop *>(ri);
-	   if(bs) {
-		   if (roadSegment == vehicle->getCurrSegment()) {
-			   if (bs->stopPoint < 0) {
-				   throw std::runtime_error("Bus stop point should have already been set.");
-				   /*DynamicVector SegmentLength(rs->getEnd()->location.getX(),rs->getEnd()->location.getY(),rs->getStart()->location.getX(),rs->getStart()->location.getY());
-				   DynamicVector BusStopDistfromStart(bs->xPos,bs->yPos,rs->getStart()->location.getX(),rs->getStart()->location.getY());
-				   DynamicVector BusStopDistfromEnd(rs->getEnd()->location.getX(),rs->getEnd()->location.getY(),bs->xPos,bs->yPos);
-				   double a = BusStopDistfromStart.getMagnitude();
-				   double b = BusStopDistfromEnd.getMagnitude();
-				   double c = SegmentLength.getMagnitude();
-				   bs->stopPoint = (-b*b + a*a + c*c)/(2.0*c);*/
-			   }
-
-			   if (bs->stopPoint >= 0) {
-					DynamicVector BusDistfromStart(getPositionX(), getPositionY(),rs->getStart()->location.getX(),rs->getStart()->location.getY());
-					std::cout<<"BusDriver::DistanceToNextBusStop: bus move in segment: "<<BusDistfromStart.getMagnitude()<<std::endl;
-					distance = bs->stopPoint - BusDistfromStart.getMagnitude();
-				}
-		   } else {
-			   DynamicVector busToSegmentStartDistance(currentX,currentY, rs->getStart()->location.getX(),rs->getStart()->location.getY());
-			   distance = busToSegmentStartDistance.getMagnitude() + bs->stopPoint;
-		   }
-	   }
+	//The obstacle offset now correctly returns the BusStop's distance down the segment.
+	for(RoadObstIt o_it = roadSegment->obstacles.begin(); o_it!=roadSegment->obstacles.end(); o_it++) {
+		const BusStop *bs = dynamic_cast<const BusStop *>(o_it->second);
+		if (bs) {
+			DynamicVector BusDistfromStart(getPositionX(), getPositionY(),roadSegment->getStart()->location.getX(),roadSegment->getStart()->location.getY());
+			std::cout<<"BusDriver::DistanceToNextBusStop: bus move in segment: "<<BusDistfromStart.getMagnitude()<<std::endl;
+			return  (o_it->first - BusDistfromStart.getMagnitude()) / 100.0;
+		}
 	}
-	return distance/100.0;
+
+	return -1;
 }
 
 //Main update functionality

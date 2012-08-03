@@ -37,7 +37,7 @@ public:
 	double distanceToNextBusStop() const;
 
 	// get distance to bus stop of particular segment (meter)
-	double getDistanceToBusStopOfSegment(const RoadSegment& roadSegment) const;
+	double getDistanceToBusStopOfSegment(const RoadSegment* roadSegment) const;
 
 	bool isBusFarawayBusStop() const;
 	bool isBusApproachingBusStop() const;

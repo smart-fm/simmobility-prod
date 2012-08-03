@@ -506,11 +506,11 @@ TrafficColor Signal_SCATS::getDriverLight(Lane const & fromLane, Lane const & to
 			break;
 	}
 
-	//if the link is not listed in the current phase throw an error (alternatively, just return red)
-	if(iter == range.second)
-//		return sim_mob::Red;
-			throw std::runtime_error("the specified combination of source and destination lanes are not assigned to this signal");
-	else
+//	//if the link is not listed in the current phase throw an error (alternatively, just return red)
+//	if(iter == range.second)
+////		return sim_mob::Red;
+//			throw std::runtime_error("the specified combination of source and destination lanes are not assigned to this signal");
+//	else
 	{
 //		std::cout << "getDriverLight RETURNING " << getColor((*iter).second.currColor) << std::endl;
 		return (*iter).second.currColor;

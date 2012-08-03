@@ -697,7 +697,7 @@ namespace geo
   void UniNode_t_pimpl::
   nodeID (const ::std::string& nodeID)
   {
-    std::cout << "nodeID: " << nodeID << std::endl;
+    this->nodeId = nodeID;
   }
 
   void UniNode_t_pimpl::
@@ -802,6 +802,8 @@ namespace geo
   void intersection_t_pimpl::
   pre ()
   {
+	  std::cout << "intersection_pimpl::pre()\n";
+	  getchar();
   }
 
   void intersection_t_pimpl::
@@ -1127,16 +1129,19 @@ namespace geo
 
   // RoadNetwork_t_pimpl
   //
-  RoadNetwork_t_pimpl::RoadNetwork_t_pimpl():rn(sim_mob::ConfigParams::GetInstance().getNetworkRW()) {}
+
   void RoadNetwork_t_pimpl::
   pre ()
   {
+	  rn = sim_mob::ConfigParams::GetInstance().getNetworkRW();
+	  std::cout << "In RoadNetwork_t_pimpl::pre\n";
   }
 
   void RoadNetwork_t_pimpl::
   Links (std::vector<sim_mob::Link*> Links)
   {
 	  rn.links = Links;
+	  std::cout << "Links Done	\n";
   }
 
   void RoadNetwork_t_pimpl::
@@ -1190,6 +1195,7 @@ namespace geo
   void GeoSpatial_t_pimpl::
   pre ()
   {
+	  std::cout << "In GeoSpatial_t_pimpl.pre\n";
   }
 
   void GeoSpatial_t_pimpl::
@@ -1208,11 +1214,13 @@ namespace geo
   void SimMobility_t_pimpl::
   pre ()
   {
+	  std::cout << "In SimMobility_t_pimpl.pre()\n";
   }
 
   void SimMobility_t_pimpl::
   GeoSpatial ()
   {
+	  std::cout << "In SimMobility_t_pimpl::GeoSpatial ()\n";
   }
 
   void SimMobility_t_pimpl::
@@ -1279,6 +1287,7 @@ namespace geo
   Link (sim_mob::Link* Link)
   {
 	  links.push_back(Link);
+	  std::cout << "Link Pushed\n";
   }
 
   std::vector<sim_mob::Link*> Links_pimpl::
@@ -1293,6 +1302,8 @@ namespace geo
   void Nodes_pimpl::
   pre ()
   {
+
+	  std::cout << "Nodes_pimpl::pre()\n";
   }
 
   void Nodes_pimpl::
@@ -1327,21 +1338,19 @@ namespace geo
   void UniNodes_pimpl::
   pre ()
   {
+	  std::cout << "UniNodes_pimpl::pre()\n";
   }
 
   void UniNodes_pimpl::
   UniNode (sim_mob::UniNode* UniNode)
   {
-    // TODO
-    //
+	  uniNodes.insert(UniNode);
   }
 
   std::set<sim_mob::UniNode*> UniNodes_pimpl::
   post_UniNodes ()
   {
-    // TODO
-    //
-    // return ... ;
+	  return uniNodes;
   }
 
   // Intersections_pimpl
@@ -1350,21 +1359,19 @@ namespace geo
   void Intersections_pimpl::
   pre ()
   {
+	  std::cout << "Intersections_pimpl::pre()\n";
   }
 
   void Intersections_pimpl::
   Intersection (sim_mob::MultiNode* Intersection)
   {
-    // TODO
-    //
+	  intersections.push_back(Intersection);
   }
 
   std::vector<sim_mob::MultiNode*> Intersections_pimpl::
   post_Intersections ()
   {
-    // TODO
-    //
-    // return ... ;
+	  return intersections;
   }
 
   // roundabouts_pimpl

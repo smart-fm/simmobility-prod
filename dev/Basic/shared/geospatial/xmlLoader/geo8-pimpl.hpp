@@ -431,6 +431,9 @@ namespace geo
 
   class UniNode_t_pimpl: public virtual UniNode_t_pskel
   {
+	  sim_mob::UniNode * uniNode;
+	  Point2D const location;
+	  unsigned int nodeId;
     public:
     virtual void
     pre ();
@@ -685,9 +688,8 @@ namespace geo
 
   class RoadNetwork_t_pimpl: public virtual RoadNetwork_t_pskel
   {
-	  sim_mob::RoadNetwork &rn;
+	  sim_mob::RoadNetwork rn;
     public:
-	  RoadNetwork_t_pimpl();
     virtual void
     pre ();
 
@@ -815,6 +817,7 @@ namespace geo
 
   class UniNodes_pimpl: public virtual UniNodes_pskel
   {
+	  std::set<sim_mob::UniNode*> uniNodes;
     public:
     virtual void
     pre ();
@@ -828,6 +831,7 @@ namespace geo
 
   class Intersections_pimpl: public virtual Intersections_pskel
   {
+	  std::vector<sim_mob::MultiNode*> intersections;
     public:
     virtual void
     pre ();

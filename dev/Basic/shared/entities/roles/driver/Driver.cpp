@@ -11,6 +11,7 @@
 #include "Driver.hpp"
 
 #include "entities/roles/pedestrian/Pedestrian.hpp"
+#include "entities/roles/driver/BusDriver.hpp"
 #include "entities/Person.hpp"
 #include "entities/Signal.hpp"
 #include "entities/AuraManager.hpp"
@@ -191,6 +192,7 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat) :
 	perceivedVelOfFwdCar = new FixedDelayed<double>(reacTime,true);
 	perceivedAccOfFwdCar = new FixedDelayed<double>(reacTime,true);
 	perceivedDistToFwdCar = new FixedDelayed<double>(reacTime,true);
+	perceivedDistToTrafficSignal = new FixedDelayed<double>(reacTime,true);
 
 #ifdef SIMMOB_NEW_SIGNAL
 	perceivedTrafficColor = new FixedDelayed<sim_mob::TrafficColor>(reacTime,true);
@@ -231,6 +233,7 @@ void sim_mob::Driver::frame_init(UpdateParams& p)
 void sim_mob::Driver::frame_tick(UpdateParams& p)
 {
 
+	// lost some params
 	DriverUpdateParams& p2 = dynamic_cast<DriverUpdateParams&>(p);
 
 	//Are we done already?
@@ -296,6 +299,7 @@ void sim_mob::Driver::frame_tick(UpdateParams& p)
 	//Update your perceptions
 	perceivedFwdVel->delay(vehicle->getVelocity());
 	perceivedFwdAcc->delay(vehicle->getAcceleration());
+
 	//Print output for this frame.
 	disToFwdVehicleLastFrame = p2.nvFwd.distance;
 }
@@ -1122,8 +1126,20 @@ void sim_mob::Driver::initializePath() {
 	//TODO: Start in lane 0?
 	try {
 		//vehicle length and width
-		double length = 400;
-		double width = 200;
+
+		//Only for Test, Yao Jin
+		double length;
+		double width;
+		if(dynamic_cast<BusDriver*>(this))// Bus should be at least 1200 to be displayed on Visualizer
+		{
+			length = 1200;
+			width = 200;
+		} else {
+			length = 400;
+			width = 200;
+		}
+		// Only for Test, Yao Jin
+
 //		size_t type = parent->getId()%10;
 //		if(type==0)//bus
 //			length = 1200;
@@ -1138,7 +1154,7 @@ void sim_mob::Driver::initializePath() {
 //			startlaneID = 2;
 		vehicle = new Vehicle(path, startlaneID, length, width);
 	} catch (std::exception& ex) {
-		errorMsg << "ERROR: " << ex.what();
+		errorMsg << "initializePath: ERROR: " << ex.what();
 		std::cout << errorMsg.str() << std::endl;
 		throw ex;
 	}

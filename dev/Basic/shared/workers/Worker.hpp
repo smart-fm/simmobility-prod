@@ -64,6 +64,7 @@ public:
 	void addEntity(Entity* entity);
 	void remEntity(Entity* entity);
 	std::vector<Entity*>& getEntities();
+	WorkGroup* const getParent() { return parent; }
 
 	//Manage Links
 	void addLink(Link* link);
@@ -86,6 +87,8 @@ private:
 
 	void migrateOut(Entity& ent);
 	void migrateIn(Entity& ent);
+
+	void migrateAllOut();
 
 
 protected:

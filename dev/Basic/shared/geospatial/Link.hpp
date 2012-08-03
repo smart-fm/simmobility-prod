@@ -56,12 +56,13 @@ public:
 	/// in the forward (if isForward is true) direction.
 	int getLength(bool isForward) const;
 
-	///Return the RoadSegments which make up this Link, in either the forward
+	/**Return the RoadSegments which make up this Link, in either the forward
 	/// (if isForward is true) or reverse direction.
 	///
 	/// \note
 	/// If bidirectional segments are present, this path may include
 	/// RoadSegments that should actually be read as end->start, not start->end.
+	 */
 	const std::vector<sim_mob::RoadSegment*>& getPath(bool isForward) const;
 
 	///The name of the particular segment. E.g., "Main Street 01".

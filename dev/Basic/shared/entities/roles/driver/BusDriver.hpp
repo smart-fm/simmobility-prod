@@ -4,15 +4,18 @@
 
 #include "Driver.hpp"
 #include "entities/vehicle/BusRoute.hpp"
-
+#include "entities/vehicle/Bus.hpp"
+#include "DriverUpdateParams.hpp"
+#include <vector>
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 #endif
+using std::vector;
 
 namespace sim_mob
 {
-
+#define BusStopVector vector<BusStop *>
 /**
  * This simple BusDriver class maintains a single, non-looping route with a series of
  *   stops. Most driving behavior is re-used from the Driver class. At bus stops, the
@@ -30,22 +33,53 @@ public:
 	virtual void frame_tick_output(const UpdateParams& p);
 	virtual void frame_tick_output_mpi(frame_t frameNumber);
 
-	//Functionality
-	//void setRoute(const BusRoute& route);
+	// get distance to bus stop (meter)
+	double DistanceToNextBusStop();
+	// get distance to bus stop of particular segment (meter)
+	double getDistanceToBusStopOfSegment(const RoadSegment& roadSegment);
+
+	bool isBusFarawayBusStop();
+	bool isBusApproachingBusStop();
+	bool isBusArriveBusStop();
+	bool isBusLeavingBusStop();
+	void busAccelerating(DriverUpdateParams& p);
+	double lastTickDistanceToBusStop;
+	//DriverUpdateParams* myDriverUpdateParams;
+
+	BusStopVector findBusStopInPath(const vector<const RoadSegment*>& path);
+
+	double getPositionX()
+	{
+		if (this->vehicle)
+			return this->bus->getX();
+		return 0;
+	}
+	double getPositionY()
+	{
+		if (this->vehicle)
+			return this->bus->getY();
+		return 0;
+	}
 
 //Basic data
 protected:
-	//Pointer to the vehicle this (bus) driver is controlling.
-	//Vehicle* vehicle;  //NOTE: I'm not sure what the best way is in C++ to say that
-	//                   //      the PARENT class maintains a vehicle but we maintain a Bus*.
-
 	//Override the following behavior
-	virtual double updatePositionOnLink(DriverUpdateParams& p);
+//	virtual double updatePositionOnLink(DriverUpdateParams& p);
+	virtual double linkDriving(DriverUpdateParams& p);
+
+	Bus* bus;
 
 private:
 	//BusRoute route;
 	const DemoBusStop* nextStop;
+	std::vector<DemoBusStop> stops;
+	std::vector<DemoBusStop> arrivedStops;
 	double waitAtStopMS;
+	BusStopVector busStops;
+
+	//MITSIM_LC_Model* mitsim_lc_model;
+
+
 
 
 	//Serialization, not implemented

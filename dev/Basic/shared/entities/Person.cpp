@@ -138,6 +138,7 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 		//First, we need to retrieve an UpdateParams subclass appropriate for this Agent.
 		unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
 		UpdateParams& params = currRole->make_frame_tick_params(frameNumber, currTimeMS);
+		//std::cout<<"Person ID:"<<this->getId()<<"---->"<<"Person position:"<<"("<<this->xPos<<","<<this->yPos<<")"<<std::endl;
 
 		//Has update() been called early?
 		if(currTimeMS < getStartTime()) {

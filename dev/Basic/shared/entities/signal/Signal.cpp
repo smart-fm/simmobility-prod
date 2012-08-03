@@ -80,10 +80,11 @@ void Signal_SCATS::createStringRepresentation(std::string newLine)
 			strRepr = output.str();//all the aim of the unrelated part
 }
 
-/*Signal Sonstructor*/
-Signal_SCATS::Signal_SCATS(Node const & node,const MutexStrategy& mtxStrat,  int id)
-  : loopDetector_(*this, mtxStrat)
-	,Signal(node,mtxStrat,id)
+/*Signal Constructor*/
+Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id)
+  : Agent(mtxStrat, id)
+	, loopDetector_(new LoopDetectorEntity(*this, mtxStrat))
+	, node_(node)
 {
 	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&getNode());
 	if(! mNode) isIntersection_ = false ;

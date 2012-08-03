@@ -263,5 +263,4 @@ template<> struct type_conversion<BusStop>
 };
 
 
-
 }

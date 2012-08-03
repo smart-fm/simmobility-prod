@@ -11,9 +11,10 @@
 
 #include "GenConfig.h"
 
-#include "workers/Worker.hpp"
 #include "buffering/BufferedDataManager.hpp"
-#include "workers/WorkGroup.hpp"
+#include "entities/AuraManager.hpp"
+#include "entities/roles/driver/Driver.hpp"
+#include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/UniNode.hpp"
@@ -21,26 +22,12 @@
 #include "geospatial/Lane.hpp"
 #include "util/OutputUtil.hpp"
 #include "util/DailyTime.hpp"
+#include "util/LangHelpers.hpp"
+#include "workers/Worker.hpp"
+#include "workers/WorkGroup.hpp"
 
-//Just temporarily, so we know it compiles:
-#include "entities/Signal.hpp"
-#include "conf/simpleconf.hpp"
-#include "entities/AuraManager.hpp"
-#include "entities/TrafficWatch.hpp"
-#include "entities/Bus.hpp"
-#include "entities/Person.hpp"
-#include "entities/roles/Role.hpp"
-#include "entities/roles/driver/Driver.hpp"
-#include "entities/roles/pedestrian/Pedestrian.hpp"
-#include "entities/roles/passenger/Passenger.hpp"
-#include "entities/profile/ProfileBuilder.hpp"
-#include "geospatial/BusStop.hpp"
-#include "geospatial/Route.hpp"
-#include "geospatial/BusRoute.hpp"
-#include "perception/FixedDelayed.hpp"
-#include "buffering/Buffered.hpp"
-#include "buffering/Locked.hpp"
-#include "buffering/Shared.hpp"
+//If you want to force a header file to compile, you can put it here temporarily:
+//#include "entities/BusController.hpp"
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
@@ -134,6 +121,8 @@ bool performMainMed(const std::string& configFileName) {
 		partitionImpl.initBoundaryTrafficItems();
 	}
 #endif
+
+	{ //Begin scope: WorkGroups
 
 	//Initialize our work groups.
 	WorkGroup agentWorkers(config.agentWorkGroupSize, config.totalRuntimeTicks,
@@ -281,11 +270,6 @@ bool performMainMed(const std::string& configFileName) {
 //		trafficWatch.update(currTick);
 		agentWorkers.waitExternAgain(); // The workers wait on the AuraManager.
 
-
-
-		//Surveillance update
-		//updateSurveillanceData(agents);
-
 		//Check if the warmup period has ended.
 		if (warmupDone) {
 			//updateGUI(agents);
@@ -353,6 +337,20 @@ bool performMainMed(const std::string& configFileName) {
 			throw std::runtime_error("ERROR: pending_agents shouldn't be used if Dynamic Dispatch is disabled.");
 		}
 	}
+
+	//NOTE: This dangerous behavior; the Worker will still be tracking the Agent!  ~Seth
+	//BusController::busctrller.currWorker = nullptr;// Update our Entity's pointer before ending main()
+
+	//This is the safer way to do it:
+	//BusController::busctrller.currWorker->migrateOut(BusController::busctrller);
+	//...but that method is private (and fails to do other important things, like removing managed properties).
+
+	//Instead, we will simply scope-out the WorkGroups, and they will migrate out all remaining Agents.
+	}  //End scope: WorkGroups. (Todo: should move this into its own function later)
+
+	//Test: At this point, it should be possible to delete all Signals and Agents.
+	clear_delete_vector(Signal::all_signals_);
+	clear_delete_vector(Agent::all_agents);
 
 	cout << "Simulation complete; closing worker threads." << endl;
 	return true;

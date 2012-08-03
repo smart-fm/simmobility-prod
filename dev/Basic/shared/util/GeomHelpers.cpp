@@ -6,6 +6,7 @@
 #include <iostream>
 #include <limits>
 
+#include "entities/Agent.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/aimsun/Lane.hpp"
 #include "geospatial/aimsun/Node.hpp"
@@ -60,6 +61,10 @@ double sim_mob::dist(const aimsun::Node* n1, const aimsun::Node* n2)
 double sim_mob::dist(const Point2D& p1, const Point2D& p2)
 {
 	return dist(p1.getX(), p1.getY(), p2.getX(), p2.getY());
+}
+double sim_mob::dist(const Agent& ag, const Point2D& pt)
+{
+	return dist(ag.xPos.get(), ag.yPos.get(), pt.getX(), pt.getY());
 }
 
 bool sim_mob::lineContains(double ax, double ay, double bx, double by, double cx, double cy)

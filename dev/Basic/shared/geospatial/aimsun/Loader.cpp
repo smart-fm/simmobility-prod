@@ -95,6 +95,7 @@ public:
 	void DecorateAndTranslateObjects();
 	void PostProcessNetwork();
 	void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::TripChainItem*>& tcs);
+    void SaveBusSchedule(std::vector<sim_mob::BusSchedule*>& busschedule);
 	map<int, Section> const & sections() const { return sections_; }
 
 private:
@@ -106,8 +107,9 @@ private:
 	vector<Lane> lanes_;
 	map<int, Turning> turnings_;
 	multimap<int, Polyline> polylines_;
-	vector<aimsun::TripChainItem> tripchains_;
+	vector<TripChainItem> tripchains_;
 	map<int, Signal> signals_;
+	vector<BusSchedule> busschedule_;
 
 	map<std::string,BusStop> busstop_;
 	multimap<int,Phase> phases_;//one node_id is mapped to many phases
@@ -123,6 +125,7 @@ private:
 	void LoadPolylines(const std::string& storedProc);
 	void LoadTripchains(const std::string& storedProc);
 	void LoadTrafficSignals(const std::string& storedProc);
+	void LoadBusSchedule(const std::string& storedProc);
 
 
 	void LoadBusStop(const std::string& storedProc);
@@ -376,11 +379,11 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 			sql_str = "select * from " + storedProc;
 		}
 
-	soci::rowset<aimsun::TripChainItem> rs = (sql_.prepare << sql_str);
+	soci::rowset<TripChainItem> rs = (sql_.prepare << sql_str);
 
 	//Exectue as a rowset to avoid repeatedly building the query.
 	tripchains_.clear();
-	for (soci::rowset<aimsun::TripChainItem>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+	for (soci::rowset<TripChainItem>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
 		if(it->itemType == sim_mob::TripChainItem::IT_TRIP){
 			//if Trip
 
@@ -463,63 +466,28 @@ void DatabaseLoader::LoadBusStop(const std::string& storedProc)
 		        	//	busstop_.push_back(*it);
 	}
 }
-/*
-double getDistance(sim_mob::Point2D a,sim_mob::Point2D b){};
-int count = 0;
-double x2, x1, y2, y1, x_base, y_base;
-double SumofDistances = 0;
-sim_mob::Point2D position;
 
-sim_mob::Point2D getNearestPolyline(const sim_mob::Point2D &position)
+void DatabaseLoader::LoadBusSchedule(const std::string& storedProcedure)
 {
-	const std::vector<sim_mob::Point2D> poly = lane_location->getRoadSegment()->getLaneEdgePolyline(0);
-	std ::vector<sim_mob::Point2D>:: const_iterator it= poly.begin();
-	float distance_measured = getDistance(position,*it); // distance between the position of Bus Stop and the position at which iterator points initially
-	for (it= poly.begin()+1; it!=poly.end(); it++) {
-	        	// this would find the pair of polypoints which are closest to the current Bus Stop and also calculates the value of count as
-		        // the number of polypoint pairs that need to be considered while calculating the sum of polylines
-	        	if (distance_measured > getDistance(position,*it)) {
-	               distance_measured = getDistance(position,*it);
-	               sim_mob::Point2D first_PP = *it;
-	               sim_mob::Point2D second_PP = *(it-1);
-	               x2 = first_PP.getX();
-	               y2 = first_PP.getY();
-	               x1 = second_PP.getX();
-	               y1 = second_PP.getY();
-	               count++;
-	            }
-	      }
+    if (storedProcedure.empty())
+    {
+        std::cout << "WARNING: An empty 'bus_schedule' stored-procedure was specified in the config file; "
+                  << "will not lookup the database to create any signal found in there" << std::endl;
+        return;
+    }
+    soci::rowset<BusSchedule> rows = (sql_.prepare <<"select * from " + storedProcedure);
+    for (soci::rowset<BusSchedule>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
+    {
+    	//BusSchedule bus_schedule = *iter;
+        // Convert from meters to centimeters.
 
+    	std::cout<<"busschedule---->"<<iter->TMP_startTimeStr<<std::endl;
+    	iter->startTime = sim_mob::DailyTime(iter->TMP_startTimeStr);
+    	busschedule_.push_back(*iter);
+        //signals_.insert(std::make_pair(signal.id, signal));
+
+    }
 }
-
-
-
-// this function is used to calculate the sum of all polyline lengths *before* the current polyline
-float getSumDistance()
-{
-
-	getNearestPolyline(position);
-	double m = (y2-y1)/(x2-x1); //
-	double n = -1/m;
-	double Y = position.getY();
-	double X = position.getX();
-	x_base = (m*x1-n*X+Y-y1)/(m-n);
-	y_base = (X-x1+m*Y-n*y1)/(m-n);
-
-	std::vector<Point2D>::const_iterator it = lane_location->getRoadSegment()->getLaneEdgePolyline(0).begin()+1;
-    sim_mob ::Point2D first_PP = *it;
-	sim_mob::Point2D second_PP = *(it-1);
-	for (int i = 0; i< count; i++) {
-	        SumofDistances = SumofDistances + sqrt((first_PP.getX()-second_PP.getX())^2 + (first_PP.getY()-second_PP.getY())^2);
-	        it++;
-	}
-	SumofDistances = SumofDistances + sqrt((x_base-first_PP.getX())^2 + (y_base-first_PP.getY())^2);
-	return SumofDistances;
-
-}
-
-
- */
 
 
 
@@ -609,6 +577,7 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
 	LoadTripchains(getStoredProcedure(storedProcs, "tripchain"));
 	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal"));
+	LoadBusSchedule(getStoredProcedure(storedProcs, "bus_schedule", false));
 	LoadBusStop(getStoredProcedure(storedProcs, "busstop", false));
 	LoadPhase(getStoredProcedure(storedProcs, "phase"));
 
@@ -951,6 +920,16 @@ void CutSingleLanePolyline(vector<Point2D>& laneLine, const DynamicVector& cutLi
 	laneLine[trimStart?0:laneLine.size()-1] = intPt;
 }
 
+void DatabaseLoader::SaveBusSchedule(std::vector<sim_mob::BusSchedule*>& busschedule)
+{
+	for (vector<BusSchedule>::iterator it=busschedule_.begin(); it!=busschedule_.end(); it++) {
+		busschedule.push_back(new sim_mob::BusSchedule());
+		busschedule.back()->tripid = it->tripid;
+		busschedule.back()->startTime = it->startTime;
+		busschedule.back()->TMP_startTimeStr = it->TMP_startTimeStr;
+	}
+}
+
 void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::TripChainItem*>& tcs)
 {
 	//First, Nodes. These match cleanly to the Sim Mobility data structures
@@ -1008,7 +987,7 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 	//Save all trip chains
 	int currTripId = 0;
 
-	for (vector<aimsun::TripChainItem>::iterator it=tripchains_.begin(); it!=tripchains_.end(); it++) {
+	for (vector<TripChainItem>::iterator it=tripchains_.begin(); it!=tripchains_.end(); it++) {
 		if (it->itemType == sim_mob::TripChainItem::IT_ACTIVITY){
 			//TODO: Person related work
 			sim_mob::Activity* activityToSave = new sim_mob::Activity();
@@ -1807,7 +1786,6 @@ void sim_mob::aimsun::Loader::ProcessSectionPolylines(sim_mob::RoadNetwork& res,
 
 string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::vector<sim_mob::TripChainItem*>& tcs, ProfileBuilder* prof)
 {
-	//try {
 	std::cout << "Attempting to connect to database...." << std::endl;
 
 	//Connection string will look something like this:
@@ -1827,6 +1805,12 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 	loader.PostProcessNetwork();
 	//Step Four: Save
 	loader.SaveSimMobilityNetwork(rn, tcs);
+
+	// Temporary for test----Yao Jin
+	ConfigParams& config = ConfigParams::GetInstance();
+	loader.SaveBusSchedule(config.getBusSchedule());
+	// Temporary for test----Yao Jin
+
 	//Temporary workaround; Cut lanes short/extend them as reuquired.
 	for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {
 		TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesStartLineCut, true);
@@ -1846,11 +1830,6 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 		loader.TransferBoundaryRoadSegment();
 	}
 #endif
-
-
-	//} catch (std::exception& ex) {
-	//	return string(ex.what());
-	//}
 
 	std::cout <<"AIMSUN Network successfully imported.\n";
 	return "";

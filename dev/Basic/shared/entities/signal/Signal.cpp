@@ -81,10 +81,11 @@ void Signal_SCATS::createStringRepresentation(std::string newLine)
 }
 
 /*Signal Constructor*/
-Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id)
-  : Agent(mtxStrat, id)
-	, loopDetector_(new LoopDetectorEntity(*this, mtxStrat))
-	, node_(node)
+Signal_SCATS::Signal_SCATS(Node const & node, const MutexStrategy& mtxStrat, int id)
+  : /*Agent(mtxStrat, id)
+	,*/ loopDetector_(new LoopDetectorEntity(*this, mtxStrat))
+	,Signal(node,mtxStrat,id)
+	/*, node_(node)*/
 {
 	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&getNode());
 	if(! mNode) isIntersection_ = false ;
@@ -315,7 +316,7 @@ int Signal_SCATS::fmin_ID(const std::vector<double> maxproDS) {
 //					const Lane* lane = nullptr;
 //					lane = lanes.at(i);
 //					if (lane->is_pedestrian_lane())	continue;
-//					const LoopDetectorEntity::CountAndTimePair& ctPair = loopDetector_.getCountAndTimePair(*lane);
+//					const LoopDetectorEntity::CountAndTimePair& ctPair = loopDetector_->getCountAndTimePair(*lane);
 //					lane_DS = LaneDS(ctPair, total_g);
 //					if (lane_DS > maxPhaseDS)	maxPhaseDS = lane_DS;
 //					if (lane_DS > maxDS)		maxDS = lane_DS;
@@ -353,7 +354,7 @@ double Signal_SCATS::computePhaseDS(int phaseId) {
 				if (lane->is_pedestrian_lane())
 					continue;
 				const LoopDetectorEntity::CountAndTimePair& ctPair =
-						loopDetector_.getCountAndTimePair(*lane);
+						loopDetector_->getCountAndTimePair(*lane);
 				lane_DS = LaneDS(ctPair, total_g);
 				std::cout << "lane_DS = " << lane_DS << std::endl;
 				if (lane_DS > maxPhaseDS)
@@ -363,7 +364,7 @@ double Signal_SCATS::computePhaseDS(int phaseId) {
 	}
 
 	Phase_Density[phaseId] = maxPhaseDS;
-	loopDetector_.reset();
+	loopDetector_->reset();
 	return Phase_Density[phaseId];
 }
 
@@ -388,7 +389,7 @@ double Signal_SCATS::LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,d
 }
 void Signal_SCATS::cycle_reset()
 {
-	loopDetector_.reset();//extra
+	loopDetector_->reset();//extra
 	isNewCycle = false;
 //	DS_all = 0;
 	for(int i = 0; i < Phase_Density.size(); Phase_Density[i++] = 0);
@@ -404,7 +405,7 @@ void Signal_SCATS::newCycleUpdate()
 	//	7-update offset
 //		offset_.update(cycle_.getnextCL());
 		cycle_reset();
-		loopDetector_.reset();//extra
+		loopDetector_->reset();//extra
 		isNewCycle = false;
 }
 

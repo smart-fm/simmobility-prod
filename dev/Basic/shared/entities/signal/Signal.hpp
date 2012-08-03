@@ -75,6 +75,7 @@ public:
    Node  const & getNode() const { return node_; }
    virtual void outputTrafficLights(frame_t frameNumber,std::string newLine)const{};
    virtual void createStringRepresentation(std::string){};
+   virtual ~Signal(){}
 
    static std::vector<Signal *> all_signals_;
    typedef std::vector<Signal *> All_Signals;
@@ -98,7 +99,8 @@ public:
     static Signal_SCATS const & signalAt(Node const & node, const MutexStrategy& mtxStrat,bool *isNew = false);//bool isNew : since this function will create and return new signal if already existing signals not found, a switch to indicate what happened in the function would be nice
 
 	//Note: You need a virtual destructor or else superclass destructors won't be called. ~Seth
-	virtual ~Signal() {}
+    //created virtual for the immediate parent.Although not needed
+	~Signal_SCATS() {}
 
     void addSignalSite(centimeter_t xpos, centimeter_t ypos,std::string const & typeCode, double bearing);
     void findIncomingLanes();
@@ -106,7 +108,7 @@ public:
     void findSignalLinksAndCrossings();
     LinkAndCrossingByLink const & getLinkAndCrossingsByLink() const {return LinkAndCrossings_.get<2>();}
     LinkAndCrossingByCrossing const & getLinkAndCrossingsByCrossing() const {return LinkAndCrossings_.get<4>();}
-    LoopDetectorEntity const & loopDetector() const { return loopDetector_; }
+    LoopDetectorEntity const & loopDetector() const { return *loopDetector_; }
 
 
 	/*--------Updation----------*/

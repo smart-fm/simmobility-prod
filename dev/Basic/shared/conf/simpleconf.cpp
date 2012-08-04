@@ -8,7 +8,6 @@
 #include <boost/lexical_cast.hpp>
 
 //Include here (forward-declared earlier) to avoid include-cycles.
-#include "entities/PendingEntity.hpp"
 #include "entities/PendingEvent.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
@@ -193,7 +192,7 @@ string ReadLowercase(TiXmlHandle& handle, const std::string& attrName)
 
 
 
-void addOrStashEntity(const PendingEntity& p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
+void addOrStashEntity(Person* p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
 	if (ENTITY_BUSCONTROLLER == p.type) {
 		//NOTE: This is where the problem can easily be corrected. Instead of pushing back the static Agent, push
@@ -332,7 +331,7 @@ namespace {
 
 } //End anon namespace
 
-// Temporary Test---Yao Jin
+// Temporary Test function ---Yao Jin
 void generateAgentsFromBusSchedule(std::vector<Entity*>& active_agents, AgentConstraints& constraints)
 {
 	//Some handy references
@@ -360,131 +359,165 @@ void generateAgentsFromBusSchedule(std::vector<Entity*>& active_agents, AgentCon
 		BusController::busctrller->addOrStashBuses(p, active_agents);
 	}
 }
-// Temporary Test---Yao Jin
+
 
 bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, AgentConstraints& constraints)
 {
-	//Quick check.
-	if (agentType!="pedestrian" && agentType!="driver" && agentType!="bus" && agentType!="buscontroller") {
+	//The config file keeps track of the number of agents that were skipped due to processing errors.
+	ConfigParams& config = ConfigParams::GetInstance();
+	config.numAgentsSkipped = 0;
+
+	//At the moment, we only load *Roles* from the config file. So, check if this is a valid role:
+	const RoleFactory& rf = config.getRoleFactory();
+	if (!rf.isKnownRole(agentType)) {
 		std::cout <<"Unexpected agent type: " <<agentType <<endl;
 		return false;
 	}
+	//if (agentType!="pedestrian" && agentType!="driver" && agentType!="bus" && agentType!="buscontroller")
 
-	//Build the expression dynamically.
+	//Attempt to load either "agentType"+s or "agentType"+es (drivers, buses).
+	// This allows ungrammatical terms like "driveres", but it's probably better than being too restrictive.
 	TiXmlHandle handle(&document);
-	TiXmlElement* node = handle.FirstChild("config").FirstChild(agentType+(agentType=="bus"?"es":"s")).FirstChild(agentType).ToElement();
+	TiXmlElement* node = handle.FirstChild("config").FirstChild(agentType+"s").FirstChild(agentType).ToElement();
 	if (!node) {
-		//Agents are optional
-		return true;
+		node = handle.FirstChild("config").FirstChild(agentType+"es").FirstChild(agentType).ToElement();
 	}
 
-	ConfigParams& config = ConfigParams::GetInstance();
-	config.numAgentsSkipped = 0;
-	//Loop through all agents of this type
+	//TODO: Migrate this flag into the config file.
+	const bool checkBadPaths = true;
+
+	//Loop through all agents of this type. If this node doesn't exist in the first place,
+	// the loop immediately exits. (An empty "drivers" block is allowed.)
+	//  (This is another reason why we have to be permissive for incorrect spellings.)
 	for (;node;node=node->NextSiblingElement()) {
-		//Person* agent = nullptr;
-		bool foundOrigPos = false;
-		bool foundDestPos = false;
+		//Keep track of the properties we have found.
+		map<string, string> props;
 
-		//Create an agent candidate
-		PendingEntity candidate(EntityTypeFromConfigString(agentType));
+		{
+			//Loop through attributes, ensuring that all required attributes are found.
+			map<string, bool> propLookup = rf.getRequiredAttributes(agentType);
+			size_t propsLeft = propLookup.size();
+			for (TiXmlAttribute* attr=node->FirstAttribute(); attr; attr=attr->Next()) {
+				//Save
+				props[attr->NameTStr()] = attr->ValueStr();
 
-		//TODO: Migrate this flag into the config file.
-		bool checkBadPaths = true;
-
-		//Loop through attributes
-		for (TiXmlAttribute* attr=node->FirstAttribute(); attr; attr=attr->Next()) {
-			//Read each attribute.
-			std::string name = attr->NameTStr();
-			std::string value = attr->ValueStr();
-			if (name.empty() || value.empty()) {
-				std::cout <<"Empty name/value pair for attribute: " <<name <<endl;
-				return false;
-			}
-			int valueI=-1;
-			if (name=="id" || name=="xPos" || name=="yPos"||name=="time") {
-				std::istringstream(value) >> valueI;
+				//If this is a required attribute, set it and decrease our count flag.
+				map<string, bool>::iterator nameKey = propLookup.find(attr->NameTStr());
+				if (nameKey!=propLookup.end() && (!nameKey->second)) {
+					//Count
+					propsLeft--;
+					nameKey->second = true;
+				}
 			}
 
-			//It is generally preferred to use the automatic IDs, but if a manual ID is specified we can still
-			//   deal with it.
-			if (name=="id") {
-				//Does the name meet our constraints?
-				if (valueI<0) {
-					throw std::runtime_error("Manual ID must not be negative");
+			//Are we missing anything?
+			if (propsLeft > 0) {
+				std::stringstream msg;
+				msg <<"Agent type (" <<agentType <<") missing required properties:";
+				string comma = "";
+				for (map<string, bool>::iterator it=props.begin(); it!=props.end(); it++) {
+					if (!it->second) {
+						msg <<comma <<" " <<it->first;
+						comma = ",";
+					}
 				}
-				if (valueI >= constraints.startingAutoAgentID) {
-					throw std::runtime_error("Manual ID specified which is greater than the specified starting automatic ID.");
-				}
-				unsigned int manualID = static_cast<unsigned int>(valueI);
-				if (constraints.manualAgentIDs.count(manualID)>0) {
-					std::stringstream msg;
-					msg <<"Duplicate manual ID: " <<manualID;
-					throw std::runtime_error(msg.str().c_str());
-				}
-
-				//Mark it, save it
-				constraints.manualAgentIDs.insert(manualID);
-				candidate.manualID = manualID;
-			} else if (name=="xPos") {
-				throw std::runtime_error("Old-style xPos not supported.");
-			} else if (name=="yPos") {
-				throw std::runtime_error("Old-style yPos not supported.");
-			} else if (name=="originPos") {
-				Point2D pt;
-				if (!readPoint(value, pt)) {
-					std::cout <<"Couldn't read point from value: " <<value <<"\n";
-					return false;
-				}
-				candidate.origin = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);
-				if (!candidate.origin) {
-					std::cout <<"Error reading origin position for agent: " <<candidate.manualID <<endl;
-					std::cout <<"Couldn't find position: " <<pt.getX() <<"," <<pt.getY() <<"\n";
-					return false;
-				}
-				foundOrigPos = true;
-			} else if (name=="destPos") {
-				Point2D pt;
-				if (!readPoint(value, pt)) {
-					std::cout <<"Couldn't read point from value: " <<value <<"\n";
-					return false;
-				}
-				candidate.dest = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);
-				if (!candidate.dest) {
-					std::cout <<"Error reading destination position for agent: " <<candidate.manualID <<endl;
-					std::cout <<"Couldn't find position: " <<pt.getX() <<"," <<pt.getY() <<"\n";
-					return false;
-				}
-				foundDestPos = true;
-			} else if (name=="time") {
-				candidate.start = valueI;
-			} else if (name=="special") {
-				//Can't "pend" this agent any longer
-				candidate = PendingEntity(Person::GeneratePersonFromPending(candidate));
-
-				//Set the special string, disable path checking.
-				candidate.rawAgent->specialStr = value;
-				checkBadPaths = false;
-			} else {
-				std::cout <<"Error: unknown attribute: " <<agentType <<" => " <<name <<endl;
-				return false;
+				throw std::runtime_error(msg.str().c_str());
 			}
 		}
 
-		//Optional: Only add this Agent if a path exists for it from start to finish.
-		StreetDirectory& sd = StreetDirectory::instance();
+		//The only thing we strictly must do now is generate the Agent's ID (since otherwise Agents
+		//  will have seemingly random IDs that do not reflect their order in the config file).
+		//It is generally preferred to use the automatic IDs, but if a manual ID is specified we
+		//  must deal with it here.
+		map<string, string>::iterator propIt = props.find("id");
+		if (propIt != props.end()) {
+			//Convert the ID to an integer.
+			int manualID;
+			std::istringstream(propIt->second) >> manualID;
+
+			//Simple constraint check.
+			if (manualID<0 || manualID>=constraints.startingAutoAgentID) {
+				throw std::runtime_error("Manual ID must be within the bounds specified in the config file.");
+			}
+
+			//Ensure agents are created with unique IDs
+			if (constraints.manualAgentIDs.count(manualID)>0) {
+				std::stringstream msg;
+				msg <<"Duplicate manual ID: " <<manualID;
+				throw std::runtime_error(msg.str().c_str());
+			}
+
+			//Mark it, save it, remove it from the list
+			constraints.manualAgentIDs.insert(manualID);
+			props.erase(propIt);
+		}
+
+		//Create the Person agent with that given ID (or an auto-generated one)
+		Person* agent = new Person(config.mutexStategy, manualID);
+		agent->setConfigProperties(props);
+
+		/////TODO: This code all needs to be shuffled around to somewhere within the
+		/////      Role factory. (And some of it should go into the actual Role, e.g., Drivers,
+		/////      themselves.) ~Seth
+		/*if (name=="originPos") {
+			Point2D pt;
+			if (!readPoint(value, pt)) {
+				std::cout <<"Couldn't read point from value: " <<value <<"\n";
+				return false;
+			}
+			candidate.origin = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);
+			if (!candidate.origin) {
+				std::cout <<"Error reading origin position for agent: " <<candidate.manualID <<endl;
+				std::cout <<"Couldn't find position: " <<pt.getX() <<"," <<pt.getY() <<"\n";
+				return false;
+			}
+			foundOrigPos = true;
+		}
+		if (name=="destPos") {
+			Point2D pt;
+			if (!readPoint(value, pt)) {
+				std::cout <<"Couldn't read point from value: " <<value <<"\n";
+				return false;
+			}
+			candidate.dest = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);
+			if (!candidate.dest) {
+				std::cout <<"Error reading destination position for agent: " <<candidate.manualID <<endl;
+				std::cout <<"Couldn't find position: " <<pt.getX() <<"," <<pt.getY() <<"\n";
+				return false;
+			}
+			foundDestPos = true;
+		} else if (name=="time") {
+			candidate.start = valueI;
+		} else if (name=="special") {
+			//Can't "pend" this agent any longer
+			candidate = PendingEntity(Person::GeneratePersonFromPending(candidate));
+
+			//Set the special string, disable path checking.
+			candidate.rawAgent->specialStr = value;
+			checkBadPaths = false;
+		} else {
+			//TODO: This should be a warning, not an error.
+			std::cout <<"Error: unknown attribute: " <<agentType <<" => " <<name <<endl;
+			return false;
+		}
+		*/
+
+
+		/*TODO: This also needs to go somewhere else.
+		 //Optional: Only add this Agent if a path exists for it from start to finish.
+		  StreetDirectory& sd = StreetDirectory::instance();
 		if (foundOrigPos && foundDestPos && checkBadPaths) {
 			bool skip = false;
 			if (agentType=="pedestrian") {
 				//For now, pedestrians can't have invalid routes.
-				/*skip = true;
-				vector<WayPoint> path = sd.shortestWalkingPath(agent->originNode->location, agent->destNode->location);
-				for (vector<WayPoint>::iterator it=path.begin(); it!=path.end(); it++) {
-					if (it->type_ == WayPoint::SIDE_WALK) {
-						skip = false;
-						break;
-					}
-				}*/
+				//skip = true;
+				//vector<WayPoint> path = sd.shortestWalkingPath(agent->originNode->location, agent->destNode->location);
+				//for (vector<WayPoint>::iterator it=path.begin(); it!=path.end(); it++) {
+				//	if (it->type_ == WayPoint::SIDE_WALK) {
+				//		skip = false;
+				//		break;
+				//	}
+				//}
 			} else if (agentType=="driver" || agentType=="bus") {
 				skip = true;
 				vector<WayPoint> path = sd.shortestDrivingPath(*candidate.origin, *candidate.dest);
@@ -511,14 +544,15 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 
 			//construct rudimentary trip chain for candidate based on origin and destination
 			Trip* generatedTrip = new Trip(-1, "Trip", 1, DailyTime(candidate.start), DailyTime(), 0, candidate.origin, "node", candidate.dest, "node");
-			SubTrip generatedSubTrip(-1, "Trip", 1, DailyTime(candidate.start), DailyTime(), candidate.origin, "node", candidate.dest, "node", /*generatedTrip,*/ "Car", true, "");
+			SubTrip generatedSubTrip(-1, "Trip", 1, DailyTime(candidate.start), DailyTime(), candidate.origin, "node", candidate.dest, "node", "Car", true, "");
 			generatedTrip->addSubTrip(generatedSubTrip);
 			candidate.entityTripChain.push_back(generatedTrip);
 		}
+		*/
 
 
 		//Add it or stash it
-		addOrStashEntity(candidate, active_agents, pending_agents);
+		addOrStashEntity(agent, active_agents, pending_agents);
 	}
 
 	return true;

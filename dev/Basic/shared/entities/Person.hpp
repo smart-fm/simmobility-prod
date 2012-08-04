@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <map>
+#include <string>
 #include <vector>
 
 #include "GenConfig.h"
@@ -68,6 +70,12 @@ public:
         this->tripChain = tripChain;
     }
 
+    ///A temporary list of configuration properties used to load an Agent's role from the config file.
+    void setConfigProperties(const std::map<std::string, std::string>& props) {
+    	this->configProperties = props;
+    }
+
+
 	sim_mob::Link* getCurrLink();
 	void setCurrLink(sim_mob::Link* link);
 
@@ -85,6 +93,9 @@ private:
     sim_mob::Role* prevRole; ///< To be deleted on the next time tick.
     sim_mob::Role* currRole;
     sim_mob::Link* currLink;
+
+    //Unknown until runtime
+    std::map<std::string, std::string> configProperties;
 
     int currTripChainSequenceNumber;
     std::vector<const TripChainItem*> tripChain;

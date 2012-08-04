@@ -85,7 +85,7 @@ struct PedestrianUpdateParams : public sim_mob::UpdateParams {
  */
 class Pedestrian : public sim_mob::Role {
 public:
-	Pedestrian(Agent* parent, boost::mt19937& gen);
+	Pedestrian(Agent* parent);
 	virtual ~Pedestrian();
 
 	//sim_mob::GeneralPathMover::PathWithDirection pathWithDirection;

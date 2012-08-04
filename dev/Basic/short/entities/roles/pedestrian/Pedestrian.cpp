@@ -130,7 +130,7 @@ double Pedestrian::collisionForce = 20;
 double Pedestrian::agentRadius = 0.5; //Shoulder width of a person is about 0.5 meter
 
 
-sim_mob::Pedestrian::Pedestrian(Agent* parent, boost::mt19937& gen) :
+sim_mob::Pedestrian::Pedestrian(Agent* parent) :
 	Role(parent), prevSeg(nullptr), isUsingGenPathMover(true), params(parent->getGenerator()) {
 	//Check non-null parent. Perhaps references may be of use here?
 	if (!parent) {

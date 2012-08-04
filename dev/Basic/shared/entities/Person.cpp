@@ -45,10 +45,13 @@ Person* sim_mob::Person::GeneratePersonFromPending(const PendingEntity& p)
 	Person* res = new Person(config.mutexStategy, p.manualID);
 
 	//Set its mode.
+	//TODO: The main function should "register" types, so that we aren't required
+	//      to do all of this "if" checking. This also abstracts Roles, which we'll need anyway
+	//      for the Short/Mid term.
 	if (p.type == ENTITY_DRIVER) {
 		res->changeRole(new Driver(res, config.mutexStategy));
 	} else if (p.type == ENTITY_PEDESTRIAN) {
-		res->changeRole(new Pedestrian(res, res->getGenerator()));
+		res->changeRole(new Pedestrian(res));
 	} else if (p.type == ENTITY_BUSDRIVER) {
 		res->changeRole(new BusDriver(res, config.mutexStategy));
 	} else if (p.type == ENTITY_ACTIVITYPERFORMER){
@@ -172,7 +175,11 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 				}
 			}
 
+			//Now that the Role has been fully constructed, initialize it and clear the temporary property list.
 			currRole->frame_init(params);
+			configProperties.clear();
+
+			//Done
 			firstFrameTick = false;
 		}
 
@@ -263,7 +270,7 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) 
 			//Temp. (Easy to add in later)
 			throw std::runtime_error("Cars not supported in Trip Chain role change.");
 		} else if (this->currSubTrip->mode == "Walk") {
-			changeRole(new Pedestrian(this, gen));
+			changeRole(new Pedestrian(this));
 		} else {
 			throw std::runtime_error("Unknown role type for trip chain role change.");
 		}

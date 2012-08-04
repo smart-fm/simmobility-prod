@@ -13,6 +13,8 @@ class Person;
 class TripChainItem;
 
 ///Type of entities that can be "Pending"
+/// Note that these constants are used for both the short-term and the
+/// mid-term, even though all entity types may not be available for both.
 enum KNOWN_ENTITY_TYPES {
 	ENTITY_DRIVER,      ///<A Driver entity.
 	ENTITY_PEDESTRIAN,  ///<A Pedestrian entity.

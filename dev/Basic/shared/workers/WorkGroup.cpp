@@ -12,6 +12,7 @@
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "entities/PendingEntity.hpp"
+#include "entities/LoopDetectorEntity.hpp"
 
 using std::map;
 using std::vector;

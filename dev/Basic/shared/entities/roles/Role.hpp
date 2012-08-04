@@ -5,7 +5,7 @@
 #include "GenConfig.h"
 #include "util/LangHelpers.hpp"
 #include "entities/Agent.hpp"
-#include "entities/roles/driver/DriverUpdateParams.hpp"
+#include "entities/UpdateParams.hpp"
 #include "boost/thread/thread.hpp"
 #include "boost/thread/locks.hpp"
 #include "util/OutputUtil.hpp"

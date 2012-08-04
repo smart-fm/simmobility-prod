@@ -8,7 +8,6 @@
 
 #include "Agent.hpp"
 #include "roles/Role.hpp"
-#include "roles/driver/Driver.hpp"
 #include "buffering/Shared.hpp"
 #include "entities/UpdateParams.hpp"
 #include "entities/misc/TripChain.hpp"

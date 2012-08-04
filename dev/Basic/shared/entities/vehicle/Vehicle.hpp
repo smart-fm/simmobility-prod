@@ -17,6 +17,7 @@
 #include "util/MovementVector.hpp"
 #include "util/DynamicVector.hpp"
 #include "geospatial/GeneralPathMover.hpp"
+#include "geospatial/Lane.hpp"
 
 namespace sim_mob {
 

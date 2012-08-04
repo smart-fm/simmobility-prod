@@ -9,7 +9,6 @@
 #include "AuraManager.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/Role.hpp"
-#include "entities/roles/driver/Driver.hpp"
 
 #include "buffering/Vector2D.hpp"
 #include "geospatial/Lane.hpp"

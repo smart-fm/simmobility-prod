@@ -37,15 +37,12 @@ class UnPackageUtils;
  *
  * A person may perform one of several roles which
  *  change over time. For example: Drivers, Pedestrians, and Passengers are
- *  all roles which a Person may fulfill.
+ *  all roles which a Person may fulfil.
  */
 class Person : public sim_mob::Agent {
 public:
 	explicit Person(const MutexStrategy& mtxStrat, int id=-1);
 	virtual ~Person();
-
-	///Generate a person from a PendingEntity. Currently only works for Drivers/Pedestrians
-	static Person* GeneratePersonFromPending(const PendingEntity& p);
 
 	///Update Person behavior
 	virtual Entity::UpdateStatus update(frame_t frameNumber);
@@ -73,6 +70,9 @@ public:
     ///A temporary list of configuration properties used to load an Agent's role from the config file.
     void setConfigProperties(const std::map<std::string, std::string>& props) {
     	this->configProperties = props;
+    }
+    const std::map<std::string, std::string>& getConfigProperties() {
+    	return this->configProperties;
     }
 
 

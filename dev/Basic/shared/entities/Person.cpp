@@ -32,52 +32,6 @@ sim_mob::Person::~Person() {
 	safe_delete_item(currRole);
 }
 
-Person* sim_mob::Person::GeneratePersonFromPending(const PendingEntity& p)
-{
-	const ConfigParams& config = ConfigParams::GetInstance();
-
-	//Raw agents can simply be returned as-is.
-	if (p.type == ENTITY_RAWAGENT) {
-		return p.rawAgent;
-	}
-
-	//Create a person object.
-	Person* res = new Person(config.mutexStategy, p.manualID);
-
-	//Set its mode.
-	//TODO: The main function should "register" types, so that we aren't required
-	//      to do all of this "if" checking. This also abstracts Roles, which we'll need anyway
-	//      for the Short/Mid term.
-	if (p.type == ENTITY_DRIVER) {
-		res->changeRole(new Driver(res, config.mutexStategy));
-	} else if (p.type == ENTITY_PEDESTRIAN) {
-		res->changeRole(new Pedestrian(res));
-	} else if (p.type == ENTITY_BUSDRIVER) {
-		res->changeRole(new BusDriver(res, config.mutexStategy));
-	} else if (p.type == ENTITY_ACTIVITYPERFORMER){
-		// First trip chain item is Activity when Person is generated from Pending
-		res->changeRole(new ActivityPerformer(res, dynamic_cast<const sim_mob::Activity&>(*(p.entityTripChain.front())))); 
-	} else {
-		throw std::runtime_error("PendingEntity currently only supports Drivers, Pedestrians and Activity performers.");
-	}
-
-	//Set its origin, destination, startTime, etc.
-	res->originNode = p.origin;
-	res->destNode = p.dest;
-	res->setStartTime(p.start);
-
-	//added by Jenny to handle activities
-	//NOTE: I am disabling these for now; please check Harish's work and selectively enable them as needed. ~Seth
-	//res->setActivities(p.activities);
-	//res->setNextEvent(nullptr);
-	//res->setNextActivity(nullptr);
-	//res->setOnActivity(false);
-	res->setNextPathPlanned(false);
-	res->setTripChain(p.entityTripChain);
-	res->findNextItemInTripChain();
-
-	return res;
-}
 
 void sim_mob::Person::getNextSubTripInTrip(){
 	if(!currTripChainItem || currTripChainItem->itemType == sim_mob::TripChainItem::IT_ACTIVITY){

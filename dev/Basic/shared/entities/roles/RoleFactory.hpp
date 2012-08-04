@@ -8,6 +8,9 @@
 namespace sim_mob
 {
 
+class Role;
+
+
 /**
  * Class which handles the creation of Roles.
  *
@@ -29,6 +32,9 @@ public:
 
 	///Return a map of required attributes, with a flag on each set to false.
 	std::map<std::string, bool> getRequiredAttributes(const std::string& roleName) const;
+
+	///Create a role given its name and property list
+	sim_mob::Role* createRole(const std::string& name, const std::map<std::string, std::string>& props) const;
 
 private:
 

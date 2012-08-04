@@ -202,34 +202,35 @@ void addOrStashEntity(Person* p, std::vector<Entity*>& active_agents, StartTimeP
 		//      when you have free time. Try to make your code more robust. ~Seth
 		active_agents.push_back(BusController::busctrller);
 
-	} else if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p.start==0) {
+	} else if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p->getStartTime()==0) {
 		//Only agents with a start time of zero should start immediately in the all_agents list.
-		Person* person = Person::GeneratePersonFromPending(p);
-		active_agents.push_back(person);
+		const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+		Role* r = fact.createRole("TODO: ROLE_NAME", p->getConfigProperties());
+		p->changeRole(r);
 
-		//NOTE: I had to comment a lot of this out. Please make sure required functionality is still present. ~Seth
-		/*if (!p.activities.empty()){
-			TripActivity* activity = *(p.activities.begin());
-			if(activity->startTime == 0){
-				//set up person's current activity
-				person->setCurrActivity(activity);
-				person->setOnActivity(true);
-				//set up person's next event
-				KNOWN_EVENT_TYPES t = ACTIVITY_END;
-				PendingEvent pe(t, activity->location, activity->endTime);
-				person->setNextEvent(&pe);
-				//add this person into the queue of agents with active activities
-				//active_activities.push_back(person);
-				//add the pending event to the pending activities queue
-				//pending_activities.push(pe);
-			}
-			else{
-				KNOWN_EVENT_TYPES t = ACTIVITY_START;
-				PendingEvent pe(t, activity->location, activity->startTime);
-				person->setNextEvent(&pe);
-				//pending_activities.push(pe);
-			}
-		}*/
+		///TODO: There's init code all over the place in simpleconf. I think we should probably do this:
+		///      1) The *only* thing "addOrStash" does is move the Agent to active or pending
+		///      2) Add an "agent_load" method, which takes the Map of string properties (for now, the
+		///         agent can just pass this to himself). Have this called before the Agent is pushed to
+		///         all_agents. (This can be used by, e.g., BusController, or for the Special paths).
+		///      3) Generate a single-trip TripChain for Roles loaded from the config file.
+		///      4) Have the Person class call the Role Factory when creating Roles from Trip Chains.
+		///         Don't have simpleconf create any Roles; that's the whole point of TripChains anyway.
+
+		////////TODO: This needs to go in a centralized place.
+		//Set its origin, destination, startTime, etc.
+		res->originNode = p.origin;
+		res->destNode = p.dest;
+		//res->setStartTime(p.start);
+
+		////////TODO: This needs to go in a centralized place.
+		//added by Jenny to handle activities
+		res->setNextPathPlanned(false);
+		res->setTripChain(p.entityTripChain);
+		res->findNextItemInTripChain();
+
+		//We can add this directly to active_agents because no threads are running yet.
+		active_agents.push_back(person);
 	} else {
 		//Start later.
 		pending_agents.push(p);

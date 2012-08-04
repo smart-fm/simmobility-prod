@@ -1,17 +1,14 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
+#include "BusStop.hpp"
 
 #include "Pavement.hpp"
-#include "BusStop.hpp"
 #include "RoadSegment.hpp"
 #include "Lane.hpp"
 #include "util/GeomHelpers.hpp"
-#ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 #include "util/GeomHelpers.hpp"
-#endif
-
 
 using namespace sim_mob;
 using std::vector;

@@ -339,9 +339,6 @@ void sim_mob::BusDriver::frame_tick_output(const UpdateParams& p)
 	LogOut("(\"BusDriver\""
 			<<","<<p.frameNumber
 			<<","<<parent->getId()
-			//<<","<<bus->getCurrSegment()->obstacles.size()<<"+"<<bus->getCurrSegment()->getId()
-
-			//<<"distance  "<<static_cast<int>(bus->getDistanceMovedInSegment())/(bus->getCurrLinkLaneZeroLength())
 			<<",{"
 			<<"\"xPos\":\""<<static_cast<int>(bus->getX())
 			<<"\",\"yPos\":\""<<static_cast<int>(bus->getY())

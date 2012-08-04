@@ -138,70 +138,53 @@ UpdateParams& sim_mob::Pedestrian::make_frame_tick_params(frame_t frameNumber, u
 //Main update method
 void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 {
+	typedef std::map<centimeter_t, const RoadItem*>::const_iterator RoadObstIt;
+
 	if( !fwdMovement.isDoneWithEntireRoute() ){
-		LogOut("noteForDebug look for obstacle, CurrDistAlongRoadSegment is "<< fwdMovement.getCurrDistAlongRoadSegment() << std::endl);
 		const RoadSegment* rs = fwdMovement.getCurrSegment();
-		const std::map<centimeter_t, const RoadItem*>  obstacles = rs->obstacles;
-		for(std::map<centimeter_t, const RoadItem*>::const_iterator o_it = obstacles.begin(); o_it != obstacles.end() ; o_it++)
-		{
-			RoadItem* ri = const_cast<RoadItem*>(o_it->second);
-			//
-			BusStop *bs = dynamic_cast<BusStop *>(ri);
-			if(bs)
-			{
-				std::cout<<"segment has bus stop"<< std::endl;
-					double obsX = bs->xPos;
-					double obsY = bs->yPos;
-					double pedX = fwdMovement.getPosition().x;
-					double pedY = fwdMovement.getPosition().y;
+		for(RoadObstIt o_it=rs->obstacles.begin(); o_it!=rs->obstacles.end(); o_it++) {
+			const BusStop *bs = dynamic_cast<const BusStop*>(o_it->second);
+			if(bs) {
+				if(sim_mob::dist(bs->xPos, bs->yPos, fwdMovement.getPosition().x, fwdMovement.getPosition().y) < 1800 ) {
+					Agent* other = nullptr;
+					for (size_t i = 0; i < Agent::all_agents.size(); i++) {
+						//Skip self
+						other = dynamic_cast<Agent*> (Agent::all_agents[i]);
+						if (!other) {
+							break;
+						}
 
-					if(sim_mob::dist(obsX,obsY,pedX,pedY) < 1800 ){
-						Agent* other = nullptr;
-						for (size_t i = 0; i < Agent::all_agents.size(); i++) {
-							//Skip self
-							other = dynamic_cast<Agent*> (Agent::all_agents[i]);
-							if (!other) {
-								break;
-							} //Shouldn't happen; we might need to write a function for this later.
-							if (other->getId() == parent->getId()) {
-								other = nullptr;
-								continue;
-							}
+						//NOTE: Don't use a "magic number" like 3 to check if this is
+						//      a bus driver. Instead, use a dynamic cast, which returns null
+						//      if the cast failed.
+						Person* p = dynamic_cast<Person*>(other);
+						if(p){
+							//NOTE: Don't use C-style casting! It's extremely dangerous.
+							BusDriver* bd = dynamic_cast<BusDriver*>(p->getRole());
+							if(bd) {
+								double bdx = 0;
+								double bdy = 0;
+								if (bd) {
+									bdx = bd->getPositionX();
+									bdy = bd->getPositionY();
 
-							//NOTE: Don't use a "magic number" like 3 to check if this is
-							//      a bus driver. Instead, use a dynamic cast, which returns null
-							//      if the cast failed.
-							Person* p = dynamic_cast<Person*>(other);
-							if(p){
-								//NOTE: Don't use C-style casting! It's extremely dangerous.
-								BusDriver* bd = dynamic_cast<BusDriver*>(p->getRole());
-								if(bd) {
-									double bdx = 0;
-									double bdy = 0;
-									if (bd)
-									{
-										bdx = bd->getPositionX();
-										bdy = bd->getPositionY();
-
-										double dx = bdx - parent->xPos.get();
-										double dy = bdy - parent->yPos.get();
-										double distance = sqrt(dx * dx + dy * dy);
-										if (distance < 1800) {
-											std::cout<<"noteForGetOnBus"<< std::endl;
-											parent->setToBeRemoved();
-										}
-									}//if (bd)
-
+									double dx = bdx - parent->xPos.get();
+									double dy = bdy - parent->yPos.get();
+									double distance = sqrt(dx * dx + dy * dy);
+									if (distance < 1800) {
+										std::cout<<"noteForGetOnBus"<< std::endl;
+										parent->setToBeRemoved();
+									}
 								}
 							}
-							other = nullptr;
 						}
-						return;
-						//}
+						other = nullptr;
 					}
-				}//if(bs)
+					return;
+				}
 			}
-		} // if( !fwdMovement.isDoneWithEntireRoute() ){
+		}
+	}
 
 	PedestrianUpdateParams& p2 = dynamic_cast<PedestrianUpdateParams&>(p);
 

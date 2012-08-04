@@ -70,7 +70,61 @@ vector<const RoadSegment*> ForceForwardSubpath(const RoadSegment* revSegment, ve
 	throw std::runtime_error("Can't retrieve forward subpath for the given candidates.");
 }
 
+
+//Helper function: Return the closest bus stop and its distance from the pedestrian
+std::pair<const BusStop*, double> calcNearestBusStop(const RoadSegment* rs, const DPoint& pos, double stoppingDist) {
+	typedef std::map<centimeter_t, const RoadItem*>::const_iterator RoadObstIt;
+
+	std::pair<const BusStop*, double> res(nullptr, 0);
+	for(RoadObstIt o_it=rs->obstacles.begin(); o_it!=rs->obstacles.end(); o_it++) {
+		const BusStop* bs = dynamic_cast<const BusStop*>(o_it->second);
+		if(!bs) {
+			continue;
+		}
+
+		//Check if it's closer.
+		double newDist = sim_mob::dist(bs->xPos, bs->yPos, pos.x, pos.y);
+		if ((!res.first) || newDist<res.second) {
+			res.first = bs;
+			res.second = newDist;
+
+			//Stop early?
+			if (newDist < stoppingDist) {
+				break;
+			}
+		}
+	}
+
+	return res;
 }
+
+std::pair<const BusDriver*, double> calcNearestBusDriver(unsigned int myID, const DPoint& pos, double stoppingDist) {
+	std::pair<BusDriver*, double> res(nullptr, 0);
+	for (size_t i = 0; i < Agent::all_agents.size(); i++) {
+		//Retrieve only Bus Driver agents.
+		Person* p = dynamic_cast<Person*>(Agent::all_agents[i]);
+		BusDriver* bd = p ? dynamic_cast<BusDriver*>(p->getRole()) : nullptr;
+		if (!bd) {
+			continue;
+		}
+
+		//Determine its distance; compare.
+		double newDist = sim_mob::dist(bd->getPositionX(), bd->getPositionY(), pos.x, pos.y);
+		if ((!res.first) || newDist<res.second) {
+			res.first = bd;
+			res.second = newDist;
+
+			//Stop early?
+			if (newDist < stoppingDist) {
+				break;
+			}
+		}
+	}
+	return res;
+}
+
+}//End anonymous namespace
+
 
 double Pedestrian::collisionForce = 20;
 double Pedestrian::agentRadius = 0.5; //Shoulder width of a person is about 0.5 meter
@@ -507,56 +561,31 @@ void sim_mob::Pedestrian::initCrossing(const Crossing* currCross,boost::mt19937&
 
 
 bool sim_mob::Pedestrian::isAtBusStop() {
-	typedef std::map<centimeter_t, const RoadItem*>::const_iterator RoadObstIt;
+	//Doesn't matter if we're already done.
 	if(fwdMovement.isDoneWithEntireRoute()) {
 		return false;
 	}
 
-	const RoadSegment* rs = fwdMovement.getCurrSegment();
-	for(RoadObstIt o_it=rs->obstacles.begin(); o_it!=rs->obstacles.end(); o_it++) {
-		const BusStop *bs = dynamic_cast<const BusStop*>(o_it->second);
-		if(bs) {
-			if(sim_mob::dist(bs->xPos, bs->yPos, fwdMovement.getPosition().x, fwdMovement.getPosition().y) < 1800 ) {
-				Agent* other = nullptr;
-				for (size_t i = 0; i < Agent::all_agents.size(); i++) {
-					//Skip self
-					other = dynamic_cast<Agent*> (Agent::all_agents[i]);
-					if (!other) {
-						break;
-					}
-
-					//NOTE: Don't use a "magic number" like 3 to check if this is
-					//      a bus driver. Instead, use a dynamic cast, which returns null
-					//      if the cast failed.
-					Person* p = dynamic_cast<Person*>(other);
-					if(p){
-						//NOTE: Don't use C-style casting! It's extremely dangerous.
-						BusDriver* bd = dynamic_cast<BusDriver*>(p->getRole());
-						if(bd) {
-							double bdx = 0;
-							double bdy = 0;
-							if (bd) {
-								bdx = bd->getPositionX();
-								bdy = bd->getPositionY();
-
-								double dx = bdx - parent->xPos.get();
-								double dy = bdy - parent->yPos.get();
-								double distance = sqrt(dx * dx + dy * dy);
-								if (distance < 1800) {
-									std::cout<<"noteForGetOnBus"<< std::endl;
-									parent->setToBeRemoved();
-								}
-							}
-						}
-					}
-					other = nullptr;
-				}
-				return true;
-			}
+	//Retrieve the nearest bus stop (TODO: This can be done much more efficiently using the
+	//  Pedestrian's current offset along the RoadSegment).
+	{
+		std::pair<const BusStop*, double> nearestBS = calcNearestBusStop(fwdMovement.getCurrSegment(), fwdMovement.getPosition(), 1800);
+		if (!nearestBS.first) {
+			return false;
 		}
 	}
 
-	return false;
+	//Retrieve the nearest BusDriver to this stop.
+	//NOTE: This should be done via the StreetDirectory; it's much faster than scanning the entire Agents list.
+	std::pair<const BusDriver*, double> nearestBD = calcNearestBusDriver(parent->getId(), fwdMovement.getPosition(), 1800);
+	if (!nearestBD.first) {
+		return false;
+	}
+
+	//At this point, we have a valid, nearby Bus Driver. We should board the bus (but for now we
+	//  will just remove ourselves).
+	parent->setToBeRemoved();
+	return true;
 }
 
 bool sim_mob::Pedestrian::isDestReached() {

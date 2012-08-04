@@ -5,10 +5,7 @@
 #include <algorithm>
 
 //For debugging
-#include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
-#include "entities/roles/driver/BusDriver.hpp"
-#include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "util/DebugFlags.hpp"
 #include "util/OutputUtil.hpp"
 
@@ -205,8 +202,7 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 		if (Debug::WorkGroupSemantics && isToBeRemoved()) {
 #ifndef SIMMOB_DISABLE_OUTPUT
 			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-			std::cout << "Person requested removal: " << (dynamic_cast<Driver*> (currRole) ? "Driver"
-					: dynamic_cast<Pedestrian*> (currRole) ? "Pedestrian" : "Other") << "\n";
+			std::cout << "Person requested removal: " <<"(Role Hidden)" << "\n";
 #endif
 		}
 

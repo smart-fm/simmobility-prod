@@ -5,6 +5,7 @@
 #include "GenConfig.h"
 #include "util/LangHelpers.hpp"
 #include "entities/Agent.hpp"
+#include "entities/vehicle/Vehicle.hpp"
 #include "entities/UpdateParams.hpp"
 #include "boost/thread/thread.hpp"
 #include "boost/thread/locks.hpp"
@@ -36,7 +37,7 @@ class Role
 public:
 	//NOTE: Don't forget to call this from sub-classes!
 	explicit Role(Agent* parent = nullptr) :
-		parent(parent)
+		parent(parent), currResource(nullptr)
 	{
 	}
 
@@ -64,6 +65,9 @@ public:
 	/// Agents can append/remove this list to their own subscription list each time
 	/// they change their Role.
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams() = 0;
+
+	//NOTE: Should not be virtual; this is a little hackish for now. ~Seth
+	virtual Vehicle* getResource() { return currResource; }
 
 	Agent* getParent()
 	{
@@ -112,6 +116,8 @@ public:
 
 protected:
 	Agent* parent; ///<The owner of this role. Usually a Person, but I could see it possibly being another Agent.
+
+	Vehicle* currResource; ///<Roles may hold "resources" for the current task. Expand later into multiple types.
 
 	//add by xuyan
 protected:

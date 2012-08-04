@@ -106,6 +106,11 @@ protected:
 	//Pointer to the vehicle this driver is controlling.
 	Vehicle* vehicle;
 
+	//This should be done through the Role class itself; for now, I'm just forcing
+	//  it so that we can get the mid-term working. ~Seth
+	virtual Vehicle* getResource() { return vehicle; }
+
+
 protected:
 	//Temporary variable which will be flushed each time tick. We save it
 	// here to avoid constantly allocating and clearing memory each time tick.

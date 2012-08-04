@@ -129,6 +129,7 @@ private:
 	bool gotoCrossing;
 
 	//The following methods are to be moved to agent's sub-systems in future
+	bool isAtBusStop();
 	bool isGoalReached();
 	bool isDestReached();
 	void setSubPath();

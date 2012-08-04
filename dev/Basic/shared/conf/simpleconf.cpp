@@ -415,7 +415,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 				std::stringstream msg;
 				msg <<"Agent type (" <<agentType <<") missing required properties:";
 				string comma = "";
-				for (map<string, bool>::iterator it=props.begin(); it!=props.end(); it++) {
+				for (map<string, bool>::iterator it=propLookup.begin(); it!=propLookup.end(); it++) {
 					if (!it->second) {
 						msg <<comma <<" " <<it->first;
 						comma = ",";
@@ -425,14 +425,14 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 			}
 		}
 
-		//The only thing we strictly must do now is generate the Agent's ID (since otherwise Agents
+		//We should generate the Agent's ID here (since otherwise Agents
 		//  will have seemingly random IDs that do not reflect their order in the config file).
 		//It is generally preferred to use the automatic IDs, but if a manual ID is specified we
 		//  must deal with it here.
+		int manualID;
 		map<string, string>::iterator propIt = props.find("id");
 		if (propIt != props.end()) {
 			//Convert the ID to an integer.
-			int manualID;
 			std::istringstream(propIt->second) >> manualID;
 
 			//Simple constraint check.
@@ -452,9 +452,31 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 			props.erase(propIt);
 		}
 
+		//We also need to retrieve and properly set this agent's start time, so that it can be
+		//  delayed until this time has arrived.
+		int startTime = -1;
+		propIt = props.find("time");
+		if (propIt != props.end()) {
+			//Convert this time to an integer.
+			std::istringstream(propIt->second) >> startTime;
+
+			//Remove it from the list.
+			props.erase(propIt);
+		}
+
+		//Make sure we retrieved a valid start time.
+		if (startTime<0) {
+			throw std::runtime_error("Start time can't be negative.");
+		}
+
 		//Create the Person agent with that given ID (or an auto-generated one)
 		Person* agent = new Person(config.mutexStategy, manualID);
 		agent->setConfigProperties(props);
+		agent->setStartTime(startTime);
+
+
+
+
 
 		/////TODO: This code all needs to be shuffled around to somewhere within the
 		/////      Role factory. (And some of it should go into the actual Role, e.g., Drivers,
@@ -486,8 +508,6 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 				return false;
 			}
 			foundDestPos = true;
-		} else if (name=="time") {
-			candidate.start = valueI;
 		} else if (name=="special") {
 			//Can't "pend" this agent any longer
 			candidate = PendingEntity(Person::GeneratePersonFromPending(candidate));

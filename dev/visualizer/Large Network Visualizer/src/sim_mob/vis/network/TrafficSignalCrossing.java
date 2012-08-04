@@ -59,16 +59,23 @@ public class TrafficSignalCrossing implements DrawableItem{
 
 	
 	public void setCurrColor(Integer color) {
-		if (color==1) {
+		switch(color)
+		{
+		case 1:
 			currColor = Color.red;
-		} else if (color==2) {
+			break;
+		case 2:
 			currColor = Color.yellow;
-		} else if (color==3) {
+			break;
+		case 3:
 			currColor = Color.green;
-		} else if (color==6) {
+			break;
+		case 6:
 			currColor = Color.cyan;
-		} else {
-			System.out.println("Error, No such kind of traffic light[" + color + "  -- TrafficSignalCrossing, drawSignalCrossing()");
+			break;
+		default:
+			System.out.println("Error, No such kind of traffic light -- TrafficSignalCrossing, drawSignalCrossing()");
+			currColor = Color.darkGray;
 		}
 	}
 	

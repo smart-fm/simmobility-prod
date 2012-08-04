@@ -63,7 +63,7 @@ struct crossings
 {
 	crossings(sim_mob::Link *link_,sim_mob::Crossing *crossig_):link(link_),crossig(crossig_){
 		colorSequence.addColorDuration(Green,0);
-		colorSequence.addColorDuration(FlashingGreen,0);
+		colorSequence.addColorDuration(Amber,0);
 		colorSequence.addColorDuration(Red,1);//All red moment ususally takes 1 second
 		currColor = sim_mob::Red;
 	}

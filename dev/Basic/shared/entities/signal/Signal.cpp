@@ -81,10 +81,11 @@ void Signal_SCATS::createStringRepresentation(std::string newLine)
 }
 
 /*Signal Constructor*/
-Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id)
-  : Agent(mtxStrat, id)
-	, loopDetector_(new LoopDetectorEntity(*this, mtxStrat))
-	, node_(node)
+Signal_SCATS::Signal_SCATS(Node const & node, const MutexStrategy& mtxStrat, int id)
+  : /*Agent(mtxStrat, id)
+	,*/ loopDetector_(new LoopDetectorEntity(*this, mtxStrat))
+	,Signal(node,mtxStrat,id)
+	/*, node_(node)*/
 {
 	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&getNode());
 	if(! mNode) isIntersection_ = false ;
@@ -212,8 +213,6 @@ void Signal_SCATS::findSignalLinksAndCrossings() {
 	sim_mob::RoadSegment const * road = *iter;
 	std::cout << "Analysing Road Segment_ " << road->getLink()->getSegmentName(road) <<  std::endl;
 	sim_mob::Crossing const * crossing = getCrossing(road);
-	if((crossing == nullptr)&&(getSignalId() == 115436))
-		std::cout << "Road Segment " << road->getLink()->getSegmentName(road) << "Has No Crossing" << std::endl;
 	sim_mob::Link const * link = road->getLink();
 	p = inserter.insert(LinkAndCrossing(0, link, crossing, 0));
 //	if(getSignalId() == 115436) std::cout << "Inserting LAC for " << road->getLink()->getSegmentName(road) << (p.second?" Succeeded_ " : " Failed_ ") << std::endl;
@@ -230,8 +229,6 @@ void Signal_SCATS::findSignalLinksAndCrossings() {
 		road = *iter;
 		std::cout << "Analysing Road Segment " << road->getLink()->getSegmentName(road) <<  std::endl;
 		crossing = getCrossing(road);
-		if((crossing == nullptr)&&(getSignalId() == 115436))
-			std::cout << "Road Segment " << road->getLink()->getSegmentName(road) << "Has No Crossing" << std::endl;
 		link = road->getLink();
 		angleAngle = angle.angle(link);
 
@@ -315,7 +312,7 @@ int Signal_SCATS::fmin_ID(const std::vector<double> maxproDS) {
 //					const Lane* lane = nullptr;
 //					lane = lanes.at(i);
 //					if (lane->is_pedestrian_lane())	continue;
-//					const LoopDetectorEntity::CountAndTimePair& ctPair = loopDetector_.getCountAndTimePair(*lane);
+//					const LoopDetectorEntity::CountAndTimePair& ctPair = loopDetector_->getCountAndTimePair(*lane);
 //					lane_DS = LaneDS(ctPair, total_g);
 //					if (lane_DS > maxPhaseDS)	maxPhaseDS = lane_DS;
 //					if (lane_DS > maxDS)		maxDS = lane_DS;
@@ -353,7 +350,7 @@ double Signal_SCATS::computePhaseDS(int phaseId) {
 				if (lane->is_pedestrian_lane())
 					continue;
 				const LoopDetectorEntity::CountAndTimePair& ctPair =
-						loopDetector_.getCountAndTimePair(*lane);
+						loopDetector_->getCountAndTimePair(*lane);
 				lane_DS = LaneDS(ctPair, total_g);
 				std::cout << "lane_DS = " << lane_DS << std::endl;
 				if (lane_DS > maxPhaseDS)
@@ -363,7 +360,7 @@ double Signal_SCATS::computePhaseDS(int phaseId) {
 	}
 
 	Phase_Density[phaseId] = maxPhaseDS;
-	loopDetector_.reset();
+	loopDetector_->reset();
 	return Phase_Density[phaseId];
 }
 
@@ -388,7 +385,7 @@ double Signal_SCATS::LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,d
 }
 void Signal_SCATS::cycle_reset()
 {
-	loopDetector_.reset();//extra
+	loopDetector_->reset();//extra
 	isNewCycle = false;
 //	DS_all = 0;
 	for(int i = 0; i < Phase_Density.size(); Phase_Density[i++] = 0);
@@ -404,7 +401,7 @@ void Signal_SCATS::newCycleUpdate()
 	//	7-update offset
 //		offset_.update(cycle_.getnextCL());
 		cycle_reset();
-		loopDetector_.reset();//extra
+		loopDetector_->reset();//extra
 		isNewCycle = false;
 }
 
@@ -505,11 +502,11 @@ TrafficColor Signal_SCATS::getDriverLight(Lane const & fromLane, Lane const & to
 			break;
 	}
 
-	//if the link is not listed in the current phase throw an error (alternatively, just return red)
-	if(iter == range.second)
-//		return sim_mob::Red;
-			throw std::runtime_error("the specified combination of source and destination lanes are not assigned to this signal");
-	else
+//	//if the link is not listed in the current phase throw an error (alternatively, just return red)
+//	if(iter == range.second)
+////		return sim_mob::Red;
+//			throw std::runtime_error("the specified combination of source and destination lanes are not assigned to this signal");
+//	else
 	{
 //		std::cout << "getDriverLight RETURNING " << getColor((*iter).second.currColor) << std::endl;
 		return (*iter).second.currColor;

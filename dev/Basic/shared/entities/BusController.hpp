@@ -16,7 +16,6 @@
 #include "buffering/Shared.hpp"
 #include "entities/UpdateParams.hpp"
 #include "vehicle/Bus.hpp"
-#include "roles/driver/Driver.hpp"
 #include "util/DynamicVector.hpp"
 #include "workers/Worker.hpp"
 #include "workers/WorkGroup.hpp"

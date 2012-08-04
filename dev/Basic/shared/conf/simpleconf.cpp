@@ -12,11 +12,8 @@
 #include "entities/PendingEvent.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
-#include "entities/roles/driver/ReactionTimeDistributions.hpp"
 #include "entities/BusController.hpp"
 #include "entities/signal/Signal.hpp"
-#include "entities/roles/pedestrian/Pedestrian.hpp"
-#include "entities/roles/driver/Driver.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/misc/BusSchedule.hpp"
 #include "geospatial/aimsun/Loader.hpp"
@@ -29,6 +26,7 @@
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/StreetDirectory.hpp"
 #include "geospatial/BusStop.hpp"
+#include "util/ReactionTimeDistributions.hpp"
 #include "util/OutputUtil.hpp"
 
 //add by xuyan

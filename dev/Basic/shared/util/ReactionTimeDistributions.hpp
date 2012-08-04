@@ -1,8 +1,8 @@
 /*
  * ReactionTimeDistributions.hpp
+ * \author Li Zhemin
  *
- *  Created on: Jun 1, 2012
- *      Author: lzm
+ * TODO: These need to be done in a more generic, customizable way. ~Seth
  */
 
 #include <boost/random.hpp>

@@ -8,6 +8,7 @@
 #include "entities/Signal.hpp"
 #include "AuraManager.hpp"
 #include "entities/Person.hpp"
+#include "entities/vehicle/Vehicle.hpp"
 #include "entities/roles/Role.hpp"
 
 #include "buffering/Vector2D.hpp"
@@ -531,9 +532,9 @@ LoopDetectorEntity::Impl::check(frame_t frameNumber)
         Agent const * agent = agents[i];
         if (Person const * person = dynamic_cast<Person const *>(agent))
         {
+        	//TODO: We need a way to extract a "Vehicle" attached to the current Agent, if any.
             Role const * role = person->getRole();
-            if (Driver const * driver = dynamic_cast<Driver const *>(role))
-            {
+            if (Driver const * driver = dynamic_cast<Driver const *>(role)) {
                 Vehicle const * vehicle = driver->getVehicle();
                 vehicles.insert(vehicle);
             }

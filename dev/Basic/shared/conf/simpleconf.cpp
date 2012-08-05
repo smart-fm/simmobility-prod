@@ -205,57 +205,50 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 {
 	ConfigParams& config = ConfigParams::GetInstance();
 	const vector<TripChainItem*>& tcs = ConfigParams::GetInstance().getTripChains();
-	int currentEntityID = 0;
 
-	//TODO: This code has been changed between Jenny's branch and Harish's. 
-	//      Please coordinate; Harish has updated activities significantly. ~Seth
-	//p.activities = (*it)->activities;
+	//The current person we are working on.
+	Person* currAg = nullptr;
+	std::vector<const TripChainItem*> currAgTripChain;
 
 	typedef vector<TripChainItem*>::const_iterator TCVectIt;
-	for (TCVectIt it = tcs.begin(); it != tcs.end(); it++) {
+	for (TCVectIt it=tcs.begin(); it!=tcs.end(); it++) {
 		const TripChainItem* const tc = *it;
 
-		//Create an Agent candidate based on the type.
-		if (currentEntityID != tc->entityID) {
-			//trip chain for new entity starts
-			PendingEntity p(sim_mob::ENTITY_RAWAGENT); // p is reassigned correctly in the loop below.
-			bool isFirstItem = true; //First trip is yet to be seen
+		//If the agent pointer is null, this record represents the start of a new agent.
+		if (!currAg) {
+			//Might have an EntityID conflict here...
+			currAg = new Person(config.mutexStategy, tc->entityID);
 
-			do {
-				currentEntityID = tc->entityID;
-				if(isFirstItem){
-					if(tc->itemType == sim_mob::TripChainItem::IT_ACTIVITY){
-						p = PendingEntity(sim_mob::ENTITY_ACTIVITYPERFORMER);
-						const Activity& firstActivity = dynamic_cast<const Activity&>(*tc);
-						//Origin, destination, Start time
-						p.origin = p.dest = firstActivity.location;
-						p.start = firstActivity.startTime.offsetMS_From(
-													ConfigParams::GetInstance().simStartTime);
-					} else if (tc->itemType == sim_mob::TripChainItem::IT_TRIP) {
-						const Trip& firstTripForEntity = dynamic_cast<const Trip&>(*tc);
-						const sim_mob::SubTrip& firstSubTripForEntity =
-								dynamic_cast<const SubTrip&>(firstTripForEntity.getSubTrips().front());
-						p = PendingEntity(EntityTypeFromTripChainString(firstSubTripForEntity.mode));
-						//Origin, destination, Start time
-						p.origin = firstSubTripForEntity.fromLocation;
-						p.dest = firstSubTripForEntity.toLocation;
-						p.start = firstSubTripForEntity.startTime.offsetMS_From(
-								ConfigParams::GetInstance().simStartTime);
-					} else{
-						throw std::runtime_error("Unknown trip chain item type.");
-					}
-					isFirstItem = false; // First trip has been iterated
-				}
-				//Collect the TripChainItems for this entity
-				p.entityTripChain.push_back(tc);
-				it++;
-			} while (it != tcs.end() && currentEntityID == tc->entityID);
-			// countering the extra increment in the while loop so that the next iteration of the for loop will point to the correct tripchain item.
-			it--;
-			//Add it or stash it
-			addOrStashEntity(p, active_agents, pending_agents);
+			//Set the start time for this Agent; clear the trip chain.
+			currAg->setStartTime(tc->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
+			currAgTripChain.clear();
+
+			//The origin and destination depend on whether this is a Trip or an Activity
+			const Trip* trip = dynamic_cast<const Trip*>(tc);
+			const Activity* act = dynamic_cast<const Activity*>(tc);
+			if (trip && tc->itemType==TripChainItem::IT_TRIP) {
+				currAg->originNode = trip->fromLocation;
+				currAg->destNode = trip->toLocation;
+			} else if (act && tc->itemType==TripChainItem::IT_ACTIVITY) {
+				currAg->originNode = currAg->destNode = act->location;
+			} else { //Offer some protection
+				throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
+			}
 		}
 
+		//Regardless, add this TripChainItem to the current Agent's trip chain.
+		currAgTripChain.push_back(tc);
+
+		//We must finalize this agent if we are at the end of the array, or if the next item does not have the same entity ID.
+		TCVectIt next = it+1;
+		if (next==tcs.end() || (*next)->entityID!=currAg->getId()) {
+			//Save the trip chain and the Agent.
+			currAg->setTripChain(currAgTripChain);
+			addOrStashEntity(currAg, active_agents, pending_agents);
+
+			//Reset for the next (possible) Agent
+			currAg = nullptr;
+		}
 	}
 }
 

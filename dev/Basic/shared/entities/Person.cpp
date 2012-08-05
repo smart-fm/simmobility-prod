@@ -33,6 +33,67 @@ sim_mob::Person::~Person() {
 }
 
 
+
+void sim_mob::Person::load(const map<string, string>& configProps)
+{
+	//Consistency check: are they requesting a pseudo-trip chain when they actually have one?
+	if
+
+
+
+	//Retrieve the origin and destination points from the set of properties.
+	Point2D originPt;
+	if (!sim_mob::parse_point(configProps["originPos"])) {
+	}
+
+
+	/*if (name=="") {
+		Point2D pt;
+		if (!readPoint(value, pt)) {
+			std::cout <<"Couldn't read point from value: " <<value <<"\n";
+			return false;
+		}
+		candidate.origin = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);
+		if (!candidate.origin) {
+			std::cout <<"Error reading origin position for agent: " <<candidate.manualID <<endl;
+			std::cout <<"Couldn't find position: " <<pt.getX() <<"," <<pt.getY() <<"\n";
+			return false;
+		}
+		foundOrigPos = true;
+	}
+	if (name=="destPos") {
+		Point2D pt;
+		if (!readPoint(value, pt)) {
+			std::cout <<"Couldn't read point from value: " <<value <<"\n";
+			return false;
+		}
+		candidate.dest = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);
+		if (!candidate.dest) {
+			std::cout <<"Error reading destination position for agent: " <<candidate.manualID <<endl;
+			std::cout <<"Couldn't find position: " <<pt.getX() <<"," <<pt.getY() <<"\n";
+			return false;
+		}
+		foundDestPos = true;
+	} else if (name=="special") {
+		//Can't "pend" this agent any longer
+		candidate = PendingEntity(Person::GeneratePersonFromPending(candidate));
+
+		//Set the special string, disable path checking.
+		candidate.rawAgent->specialStr = value;
+		checkBadPaths = false;
+	} else {
+		//TODO: This should be a warning, not an error.
+		std::cout <<"Error: unknown attribute: " <<agentType <<" => " <<name <<endl;
+		return false;
+	}
+	*/
+
+
+
+}
+
+
+
 void sim_mob::Person::getNextSubTripInTrip(){
 	if(!currTripChainItem || currTripChainItem->itemType == sim_mob::TripChainItem::IT_ACTIVITY){
 		currSubTrip = nullptr;
@@ -129,9 +190,8 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 				}
 			}
 
-			//Now that the Role has been fully constructed, initialize it and clear the temporary property list.
+			//Now that the Role has been fully constructed, initialize it.
 			currRole->frame_init(params);
-			configProperties.clear();
 
 			//Done
 			firstFrameTick = false;

@@ -46,8 +46,14 @@ public:
 
 	///Update Person behavior
 	virtual Entity::UpdateStatus update(frame_t frameNumber);
+
+	///Load a Person's config-specified properties, creating a placeholder trip chain if
+	/// requested.
+	virtual void load(const std::map<std::string, std::string>& configProps);
+
     ///Update a Person's subscription list.
     virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
+
     ///Change the role of this person: Driver, Passenger, Pedestrian
     void changeRole(sim_mob::Role* newRole);
     sim_mob::Role* getRole() const;
@@ -67,15 +73,6 @@ public:
         this->tripChain = tripChain;
     }
 
-    ///A temporary list of configuration properties used to load an Agent's role from the config file.
-    void setConfigProperties(const std::map<std::string, std::string>& props) {
-    	this->configProperties = props;
-    }
-    const std::map<std::string, std::string>& getConfigProperties() {
-    	return this->configProperties;
-    }
-
-
 	sim_mob::Link* getCurrLink();
 	void setCurrLink(sim_mob::Link* link);
 
@@ -94,8 +91,6 @@ private:
     sim_mob::Role* currRole;
     sim_mob::Link* currLink;
 
-    //Unknown until runtime
-    std::map<std::string, std::string> configProperties;
 
     int currTripChainSequenceNumber;
     std::vector<const TripChainItem*> tripChain;

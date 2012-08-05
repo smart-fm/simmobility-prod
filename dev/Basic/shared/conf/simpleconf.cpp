@@ -191,9 +191,27 @@ string ReadLowercase(TiXmlHandle& handle, const std::string& attrName)
 }
 
 
-
+////
+//// TODO: Eventually, we need to re-write WorkGroup to encapsulate the functionality of "addOrStash()".
+////       For now, just make sure that if you add something to all_agents manually, you call "load()" before.
+////
 void addOrStashEntity(Person* p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
+	//Only agents with a start time of zero should start immediately in the all_agents list.
+	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p->getStartTime()==0) {
+		p->load(p->getConfigProperties());
+		p->clearConfigProperties();
+		active_agents.push_back(p);
+	} else {
+		//Start later.
+		pending_agents.push(p);
+	}
+}
+
+
+
+
+void x(){
 	if (ENTITY_BUSCONTROLLER == p.type) {
 		//NOTE: This is where the problem can easily be corrected. Instead of pushing back the static Agent, push
 		//      back a generated entity. You can look at "Person::GeneratePersonFromPending()" to see how this is
@@ -236,6 +254,7 @@ void addOrStashEntity(Person* p, std::vector<Entity*>& active_agents, StartTimeP
 		pending_agents.push(p);
 	}
 }
+
 
 namespace {
   //Simple helper function
@@ -482,46 +501,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 		/////TODO: This code all needs to be shuffled around to somewhere within the
 		/////      Role factory. (And some of it should go into the actual Role, e.g., Drivers,
 		/////      themselves.) ~Seth
-		/*if (name=="originPos") {
-			Point2D pt;
-			if (!readPoint(value, pt)) {
-				std::cout <<"Couldn't read point from value: " <<value <<"\n";
-				return false;
-			}
-			candidate.origin = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);
-			if (!candidate.origin) {
-				std::cout <<"Error reading origin position for agent: " <<candidate.manualID <<endl;
-				std::cout <<"Couldn't find position: " <<pt.getX() <<"," <<pt.getY() <<"\n";
-				return false;
-			}
-			foundOrigPos = true;
-		}
-		if (name=="destPos") {
-			Point2D pt;
-			if (!readPoint(value, pt)) {
-				std::cout <<"Couldn't read point from value: " <<value <<"\n";
-				return false;
-			}
-			candidate.dest = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);
-			if (!candidate.dest) {
-				std::cout <<"Error reading destination position for agent: " <<candidate.manualID <<endl;
-				std::cout <<"Couldn't find position: " <<pt.getX() <<"," <<pt.getY() <<"\n";
-				return false;
-			}
-			foundDestPos = true;
-		} else if (name=="special") {
-			//Can't "pend" this agent any longer
-			candidate = PendingEntity(Person::GeneratePersonFromPending(candidate));
 
-			//Set the special string, disable path checking.
-			candidate.rawAgent->specialStr = value;
-			checkBadPaths = false;
-		} else {
-			//TODO: This should be a warning, not an error.
-			std::cout <<"Error: unknown attribute: " <<agentType <<" => " <<name <<endl;
-			return false;
-		}
-		*/
 
 
 		/*TODO: This also needs to go somewhere else.

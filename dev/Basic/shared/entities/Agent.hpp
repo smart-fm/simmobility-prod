@@ -71,8 +71,21 @@ public:
 	explicit Agent(const MutexStrategy& mtxStrat, int id=-1);
 	virtual ~Agent();
 
-	virtual Entity::UpdateStatus update(frame_t frameNumber) = 0;  ///<Update agent behvaior
+	///Load an agent.
+	virtual void load(const std::map<std::string, std::string>& configProps) = 0;
 
+	virtual Entity::UpdateStatus update(frame_t frameNumber) = 0;  ///<Update agent behavior
+
+    ///A temporary list of configuration properties used to load an Agent's role from the config file.
+    void setConfigProperties(const std::map<std::string, std::string>& props) {
+    	this->configProperties = props;
+    }
+    const std::map<std::string, std::string>& getConfigProperties() {
+    	return this->configProperties;
+    }
+    void clearConfigProperties() {
+    	this->configProperties.clear();
+    }
 
 	///Subscribe this agent to a data manager.
 	//virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew);
@@ -156,6 +169,9 @@ private:
 	//unsigned int currMode;
 	bool toRemoved;
 	static unsigned int next_agent_id;
+
+    //Unknown until runtime
+    std::map<std::string, std::string> configProperties;
 
 	//added by Jenny (11th June)
 	//NOTE: I'm disabling this in favor of Harish's code; please double-check. ~Seth

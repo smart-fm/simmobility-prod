@@ -117,6 +117,13 @@ void sim_mob::WorkGroup::stageEntities()
 			std::cout <<"Staging agent ID: " <<ag->getId() <<" in time for tick: " <<nextTimeTickToStage <<"\n";
 		}
 
+		//Call its "load" function
+		Agent* a = dynamic_cast<Agent*>(ag);
+		if (a) {
+			a->load(a->getConfigProperties());
+			a->clearConfigProperties();
+		}
+
 		//Add it to our global list.
 		loader->entity_dest.push_back(ag);
 

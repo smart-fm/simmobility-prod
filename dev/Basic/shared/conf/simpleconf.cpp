@@ -168,6 +168,9 @@ string ReadLowercase(TiXmlHandle& handle, const std::string& attrName)
 ////
 void addOrStashEntity(Person* p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
+	///TODO: The BusController is static; need to address this OUTSIDE this function.
+	//if (ENTITY_BUSCONTROLLER == p.type) { active_agents.push_back(BusController::busctrller); }
+
 	//Only agents with a start time of zero should start immediately in the all_agents list.
 	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p->getStartTime()==0) {
 		p->load(p->getConfigProperties());
@@ -180,40 +183,6 @@ void addOrStashEntity(Person* p, std::vector<Entity*>& active_agents, StartTimeP
 }
 
 
-
-
-void x(){
-	if (ENTITY_BUSCONTROLLER == p.type) {
-		//NOTE: This is where the problem can easily be corrected. Instead of pushing back the static Agent, push
-		//      back a generated entity. You can look at "Person::GeneratePersonFromPending()" to see how this is
-		//      accomplished for persons.
-		//This is not a critical issue; rather, it is a "code cleanup" tasks that you should perform
-		//      when you have free time. Try to make your code more robust. ~Seth
-		active_agents.push_back(BusController::busctrller);
-
-	} else if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p->getStartTime()==0) {
-		//Only agents with a start time of zero should start immediately in the all_agents list.
-		const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
-		Role* r = fact.createRole("TODO: ROLE_NAME", p->getConfigProperties());
-		p->changeRole(r);
-
-		///TODO: There's init code all over the place in simpleconf. I think we should probably do this:
-		///      1) The *only* thing "addOrStash" does is move the Agent to active or pending
-		///      2) Add an "agent_load" method, which takes the Map of string properties (for now, the
-		///         agent can just pass this to himself). Have this called before the Agent is pushed to
-		///         all_agents. (This can be used by, e.g., BusController, or for the Special paths).
-		///      3) Generate a single-trip TripChain for Roles loaded from the config file.
-		///      4) Have the Person class call the Role Factory when creating Roles from Trip Chains.
-		///         Don't have simpleconf create any Roles; that's the whole point of TripChains anyway.
-
-
-		//We can add this directly to active_agents because no threads are running yet.
-		active_agents.push_back(person);
-	} else {
-		//Start later.
-		pending_agents.push(p);
-	}
-}
 
 
 namespace {

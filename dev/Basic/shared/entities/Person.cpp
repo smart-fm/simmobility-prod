@@ -220,6 +220,15 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 		profile.logAgentUpdateBegin(*this, frameNumber);
 #endif
 
+	///
+	/// TODO: I haven't isolated the code which switches Roles based on TripChains yet.
+	///       But plenty of Agents definitely start with null Roles. ~Seth
+	///
+	//const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+	//Role* r = fact.createRole("TODO: ROLE_NAME", p->getConfigProperties());
+	//p->changeRole(r);
+
+
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
 #ifndef SIMMOB_STRICT_AGENT_ERRORS
 	try {

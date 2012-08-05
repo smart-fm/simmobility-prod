@@ -15,6 +15,9 @@ class TripChainItem;
 ///Type of entities that can be "Pending"
 /// Note that these constants are used for both the short-term and the
 /// mid-term, even though all entity types may not be available for both.
+///
+///TODO: This might be migrated to the RoleFactory, with changes.
+///      Thes are not really entity types, they are role types (+BusController)
 enum KNOWN_ENTITY_TYPES {
 	ENTITY_DRIVER,      ///<A Driver entity.
 	ENTITY_PEDESTRIAN,  ///<A Pedestrian entity.
@@ -36,7 +39,7 @@ enum KNOWN_ENTITY_TYPES {
  * so RAWAGENT will waste memory unless it is only used in small doses. (For example, we currently
  * only use it for ns3 agents).
  */
-struct PendingEntity {
+/*struct PendingEntity {
 	//Make an entity.
 	explicit PendingEntity(KNOWN_ENTITY_TYPES type);
 
@@ -51,7 +54,7 @@ struct PendingEntity {
 	int manualID;             ///<Manual ID for this entity. If -1, it is assigned an ID
 
 	std::vector<const sim_mob::TripChainItem*> entityTripChain; ///<TripChain for this entity.
-};
+};*/
 
 }
 

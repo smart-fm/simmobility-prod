@@ -57,35 +57,6 @@ struct AgentConstraints {
 bool agent_sort_by_id (Agent* i, Agent* j) { return (i->getId()<j->getId()); }
 
 
-//Of the form xxxx,yyyyy, with optional signs
-bool readPoint(const string& str, Point2D& res)
-{
-	//Sanity check
-	if (str.length()<3) {
-		return false;
-	}
-
-	//Does it match the pattern?
-	size_t commaPos = str.find(',');
-	if (commaPos==string::npos) {
-		return false;
-	}
-
-	//Allow for an optional parentheses
-	size_t StrOffset = 0;
-	if (str[0]=='(' && str[str.length()-1]==')') {
-		if (str.length()<5) { return false; }
-		StrOffset = 1;
-	}
-
-	//Try to parse its substrings
-	int xPos, yPos;
-	std::istringstream(str.substr(StrOffset, commaPos-StrOffset)) >> xPos;
-	std::istringstream(str.substr(commaPos+1, str.length()-(commaPos+1)-StrOffset)) >> yPos;
-
-	res = Point2D(xPos, yPos);
-	return true;
-}
 
 
 
@@ -235,17 +206,6 @@ void x(){
 		///      4) Have the Person class call the Role Factory when creating Roles from Trip Chains.
 		///         Don't have simpleconf create any Roles; that's the whole point of TripChains anyway.
 
-		////////TODO: This needs to go in a centralized place.
-		//Set its origin, destination, startTime, etc.
-		res->originNode = p.origin;
-		res->destNode = p.dest;
-		//res->setStartTime(p.start);
-
-		////////TODO: This needs to go in a centralized place.
-		//added by Jenny to handle activities
-		res->setNextPathPlanned(false);
-		res->setTripChain(p.entityTripChain);
-		res->findNextItemInTripChain();
 
 		//We can add this directly to active_agents because no threads are running yet.
 		active_agents.push_back(person);
@@ -383,9 +343,7 @@ void generateAgentsFromBusSchedule(std::vector<Entity*>& active_agents, AgentCon
 
 bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, AgentConstraints& constraints)
 {
-	//The config file keeps track of the number of agents that were skipped due to processing errors.
 	ConfigParams& config = ConfigParams::GetInstance();
-	config.numAgentsSkipped = 0;
 
 	//At the moment, we only load *Roles* from the config file. So, check if this is a valid role:
 	const RoleFactory& rf = config.getRoleFactory();
@@ -403,8 +361,6 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 		node = handle.FirstChild("config").FirstChild(agentType+"es").FirstChild(agentType).ToElement();
 	}
 
-	//TODO: Migrate this flag into the config file.
-	const bool checkBadPaths = true;
 
 	//Loop through all agents of this type. If this node doesn't exist in the first place,
 	// the loop immediately exits. (An empty "drivers" block is allowed.)
@@ -493,64 +449,6 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 		Person* agent = new Person(config.mutexStategy, manualID);
 		agent->setConfigProperties(props);
 		agent->setStartTime(startTime);
-
-
-
-
-
-		/////TODO: This code all needs to be shuffled around to somewhere within the
-		/////      Role factory. (And some of it should go into the actual Role, e.g., Drivers,
-		/////      themselves.) ~Seth
-
-
-
-		/*TODO: This also needs to go somewhere else.
-		 //Optional: Only add this Agent if a path exists for it from start to finish.
-		  StreetDirectory& sd = StreetDirectory::instance();
-		if (foundOrigPos && foundDestPos && checkBadPaths) {
-			bool skip = false;
-			if (agentType=="pedestrian") {
-				//For now, pedestrians can't have invalid routes.
-				//skip = true;
-				//vector<WayPoint> path = sd.shortestWalkingPath(agent->originNode->location, agent->destNode->location);
-				//for (vector<WayPoint>::iterator it=path.begin(); it!=path.end(); it++) {
-				//	if (it->type_ == WayPoint::SIDE_WALK) {
-				//		skip = false;
-				//		break;
-				//	}
-				//}
-			} else if (agentType=="driver" || agentType=="bus") {
-				skip = true;
-				vector<WayPoint> path = sd.shortestDrivingPath(*candidate.origin, *candidate.dest);
-				for (vector<WayPoint>::iterator it=path.begin(); it!=path.end(); it++) {
-					if (it->type_ == WayPoint::ROAD_SEGMENT) {
-						skip = false;
-						break;
-					}
-				}
-			}
-
-			//Is this Agent invalid?
-			if (skip) {
-				std::cout <<"Skipping agent; can't find route from: " <<(candidate.origin?candidate.origin->originalDB_ID.getLogItem():"<null>") <<" to: " <<(candidate.dest?candidate.dest->originalDB_ID.getLogItem():"<null>");
-				if (candidate.origin && candidate.dest) {
-					std::cout <<"   {" <<candidate.origin->location <<"=>" <<candidate.dest->location <<"}";
-				}
-				std::cout <<std::endl;
-
-				config.numAgentsSkipped++;
-				safe_delete_item(candidate.rawAgent);
-				continue;
-			}
-
-			//construct rudimentary trip chain for candidate based on origin and destination
-			Trip* generatedTrip = new Trip(-1, "Trip", 1, DailyTime(candidate.start), DailyTime(), 0, candidate.origin, "node", candidate.dest, "node");
-			SubTrip generatedSubTrip(-1, "Trip", 1, DailyTime(candidate.start), DailyTime(), candidate.origin, "node", candidate.dest, "node", "Car", true, "");
-			generatedTrip->addSubTrip(generatedSubTrip);
-			candidate.entityTripChain.push_back(generatedTrip);
-		}
-		*/
-
 
 		//Add it or stash it
 		addOrStashEntity(agent, active_agents, pending_agents);

@@ -800,7 +800,7 @@ sim_mob::Activity* MakeActivity(const sim_mob::TripChainItem& tcItem) {
 
 sim_mob::Trip* MakeTrip(const sim_mob::TripChainItem& tcItem) {
 	sim_mob::Trip* tripToSave = new sim_mob::Trip();
-	currTripId = tripToSave->tripID = tcItem.tripID;
+	tripToSave->tripID = tcItem.tripID;
 	tripToSave->entityID = tcItem.entityID;
 	tripToSave->itemType = tcItem.itemType;
 	tripToSave->sequenceNumber = tcItem.sequenceNumber;

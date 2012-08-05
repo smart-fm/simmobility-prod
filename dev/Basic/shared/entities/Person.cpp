@@ -22,6 +22,53 @@ using std::vector;
 using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
 
+
+namespace {
+Trip* MakePseudoTrip(const Point2D& origin, const Point2D& dest)
+{
+	//
+	// SAMPLE CODE: This seems to be a minimal TripChain for a given Person.
+	//              Use this as a guide when cleaning up the latter.
+	//
+	//Trip* generatedTrip = new Trip(-1, "Trip", 1, DailyTime(candidate.start), DailyTime(), 0, candidate.origin, "node", candidate.dest, "node");
+	//SubTrip generatedSubTrip(-1, "Trip", 1, DailyTime(candidate.start), DailyTime(), candidate.origin, "node", candidate.dest, "node", "Car", true, "");
+	//generatedTrip->addSubTrip(generatedSubTrip);
+	//candidate.entityTripChain.push_back(generatedTrip);
+
+
+	//Make the trip itself
+	Trip* res = new Trip();
+	res->tripID = tcItem.tripID;
+	res->entityID = tcItem.entityID;
+	res->itemType = tcItem.itemType;
+	res->sequenceNumber = tcItem.sequenceNumber;
+	res->fromLocation = tcItem.fromLocation->generatedNode;
+	res->fromLocationType = tcItem.fromLocationType;
+	res->toLocation = tcItem.toLocation->generatedNode;
+	res->toLocationType = tcItem.toLocationType;
+
+	//Make and assign a single sub-trip
+	sim_mob::SubTrip subTrip;
+	subTrip.entityID = tcItem.entityID;
+	subTrip.itemType = tcItem.itemType;
+	subTrip.tripID = tcItem.tmp_subTripID;
+	subTrip.fromLocation = tcItem.fromLocation->generatedNode;
+	subTrip.fromLocationType = tcItem.fromLocationType;
+	subTrip.toLocation = tcItem.toLocation->generatedNode;
+	subTrip.toLocationType = tcItem.toLocationType;
+	subTrip.mode = tcItem.mode;
+	subTrip.isPrimaryMode = tcItem.isPrimaryMode;
+	subTrip.ptLineId = tcItem.ptLineId;
+	subTrip.startTime = tcItem.startTime;
+
+	//Add it to the Trip; return this value.
+	res->addSubTrip(subTrip);
+	return res;
+}
+
+}  //End unnamed namespace
+
+
 sim_mob::Person::Person(const MutexStrategy& mtxStrat, int id) :
 	Agent(mtxStrat, id), prevRole(nullptr), currRole(nullptr), currTripChainItem(nullptr), currSubTrip(nullptr), firstFrameTick(true)
 {
@@ -36,60 +83,87 @@ sim_mob::Person::~Person() {
 
 void sim_mob::Person::load(const map<string, string>& configProps)
 {
+	//Consistency check: specify both origin and dest
+	if (configProps.count("originPos") != configProps.count("destPos")) {
+		throw std::runtime_error("Agent must specify both originPos and destPos, or neither.");
+	}
+
 	//Consistency check: are they requesting a pseudo-trip chain when they actually have one?
-	if
+	if (configProps.count("originPos")>0 && configProps.count("destPos")>0) {
+		if (!entityTripChain.empty()) {
+			throw std::runtime_error("Manual position specified for Agent with existing Trip Chain.");
+		}
+		if (this->originNode || this->destNode) {
+			throw std::runtime_error("Manual position specified for Agent with existing Trip Chain.");
+		}
 
+		//Otherwise, make a trip chain for this Person.
+		Node* originNode = ConfigParams::GetInstance().getNetwork().locateNode(parse_point(configProps["originPos"]), true);
+		Node* destNode = ConfigParams::GetInstance().getNetwork().locateNode(parse_point(configProps["destPos"]), true);
+		Trip* singleTrip = MakePseudoTrip(originNode, destNode);
+		std::vector<const TripChainItem*> trip_chain;
+		trip_chain.push_back(singleTrip);
 
-
-	//Retrieve the origin and destination points from the set of properties.
-	Point2D originPt;
-	if (!sim_mob::parse_point(configProps["originPos"])) {
+		//////
+		//////TODO: Some of this should be performed in a centralized place; e.g., "Agent::setTripChain"
+		//////
+		////////TODO: This needs to go in a centralized place.
+		this->originNode = singleTrip->fromLocation;
+		this->destNode = singleTrip->toLocation;
+		this->setNextPathPlanned(false);
+		this->setTripChain(trip_chain);
+		this->findNextItemInTripChain();
 	}
 
-
-	/*if (name=="") {
-		Point2D pt;
-		if (!readPoint(value, pt)) {
-			std::cout <<"Couldn't read point from value: " <<value <<"\n";
-			return false;
-		}
-		candidate.origin = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);
-		if (!candidate.origin) {
-			std::cout <<"Error reading origin position for agent: " <<candidate.manualID <<endl;
-			std::cout <<"Couldn't find position: " <<pt.getX() <<"," <<pt.getY() <<"\n";
-			return false;
-		}
-		foundOrigPos = true;
+	//One more check: If they have a special string, save it now
+	if (configProps.count("special")>0) {
+		this->specialStr = configProps["special"];
 	}
-	if (name=="destPos") {
-		Point2D pt;
-		if (!readPoint(value, pt)) {
-			std::cout <<"Couldn't read point from value: " <<value <<"\n";
-			return false;
+
+	///
+	///TODO: At some point, we need to check if "origin->dest" paths are valid.
+	///      This should be an option that can be turned on in the config file, and it
+	///      allows us to remove badly-specified agents before they generate an error
+	///      in frame_init.
+	///
+	 /*const bool checkBadPaths = true;
+	 //Optional: Only add this Agent if a path exists for it from start to finish.
+	  StreetDirectory& sd = StreetDirectory::instance();
+	if (foundOrigPos && foundDestPos && checkBadPaths) {
+		bool skip = false;
+		if (agentType=="pedestrian") {
+			//For now, pedestrians can't have invalid routes.
+			//skip = true;
+			//vector<WayPoint> path = sd.shortestWalkingPath(agent->originNode->location, agent->destNode->location);
+			//for (vector<WayPoint>::iterator it=path.begin(); it!=path.end(); it++) {
+			//	if (it->type_ == WayPoint::SIDE_WALK) {
+			//		skip = false;
+			//		break;
+			//	}
+			//}
+		} else if (agentType=="driver" || agentType=="bus") {
+			skip = true;
+			vector<WayPoint> path = sd.shortestDrivingPath(*candidate.origin, *candidate.dest);
+			for (vector<WayPoint>::iterator it=path.begin(); it!=path.end(); it++) {
+				if (it->type_ == WayPoint::ROAD_SEGMENT) {
+					skip = false;
+					break;
+				}
+			}
 		}
-		candidate.dest = ConfigParams::GetInstance().getNetwork().locateNode(pt, true);
-		if (!candidate.dest) {
-			std::cout <<"Error reading destination position for agent: " <<candidate.manualID <<endl;
-			std::cout <<"Couldn't find position: " <<pt.getX() <<"," <<pt.getY() <<"\n";
-			return false;
-		}
-		foundDestPos = true;
-	} else if (name=="special") {
-		//Can't "pend" this agent any longer
-		candidate = PendingEntity(Person::GeneratePersonFromPending(candidate));
 
-		//Set the special string, disable path checking.
-		candidate.rawAgent->specialStr = value;
-		checkBadPaths = false;
-	} else {
-		//TODO: This should be a warning, not an error.
-		std::cout <<"Error: unknown attribute: " <<agentType <<" => " <<name <<endl;
-		return false;
-	}
-	*/
+		//Is this Agent invalid?
+		if (skip) {
+			std::cout <<"Skipping agent; can't find route from: " <<(candidate.origin?candidate.origin->originalDB_ID.getLogItem():"<null>") <<" to: " <<(candidate.dest?candidate.dest->originalDB_ID.getLogItem():"<null>");
+			if (candidate.origin && candidate.dest) {
+				std::cout <<"   {" <<candidate.origin->location <<"=>" <<candidate.dest->location <<"}";
+			}
+			std::cout <<std::endl;
 
-
-
+			config.numAgentsSkipped++;
+			safe_delete_item(candidate.rawAgent);
+			continue;
+		}*/
 }
 
 

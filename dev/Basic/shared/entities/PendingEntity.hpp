@@ -50,8 +50,6 @@ struct PendingEntity {
 	unsigned int start;       ///<Entity's destination. Null if ENTITY_RAWAGENT is the type.
 	int manualID;             ///<Manual ID for this entity. If -1, it is assigned an ID
 
-	//NOTE: Please double-check this; I'm fairly sure we only want ONE of these. ~Seth
-	//std::vector<TripActivity*> activities;
 	std::vector<const sim_mob::TripChainItem*> entityTripChain; ///<TripChain for this entity.
 };
 

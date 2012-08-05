@@ -30,6 +30,9 @@ public:
 	///Is this a Role that our Factory knows how to construct?
 	bool isKnownRole(const std::string& roleName) const;
 
+	///Retrieve the name of this Role's mode as it is known to the TripChain class.
+	std::string getTripChainMode(const std::string& roleName) const;
+
 	///Return a map of required attributes, with a flag on each set to false.
 	std::map<std::string, bool> getRequiredAttributes(const std::string& roleName) const;
 

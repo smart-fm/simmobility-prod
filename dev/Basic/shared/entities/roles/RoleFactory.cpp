@@ -7,17 +7,23 @@ using std::map;
 using std::string;
 
 
-bool isKnownRole(const string& roleName) const
+bool sim_mob::RoleFactory::isKnownRole(const string& roleName) const
 {
 	throw std::runtime_error("Not implemented yet");
 }
 
-map<string, bool> getRequiredAttributes(const string& roleName) const
+string sim_mob::RoleFactory::getTripChainMode(const std::string& roleName) const
+{
+	//"Car" or "Walk", but we can have more like "BusDriver" later...
+	throw std::runtime_error("Not implemented yet");
+}
+
+map<string, bool> sim_mob::RoleFactory::getRequiredAttributes(const string& roleName) const
 {
 	throw std::runtime_error("Not implemented yet");
 }
 
-Role* createRole(const string& name, const map<string, string>& props) const
+Role* sim_mob::RoleFactory::createRole(const string& name, const map<string, string>& props) const
 {
 	throw std::runtime_error("Not implemented yet");
 

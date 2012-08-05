@@ -24,42 +24,39 @@ typedef Entity::UpdateStatus UpdateStatus;
 
 
 namespace {
-Trip* MakePseudoTrip(const Point2D& origin, const Point2D& dest)
+Trip* MakePseudoTrip(const Person& ag, const Point2D& origin, const Point2D& dest, const std::string& mode)
 {
-	//
-	// SAMPLE CODE: This seems to be a minimal TripChain for a given Person.
-	//              Use this as a guide when cleaning up the latter.
-	//
-	//Trip* generatedTrip = new Trip(-1, "Trip", 1, DailyTime(candidate.start), DailyTime(), 0, candidate.origin, "node", candidate.dest, "node");
-	//SubTrip generatedSubTrip(-1, "Trip", 1, DailyTime(candidate.start), DailyTime(), candidate.origin, "node", candidate.dest, "node", "Car", true, "");
-	//generatedTrip->addSubTrip(generatedSubTrip);
-	//candidate.entityTripChain.push_back(generatedTrip);
-
-
 	//Make the trip itself
 	Trip* res = new Trip();
-	res->tripID = tcItem.tripID;
-	res->entityID = tcItem.entityID;
-	res->itemType = tcItem.itemType;
-	res->sequenceNumber = tcItem.sequenceNumber;
-	res->fromLocation = tcItem.fromLocation->generatedNode;
-	res->fromLocationType = tcItem.fromLocationType;
-	res->toLocation = tcItem.toLocation->generatedNode;
-	res->toLocationType = tcItem.toLocationType;
+	res->entityID = ag.getId();
+	res->itemType = TripChainItem::getItemType("Trip");
+	res->sequenceNumber = 1;
+	res->startTime = DailyTime(ag.getStartTime());  //TODO: This may not be 100% correct
+	res->endTime = res->startTime; //No estimated end time.
+	res->tripID = 0;
+	res->fromLocation = ag.originNode;
+	res->fromLocationType = TripChainItem::getLocationType("node");
+	res->toLocation = ag.destNode;
+	res->toLocationType = res->fromLocationType;
+
+	//SubTrip generatedSubTrip(-1, "Trip", 1, DailyTime(candidate.start), DailyTime(),
+	//candidate.origin, "node", candidate.dest, "node", "Car", true, "");
 
 	//Make and assign a single sub-trip
 	sim_mob::SubTrip subTrip;
-	subTrip.entityID = tcItem.entityID;
-	subTrip.itemType = tcItem.itemType;
-	subTrip.tripID = tcItem.tmp_subTripID;
-	subTrip.fromLocation = tcItem.fromLocation->generatedNode;
-	subTrip.fromLocationType = tcItem.fromLocationType;
-	subTrip.toLocation = tcItem.toLocation->generatedNode;
-	subTrip.toLocationType = tcItem.toLocationType;
-	subTrip.mode = tcItem.mode;
-	subTrip.isPrimaryMode = tcItem.isPrimaryMode;
-	subTrip.ptLineId = tcItem.ptLineId;
-	subTrip.startTime = tcItem.startTime;
+	subTrip.entityID = -1;
+	subTrip.itemType = TripChainItem::getItemType("Trip");
+	subTrip.sequenceNumber = 1;
+	subTrip.startTime = res->startTime;
+	subTrip.endTime = res->startTime;
+	subTrip.fromLocation = res->fromLocation;
+	subTrip.fromLocationType = res->fromLocationType;
+	subTrip.toLocation = res->toLocation;
+	subTrip.toLocationType = res->toLocationType;
+	subTrip.tripID = 0;
+	subTrip.mode = mode;
+	subTrip.isPrimaryMode = true;
+	subTrip.ptLineId = "";
 
 	//Add it to the Trip; return this value.
 	res->addSubTrip(subTrip);
@@ -83,6 +80,12 @@ sim_mob::Person::~Person() {
 
 void sim_mob::Person::load(const map<string, string>& configProps)
 {
+	//Make sure they have a mode specified for this trip
+	if (configProps.count("#mode")==0) {
+		throw std::runtime_error("Cannot load person: no mode");
+	}
+	std::string mode = configProps["#mode"];
+
 	//Consistency check: specify both origin and dest
 	if (configProps.count("originPos") != configProps.count("destPos")) {
 		throw std::runtime_error("Agent must specify both originPos and destPos, or neither.");
@@ -100,7 +103,7 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		//Otherwise, make a trip chain for this Person.
 		Node* originNode = ConfigParams::GetInstance().getNetwork().locateNode(parse_point(configProps["originPos"]), true);
 		Node* destNode = ConfigParams::GetInstance().getNetwork().locateNode(parse_point(configProps["destPos"]), true);
-		Trip* singleTrip = MakePseudoTrip(originNode, destNode);
+		Trip* singleTrip = MakePseudoTrip(this, originNode, destNode, mode);
 		std::vector<const TripChainItem*> trip_chain;
 		trip_chain.push_back(singleTrip);
 

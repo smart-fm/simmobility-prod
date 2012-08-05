@@ -414,6 +414,10 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 			throw std::runtime_error("Start time can't be negative.");
 		}
 
+		//Finally, set the "#mode" flag in the configProps array.
+		// (XML can't have # inside tag names, so this will never be overwritten)
+		props["#mode"] = rf.getTripChainMode(agentType);
+
 		//Create the Person agent with that given ID (or an auto-generated one)
 		Person* agent = new Person(config.mutexStategy, manualID);
 		agent->setConfigProperties(props);

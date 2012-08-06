@@ -56,6 +56,7 @@
 // fclim: I plan to move $topdir/geospatial/aimsun/* and entities/misc/aimsun/* to
 // $topdir/database/ and rename the aimsun namespace to "database".
 #include "entities/misc/TripChain.hpp"
+#include "entities/misc/BusSchedule.hpp"
 #include "entities/misc/aimsun/TripChain.hpp"
 #include "entities/misc/aimsun/SOCI_Converters.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
@@ -109,7 +110,7 @@ private:
 	multimap<int, Polyline> polylines_;
 	vector<TripChainItem> tripchains_;
 	map<int, Signal> signals_;
-	vector<BusSchedule> busschedule_;
+	//vector<sim_mob::BusSchedule> busschedule_;
 
 	map<std::string,BusStop> busstop_;
 	multimap<int,Phase> phases_;//one node_id is mapped to many phases
@@ -125,9 +126,12 @@ private:
 	void LoadPolylines(const std::string& storedProc);
 	void LoadTripchains(const std::string& storedProc);
 	void LoadTrafficSignals(const std::string& storedProc);
-	void LoadBusSchedule(const std::string& storedProc);
 
+public:
+	//New-style Loader functions can simply load data directly into the result vectors.
+	void LoadBusSchedule(const std::string& storedProc, std::vector<sim_mob::BusSchedule*>& busschedule);
 
+private:
 	void LoadBusStop(const std::string& storedProc);
 	void LoadPhase(const std::string& storedProc);
 
@@ -466,7 +470,7 @@ void DatabaseLoader::LoadBusStop(const std::string& storedProc)
 	}
 }
 
-void DatabaseLoader::LoadBusSchedule(const std::string& storedProcedure)
+void DatabaseLoader::LoadBusSchedule(const std::string& storedProcedure, std::vector<sim_mob::BusSchedule*>& busschedule)
 {
     if (storedProcedure.empty())
     {
@@ -474,17 +478,10 @@ void DatabaseLoader::LoadBusSchedule(const std::string& storedProcedure)
                   << "will not lookup the database to create any signal found in there" << std::endl;
         return;
     }
-    soci::rowset<BusSchedule> rows = (sql_.prepare <<"select * from " + storedProcedure);
-    for (soci::rowset<BusSchedule>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
+    soci::rowset<sim_mob::BusSchedule> rows = (sql_.prepare <<"select * from " + storedProcedure);
+    for (soci::rowset<sim_mob::BusSchedule>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
     {
-    	//BusSchedule bus_schedule = *iter;
-        // Convert from meters to centimeters.
-
-    	std::cout<<"busschedule---->"<<iter->TMP_startTimeStr<<std::endl;
-    	iter->startTime = sim_mob::DailyTime(iter->TMP_startTimeStr);
-    	busschedule_.push_back(*iter);
-        //signals_.insert(std::make_pair(signal.id, signal));
-
+    	busschedule.push_back(new sim_mob::BusSchedule(*iter));
     }
 }
 
@@ -576,7 +573,6 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
 	LoadTripchains(getStoredProcedure(storedProcs, "tripchain"));
 	LoadTrafficSignals(getStoredProcedure(storedProcs, "signal"));
-	LoadBusSchedule(getStoredProcedure(storedProcs, "bus_schedule", false));
 	LoadBusStop(getStoredProcedure(storedProcs, "busstop", false));
 	LoadPhase(getStoredProcedure(storedProcs, "phase"));
 
@@ -919,15 +915,6 @@ void CutSingleLanePolyline(vector<Point2D>& laneLine, const DynamicVector& cutLi
 	laneLine[trimStart?0:laneLine.size()-1] = intPt;
 }
 
-void DatabaseLoader::SaveBusSchedule(std::vector<sim_mob::BusSchedule*>& busschedule)
-{
-	for (vector<BusSchedule>::iterator it=busschedule_.begin(); it!=busschedule_.end(); it++) {
-		busschedule.push_back(new sim_mob::BusSchedule());
-		busschedule.back()->tripid = it->tripid;
-		busschedule.back()->startTime = it->startTime;
-		busschedule.back()->TMP_startTimeStr = it->TMP_startTimeStr;
-	}
-}
 
 void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::TripChainItem*>& tcs)
 {
@@ -1055,52 +1042,24 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 
 	for(map<std::string,BusStop>::iterator it = busstop_.begin(); it != busstop_.end(); it++)
 	{
-
+		//Create the bus stop
 		sim_mob::BusStop *busstop = new sim_mob::BusStop();
-		busstop->parentSegment_ = sections_[(*it).second.TMP_AtSectionID].generatedSegment;
-		busstop->busstopno_ = (*it).second.bus_stop_no;
-		busstop->xPos = (*it).second.xPos;
-		busstop->yPos = (*it).second.yPos;
-		sim_mob::Point2D p((*it).second.xPos,(*it).second.yPos);
+		busstop->parentSegment_ = sections_[it->second.TMP_AtSectionID].generatedSegment;
+		busstop->busstopno_ = it->second.bus_stop_no;
+		busstop->xPos = it->second.xPos;
+		busstop->yPos = it->second.yPos;
 
-		double x = busstop->xPos;
-		double y = busstop->yPos;
-
-		double distOrigin = (((*it).second.xPos)+((*it).second.yPos));
+		//Add the bus stop to its parent segment's obstacle list at an estimated offset.
+		double distOrigin = sim_mob::BusStop::EstimateStopPoint(busstop->xPos, busstop->yPos, sections_[it->second.TMP_AtSectionID].generatedSegment);
 		busstop->parentSegment_->obstacles[distOrigin] = busstop;
 	}
 
-
-#if 0
-	map<int,Node>::iterator it=nodes.find(66508);
-	if (it!=nodes.end()) {
-		sim_mob::MultiNode* temp = dynamic_cast<sim_mob::MultiNode*>(it->second.generatedNode);
-		if (temp) {
-			for (set<sim_mob::RoadSegment*>::const_iterator it2=temp->getRoadSegments().begin(); it2!=temp->getRoadSegments().end(); it2++) {
-				if (temp->hasOutgoingLanes(**it2)) {
-					std::cout <<"  Segment crossings for:  " <<(*it2)->getStart()->originalDB_ID.getLogItem() <<" ==> " <<(*it2)->getEnd()->originalDB_ID.getLogItem() <<"\n";
-					std::set<string> res;
-					for (set<sim_mob::LaneConnector*>::const_iterator it3=temp->getOutgoingLanes(**it2).begin(); it3!=temp->getOutgoingLanes(**it2).end(); it3++) {
-						res.insert((*it3)->getLaneTo()->getRoadSegment()->getEnd()->originalDB_ID.getLogItem());
-					}
-
-					for (std::set<string>::iterator it4=res.begin(); it4!=res.end(); it4++) {
-						std::cout <<"    ...to:  " <<*it4 <<"\n";
-					}
-				}
-			}
-
-		}
-	}
-	throw 1;
-#endif
-
-	createSignals();
 	/*vahid:
 	 * and Now we extend the signal functionality by adding extra information for signal's split plans, offset, cycle length, phases
 	 * lots of these data are still default(cycle length, offset, choice set.
 	 * They will be replaced by more realistic value(and input feeders) as the project proceeeds
 	 */
+	createSignals();
 #ifdef SIMMOB_NEW_SIGNAL
 	//NOTE: I am disabling this for now; it seems to be done in createSignals() ~Seth
 	//createPlans();
@@ -1795,6 +1754,10 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 	//Step One: Load
 	loader.LoadBasicAimsunObjects(storedProcs);
 
+	//Step 1.1: Load "new style" objects, which don't require any post-processing.
+	loader.LoadBusSchedule(getStoredProcedure(storedProcs, "bus_schedule", false), ConfigParams::GetInstance().getBusSchedule());
+
+
 	if (prof) { prof->logGenericEnd("Database", "main-prof"); }
 
 	//Step Two: Translate
@@ -1804,11 +1767,6 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 	loader.PostProcessNetwork();
 	//Step Four: Save
 	loader.SaveSimMobilityNetwork(rn, tcs);
-
-	// Temporary for test----Yao Jin
-	ConfigParams& config = ConfigParams::GetInstance();
-	loader.SaveBusSchedule(config.getBusSchedule());
-	// Temporary for test----Yao Jin
 
 	//Temporary workaround; Cut lanes short/extend them as reuquired.
 	for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {

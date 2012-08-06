@@ -4,18 +4,18 @@
 
 #include "Driver.hpp"
 #include "entities/vehicle/BusRoute.hpp"
-#include "entities/vehicle/Bus.hpp"
-#include "DriverUpdateParams.hpp"
 #include <vector>
-#ifndef SIMMOB_DISABLE_MPI
-#include "partitions/PackageUtils.hpp"
-#include "partitions/UnPackageUtils.hpp"
-#endif
-using std::vector;
 
 namespace sim_mob
 {
-#define BusStopVector vector<BusStop *>
+
+//Forward declarations
+class DriverUpdateParams;
+class PackageUtils;
+class UnPackageUtils;
+class BusStop;
+
+
 /**
  * This simple BusDriver class maintains a single, non-looping route with a series of
  *   stops. Most driving behavior is re-used from the Driver class. At bus stops, the
@@ -34,52 +34,36 @@ public:
 	virtual void frame_tick_output_mpi(frame_t frameNumber);
 
 	// get distance to bus stop (meter)
-	double DistanceToNextBusStop();
+	double distanceToNextBusStop() const;
+
 	// get distance to bus stop of particular segment (meter)
-	double getDistanceToBusStopOfSegment(const RoadSegment& roadSegment);
+	double getDistanceToBusStopOfSegment(const RoadSegment* roadSegment) const;
 
-	bool isBusFarawayBusStop();
-	bool isBusApproachingBusStop();
-	bool isBusArriveBusStop();
-	bool isBusLeavingBusStop();
+	bool isBusFarawayBusStop() const;
+	bool isBusApproachingBusStop() const;
+	bool isBusArriveBusStop() const;
+	bool isBusLeavingBusStop() const;
 	void busAccelerating(DriverUpdateParams& p);
-	double lastTickDistanceToBusStop;
-	//DriverUpdateParams* myDriverUpdateParams;
+	mutable double lastTickDistanceToBusStop;
 
-	BusStopVector findBusStopInPath(const vector<const RoadSegment*>& path);
+	std::vector<const sim_mob::BusStop*> findBusStopInPath(const std::vector<const sim_mob::RoadSegment*>& path) const;
 
-	double getPositionX()
-	{
-		if (this->vehicle)
-			return this->bus->getX();
-		return 0;
-	}
-	double getPositionY()
-	{
-		if (this->vehicle)
-			return this->bus->getY();
-		return 0;
-	}
+	double getPositionX() const;
+	double getPositionY() const;
 
-//Basic data
+
 protected:
 	//Override the following behavior
-//	virtual double updatePositionOnLink(DriverUpdateParams& p);
 	virtual double linkDriving(DriverUpdateParams& p);
 
-	Bus* bus;
-
+//Basic data
 private:
 	//BusRoute route;
 	const DemoBusStop* nextStop;
 	std::vector<DemoBusStop> stops;
 	std::vector<DemoBusStop> arrivedStops;
 	double waitAtStopMS;
-	BusStopVector busStops;
-
-	//MITSIM_LC_Model* mitsim_lc_model;
-
-
+	std::vector<const sim_mob::BusStop*> busStops;
 
 
 	//Serialization, not implemented

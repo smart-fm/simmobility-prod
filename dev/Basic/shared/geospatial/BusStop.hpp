@@ -8,6 +8,7 @@
 #include "RoadItem.hpp"
 #include "Route.hpp"
 #include "Lane.hpp"
+#include "util/DynamicVector.hpp"
 
 namespace aimsun
 {
@@ -31,12 +32,10 @@ class BusRoute;
 class BusStop : public sim_mob::RoadItem {
 	
 public:
-	BusStop() : RoadItem(),stopPoint(-1) {}
+	///BusStops must be constructed with their stopPt, which must be the same
+	///  as the lane zero offset in their RoadSegment.
+	explicit BusStop() : RoadItem() {}
 
-	/* int getBusStopID() {
-		   int busstopno = atoi(busstopno_);
-	    	return busstopno;
-	    }*/
 public:
 	///Which RoadItem and lane is this bus stop located at?
 	Lane* lane_location;
@@ -57,38 +56,20 @@ public:
 	///Is the pedestrian waiting area sheltered? Currently does not affect anything.
 	bool has_shelter;
 
-	// the position bus shall stop in segment from start node
-	//unit cm
-	double stopPoint;
+	//The position bus shall stop in segment from start node
+	//NOTE: This is now correctly stored in the RoadSegment's obstacle list.
+	//const double stopPoint;
 
-
-private:
-	///Get the bus lines available at this stop. Used for route planning.
-	///NOTE: Placeholder method; will obviously not be returning void.
-	std::vector <BusRoute> getBusLines() { throw std::runtime_error("Not implemented");  }
-
-	///Get a list of bus arrival times. Pedestrians can consult this (assuming the bus stop is VMS-enabled).
-	///NOTE: Placeholder method; will obviously not be returning void.
-	void getBusArrivalVMS() {  }
-
-
-	//Temporary items required for compiling
-private:
-	const std::vector<sim_mob :: Lane*>& getLanes() const { return lanes;}
-	int bus_stop_lane(const RoadSegment& segment);
-
-	float getSumDistance();
 
 public:
-    /** Return the RoadSegment this Bus Stop is in. */
-
-	void getNearestPolyline()
-	{
-		std::cout<<xPos<<yPos<<std::endl;;
-	}
     sim_mob::RoadSegment* getRoadSegment() const {
         return parentSegment_;
     }
+
+    //Estimate the stop point of this BusStop on a given road segment
+    static double EstimateStopPoint(double xPos, double yPos, const sim_mob::RoadSegment* rs);
+
+
 public:
 	sim_mob::RoadSegment* parentSegment_;
 	std::string busstopno_;

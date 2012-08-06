@@ -73,7 +73,7 @@ public:
 
 
 
-	Driver(Person* parent, sim_mob::MutexStrategy mtxStrat);		//to initiate
+	Driver(Person* parent, sim_mob::MutexStrategy mtxStrat);
 	virtual ~Driver();
 
 	//Virtual implementations
@@ -146,13 +146,7 @@ public:
 	//for coordinate transform
 	void setParentBufferedData();			///<set next data to parent buffer data
 
-	Agent* getDriverParent(const Driver *self)
-	{
-		return self->parent;
-	}
-	//void output(frame_t frameNumber);
-
-	/****************IN REAL NETWORK****************/
+	Agent* getDriverParent(const Driver *self) { return self->parent; }
 private:
 	static void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
 
@@ -162,18 +156,9 @@ private:
 	bool update_movement(DriverUpdateParams& params, frame_t frameNumber);       ///<Called to move vehicles forward.
 	bool update_post_movement(DriverUpdateParams& params, frame_t frameNumber);  ///<Called to deal with the consequences of moving forwards.
 
-//	const Link* desLink;
     double currLinkOffset;
-
 	size_t targetLaneIndex;
 
-	//Driving through an intersection on a given trajectory.
-	//TODO: A bit buggy.
-	//DynamicVector intersectionTrajectory;
-	//double intersectionDistAlongTrajectory;
-
-	//Parameters relating to the next Link we plan to move to after an intersection.
-//	const Link* nextLink;
 	const Lane* nextLaneInNextLink;
 
 public:
@@ -190,8 +175,11 @@ public:
 protected:
 	virtual double updatePositionOnLink(DriverUpdateParams& p);
 	virtual double linkDriving(DriverUpdateParams& p);
-	void initializePath();
+
+	//TODO: Eventually move these into the medium/ folder.
+	sim_mob::Vehicle* initializePath(bool allocateVehicle);
 	void initializePathMed();
+
 	void resetPath(DriverUpdateParams& p);
 	void setOrigin(DriverUpdateParams& p);
 

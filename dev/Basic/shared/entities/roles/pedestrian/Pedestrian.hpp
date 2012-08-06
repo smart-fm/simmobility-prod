@@ -34,10 +34,7 @@ namespace sim_mob
 
 class PackageUtils;
 class UnPackageUtils;
-
-#ifndef SIMMOB_DISABLE_MPI
 class PartitionManager;
-#endif
 
 //Stages
 enum PedestrianStage {
@@ -132,6 +129,7 @@ private:
 	bool gotoCrossing;
 
 	//The following methods are to be moved to agent's sub-systems in future
+	bool isAtBusStop();
 	bool isGoalReached();
 	bool isDestReached();
 	void setSubPath();
@@ -162,11 +160,10 @@ private:
 	//Serialization-related friends
 	friend class PackageUtils;
 	friend class UnPackageUtils;
+	friend class PartitionManager;
 
 #ifndef SIMMOB_DISABLE_MPI
 public:
-	friend class PartitionManager;
-
 	virtual void pack(PackageUtils& packageUtil);
 	virtual void unpack(UnPackageUtils& unpackageUtil);
 

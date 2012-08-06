@@ -70,7 +70,61 @@ vector<const RoadSegment*> ForceForwardSubpath(const RoadSegment* revSegment, ve
 	throw std::runtime_error("Can't retrieve forward subpath for the given candidates.");
 }
 
+
+//Helper function: Return the closest bus stop and its distance from the pedestrian
+std::pair<const BusStop*, double> calcNearestBusStop(const RoadSegment* rs, const DPoint& pos, double stoppingDist) {
+	typedef std::map<centimeter_t, const RoadItem*>::const_iterator RoadObstIt;
+
+	std::pair<const BusStop*, double> res(nullptr, 0);
+	for(RoadObstIt o_it=rs->obstacles.begin(); o_it!=rs->obstacles.end(); o_it++) {
+		const BusStop* bs = dynamic_cast<const BusStop*>(o_it->second);
+		if(!bs) {
+			continue;
+		}
+
+		//Check if it's closer.
+		double newDist = sim_mob::dist(bs->xPos, bs->yPos, pos.x, pos.y);
+		if ((!res.first) || newDist<res.second) {
+			res.first = bs;
+			res.second = newDist;
+
+			//Stop early?
+			if (newDist < stoppingDist) {
+				break;
+			}
+		}
+	}
+
+	return res;
 }
+
+std::pair<const BusDriver*, double> calcNearestBusDriver(unsigned int myID, const DPoint& pos, double stoppingDist) {
+	std::pair<BusDriver*, double> res(nullptr, 0);
+	for (size_t i = 0; i < Agent::all_agents.size(); i++) {
+		//Retrieve only Bus Driver agents.
+		Person* p = dynamic_cast<Person*>(Agent::all_agents[i]);
+		BusDriver* bd = p ? dynamic_cast<BusDriver*>(p->getRole()) : nullptr;
+		if (!bd) {
+			continue;
+		}
+
+		//Determine its distance; compare.
+		double newDist = sim_mob::dist(bd->getPositionX(), bd->getPositionY(), pos.x, pos.y);
+		if ((!res.first) || newDist<res.second) {
+			res.first = bd;
+			res.second = newDist;
+
+			//Stop early?
+			if (newDist < stoppingDist) {
+				break;
+			}
+		}
+	}
+	return res;
+}
+
+}//End anonymous namespace
+
 
 double Pedestrian::collisionForce = 20;
 double Pedestrian::agentRadius = 0.5; //Shoulder width of a person is about 0.5 meter
@@ -138,71 +192,6 @@ UpdateParams& sim_mob::Pedestrian::make_frame_tick_params(frame_t frameNumber, u
 //Main update method
 void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 {
-	if( !fwdMovement.isDoneWithEntireRoute() ){
-		LogOut("noteForDebug look for obstacle, CurrDistAlongRoadSegment is "<< fwdMovement.getCurrDistAlongRoadSegment() << std::endl);
-		const RoadSegment* rs = fwdMovement.getCurrSegment();
-		const std::map<centimeter_t, const RoadItem*>  obstacles = rs->obstacles;
-		for(std::map<centimeter_t, const RoadItem*>::const_iterator o_it = obstacles.begin(); o_it != obstacles.end() ; o_it++)
-		{
-			RoadItem* ri = const_cast<RoadItem*>(o_it->second);
-			//
-			BusStop *bs = dynamic_cast<BusStop *>(ri);
-			if(bs)
-			{
-				std::cout<<"segment has bus stop"<< std::endl;
-					double obsX = bs->xPos;
-					double obsY = bs->yPos;
-					double pedX = fwdMovement.getPosition().x;
-					double pedY = fwdMovement.getPosition().y;
-
-					if(sim_mob::dist(obsX,obsY,pedX,pedY) < 1800 ){
-						Agent* other = nullptr;
-						for (size_t i = 0; i < Agent::all_agents.size(); i++) {
-							//Skip self
-							other = dynamic_cast<Agent*> (Agent::all_agents[i]);
-							if (!other) {
-								break;
-							} //Shouldn't happen; we might need to write a function for this later.
-							if (other->getId() == parent->getId()) {
-								other = nullptr;
-								continue;
-							}
-
-							//NOTE: Don't use a "magic number" like 3 to check if this is
-							//      a bus driver. Instead, use a dynamic cast, which returns null
-							//      if the cast failed.
-							Person* p = dynamic_cast<Person*>(other);
-							if(p){
-								//NOTE: Don't use C-style casting! It's extremely dangerous.
-								BusDriver* bd = dynamic_cast<BusDriver*>(p->getRole());
-								if(bd) {
-									double bdx = 0;
-									double bdy = 0;
-									if (bd)
-									{
-										bdx = bd->getPositionX();
-										bdy = bd->getPositionY();
-
-										double dx = bdx - parent->xPos.get();
-										double dy = bdy - parent->yPos.get();
-										double distance = sqrt(dx * dx + dy * dy);
-										if (distance < 1800) {
-											std::cout<<"noteForGetOnBus"<< std::endl;
-											parent->setToBeRemoved();
-										}
-									}//if (bd)
-
-								}
-							}
-							other = nullptr;
-						}
-						return;
-						//}
-					}
-				}//if(bs)
-			}
-		} // if( !fwdMovement.isDoneWithEntireRoute() ){
-
 	PedestrianUpdateParams& p2 = dynamic_cast<PedestrianUpdateParams&>(p);
 
 	//Is this the first frame tick?
@@ -210,8 +199,12 @@ void sim_mob::Pedestrian::frame_tick(UpdateParams& p)
 		return;
 	}
 
-	//Check if the agent has reached the destination
+	//Check for Bus Stops
+	if (isAtBusStop()) {
+		return;
+	}
 
+	//Check if the agent has reached the destination
 	if (isDestReached()) {
 		parent->setToBeRemoved();
 		return;
@@ -331,12 +324,7 @@ void sim_mob::Pedestrian::frame_tick_output_mpi(frame_t frameNumber)
 /*---------------------Perception-related functions----------------------*/
 
 void sim_mob::Pedestrian::setSubPath() {
-
-
 	if(atSidewalk){
-
-		//LogOut("noteForDebug setSubPath run atSideWalk"<<std::endl);
-
 		vector<WayPoint> wp_path = StreetDirectory::instance().shortestWalkingPath(parent->originNode->location,
 				parent->destNode->location);
 
@@ -345,9 +333,6 @@ void sim_mob::Pedestrian::setSubPath() {
 		for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++){
 			if (it->type_ == WayPoint::SIDE_WALK){
 				std::cout<<"Side_walk start node "<<it->lane_->getRoadSegment()->getStart()->getID()<<"("<<it->lane_->getRoadSegment()->getStart()->location.getX()<<","<<it->lane_->getRoadSegment()->getStart()->location.getY()<<") end node "<<it->lane_->getRoadSegment()->getEnd()->getID()<<"("<<it->lane_->getRoadSegment()->getEnd()->location.getX()<<","<<it->lane_->getRoadSegment()->getEnd()->location.getY()<<")"<<std::endl;
-//				const Lane* side_walk = it->lane_;
-//				const std::vector<Point2D> polyline = side_walk->getPolyline();
-//				std::cout << "side-walk start=" << polyline[0] << " end=" << polyline[polyline.size() - 1] << std::endl;
 
 			}
 			else if (it->type_ == WayPoint::ROAD_SEGMENT)
@@ -355,11 +340,9 @@ void sim_mob::Pedestrian::setSubPath() {
 			else if (it->type_ == WayPoint::BUS_STOP)
 				std::cout<<"Bus_stop"<<std::endl;
 			else if (it->type_ == WayPoint::CROSSING){
-//				std::cout<<"Crossing"<<std::endl;
 				std::cout << "crossing near-line start=" << it->crossing_->nearLine.first << " end=" << it->crossing_->nearLine.second << std::endl;
 			}
 			else if (it->type_ == WayPoint::NODE){
-//				std::cout<<"Node at xPos "<<it->node_->location.getX()<<" ,yPos "<<it->node_->location.getY()<<std::endl;
 				std::cout << "node location=" << it->node_->location << std::endl;
 			}
 			else if (it->type_ == WayPoint::INVALID)
@@ -369,11 +352,8 @@ void sim_mob::Pedestrian::setSubPath() {
 		}
 
 		//----------------------------------------------------
-
 		const Lane* nextSideWalk = nullptr; //For the old code
 		sim_mob::GeneralPathMover::PathWithDirection segWithDirection;
-		//vector<const RoadSegment*> path;
-
 			int laneID = -1; //Also save the lane id.
 			bool isPassedSeg=false;
 			for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
@@ -564,6 +544,35 @@ void sim_mob::Pedestrian::initCrossing(const Crossing* currCross,boost::mt19937&
 	relToAbs(xRel,yRel,xAbs,yAbs);
 	goalInLane = Point2D((int)xAbs,(int)yAbs);
 
+}
+
+
+bool sim_mob::Pedestrian::isAtBusStop() {
+	//Doesn't matter if we're already done.
+	if(fwdMovement.isDoneWithEntireRoute()) {
+		return false;
+	}
+
+	//Retrieve the nearest bus stop (TODO: This can be done much more efficiently using the
+	//  Pedestrian's current offset along the RoadSegment).
+	{
+		std::pair<const BusStop*, double> nearestBS = calcNearestBusStop(fwdMovement.getCurrSegment(), fwdMovement.getPosition(), 1800);
+		if (!nearestBS.first) {
+			return false;
+		}
+	}
+
+	//Retrieve the nearest BusDriver to this stop.
+	//NOTE: This should be done via the StreetDirectory; it's much faster than scanning the entire Agents list.
+	std::pair<const BusDriver*, double> nearestBD = calcNearestBusDriver(parent->getId(), fwdMovement.getPosition(), 1800);
+	if (!nearestBD.first) {
+		return false;
+	}
+
+	//At this point, we have a valid, nearby Bus Driver. We should board the bus (but for now we
+	//  will just remove ourselves).
+	parent->setToBeRemoved();
+	return true;
 }
 
 bool sim_mob::Pedestrian::isDestReached() {

@@ -8,6 +8,7 @@
 
 #include "soci.h"
 #include "TripChain.hpp"
+#include "entities/misc/BusSchedule.hpp"
 
 
 using namespace sim_mob::aimsun;
@@ -66,19 +67,19 @@ template<> struct type_conversion<TripChainItem>
 
 
 template<>
-struct type_conversion<BusSchedule>
+struct type_conversion<sim_mob::BusSchedule>
 {
     typedef values base_type;
 
     static void
-    from_base(soci::values const & values, soci::indicator & indicator, BusSchedule& bus_schedule)
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::BusSchedule& bus_schedule)
     {
     	bus_schedule.tripid = values.get<std::string>("trip_id", "");
-    	bus_schedule.TMP_startTimeStr = values.get<std::string>("start_time", "");
+    	bus_schedule.startTime = sim_mob::DailyTime(values.get<std::string>("start_time", ""));
     }
 
     static void
-    to_base(BusSchedule const & bus_schedule, soci::values & values, soci::indicator & indicator)
+    to_base(sim_mob::BusSchedule const & bus_schedule, soci::values & values, soci::indicator & indicator)
     {
         values.set("trip_id", bus_schedule.tripid);
         values.set("start_time", bus_schedule.startTime.toString());

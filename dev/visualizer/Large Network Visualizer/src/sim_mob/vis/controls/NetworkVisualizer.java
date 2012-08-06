@@ -522,14 +522,14 @@ public class NetworkVisualizer {
 		
 		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
 			Set<Integer> crossingIds = at.getCrossingID_Map().keySet();
-			System.out.println("\nFrame " + currFrame + " Analysing intersection " +at.getID() + " with " + at.getCrossingID_Map().keySet().size() +" crossing IDs");
+//			System.out.println("\nFrame " + currFrame + " Analysing intersection " +at.getID() + " with " + at.getCrossingID_Map().keySet().size() +" crossing IDs");
 			for(Integer crossingId:crossingIds)
 			{
 				DrawParams p = new DrawParams();
 				p.PastCriticalZoom = pastCriticalZoom();
 //				if((currFrame == 230)&& at.getPhase().equals("D"))
 //					System.out.println("Tick 230 Phase D Setting crossing " + crossingId + "  color to " + at.getCrossingID_Map().get(crossingId));
-				System.out.println("checking crossing ID" + crossingId);
+//				System.out.println("checking crossing ID" + crossingId);
 				if(network.getTrafficSignalCrossing() == null)
 					System.out.println("network.getTrafficSignalCrossing() is NULL");
 				if(network.getTrafficSignalCrossing().get(crossingId)==null)
@@ -544,7 +544,7 @@ public class NetworkVisualizer {
 				index.addItem(item, item.getBounds());
 				}
 			}
-			System.out.println("\nFrame " + currFrame + " Analysing intersection " +at.getID() + " Done..");
+//			System.out.println("\nFrame " + currFrame + " Analysing intersection " +at.getID() + " Done..");
 		}
 	}
 	

@@ -221,7 +221,7 @@ public class SimulationResults {
 						//Parse this line as text and pseudo-json.
 						Utility.ParseResults pRes = Utility.ParseLogLine(flp, logLine.line);
 						if (pRes.isError()) {
-							throw new RuntimeException("Error parsing line: \n  " + pRes.errorMsg);
+							throw new RuntimeException("Error parsing line: \n  " + logLine.line + "\nError:\n"+pRes.errorMsg);
 						}
 
 					    //Pass this off to a different function based on the type

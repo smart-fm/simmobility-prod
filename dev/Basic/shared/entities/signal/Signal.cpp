@@ -373,9 +373,9 @@ double Signal_SCATS::computePhaseDS(int phaseId) {
 double Signal_SCATS::LaneDS(const LoopDetectorEntity::CountAndTimePair& ctPair,double total_g)
 {
 //	CountAndTimePair would give you T and n of the formula 2 in section 3.2 of the memurandum (page 3)
-	std::cout << "ctPair(vehicle count: " << ctPair.vehicleCount << " , spaceTime: " << ctPair.spaceTimeInMilliSeconds << ")"
-			<< " total_g=" << total_g
-			<< std::endl;
+//	std::cout << "ctPair(vehicle count: " << ctPair.vehicleCount << " , spaceTime: " << ctPair.spaceTimeInMilliSeconds << ")"
+//			<< " total_g=" << total_g
+//			<< std::endl;
 	std::size_t vehicleCount = ctPair.vehicleCount;
 	unsigned int spaceTime = ctPair.spaceTimeInMilliSeconds;
 	double standard_space_time = 1.04*1000;//1.04 seconds
@@ -452,7 +452,7 @@ UpdateStatus Signal_SCATS::update(frame_t frameNumber) {
 	if(temp_PhaseId < plan_.phases_.size())
 		{
 			plan_.phases_[temp_PhaseId].update(currCycleTimer);
-			plan_.printColors(currCycleTimer);
+//			plan_.printColors(currCycleTimer);
 		}
 	else
 		throw std::runtime_error("currPhaseID out of range");

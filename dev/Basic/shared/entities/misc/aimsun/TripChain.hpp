@@ -14,8 +14,12 @@
 #include "partitions/UnPackageUtils.hpp"
 #endif
 
+namespace sim_mob
+{
+
 namespace aimsun
 {
+
 
 /**
  * Aimsun class to read from database.
@@ -69,5 +73,7 @@ public:
 		this->sequenceNumber = sequenceNumber;
 	}
 };
+
+} //End namespace aimsun
 
 }

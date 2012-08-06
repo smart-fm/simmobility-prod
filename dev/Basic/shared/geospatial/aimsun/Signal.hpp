@@ -20,7 +20,6 @@ namespace aimsun   // This namespace should be called "database" to be more gene
         double bearing;
         std::string typeCode;
     };
-
 }
 
 }

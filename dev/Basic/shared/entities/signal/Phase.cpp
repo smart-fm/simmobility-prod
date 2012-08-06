@@ -79,15 +79,22 @@ std::string getColor(size_t id)
 				throw std::runtime_error(o.str());
 			}
 		}
+
+		std::cout << "calling compute for crossings" << std::endl;
 		//update each crossing signal's color
 		//common sense says there is only one crossing per link, but I kept a container for it just in case
 		crossings_map_iterator crossing_it = crossings_map_.begin();
 		for(;crossing_it != crossings_map_.end() ; crossing_it++)
 		{
-			if(lapse > 0) (*crossing_it).second.currColor = (*crossing_it).second.colorSequence.computeColor(lapse);
+			if(lapse > 0)
+				{
+
+				TrafficColor t = (*crossing_it).second.colorSequence.computeColor(lapse);
+					(*crossing_it).second.currColor = t;//(*crossing_it).second.colorSequence.computeColor(lapse);
+				}
 		}
 
-	}
+}
 //	assumption : total green time = the whole duration in the color sequence except red!
 //	formula : for a given phase, total_g is maximum (G+FG+...+A - All_red, red...) of the linkFrom(s)
 	/*todo a container should be created(probabely at splitPlan level and mapped to "choiceSet" container)
@@ -162,22 +169,17 @@ void Phase::addDefaultCrossings(LinkAndCrossingByLink const & LAC,sim_mob::Multi
 		sim_mob::Crossing * crossing = const_cast<sim_mob::Crossing *>((*it).crossing);
 //			for the line below,please look at the sim_mob::Crossings container and crossings_map for clearance
 		if(crossing)
+		{
 			crossings_map_.insert(std::pair<sim_mob::Crossing *, sim_mob::Crossings>(crossing, sim_mob::Crossings(link, crossing)));
+			std::cout << " Node ID " << node->getID() << " Phase  " <<  name << " added a crossing\n";
+		}
 		else
 		{
-			if(node->getID() == 115436)
-				std::cout << " Node ID 115436 has a NULL crossing\n";
+				std::cout << " Node ID " << node->getID() << " Phase  " <<  name << " has a NULL crossing\n";
 		}
 	}
-	if(node->getID() == 115436)
-		{
-			std::cout << " Phase  " <<  name << " Has " << crossings_map_.size() << "/" << LAC.size() << "  Crossings :" << std::endl;
-			crossings_map_iterator it = crossings_map_.begin();
-			for(;it != crossings_map_.end(); it++)
-				std::cout << it->first << "\n";
-			std::cout <<  "\n";
-		}
-	std::cout << " out of addDefaultCrossings\n";
+	std::cout << " out of addDefaultCrossings for  Node ID " << node->getID() << " Phase " << name << " with " << crossings_map_.size() << " Crossings\n";
+//	getchar();
 }
 
 sim_mob::RoadSegment * Phase::findRoadSegment(sim_mob::Link * link,sim_mob::MultiNode * node) const {
@@ -198,10 +200,10 @@ void Phase::addLinkMapping(sim_mob::Link * lf, sim_mob::linkToLink & ll,sim_mob:
 	//findRoadSegment is buggy, no need now, coz I have set the values already in loader.cpp throuh ll constructor
 //	ll.RS_From = findRoadSegment(lf, node);
 //	ll.RS_To = findRoadSegment(ll.LinkTo, node);
-	if(name == "C")
-	{
-		std::cout << "addLinkMapping ::" <<  ll.RS_From << ":" << ll.RS_To << "\n";
-	}
+//	if(name == "C")
+//	{
+//		std::cout << "addLinkMapping ::" <<  ll.RS_From << ":" << ll.RS_To << "\n";
+//	}
 	links_map_.insert(std::pair<sim_mob::Link *, sim_mob::linkToLink>(lf, ll));
 }
 
@@ -341,7 +343,7 @@ void Phase::calculateGreen_Crossings(){
 		int tempGreenIndex = 0, tempFGreenIndex = 0;
 		for(; it_color != cd.end(); it_color++)
 		{
-			if((it_color->first != sim_mob::Green) && (it_color->first != sim_mob::FlashingGreen))
+			if((it_color->first != sim_mob::Green) && (it_color->first != sim_mob::Amber))
 			{
 				other_than_green += it_color->second;
 			}

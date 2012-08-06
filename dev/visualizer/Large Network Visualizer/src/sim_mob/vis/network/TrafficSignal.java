@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Rectangle2D.Double;
 import java.util.ArrayList;
+import sim_mob.vis.Main;
 
 import sim_mob.vis.controls.DrawParams;
 import sim_mob.vis.controls.DrawableItem;
@@ -44,9 +45,7 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 	
 	public class Crossing {
 		public Crossing(){};
-		public Crossing(String id_){
-			id = id_;
-		}
+		public Crossing(String id_){id = id_;}
 		private String id;
 		
 		//This will be "null" for TrafficSignal; it will be set properly in "TrafficSignalUpdate"
@@ -83,6 +82,7 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 	
 	
 	public void addSelfToSimulation(RoadNetwork rdNet, SimulationResults simRes) {
+		Main.NEW_SIGNAL = true;
 //		System.out.println("Inside TS.addSelfToSimulation");
 		SignalHelper signalHelper = new SignalHelper();
 		signalHelper.phases = new ArrayList<SignalHelper.Phase>();
@@ -91,7 +91,6 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 //		signalHelper.hex_id = Utility.ParseIntOptionalHex(hex_id);//intersection id
 		signalHelper.node = SignalHelper.HexStringToInt(node);
 		signalHelper.hex_id = SignalHelper.HexStringToInt(hex_id);//intersection id
-		System.out.println("Intersection " + hex_id + " got the id " + signalHelper.hex_id);
 		for(Phase ph: phases)
 		{
 			SignalHelper.Phase phase = signalHelper.new Phase(ph.name);
@@ -122,7 +121,7 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 		}
 		//Something like this?....
 //		System.out.println("Adding intersection "+ signalHelper.hex_id + " to road network");
-		rdNet.getIntersections().put(signalHelper.hex_id, new Intersection(signalHelper));
+		rdNet.getIntersection().put(signalHelper.hex_id, new Intersection(signalHelper));
 	}
 	
 	public void draw(Graphics2D g, DrawParams params) {
@@ -142,6 +141,6 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 	}
 	
 	public int getZOrder() {
-		return DrawableItem.Z_ORDER_TRAFFIC_SIGNAL;
+		return DrawableItem.Z_ORDER_TRAFFIC_SIGNAL_UPDATE;
 	}
 }

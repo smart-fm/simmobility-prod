@@ -23,6 +23,8 @@ namespace sim_mob {
 class Node;
 class SubTrip;
 
+
+
 /**
  * Base class for elements in a trip chain.
  * \author Harish L

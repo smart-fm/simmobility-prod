@@ -77,7 +77,7 @@ Signal::Signal(Node const & node, const MutexStrategy& mtxStrat, int id)
   : Agent(mtxStrat, id)
   , node_(node)
   , buffered_TC(mtxStrat, SignalStatus())
-  , loopDetector_(*this, mtxStrat)
+  , loopDetector_(new LoopDetectorEntity(*this, mtxStrat))
 {
 	ConfigParams& config = ConfigParams::GetInstance();
 	signalAlgorithm = config.signalAlgorithm;
@@ -342,7 +342,7 @@ double Signal::computeDS(double total_g)
 				if(colors.forward==Red&&colors.left==Red&&colors.right==Red)
 					continue;
 
-				const LoopDetectorEntity::CountAndTimePair& ctPair = loopDetector_.getCountAndTimePair(*lane);
+				const LoopDetectorEntity::CountAndTimePair& ctPair = loopDetector_->getCountAndTimePair(*lane);
 				double lane_DS = LaneDS(ctPair,total_g);
 				if(lane_DS>maxDS)
 					maxDS = lane_DS;
@@ -394,7 +394,7 @@ void Signal::updateSignal(double DS[]) {
 			updatecurrCL();
 			setnextSplitPlan(DS);
 			updatecurrSplitPlan();
-			loopDetector_.reset();
+			loopDetector_->reset();
 		}
 		else
 		{
@@ -446,7 +446,7 @@ void Signal::updateSignal(double DS[]) {
 			//		if(getNode().location.getX()==37250760 && getNode().location.getY()==14355120)
 			//			std::cout<<"currDS "<<currPhaseDS<<std::endl;
 			DS[prePhase%10] = currPhaseDS;
-			loopDetector_.reset();
+			loopDetector_->reset();
 		}
 	}
 	updateTrafficLights();

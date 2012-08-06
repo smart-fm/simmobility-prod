@@ -12,6 +12,7 @@ import javax.swing.SwingUtilities;
 
 import sim_mob.act.BifurcatedActivity;
 import sim_mob.act.SimpleThreadPool;
+import sim_mob.vis.Main;
 import sim_mob.vis.ProgressUpdateRunner;
 import sim_mob.vis.controls.NetworkPanel;
 import sim_mob.vis.network.*;
@@ -67,7 +68,7 @@ public class SimulationResults {
 		yBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
 		
 		//Read
-		String line;
+		String line;	
 		ArrayList<LogFileLine> lineBuffer = new ArrayList<LogFileLine>();
 		SimpleThreadPool stp = new SimpleThreadPool(10); //No more than 10 threads at once.
 		while ((line=inFile.readLine())!=null) {
@@ -220,7 +221,7 @@ public class SimulationResults {
 						//Parse this line as text and pseudo-json.
 						Utility.ParseResults pRes = Utility.ParseLogLine(flp, logLine.line);
 						if (pRes.isError()) {
-							throw new RuntimeException("Error parsing line: \n  " + pRes.errorMsg);
+							throw new RuntimeException("Error parsing line: \n  " + logLine.line + "\nError:\n"+pRes.errorMsg);
 						}
 
 					    //Pass this off to a different function based on the type

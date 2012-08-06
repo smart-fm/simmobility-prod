@@ -246,11 +246,11 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) {
 	this->getNextSubTripInTrip();
 
-	if(this->currSubTrip == nullptr){
+	if(!this->currSubTrip){
 		this->findNextItemInTripChain();
 	}
 
-	if (this->currTripChainItem == nullptr) {
+	if (!this->currTripChainItem) {
 		return UpdateStatus::Done;
 	}
 

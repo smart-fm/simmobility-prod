@@ -2,6 +2,28 @@
 
 #pragma once
 
+
+////////////////////////////////////////////////////////////
+//
+// TODO: This class was added by Zhemin to provide some statistics on the average speed
+//       for a given segment.
+//       He later commented this out, so the average speed is effectively not updated....
+//       however, the StreetDirectory still calls "getAvgSpeedRS()" and attempts to
+//       react to its value.
+//       I've commented out the entire implementation (TrafficWatch.cpp), since it wasn't
+//       being called anyway. This class either needs to be completely removed, or updated and
+//       re-enabled in main.cpp.
+//       One thing to think about: most items which "update" should be Agents. TrafficWatch
+//       could be run as an Agent on a very large time-tick, depending on the required accuracy
+//       of the data it sends. Or, we could just implement its "update" parameter in the
+//       StreetDirectory itself, if a fine-grained resolution is required. Unfortunately,
+//
+//       Zhemin's commit message when he disabled this class is not helpful at all, so that is
+//       why you are seeing this long "TODO" comment. ~Seth
+//
+////////////////////////////////////////////////////////////
+
+
 #include <map>
 #include <vector>
 
@@ -30,7 +52,7 @@ private:
 	static std::map<const RoadSegment*, double> avgSpeedRS;
 	static std::map<const RoadSegment*, size_t> numVehRS;
 
-	TrafficWatch() {} //Private constructor makes more sense for a singleton.
+	TrafficWatch() {}
 public:
     static TrafficWatch &
     instance()
@@ -50,7 +72,7 @@ public:
     }
 
 
-	void update(frame_t /* frameNumber */);
+	void update(frame_t /* frameNumber */) {throw std::runtime_error("TrafficWatch not implemented");}
 
 
 

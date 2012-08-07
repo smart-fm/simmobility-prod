@@ -1,6 +1,13 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
-#include "TrafficWatch.hpp"
+
+///
+///  TODO: Do not delete this file. Please read the comment in TrafficWatch.hpp
+///        ~Seth
+///
+
+
+/*#include "TrafficWatch.hpp"
 
 //For debugging
 #include "util/DebugFlags.hpp"
@@ -15,9 +22,9 @@
 using std::vector;
 using namespace sim_mob;
 
-/* static */ TrafficWatch sim_mob::TrafficWatch::instance_;
-/* static */ std::map<const RoadSegment*, double> sim_mob::TrafficWatch::avgSpeedRS;
-/* static */ std::map<const RoadSegment*, size_t> sim_mob::TrafficWatch::numVehRS;
+TrafficWatch sim_mob::TrafficWatch::instance_;
+std::map<const RoadSegment*, double> sim_mob::TrafficWatch::avgSpeedRS;
+std::map<const RoadSegment*, size_t> sim_mob::TrafficWatch::numVehRS;
 
 //traffic watch will update each 1000 frames.
 void sim_mob::TrafficWatch::update(frame_t frameNumber) {
@@ -59,4 +66,4 @@ void sim_mob::TrafficWatch::update(frame_t frameNumber) {
 	StreetDirectory::instance().updateDrivingMap();
 }
 
-
+*/

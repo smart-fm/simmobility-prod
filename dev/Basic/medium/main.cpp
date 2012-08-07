@@ -171,9 +171,6 @@ bool performMainMed(const std::string& configFileName) {
 	AuraManager& auraMgr = AuraManager::instance();
 	auraMgr.init();
 
-	//Inititalize the traffic watch
-//	TrafficWatch& trafficWatch = TrafficWatch::instance();
-
 	//Start work groups and all threads.
 	agentWorkers.startAll();
 #ifndef TEMP_FORCE_ONE_WORK_GROUP
@@ -267,7 +264,6 @@ bool performMainMed(const std::string& configFileName) {
 #endif
 
 		auraMgr.update(currTick);
-//		trafficWatch.update(currTick);
 		agentWorkers.waitExternAgain(); // The workers wait on the AuraManager.
 
 		//Check if the warmup period has ended.
@@ -275,8 +271,6 @@ bool performMainMed(const std::string& configFileName) {
 			//updateGUI(agents);
 			//saveStatistics(agents);
 		}
-
-		//saveStatisticsToDB(agents);
 	}
 
 	//Finalize partition manager

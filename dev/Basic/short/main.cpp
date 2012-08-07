@@ -179,7 +179,10 @@ bool performMain(const std::string& configFileName) {
 	AuraManager& auraMgr = AuraManager::instance();
 	auraMgr.init();
 
-	//Inititalize the traffic watch
+	///
+	///  TODO: Do not delete this next line. Please read the comment in TrafficWatch.hpp
+	///        ~Seth
+	///
 //	TrafficWatch& trafficWatch = TrafficWatch::instance();
 
 	//Start work groups and all threads.
@@ -277,7 +280,14 @@ bool performMain(const std::string& configFileName) {
 #endif
 
 		auraMgr.update(currTick);
+
+		///
+		///  TODO: Do not delete this next line. Please read the comment in TrafficWatch.hpp
+		///        ~Seth
+		///
 //		trafficWatch.update(currTick);
+
+
 		agentWorkers.waitExternAgain(); // The workers wait on the AuraManager.
 
 

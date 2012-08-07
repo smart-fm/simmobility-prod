@@ -11,7 +11,6 @@
 
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
-#include "entities/PendingEntity.hpp"
 #include "entities/LoopDetectorEntity.hpp"
 
 using std::map;
@@ -88,7 +87,7 @@ void sim_mob::WorkGroup::startAll()
 }
 
 
-void sim_mob::WorkGroup::scheduleEntity(const PendingEntity& ent)
+void sim_mob::WorkGroup::scheduleEntity(Person* ent)
 {
 	//No-one's using DISABLE_DYNAMIC_DISPATCH anymore; we can eventually remove it.
 	if (!loader) { throw std::runtime_error("Can't schedule an entity with dynamic dispatch disabled."); }
@@ -107,10 +106,9 @@ void sim_mob::WorkGroup::stageEntities()
 
 	//Keep assigning the next entity until none are left.
 	unsigned int nextTickMS = nextTimeTickToStage*ConfigParams::GetInstance().baseGranMS;
-	while (!loader->pending_source.empty() && loader->pending_source.top().start <= nextTickMS) {
+	while (!loader->pending_source.empty() && loader->pending_source.top()->getStartTime() <= nextTickMS) {
 		//Remove it.
-		Person* ag = Person::GeneratePersonFromPending(loader->pending_source.top());
-
+		Person* ag = loader->pending_source.top();
 		loader->pending_source.pop();
 
 		if (sim_mob::Debug::WorkGroupSemantics) {

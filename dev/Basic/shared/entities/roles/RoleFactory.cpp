@@ -1,6 +1,7 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "RoleFactory.hpp"
+#include <stdexcept>
 
 using namespace sim_mob;
 using std::map;

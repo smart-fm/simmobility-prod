@@ -283,22 +283,25 @@ void generateAgentsFromBusSchedule(std::vector<Entity*>& active_agents, AgentCon
 
 	//Create a single entity for each bus schedule in the database.
 	for (vector<BusSchedule*>::const_iterator it=busschedule.begin(); it!=busschedule.end(); it++) {
-		//Create an Agent candidate based on the type.
-		PendingEntity p(EntityTypeFromConfigString("bus"));
+		//Create a new Person for this bus; use an auto-generated ID
+		Person* agent = new Person(config.mutexStategy);
 
-		//Test
+		//Copy this bus's trip from an existing Trip
 		Trip* toLoad = dynamic_cast<Trip*>(tcs[7]);
 		if (!toLoad) { throw std::runtime_error("Trip chain item does not represent trip."); }
 
-		//Origin, destination
-		p.origin = toLoad->fromLocation;// dummy data
-		p.dest = toLoad->toLocation;// dummy data
+		//Save it
+		vector<const TripChainItem*> tripChain;
+		tripChain.push_back(toLoad);
+		agent->setTripChain(tripChain);
 
-		//Start time
-		p.start = (*it)->startTime.offsetMS_From(config.simStartTime);
+		//Some properties need to be set:
+		agent->originNode = toLoad->fromLocation;
+		agent->destNode = toLoad->toLocation;
+		agent->setStartTime(toLoad->startTime.offsetMS_From(config.simStartTime));
 
 		//Either start or save it, depending on the start time.
-		BusController::busctrller->addOrStashBuses(p, active_agents);
+		BusController::busctrller->addOrStashBuses(agent, active_agents);
 	}
 }
 

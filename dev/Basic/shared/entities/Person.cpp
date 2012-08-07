@@ -18,6 +18,8 @@
 #include "entities/misc/TripChain.hpp"
 #endif
 
+using std::map;
+using std::string;
 using std::vector;
 using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
@@ -81,10 +83,11 @@ sim_mob::Person::~Person() {
 void sim_mob::Person::load(const map<string, string>& configProps)
 {
 	//Make sure they have a mode specified for this trip
-	if (configProps.count("#mode")==0) {
+	map<string, string>::const_iterator it = configProps.find("#mode");
+	if (it==configProps.end()) {
 		throw std::runtime_error("Cannot load person: no mode");
 	}
-	std::string mode = configProps["#mode"];
+	std::string mode = it->second;
 
 	//Consistency check: specify both origin and dest
 	if (configProps.count("originPos") != configProps.count("destPos")) {

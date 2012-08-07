@@ -22,7 +22,7 @@ namespace sim_mob
 
 class StartTimePriorityQueue;
 class EventTimePriorityQueue;
-class PendingEntity;
+class Person;
 
 
 /*
@@ -68,7 +68,7 @@ public:
 	Worker* getWorker(int id);
 
 	//Schedule an entity. Only call this during the "update" phase.
-	void scheduleEntity(const PendingEntity& ent);
+	void scheduleEntity(Person* ent);
 
 	void stageEntities();
 	void collectRemovedEntities();

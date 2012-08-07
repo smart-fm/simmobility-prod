@@ -425,7 +425,7 @@ DatabaseLoader::LoadTrafficSignals(std::string const & storedProcedure)
         // Convert from meters to centimeters.
         iter->xPos *= 100;
         iter->yPos *= 100;
-        signals_.insert(std::make_pair(signal.id, *iter));
+        signals_.insert(std::make_pair(iter->id, *iter));
     }
 }
 
@@ -781,7 +781,7 @@ void DatabaseLoader::PostProcessNetwork()
 
 
 
-sim_mob::Activity* MakeActivity(const sim_mob::TripChainItem& tcItem) {
+sim_mob::Activity* MakeActivity(const TripChainItem& tcItem) {
 	sim_mob::Activity* res = new sim_mob::Activity();
 	res->entityID = tcItem.entityID;
 	res->itemType = tcItem.itemType;
@@ -798,7 +798,7 @@ sim_mob::Activity* MakeActivity(const sim_mob::TripChainItem& tcItem) {
 }
 
 
-sim_mob::Trip* MakeTrip(const sim_mob::TripChainItem& tcItem) {
+sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
 	sim_mob::Trip* tripToSave = new sim_mob::Trip();
 	tripToSave->tripID = tcItem.tripID;
 	tripToSave->entityID = tcItem.entityID;
@@ -809,7 +809,7 @@ sim_mob::Trip* MakeTrip(const sim_mob::TripChainItem& tcItem) {
 	return tripToSave;
 }
 
-sim_mob::SubTrip MakeSubTrip(const sim_mob::TripChainItem& tcItem) {
+sim_mob::SubTrip MakeSubTrip(const TripChainItem& tcItem) {
 	sim_mob::SubTrip aSubTripInTrip;
 	aSubTripInTrip.entityID = tcItem.entityID;
 	aSubTripInTrip.itemType = tcItem.itemType;
@@ -827,7 +827,7 @@ sim_mob::SubTrip MakeSubTrip(const sim_mob::TripChainItem& tcItem) {
 
 void AddSubTrip(sim_mob::Trip* parent, const sim_mob::SubTrip& subTrip) {
 	// Update the trip destination so that toLocation eventually points to the destination of the trip.
-	parent->toLocation = subTrip.toLocation->generatedNode;
+	parent->toLocation = subTrip.toLocation;
 	parent->toLocationType = subTrip.toLocationType;
 
 	//Add it to the list.

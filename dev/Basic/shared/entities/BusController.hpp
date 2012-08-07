@@ -35,7 +35,10 @@ public:
 	virtual Entity::UpdateStatus update(frame_t frameNumber);
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 	void updateBusInformation(DPoint pt);
-	void addOrStashBuses(const Person* p, std::vector<Entity*>& active_agents);
+	void addOrStashBuses(Person* p, std::vector<Entity*>& active_agents);
+
+	//May implement later
+	virtual void load(const std::map<std::string, std::string>& configProps){}
 
 	//NOTE: There's two problems here:
 	//      1) You use a static "BusController", which is not flexible.

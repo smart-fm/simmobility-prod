@@ -3,8 +3,6 @@
 #include "TrafficWatch.hpp"
 
 //For debugging
-#include "entities/roles/driver/Driver.hpp"
-#include "entities/roles/driver/BusDriver.hpp"
 #include "util/DebugFlags.hpp"
 #include "util/OutputUtil.hpp"
 #include "entities/Agent.hpp"

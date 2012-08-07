@@ -44,6 +44,9 @@ public:
 	//Allow propagating destructors
 	virtual ~Role() {}
 
+	//A Role must allow for copying via prototyping; this is how the RoleFactory creates roles.
+	virtual Role* clone(Person* parent) const = 0;
+
 	///Called the first time an Agent's update() method is successfully called.
 	/// This will be the tick of its startTime, rounded down(?).
 	virtual void frame_init(UpdateParams& p) = 0;

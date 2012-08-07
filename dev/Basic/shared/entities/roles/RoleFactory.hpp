@@ -9,6 +9,7 @@ namespace sim_mob
 {
 
 class Role;
+class Person;
 class TripChainItem;
 
 
@@ -28,22 +29,33 @@ class TripChainItem;
  */
 class RoleFactory {
 public:
+	///Register a Role, and a prototype we can clone to create members of this Role.
+	void registerRole(const std::string& name, const sim_mob::Role* prototype);
+
 	///Is this a Role that our Factory knows how to construct?
 	bool isKnownRole(const std::string& roleName) const;
-
-	///Retrieve the name of this Role's mode as it is known to the TripChain class.
-	std::string getTripChainMode(const std::string& roleName) const;
 
 	///Return a map of required attributes, with a flag on each set to false.
 	std::map<std::string, bool> getRequiredAttributes(const std::string& roleName) const;
 
-	///Create a role given its name and property list
-	sim_mob::Role* createRole(const std::string& name, const std::map<std::string, std::string>& props) const;
+	///Create a role based on its name
+	sim_mob::Role* createRole(const std::string& name, sim_mob::Person* parent) const;
 
 	///Create a Role based on the current TripChain item.
-	sim_mob::Role* createRole(const sim_mob::TripChainItem* const currTripChainItem) const;
+	sim_mob::Role* createRole(const sim_mob::TripChainItem* currTripChainItem, sim_mob::Person* parent) const;
+
+	///Workaround: Convert the mode of a trip chain (e.g., "Car", "Walk") to one that
+	///            we understand (e.g., "driver", "pedestrian"). These should eventually
+	///            be unified; for now, we have to do this manually.
+	static std::string GetTripChainMode(const sim_mob::TripChainItem* currTripChainItem);
 
 private:
+	//Helper
+	const sim_mob::Role* getPrototype(const std::string& name) const;
+
+	//List of Roles and prototypes
+	std::map<std::string, const sim_mob::Role*> prototypes;
+
 
 
 };

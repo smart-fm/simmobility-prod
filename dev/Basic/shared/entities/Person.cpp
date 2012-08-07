@@ -378,7 +378,7 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) 
 
 	//Create a new Role based on the trip chain type
 	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
-	changeRole(rf.createRole(this->currTripChainItem));
+	changeRole(rf.createRole(this->currTripChainItem, this));
 
 	//Update our origin/dest pair.
 	//TODO: We need to make TripChainItems a little friendlier in terms of
@@ -389,6 +389,17 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) 
 	} else {
 		originNode = dynamic_cast<const Activity&>(*currTripChainItem).location;
 		destNode = destNode;
+	}
+
+	//Activities require some additional work
+	//TODO: A more centralized way of doing this is necessary; we can't be casting directly
+	//      to an ActivityPerformer.
+	if(this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_ACTIVITY){
+		ActivityPerformer* actPerf = dynamic_cast<ActivityPerformer*>(getRole());
+		const Activity& act = dynamic_cast<const Activity&>(*currTripChainItem);
+		actPerf->setActivityStartTime(act.startTime);
+		actPerf->setActivityEndTime(act.endTime);
+		actPerf->setLocation(act.location);
 	}
 
 	//Create a return type based on the differences in these Roles

@@ -185,7 +185,7 @@ void addOrStashEntity(Person* p, std::vector<Entity*>& active_agents, StartTimeP
 
 
 
-namespace {
+/*namespace {
   //Simple helper function
   KNOWN_ENTITY_TYPES EntityTypeFromTripChainString(const std::string& str) {
 		//Decode the mode.
@@ -198,7 +198,7 @@ namespace {
 		throw std::runtime_error("Unknown agent mode");
   }
 
-} //End anon namespace
+}*/ //End anon namespace
 
 //NOTE: "constraints" are not used here, but they could be (for manual ID specification).
 void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, AgentConstraints& constraints)
@@ -252,7 +252,7 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	}
 }
 
-namespace {
+/*namespace {
   //Simple helper function
   KNOWN_ENTITY_TYPES EntityTypeFromConfigString(const std::string& str) {
 		//Decode the mode.
@@ -271,7 +271,7 @@ namespace {
 		throw std::runtime_error("Unknown agent mode");
   }
 
-} //End anon namespace
+}*/ //End anon namespace
 
 // Temporary Test function ---Yao Jin
 void generateAgentsFromBusSchedule(std::vector<Entity*>& active_agents, AgentConstraints& constraints)
@@ -412,7 +412,10 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 
 		//Finally, set the "#mode" flag in the configProps array.
 		// (XML can't have # inside tag names, so this will never be overwritten)
-		props["#mode"] = rf.getTripChainMode(agentType);
+		//
+		//TODO: We should just be able to save "driver" and "pedestrian", but we are
+		//      using different vocabulary for modes and roles. We need to change this.
+		props["#mode"] = (agentType=="driver"?"Car":(agentType=="pedestrian"?"Walk":"Unknown"));
 
 		//Create the Person agent with that given ID (or an auto-generated one)
 		Person* agent = new Person(config.mutexStategy, manualID);

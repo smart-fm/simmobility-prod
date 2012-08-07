@@ -4,6 +4,7 @@
 
 #include <stdexcept>
 
+#include "entities/Person.hpp"
 #include "entities/roles/Role.hpp"
 #include "entities/misc/TripChain.hpp"
 
@@ -11,30 +12,73 @@ using namespace sim_mob;
 using std::map;
 using std::string;
 
+void sim_mob::RoleFactory::registerRole(const std::string& name, const Role* prototype)
+{
+	if (prototypes.count(name)>0) {
+		throw std::runtime_error("Duplicate role type.");
+	}
+
+	prototypes[name] = prototype;
+}
+
+const Role* sim_mob::RoleFactory::getPrototype(const string& name) const
+{
+	map<string, const Role*>::const_iterator it = prototypes.find(name);
+	if (it!=prototypes.end()) {
+		return it->second;
+	}
+	return nullptr;
+}
 
 bool sim_mob::RoleFactory::isKnownRole(const string& roleName) const
 {
-	throw std::runtime_error("Not implemented yet");
+	return getPrototype(roleName);
 }
 
-string sim_mob::RoleFactory::getTripChainMode(const std::string& roleName) const
+string sim_mob::RoleFactory::GetTripChainMode(const sim_mob::TripChainItem* currTripChainItem)
 {
-	//"Car" or "Walk", but we can have more like "BusDriver" later...
-	throw std::runtime_error("Not implemented yet");
+	//This is a temporary function; it involves global knowledge of roles, so it's inelegant.
+	// Also, our "modes" seem to be increasingly similar to our "roles", so there shouldn't be
+	// two names for them
+	const Trip* trip = dynamic_cast<const Trip*>(currTripChainItem);
+	const Activity* act = dynamic_cast<const Activity*>(currTripChainItem);
+	if (trip && currTripChainItem->itemType==TripChainItem::IT_TRIP) {
+		if (trip->getSubTrips().front().mode=="Car") {
+			return "driver";
+		} else if (trip->getSubTrips().front().mode=="Walk") {
+			return "pedestrian";
+		} else {
+			throw std::runtime_error("Unknown Trip subclass.");
+		}
+	} else if (act && currTripChainItem->itemType==TripChainItem::IT_ACTIVITY) {
+		return "activityRole";
+	} else { //Offer some protection
+		throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
+	}
 }
 
 map<string, bool> sim_mob::RoleFactory::getRequiredAttributes(const string& roleName) const
 {
-	throw std::runtime_error("Not implemented yet");
+	//For now, all Roles have the same set of required attributes.
+	map<string, bool> res;
+	res["originPos"] = false;
+	res["destPos"] = false;
+	res["time"] = false;
+	return res;
 }
 
-Role* sim_mob::RoleFactory::createRole(const string& name, const map<string, string>& props) const
+Role* sim_mob::RoleFactory::createRole(const string& name, Person* parent) const
 {
-	throw std::runtime_error("Not implemented yet");
+	const Role* prot = getPrototype(name);
+	if (!prot) {
+		throw std::runtime_error("Unknown role type; cannot clone.");
+	}
 
-	//TODO: The main function should "register" types, so that we aren't required
-	//      to do all of this "if" checking. This also abstracts Roles, which we'll need anyway
-	//      for the Short/Mid term.
+	return prot->clone(parent);
+
+	//
+	//TODO: Make sure all these options are covered:
+	//
 	/*if (p.type == ENTITY_DRIVER) {
 		res->changeRole(new Driver(res, config.mutexStategy));
 	} else if (p.type == ENTITY_PEDESTRIAN) {
@@ -49,26 +93,10 @@ Role* sim_mob::RoleFactory::createRole(const string& name, const map<string, str
 	}*/
 }
 
-Role* sim_mob::RoleFactory::createRole(const TripChainItem* const currTripChainItem) const
+Role* sim_mob::RoleFactory::createRole(const TripChainItem* currTripChainItem, Person* parent) const
 {
-	throw std::runtime_error("Not implemented yet");
-
-	//TODO: We need to register activities as well as trips. Something like this:
-	//
-	//if(this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_TRIP){
-	//	if (this->currSubTrip->mode == "Car") {
-	//		return new Driver(this);
-	//	} else if (this->currSubTrip->mode == "Walk") {
-	//		return new Pedestrian(this);
-	//	} else {
-	//		throw std::runtime_error("Unknown role type for trip chain role change.");
-	//	}
-	//} else if(this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_ACTIVITY){
-	//	const Activity& currActivity = dynamic_cast<const Activity&>(*currTripChainItem);
-	//	return new ActivityPerformer(this, currActivity);
-	//} else {
-	//	throw std::runtime_error("Unknown item type in trip chain");
-	//}
+	string roleName = RoleFactory::GetTripChainMode(currTripChainItem);
+	return createRole(roleName, parent);
 }
 
 

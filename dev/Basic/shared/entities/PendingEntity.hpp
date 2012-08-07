@@ -18,14 +18,14 @@ class TripChainItem;
 ///
 ///TODO: This might be migrated to the RoleFactory, with changes.
 ///      Thes are not really entity types, they are role types (+BusController)
-enum KNOWN_ENTITY_TYPES {
+/*enum KNOWN_ENTITY_TYPES {
 	ENTITY_DRIVER,      ///<A Driver entity.
 	ENTITY_PEDESTRIAN,  ///<A Pedestrian entity.
 	ENTITY_BUSDRIVER,   ///<A BusDriver entity.
 	ENTITY_ACTIVITYPERFORMER, ///<An entity performing an activity
 	ENTITY_BUSCONTROLLER,	///< A BusController entity.
 	ENTITY_RAWAGENT,    ///<Any Person which cannot be represented generically.
-};
+};*/
 
 /**
  * Lightweight entity container. Used to hold Entities waiting to be scheduled.

@@ -96,6 +96,11 @@ public:
 	void setToBeRemoved();
 	void clearToBeRemoved(); ///<Temporary function.
 
+
+private:
+	//For future reference.
+	const sim_mob::MutexStrategy mutexStrat;
+
 public:
 	//The agent's start/end nodes.
 	Node* originNode;
@@ -139,6 +144,10 @@ public:
 	/// don't know what you're doing.
 	boost::mt19937& getGenerator() {
 		return gen;
+	}
+
+	const sim_mob::MutexStrategy& getMutexStrategy() {
+		return mutexStrat;
 	}
 
 	//Set this person's activities

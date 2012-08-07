@@ -213,6 +213,13 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat) :
 }
 
 
+Role* sim_mob::Driver::clone(Person* parent) const
+{
+	return new Driver(parent, parent->getMutexStrategy());
+}
+
+
+
 void sim_mob::Driver::frame_init(UpdateParams& p)
 {
 	//Save the path from orign to next activity location in allRoadSegments

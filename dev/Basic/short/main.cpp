@@ -40,6 +40,9 @@
 #include "entities/Bus.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/Role.hpp"
+#include "entities/roles/RoleFactory.hpp"
+#include "entities/roles/activityRole/ActivityPerformer.hpp"
+#include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
@@ -119,12 +122,21 @@ bool performMain(const std::string& configFileName) {
 	//Loader params for our Agents
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
 
-	//Load our user config file; save a handle to the shared definition of it.
-	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof)) { //Note: Agent "shells" are loaded here.
+	//Load our user config file
+	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof)) {
 		return false;
 	}
-	const ConfigParams& config = ConfigParams::GetInstance();
 
+	//Register our Role types.
+	RoleFactory& rf = ConfigParams::GetInstance().getRoleFactoryRW();
+	rf.registerRole("driver", new sim_mob::Driver(nullptr, ConfigParams::GetInstance().mutexStategy));
+	rf.registerRole("pedestrian", new sim_mob::Pedestrian(nullptr));
+	rf.registerRole("busdriver", new sim_mob::BusDriver(nullptr, ConfigParams::GetInstance().mutexStategy));
+	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
+	//rf.registerRole("buscontroller", new sim_mob::BusController()); //Not a role!
+
+	//Save a handle to the shared definition of the configuration.
+	const ConfigParams& config = ConfigParams::GetInstance();
 
 	//Sanity check (nullptr)
 	void* x = nullptr;
@@ -379,6 +391,7 @@ int main(int argc, char* argv[])
 
 	/**
 	 * Check whether to run SimMobility or SimMobility-MPI
+	 * TODO: Retrieving ConfigParams before actually loading the config file is dangerous.
 	 */
 	ConfigParams& config = ConfigParams::GetInstance();
 	config.is_run_on_many_computers = false;
@@ -390,6 +403,7 @@ int main(int argc, char* argv[])
 
 	/**
 	 * set random be repeatable
+	 * TODO: Retrieving ConfigParams before actually loading the config file is dangerous.
 	 */
 	config.is_simulation_repeatable = true;
 

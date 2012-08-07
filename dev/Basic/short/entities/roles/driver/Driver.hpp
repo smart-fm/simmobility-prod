@@ -76,6 +76,8 @@ public:
 	Driver(Person* parent, sim_mob::MutexStrategy mtxStrat);
 	virtual ~Driver();
 
+	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
+
 	//Virtual implementations
 	virtual void frame_init(UpdateParams& p);
 	virtual void frame_tick(UpdateParams& p);

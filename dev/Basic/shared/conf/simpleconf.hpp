@@ -72,6 +72,9 @@ public:
 	//The role factory used for generating roles.
 	const sim_mob::RoleFactory& getRoleFactory() { return roleFact; }
 
+	//Use caution here.
+	sim_mob::RoleFactory& getRoleFactoryRW() { return roleFact; }
+
 
 	//Number of agents skipped in loading
 	unsigned int numAgentsSkipped;

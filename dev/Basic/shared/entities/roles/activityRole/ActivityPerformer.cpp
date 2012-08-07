@@ -36,6 +36,11 @@ sim_mob::ActivityPerformer::ActivityPerformer(Agent* parent,
 	location = currActivity.location;
 }
 
+Role* sim_mob::ActivityPerformer::clone(Person* parent) const
+{
+	return new ActivityPerformer(parent);
+}
+
 sim_mob::ActivityPerformerUpdateParams::ActivityPerformerUpdateParams(
 		boost::mt19937& gen) :
 		UpdateParams(gen) {

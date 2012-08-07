@@ -163,6 +163,12 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent) :
 
 }
 
+Role* sim_mob::Pedestrian::clone(Person* parent) const
+{
+	return new Pedestrian(parent);
+}
+
+
 //Note that a destructor is not technically needed, but I want to enforce the idea
 //  of overriding virtual destructors if they exist.
 sim_mob::Pedestrian::~Pedestrian() {

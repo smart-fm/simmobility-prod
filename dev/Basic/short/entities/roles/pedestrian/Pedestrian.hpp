@@ -88,7 +88,7 @@ public:
 	Pedestrian(Agent* parent);
 	virtual ~Pedestrian();
 
-	//sim_mob::GeneralPathMover::PathWithDirection pathWithDirection;
+	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 
 	//Virtual overrides
 	virtual void frame_init(UpdateParams& p);

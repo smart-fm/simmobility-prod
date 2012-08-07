@@ -7,6 +7,8 @@
 
 #include "ReactionTimeDistributions.hpp"
 
+#include <stdexcept>
+
 using namespace sim_mob;
 
 GenType ReactionTimeDistributions::gt1;
@@ -43,7 +45,7 @@ void sim_mob::ReactionTimeDistributions::setupDistribution1()
 		setupLognormalDisforRact1();
 		break;
 	default:
-		break;
+		throw std::runtime_error("Unknown reaction time distribution parameter.");
 	}
 }
 
@@ -58,7 +60,7 @@ void sim_mob::ReactionTimeDistributions::setupDistribution2()
 		setupLognormalDisforRact2();
 		break;
 	default:
-		break;
+		throw std::runtime_error("Unknown reaction time distribution parameter.");
 	}
 }
 
@@ -95,7 +97,7 @@ size_t sim_mob::ReactionTimeDistributions::reactionTime1()
 	case 1:
 		return rng_lognormal1->operator ()();
 	default:
-		return 0;
+		throw std::runtime_error("Unknown reaction time distribution parameter.");
 	}
 }
 
@@ -108,7 +110,7 @@ size_t sim_mob::ReactionTimeDistributions::reactionTime2()
 	case 1:
 		return rng_lognormal2->operator ()();
 	default:
-		return 0;
+		throw std::runtime_error("Unknown reaction time distribution parameter.");
 	}
 }
 

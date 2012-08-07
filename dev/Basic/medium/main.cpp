@@ -98,16 +98,18 @@ bool performMainMed(const std::string& configFileName) {
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
 #endif
 
-	//Load our user config file
-	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof)) {
-		return false;
-	}
-
 	//Register our Role types.
+	//TODO: Accessing ConfigParams before loading it is technically safe, but we
+	//      should really be clear about when this is not ok.
 	RoleFactory& rf = ConfigParams::GetInstance().getRoleFactoryRW();
 	rf.registerRole("driver", new sim_mob::medium::Driver());
 	rf.registerRole("pedestrian", new sim_mob::medium::Pedestrian());
 	rf.registerRole("activityRole", new sim_mob::ActivityPerformer());
+
+	//Load our user config file
+	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof)) {
+		return false;
+	}
 
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigParams::GetInstance();

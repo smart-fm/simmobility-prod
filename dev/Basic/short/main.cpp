@@ -119,6 +119,16 @@ bool performMain(const std::string& configFileName) {
 	prof = &prof_i;
 #endif
 
+	//Register our Role types.
+	//TODO: Accessing ConfigParams before loading it is technically safe, but we
+	//      should really be clear about when this is not ok.
+	RoleFactory& rf = ConfigParams::GetInstance().getRoleFactoryRW();
+	rf.registerRole("driver", new sim_mob::Driver(nullptr, ConfigParams::GetInstance().mutexStategy));
+	rf.registerRole("pedestrian", new sim_mob::Pedestrian(nullptr));
+	rf.registerRole("busdriver", new sim_mob::BusDriver(nullptr, ConfigParams::GetInstance().mutexStategy));
+	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
+	//rf.registerRole("buscontroller", new sim_mob::BusController()); //Not a role!
+
 	//Loader params for our Agents
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
 
@@ -126,14 +136,6 @@ bool performMain(const std::string& configFileName) {
 	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof)) {
 		return false;
 	}
-
-	//Register our Role types.
-	RoleFactory& rf = ConfigParams::GetInstance().getRoleFactoryRW();
-	rf.registerRole("driver", new sim_mob::Driver(nullptr, ConfigParams::GetInstance().mutexStategy));
-	rf.registerRole("pedestrian", new sim_mob::Pedestrian(nullptr));
-	rf.registerRole("busdriver", new sim_mob::BusDriver(nullptr, ConfigParams::GetInstance().mutexStategy));
-	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
-	//rf.registerRole("buscontroller", new sim_mob::BusController()); //Not a role!
 
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigParams::GetInstance();

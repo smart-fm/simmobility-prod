@@ -1184,7 +1184,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	    if (!loadXMLAgents(document, active_agents, pending_agents, "driver", constraints)) {
     	    	return	 "Couldn't load drivers";
     	    }
-    	    if (!loadXMLAgents(document, active_agents, pending_agents, "bus", constraints)) {
+    	    if (!loadXMLAgents(document, active_agents, pending_agents, "busdriver", constraints)) {
     	    	return	 "Couldn't load bus drivers";
     	    }
     		cout <<"Loaded Driver Agents (from config file)." <<endl;

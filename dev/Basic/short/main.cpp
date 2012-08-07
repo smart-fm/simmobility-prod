@@ -357,7 +357,7 @@ bool performMain(const std::string& configFileName) {
 	if (!Agent::pending_agents.empty()) {
 		cout << "WARNING! There are still " << Agent::pending_agents.size()
 				<< " Agents waiting to be scheduled; next start time is: "
-				<< Agent::pending_agents.top().start << " ms\n";
+				<< Agent::pending_agents.top()->getStartTime() << " ms\n";
 		if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 			throw std::runtime_error("ERROR: pending_agents shouldn't be used if Dynamic Dispatch is disabled.");
 		}

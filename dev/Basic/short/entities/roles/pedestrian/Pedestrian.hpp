@@ -24,7 +24,7 @@
 #include "conf/simpleconf.hpp"
 #include "entities/Signal.hpp"
 #include "geospatial/Crossing.hpp"
-#include "entities/roles/driver/GeneralPathMover.hpp"
+#include "geospatial/GeneralPathMover.hpp"
 #include "entities/UpdateParams.hpp"
 #include "geospatial/RoadSegment.hpp"
 using std::vector;

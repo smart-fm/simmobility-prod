@@ -148,7 +148,7 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent) :
 	startToCross = false;
 
 	//Set default speed in the range of 1.2m/s to 1.6m/s
-	speed = 1.2+(double(zero_to_five(gen)))/10;
+	speed = 1.2+(double(zero_to_five(parent->getGenerator())))/10;
 
 	xVel = 0;
 	yVel = 0;

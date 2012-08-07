@@ -7,27 +7,30 @@
 ///
 
 
-/*#include "TrafficWatch.hpp"
+#include "TrafficWatch.hpp"
+
+#include "geospatial/RoadSegment.hpp"
+
+using namespace sim_mob;
 
 //For debugging
-#include "util/DebugFlags.hpp"
+/*#include "util/DebugFlags.hpp"
 #include "util/OutputUtil.hpp"
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "geospatial/Node.hpp"
-#include "geospatial/RoadSegment.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/StreetDirectory.hpp"
 
 using std::vector;
-using namespace sim_mob;
+*/
 
 TrafficWatch sim_mob::TrafficWatch::instance_;
 std::map<const RoadSegment*, double> sim_mob::TrafficWatch::avgSpeedRS;
 std::map<const RoadSegment*, size_t> sim_mob::TrafficWatch::numVehRS;
 
 //traffic watch will update each 1000 frames.
-void sim_mob::TrafficWatch::update(frame_t frameNumber) {
+/*void sim_mob::TrafficWatch::update(frame_t frameNumber) {
 	if(frameNumber==0||frameNumber%1000!=0)
 		return;
 	vector<Entity*>::const_iterator it = Agent::all_agents.begin();

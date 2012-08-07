@@ -919,18 +919,29 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	handle.FirstChild("reacTime_standardDev1").ToElement()->Attribute("value",&standardDev1);
 	handle.FirstChild("reacTime_standardDev2").ToElement()->Attribute("value",&standardDev2);
 
-	ReactionTimeDistributions & instance = ReactionTimeDistributions::instance();
-	instance.distributionType1 = distributionType1;
-	instance.distributionType2 = distributionType2;
-	instance.mean1 = mean1;
-	instance.mean2 = mean2;
-	instance.standardDev1 = standardDev1;
-	instance.standardDev2 = standardDev2;
 
-	instance.setupDistribution1();
-	instance.setupDistribution2();
+	//Reaction time 1
+	//TODO: Refactor to avoid magic numbers
+	if (distributionType1==0) {
+		ConfigParams::GetInstance().reactDist1 = new NormalReactionTimeDist(mean1, standardDev1);
+	} else if (distributionType1==1) {
+		ConfigParams::GetInstance().reactDist1 = new LognormalReactionTimeDist(mean1, standardDev1);
+	} else {
+		throw std::runtime_error("Unknown magic reaction time number.");
+	}
 
-//	Driver::distributionType1 = distributionType1;
+	//Reaction time 2
+	//TODO: Refactor to avoid magic numbers
+	if (distributionType2==0) {
+		ConfigParams::GetInstance().reactDist2 = new NormalReactionTimeDist(mean2, standardDev2);
+	} else if (distributionType2==1) {
+		ConfigParams::GetInstance().reactDist2 = new LognormalReactionTimeDist(mean2, standardDev2);
+	} else {
+		throw std::runtime_error("Unknown magic reaction time number.");
+	}
+
+
+	//Driver::distributionType1 = distributionType1;
 	int signalAlgorithm;
 
 	//Save simulation start time

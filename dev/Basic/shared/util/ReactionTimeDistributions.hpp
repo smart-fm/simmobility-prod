@@ -5,6 +5,8 @@
  * \author Seth N. Hetu
  */
 
+#pragma once
+
 #include <boost/random.hpp>
 #include <boost/math/distributions.hpp>
 
@@ -23,11 +25,11 @@ class NormalReactionTimeDist : public ReactionTimeDist {
 private:
 	boost::mt19937 gen;
 	boost::normal_distribution<double> dist;
-	boost::variate_generator<boost::normal_distribution<double>, boost::mt19937> varGen;
+	boost::variate_generator<boost::mt19937, boost::normal_distribution<double> > varGen;
 
 public:
 	NormalReactionTimeDist(double mean, double stdev)
-	 : dist(mean, stdev), varGen(dist, gen)
+	 : gen(), dist(mean, stdev), varGen(gen, dist)
 	{
 	}
 
@@ -38,12 +40,12 @@ public:
 class LognormalReactionTimeDist : public ReactionTimeDist {
 private:
 	boost::mt19937 gen;
-	boost::normal_distribution<double> dist;
-	boost::variate_generator<boost::normal_distribution<double>, boost::mt19937> varGen;
+	boost::lognormal_distribution<double> dist;
+	boost::variate_generator<boost::mt19937, boost::lognormal_distribution<double> > varGen;
 
 public:
 	LognormalReactionTimeDist(double mean, double stdev)
-	 : dist(mean, stdev), varGen(dist, gen)
+	 : gen(), dist(mean, stdev), varGen(gen, dist)
 	{
 	}
 

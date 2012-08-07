@@ -29,11 +29,13 @@
 
 #include "buffering/Shared.hpp"
 #include "util/DailyTime.hpp"
+#include "util/LangHelpers.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/RoadNetwork.hpp"
 
 #include "entities/misc/TripChain.hpp"
 #include "entities/roles/RoleFactory.hpp"
+#include "util/ReactionTimeDistributions.hpp"
 
 
 namespace sim_mob
@@ -74,6 +76,11 @@ public:
 
 	//Use caution here.
 	sim_mob::RoleFactory& getRoleFactoryRW() { return roleFact; }
+
+
+	//For generating reaction times
+	ReactionTimeDist* reactDist1;
+	ReactionTimeDist* reactDist2;
 
 
 	//Number of agents skipped in loading
@@ -209,7 +216,7 @@ public:
 
 
 private:
-	ConfigParams() : mutexStategy(MtxStrat_Buffered), dynamicDispatchDisabled(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false) { }
+	ConfigParams() : reactDist1(nullptr), reactDist2(nullptr), mutexStategy(MtxStrat_Buffered), dynamicDispatchDisabled(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false) { }
 	static ConfigParams instance;
 
 	sim_mob::RoadNetwork network;

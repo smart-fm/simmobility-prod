@@ -186,7 +186,9 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat) :
 	trafficSignal = nullptr;
 	vehicle = nullptr;
 
-	reacTime = ReactionTimeDistributions::instance().reactionTime1() + ReactionTimeDistributions::instance().reactionTime2();
+	double r1 = ConfigParams::GetInstance().reactDist1->getReactionTime();
+	double r2 = ConfigParams::GetInstance().reactDist2->getReactionTime();
+	reacTime = r1 + r2;
 
 	perceivedFwdVel = new FixedDelayed<double>(reacTime,true);
 	perceivedFwdAcc = new FixedDelayed<double>(reacTime,true);

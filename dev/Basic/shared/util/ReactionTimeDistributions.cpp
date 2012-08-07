@@ -5,7 +5,13 @@
  *      Author: lzm
  */
 
-#include "ReactionTimeDistributions.hpp"
+
+//
+// These are template classes now, so they're defined within the header.
+//
+
+
+/*#include "ReactionTimeDistributions.hpp"
 
 #include <stdexcept>
 #include "util/LangHelpers.hpp"
@@ -33,10 +39,13 @@ size_t ReactionTimeDistributions::standardDev2 = 0;
 
 ReactionTimeDistributions ReactionTimeDistributions::instance_;
 
-sim_mob::ReactionTimeDistributions::~ReactionTimeDistributions()
+
+template <class RandomDistType, class GenType=boost::mt19937>
+sim_mob::ReactionTimeDistributions::ReactionTimeDistributions(double mean, double stdev)
 {
-	// TODO Auto-generated destructor stub
+
 }
+
 
 void sim_mob::ReactionTimeDistributions::setupDistribution1()
 {
@@ -117,4 +126,4 @@ size_t sim_mob::ReactionTimeDistributions::reactionTime2()
 		throw std::runtime_error("Unknown reaction time distribution parameter.");
 	}
 }
-
+*/

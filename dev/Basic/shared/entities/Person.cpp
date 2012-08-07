@@ -238,6 +238,8 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 	///
 	/// TODO: I haven't isolated the code which switches Roles based on TripChains yet.
 	///       But plenty of Agents definitely start with null Roles. ~Seth
+	/// TODO: Role switching can also occur _after_ the current time tick. Both times involve
+	///       modifying the subscription list; we'll need a cleaner solution (it's causing errors now).
 	///
 	//const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
 	//Role* r = fact.createRole("TODO: ROLE_NAME", p->getConfigProperties());
@@ -424,13 +426,19 @@ void sim_mob::Person::buildSubscriptionList(vector<BufferedBase*>& subsList) {
 	Agent::buildSubscriptionList(subsList);
 
 	//Now, add our own properties.
-	vector<BufferedBase*> roleParams = this->getRole()->getSubscriptionParams();
-	for (vector<BufferedBase*>::iterator it = roleParams.begin(); it != roleParams.end(); it++) {
-		subsList.push_back(*it);
+	if (this->getRole()) {
+		vector<BufferedBase*> roleParams = this->getRole()->getSubscriptionParams();
+		for (vector<BufferedBase*>::iterator it = roleParams.begin(); it != roleParams.end(); it++) {
+			subsList.push_back(*it);
+		}
 	}
 }
 
-//TODO: If we're going to use this, we'll have to integrate property management somewhere sensible (maybe here).
+////
+//// TODO: The current role's won't flip() unless they're added to the BufferedManager, but this must be
+////       done in the right part of the Worker thread's runloop.
+////       This will lead to properties not reading correct values unless we fix this.
+////
 void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
 	if (this->currRole) {
 		this->currRole->setParent(nullptr);

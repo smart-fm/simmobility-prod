@@ -179,13 +179,14 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat) :
 	params(parent->getGenerator())
 {
 	if (Debug::Drivers) {
-		DebugStream << "Driver starting: " << parent->getId() << endl;
+		DebugStream <<"Driver starting: ";
+		if (parent) { DebugStream <<parent->getId(); } else { DebugStream <<"<null>"; }
+		DebugStream <<endl;
 	}
 	trafficSignal = nullptr;
 	vehicle = nullptr;
 
-	reacTime = ReactionTimeDistributions::instance().reactionTime1() +
-		ReactionTimeDistributions::instance().reactionTime2();
+	reacTime = ReactionTimeDistributions::instance().reactionTime1() + ReactionTimeDistributions::instance().reactionTime2();
 
 	perceivedFwdVel = new FixedDelayed<double>(reacTime,true);
 	perceivedFwdAcc = new FixedDelayed<double>(reacTime,true);

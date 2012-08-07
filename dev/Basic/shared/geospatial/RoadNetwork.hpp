@@ -92,7 +92,7 @@ private:
 
 
 friend class sim_mob::aimsun::Loader;
-friend class geo::RoadNetwork_t_pimpl;
+friend class ::geo::RoadNetwork_t_pimpl;
 
 };
 

@@ -9,7 +9,10 @@
 #include "GenConfig.h"
 
 #include "Node.hpp"
-
+namespace geo
+{
+class UniNode_t_pimpl;
+}
 namespace sim_mob
 {
 
@@ -46,6 +49,8 @@ class Loader;
  *   is NOTE heading back to the same source node.
  */
 class UniNode : public sim_mob::Node {
+	friend class sim_mob::aimsun::Loader;
+	friend class ::geo::UniNode_t_pimpl;
 public:
 	UniNode(int x, int y) : Node(x, y) {}
 
@@ -73,7 +78,7 @@ protected:
 	mutable std::vector<const sim_mob::RoadSegment*> cachedSegmentsList;
 
 
-friend class sim_mob::aimsun::Loader;
+
 
 };
 

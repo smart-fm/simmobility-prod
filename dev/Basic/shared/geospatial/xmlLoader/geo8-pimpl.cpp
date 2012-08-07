@@ -4,7 +4,6 @@
 // an XML Schema to C++ data binding compiler. You may use it in your
 // programs without any restrictions.
 //
-
 #include "geo8-pimpl.hpp"
 #include <cstdio>
 #include <iostream>
@@ -12,6 +11,8 @@
 
 namespace geo
 {
+std::map<std::string,sim_mob::RoadSegment*> geo_Segments_;
+std::map<std::string,sim_mob::Lane*> geo_Lanes_;
   // SegmentType_t_pimpl
   //
 
@@ -130,6 +131,8 @@ namespace geo
   laneID (const ::std::string& laneID)
   {
 	  this->lane->laneID_ = atoi(laneID.c_str());
+	  //add it to the book keeper;
+	  geo_Lanes_[laneID] = this->lane;
   }
 
   void lane_t_pimpl::
@@ -253,26 +256,25 @@ namespace geo
   void connector_t_pimpl::
   pre ()
   {
+	  laneConnector = new sim_mob::LaneConnector;
   }
 
   void connector_t_pimpl::
   laneFrom (const ::std::string& laneFrom)
   {
-    std::cout << "laneFrom: " << laneFrom << std::endl;
+	  laneConnector->laneFrom = geo_Lanes_[const_cast<std::string &>(laneFrom)];
   }
 
   void connector_t_pimpl::
   laneTo (const ::std::string& laneTo)
   {
-    std::cout << "laneTo: " << laneTo << std::endl;
+	  laneConnector->laneTo = geo_Lanes_[laneTo];
   }
 
   sim_mob::LaneConnector* connector_t_pimpl::
   post_connector_t ()
   {
-    // TODO
-    //
-    // return ... ;
+	  return laneConnector;
   }
 
   // connectors_t_pimpl
@@ -286,13 +288,61 @@ namespace geo
   void connectors_t_pimpl::
   Connector (sim_mob::LaneConnector* Connector)
   {
-    // TODO
-    //
+	  this->ConnectorSet.insert(Connector);
   }
 
-  void connectors_t_pimpl::
+  std::set<sim_mob::LaneConnector*> connectors_t_pimpl::
   post_connectors_t ()
   {
+    // TODO
+    //
+    // return ... ;
+  }
+
+  // Multi_Connector_t_pimpl
+  //
+
+  void Multi_Connector_t_pimpl::
+  pre ()
+  {
+  }
+
+  void Multi_Connector_t_pimpl::
+  RoadSegment (const ::std::string& RoadSegment)
+  {
+	  this->RoadSegment_ = RoadSegment;
+  }
+
+  void Multi_Connector_t_pimpl::
+  Connectors (std::set<sim_mob::LaneConnector*> Connectors)
+  {
+	  temp_pair = std::make_pair(this->RoadSegment_,Connectors);
+  }
+
+  std::pair<std::string,std::set<sim_mob::LaneConnector*> >   Multi_Connector_t_pimpl::
+  post_Multi_Connector_t ()
+  {
+	  return temp_pair;
+  }
+
+  // Multi_Connectors_t_pimpl
+  //
+
+  void Multi_Connectors_t_pimpl::
+  pre ()
+  {
+  }
+
+  void Multi_Connectors_t_pimpl::
+  MultiConnectors (const std::pair<std::string,std::set<sim_mob::LaneConnector*> >  & MultiConnectors)
+  {
+	  temp_map[geo_Segments_[MultiConnectors.first]] = MultiConnectors.second;
+  }
+
+  std::map<const sim_mob::RoadSegment*,std::set<sim_mob::LaneConnector*> > Multi_Connectors_t_pimpl::
+  post_Multi_Connectors_t ()
+  {
+	  return temp_map;
   }
 
   // fwdBckSegments_t_pimpl
@@ -328,11 +378,15 @@ namespace geo
   segmentID (const ::std::string& segmentID)
   {
     std::cout << "segmentID: " << segmentID << std::endl;
+    RoadSegments.insert(geo_Segments_[segmentID]);
   }
 
-  void RoadSegmentsAt_t_pimpl::
+  std::set<sim_mob::RoadSegment*> RoadSegmentsAt_t_pimpl::
   post_RoadSegmentsAt_t ()
   {
+    // TODO
+    //
+    // return ... ;
   }
 
   // segment_t_pimpl
@@ -348,6 +402,7 @@ namespace geo
   segmentID (const ::std::string& segmentID)
   {
 	  this->rs->segmentID = segmentID;
+	  geo_Segments_[this->rs->segmentID] = rs;
   }
 
   void segment_t_pimpl::
@@ -692,32 +747,40 @@ namespace geo
   void UniNode_t_pimpl::
   pre ()
   {
+	  //can't create the lane in here coz we yet have to obtain location x,y
   }
 
   void UniNode_t_pimpl::
   nodeID (const ::std::string& nodeID)
   {
-    this->nodeId = nodeID;
+    this->nodeId = atoi(nodeID.c_str());
   }
 
   void UniNode_t_pimpl::
   location (sim_mob::Point2D location)
   {
-    // TODO
-    //
+	  this->location_ = location;
   }
 
   void UniNode_t_pimpl::
-  Connectors ()
+  Connectors (std::set<sim_mob::LaneConnector*> Connectors)
   {
+	  std::set<sim_mob::LaneConnector*>::iterator it = Connectors.begin();
+	  //uninode class uses map not set so ...convert...
+	  for(; it != Connectors.end(); it++)
+	  {
+		  sim_mob::Lane* laneTo_ = (*it)->laneTo;
+		  this->connectors_[(*it)->laneFrom] = (*it)->laneTo;
+	  }
   }
 
   sim_mob::UniNode* UniNode_t_pimpl::
   post_UniNode_t ()
   {
-    // TODO
-    //
-    // return ... ;
+	  this->uniNode = new sim_mob::UniNode(this->location_.getX(),this->location_.getY());
+	  this->uniNode->setID(this->nodeId);
+	  this->uniNode->connectors = this->connectors_;
+	  return this->uniNode;
   }
 
   // roundabout_t_pimpl
@@ -742,13 +805,17 @@ namespace geo
   }
 
   void roundabout_t_pimpl::
-  roadSegmentsAt ()
+  roadSegmentsAt (std::set<sim_mob::RoadSegment*> roadSegmentsAt)
   {
+    // TODO
+    //
   }
 
   void roundabout_t_pimpl::
-  Connectors ()
+  Connectors (const std::map<const sim_mob::RoadSegment*,std::set<sim_mob::LaneConnector *> >& Connectors)
   {
+    // TODO
+    //
   }
 
   void roundabout_t_pimpl::
@@ -803,30 +870,34 @@ namespace geo
   pre ()
   {
 	  std::cout << "intersection_pimpl::pre()\n";
-	  getchar();
   }
 
   void intersection_t_pimpl::
   nodeID (const ::std::string& nodeID)
   {
-    std::cout << "nodeID: " << nodeID << std::endl;
+	    this->nodeId = atoi(nodeID.c_str());
   }
 
   void intersection_t_pimpl::
   location (sim_mob::Point2D location)
   {
-    // TODO
-    //
+	  this->location_ = location;
+	  //here you can create the sim_mob object(you can do that in post_ function also but if you create it here, you can save a lot of space and copy time
+	  this->intersection = new sim_mob::Intersection(this->location_.getX(), this->location_.getY());
+	  this->intersection->setID(this->nodeId);
   }
 
   void intersection_t_pimpl::
-  roadSegmentsAt ()
+  roadSegmentsAt (std::set<sim_mob::RoadSegment*> roadSegmentsAt)
   {
+	  this->intersection->roadSegmentsAt = roadSegmentsAt;
   }
 
   void intersection_t_pimpl::
-  Connectors ()
+  Connectors (const std::map<const sim_mob::RoadSegment*,std::set<sim_mob::LaneConnector *> >& Connectors)
+
   {
+	  this->intersection->connectors = Connectors;
   }
 
   void intersection_t_pimpl::
@@ -862,9 +933,7 @@ namespace geo
   sim_mob::MultiNode* intersection_t_pimpl::
   post_intersection_t ()
   {
-    // TODO
-    //
-    // return ... ;
+	  return this->intersection;
   }
 
   // RoadItem_No_Attr_t_pimpl

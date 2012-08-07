@@ -101,6 +101,19 @@
       <xs:element name="Connector" type="geo:connector_t" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
+  
+  <xs:complexType name="Multi_Connector_t">
+    <xs:sequence>
+      <xs:element name="RoadSegment" type="xs:string" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="Connectors" type="geo:connectors_t" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+  
+    <xs:complexType name="Multi_Connectors_t">
+    <xs:sequence>
+      <xs:element name="MultiConnectors" type="geo:Multi_Connector_t" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
 
   <xs:complexType name="fwdBckSegments_t">
     <xs:sequence>
@@ -236,7 +249,7 @@
       <xs:element name="nodeID" type="xs:string" minOccurs="1" maxOccurs="1"/>
       <xs:element name="location" type="geo:Point2D_t" minOccurs="1" maxOccurs="1"/>
       <xs:element name="roadSegmentsAt" type="geo:RoadSegmentsAt_t" minOccurs="0" maxOccurs="1"/>
-      <xs:element name="Connectors" type="geo:connectors_t"/>
+      <xs:element name="Connectors" type="geo:Multi_Connectors_t" minOccurs="0" maxOccurs="1"/>
       <xs:element name="ChunkLengths" type="geo:ChunkLengths_t" minOccurs="0" maxOccurs="1"/>
       <xs:element name="Offsets" type="geo:offsets_t" minOccurs="0" maxOccurs="1"/>
       <xs:element name="Separators" type="geo:separators_t" minOccurs="0" maxOccurs="1"/>
@@ -252,7 +265,7 @@
       <xs:element name="nodeID" type="xs:string" minOccurs="1" maxOccurs="1"/>
       <xs:element name="location" type="geo:Point2D_t" minOccurs="1" maxOccurs="1"/>
       <xs:element name="roadSegmentsAt" type="geo:RoadSegmentsAt_t" minOccurs="0" maxOccurs="1"/>
-      <xs:element name="Connectors" type="geo:connectors_t"/>
+      <xs:element name="Connectors" type="geo:Multi_Connectors_t"/>
       <xs:element name="ChunkLengths" type="geo:ChunkLengths_t" minOccurs="0" maxOccurs="1"/>
       <xs:element name="Offsets" type="geo:offsets_t" minOccurs="0" maxOccurs="1"/>
       <xs:element name="Separators" type="geo:separators_t" minOccurs="0" maxOccurs="1"/>

@@ -51,6 +51,8 @@ main1 (int argc, char* argv[])
     ::geo::Intersections_pimpl Intersections_p;
     ::geo::intersection_t_pimpl intersection_t_p;
     ::geo::RoadSegmentsAt_t_pimpl RoadSegmentsAt_t_p;
+    ::geo::Multi_Connectors_t_pimpl Multi_Connectors_t_p;
+    ::geo::Multi_Connector_t_pimpl Multi_Connector_t_p;
     ::geo::ChunkLengths_t_pimpl ChunkLengths_t_p;
     ::geo::ChunkLength_t_pimpl ChunkLength_t_p;
     ::geo::offsets_t_pimpl offsets_t_p;
@@ -185,7 +187,7 @@ main1 (int argc, char* argv[])
     intersection_t_p.parsers (string_p,
                               Point2D_t_p,
                               RoadSegmentsAt_t_p,
-                              connectors_t_p,
+                              Multi_Connectors_t_p,
                               ChunkLengths_t_p,
                               offsets_t_p,
                               separators_t_p,
@@ -194,6 +196,11 @@ main1 (int argc, char* argv[])
                               DomainIslands_t_p);
 
     RoadSegmentsAt_t_p.parsers (string_p);
+
+    Multi_Connectors_t_p.parsers (Multi_Connector_t_p);
+
+    Multi_Connector_t_p.parsers (string_p,
+                                 connectors_t_p);
 
     ChunkLengths_t_p.parsers (ChunkLength_t_p);
 
@@ -222,7 +229,7 @@ main1 (int argc, char* argv[])
     roundabout_t_p.parsers (string_p,
                             Point2D_t_p,
                             RoadSegmentsAt_t_p,
-                            connectors_t_p,
+                            Multi_Connectors_t_p,
                             ChunkLengths_t_p,
                             offsets_t_p,
                             separators_t_p,
@@ -244,7 +251,7 @@ main1 (int argc, char* argv[])
       "SimMobility");
     SimMobility_t_p.pre ();
     std::cout << "In main1 SimMobility_t_p.pre() done\n";
-    doc_p.parse ("data/XML_OutPut.xml");
+    doc_p.parse ("/home/vahid/SIMMOBILITY/MASTER/simmobility/dev/Basic/data/XML_OutPut.xml");
     std::cout << "In main1 parse done\n";
     SimMobility_t_p.post_SimMobility_t ();
     std::cout << "In main1 post done\n";

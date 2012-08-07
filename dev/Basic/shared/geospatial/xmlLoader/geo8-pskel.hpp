@@ -59,6 +59,8 @@ namespace geo
   class lane_t_pskel;
   class connector_t_pskel;
   class connectors_t_pskel;
+  class Multi_Connector_t_pskel;
+  class Multi_Connectors_t_pskel;
   class fwdBckSegments_t_pskel;
   class RoadSegmentsAt_t_pskel;
   class segment_t_pskel;
@@ -117,6 +119,7 @@ namespace geo
 #include <xsd/cxx/parser/non-validating/xml-schema-pimpl.hxx>
 #include <xsd/cxx/parser/xerces/elements.hxx>
 
+#include "geospatial/UniNode.hpp"
 #include "geospatial/Roundabout.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/RoadItem.hpp"
@@ -735,8 +738,8 @@ namespace geo
     virtual void
     Connector (sim_mob::LaneConnector*);
 
-    virtual void
-    post_connectors_t ();
+    virtual std::set<sim_mob::LaneConnector*>
+    post_connectors_t () = 0;
 
     // Parser construction API.
     //
@@ -764,6 +767,98 @@ namespace geo
 
     protected:
     ::geo::connector_t_pskel* Connector_parser_;
+  };
+
+  class Multi_Connector_t_pskel: public ::xml_schema::complex_content
+  {
+    public:
+    // Parser callbacks. Override them in your implementation.
+    //
+    // virtual void
+    // pre ();
+
+    virtual void
+    RoadSegment (const ::std::string&);
+
+    virtual void
+    Connectors (std::set<sim_mob::LaneConnector*>);
+
+    virtual std::pair<std::string,std::set<sim_mob::LaneConnector*> >  
+    post_Multi_Connector_t () = 0;
+
+    // Parser construction API.
+    //
+    void
+    RoadSegment_parser (::xml_schema::string_pskel&);
+
+    void
+    Connectors_parser (::geo::connectors_t_pskel&);
+
+    void
+    parsers (::xml_schema::string_pskel& /* RoadSegment */,
+             ::geo::connectors_t_pskel& /* Connectors */);
+
+    // Constructor.
+    //
+    Multi_Connector_t_pskel ();
+
+    // Implementation.
+    //
+    protected:
+    virtual bool
+    _start_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string*);
+
+    virtual bool
+    _end_element_impl (const ::xml_schema::ro_string&,
+                       const ::xml_schema::ro_string&);
+
+    protected:
+    ::xml_schema::string_pskel* RoadSegment_parser_;
+    ::geo::connectors_t_pskel* Connectors_parser_;
+  };
+
+  class Multi_Connectors_t_pskel: public ::xml_schema::complex_content
+  {
+    public:
+    // Parser callbacks. Override them in your implementation.
+    //
+    // virtual void
+    // pre ();
+
+    virtual void
+    MultiConnectors (const std::pair<std::string,std::set<sim_mob::LaneConnector*> >  &);
+
+    virtual std::map<const sim_mob::RoadSegment*,std::set<sim_mob::LaneConnector*> >
+    post_Multi_Connectors_t () = 0;
+
+    // Parser construction API.
+    //
+    void
+    MultiConnectors_parser (::geo::Multi_Connector_t_pskel&);
+
+    void
+    parsers (::geo::Multi_Connector_t_pskel& /* MultiConnectors */);
+
+    // Constructor.
+    //
+    Multi_Connectors_t_pskel ();
+
+    // Implementation.
+    //
+    protected:
+    virtual bool
+    _start_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string*);
+
+    virtual bool
+    _end_element_impl (const ::xml_schema::ro_string&,
+                       const ::xml_schema::ro_string&);
+
+    protected:
+    ::geo::Multi_Connector_t_pskel* MultiConnectors_parser_;
   };
 
   class fwdBckSegments_t_pskel: public ::xml_schema::complex_content
@@ -819,8 +914,8 @@ namespace geo
     virtual void
     segmentID (const ::std::string&);
 
-    virtual void
-    post_RoadSegmentsAt_t ();
+    virtual std::set<sim_mob::RoadSegment*>
+    post_RoadSegmentsAt_t () = 0;
 
     // Parser construction API.
     //
@@ -1547,7 +1642,7 @@ namespace geo
     location (sim_mob::Point2D);
 
     virtual void
-    Connectors ();
+    Connectors (std::set<sim_mob::LaneConnector*>);
 
     virtual sim_mob::UniNode*
     post_UniNode_t () = 0;
@@ -1605,10 +1700,10 @@ namespace geo
     location (sim_mob::Point2D);
 
     virtual void
-    roadSegmentsAt ();
+    roadSegmentsAt (std::set<sim_mob::RoadSegment*>);
 
     virtual void
-    Connectors ();
+    Connectors (const std::map<const sim_mob::RoadSegment*,std::set<sim_mob::LaneConnector *> >&);
 
     virtual void
     ChunkLengths ();
@@ -1646,7 +1741,7 @@ namespace geo
     roadSegmentsAt_parser (::geo::RoadSegmentsAt_t_pskel&);
 
     void
-    Connectors_parser (::geo::connectors_t_pskel&);
+    Connectors_parser (::geo::Multi_Connectors_t_pskel&);
 
     void
     ChunkLengths_parser (::geo::ChunkLengths_t_pskel&);
@@ -1673,7 +1768,7 @@ namespace geo
     parsers (::xml_schema::string_pskel& /* nodeID */,
              ::geo::Point2D_t_pskel& /* location */,
              ::geo::RoadSegmentsAt_t_pskel& /* roadSegmentsAt */,
-             ::geo::connectors_t_pskel& /* Connectors */,
+             ::geo::Multi_Connectors_t_pskel& /* Connectors */,
              ::geo::ChunkLengths_t_pskel& /* ChunkLengths */,
              ::geo::offsets_t_pskel& /* Offsets */,
              ::geo::separators_t_pskel& /* Separators */,
@@ -1702,7 +1797,7 @@ namespace geo
     ::xml_schema::string_pskel* nodeID_parser_;
     ::geo::Point2D_t_pskel* location_parser_;
     ::geo::RoadSegmentsAt_t_pskel* roadSegmentsAt_parser_;
-    ::geo::connectors_t_pskel* Connectors_parser_;
+    ::geo::Multi_Connectors_t_pskel* Connectors_parser_;
     ::geo::ChunkLengths_t_pskel* ChunkLengths_parser_;
     ::geo::offsets_t_pskel* Offsets_parser_;
     ::geo::separators_t_pskel* Separators_parser_;
@@ -1727,10 +1822,10 @@ namespace geo
     location (sim_mob::Point2D);
 
     virtual void
-    roadSegmentsAt ();
+    roadSegmentsAt (std::set<sim_mob::RoadSegment*>);
 
-    virtual void
-    Connectors ();
+    virtual void    Connectors (const std::map<const sim_mob::RoadSegment*,std::set<sim_mob::LaneConnector *> >&);
+
 
     virtual void
     ChunkLengths ();
@@ -1765,7 +1860,7 @@ namespace geo
     roadSegmentsAt_parser (::geo::RoadSegmentsAt_t_pskel&);
 
     void
-    Connectors_parser (::geo::connectors_t_pskel&);
+    Connectors_parser (::geo::Multi_Connectors_t_pskel&);
 
     void
     ChunkLengths_parser (::geo::ChunkLengths_t_pskel&);
@@ -1789,7 +1884,7 @@ namespace geo
     parsers (::xml_schema::string_pskel& /* nodeID */,
              ::geo::Point2D_t_pskel& /* location */,
              ::geo::RoadSegmentsAt_t_pskel& /* roadSegmentsAt */,
-             ::geo::connectors_t_pskel& /* Connectors */,
+             ::geo::Multi_Connectors_t_pskel& /* Connectors */,
              ::geo::ChunkLengths_t_pskel& /* ChunkLengths */,
              ::geo::offsets_t_pskel& /* Offsets */,
              ::geo::separators_t_pskel& /* Separators */,
@@ -1817,7 +1912,7 @@ namespace geo
     ::xml_schema::string_pskel* nodeID_parser_;
     ::geo::Point2D_t_pskel* location_parser_;
     ::geo::RoadSegmentsAt_t_pskel* roadSegmentsAt_parser_;
-    ::geo::connectors_t_pskel* Connectors_parser_;
+    ::geo::Multi_Connectors_t_pskel* Connectors_parser_;
     ::geo::ChunkLengths_t_pskel* ChunkLengths_parser_;
     ::geo::offsets_t_pskel* Offsets_parser_;
     ::geo::separators_t_pskel* Separators_parser_;

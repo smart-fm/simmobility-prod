@@ -355,6 +355,57 @@ namespace geo
   {
   }
 
+  // Multi_Connector_t_pskel
+  //
+
+  void Multi_Connector_t_pskel::
+  RoadSegment_parser (::xml_schema::string_pskel& p)
+  {
+    this->RoadSegment_parser_ = &p;
+  }
+
+  void Multi_Connector_t_pskel::
+  Connectors_parser (::geo::connectors_t_pskel& p)
+  {
+    this->Connectors_parser_ = &p;
+  }
+
+  void Multi_Connector_t_pskel::
+  parsers (::xml_schema::string_pskel& RoadSegment,
+           ::geo::connectors_t_pskel& Connectors)
+  {
+    this->RoadSegment_parser_ = &RoadSegment;
+    this->Connectors_parser_ = &Connectors;
+  }
+
+  Multi_Connector_t_pskel::
+  Multi_Connector_t_pskel ()
+  : RoadSegment_parser_ (0),
+    Connectors_parser_ (0)
+  {
+  }
+
+  // Multi_Connectors_t_pskel
+  //
+
+  void Multi_Connectors_t_pskel::
+  MultiConnectors_parser (::geo::Multi_Connector_t_pskel& p)
+  {
+    this->MultiConnectors_parser_ = &p;
+  }
+
+  void Multi_Connectors_t_pskel::
+  parsers (::geo::Multi_Connector_t_pskel& MultiConnectors)
+  {
+    this->MultiConnectors_parser_ = &MultiConnectors;
+  }
+
+  Multi_Connectors_t_pskel::
+  Multi_Connectors_t_pskel ()
+  : MultiConnectors_parser_ (0)
+  {
+  }
+
   // fwdBckSegments_t_pskel
   //
 
@@ -884,7 +935,7 @@ namespace geo
   }
 
   void roundabout_t_pskel::
-  Connectors_parser (::geo::connectors_t_pskel& p)
+  Connectors_parser (::geo::Multi_Connectors_t_pskel& p)
   {
     this->Connectors_parser_ = &p;
   }
@@ -935,7 +986,7 @@ namespace geo
   parsers (::xml_schema::string_pskel& nodeID,
            ::geo::Point2D_t_pskel& location,
            ::geo::RoadSegmentsAt_t_pskel& roadSegmentsAt,
-           ::geo::connectors_t_pskel& Connectors,
+           ::geo::Multi_Connectors_t_pskel& Connectors,
            ::geo::ChunkLengths_t_pskel& ChunkLengths,
            ::geo::offsets_t_pskel& Offsets,
            ::geo::separators_t_pskel& Separators,
@@ -995,7 +1046,7 @@ namespace geo
   }
 
   void intersection_t_pskel::
-  Connectors_parser (::geo::connectors_t_pskel& p)
+  Connectors_parser (::geo::Multi_Connectors_t_pskel& p)
   {
     this->Connectors_parser_ = &p;
   }
@@ -1040,7 +1091,7 @@ namespace geo
   parsers (::xml_schema::string_pskel& nodeID,
            ::geo::Point2D_t_pskel& location,
            ::geo::RoadSegmentsAt_t_pskel& roadSegmentsAt,
-           ::geo::connectors_t_pskel& Connectors,
+           ::geo::Multi_Connectors_t_pskel& Connectors,
            ::geo::ChunkLengths_t_pskel& ChunkLengths,
            ::geo::offsets_t_pskel& Offsets,
            ::geo::separators_t_pskel& Separators,
@@ -2434,11 +2485,6 @@ namespace geo
   {
   }
 
-  void connectors_t_pskel::
-  post_connectors_t ()
-  {
-  }
-
   bool connectors_t_pskel::
   _start_element_impl (const ::xml_schema::ro_string& ns,
                        const ::xml_schema::ro_string& n,
@@ -2473,6 +2519,127 @@ namespace geo
     {
       if (this->Connector_parser_)
         this->Connector (this->Connector_parser_->post_connector_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // Multi_Connector_t_pskel
+  //
+
+  void Multi_Connector_t_pskel::
+  RoadSegment (const ::std::string&)
+  {
+  }
+
+  void Multi_Connector_t_pskel::
+  Connectors (std::set<sim_mob::LaneConnector*>)
+  {
+  }
+
+  bool Multi_Connector_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "RoadSegment" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->RoadSegment_parser_;
+
+      if (this->RoadSegment_parser_)
+        this->RoadSegment_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "Connectors" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Connectors_parser_;
+
+      if (this->Connectors_parser_)
+        this->Connectors_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool Multi_Connector_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "RoadSegment" && ns.empty ())
+    {
+      if (this->RoadSegment_parser_)
+        this->RoadSegment (this->RoadSegment_parser_->post_string ());
+
+      return true;
+    }
+
+    if (n == "Connectors" && ns.empty ())
+    {
+      if (this->Connectors_parser_)
+        this->Connectors (this->Connectors_parser_->post_connectors_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // Multi_Connectors_t_pskel
+  //
+
+  void Multi_Connectors_t_pskel::
+  MultiConnectors (const std::pair<std::string,std::set<sim_mob::LaneConnector*> >  &)
+  {
+  }
+
+  bool Multi_Connectors_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "MultiConnectors" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->MultiConnectors_parser_;
+
+      if (this->MultiConnectors_parser_)
+        this->MultiConnectors_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool Multi_Connectors_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "MultiConnectors" && ns.empty ())
+    {
+      if (this->MultiConnectors_parser_)
+        this->MultiConnectors (this->MultiConnectors_parser_->post_Multi_Connector_t ());
 
       return true;
     }
@@ -2534,11 +2701,6 @@ namespace geo
 
   void RoadSegmentsAt_t_pskel::
   segmentID (const ::std::string&)
-  {
-  }
-
-  void RoadSegmentsAt_t_pskel::
-  post_RoadSegmentsAt_t ()
   {
   }
 
@@ -3698,7 +3860,7 @@ namespace geo
   }
 
   void UniNode_t_pskel::
-  Connectors ()
+  Connectors (std::set<sim_mob::LaneConnector*>)
   {
   }
 
@@ -3771,10 +3933,7 @@ namespace geo
     if (n == "Connectors" && ns.empty ())
     {
       if (this->Connectors_parser_)
-      {
-        this->Connectors_parser_->post_connectors_t ();
-        this->Connectors ();
-      }
+        this->Connectors (this->Connectors_parser_->post_connectors_t ());
 
       return true;
     }
@@ -3796,12 +3955,12 @@ namespace geo
   }
 
   void roundabout_t_pskel::
-  roadSegmentsAt ()
+  roadSegmentsAt (std::set<sim_mob::RoadSegment*>)
   {
   }
 
   void roundabout_t_pskel::
-  Connectors ()
+  Connectors (const std::map<const sim_mob::RoadSegment*,std::set<sim_mob::LaneConnector*> >&)
   {
   }
 
@@ -3989,10 +4148,7 @@ namespace geo
     if (n == "roadSegmentsAt" && ns.empty ())
     {
       if (this->roadSegmentsAt_parser_)
-      {
-        this->roadSegmentsAt_parser_->post_RoadSegmentsAt_t ();
-        this->roadSegmentsAt ();
-      }
+        this->roadSegmentsAt (this->roadSegmentsAt_parser_->post_RoadSegmentsAt_t ());
 
       return true;
     }
@@ -4000,10 +4156,7 @@ namespace geo
     if (n == "Connectors" && ns.empty ())
     {
       if (this->Connectors_parser_)
-      {
-        this->Connectors_parser_->post_connectors_t ();
-        this->Connectors ();
-      }
+        this->Connectors (this->Connectors_parser_->post_Multi_Connectors_t ());
 
       return true;
     }
@@ -4096,12 +4249,12 @@ namespace geo
   }
 
   void intersection_t_pskel::
-  roadSegmentsAt ()
+  roadSegmentsAt (std::set<sim_mob::RoadSegment*>)
   {
   }
 
   void intersection_t_pskel::
-  Connectors ()
+  Connectors (const std::map<const sim_mob::RoadSegment*,std::set<sim_mob::LaneConnector*> >&)
   {
   }
 
@@ -4274,10 +4427,7 @@ namespace geo
     if (n == "roadSegmentsAt" && ns.empty ())
     {
       if (this->roadSegmentsAt_parser_)
-      {
-        this->roadSegmentsAt_parser_->post_RoadSegmentsAt_t ();
-        this->roadSegmentsAt ();
-      }
+        this->roadSegmentsAt (this->roadSegmentsAt_parser_->post_RoadSegmentsAt_t ());
 
       return true;
     }
@@ -4285,10 +4435,7 @@ namespace geo
     if (n == "Connectors" && ns.empty ())
     {
       if (this->Connectors_parser_)
-      {
-        this->Connectors_parser_->post_connectors_t ();
-        this->Connectors ();
-      }
+        this->Connectors (this->Connectors_parser_->post_Multi_Connectors_t ());
 
       return true;
     }

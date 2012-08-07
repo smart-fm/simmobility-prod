@@ -8,7 +8,7 @@ namespace http://www.smart.mit.edu/geo  {
  include "geospatial/Lane.hpp";
  include "geospatial/LaneConnector.hpp";
  include "geospatial/Crossing.hpp";
- 
+ include "geospatial/UniNode.hpp";
 Links std::vector<sim_mob::Link*> std::vector<sim_mob::Link*>;
 link_t sim_mob::Link* sim_mob::Link*;
 
@@ -25,6 +25,9 @@ lane_t sim_mob::Lane* sim_mob::Lane*;
 Lanes std::vector<sim_mob::Lane*> std::vector<sim_mob::Lane*>;
 
 connector_t sim_mob::LaneConnector* sim_mob::LaneConnector*;
+connectors_t std::set<sim_mob::LaneConnector*> std::set<sim_mob::LaneConnector*>;
+Multi_Connector_t std::pair<std::string,std::set<sim_mob::LaneConnector*>>;
+Multi_Connectors_t std::map<const_sim_mob::RoadSegment*,std::set<sim_mob::LaneConnector*>>;
 PolyLine_t std::vector<sim_mob::Point2D> std::vector<sim_mob::Point2D>;
 PolyPoint_t sim_mob::Point2D sim_mob::Point2D;
 Point2D_t sim_mob::Point2D sim_mob::Point2D;
@@ -35,6 +38,7 @@ UniNode_t sim_mob::UniNode* sim_mob::UniNode*;
 
 Intersections std::vector<sim_mob::MultiNode*> std::vector<sim_mob::MultiNode*>;
 intersection_t sim_mob::MultiNode* sim_mob::MultiNode*;
+RoadSegmentsAt_t std::set<sim_mob::RoadSegment*>  std::set<sim_mob::RoadSegment*>;
 
 roundabouts std::vector<sim_mob::MultiNode*> std::vector<sim_mob::MultiNode*>;
 roundabout_t sim_mob::MultiNode* sim_mob::MultiNode*;

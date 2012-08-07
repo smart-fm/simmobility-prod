@@ -7,7 +7,7 @@
 
 #include "Point2D.hpp"
 #include "RoadSegment.hpp"
-//#include "geo5-pimpl.hpp"
+//#include "xmlLoader/geo8-pimpl.hpp"
 
 //using namespace geo;
 namespace geo
@@ -97,8 +97,8 @@ class Loader;
  *   \endcode
  */
 class Lane {
-	friend class geo::lane_t_pimpl;
-	friend class geo::Lanes_pimpl;
+	friend class ::geo::lane_t_pimpl;
+	friend class ::geo::Lanes_pimpl;
 private:
     /**
      * Lane movement rules.

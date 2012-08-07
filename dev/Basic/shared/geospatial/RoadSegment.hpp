@@ -117,8 +117,8 @@ private:
 friend class sim_mob::aimsun::Loader;
 friend class sim_mob::aimsun::LaneLoader;
 friend class sim_mob::RoadNetworkPackageManager;
-friend class geo::segment_t_pimpl;
-friend class geo::Segments_pimpl;
+friend class ::geo::segment_t_pimpl;
+friend class ::geo::Segments_pimpl;
 
 };
 

@@ -8,25 +8,29 @@
 #include "ReactionTimeDistributions.hpp"
 
 #include <stdexcept>
+#include "util/LangHelpers.hpp"
 
 using namespace sim_mob;
 
 GenType ReactionTimeDistributions::gt1;
 GenType ReactionTimeDistributions::gt2;
-NormalDis* ReactionTimeDistributions::normal_dis1;
-NormalDis* ReactionTimeDistributions::normal_dis2;
-LognormalDis* ReactionTimeDistributions::lognormal_dis1;
-LognormalDis* ReactionTimeDistributions::lognormal_dis2;
-RNG_Normal* ReactionTimeDistributions::rng_normal1;
-RNG_Normal* ReactionTimeDistributions::rng_normal2;
-RNG_Lognormal* ReactionTimeDistributions::rng_lognormal1;
-RNG_Lognormal* ReactionTimeDistributions::rng_lognormal2;
-size_t ReactionTimeDistributions::distributionType1;
-size_t ReactionTimeDistributions::distributionType2;
-size_t ReactionTimeDistributions::mean1;
-size_t ReactionTimeDistributions::mean2;
-size_t ReactionTimeDistributions::standardDev1;
-size_t ReactionTimeDistributions::standardDev2;
+
+NormalDis* ReactionTimeDistributions::normal_dis1 = nullptr;
+NormalDis* ReactionTimeDistributions::normal_dis2 = nullptr;
+LognormalDis* ReactionTimeDistributions::lognormal_dis1 = nullptr;
+LognormalDis* ReactionTimeDistributions::lognormal_dis2 = nullptr;
+RNG_Normal* ReactionTimeDistributions::rng_normal1 = nullptr;
+RNG_Normal* ReactionTimeDistributions::rng_normal2 = nullptr;
+RNG_Lognormal* ReactionTimeDistributions::rng_lognormal1 = nullptr;
+RNG_Lognormal* ReactionTimeDistributions::rng_lognormal2 = nullptr;
+
+size_t ReactionTimeDistributions::distributionType1 = 0;
+size_t ReactionTimeDistributions::distributionType2 = 0;
+size_t ReactionTimeDistributions::mean1 = 0;
+size_t ReactionTimeDistributions::mean2 = 0;
+size_t ReactionTimeDistributions::standardDev1 = 0;
+size_t ReactionTimeDistributions::standardDev2 = 0;
+
 ReactionTimeDistributions ReactionTimeDistributions::instance_;
 
 sim_mob::ReactionTimeDistributions::~ReactionTimeDistributions()

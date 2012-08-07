@@ -6,6 +6,7 @@
 
 //For debugging
 #include "entities/roles/activityRole/ActivityPerformer.hpp"
+#include "util/GeomHelpers.hpp"
 #include "util/DebugFlags.hpp"
 #include "util/OutputUtil.hpp"
 
@@ -26,8 +27,13 @@ typedef Entity::UpdateStatus UpdateStatus;
 
 
 namespace {
-Trip* MakePseudoTrip(const Person& ag, const Point2D& origin, const Point2D& dest, const std::string& mode)
+Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 {
+	//Make sure we have something to work with
+	if (!(ag.originNode && ag.destNode)) {
+		throw std::runtime_error("Can't make a pseudo-trip for an Agent with no origin and destination.");
+	}
+
 	//Make the trip itself
 	Trip* res = new Trip();
 	res->entityID = ag.getId();
@@ -95,8 +101,10 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 	}
 
 	//Consistency check: are they requesting a pseudo-trip chain when they actually have one?
-	if (configProps.count("originPos")>0 && configProps.count("destPos")>0) {
-		if (!entityTripChain.empty()) {
+	map<string, string>::const_iterator origIt = configProps.find("originPos");
+	map<string, string>::const_iterator destIt = configProps.find("destPos");
+	if (origIt!=configProps.end() && destIt!=configProps.end()) {
+		if (!tripChain.empty()) {
 			throw std::runtime_error("Manual position specified for Agent with existing Trip Chain.");
 		}
 		if (this->originNode || this->destNode) {
@@ -104,9 +112,9 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		}
 
 		//Otherwise, make a trip chain for this Person.
-		Node* originNode = ConfigParams::GetInstance().getNetwork().locateNode(parse_point(configProps["originPos"]), true);
-		Node* destNode = ConfigParams::GetInstance().getNetwork().locateNode(parse_point(configProps["destPos"]), true);
-		Trip* singleTrip = MakePseudoTrip(this, originNode, destNode, mode);
+		this->originNode = ConfigParams::GetInstance().getNetwork().locateNode(parse_point(origIt->second), true);
+		this->destNode = ConfigParams::GetInstance().getNetwork().locateNode(parse_point(destIt->second), true);
+		Trip* singleTrip = MakePseudoTrip(*this, mode);
 		std::vector<const TripChainItem*> trip_chain;
 		trip_chain.push_back(singleTrip);
 
@@ -122,8 +130,9 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 	}
 
 	//One more check: If they have a special string, save it now
-	if (configProps.count("special")>0) {
-		this->specialStr = configProps["special"];
+	it = configProps.find("special");
+	if (it != configProps.end()) {
+		this->specialStr = it->second;
 	}
 
 	///

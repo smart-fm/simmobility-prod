@@ -186,9 +186,17 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat) :
 	trafficSignal = nullptr;
 	vehicle = nullptr;
 
-	double r1 = ConfigParams::GetInstance().reactDist1->getReactionTime();
-	double r2 = ConfigParams::GetInstance().reactDist2->getReactionTime();
-	reacTime = r1 + r2;
+	//This is something of a quick fix; if there is no parent, then that means the
+	//  reaction times haven't been initialized yet and will crash. ~Seth
+	if (parent) {
+		ReactionTimeDist* r1 = ConfigParams::GetInstance().reactDist1;
+		ReactionTimeDist* r2 = ConfigParams::GetInstance().reactDist2;
+		if (r1 && r2) {
+			reacTime = r1->getReactionTime() + r2->getReactionTime();
+		} else {
+			throw std::runtime_error("Reaction time distributions have not been initialized yet.");
+		}
+	}
 
 	perceivedFwdVel = new FixedDelayed<double>(reacTime,true);
 	perceivedFwdAcc = new FixedDelayed<double>(reacTime,true);

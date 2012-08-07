@@ -9,6 +9,7 @@ namespace sim_mob
 {
 
 class Role;
+class TripChainItem;
 
 
 /**
@@ -38,6 +39,9 @@ public:
 
 	///Create a role given its name and property list
 	sim_mob::Role* createRole(const std::string& name, const std::map<std::string, std::string>& props) const;
+
+	///Create a Role based on the current TripChain item.
+	sim_mob::Role* createRole(const sim_mob::TripChainItem* const currTripChainItem) const;
 
 private:
 

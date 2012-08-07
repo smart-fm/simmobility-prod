@@ -1,7 +1,11 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "RoleFactory.hpp"
+
 #include <stdexcept>
+
+#include "entities/roles/Role.hpp"
+#include "entities/misc/TripChain.hpp"
 
 using namespace sim_mob;
 using std::map;
@@ -44,4 +48,27 @@ Role* sim_mob::RoleFactory::createRole(const string& name, const map<string, str
 		throw std::runtime_error("PendingEntity currently only supports Drivers, Pedestrians and Activity performers.");
 	}*/
 }
+
+Role* sim_mob::RoleFactory::createRole(const TripChainItem* const currTripChainItem) const
+{
+	throw std::runtime_error("Not implemented yet");
+
+	//TODO: We need to register activities as well as trips. Something like this:
+	//
+	//if(this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_TRIP){
+	//	if (this->currSubTrip->mode == "Car") {
+	//		return new Driver(this);
+	//	} else if (this->currSubTrip->mode == "Walk") {
+	//		return new Pedestrian(this);
+	//	} else {
+	//		throw std::runtime_error("Unknown role type for trip chain role change.");
+	//	}
+	//} else if(this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_ACTIVITY){
+	//	const Activity& currActivity = dynamic_cast<const Activity&>(*currTripChainItem);
+	//	return new ActivityPerformer(this, currActivity);
+	//} else {
+	//	throw std::runtime_error("Unknown item type in trip chain");
+	//}
+}
+
 

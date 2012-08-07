@@ -377,40 +377,31 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) 
 	prevRole = currRole;
 
 	//Create a new Role based on the trip chain type
-	if(this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_TRIP){
-		if (this->currSubTrip->mode == "Car") {
-			//Temp. (Easy to add in later)
-			throw std::runtime_error("Cars not supported in Trip Chain role change.");
-		} else if (this->currSubTrip->mode == "Walk") {
-			changeRole(new Pedestrian(this));
-		} else {
-			throw std::runtime_error("Unknown role type for trip chain role change.");
-		}
+	const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
+	changeRole(rf.createRole(this->currTripChainItem));
 
-		//Update our origin/dest pair.
+	//Update our origin/dest pair.
+	//TODO: We need to make TripChainItems a little friendlier in terms of
+	//      getting the origin/dest (which can be the same or null for Activity types)
+	if(this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_TRIP){
 		originNode = this->currSubTrip->fromLocation;
 		destNode = this->currSubTrip->toLocation;
-	} else if(this->currTripChainItem->itemType == sim_mob::TripChainItem::IT_ACTIVITY){
-		const Activity& currActivity = dynamic_cast<const Activity&>(*currTripChainItem);
-		changeRole(new ActivityPerformer(this, currActivity));
-		//Update our origin/dest pair.
-		originNode = destNode = currActivity.location;
 	} else {
-		throw std::runtime_error("Unknown item type in trip chain");
+		originNode = dynamic_cast<const Activity&>(*currTripChainItem).location;
+		destNode = destNode;
 	}
-
 
 	//Create a return type based on the differences in these Roles
 	UpdateStatus res(UpdateStatus::RS_CONTINUE, prevRole->getSubscriptionParams(), currRole->getSubscriptionParams());
 
 	//Set our start time to the NEXT time tick so that frame_init is called
 	//  on the first pass through.
-	//TODO: This might also be better handled in the worker class.
+	//TODO: Somewhere here the current Role can specify to "put me back on pending", since pending_entities
+	//      now takes Agent* objects.
 	setStartTime(currTimeMS + ConfigParams::GetInstance().baseGranMS);
 	firstFrameTick = true;
 
 	//Null out our trip chain, remove the "removed" flag, and return
-//	setTripChainItem(nullptr);
 	clearToBeRemoved();
 	return res;
 }

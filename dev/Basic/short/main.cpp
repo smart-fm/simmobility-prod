@@ -107,7 +107,7 @@ bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents);
  * This function is separate from main() to allow for easy scoping of WorkGroup objects.
  */
 bool performMain(const std::string& configFileName) {
-	cout <<"Starting SimMobility, version " <<SIMMOB_VERSION <<endl;
+	cout <<"Starting SimMobility,, version " <<SIMMOB_VERSION <<endl;
 	
 	ProfileBuilder* prof = nullptr;
 #ifdef SIMMOB_AGENT_UPDATE_PROFILE
@@ -124,7 +124,6 @@ bool performMain(const std::string& configFileName) {
 		return false;
 	}
 	const ConfigParams& config = ConfigParams::GetInstance();
-
 
 	//Sanity check (nullptr)
 	void* x = nullptr;

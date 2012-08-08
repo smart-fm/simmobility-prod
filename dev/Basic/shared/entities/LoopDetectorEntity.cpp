@@ -5,7 +5,11 @@
 
 #include "LoopDetectorEntity.hpp"
 #include "geospatial/Node.hpp"
+#ifdef SIMMOB_NEW_SIGNAL
+#include "entities/signal/Signal.hpp"
+#else
 #include "entities/Signal.hpp"
+#endif
 #include "AuraManager.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/Role.hpp"

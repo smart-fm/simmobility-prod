@@ -23,7 +23,11 @@
 #include "geospatial/LaneConnector.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/BusStop.hpp"
+#ifdef SIMMOB_NEW_SIGNAL
+#include "entities/signal/Signal.hpp"
+#else
 #include "entities/Signal.hpp"
+#endif
 #include "util/GeomHelpers.hpp"
 #include "geospatial/Point2D.hpp"
 

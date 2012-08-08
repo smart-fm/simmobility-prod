@@ -12,7 +12,13 @@
 #include "Lane.hpp"
 #include "RoadNetwork.hpp"
 #include "buffering/Vector2D.hpp"
+
+#ifdef SIMMOB_NEW_SIGNAL
+#include "entities/signal/Signal.hpp"
+#else
 #include "entities/Signal.hpp"
+#endif
+
 #include "entities/TrafficWatch.hpp"
 #include "BusStop.hpp"
 #include "Crossing.hpp"

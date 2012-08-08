@@ -80,7 +80,7 @@ std::string getColor(size_t id)
 			}
 		}
 
-		std::cout << "calling compute for crossings" << std::endl;
+//		std::cout << "calling compute for crossings" << std::endl;
 		//update each crossing signal's color
 		//common sense says there is only one crossing per link, but I kept a container for it just in case
 		crossings_map_iterator crossing_it = crossings_map_.begin();

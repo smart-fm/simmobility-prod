@@ -14,12 +14,12 @@ TrafficColor ColorSequence::computeColor(double Duration)
 		if(Duration < sum )
 			{
 
-				if((*it).first == sim_mob::Green)
-				{
-					std::cout << "Returning color Green" <<  std::endl;
-				}
-				else
-					std::cout << "Returning color " << (*it).first << std::endl;
+//				if((*it).first == sim_mob::Green)
+//				{
+//					std::cout << "Returning color Green" <<  std::endl;
+//				}
+//				else
+//					std::cout << "Returning color " << (*it).first << std::endl;
 				return (*it).first;
 			}
 	}

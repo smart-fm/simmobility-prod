@@ -13,7 +13,12 @@
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/Person.hpp"
+
+#ifdef SIMMOB_NEW_SIGNAL
+#include "entities/signal/Signal.hpp"
+#else
 #include "entities/Signal.hpp"
+#endif
 #include "entities/AuraManager.hpp"
 #include "entities/UpdateParams.hpp"
 #include "entities/misc/TripChain.hpp"
@@ -1691,7 +1696,18 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 		Signal::TrafficColor color;
 #endif
 		if (vehicle->hasNextSegment(false)) {
+
+//			std::cout << "In Driver::setTrafficSignalParams, frame number " << p.frameNumber <<
+//					"  Getting the driver light from lane " << p.currLane  <<
+//					"(" << p.currLane->getRoadSegment()->getLink()->roadName << ")" <<
+//					" To "<< nextLaneInNextLink  <<
+//					"(" << nextLaneInNextLink->getRoadSegment()->getLink()->roadName << ")" << std::endl;
+
+
 			color = trafficSignal->getDriverLight(*p.currLane, *nextLaneInNextLink);
+
+
+			std::cout << "The driver light is " << color << std::endl;
 		} else {
 			/*vahid:
 			 * Basically,there is no notion of left, right forward any more.
@@ -1709,7 +1725,7 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 		case Signal::Red:
 #endif
 
-
+//			std::cout<< "Driver is getting Red light \n";
 			p.trafficColor = color;
 			break;
 #ifdef SIMMOB_NEW_SIGNAL
@@ -1720,6 +1736,7 @@ void sim_mob::Driver::setTrafficSignalParams(DriverUpdateParams& p) {
 		case Signal::Green:
 #endif
 
+//			std::cout<< "Driver is getting Green or Amber light \n";
 			if (!isPedestrianOnTargetCrossing())
 				p.trafficColor = color;
 			else

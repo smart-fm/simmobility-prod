@@ -12,6 +12,7 @@
 
 #include "geospatial/Node.hpp"
 #include "entities/misc/TripChain.hpp"
+#include "workers/Worker.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -231,27 +232,27 @@ void sim_mob::Person::findNextItemInTripChain() {
 }
 
 UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
+	//First, we need to retrieve an UpdateParams subclass appropriate for this Agent.
+	unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
+
 #ifdef SIMMOB_AGENT_UPDATE_PROFILE
 		profile.logAgentUpdateBegin(*this, frameNumber);
 #endif
 
-	///
-	/// TODO: I haven't isolated the code which switches Roles based on TripChains yet.
-	///       But plenty of Agents definitely start with null Roles. ~Seth
-	/// TODO: Role switching can also occur _after_ the current time tick. Both times involve
-	///       modifying the subscription list; we'll need a cleaner solution (it's causing errors now).
-	///
-	//const RoleFactory& rf = ConfigParams::GetInstance().getRoleFactory();
-	//Role* r = fact.createRole("TODO: ROLE_NAME", p->getConfigProperties());
-	//p->changeRole(r);
+	//Agents may be created with a null Role and a valid trip chain
+	checkAndReactToTripChain(currTimeMS);
+
+	//Failsafe
+	if (!currRole) {
+		throw std::runtime_error("Person has no Role.");
+	}
 
 
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
 #ifndef SIMMOB_STRICT_AGENT_ERRORS
 	try {
 #endif
-		//First, we need to retrieve an UpdateParams subclass appropriate for this Agent.
-		unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
+		//Get an UpdateParams instance.
 		UpdateParams& params = currRole->make_frame_tick_params(frameNumber, currTimeMS);
 		//std::cout<<"Person ID:"<<this->getId()<<"---->"<<"Person position:"<<"("<<this->xPos<<","<<this->yPos<<")"<<std::endl;
 
@@ -434,20 +435,24 @@ void sim_mob::Person::buildSubscriptionList(vector<BufferedBase*>& subsList) {
 	}
 }
 
-////
-//// TODO: The current role's won't flip() unless they're added to the BufferedManager, but this must be
-////       done in the right part of the Worker thread's runloop.
-////       This will lead to properties not reading correct values unless we fix this.
-////
+//Role changing should always be done through changeRole, because it also manages subscriptions.
+//TODO: Currently, this is also done via the return value to worker. Probably best not to have
+//      the same code in two places.
 void sim_mob::Person::changeRole(sim_mob::Role* newRole) {
-	if (this->currRole) {
-		this->currRole->setParent(nullptr);
+	if (currRole) {
+		currRole->setParent(nullptr);
+		if (this->currWorker) {
+			this->currWorker->stopManaging(currRole->getSubscriptionParams());
+		}
 	}
 
-	this->currRole = newRole;
+	currRole = newRole;
 
-	if (this->currRole) {
-		this->currRole->setParent(this);
+	if (currRole) {
+		currRole->setParent(this);
+		if (this->currWorker) {
+			this->currWorker->beginManaging(currRole->getSubscriptionParams());
+		}
 	}
 }
 

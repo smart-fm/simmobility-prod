@@ -75,22 +75,6 @@ Role* sim_mob::RoleFactory::createRole(const string& name, Person* parent) const
 	}
 
 	return prot->clone(parent);
-
-	//
-	//TODO: Make sure all these options are covered:
-	//
-	/*if (p.type == ENTITY_DRIVER) {
-		res->changeRole(new Driver(res, config.mutexStategy));
-	} else if (p.type == ENTITY_PEDESTRIAN) {
-		res->changeRole(new Pedestrian(res));
-	} else if (p.type == ENTITY_BUSDRIVER) {
-		res->changeRole(new BusDriver(res, config.mutexStategy));
-	} else if (p.type == ENTITY_ACTIVITYPERFORMER){
-		// First trip chain item is Activity when Person is generated from Pending
-		res->changeRole(new ActivityPerformer(res, dynamic_cast<const sim_mob::Activity&>(*(p.entityTripChain.front()))));
-	} else {
-		throw std::runtime_error("PendingEntity currently only supports Drivers, Pedestrians and Activity performers.");
-	}*/
 }
 
 Role* sim_mob::RoleFactory::createRole(const TripChainItem* currTripChainItem, Person* parent) const

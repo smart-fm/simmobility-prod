@@ -127,7 +127,7 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		this->destNode = singleTrip->toLocation;
 		this->setNextPathPlanned(false);
 		this->setTripChain(trip_chain);
-		this->findNextItemInTripChain();
+		//this->findNextItemInTripChain(); //Let update() handle this.
 	}
 
 	//One more check: If they have a special string, save it now
@@ -212,7 +212,7 @@ void sim_mob::Person::getNextSubTripInTrip(){
 }
 
 void sim_mob::Person::findNextItemInTripChain() {
-	if(!this->currTripChainItem){
+	if(!this->currTripChainItem) {
 		//set the first item if the current item is null
 		this->currTripChainItem = this->tripChain.front();
 	} else {
@@ -228,7 +228,6 @@ void sim_mob::Person::findNextItemInTripChain() {
 	}
 
 	this->getNextSubTripInTrip(); //if currTripChainItem is Trip, set currSubTrip as well
-
 }
 
 UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
@@ -365,11 +364,11 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) {
 	this->getNextSubTripInTrip();
 
-	if(this->currSubTrip == nullptr){
+	if(!this->currSubTrip){
 		this->findNextItemInTripChain();
 	}
 
-	if (this->currTripChainItem == nullptr) {
+	if (!this->currTripChainItem) {
 		return UpdateStatus::Done;
 	}
 

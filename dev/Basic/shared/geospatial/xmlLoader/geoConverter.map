@@ -33,14 +33,14 @@ PolyPoint_t sim_mob::Point2D sim_mob::Point2D;
 Point2D_t sim_mob::Point2D sim_mob::Point2D;
 PointPair_t std::pair<sim_mob::Point2D,sim_mob::Point2D> std::pair<sim_mob::Point2D,sim_mob::Point2D>;
 
-UniNodes std::set<sim_mob::UniNode*> std::set<sim_mob::UniNode*>;
+UniNodes std::set<sim_mob::UniNode*> std::set<sim_mob::UniNode*>&;
 UniNode_t sim_mob::UniNode* sim_mob::UniNode*;
 
-Intersections std::vector<sim_mob::MultiNode*> std::vector<sim_mob::MultiNode*>;
+Intersections std::vector<sim_mob::MultiNode*> std::vector<sim_mob::MultiNode*>&;
 intersection_t sim_mob::MultiNode* sim_mob::MultiNode*;
 RoadSegmentsAt_t std::set<sim_mob::RoadSegment*>  std::set<sim_mob::RoadSegment*>;
 
-roundabouts std::vector<sim_mob::MultiNode*> std::vector<sim_mob::MultiNode*>;
+roundabouts std::vector<sim_mob::MultiNode*> std::vector<sim_mob::MultiNode*>&;
 roundabout_t sim_mob::MultiNode* sim_mob::MultiNode*;
 
 crossing_t sim_mob::Crossing* sim_mob::Crossing*; 

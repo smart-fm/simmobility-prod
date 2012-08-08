@@ -365,13 +365,6 @@
 
   <xs:complexType name="RoadNetwork_t">
     <xs:sequence>
-      <xs:element name="Links">
-        <xs:complexType>
-          <xs:sequence>
-            <xs:element name="Link" type="geo:link_t" minOccurs="1" maxOccurs="unbounded"/>
-          </xs:sequence>
-        </xs:complexType>
-      </xs:element>
       <xs:element name="Nodes">
         <xs:complexType>
           <xs:sequence>
@@ -399,6 +392,13 @@
                 </xs:sequence>
               </xs:complexType>
             </xs:element>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="Links">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="Link" type="geo:link_t" minOccurs="1" maxOccurs="unbounded"/>
           </xs:sequence>
         </xs:complexType>
       </xs:element>

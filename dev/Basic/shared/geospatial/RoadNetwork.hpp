@@ -9,7 +9,12 @@
 namespace geo {
 class Links_pimpl;
 class RoadNetwork_t_pimpl;
+class Nodes_pimpl;
+class Intersections_pimpl;
+class roundabouts_pimpl;
+class UniNodes_pimpl;
 }
+
 namespace sim_mob
 {
 
@@ -53,6 +58,13 @@ enum DRIVING_SIDE {
 /*Added  by vahid*/
 
 class RoadNetwork {
+
+	friend class sim_mob::aimsun::Loader;
+	friend class ::geo::RoadNetwork_t_pimpl;
+	friend class ::geo::Intersections_pimpl;
+	friend class ::geo::roundabouts_pimpl;
+	friend class ::geo::UniNodes_pimpl;
+	friend class ::geo::Nodes_pimpl;
 public:
 	RoadNetwork() { drivingSide=DRIVES_ON_LEFT; } //TEMP
 
@@ -90,9 +102,6 @@ private:
 	std::set<sim_mob::UniNode*>& getUniNodesRW() { return segmentnodes; }
 	std::vector<sim_mob::Link*>& getLinksRW() { return links; }
 
-
-friend class sim_mob::aimsun::Loader;
-friend class ::geo::RoadNetwork_t_pimpl;
 
 };
 

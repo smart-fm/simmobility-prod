@@ -7,12 +7,21 @@
 #include "geo8-pimpl.hpp"
 #include <cstdio>
 #include <iostream>
-
+#include <boost/bimap.hpp>
 
 namespace geo
 {
-std::map<std::string,sim_mob::RoadSegment*> geo_Segments_;
-std::map<std::string,sim_mob::Lane*> geo_Lanes_;
+//std::map<std::string,sim_mob::RoadSegment*> geo_Segments_;
+//std::map<std::string,sim_mob::Lane*> geo_Lanes_;
+//std::map<std::string,sim_mob::Node*> geo_Nodes_;
+
+typedef boost::bimap<std::string,sim_mob::RoadSegment*> geo_Segments; geo_Segments geo_Segments_;
+typedef boost::bimap<std::string,sim_mob::Lane*> geo_Lanes; geo_Lanes geo_Lanes_;
+typedef boost::bimap<unsigned int,sim_mob::Node*> geo_Nodes; geo_Nodes geo_Nodes_;
+
+typedef geo_Segments::value_type position_Segments_;
+typedef geo_Lanes::value_type position_Lanes_;
+typedef geo_Nodes::value_type position_Nodes_;
   // SegmentType_t_pimpl
   //
 
@@ -132,7 +141,8 @@ std::map<std::string,sim_mob::Lane*> geo_Lanes_;
   {
 	  this->lane->laneID_ = atoi(laneID.c_str());
 	  //add it to the book keeper;
-	  geo_Lanes_[laneID] = this->lane;
+//	  geo_Lanes_[laneID] = this->lane;
+	  geo_Lanes_.insert(position_Lanes_(laneID,this->lane));
   }
 
   void lane_t_pimpl::
@@ -246,7 +256,7 @@ std::map<std::string,sim_mob::Lane*> geo_Lanes_;
   sim_mob::Lane* lane_t_pimpl::
   post_lane_t ()
   {
-	  std::cout<< "Lane returning\n";
+//	  std::cout<< "Lane returning\n";
     return this->lane;
   }
 
@@ -262,13 +272,13 @@ std::map<std::string,sim_mob::Lane*> geo_Lanes_;
   void connector_t_pimpl::
   laneFrom (const ::std::string& laneFrom)
   {
-	  laneConnector->laneFrom = geo_Lanes_[const_cast<std::string &>(laneFrom)];
+	  laneConnector->laneFrom = geo_Lanes_.left.at(const_cast<std::string &>(laneFrom));
   }
 
   void connector_t_pimpl::
   laneTo (const ::std::string& laneTo)
   {
-	  laneConnector->laneTo = geo_Lanes_[laneTo];
+	  laneConnector->laneTo =  geo_Lanes_.left.at(laneTo);
   }
 
   sim_mob::LaneConnector* connector_t_pimpl::
@@ -283,6 +293,7 @@ std::map<std::string,sim_mob::Lane*> geo_Lanes_;
   void connectors_t_pimpl::
   pre ()
   {
+	  this->ConnectorSet.clear();
   }
 
   void connectors_t_pimpl::
@@ -294,6 +305,7 @@ std::map<std::string,sim_mob::Lane*> geo_Lanes_;
   std::set<sim_mob::LaneConnector*> connectors_t_pimpl::
   post_connectors_t ()
   {
+	  return this->ConnectorSet;
     // TODO
     //
     // return ... ;
@@ -336,7 +348,7 @@ std::map<std::string,sim_mob::Lane*> geo_Lanes_;
   void Multi_Connectors_t_pimpl::
   MultiConnectors (const std::pair<std::string,std::set<sim_mob::LaneConnector*> >  & MultiConnectors)
   {
-	  temp_map[geo_Segments_[MultiConnectors.first]] = MultiConnectors.second;
+	  temp_map[geo_Segments_.left.at(MultiConnectors.first)] = MultiConnectors.second;
   }
 
   std::map<const sim_mob::RoadSegment*,std::set<sim_mob::LaneConnector*> > Multi_Connectors_t_pimpl::
@@ -362,7 +374,7 @@ std::map<std::string,sim_mob::Lane*> geo_Lanes_;
   std::vector<sim_mob::RoadSegment*> fwdBckSegments_t_pimpl::
   post_fwdBckSegments_t ()
   {
-	  std::cout << "In post_fwdBckSegments_t\n";
+//	  std::cout << "In post_fwdBckSegments_t\n";
 	  return Segments;
   }
 
@@ -378,12 +390,13 @@ std::map<std::string,sim_mob::Lane*> geo_Lanes_;
   segmentID (const ::std::string& segmentID)
   {
     std::cout << "segmentID: " << segmentID << std::endl;
-    RoadSegments.insert(geo_Segments_[segmentID]);
+    RoadSegments.insert(geo_Segments_.left.at(segmentID));
   }
 
   std::set<sim_mob::RoadSegment*> RoadSegmentsAt_t_pimpl::
   post_RoadSegmentsAt_t ()
   {
+	  return RoadSegments;
     // TODO
     //
     // return ... ;
@@ -402,7 +415,7 @@ std::map<std::string,sim_mob::Lane*> geo_Lanes_;
   segmentID (const ::std::string& segmentID)
   {
 	  this->rs->segmentID = segmentID;
-	  geo_Segments_[this->rs->segmentID] = rs;
+	  geo_Segments_.insert(position_Segments_(this->rs->segmentID,rs));
   }
 
   void segment_t_pimpl::
@@ -416,7 +429,7 @@ std::map<std::string,sim_mob::Lane*> geo_Lanes_;
   endingNode (const ::std::string& endingNode)
   {
 	  if (this->rs->end)
-	  this->rs->end->setID(atoi(endingNode.c_str()));
+		  this->rs->end->setID(atoi(endingNode.c_str()));
   }
 
   void segment_t_pimpl::
@@ -765,11 +778,11 @@ std::map<std::string,sim_mob::Lane*> geo_Lanes_;
   void UniNode_t_pimpl::
   Connectors (std::set<sim_mob::LaneConnector*> Connectors)
   {
+	  std::cout << "Uninode Connector size " << Connectors.size() << std::endl;
 	  std::set<sim_mob::LaneConnector*>::iterator it = Connectors.begin();
 	  //uninode class uses map not set so ...convert...
 	  for(; it != Connectors.end(); it++)
 	  {
-		  sim_mob::Lane* laneTo_ = (*it)->laneTo;
 		  this->connectors_[(*it)->laneFrom] = (*it)->laneTo;
 	  }
   }
@@ -780,6 +793,7 @@ std::map<std::string,sim_mob::Lane*> geo_Lanes_;
 	  this->uniNode = new sim_mob::UniNode(this->location_.getX(),this->location_.getY());
 	  this->uniNode->setID(this->nodeId);
 	  this->uniNode->connectors = this->connectors_;
+	  geo_Nodes_.insert(position_Nodes_(this->nodeId, this->uniNode));
 	  return this->uniNode;
   }
 
@@ -869,27 +883,31 @@ std::map<std::string,sim_mob::Lane*> geo_Lanes_;
   void intersection_t_pimpl::
   pre ()
   {
-	  std::cout << "intersection_pimpl::pre()\n";
+	  std::cout << "intersection_t_pimpl::pre()\n";
   }
 
   void intersection_t_pimpl::
   nodeID (const ::std::string& nodeID)
   {
+	  std::cout << "intersection_t_pimpl::location()\n";
 	    this->nodeId = atoi(nodeID.c_str());
   }
 
   void intersection_t_pimpl::
   location (sim_mob::Point2D location)
   {
+	  std::cout << "intersection_pimpl::location()\n";
 	  this->location_ = location;
 	  //here you can create the sim_mob object(you can do that in post_ function also but if you create it here, you can save a lot of space and copy time
 	  this->intersection = new sim_mob::Intersection(this->location_.getX(), this->location_.getY());
 	  this->intersection->setID(this->nodeId);
+	  geo_Nodes_.insert(position_Nodes_(this->nodeId, this->intersection));
   }
 
   void intersection_t_pimpl::
   roadSegmentsAt (std::set<sim_mob::RoadSegment*> roadSegmentsAt)
   {
+	  std::cout << "intersection_pimpl::roadSegmentsAt()\n";
 	  this->intersection->roadSegmentsAt = roadSegmentsAt;
   }
 
@@ -933,6 +951,7 @@ std::map<std::string,sim_mob::Lane*> geo_Lanes_;
   sim_mob::MultiNode* intersection_t_pimpl::
   post_intersection_t ()
   {
+	  std::cout << "intersection_pimpl::post_intersection_t()\n";
 	  return this->intersection;
   }
 
@@ -1260,7 +1279,28 @@ std::map<std::string,sim_mob::Lane*> geo_Lanes_;
 
   // GeoSpatial_t_pimpl
   //
+//non_Automated funcions
+  void GeoSpatial_t_pimpl::setStartEndNode()
+  {
+	  setStartEndNode_Links();
+	  setStartEndNode_Segments();
+	  setStartEndNode_Lanes();
+  }
+  void GeoSpatial_t_pimpl::setStartEndNode_Links()
+  {
+  }
+  void GeoSpatial_t_pimpl::setStartEndNode_Segments()
+  {
+	  for(geo_Segments::right_iterator it = geo_Segments_.right.begin(), it_end(geo_Segments_.right.end()); it != it_end; it++)
+	  {
+//		  (*it)->
+//		  geo_Nodes::
+	  }
+  }
+  void GeoSpatial_t_pimpl::setStartEndNode_Lanes()
+  {
 
+  }
   void GeoSpatial_t_pimpl::
   pre ()
   {
@@ -1270,6 +1310,7 @@ std::map<std::string,sim_mob::Lane*> geo_Lanes_;
   void GeoSpatial_t_pimpl::
   RoadNetwork ()
   {
+	  setStartEndNode();
   }
 
   void GeoSpatial_t_pimpl::
@@ -1314,7 +1355,7 @@ std::map<std::string,sim_mob::Lane*> geo_Lanes_;
   std::vector<sim_mob::Lane*> Lanes_pimpl::
   post_Lanes ()
   {
-	  std::cout<< "Returning Lanes\n";
+//	  std::cout<< "Returning Lanes\n";
 	  return this->lanes;
   }
 
@@ -1367,17 +1408,17 @@ std::map<std::string,sim_mob::Lane*> geo_Lanes_;
 
   // Nodes_pimpl
   //
-
   void Nodes_pimpl::
   pre ()
   {
-
-	  std::cout << "Nodes_pimpl::pre()\n";
+//	  this->instance = sim_mob::ConfigParams::GetInstance();
+//	  std::cout << "Nodes_pimpl::pre()\n";
   }
 
   void Nodes_pimpl::
   UniNodes (std::set<sim_mob::UniNode*> UniNodes)
   {
+	  rn.segmentnodes = UniNodes;
     // TODO
     //
   }
@@ -1385,6 +1426,9 @@ std::map<std::string,sim_mob::Lane*> geo_Lanes_;
   void Nodes_pimpl::
   Intersections (std::vector<sim_mob::MultiNode*> Intersections)
   {
+
+	  rn.nodes.insert(rn.nodes.begin(),Intersections.begin(),Intersections.end());
+	  std::cout<< "Intersections inserted\n";
     // TODO
     //
   }
@@ -1392,6 +1436,10 @@ std::map<std::string,sim_mob::Lane*> geo_Lanes_;
   void Nodes_pimpl::
   roundabouts (std::vector<sim_mob::MultiNode*> roundabouts)
   {
+	  std::cout<< "roundabouts inserting size " << roundabouts.size() << std::endl;
+	  if((roundabouts.begin() != roundabouts.end())&& roundabouts.size() > 0 )
+		  rn.nodes.insert(rn.nodes.end(),roundabouts.begin(),roundabouts.end());
+	  std::cout<< "roundabouts inserted\n";
     // TODO
     //
   }
@@ -1399,6 +1447,7 @@ std::map<std::string,sim_mob::Lane*> geo_Lanes_;
   void Nodes_pimpl::
   post_Nodes ()
   {
+	  std::cout<< "post_Nodes called\n";
   }
 
   // UniNodes_pimpl
@@ -1419,6 +1468,7 @@ std::map<std::string,sim_mob::Lane*> geo_Lanes_;
   std::set<sim_mob::UniNode*> UniNodes_pimpl::
   post_UniNodes ()
   {
+	  std::cout << "UniNodes_pimpl::post_UniNodes()\n";
 	  return uniNodes;
   }
 
@@ -1454,6 +1504,7 @@ std::map<std::string,sim_mob::Lane*> geo_Lanes_;
   void roundabouts_pimpl::
   roundabout (sim_mob::MultiNode* roundabout)
   {
+	  roundabouts.push_back(roundabout);
     // TODO
     //
   }
@@ -1461,9 +1512,7 @@ std::map<std::string,sim_mob::Lane*> geo_Lanes_;
   std::vector<sim_mob::MultiNode*> roundabouts_pimpl::
   post_roundabouts ()
   {
-    // TODO
-    //
-    // return ... ;
+	  return roundabouts;
   }
 }
 

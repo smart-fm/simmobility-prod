@@ -766,6 +766,11 @@ namespace geo
 
   class GeoSpatial_t_pimpl: public virtual GeoSpatial_t_pskel
   {
+	  void setStartEndNode();
+	  void setStartEndNode_Links();
+	  void setStartEndNode_Segments();
+	  void setStartEndNode_Lanes();
+
     public:
     virtual void
     pre ();
@@ -837,7 +842,9 @@ namespace geo
 
   class Nodes_pimpl: public virtual Nodes_pskel
   {
+	  sim_mob::RoadNetwork &rn;
     public:
+	  Nodes_pimpl():rn(sim_mob::ConfigParams::GetInstance().getNetworkRW()){}
     virtual void
     pre ();
 
@@ -884,6 +891,7 @@ namespace geo
 
   class roundabouts_pimpl: public virtual roundabouts_pskel
   {
+	  std::vector<sim_mob::MultiNode*> roundabouts;
     public:
     virtual void
     pre ();

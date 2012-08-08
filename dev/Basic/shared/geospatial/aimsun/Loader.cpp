@@ -444,7 +444,7 @@ DatabaseLoader::LoadTrafficSignals(std::string const & storedProcedure)
         signal.xPos *= 100;
         signal.yPos *= 100;
         //TODO remove if
-        if(signal.nodeId == 66508)
+//        if(signal.nodeId == 66508)
         	signals_.insert(std::make_pair(signal.id, signal));
 
 //        if(signal.nodeId == 115436) { std::cout << "We have a signal 115436 oin our DB\n"; getchar();}

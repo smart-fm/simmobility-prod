@@ -405,7 +405,15 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) 
 	}
 
 	//Create a return type based on the differences in these Roles
-	UpdateStatus res(UpdateStatus::RS_CONTINUE, prevRole->getSubscriptionParams(), currRole->getSubscriptionParams());
+	vector<BufferedBase*> prevParams;
+	vector<BufferedBase*> currParams;
+	if (prevRole) {
+		prevParams = prevRole->getSubscriptionParams();
+	}
+	if (currRole) {
+		currParams = currRole->getSubscriptionParams();
+	}
+	UpdateStatus res(UpdateStatus::RS_CONTINUE, prevParams, currParams);
 
 	//Set our start time to the NEXT time tick so that frame_init is called
 	//  on the first pass through.

@@ -19,7 +19,7 @@
 #include "conf/simpleconf.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 
-#include "Entity.hpp"
+#include "entities/Entity.hpp"
 #include "PendingEntity.hpp"
 #include "PendingEvent.hpp"
 
@@ -150,17 +150,6 @@ public:
 		return mutexStrat;
 	}
 
-	//Set this person's activities
-	//NOTE: I commented a lot of this out; ensure that nothing required is missing. ~Seth
-	/*void setActivities(std::vector<TripActivity*> activities) { currActivities = activities; }
-	std::vector<TripActivity*> getActivities() { return currActivities; }
-
-	void setNextActivity(TripActivity* activity) { nextActivity = activity; }
-	TripActivity* getNextActivity() { return nextActivity; }
-
-	void setCurrActivity(TripActivity* activity) { currActivity = activity; }
-	TripActivity* getCurrActivity() { return currActivity; }*/
-
 	void setOnActivity(bool value) { onActivity = value; }
 	bool getOnActivity() { return onActivity; }
 
@@ -182,11 +171,6 @@ private:
     //Unknown until runtime
     std::map<std::string, std::string> configProperties;
 
-	//added by Jenny (11th June)
-	//NOTE: I'm disabling this in favor of Harish's code; please double-check. ~Seth
-	//std::vector<TripActivity*> currActivities;
-	//TripActivity* nextActivity;
-	//TripActivity* currActivity;
 	PendingEvent* currEvent;
 	PendingEvent* nextEvent;
 

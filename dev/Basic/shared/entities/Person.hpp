@@ -8,7 +8,7 @@
 
 #include "GenConfig.h"
 
-#include "Agent.hpp"
+#include "entities/Agent.hpp"
 #include "roles/Role.hpp"
 #include "buffering/Shared.hpp"
 #include "entities/UpdateParams.hpp"
@@ -60,7 +60,8 @@ public:
     sim_mob::Role* getRole() const;
 
     ///Check if any role changing is required.
-    Entity::UpdateStatus checkAndReactToTripChain(unsigned int currTimeMS);
+    /// "nextValidTimeMS" is the next valid time tick, which may be the same at this time tick.
+    Entity::UpdateStatus checkAndReactToTripChain(unsigned int currTimeMS, unsigned int nextValidTimeMS);
 
     ///get this person's trip chain
     const std::vector<const TripChainItem*>& getTripChain() const

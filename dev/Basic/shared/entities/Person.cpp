@@ -240,7 +240,7 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 #endif
 
 	//Agents may be created with a null Role and a valid trip chain
-	checkAndReactToTripChain(currTimeMS);
+	checkAndReactToTripChain(currTimeMS, currTimeMS);
 
 	//Failsafe
 	if (!currRole) {
@@ -317,7 +317,7 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 		// This is not strictly the right way to do things (we shouldn't use "isToBeRemoved()"
 		// in this manner), but it's the easiest solution that uses the current API.
 		if (isToBeRemoved()) {
-			retVal = checkAndReactToTripChain(currTimeMS);
+			retVal = checkAndReactToTripChain(currTimeMS, currTimeMS+ConfigParams::GetInstance().baseGranMS);
 		}
 
 		//Output if removal requested.
@@ -362,7 +362,7 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 }
 
 
-UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) {
+UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS, unsigned int nextValidTimeMS) {
 	this->getNextSubTripInTrip();
 
 	if(!this->currSubTrip){
@@ -419,8 +419,8 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS) 
 	//Set our start time to the NEXT time tick so that frame_init is called
 	//  on the first pass through.
 	//TODO: Somewhere here the current Role can specify to "put me back on pending", since pending_entities
-	//      now takes Agent* objects.
-	setStartTime(currTimeMS + ConfigParams::GetInstance().baseGranMS);
+	//      now takes Agent* objects. (Use "currTimeMS" for this)
+	setStartTime(nextValidTimeMS);
 	firstFrameTick = true;
 
 	//Null out our trip chain, remove the "removed" flag, and return

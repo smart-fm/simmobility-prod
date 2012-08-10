@@ -91,13 +91,6 @@ public:
 	virtual void setStartTime(unsigned int value) { startTime = value; }
 	virtual unsigned int getStartTime() const { return startTime; }
 
-	//Disabling; see Agent.hpp for details. ~Seth
-	/*virtual void setActivities(std::vector<TripActivity*> value) { activities = value; }
-	virtual std::vector<TripActivity*> getActivities() const { return activities; }
-
-	virtual void setNextActivity(TripActivity* value) { nextActivity = value; }
-	virtual TripActivity* getNextActivity() const { return nextActivity; }*/
-
 
 protected:
 	/**
@@ -107,7 +100,6 @@ protected:
 	 * this point. Then, any Buffered types in the current class should be added to subscriptionList_cached.
 	 */
 	virtual void buildSubscriptionList(std::vector<sim_mob::BufferedBase*>& subsList) = 0;
-	//std::vector<sim_mob::BufferedBase*> subscriptionList_cached;
 
 protected:
 	unsigned int id;
@@ -116,13 +108,8 @@ protected:
 	//When (in ms) does this Entity start?
 	unsigned int startTime;
 
-	//Disabling; see Agent.hpp for details. ~Seth
-	//std::vector<TripActivity*> activities;
-	//TripActivity* nextActivity;
-
 	Link* currLink;
 
-	//temp setting, I set Worker group to be friend class, but worker group still can not get it;
 public:
 	///Who is currently managing this Entity?
 	Worker* currWorker;

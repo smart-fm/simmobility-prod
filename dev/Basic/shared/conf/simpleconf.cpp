@@ -175,6 +175,7 @@ void addOrStashEntity(Person* p, std::vector<Entity*>& active_agents, StartTimeP
 	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p->getStartTime()==0) {
 		p->load(p->getConfigProperties());
 		p->clearConfigProperties();
+		//std::cout <<"Auto-starting: " <<p->getId() <<std::endl;
 		active_agents.push_back(p);
 	} else {
 		//Start later.
@@ -370,7 +371,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 		//  will have seemingly random IDs that do not reflect their order in the config file).
 		//It is generally preferred to use the automatic IDs, but if a manual ID is specified we
 		//  must deal with it here.
-		int manualID;
+		int manualID = -1;
 		map<string, string>::iterator propIt = props.find("id");
 		if (propIt != props.end()) {
 			//Convert the ID to an integer.

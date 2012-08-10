@@ -217,7 +217,7 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 		//If the agent pointer is null, this record represents the start of a new agent.
 		if (!currAg) {
 			//Might have an EntityID conflict here...
-			currAg = new Person(config.mutexStategy, tc->entityID);
+			currAg = new Person("DB_TripChain", config.mutexStategy, tc->entityID);
 
 			//Set the start time for this Agent; clear the trip chain.
 			currAg->setStartTime(tc->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
@@ -284,7 +284,7 @@ void generateAgentsFromBusSchedule(std::vector<Entity*>& active_agents, AgentCon
 	//Create a single entity for each bus schedule in the database.
 	for (vector<BusSchedule*>::const_iterator it=busschedule.begin(); it!=busschedule.end(); it++) {
 		//Create a new Person for this bus; use an auto-generated ID
-		Person* agent = new Person(config.mutexStategy);
+		Person* agent = new Person("BusSchedule", config.mutexStategy);
 
 		//Copy this bus's trip from an existing Trip
 		Trip* toLoad = dynamic_cast<Trip*>(tcs[7]);
@@ -418,7 +418,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 		props["#mode"] = (agentType=="driver"?"Car":(agentType=="pedestrian"?"Walk":"Unknown"));
 
 		//Create the Person agent with that given ID (or an auto-generated one)
-		Person* agent = new Person(config.mutexStategy, manualID);
+		Person* agent = new Person("XML_Def", config.mutexStategy, manualID);
 		agent->setConfigProperties(props);
 		agent->setStartTime(startTime);
 

@@ -41,7 +41,8 @@ class UnPackageUtils;
  */
 class Person : public sim_mob::Agent {
 public:
-	explicit Person(const MutexStrategy& mtxStrat, int id=-1);
+	///The "src" variable is used to help flag how this person was created.
+	explicit Person(const std::string& src, const MutexStrategy& mtxStrat, int id=-1);
 	virtual ~Person();
 
 	///Update Person behavior
@@ -90,6 +91,9 @@ private:
     sim_mob::Role* prevRole; ///< To be deleted on the next time tick.
     sim_mob::Role* currRole;
     sim_mob::Link* currLink;
+
+    //Can be helpful for debugging
+    std::string agentSrc;
 
 
     int currTripChainSequenceNumber;

@@ -75,8 +75,8 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 }  //End unnamed namespace
 
 
-sim_mob::Person::Person(const MutexStrategy& mtxStrat, int id) :
-	Agent(mtxStrat, id), prevRole(nullptr), currRole(nullptr), currTripChainItem(nullptr), currSubTrip(nullptr), firstFrameTick(true)
+sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id) :
+	Agent(mtxStrat, id), prevRole(nullptr), currRole(nullptr), currLink(nullptr), agentSrc(src), currTripChainItem(nullptr), currSubTrip(nullptr), firstFrameTick(true)
 {
 	//throw 1;
 }
@@ -234,6 +234,7 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 	//First, we need to retrieve an UpdateParams subclass appropriate for this Agent.
 	unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
 
+
 #ifdef SIMMOB_AGENT_UPDATE_PROFILE
 		profile.logAgentUpdateBegin(*this, frameNumber);
 #endif
@@ -256,7 +257,7 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 		//std::cout<<"Person ID:"<<this->getId()<<"---->"<<"Person position:"<<"("<<this->xPos<<","<<this->yPos<<")"<<std::endl;
 
 		//Has update() been called early?
-		if(currTimeMS < getStartTime()) {
+		if (abs(currTimeMS-getStartTime())>=ConfigParams::GetInstance().baseGranMS) {
 			//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
 			if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 				std::stringstream msg;

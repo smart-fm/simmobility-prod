@@ -97,6 +97,8 @@ public class RoadNetwork {
 	 * Load the network from a filestream.
 	 */
 	public void loadFileAndReport(BufferedReader inFile, long fileLength, NetworkPanel progressUpdate) throws IOException {
+		Main.NEW_SIGNAL = false;//default
+		System.out.println("System NEW_SIGNAL reset to false");
 		nodes = new Hashtable<Integer, Node>();
 		busstop = new Hashtable<Integer, BusStop>();
 		annot_aimsun = new ArrayList<Annotation>();

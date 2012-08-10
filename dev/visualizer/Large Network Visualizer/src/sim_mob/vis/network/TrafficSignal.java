@@ -83,6 +83,7 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 	
 	public void addSelfToSimulation(RoadNetwork rdNet, SimulationResults simRes) {
 		Main.NEW_SIGNAL = true;
+		System.out.println("System NEW_SIGNAL reset to true");
 //		System.out.println("Inside TS.addSelfToSimulation");
 		SignalHelper signalHelper = new SignalHelper();
 		signalHelper.phases = new ArrayList<SignalHelper.Phase>();

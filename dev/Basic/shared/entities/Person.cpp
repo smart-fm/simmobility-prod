@@ -127,7 +127,6 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		this->destNode = singleTrip->toLocation;
 		this->setNextPathPlanned(false);
 		this->setTripChain(trip_chain);
-		//this->findNextItemInTripChain(); //Let update() handle this.
 	}
 
 	//One more check: If they have a special string, save it now
@@ -230,104 +229,116 @@ void sim_mob::Person::findNextItemInTripChain() {
 	this->getNextSubTripInTrip(); //if currTripChainItem is Trip, set currSubTrip as well
 }
 
-UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
-	//First, we need to retrieve an UpdateParams subclass appropriate for this Agent.
-	unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
 
-
-#ifdef SIMMOB_AGENT_UPDATE_PROFILE
-		profile.logAgentUpdateBegin(*this, frameNumber);
-#endif
-
+void sim_mob::Person::update_time(frame_t frameNumber, unsigned int currTimeMS, UpdateStatus& retVal)
+{
 	//Agents may be created with a null Role and a valid trip chain
-	checkAndReactToTripChain(currTimeMS, currTimeMS);
+	if (firstFrameTick && !currRole) {
+		checkAndReactToTripChain(currTimeMS, currTimeMS);
+	}
 
 	//Failsafe
 	if (!currRole) {
 		throw std::runtime_error("Person has no Role.");
 	}
 
+	//Get an UpdateParams instance.
+	UpdateParams& params = currRole->make_frame_tick_params(frameNumber, currTimeMS);
+	//std::cout<<"Person ID:"<<this->getId()<<"---->"<<"Person position:"<<"("<<this->xPos<<","<<this->yPos<<")"<<std::endl;
 
+	//Has update() been called early?
+	if (currTimeMS<getStartTime()) {
+		//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
+		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+			std::stringstream msg;
+			msg << "Agent(" << getId() << ") specifies a start time of: " << getStartTime()
+					<< " but it is currently: " << currTimeMS
+					<< "; this indicates an error, and should be handled automatically.";
+			throw std::runtime_error(msg.str().c_str());
+		}
+		retVal = UpdateStatus::Continue;
+		return;
+	}
+
+	//Has update() been called too late?
+	if (isToBeRemoved()) {
+		//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
+		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+			throw std::runtime_error("Agent is already done, but hasn't been removed.");
+		}
+		retVal = UpdateStatus::Continue;
+		return;
+	}
+
+	//Is this the first frame tick for this Agent?
+	if (firstFrameTick) {
+		//Helper check; not needed once we trust our Workers.
+		if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
+			if (abs(currTimeMS-getStartTime())>=ConfigParams::GetInstance().baseGranMS) {
+				std::stringstream msg;
+				msg << "Agent was not started within one timespan of its requested start time.";
+				msg << "\nStart was: " << getStartTime() << ",  Curr time is: " << currTimeMS << "\n";
+				msg << "Agent ID: " << getId() << "\n";
+				throw std::runtime_error(msg.str().c_str());
+			}
+		}
+
+		//Now that the Role has been fully constructed, initialize it.
+		currRole->frame_init(params);
+
+		//Done
+		firstFrameTick = false;
+	}
+
+	//Now perform the main update tick
+	if (!isToBeRemoved()) {
+		//added to get the detailed plan before next activity
+		currRole->frame_tick(params);
+		//if mid-term
+		//currRole->frame_tick_med(params);
+	}
+
+	//Finally, save the output
+	if (!isToBeRemoved()) {
+		currRole->frame_tick_output(params);
+		//if mid-term
+		//currRole->frame_tick_med(params);
+	}
+
+	//If we're "done", try checking to see if we have any more items in our Trip Chain.
+	// This is not strictly the right way to do things (we shouldn't use "isToBeRemoved()"
+	// in this manner), but it's the easiest solution that uses the current API.
+	if (isToBeRemoved()) {
+		retVal = checkAndReactToTripChain(currTimeMS, currTimeMS+ConfigParams::GetInstance().baseGranMS);
+	}
+
+	//Output if removal requested.
+	if (Debug::WorkGroupSemantics && isToBeRemoved()) {
+#ifndef SIMMOB_DISABLE_OUTPUT
+		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+		std::cout << "Person requested removal: " <<"(Role Hidden)" << "\n";
+#endif
+	}
+}
+
+
+UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
+#ifdef SIMMOB_AGENT_UPDATE_PROFILE
+		profile.logAgentUpdateBegin(*this, frameNumber);
+#endif
+
+	//First, we need to retrieve an UpdateParams subclass appropriate for this Agent.
+	unsigned int currTimeMS = frameNumber * ConfigParams::GetInstance().baseGranMS;
+
+	//Update within an optional try/catch block.
 	UpdateStatus retVal(UpdateStatus::RS_CONTINUE);
+
 #ifndef SIMMOB_STRICT_AGENT_ERRORS
 	try {
 #endif
-		//Get an UpdateParams instance.
-		UpdateParams& params = currRole->make_frame_tick_params(frameNumber, currTimeMS);
-		//std::cout<<"Person ID:"<<this->getId()<<"---->"<<"Person position:"<<"("<<this->xPos<<","<<this->yPos<<")"<<std::endl;
 
-		//Has update() been called early?
-		if (abs(currTimeMS-getStartTime())>=ConfigParams::GetInstance().baseGranMS) {
-			//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
-			if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-				std::stringstream msg;
-				msg << "Agent(" << getId() << ") specifies a start time of: " << getStartTime()
-						<< " but it is currently: " << currTimeMS
-						<< "; this indicates an error, and should be handled automatically.";
-				throw std::runtime_error(msg.str().c_str());
-			}
-			return UpdateStatus::Continue;
-		}
-
-		//Has update() been called too late?
-		if (isToBeRemoved()) {
-			//This only represents an error if dynamic dispatch is enabled. Else, we silently skip this update.
-			if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-				throw std::runtime_error("Agent is already done, but hasn't been removed.");
-			}
-			return UpdateStatus::Continue;
-		}
-
-		//Is this the first frame tick for this Agent?
-		if (firstFrameTick) {
-			//Helper check; not needed once we trust our Workers.
-			if (!ConfigParams::GetInstance().DynamicDispatchDisabled()) {
-				if (abs(currTimeMS-getStartTime())>=ConfigParams::GetInstance().baseGranMS) {
-					std::stringstream msg;
-					msg << "Agent was not started within one timespan of its requested start time.";
-					msg << "\nStart was: " << getStartTime() << ",  Curr time is: " << currTimeMS << "\n";
-					msg << "Agent ID: " << getId() << "\n";
-					throw std::runtime_error(msg.str().c_str());
-				}
-			}
-
-			//Now that the Role has been fully constructed, initialize it.
-			currRole->frame_init(params);
-
-			//Done
-			firstFrameTick = false;
-		}
-
-		//Now perform the main update tick
-		if (!isToBeRemoved()) {
-			//added to get the detailed plan before next activity
-			currRole->frame_tick(params);
-			//if mid-term
-			//currRole->frame_tick_med(params);
-		}
-
-		//Finally, save the output
-		if (!isToBeRemoved()) {
-			currRole->frame_tick_output(params);
-			//if mid-term
-			//currRole->frame_tick_med(params);
-		}
-
-		//If we're "done", try checking to see if we have any more items in our Trip Chain.
-		// This is not strictly the right way to do things (we shouldn't use "isToBeRemoved()"
-		// in this manner), but it's the easiest solution that uses the current API.
-		if (isToBeRemoved()) {
-			retVal = checkAndReactToTripChain(currTimeMS, currTimeMS+ConfigParams::GetInstance().baseGranMS);
-		}
-
-		//Output if removal requested.
-		if (Debug::WorkGroupSemantics && isToBeRemoved()) {
-#ifndef SIMMOB_DISABLE_OUTPUT
-			boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
-			std::cout << "Person requested removal: " <<"(Role Hidden)" << "\n";
-#endif
-		}
-
+		//Update functionality
+		update_time(frameNumber, currTimeMS, retVal);
 
 //Respond to errors only if STRICT is off; otherwise, throw it (so we can catch it in the debugger).
 #ifndef SIMMOB_STRICT_AGENT_ERRORS
@@ -336,16 +347,16 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 		profile.logAgentException(*this, frameNumber, ex);
 #endif
 
-			//Add a line to the output file.
+		//Add a line to the output file.
 #ifndef SIMMOB_DISABLE_OUTPUT
-			std::stringstream msg;
-			msg <<"Error updating Agent[" <<getId() <<"], will be removed from the simulation.";
-			msg <<"\nFrom node: " <<(originNode?originNode->originalDB_ID.getLogItem():"<Unknown>");
-			msg <<"\nTo node: " <<(destNode?destNode->originalDB_ID.getLogItem():"<Unknown>");
-			msg <<"\n" <<ex.what();
-			LogOut(msg.str() <<std::endl);
+		std::stringstream msg;
+		msg <<"Error updating Agent[" <<getId() <<"], will be removed from the simulation.";
+		msg <<"\nFrom node: " <<(originNode?originNode->originalDB_ID.getLogItem():"<Unknown>");
+		msg <<"\nTo node: " <<(destNode?destNode->originalDB_ID.getLogItem():"<Unknown>");
+		msg <<"\n" <<ex.what();
+		LogOut(msg.str() <<std::endl);
 #endif
-			setToBeRemoved();
+		setToBeRemoved();
 	}
 #endif
 
@@ -356,8 +367,9 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 	}
 
 #ifdef SIMMOB_AGENT_UPDATE_PROFILE
-		profile.logAgentUpdateEnd(*this, frameNumber);
+	profile.logAgentUpdateEnd(*this, frameNumber);
 #endif
+
 	return retVal;
 }
 

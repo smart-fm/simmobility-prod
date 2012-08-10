@@ -88,6 +88,10 @@ public:
     std::string specialStr;
 
 private:
+    //Internal update functionality
+    void update_time(frame_t frameNumber, unsigned int currTimeMS, Entity::UpdateStatus& retVal);
+
+
     //Properties
     sim_mob::Role* prevRole; ///< To be deleted on the next time tick.
     sim_mob::Role* currRole;

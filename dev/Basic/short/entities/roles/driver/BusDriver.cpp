@@ -5,6 +5,7 @@
 
 #include "DriverUpdateParams.hpp"
 
+#include "entities/Person.hpp"
 #include "entities/vehicle/BusRoute.hpp"
 #include "entities/vehicle/Bus.hpp"
 #include "geospatial/Point2D.hpp"
@@ -27,6 +28,12 @@ const int BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;
 sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat)
 	: Driver(parent, mtxStrat), nextStop(nullptr), waitAtStopMS(-1) , lastTickDistanceToBusStop(-1)
 {
+}
+
+
+Role* sim_mob::BusDriver::clone(Person* parent) const
+{
+	return new BusDriver(parent, parent->getMutexStrategy());
 }
 
 

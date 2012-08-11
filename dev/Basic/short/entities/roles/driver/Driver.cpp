@@ -7,7 +7,7 @@
  *      Author: wangxy & Li Zhemin
  */
 
-#include "ReactionTimeDistributions.hpp"
+#include "util/ReactionTimeDistributions.hpp"
 #include "Driver.hpp"
 
 #include "entities/roles/pedestrian/Pedestrian.hpp"
@@ -184,13 +184,24 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat) :
 	params(parent->getGenerator())
 {
 	if (Debug::Drivers) {
-		DebugStream << "Driver starting: " << parent->getId() << endl;
+		DebugStream <<"Driver starting: ";
+		if (parent) { DebugStream <<parent->getId(); } else { DebugStream <<"<null>"; }
+		DebugStream <<endl;
 	}
 	trafficSignal = nullptr;
 	vehicle = nullptr;
 
-	reacTime = ReactionTimeDistributions::instance().reactionTime1() +
-		ReactionTimeDistributions::instance().reactionTime2();
+	//This is something of a quick fix; if there is no parent, then that means the
+	//  reaction times haven't been initialized yet and will crash. ~Seth
+	if (parent) {
+		ReactionTimeDist* r1 = ConfigParams::GetInstance().reactDist1;
+		ReactionTimeDist* r2 = ConfigParams::GetInstance().reactDist2;
+		if (r1 && r2) {
+			reacTime = r1->getReactionTime() + r2->getReactionTime();
+		} else {
+			throw std::runtime_error("Reaction time distributions have not been initialized yet.");
+		}
+	}
 
 	perceivedFwdVel = new FixedDelayed<double>(reacTime,true);
 	perceivedFwdAcc = new FixedDelayed<double>(reacTime,true);
@@ -216,6 +227,13 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat) :
 	disToFwdVehicleLastFrame = maxVisibleDis;
 
 }
+
+
+Role* sim_mob::Driver::clone(Person* parent) const
+{
+	return new Driver(parent, parent->getMutexStrategy());
+}
+
 
 
 void sim_mob::Driver::frame_init(UpdateParams& p)

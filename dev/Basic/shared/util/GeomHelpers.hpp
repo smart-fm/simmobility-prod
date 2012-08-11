@@ -181,4 +181,9 @@ sim_mob::Point2D ProjectOntoLine(const sim_mob::Point2D& pToProject, const sim_m
  */
 sim_mob::Point2D getSidePoint(const Point2D& origin, const Point2D& direction, double magnitude);
 
+
+//TODO: This should eventually go into its own "Parser" class
+sim_mob::Point2D parse_point(const std::string& str);
+
+
 }

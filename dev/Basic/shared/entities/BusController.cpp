@@ -45,11 +45,11 @@ void sim_mob::BusController::updateBusInformation(DPoint pt) {
 	std::cout<<"Report Given Bus position: --->("<<posBus.x<<","<<posBus.y<<")"<<std::endl;
 }
 
-void sim_mob::BusController::addOrStashBuses(const PendingEntity& p, std::vector<Entity*>& active_agents)
+void sim_mob::BusController::addOrStashBuses(Person* p, std::vector<Entity*>& active_agents)
 {
-	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p.start==0) {
+	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p->getStartTime()==0) {
 		//Only agents with a start time of zero should start immediately in the all_agents list.
-		active_agents.push_back(Person::GeneratePersonFromPending(p));
+		active_agents.push_back(p);
 	} else {
 		//Start later.
 		pending_buses.push(p);
@@ -67,7 +67,7 @@ void sim_mob::BusController::dispatchFrameTick(frame_t frameTick)
 	unsigned int nextTickMS = (nextTimeTickToStage+3)*ConfigParams::GetInstance().baseGranMS;
 
 	//Stage any pending entities that will start during this time tick.
-	while (!pending_buses.empty() && pending_buses.top().start <= nextTickMS) {
+	while (!pending_buses.empty() && pending_buses.top()->getStartTime() <= nextTickMS) {
 		//Person* ag = Person::GeneratePersonFromPending(pending_buses.top());
 		//pending_buses.pop();
 

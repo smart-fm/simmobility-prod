@@ -18,8 +18,24 @@ class Lanes_pimpl;
 namespace sim_mob
 {
 
-//Forward declarations
-//class RoadSegment;
+
+//Which lane "side", left, right, or both?
+struct LaneSide {
+	bool left;
+	bool right;
+	bool both() const { return left && right; }
+	bool leftOnly() const { return left && !right; }
+	bool rightOnly() const { return right && !left; }
+};
+
+//Which lane should we change to? Includes "none".
+enum LANE_CHANGE_SIDE {
+	LCS_LEFT = -1,
+	LCS_SAME = 0,
+	LCS_RIGHT = 1
+};
+
+
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;

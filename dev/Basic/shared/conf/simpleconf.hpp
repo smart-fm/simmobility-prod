@@ -29,10 +29,13 @@
 
 #include "buffering/Shared.hpp"
 #include "util/DailyTime.hpp"
+#include "util/LangHelpers.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/RoadNetwork.hpp"
 
 #include "entities/misc/TripChain.hpp"
+#include "entities/roles/RoleFactory.hpp"
+#include "util/ReactionTimeDistributions.hpp"
 
 
 namespace sim_mob
@@ -65,9 +68,19 @@ public:
 	unsigned int granPathsTicks;      ///<Number of ticks to wait before updating all paths.
 	unsigned int granDecompTicks;     ///<Number of ticks to wait before updating agent decomposition.
 
-
 	unsigned int agentWorkGroupSize;   ///<Number of workers handling Agents.
 	unsigned int signalWorkGroupSize;  ///<Number of workers handling Signals.
+
+	//The role factory used for generating roles.
+	const sim_mob::RoleFactory& getRoleFactory() { return roleFact; }
+
+	//Use caution here.
+	sim_mob::RoleFactory& getRoleFactoryRW() { return roleFact; }
+
+
+	//For generating reaction times
+	ReactionTimeDist* reactDist1;
+	ReactionTimeDist* reactDist2;
 
 
 	//Number of agents skipped in loading
@@ -203,10 +216,11 @@ public:
 
 
 private:
-	ConfigParams() : mutexStategy(MtxStrat_Buffered), dynamicDispatchDisabled(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false) { }
+	ConfigParams() : reactDist1(nullptr), reactDist2(nullptr), mutexStategy(MtxStrat_Buffered), dynamicDispatchDisabled(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false) { }
 	static ConfigParams instance;
 
 	sim_mob::RoadNetwork network;
+	sim_mob::RoleFactory roleFact;
 	std::vector<sim_mob::TripChainItem*> tripchains;
 	std::vector<sim_mob::BusSchedule*> busschedule;
 	bool sealedNetwork;

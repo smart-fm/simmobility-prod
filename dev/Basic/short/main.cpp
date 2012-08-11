@@ -40,6 +40,9 @@
 #include "entities/Bus.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/Role.hpp"
+#include "entities/roles/RoleFactory.hpp"
+#include "entities/roles/activityRole/ActivityPerformer.hpp"
+#include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
@@ -116,13 +119,25 @@ bool performMain(const std::string& configFileName) {
 	prof = &prof_i;
 #endif
 
+	//Register our Role types.
+	//TODO: Accessing ConfigParams before loading it is technically safe, but we
+	//      should really be clear about when this is not ok.
+	RoleFactory& rf = ConfigParams::GetInstance().getRoleFactoryRW();
+	rf.registerRole("driver", new sim_mob::Driver(nullptr, ConfigParams::GetInstance().mutexStategy));
+	rf.registerRole("pedestrian", new sim_mob::Pedestrian(nullptr));
+	rf.registerRole("busdriver", new sim_mob::BusDriver(nullptr, ConfigParams::GetInstance().mutexStategy));
+	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
+	//rf.registerRole("buscontroller", new sim_mob::BusController()); //Not a role!
+
 	//Loader params for our Agents
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
 
-	//Load our user config file; save a handle to the shared definition of it.
-	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof)) { //Note: Agent "shells" are loaded here.
+	//Load our user config file
+	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof)) {
 		return false;
 	}
+
+	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigParams::GetInstance();
 
 	//Sanity check (nullptr)
@@ -178,7 +193,10 @@ bool performMain(const std::string& configFileName) {
 	AuraManager& auraMgr = AuraManager::instance();
 	auraMgr.init();
 
-	//Inititalize the traffic watch
+	///
+	///  TODO: Do not delete this next line. Please read the comment in TrafficWatch.hpp
+	///        ~Seth
+	///
 //	TrafficWatch& trafficWatch = TrafficWatch::instance();
 
 	//Start work groups and all threads.
@@ -276,7 +294,14 @@ bool performMain(const std::string& configFileName) {
 #endif
 
 		auraMgr.update(currTick);
+
+		///
+		///  TODO: Do not delete this next line. Please read the comment in TrafficWatch.hpp
+		///        ~Seth
+		///
 //		trafficWatch.update(currTick);
+
+
 		agentWorkers.waitExternAgain(); // The workers wait on the AuraManager.
 
 
@@ -346,7 +371,7 @@ bool performMain(const std::string& configFileName) {
 	if (!Agent::pending_agents.empty()) {
 		cout << "WARNING! There are still " << Agent::pending_agents.size()
 				<< " Agents waiting to be scheduled; next start time is: "
-				<< Agent::pending_agents.top().start << " ms\n";
+				<< Agent::pending_agents.top()->getStartTime() << " ms\n";
 		if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 			throw std::runtime_error("ERROR: pending_agents shouldn't be used if Dynamic Dispatch is disabled.");
 		}
@@ -368,6 +393,7 @@ int main(int argc, char* argv[])
 
 	/**
 	 * Check whether to run SimMobility or SimMobility-MPI
+	 * TODO: Retrieving ConfigParams before actually loading the config file is dangerous.
 	 */
 	ConfigParams& config = ConfigParams::GetInstance();
 	config.is_run_on_many_computers = false;
@@ -379,6 +405,7 @@ int main(int argc, char* argv[])
 
 	/**
 	 * set random be repeatable
+	 * TODO: Retrieving ConfigParams before actually loading the config file is dangerous.
 	 */
 	config.is_simulation_repeatable = true;
 

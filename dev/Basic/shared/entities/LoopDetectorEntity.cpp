@@ -12,8 +12,8 @@
 #endif
 #include "AuraManager.hpp"
 #include "entities/Person.hpp"
+#include "entities/vehicle/Vehicle.hpp"
 #include "entities/roles/Role.hpp"
-#include "entities/roles/driver/Driver.hpp"
 
 #include "buffering/Vector2D.hpp"
 #include "geospatial/Lane.hpp"
@@ -536,10 +536,10 @@ LoopDetectorEntity::Impl::check(frame_t frameNumber)
         Agent const * agent = agents[i];
         if (Person const * person = dynamic_cast<Person const *>(agent))
         {
-            Role const * role = person->getRole();
-            if (Driver const * driver = dynamic_cast<Driver const *>(role))
-            {
-                Vehicle const * vehicle = driver->getVehicle();
+        	//Extract the current resource used by this Agent.
+        	//TODO: Currently the only resource type is "Vehicle"
+        	const Vehicle * vehicle = person->getRole()->getResource();
+            if (vehicle) {
                 vehicles.insert(vehicle);
             }
         }

@@ -69,6 +69,8 @@ public:
 	ActivityPerformer(Agent* parent, const sim_mob::Activity& currActivity);
 	virtual ~ActivityPerformer() {}
 
+	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
+
 	//Virtual overrides
 	virtual void frame_init(UpdateParams& p);
 	virtual void frame_tick(UpdateParams& p);

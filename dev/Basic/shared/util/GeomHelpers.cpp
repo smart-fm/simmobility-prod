@@ -29,6 +29,7 @@
 
 using namespace sim_mob;
 using std::vector;
+using std::string;
 
 //add by xuyan
 //used in function PointInsidePolygon
@@ -470,3 +471,36 @@ const sim_mob::Crossing* sim_mob::getCrossingBasedOnNode(const sim_mob::Point2D*
 
 	return 0;
 }
+
+Point2D sim_mob::parse_point(const string& str)
+{
+	//We need at least "1,2"
+	if (str.length() <3) {
+		throw std::runtime_error("Can't parse a point from a (mostly) empty source string.");
+	}
+
+	//Does it match the pattern?
+	size_t commaPos = str.find(',');
+	if (commaPos==string::npos) {
+		throw std::runtime_error("Can't parse a point with no comma separator.");
+	}
+
+	//Allow for an optional parentheses
+	size_t StrOffset = 0;
+	if (str[0]=='(' && str[str.length()-1]==')') {
+		//Parentheses require at least "(1,2)"
+		if (str.length()<5) {
+			throw std::runtime_error("Can't parse a point from a (mostly) empty source string.");
+		}
+		StrOffset = 1;
+	}
+
+	//Try to parse its substrings
+	int xPos, yPos;
+	std::istringstream(str.substr(StrOffset, commaPos-StrOffset)) >> xPos;
+	std::istringstream(str.substr(commaPos+1, str.length()-(commaPos+1)-StrOffset)) >> yPos;
+
+	return Point2D(xPos, yPos);
+}
+
+

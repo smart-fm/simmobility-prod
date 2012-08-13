@@ -12,6 +12,7 @@
 namespace geo
 {
 class UniNode_t_pimpl;
+class GeoSpatial_t_pimpl;
 }
 namespace sim_mob
 {
@@ -51,6 +52,7 @@ class Loader;
 class UniNode : public sim_mob::Node {
 	friend class sim_mob::aimsun::Loader;
 	friend class ::geo::UniNode_t_pimpl;
+	friend class ::geo::GeoSpatial_t_pimpl;
 public:
 	UniNode(int x, int y) : Node(x, y) {}
 

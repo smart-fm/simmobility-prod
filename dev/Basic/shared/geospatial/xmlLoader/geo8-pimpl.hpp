@@ -153,7 +153,8 @@ namespace geo
 
   class connector_t_pimpl: public virtual connector_t_pskel
   {
-	  sim_mob::LaneConnector* laneConnector;
+	 // std::string laneFrom,laneTo;
+	  std::pair<std::string,std::string> connector;
     public:
     virtual void
     pre ();
@@ -164,28 +165,28 @@ namespace geo
     virtual void
     laneTo (const ::std::string&);
 
-    virtual sim_mob::LaneConnector*
+    virtual std::pair<std::string,std::string>
     post_connector_t ();
   };
 
   class connectors_t_pimpl: public virtual connectors_t_pskel
   {
-	  std::set<sim_mob::LaneConnector*> ConnectorSet;
+	  std::set<std::pair<std::string,std::string> > Connectors;
     public:
     virtual void
     pre ();
 
     virtual void
-    Connector (sim_mob::LaneConnector*);
+    Connector (std::pair<std::string,std::string>);
 
-    virtual std::set<sim_mob::LaneConnector*>
+    virtual std::set<std::pair<std::string,std::string > >
     post_connectors_t ();
   };
 
   class Multi_Connector_t_pimpl: public virtual Multi_Connector_t_pskel
   {
 	  std::string RoadSegment_;
-	  std::pair<std::string,std::set<sim_mob::LaneConnector*> >  temp_pair;
+	  std::pair<std::string,std::set<std::pair<std::string,std::string> > >  temp_pair;
     public:
     virtual void
     pre ();
@@ -194,23 +195,23 @@ namespace geo
     RoadSegment (const ::std::string&);
 
     virtual void
-    Connectors (std::set<sim_mob::LaneConnector*>);
+    Connectors (std::set<std::pair<std::string,std::string > >);
 
-    virtual std::pair<std::string,std::set<sim_mob::LaneConnector*> >
+    virtual std::pair<std::string,std::set<std::pair<std::string,std::string> > >
     post_Multi_Connector_t ();
   };
 
   class Multi_Connectors_t_pimpl: public virtual Multi_Connectors_t_pskel
   {
-	  std::map<const sim_mob::RoadSegment*,std::set<sim_mob::LaneConnector*> > temp_map;
+	  std::map<std::string,std::set<sim_mob::LaneConnector*> > temp_map;
     public:
     virtual void
     pre ();
 
     virtual void
-    MultiConnectors (const std::pair<std::string,std::set<sim_mob::LaneConnector*> > &);
+    MultiConnectors (const std::pair<std::string,std::set<std::pair<std::string,std::string> > >&);
 
-    virtual std::map<const sim_mob::RoadSegment*,std::set<sim_mob::LaneConnector*> >
+    virtual std::map<std::string,std::set<std::pair<std::string,std::string> > >
     post_Multi_Connectors_t ();
   };
 
@@ -230,7 +231,8 @@ namespace geo
 
   class RoadSegmentsAt_t_pimpl: public virtual RoadSegmentsAt_t_pskel
   {
-	  std::set<sim_mob::RoadSegment*> RoadSegments;
+//	  std::set<sim_mob::RoadSegment*> RoadSegments;
+	  std::set<std::string> RoadSegments;
     public:
     virtual void
     pre ();
@@ -238,7 +240,7 @@ namespace geo
     virtual void
     segmentID (const ::std::string&);
 
-    virtual std::set<sim_mob::RoadSegment*>
+    virtual std::set<std::string>
     post_RoadSegmentsAt_t ();
   };
 
@@ -468,7 +470,7 @@ namespace geo
   {
 	  sim_mob::UniNode * uniNode;
 	  Point2D location_;
-	  unsigned int nodeId;
+	  std::string nodeId;
 	  std::map<const sim_mob::Lane*, sim_mob::Lane* > connectors_;
     public:
     virtual void
@@ -481,7 +483,7 @@ namespace geo
     location (sim_mob::Point2D);
 
     virtual void
-    Connectors (std::set<sim_mob::LaneConnector*>);
+    Connectors (std::set<std::pair<std::string,std::string > >);
 
     virtual sim_mob::UniNode*
     post_UniNode_t ();
@@ -500,10 +502,10 @@ namespace geo
     location (sim_mob::Point2D);
 
     virtual void
-    roadSegmentsAt (std::set<sim_mob::RoadSegment*>);
+    roadSegmentsAt (std::set<std::string>);
 
     virtual void
-    Connectors (const std::map<const sim_mob::RoadSegment*,std::set<sim_mob::LaneConnector*> >&);
+    Connectors (const std::map<std::string,std::set<std::pair<std::string,std::string> > >&);
 
     virtual void
     ChunkLengths ();
@@ -535,6 +537,7 @@ namespace geo
 	  sim_mob::Intersection * intersection;
 	  Point2D location_;
 	  unsigned int nodeId;
+	  std::string nodeId_str;
     public:
     virtual void
     pre ();
@@ -546,10 +549,10 @@ namespace geo
     location (sim_mob::Point2D);
 
     virtual void
-    roadSegmentsAt (std::set<sim_mob::RoadSegment*>);
+    roadSegmentsAt (std::set<std::string>);
 
     virtual void
-    Connectors (const std::map<const sim_mob::RoadSegment*,std::set<sim_mob::LaneConnector*> >&);
+    Connectors (const std::map<std::string,std::set<std::pair<std::string,std::string> > >&);
 
     virtual void
     ChunkLengths ();
@@ -733,10 +736,10 @@ namespace geo
     pre ();
 
     virtual void
-    Links (std::vector<sim_mob::Link*>);
+    Nodes ();
 
     virtual void
-    Nodes ();
+    Links (std::vector<sim_mob::Link*>);
 
     virtual void
     post_RoadNetwork_t ();
@@ -766,11 +769,6 @@ namespace geo
 
   class GeoSpatial_t_pimpl: public virtual GeoSpatial_t_pskel
   {
-	  void setStartEndNode();
-	  void setStartEndNode_Links();
-	  void setStartEndNode_Segments();
-	  void setStartEndNode_Lanes();
-
     public:
     virtual void
     pre ();
@@ -826,6 +824,27 @@ namespace geo
     post_Segments ();
   };
 
+  class Nodes_pimpl: public virtual Nodes_pskel
+  {
+	  sim_mob::RoadNetwork &rn;
+    public:
+	  Nodes_pimpl():rn(sim_mob::ConfigParams::GetInstance().getNetworkRW()){}
+    virtual void
+    pre ();
+
+    virtual void
+    UniNodes (std::set<sim_mob::UniNode*>&);
+
+    virtual void
+    Intersections (std::vector<sim_mob::MultiNode*>&);
+
+    virtual void
+    roundabouts (std::vector<sim_mob::MultiNode*>&);
+
+    virtual void
+    post_Nodes ();
+  };
+
   class Links_pimpl: public virtual Links_pskel
   {
 	  std::vector<sim_mob::Link*> links;
@@ -840,27 +859,6 @@ namespace geo
     post_Links ();
   };
 
-  class Nodes_pimpl: public virtual Nodes_pskel
-  {
-	  sim_mob::RoadNetwork &rn;
-    public:
-	  Nodes_pimpl():rn(sim_mob::ConfigParams::GetInstance().getNetworkRW()){}
-    virtual void
-    pre ();
-
-    virtual void
-    UniNodes (std::set<sim_mob::UniNode*>);
-
-    virtual void
-    Intersections (std::vector<sim_mob::MultiNode*>);
-
-    virtual void
-    roundabouts (std::vector<sim_mob::MultiNode*>);
-
-    virtual void
-    post_Nodes ();
-  };
-
   class UniNodes_pimpl: public virtual UniNodes_pskel
   {
 	  std::set<sim_mob::UniNode*> uniNodes;
@@ -871,7 +869,7 @@ namespace geo
     virtual void
     UniNode (sim_mob::UniNode*);
 
-    virtual std::set<sim_mob::UniNode*>
+    virtual std::set<sim_mob::UniNode*>&
     post_UniNodes ();
   };
 
@@ -885,7 +883,7 @@ namespace geo
     virtual void
     Intersection (sim_mob::MultiNode*);
 
-    virtual std::vector<sim_mob::MultiNode*>
+    virtual std::vector<sim_mob::MultiNode*>&
     post_Intersections ();
   };
 
@@ -899,7 +897,7 @@ namespace geo
     virtual void
     roundabout (sim_mob::MultiNode*);
 
-    virtual std::vector<sim_mob::MultiNode*>
+    virtual std::vector<sim_mob::MultiNode*>&
     post_roundabouts ();
   };
 }

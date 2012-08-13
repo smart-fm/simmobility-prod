@@ -13,6 +13,7 @@ class Nodes_pimpl;
 class Intersections_pimpl;
 class roundabouts_pimpl;
 class UniNodes_pimpl;
+class GeoSpatial_t_pimpl;
 }
 
 namespace sim_mob
@@ -65,6 +66,7 @@ class RoadNetwork {
 	friend class ::geo::roundabouts_pimpl;
 	friend class ::geo::UniNodes_pimpl;
 	friend class ::geo::Nodes_pimpl;
+	friend class ::geo::GeoSpatial_t_pimpl;
 public:
 	RoadNetwork() { drivingSide=DRIVES_ON_LEFT; } //TEMP
 

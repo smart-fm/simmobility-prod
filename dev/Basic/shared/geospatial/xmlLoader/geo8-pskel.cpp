@@ -1448,29 +1448,29 @@ namespace geo
   //
 
   void RoadNetwork_t_pskel::
-  Links_parser (::geo::Links_pskel& p)
-  {
-    this->Links_parser_ = &p;
-  }
-
-  void RoadNetwork_t_pskel::
   Nodes_parser (::geo::Nodes_pskel& p)
   {
     this->Nodes_parser_ = &p;
   }
 
   void RoadNetwork_t_pskel::
-  parsers (::geo::Links_pskel& Links,
-           ::geo::Nodes_pskel& Nodes)
+  Links_parser (::geo::Links_pskel& p)
   {
-    this->Links_parser_ = &Links;
+    this->Links_parser_ = &p;
+  }
+
+  void RoadNetwork_t_pskel::
+  parsers (::geo::Nodes_pskel& Nodes,
+           ::geo::Links_pskel& Links)
+  {
     this->Nodes_parser_ = &Nodes;
+    this->Links_parser_ = &Links;
   }
 
   RoadNetwork_t_pskel::
   RoadNetwork_t_pskel ()
-  : Links_parser_ (0),
-    Nodes_parser_ (0)
+  : Nodes_parser_ (0),
+    Links_parser_ (0)
   {
   }
 
@@ -1615,27 +1615,6 @@ namespace geo
   {
   }
 
-  // Links_pskel
-  //
-
-  void Links_pskel::
-  Link_parser (::geo::link_t_pskel& p)
-  {
-    this->Link_parser_ = &p;
-  }
-
-  void Links_pskel::
-  parsers (::geo::link_t_pskel& Link)
-  {
-    this->Link_parser_ = &Link;
-  }
-
-  Links_pskel::
-  Links_pskel ()
-  : Link_parser_ (0)
-  {
-  }
-
   // Nodes_pskel
   //
 
@@ -1672,6 +1651,27 @@ namespace geo
   : UniNodes_parser_ (0),
     Intersections_parser_ (0),
     roundabouts_parser_ (0)
+  {
+  }
+
+  // Links_pskel
+  //
+
+  void Links_pskel::
+  Link_parser (::geo::link_t_pskel& p)
+  {
+    this->Link_parser_ = &p;
+  }
+
+  void Links_pskel::
+  parsers (::geo::link_t_pskel& Link)
+  {
+    this->Link_parser_ = &Link;
+  }
+
+  Links_pskel::
+  Links_pskel ()
+  : Link_parser_ (0)
   {
   }
 
@@ -2481,7 +2481,7 @@ namespace geo
   //
 
   void connectors_t_pskel::
-  Connector (sim_mob::LaneConnector*)
+  Connector (std::pair<std::string,std::string>)
   {
   }
 
@@ -2535,7 +2535,7 @@ namespace geo
   }
 
   void Multi_Connector_t_pskel::
-  Connectors (std::set<sim_mob::LaneConnector*>)
+  Connectors (std::set<std::pair<std::string,std::string > >)
   {
   }
 
@@ -2602,7 +2602,7 @@ namespace geo
   //
 
   void Multi_Connectors_t_pskel::
-  MultiConnectors (const std::pair<std::string,std::set<sim_mob::LaneConnector*> >  &)
+  MultiConnectors (const std::pair<std::string,std::set<std::pair<std::string,std::string> > >&)
   {
   }
 
@@ -3860,7 +3860,7 @@ namespace geo
   }
 
   void UniNode_t_pskel::
-  Connectors (std::set<sim_mob::LaneConnector*>)
+  Connectors (std::set<std::pair<std::string,std::string > >)
   {
   }
 
@@ -3955,12 +3955,12 @@ namespace geo
   }
 
   void roundabout_t_pskel::
-  roadSegmentsAt (std::set<sim_mob::RoadSegment*>)
+  roadSegmentsAt (std::set<std::string>)
   {
   }
 
   void roundabout_t_pskel::
-  Connectors (const std::map<const sim_mob::RoadSegment*,std::set<sim_mob::LaneConnector*> >&)
+  Connectors (const std::map<std::string,std::set<std::pair<std::string,std::string> > >&)
   {
   }
 
@@ -4249,12 +4249,12 @@ namespace geo
   }
 
   void intersection_t_pskel::
-  roadSegmentsAt (std::set<sim_mob::RoadSegment*>)
+  roadSegmentsAt (std::set<std::string>)
   {
   }
 
   void intersection_t_pskel::
-  Connectors (const std::map<const sim_mob::RoadSegment*,std::set<sim_mob::LaneConnector*> >&)
+  Connectors (const std::map<std::string,std::set<std::pair<std::string,std::string> > >&)
   {
   }
 
@@ -5252,12 +5252,12 @@ namespace geo
   //
 
   void RoadNetwork_t_pskel::
-  Links (std::vector<sim_mob::Link*>)
+  Nodes ()
   {
   }
 
   void RoadNetwork_t_pskel::
-  Nodes ()
+  Links (std::vector<sim_mob::Link*>)
   {
   }
 
@@ -5276,22 +5276,22 @@ namespace geo
     if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
       return true;
 
-    if (n == "Links" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->Links_parser_;
-
-      if (this->Links_parser_)
-        this->Links_parser_->pre ();
-
-      return true;
-    }
-
     if (n == "Nodes" && ns.empty ())
     {
       this->::xml_schema::complex_content::context_.top ().parser_ = this->Nodes_parser_;
 
       if (this->Nodes_parser_)
         this->Nodes_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "Links" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Links_parser_;
+
+      if (this->Links_parser_)
+        this->Links_parser_->pre ();
 
       return true;
     }
@@ -5306,14 +5306,6 @@ namespace geo
     if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
       return true;
 
-    if (n == "Links" && ns.empty ())
-    {
-      if (this->Links_parser_)
-        this->Links (this->Links_parser_->post_Links ());
-
-      return true;
-    }
-
     if (n == "Nodes" && ns.empty ())
     {
       if (this->Nodes_parser_)
@@ -5321,6 +5313,14 @@ namespace geo
         this->Nodes_parser_->post_Nodes ();
         this->Nodes ();
       }
+
+      return true;
+    }
+
+    if (n == "Links" && ns.empty ())
+    {
+      if (this->Links_parser_)
+        this->Links (this->Links_parser_->post_Links ());
 
       return true;
     }
@@ -5695,70 +5695,21 @@ namespace geo
     return false;
   }
 
-  // Links_pskel
-  //
-
-  void Links_pskel::
-  Link (sim_mob::Link*)
-  {
-  }
-
-  bool Links_pskel::
-  _start_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n,
-                       const ::xml_schema::ro_string* t)
-  {
-    XSD_UNUSED (t);
-
-    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-      return true;
-
-    if (n == "Link" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->Link_parser_;
-
-      if (this->Link_parser_)
-        this->Link_parser_->pre ();
-
-      return true;
-    }
-
-    return false;
-  }
-
-  bool Links_pskel::
-  _end_element_impl (const ::xml_schema::ro_string& ns,
-                     const ::xml_schema::ro_string& n)
-  {
-    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-      return true;
-
-    if (n == "Link" && ns.empty ())
-    {
-      if (this->Link_parser_)
-        this->Link (this->Link_parser_->post_link_t ());
-
-      return true;
-    }
-
-    return false;
-  }
-
   // Nodes_pskel
   //
 
   void Nodes_pskel::
-  UniNodes (std::set<sim_mob::UniNode*>)
+  UniNodes (std::set<sim_mob::UniNode*>&)
   {
   }
 
   void Nodes_pskel::
-  Intersections (std::vector<sim_mob::MultiNode*>)
+  Intersections (std::vector<sim_mob::MultiNode*>&)
   {
   }
 
   void Nodes_pskel::
-  roundabouts (std::vector<sim_mob::MultiNode*>)
+  roundabouts (std::vector<sim_mob::MultiNode*>&)
   {
   }
 
@@ -5837,6 +5788,55 @@ namespace geo
     {
       if (this->roundabouts_parser_)
         this->roundabouts (this->roundabouts_parser_->post_roundabouts ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // Links_pskel
+  //
+
+  void Links_pskel::
+  Link (sim_mob::Link*)
+  {
+  }
+
+  bool Links_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "Link" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Link_parser_;
+
+      if (this->Link_parser_)
+        this->Link_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool Links_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "Link" && ns.empty ())
+    {
+      if (this->Link_parser_)
+        this->Link (this->Link_parser_->post_link_t ());
 
       return true;
     }

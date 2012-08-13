@@ -12,6 +12,7 @@
 namespace geo
 {
 class intersection_t_pimpl;
+class GeoSpatial_t_pimpl;
 }
 namespace sim_mob
 {
@@ -88,6 +89,7 @@ public: //TEMP
 
 
 friend class sim_mob::aimsun::Loader;
+friend class ::geo::GeoSpatial_t_pimpl;
 
 };
 

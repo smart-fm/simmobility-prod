@@ -5,7 +5,7 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:geo="http://www.smart.mit.edu/geo"
   targetNamespace="http://www.smart.mit.edu/geo">
 
-  <xs:simpleType name="SegmentType_t">
+ <!-- <xs:simpleType name="SegmentType_t">
     <xs:restriction base="xs:string">
       <xs:enumeration value="FWD"/>
       <xs:enumeration value="BKD"/>
@@ -19,7 +19,7 @@
       <xs:enumeration value="ERP"/>
       <xs:enumeration value="BUSSTOP"/>
     </xs:restriction>
-  </xs:simpleType>
+  </xs:simpleType>-->
 
 <!--  <xs:simpleType name="LaneType_t">
     <xs:restriction base="xs:string">

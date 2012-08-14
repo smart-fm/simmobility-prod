@@ -51,8 +51,6 @@ using namespace sim_mob;
 //
 namespace geo
 {
-  class SegmentType_t_pskel;
-  class ObstacleType_t_pskel;
   class Point2D_t_pskel;
   class PolyPoint_t_pskel;
   class PolyLine_t_pskel;
@@ -325,30 +323,6 @@ namespace xml_schema
 
 namespace geo
 {
-  class SegmentType_t_pskel: public virtual ::xml_schema::string_pskel
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual std::string
-    post_SegmentType_t () = 0;
-  };
-
-  class ObstacleType_t_pskel: public virtual ::xml_schema::string_pskel
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    post_ObstacleType_t ();
-  };
-
   class Point2D_t_pskel: public ::xml_schema::complex_content
   {
     public:
@@ -975,7 +949,7 @@ namespace geo
     Lanes (std::vector<sim_mob::Lane*>);
 
     virtual void
-    Obstacles ();
+    Obstacles (std::map<centimeter_t,const RoadItem*>);
 
     virtual void
     KurbLine (std::vector<sim_mob::Point2D>);
@@ -2451,8 +2425,8 @@ namespace geo
     virtual void
     RoadBump ();
 
-    virtual void
-    post_RoadItems_t ();
+    virtual std::map<centimeter_t,const RoadItem*>
+    post_RoadItems_t () = 0;
 
     // Parser construction API.
     //

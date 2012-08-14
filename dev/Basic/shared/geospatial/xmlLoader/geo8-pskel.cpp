@@ -1741,14 +1741,6 @@ namespace geo
 
 namespace geo
 {
-  // ObstacleType_t_pskel
-  //
-
-  void ObstacleType_t_pskel::
-  post_ObstacleType_t ()
-  {
-  }
-
   // Point2D_t_pskel
   //
 
@@ -2784,7 +2776,7 @@ namespace geo
   }
 
   void segment_t_pskel::
-  Obstacles ()
+  Obstacles (std::map<centimeter_t,const RoadItem*>)
   {
   }
 
@@ -2962,10 +2954,7 @@ namespace geo
     if (n == "Obstacles" && ns.empty ())
     {
       if (this->Obstacles_parser_)
-      {
-        this->Obstacles_parser_->post_RoadItems_t ();
-        this->Obstacles ();
-      }
+        this->Obstacles (this->Obstacles_parser_->post_RoadItems_t ());
 
       return true;
     }
@@ -5348,11 +5337,6 @@ namespace geo
 
   void RoadItems_t_pskel::
   RoadBump ()
-  {
-  }
-
-  void RoadItems_t_pskel::
-  post_RoadItems_t ()
   {
   }
 

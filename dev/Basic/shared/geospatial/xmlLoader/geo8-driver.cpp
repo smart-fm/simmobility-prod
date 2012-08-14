@@ -252,6 +252,7 @@ main1 (int argc, char* argv[])
     SimMobility_t_p.pre ();
     std::cout << "In main1 SimMobility_t_p.pre() done\n";
     doc_p.parse ("/home/vahid/SIMMOBILITY/MASTER/simmobility/dev/Basic/data/XML_OutPut.xml");
+//    	    doc_p.parse ("/home/vahid/SIMMOBILITY/MASTER/simmobility/dev/Basic/shared/geospatial/xmlLoader/instance1.xml");
     std::cout << "In main1 parse done\n";
     SimMobility_t_p.post_SimMobility_t ();
     std::cout << "In main1 post done\n";

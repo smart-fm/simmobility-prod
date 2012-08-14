@@ -18,6 +18,7 @@ segment_t sim_mob::RoadSegment* sim_mob::RoadSegment*;
 SegmentType_t std::string std::string;
 
 RoadItem_t  sim_mob::RoadItem*; 
+RoadItems_t  std::map<centimeter_t,const_RoadItem*> std::map<centimeter_t,const_RoadItem*>; 
 obstacle_t  sim_mob::RoadItem*;
 obstacles_t std::map<centimeter_t,RoadItem_make_constant*> std::map<centimeter_t,RoadItem_make_constant*>;
 

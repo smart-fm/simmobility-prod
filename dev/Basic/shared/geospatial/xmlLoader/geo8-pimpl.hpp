@@ -13,28 +13,6 @@
 
 namespace geo
 {
-  class SegmentType_t_pimpl: public virtual SegmentType_t_pskel,
-    public ::xml_schema::string_pimpl
-  {
-    public:
-    virtual void
-    pre ();
-
-    virtual std::string
-    post_SegmentType_t ();
-  };
-
-  class ObstacleType_t_pimpl: public virtual ObstacleType_t_pskel,
-    public ::xml_schema::string_pimpl
-  {
-    public:
-    virtual void
-    pre ();
-
-    virtual void
-    post_ObstacleType_t ();
-  };
-
   class Point2D_t_pimpl: public virtual Point2D_t_pskel
   {
 	  sim_mob::Point2D point2D;
@@ -273,7 +251,7 @@ namespace geo
     Lanes (std::vector<sim_mob::Lane*>);
 
     virtual void
-    Obstacles ();
+    Obstacles (std::map<centimeter_t,const RoadItem*>&);
 
     virtual void
     KurbLine (std::vector<sim_mob::Point2D>);
@@ -747,6 +725,7 @@ namespace geo
 
   class RoadItems_t_pimpl: public virtual RoadItems_t_pskel
   {
+	  std::map<centimeter_t,const RoadItem*> RoadItems;
     public:
     virtual void
     pre ();
@@ -763,7 +742,7 @@ namespace geo
     virtual void
     RoadBump ();
 
-    virtual void
+    virtual std::map<centimeter_t,const RoadItem*>
     post_RoadItems_t ();
   };
 

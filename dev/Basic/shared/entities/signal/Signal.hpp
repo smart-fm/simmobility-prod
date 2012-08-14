@@ -76,6 +76,7 @@ public:
    virtual void outputTrafficLights(frame_t frameNumber,std::string newLine)const{};
    virtual void createStringRepresentation(std::string){};
    virtual ~Signal(){}
+   virtual void load(const std::map<std::string, std::string>&) {}
 
    static std::vector<Signal *> all_signals_;
    typedef std::vector<Signal *> All_Signals;

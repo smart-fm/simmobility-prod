@@ -59,6 +59,9 @@ public:
 
     void init(Signal const & signal);
 
+    //May want to implement later.
+    virtual void load(const std::map<std::string, std::string>& configProps) {}
+
     /**
      * Return the CountAndTimePair for the specified \c lane.
      */

@@ -14,6 +14,7 @@ class DriverUpdateParams;
 class PackageUtils;
 class UnPackageUtils;
 class BusStop;
+class Person;
 
 
 /**
@@ -26,6 +27,8 @@ class BusStop;
 class BusDriver : public sim_mob::Driver {
 public:
 	BusDriver(sim_mob::Person* parent, sim_mob::MutexStrategy mtxStrat);
+
+	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 
 	//Overrides
 	virtual void frame_init(UpdateParams& p);

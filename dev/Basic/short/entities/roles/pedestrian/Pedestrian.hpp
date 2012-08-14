@@ -28,7 +28,7 @@
 #include "entities/Signal.hpp"
 #endif
 #include "geospatial/Crossing.hpp"
-#include "entities/roles/driver/GeneralPathMover.hpp"
+#include "geospatial/GeneralPathMover.hpp"
 #include "entities/UpdateParams.hpp"
 #include "geospatial/RoadSegment.hpp"
 using std::vector;
@@ -89,10 +89,10 @@ struct PedestrianUpdateParams : public sim_mob::UpdateParams {
  */
 class Pedestrian : public sim_mob::Role {
 public:
-	Pedestrian(Agent* parent, boost::mt19937& gen);
+	Pedestrian(Agent* parent);
 	virtual ~Pedestrian();
 
-	//sim_mob::GeneralPathMover::PathWithDirection pathWithDirection;
+	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 
 	//Virtual overrides
 	virtual void frame_init(UpdateParams& p);

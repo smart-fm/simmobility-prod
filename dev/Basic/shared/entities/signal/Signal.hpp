@@ -14,8 +14,8 @@
 //  This allows us to simply include "entities/signal/Signal.hpp" without reservation.
 #include "GenConfig.h"
 #ifndef SIMMOB_NEW_SIGNAL
-//	#include "entities/Signal.hpp"
-//	#include "util/SignalStatus.hpp"
+#include "entities/Signal.hpp"
+#include "util/SignalStatus.hpp"
 #else
 #include <map>
 #include <vector>

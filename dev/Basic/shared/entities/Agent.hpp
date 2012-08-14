@@ -19,7 +19,7 @@
 #include "conf/simpleconf.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 
-#include "Entity.hpp"
+#include "entities/Entity.hpp"
 #include "PendingEntity.hpp"
 #include "PendingEvent.hpp"
 
@@ -36,8 +36,8 @@ class UnPackageUtils;
 #endif
 
 //Comparison for our priority queue
-struct cmp_agent_start : public std::less<PendingEntity> {
-  bool operator() (const PendingEntity& x, const PendingEntity& y) const;
+struct cmp_agent_start : public std::less<Person*> {
+  bool operator() (const Person* x, const Person* y) const;
 };
 
 struct cmp_event_start : public std::less<PendingEvent> {
@@ -45,10 +45,8 @@ struct cmp_event_start : public std::less<PendingEvent> {
 };
 
 //C++ static constructors...
-class StartTimePriorityQueue : public std::priority_queue<PendingEntity, std::vector<PendingEntity>, cmp_agent_start> {
+class StartTimePriorityQueue : public std::priority_queue<Person*, std::vector<Person*>, cmp_agent_start> {
 };
-
-//C++ static constructors...
 class EventTimePriorityQueue : public std::priority_queue<PendingEvent, std::vector<PendingEvent>, cmp_event_start> {
 };
 
@@ -73,8 +71,21 @@ public:
 	explicit Agent(const MutexStrategy& mtxStrat, int id=-1);
 	virtual ~Agent();
 
-	virtual Entity::UpdateStatus update(frame_t frameNumber) = 0;  ///<Update agent behvaior
+	///Load an agent.
+	virtual void load(const std::map<std::string, std::string>& configProps) = 0;
 
+	virtual Entity::UpdateStatus update(frame_t frameNumber) = 0;  ///<Update agent behavior
+
+    ///A temporary list of configuration properties used to load an Agent's role from the config file.
+    void setConfigProperties(const std::map<std::string, std::string>& props) {
+    	this->configProperties = props;
+    }
+    const std::map<std::string, std::string>& getConfigProperties() {
+    	return this->configProperties;
+    }
+    void clearConfigProperties() {
+    	this->configProperties.clear();
+    }
 
 	///Subscribe this agent to a data manager.
 	//virtual void subscribe(sim_mob::BufferedDataManager* mgr, bool isNew);
@@ -84,6 +95,11 @@ public:
 	bool isToBeRemoved();
 	void setToBeRemoved();
 	void clearToBeRemoved(); ///<Temporary function.
+
+
+private:
+	//For future reference.
+	const sim_mob::MutexStrategy mutexStrat;
 
 public:
 	//The agent's start/end nodes.
@@ -130,16 +146,9 @@ public:
 		return gen;
 	}
 
-	//Set this person's activities
-	//NOTE: I commented a lot of this out; ensure that nothing required is missing. ~Seth
-	/*void setActivities(std::vector<TripActivity*> activities) { currActivities = activities; }
-	std::vector<TripActivity*> getActivities() { return currActivities; }
-
-	void setNextActivity(TripActivity* activity) { nextActivity = activity; }
-	TripActivity* getNextActivity() { return nextActivity; }
-
-	void setCurrActivity(TripActivity* activity) { currActivity = activity; }
-	TripActivity* getCurrActivity() { return currActivity; }*/
+	const sim_mob::MutexStrategy& getMutexStrategy() {
+		return mutexStrat;
+	}
 
 	void setOnActivity(bool value) { onActivity = value; }
 	bool getOnActivity() { return onActivity; }
@@ -159,11 +168,9 @@ private:
 	bool toRemoved;
 	static unsigned int next_agent_id;
 
-	//added by Jenny (11th June)
-	//NOTE: I'm disabling this in favor of Harish's code; please double-check. ~Seth
-	//std::vector<TripActivity*> currActivities;
-	//TripActivity* nextActivity;
-	//TripActivity* currActivity;
+    //Unknown until runtime
+    std::map<std::string, std::string> configProperties;
+
 	PendingEvent* currEvent;
 	PendingEvent* nextEvent;
 

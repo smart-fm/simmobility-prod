@@ -27,7 +27,7 @@ template<> struct type_conversion<TripChainItem>
     	res.entityID = vals.get<int>("entityid",0);
     	res.sequenceNumber = vals.get<int>("trip_chain_sequence_number",0);
     	res.itemType = sim_mob::TripChainItem::getItemType(vals.get<std::string>("trip_chain_item_type",""));
-    	if(res.itemType == sim_mob::TripChainItem::IT_TRIP){
+    	if(res.itemType == sim_mob::TripChainItem::IT_TRIP) {
     		res.tripID = vals.get<int>("trip_id", 0);
     		res.tmp_tripfromLocationNodeID = vals.get<int>("trip_from_location_id",0);
     		res.tripfromLocationType = sim_mob::TripChainItem::getLocationType(vals.get<std::string>("trip_from_location_type",""));
@@ -43,7 +43,7 @@ template<> struct type_conversion<TripChainItem>
     		res.ptLineId = vals.get<std::string>("public_transit_line_id","");
     		res.tmp_startTime = vals.get<std::string>("start_time","");
     	}
-    	else if(res.itemType == sim_mob::TripChainItem::IT_ACTIVITY){
+    	else if(res.itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
     		res.tmp_activityID = vals.get<int>("activity_id", 0);
     		res.description = vals.get<std::string>("activity_description", "");
     		res.isPrimary = vals.get<int>("primary_activity", 0);

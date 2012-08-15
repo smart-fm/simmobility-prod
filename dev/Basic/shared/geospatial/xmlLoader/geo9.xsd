@@ -2,6 +2,7 @@
 <!-- geo3 adds kurblines and makes improvement on element types -->
 <!-- geo5 added targetNamespace, editted crossing, RoadBump name, 
   added segment and connector information to roundabout and intersection (inheritted from multinode -->
+<!--geo9: tripchain added-->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:geo="http://www.smart.mit.edu/geo"
   targetNamespace="http://www.smart.mit.edu/geo">
 
@@ -414,7 +415,32 @@
     </xs:choice>
   </xs:complexType>
 
-
+  <xs:complexType name="TripChainItem_t">
+    <xs:sequence>
+      <xs:element name="personID" type="xs:integer"/>
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="Trip_t">
+    <xs:complexContent>
+      <xs:extension base="geo:TripChainItem_t">
+        <xs:sequence>
+          <xs:element name="tripId" type="xs:integer"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  
+  <xs:complexType name="Activity_t">
+    <xs:complexContent>
+      <xs:extension base="geo:TripChainItem_t">
+        <xs:sequence>
+          <xs:element name="activityId" type="xs:integer"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  
   <!-- Main Schema starts here -->
   <xs:complexType name="GeoSpatial_t">
     <xs:sequence>

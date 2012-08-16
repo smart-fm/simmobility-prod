@@ -352,7 +352,7 @@ double Signal_SCATS::computePhaseDS(int phaseId) {
 				const LoopDetectorEntity::CountAndTimePair& ctPair =
 						loopDetector_->getCountAndTimePair(*lane);
 				lane_DS = LaneDS(ctPair, total_g);
-				std::cout << "lane_DS = " << lane_DS << std::endl;
+//				std::cout << "lane_DS = " << lane_DS << std::endl;
 				if (lane_DS > maxPhaseDS)
 					maxPhaseDS = lane_DS;
 			}
@@ -459,7 +459,7 @@ UpdateStatus Signal_SCATS::update(frame_t frameNumber) {
 
 	if((currPhaseID != temp_PhaseId) && signalAlgorithm)//separated coz we may need to transfer computeDS here
 		{
-			std::cout << "The New Phase is : " << plan_.phases_[temp_PhaseId].getName() << std::endl;
+//			std::cout << "The New Phase is : " << plan_.phases_[temp_PhaseId].getName() << std::endl;
 			computePhaseDS(currPhaseID);
 			currPhaseID  = temp_PhaseId;
 		}

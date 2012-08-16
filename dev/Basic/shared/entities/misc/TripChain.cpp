@@ -30,9 +30,9 @@ sim_mob::Trip::Trip(int entId, std::string type, unsigned int seqNumber,
 
 sim_mob::SubTrip::SubTrip(int entId, std::string type, unsigned int seqNumber,
 		DailyTime start, DailyTime end, Node* from,
-		std::string fromLocType, Node* to, std::string toLocType, /*Trip* parent,*/ std::string mode,
+		std::string fromLocType, Node* to, std::string toLocType, std::string mode,
 		bool isPrimary, std::string ptLineId) : Trip(entId, type, seqNumber, start, end, 0, from, fromLocType, to, toLocType),
-		/*parentTrip(parent),*/ mode(mode) , isPrimaryMode(isPrimary), ptLineId(ptLineId)
+		mode(mode) , isPrimaryMode(isPrimary), ptLineId(ptLineId)
 {
 }
 

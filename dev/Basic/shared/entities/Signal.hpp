@@ -118,6 +118,7 @@ public:
 	//Abstract methods. You will have to implement these eventually.
 	virtual Entity::UpdateStatus update(frame_t frameNumber);
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
+	virtual void load(const std::map<std::string, std::string>& configProps) {}
 
 	void frame_output(frame_t frameNumber);
 

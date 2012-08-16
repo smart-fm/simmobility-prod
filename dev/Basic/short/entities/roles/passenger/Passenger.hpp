@@ -24,6 +24,10 @@ namespace sim_mob
  */
 class Passenger : public sim_mob::Role {
 public:
+	virtual sim_mob::Role* clone(sim_mob::Person* parent) const {
+		throw std::runtime_error("Clone not implemented for Passenger");
+	}
+
 	virtual void update(frame_t frameNumber) { throw std::runtime_error("Passenger not yet implemented."); }
 
 	//todo

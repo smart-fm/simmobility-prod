@@ -76,6 +76,8 @@ public:
 	Driver(Person* parent, sim_mob::MutexStrategy mtxStrat);
 	virtual ~Driver();
 
+	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
+
 	//Virtual implementations
 	virtual void frame_init(UpdateParams& p);
 	virtual void frame_tick(UpdateParams& p);
@@ -105,6 +107,11 @@ protected:
 	//unsigned int currTimeMS;
 	//Pointer to the vehicle this driver is controlling.
 	Vehicle* vehicle;
+
+	//This should be done through the Role class itself; for now, I'm just forcing
+	//  it so that we can get the mid-term working. ~Seth
+	virtual Vehicle* getResource() { return vehicle; }
+
 
 protected:
 	//Temporary variable which will be flushed each time tick. We save it

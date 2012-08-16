@@ -3,7 +3,7 @@
 /*
  * file main_med.cpp
  * A first skeleton for mid-term module
- * author vuvinhan
+ * \author Vu Vinh An
  */
 #include <vector>
 #include <string>
@@ -13,6 +13,9 @@
 
 #include "buffering/BufferedDataManager.hpp"
 #include "entities/AuraManager.hpp"
+#include "entities/Signal.hpp"
+#include "entities/Agent.hpp"
+#include "entities/roles/activityRole/ActivityPerformer.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "geospatial/aimsun/Loader.hpp"
@@ -42,6 +45,7 @@ using std::vector;
 using std::string;
 
 using namespace sim_mob;
+using namespace sim_mob::medium;
 
 //Temporary flag: Shuffle all agents (signals and otherwise) onto the Agent worker threads?
 // This is needed for performance testing; it will cause signals to fluxuate faster than they should.
@@ -98,10 +102,20 @@ bool performMainMed(const std::string& configFileName) {
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
 #endif
 
-	//Load our user config file; save a handle to the shared definition of it.
-	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof)) { //Note: Agent "shells" are loaded here.
+	//Register our Role types.
+	//TODO: Accessing ConfigParams before loading it is technically safe, but we
+	//      should really be clear about when this is not ok.
+	RoleFactory& rf = ConfigParams::GetInstance().getRoleFactoryRW();
+	rf.registerRole("driver", new sim_mob::medium::Driver(nullptr));
+	rf.registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr));
+	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
+
+	//Load our user config file
+	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof)) {
 		return false;
 	}
+
+	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigParams::GetInstance();
 
 
@@ -170,9 +184,6 @@ bool performMainMed(const std::string& configFileName) {
 	//Initialize the aura manager
 	AuraManager& auraMgr = AuraManager::instance();
 	auraMgr.init();
-
-	//Inititalize the traffic watch
-//	TrafficWatch& trafficWatch = TrafficWatch::instance();
 
 	//Start work groups and all threads.
 	agentWorkers.startAll();
@@ -267,7 +278,6 @@ bool performMainMed(const std::string& configFileName) {
 #endif
 
 		auraMgr.update(currTick);
-//		trafficWatch.update(currTick);
 		agentWorkers.waitExternAgain(); // The workers wait on the AuraManager.
 
 		//Check if the warmup period has ended.
@@ -275,8 +285,6 @@ bool performMainMed(const std::string& configFileName) {
 			//updateGUI(agents);
 			//saveStatistics(agents);
 		}
-
-		//saveStatisticsToDB(agents);
 	}
 
 	//Finalize partition manager
@@ -310,7 +318,7 @@ bool performMainMed(const std::string& configFileName) {
 			Person* p = dynamic_cast<Person*> (*it);
 			if (p) {
 				numPerson++;
-				if (p->getRole() && dynamic_cast<Driver*> (p->getRole())) {
+				if (p->getRole() && dynamic_cast<Driver*>(p->getRole())) {
 					numDriver++;
 				}
 				if (p->getRole() && dynamic_cast<Pedestrian*> (p->getRole())) {
@@ -332,7 +340,7 @@ bool performMainMed(const std::string& configFileName) {
 	if (!Agent::pending_agents.empty()) {
 		cout << "WARNING! There are still " << Agent::pending_agents.size()
 				<< " Agents waiting to be scheduled; next start time is: "
-				<< Agent::pending_agents.top().start << " ms\n";
+				<< Agent::pending_agents.top()->getStartTime() << " ms\n";
 		if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 			throw std::runtime_error("ERROR: pending_agents shouldn't be used if Dynamic Dispatch is disabled.");
 		}

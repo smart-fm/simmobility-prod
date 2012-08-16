@@ -3,7 +3,7 @@
 /*
  * file main_med.cpp
  * A first skeleton for mid-term module
- * author vuvinhan
+ * \author Vu Vinh An
  */
 #include <vector>
 #include <string>

@@ -157,6 +157,7 @@ bool performMain(const std::string& configFileName) {
 	}
 #endif
 
+	{ //Begin scope: WorkGroups
 
 	//Initialize our work groups.
 	bool NoDynamicDispatch = config.DynamicDispatchDisabled();
@@ -376,6 +377,13 @@ bool performMain(const std::string& configFileName) {
 			throw std::runtime_error("ERROR: pending_agents shouldn't be used if Dynamic Dispatch is disabled.");
 		}
 	}
+
+	//Here, we will simply scope-out the WorkGroups, and they will migrate out all remaining Agents.
+	}  //End scope: WorkGroups. (Todo: should move this into its own function later)
+
+	//Test: At this point, it should be possible to delete all Signals and Agents.
+	clear_delete_vector(Signal::all_signals_);
+	clear_delete_vector(Agent::all_agents);
 
 	cout << "Simulation complete; closing worker threads." << endl;
 	return true;

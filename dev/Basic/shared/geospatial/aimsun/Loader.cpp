@@ -1563,20 +1563,24 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	if (src.fromNode->candidateForSegmentNode) {
 		return;
 	}
-
+	set<RoadSegment*> linkSegments;
+	std::ostringstream convertLinkId,convertSegId;
 	//Process this section, and continue processing Sections along the direction of
 	// travel until one of these ends on an intersection.
 	//NOTE: This approach is far from foolproof; for example, if a Link contains single-directional
 	//      Road segments that fail to match at every UniNode. Need to find a better way to
 	//      group RoadSegments into Links, but at least this works for our test network.
 	Section* currSect = &src;
-	sim_mob::Link* ln = new sim_mob::Link();
-	src.generatedSegment = new sim_mob::RoadSegment(ln);
+	convertLinkId << 1000001 + res.links.size();
+	sim_mob::Link* ln = new sim_mob::Link(convertLinkId.str());
+	convertSegId  << 1000001 + res.links.size() << 101 + linkSegments.size() ;
+//	std::cout << "Creating a Road Segment with___ " << convertSegId.str() << std::endl;
+	src.generatedSegment = new sim_mob::RoadSegment(ln,convertSegId.str());
 	ln->roadName = currSect->roadName;
 	ln->start = currSect->fromNode->generatedNode;
 	//added by Jenny to tag node to one link
 	ln->start->setLinkLoc(ln);
-	set<RoadSegment*> linkSegments;
+	//set<RoadSegment*> linkSegments;
 
 	//Make sure the link's start node is represented at the Node level.
 	//TODO: Try to avoid dynamic casting if possible.
@@ -1622,7 +1626,15 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 
 			//Prepare a new segment IF required, and save it for later reference (or load from past ref.)
 			if (!found->generatedSegment) {
-				found->generatedSegment = new sim_mob::RoadSegment(ln);
+				convertSegId.clear();
+				convertSegId.str(std::string());
+				convertSegId  << 1000001 + res.links.size() << 101 + linkSegments.size();
+//				std::cout << "Creating a Road Segment with " << convertSegId.str() << std::endl;
+				found->generatedSegment = new sim_mob::RoadSegment(ln,convertSegId.str());
+			}
+			else
+			{
+//				std::cout << "Bypassing\n";
 			}
 
 			//Save this segment if either end points are multinodes

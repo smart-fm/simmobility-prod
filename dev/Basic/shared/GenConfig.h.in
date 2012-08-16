@@ -27,6 +27,7 @@
 #cmakedefine SIMMOB_LATEST_STANDARD
 #cmakedefine SIMMOB_AGENT_UPDATE_PROFILE
 #cmakedefine SIMMOB_NEW_SIGNAL
+#cmakedefine SIMMOB_XML_WRITER
 
 
 ///Sizes of workgroups. (Note that enums are allowed to overlap values)

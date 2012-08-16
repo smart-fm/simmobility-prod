@@ -26,6 +26,9 @@ SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g")
 #Option: use new signal model. Use the cmake gui to change this on a per-user basis.
 option(SIMMOB_NEW_SIGNAL "Use the new signal Model ." ON)
 
+#Option: Run SimMobility to only produce an input XML file for itself
+option(SIMMOB_XML_WRITER "Use the new signal Model ." OFF)
+
 #Option: strict error handling. Use the cmake gui to change this on a per-user basis.
 option (SIMMOB_STRICT_AGENT_ERRORS  "All unexpected and potentially dangerous behavior causes Agents to throw exceptions. If OFF, Agents will generally just remove themselves from the simulation in case of error." OFF)
 

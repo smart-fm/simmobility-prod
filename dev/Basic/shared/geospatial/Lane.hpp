@@ -259,6 +259,9 @@ public:
     unsigned int getLaneID() const {
     	return laneID_;
     }
+    std::string getLaneID_str() const {
+    	return laneID_str;
+    }
 
     /** Return the polyline of the Lane, which traces the middle of the lane.  */
     const std::vector<sim_mob::Point2D>& getPolyline() const;
@@ -283,7 +286,12 @@ private:
     friend class sim_mob::aimsun::Loader;
 
     /** Create a Lane using the \c bit_pattern to initialize the lane's rules.  */
-    explicit Lane(sim_mob::RoadSegment* segment, unsigned int laneID, const std::string& bit_pattern="") : parentSegment_(segment), rules_(bit_pattern), width_(0), laneID_(laneID) {}
+    explicit Lane(sim_mob::RoadSegment* segment, unsigned int laneID, const std::string& bit_pattern="") : parentSegment_(segment), rules_(bit_pattern), width_(0), laneID_(laneID) {
+    	std::ostringstream Id ;
+    	Id << segment->getSegmentID() <<  laneID;
+
+    	laneID_str = Id.str();
+    }
 
     /** Set the lane's rules using the \c bit_pattern.  */
     void set(const std::string& bit_pattern) {
@@ -347,6 +355,8 @@ private:
 	std::bitset<MAX_LANE_MOVEMENT_RULES> rules_;
 	unsigned int width_;
 	unsigned int laneID_;
+	//I don't want to disturb the usage of laneID_ by other modules so i made the following variable for xml write/read purposes--vahid
+	std::string laneID_str;
 
         // polyline_ is mutable so that getPolyline() can be a const method.
 	mutable std::vector<Point2D> polyline_;

@@ -81,6 +81,8 @@ public:
 	/// Currently, there can be only one obstacle at any given point on the Pavement. We may have to
 	/// revisit this problem if length is represented as an integer, but if length remains represented
 	/// as a double then we can simply inch the obstacle slightly further down the road.
+
+	//TODO: well, instead of using map, you could have used a multimap and save people a risk of running into problems --vahid
 	std::map<centimeter_t, const RoadItem*> obstacles;
 
 	///Return the next obstacle from a given point on this Pavement.

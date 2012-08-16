@@ -34,9 +34,11 @@ public:
 
 	//The line that is "far" from the intersection (further down the road)
 	std::pair<sim_mob::Point2D, sim_mob::Point2D> farLine;
+	unsigned int crossingID;
 
 public:
-
+	void setCrossingID(unsigned int crossingID_){crossingID = crossingID_;}
+	unsigned int getCrossingID(){return crossingID;}
 #ifndef SIMMOB_DISABLE_MPI
 	///The identification of Crossing is packed using PackageUtils;
 	static void pack(PackageUtils& package, Crossing* one_cross);

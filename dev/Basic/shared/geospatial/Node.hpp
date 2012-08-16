@@ -69,6 +69,7 @@ public:
     void setLinkLoc(sim_mob::Link* link);
 
     sim_mob::Link* getLinkLoc() const;
+  const Point2D getLocation(){ return location;}
 };
 
 

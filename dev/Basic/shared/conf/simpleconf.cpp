@@ -12,7 +12,12 @@
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "entities/BusController.hpp"
+#ifdef SIMMOB_NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
+#else
+#include "entities/Signal.hpp"
+#endif
+
 #include "entities/profile/ProfileBuilder.hpp"
 #include "entities/misc/BusSchedule.hpp"
 #include "geospatial/aimsun/Loader.hpp"
@@ -1022,7 +1027,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		}
 	}
 
-//	std::cout << "555" << endl;
+
 
 
 	//Miscellaneous settings
@@ -1301,7 +1306,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
         loopDetector.init(*signal);
         active_agents.push_back(&loopDetector);
     }
-//    std::cout << "999" << endl;
 
 	//No error
 	return "";

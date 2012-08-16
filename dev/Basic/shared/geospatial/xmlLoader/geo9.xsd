@@ -414,10 +414,56 @@
       <xs:element name="RoadBump" type="geo:RoadBump_t"/>
     </xs:choice>
   </xs:complexType>
-
+<!--tripchain starts here-->
+  <xs:complexType name="DailyTime_t">
+    <xs:choice>
+      <xs:element name="timeValue" type="xs:unsignedInt"/>
+      <xs:element name="base" type="xs:unsignedInt"/>
+    </xs:choice>
+  </xs:complexType>
+  
+  <!--TripchainItem Type definition-->
+  <xs:simpleType name="TripchainItemType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="IT_TRIP" />
+      <xs:enumeration value="IT_ACTIVITY" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  
+  <!--TripchainItem location Type definition-->
+  <xs:simpleType name="TripchainItemLocationType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="LT_BUILDING" />
+      <xs:enumeration value="LT_NODE" />
+      <xs:enumeration value="LT_LINK" />
+      <xs:enumeration value="LT_PUBLIC_TRANSIT_STOP" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:complexType name="SubTrip_t">
+    <xs:sequence>
+      <xs:element name="parentTrip" type="xs:string" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="mode" type="xs:string" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="isPrimaryMode" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="ptLineId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="SubTrips_t">
+    <xs:sequence>
+      <xs:element name="SubTrip" type="geo:SubTrip_t" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  
   <xs:complexType name="TripChainItem_t">
     <xs:sequence>
-      <xs:element name="personID" type="xs:integer"/>
+      <xs:element name="personID" type="xs:integer" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="itemType" type="geo:TripchainItemType" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="locationType" type="geo:TripchainItemLocationType" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="startTime" type="geo:DailyTime_t" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="endTime" type="geo:DailyTime_t" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="sequenceNumber" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>
   
@@ -425,7 +471,12 @@
     <xs:complexContent>
       <xs:extension base="geo:TripChainItem_t">
         <xs:sequence>
-          <xs:element name="tripId" type="xs:integer"/>
+          <xs:element name="tripId" type="xs:integer" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="fromLocation" type="xs:string" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="fromLocationType" type="geo:TripchainItemLocationType" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="toLocation" type="xs:string" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="toLocationType" type="geo:TripchainItemLocationType" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="SubTrips" type="geo:SubTrips_t" minOccurs="0" maxOccurs="1"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>

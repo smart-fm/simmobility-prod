@@ -298,7 +298,6 @@
       </xs:extension>
   </xs:complexContent>-->
 
-
   <xs:complexType name="BusStop_t">
     <xs:complexContent>
       <xs:extension base="geo:RoadItem_t">

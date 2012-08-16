@@ -133,7 +133,7 @@ SET(LibraryList "")
 
 #Find boost
 set(Boost_ADDITIONAL_VERSIONS "1.47" "1.47.0" "1.48" "1.48.0" "1.49" "1.49.0")
-find_package(Boost COMPONENTS thread serialization date_time REQUIRED)
+find_package(Boost COMPONENTS system thread serialization date_time REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 LIST(APPEND LibraryList ${Boost_LIBRARIES})
 

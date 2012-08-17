@@ -106,7 +106,7 @@ bool performMainMed(const std::string& configFileName) {
 	//TODO: Accessing ConfigParams before loading it is technically safe, but we
 	//      should really be clear about when this is not ok.
 	RoleFactory& rf = ConfigParams::GetInstance().getRoleFactoryRW();
-	rf.registerRole("driver", new sim_mob::medium::Driver(nullptr));
+	rf.registerRole("driver", new sim_mob::medium::Driver(nullptr, ConfigParams::GetInstance().mutexStategy));
 	rf.registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr));
 	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
 

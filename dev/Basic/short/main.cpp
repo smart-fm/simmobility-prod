@@ -607,7 +607,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigParams::GetInstance();
-
+#ifdef SIMMOB_XML_WRITER
 	/*
 	 *******************************
 	 * XML Writer
@@ -616,6 +616,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	WriteXMLInput(XML_OutPutFileName);
 	cout << "returning\n";
 	return true;
+#endif
 
 	//Sanity check (nullptr)
 	void* x = nullptr;

@@ -80,4 +80,26 @@
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>short/entities/roles/pedestrian/PedestrianPathMover.cpp</name>
+			<type>1</type>
+			<location>/home/redheli/workspace/new/simmobility/dev/Basic/short/entities/roles/pedestrian/PedestrianPathMover.cpp</location>
+		</link>
+		<link>
+			<name>short/entities/roles/pedestrian/PedestrianPathMover.hpp</name>
+			<type>1</type>
+			<location>/home/redheli/workspace/new/simmobility/dev/Basic/short/entities/roles/pedestrian/PedestrianPathMover.hpp</location>
+		</link>
+		<link>
+			<name>short/entities/roles/pedestrian/pedestrian2.cpp</name>
+			<type>1</type>
+			<location>/home/redheli/workspace/new/simmobility/dev/Basic/short/entities/roles/pedestrian/pedestrian2.cpp</location>
+		</link>
+		<link>
+			<name>short/entities/roles/pedestrian/pedestrian2.hpp</name>
+			<type>1</type>
+			<location>/home/redheli/workspace/new/simmobility/dev/Basic/short/entities/roles/pedestrian/pedestrian2.hpp</location>
+		</link>
+	</linkedResources>
 </projectDescription>

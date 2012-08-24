@@ -492,18 +492,36 @@
     </xs:complexContent>
   </xs:complexType>
   
-  <!-- Main Schema starts here -->
+  <xs:complexType name="TripChain_t">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <!--<xs:element name="TripCainItem" type="geo:TripChainItem_t"/>-->
+      <xs:element name="Trip" type="geo:Trip_t" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="Activity" type="geo:Activity_t" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:choice>
+  </xs:complexType>
+  
+    <xs:complexType name="TripChains_t">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element name="TripChain" type="geo:TripChain_t"/>
+    </xs:choice>
+  </xs:complexType>
+  
+
   <xs:complexType name="GeoSpatial_t">
     <xs:sequence>
       <xs:element name="RoadNetwork" type="geo:RoadNetwork_t"/>
     </xs:sequence>
   </xs:complexType>
   
+
+  <!-- Main Schema starts here -->
   <xs:complexType name="SimMobility_t">
     <xs:sequence>
-      <xs:element name="GeoSpatial" type="geo:GeoSpatial_t"/>
+      <xs:element name="GeoSpatial" type="geo:GeoSpatial_t" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="TripChains" type="geo:TripChains_t" minOccurs="0" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>
+  
   <!-- And Now Declaring the root element, I called it geo, but fell free to call it anything like Bugis, Clementi, Singapore... -->
   <xs:element name="SimMobility" type="geo:SimMobility_t"/>
 </xs:schema>

@@ -1522,6 +1522,333 @@ namespace geo
   {
   }
 
+  // DailyTime_t_pskel
+  //
+
+  void DailyTime_t_pskel::
+  timeValue_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->timeValue_parser_ = &p;
+  }
+
+  void DailyTime_t_pskel::
+  base_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->base_parser_ = &p;
+  }
+
+  void DailyTime_t_pskel::
+  parsers (::xml_schema::unsigned_int_pskel& timeValue,
+           ::xml_schema::unsigned_int_pskel& base)
+  {
+    this->timeValue_parser_ = &timeValue;
+    this->base_parser_ = &base;
+  }
+
+  DailyTime_t_pskel::
+  DailyTime_t_pskel ()
+  : timeValue_parser_ (0),
+    base_parser_ (0)
+  {
+  }
+
+  // SubTrip_t_pskel
+  //
+
+  void SubTrip_t_pskel::
+  parentTrip_parser (::xml_schema::string_pskel& p)
+  {
+    this->parentTrip_parser_ = &p;
+  }
+
+  void SubTrip_t_pskel::
+  mode_parser (::xml_schema::string_pskel& p)
+  {
+    this->mode_parser_ = &p;
+  }
+
+  void SubTrip_t_pskel::
+  isPrimaryMode_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->isPrimaryMode_parser_ = &p;
+  }
+
+  void SubTrip_t_pskel::
+  ptLineId_parser (::xml_schema::string_pskel& p)
+  {
+    this->ptLineId_parser_ = &p;
+  }
+
+  void SubTrip_t_pskel::
+  parsers (::xml_schema::string_pskel& parentTrip,
+           ::xml_schema::string_pskel& mode,
+           ::xml_schema::boolean_pskel& isPrimaryMode,
+           ::xml_schema::string_pskel& ptLineId)
+  {
+    this->parentTrip_parser_ = &parentTrip;
+    this->mode_parser_ = &mode;
+    this->isPrimaryMode_parser_ = &isPrimaryMode;
+    this->ptLineId_parser_ = &ptLineId;
+  }
+
+  SubTrip_t_pskel::
+  SubTrip_t_pskel ()
+  : parentTrip_parser_ (0),
+    mode_parser_ (0),
+    isPrimaryMode_parser_ (0),
+    ptLineId_parser_ (0)
+  {
+  }
+
+  // SubTrips_t_pskel
+  //
+
+  void SubTrips_t_pskel::
+  SubTrip_parser (::geo::SubTrip_t_pskel& p)
+  {
+    this->SubTrip_parser_ = &p;
+  }
+
+  void SubTrips_t_pskel::
+  parsers (::geo::SubTrip_t_pskel& SubTrip)
+  {
+    this->SubTrip_parser_ = &SubTrip;
+  }
+
+  SubTrips_t_pskel::
+  SubTrips_t_pskel ()
+  : SubTrip_parser_ (0)
+  {
+  }
+
+  // TripChainItem_t_pskel
+  //
+
+  void TripChainItem_t_pskel::
+  personID_parser (::xml_schema::integer_pskel& p)
+  {
+    this->personID_parser_ = &p;
+  }
+
+  void TripChainItem_t_pskel::
+  itemType_parser (::geo::TripChainItemType_pskel& p)
+  {
+    this->itemType_parser_ = &p;
+  }
+
+  void TripChainItem_t_pskel::
+  locationType_parser (::geo::TripChainItemLocationType_pskel& p)
+  {
+    this->locationType_parser_ = &p;
+  }
+
+  void TripChainItem_t_pskel::
+  startTime_parser (::geo::DailyTime_t_pskel& p)
+  {
+    this->startTime_parser_ = &p;
+  }
+
+  void TripChainItem_t_pskel::
+  endTime_parser (::geo::DailyTime_t_pskel& p)
+  {
+    this->endTime_parser_ = &p;
+  }
+
+  void TripChainItem_t_pskel::
+  sequenceNumber_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->sequenceNumber_parser_ = &p;
+  }
+
+  void TripChainItem_t_pskel::
+  parsers (::xml_schema::integer_pskel& personID,
+           ::geo::TripChainItemType_pskel& itemType,
+           ::geo::TripChainItemLocationType_pskel& locationType,
+           ::geo::DailyTime_t_pskel& startTime,
+           ::geo::DailyTime_t_pskel& endTime,
+           ::xml_schema::unsigned_int_pskel& sequenceNumber)
+  {
+    this->personID_parser_ = &personID;
+    this->itemType_parser_ = &itemType;
+    this->locationType_parser_ = &locationType;
+    this->startTime_parser_ = &startTime;
+    this->endTime_parser_ = &endTime;
+    this->sequenceNumber_parser_ = &sequenceNumber;
+  }
+
+  TripChainItem_t_pskel::
+  TripChainItem_t_pskel ()
+  : personID_parser_ (0),
+    itemType_parser_ (0),
+    locationType_parser_ (0),
+    startTime_parser_ (0),
+    endTime_parser_ (0),
+    sequenceNumber_parser_ (0)
+  {
+  }
+
+  // Trip_t_pskel
+  //
+
+  void Trip_t_pskel::
+  tripId_parser (::xml_schema::integer_pskel& p)
+  {
+    this->tripId_parser_ = &p;
+  }
+
+  void Trip_t_pskel::
+  fromLocation_parser (::xml_schema::string_pskel& p)
+  {
+    this->fromLocation_parser_ = &p;
+  }
+
+  void Trip_t_pskel::
+  fromLocationType_parser (::geo::TripChainItemLocationType_pskel& p)
+  {
+    this->fromLocationType_parser_ = &p;
+  }
+
+  void Trip_t_pskel::
+  toLocation_parser (::xml_schema::string_pskel& p)
+  {
+    this->toLocation_parser_ = &p;
+  }
+
+  void Trip_t_pskel::
+  toLocationType_parser (::geo::TripChainItemLocationType_pskel& p)
+  {
+    this->toLocationType_parser_ = &p;
+  }
+
+  void Trip_t_pskel::
+  SubTrips_parser (::geo::SubTrips_t_pskel& p)
+  {
+    this->SubTrips_parser_ = &p;
+  }
+
+  void Trip_t_pskel::
+  parsers (::xml_schema::integer_pskel& personID,
+           ::geo::TripChainItemType_pskel& itemType,
+           ::geo::TripChainItemLocationType_pskel& locationType,
+           ::geo::DailyTime_t_pskel& startTime,
+           ::geo::DailyTime_t_pskel& endTime,
+           ::xml_schema::unsigned_int_pskel& sequenceNumber,
+           ::xml_schema::integer_pskel& tripId,
+           ::xml_schema::string_pskel& fromLocation,
+           ::geo::TripChainItemLocationType_pskel& fromLocationType,
+           ::xml_schema::string_pskel& toLocation,
+           ::geo::TripChainItemLocationType_pskel& toLocationType,
+           ::geo::SubTrips_t_pskel& SubTrips)
+  {
+    this->personID_parser_ = &personID;
+    this->itemType_parser_ = &itemType;
+    this->locationType_parser_ = &locationType;
+    this->startTime_parser_ = &startTime;
+    this->endTime_parser_ = &endTime;
+    this->sequenceNumber_parser_ = &sequenceNumber;
+    this->tripId_parser_ = &tripId;
+    this->fromLocation_parser_ = &fromLocation;
+    this->fromLocationType_parser_ = &fromLocationType;
+    this->toLocation_parser_ = &toLocation;
+    this->toLocationType_parser_ = &toLocationType;
+    this->SubTrips_parser_ = &SubTrips;
+  }
+
+  Trip_t_pskel::
+  Trip_t_pskel ()
+  : tripId_parser_ (0),
+    fromLocation_parser_ (0),
+    fromLocationType_parser_ (0),
+    toLocation_parser_ (0),
+    toLocationType_parser_ (0),
+    SubTrips_parser_ (0)
+  {
+  }
+
+  // Activity_t_pskel
+  //
+
+  void Activity_t_pskel::
+  activityId_parser (::xml_schema::integer_pskel& p)
+  {
+    this->activityId_parser_ = &p;
+  }
+
+  void Activity_t_pskel::
+  parsers (::xml_schema::integer_pskel& personID,
+           ::geo::TripChainItemType_pskel& itemType,
+           ::geo::TripChainItemLocationType_pskel& locationType,
+           ::geo::DailyTime_t_pskel& startTime,
+           ::geo::DailyTime_t_pskel& endTime,
+           ::xml_schema::unsigned_int_pskel& sequenceNumber,
+           ::xml_schema::integer_pskel& activityId)
+  {
+    this->personID_parser_ = &personID;
+    this->itemType_parser_ = &itemType;
+    this->locationType_parser_ = &locationType;
+    this->startTime_parser_ = &startTime;
+    this->endTime_parser_ = &endTime;
+    this->sequenceNumber_parser_ = &sequenceNumber;
+    this->activityId_parser_ = &activityId;
+  }
+
+  Activity_t_pskel::
+  Activity_t_pskel ()
+  : activityId_parser_ (0)
+  {
+  }
+
+  // TripChain_t_pskel
+  //
+
+  void TripChain_t_pskel::
+  Trip_parser (::geo::Trip_t_pskel& p)
+  {
+    this->Trip_parser_ = &p;
+  }
+
+  void TripChain_t_pskel::
+  Activity_parser (::geo::Activity_t_pskel& p)
+  {
+    this->Activity_parser_ = &p;
+  }
+
+  void TripChain_t_pskel::
+  parsers (::geo::Trip_t_pskel& Trip,
+           ::geo::Activity_t_pskel& Activity)
+  {
+    this->Trip_parser_ = &Trip;
+    this->Activity_parser_ = &Activity;
+  }
+
+  TripChain_t_pskel::
+  TripChain_t_pskel ()
+  : Trip_parser_ (0),
+    Activity_parser_ (0)
+  {
+  }
+
+  // TripChains_t_pskel
+  //
+
+  void TripChains_t_pskel::
+  TripChain_parser (::geo::TripChain_t_pskel& p)
+  {
+    this->TripChain_parser_ = &p;
+  }
+
+  void TripChains_t_pskel::
+  parsers (::geo::TripChain_t_pskel& TripChain)
+  {
+    this->TripChain_parser_ = &TripChain;
+  }
+
+  TripChains_t_pskel::
+  TripChains_t_pskel ()
+  : TripChain_parser_ (0)
+  {
+  }
+
   // GeoSpatial_t_pskel
   //
 
@@ -1553,14 +1880,23 @@ namespace geo
   }
 
   void SimMobility_t_pskel::
-  parsers (::geo::GeoSpatial_t_pskel& GeoSpatial)
+  TripChains_parser (::geo::TripChains_t_pskel& p)
+  {
+    this->TripChains_parser_ = &p;
+  }
+
+  void SimMobility_t_pskel::
+  parsers (::geo::GeoSpatial_t_pskel& GeoSpatial,
+           ::geo::TripChains_t_pskel& TripChains)
   {
     this->GeoSpatial_parser_ = &GeoSpatial;
+    this->TripChains_parser_ = &TripChains;
   }
 
   SimMobility_t_pskel::
   SimMobility_t_pskel ()
-  : GeoSpatial_parser_ (0)
+  : GeoSpatial_parser_ (0),
+    TripChains_parser_ (0)
   {
   }
 
@@ -5444,6 +5780,797 @@ namespace geo
     return false;
   }
 
+  // DailyTime_t_pskel
+  //
+
+  void DailyTime_t_pskel::
+  timeValue (unsigned int)
+  {
+  }
+
+  void DailyTime_t_pskel::
+  base (unsigned int)
+  {
+  }
+
+  bool DailyTime_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "timeValue" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->timeValue_parser_;
+
+      if (this->timeValue_parser_)
+        this->timeValue_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "base" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->base_parser_;
+
+      if (this->base_parser_)
+        this->base_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool DailyTime_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "timeValue" && ns.empty ())
+    {
+      if (this->timeValue_parser_)
+        this->timeValue (this->timeValue_parser_->post_unsigned_int ());
+
+      return true;
+    }
+
+    if (n == "base" && ns.empty ())
+    {
+      if (this->base_parser_)
+        this->base (this->base_parser_->post_unsigned_int ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // TripChainItemType_pskel
+  //
+
+  void TripChainItemType_pskel::
+  post_TripChainItemType ()
+  {
+  }
+
+  // TripChainItemLocationType_pskel
+  //
+
+  void TripChainItemLocationType_pskel::
+  post_TripChainItemLocationType ()
+  {
+  }
+
+  // SubTrip_t_pskel
+  //
+
+  void SubTrip_t_pskel::
+  parentTrip (const ::std::string&)
+  {
+  }
+
+  void SubTrip_t_pskel::
+  mode (const ::std::string&)
+  {
+  }
+
+  void SubTrip_t_pskel::
+  isPrimaryMode (bool)
+  {
+  }
+
+  void SubTrip_t_pskel::
+  ptLineId (const ::std::string&)
+  {
+  }
+
+  void SubTrip_t_pskel::
+  post_SubTrip_t ()
+  {
+  }
+
+  bool SubTrip_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "parentTrip" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->parentTrip_parser_;
+
+      if (this->parentTrip_parser_)
+        this->parentTrip_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "mode" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->mode_parser_;
+
+      if (this->mode_parser_)
+        this->mode_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "isPrimaryMode" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->isPrimaryMode_parser_;
+
+      if (this->isPrimaryMode_parser_)
+        this->isPrimaryMode_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "ptLineId" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->ptLineId_parser_;
+
+      if (this->ptLineId_parser_)
+        this->ptLineId_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool SubTrip_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "parentTrip" && ns.empty ())
+    {
+      if (this->parentTrip_parser_)
+        this->parentTrip (this->parentTrip_parser_->post_string ());
+
+      return true;
+    }
+
+    if (n == "mode" && ns.empty ())
+    {
+      if (this->mode_parser_)
+        this->mode (this->mode_parser_->post_string ());
+
+      return true;
+    }
+
+    if (n == "isPrimaryMode" && ns.empty ())
+    {
+      if (this->isPrimaryMode_parser_)
+        this->isPrimaryMode (this->isPrimaryMode_parser_->post_boolean ());
+
+      return true;
+    }
+
+    if (n == "ptLineId" && ns.empty ())
+    {
+      if (this->ptLineId_parser_)
+        this->ptLineId (this->ptLineId_parser_->post_string ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // SubTrips_t_pskel
+  //
+
+  void SubTrips_t_pskel::
+  SubTrip ()
+  {
+  }
+
+  void SubTrips_t_pskel::
+  post_SubTrips_t ()
+  {
+  }
+
+  bool SubTrips_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "SubTrip" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->SubTrip_parser_;
+
+      if (this->SubTrip_parser_)
+        this->SubTrip_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool SubTrips_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "SubTrip" && ns.empty ())
+    {
+      if (this->SubTrip_parser_)
+      {
+        this->SubTrip_parser_->post_SubTrip_t ();
+        this->SubTrip ();
+      }
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // TripChainItem_t_pskel
+  //
+
+  void TripChainItem_t_pskel::
+  personID (long long)
+  {
+  }
+
+  void TripChainItem_t_pskel::
+  itemType ()
+  {
+  }
+
+  void TripChainItem_t_pskel::
+  locationType ()
+  {
+  }
+
+  void TripChainItem_t_pskel::
+  startTime (sim_mob::DailyTime)
+  {
+  }
+
+  void TripChainItem_t_pskel::
+  endTime (sim_mob::DailyTime)
+  {
+  }
+
+  void TripChainItem_t_pskel::
+  sequenceNumber (unsigned int)
+  {
+  }
+
+  void TripChainItem_t_pskel::
+  post_TripChainItem_t ()
+  {
+  }
+
+  bool TripChainItem_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "personID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->personID_parser_;
+
+      if (this->personID_parser_)
+        this->personID_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "itemType" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->itemType_parser_;
+
+      if (this->itemType_parser_)
+        this->itemType_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "locationType" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->locationType_parser_;
+
+      if (this->locationType_parser_)
+        this->locationType_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "startTime" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->startTime_parser_;
+
+      if (this->startTime_parser_)
+        this->startTime_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "endTime" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->endTime_parser_;
+
+      if (this->endTime_parser_)
+        this->endTime_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "sequenceNumber" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->sequenceNumber_parser_;
+
+      if (this->sequenceNumber_parser_)
+        this->sequenceNumber_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool TripChainItem_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "personID" && ns.empty ())
+    {
+      if (this->personID_parser_)
+        this->personID (this->personID_parser_->post_integer ());
+
+      return true;
+    }
+
+    if (n == "itemType" && ns.empty ())
+    {
+      if (this->itemType_parser_)
+      {
+        this->itemType_parser_->post_TripChainItemType ();
+        this->itemType ();
+      }
+
+      return true;
+    }
+
+    if (n == "locationType" && ns.empty ())
+    {
+      if (this->locationType_parser_)
+      {
+        this->locationType_parser_->post_TripChainItemLocationType ();
+        this->locationType ();
+      }
+
+      return true;
+    }
+
+    if (n == "startTime" && ns.empty ())
+    {
+      if (this->startTime_parser_)
+        this->startTime (this->startTime_parser_->post_DailyTime_t ());
+
+      return true;
+    }
+
+    if (n == "endTime" && ns.empty ())
+    {
+      if (this->endTime_parser_)
+        this->endTime (this->endTime_parser_->post_DailyTime_t ());
+
+      return true;
+    }
+
+    if (n == "sequenceNumber" && ns.empty ())
+    {
+      if (this->sequenceNumber_parser_)
+        this->sequenceNumber (this->sequenceNumber_parser_->post_unsigned_int ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // Trip_t_pskel
+  //
+
+  void Trip_t_pskel::
+  tripId (long long)
+  {
+  }
+
+  void Trip_t_pskel::
+  fromLocation (const ::std::string&)
+  {
+  }
+
+  void Trip_t_pskel::
+  fromLocationType ()
+  {
+  }
+
+  void Trip_t_pskel::
+  toLocation (const ::std::string&)
+  {
+  }
+
+  void Trip_t_pskel::
+  toLocationType ()
+  {
+  }
+
+  void Trip_t_pskel::
+  SubTrips ()
+  {
+  }
+
+  bool Trip_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::geo::TripChainItem_t_pskel::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "tripId" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->tripId_parser_;
+
+      if (this->tripId_parser_)
+        this->tripId_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "fromLocation" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->fromLocation_parser_;
+
+      if (this->fromLocation_parser_)
+        this->fromLocation_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "fromLocationType" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->fromLocationType_parser_;
+
+      if (this->fromLocationType_parser_)
+        this->fromLocationType_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "toLocation" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->toLocation_parser_;
+
+      if (this->toLocation_parser_)
+        this->toLocation_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "toLocationType" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->toLocationType_parser_;
+
+      if (this->toLocationType_parser_)
+        this->toLocationType_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "SubTrips" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->SubTrips_parser_;
+
+      if (this->SubTrips_parser_)
+        this->SubTrips_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool Trip_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::geo::TripChainItem_t_pskel::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "tripId" && ns.empty ())
+    {
+      if (this->tripId_parser_)
+        this->tripId (this->tripId_parser_->post_integer ());
+
+      return true;
+    }
+
+    if (n == "fromLocation" && ns.empty ())
+    {
+      if (this->fromLocation_parser_)
+        this->fromLocation (this->fromLocation_parser_->post_string ());
+
+      return true;
+    }
+
+    if (n == "fromLocationType" && ns.empty ())
+    {
+      if (this->fromLocationType_parser_)
+      {
+        this->fromLocationType_parser_->post_TripChainItemLocationType ();
+        this->fromLocationType ();
+      }
+
+      return true;
+    }
+
+    if (n == "toLocation" && ns.empty ())
+    {
+      if (this->toLocation_parser_)
+        this->toLocation (this->toLocation_parser_->post_string ());
+
+      return true;
+    }
+
+    if (n == "toLocationType" && ns.empty ())
+    {
+      if (this->toLocationType_parser_)
+      {
+        this->toLocationType_parser_->post_TripChainItemLocationType ();
+        this->toLocationType ();
+      }
+
+      return true;
+    }
+
+    if (n == "SubTrips" && ns.empty ())
+    {
+      if (this->SubTrips_parser_)
+      {
+        this->SubTrips_parser_->post_SubTrips_t ();
+        this->SubTrips ();
+      }
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // Activity_t_pskel
+  //
+
+  void Activity_t_pskel::
+  activityId (long long)
+  {
+  }
+
+  bool Activity_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::geo::TripChainItem_t_pskel::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "activityId" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->activityId_parser_;
+
+      if (this->activityId_parser_)
+        this->activityId_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool Activity_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::geo::TripChainItem_t_pskel::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "activityId" && ns.empty ())
+    {
+      if (this->activityId_parser_)
+        this->activityId (this->activityId_parser_->post_integer ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // TripChain_t_pskel
+  //
+
+  void TripChain_t_pskel::
+  Trip (sim_mob::TripChainItem*)
+  {
+  }
+
+  void TripChain_t_pskel::
+  Activity (sim_mob::TripChainItem*)
+  {
+  }
+
+  bool TripChain_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "Trip" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Trip_parser_;
+
+      if (this->Trip_parser_)
+        this->Trip_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "Activity" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Activity_parser_;
+
+      if (this->Activity_parser_)
+        this->Activity_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool TripChain_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "Trip" && ns.empty ())
+    {
+      if (this->Trip_parser_)
+        this->Trip (this->Trip_parser_->post_Trip_t ());
+
+      return true;
+    }
+
+    if (n == "Activity" && ns.empty ())
+    {
+      if (this->Activity_parser_)
+        this->Activity (this->Activity_parser_->post_Activity_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // TripChains_t_pskel
+  //
+
+  void TripChains_t_pskel::
+  TripChain (sim_mob::TripChainItem*)
+  {
+  }
+
+  void TripChains_t_pskel::
+  post_TripChains_t ()
+  {
+  }
+
+  bool TripChains_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "TripChain" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->TripChain_parser_;
+
+      if (this->TripChain_parser_)
+        this->TripChain_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool TripChains_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "TripChain" && ns.empty ())
+    {
+      if (this->TripChain_parser_)
+        this->TripChain (this->TripChain_parser_->post_TripChain_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
   // GeoSpatial_t_pskel
   //
 
@@ -5510,6 +6637,11 @@ namespace geo
   }
 
   void SimMobility_t_pskel::
+  TripChains ()
+  {
+  }
+
+  void SimMobility_t_pskel::
   post_SimMobility_t ()
   {
   }
@@ -5534,6 +6666,16 @@ namespace geo
       return true;
     }
 
+    if (n == "TripChains" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->TripChains_parser_;
+
+      if (this->TripChains_parser_)
+        this->TripChains_parser_->pre ();
+
+      return true;
+    }
+
     return false;
   }
 
@@ -5550,6 +6692,17 @@ namespace geo
       {
         this->GeoSpatial_parser_->post_GeoSpatial_t ();
         this->GeoSpatial ();
+      }
+
+      return true;
+    }
+
+    if (n == "TripChains" && ns.empty ())
+    {
+      if (this->TripChains_parser_)
+      {
+        this->TripChains_parser_->post_TripChains_t ();
+        this->TripChains ();
       }
 
       return true;

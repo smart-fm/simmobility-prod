@@ -746,6 +746,179 @@ namespace geo
     post_RoadItems_t ();
   };
 
+  class DailyTime_t_pimpl: public virtual DailyTime_t_pskel
+  {
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    timeValue (unsigned int);
+
+    virtual void
+    base (unsigned int);
+
+    virtual sim_mob::DailyTime
+    post_DailyTime_t ();
+  };
+
+  class TripChainItemType_pimpl: public virtual TripChainItemType_pskel,
+    public ::xml_schema::string_pimpl
+  {
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    post_TripChainItemType ();
+  };
+
+  class TripChainItemLocationType_pimpl: public virtual TripChainItemLocationType_pskel,
+    public ::xml_schema::string_pimpl
+  {
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    post_TripChainItemLocationType ();
+  };
+
+  class SubTrip_t_pimpl: public virtual SubTrip_t_pskel
+  {
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    parentTrip (const ::std::string&);
+
+    virtual void
+    mode (const ::std::string&);
+
+    virtual void
+    isPrimaryMode (bool);
+
+    virtual void
+    ptLineId (const ::std::string&);
+
+    virtual void
+    post_SubTrip_t ();
+  };
+
+  class SubTrips_t_pimpl: public virtual SubTrips_t_pskel
+  {
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    SubTrip ();
+
+    virtual void
+    post_SubTrips_t ();
+  };
+
+  class TripChainItem_t_pimpl: public virtual TripChainItem_t_pskel
+  {
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    personID (long long);
+
+    virtual void
+    itemType ();
+
+    virtual void
+    locationType ();
+
+    virtual void
+    startTime (sim_mob::DailyTime);
+
+    virtual void
+    endTime (sim_mob::DailyTime);
+
+    virtual void
+    sequenceNumber (unsigned int);
+
+    virtual void
+    post_TripChainItem_t ();
+  };
+
+  class Trip_t_pimpl: public virtual Trip_t_pskel,
+    public ::geo::TripChainItem_t_pimpl
+  {
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    tripId (long long);
+
+    virtual void
+    fromLocation (const ::std::string&);
+
+    virtual void
+    fromLocationType ();
+
+    virtual void
+    toLocation (const ::std::string&);
+
+    virtual void
+    toLocationType ();
+
+    virtual void
+    SubTrips ();
+
+    virtual sim_mob::TripChainItem*
+    post_Trip_t ();
+  };
+
+  class Activity_t_pimpl: public virtual Activity_t_pskel,
+    public ::geo::TripChainItem_t_pimpl
+  {
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    activityId (long long);
+
+    virtual sim_mob::TripChainItem*
+    post_Activity_t ();
+  };
+
+  class TripChain_t_pimpl: public virtual TripChain_t_pskel
+  {
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    Trip (sim_mob::TripChainItem*);
+
+    virtual void
+    Activity (sim_mob::TripChainItem*);
+
+    virtual sim_mob::TripChainItem*
+    post_TripChain_t ();
+  };
+
+  class TripChains_t_pimpl: public virtual TripChains_t_pskel
+  {
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    TripChain (sim_mob::TripChainItem*);
+
+    virtual void
+    post_TripChains_t ();
+  };
+
   class GeoSpatial_t_pimpl: public virtual GeoSpatial_t_pskel
   {
     public:
@@ -767,6 +940,9 @@ namespace geo
 
     virtual void
     GeoSpatial ();
+
+    virtual void
+    TripChains ();
 
     virtual void
     post_SimMobility_t ();

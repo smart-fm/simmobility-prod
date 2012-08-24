@@ -68,10 +68,21 @@ main1 (int argc, char* argv[])
     ::geo::crossing_t_pimpl crossing_t_p;
     ::geo::PointPair_t_pimpl PointPair_t_p;
     ::geo::RoadBump_t_pimpl RoadBump_t_p;
+    ::geo::TripChains_t_pimpl TripChains_t_p;
+    ::geo::TripChain_t_pimpl TripChain_t_p;
+    ::geo::Trip_t_pimpl Trip_t_p;
+    ::xml_schema::integer_pimpl integer_p;
+    ::geo::TripChainItemType_pimpl TripChainItemType_p;
+    ::geo::TripChainItemLocationType_pimpl TripChainItemLocationType_p;
+    ::geo::DailyTime_t_pimpl DailyTime_t_p;
+    ::geo::SubTrips_t_pimpl SubTrips_t_p;
+    ::geo::SubTrip_t_pimpl SubTrip_t_p;
+    ::geo::Activity_t_pimpl Activity_t_p;
 
     // Connect the parsers together.
     //
-    SimMobility_t_p.parsers (GeoSpatial_t_p);
+    SimMobility_t_p.parsers (GeoSpatial_t_p,
+                             TripChains_t_p);
 
     GeoSpatial_t_p.parsers (RoadNetwork_t_p);
 
@@ -242,6 +253,42 @@ main1 (int argc, char* argv[])
                           Point2D_t_p,
                           string_p,
                           string_p);
+
+    TripChains_t_p.parsers (TripChain_t_p);
+
+    TripChain_t_p.parsers (Trip_t_p,
+                           Activity_t_p);
+
+    Trip_t_p.parsers (integer_p,
+                      TripChainItemType_p,
+                      TripChainItemLocationType_p,
+                      DailyTime_t_p,
+                      DailyTime_t_p,
+                      unsigned_int_p,
+                      integer_p,
+                      string_p,
+                      TripChainItemLocationType_p,
+                      string_p,
+                      TripChainItemLocationType_p,
+                      SubTrips_t_p);
+
+    DailyTime_t_p.parsers (unsigned_int_p,
+                           unsigned_int_p);
+
+    SubTrips_t_p.parsers (SubTrip_t_p);
+
+    SubTrip_t_p.parsers (string_p,
+                         string_p,
+                         boolean_p,
+                         string_p);
+
+    Activity_t_p.parsers (integer_p,
+                          TripChainItemType_p,
+                          TripChainItemLocationType_p,
+                          DailyTime_t_p,
+                          DailyTime_t_p,
+                          unsigned_int_p,
+                          integer_p);
 
     // Parse the XML document.
     //

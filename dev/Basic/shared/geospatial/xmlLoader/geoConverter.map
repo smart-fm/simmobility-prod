@@ -54,6 +54,10 @@ roundabout_t sim_mob::MultiNode* sim_mob::MultiNode*;
 
 crossing_t sim_mob::Crossing* sim_mob::Crossing*; 
 
+TripChain_t sim_mob::TripchainItem*  sim_mob::TripchainItem*;
+Trip_t sim_mob::TripchainItem*  sim_mob::TripchainItem*;
+Activity_t sim_mob::TripchainItem*  sim_mob::TripchainItem*;
+DailyTime_t sim_mob::DailyTime sim_mob::DailyTime;
 
 }
 

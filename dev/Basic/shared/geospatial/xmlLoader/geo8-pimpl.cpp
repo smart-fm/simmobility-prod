@@ -1269,6 +1269,287 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 	  std::cout << "in RoadItems_t_pimpl::post_RoadItems_t () " << std::endl;
   }
 
+  // DailyTime_t_pimpl
+  //
+
+  void DailyTime_t_pimpl::
+  pre ()
+  {
+  }
+
+  void DailyTime_t_pimpl::
+  timeValue (unsigned int timeValue)
+  {
+    std::cout << "timeValue: " << timeValue << std::endl;
+  }
+
+  void DailyTime_t_pimpl::
+  base (unsigned int base)
+  {
+    std::cout << "base: " << base << std::endl;
+  }
+
+  sim_mob::DailyTime DailyTime_t_pimpl::
+  post_DailyTime_t ()
+  {
+    // TODO
+    //
+    // return ... ;
+  }
+
+  // TripChainItemType_pimpl
+  //
+
+  void TripChainItemType_pimpl::
+  pre ()
+  {
+  }
+
+  void TripChainItemType_pimpl::
+  post_TripChainItemType ()
+  {
+    const ::std::string& v (post_string ());
+
+    std::cout << "TripChainItemType: " << v << std::endl;
+  }
+
+  // TripChainItemLocationType_pimpl
+  //
+
+  void TripChainItemLocationType_pimpl::
+  pre ()
+  {
+  }
+
+  void TripChainItemLocationType_pimpl::
+  post_TripChainItemLocationType ()
+  {
+    const ::std::string& v (post_string ());
+
+    std::cout << "TripChainItemLocationType: " << v << std::endl;
+  }
+
+  // SubTrip_t_pimpl
+  //
+
+  void SubTrip_t_pimpl::
+  pre ()
+  {
+  }
+
+  void SubTrip_t_pimpl::
+  parentTrip (const ::std::string& parentTrip)
+  {
+    std::cout << "parentTrip: " << parentTrip << std::endl;
+  }
+
+  void SubTrip_t_pimpl::
+  mode (const ::std::string& mode)
+  {
+    std::cout << "mode: " << mode << std::endl;
+  }
+
+  void SubTrip_t_pimpl::
+  isPrimaryMode (bool isPrimaryMode)
+  {
+    std::cout << "isPrimaryMode: " << isPrimaryMode << std::endl;
+  }
+
+  void SubTrip_t_pimpl::
+  ptLineId (const ::std::string& ptLineId)
+  {
+    std::cout << "ptLineId: " << ptLineId << std::endl;
+  }
+
+  void SubTrip_t_pimpl::
+  post_SubTrip_t ()
+  {
+  }
+
+  // SubTrips_t_pimpl
+  //
+
+  void SubTrips_t_pimpl::
+  pre ()
+  {
+  }
+
+  void SubTrips_t_pimpl::
+  SubTrip ()
+  {
+  }
+
+  void SubTrips_t_pimpl::
+  post_SubTrips_t ()
+  {
+  }
+
+  // TripChainItem_t_pimpl
+  //
+
+  void TripChainItem_t_pimpl::
+  pre ()
+  {
+  }
+
+  void TripChainItem_t_pimpl::
+  personID (long long personID)
+  {
+    std::cout << "personID: " << personID << std::endl;
+  }
+
+  void TripChainItem_t_pimpl::
+  itemType ()
+  {
+  }
+
+  void TripChainItem_t_pimpl::
+  locationType ()
+  {
+  }
+
+  void TripChainItem_t_pimpl::
+  startTime (sim_mob::DailyTime startTime)
+  {
+    // TODO
+    //
+  }
+
+  void TripChainItem_t_pimpl::
+  endTime (sim_mob::DailyTime endTime)
+  {
+    // TODO
+    //
+  }
+
+  void TripChainItem_t_pimpl::
+  sequenceNumber (unsigned int sequenceNumber)
+  {
+    std::cout << "sequenceNumber: " << sequenceNumber << std::endl;
+  }
+
+  void TripChainItem_t_pimpl::
+  post_TripChainItem_t ()
+  {
+  }
+
+  // Trip_t_pimpl
+  //
+
+  void Trip_t_pimpl::
+  pre ()
+  {
+  }
+
+  void Trip_t_pimpl::
+  tripId (long long tripId)
+  {
+    std::cout << "tripId: " << tripId << std::endl;
+  }
+
+  void Trip_t_pimpl::
+  fromLocation (const ::std::string& fromLocation)
+  {
+    std::cout << "fromLocation: " << fromLocation << std::endl;
+  }
+
+  void Trip_t_pimpl::
+  fromLocationType ()
+  {
+  }
+
+  void Trip_t_pimpl::
+  toLocation (const ::std::string& toLocation)
+  {
+    std::cout << "toLocation: " << toLocation << std::endl;
+  }
+
+  void Trip_t_pimpl::
+  toLocationType ()
+  {
+  }
+
+  void Trip_t_pimpl::
+  SubTrips ()
+  {
+  }
+
+  sim_mob::TripChainItem* Trip_t_pimpl::
+  post_Trip_t ()
+  {
+    post_TripChainItem_t ();
+  }
+
+  // Activity_t_pimpl
+  //
+
+  void Activity_t_pimpl::
+  pre ()
+  {
+  }
+
+  void Activity_t_pimpl::
+  activityId (long long activityId)
+  {
+    std::cout << "activityId: " << activityId << std::endl;
+  }
+
+  sim_mob::TripChainItem* Activity_t_pimpl::
+  post_Activity_t ()
+  {
+    post_TripChainItem_t ();
+  }
+
+  // TripChain_t_pimpl
+  //
+
+  void TripChain_t_pimpl::
+  pre ()
+  {
+  }
+
+  void TripChain_t_pimpl::
+  Trip (sim_mob::TripChainItem* Trip)
+  {
+    // TODO
+    //
+  }
+
+  void TripChain_t_pimpl::
+  Activity (sim_mob::TripChainItem* Activity)
+  {
+    // TODO
+    //
+  }
+
+  sim_mob::TripChainItem* TripChain_t_pimpl::
+  post_TripChain_t ()
+  {
+    // TODO
+    //
+    // return ... ;
+  }
+
+  // TripChains_t_pimpl
+  //
+
+  void TripChains_t_pimpl::
+  pre ()
+  {
+  }
+
+  void TripChains_t_pimpl::
+  TripChain (sim_mob::TripChainItem* TripChain)
+  {
+    // TODO
+    //
+  }
+
+  void TripChains_t_pimpl::
+  post_TripChains_t ()
+  {
+  }
+
   // GeoSpatial_t_pimpl
   //
 
@@ -1347,6 +1628,11 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   GeoSpatial ()
   {
 	  std::cout << "In SimMobility_t_pimpl::GeoSpatial ()\n";
+  }
+
+  void SimMobility_t_pimpl::
+  TripChains ()
+  {
   }
 
   void SimMobility_t_pimpl::

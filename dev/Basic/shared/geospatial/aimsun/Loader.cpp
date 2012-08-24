@@ -811,6 +811,7 @@ sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
 	tripToSave->sequenceNumber = tcItem.sequenceNumber;
 	tripToSave->fromLocation = tcItem.fromLocation->generatedNode;
 	tripToSave->fromLocationType = tcItem.fromLocationType;
+	tripToSave->startTime = tcItem.startTime;
 	return tripToSave;
 }
 

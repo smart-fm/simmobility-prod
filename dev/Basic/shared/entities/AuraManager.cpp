@@ -248,8 +248,20 @@ public:
     nearbyAgents(Point2D const & position, Lane const & lane,
                  centimeter_t distanceInFront, centimeter_t distanceBehind) const;
 
+
+
 private:
     R_tree tree_;
+
+    //Map to store the density of each road segment.
+    std::map<const RoadSegment*, unsigned int> densityMap;
+
+    /* First dirty version... Will change eventually.
+     * This method is called from within the update of the AuraManager.
+     * This method increments the vehicle count for the road segment
+     * on which the Agent's vehicle is currently in.
+     */
+    void updateDensity(Agent const*);
 };
 
 void
@@ -278,6 +290,8 @@ AuraManager::Impl::update()
         agents.erase(agent);
         tree_.insert(agent);
         agent = nearest_agent(agent, agents);
+
+        updateDensity(agent);
     }
     tree_.insert(agent);    // insert the last agent into the tree.
     assert(tree_.GetSize() == Agent::all_agents.size());
@@ -350,6 +364,22 @@ const
     return agentsInRect(lowerLeft, upperRight);
 }
 
+void AuraManager::Impl::updateDensity(const Agent* ag) {
+	const Person* person = dynamic_cast<const Person*>(ag);
+	if(!person){
+		return;
+	}
+	const sim_mob::medium::Driver* driver = dynamic_cast<const sim_mob::medium::Driver*> (person->getRole());
+	if(!driver){
+		return;
+	}
+	if(driver->params.justChangedToNewSegment){
+		std::map<const RoadSegment*, unsigned short>::iterator densityMapIt = driver->getVehicle()->getCurrSegment();
+	}
+
+
+}
+
 /** \endcond ignoreAuraManagerInnards -- End of block to be ignored by doxygen.  */
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -401,3 +431,6 @@ AuraManager::printStatistics() const
 }
 
 }
+
+
+

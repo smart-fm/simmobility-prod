@@ -91,6 +91,11 @@ public:
 	Shared<bool> isInIntersection;
 	Shared<double> fwdVelocity;
 
+	/*
+	 * Making params public to expose information like justChangedToNewSegment,
+	 * justMovedIntoIntersection etc available for density calculation. ~ Harish
+	 */
+	medium::DriverUpdateParams params;
 	//to be moved to a DriverUpdateParam later
 	//const Lane* currLane_;
 	//double currLaneOffset_;
@@ -115,7 +120,7 @@ private:
 
 protected:
 	Vehicle* vehicle;
-	medium::DriverUpdateParams params;
+
 
 };
 

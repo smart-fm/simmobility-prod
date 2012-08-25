@@ -16,6 +16,7 @@ namespace sim_mob
 {
 
 //Forward declarations
+class Crossing;
 
 
 namespace aimsun
@@ -44,6 +45,8 @@ public:
 
 	//Decorated data
 	Node* atNode; //Which Node this crossing is relevant for.
+	//book-keeping
+	sim_mob::Crossing * usedInCrossing; //typically, every 2 aimsun crossing create a sim_mob crossing
 };
 
 

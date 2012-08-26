@@ -54,7 +54,10 @@ TripChainItem::LocationType sim_mob::TripChainItem::getLocationType(
 		throw std::runtime_error("Unexpected location type.");
 	}
 }
-
+//sim_mob::TripChainItem::LocationType sim_mob::TripChainItem::getLocationType()
+//{
+//	return LocationType;
+//}
 TripChainItem::ItemType sim_mob::TripChainItem::getItemType(
 		std::string itemType)
 {

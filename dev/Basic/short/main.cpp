@@ -442,34 +442,6 @@ void WriteXMLInput_MultiNode_Connectors(sim_mob::MultiNode* mn,TiXmlElement * Mu
 	}
 }
 
-//void WriteXMLInput_Intersections(sim_mob::RoadNetwork roadNetwork,TiXmlElement * Nodes)
-//{
-//	std::ostringstream out;
-//	TiXmlElement * Intersections = new TiXmlElement("Intersections");
-//	std::vector<sim_mob::MultiNode*>::const_iterator intersectionObj_it = roadNetwork.getNodes().begin();
-//	if(intersectionObj_it != roadNetwork.getNodes().end()) Nodes->LinkEndChild(Intersections);
-//	for(; intersectionObj_it != roadNetwork.getNodes().end() ; intersectionObj_it++)
-//	{
-//		out.str("");
-//		TiXmlElement * Intersection = new TiXmlElement("Intersection"); Intersections->LinkEndChild(Intersection);
-//    	//nodeID
-//    	TiXmlElement * nodeID = new TiXmlElement("nodeID");  Intersection->LinkEndChild(nodeID);
-//    	out << (*intersectionObj_it)->getID();
-//    	nodeID->LinkEndChild( new TiXmlText((out.str())));
-//    	//location
-//    	WriteXMLInput_Location(Intersection,true,(*intersectionObj_it)->location.getX(),(*intersectionObj_it)->location.getY());
-//    	WriteXMLInput_roadSegmentsAt(*intersectionObj_it,Intersection);
-//    	WriteXMLInput_MultiNode_Connectors(*intersectionObj_it,Intersection);
-//	}
-//
-//}
-
-//void WriteXMLInput_Roundabouts(sim_mob::RoadNetwork roadNetwork,TiXmlElement * Nodes)
-//{
-////	enable later
-////	TiXmlElement * UniNodes = new TiXmlElement("roundabouts"); Nodes->LinkEndChild(UniNodes);
-//}
-
 TiXmlElement * WriteXMLInput_Intersection(sim_mob::Intersection *intersection,TiXmlElement * Intersections, TiXmlElement * Nodes)
 {
 	std::ostringstream out;
@@ -535,11 +507,173 @@ void WriteXMLInput_GeoSpatial(TiXmlElement * SimMobility)
     WriteXMLInput_RoadNetwork(GeoSpatial);
 }
 
-void WriteXMLInput_TipChainJourney(TiXmlElement * SimMobility)
+void WriteXMLInput_TripChainItem(TiXmlElement * TripChain, sim_mob::TripChainItem & tripChainItem)
 {
-	TiXmlElement * Journey;
-	Journey = new TiXmlElement( "Journeys" );
-	SimMobility->LinkEndChild( Journey );
+	std::ostringstream out;
+//	//entityID
+//	out.str("");
+//	out << tripChainItem.entityID;
+//	TiXmlElement * entityID  = new TiXmlElement( "entityID" );
+//	entityID->LinkEndChild( new TiXmlText(out.str()));
+//	TripChain->LinkEndChild( entityID );
+	//personID
+	out.str("");
+	out << tripChainItem.entityID;//TODO: sunc with tripchainitem(last decision was to replace entityID with personID
+	TiXmlElement * personID  = new TiXmlElement( "personID" );
+	personID->LinkEndChild( new TiXmlText(out.str()));
+	TripChain->LinkEndChild( personID );
+
+	//itemType
+	out.str("");
+	switch(tripChainItem.itemType)
+	{
+	case sim_mob::TripChainItem::IT_ACTIVITY:
+		out << "IT_ACTIVITY";
+		break;
+
+	case sim_mob::TripChainItem::IT_TRIP:
+		out << "IT_TRIP";
+		break;
+	}
+	TiXmlElement * itemType  = new TiXmlElement( "itemType" );
+	itemType->LinkEndChild( new TiXmlText(out.str()));
+	TripChain->LinkEndChild( itemType );
+
+	//sequenceNumber
+	out.str("");
+	out << tripChainItem.sequenceNumber;
+	TiXmlElement * sequenceNumber  = new TiXmlElement( "sequenceNumber" );
+	sequenceNumber->LinkEndChild( new TiXmlText(out.str()));
+	TripChain->LinkEndChild( sequenceNumber );
+
+	//startTime
+//	out.str("");
+//	out << tripChainItem.startTime.toString();
+	TiXmlElement * startTime  = new TiXmlElement( "startTime" );
+	startTime->LinkEndChild( new TiXmlText(tripChainItem.startTime.toString()));
+	TripChain->LinkEndChild( startTime );
+	//endTime
+	TiXmlElement * endTime  = new TiXmlElement( "endTime" );
+	endTime->LinkEndChild( new TiXmlText(tripChainItem.endTime.toString()));
+	TripChain->LinkEndChild( endTime );
+}
+
+void WriteXMLInput_TripChain_Subtrips(TiXmlElement * Trip,  sim_mob::Trip & trip)
+{
+	TiXmlElement * Subtrips  = new TiXmlElement( "Subtrips" ); Trip->LinkEndChild( Subtrips );
+	std::ostringstream out;
+	for(std::vector<SubTrip>::const_iterator it = trip.getSubTrips().begin(), it_end(trip.getSubTrips().end()); it != it_end; it++)
+	{
+		TiXmlElement * Subtrip  = new TiXmlElement( "Subtrip" ); Subtrips->LinkEndChild( Subtrip );
+		//mode
+		TiXmlElement * mode  = new TiXmlElement( "mode" );
+		mode->LinkEndChild( new TiXmlText(it->mode));
+		Subtrip->LinkEndChild( mode );
+		//isPrimaryMode
+		TiXmlElement * isPrimaryMode  = new TiXmlElement( "isPrimaryMode" );
+		isPrimaryMode->LinkEndChild( new TiXmlText(it->isPrimaryMode ? "true" : "false"));
+		Subtrip->LinkEndChild( isPrimaryMode );
+		//ptLineId
+		TiXmlElement * ptLineId  = new TiXmlElement( "ptLineId" );
+		ptLineId->LinkEndChild( new TiXmlText(it->ptLineId));
+		Subtrip->LinkEndChild( ptLineId );
+	}
+}
+
+void WriteXMLInput_TripChain_Trip(TiXmlElement * TripChains, sim_mob::Trip & trip)
+{
+	std::ostringstream out;
+	TiXmlElement * Trip;
+	Trip = new TiXmlElement( "Trip" );
+	TripChains->LinkEndChild( Trip );
+	WriteXMLInput_TripChainItem(Trip,trip);
+	//tripID
+	out.str("");
+	out << trip.tripID;
+	TiXmlElement * tripID  = new TiXmlElement( "tripID" );
+	tripID->LinkEndChild( new TiXmlText(out.str()));
+	Trip->LinkEndChild( tripID );
+	//fromLocation
+	TiXmlElement * fromLocation  = new TiXmlElement( "fromLocation" );
+	WriteXMLInput_Location(fromLocation,false,trip.fromLocation->getLocation().getX(),trip.fromLocation->getLocation().getY());
+	Trip->LinkEndChild( fromLocation );
+	//fromLocationType
+	out.str("");
+	out << trip.fromLocationType;
+	TiXmlElement * fromLocationType  = new TiXmlElement( "fromLocationType" );
+	fromLocationType->LinkEndChild( new TiXmlText(out.str()));
+	Trip->LinkEndChild( fromLocationType );
+	//toLocation
+	TiXmlElement * toLocation  = new TiXmlElement( "toLocation" );
+	WriteXMLInput_Location(toLocation,false,trip.toLocation->getLocation().getX(),trip.toLocation->getLocation().getY());
+	Trip->LinkEndChild( toLocation );
+	//toLocationType
+	out.str("");
+	out << trip.toLocationType;
+	TiXmlElement * toLocationType  = new TiXmlElement( "toLocationType" );
+	toLocationType->LinkEndChild( new TiXmlText(out.str()));
+	Trip->LinkEndChild( toLocationType );
+	if(trip.getSubTrips().size() > 0)
+		WriteXMLInput_TripChain_Subtrips(Trip,trip);
+
+}
+
+
+	void WriteXMLInput_TripChain_Activity(TiXmlElement * TripChains, sim_mob::Activity & activity)
+{
+	std::ostringstream out;
+	TiXmlElement * Activity;
+	Activity = new TiXmlElement( "Activity" );
+	TripChains->LinkEndChild( Activity );
+	WriteXMLInput_TripChainItem(Activity,activity);
+	//description
+	TiXmlElement * description  = new TiXmlElement( "description" );
+	description->LinkEndChild( new TiXmlText(activity.description));
+	Activity->LinkEndChild( description );
+	//location
+	TiXmlElement * location  = new TiXmlElement( "location" );
+	WriteXMLInput_Location(location,false,activity.location->getLocation().getX(),activity.location->getLocation().getY());
+	Activity->LinkEndChild( location );
+	//locationType
+	out.str("");
+	out << activity.locationType;
+	TiXmlElement * locationType  = new TiXmlElement( "locationType" );
+	locationType->LinkEndChild( new TiXmlText(out.str()));
+	Activity->LinkEndChild( locationType );
+	//isPrimary
+	TiXmlElement * isPrimary  = new TiXmlElement( "isPrimary" );
+	isPrimary->LinkEndChild( new TiXmlText(activity.isPrimary ? "true" : "false"));
+	Activity->LinkEndChild( isPrimary );
+	//isFlexible
+	TiXmlElement * isFlexible  = new TiXmlElement( "isFlexible" );
+	isFlexible->LinkEndChild( new TiXmlText(activity.isFlexible ? "true" : "false"));
+	Activity->LinkEndChild( isFlexible );
+	//isMandatory
+	TiXmlElement * isMandatory  = new TiXmlElement( "isMandatory" );
+	isMandatory->LinkEndChild( new TiXmlText(activity.isMandatory ? "true" : "false"));
+	Activity->LinkEndChild( isMandatory );
+}
+void WriteXMLInput_TripChains(TiXmlElement * SimMobility)
+{
+	ConfigParams& config = ConfigParams::GetInstance();
+
+	std::vector<sim_mob::TripChainItem*>& TripChainsObj = config.getTripChains();
+	if(TripChainsObj.size() < 1) return;
+
+	TiXmlElement * TripChains;
+	TripChains = new TiXmlElement( "TripChains" );
+	SimMobility->LinkEndChild( TripChains );
+
+	for(std::vector<sim_mob::TripChainItem*>::iterator it = TripChainsObj.begin(), it_end(TripChainsObj.end()); it != it_end ; it ++)
+	{
+		sim_mob::TripChainItem* tripChainItem = *it;
+		if(dynamic_cast<sim_mob::Activity *>(tripChainItem))
+			WriteXMLInput_TripChain_Activity(TripChains,*dynamic_cast<sim_mob::Activity *>(tripChainItem));
+		else
+			if(dynamic_cast<sim_mob::Trip *>(tripChainItem))
+				WriteXMLInput_TripChain_Trip(TripChains,*dynamic_cast<sim_mob::Trip *>(tripChainItem));
+	}
+
 }
 void WriteXMLInput(const std::string& XML_OutPutFileName)
 {
@@ -556,7 +690,7 @@ void WriteXMLInput(const std::string& XML_OutPutFileName)
     doc.LinkEndChild( SimMobility );
 
 	WriteXMLInput_GeoSpatial(SimMobility);
-	WriteXMLInput_TipChainJourney(SimMobility);
+	WriteXMLInput_TripChains(SimMobility);
     doc.SaveFile( XML_OutPutFileName );
 }
 

@@ -180,7 +180,7 @@ void sim_mob::aimsun::CrossingLoader::GenerateACrossing(sim_mob::RoadNetwork& re
 		res->farLine = lineMinMaxes[0];
 	}
 	//general book keeping
-	candidates[0]->usedInCrossing = res;
+	candidates[0]->generatedCrossing = candidates[1]->generatedCrossing = res; //candidates size is mandatorily equal to 2
 
 	//This crossing will now be listed as an obstacle in all Segments which share the same two nodes. Its "offset" will be determined from the "start"
 	//   of the given segment to the "midpoint" of the two midpoints of the near/far lines.

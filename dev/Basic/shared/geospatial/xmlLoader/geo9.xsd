@@ -493,11 +493,14 @@
   </xs:complexType>
   
   <xs:complexType name="TripChain_t">
+    <xs:sequence>
+      <xs:element name="personID" type="xs:integer" minOccurs="1" maxOccurs="1"/>
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <!--<xs:element name="TripCainItem" type="geo:TripChainItem_t"/>-->
       <xs:element name="Trip" type="geo:Trip_t" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="Activity" type="geo:Activity_t" minOccurs="0" maxOccurs="unbounded"/>
     </xs:choice>
+      </xs:sequence>
   </xs:complexType>
   
     <xs:complexType name="TripChains_t">

@@ -560,11 +560,11 @@ void WriteXMLInput_TripChainItem(TiXmlElement * TripChain, sim_mob::TripChainIte
 
 void WriteXMLInput_TripChain_Subtrips(TiXmlElement * Trip,  sim_mob::Trip & trip)
 {
-	TiXmlElement * Subtrips  = new TiXmlElement( "Subtrips" ); Trip->LinkEndChild( Subtrips );
+	TiXmlElement * Subtrips  = new TiXmlElement( "subTrips" ); Trip->LinkEndChild( Subtrips );
 	std::ostringstream out;
 	for(std::vector<SubTrip>::const_iterator it = trip.getSubTrips().begin(), it_end(trip.getSubTrips().end()); it != it_end; it++)
 	{
-		TiXmlElement * Subtrip  = new TiXmlElement( "Subtrip" ); Subtrips->LinkEndChild( Subtrip );
+		TiXmlElement * Subtrip  = new TiXmlElement( "subTrip" ); Subtrips->LinkEndChild( Subtrip );
 		//mode
 		TiXmlElement * mode  = new TiXmlElement( "mode" );
 		mode->LinkEndChild( new TiXmlText(it->mode));
@@ -580,6 +580,18 @@ void WriteXMLInput_TripChain_Subtrips(TiXmlElement * Trip,  sim_mob::Trip & trip
 	}
 }
 
+std::string locationType_toString(TripChainItem::LocationType type)
+{
+	switch(type)
+	{
+	case TripChainItem::LT_BUILDING:
+		return "LT_BUILDING";
+	case TripChainItem::LT_NODE:
+		return "LT_NODE";
+	case TripChainItem::LT_LINK:
+		return "LT_PUBLIC_TRANSIT_STOP";
+	}
+}
 void WriteXMLInput_TripChain_Trip(TiXmlElement * TripChains, sim_mob::Trip & trip)
 {
 	std::ostringstream out;
@@ -598,20 +610,20 @@ void WriteXMLInput_TripChain_Trip(TiXmlElement * TripChains, sim_mob::Trip & tri
 	WriteXMLInput_Location(fromLocation,false,trip.fromLocation->getLocation().getX(),trip.fromLocation->getLocation().getY());
 	Trip->LinkEndChild( fromLocation );
 	//fromLocationType
-	out.str("");
-	out << trip.fromLocationType;
+//	out.str("");
+//	out << locationType_toString(trip.fromLocationType);
 	TiXmlElement * fromLocationType  = new TiXmlElement( "fromLocationType" );
-	fromLocationType->LinkEndChild( new TiXmlText(out.str()));
+	fromLocationType->LinkEndChild( new TiXmlText(locationType_toString(trip.fromLocationType)));
 	Trip->LinkEndChild( fromLocationType );
 	//toLocation
 	TiXmlElement * toLocation  = new TiXmlElement( "toLocation" );
 	WriteXMLInput_Location(toLocation,false,trip.toLocation->getLocation().getX(),trip.toLocation->getLocation().getY());
 	Trip->LinkEndChild( toLocation );
 	//toLocationType
-	out.str("");
-	out << trip.toLocationType;
+//	out.str("");
+//	out << trip.toLocationType;
 	TiXmlElement * toLocationType  = new TiXmlElement( "toLocationType" );
-	toLocationType->LinkEndChild( new TiXmlText(out.str()));
+	toLocationType->LinkEndChild( new TiXmlText(locationType_toString(trip.toLocationType)));
 	Trip->LinkEndChild( toLocationType );
 	if(trip.getSubTrips().size() > 0)
 		WriteXMLInput_TripChain_Subtrips(Trip,trip);
@@ -635,10 +647,10 @@ void WriteXMLInput_TripChain_Trip(TiXmlElement * TripChains, sim_mob::Trip & tri
 	WriteXMLInput_Location(location,false,activity.location->getLocation().getX(),activity.location->getLocation().getY());
 	Activity->LinkEndChild( location );
 	//locationType
-	out.str("");
-	out << activity.locationType;
+//	out.str("");
+//	out << activity.locationType;
 	TiXmlElement * locationType  = new TiXmlElement( "locationType" );
-	locationType->LinkEndChild( new TiXmlText(out.str()));
+	locationType->LinkEndChild( new TiXmlText(locationType_toString(activity.locationType)));
 	Activity->LinkEndChild( locationType );
 	//isPrimary
 	TiXmlElement * isPrimary  = new TiXmlElement( "isPrimary" );

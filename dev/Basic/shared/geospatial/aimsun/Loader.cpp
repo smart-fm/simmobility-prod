@@ -100,7 +100,7 @@ public:
 
 	void DecorateAndTranslateObjects();
 	void PostProcessNetwork();
-	void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::TripChainItem*>& tcs);
+	void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tcs);
     void SaveBusSchedule(std::vector<sim_mob::BusSchedule*>& busschedule);
 	map<int, Section> const & sections() const { return sections_; }
 
@@ -788,7 +788,7 @@ void DatabaseLoader::PostProcessNetwork()
 
 sim_mob::Activity* MakeActivity(const TripChainItem& tcItem) {
 	sim_mob::Activity* res = new sim_mob::Activity();
-	res->entityID = tcItem.entityID;
+	res->personID = tcItem.personID;
 	res->itemType = tcItem.itemType;
 	res->sequenceNumber = tcItem.sequenceNumber;
 	res->description = tcItem.description;
@@ -806,7 +806,7 @@ sim_mob::Activity* MakeActivity(const TripChainItem& tcItem) {
 sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
 	sim_mob::Trip* tripToSave = new sim_mob::Trip();
 	tripToSave->tripID = tcItem.tripID;
-	tripToSave->entityID = tcItem.entityID;
+	tripToSave->personID = tcItem.personID;
 	tripToSave->itemType = tcItem.itemType;
 	tripToSave->sequenceNumber = tcItem.sequenceNumber;
 	tripToSave->fromLocation = tcItem.fromLocation->generatedNode;
@@ -816,7 +816,7 @@ sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
 
 sim_mob::SubTrip MakeSubTrip(const TripChainItem& tcItem) {
 	sim_mob::SubTrip aSubTripInTrip;
-	aSubTripInTrip.entityID = tcItem.entityID;
+	aSubTripInTrip.personID = tcItem.personID;
 	aSubTripInTrip.itemType = tcItem.itemType;
 	aSubTripInTrip.tripID = tcItem.tmp_subTripID;
 	aSubTripInTrip.fromLocation = tcItem.fromLocation->generatedNode;
@@ -956,7 +956,7 @@ void CutSingleLanePolyline(vector<Point2D>& laneLine, const DynamicVector& cutLi
 }
 
 
-void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::TripChainItem*>& tcs)
+void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tcs)
 {
 	//First, Nodes. These match cleanly to the Sim Mobility data structures
 	std::cout <<"Warning: Units are not considered when converting AIMSUN data.\n";
@@ -1017,7 +1017,7 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 			//TODO: Person related work
 			sim_mob::Activity* activityToSave = MakeActivity(*it);
 			if (activityToSave) {
-				tcs.push_back(activityToSave);
+				tcs[it->personID].push_back(activityToSave);
 			}
 		} else if(it->itemType == sim_mob::TripChainItem::IT_TRIP) {
 			//Trips are slightly more complicated. Each trip is composed of several sub-trips;
@@ -1046,7 +1046,7 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 
 				//If done, save it.
 				if (done) {
-					tcs.push_back(tripToSave);
+					tcs[it->personID].push_back(tripToSave);
 					tripToSave = nullptr;
 				}
 			}
@@ -1767,7 +1767,7 @@ void sim_mob::aimsun::Loader::ProcessSectionPolylines(sim_mob::RoadNetwork& res,
 
 
 
-string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::vector<sim_mob::TripChainItem*>& tcs, ProfileBuilder* prof)
+string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof)
 {
 	std::cout << "Attempting to connect to database...." << std::endl;
 

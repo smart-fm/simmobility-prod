@@ -213,20 +213,22 @@ void addOrStashEntity(Person* p, std::vector<Entity*>& active_agents, StartTimeP
 void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, AgentConstraints& constraints)
 {
 	ConfigParams& config = ConfigParams::GetInstance();
-	const vector<TripChainItem*>& tcs = ConfigParams::GetInstance().getTripChains();
+	const std::map<unsigned int, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
 
 	//The current person we are working on.
 	Person* currAg = nullptr;
 	std::vector<const TripChainItem*> currAgTripChain;
 
 	typedef vector<TripChainItem*>::const_iterator TCVectIt;
-	for (TCVectIt it=tcs.begin(); it!=tcs.end(); it++) {
+	typedef std::map<unsigned int, vector<TripChainItem*> >::const_iterator TCMapIt;
+	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
+		for (TCVectIt it=it_map->second.begin(); it!=it_map->second.end(); it++) {
 		const TripChainItem* const tc = *it;
 
 		//If the agent pointer is null, this record represents the start of a new agent.
 		if (!currAg) {
 			//Might have an EntityID conflict here...
-			currAg = new Person("DB_TripChain", config.mutexStategy, tc->entityID);
+			currAg = new Person("DB_TripChain", config.mutexStategy, tc->personID);
 
 			//Set the start time for this Agent; clear the trip chain.
 			currAg->setStartTime(tc->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
@@ -250,7 +252,7 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 
 		//We must finalize this agent if we are at the end of the array, or if the next item does not have the same entity ID.
 		TCVectIt next = it+1;
-		if (next==tcs.end() || (*next)->entityID!=currAg->getId()) {
+		if (next==it_map->second.end() || (*next)->personID!=currAg->getId()) {
 			//Save the trip chain and the Agent.
 			currAg->setTripChain(currAgTripChain);
 			addOrStashEntity(currAg, active_agents, pending_agents);
@@ -258,7 +260,8 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 			//Reset for the next (possible) Agent
 			currAg = nullptr;
 		}
-	}
+		}//inner for loop(vector)
+	}//outer for loop(map)
 }
 
 /*namespace {
@@ -282,37 +285,37 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 
 }*/ //End anon namespace
 
-// Temporary Test function ---Yao Jin
-void generateAgentsFromBusSchedule(std::vector<Entity*>& active_agents, AgentConstraints& constraints)
-{
-	//Some handy references
-	ConfigParams& config = ConfigParams::GetInstance();
-	const vector<BusSchedule*>& busschedule = config.getBusSchedule();
-	const vector<TripChainItem*>& tcs = config.getTripChains();
-
-	//Create a single entity for each bus schedule in the database.
-	for (vector<BusSchedule*>::const_iterator it=busschedule.begin(); it!=busschedule.end(); it++) {
-		//Create a new Person for this bus; use an auto-generated ID
-		Person* agent = new Person("BusSchedule", config.mutexStategy);
-
-		//Copy this bus's trip from an existing Trip
-		Trip* toLoad = dynamic_cast<Trip*>(tcs[7]);
-		if (!toLoad) { throw std::runtime_error("Trip chain item does not represent trip."); }
-
-		//Save it
-		vector<const TripChainItem*> tripChain;
-		tripChain.push_back(toLoad);
-		agent->setTripChain(tripChain);
-
-		//Some properties need to be set:
-		agent->originNode = toLoad->fromLocation;
-		agent->destNode = toLoad->toLocation;
-		agent->setStartTime(toLoad->startTime.offsetMS_From(config.simStartTime));
-
-		//Either start or save it, depending on the start time.
-		BusController::busctrller->addOrStashBuses(agent, active_agents);
-	}
-}
+//// Temporary Test function ---Yao Jin//TODO: delete if not needed
+//void generateAgentsFromBusSchedule(std::vector<Entity*>& active_agents, AgentConstraints& constraints)
+//{
+//	//Some handy references
+//	ConfigParams& config = ConfigParams::GetInstance();
+//	const vector<BusSchedule*>& busschedule = config.getBusSchedule();
+//	const std::map<unsigned int, vector<TripChainItem*> >& tcs = config.getTripChains();
+//
+//	//Create a single entity for each bus schedule in the database.
+//	for (vector<BusSchedule*>::const_iterator it=busschedule.begin(); it!=busschedule.end(); it++) {
+//		//Create a new Person for this bus; use an auto-generated ID
+//		Person* agent = new Person("BusSchedule", config.mutexStategy);
+//
+//		//Copy this bus's trip from an existing Trip
+//		Trip* toLoad = dynamic_cast<Trip*>(tcs[7]);
+//		if (!toLoad) { throw std::runtime_error("Trip chain item does not represent trip."); }
+//
+//		//Save it
+//		vector<const TripChainItem*> tripChain;
+//		tripChain.push_back(toLoad);
+//		agent->setTripChain(tripChain);
+//
+//		//Some properties need to be set:
+//		agent->originNode = toLoad->fromLocation;
+//		agent->destNode = toLoad->toLocation;
+//		agent->setStartTime(toLoad->startTime.offsetMS_From(config.simStartTime));
+//
+//		//Either start or save it, depending on the start time.
+//		BusController::busctrller->addOrStashBuses(agent, active_agents);
+//	}
+//}
 
 
 bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, AgentConstraints& constraints)
@@ -1205,7 +1208,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 			if (!loadXMLAgents(document, active_agents, pending_agents, "buscontroller", constraints)) {
 				return	  "Couldn't load bus controllers";
 			}
-    	    generateAgentsFromBusSchedule(active_agents, constraints);
+//    	    generateAgentsFromBusSchedule(active_agents, constraints);
     	    cout <<"Loaded Bus Agents (from Bus Control Center)." <<endl;
     	} else if ((*it) == "pedestrians") {
     		if (!loadXMLAgents(document, active_agents, pending_agents, "pedestrian", constraints)) {

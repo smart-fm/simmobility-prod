@@ -211,7 +211,8 @@ public:
 	}
 
 	///Retrieve a reference to the list of trip chains.
-	std::vector<sim_mob::TripChainItem*>& getTripChains() { return tripchains; }
+//	std::vector<sim_mob::TripChainItem*>& getTripChains() { return tripchains; }
+	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& getTripChains() { return tripchains; }
 	std::vector<sim_mob::BusSchedule*>& getBusSchedule() { return busschedule;}
 
 
@@ -221,7 +222,8 @@ private:
 
 	sim_mob::RoadNetwork network;
 	sim_mob::RoleFactory roleFact;
-	std::vector<sim_mob::TripChainItem*> tripchains;
+//	std::vector<sim_mob::TripChainItem*> tripchains;
+	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > tripchains; //map<personID,tripchains>
 	std::vector<sim_mob::BusSchedule*> busschedule;
 	bool sealedNetwork;
 };

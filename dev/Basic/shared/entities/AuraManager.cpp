@@ -10,6 +10,8 @@
 #include "AuraManager.hpp"
 #include "geospatial/Lane.hpp"
 #include "buffering/Vector2D.hpp"
+#include "entities/Person.hpp"
+#include "../../medium/entities/roles/driver/Driver.hpp"
 
 namespace sim_mob
 {
@@ -248,8 +250,18 @@ public:
     nearbyAgents(Point2D const & position, Lane const & lane,
                  centimeter_t distanceInFront, centimeter_t distanceBehind) const;
 
+
+
 private:
     R_tree tree_;
+
+
+    /* First dirty version... Will change eventually.
+     * This method is called from within the update of the AuraManager.
+     * This method increments the vehicle count for the road segment
+     * on which the Agent's vehicle is currently in.
+     */
+    void updateDensity(Agent const*);
 };
 
 void
@@ -278,6 +290,8 @@ AuraManager::Impl::update()
         agents.erase(agent);
         tree_.insert(agent);
         agent = nearest_agent(agent, agents);
+
+        updateDensity(agent);
     }
     tree_.insert(agent);    // insert the last agent into the tree.
     assert(tree_.GetSize() == Agent::all_agents.size());
@@ -350,6 +364,24 @@ const
     return agentsInRect(lowerLeft, upperRight);
 }
 
+void AuraManager::Impl::updateDensity(const Agent* ag) {
+	const sim_mob::Person* person = dynamic_cast<const sim_mob::Person*>(ag);
+	if(!person){
+		return;
+	}
+	const sim_mob::medium::Driver* driver = dynamic_cast<const sim_mob::medium::Driver*>(person->getRole());
+	if(!driver){
+		return;
+	}
+	sim_mob::AuraManager &auraMgr = sim_mob::AuraManager::instance();
+	if(driver->params.justChangedToNewSegment){
+		const RoadSegment* currSeg = driver->getVehicle()->getCurrSegment();
+		const RoadSegment* prevSeg = driver->getVehicle()->getPrevSegment();
+		auraMgr.densityMap[prevSeg] = auraMgr.densityMap[currSeg] + 1;
+		auraMgr.densityMap[currSeg] = auraMgr.densityMap[currSeg] + 1;
+	}
+}
+
 /** \endcond ignoreAuraManagerInnards -- End of block to be ignored by doxygen.  */
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -400,4 +432,15 @@ AuraManager::printStatistics() const
     }
 }
 
+unsigned short AuraManager::getDensity(const RoadSegment* rdseg) {
+	std::map<const RoadSegment*, unsigned short>::iterator densityMapIt = densityMap.find(rdseg);
+	if(densityMapIt == densityMap.end()){
+		throw std::runtime_error("Requested road segment not found");
+	}
+	return densityMapIt->second;
 }
+
+}
+
+
+

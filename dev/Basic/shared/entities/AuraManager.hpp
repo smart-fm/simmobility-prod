@@ -1,10 +1,11 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #pragma once
-
+#include <map>
 #include <boost/utility.hpp>
 #include "metrics/Length.hpp"
 #include "metrics/Frame.hpp"
+
 
 namespace sim_mob
 {
@@ -12,6 +13,7 @@ namespace sim_mob
 class Agent;
 class Point2D;
 class Lane;
+class RoadSegment;
 
 /**
  * A singleton that can locate agents/entities within any rectangle.
@@ -49,6 +51,8 @@ public:
      * and (if double-buffering data types are used) after the new positions are published.
      */
     void update(frame_t /* frameNumber */);
+
+
 
     /**
      * Return a collection of agents that are located in the axially-aligned rectangle.
@@ -99,12 +103,20 @@ public:
     void
     printStatistics() const;
 
+    /*
+     * Retuns the density of the road segment. Will be called by driver agents in medium term.
+     */
+    unsigned short getDensity(const RoadSegment* rdseg);
+
 private:
     AuraManager()
       : pimpl_(0)
       , stats_(0)
     {
     }
+
+    //Map to store the density of each road segment.
+    std::map<const RoadSegment*, unsigned short> densityMap;
 
     // No need to define the dtor.
 
@@ -117,6 +129,8 @@ private:
 
     class Stats;
     Stats* stats_;
+
+
 };
 
 }

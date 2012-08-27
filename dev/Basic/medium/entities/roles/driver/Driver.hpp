@@ -69,6 +69,9 @@ public:
 
 	void setParentBufferedData();			///<set next data to parent buffer data
 
+	//TODO: This may be risky, as it exposes non-buffered properties to other vehicles.
+	const Vehicle* getVehicle() const {return vehicle;}
+
 private:
 	void chooseNextLaneForNextLink(DriverUpdateParams& p);
 	bool update_movement(DriverUpdateParams& params, frame_t frameNumber);       ///<Called to move vehicles forward.
@@ -91,6 +94,11 @@ public:
 	Shared<bool> isInIntersection;
 	Shared<double> fwdVelocity;
 
+	/*
+	 * Making params public to expose information like justChangedToNewSegment,
+	 * justMovedIntoIntersection etc available for density calculation. ~ Harish
+	 */
+	medium::DriverUpdateParams params;
 	//to be moved to a DriverUpdateParam later
 	//const Lane* currLane_;
 	//double currLaneOffset_;
@@ -115,7 +123,7 @@ private:
 
 protected:
 	Vehicle* vehicle;
-	medium::DriverUpdateParams params;
+
 
 };
 

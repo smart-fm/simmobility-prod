@@ -607,7 +607,10 @@ void WriteXMLInput_TripChain_Trip(TiXmlElement * TripChains, sim_mob::Trip & tri
 	Trip->LinkEndChild( tripID );
 	//fromLocation
 	TiXmlElement * fromLocation  = new TiXmlElement( "fromLocation" );
-	WriteXMLInput_Location(fromLocation,false,trip.fromLocation->getLocation().getX(),trip.fromLocation->getLocation().getY());
+	out.str("");
+	out << trip.fromLocation->getID();
+	fromLocation->LinkEndChild( new TiXmlText(out.str()));
+//	WriteXMLInput_Location(fromLocation,false,trip.fromLocation->getLocation().getX(),trip.fromLocation->getLocation().getY());
 	Trip->LinkEndChild( fromLocation );
 	//fromLocationType
 //	out.str("");
@@ -617,7 +620,10 @@ void WriteXMLInput_TripChain_Trip(TiXmlElement * TripChains, sim_mob::Trip & tri
 	Trip->LinkEndChild( fromLocationType );
 	//toLocation
 	TiXmlElement * toLocation  = new TiXmlElement( "toLocation" );
-	WriteXMLInput_Location(toLocation,false,trip.toLocation->getLocation().getX(),trip.toLocation->getLocation().getY());
+	out.str("");
+	out << trip.toLocation->getID();
+	toLocation->LinkEndChild( new TiXmlText(out.str()));
+//	WriteXMLInput_Location(toLocation,false,trip.toLocation->getLocation().getX(),trip.toLocation->getLocation().getY());
 	Trip->LinkEndChild( toLocation );
 	//toLocationType
 //	out.str("");

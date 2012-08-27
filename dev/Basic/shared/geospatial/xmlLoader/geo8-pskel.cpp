@@ -1556,12 +1556,6 @@ namespace geo
   //
 
   void SubTrip_t_pskel::
-  parentTrip_parser (::xml_schema::string_pskel& p)
-  {
-    this->parentTrip_parser_ = &p;
-  }
-
-  void SubTrip_t_pskel::
   mode_parser (::xml_schema::string_pskel& p)
   {
     this->mode_parser_ = &p;
@@ -1580,12 +1574,10 @@ namespace geo
   }
 
   void SubTrip_t_pskel::
-  parsers (::xml_schema::string_pskel& parentTrip,
-           ::xml_schema::string_pskel& mode,
+  parsers (::xml_schema::string_pskel& mode,
            ::xml_schema::boolean_pskel& isPrimaryMode,
            ::xml_schema::string_pskel& ptLineId)
   {
-    this->parentTrip_parser_ = &parentTrip;
     this->mode_parser_ = &mode;
     this->isPrimaryMode_parser_ = &isPrimaryMode;
     this->ptLineId_parser_ = &ptLineId;
@@ -1593,8 +1585,7 @@ namespace geo
 
   SubTrip_t_pskel::
   SubTrip_t_pskel ()
-  : parentTrip_parser_ (0),
-    mode_parser_ (0),
+  : mode_parser_ (0),
     isPrimaryMode_parser_ (0),
     ptLineId_parser_ (0)
   {
@@ -1604,20 +1595,20 @@ namespace geo
   //
 
   void SubTrips_t_pskel::
-  SubTrip_parser (::geo::SubTrip_t_pskel& p)
+  subTrip_parser (::geo::SubTrip_t_pskel& p)
   {
-    this->SubTrip_parser_ = &p;
+    this->subTrip_parser_ = &p;
   }
 
   void SubTrips_t_pskel::
-  parsers (::geo::SubTrip_t_pskel& SubTrip)
+  parsers (::geo::SubTrip_t_pskel& subTrip)
   {
-    this->SubTrip_parser_ = &SubTrip;
+    this->subTrip_parser_ = &subTrip;
   }
 
   SubTrips_t_pskel::
   SubTrips_t_pskel ()
-  : SubTrip_parser_ (0)
+  : subTrip_parser_ (0)
   {
   }
 
@@ -1631,27 +1622,9 @@ namespace geo
   }
 
   void TripChainItem_t_pskel::
-  itemType_parser (::geo::TripChainItemType_pskel& p)
+  itemType_parser (::geo::TripchainItemType_pskel& p)
   {
     this->itemType_parser_ = &p;
-  }
-
-  void TripChainItem_t_pskel::
-  locationType_parser (::geo::TripChainItemLocationType_pskel& p)
-  {
-    this->locationType_parser_ = &p;
-  }
-
-  void TripChainItem_t_pskel::
-  startTime_parser (::geo::DailyTime_t_pskel& p)
-  {
-    this->startTime_parser_ = &p;
-  }
-
-  void TripChainItem_t_pskel::
-  endTime_parser (::geo::DailyTime_t_pskel& p)
-  {
-    this->endTime_parser_ = &p;
   }
 
   void TripChainItem_t_pskel::
@@ -1661,29 +1634,38 @@ namespace geo
   }
 
   void TripChainItem_t_pskel::
+  startTime_parser (::xml_schema::string_pskel& p)
+  {
+    this->startTime_parser_ = &p;
+  }
+
+  void TripChainItem_t_pskel::
+  endTime_parser (::xml_schema::string_pskel& p)
+  {
+    this->endTime_parser_ = &p;
+  }
+
+  void TripChainItem_t_pskel::
   parsers (::xml_schema::integer_pskel& personID,
-           ::geo::TripChainItemType_pskel& itemType,
-           ::geo::TripChainItemLocationType_pskel& locationType,
-           ::geo::DailyTime_t_pskel& startTime,
-           ::geo::DailyTime_t_pskel& endTime,
-           ::xml_schema::unsigned_int_pskel& sequenceNumber)
+           ::geo::TripchainItemType_pskel& itemType,
+           ::xml_schema::unsigned_int_pskel& sequenceNumber,
+           ::xml_schema::string_pskel& startTime,
+           ::xml_schema::string_pskel& endTime)
   {
     this->personID_parser_ = &personID;
     this->itemType_parser_ = &itemType;
-    this->locationType_parser_ = &locationType;
+    this->sequenceNumber_parser_ = &sequenceNumber;
     this->startTime_parser_ = &startTime;
     this->endTime_parser_ = &endTime;
-    this->sequenceNumber_parser_ = &sequenceNumber;
   }
 
   TripChainItem_t_pskel::
   TripChainItem_t_pskel ()
   : personID_parser_ (0),
     itemType_parser_ (0),
-    locationType_parser_ (0),
+    sequenceNumber_parser_ (0),
     startTime_parser_ (0),
-    endTime_parser_ (0),
-    sequenceNumber_parser_ (0)
+    endTime_parser_ (0)
   {
   }
 
@@ -1691,77 +1673,75 @@ namespace geo
   //
 
   void Trip_t_pskel::
-  tripId_parser (::xml_schema::integer_pskel& p)
+  tripID_parser (::xml_schema::integer_pskel& p)
   {
-    this->tripId_parser_ = &p;
+    this->tripID_parser_ = &p;
   }
 
   void Trip_t_pskel::
-  fromLocation_parser (::xml_schema::string_pskel& p)
+  fromLocation_parser (::geo::Point2D_t_pskel& p)
   {
     this->fromLocation_parser_ = &p;
   }
 
   void Trip_t_pskel::
-  fromLocationType_parser (::geo::TripChainItemLocationType_pskel& p)
+  fromLocationType_parser (::geo::TripchainItemLocationType_pskel& p)
   {
     this->fromLocationType_parser_ = &p;
   }
 
   void Trip_t_pskel::
-  toLocation_parser (::xml_schema::string_pskel& p)
+  toLocation_parser (::geo::Point2D_t_pskel& p)
   {
     this->toLocation_parser_ = &p;
   }
 
   void Trip_t_pskel::
-  toLocationType_parser (::geo::TripChainItemLocationType_pskel& p)
+  toLocationType_parser (::geo::TripchainItemLocationType_pskel& p)
   {
     this->toLocationType_parser_ = &p;
   }
 
   void Trip_t_pskel::
-  SubTrips_parser (::geo::SubTrips_t_pskel& p)
+  subTrips_parser (::geo::SubTrips_t_pskel& p)
   {
-    this->SubTrips_parser_ = &p;
+    this->subTrips_parser_ = &p;
   }
 
   void Trip_t_pskel::
   parsers (::xml_schema::integer_pskel& personID,
-           ::geo::TripChainItemType_pskel& itemType,
-           ::geo::TripChainItemLocationType_pskel& locationType,
-           ::geo::DailyTime_t_pskel& startTime,
-           ::geo::DailyTime_t_pskel& endTime,
+           ::geo::TripchainItemType_pskel& itemType,
            ::xml_schema::unsigned_int_pskel& sequenceNumber,
-           ::xml_schema::integer_pskel& tripId,
-           ::xml_schema::string_pskel& fromLocation,
-           ::geo::TripChainItemLocationType_pskel& fromLocationType,
-           ::xml_schema::string_pskel& toLocation,
-           ::geo::TripChainItemLocationType_pskel& toLocationType,
-           ::geo::SubTrips_t_pskel& SubTrips)
+           ::xml_schema::string_pskel& startTime,
+           ::xml_schema::string_pskel& endTime,
+           ::xml_schema::integer_pskel& tripID,
+           ::geo::Point2D_t_pskel& fromLocation,
+           ::geo::TripchainItemLocationType_pskel& fromLocationType,
+           ::geo::Point2D_t_pskel& toLocation,
+           ::geo::TripchainItemLocationType_pskel& toLocationType,
+           ::geo::SubTrips_t_pskel& subTrips)
   {
     this->personID_parser_ = &personID;
     this->itemType_parser_ = &itemType;
-    this->locationType_parser_ = &locationType;
+    this->sequenceNumber_parser_ = &sequenceNumber;
     this->startTime_parser_ = &startTime;
     this->endTime_parser_ = &endTime;
-    this->sequenceNumber_parser_ = &sequenceNumber;
-    this->tripId_parser_ = &tripId;
+    this->tripID_parser_ = &tripID;
     this->fromLocation_parser_ = &fromLocation;
     this->fromLocationType_parser_ = &fromLocationType;
     this->toLocation_parser_ = &toLocation;
     this->toLocationType_parser_ = &toLocationType;
-    this->SubTrips_parser_ = &SubTrips;
+    this->subTrips_parser_ = &subTrips;
   }
 
   Trip_t_pskel::
   Trip_t_pskel ()
-  : tripId_parser_ (0),
+  : tripID_parser_ (0),
     fromLocation_parser_ (0),
     fromLocationType_parser_ (0),
     toLocation_parser_ (0),
     toLocationType_parser_ (0),
-    SubTrips_parser_ (0)
+    subTrips_parser_ (0)
   {
   }
 
@@ -1769,37 +1749,86 @@ namespace geo
   //
 
   void Activity_t_pskel::
-  activityId_parser (::xml_schema::integer_pskel& p)
+  description_parser (::xml_schema::string_pskel& p)
   {
-    this->activityId_parser_ = &p;
+    this->description_parser_ = &p;
+  }
+
+  void Activity_t_pskel::
+  location_parser (::geo::Point2D_t_pskel& p)
+  {
+    this->location_parser_ = &p;
+  }
+
+  void Activity_t_pskel::
+  locationType_parser (::geo::TripchainItemLocationType_pskel& p)
+  {
+    this->locationType_parser_ = &p;
+  }
+
+  void Activity_t_pskel::
+  isPrimary_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->isPrimary_parser_ = &p;
+  }
+
+  void Activity_t_pskel::
+  isFlexible_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->isFlexible_parser_ = &p;
+  }
+
+  void Activity_t_pskel::
+  isMandatory_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->isMandatory_parser_ = &p;
   }
 
   void Activity_t_pskel::
   parsers (::xml_schema::integer_pskel& personID,
-           ::geo::TripChainItemType_pskel& itemType,
-           ::geo::TripChainItemLocationType_pskel& locationType,
-           ::geo::DailyTime_t_pskel& startTime,
-           ::geo::DailyTime_t_pskel& endTime,
+           ::geo::TripchainItemType_pskel& itemType,
            ::xml_schema::unsigned_int_pskel& sequenceNumber,
-           ::xml_schema::integer_pskel& activityId)
+           ::xml_schema::string_pskel& startTime,
+           ::xml_schema::string_pskel& endTime,
+           ::xml_schema::string_pskel& description,
+           ::geo::Point2D_t_pskel& location,
+           ::geo::TripchainItemLocationType_pskel& locationType,
+           ::xml_schema::boolean_pskel& isPrimary,
+           ::xml_schema::boolean_pskel& isFlexible,
+           ::xml_schema::boolean_pskel& isMandatory)
   {
     this->personID_parser_ = &personID;
     this->itemType_parser_ = &itemType;
-    this->locationType_parser_ = &locationType;
+    this->sequenceNumber_parser_ = &sequenceNumber;
     this->startTime_parser_ = &startTime;
     this->endTime_parser_ = &endTime;
-    this->sequenceNumber_parser_ = &sequenceNumber;
-    this->activityId_parser_ = &activityId;
+    this->description_parser_ = &description;
+    this->location_parser_ = &location;
+    this->locationType_parser_ = &locationType;
+    this->isPrimary_parser_ = &isPrimary;
+    this->isFlexible_parser_ = &isFlexible;
+    this->isMandatory_parser_ = &isMandatory;
   }
 
   Activity_t_pskel::
   Activity_t_pskel ()
-  : activityId_parser_ (0)
+  : description_parser_ (0),
+    location_parser_ (0),
+    locationType_parser_ (0),
+    isPrimary_parser_ (0),
+    isFlexible_parser_ (0),
+    isMandatory_parser_ (0)
   {
   }
 
   // TripChain_t_pskel
   //
+
+  void TripChain_t_pskel::
+  personID_parser (::xml_schema::integer_pskel& p)
+  {
+    this->personID_parser_ = &p;
+  }
 
   void TripChain_t_pskel::
   Trip_parser (::geo::Trip_t_pskel& p)
@@ -1814,16 +1843,19 @@ namespace geo
   }
 
   void TripChain_t_pskel::
-  parsers (::geo::Trip_t_pskel& Trip,
+  parsers (::xml_schema::integer_pskel& personID,
+           ::geo::Trip_t_pskel& Trip,
            ::geo::Activity_t_pskel& Activity)
   {
+    this->personID_parser_ = &personID;
     this->Trip_parser_ = &Trip;
     this->Activity_parser_ = &Activity;
   }
 
   TripChain_t_pskel::
   TripChain_t_pskel ()
-  : Trip_parser_ (0),
+  : personID_parser_ (0),
+    Trip_parser_ (0),
     Activity_parser_ (0)
   {
   }
@@ -5852,29 +5884,24 @@ namespace geo
     return false;
   }
 
-  // TripChainItemType_pskel
+  // TripchainItemType_pskel
   //
 
-  void TripChainItemType_pskel::
-  post_TripChainItemType ()
+  void TripchainItemType_pskel::
+  post_TripchainItemType ()
   {
   }
 
-  // TripChainItemLocationType_pskel
+  // TripchainItemLocationType_pskel
   //
 
-  void TripChainItemLocationType_pskel::
-  post_TripChainItemLocationType ()
+  void TripchainItemLocationType_pskel::
+  post_TripchainItemLocationType ()
   {
   }
 
   // SubTrip_t_pskel
   //
-
-  void SubTrip_t_pskel::
-  parentTrip (const ::std::string&)
-  {
-  }
 
   void SubTrip_t_pskel::
   mode (const ::std::string&)
@@ -5905,16 +5932,6 @@ namespace geo
 
     if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
       return true;
-
-    if (n == "parentTrip" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->parentTrip_parser_;
-
-      if (this->parentTrip_parser_)
-        this->parentTrip_parser_->pre ();
-
-      return true;
-    }
 
     if (n == "mode" && ns.empty ())
     {
@@ -5956,14 +5973,6 @@ namespace geo
     if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
       return true;
 
-    if (n == "parentTrip" && ns.empty ())
-    {
-      if (this->parentTrip_parser_)
-        this->parentTrip (this->parentTrip_parser_->post_string ());
-
-      return true;
-    }
-
     if (n == "mode" && ns.empty ())
     {
       if (this->mode_parser_)
@@ -5995,7 +6004,7 @@ namespace geo
   //
 
   void SubTrips_t_pskel::
-  SubTrip ()
+  subTrip ()
   {
   }
 
@@ -6014,12 +6023,12 @@ namespace geo
     if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
       return true;
 
-    if (n == "SubTrip" && ns.empty ())
+    if (n == "subTrip" && ns.empty ())
     {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->SubTrip_parser_;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->subTrip_parser_;
 
-      if (this->SubTrip_parser_)
-        this->SubTrip_parser_->pre ();
+      if (this->subTrip_parser_)
+        this->subTrip_parser_->pre ();
 
       return true;
     }
@@ -6034,12 +6043,12 @@ namespace geo
     if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
       return true;
 
-    if (n == "SubTrip" && ns.empty ())
+    if (n == "subTrip" && ns.empty ())
     {
-      if (this->SubTrip_parser_)
+      if (this->subTrip_parser_)
       {
-        this->SubTrip_parser_->post_SubTrip_t ();
-        this->SubTrip ();
+        this->subTrip_parser_->post_SubTrip_t ();
+        this->subTrip ();
       }
 
       return true;
@@ -6062,22 +6071,17 @@ namespace geo
   }
 
   void TripChainItem_t_pskel::
-  locationType ()
-  {
-  }
-
-  void TripChainItem_t_pskel::
-  startTime (sim_mob::DailyTime)
-  {
-  }
-
-  void TripChainItem_t_pskel::
-  endTime (sim_mob::DailyTime)
-  {
-  }
-
-  void TripChainItem_t_pskel::
   sequenceNumber (unsigned int)
+  {
+  }
+
+  void TripChainItem_t_pskel::
+  startTime (const ::std::string&)
+  {
+  }
+
+  void TripChainItem_t_pskel::
+  endTime (const ::std::string&)
   {
   }
 
@@ -6116,12 +6120,12 @@ namespace geo
       return true;
     }
 
-    if (n == "locationType" && ns.empty ())
+    if (n == "sequenceNumber" && ns.empty ())
     {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->locationType_parser_;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->sequenceNumber_parser_;
 
-      if (this->locationType_parser_)
-        this->locationType_parser_->pre ();
+      if (this->sequenceNumber_parser_)
+        this->sequenceNumber_parser_->pre ();
 
       return true;
     }
@@ -6142,16 +6146,6 @@ namespace geo
 
       if (this->endTime_parser_)
         this->endTime_parser_->pre ();
-
-      return true;
-    }
-
-    if (n == "sequenceNumber" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->sequenceNumber_parser_;
-
-      if (this->sequenceNumber_parser_)
-        this->sequenceNumber_parser_->pre ();
 
       return true;
     }
@@ -6178,36 +6172,9 @@ namespace geo
     {
       if (this->itemType_parser_)
       {
-        this->itemType_parser_->post_TripChainItemType ();
+        this->itemType_parser_->post_TripchainItemType ();
         this->itemType ();
       }
-
-      return true;
-    }
-
-    if (n == "locationType" && ns.empty ())
-    {
-      if (this->locationType_parser_)
-      {
-        this->locationType_parser_->post_TripChainItemLocationType ();
-        this->locationType ();
-      }
-
-      return true;
-    }
-
-    if (n == "startTime" && ns.empty ())
-    {
-      if (this->startTime_parser_)
-        this->startTime (this->startTime_parser_->post_DailyTime_t ());
-
-      return true;
-    }
-
-    if (n == "endTime" && ns.empty ())
-    {
-      if (this->endTime_parser_)
-        this->endTime (this->endTime_parser_->post_DailyTime_t ());
 
       return true;
     }
@@ -6220,6 +6187,22 @@ namespace geo
       return true;
     }
 
+    if (n == "startTime" && ns.empty ())
+    {
+      if (this->startTime_parser_)
+        this->startTime (this->startTime_parser_->post_string ());
+
+      return true;
+    }
+
+    if (n == "endTime" && ns.empty ())
+    {
+      if (this->endTime_parser_)
+        this->endTime (this->endTime_parser_->post_string ());
+
+      return true;
+    }
+
     return false;
   }
 
@@ -6227,12 +6210,12 @@ namespace geo
   //
 
   void Trip_t_pskel::
-  tripId (long long)
+  tripID (long long)
   {
   }
 
   void Trip_t_pskel::
-  fromLocation (const ::std::string&)
+  fromLocation (sim_mob::Point2D)
   {
   }
 
@@ -6242,7 +6225,7 @@ namespace geo
   }
 
   void Trip_t_pskel::
-  toLocation (const ::std::string&)
+  toLocation (sim_mob::Point2D)
   {
   }
 
@@ -6252,7 +6235,7 @@ namespace geo
   }
 
   void Trip_t_pskel::
-  SubTrips ()
+  subTrips ()
   {
   }
 
@@ -6266,12 +6249,12 @@ namespace geo
     if (this->::geo::TripChainItem_t_pskel::_start_element_impl (ns, n, t))
       return true;
 
-    if (n == "tripId" && ns.empty ())
+    if (n == "tripID" && ns.empty ())
     {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->tripId_parser_;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->tripID_parser_;
 
-      if (this->tripId_parser_)
-        this->tripId_parser_->pre ();
+      if (this->tripID_parser_)
+        this->tripID_parser_->pre ();
 
       return true;
     }
@@ -6316,12 +6299,12 @@ namespace geo
       return true;
     }
 
-    if (n == "SubTrips" && ns.empty ())
+    if (n == "subTrips" && ns.empty ())
     {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->SubTrips_parser_;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->subTrips_parser_;
 
-      if (this->SubTrips_parser_)
-        this->SubTrips_parser_->pre ();
+      if (this->subTrips_parser_)
+        this->subTrips_parser_->pre ();
 
       return true;
     }
@@ -6336,10 +6319,10 @@ namespace geo
     if (this->::geo::TripChainItem_t_pskel::_end_element_impl (ns, n))
       return true;
 
-    if (n == "tripId" && ns.empty ())
+    if (n == "tripID" && ns.empty ())
     {
-      if (this->tripId_parser_)
-        this->tripId (this->tripId_parser_->post_integer ());
+      if (this->tripID_parser_)
+        this->tripID (this->tripID_parser_->post_integer ());
 
       return true;
     }
@@ -6347,7 +6330,7 @@ namespace geo
     if (n == "fromLocation" && ns.empty ())
     {
       if (this->fromLocation_parser_)
-        this->fromLocation (this->fromLocation_parser_->post_string ());
+        this->fromLocation (this->fromLocation_parser_->post_Point2D_t ());
 
       return true;
     }
@@ -6356,7 +6339,7 @@ namespace geo
     {
       if (this->fromLocationType_parser_)
       {
-        this->fromLocationType_parser_->post_TripChainItemLocationType ();
+        this->fromLocationType_parser_->post_TripchainItemLocationType ();
         this->fromLocationType ();
       }
 
@@ -6366,7 +6349,7 @@ namespace geo
     if (n == "toLocation" && ns.empty ())
     {
       if (this->toLocation_parser_)
-        this->toLocation (this->toLocation_parser_->post_string ());
+        this->toLocation (this->toLocation_parser_->post_Point2D_t ());
 
       return true;
     }
@@ -6375,19 +6358,19 @@ namespace geo
     {
       if (this->toLocationType_parser_)
       {
-        this->toLocationType_parser_->post_TripChainItemLocationType ();
+        this->toLocationType_parser_->post_TripchainItemLocationType ();
         this->toLocationType ();
       }
 
       return true;
     }
 
-    if (n == "SubTrips" && ns.empty ())
+    if (n == "subTrips" && ns.empty ())
     {
-      if (this->SubTrips_parser_)
+      if (this->subTrips_parser_)
       {
-        this->SubTrips_parser_->post_SubTrips_t ();
-        this->SubTrips ();
+        this->subTrips_parser_->post_SubTrips_t ();
+        this->subTrips ();
       }
 
       return true;
@@ -6400,7 +6383,32 @@ namespace geo
   //
 
   void Activity_t_pskel::
-  activityId (long long)
+  description (const ::std::string&)
+  {
+  }
+
+  void Activity_t_pskel::
+  location (sim_mob::Point2D)
+  {
+  }
+
+  void Activity_t_pskel::
+  locationType ()
+  {
+  }
+
+  void Activity_t_pskel::
+  isPrimary (bool)
+  {
+  }
+
+  void Activity_t_pskel::
+  isFlexible (bool)
+  {
+  }
+
+  void Activity_t_pskel::
+  isMandatory (bool)
   {
   }
 
@@ -6414,12 +6422,62 @@ namespace geo
     if (this->::geo::TripChainItem_t_pskel::_start_element_impl (ns, n, t))
       return true;
 
-    if (n == "activityId" && ns.empty ())
+    if (n == "description" && ns.empty ())
     {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->activityId_parser_;
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->description_parser_;
 
-      if (this->activityId_parser_)
-        this->activityId_parser_->pre ();
+      if (this->description_parser_)
+        this->description_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "location" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->location_parser_;
+
+      if (this->location_parser_)
+        this->location_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "locationType" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->locationType_parser_;
+
+      if (this->locationType_parser_)
+        this->locationType_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "isPrimary" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->isPrimary_parser_;
+
+      if (this->isPrimary_parser_)
+        this->isPrimary_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "isFlexible" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->isFlexible_parser_;
+
+      if (this->isFlexible_parser_)
+        this->isFlexible_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "isMandatory" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->isMandatory_parser_;
+
+      if (this->isMandatory_parser_)
+        this->isMandatory_parser_->pre ();
 
       return true;
     }
@@ -6434,10 +6492,53 @@ namespace geo
     if (this->::geo::TripChainItem_t_pskel::_end_element_impl (ns, n))
       return true;
 
-    if (n == "activityId" && ns.empty ())
+    if (n == "description" && ns.empty ())
     {
-      if (this->activityId_parser_)
-        this->activityId (this->activityId_parser_->post_integer ());
+      if (this->description_parser_)
+        this->description (this->description_parser_->post_string ());
+
+      return true;
+    }
+
+    if (n == "location" && ns.empty ())
+    {
+      if (this->location_parser_)
+        this->location (this->location_parser_->post_Point2D_t ());
+
+      return true;
+    }
+
+    if (n == "locationType" && ns.empty ())
+    {
+      if (this->locationType_parser_)
+      {
+        this->locationType_parser_->post_TripchainItemLocationType ();
+        this->locationType ();
+      }
+
+      return true;
+    }
+
+    if (n == "isPrimary" && ns.empty ())
+    {
+      if (this->isPrimary_parser_)
+        this->isPrimary (this->isPrimary_parser_->post_boolean ());
+
+      return true;
+    }
+
+    if (n == "isFlexible" && ns.empty ())
+    {
+      if (this->isFlexible_parser_)
+        this->isFlexible (this->isFlexible_parser_->post_boolean ());
+
+      return true;
+    }
+
+    if (n == "isMandatory" && ns.empty ())
+    {
+      if (this->isMandatory_parser_)
+        this->isMandatory (this->isMandatory_parser_->post_boolean ());
 
       return true;
     }
@@ -6447,6 +6548,11 @@ namespace geo
 
   // TripChain_t_pskel
   //
+
+  void TripChain_t_pskel::
+  personID (long long)
+  {
+  }
 
   void TripChain_t_pskel::
   Trip (sim_mob::TripChainItem*)
@@ -6467,6 +6573,16 @@ namespace geo
 
     if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
       return true;
+
+    if (n == "personID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->personID_parser_;
+
+      if (this->personID_parser_)
+        this->personID_parser_->pre ();
+
+      return true;
+    }
 
     if (n == "Trip" && ns.empty ())
     {
@@ -6498,6 +6614,14 @@ namespace geo
     if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
       return true;
 
+    if (n == "personID" && ns.empty ())
+    {
+      if (this->personID_parser_)
+        this->personID (this->personID_parser_->post_integer ());
+
+      return true;
+    }
+
     if (n == "Trip" && ns.empty ())
     {
       if (this->Trip_parser_)
@@ -6521,7 +6645,7 @@ namespace geo
   //
 
   void TripChains_t_pskel::
-  TripChain (sim_mob::TripChainItem*)
+  TripChain (std::pair<unsigned int,sim_mob::TripChainItem*>)
   {
   }
 

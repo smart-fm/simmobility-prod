@@ -762,7 +762,7 @@ namespace geo
     post_DailyTime_t ();
   };
 
-  class TripChainItemType_pimpl: public virtual TripChainItemType_pskel,
+  class TripchainItemType_pimpl: public virtual TripchainItemType_pskel,
     public ::xml_schema::string_pimpl
   {
     public:
@@ -770,10 +770,10 @@ namespace geo
     pre ();
 
     virtual void
-    post_TripChainItemType ();
+    post_TripchainItemType ();
   };
 
-  class TripChainItemLocationType_pimpl: public virtual TripChainItemLocationType_pskel,
+  class TripchainItemLocationType_pimpl: public virtual TripchainItemLocationType_pskel,
     public ::xml_schema::string_pimpl
   {
     public:
@@ -781,7 +781,7 @@ namespace geo
     pre ();
 
     virtual void
-    post_TripChainItemLocationType ();
+    post_TripchainItemLocationType ();
   };
 
   class SubTrip_t_pimpl: public virtual SubTrip_t_pskel
@@ -789,9 +789,6 @@ namespace geo
     public:
     virtual void
     pre ();
-
-    virtual void
-    parentTrip (const ::std::string&);
 
     virtual void
     mode (const ::std::string&);
@@ -813,7 +810,7 @@ namespace geo
     pre ();
 
     virtual void
-    SubTrip ();
+    subTrip ();
 
     virtual void
     post_SubTrips_t ();
@@ -832,16 +829,13 @@ namespace geo
     itemType ();
 
     virtual void
-    locationType ();
-
-    virtual void
-    startTime (sim_mob::DailyTime);
-
-    virtual void
-    endTime (sim_mob::DailyTime);
-
-    virtual void
     sequenceNumber (unsigned int);
+
+    virtual void
+    startTime (const ::std::string&);
+
+    virtual void
+    endTime (const ::std::string&);
 
     virtual void
     post_TripChainItem_t ();
@@ -855,22 +849,22 @@ namespace geo
     pre ();
 
     virtual void
-    tripId (long long);
+    tripID (long long);
 
     virtual void
-    fromLocation (const ::std::string&);
+    fromLocation (sim_mob::Point2D);
 
     virtual void
     fromLocationType ();
 
     virtual void
-    toLocation (const ::std::string&);
+    toLocation (sim_mob::Point2D);
 
     virtual void
     toLocationType ();
 
     virtual void
-    SubTrips ();
+    subTrips ();
 
     virtual sim_mob::TripChainItem*
     post_Trip_t ();
@@ -884,7 +878,22 @@ namespace geo
     pre ();
 
     virtual void
-    activityId (long long);
+    description (const ::std::string&);
+
+    virtual void
+    location (sim_mob::Point2D);
+
+    virtual void
+    locationType ();
+
+    virtual void
+    isPrimary (bool);
+
+    virtual void
+    isFlexible (bool);
+
+    virtual void
+    isMandatory (bool);
 
     virtual sim_mob::TripChainItem*
     post_Activity_t ();
@@ -897,12 +906,15 @@ namespace geo
     pre ();
 
     virtual void
+    personID (long long);
+
+    virtual void
     Trip (sim_mob::TripChainItem*);
 
     virtual void
     Activity (sim_mob::TripChainItem*);
 
-    virtual sim_mob::TripChainItem*
+    virtual std::pair<unsigned int,sim_mob::TripChainItem*>
     post_TripChain_t ();
   };
 
@@ -913,7 +925,7 @@ namespace geo
     pre ();
 
     virtual void
-    TripChain (sim_mob::TripChainItem*);
+    TripChain (std::pair<unsigned int,sim_mob::TripChainItem*>);
 
     virtual void
     post_TripChains_t ();

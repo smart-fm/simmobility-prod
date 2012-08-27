@@ -6,7 +6,7 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:geo="http://www.smart.mit.edu/geo"
   targetNamespace="http://www.smart.mit.edu/geo">
 
- <!-- <xs:simpleType name="SegmentType_t">
+  <!-- <xs:simpleType name="SegmentType_t">
     <xs:restriction base="xs:string">
       <xs:enumeration value="FWD"/>
       <xs:enumeration value="BKD"/>
@@ -22,7 +22,7 @@
     </xs:restriction>
   </xs:simpleType>-->
 
-<!--  <xs:simpleType name="LaneType_t">
+  <!--  <xs:simpleType name="LaneType_t">
     <xs:restriction base="xs:string">
       <xs:enumeration value="ROAD_LANE"/>
       <xs:enumeration value="SIDE_WALK"/>
@@ -102,17 +102,18 @@
       <xs:element name="Connector" type="geo:connector_t" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
-  
+
   <xs:complexType name="Multi_Connector_t">
     <xs:sequence>
       <xs:element name="RoadSegment" type="xs:string" minOccurs="1" maxOccurs="1"/>
       <xs:element name="Connectors" type="geo:connectors_t" minOccurs="1" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>
-  
-    <xs:complexType name="Multi_Connectors_t">
+
+  <xs:complexType name="Multi_Connectors_t">
     <xs:sequence>
-      <xs:element name="MultiConnectors" type="geo:Multi_Connector_t" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="MultiConnectors" type="geo:Multi_Connector_t" minOccurs="0"
+        maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
 
@@ -293,7 +294,7 @@
     </xs:sequence>
   </xs:complexType>
 
-<!--  <xs:complexContent>
+  <!--  <xs:complexContent>
       <xs:extension base="geo:RoadItem_No_Attr_t">
         <xs:attribute name="Offset" type="xs:unsignedShort"/>
       </xs:extension>
@@ -414,108 +415,115 @@
       <xs:element name="RoadBump" type="geo:RoadBump_t"/>
     </xs:choice>
   </xs:complexType>
-<!--tripchain starts here-->
+  <!--tripchain starts here-->
   <xs:complexType name="DailyTime_t">
     <xs:choice>
       <xs:element name="timeValue" type="xs:unsignedInt"/>
       <xs:element name="base" type="xs:unsignedInt"/>
     </xs:choice>
   </xs:complexType>
-  
+
   <!--TripchainItem Type definition-->
   <xs:simpleType name="TripchainItemType">
     <xs:restriction base="xs:string">
-      <xs:enumeration value="IT_TRIP" />
-      <xs:enumeration value="IT_ACTIVITY" />
+      <xs:enumeration value="IT_TRIP"/>
+      <xs:enumeration value="IT_ACTIVITY"/>
     </xs:restriction>
   </xs:simpleType>
-  
-  
+
+
   <!--TripchainItem location Type definition-->
   <xs:simpleType name="TripchainItemLocationType">
     <xs:restriction base="xs:string">
-      <xs:enumeration value="LT_BUILDING" />
-      <xs:enumeration value="LT_NODE" />
-      <xs:enumeration value="LT_LINK" />
-      <xs:enumeration value="LT_PUBLIC_TRANSIT_STOP" />
+      <xs:enumeration value="LT_BUILDING"/>
+      <xs:enumeration value="LT_NODE"/>
+      <xs:enumeration value="LT_LINK"/>
+      <xs:enumeration value="LT_PUBLIC_TRANSIT_STOP"/>
     </xs:restriction>
   </xs:simpleType>
-  
+
   <xs:complexType name="SubTrip_t">
     <xs:sequence>
-      <xs:element name="parentTrip" type="xs:string" minOccurs="1" maxOccurs="1"/>
+      <!--<xs:element name="parentTrip" type="xs:string" minOccurs="1" maxOccurs="1"/>-->
       <xs:element name="mode" type="xs:string" minOccurs="1" maxOccurs="1"/>
       <xs:element name="isPrimaryMode" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
       <xs:element name="ptLineId" type="xs:string" minOccurs="1" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>
-  
+
   <xs:complexType name="SubTrips_t">
     <xs:sequence>
-      <xs:element name="SubTrip" type="geo:SubTrip_t" minOccurs="1" maxOccurs="unbounded"/>
+      <xs:element name="subTrip" type="geo:SubTrip_t" minOccurs="1" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
-  
+
   <xs:complexType name="TripChainItem_t">
     <xs:sequence>
       <xs:element name="personID" type="xs:integer" minOccurs="1" maxOccurs="1"/>
       <xs:element name="itemType" type="geo:TripchainItemType" minOccurs="1" maxOccurs="1"/>
-      <xs:element name="locationType" type="geo:TripchainItemLocationType" minOccurs="1" maxOccurs="1"/>
-      <xs:element name="startTime" type="geo:DailyTime_t" minOccurs="1" maxOccurs="1"/>
-      <xs:element name="endTime" type="geo:DailyTime_t" minOccurs="1" maxOccurs="1"/>
+     <!-- <xs:element name="locationType" type="geo:TripchainItemLocationType" minOccurs="1" maxOccurs="1"/>-->
       <xs:element name="sequenceNumber" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="startTime" type="xs:string" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="endTime" type="xs:string" minOccurs="1" maxOccurs="1"/>
+      <!--<xs:element name="startTime" type="geo:DailyTime_t" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="endTime" type="geo:DailyTime_t" minOccurs="1" maxOccurs="1"/>-->
     </xs:sequence>
   </xs:complexType>
-  
+
   <xs:complexType name="Trip_t">
     <xs:complexContent>
       <xs:extension base="geo:TripChainItem_t">
         <xs:sequence>
-          <xs:element name="tripId" type="xs:integer" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="fromLocation" type="xs:string" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="tripID" type="xs:integer" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="fromLocation" type="geo:Point2D_t" minOccurs="1" maxOccurs="1"/>
           <xs:element name="fromLocationType" type="geo:TripchainItemLocationType" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="toLocation" type="xs:string" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="toLocation" type="geo:Point2D_t" minOccurs="1" maxOccurs="1"/>
           <xs:element name="toLocationType" type="geo:TripchainItemLocationType" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="SubTrips" type="geo:SubTrips_t" minOccurs="0" maxOccurs="1"/>
+          <xs:element name="subTrips" type="geo:SubTrips_t" minOccurs="0" maxOccurs="1"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-  
+
   <xs:complexType name="Activity_t">
     <xs:complexContent>
       <xs:extension base="geo:TripChainItem_t">
         <xs:sequence>
-          <xs:element name="activityId" type="xs:integer"/>
+          <xs:element name="description" type="xs:string"/>
+          <xs:element name="location" type="geo:Point2D_t"/>
+          <xs:element name="locationType" type="geo:TripchainItemLocationType" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="isPrimary" type="xs:boolean"/>
+          <xs:element name="isFlexible" type="xs:boolean"/>
+          <xs:element name="isMandatory" type="xs:boolean"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
-  
+
   <xs:complexType name="TripChain_t">
     <xs:sequence>
       <xs:element name="personID" type="xs:integer" minOccurs="1" maxOccurs="1"/>
-    <xs:choice minOccurs="0" maxOccurs="unbounded">
-      <!--<xs:element name="TripCainItem" type="geo:TripChainItem_t"/>-->
-      <xs:element name="Trip" type="geo:Trip_t" minOccurs="0" maxOccurs="unbounded"/>
-      <xs:element name="Activity" type="geo:Activity_t" minOccurs="0" maxOccurs="unbounded"/>
-    </xs:choice>
-      </xs:sequence>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <!--<xs:element name="TripCainItem" type="geo:TripChainItem_t"/>-->
+        <xs:element name="Trip" type="geo:Trip_t" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="Activity" type="geo:Activity_t" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:choice>
+    </xs:sequence>
   </xs:complexType>
-  
-    <xs:complexType name="TripChains_t">
+
+  <xs:complexType name="TripChains_t">
     <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:element name="TripChain" type="geo:TripChain_t"/>
     </xs:choice>
   </xs:complexType>
-  
+
 
   <xs:complexType name="GeoSpatial_t">
     <xs:sequence>
       <xs:element name="RoadNetwork" type="geo:RoadNetwork_t"/>
     </xs:sequence>
   </xs:complexType>
-  
+
 
   <!-- Main Schema starts here -->
   <xs:complexType name="SimMobility_t">
@@ -524,7 +532,7 @@
       <xs:element name="TripChains" type="geo:TripChains_t" minOccurs="0" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>
-  
+
   <!-- And Now Declaring the root element, I called it geo, but fell free to call it anything like Bugis, Clementi, Singapore... -->
   <xs:element name="SimMobility" type="geo:SimMobility_t"/>
 </xs:schema>

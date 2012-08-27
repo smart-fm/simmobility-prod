@@ -10,6 +10,8 @@
 #include "AuraManager.hpp"
 #include "geospatial/Lane.hpp"
 #include "buffering/Vector2D.hpp"
+#include "entities/Person.hpp"
+#include "../../medium/entities/roles/driver/Driver.hpp"
 
 namespace sim_mob
 {
@@ -253,8 +255,6 @@ public:
 private:
     R_tree tree_;
 
-    //Map to store the density of each road segment.
-    std::map<const RoadSegment*, unsigned int> densityMap;
 
     /* First dirty version... Will change eventually.
      * This method is called from within the update of the AuraManager.
@@ -365,19 +365,21 @@ const
 }
 
 void AuraManager::Impl::updateDensity(const Agent* ag) {
-	const Person* person = dynamic_cast<const Person*>(ag);
+	const sim_mob::Person* person = dynamic_cast<const sim_mob::Person*>(ag);
 	if(!person){
 		return;
 	}
-	const sim_mob::medium::Driver* driver = dynamic_cast<const sim_mob::medium::Driver*> (person->getRole());
+	const sim_mob::medium::Driver* driver = dynamic_cast<const sim_mob::medium::Driver*>(person->getRole());
 	if(!driver){
 		return;
 	}
+	sim_mob::AuraManager &auraMgr = sim_mob::AuraManager::instance();
 	if(driver->params.justChangedToNewSegment){
-		std::map<const RoadSegment*, unsigned short>::iterator densityMapIt = driver->getVehicle()->getCurrSegment();
+		const RoadSegment* currSeg = driver->getVehicle()->getCurrSegment();
+		const RoadSegment* prevSeg = driver->getVehicle()->getPrevSegment();
+		auraMgr.densityMap[prevSeg] = auraMgr.densityMap[currSeg] + 1;
+		auraMgr.densityMap[currSeg] = auraMgr.densityMap[currSeg] + 1;
 	}
-
-
 }
 
 /** \endcond ignoreAuraManagerInnards -- End of block to be ignored by doxygen.  */
@@ -428,6 +430,14 @@ AuraManager::printStatistics() const
     {
         std::cout << "No statistics was collected by the AuraManager singleton." << std::endl;
     }
+}
+
+unsigned short AuraManager::getDensity(const RoadSegment* rdseg) {
+	std::map<const RoadSegment*, unsigned short>::iterator densityMapIt = densityMap.find(rdseg);
+	if(densityMapIt == densityMap.end()){
+		throw std::runtime_error("Requested road segment not found");
+	}
+	return densityMapIt->second;
 }
 
 }

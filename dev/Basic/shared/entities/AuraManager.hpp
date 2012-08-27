@@ -6,6 +6,7 @@
 #include "metrics/Length.hpp"
 #include "metrics/Frame.hpp"
 
+
 namespace sim_mob
 {
 
@@ -102,12 +103,20 @@ public:
     void
     printStatistics() const;
 
+    /*
+     * Retuns the density of the road segment. Will be called by driver agents in medium term.
+     */
+    unsigned short getDensity(const RoadSegment* rdseg);
+
 private:
     AuraManager()
       : pimpl_(0)
       , stats_(0)
     {
     }
+
+    //Map to store the density of each road segment.
+    std::map<const RoadSegment*, unsigned short> densityMap;
 
     // No need to define the dtor.
 
@@ -120,6 +129,8 @@ private:
 
     class Stats;
     Stats* stats_;
+
+
 };
 
 }

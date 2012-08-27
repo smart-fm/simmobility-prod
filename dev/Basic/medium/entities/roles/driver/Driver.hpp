@@ -69,6 +69,9 @@ public:
 
 	void setParentBufferedData();			///<set next data to parent buffer data
 
+	//TODO: This may be risky, as it exposes non-buffered properties to other vehicles.
+	const Vehicle* getVehicle() const {return vehicle;}
+
 private:
 	void chooseNextLaneForNextLink(DriverUpdateParams& p);
 	bool update_movement(DriverUpdateParams& params, frame_t frameNumber);       ///<Called to move vehicles forward.

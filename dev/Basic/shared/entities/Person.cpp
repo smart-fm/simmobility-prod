@@ -403,7 +403,7 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS, 
 		destNode = this->currSubTrip->toLocation;
 	} else {
 		originNode = dynamic_cast<const Activity&>(*currTripChainItem).location;
-		destNode = destNode;
+		destNode = originNode;
 	}
 
 	//Activities require some additional work

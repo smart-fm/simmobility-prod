@@ -8,10 +8,20 @@
 #include "entities/roles/pedestrian/PedestrianPathMover.hpp"
 #include <boost/random.hpp>
 
+using boost::unordered_map;
 using std::vector;
 using std::map;
 using namespace sim_mob;
 boost::uniform_int<> zero_to_max(0, RAND_MAX);
+
+typedef vector<WayPoint> PEDESTRIAN_PATH;
+typedef PEDESTRIAN_PATH::iterator PEDESTRIAN_PATH_ITERATOR;
+
+typedef vector<sim_mob::Point2D> POLYLINEPOINTS;
+typedef POLYLINEPOINTS::const_iterator POLYLINEPOINTS_ITERATOR;
+typedef POLYLINEPOINTS::const_reverse_iterator POLYLINEPOINTS_REVERSE_ITERATOR;
+
+typedef unordered_map<sim_mob::Point2D,WayPoint* > POLYLINEPOINTS_WAYPOINT_MAP;
 
 sim_mob::PedestrianPathMover::PedestrianPathMover():
 		distAlongPolyline(0.0),isDoneWithEntirePath(false),nextWaypoint(NULL) {

@@ -24,20 +24,13 @@ inline std::size_t hash_value(const sim_mob::Point2D& p)
     boost::hash_combine(seed, boost::hash_value(p.getY()));
     return seed;
 }
-typedef std::vector<WayPoint> PEDESTRIAN_PATH;
-typedef std::vector<WayPoint>::iterator PEDESTRIAN_PATH_ITERATOR;
-
-typedef std::vector<sim_mob::Point2D> POLYLINEPOINTS;
-typedef std::vector<sim_mob::Point2D>::const_iterator POLYLINEPOINTS_ITERATOR;
-typedef std::vector<sim_mob::Point2D>::const_reverse_iterator POLYLINEPOINTS_REVERSE_ITERATOR;
-typedef boost::unordered_map<sim_mob::Point2D,WayPoint* > POLYLINEPOINTS_WAYPOINT_MAP;
 
 class PedestrianPathMover {
 public:
 	PedestrianPathMover();
 	~PedestrianPathMover();
 public:
-	void setPath(const PEDESTRIAN_PATH path);
+	void setPath(const std::vector<WayPoint> path);
 	///General forward movement function: move X cm forward. Automatically switches to a new polypoint or
 	///  road segment as applicable.
 	//Returns any "overflow" distance if we are in an intersection, 0 otherwise.
@@ -46,8 +39,8 @@ public:
 	sim_mob::DPoint getPosition() const;
 	WayPoint* getCurrentWaypoint(){ return currentWaypoint; };
 public:
-	PEDESTRIAN_PATH pedestrian_path;
-	PEDESTRIAN_PATH_ITERATOR pedestrian_path_iter;
+	std::vector<WayPoint> pedestrian_path;
+	std::vector<WayPoint>::iterator pedestrian_path_iter;
 	double currPolylineLength();
 	bool isDoneWithEntireRoute() { return isDoneWithEntirePath; };
 	bool isAtCrossing();
@@ -56,7 +49,7 @@ private:
 	WayPoint *nextWaypoint;
 	// advance to next waypoint, if has next waypoint ,return true
 	bool advanceToNextPolylinePoint();
-	POLYLINEPOINTS getCrossingPolylinePoints(WayPoint *wp);
+	std::vector<sim_mob::Point2D> getCrossingPolylinePoints(WayPoint *wp);
 	void relToAbs(double xRel, double yRel, double & xAbs, double & yAbs,
 			double cStartX,double cStartY,double cEndX,double cEndY);
 	void absToRel(double xAbs, double yAbs, double & xRel, double & yRel,double cStartX,
@@ -65,9 +58,9 @@ private:
 	double distAlongPolyline;
 	bool isDoneWithEntirePath;
 	//ploy line start ,end point , maybe cross two segments or segment->crossring
-	POLYLINEPOINTS polylinePoints;
-	POLYLINEPOINTS_ITERATOR currPolylineStartpoint;
-	POLYLINEPOINTS_ITERATOR currPolylineEndpoint;
-	POLYLINEPOINTS_WAYPOINT_MAP polylinePoint_wayPoint_map;
+	std::vector<sim_mob::Point2D> polylinePoints;
+	std::vector<sim_mob::Point2D>::iterator currPolylineStartpoint;
+	std::vector<sim_mob::Point2D>::iterator currPolylineEndpoint;
+	boost::unordered_map<sim_mob::Point2D,WayPoint* > polylinePoint_wayPoint_map;
 };
 }

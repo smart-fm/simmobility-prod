@@ -7,7 +7,7 @@
  *      Author: Linbo
  */
 
-#include "pedestrian2.hpp"
+#include "Pedestrian2.hpp"
 #include "entities/Person.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "geospatial/Node.hpp"

@@ -47,7 +47,7 @@
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
-#include "entities/roles/pedestrian/pedestrian2.hpp"
+#include "entities/roles/pedestrian/Pedestrian2.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "geospatial/BusStop.hpp"

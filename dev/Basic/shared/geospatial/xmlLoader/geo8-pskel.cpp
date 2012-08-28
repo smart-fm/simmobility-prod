@@ -1679,7 +1679,7 @@ namespace geo
   }
 
   void Trip_t_pskel::
-  fromLocation_parser (::geo::Point2D_t_pskel& p)
+  fromLocation_parser (::xml_schema::string_pskel& p)
   {
     this->fromLocation_parser_ = &p;
   }
@@ -1691,7 +1691,7 @@ namespace geo
   }
 
   void Trip_t_pskel::
-  toLocation_parser (::geo::Point2D_t_pskel& p)
+  toLocation_parser (::xml_schema::string_pskel& p)
   {
     this->toLocation_parser_ = &p;
   }
@@ -1715,9 +1715,9 @@ namespace geo
            ::xml_schema::string_pskel& startTime,
            ::xml_schema::string_pskel& endTime,
            ::xml_schema::integer_pskel& tripID,
-           ::geo::Point2D_t_pskel& fromLocation,
+           ::xml_schema::string_pskel& fromLocation,
            ::geo::TripchainItemLocationType_pskel& fromLocationType,
-           ::geo::Point2D_t_pskel& toLocation,
+           ::xml_schema::string_pskel& toLocation,
            ::geo::TripchainItemLocationType_pskel& toLocationType,
            ::geo::SubTrips_t_pskel& subTrips)
   {
@@ -5892,14 +5892,6 @@ namespace geo
   {
   }
 
-  // TripchainItemLocationType_pskel
-  //
-
-  void TripchainItemLocationType_pskel::
-  post_TripchainItemLocationType ()
-  {
-  }
-
   // SubTrip_t_pskel
   //
 
@@ -5915,11 +5907,6 @@ namespace geo
 
   void SubTrip_t_pskel::
   ptLineId (const ::std::string&)
-  {
-  }
-
-  void SubTrip_t_pskel::
-  post_SubTrip_t ()
   {
   }
 
@@ -6004,12 +5991,7 @@ namespace geo
   //
 
   void SubTrips_t_pskel::
-  subTrip ()
-  {
-  }
-
-  void SubTrips_t_pskel::
-  post_SubTrips_t ()
+  subTrip (sim_mob::SubTrip)
   {
   }
 
@@ -6046,10 +6028,7 @@ namespace geo
     if (n == "subTrip" && ns.empty ())
     {
       if (this->subTrip_parser_)
-      {
-        this->subTrip_parser_->post_SubTrip_t ();
-        this->subTrip ();
-      }
+        this->subTrip (this->subTrip_parser_->post_SubTrip_t ());
 
       return true;
     }
@@ -6215,27 +6194,27 @@ namespace geo
   }
 
   void Trip_t_pskel::
-  fromLocation (sim_mob::Point2D)
+  fromLocation (const ::std::string&)
   {
   }
 
   void Trip_t_pskel::
-  fromLocationType ()
+  fromLocationType (sim_mob::TripChainItem::LocationType)
   {
   }
 
   void Trip_t_pskel::
-  toLocation (sim_mob::Point2D)
+  toLocation (const ::std::string&)
   {
   }
 
   void Trip_t_pskel::
-  toLocationType ()
+  toLocationType (sim_mob::TripChainItem::LocationType)
   {
   }
 
   void Trip_t_pskel::
-  subTrips ()
+  subTrips (std::vector<sim_mob::SubTrip>)
   {
   }
 
@@ -6330,7 +6309,7 @@ namespace geo
     if (n == "fromLocation" && ns.empty ())
     {
       if (this->fromLocation_parser_)
-        this->fromLocation (this->fromLocation_parser_->post_Point2D_t ());
+        this->fromLocation (this->fromLocation_parser_->post_string ());
 
       return true;
     }
@@ -6338,10 +6317,7 @@ namespace geo
     if (n == "fromLocationType" && ns.empty ())
     {
       if (this->fromLocationType_parser_)
-      {
-        this->fromLocationType_parser_->post_TripchainItemLocationType ();
-        this->fromLocationType ();
-      }
+        this->fromLocationType (this->fromLocationType_parser_->post_TripchainItemLocationType ());
 
       return true;
     }
@@ -6349,7 +6325,7 @@ namespace geo
     if (n == "toLocation" && ns.empty ())
     {
       if (this->toLocation_parser_)
-        this->toLocation (this->toLocation_parser_->post_Point2D_t ());
+        this->toLocation (this->toLocation_parser_->post_string ());
 
       return true;
     }
@@ -6357,10 +6333,7 @@ namespace geo
     if (n == "toLocationType" && ns.empty ())
     {
       if (this->toLocationType_parser_)
-      {
-        this->toLocationType_parser_->post_TripchainItemLocationType ();
-        this->toLocationType ();
-      }
+        this->toLocationType (this->toLocationType_parser_->post_TripchainItemLocationType ());
 
       return true;
     }
@@ -6368,10 +6341,7 @@ namespace geo
     if (n == "subTrips" && ns.empty ())
     {
       if (this->subTrips_parser_)
-      {
-        this->subTrips_parser_->post_SubTrips_t ();
-        this->subTrips ();
-      }
+        this->subTrips (this->subTrips_parser_->post_SubTrips_t ());
 
       return true;
     }
@@ -6393,7 +6363,7 @@ namespace geo
   }
 
   void Activity_t_pskel::
-  locationType ()
+  locationType (sim_mob::TripChainItem::LocationType)
   {
   }
 
@@ -6511,10 +6481,7 @@ namespace geo
     if (n == "locationType" && ns.empty ())
     {
       if (this->locationType_parser_)
-      {
-        this->locationType_parser_->post_TripchainItemLocationType ();
-        this->locationType ();
-      }
+        this->locationType (this->locationType_parser_->post_TripchainItemLocationType ());
 
       return true;
     }

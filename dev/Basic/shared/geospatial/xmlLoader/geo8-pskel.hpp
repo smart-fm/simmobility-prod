@@ -90,8 +90,8 @@ namespace geo
   class RoadNetwork_t_pskel;
   class RoadItems_t_pskel;
   class DailyTime_t_pskel;
-  class TripChainItemType_pskel;
-  class TripChainItemLocationType_pskel;
+  class TripchainItemType_pskel;
+  class TripchainItemLocationType_pskel;
   class SubTrip_t_pskel;
   class SubTrips_t_pskel;
   class TripChainItem_t_pskel;
@@ -2553,8 +2553,8 @@ namespace geo
     // virtual void
     // pre ();
 
-    virtual void
-    post_TripchainItemLocationType ();
+    virtual sim_mob::TripChainItem::LocationType
+    post_TripchainItemLocationType () = 0;
   };
 
   class SubTrip_t_pskel: public ::xml_schema::complex_content
@@ -2574,8 +2574,8 @@ namespace geo
     virtual void
     ptLineId (const ::std::string&);
 
-    virtual void
-    post_SubTrip_t ();
+    virtual sim_mob::SubTrip
+    post_SubTrip_t () = 0;
 
     // Parser construction API.
     //
@@ -2624,10 +2624,10 @@ namespace geo
     // pre ();
 
     virtual void
-    subTrip ();
+    subTrip (sim_mob::SubTrip);
 
-    virtual void
-    post_SubTrips_t ();
+    virtual std::vector<sim_mob::SubTrip>
+    post_SubTrips_t () = 0;
 
     // Parser construction API.
     //
@@ -2743,19 +2743,19 @@ namespace geo
     tripID (long long);
 
     virtual void
-    fromLocation (sim_mob::Point2D);
+    fromLocation (const ::std::string&);
 
     virtual void
-    fromLocationType ();
+    fromLocationType (sim_mob::TripChainItem::LocationType);
 
     virtual void
-    toLocation (sim_mob::Point2D);
+    toLocation (const ::std::string&);
 
     virtual void
-    toLocationType ();
+    toLocationType (sim_mob::TripChainItem::LocationType);
 
     virtual void
-    subTrips ();
+    subTrips (std::vector<sim_mob::SubTrip>);
 
     virtual sim_mob::TripChainItem*
     post_Trip_t () = 0;
@@ -2766,13 +2766,13 @@ namespace geo
     tripID_parser (::xml_schema::integer_pskel&);
 
     void
-    fromLocation_parser (::geo::Point2D_t_pskel&);
+    fromLocation_parser (::xml_schema::string_pskel&);
 
     void
     fromLocationType_parser (::geo::TripchainItemLocationType_pskel&);
 
     void
-    toLocation_parser (::geo::Point2D_t_pskel&);
+    toLocation_parser (::xml_schema::string_pskel&);
 
     void
     toLocationType_parser (::geo::TripchainItemLocationType_pskel&);
@@ -2787,9 +2787,9 @@ namespace geo
              ::xml_schema::string_pskel& /* startTime */,
              ::xml_schema::string_pskel& /* endTime */,
              ::xml_schema::integer_pskel& /* tripID */,
-             ::geo::Point2D_t_pskel& /* fromLocation */,
+             ::xml_schema::string_pskel& /* fromLocation */,
              ::geo::TripchainItemLocationType_pskel& /* fromLocationType */,
-             ::geo::Point2D_t_pskel& /* toLocation */,
+             ::xml_schema::string_pskel& /* toLocation */,
              ::geo::TripchainItemLocationType_pskel& /* toLocationType */,
              ::geo::SubTrips_t_pskel& /* subTrips */);
 
@@ -2811,9 +2811,9 @@ namespace geo
 
     protected:
     ::xml_schema::integer_pskel* tripID_parser_;
-    ::geo::Point2D_t_pskel* fromLocation_parser_;
+    ::xml_schema::string_pskel* fromLocation_parser_;
     ::geo::TripchainItemLocationType_pskel* fromLocationType_parser_;
-    ::geo::Point2D_t_pskel* toLocation_parser_;
+    ::xml_schema::string_pskel* toLocation_parser_;
     ::geo::TripchainItemLocationType_pskel* toLocationType_parser_;
     ::geo::SubTrips_t_pskel* subTrips_parser_;
   };
@@ -2833,7 +2833,7 @@ namespace geo
     location (sim_mob::Point2D);
 
     virtual void
-    locationType ();
+    locationType (sim_mob::TripChainItem::LocationType);
 
     virtual void
     isPrimary (bool);

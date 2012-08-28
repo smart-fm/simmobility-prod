@@ -780,12 +780,13 @@ namespace geo
     virtual void
     pre ();
 
-    virtual void
+    virtual sim_mob::TripChainItem::LocationType
     post_TripchainItemLocationType ();
   };
 
   class SubTrip_t_pimpl: public virtual SubTrip_t_pskel
   {
+	  sim_mob::SubTrip subTrip;
     public:
     virtual void
     pre ();
@@ -799,20 +800,21 @@ namespace geo
     virtual void
     ptLineId (const ::std::string&);
 
-    virtual void
+    virtual sim_mob::SubTrip
     post_SubTrip_t ();
   };
 
   class SubTrips_t_pimpl: public virtual SubTrips_t_pskel
   {
+	  std::vector<sim_mob::SubTrip> subTrips;
     public:
     virtual void
     pre ();
 
     virtual void
-    subTrip ();
+    subTrip (sim_mob::SubTrip);
 
-    virtual void
+    virtual std::vector<sim_mob::SubTrip>
     post_SubTrips_t ();
   };
 
@@ -844,6 +846,7 @@ namespace geo
   class Trip_t_pimpl: public virtual Trip_t_pskel,
     public ::geo::TripChainItem_t_pimpl
   {
+	  sim_mob::Trip * trip;
     public:
     virtual void
     pre ();
@@ -852,19 +855,19 @@ namespace geo
     tripID (long long);
 
     virtual void
-    fromLocation (sim_mob::Point2D);
+    fromLocation (const ::std::string&);
 
     virtual void
-    fromLocationType ();
+    fromLocationType (sim_mob::TripChainItem::LocationType);
 
     virtual void
-    toLocation (sim_mob::Point2D);
+    toLocation (const ::std::string&);
 
     virtual void
-    toLocationType ();
+    toLocationType (sim_mob::TripChainItem::LocationType);
 
     virtual void
-    subTrips ();
+    subTrips (std::vector<sim_mob::SubTrip>);
 
     virtual sim_mob::TripChainItem*
     post_Trip_t ();
@@ -884,7 +887,7 @@ namespace geo
     location (sim_mob::Point2D);
 
     virtual void
-    locationType ();
+    locationType (sim_mob::TripChainItem::LocationType);
 
     virtual void
     isPrimary (bool);

@@ -1321,7 +1321,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   {
   }
 
-  void TripchainItemLocationType_pimpl::
+  sim_mob::TripChainItem::LocationType TripchainItemLocationType_pimpl::
   post_TripchainItemLocationType ()
   {
     const ::std::string& v (post_string ());
@@ -1335,29 +1335,33 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void SubTrip_t_pimpl::
   pre ()
   {
+	  subTrip.mode = "";
+	  subTrip.isPrimaryMode = false;
+	  subTrip.ptLineId = "";
   }
 
   void SubTrip_t_pimpl::
   mode (const ::std::string& mode)
   {
-    std::cout << "mode: " << mode << std::endl;
+	  subTrip.mode = mode;
   }
 
   void SubTrip_t_pimpl::
   isPrimaryMode (bool isPrimaryMode)
   {
-    std::cout << "isPrimaryMode: " << isPrimaryMode << std::endl;
+	  subTrip.isPrimaryMode = isPrimaryMode;
   }
 
   void SubTrip_t_pimpl::
   ptLineId (const ::std::string& ptLineId)
   {
-    std::cout << "ptLineId: " << ptLineId << std::endl;
+	  subTrip.ptLineId = ptLineId;
   }
 
-  void SubTrip_t_pimpl::
+  sim_mob::SubTrip SubTrip_t_pimpl::
   post_SubTrip_t ()
   {
+	  return subTrip;
   }
 
   // SubTrips_t_pimpl
@@ -1366,16 +1370,19 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void SubTrips_t_pimpl::
   pre ()
   {
+	  subTrips.clear();
   }
 
   void SubTrips_t_pimpl::
-  subTrip ()
+  subTrip (sim_mob::SubTrip subTrip)
   {
+	  subTrips.push_back(subTrip);
   }
 
-  void SubTrips_t_pimpl::
+  std::vector<sim_mob::SubTrip> SubTrips_t_pimpl::
   post_SubTrips_t ()
   {
+    return subTrips;
   }
 
   // TripChainItem_t_pimpl
@@ -1426,41 +1433,46 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void Trip_t_pimpl::
   pre ()
   {
+	  trip = new sim_mob::Trip();
   }
 
   void Trip_t_pimpl::
   tripID (long long tripID)
   {
-    std::cout << "tripID: " << tripID << std::endl;
+	  trip->tripID = tripID;
+
   }
 
   void Trip_t_pimpl::
-  fromLocation (sim_mob::Point2D fromLocation)
+  fromLocation (const ::std::string& fromLocation)
   {
+	  trip->fromLocation = geo_Nodes_[fromLocation];
+  }
+
+  void Trip_t_pimpl::
+  fromLocationType (sim_mob::TripChainItem::LocationType fromLocationType)
+  {
+	  trip->fromLocationType = fromLocationType;
+  }
+
+  void Trip_t_pimpl::
+  toLocation (const ::std::string& toLocation)
+  {
+	  trip->toLocation = geo_Nodes_[toLocation];
     // TODO
     //
   }
 
   void Trip_t_pimpl::
-  fromLocationType ()
+  toLocationType (sim_mob::TripChainItem::LocationType toLocationType)
   {
+	  trip->toLocationType = toLocationType;
   }
 
   void Trip_t_pimpl::
-  toLocation (sim_mob::Point2D toLocation)
+  subTrips (std::vector<sim_mob::SubTrip> subTrips)
   {
-    // TODO
-    //
-  }
-
-  void Trip_t_pimpl::
-  toLocationType ()
-  {
-  }
-
-  void Trip_t_pimpl::
-  subTrips ()
-  {
+	  trip->subTrips =  subTrips;
   }
 
   sim_mob::TripChainItem* Trip_t_pimpl::
@@ -1491,7 +1503,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   }
 
   void Activity_t_pimpl::
-  locationType ()
+  locationType (sim_mob::TripChainItem::LocationType locationType)
   {
   }
 

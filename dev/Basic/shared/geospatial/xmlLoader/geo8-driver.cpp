@@ -265,9 +265,9 @@ main1 (int argc, char* argv[])
                       string_p,
                       string_p,
                       integer_p,
-                      Point2D_t_p,
+                      string_p,
                       TripchainItemLocationType_p,
-                      Point2D_t_p,
+                      string_p,
                       TripchainItemLocationType_p,
                       SubTrips_t_p);
 

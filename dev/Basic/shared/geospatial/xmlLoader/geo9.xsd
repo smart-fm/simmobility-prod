@@ -475,9 +475,9 @@
       <xs:extension base="geo:TripChainItem_t">
         <xs:sequence>
           <xs:element name="tripID" type="xs:integer" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="fromLocation" type="geo:Point2D_t" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="fromLocation" type="xs:string" minOccurs="1" maxOccurs="1"/>
           <xs:element name="fromLocationType" type="geo:TripchainItemLocationType" minOccurs="1" maxOccurs="1"/>
-          <xs:element name="toLocation" type="geo:Point2D_t" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="toLocation" type="xs:string" minOccurs="1" maxOccurs="1"/>
           <xs:element name="toLocationType" type="geo:TripchainItemLocationType" minOccurs="1" maxOccurs="1"/>
           <xs:element name="subTrips" type="geo:SubTrips_t" minOccurs="0" maxOccurs="1"/>
         </xs:sequence>

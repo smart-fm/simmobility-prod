@@ -5,8 +5,7 @@
  *      Author: redheli
  */
 
-#ifndef PEDESTRIANPATHMOVER_H_
-#define PEDESTRIANPATHMOVER_H_
+#pragma once
 
 #include "util/DynamicVector.hpp"
 #include "geospatial/Lane.hpp"
@@ -72,4 +71,3 @@ private:
 	POLYLINEPOINTS_WAYPOINT_MAP polylinePoint_wayPoint_map;
 };
 }
-#endif /* PEDESTRIANPATHMOVER_H_ */

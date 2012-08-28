@@ -11,11 +11,12 @@
 #include "geospatial/Lane.hpp"
 #include "buffering/Vector2D.hpp"
 #include "entities/Person.hpp"
-#include "../../medium/entities/roles/driver/Driver.hpp"
-
+#include "../medium/entities/roles/driver/Driver.hpp"
+//#include "entities/roles/driver/Driver.hpp"
+using namespace sim_mob::medium;
 namespace sim_mob
 {
-
+using namespace medium;
 /* static */ AuraManager AuraManager::instance_;
 
 /** \cond ignoreAuraManagerInnards -- Start of block to be ignored by doxygen.  */

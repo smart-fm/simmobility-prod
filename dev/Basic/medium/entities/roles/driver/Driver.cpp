@@ -143,6 +143,7 @@ sim_mob::medium::Driver::Driver(Person* parent, MutexStrategy mtxStrat) :
 //	}
 	vehicle = nullptr;
 	nextLaneInNextLink = nullptr;
+	intModel = new SimpleIntDrivingModel();
 
 }
 
@@ -152,6 +153,8 @@ sim_mob::medium::Driver::Driver(Person* parent, MutexStrategy mtxStrat) :
 sim_mob::medium::Driver::~Driver() {
 	//Our vehicle
 	safe_delete_item(vehicle);
+
+	safe_delete_item(intModel);
 }
 
 vector<BufferedBase*> sim_mob::medium::Driver::getSubscriptionParams() {
@@ -302,6 +305,25 @@ void sim_mob::medium::Driver::setParentBufferedData() {
 	parent->latVel.set(vehicle->getLatVelocity());
 }
 
+//TODO: For now, we're just using a simple trajectory model. Complex curves may be added later.
+void sim_mob::medium::Driver::calculateIntersectionTrajectory(DPoint movingFrom, double overflow) {
+	//If we have no target link, we have no target trajectory.
+	if (!nextLaneInNextLink) {
+#ifndef SIMMOB_DISABLE_OUTPUT
+		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
+		std::cout << "WARNING: nextLaneInNextLink has not been set; can't calculate intersection trajectory."
+				<< std::endl;
+#endif
+		return;
+	}
+
+	//Get the entry point.
+	Point2D entry = nextLaneInNextLink->getPolyline().at(0);
+
+	//Compute a movement trajectory.
+	intModel->startDriving(movingFrom, DPoint(entry.getX(), entry.getY()), overflow);
+}
+
 //~melani
 bool sim_mob::medium::Driver::update_movement(DriverUpdateParams& params, frame_t frameNumber) {
 	//If reach the goal, get back to the origin
@@ -329,9 +351,9 @@ bool sim_mob::medium::Driver::update_movement(DriverUpdateParams& params, frame_
 		//Queuing not implemented yet. ~melani
 	//}
 
-	//if (vehicle->isInIntersection()) {
-	//		intersectionDriving(params);
-	//	}
+	if (vehicle->isInIntersection()) {
+			intersectionDriving(params);
+		}
 
 	//Next, handle driving on links.
 	// Note that a vehicle may leave an intersection during intersectionDriving(), so the conditional check is necessary.
@@ -349,6 +371,49 @@ bool sim_mob::medium::Driver::update_movement(DriverUpdateParams& params, frame_
 		params.justChangedToNewSegment = (vehicle->getCurrSegment() != prevSegment);
 	}
 	return true;
+}
+
+//~melani
+void sim_mob::medium::Driver::intersectionDriving(DriverUpdateParams& p) {
+	//Don't move if we have no target
+	if (!nextLaneInNextLink) {
+		return;
+	}
+
+	//First, update movement along the vector.
+	DPoint res = intModel->continueDriving(vehicle->getVelocity() * p.elapsedSeconds);
+	vehicle->setPositionInIntersection(res.x, res.y);
+
+	//Next, detect if we've just left the intersection. Otherwise, perform regular intersection driving.
+	if (intModel->isDone()) {
+		p.currLane = vehicle->moveToNextSegmentAfterIntersection();
+		justLeftIntersection(p);
+	}
+}
+
+void sim_mob::medium::Driver::justLeftIntersection(DriverUpdateParams& p) {
+	p.currLane = nextLaneInNextLink;
+	p.currLaneIndex = getLaneIndex(p.currLane);
+	vehicle->moveToNewLanePolyline(p.currLaneIndex);
+	syncCurrLaneCachedInfo(p);
+	p.currLaneOffset = vehicle->getDistanceMovedInSegment();
+	targetLaneIndex = p.currLaneIndex;
+}
+
+//General update information for whenever a Segment may have changed.
+void sim_mob::medium::Driver::syncCurrLaneCachedInfo(DriverUpdateParams& p) {
+	//The lane may have changed; reset the current lane index.
+	p.currLaneIndex = getLaneIndex(p.currLane);
+
+	//Update which lanes are adjacent.
+	//updateAdjacentLanes(p);
+
+	//Update the length of the current road segment.
+	p.currLaneLength = vehicle->getCurrLinkLaneZeroLength();
+
+	//Finally, update target/max speed to match the new Lane's rules.
+	//maxLaneSpeed = vehicle->getCurrSegment()->maxSpeed / 3.6; //slow down
+	//targetSpeed = maxLaneSpeed;
 }
 
 void sim_mob::medium::Driver::frame_tick_output(const UpdateParams& p)
@@ -465,8 +530,25 @@ bool sim_mob::medium::Driver::update_post_movement(DriverUpdateParams& params, f
 
 	if (!vehicle->isInIntersection() && !vehicle->hasNextSegment(true) && vehicle->hasNextSegment(false))
 		chooseNextLaneForNextLink(params);
+	//Have we just entered into an intersection?
+	if (vehicle->isInIntersection() && params.justMovedIntoIntersection) {
+		//Calculate a trajectory and init movement on that intersection.
+		calculateIntersectionTrajectory(params.TEMP_lastKnownPolypoint, params.overflowIntoIntersection);
+		intersectionVelocityUpdate();
+
+		//Fix: We need to perform this calculation at least once or we won't have a heading within the intersection.
+		DPoint res = intModel->continueDriving(0);
+		vehicle->setPositionInIntersection(res.x, res.y);
+	}
 
 	return true;
+}
+
+void sim_mob::medium::Driver::intersectionVelocityUpdate() {
+	double inter_speed = 1000;//10m/s
+
+	//Set velocity for intersection movement.
+	vehicle->setVelocity(inter_speed);
 }
 
 Vehicle* sim_mob::medium::Driver::initializePath(bool allocateVehicle) {

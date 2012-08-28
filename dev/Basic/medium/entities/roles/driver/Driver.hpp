@@ -12,6 +12,7 @@
 #include "geospatial/StreetDirectory.hpp"
 #include "entities/vehicle/Vehicle.hpp"
 #include "util/DynamicVector.hpp"
+#include "../short/entities/roles/driver/IntersectionDrivingModel.hpp"
 #include "DriverUpdateParams.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -72,10 +73,16 @@ public:
 	//TODO: This may be risky, as it exposes non-buffered properties to other vehicles.
 	const Vehicle* getVehicle() const {return vehicle;}
 
+	void intersectionVelocityUpdate();
+
 private:
 	void chooseNextLaneForNextLink(DriverUpdateParams& p);
 	bool update_movement(DriverUpdateParams& params, frame_t frameNumber);       ///<Called to move vehicles forward.
 	bool update_post_movement(DriverUpdateParams& params, frame_t frameNumber);       ///<Called to deal with the consequences of moving forwards.
+	void intersectionDriving(DriverUpdateParams& p);
+	void justLeftIntersection(DriverUpdateParams& p);
+	void syncCurrLaneCachedInfo(DriverUpdateParams& p);
+	void calculateIntersectionTrajectory(DPoint movingFrom, double overflow);
 
 protected:
 	virtual double updatePositionOnLink(DriverUpdateParams& p);
@@ -123,7 +130,7 @@ private:
 
 protected:
 	Vehicle* vehicle;
-
+	IntersectionDrivingModel* intModel;
 
 };
 

@@ -391,11 +391,17 @@ void WriteXMLInput_UniNodes(sim_mob::RoadNetwork & roadNetwork,TiXmlElement * No
 	for(std::set<sim_mob::UniNode*>::const_iterator it = roadNetwork.getUniNodes().begin(), it_end( roadNetwork.getUniNodes().end()); it != it_end ; it++ )
 	{
 		TiXmlElement * UniNode = new TiXmlElement("UniNode"); UniNodes->LinkEndChild(UniNode);
+		//nodeId
 		TiXmlElement * nodeID = new TiXmlElement("nodeID"); UniNode->LinkEndChild(nodeID);
 		out.str("");
 		out << (*it)->getID();
 		nodeID->LinkEndChild( new TiXmlText(out.str()));
+    	//originalDB_ID
+    	TiXmlElement * originalDB_ID = new TiXmlElement("originalDB_ID");  UniNode->LinkEndChild(originalDB_ID);
+    	originalDB_ID->LinkEndChild( new TiXmlText((*it)->originalDB_ID.getLogItem()));
+    	//location
 		WriteXMLInput_Location(UniNode,true,(*it)->getLocation().getX(),(*it)->getLocation().getY());
+		//connectors
 		WriteXMLInput_UniNode_Connectors(*it,UniNode);
 	}
 
@@ -456,6 +462,9 @@ TiXmlElement * WriteXMLInput_Intersection(sim_mob::Intersection *intersection,Ti
     	TiXmlElement * nodeID = new TiXmlElement("nodeID");  Intersection->LinkEndChild(nodeID);
     	out << (intersection)->getID();
     	nodeID->LinkEndChild( new TiXmlText((out.str())));
+    	//originalDB_ID
+    	TiXmlElement * originalDB_ID = new TiXmlElement("originalDB_ID");  Intersection->LinkEndChild(originalDB_ID);
+    	originalDB_ID->LinkEndChild( new TiXmlText(intersection->originalDB_ID.getLogItem()));
     	//location
     	WriteXMLInput_Location(Intersection,true,(intersection)->location.getX(),(intersection)->location.getY());
     	WriteXMLInput_roadSegmentsAt(intersection,Intersection);

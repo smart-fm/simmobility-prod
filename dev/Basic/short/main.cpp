@@ -47,6 +47,7 @@
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
+#include "entities/roles/pedestrian/Pedestrian2.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "geospatial/BusStop.hpp"
@@ -90,9 +91,6 @@ int diff_ms(timeval t1, timeval t2) {
 //Current software version.
 const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
 
-//Function prototypes.
-//void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents);
-bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents);
 
 void WriteXMLInput_Location(TiXmlElement * parent,bool underLocation, unsigned int X, unsigned int Y)
 {
@@ -755,7 +753,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	//      should really be clear about when this is not ok.
 	RoleFactory& rf = ConfigParams::GetInstance().getRoleFactoryRW();
 	rf.registerRole("driver", new sim_mob::Driver(nullptr, ConfigParams::GetInstance().mutexStategy));
-	rf.registerRole("pedestrian", new sim_mob::Pedestrian(nullptr));
+	rf.registerRole("pedestrian", new sim_mob::Pedestrian2(nullptr));
 	rf.registerRole("busdriver", new sim_mob::BusDriver(nullptr, ConfigParams::GetInstance().mutexStategy));
 	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
 	//rf.registerRole("buscontroller", new sim_mob::BusController()); //Not a role!

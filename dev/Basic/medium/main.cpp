@@ -64,11 +64,6 @@ int diff_ms(timeval t1, timeval t2) {
 //Current software version.
 const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
 
-//Function prototypes.
-//void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents);
-bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents);
-
-
 
 /**
  * Main simulation loop.

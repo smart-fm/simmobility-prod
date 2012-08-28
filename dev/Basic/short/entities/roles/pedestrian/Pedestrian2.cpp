@@ -3,8 +3,7 @@
 /*
  * Pedestrian2.cpp
  *
- *  Created on: 2011-6-20
- *      Author: Linbo
+ * \author Max
  */
 
 #include "Pedestrian2.hpp"

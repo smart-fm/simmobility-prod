@@ -27,6 +27,7 @@ class Point2D;
 class RoadSegment;
 class Link;
 class Crossing;
+class Agent;
 
 namespace aimsun {
 class Node;
@@ -48,6 +49,7 @@ double dist(const sim_mob::aimsun::Lane* ln, const sim_mob::aimsun::Node* nd);
 double dist(const sim_mob::aimsun::Lane* ln1, const sim_mob::aimsun::Lane* ln2);
 double dist(const sim_mob::aimsun::Node* n1, const sim_mob::aimsun::Node* n2);
 double dist(const sim_mob::Point2D& p1, const sim_mob::Point2D& p2);
+double dist(const sim_mob::Agent& ag, const sim_mob::Point2D& pt);
 
 
 /**
@@ -178,5 +180,10 @@ sim_mob::Point2D ProjectOntoLine(const sim_mob::Point2D& pToProject, const sim_m
  * \return The calculated side point.
  */
 sim_mob::Point2D getSidePoint(const Point2D& origin, const Point2D& direction, double magnitude);
+
+
+//TODO: This should eventually go into its own "Parser" class
+sim_mob::Point2D parse_point(const std::string& str);
+
 
 }

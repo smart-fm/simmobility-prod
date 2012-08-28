@@ -56,10 +56,16 @@
 // fclim: I plan to move $topdir/geospatial/aimsun/* and entities/misc/aimsun/* to
 // $topdir/database/ and rename the aimsun namespace to "database".
 #include "entities/misc/TripChain.hpp"
+#include "entities/misc/BusSchedule.hpp"
 #include "entities/misc/aimsun/TripChain.hpp"
 #include "entities/misc/aimsun/SOCI_Converters.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
+
+#ifdef SIMMOB_NEW_SIGNAL
+#include "entities/signal/Signal.hpp"
+#else
 #include "entities/Signal.hpp"
+#endif
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
@@ -94,7 +100,8 @@ public:
 
 	void DecorateAndTranslateObjects();
 	void PostProcessNetwork();
-	void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::TripChainItem*>& tcs);
+	void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tcs);
+    void SaveBusSchedule(std::vector<sim_mob::BusSchedule*>& busschedule);
 	map<int, Section> const & sections() const { return sections_; }
 
 private:
@@ -106,8 +113,9 @@ private:
 	vector<Lane> lanes_;
 	map<int, Turning> turnings_;
 	multimap<int, Polyline> polylines_;
-	vector<aimsun::TripChainItem> tripchains_;
+	vector<TripChainItem> tripchains_;
 	map<int, Signal> signals_;
+	//vector<sim_mob::BusSchedule> busschedule_;
 
 	map<std::string,BusStop> busstop_;
 	multimap<int,Phase> phases_;//one node_id is mapped to many phases
@@ -124,7 +132,11 @@ private:
 	void LoadTripchains(const std::string& storedProc);
 	void LoadTrafficSignals(const std::string& storedProc);
 
+public:
+	//New-style Loader functions can simply load data directly into the result vectors.
+	void LoadBusSchedule(const std::string& storedProc, std::vector<sim_mob::BusSchedule*>& busschedule);
 
+private:
 	void LoadBusStop(const std::string& storedProc);
 	void LoadPhase(const std::string& storedProc);
 
@@ -347,9 +359,9 @@ void DatabaseLoader::LoadPolylines(const std::string& storedProc)
 void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 {
 	//Our SQL statement
-	std::string sql_str;
+	std::string sql_str = "select * from " + storedProc;
 
-	//changed by xuyan
+	//Load a different string if MPI is enabled.
 #ifndef SIMMOB_DISABLE_MPI
 	const sim_mob::ConfigParams& config = sim_mob::ConfigParams::GetInstance();
 	if (config.is_run_on_many_computers)
@@ -368,76 +380,57 @@ void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 		sql_str = "select * from get_trip_chains_in_partition(" + sqlPara + ")";
 
 	}
-	else
-#else
-		if (true)
 #endif
-		{
-			sql_str = "select * from " + storedProc;
-		}
 
-	soci::rowset<aimsun::TripChainItem> rs = (sql_.prepare << sql_str);
-
-	//Exectue as a rowset to avoid repeatedly building the query.
+	//Retrieve a rowset for this set of trip chains.
 	tripchains_.clear();
-	for (soci::rowset<aimsun::TripChainItem>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
-		if(it->itemType == sim_mob::TripChainItem::IT_TRIP){
-			//if Trip
+	soci::rowset<TripChainItem> rs = (sql_.prepare << sql_str);
 
-			//aimsun::SubTrip& aSubTrip = static_cast<aimsun::SubTrip&>(*it);
+	//Execute as a rowset to avoid repeatedly building the query.
+	for (soci::rowset<TripChainItem>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+		//The following are set regardless.
+		it->startTime = sim_mob::DailyTime(it->tmp_startTime);
+
+		//The following are only set for Trips or Activities respectively
+		if(it->itemType == sim_mob::TripChainItem::IT_TRIP) {
 			//check nodes
-			if(nodes_.count((*it).tmp_fromLocationNodeID)==0) {
-				throw std::runtime_error("Invalid trip chain from node reference.");
+			if(nodes_.count(it->tmp_fromLocationNodeID)==0) {
+				throw std::runtime_error("Invalid trip chain fromNode reference.");
 			}
-			if(nodes_.count((*it).tmp_toLocationNodeID)==0) {
-				throw std::runtime_error("Invalid trip chain to node reference.");
+			if(nodes_.count(it->tmp_toLocationNodeID)==0) {
+				throw std::runtime_error("Invalid trip chain toNode reference.");
 			}
-
-			//Set date
-			(*it).startTime = sim_mob::DailyTime((*it).tmp_startTime);
 
 			//Note: Make sure not to resize the Node map after referencing its elements.
-			(*it).fromLocation = &nodes_[(*it).tmp_fromLocationNodeID];
-			(*it).toLocation = &nodes_[(*it).tmp_toLocationNodeID];
-			tripchains_.push_back(*it);
-		}
-		else if(it->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
-			//if Activity
-
-			//aimsun::Activity& anActivity = static_cast<aimsun::Activity&>(*it);
-			(*it).startTime = sim_mob::DailyTime((*it).tmp_startTime);
-			(*it).endTime = sim_mob::DailyTime((*it).tmp_endTime);
-			(*it).location = &nodes_[(*it).tmp_locationID];
-			tripchains_.push_back(*it);
+			it->fromLocation = &nodes_[it->tmp_fromLocationNodeID];
+			it->toLocation = &nodes_[it->tmp_toLocationNodeID];
+		} else if(it->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
+			//Set end time and location.
+			it->endTime = sim_mob::DailyTime(it->tmp_endTime);
+			it->location = &nodes_[it->tmp_locationID];
 		} else {
 			throw std::runtime_error("Unexpected trip chain type.");
 		}
+
+		//Finally, save it to our intermediate list of TripChainItems.
+		tripchains_.push_back(*it);
 	}
 }
 
 void
 DatabaseLoader::LoadTrafficSignals(std::string const & storedProcedure)
 {
-    if (storedProcedure.empty())
-    {
+    if (storedProcedure.empty()) {
         std::cout << "WARNING: An empty 'signal' stored-procedure was specified in the config file; "
                   << "will not lookup the database to create any signal found in there" << std::endl;
         return;
     }
     soci::rowset<Signal> rows = (sql_.prepare <<"select * from " + storedProcedure);
-    for (soci::rowset<Signal>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
-    {
-        Signal signal = *iter;
+    for (soci::rowset<Signal>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter) {
         // Convert from meters to centimeters.
-        signal.xPos *= 100;
-        signal.yPos *= 100;
-        //TODO remove if
-//        if(signal.nodeId == 66508){
-//        if(signal.nodeId == 45666)
-        	signals_.insert(std::make_pair(signal.id, signal));
-
-//        if(signal.nodeId == 115436) { std::cout << "We have a signal 115436 oin our DB\n"; getchar();}
-
+        iter->xPos *= 100;
+        iter->yPos *= 100;
+        signals_.insert(std::make_pair(iter->id, *iter));
     }
 }
 
@@ -463,63 +456,21 @@ void DatabaseLoader::LoadBusStop(const std::string& storedProc)
 		        	//	busstop_.push_back(*it);
 	}
 }
-/*
-double getDistance(sim_mob::Point2D a,sim_mob::Point2D b){};
-int count = 0;
-double x2, x1, y2, y1, x_base, y_base;
-double SumofDistances = 0;
-sim_mob::Point2D position;
 
-sim_mob::Point2D getNearestPolyline(const sim_mob::Point2D &position)
+void DatabaseLoader::LoadBusSchedule(const std::string& storedProcedure, std::vector<sim_mob::BusSchedule*>& busschedule)
 {
-	const std::vector<sim_mob::Point2D> poly = lane_location->getRoadSegment()->getLaneEdgePolyline(0);
-	std ::vector<sim_mob::Point2D>:: const_iterator it= poly.begin();
-	float distance_measured = getDistance(position,*it); // distance between the position of Bus Stop and the position at which iterator points initially
-	for (it= poly.begin()+1; it!=poly.end(); it++) {
-	        	// this would find the pair of polypoints which are closest to the current Bus Stop and also calculates the value of count as
-		        // the number of polypoint pairs that need to be considered while calculating the sum of polylines
-	        	if (distance_measured > getDistance(position,*it)) {
-	               distance_measured = getDistance(position,*it);
-	               sim_mob::Point2D first_PP = *it;
-	               sim_mob::Point2D second_PP = *(it-1);
-	               x2 = first_PP.getX();
-	               y2 = first_PP.getY();
-	               x1 = second_PP.getX();
-	               y1 = second_PP.getY();
-	               count++;
-	            }
-	      }
-
+    if (storedProcedure.empty())
+    {
+        std::cout << "WARNING: An empty 'bus_schedule' stored-procedure was specified in the config file; "
+                  << "will not lookup the database to create any signal found in there" << std::endl;
+        return;
+    }
+    soci::rowset<sim_mob::BusSchedule> rows = (sql_.prepare <<"select * from " + storedProcedure);
+    for (soci::rowset<sim_mob::BusSchedule>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
+    {
+    	busschedule.push_back(new sim_mob::BusSchedule(*iter));
+    }
 }
-
-
-
-// this function is used to calculate the sum of all polyline lengths *before* the current polyline
-float getSumDistance()
-{
-
-	getNearestPolyline(position);
-	double m = (y2-y1)/(x2-x1); //
-	double n = -1/m;
-	double Y = position.getY();
-	double X = position.getX();
-	x_base = (m*x1-n*X+Y-y1)/(m-n);
-	y_base = (X-x1+m*Y-n*y1)/(m-n);
-
-	std::vector<Point2D>::const_iterator it = lane_location->getRoadSegment()->getLaneEdgePolyline(0).begin()+1;
-    sim_mob ::Point2D first_PP = *it;
-	sim_mob::Point2D second_PP = *(it-1);
-	for (int i = 0; i< count; i++) {
-	        SumofDistances = SumofDistances + sqrt((first_PP.getX()-second_PP.getX())^2 + (first_PP.getY()-second_PP.getY())^2);
-	        it++;
-	}
-	SumofDistances = SumofDistances + sqrt((x_base-first_PP.getX())^2 + (y_base-first_PP.getY())^2);
-	return SumofDistances;
-
-}
-
-
- */
 
 
 
@@ -835,6 +786,60 @@ void DatabaseLoader::PostProcessNetwork()
 
 
 
+sim_mob::Activity* MakeActivity(const TripChainItem& tcItem) {
+	sim_mob::Activity* res = new sim_mob::Activity();
+	res->personID = tcItem.personID;
+	res->itemType = tcItem.itemType;
+	res->sequenceNumber = tcItem.sequenceNumber;
+	res->description = tcItem.description;
+	res->isPrimary = tcItem.isPrimary;
+	res->isFlexible = tcItem.isFlexible;
+	res->isMandatory = tcItem.isMandatory;
+	res->location = tcItem.location->generatedNode;
+	res->locationType = tcItem.locationType;
+	res->startTime = tcItem.startTime;
+	res->endTime = tcItem.endTime;
+	return res;
+}
+
+
+sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
+	sim_mob::Trip* tripToSave = new sim_mob::Trip();
+	tripToSave->tripID = tcItem.tripID;
+	tripToSave->personID = tcItem.personID;
+	tripToSave->itemType = tcItem.itemType;
+	tripToSave->sequenceNumber = tcItem.sequenceNumber;
+	tripToSave->fromLocation = tcItem.fromLocation->generatedNode;
+	tripToSave->fromLocationType = tcItem.fromLocationType;
+	tripToSave->startTime = tcItem.startTime;
+	return tripToSave;
+}
+
+sim_mob::SubTrip MakeSubTrip(const TripChainItem& tcItem) {
+	sim_mob::SubTrip aSubTripInTrip;
+	aSubTripInTrip.personID = tcItem.personID;
+	aSubTripInTrip.itemType = tcItem.itemType;
+	aSubTripInTrip.tripID = tcItem.tmp_subTripID;
+	aSubTripInTrip.fromLocation = tcItem.fromLocation->generatedNode;
+	aSubTripInTrip.fromLocationType = tcItem.fromLocationType;
+	aSubTripInTrip.toLocation = tcItem.toLocation->generatedNode;
+	aSubTripInTrip.toLocationType = tcItem.toLocationType;
+	aSubTripInTrip.mode = tcItem.mode;
+	aSubTripInTrip.isPrimaryMode = tcItem.isPrimaryMode;
+	aSubTripInTrip.ptLineId = tcItem.ptLineId;
+	aSubTripInTrip.startTime = tcItem.startTime;
+	return aSubTripInTrip;
+}
+
+void AddSubTrip(sim_mob::Trip* parent, const sim_mob::SubTrip& subTrip) {
+	// Update the trip destination so that toLocation eventually points to the destination of the trip.
+	parent->toLocation = subTrip.toLocation;
+	parent->toLocationType = subTrip.toLocationType;
+
+	//Add it to the list.
+	parent->addSubTrip(subTrip);
+}
+
 
 
 void DatabaseLoader::DecorateAndTranslateObjects()
@@ -951,7 +956,8 @@ void CutSingleLanePolyline(vector<Point2D>& laneLine, const DynamicVector& cutLi
 	laneLine[trimStart?0:laneLine.size()-1] = intPt;
 }
 
-void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vector<sim_mob::TripChainItem*>& tcs)
+
+void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tcs)
 {
 	//First, Nodes. These match cleanly to the Sim Mobility data structures
 	std::cout <<"Warning: Units are not considered when converting AIMSUN data.\n";
@@ -1006,123 +1012,68 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::vect
 	sim_mob::aimsun::Loader::FixupLanesAndCrossings(res);
 
 	//Save all trip chains
-	int currTripId = 0;
-
-	for (vector<aimsun::TripChainItem>::iterator it=tripchains_.begin(); it!=tripchains_.end(); it++) {
-		if (it->itemType == sim_mob::TripChainItem::IT_ACTIVITY){
+	sim_mob::Trip* tripToSave = nullptr;
+	for (vector<TripChainItem>::const_iterator it=tripchains_.begin(); it!=tripchains_.end(); it++) {
+		if (it->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
 			//TODO: Person related work
-			sim_mob::Activity* activityToSave = new sim_mob::Activity();
-			activityToSave->entityID = it->entityID;
-			activityToSave->itemType = it->itemType;
-			activityToSave->sequenceNumber = it->sequenceNumber;
-			activityToSave->description = it->description;
-			activityToSave->isPrimary = it->isPrimary;
-			activityToSave->isFlexible = it->isFlexible;
-			activityToSave->isMandatory = it->isMandatory;
-			activityToSave->location = it->location->generatedNode;
-			activityToSave->locationType = it->locationType;
-			activityToSave->startTime = it->startTime;
-			activityToSave->endTime = it->endTime;
-
-			tcs.push_back(activityToSave);
-		} else if(it->itemType == sim_mob::TripChainItem::IT_TRIP){
-			// Reads the set of sub trips for this trip and saves the trip in the trip chains
-			sim_mob::Trip *tripToSave = nullptr;
-			do{
-				if(currTripId != it->tripID){
-					tripToSave = new sim_mob::Trip();
-					currTripId = tripToSave->tripID = it->tripID;
-					tripToSave->entityID = it->entityID;
-					tripToSave->itemType = it->itemType;
-					tripToSave->sequenceNumber = it->sequenceNumber;
-					tripToSave->fromLocation = it->fromLocation->generatedNode;
-					tripToSave->fromLocationType = it->fromLocationType;
-				}
-
-				{
-				sim_mob::SubTrip aSubTripInTrip;
-				aSubTripInTrip.entityID = it->entityID;
-				aSubTripInTrip.itemType = it->itemType;
-				aSubTripInTrip.tripID = it->tmp_subTripID;
-				aSubTripInTrip.fromLocation = it->fromLocation->generatedNode;
-				aSubTripInTrip.fromLocationType = it->fromLocationType;
-				aSubTripInTrip.toLocation = it->toLocation->generatedNode;
-				aSubTripInTrip.toLocationType = it->toLocationType;
-				aSubTripInTrip.mode = it->mode;
-				aSubTripInTrip.isPrimaryMode = it->isPrimaryMode;
-				aSubTripInTrip.ptLineId = it->ptLineId;
-				aSubTripInTrip.startTime = it->startTime;
-				//aSubTripInTrip.parentTrip = tripToSave;
-				tripToSave->addSubTrip(aSubTripInTrip);
-				}
-
-				// Update the trip destination so that toLocation eventually points to the destination of the trip.
-				tripToSave->toLocation = it->toLocation->generatedNode;
-				tripToSave->toLocationType = it->toLocationType;
-				++it;
-				if(it->itemType != sim_mob::TripChainItem::IT_TRIP){
-					//Encountered an activity or end of trip chain. Last subtrip was reached in this iteration.
-					--it; // So that the next iteration of the for loop points to this activity
-					break;
-				}
-
-			} while(currTripId == it->tripID);
-
-			if (tripToSave) {
-				tcs.push_back(tripToSave);
+			sim_mob::Activity* activityToSave = MakeActivity(*it);
+			if (activityToSave) {
+				tcs[it->personID].push_back(activityToSave);
 			}
-			if(it==tripchains_.end()) break;
+		} else if(it->itemType == sim_mob::TripChainItem::IT_TRIP) {
+			//Trips are slightly more complicated. Each trip is composed of several sub-trips;
+			//  the first sub-trip is also used to initialize the trip. All sub-trips will have the
+			//  same TripID; however, we might have several trips in a row (and therefore need to break
+			//  in between). The previous code for this was somewhat fragile (didn't capture all this
+			//  possible behavior; coudl potentially lead to null pointer exceptions, and had a faulty
+			//  iterator check *outside* the loop), so here we will try to build things iteratively.
+			if (!tripToSave) {
+				//We at least need a trip to hold this
+				tripToSave = MakeTrip(*it);
+			}
+
+			//Now, make and add a sub-trip
+			AddSubTrip(tripToSave, MakeSubTrip(*it));
+
+
+			//Are we "done" with this trip? The only way to continue is if there is a trip with the same
+			//  trip ID immediately following this.
+			if (tripToSave) {
+				bool done = true;
+				vector<TripChainItem>::const_iterator next = it+1;
+				if (next!=tripchains_.end() && next->itemType==sim_mob::TripChainItem::IT_TRIP && next->tripID==tripToSave->tripID) {
+					done = false;
+				}
+
+				//If done, save it.
+				if (done) {
+					tcs[it->personID].push_back(tripToSave);
+					tripToSave = nullptr;
+				}
+			}
 		}
 	}
 
 	for(map<std::string,BusStop>::iterator it = busstop_.begin(); it != busstop_.end(); it++)
 	{
-
+		//Create the bus stop
 		sim_mob::BusStop *busstop = new sim_mob::BusStop();
-		busstop->parentSegment_ = sections_[(*it).second.TMP_AtSectionID].generatedSegment;
-		busstop->busstopno_ = (*it).second.bus_stop_no;
-		busstop->xPos = (*it).second.xPos;
-		busstop->yPos = (*it).second.yPos;
-		sim_mob::Point2D p((*it).second.xPos,(*it).second.yPos);
+		busstop->parentSegment_ = sections_[it->second.TMP_AtSectionID].generatedSegment;
+		busstop->busstopno_ = it->second.bus_stop_no;
+		busstop->xPos = it->second.xPos;
+		busstop->yPos = it->second.yPos;
 
-		double x = busstop->xPos;
-		double y = busstop->yPos;
-
-		double distOrigin = (((*it).second.xPos)+((*it).second.yPos));
+		//Add the bus stop to its parent segment's obstacle list at an estimated offset.
+		double distOrigin = sim_mob::BusStop::EstimateStopPoint(busstop->xPos, busstop->yPos, sections_[it->second.TMP_AtSectionID].generatedSegment);
 		busstop->parentSegment_->obstacles[distOrigin] = busstop;
 	}
 
-
-#if 0
-	map<int,Node>::iterator it=nodes.find(66508);
-	if (it!=nodes.end()) {
-		sim_mob::MultiNode* temp = dynamic_cast<sim_mob::MultiNode*>(it->second.generatedNode);
-		if (temp) {
-			for (set<sim_mob::RoadSegment*>::const_iterator it2=temp->getRoadSegments().begin(); it2!=temp->getRoadSegments().end(); it2++) {
-				if (temp->hasOutgoingLanes(**it2)) {
-					std::cout <<"  Segment crossings for:  " <<(*it2)->getStart()->originalDB_ID.getLogItem() <<" ==> " <<(*it2)->getEnd()->originalDB_ID.getLogItem() <<"\n";
-					std::set<string> res;
-					for (set<sim_mob::LaneConnector*>::const_iterator it3=temp->getOutgoingLanes(**it2).begin(); it3!=temp->getOutgoingLanes(**it2).end(); it3++) {
-						res.insert((*it3)->getLaneTo()->getRoadSegment()->getEnd()->originalDB_ID.getLogItem());
-					}
-
-					for (std::set<string>::iterator it4=res.begin(); it4!=res.end(); it4++) {
-						std::cout <<"    ...to:  " <<*it4 <<"\n";
-					}
-				}
-			}
-
-		}
-	}
-	throw 1;
-#endif
-
-	createSignals();
 	/*vahid:
 	 * and Now we extend the signal functionality by adding extra information for signal's split plans, offset, cycle length, phases
 	 * lots of these data are still default(cycle length, offset, choice set.
 	 * They will be replaced by more realistic value(and input feeders) as the project proceeeds
 	 */
+	createSignals();
 #ifdef SIMMOB_NEW_SIGNAL
 	//NOTE: I am disabling this for now; it seems to be done in createSignals() ~Seth
 	//createPlans();
@@ -1613,20 +1564,24 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	if (src.fromNode->candidateForSegmentNode) {
 		return;
 	}
-
+	set<RoadSegment*> linkSegments;
+	std::ostringstream convertLinkId,convertSegId;
 	//Process this section, and continue processing Sections along the direction of
 	// travel until one of these ends on an intersection.
 	//NOTE: This approach is far from foolproof; for example, if a Link contains single-directional
 	//      Road segments that fail to match at every UniNode. Need to find a better way to
 	//      group RoadSegments into Links, but at least this works for our test network.
 	Section* currSect = &src;
-	sim_mob::Link* ln = new sim_mob::Link();
-	src.generatedSegment = new sim_mob::RoadSegment(ln);
+	convertLinkId << 1000001 + res.links.size();
+	sim_mob::Link* ln = new sim_mob::Link(convertLinkId.str());
+	convertSegId  << 1000001 + res.links.size() << 101 + linkSegments.size() ;
+//	std::cout << "Creating a Road Segment with___ " << convertSegId.str() << std::endl;
+	src.generatedSegment = new sim_mob::RoadSegment(ln,convertSegId.str());
 	ln->roadName = currSect->roadName;
 	ln->start = currSect->fromNode->generatedNode;
 	//added by Jenny to tag node to one link
 	ln->start->setLinkLoc(ln);
-	set<RoadSegment*> linkSegments;
+	//set<RoadSegment*> linkSegments;
 
 	//Make sure the link's start node is represented at the Node level.
 	//TODO: Try to avoid dynamic casting if possible.
@@ -1672,7 +1627,15 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 
 			//Prepare a new segment IF required, and save it for later reference (or load from past ref.)
 			if (!found->generatedSegment) {
-				found->generatedSegment = new sim_mob::RoadSegment(ln);
+				convertSegId.clear();
+				convertSegId.str(std::string());
+				convertSegId  << 1000001 + res.links.size() << 101 + linkSegments.size();
+//				std::cout << "Creating a Road Segment with " << convertSegId.str() << std::endl;
+				found->generatedSegment = new sim_mob::RoadSegment(ln,convertSegId.str());
+			}
+			else
+			{
+//				std::cout << "Bypassing\n";
 			}
 
 			//Save this segment if either end points are multinodes
@@ -1805,17 +1768,22 @@ void sim_mob::aimsun::Loader::ProcessSectionPolylines(sim_mob::RoadNetwork& res,
 
 
 
-string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::vector<sim_mob::TripChainItem*>& tcs, ProfileBuilder* prof)
+string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const map<string, string>& storedProcs, sim_mob::RoadNetwork& rn, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tcs, ProfileBuilder* prof)
 {
-	//try {
 	std::cout << "Attempting to connect to database...." << std::endl;
 
 	//Connection string will look something like this:
 	//"host=localhost port=5432 dbname=SimMobility_DB user=postgres password=XXXXX"
 	DatabaseLoader loader(connectionStr);
 	std::cout << ">Success." << std::endl;
+
 	//Step One: Load
 	loader.LoadBasicAimsunObjects(storedProcs);
+
+	//Step 1.1: Load "new style" objects, which don't require any post-processing.
+	loader.LoadBusSchedule(getStoredProcedure(storedProcs, "bus_schedule", false), ConfigParams::GetInstance().getBusSchedule());
+
+
 	if (prof) { prof->logGenericEnd("Database", "main-prof"); }
 
 	//Step Two: Translate
@@ -1825,6 +1793,7 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 	loader.PostProcessNetwork();
 	//Step Four: Save
 	loader.SaveSimMobilityNetwork(rn, tcs);
+
 	//Temporary workaround; Cut lanes short/extend them as reuquired.
 	for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {
 		TMP_TrimAllLaneLines(it->second.generatedSegment, it->second.HACK_LaneLinesStartLineCut, true);
@@ -1844,11 +1813,6 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 		loader.TransferBoundaryRoadSegment();
 	}
 #endif
-
-
-	//} catch (std::exception& ex) {
-	//	return string(ex.what());
-	//}
 
 	std::cout <<"AIMSUN Network successfully imported.\n";
 	return "";

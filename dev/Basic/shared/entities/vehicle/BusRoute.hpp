@@ -15,7 +15,7 @@
 #include "util/LangHelpers.hpp"
 #include "util/GeomHelpers.hpp"
 #include "metrics/Frame.hpp"
-
+#include "geospatial/BusStop.hpp"
 
 
 namespace sim_mob {
@@ -30,47 +30,47 @@ class UnPackageUtils;
  */
 class DemoBusStop {
 public:
+	//DemoBusStop(RoadSegment *rs){};
 	const sim_mob::RoadSegment* seg;
 	double distance;
 	double percent;
 	double finalDist;
 	const sim_mob::Point2D* position;
 
+	bool operator== (const DemoBusStop& a) const
+	{
+	    return (a.seg==seg)&&(a.percent==percent);
+	}
+
 
 	///Is there a bus stop on the current road segment?
 	bool isBusStopOnCurrSegment(const RoadSegment* curr) const {
-		return curr->obstacles.size()>0;
+		typedef std::map<centimeter_t, const RoadItem*>::const_iterator  ObstacleIterator;
+
+		//Scan the obstacles list; return true if any RoadItem on it is a BusStop.
+		for(ObstacleIterator o_it = curr->obstacles.begin(); o_it != curr->obstacles.end() ; o_it++) {
+			if(dynamic_cast<const BusStop*>(o_it->second)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	///Have we reached this bus stop?
-	///Have we reached this bus stop?
-		bool atOrPastBusStop(const RoadSegment* curr, const double distTraveledOnSegmentZeroLane) const {
-			const std::vector<Point2D>& poly = const_cast<RoadSegment*>(seg)->getLaneEdgePolyline(0);
-			double totalDist = 0.0;
-			for (std::vector<Point2D>::const_iterator it=poly.begin(); it!=poly.end(); it++) {
-				if (it!=poly.begin()) {
-					totalDist += sim_mob::dist(*it, *(it-1));
-				}
+	bool atOrPastBusStop(const RoadSegment* curr, const double distTraveledOnSegmentZeroLane) const {
+		const std::vector<Point2D>& poly = const_cast<RoadSegment*>(seg)->getLaneEdgePolyline(0);
+		double totalDist = 0.0;
+		for (std::vector<Point2D>::const_iterator it=poly.begin(); it!=poly.end(); it++) {
+			if (it!=poly.begin()) {
+				totalDist += sim_mob::dist(*it, *(it-1));
 			}
-
-			/*if (isBusStopOnCurrSegment(curr)) {
-				std::cout <<"Test: " <<distTraveledOnSegmentZeroLane <<" => " <<percent*totalDist <<"   (" <<(isBusStopOnCurrSegment(curr) && (distTraveledOnSegmentZeroLane >= percent*totalDist)) <<")" <<"\n";
-			}*/
-//std::cout<<"CEILING"<<percent<<ceil(percent)<<std::endl;
-//if(ceil(percent))
-//{
-			//std::cout<<"OSTACLES"<<<<"HELLO"<<std::endl;
-
-
-			                                return isBusStopOnCurrSegment(curr) && percent>0;
-
-
-
-			                               // else return 0;
-//}
-
 		}
-	};
+
+		std::cout<<"atOrPastBusStop: isBusStopOnCurrSegment <"<<isBusStopOnCurrSegment(curr)<<">"
+				 <<" percent<"<<percent<<">"<<std::endl;
+		return isBusStopOnCurrSegment(curr) && percent>0;
+	}
+};
 
 /**
  * A bus route defines how a bus traverses the road network. It consists of the waypoint path
@@ -80,15 +80,10 @@ public:
  */
 class BusRoute {
 public:
-	/*BusRoute() : stops(std::vector<BusStop>()) { //No route; still allowed.
-		reset();
-	}*/
-
 	explicit BusRoute(std::vector<DemoBusStop> stops=std::vector<DemoBusStop>()) : stops(stops) {
 		//Start driving at the beginning
 		reset();
 	}
-
 
 	void reset() {
 		currStop = stops.begin();
@@ -103,6 +98,11 @@ public:
 			return &(*currStop);
 		}
 		return nullptr;
+	}
+
+	const std::vector<DemoBusStop> getStops() const
+	{
+		return stops;
 	}
 
 

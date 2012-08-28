@@ -5,7 +5,8 @@
 #include "GenConfig.h"
 #include "util/LangHelpers.hpp"
 #include "entities/Agent.hpp"
-#include "entities/roles/driver/DriverUpdateParams.hpp"
+#include "entities/vehicle/Vehicle.hpp"
+#include "entities/UpdateParams.hpp"
 #include "boost/thread/thread.hpp"
 #include "boost/thread/locks.hpp"
 #include "util/OutputUtil.hpp"
@@ -36,12 +37,15 @@ class Role
 public:
 	//NOTE: Don't forget to call this from sub-classes!
 	explicit Role(Agent* parent = nullptr) :
-		parent(parent)
+		parent(parent), currResource(nullptr)
 	{
 	}
 
 	//Allow propagating destructors
 	virtual ~Role() {}
+
+	//A Role must allow for copying via prototyping; this is how the RoleFactory creates roles.
+	virtual Role* clone(Person* parent) const = 0;
 
 	///Called the first time an Agent's update() method is successfully called.
 	/// This will be the tick of its startTime, rounded down(?).
@@ -64,6 +68,9 @@ public:
 	/// Agents can append/remove this list to their own subscription list each time
 	/// they change their Role.
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams() = 0;
+
+	//NOTE: Should not be virtual; this is a little hackish for now. ~Seth
+	virtual Vehicle* getResource() { return currResource; }
 
 	Agent* getParent()
 	{
@@ -112,6 +119,8 @@ public:
 
 protected:
 	Agent* parent; ///<The owner of this role. Usually a Person, but I could see it possibly being another Agent.
+
+	Vehicle* currResource; ///<Roles may hold "resources" for the current task. Expand later into multiple types.
 
 	//add by xuyan
 protected:

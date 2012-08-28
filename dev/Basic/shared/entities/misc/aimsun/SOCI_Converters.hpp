@@ -8,6 +8,7 @@
 
 #include "soci.h"
 #include "TripChain.hpp"
+#include "entities/misc/BusSchedule.hpp"
 
 
 using namespace sim_mob::aimsun;
@@ -18,15 +19,15 @@ namespace soci
 {
 
 
-template<> struct type_conversion<aimsun::TripChainItem>
+template<> struct type_conversion<TripChainItem>
 {
     typedef values base_type;
-    static void from_base(const soci::values& vals, soci::indicator& ind, aimsun::TripChainItem &res)
+    static void from_base(const soci::values& vals, soci::indicator& ind, TripChainItem &res)
     {
-    	res.entityID = vals.get<int>("entityid",0);
+    	res.personID = vals.get<int>("entityid",0);
     	res.sequenceNumber = vals.get<int>("trip_chain_sequence_number",0);
     	res.itemType = sim_mob::TripChainItem::getItemType(vals.get<std::string>("trip_chain_item_type",""));
-    	if(res.itemType == sim_mob::TripChainItem::IT_TRIP){
+    	if(res.itemType == sim_mob::TripChainItem::IT_TRIP) {
     		res.tripID = vals.get<int>("trip_id", 0);
     		res.tmp_tripfromLocationNodeID = vals.get<int>("trip_from_location_id",0);
     		res.tripfromLocationType = sim_mob::TripChainItem::getLocationType(vals.get<std::string>("trip_from_location_type",""));
@@ -42,7 +43,7 @@ template<> struct type_conversion<aimsun::TripChainItem>
     		res.ptLineId = vals.get<std::string>("public_transit_line_id","");
     		res.tmp_startTime = vals.get<std::string>("start_time","");
     	}
-    	else if(res.itemType == sim_mob::TripChainItem::IT_ACTIVITY){
+    	else if(res.itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
     		res.tmp_activityID = vals.get<int>("activity_id", 0);
     		res.description = vals.get<std::string>("activity_description", "");
     		res.isPrimary = vals.get<int>("primary_activity", 0);
@@ -58,9 +59,31 @@ template<> struct type_conversion<aimsun::TripChainItem>
     	}
     }
 
-    static void to_base(const aimsun::TripChainItem& src, soci::values& vals, soci::indicator& ind)
+    static void to_base(const TripChainItem& src, soci::values& vals, soci::indicator& ind)
     {
     	throw std::runtime_error("TripChainItem::to_base() not implemented");
+    }
+};
+
+
+template<>
+struct type_conversion<sim_mob::BusSchedule>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::BusSchedule& bus_schedule)
+    {
+    	bus_schedule.tripid = values.get<std::string>("trip_id", "");
+    	bus_schedule.startTime = sim_mob::DailyTime(values.get<std::string>("start_time", ""));
+    }
+
+    static void
+    to_base(sim_mob::BusSchedule const & bus_schedule, soci::values & values, soci::indicator & indicator)
+    {
+        values.set("trip_id", bus_schedule.tripid);
+        values.set("start_time", bus_schedule.startTime.toString());
+        indicator = i_ok;
     }
 };
 

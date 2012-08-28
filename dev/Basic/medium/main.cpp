@@ -3,7 +3,7 @@
 /*
  * file main_med.cpp
  * A first skeleton for mid-term module
- * author vuvinhan
+ * \author Vu Vinh An
  */
 #include <vector>
 #include <string>
@@ -11,9 +11,13 @@
 
 #include "GenConfig.h"
 
-#include "workers/Worker.hpp"
 #include "buffering/BufferedDataManager.hpp"
-#include "workers/WorkGroup.hpp"
+#include "entities/AuraManager.hpp"
+#include "entities/Signal.hpp"
+#include "entities/Agent.hpp"
+#include "entities/roles/activityRole/ActivityPerformer.hpp"
+#include "entities/roles/driver/Driver.hpp"
+#include "entities/roles/pedestrian/Pedestrian.hpp"
 #include "geospatial/aimsun/Loader.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/UniNode.hpp"
@@ -21,26 +25,12 @@
 #include "geospatial/Lane.hpp"
 #include "util/OutputUtil.hpp"
 #include "util/DailyTime.hpp"
+#include "util/LangHelpers.hpp"
+#include "workers/Worker.hpp"
+#include "workers/WorkGroup.hpp"
 
-//Just temporarily, so we know it compiles:
-#include "entities/Signal.hpp"
-#include "conf/simpleconf.hpp"
-#include "entities/AuraManager.hpp"
-#include "entities/TrafficWatch.hpp"
-#include "entities/Bus.hpp"
-#include "entities/Person.hpp"
-#include "entities/roles/Role.hpp"
-#include "entities/roles/driver/Driver.hpp"
-#include "entities/roles/pedestrian/Pedestrian.hpp"
-#include "entities/roles/passenger/Passenger.hpp"
-#include "entities/profile/ProfileBuilder.hpp"
-#include "geospatial/BusStop.hpp"
-#include "geospatial/Route.hpp"
-#include "geospatial/BusRoute.hpp"
-#include "perception/FixedDelayed.hpp"
-#include "buffering/Buffered.hpp"
-#include "buffering/Locked.hpp"
-#include "buffering/Shared.hpp"
+//If you want to force a header file to compile, you can put it here temporarily:
+//#include "entities/BusController.hpp"
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
@@ -55,6 +45,7 @@ using std::vector;
 using std::string;
 
 using namespace sim_mob;
+using namespace sim_mob::medium;
 
 //Temporary flag: Shuffle all agents (signals and otherwise) onto the Agent worker threads?
 // This is needed for performance testing; it will cause signals to fluxuate faster than they should.
@@ -111,10 +102,20 @@ bool performMainMed(const std::string& configFileName) {
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
 #endif
 
-	//Load our user config file; save a handle to the shared definition of it.
-	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof)) { //Note: Agent "shells" are loaded here.
+	//Register our Role types.
+	//TODO: Accessing ConfigParams before loading it is technically safe, but we
+	//      should really be clear about when this is not ok.
+	RoleFactory& rf = ConfigParams::GetInstance().getRoleFactoryRW();
+	rf.registerRole("driver", new sim_mob::medium::Driver(nullptr));
+	rf.registerRole("pedestrian", new sim_mob::medium::Pedestrian(nullptr));
+	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
+
+	//Load our user config file
+	if (!ConfigParams::InitUserConf(configFileName, Agent::all_agents, Agent::pending_agents, prof)) {
 		return false;
 	}
+
+	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigParams::GetInstance();
 
 
@@ -134,6 +135,8 @@ bool performMainMed(const std::string& configFileName) {
 		partitionImpl.initBoundaryTrafficItems();
 	}
 #endif
+
+	{ //Begin scope: WorkGroups
 
 	//Initialize our work groups.
 	WorkGroup agentWorkers(config.agentWorkGroupSize, config.totalRuntimeTicks,
@@ -181,9 +184,6 @@ bool performMainMed(const std::string& configFileName) {
 	//Initialize the aura manager
 	AuraManager& auraMgr = AuraManager::instance();
 	auraMgr.init();
-
-	//Inititalize the traffic watch
-//	TrafficWatch& trafficWatch = TrafficWatch::instance();
 
 	//Start work groups and all threads.
 	agentWorkers.startAll();
@@ -278,21 +278,13 @@ bool performMainMed(const std::string& configFileName) {
 #endif
 
 		auraMgr.update(currTick);
-//		trafficWatch.update(currTick);
 		agentWorkers.waitExternAgain(); // The workers wait on the AuraManager.
-
-
-
-		//Surveillance update
-		//updateSurveillanceData(agents);
 
 		//Check if the warmup period has ended.
 		if (warmupDone) {
 			//updateGUI(agents);
 			//saveStatistics(agents);
 		}
-
-		//saveStatisticsToDB(agents);
 	}
 
 	//Finalize partition manager
@@ -326,7 +318,7 @@ bool performMainMed(const std::string& configFileName) {
 			Person* p = dynamic_cast<Person*> (*it);
 			if (p) {
 				numPerson++;
-				if (p->getRole() && dynamic_cast<Driver*> (p->getRole())) {
+				if (p->getRole() && dynamic_cast<Driver*>(p->getRole())) {
 					numDriver++;
 				}
 				if (p->getRole() && dynamic_cast<Pedestrian*> (p->getRole())) {
@@ -348,11 +340,25 @@ bool performMainMed(const std::string& configFileName) {
 	if (!Agent::pending_agents.empty()) {
 		cout << "WARNING! There are still " << Agent::pending_agents.size()
 				<< " Agents waiting to be scheduled; next start time is: "
-				<< Agent::pending_agents.top().start << " ms\n";
+				<< Agent::pending_agents.top()->getStartTime() << " ms\n";
 		if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
 			throw std::runtime_error("ERROR: pending_agents shouldn't be used if Dynamic Dispatch is disabled.");
 		}
 	}
+
+	//NOTE: This dangerous behavior; the Worker will still be tracking the Agent!  ~Seth
+	//BusController::busctrller.currWorker = nullptr;// Update our Entity's pointer before ending main()
+
+	//This is the safer way to do it:
+	//BusController::busctrller.currWorker->migrateOut(BusController::busctrller);
+	//...but that method is private (and fails to do other important things, like removing managed properties).
+
+	//Instead, we will simply scope-out the WorkGroups, and they will migrate out all remaining Agents.
+	}  //End scope: WorkGroups. (Todo: should move this into its own function later)
+
+	//Test: At this point, it should be possible to delete all Signals and Agents.
+	clear_delete_vector(Signal::all_signals_);
+	clear_delete_vector(Agent::all_agents);
 
 	cout << "Simulation complete; closing worker threads." << endl;
 	return true;

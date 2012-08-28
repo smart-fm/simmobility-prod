@@ -9,6 +9,7 @@ import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 
+import sim_mob.vis.Main;
 import sim_mob.vis.controls.DrawParams;
 import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.util.Utility;
@@ -24,17 +25,26 @@ public class TrafficSignalLine implements DrawableItem{
 	private Node fromNode;
 	private Node toNode;
 	private Color currColor;
+	private String temPhaseName;
 	
 	private final int ARR_SIZE = 6; 
 	
 	
-	public TrafficSignalLine(Lane fromLane, Lane toLane, int startingColor){
+	public TrafficSignalLine(Lane fromLane, Lane toLane,String temPhaseName_, int startingColor){
 		this.fromLane = fromLane;
 		this.toLane = toLane;
 		this.findNode();
+		this.temPhaseName = temPhaseName_;
 		setLightColor(startingColor);
 	}
 	
+	public TrafficSignalLine(Lane fromLane, Lane toLane){
+		this.fromLane = fromLane;
+		this.toLane = toLane;
+		this.findNode();
+	}
+	
+	public String getPhaseName() { return temPhaseName; }
 	public Lane getFromLane() { return fromLane; }
 	public Lane getToLane() { return toLane; }
 	public Node getFromNode() { return fromNode; }
@@ -110,6 +120,8 @@ public class TrafficSignalLine implements DrawableItem{
 	
 	
 	public void setLightColor(Integer color) {
+		if(Main.NEW_SIGNAL)
+		{
 		switch(color)
 		{
 		case 1:
@@ -127,13 +139,17 @@ public class TrafficSignalLine implements DrawableItem{
 		default:
 			currColor = Color.darkGray;
 		}
-//		if (color == 2) {
-//			currColor = Color.yellow;
-//		} else if (color==3) {
-//			currColor = Color.green;
-//		} else {
-//			currColor = null;
-//		}
+		}
+		else
+		{
+			if (color == 2) {
+				currColor = Color.yellow;
+			} else if (color==3) {
+				currColor = Color.green;
+			} else {
+				currColor = null;
+			}
+		}
 	}
 	
 	public void setLightColor(Color color) {

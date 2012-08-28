@@ -16,8 +16,8 @@
 
 #include "util/MovementVector.hpp"
 #include "util/DynamicVector.hpp"
-#include "entities/roles/driver/GeneralPathMover.hpp"
-#include "entities/roles/driver/DriverUpdateParams.hpp"
+#include "geospatial/GeneralPathMover.hpp"
+#include "geospatial/Lane.hpp"
 
 namespace sim_mob {
 
@@ -47,6 +47,7 @@ public:
 	double getX() const;   ///<Retrieve the vehicle's absolute position, x
 	double getY() const;   ///<Retrieve the vehicle's absolute position, y
 	double getDistanceMovedInSegment() const;   ///<Retrieve the total distance moved in this segment so far.
+	double getDistanceToSegmentStart() const;
 	//double getCurrLaneLength() const; ///<Get the total length of this RoadSegment.
 
 	double getLateralMovement() const;         ///<Retrieve a value representing how far to the LEFT of the current lane the vehicle has moved.
@@ -122,8 +123,9 @@ private:
 	//Override for when we're in an intersection.
 	DPoint posInIntersection;
 
-
+public:
 	DPoint getPosition() const;
+private:
 
 
 	//NOTE: The error state is a temporary sanity check to help me debug this class. There are certainly

@@ -47,8 +47,16 @@ class LaneLoader;
 class RoadSegment : public sim_mob::Pavement {
 public:
 	///Create a RoadSegment as part of a given Link.
-	explicit RoadSegment(sim_mob::Link* parent);
 	RoadSegment(){}//needed by xml reader --vahid
+	explicit RoadSegment(sim_mob::Link* parent);
+	
+	explicit RoadSegment(sim_mob::Link* parent, std::string id);
+	const std::string & getSegmentID()const ;
+
+	bool operator== (const RoadSegment* rhs) const
+	{
+		   return (rhs->getStart()==this->getStart())&&(rhs->getEnd()==this->getEnd());
+	}
 	///Return the Link this RoadSegment is part of.
 	sim_mob::Link* getLink() const { return parentLink; }
 
@@ -114,6 +122,7 @@ private:
 	///Which link this appears in
 	sim_mob::Link* parentLink;
 	std::string segmentID;
+
 friend class sim_mob::aimsun::Loader;
 friend class sim_mob::aimsun::LaneLoader;
 friend class sim_mob::RoadNetworkPackageManager;

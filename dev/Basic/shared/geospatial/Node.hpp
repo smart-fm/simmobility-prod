@@ -6,10 +6,12 @@
 #include <map>
 #include <set>
 #include <string>
+#include <math.h>
 
 #include "util/LangHelpers.hpp"
 #include "util/OpaqueProperty.hpp"
 #include "Point2D.hpp"
+
 namespace sim_mob
 {
 //Forward declarations
@@ -65,7 +67,9 @@ public:
     void setID(unsigned int);
     unsigned int getID()const;
     void setLinkLoc(sim_mob::Link* link);
+
     sim_mob::Link* getLinkLoc() const;
+  const Point2D getLocation(){ return location;}
 };
 
 

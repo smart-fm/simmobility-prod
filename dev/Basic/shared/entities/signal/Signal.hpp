@@ -14,8 +14,8 @@
 //  This allows us to simply include "entities/signal/Signal.hpp" without reservation.
 #include "GenConfig.h"
 #ifndef SIMMOB_NEW_SIGNAL
-//	#include "entities/Signal.hpp"
-//	#include "util/SignalStatus.hpp"
+#include "entities/Signal.hpp"
+#include "util/SignalStatus.hpp"
 #else
 #include <map>
 #include <vector>
@@ -75,6 +75,8 @@ public:
    Node  const & getNode() const { return node_; }
    virtual void outputTrafficLights(frame_t frameNumber,std::string newLine)const{};
    virtual void createStringRepresentation(std::string){};
+   virtual ~Signal(){}
+   virtual void load(const std::map<std::string, std::string>&) {}
 
    static std::vector<Signal *> all_signals_;
    typedef std::vector<Signal *> All_Signals;
@@ -94,16 +96,20 @@ public:
 	/*--------Initialization----------*/
 	void initialize();
 	void setSplitPlan(sim_mob::SplitPlan);
-//	void setCycleLength(sim_mob::Cycle);
 	Signal_SCATS(Node const & node,const MutexStrategy& mtxStrat,int id=-1);
     static Signal_SCATS const & signalAt(Node const & node, const MutexStrategy& mtxStrat,bool *isNew = false);//bool isNew : since this function will create and return new signal if already existing signals not found, a switch to indicate what happened in the function would be nice
+
+	//Note: You need a virtual destructor or else superclass destructors won't be called. ~Seth
+    //created virtual for the immediate parent.Although not needed
+	~Signal_SCATS() {}
+
     void addSignalSite(centimeter_t xpos, centimeter_t ypos,std::string const & typeCode, double bearing);
     void findIncomingLanes();
     void findSignalLinks();
     void findSignalLinksAndCrossings();
     LinkAndCrossingByLink const & getLinkAndCrossingsByLink() const {return LinkAndCrossings_.get<2>();}
     LinkAndCrossingByCrossing const & getLinkAndCrossingsByCrossing() const {return LinkAndCrossings_.get<4>();}
-    LoopDetectorEntity const & loopDetector() const { return loopDetector_; }
+    LoopDetectorEntity const & loopDetector() const { return *loopDetector_; }
 
 
 	/*--------Updation----------*/
@@ -223,7 +229,8 @@ private:
 
 	friend class DatabaseLoader;
 protected:
-        LoopDetectorEntity loopDetector_;
+		//NOTE: See the old Signal class for why this has to (temporarily) be a pointer. ~Seth
+        LoopDetectorEntity* loopDetector_;
 
 
 #ifndef SIMMOB_DISABLE_MPI

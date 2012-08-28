@@ -4,6 +4,7 @@
 
 #include "GenConfig.h"
 #include "entities/UpdateParams.hpp"
+#include "geospatial/Lane.hpp"
 #include "util/DynamicVector.hpp"
 #include <boost/random.hpp>
 #include "util/LangHelpers.hpp"
@@ -26,23 +27,9 @@ class UnPackageUtils;
 #endif
 
 
-struct LaneSide {
-	bool left;
-	bool right;
-	bool both() const { return left && right; }
-	bool leftOnly() const { return left && !right; }
-	bool rightOnly() const { return right && !left; }
-};
-
 enum LANE_CHANGE_MODE {	//as a mask
 	DLC = 0,
 	MLC = 2
-};
-
-enum LANE_CHANGE_SIDE {
-	LCS_LEFT = -1,
-	LCS_SAME = 0,
-	LCS_RIGHT = 1
 };
 
 
@@ -73,7 +60,7 @@ struct NearestPedestrian {
 /// \author Seth N. Hetu
 ///NOTE: Constructor is currently implemented in Driver.cpp. Feel free to shuffle this around if you like.
 struct DriverUpdateParams : public UpdateParams {
-	explicit DriverUpdateParams(boost::mt19937& gen) : UpdateParams(gen) {}
+	explicit DriverUpdateParams(boost::mt19937& gen) : UpdateParams(gen) ,nextLaneIndex(0){}
 
 	virtual void reset(frame_t frameNumber, unsigned int currTimeMS, const Driver& owner);
 
@@ -106,6 +93,15 @@ struct DriverUpdateParams : public UpdateParams {
 	double perceivedAccelerationOfFwdCar;
 	double perceivedDistToFwdCar;
 	double perceivedDistToTrafficSignal;
+
+	DriverUpdateParams& operator=(DriverUpdateParams rhs)
+	{
+		currLane = rhs.currLane;
+		currLaneIndex = rhs.currLaneIndex;
+		nextLaneIndex = rhs.nextLaneIndex;
+
+		return *this;
+	}
 
 #ifdef SIMMOB_NEW_SIGNAL
 	sim_mob::TrafficColor perceivedTrafficColor;

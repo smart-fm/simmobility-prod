@@ -189,6 +189,13 @@ void sim_mob::Worker::barrier_mgmt()
 }
 
 
+void sim_mob::Worker::migrateAllOut()
+{
+	while (!managedEntities.empty()) {
+		migrateOut(*managedEntities.back());
+	}
+}
+
 
 void sim_mob::Worker::migrateOut(Entity& ag)
 {
@@ -248,6 +255,8 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 
 
 
+//TODO: It seems that beginManaging() and stopManaging() can also be called during update?
+//      May want to dig into this a bit more. ~Seth
 void sim_mob::Worker::perform_main(frame_t frameNumber)
 {
 	//All Entity workers perform the same tasks for their set of managedEntities.

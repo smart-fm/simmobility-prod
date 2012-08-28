@@ -22,9 +22,13 @@
 #include "entities/roles/Role.hpp"
 #include "geospatial/Point2D.hpp"
 #include "conf/simpleconf.hpp"
+#ifdef SIMMOB_NEW_SIGNAL
+#include "entities/signal/Signal.hpp"
+#else
 #include "entities/Signal.hpp"
+#endif
 #include "geospatial/Crossing.hpp"
-#include "entities/roles/driver/GeneralPathMover.hpp"
+#include "geospatial/GeneralPathMover.hpp"
 #include "entities/UpdateParams.hpp"
 #include "geospatial/RoadSegment.hpp"
 using std::vector;
@@ -34,10 +38,7 @@ namespace sim_mob
 
 class PackageUtils;
 class UnPackageUtils;
-
-#ifndef SIMMOB_DISABLE_MPI
 class PartitionManager;
-#endif
 
 //Stages
 enum PedestrianStage {
@@ -64,7 +65,6 @@ inline void operator++(PedestrianStage& rhs) {
 struct PedestrianUpdateParams : public sim_mob::UpdateParams {
 	explicit PedestrianUpdateParams(boost::mt19937& gen) : UpdateParams(gen) {}
 
-	virtual ~PedestrianUpdateParams() {}
 	virtual void reset(frame_t frameNumber, unsigned int currTimeMS)
 	{
 		sim_mob::UpdateParams::reset(frameNumber, currTimeMS);
@@ -89,8 +89,10 @@ struct PedestrianUpdateParams : public sim_mob::UpdateParams {
  */
 class Pedestrian : public sim_mob::Role {
 public:
-	Pedestrian(Agent* parent, boost::mt19937& gen);
+	Pedestrian(Agent* parent);
 	virtual ~Pedestrian();
+
+	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 
 	//Virtual overrides
 	virtual void frame_init(UpdateParams& p);
@@ -131,12 +133,13 @@ private:
 	bool gotoCrossing;
 
 	//The following methods are to be moved to agent's sub-systems in future
+	bool isAtBusStop();
 	bool isGoalReached();
 	bool isDestReached();
 	void setSubPath();
 	void updateVelocity(int);
 	void updatePosition();
-	void updatePedestrianSignal();
+	void updatePedestrianSignal(bool isFwd);
 	void checkForCollisions();
 	bool checkGapAcceptance();
 	void absToRel(double, double, double &, double &);
@@ -161,11 +164,7 @@ private:
 	//Serialization-related friends
 	friend class PackageUtils;
 	friend class UnPackageUtils;
-
-#ifndef SIMMOB_DISABLE_MPI
-public:
 	friend class PartitionManager;
-#endif
 
 #ifndef SIMMOB_DISABLE_MPI
 public:

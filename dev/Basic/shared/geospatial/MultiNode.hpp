@@ -67,7 +67,7 @@ public:
 
 	//Helper: Build it
 	static void BuildClockwiseLinks(const sim_mob::RoadNetwork& rn, sim_mob::MultiNode* node);
-
+	const std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> > & getConnectors()  {return connectors;}
 protected:
 	///Mapping from RoadSegment* -> set<LaneConnector*> representing lane connectors.
 	///Currently allows one to make quick requests upon arriving at a Node of which

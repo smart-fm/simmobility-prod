@@ -11,6 +11,7 @@
 
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
+#include "entities/LoopDetectorEntity.hpp"
 
 using std::map;
 using std::vector;
@@ -62,10 +63,13 @@ sim_mob::WorkGroup::WorkGroup(size_t size, unsigned int endTick, unsigned int ti
 
 sim_mob::WorkGroup::~WorkGroup()
 {
-	for (size_t i=0; i<workers.size(); i++) {
-		workers[i]->join();  //NOTE: If we don't join all Workers, we get threading exceptions.
-		delete workers[i];
+	for (vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
+		Worker* wk = *it;
+		wk->join();  //NOTE: If we don't join all Workers, we get threading exceptions.
+		wk->migrateAllOut(); //This ensures that Agents can safely delete themselves.
+		delete wk;
 	}
+	workers.clear();
 }
 
 
@@ -83,6 +87,16 @@ void sim_mob::WorkGroup::startAll()
 }
 
 
+void sim_mob::WorkGroup::scheduleEntity(Person* ent)
+{
+	//No-one's using DISABLE_DYNAMIC_DISPATCH anymore; we can eventually remove it.
+	if (!loader) { throw std::runtime_error("Can't schedule an entity with dynamic dispatch disabled."); }
+
+	//Schedule it to start later.
+	loader->pending_source.push(ent);
+}
+
+
 void sim_mob::WorkGroup::stageEntities()
 {
 	//Even with dynamic dispatch enabled, some WorkGroups simply don't manage entities.
@@ -92,17 +106,20 @@ void sim_mob::WorkGroup::stageEntities()
 
 	//Keep assigning the next entity until none are left.
 	unsigned int nextTickMS = nextTimeTickToStage*ConfigParams::GetInstance().baseGranMS;
-	while (!loader->pending_source.empty() && loader->pending_source.top().start <= nextTickMS) {
+	while (!loader->pending_source.empty() && loader->pending_source.top()->getStartTime() <= nextTickMS) {
 		//Remove it.
-		Person* ag = Person::GeneratePersonFromPending(loader->pending_source.top());
-
-		//std::cout <<"Check: " <<loader->pending_source.top().manualID <<" => " <<ag->getId() <<std::endl;
-		//throw 1;
-
+		Person* ag = loader->pending_source.top();
 		loader->pending_source.pop();
 
 		if (sim_mob::Debug::WorkGroupSemantics) {
 			std::cout <<"Staging agent ID: " <<ag->getId() <<" in time for tick: " <<nextTimeTickToStage <<"\n";
+		}
+
+		//Call its "load" function
+		Agent* a = dynamic_cast<Agent*>(ag);
+		if (a) {
+			a->load(a->getConfigProperties());
+			a->clearConfigProperties();
 		}
 
 		//Add it to our global list.

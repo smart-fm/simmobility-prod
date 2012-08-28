@@ -8,7 +8,7 @@ using namespace sim_mob;
 
 sim_mob::TripChainItem::TripChainItem(int entId, string type, DailyTime start,
 		DailyTime end, unsigned int seqNumber) :
-		entityID(entId), itemType(getItemType(type)), startTime(start), endTime(
+		personID(entId), itemType(getItemType(type)), startTime(start), endTime(
 				end), sequenceNumber(seqNumber)
 {
 }
@@ -30,9 +30,9 @@ sim_mob::Trip::Trip(int entId, std::string type, unsigned int seqNumber,
 
 sim_mob::SubTrip::SubTrip(int entId, std::string type, unsigned int seqNumber,
 		DailyTime start, DailyTime end, Node* from,
-		std::string fromLocType, Node* to, std::string toLocType, /*Trip* parent,*/ std::string mode,
+		std::string fromLocType, Node* to, std::string toLocType, std::string mode,
 		bool isPrimary, std::string ptLineId) : Trip(entId, type, seqNumber, start, end, 0, from, fromLocType, to, toLocType),
-		/*parentTrip(parent),*/ mode(mode) , isPrimaryMode(isPrimary), ptLineId(ptLineId)
+		mode(mode) , isPrimaryMode(isPrimary), ptLineId(ptLineId)
 {
 }
 
@@ -54,7 +54,10 @@ TripChainItem::LocationType sim_mob::TripChainItem::getLocationType(
 		throw std::runtime_error("Unexpected location type.");
 	}
 }
-
+//sim_mob::TripChainItem::LocationType sim_mob::TripChainItem::getLocationType()
+//{
+//	return LocationType;
+//}
 TripChainItem::ItemType sim_mob::TripChainItem::getItemType(
 		std::string itemType)
 {
@@ -78,7 +81,7 @@ void sim_mob::Trip::addSubTrip(const sim_mob::SubTrip& aSubTrip)
 bool sim_mob::operator==(const SubTrip& s1, const SubTrip& s2)
 {
 	//For now, just assume two items are equal if their entity IDs are equal.
-    return (s1.entityID == s2.entityID);
+    return (s1.personID == s2.personID);
 }
 
 

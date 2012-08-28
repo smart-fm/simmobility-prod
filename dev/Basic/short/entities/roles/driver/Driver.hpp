@@ -73,8 +73,10 @@ public:
 
 
 
-	Driver(Person* parent, sim_mob::MutexStrategy mtxStrat);		//to initiate
+	Driver(Person* parent, sim_mob::MutexStrategy mtxStrat);
 	virtual ~Driver();
+
+	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
 
 	//Virtual implementations
 	virtual void frame_init(UpdateParams& p);
@@ -106,6 +108,11 @@ protected:
 	//Pointer to the vehicle this driver is controlling.
 	Vehicle* vehicle;
 
+	//This should be done through the Role class itself; for now, I'm just forcing
+	//  it so that we can get the mid-term working. ~Seth
+	virtual Vehicle* getResource() { return vehicle; }
+
+
 protected:
 	//Temporary variable which will be flushed each time tick. We save it
 	// here to avoid constantly allocating and clearing memory each time tick.
@@ -136,17 +143,17 @@ private:
 	NodePoint goal;    //first, assume that each vehicle moves towards a goal
 
 
-	double maxLaneSpeed;
+
 	double disToFwdVehicleLastFrame; //to find whether vehicle is going to crash in current frame.
 	                                     //so distance in last frame need to be remembered.
 
 
 public:
+	double maxLaneSpeed;
 	//for coordinate transform
 	void setParentBufferedData();			///<set next data to parent buffer data
-	//void output(frame_t frameNumber);
 
-	/****************IN REAL NETWORK****************/
+	Agent* getDriverParent(const Driver *self) { return self->parent; }
 private:
 	static void check_and_set_min_car_dist(NearestVehicle& res, double distance, const Vehicle* veh, const Driver* other);
 
@@ -156,18 +163,9 @@ private:
 	bool update_movement(DriverUpdateParams& params, frame_t frameNumber);       ///<Called to move vehicles forward.
 	bool update_post_movement(DriverUpdateParams& params, frame_t frameNumber);  ///<Called to deal with the consequences of moving forwards.
 
-//	const Link* desLink;
     double currLinkOffset;
-
 	size_t targetLaneIndex;
 
-	//Driving through an intersection on a given trajectory.
-	//TODO: A bit buggy.
-	//DynamicVector intersectionTrajectory;
-	//double intersectionDistAlongTrajectory;
-
-	//Parameters relating to the next Link we plan to move to after an intersection.
-//	const Link* nextLink;
 	const Lane* nextLaneInNextLink;
 
 public:
@@ -177,19 +175,31 @@ public:
 	//This is probably ok.
 	const double getVehicleLength() const { return vehicle->length; }
 
+	void updateAdjacentLanes(DriverUpdateParams& p);
+	void updatePositionDuringLaneChange(DriverUpdateParams& p, LANE_CHANGE_SIDE relative);
+
+
 protected:
 	virtual double updatePositionOnLink(DriverUpdateParams& p);
-	void initializePath();
+	virtual double linkDriving(DriverUpdateParams& p);
+
+	//TODO: Eventually move these into the medium/ folder.
+	sim_mob::Vehicle* initializePath(bool allocateVehicle);
 	void initializePathMed();
+
 	void resetPath(DriverUpdateParams& p);
 	void setOrigin(DriverUpdateParams& p);
 
 	//Helper: for special strings
 	void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);
 	void initTripChainSpecialString(const std::string& value);
+	NearestVehicle & nearestVehicle(DriverUpdateParams& p);
+
+	void perceivedDataProcess(NearestVehicle & nv, DriverUpdateParams& params);
+
+
 
 private:
-	NearestVehicle & nearestVehicle(DriverUpdateParams& p);
 	bool AvoidCrashWhenLaneChanging(DriverUpdateParams& p);
 	bool isCloseToLinkEnd(DriverUpdateParams& p) const;
 	bool isPedestrianOnTargetCrossing() const;
@@ -199,7 +209,7 @@ private:
 	//A bit verbose, but only used in 1 or 2 places.
 	void syncCurrLaneCachedInfo(DriverUpdateParams& p);
 	void justLeftIntersection(DriverUpdateParams& p);
-	void updateAdjacentLanes(DriverUpdateParams& p);
+
 	void updateVelocity();
 	void setBackToOrigin();
 
@@ -209,23 +219,23 @@ private:
 
 	//void updateCurrLaneLength(DriverUpdateParams& p);
 	void updateDisToLaneEnd();
-	void updatePositionDuringLaneChange(DriverUpdateParams& p, LANE_CHANGE_SIDE relative);
+
 	void saveCurrTrafficSignal();
 
 	void setTrafficSignalParams(DriverUpdateParams& p);
 	void intersectionDriving(DriverUpdateParams& p);
-	double linkDriving(DriverUpdateParams& p);
+
 
 	void findCrossing(DriverUpdateParams& p);
 
-	void perceivedDataProcess(NearestVehicle & nv, DriverUpdateParams& params);
 
 	/***********FOR DRIVING BEHAVIOR MODEL**************/
 private:
-	double targetSpeed;			//the speed which the vehicle is going to achieve
 
 	/**************BEHAVIOR WHEN APPROACHING A INTERSECTION***************/
 public:
+	double targetSpeed;			//the speed which the vehicle is going to achieve
+
 	void intersectionVelocityUpdate();
 
 	//This always returns the lane we are moving towards; regardless of if we've passed the

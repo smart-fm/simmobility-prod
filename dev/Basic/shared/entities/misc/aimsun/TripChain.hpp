@@ -14,8 +14,12 @@
 #include "partitions/UnPackageUtils.hpp"
 #endif
 
+namespace sim_mob
+{
+
 namespace aimsun
 {
+
 
 /**
  * Aimsun class to read from database.
@@ -28,7 +32,7 @@ public:
 	int sequenceNumber;
 	sim_mob::DailyTime startTime;
 	sim_mob::DailyTime endTime;
-	int entityID;
+	unsigned int personID;
 	std::string description;
 	sim_mob::aimsun::Node* location;
 	sim_mob::TripChainItem::LocationType locationType;
@@ -69,5 +73,7 @@ public:
 		this->sequenceNumber = sequenceNumber;
 	}
 };
+
+} //End namespace aimsun
 
 }

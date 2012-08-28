@@ -56,8 +56,8 @@ public class RoadNetwork {
 	private Hashtable<Integer, Crossing> crossings;
 	private Hashtable<Integer, LaneConnector> laneConnectors;
 	private Hashtable<Integer, Hashtable<Integer,Lane> > lanes;
-	private Hashtable<Integer, TrafficSignalLine> trafficSignalLines;//at present this relatively container and its get function are mainly used in addAllLaneSignals and populate intersection, it can be ommited if the mentioned functions are its primary users
-	private Hashtable<Integer, TrafficSignalCrossing> trafficSignalCrossings;//but this container may need to remain here coz unlike trafficSignalLines, it is directly created from input file
+	private Hashtable<Integer, TrafficSignalLine> trafficSignalLines;
+	private Hashtable<Integer, TrafficSignalCrossing> trafficSignalCrossings;
 	private Hashtable<Integer, Intersection> intersections; 
 	private Hashtable<Integer, CutLine> cutLines;
 	private Hashtable<Integer, DriverTick> drivertick;
@@ -88,7 +88,7 @@ public class RoadNetwork {
 	public Hashtable<Integer, Hashtable<Integer,Lane> > getLanes(){return lanes;}
 	public Hashtable<Integer, TrafficSignalLine> getTrafficSignalLine(){return trafficSignalLines;}
 	public Hashtable<Integer, TrafficSignalCrossing> getTrafficSignalCrossing() {return trafficSignalCrossings;}
-	public Hashtable<Integer, Intersection> getIntersections(){return intersections;}
+	public Hashtable<Integer, Intersection> getIntersection(){return intersections;}
 	public Hashtable<Integer, CutLine> getCutLine(){return cutLines;}
 	public Hashtable<Integer, DriverTick> getDriverTick(){return drivertick;}
 	
@@ -97,6 +97,8 @@ public class RoadNetwork {
 	 * Load the network from a filestream.
 	 */
 	public void loadFileAndReport(BufferedReader inFile, long fileLength, NetworkPanel progressUpdate) throws IOException {
+		Main.NEW_SIGNAL = false;//default
+		System.out.println("System NEW_SIGNAL reset to false");
 		nodes = new Hashtable<Integer, Node>();
 		busstop = new Hashtable<Integer, BusStop>();
 		annot_aimsun = new ArrayList<Annotation>();
@@ -131,7 +133,7 @@ public class RoadNetwork {
 		if (progressUpdate!=null) {
 			SwingUtilities.invokeLater(new ProgressUpdateRunner(progressUpdate, 0.0, false, new Color(0x00, 0x00, 0xFF), ""));
 		}
-//		System.out.println("Inside rn.loadFileAndReport(br, 0, null);");
+		
 		//Read
 		String line;
 		while ((line=inFile.readLine())!=null) {
@@ -156,6 +158,7 @@ public class RoadNetwork {
 			//New-style json strings use {}, while old-style ones use ().
 			boolean oldStyle = line.startsWith("(") && line.endsWith(")");
 			boolean newStyle = line.startsWith("{") && line.endsWith("}");
+			
 			if (!oldStyle && !newStyle) {
 				continue;
 			}
@@ -179,12 +182,13 @@ public class RoadNetwork {
 
 			    //Pass this off to a different function based on the type
 			    try {
-			    	dispatchConstructionRequest(pRes);
+			    	if (!dispatchConstructionRequest(pRes)) {
+			    		break;
+			    	}
 			    } catch (IOException ex) {
 			    	throw new IOException(ex.getMessage() + "\n...on line: " + line);
 			    }
 			}
-		    
 		    
 		    if (pushUpdate) {
 			    try {
@@ -202,8 +206,10 @@ public class RoadNetwork {
 		
 		//Add Link n ames
 		this.addLinkNames();
-		if(Main.NEW_SIGNAL) //this is definitly a temporary fix (and definitly works :)) )
+		
+	
 		//Populate Intersections
+		if(Main.NEW_SIGNAL)
 			this.populateIntersections_newStyle();
 		else
 			this.populateIntersections();
@@ -486,7 +492,25 @@ public class RoadNetwork {
 		    
 		    
 		    BusStop res = new BusStop(nearOneNode, nearTwoNode, farOneNode,farTwoNode, pRes.objID);
-		
+		   // @amit:Not sure why to use Annotation 
+		    /*
+		    if (props.containsKey("aimsunn-id")) {
+		    	Annotation an = new Annotation(new Point((int)x, (int)y), pRes.properties.get("aimsunn-id"), 'A');
+		    	an.setBackgroundColor(Annotations_AimsunnBgColor);
+		    	an.setBorderColor(Annotations_AimsunnFgColor);
+		    	an.setFontColor(Annotations_FontColor);
+		    	annot_aimsunn.add(an);
+		    }
+		    
+		    if (props.containsKey("mitsimm-id")) {
+		    	Annotation an = new Annotation(new Point((int)x, (int)y), pRes.properties.get("mitsimm-id"), 'A');
+		    	an.setBackgroundColor(Annotations_MitsimmBgColor);
+		    	an.setBorderColor(Annotations_MitsimmFgColor);
+		    	an.setFontColor(Annotations_FontColor);
+		    	annot_mitsimm.add(an);
+		    }
+		    */
+		    
 		    busstop.put(pRes.objID, res);
 		    
 		}
@@ -594,7 +618,6 @@ public class RoadNetwork {
 	
 	}
 	
-
 	private void parseCutLine(Utility.ParseResults pRes) throws IOException{
 
 	    
@@ -621,7 +644,11 @@ public class RoadNetwork {
 			int toLaneNo = laneConnector.getToLane();
 			Lane fromLane = lanes.get(laneConnector.getFromSegment()).get(fromLaneNo);
 			Lane toLane = lanes.get(laneConnector.getToSegment()).get(toLaneNo);
-			TrafficSignalLine tempSignalLine = new TrafficSignalLine(fromLane, toLane, -1); 
+			TrafficSignalLine tempSignalLine;
+			if(Main.NEW_SIGNAL)
+				tempSignalLine = new TrafficSignalLine(fromLane, toLane,null, -1); 
+			else
+				tempSignalLine = new TrafficSignalLine(fromLane, toLane); 
 			trafficSignalLines.put(objID, tempSignalLine);	
 			
 		} else{
@@ -636,12 +663,10 @@ public class RoadNetwork {
 			intersection.populateTrafficSignal(this);
 		}
 	}
-	private void populateIntersections() throws IOException{
+	private void populateIntersections(){
 
-		System.out.println("Inside the populate intersection with intersection size of " + intersections.size());
-//		System.in.read();
-		for(Intersection intersection : intersections.values()){	
-			System.out.println("Inside the populate intersection loop");
+		
+		for(Intersection intersection : intersections.values()){		
 			ArrayList <Integer> tempIntersectLinkIDs = intersection.getSigalLinkIDs();
 			Hashtable<Integer, Integer> intersectLinkSegmentIDTable = new Hashtable<Integer, Integer>();
 			
@@ -723,7 +748,7 @@ public class RoadNetwork {
 				}	
 						
 			}
-		    //     segmentFrom,2D matrix segmentToX[left,straight,right]	still ambiguous!!				
+							
 			Hashtable<Integer, ArrayList<ArrayList<TrafficSignalLine>>> signalList = helperAllocateDirection(fromSegmentList,toSegmentList);			
 			Enumeration<Integer> signalListKeys = signalList.keys();
 			
@@ -781,14 +806,19 @@ public class RoadNetwork {
 		
 	}
 	
-	
 	//Wrapper
 	private void spaceNodeAnnotations() {
 		Hashtable<Point, Integer> alreadySpaced = new Hashtable<Point, Integer>(); //int = conflicts
 		spaceNodeAnnotations(alreadySpaced, annot_aimsun);
 		spaceNodeAnnotations(alreadySpaced, annot_mitsim);
 	}
-		
+	private void spaceBusStopAnnotations() {
+		Hashtable<Point, Integer> alreadySpaced = new Hashtable<Point, Integer>(); //int = conflicts
+		spaceBusStopAnnotations(alreadySpaced, annot_aimsun);
+		spaceBusStopAnnotations(alreadySpaced, annot_mitsim);
+	}
+	
+	
 	//Attempt to place each annotation. Avoid overlapping any existing annotations.
 	//For now, this is done based on the assumption that coordinates are in centimeters.
 	// Later, we can scale it to screen size.
@@ -990,7 +1020,7 @@ public class RoadNetwork {
 				tempDirectionalSignalLines.add(tempStraightTurn);
 				tempDirectionalSignalLines.add(tempRightTurn);
 	
-				for(int j=1;j<tempToSegmentList.size();j+=2){				//why alternate?-->vahid
+				for(int j=1;j<tempToSegmentList.size();j+=2){				
 
 					for(int k = 0; k < toSegmentList.length;k++){
 					

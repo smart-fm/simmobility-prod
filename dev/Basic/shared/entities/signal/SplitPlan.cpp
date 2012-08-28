@@ -213,7 +213,13 @@ std::size_t SplitPlan::computeCurrPhase(double currCycleTimer)
 		if(sum > currCycleTimer) break;
 	}
 
-	if(i >= NOF_Phases) throw std::runtime_error("CouldNot computeCurrPhase for the given currCycleTimer");
+	if(i >= NOF_Phases)
+		{
+			std::stringstream str;
+			str << "CouldNot computeCurrPhase for the given currCycleTimer(" << currCycleTimer <<  "/" << cycleLength << ") NOF_Phases(" <<  NOF_Phases << ") , sum of cycleLength chunks(" << sum << ")";
+//			 +currCycleTimer+") NOF_Phases("+ NOF_Phases +"sum of cycleLength chunks(" + sum+")"
+			throw std::runtime_error(str.str());
+		}
 	currPhaseID = (std::size_t)(i);
 	return currPhaseID;
 }
@@ -258,7 +264,7 @@ void SplitPlan::setDefaultSplitPlan(int approaches)
 			{40,60}
 	};
 	double defaultChoiceSet_3[5][10] = {
-			{33,33,33},
+			{33,33,34},
 			{40,20,40},
 			{25,50,25},
 			{25,25,50},

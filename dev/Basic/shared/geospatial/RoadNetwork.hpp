@@ -85,9 +85,7 @@ public:
 	///If includeUniNodes is false, then only Intersections and Roundabouts are searched.
 	///If no node is found within maxDistCM, the match fails and nullptr is returned.
 	sim_mob::Node* locateNode(const sim_mob::Point2D& position, bool includeUniNodes=false, int maxDistCM=100) const;
-
-
-
+	sim_mob::Node* locateNode(double xPos, double yPos, bool includeUniNodes=false, int maxDistCM=100) const;
 
 private:
 	//Temporary: Geometry will eventually make specifying nodes and links easier.

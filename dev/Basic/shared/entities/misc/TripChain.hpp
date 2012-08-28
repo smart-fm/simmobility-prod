@@ -27,6 +27,8 @@ namespace sim_mob {
 class Node;
 class SubTrip;
 
+
+
 /**
  * Base class for elements in a trip chain.
  * \author Harish L
@@ -43,7 +45,7 @@ public:
 		IT_TRIP, IT_ACTIVITY
 	};
 
-	int entityID;
+	unsigned int personID;//replaces entityID
 	ItemType itemType;
 	unsigned int sequenceNumber;
 	sim_mob::DailyTime startTime;

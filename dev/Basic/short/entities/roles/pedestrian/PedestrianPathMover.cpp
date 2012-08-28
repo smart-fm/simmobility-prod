@@ -8,6 +8,8 @@
 #include "entities/roles/pedestrian/PedestrianPathMover.hpp"
 #include <boost/random.hpp>
 
+using std::vector;
+using std::map;
 using namespace sim_mob;
 boost::uniform_int<> zero_to_max(0, RAND_MAX);
 

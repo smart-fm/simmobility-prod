@@ -16,10 +16,6 @@
 #include <vector>
 #include<boost/unordered_map.hpp>
 
-
-using std::vector;
-using std::map;
-
 namespace sim_mob
 {
 inline std::size_t hash_value(const sim_mob::Point2D& p)
@@ -29,12 +25,12 @@ inline std::size_t hash_value(const sim_mob::Point2D& p)
     boost::hash_combine(seed, boost::hash_value(p.getY()));
     return seed;
 }
-typedef vector<WayPoint> PEDESTRIAN_PATH;
-typedef vector<WayPoint>::iterator PEDESTRIAN_PATH_ITERATOR;
+typedef std::vector<WayPoint> PEDESTRIAN_PATH;
+typedef std::vector<WayPoint>::iterator PEDESTRIAN_PATH_ITERATOR;
 
-typedef vector<sim_mob::Point2D> POLYLINEPOINTS;
-typedef vector<sim_mob::Point2D>::const_iterator POLYLINEPOINTS_ITERATOR;
-typedef vector<sim_mob::Point2D>::const_reverse_iterator POLYLINEPOINTS_REVERSE_ITERATOR;
+typedef std::vector<sim_mob::Point2D> POLYLINEPOINTS;
+typedef std::vector<sim_mob::Point2D>::const_iterator POLYLINEPOINTS_ITERATOR;
+typedef std::vector<sim_mob::Point2D>::const_reverse_iterator POLYLINEPOINTS_REVERSE_ITERATOR;
 typedef boost::unordered_map<sim_mob::Point2D,WayPoint* > POLYLINEPOINTS_WAYPOINT_MAP;
 
 class PedestrianPathMover {

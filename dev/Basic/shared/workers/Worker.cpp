@@ -177,6 +177,15 @@ void sim_mob::Worker::barrier_mgmt()
 		if (auraManagerActive) {
 			external_barr.wait();
 		}
+
+		//If we are operating at a greater resolution than the highest granularity, we must wait
+		//  once more. E.g., for an Agent with a tickStep of 10, we wait once at the end of tick0, and
+		//  once more at the end of tick 9.
+		//NOTE: We can't wait (or we'll lock up) if the "extra" tick will never be triggered.
+		bool extraActive = (endTick==0 || (currTick-1)<endTick);
+		if (tickStep>1 && extraActive) {
+			external_barr.wait();
+		}
 	}
 }
 

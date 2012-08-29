@@ -80,7 +80,7 @@ void sim_mob::WorkGroup::startAll()
 	nextTimeTickToStage = 0;
 
 	//Start all workers
-	tickOffset = tickStep;
+	tickOffset = 0; //Always start with an update.
 	for (vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
 		(*it)->start();
 	}
@@ -231,19 +231,27 @@ sim_mob::Worker* sim_mob::WorkGroup::getWorker(int id)
 
 void sim_mob::WorkGroup::wait()
 {
-	if (--tickOffset>0) {
-		return;
-	}
-	tickOffset = tickStep;
+	//React to tick step.
+	if (tickOffset==0) {
+		//New countdown loop
+		tickOffset = tickStep;
 
-	//Stay in sync with the workers.
-	nextTimeTickToStage += tickStep;
-	shared_barr.wait();
-	//Stage Agent updates based on nextTimeTickToStage
-	stageEntities();
-	//Remove any Agents staged for removal.
-	collectRemovedEntities();
-	external_barr.wait();
+		//Stay in sync with the workers.
+		nextTimeTickToStage += tickStep;
+		shared_barr.wait();
+		//Stage Agent updates based on nextTimeTickToStage
+		stageEntities();
+		//Remove any Agents staged for removal.
+		collectRemovedEntities();
+		external_barr.wait();
+	} else if (tickOffset==1) {
+		//One additional wait forces a synchronization before the next major time step.
+		//This won't trigger when tickOffset is 1, since it will immediately decrement to 0.
+		external_barr.wait();
+	}
+
+	//Continue counting down.
+	tickOffset--;
 }
 
 

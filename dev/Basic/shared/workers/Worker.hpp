@@ -44,26 +44,33 @@ class WorkGroup;
 
 class Worker : public BufferedDataManager {
 public:
-	//! The function type for the 1st parameter to the Worker constructor.
-	//!
-	//! Any procedure that takes a Worker object and an unsigned integer can be used
-	//! to construct a Worker object.  This procedure will be called repeatedly; the 1st
-	//! argument will a reference to the constructed Worker object and the 2nd argument
-	//! will be a strictly monotonic increasing number which represent the time-step.
-	//typedef boost::function<void(Worker& worker, frame_t frameNumber)> ActionFunction;
-
+	/**
+	 * Create a Worker object.
+	 *
+	 * \param tickStep How many ticks to advance per update(). It is beneficial to have one WorkGroup where
+	 *        this value is 1, since any WorkGroup with a greater value will have to wait 2 times (due to
+	 *        the way we synchronize data).
+	 *
+	 */
 	Worker(WorkGroup* parent, boost::barrier& internal_barr, boost::barrier& external_barr, std::vector<Entity*>* entityRemovalList, frame_t endTick, frame_t tickStep, bool auraManagerActive);
 	virtual ~Worker();
 
 	//Thread-style operations
 	void start();
-	void interrupt();
+	void interrupt();  ///<Note: I am not sure how this will work with multiple granularities. ~Seth
 	void join();
 
 	//Manage entities
 	void addEntity(Entity* entity);
 	void remEntity(Entity* entity);
 	std::vector<Entity*>& getEntities();
+
+
+	//
+	//NOTE: Allowing a Worker or any Agent to access the current Work Group is extremely
+	//      dangerous. Please see the note in BusController.hpp; it works for now, but
+	//      risks introducing hard-to-debug errors later. ~Seth
+	//
 	WorkGroup* const getParent() { return parent; }
 
 	//Manage Links

@@ -176,6 +176,30 @@ void unit_tests::WorkerUnitTests::test_MultipleGranularities()
 
 	//Agent update cycle
 	for (int i=0; i<3; i++) {
+		///////////////////////////////////////////////////////
+		//
+		//NOTE: This demonstrates one of our longer-running glitches:
+		//  1) If left this way, the agents will count to "1", since the counter agents will
+		//     update before the flag agents flip their values.
+		//  2) If switched, the correct value of "2" is obtained.
+		//  3) If you, say, add a println() statement to the Agents' update loops, this may skew the
+		//     results to "2".
+		//
+		//  This can *very* rarely lead to crashes, since agents' udpate cycles will overlap
+		//    just barely. Hence our random crashing when running lots of agents.
+		//
+		//  To fix this, we will need 1 barrier which is shared among all WorkGroups (2 in this case),
+		//    and a lock at each time tick. The real problem here is that the *Workers* need to lock,
+		//    but we want the *WorkGroups* to control the locking.
+		//
+		//  Another solution might involve splitting up the various *phases* of each WorkGroup's wait()
+		//    method into their own functions, and then calling, e.g., wg1.waitMain(); wg2.waitMain()...
+		//    etc., before calling wg1.waitFlip(); wg2.waitFlip(); etc.
+		//
+		//  We probably also want to give a unique barrier per wait stage, even though only 1 is needed
+		//    in practice. This reduces the risk of invalid math leading to hard-to-detect errors.
+		//
+		///////////////////////////////////////////////////////
 		countWG.wait();
 		flagWG.wait();
 	}

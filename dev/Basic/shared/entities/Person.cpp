@@ -89,6 +89,9 @@ sim_mob::Person::~Person() {
 
 void sim_mob::Person::load(const map<string, string>& configProps)
 {
+	if(!tripChain.empty()) {
+		return;// already have a tripchain usually from generateFromTripChain, no need to load
+	}
 	//Make sure they have a mode specified for this trip
 	map<string, string>::const_iterator it = configProps.find("#mode");
 	if (it==configProps.end()) {

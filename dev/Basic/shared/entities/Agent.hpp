@@ -36,8 +36,8 @@ class UnPackageUtils;
 #endif
 
 //Comparison for our priority queue
-struct cmp_agent_start : public std::less<Person*> {
-  bool operator() (const Person* x, const Person* y) const;
+struct cmp_agent_start : public std::less<Agent*> {
+  bool operator() (const Agent* x, const Agent* y) const;
 };
 
 struct cmp_event_start : public std::less<PendingEvent> {
@@ -45,7 +45,7 @@ struct cmp_event_start : public std::less<PendingEvent> {
 };
 
 //C++ static constructors...
-class StartTimePriorityQueue : public std::priority_queue<Person*, std::vector<Person*>, cmp_agent_start> {
+class StartTimePriorityQueue : public std::priority_queue<Agent*, std::vector<Agent*>, cmp_agent_start> {
 };
 class EventTimePriorityQueue : public std::priority_queue<PendingEvent, std::vector<PendingEvent>, cmp_event_start> {
 };

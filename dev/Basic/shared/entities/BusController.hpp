@@ -29,13 +29,15 @@ class BusController : public sim_mob::Agent
 public:
 	//Note: I am making this a pointer, since the all_agents array is now cleared and deleted on exit.
 	//      Otherwise, it will attempt to delete itself twice.
-	static BusController* busctrller;
+	//static BusController* busctrller;
+	static std::vector<BusController*> all_busctrllers_;
+	static void registerBusController(unsigned int startTime, const MutexStrategy& mtxStrat);
 
 	~BusController();
 	virtual Entity::UpdateStatus update(frame_t frameNumber);
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 	void updateBusInformation(DPoint pt);
-	void addOrStashBuses(Person* p, std::vector<Entity*>& active_agents);
+	void addOrStashBuses(Agent* p, std::vector<Entity*>& active_agents);
 
 	//May implement later
 	virtual void load(const std::map<std::string, std::string>& configProps){}

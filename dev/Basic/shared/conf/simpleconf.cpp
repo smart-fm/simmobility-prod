@@ -171,7 +171,7 @@ string ReadLowercase(TiXmlHandle& handle, const std::string& attrName)
 //// TODO: Eventually, we need to re-write WorkGroup to encapsulate the functionality of "addOrStash()".
 ////       For now, just make sure that if you add something to all_agents manually, you call "load()" before.
 ////
-void addOrStashEntity(Person* p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
+void addOrStashEntity(Agent* p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
 	///TODO: The BusController is static; need to address this OUTSIDE this function.
 	//if (ENTITY_BUSCONTROLLER == p.type) { active_agents.push_back(BusController::busctrller); }
@@ -215,11 +215,16 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	ConfigParams& config = ConfigParams::GetInstance();
 	const vector<TripChainItem*>& tcs = ConfigParams::GetInstance().getTripChains();
 
-	//The current person we are working on.
+	//The current agent we are working on.
 	Person* currAg = nullptr;
+	std::string trip_mode;
 	std::vector<const TripChainItem*> currAgTripChain;
 
 	typedef vector<TripChainItem*>::const_iterator TCVectIt;
+	for(TCVectIt it=tcs.begin(); it!=tcs.end(); it++)
+	{
+		std::cout<<"eid: "<<(*it)->entityID << " ---- etype: " << (*it)->itemType << "---- startTime: " << (*it)->startTime.toString()<< std::endl;
+	}
 	for (TCVectIt it=tcs.begin(); it!=tcs.end(); it++) {
 		const TripChainItem* const tc = *it;
 
@@ -235,9 +240,11 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 			//The origin and destination depend on whether this is a Trip or an Activity
 			const Trip* trip = dynamic_cast<const Trip*>(tc);
 			const Activity* act = dynamic_cast<const Activity*>(tc);
+
 			if (trip && tc->itemType==TripChainItem::IT_TRIP) {
 				currAg->originNode = trip->fromLocation;
 				currAg->destNode = trip->toLocation;
+				trip_mode = trip->getSubTrips()[0].mode;// currently choose the first subtrip mode as the mode of the trip
 			} else if (act && tc->itemType==TripChainItem::IT_ACTIVITY) {
 				currAg->originNode = currAg->destNode = act->location;
 			} else { //Offer some protection
@@ -253,8 +260,16 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 		if (next==tcs.end() || (*next)->entityID!=currAg->getId()) {
 			//Save the trip chain and the Agent.
 			currAg->setTripChain(currAgTripChain);
-			addOrStashEntity(currAg, active_agents, pending_agents);
+			if(trip_mode == "Bus") {
+				// currently only one
+				if(!BusController::all_busctrllers_.empty()) {
+					BusController::all_busctrllers_[0]->addOrStashBuses(currAg, active_agents);
+				}
+			} else {
+				addOrStashEntity(currAg, active_agents, pending_agents);
+			}
 
+			//addOrStashEntity(currAg, active_agents, pending_agents);
 			//Reset for the next (possible) Agent
 			currAg = nullptr;
 		}
@@ -310,7 +325,11 @@ void generateAgentsFromBusSchedule(std::vector<Entity*>& active_agents, AgentCon
 		agent->setStartTime(toLoad->startTime.offsetMS_From(config.simStartTime));
 
 		//Either start or save it, depending on the start time.
-		BusController::busctrller->addOrStashBuses(agent, active_agents);
+		//BusController::busctrller->addOrStashBuses(agent, active_agents);
+		if(!BusController::all_busctrllers_.empty())
+		{
+			BusController::all_busctrllers_[0]->addOrStashBuses(agent, active_agents);
+		}
 	}
 }
 
@@ -438,6 +457,48 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 		addOrStashEntity(agent, active_agents, pending_agents);
 	}
 
+	return true;
+}
+
+bool loadXMLBusControllers(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& BusControllerKeyID)
+{
+	std::cout << "inside loadXMLBusControllers !" << std::endl;
+	//Quick check.
+	if (BusControllerKeyID!="buscontroller") {
+		std::cout << "oops! returning false!" << std::endl;
+		return false;
+	}
+
+	TiXmlHandle handle(&document);
+	TiXmlElement* node = handle.FirstChild("config").FirstChild(BusControllerKeyID+"s").FirstChild(BusControllerKeyID).ToElement();
+	if (!node) {
+		//Signals are optional
+		std::cout << "oops! returning true!" << std::endl;
+		return true;
+	}
+
+	//Loop through all agents of this type
+	for (;node;node=node->NextSiblingElement()) {
+		//Keep track of the properties we have found.
+		map<string, string> props;// temporary use
+
+		char const * timeAttr = node->Attribute("time");
+
+        try {
+            int timeValue = boost::lexical_cast<int>(timeAttr);
+            if (timeValue < 0)
+            {
+                std::cerr << "buscontrollers must have positive time attributes in the config file." << std::endl;
+                return false;
+            }
+            props["time"] = timeAttr;// I dont know how to set props for the buscontroller, it seems no use;
+            sim_mob::BusController::registerBusController(timeValue, sim_mob::ConfigParams::GetInstance().mutexStategy);
+        } catch (boost::bad_lexical_cast &) {
+        	std::cout << "catch the loop error try!" << std::endl;
+            std::cerr << "buscontrollers must have 'time' attributes with numerical values in the config file." << std::endl;
+            return false;
+        }
+	}
 	return true;
 }
 
@@ -1185,7 +1246,10 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     AgentConstraints constraints;
     constraints.startingAutoAgentID = startingAutoAgentID;
 
-
+    if(!loadXMLBusControllers(document, active_agents, pending_agents, "buscontroller")) {
+    	std::cout << "loadXMLBusControllers Failed!" << std::endl;
+    	return "Couldn't load buscontrollers";
+    }
     //Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder
     for (vector<string>::iterator it=loadAgentOrder.begin(); it!=loadAgentOrder.end(); it++) {
     	if ((*it) == "database") {
@@ -1201,12 +1265,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	    }
     		cout <<"Loaded Driver Agents (from config file)." <<endl;
 
-    	} else if ((*it) == "buscontrollers") {
-			if (!loadXMLAgents(document, active_agents, pending_agents, "buscontroller", constraints)) {
-				return	  "Couldn't load bus controllers";
-			}
-    	    generateAgentsFromBusSchedule(active_agents, constraints);
-    	    cout <<"Loaded Bus Agents (from Bus Control Center)." <<endl;
     	} else if ((*it) == "pedestrians") {
     		if (!loadXMLAgents(document, active_agents, pending_agents, "pedestrian", constraints)) {
     			return "Couldn't load pedestrians";
@@ -1286,6 +1344,12 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     // it here.
     //todo I think when a loop detector data are dynamically assigned to signal rather that being read from data base,
     //they should be handled with in the signal constructor, not here
+    if(!BusController::all_busctrllers_.empty())
+    {
+    	active_agents.push_back(BusController::all_busctrllers_[0]);
+    	BusController::all_busctrllers_.clear();
+    }
+
 #ifndef SIMMOB_NEW_SIGNAL
     std::vector<Signal*>& all_signals = Signal::all_signals_;
 #else

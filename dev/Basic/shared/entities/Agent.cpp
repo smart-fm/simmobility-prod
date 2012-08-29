@@ -24,7 +24,7 @@ EventTimePriorityQueue sim_mob::Agent::agents_with_pending_event;
 vector<Entity*> sim_mob::Agent::agents_on_event;
 
 //Implementation of our comparison function for Agents by start time.
-bool sim_mob::cmp_agent_start::operator()(const Person* x, const Person* y) const {
+bool sim_mob::cmp_agent_start::operator()(const Agent* x, const Agent* y) const {
 	//TODO: Not sure what to do in this case...
 	if ((!x) || (!y)) {
 		return 0;

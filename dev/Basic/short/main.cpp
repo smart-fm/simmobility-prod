@@ -126,13 +126,9 @@ bool performMain(const std::string& configFileName) {
 	const ConfigParams& config = ConfigParams::GetInstance();
 
 	//Start boundaries
-#ifndef SIMMOB_DISABLE_MPI
-	if (config.is_run_on_many_computers) {
-		PartitionManager& partitionImpl = PartitionManager::instance();
-		partitionImpl.initBoundaryTrafficItems();
+	if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
+		PartitionManager::instance().initBoundaryTrafficItems();
 	}
-#endif
-
 
 	//Initialize our work groups.
 	bool NoDynamicDispatch = config.DynamicDispatchDisabled();
@@ -147,22 +143,18 @@ bool performMain(const std::string& configFileName) {
 
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
+	//Forcing one work group will put signals into the agentWorkers group too.
+#ifdef TEMP_FORCE_ONE_WORK_GROUP
+	WorkGroup& signalStatusWorkers = agentWorkers;
+#else
+	WorkGroup signalStatusWorkers(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
+	signalStatusWorkers.initWorkers(nullptr);
+#endif
+
 	//Initialize our signal status work groups
 	//  TODO: There needs to be a more general way to do this.
-#ifndef TEMP_FORCE_ONE_WORK_GROUP
-	WorkGroup signalStatusWorkers(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
-	//Worker::ActionFunction spWork = boost::bind(signal_status_worker, _1, _2);
-	signalStatusWorkers.initWorkers(/*&spWork,*/ nullptr);
-#endif
 	for (size_t i = 0; i < sim_mob::Signal::all_signals_.size(); i++) {
-		//add by xuyan
-//		if(Signal::all_signals_[i]->isFake)
-//			continue;
-#ifdef TEMP_FORCE_ONE_WORK_GROUP
-		agentWorkers.assignAWorker(Signal::all_signals_[i]);
-#else
 		signalStatusWorkers.assignAWorker(sim_mob::Signal::all_signals_[i]);
-#endif
 	}
 
 	//Initialize the aura manager
@@ -179,19 +171,12 @@ bool performMain(const std::string& configFileName) {
 #endif
 
 	//
-#ifndef SIMMOB_DISABLE_MPI
-	if (config.is_run_on_many_computers) {
+	if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.setEntityWorkGroup(&agentWorkers, &signalStatusWorkers);
 
 		std::cout << "partition_solution_id in main function:" << partitionImpl.partition_config->partition_solution_id << std::endl;
-		//std::cout << partitionImpl. << partitionImpl.partition_config->partition_solution_id << std::endl;
-		//temp no need
-//		if (config.is_simulation_repeatable) {
-//			partitionImpl.updateRandomSeed();
-//		}
 	}
-#endif
 
 	/////////////////////////////////////////////////////////////////
 	// NOTE: WorkGroups are able to handle skipping steps by themselves.
@@ -209,10 +194,7 @@ bool performMain(const std::string& configFileName) {
 
 	ParitionDebugOutput debug;
 
-#ifdef SIMMOB_DISABLE_OUTPUT
 	int lastTickPercent = 0; //So we have some idea how much time is left.
-#endif
-
 	for (unsigned int currTick = 0; currTick < config.totalRuntimeTicks; currTick++) {
 		//Flag
 		bool warmupDone = (currTick >= config.totalWarmupTicks);
@@ -248,49 +230,27 @@ bool performMain(const std::string& configFileName) {
 #endif
 		//Agent-based cycle
 		agentWorkers.wait();
-#ifndef SIMMOB_DISABLE_MPI
-		if (config.is_run_on_many_computers) {
+		if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
 			PartitionManager& partitionImpl = PartitionManager::instance();
-
-//			debug.outputToConsole("0");
 			partitionImpl.crossPCBarrier();
-
-//			debug.outputToConsole("1");
 			partitionImpl.crossPCboundaryProcess(currTick);
-
-//			debug.outputToConsole("2");
 			partitionImpl.crossPCBarrier();
-
-//			debug.outputToConsole("3");
 			partitionImpl.outputAllEntities(currTick);
 		}
-#endif
 
 		auraMgr.update(currTick);
-//		trafficWatch.update(currTick);
 		agentWorkers.waitExternAgain(); // The workers wait on the AuraManager.
-
-
-
-		//Surveillance update
-		//updateSurveillanceData(agents);
 
 		//Check if the warmup period has ended.
 		if (warmupDone) {
-			//updateGUI(agents);
-			//saveStatistics(agents);
 		}
-
-		//saveStatisticsToDB(agents);
 	}
 
 	//Finalize partition manager
-#ifndef SIMMOB_DISABLE_MPI
-	if (config.is_run_on_many_computers) {
+	if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.stopMPIEnvironment();
 	}
-#endif
 
 	std::cout <<"Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;
 
@@ -416,26 +376,8 @@ int main(int argc, char* argv[])
 		cout << "No output file specified; using cout." << endl;
 	}
 
-	/*if (argc > 4) {
-			if (!Logger::log_init1(argv[4]))
-			{
-				cout << "Loading output file failed; using cout" << endl;
-				cout << argv[4] << endl;
-			}
-		} else {
-			Logger::log_init("");
-			cout << "No output file specified; using cout." << endl;
-		}*/
-
 
 #endif
-
-	//This should be moved later, but we'll likely need to manage random numbers
-	//ourselves anyway, to make simulations as repeatable as possible.
-	//if (config.is_simulation_repeatable)
-	//{
-		//TODO: Output the random seed here (and only here)
-	//}
 
 	//Perform main loop
 	int returnVal = performMain(configFileName) ? 0 : 1;

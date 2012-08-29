@@ -789,6 +789,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	//Initialize our work groups.
 	bool NoDynamicDispatch = config.DynamicDispatchDisabled();
 	WorkGroup agentWorkers(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, true);
+	WorkGroup::RegisterWorkGroup(&agentWorkers);
 	agentWorkers.initWorkers(NoDynamicDispatch ? nullptr :  &entLoader);
 
 	//Add all agents to workers. If they are in all_agents, then their start times have already been taken
@@ -804,6 +805,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	WorkGroup& signalStatusWorkers = agentWorkers;
 #else
 	WorkGroup signalStatusWorkers(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
+	WorkGroup::RegisterWorkGroup(&signalStatusWorkers);
 	signalStatusWorkers.initWorkers(nullptr);
 #endif
 
@@ -883,12 +885,11 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		}
 #endif
 
-		//Update the signal logic and plans for every intersection grouped by region
-#ifndef TEMP_FORCE_ONE_WORK_GROUP
-		signalStatusWorkers.wait();
-#endif
-		//Agent-based cycle
-		agentWorkers.wait();
+		//Agent-based cycle, steps 1,2,3 of 4
+		WorkGroup::WaitAllGroups_FrameTick();
+		WorkGroup::WaitAllGroups_FlipBuffers();
+		WorkGroup::WaitAllGroups_MacroTimeTick();
+
 		if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
 			PartitionManager& partitionImpl = PartitionManager::instance();
 			partitionImpl.crossPCBarrier();
@@ -905,7 +906,8 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		///
 //		trafficWatch.update(currTick);
 
-		agentWorkers.waitExternAgain(); // The workers wait on the AuraManager.
+		//Agent-based cycle: step 4 of 4
+		WorkGroup::WaitAllGroups_AuraManager();
 
 		//Check if the warmup period has ended.
 		if (warmupDone) {

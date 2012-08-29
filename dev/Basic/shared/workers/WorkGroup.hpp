@@ -62,8 +62,17 @@ public:
 	void interrupt();
 	size_t size();
 
-	void wait();
-	void waitExternAgain();
+	///Register a WorkGroup so that it is known globally. This is required for WaitAllGroups().
+	static void RegisterWorkGroup(sim_mob::WorkGroup* wg);
+
+	///Call the various wait* functions for all WorkGroups in the correct order.
+	static void WaitAllGroups();
+
+	//Call the various wait* functions individually.
+	static void WaitAllGroups_FrameTick();
+	static void WaitAllGroups_FlipBuffers();
+	static void WaitAllGroups_MacroTimeTick();
+	static void WaitAllGroups_AuraManager();
 
 	Worker* getWorker(int id);
 
@@ -94,6 +103,19 @@ public:
 
 
 protected:
+	//Various stages of "wait"-ing
+	//These functions are designed so that you can simply call them one after the other. However,
+	// make sure that you call all wait* functions for a given category before moving on.
+	//E.g., call "waitFrameTick()" for all WorkGroups, THEN call "waitFlipBuffers()" for all
+	// work groups, etc.
+	void waitFrameTick();
+	void waitFlipBuffers();
+	void waitMacroTimeTick();
+	void waitAuraManager();
+
+	//For holding the set of known WorkGroups
+	static std::vector<sim_mob::WorkGroup*> RegisteredWorkGroups;
+
 	//Shared barrier
 	boost::barrier shared_barr;
 	boost::barrier external_barr;

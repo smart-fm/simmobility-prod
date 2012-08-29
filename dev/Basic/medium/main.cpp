@@ -127,8 +127,8 @@ bool performMainMed(const std::string& configFileName) {
 	//Initialize our work groups.
 	WorkGroup agentWorkers(config.agentWorkGroupSize, config.totalRuntimeTicks,
 			config.granAgentsTicks, true);
-	//Agent::TMP_AgentWorkGroup = &agentWorkers;
-	//Worker::ActionFunction entityWork = boost::bind(entity_worker, _1, _2);
+	WorkGroup::RegisterWorkGroup(&agentWorkers);
+
 	agentWorkers.initWorkers(//&entityWork,
 #ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 		&entLoader
@@ -150,21 +150,16 @@ bool performMainMed(const std::string& configFileName) {
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
 	//Initialize our signal status work groups
-	//  TODO: There needs to be a more general way to do this.
-#ifndef TEMP_FORCE_ONE_WORK_GROUP
-	WorkGroup signalStatusWorkers(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
-	//Worker::ActionFunction spWork = boost::bind(signal_status_worker, _1, _2);
-	signalStatusWorkers.initWorkers(/*&spWork,*/ nullptr);
-#endif
-	for (size_t i = 0; i < Signal::all_signals_.size(); i++) {
-		//add by xuyan
-//		if(Signal::all_signals_[i]->isFake)
-//			continue;
 #ifdef TEMP_FORCE_ONE_WORK_GROUP
-		agentWorkers.assignAWorkerConstraint(Signal::all_signals_[i]);
+	WorkGroup& signalStatusWorkers = agentWorkers;
 #else
-		signalStatusWorkers.assignAWorkerConstraint(Signal::all_signals_[i]);
+	WorkGroup signalStatusWorkers(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
+	WorkGroup::RegisterWorkGroup(&signalStatusWorkers);
+	signalStatusWorkers.initWorkers(nullptr);
 #endif
+
+	for (size_t i = 0; i < Signal::all_signals_.size(); i++) {
+		signalStatusWorkers.assignAWorkerConstraint(Signal::all_signals_[i]);
 	}
 
 	//Initialize the aura manager
@@ -184,11 +179,6 @@ bool performMainMed(const std::string& configFileName) {
 		partitionImpl.setEntityWorkGroup(&agentWorkers, &signalStatusWorkers);
 
 		std::cout << "partition_solution_id in main function:" << partitionImpl.partition_config->partition_solution_id << std::endl;
-		//std::cout << partitionImpl. << partitionImpl.partition_config->partition_solution_id << std::endl;
-		//temp no need
-//		if (config.is_simulation_repeatable) {
-//			partitionImpl.updateRandomSeed();
-//		}
 	}
 #endif
 
@@ -239,12 +229,11 @@ bool performMainMed(const std::string& configFileName) {
 		}
 #endif
 
-		//Update the signal logic and plans for every intersection grouped by region
-#ifndef TEMP_FORCE_ONE_WORK_GROUP
-		signalStatusWorkers.wait();
-#endif
-		//Agent-based cycle
-		agentWorkers.wait();
+		//Agent-based cycle, steps 1,2,3 of 4
+		WorkGroup::WaitAllGroups_FrameTick();
+		WorkGroup::WaitAllGroups_FlipBuffers();
+		WorkGroup::WaitAllGroups_MacroTimeTick();
+
 #ifndef SIMMOB_DISABLE_MPI
 		if (config.is_run_on_many_computers) {
 			PartitionManager& partitionImpl = PartitionManager::instance();
@@ -264,7 +253,9 @@ bool performMainMed(const std::string& configFileName) {
 #endif
 
 		auraMgr.update(currTick);
-		agentWorkers.waitExternAgain(); // The workers wait on the AuraManager.
+
+		//Agent-based cycle, step 4 of 4
+		WorkGroup::WaitAllGroups_AuraManager();
 
 		//Check if the warmup period has ended.
 		if (warmupDone) {

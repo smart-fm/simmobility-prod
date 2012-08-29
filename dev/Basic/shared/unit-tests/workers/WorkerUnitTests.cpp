@@ -105,6 +105,7 @@ void unit_tests::WorkerUnitTests::test_SimpleWorkers()
 
 	//Now create 10 workers which will run for 5 time ticks, doubling the src value each time.
 	WorkGroup mainWG(srcInts.size(), 5);
+	WorkGroup::RegisterWorkGroup(&mainWG);
 	mainWG.initWorkers(nullptr);
 
 	//Make an IncrAgent for each item in the source vector.
@@ -119,7 +120,7 @@ void unit_tests::WorkerUnitTests::test_SimpleWorkers()
 
 	//Agent update cycle
 	for (int i=0; i<5; i++) {
-		mainWG.wait();
+		WorkGroup::WaitAllGroups();
 	}
 
 	//Confirm that our WorkGroups are actually done.
@@ -154,6 +155,10 @@ void unit_tests::WorkerUnitTests::test_MultipleGranularities()
 	//  each 1ms if the Flag agent's flag is set to 1.
 	WorkGroup countWG(2, 3);
 	countWG.initWorkers(nullptr);
+
+	//Register them out-of-order, just to be sure.
+	WorkGroup::RegisterWorkGroup(&countWG);
+	WorkGroup::RegisterWorkGroup(&flagWG);
 
 	//Add the Flag agent
 	FlagAgent* flagAg = new FlagAgent();
@@ -199,9 +204,14 @@ void unit_tests::WorkerUnitTests::test_MultipleGranularities()
 		//  We probably also want to give a unique barrier per wait stage, even though only 1 is needed
 		//    in practice. This reduces the risk of invalid math leading to hard-to-detect errors.
 		//
+		//  UPDATE: Simply splitting update() into stages doesn't seem 100% accurate, because now
+		//          one WorkGroup can be in flip() while a similar-granularity WorkGroup may be
+		//          in frame_tick(). Seems like we will still need some kind of lock sharing, but
+		//          this is complicated by our macro ticks. I wonder if boost has a more flexible
+		//          version of barrier, or if something like wait/notifyAll() makes some kind of sense.
+		//
 		///////////////////////////////////////////////////////
-		countWG.wait();
-		flagWG.wait();
+		WorkGroup::WaitAllGroups();
 	}
 
 	//Confirm that the flag itself was set

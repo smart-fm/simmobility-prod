@@ -21,11 +21,52 @@ using boost::function;
 using namespace sim_mob;
 
 
+vector<WorkGroup*> sim_mob::WorkGroup::RegisteredWorkGroups;
 
+void sim_mob::WorkGroup::RegisterWorkGroup(sim_mob::WorkGroup* wg)
+{
+	RegisteredWorkGroups.push_back(wg);
+}
 
-/**
- * Template function must be defined in the same translational unit as it is declared.
- */
+void sim_mob::WorkGroup::WaitAllGroups()
+{
+	//Call each function in turn.
+	WaitAllGroups_FrameTick();
+	WaitAllGroups_FlipBuffers();
+	WaitAllGroups_MacroTimeTick();
+	WaitAllGroups_AuraManager();
+}
+
+void sim_mob::WorkGroup::WaitAllGroups_FrameTick()
+{
+	for (vector<WorkGroup*>::iterator it=RegisteredWorkGroups.begin(); it!=RegisteredWorkGroups.end(); it++) {
+		(*it)->waitFrameTick();
+	}
+}
+
+void sim_mob::WorkGroup::WaitAllGroups_FlipBuffers()
+{
+	for (vector<WorkGroup*>::iterator it=RegisteredWorkGroups.begin(); it!=RegisteredWorkGroups.end(); it++) {
+		(*it)->waitFlipBuffers();
+	}
+}
+
+void sim_mob::WorkGroup::WaitAllGroups_MacroTimeTick()
+{
+	for (vector<WorkGroup*>::iterator it=RegisteredWorkGroups.begin(); it!=RegisteredWorkGroups.end(); it++) {
+		(*it)->waitMacroTimeTick();
+	}
+}
+
+void sim_mob::WorkGroup::WaitAllGroups_AuraManager()
+{
+	for (vector<WorkGroup*>::iterator it=RegisteredWorkGroups.begin(); it!=RegisteredWorkGroups.end(); it++) {
+		if ((*it)->auraManagerActive) {
+			(*it)->waitAuraManager();
+		}
+	}
+}
+
 
 void sim_mob::WorkGroup::initWorkers(/*Worker::ActionFunction* action, */EntityLoadParams* loader)
 {
@@ -228,31 +269,52 @@ sim_mob::Worker* sim_mob::WorkGroup::getWorker(int id)
 }
 
 
-
-void sim_mob::WorkGroup::wait()
+void sim_mob::WorkGroup::waitFrameTick()
 {
-	//React to tick step.
 	if (tickOffset==0) {
-		//New countdown loop
-		tickOffset = tickStep;
-
 		//Stay in sync with the workers.
 		nextTimeTickToStage += tickStep;
 		shared_barr.wait();
+	}
+}
+
+void sim_mob::WorkGroup::waitFlipBuffers()
+{
+	if (tickOffset==0) {
 		//Stage Agent updates based on nextTimeTickToStage
 		stageEntities();
 		//Remove any Agents staged for removal.
 		collectRemovedEntities();
 		external_barr.wait();
-	} else if (tickOffset==1) {
+	}
+}
+
+void sim_mob::WorkGroup::waitAuraManager()
+{
+	if (!auraManagerActive) {
+		throw std::runtime_error("Aura manager must be active for waitExternAgain()");
+	}
+	if (tickOffset==0) {
+		external_barr.wait();
+	}
+}
+
+void sim_mob::WorkGroup::waitMacroTimeTick()
+{
+	if (tickOffset==1) {
 		//One additional wait forces a synchronization before the next major time step.
 		//This won't trigger when tickOffset is 1, since it will immediately decrement to 0.
 		external_barr.wait();
+	} else if (tickOffset==0) {
+		//Reset the countdown loop.
+		tickOffset = tickStep;
 	}
 
 	//Continue counting down.
 	tickOffset--;
 }
+
+
 
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -288,13 +350,6 @@ int sim_mob::WorkGroup::getTheMostFreeWorkerID() const
 #endif
 
 
-void sim_mob::WorkGroup::waitExternAgain()
-{
-	if (!auraManagerActive) {
-		throw std::runtime_error("Aura manager must be active for waitExternAgain()");
-	}
-	external_barr.wait();
-}
 
 
 

@@ -2,13 +2,14 @@
 
 #pragma once
 
+#include <map>
+#include <string>
 #include <vector>
 
 #include "GenConfig.h"
 
-#include "Agent.hpp"
+#include "entities/Agent.hpp"
 #include "roles/Role.hpp"
-#include "roles/driver/Driver.hpp"
 #include "buffering/Shared.hpp"
 #include "entities/UpdateParams.hpp"
 #include "entities/misc/TripChain.hpp"
@@ -36,26 +37,31 @@ class UnPackageUtils;
  *
  * A person may perform one of several roles which
  *  change over time. For example: Drivers, Pedestrians, and Passengers are
- *  all roles which a Person may fulfill.
+ *  all roles which a Person may fulfil.
  */
 class Person : public sim_mob::Agent {
 public:
-	explicit Person(const MutexStrategy& mtxStrat, int id=-1);
+	///The "src" variable is used to help flag how this person was created.
+	explicit Person(const std::string& src, const MutexStrategy& mtxStrat,unsigned int id=-1);
 	virtual ~Person();
-
-	///Generate a person from a PendingEntity. Currently only works for Drivers/Pedestrians
-	static Person* GeneratePersonFromPending(const PendingEntity& p);
 
 	///Update Person behavior
 	virtual Entity::UpdateStatus update(frame_t frameNumber);
+
+	///Load a Person's config-specified properties, creating a placeholder trip chain if
+	/// requested.
+	virtual void load(const std::map<std::string, std::string>& configProps);
+
     ///Update a Person's subscription list.
     virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
+
     ///Change the role of this person: Driver, Passenger, Pedestrian
     void changeRole(sim_mob::Role* newRole);
     sim_mob::Role* getRole() const;
 
     ///Check if any role changing is required.
-    Entity::UpdateStatus checkAndReactToTripChain(unsigned int currTimeMS);
+    /// "nextValidTimeMS" is the next valid time tick, which may be the same at this time tick.
+    Entity::UpdateStatus checkAndReactToTripChain(unsigned int currTimeMS, unsigned int nextValidTimeMS);
 
     ///get this person's trip chain
     const std::vector<const TripChainItem*>& getTripChain() const
@@ -82,10 +88,18 @@ public:
     std::string specialStr;
 
 private:
+    //Internal update functionality
+    void update_time(frame_t frameNumber, unsigned int currTimeMS, Entity::UpdateStatus& retVal);
+
+
     //Properties
     sim_mob::Role* prevRole; ///< To be deleted on the next time tick.
     sim_mob::Role* currRole;
     sim_mob::Link* currLink;
+
+    //Can be helpful for debugging
+    std::string agentSrc;
+
 
     int currTripChainSequenceNumber;
     std::vector<const TripChainItem*> tripChain;

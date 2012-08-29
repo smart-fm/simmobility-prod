@@ -16,24 +16,23 @@ using namespace sim_mob;
 
 sim_mob::ActivityPerformer::ActivityPerformer(Agent* parent) :
 		Role(parent), params(parent->getGenerator()) {
-	//Check non-null parent. Perhaps references may be of use here?
-	if (!parent) {
-		std::cout << "Role constructed with no parent Agent." << std::endl;
-		throw 1;
-	}
+	//NOTE: Be aware that a null parent is certainly possible; what if we want to make a "generic" Pedestrian?
+	//      The RoleManger in particular relies on this. ~Seth
 }
 
 sim_mob::ActivityPerformer::ActivityPerformer(Agent* parent,
 		const sim_mob::Activity& currActivity) :
 		Role(parent), params(parent->getGenerator()){
-	//Check non-null parent. Perhaps references may be of use here?
-	if (!parent) {
-		std::cout << "Role constructed with no parent Agent." << std::endl;
-		throw 1;
-	}
+	//NOTE: Be aware that a null parent is certainly possible; what if we want to make a "generic" Pedestrian?
+	//      The RoleManger in particular relies on this. ~Seth
 	activityStartTime = currActivity.startTime;
 	activityEndTime = currActivity.endTime;
 	location = currActivity.location;
+}
+
+Role* sim_mob::ActivityPerformer::clone(Person* parent) const
+{
+	return new ActivityPerformer(parent);
 }
 
 sim_mob::ActivityPerformerUpdateParams::ActivityPerformerUpdateParams(
@@ -103,10 +102,6 @@ void sim_mob::ActivityPerformer::initializeRemainingTime() {
 }
 
 void sim_mob::ActivityPerformer::updateRemainingTime() {
-	this->remainingTimeToComplete =
-			((this->remainingTimeToComplete - ConfigParams::GetInstance().baseGranMS) >=0)?
-					(this->remainingTimeToComplete - ConfigParams::GetInstance().baseGranMS):
-					0;
-
+	this->remainingTimeToComplete = std::max(0, this->remainingTimeToComplete - int(ConfigParams::GetInstance().baseGranMS));
 }
 

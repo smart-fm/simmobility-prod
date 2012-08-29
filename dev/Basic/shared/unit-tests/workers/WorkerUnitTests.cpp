@@ -1,10 +1,13 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
+#include <map>
 #include <cmath>
 #include <limits>
 #include <vector>
+#include <string>
 #include <sstream>
 
+#include "buffering/Buffered.hpp"
 #include "util/LangHelpers.hpp"
 #include "workers/WorkGroup.hpp"
 #include "workers/Worker.hpp"
@@ -12,6 +15,8 @@
 
 #include "WorkerUnitTests.hpp"
 
+using std::map;
+using std::string;
 using std::vector;
 using namespace sim_mob;
 
@@ -19,25 +24,69 @@ CPPUNIT_TEST_SUITE_REGISTRATION(unit_tests::WorkerUnitTests);
 
 
 namespace {
-//An Agent which increments its own (local) integer value once per time tick.
-class IncrAgent : public Agent {
+//An Agent which removes all the cruft from Agent
+class NullAgent : public Agent {
 public:
-	IncrAgent(int& srcValue) : Agent(MtxStrat_Buffered), srcValue(srcValue) {}
-
-	virtual Entity::UpdateStatus update(frame_t frameNumber) {
-		srcValue *= 2;
-		return Entity::UpdateStatus::Continue;
-	}
+	NullAgent() : Agent(MtxStrat_Buffered) {}
 
 	//Don't ask to track anything.
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList) {}
 
 	virtual void setCurrLink(Link* ln) {}
 	virtual Link* getCurrLink() { return nullptr; }
+	virtual void load(const map<string, string>& props) {}
+};
+
+
+//An Agent which increments its own (local) integer value once per time tick.
+class IncrAgent : public NullAgent {
+public:
+	IncrAgent(int& srcValue) : srcValue(srcValue) {}
+
+	virtual Entity::UpdateStatus update(frame_t frameNumber) {
+		srcValue *= 2;
+		return Entity::UpdateStatus::Continue;
+	}
 private:
 	int& srcValue;
 };
 
+
+//An Agent which sets a flag to 1 in its first time tick.
+class FlagAgent : public NullAgent {
+public:
+	FlagAgent() : flag(0) {}
+
+	virtual Entity::UpdateStatus update(frame_t frameNumber) {
+		flag.set(1);
+		return Entity::UpdateStatus::Continue;
+	}
+
+	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList) {
+		subsList.push_back(&flag);
+	}
+
+	Buffered<int> flag;
+};
+
+
+//An Agent which increments its value if a given FlagAgent's value is set to 1.
+class CondSumAgent : public NullAgent {
+public:
+	CondSumAgent(FlagAgent& flagAg) : flagAg(flagAg), count(0) {}
+
+	virtual Entity::UpdateStatus update(frame_t frameNumber) {
+		if (flagAg.flag.get()) {
+			count++;
+		}
+		return Entity::UpdateStatus::Continue;
+	}
+
+	int getCount() { return count; }
+private:
+	FlagAgent& flagAg;
+	int count;
+};
 
 
 } //End unnamed namespace
@@ -92,3 +141,56 @@ void unit_tests::WorkerUnitTests::test_SimpleWorkers()
 		}
 	}
 }
+
+
+void unit_tests::WorkerUnitTests::test_MultipleGranularities()
+{
+	//Our first Work Group contains a single worker operating at a frequency of 3ms.
+	//  It switches its flag to "On" at time tick 0.
+	WorkGroup flagWG(1, 3, 3);
+	flagWG.initWorkers(nullptr);
+
+	//Our second WorkGroup contains 2 workers, each with 2 agents, which add 1
+	//  each 1ms if the Flag agent's flag is set to 1.
+	WorkGroup countWG(2, 3);
+	countWG.initWorkers(nullptr);
+
+	//Add the Flag agent
+	FlagAgent* flagAg = new FlagAgent();
+	flagAg->setStartTime(0);
+	flagWG.assignAWorker(flagAg);
+
+	//Add the counter agents.
+	CondSumAgent* sumAg1 = new CondSumAgent(*flagAg);
+	CondSumAgent* sumAg2 = new CondSumAgent(*flagAg);
+	CondSumAgent* sumAg3 = new CondSumAgent(*flagAg);
+	CondSumAgent* sumAg4 = new CondSumAgent(*flagAg);
+	countWG.assignAWorker(sumAg1);
+	countWG.assignAWorker(sumAg2);
+	countWG.assignAWorker(sumAg3);
+	countWG.assignAWorker(sumAg4);
+
+	//Start work groups and all threads.
+	countWG.startAll();
+	flagWG.startAll();
+
+	//Agent update cycle
+	for (int i=0; i<3; i++) {
+		countWG.wait();
+		flagWG.wait();
+	}
+
+	//Confirm that the flag itself was set
+	CPPUNIT_ASSERT_MESSAGE("Agent flag not set", flagAg->flag.get()==1);
+
+	//Confirm that each Agent has the correct total
+	CPPUNIT_ASSERT_MESSAGE("Agent count failed", sumAg1->getCount()==2);
+	CPPUNIT_ASSERT_MESSAGE("Agent count failed", sumAg2->getCount()==2);
+	CPPUNIT_ASSERT_MESSAGE("Agent count failed", sumAg3->getCount()==2);
+	CPPUNIT_ASSERT_MESSAGE("Agent count failed", sumAg4->getCount()==2);
+}
+
+
+
+
+

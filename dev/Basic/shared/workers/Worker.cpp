@@ -255,6 +255,8 @@ void sim_mob::Worker::migrateIn(Entity& ag)
 
 
 
+//TODO: It seems that beginManaging() and stopManaging() can also be called during update?
+//      May want to dig into this a bit more. ~Seth
 void sim_mob::Worker::perform_main(frame_t frameNumber)
 {
 	//All Entity workers perform the same tasks for their set of managedEntities.

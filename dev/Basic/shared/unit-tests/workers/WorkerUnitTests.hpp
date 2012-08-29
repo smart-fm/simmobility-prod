@@ -18,12 +18,14 @@ public:
 	///Test basic worker functionality
 	void test_SimpleWorkers();
 
-
+	///Test what happens when workers have different, interacting granularities.
+	void test_MultipleGranularities();
 
 
 private:
     CPPUNIT_TEST_SUITE(WorkerUnitTests);
         CPPUNIT_TEST(test_SimpleWorkers);
+        CPPUNIT_TEST(test_MultipleGranularities);
     CPPUNIT_TEST_SUITE_END();
 };
 

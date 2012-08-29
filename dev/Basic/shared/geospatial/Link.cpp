@@ -114,6 +114,15 @@ int sim_mob::Link::getLength(bool isForward) const
 	return totalLen;
 }
 
+const std::string & sim_mob::Link::getLinkId() const
+{
+	return linkID;
+}
+const std::string & sim_mob::Link::getRoadName() const
+{
+	return roadName;
+}
+
 
 const vector<RoadSegment*>& sim_mob::Link::getPath(bool isForward) const
 {
@@ -146,6 +155,13 @@ string sim_mob::Link::getSegmentName(const RoadSegment* segment)
 const std::set<sim_mob::RoadSegment*> & sim_mob::Link::getUniqueSegments()
 {
 	return uniqueSegments;
+}
+const std::vector<sim_mob::RoadSegment*> & sim_mob::Link::getFwdSegments()
+{
+	return fwdSegments;
+}
+const std::vector<sim_mob::RoadSegment*> & sim_mob::Link::getRevSegments(){
+	return revSegments;
 }
 
 void sim_mob::Link::extendPolylinesBetweenRoadSegments()

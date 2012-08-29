@@ -48,6 +48,7 @@ class Loader;
 class Link : public sim_mob::Traversable {
 public:
 	Link() : Traversable() {}
+	Link(std::string linkID_) : Traversable(),linkID(linkID_) {}
 
 	//Initialize a link with the given set of segments
 	void initializeLinkSegments(const std::set<sim_mob::RoadSegment*>& segments);
@@ -55,21 +56,23 @@ public:
 	///Return the length of this Link, which is the sum of all RoadSegments
 	/// in the forward (if isForward is true) direction.
 	int getLength(bool isForward) const;
-
-	/**Return the RoadSegments which make up this Link, in either the forward
+	const std::string & getLinkId() const;
+	const std::string & getRoadName() const;
+	///Return the RoadSegments which make up this Link, in either the forward
 	/// (if isForward is true) or reverse direction.
 	///
 	/// \note
 	/// If bidirectional segments are present, this path may include
 	/// RoadSegments that should actually be read as end->start, not start->end.
-	 */
+	 
 	const std::vector<sim_mob::RoadSegment*>& getPath(bool isForward) const;
 
 	///The name of the particular segment. E.g., "Main Street 01".
 	///Useful for debugging by location. May be auto-numbered.
 	std::string getSegmentName(const sim_mob::RoadSegment* segment);
 	const std::set<sim_mob::RoadSegment*> & getUniqueSegments();
-
+	const std::vector<sim_mob::RoadSegment*> & getFwdSegments();
+	const std::vector<sim_mob::RoadSegment*> & getRevSegments();
 	void extendPolylinesBetweenRoadSegments();
 	void extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>& segments);
 

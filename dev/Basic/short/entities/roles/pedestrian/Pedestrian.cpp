@@ -134,13 +134,10 @@ double Pedestrian::collisionForce = 20;
 double Pedestrian::agentRadius = 0.5; //Shoulder width of a person is about 0.5 meter
 
 
-sim_mob::Pedestrian::Pedestrian(Agent* parent, boost::mt19937& gen) :
+sim_mob::Pedestrian::Pedestrian(Agent* parent) :
 	Role(parent), prevSeg(nullptr), isUsingGenPathMover(true), params(parent->getGenerator()) {
-	//Check non-null parent. Perhaps references may be of use here?
-	if (!parent) {
-		std::cout << "Role constructed with no parent Agent." << std::endl;
-		throw 1;
-	}
+	//NOTE: Be aware that a null parent is certainly possible; what if we want to make a "generic" Pedestrian?
+	//      The RoleManger in particular relies on this. ~Seth
 
 	//Init
 #ifdef SIMMOB_NEW_SIGNAL
@@ -152,7 +149,11 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent, boost::mt19937& gen) :
 	startToCross = false;
 
 	//Set default speed in the range of 1.2m/s to 1.6m/s
-	speed = 1.2+(double(zero_to_five(gen)))/10;
+	if (parent) {
+		speed = 1.2+(double(zero_to_five(parent->getGenerator())))/10;
+	} else {
+		speed = 0;
+	}
 
 	xVel = 0;
 	yVel = 0;
@@ -166,6 +167,12 @@ sim_mob::Pedestrian::Pedestrian(Agent* parent, boost::mt19937& gen) :
 	crossingCount = 0;
 
 }
+
+Role* sim_mob::Pedestrian::clone(Person* parent) const
+{
+	return new Pedestrian(parent);
+}
+
 
 //Note that a destructor is not technically needed, but I want to enforce the idea
 //  of overriding virtual destructors if they exist.

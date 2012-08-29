@@ -41,7 +41,7 @@ public:
 		IT_TRIP, IT_ACTIVITY
 	};
 
-	int entityID;
+	unsigned int personID;//replaces entityID
 	ItemType itemType;
 	unsigned int sequenceNumber;
 	sim_mob::DailyTime startTime;

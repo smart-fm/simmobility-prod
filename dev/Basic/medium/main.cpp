@@ -105,15 +105,6 @@ bool performMainMed(const std::string& configFileName) {
 	const ConfigParams& config = ConfigParams::GetInstance();
 
 
-	//Sanity check (nullptr)
-	void* x = nullptr;
-	if (x) {
-		return false;
-	}
-
-	//Output
-	cout << "  " << "...Sanity Check Passed" << endl;
-
 	//Start boundaries
 #ifndef SIMMOB_DISABLE_MPI
 	if (config.is_run_on_many_computers) {

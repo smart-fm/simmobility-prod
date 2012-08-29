@@ -20,10 +20,9 @@ using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
 
 
-sim_mob::Worker::Worker(WorkGroup* parent, boost::barrier& internal_barr, boost::barrier& external_barr, std::vector<Entity*>* entityRemovalList/*, ActionFunction* action*/, frame_t endTick, frame_t tickStep, bool auraManagerActive)
+sim_mob::Worker::Worker(WorkGroup* parent, boost::barrier& internal_barr, boost::barrier& external_barr, std::vector<Entity*>* entityRemovalList, frame_t endTick, frame_t tickStep, bool auraManagerActive)
     : BufferedDataManager(),
       internal_barr(internal_barr), external_barr(external_barr),
-      //action(action),
       endTick(endTick),
       tickStep(tickStep),
       auraManagerActive(auraManagerActive),

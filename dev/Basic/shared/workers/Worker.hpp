@@ -52,7 +52,7 @@ public:
 	//! will be a strictly monotonic increasing number which represent the time-step.
 	//typedef boost::function<void(Worker& worker, frame_t frameNumber)> ActionFunction;
 
-	Worker(WorkGroup* parent, boost::barrier& internal_barr, boost::barrier& external_barr, std::vector<Entity*>* entityRemovalList/*, ActionFunction* action =nullptr*/, frame_t endTick=0, frame_t tickStep=0, bool auraManagerActive=false);
+	Worker(WorkGroup* parent, boost::barrier& internal_barr, boost::barrier& external_barr, std::vector<Entity*>* entityRemovalList, frame_t endTick, frame_t tickStep, bool auraManagerActive);
 	virtual ~Worker();
 
 	//Thread-style operations

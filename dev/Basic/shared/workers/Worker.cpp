@@ -20,6 +20,33 @@ using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
 
 
+sim_mob::Worker::Worker(WorkGroup* parent, boost::barrier& internal_barr, boost::barrier& external_barr, std::vector<Entity*>* entityRemovalList/*, ActionFunction* action*/, frame_t endTick, frame_t tickStep, bool auraManagerActive)
+    : BufferedDataManager(),
+      internal_barr(internal_barr), external_barr(external_barr),
+      //action(action),
+      endTick(endTick),
+      tickStep(tickStep),
+      auraManagerActive(auraManagerActive),
+      parent(parent),
+      entityRemovalList(entityRemovalList)
+{
+}
+
+
+sim_mob::Worker::~Worker()
+{
+	//Clear all tracked entitites
+	while (!managedEntities.empty()) {
+		remEntity(managedEntities.front());
+	}
+
+	//Clear all tracked data
+	while (!managedData.empty()) {
+		stopManaging(managedData[0]);
+	}
+}
+
+
 void sim_mob::Worker::addEntity(Entity* entity)
 {
 	//Save this entity in the data vector.
@@ -64,40 +91,6 @@ void sim_mob::Worker::scheduleForRemoval(Entity* entity)
 	}
 }
 
-
-
-//////////////////////////////////////////////
-// These also need the temoplate parameter,
-// but don't actually do anything with it.
-//////////////////////////////////////////////
-
-
-
-sim_mob::Worker::Worker(WorkGroup* parent, boost::barrier& internal_barr, boost::barrier& external_barr, std::vector<Entity*>* entityRemovalList/*, ActionFunction* action*/, frame_t endTick, frame_t tickStep, bool auraManagerActive)
-    : BufferedDataManager(),
-      internal_barr(internal_barr), external_barr(external_barr),
-      //action(action),
-      endTick(endTick),
-      tickStep(tickStep),
-      auraManagerActive(auraManagerActive),
-      parent(parent),
-      entityRemovalList(entityRemovalList)
-{
-}
-
-
-sim_mob::Worker::~Worker()
-{
-	//Clear all tracked entitites
-	while (!managedEntities.empty()) {
-		remEntity(managedEntities.front());
-	}
-
-	//Clear all tracked data
-	while (!managedData.empty()) {
-		stopManaging(managedData[0]);
-	}
-}
 
 
 void sim_mob::Worker::start()

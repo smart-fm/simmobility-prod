@@ -114,7 +114,7 @@ int sim_mob::Link::getLength(bool isForward) const
 	return totalLen;
 }
 
-const std::string & sim_mob::Link::getLinkId() const
+const unsigned int & sim_mob::Link::getLinkId() const
 {
 	return linkID;
 }

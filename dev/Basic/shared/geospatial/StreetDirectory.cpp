@@ -1319,6 +1319,7 @@ const
     // The code here is based on the example in the book "The Boost Graph Library" by
     // Jeremy Siek, et al.
     std::vector<Vertex> parent(boost::num_vertices(graph));
+    std::cout << "checking cause of se fault boost::num_vertices(graph)=" << boost::num_vertices(graph) << std::endl;
     for (Graph::vertices_size_type i = 0; i < boost::num_vertices(graph); ++i)
     {
         parent[i] = i;
@@ -1329,6 +1330,7 @@ const
     // those parameters that have default values without worrying about the order of the parameters.
     // In the following, only the predecessor_map parameter is named and the parent array is
     // passed in as this parameter; the other parameters take their default values.
+    std::cout << "checking cause of se fault parent.size()=" << parent.size() << std::endl;
     boost::dijkstra_shortest_paths(graph, fromVertex, boost::predecessor_map(&parent[0]));
 
     return extractShortestPath(fromVertex, toVertex, parent, graph);

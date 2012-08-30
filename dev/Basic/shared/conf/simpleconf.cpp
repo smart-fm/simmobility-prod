@@ -175,8 +175,6 @@ string ReadLowercase(TiXmlHandle& handle, const std::string& attrName)
 void addOrStashEntity(Person* p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
 	///TODO: The BusController is static; need to address this OUTSIDE this function.
-	//if (ENTITY_BUSCONTROLLER == p.type) { active_agents.push_back(BusController::busctrller); }
-
 	std::cout <<"Agent: " <<p->getId() <<", start: " <<p->getStartTime() <<std::endl;
 
 	//Only agents with a start time of zero should start immediately in the all_agents list.
@@ -437,7 +435,13 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 		Person* agent = new Person("XML_Def", config.mutexStategy, manualID);
 		agent->setConfigProperties(props);
 		agent->setStartTime(startTime);
-
+		std::cout << " agentType: " << agentType << "\n";
+		for(map<string, string>::iterator it = props.begin(); it != props.end(); it++)
+		{
+			std::cout << " props[" << it->first << " , " << it->second << "]\n";
+		}
+		std::cout << "I am in LoadXMLAgnets\n";
+//		getchar();
 		//Add it or stash it
 		addOrStashEntity(agent, active_agents, pending_agents);
 	}
@@ -1159,7 +1163,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		 *
     		 ***************************************************/
 
-//    		//Load the AIMSUM network details
+    		//Load the AIMSUM network details
 //    		map<string, string> storedProcedures; //Of the form "node" -> "get_node()"
 //    		if (!LoadDatabaseDetails(*geomElem, ConfigParams::GetInstance().connectionString, storedProcedures)) {
 //    			return "Unable to load database connection settings....";
@@ -1172,10 +1176,17 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 //    		}
        		/**************************************************
        		 *
-       		 * ****************  XML **************************
+       		 * ****************  XML-READER *******************
         	 *
-        	 ***************************************************/
+        	 *************************************************/
     		main1(0,0);
+    		std::cout << "Testin Road Network :\n";
+    		std::vector<Link*> const & links = ConfigParams::GetInstance().getNetwork().getLinks();
+    		std::cout << "Number of Links: " << links.size() << std::endl;
+    		const std::vector<sim_mob::MultiNode*>& mnodes = ConfigParams::GetInstance().getNetwork().getNodes();
+    		const std::set<sim_mob::UniNode*>& unodes = ConfigParams::GetInstance().getNetwork().getUniNodes();
+    		std::cout << "Number of UniNodes: " << unodes.size() << std::endl;
+    		std::cout << "Number of MultiNodes: " << mnodes.size() << std::endl;
 //////////////////////////////////////////////////////////////////////////////////
     		//Finally, mask the password
     		string& s = ConfigParams::GetInstance().connectionString;

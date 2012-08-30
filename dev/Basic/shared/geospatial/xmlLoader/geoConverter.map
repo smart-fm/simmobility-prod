@@ -28,19 +28,22 @@ Lanes std::vector<sim_mob::Lane*> std::vector<sim_mob::Lane*>;
 #connector_t sim_mob::LaneConnector* sim_mob::LaneConnector*;
 #connectors_t std::set<sim_mob::LaneConnector*> std::set<sim_mob::LaneConnector*>;
 
-connector_t std::pair<std::string,std::string> std::pair<std::string,std::string>;
-connectors_t std::set<std::pair<std::string,std::string>> std::set<std::pair<std::string,std::string>>;
- 
+connector_t std::pair<unsigned_long,unsigned_long> std::pair<unsigned_long,unsigned_long>;
+connectors_t std::set<std::pair<unsigned_long,unsigned_long>> std::set<std::pair<unsigned_long,unsigned_long>>;
+
+#connectors_t std::set<std::pair<std::string,std::string>> std::set<std::pair<std::string,std::string>>;
 #Multi_Connector_t std::pair<std::string,std::set<sim_mob::LaneConnector*>>;
 #Multi_Connectors_t std::map<std::string,std::set<sim_mob::LaneConnector*>>;
 
-Multi_Connector_t std::pair<std::string,std::set<std::pair<std::string,std::string>>>;
-Multi_Connectors_t std::map<std::string,std::set<std::pair<std::string,std::string>>>;
+Multi_Connector_t std::pair<unsigned_long,std::set<std::pair<unsigned_long,unsigned_long>>>;
+Multi_Connectors_t std::map<unsigned_long,std::set<std::pair<unsigned_long,unsigned_long>>>;
 
 PolyLine_t std::vector<sim_mob::Point2D> std::vector<sim_mob::Point2D>;
 PolyPoint_t sim_mob::Point2D sim_mob::Point2D;
 Point2D_t sim_mob::Point2D sim_mob::Point2D;
 PointPair_t std::pair<sim_mob::Point2D,sim_mob::Point2D> std::pair<sim_mob::Point2D,sim_mob::Point2D>;
+
+Node_t sim_mob::Node* sim_mob::Node*;
 
 UniNodes std::set<sim_mob::UniNode*>& std::set<sim_mob::UniNode*>&;
 UniNode_t sim_mob::UniNode* sim_mob::UniNode*;
@@ -48,17 +51,20 @@ UniNode_t sim_mob::UniNode* sim_mob::UniNode*;
 Intersections std::vector<sim_mob::MultiNode*>& std::vector<sim_mob::MultiNode*>&;
 intersection_t sim_mob::MultiNode* sim_mob::MultiNode*;
 #RoadSegmentsAt_t std::set<sim_mob::RoadSegment*>  std::set<sim_mob::RoadSegment*>;
-RoadSegmentsAt_t std::set<std::string>  std::set<std::string>;
+RoadSegmentsAt_t std::set<unsigned_long>  std::set<unsigned_long>;
 roundabouts std::vector<sim_mob::MultiNode*>& std::vector<sim_mob::MultiNode*>&;
 roundabout_t sim_mob::MultiNode* sim_mob::MultiNode*;
 
 crossing_t sim_mob::Crossing* sim_mob::Crossing*; 
 
-TripChain_t std::pair<unsigned_int,sim_mob::TripChainItem*>  std::pair<unsigned-int,sim_mob::TripChainItem*>;
+
+TripChainItem_t  sim_mob::TripChainItem*  sim_mob::TripChainItem*;
+TripChain_t std::pair<unsigned_long,sim_mob::TripChainItem*>  std::pair<unsigned_long,sim_mob::TripChainItem*>;
 Trip_t sim_mob::TripChainItem*  sim_mob::TripChainItem*;
 Activity_t sim_mob::TripChainItem*  sim_mob::TripChainItem*;
 DailyTime_t sim_mob::DailyTime sim_mob::DailyTime;
-TripchainItemLocationType sim_mob::TripChainItem::LocationType sim_mob::TripChainItem::LocationType;
+TripchainItemLocationType  std::string std::string;
+TripchainItemType std::string std::string;
 SubTrips_t std::vector<sim_mob::SubTrip> std::vector<sim_mob::SubTrip>;
 SubTrip_t sim_mob::SubTrip sim_mob::SubTrip;
 

@@ -125,7 +125,7 @@ namespace geo
   //
 
   void lane_t_pskel::
-  laneID_parser (::xml_schema::string_pskel& p)
+  laneID_parser (::xml_schema::unsigned_long_pskel& p)
   {
     this->laneID_parser_ = &p;
   }
@@ -239,7 +239,7 @@ namespace geo
   }
 
   void lane_t_pskel::
-  parsers (::xml_schema::string_pskel& laneID,
+  parsers (::xml_schema::unsigned_long_pskel& laneID,
            ::xml_schema::unsigned_int_pskel& width,
            ::xml_schema::boolean_pskel& can_go_straight,
            ::xml_schema::boolean_pskel& can_turn_left,
@@ -308,20 +308,20 @@ namespace geo
   //
 
   void connector_t_pskel::
-  laneFrom_parser (::xml_schema::string_pskel& p)
+  laneFrom_parser (::xml_schema::unsigned_long_pskel& p)
   {
     this->laneFrom_parser_ = &p;
   }
 
   void connector_t_pskel::
-  laneTo_parser (::xml_schema::string_pskel& p)
+  laneTo_parser (::xml_schema::unsigned_long_pskel& p)
   {
     this->laneTo_parser_ = &p;
   }
 
   void connector_t_pskel::
-  parsers (::xml_schema::string_pskel& laneFrom,
-           ::xml_schema::string_pskel& laneTo)
+  parsers (::xml_schema::unsigned_long_pskel& laneFrom,
+           ::xml_schema::unsigned_long_pskel& laneTo)
   {
     this->laneFrom_parser_ = &laneFrom;
     this->laneTo_parser_ = &laneTo;
@@ -359,7 +359,7 @@ namespace geo
   //
 
   void Multi_Connector_t_pskel::
-  RoadSegment_parser (::xml_schema::string_pskel& p)
+  RoadSegment_parser (::xml_schema::unsigned_long_pskel& p)
   {
     this->RoadSegment_parser_ = &p;
   }
@@ -371,7 +371,7 @@ namespace geo
   }
 
   void Multi_Connector_t_pskel::
-  parsers (::xml_schema::string_pskel& RoadSegment,
+  parsers (::xml_schema::unsigned_long_pskel& RoadSegment,
            ::geo::connectors_t_pskel& Connectors)
   {
     this->RoadSegment_parser_ = &RoadSegment;
@@ -431,13 +431,13 @@ namespace geo
   //
 
   void RoadSegmentsAt_t_pskel::
-  segmentID_parser (::xml_schema::string_pskel& p)
+  segmentID_parser (::xml_schema::unsigned_long_pskel& p)
   {
     this->segmentID_parser_ = &p;
   }
 
   void RoadSegmentsAt_t_pskel::
-  parsers (::xml_schema::string_pskel& segmentID)
+  parsers (::xml_schema::unsigned_long_pskel& segmentID)
   {
     this->segmentID_parser_ = &segmentID;
   }
@@ -452,19 +452,19 @@ namespace geo
   //
 
   void segment_t_pskel::
-  segmentID_parser (::xml_schema::string_pskel& p)
+  segmentID_parser (::xml_schema::unsigned_long_pskel& p)
   {
     this->segmentID_parser_ = &p;
   }
 
   void segment_t_pskel::
-  startingNode_parser (::xml_schema::string_pskel& p)
+  startingNode_parser (::xml_schema::unsigned_int_pskel& p)
   {
     this->startingNode_parser_ = &p;
   }
 
   void segment_t_pskel::
-  endingNode_parser (::xml_schema::string_pskel& p)
+  endingNode_parser (::xml_schema::unsigned_int_pskel& p)
   {
     this->endingNode_parser_ = &p;
   }
@@ -506,9 +506,9 @@ namespace geo
   }
 
   void segment_t_pskel::
-  parsers (::xml_schema::string_pskel& segmentID,
-           ::xml_schema::string_pskel& startingNode,
-           ::xml_schema::string_pskel& endingNode,
+  parsers (::xml_schema::unsigned_long_pskel& segmentID,
+           ::xml_schema::unsigned_int_pskel& startingNode,
+           ::xml_schema::unsigned_int_pskel& endingNode,
            ::xml_schema::short_pskel& maxSpeed,
            ::xml_schema::unsigned_int_pskel& Length,
            ::xml_schema::unsigned_int_pskel& Width,
@@ -545,7 +545,7 @@ namespace geo
   //
 
   void link_t_pskel::
-  linkID_parser (::xml_schema::string_pskel& p)
+  linkID_parser (::xml_schema::unsigned_int_pskel& p)
   {
     this->linkID_parser_ = &p;
   }
@@ -557,13 +557,13 @@ namespace geo
   }
 
   void link_t_pskel::
-  StartingNode_parser (::xml_schema::string_pskel& p)
+  StartingNode_parser (::xml_schema::unsigned_int_pskel& p)
   {
     this->StartingNode_parser_ = &p;
   }
 
   void link_t_pskel::
-  EndingNode_parser (::xml_schema::string_pskel& p)
+  EndingNode_parser (::xml_schema::unsigned_int_pskel& p)
   {
     this->EndingNode_parser_ = &p;
   }
@@ -575,10 +575,10 @@ namespace geo
   }
 
   void link_t_pskel::
-  parsers (::xml_schema::string_pskel& linkID,
+  parsers (::xml_schema::unsigned_int_pskel& linkID,
            ::xml_schema::string_pskel& roadName,
-           ::xml_schema::string_pskel& StartingNode,
-           ::xml_schema::string_pskel& EndingNode,
+           ::xml_schema::unsigned_int_pskel& StartingNode,
+           ::xml_schema::unsigned_int_pskel& EndingNode,
            ::geo::Segments_pskel& Segments)
   {
     this->linkID_parser_ = &linkID;
@@ -806,13 +806,13 @@ namespace geo
   //
 
   void LanesVector_t_pskel::
-  laneID_parser (::xml_schema::string_pskel& p)
+  laneID_parser (::xml_schema::unsigned_long_pskel& p)
   {
     this->laneID_parser_ = &p;
   }
 
   void LanesVector_t_pskel::
-  parsers (::xml_schema::string_pskel& laneID)
+  parsers (::xml_schema::unsigned_long_pskel& laneID)
   {
     this->laneID_parser_ = &laneID;
   }
@@ -874,20 +874,56 @@ namespace geo
   {
   }
 
-  // UniNode_t_pskel
+  // Node_t_pskel
   //
 
-  void UniNode_t_pskel::
-  nodeID_parser (::xml_schema::string_pskel& p)
+  void Node_t_pskel::
+  nodeID_parser (::xml_schema::unsigned_int_pskel& p)
   {
     this->nodeID_parser_ = &p;
   }
 
-  void UniNode_t_pskel::
+  void Node_t_pskel::
   location_parser (::geo::Point2D_t_pskel& p)
   {
     this->location_parser_ = &p;
   }
+
+  void Node_t_pskel::
+  linkLoc_parser (::xml_schema::unsigned_long_pskel& p)
+  {
+    this->linkLoc_parser_ = &p;
+  }
+
+  void Node_t_pskel::
+  originalDB_ID_parser (::xml_schema::string_pskel& p)
+  {
+    this->originalDB_ID_parser_ = &p;
+  }
+
+  void Node_t_pskel::
+  parsers (::xml_schema::unsigned_int_pskel& nodeID,
+           ::geo::Point2D_t_pskel& location,
+           ::xml_schema::unsigned_long_pskel& linkLoc,
+           ::xml_schema::string_pskel& originalDB_ID)
+  {
+    this->nodeID_parser_ = &nodeID;
+    this->location_parser_ = &location;
+    this->linkLoc_parser_ = &linkLoc;
+    this->originalDB_ID_parser_ = &originalDB_ID;
+  }
+
+  Node_t_pskel::
+  Node_t_pskel ()
+  : nodeID_parser_ (0),
+    location_parser_ (0),
+    linkLoc_parser_ (0),
+    originalDB_ID_parser_ (0)
+  {
+  }
+
+  // UniNode_t_pskel
+  //
 
   void UniNode_t_pskel::
   Connectors_parser (::geo::connectors_t_pskel& p)
@@ -896,37 +932,27 @@ namespace geo
   }
 
   void UniNode_t_pskel::
-  parsers (::xml_schema::string_pskel& nodeID,
+  parsers (::xml_schema::unsigned_int_pskel& nodeID,
            ::geo::Point2D_t_pskel& location,
+           ::xml_schema::unsigned_long_pskel& linkLoc,
+           ::xml_schema::string_pskel& originalDB_ID,
            ::geo::connectors_t_pskel& Connectors)
   {
     this->nodeID_parser_ = &nodeID;
     this->location_parser_ = &location;
+    this->linkLoc_parser_ = &linkLoc;
+    this->originalDB_ID_parser_ = &originalDB_ID;
     this->Connectors_parser_ = &Connectors;
   }
 
   UniNode_t_pskel::
   UniNode_t_pskel ()
-  : nodeID_parser_ (0),
-    location_parser_ (0),
-    Connectors_parser_ (0)
+  : Connectors_parser_ (0)
   {
   }
 
   // roundabout_t_pskel
   //
-
-  void roundabout_t_pskel::
-  nodeID_parser (::xml_schema::string_pskel& p)
-  {
-    this->nodeID_parser_ = &p;
-  }
-
-  void roundabout_t_pskel::
-  location_parser (::geo::Point2D_t_pskel& p)
-  {
-    this->location_parser_ = &p;
-  }
 
   void roundabout_t_pskel::
   roadSegmentsAt_parser (::geo::RoadSegmentsAt_t_pskel& p)
@@ -983,8 +1009,10 @@ namespace geo
   }
 
   void roundabout_t_pskel::
-  parsers (::xml_schema::string_pskel& nodeID,
+  parsers (::xml_schema::unsigned_int_pskel& nodeID,
            ::geo::Point2D_t_pskel& location,
+           ::xml_schema::unsigned_long_pskel& linkLoc,
+           ::xml_schema::string_pskel& originalDB_ID,
            ::geo::RoadSegmentsAt_t_pskel& roadSegmentsAt,
            ::geo::Multi_Connectors_t_pskel& Connectors,
            ::geo::ChunkLengths_t_pskel& ChunkLengths,
@@ -997,6 +1025,8 @@ namespace geo
   {
     this->nodeID_parser_ = &nodeID;
     this->location_parser_ = &location;
+    this->linkLoc_parser_ = &linkLoc;
+    this->originalDB_ID_parser_ = &originalDB_ID;
     this->roadSegmentsAt_parser_ = &roadSegmentsAt;
     this->Connectors_parser_ = &Connectors;
     this->ChunkLengths_parser_ = &ChunkLengths;
@@ -1010,9 +1040,7 @@ namespace geo
 
   roundabout_t_pskel::
   roundabout_t_pskel ()
-  : nodeID_parser_ (0),
-    location_parser_ (0),
-    roadSegmentsAt_parser_ (0),
+  : roadSegmentsAt_parser_ (0),
     Connectors_parser_ (0),
     ChunkLengths_parser_ (0),
     Offsets_parser_ (0),
@@ -1026,18 +1054,6 @@ namespace geo
 
   // intersection_t_pskel
   //
-
-  void intersection_t_pskel::
-  nodeID_parser (::xml_schema::string_pskel& p)
-  {
-    this->nodeID_parser_ = &p;
-  }
-
-  void intersection_t_pskel::
-  location_parser (::geo::Point2D_t_pskel& p)
-  {
-    this->location_parser_ = &p;
-  }
 
   void intersection_t_pskel::
   roadSegmentsAt_parser (::geo::RoadSegmentsAt_t_pskel& p)
@@ -1088,8 +1104,10 @@ namespace geo
   }
 
   void intersection_t_pskel::
-  parsers (::xml_schema::string_pskel& nodeID,
+  parsers (::xml_schema::unsigned_int_pskel& nodeID,
            ::geo::Point2D_t_pskel& location,
+           ::xml_schema::unsigned_long_pskel& linkLoc,
+           ::xml_schema::string_pskel& originalDB_ID,
            ::geo::RoadSegmentsAt_t_pskel& roadSegmentsAt,
            ::geo::Multi_Connectors_t_pskel& Connectors,
            ::geo::ChunkLengths_t_pskel& ChunkLengths,
@@ -1101,6 +1119,8 @@ namespace geo
   {
     this->nodeID_parser_ = &nodeID;
     this->location_parser_ = &location;
+    this->linkLoc_parser_ = &linkLoc;
+    this->originalDB_ID_parser_ = &originalDB_ID;
     this->roadSegmentsAt_parser_ = &roadSegmentsAt;
     this->Connectors_parser_ = &Connectors;
     this->ChunkLengths_parser_ = &ChunkLengths;
@@ -1113,9 +1133,7 @@ namespace geo
 
   intersection_t_pskel::
   intersection_t_pskel ()
-  : nodeID_parser_ (0),
-    location_parser_ (0),
-    roadSegmentsAt_parser_ (0),
+  : roadSegmentsAt_parser_ (0),
     Connectors_parser_ (0),
     ChunkLengths_parser_ (0),
     Offsets_parser_ (0),
@@ -1418,7 +1436,7 @@ namespace geo
   }
 
   void RoadBump_t_pskel::
-  segmentID_parser (::xml_schema::string_pskel& p)
+  segmentID_parser (::xml_schema::unsigned_long_pskel& p)
   {
     this->segmentID_parser_ = &p;
   }
@@ -1428,7 +1446,7 @@ namespace geo
            ::geo::Point2D_t_pskel& start,
            ::geo::Point2D_t_pskel& end,
            ::xml_schema::string_pskel& roadBumpID,
-           ::xml_schema::string_pskel& segmentID)
+           ::xml_schema::unsigned_long_pskel& segmentID)
   {
     this->Offset_parser_ = &Offset;
     this->start_parser_ = &start;
@@ -1679,7 +1697,7 @@ namespace geo
   }
 
   void Trip_t_pskel::
-  fromLocation_parser (::xml_schema::string_pskel& p)
+  fromLocation_parser (::xml_schema::unsigned_int_pskel& p)
   {
     this->fromLocation_parser_ = &p;
   }
@@ -1691,7 +1709,7 @@ namespace geo
   }
 
   void Trip_t_pskel::
-  toLocation_parser (::xml_schema::string_pskel& p)
+  toLocation_parser (::xml_schema::unsigned_int_pskel& p)
   {
     this->toLocation_parser_ = &p;
   }
@@ -1715,9 +1733,9 @@ namespace geo
            ::xml_schema::string_pskel& startTime,
            ::xml_schema::string_pskel& endTime,
            ::xml_schema::integer_pskel& tripID,
-           ::xml_schema::string_pskel& fromLocation,
+           ::xml_schema::unsigned_int_pskel& fromLocation,
            ::geo::TripchainItemLocationType_pskel& fromLocationType,
-           ::xml_schema::string_pskel& toLocation,
+           ::xml_schema::unsigned_int_pskel& toLocation,
            ::geo::TripchainItemLocationType_pskel& toLocationType,
            ::geo::SubTrips_t_pskel& subTrips)
   {
@@ -1755,7 +1773,7 @@ namespace geo
   }
 
   void Activity_t_pskel::
-  location_parser (::geo::Point2D_t_pskel& p)
+  location_parser (::xml_schema::unsigned_int_pskel& p)
   {
     this->location_parser_ = &p;
   }
@@ -1791,7 +1809,7 @@ namespace geo
            ::xml_schema::string_pskel& startTime,
            ::xml_schema::string_pskel& endTime,
            ::xml_schema::string_pskel& description,
-           ::geo::Point2D_t_pskel& location,
+           ::xml_schema::unsigned_int_pskel& location,
            ::geo::TripchainItemLocationType_pskel& locationType,
            ::xml_schema::boolean_pskel& isPrimary,
            ::xml_schema::boolean_pskel& isFlexible,
@@ -2306,7 +2324,7 @@ namespace geo
   //
 
   void lane_t_pskel::
-  laneID (const ::std::string&)
+  laneID (unsigned long long)
   {
   }
 
@@ -2613,7 +2631,7 @@ namespace geo
     if (n == "laneID" && ns.empty ())
     {
       if (this->laneID_parser_)
-        this->laneID (this->laneID_parser_->post_string ());
+        this->laneID (this->laneID_parser_->post_unsigned_long ());
 
       return true;
     }
@@ -2769,12 +2787,12 @@ namespace geo
   //
 
   void connector_t_pskel::
-  laneFrom (const ::std::string&)
+  laneFrom (unsigned long long)
   {
   }
 
   void connector_t_pskel::
-  laneTo (const ::std::string&)
+  laneTo (unsigned long long)
   {
   }
 
@@ -2821,7 +2839,7 @@ namespace geo
     if (n == "laneFrom" && ns.empty ())
     {
       if (this->laneFrom_parser_)
-        this->laneFrom (this->laneFrom_parser_->post_string ());
+        this->laneFrom (this->laneFrom_parser_->post_unsigned_long ());
 
       return true;
     }
@@ -2829,7 +2847,7 @@ namespace geo
     if (n == "laneTo" && ns.empty ())
     {
       if (this->laneTo_parser_)
-        this->laneTo (this->laneTo_parser_->post_string ());
+        this->laneTo (this->laneTo_parser_->post_unsigned_long ());
 
       return true;
     }
@@ -2841,7 +2859,7 @@ namespace geo
   //
 
   void connectors_t_pskel::
-  Connector (std::pair<std::string,std::string>)
+  Connector (std::pair<unsigned long,unsigned long>)
   {
   }
 
@@ -2890,12 +2908,12 @@ namespace geo
   //
 
   void Multi_Connector_t_pskel::
-  RoadSegment (const ::std::string&)
+  RoadSegment (unsigned long long)
   {
   }
 
   void Multi_Connector_t_pskel::
-  Connectors (std::set<std::pair<std::string,std::string > >)
+  Connectors (std::set<std::pair<unsigned long,unsigned long> >)
   {
   }
 
@@ -2942,7 +2960,7 @@ namespace geo
     if (n == "RoadSegment" && ns.empty ())
     {
       if (this->RoadSegment_parser_)
-        this->RoadSegment (this->RoadSegment_parser_->post_string ());
+        this->RoadSegment (this->RoadSegment_parser_->post_unsigned_long ());
 
       return true;
     }
@@ -2962,7 +2980,7 @@ namespace geo
   //
 
   void Multi_Connectors_t_pskel::
-  MultiConnectors (const std::pair<std::string,std::set<std::pair<std::string,std::string> > >&)
+  MultiConnectors (const std::pair<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&)
   {
   }
 
@@ -3060,7 +3078,7 @@ namespace geo
   //
 
   void RoadSegmentsAt_t_pskel::
-  segmentID (const ::std::string&)
+  segmentID (unsigned long long)
   {
   }
 
@@ -3097,7 +3115,7 @@ namespace geo
     if (n == "segmentID" && ns.empty ())
     {
       if (this->segmentID_parser_)
-        this->segmentID (this->segmentID_parser_->post_string ());
+        this->segmentID (this->segmentID_parser_->post_unsigned_long ());
 
       return true;
     }
@@ -3109,17 +3127,17 @@ namespace geo
   //
 
   void segment_t_pskel::
-  segmentID (const ::std::string&)
+  segmentID (unsigned long long)
   {
   }
 
   void segment_t_pskel::
-  startingNode (const ::std::string&)
+  startingNode (unsigned int)
   {
   }
 
   void segment_t_pskel::
-  endingNode (const ::std::string&)
+  endingNode (unsigned int)
   {
   }
 
@@ -3266,7 +3284,7 @@ namespace geo
     if (n == "segmentID" && ns.empty ())
     {
       if (this->segmentID_parser_)
-        this->segmentID (this->segmentID_parser_->post_string ());
+        this->segmentID (this->segmentID_parser_->post_unsigned_long ());
 
       return true;
     }
@@ -3274,7 +3292,7 @@ namespace geo
     if (n == "startingNode" && ns.empty ())
     {
       if (this->startingNode_parser_)
-        this->startingNode (this->startingNode_parser_->post_string ());
+        this->startingNode (this->startingNode_parser_->post_unsigned_int ());
 
       return true;
     }
@@ -3282,7 +3300,7 @@ namespace geo
     if (n == "endingNode" && ns.empty ())
     {
       if (this->endingNode_parser_)
-        this->endingNode (this->endingNode_parser_->post_string ());
+        this->endingNode (this->endingNode_parser_->post_unsigned_int ());
 
       return true;
     }
@@ -3342,7 +3360,7 @@ namespace geo
   //
 
   void link_t_pskel::
-  linkID (const ::std::string&)
+  linkID (unsigned int)
   {
   }
 
@@ -3352,12 +3370,12 @@ namespace geo
   }
 
   void link_t_pskel::
-  StartingNode (const ::std::string&)
+  StartingNode (unsigned int)
   {
   }
 
   void link_t_pskel::
-  EndingNode (const ::std::string&)
+  EndingNode (unsigned int)
   {
   }
 
@@ -3439,7 +3457,7 @@ namespace geo
     if (n == "linkID" && ns.empty ())
     {
       if (this->linkID_parser_)
-        this->linkID (this->linkID_parser_->post_string ());
+        this->linkID (this->linkID_parser_->post_unsigned_int ());
 
       return true;
     }
@@ -3455,7 +3473,7 @@ namespace geo
     if (n == "StartingNode" && ns.empty ())
     {
       if (this->StartingNode_parser_)
-        this->StartingNode (this->StartingNode_parser_->post_string ());
+        this->StartingNode (this->StartingNode_parser_->post_unsigned_int ());
 
       return true;
     }
@@ -3463,7 +3481,7 @@ namespace geo
     if (n == "EndingNode" && ns.empty ())
     {
       if (this->EndingNode_parser_)
-        this->EndingNode (this->EndingNode_parser_->post_string ());
+        this->EndingNode (this->EndingNode_parser_->post_unsigned_int ());
 
       return true;
     }
@@ -4019,7 +4037,7 @@ namespace geo
   //
 
   void LanesVector_t_pskel::
-  laneID (const ::std::string&)
+  laneID (unsigned long long)
   {
   }
 
@@ -4061,7 +4079,7 @@ namespace geo
     if (n == "laneID" && ns.empty ())
     {
       if (this->laneID_parser_)
-        this->laneID (this->laneID_parser_->post_string ());
+        this->laneID (this->laneID_parser_->post_unsigned_long ());
 
       return true;
     }
@@ -4203,25 +4221,30 @@ namespace geo
     return false;
   }
 
-  // UniNode_t_pskel
+  // Node_t_pskel
   //
 
-  void UniNode_t_pskel::
-  nodeID (const ::std::string&)
+  void Node_t_pskel::
+  nodeID (unsigned int)
   {
   }
 
-  void UniNode_t_pskel::
+  void Node_t_pskel::
   location (sim_mob::Point2D)
   {
   }
 
-  void UniNode_t_pskel::
-  Connectors (std::set<std::pair<std::string,std::string > >)
+  void Node_t_pskel::
+  linkLoc (unsigned long long)
   {
   }
 
-  bool UniNode_t_pskel::
+  void Node_t_pskel::
+  originalDB_ID (const ::std::string&)
+  {
+  }
+
+  bool Node_t_pskel::
   _start_element_impl (const ::xml_schema::ro_string& ns,
                        const ::xml_schema::ro_string& n,
                        const ::xml_schema::ro_string* t)
@@ -4251,6 +4274,89 @@ namespace geo
       return true;
     }
 
+    if (n == "linkLoc" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->linkLoc_parser_;
+
+      if (this->linkLoc_parser_)
+        this->linkLoc_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "originalDB_ID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->originalDB_ID_parser_;
+
+      if (this->originalDB_ID_parser_)
+        this->originalDB_ID_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool Node_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "nodeID" && ns.empty ())
+    {
+      if (this->nodeID_parser_)
+        this->nodeID (this->nodeID_parser_->post_unsigned_int ());
+
+      return true;
+    }
+
+    if (n == "location" && ns.empty ())
+    {
+      if (this->location_parser_)
+        this->location (this->location_parser_->post_Point2D_t ());
+
+      return true;
+    }
+
+    if (n == "linkLoc" && ns.empty ())
+    {
+      if (this->linkLoc_parser_)
+        this->linkLoc (this->linkLoc_parser_->post_unsigned_long ());
+
+      return true;
+    }
+
+    if (n == "originalDB_ID" && ns.empty ())
+    {
+      if (this->originalDB_ID_parser_)
+        this->originalDB_ID (this->originalDB_ID_parser_->post_string ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // UniNode_t_pskel
+  //
+
+  void UniNode_t_pskel::
+  Connectors (std::set<std::pair<unsigned long,unsigned long> >)
+  {
+  }
+
+  bool UniNode_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::geo::Node_t_pskel::_start_element_impl (ns, n, t))
+      return true;
+
     if (n == "Connectors" && ns.empty ())
     {
       this->::xml_schema::complex_content::context_.top ().parser_ = this->Connectors_parser_;
@@ -4268,24 +4374,8 @@ namespace geo
   _end_element_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n)
   {
-    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+    if (this->::geo::Node_t_pskel::_end_element_impl (ns, n))
       return true;
-
-    if (n == "nodeID" && ns.empty ())
-    {
-      if (this->nodeID_parser_)
-        this->nodeID (this->nodeID_parser_->post_string ());
-
-      return true;
-    }
-
-    if (n == "location" && ns.empty ())
-    {
-      if (this->location_parser_)
-        this->location (this->location_parser_->post_Point2D_t ());
-
-      return true;
-    }
 
     if (n == "Connectors" && ns.empty ())
     {
@@ -4302,22 +4392,12 @@ namespace geo
   //
 
   void roundabout_t_pskel::
-  nodeID (const ::std::string&)
+  roadSegmentsAt (std::set<unsigned long>)
   {
   }
 
   void roundabout_t_pskel::
-  location (sim_mob::Point2D)
-  {
-  }
-
-  void roundabout_t_pskel::
-  roadSegmentsAt (std::set<std::string>)
-  {
-  }
-
-  void roundabout_t_pskel::
-  Connectors (const std::map<std::string,std::set<std::pair<std::string,std::string> > >&)
+  Connectors (const std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&)
   {
   }
 
@@ -4363,28 +4443,8 @@ namespace geo
   {
     XSD_UNUSED (t);
 
-    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+    if (this->::geo::Node_t_pskel::_start_element_impl (ns, n, t))
       return true;
-
-    if (n == "nodeID" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->nodeID_parser_;
-
-      if (this->nodeID_parser_)
-        this->nodeID_parser_->pre ();
-
-      return true;
-    }
-
-    if (n == "location" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->location_parser_;
-
-      if (this->location_parser_)
-        this->location_parser_->pre ();
-
-      return true;
-    }
 
     if (n == "roadSegmentsAt" && ns.empty ())
     {
@@ -4483,24 +4543,8 @@ namespace geo
   _end_element_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n)
   {
-    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+    if (this->::geo::Node_t_pskel::_end_element_impl (ns, n))
       return true;
-
-    if (n == "nodeID" && ns.empty ())
-    {
-      if (this->nodeID_parser_)
-        this->nodeID (this->nodeID_parser_->post_string ());
-
-      return true;
-    }
-
-    if (n == "location" && ns.empty ())
-    {
-      if (this->location_parser_)
-        this->location (this->location_parser_->post_Point2D_t ());
-
-      return true;
-    }
 
     if (n == "roadSegmentsAt" && ns.empty ())
     {
@@ -4596,22 +4640,12 @@ namespace geo
   //
 
   void intersection_t_pskel::
-  nodeID (const ::std::string&)
+  roadSegmentsAt (std::set<unsigned long>)
   {
   }
 
   void intersection_t_pskel::
-  location (sim_mob::Point2D)
-  {
-  }
-
-  void intersection_t_pskel::
-  roadSegmentsAt (std::set<std::string>)
-  {
-  }
-
-  void intersection_t_pskel::
-  Connectors (const std::map<std::string,std::set<std::pair<std::string,std::string> > >&)
+  Connectors (const std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&)
   {
   }
 
@@ -4652,28 +4686,8 @@ namespace geo
   {
     XSD_UNUSED (t);
 
-    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+    if (this->::geo::Node_t_pskel::_start_element_impl (ns, n, t))
       return true;
-
-    if (n == "nodeID" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->nodeID_parser_;
-
-      if (this->nodeID_parser_)
-        this->nodeID_parser_->pre ();
-
-      return true;
-    }
-
-    if (n == "location" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->location_parser_;
-
-      if (this->location_parser_)
-        this->location_parser_->pre ();
-
-      return true;
-    }
 
     if (n == "roadSegmentsAt" && ns.empty ())
     {
@@ -4762,24 +4776,8 @@ namespace geo
   _end_element_impl (const ::xml_schema::ro_string& ns,
                      const ::xml_schema::ro_string& n)
   {
-    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+    if (this->::geo::Node_t_pskel::_end_element_impl (ns, n))
       return true;
-
-    if (n == "nodeID" && ns.empty ())
-    {
-      if (this->nodeID_parser_)
-        this->nodeID (this->nodeID_parser_->post_string ());
-
-      return true;
-    }
-
-    if (n == "location" && ns.empty ())
-    {
-      if (this->location_parser_)
-        this->location (this->location_parser_->post_Point2D_t ());
-
-      return true;
-    }
 
     if (n == "roadSegmentsAt" && ns.empty ())
     {
@@ -5537,7 +5535,7 @@ namespace geo
   }
 
   void RoadBump_t_pskel::
-  segmentID (const ::std::string&)
+  segmentID (unsigned long long)
   {
   }
 
@@ -5597,7 +5595,7 @@ namespace geo
     if (n == "segmentID" && ns.empty ())
     {
       if (this->segmentID_parser_)
-        this->segmentID (this->segmentID_parser_->post_string ());
+        this->segmentID (this->segmentID_parser_->post_unsigned_long ());
 
       return true;
     }
@@ -5884,14 +5882,6 @@ namespace geo
     return false;
   }
 
-  // TripchainItemType_pskel
-  //
-
-  void TripchainItemType_pskel::
-  post_TripchainItemType ()
-  {
-  }
-
   // SubTrip_t_pskel
   //
 
@@ -6045,7 +6035,7 @@ namespace geo
   }
 
   void TripChainItem_t_pskel::
-  itemType ()
+  itemType (std::string)
   {
   }
 
@@ -6061,11 +6051,6 @@ namespace geo
 
   void TripChainItem_t_pskel::
   endTime (const ::std::string&)
-  {
-  }
-
-  void TripChainItem_t_pskel::
-  post_TripChainItem_t ()
   {
   }
 
@@ -6150,10 +6135,7 @@ namespace geo
     if (n == "itemType" && ns.empty ())
     {
       if (this->itemType_parser_)
-      {
-        this->itemType_parser_->post_TripchainItemType ();
-        this->itemType ();
-      }
+        this->itemType (this->itemType_parser_->post_TripchainItemType ());
 
       return true;
     }
@@ -6194,28 +6176,34 @@ namespace geo
   }
 
   void Trip_t_pskel::
-  fromLocation (const ::std::string&)
+  fromLocation (unsigned int)
   {
   }
 
   void Trip_t_pskel::
-  fromLocationType (sim_mob::TripChainItem::LocationType)
+  fromLocationType (std::string)
   {
   }
 
   void Trip_t_pskel::
-  toLocation (const ::std::string&)
+  toLocation (unsigned int)
   {
   }
 
   void Trip_t_pskel::
-  toLocationType (sim_mob::TripChainItem::LocationType)
+  toLocationType (std::string)
   {
   }
 
   void Trip_t_pskel::
   subTrips (std::vector<sim_mob::SubTrip>)
   {
+  }
+
+  sim_mob::TripChainItem* Trip_t_pskel::
+  post_Trip_t ()
+  {
+    return post_TripChainItem_t ();
   }
 
   bool Trip_t_pskel::
@@ -6309,7 +6297,7 @@ namespace geo
     if (n == "fromLocation" && ns.empty ())
     {
       if (this->fromLocation_parser_)
-        this->fromLocation (this->fromLocation_parser_->post_string ());
+        this->fromLocation (this->fromLocation_parser_->post_unsigned_int ());
 
       return true;
     }
@@ -6325,7 +6313,7 @@ namespace geo
     if (n == "toLocation" && ns.empty ())
     {
       if (this->toLocation_parser_)
-        this->toLocation (this->toLocation_parser_->post_string ());
+        this->toLocation (this->toLocation_parser_->post_unsigned_int ());
 
       return true;
     }
@@ -6358,12 +6346,12 @@ namespace geo
   }
 
   void Activity_t_pskel::
-  location (sim_mob::Point2D)
+  location (unsigned int)
   {
   }
 
   void Activity_t_pskel::
-  locationType (sim_mob::TripChainItem::LocationType)
+  locationType (std::string)
   {
   }
 
@@ -6380,6 +6368,12 @@ namespace geo
   void Activity_t_pskel::
   isMandatory (bool)
   {
+  }
+
+  sim_mob::TripChainItem* Activity_t_pskel::
+  post_Activity_t ()
+  {
+    return post_TripChainItem_t ();
   }
 
   bool Activity_t_pskel::
@@ -6473,7 +6467,7 @@ namespace geo
     if (n == "location" && ns.empty ())
     {
       if (this->location_parser_)
-        this->location (this->location_parser_->post_Point2D_t ());
+        this->location (this->location_parser_->post_unsigned_int ());
 
       return true;
     }
@@ -6612,7 +6606,7 @@ namespace geo
   //
 
   void TripChains_t_pskel::
-  TripChain (std::pair<unsigned int,sim_mob::TripChainItem*>)
+  TripChain (std::pair<unsigned long,sim_mob::TripChainItem*>)
   {
   }
 

@@ -1572,11 +1572,8 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	//      Road segments that fail to match at every UniNode. Need to find a better way to
 	//      group RoadSegments into Links, but at least this works for our test network.
 	Section* currSect = &src;
-	convertLinkId << 1000001 + res.links.size();
-	sim_mob::Link* ln = new sim_mob::Link(convertLinkId.str());
-	convertSegId  << 1000001 + res.links.size() << 101 + linkSegments.size() ;
-//	std::cout << "Creating a Road Segment with___ " << convertSegId.str() << std::endl;
-	src.generatedSegment = new sim_mob::RoadSegment(ln,convertSegId.str());
+	sim_mob::Link* ln = new sim_mob::Link(1000001 + res.links.size());
+	src.generatedSegment = new sim_mob::RoadSegment(ln,1000001 + linkSegments.size());
 	ln->roadName = currSect->roadName;
 	ln->start = currSect->fromNode->generatedNode;
 	//added by Jenny to tag node to one link
@@ -1629,9 +1626,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 			if (!found->generatedSegment) {
 				convertSegId.clear();
 				convertSegId.str(std::string());
-				convertSegId  << 1000001 + res.links.size() << 101 + linkSegments.size();
-//				std::cout << "Creating a Road Segment with " << convertSegId.str() << std::endl;
-				found->generatedSegment = new sim_mob::RoadSegment(ln,convertSegId.str());
+				found->generatedSegment = new sim_mob::RoadSegment(ln,1000001  + linkSegments.size());
 			}
 			else
 			{
@@ -1738,7 +1733,6 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 			connectors[key].insert(lc);
 		}
 	}
-
 }
 
 

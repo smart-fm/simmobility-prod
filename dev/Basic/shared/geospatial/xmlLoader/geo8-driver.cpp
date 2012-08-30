@@ -25,9 +25,10 @@ main1 (int argc, char* argv[])
     ::geo::Nodes_pimpl Nodes_p;
     ::geo::UniNodes_pimpl UniNodes_p;
     ::geo::UniNode_t_pimpl UniNode_t_p;
-    ::xml_schema::string_pimpl string_p;
-    ::geo::Point2D_t_pimpl Point2D_t_p;
     ::xml_schema::unsigned_int_pimpl unsigned_int_p;
+    ::geo::Point2D_t_pimpl Point2D_t_p;
+    ::xml_schema::unsigned_long_pimpl unsigned_long_p;
+    ::xml_schema::string_pimpl string_p;
     ::geo::connectors_t_pimpl connectors_t_p;
     ::geo::connector_t_pimpl connector_t_p;
     ::geo::Intersections_pimpl Intersections_p;
@@ -94,8 +95,10 @@ main1 (int argc, char* argv[])
 
     UniNodes_p.parsers (UniNode_t_p);
 
-    UniNode_t_p.parsers (string_p,
+    UniNode_t_p.parsers (unsigned_int_p,
                          Point2D_t_p,
+                         unsigned_long_p,
+                         string_p,
                          connectors_t_p);
 
     Point2D_t_p.parsers (unsigned_int_p,
@@ -103,13 +106,15 @@ main1 (int argc, char* argv[])
 
     connectors_t_p.parsers (connector_t_p);
 
-    connector_t_p.parsers (string_p,
-                           string_p);
+    connector_t_p.parsers (unsigned_long_p,
+                           unsigned_long_p);
 
     Intersections_p.parsers (intersection_t_p);
 
-    intersection_t_p.parsers (string_p,
+    intersection_t_p.parsers (unsigned_int_p,
                               Point2D_t_p,
+                              unsigned_long_p,
+                              string_p,
                               RoadSegmentsAt_t_p,
                               Multi_Connectors_t_p,
                               ChunkLengths_t_p,
@@ -119,11 +124,11 @@ main1 (int argc, char* argv[])
                               LanesVector_t_p,
                               DomainIslands_t_p);
 
-    RoadSegmentsAt_t_p.parsers (string_p);
+    RoadSegmentsAt_t_p.parsers (unsigned_long_p);
 
     Multi_Connectors_t_p.parsers (Multi_Connector_t_p);
 
-    Multi_Connector_t_p.parsers (string_p,
+    Multi_Connector_t_p.parsers (unsigned_long_p,
                                  connectors_t_p);
 
     ChunkLengths_t_p.parsers (ChunkLength_t_p);
@@ -141,7 +146,7 @@ main1 (int argc, char* argv[])
     separator_t_p.parsers (unsigned_short_p,
                            boolean_p);
 
-    LanesVector_t_p.parsers (string_p);
+    LanesVector_t_p.parsers (unsigned_long_p);
 
     DomainIslands_t_p.parsers (DomainIsland_t_p);
 
@@ -150,8 +155,10 @@ main1 (int argc, char* argv[])
 
     roundabouts_p.parsers (roundabout_t_p);
 
-    roundabout_t_p.parsers (string_p,
+    roundabout_t_p.parsers (unsigned_int_p,
                             Point2D_t_p,
+                            unsigned_long_p,
+                            string_p,
                             RoadSegmentsAt_t_p,
                             Multi_Connectors_t_p,
                             ChunkLengths_t_p,
@@ -169,10 +176,10 @@ main1 (int argc, char* argv[])
 
     Links_p.parsers (link_t_p);
 
-    link_t_p.parsers (string_p,
+    link_t_p.parsers (unsigned_int_p,
                       string_p,
-                      string_p,
-                      string_p,
+                      unsigned_int_p,
+                      unsigned_int_p,
                       Segments_p);
 
     Segments_p.parsers (fwdBckSegments_t_p,
@@ -180,9 +187,9 @@ main1 (int argc, char* argv[])
 
     fwdBckSegments_t_p.parsers (segment_t_p);
 
-    segment_t_p.parsers (string_p,
-                         string_p,
-                         string_p,
+    segment_t_p.parsers (unsigned_long_p,
+                         unsigned_int_p,
+                         unsigned_int_p,
                          short_p,
                          unsigned_int_p,
                          unsigned_int_p,
@@ -192,7 +199,7 @@ main1 (int argc, char* argv[])
 
     Lanes_p.parsers (lane_t_p);
 
-    lane_t_p.parsers (string_p,
+    lane_t_p.parsers (unsigned_long_p,
                       unsigned_int_p,
                       boolean_p,
                       boolean_p,
@@ -251,7 +258,7 @@ main1 (int argc, char* argv[])
                           Point2D_t_p,
                           Point2D_t_p,
                           string_p,
-                          string_p);
+                          unsigned_long_p);
 
     TripChains_t_p.parsers (TripChain_t_p);
 
@@ -265,9 +272,9 @@ main1 (int argc, char* argv[])
                       string_p,
                       string_p,
                       integer_p,
-                      string_p,
+                      unsigned_int_p,
                       TripchainItemLocationType_p,
-                      string_p,
+                      unsigned_int_p,
                       TripchainItemLocationType_p,
                       SubTrips_t_p);
 
@@ -283,7 +290,7 @@ main1 (int argc, char* argv[])
                           string_p,
                           string_p,
                           string_p,
-                          Point2D_t_p,
+                          unsigned_int_p,
                           TripchainItemLocationType_p,
                           boolean_p,
                           boolean_p,
@@ -291,14 +298,11 @@ main1 (int argc, char* argv[])
 
     // Parse the XML document.
     //
-    ::xml_schema::document doc_p (
-      SimMobility_t_p,
-      "http://www.smart.mit.edu/geo",
-      "SimMobility");
+    ::xml_schema::document doc_p (SimMobility_t_p,"http://www.smart.mit.edu/geo","SimMobility");
     SimMobility_t_p.pre ();
     std::cout << "In main1 SimMobility_t_p.pre() done\n";
     doc_p.parse ("/home/vahid/SIMMOBILITY/MASTER/simmobility/dev/Basic/data/XML_OutPut.xml");
-//    	    doc_p.parse ("/home/vahid/SIMMOBILITY/MASTER/simmobility/dev/Basic/shared/geospatial/xmlLoader/instance1.xml");
+//  doc_p.parse ("/home/vahid/SIMMOBILITY/MASTER/simmobility/dev/Basic/shared/geospatial/xmlLoader/instance1.xml");
     std::cout << "In main1 parse done\n";
     SimMobility_t_p.post_SimMobility_t ();
     std::cout << "In main1 post done\n";

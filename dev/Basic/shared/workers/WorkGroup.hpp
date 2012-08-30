@@ -80,7 +80,7 @@ public:
 
 	void assignAWorkerConstraint(Entity* ag);
 
-	Worker* locateWorker(std::string linkID);
+	Worker* locateWorker(unsigned int linkID);
 
 	//void scheduleEntForRemoval(Entity* ag);
 

@@ -50,8 +50,8 @@ public:
 	RoadSegment(){}//needed by xml reader --vahid
 	explicit RoadSegment(sim_mob::Link* parent);
 	
-	explicit RoadSegment(sim_mob::Link* parent, std::string id);
-	const std::string & getSegmentID()const ;
+	explicit RoadSegment(sim_mob::Link* parent, unsigned long id);
+	const unsigned long  & getSegmentID()const ;
 
 	bool operator== (const RoadSegment* rhs) const
 	{
@@ -121,7 +121,8 @@ private:
 
 	///Which link this appears in
 	sim_mob::Link* parentLink;
-	std::string segmentID;
+//	std::string segmentID;
+	unsigned long segmentID;
 
 friend class sim_mob::aimsun::Loader;
 friend class sim_mob::aimsun::LaneLoader;

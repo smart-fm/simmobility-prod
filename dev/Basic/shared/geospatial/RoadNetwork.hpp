@@ -96,7 +96,8 @@ private:
 
 	//Temporary: Not exposed publicly
 	std::set<sim_mob::UniNode*> segmentnodes;
-
+	//todo remove public from here
+public:
 	//todo check whether the network is sealed -vahid
 	std::vector<sim_mob::MultiNode*>& getNodesRW() { return nodes; }
 	std::set<sim_mob::UniNode*>& getUniNodesRW() { return segmentnodes; }

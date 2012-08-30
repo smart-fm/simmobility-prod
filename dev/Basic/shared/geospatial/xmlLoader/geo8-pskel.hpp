@@ -76,6 +76,7 @@ namespace geo
   class LanesVector_t_pskel;
   class EntranceAngle_t_pskel;
   class EntranceAngles_t_pskel;
+  class Node_t_pskel;
   class UniNode_t_pskel;
   class roundabout_t_pskel;
   class intersection_t_pskel;
@@ -486,7 +487,7 @@ namespace geo
     // pre ();
 
     virtual void
-    laneID (const ::std::string&);
+    laneID (unsigned long long);
 
     virtual void
     width (unsigned int);
@@ -548,7 +549,7 @@ namespace geo
     // Parser construction API.
     //
     void
-    laneID_parser (::xml_schema::string_pskel&);
+    laneID_parser (::xml_schema::unsigned_long_pskel&);
 
     void
     width_parser (::xml_schema::unsigned_int_pskel&);
@@ -605,7 +606,7 @@ namespace geo
     PolyLine_parser (::geo::PolyLine_t_pskel&);
 
     void
-    parsers (::xml_schema::string_pskel& /* laneID */,
+    parsers (::xml_schema::unsigned_long_pskel& /* laneID */,
              ::xml_schema::unsigned_int_pskel& /* width */,
              ::xml_schema::boolean_pskel& /* can_go_straight */,
              ::xml_schema::boolean_pskel& /* can_turn_left */,
@@ -642,7 +643,7 @@ namespace geo
                        const ::xml_schema::ro_string&);
 
     protected:
-    ::xml_schema::string_pskel* laneID_parser_;
+    ::xml_schema::unsigned_long_pskel* laneID_parser_;
     ::xml_schema::unsigned_int_pskel* width_parser_;
     ::xml_schema::boolean_pskel* can_go_straight_parser_;
     ::xml_schema::boolean_pskel* can_turn_left_parser_;
@@ -672,25 +673,25 @@ namespace geo
     // pre ();
 
     virtual void
-    laneFrom (const ::std::string&);
+    laneFrom (unsigned long long);
 
     virtual void
-    laneTo (const ::std::string&);
+    laneTo (unsigned long long);
 
-    virtual std::pair<std::string,std::string>
+    virtual std::pair<unsigned long,unsigned long>
     post_connector_t () = 0;
 
     // Parser construction API.
     //
     void
-    laneFrom_parser (::xml_schema::string_pskel&);
+    laneFrom_parser (::xml_schema::unsigned_long_pskel&);
 
     void
-    laneTo_parser (::xml_schema::string_pskel&);
+    laneTo_parser (::xml_schema::unsigned_long_pskel&);
 
     void
-    parsers (::xml_schema::string_pskel& /* laneFrom */,
-             ::xml_schema::string_pskel& /* laneTo */);
+    parsers (::xml_schema::unsigned_long_pskel& /* laneFrom */,
+             ::xml_schema::unsigned_long_pskel& /* laneTo */);
 
     // Constructor.
     //
@@ -709,8 +710,8 @@ namespace geo
                        const ::xml_schema::ro_string&);
 
     protected:
-    ::xml_schema::string_pskel* laneFrom_parser_;
-    ::xml_schema::string_pskel* laneTo_parser_;
+    ::xml_schema::unsigned_long_pskel* laneFrom_parser_;
+    ::xml_schema::unsigned_long_pskel* laneTo_parser_;
   };
 
   class connectors_t_pskel: public ::xml_schema::complex_content
@@ -722,9 +723,9 @@ namespace geo
     // pre ();
 
     virtual void
-    Connector (std::pair<std::string,std::string>);
+    Connector (std::pair<unsigned long,unsigned long>);
 
-    virtual std::set<std::pair<std::string,std::string > >
+    virtual std::set<std::pair<unsigned long,unsigned long> >
     post_connectors_t () = 0;
 
     // Parser construction API.
@@ -764,24 +765,24 @@ namespace geo
     // pre ();
 
     virtual void
-    RoadSegment (const ::std::string&);
+    RoadSegment (unsigned long long);
 
     virtual void
-    Connectors (std::set<std::pair<std::string,std::string > >);
+    Connectors (std::set<std::pair<unsigned long,unsigned long> >);
 
-    virtual std::pair<std::string,std::set<std::pair<std::string,std::string> > >
+    virtual std::pair<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >
     post_Multi_Connector_t () = 0;
 
     // Parser construction API.
     //
     void
-    RoadSegment_parser (::xml_schema::string_pskel&);
+    RoadSegment_parser (::xml_schema::unsigned_long_pskel&);
 
     void
     Connectors_parser (::geo::connectors_t_pskel&);
 
     void
-    parsers (::xml_schema::string_pskel& /* RoadSegment */,
+    parsers (::xml_schema::unsigned_long_pskel& /* RoadSegment */,
              ::geo::connectors_t_pskel& /* Connectors */);
 
     // Constructor.
@@ -801,7 +802,7 @@ namespace geo
                        const ::xml_schema::ro_string&);
 
     protected:
-    ::xml_schema::string_pskel* RoadSegment_parser_;
+    ::xml_schema::unsigned_long_pskel* RoadSegment_parser_;
     ::geo::connectors_t_pskel* Connectors_parser_;
   };
 
@@ -814,9 +815,9 @@ namespace geo
     // pre ();
 
     virtual void
-    MultiConnectors (const std::pair<std::string,std::set<std::pair<std::string,std::string> > >&);
+    MultiConnectors (const std::pair<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&);
 
-    virtual std::map<std::string,std::set<std::pair<std::string,std::string> > >
+    virtual std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >
     post_Multi_Connectors_t () = 0;
 
     // Parser construction API.
@@ -898,18 +899,18 @@ namespace geo
     // pre ();
 
     virtual void
-    segmentID (const ::std::string&);
+    segmentID (unsigned long long);
 
-    virtual std::set<std::string>
+    virtual std::set<unsigned long>
     post_RoadSegmentsAt_t () = 0;
 
     // Parser construction API.
     //
     void
-    segmentID_parser (::xml_schema::string_pskel&);
+    segmentID_parser (::xml_schema::unsigned_long_pskel&);
 
     void
-    parsers (::xml_schema::string_pskel& /* segmentID */);
+    parsers (::xml_schema::unsigned_long_pskel& /* segmentID */);
 
     // Constructor.
     //
@@ -928,7 +929,7 @@ namespace geo
                        const ::xml_schema::ro_string&);
 
     protected:
-    ::xml_schema::string_pskel* segmentID_parser_;
+    ::xml_schema::unsigned_long_pskel* segmentID_parser_;
   };
 
   class segment_t_pskel: public ::xml_schema::complex_content
@@ -940,13 +941,13 @@ namespace geo
     // pre ();
 
     virtual void
-    segmentID (const ::std::string&);
+    segmentID (unsigned long long);
 
     virtual void
-    startingNode (const ::std::string&);
+    startingNode (unsigned int);
 
     virtual void
-    endingNode (const ::std::string&);
+    endingNode (unsigned int);
 
     virtual void
     maxSpeed (short);
@@ -972,13 +973,13 @@ namespace geo
     // Parser construction API.
     //
     void
-    segmentID_parser (::xml_schema::string_pskel&);
+    segmentID_parser (::xml_schema::unsigned_long_pskel&);
 
     void
-    startingNode_parser (::xml_schema::string_pskel&);
+    startingNode_parser (::xml_schema::unsigned_int_pskel&);
 
     void
-    endingNode_parser (::xml_schema::string_pskel&);
+    endingNode_parser (::xml_schema::unsigned_int_pskel&);
 
     void
     maxSpeed_parser (::xml_schema::short_pskel&);
@@ -999,9 +1000,9 @@ namespace geo
     KurbLine_parser (::geo::PolyLine_t_pskel&);
 
     void
-    parsers (::xml_schema::string_pskel& /* segmentID */,
-             ::xml_schema::string_pskel& /* startingNode */,
-             ::xml_schema::string_pskel& /* endingNode */,
+    parsers (::xml_schema::unsigned_long_pskel& /* segmentID */,
+             ::xml_schema::unsigned_int_pskel& /* startingNode */,
+             ::xml_schema::unsigned_int_pskel& /* endingNode */,
              ::xml_schema::short_pskel& /* maxSpeed */,
              ::xml_schema::unsigned_int_pskel& /* Length */,
              ::xml_schema::unsigned_int_pskel& /* Width */,
@@ -1026,9 +1027,9 @@ namespace geo
                        const ::xml_schema::ro_string&);
 
     protected:
-    ::xml_schema::string_pskel* segmentID_parser_;
-    ::xml_schema::string_pskel* startingNode_parser_;
-    ::xml_schema::string_pskel* endingNode_parser_;
+    ::xml_schema::unsigned_long_pskel* segmentID_parser_;
+    ::xml_schema::unsigned_int_pskel* startingNode_parser_;
+    ::xml_schema::unsigned_int_pskel* endingNode_parser_;
     ::xml_schema::short_pskel* maxSpeed_parser_;
     ::xml_schema::unsigned_int_pskel* Length_parser_;
     ::xml_schema::unsigned_int_pskel* Width_parser_;
@@ -1046,16 +1047,16 @@ namespace geo
     // pre ();
 
     virtual void
-    linkID (const ::std::string&);
+    linkID (unsigned int);
 
     virtual void
     roadName (const ::std::string&);
 
     virtual void
-    StartingNode (const ::std::string&);
+    StartingNode (unsigned int);
 
     virtual void
-    EndingNode (const ::std::string&);
+    EndingNode (unsigned int);
 
     virtual void
     Segments (std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >);
@@ -1066,25 +1067,25 @@ namespace geo
     // Parser construction API.
     //
     void
-    linkID_parser (::xml_schema::string_pskel&);
+    linkID_parser (::xml_schema::unsigned_int_pskel&);
 
     void
     roadName_parser (::xml_schema::string_pskel&);
 
     void
-    StartingNode_parser (::xml_schema::string_pskel&);
+    StartingNode_parser (::xml_schema::unsigned_int_pskel&);
 
     void
-    EndingNode_parser (::xml_schema::string_pskel&);
+    EndingNode_parser (::xml_schema::unsigned_int_pskel&);
 
     void
     Segments_parser (::geo::Segments_pskel&);
 
     void
-    parsers (::xml_schema::string_pskel& /* linkID */,
+    parsers (::xml_schema::unsigned_int_pskel& /* linkID */,
              ::xml_schema::string_pskel& /* roadName */,
-             ::xml_schema::string_pskel& /* StartingNode */,
-             ::xml_schema::string_pskel& /* EndingNode */,
+             ::xml_schema::unsigned_int_pskel& /* StartingNode */,
+             ::xml_schema::unsigned_int_pskel& /* EndingNode */,
              ::geo::Segments_pskel& /* Segments */);
 
     // Constructor.
@@ -1104,10 +1105,10 @@ namespace geo
                        const ::xml_schema::ro_string&);
 
     protected:
-    ::xml_schema::string_pskel* linkID_parser_;
+    ::xml_schema::unsigned_int_pskel* linkID_parser_;
     ::xml_schema::string_pskel* roadName_parser_;
-    ::xml_schema::string_pskel* StartingNode_parser_;
-    ::xml_schema::string_pskel* EndingNode_parser_;
+    ::xml_schema::unsigned_int_pskel* StartingNode_parser_;
+    ::xml_schema::unsigned_int_pskel* EndingNode_parser_;
     ::geo::Segments_pskel* Segments_parser_;
   };
 
@@ -1488,7 +1489,7 @@ namespace geo
     // pre ();
 
     virtual void
-    laneID (const ::std::string&);
+    laneID (unsigned long long);
 
     virtual void
     post_LanesVector_t ();
@@ -1496,10 +1497,10 @@ namespace geo
     // Parser construction API.
     //
     void
-    laneID_parser (::xml_schema::string_pskel&);
+    laneID_parser (::xml_schema::unsigned_long_pskel&);
 
     void
-    parsers (::xml_schema::string_pskel& /* laneID */);
+    parsers (::xml_schema::unsigned_long_pskel& /* laneID */);
 
     // Constructor.
     //
@@ -1518,7 +1519,7 @@ namespace geo
                        const ::xml_schema::ro_string&);
 
     protected:
-    ::xml_schema::string_pskel* laneID_parser_;
+    ::xml_schema::unsigned_long_pskel* laneID_parser_;
   };
 
   class EntranceAngle_t_pskel: public ::xml_schema::complex_content
@@ -1613,7 +1614,7 @@ namespace geo
     ::geo::EntranceAngle_t_pskel* entranceAngle_parser_;
   };
 
-  class UniNode_t_pskel: public ::xml_schema::complex_content
+  class Node_t_pskel: public ::xml_schema::complex_content
   {
     public:
     // Parser callbacks. Override them in your implementation.
@@ -1622,13 +1623,73 @@ namespace geo
     // pre ();
 
     virtual void
-    nodeID (const ::std::string&);
+    nodeID (unsigned int);
 
     virtual void
     location (sim_mob::Point2D);
 
     virtual void
-    Connectors (std::set<std::pair<std::string,std::string > >);
+    linkLoc (unsigned long long);
+
+    virtual void
+    originalDB_ID (const ::std::string&);
+
+    virtual sim_mob::Node*
+    post_Node_t () = 0;
+
+    // Parser construction API.
+    //
+    void
+    nodeID_parser (::xml_schema::unsigned_int_pskel&);
+
+    void
+    location_parser (::geo::Point2D_t_pskel&);
+
+    void
+    linkLoc_parser (::xml_schema::unsigned_long_pskel&);
+
+    void
+    originalDB_ID_parser (::xml_schema::string_pskel&);
+
+    void
+    parsers (::xml_schema::unsigned_int_pskel& /* nodeID */,
+             ::geo::Point2D_t_pskel& /* location */,
+             ::xml_schema::unsigned_long_pskel& /* linkLoc */,
+             ::xml_schema::string_pskel& /* originalDB_ID */);
+
+    // Constructor.
+    //
+    Node_t_pskel ();
+
+    // Implementation.
+    //
+    protected:
+    virtual bool
+    _start_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string*);
+
+    virtual bool
+    _end_element_impl (const ::xml_schema::ro_string&,
+                       const ::xml_schema::ro_string&);
+
+    protected:
+    ::xml_schema::unsigned_int_pskel* nodeID_parser_;
+    ::geo::Point2D_t_pskel* location_parser_;
+    ::xml_schema::unsigned_long_pskel* linkLoc_parser_;
+    ::xml_schema::string_pskel* originalDB_ID_parser_;
+  };
+
+  class UniNode_t_pskel: public virtual ::geo::Node_t_pskel
+  {
+    public:
+    // Parser callbacks. Override them in your implementation.
+    //
+    // virtual void
+    // pre ();
+
+    virtual void
+    Connectors (std::set<std::pair<unsigned long,unsigned long> >);
 
     virtual sim_mob::UniNode*
     post_UniNode_t () = 0;
@@ -1636,17 +1697,13 @@ namespace geo
     // Parser construction API.
     //
     void
-    nodeID_parser (::xml_schema::string_pskel&);
-
-    void
-    location_parser (::geo::Point2D_t_pskel&);
-
-    void
     Connectors_parser (::geo::connectors_t_pskel&);
 
     void
-    parsers (::xml_schema::string_pskel& /* nodeID */,
+    parsers (::xml_schema::unsigned_int_pskel& /* nodeID */,
              ::geo::Point2D_t_pskel& /* location */,
+             ::xml_schema::unsigned_long_pskel& /* linkLoc */,
+             ::xml_schema::string_pskel& /* originalDB_ID */,
              ::geo::connectors_t_pskel& /* Connectors */);
 
     // Constructor.
@@ -1666,12 +1723,10 @@ namespace geo
                        const ::xml_schema::ro_string&);
 
     protected:
-    ::xml_schema::string_pskel* nodeID_parser_;
-    ::geo::Point2D_t_pskel* location_parser_;
     ::geo::connectors_t_pskel* Connectors_parser_;
   };
 
-  class roundabout_t_pskel: public ::xml_schema::complex_content
+  class roundabout_t_pskel: public virtual ::geo::Node_t_pskel
   {
     public:
     // Parser callbacks. Override them in your implementation.
@@ -1680,16 +1735,10 @@ namespace geo
     // pre ();
 
     virtual void
-    nodeID (const ::std::string&);
+    roadSegmentsAt (std::set<unsigned long>);
 
     virtual void
-    location (sim_mob::Point2D);
-
-    virtual void
-    roadSegmentsAt (std::set<std::string>);
-
-    virtual void
-    Connectors (const std::map<std::string,std::set<std::pair<std::string,std::string> > >&);
+    Connectors (const std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&);
 
     virtual void
     ChunkLengths ();
@@ -1718,12 +1767,6 @@ namespace geo
     // Parser construction API.
     //
     void
-    nodeID_parser (::xml_schema::string_pskel&);
-
-    void
-    location_parser (::geo::Point2D_t_pskel&);
-
-    void
     roadSegmentsAt_parser (::geo::RoadSegmentsAt_t_pskel&);
 
     void
@@ -1751,8 +1794,10 @@ namespace geo
     entranceAngles_parser (::geo::EntranceAngles_t_pskel&);
 
     void
-    parsers (::xml_schema::string_pskel& /* nodeID */,
+    parsers (::xml_schema::unsigned_int_pskel& /* nodeID */,
              ::geo::Point2D_t_pskel& /* location */,
+             ::xml_schema::unsigned_long_pskel& /* linkLoc */,
+             ::xml_schema::string_pskel& /* originalDB_ID */,
              ::geo::RoadSegmentsAt_t_pskel& /* roadSegmentsAt */,
              ::geo::Multi_Connectors_t_pskel& /* Connectors */,
              ::geo::ChunkLengths_t_pskel& /* ChunkLengths */,
@@ -1780,8 +1825,6 @@ namespace geo
                        const ::xml_schema::ro_string&);
 
     protected:
-    ::xml_schema::string_pskel* nodeID_parser_;
-    ::geo::Point2D_t_pskel* location_parser_;
     ::geo::RoadSegmentsAt_t_pskel* roadSegmentsAt_parser_;
     ::geo::Multi_Connectors_t_pskel* Connectors_parser_;
     ::geo::ChunkLengths_t_pskel* ChunkLengths_parser_;
@@ -1793,7 +1836,7 @@ namespace geo
     ::geo::EntranceAngles_t_pskel* entranceAngles_parser_;
   };
 
-  class intersection_t_pskel: public ::xml_schema::complex_content
+  class intersection_t_pskel: public virtual ::geo::Node_t_pskel
   {
     public:
     // Parser callbacks. Override them in your implementation.
@@ -1802,16 +1845,10 @@ namespace geo
     // pre ();
 
     virtual void
-    nodeID (const ::std::string&);
+    roadSegmentsAt (std::set<unsigned long>);
 
     virtual void
-    location (sim_mob::Point2D);
-
-    virtual void
-    roadSegmentsAt (std::set<std::string>);
-
-    virtual void
-    Connectors (const std::map<std::string,std::set<std::pair<std::string,std::string> > >&);
+    Connectors (const std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&);
 
     virtual void
     ChunkLengths ();
@@ -1837,12 +1874,6 @@ namespace geo
     // Parser construction API.
     //
     void
-    nodeID_parser (::xml_schema::string_pskel&);
-
-    void
-    location_parser (::geo::Point2D_t_pskel&);
-
-    void
     roadSegmentsAt_parser (::geo::RoadSegmentsAt_t_pskel&);
 
     void
@@ -1867,8 +1898,10 @@ namespace geo
     domainIslands_parser (::geo::DomainIslands_t_pskel&);
 
     void
-    parsers (::xml_schema::string_pskel& /* nodeID */,
+    parsers (::xml_schema::unsigned_int_pskel& /* nodeID */,
              ::geo::Point2D_t_pskel& /* location */,
+             ::xml_schema::unsigned_long_pskel& /* linkLoc */,
+             ::xml_schema::string_pskel& /* originalDB_ID */,
              ::geo::RoadSegmentsAt_t_pskel& /* roadSegmentsAt */,
              ::geo::Multi_Connectors_t_pskel& /* Connectors */,
              ::geo::ChunkLengths_t_pskel& /* ChunkLengths */,
@@ -1895,8 +1928,6 @@ namespace geo
                        const ::xml_schema::ro_string&);
 
     protected:
-    ::xml_schema::string_pskel* nodeID_parser_;
-    ::geo::Point2D_t_pskel* location_parser_;
     ::geo::RoadSegmentsAt_t_pskel* roadSegmentsAt_parser_;
     ::geo::Multi_Connectors_t_pskel* Connectors_parser_;
     ::geo::ChunkLengths_t_pskel* ChunkLengths_parser_;
@@ -2326,7 +2357,7 @@ namespace geo
     roadBumpID (const ::std::string&);
 
     virtual void
-    segmentID (const ::std::string&);
+    segmentID (unsigned long long);
 
     virtual void
     post_RoadBump_t ();
@@ -2337,14 +2368,14 @@ namespace geo
     roadBumpID_parser (::xml_schema::string_pskel&);
 
     void
-    segmentID_parser (::xml_schema::string_pskel&);
+    segmentID_parser (::xml_schema::unsigned_long_pskel&);
 
     void
     parsers (::xml_schema::unsigned_short_pskel& /* Offset */,
              ::geo::Point2D_t_pskel& /* start */,
              ::geo::Point2D_t_pskel& /* end */,
              ::xml_schema::string_pskel& /* roadBumpID */,
-             ::xml_schema::string_pskel& /* segmentID */);
+             ::xml_schema::unsigned_long_pskel& /* segmentID */);
 
     // Constructor.
     //
@@ -2364,7 +2395,7 @@ namespace geo
 
     protected:
     ::xml_schema::string_pskel* roadBumpID_parser_;
-    ::xml_schema::string_pskel* segmentID_parser_;
+    ::xml_schema::unsigned_long_pskel* segmentID_parser_;
   };
 
   class RoadNetwork_t_pskel: public ::xml_schema::complex_content
@@ -2541,8 +2572,8 @@ namespace geo
     // virtual void
     // pre ();
 
-    virtual void
-    post_TripchainItemType ();
+    virtual std::string
+    post_TripchainItemType () = 0;
   };
 
   class TripchainItemLocationType_pskel: public virtual ::xml_schema::string_pskel
@@ -2553,7 +2584,7 @@ namespace geo
     // virtual void
     // pre ();
 
-    virtual sim_mob::TripChainItem::LocationType
+    virtual std::string
     post_TripchainItemLocationType () = 0;
   };
 
@@ -2669,7 +2700,7 @@ namespace geo
     personID (long long);
 
     virtual void
-    itemType ();
+    itemType (std::string);
 
     virtual void
     sequenceNumber (unsigned int);
@@ -2680,8 +2711,8 @@ namespace geo
     virtual void
     endTime (const ::std::string&);
 
-    virtual void
-    post_TripChainItem_t ();
+    virtual sim_mob::TripChainItem*
+    post_TripChainItem_t () = 0;
 
     // Parser construction API.
     //
@@ -2743,22 +2774,22 @@ namespace geo
     tripID (long long);
 
     virtual void
-    fromLocation (const ::std::string&);
+    fromLocation (unsigned int);
 
     virtual void
-    fromLocationType (sim_mob::TripChainItem::LocationType);
+    fromLocationType (std::string);
 
     virtual void
-    toLocation (const ::std::string&);
+    toLocation (unsigned int);
 
     virtual void
-    toLocationType (sim_mob::TripChainItem::LocationType);
+    toLocationType (std::string);
 
     virtual void
     subTrips (std::vector<sim_mob::SubTrip>);
 
     virtual sim_mob::TripChainItem*
-    post_Trip_t () = 0;
+    post_Trip_t ();
 
     // Parser construction API.
     //
@@ -2766,13 +2797,13 @@ namespace geo
     tripID_parser (::xml_schema::integer_pskel&);
 
     void
-    fromLocation_parser (::xml_schema::string_pskel&);
+    fromLocation_parser (::xml_schema::unsigned_int_pskel&);
 
     void
     fromLocationType_parser (::geo::TripchainItemLocationType_pskel&);
 
     void
-    toLocation_parser (::xml_schema::string_pskel&);
+    toLocation_parser (::xml_schema::unsigned_int_pskel&);
 
     void
     toLocationType_parser (::geo::TripchainItemLocationType_pskel&);
@@ -2787,9 +2818,9 @@ namespace geo
              ::xml_schema::string_pskel& /* startTime */,
              ::xml_schema::string_pskel& /* endTime */,
              ::xml_schema::integer_pskel& /* tripID */,
-             ::xml_schema::string_pskel& /* fromLocation */,
+             ::xml_schema::unsigned_int_pskel& /* fromLocation */,
              ::geo::TripchainItemLocationType_pskel& /* fromLocationType */,
-             ::xml_schema::string_pskel& /* toLocation */,
+             ::xml_schema::unsigned_int_pskel& /* toLocation */,
              ::geo::TripchainItemLocationType_pskel& /* toLocationType */,
              ::geo::SubTrips_t_pskel& /* subTrips */);
 
@@ -2811,9 +2842,9 @@ namespace geo
 
     protected:
     ::xml_schema::integer_pskel* tripID_parser_;
-    ::xml_schema::string_pskel* fromLocation_parser_;
+    ::xml_schema::unsigned_int_pskel* fromLocation_parser_;
     ::geo::TripchainItemLocationType_pskel* fromLocationType_parser_;
-    ::xml_schema::string_pskel* toLocation_parser_;
+    ::xml_schema::unsigned_int_pskel* toLocation_parser_;
     ::geo::TripchainItemLocationType_pskel* toLocationType_parser_;
     ::geo::SubTrips_t_pskel* subTrips_parser_;
   };
@@ -2830,10 +2861,10 @@ namespace geo
     description (const ::std::string&);
 
     virtual void
-    location (sim_mob::Point2D);
+    location (unsigned int);
 
     virtual void
-    locationType (sim_mob::TripChainItem::LocationType);
+    locationType (std::string);
 
     virtual void
     isPrimary (bool);
@@ -2845,7 +2876,7 @@ namespace geo
     isMandatory (bool);
 
     virtual sim_mob::TripChainItem*
-    post_Activity_t () = 0;
+    post_Activity_t ();
 
     // Parser construction API.
     //
@@ -2853,7 +2884,7 @@ namespace geo
     description_parser (::xml_schema::string_pskel&);
 
     void
-    location_parser (::geo::Point2D_t_pskel&);
+    location_parser (::xml_schema::unsigned_int_pskel&);
 
     void
     locationType_parser (::geo::TripchainItemLocationType_pskel&);
@@ -2874,7 +2905,7 @@ namespace geo
              ::xml_schema::string_pskel& /* startTime */,
              ::xml_schema::string_pskel& /* endTime */,
              ::xml_schema::string_pskel& /* description */,
-             ::geo::Point2D_t_pskel& /* location */,
+             ::xml_schema::unsigned_int_pskel& /* location */,
              ::geo::TripchainItemLocationType_pskel& /* locationType */,
              ::xml_schema::boolean_pskel& /* isPrimary */,
              ::xml_schema::boolean_pskel& /* isFlexible */,
@@ -2898,7 +2929,7 @@ namespace geo
 
     protected:
     ::xml_schema::string_pskel* description_parser_;
-    ::geo::Point2D_t_pskel* location_parser_;
+    ::xml_schema::unsigned_int_pskel* location_parser_;
     ::geo::TripchainItemLocationType_pskel* locationType_parser_;
     ::xml_schema::boolean_pskel* isPrimary_parser_;
     ::xml_schema::boolean_pskel* isFlexible_parser_;
@@ -2922,7 +2953,7 @@ namespace geo
     virtual void
     Activity (sim_mob::TripChainItem*);
 
-    virtual std::pair<unsigned int,sim_mob::TripChainItem*>
+    virtual std::pair<unsigned long,sim_mob::TripChainItem*>
     post_TripChain_t () = 0;
 
     // Parser construction API.
@@ -2972,7 +3003,7 @@ namespace geo
     // pre ();
 
     virtual void
-    TripChain (std::pair<unsigned int,sim_mob::TripChainItem*>);
+    TripChain (std::pair<unsigned long,sim_mob::TripChainItem*>);
 
     virtual void
     post_TripChains_t ();

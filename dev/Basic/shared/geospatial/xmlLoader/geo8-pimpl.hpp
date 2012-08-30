@@ -69,7 +69,7 @@ namespace geo
     pre ();
 
     virtual void
-    laneID (const ::std::string&);
+    laneID (unsigned long long);
 
     virtual void
     width (unsigned int);
@@ -132,50 +132,50 @@ namespace geo
   class connector_t_pimpl: public virtual connector_t_pskel
   {
 	 // std::string laneFrom,laneTo;
-	  std::pair<std::string,std::string> connector;
+	  std::pair<unsigned long,unsigned long> connector;
     public:
     virtual void
     pre ();
 
     virtual void
-    laneFrom (const ::std::string&);
+    laneFrom (unsigned long long);
 
     virtual void
-    laneTo (const ::std::string&);
+    laneTo (unsigned long long);
 
-    virtual std::pair<std::string,std::string>
+    virtual std::pair<unsigned long,unsigned long>
     post_connector_t ();
   };
 
   class connectors_t_pimpl: public virtual connectors_t_pskel
   {
-	  std::set<std::pair<std::string,std::string> > Connectors;
+	  std::set<std::pair<unsigned long,unsigned long> > Connectors;
     public:
     virtual void
     pre ();
 
     virtual void
-    Connector (std::pair<std::string,std::string>);
+    Connector (std::pair<unsigned long,unsigned long>);
 
-    virtual std::set<std::pair<std::string,std::string > >
+    virtual std::set<std::pair<unsigned long,unsigned long> >
     post_connectors_t ();
   };
 
   class Multi_Connector_t_pimpl: public virtual Multi_Connector_t_pskel
   {
 	  std::string RoadSegment_;
-	  std::pair<std::string,std::set<std::pair<std::string,std::string> > >  temp_pair;
+	  std::pair<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >  temp_pair;
     public:
     virtual void
     pre ();
 
     virtual void
-    RoadSegment (const ::std::string&);
+    RoadSegment (unsigned long long);
 
     virtual void
-    Connectors (std::set<std::pair<std::string,std::string > >);
+    Connectors (std::set<std::pair<unsigned long,unsigned long> >);
 
-    virtual std::pair<std::string,std::set<std::pair<std::string,std::string> > >
+    virtual std::pair<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >
     post_Multi_Connector_t ();
   };
 
@@ -187,9 +187,9 @@ namespace geo
     pre ();
 
     virtual void
-    MultiConnectors (const std::pair<std::string,std::set<std::pair<std::string,std::string> > >&);
+    MultiConnectors (const std::pair<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&);
 
-    virtual std::map<std::string,std::set<std::pair<std::string,std::string> > >
+    virtual std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >
     post_Multi_Connectors_t ();
   };
 
@@ -210,15 +210,15 @@ namespace geo
   class RoadSegmentsAt_t_pimpl: public virtual RoadSegmentsAt_t_pskel
   {
 //	  std::set<sim_mob::RoadSegment*> RoadSegments;
-	  std::set<std::string> RoadSegments;
+	  std::set<unsigned long> RoadSegments;
     public:
     virtual void
     pre ();
 
     virtual void
-    segmentID (const ::std::string&);
+    segmentID (unsigned long long);
 
-    virtual std::set<std::string>
+    virtual std::set<unsigned long>
     post_RoadSegmentsAt_t ();
   };
 
@@ -230,13 +230,13 @@ namespace geo
     pre ();
 
     virtual void
-    segmentID (const ::std::string&);
+    segmentID (unsigned long long);
 
     virtual void
-    startingNode (const ::std::string&);
+    startingNode (unsigned int);
 
     virtual void
-    endingNode (const ::std::string&);
+    endingNode (unsigned int);
 
     virtual void
     maxSpeed (short);
@@ -268,16 +268,16 @@ namespace geo
     pre ();
 
     virtual void
-    linkID (const ::std::string&);
+    linkID (unsigned int);
 
     virtual void
     roadName (const ::std::string&);
 
     virtual void
-    StartingNode (const ::std::string&);
+    StartingNode (unsigned int);
 
     virtual void
-    EndingNode (const ::std::string&);
+    EndingNode (unsigned int);
 
     virtual void
     Segments (std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >);
@@ -409,7 +409,7 @@ namespace geo
     pre ();
 
     virtual void
-    laneID (const ::std::string&);
+    laneID (unsigned long long);
 
     virtual void
     post_LanesVector_t ();
@@ -444,46 +444,66 @@ namespace geo
     post_EntranceAngles_t ();
   };
 
-  class UniNode_t_pimpl: public virtual UniNode_t_pskel
+  class Node_t_pimpl: public virtual Node_t_pskel
   {
-	  sim_mob::UniNode * uniNode;
-	  Point2D location_;
-	  std::string nodeId;
-	  std::map<const sim_mob::Lane*, sim_mob::Lane* > connectors_;
-    public:
+  public:
+	  sim_mob::Node* node_;
+	  unsigned int nodeId_;
+	  sim_mob::Point2D location_;
+	  std::string originalDB_ID_;
+	  unsigned long linkLoc_;
+
+	  Node_t_pimpl();
     virtual void
     pre ();
 
     virtual void
-    nodeID (const ::std::string&);
+    nodeID (unsigned int);
 
     virtual void
     location (sim_mob::Point2D);
 
     virtual void
-    Connectors (std::set<std::pair<std::string,std::string > >);
+    linkLoc (unsigned long long);
+
+    virtual void
+    originalDB_ID (const ::std::string&);
+
+    virtual sim_mob::Node*
+    post_Node_t ();
+  };
+
+  class UniNode_t_pimpl: public virtual UniNode_t_pskel,
+    public ::geo::Node_t_pimpl
+  {
+	  sim_mob::UniNode * uniNode;
+//	  Point2D location_;
+//	  std::string nodeId;
+//	  std::map<const sim_mob::Lane*, sim_mob::Lane* > connectors_;
+	  std::set<std::pair<unsigned long,unsigned long> > connectors_;
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    Connectors (std::set<std::pair<unsigned long,unsigned long> >);
 
     virtual sim_mob::UniNode*
     post_UniNode_t ();
   };
 
-  class roundabout_t_pimpl: public virtual roundabout_t_pskel
+  class roundabout_t_pimpl: public virtual roundabout_t_pskel,
+    public ::geo::Node_t_pimpl
   {
     public:
     virtual void
     pre ();
 
     virtual void
-    nodeID (const ::std::string&);
+    roadSegmentsAt (std::set<unsigned long>);
 
     virtual void
-    location (sim_mob::Point2D);
-
-    virtual void
-    roadSegmentsAt (std::set<std::string>);
-
-    virtual void
-    Connectors (const std::map<std::string,std::set<std::pair<std::string,std::string> > >&);
+    Connectors (const std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&);
 
     virtual void
     ChunkLengths ();
@@ -510,27 +530,21 @@ namespace geo
     post_roundabout_t ();
   };
 
-  class intersection_t_pimpl: public virtual intersection_t_pskel
+  class intersection_t_pimpl: public virtual intersection_t_pskel,
+    public ::geo::Node_t_pimpl
   {
 	  sim_mob::Intersection * intersection;
-	  Point2D location_;
-	  unsigned int nodeId;
-	  std::string nodeId_str;
+	  std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > > connectors_;
+	  std::set<unsigned long> roadSegmentsAt_;
     public:
     virtual void
     pre ();
 
     virtual void
-    nodeID (const ::std::string&);
+    roadSegmentsAt (std::set<unsigned long>);
 
     virtual void
-    location (sim_mob::Point2D);
-
-    virtual void
-    roadSegmentsAt (std::set<std::string>);
-
-    virtual void
-    Connectors (const std::map<std::string,std::set<std::pair<std::string,std::string> > >&);
+    Connectors (const std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&);
 
     virtual void
     ChunkLengths ();
@@ -700,7 +714,7 @@ namespace geo
     roadBumpID (const ::std::string&);
 
     virtual void
-    segmentID (const ::std::string&);
+    segmentID (unsigned long long);
 
     virtual void
     post_RoadBump_t ();
@@ -708,8 +722,9 @@ namespace geo
 
   class RoadNetwork_t_pimpl: public virtual RoadNetwork_t_pskel
   {
-	  sim_mob::RoadNetwork rn;
+	  sim_mob::RoadNetwork &rn;
     public:
+	  RoadNetwork_t_pimpl();
     virtual void
     pre ();
 
@@ -769,7 +784,7 @@ namespace geo
     virtual void
     pre ();
 
-    virtual void
+    virtual std::string
     post_TripchainItemType ();
   };
 
@@ -780,7 +795,7 @@ namespace geo
     virtual void
     pre ();
 
-    virtual sim_mob::TripChainItem::LocationType
+    virtual std::string
     post_TripchainItemLocationType ();
   };
 
@@ -820,6 +835,7 @@ namespace geo
 
   class TripChainItem_t_pimpl: public virtual TripChainItem_t_pskel
   {
+	  sim_mob::TripChainItem *tcItem;
     public:
     virtual void
     pre ();
@@ -828,7 +844,7 @@ namespace geo
     personID (long long);
 
     virtual void
-    itemType ();
+    itemType (std::string);
 
     virtual void
     sequenceNumber (unsigned int);
@@ -839,7 +855,7 @@ namespace geo
     virtual void
     endTime (const ::std::string&);
 
-    virtual void
+    virtual sim_mob::TripChainItem*
     post_TripChainItem_t ();
   };
 
@@ -855,16 +871,16 @@ namespace geo
     tripID (long long);
 
     virtual void
-    fromLocation (const ::std::string&);
+    fromLocation (unsigned int);
 
     virtual void
-    fromLocationType (sim_mob::TripChainItem::LocationType);
+    fromLocationType (std::string);
 
     virtual void
-    toLocation (const ::std::string&);
+    toLocation (unsigned int);
 
     virtual void
-    toLocationType (sim_mob::TripChainItem::LocationType);
+    toLocationType (std::string);
 
     virtual void
     subTrips (std::vector<sim_mob::SubTrip>);
@@ -876,6 +892,7 @@ namespace geo
   class Activity_t_pimpl: public virtual Activity_t_pskel,
     public ::geo::TripChainItem_t_pimpl
   {
+	  sim_mob::Activity *activity;
     public:
     virtual void
     pre ();
@@ -884,10 +901,10 @@ namespace geo
     description (const ::std::string&);
 
     virtual void
-    location (sim_mob::Point2D);
+    location (unsigned int);
 
     virtual void
-    locationType (sim_mob::TripChainItem::LocationType);
+    locationType (std::string);
 
     virtual void
     isPrimary (bool);
@@ -904,6 +921,7 @@ namespace geo
 
   class TripChain_t_pimpl: public virtual TripChain_t_pskel
   {
+	  std::pair<unsigned long, sim_mob::TripChainItem*> personID_Tripchai_Pair;
     public:
     virtual void
     pre ();
@@ -917,18 +935,19 @@ namespace geo
     virtual void
     Activity (sim_mob::TripChainItem*);
 
-    virtual std::pair<unsigned int,sim_mob::TripChainItem*>
+    virtual std::pair<unsigned long,sim_mob::TripChainItem*>
     post_TripChain_t ();
   };
 
   class TripChains_t_pimpl: public virtual TripChains_t_pskel
   {
+	  std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > tripchains;
     public:
     virtual void
     pre ();
 
     virtual void
-    TripChain (std::pair<unsigned int,sim_mob::TripChainItem*>);
+    TripChain (std::pair<unsigned long,sim_mob::TripChainItem*>);
 
     virtual void
     post_TripChains_t ();
@@ -998,7 +1017,9 @@ namespace geo
   {
 	  sim_mob::RoadNetwork &rn;
     public:
-	  Nodes_pimpl():rn(sim_mob::ConfigParams::GetInstance().getNetworkRW()){}
+	  Nodes_pimpl():rn(sim_mob::ConfigParams::GetInstance().getNetworkRW()){
+		  std::cout << "RoadNetworkRW hooked\n";
+	  }
     virtual void
     pre ();
 

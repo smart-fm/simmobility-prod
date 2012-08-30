@@ -51,7 +51,7 @@ class Loader;
 class Link : public sim_mob::Traversable {
 public:
 	Link() : Traversable() {}
-	Link(std::string linkID_) : Traversable(),linkID(linkID_) {}
+	Link(unsigned int linkID_) : Traversable(),linkID(linkID_) {}
 
 	//Initialize a link with the given set of segments
 	void initializeLinkSegments(const std::set<sim_mob::RoadSegment*>& segments);
@@ -59,7 +59,7 @@ public:
 	///Return the length of this Link, which is the sum of all RoadSegments
 	/// in the forward (if isForward is true) direction.
 	int getLength(bool isForward) const;
-	const std::string & getLinkId() const;
+	const unsigned int & getLinkId() const;
 	const std::string & getRoadName() const;
 	///Return the RoadSegments which make up this Link, in either the forward
 	/// (if isForward is true) or reverse direction.
@@ -95,7 +95,7 @@ public:
 public:
 	///The road link's name. E.g., "Main Street"
 	std::string roadName;
-	std::string linkID;
+	unsigned int linkID;
 
 protected:
 	//List of pointers to RoadSegments in each direction

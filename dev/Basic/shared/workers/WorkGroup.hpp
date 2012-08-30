@@ -12,6 +12,7 @@
 
 #include "util/LangHelpers.hpp"
 #include "util/DebugFlags.hpp"
+#include "util/FlexiBarrier.hpp"
 
 //Needed for ActionFunction
 #include "workers/Worker.hpp"

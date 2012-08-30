@@ -588,6 +588,8 @@ std::string locationType_toString(TripChainItem::LocationType type)
 		return "LT_NODE";
 	case TripChainItem::LT_LINK:
 		return "LT_PUBLIC_TRANSIT_STOP";
+	default:
+		return "";
 	}
 }
 void WriteXMLInput_TripChain_Trip(TiXmlElement * TripChains, sim_mob::Trip & trip)

@@ -110,11 +110,11 @@ void WriteXMLInput_Location(TiXmlElement * parent,bool underLocation, unsigned i
 	yPos->LinkEndChild(new  TiXmlText(Id.str()));
 }
 
-void WriteXMLInput_PolyLine(sim_mob::Lane *lane ,TiXmlElement * PolyLine)
+void WriteXMLInput_PolyLine(const std::vector<sim_mob::Point2D> polylines,/*sim_mob::Lane *lane ,*/TiXmlElement * PolyLine)
 {
 	std::ostringstream Id;
 	int i = 0;
-	for(std::vector<Point2D>::const_iterator polyLineObj_it = lane->getPolyline().begin(), it_end(lane->getPolyline().end()); polyLineObj_it != it_end; polyLineObj_it++, i++)
+	for(std::vector<Point2D>::const_iterator polyLineObj_it = polylines.begin(), it_end(polylines.end()); polyLineObj_it != it_end; polyLineObj_it++, i++)
 	{
 		//PolyPoint
 		TiXmlElement * PolyPoint = new TiXmlElement("PolyPoint"); PolyLine->LinkEndChild(PolyPoint);
@@ -189,7 +189,7 @@ void WriteXMLInput_Lane(sim_mob::Lane *LaneObj,TiXmlElement *Lanes)
 	is_u_turn_allowed->LinkEndChild(new  TiXmlText(LaneObj->is_u_turn_allowed() ? "true" : "false"));
 	//Polyline
 	TiXmlElement * PolyLine = new TiXmlElement("PolyLine"); Lane->LinkEndChild(PolyLine);
-	WriteXMLInput_PolyLine(LaneObj,PolyLine);
+	WriteXMLInput_PolyLine(LaneObj->getPolyline(),PolyLine);
 
 }
 void WriteXMLInput_Crossing(sim_mob::Crossing * crossing , int offset, TiXmlElement *Obstacle)
@@ -269,6 +269,9 @@ void WriteXMLInput_Segment(sim_mob::RoadSegment* rs ,TiXmlElement * Segments)
 	Id.str("");
 	Id << rs->width;
 	Width->LinkEndChild(new  TiXmlText(Id.str()));
+	//polyline
+	TiXmlElement * polyline = new TiXmlElement("polyline"); Segment->LinkEndChild(polyline);
+	WriteXMLInput_PolyLine(const_cast<std::vector<sim_mob::Point2D>& >(rs->polyline), polyline);
 	//Lanes
 	TiXmlElement * Lanes = new TiXmlElement("Lanes"); Segment->LinkEndChild(Lanes);
 	//Lane

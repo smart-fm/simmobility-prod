@@ -959,6 +959,9 @@ namespace geo
     Width (unsigned int);
 
     virtual void
+    polyline (std::vector<sim_mob::Point2D>);
+
+    virtual void
     Lanes (std::vector<sim_mob::Lane*>);
 
     virtual void
@@ -991,6 +994,9 @@ namespace geo
     Width_parser (::xml_schema::unsigned_int_pskel&);
 
     void
+    polyline_parser (::geo::PolyLine_t_pskel&);
+
+    void
     Lanes_parser (::geo::Lanes_pskel&);
 
     void
@@ -1006,6 +1012,7 @@ namespace geo
              ::xml_schema::short_pskel& /* maxSpeed */,
              ::xml_schema::unsigned_int_pskel& /* Length */,
              ::xml_schema::unsigned_int_pskel& /* Width */,
+             ::geo::PolyLine_t_pskel& /* polyline */,
              ::geo::Lanes_pskel& /* Lanes */,
              ::geo::RoadItems_t_pskel& /* Obstacles */,
              ::geo::PolyLine_t_pskel& /* KurbLine */);
@@ -1033,6 +1040,7 @@ namespace geo
     ::xml_schema::short_pskel* maxSpeed_parser_;
     ::xml_schema::unsigned_int_pskel* Length_parser_;
     ::xml_schema::unsigned_int_pskel* Width_parser_;
+    ::geo::PolyLine_t_pskel* polyline_parser_;
     ::geo::Lanes_pskel* Lanes_parser_;
     ::geo::RoadItems_t_pskel* Obstacles_parser_;
     ::geo::PolyLine_t_pskel* KurbLine_parser_;

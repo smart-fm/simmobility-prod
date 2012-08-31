@@ -1183,6 +1183,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		std::cout << "Testin Road Network :\n";
     		std::vector<Link*> const & links = ConfigParams::GetInstance().getNetwork().getLinks();
     		std::cout << "Number of Links: " << links.size() << std::endl;
+    		std::cout << "Number of segments: " << links[0]->getPath(true).size() << " " << links[0]->getPath(false).size() << std::endl;
     		const std::vector<sim_mob::MultiNode*>& mnodes = ConfigParams::GetInstance().getNetwork().getNodes();
     		const std::set<sim_mob::UniNode*>& unodes = ConfigParams::GetInstance().getNetwork().getUniNodes();
     		std::cout << "Number of UniNodes: " << unodes.size() << std::endl;
@@ -1205,6 +1206,18 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     //Seal the network; no more changes can be made after this.
     ConfigParams::GetInstance().sealNetwork();
     std::cout << "Network Sealed" << std::endl;
+    {
+    	std::cout << "Testing Road Network Again:\n";
+    	const sim_mob::RoadNetwork& network = ConfigParams::GetInstance().getNetwork();
+    	    		std::vector<Link*> const & links = network.getLinks();
+    	    		std::cout << "Number of Links: " << links.size() << std::endl;
+    	    		Link const * link = links[0];
+    	    		std::cout << "Number of segments: " << link->getPath(true).size() << " " << link->getPath(false).size() << std::endl;
+    	    		const std::vector<sim_mob::MultiNode*>& mnodes = ConfigParams::GetInstance().getNetwork().getNodes();
+    	    		const std::set<sim_mob::UniNode*>& unodes = ConfigParams::GetInstance().getNetwork().getUniNodes();
+    	    		std::cout << "Number of UniNodes: " << unodes.size() << std::endl;
+    	    		std::cout << "Number of MultiNodes: " << mnodes.size() << std::endl;
+    }
     //Now that the network has been loaded, initialize our street directory (so that lookup succeeds).
     StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
     std::cout << "Street Directory initialized" << std::endl;

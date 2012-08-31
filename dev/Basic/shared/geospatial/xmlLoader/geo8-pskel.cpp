@@ -488,6 +488,12 @@ namespace geo
   }
 
   void segment_t_pskel::
+  polyline_parser (::geo::PolyLine_t_pskel& p)
+  {
+    this->polyline_parser_ = &p;
+  }
+
+  void segment_t_pskel::
   Lanes_parser (::geo::Lanes_pskel& p)
   {
     this->Lanes_parser_ = &p;
@@ -512,6 +518,7 @@ namespace geo
            ::xml_schema::short_pskel& maxSpeed,
            ::xml_schema::unsigned_int_pskel& Length,
            ::xml_schema::unsigned_int_pskel& Width,
+           ::geo::PolyLine_t_pskel& polyline,
            ::geo::Lanes_pskel& Lanes,
            ::geo::RoadItems_t_pskel& Obstacles,
            ::geo::PolyLine_t_pskel& KurbLine)
@@ -522,6 +529,7 @@ namespace geo
     this->maxSpeed_parser_ = &maxSpeed;
     this->Length_parser_ = &Length;
     this->Width_parser_ = &Width;
+    this->polyline_parser_ = &polyline;
     this->Lanes_parser_ = &Lanes;
     this->Obstacles_parser_ = &Obstacles;
     this->KurbLine_parser_ = &KurbLine;
@@ -535,6 +543,7 @@ namespace geo
     maxSpeed_parser_ (0),
     Length_parser_ (0),
     Width_parser_ (0),
+    polyline_parser_ (0),
     Lanes_parser_ (0),
     Obstacles_parser_ (0),
     KurbLine_parser_ (0)
@@ -3157,6 +3166,11 @@ namespace geo
   }
 
   void segment_t_pskel::
+  polyline (std::vector<sim_mob::Point2D>)
+  {
+  }
+
+  void segment_t_pskel::
   Lanes (std::vector<sim_mob::Lane*>)
   {
   }
@@ -3237,6 +3251,16 @@ namespace geo
 
       if (this->Width_parser_)
         this->Width_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "polyline" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->polyline_parser_;
+
+      if (this->polyline_parser_)
+        this->polyline_parser_->pre ();
 
       return true;
     }
@@ -3325,6 +3349,14 @@ namespace geo
     {
       if (this->Width_parser_)
         this->Width (this->Width_parser_->post_unsigned_int ());
+
+      return true;
+    }
+
+    if (n == "polyline" && ns.empty ())
+    {
+      if (this->polyline_parser_)
+        this->polyline (this->polyline_parser_->post_PolyLine_t ());
 
       return true;
     }

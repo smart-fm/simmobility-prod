@@ -139,6 +139,7 @@
       <xs:element name="maxSpeed" type="xs:short"/>
       <xs:element name="Length" type="xs:unsignedInt"/>
       <xs:element name="Width" type="xs:unsignedInt"/>
+      <xs:element name="polyline" type="geo:PolyLine_t"/>
       <!--      <xs:element name="LanesLeftOfDivider" type="xs:unsignedInt"/>-->
       <xs:element name="Lanes" minOccurs="1">
         <xs:complexType>

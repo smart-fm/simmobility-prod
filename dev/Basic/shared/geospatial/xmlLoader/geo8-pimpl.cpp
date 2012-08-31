@@ -22,14 +22,14 @@ namespace geo
 {
 struct geo_LinkLoc_mapping
 {
-	geo_LinkLoc_mapping(unsigned int linkID_,sim_mob::MultiNode* node1_,sim_mob::MultiNode* node2_,sim_mob::Node *rawNode_):
+	geo_LinkLoc_mapping(unsigned int linkID_=0,sim_mob::MultiNode* node1_=0,sim_mob::MultiNode* node2_=0,sim_mob::Node *rawNode_=0):
 		linkID(linkID_),
 		node1(node1_),
 		node2(node2_),
 		rawNode(rawNode_){}
-	unsigned long linkID;
-	mutable sim_mob::MultiNode* node1;//can be starting node or ending node
-	mutable sim_mob::MultiNode* node2;//can be starting node or ending node
+	mutable unsigned long linkID;
+	mutable sim_mob::Node* node1;//can be starting node or ending node
+	mutable sim_mob::Node* node2;//can be starting node or ending node
 	mutable sim_mob::Node *rawNode;//store temporary node created when reading basic node
 };
 typedef boost::multi_index_container<
@@ -37,8 +37,8 @@ typedef boost::multi_index_container<
 		boost::multi_index::indexed_by<
 		boost::multi_index::random_access<>//0
 		,boost::multi_index::ordered_unique<boost::multi_index::member<geo_LinkLoc_mapping, unsigned long , &geo_LinkLoc_mapping::linkID> >//1
-		,boost::multi_index::ordered_non_unique<boost::multi_index::member<geo_LinkLoc_mapping, sim_mob::MultiNode* , &geo_LinkLoc_mapping::node1> >//2
-		,boost::multi_index::ordered_non_unique<boost::multi_index::member<geo_LinkLoc_mapping, sim_mob::MultiNode* , &geo_LinkLoc_mapping::node2> >//3
+		,boost::multi_index::ordered_non_unique<boost::multi_index::member<geo_LinkLoc_mapping, sim_mob::Node* , &geo_LinkLoc_mapping::node1> >//2
+		,boost::multi_index::ordered_non_unique<boost::multi_index::member<geo_LinkLoc_mapping, sim_mob::Node* , &geo_LinkLoc_mapping::node2> >//3
 		,boost::multi_index::ordered_non_unique<boost::multi_index::member<geo_LinkLoc_mapping, sim_mob::Node* , &geo_LinkLoc_mapping::rawNode> >//4
 									  >
 									>geo_LinkLoc;
@@ -97,8 +97,8 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   post_Point2D_t ()
   {
 
-	   std::cout << "returning location [" << point2D.getX() << " , " << point2D.getY() << std::endl;
-//	   getchar();
+//	   std::cout << "returning location [" << point2D.getX() << " , " << point2D.getY() << std::endl;
+//	   //getchar();
 	  return point2D;
   }
 
@@ -379,6 +379,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   pre ()
   {
 	  std::cout << "in fwdBckSegments_t_pimpl::pre () " << std::endl;
+	  Segments.clear();
   }
 
   void fwdBckSegments_t_pimpl::
@@ -406,7 +407,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void RoadSegmentsAt_t_pimpl::
   segmentID (unsigned long long segmentID)
   {
-    std::cout << "segmentID: " << segmentID << std::endl;
+//    std::cout << "segmentID: " << segmentID << std::endl;
     RoadSegments.insert(segmentID);
   }
 
@@ -423,6 +424,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   pre ()
   {
 	  std::cout << "In segment_t_pimpl:: pre ()\n";
+	  rs = NULL;
 	  rs = new sim_mob::RoadSegment();
   }
 
@@ -465,14 +467,19 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   {
 	  this->rs->width = Width;
   }
-
+  void segment_t_pimpl::
+  polyline (std::vector<sim_mob::Point2D> polyline)
+  {
+    // TODO
+    //
+  }
   void segment_t_pimpl::
   Lanes (std::vector<sim_mob::Lane*> Lanes)
   {
 	  std::cout << "In segment_t_pimpl:: Lanes ()\n";
 	  this->rs->lanes =  Lanes;
 	  std::cout << "In segment_t_pimpl:: Lanes (" << this->rs->lanes.size() << ")--done\n";
-//	  getchar();
+//	  //getchar();
   }
 
   void segment_t_pimpl::
@@ -510,6 +517,8 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 	std::cout << "In linkID \n";
 	link->linkID = linkID;
 	geo_Links_[linkID] = link;
+//	std::cout << "linkID : "  << linkID << " Has link " << link;
+//	//getchar();
   }
 
   void link_t_pimpl::
@@ -533,14 +542,16 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void link_t_pimpl::
   Segments (std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> > Segments)
   {
-	  std::cout << "In link_t_pimpl::Segments()\n";
+
 	  link->fwdSegments = Segments.first;
 	  link->revSegments = Segments.second;
+	  std::cout << "In link_t_pimpl::Segments(" << link->fwdSegments.size() << "," << link->revSegments.size() << "\n";
   }
 
   sim_mob::Link* link_t_pimpl::
   post_link_t ()
   {
+	  std::cout << "In link_t_pimpl::post_link_t, segments(" << link->fwdSegments.size() << "," << link->revSegments.size() << "\n";
     return link;
   }
 
@@ -807,38 +818,53 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void Node_t_pimpl::
   location (sim_mob::Point2D location)
   {
+	  node_ = NULL;
+	  this->linkLoc_ = 0;
 	  //more convenient if create an instance here(to set the const location)
 	  node_ = new sim_mob::Node(location.getX(),location.getY());
-	   std::cout << "location of basic node is at [" << node_->getLocation().getX() << " , " << node_->getLocation().getY() << std::endl;
-//	   getchar();
+	   std::cout << "basic node is at [" << node_<< "]" << std::endl;
+//	   //getchar();
   }
 
   void Node_t_pimpl::
   linkLoc (unsigned long long linkLoc)
   {
-	  std::cout << "Entering LinkLoc= " << linkLoc_ << std::endl;
+	  std::cout << "Entering LinkLoc= " << linkLoc << std::endl;
 	  this->linkLoc_ = linkLoc;
   }
 
   void Node_t_pimpl::
   originalDB_ID (const ::std::string& originalDB_ID)
   {
-	  std::cout << "In Node_t_pimpl::originalDB_ID ()\n";
+//	  std::cout << "In Node_t_pimpl::originalDB_ID ()\n";
 	  this->originalDB_ID_ = originalDB_ID;
   }
 
   sim_mob::Node* Node_t_pimpl::
   post_Node_t ()
   {
-	  std::cout << "In Node_t_pimpl::post_Node_t ()\n";
+//	  std::cout << "In Node_t_pimpl::post_Node_t ()\n";
 //	  if(!node_) return node__; //return now before running into seg fault while assigning new sub values
 	  node_->originalDB_ID.repr_ = this->originalDB_ID_;
 	  node_->nodeId = this->nodeId_;
 	  geo_LinkLoc_linkID & inserter = get<1>(geo_LinkLoc_);
 	  if(this->linkLoc_)
 	  {
-		  inserter.insert(geo_LinkLoc_mapping(this->linkLoc_,0,0,node_));//node_ address in this container will later be replace by a uninode, intesection or roundabout adress
+		  geo_LinkLoc_linkID::iterator it = inserter.find(this->linkLoc_);
+		  if(it == inserter.end())//if not available, insert it
+		  {
+			  geo_LinkLoc_mapping g(this->linkLoc_,0,0,node_);
+			  inserter.insert(g);//node_ address in this container will later be replace by a uninode, intesection or roundabout adress
+			  std::cout << "An entry ["<< g.linkID <<"," << g.node1 << "," << g.node2<< "," << g.rawNode  << "] Inserted into multi index container size("<< inserter.size() << ")\n";
+		  }
+		  else//otherwise, update the calling node
+		  {
+			  it->rawNode = node_;
+			  std::cout << "node " << node_ << " updated the rawNode in  multi index container size("<< inserter.size() << ") "<< "["<< it->linkID <<"," << it->node1 << "," <<it->node2<< "," << it->rawNode  << "]\n";
+		  }
+
 	  }
+	  std::cout << "Basic Node posted\n";
 	  return node_;
   }
 
@@ -853,9 +879,9 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void UniNode_t_pimpl::
   Connectors (std::set<std::pair<unsigned long,unsigned long> > Connectors)
   {
-	  std::cout << "In UniNode_t_pimpl::Connectors ()\n";
+//	  std::cout << "In UniNode_t_pimpl::Connectors ()\n";
 	  connectors_ = Connectors;
-	  std::cout << "In UniNode_t_pimpl::Connectors ()-Done\n";
+//	  std::cout << "In UniNode_t_pimpl::Connectors ()-Done\n";
   }
 
   sim_mob::UniNode* UniNode_t_pimpl::
@@ -869,7 +895,30 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 	  this->uniNode->originalDB_ID.repr_ = v->originalDB_ID.getLogItem();
 	  geo_UniNodeConnectorsMap[this->uniNode->getID()] = connectors_;
 	  geo_Nodes_[this->uniNode->getID()] = this->uniNode;
-	  delete v;
+	    geo_LinkLoc_rawNode & container = get<4>(geo_LinkLoc_);
+	    geo_LinkLoc_rawNode::iterator it = container.find(v);
+	    if(it == container.end())
+	    {
+	    	std::cout << "Couldn't find the unode " << v << " container size(" << container.size() << ")" << std::endl;
+//	    	//getchar();
+	    }
+	    else
+	    {
+	    	std::cout << "Found the unode " << v <<  " with link(" << it->linkID << ") container size(" << container.size() << ")" << std::endl;
+		    if(it->node1 == 0)
+		    {
+		    	it->node1 =(this->uniNode);
+		    	std::cout << "uninode " << this->uniNode << " was Assigned node1\n ";
+		    }
+		    else
+		        /*if(it->node2 == 0)*/
+		        {
+		        	it->node2 =(this->uniNode);
+			    	std::cout << "For link(" << it->linkID << ") node1 was full(" << it->node1 << ") so uninode " << this->uniNode << " was Assigned node2\n ";
+		        }
+	    }
+
+//	  delete v;
 	  return this->uniNode;
   }
 
@@ -936,10 +985,6 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   post_roundabout_t ()
   {
     sim_mob::Node* v (post_Node_t ());
-
-    // TODO
-    //
-    // return ... ;
   }
 
   // intersection_t_pimpl
@@ -948,28 +993,9 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void intersection_t_pimpl::
   pre ()
   {
-	  std::cout << "intersection_t_pimpl::pre()\n";
+//	  std::cout << "intersection_t_pimpl::pre()\n";
   }
 
-  //nodeID (const ::std::string& nodeID)
- // {
-	  //std::cout << "intersection_t_pimpl::location()\n";
-	   // this->nodeId_str = nodeID;
-	    // this->nodeId = atoi(this->nodeId_str.c_str());//trade space for calculation
-  // }
-
- //  void intersection_t_pimpl::
-  // location (sim_mob::Point2D location)
-  // {
-	//   std::cout << "intersection_pimpl::location()\n";
-	//   this->location_ = location;
-	 //  //here you can create the sim_mob object(you can do that in post_ function also but if you create it here, you can save a lot of space and copy time
-	 //  this->intersection = new sim_mob::Intersection(this->location_.getX(), this->location_.getY());
-	 //  this->intersection->setID(this->nodeId);
-	 //  geo_Nodes_[this->nodeId_str] = this->intersection;
- //  }
-// 
- //  void intersection_t_pimpl::
   void intersection_t_pimpl::
   roadSegmentsAt (std::set<unsigned long> roadSegmentsAt)
   {
@@ -1024,24 +1050,36 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 	   this->intersection->setID(v->getID());
 	   this->originalDB_ID_ = v->originalDB_ID.getLogItem();
 	   std::cout << "location of intersection node is at [" << this->intersection->getLocation().getX() << " , " << this->intersection->getLocation().getY() << std::endl;
-//	   getchar();
 	   geo_Nodes_[v->getID()] = this->intersection;
     geo_MultiNodeConnectorsMap[v->getID()] = this->connectors_;
     geo_RoadSegmentsAt[v->getID()] = this->roadSegmentsAt_;
-	  //update the starting or ending node address , ofcourse, first you have to find the corresponding basic node
-    geo_LinkLoc_rawNode & container = get<4>(geo_LinkLoc_);
-    geo_LinkLoc_rawNode::iterator it = container.find(v);
-//    sim_mob::MultiNode **mNode;
-    if(it->node1 == 0)
+	    geo_LinkLoc_rawNode & container = get<4>(geo_LinkLoc_);
+	    geo_LinkLoc_rawNode::iterator it = container.find(v);
+
+    if(it == container.end())
     {
-    	it->node1 =(this->intersection);
+    	std::cout << "Couldn't find the Mnode " << v <<  " container size(" << container.size() << ")" << std::endl;
+    	//getchar();
     }
     else
-        /*if(it->node2 == 0)*/
+    {
+    	std::cout << "Found the Mnode " << v <<  " container size(" << container.size() << ")" << std::endl;
+        if(it->node1 == 0)
         {
-        	it->node2 =(this->intersection);
+        	it->node1 =(this->intersection);
+        	std::cout << "mninode " << this->intersection << " was Assigned node1\n ";
         }
-    delete v;
+        else
+            /*if(it->node2 == 0)*/
+            {
+            	it->node2 =(this->intersection);
+    	    	std::cout << "mninode " << this->intersection << " was Assigned node1\n ";
+            }
+    	//getchar();
+    }
+//    sim_mob::MultiNode **mNode;
+
+//    delete v;
 	  return this->intersection;
   }
 
@@ -1298,7 +1336,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void RoadBump_t_pimpl::
   segmentID (unsigned long long segmentID)
   {
-    std::cout << "segmentID: " << segmentID << std::endl;
+//    std::cout << "segmentID: " << segmentID << std::endl;
   }
 
   void RoadBump_t_pimpl::
@@ -1421,7 +1459,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 
     // TODO
     //
-    // return ... ;
+    return v;
   }
 
   // TripchainItemLocationType_pimpl
@@ -1436,7 +1474,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   post_TripchainItemLocationType ()
   {
 	  const ::std::string& v (post_string ());
-
+	  return v;
     // TODO
     //
     // return ... ;
@@ -1512,52 +1550,59 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   personID (long long personID)
   {
 	  std::cout << "TripChainItem_t_pimpl::personID() "  << std::endl;
-	  this->tcItem = new sim_mob::TripChainItem();
-	  this->tcItem->personID = personID;
-    std::cout << "personID: " << personID << std::endl;
+	  this->personID_ = personID;
   }
 
   void TripChainItem_t_pimpl::
   itemType (std::string itemType)
   {
 	  std::cout << "TripChainItem_t_pimpl::itemType() "  << std::endl;
-	  if(itemType == "IT_TRIP")
-		  this->tcItem->itemType = sim_mob::TripChainItem::IT_TRIP;
-	  else
-		  if(itemType ==  "IT_ACTIVITY")
-		  this->tcItem->itemType = sim_mob::TripChainItem::IT_ACTIVITY;
-
+	  this->itemType_ = itemType;
   }
 
   void TripChainItem_t_pimpl::
   sequenceNumber (unsigned int sequenceNumber)
   {
 	  std::cout << "TripChainItem_t_pimpl::sequenceNumber() "  << std::endl;
-	  this->tcItem->sequenceNumber = sequenceNumber;
-    std::cout << "sequenceNumber: " << sequenceNumber << std::endl;
+	  this->sequenceNumber_ = sequenceNumber;
   }
 
   void TripChainItem_t_pimpl::
   startTime (const ::std::string& startTime)
   {
 	  std::cout << "TripChainItem_t_pimpl::startTime() "  << std::endl;
-	  this->tcItem->startTime.repr_ = startTime;
-	  this->tcItem->startTime.time_= sim_mob::DailyTime().ParseStringRepr(startTime);
-    std::cout << "startTime: " << startTime << std::endl;
+	  this->startTime_ = startTime;
   }
 
   void TripChainItem_t_pimpl::
   endTime (const ::std::string& endTime)
   {
 	  std::cout << "TripChainItem_t_pimpl::endTime() "  << std::endl;
-	  this->tcItem->endTime.repr_ = endTime;
-	  this->tcItem->endTime.time_= sim_mob::DailyTime().ParseStringRepr(endTime);
-    std::cout << "endTime: " << endTime << std::endl;
+	  this->endTime_ = endTime;
+	  std::cout << "endTime: " << endTime << std::endl;
   }
 
   sim_mob::TripChainItem* TripChainItem_t_pimpl::
   post_TripChainItem_t ()
   {
+	  this->tcItem = new sim_mob::TripChainItem();
+	  this->tcItem->personID = this->personID_;
+
+	  if(itemType_ == "IT_TRIP")
+		  this->tcItem->itemType = sim_mob::TripChainItem::IT_TRIP;
+	  else
+		  if(itemType_ ==  "IT_ACTIVITY")
+		  this->tcItem->itemType = sim_mob::TripChainItem::IT_ACTIVITY;
+
+	  this->tcItem->sequenceNumber = sequenceNumber_;
+
+	  this->tcItem->startTime.repr_ = startTime_;
+	  this->tcItem->startTime.time_= sim_mob::DailyTime().ParseStringRepr(startTime_);
+
+
+	  this->tcItem->endTime.repr_ = endTime_;
+	  this->tcItem->endTime.time_= sim_mob::DailyTime().ParseStringRepr(endTime_);
+
 	  std::cout << "TripChainItem_t_pimpl::post_TripChainItem_t() "  << std::endl;
 	  return this->tcItem;
   }
@@ -1569,32 +1614,32 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   pre ()
   {
 	    std::cout << "In Trip_t_pimpl::pre ()" << std::endl;
-		  getchar();
+		  //getchar();
 	  trip = new sim_mob::Trip();
 	    std::cout << "In Trip_t_pimpl::pre ()--" << std::endl;
-	  getchar();
+	  //getchar();
   }
 
   void Trip_t_pimpl::
   tripID (long long tripID)
   {
-	    std::cout << "In Trip_t_pimpl::pre ()" << std::endl;
-	  getchar();
-	  trip->tripID = tripID;    std::cout << "In Trip_t_pimpl::pre ()--" << std::endl;
-	  getchar();
+	    std::cout << "In Trip_t_pimpl::tripID ()" << tripID << std::endl;
+	  //getchar();
+	  trip->tripID = tripID;
 
   }
 
   void Trip_t_pimpl::
   fromLocation (unsigned int fromLocation)
   {
-	  getchar();
+	  std::cout << "In Trip_t_pimpl::fromLocation ()"  << std::endl;
 	  trip->fromLocation = geo_Nodes_[fromLocation];
   }
 
   void Trip_t_pimpl::
   fromLocationType (std::string fromLocationType)
   {
+	  std::cout << "In Trip_t_pimpl::fromLocationType ()"  << std::endl;
 	  if(fromLocationType == "LT_BUILDING")
 		  trip->fromLocationType = sim_mob::TripChainItem::LT_BUILDING;
 	  else
@@ -1606,12 +1651,14 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 			  else
 				  if(fromLocationType == "LT_PUBLIC_TRANSIT_STOP")
 					  trip->fromLocationType = sim_mob::TripChainItem::LT_PUBLIC_TRANSIT_STOP;
+	  std::cout << "In Trip_t_pimpl::fromLocationType ()--"  << std::endl;
   }
 
   void Trip_t_pimpl::
   toLocation (unsigned int toLocation)
   {
-	  getchar();
+	  std::cout << "In Trip_t_pimpl::toLocation ()"  << std::endl;
+	  //getchar();
 	  trip->toLocation = geo_Nodes_[toLocation];
     // TODO
     //
@@ -1620,7 +1667,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void Trip_t_pimpl::
   toLocationType (std::string toLocationType)
   {
-
+	  std::cout << "In Trip_t_pimpl::toLocationType ()"  << std::endl;
 	  if(toLocationType == "LT_BUILDING")
 		  trip->toLocationType = sim_mob::TripChainItem::LT_BUILDING;
 	  else
@@ -1637,14 +1684,15 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void Trip_t_pimpl::
   subTrips (std::vector<sim_mob::SubTrip> subTrips)
   {
-	  getchar();
+	  std::cout << "In Trip_t_pimpl::subTrips ()"  << std::endl;
 	  trip->subTrips =  subTrips;
   }
 
   sim_mob::TripChainItem* Trip_t_pimpl::
   post_Trip_t ()
   {
-	  getchar();
+	  std::cout << "In Trip_t_pimpl::post_Trip_t ()"  << std::endl;
+	  //getchar();
      sim_mob::TripChainItem* v = post_TripChainItem_t ();
      trip->personID = v->personID;
      trip->itemType = v->itemType;
@@ -1675,7 +1723,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void Activity_t_pimpl::
   location (unsigned int location)
   {
-	  activity->location ;
+	  activity->location = geo_Nodes_[location];
   }
 
   void Activity_t_pimpl::
@@ -1848,15 +1896,17 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 			  connectors[geo_Lanes_[(*lane_cnn_it).first]] = geo_Lanes_[(*lane_cnn_it).second];
 	  }
 	  std::cout << "In GeoSpatial_t_pimpl.RoadNetwork ()3\n";
-	  //linkLoc
-
-	  geo_LinkLoc_random & linkLocs = get<0>(geo_LinkLoc_);
-	  std::cout << "In GeoSpatial_t_pimpl.RoadNetwork() linkLocs.size() = " << linkLocs.size() << std::endl;
-	  for(geo_LinkLoc_random::iterator it = linkLocs.begin(), it_end(linkLocs.end()); it != it_end; it++)
-	  {
-		  std::cout << " it->linkID = " << it->linkID << std::endl;
-		  it->node1->linkLoc = it->node2->linkLoc = geo_Links_[it->linkID];
-	  }
+//	  //linkLoc //todo later
+//	  geo_LinkLoc_random & linkLocs = get<0>(geo_LinkLoc_);
+//	  std::cout << "In GeoSpatial_t_pimpl.RoadNetwork() linkLocs.size() = " << linkLocs.size() << std::endl;
+//	  for(geo_LinkLoc_random::iterator it = linkLocs.begin(), it_end(linkLocs.end()); it != it_end; it++)
+//	  {
+//		  std::cout << " it->linkID = " << it->linkID << std::endl;
+//		  std::cout << " link : " << geo_Links_[it->linkID] << std::endl;
+//		  std::cout << " node1 " << it->node1 << std::endl;
+//		  std::cout << " node2 " << it->node2 << std::endl;
+//		  it->node1->linkLoc = it->node2->linkLoc = geo_Links_[it->linkID];
+//	  }
 	  std::cout << "In GeoSpatial_t_pimpl.RoadNetwork()...Done\n";
   }
 
@@ -1921,23 +1971,32 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void Segments_pimpl::
   pre ()
   {
+	  fwd.clear();
+	  bck.clear();
   }
 
   void Segments_pimpl::
   FWDSegments (std::vector<sim_mob::RoadSegment*> FWDSegments)
   {
 	  fwd = FWDSegments;
+//	  std::cout << "Forward Segment size = " << FWDSegments.size() << " , " << fwd.size() << "\n";
+//	  if(fwd.size() == 0) getchar();
   }
 
   void Segments_pimpl::
   BKDSegments (std::vector<sim_mob::RoadSegment*> BKDSegments)
   {
 	  bck = BKDSegments;
+//	  std::cout << "BKD Segment size = " << BKDSegments.size() << " , " << bck.size() << "\n";
+//	  if(bck.size() == 0) getchar();
+
   }
 
   std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> > Segments_pimpl::
   post_Segments ()
   {
+//	  std::cout << "In Segments_pimpl::post_Segments(" << fwd.size() << "," << bck.size() << ")\n";
+//	  getchar();
 	  return (std::make_pair(fwd,bck));
   }
 
@@ -1963,7 +2022,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 
 	  rn.nodes.insert(rn.nodes.begin(),Intersections.begin(),Intersections.end());
 	  std::cout<< "Intersections inserted size is : " << rn.nodes.size() << "\n";
-//	  getchar();
+//	  //getchar();
   }
 
   void Nodes_pimpl::
@@ -2032,7 +2091,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void Intersections_pimpl::
   pre ()
   {
-	  std::cout << "Intersections_pimpl::pre()\n";
+//	  std::cout << "Intersections_pimpl::pre()\n";
   }
 
   void Intersections_pimpl::

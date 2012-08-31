@@ -248,6 +248,9 @@ namespace geo
     Width (unsigned int);
 
     virtual void
+    polyline (std::vector<sim_mob::Point2D>);
+
+    virtual void
     Lanes (std::vector<sim_mob::Lane*>);
 
     virtual void
@@ -835,6 +838,10 @@ namespace geo
 
   class TripChainItem_t_pimpl: public virtual TripChainItem_t_pskel
   {
+	  std::string itemType_;
+	  long personID_;
+	  unsigned int sequenceNumber_;
+	  std::string startTime_,endTime_;
 	  sim_mob::TripChainItem *tcItem;
     public:
     virtual void

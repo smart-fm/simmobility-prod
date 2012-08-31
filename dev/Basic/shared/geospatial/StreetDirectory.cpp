@@ -224,8 +224,12 @@ namespace
 inline void
 StreetDirectory::Impl::partition(std::vector<RoadSegment*> const & segments, bool isForward)
 {
+//	RoadSegment temp_rs;
+//	RoadSegment* temp_rs_ptr;
     for (size_t i = 0; i < segments.size(); i++)
     {
+//    	temp_rs_ptr = segments[i];;
+//    	RoadSegment &temp_rs = *temp_rs_ptr;
         partition(*segments[i], isForward);
     }
 }
@@ -237,6 +241,7 @@ StreetDirectory::Impl::partition(RoadNetwork const & network)
     for (size_t i = 0; i < links.size(); i++)
     {
         Link const * link = links[i];
+        if(link != 0)
         partition(link->getPath(true), true);
         partition(link->getPath(false), true);
     }

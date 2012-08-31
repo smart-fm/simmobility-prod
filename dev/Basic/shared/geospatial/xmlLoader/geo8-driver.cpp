@@ -59,10 +59,10 @@ main1 (int argc, char* argv[])
     ::geo::fwdBckSegments_t_pimpl fwdBckSegments_t_p;
     ::geo::segment_t_pimpl segment_t_p;
     ::xml_schema::short_pimpl short_p;
-    ::geo::Lanes_pimpl Lanes_p;
-    ::geo::lane_t_pimpl lane_t_p;
     ::geo::PolyLine_t_pimpl PolyLine_t_p;
     ::geo::PolyPoint_t_pimpl PolyPoint_t_p;
+    ::geo::Lanes_pimpl Lanes_p;
+    ::geo::lane_t_pimpl lane_t_p;
     ::geo::RoadItems_t_pimpl RoadItems_t_p;
     ::geo::BusStop_t_pimpl BusStop_t_p;
     ::geo::ERP_Gantry_t_pimpl ERP_Gantry_t_p;
@@ -193,9 +193,15 @@ main1 (int argc, char* argv[])
                          short_p,
                          unsigned_int_p,
                          unsigned_int_p,
+                         PolyLine_t_p,
                          Lanes_p,
                          RoadItems_t_p,
                          PolyLine_t_p);
+
+    PolyLine_t_p.parsers (PolyPoint_t_p);
+
+    PolyPoint_t_p.parsers (string_p,
+                           Point2D_t_p);
 
     Lanes_p.parsers (lane_t_p);
 
@@ -218,11 +224,6 @@ main1 (int argc, char* argv[])
                       boolean_p,
                       boolean_p,
                       PolyLine_t_p);
-
-    PolyLine_t_p.parsers (PolyPoint_t_p);
-
-    PolyPoint_t_p.parsers (string_p,
-                           Point2D_t_p);
 
     RoadItems_t_p.parsers (BusStop_t_p,
                            ERP_Gantry_t_p,

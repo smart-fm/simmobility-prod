@@ -88,7 +88,7 @@ public:
 class Trip: public sim_mob::TripChainItem {
 	friend class ::geo::Trip_t_pimpl;
 public:
-	int tripID;
+	unsigned int tripID;
 	sim_mob::Node* fromLocation;
 	TripChainItem::LocationType fromLocationType;
 	sim_mob::Node* toLocation;

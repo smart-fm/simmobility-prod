@@ -75,8 +75,8 @@ void sim_mob::WorkGroup::WaitAllGroups()
 	//Call each function in turn.
 	WaitAllGroups_FrameTick();
 	WaitAllGroups_FlipBuffers();
-	WaitAllGroups_MacroTimeTick();
 	WaitAllGroups_AuraManager();
+	WaitAllGroups_MacroTimeTick();
 }
 
 void sim_mob::WorkGroup::WaitAllGroups_FrameTick()
@@ -197,8 +197,12 @@ void sim_mob::WorkGroup::initWorkers(EntityLoadParams* loader)
 
 void sim_mob::WorkGroup::startAll()
 {
+	//Sanity check
+	if (!frame_tick_barr) { throw std::runtime_error("Can't startAll() on a WorkGroup with no barriers."); }
+
 	//Stage any Agents that will become active within the first time tick (in time for the next tick)
-	nextTimeTickToStage = 0;
+	nextTimeTick = 0;
+	currTimeTick = 0; //Will be reset later anyway.
 
 	//Start all workers
 	tickOffset = 0; //Always start with an update.
@@ -226,14 +230,14 @@ void sim_mob::WorkGroup::stageEntities()
 	}
 
 	//Keep assigning the next entity until none are left.
-	unsigned int nextTickMS = nextTimeTickToStage*ConfigParams::GetInstance().baseGranMS;
+	unsigned int nextTickMS = nextTimeTick*ConfigParams::GetInstance().baseGranMS;
 	while (!loader->pending_source.empty() && loader->pending_source.top()->getStartTime() <= nextTickMS) {
 		//Remove it.
 		Person* ag = loader->pending_source.top();
 		loader->pending_source.pop();
 
 		if (sim_mob::Debug::WorkGroupSemantics) {
-			std::cout <<"Staging agent ID: " <<ag->getId() <<" in time for tick: " <<nextTimeTickToStage <<"\n";
+			std::cout <<"Staging agent ID: " <<ag->getId() <<" in time for tick: " <<nextTimeTick <<"\n";
 		}
 
 		//Call its "load" function
@@ -351,61 +355,70 @@ sim_mob::Worker* sim_mob::WorkGroup::getWorker(int id)
 
 void sim_mob::WorkGroup::waitFrameTick()
 {
-	///////////////////////////////////////////////
-	// TODO: We need to contribute workers.size() if we're skipping this tick.
-	///////////////////////////////////////////////
-
 	if (tickOffset==0) {
-		//Stay in sync with the workers.
-		nextTimeTickToStage += tickStep;
+		//New time tick.
+		currTimeTick = nextTimeTick;
+		nextTimeTick += tickStep;
 		frame_tick_barr->contribute();
+	} else {
+		//Tick on behalf of all your workers
+		frame_tick_barr->contribute(workers.size());
 	}
 }
 
 void sim_mob::WorkGroup::waitFlipBuffers()
 {
-	///////////////////////////////////////////////
-	// TODO: We need to contribute workers.size() if we're skipping this tick.
-	///////////////////////////////////////////////
-
 	if (tickOffset==0) {
 		//Stage Agent updates based on nextTimeTickToStage
 		stageEntities();
 		//Remove any Agents staged for removal.
 		collectRemovedEntities();
 		buff_flip_barr->contribute();
+	} else {
+		//Tick on behalf of all your workers.
+		buff_flip_barr->contribute(workers.size());
 	}
 }
 
 void sim_mob::WorkGroup::waitAuraManager()
 {
-	///////////////////////////////////////////////
-	// TODO: We need to contribute workers.size() if we're skipping this tick.
-	///////////////////////////////////////////////
+	//This barrier is optional.
+	if (!aura_mgr_barr) {
+		return;
+	}
 
-	if (aura_mgr_barr && tickOffset==0) {
+	if (tickOffset==0) {
+		//Update the partition manager, if we have one.
 		if (partitionMgr) {
 			partitionMgr->crossPCBarrier();
-			partitionMgr->crossPCboundaryProcess(currTick);
+			partitionMgr->crossPCboundaryProcess(currTimeTick);
 			partitionMgr->crossPCBarrier();
-			partitionMgr->outputAllEntities(currTick);
+			partitionMgr->outputAllEntities(currTimeTick);
 		}
 
+		//Update the aura manager, if we have one.
 		if (auraMgr) {
 			auraMgr->update();
 		}
 
 		aura_mgr_barr->contribute();
+	} else {
+		//Tick on behalf of all your workers.
+		aura_mgr_barr->contribute(workers.size());
 	}
 }
 
 void sim_mob::WorkGroup::waitMacroTimeTick()
 {
+	//This countdown cycle is slightly different. Basically, we ONLY wait one time tick before the next update
+	// period. Otherwise, we continue counting down, resetting at zero.
 	if (tickOffset==1) {
 		//One additional wait forces a synchronization before the next major time step.
 		//This won't trigger when tickOffset is 1, since it will immediately decrement to 0.
 		//NOTE: Be aware that we want to "wait()", NOTE "contribute()" here. (Maybe use a boost::barrier then?) ~Seth
-		macro_tick_barr->wait();
+		if (macro_tick_barr) {
+			macro_tick_barr->wait();
+		}
 	} else if (tickOffset==0) {
 		//Reset the countdown loop.
 		tickOffset = tickStep;

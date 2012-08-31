@@ -65,11 +65,10 @@ public:  //Static methods
 	static void WaitAllGroups();
 
 	//Call the various wait* functions individually.
-	//TODO: Shouldn't macro be third? Check with WorkGroup/Worker
 	static void WaitAllGroups_FrameTick();     ///< Wait on barriers: 1. You should use WaitAllGroups unless you really need fine-grained control.
 	static void WaitAllGroups_FlipBuffers();   ///< Wait on barriers: 2. You should use WaitAllGroups unless you really need fine-grained control.
-	static void WaitAllGroups_MacroTimeTick(); ///< Wait on barriers: 3. You should use WaitAllGroups unless you really need fine-grained control.
-	static void WaitAllGroups_AuraManager();   ///< Wait on barriers: 4. You should use WaitAllGroups unless you really need fine-grained control.
+	static void WaitAllGroups_AuraManager();   ///< Wait on barriers: 3. You should use WaitAllGroups unless you really need fine-grained control.
+	static void WaitAllGroups_MacroTimeTick(); ///< Wait on barriers: 4. You should use WaitAllGroups unless you really need fine-grained control.
 
 
 private: //Static fields
@@ -140,7 +139,7 @@ public:
 #endif
 
 
-protected:
+private:
 	//Various stages of "wait"-ing
 	//These functions are designed so that you can simply call them one after the other. However,
 	// make sure that you call all wait* functions for a given category before moving on.
@@ -171,7 +170,8 @@ private:
 	unsigned int tickOffset;
 
 	//Stays in sync with the Workers' time ticks; tells us which Workers to stage next.
-	frame_t nextTimeTickToStage;
+	frame_t currTimeTick;
+	frame_t nextTimeTick;  //All entities are staged based on this.
 
 	//Contains information needed to migrate Entities
 	EntityLoadParams* loader;

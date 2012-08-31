@@ -890,7 +890,6 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		//Agent-based cycle, steps 1,2,3 of 4
 		WorkGroup::WaitAllGroups_FrameTick();
 		WorkGroup::WaitAllGroups_FlipBuffers();
-		WorkGroup::WaitAllGroups_MacroTimeTick();
 
 		if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
 			PartitionManager& partitionImpl = PartitionManager::instance();
@@ -905,6 +904,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 		//Agent-based cycle: step 4 of 4
 		WorkGroup::WaitAllGroups_AuraManager();
+		WorkGroup::WaitAllGroups_MacroTimeTick();
 
 		//Check if the warmup period has ended.
 		if (warmupDone) {

@@ -70,6 +70,17 @@ void sim_mob::WorkGroup::InitAllGroups()
 }
 
 
+void sim_mob::WorkGroup::StartAllWorkGroups()
+{
+	//Sanity check
+	if (!WorkGroup::FrameTickBarr) { throw std::runtime_error("Can't start all WorkGroups; no barrier."); }
+
+	for (vector<WorkGroup*>::iterator it=RegisteredWorkGroups.begin(); it!=RegisteredWorkGroups.end(); it++) {
+		(*it)->startAll();
+	}
+}
+
+
 void sim_mob::WorkGroup::WaitAllGroups()
 {
 	//Call each function in turn.
@@ -170,7 +181,7 @@ void sim_mob::WorkGroup::initializeBarriers(FlexiBarrier* frame_tick, FlexiBarri
 
 	//Now's a good time to create our macro barrier too.
 	if (tickStep>1) {
-		this->macro_tick_barr = new FlexiBarrier(numWorkers+1);
+		this->macro_tick_barr = new boost::barrier(numWorkers+1);
 	}
 }
 

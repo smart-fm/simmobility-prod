@@ -61,6 +61,9 @@ public:  //Static methods
 	///  called, no new WorkGroups may be added.
 	static void InitAllGroups();
 
+	///Helper: Calls "startAll()" on all registered WorkGroups;
+	static void StartAllWorkGroups();
+
 	///Call the various wait* functions for all WorkGroups in the correct order.
 	static void WaitAllGroups();
 
@@ -188,8 +191,8 @@ private:
 
 	//An optional barrier phase unique to each WorkGroup. If the timeStep is >1, then
 	// one additional locking barrier is required to prevent Workers from rushing ahead
-	// into the next time tick.
-	sim_mob::FlexiBarrier* macro_tick_barr;
+	// into the next time tick. Using a restricted boost::barrier helps to reinforce this.
+	boost::barrier* macro_tick_barr;
 
 };
 

@@ -53,7 +53,7 @@ public:
 	 *        the way we synchronize data).
 	 *
 	 */
-	Worker(WorkGroup* parent, sim_mob::FlexiBarrier* frame_tick, sim_mob::FlexiBarrier* buff_flip, sim_mob::FlexiBarrier* aura_mgr, sim_mob::FlexiBarrier* macro_tick, std::vector<Entity*>* entityRemovalList, frame_t endTick, frame_t tickStep);
+	Worker(WorkGroup* parent, sim_mob::FlexiBarrier* frame_tick, sim_mob::FlexiBarrier* buff_flip, sim_mob::FlexiBarrier* aura_mgr, boost::barrier* macro_tick, std::vector<Entity*>* entityRemovalList, frame_t endTick, frame_t tickStep);
 
 	virtual ~Worker();
 
@@ -105,7 +105,7 @@ protected:
 	sim_mob::FlexiBarrier* frame_tick_barr;
 	sim_mob::FlexiBarrier* buff_flip_barr;
 	sim_mob::FlexiBarrier* aura_mgr_barr;
-	sim_mob::FlexiBarrier* macro_tick_barr;
+	boost::barrier* macro_tick_barr;
 
 	//Time management
 	//frame_t currTick;

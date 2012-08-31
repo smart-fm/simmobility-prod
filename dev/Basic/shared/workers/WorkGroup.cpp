@@ -41,7 +41,7 @@ WorkGroup* sim_mob::WorkGroup::NewWorkGroup(unsigned int numWorkers, unsigned in
 
 	//Most of this involves passing paramters on to the WorkGroup itself, and then bookkeeping via static data.
 	WorkGroup* res = new WorkGroup(numWorkers, numSimTicks, tickStep, auraMgr, partitionMgr);
-	WorkGroup::CurrBarrierCount += numWorkers;
+	WorkGroup::CurrBarrierCount += numWorkers + 1;  //Note: The WorkGroup itself CONTRIBUTES, but does not WAIT.
 	if (auraMgr || partitionMgr) {
 		WorkGroup::AuraBarrierNeeded = true;
 	}

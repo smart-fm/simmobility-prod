@@ -899,7 +899,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		///
 //		trafficWatch.update(currTick);
 
-		//Agent-based cycle, steps 1,2,3 of 4
+		//Agent-based cycle, steps 1,2,3,4 of 4
 		WorkGroup::WaitAllGroups();
 
 		//Check if the warmup period has ended.

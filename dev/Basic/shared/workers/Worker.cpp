@@ -20,15 +20,19 @@ using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
 
 
-sim_mob::Worker::Worker(WorkGroup* parent, boost::barrier& internal_barr, boost::barrier& external_barr, std::vector<Entity*>* entityRemovalList, frame_t endTick, frame_t tickStep, bool auraManagerActive)
+sim_mob::Worker::Worker(WorkGroup* parent, FlexiBarrier* frame_tick, FlexiBarrier* buff_flip, FlexiBarrier* aura_mgr, FlexiBarrier* macro_tick, std::vector<Entity*>* entityRemovalList, frame_t endTick, frame_t tickStep)
     : BufferedDataManager(),
-      internal_barr(internal_barr), external_barr(external_barr),
+      frame_tick_barr(frame_tick), buff_flip_barr(buff_flip), aura_mgr_barr(aura_mgr), macro_tick_barr(macro_tick),
       endTick(endTick),
       tickStep(tickStep),
-      auraManagerActive(auraManagerActive),
       parent(parent),
       entityRemovalList(entityRemovalList)
 {
+	//Currently, we need at least these two barriers or we will get synchronization problems.
+	// (Internally, though, we don't technically need them.)
+	if (!frame_tick || !buff_flip) {
+		throw std::runtime_error("Can't create a Worker with a null frame_tick or buff_flip barrier.");
+	}
 }
 
 
@@ -165,26 +169,30 @@ void sim_mob::Worker::barrier_mgmt()
 		active = (endTick==0 || currTick<endTick);
 
 		//First barrier
-		internal_barr.wait();
+		if (frame_tick_barr) {
+			frame_tick_barr->wait();
+		}
 
 		//Now flip all remaining data.
 		perform_flip();
 
 		//Second barrier
-		external_barr.wait();
-
-        // Wait for the AuraManager
-		if (auraManagerActive) {
-			external_barr.wait();
+		if (buff_flip_barr) {
+			buff_flip_barr->wait();
 		}
 
-		//If we are operating at a greater resolution than the highest granularity, we must wait
-		//  once more. E.g., for an Agent with a tickStep of 10, we wait once at the end of tick0, and
+        // Wait for the AuraManager
+		if (aura_mgr_barr) {
+			aura_mgr_barr->wait();
+		}
+
+		//If we have a macro barrier, we must wait exactly once more.
+		//  E.g., for an Agent with a tickStep of 10, we wait once at the end of tick0, and
 		//  once more at the end of tick 9.
 		//NOTE: We can't wait (or we'll lock up) if the "extra" tick will never be triggered.
 		bool extraActive = (endTick==0 || (currTick-1)<endTick);
-		if (tickStep>1 && extraActive) {
-			external_barr.wait();
+		if (macro_tick_barr && extraActive) {
+			macro_tick_barr->wait();
 		}
 	}
 }

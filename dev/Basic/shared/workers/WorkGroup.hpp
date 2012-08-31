@@ -73,6 +73,10 @@ public:  //Static methods
 	static void WaitAllGroups_AuraManager();   ///< Wait on barriers: 3. You should use WaitAllGroups unless you really need fine-grained control.
 	static void WaitAllGroups_MacroTimeTick(); ///< Wait on barriers: 4. You should use WaitAllGroups unless you really need fine-grained control.
 
+	///Call when the simulation is done. This deletes all WorkGroups (after joining them) and resets
+	///  for the next simulation.
+	static void FinalizeAllWorkGroups();
+
 
 private: //Static fields
 

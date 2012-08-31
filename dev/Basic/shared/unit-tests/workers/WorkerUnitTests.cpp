@@ -141,6 +141,9 @@ void unit_tests::WorkerUnitTests::test_SimpleWorkers()
 			CPPUNIT_FAIL(msg.str().c_str());
 		}
 	}
+
+	//Finally, clean up all the Work Groups and reset (for the next test)
+	WorkGroup::FinalizeAllWorkGroups();
 }
 
 
@@ -224,6 +227,9 @@ void unit_tests::WorkerUnitTests::test_MultipleGranularities()
 	CPPUNIT_ASSERT_MESSAGE("Agent count failed", sumAg2->getCount()==2);
 	CPPUNIT_ASSERT_MESSAGE("Agent count failed", sumAg3->getCount()==2);
 	CPPUNIT_ASSERT_MESSAGE("Agent count failed", sumAg4->getCount()==2);
+
+	//Finally, clean up all the Work Groups and reset (for the next test)
+	WorkGroup::FinalizeAllWorkGroups();
 }
 
 

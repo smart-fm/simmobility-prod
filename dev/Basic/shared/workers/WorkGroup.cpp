@@ -144,6 +144,23 @@ void sim_mob::WorkGroup::WaitAllGroups_AuraManager()
 }
 
 
+void sim_mob::WorkGroup::FinalizeAllWorkGroups()
+{
+	//First, join and delete all WorkGroups
+	for (vector<WorkGroup*>::iterator it=RegisteredWorkGroups.begin(); it!=RegisteredWorkGroups.end(); it++) {
+		delete *it;
+	}
+
+	//Finally, reset all properties.
+	WorkGroup::RegisteredWorkGroups.clear();
+	WorkGroup::CurrBarrierCount = 1;
+	WorkGroup::AuraBarrierNeeded = false;
+	safe_delete_item(WorkGroup::FrameTickBarr);
+	safe_delete_item(WorkGroup::BuffFlipBarr);
+	safe_delete_item(WorkGroup::AuraMgrBarr);
+}
+
+
 ////////////////////////////////////////////////////////////////////
 // Normal methods (non-static)
 ////////////////////////////////////////////////////////////////////

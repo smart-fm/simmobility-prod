@@ -48,7 +48,7 @@ public:
      * This method should be called after all the agents have calculated their new positions
      * and (if double-buffering data types are used) after the new positions are published.
      */
-    void update(frame_t /* frameNumber */);
+    void update();
 
     /**
      * Return a collection of agents that are located in the axially-aligned rectangle.

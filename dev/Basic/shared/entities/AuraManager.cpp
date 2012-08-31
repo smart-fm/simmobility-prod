@@ -365,7 +365,7 @@ AuraManager::init(bool keepStats /* = false */)
 }
 
 /* virtual */ void
-AuraManager::update(frame_t /* frameNumber */)
+AuraManager::update()
 {
     if (pimpl_)
         pimpl_->update();

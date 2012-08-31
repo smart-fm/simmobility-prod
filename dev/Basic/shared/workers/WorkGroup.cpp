@@ -384,6 +384,17 @@ void sim_mob::WorkGroup::waitAuraManager()
 	///////////////////////////////////////////////
 
 	if (aura_mgr_barr && tickOffset==0) {
+		if (partitionMgr) {
+			partitionMgr->crossPCBarrier();
+			partitionMgr->crossPCboundaryProcess(currTick);
+			partitionMgr->crossPCBarrier();
+			partitionMgr->outputAllEntities(currTick);
+		}
+
+		if (auraMgr) {
+			auraMgr->update();
+		}
+
 		aura_mgr_barr->contribute();
 	}
 }

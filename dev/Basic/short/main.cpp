@@ -894,13 +894,8 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 		if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
 			PartitionManager& partitionImpl = PartitionManager::instance();
-			partitionImpl.crossPCBarrier();
-			partitionImpl.crossPCboundaryProcess(currTick);
-			partitionImpl.crossPCBarrier();
-			partitionImpl.outputAllEntities(currTick);
+			//TODO: Pass this to the WorkGroup in init!
 		}
-
-		auraMgr.update(currTick);
 
 		///
 		///  TODO: Do not delete this next line. Please read the comment in TrafficWatch.hpp

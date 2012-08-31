@@ -41,7 +41,7 @@ WorkGroup* sim_mob::WorkGroup::NewWorkGroup(unsigned int numWorkers, unsigned in
 
 	//Most of this involves passing paramters on to the WorkGroup itself, and then bookkeeping via static data.
 	WorkGroup* res = new WorkGroup(numWorkers, numSimTicks, tickStep, auraMgr, partitionMgr);
-	WorkGroup::CurrBarrierCount += numWorkers + 1;  //Note: The WorkGroup itself CONTRIBUTES, but does not WAIT.
+	WorkGroup::CurrBarrierCount += numWorkers;
 	if (auraMgr || partitionMgr) {
 		WorkGroup::AuraBarrierNeeded = true;
 	}
@@ -387,7 +387,7 @@ void sim_mob::WorkGroup::waitFrameTick()
 		//New time tick.
 		currTimeTick = nextTimeTick;
 		nextTimeTick += tickStep;
-		frame_tick_barr->contribute();
+		//frame_tick_barr->contribute();  //No.
 	} else {
 		//Tick on behalf of all your workers
 		frame_tick_barr->contribute(workers.size());
@@ -401,7 +401,7 @@ void sim_mob::WorkGroup::waitFlipBuffers()
 		stageEntities();
 		//Remove any Agents staged for removal.
 		collectRemovedEntities();
-		buff_flip_barr->contribute();
+		//buff_flip_barr->contribute(); //No.
 	} else {
 		//Tick on behalf of all your workers.
 		buff_flip_barr->contribute(workers.size());
@@ -429,7 +429,7 @@ void sim_mob::WorkGroup::waitAuraManager()
 			auraMgr->update();
 		}
 
-		aura_mgr_barr->contribute();
+		//aura_mgr_barr->contribute();  //No.
 	} else {
 		//Tick on behalf of all your workers.
 		aura_mgr_barr->contribute(workers.size());
@@ -445,7 +445,7 @@ void sim_mob::WorkGroup::waitMacroTimeTick()
 		//This won't trigger when tickOffset is 1, since it will immediately decrement to 0.
 		//NOTE: Be aware that we want to "wait()", NOTE "contribute()" here. (Maybe use a boost::barrier then?) ~Seth
 		if (macro_tick_barr) {
-			macro_tick_barr->wait();
+			macro_tick_barr->wait();  //Yes
 		}
 	} else if (tickOffset==0) {
 		//Reset the countdown loop.

@@ -21,6 +21,12 @@ public:
 	///Test what happens when workers have different, interacting granularities.
 	void test_MultipleGranularities();
 
+	//TODO: Test agents with different start times.
+
+	//TODO: Test each agent's update after each time tick.
+
+	//TODO: Test deleting workers/work groups
+
 
 private:
     CPPUNIT_TEST_SUITE(WorkerUnitTests);

@@ -104,19 +104,19 @@ void unit_tests::WorkerUnitTests::test_SimpleWorkers()
 	}
 
 	//Now create 10 workers which will run for 5 time ticks, doubling the src value each time.
-	WorkGroup mainWG(srcInts.size(), 5);
-	WorkGroup::RegisterWorkGroup(&mainWG);
-	mainWG.initWorkers(nullptr);
+	WorkGroup* mainWG = WorkGroup::NewWorkGroup(srcInts.size(), 5);
+	WorkGroup::InitAllGroups();
+	mainWG->initWorkers(nullptr);
 
 	//Make an IncrAgent for each item in the source vector.
 	for (vector<int>::iterator it=srcInts.begin(); it!=srcInts.end(); it++) {
 		Agent* newAg = new IncrAgent(*it);
 		newAg->setStartTime(0);
-		mainWG.assignAWorker(newAg);
+		mainWG->assignAWorker(newAg);
 	}
 
 	//Start work groups and all threads.
-	mainWG.startAll();
+	mainWG->startAll();  //Note: Another option is to use "start all"
 
 	//Agent update cycle
 	for (int i=0; i<5; i++) {
@@ -146,38 +146,40 @@ void unit_tests::WorkerUnitTests::test_SimpleWorkers()
 
 void unit_tests::WorkerUnitTests::test_MultipleGranularities()
 {
-	//Our first Work Group contains a single worker operating at a frequency of 3ms.
-	//  It switches its flag to "On" at time tick 0.
-	WorkGroup flagWG(1, 3, 3);
-	flagWG.initWorkers(nullptr);
-
-	//Our second WorkGroup contains 2 workers, each with 2 agents, which add 1
+	//Our count WorkGroup contains 2 workers, each with 2 agents, which add 1
 	//  each 1ms if the Flag agent's flag is set to 1.
-	WorkGroup countWG(2, 3);
-	countWG.initWorkers(nullptr);
+	WorkGroup* countWG = WorkGroup::NewWorkGroup(2, 3);
 
-	//Register them out-of-order, just to be sure.
-	WorkGroup::RegisterWorkGroup(&countWG);
-	WorkGroup::RegisterWorkGroup(&flagWG);
+	//Our flag Work Group contains a single worker operating at a frequency of 3ms.
+	//  It switches its flag to "On" at time tick 0.
+	WorkGroup* flagWG = WorkGroup::NewWorkGroup(1, 3, 3);
+
+	//Init all
+	WorkGroup::InitAllGroups();
+	countWG->initWorkers(nullptr);
+	flagWG->initWorkers(nullptr);
 
 	//Add the Flag agent
 	FlagAgent* flagAg = new FlagAgent();
 	flagAg->setStartTime(0);
-	flagWG.assignAWorker(flagAg);
+	flagWG->assignAWorker(flagAg);
 
 	//Add the counter agents.
 	CondSumAgent* sumAg1 = new CondSumAgent(*flagAg);
 	CondSumAgent* sumAg2 = new CondSumAgent(*flagAg);
 	CondSumAgent* sumAg3 = new CondSumAgent(*flagAg);
 	CondSumAgent* sumAg4 = new CondSumAgent(*flagAg);
-	countWG.assignAWorker(sumAg1);
-	countWG.assignAWorker(sumAg2);
-	countWG.assignAWorker(sumAg3);
-	countWG.assignAWorker(sumAg4);
+	sumAg1->setStartTime(0);
+	sumAg2->setStartTime(0);
+	sumAg3->setStartTime(0);
+	sumAg4->setStartTime(0);
+	countWG->assignAWorker(sumAg1);
+	countWG->assignAWorker(sumAg2);
+	countWG->assignAWorker(sumAg3);
+	countWG->assignAWorker(sumAg4);
 
 	//Start work groups and all threads.
-	countWG.startAll();
-	flagWG.startAll();
+	WorkGroup::StartAllWorkGroups();
 
 	//Agent update cycle
 	for (int i=0; i<3; i++) {

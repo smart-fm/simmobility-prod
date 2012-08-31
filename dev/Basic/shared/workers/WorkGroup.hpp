@@ -24,6 +24,8 @@ namespace sim_mob
 class StartTimePriorityQueue;
 class EventTimePriorityQueue;
 class Person;
+class PartitionManager;
+class AuraManager;
 
 
 /*
@@ -38,6 +40,57 @@ class Person;
  * \author Xu Yan
  */
 class WorkGroup {
+public:  //Static methods
+
+	/**
+	 * Create a new WorkGroup and start tracking it. All WorkGroups must be created using this method so that their
+	 *   various synchronization barriers operate globally. Note that if both auraMgr and partitionMgr are null,
+	 *   this WorkGroup will *still* have an AuraManager barrier phase, *unless* all other WorkGroups are also missing these
+	 *   parameters. This requirement may be dropped later (if it can be shown that the AuraMaanger never accesses variables
+	 *   that might conflict with the frame phase of another WorkGroup.)
+	 *
+	 * \param numWorkers The number of workers in this WorkGroup. Each Worker will reserve a single wait() on the barrier.
+	 * \param numSimTicks The number of ticks in this simulation. The last tick which fires is numSimTicks-1
+	 * \param tickStep The granularity of this WorkGroup. If the tickStep is 5, this WorkGroup only advances once every 5 base ticks.
+	 * \param auraMgr The aura manager. Will be updated during the AuraManager barrier wait if it exists.
+	 * \param partitionMgr The partition manager. Will be updated during the AuraManager barrier wait (but *before*) the AuraMaanger if it exists.
+	 */
+	static sim_mob::WorkGroup* NewWorkGroup(unsigned int numWorkers, unsigned int numSimTicks=0, unsigned int tickStep=1, sim_mob::AuraManager* auraMgr=nullptr, sim_mob::PartitionManager* partitionMgr=nullptr);
+
+	///Initialize all WorkGroups. Before this function is called, WorkGroups cannot have Workers added to them. After this function is
+	///  called, no new WorkGroups may be added.
+	static void InitAllGroups();
+
+	///Call the various wait* functions for all WorkGroups in the correct order.
+	static void WaitAllGroups();
+
+	//Call the various wait* functions individually.
+	//TODO: Shouldn't macro be third? Check with WorkGroup/Worker
+	static void WaitAllGroups_FrameTick();     ///< Wait on barriers: 1. You should use WaitAllGroups unless you really need fine-grained control.
+	static void WaitAllGroups_FlipBuffers();   ///< Wait on barriers: 2. You should use WaitAllGroups unless you really need fine-grained control.
+	static void WaitAllGroups_MacroTimeTick(); ///< Wait on barriers: 3. You should use WaitAllGroups unless you really need fine-grained control.
+	static void WaitAllGroups_AuraManager();   ///< Wait on barriers: 4. You should use WaitAllGroups unless you really need fine-grained control.
+
+
+private: //Static fields
+
+	//For holding the set of known WorkGroups
+	static std::vector<sim_mob::WorkGroup*> RegisteredWorkGroups;
+
+	//The current barrier count for the main three barriers (frame, flip, aura), +1 for the static WorkGroup itself.
+	//  Note: Compared to previous implementations, each WorkGroup does NOT add 1 to the barrier count.
+	static unsigned int CurrBarrierCount;
+
+	//True if we need an AuraManager barrier at all.
+	static bool AuraBarrierNeeded;
+
+	//Our shared barriers for the main three barriers (macro barriers are handled internal to each WorkGroup).
+	//Only the aura manager barrier may be null. If any other barrier is null, it means we haven't called Init() yet.
+	static sim_mob::FlexiBarrier* FrameTickBarr;
+	static sim_mob::FlexiBarrier* BuffFlipBarr;
+	static sim_mob::FlexiBarrier* AuraMgrBarr;
+
+
 public:
 	//Migration parameters
 	struct EntityLoadParams {
@@ -48,32 +101,18 @@ public:
 	};
 
 
-	//These are passed along to the Workers:
-	//  endTick=0 means run forever.
-	//  tickStep is used to allow Workers to skip ticks; no barriers are locked.
-	explicit WorkGroup(size_t size, unsigned int endTick=0, unsigned int tickStep=1, bool auraManagerActive=false);
+private:
+	//Private constructor: Use the static NewWorkGroup function instead.
+	WorkGroup(unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, sim_mob::AuraManager* auraMgr, sim_mob::PartitionManager* partitionMgr);
 
+public:
 	virtual ~WorkGroup();
 
-	//template <typename WorkType>  //For now, just assume Workers
-	void initWorkers(/*Worker::ActionFunction* action,*/ EntityLoadParams* loader);
+	void initWorkers(EntityLoadParams* loader);
 
-	//Worker<EntityType>* const getWorker(size_t id);
 	void startAll();
 	void interrupt();
 	size_t size();
-
-	///Register a WorkGroup so that it is known globally. This is required for WaitAllGroups().
-	static void RegisterWorkGroup(sim_mob::WorkGroup* wg);
-
-	///Call the various wait* functions for all WorkGroups in the correct order.
-	static void WaitAllGroups();
-
-	//Call the various wait* functions individually.
-	static void WaitAllGroups_FrameTick();
-	static void WaitAllGroups_FlipBuffers();
-	static void WaitAllGroups_MacroTimeTick();
-	static void WaitAllGroups_AuraManager();
 
 	Worker* getWorker(int id);
 
@@ -91,8 +130,6 @@ public:
 	void assignAWorkerConstraint(Entity* ag);
 
 	Worker* locateWorker(std::string linkID);
-
-	//void scheduleEntForRemoval(Entity* ag);
 
 //add by xuyan
 #ifndef SIMMOB_DISABLE_MPI
@@ -114,41 +151,45 @@ protected:
 	void waitMacroTimeTick();
 	void waitAuraManager();
 
-	//For holding the set of known WorkGroups
-	static std::vector<sim_mob::WorkGroup*> RegisteredWorkGroups;
+	//Initialize our shared (static) barriers. These barriers don't technically need to be copied
+	//  locally, but we'd rather avoid relying on static variables in case we ever make a WorkGroupGroup (or whatever) class.
+	void initializeBarriers(sim_mob::FlexiBarrier* frame_tick, sim_mob::FlexiBarrier* buff_flip, sim_mob::FlexiBarrier* aura_mgr);
 
-	//Shared barrier
-	boost::barrier shared_barr;
-	boost::barrier external_barr;
-
-	//Worker object management
-	std::vector<Worker*> workers;
-
-	//Used to coordinate which Worker gets the next Agent; currently round-robin.
-	size_t nextWorkerID;
+private:
+	//Number of workers we are handling. Should be equal to workers.size() once the workers vector has been initialized.
+	unsigned int numWorkers;
 
 	//Passed along to Workers
-	unsigned int endTick;
+	unsigned int numSimTicks;
 	unsigned int tickStep;
+
+	//Aura manager and partition manager to update, if any (either may be null).
+	sim_mob::AuraManager* auraMgr;
+	sim_mob::PartitionManager* partitionMgr;
 
 	//Maintain an offset. When it reaches zero, reset to tickStep and sync barriers
 	unsigned int tickOffset;
 
-	//Only used once
-	size_t total_size;
-
-	//Additional locking is required if the aura manager is active.
-	bool auraManagerActive;
-
-	//Needed to stay in sync with the workers
+	//Stays in sync with the Workers' time ticks; tells us which Workers to stage next.
 	frame_t nextTimeTickToStage;
 
 	//Contains information needed to migrate Entities
 	EntityLoadParams* loader;
 
+	//List of all known workers, along with the ID of the next Worker to receive an agent.
+	// Uses a round-robin approach to select the next Worker.
+	std::vector<Worker*> workers;
+	size_t nextWorkerID;
 
+	//Barriers for each locking stage
+	sim_mob::FlexiBarrier* frame_tick_barr;
+	sim_mob::FlexiBarrier* buff_flip_barr;
+	sim_mob::FlexiBarrier* aura_mgr_barr;
 
-
+	//An optional barrier phase unique to each WorkGroup. If the timeStep is >1, then
+	// one additional locking barrier is required to prevent Workers from rushing ahead
+	// into the next time tick.
+	sim_mob::FlexiBarrier* macro_tick_barr;
 
 };
 

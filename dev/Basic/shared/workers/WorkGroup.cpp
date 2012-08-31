@@ -12,6 +12,8 @@
 #include "entities/Agent.hpp"
 #include "entities/Person.hpp"
 #include "entities/LoopDetectorEntity.hpp"
+#include "entities/AuraManager.hpp"
+#include "partitions/PartitionManager.hpp"
 
 using std::map;
 using std::vector;
@@ -20,13 +22,53 @@ using boost::function;
 
 using namespace sim_mob;
 
-
+//Static initializations
 vector<WorkGroup*> sim_mob::WorkGroup::RegisteredWorkGroups;
+unsigned int sim_mob::WorkGroup::CurrBarrierCount = 1;
+bool sim_mob::WorkGroup::AuraBarrierNeeded = false;
+FlexiBarrier* sim_mob::WorkGroup::FrameTickBarr = nullptr;
+FlexiBarrier* sim_mob::WorkGroup::BuffFlipBarr = nullptr;
+FlexiBarrier* sim_mob::WorkGroup::AuraMgrBarr = nullptr;
 
-void sim_mob::WorkGroup::RegisterWorkGroup(sim_mob::WorkGroup* wg)
+////////////////////////////////////////////////////////////////////
+// Static methods
+////////////////////////////////////////////////////////////////////
+
+WorkGroup* sim_mob::WorkGroup::NewWorkGroup(unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, AuraManager* auraMgr, PartitionManager* partitionMgr)
 {
-	RegisteredWorkGroups.push_back(wg);
+	//Sanity check
+	if (WorkGroup::FrameTickBarr) { throw std::runtime_error("Can't add new work group; barriers have already been established."); }
+
+	//Most of this involves passing paramters on to the WorkGroup itself, and then bookkeeping via static data.
+	WorkGroup* res = new WorkGroup(numWorkers, numSimTicks, tickStep, auraMgr, partitionMgr);
+	WorkGroup::CurrBarrierCount += numWorkers;
+	if (auraMgr || partitionMgr) {
+		WorkGroup::AuraBarrierNeeded = true;
+	}
+
+	WorkGroup::RegisteredWorkGroups.push_back(res);
+	return res;
 }
+
+
+void sim_mob::WorkGroup::InitAllGroups()
+{
+	//Sanity check
+	if (WorkGroup::FrameTickBarr) { throw std::runtime_error("Can't init work groups; barriers have already been established."); }
+
+	//Create a barrier for each of the three shared phases (aura manager optional)
+	WorkGroup::FrameTickBarr = new FlexiBarrier(WorkGroup::CurrBarrierCount);
+	WorkGroup::BuffFlipBarr = new FlexiBarrier(WorkGroup::CurrBarrierCount);
+	if (WorkGroup::AuraBarrierNeeded) {
+		WorkGroup::AuraMgrBarr = new FlexiBarrier(WorkGroup::CurrBarrierCount);
+	}
+
+	//Initialize each WorkGroup with these new barriers.
+	for (vector<WorkGroup*>::iterator it=RegisteredWorkGroups.begin(); it!=RegisteredWorkGroups.end(); it++) {
+		(*it)->initializeBarriers(FrameTickBarr, BuffFlipBarr, AuraMgrBarr);
+	}
+}
+
 
 void sim_mob::WorkGroup::WaitAllGroups()
 {
@@ -39,70 +81,71 @@ void sim_mob::WorkGroup::WaitAllGroups()
 
 void sim_mob::WorkGroup::WaitAllGroups_FrameTick()
 {
+	//Sanity check
+	if (!WorkGroup::FrameTickBarr) { throw std::runtime_error("Can't tick WorkGroups; no barrier."); }
+
 	for (vector<WorkGroup*>::iterator it=RegisteredWorkGroups.begin(); it!=RegisteredWorkGroups.end(); it++) {
 		(*it)->waitFrameTick();
 	}
+
+	//Here is where we actually block, ensuring a tick-wide synchronization.
+	FrameTickBarr->wait();
 }
 
 void sim_mob::WorkGroup::WaitAllGroups_FlipBuffers()
 {
+	//Sanity check
+	if (!WorkGroup::FrameTickBarr) { throw std::runtime_error("Can't tick WorkGroups; no barrier."); }
+
 	for (vector<WorkGroup*>::iterator it=RegisteredWorkGroups.begin(); it!=RegisteredWorkGroups.end(); it++) {
 		(*it)->waitFlipBuffers();
 	}
+
+	//Here is where we actually block, ensuring a tick-wide synchronization.
+	BuffFlipBarr->wait();
 }
 
 void sim_mob::WorkGroup::WaitAllGroups_MacroTimeTick()
 {
+	//Sanity check
+	if (!WorkGroup::FrameTickBarr) { throw std::runtime_error("Can't tick WorkGroups; no barrier."); }
+
 	for (vector<WorkGroup*>::iterator it=RegisteredWorkGroups.begin(); it!=RegisteredWorkGroups.end(); it++) {
 		(*it)->waitMacroTimeTick();
 	}
+
+	//NOTE: There is no need for a "wait()" here, since macro barriers are used internally.
 }
 
 void sim_mob::WorkGroup::WaitAllGroups_AuraManager()
 {
+	//We don't need this if there's no Aura Manager.
+	if (!WorkGroup::AuraMgrBarr) {
+		return;
+	}
+
 	for (vector<WorkGroup*>::iterator it=RegisteredWorkGroups.begin(); it!=RegisteredWorkGroups.end(); it++) {
-		if ((*it)->auraManagerActive) {
-			(*it)->waitAuraManager();
-		}
+		(*it)->waitAuraManager();
 	}
+
+	//Here is where we actually block, ensuring a tick-wide synchronization.
+	AuraMgrBarr->wait();
 }
 
 
-void sim_mob::WorkGroup::initWorkers(/*Worker::ActionFunction* action, */EntityLoadParams* loader)
-{
-	this->loader = loader;
-
-	//Init our worker list-backs
-	const bool UseDynamicDispatch = !ConfigParams::GetInstance().DynamicDispatchDisabled();
-	if (UseDynamicDispatch) {
-		entToBeRemovedPerWorker.resize(total_size, vector<Entity*>());
-	}
-
-	//Init the workers themselves.
-	for (size_t i=0; i<total_size; i++) {
-		std::vector<Entity*>* entWorker = UseDynamicDispatch ? &entToBeRemovedPerWorker.at(i) : nullptr;
-		workers.push_back(new Worker(this, shared_barr, external_barr, entWorker, endTick, tickStep, auraManagerActive));
-	}
-}
+////////////////////////////////////////////////////////////////////
+// Normal methods (non-static)
+////////////////////////////////////////////////////////////////////
 
 
-
-//////////////////////////////////////////////
-// These also need the temoplate parameter,
-// but don't actually do anything with it.
-//////////////////////////////////////////////
-
-
-
-sim_mob::WorkGroup::WorkGroup(size_t size, unsigned int endTick, unsigned int tickStep, bool auraManagerActive) :
-		shared_barr(size+1), external_barr(size+1), nextWorkerID(0), endTick(endTick), tickStep(tickStep), total_size(size), auraManagerActive(auraManagerActive),
-		nextTimeTickToStage(0), loader(nullptr)
+sim_mob::WorkGroup::WorkGroup(unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, AuraManager* auraMgr, PartitionManager* partitionMgr)
+	: numWorkers(numWorkers), numSimTicks(numSimTicks), tickStep(tickStep), auraMgr(auraMgr), partitionMgr(partitionMgr), loader(nullptr),
+	  frame_tick_barr(nullptr), buff_flip_barr(nullptr), aura_mgr_barr(nullptr), macro_tick_barr(nullptr)
 {
 }
 
 
-
-sim_mob::WorkGroup::~WorkGroup()
+sim_mob::WorkGroup::~WorkGroup()  //Be aware that this will hang if Workers are wait()-ing. But it prevents undefined behavior in boost.
 {
 	for (vector<Worker*>::iterator it=workers.begin(); it!=workers.end(); it++) {
 		Worker* wk = *it;
@@ -111,6 +154,43 @@ sim_mob::WorkGroup::~WorkGroup()
 		delete wk;
 	}
 	workers.clear();
+
+	//The only barrier we can delete is the non-shared barrier.
+	//TODO: Find a way to statically delete the other barriers too (low priority; minor amount of memory leakage).
+	safe_delete_item(macro_tick_barr);
+}
+
+
+void sim_mob::WorkGroup::initializeBarriers(FlexiBarrier* frame_tick, FlexiBarrier* buff_flip, FlexiBarrier* aura_mgr)
+{
+	//Shared barriers
+	this->frame_tick_barr = frame_tick;
+	this->buff_flip_barr = buff_flip;
+	this->aura_mgr_barr = aura_mgr;
+
+	//Now's a good time to create our macro barrier too.
+	if (tickStep>1) {
+		this->macro_tick_barr = new FlexiBarrier(numWorkers+1);
+	}
+}
+
+
+
+void sim_mob::WorkGroup::initWorkers(EntityLoadParams* loader)
+{
+	this->loader = loader;
+
+	//Init our worker list-backs
+	const bool UseDynamicDispatch = !ConfigParams::GetInstance().DynamicDispatchDisabled();
+	if (UseDynamicDispatch) {
+		entToBeRemovedPerWorker.resize(numWorkers, vector<Entity*>());
+	}
+
+	//Init the workers themselves.
+	for (size_t i=0; i<numWorkers; i++) {
+		std::vector<Entity*>* entWorker = UseDynamicDispatch ? &entToBeRemovedPerWorker.at(i) : nullptr;
+		workers.push_back(new Worker(this, frame_tick_barr, buff_flip_barr, aura_mgr_barr, macro_tick_barr, entWorker, numSimTicks, tickStep));
+	}
 }
 
 
@@ -271,31 +351,40 @@ sim_mob::Worker* sim_mob::WorkGroup::getWorker(int id)
 
 void sim_mob::WorkGroup::waitFrameTick()
 {
+	///////////////////////////////////////////////
+	// TODO: We need to contribute workers.size() if we're skipping this tick.
+	///////////////////////////////////////////////
+
 	if (tickOffset==0) {
 		//Stay in sync with the workers.
 		nextTimeTickToStage += tickStep;
-		shared_barr.wait();
+		frame_tick_barr->contribute();
 	}
 }
 
 void sim_mob::WorkGroup::waitFlipBuffers()
 {
+	///////////////////////////////////////////////
+	// TODO: We need to contribute workers.size() if we're skipping this tick.
+	///////////////////////////////////////////////
+
 	if (tickOffset==0) {
 		//Stage Agent updates based on nextTimeTickToStage
 		stageEntities();
 		//Remove any Agents staged for removal.
 		collectRemovedEntities();
-		external_barr.wait();
+		buff_flip_barr->contribute();
 	}
 }
 
 void sim_mob::WorkGroup::waitAuraManager()
 {
-	if (!auraManagerActive) {
-		throw std::runtime_error("Aura manager must be active for waitExternAgain()");
-	}
-	if (tickOffset==0) {
-		external_barr.wait();
+	///////////////////////////////////////////////
+	// TODO: We need to contribute workers.size() if we're skipping this tick.
+	///////////////////////////////////////////////
+
+	if (aura_mgr_barr && tickOffset==0) {
+		aura_mgr_barr->contribute();
 	}
 }
 
@@ -304,7 +393,8 @@ void sim_mob::WorkGroup::waitMacroTimeTick()
 	if (tickOffset==1) {
 		//One additional wait forces a synchronization before the next major time step.
 		//This won't trigger when tickOffset is 1, since it will immediately decrement to 0.
-		external_barr.wait();
+		//NOTE: Be aware that we want to "wait()", NOTE "contribute()" here. (Maybe use a boost::barrier then?) ~Seth
+		macro_tick_barr->wait();
 	} else if (tickOffset==0) {
 		//Reset the countdown loop.
 		tickOffset = tickStep;

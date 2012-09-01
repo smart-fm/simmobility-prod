@@ -22,7 +22,7 @@ ENDIF (QXCPPUNIT_FOUND AND QT4_FOUND)
 
 
 #Include/Library definitions for the GUI
-IF (${SIMMOB_USE_TEST_GUI} MATCHES "ON")
+IF (SIMMOB_USE_TEST_GUI)
   #Include QxCppUnit
   include_directories(${QXCPPUNIT_INCLUDE_DIR})
   LIST(APPEND UnitTestLibs ${QXCPPUNIT_LIBRARIES})
@@ -31,7 +31,15 @@ IF (${SIMMOB_USE_TEST_GUI} MATCHES "ON")
   INCLUDE(${QT_USE_FILE})
   ADD_DEFINITIONS(${QT_DEFINITIONS})
   LIST(APPEND UnitTestLibs ${QT_LIBRARIES})
-ENDIF (${SIMMOB_USE_TEST_GUI} MATCHES "ON")
+ENDIF (SIMMOB_USE_TEST_GUI)
+
+
+#Re-generating this is necessary to get the latest define ("SIMMOB_USE_TEST_GUI").  
+#It appears to be harmless... perhaps there's a better way to do it?
+configure_file (
+  "${PROJECT_SOURCE_DIR}/shared/GenConfig.h.in"
+  "${PROJECT_SOURCE_DIR}/shared/GenConfig.h"
+)
 
 
 #Add all unit tests in addition to all source files.

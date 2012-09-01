@@ -26,10 +26,10 @@ public:
 	///Test agents scheduled for 3ms ticks where the simulation ends at 5ms (not 6)
 	void test_OddGranularities();
 
-	//TODO: Test agents with different start times.
+	///Test agents with different start times.
 	void test_AgentStartTimes();
 
-	//TODO: Test each agent's update after each time tick.
+	///Tests agent/buffered behavior at sub-micro-tick resolutions, and across multiple ticks.
 	void test_UpdatePhases();
 
 	//TODO: Test long-running, multiple-granularity work groups (add +timeTick each time, since

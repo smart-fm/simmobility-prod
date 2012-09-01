@@ -25,6 +25,14 @@ CPPUNIT_TEST_SUITE_REGISTRATION(unit_tests::WorkerUnitTests);
 
 
 namespace {
+
+//Helper: if not condition, add 1 to errorCount
+void CountAssert(unsigned int& errorCount, bool condition) {
+	if (!condition) {
+		errorCount++;
+	}
+}
+
 //An Agent which removes all the cruft from Agent
 class NullAgent : public Agent {
 public:
@@ -52,6 +60,30 @@ public:
 	int getValue() { return value; }
 private:
 	int value;
+};
+
+
+//An Agent which adds the current time tick to an accumulated value if that time tick is
+//  divisible by the number specified in the constructor. Uses buffered types, too.
+class AddTickDivisibleAgent : public NullAgent {
+public:
+	AddTickDivisibleAgent(int divisor) : value(0), divisor(divisor) {}
+
+	virtual Entity::UpdateStatus update(frame_t frameNumber) {
+		if (frameNumber%divisor == 0) {
+			value.set(value.get()+frameNumber);
+		}
+		return Entity::UpdateStatus::Continue;
+	}
+
+	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList) {
+		subsList.push_back(&value);
+	}
+
+	Buffered<int> value;
+
+private:
+	int divisor;
 };
 
 
@@ -359,11 +391,7 @@ void unit_tests::WorkerUnitTests::test_AgentStartTimes()
 	}
 
 	//Confirm each value
-	std::cout <<"Num sim ticks: " <<numSimTicks <<std::endl;
 	for (int id=0; id<agents.size(); id++) {
-		std::cout <<"Agent: " <<id <<"  value: " <<agents.at(id)->getValue() <<"  Expected: " <<resInts.at(id) <<std::endl;
-		std::cout <<"   start time: " <<agents.at(id)->getStartTime() <<std::endl;
-
 		if (agents.at(id)->getValue() != resInts.at(id)) {
 			std::stringstream msg;
 			msg <<"Staggered worker test [" <<id <<"] failed: " <<agents.at(id)->getValue() <<" != " <<resInts.at(id);
@@ -378,7 +406,107 @@ void unit_tests::WorkerUnitTests::test_AgentStartTimes()
 
 void unit_tests::WorkerUnitTests::test_UpdatePhases()
 {
-	//TODO
+	//Here we test the expected values of Agents across sub-time-tick granularities.
+	//To avoid potential deadlock, we accumulate all errors and post the total error
+	// count once all Workers have finished.
+	unsigned int errorCount = 0;
+
+	//Make a WorkGroup with 4 workers (1 per agent, +1 extra)
+	WorkGroup* agentWG = WorkGroup::NewWorkGroup(4, 5);
+
+	//Init all
+	WorkGroup::InitAllGroups();
+	agentWG->initWorkers(nullptr);
+
+	//Make 3 agents, which operate every 1,2,3 seconds. Assign them.
+	AddTickDivisibleAgent* ag1 = new AddTickDivisibleAgent(1);
+	AddTickDivisibleAgent* ag2 = new AddTickDivisibleAgent(2);
+	AddTickDivisibleAgent* ag3 = new AddTickDivisibleAgent(3);
+	ag1->setStartTime(0);
+	ag2->setStartTime(0);
+	ag3->setStartTime(0);
+	agentWG->assignAWorker(ag1);
+	agentWG->assignAWorker(ag2);
+	agentWG->assignAWorker(ag3);
+
+	//Start work groups and all threads.
+	WorkGroup::StartAllWorkGroups();
+
+	//////////////////////////////////////////
+	//FRAME TICK 0
+	//////////////////////////////////////////
+	CountAssert(errorCount, ag1->value.get()==0);
+	CountAssert(errorCount, ag2->value.get()==0);
+	CountAssert(errorCount, ag3->value.get()==0);
+	WorkGroup::WaitAllGroups_FrameTick(); //Workers are flipping; can't check.
+	WorkGroup::WaitAllGroups_FlipBuffers();
+	CountAssert(errorCount, ag1->value.get()==0); //0+0 == 0
+	CountAssert(errorCount, ag2->value.get()==0); //0+0 == 0
+	CountAssert(errorCount, ag3->value.get()==0); //0+0 == 0
+	WorkGroup::WaitAllGroups_AuraManager();
+	WorkGroup::WaitAllGroups_MacroTimeTick();
+
+	//////////////////////////////////////////
+	//FRAME TICK 1
+	//////////////////////////////////////////
+	CountAssert(errorCount, ag1->value.get()==0);
+	CountAssert(errorCount, ag2->value.get()==0);
+	CountAssert(errorCount, ag3->value.get()==0);
+	WorkGroup::WaitAllGroups_FrameTick(); //Workers are flipping; can't check.
+	WorkGroup::WaitAllGroups_FlipBuffers();
+	CountAssert(errorCount, ag1->value.get()==1); //0+1 == 1
+	CountAssert(errorCount, ag2->value.get()==0); //Doesn't tick
+	CountAssert(errorCount, ag3->value.get()==0); //Doesn't tick
+	WorkGroup::WaitAllGroups_AuraManager();
+	WorkGroup::WaitAllGroups_MacroTimeTick();
+
+	//////////////////////////////////////////
+	//FRAME TICK 2
+	//////////////////////////////////////////
+	CountAssert(errorCount, ag1->value.get()==1);
+	CountAssert(errorCount, ag2->value.get()==0);
+	CountAssert(errorCount, ag3->value.get()==0);
+	WorkGroup::WaitAllGroups_FrameTick(); //Workers are flipping; can't check.
+	WorkGroup::WaitAllGroups_FlipBuffers();
+	CountAssert(errorCount, ag1->value.get()==3); //1+2 == 3
+	CountAssert(errorCount, ag2->value.get()==2); //0+2 == 2
+	CountAssert(errorCount, ag3->value.get()==0); //Doesn't tick
+	WorkGroup::WaitAllGroups_AuraManager();
+	WorkGroup::WaitAllGroups_MacroTimeTick();
+
+	//////////////////////////////////////////
+	//FRAME TICK 3
+	//////////////////////////////////////////
+	CountAssert(errorCount, ag1->value.get()==3);
+	CountAssert(errorCount, ag2->value.get()==2);
+	CountAssert(errorCount, ag3->value.get()==0);
+	WorkGroup::WaitAllGroups_FrameTick(); //Workers are flipping; can't check.
+	WorkGroup::WaitAllGroups_FlipBuffers();
+	CountAssert(errorCount, ag1->value.get()==6); //3+3 == 6
+	CountAssert(errorCount, ag2->value.get()==2); //Doesn't tick
+	CountAssert(errorCount, ag3->value.get()==3); //0+3 == 3
+	WorkGroup::WaitAllGroups_AuraManager();
+	WorkGroup::WaitAllGroups_MacroTimeTick();
+
+	//////////////////////////////////////////
+	//FRAME TICK 4
+	//////////////////////////////////////////
+	CountAssert(errorCount, ag1->value.get()==6);
+	CountAssert(errorCount, ag2->value.get()==2);
+	CountAssert(errorCount, ag3->value.get()==3);
+	WorkGroup::WaitAllGroups_FrameTick(); //Workers are flipping; can't check.
+	WorkGroup::WaitAllGroups_FlipBuffers();
+	CountAssert(errorCount, ag1->value.get()==10); //6+4 == 10
+	CountAssert(errorCount, ag2->value.get()==6);  //2+4 == 6
+	CountAssert(errorCount, ag3->value.get()==3);  //Doesn't tick
+	WorkGroup::WaitAllGroups_AuraManager();
+	WorkGroup::WaitAllGroups_MacroTimeTick();
+
+	//Error check
+	CPPUNIT_ASSERT_MESSAGE("Unexpected error count in sub-micro-tick tests.", errorCount==0);
+
+	//Finally, clean up all the Work Groups and reset (for the next test)
+	WorkGroup::FinalizeAllWorkGroups();
 }
 
 
@@ -386,6 +514,15 @@ void unit_tests::WorkerUnitTests::test_MultiGroupInteraction()
 {
 	//TODO
 }
+
+
+
+
+
+
+
+
+
 
 
 

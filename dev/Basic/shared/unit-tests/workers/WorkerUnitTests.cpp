@@ -42,7 +42,23 @@ public:
 //An Agent which increments its own (local) integer value once per time tick.
 class IncrAgent : public NullAgent {
 public:
-	IncrAgent(int& srcValue) : srcValue(srcValue) {}
+	IncrAgent() : value(0) {}
+
+	virtual Entity::UpdateStatus update(frame_t frameNumber) {
+		value++;
+		return Entity::UpdateStatus::Continue;
+	}
+
+	int getValue() { return value; }
+private:
+	int value;
+};
+
+
+//An Agent which multiplies its own (possibly shared) value once per time tick.
+class MultAgent : public NullAgent {
+public:
+	MultAgent(int& srcValue) : srcValue(srcValue) {}
 
 	virtual Entity::UpdateStatus update(frame_t frameNumber) {
 		srcValue *= 2;
@@ -113,9 +129,9 @@ void unit_tests::WorkerUnitTests::test_SimpleWorkers()
 	WorkGroup::InitAllGroups();
 	mainWG->initWorkers(nullptr);
 
-	//Make an IncrAgent for each item in the source vector.
+	//Make a MultAgent for each item in the source vector.
 	for (vector<int>::iterator it=srcInts.begin(); it!=srcInts.end(); it++) {
-		Agent* newAg = new IncrAgent(*it);
+		Agent* newAg = new MultAgent(*it);
 		newAg->setStartTime(0);
 		mainWG->assignAWorker(newAg);
 	}
@@ -262,7 +278,101 @@ void unit_tests::WorkerUnitTests::test_OddGranularities()
 
 void unit_tests::WorkerUnitTests::test_AgentStartTimes()
 {
-	//TODO
+	//Somewhat iffy:
+	const unsigned int GranMS = 10;  //Advance by 10ms each time
+	ConfigParams::GetInstance().baseGranMS = GranMS;
+
+	//Make some agents with staggered start times.
+	vector<IncrAgent*> agents;
+	for (int i=0; i<=5; i++) {
+		IncrAgent* ag = new IncrAgent();
+		ag->setStartTime(i*GranMS);
+		agents.push_back(ag);
+	}
+	for (int i=0; i<3; i++) { //3 agents with the same start time
+		IncrAgent* ag = new IncrAgent();
+		ag->setStartTime(6*GranMS);
+		agents.push_back(ag);
+	}
+	for (int i=7; i<=10; i++) {
+		IncrAgent* ag = new IncrAgent();
+		ag->setStartTime(i*2*GranMS);
+		agents.push_back(ag);
+	}
+
+	//Determine the end simulation time (max start time + 10 more ticks)
+	unsigned int numSimTicks = 10 + agents.back()->getStartTime() / GranMS;
+
+
+	//We'll need an agents list, or else dynamic dispatch won't work.
+	//Also, use local arrays to make tests more repeatable.
+	//TODO: These will leak, but we don't really care.
+	StartTimePriorityQueue pendingAg;
+	vector<Entity*> allAg;
+	WorkGroup::EntityLoadParams entLoader(pendingAg, allAg);
+
+	//Now create 3 workers to handle these Agents.
+	WorkGroup* mainWG = WorkGroup::NewWorkGroup(3, numSimTicks);
+	WorkGroup::InitAllGroups();
+	mainWG->initWorkers(&entLoader);
+
+	//Assign Agents alternating between even and odd, just to ensure that the PriorityQueue works.
+	vector<int> agIdOrder;
+	for (size_t i=0; i<agents.size(); i+=2) {
+		agIdOrder.push_back(i);
+	}
+	for (size_t i=1; i<agents.size(); i+=2) {
+		agIdOrder.push_back(i);
+	}
+
+	//NOTE: This could do with some streamlining...
+	for (vector<int>::iterator it=agIdOrder.begin(); it!=agIdOrder.end(); it++) {
+		Agent* ag = agents.at(*it);
+		if (ConfigParams::GetInstance().DynamicDispatchDisabled() || ag->getStartTime()==0) {
+			allAg.push_back(ag);
+			mainWG->assignAWorker(ag);
+		} else {
+			//Start later.
+			pendingAg.push(ag);
+		}
+	}
+
+	//Start work groups and all threads.
+	WorkGroup::StartAllWorkGroups();
+
+	//Agent update cycle
+	for (unsigned int i=0; i<numSimTicks; i++) {
+		WorkGroup::WaitAllGroups();
+	}
+
+	//Attempt to replicate manually.
+	vector<int> resInts;
+	for (size_t i=0; i<agents.size(); i++) {
+		resInts.push_back(0);
+	}
+	for (unsigned int tick=0; tick<numSimTicks; tick++) {
+		for (size_t i=0; i<agents.size(); i++) {
+			if ((tick*GranMS) >= agents[i]->getStartTime()) {
+				resInts.at(i)++;
+			}
+		}
+	}
+
+	//Confirm each value
+	std::cout <<"Num sim ticks: " <<numSimTicks <<std::endl;
+	for (int id=0; id<agents.size(); id++) {
+		std::cout <<"Agent: " <<id <<"  value: " <<agents.at(id)->getValue() <<"  Expected: " <<resInts.at(id) <<std::endl;
+		std::cout <<"   start time: " <<agents.at(id)->getStartTime() <<std::endl;
+
+		if (agents.at(id)->getValue() != resInts.at(id)) {
+			std::stringstream msg;
+			msg <<"Staggered worker test [" <<id <<"] failed: " <<agents.at(id)->getValue() <<" != " <<resInts.at(id);
+			CPPUNIT_FAIL(msg.str().c_str());
+		}
+	}
+
+	//Finally, clean up all the Work Groups and reset (for the next test)
+	WorkGroup::FinalizeAllWorkGroups();
 }
 
 

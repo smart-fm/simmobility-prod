@@ -242,7 +242,7 @@ void sim_mob::WorkGroup::startAll()
 }
 
 
-void sim_mob::WorkGroup::scheduleEntity(Person* ent)
+void sim_mob::WorkGroup::scheduleEntity(Agent* ent)
 {
 	//No-one's using DISABLE_DYNAMIC_DISPATCH anymore; we can eventually remove it.
 	if (!loader) { throw std::runtime_error("Can't schedule an entity with dynamic dispatch disabled."); }
@@ -263,7 +263,7 @@ void sim_mob::WorkGroup::stageEntities()
 	unsigned int nextTickMS = nextTimeTick*ConfigParams::GetInstance().baseGranMS;
 	while (!loader->pending_source.empty() && loader->pending_source.top()->getStartTime() <= nextTickMS) {
 		//Remove it.
-		Person* ag = loader->pending_source.top();
+		Agent* ag = loader->pending_source.top();
 		loader->pending_source.pop();
 
 		if (sim_mob::Debug::WorkGroupSemantics) {
@@ -271,11 +271,11 @@ void sim_mob::WorkGroup::stageEntities()
 		}
 
 		//Call its "load" function
-		Agent* a = dynamic_cast<Agent*>(ag);
-		if (a) {
-			a->load(a->getConfigProperties());
-			a->clearConfigProperties();
-		}
+		//Agent* a = dynamic_cast<Agent*>(ag);
+		//if (a) {
+			ag->load(ag->getConfigProperties());
+			ag->clearConfigProperties();
+		//}
 
 		//Add it to our global list.
 		loader->entity_dest.push_back(ag);

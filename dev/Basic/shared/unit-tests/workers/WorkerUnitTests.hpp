@@ -9,7 +9,9 @@ namespace unit_tests
 {
 
 /**
- * Unit Tests for Workers.
+ * Unit Tests for Workers. Note that *all* of these tests have the potential to deadlock, so
+ *   you should have a way of manually killing the test program if necessary.
+ *
  * \author Seth N. Hetu
  */
 class WorkerUnitTests : public CppUnit::TestFixture

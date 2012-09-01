@@ -176,12 +176,8 @@ void addOrStashEntity(Person* p, std::vector<Entity*>& active_agents, StartTimeP
 	///TODO: The BusController is static; need to address this OUTSIDE this function.
 	//if (ENTITY_BUSCONTROLLER == p.type) { active_agents.push_back(BusController::busctrller); }
 
-	std::cout <<"Agent: " <<p->getId() <<", start: " <<p->getStartTime() <<std::endl;
-
 	//Only agents with a start time of zero should start immediately in the all_agents list.
 	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p->getStartTime()==0) {
-		std::cout <<"   >>PUSH!" <<std::endl;
-
 		p->load(p->getConfigProperties());
 		p->clearConfigProperties();
 		active_agents.push_back(p);

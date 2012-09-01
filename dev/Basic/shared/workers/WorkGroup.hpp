@@ -175,6 +175,7 @@ private:
 
 	//Maintain an offset. When it reaches zero, reset to tickStep and sync barriers
 	unsigned int tickOffset;
+	bool started;
 
 	//Stays in sync with the Workers' time ticks; tells us which Workers to stage next.
 	frame_t currTimeTick;

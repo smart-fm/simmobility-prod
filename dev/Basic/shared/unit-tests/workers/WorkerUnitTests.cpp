@@ -81,7 +81,7 @@ public:
 	CondSumAgent(FlagAgent& flagAg) : flagAg(flagAg), count(0) {}
 
 	virtual Entity::UpdateStatus update(frame_t frameNumber) {
-		if (flagAg.flag.get()) {
+		if (flagAg.flag.get()>0) {
 			count++;
 		}
 		return Entity::UpdateStatus::Continue;
@@ -235,18 +235,12 @@ void unit_tests::WorkerUnitTests::test_OddGranularities()
 	countWG->assignAWorker(sumAg1);
 	countWG->assignAWorker(sumAg2);
 
+	//Start work groups and all threads.
+	WorkGroup::StartAllWorkGroups();
+
 	//Agent update cycle
 	for (int i=0; i<5; i++) {
-		std::cout <<i <<std::endl;
 		//Call each function in turn.
-
-		///////////////////////////////////
-		// NOTE: We have a synchronization bug here. (Occasional lockup)
-		//       This occurs regardless of whether we have the Aura Manager or not.
-		//       It also only affects this test function; re-ordering doesn't help.
-		//       It happens during any one (random) of the following barrier calls.
-		///////////////////////////////////
-
 		WorkGroup::WaitAllGroups_FrameTick();
 		WorkGroup::WaitAllGroups_FlipBuffers();
 		WorkGroup::WaitAllGroups_AuraManager();

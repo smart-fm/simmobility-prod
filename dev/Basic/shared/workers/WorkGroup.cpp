@@ -167,7 +167,7 @@ void sim_mob::WorkGroup::FinalizeAllWorkGroups()
 
 
 sim_mob::WorkGroup::WorkGroup(unsigned int numWorkers, unsigned int numSimTicks, unsigned int tickStep, AuraManager* auraMgr, PartitionManager* partitionMgr)
-	: numWorkers(numWorkers), numSimTicks(numSimTicks), tickStep(tickStep), auraMgr(auraMgr), partitionMgr(partitionMgr), loader(nullptr), nextWorkerID(0),
+	: numWorkers(numWorkers), numSimTicks(numSimTicks), tickStep(tickStep), auraMgr(auraMgr), partitionMgr(partitionMgr), started(false), loader(nullptr), nextWorkerID(0),
 	  frame_tick_barr(nullptr), buff_flip_barr(nullptr), aura_mgr_barr(nullptr), macro_tick_barr(nullptr)
 {
 }
@@ -225,8 +225,10 @@ void sim_mob::WorkGroup::initWorkers(EntityLoadParams* loader)
 
 void sim_mob::WorkGroup::startAll()
 {
-	//Sanity check
+	//Sanity checks
+	if (started) { throw std::runtime_error("WorkGroups already started"); }
 	if (!frame_tick_barr) { throw std::runtime_error("Can't startAll() on a WorkGroup with no barriers."); }
+	started = true;
 
 	//Stage any Agents that will become active within the first time tick (in time for the next tick)
 	nextTimeTick = 0;
@@ -383,6 +385,9 @@ sim_mob::Worker* sim_mob::WorkGroup::getWorker(int id)
 
 void sim_mob::WorkGroup::waitFrameTick()
 {
+	//Sanity check
+	if (!started) { throw std::runtime_error("WorkGroups not started; can't waitFrameTick()"); }
+
 	if (tickOffset==0) {
 		//New time tick.
 		currTimeTick = nextTimeTick;

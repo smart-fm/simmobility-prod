@@ -33,9 +33,10 @@ public:
 
 private:
     CPPUNIT_TEST_SUITE(WorkerUnitTests);
-        CPPUNIT_TEST(test_SimpleWorkers);
+		CPPUNIT_TEST(test_OddGranularities);  //Put this first for now, so we can fix it without worrying about "reset" bugs.
+		CPPUNIT_TEST(test_SimpleWorkers);
         CPPUNIT_TEST(test_MultipleGranularities);
-        CPPUNIT_TEST(test_OddGranularities);
+
     CPPUNIT_TEST_SUITE_END();
 };
 

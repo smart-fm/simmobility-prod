@@ -208,13 +208,14 @@ void unit_tests::WorkerUnitTests::test_MultipleGranularities()
 void unit_tests::WorkerUnitTests::test_OddGranularities()
 {
 	//Add an "AuraManager" stage, just for testing purposes.
-	AuraManager::instance().init();
+	AuraManager* am = &AuraManager::instance();
+	am->init();
 
 	//Start with the same agent counters.
 	WorkGroup* countWG = WorkGroup::NewWorkGroup(2, 5);
 
 	//Have a flag counter @3ms, which toggles the flag between on and off.
-	WorkGroup* flagWG = WorkGroup::NewWorkGroup(1, 5, 3, &AuraManager::instance());
+	WorkGroup* flagWG = WorkGroup::NewWorkGroup(1, 5, 3, am);
 
 	//Init all
 	WorkGroup::InitAllGroups();
@@ -236,7 +237,20 @@ void unit_tests::WorkerUnitTests::test_OddGranularities()
 
 	//Agent update cycle
 	for (int i=0; i<5; i++) {
-		WorkGroup::WaitAllGroups();
+		std::cout <<i <<std::endl;
+		//Call each function in turn.
+
+		///////////////////////////////////
+		// NOTE: We have a synchronization bug here. (Occasional lockup)
+		//       This occurs regardless of whether we have the Aura Manager or not.
+		//       It also only affects this test function; re-ordering doesn't help.
+		//       It happens during any one (random) of the following barrier calls.
+		///////////////////////////////////
+
+		WorkGroup::WaitAllGroups_FrameTick();
+		WorkGroup::WaitAllGroups_FlipBuffers();
+		WorkGroup::WaitAllGroups_AuraManager();
+		WorkGroup::WaitAllGroups_MacroTimeTick();
 	}
 
 	//Confirm that the flag was removed (update in the first micro-tick).

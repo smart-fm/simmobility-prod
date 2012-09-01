@@ -32,11 +32,9 @@ public:
 	///Tests agent/buffered behavior at sub-micro-tick resolutions, and across multiple ticks.
 	void test_UpdatePhases();
 
-	//TODO: Test long-running, multiple-granularity work groups (add +timeTick each time, since
-	//      adding +1 can work even if synchronization isn't working right).
+	//Long-running, multiple granularity test with a time-tick dependent value added each time
+	// (to avoid accidentally correct answers).
 	void test_MultiGroupInteraction();
-
-
 
 
 private:

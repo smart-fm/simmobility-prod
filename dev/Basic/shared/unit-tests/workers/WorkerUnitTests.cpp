@@ -67,7 +67,7 @@ private:
 //  divisible by the number specified in the constructor. Uses buffered types, too.
 class AddTickDivisibleAgent : public NullAgent {
 public:
-	AddTickDivisibleAgent(int divisor) : value(0), divisor(divisor) {}
+	AddTickDivisibleAgent(int divisor=1) : value(0), divisor(divisor) {}
 
 	virtual Entity::UpdateStatus update(frame_t frameNumber) {
 		if (frameNumber%divisor == 0) {
@@ -512,19 +512,107 @@ void unit_tests::WorkerUnitTests::test_UpdatePhases()
 
 void unit_tests::WorkerUnitTests::test_MultiGroupInteraction()
 {
-	//TODO
+	//For this test, we'll create several Agents running at several time resolutions, and
+	//  just check the expected vs. actual counts at the end of the simulation.
+	//This is just to represent a slightly more complicated example, and to see if the
+	//  WorkGroup code holds up.
+	const unsigned int SimTimeTicks = 99;
+	const unsigned int NumWrks = 3;
+	WorkGroup* wgStep1 = WorkGroup::NewWorkGroup(NumWrks, SimTimeTicks, 1);
+	WorkGroup* wgStep2 = WorkGroup::NewWorkGroup(NumWrks, SimTimeTicks, 2);
+	WorkGroup* wgStep3 = WorkGroup::NewWorkGroup(NumWrks, SimTimeTicks, 3);
+	WorkGroup* wgStep4 = WorkGroup::NewWorkGroup(NumWrks, SimTimeTicks, 4);
+	WorkGroup* wgStep5 = WorkGroup::NewWorkGroup(NumWrks, SimTimeTicks, 5);
+
+	//Init all
+	WorkGroup::InitAllGroups();
+	wgStep1->initWorkers(nullptr);
+	wgStep2->initWorkers(nullptr);
+	wgStep3->initWorkers(nullptr);
+	wgStep4->initWorkers(nullptr);
+	wgStep5->initWorkers(nullptr);
+
+	//Put 2x capacity of Agents on each worker.
+	vector<AddTickDivisibleAgent*>  agsStep1;
+	vector<AddTickDivisibleAgent*>  agsStep2;
+	vector<AddTickDivisibleAgent*>  agsStep3;
+	vector<AddTickDivisibleAgent*>  agsStep4;
+	vector<AddTickDivisibleAgent*>  agsStep5;
+	for (size_t i=0; i<NumWrks*2; i++) {
+		for (int vectID=1; vectID<=5; vectID++) {
+			AddTickDivisibleAgent* ag = new AddTickDivisibleAgent();
+			ag->setStartTime(0);
+			if      (vectID==1) { agsStep1.push_back(ag); wgStep1->assignAWorker(ag); }
+			else if (vectID==2) { agsStep2.push_back(ag); wgStep2->assignAWorker(ag); }
+			else if (vectID==3) { agsStep3.push_back(ag); wgStep3->assignAWorker(ag); }
+			else if (vectID==4) { agsStep4.push_back(ag); wgStep4->assignAWorker(ag); }
+			else if (vectID==5) { agsStep5.push_back(ag); wgStep5->assignAWorker(ag); }
+			else { throw std::runtime_error("Unexpected count."); }
+		}
+	}
+
+	//Start all
+	WorkGroup::StartAllWorkGroups();
+
+	//Tick all
+	for (unsigned int i=0; i<SimTimeTicks; i++) {
+		WorkGroup::WaitAllGroups();
+	}
+
+	//Expected values
+	unsigned int res1 = 0;
+	for (int i=0; i<99; i++) { res1+=i; }
+	unsigned int res2 = 0;
+	for (int i=0; i<99; i+=2) { res2+=i; }
+	unsigned int res3 = 0;
+	for (int i=0; i<99; i+=3) { res3+=i; }
+	unsigned int res4 = 0;
+	for (int i=0; i<99; i+=4) { res4+=i; }
+	unsigned int res5 = 0;
+	for (int i=0; i<99; i+=5) { res5+=i; }
+
+	//Now check.
+	{
+	bool error1 = false;
+	for (vector<AddTickDivisibleAgent*>::iterator it=agsStep1.begin(); it!=agsStep1.end(); it++) {
+		if ((*it)->value.get() != res1) { error1 = true; break; }
+	}
+	CPPUNIT_ASSERT_MESSAGE("Tick gran. 1 error.", !error1);
+	}
+
+	{
+	bool error2 = false;
+	for (vector<AddTickDivisibleAgent*>::iterator it=agsStep2.begin(); it!=agsStep2.end(); it++) {
+		if ((*it)->value.get() != res2) { error2 = true; break; }
+	}
+	CPPUNIT_ASSERT_MESSAGE("Tick gran. 2 error.", !error2);
+	}
+
+	{
+	bool error3 = false;
+	for (vector<AddTickDivisibleAgent*>::iterator it=agsStep3.begin(); it!=agsStep3.end(); it++) {
+		if ((*it)->value.get() != res3) { error3 = true; break; }
+	}
+	CPPUNIT_ASSERT_MESSAGE("Tick gran. 3 error.", !error3);
+	}
+
+	{
+	bool error4 = false;
+	for (vector<AddTickDivisibleAgent*>::iterator it=agsStep4.begin(); it!=agsStep4.end(); it++) {
+		if ((*it)->value.get() != res4) { error4 = true; break; }
+	}
+	CPPUNIT_ASSERT_MESSAGE("Tick gran. 4 error.", !error4);
+	}
+
+	{
+	bool error5 = false;
+	for (vector<AddTickDivisibleAgent*>::iterator it=agsStep5.begin(); it!=agsStep5.end(); it++) {
+		if ((*it)->value.get() != res5) { error5 = true; break; }
+	}
+	CPPUNIT_ASSERT_MESSAGE("Tick gran. 5 error.", !error5);
+	}
+
+	//Finally, clean up all the Work Groups and reset (for the next test)
+	WorkGroup::FinalizeAllWorkGroups();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 

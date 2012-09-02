@@ -101,6 +101,7 @@ protected:
 	//List of pointers to RoadSegments in each direction
 	std::vector<sim_mob::RoadSegment*> fwdSegments;
 	std::vector<sim_mob::RoadSegment*> revSegments;
+	//when xml reader used, this container is filed with fwdSegments first and revSegments next-vahid
 	std::set<sim_mob::RoadSegment*> uniqueSegments;
 
 	//who is currently managing this link

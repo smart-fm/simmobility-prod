@@ -1181,13 +1181,51 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
         	 *************************************************/
     		main1(0,0);
     		std::cout << "Testin Road Network :\n";
-    		std::vector<Link*> const & links = ConfigParams::GetInstance().getNetwork().getLinks();
+    		std::vector<Link*>  & links = const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getLinksRW();
     		std::cout << "Number of Links: " << links.size() << std::endl;
+
     		std::cout << "Number of segments: " << links[0]->getPath(true).size() << " " << links[0]->getPath(false).size() << std::endl;
     		const std::vector<sim_mob::MultiNode*>& mnodes = ConfigParams::GetInstance().getNetwork().getNodes();
     		const std::set<sim_mob::UniNode*>& unodes = ConfigParams::GetInstance().getNetwork().getUniNodes();
     		std::cout << "Number of UniNodes: " << unodes.size() << std::endl;
     		std::cout << "Number of MultiNodes: " << mnodes.size() << std::endl;
+
+//    		for(std::vector<Link*>::iterator links_it = links.begin(); links_it != links.end(); links_it++)
+//    		{
+//    			std::cout << "Checking Link " << (*links_it)->getId() << std::endl;
+//    			std::cout << "checking Starting node " <<  (*links_it)->getStart()->getID() << std::endl;
+//    			if((*links_it)->getStart()->originalDB_ID.isSet())
+//    				std::cout << "checking Starting node originalD_ID " <<  (*links_it)->getStart()->originalDB_ID.getLogItem() << std::endl;
+//    			else
+//    				std::cout << "checking Starting node originalD_ID is EMPTY\n";
+//    			std::cout << "checking ending node " <<  (*links_it)->getEnd()->getID() << std::endl;
+//    			if((*links_it)->getEnd()->originalDB_ID.isSet())
+//    				std::cout << "checking ending node originalD_ID " <<  (*links_it)->getEnd()->originalDB_ID.getLogItem() << std::endl;
+//    			else
+//    				std::cout << "checking Starting node originalD_ID is EMPTY\n";
+//
+//    		}
+    		for(std::set<sim_mob::UniNode*>::const_iterator unode_it = unodes.begin(); unode_it != unodes.end() ; unode_it++)
+    		{
+    			if((*unode_it)->getLinkLoc() ==0)
+    			{
+    				std::cout << "Unode " << (*unode_it)->getID() << "Has NULL link loc\n";
+//    				getchar();
+    			}
+    			else
+    				std::cout << "Unode " << (*unode_it)->getID() << "Has  link loc\n";
+    		}
+    		for(std::vector<sim_mob::MultiNode*>::const_iterator mnode_it = mnodes.begin(); mnode_it != mnodes.end() ; mnode_it++)
+    		{
+    			if((*mnode_it)->getLinkLoc() ==0)
+    			{
+    				std::cout << "Mnode " << (*mnode_it)->getID() << "Has NULL link loc\n";
+//    				getchar();
+    			}
+    			else
+    				std::cout << "Mnode " << (*mnode_it)->getID() << "Has  link loc\n";
+    		}
+    		std::cout << "Checking Nodes done\n";
 //////////////////////////////////////////////////////////////////////////////////
     		//Finally, mask the password
     		string& s = ConfigParams::GetInstance().connectionString;

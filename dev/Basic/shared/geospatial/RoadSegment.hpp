@@ -12,6 +12,7 @@ namespace geo
 {
 class segment_t_pimpl;
 class Segments_pimpl;
+class link_t_pimpl;
 }
 namespace sim_mob
 {
@@ -129,6 +130,7 @@ friend class sim_mob::aimsun::LaneLoader;
 friend class sim_mob::RoadNetworkPackageManager;
 friend class ::geo::segment_t_pimpl;
 friend class ::geo::Segments_pimpl;
+friend class ::geo::link_t_pimpl;
 
 };
 

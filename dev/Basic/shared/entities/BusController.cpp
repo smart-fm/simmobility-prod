@@ -68,21 +68,18 @@ void sim_mob::BusController::dispatchFrameTick(frame_t frameTick)
 
 	//Stage any pending entities that will start during this time tick.
 	while (!pending_buses.empty() && pending_buses.top()->getStartTime() <= nextTickMS) {
-		//Person* ag = Person::GeneratePersonFromPending(pending_buses.top());
-		//pending_buses.pop();
-
-		//Add it to our global list.
-		//NOTE: This is extremely likely to corrupt memory; we should NOT be modifying all_agents while
-		//      other agents are reading it.
-		//Agent::all_agents.push_back(ag);
-
-		//Find a worker to assign this to and send it the Entity to manage.
-		//NOTE: This is safe (since assignAWorker pushes to a temporary list), but it will result in the Bus being
-		//      dispatched a time tick too late.
-		//currWorker->getParent()->assignAWorker(ag);
-
-		//Instead, we simply let the WorkGroup  handle it (which takes care of all_agents and assignAWorker).
-		//  Remember, duplicated code is evil. ~Seth
+		///////////////////////////////////////////////////////////////////
+		//Ask the current worker's parent WorkGroup to schedule this Entity.
+		///////////////////////////////////////////////////////////////////
+		//
+		// TODO: The use of "getParent()" in Worker is extremely dangerous.
+		//       It only works because there is exactly 1 BusController, and that
+		//       Controller is the only thing which accesses the "parent" class.
+		//       To fix this, we should probably return a list of entities to schedule
+		//       as a result of update(), and let the WorkGroup skim this list
+		//       when it knows it's safe to. ~Seth
+		//
+		///////////////////////////////////////////////////////////////////
 		currWorker->getParent()->scheduleEntity(pending_buses.top());
 		pending_buses.pop();
 	}

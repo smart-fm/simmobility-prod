@@ -28,13 +28,6 @@
 #cmakedefine SIMMOB_AGENT_UPDATE_PROFILE
 #cmakedefine SIMMOB_NEW_SIGNAL
 #cmakedefine SIMMOB_XML_WRITER
+#cmakedefine SIMMOB_USE_TEST_GUI
 
-
-///Sizes of workgroups. (Note that enums are allowed to overlap values)
-///\todo
-///Note: These have been moved to the config files
-//enum WORKGROUP_SIZES {
-//	WG_AGENTS_SIZE = 2,           ///<Number of agent workers in group.
-//	WG_SIGNALS_SIZE = 2,          ///<Number of signal workers in group.
-//};
 

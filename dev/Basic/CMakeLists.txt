@@ -65,7 +65,6 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmessage-length=0")
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
-
 #Generate a header file to contain configuration settings. This is useful
 #  for, e.g., cmake variable which can then be set via the gui. 
 configure_file (

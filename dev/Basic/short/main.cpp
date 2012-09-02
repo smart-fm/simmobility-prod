@@ -966,6 +966,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 	//Here, we will simply scope-out the WorkGroups, and they will migrate out all remaining Agents.
 	}  //End scope: WorkGroups. (Todo: should move this into its own function later)
+	WorkGroup::FinalizeAllWorkGroups();
 
 	//Test: At this point, it should be possible to delete all Signals and Agents.
 	clear_delete_vector(Signal::all_signals_);

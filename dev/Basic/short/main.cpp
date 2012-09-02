@@ -269,6 +269,9 @@ void WriteXMLInput_Segment(sim_mob::RoadSegment* rs ,TiXmlElement * Segments)
 	Id.str("");
 	Id << rs->width;
 	Width->LinkEndChild(new  TiXmlText(Id.str()));
+	//originalDB_ID
+	TiXmlElement * originalDB_ID = new TiXmlElement("originalDB_ID");  Segment->LinkEndChild(originalDB_ID);
+	originalDB_ID->LinkEndChild( new TiXmlText(rs->originalDB_ID.getLogItem()));
 	//polyline
 	TiXmlElement * polyline = new TiXmlElement("polyline"); Segment->LinkEndChild(polyline);
 	WriteXMLInput_PolyLine(const_cast<std::vector<sim_mob::Point2D>& >(rs->polyline), polyline);

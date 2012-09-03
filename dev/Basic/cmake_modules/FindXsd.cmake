@@ -22,6 +22,7 @@ FIND_PATH(XSD_INCLUDE_DIR
 FIND_PROGRAM(XSD_EXECUTABLE 
   NAMES 
     xsd
+    xsdcxx
   PATHS
     "[HKEY_CURRENT_USER\\xsd\\bin"
     $ENV{XSDDIR}/bin 

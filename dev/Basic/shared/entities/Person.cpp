@@ -89,13 +89,7 @@ sim_mob::Person::~Person() {
 
 void sim_mob::Person::load(const map<string, string>& configProps)
 {
-	//Make sure they have a mode specified for this trip
-	map<string, string>::const_iterator it = configProps.find("#mode");
-	if (it==configProps.end()) {
-		throw std::runtime_error("Cannot load person: no mode");
-	}
-	std::string mode = it->second;
-
+	map<string, string>::const_iterator it;
 	//Consistency check: specify both origin and dest
 	if (configProps.count("originPos") != configProps.count("destPos")) {
 		throw std::runtime_error("Agent must specify both originPos and destPos, or neither.");
@@ -108,14 +102,24 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		if (!tripChain.empty()) {
 			throw std::runtime_error("Manual position specified for Agent with existing Trip Chain.");
 		}
+
 		if (this->originNode || this->destNode) {
 			throw std::runtime_error("Manual position specified for Agent with existing Trip Chain.");
 		}
 
 		//Otherwise, make a trip chain for this Person.
+
 		this->originNode = ConfigParams::GetInstance().getNetwork().locateNode(parse_point(origIt->second), true);
 		this->destNode = ConfigParams::GetInstance().getNetwork().locateNode(parse_point(destIt->second), true);
+
+		//Make sure they have a mode specified for this trip
+		it = configProps.find("#mode");
+		if (it==configProps.end()) {
+			throw std::runtime_error("Cannot load person: no mode");
+		}
+		std::string mode = it->second;
 		Trip* singleTrip = MakePseudoTrip(*this, mode);
+
 		std::vector<const TripChainItem*> trip_chain;
 		trip_chain.push_back(singleTrip);
 

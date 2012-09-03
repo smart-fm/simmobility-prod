@@ -78,7 +78,7 @@ public:
 		v = boost::multi_index::get<1>(phases_);
 	}
 	/*plan methods*/
-	SplitPlan(double i=90,double j=0);
+	SplitPlan(double cycleLength_ = 90,double offset_ = 0, int signalAlgorithm_= ConfigParams::GetInstance().signalAlgorithm);
 	std::size_t CurrSplitPlanID();
 	std::vector< double >  CurrSplitPlan();
 	void setCurrPlanIndex(std::size_t);

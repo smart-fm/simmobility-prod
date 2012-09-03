@@ -63,8 +63,8 @@ Signal_SCATS::signalAt(Node const & node, const MutexStrategy& mtxStrat, bool *i
 	return *sig;
 }
 std::string Signal_SCATS::toString() const { return strRepr; }
-unsigned int Signal_SCATS::getSignalId()   {return TMP_SignalID;}
-unsigned int Signal_SCATS::getSignalId() const  {return TMP_SignalID;}
+unsigned int Signal_SCATS::getSignalId()   {return signalID;}
+unsigned int Signal_SCATS::getSignalId() const  {return signalID;}
 bool Signal_SCATS::isIntersection() { return isIntersection_;}
 
 void Signal_SCATS::createStringRepresentation(std::string newLine)
@@ -73,7 +73,7 @@ void Signal_SCATS::createStringRepresentation(std::string newLine)
 			output << "{" << newLine << "\"TrafficSignal\":" << "{" << newLine;
 			output << "\"hex_id\":\""<< this << "\"," << newLine;
 			output << "\"frame\": " << -1 << "," << newLine; //this is added to indicate that
-			output << "\"simmob_id\":\"" <<  TMP_SignalID << "\"," << newLine;
+			output << "\"simmob_id\":\"" <<  signalID << "\"," << newLine;
 			output << "\"node\": \"" << &getNode() << "\"," << newLine;
 			output << plan_.createStringRepresentation(newLine);
 			output  << newLine << "}"  << newLine << "}";
@@ -91,21 +91,21 @@ Signal_SCATS::Signal_SCATS(Node const & node, const MutexStrategy& mtxStrat, int
 	if(! mNode) isIntersection_ = false ;
 	else isIntersection_ = true;
 	//some inits
-	currSplitPlanID = 0;
-	phaseCounter = 0;
+//	currSplitPlanID = 0;
+//	phaseCounter = 0;
 	currCycleTimer = 0;
 //	DS_all = 0;
-	currCL = 0;
+//	currCL = 0;
 	currPhaseID = 0;
 	isNewCycle = false;
 	currOffset = 0;
 	//the best id for a signal is the node id itself
-	TMP_SignalID = node.getID();
+	signalID = node.getID();
 
 	findSignalLinksAndCrossings();
 	//for future use when user needs to switch between fixed and adaptive control
 	signalAlgorithm = ConfigParams::GetInstance().signalAlgorithm;
-	findIncomingLanes();//what was it used for? only Density?
+//	findIncomingLanes();//what was it used for? only Density?
 	//it would be better to declare it as static const
 	updateInterval = sim_mob::ConfigParams::GetInstance().granSignalsTicks * sim_mob::ConfigParams::GetInstance().baseGranMS / 1000;
 	currCycleTimer = 0;
@@ -243,22 +243,22 @@ void Signal_SCATS::findSignalLinksAndCrossings() {
 			getchar();
 		}
 }
-//deprecated
-void Signal_SCATS::findSignalLinks()
-{
-	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&getNode());
-	if(! mNode) return ;
-	const std::set<sim_mob::RoadSegment*>& rs = mNode->getRoadSegments();
-	for (std::set<sim_mob::RoadSegment*>::const_iterator it = rs.begin(); it!= rs.end(); it++) {
-		SignalLinks.push_back((*it)->getLink());
-	}
-}
+////deprecated
+//void Signal_SCATS::findSignalLinks()
+//{
+//	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&getNode());
+//	if(! mNode) return ;
+//	const std::set<sim_mob::RoadSegment*>& rs = mNode->getRoadSegments();
+//	for (std::set<sim_mob::RoadSegment*>::const_iterator it = rs.begin(); it!= rs.end(); it++) {
+//		SignalLinks.push_back((*it)->getLink());
+//	}
+//}
 
-//initialize SplitPlan
-void Signal_SCATS::startSplitPlan() {
-	//CurrSplitPlan
-	currSplitPlanID = plan_.CurrSplitPlanID();//todo check what .CurrSplitPlanID() is giving? where is it initializing?
-}
+////initialize SplitPlan
+//void Signal_SCATS::startSplitPlan() {
+//	//CurrSplitPlan
+//	currSplitPlanID = plan_.CurrSplitPlanID();//todo check what .CurrSplitPlanID() is giving? where is it initializing?
+//}
 
 //find the minimum among the max projected DS
 int Signal_SCATS::fmin_ID(const std::vector<double> maxproDS) {
@@ -477,7 +477,7 @@ void Signal_SCATS::updateIndicators()
 //	currCL = cycle_.getcurrCL();
 	currPhaseID = plan_.CurrPhaseID();
 	currOffset = offset_.getcurrOffset();
-	currSplitPlanID = plan_.CurrSplitPlanID();
+//	currSplitPlanID = plan_.CurrSplitPlanID();
 }
 
 /*I will try to change only the Data structure, not the algorithm-vahid
@@ -527,28 +527,28 @@ TrafficColor Signal_SCATS::getPedestrianLight(Crossing const & crossing) const
 	return sim_mob::Red;
 }
 
-/*
- * this class needs to access lanes coming to it, mostly to calculate DS
- * It is not feasible to extract the lanes from every traffic signal every time
- * we need to calculate DS. Rather, we book-keep  the lane information.
- * It is a trade-off between process and memory.
- * In order to save memory, we only keep the record of Lane pointers-vahid
- */
-//might not be very necessary(not in use) except for resizing Density vector
-void Signal_SCATS::findIncomingLanes()
-{
-	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&getNode());
-	if(! mNode) return ;
-	const std::set<sim_mob::RoadSegment*>& rs = mNode->getRoadSegments();
-	for (std::set<sim_mob::RoadSegment*>::const_iterator it = rs.begin(); it!= rs.end(); it++) {
-		if ((*it)->getEnd() != &getNode())//consider only the segments that end here
-			continue;
-		IncomingLanes_.reserve(IncomingLanes_.size() + (*it)->getLanes().size());
-		IncomingLanes_.insert(IncomingLanes_.end(), (*it)->getLanes().begin(), (*it)->getLanes().end());
-	}
-	if(!IncomingLanes_.size())
-		throw std::runtime_error("No incoming lanes");
-}
+///*
+// * this class needs to access lanes coming to it, mostly to calculate DS
+// * It is not feasible to extract the lanes from every traffic signal every time
+// * we need to calculate DS. Rather, we book-keep  the lane information.
+// * It is a trade-off between process and memory.
+// * In order to save memory, we only keep the record of Lane pointers-vahid
+// */
+////might not be very necessary(not in use) except for resizing Density vector
+//void Signal_SCATS::findIncomingLanes()
+//{
+//	const MultiNode* mNode = dynamic_cast<const MultiNode*>(&getNode());
+//	if(! mNode) return ;
+//	const std::set<sim_mob::RoadSegment*>& rs = mNode->getRoadSegments();
+//	for (std::set<sim_mob::RoadSegment*>::const_iterator it = rs.begin(); it!= rs.end(); it++) {
+//		if ((*it)->getEnd() != &getNode())//consider only the segments that end here
+//			continue;
+//		IncomingLanes_.reserve(IncomingLanes_.size() + (*it)->getLanes().size());
+//		IncomingLanes_.insert(IncomingLanes_.end(), (*it)->getLanes().begin(), (*it)->getLanes().end());
+//	}
+//	if(!IncomingLanes_.size())
+//		throw std::runtime_error("No incoming lanes");
+//}
 
 void Signal_SCATS::addSignalSite(centimeter_t /* xpos */, centimeter_t /* ypos */,
 		std::string const & /* typeCode */, double /* bearing */) {
@@ -567,7 +567,7 @@ void Signal_SCATS::setSplitPlan(sim_mob::SplitPlan plan)
 void Signal_SCATS::initialize() {
 	createStringRepresentation("");
 	plan_.initialize();
-	Phase_Density.resize(plan_.find_NOF_Phases(), 0);//todo wrong ! Density has changed to contain phase DS--update:corrected, now decide what to do with findIncomingLanes
+	Phase_Density.resize(plan_.find_NOF_Phases(), 0);
 
 }
 

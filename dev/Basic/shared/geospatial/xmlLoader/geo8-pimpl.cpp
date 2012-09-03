@@ -482,6 +482,8 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   {
 	  std::cout << "In segment_t_pimpl:: Lanes ()\n";
 	  this->rs->lanes =  Lanes;
+	  //set parentsegment for each lane
+	  for(std::vector<sim_mob::Lane*>::iterator it = this->rs->lanes.begin(), it_end(this->rs->lanes.end()); it != it_end; it++) (*it)->setParentSegment(this->rs);
 	  std::cout << "In segment_t_pimpl:: Lanes (" << this->rs->lanes.size() << ")--done\n";
 //	  //getchar();
   }
@@ -1922,8 +1924,8 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 	  geo_LinkLoc_random & linkLocs = get<0>(geo_LinkLoc_);
 	  for(geo_LinkLoc_random::iterator link_it = linkLocs.begin(), it_end(linkLocs.end()); link_it != it_end; link_it++)
 	  {
-		  std::cout << " it->linkID = " << link_it->linkID << std::endl;
-		  std::cout << " link : " << geo_Links_[link_it->linkID] << std::endl;
+//		  std::cout << " it->linkID = " << link_it->linkID << std::endl;
+//		  std::cout << " link : " << geo_Links_[link_it->linkID] << std::endl;
 //		  std::cout << " node1 " << it->node1 << std::endl;
 //		  std::cout << " node2 " << it->node2 << std::endl;
 		  for(std::vector<sim_mob::Node*>::iterator node_it = link_it->node.begin(); node_it != link_it->node.end() ; node_it++)

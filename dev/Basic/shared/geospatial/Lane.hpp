@@ -14,6 +14,7 @@ namespace geo
 {
 class lane_t_pimpl;
 class Lanes_pimpl;
+class segment_t_pimpl;
 }
 namespace sim_mob
 {
@@ -284,6 +285,7 @@ private:
 
     friend class StreetDirectory;
     friend class sim_mob::aimsun::Loader;
+    friend class ::geo::segment_t_pimpl;
 
     /** Create a Lane using the \c bit_pattern to initialize the lane's rules.  */
     explicit Lane(sim_mob::RoadSegment* segment, unsigned int laneID, const std::string& bit_pattern="") : parentSegment_(segment), rules_(bit_pattern), width_(0), laneID_(laneID) {

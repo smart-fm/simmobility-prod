@@ -175,7 +175,7 @@ string ReadLowercase(TiXmlHandle& handle, const std::string& attrName)
 void addOrStashEntity(Person* p, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents)
 {
 	///TODO: The BusController is static; need to address this OUTSIDE this function.
-	std::cout <<"Agent: " <<p->getId() <<", start: " <<p->getStartTime() <<std::endl;
+//	std::cout <<"Agent: " <<p->getId() <<", start: " <<p->getStartTime() <<std::endl;
 
 	//Only agents with a start time of zero should start immediately in the all_agents list.
 	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p->getStartTime()==0) {
@@ -435,12 +435,12 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 		Person* agent = new Person("XML_Def", config.mutexStategy, manualID);
 		agent->setConfigProperties(props);
 		agent->setStartTime(startTime);
-		std::cout << " agentType: " << agentType << "\n";
-		for(map<string, string>::iterator it = props.begin(); it != props.end(); it++)
-		{
-			std::cout << " props[" << it->first << " , " << it->second << "]\n";
-		}
-		std::cout << "I am in LoadXMLAgnets\n";
+//		std::cout << " agentType: " << agentType << "\n";
+//		for(map<string, string>::iterator it = props.begin(); it != props.end(); it++)
+//		{
+//			std::cout << " props[" << it->first << " , " << it->second << "]\n";
+//		}
+//		std::cout << "I am in LoadXMLAgnets\n";
 //		getchar();
 		//Add it or stash it
 		addOrStashEntity(agent, active_agents, pending_agents);
@@ -1192,9 +1192,11 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		std::cout << "Number of UniNodes: " << unodes.size() << std::endl;
     		std::cout << "Number of MultiNodes: " << mnodes.size() << std::endl;
 
-//    		for(std::vector<Link*>::iterator links_it = links.begin(); links_it != links.end(); links_it++)
-//    		{
-//    			std::cout << "Checking Link " << (*links_it)->getId() << std::endl;
+    		for(std::vector<Link*>::iterator links_it = links.begin(); links_it != links.end(); links_it++)
+    		{
+    			//link
+    			std::cout << "Checking Link " << (*links_it)->getId() << std::endl;
+//    			//Starting node,ending node,originalDB_ID
 //    			std::cout << "checking Starting node " <<  (*links_it)->getStart()->getID() << std::endl;
 //    			if((*links_it)->getStart()->originalDB_ID.isSet())
 //    				std::cout << "checking Starting node originalD_ID " <<  (*links_it)->getStart()->originalDB_ID.getLogItem() << std::endl;
@@ -1205,8 +1207,23 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 //    				std::cout << "checking ending node originalD_ID " <<  (*links_it)->getEnd()->originalDB_ID.getLogItem() << std::endl;
 //    			else
 //    				std::cout << "checking Starting node originalD_ID is EMPTY\n";
-//
-//    		}
+    			//segment
+    			for(std::set<sim_mob::RoadSegment*>::iterator segmentnodes_it = (*links_it)->getUniqueSegments().begin(), it_end((*links_it)->getUniqueSegments().end()); segmentnodes_it != it_end; segmentnodes_it++)
+    			{
+    				//starting node, endong node
+    				if(!((*segmentnodes_it)->getStart()&&(*segmentnodes_it)->getEnd()))
+    				{
+    					std::cout << "segment starting node, endong node failed\n";
+    					getchar();
+    				}
+    				else
+    				{
+    					sim_mob::RoadSegment *rs = (*segmentnodes_it);
+    					std::cout << "segment[segmentid,start,end]: " << rs << "[" << (rs)->getSegmentID() << "," << (rs)->getStart()->getID() << "," << (rs)->getEnd()->getID()<< "]" << std::endl;
+    				}
+    			}
+
+    		}
 
 //    		//check rn.nodes
 //    		for(std::set<sim_mob::UniNode*>::const_iterator unode_it = unodes.begin(); unode_it != unodes.end() ; unode_it++)

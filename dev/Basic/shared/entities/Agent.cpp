@@ -90,7 +90,7 @@ void sim_mob::Agent::SetIncrementIDStartValue(int startID, bool failIfAlreadyUse
 sim_mob::Agent::Agent(const MutexStrategy& mtxStrat, int id) : Entity(GetAndIncrementID(id)),
 	mutexStrat(mtxStrat),
 	originNode(nullptr), destNode(nullptr), xPos(mtxStrat, 0), yPos(mtxStrat, 0),
-	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0)
+	fwdVel(mtxStrat, 0), latVel(mtxStrat, 0), xAcc(mtxStrat, 0), yAcc(mtxStrat, 0), currLink(nullptr), currLane(nullptr)
 {
 	toRemoved = false;
 	dynamic_seed = id;
@@ -130,6 +130,19 @@ void sim_mob::Agent::setToBeRemoved() {
 
 void sim_mob::Agent::clearToBeRemoved() {
 	toRemoved = false;
+}
+
+const sim_mob::Link* sim_mob::Agent::getCurrLink() const{
+	return currLink;
+}
+void sim_mob::Agent::setCurrLink(const sim_mob::Link* link){
+	currLink = link;
+}
+const sim_mob::Lane* sim_mob::Agent::getCurrLane() const{
+	return currLane;
+}
+void sim_mob::Agent::setCurrLane(const sim_mob::Lane* lane){
+	currLane = lane;
 }
 
 

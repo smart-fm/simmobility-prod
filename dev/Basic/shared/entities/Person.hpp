@@ -75,8 +75,8 @@ public:
         this->tripChain = tripChain;
     }
 
-	sim_mob::Link* getCurrLink();
-	void setCurrLink(sim_mob::Link* link);
+/*	const sim_mob::Link* getCurrLink() const;
+	void setCurrLink(sim_mob::Link* link);*/
 
     void getNextSubTripInTrip();
     void findNextItemInTripChain();
@@ -95,7 +95,6 @@ private:
     //Properties
     sim_mob::Role* prevRole; ///< To be deleted on the next time tick.
     sim_mob::Role* currRole;
-    sim_mob::Link* currLink;
 
     //Can be helpful for debugging
     std::string agentSrc;

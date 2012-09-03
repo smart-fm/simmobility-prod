@@ -1,10 +1,13 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #pragma once
-#include <map>
+//#include <map>
+#include <sstream>
+#include <boost/unordered_map.hpp>
 #include <boost/utility.hpp>
 #include "metrics/Length.hpp"
 #include "metrics/Frame.hpp"
+#include "geospatial/RoadSegment.hpp"
 
 
 namespace sim_mob
@@ -38,6 +41,10 @@ class RoadSegment;
 class AuraManager : private boost::noncopyable
 {
 public:
+
+    //~delHarish
+    std::stringstream ss;
+
     static AuraManager &
     instance()
     {
@@ -104,19 +111,21 @@ public:
     printStatistics() const;
 
     /*
-     * Retuns the density of the road segment. Will be called by driver agents in medium term.
+     * Returns the density of the road segment. Will be called by driver agents in medium term.
      */
-    unsigned short getDensity(const RoadSegment* rdseg);
+    double getDensity(const RoadSegment* rdseg);
 
 private:
     AuraManager()
       : pimpl_(0)
       , stats_(0)
     {
+    	//delHarish
+    	ss << "~~ Density Map" << std::endl;
     }
 
-    //Map to store the density of each road segment.
-    std::map<const RoadSegment*, unsigned short> densityMap;
+    /*Map to store the density of each road segment. */
+    boost::unordered_map<const RoadSegment*, unsigned short> densityMap;
 
     // No need to define the dtor.
 
@@ -129,7 +138,6 @@ private:
 
     class Stats;
     Stats* stats_;
-
 
 };
 

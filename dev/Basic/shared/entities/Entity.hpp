@@ -85,8 +85,8 @@ public:
 	 */
 	virtual UpdateStatus update(frame_t frameNumber) = 0;
 
-	virtual Link* getCurrLink() = 0;
-	virtual void setCurrLink(Link* link)= 0;
+	//virtual Link* getCurrLink() = 0;
+	//virtual void setCurrLink(Link* link)= 0;
 
 	virtual void setStartTime(unsigned int value) { startTime = value; }
 	virtual unsigned int getStartTime() const { return startTime; }
@@ -108,7 +108,7 @@ protected:
 	//When (in ms) does this Entity start?
 	unsigned int startTime;
 
-	Link* currLink;
+	// Link* currLink;
 
 public:
 	///Who is currently managing this Entity?

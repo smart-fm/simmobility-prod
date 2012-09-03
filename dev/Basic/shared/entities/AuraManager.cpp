@@ -1,5 +1,6 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
+#include <sstream>
 #include <limits>
 #include <algorithm>
 #include <boost/unordered_set.hpp>
@@ -9,14 +10,12 @@
 #include "Agent.hpp"
 #include "AuraManager.hpp"
 #include "geospatial/Lane.hpp"
+#include "geospatial/RoadSegment.hpp"
 #include "buffering/Vector2D.hpp"
 #include "entities/Person.hpp"
-#include "../medium/entities/roles/driver/Driver.hpp"
-//#include "entities/roles/driver/Driver.hpp"
-using namespace sim_mob::medium;
+
 namespace sim_mob
 {
-using namespace medium;
 /* static */ AuraManager AuraManager::instance_;
 
 /** \cond ignoreAuraManagerInnards -- Start of block to be ignored by doxygen.  */
@@ -256,13 +255,12 @@ public:
 private:
     R_tree tree_;
 
-
     /* First dirty version... Will change eventually.
      * This method is called from within the update of the AuraManager.
      * This method increments the vehicle count for the road segment
      * on which the Agent's vehicle is currently in.
      */
-    void updateDensity(Agent const*);
+    void updateDensity(const Agent* ag);
 };
 
 void
@@ -286,16 +284,19 @@ AuraManager::Impl::update()
     	throw std::runtime_error("all_agents is somehow storing an entity.");
     }
 
+    sim_mob::AuraManager::instance().densityMap.clear(); //the following while loop counts again
     while (agents.size() > 1)
     {
         agents.erase(agent);
         tree_.insert(agent);
         agent = nearest_agent(agent, agents);
 
-        updateDensity(agent);
+        //This is required for the medium term; adds a minor overhead in short term.
+		updateDensity(agent);
     }
     tree_.insert(agent);    // insert the last agent into the tree.
     assert(tree_.GetSize() == Agent::all_agents.size());
+
 }
 
 std::vector<Agent const *>
@@ -366,21 +367,16 @@ const
 }
 
 void AuraManager::Impl::updateDensity(const Agent* ag) {
-	const sim_mob::Person* person = dynamic_cast<const sim_mob::Person*>(ag);
-	if(!person){
-		return;
-	}
-	const sim_mob::medium::Driver* driver = dynamic_cast<const sim_mob::medium::Driver*>(person->getRole());
-	if(!driver){
-		return;
-	}
 	sim_mob::AuraManager &auraMgr = sim_mob::AuraManager::instance();
-	if(driver->params.justChangedToNewSegment){
-		const RoadSegment* currSeg = driver->getVehicle()->getCurrSegment();
-		const RoadSegment* prevSeg = driver->getVehicle()->getPrevSegment();
-		auraMgr.densityMap[prevSeg] = auraMgr.densityMap[currSeg] + 1;
-		auraMgr.densityMap[currSeg] = auraMgr.densityMap[currSeg] + 1;
+	if(ag->getCurrLane()){
+		sim_mob::RoadSegment* rdSeg = ag->getCurrLane()->getRoadSegment();
+
+		auraMgr.densityMap[rdSeg] = auraMgr.densityMap[rdSeg] + 1; // [] operator adds rdSeg to the map if it not already there.
 	}
+	for(boost::unordered_map<const RoadSegment*, unsigned short>::iterator it = auraMgr.densityMap.begin(); it != auraMgr.densityMap.end(); it++){
+		auraMgr.ss << " " << it->second;
+	}
+	auraMgr.ss << std::endl;
 }
 
 /** \endcond ignoreAuraManagerInnards -- End of block to be ignored by doxygen.  */
@@ -433,14 +429,13 @@ AuraManager::printStatistics() const
     }
 }
 
-unsigned short AuraManager::getDensity(const RoadSegment* rdseg) {
-	std::map<const RoadSegment*, unsigned short>::iterator densityMapIt = densityMap.find(rdseg);
+double AuraManager::getDensity(const RoadSegment* rdSeg) {
+	boost::unordered_map<const RoadSegment*, unsigned short>::iterator densityMapIt = densityMap.find(rdSeg);
 	if(densityMapIt == densityMap.end()){
 		throw std::runtime_error("Requested road segment not found");
 	}
-	return densityMapIt->second;
+	return (densityMapIt->second/(rdSeg->length / 100.0)); // return density as no. of vehicles per meter on the road segment.
 }
-
 }
 
 

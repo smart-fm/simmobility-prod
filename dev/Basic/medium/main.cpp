@@ -346,6 +346,9 @@ bool performMainMed(const std::string& configFileName) {
 		}
 	}
 
+	//delHarish
+	cout << auraMgr.ss.str();
+
 	//NOTE: This dangerous behavior; the Worker will still be tracking the Agent!  ~Seth
 	//BusController::busctrller.currWorker = nullptr;// Update our Entity's pointer before ending main()
 

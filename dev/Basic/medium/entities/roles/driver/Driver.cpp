@@ -1,3 +1,4 @@
+#include <math.h>
 #include "entities/roles/pedestrian/Pedestrian.hpp"
 //#include "entities/roles/driver/BusDriver.hpp"
 #include "Driver.hpp"
@@ -18,9 +19,10 @@
 #include "util/GeomHelpers.hpp"
 #include "util/DebugFlags.hpp"
 #include "partitions/PartitionManager.hpp"
+#include "entities/AuraManager.hpp"
 
 
-#ifndef SIMMOB_DISABLE_MPI
+#ifndef SIMMOB_DISABLE_PI
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 #include "partitions/ParitionDebugOutput.hpp"
@@ -190,6 +192,10 @@ void sim_mob::medium::Driver::frame_init(UpdateParams& p)
 		std::cout << "ERROR: Vehicle could not be created for driver; no route!\n";
 #endif
 	}
+
+	//Updating location information for agent for density calculations
+	parent->setCurrLane(params.currLane);
+	parent->setCurrLink((params.currLane)->getRoadSegment()->getLink());
 }
 
 void sim_mob::medium::Driver::setOrigin(DriverUpdateParams& p) {
@@ -398,6 +404,11 @@ void sim_mob::medium::Driver::justLeftIntersection(DriverUpdateParams& p) {
 	syncCurrLaneCachedInfo(p);
 	p.currLaneOffset = vehicle->getDistanceMovedInSegment();
 	targetLaneIndex = p.currLaneIndex;
+
+	//Updating location information for agent for density calculations
+	parent->setCurrLane(p.currLane);
+	parent->setCurrLink((p.currLane)->getRoadSegment()->getLink());
+
 }
 
 //General update information for whenever a Segment may have changed.
@@ -423,6 +434,8 @@ void sim_mob::medium::Driver::frame_tick_output(const UpdateParams& p)
 		return;
 	}
 
+	double baseAngle = vehicle->isInIntersection() ? intModel->getCurrentAngle() : vehicle->getAngle();
+
 #ifndef SIMMOB_DISABLE_OUTPUT
 	LogOut("(\"Driver\""
 			<<","<<p.frameNumber
@@ -430,17 +443,31 @@ void sim_mob::medium::Driver::frame_tick_output(const UpdateParams& p)
 			<<",{"
 			<<"\"xPos\":\""<<static_cast<int>(vehicle->getX())
 			<<"\",\"yPos\":\""<<static_cast<int>(vehicle->getY())
+			<<"\",\"angle\":\""<<(360 - (baseAngle * 180 / M_PI))
 			<<"\",\"length\":\""<<static_cast<int>(vehicle->length)
 			<<"\",\"width\":\""<<static_cast<int>(vehicle->width)
 			<<"\"})"<<std::endl);
 #endif
+
+	//Updating location information for agent for density calculations
+	parent->setCurrLane(params.currLane);
+	parent->setCurrLink((params.currLane)->getRoadSegment()->getLink());
 }
 
 //~melani
 double sim_mob::medium::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 	//Determine how far forward we've moved.
 
-	vehicle->setVelocity(vehicle->getCurrSegment()->maxSpeed); //~melani - for now using max speed of segment
+	//vehicle->setVelocity(vehicle->getCurrSegment()->maxSpeed * 100 / 3.6 ); //~melani - for now using max speed of segment
+	// Fetch density of current road segment and compute speed from speed density function
+	double densityOfCurrSegment;
+	try{
+		densityOfCurrSegment = AuraManager::instance().getDensity(vehicle->getCurrSegment());
+	}
+	catch (std::exception &e){
+		densityOfCurrSegment = 0.0;
+	}
+	vehicle->setVelocity(speed_density_function(densityOfCurrSegment));
 	double fwdDistance = vehicle->getVelocity() * p.elapsedSeconds;
 	if (fwdDistance < 0)
 		fwdDistance = 0;
@@ -639,6 +666,28 @@ void sim_mob::medium::Driver::initLoopSpecialString(vector<WayPoint>& path, cons
 	//Just in case one of these failed.
 	if (path.empty()) {
 		path.insert(path.end(), part.begin(), part.end());
+	}
+}
+
+//This function is associated with the driver class for 2 reasons
+// 1. This function is specific to the medium term
+// 2. It makes sense in the real life as well that the driver decides to slow down or accelerate based on the traffic density around him
+double sim_mob::medium::Driver::speed_density_function(double density){
+	/* TODO: min density, jam density, alpha and beta must be obtained from the database.
+	 * Since we don't have this data, we have taken the average values from supply parameters of Singapore express ways.
+	 * This must be changed after we have this data for each road segment in the database.  */
+	double freeFlowSpeed = vehicle->getCurrSegment()->maxSpeed / 3.6 * 100; // Converting from Kmph to cm/s
+	double jamDensity = 0.2335; //density during traffic jam
+	double alpha = 3.75; //Model parameter of the speed density function
+	double beta = 0.5645; //Model parameter of the speed density function
+	double minDensity = 0.0048; // minimum traffic density
+
+	//Speed-Density function
+	if(density <= minDensity){
+		return freeFlowSpeed;
+	}
+	else {
+		return freeFlowSpeed * pow((1 - pow((density - minDensity)/jamDensity, alpha)),beta);
 	}
 }
 

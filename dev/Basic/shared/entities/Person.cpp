@@ -76,7 +76,7 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 
 
 sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id) :
-	Agent(mtxStrat, id), prevRole(nullptr), currRole(nullptr), currLink(nullptr), agentSrc(src), currTripChainItem(nullptr), currSubTrip(nullptr), firstFrameTick(true)
+	Agent(mtxStrat, id), prevRole(nullptr), currRole(nullptr), agentSrc(src), currTripChainItem(nullptr), currSubTrip(nullptr), firstFrameTick(true)
 {
 	//throw 1;
 }
@@ -480,12 +480,12 @@ sim_mob::Role* sim_mob::Person::getRole() const {
 	return currRole;
 }
 
-sim_mob::Link* sim_mob::Person::getCurrLink(){
+/*sim_mob::Link* sim_mob::Person::getCurrLink(){
 	return currLink;
 }
 void sim_mob::Person::setCurrLink(sim_mob::Link* link){
 	currLink = link;
-}
+}*/
 
 #ifndef SIMMOB_DISABLE_MPI
 /*

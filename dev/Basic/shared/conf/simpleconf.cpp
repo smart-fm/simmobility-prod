@@ -1208,28 +1208,28 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 //
 //    		}
 
-
-    		for(std::set<sim_mob::UniNode*>::const_iterator unode_it = unodes.begin(); unode_it != unodes.end() ; unode_it++)
-    		{
-    			if((*unode_it)->getLinkLoc() ==0)
-    			{
-    				std::cout << "Unode " << (*unode_it)->getID() << "Has NULL link loc\n";
-//    				getchar();
-    			}
-    			else
-    				std::cout << "Unode " << (*unode_it)->getID() << "Has  link loc\n";
-    		}
-    		for(std::vector<sim_mob::MultiNode*>::const_iterator mnode_it = mnodes.begin(); mnode_it != mnodes.end() ; mnode_it++)
-    		{
-    			if((*mnode_it)->getLinkLoc() ==0)
-    			{
-    				std::cout << "Mnode " << (*mnode_it)->getID() << "Has NULL link loc\n";
-//    				getchar();
-    			}
-    			else
-    				std::cout << "Mnode " << (*mnode_it)->getID() << "Has  link loc\n";
-    		}
-    		std::cout << "Checking Nodes done\n";
+//    		//check rn.nodes
+//    		for(std::set<sim_mob::UniNode*>::const_iterator unode_it = unodes.begin(); unode_it != unodes.end() ; unode_it++)
+//    		{
+//    			if((*unode_it)->getLinkLoc() ==0)
+//    			{
+//    				std::cout << "Unode " << (*unode_it)->getID() << "Has NULL link loc\n";
+////    				getchar();
+//    			}
+//    			else
+//    				std::cout << "Unode " << (*unode_it)->getID() << "Has  link loc\n";
+//    		}
+//    		for(std::vector<sim_mob::MultiNode*>::const_iterator mnode_it = mnodes.begin(); mnode_it != mnodes.end() ; mnode_it++)
+//    		{
+//    			if((*mnode_it)->getLinkLoc() ==0)
+//    			{
+//    				std::cout << "Mnode " << (*mnode_it)->getID() << "Has NULL link loc\n";
+////    				getchar();
+//    			}
+//    			else
+//    				std::cout << "Mnode " << (*mnode_it)->getID() << "Has  link loc\n";
+//    		}
+    		std::cout << "Checking done\n";
 #endif
 //////////////////////////////////////////////////////////////////////////////////
     		//Finally, mask the password

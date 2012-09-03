@@ -171,14 +171,14 @@ void Phase::addDefaultCrossings(LinkAndCrossingByLink const & LAC,sim_mob::Multi
 		if(crossing)
 		{
 			crossings_map_.insert(std::pair<sim_mob::Crossing *, sim_mob::Crossings>(crossing, sim_mob::Crossings(link, crossing)));
-			std::cout << " Node ID " << node->getID() << " Phase  " <<  name << " added a crossing\n";
+//			std::cout << " Node ID " << node->getID() << " Phase  " <<  name << " added a crossing\n";
 		}
 		else
 		{
-				std::cout << " Node ID " << node->getID() << " Phase  " <<  name << " has a NULL crossing\n";
+//				std::cout << " Node ID " << node->getID() << " Phase  " <<  name << " has a NULL crossing\n";
 		}
 	}
-	std::cout << " out of addDefaultCrossings for  Node ID " << node->getID() << " Phase " << name << " with " << crossings_map_.size() << " Crossings\n";
+//	std::cout << " out of addDefaultCrossings for  Node ID " << node->getID() << " Phase " << name << " with " << crossings_map_.size() << " Crossings\n";
 //	getchar();
 }
 

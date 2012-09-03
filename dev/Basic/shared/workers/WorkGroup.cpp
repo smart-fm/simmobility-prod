@@ -348,7 +348,7 @@ void sim_mob::WorkGroup::assignAWorkerConstraint(Entity* ag){
 }
 
 //method to find the worker which manages the specified linkID
-sim_mob::Worker* sim_mob::WorkGroup::locateWorker(std::string linkID){
+sim_mob::Worker* sim_mob::WorkGroup::locateWorker(unsigned int linkID){
 	std::vector<Link*> allLinks = ConfigParams::GetInstance().getNetwork().getLinks();
 	for(vector<sim_mob::Link*>::iterator it = allLinks.begin(); it!= allLinks.end();it++){
 		Link* link = *it;

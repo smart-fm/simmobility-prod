@@ -244,10 +244,14 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 		msg << "Attempting to set a path with segments that aren't in order:\n";
 		for (vector<const RoadSegment*>::const_iterator it = path.begin(); it != path.end(); it++)
 		{
-			msg << "  " << (*it)->getStart()->originalDB_ID.getLogItem() << " => " << (*it)->getEnd()->originalDB_ID.getLogItem() << "\n";
+//			Node * start = (*it)->getStart();
+//			Node * end = (*it)->getEnd();
+//			std::cout << "start(" << start->getID() << ")  end(" << end->getID() << ")\n";
+			msg << "  " << (*it)->getStart()->originalDB_ID.getLogItem() ;
+			msg << " => " << (*it)->getEnd()->originalDB_ID.getLogItem() << "\n";
 		}
-
 		throw std::runtime_error(msg.str().c_str());
+
 	}
 
 	areFwds.insert(areFwds.begin(), isFwd);

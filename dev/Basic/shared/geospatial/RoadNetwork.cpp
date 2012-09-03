@@ -36,10 +36,12 @@ int dist(const Point2D& p1, double xPos, double yPos) {
 
 Node* sim_mob::RoadNetwork::locateNode(const Point2D& position, bool includeUniNodes, int maxDistCM) const
 {
+//	std::cout << "Finding a node (from a total of " << nodes.size() <<") at position [" << position.getX() << " , " << position.getY() << "]  => " << std::endl;
 	//First, check the MultiNodes, since these will always be candidates
 	int minDist = maxDistCM+1;
 	Node* candidate = nullptr;
 	for (vector<MultiNode*>::const_iterator it=nodes.begin(); (it!=nodes.end())&&(minDist!=0); it++) {
+//		std::cout << "Checking the node at [" << (*it)->location.getX() << " , " << (*it)->location.getY() << std::endl;
 		int newDist = dist((*it)->location, position);
 		if (newDist < minDist) {
 			minDist = newDist;
@@ -57,7 +59,7 @@ Node* sim_mob::RoadNetwork::locateNode(const Point2D& position, bool includeUniN
 			}
 		}
 	}
-
+//	std::cout << candidate << std::endl;
 	return candidate;
 }
 

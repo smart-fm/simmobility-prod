@@ -14,7 +14,10 @@
 
 //TODO: Once the new signal class is stabilized, replace this include with a forward declaration:
 #include "entities/signal_transitional.hpp"
-
+namespace geo
+{
+class link_t_pimpl;
+}
 namespace sim_mob
 {
 
@@ -48,7 +51,7 @@ class Loader;
 class Link : public sim_mob::Traversable {
 public:
 	Link() : Traversable() {}
-	Link(std::string linkID_) : Traversable(),linkID(linkID_) {}
+	Link(unsigned int linkID_) : Traversable(),linkID(linkID_) {}
 
 	//Initialize a link with the given set of segments
 	void initializeLinkSegments(const std::set<sim_mob::RoadSegment*>& segments);
@@ -56,7 +59,7 @@ public:
 	///Return the length of this Link, which is the sum of all RoadSegments
 	/// in the forward (if isForward is true) direction.
 	int getLength(bool isForward) const;
-	const std::string & getLinkId() const;
+	const unsigned int & getLinkId() const;
 	const std::string & getRoadName() const;
 	///Return the RoadSegments which make up this Link, in either the forward
 	/// (if isForward is true) or reverse direction.
@@ -92,12 +95,13 @@ public:
 public:
 	///The road link's name. E.g., "Main Street"
 	std::string roadName;
-	std::string linkID;
+	unsigned int linkID;
 
 protected:
 	//List of pointers to RoadSegments in each direction
 	std::vector<sim_mob::RoadSegment*> fwdSegments;
 	std::vector<sim_mob::RoadSegment*> revSegments;
+	//when xml reader used, this container is filed with fwdSegments first and revSegments next-vahid
 	std::set<sim_mob::RoadSegment*> uniqueSegments;
 
 	//who is currently managing this link
@@ -108,8 +112,7 @@ protected:
 friend class sim_mob::aimsun::Loader;
 friend class sim_mob::RoadNetworkPackageManager;
 friend class sim_mob::Signal;
-//friend class sim_mob::Worker;
-
+friend class ::geo::link_t_pimpl;
 };
 
 

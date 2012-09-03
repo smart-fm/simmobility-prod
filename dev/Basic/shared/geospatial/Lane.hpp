@@ -7,13 +7,14 @@
 
 #include "Point2D.hpp"
 #include "RoadSegment.hpp"
-//#include "geo5-pimpl.hpp"
+//#include "xmlLoader/geo8-pimpl.hpp"
 
 //using namespace geo;
 namespace geo
 {
 class lane_t_pimpl;
 class Lanes_pimpl;
+class segment_t_pimpl;
 }
 namespace sim_mob
 {
@@ -113,8 +114,8 @@ class Loader;
  *   \endcode
  */
 class Lane {
-	friend class geo::lane_t_pimpl;
-	friend class geo::Lanes_pimpl;
+	friend class ::geo::lane_t_pimpl;
+	friend class ::geo::Lanes_pimpl;
 private:
     /**
      * Lane movement rules.
@@ -284,14 +285,19 @@ private:
 
     friend class StreetDirectory;
     friend class sim_mob::aimsun::Loader;
+    friend class ::geo::segment_t_pimpl;
 
     /** Create a Lane using the \c bit_pattern to initialize the lane's rules.  */
     explicit Lane(sim_mob::RoadSegment* segment, unsigned int laneID, const std::string& bit_pattern="") : parentSegment_(segment), rules_(bit_pattern), width_(0), laneID_(laneID) {
-    	std::ostringstream Id ;
+    std::ostringstream Id ;
     	Id << segment->getSegmentID() <<  laneID;
 
     	laneID_str = Id.str();
     }
+    
+    
+    Lane(){};//is needed by the xml reader
+    inline void setParentSegment(sim_mob::RoadSegment* segment){parentSegment_ = segment;}
 
     /** Set the lane's rules using the \c bit_pattern.  */
     void set(const std::string& bit_pattern) {

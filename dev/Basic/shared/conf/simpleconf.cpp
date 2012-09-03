@@ -32,6 +32,7 @@
 #include "geospatial/BusStop.hpp"
 #include "util/ReactionTimeDistributions.hpp"
 #include "util/OutputUtil.hpp"
+#include "main1.hpp"
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
@@ -175,6 +176,7 @@ void addOrStashEntity(Person* p, std::vector<Entity*>& active_agents, StartTimeP
 {
 	///TODO: The BusController is static; need to address this OUTSIDE this function.
 	//if (ENTITY_BUSCONTROLLER == p.type) { active_agents.push_back(BusController::busctrller); }
+//	std::cout <<"Agent: " <<p->getId() <<", start: " <<p->getStartTime() <<std::endl;
 
 	//Only agents with a start time of zero should start immediately in the all_agents list.
 	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p->getStartTime()==0) {
@@ -432,7 +434,13 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 		Person* agent = new Person("XML_Def", config.mutexStategy, manualID);
 		agent->setConfigProperties(props);
 		agent->setStartTime(startTime);
-
+//		std::cout << " agentType: " << agentType << "\n";
+//		for(map<string, string>::iterator it = props.begin(); it != props.end(); it++)
+//		{
+//			std::cout << " props[" << it->first << " , " << it->second << "]\n";
+//		}
+//		std::cout << "I am in LoadXMLAgnets\n";
+//		getchar();
 		//Add it or stash it
 		addOrStashEntity(agent, active_agents, pending_agents);
 	}
@@ -912,13 +920,14 @@ void PrintDB_Network()
 //Returns the error message, or an empty string if no error.
 std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
 {
+	std::cout << ".............................loadXMLConf \n";
 	//Save granularities: system
 	TiXmlHandle handle(&document);
 	handle = handle.FirstChild("config").FirstChild("system").FirstChild("simulation");
 	int baseGran = ReadGranularity(handle, "base_granularity");
 	int totalRuntime = ReadGranularity(handle, "total_runtime");
 	int totalWarmup = ReadGranularity(handle, "total_warmup");
-
+	std::cout << ".............................loadXMLConf0\n";
 	//Save reaction time parameters
 	int distributionType1, distributionType2;
     int mean1, mean2;
@@ -964,7 +973,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	{
 		node->Attribute("value", &signalAlgorithm);
 	}
-
+	std::cout << ".............................loadXMLConf 2\n";
 #ifndef SIMMOB_DISABLE_MPI
 	//Save mpi parameters, not used when running on one-pc.
 	node = handle.FirstChild("partitioning_solution_id").ToElement();
@@ -1147,6 +1156,12 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     			return "Unknown geometry source: " + (geomSrc?string(geomSrc):"");
     		}
 
+    		/**************************************************
+    		 *
+    		 * ***********  DATABASE **************************
+    		 *
+    		 ***************************************************/
+#ifndef SIMMOB_XML_READER
     		//Load the AIMSUM network details
     		map<string, string> storedProcedures; //Of the form "node" -> "get_node()"
     		if (!LoadDatabaseDetails(*geomElem, ConfigParams::GetInstance().connectionString, storedProcedures)) {
@@ -1158,7 +1173,81 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		if (!dbErrorMsg.empty()) {
     			return "Database loading error: " + dbErrorMsg;
     		}
+#else
+       		/**************************************************
+       		 *
+       		 * ****************  XML-READER *******************
+        	 *
+        	 *************************************************/
+    		main1(0,0);
+    		//testing purpose only
+    		std::cout << "Testin Road Network :\n";
+    		std::vector<Link*>  & links = const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getLinksRW();
+    		std::cout << "Number of Links: " << links.size() << std::endl;
 
+    		std::cout << "Number of segments: " << links[0]->getPath(true).size() << " " << links[0]->getPath(false).size() << std::endl;
+    		const std::vector<sim_mob::MultiNode*>& mnodes = ConfigParams::GetInstance().getNetwork().getNodes();
+    		const std::set<sim_mob::UniNode*>& unodes = ConfigParams::GetInstance().getNetwork().getUniNodes();
+    		std::cout << "Number of UniNodes: " << unodes.size() << std::endl;
+    		std::cout << "Number of MultiNodes: " << mnodes.size() << std::endl;
+
+    		for(std::vector<Link*>::iterator links_it = links.begin(); links_it != links.end(); links_it++)
+    		{
+    			//link
+    			std::cout << "Checking Link " << (*links_it)->getId() << std::endl;
+//    			//Starting node,ending node,originalDB_ID
+//    			std::cout << "checking Starting node " <<  (*links_it)->getStart()->getID() << std::endl;
+//    			if((*links_it)->getStart()->originalDB_ID.isSet())
+//    				std::cout << "checking Starting node originalD_ID " <<  (*links_it)->getStart()->originalDB_ID.getLogItem() << std::endl;
+//    			else
+//    				std::cout << "checking Starting node originalD_ID is EMPTY\n";
+//    			std::cout << "checking ending node " <<  (*links_it)->getEnd()->getID() << std::endl;
+//    			if((*links_it)->getEnd()->originalDB_ID.isSet())
+//    				std::cout << "checking ending node originalD_ID " <<  (*links_it)->getEnd()->originalDB_ID.getLogItem() << std::endl;
+//    			else
+//    				std::cout << "checking Starting node originalD_ID is EMPTY\n";
+    			//segment
+    			for(std::set<sim_mob::RoadSegment*>::iterator segmentnodes_it = (*links_it)->getUniqueSegments().begin(), it_end((*links_it)->getUniqueSegments().end()); segmentnodes_it != it_end; segmentnodes_it++)
+    			{
+    				//starting node, endong node
+    				if(!((*segmentnodes_it)->getStart()&&(*segmentnodes_it)->getEnd()))
+    				{
+    					std::cout << "segment starting node, endong node failed\n";
+    					getchar();
+    				}
+    				else
+    				{
+    					sim_mob::RoadSegment *rs = (*segmentnodes_it);
+    					std::cout << "segment[segmentid,start,end]: " << rs << "[" << (rs)->getSegmentID() << "," << (rs)->getStart()->getID() << "," << (rs)->getEnd()->getID()<< "]" << std::endl;
+    				}
+    			}
+
+    		}
+
+//    		//check rn.nodes
+//    		for(std::set<sim_mob::UniNode*>::const_iterator unode_it = unodes.begin(); unode_it != unodes.end() ; unode_it++)
+//    		{
+//    			if((*unode_it)->getLinkLoc() ==0)
+//    			{
+//    				std::cout << "Unode " << (*unode_it)->getID() << "Has NULL link loc\n";
+////    				getchar();
+//    			}
+//    			else
+//    				std::cout << "Unode " << (*unode_it)->getID() << "Has  link loc\n";
+//    		}
+//    		for(std::vector<sim_mob::MultiNode*>::const_iterator mnode_it = mnodes.begin(); mnode_it != mnodes.end() ; mnode_it++)
+//    		{
+//    			if((*mnode_it)->getLinkLoc() ==0)
+//    			{
+//    				std::cout << "Mnode " << (*mnode_it)->getID() << "Has NULL link loc\n";
+////    				getchar();
+//    			}
+//    			else
+//    				std::cout << "Mnode " << (*mnode_it)->getID() << "Has  link loc\n";
+//    		}
+    		std::cout << "Checking done\n";
+#endif
+//////////////////////////////////////////////////////////////////////////////////
     		//Finally, mask the password
     		string& s = ConfigParams::GetInstance().connectionString;
     		size_t check = s.find("password=");
@@ -1176,6 +1265,18 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     //Seal the network; no more changes can be made after this.
     ConfigParams::GetInstance().sealNetwork();
     std::cout << "Network Sealed" << std::endl;
+    {
+    	std::cout << "Testing Road Network Again:\n";
+    	const sim_mob::RoadNetwork& network = ConfigParams::GetInstance().getNetwork();
+    	    		std::vector<Link*> const & links = network.getLinks();
+    	    		std::cout << "Number of Links: " << links.size() << std::endl;
+    	    		Link const * link = links[0];
+    	    		std::cout << "Number of segments: " << link->getPath(true).size() << " " << link->getPath(false).size() << std::endl;
+    	    		const std::vector<sim_mob::MultiNode*>& mnodes = ConfigParams::GetInstance().getNetwork().getNodes();
+    	    		const std::set<sim_mob::UniNode*>& unodes = ConfigParams::GetInstance().getNetwork().getUniNodes();
+    	    		std::cout << "Number of UniNodes: " << unodes.size() << std::endl;
+    	    		std::cout << "Number of MultiNodes: " << mnodes.size() << std::endl;
+    }
     //Now that the network has been loaded, initialize our street directory (so that lookup succeeds).
     StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
     std::cout << "Street Directory initialized" << std::endl;

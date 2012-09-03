@@ -430,6 +430,9 @@ AuraManager::printStatistics() const
 }
 
 double AuraManager::getDensity(const RoadSegment* rdSeg) {
+	if(densityMap.empty()){
+		throw std::runtime_error("densityMap is empty");
+	}
 	boost::unordered_map<const RoadSegment*, unsigned short>::iterator densityMapIt = densityMap.find(rdSeg);
 	if(densityMapIt == densityMap.end()){
 		throw std::runtime_error("Requested road segment not found");

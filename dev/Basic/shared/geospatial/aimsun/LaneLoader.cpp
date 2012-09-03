@@ -35,16 +35,18 @@ void SortLaneLine(vector<Lane*>& laneLine, std::pair<Node*, Node*> nodes)
 	size_t oldSize = laneLine.size();
 	
 	//Sort by row number from DB
-	std::map<int, Lane*> mapLaneLines;
+	std::map<int, std::vector<Lane*> > mapLaneLines;
 	for(std::vector<Lane*>::const_iterator it = laneLine.begin(); it != laneLine.end(); ++it)
 	{
-		mapLaneLines[(*it)->rowNo] = *it;
+		mapLaneLines[(*it)->rowNo].push_back(*it);
 	}
 
 	vector<Lane*> res;
-	for(std::map<int, Lane*>::const_iterator it = mapLaneLines.begin(); it !=mapLaneLines.end(); ++it)
+	for(std::map<int, std::vector<Lane*> >::const_iterator it = mapLaneLines.begin(); it !=mapLaneLines.end(); ++it)
 	{
-		res.push_back((*it).second);
+		for (std::vector<Lane*>::const_iterator it2=it->second.begin(); it2!=it->second.end(); it2++) {
+			res.push_back(*it2);
+		}
 	}
 
 	//Pick the first point.
@@ -65,7 +67,7 @@ void SortLaneLine(vector<Lane*>& laneLine, std::pair<Node*, Node*> nodes)
 	//Check
 	laneLine.clear();
 	if (oldSize != res.size()) {
-		std::cout <<"ERROR: Couldn't sort Lanes array, zeroing out.\n";
+		std::cout <<"ERROR: Couldn't sort Lanes array, zeroing out. " << oldSize <<"," <<res.size() <<std::endl;
 	}
 
 

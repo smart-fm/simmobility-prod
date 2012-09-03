@@ -774,7 +774,6 @@ void PrintDB_Network()
 	LogOutNotSync("\"frame-time-ms\":\"" <<ConfigParams::GetInstance().baseGranMS <<"\",");
 	LogOutNotSync("})" <<endl);
 
-	;
 
 #ifdef SIMMOB_NEW_SIGNAL
 	sim_mob::Signal::all_signals_const_Iterator it;
@@ -882,24 +881,14 @@ void PrintDB_Network()
 			LogOutNotSync("})" <<endl);
 		}
 
-
 		const std::map<centimeter_t, const RoadItem*>& mapBusStops = (*it)->obstacles;
-				for(std::map<centimeter_t, const RoadItem*>::const_iterator itBusStops = mapBusStops.begin(); itBusStops != mapBusStops.end(); ++itBusStops)
-				{
-					std::cout<<"inside itBusStops loop...";
-					const RoadItem* ri = itBusStops->second;
-					const BusStop* resBS = dynamic_cast<const BusStop*>(ri);
-						if (resBS) {
-							std::cout<<"inserting busstop";
-						cachedBusStops.insert(resBS);
-					} else {
-						std::cout<<"this is not a busstop";
-//						std::cout <<"NOTE: Unknown obstacle!\n";
-					}
-						std::cout<< std::endl;
-				}
-				std::cout<<"itBusStops size : " <<  cachedBusStops.size() << std::endl;
-
+		for (std::map<centimeter_t, const RoadItem*>::const_iterator itBusStops = mapBusStops.begin(); itBusStops != mapBusStops.end(); ++itBusStops) {
+			const RoadItem* ri = itBusStops->second;
+			const BusStop* resBS = dynamic_cast<const BusStop*>(ri);
+			if (resBS) {
+				cachedBusStops.insert(resBS);
+			}
+		}
 
 		//Save crossing info for later
 		const std::map<centimeter_t, const RoadItem*>& mapCrossings = (*it)->obstacles;
@@ -907,10 +896,8 @@ void PrintDB_Network()
 		{
 			const RoadItem* ri = itCrossings->second;
 			const Crossing* resC = dynamic_cast<const Crossing*>(ri);
-				if (resC) {
+			if (resC) {
 				cachedCrossings.insert(resC);
-			} else {
-				std::cout <<"NOTE: Unknown obstacle!\n";
 			}
 		}
 
@@ -996,6 +983,10 @@ void PrintDB_Network()
 		LogOutNotSync("\"to-lane\":\"" <<toLane <<"\",");
 		LogOutNotSync("})" <<endl);
 	}
+
+	//Print the StreetDirectory graphs.
+	StreetDirectory::instance().printDrivingGraph();
+	StreetDirectory::instance().printWalkingGraph();
 
 	//Temp: Print ordering of output Links
 	for (vector<MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
@@ -1386,13 +1377,13 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 			std::cout <<"    Crossing[" <<it->first <<"] = (" <<it->second.getX() <<"," <<it->second.getY() <<")\n";
 		}
     }
-    if (!ConfigParams::GetInstance().connectionString.empty()) {
+    //if (!ConfigParams::GetInstance().connectionString.empty()) {
     	//Output AIMSUN data
     	std::cout <<"Network details loaded from connection: " <<ConfigParams::GetInstance().connectionString <<"\n";
     	std::cout <<"------------------\n";
     	PrintDB_Network();
     	std::cout <<"------------------\n";
-    }
+   // }
     std::cout <<"  Agents Initialized: " <<Agent::all_agents.size() <<"\n";
     /*for (size_t i=0; i<active_agents.size(); i++) {
     	//std::cout <<"    Agent(" <<agents[i]->getId() <<") = " <<agents[i]->xPos.get() <<"," <<agents[i]->yPos.get() <<"\n";

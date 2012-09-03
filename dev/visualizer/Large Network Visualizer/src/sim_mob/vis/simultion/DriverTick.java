@@ -4,7 +4,6 @@ import java.awt.BasicStroke;
 
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
@@ -89,7 +88,7 @@ public class DriverTick extends AgentTick {
 	 */
 
 
-	public DriverTick(int id, double posX, double posY, double angle) {
+	public DriverTick(long id, double posX, double posY, double angle) {
 		this(id, posX, posY, angle, null);
 	}
 	
@@ -112,7 +111,7 @@ public class DriverTick extends AgentTick {
 	}
 	
 	
-	public DriverTick(int id, double posX, double posY, double angle, RxLocation msgLocation) {
+	public DriverTick(long id, double posX, double posY, double angle, RxLocation msgLocation) {
 		super(id);
 		
 		this.pos = new FlippedScaledPoint(posX, posY);
@@ -362,7 +361,7 @@ public class DriverTick extends AgentTick {
 		g.setFont(idFont);
 		g.setStroke(new BasicStroke(0.5F));
 		
-		String id = Integer.toString(getID());
+		String id = Long.toString(getID());
 		g.drawString(id, 0, 0);
 
 		//Restore AffineTransform matrix.

@@ -5,18 +5,13 @@ import java.awt.Color;
 import java.io.*;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.regex.Matcher;
-
-import javax.lang.model.element.Element;
 import javax.swing.SwingUtilities;
 
 import sim_mob.act.BifurcatedActivity;
 import sim_mob.act.SimpleThreadPool;
-import sim_mob.vis.Main;
 import sim_mob.vis.ProgressUpdateRunner;
 import sim_mob.vis.controls.NetworkPanel;
 import sim_mob.vis.network.*;
-import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.util.FastLineParser;
 import sim_mob.vis.util.Utility;
 
@@ -52,7 +47,7 @@ public class SimulationResults {
 	
 	
 	
-	public void loadFileAndReport(BufferedReader inFile, RoadNetwork rn, HashSet<Integer> uniqueAgentIDs, long fileLength, NetworkPanel progressUpdate) throws IOException {
+	public void loadFileAndReport(BufferedReader inFile, RoadNetwork rn, HashSet<Long> uniqueAgentIDs, long fileLength, NetworkPanel progressUpdate) throws IOException {
 		ticks = new ArrayList<TimeTick>();
 		frame_length_ms = -1;
 		
@@ -124,48 +119,19 @@ public class SimulationResults {
 		}
 		
 		//Modify traffic signal to make it stable
-		Hashtable<Integer,SignalLineTick> oldSignal = new Hashtable<Integer, SignalLineTick>();
-
-		//Now that the file has been loaded, scale agent positions to the RoadNetwork (so we can at least
-		//  see something.)
+		Hashtable<Long,SignalLineTick> oldSignal = new Hashtable<Long, SignalLineTick>();
 		for (TimeTick tt : ticks) {
-			for (AgentTick at : tt.agentTicks.values()) {
-				//Skip pedestrians; they're already using the right coordinates
-				/*if (!OutOfBounds(at.getPos().getUnscaledX(), at.getPos().getUnscaledY(), rn)) {
-					continue;
-				}
-				
-				//Get percent
-				double percX = at.pos.getUnscaledX()/(xBounds[1]-xBounds[0]);
-				double percY = at.pos.getUnscaledY()/(yBounds[1]-yBounds[0]);
-				
-				//Scale to RN
-				double amtX = percX * (rn.getLowerRight().x - rn.getTopLeft().x);
-				double amtY = percY * (rn.getLowerRight().y - rn.getTopLeft().y);
-				
-				//Translate to RN
-				double resX = amtX + rn.getTopLeft().x;
-				double resY = amtY + rn.getTopLeft().y;
-				
-				//Save
-				at.pos = new ScaledPoint(resX, resY);*/
-			}
-		    
-			
-			if(tt.signalLineTicks.size()>0)
-			{
+			if(tt.signalLineTicks.size()>0) {
 				//Clean previous data
-				oldSignal = new Hashtable<Integer, SignalLineTick>();
+				oldSignal = new Hashtable<Long, SignalLineTick>();
+				
 				//Assign new data
 				oldSignal = tt.signalLineTicks;
-			}
-			else if(tt.signalLineTicks.size() == 0){
-			
+			} else if(tt.signalLineTicks.size() == 0) {
 				if(oldSignal.size()!=0){
 					tt.signalLineTicks = oldSignal;
-				}
-				else{
-					System.out.println("Error, in modification of signal line ticks -- SimulationResults, constructor");
+				} else {
+					//System.out.println("Error, in modification of signal line ticks -- SimulationResults, constructor");
 				}
 				
 			}
@@ -188,13 +154,13 @@ public class SimulationResults {
 	private static class SimResLineParser extends BifurcatedActivity {
 		ArrayList<LogFileLine> lines;
 		SimulationResults sim;
-		HashSet<Integer> uniqueAgentIDs;
+		HashSet<Long> uniqueAgentIDs;
 		TemporarySimObjects resObj;
 		RoadNetwork network;
 		//TEMP
 		FastLineParser flp;
 		
-		SimResLineParser(ArrayList<LogFileLine> lines, SimulationResults sim, RoadNetwork rn, HashSet<Integer> uniqueAgentIDs) {
+		SimResLineParser(ArrayList<LogFileLine> lines, SimulationResults sim, RoadNetwork rn, HashSet<Long> uniqueAgentIDs) {
 			this.lines = lines;
 			this.sim = sim;
 			this.uniqueAgentIDs = uniqueAgentIDs;

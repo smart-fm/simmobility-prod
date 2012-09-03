@@ -126,6 +126,8 @@ public class LazySpatialIndex<ItemType> {
 	
 	
 	public void addItem(ItemType item, Rectangle2D bounds) {
+		if (bounds.getMinY()>0) { throw new RuntimeException(); }
+		
 		//We can easily support this later, if required.
 		if (bounds.getWidth()==0 || bounds.getHeight()==0) { throw new RuntimeException("width/height must be non-zero."); }
 		//temp_check_bounds(bounds);

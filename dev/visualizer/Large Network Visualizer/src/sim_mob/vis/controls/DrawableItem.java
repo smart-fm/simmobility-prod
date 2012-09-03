@@ -21,6 +21,8 @@ public interface DrawableItem {
 	public static final int Z_ORDER_ANNOTATION    =  90;
 	public static final int Z_ORDER_BusStop       = 100;
 	public static final int Z_ORDER_TRAFFIC_SIGNAL= 110;
+	public static final int Z_ORDER_SD_VERTEX     = 111;
+	public static final int Z_ORDER_SD_EDGE       = 112;
 	
 	//We don't really care about the order of drivers/pedestrians
 	public static final int Z_ORDER_DRIVER        = 400;

@@ -86,6 +86,13 @@ void sim_mob::PedestrianPathMover::setPath(const PEDESTRIAN_PATH path){
 				}
 		}
 	} //end of for
+
+	//Sanity check.
+	if (polylinePoints.empty()) {
+		throw std::runtime_error("Cannot set pedestrian path: no path!");
+	}
+
+	//Save it.
 	isDoneWithEntirePath = false;
 	currPolylineStartpoint = polylinePoints.begin();
 	currPolylineEndpoint = polylinePoints.begin() + 1;

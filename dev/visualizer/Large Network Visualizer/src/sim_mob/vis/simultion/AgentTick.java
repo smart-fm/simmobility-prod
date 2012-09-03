@@ -1,6 +1,7 @@
 package sim_mob.vis.simultion;
 
-import sim_mob.vis.controls.DrawableAgent;
+import sim_mob.vis.controls.DrawableItem;
+
 import sim_mob.vis.network.basic.ScaledPoint;
 
 
@@ -10,14 +11,14 @@ import sim_mob.vis.network.basic.ScaledPoint;
  * \author Seth N. Hetu
  * \author Zhang Shuai
  */
-public abstract class AgentTick implements DrawableAgent {
-	public AgentTick(int id) {
+public abstract class AgentTick implements DrawableItem {
+	public AgentTick(long id) {
 		this.id = id;
 	}
 	
-	protected int id;
+	protected long id;
 	protected ScaledPoint pos;
 	public ScaledPoint getPos() { return pos; }
-	public int getID() { return id; }
+	public long getID() { return id; }
 	
 }

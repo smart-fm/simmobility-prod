@@ -119,10 +119,10 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 
 		//Otherwise, make a trip chain for this Person.
 
-		std::cout << "sim_mob::Person::load=>input[" << origIt->second << " , " << destIt->second << "]\n";
+		//std::cout << "sim_mob::Person::load=>input[" << origIt->second << " , " << destIt->second << "]\n";
 		this->originNode = ConfigParams::GetInstance().getNetwork().locateNode(parse_point(origIt->second), true);
 		this->destNode = ConfigParams::GetInstance().getNetwork().locateNode(parse_point(destIt->second), true);
-		std::cout << "Resulting nodes[" << this->originNode << " , " << this->destNode << "]\n";
+		//std::cout << "Resulting nodes[" << this->originNode << " , " << this->destNode << "]\n";
 
 		//Make sure they have a mode specified for this trip
 		it = configProps.find("#mode");
@@ -353,7 +353,6 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 #ifndef SIMMOB_STRICT_AGENT_ERRORS
 	try {
 #endif
-
 		//Update functionality
 		update_time(frameNumber, currTimeMS, retVal);
 

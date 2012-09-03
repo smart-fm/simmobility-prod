@@ -1164,16 +1164,16 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		 ***************************************************/
 #ifndef SIMMOB_XML_READER
     		//Load the AIMSUM network details
-//    		map<string, string> storedProcedures; //Of the form "node" -> "get_node()"
-//    		if (!LoadDatabaseDetails(*geomElem, ConfigParams::GetInstance().connectionString, storedProcedures)) {
-//    			return "Unable to load database connection settings....";
-//    		}
-//
-//    		//Actually load it
-//    		string dbErrorMsg = sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetworkRW(), ConfigParams::GetInstance().getTripChains(), prof);
-//    		if (!dbErrorMsg.empty()) {
-//    			return "Database loading error: " + dbErrorMsg;
-//    		}
+    		map<string, string> storedProcedures; //Of the form "node" -> "get_node()"
+    		if (!LoadDatabaseDetails(*geomElem, ConfigParams::GetInstance().connectionString, storedProcedures)) {
+    			return "Unable to load database connection settings....";
+    		}
+
+    		//Actually load it
+    		string dbErrorMsg = sim_mob::aimsun::Loader::LoadNetwork(ConfigParams::GetInstance().connectionString, storedProcedures, ConfigParams::GetInstance().getNetworkRW(), ConfigParams::GetInstance().getTripChains(), prof);
+    		if (!dbErrorMsg.empty()) {
+    			return "Database loading error: " + dbErrorMsg;
+    		}
 #else
        		/**************************************************
        		 *
@@ -1181,6 +1181,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
         	 *
         	 *************************************************/
     		main1(0,0);
+    		//testing purpose only
     		std::cout << "Testin Road Network :\n";
     		std::vector<Link*>  & links = const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getLinksRW();
     		std::cout << "Number of Links: " << links.size() << std::endl;
@@ -1206,7 +1207,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 //    				std::cout << "checking Starting node originalD_ID is EMPTY\n";
 //
 //    		}
-#endif
+
 
     		for(std::set<sim_mob::UniNode*>::const_iterator unode_it = unodes.begin(); unode_it != unodes.end() ; unode_it++)
     		{
@@ -1229,6 +1230,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     				std::cout << "Mnode " << (*mnode_it)->getID() << "Has  link loc\n";
     		}
     		std::cout << "Checking Nodes done\n";
+#endif
 //////////////////////////////////////////////////////////////////////////////////
     		//Finally, mask the password
     		string& s = ConfigParams::GetInstance().connectionString;

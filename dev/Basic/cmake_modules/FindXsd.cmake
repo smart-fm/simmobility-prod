@@ -12,6 +12,7 @@ FIND_PATH(XSD_INCLUDE_DIR cxx/parser/elements.hxx
   $ENV{XSDDIR}/include
   /usr/local/include/xsd
   /usr/include/xsd
+  /Users/Shared/xsd_osxbin/libxsd/xsd
 )
 
 FIND_PROGRAM(XSD_EXECUTABLE 
@@ -22,6 +23,7 @@ FIND_PROGRAM(XSD_EXECUTABLE
     $ENV{XSDDIR}/bin 
     /usr/local/bin
     /usr/bin
+    /Users/Shared/xsd_osxbin/bin
 )
 
 # if the include and the program are found then we have it

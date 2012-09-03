@@ -6,13 +6,17 @@
 # XSD_INCLUDE_DIR, where to find elements.hxx, etc.
 # XSD_EXECUTABLE, where is the xsd compiler
 # XSD_FOUND, If false, don't try to use xsd
-FIND_PATH(XSD_INCLUDE_DIR cxx/parser/elements.hxx
-  "[HKEY_CURRENT_USER\\software\\xsd\\include]"
-  "[HKEY_CURRENT_USER]\\xsd\\include]"
-  $ENV{XSDDIR}/include
-  /usr/local/include/xsd
-  /usr/include/xsd
-  /Users/Shared/xsd_osxbin/libxsd
+FIND_PATH(XSD_INCLUDE_DIR 
+  NAMES
+    xsd/cxx/parser/elements.hxx
+    cxx/parser/elements.hxx
+  PATHS
+    "[HKEY_CURRENT_USER\\software\\xsd\\include]"
+    "[HKEY_CURRENT_USER]\\xsd\\include]"
+    $ENV{XSDDIR}/include
+    /usr/local/include
+    /usr/include
+    /Users/Shared/xsd_osxbin/libxsd
 )
 
 FIND_PROGRAM(XSD_EXECUTABLE 

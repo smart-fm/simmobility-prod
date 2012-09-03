@@ -6,6 +6,22 @@ IF (POLICY CMP0017)
   cmake_policy(SET CMP0017 NEW)
 ENDIF (POLICY CMP0017)
 
+#Force a decent compiler on OSX (gcc is still 4.2 on OSX, and it lacks functionality we need) 
+#This MUST go before the project() definition.
+IF(EXISTS "/Applications/")   #If you have an "/Applications" directory on *nix... just why?
+  #Gcc 4.X?
+  IF(EXISTS "/opt/local/bin/g++-mp-4.6")
+    SET(CMAKE_C_COMPILER    "/opt/local/bin/gcc-mp-4.6")
+    SET(CMAKE_CXX_COMPILER  "/opt/local/bin/g++-mp-4.6")
+  ENDIF(EXISTS "/opt/local/bin/g++-mp-4.6")
+  
+  #Clang? (built from SVN, will override gcc)
+  #IF(EXISTS "/usr/local/bin/clang")
+  #  SET(CMAKE_C_COMPILER    "/usr/local/bin/clang")
+  #  SET(CMAKE_CXX_COMPILER  "/usr/local/bin/clang++")
+  #ENDIF(EXISTS "/usr/local/bin/clang")
+ENDIF(EXISTS "/Applications/")
+
 #Project name. Used to tag resources in cmake. 
 project (SimMob)
 

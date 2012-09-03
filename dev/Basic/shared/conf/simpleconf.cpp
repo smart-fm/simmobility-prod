@@ -1162,7 +1162,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		 * ***********  DATABASE **************************
     		 *
     		 ***************************************************/
-
+#ifndef SIMMOB_XML_READER
     		//Load the AIMSUM network details
 //    		map<string, string> storedProcedures; //Of the form "node" -> "get_node()"
 //    		if (!LoadDatabaseDetails(*geomElem, ConfigParams::GetInstance().connectionString, storedProcedures)) {
@@ -1174,6 +1174,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 //    		if (!dbErrorMsg.empty()) {
 //    			return "Database loading error: " + dbErrorMsg;
 //    		}
+#else
        		/**************************************************
        		 *
        		 * ****************  XML-READER *******************
@@ -1205,6 +1206,8 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 //    				std::cout << "checking Starting node originalD_ID is EMPTY\n";
 //
 //    		}
+#endif
+
     		for(std::set<sim_mob::UniNode*>::const_iterator unode_it = unodes.begin(); unode_it != unodes.end() ; unode_it++)
     		{
     			if((*unode_it)->getLinkLoc() ==0)

@@ -48,7 +48,7 @@ namespace sim_mob
 
 Signal_SCATS const &
 Signal_SCATS::signalAt(Node const & node, const MutexStrategy& mtxStrat, bool *isNew ) {
-	*isNew = false;
+	if (isNew) { *isNew = false; }
 	Signal_SCATS const * signal = dynamic_cast<Signal_SCATS const *>(StreetDirectory::instance().signalAt(node));
 	if (signal)
 	{
@@ -57,7 +57,7 @@ Signal_SCATS::signalAt(Node const & node, const MutexStrategy& mtxStrat, bool *i
 
 	Signal_SCATS * sig = new Signal_SCATS(node, mtxStrat);
 	all_signals_.push_back(sig);
-	*isNew = true;
+	if (isNew) { *isNew = true; }
 	StreetDirectory::instance().registerSignal(*sig);
 //	std::cout << "Signal Created\n";
 	return *sig;

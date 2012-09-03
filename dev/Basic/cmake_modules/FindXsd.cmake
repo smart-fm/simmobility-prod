@@ -12,7 +12,7 @@ FIND_PATH(XSD_INCLUDE_DIR cxx/parser/elements.hxx
   $ENV{XSDDIR}/include
   /usr/local/include/xsd
   /usr/include/xsd
-  /Users/Shared/xsd_osxbin/libxsd/xsd
+  /Users/Shared/xsd_osxbin/libxsd
 )
 
 FIND_PROGRAM(XSD_EXECUTABLE 

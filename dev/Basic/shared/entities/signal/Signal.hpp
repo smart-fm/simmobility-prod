@@ -19,6 +19,7 @@
 #else
 #include <map>
 #include <vector>
+#include <stdexcept>
 #include "entities/Agent.hpp"
 #include "metrics/Length.hpp"
 #include "entities/LoopDetectorEntity.hpp"
@@ -67,11 +68,11 @@ class Signal  : public sim_mob::Agent
 public:
 	Signal(Node const & node, const MutexStrategy& mtxStrat, int id=-1)
 	  : Agent(mtxStrat, id), node_(node){};
-   virtual LinkAndCrossingByLink const & getLinkAndCrossingsByLink() const {};
-   virtual LinkAndCrossingByCrossing const & getLinkAndCrossingsByCrossing() const{};
-   virtual TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const {} ;
-   virtual TrafficColor getPedestrianLight(Crossing const & crossing) const {};
-   virtual std::string toString() const{};
+   virtual LinkAndCrossingByLink const & getLinkAndCrossingsByLink() const { throw std::runtime_error("Not implemented"); };
+   virtual LinkAndCrossingByCrossing const & getLinkAndCrossingsByCrossing() const{ throw std::runtime_error("Not implemented"); };
+   virtual TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const { throw std::runtime_error("Not implemented"); } ;
+   virtual TrafficColor getPedestrianLight(Crossing const & crossing) const { throw std::runtime_error("Not implemented"); };
+   virtual std::string toString() const{ throw std::runtime_error("Not implemented"); };
    Node  const & getNode() const { return node_; }
    virtual void outputTrafficLights(frame_t frameNumber,std::string newLine)const{};
    virtual void createStringRepresentation(std::string){};
@@ -97,7 +98,7 @@ public:
 	void initialize();
 	void setSplitPlan(sim_mob::SplitPlan);
 	Signal_SCATS(Node const & node,const MutexStrategy& mtxStrat,int id=-1);
-    static Signal_SCATS const & signalAt(Node const & node, const MutexStrategy& mtxStrat,bool *isNew = false);//bool isNew : since this function will create and return new signal if already existing signals not found, a switch to indicate what happened in the function would be nice
+    static Signal_SCATS const & signalAt(Node const & node, const MutexStrategy& mtxStrat,bool *isNew=nullptr);//bool isNew : since this function will create and return new signal if already existing signals not found, a switch to indicate what happened in the function would be nice
 
 	//Note: You need a virtual destructor or else superclass destructors won't be called. ~Seth
     //created virtual for the immediate parent.Although not needed

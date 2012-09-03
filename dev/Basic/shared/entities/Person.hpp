@@ -42,7 +42,7 @@ class UnPackageUtils;
 class Person : public sim_mob::Agent {
 public:
 	///The "src" variable is used to help flag how this person was created.
-	explicit Person(const std::string& src, const MutexStrategy& mtxStrat, int id=-1);
+	explicit Person(const std::string& src, const MutexStrategy& mtxStrat,unsigned int id=-1);
 	virtual ~Person();
 
 	///Update Person behavior

@@ -13,21 +13,21 @@ public:
 	void update(double nextCL);
 
 	//parameters for calculating next cycle length
-	const static double DSmax = 0.9;
-	const static double DSmed = 0.5;
-	const static double DSmin = 0.3;
+	const static double DSmax;
+	const static double DSmed;
+	const static double DSmin;
 
-	const static double CLmax = 140;
-	const static double CLmed = 100;
-	const static double CLmin = 60;
+	const static double CLmax;
+	const static double CLmed;
+	const static double CLmin;
 
 	//parameters for calculating next Offset
-	const static double CL_low = 70;
-	const static double CL_up = 120;
-	const static double Off_low = 5;
-	const static double Off_up = 26;
+	const static double CL_low;
+	const static double CL_up;
+	const static double Off_low;
+	const static double Off_up;
 
-	const static double fixedCL = 60;
+	const static double fixedCL;
 
 private:
 	/*-------------------------------------------------------------------------

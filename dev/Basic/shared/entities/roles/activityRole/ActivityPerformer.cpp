@@ -102,10 +102,6 @@ void sim_mob::ActivityPerformer::initializeRemainingTime() {
 }
 
 void sim_mob::ActivityPerformer::updateRemainingTime() {
-	this->remainingTimeToComplete =
-			((this->remainingTimeToComplete - ConfigParams::GetInstance().baseGranMS) >=0)?
-					(this->remainingTimeToComplete - ConfigParams::GetInstance().baseGranMS):
-					0;
-
+	this->remainingTimeToComplete = std::max(0, this->remainingTimeToComplete - int(ConfigParams::GetInstance().baseGranMS));
 }
 

@@ -685,6 +685,7 @@ public:
 private:
     void process(std::vector<RoadSegment*> const & roads, bool isForward);
     void process(RoadSegment const * road, bool isForward);
+    void linkCrossingToRoadSegment(RoadSegment *road, bool isForward);
     void clearChoiceSet();
 
     bool checkIfExist(std::vector<std::vector<WayPoint> > & paths, std::vector<WayPoint> & path);
@@ -857,8 +858,11 @@ StreetDirectory::ShortestPathImpl::findNode(Point2D const & point)
 inline void
 StreetDirectory::ShortestPathImpl::process(std::vector<RoadSegment*> const & roads, bool isForward)
 {
-    for (size_t i = 0; i < roads.size(); ++i)
-        process(roads[i], isForward);
+	for (size_t i = 0; i < roads.size(); ++i)
+	{
+		linkCrossingToRoadSegment(const_cast<RoadSegment*>(roads[i]),isForward);
+		process(roads[i], isForward);
+	}
 }
 
 inline StreetDirectory::ShortestPathImpl::ShortestPathImpl(RoadNetwork const & network)
@@ -872,7 +876,27 @@ inline StreetDirectory::ShortestPathImpl::ShortestPathImpl(RoadNetwork const & n
     }
 //    GeneratePathChoiceSet();
 }
+void StreetDirectory::ShortestPathImpl::linkCrossingToRoadSegment(RoadSegment *road, bool isForward)
+{
+	centimeter_t offset = 0;
+	while (offset < road->length)
+	{
+		RoadItemAndOffsetPair pair = road->nextObstacle(offset, isForward);
+		if (0 == pair.item)
+		{
+			offset = road->length;
+			break;
+		}
 
+
+		if (Crossing * crossing = const_cast<Crossing*>(dynamic_cast<Crossing const *>(pair.item)))
+		{
+			crossing->setRoadSegment(road);
+		}
+
+		offset = pair.offset + 1;
+	}
+}
 void
 StreetDirectory::ShortestPathImpl::process(RoadSegment const * road, bool isForward)
 {
@@ -1133,6 +1157,7 @@ StreetDirectory::ShortestPathImpl::addSideWalk(Lane const * sideWalk, centimeter
     boost::put(boost::edge_weight, walkingMap_, edge, length);
 
     // Side walks are bi-directional for pedestrians.  Add another edge for the other direction.
+    wp.directionReverse = true;
     boost::tie(edge, ok) = boost::add_edge(v, u, walkingMap_);
     boost::put(boost::edge_name, walkingMap_, edge, wp);
     boost::put(boost::edge_weight, walkingMap_, edge, length);
@@ -1158,6 +1183,7 @@ StreetDirectory::ShortestPathImpl::addCrossing(Crossing const * crossing, centim
     boost::put(boost::edge_weight, walkingMap_, edge, length);
 
     // Crossings are bi-directional for pedestrians.  Add another edge for the other direction.
+    wp.directionReverse = true;
     boost::tie(edge, ok) = boost::add_edge(v, u, walkingMap_);
     boost::put(boost::edge_name, walkingMap_, edge, wp);
     boost::put(boost::edge_weight, walkingMap_, edge, length);

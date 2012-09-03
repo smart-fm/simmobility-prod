@@ -64,11 +64,6 @@ int diff_ms(timeval t1, timeval t2) {
 //Current software version.
 const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
 
-//Function prototypes.
-//void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents);
-bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents);
-
-
 
 /**
  * Main simulation loop.
@@ -119,15 +114,6 @@ bool performMainMed(const std::string& configFileName) {
 	const ConfigParams& config = ConfigParams::GetInstance();
 
 
-	//Sanity check (nullptr)
-	void* x = nullptr;
-	if (x) {
-		return false;
-	}
-
-	//Output
-	cout << "  " << "...Sanity Check Passed" << endl;
-
 	//Start boundaries
 #ifndef SIMMOB_DISABLE_MPI
 	if (config.is_run_on_many_computers) {
@@ -136,75 +122,58 @@ bool performMainMed(const std::string& configFileName) {
 	}
 #endif
 
+	bool NoDynamicDispatch = config.DynamicDispatchDisabled();
+
+	PartitionManager* partMgr = nullptr;
+	if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
+		partMgr = &PartitionManager::instance();
+	}
+
 	{ //Begin scope: WorkGroups
 
-	//Initialize our work groups.
-	WorkGroup agentWorkers(config.agentWorkGroupSize, config.totalRuntimeTicks,
-			config.granAgentsTicks, true);
-	//Agent::TMP_AgentWorkGroup = &agentWorkers;
-	//Worker::ActionFunction entityWork = boost::bind(entity_worker, _1, _2);
-	agentWorkers.initWorkers(//&entityWork,
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
-		&entLoader
+	//Work Group specifications
+	WorkGroup* agentWorkers = WorkGroup::NewWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
+#ifdef TEMP_FORCE_ONE_WORK_GROUP
+	WorkGroup* signalStatusWorkers = agentWorkers;
 #else
-		nullptr
+	WorkGroup* signalStatusWorkers = WorkGroup::NewWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
 #endif
-	);
 
-	bool NoDynamicDispatch = ConfigParams::GetInstance().DynamicDispatchDisabled();
-	//randomly assign link to workers
-	agentWorkers.assignLinkWorker();
+	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
+	WorkGroup::InitAllGroups();
 
-	//Add all agents to workers. If they are in all_agents, then their start times have already been taken
-	//  into account; just add them. Otherwise, by definition, they will be in pending_agents.
+	//Initialize each work group individually
+	agentWorkers->initWorkers(NoDynamicDispatch ? nullptr :  &entLoader);
+#ifndef TEMP_FORCE_ONE_WORK_GROUP
+	signalStatusWorkers->initWorkers(nullptr);
+#endif
+
+
+	//Anything in all_agents is starting on time 0, and should be added now.
 	for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
-			agentWorkers.assignAWorkerConstraint(*it);
+		agentWorkers->assignAWorker(*it);
+	}
+
+	//Assign all signals too
+	for (vector<Signal*>::iterator it = Signal::all_signals_.begin(); it != Signal::all_signals_.end(); it++) {
+		signalStatusWorkers->assignAWorker(*it);
 	}
 
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
-	//Initialize our signal status work groups
-	//  TODO: There needs to be a more general way to do this.
-#ifndef TEMP_FORCE_ONE_WORK_GROUP
-	WorkGroup signalStatusWorkers(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
-	//Worker::ActionFunction spWork = boost::bind(signal_status_worker, _1, _2);
-	signalStatusWorkers.initWorkers(/*&spWork,*/ nullptr);
-#endif
-	for (size_t i = 0; i < Signal::all_signals_.size(); i++) {
-		//add by xuyan
-//		if(Signal::all_signals_[i]->isFake)
-//			continue;
-#ifdef TEMP_FORCE_ONE_WORK_GROUP
-		agentWorkers.assignAWorkerConstraint(Signal::all_signals_[i]);
-#else
-		signalStatusWorkers.assignAWorkerConstraint(Signal::all_signals_[i]);
-#endif
-	}
-
 	//Initialize the aura manager
-	AuraManager& auraMgr = AuraManager::instance();
-	auraMgr.init();
+	AuraManager::instance().init();
 
 	//Start work groups and all threads.
-	agentWorkers.startAll();
-#ifndef TEMP_FORCE_ONE_WORK_GROUP
-	signalStatusWorkers.startAll();
-#endif
+	WorkGroup::StartAllWorkGroups();
 
 	//
-#ifndef SIMMOB_DISABLE_MPI
-	if (config.is_run_on_many_computers) {
+	if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
-		partitionImpl.setEntityWorkGroup(&agentWorkers, &signalStatusWorkers);
+		partitionImpl.setEntityWorkGroup(agentWorkers, signalStatusWorkers);
 
 		std::cout << "partition_solution_id in main function:" << partitionImpl.partition_config->partition_solution_id << std::endl;
-		//std::cout << partitionImpl. << partitionImpl.partition_config->partition_solution_id << std::endl;
-		//temp no need
-//		if (config.is_simulation_repeatable) {
-//			partitionImpl.updateRandomSeed();
-//		}
 	}
-#endif
 
 	/////////////////////////////////////////////////////////////////
 	// NOTE: WorkGroups are able to handle skipping steps by themselves.
@@ -253,32 +222,8 @@ bool performMainMed(const std::string& configFileName) {
 		}
 #endif
 
-		//Update the signal logic and plans for every intersection grouped by region
-#ifndef TEMP_FORCE_ONE_WORK_GROUP
-		signalStatusWorkers.wait();
-#endif
-		//Agent-based cycle
-		agentWorkers.wait();
-#ifndef SIMMOB_DISABLE_MPI
-		if (config.is_run_on_many_computers) {
-			PartitionManager& partitionImpl = PartitionManager::instance();
-
-//			cout <<"0" <<endl;
-			partitionImpl.crossPCBarrier();
-
-//			cout <<"1" <<endl;
-			partitionImpl.crossPCboundaryProcess(currTick);
-
-//			cout <<"2" <<endl;
-			partitionImpl.crossPCBarrier();
-
-//			cout <<"3" <<endl;
-			partitionImpl.outputAllEntities(currTick);
-		}
-#endif
-
-		auraMgr.update(currTick);
-		agentWorkers.waitExternAgain(); // The workers wait on the AuraManager.
+		//Agent-based cycle, steps 1,2,3,4 of 4
+		WorkGroup::WaitAllGroups();
 
 		//Check if the warmup period has ended.
 		if (warmupDone) {
@@ -346,9 +291,6 @@ bool performMainMed(const std::string& configFileName) {
 		}
 	}
 
-	//delHarish
-	cout << auraMgr.ss.str();
-
 	//NOTE: This dangerous behavior; the Worker will still be tracking the Agent!  ~Seth
 	//BusController::busctrller.currWorker = nullptr;// Update our Entity's pointer before ending main()
 
@@ -358,6 +300,7 @@ bool performMainMed(const std::string& configFileName) {
 
 	//Instead, we will simply scope-out the WorkGroups, and they will migrate out all remaining Agents.
 	}  //End scope: WorkGroups. (Todo: should move this into its own function later)
+	WorkGroup::FinalizeAllWorkGroups();
 
 	//Test: At this point, it should be possible to delete all Signals and Agents.
 	clear_delete_vector(Signal::all_signals_);

@@ -126,9 +126,10 @@ void sim_mob::aimsun::CrossingLoader::GenerateACrossing(sim_mob::RoadNetwork& re
 	std::vector<double> lineDistsFromOrigin;
 	std::vector<Point2D> midPoints;
 	std::vector< std::pair<Point2D, Point2D> > lineMinMaxes;
+	std::vector<Crossing*> candidates;
 	for (std::vector<int>::iterator it=laneIDs.begin(); it!=laneIDs.end(); it++) {
 		//Quick check
-		std::vector<Crossing*> candidates = origin.crossingsAtNode.find(*it)->second;
+		/*std::vector<Crossing*>*/ candidates = origin.crossingsAtNode.find(*it)->second;
 		if (candidates.empty() || candidates.size()==1){
 			std::cout <<"ERROR: Unexpected Crossing candidates size.\n";
 			return;
@@ -178,6 +179,8 @@ void sim_mob::aimsun::CrossingLoader::GenerateACrossing(sim_mob::RoadNetwork& re
 		res->nearLine = lineMinMaxes[1];
 		res->farLine = lineMinMaxes[0];
 	}
+	//general book keeping
+	candidates[0]->generatedCrossing = candidates[1]->generatedCrossing = res; //candidates size is mandatorily equal to 2
 
 	//This crossing will now be listed as an obstacle in all Segments which share the same two nodes. Its "offset" will be determined from the "start"
 	//   of the given segment to the "midpoint" of the two midpoints of the near/far lines.

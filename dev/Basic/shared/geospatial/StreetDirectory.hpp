@@ -106,14 +106,16 @@ struct WayPoint
         Node const * node_;
     };
 
+    bool directionReverse;
+
     /** \cond ignoreStreetDirectoryInnards -- Start of block to be ignored by doxygen.  */
     // Used only by the StreetDirectory.  No need to expose them in the doxygen pages.
     WayPoint() : type_(INVALID) {}
-    explicit WayPoint(Lane const * lane) : type_(SIDE_WALK), lane_(lane) {}
-    explicit WayPoint(RoadSegment const * road) : type_(ROAD_SEGMENT), roadSegment_(road) {}
-    explicit WayPoint(BusStop const * stop) : type_(BUS_STOP), busStop_(stop) {}
-    explicit WayPoint(Crossing const * crossing) : type_(CROSSING), crossing_(crossing) {}
-    explicit WayPoint(Node const * node) : type_(NODE), node_(node) {}
+    explicit WayPoint(Lane const * lane) : type_(SIDE_WALK), lane_(lane),directionReverse(false) {}
+    explicit WayPoint(RoadSegment const * road) : type_(ROAD_SEGMENT), roadSegment_(road),directionReverse(false) {}
+    explicit WayPoint(BusStop const * stop) : type_(BUS_STOP), busStop_(stop),directionReverse(false) {}
+    explicit WayPoint(Crossing const * crossing) : type_(CROSSING), crossing_(crossing),directionReverse(false) {}
+    explicit WayPoint(Node const * node) : type_(NODE), node_(node),directionReverse(false) {}
     /** \endcond ignoreStreetDirectoryInnards -- End of block to be ignored by doxygen.  */
 };
 

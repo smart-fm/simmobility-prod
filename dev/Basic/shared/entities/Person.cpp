@@ -37,7 +37,7 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 
 	//Make the trip itself
 	Trip* res = new Trip();
-	res->entityID = ag.getId();
+	res->personID = ag.getId();
 	res->itemType = TripChainItem::getItemType("Trip");
 	res->sequenceNumber = 1;
 	res->startTime = DailyTime(ag.getStartTime());  //TODO: This may not be 100% correct
@@ -53,7 +53,7 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 
 	//Make and assign a single sub-trip
 	sim_mob::SubTrip subTrip;
-	subTrip.entityID = -1;
+	subTrip.personID = -1;
 	subTrip.itemType = TripChainItem::getItemType("Trip");
 	subTrip.sequenceNumber = 1;
 	subTrip.startTime = res->startTime;
@@ -75,8 +75,9 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 }  //End unnamed namespace
 
 
-sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id) :
+sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, unsigned int id) :
 	Agent(mtxStrat, id), prevRole(nullptr), currRole(nullptr), agentSrc(src), currTripChainItem(nullptr), currSubTrip(nullptr), firstFrameTick(true)
+
 {
 	//throw 1;
 }

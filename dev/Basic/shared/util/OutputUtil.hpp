@@ -86,8 +86,14 @@ private:
 } //End sim_mob namespace
 
 
-#ifndef SIMMOB_DISABLE_OUTPUT
- 
+#ifdef SIMMOB_DISABLE_OUTPUT
+
+//Simply destroy this text; no logging; no locking
+#define LogOutNotSync( strm )  ;
+#define LogOut( strm )  ;
+
+#else
+
 /**
  * Write a message to the log file without any thread synchronization.
  *

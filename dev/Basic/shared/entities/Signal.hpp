@@ -127,8 +127,8 @@ public:
 	static int fmin_ID(const double maxproDS[]);
 	static int calvote(unsigned int vote1, unsigned int vote2, unsigned int vote3, unsigned int vote4, unsigned int vote5);
 
-	void setCurrLink(sim_mob::Link* link){currLink = link;}
-	sim_mob::Link* getCurrLink() {return currLink;}
+	void setCurrLink(const sim_mob::Link* link){currLink = link;}
+	const sim_mob::Link* getCurrLink() {return currLink;}
 
 public:
         /**

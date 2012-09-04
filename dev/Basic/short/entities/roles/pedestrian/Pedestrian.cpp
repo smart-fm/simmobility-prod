@@ -340,7 +340,7 @@ void sim_mob::Pedestrian::setSubPath() {
 				parent->destNode->location);
 
 		//For debug ---------------------------------------
-		/*std::cout<<"Size: "<< wp_path.size()<<std::endl;
+		std::cout<<"Size: "<< wp_path.size()<<std::endl;
 		for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++){
 			if (it->type_ == WayPoint::SIDE_WALK){
 				std::cout<<"Side_walk start node "<<it->lane_->getRoadSegment()->getStart()->getID()<<"("<<it->lane_->getRoadSegment()->getStart()->location.getX()<<","<<it->lane_->getRoadSegment()->getStart()->location.getY()<<") end node "<<it->lane_->getRoadSegment()->getEnd()->getID()<<"("<<it->lane_->getRoadSegment()->getEnd()->location.getX()<<","<<it->lane_->getRoadSegment()->getEnd()->location.getY()<<")"<<std::endl;
@@ -360,7 +360,7 @@ void sim_mob::Pedestrian::setSubPath() {
 				std::cout<<"Invalid"<<std::endl;
 			else
 				std::cout<<"No_match"<<std::endl;
-		}*/
+		}
 
 		//----------------------------------------------------
 		const Lane* nextSideWalk = nullptr; //For the old code

@@ -143,8 +143,10 @@ public:
 	void createStringRepresentation(std::string newLine = "\n");
 	void cycle_reset();
 	Crossing const * getCrossing(RoadSegment const * road);
-	virtual Link* getCurrLink(){ return nullptr;}
-	virtual void setCurrLink(sim_mob::Link*){}
+	virtual const sim_mob::Link* getCurrLink(){ return nullptr;}
+	virtual void setCurrLink(const sim_mob::Link*){}
+	virtual const sim_mob::Lane* getCurrLane() const{return nullptr; }
+	virtual void setCurrLane(const sim_mob::Lane* lane){}
 
 	/*--------The cause of this Module----------*/
     TrafficColor getDriverLight(Lane const & fromLane, Lane const & toLane) const ;

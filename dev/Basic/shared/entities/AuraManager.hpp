@@ -1,10 +1,14 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #pragma once
-
+//#include <map>
+#include <sstream>
+#include <boost/unordered_map.hpp>
 #include <boost/utility.hpp>
 #include "metrics/Length.hpp"
 #include "metrics/Frame.hpp"
+#include "geospatial/RoadSegment.hpp"
+
 
 namespace sim_mob
 {
@@ -12,6 +16,7 @@ namespace sim_mob
 class Agent;
 class Point2D;
 class Lane;
+class RoadSegment;
 
 /**
  * A singleton that can locate agents/entities within any rectangle.
@@ -36,6 +41,10 @@ class Lane;
 class AuraManager : private boost::noncopyable
 {
 public:
+
+    //~delHarish
+    std::stringstream ss;
+
     static AuraManager &
     instance()
     {
@@ -48,7 +57,9 @@ public:
      * This method should be called after all the agents have calculated their new positions
      * and (if double-buffering data types are used) after the new positions are published.
      */
-    void update(frame_t /* frameNumber */);
+    void update();
+
+
 
     /**
      * Return a collection of agents that are located in the axially-aligned rectangle.
@@ -99,12 +110,22 @@ public:
     void
     printStatistics() const;
 
+    /*
+     * Returns the density of the road segment. Will be called by driver agents in medium term.
+     */
+    double getDensity(const RoadSegment* rdseg);
+
 private:
     AuraManager()
       : pimpl_(0)
       , stats_(0)
     {
+    	//delHarish
+    	ss << "~~ Density Map" << std::endl;
     }
+
+    /*Map to store the density of each road segment. */
+    boost::unordered_map<const RoadSegment*, unsigned short> densityMap;
 
     // No need to define the dtor.
 
@@ -117,6 +138,7 @@ private:
 
     class Stats;
     Stats* stats_;
+
 };
 
 }

@@ -47,6 +47,7 @@
 #include "entities/roles/driver/BusDriver.hpp"
 #include "entities/roles/driver/Driver.hpp"
 #include "entities/roles/pedestrian/Pedestrian.hpp"
+#include "entities/roles/pedestrian/Pedestrian2.hpp"
 #include "entities/roles/passenger/Passenger.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
 #include "geospatial/BusStop.hpp"
@@ -90,9 +91,6 @@ int diff_ms(timeval t1, timeval t2) {
 //Current software version.
 const string SIMMOB_VERSION = string(SIMMOB_VERSION_MAJOR) + ":" + SIMMOB_VERSION_MINOR;
 
-//Function prototypes.
-//void InitializeAllAgentsAndAssignToWorkgroups(vector<Agent*>& agents);
-bool CheckAgentIDs(const std::vector<sim_mob::Agent*>& agents);
 
 void WriteXMLInput_Location(TiXmlElement * parent,bool underLocation, unsigned int X, unsigned int Y)
 {
@@ -442,34 +440,6 @@ void WriteXMLInput_MultiNode_Connectors(sim_mob::MultiNode* mn,TiXmlElement * Mu
 	}
 }
 
-//void WriteXMLInput_Intersections(sim_mob::RoadNetwork roadNetwork,TiXmlElement * Nodes)
-//{
-//	std::ostringstream out;
-//	TiXmlElement * Intersections = new TiXmlElement("Intersections");
-//	std::vector<sim_mob::MultiNode*>::const_iterator intersectionObj_it = roadNetwork.getNodes().begin();
-//	if(intersectionObj_it != roadNetwork.getNodes().end()) Nodes->LinkEndChild(Intersections);
-//	for(; intersectionObj_it != roadNetwork.getNodes().end() ; intersectionObj_it++)
-//	{
-//		out.str("");
-//		TiXmlElement * Intersection = new TiXmlElement("Intersection"); Intersections->LinkEndChild(Intersection);
-//    	//nodeID
-//    	TiXmlElement * nodeID = new TiXmlElement("nodeID");  Intersection->LinkEndChild(nodeID);
-//    	out << (*intersectionObj_it)->getID();
-//    	nodeID->LinkEndChild( new TiXmlText((out.str())));
-//    	//location
-//    	WriteXMLInput_Location(Intersection,true,(*intersectionObj_it)->location.getX(),(*intersectionObj_it)->location.getY());
-//    	WriteXMLInput_roadSegmentsAt(*intersectionObj_it,Intersection);
-//    	WriteXMLInput_MultiNode_Connectors(*intersectionObj_it,Intersection);
-//	}
-//
-//}
-
-//void WriteXMLInput_Roundabouts(sim_mob::RoadNetwork roadNetwork,TiXmlElement * Nodes)
-//{
-////	enable later
-////	TiXmlElement * UniNodes = new TiXmlElement("roundabouts"); Nodes->LinkEndChild(UniNodes);
-//}
-
 TiXmlElement * WriteXMLInput_Intersection(sim_mob::Intersection *intersection,TiXmlElement * Intersections, TiXmlElement * Nodes)
 {
 	std::ostringstream out;
@@ -535,11 +505,204 @@ void WriteXMLInput_GeoSpatial(TiXmlElement * SimMobility)
     WriteXMLInput_RoadNetwork(GeoSpatial);
 }
 
-void WriteXMLInput_TipChainJourney(TiXmlElement * SimMobility)
+void WriteXMLInput_TripChainItem(TiXmlElement * TripChain, sim_mob::TripChainItem & tripChainItem)
 {
-	TiXmlElement * Journey;
-	Journey = new TiXmlElement( "Journeys" );
-	SimMobility->LinkEndChild( Journey );
+	std::ostringstream out;
+//	//entityID
+//	out.str("");
+//	out << tripChainItem.entityID;
+//	TiXmlElement * entityID  = new TiXmlElement( "entityID" );
+//	entityID->LinkEndChild( new TiXmlText(out.str()));
+//	TripChain->LinkEndChild( entityID );
+	//personID
+	out.str("");
+	out << tripChainItem.personID;//TODO: sunc with tripchainitem(last decision was to replace entityID with personID
+	TiXmlElement * personID  = new TiXmlElement( "personID" );
+	personID->LinkEndChild( new TiXmlText(out.str()));
+	TripChain->LinkEndChild( personID );
+
+	//itemType
+	out.str("");
+	switch(tripChainItem.itemType)
+	{
+	case sim_mob::TripChainItem::IT_ACTIVITY:
+		out << "IT_ACTIVITY";
+		break;
+
+	case sim_mob::TripChainItem::IT_TRIP:
+		out << "IT_TRIP";
+		break;
+	}
+	TiXmlElement * itemType  = new TiXmlElement( "itemType" );
+	itemType->LinkEndChild( new TiXmlText(out.str()));
+	TripChain->LinkEndChild( itemType );
+
+	//sequenceNumber
+	out.str("");
+	out << tripChainItem.sequenceNumber;
+	TiXmlElement * sequenceNumber  = new TiXmlElement( "sequenceNumber" );
+	sequenceNumber->LinkEndChild( new TiXmlText(out.str()));
+	TripChain->LinkEndChild( sequenceNumber );
+
+	//startTime
+//	out.str("");
+//	out << tripChainItem.startTime.toString();
+	TiXmlElement * startTime  = new TiXmlElement( "startTime" );
+	startTime->LinkEndChild( new TiXmlText(tripChainItem.startTime.toString()));
+	TripChain->LinkEndChild( startTime );
+	//endTime
+	TiXmlElement * endTime  = new TiXmlElement( "endTime" );
+	endTime->LinkEndChild( new TiXmlText(tripChainItem.endTime.toString()));
+	TripChain->LinkEndChild( endTime );
+}
+
+void WriteXMLInput_TripChain_Subtrips(TiXmlElement * Trip,  sim_mob::Trip & trip)
+{
+	TiXmlElement * Subtrips  = new TiXmlElement( "subTrips" ); Trip->LinkEndChild( Subtrips );
+	std::ostringstream out;
+	for(std::vector<SubTrip>::const_iterator it = trip.getSubTrips().begin(), it_end(trip.getSubTrips().end()); it != it_end; it++)
+	{
+		TiXmlElement * Subtrip  = new TiXmlElement( "subTrip" ); Subtrips->LinkEndChild( Subtrip );
+		//mode
+		TiXmlElement * mode  = new TiXmlElement( "mode" );
+		mode->LinkEndChild( new TiXmlText(it->mode));
+		Subtrip->LinkEndChild( mode );
+		//isPrimaryMode
+		TiXmlElement * isPrimaryMode  = new TiXmlElement( "isPrimaryMode" );
+		isPrimaryMode->LinkEndChild( new TiXmlText(it->isPrimaryMode ? "true" : "false"));
+		Subtrip->LinkEndChild( isPrimaryMode );
+		//ptLineId
+		TiXmlElement * ptLineId  = new TiXmlElement( "ptLineId" );
+		ptLineId->LinkEndChild( new TiXmlText(it->ptLineId));
+		Subtrip->LinkEndChild( ptLineId );
+	}
+}
+
+std::string locationType_toString(TripChainItem::LocationType type)
+{
+	switch(type)
+	{
+	case TripChainItem::LT_BUILDING:
+		return "LT_BUILDING";
+	case TripChainItem::LT_NODE:
+		return "LT_NODE";
+	case TripChainItem::LT_LINK:
+		return "LT_PUBLIC_TRANSIT_STOP";
+	default:
+		return "";
+	}
+}
+void WriteXMLInput_TripChain_Trip(TiXmlElement * TripChains, sim_mob::Trip & trip)
+{
+	std::ostringstream out;
+	TiXmlElement * Trip;
+	Trip = new TiXmlElement( "Trip" );
+	TripChains->LinkEndChild( Trip );
+	WriteXMLInput_TripChainItem(Trip,trip);
+	//tripID
+	out.str("");
+	out << trip.tripID;
+	TiXmlElement * tripID  = new TiXmlElement( "tripID" );
+	tripID->LinkEndChild( new TiXmlText(out.str()));
+	Trip->LinkEndChild( tripID );
+	//fromLocation
+	TiXmlElement * fromLocation  = new TiXmlElement( "fromLocation" );
+	WriteXMLInput_Location(fromLocation,false,trip.fromLocation->getLocation().getX(),trip.fromLocation->getLocation().getY());
+	Trip->LinkEndChild( fromLocation );
+	//fromLocationType
+//	out.str("");
+//	out << locationType_toString(trip.fromLocationType);
+	TiXmlElement * fromLocationType  = new TiXmlElement( "fromLocationType" );
+	fromLocationType->LinkEndChild( new TiXmlText(locationType_toString(trip.fromLocationType)));
+	Trip->LinkEndChild( fromLocationType );
+	//toLocation
+	TiXmlElement * toLocation  = new TiXmlElement( "toLocation" );
+	WriteXMLInput_Location(toLocation,false,trip.toLocation->getLocation().getX(),trip.toLocation->getLocation().getY());
+	Trip->LinkEndChild( toLocation );
+	//toLocationType
+//	out.str("");
+//	out << trip.toLocationType;
+	TiXmlElement * toLocationType  = new TiXmlElement( "toLocationType" );
+	toLocationType->LinkEndChild( new TiXmlText(locationType_toString(trip.toLocationType)));
+	Trip->LinkEndChild( toLocationType );
+	if(trip.getSubTrips().size() > 0)
+		WriteXMLInput_TripChain_Subtrips(Trip,trip);
+
+}
+
+
+	void WriteXMLInput_TripChain_Activity(TiXmlElement * TripChains, sim_mob::Activity & activity)
+{
+	std::ostringstream out;
+	TiXmlElement * Activity;
+	Activity = new TiXmlElement( "Activity" );
+	TripChains->LinkEndChild( Activity );
+	WriteXMLInput_TripChainItem(Activity,activity);
+	//description
+	TiXmlElement * description  = new TiXmlElement( "description" );
+	description->LinkEndChild( new TiXmlText(activity.description));
+	Activity->LinkEndChild( description );
+	//location
+	TiXmlElement * location  = new TiXmlElement( "location" );
+	WriteXMLInput_Location(location,false,activity.location->getLocation().getX(),activity.location->getLocation().getY());
+	Activity->LinkEndChild( location );
+	//locationType
+//	out.str("");
+//	out << activity.locationType;
+	TiXmlElement * locationType  = new TiXmlElement( "locationType" );
+	locationType->LinkEndChild( new TiXmlText(locationType_toString(activity.locationType)));
+	Activity->LinkEndChild( locationType );
+	//isPrimary
+	TiXmlElement * isPrimary  = new TiXmlElement( "isPrimary" );
+	isPrimary->LinkEndChild( new TiXmlText(activity.isPrimary ? "true" : "false"));
+	Activity->LinkEndChild( isPrimary );
+	//isFlexible
+	TiXmlElement * isFlexible  = new TiXmlElement( "isFlexible" );
+	isFlexible->LinkEndChild( new TiXmlText(activity.isFlexible ? "true" : "false"));
+	Activity->LinkEndChild( isFlexible );
+	//isMandatory
+	TiXmlElement * isMandatory  = new TiXmlElement( "isMandatory" );
+	isMandatory->LinkEndChild( new TiXmlText(activity.isMandatory ? "true" : "false"));
+	Activity->LinkEndChild( isMandatory );
+}
+void WriteXMLInput_TripChains(TiXmlElement * SimMobility)
+{
+	std::ostringstream out;
+	ConfigParams& config = ConfigParams::GetInstance();
+
+	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& TripChainsObj = config.getTripChains();
+	if(TripChainsObj.size() < 1) return;
+
+	TiXmlElement * TripChains;
+	TripChains = new TiXmlElement( "TripChains" );
+	SimMobility->LinkEndChild( TripChains );
+
+	for(std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >::iterator it_map = TripChainsObj.begin(), it_end(TripChainsObj.end()); it_map != it_end ; it_map ++)
+	{
+		//tripchain
+		TiXmlElement * TripChain;
+		TripChain = new TiXmlElement( "TripChain" );
+		TripChains->LinkEndChild( TripChain );
+
+		//personID sub-element
+		TiXmlElement * personID;
+		personID = new TiXmlElement( "personID" );
+		out.str("");
+		out << it_map->first; //personID
+		personID->LinkEndChild(new TiXmlText(out.str()));
+		TripChain->LinkEndChild( personID );
+
+		for(std::vector<sim_mob::TripChainItem*>::iterator it = it_map->second.begin() , it_end(it_map->second.end()); it != it_end; it++)
+		{
+			sim_mob::TripChainItem* tripChainItem = *it;
+			if(dynamic_cast<sim_mob::Activity *>(tripChainItem))
+				WriteXMLInput_TripChain_Activity(TripChain,*dynamic_cast<sim_mob::Activity *>(tripChainItem));
+			else
+				if(dynamic_cast<sim_mob::Trip *>(tripChainItem))
+					WriteXMLInput_TripChain_Trip(TripChain,*dynamic_cast<sim_mob::Trip *>(tripChainItem));
+		}
+	}
+
 }
 void WriteXMLInput(const std::string& XML_OutPutFileName)
 {
@@ -556,7 +719,7 @@ void WriteXMLInput(const std::string& XML_OutPutFileName)
     doc.LinkEndChild( SimMobility );
 
 	WriteXMLInput_GeoSpatial(SimMobility);
-	WriteXMLInput_TipChainJourney(SimMobility);
+	WriteXMLInput_TripChains(SimMobility);
     doc.SaveFile( XML_OutPutFileName );
 }
 
@@ -592,7 +755,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	//      should really be clear about when this is not ok.
 	RoleFactory& rf = ConfigParams::GetInstance().getRoleFactoryRW();
 	rf.registerRole("driver", new sim_mob::Driver(nullptr, ConfigParams::GetInstance().mutexStategy));
-	rf.registerRole("pedestrian", new sim_mob::Pedestrian(nullptr));
+	rf.registerRole("pedestrian", new sim_mob::Pedestrian2(nullptr));
 	rf.registerRole("busdriver", new sim_mob::BusDriver(nullptr, ConfigParams::GetInstance().mutexStategy));
 	rf.registerRole("activityRole", new sim_mob::ActivityPerformer(nullptr));
 	//rf.registerRole("buscontroller", new sim_mob::BusController()); //Not a role!
@@ -607,7 +770,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigParams::GetInstance();
-
+#ifdef SIMMOB_XML_WRITER
 	/*
 	 *******************************
 	 * XML Writer
@@ -616,60 +779,56 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 	WriteXMLInput(XML_OutPutFileName);
 	cout << "returning\n";
 	return true;
-
-	//Sanity check (nullptr)
-	void* x = nullptr;
-	if (x) {
-		return false;
-	}
-
-	//Output
-	cout << "  " << "...Sanity Check Passed" << endl;
-
-	//Start boundaries
-#ifndef SIMMOB_DISABLE_MPI
-	if (config.is_run_on_many_computers) {
-		PartitionManager& partitionImpl = PartitionManager::instance();
-		partitionImpl.initBoundaryTrafficItems();
-	}
 #endif
 
-	{ //Begin scope: WorkGroups
+	//Start boundaries
+	if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
+		PartitionManager::instance().initBoundaryTrafficItems();
+	}
 
-	//Initialize our work groups.
 	bool NoDynamicDispatch = config.DynamicDispatchDisabled();
-	WorkGroup agentWorkers(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, true);
-	agentWorkers.initWorkers(NoDynamicDispatch ? nullptr :  &entLoader);
 
-	//Add all agents to workers. If they are in all_agents, then their start times have already been taken
-	//  into account; just add them. Otherwise, by definition, they will be in pending_agents.
+	PartitionManager* partMgr = nullptr;
+	if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
+		partMgr = &PartitionManager::instance();
+	}
+
+	{ //Begin scope: WorkGroups
+	//TODO: WorkGroup scope currently does nothing. We need to re-enable WorkGroup deletion at some later point. ~Seth
+
+	//Work Group specifications
+	WorkGroup* agentWorkers = WorkGroup::NewWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
+#ifdef TEMP_FORCE_ONE_WORK_GROUP
+	WorkGroup* signalStatusWorkers = agentWorkers;
+#else
+	WorkGroup* signalStatusWorkers = WorkGroup::NewWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
+#endif
+
+	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
+	WorkGroup::InitAllGroups();
+
+	//Initialize each work group individually
+	agentWorkers->initWorkers(NoDynamicDispatch ? nullptr :  &entLoader);
+#ifndef TEMP_FORCE_ONE_WORK_GROUP
+	signalStatusWorkers->initWorkers(nullptr);
+#endif
+
+
+	//Anything in all_agents is starting on time 0, and should be added now.
 	for (vector<Entity*>::iterator it = Agent::all_agents.begin(); it != Agent::all_agents.end(); it++) {
-		agentWorkers.assignAWorker(*it);
+		agentWorkers->assignAWorker(*it);
+	}
+
+	//Assign all signals too
+	for (vector<Signal*>::iterator it = Signal::all_signals_.begin(); it != Signal::all_signals_.end(); it++) {
+		signalStatusWorkers->assignAWorker(*it);
 	}
 
 	cout << "Initial Agents dispatched or pushed to pending." << endl;
 
-	//Initialize our signal status work groups
-	//  TODO: There needs to be a more general way to do this.
-#ifndef TEMP_FORCE_ONE_WORK_GROUP
-	WorkGroup signalStatusWorkers(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
-	//Worker::ActionFunction spWork = boost::bind(signal_status_worker, _1, _2);
-	signalStatusWorkers.initWorkers(/*&spWork,*/ nullptr);
-#endif
-	for (size_t i = 0; i < sim_mob::Signal::all_signals_.size(); i++) {
-		//add by xuyan
-//		if(Signal::all_signals_[i]->isFake)
-//			continue;
-#ifdef TEMP_FORCE_ONE_WORK_GROUP
-		agentWorkers.assignAWorker(Signal::all_signals_[i]);
-#else
-		signalStatusWorkers.assignAWorker(sim_mob::Signal::all_signals_[i]);
-#endif
-	}
 
 	//Initialize the aura manager
-	AuraManager& auraMgr = AuraManager::instance();
-	auraMgr.init();
+	AuraManager::instance().init();
 
 	///
 	///  TODO: Do not delete this next line. Please read the comment in TrafficWatch.hpp
@@ -678,25 +837,15 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 //	TrafficWatch& trafficWatch = TrafficWatch::instance();
 
 	//Start work groups and all threads.
-	agentWorkers.startAll();
-#ifndef TEMP_FORCE_ONE_WORK_GROUP
-	signalStatusWorkers.startAll();
-#endif
+	WorkGroup::StartAllWorkGroups();
 
 	//
-#ifndef SIMMOB_DISABLE_MPI
-	if (config.is_run_on_many_computers) {
+	if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
-		partitionImpl.setEntityWorkGroup(&agentWorkers, &signalStatusWorkers);
+		partitionImpl.setEntityWorkGroup(agentWorkers, signalStatusWorkers);
 
 		std::cout << "partition_solution_id in main function:" << partitionImpl.partition_config->partition_solution_id << std::endl;
-		//std::cout << partitionImpl. << partitionImpl.partition_config->partition_solution_id << std::endl;
-		//temp no need
-//		if (config.is_simulation_repeatable) {
-//			partitionImpl.updateRandomSeed();
-//		}
 	}
-#endif
 
 	/////////////////////////////////////////////////////////////////
 	// NOTE: WorkGroups are able to handle skipping steps by themselves.
@@ -714,10 +863,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 	ParitionDebugOutput debug;
 
-#ifdef SIMMOB_DISABLE_OUTPUT
 	int lastTickPercent = 0; //So we have some idea how much time is left.
-#endif
-
 	for (unsigned int currTick = 0; currTick < config.totalRuntimeTicks; currTick++) {
 		//Flag
 		bool warmupDone = (currTick >= config.totalWarmupTicks);
@@ -747,62 +893,25 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 		}
 #endif
 
-		//Update the signal logic and plans for every intersection grouped by region
-#ifndef TEMP_FORCE_ONE_WORK_GROUP
-		signalStatusWorkers.wait();
-#endif
-		//Agent-based cycle
-		agentWorkers.wait();
-#ifndef SIMMOB_DISABLE_MPI
-		if (config.is_run_on_many_computers) {
-			PartitionManager& partitionImpl = PartitionManager::instance();
-
-//			debug.outputToConsole("0");
-			partitionImpl.crossPCBarrier();
-
-//			debug.outputToConsole("1");
-			partitionImpl.crossPCboundaryProcess(currTick);
-
-//			debug.outputToConsole("2");
-			partitionImpl.crossPCBarrier();
-
-//			debug.outputToConsole("3");
-			partitionImpl.outputAllEntities(currTick);
-		}
-#endif
-
-		auraMgr.update(currTick);
-
 		///
 		///  TODO: Do not delete this next line. Please read the comment in TrafficWatch.hpp
 		///        ~Seth
 		///
 //		trafficWatch.update(currTick);
 
-
-		agentWorkers.waitExternAgain(); // The workers wait on the AuraManager.
-
-
-
-		//Surveillance update
-		//updateSurveillanceData(agents);
+		//Agent-based cycle, steps 1,2,3,4 of 4
+		WorkGroup::WaitAllGroups();
 
 		//Check if the warmup period has ended.
 		if (warmupDone) {
-			//updateGUI(agents);
-			//saveStatistics(agents);
 		}
-
-		//saveStatisticsToDB(agents);
 	}
 
 	//Finalize partition manager
-#ifndef SIMMOB_DISABLE_MPI
-	if (config.is_run_on_many_computers) {
+	if (!config.MPI_Disabled() && config.is_run_on_many_computers) {
 		PartitionManager& partitionImpl = PartitionManager::instance();
 		partitionImpl.stopMPIEnvironment();
 	}
-#endif
 
 	std::cout <<"Database lookup took: " <<loop_start_offset <<" ms" <<std::endl;
 
@@ -857,6 +966,7 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 	//Here, we will simply scope-out the WorkGroups, and they will migrate out all remaining Agents.
 	}  //End scope: WorkGroups. (Todo: should move this into its own function later)
+	WorkGroup::FinalizeAllWorkGroups();
 
 	//Test: At this point, it should be possible to delete all Signals and Agents.
 	clear_delete_vector(Signal::all_signals_);
@@ -938,26 +1048,8 @@ int main(int argc, char* argv[])
 		cout << "No output file specified; using cout." << endl;
 	}
 
-	/*if (argc > 4) {
-			if (!Logger::log_init1(argv[4]))
-			{
-				cout << "Loading output file failed; using cout" << endl;
-				cout << argv[4] << endl;
-			}
-		} else {
-			Logger::log_init("");
-			cout << "No output file specified; using cout." << endl;
-		}*/
-
 
 #endif
-
-	//This should be moved later, but we'll likely need to manage random numbers
-	//ourselves anyway, to make simulations as repeatable as possible.
-	//if (config.is_simulation_repeatable)
-	//{
-		//TODO: Output the random seed here (and only here)
-	//}
 
 	//Perform main loop
 	int returnVal = performMain(configFileName,"XML_OutPut.xml") ? 0 : 1;

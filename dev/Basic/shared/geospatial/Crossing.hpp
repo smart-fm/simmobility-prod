@@ -6,7 +6,7 @@
 
 #include "RoadItem.hpp"
 #include "Point2D.hpp"
-
+#include "geospatial/RoadSegment.hpp"
 
 namespace sim_mob
 {
@@ -25,9 +25,10 @@ class UnPackageUtils;
  */
 class Crossing : public RoadItem {
 public:
-	Crossing() : RoadItem() {}
+	Crossing() : RoadItem(),roadSegment(NULL) {}
 
-
+	RoadSegment* getRoadSegment() const { return roadSegment; };
+	void setRoadSegment(RoadSegment *rs) { if(rs) roadSegment = rs; };
 //protected:
 	//The line (start/end points that make up the line) "near" the intersection
 	std::pair<sim_mob::Point2D, sim_mob::Point2D> nearLine;
@@ -35,7 +36,8 @@ public:
 	//The line that is "far" from the intersection (further down the road)
 	std::pair<sim_mob::Point2D, sim_mob::Point2D> farLine;
 	unsigned int crossingID;
-
+private:
+	RoadSegment *roadSegment;
 public:
 	void setCrossingID(unsigned int crossingID_){crossingID = crossingID_;}
 	unsigned int getCrossingID(){return crossingID;}

@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <stdexcept>
 
+#include "GenConfig.h"
+
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/Link.hpp"
 #include "geospatial/Node.hpp"
@@ -155,7 +157,9 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 	currLaneID = std::max(std::min(startLaneID, static_cast<int>((*currSegmentIt)->getLanes().size())-1), 0);
 
 	//Generate a polyline array
+#ifndef SIMMOB_DISABLE_OUTPUT
 	LogOut("noteForDebug generateNewPolylineArray run in point 1"<<std::endl);
+#endif
 	generateNewPolylineArray(getCurrSegment(), pathWithDirection.path, pathWithDirection.areFwds);
 	distAlongPolyline = 0;
 	inIntersection = false;
@@ -200,28 +204,36 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 	//First check: end
 	if (lastSeg->getEnd() == lastSeg->getLink()->getEnd())
 	{
+#ifndef SIMMOB_DISABLE_OUTPUT
 		LogOut("lastSeg->getEnd()->location.xPos = "<<lastSeg->getEnd()->location.getX()<<", lastSeg->getEnd()->location.yPos = "<<lastSeg->getEnd()->location.getY()<<std::endl);
 		LogOut("NoteForIsFwd point 1"<<std::endl);
+#endif
 		isFwd = true;
 	}
 	else if (lastSeg->getEnd() == lastSeg->getLink()->getStart())
 	{
+#ifndef SIMMOB_DISABLE_OUTPUT
 		LogOut("lastSeg->getEnd()->location.xPos = "<<lastSeg->getEnd()->location.getX()<<", lastSeg->getEnd()->location.yPos = "<<lastSeg->getEnd()->location.getY()<<std::endl);
 		LogOut("NoteForIsFwd point 2"<<std::endl);
+#endif
 		isFwd = false;
 
 		//Send check: start
 	}
 	else if (firstSeg->getStart() == firstSeg->getLink()->getStart())
 	{
+#ifndef SIMMOB_DISABLE_OUTPUT
 		LogOut("firstSeg->getStart()->location.xPos = "<<firstSeg->getStart()->location.getX()<<", firstSeg->getStart()->location.yPos = "<<firstSeg->getStart()->location.getY()<<std::endl);
 		LogOut("NoteForIsFwd point 3"<<std::endl);
+#endif
 		isFwd = true;
 	}
 	else if (firstSeg->getStart() == firstSeg->getLink()->getEnd())
 	{
+#ifndef SIMMOB_DISABLE_OUTPUT
 		LogOut("firstSeg->getStart()->location.xPos = "<<firstSeg->getStart()->location.getX()<<", firstSeg->getStart()->location.yPos = "<<firstSeg->getStart()->location.getY()<<std::endl);
 		LogOut("NoteForIsFwd point 4"<<std::endl);
+#endif
 		isFwd = false;
 
 		//Failure:
@@ -253,7 +265,9 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 		if (it != path.begin())
 		{
 			areFwds.insert(areFwds.end(), fwd);
+#ifndef SIMMOB_DISABLE_OUTPUT
 			LogOut("NoteForIsFwd point 5 fwd: "<< (fwd ? "true" : "false") <<std::endl);
+#endif
 		}
 
 		if (Debug::Paths)
@@ -279,7 +293,9 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 	currLaneID = std::max(std::min(startLaneID, static_cast<int>((*currSegmentIt)->getLanes().size())-1), 0);
 
 	//Generate a polyline array
+#ifndef SIMMOB_DISABLE_OUTPUT
 	LogOut("noteForDebug generateNewPolylineArray run in point 2"<<std::endl);
+#endif
 	generateNewPolylineArray(getCurrSegment(), path, areFwds);
 	distAlongPolyline = 0;
 	inIntersection = false;
@@ -390,16 +406,22 @@ void sim_mob::GeneralPathMover::generateNewPolylineArray()
 
 void sim_mob::GeneralPathMover::generateNewPolylineArray(const RoadSegment* currSegment, vector<const RoadSegment*> path, vector<bool> areFwds)
 {
+#ifndef SIMMOB_DISABLE_OUTPUT
 	LogOut("noteForDebug generateNewPolylineArray run, path.size = "<<path.size() <<std::endl);
+#endif
 	int i = 0;
 	bool isFwd = true;
 	for(i = 0; i < path.size(); i++){
 		if( currSegment == path[i] ){
 			isFwd = areFwds[i];
+#ifndef SIMMOB_DISABLE_OUTPUT
 			LogOut("noteForIsFwd at ["<<i<<"]: "<< isFwd <<std::endl);
+#endif
 			break;
 		}
+#ifndef SIMMOB_DISABLE_OUTPUT
 		LogOut("noteForI at ["<<i<<"]" <<std::endl);
+#endif
 	}
 
 	//Simple; just make sure to take the forward direction into account.
@@ -591,7 +613,9 @@ double sim_mob::GeneralPathMover::advance(const RoadSegment* currSegment, vector
 
 	double res = 0.0;
 	if(isFwd){
+#ifndef SIMMOB_DISABLE_OUTPUT
 		LogOut("noteForDirection 1"<<std::endl);
+#endif
 
 		//Move down the current polyline. If this brings us to the end point, go to the next polyline
 		distAlongPolyline += fwdDistance;
@@ -613,7 +637,9 @@ double sim_mob::GeneralPathMover::advance(const RoadSegment* currSegment, vector
 		}
 	}
 	else{
+#ifndef SIMMOB_DISABLE_OUTPUT
 		LogOut("noteForDirection 2"<<std::endl);
+#endif
 
 		//Move down the current polyline. If this brings us to the end point, go to the next polyline
 		distAlongPolyline = currPolylineLength() - fwdDistance - distAlongPolyline;
@@ -770,7 +796,9 @@ const Lane* sim_mob::GeneralPathMover::actualMoveToNextSegmentAndUpdateDir()
 	}
 
 	//Now generate a new polyline array.
+#ifndef SIMMOB_DISABLE_OUTPUT
 	LogOut("noteForDebug generateNewPolylineArray run in point 3"<<std::endl);
+#endif
 	generateNewPolylineArray(getCurrSegment(), pathWithDirection.path, pathWithDirection.areFwds);
 
 	//Done
@@ -938,7 +966,9 @@ void sim_mob::GeneralPathMover::moveToNewPolyline(int newLaneID)
 	currLaneID = newLaneID;
 
 	//Update our polyline array
+#ifndef SIMMOB_DISABLE_OUTPUT
 	LogOut("noteForDebug generateNewPolylineArray run in point 4"<<std::endl);
+#endif
 	generateNewPolylineArray(getCurrSegment(), pathWithDirection.path, pathWithDirection.areFwds);
 	if (distTraveled > 0)
 	{

@@ -12,6 +12,7 @@
 #include "geospatial/StreetDirectory.hpp"
 #include "entities/vehicle/Vehicle.hpp"
 #include "util/DynamicVector.hpp"
+#include "../short/entities/roles/driver/IntersectionDrivingModel.hpp"
 #include "DriverUpdateParams.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
@@ -63,16 +64,26 @@ public:
 	virtual void frame_init(UpdateParams& p);
 	virtual void frame_tick(UpdateParams& p);
 	virtual void frame_tick_output(const UpdateParams& p);
-	virtual void frame_tick_output_mpi(frame_t frameNumber) { throw std::runtime_error("Not implemented."); }
+	virtual void frame_tick_output_mpi(frame_t frameNumber) { throw std::runtime_error("frame_tick_output_mpi not implemented in Driver."); }
 	virtual UpdateParams& make_frame_tick_params(frame_t frameNumber, unsigned int currTimeMS);
 	virtual std::vector<sim_mob::BufferedBase*> getSubscriptionParams();
 
 	void setParentBufferedData();			///<set next data to parent buffer data
 
+	//TODO: This may be risky, as it exposes non-buffered properties to other vehicles.
+	const Vehicle* getVehicle() const {return vehicle;}
+
+	void intersectionVelocityUpdate();
+
 private:
 	void chooseNextLaneForNextLink(DriverUpdateParams& p);
 	bool update_movement(DriverUpdateParams& params, frame_t frameNumber);       ///<Called to move vehicles forward.
 	bool update_post_movement(DriverUpdateParams& params, frame_t frameNumber);       ///<Called to deal with the consequences of moving forwards.
+	void intersectionDriving(DriverUpdateParams& p);
+	void justLeftIntersection(DriverUpdateParams& p);
+	void syncCurrLaneCachedInfo(DriverUpdateParams& p);
+	void calculateIntersectionTrajectory(DPoint movingFrom, double overflow);
+	double speed_density_function(double density); ///<Called to compute the required speed of the driver from the density of the current road segment's traffic density
 
 protected:
 	virtual double updatePositionOnLink(DriverUpdateParams& p);
@@ -91,6 +102,11 @@ public:
 	Shared<bool> isInIntersection;
 	Shared<double> fwdVelocity;
 
+	/*
+	 * Making params public to expose information like justChangedToNewSegment,
+	 * justMovedIntoIntersection etc available for density calculation. ~ Harish
+	 */
+	medium::DriverUpdateParams params;
 	//to be moved to a DriverUpdateParam later
 	//const Lane* currLane_;
 	//double currLaneOffset_;
@@ -115,7 +131,7 @@ private:
 
 protected:
 	Vehicle* vehicle;
-	medium::DriverUpdateParams params;
+	IntersectionDrivingModel* intModel;
 
 };
 

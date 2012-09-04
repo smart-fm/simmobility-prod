@@ -23,6 +23,8 @@
 #include "PendingEntity.hpp"
 #include "PendingEvent.hpp"
 
+#include "geospatial/Lane.hpp"
+#include "geospatial/Link.hpp"
 namespace sim_mob
 {
 
@@ -37,7 +39,7 @@ class UnPackageUtils;
 
 //Comparison for our priority queue
 struct cmp_agent_start : public std::less<Person*> {
-  bool operator() (const Person* x, const Person* y) const;
+  bool operator() (const Agent* x, const Agent* y) const;
 };
 
 struct cmp_event_start : public std::less<PendingEvent> {
@@ -45,7 +47,7 @@ struct cmp_event_start : public std::less<PendingEvent> {
 };
 
 //C++ static constructors...
-class StartTimePriorityQueue : public std::priority_queue<Person*, std::vector<Person*>, cmp_agent_start> {
+class StartTimePriorityQueue : public std::priority_queue<Agent*, std::vector<Agent*>, cmp_agent_start> {
 };
 class EventTimePriorityQueue : public std::priority_queue<PendingEvent, std::vector<PendingEvent>, cmp_event_start> {
 };
@@ -96,6 +98,15 @@ public:
 	void setToBeRemoved();
 	void clearToBeRemoved(); ///<Temporary function.
 
+	/* Keeping these methods in Agent class enable to determine the location of the agent without having to
+	 * determine the type of the agent and its Role. If it is irrelevant for some sub class of agent to have these methods,
+	 * (Signal for example) the sub class can just choose to ignore these. ~ Harish*/
+	virtual const sim_mob::Link* getCurrLink() const;
+	virtual	void setCurrLink(const sim_mob::Link* link);
+
+	//Getter an setter for only Lane is kept here. Road segment of the agent can be determined from lane.
+	virtual const sim_mob::Lane* getCurrLane() const;
+	virtual	void setCurrLane(const sim_mob::Lane* lane);
 
 private:
 	//For future reference.
@@ -186,6 +197,8 @@ protected:
 	//TODO: For now (for thread safety) I am giving each Agent control over its own random
 	//      number stream. We can probably raise this to the Worker level if we require it.
 	boost::mt19937 gen;
+	const sim_mob::Link* currLink;
+	const sim_mob::Lane* currLane;
 
 #ifdef SIMMOB_AGENT_UPDATE_PROFILE
 	sim_mob::ProfileBuilder profile;

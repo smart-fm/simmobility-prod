@@ -37,7 +37,7 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 
 	//Make the trip itself
 	Trip* res = new Trip();
-	res->entityID = ag.getId();
+	res->personID = ag.getId();
 	res->itemType = TripChainItem::getItemType("Trip");
 	res->sequenceNumber = 1;
 	res->startTime = DailyTime(ag.getStartTime());  //TODO: This may not be 100% correct
@@ -53,7 +53,7 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 
 	//Make and assign a single sub-trip
 	sim_mob::SubTrip subTrip;
-	subTrip.entityID = -1;
+	subTrip.personID = -1;
 	subTrip.itemType = TripChainItem::getItemType("Trip");
 	subTrip.sequenceNumber = 1;
 	subTrip.startTime = res->startTime;
@@ -75,8 +75,9 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 }  //End unnamed namespace
 
 
-sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, int id) :
-	Agent(mtxStrat, id), prevRole(nullptr), currRole(nullptr), currLink(nullptr), agentSrc(src), currTripChainItem(nullptr), currSubTrip(nullptr), firstFrameTick(true)
+sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, unsigned int id) :
+	Agent(mtxStrat, id), prevRole(nullptr), currRole(nullptr), agentSrc(src), currTripChainItem(nullptr), currSubTrip(nullptr), firstFrameTick(true)
+
 {
 	//throw 1;
 }
@@ -89,13 +90,7 @@ sim_mob::Person::~Person() {
 
 void sim_mob::Person::load(const map<string, string>& configProps)
 {
-	//Make sure they have a mode specified for this trip
-	map<string, string>::const_iterator it = configProps.find("#mode");
-	if (it==configProps.end()) {
-		throw std::runtime_error("Cannot load person: no mode");
-	}
-	std::string mode = it->second;
-
+	map<string, string>::const_iterator it;
 	//Consistency check: specify both origin and dest
 	if (configProps.count("originPos") != configProps.count("destPos")) {
 		throw std::runtime_error("Agent must specify both originPos and destPos, or neither.");
@@ -108,14 +103,24 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		if (!tripChain.empty()) {
 			throw std::runtime_error("Manual position specified for Agent with existing Trip Chain.");
 		}
+
 		if (this->originNode || this->destNode) {
 			throw std::runtime_error("Manual position specified for Agent with existing Trip Chain.");
 		}
 
 		//Otherwise, make a trip chain for this Person.
+
 		this->originNode = ConfigParams::GetInstance().getNetwork().locateNode(parse_point(origIt->second), true);
 		this->destNode = ConfigParams::GetInstance().getNetwork().locateNode(parse_point(destIt->second), true);
+
+		//Make sure they have a mode specified for this trip
+		it = configProps.find("#mode");
+		if (it==configProps.end()) {
+			throw std::runtime_error("Cannot load person: no mode");
+		}
+		std::string mode = it->second;
 		Trip* singleTrip = MakePseudoTrip(*this, mode);
+
 		std::vector<const TripChainItem*> trip_chain;
 		trip_chain.push_back(singleTrip);
 
@@ -480,12 +485,12 @@ sim_mob::Role* sim_mob::Person::getRole() const {
 	return currRole;
 }
 
-sim_mob::Link* sim_mob::Person::getCurrLink(){
+/*sim_mob::Link* sim_mob::Person::getCurrLink(){
 	return currLink;
 }
 void sim_mob::Person::setCurrLink(sim_mob::Link* link){
 	currLink = link;
-}
+}*/
 
 #ifndef SIMMOB_DISABLE_MPI
 /*

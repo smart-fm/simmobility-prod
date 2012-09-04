@@ -54,8 +54,8 @@ public:
 
     Node const & getNode() const { return node_; }
 
-    void setCurrLink(sim_mob::Link* link){currLink = link;}
-    sim_mob::Link* getCurrLink() {return currLink;}
+    void setCurrLink(const sim_mob::Link* link){currLink = link;}
+    const sim_mob::Link* getCurrLink() {return currLink;}
 
     void init(Signal const & signal);
 

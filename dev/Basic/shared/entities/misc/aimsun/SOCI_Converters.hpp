@@ -24,7 +24,7 @@ template<> struct type_conversion<TripChainItem>
     typedef values base_type;
     static void from_base(const soci::values& vals, soci::indicator& ind, TripChainItem &res)
     {
-    	res.entityID = vals.get<int>("entityid",0);
+    	res.personID = vals.get<int>("entityid",0);
     	res.sequenceNumber = vals.get<int>("trip_chain_sequence_number",0);
     	res.itemType = sim_mob::TripChainItem::getItemType(vals.get<std::string>("trip_chain_item_type",""));
     	if(res.itemType == sim_mob::TripChainItem::IT_TRIP) {

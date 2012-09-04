@@ -6,9 +6,14 @@ IF (POLICY CMP0017)
   cmake_policy(SET CMP0017 NEW)
 ENDIF (POLICY CMP0017)
 
+#Fairly reasonable way of determining if we're on OSX
+IF(EXISTS "/Applications/")   #If you have an "/Applications" directory on *nix... just why?
+  SET(USING_OSX ON)
+ENDIF(EXISTS "/Applications/")
+
 #Force a decent compiler on OSX (gcc is still 4.2 on OSX, and it lacks functionality we need) 
 #This MUST go before the project() definition.
-IF(EXISTS "/Applications/")   #If you have an "/Applications" directory on *nix... just why?
+IF(USING_OSX)
   #Gcc 4.X?
   IF(EXISTS "/opt/local/bin/g++-mp-4.6")
     SET(CMAKE_C_COMPILER    "/opt/local/bin/gcc-mp-4.6")
@@ -20,7 +25,7 @@ IF(EXISTS "/Applications/")   #If you have an "/Applications" directory on *nix.
   #  SET(CMAKE_C_COMPILER    "/usr/local/bin/clang")
   #  SET(CMAKE_CXX_COMPILER  "/usr/local/bin/clang++")
   #ENDIF(EXISTS "/usr/local/bin/clang")
-ENDIF(EXISTS "/Applications/")
+ENDIF(USING_OSX)
 
 #Project name. Used to tag resources in cmake. 
 project (SimMob)
@@ -38,6 +43,11 @@ set (Basic_VERSION_MINOR 1)
 #Flags for each configuration type
 SET(CMAKE_CXX_FLAGS_RELEASE "-O2")
 SET(CMAKE_CXX_FLAGS_DEBUG  "-O0 -g")
+
+#Special case flag: required on OSX due to a (somewhat) glitchy libstdc++
+#IF(USING_OSX)
+#  SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -D_GLIBCXX_FULLY_DYNAMIC_STRING=1")
+#ENDIF(USING_OSX)
 
 #Option: use new signal model. Use the cmake gui to change this on a per-user basis.
 option(SIMMOB_NEW_SIGNAL "Use the new signal Model ." ON)

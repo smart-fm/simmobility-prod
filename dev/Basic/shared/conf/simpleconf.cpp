@@ -1489,16 +1489,19 @@ ConfigParams sim_mob::ConfigParams::instance;
 bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
 {
 	//Load our config file into an XML document object.
-	TiXmlDocument doc(configPath);
+	//NOTE: Do *not* use by-value syntax for doc. For some reason, this crashes OSX.
+	TiXmlDocument* doc = new TiXmlDocument(configPath);
+
 	if (prof) { prof->logGenericStart("XML", "main-prof-xml"); }
-	if (!doc.LoadFile()) {
-		std::cout <<"Error loading config file: " <<doc.ErrorDesc() <<std::endl;
+	if (!doc->LoadFile()) {
+		std::cout <<"Error loading config file: " <<doc->ErrorDesc() <<std::endl;
+		delete doc;
 		return false;
 	}
 	if (prof) { prof->logGenericEnd("XML", "main-prof-xml"); }
 
 	//Parse it
-	string errorMsg = loadXMLConf(doc, active_agents, pending_agents, prof);
+	string errorMsg = loadXMLConf(*doc, active_agents, pending_agents, prof);
 	if (errorMsg.empty()) {
 		std::cout <<"XML config file loaded." <<std::endl;
 	} else {
@@ -1510,7 +1513,7 @@ bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 		std::cout <<"Configuration complete." <<std::endl;
 	}
 
-
+	delete doc;
 	return errorMsg.empty();
 
 }

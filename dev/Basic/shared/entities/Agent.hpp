@@ -38,7 +38,7 @@ class UnPackageUtils;
 #endif
 
 //Comparison for our priority queue
-struct cmp_agent_start : public std::less<Person*> {
+struct cmp_agent_start : public std::less<Agent*> {
   bool operator() (const Agent* x, const Agent* y) const;
 };
 

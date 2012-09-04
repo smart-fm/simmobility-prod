@@ -152,7 +152,6 @@ const sim_mob::Crossing* getCrossingBasedOnNode(const sim_mob::Point2D* one_near
 //add by xuyan
 //Check whether one point is in the polygon, whose size is N
 //Note: the polygon is closed, which means the first node is the same with the last node
-//We use CGAL for this function before, and then we decide to remove CGAL for cluster/Tilera
 bool PointInsidePolygon(const sim_mob::Point2D* polygon, int N, const sim_mob::Point2D p);
 
 /**

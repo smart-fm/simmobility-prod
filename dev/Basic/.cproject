@@ -40,7 +40,6 @@
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.429840734" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 								<option id="gnu.cpp.link.option.libs.1219444140" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="boost_thread"/>
-									<listOptionValue builtIn="false" value="CGAL"/>
 									<listOptionValue builtIn="false" value="boost_mpi"/>
 									<listOptionValue builtIn="false" value="boost_serialization"/>
 									<listOptionValue builtIn="false" value="tinyxml"/>

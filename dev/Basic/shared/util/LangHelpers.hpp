@@ -29,7 +29,7 @@
 ///
 ///\note
 ///Obviously, we want to avoid relying on this function too much. Use this only when necessary, to
-///  avoid introducing a dependency on mpi, boost::mpi, or cgal.
+///  avoid introducing a dependency on mpi, boost::mpi.
 ///
 ///\note
 ///Early on, I'm just going to tag everything with this. But in reality, there shouldn't be any reason

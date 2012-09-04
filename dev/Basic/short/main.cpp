@@ -75,10 +75,6 @@ using std::string;
 
 using namespace sim_mob;
 
-//Temporary flag: Shuffle all agents (signals and otherwise) onto the Agent worker threads?
-// This is needed for performance testing; it will cause signals to fluxuate faster than they should.
-//#define TEMP_FORCE_ONE_WORK_GROUP
-
 //Start time of program
 timeval start_time;
 
@@ -816,20 +812,14 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 	//Work Group specifications
 	WorkGroup* agentWorkers = WorkGroup::NewWorkGroup(config.agentWorkGroupSize, config.totalRuntimeTicks, config.granAgentsTicks, &AuraManager::instance(), partMgr);
-#ifdef TEMP_FORCE_ONE_WORK_GROUP
-	WorkGroup* signalStatusWorkers = agentWorkers;
-#else
 	WorkGroup* signalStatusWorkers = WorkGroup::NewWorkGroup(config.signalWorkGroupSize, config.totalRuntimeTicks, config.granSignalsTicks);
-#endif
 
 	//Initialize all work groups (this creates barriers, and locks down creation of new groups).
 	WorkGroup::InitAllGroups();
 
 	//Initialize each work group individually
 	agentWorkers->initWorkers(NoDynamicDispatch ? nullptr :  &entLoader);
-#ifndef TEMP_FORCE_ONE_WORK_GROUP
 	signalStatusWorkers->initWorkers(nullptr);
-#endif
 
 
 	//Anything in all_agents is starting on time 0, and should be added now.

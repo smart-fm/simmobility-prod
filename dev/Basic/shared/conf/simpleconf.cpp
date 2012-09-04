@@ -221,10 +221,6 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	std::vector<const TripChainItem*> currAgTripChain;
 
 	typedef vector<TripChainItem*>::const_iterator TCVectIt;
-	for(TCVectIt it=tcs.begin(); it!=tcs.end(); it++)
-	{
-		std::cout<<"eid: "<<(*it)->entityID << " ---- etype: " << (*it)->itemType << "---- startTime: " << (*it)->startTime.toString()<< std::endl;
-	}
 	for (TCVectIt it=tcs.begin(); it!=tcs.end(); it++) {
 		const TripChainItem* const tc = *it;
 
@@ -269,7 +265,6 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 				addOrStashEntity(currAg, active_agents, pending_agents);
 			}
 
-			//addOrStashEntity(currAg, active_agents, pending_agents);
 			//Reset for the next (possible) Agent
 			currAg = nullptr;
 		}
@@ -325,7 +320,6 @@ void generateAgentsFromBusSchedule(std::vector<Entity*>& active_agents, AgentCon
 		agent->setStartTime(toLoad->startTime.offsetMS_From(config.simStartTime));
 
 		//Either start or save it, depending on the start time.
-		//BusController::busctrller->addOrStashBuses(agent, active_agents);
 		if(!BusController::all_busctrllers_.empty())
 		{
 			BusController::all_busctrllers_[0]->addOrStashBuses(agent, active_agents);

@@ -14,6 +14,7 @@ vector<BusController*> BusController::all_busctrllers_;// Temporary saved all th
 
 void sim_mob::BusController::registerBusController(unsigned int startTime, const MutexStrategy& mtxStrat)
 {
+	//TODO: Why not just use the Agent auto-id generator? (id==-1)  ~Seth
 	BusController * busctrller = new sim_mob::BusController(999);// If needed , add more  busctrllers and design id for them
 	busctrller->setStartTime(startTime);
 	all_busctrllers_.push_back(busctrller);

@@ -1,6 +1,5 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
-#include <sstream>
 #include <limits>
 #include <algorithm>
 #include <boost/unordered_set.hpp>
@@ -373,10 +372,6 @@ void AuraManager::Impl::updateDensity(const Agent* ag) {
 
 		auraMgr.densityMap[rdSeg] = auraMgr.densityMap[rdSeg] + 1; // [] operator adds rdSeg to the map if it not already there.
 	}
-	for(boost::unordered_map<const RoadSegment*, unsigned short>::iterator it = auraMgr.densityMap.begin(); it != auraMgr.densityMap.end(); it++){
-		auraMgr.ss << " " << it->second;
-	}
-	auraMgr.ss << std::endl;
 }
 
 /** \endcond ignoreAuraManagerInnards -- End of block to be ignored by doxygen.  */

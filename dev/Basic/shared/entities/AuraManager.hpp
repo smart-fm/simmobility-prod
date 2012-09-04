@@ -2,7 +2,6 @@
 
 #pragma once
 //#include <map>
-#include <sstream>
 #include <boost/unordered_map.hpp>
 #include <boost/utility.hpp>
 #include "metrics/Length.hpp"
@@ -41,9 +40,6 @@ class RoadSegment;
 class AuraManager : private boost::noncopyable
 {
 public:
-
-    //~delHarish
-    std::stringstream ss;
 
     static AuraManager &
     instance()
@@ -120,8 +116,6 @@ private:
       : pimpl_(0)
       , stats_(0)
     {
-    	//delHarish
-    	ss << "~~ Density Map" << std::endl;
     }
 
     /*Map to store the density of each road segment. */

@@ -6,6 +6,22 @@ IF (POLICY CMP0017)
   cmake_policy(SET CMP0017 NEW)
 ENDIF (POLICY CMP0017)
 
+#Force a decent compiler on OSX (gcc is still 4.2 on OSX, and it lacks functionality we need) 
+#This MUST go before the project() definition.
+IF(EXISTS "/Applications/")   #If you have an "/Applications" directory on *nix... just why?
+  #Gcc 4.X?
+  IF(EXISTS "/opt/local/bin/g++-mp-4.6")
+    SET(CMAKE_C_COMPILER    "/opt/local/bin/gcc-mp-4.6")
+    SET(CMAKE_CXX_COMPILER  "/opt/local/bin/g++-mp-4.6")
+  ENDIF(EXISTS "/opt/local/bin/g++-mp-4.6")
+  
+  #Clang? (built from SVN, will override gcc)
+  #IF(EXISTS "/usr/local/bin/clang")
+  #  SET(CMAKE_C_COMPILER    "/usr/local/bin/clang")
+  #  SET(CMAKE_CXX_COMPILER  "/usr/local/bin/clang++")
+  #ENDIF(EXISTS "/usr/local/bin/clang")
+ENDIF(EXISTS "/Applications/")
+
 #Project name. Used to tag resources in cmake. 
 project (SimMob)
 
@@ -28,6 +44,9 @@ option(SIMMOB_NEW_SIGNAL "Use the new signal Model ." ON)
 
 #Option: Run SimMobility to only produce an input XML file for itself
 option(SIMMOB_XML_WRITER "Use the new signal Model ." OFF)
+
+#Option: USE XML file as SimMobility input
+option(SIMMOB_XML_READER "Use the new signal Model ." OFF)
 
 #Option: strict error handling. Use the cmake gui to change this on a per-user basis.
 option (SIMMOB_STRICT_AGENT_ERRORS  "All unexpected and potentially dangerous behavior causes Agents to throw exceptions. If OFF, Agents will generally just remove themselves from the simulation in case of error." OFF)
@@ -146,6 +165,15 @@ find_package(TinyXML REQUIRED)
 include_directories(${TINYXML_INCLUDE_DIR})
 LIST(APPEND LibraryList ${TINYXML_LIBRARIES})
 
+#Find Xsd (headers only)
+find_package(Xsd REQUIRED)
+include_directories(${XSD_INCLUDE_DIR})
+
+#Find XercesC
+find_package(XercesC REQUIRED)
+include_directories(${XERCESC_INCLUDE_DIR})
+LIST(APPEND LibraryList ${XERCESC_LIBRARIES})
+
 #Find PQ
 find_package(PostgreSQL REQUIRED)
 include_directories(${PostgreSQL_INCLUDE_DIRS})
@@ -161,7 +189,7 @@ find_package(SOCIPostgreSQL REQUIRED)
 include_directories(${SOCIPOSTGRESQL_INCLUDE_DIRS})
 LIST(APPEND LibraryList ${SOCIPOSTGRESQL_LIBRARIES})
 
-#Optionally find: MPI, CGAL
+#Optionally find: MPI
 IF (${SIMMOB_DISABLE_MPI} MATCHES "OFF")
   #Find boost-mpi
   find_package(Boost COMPONENTS mpi REQUIRED)

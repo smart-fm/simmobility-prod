@@ -48,7 +48,7 @@ namespace sim_mob
 
 Signal_SCATS const &
 Signal_SCATS::signalAt(Node const & node, const MutexStrategy& mtxStrat, bool *isNew ) {
-	*isNew = false;
+	if (isNew) { *isNew = false; }
 	Signal_SCATS const * signal = dynamic_cast<Signal_SCATS const *>(StreetDirectory::instance().signalAt(node));
 	if (signal)
 	{
@@ -57,9 +57,9 @@ Signal_SCATS::signalAt(Node const & node, const MutexStrategy& mtxStrat, bool *i
 
 	Signal_SCATS * sig = new Signal_SCATS(node, mtxStrat);
 	all_signals_.push_back(sig);
-	*isNew = true;
+	if (isNew) { *isNew = true; }
 	StreetDirectory::instance().registerSignal(*sig);
-	std::cout << "Signal Created\n";
+//	std::cout << "Signal Created\n";
 	return *sig;
 }
 std::string Signal_SCATS::toString() const { return strRepr; }
@@ -211,7 +211,7 @@ void Signal_SCATS::findSignalLinksAndCrossings() {
 	const std::set<sim_mob::RoadSegment*>& roads = mNode->getRoadSegments();
 	std::set<RoadSegment*>::const_iterator iter = roads.begin();
 	sim_mob::RoadSegment const * road = *iter;
-	std::cout << "Analysing Road Segment_ " << road->getLink()->getSegmentName(road) <<  std::endl;
+//	std::cout << "Analysing Road Segment_ " << road->getLink()->getSegmentName(road) <<  std::endl;
 	sim_mob::Crossing const * crossing = getCrossing(road);
 	sim_mob::Link const * link = road->getLink();
 	p = inserter.insert(LinkAndCrossing(0, link, crossing, 0));
@@ -227,7 +227,7 @@ void Signal_SCATS::findSignalLinksAndCrossings() {
 	link = nullptr;
 	for (; iter != roads.end(); ++iter, ++id) { //id=1 coz we have already made an insertion with id=0 above
 		road = *iter;
-		std::cout << "Analysing Road Segment " << road->getLink()->getSegmentName(road) <<  std::endl;
+//		std::cout << "Analysing Road Segment " << road->getLink()->getSegmentName(road) <<  std::endl;
 		crossing = getCrossing(road);
 		link = road->getLink();
 		angleAngle = angle.angle(link);

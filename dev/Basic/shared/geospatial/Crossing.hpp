@@ -7,6 +7,10 @@
 #include "RoadItem.hpp"
 #include "Point2D.hpp"
 #include "geospatial/RoadSegment.hpp"
+namespace geo
+{
+class crossing_t_pimpl;
+}
 
 namespace sim_mob
 {
@@ -39,8 +43,11 @@ public:
 private:
 	RoadSegment *roadSegment;
 public:
+	unsigned int getCrossingID(){return  crossingID;}
+
+
+public:
 	void setCrossingID(unsigned int crossingID_){crossingID = crossingID_;}
-	unsigned int getCrossingID(){return crossingID;}
 #ifndef SIMMOB_DISABLE_MPI
 	///The identification of Crossing is packed using PackageUtils;
 	static void pack(PackageUtils& package, Crossing* one_cross);

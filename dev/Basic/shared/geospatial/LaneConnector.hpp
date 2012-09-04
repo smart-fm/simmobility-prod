@@ -6,6 +6,12 @@
 
 #include "Lane.hpp"
 
+namespace geo
+{
+class connector_t_pimpl;
+class UniNode_t_pimpl;
+class GeoSpatial_t_pimpl;
+}
 
 namespace sim_mob
 {
@@ -45,6 +51,10 @@ private:
 
 
 friend class sim_mob::aimsun::Loader;
+friend class ::geo::connector_t_pimpl;
+friend class ::geo::UniNode_t_pimpl;
+friend class ::geo::GeoSpatial_t_pimpl;
+
 
 };
 

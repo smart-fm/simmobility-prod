@@ -9,7 +9,11 @@
 #include "GenConfig.h"
 
 #include "Node.hpp"
-
+namespace geo
+{
+class intersection_t_pimpl;
+class GeoSpatial_t_pimpl;
+}
 namespace sim_mob
 {
 
@@ -38,6 +42,7 @@ class Loader;
  * \author LIM Fung Chai
  */
 class MultiNode : public sim_mob::Node {
+	friend class ::geo::intersection_t_pimpl;
 public:
 	MultiNode(int x, int y) : Node(x, y) {}
 
@@ -84,6 +89,7 @@ public: //TEMP
 
 
 friend class sim_mob::aimsun::Loader;
+friend class ::geo::GeoSpatial_t_pimpl;
 
 };
 

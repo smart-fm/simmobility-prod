@@ -66,6 +66,7 @@
 //Note: This must be the LAST include, so that other header files don't have
 //      access to cout if SIMMOB_DISABLE_OUTPUT is true.
 #include <iostream>
+#include "main1.hpp"
 #include <tinyxml.h>
 using std::cout;
 using std::endl;
@@ -245,7 +246,9 @@ void WriteXMLInput_Segment(sim_mob::RoadSegment* rs ,TiXmlElement * Segments)
 	//segmentID
 	TiXmlElement * segmentID = nullptr;
 	segmentID = new TiXmlElement("segmentID"); Segment->LinkEndChild(segmentID);
-	segmentID->LinkEndChild(new  TiXmlText(((rs)->getSegmentID())));
+	Id.str("");
+	Id << rs->getSegmentID();
+	segmentID->LinkEndChild(new  TiXmlText(Id.str()));
 	//start
 	TiXmlElement * startingNode = new TiXmlElement("startingNode"); Segment->LinkEndChild(startingNode);
 	Id << rs->getStart()->getID();
@@ -409,7 +412,10 @@ void WriteXMLInput_roadSegmentsAt(sim_mob::MultiNode * mn,TiXmlElement * Interse
 	for(std::set<sim_mob::RoadSegment*>::const_iterator rsObj_it = (mn)->getRoadSegments().begin(),it_end((mn)->getRoadSegments().end()) ; rsObj_it != it_end; rsObj_it++)
 	{
 		TiXmlElement * segmentID = new TiXmlElement("segmentID"); roadSegmentsAt->LinkEndChild(segmentID);
-		segmentID->LinkEndChild( new TiXmlText(((*rsObj_it)->getSegmentID())));
+		std::ostringstream Id;
+		Id.str("");
+		Id << (*rsObj_it)->getSegmentID();
+		segmentID->LinkEndChild( new TiXmlText(Id.str()));
 	}
 }
 
@@ -423,7 +429,11 @@ void WriteXMLInput_MultiNode_Connectors(sim_mob::MultiNode* mn,TiXmlElement * Mu
 	{
 		TiXmlElement * MultiConnectors = new TiXmlElement("MultiConnectors"); Connectors->LinkEndChild(MultiConnectors);
 		TiXmlElement * RoadSegment = new TiXmlElement("RoadSegment"); MultiConnectors->LinkEndChild(RoadSegment);
-		RoadSegment->LinkEndChild( new TiXmlText((*conn_it).first->getSegmentID()));
+
+		std::ostringstream Id;
+		Id.str("");
+		Id << (*conn_it).first->getSegmentID();
+		RoadSegment->LinkEndChild( new TiXmlText(Id.str()));
 
 		TiXmlElement * Connectors = new TiXmlElement("Connectors"); MultiConnectors->LinkEndChild(Connectors);
 		for(std::set<sim_mob::LaneConnector*> ::const_iterator l_conn_it = conn_it->second.begin(), it_end(conn_it->second.end()); l_conn_it != it_end ; l_conn_it++)
@@ -607,7 +617,10 @@ void WriteXMLInput_TripChain_Trip(TiXmlElement * TripChains, sim_mob::Trip & tri
 	Trip->LinkEndChild( tripID );
 	//fromLocation
 	TiXmlElement * fromLocation  = new TiXmlElement( "fromLocation" );
-	WriteXMLInput_Location(fromLocation,false,trip.fromLocation->getLocation().getX(),trip.fromLocation->getLocation().getY());
+	out.str("");
+	out << trip.fromLocation->getID();
+	fromLocation->LinkEndChild( new TiXmlText(out.str()));
+//	WriteXMLInput_Location(fromLocation,false,trip.fromLocation->getLocation().getX(),trip.fromLocation->getLocation().getY());
 	Trip->LinkEndChild( fromLocation );
 	//fromLocationType
 //	out.str("");
@@ -617,7 +630,10 @@ void WriteXMLInput_TripChain_Trip(TiXmlElement * TripChains, sim_mob::Trip & tri
 	Trip->LinkEndChild( fromLocationType );
 	//toLocation
 	TiXmlElement * toLocation  = new TiXmlElement( "toLocation" );
-	WriteXMLInput_Location(toLocation,false,trip.toLocation->getLocation().getX(),trip.toLocation->getLocation().getY());
+	out.str("");
+	out << trip.toLocation->getID();
+	toLocation->LinkEndChild( new TiXmlText(out.str()));
+//	WriteXMLInput_Location(toLocation,false,trip.toLocation->getLocation().getX(),trip.toLocation->getLocation().getY());
 	Trip->LinkEndChild( toLocation );
 	//toLocationType
 //	out.str("");
@@ -644,7 +660,9 @@ void WriteXMLInput_TripChain_Trip(TiXmlElement * TripChains, sim_mob::Trip & tri
 	Activity->LinkEndChild( description );
 	//location
 	TiXmlElement * location  = new TiXmlElement( "location" );
-	WriteXMLInput_Location(location,false,activity.location->getLocation().getX(),activity.location->getLocation().getY());
+	out.str("");
+	out << activity.location->getID();
+	location->LinkEndChild( new TiXmlText(out.str()));
 	Activity->LinkEndChild( location );
 	//locationType
 //	out.str("");

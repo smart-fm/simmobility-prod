@@ -302,7 +302,7 @@ void sim_mob::Worker::perform_main(frame_t frameNumber)
 	}
 }
 
-bool sim_mob::Worker::isThisLinkManaged(std::string linkID){
+bool sim_mob::Worker::isThisLinkManaged(unsigned int linkID){
 	for(vector<Link*>::iterator it=managedLinks.begin(); it!=managedLinks.end();it++){
 		if((*it)->linkID==linkID){
 			return true;

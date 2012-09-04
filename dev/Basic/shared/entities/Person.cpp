@@ -110,8 +110,10 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 
 		//Otherwise, make a trip chain for this Person.
 
+		std::cout << "sim_mob::Person::load=>input[" << origIt->second << " , " << destIt->second << "]\n";
 		this->originNode = ConfigParams::GetInstance().getNetwork().locateNode(parse_point(origIt->second), true);
 		this->destNode = ConfigParams::GetInstance().getNetwork().locateNode(parse_point(destIt->second), true);
+		std::cout << "Resulting nodes[" << this->originNode << " , " << this->destNode << "]\n";
 
 		//Make sure they have a mode specified for this trip
 		it = configProps.find("#mode");
@@ -119,6 +121,7 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 			throw std::runtime_error("Cannot load person: no mode");
 		}
 		std::string mode = it->second;
+
 		Trip* singleTrip = MakePseudoTrip(*this, mode);
 
 		std::vector<const TripChainItem*> trip_chain;

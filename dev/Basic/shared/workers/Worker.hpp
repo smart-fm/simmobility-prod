@@ -79,7 +79,7 @@ public:
 	void addLink(Link* link);
 	void remLink(Link* link);
 	bool isLinkManaged(Link* link);
-	bool isThisLinkManaged(std::string linkID);
+	bool isThisLinkManaged(unsigned int linkID);
 
 	void scheduleForAddition(Entity* entity);
 	void scheduleForRemoval(Entity* entity);

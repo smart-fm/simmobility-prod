@@ -8,7 +8,12 @@
 #include "util/OpaqueProperty.hpp"
 #include "Pavement.hpp"
 #include "Link.hpp"
-
+namespace geo
+{
+class segment_t_pimpl;
+class Segments_pimpl;
+class link_t_pimpl;
+}
 namespace sim_mob
 {
 
@@ -43,8 +48,11 @@ class LaneLoader;
 class RoadSegment : public sim_mob::Pavement {
 public:
 	///Create a RoadSegment as part of a given Link.
-	explicit RoadSegment(sim_mob::Link* parent, std::string id);
-	const std::string & getSegmentID()const ;
+	RoadSegment(){}//needed by xml reader --vahid
+	explicit RoadSegment(sim_mob::Link* parent);
+	
+	explicit RoadSegment(sim_mob::Link* parent, unsigned long id);
+	const unsigned long  & getSegmentID()const ;
 
 	bool operator== (const RoadSegment* rhs) const
 	{
@@ -114,11 +122,15 @@ private:
 
 	///Which link this appears in
 	sim_mob::Link* parentLink;
-	std::string segmentID;
+//	std::string segmentID;
+	unsigned long segmentID;
 
 friend class sim_mob::aimsun::Loader;
 friend class sim_mob::aimsun::LaneLoader;
 friend class sim_mob::RoadNetworkPackageManager;
+friend class ::geo::segment_t_pimpl;
+friend class ::geo::Segments_pimpl;
+friend class ::geo::link_t_pimpl;
 
 };
 

@@ -10,6 +10,10 @@
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
 
+namespace geo
+{
+class TripChainItem_t_pimpl;
+}
 namespace sim_mob
 {
 
@@ -34,6 +38,7 @@ namespace sim_mob
  *    functions like "addSeconds", which return a different DailyTime object.)
  */
 class DailyTime {
+	friend class ::geo::TripChainItem_t_pimpl;
 public:
 	///Construct a new DailyTime from a given value. Subtract the "base" time (i.e., the day's start time).
 	explicit DailyTime(uint32_t value=0, uint32_t base=0);

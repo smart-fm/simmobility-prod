@@ -16,7 +16,11 @@
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 #endif
-
+namespace geo
+{
+//Forward Declaration
+class Trip_t_pimpl;
+}
 namespace sim_mob {
 
 //Forward declarations
@@ -32,11 +36,13 @@ class SubTrip;
 class TripChainItem {
 public:
 	//Type of location of this trip chain item.
+	//warning, if you make changes in the following enum, you have to manually make required modifications in the xml reader too.
 	enum LocationType {
 		LT_BUILDING, LT_NODE, LT_LINK, LT_PUBLIC_TRANSIT_STOP
 	};
 
 	//Type of this trip chain item.
+	//warning, if you make changes in the following enum, you have to manually make required modifications in the xml reader too.
 	enum ItemType {
 		IT_TRIP, IT_ACTIVITY
 	};
@@ -80,8 +86,9 @@ public:
  * \author Harish
  */
 class Trip: public sim_mob::TripChainItem {
+	friend class ::geo::Trip_t_pimpl;
 public:
-	int tripID;
+	unsigned int tripID;
 	sim_mob::Node* fromLocation;
 	TripChainItem::LocationType fromLocationType;
 	sim_mob::Node* toLocation;

@@ -109,6 +109,7 @@ sim_mob::Agent::~Agent()
 
 void sim_mob::Agent::buildSubscriptionList(vector<BufferedBase*>& subsList)
 {
+//	std::cout << "addresses of subscription  list elements : "<< &xPos << " " << &yPos<< " " <<&fwdVel<< " " <<&latVel<< " " <<&xAcc<< " " <<&yAcc << std::endl;
 	subsList.push_back(&xPos);
 	subsList.push_back(&yPos);
 	subsList.push_back(&fwdVel);

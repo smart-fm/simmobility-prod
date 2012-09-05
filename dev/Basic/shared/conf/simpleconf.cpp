@@ -32,7 +32,7 @@
 #include "geospatial/BusStop.hpp"
 #include "util/ReactionTimeDistributions.hpp"
 #include "util/OutputUtil.hpp"
-#include "main1.hpp"
+#include "geospatial/xmlLoader/geo8-driver.hpp"
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
@@ -1236,7 +1236,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
        		 * ****************  XML-READER *******************
         	 *
         	 *************************************************/
-    		main1(0,0);
+    		sim_mob::xml::InitAndLoadXML();
     		//testing purpose only
     		std::cout << "Testin Road Network :\n";
     		std::vector<Link*>  & links = const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getLinksRW();

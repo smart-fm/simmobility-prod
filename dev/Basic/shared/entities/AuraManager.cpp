@@ -259,7 +259,7 @@ private:
      * This method increments the vehicle count for the road segment
      * on which the Agent's vehicle is currently in.
      */
-    void updateDensity(const Agent* ag);
+    void updateDensity(const Agent* ag, boost::unordered_map<const RoadSegment*, unsigned short>& densities);
 };
 
 void
@@ -283,7 +283,11 @@ AuraManager::Impl::update()
     	throw std::runtime_error("all_agents is somehow storing an entity.");
     }
 
-    sim_mob::AuraManager::instance().densityMap.clear(); //the following while loop counts again
+    /*
+     * temp copy which counts current values.
+     * This prevents errors when drivers from other threads request for density when this update() is counting.
+    */
+    boost::unordered_map<const RoadSegment*, unsigned short> temp_densityMap;
     while (agents.size() > 1)
     {
         agents.erase(agent);
@@ -291,10 +295,12 @@ AuraManager::Impl::update()
         agent = nearest_agent(agent, agents);
 
         //This is required for the medium term; adds a minor overhead in short term.
-		updateDensity(agent);
+		updateDensity(agent, temp_densityMap);
     }
     tree_.insert(agent);    // insert the last agent into the tree.
     assert(tree_.GetSize() == Agent::all_agents.size());
+
+    sim_mob::AuraManager::instance().densityMap = temp_densityMap; // assign new densities to densityMap
 
 }
 
@@ -365,12 +371,11 @@ const
     return agentsInRect(lowerLeft, upperRight);
 }
 
-void AuraManager::Impl::updateDensity(const Agent* ag) {
+void AuraManager::Impl::updateDensity(const Agent* ag, boost::unordered_map<const RoadSegment*, unsigned short>& densities) {
 	sim_mob::AuraManager &auraMgr = sim_mob::AuraManager::instance();
 	if(ag->getCurrLane()){
 		sim_mob::RoadSegment* rdSeg = ag->getCurrLane()->getRoadSegment();
-
-		auraMgr.densityMap[rdSeg] = auraMgr.densityMap[rdSeg] + 1; // [] operator adds rdSeg to the map if it not already there.
+		densities[rdSeg] = densities[rdSeg] + 1; //[] operator adds rdSeg to the map if it not already there.
 	}
 }
 

@@ -52,6 +52,7 @@ private:
 	};
 
 public:
+	std::stringstream ss;
 	int remainingTimeToComplete;
 
 	//Driver(Agent* parent);

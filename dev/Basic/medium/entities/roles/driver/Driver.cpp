@@ -157,6 +157,8 @@ sim_mob::medium::Driver::~Driver() {
 	safe_delete_item(vehicle);
 
 	safe_delete_item(intModel);
+	ss << "!!__________________________________________!!" << endl;
+	std::cout << ss.str();
 }
 
 vector<BufferedBase*> sim_mob::medium::Driver::getSubscriptionParams() {
@@ -196,6 +198,8 @@ void sim_mob::medium::Driver::frame_init(UpdateParams& p)
 	//Updating location information for agent for density calculations
 	parent->setCurrLane(params.currLane);
 	parent->setCurrLink((params.currLane)->getRoadSegment()->getLink());
+
+	ss << "!!!!!!!!!!!!!!!!!!!!!!!!!!  " << this->parent->getId() << "  !!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
 }
 
 void sim_mob::medium::Driver::setOrigin(DriverUpdateParams& p) {
@@ -676,10 +680,12 @@ double sim_mob::medium::Driver::speed_density_function(double density){
 	/* TODO: min density, jam density, alpha and beta must be obtained from the database.
 	 * Since we don't have this data, we have taken the average values from supply parameters of Singapore express ways.
 	 * This must be changed after we have this data for each road segment in the database.  */
+
+	// TODO: Yet to figure out a reasonable value. Will have to re check the paramater values when we have queuing implemented.
 	double freeFlowSpeed = vehicle->getCurrSegment()->maxSpeed / 3.6 * 100; // Converting from Kmph to cm/s
-	double jamDensity = 0.2335; //density during traffic jam
-	double alpha = 3.75; //Model parameter of the speed density function
-	double beta = 0.5645; //Model parameter of the speed density function
+	double jamDensity = 1; //density during traffic jam
+	double alpha = 3.75; //Model parameter of speed density function
+	double beta = 0.5645; //Model parameter of speed density function
 	double minDensity = 0.0048; // minimum traffic density
 
 	//Speed-Density function
@@ -687,7 +693,8 @@ double sim_mob::medium::Driver::speed_density_function(double density){
 		return freeFlowSpeed;
 	}
 	else {
-		return freeFlowSpeed * pow((1 - pow((density - minDensity)/jamDensity, alpha)),beta);
+		ss << "!! " << "density:" << density << "!! " << freeFlowSpeed * pow((1 - pow((density - minDensity)/jamDensity, beta)),alpha) << " !!" << endl;
+		return freeFlowSpeed * pow((1 - pow((density - minDensity)/jamDensity, beta)),alpha);
 	}
 }
 

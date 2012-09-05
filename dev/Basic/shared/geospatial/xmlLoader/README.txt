@@ -1,5 +1,8 @@
 #Some commands to help you get started with XSD
 
+#xsdcxx  --options-file  
+
+
 #If you update the geo9.xsd file, you should run the following:
 xsd  cxx-parser --root-element-last --hxx-suffix .hpp --cxx-suffix .cpp --type-map geoConverter.map --output-dir skeleton   geo9.xsd
 

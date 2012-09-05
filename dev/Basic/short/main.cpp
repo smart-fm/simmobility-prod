@@ -399,7 +399,9 @@ void WriteXMLInput_Node(sim_mob::Node *node, TiXmlElement * parent)
 	WriteXMLInput_Location(parent,true,node->getLocation().getX(),node->getLocation().getY());
 	//linkLoc
 	TiXmlElement * linkLoc = new TiXmlElement("linkLoc"); parent->LinkEndChild(linkLoc);
-	linkLoc->LinkEndChild( new TiXmlText(node->getLinkLoc()->linkID));
+	out.str("");
+	out << node->getLinkLoc()->linkID;
+	linkLoc->LinkEndChild( new TiXmlText(out.str()));
 	//originalDB_ID
 	TiXmlElement * originalDB_ID = new TiXmlElement("originalDB_ID");  parent->LinkEndChild(originalDB_ID);
 	originalDB_ID->LinkEndChild( new TiXmlText(node->originalDB_ID.getLogItem()));

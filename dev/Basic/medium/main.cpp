@@ -89,9 +89,7 @@ bool performMainMed(const std::string& configFileName) {
 #endif
 
 	//Loader params for our Agents
-#ifndef SIMMOB_DISABLE_DYNAMIC_DISPATCH
 	WorkGroup::EntityLoadParams entLoader(Agent::pending_agents, Agent::all_agents);
-#endif
 
 	//Register our Role types.
 	//TODO: Accessing ConfigParams before loading it is technically safe, but we

@@ -119,7 +119,7 @@ public:
 
 	bool TEMP_ManualFixDemoIntersection;
 
-	///Synced to the value of SIMMOB_DISABLE_DYNAMIC_DISPATCH; used for runtime checks.
+	///Synced to the value of disable_dynamic_dispatch in the config file; used for runtime checks.
 	bool DynamicDispatchDisabled() const {
 		return dynamicDispatchDisabled;
 	}

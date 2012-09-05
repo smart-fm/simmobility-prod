@@ -224,9 +224,9 @@ std::size_t SplitPlan::computeCurrPhase(double currCycleTimer)
 	return currPhaseID;
 }
 
-SplitPlan::SplitPlan(double cycleLength_,double offset_):cycleLength(cycleLength_),offset(offset_)
+SplitPlan::SplitPlan(double cycleLength_,double offset_,int signalAlgorithm_):cycleLength(cycleLength_),offset(offset_),signalAlgorithm(signalAlgorithm_)
 {
-	signalAlgorithm = ConfigParams::GetInstance().signalAlgorithm;
+//	signalAlgorithm = ConfigParams::GetInstance().signalAlgorithm;
 	currPhaseID = 0;
 	nextSplitPlanID = 0;
 	currSplitPlanID = 0;

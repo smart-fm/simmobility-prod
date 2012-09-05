@@ -110,11 +110,11 @@ void WriteXMLInput_Location(TiXmlElement * parent,bool underLocation, unsigned i
 	yPos->LinkEndChild(new  TiXmlText(Id.str()));
 }
 
-void WriteXMLInput_PolyLine(sim_mob::Lane *lane ,TiXmlElement * PolyLine)
+void WriteXMLInput_PolyLine(const std::vector<sim_mob::Point2D> polylines,/*sim_mob::Lane *lane ,*/TiXmlElement * PolyLine)
 {
 	std::ostringstream Id;
 	int i = 0;
-	for(std::vector<Point2D>::const_iterator polyLineObj_it = lane->getPolyline().begin(), it_end(lane->getPolyline().end()); polyLineObj_it != it_end; polyLineObj_it++, i++)
+	for(std::vector<Point2D>::const_iterator polyLineObj_it = polylines.begin(), it_end(polylines.end()); polyLineObj_it != it_end; polyLineObj_it++, i++)
 	{
 		//PolyPoint
 		TiXmlElement * PolyPoint = new TiXmlElement("PolyPoint"); PolyLine->LinkEndChild(PolyPoint);
@@ -189,7 +189,7 @@ void WriteXMLInput_Lane(sim_mob::Lane *LaneObj,TiXmlElement *Lanes)
 	is_u_turn_allowed->LinkEndChild(new  TiXmlText(LaneObj->is_u_turn_allowed() ? "true" : "false"));
 	//Polyline
 	TiXmlElement * PolyLine = new TiXmlElement("PolyLine"); Lane->LinkEndChild(PolyLine);
-	WriteXMLInput_PolyLine(LaneObj,PolyLine);
+	WriteXMLInput_PolyLine(LaneObj->getPolyline(),PolyLine);
 
 }
 void WriteXMLInput_Crossing(sim_mob::Crossing * crossing , int offset, TiXmlElement *Obstacle)
@@ -269,6 +269,12 @@ void WriteXMLInput_Segment(sim_mob::RoadSegment* rs ,TiXmlElement * Segments)
 	Id.str("");
 	Id << rs->width;
 	Width->LinkEndChild(new  TiXmlText(Id.str()));
+	//originalDB_ID
+	TiXmlElement * originalDB_ID = new TiXmlElement("originalDB_ID");  Segment->LinkEndChild(originalDB_ID);
+	originalDB_ID->LinkEndChild( new TiXmlText(rs->originalDB_ID.getLogItem()));
+	//polyline
+	TiXmlElement * polyline = new TiXmlElement("polyline"); Segment->LinkEndChild(polyline);
+	WriteXMLInput_PolyLine(const_cast<std::vector<sim_mob::Point2D>& >(rs->polyline), polyline);
 	//Lanes
 	TiXmlElement * Lanes = new TiXmlElement("Lanes"); Segment->LinkEndChild(Lanes);
 	//Lane
@@ -381,24 +387,33 @@ void WriteXMLInput_UniNode_Connectors(sim_mob::UniNode* uninode,TiXmlElement * U
 		laneTo->LinkEndChild( new TiXmlText(out.str()));
 	}
 }
-
-void WriteXMLInput_UniNodes(sim_mob::RoadNetwork & roadNetwork,TiXmlElement * Nodes)
+void WriteXMLInput_Node(sim_mob::Node *node, TiXmlElement * parent)
 {
 	std::ostringstream out;
+	//nodeId
+	TiXmlElement * nodeID = new TiXmlElement("nodeID"); parent->LinkEndChild(nodeID);
+	out.str("");
+	out << node->getID();
+	nodeID->LinkEndChild( new TiXmlText(out.str()));
+	//location
+	WriteXMLInput_Location(parent,true,node->getLocation().getX(),node->getLocation().getY());
+	//linkLoc
+	TiXmlElement * linkLoc = new TiXmlElement("linkLoc"); parent->LinkEndChild(linkLoc);
+	linkLoc->LinkEndChild( new TiXmlText(node->getLinkLoc()->linkID));
+	//originalDB_ID
+	TiXmlElement * originalDB_ID = new TiXmlElement("originalDB_ID");  parent->LinkEndChild(originalDB_ID);
+	originalDB_ID->LinkEndChild( new TiXmlText(node->originalDB_ID.getLogItem()));
+}
+void WriteXMLInput_UniNodes(sim_mob::RoadNetwork & roadNetwork,TiXmlElement * Nodes)
+{
 	TiXmlElement * UniNodes = new TiXmlElement("UniNodes"); Nodes->LinkEndChild(UniNodes);
-
-
 	for(std::set<sim_mob::UniNode*>::const_iterator it = roadNetwork.getUniNodes().begin(), it_end( roadNetwork.getUniNodes().end()); it != it_end ; it++ )
 	{
 		TiXmlElement * UniNode = new TiXmlElement("UniNode"); UniNodes->LinkEndChild(UniNode);
-		TiXmlElement * nodeID = new TiXmlElement("nodeID"); UniNode->LinkEndChild(nodeID);
-		out.str("");
-		out << (*it)->getID();
-		nodeID->LinkEndChild( new TiXmlText(out.str()));
-		WriteXMLInput_Location(UniNode,true,(*it)->getLocation().getX(),(*it)->getLocation().getY());
+		WriteXMLInput_Node(*it, UniNode);//basic node information
+		//connectors
 		WriteXMLInput_UniNode_Connectors(*it,UniNode);
 	}
-
 }
 
 void WriteXMLInput_roadSegmentsAt(sim_mob::MultiNode * mn,TiXmlElement * Intersection)
@@ -452,12 +467,16 @@ TiXmlElement * WriteXMLInput_Intersection(sim_mob::Intersection *intersection,Ti
 	if(!Intersections) { Intersections = new TiXmlElement("Intersections"); Nodes->LinkEndChild(Intersections);}
 		out.str("");
 		TiXmlElement * Intersection = new TiXmlElement("Intersection"); Intersections->LinkEndChild(Intersection);
-    	//nodeID
-    	TiXmlElement * nodeID = new TiXmlElement("nodeID");  Intersection->LinkEndChild(nodeID);
-    	out << (intersection)->getID();
-    	nodeID->LinkEndChild( new TiXmlText((out.str())));
-    	//location
-    	WriteXMLInput_Location(Intersection,true,(intersection)->location.getX(),(intersection)->location.getY());
+//    	//nodeID
+//    	TiXmlElement * nodeID = new TiXmlElement("nodeID");  Intersection->LinkEndChild(nodeID);
+//    	out << (intersection)->getID();
+//    	nodeID->LinkEndChild( new TiXmlText((out.str())));
+//    	//originalDB_ID
+//    	TiXmlElement * originalDB_ID = new TiXmlElement("originalDB_ID");  Intersection->LinkEndChild(originalDB_ID);
+//    	originalDB_ID->LinkEndChild( new TiXmlText(intersection->originalDB_ID.getLogItem()));
+//    	//location
+//    	WriteXMLInput_Location(Intersection,true,(intersection)->location.getX(),(intersection)->location.getY());
+    	WriteXMLInput_Node(intersection, Intersection);//basic node information
     	WriteXMLInput_roadSegmentsAt(intersection,Intersection);
     	WriteXMLInput_MultiNode_Connectors(intersection,Intersection);
     	return Intersections;//used to decide whether create a parent "Intersections" element or not

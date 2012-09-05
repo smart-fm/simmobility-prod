@@ -1,6 +1,6 @@
 #Some commands to help you get started with XSD
 
-#xsdcxx  --options-file  
+#   xsdcxx  cxx-parser  --options-file  geo9.cfg   geo9.xsd
 
 
 #If you update the geo9.xsd file, you should run the following:

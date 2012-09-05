@@ -9,18 +9,22 @@ namespace http://www.smart.mit.edu/geo  {
  include "geospatial/LaneConnector.hpp";
  include "geospatial/Crossing.hpp";
  include "geospatial/UniNode.hpp";
+ include "metrics/Length.hpp";
+ include "util/DailyTime.hpp";
+ include "entities/misc/TripChain.hpp";
+ 
 Links std::vector<sim_mob::Link*> std::vector<sim_mob::Link*>;
 link_t sim_mob::Link* sim_mob::Link*;
 
-Segments std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*>>   std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*>>;
+Segments  "std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >"   "std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >";
 fwdBckSegments_t std::vector<sim_mob::RoadSegment*> std::vector<sim_mob::RoadSegment*>;
 segment_t sim_mob::RoadSegment* sim_mob::RoadSegment*;
 SegmentType_t std::string std::string;
 
 RoadItem_t  sim_mob::RoadItem*; 
-RoadItems_t  std::map<centimeter_t,const_RoadItem*> std::map<centimeter_t,const_RoadItem*>; 
+RoadItems_t  "std::map<sim_mob::centimeter_t,const RoadItem*>"  "std::map<sim_mob::centimeter_t,const RoadItem*>"; 
 obstacle_t  sim_mob::RoadItem*;
-obstacles_t std::map<centimeter_t,RoadItem_make_constant*> std::map<centimeter_t,RoadItem_make_constant*>;
+obstacles_t std::map<sim_mob::centimeter_t,RoadItem_make_constant*> std::map<sim_mob::centimeter_t,RoadItem_make_constant*>;
 
 lane_t sim_mob::Lane* sim_mob::Lane*;
 Lanes std::vector<sim_mob::Lane*> std::vector<sim_mob::Lane*>;
@@ -28,15 +32,15 @@ Lanes std::vector<sim_mob::Lane*> std::vector<sim_mob::Lane*>;
 #connector_t sim_mob::LaneConnector* sim_mob::LaneConnector*;
 #connectors_t std::set<sim_mob::LaneConnector*> std::set<sim_mob::LaneConnector*>;
 
-connector_t std::pair<unsigned_long,unsigned_long> std::pair<unsigned_long,unsigned_long>;
-connectors_t std::set<std::pair<unsigned_long,unsigned_long>> std::set<std::pair<unsigned_long,unsigned_long>>;
+connector_t   "std::pair<unsigned long,unsigned long>"  "std::pair<unsigned long,unsigned long>";
+connectors_t  "std::set<std::pair<unsigned long,unsigned long> >"  "std::set<std::pair<unsigned long,unsigned long> >";
 
-#connectors_t std::set<std::pair<std::string,std::string>> std::set<std::pair<std::string,std::string>>;
-#Multi_Connector_t std::pair<std::string,std::set<sim_mob::LaneConnector*>>;
-#Multi_Connectors_t std::map<std::string,std::set<sim_mob::LaneConnector*>>;
+#connectors_t  "std::set<std::pair<std::string,std::string> >"  "std::set<std::pair<std::string,std::string> >";
+#Multi_Connector_t   "std::pair<std::string,std::set<sim_mob::LaneConnector*> >";
+#Multi_Connectors_t  "std::map<std::string,std::set<sim_mob::LaneConnector*> >";
 
-Multi_Connector_t std::pair<unsigned_long,std::set<std::pair<unsigned_long,unsigned_long>>>;
-Multi_Connectors_t std::map<unsigned_long,std::set<std::pair<unsigned_long,unsigned_long>>>;
+Multi_Connector_t   "std::pair<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >";
+Multi_Connectors_t  "std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >";
 
 PolyLine_t std::vector<sim_mob::Point2D> std::vector<sim_mob::Point2D>;
 PolyPoint_t sim_mob::Point2D sim_mob::Point2D;
@@ -51,7 +55,7 @@ UniNode_t sim_mob::UniNode* sim_mob::UniNode*;
 Intersections std::vector<sim_mob::MultiNode*>& std::vector<sim_mob::MultiNode*>&;
 intersection_t sim_mob::MultiNode* sim_mob::MultiNode*;
 #RoadSegmentsAt_t std::set<sim_mob::RoadSegment*>  std::set<sim_mob::RoadSegment*>;
-RoadSegmentsAt_t std::set<unsigned_long>  std::set<unsigned_long>;
+RoadSegmentsAt_t "std::set<unsigned long>"  "std::set<unsigned long>";
 roundabouts std::vector<sim_mob::MultiNode*>& std::vector<sim_mob::MultiNode*>&;
 roundabout_t sim_mob::MultiNode* sim_mob::MultiNode*;
 
@@ -59,7 +63,7 @@ crossing_t sim_mob::Crossing* sim_mob::Crossing*;
 
 
 TripChainItem_t  sim_mob::TripChainItem*  sim_mob::TripChainItem*;
-TripChain_t std::pair<unsigned_long,sim_mob::TripChainItem*>  std::pair<unsigned_long,sim_mob::TripChainItem*>;
+TripChain_t "std::pair<unsigned long,sim_mob::TripChainItem*>"  "std::pair<unsigned long,sim_mob::TripChainItem*>";
 Trip_t sim_mob::TripChainItem*  sim_mob::TripChainItem*;
 Activity_t sim_mob::TripChainItem*  sim_mob::TripChainItem*;
 DailyTime_t sim_mob::DailyTime sim_mob::DailyTime;

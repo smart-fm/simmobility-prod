@@ -35,7 +35,21 @@ class Loader;
 class LaneLoader;
 } //End aimsun namespace
 
+/*
+ * SpeedDensityParams is the place holder for storing the parameters of the
+ * speed density function for this road segment.
+ */
+struct SpeedDensityParams {
+	double freeFlowSpeed; //Maximum speed of the road segment
+	double jamDensity; //density during traffic jam
+	double minDensity; // minimum traffic density
+	double alpha; //Model parameter of speed density function
+	double beta; //Model parameter of speed density function
 
+
+	explicit SpeedDensityParams(double maxSpeed, double maxDensity, double minDensity, double a, double b)
+		: freeFlowSpeed(maxSpeed), jamDensity(maxDensity), minDensity(minDensity), alpha(a), beta(b){}
+};
 
 /**
  * Part of a Link with consistent lane numbering. RoadSegments may be bidirectional.
@@ -88,21 +102,23 @@ public:
 	//RoadSegments may have hidden properties useful only in for the visualizer.
 	OpaqueProperty<int> originalDB_ID;
 
-#ifndef SIMMOB_DISABLE_MPI
 	///The identification of RoadSegment is packed using PackageUtils;
-	static void pack(PackageUtils& package, const RoadSegment* one_segment);
-
 	///UnPackageUtils use the identification of RoadSegment to find the RoadSegment Object
-	static const RoadSegment* unpack(UnPackageUtils& unpackage);
-#endif
-
 public:
 	///Maximum speed of this road segment.
 	unsigned int maxSpeed;
-
 	///TODO This should be made private again.
-	mutable std::vector< std::vector<sim_mob::Point2D> > laneEdgePolylines_cached;
+	mutable std::vector<std::vector<sim_mob::Point2D> > laneEdgePolylines_cached;
 	void setLanes(std::vector<sim_mob::Lane*>);
+
+	sim_mob::SpeedDensityParams getSpeedDensityParams() const {
+		return speedDensityParams;
+	}
+
+	void setSpeedDensityParams(sim_mob::SpeedDensityParams speedDensityParams) {
+		this->speedDensityParams = speedDensityParams;
+	}
+
 private:
 	///Collection of lanes. All road segments must have at least one lane.
 	std::vector<sim_mob::Lane*> lanes;
@@ -110,27 +126,30 @@ private:
 	//int getBustStopID;
 	///Computed polylines are cached here.
 	///These run from 0 (for the median) to lanes.size()+1 (for the outer edge).
-	void specifyEdgePolylines(const std::vector< std::vector<sim_mob::Point2D> >& calcdPolylines);
-	void makeLanePolylineFromEdges(sim_mob::Lane* lane, const std::vector<sim_mob::Point2D>& inner, const std::vector<sim_mob::Point2D>& outer) const;
-	std::vector<sim_mob::Point2D> makeLaneEdgeFromPolyline(sim_mob::Lane* refLane, bool edgeIsRight) const;
-
+	void specifyEdgePolylines(
+			const std::vector<std::vector<sim_mob::Point2D> >& calcdPolylines);
+	void makeLanePolylineFromEdges(sim_mob::Lane* lane,
+			const std::vector<sim_mob::Point2D>& inner,
+			const std::vector<sim_mob::Point2D>& outer) const;
+	std::vector<sim_mob::Point2D> makeLaneEdgeFromPolyline(
+			sim_mob::Lane* refLane, bool edgeIsRight) const;
 	//mutable std::vector< std::vector<sim_mob::Point2D> > laneEdgePolylines_cached;
-
 	///Helps to identify road segments which are bi-directional.
 	///We count lanes from the LHS, so this doesn't change with drivingSide
 	unsigned int lanesLeftOfDivider;
-
 	///Which link this appears in
 	sim_mob::Link* parentLink;
-//	std::string segmentID;
+	//	std::string segmentID;
 	unsigned long segmentID;
 
-friend class sim_mob::aimsun::Loader;
-friend class sim_mob::aimsun::LaneLoader;
-friend class sim_mob::RoadNetworkPackageManager;
-friend class ::geo::segment_t_pimpl;
-friend class ::geo::Segments_pimpl;
-friend class ::geo::link_t_pimpl;
+	const sim_mob::SpeedDensityParams* speedDensityParams;
+
+	friend class sim_mob::aimsun::Loader;
+	friend class sim_mob::aimsun::LaneLoader;
+	friend class sim_mob::RoadNetworkPackageManager;
+	friend class geo::segment_t_pimpl;
+	friend class geo::Segments_pimpl;
+	friend class geo::link_t_pimpl;
 
 };
 

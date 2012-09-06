@@ -677,11 +677,17 @@ void sim_mob::medium::Driver::initLoopSpecialString(vector<WayPoint>& path, cons
 // 1. This function is specific to the medium term
 // 2. It makes sense in the real life as well that the driver decides to slow down or accelerate based on the traffic density around him
 double sim_mob::medium::Driver::speed_density_function(double density){
-	/* TODO: min density, jam density, alpha and beta must be obtained from the database.
-	 * Since we don't have this data, we have taken the average values from supply parameters of Singapore express ways.
-	 * This must be changed after we have this data for each road segment in the database.  */
+	/*
+	 * TODO: The parameters - min density, jam density, alpha and beta - for each road segment
+	 * must be obtained from an external source (XML/Database)
+	 * Since we don't have this data, we have taken the average values from supply parameters of Singapore expressways.
+	 * This must be changed after we have this data for each road segment in the network.
+	 *
+	 * A params struct for these parameters is already defined in the RoadSegment class.
+	 * This struct is to be used when we have actual values for the parameters.
+	 */
 
-	// TODO: Yet to figure out a reasonable value. Will have to re check the paramater values when we have queuing implemented.
+
 	double freeFlowSpeed = vehicle->getCurrSegment()->maxSpeed / 3.6 * 100; // Converting from Kmph to cm/s
 	double jamDensity = 1; //density during traffic jam
 	double alpha = 3.75; //Model parameter of speed density function

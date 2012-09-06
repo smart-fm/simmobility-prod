@@ -34,7 +34,7 @@ class BusStop : public sim_mob::RoadItem {
 public:
 	///BusStops must be constructed with their stopPt, which must be the same
 	///  as the lane zero offset in their RoadSegment.
-	explicit BusStop() : RoadItem() {}
+	explicit BusStop() : RoadItem(),stopPoint(-1) {}
 
 public:
 	///Which RoadItem and lane is this bus stop located at?
@@ -59,6 +59,10 @@ public:
 	//The position bus shall stop in segment from start node
 	//NOTE: This is now correctly stored in the RoadSegment's obstacle list.
 	//const double stopPoint;
+
+	// the position bus shall stop in segment from start node
+	//unit cm
+	double stopPoint;
 
 
 public:

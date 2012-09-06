@@ -91,6 +91,15 @@ vector<const BusStop*> sim_mob::BusDriver::findBusStopInPath(const vector<const 
 		{
 			const BusStop *bs = dynamic_cast<const BusStop*>(ob_it->second);
 			if(bs) {
+				// calculate bus stops point
+				DynamicVector SegmentLength(rs->getEnd()->location.getX(),rs->getEnd()->location.getY(),rs->getStart()->location.getX(),rs->getStart()->location.getY());
+				DynamicVector BusStopDistfromStart(bs->xPos,bs->yPos,rs->getStart()->location.getX(),rs->getStart()->location.getY());
+				DynamicVector BusStopDistfromEnd(rs->getEnd()->location.getX(),rs->getEnd()->location.getY(),bs->xPos,bs->yPos);
+				double a = BusStopDistfromStart.getMagnitude();
+				double b = BusStopDistfromEnd.getMagnitude();
+				double c = SegmentLength.getMagnitude();
+				bs->stopPoint = (-b*b + a*a + c*c)/(2.0*c);
+				std::cout<<"stopPoint: "<<bs->stopPoint/100.0<<std::endl;
 				res.push_back(bs);
 			}
 		}
@@ -204,17 +213,31 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 	if (isBusLeavingBusStop() || waitAtStopMS >= BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
 		std::cout << "BusDriver::updatePositionOnLink: bus isBusLeavingBusStop" << std::endl;
 		waitAtStopMS = -1;
+
+		busAccelerating(p);
 	}
 
-	double fwdDistance = vehicle->getVelocity() * p.elapsedSeconds + 0.5 * vehicle->getAcceleration() * p.elapsedSeconds * p.elapsedSeconds;
-	if (fwdDistance < 0)
-		fwdDistance = 0;
+	std::cout<<"BusDriver::updatePositionOnLink:tick: "<<p.currTimeMS/1000.0<<std::endl;
+	std::cout<<"BusDriver::updatePositionOnLink:busvelocity: "<<vehicle->getVelocity()/100.0<<std::endl;
+	std::cout<<"BusDriver::updatePositionOnLink:busacceleration: "<<vehicle->getAcceleration()/100.0<<std::endl;
+	std::cout<<"BusDriver::updatePositionOnLink:buslateralvelocity: "<<vehicle->getLatVelocity()/100.0<<std::endl;
+	std::cout<<"BusDriver::updatePositionOnLink:busstopdistance: "<<distanceToNextBusStop()<<std::endl;
+	std::cout<<"my bus distance moved in segment: "<<vehicle->getDistanceToSegmentStart()/100.0<<std::endl;
+	std::cout<<"but DistanceMovedInSegment"<<vehicle->getDistanceMovedInSegment()/100.0<<std::endl;
+	std::cout<<"current polyline length: "<<vehicle->getCurrPolylineLength()/100.0<<std::endl;
+	DynamicVector segmentlength(vehicle->getCurrSegment()->getStart()->location.getX(),vehicle->getCurrSegment()->getStart()->location.getY(),
+			vehicle->getCurrSegment()->getEnd()->location.getX(),vehicle->getCurrSegment()->getEnd()->location.getY());
+	std::cout<<"current segment length: "<<segmentlength.getMagnitude()/100.0<<std::endl;
+
+//	double fwdDistance = vehicle->getVelocity() * p.elapsedSeconds + 0.5 * vehicle->getAcceleration() * p.elapsedSeconds * p.elapsedSeconds;
+//	if (fwdDistance < 0)
+//		fwdDistance = 0;
 
 	//double fwdDistance = vehicle->getVelocity()*p.elapsedSeconds;
-	double latDistance = vehicle->getLatVelocity() * p.elapsedSeconds;
+//	double latDistance = vehicle->getLatVelocity() * p.elapsedSeconds;
 
 	//Increase the vehicle's velocity based on its acceleration.
-	busAccelerating(p);
+
 
 	//Return the remaining amount (obtained by calling updatePositionOnLink)
 	return updatePositionOnLink(p);

@@ -47,7 +47,7 @@ struct SpeedDensityParams {
 	double beta; //Model parameter of speed density function
 
 
-	explicit SpeedDensityParams(double maxSpeed, double maxDensity, double minDensity, double a, double b)
+	SpeedDensityParams(double maxSpeed, double maxDensity, double minDensity, double a, double b)
 		: freeFlowSpeed(maxSpeed), jamDensity(maxDensity), minDensity(minDensity), alpha(a), beta(b){}
 };
 
@@ -66,6 +66,10 @@ public:
 	explicit RoadSegment(sim_mob::Link* parent);
 	
 	explicit RoadSegment(sim_mob::Link* parent, unsigned long id);
+
+	//to be used when we have the actual values for speed density parameters
+	explicit RoadSegment(sim_mob::Link* parent, unsigned long id, const SpeedDensityParams* sdParams);
+
 	const unsigned long  & getSegmentID()const ;
 
 	bool operator== (const RoadSegment* rhs) const
@@ -111,12 +115,8 @@ public:
 	mutable std::vector<std::vector<sim_mob::Point2D> > laneEdgePolylines_cached;
 	void setLanes(std::vector<sim_mob::Lane*>);
 
-	sim_mob::SpeedDensityParams getSpeedDensityParams() const {
+	const sim_mob::SpeedDensityParams* getSpeedDensityParams() {
 		return speedDensityParams;
-	}
-
-	void setSpeedDensityParams(sim_mob::SpeedDensityParams speedDensityParams) {
-		this->speedDensityParams = speedDensityParams;
 	}
 
 private:

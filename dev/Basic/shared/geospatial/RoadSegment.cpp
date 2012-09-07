@@ -27,7 +27,14 @@ void sim_mob::RoadSegment::setLanes(std::vector<sim_mob::Lane*> lanes)
 	this->lanes = lanes;
 }
 
-sim_mob::RoadSegment::RoadSegment(Link* parent, unsigned long id) : Pavement(), parentLink(parent),segmentID(id)
+sim_mob::RoadSegment::RoadSegment(Link* parent, unsigned long id)
+	: Pavement(), parentLink(parent),segmentID(id)
+{
+
+}
+
+sim_mob::RoadSegment::RoadSegment(Link* parent, unsigned long id, const SpeedDensityParams* sdParams)
+	: Pavement(), parentLink(parent),segmentID(id), speedDensityParams(sdParams)
 {
 
 }

@@ -93,13 +93,14 @@ vector<const BusStop*> sim_mob::BusDriver::findBusStopInPath(const vector<const 
 			BusStop *bs = dynamic_cast<BusStop*>(ri);
 			if(bs) {
 				// calculate bus stops point
-				DynamicVector SegmentLength(rs->getEnd()->location.getX(),rs->getEnd()->location.getY(),rs->getStart()->location.getX(),rs->getStart()->location.getY());
+				//NOTE: This is already calculated in the offset (RoadSegment obstacles list) ~Seth
+				/*DynamicVector SegmentLength(rs->getEnd()->location.getX(),rs->getEnd()->location.getY(),rs->getStart()->location.getX(),rs->getStart()->location.getY());
 				DynamicVector BusStopDistfromStart(bs->xPos,bs->yPos,rs->getStart()->location.getX(),rs->getStart()->location.getY());
 				DynamicVector BusStopDistfromEnd(rs->getEnd()->location.getX(),rs->getEnd()->location.getY(),bs->xPos,bs->yPos);
 				double a = BusStopDistfromStart.getMagnitude();
 				double b = BusStopDistfromEnd.getMagnitude();
 				double c = SegmentLength.getMagnitude();
-				bs->stopPoint = (-b*b + a*a + c*c)/(2.0*c);
+				bs->stopPoint = (-b*b + a*a + c*c)/(2.0*c);*/
 				//std::cout<<"stopPoint: "<<bs->stopPoint/100.0<<std::endl;
 				res.push_back(bs);
 			}
@@ -354,29 +355,32 @@ double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment* rs) 
 		{
 		   RoadItem* ri = const_cast<RoadItem*>(o_it->second);
 		   BusStop *bs = dynamic_cast<BusStop *>(ri);
+		   int stopPoint = o_it->first;
+
 		   if(bs)
 		   {
 			   if (rs == vehicle->getCurrSegment())
 			   {
 
-				   if (bs->stopPoint < 0)
+				   if (stopPoint < 0)
 				   {
-					   std::cout<<"BusDriver::DistanceToNextBusStop :stopPoint < 0"<<std::endl;
+					   throw std::runtime_error("BusDriver offset in obstacles list should never be <0");
+					   /*std::cout<<"BusDriver::DistanceToNextBusStop :stopPoint < 0"<<std::endl;
 					   DynamicVector SegmentLength(rs->getEnd()->location.getX(),rs->getEnd()->location.getY(),rs->getStart()->location.getX(),rs->getStart()->location.getY());
 					   DynamicVector BusStopDistfromStart(bs->xPos,bs->yPos,rs->getStart()->location.getX(),rs->getStart()->location.getY());
 					   DynamicVector BusStopDistfromEnd(rs->getEnd()->location.getX(),rs->getEnd()->location.getY(),bs->xPos,bs->yPos);
 					   double a = BusStopDistfromStart.getMagnitude();
 					   double b = BusStopDistfromEnd.getMagnitude();
 					   double c = SegmentLength.getMagnitude();
-					   bs->stopPoint = (-b*b + a*a + c*c)/(2.0*c);
+					   bs->stopPoint = (-b*b + a*a + c*c)/(2.0*c);*/
 				   }
 
-				   if (bs->stopPoint >= 0)
+				   if (stopPoint >= 0)
 				   {
 						DynamicVector BusDistfromStart(vehicle->getX(),vehicle->getY(),rs->getStart()->location.getX(),rs->getStart()->location.getY());
 						//std::cout<<"BusDriver::DistanceToNextBusStop: bus move in segment: "<<BusDistfromStart.getMagnitude()<<std::endl;
 						//distance = bs->stopPoint - BusDistfromStart.getMagnitude();
-						distance = bs->stopPoint - vehicle->getDistanceMovedInSegment();
+						distance = stopPoint - vehicle->getDistanceMovedInSegment();
 						//std::cout<<"BusDriver::DistanceToNextBusStop :distance: "<<distance<<std::endl;
 					}
 			   }
@@ -387,7 +391,7 @@ double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment* rs) 
 //				   DynamicVector busToSegmentEndDistance(currentX,currentY,
 //				   						   rs->getEnd()->location.getX(),rs->getEnd()->location.getY());
 				   //distance = busToSegmentStartDistance.getMagnitude() + bs->stopPoint;
-				   distance = vehicle->getCurrentSegmentLength() - vehicle->getDistanceMovedInSegment() + bs->stopPoint;
+				   distance = vehicle->getCurrentSegmentLength() - vehicle->getDistanceMovedInSegment() + stopPoint;
 /*				   std::cout<<"BusDriver::DistanceToNextBusStop :not current segment distance:stopPoint "<<bs->stopPoint<<std::endl;
 				   std::cout<<"BusDriver::DistanceToNextBusStop :not current segment distance:busToSegmentStartDistance: "<<busToSegmentStartDistance.getMagnitude()<<std::endl;
 				   std::cout<<"BusDriver::DistanceToNextBusStop :not current segment distance: "<<distance<<std::endl;*/

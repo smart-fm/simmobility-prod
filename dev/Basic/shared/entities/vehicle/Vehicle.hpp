@@ -48,6 +48,12 @@ public:
 	double getY() const;   ///<Retrieve the vehicle's absolute position, y
 	double getDistanceMovedInSegment() const;   ///<Retrieve the total distance moved in this segment so far.
 	double getDistanceToSegmentStart() const;
+
+	// segment length is based on lane's polypoints , which lane? it is a problem...
+	// be careful, it is not relate to segment's start ,end nodes
+	// unit cm
+ 	double getCurrentSegmentLength();
+
 	//double getCurrLaneLength() const; ///<Get the total length of this RoadSegment.
 
 	double getLateralMovement() const;         ///<Retrieve a value representing how far to the LEFT of the current lane the vehicle has moved.

@@ -88,6 +88,11 @@ const RoadSegment* sim_mob::Vehicle::getCurrSegment() const {
 	return fwdMovement.getCurrSegment();
 }
 
+double sim_mob::Vehicle::getCurrentSegmentLength()
+{
+	return fwdMovement.getCurrentSegmentLength();
+}
+
 const RoadSegment* sim_mob::Vehicle::getNextSegment(bool inSameLink) const {
 	return fwdMovement.getNextSegment(inSameLink);
 }

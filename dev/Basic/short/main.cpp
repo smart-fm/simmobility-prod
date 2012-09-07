@@ -247,6 +247,7 @@ void WriteXMLInput_Segment(sim_mob::RoadSegment* rs ,TiXmlElement * Segments)
 	segmentID->LinkEndChild(new  TiXmlText(Id.str()));
 	//start
 	TiXmlElement * startingNode = new TiXmlElement("startingNode"); Segment->LinkEndChild(startingNode);
+	Id.str("");
 	Id << rs->getStart()->getID();
 	startingNode->LinkEndChild(new  TiXmlText(Id.str()));
 	//end
@@ -590,6 +591,64 @@ void WriteXMLInput_TripChain_Subtrips(TiXmlElement * Trip,  sim_mob::Trip & trip
 	for(std::vector<SubTrip>::const_iterator it = trip.getSubTrips().begin(), it_end(trip.getSubTrips().end()); it != it_end; it++)
 	{
 		TiXmlElement * Subtrip  = new TiXmlElement( "subTrip" ); Subtrips->LinkEndChild( Subtrip );
+		//tripID
+		out.str("");
+		out << it->tripID;
+		TiXmlElement * tripID  = new TiXmlElement( "tripID" );
+		tripID->LinkEndChild( new TiXmlText(out.str()));
+		Subtrip->LinkEndChild( tripID );
+		//fromLocation
+		out.str("");
+		out << it->fromLocation->getID();
+		TiXmlElement * fromLocation  = new TiXmlElement( "fromLocation" );
+		fromLocation->LinkEndChild( new TiXmlText(out.str()));
+		Subtrip->LinkEndChild( fromLocation );
+		//fromLocationType
+		out.str("");
+		switch(it->fromLocationType)
+		{
+		case TripChainItem::LT_BUILDING:
+			out << "LT_BUILDING";
+			break;
+		case TripChainItem::LT_NODE:
+			out << "LT_NODE";
+			break;
+		case TripChainItem::LT_LINK:
+			out << "LT_LINK";
+			break;
+		case TripChainItem::LT_PUBLIC_TRANSIT_STOP:
+			out << "LT_PUBLIC_TRANSIT_STOP";
+			break;
+		}
+		TiXmlElement * fromLocationType  = new TiXmlElement( "fromLocationType" );
+		fromLocationType->LinkEndChild( new TiXmlText(out.str()));
+		Subtrip->LinkEndChild( fromLocationType );
+		//toLocation
+		out.str("");
+		out << it->toLocation->getID();
+		TiXmlElement * toLocation  = new TiXmlElement( "toLocation" );
+		toLocation->LinkEndChild( new TiXmlText(out.str()));
+		Subtrip->LinkEndChild( toLocation );
+		//toLocationType
+		out.str("");
+		switch(it->toLocationType)
+		{
+		case TripChainItem::LT_BUILDING:
+			out << "LT_BUILDING";
+			break;
+		case TripChainItem::LT_NODE:
+			out << "LT_NODE";
+			break;
+		case TripChainItem::LT_LINK:
+			out << "LT_LINK";
+			break;
+		case TripChainItem::LT_PUBLIC_TRANSIT_STOP:
+			out << "LT_PUBLIC_TRANSIT_STOP";
+			break;
+		}
+		TiXmlElement * toLocationType  = new TiXmlElement( "toLocationType" );
+		toLocationType->LinkEndChild( new TiXmlText(out.str()));
+		Subtrip->LinkEndChild( toLocationType );
 		//mode
 		TiXmlElement * mode  = new TiXmlElement( "mode" );
 		mode->LinkEndChild( new TiXmlText(it->mode));

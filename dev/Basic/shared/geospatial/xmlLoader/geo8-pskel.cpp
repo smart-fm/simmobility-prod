@@ -488,6 +488,12 @@ namespace geo
   }
 
   void segment_t_pskel::
+  originalDB_ID_parser (::xml_schema::string_pskel& p)
+  {
+    this->originalDB_ID_parser_ = &p;
+  }
+
+  void segment_t_pskel::
   polyline_parser (::geo::PolyLine_t_pskel& p)
   {
     this->polyline_parser_ = &p;
@@ -518,6 +524,7 @@ namespace geo
            ::xml_schema::short_pskel& maxSpeed,
            ::xml_schema::unsigned_int_pskel& Length,
            ::xml_schema::unsigned_int_pskel& Width,
+           ::xml_schema::string_pskel& originalDB_ID,
            ::geo::PolyLine_t_pskel& polyline,
            ::geo::Lanes_pskel& Lanes,
            ::geo::RoadItems_t_pskel& Obstacles,
@@ -529,6 +536,7 @@ namespace geo
     this->maxSpeed_parser_ = &maxSpeed;
     this->Length_parser_ = &Length;
     this->Width_parser_ = &Width;
+    this->originalDB_ID_parser_ = &originalDB_ID;
     this->polyline_parser_ = &polyline;
     this->Lanes_parser_ = &Lanes;
     this->Obstacles_parser_ = &Obstacles;
@@ -543,6 +551,7 @@ namespace geo
     maxSpeed_parser_ (0),
     Length_parser_ (0),
     Width_parser_ (0),
+    originalDB_ID_parser_ (0),
     polyline_parser_ (0),
     Lanes_parser_ (0),
     Obstacles_parser_ (0),
@@ -1150,36 +1159,6 @@ namespace geo
     additionalDominantLanes_parser_ (0),
     additionalSubdominantLanes_parser_ (0),
     domainIslands_parser_ (0)
-  {
-  }
-
-  // RoadItem_No_Attr_t_pskel
-  //
-
-  void RoadItem_No_Attr_t_pskel::
-  start_parser (::geo::Point2D_t_pskel& p)
-  {
-    this->start_parser_ = &p;
-  }
-
-  void RoadItem_No_Attr_t_pskel::
-  end_parser (::geo::Point2D_t_pskel& p)
-  {
-    this->end_parser_ = &p;
-  }
-
-  void RoadItem_No_Attr_t_pskel::
-  parsers (::geo::Point2D_t_pskel& start,
-           ::geo::Point2D_t_pskel& end)
-  {
-    this->start_parser_ = &start;
-    this->end_parser_ = &end;
-  }
-
-  RoadItem_No_Attr_t_pskel::
-  RoadItem_No_Attr_t_pskel ()
-  : start_parser_ (0),
-    end_parser_ (0)
   {
   }
 
@@ -1908,6 +1887,468 @@ namespace geo
   {
   }
 
+  // linkAndCrossing_t_pskel
+  //
+
+  void linkAndCrossing_t_pskel::
+  ID_parser (::xml_schema::unsigned_byte_pskel& p)
+  {
+    this->ID_parser_ = &p;
+  }
+
+  void linkAndCrossing_t_pskel::
+  linkID_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->linkID_parser_ = &p;
+  }
+
+  void linkAndCrossing_t_pskel::
+  crossingID_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->crossingID_parser_ = &p;
+  }
+
+  void linkAndCrossing_t_pskel::
+  angle_parser (::xml_schema::unsigned_byte_pskel& p)
+  {
+    this->angle_parser_ = &p;
+  }
+
+  void linkAndCrossing_t_pskel::
+  parsers (::xml_schema::unsigned_byte_pskel& ID,
+           ::xml_schema::unsigned_int_pskel& linkID,
+           ::xml_schema::unsigned_int_pskel& crossingID,
+           ::xml_schema::unsigned_byte_pskel& angle)
+  {
+    this->ID_parser_ = &ID;
+    this->linkID_parser_ = &linkID;
+    this->crossingID_parser_ = &crossingID;
+    this->angle_parser_ = &angle;
+  }
+
+  linkAndCrossing_t_pskel::
+  linkAndCrossing_t_pskel ()
+  : ID_parser_ (0),
+    linkID_parser_ (0),
+    crossingID_parser_ (0),
+    angle_parser_ (0)
+  {
+  }
+
+  // linkAndCrossings_t_pskel
+  //
+
+  void linkAndCrossings_t_pskel::
+  linkAndCrossing_parser (::geo::linkAndCrossing_t_pskel& p)
+  {
+    this->linkAndCrossing_parser_ = &p;
+  }
+
+  void linkAndCrossings_t_pskel::
+  parsers (::geo::linkAndCrossing_t_pskel& linkAndCrossing)
+  {
+    this->linkAndCrossing_parser_ = &linkAndCrossing;
+  }
+
+  linkAndCrossings_t_pskel::
+  linkAndCrossings_t_pskel ()
+  : linkAndCrossing_parser_ (0)
+  {
+  }
+
+  // Plan_t_pskel
+  //
+
+  void Plan_t_pskel::
+  planID_parser (::xml_schema::unsigned_byte_pskel& p)
+  {
+    this->planID_parser_ = &p;
+  }
+
+  void Plan_t_pskel::
+  PhasePercentage_parser (::xml_schema::double_pskel& p)
+  {
+    this->PhasePercentage_parser_ = &p;
+  }
+
+  void Plan_t_pskel::
+  parsers (::xml_schema::unsigned_byte_pskel& planID,
+           ::xml_schema::double_pskel& PhasePercentage)
+  {
+    this->planID_parser_ = &planID;
+    this->PhasePercentage_parser_ = &PhasePercentage;
+  }
+
+  Plan_t_pskel::
+  Plan_t_pskel ()
+  : planID_parser_ (0),
+    PhasePercentage_parser_ (0)
+  {
+  }
+
+  // Plans_t_pskel
+  //
+
+  void Plans_t_pskel::
+  Plan_parser (::geo::Plan_t_pskel& p)
+  {
+    this->Plan_parser_ = &p;
+  }
+
+  void Plans_t_pskel::
+  parsers (::geo::Plan_t_pskel& Plan)
+  {
+    this->Plan_parser_ = &Plan;
+  }
+
+  Plans_t_pskel::
+  Plans_t_pskel ()
+  : Plan_parser_ (0)
+  {
+  }
+
+  // ColorDuration_t_pskel
+  //
+
+  void ColorDuration_t_pskel::
+  TrafficColor_parser (::geo::TrafficColor_t_pskel& p)
+  {
+    this->TrafficColor_parser_ = &p;
+  }
+
+  void ColorDuration_t_pskel::
+  Duration_parser (::xml_schema::unsigned_byte_pskel& p)
+  {
+    this->Duration_parser_ = &p;
+  }
+
+  void ColorDuration_t_pskel::
+  parsers (::geo::TrafficColor_t_pskel& TrafficColor,
+           ::xml_schema::unsigned_byte_pskel& Duration)
+  {
+    this->TrafficColor_parser_ = &TrafficColor;
+    this->Duration_parser_ = &Duration;
+  }
+
+  ColorDuration_t_pskel::
+  ColorDuration_t_pskel ()
+  : TrafficColor_parser_ (0),
+    Duration_parser_ (0)
+  {
+  }
+
+  // ColorSequence_t_pskel
+  //
+
+  void ColorSequence_t_pskel::
+  TrafficLightType_parser (::xml_schema::string_pskel& p)
+  {
+    this->TrafficLightType_parser_ = &p;
+  }
+
+  void ColorSequence_t_pskel::
+  ColorDuration_parser (::geo::ColorDuration_t_pskel& p)
+  {
+    this->ColorDuration_parser_ = &p;
+  }
+
+  void ColorSequence_t_pskel::
+  parsers (::xml_schema::string_pskel& TrafficLightType,
+           ::geo::ColorDuration_t_pskel& ColorDuration)
+  {
+    this->TrafficLightType_parser_ = &TrafficLightType;
+    this->ColorDuration_parser_ = &ColorDuration;
+  }
+
+  ColorSequence_t_pskel::
+  ColorSequence_t_pskel ()
+  : TrafficLightType_parser_ (0),
+    ColorDuration_parser_ (0)
+  {
+  }
+
+  // links_maps_t_pskel
+  //
+
+  void links_maps_t_pskel::
+  links_map_parser (::geo::links_map_t_pskel& p)
+  {
+    this->links_map_parser_ = &p;
+  }
+
+  void links_maps_t_pskel::
+  parsers (::geo::links_map_t_pskel& links_map)
+  {
+    this->links_map_parser_ = &links_map;
+  }
+
+  links_maps_t_pskel::
+  links_maps_t_pskel ()
+  : links_map_parser_ (0)
+  {
+  }
+
+  // links_map_t_pskel
+  //
+
+  void links_map_t_pskel::
+  linkFrom_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->linkFrom_parser_ = &p;
+  }
+
+  void links_map_t_pskel::
+  linkTo_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->linkTo_parser_ = &p;
+  }
+
+  void links_map_t_pskel::
+  SegmentFrom_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->SegmentFrom_parser_ = &p;
+  }
+
+  void links_map_t_pskel::
+  SegmentTo_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->SegmentTo_parser_ = &p;
+  }
+
+  void links_map_t_pskel::
+  ColorSequence_parser (::geo::ColorSequence_t_pskel& p)
+  {
+    this->ColorSequence_parser_ = &p;
+  }
+
+  void links_map_t_pskel::
+  parsers (::xml_schema::unsigned_int_pskel& linkFrom,
+           ::xml_schema::unsigned_int_pskel& linkTo,
+           ::xml_schema::unsigned_int_pskel& SegmentFrom,
+           ::xml_schema::unsigned_int_pskel& SegmentTo,
+           ::geo::ColorSequence_t_pskel& ColorSequence)
+  {
+    this->linkFrom_parser_ = &linkFrom;
+    this->linkTo_parser_ = &linkTo;
+    this->SegmentFrom_parser_ = &SegmentFrom;
+    this->SegmentTo_parser_ = &SegmentTo;
+    this->ColorSequence_parser_ = &ColorSequence;
+  }
+
+  links_map_t_pskel::
+  links_map_t_pskel ()
+  : linkFrom_parser_ (0),
+    linkTo_parser_ (0),
+    SegmentFrom_parser_ (0),
+    SegmentTo_parser_ (0),
+    ColorSequence_parser_ (0)
+  {
+  }
+
+  // Phase_t_pskel
+  //
+
+  void Phase_t_pskel::
+  phaseID_parser (::xml_schema::unsigned_byte_pskel& p)
+  {
+    this->phaseID_parser_ = &p;
+  }
+
+  void Phase_t_pskel::
+  name_parser (::xml_schema::string_pskel& p)
+  {
+    this->name_parser_ = &p;
+  }
+
+  void Phase_t_pskel::
+  links_map_parser (::geo::links_maps_t_pskel& p)
+  {
+    this->links_map_parser_ = &p;
+  }
+
+  void Phase_t_pskel::
+  parsers (::xml_schema::unsigned_byte_pskel& phaseID,
+           ::xml_schema::string_pskel& name,
+           ::geo::links_maps_t_pskel& links_map)
+  {
+    this->phaseID_parser_ = &phaseID;
+    this->name_parser_ = &name;
+    this->links_map_parser_ = &links_map;
+  }
+
+  Phase_t_pskel::
+  Phase_t_pskel ()
+  : phaseID_parser_ (0),
+    name_parser_ (0),
+    links_map_parser_ (0)
+  {
+  }
+
+  // Phases_t_pskel
+  //
+
+  void Phases_t_pskel::
+  Phase_parser (::geo::Phase_t_pskel& p)
+  {
+    this->Phase_parser_ = &p;
+  }
+
+  void Phases_t_pskel::
+  parsers (::geo::Phase_t_pskel& Phase)
+  {
+    this->Phase_parser_ = &Phase;
+  }
+
+  Phases_t_pskel::
+  Phases_t_pskel ()
+  : Phase_parser_ (0)
+  {
+  }
+
+  // SplitPlan_t_pskel
+  //
+
+  void SplitPlan_t_pskel::
+  splitplanID_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->splitplanID_parser_ = &p;
+  }
+
+  void SplitPlan_t_pskel::
+  signalAlgorithm_parser (::geo::signalAlgorithm_t_pskel& p)
+  {
+    this->signalAlgorithm_parser_ = &p;
+  }
+
+  void SplitPlan_t_pskel::
+  cycleLength_parser (::xml_schema::unsigned_byte_pskel& p)
+  {
+    this->cycleLength_parser_ = &p;
+  }
+
+  void SplitPlan_t_pskel::
+  offset_parser (::xml_schema::unsigned_byte_pskel& p)
+  {
+    this->offset_parser_ = &p;
+  }
+
+  void SplitPlan_t_pskel::
+  ChoiceSet_parser (::geo::Plans_t_pskel& p)
+  {
+    this->ChoiceSet_parser_ = &p;
+  }
+
+  void SplitPlan_t_pskel::
+  Phases_parser (::geo::Phases_t_pskel& p)
+  {
+    this->Phases_parser_ = &p;
+  }
+
+  void SplitPlan_t_pskel::
+  parsers (::xml_schema::unsigned_int_pskel& splitplanID,
+           ::geo::signalAlgorithm_t_pskel& signalAlgorithm,
+           ::xml_schema::unsigned_byte_pskel& cycleLength,
+           ::xml_schema::unsigned_byte_pskel& offset,
+           ::geo::Plans_t_pskel& ChoiceSet,
+           ::geo::Phases_t_pskel& Phases)
+  {
+    this->splitplanID_parser_ = &splitplanID;
+    this->signalAlgorithm_parser_ = &signalAlgorithm;
+    this->cycleLength_parser_ = &cycleLength;
+    this->offset_parser_ = &offset;
+    this->ChoiceSet_parser_ = &ChoiceSet;
+    this->Phases_parser_ = &Phases;
+  }
+
+  SplitPlan_t_pskel::
+  SplitPlan_t_pskel ()
+  : splitplanID_parser_ (0),
+    signalAlgorithm_parser_ (0),
+    cycleLength_parser_ (0),
+    offset_parser_ (0),
+    ChoiceSet_parser_ (0),
+    Phases_parser_ (0)
+  {
+  }
+
+  // Signal_t_pskel
+  //
+
+  void Signal_t_pskel::
+  signalID_parser (::xml_schema::unsigned_byte_pskel& p)
+  {
+    this->signalID_parser_ = &p;
+  }
+
+  void Signal_t_pskel::
+  nodeID_parser (::xml_schema::unsigned_int_pskel& p)
+  {
+    this->nodeID_parser_ = &p;
+  }
+
+  void Signal_t_pskel::
+  signalAlgorithm_parser (::geo::signalAlgorithm_t_pskel& p)
+  {
+    this->signalAlgorithm_parser_ = &p;
+  }
+
+  void Signal_t_pskel::
+  linkAndCrossings_parser (::geo::linkAndCrossings_t_pskel& p)
+  {
+    this->linkAndCrossings_parser_ = &p;
+  }
+
+  void Signal_t_pskel::
+  SplitPlan_parser (::geo::SplitPlan_t_pskel& p)
+  {
+    this->SplitPlan_parser_ = &p;
+  }
+
+  void Signal_t_pskel::
+  parsers (::xml_schema::unsigned_byte_pskel& signalID,
+           ::xml_schema::unsigned_int_pskel& nodeID,
+           ::geo::signalAlgorithm_t_pskel& signalAlgorithm,
+           ::geo::linkAndCrossings_t_pskel& linkAndCrossings,
+           ::geo::SplitPlan_t_pskel& SplitPlan)
+  {
+    this->signalID_parser_ = &signalID;
+    this->nodeID_parser_ = &nodeID;
+    this->signalAlgorithm_parser_ = &signalAlgorithm;
+    this->linkAndCrossings_parser_ = &linkAndCrossings;
+    this->SplitPlan_parser_ = &SplitPlan;
+  }
+
+  Signal_t_pskel::
+  Signal_t_pskel ()
+  : signalID_parser_ (0),
+    nodeID_parser_ (0),
+    signalAlgorithm_parser_ (0),
+    linkAndCrossings_parser_ (0),
+    SplitPlan_parser_ (0)
+  {
+  }
+
+  // Signals_t_pskel
+  //
+
+  void Signals_t_pskel::
+  signal_parser (::geo::Signal_t_pskel& p)
+  {
+    this->signal_parser_ = &p;
+  }
+
+  void Signals_t_pskel::
+  parsers (::geo::Signal_t_pskel& signal)
+  {
+    this->signal_parser_ = &signal;
+  }
+
+  Signals_t_pskel::
+  Signals_t_pskel ()
+  : signal_parser_ (0)
+  {
+  }
+
   // GeoSpatial_t_pskel
   //
 
@@ -1945,17 +2386,26 @@ namespace geo
   }
 
   void SimMobility_t_pskel::
+  Signals_parser (::geo::Signals_t_pskel& p)
+  {
+    this->Signals_parser_ = &p;
+  }
+
+  void SimMobility_t_pskel::
   parsers (::geo::GeoSpatial_t_pskel& GeoSpatial,
-           ::geo::TripChains_t_pskel& TripChains)
+           ::geo::TripChains_t_pskel& TripChains,
+           ::geo::Signals_t_pskel& Signals)
   {
     this->GeoSpatial_parser_ = &GeoSpatial;
     this->TripChains_parser_ = &TripChains;
+    this->Signals_parser_ = &Signals;
   }
 
   SimMobility_t_pskel::
   SimMobility_t_pskel ()
   : GeoSpatial_parser_ (0),
-    TripChains_parser_ (0)
+    TripChains_parser_ (0),
+    Signals_parser_ (0)
   {
   }
 
@@ -3166,6 +3616,11 @@ namespace geo
   }
 
   void segment_t_pskel::
+  originalDB_ID (const ::std::string&)
+  {
+  }
+
+  void segment_t_pskel::
   polyline (std::vector<sim_mob::Point2D>)
   {
   }
@@ -3176,7 +3631,7 @@ namespace geo
   }
 
   void segment_t_pskel::
-  Obstacles (std::map<centimeter_t,const RoadItem*>)
+  Obstacles (std::map<sim_mob::centimeter_t,const RoadItem*>)
   {
   }
 
@@ -3251,6 +3706,16 @@ namespace geo
 
       if (this->Width_parser_)
         this->Width_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "originalDB_ID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->originalDB_ID_parser_;
+
+      if (this->originalDB_ID_parser_)
+        this->originalDB_ID_parser_->pre ();
 
       return true;
     }
@@ -3349,6 +3814,14 @@ namespace geo
     {
       if (this->Width_parser_)
         this->Width (this->Width_parser_->post_unsigned_int ());
+
+      return true;
+    }
+
+    if (n == "originalDB_ID" && ns.empty ())
+    {
+      if (this->originalDB_ID_parser_)
+        this->originalDB_ID (this->originalDB_ID_parser_->post_string ());
 
       return true;
     }
@@ -4896,83 +5369,6 @@ namespace geo
     return false;
   }
 
-  // RoadItem_No_Attr_t_pskel
-  //
-
-  void RoadItem_No_Attr_t_pskel::
-  start (sim_mob::Point2D)
-  {
-  }
-
-  void RoadItem_No_Attr_t_pskel::
-  end (sim_mob::Point2D)
-  {
-  }
-
-  void RoadItem_No_Attr_t_pskel::
-  post_RoadItem_No_Attr_t ()
-  {
-  }
-
-  bool RoadItem_No_Attr_t_pskel::
-  _start_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n,
-                       const ::xml_schema::ro_string* t)
-  {
-    XSD_UNUSED (t);
-
-    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-      return true;
-
-    if (n == "start" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->start_parser_;
-
-      if (this->start_parser_)
-        this->start_parser_->pre ();
-
-      return true;
-    }
-
-    if (n == "end" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->end_parser_;
-
-      if (this->end_parser_)
-        this->end_parser_->pre ();
-
-      return true;
-    }
-
-    return false;
-  }
-
-  bool RoadItem_No_Attr_t_pskel::
-  _end_element_impl (const ::xml_schema::ro_string& ns,
-                     const ::xml_schema::ro_string& n)
-  {
-    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-      return true;
-
-    if (n == "start" && ns.empty ())
-    {
-      if (this->start_parser_)
-        this->start (this->start_parser_->post_Point2D_t ());
-
-      return true;
-    }
-
-    if (n == "end" && ns.empty ())
-    {
-      if (this->end_parser_)
-        this->end (this->end_parser_->post_Point2D_t ());
-
-      return true;
-    }
-
-    return false;
-  }
-
   // RoadItem_t_pskel
   //
 
@@ -5729,7 +6125,7 @@ namespace geo
   }
 
   void RoadItems_t_pskel::
-  Crossing (sim_mob::Crossing*)
+  Crossing (std::pair<unsigned long,sim_mob::Crossing*>)
   {
   }
 
@@ -6688,6 +7084,1188 @@ namespace geo
     return false;
   }
 
+  // linkAndCrossing_t_pskel
+  //
+
+  void linkAndCrossing_t_pskel::
+  ID (unsigned char)
+  {
+  }
+
+  void linkAndCrossing_t_pskel::
+  linkID (unsigned int)
+  {
+  }
+
+  void linkAndCrossing_t_pskel::
+  crossingID (unsigned int)
+  {
+  }
+
+  void linkAndCrossing_t_pskel::
+  angle (unsigned char)
+  {
+  }
+
+  bool linkAndCrossing_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "ID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->ID_parser_;
+
+      if (this->ID_parser_)
+        this->ID_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "linkID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->linkID_parser_;
+
+      if (this->linkID_parser_)
+        this->linkID_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "crossingID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->crossingID_parser_;
+
+      if (this->crossingID_parser_)
+        this->crossingID_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "angle" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->angle_parser_;
+
+      if (this->angle_parser_)
+        this->angle_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool linkAndCrossing_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "ID" && ns.empty ())
+    {
+      if (this->ID_parser_)
+        this->ID (this->ID_parser_->post_unsigned_byte ());
+
+      return true;
+    }
+
+    if (n == "linkID" && ns.empty ())
+    {
+      if (this->linkID_parser_)
+        this->linkID (this->linkID_parser_->post_unsigned_int ());
+
+      return true;
+    }
+
+    if (n == "crossingID" && ns.empty ())
+    {
+      if (this->crossingID_parser_)
+        this->crossingID (this->crossingID_parser_->post_unsigned_int ());
+
+      return true;
+    }
+
+    if (n == "angle" && ns.empty ())
+    {
+      if (this->angle_parser_)
+        this->angle (this->angle_parser_->post_unsigned_byte ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // linkAndCrossings_t_pskel
+  //
+
+  void linkAndCrossings_t_pskel::
+  linkAndCrossing (sim_mob::LinkAndCrossing)
+  {
+  }
+
+  bool linkAndCrossings_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "linkAndCrossing" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->linkAndCrossing_parser_;
+
+      if (this->linkAndCrossing_parser_)
+        this->linkAndCrossing_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool linkAndCrossings_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "linkAndCrossing" && ns.empty ())
+    {
+      if (this->linkAndCrossing_parser_)
+        this->linkAndCrossing (this->linkAndCrossing_parser_->post_linkAndCrossing_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // signalAlgorithm_t_pskel
+  //
+
+  void signalAlgorithm_t_pskel::
+  post_signalAlgorithm_t ()
+  {
+  }
+
+  // Plan_t_pskel
+  //
+
+  void Plan_t_pskel::
+  planID (unsigned char)
+  {
+  }
+
+  void Plan_t_pskel::
+  PhasePercentage (double)
+  {
+  }
+
+  void Plan_t_pskel::
+  post_Plan_t ()
+  {
+  }
+
+  bool Plan_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "planID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->planID_parser_;
+
+      if (this->planID_parser_)
+        this->planID_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "PhasePercentage" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->PhasePercentage_parser_;
+
+      if (this->PhasePercentage_parser_)
+        this->PhasePercentage_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool Plan_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "planID" && ns.empty ())
+    {
+      if (this->planID_parser_)
+        this->planID (this->planID_parser_->post_unsigned_byte ());
+
+      return true;
+    }
+
+    if (n == "PhasePercentage" && ns.empty ())
+    {
+      if (this->PhasePercentage_parser_)
+        this->PhasePercentage (this->PhasePercentage_parser_->post_double ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // Plans_t_pskel
+  //
+
+  void Plans_t_pskel::
+  Plan ()
+  {
+  }
+
+  void Plans_t_pskel::
+  post_Plans_t ()
+  {
+  }
+
+  bool Plans_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "Plan" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Plan_parser_;
+
+      if (this->Plan_parser_)
+        this->Plan_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool Plans_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "Plan" && ns.empty ())
+    {
+      if (this->Plan_parser_)
+      {
+        this->Plan_parser_->post_Plan_t ();
+        this->Plan ();
+      }
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // TrafficColor_t_pskel
+  //
+
+  void TrafficColor_t_pskel::
+  post_TrafficColor_t ()
+  {
+  }
+
+  // ColorDuration_t_pskel
+  //
+
+  void ColorDuration_t_pskel::
+  TrafficColor ()
+  {
+  }
+
+  void ColorDuration_t_pskel::
+  Duration (unsigned char)
+  {
+  }
+
+  bool ColorDuration_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "TrafficColor" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->TrafficColor_parser_;
+
+      if (this->TrafficColor_parser_)
+        this->TrafficColor_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "Duration" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Duration_parser_;
+
+      if (this->Duration_parser_)
+        this->Duration_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool ColorDuration_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "TrafficColor" && ns.empty ())
+    {
+      if (this->TrafficColor_parser_)
+      {
+        this->TrafficColor_parser_->post_TrafficColor_t ();
+        this->TrafficColor ();
+      }
+
+      return true;
+    }
+
+    if (n == "Duration" && ns.empty ())
+    {
+      if (this->Duration_parser_)
+        this->Duration (this->Duration_parser_->post_unsigned_byte ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // ColorSequence_t_pskel
+  //
+
+  void ColorSequence_t_pskel::
+  TrafficLightType (const ::std::string&)
+  {
+  }
+
+  void ColorSequence_t_pskel::
+  ColorDuration (std::pair<sim_mob::TrafficColor,std::size_t>)
+  {
+  }
+
+  bool ColorSequence_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "TrafficLightType" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->TrafficLightType_parser_;
+
+      if (this->TrafficLightType_parser_)
+        this->TrafficLightType_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "ColorDuration" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->ColorDuration_parser_;
+
+      if (this->ColorDuration_parser_)
+        this->ColorDuration_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool ColorSequence_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "TrafficLightType" && ns.empty ())
+    {
+      if (this->TrafficLightType_parser_)
+        this->TrafficLightType (this->TrafficLightType_parser_->post_string ());
+
+      return true;
+    }
+
+    if (n == "ColorDuration" && ns.empty ())
+    {
+      if (this->ColorDuration_parser_)
+        this->ColorDuration (this->ColorDuration_parser_->post_ColorDuration_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // links_maps_t_pskel
+  //
+
+  void links_maps_t_pskel::
+  links_map (std::pair<sim_mob::Link*,sim_mob::linkToLink>)
+  {
+  }
+
+  bool links_maps_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "links_map" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->links_map_parser_;
+
+      if (this->links_map_parser_)
+        this->links_map_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool links_maps_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "links_map" && ns.empty ())
+    {
+      if (this->links_map_parser_)
+        this->links_map (this->links_map_parser_->post_links_map_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // links_map_t_pskel
+  //
+
+  void links_map_t_pskel::
+  linkFrom (unsigned int)
+  {
+  }
+
+  void links_map_t_pskel::
+  linkTo (unsigned int)
+  {
+  }
+
+  void links_map_t_pskel::
+  SegmentFrom (unsigned int)
+  {
+  }
+
+  void links_map_t_pskel::
+  SegmentTo (unsigned int)
+  {
+  }
+
+  void links_map_t_pskel::
+  ColorSequence (std::pair<std::string,std::vector<std::pair<TrafficColor,std::size_t> > >)
+  {
+  }
+
+  bool links_map_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "linkFrom" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->linkFrom_parser_;
+
+      if (this->linkFrom_parser_)
+        this->linkFrom_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "linkTo" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->linkTo_parser_;
+
+      if (this->linkTo_parser_)
+        this->linkTo_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "SegmentFrom" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->SegmentFrom_parser_;
+
+      if (this->SegmentFrom_parser_)
+        this->SegmentFrom_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "SegmentTo" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->SegmentTo_parser_;
+
+      if (this->SegmentTo_parser_)
+        this->SegmentTo_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "ColorSequence" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->ColorSequence_parser_;
+
+      if (this->ColorSequence_parser_)
+        this->ColorSequence_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool links_map_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "linkFrom" && ns.empty ())
+    {
+      if (this->linkFrom_parser_)
+        this->linkFrom (this->linkFrom_parser_->post_unsigned_int ());
+
+      return true;
+    }
+
+    if (n == "linkTo" && ns.empty ())
+    {
+      if (this->linkTo_parser_)
+        this->linkTo (this->linkTo_parser_->post_unsigned_int ());
+
+      return true;
+    }
+
+    if (n == "SegmentFrom" && ns.empty ())
+    {
+      if (this->SegmentFrom_parser_)
+        this->SegmentFrom (this->SegmentFrom_parser_->post_unsigned_int ());
+
+      return true;
+    }
+
+    if (n == "SegmentTo" && ns.empty ())
+    {
+      if (this->SegmentTo_parser_)
+        this->SegmentTo (this->SegmentTo_parser_->post_unsigned_int ());
+
+      return true;
+    }
+
+    if (n == "ColorSequence" && ns.empty ())
+    {
+      if (this->ColorSequence_parser_)
+        this->ColorSequence (this->ColorSequence_parser_->post_ColorSequence_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // Phase_t_pskel
+  //
+
+  void Phase_t_pskel::
+  phaseID (unsigned char)
+  {
+  }
+
+  void Phase_t_pskel::
+  name (const ::std::string&)
+  {
+  }
+
+  void Phase_t_pskel::
+  links_map (std::multimap<sim_mob::Link*,sim_mob::linkToLink>)
+  {
+  }
+
+  void Phase_t_pskel::
+  post_Phase_t ()
+  {
+  }
+
+  bool Phase_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "phaseID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->phaseID_parser_;
+
+      if (this->phaseID_parser_)
+        this->phaseID_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "name" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->name_parser_;
+
+      if (this->name_parser_)
+        this->name_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "links_map" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->links_map_parser_;
+
+      if (this->links_map_parser_)
+        this->links_map_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool Phase_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "phaseID" && ns.empty ())
+    {
+      if (this->phaseID_parser_)
+        this->phaseID (this->phaseID_parser_->post_unsigned_byte ());
+
+      return true;
+    }
+
+    if (n == "name" && ns.empty ())
+    {
+      if (this->name_parser_)
+        this->name (this->name_parser_->post_string ());
+
+      return true;
+    }
+
+    if (n == "links_map" && ns.empty ())
+    {
+      if (this->links_map_parser_)
+        this->links_map (this->links_map_parser_->post_links_maps_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // Phases_t_pskel
+  //
+
+  void Phases_t_pskel::
+  Phase ()
+  {
+  }
+
+  void Phases_t_pskel::
+  post_Phases_t ()
+  {
+  }
+
+  bool Phases_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "Phase" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Phase_parser_;
+
+      if (this->Phase_parser_)
+        this->Phase_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool Phases_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "Phase" && ns.empty ())
+    {
+      if (this->Phase_parser_)
+      {
+        this->Phase_parser_->post_Phase_t ();
+        this->Phase ();
+      }
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // SplitPlan_t_pskel
+  //
+
+  void SplitPlan_t_pskel::
+  splitplanID (unsigned int)
+  {
+  }
+
+  void SplitPlan_t_pskel::
+  signalAlgorithm ()
+  {
+  }
+
+  void SplitPlan_t_pskel::
+  cycleLength (unsigned char)
+  {
+  }
+
+  void SplitPlan_t_pskel::
+  offset (unsigned char)
+  {
+  }
+
+  void SplitPlan_t_pskel::
+  ChoiceSet ()
+  {
+  }
+
+  void SplitPlan_t_pskel::
+  Phases ()
+  {
+  }
+
+  bool SplitPlan_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "splitplanID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->splitplanID_parser_;
+
+      if (this->splitplanID_parser_)
+        this->splitplanID_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "signalAlgorithm" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->signalAlgorithm_parser_;
+
+      if (this->signalAlgorithm_parser_)
+        this->signalAlgorithm_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "cycleLength" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->cycleLength_parser_;
+
+      if (this->cycleLength_parser_)
+        this->cycleLength_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "offset" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->offset_parser_;
+
+      if (this->offset_parser_)
+        this->offset_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "ChoiceSet" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->ChoiceSet_parser_;
+
+      if (this->ChoiceSet_parser_)
+        this->ChoiceSet_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "Phases" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Phases_parser_;
+
+      if (this->Phases_parser_)
+        this->Phases_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool SplitPlan_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "splitplanID" && ns.empty ())
+    {
+      if (this->splitplanID_parser_)
+        this->splitplanID (this->splitplanID_parser_->post_unsigned_int ());
+
+      return true;
+    }
+
+    if (n == "signalAlgorithm" && ns.empty ())
+    {
+      if (this->signalAlgorithm_parser_)
+      {
+        this->signalAlgorithm_parser_->post_signalAlgorithm_t ();
+        this->signalAlgorithm ();
+      }
+
+      return true;
+    }
+
+    if (n == "cycleLength" && ns.empty ())
+    {
+      if (this->cycleLength_parser_)
+        this->cycleLength (this->cycleLength_parser_->post_unsigned_byte ());
+
+      return true;
+    }
+
+    if (n == "offset" && ns.empty ())
+    {
+      if (this->offset_parser_)
+        this->offset (this->offset_parser_->post_unsigned_byte ());
+
+      return true;
+    }
+
+    if (n == "ChoiceSet" && ns.empty ())
+    {
+      if (this->ChoiceSet_parser_)
+      {
+        this->ChoiceSet_parser_->post_Plans_t ();
+        this->ChoiceSet ();
+      }
+
+      return true;
+    }
+
+    if (n == "Phases" && ns.empty ())
+    {
+      if (this->Phases_parser_)
+      {
+        this->Phases_parser_->post_Phases_t ();
+        this->Phases ();
+      }
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // Signal_t_pskel
+  //
+
+  void Signal_t_pskel::
+  signalID (unsigned char)
+  {
+  }
+
+  void Signal_t_pskel::
+  nodeID (unsigned int)
+  {
+  }
+
+  void Signal_t_pskel::
+  signalAlgorithm ()
+  {
+  }
+
+  void Signal_t_pskel::
+  linkAndCrossings (sim_mob::LinkAndCrossingC)
+  {
+  }
+
+  void Signal_t_pskel::
+  SplitPlan (sim_mob::SplitPlan)
+  {
+  }
+
+  bool Signal_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "signalID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->signalID_parser_;
+
+      if (this->signalID_parser_)
+        this->signalID_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "nodeID" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->nodeID_parser_;
+
+      if (this->nodeID_parser_)
+        this->nodeID_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "signalAlgorithm" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->signalAlgorithm_parser_;
+
+      if (this->signalAlgorithm_parser_)
+        this->signalAlgorithm_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "linkAndCrossings" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->linkAndCrossings_parser_;
+
+      if (this->linkAndCrossings_parser_)
+        this->linkAndCrossings_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "SplitPlan" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->SplitPlan_parser_;
+
+      if (this->SplitPlan_parser_)
+        this->SplitPlan_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool Signal_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "signalID" && ns.empty ())
+    {
+      if (this->signalID_parser_)
+        this->signalID (this->signalID_parser_->post_unsigned_byte ());
+
+      return true;
+    }
+
+    if (n == "nodeID" && ns.empty ())
+    {
+      if (this->nodeID_parser_)
+        this->nodeID (this->nodeID_parser_->post_unsigned_int ());
+
+      return true;
+    }
+
+    if (n == "signalAlgorithm" && ns.empty ())
+    {
+      if (this->signalAlgorithm_parser_)
+      {
+        this->signalAlgorithm_parser_->post_signalAlgorithm_t ();
+        this->signalAlgorithm ();
+      }
+
+      return true;
+    }
+
+    if (n == "linkAndCrossings" && ns.empty ())
+    {
+      if (this->linkAndCrossings_parser_)
+        this->linkAndCrossings (this->linkAndCrossings_parser_->post_linkAndCrossings_t ());
+
+      return true;
+    }
+
+    if (n == "SplitPlan" && ns.empty ())
+    {
+      if (this->SplitPlan_parser_)
+        this->SplitPlan (this->SplitPlan_parser_->post_SplitPlan_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // Signals_t_pskel
+  //
+
+  void Signals_t_pskel::
+  signal (sim_mob::Signal*)
+  {
+  }
+
+  void Signals_t_pskel::
+  post_Signals_t ()
+  {
+  }
+
+  bool Signals_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "signal" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->signal_parser_;
+
+      if (this->signal_parser_)
+        this->signal_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool Signals_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "signal" && ns.empty ())
+    {
+      if (this->signal_parser_)
+        this->signal (this->signal_parser_->post_Signal_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
   // GeoSpatial_t_pskel
   //
 
@@ -6759,6 +8337,11 @@ namespace geo
   }
 
   void SimMobility_t_pskel::
+  Signals ()
+  {
+  }
+
+  void SimMobility_t_pskel::
   post_SimMobility_t ()
   {
   }
@@ -6793,6 +8376,16 @@ namespace geo
       return true;
     }
 
+    if (n == "Signals" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->Signals_parser_;
+
+      if (this->Signals_parser_)
+        this->Signals_parser_->pre ();
+
+      return true;
+    }
+
     return false;
   }
 
@@ -6820,6 +8413,17 @@ namespace geo
       {
         this->TripChains_parser_->post_TripChains_t ();
         this->TripChains ();
+      }
+
+      return true;
+    }
+
+    if (n == "Signals" && ns.empty ())
+    {
+      if (this->Signals_parser_)
+      {
+        this->Signals_parser_->post_Signals_t ();
+        this->Signals ();
       }
 
       return true;

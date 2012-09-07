@@ -1458,8 +1458,6 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   {
 	  const ::std::string& v (post_string ());
 
-    // TODO
-    //
     return v;
   }
 
@@ -1476,65 +1474,6 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   {
 	  const ::std::string& v (post_string ());
 	  return v;
-    // TODO
-    //
-    // return ... ;
-  }
-
-  // SubTrip_t_pimpl
-  //
-
-  void SubTrip_t_pimpl::
-  pre ()
-  {
-	  subTrip.mode = "";
-	  subTrip.isPrimaryMode = false;
-	  subTrip.ptLineId = "";
-  }
-
-  void SubTrip_t_pimpl::
-  mode (const ::std::string& mode)
-  {
-	  subTrip.mode = mode;
-  }
-
-  void SubTrip_t_pimpl::
-  isPrimaryMode (bool isPrimaryMode)
-  {
-	  subTrip.isPrimaryMode = isPrimaryMode;
-  }
-
-  void SubTrip_t_pimpl::
-  ptLineId (const ::std::string& ptLineId)
-  {
-	  subTrip.ptLineId = ptLineId;
-  }
-
-  sim_mob::SubTrip SubTrip_t_pimpl::
-  post_SubTrip_t ()
-  {
-	  return subTrip;
-  }
-
-  // SubTrips_t_pimpl
-  //
-
-  void SubTrips_t_pimpl::
-  pre ()
-  {
-	  subTrips.clear();
-  }
-
-  void SubTrips_t_pimpl::
-  subTrip (sim_mob::SubTrip subTrip)
-  {
-	  subTrips.push_back(subTrip);
-  }
-
-  std::vector<sim_mob::SubTrip> SubTrips_t_pimpl::
-  post_SubTrips_t ()
-  {
-    return subTrips;
   }
 
   // TripChainItem_t_pimpl
@@ -1543,8 +1482,6 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void TripChainItem_t_pimpl::
   pre ()
   {
-	    std::cout << "TripChainItem_t_pimpl::pre() "  << std::endl;
-
   }
 
   void TripChainItem_t_pimpl::
@@ -1605,7 +1542,13 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 	  this->tcItem->endTime.time_= sim_mob::DailyTime().ParseStringRepr(endTime_);
 
 	  std::cout << "TripChainItem_t_pimpl::post_TripChainItem_t() "  << std::endl;
-	  return this->tcItem;
+	  //nullify the member variable,just in case
+	  sim_mob::TripChainItem * temp_tripChainItem = 0;
+	  temp_tripChainItem = this->tcItem;
+	  this->tcItem = 0;
+	  //now return the object pointer
+	  return temp_tripChainItem;
+
   }
 
   // Trip_t_pimpl
@@ -1615,10 +1558,8 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   pre ()
   {
 	    std::cout << "In Trip_t_pimpl::pre ()" << std::endl;
-		  //getchar();
 	  trip = new sim_mob::Trip();
 	    std::cout << "In Trip_t_pimpl::pre ()--" << std::endl;
-	  //getchar();
   }
 
   void Trip_t_pimpl::
@@ -1659,10 +1600,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   toLocation (unsigned int toLocation)
   {
 	  std::cout << "In Trip_t_pimpl::toLocation ()"  << std::endl;
-	  //getchar();
 	  trip->toLocation = geo_Nodes_[toLocation];
-    // TODO
-    //
   }
 
   void Trip_t_pimpl::
@@ -1693,25 +1631,89 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   post_Trip_t ()
   {
 	  std::cout << "In Trip_t_pimpl::post_Trip_t ()"  << std::endl;
-	  //getchar();
      sim_mob::TripChainItem* v = post_TripChainItem_t ();
-     trip->personID = v->personID;
-     trip->itemType = v->itemType;
-     trip->sequenceNumber = v->sequenceNumber;
-     trip->startTime = v->startTime;
-     trip->endTime = v->endTime;
-//     //subtrip's basic trip information
-//     for(std::vector<sim_mob::SubTrip>::iterator it = trip->subTrips.begin(); it != trip->subTrips.end(); it++)
-//     {
-//    	 it->tripID = trip->tripID;
-//    	 it->fromLocation = trip->fromLocation;
-//    	 it->fromLocationType = trip->fromLocationType;
-//    	 it->toLocation = trip->toLocation;
-//    	 it->toLocationType = trip->toLocationType;
-//     }
-     delete v;
-     return trip;
+	if (v) {
+		trip->personID = v->personID;
+		trip->itemType = v->itemType;
+		trip->sequenceNumber = v->sequenceNumber;
+		trip->startTime = v->startTime;
+		trip->endTime = v->endTime;
+		delete v;
+	}
+	//nullify the local variable just in case
+	sim_mob::Trip *temp_trip = 0;
+	temp_trip = trip;
+	trip = 0;
+	//now deliver the cookout
+     return temp_trip;
+  }
 
+  // SubTrip_t_pimpl
+  //
+
+  void SubTrip_t_pimpl::
+  pre ()
+  {
+	  subTrip.tripID = 0;
+	  subTrip.fromLocation = 0;
+	  subTrip.toLocation = 0;
+	  subTrip.mode = "";
+	  subTrip.isPrimaryMode = false;
+	  subTrip.ptLineId = "";
+  }
+
+  void SubTrip_t_pimpl::
+  mode (const ::std::string& mode)
+  {
+	  subTrip.mode = mode;
+  }
+
+  void SubTrip_t_pimpl::
+  isPrimaryMode (bool isPrimaryMode)
+  {
+	  subTrip.isPrimaryMode = isPrimaryMode;
+  }
+
+  void SubTrip_t_pimpl::
+  ptLineId (const ::std::string& ptLineId)
+  {
+	  subTrip.ptLineId = ptLineId;
+  }
+
+  sim_mob::SubTrip SubTrip_t_pimpl::
+  post_SubTrip_t ()
+  {
+  		sim_mob::TripChainItem* v (post_Trip_t ());
+	if (v) {
+		sim_mob::Trip *trip = dynamic_cast<sim_mob::Trip *>(v);
+		subTrip.tripID = trip->tripID;
+		subTrip.fromLocation = trip->fromLocation;
+		subTrip.toLocation = trip->toLocation;
+		subTrip.fromLocationType = trip->fromLocationType;
+		subTrip.toLocationType = trip->toLocationType;
+	}
+	  	return subTrip;
+  }
+
+  // SubTrips_t_pimpl
+  //
+
+  void SubTrips_t_pimpl::
+  pre ()
+  {
+	  subTrips.clear();
+  }
+
+  void SubTrips_t_pimpl::
+  subTrip (sim_mob::SubTrip subTrip)
+  {
+	  subTrips.push_back(subTrip);
+  }
+
+  std::vector<sim_mob::SubTrip> SubTrips_t_pimpl::
+  post_SubTrips_t ()
+  {
+    return subTrips;
   }
 
   // Activity_t_pimpl

@@ -299,7 +299,18 @@ bool sim_mob::xml::InitAndLoadXML()
 
     SubTrips_t_p.parsers (SubTrip_t_p);
 
-    SubTrip_t_p.parsers (string_p,
+    SubTrip_t_p.parsers (integer_p,
+                         TripchainItemType_p,
+                         unsigned_int_p,
+                         string_p,
+                         string_p,
+                         integer_p,
+                         unsigned_int_p,
+                         TripchainItemLocationType_p,
+                         unsigned_int_p,
+                         TripchainItemLocationType_p,
+                         SubTrips_t_p,
+                         string_p,
                          boolean_p,
                          string_p);
 

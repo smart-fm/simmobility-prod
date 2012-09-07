@@ -1558,65 +1558,6 @@ namespace geo
   {
   }
 
-  // SubTrip_t_pskel
-  //
-
-  void SubTrip_t_pskel::
-  mode_parser (::xml_schema::string_pskel& p)
-  {
-    this->mode_parser_ = &p;
-  }
-
-  void SubTrip_t_pskel::
-  isPrimaryMode_parser (::xml_schema::boolean_pskel& p)
-  {
-    this->isPrimaryMode_parser_ = &p;
-  }
-
-  void SubTrip_t_pskel::
-  ptLineId_parser (::xml_schema::string_pskel& p)
-  {
-    this->ptLineId_parser_ = &p;
-  }
-
-  void SubTrip_t_pskel::
-  parsers (::xml_schema::string_pskel& mode,
-           ::xml_schema::boolean_pskel& isPrimaryMode,
-           ::xml_schema::string_pskel& ptLineId)
-  {
-    this->mode_parser_ = &mode;
-    this->isPrimaryMode_parser_ = &isPrimaryMode;
-    this->ptLineId_parser_ = &ptLineId;
-  }
-
-  SubTrip_t_pskel::
-  SubTrip_t_pskel ()
-  : mode_parser_ (0),
-    isPrimaryMode_parser_ (0),
-    ptLineId_parser_ (0)
-  {
-  }
-
-  // SubTrips_t_pskel
-  //
-
-  void SubTrips_t_pskel::
-  subTrip_parser (::geo::SubTrip_t_pskel& p)
-  {
-    this->subTrip_parser_ = &p;
-  }
-
-  void SubTrips_t_pskel::
-  parsers (::geo::SubTrip_t_pskel& subTrip)
-  {
-    this->subTrip_parser_ = &subTrip;
-  }
-
-  SubTrips_t_pskel::
-  SubTrips_t_pskel ()
-  : subTrip_parser_ (0)
-  {
-  }
 
   // TripChainItem_t_pskel
   //
@@ -1748,6 +1689,88 @@ namespace geo
     toLocation_parser_ (0),
     toLocationType_parser_ (0),
     subTrips_parser_ (0)
+  {
+  }
+
+  // SubTrip_t_pskel
+  //
+
+  void SubTrip_t_pskel::
+  mode_parser (::xml_schema::string_pskel& p)
+  {
+    this->mode_parser_ = &p;
+  }
+
+  void SubTrip_t_pskel::
+  isPrimaryMode_parser (::xml_schema::boolean_pskel& p)
+  {
+    this->isPrimaryMode_parser_ = &p;
+  }
+
+  void SubTrip_t_pskel::
+  ptLineId_parser (::xml_schema::string_pskel& p)
+  {
+    this->ptLineId_parser_ = &p;
+  }
+
+  void SubTrip_t_pskel::
+  parsers (::xml_schema::integer_pskel& personID,
+           ::geo::TripchainItemType_pskel& itemType,
+           ::xml_schema::unsigned_int_pskel& sequenceNumber,
+           ::xml_schema::string_pskel& startTime,
+           ::xml_schema::string_pskel& endTime,
+           ::xml_schema::integer_pskel& tripID,
+           ::xml_schema::unsigned_int_pskel& fromLocation,
+           ::geo::TripchainItemLocationType_pskel& fromLocationType,
+           ::xml_schema::unsigned_int_pskel& toLocation,
+           ::geo::TripchainItemLocationType_pskel& toLocationType,
+           ::geo::SubTrips_t_pskel& subTrips,
+           ::xml_schema::string_pskel& mode,
+           ::xml_schema::boolean_pskel& isPrimaryMode,
+           ::xml_schema::string_pskel& ptLineId)
+  {
+    this->personID_parser_ = &personID;
+    this->itemType_parser_ = &itemType;
+    this->sequenceNumber_parser_ = &sequenceNumber;
+    this->startTime_parser_ = &startTime;
+    this->endTime_parser_ = &endTime;
+    this->tripID_parser_ = &tripID;
+    this->fromLocation_parser_ = &fromLocation;
+    this->fromLocationType_parser_ = &fromLocationType;
+    this->toLocation_parser_ = &toLocation;
+    this->toLocationType_parser_ = &toLocationType;
+    this->subTrips_parser_ = &subTrips;
+    this->mode_parser_ = &mode;
+    this->isPrimaryMode_parser_ = &isPrimaryMode;
+    this->ptLineId_parser_ = &ptLineId;
+  }
+
+  SubTrip_t_pskel::
+  SubTrip_t_pskel ()
+  : mode_parser_ (0),
+    isPrimaryMode_parser_ (0),
+    ptLineId_parser_ (0)
+  {
+  }
+
+  // SubTrips_t_pskel
+  //
+
+  void SubTrips_t_pskel::
+  subTrip_parser (::geo::SubTrip_t_pskel& p)
+  {
+    this->subTrip_parser_ = &p;
+  }
+
+  void SubTrips_t_pskel::
+  parsers (::geo::SubTrip_t_pskel& subTrip)
+  {
+    this->subTrip_parser_ = &subTrip;
+  }
+
+  SubTrips_t_pskel::
+  SubTrips_t_pskel ()
+  : subTrip_parser_ (0)
   {
   }
 
@@ -6125,7 +6148,7 @@ namespace geo
   }
 
   void RoadItems_t_pskel::
-  Crossing (std::pair<unsigned long,sim_mob::Crossing*>)
+  Crossing (std::pair<unsigned int,sim_mob::Crossing*>)
   {
   }
 
@@ -6303,150 +6326,6 @@ namespace geo
     {
       if (this->base_parser_)
         this->base (this->base_parser_->post_unsigned_int ());
-
-      return true;
-    }
-
-    return false;
-  }
-
-  // SubTrip_t_pskel
-  //
-
-  void SubTrip_t_pskel::
-  mode (const ::std::string&)
-  {
-  }
-
-  void SubTrip_t_pskel::
-  isPrimaryMode (bool)
-  {
-  }
-
-  void SubTrip_t_pskel::
-  ptLineId (const ::std::string&)
-  {
-  }
-
-  bool SubTrip_t_pskel::
-  _start_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n,
-                       const ::xml_schema::ro_string* t)
-  {
-    XSD_UNUSED (t);
-
-    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-      return true;
-
-    if (n == "mode" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->mode_parser_;
-
-      if (this->mode_parser_)
-        this->mode_parser_->pre ();
-
-      return true;
-    }
-
-    if (n == "isPrimaryMode" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->isPrimaryMode_parser_;
-
-      if (this->isPrimaryMode_parser_)
-        this->isPrimaryMode_parser_->pre ();
-
-      return true;
-    }
-
-    if (n == "ptLineId" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->ptLineId_parser_;
-
-      if (this->ptLineId_parser_)
-        this->ptLineId_parser_->pre ();
-
-      return true;
-    }
-
-    return false;
-  }
-
-  bool SubTrip_t_pskel::
-  _end_element_impl (const ::xml_schema::ro_string& ns,
-                     const ::xml_schema::ro_string& n)
-  {
-    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-      return true;
-
-    if (n == "mode" && ns.empty ())
-    {
-      if (this->mode_parser_)
-        this->mode (this->mode_parser_->post_string ());
-
-      return true;
-    }
-
-    if (n == "isPrimaryMode" && ns.empty ())
-    {
-      if (this->isPrimaryMode_parser_)
-        this->isPrimaryMode (this->isPrimaryMode_parser_->post_boolean ());
-
-      return true;
-    }
-
-    if (n == "ptLineId" && ns.empty ())
-    {
-      if (this->ptLineId_parser_)
-        this->ptLineId (this->ptLineId_parser_->post_string ());
-
-      return true;
-    }
-
-    return false;
-  }
-
-  // SubTrips_t_pskel
-  //
-
-  void SubTrips_t_pskel::
-  subTrip (sim_mob::SubTrip)
-  {
-  }
-
-  bool SubTrips_t_pskel::
-  _start_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n,
-                       const ::xml_schema::ro_string* t)
-  {
-    XSD_UNUSED (t);
-
-    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-      return true;
-
-    if (n == "subTrip" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->subTrip_parser_;
-
-      if (this->subTrip_parser_)
-        this->subTrip_parser_->pre ();
-
-      return true;
-    }
-
-    return false;
-  }
-
-  bool SubTrips_t_pskel::
-  _end_element_impl (const ::xml_schema::ro_string& ns,
-                     const ::xml_schema::ro_string& n)
-  {
-    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-      return true;
-
-    if (n == "subTrip" && ns.empty ())
-    {
-      if (this->subTrip_parser_)
-        this->subTrip (this->subTrip_parser_->post_SubTrip_t ());
 
       return true;
     }
@@ -6758,6 +6637,150 @@ namespace geo
     {
       if (this->subTrips_parser_)
         this->subTrips (this->subTrips_parser_->post_SubTrips_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // SubTrip_t_pskel
+  //
+
+  void SubTrip_t_pskel::
+  mode (const ::std::string&)
+  {
+  }
+
+  void SubTrip_t_pskel::
+  isPrimaryMode (bool)
+  {
+  }
+
+  void SubTrip_t_pskel::
+  ptLineId (const ::std::string&)
+  {
+  }
+
+  bool SubTrip_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::geo::Trip_t_pskel::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "mode" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->mode_parser_;
+
+      if (this->mode_parser_)
+        this->mode_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "isPrimaryMode" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->isPrimaryMode_parser_;
+
+      if (this->isPrimaryMode_parser_)
+        this->isPrimaryMode_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "ptLineId" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->ptLineId_parser_;
+
+      if (this->ptLineId_parser_)
+        this->ptLineId_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool SubTrip_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::geo::Trip_t_pskel::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "mode" && ns.empty ())
+    {
+      if (this->mode_parser_)
+        this->mode (this->mode_parser_->post_string ());
+
+      return true;
+    }
+
+    if (n == "isPrimaryMode" && ns.empty ())
+    {
+      if (this->isPrimaryMode_parser_)
+        this->isPrimaryMode (this->isPrimaryMode_parser_->post_boolean ());
+
+      return true;
+    }
+
+    if (n == "ptLineId" && ns.empty ())
+    {
+      if (this->ptLineId_parser_)
+        this->ptLineId (this->ptLineId_parser_->post_string ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // SubTrips_t_pskel
+  //
+
+  void SubTrips_t_pskel::
+  subTrip (sim_mob::SubTrip)
+  {
+  }
+
+  bool SubTrips_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "subTrip" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->subTrip_parser_;
+
+      if (this->subTrip_parser_)
+        this->subTrip_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool SubTrips_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "subTrip" && ns.empty ())
+    {
+      if (this->subTrip_parser_)
+        this->subTrip (this->subTrip_parser_->post_SubTrip_t ());
 
       return true;
     }

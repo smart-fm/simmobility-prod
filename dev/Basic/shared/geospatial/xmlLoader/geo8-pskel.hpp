@@ -92,10 +92,10 @@ namespace geo
   class DailyTime_t_pskel;
   class TripchainItemType_pskel;
   class TripchainItemLocationType_pskel;
-  class SubTrip_t_pskel;
-  class SubTrips_t_pskel;
   class TripChainItem_t_pskel;
   class Trip_t_pskel;
+  class SubTrip_t_pskel;
+  class SubTrips_t_pskel;
   class Activity_t_pskel;
   class TripChain_t_pskel;
   class TripChains_t_pskel;
@@ -2444,7 +2444,7 @@ namespace geo
     ERP_Gantry ();
 
     virtual void
-    Crossing (std::pair<unsigned long,sim_mob::Crossing*>);
+    Crossing (std::pair<unsigned int,sim_mob::Crossing*>);
 
     virtual void
     RoadBump ();
@@ -2569,107 +2569,7 @@ namespace geo
     post_TripchainItemLocationType () = 0;
   };
 
-  class SubTrip_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    mode (const ::std::string&);
-
-    virtual void
-    isPrimaryMode (bool);
-
-    virtual void
-    ptLineId (const ::std::string&);
-
-    virtual sim_mob::SubTrip
-    post_SubTrip_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    mode_parser (::xml_schema::string_pskel&);
-
-    void
-    isPrimaryMode_parser (::xml_schema::boolean_pskel&);
-
-    void
-    ptLineId_parser (::xml_schema::string_pskel&);
-
-    void
-    parsers (::xml_schema::string_pskel& /* mode */,
-             ::xml_schema::boolean_pskel& /* isPrimaryMode */,
-             ::xml_schema::string_pskel& /* ptLineId */);
-
-    // Constructor.
-    //
-    SubTrip_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::string_pskel* mode_parser_;
-    ::xml_schema::boolean_pskel* isPrimaryMode_parser_;
-    ::xml_schema::string_pskel* ptLineId_parser_;
-  };
-
-  class SubTrips_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    subTrip (sim_mob::SubTrip);
-
-    virtual std::vector<sim_mob::SubTrip>
-    post_SubTrips_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    subTrip_parser (::geo::SubTrip_t_pskel&);
-
-    void
-    parsers (::geo::SubTrip_t_pskel& /* subTrip */);
-
-    // Constructor.
-    //
-    SubTrips_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::SubTrip_t_pskel* subTrip_parser_;
-  };
-
-  class TripChainItem_t_pskel: public ::xml_schema::complex_content
+ class TripChainItem_t_pskel: public ::xml_schema::complex_content
   {
     public:
     // Parser callbacks. Override them in your implementation.
@@ -2828,6 +2728,117 @@ namespace geo
     ::xml_schema::unsigned_int_pskel* toLocation_parser_;
     ::geo::TripchainItemLocationType_pskel* toLocationType_parser_;
     ::geo::SubTrips_t_pskel* subTrips_parser_;
+  };
+
+  class SubTrip_t_pskel: public virtual ::geo::Trip_t_pskel
+  {
+    public:
+    // Parser callbacks. Override them in your implementation.
+    //
+    // virtual void
+    // pre ();
+
+    virtual void
+    mode (const ::std::string&);
+
+    virtual void
+    isPrimaryMode (bool);
+
+    virtual void
+    ptLineId (const ::std::string&);
+
+    virtual sim_mob::SubTrip
+    post_SubTrip_t () = 0;
+
+    // Parser construction API.
+    //
+    void
+    mode_parser (::xml_schema::string_pskel&);
+
+    void
+    isPrimaryMode_parser (::xml_schema::boolean_pskel&);
+
+    void
+    ptLineId_parser (::xml_schema::string_pskel&);
+
+    void
+    parsers (::xml_schema::integer_pskel& /* personID */,
+             ::geo::TripchainItemType_pskel& /* itemType */,
+             ::xml_schema::unsigned_int_pskel& /* sequenceNumber */,
+             ::xml_schema::string_pskel& /* startTime */,
+             ::xml_schema::string_pskel& /* endTime */,
+             ::xml_schema::integer_pskel& /* tripID */,
+             ::xml_schema::unsigned_int_pskel& /* fromLocation */,
+             ::geo::TripchainItemLocationType_pskel& /* fromLocationType */,
+             ::xml_schema::unsigned_int_pskel& /* toLocation */,
+             ::geo::TripchainItemLocationType_pskel& /* toLocationType */,
+             ::geo::SubTrips_t_pskel& /* subTrips */,
+             ::xml_schema::string_pskel& /* mode */,
+             ::xml_schema::boolean_pskel& /* isPrimaryMode */,
+             ::xml_schema::string_pskel& /* ptLineId */);
+
+    // Constructor.
+    //
+    SubTrip_t_pskel ();
+
+    // Implementation.
+    //
+    protected:
+    virtual bool
+    _start_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string*);
+
+    virtual bool
+    _end_element_impl (const ::xml_schema::ro_string&,
+                       const ::xml_schema::ro_string&);
+
+    protected:
+    ::xml_schema::string_pskel* mode_parser_;
+    ::xml_schema::boolean_pskel* isPrimaryMode_parser_;
+    ::xml_schema::string_pskel* ptLineId_parser_;
+  };
+
+  class SubTrips_t_pskel: public ::xml_schema::complex_content
+  {
+    public:
+    // Parser callbacks. Override them in your implementation.
+    //
+    // virtual void
+    // pre ();
+
+    virtual void
+    subTrip (sim_mob::SubTrip);
+
+    virtual std::vector<sim_mob::SubTrip>
+    post_SubTrips_t () = 0;
+
+    // Parser construction API.
+    //
+    void
+    subTrip_parser (::geo::SubTrip_t_pskel&);
+
+    void
+    parsers (::geo::SubTrip_t_pskel& /* subTrip */);
+
+    // Constructor.
+    //
+    SubTrips_t_pskel ();
+
+    // Implementation.
+    //
+    protected:
+    virtual bool
+    _start_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string*);
+
+    virtual bool
+    _end_element_impl (const ::xml_schema::ro_string&,
+                       const ::xml_schema::ro_string&);
+
+    protected:
+    ::geo::SubTrip_t_pskel* subTrip_parser_;
   };
 
   class Activity_t_pskel: public virtual ::geo::TripChainItem_t_pskel

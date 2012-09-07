@@ -791,40 +791,6 @@ namespace geo
     post_TripchainItemLocationType ();
   };
 
-  class SubTrip_t_pimpl: public virtual SubTrip_t_pskel
-  {
-	  sim_mob::SubTrip subTrip;
-    public:
-    virtual void
-    pre ();
-
-    virtual void
-    mode (const ::std::string&);
-
-    virtual void
-    isPrimaryMode (bool);
-
-    virtual void
-    ptLineId (const ::std::string&);
-
-    virtual sim_mob::SubTrip
-    post_SubTrip_t ();
-  };
-
-  class SubTrips_t_pimpl: public virtual SubTrips_t_pskel
-  {
-	  std::vector<sim_mob::SubTrip> subTrips;
-    public:
-    virtual void
-    pre ();
-
-    virtual void
-    subTrip (sim_mob::SubTrip);
-
-    virtual std::vector<sim_mob::SubTrip>
-    post_SubTrips_t ();
-  };
-
   class TripChainItem_t_pimpl: public virtual TripChainItem_t_pskel
   {
 	  std::string itemType_;
@@ -883,6 +849,41 @@ namespace geo
 
     virtual sim_mob::TripChainItem*
     post_Trip_t ();
+  };
+
+  class SubTrip_t_pimpl: public virtual SubTrip_t_pskel,
+    public ::geo::Trip_t_pimpl
+  {
+	  sim_mob::SubTrip subTrip;
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    mode (const ::std::string&);
+
+    virtual void
+    isPrimaryMode (bool);
+
+    virtual void
+    ptLineId (const ::std::string&);
+
+    virtual sim_mob::SubTrip
+    post_SubTrip_t ();
+  };
+
+  class SubTrips_t_pimpl: public virtual SubTrips_t_pskel
+  {
+	  std::vector<sim_mob::SubTrip> subTrips;
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    subTrip (sim_mob::SubTrip);
+
+    virtual std::vector<sim_mob::SubTrip>
+    post_SubTrips_t ();
   };
 
   class Activity_t_pimpl: public virtual Activity_t_pskel,

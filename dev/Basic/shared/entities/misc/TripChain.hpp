@@ -20,6 +20,7 @@ namespace geo
 {
 //Forward Declaration
 class Trip_t_pimpl;
+class SubTrip_t;
 }
 namespace sim_mob {
 
@@ -87,6 +88,7 @@ public:
  */
 class Trip: public sim_mob::TripChainItem {
 	friend class ::geo::Trip_t_pimpl;
+	friend class ::geo::SubTrip_t;
 public:
 	unsigned int tripID;
 	sim_mob::Node* fromLocation;

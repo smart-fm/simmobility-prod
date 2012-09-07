@@ -583,7 +583,7 @@ void WriteXMLInput_TripChainItem(TiXmlElement * TripChain, sim_mob::TripChainIte
 	endTime->LinkEndChild( new TiXmlText(tripChainItem.endTime.toString()));
 	TripChain->LinkEndChild( endTime );
 }
-
+//duto some special/weird design in tripchain hierarchy, we need to copy tripchainitem and trip information the way you see
 void WriteXMLInput_TripChain_Subtrips(TiXmlElement * Trip,  sim_mob::Trip & trip)
 {
 	TiXmlElement * Subtrips  = new TiXmlElement( "subTrips" ); Trip->LinkEndChild( Subtrips );
@@ -591,6 +591,48 @@ void WriteXMLInput_TripChain_Subtrips(TiXmlElement * Trip,  sim_mob::Trip & trip
 	for(std::vector<SubTrip>::const_iterator it = trip.getSubTrips().begin(), it_end(trip.getSubTrips().end()); it != it_end; it++)
 	{
 		TiXmlElement * Subtrip  = new TiXmlElement( "subTrip" ); Subtrips->LinkEndChild( Subtrip );
+		///////////tripchainitem part//////////////////
+		//personID
+		out.str("");
+		out << it->personID;
+		TiXmlElement * personID  = new TiXmlElement( "personID" );
+		personID->LinkEndChild( new TiXmlText(out.str()));
+		Subtrip->LinkEndChild( personID );
+		//itemType
+		out.str("");
+
+		switch(it->itemType)
+		{
+		case sim_mob::TripChainItem::IT_ACTIVITY:
+			out << "IT_ACTIVITY";
+			break;
+
+		case sim_mob::TripChainItem::IT_TRIP:
+			out << "IT_TRIP";
+			break;
+		}
+		TiXmlElement * itemType  = new TiXmlElement( "itemType" );
+		itemType->LinkEndChild( new TiXmlText(out.str()));
+		Subtrip->LinkEndChild( itemType );
+		//sequenceNumber
+		out.str("");
+		out << it->sequenceNumber;
+		TiXmlElement * sequenceNumber  = new TiXmlElement( "sequenceNumber" );
+		sequenceNumber->LinkEndChild( new TiXmlText(out.str()));
+		Subtrip->LinkEndChild( sequenceNumber );
+		//startTime
+		out.str("");
+		out << it->startTime.toString();
+		TiXmlElement * startTime  = new TiXmlElement( "startTime" );
+		startTime->LinkEndChild( new TiXmlText(out.str()));
+		Subtrip->LinkEndChild( startTime );
+		//endTime
+		out.str("");
+		out << it->endTime.toString();
+		TiXmlElement * endTime  = new TiXmlElement( "endTime" );
+		endTime->LinkEndChild( new TiXmlText(out.str()));
+		Subtrip->LinkEndChild( endTime );
+		///////////trip part//////////////////
 		//tripID
 		out.str("");
 		out << it->tripID;
@@ -649,6 +691,7 @@ void WriteXMLInput_TripChain_Subtrips(TiXmlElement * Trip,  sim_mob::Trip & trip
 		TiXmlElement * toLocationType  = new TiXmlElement( "toLocationType" );
 		toLocationType->LinkEndChild( new TiXmlText(out.str()));
 		Subtrip->LinkEndChild( toLocationType );
+		///////////actual subtrip part//////////////////
 		//mode
 		TiXmlElement * mode  = new TiXmlElement( "mode" );
 		mode->LinkEndChild( new TiXmlText(it->mode));
@@ -809,7 +852,7 @@ void WriteXMLInput(const std::string& XML_OutPutFileName)
 	SimMobility = new TiXmlElement( "geo:SimMobility" );
 	SimMobility->SetAttribute("xmlns:geo" , "http://www.smart.mit.edu/geo");
 	SimMobility->SetAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
-	SimMobility->SetAttribute("xsi:schemaLocation", "http://www.smart.mit.edu/geo file:/home/vahid/Desktop/geo8/geo9.xsd");
+	SimMobility->SetAttribute("xsi:schemaLocation", "http://www.smart.mit.edu/geo file:/home/vahid/Desktop/geo8/geo10.xsd");
     doc.LinkEndChild( SimMobility );
 
 	WriteXMLInput_GeoSpatial(SimMobility);

@@ -464,14 +464,9 @@ double sim_mob::medium::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 
 	//vehicle->setVelocity(vehicle->getCurrSegment()->maxSpeed * 100 / 3.6 ); //~melani - for now using max speed of segment
 	// Fetch density of current road segment and compute speed from speed density function
-	double densityOfCurrSegment;
-	try{
-		densityOfCurrSegment = AuraManager::instance().getDensity(vehicle->getCurrSegment());
-	}
-	catch (std::exception &e){
-		densityOfCurrSegment = 0.0;
-	}
+	sim_mob::SegmentDensity* densityOfCurrSegment = AuraManager::instance().getDensity(vehicle->getCurrSegment());
 	vehicle->setVelocity(speed_density_function(densityOfCurrSegment));
+
 	double fwdDistance = vehicle->getVelocity() * p.elapsedSeconds;
 	if (fwdDistance < 0)
 		fwdDistance = 0;
@@ -676,7 +671,7 @@ void sim_mob::medium::Driver::initLoopSpecialString(vector<WayPoint>& path, cons
 //This function is associated with the driver class for 2 reasons
 // 1. This function is specific to the medium term
 // 2. It makes sense in the real life as well that the driver decides to slow down or accelerate based on the traffic density around him
-double sim_mob::medium::Driver::speed_density_function(double density){
+double sim_mob::medium::Driver::speed_density_function(sim_mob::SegmentDensity* density){
 	/*
 	 * TODO: The parameters - min density, jam density, alpha and beta - for each road segment
 	 * must be obtained from an external source (XML/Database)

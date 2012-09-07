@@ -14,6 +14,7 @@
 #include "util/DynamicVector.hpp"
 #include "../short/entities/roles/driver/IntersectionDrivingModel.hpp"
 #include "DriverUpdateParams.hpp"
+#include "entities/AuraManager.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
@@ -32,6 +33,7 @@ class Node;
 class MultiNode;
 class DPoint;
 class UpdateParams;
+class SegmentDensity;
 
 namespace medium
 {
@@ -84,7 +86,7 @@ private:
 	void justLeftIntersection(DriverUpdateParams& p);
 	void syncCurrLaneCachedInfo(DriverUpdateParams& p);
 	void calculateIntersectionTrajectory(DPoint movingFrom, double overflow);
-	double speed_density_function(double density); ///<Called to compute the required speed of the driver from the density of the current road segment's traffic density
+	double speed_density_function(sim_mob::SegmentDensity* density); ///<Called to compute the required speed of the driver from the density of the current road segment's traffic density
 
 protected:
 	virtual double updatePositionOnLink(DriverUpdateParams& p);

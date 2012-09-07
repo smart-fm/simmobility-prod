@@ -16,7 +16,7 @@ class Agent;
 class Point2D;
 class Lane;
 class RoadSegment;
-
+class SegmentDensity;
 /**
  * A singleton that can locate agents/entities within any rectangle.
  *
@@ -109,7 +109,7 @@ public:
     /*
      * Returns the density of the road segment. Will be called by driver agents in medium term.
      */
-    double getDensity(const RoadSegment* rdseg);
+    sim_mob::SegmentDensity* getDensity(const RoadSegment* rdseg);
 
 private:
     AuraManager()
@@ -119,7 +119,7 @@ private:
     }
 
     /*Map to store the density of each road segment. */
-    boost::unordered_map<const RoadSegment*, unsigned short> densityMap;
+    boost::unordered_map<const RoadSegment*, sim_mob::SegmentDensity*> densityMap;
 
     // No need to define the dtor.
 
@@ -135,4 +135,32 @@ private:
 
 };
 
+
+
+class SegmentDensity {
+
+public:
+	/*
+	 * LaneDensity struct is used to keep a count of the number of vehicles on each lane of a road segment.
+	 * The aura manager counts the vehicles during each update and populates this data structure.
+	 */
+	struct LaneDensity {
+		const sim_mob::Lane* lane;
+		unsigned short numMovingVehicles;
+		unsigned short numQueuingVehicles;
+
+		LaneDensity(sim_mob::Lane* lane, unsigned short movingVehCount = 0, unsigned short queuingVehCount = 0)
+			: lane(lane), numMovingVehicles(movingVehCount), numQueuingVehicles(queuingVehCount) {}
+	};
+
+	const sim_mob::RoadSegment* roadSegment;
+	std::vector<sim_mob::SegmentDensity::LaneDensity> laneDensities;
+
+	SegmentDensity(const sim_mob::RoadSegment* rdSeg);
+
+
+	void incrementCounts(const sim_mob::Lane* lane, unsigned short movingCount, unsigned short queuingCount);
+
+
+};
 }

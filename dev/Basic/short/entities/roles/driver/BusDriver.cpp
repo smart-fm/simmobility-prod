@@ -145,8 +145,8 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 
 	perceivedDataProcess(nv, p);
 
-	double diss = vehicle->getDistanceMovedInSegment();
-	std::cout<<"diss: "<<diss<<std::endl;
+//	double diss = vehicle->getDistanceMovedInSegment();
+//	std::cout<<"diss: "<<diss<<std::endl;
 	//bus approaching bus stop reduce speed
 	//and if its left has lane, merge to left lane
 	if (isBusFarawayBusStop()) {
@@ -156,7 +156,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 	//set lateral velocity
 	//NOTE: myDriverUpdateParams simply copies p, so we should just be able to use p. ~Seth
 	//p.nextLaneIndex = myDriverUpdateParams->nextLaneIndex;
-	p.nextLaneIndex = p.nextLaneIndex;
+//	p.nextLaneIndex = p.nextLaneIndex;
 
 	//NOTE: Driver already has a lcModel; we should be able to just use this. ~Seth
 	LANE_CHANGE_SIDE lcs = LCS_SAME;
@@ -179,6 +179,13 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 
 		//move to most left lane
 		p.nextLaneIndex = vehicle->getCurrSegment()->getLanes().back()->getLaneID();
+		LANE_CHANGE_SIDE lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
+		vehicle->setTurningDirection(lcs);
+		double newLatVel;
+		newLatVel = mitsim_lc_model->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length, vehicle->getTurningDirection());
+		vehicle->setLatVelocity(newLatVel*5);
+
+
 		std::cout << "BusDriver::updatePositionOnLink: bus approaching current lane: "
 				  << p.currLaneIndex << std::endl;
 

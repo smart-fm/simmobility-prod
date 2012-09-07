@@ -902,8 +902,6 @@ double sim_mob::GeneralPathMover::getCurrDistAlongRoadSegment() const
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
 	throwIf(isInIntersection(), "Can't get distance in Segment while in an intersection.");
 
-//	const vector<Point2D>& tempLaneZero = const_cast<RoadSegment*> (*currSegmentIt)->getLanes()[0]->getPolyline();
-//	if ( currLaneZeroPolypoint == tempLaneZero.end() )
 	//Get the current median polyline distance
 	DynamicVector zeroPoly(currLaneZeroPolypoint->getX(), currLaneZeroPolypoint->getY(), nextLaneZeroPolypoint->getX(), nextLaneZeroPolypoint->getY());
 	double totalPolyDist = zeroPoly.getMagnitude();

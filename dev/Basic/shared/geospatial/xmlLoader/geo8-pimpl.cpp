@@ -1799,7 +1799,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   pre ()
   {
 	  std::cout << "in TripChain_t_pimpl::pre () "  ;
-
+	   = ConfigParams::GetInstance().getTripChains();
   }
 
   void TripChain_t_pimpl::
@@ -1842,6 +1842,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 	  std::cout << "In TripChains_t_pimpl::pre ()\n";
 	 tripchains = sim_mob::ConfigParams::GetInstance().getTripChains();
 	 std::cout << "In TripChains_t_pimpl::pre ()--\n";
+
   }
 
   void TripChains_t_pimpl::
@@ -1855,7 +1856,10 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void TripChains_t_pimpl::
   post_TripChains_t ()
   {
+
+
 	  std::cout << "In TripChains_t_pimpl::post_TripChains_t ()\n";
+
   }
 
   // linkAndCrossing_t_pimpl

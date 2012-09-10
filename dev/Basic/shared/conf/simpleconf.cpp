@@ -444,6 +444,8 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 		//TODO: We should just be able to save "driver" and "pedestrian", but we are
 		//      using different vocabulary for modes and roles. We need to change this.
 		props["#mode"] = (agentType=="driver"?"Car":(agentType=="pedestrian"?"Walk":"Unknown"));
+		if (agentType == "busdriver")
+			props["#mode"] = "Bus";
 
 		//Create the Person agent with that given ID (or an auto-generated one)
 		Person* agent = new Person("XML_Def", config.mutexStategy, manualID);

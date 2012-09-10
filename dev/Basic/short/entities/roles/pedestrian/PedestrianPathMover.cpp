@@ -50,7 +50,7 @@ void sim_mob::PedestrianPathMover::setPath(const PEDESTRIAN_PATH path){
 				for(POLYLINEPOINTS_REVERSE_ITERATOR itt = p->rbegin(); itt != p->rend(); ++itt)
 				{
 					polylinePoints.push_back(*itt);
-					std::cout<<"PedestrianPathMover::setPath: "<<(*itt).getX()<<" "<<(*itt).getY()<<std::endl;
+//					std::cout<<"PedestrianPathMover::setPath: "<<(*itt).getX()<<" "<<(*itt).getY()<<std::endl;
 					polylinePoint_wayPoint_map[*itt] = wp;
 				}
 			}
@@ -58,7 +58,7 @@ void sim_mob::PedestrianPathMover::setPath(const PEDESTRIAN_PATH path){
 				for(POLYLINEPOINTS_ITERATOR itt = p->begin(); itt != p->end(); ++itt)
 				{
 					polylinePoints.push_back(*itt);
-					std::cout<<"PedestrianPathMover::setPath: "<<(*itt).getX()<<" "<<(*itt).getY()<<std::endl;
+//					std::cout<<"PedestrianPathMover::setPath: "<<(*itt).getX()<<" "<<(*itt).getY()<<std::endl;
 					polylinePoint_wayPoint_map[*itt] = wp;
 				}
 			}
@@ -73,7 +73,7 @@ void sim_mob::PedestrianPathMover::setPath(const PEDESTRIAN_PATH path){
 				for(POLYLINEPOINTS_REVERSE_ITERATOR itt = p.rbegin(); itt != p.rend(); ++itt)
 				{
 					polylinePoints.push_back(*itt);
-					std::cout<<"PedestrianPathMover::setPath: "<<(*itt).getX()<<" "<<(*itt).getY()<<std::endl;
+//					std::cout<<"PedestrianPathMover::setPath: "<<(*itt).getX()<<" "<<(*itt).getY()<<std::endl;
 					polylinePoint_wayPoint_map[*itt] = wp;
 				}
 			}
@@ -81,7 +81,7 @@ void sim_mob::PedestrianPathMover::setPath(const PEDESTRIAN_PATH path){
 				for(POLYLINEPOINTS_ITERATOR itt = p.begin(); itt != p.end(); ++itt)
 				{
 					polylinePoints.push_back(*itt);
-					std::cout<<"PedestrianPathMover::setPath: "<<(*itt).getX()<<" "<<(*itt).getY()<<std::endl;
+//					std::cout<<"PedestrianPathMover::setPath: "<<(*itt).getX()<<" "<<(*itt).getY()<<std::endl;
 					polylinePoint_wayPoint_map[*itt] = wp;
 				}
 		}

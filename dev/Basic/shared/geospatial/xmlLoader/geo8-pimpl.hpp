@@ -248,13 +248,16 @@ namespace geo
     Width (unsigned int);
 
     virtual void
+    originalDB_ID (const ::std::string&);
+
+    virtual void
     polyline (std::vector<sim_mob::Point2D>);
 
     virtual void
     Lanes (std::vector<sim_mob::Lane*>);
 
     virtual void
-    Obstacles (std::map<centimeter_t,const RoadItem*>&);
+    Obstacles (std::map<sim_mob::centimeter_t,const RoadItem*>);
 
     virtual void
     KurbLine (std::vector<sim_mob::Point2D>);
@@ -571,24 +574,10 @@ namespace geo
     post_intersection_t ();
   };
 
-  class RoadItem_No_Attr_t_pimpl: public virtual RoadItem_No_Attr_t_pskel
-  {
-    public:
-    virtual void
-    pre ();
-
-    virtual void
-    start (sim_mob::Point2D);
-
-    virtual void
-    end (sim_mob::Point2D);
-
-    virtual void
-    post_RoadItem_No_Attr_t ();
-  };
-
   class RoadItem_t_pimpl: public virtual RoadItem_t_pskel
   {
+	  unsigned short Offset_;
+	  sim_mob::Point2D start_,end_;
     public:
     virtual void
     pre ();
@@ -602,7 +591,7 @@ namespace geo
     virtual void
     end (sim_mob::Point2D);
 
-    virtual sim_mob::RoadItem*
+    virtual std::pair<unsigned int,sim_mob::RoadItem*>
     post_RoadItem_t ();
   };
 
@@ -702,7 +691,7 @@ namespace geo
     virtual void
     farLine (std::pair<sim_mob::Point2D,sim_mob::Point2D>);
 
-    virtual sim_mob::Crossing*
+    virtual std::pair<unsigned int,sim_mob::Crossing*>
     post_crossing_t ();
   };
 
@@ -755,12 +744,12 @@ namespace geo
     ERP_Gantry ();
 
     virtual void
-    Crossing (sim_mob::Crossing*);
+    Crossing (std::pair<unsigned int,sim_mob::Crossing*>);
 
     virtual void
     RoadBump ();
 
-    virtual std::map<centimeter_t,const RoadItem*>
+    virtual std::map<sim_mob::centimeter_t,const RoadItem*>
     post_RoadItems_t ();
   };
 
@@ -800,40 +789,6 @@ namespace geo
 
     virtual std::string
     post_TripchainItemLocationType ();
-  };
-
-  class SubTrip_t_pimpl: public virtual SubTrip_t_pskel
-  {
-	  sim_mob::SubTrip subTrip;
-    public:
-    virtual void
-    pre ();
-
-    virtual void
-    mode (const ::std::string&);
-
-    virtual void
-    isPrimaryMode (bool);
-
-    virtual void
-    ptLineId (const ::std::string&);
-
-    virtual sim_mob::SubTrip
-    post_SubTrip_t ();
-  };
-
-  class SubTrips_t_pimpl: public virtual SubTrips_t_pskel
-  {
-	  std::vector<sim_mob::SubTrip> subTrips;
-    public:
-    virtual void
-    pre ();
-
-    virtual void
-    subTrip (sim_mob::SubTrip);
-
-    virtual std::vector<sim_mob::SubTrip>
-    post_SubTrips_t ();
   };
 
   class TripChainItem_t_pimpl: public virtual TripChainItem_t_pskel
@@ -894,6 +849,41 @@ namespace geo
 
     virtual sim_mob::TripChainItem*
     post_Trip_t ();
+  };
+
+  class SubTrip_t_pimpl: public virtual SubTrip_t_pskel,
+    public ::geo::Trip_t_pimpl
+  {
+	  sim_mob::SubTrip subTrip;
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    mode (const ::std::string&);
+
+    virtual void
+    isPrimaryMode (bool);
+
+    virtual void
+    ptLineId (const ::std::string&);
+
+    virtual sim_mob::SubTrip
+    post_SubTrip_t ();
+  };
+
+  class SubTrips_t_pimpl: public virtual SubTrips_t_pskel
+  {
+	  std::vector<sim_mob::SubTrip> subTrips;
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    subTrip (sim_mob::SubTrip);
+
+    virtual std::vector<sim_mob::SubTrip>
+    post_SubTrips_t ();
   };
 
   class Activity_t_pimpl: public virtual Activity_t_pskel,
@@ -960,6 +950,261 @@ namespace geo
     post_TripChains_t ();
   };
 
+  class linkAndCrossing_t_pimpl: public virtual linkAndCrossing_t_pskel
+  {
+	  struct LinkAndCrossing LAC;
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    ID (unsigned char);
+
+    virtual void
+    linkID (unsigned int);
+
+    virtual void
+    crossingID (unsigned int);
+
+    virtual void
+    angle (unsigned char);
+
+    virtual sim_mob::LinkAndCrossing
+    post_linkAndCrossing_t ();
+  };
+
+  class linkAndCrossings_t_pimpl: public virtual linkAndCrossings_t_pskel
+  {
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    linkAndCrossing (sim_mob::LinkAndCrossing);
+
+    virtual sim_mob::LinkAndCrossingC
+    post_linkAndCrossings_t ();
+  };
+
+  class signalAlgorithm_t_pimpl: public virtual signalAlgorithm_t_pskel,
+    public ::xml_schema::string_pimpl
+  {
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    post_signalAlgorithm_t ();
+  };
+
+  class Plan_t_pimpl: public virtual Plan_t_pskel
+  {
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    planID (unsigned char);
+
+    virtual void
+    PhasePercentage (double);
+
+    virtual void
+    post_Plan_t ();
+  };
+
+  class Plans_t_pimpl: public virtual Plans_t_pskel
+  {
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    Plan ();
+
+    virtual void
+    post_Plans_t ();
+  };
+
+  class TrafficColor_t_pimpl: public virtual TrafficColor_t_pskel,
+    public ::xml_schema::string_pimpl
+  {
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    post_TrafficColor_t ();
+  };
+
+  class ColorDuration_t_pimpl: public virtual ColorDuration_t_pskel
+  {
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    TrafficColor ();
+
+    virtual void
+    Duration (unsigned char);
+
+    virtual std::pair<sim_mob::TrafficColor,std::size_t>
+    post_ColorDuration_t ();
+  };
+
+  class ColorSequence_t_pimpl: public virtual ColorSequence_t_pskel
+  {
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    TrafficLightType (const ::std::string&);
+
+    virtual void
+    ColorDuration (std::pair<sim_mob::TrafficColor,std::size_t>);
+
+    virtual std::pair<std::string,std::vector<std::pair<TrafficColor,std::size_t> > >
+    post_ColorSequence_t ();
+  };
+
+  class links_maps_t_pimpl: public virtual links_maps_t_pskel
+  {
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    links_map (std::pair<sim_mob::Link*,sim_mob::linkToLink>);
+
+    virtual std::multimap<sim_mob::Link*,sim_mob::linkToLink>
+    post_links_maps_t ();
+  };
+
+  class links_map_t_pimpl: public virtual links_map_t_pskel
+  {
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    linkFrom (unsigned int);
+
+    virtual void
+    linkTo (unsigned int);
+
+    virtual void
+    SegmentFrom (unsigned int);
+
+    virtual void
+    SegmentTo (unsigned int);
+
+    virtual void
+    ColorSequence (std::pair<std::string,std::vector<std::pair<TrafficColor,std::size_t> > >);
+
+    virtual std::pair<sim_mob::Link*,sim_mob::linkToLink>
+    post_links_map_t ();
+  };
+
+  class Phase_t_pimpl: public virtual Phase_t_pskel
+  {
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    phaseID (unsigned char);
+
+    virtual void
+    name (const ::std::string&);
+
+    virtual void
+    links_map (std::multimap<sim_mob::Link*,sim_mob::linkToLink>);
+
+    virtual void
+    post_Phase_t ();
+  };
+
+  class Phases_t_pimpl: public virtual Phases_t_pskel
+  {
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    Phase ();
+
+    virtual void
+    post_Phases_t ();
+  };
+
+  class SplitPlan_t_pimpl: public virtual SplitPlan_t_pskel
+  {
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    splitplanID (unsigned int);
+
+    virtual void
+    signalAlgorithm ();
+
+    virtual void
+    cycleLength (unsigned char);
+
+    virtual void
+    offset (unsigned char);
+
+    virtual void
+    ChoiceSet ();
+
+    virtual void
+    Phases ();
+
+    virtual sim_mob::SplitPlan
+    post_SplitPlan_t ();
+  };
+
+  class Signal_t_pimpl: public virtual Signal_t_pskel
+  {
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    signalID (unsigned char);
+
+    virtual void
+    nodeID (unsigned int);
+
+    virtual void
+    signalAlgorithm ();
+
+    virtual void
+    linkAndCrossings (sim_mob::LinkAndCrossingC);
+
+    virtual void
+    SplitPlan (sim_mob::SplitPlan);
+
+    virtual sim_mob::Signal*
+    post_Signal_t ();
+  };
+
+  class Signals_t_pimpl: public virtual Signals_t_pskel
+  {
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    signal (sim_mob::Signal*);
+
+    virtual void
+    post_Signals_t ();
+  };
+
   class GeoSpatial_t_pimpl: public virtual GeoSpatial_t_pskel
   {
     public:
@@ -984,6 +1229,9 @@ namespace geo
 
     virtual void
     TripChains ();
+
+    virtual void
+    Signals ();
 
     virtual void
     post_SimMobility_t ();

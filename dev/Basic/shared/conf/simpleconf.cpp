@@ -446,6 +446,8 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 		//TODO: We should just be able to save "driver" and "pedestrian", but we are
 		//      using different vocabulary for modes and roles. We need to change this.
 		props["#mode"] = (agentType=="driver"?"Car":(agentType=="pedestrian"?"Walk":"Unknown"));
+		if (agentType == "busdriver")
+			props["#mode"] = "Bus";
 
 		//Create the Person agent with that given ID (or an auto-generated one)
 		Person* agent = new Person("XML_Def", config.mutexStategy, manualID);
@@ -1277,33 +1279,11 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     				else
     				{
     					sim_mob::RoadSegment *rs = (*segmentnodes_it);
-    					std::cout << "segment[segmentid,start,end]: " << rs << "[" << (rs)->getSegmentID() << "," << (rs)->getStart()->getID() << "," << (rs)->getEnd()->getID()<< "]" << std::endl;
     				}
     			}
 
     		}
 
-//    		//check rn.nodes
-//    		for(std::set<sim_mob::UniNode*>::const_iterator unode_it = unodes.begin(); unode_it != unodes.end() ; unode_it++)
-//    		{
-//    			if((*unode_it)->getLinkLoc() ==0)
-//    			{
-//    				std::cout << "Unode " << (*unode_it)->getID() << "Has NULL link loc\n";
-////    				getchar();
-//    			}
-//    			else
-//    				std::cout << "Unode " << (*unode_it)->getID() << "Has  link loc\n";
-//    		}
-//    		for(std::vector<sim_mob::MultiNode*>::const_iterator mnode_it = mnodes.begin(); mnode_it != mnodes.end() ; mnode_it++)
-//    		{
-//    			if((*mnode_it)->getLinkLoc() ==0)
-//    			{
-//    				std::cout << "Mnode " << (*mnode_it)->getID() << "Has NULL link loc\n";
-////    				getchar();
-//    			}
-//    			else
-//    				std::cout << "Mnode " << (*mnode_it)->getID() << "Has  link loc\n";
-//    		}
     		std::cout << "Checking done\n";
 #endif
 //////////////////////////////////////////////////////////////////////////////////

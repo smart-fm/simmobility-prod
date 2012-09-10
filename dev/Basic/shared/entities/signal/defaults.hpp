@@ -30,6 +30,7 @@ enum TrafficColor
 struct LinkAndCrossing
 {
 	LinkAndCrossing(int id_,sim_mob::Link const * link_,sim_mob::Crossing const * crossing_,double angle_);
+	LinkAndCrossing();
 	size_t id;         //index for backward compatibility (setupindexMaps()
 	double angle;         //index for backward compatibility (setupindexMaps()
 	sim_mob::Link const * link;

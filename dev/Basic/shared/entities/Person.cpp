@@ -251,6 +251,7 @@ void sim_mob::Person::update_time(frame_t frameNumber, unsigned int currTimeMS, 
 {
 	//Agents may be created with a null Role and a valid trip chain
 	if (firstFrameTick && !currRole) {
+		std::cout << "calling checkAndReactToTripChain\n";
 		checkAndReactToTripChain(currTimeMS, currTimeMS);
 	}
 
@@ -395,7 +396,14 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS, 
 	this->getNextSubTripInTrip();
 
 	if(!this->currSubTrip){
+
+		std::cout << "sim_mob::Person::checkAndReactToTripChain=>The trip is continuing\n";
 		this->findNextItemInTripChain();
+
+	}
+	else
+	{
+		std::cout << "sim_mob::Person::checkAndReactToTripChain=>The trip is starting\n";
 	}
 
 	if (!this->currTripChainItem) {

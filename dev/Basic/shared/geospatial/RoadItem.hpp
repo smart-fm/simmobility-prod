@@ -5,7 +5,10 @@
 #include "GenConfig.h"
 
 #include "Point2D.hpp"
-
+namespace geo
+{
+class crossing_t_pimpl;
+}
 
 namespace sim_mob
 {
@@ -27,6 +30,7 @@ namespace sim_mob
  * and a RoadItem will become clearer.
  */
 class RoadItem {
+	friend class ::geo::crossing_t_pimpl;
 public:
 	virtual ~RoadItem() {} //A virtual destructor allows this type to be polymorphic
 

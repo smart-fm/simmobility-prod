@@ -373,17 +373,25 @@ const
 
 void AuraManager::Impl::updateDensity(const Agent* ag, boost::unordered_map<const RoadSegment*, SegmentDensity*>& densities) {
 	sim_mob::AuraManager &auraMgr = sim_mob::AuraManager::instance();
-	if(ag->getCurrLane()){
-		sim_mob::RoadSegment* rdSeg = ag->getCurrLane()->getRoadSegment();
-		boost::unordered_map<const RoadSegment*, SegmentDensity*>::iterator segDensityIt = densities.find(rdSeg);
-		if(segDensityIt != densities.end()){
-			SegmentDensity* segDensity = segDensityIt->second;
-			segDensity->incrementCounts(ag->getCurrLane(),1,0); //TODO: set appropriate counts
-		}
-		else
-		{
-			SegmentDensity* segDensity = new sim_mob::SegmentDensity(rdSeg);
-			segDensity->incrementCounts(ag->getCurrLane(),1,0); //TODO: set appropriate counts
+	sim_mob::Person* p = dynamic_cast<sim_mob::Person*>(ag);
+	if(p){
+		if(p->getRole()->getResource()){
+			sim_mob::RoadSegment* rdSeg = p->getRole()->getResource()->getCurrSegment();
+			boost::unordered_map<const RoadSegment*, SegmentDensity*>::iterator segDensityIt = densities.find(rdSeg);
+
+				if(segDensityIt != densities.end()){
+					SegmentDensity* segDensity = segDensityIt->second;
+					if(ag->isQueuing) segDensity->incrementCounts(ag->getCurrLane(),0,1);
+					else segDensity->incrementCounts(ag->getCurrLane(),1,0);
+				}
+				else
+				{
+					SegmentDensity* segDensity = new sim_mob::SegmentDensity(rdSeg);
+					if(ag->isQueuing) segDensity->incrementCounts(ag->getCurrLane(),0,1);
+					else segDensity->incrementCounts(ag->getCurrLane(),1,0);
+					densities[rdSeg] = segDensity;
+				}
+
 		}
 	}
 }

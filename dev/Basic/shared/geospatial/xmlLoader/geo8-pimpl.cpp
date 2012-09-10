@@ -1417,33 +1417,33 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 
   }
 
-  // DailyTime_t_pimpl
-  //
-
-  void DailyTime_t_pimpl::
-  pre ()
-  {
-  }
-
-  void DailyTime_t_pimpl::
-  timeValue (unsigned int timeValue)
-  {
-    std::cout << "timeValue: " << timeValue << std::endl;
-  }
-
-  void DailyTime_t_pimpl::
-  base (unsigned int base)
-  {
-    std::cout << "base: " << base << std::endl;
-  }
-
-  sim_mob::DailyTime DailyTime_t_pimpl::
-  post_DailyTime_t ()
-  {
-    // TODO
-    //
-    // return ... ;
-  }
+//  // DailyTime_t_pimpl
+//  //
+//
+//  void DailyTime_t_pimpl::
+//  pre ()
+//  {
+//  }
+//
+//  void DailyTime_t_pimpl::
+//  timeValue (unsigned int timeValue)
+//  {
+//    std::cout << "timeValue: " << timeValue << std::endl;
+//  }
+//
+//  void DailyTime_t_pimpl::
+//  base (unsigned int base)
+//  {
+//    std::cout << "base: " << base << std::endl;
+//  }
+//
+//  sim_mob::DailyTime DailyTime_t_pimpl::
+//  post_DailyTime_t ()
+//  {
+//    // TODO
+//    //
+//    // return ... ;
+//  }
 
   // TripchainItemType_pimpl
   //

@@ -85,7 +85,7 @@ TripChainItem_t  sim_mob::TripChainItem*  sim_mob::TripChainItem*;
 TripChain_t "std::pair<unsigned long,sim_mob::TripChainItem*>"  "std::pair<unsigned long,sim_mob::TripChainItem*>";
 Trip_t sim_mob::TripChainItem*  sim_mob::TripChainItem*;
 Activity_t sim_mob::TripChainItem*  sim_mob::TripChainItem*;
-DailyTime_t sim_mob::DailyTime sim_mob::DailyTime;
+#DailyTime_t sim_mob::DailyTime sim_mob::DailyTime;
 TripchainItemLocationType  std::string std::string;
 TripchainItemType std::string std::string;
 SubTrips_t std::vector<sim_mob::SubTrip> std::vector<sim_mob::SubTrip>;

@@ -84,6 +84,10 @@ public:
 	double getCurrDistAlongPolyline() const;
 	double getCurrPolylineTotalDist() const;
 
+	// segment length is based on lane's polypoints , be careful, it is not relate to segment's start ,end nodes
+	// unit cm
+	double getCurrentSegmentLength();
+
 	//Retrieve the current distance moved in this road segment. Due to lane changing, etc., it
 	//  is entirely possible that this may appear longer than the actual RoadSegment.
 	//Note that this function does not attempt to subtract any distance moved beyond the
@@ -121,6 +125,7 @@ public:
 
 	//This can change dynamically (lane changes, etc.)
 	std::vector<sim_mob::Point2D> polypointsList;
+	std::vector<sim_mob::Point2D> laneZeroPolypointsList;
 	std::vector<sim_mob::Point2D>::iterator currPolypoint;
 	std::vector<sim_mob::Point2D>::iterator nextPolypoint;
 

@@ -108,10 +108,6 @@ public:
 		return subTrips;
 	}
 
-	/*void setSubTrips(const std::vector<SubTrip>& subTrips) {
-		this->subTrips = subTrips;
-	}*/
-
 private:
 	std::vector<SubTrip> subTrips;
 };

@@ -211,17 +211,48 @@ void addOrStashEntity(Agent* p, std::vector<Entity*>& active_agents, StartTimePr
 void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, AgentConstraints& constraints)
 {
 	ConfigParams& config = ConfigParams::GetInstance();
-	const std::map<unsigned int, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
+	std::map<unsigned int, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
 
-	//The current agent we are working on.
+	std::cout << "tcs.count = " << tcs[1].size() << std::endl;
+ 	//The current agent we are working on.
 	Person* currAg = nullptr;
 	std::string trip_mode;
 	std::vector<const TripChainItem*> currAgTripChain;
 
 	typedef vector<TripChainItem*>::const_iterator TCVectIt;
-	typedef std::map<unsigned int, vector<TripChainItem*> >::const_iterator TCMapIt;
+	typedef std::map<unsigned int, vector<TripChainItem*> >::iterator TCMapIt;
 	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
-		for (TCVectIt it=it_map->second.begin(); it!=it_map->second.end(); it++) {
+		TripChainItem* tc = it_map->second.front();
+		currAg = new Person("DB_TripChain", config.mutexStategy, tc->personID);
+		const Trip* trip = dynamic_cast<const Trip*>(tc);
+		const Activity* act = dynamic_cast<const Activity*>(tc);
+
+		if (trip && tc->itemType==TripChainItem::IT_TRIP) {
+			const SubTrip firstSubTrip = trip->getSubTrips()[0];
+			//Origin and destination must be those of the first subtrip if current item is a trip
+			currAg->originNode = firstSubTrip.fromLocation;
+			currAg->destNode = firstSubTrip.toLocation;
+			trip_mode = firstSubTrip.mode;// currently choose the first subtrip mode as the mode of the trip
+		} else if (act && tc->itemType==TripChainItem::IT_ACTIVITY) {
+			currAg->originNode = currAg->destNode = act->location;
+		} else { //Offer some protection
+			throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
+		}
+
+		currAg->setTripChain(it_map->second);
+		if (trip_mode == "Bus") {
+			// currently only one
+			if (!BusController::all_busctrllers_.empty()) {
+				BusController::all_busctrllers_[0]->addOrStashBuses(currAg, active_agents);
+			}
+		} else {
+			addOrStashEntity(currAg, active_agents, pending_agents);
+		}
+
+		//Reset for the next (possible) Agent
+		currAg = nullptr;
+
+		/*for (TCVectIt it=it_map->second.begin(); it!=it_map->second.end(); it++) {
 			const TripChainItem* const tc = *it;
 
 			//If the agent pointer is null, this record represents the start of a new agent.
@@ -238,11 +269,11 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 				const Activity* act = dynamic_cast<const Activity*>(tc);
 
 				if (trip && tc->itemType==TripChainItem::IT_TRIP) {
-					const SubTrip* firstSubTrip = trip->getSubTrips()[0];
+					const SubTrip firstSubTrip = trip->getSubTrips()[0];
 					//Origin and destination must be those of the first subtrip if current item is a trip
-					currAg->originNode = firstSubTrip->fromLocation;
-					currAg->destNode = firstSubTrip->toLocation;
-					trip_mode = firstSubTrip->mode;// currently choose the first subtrip mode as the mode of the trip
+					currAg->originNode = firstSubTrip.fromLocation;
+					currAg->destNode = firstSubTrip.toLocation;
+					trip_mode = firstSubTrip.mode;// currently choose the first subtrip mode as the mode of the trip
 				} else if (act && tc->itemType==TripChainItem::IT_ACTIVITY) {
 					currAg->originNode = currAg->destNode = act->location;
 				} else { //Offer some protection
@@ -258,6 +289,7 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 			if (next==it_map->second.end() || (*next)->personID!=currAg->getId()) {
 				//Save the trip chain and the Agent.
 				currAg->setTripChain(currAgTripChain);
+
 				if(trip_mode == "Bus") {
 					// currently only one
 					if(!BusController::all_busctrllers_.empty()) {
@@ -270,7 +302,7 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 				//Reset for the next (possible) Agent
 				currAg = nullptr;
 			}
-		}//inner for loop(vector)
+		}//inner for loop(vector)*/
 	}//outer for loop(map)
 }
 
@@ -1251,38 +1283,13 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		const std::set<sim_mob::UniNode*>& unodes = ConfigParams::GetInstance().getNetwork().getUniNodes();
     		std::cout << "Number of UniNodes: " << unodes.size() << std::endl;
     		std::cout << "Number of MultiNodes: " << mnodes.size() << std::endl;
-
-    		for(std::vector<Link*>::iterator links_it = links.begin(); links_it != links.end(); links_it++)
+    		std::cout << "Number of Tripchains: " << ConfigParams::GetInstance().getTripChains().size() << std::endl;
+    		std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >::iterator it = ConfigParams::GetInstance().getTripChains().begin();
+    		for(; it != ConfigParams::GetInstance().getTripChains().end(); it++)
     		{
-    			//link
-    			std::cout << "Checking Link " << (*links_it)->getId() << std::endl;
-//    			//Starting node,ending node,originalDB_ID
-//    			std::cout << "checking Starting node " <<  (*links_it)->getStart()->getID() << std::endl;
-//    			if((*links_it)->getStart()->originalDB_ID.isSet())
-//    				std::cout << "checking Starting node originalD_ID " <<  (*links_it)->getStart()->originalDB_ID.getLogItem() << std::endl;
-//    			else
-//    				std::cout << "checking Starting node originalD_ID is EMPTY\n";
-//    			std::cout << "checking ending node " <<  (*links_it)->getEnd()->getID() << std::endl;
-//    			if((*links_it)->getEnd()->originalDB_ID.isSet())
-//    				std::cout << "checking ending node originalD_ID " <<  (*links_it)->getEnd()->originalDB_ID.getLogItem() << std::endl;
-//    			else
-//    				std::cout << "checking Starting node originalD_ID is EMPTY\n";
-    			//segment
-    			for(std::set<sim_mob::RoadSegment*>::iterator segmentnodes_it = (*links_it)->getUniqueSegments().begin(), it_end((*links_it)->getUniqueSegments().end()); segmentnodes_it != it_end; segmentnodes_it++)
-    			{
-    				//starting node, endong node
-    				if(!((*segmentnodes_it)->getStart()&&(*segmentnodes_it)->getEnd()))
-    				{
-    					std::cout << "segment starting node, endong node failed\n";
-    					getchar();
-    				}
-    				else
-    				{
-    					sim_mob::RoadSegment *rs = (*segmentnodes_it);
-    				}
-    			}
-
+    			std::cout << "Person [" << it->first << "] has tripchain of size " << it->second.size() << std::endl;
     		}
+    		getchar();
 
     		std::cout << "Checking done\n";
 #endif
@@ -1304,18 +1311,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     //Seal the network; no more changes can be made after this.
     ConfigParams::GetInstance().sealNetwork();
     std::cout << "Network Sealed" << std::endl;
-    {
-    	std::cout << "Testing Road Network Again:\n";
-    	const sim_mob::RoadNetwork& network = ConfigParams::GetInstance().getNetwork();
-    	    		std::vector<Link*> const & links = network.getLinks();
-    	    		std::cout << "Number of Links: " << links.size() << std::endl;
-    	    		Link const * link = links[0];
-    	    		std::cout << "Number of segments: " << link->getPath(true).size() << " " << link->getPath(false).size() << std::endl;
-    	    		const std::vector<sim_mob::MultiNode*>& mnodes = ConfigParams::GetInstance().getNetwork().getNodes();
-    	    		const std::set<sim_mob::UniNode*>& unodes = ConfigParams::GetInstance().getNetwork().getUniNodes();
-    	    		std::cout << "Number of UniNodes: " << unodes.size() << std::endl;
-    	    		std::cout << "Number of MultiNodes: " << mnodes.size() << std::endl;
-    }
     //Now that the network has been loaded, initialize our street directory (so that lookup succeeds).
     StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
     std::cout << "Street Directory initialized" << std::endl;
@@ -1331,6 +1326,10 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     //Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder
     for (vector<string>::iterator it=loadAgentOrder.begin(); it!=loadAgentOrder.end(); it++) {
     	if ((*it) == "database") {
+    	    cout <<"Loaded Database Agents (from Trip Chains).placeholder" <<endl;
+    	}else
+    	if ((*it) == "xml-tripchains") {
+    		std::cout << "Number of Tripchains: " << ConfigParams::GetInstance().getTripChains().size() << std::endl;
     	    //Create an agent for each Trip Chain in the database.
     	    generateAgentsFromTripChain(active_agents, pending_agents, constraints);
     	    cout <<"Loaded Database Agents (from Trip Chains)." <<endl;

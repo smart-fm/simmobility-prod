@@ -7057,7 +7057,7 @@ namespace geo
   //
 
   void TripChains_t_pskel::
-  TripChain (std::pair<unsigned long,sim_mob::TripChainItem*>)
+  TripChain (std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> >)
   {
   }
 

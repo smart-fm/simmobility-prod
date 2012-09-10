@@ -1528,36 +1528,6 @@ namespace geo
   {
   }
 
-  // DailyTime_t_pskel
-  //
-
-  void DailyTime_t_pskel::
-  timeValue_parser (::xml_schema::unsigned_int_pskel& p)
-  {
-    this->timeValue_parser_ = &p;
-  }
-
-  void DailyTime_t_pskel::
-  base_parser (::xml_schema::unsigned_int_pskel& p)
-  {
-    this->base_parser_ = &p;
-  }
-
-  void DailyTime_t_pskel::
-  parsers (::xml_schema::unsigned_int_pskel& timeValue,
-           ::xml_schema::unsigned_int_pskel& base)
-  {
-    this->timeValue_parser_ = &timeValue;
-    this->base_parser_ = &base;
-  }
-
-  DailyTime_t_pskel::
-  DailyTime_t_pskel ()
-  : timeValue_parser_ (0),
-    base_parser_ (0)
-  {
-  }
-
   // TripChainItem_t_pskel
   //
 
@@ -2414,20 +2384,29 @@ namespace geo
   }
 
   void SimMobility_t_pskel::
+  ABCD_parser (::xml_schema::string_pskel& p)
+  {
+    this->ABCD_parser_ = &p;
+  }
+
+  void SimMobility_t_pskel::
   parsers (::geo::GeoSpatial_t_pskel& GeoSpatial,
            ::geo::TripChains_t_pskel& TripChains,
-           ::geo::Signals_t_pskel& Signals)
+           ::geo::Signals_t_pskel& Signals,
+           ::xml_schema::string_pskel& ABCD)
   {
     this->GeoSpatial_parser_ = &GeoSpatial;
     this->TripChains_parser_ = &TripChains;
     this->Signals_parser_ = &Signals;
+    this->ABCD_parser_ = &ABCD;
   }
 
   SimMobility_t_pskel::
   SimMobility_t_pskel ()
   : GeoSpatial_parser_ (0),
     TripChains_parser_ (0),
-    Signals_parser_ (0)
+    Signals_parser_ (0),
+    ABCD_parser_ (0)
   {
   }
 
@@ -6260,78 +6239,6 @@ namespace geo
     return false;
   }
 
-  // DailyTime_t_pskel
-  //
-
-  void DailyTime_t_pskel::
-  timeValue (unsigned int)
-  {
-  }
-
-  void DailyTime_t_pskel::
-  base (unsigned int)
-  {
-  }
-
-  bool DailyTime_t_pskel::
-  _start_element_impl (const ::xml_schema::ro_string& ns,
-                       const ::xml_schema::ro_string& n,
-                       const ::xml_schema::ro_string* t)
-  {
-    XSD_UNUSED (t);
-
-    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
-      return true;
-
-    if (n == "timeValue" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->timeValue_parser_;
-
-      if (this->timeValue_parser_)
-        this->timeValue_parser_->pre ();
-
-      return true;
-    }
-
-    if (n == "base" && ns.empty ())
-    {
-      this->::xml_schema::complex_content::context_.top ().parser_ = this->base_parser_;
-
-      if (this->base_parser_)
-        this->base_parser_->pre ();
-
-      return true;
-    }
-
-    return false;
-  }
-
-  bool DailyTime_t_pskel::
-  _end_element_impl (const ::xml_schema::ro_string& ns,
-                     const ::xml_schema::ro_string& n)
-  {
-    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
-      return true;
-
-    if (n == "timeValue" && ns.empty ())
-    {
-      if (this->timeValue_parser_)
-        this->timeValue (this->timeValue_parser_->post_unsigned_int ());
-
-      return true;
-    }
-
-    if (n == "base" && ns.empty ())
-    {
-      if (this->base_parser_)
-        this->base (this->base_parser_->post_unsigned_int ());
-
-      return true;
-    }
-
-    return false;
-  }
-
   // TripChainItem_t_pskel
   //
 
@@ -8364,6 +8271,11 @@ namespace geo
   }
 
   void SimMobility_t_pskel::
+  ABCD (const ::std::string&)
+  {
+  }
+
+  void SimMobility_t_pskel::
   post_SimMobility_t ()
   {
   }
@@ -8408,6 +8320,16 @@ namespace geo
       return true;
     }
 
+    if (n == "ABCD" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->ABCD_parser_;
+
+      if (this->ABCD_parser_)
+        this->ABCD_parser_->pre ();
+
+      return true;
+    }
+
     return false;
   }
 
@@ -8447,6 +8369,14 @@ namespace geo
         this->Signals_parser_->post_Signals_t ();
         this->Signals ();
       }
+
+      return true;
+    }
+
+    if (n == "ABCD" && ns.empty ())
+    {
+      if (this->ABCD_parser_)
+        this->ABCD (this->ABCD_parser_->post_string ());
 
       return true;
     }

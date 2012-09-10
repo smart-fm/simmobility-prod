@@ -64,13 +64,13 @@ public:
     Entity::UpdateStatus checkAndReactToTripChain(unsigned int currTimeMS, unsigned int nextValidTimeMS);
 
     ///get this person's trip chain
-    const std::vector<const TripChainItem*>& getTripChain() const
+    std::vector<TripChainItem*>& getTripChain()
     {
         return tripChain;
     }
 
     ///Set this person's trip chain
-    void setTripChain(const std::vector<const TripChainItem*>& tripChain)
+    void setTripChain(std::vector<TripChainItem*>& tripChain)
     {
         this->tripChain = tripChain;
     }
@@ -101,7 +101,7 @@ private:
 
 
     int currTripChainSequenceNumber;
-    std::vector<const TripChainItem*> tripChain;
+    std::vector<TripChainItem*> tripChain;
     bool firstFrameTick;
     ///Determines if frame_init() has been done.
     friend class PartitionManager;

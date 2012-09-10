@@ -918,7 +918,7 @@ namespace geo
 
   class TripChain_t_pimpl: public virtual TripChain_t_pskel
   {
-	  std::pair<unsigned long, sim_mob::TripChainItem*> personID_Tripchai_Pair;
+	  std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> > personID_Tripchain_Pair;
     public:
     virtual void
     pre ();
@@ -932,7 +932,7 @@ namespace geo
     virtual void
     Activity (sim_mob::TripChainItem*);
 
-    virtual std::pair<unsigned long,sim_mob::TripChainItem*>
+    virtual std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> >
     post_TripChain_t ();
   };
 
@@ -944,7 +944,7 @@ namespace geo
     pre ();
 
     virtual void
-    TripChain (std::pair<unsigned long,sim_mob::TripChainItem*>);
+    TripChain (std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> >);
 
     virtual void
     post_TripChains_t ();

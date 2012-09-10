@@ -87,7 +87,6 @@ namespace geo
   class RoadBump_t_pskel;
   class RoadNetwork_t_pskel;
   class RoadItems_t_pskel;
-  class DailyTime_t_pskel;
   class TripchainItemType_pskel;
   class TripchainItemLocationType_pskel;
   class TripChainItem_t_pskel;
@@ -2496,56 +2495,6 @@ namespace geo
     ::geo::RoadBump_t_pskel* RoadBump_parser_;
   };
 
-  class DailyTime_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    timeValue (unsigned int);
-
-    virtual void
-    base (unsigned int);
-
-    virtual sim_mob::DailyTime
-    post_DailyTime_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    timeValue_parser (::xml_schema::unsigned_int_pskel&);
-
-    void
-    base_parser (::xml_schema::unsigned_int_pskel&);
-
-    void
-    parsers (::xml_schema::unsigned_int_pskel& /* timeValue */,
-             ::xml_schema::unsigned_int_pskel& /* base */);
-
-    // Constructor.
-    //
-    DailyTime_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::unsigned_int_pskel* timeValue_parser_;
-    ::xml_schema::unsigned_int_pskel* base_parser_;
-  };
-
   class TripchainItemType_pskel: public virtual ::xml_schema::string_pskel
   {
     public:
@@ -3827,6 +3776,9 @@ namespace geo
     Signals ();
 
     virtual void
+    ABCD (const ::std::string&);
+
+    virtual void
     post_SimMobility_t ();
 
     // Parser construction API.
@@ -3841,9 +3793,13 @@ namespace geo
     Signals_parser (::geo::Signals_t_pskel&);
 
     void
+    ABCD_parser (::xml_schema::string_pskel&);
+
+    void
     parsers (::geo::GeoSpatial_t_pskel& /* GeoSpatial */,
              ::geo::TripChains_t_pskel& /* TripChains */,
-             ::geo::Signals_t_pskel& /* Signals */);
+             ::geo::Signals_t_pskel& /* Signals */,
+             ::xml_schema::string_pskel& /* ABCD */);
 
     // Constructor.
     //
@@ -3865,6 +3821,7 @@ namespace geo
     ::geo::GeoSpatial_t_pskel* GeoSpatial_parser_;
     ::geo::TripChains_t_pskel* TripChains_parser_;
     ::geo::Signals_t_pskel* Signals_parser_;
+    ::xml_schema::string_pskel* ABCD_parser_;
   };
 
   class Lanes_pskel: public ::xml_schema::complex_content

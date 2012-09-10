@@ -488,7 +488,6 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 	  //set parentsegment for each lane
 	  for(std::vector<sim_mob::Lane*>::iterator it = this->rs->lanes.begin(), it_end(this->rs->lanes.end()); it != it_end; it++) (*it)->setParentSegment(this->rs);
 	  std::cout << "In segment_t_pimpl:: Lanes (" << this->rs->lanes.size() << ")--done\n";
-//	  //getchar();
   }
 
   void segment_t_pimpl::
@@ -527,7 +526,6 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 	link->linkID = linkID;
 	geo_Links_[linkID] = link;
 //	std::cout << "linkID : "  << linkID << " Has link " << link;
-//	//getchar();
   }
 
   void link_t_pimpl::
@@ -840,7 +838,6 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 	  //more convenient if create an instance here(to set the const location)
 	  node_ = new sim_mob::Node(location.getX(),location.getY());
 	   std::cout << ">>>>>>>>>>>>>basic node is at [" << node_<< "]<<<<<<<<<<<<<<<<<" << std::endl;
-//	   //getchar();
   }
 
   void Node_t_pimpl::
@@ -922,7 +919,6 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 	    if(it == container.end())
 	    {
 	    	std::cout << "Couldn't find the unode " << v << " container size(" << container.size() << ")" << std::endl;
-//	    	//getchar();
 	    }
 	    else
 	    {
@@ -1105,7 +1101,6 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   pre ()
   {
 	    std::cout << "in RoadItem_t_pimpl::pre  " << std::endl;
-	    //getchar();
   }
 
   void RoadItem_t_pimpl::
@@ -1145,7 +1140,6 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   pre ()
   {
 	    std::cout << "in BusStop_t_pimpl::pre ()\n";
-	    //getchar();
   }
 
   void BusStop_t_pimpl::
@@ -1559,15 +1553,13 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   {
 	    std::cout << "In Trip_t_pimpl::pre ()" << std::endl;
 	  trip = new sim_mob::Trip();
-	    std::cout << "In Trip_t_pimpl::pre ()--" << std::endl;
   }
 
   void Trip_t_pimpl::
   tripID (long long tripID)
   {
-	  if(!trip) return;
+	  if(!trip) trip = new sim_mob::Trip();
 	    std::cout << "In Trip_t_pimpl::tripID ()" << tripID << std::endl;
-	  //getchar();
 	  trip->tripID = tripID;
 
   }
@@ -1698,6 +1690,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 		subTrip.toLocation = trip->toLocation;
 		subTrip.fromLocationType = trip->fromLocationType;
 		subTrip.toLocationType = trip->toLocationType;
+		delete trip;
 	}
 	  	return subTrip;
   }
@@ -1799,7 +1792,6 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   pre ()
   {
 	  std::cout << "in TripChain_t_pimpl::pre () "  ;
-	   = ConfigParams::GetInstance().getTripChains();
   }
 
   void TripChain_t_pimpl::
@@ -1807,7 +1799,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   {
 	  std::cout << "in TripChain_t_pimpl::personID() " << std::endl ;
 
-	  personID_Tripchai_Pair.first = personID;
+	  personID_Tripchain_Pair.first = personID;
 
 	  std::cout << "in TripChain_t_pimpl::personID()-- " << std::endl ;
   }
@@ -1817,20 +1809,21 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   {
 	  std::cout << "in TripChain_t_pimpl::Trip "  ;
 
-	  personID_Tripchai_Pair.second = Trip;
+	  personID_Tripchain_Pair.second.push_back(Trip);
   }
 
   void TripChain_t_pimpl::
   Activity (sim_mob::TripChainItem* Activity)
   {
 	  std::cout << "in TripChain_t_pimpl::Activity "  ;
-	  personID_Tripchai_Pair.second = Activity;
+	  personID_Tripchain_Pair.second.push_back(Activity);
   }
 
-  std::pair<unsigned long,sim_mob::TripChainItem*> TripChain_t_pimpl::
+  std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> > TripChain_t_pimpl::
   post_TripChain_t ()
   {
-	  return personID_Tripchai_Pair;
+	  std::cout << "posting trip chain for person " << personID_Tripchain_Pair.first << std::endl ;
+	  return personID_Tripchain_Pair;
   }
 
   // TripChains_t_pimpl
@@ -1846,11 +1839,11 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   }
 
   void TripChains_t_pimpl::
-  TripChain (std::pair<unsigned long,sim_mob::TripChainItem*> TripChain)
+  TripChain (std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> > TripChain)
   {
-	  std::cout << "In TripChains_t_pimpl::TripChain ()\n";
-	  tripchains[TripChain.first].push_back(TripChain.second);
-	  std::cout << "In TripChains_t_pimpl::TripChain ()---\n";
+	  std::cout << "In TripChains_t_pimpl::TripChain ()...\n";
+	  sim_mob::ConfigParams::GetInstance().getTripChains()[TripChain.first] = (TripChain.second);
+	  std::cout << "A trip was added to person " <<  TripChain.first << "[new size = " << sim_mob::ConfigParams::GetInstance().getTripChains()[TripChain.first].size() << "]   Total: " << sim_mob::ConfigParams::GetInstance().getTripChains().size();
   }
 
   void TripChains_t_pimpl::
@@ -2445,24 +2438,18 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   FWDSegments (std::vector<sim_mob::RoadSegment*> FWDSegments)
   {
 	  fwd = FWDSegments;
-//	  std::cout << "Forward Segment size = " << FWDSegments.size() << " , " << fwd.size() << "\n";
-//	  if(fwd.size() == 0) //getchar();
   }
 
   void Segments_pimpl::
   BKDSegments (std::vector<sim_mob::RoadSegment*> BKDSegments)
   {
 	  bck = BKDSegments;
-//	  std::cout << "BKD Segment size = " << BKDSegments.size() << " , " << bck.size() << "\n";
-//	  if(bck.size() == 0) //getchar();
 
   }
 
   std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> > Segments_pimpl::
   post_Segments ()
   {
-//	  std::cout << "In Segments_pimpl::post_Segments(" << fwd.size() << "," << bck.size() << ")\n";
-//	  //getchar();
 	  return (std::make_pair(fwd,bck));
   }
 
@@ -2488,7 +2475,6 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 
 	  rn.nodes.insert(rn.nodes.begin(),Intersections.begin(),Intersections.end());
 	  std::cout<< "Intersections inserted size is : " << rn.nodes.size() << "\n";
-//	  //getchar();
   }
 
   void Nodes_pimpl::

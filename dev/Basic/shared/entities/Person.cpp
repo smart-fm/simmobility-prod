@@ -133,7 +133,7 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 
 		Trip* singleTrip = MakePseudoTrip(*this, mode);
 
-		std::vector<const TripChainItem*> trip_chain;
+		std::vector<TripChainItem*> trip_chain;
 		trip_chain.push_back(singleTrip);
 
 		//////
@@ -233,7 +233,7 @@ void sim_mob::Person::findNextItemInTripChain() {
 		this->currTripChainItem = this->tripChain.front();
 	} else {
 		// else set the next item if available; return nullptr otherwise.
-		std::vector<const TripChainItem*>::const_iterator itemIterator = std::find(tripChain.begin(), tripChain.end(), currTripChainItem);
+		std::vector<TripChainItem*>::iterator itemIterator = std::find(tripChain.begin(), tripChain.end(), currTripChainItem);
 		currTripChainItem = nullptr;
 		if (itemIterator!=tripChain.end()) {
 			//Set it equal to the next item, assuming we are not at the end of the list.
@@ -393,17 +393,12 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 
 
 UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS, unsigned int nextValidTimeMS) {
+
+	std::cout << "Person: " << this->id << ": currTripChainItem[" << this->currTripChainItem << "] : currSubTrip[" << this->currSubTrip << "]" << std::endl;
 	this->getNextSubTripInTrip();
 
 	if(!this->currSubTrip){
-
-		std::cout << "sim_mob::Person::checkAndReactToTripChain=>The trip is continuing\n";
 		this->findNextItemInTripChain();
-
-	}
-	else
-	{
-		std::cout << "sim_mob::Person::checkAndReactToTripChain=>The trip is starting\n";
 	}
 
 	if (!this->currTripChainItem) {

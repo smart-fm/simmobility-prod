@@ -82,7 +82,7 @@ Signal_t sim_mob::Signal* sim_mob::Signal*;
 
 
 TripChainItem_t  sim_mob::TripChainItem*  sim_mob::TripChainItem*;
-TripChain_t "std::pair<unsigned long,sim_mob::TripChainItem*>"  "std::pair<unsigned long,sim_mob::TripChainItem*>";
+TripChain_t "std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> >"  "std::pair<unsigned long, std::vector<sim_mob::TripChainItem*> >";
 Trip_t sim_mob::TripChainItem*  sim_mob::TripChainItem*;
 Activity_t sim_mob::TripChainItem*  sim_mob::TripChainItem*;
 #DailyTime_t sim_mob::DailyTime sim_mob::DailyTime;

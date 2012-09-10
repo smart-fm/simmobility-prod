@@ -407,7 +407,12 @@
     <xs:complexContent>
       <xs:extension base="geo:Trip_t">
         <xs:sequence>
-          <!--<xs:element name="parentTrip" type="xs:string" minOccurs="1" maxOccurs="1"/>-->
+<!--          <!-\-<xs:element name="parentTrip" type="xs:string" minOccurs="1" maxOccurs="1"/>-\-> 
+          <xs:element name="tripID" type="xs:integer" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="fromLocation" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="fromLocationType" type="geo:TripchainItemLocationType" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="toLocation" type="xs:unsignedInt" minOccurs="1" maxOccurs="1"/>
+          <xs:element name="toLocationType" type="geo:TripchainItemLocationType" minOccurs="1" maxOccurs="1"/>-->
           <xs:element name="mode" type="xs:string" minOccurs="1" maxOccurs="1"/>
           <xs:element name="isPrimaryMode" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
           <xs:element name="ptLineId" type="xs:string" minOccurs="1" maxOccurs="1"/>

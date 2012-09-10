@@ -36,6 +36,8 @@
 
 // Begin prologue.
 //
+// NOTE: Do *not* edit the -pskel.* files; they are generated automatically from the xsd file. 
+//       Instead, modify the -pimpl.* files. ~Seth
 //
 // End prologue.
 
@@ -49,64 +51,67 @@
 
 // Forward declarations
 //
-namespace geo
+namespace sim_mob
 {
-  class Point2D_t_pskel;
-  class PolyPoint_t_pskel;
-  class PolyLine_t_pskel;
-  class lane_t_pskel;
-  class connector_t_pskel;
-  class connectors_t_pskel;
-  class Multi_Connector_t_pskel;
-  class Multi_Connectors_t_pskel;
-  class fwdBckSegments_t_pskel;
-  class RoadSegmentsAt_t_pskel;
-  class segment_t_pskel;
-  class link_t_pskel;
-  class separator_t_pskel;
-  class separators_t_pskel;
-  class DomainIsland_t_pskel;
-  class DomainIslands_t_pskel;
-  class offset_t_pskel;
-  class offsets_t_pskel;
-  class ChunkLength_t_pskel;
-  class ChunkLengths_t_pskel;
-  class LanesVector_t_pskel;
-  class EntranceAngle_t_pskel;
-  class EntranceAngles_t_pskel;
-  class Node_t_pskel;
-  class UniNode_t_pskel;
-  class roundabout_t_pskel;
-  class intersection_t_pskel;
-  class RoadItem_No_Attr_t_pskel;
-  class RoadItem_t_pskel;
-  class BusStop_t_pskel;
-  class ERP_Gantry_t_pskel;
-  class FormType_pskel;
-  class PointPair_t_pskel;
-  class crossing_t_pskel;
-  class RoadBump_t_pskel;
-  class RoadNetwork_t_pskel;
-  class RoadItems_t_pskel;
-  class DailyTime_t_pskel;
-  class TripchainItemType_pskel;
-  class TripchainItemLocationType_pskel;
-  class SubTrip_t_pskel;
-  class SubTrips_t_pskel;
-  class TripChainItem_t_pskel;
-  class Trip_t_pskel;
-  class Activity_t_pskel;
-  class TripChain_t_pskel;
-  class TripChains_t_pskel;
-  class GeoSpatial_t_pskel;
-  class SimMobility_t_pskel;
-  class Lanes_pskel;
-  class Segments_pskel;
-  class Nodes_pskel;
-  class Links_pskel;
-  class UniNodes_pskel;
-  class Intersections_pskel;
-  class roundabouts_pskel;
+  namespace xml
+  {
+    class Point2D_t_pskel;
+    class PolyPoint_t_pskel;
+    class PolyLine_t_pskel;
+    class lane_t_pskel;
+    class connector_t_pskel;
+    class connectors_t_pskel;
+    class Multi_Connector_t_pskel;
+    class Multi_Connectors_t_pskel;
+    class fwdBckSegments_t_pskel;
+    class RoadSegmentsAt_t_pskel;
+    class segment_t_pskel;
+    class link_t_pskel;
+    class separator_t_pskel;
+    class separators_t_pskel;
+    class DomainIsland_t_pskel;
+    class DomainIslands_t_pskel;
+    class offset_t_pskel;
+    class offsets_t_pskel;
+    class ChunkLength_t_pskel;
+    class ChunkLengths_t_pskel;
+    class LanesVector_t_pskel;
+    class EntranceAngle_t_pskel;
+    class EntranceAngles_t_pskel;
+    class Node_t_pskel;
+    class UniNode_t_pskel;
+    class roundabout_t_pskel;
+    class intersection_t_pskel;
+    class RoadItem_No_Attr_t_pskel;
+    class RoadItem_t_pskel;
+    class BusStop_t_pskel;
+    class ERP_Gantry_t_pskel;
+    class FormType_pskel;
+    class PointPair_t_pskel;
+    class crossing_t_pskel;
+    class RoadBump_t_pskel;
+    class RoadNetwork_t_pskel;
+    class RoadItems_t_pskel;
+    class DailyTime_t_pskel;
+    class TripchainItemType_pskel;
+    class TripchainItemLocationType_pskel;
+    class SubTrip_t_pskel;
+    class SubTrips_t_pskel;
+    class TripChainItem_t_pskel;
+    class Trip_t_pskel;
+    class Activity_t_pskel;
+    class TripChain_t_pskel;
+    class TripChains_t_pskel;
+    class GeoSpatial_t_pskel;
+    class SimMobility_t_pskel;
+    class Lanes_pskel;
+    class Segments_pskel;
+    class Nodes_pskel;
+    class Links_pskel;
+    class UniNodes_pskel;
+    class Intersections_pskel;
+    class roundabouts_pskel;
+  }
 }
 
 
@@ -335,3133 +340,3136 @@ namespace xml_schema
   typedef ::xsd::cxx::parser::xerces::document< char > document;
 }
 
-namespace geo
+namespace sim_mob
 {
-  class Point2D_t_pskel: public ::xml_schema::complex_content
+  namespace xml
   {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    xPos (unsigned int);
-
-    virtual void
-    yPos (unsigned int);
-
-    virtual sim_mob::Point2D
-    post_Point2D_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    xPos_parser (::xml_schema::unsigned_int_pskel&);
-
-    void
-    yPos_parser (::xml_schema::unsigned_int_pskel&);
-
-    void
-    parsers (::xml_schema::unsigned_int_pskel& /* xPos */,
-             ::xml_schema::unsigned_int_pskel& /* yPos */);
-
-    // Constructor.
-    //
-    Point2D_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::unsigned_int_pskel* xPos_parser_;
-    ::xml_schema::unsigned_int_pskel* yPos_parser_;
-  };
-
-  class PolyPoint_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    pointID (const ::std::string&);
-
-    virtual void
-    location (sim_mob::Point2D);
-
-    virtual sim_mob::Point2D
-    post_PolyPoint_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    pointID_parser (::xml_schema::string_pskel&);
-
-    void
-    location_parser (::geo::Point2D_t_pskel&);
-
-    void
-    parsers (::xml_schema::string_pskel& /* pointID */,
-             ::geo::Point2D_t_pskel& /* location */);
-
-    // Constructor.
-    //
-    PolyPoint_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::string_pskel* pointID_parser_;
-    ::geo::Point2D_t_pskel* location_parser_;
-  };
-
-  class PolyLine_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
+    class Point2D_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      xPos (unsigned int);
+
+      virtual void
+      yPos (unsigned int);
+
+      virtual sim_mob::Point2D
+      post_Point2D_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      xPos_parser (::xml_schema::unsigned_int_pskel&);
+
+      void
+      yPos_parser (::xml_schema::unsigned_int_pskel&);
+
+      void
+      parsers (::xml_schema::unsigned_int_pskel& /* xPos */,
+               ::xml_schema::unsigned_int_pskel& /* yPos */);
+
+      // Constructor.
+      //
+      Point2D_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::unsigned_int_pskel* xPos_parser_;
+      ::xml_schema::unsigned_int_pskel* yPos_parser_;
+    };
+
+    class PolyPoint_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      pointID (const ::std::string&);
+
+      virtual void
+      location (sim_mob::Point2D);
+
+      virtual sim_mob::Point2D
+      post_PolyPoint_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      pointID_parser (::xml_schema::string_pskel&);
+
+      void
+      location_parser (::sim_mob::xml::Point2D_t_pskel&);
+
+      void
+      parsers (::xml_schema::string_pskel& /* pointID */,
+               ::sim_mob::xml::Point2D_t_pskel& /* location */);
+
+      // Constructor.
+      //
+      PolyPoint_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::string_pskel* pointID_parser_;
+      ::sim_mob::xml::Point2D_t_pskel* location_parser_;
+    };
+
+    class PolyLine_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
 
-    virtual void
-    PolyPoint (sim_mob::Point2D);
+      virtual void
+      PolyPoint (sim_mob::Point2D);
 
-    virtual std::vector<sim_mob::Point2D>
-    post_PolyLine_t () = 0;
+      virtual std::vector<sim_mob::Point2D>
+      post_PolyLine_t () = 0;
 
-    // Parser construction API.
-    //
-    void
-    PolyPoint_parser (::geo::PolyPoint_t_pskel&);
+      // Parser construction API.
+      //
+      void
+      PolyPoint_parser (::sim_mob::xml::PolyPoint_t_pskel&);
 
-    void
-    parsers (::geo::PolyPoint_t_pskel& /* PolyPoint */);
+      void
+      parsers (::sim_mob::xml::PolyPoint_t_pskel& /* PolyPoint */);
 
-    // Constructor.
-    //
-    PolyLine_t_pskel ();
+      // Constructor.
+      //
+      PolyLine_t_pskel ();
 
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
 
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
 
-    protected:
-    ::geo::PolyPoint_t_pskel* PolyPoint_parser_;
-  };
+      protected:
+      ::sim_mob::xml::PolyPoint_t_pskel* PolyPoint_parser_;
+    };
 
-  class lane_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
+    class lane_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
 
-    virtual void
-    laneID (unsigned long long);
+      virtual void
+      laneID (unsigned long long);
 
-    virtual void
-    width (unsigned int);
+      virtual void
+      width (unsigned int);
 
-    virtual void
-    can_go_straight (bool);
+      virtual void
+      can_go_straight (bool);
 
-    virtual void
-    can_turn_left (bool);
+      virtual void
+      can_turn_left (bool);
 
-    virtual void
-    can_turn_right (bool);
+      virtual void
+      can_turn_right (bool);
 
-    virtual void
-    can_turn_on_red_signal (bool);
+      virtual void
+      can_turn_on_red_signal (bool);
 
-    virtual void
-    can_change_lane_left (bool);
+      virtual void
+      can_change_lane_left (bool);
 
-    virtual void
-    can_change_lane_right (bool);
+      virtual void
+      can_change_lane_right (bool);
 
-    virtual void
-    is_road_shoulder (bool);
+      virtual void
+      is_road_shoulder (bool);
 
-    virtual void
-    is_bicycle_lane (bool);
+      virtual void
+      is_bicycle_lane (bool);
 
-    virtual void
-    is_pedestrian_lane (bool);
+      virtual void
+      is_pedestrian_lane (bool);
 
-    virtual void
-    is_vehicle_lane (bool);
+      virtual void
+      is_vehicle_lane (bool);
 
-    virtual void
-    is_standard_bus_lane (bool);
+      virtual void
+      is_standard_bus_lane (bool);
 
-    virtual void
-    is_whole_day_bus_lane (bool);
+      virtual void
+      is_whole_day_bus_lane (bool);
 
-    virtual void
-    is_high_occupancy_vehicle_lane (bool);
+      virtual void
+      is_high_occupancy_vehicle_lane (bool);
 
-    virtual void
-    can_freely_park_here (bool);
+      virtual void
+      can_freely_park_here (bool);
 
-    virtual void
-    can_stop_here (bool);
+      virtual void
+      can_stop_here (bool);
 
-    virtual void
-    is_u_turn_allowed (bool);
+      virtual void
+      is_u_turn_allowed (bool);
 
-    virtual void
-    PolyLine (std::vector<sim_mob::Point2D>);
+      virtual void
+      PolyLine (std::vector<sim_mob::Point2D>);
 
-    virtual sim_mob::Lane*
-    post_lane_t () = 0;
+      virtual sim_mob::Lane*
+      post_lane_t () = 0;
 
-    // Parser construction API.
-    //
-    void
-    laneID_parser (::xml_schema::unsigned_long_pskel&);
-
-    void
-    width_parser (::xml_schema::unsigned_int_pskel&);
-
-    void
-    can_go_straight_parser (::xml_schema::boolean_pskel&);
-
-    void
-    can_turn_left_parser (::xml_schema::boolean_pskel&);
-
-    void
-    can_turn_right_parser (::xml_schema::boolean_pskel&);
-
-    void
-    can_turn_on_red_signal_parser (::xml_schema::boolean_pskel&);
-
-    void
-    can_change_lane_left_parser (::xml_schema::boolean_pskel&);
-
-    void
-    can_change_lane_right_parser (::xml_schema::boolean_pskel&);
-
-    void
-    is_road_shoulder_parser (::xml_schema::boolean_pskel&);
-
-    void
-    is_bicycle_lane_parser (::xml_schema::boolean_pskel&);
-
-    void
-    is_pedestrian_lane_parser (::xml_schema::boolean_pskel&);
-
-    void
-    is_vehicle_lane_parser (::xml_schema::boolean_pskel&);
-
-    void
-    is_standard_bus_lane_parser (::xml_schema::boolean_pskel&);
-
-    void
-    is_whole_day_bus_lane_parser (::xml_schema::boolean_pskel&);
-
-    void
-    is_high_occupancy_vehicle_lane_parser (::xml_schema::boolean_pskel&);
-
-    void
-    can_freely_park_here_parser (::xml_schema::boolean_pskel&);
-
-    void
-    can_stop_here_parser (::xml_schema::boolean_pskel&);
-
-    void
-    is_u_turn_allowed_parser (::xml_schema::boolean_pskel&);
-
-    void
-    PolyLine_parser (::geo::PolyLine_t_pskel&);
-
-    void
-    parsers (::xml_schema::unsigned_long_pskel& /* laneID */,
-             ::xml_schema::unsigned_int_pskel& /* width */,
-             ::xml_schema::boolean_pskel& /* can_go_straight */,
-             ::xml_schema::boolean_pskel& /* can_turn_left */,
-             ::xml_schema::boolean_pskel& /* can_turn_right */,
-             ::xml_schema::boolean_pskel& /* can_turn_on_red_signal */,
-             ::xml_schema::boolean_pskel& /* can_change_lane_left */,
-             ::xml_schema::boolean_pskel& /* can_change_lane_right */,
-             ::xml_schema::boolean_pskel& /* is_road_shoulder */,
-             ::xml_schema::boolean_pskel& /* is_bicycle_lane */,
-             ::xml_schema::boolean_pskel& /* is_pedestrian_lane */,
-             ::xml_schema::boolean_pskel& /* is_vehicle_lane */,
-             ::xml_schema::boolean_pskel& /* is_standard_bus_lane */,
-             ::xml_schema::boolean_pskel& /* is_whole_day_bus_lane */,
-             ::xml_schema::boolean_pskel& /* is_high_occupancy_vehicle_lane */,
-             ::xml_schema::boolean_pskel& /* can_freely_park_here */,
-             ::xml_schema::boolean_pskel& /* can_stop_here */,
-             ::xml_schema::boolean_pskel& /* is_u_turn_allowed */,
-             ::geo::PolyLine_t_pskel& /* PolyLine */);
-
-    // Constructor.
-    //
-    lane_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::unsigned_long_pskel* laneID_parser_;
-    ::xml_schema::unsigned_int_pskel* width_parser_;
-    ::xml_schema::boolean_pskel* can_go_straight_parser_;
-    ::xml_schema::boolean_pskel* can_turn_left_parser_;
-    ::xml_schema::boolean_pskel* can_turn_right_parser_;
-    ::xml_schema::boolean_pskel* can_turn_on_red_signal_parser_;
-    ::xml_schema::boolean_pskel* can_change_lane_left_parser_;
-    ::xml_schema::boolean_pskel* can_change_lane_right_parser_;
-    ::xml_schema::boolean_pskel* is_road_shoulder_parser_;
-    ::xml_schema::boolean_pskel* is_bicycle_lane_parser_;
-    ::xml_schema::boolean_pskel* is_pedestrian_lane_parser_;
-    ::xml_schema::boolean_pskel* is_vehicle_lane_parser_;
-    ::xml_schema::boolean_pskel* is_standard_bus_lane_parser_;
-    ::xml_schema::boolean_pskel* is_whole_day_bus_lane_parser_;
-    ::xml_schema::boolean_pskel* is_high_occupancy_vehicle_lane_parser_;
-    ::xml_schema::boolean_pskel* can_freely_park_here_parser_;
-    ::xml_schema::boolean_pskel* can_stop_here_parser_;
-    ::xml_schema::boolean_pskel* is_u_turn_allowed_parser_;
-    ::geo::PolyLine_t_pskel* PolyLine_parser_;
-  };
-
-  class connector_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    laneFrom (unsigned long long);
-
-    virtual void
-    laneTo (unsigned long long);
-
-    virtual std::pair<unsigned long,unsigned long>
-    post_connector_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    laneFrom_parser (::xml_schema::unsigned_long_pskel&);
-
-    void
-    laneTo_parser (::xml_schema::unsigned_long_pskel&);
-
-    void
-    parsers (::xml_schema::unsigned_long_pskel& /* laneFrom */,
-             ::xml_schema::unsigned_long_pskel& /* laneTo */);
-
-    // Constructor.
-    //
-    connector_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::unsigned_long_pskel* laneFrom_parser_;
-    ::xml_schema::unsigned_long_pskel* laneTo_parser_;
-  };
-
-  class connectors_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    Connector (std::pair<unsigned long,unsigned long>);
-
-    virtual std::set<std::pair<unsigned long,unsigned long> >
-    post_connectors_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    Connector_parser (::geo::connector_t_pskel&);
-
-    void
-    parsers (::geo::connector_t_pskel& /* Connector */);
-
-    // Constructor.
-    //
-    connectors_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::connector_t_pskel* Connector_parser_;
-  };
-
-  class Multi_Connector_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    RoadSegment (unsigned long long);
-
-    virtual void
-    Connectors (std::set<std::pair<unsigned long,unsigned long> >);
-
-    virtual std::pair<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >
-    post_Multi_Connector_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    RoadSegment_parser (::xml_schema::unsigned_long_pskel&);
-
-    void
-    Connectors_parser (::geo::connectors_t_pskel&);
-
-    void
-    parsers (::xml_schema::unsigned_long_pskel& /* RoadSegment */,
-             ::geo::connectors_t_pskel& /* Connectors */);
-
-    // Constructor.
-    //
-    Multi_Connector_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::unsigned_long_pskel* RoadSegment_parser_;
-    ::geo::connectors_t_pskel* Connectors_parser_;
-  };
-
-  class Multi_Connectors_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    MultiConnectors (const std::pair<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&);
-
-    virtual std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >
-    post_Multi_Connectors_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    MultiConnectors_parser (::geo::Multi_Connector_t_pskel&);
-
-    void
-    parsers (::geo::Multi_Connector_t_pskel& /* MultiConnectors */);
-
-    // Constructor.
-    //
-    Multi_Connectors_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::Multi_Connector_t_pskel* MultiConnectors_parser_;
-  };
-
-  class fwdBckSegments_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    Segment (sim_mob::RoadSegment*);
-
-    virtual std::vector<sim_mob::RoadSegment*>
-    post_fwdBckSegments_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    Segment_parser (::geo::segment_t_pskel&);
-
-    void
-    parsers (::geo::segment_t_pskel& /* Segment */);
-
-    // Constructor.
-    //
-    fwdBckSegments_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::segment_t_pskel* Segment_parser_;
-  };
-
-  class RoadSegmentsAt_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    segmentID (unsigned long long);
-
-    virtual std::set<unsigned long>
-    post_RoadSegmentsAt_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    segmentID_parser (::xml_schema::unsigned_long_pskel&);
-
-    void
-    parsers (::xml_schema::unsigned_long_pskel& /* segmentID */);
-
-    // Constructor.
-    //
-    RoadSegmentsAt_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::unsigned_long_pskel* segmentID_parser_;
-  };
-
-  class segment_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    segmentID (unsigned long long);
-
-    virtual void
-    startingNode (unsigned int);
-
-    virtual void
-    endingNode (unsigned int);
-
-    virtual void
-    maxSpeed (short);
-
-    virtual void
-    Length (unsigned int);
-
-    virtual void
-    Width (unsigned int);
-
-    virtual void
-    originalDB_ID (const ::std::string&);
-
-    virtual void
-    polyline (std::vector<sim_mob::Point2D>);
-
-    virtual void
-    Lanes (std::vector<sim_mob::Lane*>);
-
-    virtual void
-    Obstacles (std::map<sim_mob::centimeter_t,const RoadItem*>);
-
-    virtual void
-    KurbLine (std::vector<sim_mob::Point2D>);
-
-    virtual sim_mob::RoadSegment*
-    post_segment_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    segmentID_parser (::xml_schema::unsigned_long_pskel&);
-
-    void
-    startingNode_parser (::xml_schema::unsigned_int_pskel&);
-
-    void
-    endingNode_parser (::xml_schema::unsigned_int_pskel&);
-
-    void
-    maxSpeed_parser (::xml_schema::short_pskel&);
-
-    void
-    Length_parser (::xml_schema::unsigned_int_pskel&);
-
-    void
-    Width_parser (::xml_schema::unsigned_int_pskel&);
-
-    void
-    originalDB_ID_parser (::xml_schema::string_pskel&);
-
-    void
-    polyline_parser (::geo::PolyLine_t_pskel&);
-
-    void
-    Lanes_parser (::geo::Lanes_pskel&);
-
-    void
-    Obstacles_parser (::geo::RoadItems_t_pskel&);
-
-    void
-    KurbLine_parser (::geo::PolyLine_t_pskel&);
-
-    void
-    parsers (::xml_schema::unsigned_long_pskel& /* segmentID */,
-             ::xml_schema::unsigned_int_pskel& /* startingNode */,
-             ::xml_schema::unsigned_int_pskel& /* endingNode */,
-             ::xml_schema::short_pskel& /* maxSpeed */,
-             ::xml_schema::unsigned_int_pskel& /* Length */,
-             ::xml_schema::unsigned_int_pskel& /* Width */,
-             ::xml_schema::string_pskel& /* originalDB_ID */,
-             ::geo::PolyLine_t_pskel& /* polyline */,
-             ::geo::Lanes_pskel& /* Lanes */,
-             ::geo::RoadItems_t_pskel& /* Obstacles */,
-             ::geo::PolyLine_t_pskel& /* KurbLine */);
-
-    // Constructor.
-    //
-    segment_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::unsigned_long_pskel* segmentID_parser_;
-    ::xml_schema::unsigned_int_pskel* startingNode_parser_;
-    ::xml_schema::unsigned_int_pskel* endingNode_parser_;
-    ::xml_schema::short_pskel* maxSpeed_parser_;
-    ::xml_schema::unsigned_int_pskel* Length_parser_;
-    ::xml_schema::unsigned_int_pskel* Width_parser_;
-    ::xml_schema::string_pskel* originalDB_ID_parser_;
-    ::geo::PolyLine_t_pskel* polyline_parser_;
-    ::geo::Lanes_pskel* Lanes_parser_;
-    ::geo::RoadItems_t_pskel* Obstacles_parser_;
-    ::geo::PolyLine_t_pskel* KurbLine_parser_;
-  };
-
-  class link_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    linkID (unsigned int);
-
-    virtual void
-    roadName (const ::std::string&);
-
-    virtual void
-    StartingNode (unsigned int);
-
-    virtual void
-    EndingNode (unsigned int);
-
-    virtual void
-    Segments (std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >);
-
-    virtual sim_mob::Link*
-    post_link_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    linkID_parser (::xml_schema::unsigned_int_pskel&);
-
-    void
-    roadName_parser (::xml_schema::string_pskel&);
-
-    void
-    StartingNode_parser (::xml_schema::unsigned_int_pskel&);
-
-    void
-    EndingNode_parser (::xml_schema::unsigned_int_pskel&);
-
-    void
-    Segments_parser (::geo::Segments_pskel&);
-
-    void
-    parsers (::xml_schema::unsigned_int_pskel& /* linkID */,
-             ::xml_schema::string_pskel& /* roadName */,
-             ::xml_schema::unsigned_int_pskel& /* StartingNode */,
-             ::xml_schema::unsigned_int_pskel& /* EndingNode */,
-             ::geo::Segments_pskel& /* Segments */);
-
-    // Constructor.
-    //
-    link_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::unsigned_int_pskel* linkID_parser_;
-    ::xml_schema::string_pskel* roadName_parser_;
-    ::xml_schema::unsigned_int_pskel* StartingNode_parser_;
-    ::xml_schema::unsigned_int_pskel* EndingNode_parser_;
-    ::geo::Segments_pskel* Segments_parser_;
-  };
-
-  class separator_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    separator_ID (unsigned short);
-
-    virtual void
-    separator_value (bool);
-
-    virtual void
-    post_separator_t ();
-
-    // Parser construction API.
-    //
-    void
-    separator_ID_parser (::xml_schema::unsigned_short_pskel&);
-
-    void
-    separator_value_parser (::xml_schema::boolean_pskel&);
-
-    void
-    parsers (::xml_schema::unsigned_short_pskel& /* separator_ID */,
-             ::xml_schema::boolean_pskel& /* separator_value */);
-
-    // Constructor.
-    //
-    separator_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::unsigned_short_pskel* separator_ID_parser_;
-    ::xml_schema::boolean_pskel* separator_value_parser_;
-  };
-
-  class separators_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    Separator ();
-
-    virtual void
-    post_separators_t ();
-
-    // Parser construction API.
-    //
-    void
-    Separator_parser (::geo::separator_t_pskel&);
-
-    void
-    parsers (::geo::separator_t_pskel& /* Separator */);
-
-    // Constructor.
-    //
-    separators_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::separator_t_pskel* Separator_parser_;
-  };
-
-  class DomainIsland_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    domainIsland_ID (unsigned short);
-
-    virtual void
-    domainIsland_value (bool);
-
-    virtual void
-    post_DomainIsland_t ();
-
-    // Parser construction API.
-    //
-    void
-    domainIsland_ID_parser (::xml_schema::unsigned_short_pskel&);
-
-    void
-    domainIsland_value_parser (::xml_schema::boolean_pskel&);
-
-    void
-    parsers (::xml_schema::unsigned_short_pskel& /* domainIsland_ID */,
-             ::xml_schema::boolean_pskel& /* domainIsland_value */);
-
-    // Constructor.
-    //
-    DomainIsland_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::unsigned_short_pskel* domainIsland_ID_parser_;
-    ::xml_schema::boolean_pskel* domainIsland_value_parser_;
-  };
-
-  class DomainIslands_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    domainIslands ();
-
-    virtual void
-    post_DomainIslands_t ();
-
-    // Parser construction API.
-    //
-    void
-    domainIslands_parser (::geo::DomainIsland_t_pskel&);
-
-    void
-    parsers (::geo::DomainIsland_t_pskel& /* domainIslands */);
-
-    // Constructor.
-    //
-    DomainIslands_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::DomainIsland_t_pskel* domainIslands_parser_;
-  };
-
-  class offset_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    offset_ID (unsigned short);
-
-    virtual void
-    offset_value (unsigned int);
-
-    virtual void
-    post_offset_t ();
-
-    // Parser construction API.
-    //
-    void
-    offset_ID_parser (::xml_schema::unsigned_short_pskel&);
-
-    void
-    offset_value_parser (::xml_schema::unsigned_int_pskel&);
-
-    void
-    parsers (::xml_schema::unsigned_short_pskel& /* offset_ID */,
-             ::xml_schema::unsigned_int_pskel& /* offset_value */);
-
-    // Constructor.
-    //
-    offset_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::unsigned_short_pskel* offset_ID_parser_;
-    ::xml_schema::unsigned_int_pskel* offset_value_parser_;
-  };
-
-  class offsets_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    offset ();
-
-    virtual void
-    post_offsets_t ();
-
-    // Parser construction API.
-    //
-    void
-    offset_parser (::geo::offset_t_pskel&);
-
-    void
-    parsers (::geo::offset_t_pskel& /* offset */);
-
-    // Constructor.
-    //
-    offsets_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::offset_t_pskel* offset_parser_;
-  };
-
-  class ChunkLength_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    chunklength_ID (unsigned short);
-
-    virtual void
-    chunklength_value (unsigned int);
-
-    virtual void
-    post_ChunkLength_t ();
-
-    // Parser construction API.
-    //
-    void
-    chunklength_ID_parser (::xml_schema::unsigned_short_pskel&);
-
-    void
-    chunklength_value_parser (::xml_schema::unsigned_int_pskel&);
-
-    void
-    parsers (::xml_schema::unsigned_short_pskel& /* chunklength_ID */,
-             ::xml_schema::unsigned_int_pskel& /* chunklength_value */);
-
-    // Constructor.
-    //
-    ChunkLength_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::unsigned_short_pskel* chunklength_ID_parser_;
-    ::xml_schema::unsigned_int_pskel* chunklength_value_parser_;
-  };
-
-  class ChunkLengths_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    chunklength ();
-
-    virtual void
-    post_ChunkLengths_t ();
-
-    // Parser construction API.
-    //
-    void
-    chunklength_parser (::geo::ChunkLength_t_pskel&);
-
-    void
-    parsers (::geo::ChunkLength_t_pskel& /* chunklength */);
-
-    // Constructor.
-    //
-    ChunkLengths_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::ChunkLength_t_pskel* chunklength_parser_;
-  };
-
-  class LanesVector_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    laneID (unsigned long long);
-
-    virtual void
-    post_LanesVector_t ();
-
-    // Parser construction API.
-    //
-    void
-    laneID_parser (::xml_schema::unsigned_long_pskel&);
-
-    void
-    parsers (::xml_schema::unsigned_long_pskel& /* laneID */);
-
-    // Constructor.
-    //
-    LanesVector_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::unsigned_long_pskel* laneID_parser_;
-  };
-
-  class EntranceAngle_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    entranceAngle_ID (unsigned short);
-
-    virtual void
-    entranceAngle_value (unsigned int);
-
-    virtual void
-    post_EntranceAngle_t ();
-
-    // Parser construction API.
-    //
-    void
-    entranceAngle_ID_parser (::xml_schema::unsigned_short_pskel&);
-
-    void
-    entranceAngle_value_parser (::xml_schema::unsigned_int_pskel&);
-
-    void
-    parsers (::xml_schema::unsigned_short_pskel& /* entranceAngle_ID */,
-             ::xml_schema::unsigned_int_pskel& /* entranceAngle_value */);
-
-    // Constructor.
-    //
-    EntranceAngle_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::unsigned_short_pskel* entranceAngle_ID_parser_;
-    ::xml_schema::unsigned_int_pskel* entranceAngle_value_parser_;
-  };
-
-  class EntranceAngles_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    entranceAngle ();
-
-    virtual void
-    post_EntranceAngles_t ();
-
-    // Parser construction API.
-    //
-    void
-    entranceAngle_parser (::geo::EntranceAngle_t_pskel&);
-
-    void
-    parsers (::geo::EntranceAngle_t_pskel& /* entranceAngle */);
-
-    // Constructor.
-    //
-    EntranceAngles_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::EntranceAngle_t_pskel* entranceAngle_parser_;
-  };
-
-  class Node_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    nodeID (unsigned int);
-
-    virtual void
-    location (sim_mob::Point2D);
-
-    virtual void
-    linkLoc (unsigned long long);
-
-    virtual void
-    originalDB_ID (const ::std::string&);
-
-    virtual sim_mob::Node*
-    post_Node_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    nodeID_parser (::xml_schema::unsigned_int_pskel&);
-
-    void
-    location_parser (::geo::Point2D_t_pskel&);
-
-    void
-    linkLoc_parser (::xml_schema::unsigned_long_pskel&);
-
-    void
-    originalDB_ID_parser (::xml_schema::string_pskel&);
-
-    void
-    parsers (::xml_schema::unsigned_int_pskel& /* nodeID */,
-             ::geo::Point2D_t_pskel& /* location */,
-             ::xml_schema::unsigned_long_pskel& /* linkLoc */,
-             ::xml_schema::string_pskel& /* originalDB_ID */);
-
-    // Constructor.
-    //
-    Node_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::unsigned_int_pskel* nodeID_parser_;
-    ::geo::Point2D_t_pskel* location_parser_;
-    ::xml_schema::unsigned_long_pskel* linkLoc_parser_;
-    ::xml_schema::string_pskel* originalDB_ID_parser_;
-  };
-
-  class UniNode_t_pskel: public virtual ::geo::Node_t_pskel
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    Connectors (std::set<std::pair<unsigned long,unsigned long> >);
-
-    virtual sim_mob::UniNode*
-    post_UniNode_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    Connectors_parser (::geo::connectors_t_pskel&);
-
-    void
-    parsers (::xml_schema::unsigned_int_pskel& /* nodeID */,
-             ::geo::Point2D_t_pskel& /* location */,
-             ::xml_schema::unsigned_long_pskel& /* linkLoc */,
-             ::xml_schema::string_pskel& /* originalDB_ID */,
-             ::geo::connectors_t_pskel& /* Connectors */);
-
-    // Constructor.
-    //
-    UniNode_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::connectors_t_pskel* Connectors_parser_;
-  };
-
-  class roundabout_t_pskel: public virtual ::geo::Node_t_pskel
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    roadSegmentsAt (std::set<unsigned long>);
-
-    virtual void
-    Connectors (const std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&);
-
-    virtual void
-    ChunkLengths ();
-
-    virtual void
-    Offsets ();
-
-    virtual void
-    Separators ();
-
-    virtual void
-    addDominantLane ();
-
-    virtual void
-    roundaboutDominantIslands (float);
-
-    virtual void
-    roundaboutNumberOfLanes (int);
-
-    virtual void
-    entranceAngles ();
-
-    virtual sim_mob::MultiNode*
-    post_roundabout_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    roadSegmentsAt_parser (::geo::RoadSegmentsAt_t_pskel&);
-
-    void
-    Connectors_parser (::geo::Multi_Connectors_t_pskel&);
-
-    void
-    ChunkLengths_parser (::geo::ChunkLengths_t_pskel&);
-
-    void
-    Offsets_parser (::geo::offsets_t_pskel&);
-
-    void
-    Separators_parser (::geo::separators_t_pskel&);
-
-    void
-    addDominantLane_parser (::geo::LanesVector_t_pskel&);
-
-    void
-    roundaboutDominantIslands_parser (::xml_schema::float_pskel&);
-
-    void
-    roundaboutNumberOfLanes_parser (::xml_schema::int_pskel&);
-
-    void
-    entranceAngles_parser (::geo::EntranceAngles_t_pskel&);
-
-    void
-    parsers (::xml_schema::unsigned_int_pskel& /* nodeID */,
-             ::geo::Point2D_t_pskel& /* location */,
-             ::xml_schema::unsigned_long_pskel& /* linkLoc */,
-             ::xml_schema::string_pskel& /* originalDB_ID */,
-             ::geo::RoadSegmentsAt_t_pskel& /* roadSegmentsAt */,
-             ::geo::Multi_Connectors_t_pskel& /* Connectors */,
-             ::geo::ChunkLengths_t_pskel& /* ChunkLengths */,
-             ::geo::offsets_t_pskel& /* Offsets */,
-             ::geo::separators_t_pskel& /* Separators */,
-             ::geo::LanesVector_t_pskel& /* addDominantLane */,
-             ::xml_schema::float_pskel& /* roundaboutDominantIslands */,
-             ::xml_schema::int_pskel& /* roundaboutNumberOfLanes */,
-             ::geo::EntranceAngles_t_pskel& /* entranceAngles */);
-
-    // Constructor.
-    //
-    roundabout_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::RoadSegmentsAt_t_pskel* roadSegmentsAt_parser_;
-    ::geo::Multi_Connectors_t_pskel* Connectors_parser_;
-    ::geo::ChunkLengths_t_pskel* ChunkLengths_parser_;
-    ::geo::offsets_t_pskel* Offsets_parser_;
-    ::geo::separators_t_pskel* Separators_parser_;
-    ::geo::LanesVector_t_pskel* addDominantLane_parser_;
-    ::xml_schema::float_pskel* roundaboutDominantIslands_parser_;
-    ::xml_schema::int_pskel* roundaboutNumberOfLanes_parser_;
-    ::geo::EntranceAngles_t_pskel* entranceAngles_parser_;
-  };
-
-  class intersection_t_pskel: public virtual ::geo::Node_t_pskel
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    roadSegmentsAt (std::set<unsigned long>);
-
-    virtual void
-    Connectors (const std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&);
-
-    virtual void
-    ChunkLengths ();
-
-    virtual void
-    Offsets ();
-
-    virtual void
-    Separators ();
-
-    virtual void
-    additionalDominantLanes ();
-
-    virtual void
-    additionalSubdominantLanes ();
-
-    virtual void
-    domainIslands ();
-
-    virtual sim_mob::MultiNode*
-    post_intersection_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    roadSegmentsAt_parser (::geo::RoadSegmentsAt_t_pskel&);
-
-    void
-    Connectors_parser (::geo::Multi_Connectors_t_pskel&);
-
-    void
-    ChunkLengths_parser (::geo::ChunkLengths_t_pskel&);
-
-    void
-    Offsets_parser (::geo::offsets_t_pskel&);
-
-    void
-    Separators_parser (::geo::separators_t_pskel&);
-
-    void
-    additionalDominantLanes_parser (::geo::LanesVector_t_pskel&);
-
-    void
-    additionalSubdominantLanes_parser (::geo::LanesVector_t_pskel&);
-
-    void
-    domainIslands_parser (::geo::DomainIslands_t_pskel&);
-
-    void
-    parsers (::xml_schema::unsigned_int_pskel& /* nodeID */,
-             ::geo::Point2D_t_pskel& /* location */,
-             ::xml_schema::unsigned_long_pskel& /* linkLoc */,
-             ::xml_schema::string_pskel& /* originalDB_ID */,
-             ::geo::RoadSegmentsAt_t_pskel& /* roadSegmentsAt */,
-             ::geo::Multi_Connectors_t_pskel& /* Connectors */,
-             ::geo::ChunkLengths_t_pskel& /* ChunkLengths */,
-             ::geo::offsets_t_pskel& /* Offsets */,
-             ::geo::separators_t_pskel& /* Separators */,
-             ::geo::LanesVector_t_pskel& /* additionalDominantLanes */,
-             ::geo::LanesVector_t_pskel& /* additionalSubdominantLanes */,
-             ::geo::DomainIslands_t_pskel& /* domainIslands */);
-
-    // Constructor.
-    //
-    intersection_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::RoadSegmentsAt_t_pskel* roadSegmentsAt_parser_;
-    ::geo::Multi_Connectors_t_pskel* Connectors_parser_;
-    ::geo::ChunkLengths_t_pskel* ChunkLengths_parser_;
-    ::geo::offsets_t_pskel* Offsets_parser_;
-    ::geo::separators_t_pskel* Separators_parser_;
-    ::geo::LanesVector_t_pskel* additionalDominantLanes_parser_;
-    ::geo::LanesVector_t_pskel* additionalSubdominantLanes_parser_;
-    ::geo::DomainIslands_t_pskel* domainIslands_parser_;
-  };
-
-  class RoadItem_No_Attr_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    start (sim_mob::Point2D);
-
-    virtual void
-    end (sim_mob::Point2D);
-
-    virtual void
-    post_RoadItem_No_Attr_t ();
-
-    // Parser construction API.
-    //
-    void
-    start_parser (::geo::Point2D_t_pskel&);
-
-    void
-    end_parser (::geo::Point2D_t_pskel&);
-
-    void
-    parsers (::geo::Point2D_t_pskel& /* start */,
-             ::geo::Point2D_t_pskel& /* end */);
-
-    // Constructor.
-    //
-    RoadItem_No_Attr_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::Point2D_t_pskel* start_parser_;
-    ::geo::Point2D_t_pskel* end_parser_;
-  };
-
-  class RoadItem_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    Offset (unsigned short);
-
-    virtual void
-    start (sim_mob::Point2D);
-
-    virtual void
-    end (sim_mob::Point2D);
-
-    virtual sim_mob::RoadItem*
-    post_RoadItem_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    Offset_parser (::xml_schema::unsigned_short_pskel&);
-
-    void
-    start_parser (::geo::Point2D_t_pskel&);
-
-    void
-    end_parser (::geo::Point2D_t_pskel&);
-
-    void
-    parsers (::xml_schema::unsigned_short_pskel& /* Offset */,
-             ::geo::Point2D_t_pskel& /* start */,
-             ::geo::Point2D_t_pskel& /* end */);
-
-    // Constructor.
-    //
-    RoadItem_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::unsigned_short_pskel* Offset_parser_;
-    ::geo::Point2D_t_pskel* start_parser_;
-    ::geo::Point2D_t_pskel* end_parser_;
-  };
-
-  class BusStop_t_pskel: public virtual ::geo::RoadItem_t_pskel
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    busStopID (const ::std::string&);
-
-    virtual void
-    lane_location (const ::std::string&);
-
-    virtual void
-    is_Terminal (bool);
-
-    virtual void
-    is_Bay (bool);
-
-    virtual void
-    has_shelter (bool);
-
-    virtual void
-    busCapacityAsLength (unsigned int);
-
-    virtual void
-    post_BusStop_t ();
-
-    // Parser construction API.
-    //
-    void
-    busStopID_parser (::xml_schema::string_pskel&);
-
-    void
-    lane_location_parser (::xml_schema::string_pskel&);
-
-    void
-    is_Terminal_parser (::xml_schema::boolean_pskel&);
-
-    void
-    is_Bay_parser (::xml_schema::boolean_pskel&);
-
-    void
-    has_shelter_parser (::xml_schema::boolean_pskel&);
-
-    void
-    busCapacityAsLength_parser (::xml_schema::unsigned_int_pskel&);
-
-    void
-    parsers (::xml_schema::unsigned_short_pskel& /* Offset */,
-             ::geo::Point2D_t_pskel& /* start */,
-             ::geo::Point2D_t_pskel& /* end */,
-             ::xml_schema::string_pskel& /* busStopID */,
-             ::xml_schema::string_pskel& /* lane_location */,
-             ::xml_schema::boolean_pskel& /* is_Terminal */,
-             ::xml_schema::boolean_pskel& /* is_Bay */,
-             ::xml_schema::boolean_pskel& /* has_shelter */,
-             ::xml_schema::unsigned_int_pskel& /* busCapacityAsLength */);
-
-    // Constructor.
-    //
-    BusStop_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::string_pskel* busStopID_parser_;
-    ::xml_schema::string_pskel* lane_location_parser_;
-    ::xml_schema::boolean_pskel* is_Terminal_parser_;
-    ::xml_schema::boolean_pskel* is_Bay_parser_;
-    ::xml_schema::boolean_pskel* has_shelter_parser_;
-    ::xml_schema::unsigned_int_pskel* busCapacityAsLength_parser_;
-  };
-
-  class ERP_Gantry_t_pskel: public virtual ::geo::RoadItem_t_pskel
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    ERP_GantryID (const ::std::string&);
-
-    virtual void
-    post_ERP_Gantry_t ();
-
-    // Parser construction API.
-    //
-    void
-    ERP_GantryID_parser (::xml_schema::string_pskel&);
-
-    void
-    parsers (::xml_schema::unsigned_short_pskel& /* Offset */,
-             ::geo::Point2D_t_pskel& /* start */,
-             ::geo::Point2D_t_pskel& /* end */,
-             ::xml_schema::string_pskel& /* ERP_GantryID */);
-
-    // Constructor.
-    //
-    ERP_Gantry_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::string_pskel* ERP_GantryID_parser_;
-  };
-
-  class FormType_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    TextBox (int);
-
-    virtual void
-    TextArea (int);
-
-    virtual void
-    Header (int);
-
-    virtual void
-    post_FormType ();
-
-    // Parser construction API.
-    //
-    void
-    TextBox_parser (::xml_schema::int_pskel&);
-
-    void
-    TextArea_parser (::xml_schema::int_pskel&);
-
-    void
-    Header_parser (::xml_schema::int_pskel&);
-
-    void
-    parsers (::xml_schema::int_pskel& /* TextBox */,
-             ::xml_schema::int_pskel& /* TextArea */,
-             ::xml_schema::int_pskel& /* Header */);
-
-    // Constructor.
-    //
-    FormType_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::int_pskel* TextBox_parser_;
-    ::xml_schema::int_pskel* TextArea_parser_;
-    ::xml_schema::int_pskel* Header_parser_;
-  };
-
-  class PointPair_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    first (sim_mob::Point2D);
-
-    virtual void
-    second (sim_mob::Point2D);
-
-    virtual std::pair<sim_mob::Point2D,sim_mob::Point2D>
-    post_PointPair_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    first_parser (::geo::Point2D_t_pskel&);
-
-    void
-    second_parser (::geo::Point2D_t_pskel&);
-
-    void
-    parsers (::geo::Point2D_t_pskel& /* first */,
-             ::geo::Point2D_t_pskel& /* second */);
-
-    // Constructor.
-    //
-    PointPair_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::Point2D_t_pskel* first_parser_;
-    ::geo::Point2D_t_pskel* second_parser_;
-  };
-
-  class crossing_t_pskel: public virtual ::geo::RoadItem_t_pskel
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    crossingID (const ::std::string&);
-
-    virtual void
-    nearLine (std::pair<sim_mob::Point2D,sim_mob::Point2D>);
-
-    virtual void
-    farLine (std::pair<sim_mob::Point2D,sim_mob::Point2D>);
-
-    virtual sim_mob::Crossing*
-    post_crossing_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    crossingID_parser (::xml_schema::string_pskel&);
-
-    void
-    nearLine_parser (::geo::PointPair_t_pskel&);
-
-    void
-    farLine_parser (::geo::PointPair_t_pskel&);
-
-    void
-    parsers (::xml_schema::unsigned_short_pskel& /* Offset */,
-             ::geo::Point2D_t_pskel& /* start */,
-             ::geo::Point2D_t_pskel& /* end */,
-             ::xml_schema::string_pskel& /* crossingID */,
-             ::geo::PointPair_t_pskel& /* nearLine */,
-             ::geo::PointPair_t_pskel& /* farLine */);
-
-    // Constructor.
-    //
-    crossing_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::string_pskel* crossingID_parser_;
-    ::geo::PointPair_t_pskel* nearLine_parser_;
-    ::geo::PointPair_t_pskel* farLine_parser_;
-  };
-
-  class RoadBump_t_pskel: public virtual ::geo::RoadItem_t_pskel
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    roadBumpID (const ::std::string&);
-
-    virtual void
-    segmentID (unsigned long long);
-
-    virtual void
-    post_RoadBump_t ();
-
-    // Parser construction API.
-    //
-    void
-    roadBumpID_parser (::xml_schema::string_pskel&);
-
-    void
-    segmentID_parser (::xml_schema::unsigned_long_pskel&);
-
-    void
-    parsers (::xml_schema::unsigned_short_pskel& /* Offset */,
-             ::geo::Point2D_t_pskel& /* start */,
-             ::geo::Point2D_t_pskel& /* end */,
-             ::xml_schema::string_pskel& /* roadBumpID */,
-             ::xml_schema::unsigned_long_pskel& /* segmentID */);
-
-    // Constructor.
-    //
-    RoadBump_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::string_pskel* roadBumpID_parser_;
-    ::xml_schema::unsigned_long_pskel* segmentID_parser_;
-  };
-
-  class RoadNetwork_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    Nodes ();
-
-    virtual void
-    Links (std::vector<sim_mob::Link*>);
-
-    virtual void
-    post_RoadNetwork_t ();
-
-    // Parser construction API.
-    //
-    void
-    Nodes_parser (::geo::Nodes_pskel&);
-
-    void
-    Links_parser (::geo::Links_pskel&);
-
-    void
-    parsers (::geo::Nodes_pskel& /* Nodes */,
-             ::geo::Links_pskel& /* Links */);
-
-    // Constructor.
-    //
-    RoadNetwork_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::Nodes_pskel* Nodes_parser_;
-    ::geo::Links_pskel* Links_parser_;
-  };
-
-  class RoadItems_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    BusStop ();
-
-    virtual void
-    ERP_Gantry ();
-
-    virtual void
-    Crossing (sim_mob::Crossing*);
-
-    virtual void
-    RoadBump ();
-
-    virtual std::map<sim_mob::centimeter_t,const RoadItem*>
-    post_RoadItems_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    BusStop_parser (::geo::BusStop_t_pskel&);
-
-    void
-    ERP_Gantry_parser (::geo::ERP_Gantry_t_pskel&);
-
-    void
-    Crossing_parser (::geo::crossing_t_pskel&);
-
-    void
-    RoadBump_parser (::geo::RoadBump_t_pskel&);
-
-    void
-    parsers (::geo::BusStop_t_pskel& /* BusStop */,
-             ::geo::ERP_Gantry_t_pskel& /* ERP_Gantry */,
-             ::geo::crossing_t_pskel& /* Crossing */,
-             ::geo::RoadBump_t_pskel& /* RoadBump */);
-
-    // Constructor.
-    //
-    RoadItems_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::BusStop_t_pskel* BusStop_parser_;
-    ::geo::ERP_Gantry_t_pskel* ERP_Gantry_parser_;
-    ::geo::crossing_t_pskel* Crossing_parser_;
-    ::geo::RoadBump_t_pskel* RoadBump_parser_;
-  };
-
-  class DailyTime_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    timeValue (unsigned int);
-
-    virtual void
-    base (unsigned int);
-
-    virtual sim_mob::DailyTime
-    post_DailyTime_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    timeValue_parser (::xml_schema::unsigned_int_pskel&);
-
-    void
-    base_parser (::xml_schema::unsigned_int_pskel&);
-
-    void
-    parsers (::xml_schema::unsigned_int_pskel& /* timeValue */,
-             ::xml_schema::unsigned_int_pskel& /* base */);
-
-    // Constructor.
-    //
-    DailyTime_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::unsigned_int_pskel* timeValue_parser_;
-    ::xml_schema::unsigned_int_pskel* base_parser_;
-  };
-
-  class TripchainItemType_pskel: public virtual ::xml_schema::string_pskel
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual std::string
-    post_TripchainItemType () = 0;
-  };
-
-  class TripchainItemLocationType_pskel: public virtual ::xml_schema::string_pskel
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual std::string
-    post_TripchainItemLocationType () = 0;
-  };
-
-  class SubTrip_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    mode (const ::std::string&);
-
-    virtual void
-    isPrimaryMode (bool);
-
-    virtual void
-    ptLineId (const ::std::string&);
-
-    virtual sim_mob::SubTrip
-    post_SubTrip_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    mode_parser (::xml_schema::string_pskel&);
-
-    void
-    isPrimaryMode_parser (::xml_schema::boolean_pskel&);
-
-    void
-    ptLineId_parser (::xml_schema::string_pskel&);
-
-    void
-    parsers (::xml_schema::string_pskel& /* mode */,
-             ::xml_schema::boolean_pskel& /* isPrimaryMode */,
-             ::xml_schema::string_pskel& /* ptLineId */);
-
-    // Constructor.
-    //
-    SubTrip_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::string_pskel* mode_parser_;
-    ::xml_schema::boolean_pskel* isPrimaryMode_parser_;
-    ::xml_schema::string_pskel* ptLineId_parser_;
-  };
-
-  class SubTrips_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    subTrip (sim_mob::SubTrip);
-
-    virtual std::vector<sim_mob::SubTrip>
-    post_SubTrips_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    subTrip_parser (::geo::SubTrip_t_pskel&);
-
-    void
-    parsers (::geo::SubTrip_t_pskel& /* subTrip */);
-
-    // Constructor.
-    //
-    SubTrips_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::SubTrip_t_pskel* subTrip_parser_;
-  };
-
-  class TripChainItem_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    personID (long long);
-
-    virtual void
-    itemType (std::string);
-
-    virtual void
-    sequenceNumber (unsigned int);
-
-    virtual void
-    startTime (const ::std::string&);
-
-    virtual void
-    endTime (const ::std::string&);
-
-    virtual sim_mob::TripChainItem*
-    post_TripChainItem_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    personID_parser (::xml_schema::integer_pskel&);
-
-    void
-    itemType_parser (::geo::TripchainItemType_pskel&);
-
-    void
-    sequenceNumber_parser (::xml_schema::unsigned_int_pskel&);
-
-    void
-    startTime_parser (::xml_schema::string_pskel&);
-
-    void
-    endTime_parser (::xml_schema::string_pskel&);
-
-    void
-    parsers (::xml_schema::integer_pskel& /* personID */,
-             ::geo::TripchainItemType_pskel& /* itemType */,
-             ::xml_schema::unsigned_int_pskel& /* sequenceNumber */,
-             ::xml_schema::string_pskel& /* startTime */,
-             ::xml_schema::string_pskel& /* endTime */);
-
-    // Constructor.
-    //
-    TripChainItem_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::integer_pskel* personID_parser_;
-    ::geo::TripchainItemType_pskel* itemType_parser_;
-    ::xml_schema::unsigned_int_pskel* sequenceNumber_parser_;
-    ::xml_schema::string_pskel* startTime_parser_;
-    ::xml_schema::string_pskel* endTime_parser_;
-  };
-
-  class Trip_t_pskel: public virtual ::geo::TripChainItem_t_pskel
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    tripID (long long);
-
-    virtual void
-    fromLocation (unsigned int);
-
-    virtual void
-    fromLocationType (std::string);
-
-    virtual void
-    toLocation (unsigned int);
-
-    virtual void
-    toLocationType (std::string);
-
-    virtual void
-    subTrips (std::vector<sim_mob::SubTrip>);
-
-    virtual sim_mob::TripChainItem*
-    post_Trip_t ();
-
-    // Parser construction API.
-    //
-    void
-    tripID_parser (::xml_schema::integer_pskel&);
-
-    void
-    fromLocation_parser (::xml_schema::unsigned_int_pskel&);
-
-    void
-    fromLocationType_parser (::geo::TripchainItemLocationType_pskel&);
-
-    void
-    toLocation_parser (::xml_schema::unsigned_int_pskel&);
-
-    void
-    toLocationType_parser (::geo::TripchainItemLocationType_pskel&);
-
-    void
-    subTrips_parser (::geo::SubTrips_t_pskel&);
-
-    void
-    parsers (::xml_schema::integer_pskel& /* personID */,
-             ::geo::TripchainItemType_pskel& /* itemType */,
-             ::xml_schema::unsigned_int_pskel& /* sequenceNumber */,
-             ::xml_schema::string_pskel& /* startTime */,
-             ::xml_schema::string_pskel& /* endTime */,
-             ::xml_schema::integer_pskel& /* tripID */,
-             ::xml_schema::unsigned_int_pskel& /* fromLocation */,
-             ::geo::TripchainItemLocationType_pskel& /* fromLocationType */,
-             ::xml_schema::unsigned_int_pskel& /* toLocation */,
-             ::geo::TripchainItemLocationType_pskel& /* toLocationType */,
-             ::geo::SubTrips_t_pskel& /* subTrips */);
-
-    // Constructor.
-    //
-    Trip_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::integer_pskel* tripID_parser_;
-    ::xml_schema::unsigned_int_pskel* fromLocation_parser_;
-    ::geo::TripchainItemLocationType_pskel* fromLocationType_parser_;
-    ::xml_schema::unsigned_int_pskel* toLocation_parser_;
-    ::geo::TripchainItemLocationType_pskel* toLocationType_parser_;
-    ::geo::SubTrips_t_pskel* subTrips_parser_;
-  };
-
-  class Activity_t_pskel: public virtual ::geo::TripChainItem_t_pskel
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    description (const ::std::string&);
-
-    virtual void
-    location (unsigned int);
-
-    virtual void
-    locationType (std::string);
-
-    virtual void
-    isPrimary (bool);
-
-    virtual void
-    isFlexible (bool);
-
-    virtual void
-    isMandatory (bool);
-
-    virtual sim_mob::TripChainItem*
-    post_Activity_t ();
-
-    // Parser construction API.
-    //
-    void
-    description_parser (::xml_schema::string_pskel&);
-
-    void
-    location_parser (::xml_schema::unsigned_int_pskel&);
-
-    void
-    locationType_parser (::geo::TripchainItemLocationType_pskel&);
-
-    void
-    isPrimary_parser (::xml_schema::boolean_pskel&);
-
-    void
-    isFlexible_parser (::xml_schema::boolean_pskel&);
-
-    void
-    isMandatory_parser (::xml_schema::boolean_pskel&);
-
-    void
-    parsers (::xml_schema::integer_pskel& /* personID */,
-             ::geo::TripchainItemType_pskel& /* itemType */,
-             ::xml_schema::unsigned_int_pskel& /* sequenceNumber */,
-             ::xml_schema::string_pskel& /* startTime */,
-             ::xml_schema::string_pskel& /* endTime */,
-             ::xml_schema::string_pskel& /* description */,
-             ::xml_schema::unsigned_int_pskel& /* location */,
-             ::geo::TripchainItemLocationType_pskel& /* locationType */,
-             ::xml_schema::boolean_pskel& /* isPrimary */,
-             ::xml_schema::boolean_pskel& /* isFlexible */,
-             ::xml_schema::boolean_pskel& /* isMandatory */);
-
-    // Constructor.
-    //
-    Activity_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::string_pskel* description_parser_;
-    ::xml_schema::unsigned_int_pskel* location_parser_;
-    ::geo::TripchainItemLocationType_pskel* locationType_parser_;
-    ::xml_schema::boolean_pskel* isPrimary_parser_;
-    ::xml_schema::boolean_pskel* isFlexible_parser_;
-    ::xml_schema::boolean_pskel* isMandatory_parser_;
-  };
-
-  class TripChain_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    personID (long long);
-
-    virtual void
-    Trip (sim_mob::TripChainItem*);
-
-    virtual void
-    Activity (sim_mob::TripChainItem*);
-
-    virtual std::pair<unsigned long,sim_mob::TripChainItem*>
-    post_TripChain_t () = 0;
-
-    // Parser construction API.
-    //
-    void
-    personID_parser (::xml_schema::integer_pskel&);
-
-    void
-    Trip_parser (::geo::Trip_t_pskel&);
-
-    void
-    Activity_parser (::geo::Activity_t_pskel&);
-
-    void
-    parsers (::xml_schema::integer_pskel& /* personID */,
-             ::geo::Trip_t_pskel& /* Trip */,
-             ::geo::Activity_t_pskel& /* Activity */);
-
-    // Constructor.
-    //
-    TripChain_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::xml_schema::integer_pskel* personID_parser_;
-    ::geo::Trip_t_pskel* Trip_parser_;
-    ::geo::Activity_t_pskel* Activity_parser_;
-  };
-
-  class TripChains_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    TripChain (std::pair<unsigned long,sim_mob::TripChainItem*>);
-
-    virtual void
-    post_TripChains_t ();
-
-    // Parser construction API.
-    //
-    void
-    TripChain_parser (::geo::TripChain_t_pskel&);
-
-    void
-    parsers (::geo::TripChain_t_pskel& /* TripChain */);
-
-    // Constructor.
-    //
-    TripChains_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::TripChain_t_pskel* TripChain_parser_;
-  };
-
-  class GeoSpatial_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    RoadNetwork ();
-
-    virtual void
-    post_GeoSpatial_t ();
-
-    // Parser construction API.
-    //
-    void
-    RoadNetwork_parser (::geo::RoadNetwork_t_pskel&);
-
-    void
-    parsers (::geo::RoadNetwork_t_pskel& /* RoadNetwork */);
-
-    // Constructor.
-    //
-    GeoSpatial_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::RoadNetwork_t_pskel* RoadNetwork_parser_;
-  };
-
-  class SimMobility_t_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    GeoSpatial ();
-
-    virtual void
-    TripChains ();
-
-    virtual void
-    post_SimMobility_t ();
-
-    // Parser construction API.
-    //
-    void
-    GeoSpatial_parser (::geo::GeoSpatial_t_pskel&);
-
-    void
-    TripChains_parser (::geo::TripChains_t_pskel&);
-
-    void
-    parsers (::geo::GeoSpatial_t_pskel& /* GeoSpatial */,
-             ::geo::TripChains_t_pskel& /* TripChains */);
-
-    // Constructor.
-    //
-    SimMobility_t_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::GeoSpatial_t_pskel* GeoSpatial_parser_;
-    ::geo::TripChains_t_pskel* TripChains_parser_;
-  };
-
-  class Lanes_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    Lane (sim_mob::Lane*);
-
-    virtual std::vector<sim_mob::Lane*>
-    post_Lanes () = 0;
-
-    // Parser construction API.
-    //
-    void
-    Lane_parser (::geo::lane_t_pskel&);
-
-    void
-    parsers (::geo::lane_t_pskel& /* Lane */);
-
-    // Constructor.
-    //
-    Lanes_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::lane_t_pskel* Lane_parser_;
-  };
-
-  class Segments_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    FWDSegments (std::vector<sim_mob::RoadSegment*>);
-
-    virtual void
-    BKDSegments (std::vector<sim_mob::RoadSegment*>);
-
-    virtual std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >
-    post_Segments () = 0;
-
-    // Parser construction API.
-    //
-    void
-    FWDSegments_parser (::geo::fwdBckSegments_t_pskel&);
-
-    void
-    BKDSegments_parser (::geo::fwdBckSegments_t_pskel&);
-
-    void
-    parsers (::geo::fwdBckSegments_t_pskel& /* FWDSegments */,
-             ::geo::fwdBckSegments_t_pskel& /* BKDSegments */);
-
-    // Constructor.
-    //
-    Segments_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::fwdBckSegments_t_pskel* FWDSegments_parser_;
-    ::geo::fwdBckSegments_t_pskel* BKDSegments_parser_;
-  };
-
-  class Nodes_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    UniNodes (std::set<sim_mob::UniNode*>&);
-
-    virtual void
-    Intersections (std::vector<sim_mob::MultiNode*>&);
-
-    virtual void
-    roundabouts (std::vector<sim_mob::MultiNode*>&);
-
-    virtual void
-    post_Nodes ();
-
-    // Parser construction API.
-    //
-    void
-    UniNodes_parser (::geo::UniNodes_pskel&);
-
-    void
-    Intersections_parser (::geo::Intersections_pskel&);
-
-    void
-    roundabouts_parser (::geo::roundabouts_pskel&);
-
-    void
-    parsers (::geo::UniNodes_pskel& /* UniNodes */,
-             ::geo::Intersections_pskel& /* Intersections */,
-             ::geo::roundabouts_pskel& /* roundabouts */);
-
-    // Constructor.
-    //
-    Nodes_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::UniNodes_pskel* UniNodes_parser_;
-    ::geo::Intersections_pskel* Intersections_parser_;
-    ::geo::roundabouts_pskel* roundabouts_parser_;
-  };
-
-  class Links_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    Link (sim_mob::Link*);
-
-    virtual std::vector<sim_mob::Link*>
-    post_Links () = 0;
-
-    // Parser construction API.
-    //
-    void
-    Link_parser (::geo::link_t_pskel&);
-
-    void
-    parsers (::geo::link_t_pskel& /* Link */);
-
-    // Constructor.
-    //
-    Links_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::link_t_pskel* Link_parser_;
-  };
-
-  class UniNodes_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    UniNode (sim_mob::UniNode*);
-
-    virtual std::set<sim_mob::UniNode*>&
-    post_UniNodes () = 0;
-
-    // Parser construction API.
-    //
-    void
-    UniNode_parser (::geo::UniNode_t_pskel&);
-
-    void
-    parsers (::geo::UniNode_t_pskel& /* UniNode */);
-
-    // Constructor.
-    //
-    UniNodes_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::UniNode_t_pskel* UniNode_parser_;
-  };
-
-  class Intersections_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    Intersection (sim_mob::MultiNode*);
-
-    virtual std::vector<sim_mob::MultiNode*>&
-    post_Intersections () = 0;
-
-    // Parser construction API.
-    //
-    void
-    Intersection_parser (::geo::intersection_t_pskel&);
-
-    void
-    parsers (::geo::intersection_t_pskel& /* Intersection */);
-
-    // Constructor.
-    //
-    Intersections_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::intersection_t_pskel* Intersection_parser_;
-  };
-
-  class roundabouts_pskel: public ::xml_schema::complex_content
-  {
-    public:
-    // Parser callbacks. Override them in your implementation.
-    //
-    // virtual void
-    // pre ();
-
-    virtual void
-    roundabout (sim_mob::MultiNode*);
-
-    virtual std::vector<sim_mob::MultiNode*>&
-    post_roundabouts () = 0;
-
-    // Parser construction API.
-    //
-    void
-    roundabout_parser (::geo::roundabout_t_pskel&);
-
-    void
-    parsers (::geo::roundabout_t_pskel& /* roundabout */);
-
-    // Constructor.
-    //
-    roundabouts_pskel ();
-
-    // Implementation.
-    //
-    protected:
-    virtual bool
-    _start_element_impl (const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string&,
-                         const ::xml_schema::ro_string*);
-
-    virtual bool
-    _end_element_impl (const ::xml_schema::ro_string&,
-                       const ::xml_schema::ro_string&);
-
-    protected:
-    ::geo::roundabout_t_pskel* roundabout_parser_;
-  };
+      // Parser construction API.
+      //
+      void
+      laneID_parser (::xml_schema::unsigned_long_pskel&);
+
+      void
+      width_parser (::xml_schema::unsigned_int_pskel&);
+
+      void
+      can_go_straight_parser (::xml_schema::boolean_pskel&);
+
+      void
+      can_turn_left_parser (::xml_schema::boolean_pskel&);
+
+      void
+      can_turn_right_parser (::xml_schema::boolean_pskel&);
+
+      void
+      can_turn_on_red_signal_parser (::xml_schema::boolean_pskel&);
+
+      void
+      can_change_lane_left_parser (::xml_schema::boolean_pskel&);
+
+      void
+      can_change_lane_right_parser (::xml_schema::boolean_pskel&);
+
+      void
+      is_road_shoulder_parser (::xml_schema::boolean_pskel&);
+
+      void
+      is_bicycle_lane_parser (::xml_schema::boolean_pskel&);
+
+      void
+      is_pedestrian_lane_parser (::xml_schema::boolean_pskel&);
+
+      void
+      is_vehicle_lane_parser (::xml_schema::boolean_pskel&);
+
+      void
+      is_standard_bus_lane_parser (::xml_schema::boolean_pskel&);
+
+      void
+      is_whole_day_bus_lane_parser (::xml_schema::boolean_pskel&);
+
+      void
+      is_high_occupancy_vehicle_lane_parser (::xml_schema::boolean_pskel&);
+
+      void
+      can_freely_park_here_parser (::xml_schema::boolean_pskel&);
+
+      void
+      can_stop_here_parser (::xml_schema::boolean_pskel&);
+
+      void
+      is_u_turn_allowed_parser (::xml_schema::boolean_pskel&);
+
+      void
+      PolyLine_parser (::sim_mob::xml::PolyLine_t_pskel&);
+
+      void
+      parsers (::xml_schema::unsigned_long_pskel& /* laneID */,
+               ::xml_schema::unsigned_int_pskel& /* width */,
+               ::xml_schema::boolean_pskel& /* can_go_straight */,
+               ::xml_schema::boolean_pskel& /* can_turn_left */,
+               ::xml_schema::boolean_pskel& /* can_turn_right */,
+               ::xml_schema::boolean_pskel& /* can_turn_on_red_signal */,
+               ::xml_schema::boolean_pskel& /* can_change_lane_left */,
+               ::xml_schema::boolean_pskel& /* can_change_lane_right */,
+               ::xml_schema::boolean_pskel& /* is_road_shoulder */,
+               ::xml_schema::boolean_pskel& /* is_bicycle_lane */,
+               ::xml_schema::boolean_pskel& /* is_pedestrian_lane */,
+               ::xml_schema::boolean_pskel& /* is_vehicle_lane */,
+               ::xml_schema::boolean_pskel& /* is_standard_bus_lane */,
+               ::xml_schema::boolean_pskel& /* is_whole_day_bus_lane */,
+               ::xml_schema::boolean_pskel& /* is_high_occupancy_vehicle_lane */,
+               ::xml_schema::boolean_pskel& /* can_freely_park_here */,
+               ::xml_schema::boolean_pskel& /* can_stop_here */,
+               ::xml_schema::boolean_pskel& /* is_u_turn_allowed */,
+               ::sim_mob::xml::PolyLine_t_pskel& /* PolyLine */);
+
+      // Constructor.
+      //
+      lane_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::unsigned_long_pskel* laneID_parser_;
+      ::xml_schema::unsigned_int_pskel* width_parser_;
+      ::xml_schema::boolean_pskel* can_go_straight_parser_;
+      ::xml_schema::boolean_pskel* can_turn_left_parser_;
+      ::xml_schema::boolean_pskel* can_turn_right_parser_;
+      ::xml_schema::boolean_pskel* can_turn_on_red_signal_parser_;
+      ::xml_schema::boolean_pskel* can_change_lane_left_parser_;
+      ::xml_schema::boolean_pskel* can_change_lane_right_parser_;
+      ::xml_schema::boolean_pskel* is_road_shoulder_parser_;
+      ::xml_schema::boolean_pskel* is_bicycle_lane_parser_;
+      ::xml_schema::boolean_pskel* is_pedestrian_lane_parser_;
+      ::xml_schema::boolean_pskel* is_vehicle_lane_parser_;
+      ::xml_schema::boolean_pskel* is_standard_bus_lane_parser_;
+      ::xml_schema::boolean_pskel* is_whole_day_bus_lane_parser_;
+      ::xml_schema::boolean_pskel* is_high_occupancy_vehicle_lane_parser_;
+      ::xml_schema::boolean_pskel* can_freely_park_here_parser_;
+      ::xml_schema::boolean_pskel* can_stop_here_parser_;
+      ::xml_schema::boolean_pskel* is_u_turn_allowed_parser_;
+      ::sim_mob::xml::PolyLine_t_pskel* PolyLine_parser_;
+    };
+
+    class connector_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      laneFrom (unsigned long long);
+
+      virtual void
+      laneTo (unsigned long long);
+
+      virtual std::pair<unsigned long,unsigned long>
+      post_connector_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      laneFrom_parser (::xml_schema::unsigned_long_pskel&);
+
+      void
+      laneTo_parser (::xml_schema::unsigned_long_pskel&);
+
+      void
+      parsers (::xml_schema::unsigned_long_pskel& /* laneFrom */,
+               ::xml_schema::unsigned_long_pskel& /* laneTo */);
+
+      // Constructor.
+      //
+      connector_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::unsigned_long_pskel* laneFrom_parser_;
+      ::xml_schema::unsigned_long_pskel* laneTo_parser_;
+    };
+
+    class connectors_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      Connector (std::pair<unsigned long,unsigned long>);
+
+      virtual std::set<std::pair<unsigned long,unsigned long> >
+      post_connectors_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      Connector_parser (::sim_mob::xml::connector_t_pskel&);
+
+      void
+      parsers (::sim_mob::xml::connector_t_pskel& /* Connector */);
+
+      // Constructor.
+      //
+      connectors_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::connector_t_pskel* Connector_parser_;
+    };
+
+    class Multi_Connector_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      RoadSegment (unsigned long long);
+
+      virtual void
+      Connectors (std::set<std::pair<unsigned long,unsigned long> >);
+
+      virtual std::pair<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >
+      post_Multi_Connector_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      RoadSegment_parser (::xml_schema::unsigned_long_pskel&);
+
+      void
+      Connectors_parser (::sim_mob::xml::connectors_t_pskel&);
+
+      void
+      parsers (::xml_schema::unsigned_long_pskel& /* RoadSegment */,
+               ::sim_mob::xml::connectors_t_pskel& /* Connectors */);
+
+      // Constructor.
+      //
+      Multi_Connector_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::unsigned_long_pskel* RoadSegment_parser_;
+      ::sim_mob::xml::connectors_t_pskel* Connectors_parser_;
+    };
+
+    class Multi_Connectors_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      MultiConnectors (const std::pair<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&);
+
+      virtual std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >
+      post_Multi_Connectors_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      MultiConnectors_parser (::sim_mob::xml::Multi_Connector_t_pskel&);
+
+      void
+      parsers (::sim_mob::xml::Multi_Connector_t_pskel& /* MultiConnectors */);
+
+      // Constructor.
+      //
+      Multi_Connectors_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::Multi_Connector_t_pskel* MultiConnectors_parser_;
+    };
+
+    class fwdBckSegments_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      Segment (sim_mob::RoadSegment*);
+
+      virtual std::vector<sim_mob::RoadSegment*>
+      post_fwdBckSegments_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      Segment_parser (::sim_mob::xml::segment_t_pskel&);
+
+      void
+      parsers (::sim_mob::xml::segment_t_pskel& /* Segment */);
+
+      // Constructor.
+      //
+      fwdBckSegments_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::segment_t_pskel* Segment_parser_;
+    };
+
+    class RoadSegmentsAt_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      segmentID (unsigned long long);
+
+      virtual std::set<unsigned long>
+      post_RoadSegmentsAt_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      segmentID_parser (::xml_schema::unsigned_long_pskel&);
+
+      void
+      parsers (::xml_schema::unsigned_long_pskel& /* segmentID */);
+
+      // Constructor.
+      //
+      RoadSegmentsAt_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::unsigned_long_pskel* segmentID_parser_;
+    };
+
+    class segment_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      segmentID (unsigned long long);
+
+      virtual void
+      startingNode (unsigned int);
+
+      virtual void
+      endingNode (unsigned int);
+
+      virtual void
+      maxSpeed (short);
+
+      virtual void
+      Length (unsigned int);
+
+      virtual void
+      Width (unsigned int);
+
+      virtual void
+      originalDB_ID (const ::std::string&);
+
+      virtual void
+      polyline (std::vector<sim_mob::Point2D>);
+
+      virtual void
+      Lanes (std::vector<sim_mob::Lane*>);
+
+      virtual void
+      Obstacles (std::map<sim_mob::centimeter_t,const RoadItem*>);
+
+      virtual void
+      KurbLine (std::vector<sim_mob::Point2D>);
+
+      virtual sim_mob::RoadSegment*
+      post_segment_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      segmentID_parser (::xml_schema::unsigned_long_pskel&);
+
+      void
+      startingNode_parser (::xml_schema::unsigned_int_pskel&);
+
+      void
+      endingNode_parser (::xml_schema::unsigned_int_pskel&);
+
+      void
+      maxSpeed_parser (::xml_schema::short_pskel&);
+
+      void
+      Length_parser (::xml_schema::unsigned_int_pskel&);
+
+      void
+      Width_parser (::xml_schema::unsigned_int_pskel&);
+
+      void
+      originalDB_ID_parser (::xml_schema::string_pskel&);
+
+      void
+      polyline_parser (::sim_mob::xml::PolyLine_t_pskel&);
+
+      void
+      Lanes_parser (::sim_mob::xml::Lanes_pskel&);
+
+      void
+      Obstacles_parser (::sim_mob::xml::RoadItems_t_pskel&);
+
+      void
+      KurbLine_parser (::sim_mob::xml::PolyLine_t_pskel&);
+
+      void
+      parsers (::xml_schema::unsigned_long_pskel& /* segmentID */,
+               ::xml_schema::unsigned_int_pskel& /* startingNode */,
+               ::xml_schema::unsigned_int_pskel& /* endingNode */,
+               ::xml_schema::short_pskel& /* maxSpeed */,
+               ::xml_schema::unsigned_int_pskel& /* Length */,
+               ::xml_schema::unsigned_int_pskel& /* Width */,
+               ::xml_schema::string_pskel& /* originalDB_ID */,
+               ::sim_mob::xml::PolyLine_t_pskel& /* polyline */,
+               ::sim_mob::xml::Lanes_pskel& /* Lanes */,
+               ::sim_mob::xml::RoadItems_t_pskel& /* Obstacles */,
+               ::sim_mob::xml::PolyLine_t_pskel& /* KurbLine */);
+
+      // Constructor.
+      //
+      segment_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::unsigned_long_pskel* segmentID_parser_;
+      ::xml_schema::unsigned_int_pskel* startingNode_parser_;
+      ::xml_schema::unsigned_int_pskel* endingNode_parser_;
+      ::xml_schema::short_pskel* maxSpeed_parser_;
+      ::xml_schema::unsigned_int_pskel* Length_parser_;
+      ::xml_schema::unsigned_int_pskel* Width_parser_;
+      ::xml_schema::string_pskel* originalDB_ID_parser_;
+      ::sim_mob::xml::PolyLine_t_pskel* polyline_parser_;
+      ::sim_mob::xml::Lanes_pskel* Lanes_parser_;
+      ::sim_mob::xml::RoadItems_t_pskel* Obstacles_parser_;
+      ::sim_mob::xml::PolyLine_t_pskel* KurbLine_parser_;
+    };
+
+    class link_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      linkID (unsigned int);
+
+      virtual void
+      roadName (const ::std::string&);
+
+      virtual void
+      StartingNode (unsigned int);
+
+      virtual void
+      EndingNode (unsigned int);
+
+      virtual void
+      Segments (std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >);
+
+      virtual sim_mob::Link*
+      post_link_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      linkID_parser (::xml_schema::unsigned_int_pskel&);
+
+      void
+      roadName_parser (::xml_schema::string_pskel&);
+
+      void
+      StartingNode_parser (::xml_schema::unsigned_int_pskel&);
+
+      void
+      EndingNode_parser (::xml_schema::unsigned_int_pskel&);
+
+      void
+      Segments_parser (::sim_mob::xml::Segments_pskel&);
+
+      void
+      parsers (::xml_schema::unsigned_int_pskel& /* linkID */,
+               ::xml_schema::string_pskel& /* roadName */,
+               ::xml_schema::unsigned_int_pskel& /* StartingNode */,
+               ::xml_schema::unsigned_int_pskel& /* EndingNode */,
+               ::sim_mob::xml::Segments_pskel& /* Segments */);
+
+      // Constructor.
+      //
+      link_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::unsigned_int_pskel* linkID_parser_;
+      ::xml_schema::string_pskel* roadName_parser_;
+      ::xml_schema::unsigned_int_pskel* StartingNode_parser_;
+      ::xml_schema::unsigned_int_pskel* EndingNode_parser_;
+      ::sim_mob::xml::Segments_pskel* Segments_parser_;
+    };
+
+    class separator_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      separator_ID (unsigned short);
+
+      virtual void
+      separator_value (bool);
+
+      virtual void
+      post_separator_t ();
+
+      // Parser construction API.
+      //
+      void
+      separator_ID_parser (::xml_schema::unsigned_short_pskel&);
+
+      void
+      separator_value_parser (::xml_schema::boolean_pskel&);
+
+      void
+      parsers (::xml_schema::unsigned_short_pskel& /* separator_ID */,
+               ::xml_schema::boolean_pskel& /* separator_value */);
+
+      // Constructor.
+      //
+      separator_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::unsigned_short_pskel* separator_ID_parser_;
+      ::xml_schema::boolean_pskel* separator_value_parser_;
+    };
+
+    class separators_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      Separator ();
+
+      virtual void
+      post_separators_t ();
+
+      // Parser construction API.
+      //
+      void
+      Separator_parser (::sim_mob::xml::separator_t_pskel&);
+
+      void
+      parsers (::sim_mob::xml::separator_t_pskel& /* Separator */);
+
+      // Constructor.
+      //
+      separators_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::separator_t_pskel* Separator_parser_;
+    };
+
+    class DomainIsland_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      domainIsland_ID (unsigned short);
+
+      virtual void
+      domainIsland_value (bool);
+
+      virtual void
+      post_DomainIsland_t ();
+
+      // Parser construction API.
+      //
+      void
+      domainIsland_ID_parser (::xml_schema::unsigned_short_pskel&);
+
+      void
+      domainIsland_value_parser (::xml_schema::boolean_pskel&);
+
+      void
+      parsers (::xml_schema::unsigned_short_pskel& /* domainIsland_ID */,
+               ::xml_schema::boolean_pskel& /* domainIsland_value */);
+
+      // Constructor.
+      //
+      DomainIsland_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::unsigned_short_pskel* domainIsland_ID_parser_;
+      ::xml_schema::boolean_pskel* domainIsland_value_parser_;
+    };
+
+    class DomainIslands_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      domainIslands ();
+
+      virtual void
+      post_DomainIslands_t ();
+
+      // Parser construction API.
+      //
+      void
+      domainIslands_parser (::sim_mob::xml::DomainIsland_t_pskel&);
+
+      void
+      parsers (::sim_mob::xml::DomainIsland_t_pskel& /* domainIslands */);
+
+      // Constructor.
+      //
+      DomainIslands_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::DomainIsland_t_pskel* domainIslands_parser_;
+    };
+
+    class offset_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      offset_ID (unsigned short);
+
+      virtual void
+      offset_value (unsigned int);
+
+      virtual void
+      post_offset_t ();
+
+      // Parser construction API.
+      //
+      void
+      offset_ID_parser (::xml_schema::unsigned_short_pskel&);
+
+      void
+      offset_value_parser (::xml_schema::unsigned_int_pskel&);
+
+      void
+      parsers (::xml_schema::unsigned_short_pskel& /* offset_ID */,
+               ::xml_schema::unsigned_int_pskel& /* offset_value */);
+
+      // Constructor.
+      //
+      offset_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::unsigned_short_pskel* offset_ID_parser_;
+      ::xml_schema::unsigned_int_pskel* offset_value_parser_;
+    };
+
+    class offsets_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      offset ();
+
+      virtual void
+      post_offsets_t ();
+
+      // Parser construction API.
+      //
+      void
+      offset_parser (::sim_mob::xml::offset_t_pskel&);
+
+      void
+      parsers (::sim_mob::xml::offset_t_pskel& /* offset */);
+
+      // Constructor.
+      //
+      offsets_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::offset_t_pskel* offset_parser_;
+    };
+
+    class ChunkLength_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      chunklength_ID (unsigned short);
+
+      virtual void
+      chunklength_value (unsigned int);
+
+      virtual void
+      post_ChunkLength_t ();
+
+      // Parser construction API.
+      //
+      void
+      chunklength_ID_parser (::xml_schema::unsigned_short_pskel&);
+
+      void
+      chunklength_value_parser (::xml_schema::unsigned_int_pskel&);
+
+      void
+      parsers (::xml_schema::unsigned_short_pskel& /* chunklength_ID */,
+               ::xml_schema::unsigned_int_pskel& /* chunklength_value */);
+
+      // Constructor.
+      //
+      ChunkLength_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::unsigned_short_pskel* chunklength_ID_parser_;
+      ::xml_schema::unsigned_int_pskel* chunklength_value_parser_;
+    };
+
+    class ChunkLengths_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      chunklength ();
+
+      virtual void
+      post_ChunkLengths_t ();
+
+      // Parser construction API.
+      //
+      void
+      chunklength_parser (::sim_mob::xml::ChunkLength_t_pskel&);
+
+      void
+      parsers (::sim_mob::xml::ChunkLength_t_pskel& /* chunklength */);
+
+      // Constructor.
+      //
+      ChunkLengths_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::ChunkLength_t_pskel* chunklength_parser_;
+    };
+
+    class LanesVector_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      laneID (unsigned long long);
+
+      virtual void
+      post_LanesVector_t ();
+
+      // Parser construction API.
+      //
+      void
+      laneID_parser (::xml_schema::unsigned_long_pskel&);
+
+      void
+      parsers (::xml_schema::unsigned_long_pskel& /* laneID */);
+
+      // Constructor.
+      //
+      LanesVector_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::unsigned_long_pskel* laneID_parser_;
+    };
+
+    class EntranceAngle_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      entranceAngle_ID (unsigned short);
+
+      virtual void
+      entranceAngle_value (unsigned int);
+
+      virtual void
+      post_EntranceAngle_t ();
+
+      // Parser construction API.
+      //
+      void
+      entranceAngle_ID_parser (::xml_schema::unsigned_short_pskel&);
+
+      void
+      entranceAngle_value_parser (::xml_schema::unsigned_int_pskel&);
+
+      void
+      parsers (::xml_schema::unsigned_short_pskel& /* entranceAngle_ID */,
+               ::xml_schema::unsigned_int_pskel& /* entranceAngle_value */);
+
+      // Constructor.
+      //
+      EntranceAngle_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::unsigned_short_pskel* entranceAngle_ID_parser_;
+      ::xml_schema::unsigned_int_pskel* entranceAngle_value_parser_;
+    };
+
+    class EntranceAngles_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      entranceAngle ();
+
+      virtual void
+      post_EntranceAngles_t ();
+
+      // Parser construction API.
+      //
+      void
+      entranceAngle_parser (::sim_mob::xml::EntranceAngle_t_pskel&);
+
+      void
+      parsers (::sim_mob::xml::EntranceAngle_t_pskel& /* entranceAngle */);
+
+      // Constructor.
+      //
+      EntranceAngles_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::EntranceAngle_t_pskel* entranceAngle_parser_;
+    };
+
+    class Node_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      nodeID (unsigned int);
+
+      virtual void
+      location (sim_mob::Point2D);
+
+      virtual void
+      linkLoc (unsigned long long);
+
+      virtual void
+      originalDB_ID (const ::std::string&);
+
+      virtual sim_mob::Node*
+      post_Node_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      nodeID_parser (::xml_schema::unsigned_int_pskel&);
+
+      void
+      location_parser (::sim_mob::xml::Point2D_t_pskel&);
+
+      void
+      linkLoc_parser (::xml_schema::unsigned_long_pskel&);
+
+      void
+      originalDB_ID_parser (::xml_schema::string_pskel&);
+
+      void
+      parsers (::xml_schema::unsigned_int_pskel& /* nodeID */,
+               ::sim_mob::xml::Point2D_t_pskel& /* location */,
+               ::xml_schema::unsigned_long_pskel& /* linkLoc */,
+               ::xml_schema::string_pskel& /* originalDB_ID */);
+
+      // Constructor.
+      //
+      Node_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::unsigned_int_pskel* nodeID_parser_;
+      ::sim_mob::xml::Point2D_t_pskel* location_parser_;
+      ::xml_schema::unsigned_long_pskel* linkLoc_parser_;
+      ::xml_schema::string_pskel* originalDB_ID_parser_;
+    };
+
+    class UniNode_t_pskel: public virtual ::sim_mob::xml::Node_t_pskel
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      Connectors (std::set<std::pair<unsigned long,unsigned long> >);
+
+      virtual sim_mob::UniNode*
+      post_UniNode_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      Connectors_parser (::sim_mob::xml::connectors_t_pskel&);
+
+      void
+      parsers (::xml_schema::unsigned_int_pskel& /* nodeID */,
+               ::sim_mob::xml::Point2D_t_pskel& /* location */,
+               ::xml_schema::unsigned_long_pskel& /* linkLoc */,
+               ::xml_schema::string_pskel& /* originalDB_ID */,
+               ::sim_mob::xml::connectors_t_pskel& /* Connectors */);
+
+      // Constructor.
+      //
+      UniNode_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::connectors_t_pskel* Connectors_parser_;
+    };
+
+    class roundabout_t_pskel: public virtual ::sim_mob::xml::Node_t_pskel
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      roadSegmentsAt (std::set<unsigned long>);
+
+      virtual void
+      Connectors (const std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&);
+
+      virtual void
+      ChunkLengths ();
+
+      virtual void
+      Offsets ();
+
+      virtual void
+      Separators ();
+
+      virtual void
+      addDominantLane ();
+
+      virtual void
+      roundaboutDominantIslands (float);
+
+      virtual void
+      roundaboutNumberOfLanes (int);
+
+      virtual void
+      entranceAngles ();
+
+      virtual sim_mob::MultiNode*
+      post_roundabout_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      roadSegmentsAt_parser (::sim_mob::xml::RoadSegmentsAt_t_pskel&);
+
+      void
+      Connectors_parser (::sim_mob::xml::Multi_Connectors_t_pskel&);
+
+      void
+      ChunkLengths_parser (::sim_mob::xml::ChunkLengths_t_pskel&);
+
+      void
+      Offsets_parser (::sim_mob::xml::offsets_t_pskel&);
+
+      void
+      Separators_parser (::sim_mob::xml::separators_t_pskel&);
+
+      void
+      addDominantLane_parser (::sim_mob::xml::LanesVector_t_pskel&);
+
+      void
+      roundaboutDominantIslands_parser (::xml_schema::float_pskel&);
+
+      void
+      roundaboutNumberOfLanes_parser (::xml_schema::int_pskel&);
+
+      void
+      entranceAngles_parser (::sim_mob::xml::EntranceAngles_t_pskel&);
+
+      void
+      parsers (::xml_schema::unsigned_int_pskel& /* nodeID */,
+               ::sim_mob::xml::Point2D_t_pskel& /* location */,
+               ::xml_schema::unsigned_long_pskel& /* linkLoc */,
+               ::xml_schema::string_pskel& /* originalDB_ID */,
+               ::sim_mob::xml::RoadSegmentsAt_t_pskel& /* roadSegmentsAt */,
+               ::sim_mob::xml::Multi_Connectors_t_pskel& /* Connectors */,
+               ::sim_mob::xml::ChunkLengths_t_pskel& /* ChunkLengths */,
+               ::sim_mob::xml::offsets_t_pskel& /* Offsets */,
+               ::sim_mob::xml::separators_t_pskel& /* Separators */,
+               ::sim_mob::xml::LanesVector_t_pskel& /* addDominantLane */,
+               ::xml_schema::float_pskel& /* roundaboutDominantIslands */,
+               ::xml_schema::int_pskel& /* roundaboutNumberOfLanes */,
+               ::sim_mob::xml::EntranceAngles_t_pskel& /* entranceAngles */);
+
+      // Constructor.
+      //
+      roundabout_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::RoadSegmentsAt_t_pskel* roadSegmentsAt_parser_;
+      ::sim_mob::xml::Multi_Connectors_t_pskel* Connectors_parser_;
+      ::sim_mob::xml::ChunkLengths_t_pskel* ChunkLengths_parser_;
+      ::sim_mob::xml::offsets_t_pskel* Offsets_parser_;
+      ::sim_mob::xml::separators_t_pskel* Separators_parser_;
+      ::sim_mob::xml::LanesVector_t_pskel* addDominantLane_parser_;
+      ::xml_schema::float_pskel* roundaboutDominantIslands_parser_;
+      ::xml_schema::int_pskel* roundaboutNumberOfLanes_parser_;
+      ::sim_mob::xml::EntranceAngles_t_pskel* entranceAngles_parser_;
+    };
+
+    class intersection_t_pskel: public virtual ::sim_mob::xml::Node_t_pskel
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      roadSegmentsAt (std::set<unsigned long>);
+
+      virtual void
+      Connectors (const std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >&);
+
+      virtual void
+      ChunkLengths ();
+
+      virtual void
+      Offsets ();
+
+      virtual void
+      Separators ();
+
+      virtual void
+      additionalDominantLanes ();
+
+      virtual void
+      additionalSubdominantLanes ();
+
+      virtual void
+      domainIslands ();
+
+      virtual sim_mob::MultiNode*
+      post_intersection_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      roadSegmentsAt_parser (::sim_mob::xml::RoadSegmentsAt_t_pskel&);
+
+      void
+      Connectors_parser (::sim_mob::xml::Multi_Connectors_t_pskel&);
+
+      void
+      ChunkLengths_parser (::sim_mob::xml::ChunkLengths_t_pskel&);
+
+      void
+      Offsets_parser (::sim_mob::xml::offsets_t_pskel&);
+
+      void
+      Separators_parser (::sim_mob::xml::separators_t_pskel&);
+
+      void
+      additionalDominantLanes_parser (::sim_mob::xml::LanesVector_t_pskel&);
+
+      void
+      additionalSubdominantLanes_parser (::sim_mob::xml::LanesVector_t_pskel&);
+
+      void
+      domainIslands_parser (::sim_mob::xml::DomainIslands_t_pskel&);
+
+      void
+      parsers (::xml_schema::unsigned_int_pskel& /* nodeID */,
+               ::sim_mob::xml::Point2D_t_pskel& /* location */,
+               ::xml_schema::unsigned_long_pskel& /* linkLoc */,
+               ::xml_schema::string_pskel& /* originalDB_ID */,
+               ::sim_mob::xml::RoadSegmentsAt_t_pskel& /* roadSegmentsAt */,
+               ::sim_mob::xml::Multi_Connectors_t_pskel& /* Connectors */,
+               ::sim_mob::xml::ChunkLengths_t_pskel& /* ChunkLengths */,
+               ::sim_mob::xml::offsets_t_pskel& /* Offsets */,
+               ::sim_mob::xml::separators_t_pskel& /* Separators */,
+               ::sim_mob::xml::LanesVector_t_pskel& /* additionalDominantLanes */,
+               ::sim_mob::xml::LanesVector_t_pskel& /* additionalSubdominantLanes */,
+               ::sim_mob::xml::DomainIslands_t_pskel& /* domainIslands */);
+
+      // Constructor.
+      //
+      intersection_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::RoadSegmentsAt_t_pskel* roadSegmentsAt_parser_;
+      ::sim_mob::xml::Multi_Connectors_t_pskel* Connectors_parser_;
+      ::sim_mob::xml::ChunkLengths_t_pskel* ChunkLengths_parser_;
+      ::sim_mob::xml::offsets_t_pskel* Offsets_parser_;
+      ::sim_mob::xml::separators_t_pskel* Separators_parser_;
+      ::sim_mob::xml::LanesVector_t_pskel* additionalDominantLanes_parser_;
+      ::sim_mob::xml::LanesVector_t_pskel* additionalSubdominantLanes_parser_;
+      ::sim_mob::xml::DomainIslands_t_pskel* domainIslands_parser_;
+    };
+
+    class RoadItem_No_Attr_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      start (sim_mob::Point2D);
+
+      virtual void
+      end (sim_mob::Point2D);
+
+      virtual void
+      post_RoadItem_No_Attr_t ();
+
+      // Parser construction API.
+      //
+      void
+      start_parser (::sim_mob::xml::Point2D_t_pskel&);
+
+      void
+      end_parser (::sim_mob::xml::Point2D_t_pskel&);
+
+      void
+      parsers (::sim_mob::xml::Point2D_t_pskel& /* start */,
+               ::sim_mob::xml::Point2D_t_pskel& /* end */);
+
+      // Constructor.
+      //
+      RoadItem_No_Attr_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::Point2D_t_pskel* start_parser_;
+      ::sim_mob::xml::Point2D_t_pskel* end_parser_;
+    };
+
+    class RoadItem_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      Offset (unsigned short);
+
+      virtual void
+      start (sim_mob::Point2D);
+
+      virtual void
+      end (sim_mob::Point2D);
+
+      virtual sim_mob::RoadItem*
+      post_RoadItem_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      Offset_parser (::xml_schema::unsigned_short_pskel&);
+
+      void
+      start_parser (::sim_mob::xml::Point2D_t_pskel&);
+
+      void
+      end_parser (::sim_mob::xml::Point2D_t_pskel&);
+
+      void
+      parsers (::xml_schema::unsigned_short_pskel& /* Offset */,
+               ::sim_mob::xml::Point2D_t_pskel& /* start */,
+               ::sim_mob::xml::Point2D_t_pskel& /* end */);
+
+      // Constructor.
+      //
+      RoadItem_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::unsigned_short_pskel* Offset_parser_;
+      ::sim_mob::xml::Point2D_t_pskel* start_parser_;
+      ::sim_mob::xml::Point2D_t_pskel* end_parser_;
+    };
+
+    class BusStop_t_pskel: public virtual ::sim_mob::xml::RoadItem_t_pskel
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      busStopID (const ::std::string&);
+
+      virtual void
+      lane_location (const ::std::string&);
+
+      virtual void
+      is_Terminal (bool);
+
+      virtual void
+      is_Bay (bool);
+
+      virtual void
+      has_shelter (bool);
+
+      virtual void
+      busCapacityAsLength (unsigned int);
+
+      virtual void
+      post_BusStop_t ();
+
+      // Parser construction API.
+      //
+      void
+      busStopID_parser (::xml_schema::string_pskel&);
+
+      void
+      lane_location_parser (::xml_schema::string_pskel&);
+
+      void
+      is_Terminal_parser (::xml_schema::boolean_pskel&);
+
+      void
+      is_Bay_parser (::xml_schema::boolean_pskel&);
+
+      void
+      has_shelter_parser (::xml_schema::boolean_pskel&);
+
+      void
+      busCapacityAsLength_parser (::xml_schema::unsigned_int_pskel&);
+
+      void
+      parsers (::xml_schema::unsigned_short_pskel& /* Offset */,
+               ::sim_mob::xml::Point2D_t_pskel& /* start */,
+               ::sim_mob::xml::Point2D_t_pskel& /* end */,
+               ::xml_schema::string_pskel& /* busStopID */,
+               ::xml_schema::string_pskel& /* lane_location */,
+               ::xml_schema::boolean_pskel& /* is_Terminal */,
+               ::xml_schema::boolean_pskel& /* is_Bay */,
+               ::xml_schema::boolean_pskel& /* has_shelter */,
+               ::xml_schema::unsigned_int_pskel& /* busCapacityAsLength */);
+
+      // Constructor.
+      //
+      BusStop_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::string_pskel* busStopID_parser_;
+      ::xml_schema::string_pskel* lane_location_parser_;
+      ::xml_schema::boolean_pskel* is_Terminal_parser_;
+      ::xml_schema::boolean_pskel* is_Bay_parser_;
+      ::xml_schema::boolean_pskel* has_shelter_parser_;
+      ::xml_schema::unsigned_int_pskel* busCapacityAsLength_parser_;
+    };
+
+    class ERP_Gantry_t_pskel: public virtual ::sim_mob::xml::RoadItem_t_pskel
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      ERP_GantryID (const ::std::string&);
+
+      virtual void
+      post_ERP_Gantry_t ();
+
+      // Parser construction API.
+      //
+      void
+      ERP_GantryID_parser (::xml_schema::string_pskel&);
+
+      void
+      parsers (::xml_schema::unsigned_short_pskel& /* Offset */,
+               ::sim_mob::xml::Point2D_t_pskel& /* start */,
+               ::sim_mob::xml::Point2D_t_pskel& /* end */,
+               ::xml_schema::string_pskel& /* ERP_GantryID */);
+
+      // Constructor.
+      //
+      ERP_Gantry_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::string_pskel* ERP_GantryID_parser_;
+    };
+
+    class FormType_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      TextBox (int);
+
+      virtual void
+      TextArea (int);
+
+      virtual void
+      Header (int);
+
+      virtual void
+      post_FormType ();
+
+      // Parser construction API.
+      //
+      void
+      TextBox_parser (::xml_schema::int_pskel&);
+
+      void
+      TextArea_parser (::xml_schema::int_pskel&);
+
+      void
+      Header_parser (::xml_schema::int_pskel&);
+
+      void
+      parsers (::xml_schema::int_pskel& /* TextBox */,
+               ::xml_schema::int_pskel& /* TextArea */,
+               ::xml_schema::int_pskel& /* Header */);
+
+      // Constructor.
+      //
+      FormType_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::int_pskel* TextBox_parser_;
+      ::xml_schema::int_pskel* TextArea_parser_;
+      ::xml_schema::int_pskel* Header_parser_;
+    };
+
+    class PointPair_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      first (sim_mob::Point2D);
+
+      virtual void
+      second (sim_mob::Point2D);
+
+      virtual std::pair<sim_mob::Point2D,sim_mob::Point2D>
+      post_PointPair_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      first_parser (::sim_mob::xml::Point2D_t_pskel&);
+
+      void
+      second_parser (::sim_mob::xml::Point2D_t_pskel&);
+
+      void
+      parsers (::sim_mob::xml::Point2D_t_pskel& /* first */,
+               ::sim_mob::xml::Point2D_t_pskel& /* second */);
+
+      // Constructor.
+      //
+      PointPair_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::Point2D_t_pskel* first_parser_;
+      ::sim_mob::xml::Point2D_t_pskel* second_parser_;
+    };
+
+    class crossing_t_pskel: public virtual ::sim_mob::xml::RoadItem_t_pskel
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      crossingID (const ::std::string&);
+
+      virtual void
+      nearLine (std::pair<sim_mob::Point2D,sim_mob::Point2D>);
+
+      virtual void
+      farLine (std::pair<sim_mob::Point2D,sim_mob::Point2D>);
+
+      virtual sim_mob::Crossing*
+      post_crossing_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      crossingID_parser (::xml_schema::string_pskel&);
+
+      void
+      nearLine_parser (::sim_mob::xml::PointPair_t_pskel&);
+
+      void
+      farLine_parser (::sim_mob::xml::PointPair_t_pskel&);
+
+      void
+      parsers (::xml_schema::unsigned_short_pskel& /* Offset */,
+               ::sim_mob::xml::Point2D_t_pskel& /* start */,
+               ::sim_mob::xml::Point2D_t_pskel& /* end */,
+               ::xml_schema::string_pskel& /* crossingID */,
+               ::sim_mob::xml::PointPair_t_pskel& /* nearLine */,
+               ::sim_mob::xml::PointPair_t_pskel& /* farLine */);
+
+      // Constructor.
+      //
+      crossing_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::string_pskel* crossingID_parser_;
+      ::sim_mob::xml::PointPair_t_pskel* nearLine_parser_;
+      ::sim_mob::xml::PointPair_t_pskel* farLine_parser_;
+    };
+
+    class RoadBump_t_pskel: public virtual ::sim_mob::xml::RoadItem_t_pskel
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      roadBumpID (const ::std::string&);
+
+      virtual void
+      segmentID (unsigned long long);
+
+      virtual void
+      post_RoadBump_t ();
+
+      // Parser construction API.
+      //
+      void
+      roadBumpID_parser (::xml_schema::string_pskel&);
+
+      void
+      segmentID_parser (::xml_schema::unsigned_long_pskel&);
+
+      void
+      parsers (::xml_schema::unsigned_short_pskel& /* Offset */,
+               ::sim_mob::xml::Point2D_t_pskel& /* start */,
+               ::sim_mob::xml::Point2D_t_pskel& /* end */,
+               ::xml_schema::string_pskel& /* roadBumpID */,
+               ::xml_schema::unsigned_long_pskel& /* segmentID */);
+
+      // Constructor.
+      //
+      RoadBump_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::string_pskel* roadBumpID_parser_;
+      ::xml_schema::unsigned_long_pskel* segmentID_parser_;
+    };
+
+    class RoadNetwork_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      Nodes ();
+
+      virtual void
+      Links (std::vector<sim_mob::Link*>);
+
+      virtual void
+      post_RoadNetwork_t ();
+
+      // Parser construction API.
+      //
+      void
+      Nodes_parser (::sim_mob::xml::Nodes_pskel&);
+
+      void
+      Links_parser (::sim_mob::xml::Links_pskel&);
+
+      void
+      parsers (::sim_mob::xml::Nodes_pskel& /* Nodes */,
+               ::sim_mob::xml::Links_pskel& /* Links */);
+
+      // Constructor.
+      //
+      RoadNetwork_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::Nodes_pskel* Nodes_parser_;
+      ::sim_mob::xml::Links_pskel* Links_parser_;
+    };
+
+    class RoadItems_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      BusStop ();
+
+      virtual void
+      ERP_Gantry ();
+
+      virtual void
+      Crossing (sim_mob::Crossing*);
+
+      virtual void
+      RoadBump ();
+
+      virtual std::map<sim_mob::centimeter_t,const RoadItem*>
+      post_RoadItems_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      BusStop_parser (::sim_mob::xml::BusStop_t_pskel&);
+
+      void
+      ERP_Gantry_parser (::sim_mob::xml::ERP_Gantry_t_pskel&);
+
+      void
+      Crossing_parser (::sim_mob::xml::crossing_t_pskel&);
+
+      void
+      RoadBump_parser (::sim_mob::xml::RoadBump_t_pskel&);
+
+      void
+      parsers (::sim_mob::xml::BusStop_t_pskel& /* BusStop */,
+               ::sim_mob::xml::ERP_Gantry_t_pskel& /* ERP_Gantry */,
+               ::sim_mob::xml::crossing_t_pskel& /* Crossing */,
+               ::sim_mob::xml::RoadBump_t_pskel& /* RoadBump */);
+
+      // Constructor.
+      //
+      RoadItems_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::BusStop_t_pskel* BusStop_parser_;
+      ::sim_mob::xml::ERP_Gantry_t_pskel* ERP_Gantry_parser_;
+      ::sim_mob::xml::crossing_t_pskel* Crossing_parser_;
+      ::sim_mob::xml::RoadBump_t_pskel* RoadBump_parser_;
+    };
+
+    class DailyTime_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      timeValue (unsigned int);
+
+      virtual void
+      base (unsigned int);
+
+      virtual sim_mob::DailyTime
+      post_DailyTime_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      timeValue_parser (::xml_schema::unsigned_int_pskel&);
+
+      void
+      base_parser (::xml_schema::unsigned_int_pskel&);
+
+      void
+      parsers (::xml_schema::unsigned_int_pskel& /* timeValue */,
+               ::xml_schema::unsigned_int_pskel& /* base */);
+
+      // Constructor.
+      //
+      DailyTime_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::unsigned_int_pskel* timeValue_parser_;
+      ::xml_schema::unsigned_int_pskel* base_parser_;
+    };
+
+    class TripchainItemType_pskel: public virtual ::xml_schema::string_pskel
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual std::string
+      post_TripchainItemType () = 0;
+    };
+
+    class TripchainItemLocationType_pskel: public virtual ::xml_schema::string_pskel
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual std::string
+      post_TripchainItemLocationType () = 0;
+    };
+
+    class SubTrip_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      mode (const ::std::string&);
+
+      virtual void
+      isPrimaryMode (bool);
+
+      virtual void
+      ptLineId (const ::std::string&);
+
+      virtual sim_mob::SubTrip
+      post_SubTrip_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      mode_parser (::xml_schema::string_pskel&);
+
+      void
+      isPrimaryMode_parser (::xml_schema::boolean_pskel&);
+
+      void
+      ptLineId_parser (::xml_schema::string_pskel&);
+
+      void
+      parsers (::xml_schema::string_pskel& /* mode */,
+               ::xml_schema::boolean_pskel& /* isPrimaryMode */,
+               ::xml_schema::string_pskel& /* ptLineId */);
+
+      // Constructor.
+      //
+      SubTrip_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::string_pskel* mode_parser_;
+      ::xml_schema::boolean_pskel* isPrimaryMode_parser_;
+      ::xml_schema::string_pskel* ptLineId_parser_;
+    };
+
+    class SubTrips_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      subTrip (sim_mob::SubTrip);
+
+      virtual std::vector<sim_mob::SubTrip>
+      post_SubTrips_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      subTrip_parser (::sim_mob::xml::SubTrip_t_pskel&);
+
+      void
+      parsers (::sim_mob::xml::SubTrip_t_pskel& /* subTrip */);
+
+      // Constructor.
+      //
+      SubTrips_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::SubTrip_t_pskel* subTrip_parser_;
+    };
+
+    class TripChainItem_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      personID (long long);
+
+      virtual void
+      itemType (std::string);
+
+      virtual void
+      sequenceNumber (unsigned int);
+
+      virtual void
+      startTime (const ::std::string&);
+
+      virtual void
+      endTime (const ::std::string&);
+
+      virtual sim_mob::TripChainItem*
+      post_TripChainItem_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      personID_parser (::xml_schema::integer_pskel&);
+
+      void
+      itemType_parser (::sim_mob::xml::TripchainItemType_pskel&);
+
+      void
+      sequenceNumber_parser (::xml_schema::unsigned_int_pskel&);
+
+      void
+      startTime_parser (::xml_schema::string_pskel&);
+
+      void
+      endTime_parser (::xml_schema::string_pskel&);
+
+      void
+      parsers (::xml_schema::integer_pskel& /* personID */,
+               ::sim_mob::xml::TripchainItemType_pskel& /* itemType */,
+               ::xml_schema::unsigned_int_pskel& /* sequenceNumber */,
+               ::xml_schema::string_pskel& /* startTime */,
+               ::xml_schema::string_pskel& /* endTime */);
+
+      // Constructor.
+      //
+      TripChainItem_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::integer_pskel* personID_parser_;
+      ::sim_mob::xml::TripchainItemType_pskel* itemType_parser_;
+      ::xml_schema::unsigned_int_pskel* sequenceNumber_parser_;
+      ::xml_schema::string_pskel* startTime_parser_;
+      ::xml_schema::string_pskel* endTime_parser_;
+    };
+
+    class Trip_t_pskel: public virtual ::sim_mob::xml::TripChainItem_t_pskel
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      tripID (long long);
+
+      virtual void
+      fromLocation (unsigned int);
+
+      virtual void
+      fromLocationType (std::string);
+
+      virtual void
+      toLocation (unsigned int);
+
+      virtual void
+      toLocationType (std::string);
+
+      virtual void
+      subTrips (std::vector<sim_mob::SubTrip>);
+
+      virtual sim_mob::TripChainItem*
+      post_Trip_t ();
+
+      // Parser construction API.
+      //
+      void
+      tripID_parser (::xml_schema::integer_pskel&);
+
+      void
+      fromLocation_parser (::xml_schema::unsigned_int_pskel&);
+
+      void
+      fromLocationType_parser (::sim_mob::xml::TripchainItemLocationType_pskel&);
+
+      void
+      toLocation_parser (::xml_schema::unsigned_int_pskel&);
+
+      void
+      toLocationType_parser (::sim_mob::xml::TripchainItemLocationType_pskel&);
+
+      void
+      subTrips_parser (::sim_mob::xml::SubTrips_t_pskel&);
+
+      void
+      parsers (::xml_schema::integer_pskel& /* personID */,
+               ::sim_mob::xml::TripchainItemType_pskel& /* itemType */,
+               ::xml_schema::unsigned_int_pskel& /* sequenceNumber */,
+               ::xml_schema::string_pskel& /* startTime */,
+               ::xml_schema::string_pskel& /* endTime */,
+               ::xml_schema::integer_pskel& /* tripID */,
+               ::xml_schema::unsigned_int_pskel& /* fromLocation */,
+               ::sim_mob::xml::TripchainItemLocationType_pskel& /* fromLocationType */,
+               ::xml_schema::unsigned_int_pskel& /* toLocation */,
+               ::sim_mob::xml::TripchainItemLocationType_pskel& /* toLocationType */,
+               ::sim_mob::xml::SubTrips_t_pskel& /* subTrips */);
+
+      // Constructor.
+      //
+      Trip_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::integer_pskel* tripID_parser_;
+      ::xml_schema::unsigned_int_pskel* fromLocation_parser_;
+      ::sim_mob::xml::TripchainItemLocationType_pskel* fromLocationType_parser_;
+      ::xml_schema::unsigned_int_pskel* toLocation_parser_;
+      ::sim_mob::xml::TripchainItemLocationType_pskel* toLocationType_parser_;
+      ::sim_mob::xml::SubTrips_t_pskel* subTrips_parser_;
+    };
+
+    class Activity_t_pskel: public virtual ::sim_mob::xml::TripChainItem_t_pskel
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      description (const ::std::string&);
+
+      virtual void
+      location (unsigned int);
+
+      virtual void
+      locationType (std::string);
+
+      virtual void
+      isPrimary (bool);
+
+      virtual void
+      isFlexible (bool);
+
+      virtual void
+      isMandatory (bool);
+
+      virtual sim_mob::TripChainItem*
+      post_Activity_t ();
+
+      // Parser construction API.
+      //
+      void
+      description_parser (::xml_schema::string_pskel&);
+
+      void
+      location_parser (::xml_schema::unsigned_int_pskel&);
+
+      void
+      locationType_parser (::sim_mob::xml::TripchainItemLocationType_pskel&);
+
+      void
+      isPrimary_parser (::xml_schema::boolean_pskel&);
+
+      void
+      isFlexible_parser (::xml_schema::boolean_pskel&);
+
+      void
+      isMandatory_parser (::xml_schema::boolean_pskel&);
+
+      void
+      parsers (::xml_schema::integer_pskel& /* personID */,
+               ::sim_mob::xml::TripchainItemType_pskel& /* itemType */,
+               ::xml_schema::unsigned_int_pskel& /* sequenceNumber */,
+               ::xml_schema::string_pskel& /* startTime */,
+               ::xml_schema::string_pskel& /* endTime */,
+               ::xml_schema::string_pskel& /* description */,
+               ::xml_schema::unsigned_int_pskel& /* location */,
+               ::sim_mob::xml::TripchainItemLocationType_pskel& /* locationType */,
+               ::xml_schema::boolean_pskel& /* isPrimary */,
+               ::xml_schema::boolean_pskel& /* isFlexible */,
+               ::xml_schema::boolean_pskel& /* isMandatory */);
+
+      // Constructor.
+      //
+      Activity_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::string_pskel* description_parser_;
+      ::xml_schema::unsigned_int_pskel* location_parser_;
+      ::sim_mob::xml::TripchainItemLocationType_pskel* locationType_parser_;
+      ::xml_schema::boolean_pskel* isPrimary_parser_;
+      ::xml_schema::boolean_pskel* isFlexible_parser_;
+      ::xml_schema::boolean_pskel* isMandatory_parser_;
+    };
+
+    class TripChain_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      personID (long long);
+
+      virtual void
+      Trip (sim_mob::TripChainItem*);
+
+      virtual void
+      Activity (sim_mob::TripChainItem*);
+
+      virtual std::pair<unsigned long,sim_mob::TripChainItem*>
+      post_TripChain_t () = 0;
+
+      // Parser construction API.
+      //
+      void
+      personID_parser (::xml_schema::integer_pskel&);
+
+      void
+      Trip_parser (::sim_mob::xml::Trip_t_pskel&);
+
+      void
+      Activity_parser (::sim_mob::xml::Activity_t_pskel&);
+
+      void
+      parsers (::xml_schema::integer_pskel& /* personID */,
+               ::sim_mob::xml::Trip_t_pskel& /* Trip */,
+               ::sim_mob::xml::Activity_t_pskel& /* Activity */);
+
+      // Constructor.
+      //
+      TripChain_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::xml_schema::integer_pskel* personID_parser_;
+      ::sim_mob::xml::Trip_t_pskel* Trip_parser_;
+      ::sim_mob::xml::Activity_t_pskel* Activity_parser_;
+    };
+
+    class TripChains_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      TripChain (std::pair<unsigned long,sim_mob::TripChainItem*>);
+
+      virtual void
+      post_TripChains_t ();
+
+      // Parser construction API.
+      //
+      void
+      TripChain_parser (::sim_mob::xml::TripChain_t_pskel&);
+
+      void
+      parsers (::sim_mob::xml::TripChain_t_pskel& /* TripChain */);
+
+      // Constructor.
+      //
+      TripChains_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::TripChain_t_pskel* TripChain_parser_;
+    };
+
+    class GeoSpatial_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      RoadNetwork ();
+
+      virtual void
+      post_GeoSpatial_t ();
+
+      // Parser construction API.
+      //
+      void
+      RoadNetwork_parser (::sim_mob::xml::RoadNetwork_t_pskel&);
+
+      void
+      parsers (::sim_mob::xml::RoadNetwork_t_pskel& /* RoadNetwork */);
+
+      // Constructor.
+      //
+      GeoSpatial_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::RoadNetwork_t_pskel* RoadNetwork_parser_;
+    };
+
+    class SimMobility_t_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      GeoSpatial ();
+
+      virtual void
+      TripChains ();
+
+      virtual void
+      post_SimMobility_t ();
+
+      // Parser construction API.
+      //
+      void
+      GeoSpatial_parser (::sim_mob::xml::GeoSpatial_t_pskel&);
+
+      void
+      TripChains_parser (::sim_mob::xml::TripChains_t_pskel&);
+
+      void
+      parsers (::sim_mob::xml::GeoSpatial_t_pskel& /* GeoSpatial */,
+               ::sim_mob::xml::TripChains_t_pskel& /* TripChains */);
+
+      // Constructor.
+      //
+      SimMobility_t_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::GeoSpatial_t_pskel* GeoSpatial_parser_;
+      ::sim_mob::xml::TripChains_t_pskel* TripChains_parser_;
+    };
+
+    class Lanes_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      Lane (sim_mob::Lane*);
+
+      virtual std::vector<sim_mob::Lane*>
+      post_Lanes () = 0;
+
+      // Parser construction API.
+      //
+      void
+      Lane_parser (::sim_mob::xml::lane_t_pskel&);
+
+      void
+      parsers (::sim_mob::xml::lane_t_pskel& /* Lane */);
+
+      // Constructor.
+      //
+      Lanes_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::lane_t_pskel* Lane_parser_;
+    };
+
+    class Segments_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      FWDSegments (std::vector<sim_mob::RoadSegment*>);
+
+      virtual void
+      BKDSegments (std::vector<sim_mob::RoadSegment*>);
+
+      virtual std::pair<std::vector<sim_mob::RoadSegment*>,std::vector<sim_mob::RoadSegment*> >
+      post_Segments () = 0;
+
+      // Parser construction API.
+      //
+      void
+      FWDSegments_parser (::sim_mob::xml::fwdBckSegments_t_pskel&);
+
+      void
+      BKDSegments_parser (::sim_mob::xml::fwdBckSegments_t_pskel&);
+
+      void
+      parsers (::sim_mob::xml::fwdBckSegments_t_pskel& /* FWDSegments */,
+               ::sim_mob::xml::fwdBckSegments_t_pskel& /* BKDSegments */);
+
+      // Constructor.
+      //
+      Segments_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::fwdBckSegments_t_pskel* FWDSegments_parser_;
+      ::sim_mob::xml::fwdBckSegments_t_pskel* BKDSegments_parser_;
+    };
+
+    class Nodes_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      UniNodes (std::set<sim_mob::UniNode*>&);
+
+      virtual void
+      Intersections (std::vector<sim_mob::MultiNode*>&);
+
+      virtual void
+      roundabouts (std::vector<sim_mob::MultiNode*>&);
+
+      virtual void
+      post_Nodes ();
+
+      // Parser construction API.
+      //
+      void
+      UniNodes_parser (::sim_mob::xml::UniNodes_pskel&);
+
+      void
+      Intersections_parser (::sim_mob::xml::Intersections_pskel&);
+
+      void
+      roundabouts_parser (::sim_mob::xml::roundabouts_pskel&);
+
+      void
+      parsers (::sim_mob::xml::UniNodes_pskel& /* UniNodes */,
+               ::sim_mob::xml::Intersections_pskel& /* Intersections */,
+               ::sim_mob::xml::roundabouts_pskel& /* roundabouts */);
+
+      // Constructor.
+      //
+      Nodes_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::UniNodes_pskel* UniNodes_parser_;
+      ::sim_mob::xml::Intersections_pskel* Intersections_parser_;
+      ::sim_mob::xml::roundabouts_pskel* roundabouts_parser_;
+    };
+
+    class Links_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      Link (sim_mob::Link*);
+
+      virtual std::vector<sim_mob::Link*>
+      post_Links () = 0;
+
+      // Parser construction API.
+      //
+      void
+      Link_parser (::sim_mob::xml::link_t_pskel&);
+
+      void
+      parsers (::sim_mob::xml::link_t_pskel& /* Link */);
+
+      // Constructor.
+      //
+      Links_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::link_t_pskel* Link_parser_;
+    };
+
+    class UniNodes_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      UniNode (sim_mob::UniNode*);
+
+      virtual std::set<sim_mob::UniNode*>&
+      post_UniNodes () = 0;
+
+      // Parser construction API.
+      //
+      void
+      UniNode_parser (::sim_mob::xml::UniNode_t_pskel&);
+
+      void
+      parsers (::sim_mob::xml::UniNode_t_pskel& /* UniNode */);
+
+      // Constructor.
+      //
+      UniNodes_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::UniNode_t_pskel* UniNode_parser_;
+    };
+
+    class Intersections_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      Intersection (sim_mob::MultiNode*);
+
+      virtual std::vector<sim_mob::MultiNode*>&
+      post_Intersections () = 0;
+
+      // Parser construction API.
+      //
+      void
+      Intersection_parser (::sim_mob::xml::intersection_t_pskel&);
+
+      void
+      parsers (::sim_mob::xml::intersection_t_pskel& /* Intersection */);
+
+      // Constructor.
+      //
+      Intersections_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::intersection_t_pskel* Intersection_parser_;
+    };
+
+    class roundabouts_pskel: public ::xml_schema::complex_content
+    {
+      public:
+      // Parser callbacks. Override them in your implementation.
+      //
+      // virtual void
+      // pre ();
+
+      virtual void
+      roundabout (sim_mob::MultiNode*);
+
+      virtual std::vector<sim_mob::MultiNode*>&
+      post_roundabouts () = 0;
+
+      // Parser construction API.
+      //
+      void
+      roundabout_parser (::sim_mob::xml::roundabout_t_pskel&);
+
+      void
+      parsers (::sim_mob::xml::roundabout_t_pskel& /* roundabout */);
+
+      // Constructor.
+      //
+      roundabouts_pskel ();
+
+      // Implementation.
+      //
+      protected:
+      virtual bool
+      _start_element_impl (const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string&,
+                           const ::xml_schema::ro_string*);
+
+      virtual bool
+      _end_element_impl (const ::xml_schema::ro_string&,
+                         const ::xml_schema::ro_string&);
+
+      protected:
+      ::sim_mob::xml::roundabout_t_pskel* roundabout_parser_;
+    };
+  }
 }
 
 #include <xsd/cxx/post.hxx>

@@ -4,6 +4,6 @@
 //  our geospatial items from XML.
 
 //TODO: Split up various implementation files.
-//#include "implementation/geo9-pimpl.hpp"
+#include "implementation/geo9-pimpl.hpp"
 
 

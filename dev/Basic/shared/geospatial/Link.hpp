@@ -7,6 +7,8 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <algorithm>
+#include <iterator>
 
 #include "GenConfig.h"
 
@@ -14,10 +16,11 @@
 
 //TODO: Once the new signal class is stabilized, replace this include with a forward declaration:
 #include "entities/signal_transitional.hpp"
-namespace geo
-{
-class link_t_pimpl;
-}
+
+//namespace geo {
+//class link_t_pimpl;
+//}
+
 namespace sim_mob
 {
 
@@ -52,6 +55,19 @@ class Link : public sim_mob::Traversable {
 public:
 	Link() : Traversable() {}
 	Link(unsigned int linkID_) : Traversable(),linkID(linkID_) {}
+
+	//TODO: Temp, for XML
+	void setStart(sim_mob::Node* st) { this->start = st; }
+	void setEnd(sim_mob::Node* en) { this->end = en; }
+	void setSegmentList(const std::vector<sim_mob::RoadSegment*>& fwd, const std::vector<sim_mob::RoadSegment*>& rev) {
+		this->fwdSegments = fwd;
+		this->revSegments = rev;
+
+		//Rebuild unique list
+		uniqueSegments.clear();
+		std::copy(fwdSegments.begin(), fwdSegments.end(), std::inserter(uniqueSegments,uniqueSegments.end()));
+		std::copy(revSegments.begin(), revSegments.end(), std::inserter(uniqueSegments,uniqueSegments.end()));
+	}
 
 	//Initialize a link with the given set of segments
 	void initializeLinkSegments(const std::set<sim_mob::RoadSegment*>& segments);
@@ -112,7 +128,6 @@ protected:
 friend class sim_mob::aimsun::Loader;
 friend class sim_mob::RoadNetworkPackageManager;
 friend class sim_mob::Signal;
-friend class ::geo::link_t_pimpl;
 };
 
 

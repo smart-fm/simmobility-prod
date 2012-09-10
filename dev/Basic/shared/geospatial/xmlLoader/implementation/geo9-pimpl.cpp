@@ -4,7 +4,8 @@
 // an XML Schema to C++ data binding compiler. You may use it in your
 // programs without any restrictions.
 //
-#include "geo8-pimpl.hpp"
+#include "geo9-pimpl.hpp"
+
 #include <cstdio>
 #include <iostream>
 #include <boost/bimap.hpp>
@@ -18,8 +19,10 @@
 #include <boost/multi_index/composite_key.hpp>
 #include <boost/multi_index/mem_fun.hpp>
 using boost::multi_index::get;
-namespace geo
-{
+
+namespace sim_mob {
+namespace xml {
+
 struct geo_LinkLoc_mapping
 {
 	geo_LinkLoc_mapping(unsigned int linkID_=0,std::vector<sim_mob::Node*> node_=std::vector<sim_mob::Node*>(),sim_mob::Node *rawNode_=0):
@@ -484,7 +487,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 	  this->rs->setLanes(Lanes);
 	  //set parentsegment for each lane
 	  const std::vector<sim_mob::Lane*>& rs_lanes = this->rs->getLanes();
-	  for(std::vector<sim_mob::Lane*>::const_iterator it = rs_lanes.begin(); it != rs_lanes.end(); it++) {
+	  for(std::vector<sim_mob::Lane*>::const_iterator it = rs_lanes.begin(); it!=rs_lanes.end(); it++) {
 		  const_cast<sim_mob::Lane*>(*it)->setParentSegment(this->rs);
 	  }
 	  std::cout << "In segment_t_pimpl:: Lanes (" << this->rs->getLanes().size() << ")--done\n";
@@ -575,7 +578,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   sim_mob::Link* link_t_pimpl::
   post_link_t ()
   {
-//	  std::cout << "In link_t_pimpl::post_link_t, segments(" << link->fwdSegments.size() << "," << link->revSegments.size() << "\n";
+	 // std::cout << "In link_t_pimpl::post_link_t, segments(" << link->fwdSegments.size() << "," << link->revSegments.size() << "\n";
     return link;
   }
 
@@ -942,11 +945,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 //		    	std::cout << "uninode " << this->uniNode << " was Assigned node1\n ";
 //		    }
 //		    else
-//		        /*if(it->node2 == 0)*/
-//		        {
-//		        	it->node2 =(this->uniNode);
-//			    	std::cout << /*"For link(" << it->linkID << ") node1 was full(" << it->node1 << ") so */ "uninode " << this->uniNode << " was Assigned node2\n ";
-//		        }
+
 	    }
 
 //	  delete v;
@@ -1104,11 +1103,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 //        	std::cout << "mnode " << this->intersection << " was Assigned node1\n ";
 //        }
 //        else
-//            /*if(it->node2 == 0)*/
-//            {
-//            	it->node2 =(this->intersection);
-//    	    	std::cout << "mnode " << this->intersection << " was Assigned node2\n ";
-//            }
+
     	//getchar();
     }
 //    sim_mob::MultiNode **mNode;
@@ -1929,8 +1924,8 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 		  geo_UniNode_Connectors_type geo_UniNode_Connectors_ = geo_UniNodeConnectorsMap[(*node_it)->getID()];
 		  //std::map<const sim_mob::Lane*, sim_mob::Lane*> & connectors = (*node_it)->connectors;
 		  for(geo_UniNode_Connectors_type::iterator  lane_cnn_it = geo_UniNode_Connectors_.begin(); lane_cnn_it != geo_UniNode_Connectors_.end(); lane_cnn_it++) {
-			(*node_it)->setConnectorAt(geo_Lanes_[(*lane_cnn_it).first], geo_Lanes_[(*lane_cnn_it).second]);
-			//  connectors[geo_Lanes_[(*lane_cnn_it).first]] = geo_Lanes_[(*lane_cnn_it).second];
+		  (*node_it)->setConnectorAt(geo_Lanes_[(*lane_cnn_it).first], geo_Lanes_[(*lane_cnn_it).second]);
+		  //  connectors[geo_Lanes_[(*lane_cnn_it).first]] = geo_Lanes_[(*lane_cnn_it).second];
 		  }
 	  }
 	  std::cout << "In GeoSpatial_t_pimpl.RoadNetwork ()3\n";
@@ -2072,10 +2067,10 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   {
 	  rn.addNodes(roundabouts);
 
-	  //std::cout<< "roundabouts inserting size " << roundabouts.size() << std::endl;
+	 // std::cout<< "roundabouts inserting size " << roundabouts.size() << std::endl;
 	  //if((roundabouts.begin() != roundabouts.end())&& roundabouts.size() > 0 )
 	//	  rn.nodes.insert(rn.nodes.end(),roundabouts.begin(),roundabouts.end());
-	  //std::cout<< "roundabouts inserted\n";
+	 // std::cout<< "roundabouts inserted\n";
     // TODO
     //
   }
@@ -2171,5 +2166,6 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   {
 	  return roundabouts;
   }
-}
+
+}}
 

@@ -4,12 +4,15 @@
 
 #include <string>
 #include <sstream>
-namespace geo
-{
+
+
+/*namespace geo {
 class Node_t_pimpl;
 class intersection_t_pimpl;
 class UniNode_t_pimpl;
-}
+}*/
+
+
 namespace sim_mob
 {
 
@@ -21,9 +24,6 @@ namespace sim_mob
  */
 template <typename T>
 class OpaqueProperty {
-	friend class ::geo::Node_t_pimpl;
-	friend class ::geo::UniNode_t_pimpl;
-	friend class ::geo::intersection_t_pimpl;
 private:
 	std::string repr_;
 
@@ -43,10 +43,11 @@ public:
 		return repr_;
 	}
 
-	void operator==(sim_mob::OpaqueProperty<T> src)
-		{
-		this->repr_ = src.repr_;
-		}
+	//Allow assigning from a string
+	sim_mob::OpaqueProperty<T>& operator=(const std::string& srcStr) {
+		this->repr_ = srcStr;
+		return *this;
+	}
 };
 
 

@@ -222,52 +222,54 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	typedef std::map<unsigned int, vector<TripChainItem*> >::const_iterator TCMapIt;
 	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
 		for (TCVectIt it=it_map->second.begin(); it!=it_map->second.end(); it++) {
-		const TripChainItem* const tc = *it;
+			const TripChainItem* const tc = *it;
 
-		//If the agent pointer is null, this record represents the start of a new agent.
-		if (!currAg) {
-			//Might have an EntityID conflict here...
-			currAg = new Person("DB_TripChain", config.mutexStategy, tc->personID);
+			//If the agent pointer is null, this record represents the start of a new agent.
+			if (!currAg) {
+				//Might have an EntityID conflict here...
+				currAg = new Person("DB_TripChain", config.mutexStategy, tc->personID);
 
-			//Set the start time for this Agent; clear the trip chain.
-			currAg->setStartTime(tc->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
-			currAgTripChain.clear();
+				//Set the start time for this Agent; clear the trip chain.
+				currAg->setStartTime(tc->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
+				currAgTripChain.clear();
 
-			//The origin and destination depend on whether this is a Trip or an Activity
-			const Trip* trip = dynamic_cast<const Trip*>(tc);
-			const Activity* act = dynamic_cast<const Activity*>(tc);
+				//The origin and destination depend on whether this is a Trip or an Activity
+				const Trip* trip = dynamic_cast<const Trip*>(tc);
+				const Activity* act = dynamic_cast<const Activity*>(tc);
 
-			if (trip && tc->itemType==TripChainItem::IT_TRIP) {
-				currAg->originNode = trip->fromLocation;
-				currAg->destNode = trip->toLocation;
-				trip_mode = trip->getSubTrips()[0].mode;// currently choose the first subtrip mode as the mode of the trip
-			} else if (act && tc->itemType==TripChainItem::IT_ACTIVITY) {
-				currAg->originNode = currAg->destNode = act->location;
-			} else { //Offer some protection
-				throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
-			}
-		}
-
-		//Regardless, add this TripChainItem to the current Agent's trip chain.
-		currAgTripChain.push_back(tc);
-
-		//We must finalize this agent if we are at the end of the array, or if the next item does not have the same entity ID.
-		TCVectIt next = it+1;
-		if (next==it_map->second.end() || (*next)->personID!=currAg->getId()) {
-			//Save the trip chain and the Agent.
-			currAg->setTripChain(currAgTripChain);
-			if(trip_mode == "Bus") {
-				// currently only one
-				if(!BusController::all_busctrllers_.empty()) {
-					BusController::all_busctrllers_[0]->addOrStashBuses(currAg, active_agents);
+				if (trip && tc->itemType==TripChainItem::IT_TRIP) {
+					const SubTrip* firstSubTrip = trip->getSubTrips()[0];
+					//Origin and destination must be those of the first subtrip if current item is a trip
+					currAg->originNode = firstSubTrip->fromLocation;
+					currAg->destNode = firstSubTrip->toLocation;
+					trip_mode = firstSubTrip->mode;// currently choose the first subtrip mode as the mode of the trip
+				} else if (act && tc->itemType==TripChainItem::IT_ACTIVITY) {
+					currAg->originNode = currAg->destNode = act->location;
+				} else { //Offer some protection
+					throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
 				}
-			} else {
-				addOrStashEntity(currAg, active_agents, pending_agents);
 			}
 
-			//Reset for the next (possible) Agent
-			currAg = nullptr;
-		}
+			//Regardless, add this TripChainItem to the current Agent's trip chain.
+			currAgTripChain.push_back(tc);
+
+			//We must finalize this agent if we are at the end of the array, or if the next item does not have the same entity ID.
+			TCVectIt next = it+1;
+			if (next==it_map->second.end() || (*next)->personID!=currAg->getId()) {
+				//Save the trip chain and the Agent.
+				currAg->setTripChain(currAgTripChain);
+				if(trip_mode == "Bus") {
+					// currently only one
+					if(!BusController::all_busctrllers_.empty()) {
+						BusController::all_busctrllers_[0]->addOrStashBuses(currAg, active_agents);
+					}
+				} else {
+					addOrStashEntity(currAg, active_agents, pending_agents);
+				}
+
+				//Reset for the next (possible) Agent
+				currAg = nullptr;
+			}
 		}//inner for loop(vector)
 	}//outer for loop(map)
 }

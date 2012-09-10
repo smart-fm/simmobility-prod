@@ -1565,6 +1565,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void Trip_t_pimpl::
   tripID (long long tripID)
   {
+	  if(!trip) return;
 	    std::cout << "In Trip_t_pimpl::tripID ()" << tripID << std::endl;
 	  //getchar();
 	  trip->tripID = tripID;
@@ -1574,6 +1575,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void Trip_t_pimpl::
   fromLocation (unsigned int fromLocation)
   {
+	  if(!trip) return;
 	  std::cout << "In Trip_t_pimpl::fromLocation ()"  << std::endl;
 	  trip->fromLocation = geo_Nodes_[fromLocation];
   }
@@ -1581,6 +1583,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void Trip_t_pimpl::
   fromLocationType (std::string fromLocationType)
   {
+	  if(!trip) return;
 	  std::cout << "In Trip_t_pimpl::fromLocationType ()"  << std::endl;
 	  if(fromLocationType == "LT_BUILDING")
 		  trip->fromLocationType = sim_mob::TripChainItem::LT_BUILDING;
@@ -1599,6 +1602,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void Trip_t_pimpl::
   toLocation (unsigned int toLocation)
   {
+	  if(!trip) return;
 	  std::cout << "In Trip_t_pimpl::toLocation ()"  << std::endl;
 	  trip->toLocation = geo_Nodes_[toLocation];
   }
@@ -1606,6 +1610,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void Trip_t_pimpl::
   toLocationType (std::string toLocationType)
   {
+	  if(!trip) return;
 	  std::cout << "In Trip_t_pimpl::toLocationType ()"  << std::endl;
 	  if(toLocationType == "LT_BUILDING")
 		  trip->toLocationType = sim_mob::TripChainItem::LT_BUILDING;
@@ -1623,6 +1628,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void Trip_t_pimpl::
   subTrips (std::vector<sim_mob::SubTrip> subTrips)
   {
+	  if(!trip) return;
 	  std::cout << "In Trip_t_pimpl::subTrips ()"  << std::endl;
 	  trip->subTrips =  subTrips;
   }
@@ -1630,6 +1636,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   sim_mob::TripChainItem* Trip_t_pimpl::
   post_Trip_t ()
   {
+	  if(!trip) return 0;
 	  std::cout << "In Trip_t_pimpl::post_Trip_t ()"  << std::endl;
      sim_mob::TripChainItem* v = post_TripChainItem_t ();
 	if (v) {

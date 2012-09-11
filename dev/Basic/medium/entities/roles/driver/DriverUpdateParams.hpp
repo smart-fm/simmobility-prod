@@ -43,6 +43,7 @@ struct DriverUpdateParams : public UpdateParams {
 	double currLaneOffset;
 	double currLaneLength;
 	double elapsedSeconds;
+	double timeSpent;
 
 	DriverUpdateParams& operator=(DriverUpdateParams rhs)
 	{

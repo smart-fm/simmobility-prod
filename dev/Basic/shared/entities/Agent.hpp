@@ -173,6 +173,7 @@ public:
 	void setCurrEvent(PendingEvent* value) { currEvent = value; }
 	PendingEvent* getCurrEvent() { return currEvent; }
 
+	bool isQueuing; //added by melani for mid-term driver
 
 private:
 	//unsigned int currMode;

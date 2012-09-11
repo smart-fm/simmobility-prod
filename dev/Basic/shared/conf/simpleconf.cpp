@@ -1275,6 +1275,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     		sim_mob::xml::InitAndLoadXML();
     		//testing purpose only
     		std::cout << "Testin Road Network :\n";
+
     		std::vector<Link*>  & links = const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getLinksRW();
     		std::cout << "Number of Links: " << links.size() << std::endl;
 

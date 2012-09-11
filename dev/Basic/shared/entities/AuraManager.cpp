@@ -381,14 +381,22 @@ void AuraManager::Impl::updateDensity(const Agent* ag, boost::unordered_map<cons
 
 				if(segDensityIt != densities.end()){
 					SegmentDensity* segDensity = segDensityIt->second;
-					if(ag->isQueuing) segDensity->incrementCounts(ag->getCurrLane(),0,1);
-					else segDensity->incrementCounts(ag->getCurrLane(),1,0);
+					if(ag->isQueuing) {
+						segDensity->incrementCounts(ag->getCurrLane(),0,1);
+					}
+					else {
+						segDensity->incrementCounts(ag->getCurrLane(),1,0);
+					}
 				}
 				else
 				{
 					SegmentDensity* segDensity = new sim_mob::SegmentDensity(rdSeg);
-					if(ag->isQueuing) segDensity->incrementCounts(ag->getCurrLane(),0,1);
-					else segDensity->incrementCounts(ag->getCurrLane(),1,0);
+					if(ag->isQueuing) {
+						segDensity->incrementCounts(ag->getCurrLane(),0,1);
+					}
+					else {
+						segDensity->incrementCounts(ag->getCurrLane(),1,0);
+					}
 					densities[rdSeg] = segDensity;
 				}
 

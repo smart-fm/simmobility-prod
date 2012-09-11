@@ -678,7 +678,7 @@ double sim_mob::medium::Driver::speed_density_function(sim_mob::SegmentDensity* 
 	 * Since we don't have this data, we have taken the average values from supply parameters of Singapore expressways.
 	 * This must be changed after we have this data for each road segment in the network.
 	 *
-	 * A params struct for these parameters is already defined in the RoadSegment class.
+	 * TODO: A params struct for these parameters is already defined in the RoadSegment class.
 	 * This struct is to be used when we have actual values for the parameters.
 	 */
 

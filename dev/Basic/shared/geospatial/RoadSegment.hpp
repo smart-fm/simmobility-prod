@@ -39,16 +39,18 @@ class LaneLoader;
  * SpeedDensityParams is the place holder for storing the parameters of the
  * speed density function for this road segment.
  */
-struct SpeedDensityParams {
+struct SupplyParams {
 	double freeFlowSpeed; //Maximum speed of the road segment
-	double jamDensity; //density during traffic jam
-	double minDensity; // minimum traffic density
+	double jamDensity; //density during traffic jam in vehicles / m
+	double minDensity; //minimum traffic density in vehicles / m
+	double minSpeed; //minimum speed in the segment
+	double capacity; //segment capacity in vehicles/second
 	double alpha; //Model parameter of speed density function
 	double beta; //Model parameter of speed density function
 
 
-	SpeedDensityParams(double maxSpeed, double maxDensity, double minDensity, double a, double b)
-		: freeFlowSpeed(maxSpeed), jamDensity(maxDensity), minDensity(minDensity), alpha(a), beta(b){}
+	SupplyParams(double maxSpeed, double minSpeed, double maxDensity, double minDensity, double capacity, double a, double b)
+		: freeFlowSpeed(maxSpeed), jamDensity(maxDensity), minDensity(minDensity), minSpeed(minSpeed), capacity(capacity), alpha(a), beta(b){}
 };
 
 /**
@@ -68,7 +70,7 @@ public:
 	explicit RoadSegment(sim_mob::Link* parent, unsigned long id);
 
 	//to be used when we have the actual values for speed density parameters
-	explicit RoadSegment(sim_mob::Link* parent, unsigned long id, const SpeedDensityParams* sdParams);
+	explicit RoadSegment(sim_mob::Link* parent, unsigned long id, const SupplyParams* sParams);
 
 	const unsigned long  & getSegmentID()const ;
 
@@ -114,8 +116,8 @@ public:
 	mutable std::vector<std::vector<sim_mob::Point2D> > laneEdgePolylines_cached;
 	void setLanes(std::vector<sim_mob::Lane*>);
 
-	const sim_mob::SpeedDensityParams* getSpeedDensityParams() {
-		return speedDensityParams;
+	const sim_mob::SupplyParams* getSupplyParams() {
+		return supplyParams;
 	}
 
 private:
@@ -141,7 +143,7 @@ private:
 	//	std::string segmentID;
 	unsigned long segmentID;
 
-	const sim_mob::SpeedDensityParams* speedDensityParams;
+	const sim_mob::SupplyParams* supplyParams;
 
 	friend class sim_mob::aimsun::Loader;
 	friend class sim_mob::aimsun::LaneLoader;

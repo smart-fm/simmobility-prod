@@ -33,8 +33,8 @@ sim_mob::RoadSegment::RoadSegment(Link* parent, unsigned long id)
 
 }
 
-sim_mob::RoadSegment::RoadSegment(Link* parent, unsigned long id, const SpeedDensityParams* sdParams)
-	: Pavement(), parentLink(parent),segmentID(id), speedDensityParams(sdParams)
+sim_mob::RoadSegment::RoadSegment(Link* parent, unsigned long id, const SupplyParams* sParams)
+	: Pavement(), parentLink(parent),segmentID(id), supplyParams(sParams)
 {
 
 }

@@ -10,11 +10,12 @@
 
 #include "entities/roles/Role.hpp"
 #include "geospatial/StreetDirectory.hpp"
-#include "entities/vehicle/Vehicle.hpp"
+#include "entities/vehicle/MidVehicle.hpp"
 #include "util/DynamicVector.hpp"
 #include "../short/entities/roles/driver/IntersectionDrivingModel.hpp"
 #include "DriverUpdateParams.hpp"
 #include "entities/AuraManager.hpp"
+#include "geospatial/LaneGroup.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
@@ -33,7 +34,6 @@ class Node;
 class MultiNode;
 class DPoint;
 class UpdateParams;
-class SegmentDensity;
 
 namespace medium
 {
@@ -58,7 +58,7 @@ public:
 	int remainingTimeToComplete;
 
 	//Driver(Agent* parent);
-	Driver(Person* parent, MutexStrategy mtxStrat);
+	Driver(Agent* parent, MutexStrategy mtxStrat);
 	virtual ~Driver();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
@@ -74,9 +74,14 @@ public:
 	void setParentBufferedData();			///<set next data to parent buffer data
 
 	//TODO: This may be risky, as it exposes non-buffered properties to other vehicles.
-	const Vehicle* getVehicle() const {return vehicle;}
+	const sim_mob::medium::MidVehicle* getVehicle() const {return vehicle;}
 
 	void intersectionVelocityUpdate();
+	void advance(DriverUpdateParams p);
+	void moveToNextSegment(double timeLeft);
+	void moveInQueue();
+	void addToQueue();
+	double getTimeSpentInTick(DriverUpdateParams p);
 
 private:
 	void chooseNextLaneForNextLink(DriverUpdateParams& p);
@@ -86,14 +91,17 @@ private:
 	void justLeftIntersection(DriverUpdateParams& p);
 	void syncCurrLaneCachedInfo(DriverUpdateParams& p);
 	void calculateIntersectionTrajectory(DPoint movingFrom, double overflow);
-	double speed_density_function(sim_mob::SegmentDensity* density, sim_mob::LaneGroup); ///<Called to compute the required speed of the driver from the density of the current road segment's traffic density
+
+	double speed_density_function(sim_mob::VehicleCounter* vehicleCounter, sim_mob::medium::LaneGroup* laneGroup); ///<Called to compute the required speed of the driver from the density of the current road segment's traffic density
+	void getBestTargetLane(const std::vector<const Lane*> targetLanes);
+
 
 protected:
 	virtual double updatePositionOnLink(DriverUpdateParams& p);
-	sim_mob::Vehicle* initializePath(bool allocateVehicle);
+	MidVehicle* initializePath(bool allocateVehicle);
 	//Helper: for special strings
-	void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);
-	void initTripChainSpecialString(const std::string& value);
+	//void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);
+	//void initTripChainSpecialString(const std::string& value);
 
 	void setOrigin(DriverUpdateParams& p);
 
@@ -133,7 +141,7 @@ private:
 	NodePoint goal;
 
 protected:
-	Vehicle* vehicle;
+	sim_mob::medium::MidVehicle* vehicle;
 	IntersectionDrivingModel* intModel;
 
 };

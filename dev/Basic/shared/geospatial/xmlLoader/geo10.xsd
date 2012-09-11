@@ -375,12 +375,12 @@
   </xs:complexType>
 
   <xs:complexType name="RoadItems_t">
-    <xs:all>
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
       <xs:element name="BusStop" type="geo:BusStop_t"/>
       <xs:element name="ERP_Gantry" type="geo:ERP_Gantry_t"/>
       <xs:element name="Crossing" type="geo:crossing_t"/>
       <xs:element name="RoadBump" type="geo:RoadBump_t"/>
-    </xs:all>
+    </xs:choice>
   </xs:complexType>
   <!--tripchain starts here-->
 
@@ -623,7 +623,7 @@
     <xs:sequence>
       <xs:element name="GeoSpatial" type="geo:GeoSpatial_t" minOccurs="0" maxOccurs="1"/>
       <xs:element name="TripChains" type="geo:TripChains_t" minOccurs="0" maxOccurs="1"/>
-      <xs:element name="Signals" type="geo:Signals_t" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="Signals" type="geo:Signals_t" minOccurs="0" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>
 

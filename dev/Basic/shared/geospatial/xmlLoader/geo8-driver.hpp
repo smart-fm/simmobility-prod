@@ -1,10 +1,8 @@
 #pragma once
 
-namespace sim_mob {
-namespace xml {
+namespace geo {
 
 //Sample driver function for our XML parser.
 bool InitAndLoadXML();
 
-}} //End sim_mob::xml
-
+}

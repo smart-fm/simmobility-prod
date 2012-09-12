@@ -1275,8 +1275,11 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
        		 * ****************  XML-READER *******************
         	 *
         	 *************************************************/
+#ifdef SIMMOB_PARTIAL_XML_READER
     		sim_mob::xml::InitAndLoadXML();
-
+#else
+    		geo::InitAndLoadXML();
+#endif
     		//Re-enable if you need diagnostic information. ~Seth
     		//runXmlChecks(ConfigParams::GetInstance().getNetwork().getLinks());
 #endif

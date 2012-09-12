@@ -74,12 +74,14 @@ public:
 	const sim_mob::medium::MidVehicle* getVehicle() const {return vehicle;}
 
 	void intersectionVelocityUpdate();
+	//melani-for queuing
 	void advance(DriverUpdateParams p);
 	void moveToNextSegment(double timeLeft);
 	void moveInQueue();
 	void addToQueue();
 	double getTimeSpentInTick(DriverUpdateParams p);
-
+	double getPosition();
+	void moveInSegment(double distance);
 private:
 	void chooseNextLaneForNextLink(DriverUpdateParams& p);
 	bool update_movement(DriverUpdateParams& params, frame_t frameNumber);       ///<Called to move vehicles forward.

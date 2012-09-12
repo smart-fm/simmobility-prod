@@ -630,18 +630,21 @@ double sim_mob::medium::Driver::speed_density_function(double density){
 }
 
 void sim_mob::medium::Driver::advance(DriverUpdateParams p){
-	//for time calculations in this functions, it would be more accurate to have time moved in current segment
+
+	double t0 = getTimeSpentInTick(p);
+	double x0 = vehicle->getDistanceMovedInSegment();
+
 	if (parent->isQueuing)
 	{
 		//not implemented
-		double outCount = getOutputCounter(p.currLane);
+		double output = getOutputCounter(p.currLane);
 		//not implemented
 		double outRate = getOutputFlowRate(p.currLane);
 		//getCurrSegment length to be tested
 		//getDistanceMovedinSeg to be updated with Max's method
-		double distToEndOfSegment = vehicle->getCurrSegment()->length - vehicle->getDistanceMovedInSegment();
+		double distToEndOfSegment = vehicle->getCurrSegment()->length - x0;
 		double timeLeftToLeaveQ = distToEndOfSegment/(vehicle->length*3.0*outRate);
-		if (outCount > 0 && timeLeftToLeaveQ < p.elapsedSeconds)
+		if (output > 0 && timeLeftToLeaveQ < p.elapsedSeconds)
 		{
 			//not implemented
 			moveToNextSegment(p.elapsedSeconds - timeLeftToLeaveQ);
@@ -656,7 +659,7 @@ void sim_mob::medium::Driver::advance(DriverUpdateParams p){
 	{
 		//getNextLinkAndPath();
 		//not implemented
-		double outCount = getOutputCounter(p.currLane);
+		double output = getOutputCounter(p.currLane);
 		//not implemented
 		double outRate = getOutputFlowRate(p.currLane);
 
@@ -673,9 +676,9 @@ void sim_mob::medium::Driver::advance(DriverUpdateParams p){
 		}
 		else if (laneQueueLength > 0)
 		{
-			double distToEndOfSegment = vehicle->getCurrSegment()->length - vehicle->getDistanceMovedInSegment();
+			double distToEndOfSegment = vehicle->getCurrSegment()->length - x0;
 			double distanceToReachQueue = distToEndOfSegment - laneQueueLength;
-			double timeToReachQueue = distanceToReachQueue/vehicle->getVelocity();
+			double timeToReachQueue = t0 + distanceToReachQueue/vehicle->getVelocity();
 
 			if (timeToReachQueue < p.elapsedSeconds)
 			{
@@ -690,12 +693,12 @@ void sim_mob::medium::Driver::advance(DriverUpdateParams p){
 		{
 			double timeToDissipateQ = /*initial*/laneQueueLength/(3.0*outRate*vehicle->length);
 			double distToEndOfSegment = vehicle->getCurrSegment()->length - vehicle->getDistanceMovedInSegment();
-			double timeToReachEndSeg = distToEndOfSegment/vehicle->getVelocity();
+			double timeToReachEndSeg = t0 + distToEndOfSegment/vehicle->getVelocity();
 			double tf = std::max(timeToDissipateQ, timeToReachEndSeg);
 
 			if (tf < p.elapsedSeconds)
 			{
-				if (outCount > 0)
+				if (output > 0)
 				{
 					moveToNextSegment(tf);
 				}
@@ -721,8 +724,8 @@ void sim_mob::medium::Driver::advance(DriverUpdateParams p){
 		}
 		else //no queue or no initial queue
 		{
-			double distToEndOfSegment = vehicle->getCurrSegment()->length - vehicle->getDistanceMovedInSegment();
-			double timeToReachEndSeg = distToEndOfSegment/vehicle->getVelocity();
+			double distToEndOfSegment = vehicle->getCurrSegment()->length - x0;
+			double timeToReachEndSeg = t0 + distToEndOfSegment/vehicle->getVelocity();
 			if (timeToReachEndSeg < p.elapsedSeconds)
 			{
 				moveToNextSegment(p.elapsedSeconds - timeToReachEndSeg);
@@ -754,4 +757,10 @@ void sim_mob::medium::Driver::addToQueue()
 double sim_mob::medium::Driver::getTimeSpentInTick(DriverUpdateParams p)
 {
 	return p.timeSpent;
+}
+
+void sim_mob::medium::Driver::moveInSegment(double distance)
+{
+	vehicle->setDistanceMovedInSegment(distance);
+
 }

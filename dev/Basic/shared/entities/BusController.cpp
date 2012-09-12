@@ -7,9 +7,18 @@
 using std::vector;
 using namespace sim_mob;
 typedef Entity::UpdateStatus UpdateStatus;
+vector<BusController*> BusController::all_busctrllers_;// Temporary saved all the buscontroller, eventually it will go to all agent stream
 
 //NOTE: Using a shared static variable is MUCH better than using a global variable. ~Seth
-sim_mob::BusController* sim_mob::BusController::busctrller = new sim_mob::BusController(0);
+//sim_mob::BusController* sim_mob::BusController::busctrller = new sim_mob::BusController(0);
+
+void sim_mob::BusController::registerBusController(unsigned int startTime, const MutexStrategy& mtxStrat)
+{
+	//TODO: Why not just use the Agent auto-id generator? (id==-1)  ~Seth
+	BusController * busctrller = new sim_mob::BusController(999);// If needed , add more  busctrllers and design id for them
+	busctrller->setStartTime(startTime);
+	all_busctrllers_.push_back(busctrller);
+}
 
 sim_mob::BusController::BusController(int id, const MutexStrategy& mtxStrat) :
 	Agent(mtxStrat, id),frameNumberCheck(0), nextTimeTickToStage(0), tickStep(1), firstFrameTick(true)
@@ -45,10 +54,12 @@ void sim_mob::BusController::updateBusInformation(DPoint pt) {
 	std::cout<<"Report Given Bus position: --->("<<posBus.x<<","<<posBus.y<<")"<<std::endl;
 }
 
-void sim_mob::BusController::addOrStashBuses(Person* p, std::vector<Entity*>& active_agents)
+void sim_mob::BusController::addOrStashBuses(Agent* p, std::vector<Entity*>& active_agents)
 {
 	if (ConfigParams::GetInstance().DynamicDispatchDisabled() || p->getStartTime()==0) {
 		//Only agents with a start time of zero should start immediately in the all_agents list.
+		p->load(p->getConfigProperties());
+		p->clearConfigProperties();
 		active_agents.push_back(p);
 	} else {
 		//Start later.

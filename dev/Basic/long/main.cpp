@@ -6,9 +6,16 @@
  */
 #include <iostream>
 
+#include "tinyxml.h"
+
+bool do_a_test() {
+	return false;
+}
+
 
 int main(int argc, char* argv[])
 {
+	do_a_test();
   std::cout <<"Long-Term simulator (not yet implemented)." <<std::endl;
 
   return 0;

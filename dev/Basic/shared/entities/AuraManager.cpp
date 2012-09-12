@@ -259,7 +259,7 @@ private:
      * This method increments the vehicle count for the road segment
      * on which the Agent's vehicle is currently in.
      */
-    void updateDensity(const Agent* ag);
+    void updateDensity(const Agent* ag, boost::unordered_map<const RoadSegment*, sim_mob::VehicleCounter*>& densities);
 };
 
 void
@@ -283,7 +283,11 @@ AuraManager::Impl::update()
     	throw std::runtime_error("all_agents is somehow storing an entity.");
     }
 
-    sim_mob::AuraManager::instance().densityMap.clear(); //the following while loop counts again
+    /*
+     * temp copy which counts current values.
+     * This prevents errors when drivers from other threads request for density when this update() is counting.
+    */
+    boost::unordered_map<const RoadSegment*, sim_mob::VehicleCounter*> temp_densityMap;
     while (agents.size() > 1)
     {
         agents.erase(agent);
@@ -291,10 +295,12 @@ AuraManager::Impl::update()
         agent = nearest_agent(agent, agents);
 
         //This is required for the medium term; adds a minor overhead in short term.
-		updateDensity(agent);
+		updateDensity(agent, temp_densityMap);
     }
     tree_.insert(agent);    // insert the last agent into the tree.
     assert(tree_.GetSize() == Agent::all_agents.size());
+
+    sim_mob::AuraManager::instance().vehicleCounts = temp_densityMap; // assign new densities to densityMap
 
 }
 
@@ -365,12 +371,35 @@ const
     return agentsInRect(lowerLeft, upperRight);
 }
 
-void AuraManager::Impl::updateDensity(const Agent* ag) {
-	sim_mob::AuraManager &auraMgr = sim_mob::AuraManager::instance();
-	if(ag->getCurrLane()){
-		sim_mob::RoadSegment* rdSeg = ag->getCurrLane()->getRoadSegment();
+void AuraManager::Impl::updateDensity(const Agent* ag, boost::unordered_map<const RoadSegment*, sim_mob::VehicleCounter*>& vehCounts) {
+	const sim_mob::Person* p = dynamic_cast<const sim_mob::Person*>(ag);
+	if(p){
+		if(p->getRole()->getResource()){
+			const sim_mob::RoadSegment* rdSeg = p->getRole()->getResource()->getCurrSegment();
+			boost::unordered_map<const RoadSegment*, VehicleCounter*>::iterator vehicleCountIt = vehCounts.find(rdSeg);
 
-		auraMgr.densityMap[rdSeg] = auraMgr.densityMap[rdSeg] + 1; // [] operator adds rdSeg to the map if it not already there.
+				if(vehicleCountIt != vehCounts.end()){
+					VehicleCounter* vehCounterForSeg = vehicleCountIt->second;
+					if(ag->isQueuing) {
+						vehCounterForSeg->incrementQueuingCount(ag->getCurrLane(),1);
+					}
+					else {
+						vehCounterForSeg->incrementMovingCount(ag->getCurrLane(),1);
+					}
+				}
+				else
+				{
+					VehicleCounter* vehCounterForSeg = new sim_mob::VehicleCounter(rdSeg);
+					if(ag->isQueuing) {
+						vehCounterForSeg->incrementQueuingCount(ag->getCurrLane(),1);
+					}
+					else {
+						vehCounterForSeg->incrementMovingCount(ag->getCurrLane(),1);
+					}
+					vehCounts[rdSeg] = vehCounterForSeg;
+				}
+
+		}
 	}
 }
 
@@ -424,17 +453,22 @@ AuraManager::printStatistics() const
     }
 }
 
-double AuraManager::getDensity(const RoadSegment* rdSeg) {
-	if(densityMap.empty()){
-		throw std::runtime_error("densityMap is empty");
+sim_mob::VehicleCounter* AuraManager::getDensity(const RoadSegment* rdSeg) {
+	if(!vehicleCounts.empty()){
+		boost::unordered_map<const RoadSegment*, VehicleCounter*>::iterator vehCountsIt = vehicleCounts.find(rdSeg);
+		if(vehCountsIt != vehicleCounts.end()){
+			return vehCountsIt->second;
+		}
 	}
-	boost::unordered_map<const RoadSegment*, unsigned short>::iterator densityMapIt = densityMap.find(rdSeg);
-	if(densityMapIt == densityMap.end()){
-		throw std::runtime_error("Requested road segment not found");
-	}
-	return (densityMapIt->second/(rdSeg->length / 100.0)); // return density as no. of vehicles per meter on the road segment.
+	return (new sim_mob::VehicleCounter(rdSeg));
+
+	//return (densityMapIt->second/(rdSeg->length / 100.0)); // return density as no. of vehicles per meter on the road segment.
 }
+
+
 }
+
+
 
 
 

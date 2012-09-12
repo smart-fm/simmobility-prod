@@ -14,6 +14,8 @@
 #include "util/DynamicVector.hpp"
 #include "../short/entities/roles/driver/IntersectionDrivingModel.hpp"
 #include "DriverUpdateParams.hpp"
+#include "entities/AuraManager.hpp"
+#include "geospatial/LaneGroup.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
@@ -52,6 +54,7 @@ private:
 	};
 
 public:
+	std::stringstream ss;
 	int remainingTimeToComplete;
 
 	//Driver(Agent* parent);
@@ -90,8 +93,10 @@ private:
 	void justLeftIntersection(DriverUpdateParams& p);
 	void syncCurrLaneCachedInfo(DriverUpdateParams& p);
 	void calculateIntersectionTrajectory(DPoint movingFrom, double overflow);
-	double speed_density_function(double density); ///<Called to compute the required speed of the driver from the density of the current road segment's traffic density
+
+	double speed_density_function(sim_mob::VehicleCounter* vehicleCounter, sim_mob::medium::LaneGroup* laneGroup); ///<Called to compute the required speed of the driver from the density of the current road segment's traffic density
 	void getBestTargetLane(const std::vector<const Lane*> targetLanes);
+
 
 protected:
 	virtual double updatePositionOnLink(DriverUpdateParams& p);

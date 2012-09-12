@@ -98,6 +98,8 @@ sim_mob::medium::Driver::~Driver() {
 	safe_delete_item(vehicle);
 
 	safe_delete_item(intModel);
+	ss << "!!__________________________________________!!" << endl;
+	std::cout << ss.str();
 }
 
 vector<BufferedBase*> sim_mob::medium::Driver::getSubscriptionParams() {
@@ -137,6 +139,8 @@ void sim_mob::medium::Driver::frame_init(UpdateParams& p)
 	//Updating location information for agent for density calculations
 	parent->setCurrLane(params.currLane);
 	parent->setCurrLink((params.currLane)->getRoadSegment()->getLink());
+
+	ss << "!!!!!!!!!!!!!!!!!!!!!!!!!!  " << this->parent->getId() << "  !!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
 }
 
 void sim_mob::medium::Driver::setOrigin(DriverUpdateParams& p) {
@@ -400,14 +404,9 @@ double sim_mob::medium::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 	//Determine how far forward we've moved.
 
 	// Fetch density of current road segment and compute speed from speed density function
-	double densityOfCurrSegment;
-	try{
-		densityOfCurrSegment = AuraManager::instance().getDensity(vehicle->getCurrSegment());
-	}
-	catch (std::exception &e){
-		densityOfCurrSegment = 0.0;
-	}
-	vehicle->setVelocity(speed_density_function(densityOfCurrSegment));
+	sim_mob::VehicleCounter* vehCountInCurrSeg = AuraManager::instance().getDensity(vehicle->getCurrSegment());
+	vehicle->setVelocity(speed_density_function(vehCountInCurrSeg /*, LaneGroup*/)); // We don't know the lanegroup of this driver yet ~Harish
+
 	double fwdDistance = vehicle->getVelocity() * p.elapsedSeconds;
 	if (fwdDistance < 0)
 		fwdDistance = 0;
@@ -610,14 +609,34 @@ sim_mob::medium::MidVehicle* sim_mob::medium::Driver::initializePath(bool alloca
 //This function is associated with the driver class for 2 reasons
 // 1. This function is specific to the medium term
 // 2. It makes sense in the real life as well that the driver decides to slow down or accelerate based on the traffic density around him
-double sim_mob::medium::Driver::speed_density_function(double density){
-	/* TODO: min density, jam density, alpha and beta must be obtained from the database.
-	 * Since we don't have this data, we have taken the average values from supply parameters of Singapore express ways.
-	 * This must be changed after we have this data for each road segment in the database.  */
+double sim_mob::medium::Driver::speed_density_function(sim_mob::VehicleCounter* vehicleCounter, sim_mob::medium::LaneGroup* laneGroup){
+	/*
+	 * TODO: The parameters - min density, jam density, alpha and beta - for each road segment
+	 * must be obtained from an external source (XML/Database)
+	 * Since we don't have this data, we have taken the average values from supply parameters of Singapore expressways.
+	 * This must be changed after we have this data for each road segment in the network.
+	 *
+	 * TODO: A params struct for these parameters is already defined in the RoadSegment class.
+	 * This struct is to be used when we have actual values for the parameters.
+	 */
+
+	unsigned int numVehicles = 0;
+	const std::vector<sim_mob::Lane*> requiredLanes = laneGroup->getLanes();
+	if(requiredLanes.size() > 0){
+
+		for(std::vector<sim_mob::Lane*>::const_iterator laneIt = requiredLanes.begin();
+				laneIt!=requiredLanes.end();
+				laneIt++ )
+		{
+			numVehicles += vehicleCounter->getMovingVehicleCount(*laneIt);
+		}
+	}
+	double density = numVehicles / (vehicleCounter->getRoadSegment()->length / 100.0);
+
 	double freeFlowSpeed = vehicle->getCurrSegment()->maxSpeed / 3.6 * 100; // Converting from Kmph to cm/s
-	double jamDensity = 0.2335; //density during traffic jam
-	double alpha = 3.75; //Model parameter of the speed density function
-	double beta = 0.5645; //Model parameter of the speed density function
+	double jamDensity = 1; //density during traffic jam
+	double alpha = 3.75; //Model parameter of speed density function
+	double beta = 0.5645; //Model parameter of speed density function
 	double minDensity = 0.0048; // minimum traffic density
 
 	//Speed-Density function
@@ -625,7 +644,9 @@ double sim_mob::medium::Driver::speed_density_function(double density){
 		return freeFlowSpeed;
 	}
 	else {
-		return freeFlowSpeed * pow((1 - pow((density - minDensity)/jamDensity, alpha)),beta);
+		//TODO: Remove debugging print statement later. Harish
+		ss << "!! " << "density:" << density << "!! " << freeFlowSpeed * pow((1 - pow((density - minDensity)/jamDensity, beta)),alpha) << " !!" << endl;
+		return freeFlowSpeed * pow((1 - pow((density - minDensity)/jamDensity, beta)),alpha);
 	}
 }
 

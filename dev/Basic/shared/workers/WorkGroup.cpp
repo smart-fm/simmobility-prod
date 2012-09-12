@@ -242,13 +242,13 @@ void sim_mob::WorkGroup::startAll()
 }
 
 
-void sim_mob::WorkGroup::scheduleEntity(Agent* ent)
+void sim_mob::WorkGroup::scheduleEntity(Agent* ag)
 {
 	//No-one's using DISABLE_DYNAMIC_DISPATCH anymore; we can eventually remove it.
 	if (!loader) { throw std::runtime_error("Can't schedule an entity with dynamic dispatch disabled."); }
 
 	//Schedule it to start later.
-	loader->pending_source.push(ent);
+	loader->pending_source.push(ag);
 }
 
 
@@ -271,11 +271,13 @@ void sim_mob::WorkGroup::stageEntities()
 		}
 
 		//Call its "load" function
-		//Agent* a = dynamic_cast<Agent*>(ag);
-		//if (a) {
-			ag->load(ag->getConfigProperties());
-			ag->clearConfigProperties();
-		//}
+		//TODO: Currently, only Person::load() is called (I think there was some bug in BusController).
+		//      We should really call load for ANY Agent subclass. ~Seth
+		Person* a = dynamic_cast<Person*>(ag);
+		if (a) {
+			a->load(a->getConfigProperties());
+			a->clearConfigProperties();
+		}
 
 		//Add it to our global list.
 		loader->entity_dest.push_back(ag);

@@ -144,7 +144,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 	//set lateral velocity
 	//NOTE: myDriverUpdateParams simply copies p, so we should just be able to use p. ~Seth
 	//p.nextLaneIndex = myDriverUpdateParams->nextLaneIndex;
-	p.nextLaneIndex = p.nextLaneIndex;
+	//p.nextLaneIndex = p.nextLaneIndex;
 
 	//NOTE: Driver already has a lcModel; we should be able to just use this. ~Seth
 	LANE_CHANGE_SIDE lcs = LCS_SAME;

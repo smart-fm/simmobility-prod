@@ -34,36 +34,33 @@ private:
 };
 
 
-  class PolyPoint_t_pimpl: public virtual PolyPoint_t_pskel
-  {
-	  sim_mob::Point2D point2D;
-    public:
-    virtual void
-    pre ();
 
-    virtual void
-    pointID (const ::std::string&);
+class PolyPoint_t_pimpl: public virtual PolyPoint_t_pskel {
+public:
+    virtual void pre ();
+    virtual sim_mob::Point2D post_PolyPoint_t ();
 
-    virtual void
-    location (sim_mob::Point2D);
+    virtual void pointID (const ::std::string&);
+    virtual void location (sim_mob::Point2D);
 
-    virtual sim_mob::Point2D
-    post_PolyPoint_t ();
-  };
+private:
+    std::string savedID;
+    sim_mob::Point2D savedPos;
+};
 
-  class PolyLine_t_pimpl: public virtual PolyLine_t_pskel
-  {
-	  std::vector<sim_mob::Point2D> polyLine;
-    public:
-    virtual void
-    pre ();
 
-    virtual void
-    PolyPoint (sim_mob::Point2D);
 
-    virtual std::vector<sim_mob::Point2D>
-    post_PolyLine_t ();
-  };
+class PolyLine_t_pimpl: public virtual PolyLine_t_pskel {
+public:
+    virtual void pre ();
+    virtual std::vector<sim_mob::Point2D> post_PolyLine_t ();
+
+    virtual void PolyPoint (sim_mob::Point2D);
+
+private:
+    std::vector<sim_mob::Point2D> polyLine;
+};
+
 
   class lane_t_pimpl: public virtual lane_t_pskel
   {

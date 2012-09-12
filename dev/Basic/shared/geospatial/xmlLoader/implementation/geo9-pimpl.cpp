@@ -72,51 +72,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 
 
 
-  // PolyPoint_t_pimpl
-  //
 
-  void PolyPoint_t_pimpl::
-  pre ()
-  {
-  }
-
-  void PolyPoint_t_pimpl::
-  pointID (const ::std::string& pointID)
-  {
-	  //todo
-  }
-
-  void PolyPoint_t_pimpl::
-  location (sim_mob::Point2D location)
-  {
-	  point2D = location;
-  }
-
-  sim_mob::Point2D PolyPoint_t_pimpl::
-  post_PolyPoint_t ()
-  {
-	  return point2D;
-  }
-
-  // PolyLine_t_pimpl
-  //
-
-  void PolyLine_t_pimpl::
-  pre ()
-  {
-  }
-
-  void PolyLine_t_pimpl::
-  PolyPoint (sim_mob::Point2D PolyPoint)
-  {
-	  polyLine.push_back(PolyPoint);
-  }
-
-  std::vector<sim_mob::Point2D> PolyLine_t_pimpl::
-  post_PolyLine_t ()
-  {
-     return polyLine ;
-  }
 
   // lane_t_pimpl
   //

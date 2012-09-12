@@ -32,7 +32,9 @@
 #include "geospatial/BusStop.hpp"
 #include "util/ReactionTimeDistributions.hpp"
 #include "util/OutputUtil.hpp"
+
 #include "geospatial/xmlLoader/geo8-driver.hpp"
+#include "geospatial/xmlLoader/geo9.hpp"
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"

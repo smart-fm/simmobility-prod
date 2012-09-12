@@ -16,22 +16,23 @@
 namespace sim_mob {
 namespace xml {
 
-  class Point2D_t_pimpl: public virtual Point2D_t_pskel
-  {
-	  sim_mob::Point2D point2D;
-    public:
-    virtual void
-    pre ();
+//Note: Do NOT write constructors for these classes, since we don't want to risk C++'s finnicky constructor
+// chaining mechanism. Instead, initialize all your private variables in the pre() function.
 
-    virtual void
-    xPos (unsigned int);
 
-    virtual void
-    yPos (unsigned int);
+class Point2D_t_pimpl: public virtual Point2D_t_pskel {
+public:
+	virtual void pre ();
+    virtual sim_mob::Point2D post_Point2D_t ();
 
-    virtual sim_mob::Point2D
-    post_Point2D_t ();
-  };
+    virtual void xPos (unsigned int);
+    virtual void yPos (unsigned int);
+
+private:
+    unsigned int savedX;
+    unsigned int savedY;
+};
+
 
   class PolyPoint_t_pimpl: public virtual PolyPoint_t_pskel
   {

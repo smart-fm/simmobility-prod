@@ -70,45 +70,7 @@ typedef std::map<unsigned long, geo_UniNode_Connectors_type > geo_MultiNode_Conn
 geo_MultiNode_Connectors_type geo_MultiNode_Connectors;
 std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;//<nodeId,geo_MultiNode_Connectors_type>
 
-//typedef boost::bimap<std::string,sim_mob::RoadSegment*> geo_Segments; geo_Segments geo_Segments_;
-//typedef boost::bimap<std::string,sim_mob::Lane*> geo_Lanes; geo_Lanes geo_Lanes_;
-//typedef boost::bimap<unsigned int,sim_mob::Node*> geo_Nodes; geo_Nodes geo_Nodes_;
 
-//typedef geo_Segments::value_type position_Segments_;
-//typedef geo_Lanes::value_type position_Lanes_;
-//typedef geo_Nodes::value_type position_Nodes_;
-  // SegmentType_t_pimpl
-  //
-
-
-// Point2D_t_pimpl
-  //
-
-  void Point2D_t_pimpl::
-  pre ()
-  {
-  }
-
-  void Point2D_t_pimpl::
-  xPos (unsigned int xPos)
-  {
-    point2D.setX(xPos);
-  }
-
-  void Point2D_t_pimpl::
-  yPos (unsigned int yPos)
-  {
-    point2D.setY(yPos);
-  }
-
-  sim_mob::Point2D Point2D_t_pimpl::
-  post_Point2D_t ()
-  {
-
-//	   std::cout << "returning location [" << point2D.getX() << " , " << point2D.getY() << std::endl;
-//	   //getchar();
-	  return point2D;
-  }
 
   // PolyPoint_t_pimpl
   //

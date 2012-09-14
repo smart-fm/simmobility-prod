@@ -223,7 +223,7 @@ void DatabaseLoader::LoadPhase(const std::string& storedProc)
 	int i=0;
 	for(soci::rowset<Phase>::const_iterator it=rs.begin(); it!=rs.end(); ++it,i++)
 	{
-		//		if(it->nodeId == 115436) { std::cout << " node 115436 is in the LoadPhase game\n"; getchar();}
+		//		if(it->nodeId == 115436) { std::cout << " node 115436 is in the LoadPhase game\n"; //getchar();}
 		map<int, Section>::iterator from = sections_.find(it->sectionFrom), to = sections_.find(it->sectionTo);
 		//since the section index in sections_ and phases_ are read from two different tables, inconsistecy check is a must
 		if((from ==sections_.end())||(to ==sections_.end()))
@@ -1090,7 +1090,7 @@ DatabaseLoader::createSignals()
     {
 
         Signal const & dbSignal = iter->second;
-//        if(dbSignal.nodeId == 115436) { std::cout << " node115436 is in the createSignals game\n"; getchar();}
+//        if(dbSignal.nodeId == 115436) { std::cout << " node115436 is in the createSignals game\n"; //getchar();}
         map<int, Node>::const_iterator iter2 = nodes_.find(dbSignal.nodeId);
         //filter out signals which are not in the territory of our nodes_
         if (iter2 == nodes_.end())
@@ -1099,7 +1099,7 @@ DatabaseLoader::createSignals()
             stream << "cannot find node (id=" << dbSignal.nodeId
                    << ") in the database for signal id=" << iter->first;
 //            throw std::runtime_error(stream.str());
-//            if(dbSignal.nodeId == 115436) { std::cout << " node 115436 is getting kicked out 1\n"; getchar();}
+//            if(dbSignal.nodeId == 115436) { std::cout << " node 115436 is getting kicked out 1\n"; //getchar();}
             continue;
         }
 
@@ -1556,7 +1556,7 @@ void sim_mob::aimsun::Loader::ProcessUniNode(sim_mob::RoadNetwork& res, Node& sr
 ////	if(newNode->getID() == 92370)
 //	{
 //		std::cout << "UniNode " <<   newNode->getID() << " has " << newNode->getConnectors().size() << " Connectors\n";
-//		getchar();
+//		//getchar();
 //	}
 
 	//This UniNode can later be accessed by the RoadSegment itself.

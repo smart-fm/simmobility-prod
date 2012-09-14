@@ -113,7 +113,7 @@ void SplitPlan::initialize()
 	//Now Initialize the phases(later you  may put this back to the above phase iteration loop
 	for(phases_iterator it = phases_.begin(); it != phases_.end()  ; it++)
 		const_cast<sim_mob::Phase &>(*it).initialize();
-//	getchar();
+//	//getchar();
 }
 
 ///////////////////////////////Not so Important //////////////////////////////////////////////////////////////////////

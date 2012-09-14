@@ -181,14 +181,14 @@ void sim_mob::Link::extendPolylinesBetweenRoadSegments(std::vector<RoadSegment*>
 	{
 		RoadSegment* seg1 = segments.at(i);
 		RoadSegment* seg2 = segments.at(i+1);
-//		std::cout << "\nloop 0"; getchar();
+//		std::cout << "\nloop 0"; //getchar();
 		size_t j=0;
 		for(;j<seg1->getLanes().size();j++)
 		{
 			seg1->getLanes()[j]->getPolyline();
-//			std::cout << "\nended getPolyline"; getchar();
+//			std::cout << "\nended getPolyline"; //getchar();
 		}
-//		std::cout << "\nloop 00"; getchar();
+//		std::cout << "\nloop 00"; //getchar();
 		for(j=0;j<seg2->getLanes().size();j++)
 			seg2->getLanes()[j]->getPolyline();
 //		std::cout << " 000\n";

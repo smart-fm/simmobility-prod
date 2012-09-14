@@ -179,7 +179,7 @@ void Phase::addDefaultCrossings(LinkAndCrossingByLink const & LAC,sim_mob::Multi
 		}
 	}
 //	std::cout << " out of addDefaultCrossings for  Node ID " << node->getID() << " Phase " << name << " with " << crossings_map_.size() << " Crossings\n";
-//	getchar();
+//	//getchar();
 }
 
 sim_mob::RoadSegment * Phase::findRoadSegment(sim_mob::Link * link,sim_mob::MultiNode * node) const {

@@ -238,6 +238,8 @@ Role* sim_mob::Driver::clone(Person* parent) const
 
 void sim_mob::Driver::frame_init(UpdateParams& p)
 {
+	int i = 0;
+	i = 1;
 	//Save the path from orign to next activity location in allRoadSegments
 	Vehicle* newVeh = initializePath(true);
 	if (newVeh) {
@@ -245,21 +247,28 @@ void sim_mob::Driver::frame_init(UpdateParams& p)
 		vehicle = newVeh;
 	}
 
+	i = 1;
 	//Set some properties about the current path, such as the current polyline, etc.
 	if (vehicle && vehicle->hasPath()) {
+		i = 1;
 		setOrigin(params);
+		i = 1;
 	} else {
+		i = 1;
 #ifndef SIMMOB_DISABLE_OUTPUT
 		boost::mutex::scoped_lock local_lock(sim_mob::Logger::global_mutex);
 		std::cout << "ERROR: Vehicle could not be created for driver; no route!\n";
+		i = 1;
 #endif
 	}
+	i = 1;
 }
 
 //Main update functionality
 void sim_mob::Driver::frame_tick(UpdateParams& p)
 {
 
+	//getchar();
 	// lost some params
 	DriverUpdateParams& p2 = dynamic_cast<DriverUpdateParams&>(p);
 
@@ -1062,9 +1071,11 @@ void sim_mob::Driver::initTripChainSpecialString(const string& value)
 //Added in a parameter for the function call: next
 ///Returns the new vehicle, if requested to build one.
 Vehicle* sim_mob::Driver::initializePath(bool allocateVehicle) {
+	int i = 2;
 	Vehicle* res = nullptr;
 
 	//Only initialize if the next path has not been planned for yet.
+	i = 2;
 	if(!parent->getNextPathPlanned()) {
 		//Save local copies of the parent's origin/destination nodes.
 		origin.node = parent->originNode;
@@ -1074,10 +1085,13 @@ Vehicle* sim_mob::Driver::initializePath(bool allocateVehicle) {
 
 		//Retrieve the shortest path from origin to destination and save all RoadSegments in this path.
 		vector<WayPoint> path;
+		i = 2;
 		Person* parentP = dynamic_cast<Person*> (parent);
 		if (!parentP || parentP->specialStr.empty()) {
+			i = 2;
 			path = StreetDirectory::instance().shortestDrivingPath(*origin.node, *goal.node);
 		} else {
+			i = 2;
 			//Retrieve the special string.
 			size_t cInd = parentP->specialStr.find(':');
 			string specialType = parentP->specialStr.substr(0, cInd);
@@ -1105,9 +1119,11 @@ Vehicle* sim_mob::Driver::initializePath(bool allocateVehicle) {
 			res = new Vehicle(path, startlaneID, length, width);
 		}
 	}
+	i = 2;
 
 	//to indicate that the path to next activity is already planned
 	parent->setNextPathPlanned(true);
+	i = 2;
 	return res;
 }
 

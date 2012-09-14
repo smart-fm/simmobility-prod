@@ -137,7 +137,7 @@ public:
 //		ll.RS_From = findRoadSegment(lf,node);
 //		ll.RS_To = findRoadSegment(ll.LinkTo,node);
 //		std::cout << "RS_From after:" << ll.RS_From << std::endl;
-//		getchar();
+//		//getchar();
 //		links_map_.insert(std::pair<sim_mob::Link *, sim_mob::linkToLink>(lf,ll));
 //	}
 	void addCrossingMapping(sim_mob::Link *,sim_mob::Crossing *, ColorSequence);

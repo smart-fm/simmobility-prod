@@ -107,6 +107,9 @@ public:
 	const std::vector<SubTrip>& getSubTrips() const {
 		return subTrips;
 	}
+	std::vector<SubTrip>& getSubTripsRW() {
+		return subTrips;
+	}
 
 private:
 	std::vector<SubTrip> subTrips;

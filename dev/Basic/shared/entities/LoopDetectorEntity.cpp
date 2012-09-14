@@ -669,7 +669,7 @@ const
         Shared<CountAndTimePair> const * pair = iter->second;
         return pair->get();
     }
-//    std::cout << "I am going to generate an error\nLoopDetectorEntity::getCountAndTimePair() was called on invalid lane"; getchar();
+//    std::cout << "I am going to generate an error\nLoopDetectorEntity::getCountAndTimePair() was called on invalid lane"; //getchar();
     std::ostringstream stream;
     stream << "LoopDetectorEntity::getCountAndTimePair() was called on invalid lane" << &lane;
     throw std::runtime_error(stream.str());

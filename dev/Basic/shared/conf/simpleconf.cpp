@@ -223,27 +223,32 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	typedef std::map<unsigned int, vector<TripChainItem*> >::iterator TCMapIt;
 	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
 		TripChainItem* tc = it_map->second.front();
-		currAg = new Person("DB_TripChain", config.mutexStategy, tc->personID);
-		const Trip* trip = dynamic_cast<const Trip*>(tc);
-		const Activity* act = dynamic_cast<const Activity*>(tc);
-
-		if (trip && tc->itemType==TripChainItem::IT_TRIP) {
-			const SubTrip firstSubTrip = trip->getSubTrips()[0];
-			//Origin and destination must be those of the first subtrip if current item is a trip
-			currAg->originNode = firstSubTrip.fromLocation;
-			currAg->destNode = firstSubTrip.toLocation;
-			trip_mode = firstSubTrip.mode;// currently choose the first subtrip mode as the mode of the trip
-		} else if (act && tc->itemType==TripChainItem::IT_ACTIVITY) {
-			currAg->originNode = currAg->destNode = act->location;
-		} else { //Offer some protection
-			throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
-		}
-
-		currAg->setTripChain(it_map->second);
-		if (trip_mode == "Bus") {
-			// currently only one
-			if (!BusController::all_busctrllers_.empty()) {
-				BusController::all_busctrllers_[0]->addOrStashBuses(currAg, active_agents);
+		currAg = new Person("XML_TripChain", config.mutexStategy, it_map->second);
+		std::cout << "Person::preson " << currAg->getId() << "[" << currAg << "] : currTripChainItem[" << currAg->currTripChainItem << "] : currSubTrip[" << currAg->currSubTrip << "]" << std::endl;
+//		//getchar();
+//		const Trip* trip = dynamic_cast<const Trip*>(tc);
+//		const Activity* act = dynamic_cast<const Activity*>(tc);
+//
+//		if (trip && tc->itemType==TripChainItem::IT_TRIP) {
+//			const SubTrip firstSubTrip = trip->getSubTrips()[0];
+//			//Origin and destination must be those of the first subtrip if current item is a trip
+//			currAg->originNode = firstSubTrip.fromLocation;
+//			currAg->destNode = firstSubTrip.toLocation;
+//			trip_mode = firstSubTrip.mode;// currently choose the first subtrip mode as the mode of the trip
+//		} else if (act && tc->itemType==TripChainItem::IT_ACTIVITY) {
+//			currAg->originNode = currAg->destNode = act->location;
+//		} else { //Offer some protection
+//			throw std::runtime_error("Trip/Activity mismatch, or unknown TripChainItem subclass.");
+//		}
+//
+//		currAg->setTripChain(it_map->second);
+		if (currAg->currSubTrip) {
+			if (currAg->currSubTrip->mode == "Bus") {
+				// currently only one
+				if (!BusController::all_busctrllers_.empty()) {
+					BusController::all_busctrllers_[0]->addOrStashBuses(currAg,
+							active_agents);
+				}
 			}
 		} else {
 			addOrStashEntity(currAg, active_agents, pending_agents);
@@ -491,7 +496,7 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 //			std::cout << " props[" << it->first << " , " << it->second << "]\n";
 //		}
 //		std::cout << "I am in LoadXMLAgnets\n";
-//		getchar();
+//		//getchar();
 		//Add it or stash it
 		addOrStashEntity(agent, active_agents, pending_agents);
 	}
@@ -1008,7 +1013,37 @@ void PrintDB_Network()
 #endif
 }
 
+void printRoadNetwork()
+{
+	int sum_segments = 0, sum_lane = 0, sum_lanes = 0;
+	std::cout << "Testin Road Network :\n";
 
+	std::vector<Link*>  & links = const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getLinksRW();
+
+	for(std::vector<Link*>::iterator it = links.begin(); it != links.end(); it++)
+	{
+		std::cout << "\n\n\n\n\nNumber of Segments in Link[" << (*it)->getLinkId() << "]=> " << (*it)->getUniqueSegments().size() << std::endl;
+		sum_segments += (*it)->getUniqueSegments().size();
+		sum_lane = 0;
+		for(std::set<sim_mob::RoadSegment*>::iterator it_seg = (*it)->getUniqueSegments().begin(); it_seg != (*it)->getUniqueSegments().end(); it_seg++)
+		{
+			std::cout << "	Number of lanes in segment[" << (*it_seg)->getSegmentID() << "]=> " << (*it_seg)->getLanes().size() << std::endl;
+			sum_lane += (*it_seg)->getLanes().size();
+		}
+		std::cout << "Total Number of Lanes in this Link: " << sum_lane << std::endl << std::endl;
+		sum_lanes += sum_lane;
+	}
+	std::cout << "Total Number of Links: " << links.size() << std::endl;
+	std::cout << "Total Number of Segments : " << sum_segments << std::endl;
+	std::cout << "Total Number of Lanes : " << sum_lanes << std::endl;
+
+	std::cout << "\n\nTotal Number of Segment Nodes : " << const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getNodesRW().size() << std::endl;
+	std::cout << "Total Number of UniNodes : " << const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getUniNodesRW().size() << std::endl;
+
+
+	std::cout << "Testin Road Network Done\n";
+//	getchar();
+}
 
 //Returns the error message, or an empty string if no error.
 std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
@@ -1100,8 +1135,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 		}
 	}
 	cout <<endl;
-
-//	std::cout << "333" << endl;
 
 	//Determine the first ID for automatically generated Agents
 	int startingAutoAgentID = 0; //(We'll need this later)
@@ -1273,28 +1306,12 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
         	 *
         	 *************************************************/
     		sim_mob::xml::InitAndLoadXML();
-    		//testing purpose only
-    		std::cout << "Testin Road Network :\n";
 
-    		std::vector<Link*>  & links = const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getLinksRW();
-    		std::cout << "Number of Links: " << links.size() << std::endl;
 
-    		std::cout << "Number of segments: " << links[0]->getPath(true).size() << " " << links[0]->getPath(false).size() << std::endl;
-    		const std::vector<sim_mob::MultiNode*>& mnodes = ConfigParams::GetInstance().getNetwork().getNodes();
-    		const std::set<sim_mob::UniNode*>& unodes = ConfigParams::GetInstance().getNetwork().getUniNodes();
-    		std::cout << "Number of UniNodes: " << unodes.size() << std::endl;
-    		std::cout << "Number of MultiNodes: " << mnodes.size() << std::endl;
-    		std::cout << "Number of Tripchains: " << ConfigParams::GetInstance().getTripChains().size() << std::endl;
-    		std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >::iterator it = ConfigParams::GetInstance().getTripChains().begin();
-    		for(; it != ConfigParams::GetInstance().getTripChains().end(); it++)
-    		{
-    			std::cout << "Person [" << it->first << "] has tripchain of size " << it->second.size() << std::endl;
-    		}
-    		getchar();
-
-    		std::cout << "Checking done\n";
 #endif
 //////////////////////////////////////////////////////////////////////////////////
+
+
     		//Finally, mask the password
     		string& s = ConfigParams::GetInstance().connectionString;
     		size_t check = s.find("password=");
@@ -1450,6 +1467,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     }
 
 	//No error
+    printRoadNetwork();
 	return "";
 }
 

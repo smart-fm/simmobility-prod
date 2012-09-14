@@ -144,7 +144,7 @@ Signal_SCATS::getCrossing(RoadSegment const * road) {
 			if(getNode().getID()== 115436)
 			{
 				std::cout << "Crossing for node 115436 found at offset " << currOffset << "minus is : " << minus << std::endl;
-//				getchar();
+//				//getchar();
 			}
 			//Success
 			return crossing;

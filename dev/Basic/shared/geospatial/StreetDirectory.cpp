@@ -1015,6 +1015,10 @@ StreetDirectory::ShortestPathImpl::findVertex(Graph const & graph, Node const * 
 const
 {
     Graph::vertex_iterator iter, end;
+    int i = 0;
+    for ( boost::tie(iter, end) = boost::vertices(graph); iter != end; ++iter, i++);
+    std::cout << "Graph vertices size is : " << i << std::endl;
+//    getchar();
     for (boost::tie(iter, end) = boost::vertices(graph); iter != end; ++iter)
     {
         Vertex v = *iter;
@@ -1625,8 +1629,11 @@ StreetDirectory::closestRoadSegments(Point2D const & point,
 std::vector<WayPoint>
 StreetDirectory::shortestDrivingPath(Node const & fromNode, Node const & toNode) const
 {
-    return spImpl_ ? spImpl_->shortestDrivingPath(fromNode, toNode)
-                   : std::vector<WayPoint>();
+	if(spImpl_)
+		return spImpl_->shortestDrivingPath(fromNode, toNode);
+	return std::vector<WayPoint>();
+//    return spImpl_ ? spImpl_->shortestDrivingPath(fromNode, toNode)
+//                   : std::vector<WayPoint>();
 }
 
 std::vector<WayPoint>

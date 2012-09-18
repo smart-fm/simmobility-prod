@@ -403,9 +403,10 @@ void sim_mob::medium::Driver::frame_tick_output(const UpdateParams& p)
 double sim_mob::medium::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 	//Determine how far forward we've moved.
 
-	// Fetch density of current road segment and compute speed from speed density function
-	sim_mob::VehicleCounter* vehCountInCurrSeg = AuraManager::instance().getDensity(vehicle->getCurrSegment());
-	vehicle->setVelocity(speed_density_function(vehCountInCurrSeg /*, LaneGroup*/)); // We don't know the lanegroup of this driver yet ~Harish
+	// Fetch number of moving vehicles in the segment and compute speed from the speed density function
+	std::map<const sim_mob::Lane*, unsigned short> movingCounts =
+				AuraManager::instance().getMovingCountsOfLanes(vehicle->getCurrSegment());
+	vehicle->setVelocity(speed_density_function(movingCounts));
 
 	double fwdDistance = vehicle->getVelocity() * p.elapsedSeconds;
 	if (fwdDistance < 0)
@@ -609,7 +610,7 @@ sim_mob::medium::MidVehicle* sim_mob::medium::Driver::initializePath(bool alloca
 //This function is associated with the driver class for 2 reasons
 // 1. This function is specific to the medium term
 // 2. It makes sense in the real life as well that the driver decides to slow down or accelerate based on the traffic density around him
-double sim_mob::medium::Driver::speed_density_function(sim_mob::VehicleCounter* vehicleCounter, sim_mob::medium::LaneGroup* laneGroup){
+double sim_mob::medium::Driver::speed_density_function(std::map<const sim_mob::Lane*, unsigned short> laneWiseMovingVehicleCounts) {
 	/*
 	 * TODO: The parameters - min density, jam density, alpha and beta - for each road segment
 	 * must be obtained from an external source (XML/Database)
@@ -620,7 +621,7 @@ double sim_mob::medium::Driver::speed_density_function(sim_mob::VehicleCounter* 
 	 * This struct is to be used when we have actual values for the parameters.
 	 */
 
-	unsigned int numVehicles = 0;
+/*	unsigned int numVehicles = 0;
 	const std::vector<sim_mob::Lane*> requiredLanes = laneGroup->getLanes();
 	if(requiredLanes.size() > 0){
 
@@ -645,9 +646,10 @@ double sim_mob::medium::Driver::speed_density_function(sim_mob::VehicleCounter* 
 	}
 	else {
 		//TODO: Remove debugging print statement later. Harish
-		ss << "!! " << "density:" << density << "!! " << freeFlowSpeed * pow((1 - pow((density - minDensity)/jamDensity, beta)),alpha) << " !!" << endl;
+		ss << "!! " << "density:" << density << "!! " << freeFlowSpeed * pow((1 - pow((density - minDensity)/jamDensity, beta)),alpha) << " !!" << std::endl;
 		return freeFlowSpeed * pow((1 - pow((density - minDensity)/jamDensity, beta)),alpha);
-	}
+	}*/
+	return 0.0;
 }
 
 void sim_mob::medium::Driver::advance(DriverUpdateParams p){
@@ -767,12 +769,33 @@ void sim_mob::medium::Driver::moveInQueue()
 
 }
 
-void sim_mob::medium::Driver::addToQueue()
-{
-
-}
 
 double sim_mob::medium::Driver::getTimeSpentInTick(DriverUpdateParams p)
 {
 	return p.timeSpent;
+}
+
+void sim_mob::medium::Driver::addToQueue() {
+	sim_mob::SegmentVehicles* segVehicles = parent->currWorker->getSegmentVehicles(currResource->getCurrSegment());
+
+	// if agent was moving in this segment then remove from moving list before queuing
+	segVehicles->removeMovingAgent(params.currLane, parent);
+
+	// enqueue into the current lane's queue
+	segVehicles->addQueuingAgent(params.currLane, parent);
+}
+
+void sim_mob::medium::Driver::addToMovingList() {
+	sim_mob::SegmentVehicles* segVehicles = parent->currWorker->getSegmentVehicles(currResource->getCurrSegment());
+	segVehicles->addMovingAgent(params.currLane, parent);
+}
+
+void sim_mob::medium::Driver::removeFromQueue() {
+	sim_mob::SegmentVehicles* segVehicles = parent->currWorker->getSegmentVehicles(currResource->getCurrSegment());
+	segVehicles->removeQueuingAgent(params.currLane, parent);
+}
+
+void sim_mob::medium::Driver::removeFromMovingList() {
+	sim_mob::SegmentVehicles* segVehicles = parent->currWorker->getSegmentVehicles(currResource->getCurrSegment());
+	segVehicles->removeMovingAgent(params.currLane, parent);
 }

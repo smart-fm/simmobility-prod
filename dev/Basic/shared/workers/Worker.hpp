@@ -24,6 +24,7 @@
 #include <vector>
 #include <boost/thread.hpp>
 #include <boost/function.hpp>
+#include <boost/unordered_map.hpp>
 #include "util/FlexiBarrier.hpp"
 
 #include "GenConfig.h"
@@ -35,7 +36,7 @@
 #include "buffering/Buffered.hpp"
 #include "buffering/BufferedDataManager.hpp"
 #include "geospatial/Link.hpp"
-
+#include "util/SegmentVehicles.hpp"
 
 namespace sim_mob
 {
@@ -85,6 +86,9 @@ public:
 	void scheduleForRemoval(Entity* entity);
 
 	int getAgentSize() { return managedEntities.size(); }
+
+	boost::unordered_map<const sim_mob::RoadSegment*, sim_mob::SegmentVehicles*> getAgentsOnSegments();
+	sim_mob::SegmentVehicles* getSegmentVehicles(const sim_mob::RoadSegment* rdSeg);
 
 protected:
 	virtual void perform_main(frame_t frameNumber);
@@ -138,6 +142,19 @@ private:
 	///Entities managed by this worker
 	std::vector<Entity*> managedEntities;
 	std::vector<Link*> managedLinks;
+
+	/**
+	 * For all agents on this worker, agentsOnSegments hash map keeps track of which RoadSegment
+	 * the agent is currently in, whether he's moving or queuing and if he's queuing,
+	 * his position on the queue (as per this worker).
+	 *
+	 * agentsOnSegments from each worker will be merged into a global hash map in AuraManager.
+	 * This approach avoids race condition because each agent updates the hash map on its own worker.
+	 * Workers update agents sequentially. The updates from each agent is thus decentralized.
+	 *
+	 * ~ harish
+	 */
+	boost::unordered_map<const RoadSegment*, sim_mob::SegmentVehicles*> agentsOnSegments;
 
 	//add by xuyan, in order to call migrate in and migrate out
 public:

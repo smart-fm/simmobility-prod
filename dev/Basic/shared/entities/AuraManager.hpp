@@ -7,7 +7,9 @@
 #include "metrics/Length.hpp"
 #include "metrics/Frame.hpp"
 #include "geospatial/RoadSegment.hpp"
-#include "util/VehicleCounter.hpp"
+#include "util/SegmentVehicles.hpp"
+#include "workers/WorkGroup.hpp"
+#include "workers/Worker.hpp"
 
 namespace sim_mob
 {
@@ -15,6 +17,7 @@ namespace sim_mob
 class Agent;
 class Point2D;
 class Lane;
+class SegmentVehicles;
 
 /**
  * A singleton that can locate agents/entities within any rectangle.
@@ -99,16 +102,14 @@ public:
 
     /**
      * Print statistics collected on internal operationss.
-     *
      * Useful only if \c keepStats is \c true when \c init() was called.
      */
     void
     printStatistics() const;
 
-    /*
-     * Returns the density of the road segment. Will be called by driver agents in medium term.
-     */
-    sim_mob::VehicleCounter* getDensity(const RoadSegment* rdseg);
+    std::map<const sim_mob::Lane*, unsigned short> getQueueLengthsOfLanes(const sim_mob::RoadSegment* rdSeg);
+    std::map<const sim_mob::Lane*, unsigned short> getMovingCountsOfLanes(const sim_mob::RoadSegment* rdSeg);
+    void dequeue(const sim_mob::RoadSegment* rdSeg, const sim_mob::Lane* lane);
 
 private:
     AuraManager()
@@ -118,7 +119,8 @@ private:
     }
 
     /*Map to store the density of each road segment. */
-    boost::unordered_map<const RoadSegment*, sim_mob::VehicleCounter*> vehicleCounts;
+    //boost::unordered_map<const RoadSegment*, sim_mob::VehicleCounter*> vehicleCounts;
+    boost::unordered_map<const RoadSegment*, sim_mob::SegmentVehicles*> agentsOnSegments_global;
 
     // No need to define the dtor.
 

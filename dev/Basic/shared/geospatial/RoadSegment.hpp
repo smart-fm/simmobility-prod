@@ -38,6 +38,7 @@ class LaneLoader;
 /*
  * SpeedDensityParams is the place holder for storing the parameters of the
  * speed density function for this road segment.
+ * \author Harish
  */
 struct SupplyParams {
 	double freeFlowSpeed; //Maximum speed of the road segment

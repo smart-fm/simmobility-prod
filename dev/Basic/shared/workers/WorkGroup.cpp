@@ -508,5 +508,10 @@ void sim_mob::WorkGroup::interrupt()
 		workers[i]->interrupt();
 }
 
+// providing read only access to public for RegisteredWorkGroups. AuraManager requires this
+const std::vector<sim_mob::WorkGroup*> sim_mob::WorkGroup::getRegisteredWorkGroups() {
+	return sim_mob::WorkGroup::RegisteredWorkGroups;
+}
+
 
 

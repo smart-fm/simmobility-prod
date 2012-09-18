@@ -80,7 +80,7 @@ public:
 	void advance(DriverUpdateParams p);
 	void moveToNextSegment(double timeLeft);
 	void moveInQueue();
-	void addToQueue();
+
 	double getTimeSpentInTick(DriverUpdateParams p);
 
 private:
@@ -92,8 +92,13 @@ private:
 	void syncCurrLaneCachedInfo(DriverUpdateParams& p);
 	void calculateIntersectionTrajectory(DPoint movingFrom, double overflow);
 
-	double speed_density_function(sim_mob::VehicleCounter* vehicleCounter, sim_mob::medium::LaneGroup* laneGroup); ///<Called to compute the required speed of the driver from the density of the current road segment's traffic density
+	double speed_density_function(std::map<const sim_mob::Lane*, unsigned short> laneWiseMovingVehicleCounts); ///<Called to compute the required speed of the driver from the density of the current road segment's traffic density
 	void getBestTargetLane(const std::vector<const Lane*> targetLanes);
+
+	void addToQueue();
+	void addToMovingList();
+	void removeFromQueue();
+	void removeFromMovingList();
 
 
 protected:

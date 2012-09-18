@@ -129,7 +129,6 @@ void sim_mob::Worker::addPendingEntities()
 	toBeAdded.clear();
 }
 
-
 void sim_mob::Worker::removePendingEntities()
 {
 	if (ConfigParams::GetInstance().DynamicDispatchDisabled()) {
@@ -341,4 +340,12 @@ bool sim_mob::Worker::isLinkManaged(Link* link)
 		return true;
 	}
 	return false;
+}
+
+boost::unordered_map<const RoadSegment*, sim_mob::SegmentVehicles*> sim_mob::Worker::getAgentsOnSegments() {
+	return agentsOnSegments;
+}
+
+sim_mob::SegmentVehicles* sim_mob::Worker::getSegmentVehicles(const sim_mob::RoadSegment* rdSeg) {
+	return agentsOnSegments[rdSeg];
 }

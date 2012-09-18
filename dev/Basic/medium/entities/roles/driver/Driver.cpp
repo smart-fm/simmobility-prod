@@ -20,7 +20,7 @@
 #include "util/DebugFlags.hpp"
 #include "partitions/PartitionManager.hpp"
 #include "entities/AuraManager.hpp"
-
+#include "geospatial/LaneGroup.hpp"
 #include <ostream>
 
 #ifndef SIMMOB_DISABLE_PI
@@ -30,7 +30,7 @@
 #endif
 
 using namespace sim_mob;
-using namespace sim_mob::medium;
+
 using std::max;
 using std::vector;
 using std::set;
@@ -62,6 +62,8 @@ double getOutputCounter(const Lane* l) {
 
 //TO DO: not implemented yet
 double getOutputFlowRate(const Lane* l) {
+	//1.Get capacity of parent road segment
+	//2.Divide by the number of lanes
 	return -1.0;
 }
 
@@ -405,7 +407,7 @@ double sim_mob::medium::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 
 	// Fetch density of current road segment and compute speed from speed density function
 	sim_mob::VehicleCounter* vehCountInCurrSeg = AuraManager::instance().getDensity(vehicle->getCurrSegment());
-	vehicle->setVelocity(speed_density_function(vehCountInCurrSeg /*, LaneGroup*/)); // We don't know the lanegroup of this driver yet ~Harish
+	//vehicle->setVelocity(speed_density_function(vehCountInCurrSeg /*, LaneGroup*/)); // We don't know the lanegroup of this driver yet ~Harish
 
 	double fwdDistance = vehicle->getVelocity() * p.elapsedSeconds;
 	if (fwdDistance < 0)
@@ -609,7 +611,7 @@ sim_mob::medium::MidVehicle* sim_mob::medium::Driver::initializePath(bool alloca
 //This function is associated with the driver class for 2 reasons
 // 1. This function is specific to the medium term
 // 2. It makes sense in the real life as well that the driver decides to slow down or accelerate based on the traffic density around him
-double sim_mob::medium::Driver::speed_density_function(sim_mob::VehicleCounter* vehicleCounter, sim_mob::medium::LaneGroup* laneGroup){
+double sim_mob::medium::Driver::speed_density_function(sim_mob::VehicleCounter* vehicleCounter, sim_mob::LaneGroup* laneGroup){
 	/*
 	 * TODO: The parameters - min density, jam density, alpha and beta - for each road segment
 	 * must be obtained from an external source (XML/Database)
@@ -621,10 +623,10 @@ double sim_mob::medium::Driver::speed_density_function(sim_mob::VehicleCounter* 
 	 */
 
 	unsigned int numVehicles = 0;
-	const std::vector<sim_mob::Lane*> requiredLanes = laneGroup->getLanes();
+	const std::vector<const sim_mob::Lane*> requiredLanes = laneGroup->getLanes();
 	if(requiredLanes.size() > 0){
 
-		for(std::vector<sim_mob::Lane*>::const_iterator laneIt = requiredLanes.begin();
+		for(std::vector<const sim_mob::Lane*>::const_iterator laneIt = requiredLanes.begin();
 				laneIt!=requiredLanes.end();
 				laneIt++ )
 		{
@@ -650,7 +652,7 @@ double sim_mob::medium::Driver::speed_density_function(sim_mob::VehicleCounter* 
 	}
 }
 
-void sim_mob::medium::Driver::advance(DriverUpdateParams p){
+void sim_mob::medium::Driver::advance(DriverUpdateParams& p){
 
 	double t0 = getTimeSpentInTick(p);
 	double x0 = vehicle->getDistanceMovedInSegment();
@@ -749,11 +751,20 @@ void sim_mob::medium::Driver::advance(DriverUpdateParams p){
 			double timeToReachEndSeg = t0 + distToEndOfSegment/vehicle->getVelocity();
 			if (timeToReachEndSeg < p.elapsedSeconds)
 			{
-				moveToNextSegment(p.elapsedSeconds - timeToReachEndSeg);
+				if (output > 0)
+				{
+					moveToNextSegment(p.elapsedSeconds - timeToReachEndSeg);
+				}
+				else
+				{
+					addToQueue();
+				}
 			}
 			else
 			{
-				addToQueue();
+				//tf = mAdvanceInterval;
+				//xf = x0-vu*(tf-t0);
+				//moveInSegment();
 			}
 		}
 	}
@@ -775,7 +786,7 @@ void sim_mob::medium::Driver::addToQueue()
 
 }
 
-double sim_mob::medium::Driver::getTimeSpentInTick(DriverUpdateParams p)
+double sim_mob::medium::Driver::getTimeSpentInTick(DriverUpdateParams& p)
 {
 	return p.timeSpent;
 }
@@ -783,5 +794,139 @@ double sim_mob::medium::Driver::getTimeSpentInTick(DriverUpdateParams p)
 void sim_mob::medium::Driver::moveInSegment(double distance)
 {
 	vehicle->setDistanceMovedInSegment(distance);
+}
 
+void sim_mob::medium::Driver::InitLaneGroups(sim_mob::RoadSegment& parentRS)
+{
+	//1.a) get all the lanes within the current segment (used for uni-node case, can be used to check for consistency for multi-nodes)
+	const std::vector<sim_mob::Lane*> lanes = parentRS.getLanes();
+
+	//1.b) map to hold outgoing segments connected with each lane of current segment
+	std::map<const sim_mob::Lane*, std::vector<RoadSegment*> > mapRS;
+
+	Node* rsEnd = parentRS.getEnd();
+	Node* linkEnd = parentRS.getLink()->getEnd();
+
+	//2. check if end node of segment is the end of link too (i.e.intersection)
+	if (rsEnd->getID() == linkEnd->getID())
+	{
+		MultiNode* mnode = dynamic_cast<MultiNode*> (linkEnd);
+
+		//2.a) Get all outgoing lanes from the current segment through the chosen node
+		const set<LaneConnector*>& lcs = mnode->getOutgoingLanes(parentRS);
+
+		//2.b) Get all the outgoing segments each outgoing lane belongs to
+		//2.c) Get the list of outgoing segments for each lane (in current segment) and store in mapRS
+		for (set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
+			const sim_mob::Lane* key = (*it)->getLaneFrom();
+			std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >::iterator it_map;
+			it_map = mapRS.find(key);
+			//2.d) if the current lane is found in mapRS,add the new outgoing segment to it's segment vector
+			if (it_map!= mapRS.end()){
+				std::vector<RoadSegment*> outgoingRS = (*it_map).second;
+				std::vector<RoadSegment*>::iterator itRS;
+				std::vector<RoadSegment*>::iterator previtRS = outgoingRS.begin();
+				for (itRS=outgoingRS.begin(); itRS < outgoingRS.end(); itRS++)
+				{
+					unsigned long newSegID = (*it)->getLaneTo()->getRoadSegment()->getSegmentID();
+					if (newSegID == (*itRS)->getSegmentID()){
+						break; //the segment is already considered, no need to add again
+					}
+					//2.e)the outgoing segments are added in ascending order of segID
+					else if (newSegID < (*itRS)->getSegmentID()
+							&& newSegID >= (*previtRS)->getSegmentID()){
+						outgoingRS.insert(itRS, (*it)->getLaneTo()->getRoadSegment());
+					}
+					previtRS = itRS;
+				}
+			}
+			else
+			{
+				std::vector<RoadSegment*> tmpVec;
+				tmpVec.push_back((*it)->getLaneTo()->getRoadSegment());
+				mapRS[key] = tmpVec;
+			}
+
+		}
+	}
+	else
+	{
+		const UniNode* unode = dynamic_cast<const UniNode*> (rsEnd);
+		for (std::vector<sim_mob::Lane*>::const_iterator lane_it = lanes.begin();
+				lane_it < lanes.end();
+				lane_it++)
+		{
+			const sim_mob::Lane* chosenLane = (*lane_it);
+			const sim_mob::Lane* toLane = unode->getOutgoingLane(*chosenLane);
+			std::vector<RoadSegment*> tmpVec;
+			tmpVec.push_back(toLane->getRoadSegment());
+			mapRS[chosenLane] = tmpVec;
+		}
+	}
+	matchLanes(parentRS, mapRS);
+}
+
+void sim_mob::medium::Driver::matchLanes(sim_mob::RoadSegment& parentRS, std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS){
+	//1.b) Vector of lanegroups for the current Road Segment
+	std::vector<sim_mob::LaneGroup*> lanegroups;
+
+	//2.d)choose a lane from mapRS
+	std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >::iterator it=mapRS.begin();
+	while(it!=mapRS.end()){
+		const sim_mob::Lane* chosenLane = (*it).first;
+
+		//2.e) Create a new lane group and a new vector of lanes
+		sim_mob::LaneGroup* newLG = new sim_mob::LaneGroup(&parentRS, (int)parentRS.getLaneGroups().size());
+		std::vector<const sim_mob::Lane*> newlanes;
+
+		//2.f) Add the chosen lane to the new lane group
+		if (parentRS.getLaneGroups().empty())
+		{
+			newlanes.push_back((*it).first);
+		}
+		//2.g) pedestrian lanes/bycicle lanes should be a seperate lane group
+		//need to check if the bool settings are correct
+		//Assuming that there won't be more than one whole_day_bus/pedestrian/bicycle lane per road segment
+		//Therefore grouping each into one seperate lane group
+		if ((it->first->is_bicycle_lane() || it->first->is_pedestrian_lane() || it->first->is_whole_day_bus_lane())){
+			newLG->setLanes(newlanes);
+			lanegroups.push_back(newLG);
+			mapRS.erase(it++);
+		}
+		//2.g) Match the chosen lane with the rest of the lanes in mapRS
+		std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >::iterator it2=it++;
+		while(it2!=mapRS.end()){
+			bool isMatching = false;
+			const Lane* matchingLane = nullptr;
+
+			//2.h) Match if the first segment for the lanes are the same (segment lists are sorted)
+			if(it->second.front()==it2->second.front())
+			{
+				//2.i) check if number of segments for the lanes are the same
+				if(it->second.size()==it2->second.size()){
+					//2.j) check if each segment for the lanes are the same
+					for(std::vector<RoadSegment*>::size_type i = 0; i < it->second.size(); i++){
+						if (it->second[i] != it2->second[i]){
+							isMatching = false;
+							break;
+						}
+						isMatching = true;
+						matchingLane = it2->first;
+					}
+				}
+			}
+			if (isMatching)
+			{
+				newlanes.push_back(matchingLane);
+				mapRS.erase(it2++);
+			}
+			else{
+				++it2;
+			}
+		}
+		newLG->setLanes(newlanes);
+		lanegroups.push_back(newLG);
+		mapRS.erase(it++);
+	} //end of outer while
+	parentRS.setLaneGroups(lanegroups);
 }

@@ -4,6 +4,7 @@
 #pragma once
 
 #include <vector>
+#include <map>
 #include "entities/roles/Role.hpp"
 #include "geospatial/StreetDirectory.hpp"
 #include "GenConfig.h"
@@ -15,7 +16,6 @@
 #include "../short/entities/roles/driver/IntersectionDrivingModel.hpp"
 #include "DriverUpdateParams.hpp"
 #include "entities/AuraManager.hpp"
-#include "geospatial/LaneGroup.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
@@ -34,10 +34,10 @@ class Node;
 class MultiNode;
 class DPoint;
 class UpdateParams;
+class LaneGroup;
 
 namespace medium
 {
-
 
 /**
  * A medium-term Driver.
@@ -78,13 +78,15 @@ public:
 
 	void intersectionVelocityUpdate();
 	//melani-for queuing
-	void advance(DriverUpdateParams p);
+	void advance(DriverUpdateParams& p);
 	void moveToNextSegment(double timeLeft);
 	void moveInQueue();
 	void addToQueue();
-	double getTimeSpentInTick(DriverUpdateParams p);
+	double getTimeSpentInTick(DriverUpdateParams& p);
 	double getPosition();
 	void moveInSegment(double distance);
+	void InitLaneGroups(sim_mob::RoadSegment& parentRS);
+
 private:
 	void chooseNextLaneForNextLink(DriverUpdateParams& p);
 	bool update_movement(DriverUpdateParams& params, frame_t frameNumber);       ///<Called to move vehicles forward.
@@ -94,9 +96,9 @@ private:
 	void syncCurrLaneCachedInfo(DriverUpdateParams& p);
 	void calculateIntersectionTrajectory(DPoint movingFrom, double overflow);
 
-	double speed_density_function(sim_mob::VehicleCounter* vehicleCounter, sim_mob::medium::LaneGroup* laneGroup); ///<Called to compute the required speed of the driver from the density of the current road segment's traffic density
+	double speed_density_function(sim_mob::VehicleCounter* vehicleCounter, sim_mob::LaneGroup* laneGroup); ///<Called to compute the required speed of the driver from the density of the current road segment's traffic density
 	void getBestTargetLane(const std::vector<const Lane*> targetLanes);
-
+	void matchLanes(sim_mob::RoadSegment& parentRS, std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS);
 
 protected:
 	virtual double updatePositionOnLink(DriverUpdateParams& p);

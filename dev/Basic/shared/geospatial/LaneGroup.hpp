@@ -4,19 +4,16 @@
 
 namespace sim_mob{
 
-namespace medium{
-
 class LaneGroup{
 public:
-	explicit LaneGroup(sim_mob::RoadSegment* parent, unsigned long id);
+	LaneGroup(sim_mob::RoadSegment* parent, int id);
 	///Return the Link this RoadSegment is part of.
 	sim_mob::RoadSegment* getRoadSegment() const { return parentSegment; }
-	void setLanes(std::vector<sim_mob::Lane*>);
+	void setLanes(std::vector<const sim_mob::Lane*>);
 
 	///Retrieve the Lanes within this segment.
 	//TEMP: For now, returning a const vector of non-const lanes. Will fix later. ~Seth
-	void end1(){};
-	const std::vector<sim_mob::Lane*>& getLanes() const {
+	const std::vector<const sim_mob::Lane*>& getLanes() const {
 		return lanes; }
 
 	double getOutputCounter ( ) const
@@ -35,12 +32,11 @@ public:
 private:
 	///Which link this appears in
 	sim_mob::RoadSegment* parentSegment;
-	unsigned long lgID;
+	int lgID;
 	double outputCounter;
 	double acceptRate;
 
-	std::vector<sim_mob::Lane*> lanes;
+	std::vector<const sim_mob::Lane*> lanes;
 };
 
-}
 }

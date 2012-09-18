@@ -20,6 +20,7 @@ namespace sim_mob
 
 //Forward declarations
 class Lane;
+class LaneGroup;
 class BusStop;
 class RoadNetworkPackageManager;
 
@@ -87,6 +88,9 @@ public:
 		return lanes;
 	}
 
+	const std::vector<sim_mob::LaneGroup*>& getLaneGroups() const {
+		return lanegroups;
+	}
 
 	sim_mob :: BusStop* getBusStop() {
 			return busstop; }
@@ -115,6 +119,7 @@ public:
 	///TODO This should be made private again.
 	mutable std::vector<std::vector<sim_mob::Point2D> > laneEdgePolylines_cached;
 	void setLanes(std::vector<sim_mob::Lane*>);
+	void setLaneGroups(std::vector<sim_mob::LaneGroup*>);
 
 	const sim_mob::SupplyParams* getSupplyParams() {
 		return supplyParams;
@@ -123,6 +128,7 @@ public:
 private:
 	///Collection of lanes. All road segments must have at least one lane.
 	std::vector<sim_mob::Lane*> lanes;
+	std::vector<sim_mob::LaneGroup*> lanegroups; //only for mid-term use
 	sim_mob::BusStop* busstop;
 	//int getBustStopID;
 	///Computed polylines are cached here.

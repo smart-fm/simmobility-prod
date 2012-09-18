@@ -4,6 +4,7 @@
 #pragma once
 
 #include <vector>
+#include <map>
 #include "entities/roles/Role.hpp"
 #include "geospatial/StreetDirectory.hpp"
 #include "GenConfig.h"
@@ -15,7 +16,6 @@
 #include "../short/entities/roles/driver/IntersectionDrivingModel.hpp"
 #include "DriverUpdateParams.hpp"
 #include "entities/AuraManager.hpp"
-#include "geospatial/LaneGroup.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
@@ -34,10 +34,10 @@ class Node;
 class MultiNode;
 class DPoint;
 class UpdateParams;
+class LaneGroup;
 
 namespace medium
 {
-
 
 /**
  * A medium-term Driver.
@@ -77,11 +77,15 @@ public:
 	const sim_mob::medium::MidVehicle* getVehicle() const {return vehicle;}
 
 	void intersectionVelocityUpdate();
-	void advance(DriverUpdateParams p);
+	//melani-for queuing
+	void advance(DriverUpdateParams& p);
 	void moveToNextSegment(double timeLeft);
 	void moveInQueue();
+	double getTimeSpentInTick(DriverUpdateParams& p);
+	double getPosition();
+	void moveInSegment(double distance);
+	void InitLaneGroups(sim_mob::RoadSegment& parentRS);
 
-	double getTimeSpentInTick(DriverUpdateParams p);
 
 private:
 	void chooseNextLaneForNextLink(DriverUpdateParams& p);
@@ -91,14 +95,13 @@ private:
 	void justLeftIntersection(DriverUpdateParams& p);
 	void syncCurrLaneCachedInfo(DriverUpdateParams& p);
 	void calculateIntersectionTrajectory(DPoint movingFrom, double overflow);
-
 	double speed_density_function(std::map<const sim_mob::Lane*, unsigned short> laneWiseMovingVehicleCounts); ///<Called to compute the required speed of the driver from the density of the current road segment's traffic density
 	void getBestTargetLane(const std::vector<const Lane*> targetLanes);
-
 	void addToQueue();
 	void addToMovingList();
 	void removeFromQueue();
 	void removeFromMovingList();
+	void matchLanes(sim_mob::RoadSegment& parentRS, std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS);
 
 
 protected:

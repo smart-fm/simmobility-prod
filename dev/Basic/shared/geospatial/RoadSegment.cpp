@@ -39,6 +39,10 @@ sim_mob::RoadSegment::RoadSegment(Link* parent, unsigned long id, const SupplyPa
 
 }
 
+void sim_mob::RoadSegment::setLaneGroups(std::vector<sim_mob::LaneGroup*> lanegroups)
+{
+	this->lanegroups = lanegroups;
+}
 
 bool sim_mob::RoadSegment::isSingleDirectional()
 {

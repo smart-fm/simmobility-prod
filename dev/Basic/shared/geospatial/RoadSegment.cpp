@@ -11,12 +11,16 @@
 #endif
 
 #include "Lane.hpp"
+#include "MultiNode.hpp"
+#include "UniNode.hpp"
+#include "LaneConnector.hpp"
+#include "LaneGroup.hpp"
 
 using namespace sim_mob;
 
 using std::pair;
 using std::vector;
-
+using std::set;
 
 const unsigned long  &  sim_mob::RoadSegment::getSegmentID()const
 {
@@ -246,4 +250,176 @@ const vector<Point2D>& sim_mob::RoadSegment::getLaneEdgePolyline(unsigned int la
 	return laneEdgePolylines_cached[laneID];
 }
 
+void sim_mob::RoadSegment::InitLaneGroups()
+{
+	//1.a) get all the lanes within the current segment (only used in uni-node case)
+	const std::vector<sim_mob::Lane*> lanes = getLanes();
+
+	//1.b) map to hold outgoing segment IDs connected with each laneID of current segment
+	std::map<const sim_mob::Lane*, std::vector<RoadSegment*> > mapRS;
+
+	Node* rsEnd = getEnd();
+	Node* linkEnd = getLink()->getEnd();
+
+	//2. check if the downstream node is a multinode
+	if (rsEnd->getID() == linkEnd->getID())
+	{
+		MultiNode* mnode = dynamic_cast<MultiNode*> (linkEnd);
+
+		//2.a) Get all outgoing lanes from the current segment through the chosen node
+		const set<LaneConnector*>& lcs = mnode->getOutgoingLanes(*this);
+
+		//2.b) Get all the outgoing segments each outgoing lane belongs to
+		//2.c) Get the list of outgoing segments for each lane (in current segment) and store in mapRS
+		for (set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
+			const sim_mob::Lane* key = (*it)->getLaneFrom();
+			std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >::iterator it_map;
+			it_map = mapRS.find(key);
+			//2.d) if the current lane is found in mapRS, add the new outgoing segment to it's segment vector
+			if (it_map!= mapRS.end()){
+				std::vector<RoadSegment*> outgoingRS = (*it_map).second;
+				std::vector<RoadSegment*>::iterator itRS;
+				std::vector<RoadSegment*>::iterator previtRS = outgoingRS.begin();
+
+				for (itRS=outgoingRS.begin(); itRS < outgoingRS.end(); itRS++)
+				{
+					unsigned long newSegID = (*it)->getLaneTo()->getRoadSegment()->getSegmentID();
+					if (newSegID == (*itRS)->getSegmentID()){
+						break; //the segment is already considered, no need to add again
+					}
+					//2.e)the outgoing segments are added in ascending order of segID
+					else if (newSegID < (*itRS)->getSegmentID()
+							&& newSegID >= (*previtRS)->getSegmentID()){
+						outgoingRS.insert(itRS, (*it)->getLaneTo()->getRoadSegment());
+					}
+					previtRS = itRS;
+				}
+			}
+			else
+			{
+				std::vector<RoadSegment*> tmpVec;
+				tmpVec.push_back((*it)->getLaneTo()->getRoadSegment());
+				mapRS[key] = tmpVec;
+			}
+
+		}
+	}
+
+	else //downstream node is a uni-node
+	{
+		const UniNode* unode = dynamic_cast<const UniNode*> (rsEnd);
+		for (std::vector<sim_mob::Lane*>::const_iterator lane_it = lanes.begin();
+				lane_it < lanes.end();
+				lane_it++)
+		{
+			const sim_mob::Lane* chosenLane = (*lane_it);
+			const sim_mob::Lane* toLane = unode->getOutgoingLane(*chosenLane);
+			std::vector<RoadSegment*> tmpVec;
+			tmpVec.push_back(toLane->getRoadSegment());
+			mapRS[chosenLane] = tmpVec;
+		}
+	}
+	matchLanes(mapRS);
+}
+
+void sim_mob::RoadSegment::matchLanes(std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS){
+	//1.a) get all the lanes within the current segment
+	const std::vector<sim_mob::Lane*> lanes = this->getLanes();
+
+	//1.b) Vector of lanegroups for the current Road Segment
+	std::vector<sim_mob::LaneGroup*> lanegroups;
+
+	//2.d)choose a lane from mapRS
+	std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >::iterator it=mapRS.begin();
+	while(it!=mapRS.end()){
+		const sim_mob::Lane* chosenLane = (*it).first;
+
+		//2.e) Create a new lane group and a new vector of lanes
+		sim_mob::LaneGroup* newLG = new sim_mob::LaneGroup(this, (int)this->getLaneGroups().size());
+		std::vector<const sim_mob::Lane*> newlanes;
+		std::vector<sim_mob::RoadSegment*> outSegments;
+
+		//consistency check with lanes in current segment
+		if (isValidLane(chosenLane))
+		{
+			newlanes.push_back((*it).first);
+			outSegments = (*it).second;
+
+		//2.g) pedestrian lanes/bycicle lanes should be a seperate lane group
+		//need to check if the bool settings are correct
+		//Assuming that there won't be more than one whole_day_bus/pedestrian/bicycle lane per road segment
+		//Therefore grouping each into one seperate lane group
+			if ((it->first->is_bicycle_lane() || it->first->is_pedestrian_lane() || it->first->is_whole_day_bus_lane())){
+				newLG->setLanes(newlanes);
+				newLG->setOutgoingSegments(outSegments);
+				lanegroups.push_back(newLG);
+				mapRS.erase(it++);
+				continue; //need not match with the rest, since we assume there's one lane of a type
+			}
+		}
+		else{
+				throw std::runtime_error("Can't find lane in current segment");
+		}
+
+		//2.g) Match the chosen lane with the rest of the lanes in mapRS
+		std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >::iterator it2=it++;
+		while(it2!=mapRS.end()){
+			bool isMatching = false;
+			const Lane* matchingLane = nullptr;
+
+			//2.h) Match if the first segment for the lanes are the same (segment lists are sorted)
+			if(it->second.front()==it2->second.front())
+			{
+				//2.i) check if number of segments for the lanes are the same
+				if(it->second.size()==it2->second.size()){
+					//2.j) check if each segment for the lanes are the same
+					for(std::vector<RoadSegment*>::size_type i = 0; i < it->second.size(); i++){
+						if (it->second[i] != it2->second[i]){
+							isMatching = false;
+							break;
+						}
+						isMatching = true;
+						matchingLane = it2->first;
+					}
+				}
+			}
+			if (isMatching)
+			{
+				if ( !isValidLane(chosenLane)){
+					throw std::runtime_error("Can't find lane in current segment");
+				}
+				else{
+					newlanes.push_back(matchingLane);
+					outSegments = it2->second;
+					mapRS.erase(it2++);
+				}
+			}
+			else{
+				++it2;
+			}
+		}
+		newLG->setLanes(newlanes);
+		newLG->setOutgoingSegments(outSegments);
+		lanegroups.push_back(newLG);
+		mapRS.erase(it++);
+	} //end of outer while
+
+	setLaneGroups(lanegroups);
+}
+
+bool sim_mob::RoadSegment::isValidLane(const sim_mob::Lane* chosenLane){
+	//consistency check with lanes in current segment
+
+	//1.a) get all the lanes within the current segment
+	const std::vector<sim_mob::Lane*> lanes = this->getLanes();
+
+	std::vector<sim_mob::Lane*>::const_iterator itv;
+	for (itv=lanes.begin(); itv < lanes.end(); itv++){
+		if((*itv) == chosenLane){
+			break;
+		}
+	}
+
+	return (itv != lanes.end());
+}
 

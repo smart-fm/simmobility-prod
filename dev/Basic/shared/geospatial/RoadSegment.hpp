@@ -126,6 +126,12 @@ public:
 		return supplyParams;
 	}
 
+	//author-melani
+	//for mid-term use
+	bool isValidLane(const sim_mob::Lane* chosenLane);
+	void InitLaneGroups();
+	void matchLanes(std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS);
+
 private:
 	///Collection of lanes. All road segments must have at least one lane.
 	std::vector<sim_mob::Lane*> lanes;

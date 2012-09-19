@@ -102,6 +102,7 @@ private:
 	void removeFromQueue();
 	void removeFromMovingList();
 	void matchLanes(sim_mob::RoadSegment& parentRS, std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS);
+	bool isValidLane(const sim_mob::Lane* chosenLane, RoadSegment& currRoadSeg);
 
 
 protected:

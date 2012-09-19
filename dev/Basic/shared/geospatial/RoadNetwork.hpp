@@ -103,7 +103,6 @@ public:
 	std::set<sim_mob::UniNode*>& getUniNodesRW() { return segmentnodes; }
 	std::vector<sim_mob::Link*>& getLinksRW() { return links; }
 
-
 };
 
 

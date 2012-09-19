@@ -36,6 +36,7 @@
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
+#include "../short/xmlWriter/xmlWriter.hpp"
 
 using std::cout;
 using std::endl;
@@ -210,6 +211,7 @@ void addOrStashEntity(Agent* p, std::vector<Entity*>& active_agents, StartTimePr
 //NOTE: "constraints" are not used here, but they could be (for manual ID specification).
 void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, AgentConstraints& constraints)
 {
+	int i = 0;
 	ConfigParams& config = ConfigParams::GetInstance();
 	std::map<unsigned int, vector<TripChainItem*> >& tcs = ConfigParams::GetInstance().getTripChains();
 
@@ -223,7 +225,7 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	typedef std::map<unsigned int, vector<TripChainItem*> >::iterator TCMapIt;
 	for (TCMapIt it_map=tcs.begin(); it_map!=tcs.end(); it_map++) {
 		TripChainItem* tc = it_map->second.front();
-		currAg = new Person("XML_TripChain", config.mutexStategy, it_map->second);
+		currAg = new Person("XML_TripChain", config.mutexStategy, it_map->second); i++;
 		std::cout << "Person::preson " << currAg->getId() << "[" << currAg << "] : currTripChainItem[" << currAg->currTripChainItem << "] : currSubTrip[" << currAg->currSubTrip << "]" << std::endl;
 //		//getchar();
 //		const Trip* trip = dynamic_cast<const Trip*>(tc);
@@ -251,6 +253,7 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 				}
 			}
 		} else {
+			std::cout << i << " Person Agent addorstashing..\n"; /*getchar();*/
 			addOrStashEntity(currAg, active_agents, pending_agents);
 		}
 
@@ -1019,10 +1022,25 @@ void printRoadNetwork()
 	std::cout << "Testin Road Network :\n";
 
 	std::vector<Link*>  & links = const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getLinksRW();
-
+	std::cout << "\n\n\nList of Links\n";
 	for(std::vector<Link*>::iterator it = links.begin(); it != links.end(); it++)
 	{
-		std::cout << "\n\n\n\n\nNumber of Segments in Link[" << (*it)->getLinkId() << "]=> " << (*it)->getUniqueSegments().size() << std::endl;
+		std::cout << "LinkId: " << (*it)->getLinkId() << std::endl;
+	}
+	for(std::vector<Link*>::iterator it = links.begin(); it != links.end(); it++)
+	{
+		std::cout << "\n\n\nNumber of Segments in Link[" << (*it)->getLinkId() << "]=> " << (*it)->getUniqueSegments().size() << std::endl << std::endl;
+		std::cout << "Forward Segments:\n";
+		for(std::vector<sim_mob::RoadSegment*>::const_iterator it_seg = (*it)->getFwdSegments().begin(); it_seg != (*it)->getFwdSegments().end(); it_seg++)
+		{
+			std::cout << "SegmentId: " << (*it_seg)->getSegmentID() << std::endl;
+		}
+		std::cout << "\n\n\nBackward Segments:\n";
+		for(std::vector<sim_mob::RoadSegment*>::const_iterator it_seg = (*it)->getRevSegments().begin(); it_seg != (*it)->getRevSegments().end(); it_seg++)
+		{
+			std::cout << "SegmentId: " << (*it_seg)->getSegmentID() << std::endl;
+		}
+		std::cout << "\n\n\n\n";
 		sum_segments += (*it)->getUniqueSegments().size();
 		sum_lane = 0;
 		for(std::set<sim_mob::RoadSegment*>::iterator it_seg = (*it)->getUniqueSegments().begin(); it_seg != (*it)->getUniqueSegments().end(); it_seg++)
@@ -1036,6 +1054,7 @@ void printRoadNetwork()
 	std::cout << "Total Number of Links: " << links.size() << std::endl;
 	std::cout << "Total Number of Segments : " << sum_segments << std::endl;
 	std::cout << "Total Number of Lanes : " << sum_lanes << std::endl;
+
 
 	std::cout << "\n\nTotal Number of Segment Nodes : " << const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getNodesRW().size() << std::endl;
 	std::cout << "Total Number of UniNodes : " << const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getUniNodesRW().size() << std::endl;
@@ -1329,9 +1348,37 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     //Seal the network; no more changes can be made after this.
     ConfigParams::GetInstance().sealNetwork();
     std::cout << "Network Sealed" << std::endl;
+    std::cout << "Print Road Network before sd init\n";
+    printRoadNetwork();
+    getchar();
+    //todo remove te following clause and put it back in performMain() if the results are not promising.
+    //Basically, we need to write the XML as soon as the network is sealed.
+//This is the real place to extract xml from road network, tripchian, signal etc but since 'seal network' is not respected (especially in street directory)
+//therefore we write xml after InitUserConf() is completed (in the currently main.cpp)
+//#ifdef SIMMOB_XML_WRITER
+//	/*
+//	 *******************************
+//	 * XML Writer
+//	 *******************************
+//	 */
+//	std::string XML_OutPutFileName = "/home/vahid/SimMobilityInput.xml";
+//	WriteXMLInput(XML_OutPutFileName);
+//	cout << "XML input for SimMobility Created....\n";
+//	return "";
+//#endif
+
     //Now that the network has been loaded, initialize our street directory (so that lookup succeeds).
+	//todo: check why street directory makes changes in the roadnetwork AFTER network is sealed
+	//example:
+	//1-update roadSegment member variable in crossing
+	//2-I saw a function called addsidewalk() in streetdirectory.
+	//These can mess with the simMobility input XML generation process. Therefore I moved the xml writer to the above so that it writes the XML before street directory is initialized!-Vahid
+
     StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
     std::cout << "Street Directory initialized" << std::endl;
+    std::cout << "Print Road Network After sd init\n";
+    printRoadNetwork();
+    getchar();
 
     //Maintain unique/non-colliding IDs.
     AgentConstraints constraints;
@@ -1468,6 +1515,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
 	//No error
     printRoadNetwork();
+    getchar();
 	return "";
 }
 
@@ -1502,20 +1550,14 @@ bool sim_mob::ConfigParams::InitUserConf(const string& configPath, std::vector<E
 
 	//Parse it
 	string errorMsg = loadXMLConf(*doc, active_agents, pending_agents, prof);
-	if (errorMsg.empty()) {
-		std::cout <<"XML config file loaded." <<std::endl;
-	} else {
-		std::cout <<"Aborting on Config Error: " <<errorMsg <<std::endl;
-	}
-
-	//Emit a message if parsing was successful.
-	if (errorMsg.empty()) {
-		std::cout <<"Configuration complete." <<std::endl;
-	}
-
 	delete doc;
-	return errorMsg.empty();
 
+	if (errorMsg.empty()) {
+		std::cout <<"XML config file loaded.\nConfiguration complete." <<std::endl;
+	} else {
+		std::cout <<"Aborting on Config : " <<errorMsg <<std::endl;
+	}
+	return errorMsg.empty();
 }
 
 

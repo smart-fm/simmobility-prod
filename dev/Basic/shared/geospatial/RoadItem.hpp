@@ -12,7 +12,8 @@ class crossing_t_pimpl;
 
 namespace sim_mob
 {
-
+//Forward Declaration
+class RoadSegment;
 
 /**
  * Base class for geospatial items which take up physical space but are not traversable.
@@ -33,6 +34,7 @@ class RoadItem {
 	friend class ::geo::crossing_t_pimpl;
 public:
 	virtual ~RoadItem() {} //A virtual destructor allows this type to be polymorphic
+	virtual void setParentSegment(sim_mob::RoadSegment*) {};
 
 	const sim_mob::Point2D& getStart() { return start; }
 	const sim_mob::Point2D& getEnd() { return end; }

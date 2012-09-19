@@ -865,7 +865,10 @@ StreetDirectory::ShortestPathImpl::process(std::vector<RoadSegment*> const & roa
 {
 	for (size_t i = 0; i < roads.size(); ++i)
 	{
+		//is this really the place to put this? IMHO the following line belongs to RoadNetwork implementation section
+#ifndef SIMMOB_XML_READER
 		linkCrossingToRoadSegment(const_cast<RoadSegment*>(roads[i]),isForward);
+#endif
 		process(roads[i], isForward);
 	}
 }
@@ -905,6 +908,7 @@ void StreetDirectory::ShortestPathImpl::linkCrossingToRoadSegment(RoadSegment *r
 void
 StreetDirectory::ShortestPathImpl::process(RoadSegment const * road, bool isForward)
 {
+	std::cout << "rs[" << road->getStart()->getID() << "(" << road->getStart()->getLocation().getX() << ":" << road->getStart()->getLocation().getY() << ") , " << road->getEnd()->getID() << "(" << road->getEnd()->getLocation().getX() << ":" << road->getEnd()->getLocation().getY() << ") ] =>";
 	double avgSpeed;
 	std::map<const RoadSegment*, double>::iterator avgSpeedRSMapIt;
     // If this road-segment is inside a one-way Link, then there should be 2 side-walks.
@@ -931,6 +935,7 @@ StreetDirectory::ShortestPathImpl::process(RoadSegment const * road, bool isForw
         node1 = findNode(point);
     }
 
+    //roadItems
     centimeter_t offset = 0;
     while (offset < road->length)
     {
@@ -1004,6 +1009,9 @@ StreetDirectory::ShortestPathImpl::process(RoadSegment const * road, bool isForw
     	avgSpeed = 10;
 
 //    std::cout<<"node1 "<<node1->location.getX()<<" to node2 "<<node2->location.getX()<<" is "<<offset/(100*road->maxSpeed/3.6)<<std::endl;
+	std::cout << "edges[" << node1->getID() << "(" << node1->getLocation().getX() << ":" << node1->getLocation().getY() << ") , " << node2->getID() << "(" << node2->getLocation().getX() << ":" << node2->getLocation().getY() << ")]" << std::endl;
+
+//    std::cout << "Adding edges between nodes " << node1->getID() << "  and " << node2->getID() << std::endl;
     addRoadEdge(node1, node2, WayPoint(road), offset);
 //    addRoadEdgeWithTravelTime(node1, node2, WayPoint(road), offset/avgSpeed);
 }
@@ -1017,7 +1025,7 @@ const
     Graph::vertex_iterator iter, end;
     int i = 0;
     for ( boost::tie(iter, end) = boost::vertices(graph); iter != end; ++iter, i++);
-    std::cout << "Graph vertices size is : " << i << std::endl;
+//    std::cout << "Graph vertices size is : " << i << std::endl;
 //    getchar();
     for (boost::tie(iter, end) = boost::vertices(graph); iter != end; ++iter)
     {
@@ -1353,6 +1361,7 @@ const
 {
     // The code here is based on the example in the book "The Boost Graph Library" by
     // Jeremy Siek, et al.
+	std::cout << "In StreetDirectory::ShortestPathImpl::shortestPath,  boost::num_vertices(graph) = " << boost::num_vertices(graph) << std::endl;
     std::vector<Vertex> parent(boost::num_vertices(graph));
     for (Graph::vertices_size_type i = 0; i < boost::num_vertices(graph); ++i)
     {

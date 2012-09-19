@@ -268,7 +268,8 @@ void sim_mob::Driver::frame_init(UpdateParams& p)
 void sim_mob::Driver::frame_tick(UpdateParams& p)
 {
 
-	//getchar();
+	std::cout << "Driver Ticking\n";
+	getchar();
 	// lost some params
 	DriverUpdateParams& p2 = dynamic_cast<DriverUpdateParams&>(p);
 

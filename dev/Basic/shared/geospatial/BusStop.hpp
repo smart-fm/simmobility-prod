@@ -65,6 +65,7 @@ public:
     sim_mob::RoadSegment* getRoadSegment() const {
         return parentSegment_;
     }
+    void setParentSegment(RoadSegment *rs) { parentSegment_ = rs;} //virtual from RoadItem
 
     //Estimate the stop point of this BusStop on a given road segment
     static double EstimateStopPoint(double xPos, double yPos, const sim_mob::RoadSegment* rs);

@@ -494,6 +494,17 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   Obstacles (std::map<sim_mob::centimeter_t,const RoadItem*> Obstacles)
   {
 //	  std::cout << "in segment_t_pimpl::Obstacles () " << std::endl;
+	  //we set roadSegment* element of Crossing(and similar roadItems) in here
+	  //street directory has already done that, but that is not a good place to do this setting
+	  //for one reason, this XML reader can be used in GUI also, and there is no mechanism to set such elements there.
+	  for(std::map<sim_mob::centimeter_t,const RoadItem*>::iterator it = Obstacles.begin(); it != Obstacles.end(); it++)
+	  {
+		  RoadItem* temp = const_cast<RoadItem*>(it->second);
+		  if (temp)
+			  temp->setParentSegment(this->rs);
+	  }
+
+
 	  this->rs->obstacles = Obstacles;
   }
 
@@ -843,7 +854,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void Node_t_pimpl::
   linkLoc (unsigned long long linkLoc)
   {
-	  std::cout << "Entering LinkLoc= " << linkLoc << std::endl;
+//	  std::cout << "Entering LinkLoc= " << linkLoc << std::endl;
 	  this->linkLoc_ = linkLoc;
   }
 
@@ -870,7 +881,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 		  {
 			  geo_LinkLoc_mapping g(this->linkLoc_,node_);
 			  inserter.insert(g);//node_ address in this container will later be replace by a uninode, intesection or roundabout adress
-			  std::cout << "An entry ["<< g.linkID <<"," << g.rawNode  << "] Inserted into multi index container size("<< inserter.size() << ")\n";
+//			  std::cout << "An entry ["<< g.linkID <<"," << g.rawNode  << "] Inserted into multi index container size("<< inserter.size() << ")\n";
 		  }
 		  else//otherwise, update the calling node
 		  {
@@ -878,11 +889,11 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 			  const sim_mob::Node * t = it->rawNode;//for debugging only
 			  temp.rawNode = node_;
 			  inserter.replace(it,temp);
-			  std::cout << "basic raw node " << t << " updated by rawNode " <<  temp.rawNode << std::endl;//" .. container size("<< inserter.size() << ") "<< "["<< it->linkID <<"," << it->node1 << "," <<it->node2<< "," << it->rawNode  << "]\n";
+//			  std::cout << "basic raw node " << t << " updated by rawNode " <<  temp.rawNode << std::endl;//" .. container size("<< inserter.size() << ") "<< "["<< it->linkID <<"," << it->node1 << "," <<it->node2<< "," << it->rawNode  << "]\n";
 		  }
 
 	  }
-	  std::cout << ">>>>>>>>>>>>>>>>>>Basic Node " << node_ << " posted<<<<<<<<<<<<<<<<<<<<<<<<\n";
+//	  std::cout << ">>>>>>>>>>>>>>>>>>Basic Node " << node_ << " posted<<<<<<<<<<<<<<<<<<<<<<<<\n";
 	  return node_;
   }
 
@@ -922,7 +933,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 	    }
 	    else
 	    {
-	    	std::cout << "Found the unode " << v <<  " with link(" << it->linkID << ") container size(" << container.size() << ")" << std::endl;
+//	    	std::cout << "Found the unode " << v <<  " with link(" << it->linkID << ") container size(" << container.size() << ")" << std::endl;
 	    	it->node.push_back(this->uniNode);
 //		    if(it->node1 == 0)
 //		    {
@@ -1085,7 +1096,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
     }
     else
     {
-    	std::cout << "Found the  basic node " << v <<  " container size(" << container.size() << ")" << std::endl;
+//    	std::cout << "Found the  basic node " << v <<  " container size(" << container.size() << ")" << std::endl;
     	it->node.push_back(this->intersection);
     }
 
@@ -2474,7 +2485,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   {
 
 	  rn.nodes.insert(rn.nodes.begin(),Intersections.begin(),Intersections.end());
-	  std::cout<< "Intersections inserted size is : " << rn.nodes.size() << "\n";
+//	  std::cout<< "Intersections inserted size is : " << rn.nodes.size() << "\n";
   }
 
   void Nodes_pimpl::

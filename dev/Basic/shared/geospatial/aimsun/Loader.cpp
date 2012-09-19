@@ -1657,7 +1657,19 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 			rs->maxSpeed = found->speed;
 			rs->length = found->length;
 			for (int laneID=0; laneID<found->numLanes; laneID++) {
-				rs->lanes.push_back(new sim_mob::Lane(rs, laneID));
+				sim_mob::Lane * temp = new sim_mob::Lane(rs, laneID);
+				if((rs->getSegmentID() == 1000001)&&(ln->getLinkId() == 1000001))
+				{
+					std::cout << "Link : " << ln->getLinkId() << " Pushed a lane in segment 1000001[" << rs << "]<=lane[" <<  temp << ":" << temp->getLaneID_str() << "]\n";
+//					getchar();
+				}
+				rs->lanes.push_back(temp);
+
+			}
+			if((rs->getSegmentID() == 1000001)&&(ln->getLinkId() == 1000001))
+			{
+				std::cout << "Pushed " <<  rs->lanes.size() << " Into rs 1000001\n";
+//				getchar();
 			}
 			rs->width = 0;
 

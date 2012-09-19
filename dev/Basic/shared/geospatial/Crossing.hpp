@@ -30,7 +30,7 @@ class UnPackageUtils;
 class Crossing : public RoadItem {
 public:
 	Crossing() : RoadItem(),roadSegment(NULL) {}
-
+	void setParentSegment(RoadSegment *rs) {setRoadSegment(rs);};//since the name of elements in various road items is not unigorm, a virtual function is added at RoadItem level for this purpose.
 	RoadSegment* getRoadSegment() const { return roadSegment; };
 	void setRoadSegment(RoadSegment *rs) { if(rs) roadSegment = rs; };
 //protected:

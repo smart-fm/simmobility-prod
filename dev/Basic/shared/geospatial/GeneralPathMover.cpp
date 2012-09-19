@@ -71,7 +71,7 @@ void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, 
 	bool isFwd;
 	if (path.empty())
 	{
-		throw std::runtime_error("Attempting to set a path with 0 road segments");
+		throw std::runtime_error("Attempting to set a path with 0 road segments_");
 	}
 
 	//We know we are moving forward if the last Node in the last Segment in the first Link is

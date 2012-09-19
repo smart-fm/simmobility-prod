@@ -65,7 +65,7 @@ public:
 #endif
 
 protected:
-    Node(int x, int y) : location(x, y) {}
+    Node(int x, int y) : location(x, y)/*,nodeId(0)*/ {}
 private:
     sim_mob::Link* linkLoc;
 

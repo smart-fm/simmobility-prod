@@ -908,7 +908,7 @@ void StreetDirectory::ShortestPathImpl::linkCrossingToRoadSegment(RoadSegment *r
 void
 StreetDirectory::ShortestPathImpl::process(RoadSegment const * road, bool isForward)
 {
-	std::cout << "rs[" << road->getStart()->getID() << "(" << road->getStart()->getLocation().getX() << ":" << road->getStart()->getLocation().getY() << ") , " << road->getEnd()->getID() << "(" << road->getEnd()->getLocation().getX() << ":" << road->getEnd()->getLocation().getY() << ") ] =>";
+//	std::cout << "rs[" << road->getStart()->getID() << "(" << road->getStart()->getLocation().getX() << ":" << road->getStart()->getLocation().getY() << ") , " << road->getEnd()->getID() << "(" << road->getEnd()->getLocation().getX() << ":" << road->getEnd()->getLocation().getY() << ") ] =>";
 	double avgSpeed;
 	std::map<const RoadSegment*, double>::iterator avgSpeedRSMapIt;
     // If this road-segment is inside a one-way Link, then there should be 2 side-walks.
@@ -1026,17 +1026,23 @@ const
     int i = 0;
     for ( boost::tie(iter, end) = boost::vertices(graph); iter != end; ++iter, i++);
 //    std::cout << "Graph vertices size is : " << i << std::endl;
-//    getchar();
+//    //getchar();
     for (boost::tie(iter, end) = boost::vertices(graph); iter != end; ++iter)
     {
         Vertex v = *iter;
         Node const * n = boost::get(boost::vertex_name, graph, v);
         if (node == n)
+        {
+        	std::cout << "In StreetDirectory::ShortestPathImpl::findVertex, Found vertex for node(" << node->getID() << ")\n";
+        	//getchar();
             return v;
+        }
     }
 
     Vertex v = boost::add_vertex(const_cast<Graph &>(graph));
     boost::put(boost::vertex_name, const_cast<Graph &>(graph), v, node);
+    std::cout << "In StreetDirectory::ShortestPathImpl::findVertex, added new vertice for node(" << node->getID() << ") num_vertices = " << boost::num_vertices(graph) << std::endl;
+    //getchar();
     return v;
 }
 
@@ -1145,6 +1151,7 @@ StreetDirectory::ShortestPathImpl::findVertex(Point2D const & point)
     Node const * node = findVertex(walkingMap_, point, 1000);
     if (!node)
     {
+    	std::cout << "Noew Node\n";
         Node * n = new UniNode(point.getX(), point.getY());
         nodes_.push_back(n);
         node = n;
@@ -1162,6 +1169,7 @@ void
 StreetDirectory::ShortestPathImpl::addSideWalk(Lane const * sideWalk, centimeter_t length)
 {
     std::vector<Point2D> const & polyline = sideWalk->getPolyline();
+    std::cout << "addSideWalk\n";
     Vertex u = findVertex(polyline[0]);
     Vertex v = findVertex(polyline[polyline.size() - 1]);
 
@@ -1188,6 +1196,7 @@ StreetDirectory::ShortestPathImpl::addSideWalk(Lane const * sideWalk, centimeter
 void
 StreetDirectory::ShortestPathImpl::addCrossing(Crossing const * crossing, centimeter_t length)
 {
+    std::cout << "addCrossing\n";
     Vertex u = findVertex(crossing->nearLine.first);
     Vertex v = findVertex(crossing->nearLine.second);
 
@@ -1608,6 +1617,8 @@ StreetDirectory::init(RoadNetwork const & network, bool keepStats /* = false */,
         stats_ = new Stats;
     pimpl_ = new Impl(network, gridWidth, gridHeight);
     spImpl_ = new ShortestPathImpl(network);
+    std::cout << "In StreetDirectory::init,  boost::num_vertices(rivingmap_) = " << boost::num_vertices(this->spImpl_->drivingMap_) << std::endl;
+    getchar();
 }
 
 void

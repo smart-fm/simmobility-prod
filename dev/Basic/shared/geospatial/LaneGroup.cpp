@@ -4,7 +4,7 @@
 
 using namespace sim_mob;
 
-sim_mob::LaneGroup::LaneGroup(RoadSegment* parent, int id) : parentSegment(parent),lgID(id)
+sim_mob::LaneGroup::LaneGroup(const RoadSegment* parent, int id) : parentSegment(parent),lgID(id)
 {
 
 }

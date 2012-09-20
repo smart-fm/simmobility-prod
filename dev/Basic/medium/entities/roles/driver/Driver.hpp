@@ -151,9 +151,6 @@ private:
 	NodePoint origin;
 	NodePoint goal;
 
-	sim_mob::SegmentVehicles* currSegmentVehicles;
-	sim_mob::SegmentVehicles* nextSegmentVehicles;
-
 protected:
 	sim_mob::medium::MidVehicle* vehicle;
 	IntersectionDrivingModel* intModel;

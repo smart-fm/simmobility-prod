@@ -43,7 +43,7 @@ sim_mob::RoadSegment::RoadSegment(Link* parent, unsigned long id, const SupplyPa
 
 }
 
-void sim_mob::RoadSegment::setLaneGroups(std::vector<sim_mob::LaneGroup*> lanegroups)
+void sim_mob::RoadSegment::setLaneGroups(std::vector<sim_mob::LaneGroup*> lanegroups) const
 {
 	this->lanegroups = lanegroups;
 }
@@ -250,7 +250,7 @@ const vector<Point2D>& sim_mob::RoadSegment::getLaneEdgePolyline(unsigned int la
 	return laneEdgePolylines_cached[laneID];
 }
 
-void sim_mob::RoadSegment::InitLaneGroups()
+void sim_mob::RoadSegment::initLaneGroups() const
 {
 	//1.a) get all the lanes within the current segment (only used in uni-node case)
 	const std::vector<sim_mob::Lane*> lanes = getLanes();
@@ -322,7 +322,7 @@ void sim_mob::RoadSegment::InitLaneGroups()
 	matchLanes(mapRS);
 }
 
-void sim_mob::RoadSegment::matchLanes(std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS){
+void sim_mob::RoadSegment::matchLanes(std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS) const{
 	//1.a) get all the lanes within the current segment
 	const std::vector<sim_mob::Lane*> lanes = this->getLanes();
 
@@ -407,7 +407,7 @@ void sim_mob::RoadSegment::matchLanes(std::map<const sim_mob::Lane*, std::vector
 	setLaneGroups(lanegroups);
 }
 
-bool sim_mob::RoadSegment::isValidLane(const sim_mob::Lane* chosenLane){
+bool sim_mob::RoadSegment::isValidLane(const sim_mob::Lane* chosenLane) const {
 	//consistency check with lanes in current segment
 
 	//1.a) get all the lanes within the current segment

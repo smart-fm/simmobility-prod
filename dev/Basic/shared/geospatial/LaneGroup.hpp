@@ -6,9 +6,9 @@ namespace sim_mob{
 
 class LaneGroup{
 public:
-	LaneGroup(sim_mob::RoadSegment* parent, int id);
+	LaneGroup(const sim_mob::RoadSegment* parent, int id);
 	///Return the Link this RoadSegment is part of.
-	sim_mob::RoadSegment* getRoadSegment() const { return parentSegment; }
+	const sim_mob::RoadSegment* getRoadSegment() const { return parentSegment; }
 	void setLanes(std::vector<const sim_mob::Lane*>);
 
 	///Retrieve the Lanes within this segment.
@@ -22,7 +22,7 @@ public:
 
 private:
 	///Which link this appears in
-	sim_mob::RoadSegment* parentSegment;
+	const sim_mob::RoadSegment* parentSegment;
 	int lgID;
 	std::vector<const sim_mob::Lane*> lanes;
 	std::vector<RoadSegment*> outgoingRoadSegments;

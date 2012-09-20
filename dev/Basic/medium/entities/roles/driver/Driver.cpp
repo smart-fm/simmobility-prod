@@ -73,6 +73,17 @@ double getQueueLength(const Lane* l) {
 	return -1.0;
 }
 
+unsigned int getNumMovingVehiclesInLaneGroup(std::map<const sim_mob::Lane*, unsigned short> laneWiseMovingVehiclesCount, sim_mob::LaneGroup* lg){
+	unsigned int numVehicles = 0;
+	const std::vector<const sim_mob::Lane*> requiredLanes = lg->getLanes();
+	for(std::vector<const sim_mob::Lane*>::const_iterator laneIt = requiredLanes.begin();
+			laneIt!=requiredLanes.end();
+			laneIt++ )
+	{
+		numVehicles += laneWiseMovingVehiclesCount[*laneIt];
+	}
+	return numVehicles;
+}
 } //end of anonymous namespace
 
 //Initialize
@@ -594,21 +605,12 @@ double sim_mob::medium::Driver::speed_density_function(std::map<const sim_mob::L
 	 */
 
 
-/*
-	unsigned int numVehicles = 0;
-	const std::vector<const sim_mob::Lane*> requiredLanes = laneGroup->getLanes();
-	if(requiredLanes.size() > 0){
 
-		for(std::vector<const sim_mob::Lane*>::const_iterator laneIt = requiredLanes.begin();
-				laneIt!=requiredLanes.end();
-				laneIt++ )
-		{
-			numVehicles += vehicleCounter->getMovingVehicleCount(*laneIt);
-		}
-	}
-	double density = numVehicles / (vehicleCounter->getRoadSegment()->length / 100.0);
+	unsigned int numVehicles = getNumMovingVehiclesInLaneGroup(laneWiseMovingVehicleCounts, params.currLaneGroup);
+	double density = numVehicles / (vehicle->getCurrSegment()->length / 100.0);
 
 	double freeFlowSpeed = vehicle->getCurrSegment()->maxSpeed / 3.6 * 100; // Converting from Kmph to cm/s
+	double minSpeed = 0.0;
 	double jamDensity = 1; //density during traffic jam
 	double alpha = 3.75; //Model parameter of speed density function
 	double beta = 0.5645; //Model parameter of speed density function
@@ -618,12 +620,14 @@ double sim_mob::medium::Driver::speed_density_function(std::map<const sim_mob::L
 	if(density <= minDensity){
 		return freeFlowSpeed;
 	}
+	else if (density >= jamDensity) {
+		return minSpeed;
+	}
 	else {
-		//TODO: Remove debugging print statement later. Harish
+		//TODO: Remove debugging print statement later ~ Harish
 		ss << "!! " << "density:" << density << "!! " << freeFlowSpeed * pow((1 - pow((density - minDensity)/jamDensity, beta)),alpha) << " !!" << std::endl;
 		return freeFlowSpeed * pow((1 - pow((density - minDensity)/jamDensity, beta)),alpha);
-	}*/
-	return 0.0;
+	}
 }
 
 void sim_mob::medium::Driver::advance(DriverUpdateParams& p){
@@ -819,31 +823,6 @@ const sim_mob::Lane* sim_mob::medium::Driver::getBestTargetLane(){
 		i++;
 	}
 	return minQueueLengthLane;
-
-	//int queueingCount = 0;
-	//try{
-	//		vector< pair<RoadSegment*, bool> = AuraManager::instance().getVehicleCounts(vehicle->getNextSegment());
-	//	}
-	//	catch (std::exception &e){
-	//		queueingCount = 0;
-	//	}
-
-	//if (targetLanes.size() > 0) {
-	//		for( int i = 0; i < targetLanes.size(); i++ ) {
-
-			   //targetLanes[i]->getQueueLength();
-	//		}
-	//	}
-
-
-	//	nextLaneInNextLink = /*(*it)->getLaneTo();*/targetLanes.at(0);
-	//	targetLaneIndex = /*getLaneIndex((*it)->getLaneTo())*/0;
-
-		//We should have generated a nextLaneInNextLink here.
-	//	if (!nextLaneInNextLink) {
-	//		throw std::runtime_error("Can't find nextLaneInNextLink.");
-	//	}
-
 }
 
 

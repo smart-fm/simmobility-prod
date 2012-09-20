@@ -18,3 +18,8 @@ int sim_mob::LaneGroup::getNumOfEmptySpaces(double length, double meanVehicleLen
 {
 
 }
+
+std::vector<sim_mob::RoadSegment*> sim_mob::LaneGroup::getOutGoingSegments() {
+	return outgoingRoadSegments;
+}
+

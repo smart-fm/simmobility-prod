@@ -91,6 +91,9 @@ const RoadSegment* sim_mob::Vehicle::getCurrSegment() const {
 const RoadSegment* sim_mob::Vehicle::getNextSegment(bool inSameLink) const {
 	return fwdMovement.getNextSegment(inSameLink);
 }
+const sim_mob::RoadSegment* sim_mob::Vehicle::getSecondSegmentAhead() {
+	return fwdMovement.getNextToNextSegment();
+}
 
 const RoadSegment* sim_mob::Vehicle::hasNextSegment(bool inSameLink) const {
 	return fwdMovement.getNextSegment(inSameLink);

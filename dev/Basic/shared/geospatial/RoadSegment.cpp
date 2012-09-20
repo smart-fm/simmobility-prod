@@ -246,4 +246,3 @@ const vector<Point2D>& sim_mob::RoadSegment::getLaneEdgePolyline(unsigned int la
 	return laneEdgePolylines_cached[laneID];
 }
 
-

@@ -42,6 +42,8 @@ namespace medium
 /**
  * A medium-term Driver.
  * \author Seth N. Hetu
+ * \author Melani Jayasuriya
+ * \author Harish Loganathan
  */
 class Driver : public sim_mob::Role {
 private:
@@ -84,7 +86,7 @@ public:
 	double getTimeSpentInTick(DriverUpdateParams& p);
 	double getPosition();
 	void moveInSegment(double distance);
-	void InitLaneGroups(sim_mob::RoadSegment& parentRS);
+	void initLaneGroups(sim_mob::RoadSegment& parentRS);
 
 
 private:
@@ -96,13 +98,14 @@ private:
 	void syncCurrLaneCachedInfo(DriverUpdateParams& p);
 	void calculateIntersectionTrajectory(DPoint movingFrom, double overflow);
 	double speed_density_function(std::map<const sim_mob::Lane*, unsigned short> laneWiseMovingVehicleCounts); ///<Called to compute the required speed of the driver from the density of the current road segment's traffic density
-	void getBestTargetLane(const std::vector<const Lane*> targetLanes);
+
 	void addToQueue();
 	void addToMovingList();
 	void removeFromQueue();
 	void removeFromMovingList();
 	void matchLanes(sim_mob::RoadSegment& parentRS, std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS);
-
+	sim_mob::LaneGroup* getBestTargetLaneGroup();
+	const sim_mob::Lane* getBestTargetLane();
 
 protected:
 	virtual double updatePositionOnLink(DriverUpdateParams& p);
@@ -147,6 +150,9 @@ private:
 	mutable std::stringstream DebugStream;
 	NodePoint origin;
 	NodePoint goal;
+
+	sim_mob::SegmentVehicles* currSegmentVehicles;
+	sim_mob::SegmentVehicles* nextSegmentVehicles;
 
 protected:
 	sim_mob::medium::MidVehicle* vehicle;

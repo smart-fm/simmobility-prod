@@ -15,6 +15,7 @@ public:
 	~MidVehicle();
 	double getDistanceMovedInSegment() const;   //re-defining this to suit mid-term
 	void setDistanceMovedInSegment(double distance);
+
 	bool isQueuing;
 
 private:

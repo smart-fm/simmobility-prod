@@ -29,12 +29,15 @@ public:
 
 	int getNumOfEmptySpaces(double length, double meanVehicleLength) const;
 
+	std::vector<sim_mob::RoadSegment*> getOutGoingSegments();
+
 private:
 	///Which link this appears in
 	sim_mob::RoadSegment* parentSegment;
 	int lgID;
 	double outputCounter;
 	double acceptRate;
+	std::vector<RoadSegment*> outgoingRoadSegments;
 
 	std::vector<const sim_mob::Lane*> lanes;
 };

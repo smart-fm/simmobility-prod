@@ -55,19 +55,19 @@ size_t getLaneIndex(const Lane* l) {
 	return -1; //NOTE: This might not do what you expect! ~Seth
 }
 
-//TO DO: not implemented yet
+//TODO: not implemented yet
 double getOutputCounter(const Lane* l) {
 	return -1.0;
 }
 
-//TO DO: not implemented yet
+//TODO: not implemented yet
 double getOutputFlowRate(const Lane* l) {
 	//1.Get capacity of parent road segment
 	//2.Divide by the number of lanes
 	return -1.0;
 }
 
-//TO DO: not implemented yet
+//TODO: not implemented yet
 double getQueueLength(const Lane* l) {
 	return -1.0;
 }
@@ -510,39 +510,6 @@ void sim_mob::medium::Driver::chooseNextLaneForNextLink(DriverUpdateParams& p) {
 	}
 }
 
-//~melani - TO DO
-void sim_mob::medium::Driver::getBestTargetLane(const vector<const Lane*> targetLanes){
-
-	//1. Get queueing counts for all lanes of the next Segment
-	//2. Select the lane with the least queue length
-	//3. Update nextLaneInNextLink and targetLaneIndex accordingly
-
-	//int queueingCount = 0;
-	//try{
-	//		vector< pair<RoadSegment*, bool> = AuraManager::instance().getVehicleCounts(vehicle->getNextSegment());
-	//	}
-	//	catch (std::exception &e){
-	//		queueingCount = 0;
-	//	}
-
-	//if (targetLanes.size() > 0) {
-	//		for( int i = 0; i < targetLanes.size(); i++ ) {
-
-			   //targetLanes[i]->getQueueLength();
-	//		}
-	//	}
-
-
-	//	nextLaneInNextLink = /*(*it)->getLaneTo();*/targetLanes.at(0);
-	//	targetLaneIndex = /*getLaneIndex((*it)->getLaneTo())*/0;
-
-		//We should have generated a nextLaneInNextLink here.
-	//	if (!nextLaneInNextLink) {
-	//		throw std::runtime_error("Can't find nextLaneInNextLink.");
-	//	}
-
-}
-
 
 bool sim_mob::medium::Driver::update_post_movement(DriverUpdateParams& params, frame_t frameNumber) {
 	//Are we done?
@@ -787,6 +754,97 @@ void sim_mob::medium::Driver::moveInQueue()
 
 }
 
+sim_mob::LaneGroup* sim_mob::medium::Driver::getBestTargetLaneGroup() {
+
+	const sim_mob::RoadSegment* nextToNextRdSeg = vehicle->getSecondSegmentAhead();
+	std::vector<sim_mob::LaneGroup*> nextSegLnGrps = vehicle->getNextSegment()->getLaneGroups();
+	std::vector<sim_mob::LaneGroup*> candidateLnGrps;
+	if(nextSegLnGrps.size() == 0){
+		vehicle->getNextSegment()->initLaneGroups();
+		nextSegLnGrps = vehicle->getNextSegment()->getLaneGroups();
+	}
+	std::vector<sim_mob::LaneGroup*>::iterator lnGrpIt = nextSegLnGrps.begin();
+
+	// get the candidate lane groups
+	while(lnGrpIt != nextSegLnGrps.end()){
+		sim_mob::LaneGroup* lg = *lnGrpIt;
+		std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt =
+				std::find(lg->getOutGoingSegments().begin(), lg->getOutGoingSegments().end(), nextToNextRdSeg);
+		if(rdSegIt == lg->getOutGoingSegments().end()){
+			continue;
+		}
+		candidateLnGrps.push_back(*lnGrpIt);
+	}
+
+	// find occupancy of all lanes in the next road segment
+	std::map<const sim_mob::Lane*, unsigned short> queueLengths = AuraManager::instance().getQueueLengthsOfLanes(vehicle->getNextSegment());
+	std::map<const sim_mob::Lane*, unsigned short> movingCounts = AuraManager::instance().getMovingCountsOfLanes(vehicle->getNextSegment());
+
+	// choose best lane group as the one with least occupancy among candidates
+	int leastCount = 0;
+	sim_mob::LaneGroup* bestLG = nullptr;
+	for(std::vector<sim_mob::LaneGroup*>::iterator i = candidateLnGrps.begin();
+			i!=candidateLnGrps.end(); i++){
+		int occupancy = 0;
+		for(std::vector<const sim_mob::Lane*>::const_iterator j = (*i)->getLanes().begin();
+			j != (*i)->getLanes().end(); i++) {
+			occupancy += (queueLengths[*j] + movingCounts[*j]);
+		}
+		if(occupancy < leastCount) {
+			leastCount = occupancy;
+			bestLG = *i;
+		}
+	}
+	return bestLG;
+
+}
+//~melani - TODO
+const sim_mob::Lane* sim_mob::medium::Driver::getBestTargetLane(){
+
+	//1. Get queueing counts for all lanes of the next Segment
+	//2. Select the lane with the least queue length
+	//3. Update nextLaneInNextLink and targetLaneIndex accordingly
+
+	std::map<const sim_mob::Lane*, unsigned short> queueLengths = AuraManager::instance().getQueueLengthsOfLanes(vehicle->getNextSegment());
+
+	vector<const sim_mob::Lane*>::const_iterator i = params.currLaneGroup->getLanes().begin();
+	const sim_mob::Lane* minQueueLengthLane = *i;
+	unsigned short minQueueLength = queueLengths[*i];
+	while(i != params.currLaneGroup->getLanes().end()){
+		if(minQueueLength > queueLengths[*i]){
+			minQueueLength = queueLengths[*i];
+			minQueueLengthLane = *i;
+		}
+		i++;
+	}
+	return minQueueLengthLane;
+
+	//int queueingCount = 0;
+	//try{
+	//		vector< pair<RoadSegment*, bool> = AuraManager::instance().getVehicleCounts(vehicle->getNextSegment());
+	//	}
+	//	catch (std::exception &e){
+	//		queueingCount = 0;
+	//	}
+
+	//if (targetLanes.size() > 0) {
+	//		for( int i = 0; i < targetLanes.size(); i++ ) {
+
+			   //targetLanes[i]->getQueueLength();
+	//		}
+	//	}
+
+
+	//	nextLaneInNextLink = /*(*it)->getLaneTo();*/targetLanes.at(0);
+	//	targetLaneIndex = /*getLaneIndex((*it)->getLaneTo())*/0;
+
+		//We should have generated a nextLaneInNextLink here.
+	//	if (!nextLaneInNextLink) {
+	//		throw std::runtime_error("Can't find nextLaneInNextLink.");
+	//	}
+
+}
+
 
 double sim_mob::medium::Driver::getTimeSpentInTick(DriverUpdateParams& p)
 {
@@ -823,7 +881,7 @@ void sim_mob::medium::Driver::moveInSegment(double distance)
 	vehicle->setDistanceMovedInSegment(distance);
 }
 
-void sim_mob::medium::Driver::InitLaneGroups(sim_mob::RoadSegment& parentRS)
+void sim_mob::medium::Driver::initLaneGroups(sim_mob::RoadSegment& parentRS)
 {
 	//1.a) get all the lanes within the current segment (used for uni-node case, can be used to check for consistency for multi-nodes)
 	const std::vector<sim_mob::Lane*> lanes = parentRS.getLanes();

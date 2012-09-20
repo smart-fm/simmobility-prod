@@ -27,3 +27,5 @@ double sim_mob::medium::MidVehicle::getDistanceMovedInSegment() const {
 void sim_mob::medium::MidVehicle::setDistanceMovedInSegment(double distance) {
 	distMovedInCurrSegment += distance;
 }
+
+

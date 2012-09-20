@@ -72,6 +72,7 @@ public:
 	//Retrieve properties of your current position in the path.
 	const sim_mob::RoadSegment* getCurrSegment() const;
 	const sim_mob::RoadSegment* getNextSegment(bool sameLink) const;
+	const RoadSegment* getNextToNextSegment() const;
 	const sim_mob::RoadSegment* getPrevSegment(bool sameLink) const;
 	const sim_mob::Link* getCurrLink() const;
 	const sim_mob::Lane* getCurrLane() const;

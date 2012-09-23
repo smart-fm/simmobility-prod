@@ -85,36 +85,50 @@ double feet2Meter(double feet) { //Note: This function is now in two locations.
 } //End anon namespace
 
 
-
-double sim_mob::MITSIM_LC_Model::lcCriticalGap(DriverUpdateParams& p, int type,	double dis_, double spd_, double dv_)
+// Kazi's LC gap model (see Kazi's MS thesis)
+// from mitsim TS_Parameter.cc line 617
+double sim_mob::MITSIM_LC_Model::lcCriticalGap(DriverUpdateParams& p, int type,	double dis, double spd, double dv)
 {
-	double k=( type < 2 ) ? 1 : 5;
-	return k*-dv_ * p.elapsedSeconds;
+	/*
+	[Kazi LC Gap Models] = {
+	% scale alpha lambda  beta0  beta1  beta2  beta3  beta4  sigma
+	% Discretionary (Lead and Lag)
+	  1.00  0.0   0.000   0.508  0.000  0.000 -0.420  0.000  0.488
+	  1.00  0.0   0.000   2.020  0.000  0.000  0.153  0.188  0.526
+	% Mandatory (Lead and Lag)
+	  1.00  0.0   0.000   0.384  0.000  0.000  0.000  0.000  0.859
+	  1.00  0.0   0.000   0.587  0.000  0.000  0.048  0.356  1.073
+	}
+	*/
+//
+//	double k=( type < 2 ) ? 1 : 5;
+//	return k*-dv_ * p.elapsedSeconds;
 
-	//The code below is from MITSIMLab. While the calculation result not suit for current unit.
-	//So now, I just put them here.
-//	double dis = meter2Feet(dis_);
-//	double spd = meter2Feet(spd_);
-//	double dv  = meter2Feet(dv_);
-//	double rem_dist_impact = (type < 3) ?
-//		0.0 : (1.0 - 1.0 / (1 + exp(GA_parameters[type].lambda * dis)));
-//	double dvNegative = (dv < 0) ? dv : 0.0;
-//	double dvPositive = (dv > 0) ? dv : 0.0;
-//	double gap = GA_parameters[type].beta0 + GA_parameters[type].beta1 * rem_dist_impact +
-//			GA_parameters[type].beta2 * dv + GA_parameters[type].beta3 * dvNegative + GA_parameters[type].beta4 *  dvPositive;
-//	double u = gap + GA_parameters[type].stddev;
-//	double cri_gap ;
-//
-//	if (u < -4.0) {
-//		cri_gap = 0.0183 * GA_parameters[type].scale ;		// exp(-4)=0.0183
-//	}
-//	else if (u > 6.0) {
-//		cri_gap = 403.4 * GA_parameters[type].scale ;   	// exp(6)=403.4
-//	}
-//	else cri_gap = GA_parameters[type].scale * exp(u) ;
-//
-//	if (cri_gap < GA_parameters[type].alpha) return feet2Meter(GA_parameters[type].alpha) ;
-//	else return feet2Meter(cri_gap) ;
+	double lcGapModels_[][9] = {
+			{1.00 , 0.0 ,  0.000 ,  0.508 , 0.000 , 0.000, -0.420 , 0.000 , 0.488 },
+			{1.00 , 0.0 ,  0.000  , 2.020 , 0.000 , 0.000 , 0.153 , 0.188 , 0.526},
+			{1.00 , 0.0 ,  0.000 ,  0.384 , 0.000,  0.000  ,0.000,  0.000 , 0.859},
+			{1.00 , 0.0  , 0.000 ,  0.384 , 0.000 , 0.000  ,0.000  ,0.000 , 0.859}};
+
+	  double *a = lcGapModels_[type] ;
+	  double *b = lcGapModels_[type] + 3 ; //beta0
+	  double rem_dist_impact = (type < 3) ?
+		0.0 : (1.0 - 1.0 / (1 + exp(a[2] * dis)));
+	  double dvNegative = (dv < 0) ? dv : 0.0;
+	  double dvPositive = (dv > 0) ? dv : 0.0;
+	  double gap = b[0] + b[1] * rem_dist_impact +
+	              b[2] * dv + b[3] * dvNegative + b[4] *  dvPositive;
+
+
+	  double u = gap ;//+ theRandomizer->nrandom(0, b[5]);
+	  double cri_gap ;
+
+	  if (u < -4.0) cri_gap = 0.0183 * a[0] ;      // exp(-4)=0.0183
+	  else if (u > 6.0) cri_gap = 403.4 * a[0] ;   // exp(6)=403.4
+	  else cri_gap = a[0] * exp(u) ;
+
+	  if (cri_gap < a[1]) return a[1] ;
+	  else return cri_gap ;
 }
 
 

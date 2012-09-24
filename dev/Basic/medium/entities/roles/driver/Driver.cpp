@@ -839,6 +839,7 @@ void sim_mob::medium::Driver::addToQueue() {
 
 	// enqueue into the current lane's queue
 	segVehicles->addQueuingAgent(params.currLane, parent);
+	parent->isQueuing = true;
 }
 
 void sim_mob::medium::Driver::addToMovingList() {
@@ -849,6 +850,7 @@ void sim_mob::medium::Driver::addToMovingList() {
 void sim_mob::medium::Driver::removeFromQueue() {
 	sim_mob::SegmentVehicles* segVehicles = parent->currWorker->getSegmentVehicles(currResource->getCurrSegment());
 	segVehicles->removeQueuingAgent(params.currLane, parent);
+	parent->isQueuing = false;
 }
 
 void sim_mob::medium::Driver::removeFromMovingList() {

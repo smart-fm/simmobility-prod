@@ -252,11 +252,45 @@ const vector<Point2D>& sim_mob::RoadSegment::getLaneEdgePolyline(unsigned int la
 
 void sim_mob::RoadSegment::initLaneGroups() const
 {
-	//1.a) get all the lanes within the current segment (only used in uni-node case)
+	// find this road segment in fwd segments vector of its link
+	std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt = std::find(parentLink->getFwdSegments().begin(), parentLink->getFwdSegments().end(), this);
+	if(rdSegIt == parentLink->getFwdSegments().end()){
+		// if its not in fwd segments, search in rev segments
+		rdSegIt = std::find(parentLink->getRevSegments().begin(), parentLink->getRevSegments().end(), this);
+		if(rdSegIt == parentLink->getRevSegments().end()){
+			// if its not there in rev segments as well, we have a bug
+			throw std::runtime_error("Cannot find this road segment in link");
+		}
+		else {
+			 groupLanes(parentLink->getRevSegments().begin(), parentLink->getRevSegments(),parentLink->getEnd(), parentLink->getStart());
+		}
+	}
+	else {
+		groupLanes(parentLink->getFwdSegments().begin(), parentLink->getFwdSegments(), parentLink->getStart(), parentLink->getEnd());
+	}
+}
+
+
+void sim_mob::RoadSegment::groupLanes(
+		std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt,
+		const std::vector<sim_mob::RoadSegment*>& segments,
+		sim_mob::Node* start,
+		sim_mob::Node* end
+		) const
+{
+	/**
+	 * This method is not complete. Will get back to this when lane connectors are ready. Harish
+	 */
+
+	if((*rdSegIt)->getEnd() != end){
+		groupLanes(rdSegIt + 1, segments, start, end);
+	}
+
+	//1. get all the lanes within the current segment (only used in uni-node case)
 	const std::vector<sim_mob::Lane*> lanes = getLanes();
 
-	//1.b) map to hold outgoing segment IDs connected with each laneID of current segment
-	std::map<const sim_mob::Lane*, std::vector<RoadSegment*> > mapRS;
+	//1. map to hold outgoing links connected with each lane of current segment
+	std::map<const sim_mob::Lane*, std::vector<Link**> > mapRS;
 
 	Node* rsEnd = getEnd();
 	Node* linkEnd = getLink()->getEnd();

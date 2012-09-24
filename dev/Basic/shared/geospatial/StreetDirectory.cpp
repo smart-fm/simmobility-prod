@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <vector>
 #include <iostream>
+#include <boost/unordered_map.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <math.h>
@@ -121,7 +122,7 @@ private:
 
     // map< key, vector<value> > is used for GridType instead of multimap<key, value>.
     typedef std::vector<RoadSegmentAndIndexPair> RoadSegmentSet;
-    typedef sm_trans::unordered_map<Grid2D, RoadSegmentSet, Hash2D, Equal2D> GridType;
+    typedef boost::unordered_map<Grid2D, RoadSegmentSet, Hash2D, Equal2D> GridType;
     GridType grid_;
 
     std::map<std::string, RoadSegment const *> roadSegments_;

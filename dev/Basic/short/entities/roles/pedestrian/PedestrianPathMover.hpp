@@ -13,7 +13,7 @@
 #include "geospatial/Crossing.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include <vector>
-#include<boost/unordered_map.hpp>
+#include <boost/unordered_map.hpp>
 
 namespace sim_mob
 {

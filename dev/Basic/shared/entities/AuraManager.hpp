@@ -1,8 +1,8 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #pragma once
-//#include <map>
-#include <boost/unordered_map.hpp>
+
+#include <map>
 #include <boost/utility.hpp>
 #include "metrics/Length.hpp"
 #include "metrics/Frame.hpp"
@@ -119,7 +119,7 @@ private:
     }
 
     /*Map to store the density of each road segment. */
-    boost::unordered_map<const RoadSegment*, unsigned short> densityMap;
+    std::map<const RoadSegment*, unsigned short> densityMap;
 
     // No need to define the dtor.
 

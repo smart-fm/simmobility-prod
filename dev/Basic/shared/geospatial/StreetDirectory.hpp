@@ -286,6 +286,9 @@ public:
 
     void updateDrivingMap();
 
+    //Print using the old output format.
+    void printDrivingGraph();
+
 private:
     StreetDirectory()
       : pimpl_(nullptr)

@@ -774,7 +774,6 @@ void PrintDB_Network()
 	LogOutNotSync("\"frame-time-ms\":\"" <<ConfigParams::GetInstance().baseGranMS <<"\",");
 	LogOutNotSync("})" <<endl);
 
-	;
 
 #ifdef SIMMOB_NEW_SIGNAL
 	sim_mob::Signal::all_signals_const_Iterator it;
@@ -996,6 +995,9 @@ void PrintDB_Network()
 		LogOutNotSync("\"to-lane\":\"" <<toLane <<"\",");
 		LogOutNotSync("})" <<endl);
 	}
+
+	//Print the StreetDirectory graphs.
+	StreetDirectory::instance().printDrivingGraph();
 
 	//Temp: Print ordering of output Links
 	for (vector<MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {

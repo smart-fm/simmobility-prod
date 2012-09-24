@@ -13,6 +13,7 @@
 #include "Lane.hpp"
 #include "RoadNetwork.hpp"
 #include "buffering/Vector2D.hpp"
+#include "util/OutputUtil.hpp"
 
 #ifdef SIMMOB_NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
@@ -659,6 +660,9 @@ public:
     void updateEdgeProperty();
     void GeneratePathChoiceSet();
 
+    //Print using the old output format.
+    void printDrivingGraph();
+
 private:
     // We attach a property to each vertex, its name.  We treat the name property as a mean
     // to identify the vertex.  However instead of a textual name, the actual value that we
@@ -855,11 +859,14 @@ StreetDirectory::ShortestPathImpl::findNode(Point2D const & point)
 // If there is a bus stop, the road segment and the side walk is split into 2 edges, split at
 // the bus stop.  Therefore shortestDrivingPath() would include a bus stop as a waypoint,
 // which would be useful for the BusDriver model but may not be needed by the Driver model.
+// TODO: The above may need to change. ~Seth
 //
 // We assume that if a link has any crossing (signalized or zebra crossing), the link is
 // split into several road-segments, split at the crossing.  Hence we assume that the
 // crossing at the beginning or end of a road segment.  Therefore, side walks are not split
 // by crossings.  This assumption needs to be reviewed.
+// TODO: Zebra crossings complicate this; we should never have the same segment twice in a row in
+//       a returned path. ~Seth
 
 inline void
 StreetDirectory::ShortestPathImpl::process(std::vector<RoadSegment*> const & roads, bool isForward)
@@ -1582,6 +1589,37 @@ void StreetDirectory::ShortestPathImpl::GeneratePathChoiceSet()
 	}
 }
 
+void StreetDirectory::ShortestPathImpl::printDrivingGraph()
+{
+	//Avoid local modifications
+	const Graph& graph = drivingMap_;
+
+	//Print an identifier
+	LogOut("(\"sd-graph\""
+		<<","<<0
+		<<","<<&graph
+		<<",{"
+		<<"\"type\":\""<<"driving"
+		<<"\"})"<<std::endl);
+
+	//Print each vertex
+    Graph::vertex_iterator iter, end;
+    for (boost::tie(iter, end) = boost::vertices(graph); iter != end; ++iter) {
+    	const Node* n = boost::get(boost::vertex_name, graph, *iter);
+    	LogOut("(\"sd-vertex\""
+    		<<","<<0
+    		<<","<<n
+    		<<",{"
+    		<<"\"parent\":\""<<&graph
+    		<<"\",\"yPos\":\""<<n->location.getX()
+    		<<"\",\"angle\":\""<<n->location.getY()
+    		<<"\"})"<<std::endl);
+    }
+
+    //Print each edge (todo)
+}
+
+
 /** \endcond ignoreStreetDirectoryInnards -- End of block to be ignored by doxygen.  */
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -1592,8 +1630,9 @@ void
 StreetDirectory::init(RoadNetwork const & network, bool keepStats /* = false */,
                       centimeter_t gridWidth, centimeter_t gridHeight)
 {
-    if (keepStats)
+    if (keepStats) {
         stats_ = new Stats;
+    }
     pimpl_ = new Impl(network, gridWidth, gridHeight);
     spImpl_ = new ShortestPathImpl(network);
 }
@@ -1601,8 +1640,7 @@ StreetDirectory::init(RoadNetwork const & network, bool keepStats /* = false */,
 void
 StreetDirectory::updateDrivingMap()
 {
-	if(spImpl_)
-	{
+	if(spImpl_) {
 		spImpl_->updateEdgeProperty();
 		spImpl_->GeneratePathChoiceSet();
 	}
@@ -1679,5 +1717,15 @@ StreetDirectory::registerSignal(Signal const & signal)
         signals_.insert(std::make_pair(node, &signal));
     }
 }
+
+void
+StreetDirectory::printDrivingGraph()
+{
+	if (spImpl_) {
+		spImpl_->printDrivingGraph();
+	}
+}
+
+
 
 }

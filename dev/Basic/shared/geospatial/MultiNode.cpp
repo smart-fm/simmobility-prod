@@ -1,9 +1,9 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #include "MultiNode.hpp"
-
+#include<cstdio>
 #include <cmath>
-
+#include "conf/simpleconf.hpp"
 #include "RoadNetwork.hpp"
 #include "Lane.hpp"
 
@@ -69,19 +69,44 @@ bool sim_mob::MultiNode::canFindRoadSegment(sim_mob::RoadSegment* rs) const
 	return false;
 }
 
-bool sim_mob::MultiNode::hasOutgoingLanes(const RoadSegment& from) const
+bool sim_mob::MultiNode::hasOutgoingLanes(const RoadSegment * from) const
 {
-	return connectors.count(&from) > 0;
+	return connectors.count(from) > 0;
 }
 
 
-const set<LaneConnector*>& sim_mob::MultiNode::getOutgoingLanes(const RoadSegment& from) const
+const set<LaneConnector*>& sim_mob::MultiNode::getOutgoingLanes(const RoadSegment * from) const
 {
 	if (!hasOutgoingLanes(from)) {
+			  if(this->getID() == 45666)
+			  {
+//				  const std::set<sim_mob::RoadSegment*>& getRoadSegments() const { return roadSegmentsAt; }
+				  std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::const_iterator it = this->getConnectors().begin();
+				  for(; it != this->getConnectors().end(); it++)
+				  {
+					  std::cout << "(45666 : " << this << ") -->connectors[link-seg(" << from << "):" << (*it).first->getLink()->getLinkId() << ":" << (*it).first->getSegmentID() << "] size  is : " << (*it).second.size() << std::endl;
+				  }
+			  }
+			  getchar();
+			  std::vector<sim_mob::MultiNode*> mNodes = sim_mob::ConfigParams::GetInstance().getNetwork().getNodes();
+			  for(std::vector<sim_mob::MultiNode*>::iterator node_it = mNodes.begin(); node_it != mNodes.end(); node_it ++)
+			  {
+				  std::cout << "- ";
+				  if((*node_it)->getID() == 45666)
+				  {
+					  for(std::set<sim_mob::RoadSegment*>::const_iterator rs_it =  (*node_it)->getRoadSegments().begin(); rs_it != (*node_it)->getRoadSegments().end(); rs_it++)
+					  {
+						  sim_mob::RoadSegment * temp = (*rs_it);
+						  std::cout << "\n=>(45666 : " << (*node_it) << ") -->connectors[link-seg(" << temp << ") :" << (*rs_it)->getLink()->getLinkId() << ":" << (*rs_it)->getSegmentID() << "] size  is : " << (*node_it)->connectors[(*rs_it)].size() << std::endl;
+
+					  }
+				  }
+			  }
+			  getchar();
 		//TODO: How are we handling logical errors?
 		std::stringstream msg;
-		msg <<"No outgoing Road Segments at node: " <<originalDB_ID.getLogItem();
-		msg <<"   from node: " <<(from.getStart()==this?from.getEnd()->originalDB_ID.getLogItem():from.getStart()->originalDB_ID.getLogItem());
+		msg <<"No outgoing Lane for Road Segments(" <<  from->getSegmentID() << ")  at node(" << this << "): " <<originalDB_ID.getLogItem();
+		msg <<"   from node: " <<(from->getStart()==this?from->getEnd()->originalDB_ID.getLogItem():from->getStart()->originalDB_ID.getLogItem());
 		msg <<"\nExisting connectors:";
 		for (map<const RoadSegment*, set<LaneConnector*> >::const_iterator it=connectors.begin(); it!=connectors.end(); it++) {
 			msg <<"\n" <<it->first->getStart()->originalDB_ID.getLogItem() <<" => " <<it->first->getEnd()->originalDB_ID.getLogItem();
@@ -89,7 +114,7 @@ const set<LaneConnector*>& sim_mob::MultiNode::getOutgoingLanes(const RoadSegmen
 		throw std::runtime_error(msg.str().c_str());
 	}
 
-	return connectors.find(&from)->second;
+	return connectors.find(from)->second;
 }
 
 

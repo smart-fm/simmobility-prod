@@ -554,7 +554,7 @@ void DatabaseLoader::LoadBasicAimsunObjects(map<string, string> const & storedPr
 	LoadNodes(getStoredProcedure(storedProcs, "node"));
 	LoadSections(getStoredProcedure(storedProcs, "section"));
 	LoadCrossings(getStoredProcedure(storedProcs, "crossing"));
-	LoadBusStop(getStoredProcedure(storedProcs, "busstop",true));
+//	LoadBusStop(getStoredProcedure(storedProcs, "busstop",true)); //todo remove after debugging
 	LoadLanes(getStoredProcedure(storedProcs, "lane"));
 	LoadTurnings(getStoredProcedure(storedProcs, "turning"));
 	LoadPolylines(getStoredProcedure(storedProcs, "polyline"));
@@ -1562,6 +1562,11 @@ void sim_mob::aimsun::Loader::ProcessUniNode(sim_mob::RoadNetwork& res, Node& sr
 	//This UniNode can later be accessed by the RoadSegment itself.
 }
 
+sim_mob::RoadSegment * createNewRoadSegment(sim_mob::Link* ln,set<sim_mob::RoadSegment*> linkSegments, unsigned long id)
+{
+	return new sim_mob::RoadSegment(ln,ln->getLinkId()*100 +linkSegments.size());
+//	return new sim_mob::RoadSegment(ln,id);
+}
 
 void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section& src)
 {
@@ -1577,8 +1582,8 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	//      Road segments that fail to match at every UniNode. Need to find a better way to
 	//      group RoadSegments into Links, but at least this works for our test network.
 	Section* currSect = &src;
-	sim_mob::Link* ln = new sim_mob::Link(1000001 + res.links.size());
-	src.generatedSegment = new sim_mob::RoadSegment(ln,1000001 + linkSegments.size());
+	sim_mob::Link* ln = new sim_mob::Link(1000001 + res.links.size());//max ten million links
+	src.generatedSegment = createNewRoadSegment(ln,linkSegments,src.id);
 	ln->roadName = currSect->roadName;
 	ln->start = currSect->fromNode->generatedNode;
 	//added by Jenny to tag node to one link
@@ -1631,7 +1636,7 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 			if (!found->generatedSegment) {
 				convertSegId.clear();
 				convertSegId.str(std::string());
-				found->generatedSegment = new sim_mob::RoadSegment(ln,1000001  + linkSegments.size());
+				found->generatedSegment = createNewRoadSegment(ln,linkSegments,src.id);
 			}
 			else
 			{
@@ -1656,20 +1661,10 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 			//Process
 			rs->maxSpeed = found->speed;
 			rs->length = found->length;
-			for (int laneID=0; laneID<found->numLanes; laneID++) {
+			for (int laneID=0; laneID < found->numLanes; laneID++) {
 				sim_mob::Lane * temp = new sim_mob::Lane(rs, laneID);
-				if((rs->getSegmentID() == 1000001)&&(ln->getLinkId() == 1000001))
-				{
-					std::cout << "Link : " << ln->getLinkId() << " Pushed a lane in segment 1000001[" << rs << "]<=lane[" <<  temp << ":" << temp->getLaneID_str() << "]\n";
-//					getchar();
-				}
 				rs->lanes.push_back(temp);
 
-			}
-			if((rs->getSegmentID() == 1000001)&&(ln->getLinkId() == 1000001))
-			{
-				std::cout << "Pushed " <<  rs->lanes.size() << " Into rs 1000001\n";
-//				getchar();
 			}
 			rs->width = 0;
 

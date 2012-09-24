@@ -27,11 +27,14 @@ void sim_mob::RoadSegment::setLanes(std::vector<sim_mob::Lane*> lanes)
 	this->lanes = lanes;
 }
 
-sim_mob::RoadSegment::RoadSegment(Link* parent, unsigned long id) : Pavement(), parentLink(parent),segmentID(id)
+//sim_mob::RoadSegment::RoadSegment(Link* parent, unsigned long id) : Pavement(), parentLink(parent),segmentID(id)
+//{
+//
+//}
+sim_mob::RoadSegment::RoadSegment(Link* parent, unsigned long id) : Pavement(), parentLink(parent),segmentID(/*parent->getLinkId()*100 +*/ id)/*100 segments per link*/
 {
 
 }
-
 
 bool sim_mob::RoadSegment::isSingleDirectional()
 {
@@ -133,7 +136,7 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 				lanes[i]->laneID_++;
 			}
 			//Add a sidewalk on the other side of the road segment
-			Lane* swLane2 = new Lane(this, 0);
+			Lane* swLane2 = new Lane(this, lanes.size());
 			swLane2->is_pedestrian_lane(true);
 			swLane2->width_ = lanes.front()->width_/2;
 			swLane2->polyline_ = sim_mob::ShiftPolyline(lanes.front()->polyline_, lanes.front()->getWidth()/2+swLane2->getWidth()/2, false);

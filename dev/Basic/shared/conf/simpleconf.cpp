@@ -828,8 +828,8 @@ void PrintDB_Network()
 
 		//Now cache all lane connectors at this node
 		for (set<RoadSegment*>::iterator rsIt=nodeInt->getRoadSegments().begin(); rsIt!=nodeInt->getRoadSegments().end(); rsIt++) {
-			if (nodeInt->hasOutgoingLanes(**rsIt)) {
-				for (set<LaneConnector*>::iterator i2=nodeInt->getOutgoingLanes(**rsIt).begin(); i2!=nodeInt->getOutgoingLanes(**rsIt).end(); i2++) {
+			if (nodeInt->hasOutgoingLanes(*rsIt)) {
+				for (set<LaneConnector*>::iterator i2=nodeInt->getOutgoingLanes(*rsIt).begin(); i2!=nodeInt->getOutgoingLanes(*rsIt).end(); i2++) {
 					//Cache the connector
 					cachedConnectors.insert(*i2);
 				}
@@ -1033,40 +1033,63 @@ void printRoadNetwork()
 		std::cout << "Forward Segments:\n";
 		for(std::vector<sim_mob::RoadSegment*>::const_iterator it_seg = (*it)->getFwdSegments().begin(); it_seg != (*it)->getFwdSegments().end(); it_seg++)
 		{
-			std::cout << "SegmentId: " << (*it_seg)->getSegmentID() << std::endl;
+			std::cout << "SegmentId: " << (*it_seg)->getSegmentID() << " NOF polypoints: " << (*it_seg)->polyline.size() << std::endl;
 		}
 		std::cout << "\n\n\nBackward Segments:\n";
 		for(std::vector<sim_mob::RoadSegment*>::const_iterator it_seg = (*it)->getRevSegments().begin(); it_seg != (*it)->getRevSegments().end(); it_seg++)
 		{
-			std::cout << "SegmentId: " << (*it_seg)->getSegmentID() << std::endl;
+			std::cout << "SegmentId: " << (*it_seg)->getSegmentID() << " NOF polypoints: " << (*it_seg)->polyline.size() << std::endl;
 		}
 		std::cout << "\n\n\n\n";
 		sum_segments += (*it)->getUniqueSegments().size();
 		sum_lane = 0;
 		for(std::set<sim_mob::RoadSegment*>::iterator it_seg = (*it)->getUniqueSegments().begin(); it_seg != (*it)->getUniqueSegments().end(); it_seg++)
 		{
-			std::cout << "	Number of lanes in segment[" << (*it_seg)->getSegmentID() << "]=> " << (*it_seg)->getLanes().size() << std::endl;
+			std::cout << "	Number of lanes in segment[" << (*it_seg)->getSegmentID() << "]=> " << (*it_seg)->getLanes().size() << ":" << std::endl;
+			for(std::vector<sim_mob::Lane*>::const_iterator lane_it = (*it_seg)->getLanes().begin() ;  lane_it != (*it_seg)->getLanes().end() ; lane_it++)
+			{
+				std::cout << "		laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl;
+			}
 			sum_lane += (*it_seg)->getLanes().size();
 		}
 		std::cout << "Total Number of Lanes in this Link: " << sum_lane << std::endl << std::endl;
 		sum_lanes += sum_lane;
 	}
+
+
+	int temp_rs_cnt = 0;
+	for(std::vector<sim_mob::MultiNode*>::const_iterator it = ConfigParams::GetInstance().getNetwork().getNodes().begin() , it_end(ConfigParams::GetInstance().getNetwork().getNodes().end()); it != it_end; it++)
+	{
+		std::cout << "\n\nConnectors for Node : " << (*it)->getID() << " has connectors for " << (*it)->getConnectors().size() << " segments: \n";
+		temp_rs_cnt += (*it)->getConnectors().size();
+		for(std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::const_iterator it_cnn = (*it)->getConnectors().begin();it_cnn != (*it)->getConnectors().end() ;it_cnn++ )
+		{
+			std::cout << "     RoadSegment " << (*it_cnn).first->getSegmentID() << " has " << (*it_cnn).second.size() << " connectors:\n";
+			for(std::set<sim_mob::LaneConnector*>::iterator it_lc = (*it_cnn).second.begin(); it_lc != (*it_cnn).second.end(); it_lc++)
+			{
+				std::cout << "       From [" << (*it_lc)->getLaneFrom()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneFrom()->getRoadSegment()->getSegmentID() << ":" << (*it_lc)->getLaneFrom()->getLaneID() << "]   to   [" << (*it_lc)->getLaneTo()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneTo()->getRoadSegment()->getSegmentID() << ":"  << (*it_lc)->getLaneTo()->getLaneID() << "]\n";
+			}
+			std::cout << "\n";
+		}
+	}
+	std::cout << "Total Number rs for mn connectors: " << temp_rs_cnt << std::endl << std::endl;
+
+
 	std::cout << "Total Number of Links: " << links.size() << std::endl;
 	std::cout << "Total Number of Segments : " << sum_segments << std::endl;
 	std::cout << "Total Number of Lanes : " << sum_lanes << std::endl;
-
-
 	std::cout << "\n\nTotal Number of Segment Nodes : " << const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getNodesRW().size() << std::endl;
 	std::cout << "Total Number of UniNodes : " << const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getUniNodesRW().size() << std::endl;
 
 
-	std::cout << "Testin Road Network Done\n";
-//	getchar();
+	std::cout << "Testing Road Network Done\n";
+	getchar();
 }
 
 //Returns the error message, or an empty string if no error.
 std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, ProfileBuilder* prof)
 {
+	std::string XML_OutPutFileName = "data/SimMobilityInput.xml";
 	std::cout << ".............................loadXMLConf \n";
 	//Save granularities: system
 	TiXmlHandle handle(&document);
@@ -1324,7 +1347,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
        		 * ****************  XML-READER *******************
         	 *
         	 *************************************************/
-    		sim_mob::xml::InitAndLoadXML();
+    		sim_mob::xml::InitAndLoadXML(XML_OutPutFileName);
 
 
 #endif
@@ -1350,22 +1373,22 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     std::cout << "Network Sealed" << std::endl;
     std::cout << "Print Road Network before sd init\n";
     printRoadNetwork();
-    getchar();
+//    getchar();
     //todo remove te following clause and put it back in performMain() if the results are not promising.
     //Basically, we need to write the XML as soon as the network is sealed.
 //This is the real place to extract xml from road network, tripchian, signal etc but since 'seal network' is not respected (especially in street directory)
 //therefore we write xml after InitUserConf() is completed (in the currently main.cpp)
-//#ifdef SIMMOB_XML_WRITER
-//	/*
-//	 *******************************
-//	 * XML Writer
-//	 *******************************
-//	 */
-//	std::string XML_OutPutFileName = "/home/vahid/SimMobilityInput.xml";
-//	WriteXMLInput(XML_OutPutFileName);
-//	cout << "XML input for SimMobility Created....\n";
-//	return "";
-//#endif
+#ifdef SIMMOB_XML_WRITER
+	/*
+	 *******************************
+	 * XML Writer
+	 *******************************
+	 */
+
+	WriteXMLInput(XML_OutPutFileName);
+	std::cout << "XML input for SimMobility Created....\n";
+	return "XML input for SimMobility Created....\n";//shouldn't be empty :)
+#endif
 
     //Now that the network has been loaded, initialize our street directory (so that lookup succeeds).
 	//todo: check why street directory makes changes in the roadnetwork AFTER network is sealed
@@ -1378,7 +1401,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     std::cout << "Street Directory initialized" << std::endl;
     std::cout << "Print Road Network After sd init\n";
     printRoadNetwork();
-    getchar();
+//    getchar();
 
     //Maintain unique/non-colliding IDs.
     AgentConstraints constraints;
@@ -1514,8 +1537,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     }
 
 	//No error
-    printRoadNetwork();
-    getchar();
 	return "";
 }
 

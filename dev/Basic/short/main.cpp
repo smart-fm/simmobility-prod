@@ -908,16 +908,16 @@ bool performMain(const std::string& configFileName,const std::string& XML_OutPut
 
 	//Save a handle to the shared definition of the configuration.
 	const ConfigParams& config = ConfigParams::GetInstance();
-#ifdef SIMMOB_XML_WRITER
-	/*
-	 *******************************
-	 * XML Writer
-	 *******************************
-	 */
-	WriteXMLInput(XML_OutPutFileName);
-	cout << "XML input for SimMobility Created....\n";
-	return true;
-#endif
+//#ifdef SIMMOB_XML_WRITER
+//	/*
+//	 *******************************
+//	 * XML Writer
+//	 *******************************
+//	 */
+//	WriteXMLInput(XML_OutPutFileName);
+//	cout << "XML input for SimMobility Created....\n";
+//	return true;
+//#endif
 
 	//Start boundaries
 	if (!config.MPI_Disabled() && config.is_run_on_many_computers) {

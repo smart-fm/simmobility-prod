@@ -4,7 +4,7 @@
 
 #include <bitset>
 #include <sstream>
-
+#include <cstdio>
 #include "Point2D.hpp"
 #include "RoadSegment.hpp"
 //#include "xmlLoader/geo8-pimpl.hpp"
@@ -265,7 +265,7 @@ public:
     }
 
     /** Return the polyline of the Lane, which traces the middle of the lane.  */
-    const std::vector<sim_mob::Point2D>& getPolyline() const;
+    const std::vector<sim_mob::Point2D>& getPolyline(bool sync = true) const;
 
     void insertNewPolylinePoint(Point2D p, bool isPre);
 
@@ -288,15 +288,25 @@ private:
     friend class ::geo::segment_t_pimpl;
 
     /** Create a Lane using the \c bit_pattern to initialize the lane's rules.  */
-    explicit Lane(sim_mob::RoadSegment* segment, unsigned int laneID, const std::string& bit_pattern="") : parentSegment_(segment), rules_(bit_pattern), width_(0), laneID_(laneID) {
-    std::ostringstream Id ;
-    	Id << segment->getSegmentID() <<  laneID;
-
-    	laneID_str = Id.str();
+    explicit Lane(sim_mob::RoadSegment* segment, unsigned long laneID, const std::string& bit_pattern="") : parentSegment_(segment), rules_(bit_pattern), width_(0) {/*10 lanes per segment*/
+    	laneID_ = segment->getSegmentID()*10 + laneID;/*10 lanes per segment*/
+    	setLaneID_str(laneID_);
     }
     
     
     Lane(){};//is needed by the xml reader
+    inline void setLaneID_str( unsigned long segmentId, unsigned int laneID)
+    {
+        std::ostringstream Id ;
+        Id << segmentId*10 + laneID ;
+       	laneID_str = Id.str();
+    }
+    inline void setLaneID_str( unsigned int laneID)
+    {
+        std::ostringstream Id ;
+        Id <<  laneID;
+       	laneID_str = Id.str();
+    }
     inline void setParentSegment(sim_mob::RoadSegment* segment){parentSegment_ = segment;}
 
     /** Set the lane's rules using the \c bit_pattern.  */
@@ -356,20 +366,22 @@ private:
     /** If \c value is true, vehicles can make a U-turn on this lane.  */
 	void is_u_turn_allowed(bool value) { rules_.set(IS_U_TURN_ALLOWED, value); }
 
+
+
 private:
 	sim_mob::RoadSegment* parentSegment_;
 	std::bitset<MAX_LANE_MOVEMENT_RULES> rules_;
 	unsigned int width_;
-	unsigned int laneID_;
+	unsigned long laneID_;
 	//I don't want to disturb the usage of laneID_ by other modules so i made the following variable for xml write/read purposes--vahid
 	std::string laneID_str;
 
-        // polyline_ is mutable so that getPolyline() can be a const method.
-	mutable std::vector<Point2D> polyline_;
 
 	friend class RoadSegment;
 
-
+public:
+    // polyline_ is mutable so that getPolyline() can be a const method.
+mutable std::vector<Point2D> polyline_;//todo make it private after your debugging is over-vahid
 
 };
 

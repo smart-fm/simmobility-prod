@@ -77,11 +77,16 @@ void Lane::makePolylineFromParentSegment()
 }
 
 
-
-const std::vector<sim_mob::Point2D>& Lane::getPolyline() const
+/*TODO: Some one has to fix this item. it is not an ordinarry getter function! this function doesn't
+ * return polylines as it should. it 'creates' the polylines if the container is empty!!!
+ * so if the function is used in any place other than what was originally ment to be used in,
+ * it wn't show any flexibility ands messes up iterators, creates seg faults etc.
+ * vahid
+ * */
+const std::vector<sim_mob::Point2D>& Lane::getPolyline(bool sync) const
 {
     //Recompute the polyline if needed
-    if (polyline_.empty()) {
+    if (polyline_.empty() && sync) {
 
     	parentSegment_->syncLanePolylines();
     }

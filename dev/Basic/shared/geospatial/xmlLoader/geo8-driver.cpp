@@ -11,7 +11,7 @@
 #include "geo8-pimpl.hpp"
 
 
-bool sim_mob::xml::InitAndLoadXML()
+bool sim_mob::xml::InitAndLoadXML(std::string XML_OutPutFileName)
 {
 	std::cout << "In InitAndLoadXML\n";
 
@@ -377,17 +377,16 @@ bool sim_mob::xml::InitAndLoadXML()
     //
     ::xml_schema::document doc_p (SimMobility_t_p,"http://www.smart.mit.edu/geo","SimMobility");
     SimMobility_t_p.pre ();
-    std::cout << "In main1 SimMobility_t_p.pre() done\n";
-    doc_p.parse ("data/XML_OutPut.xml");
-    std::cout << "In main1 parse done\n";
+    std::cout << "In SimMobility_t_p.pre() done\n";
+    doc_p.parse (XML_OutPutFileName);
+    std::cout << "In XML parse done...\n";
     SimMobility_t_p.post_SimMobility_t ();
     std::cout << "In main1 post done\n";
   } catch (const ::xml_schema::exception& e) {
-	  std::cout << "main1 failed\n";
+	  std::cout << "XML parsing failed\n";
 	  std::cerr << e << std::endl;
 	  return false;
   } catch (const std::ios_base::failure&) {
-	  std::cout << "main1 failed2\n";
 	  std::cerr << ": error: io failure" << std::endl;
 	  return false;
   }

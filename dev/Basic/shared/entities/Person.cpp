@@ -277,7 +277,6 @@ void sim_mob::Person::update_time(frame_t frameNumber, unsigned int currTimeMS, 
 	//Agents may be created with a null Role and a valid trip chain
 	if (firstFrameTick && !currRole) {
 		std::cout << "Person::update_time::calling checkAndReactToTripChain_1\n";
-//		getchar();
 		checkAndReactToTripChain(currTimeMS, currTimeMS);
 	}
 	 i =0;
@@ -364,7 +363,6 @@ void sim_mob::Person::update_time(frame_t frameNumber, unsigned int currTimeMS, 
 	if (isToBeRemoved()) {
 
 		std::cout << "Person::update_time::calling checkAndReactToTripChain_2\n";
-		getchar();
 		retVal = checkAndReactToTripChain(currTimeMS, currTimeMS+ConfigParams::GetInstance().baseGranMS);
 	}
 	 i =0;
@@ -444,7 +442,6 @@ UpdateStatus sim_mob::Person::checkAndReactToTripChain(unsigned int currTimeMS, 
 		return UpdateStatus::Done;
 	}
 	std::cout << "Person::checkAndReactToTripChain " << this->id  << "[" << this << "] : currTripChainItem[" << this->currTripChainItem << "] : currSubTrip[" << this->currSubTrip << "]" << std::endl;
-//	getchar();
 	//Prepare to delete the previous Role. We _could_ delete it now somewhat safely, but
 	// it's better to avoid possible errors (e.g., if the equality operator is defined)
 	// by saving it until the next time tick.

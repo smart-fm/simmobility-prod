@@ -22,6 +22,7 @@ void sim_mob::WriteXMLInput_Location(TiXmlElement * parent,bool underLocation, u
 
 void sim_mob::WriteXMLInput_PolyLine(const std::vector<sim_mob::Point2D>& polylines,TiXmlElement * PolyLine)
 {
+	int j = polylines.size();
 	std::ostringstream Id;
 	int i = 0;
 	for(std::vector<sim_mob::Point2D>::const_iterator polyLineObj_it = polylines.begin(), it_end(polylines.end()); polyLineObj_it != it_end; polyLineObj_it++, i++)
@@ -98,8 +99,19 @@ void sim_mob::WriteXMLInput_Lane(sim_mob::Lane *LaneObj,TiXmlElement *Lanes)
 	TiXmlElement * is_u_turn_allowed = new TiXmlElement("is_u_turn_allowed"); Lane->LinkEndChild(is_u_turn_allowed);
 	is_u_turn_allowed->LinkEndChild(new  TiXmlText(LaneObj->is_u_turn_allowed() ? "true" : "false"));
 	//Polyline
-	TiXmlElement * PolyLine = new TiXmlElement("PolyLine"); Lane->LinkEndChild(PolyLine);
-	WriteXMLInput_PolyLine(LaneObj->getPolyline(),PolyLine);
+
+/*	we temporarily discard ployline serialization in here as Lane->getPolyline() doesn't
+ * return polylines as it should. it 'creates' the polylines from within this getter function!!!
+ * so if the function is used in any place other than what was originally ment to be used in,
+ * it wn't show any flexibility ands messes up iterators, creates seg faults etc.*/
+	/*update: I made an exception to getPolyline by adding a boolean argument to the function getPolyline()
+	 * which controls the act of creating polylines
+	 */
+  if(LaneObj->getPolyline(false).size())
+  {
+	  TiXmlElement * PolyLine = new TiXmlElement("PolyLine"); Lane->LinkEndChild(PolyLine);
+	  WriteXMLInput_PolyLine(LaneObj->getPolyline(false),PolyLine);
+  }
 
 }
 void sim_mob::WriteXMLInput_Crossing(sim_mob::Crossing * crossing , int offset, TiXmlElement *Obstacle)
@@ -190,7 +202,7 @@ void sim_mob::WriteXMLInput_Segment(sim_mob::RoadSegment* rs ,TiXmlElement * Seg
 	TiXmlElement * Lanes = new TiXmlElement("Lanes"); Segment->LinkEndChild(Lanes);
 	//Lane
 	int i = 0;
-	std::cout << "Link : " << rs->getLink()->getLinkId() << "  Number of lanes in segmen " << rs->getSegmentID() << "[" << rs << "]  is : " << rs->getLanes().size() << std::endl;
+	std::cout << "Link : " << rs->getLink()->getLinkId() << "  Number of lanes in segment " << rs->getSegmentID() << "[" << rs << "]  is : " << rs->getLanes().size() << std::endl;
 	for(std::vector<sim_mob::Lane*>::const_iterator LaneObj_it = rs->getLanes().begin(), it_end(rs->getLanes().end()); LaneObj_it != it_end ; LaneObj_it++)
 	{
 		sim_mob::Lane* temp = *LaneObj_it;

@@ -20,6 +20,8 @@
 using boost::multi_index::get;
 namespace geo
 {
+int tmp_cnn_cnt = 0;
+int tmp_rs = 0;
 struct geo_LinkLoc_mapping
 {
 	geo_LinkLoc_mapping(unsigned int linkID_=0,std::vector<sim_mob::Node*> node_=std::vector<sim_mob::Node*>(),sim_mob::Node *rawNode_=0):
@@ -65,7 +67,7 @@ std::map<unsigned int,geo_UniNode_Connectors_type> geo_UniNodeConnectorsMap;//<n
 
 typedef std::map<unsigned long, geo_UniNode_Connectors_type > geo_MultiNode_Connectors_type; //map<roadsegment,set<pair<lanefrom,laneto>> >
 geo_MultiNode_Connectors_type geo_MultiNode_Connectors;
-std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;//<nodeId,geo_MultiNode_Connectors_type>
+std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;//map <nodeId,geo_MultiNode_Connectors_type> or map <nodeId,map<roadsegment,set<pair<lanefrom,laneto>> > >
 
 //typedef boost::bimap<std::string,sim_mob::RoadSegment*> geo_Segments; geo_Segments geo_Segments_;
 //typedef boost::bimap<std::string,sim_mob::Lane*> geo_Lanes; geo_Lanes geo_Lanes_;
@@ -136,6 +138,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void PolyLine_t_pimpl::
   pre ()
   {
+	  polyLine.clear();
   }
 
   void PolyLine_t_pimpl::
@@ -162,7 +165,10 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void lane_t_pimpl::
   laneID (unsigned long long laneID)
   {
-	  this->lane->laneID_ = laneID;
+	  this->lane->laneID_ =  laneID;
+      std::ostringstream Id ;
+      Id <<  laneID;
+      this->lane->laneID_str = Id.str();
 	  //add it to the book keeper;
 	  geo_Lanes_[laneID] = this->lane;
   }
@@ -314,6 +320,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void connectors_t_pimpl::
   pre ()
   {
+	  this->Connectors.clear();
   }
 
   void connectors_t_pimpl::
@@ -339,6 +346,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void Multi_Connector_t_pimpl::
   RoadSegment (unsigned long long RoadSegment)
   {
+	  tmp_rs ++;
 	  temp_pair.first = RoadSegment;
   }
 
@@ -360,11 +368,13 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void Multi_Connectors_t_pimpl::
   pre ()
   {
+	  geo_MultiNode_Connectors.clear();
   }
 
   void Multi_Connectors_t_pimpl::
   MultiConnectors (const std::pair<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >& MultiConnectors)
   {
+	  tmp_cnn_cnt += MultiConnectors.second.size();
 	  geo_MultiNode_Connectors[MultiConnectors.first] = MultiConnectors.second;
   }
 
@@ -486,7 +496,11 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 	  std::cout << "In segment_t_pimpl:: Lanes ()\n";
 	  this->rs->lanes =  Lanes;
 	  //set parentsegment for each lane
-	  for(std::vector<sim_mob::Lane*>::iterator it = this->rs->lanes.begin(), it_end(this->rs->lanes.end()); it != it_end; it++) (*it)->setParentSegment(this->rs);
+	  for(std::vector<sim_mob::Lane*>::iterator it = this->rs->lanes.begin(), it_end(this->rs->lanes.end()); it != it_end; it++)
+		  {
+		  	 (*it)->setParentSegment(this->rs);
+//		  	(*it)->setLaneID_str((*it)->parentSegment_->getSegmentID());
+		  }
 	  std::cout << "In segment_t_pimpl:: Lanes (" << this->rs->lanes.size() << ")--done\n";
   }
 
@@ -535,7 +549,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   {
 	std::cout << "In linkID \n";
 	link->linkID = linkID;
-	geo_Links_[linkID] = link;
+	geo_Links_[link->linkID] = link;
 //	std::cout << "linkID : "  << linkID << " Has link " << link;
   }
 
@@ -903,6 +917,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void UniNode_t_pimpl::
   pre ()
   {
+//	  connectors_.clear();
   }
 
   void UniNode_t_pimpl::
@@ -1040,7 +1055,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   void intersection_t_pimpl::
   Connectors (const std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > >& Connectors)
   {
-
+	  this->connectors_ = Connectors;
   }
 
   void intersection_t_pimpl::
@@ -2313,8 +2328,6 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   {
 	  std::cout << "In GeoSpatial_t_pimpl.RoadNetwork ()\n";
 //	  Now Take care of items like lane 'connectors' , 'road segments at' multinodes etc
-//	  std::pair<std::multimap<unsigned int,std::string>::iterator, std::multimap<unsigned int,std::string>::iterator> ppp;
-
 	  //multinodes
 	  std::vector<sim_mob::MultiNode*>& mNodes = ConfigParams::GetInstance().getNetworkRW().getNodesRW();
 	  for(std::vector<sim_mob::MultiNode*>::iterator node_it = mNodes.begin(); node_it != mNodes.end(); node_it ++)
@@ -2324,19 +2337,24 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 			  (*node_it)->roadSegmentsAt.insert(geo_Segments_[*rs_it]);
 		  }
 	  }
-	  std::cout << "In GeoSpatial_t_pimpl.RoadNetwork ()1\n";
+
 	  //multi node connectors
+	  int tmp_cnn_cnt1 = 0;
+	  int tmp_rs1 = 0;
 	  for(std::vector<sim_mob::MultiNode*>::iterator node_it = mNodes.begin(); node_it != mNodes.end(); node_it ++)
 	  {
 		  geo_MultiNode_Connectors_type & geo_MultiNode_Connectors_ = geo_MultiNodeConnectorsMap[(*node_it)->getID()];
+		  tmp_rs1 += geo_MultiNode_Connectors_.size();
 		  for(geo_MultiNode_Connectors_type::iterator rs_cnn_it = geo_MultiNode_Connectors_.begin(); rs_cnn_it != geo_MultiNode_Connectors_.end(); rs_cnn_it++)
 		  {
 			  std::set<sim_mob::LaneConnector*> connectors;
-			  geo_UniNode_Connectors_type & geo_UniNode_Connectors_ = rs_cnn_it->second; //we don't have uninode here. it is just a name paw
+			  geo_UniNode_Connectors_type & geo_UniNode_Connectors_ = rs_cnn_it->second; //reminder: We don't have any uninode here. it is just a name paw. we are re-Using :)
 			  geo_UniNode_Connectors_type::iterator lane_cnn_it;
+			  connectors.clear();
 			  for(lane_cnn_it = geo_UniNode_Connectors_.begin(); lane_cnn_it != geo_UniNode_Connectors_.end(); lane_cnn_it++)
 			  {
 				  sim_mob::LaneConnector* lc = new sim_mob::LaneConnector();
+				  tmp_cnn_cnt1 ++;
 				  lc->laneFrom = geo_Lanes_[(*lane_cnn_it).first];
 				  lc->laneTo = geo_Lanes_[(*lane_cnn_it).second];
 				  connectors.insert(lc);
@@ -2345,7 +2363,11 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 			  (*node_it)->connectors[rs] = connectors;
 		  }
 	  }
-	  std::cout << "In GeoSpatial_t_pimpl.RoadNetwork ()2\n";
+	  std::cout << "Total Number of Road Segments = " << tmp_rs << std::endl;
+	  std::cout << "Total Number of Road Segments = " << tmp_rs1 << std::endl;
+	  std::cout << "Total Number of multinode conectors = " << tmp_cnn_cnt << std::endl;
+	  std::cout << "Total Number of multinode conectors = " << tmp_cnn_cnt1 << std::endl;
+	  getchar();
 	  //uni node connectors
 	  std::set<sim_mob::UniNode*>& uNodes = ConfigParams::GetInstance().getNetworkRW().getUniNodesRW();
 	  for(std::set<sim_mob::UniNode*>::iterator node_it = uNodes.begin(); node_it != uNodes.end(); node_it ++)
@@ -2355,22 +2377,15 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 		  for(geo_UniNode_Connectors_type::iterator  lane_cnn_it = geo_UniNode_Connectors_.begin(); lane_cnn_it != geo_UniNode_Connectors_.end(); lane_cnn_it++)
 			  connectors[geo_Lanes_[(*lane_cnn_it).first]] = geo_Lanes_[(*lane_cnn_it).second];
 	  }
-	  std::cout << "In GeoSpatial_t_pimpl.RoadNetwork ()3\n";
 //	  //linkLoc //todo later
 	  geo_LinkLoc_random & linkLocs = get<0>(geo_LinkLoc_);
 	  for(geo_LinkLoc_random::iterator link_it = linkLocs.begin(), it_end(linkLocs.end()); link_it != it_end; link_it++)
 	  {
-//		  std::cout << " it->linkID = " << link_it->linkID << std::endl;
-//		  std::cout << " link : " << geo_Links_[link_it->linkID] << std::endl;
-//		  std::cout << " node1 " << it->node1 << std::endl;
-//		  std::cout << " node2 " << it->node2 << std::endl;
 		  for(std::vector<sim_mob::Node*>::iterator node_it = link_it->node.begin(); node_it != link_it->node.end() ; node_it++)
 		  {
 			 (*node_it)->linkLoc = geo_Links_[link_it->linkID];
 		  }
-//		  it->node1->linkLoc = it->node2->linkLoc = geo_Links_[it->linkID];
 	  }
-	  std::cout << "In GeoSpatial_t_pimpl.RoadNetwork()...Done\n";
   }
 
   void GeoSpatial_t_pimpl::

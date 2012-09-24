@@ -153,6 +153,7 @@ LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(DriverUpdateParams& p, int type
 				otherSpeed[i].lead = fwd->driver->fwdVelocity.get();
 				otherDistance[i].lead= fwd->distance;
 			}
+//check otherDistance[i].lead if <= 0 return
 
 			if(!back->exists()){//no vehicle behind
 				otherSpeed[i].lag=-5000;
@@ -177,11 +178,11 @@ LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(DriverUpdateParams& p, int type
 			if (j==0) {
 				double v      = p.perceivedFwdVelocity;
 				double dv     = otherSpeed[i].lead - v;
-				flags[i].lead = (otherDistance[i].lead > lcCriticalGap(p, j+type,p.dis2stop,v,dv));
+				flags[i].lead = (otherDistance[i].lead > lcCriticalGap(p, j+type,p.dis2stop/100,v,dv));
 			} else {
 				double v 	 = otherSpeed[i].lag;
 				double dv 	 = p.perceivedFwdVelocity - otherSpeed[i].lag;
-				flags[i].lag = (otherDistance[i].lag > lcCriticalGap(p, j+type,p.dis2stop,v,dv));
+				flags[i].lag = (otherDistance[i].lag > lcCriticalGap(p, j+type,p.dis2stop/100,v,dv));
 			}
 		}
 	}

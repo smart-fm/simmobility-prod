@@ -1595,7 +1595,7 @@ void StreetDirectory::ShortestPathImpl::printDrivingGraph()
 	const Graph& graph = drivingMap_;
 
 	//Print an identifier
-	LogOut("(\"sd-graph\""
+	LogOutNotSync("(\"sd-graph\""
 		<<","<<0
 		<<","<<&graph
 		<<",{"
@@ -1606,7 +1606,7 @@ void StreetDirectory::ShortestPathImpl::printDrivingGraph()
     Graph::vertex_iterator iter, end;
     for (boost::tie(iter, end) = boost::vertices(graph); iter != end; ++iter) {
     	const Node* n = boost::get(boost::vertex_name, graph, *iter);
-    	LogOut("(\"sd-vertex\""
+    	LogOutNotSync("(\"sd-vertex\""
     		<<","<<0
     		<<","<<n
     		<<",{"

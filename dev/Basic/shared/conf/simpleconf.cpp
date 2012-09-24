@@ -1388,13 +1388,13 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 			std::cout <<"    Crossing[" <<it->first <<"] = (" <<it->second.getX() <<"," <<it->second.getY() <<")\n";
 		}
     }
-    if (!ConfigParams::GetInstance().connectionString.empty()) {
+    //if (!ConfigParams::GetInstance().connectionString.empty()) {
     	//Output AIMSUN data
     	std::cout <<"Network details loaded from connection: " <<ConfigParams::GetInstance().connectionString <<"\n";
     	std::cout <<"------------------\n";
     	PrintDB_Network();
     	std::cout <<"------------------\n";
-    }
+   // }
     std::cout <<"  Agents Initialized: " <<Agent::all_agents.size() <<"\n";
     /*for (size_t i=0; i<active_agents.size(); i++) {
     	//std::cout <<"    Agent(" <<agents[i]->getId() <<") = " <<agents[i]->xPos.get() <<"," <<agents[i]->yPos.get() <<"\n";

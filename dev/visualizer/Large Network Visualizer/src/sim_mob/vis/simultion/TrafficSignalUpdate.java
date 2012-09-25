@@ -60,11 +60,11 @@ public class TrafficSignalUpdate implements DrawableItem, GsonResObj {
 		Intersection tempIntersection = rdNet.getIntersection().get(id);
 		SignalHelper signalHelper = tempIntersection.getSignalHelper();
 		//since we dont have a mechanism like TrafficSignalLine for crossing, we build its signallinetick requirement right here
-		HashMap<Integer,Integer> CRSs= new HashMap<Integer,Integer>();//this initialization is useless. the actuall initialization is done inside the following for loop.this one is just to avoid the errors
+		HashMap<Long,Integer> CRSs= new HashMap<Long,Integer>();//this initialization is useless. the actuall initialization is done inside the following for loop.this one is just to avoid the errors
 //		System.out.println("This crossing has " + tempIntersection.getAllSignalCrossings().values().size() + " Crossings");
 //		System.out.println("");
-		for(ArrayList<Integer> origCrossings:tempIntersection.getAllSignalCrossings().values())
-			for(Integer origCrossing:origCrossings)
+		for(ArrayList<Long> origCrossings:tempIntersection.getAllSignalCrossings().values())
+			for(Long origCrossing:origCrossings)
 			{
 				CRSs.put(origCrossing, 1);
 //				if((frame == 230))
@@ -77,8 +77,8 @@ public class TrafficSignalUpdate implements DrawableItem, GsonResObj {
 			for(TrafficSignal.Segment updatingSegment:updatingPhase.getSegmens())
 			{
 			
-				int updatingSegmentFrom = signalHelper.HexStringToInt(updatingSegment.getSegmentFrom());
-				int updatingSegmentTo = signalHelper.HexStringToInt(updatingSegment.getSegmentTo());
+				int updatingSegmentFrom = SignalHelper.HexStringToInt(updatingSegment.getSegmentFrom());
+				int updatingSegmentTo = SignalHelper.HexStringToInt(updatingSegment.getSegmentTo());
 				SignalHelper.Phase originalPhaseHelper = signalHelper.getPhase(updatingPhase.getName());
 				SignalHelper.Segment originalSegmentHelper = originalPhaseHelper.getSegmentPair(updatingSegmentFrom, updatingSegmentTo);
 				if(originalSegmentHelper !=null)
@@ -93,7 +93,7 @@ public class TrafficSignalUpdate implements DrawableItem, GsonResObj {
 							if(updatingCrossing.getId() != null){
 							if(updatingCrossing.getId().length() > 1)	
 							{
-								int updatingCrossingId = signalHelper.HexStringToInt(updatingCrossing.getId());
+								long updatingCrossingId = SignalHelper.HexStringToInt(updatingCrossing.getId());
 								CRSs.put(updatingCrossingId,updatingCrossing.getCurrColor());
 							}
 							}

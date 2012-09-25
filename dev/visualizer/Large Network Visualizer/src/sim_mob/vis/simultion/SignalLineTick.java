@@ -13,7 +13,7 @@ import sim_mob.vis.network.TrafficSignalLine;
  * \author Vahid Saber
  */
 public class SignalLineTick{
-	private int id;
+	private long id;
 	private ArrayList<ArrayList<Integer>> allVehicleLights;
 	private ArrayList<Integer> allPedestrianLights;	
 	private Integer intersectionID;
@@ -24,7 +24,7 @@ public class SignalLineTick{
 	public ArrayList<ArrayList<Integer>> getVehicleLights(){ return allVehicleLights;}
 	public ArrayList<Integer> getPedestrianLights(){return allPedestrianLights;}
 	public boolean getFake(){ return fake; }
-	public SignalLineTick(int id, ArrayList<ArrayList<Integer>> allVehicleLights, ArrayList<Integer> allPedestrainLights,Integer intersectionID){
+	public SignalLineTick(long id, ArrayList<ArrayList<Integer>> allVehicleLights, ArrayList<Integer> allPedestrainLights,Integer intersectionID){
 		this.id = id;
 		this.allVehicleLights = allVehicleLights;
 		this.allPedestrianLights =  allPedestrainLights;
@@ -32,7 +32,7 @@ public class SignalLineTick{
 		this.fake = false;
 	}
 	
-	public int getID() {
+	public long getID() {
 		return id;
 	}
 	

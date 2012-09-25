@@ -564,7 +564,7 @@ public class NetworkVisualizer {
 			//Get all lights and Crossings at this intersection (by id)
 			Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());
 			ArrayList<Integer> allPedestrainLights = at.getPedestrianLights();
-			ArrayList<Integer> crossingIDs = tempIntersection.getSigalCrossingIDs();
+			ArrayList<Long> crossingIDs = tempIntersection.getSigalCrossingIDs();
 
 			//Add all crossing lights to the spatial index.
 			for(int i=0; i<crossingIDs.size(); i++) {

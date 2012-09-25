@@ -15,9 +15,9 @@ import sim_mob.vis.network.SignalHelper;
 public class Intersection {
 
 	
-	private int intersectNodeID;
-	private ArrayList <Integer> signalLinkIDs; 
-	private ArrayList <Integer> signalCrossingIDs;
+	private long intersectNodeID;
+	private ArrayList <Long> signalLinkIDs; 
+	private ArrayList <Long> signalCrossingIDs;
 	private ArrayList <TrafficSignalCrossing> signalCrossings;
 
 	
@@ -28,9 +28,9 @@ public class Intersection {
 
 	
 	
-	public int getIntersectNodeID (){return intersectNodeID;}
-	public ArrayList <Integer> getSigalLinkIDs(){return signalLinkIDs;}
-	public ArrayList <Integer> getSigalCrossingIDs(){return signalCrossingIDs;}
+	public long getIntersectNodeID (){return intersectNodeID;}
+	public ArrayList <Long> getSigalLinkIDs(){return signalLinkIDs;}
+	public ArrayList <Long> getSigalCrossingIDs(){return signalCrossingIDs;}
 	public ArrayList <TrafficSignalCrossing> getSignalCrossings(){return signalCrossings;}
 	
 	public ArrayList<ArrayList<TrafficSignalLine>> getVaTrafficSignal(){return vaSignalLine;}
@@ -38,7 +38,7 @@ public class Intersection {
 	public ArrayList<ArrayList<TrafficSignalLine>> getVcTrafficSignal(){return vcSignalLine;}
 	public ArrayList<ArrayList<TrafficSignalLine>> getVdTrafficSignal(){return vdSignalLine;}
 	
-	public Intersection(int intersectNodeID, ArrayList <Integer> signalLinkIDs, ArrayList <Integer> signalCrossingIDs){
+	public Intersection(long intersectNodeID, ArrayList <Long> signalLinkIDs, ArrayList <Long> signalCrossingIDs){
 		
 		this.intersectNodeID = intersectNodeID;
 		this.signalLinkIDs = signalLinkIDs;
@@ -64,18 +64,18 @@ public class Intersection {
 	}
 	//	my solution:
 	private Hashtable<String, ArrayList<TrafficSignalLine>> trafficSignalLines;
-	private Hashtable<String, ArrayList <Integer>> trafficSignalCrossings;//will replace signalCrossingIDs
+	private Hashtable<String, ArrayList <Long>> trafficSignalCrossings;//will replace signalCrossingIDs
 	private SignalHelper signalHelper;
 	public SignalHelper getSignalHelper() {return signalHelper;}
 	public void setSignalHelper(SignalHelper signalHelper_) { signalHelper = signalHelper_;	}
-	private int intersectionID;
-	public int getIntersectID (){return intersectionID;}
+	private long intersectionID;
+	public long getIntersectID (){return intersectionID;}
 
 	public ArrayList<TrafficSignalLine> getPhaseTrafficSignalLines(String phase)
 	{
 		return trafficSignalLines.get(phase);
 	}
-	public ArrayList<Integer> getPhaseCrossingIDs(String phase)
+	public ArrayList<Long> getPhaseCrossingIDs(String phase)
 	{
 		return trafficSignalCrossings.get(phase);
 	}
@@ -96,7 +96,7 @@ public class Intersection {
 	{
 		return trafficSignalLines;
 	}
-	public Hashtable<String, ArrayList <Integer>> getAllSignalCrossings()
+	public Hashtable<String, ArrayList <Long>> getAllSignalCrossings()
 	{
 		return trafficSignalCrossings;
 	}
@@ -112,10 +112,10 @@ public class Intersection {
 	//my solution: phases replace approaches
 	public void populateTrafficSignal(RoadNetwork rn)
 	{
-		Set<Integer> tempSet = new HashSet<Integer>(); //for temporary use only
+		Set<Long> tempSet = new HashSet<Long>(); //for temporary use only
 		this.trafficSignalLines = new Hashtable<String, ArrayList<TrafficSignalLine>>();
-		this.trafficSignalCrossings = new   Hashtable<String, ArrayList <Integer>>();
-		this.signalCrossingIDs = new ArrayList <Integer>();
+		this.trafficSignalCrossings = new   Hashtable<String, ArrayList <Long>>();
+		this.signalCrossingIDs = new ArrayList <Long>();
 		
 		for (SignalHelper.Phase ph : signalHelper.phases) {
 			//step 1: populate trafficSignalLines
@@ -171,7 +171,7 @@ public class Intersection {
 			 * it is better to let its main container in the roadnetwork class remain as it is and we just book keep the crossing ids
 			 * relative to this intersection.
 			 */
-			ArrayList <Integer> tempCrossingIds = new ArrayList <Integer>();
+			ArrayList <Long> tempCrossingIds = new ArrayList <Long>();
 			for (SignalHelper.Crossing cr : ph.crossings) 
 			{
 					tempSet.add(cr.id);//to avoid duplicates. This container may be used to reuse signalCrossingIDs. this container is used in other part.so, just in case :)
@@ -179,8 +179,8 @@ public class Intersection {
 			}
 			this.trafficSignalCrossings.put(ph.name, tempCrossingIds);
 		}
-		this.signalCrossingIDs = new ArrayList <Integer>();
-		for(Integer s : tempSet) this.signalCrossingIDs.add(s);
+		this.signalCrossingIDs = new ArrayList <Long>();
+		for(Long s : tempSet) this.signalCrossingIDs.add(s);
 		
 	}
 			

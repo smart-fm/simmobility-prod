@@ -49,11 +49,11 @@ public class SignalHelper {
 		public Crossing() {
 		};
 
-		public Crossing(int id_) {
+		public Crossing(long id_) {
 			id = id_;
 		}
 
-		public int id;
+		public long id;
 		// public Integer current_color;
 	}
 
@@ -80,7 +80,7 @@ public class SignalHelper {
 		
 	}
 
-	public int hex_id;
+	public long hex_id;
 	public int node;
 	public ArrayList<Phase> phases;
 	public int STempVal;

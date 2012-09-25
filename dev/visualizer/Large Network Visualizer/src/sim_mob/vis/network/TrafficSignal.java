@@ -106,13 +106,13 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 			for(Segment rs : ph.segments)
 			{
 				//TODO: for sync purpose, change all ParseIntOptionalHex() to the local signalhelper converter function
-				SignalHelper.Segment segment = signalHelper.new Segment(Utility.ParseIntOptionalHex(rs.segment_from), Utility.ParseIntOptionalHex(rs.segment_to));
+				SignalHelper.Segment segment = signalHelper.new Segment(Utility.ParseLongOptionalHex(rs.segment_from), Utility.ParseIntOptionalHex(rs.segment_to));
 				phase.segments.add(segment);
 			}
 			
 			for(Crossing cr : ph.crossings)
 			{
-				SignalHelper.Crossing crossing = signalHelper.new Crossing(Utility.ParseIntOptionalHex(cr.id));
+				SignalHelper.Crossing crossing = signalHelper.new Crossing(Utility.ParseLongOptionalHex(cr.id));
 				phase.crossings.add(crossing);
 			}
 			signalHelper.phases.add(phase);

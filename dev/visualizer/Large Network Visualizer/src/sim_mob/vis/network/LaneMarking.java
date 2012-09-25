@@ -99,6 +99,11 @@ public class LaneMarking implements DrawableItem{
 		//Draw it.
 		g.setColor(clr);
 		g.setStroke(strk);
+				
+		//NOTE: All of these are somewhat wrong; we need to see exactly how startPt/lastPt etc. are being set.
+		//   startPt, secondPt seem wrong.
+		//   penultimatePt, lastPt are correct
+		//Compare their access patterns!
 		g.drawLine((int)startPt.getX(),(int)startPt.getY(),(int)secondPt.getX(),(int)secondPt.getY());
 		g.drawLine((int)secondPt.getX(),(int)secondPt.getY(),(int)penultimatePt.getX(),(int)penultimatePt.getY());
 		g.drawLine((int)penultimatePt.getX(),(int)penultimatePt.getY(), (int)lastPt.getX(),(int)lastPt.getY());

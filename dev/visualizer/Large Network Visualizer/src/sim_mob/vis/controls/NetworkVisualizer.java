@@ -302,6 +302,17 @@ public class NetworkVisualizer {
 			//Update
 			ScaledPoint.updateScaleAndTranslate(zoomLevel, upperLeftPoint/*, scaledHeight*/);
 			
+			///DEBUG
+			/*Hashtable<Long, Hashtable<Integer, LaneMarking>>  lm = network.getLaneMarkings();
+			for (Hashtable<Integer, LaneMarking> mks : lm.values()) {
+				for (LaneMarking l : mks.values()) {
+					ScaledPoint st = l.getStart().getPos();
+					System.out.println("StartY: " + (int)st.getY() + " => " + (int)st.getUnscaledY());
+				}
+			}*/
+			///DONE DEBUG
+			
+			
 			//Save the new zoom
 			currView = zoomRect;
 		}

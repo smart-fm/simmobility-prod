@@ -24,6 +24,7 @@ import java.util.regex.*;
 
 import sim_mob.conf.CSS_Interface;
 import sim_mob.vis.controls.*;
+import sim_mob.vis.network.LaneMarking;
 import sim_mob.vis.network.RoadNetwork;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.simultion.SimulationResults;
@@ -600,7 +601,8 @@ public class MainFrame extends JFrame {
 				br.close();
 			} catch (IOException ex) {
 				throw new RuntimeException(ex);
-			}
+			}			
+			
 			console.setText("Input File Name: "+fileName);
 			
 			//Clear our global scaled points array.
@@ -640,6 +642,7 @@ public class MainFrame extends JFrame {
 			
 			//Update the map
 			newViewPnl.initMapCache(vis);
+			
 		}//run()
 	}//class Thread
 	

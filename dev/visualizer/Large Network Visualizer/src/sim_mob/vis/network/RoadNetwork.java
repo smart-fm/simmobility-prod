@@ -350,6 +350,7 @@ public class RoadNetwork {
 	    		pos = Utility.ParseLaneNodePos(pRes.properties.get(key));
 	    		Node startNode = new Node(pos.get(0), pos.get(1), false,null);
 	    		Node endNode = new Node(pos.get(2), pos.get(3), false,null);
+	    		
 	    		tempLineTable.put(lineNumber, new LaneMarking(startNode,endNode,false,lineNumber,parentKey));
 	    
 	    		//Add lane number to the tracking list
@@ -386,25 +387,26 @@ public class RoadNetwork {
 	    		
 	    	int endMiddleX = (lineMarkingPositions.get(i).get(2) + lineMarkingPositions.get(j).get(2))/2;
 	    	int endMiddleY = (lineMarkingPositions.get(i).get(3) + lineMarkingPositions.get(j).get(3))/2;
+	    	
+    		/*System.out.println("Adding Lane from: (" + 
+    			startMiddleX + "," + startMiddleY + "), to: (" +
+				endMiddleX + "," + endMiddleY + ")"
+			);*/
 	    		
 	    	Lane tempLane = new Lane(i,new Node(startMiddleX, startMiddleY,true, null),new Node(endMiddleX,endMiddleY,false,null));	    		
 	    	
 	    	tempLaneTable.put(i,tempLane);
 
-	    	if(segmentToLanesTable.containsKey(parentKey)){
-	    		segmentToLanesTable.get(parentKey).put(i, pRes.objID);
-	    	}	
-	    	else{
-	    		Hashtable<Integer, Long> lanesOnSegment = new Hashtable<Integer,Long>();
-	    		lanesOnSegment.put(i, pRes.objID);
-	    		segmentToLanesTable.put(parentKey, lanesOnSegment);
+	    	if (!segmentToLanesTable.containsKey(parentKey)) {
+	    		segmentToLanesTable.put(parentKey, new Hashtable<Integer,Long>());
 	    	}
+	    	segmentToLanesTable.get(parentKey).put(i, pRes.objID);
 	    }
 	    lanes.put(parentKey, tempLaneTable);	 
 	    
 	    
 	    //Create a new Lane, save it
-	    linaMarkings.put(pRes.objID, tempLineTable);    
+	    linaMarkings.put(pRes.objID, tempLineTable);
 	}
 	
 	private void parseSegment(Utility.ParseResults pRes) throws IOException {

@@ -120,47 +120,18 @@ public class SimulationResults {
 		
 		//Modify traffic signal to make it stable
 		Hashtable<Long,SignalLineTick> oldSignal = new Hashtable<Long, SignalLineTick>();
-
-		//Now that the file has been loaded, scale agent positions to the RoadNetwork (so we can at least
-		//  see something.)
 		for (TimeTick tt : ticks) {
-			for (AgentTick at : tt.agentTicks.values()) {
-				//Skip pedestrians; they're already using the right coordinates
-				/*if (!OutOfBounds(at.getPos().getUnscaledX(), at.getPos().getUnscaledY(), rn)) {
-					continue;
-				}
-				
-				//Get percent
-				double percX = at.pos.getUnscaledX()/(xBounds[1]-xBounds[0]);
-				double percY = at.pos.getUnscaledY()/(yBounds[1]-yBounds[0]);
-				
-				//Scale to RN
-				double amtX = percX * (rn.getLowerRight().x - rn.getTopLeft().x);
-				double amtY = percY * (rn.getLowerRight().y - rn.getTopLeft().y);
-				
-				//Translate to RN
-				double resX = amtX + rn.getTopLeft().x;
-				double resY = amtY + rn.getTopLeft().y;
-				
-				//Save
-				at.pos = new ScaledPoint(resX, resY);*/
-			}
-		    
-			
-			if(tt.signalLineTicks.size()>0)
-			{
+			if(tt.signalLineTicks.size()>0) {
 				//Clean previous data
 				oldSignal = new Hashtable<Long, SignalLineTick>();
+				
 				//Assign new data
 				oldSignal = tt.signalLineTicks;
-			}
-			else if(tt.signalLineTicks.size() == 0){
-			
+			} else if(tt.signalLineTicks.size() == 0) {
 				if(oldSignal.size()!=0){
 					tt.signalLineTicks = oldSignal;
-				}
-				else{
-					System.out.println("Error, in modification of signal line ticks -- SimulationResults, constructor");
+				} else {
+					//System.out.println("Error, in modification of signal line ticks -- SimulationResults, constructor");
 				}
 				
 			}

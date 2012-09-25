@@ -80,7 +80,7 @@ public class ScaledPoint {
 	
 	public double getY() {
 		double scaledY = orig.y*ScaledPoint.scaleFactors.getY() - ScaledPoint.translateFactors.getY();
-		
+		//System.out.println("Scale by: " + ScaledPoint.scaleFactors.getY() + ", translate by: " + ScaledPoint.translateFactors.getY());
 		//Y is slightly different, since its axis is flipped.
 		return scaledY;
 		//return ScaledPoint.scaledCanvasHeight - scaledY;

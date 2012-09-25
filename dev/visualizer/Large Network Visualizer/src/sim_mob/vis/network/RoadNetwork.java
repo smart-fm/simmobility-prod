@@ -14,7 +14,6 @@ import sim_mob.vis.network.basic.DPoint;
 import sim_mob.vis.network.basic.FlippedScaledPoint;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.network.basic.Vect;
-import sim_mob.vis.simultion.DriverTick;
 import sim_mob.vis.simultion.GsonResObj;
 import sim_mob.vis.util.FastLineParser;
 import sim_mob.vis.util.Mapping;
@@ -46,14 +45,14 @@ public class RoadNetwork {
 	private Hashtable<Long, Link> links;
 	private Hashtable<Long, Segment> segments;
 	private Hashtable<Long, Hashtable<Long,Lane> > lanes;
-	private Hashtable<Long,Hashtable<Long,LaneMarking>> linaMarkings;
+	private Hashtable<Long, Hashtable<Long,LaneMarking>> linaMarkings;
 	private Hashtable<Long, LaneConnector> laneConnectors;
 	private Hashtable<Long, BusStop> busstop;
 	
 	private Hashtable<Long, Crossing> crossings;
 	private Hashtable<Long, TrafficSignalCrossing> trafficSignalCrossings;
 	private Hashtable<Long, TrafficSignalLine> trafficSignalLines;
-	private Hashtable<Long,ArrayList<Long>> segmentRefTable;
+	private Hashtable<Long, ArrayList<Long>> segmentRefTable;
 	private Hashtable<Long, Intersection> intersections; 
 	private Hashtable<Long, CutLine> cutLines;
 	
@@ -61,7 +60,6 @@ public class RoadNetwork {
 	private ArrayList<Annotation> annot_mitsim;
 
 	private Hashtable<String, LinkName> linkNames;
-	private Hashtable<Integer, DriverTick> drivertick;
 	private Hashtable<String, Long> fromToSegmentRefTable;
 	//                segID              lane#   laneID
 	private Hashtable<Long,Hashtable<Integer,Long>> segmentToLanesTable;
@@ -88,7 +86,7 @@ public class RoadNetwork {
 	public ArrayList<Annotation> getAimsunAnnotations() { return annot_aimsun; }
 	public ArrayList<Annotation> getMitsimAnnotations() { return annot_mitsim; }
 	public Hashtable<String, LinkName> getLinkNames() { return linkNames; }
-	public Hashtable<Integer, DriverTick> getDriverTick(){return drivertick;}
+//	public Hashtable<Integer, DriverTick> getDriverTick(){return drivertick;}
 	
 
 	/**
@@ -115,7 +113,7 @@ public class RoadNetwork {
 		trafficSignalCrossings = new Hashtable<Long, TrafficSignalCrossing>();
 		intersections = new Hashtable<Long, Intersection>();
 		cutLines =  new Hashtable<Long, CutLine>();
-		drivertick =  new Hashtable<Integer, DriverTick>();
+	//	drivertick =  new Hashtable<Integer, DriverTick>();
 
 		fromToSegmentRefTable =  new Hashtable<String, Long>();
 		segmentRefTable = new  Hashtable<Long , ArrayList<Long>>(); 

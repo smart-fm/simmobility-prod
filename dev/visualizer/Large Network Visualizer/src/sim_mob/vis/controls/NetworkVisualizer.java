@@ -211,6 +211,7 @@ public class NetworkVisualizer {
 		
 		//Re-calc
 		Rectangle2D initialZoom = networkItemsIndex.getBounds();
+		
 		redrawFrame(0, panelSize, initialZoom);
 	}
 	

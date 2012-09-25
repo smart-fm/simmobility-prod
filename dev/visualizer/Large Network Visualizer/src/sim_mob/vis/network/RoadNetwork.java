@@ -316,8 +316,8 @@ public class RoadNetwork {
 	    Hashtable<Long,Lane> tempLaneTable = new Hashtable<Long,Lane>();
 	    ArrayList<Integer> lineNumbers = new ArrayList<Integer>();
 	    Hashtable<Integer, ArrayList<Integer>> lineMarkingPositions = new Hashtable<Integer, ArrayList<Integer>>();
-	    int sideWalkLane1 = -1;
-	    int sideWalkLane2 = -1;
+	    long sideWalkLane1 = -1;
+	    long sideWalkLane2 = -1;
 	    for (String key : pRes.properties.keySet()) {
 	    	//Get Segment
 	    	if(key.contains("parent-segment")){
@@ -347,10 +347,12 @@ public class RoadNetwork {
 	    	}else{
 	    		
 	    		ArrayList<Integer> pos = Utility.ParseLaneNodePos(pRes.properties.get(key));
-	    		ScaledPoint startNode = new ScaledPoint(pos.get(0), pos.get(1));
-	    		ScaledPoint endNode = new ScaledPoint(pos.get(2), pos.get(3));
 	    		
-	    		tempLineTable.put(new Long(lineNumber), new LaneMarking(startNode,endNode,false,lineNumber,parentKey));
+	    		//NOTE: We need Nodes here *at least once* because Nodes flip the Y-axis.
+	    		Node startNode = new Node(pos.get(0), pos.get(1), false, null);
+	    		Node endNode = new Node(pos.get(2), pos.get(3), false, null);
+	    		
+	    		tempLineTable.put(new Long(lineNumber), new LaneMarking(startNode.getPos(),endNode.getPos(),false,lineNumber,parentKey));
 	    
 	    		//Add lane number to the tracking list
 		    	if(lineNumber != -1){

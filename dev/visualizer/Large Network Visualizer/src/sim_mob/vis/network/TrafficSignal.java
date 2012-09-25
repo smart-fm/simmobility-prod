@@ -85,10 +85,10 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 		SignalHelper signalHelper = new SignalHelper();
 		signalHelper.phases = new ArrayList<SignalHelper.Phase>();
 		//TODO: Here is where you'd add this traffic signal to the road network.
-//		signalHelper.node = Utility.ParseIntOptionalHex(node);
-//		signalHelper.hex_id = Utility.ParseIntOptionalHex(hex_id);//intersection id
-		signalHelper.node = SignalHelper.HexStringToInt(node);
-		signalHelper.hex_id = SignalHelper.HexStringToInt(hex_id);//intersection id
+		//signalHelper.node = SignalHelper.HexStringToInt(node);
+		//signalHelper.hex_id = SignalHelper.HexStringToInt(hex_id);//intersection id
+		signalHelper.node = Utility.ParseLongOptionalHex(node);
+		signalHelper.hex_id = Utility.ParseLongOptionalHex(hex_id);//intersection id
 		for(Phase ph: phases)
 		{
 			SignalHelper.Phase phase = signalHelper.new Phase(ph.name);
@@ -106,7 +106,7 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 			for(Segment rs : ph.segments)
 			{
 				//TODO: for sync purpose, change all ParseIntOptionalHex() to the local signalhelper converter function
-				SignalHelper.Segment segment = signalHelper.new Segment(Utility.ParseLongOptionalHex(rs.segment_from), Utility.ParseIntOptionalHex(rs.segment_to));
+				SignalHelper.Segment segment = signalHelper.new Segment(Utility.ParseLongOptionalHex(rs.segment_from), Utility.ParseLongOptionalHex(rs.segment_to));
 				phase.segments.add(segment);
 			}
 			

@@ -52,7 +52,7 @@ public class SimulationResults {
 	
 	
 	
-	public void loadFileAndReport(BufferedReader inFile, RoadNetwork rn, HashSet<Integer> uniqueAgentIDs, long fileLength, NetworkPanel progressUpdate) throws IOException {
+	public void loadFileAndReport(BufferedReader inFile, RoadNetwork rn, HashSet<Long> uniqueAgentIDs, long fileLength, NetworkPanel progressUpdate) throws IOException {
 		ticks = new ArrayList<TimeTick>();
 		frame_length_ms = -1;
 		
@@ -124,7 +124,7 @@ public class SimulationResults {
 		}
 		
 		//Modify traffic signal to make it stable
-		Hashtable<Integer,SignalLineTick> oldSignal = new Hashtable<Integer, SignalLineTick>();
+		Hashtable<Long,SignalLineTick> oldSignal = new Hashtable<Long, SignalLineTick>();
 
 		//Now that the file has been loaded, scale agent positions to the RoadNetwork (so we can at least
 		//  see something.)
@@ -155,7 +155,7 @@ public class SimulationResults {
 			if(tt.signalLineTicks.size()>0)
 			{
 				//Clean previous data
-				oldSignal = new Hashtable<Integer, SignalLineTick>();
+				oldSignal = new Hashtable<Long, SignalLineTick>();
 				//Assign new data
 				oldSignal = tt.signalLineTicks;
 			}
@@ -188,13 +188,13 @@ public class SimulationResults {
 	private static class SimResLineParser extends BifurcatedActivity {
 		ArrayList<LogFileLine> lines;
 		SimulationResults sim;
-		HashSet<Integer> uniqueAgentIDs;
+		HashSet<Long> uniqueAgentIDs;
 		TemporarySimObjects resObj;
 		RoadNetwork network;
 		//TEMP
 		FastLineParser flp;
 		
-		SimResLineParser(ArrayList<LogFileLine> lines, SimulationResults sim, RoadNetwork rn, HashSet<Integer> uniqueAgentIDs) {
+		SimResLineParser(ArrayList<LogFileLine> lines, SimulationResults sim, RoadNetwork rn, HashSet<Long> uniqueAgentIDs) {
 			this.lines = lines;
 			this.sim = sim;
 			this.uniqueAgentIDs = uniqueAgentIDs;

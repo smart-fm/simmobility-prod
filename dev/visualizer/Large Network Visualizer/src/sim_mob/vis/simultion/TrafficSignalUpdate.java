@@ -14,6 +14,7 @@ import sim_mob.vis.network.TrafficSignal;
 import sim_mob.vis.network.TrafficSignal.Phase;
 import sim_mob.vis.network.TrafficSignalLine;
 import sim_mob.vis.simultion.GsonResObj;
+import sim_mob.vis.util.Utility;
 
 
 
@@ -52,7 +53,8 @@ public class TrafficSignalUpdate implements DrawableItem, GsonResObj {
 		//1-updating current colours of the corresponding traffic signal in the corresponding intersection
 		//2-adding a singallinetick to ticks container in simulationresults class
 		
-		int id = SignalHelper.HexStringToInt(this.hex_id);
+		//long id = SignalHelper.HexStringToInt(this.hex_id);
+		long id = Utility.ParseLongOptionalHex(this.hex_id);
 		
 		//1.
 //		System.out.println("Looking for Intersection " + id + "  which must be equal to " + rdNet.getIntersections().get(id).getIntersectID());
@@ -77,8 +79,8 @@ public class TrafficSignalUpdate implements DrawableItem, GsonResObj {
 			for(TrafficSignal.Segment updatingSegment:updatingPhase.getSegmens())
 			{
 			
-				int updatingSegmentFrom = SignalHelper.HexStringToInt(updatingSegment.getSegmentFrom());
-				int updatingSegmentTo = SignalHelper.HexStringToInt(updatingSegment.getSegmentTo());
+				long updatingSegmentFrom = Utility.ParseLongOptionalHex(updatingSegment.getSegmentFrom());
+				long updatingSegmentTo = Utility.ParseLongOptionalHex(updatingSegment.getSegmentTo());
 				SignalHelper.Phase originalPhaseHelper = signalHelper.getPhase(updatingPhase.getName());
 				SignalHelper.Segment originalSegmentHelper = originalPhaseHelper.getSegmentPair(updatingSegmentFrom, updatingSegmentTo);
 				if(originalSegmentHelper !=null)
@@ -93,7 +95,7 @@ public class TrafficSignalUpdate implements DrawableItem, GsonResObj {
 							if(updatingCrossing.getId() != null){
 							if(updatingCrossing.getId().length() > 1)	
 							{
-								long updatingCrossingId = SignalHelper.HexStringToInt(updatingCrossing.getId());
+								long updatingCrossingId = Utility.ParseLongOptionalHex(updatingCrossing.getId());
 								CRSs.put(updatingCrossingId,updatingCrossing.getCurrColor());
 							}
 							}

@@ -541,16 +541,16 @@ public class MainFrame extends JFrame {
 
 	}
 	
-	private void resetTrackAgentIDs(HashSet<Integer> allIds) {
+	private void resetTrackAgentIDs(HashSet<Long> allIds) {
 		trackAgentIDs.removeAllItems();
 		trackAgentIDs.addItem(new StringItem("Track no Agent", -1));
 		if (allIds!=null) {
 			//Sort
-			Integer[] ids_sorted = allIds.toArray(new Integer[]{});
+			Long[] ids_sorted = allIds.toArray(new Long[]{});
 			Arrays.sort(ids_sorted);
 			
 			//Add
-			for (Integer it : ids_sorted) {
+			for (Long it : ids_sorted) {
 				trackAgentIDs.addItem(new StringItem("Track Agent " + it.intValue(), it.intValue()));
 			}
 		}
@@ -606,7 +606,7 @@ public class MainFrame extends JFrame {
 			//Clear our global scaled points array.
 			ScaledPoint.updateScaleAndTranslate(null, null);
 			//Store all Agents returned by this.
-			HashSet<Integer> uniqueAgentIDs = new HashSet<Integer>();
+			HashSet<Long> uniqueAgentIDs = new HashSet<Long>();
 			//Load the simulation's results
 			try {
 				BufferedReader br = null;

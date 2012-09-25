@@ -518,9 +518,9 @@ public class NetworkVisualizer {
 		if (simRes.ticks.isEmpty() && currFrame==0) { return; }
 		
 		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
-			Set<Integer> crossingIds = at.getCrossingID_Map().keySet();
+			Set<Long> crossingIds = at.getCrossingID_Map().keySet();
 //			System.out.println("\nFrame " + currFrame + " Analysing intersection " +at.getID() + " with " + at.getCrossingID_Map().keySet().size() +" crossing IDs");
-			for(Integer crossingId:crossingIds)
+			for(Long crossingId:crossingIds)
 			{
 				DrawParams p = new DrawParams();
 				p.PastCriticalZoom = pastCriticalZoom();
@@ -629,9 +629,9 @@ public class NetworkVisualizer {
 		//double adjustedZoom = currPercentZoom * scaleMult;
 		
 		//Draw all agent ticks
-		Hashtable<Integer, AgentTick> agents = simRes.ticks.get(currFrame).agentTicks;
-		Hashtable<Integer, AgentTick> trackings = simRes.ticks.get(currFrame).trackingTicks;
-		for (Integer key : agents.keySet()) {
+		Hashtable<Long, AgentTick> agents = simRes.ticks.get(currFrame).agentTicks;
+		Hashtable<Long, AgentTick> trackings = simRes.ticks.get(currFrame).trackingTicks;
+		for (Long key : agents.keySet()) {
 			//Retrieve the agent
 			AgentTick at = agents.get(key);
 			

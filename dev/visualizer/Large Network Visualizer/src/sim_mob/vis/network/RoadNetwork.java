@@ -346,10 +346,9 @@ public class RoadNetwork {
 	    		
 	    	}else{
 	    		
-	    		ArrayList<Integer> pos = new ArrayList<Integer>();
-	    		pos = Utility.ParseLaneNodePos(pRes.properties.get(key));
-	    		Node startNode = new Node(pos.get(0), pos.get(1), false,null);
-	    		Node endNode = new Node(pos.get(2), pos.get(3), false,null);
+	    		ArrayList<Integer> pos = Utility.ParseLaneNodePos(pRes.properties.get(key));
+	    		ScaledPoint startNode = new ScaledPoint(pos.get(0), pos.get(1));
+	    		ScaledPoint endNode = new ScaledPoint(pos.get(2), pos.get(3));
 	    		
 	    		tempLineTable.put(lineNumber, new LaneMarking(startNode,endNode,false,lineNumber,parentKey));
 	    
@@ -950,18 +949,18 @@ public class RoadNetwork {
 
 				if(i != 0 && currSegSidewalkLane1.getStart()!=null && currSegSidewalkLane1.getEnd()!=null)
 				{
-					DPoint currSegStart1 = new DPoint(currSegSidewalkLane1.getStart().getPos().getUnscaledX(), currSegSidewalkLane1.getStart().getPos().getUnscaledY());
-					DPoint currSegEnd1 = new DPoint(currSegSidewalkLane1.getEnd().getPos().getUnscaledX(), currSegSidewalkLane1.getEnd().getPos().getUnscaledY());
-					DPoint currSegStart2 = new DPoint(currSegSidewalkLane2.getStart().getPos().getUnscaledX(), currSegSidewalkLane2.getStart().getPos().getUnscaledY());
-					DPoint currSegEnd2 = new DPoint(currSegSidewalkLane2.getEnd().getPos().getUnscaledX(), currSegSidewalkLane2.getEnd().getPos().getUnscaledY());
+					DPoint currSegStart1 = new DPoint(currSegSidewalkLane1.getStart().getUnscaledX(), currSegSidewalkLane1.getStart().getUnscaledY());
+					DPoint currSegEnd1 = new DPoint(currSegSidewalkLane1.getEnd().getUnscaledX(), currSegSidewalkLane1.getEnd().getUnscaledY());
+					DPoint currSegStart2 = new DPoint(currSegSidewalkLane2.getStart().getUnscaledX(), currSegSidewalkLane2.getStart().getUnscaledY());
+					DPoint currSegEnd2 = new DPoint(currSegSidewalkLane2.getEnd().getUnscaledX(), currSegSidewalkLane2.getEnd().getUnscaledY());
 			
 					Vect currSidewalk1 = new Vect(currSegStart1.x, currSegStart1.y, currSegEnd1.x, currSegEnd1.y);
 					Vect currSidewalk2 = new Vect(currSegStart2.x, currSegStart2.y, currSegEnd2.x, currSegEnd2.y);
 			
-					DPoint nextSegStart1 = new DPoint(nextSegSidewalkLane1.getStart().getPos().getUnscaledX(), nextSegSidewalkLane1.getStart().getPos().getUnscaledY());
-					DPoint nextSegEnd1 = new DPoint(nextSegSidewalkLane1.getEnd().getPos().getUnscaledX(), nextSegSidewalkLane1.getEnd().getPos().getUnscaledY());
-					DPoint nextSegStart2 = new DPoint(nextSegSidewalkLane2.getStart().getPos().getUnscaledX(), nextSegSidewalkLane2.getStart().getPos().getUnscaledY());
-					DPoint nextSegEnd2 = new DPoint(nextSegSidewalkLane2.getEnd().getPos().getUnscaledX(), nextSegSidewalkLane2.getEnd().getPos().getUnscaledY());
+					DPoint nextSegStart1 = new DPoint(nextSegSidewalkLane1.getStart().getUnscaledX(), nextSegSidewalkLane1.getStart().getUnscaledY());
+					DPoint nextSegEnd1 = new DPoint(nextSegSidewalkLane1.getEnd().getUnscaledX(), nextSegSidewalkLane1.getEnd().getUnscaledY());
+					DPoint nextSegStart2 = new DPoint(nextSegSidewalkLane2.getStart().getUnscaledX(), nextSegSidewalkLane2.getStart().getUnscaledY());
+					DPoint nextSegEnd2 = new DPoint(nextSegSidewalkLane2.getEnd().getUnscaledX(), nextSegSidewalkLane2.getEnd().getUnscaledY());
 					
 					Vect nextSidewalk1 = new Vect(nextSegStart1.x, nextSegStart1.y, nextSegEnd1.x, nextSegEnd1.y);
 					Vect nextSidewalk2 = new Vect(nextSegStart2.x, nextSegStart2.y, nextSegEnd2.x, nextSegEnd2.y);

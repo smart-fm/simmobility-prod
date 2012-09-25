@@ -21,8 +21,8 @@ public class LaneMarking implements DrawableItem{
 	//private static Stroke laneStroke = new BasicStroke(1.0F);
 	
 	private Long parentSegment;
-	private Node start;
-	private Node end;
+	private ScaledPoint start;
+	private ScaledPoint end;
 	private ScaledPoint startPt;
 	private ScaledPoint secondPt;
 	private ScaledPoint penultimatePt; //second to last
@@ -37,8 +37,7 @@ public class LaneMarking implements DrawableItem{
 	}
 	
 
-	public LaneMarking(Node start, Node end, boolean isSideWalk, int lineNumber, Long parentSegment) {
-		
+	public LaneMarking(ScaledPoint start, ScaledPoint end, boolean isSideWalk, int lineNumber, Long parentSegment) {		
 		this.start = start;
 		this.end = end;
 		this.isSideWalk = isSideWalk;
@@ -47,28 +46,28 @@ public class LaneMarking implements DrawableItem{
 
 		if(start != null)
 		{
-			this.startPt = start.getPos();
-			this.secondPt = start.getPos();			
+			this.startPt = start;
+			this.secondPt = start;			
 		}
 		if(end != null)
 		{
-			this.penultimatePt = end.getPos();
-			this.lastPt = end.getPos();
+			this.penultimatePt = end;
+			this.lastPt = end;
 		}
 	}
 	
 	
 	public Rectangle2D getBounds() {
 		final double BUFFER_CM = 10*100; //1m
-		Rectangle2D res = new Rectangle2D.Double(start.getPos().getUnscaledX(), start.getPos().getUnscaledY(), 0, 0);
-		res.add(end.getPos().getUnscaledX(), end.getPos().getUnscaledY());
+		Rectangle2D res = new Rectangle2D.Double(start.getUnscaledX(), start.getUnscaledY(), 0, 0);
+		res.add(end.getUnscaledX(), end.getUnscaledY());
 		Utility.resizeRectangle(res, res.getWidth()+BUFFER_CM, res.getHeight()+BUFFER_CM);
 		return res;
 	}
 	
 
-	public Node getStart() { return start; }
-	public Node getEnd() { return end; }
+	public ScaledPoint getStart() { return start; }
+	public ScaledPoint getEnd() { return end; }
 	public boolean isSideWalk() { return isSideWalk; }
 	public int getLaneNumber()	{ return laneNumber; }
 	public Long getParentSegment(){ return parentSegment; }

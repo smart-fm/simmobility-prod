@@ -110,7 +110,6 @@ public class Utility {
 	
 	public static ArrayList<Integer> ParseLaneNodePos(String input){
 		ArrayList<Integer> pos = new ArrayList<Integer>();
-		//System.out.println(input);
 		Matcher m = NUM_REGEX.matcher(input);
 		while(m.find()){	
 			pos.add(Integer.parseInt(m.group(1)));
@@ -119,6 +118,9 @@ public class Utility {
 		if(pos.size()!=4){
 			System.out.println("Unexpected number of lane coordinates, should be 4 " + "now is  " + pos.size());
 		}
+		
+		//System.out.println(" [(" + pos.get(0) + "," + pos.get(1) + "),(" + pos.get(2) + "," + pos.get(3) + "),]");
+		
 		return pos;
 	}
 	public static ScaledPoint ParseCrossingNodePos(String input)throws IOException{

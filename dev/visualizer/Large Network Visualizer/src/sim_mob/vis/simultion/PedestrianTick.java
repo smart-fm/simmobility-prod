@@ -11,7 +11,6 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Hashtable;
-import java.util.Random;
 
 import sim_mob.vect.SimpleVectorImage;
 import sim_mob.vis.MainFrame;

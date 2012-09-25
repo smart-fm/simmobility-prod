@@ -5,18 +5,13 @@ import java.awt.Color;
 import java.io.*;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.regex.Matcher;
-
-import javax.lang.model.element.Element;
 import javax.swing.SwingUtilities;
 
 import sim_mob.act.BifurcatedActivity;
 import sim_mob.act.SimpleThreadPool;
-import sim_mob.vis.Main;
 import sim_mob.vis.ProgressUpdateRunner;
 import sim_mob.vis.controls.NetworkPanel;
 import sim_mob.vis.network.*;
-import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.util.FastLineParser;
 import sim_mob.vis.util.Utility;
 

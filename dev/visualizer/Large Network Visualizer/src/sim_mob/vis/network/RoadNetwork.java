@@ -1,7 +1,6 @@
 package sim_mob.vis.network;
 
 import java.awt.Color;
-import java.awt.Graphics2D;
 import java.awt.Point;
 
 import java.io.*;
@@ -17,7 +16,6 @@ import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.network.basic.Vect;
 import sim_mob.vis.simultion.DriverTick;
 import sim_mob.vis.simultion.GsonResObj;
-import sim_mob.vis.simultion.SimulationResults;
 import sim_mob.vis.util.FastLineParser;
 import sim_mob.vis.util.Mapping;
 import sim_mob.vis.util.Utility;

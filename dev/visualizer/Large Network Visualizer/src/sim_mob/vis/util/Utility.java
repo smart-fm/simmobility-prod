@@ -247,7 +247,7 @@ public class Utility {
 	
 	
 	
-	public static ParseResults ParseLogLine(FastLineParser flp, String line) {
+	public static ParseResults ParseLogLine(FastLineParser flp, String line) {		
 		if (USE_NEW_PARSER) {
 			return flp.getResults(line);
 		} else {

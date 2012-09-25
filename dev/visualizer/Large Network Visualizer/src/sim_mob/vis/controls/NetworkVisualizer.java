@@ -3,11 +3,8 @@ import java.awt.*;
 
 import java.awt.image.BufferedImage;
 import java.awt.geom.*;
-import java.awt.geom.Rectangle2D.Double;
 import java.util.*;
 import java.util.List;
-
-import javax.swing.UIDefaults.LazyValue;
 
 import sim_mob.index.LazySpatialIndex;
 import sim_mob.vis.Main;

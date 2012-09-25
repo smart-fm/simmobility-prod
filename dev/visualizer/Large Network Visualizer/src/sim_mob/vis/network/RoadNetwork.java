@@ -44,30 +44,30 @@ public class RoadNetwork {
 	//private DPoint cornerTL;
 	//private DPoint cornerLR;
 	
-	private Hashtable<Integer, Node> nodes;
-	private Hashtable<Integer, BusStop> busstop;
+	private Hashtable<Long, Node> nodes;
+	private Hashtable<Long, BusStop> busstop;
 	private ArrayList<Annotation> annot_aimsun;
 	private ArrayList<Annotation> annot_mitsim;
 
-	private Hashtable<Integer, Link> links;
+	private Hashtable<Long, Link> links;
 	private Hashtable<String, LinkName> linkNames;
-	private Hashtable<Integer, Segment> segments;
+	private Hashtable<Long, Segment> segments;
 	private Hashtable<Integer,Hashtable<Integer,LaneMarking>> linaMarkings;
-	private Hashtable<Integer, Crossing> crossings;
-	private Hashtable<Integer, LaneConnector> laneConnectors;
-	private Hashtable<Integer, Hashtable<Integer,Lane> > lanes;
-	private Hashtable<Integer, TrafficSignalLine> trafficSignalLines;
-	private Hashtable<Integer, TrafficSignalCrossing> trafficSignalCrossings;
-	private Hashtable<Integer, Intersection> intersections; 
-	private Hashtable<Integer, CutLine> cutLines;
-	private Hashtable<Integer, DriverTick> drivertick;
+	private Hashtable<Long, Crossing> crossings;
+	private Hashtable<Long, LaneConnector> laneConnectors;
+	private Hashtable<Long, Hashtable<Integer,Lane> > lanes;
+	private Hashtable<Long, TrafficSignalLine> trafficSignalLines;
+	private Hashtable<Long, TrafficSignalCrossing> trafficSignalCrossings;
+	private Hashtable<Long, Intersection> intersections; 
+	private Hashtable<Long, CutLine> cutLines;
+	private Hashtable<Long, DriverTick> drivertick;
 
 	private Hashtable<String, Integer> fromToSegmentRefTable;
 	
 	private Hashtable<Integer,ArrayList<Integer>> segmentRefTable;
 	
 	//                segID              lane#   laneID
-	private Hashtable<Integer,Hashtable<Integer,Integer>> segmentToLanesTable;
+	private Hashtable<Long,Hashtable<Integer,Integer>> segmentToLanesTable;
 	
 	
 	//Testing on intersections

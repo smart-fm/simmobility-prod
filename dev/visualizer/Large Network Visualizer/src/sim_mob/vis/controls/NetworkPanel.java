@@ -8,7 +8,6 @@ import java.awt.image.BufferedImage;
 import javax.swing.*;
 
 import sim_mob.vis.MainFrame;
-import sim_mob.vis.network.Node;
 import sim_mob.vis.util.*;
 
 

@@ -4,9 +4,6 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Map;
-import java.util.Set;
-import sim_mob.vis.network.TrafficSignal.Phase;
 import sim_mob.vis.network.TrafficSignalLine;
 
 /**

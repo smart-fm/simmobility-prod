@@ -1,18 +1,15 @@
 package sim_mob.vis.network;
 import sim_mob.vis.network.Intersection;
 import sim_mob.vis.network.SignalHelper;
-import sim_mob.vis.network.SignalHelper.Segment;
 import sim_mob.vis.util.Utility;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.Rectangle2D.Double;
 import java.util.ArrayList;
 import sim_mob.vis.Main;
 
 import sim_mob.vis.controls.DrawParams;
 import sim_mob.vis.controls.DrawableItem;
 import sim_mob.vis.simultion.GsonResObj;
-import sim_mob.vis.simultion.SignalLineTick;
 import sim_mob.vis.simultion.SimulationResults;
 
 public class TrafficSignal implements DrawableItem, GsonResObj {

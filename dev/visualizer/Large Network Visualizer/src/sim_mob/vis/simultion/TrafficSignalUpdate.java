@@ -1,11 +1,9 @@
 package sim_mob.vis.simultion;
 
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Hashtable;
 
 import sim_mob.vis.controls.DrawParams;
 import sim_mob.vis.controls.DrawableItem;
@@ -14,7 +12,6 @@ import sim_mob.vis.network.RoadNetwork;
 import sim_mob.vis.network.SignalHelper;
 import sim_mob.vis.network.TrafficSignal;
 import sim_mob.vis.network.TrafficSignal.Phase;
-import sim_mob.vis.network.TrafficSignal.Segment;
 import sim_mob.vis.network.TrafficSignalLine;
 import sim_mob.vis.simultion.GsonResObj;
 

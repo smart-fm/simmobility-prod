@@ -12,11 +12,8 @@ import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
 
 import sim_mob.vis.Main;
-import sim_mob.vis.network.Node;
 import sim_mob.vis.network.TrafficSignal;
 import sim_mob.vis.network.basic.FlippedScaledPoint;
 import sim_mob.vis.network.basic.ScaledPoint;
@@ -201,7 +198,7 @@ public class Utility {
 	public static class ParseResults {
 		public String type;
 		public int frame;
-		public int objID;
+		public long objID;
 		public Hashtable<String, String> properties = new Hashtable<String, String>();
 		
 		//Confirm

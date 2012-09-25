@@ -184,7 +184,7 @@ public class NetworkVisualizer {
 		for(CutLine ctl : net.getCutLine().values()){
 			res.addItem(ctl, ctl.getBounds());
 		}
-		for (Hashtable<Integer,LaneMarking> lineMarkingTable : net.getLaneMarkings().values()) {
+		for (Hashtable<Long,LaneMarking> lineMarkingTable : net.getLaneMarkings().values()) {
 			for(LaneMarking lineMarking : lineMarkingTable.values()){
 				res.addItem(lineMarking, lineMarking.getBounds());
 			}

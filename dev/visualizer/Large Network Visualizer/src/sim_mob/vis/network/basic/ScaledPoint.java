@@ -25,6 +25,15 @@ public class ScaledPoint {
 	private static Point2D translateFactors;
 	//private static double scaledCanvasHeight;
 	public static void updateScaleAndTranslate(Point2D scaleFact, Point2D translateFact/*, double scaledHeight*/) {
+		/*System.out.print("Scale fact: ");
+		if (scaleFact==null) { System.out.println("null"); } else {
+			System.out.println(scaleFact.getX() + "," + scaleFact.getY());
+		}
+		System.out.print("Trans fact: ");
+		if (scaleFact==null) { System.out.println("null"); } else {
+			System.out.println(translateFact.getX() + "," + translateFact.getY());
+		}*/
+		
 		scaleFactors = scaleFact;
 		translateFactors = translateFact;
 		//scaledCanvasHeight = scaledHeight;

@@ -14,7 +14,11 @@ public class Lane /*implements DrawableItem*/ {
 	public Node getStartMiddleNode(){return startMiddleNode;}
 	public Node getEndMiddleNode(){return endMiddleNode;}
 	
-	public Lane(int laneNumber, Node startMiddleNode, Node endMiddleNode){
+	public Lane(int laneNumber, Node startMiddleNode, Node endMiddleNode) {
+		if (startMiddleNode==null || endMiddleNode==null) {
+			throw new RuntimeException("Can't create a Lane with a null start/end middle node.");
+		}
+		
 		this.laneNumber = laneNumber;
 		this.startMiddleNode = startMiddleNode;
 		this.endMiddleNode = endMiddleNode;

@@ -45,8 +45,8 @@ public class RoadNetwork {
 	private Hashtable<Long, Node> nodes;
 	private Hashtable<Long, Link> links;
 	private Hashtable<Long, Segment> segments;
-	private Hashtable<Long, Hashtable<Integer,Lane> > lanes;
-	private Hashtable<Long,Hashtable<Integer,LaneMarking>> linaMarkings;
+	private Hashtable<Long, Hashtable<Long,Lane> > lanes;
+	private Hashtable<Long,Hashtable<Long,LaneMarking>> linaMarkings;
 	private Hashtable<Long, LaneConnector> laneConnectors;
 	private Hashtable<Long, BusStop> busstop;
 	
@@ -75,8 +75,8 @@ public class RoadNetwork {
 	public Hashtable<Long, Node> getNodes() { return nodes; }
 	public Hashtable<Long, Link> getLinks() { return links; }
 	public Hashtable<Long, Segment> getSegments() { return segments; }
-	public Hashtable<Long, Hashtable<Integer,Lane> > getLanes(){return lanes;}
-	public Hashtable<Long, Hashtable<Integer,LaneMarking>> getLaneMarkings(){ return linaMarkings; }
+	public Hashtable<Long, Hashtable<Long,Lane> > getLanes(){return lanes;}
+	public Hashtable<Long, Hashtable<Long,LaneMarking>> getLaneMarkings(){ return linaMarkings; }
 	public Hashtable<Long, BusStop> getBusStop() { return busstop; }
 	
 	public Hashtable<Long, Crossing> getCrossings() { return crossings; }
@@ -107,8 +107,8 @@ public class RoadNetwork {
 		links = new Hashtable<Long, Link>();
 		linkNames = new Hashtable<String, LinkName>();
 		segments = new Hashtable<Long, Segment>();
-		linaMarkings = new Hashtable<Long,Hashtable<Integer,LaneMarking>>();
-		lanes = new Hashtable<Long, Hashtable<Integer,Lane>>();
+		linaMarkings = new Hashtable<Long,Hashtable<Long,LaneMarking>>();
+		lanes = new Hashtable<Long, Hashtable<Long,Lane>>();
 		crossings = new Hashtable<Long, Crossing>();
 		laneConnectors = new Hashtable<Long, LaneConnector>();
 		trafficSignalLines = new Hashtable<Long, TrafficSignalLine>(); 
@@ -312,8 +312,8 @@ public class RoadNetwork {
 	    
 	    
 	    long parentKey = Utility.ParseLongOptionalHex(pRes.properties.get("parent-segment"));	   
-	    Hashtable<Integer,LaneMarking> tempLineTable = new Hashtable<Integer,LaneMarking>();
-	    Hashtable<Integer,Lane> tempLaneTable = new Hashtable<Integer,Lane>();
+	    Hashtable<Long,LaneMarking> tempLineTable = new Hashtable<Long,LaneMarking>();
+	    Hashtable<Long,Lane> tempLaneTable = new Hashtable<Long,Lane>();
 	    ArrayList<Integer> lineNumbers = new ArrayList<Integer>();
 	    Hashtable<Integer, ArrayList<Integer>> lineMarkingPositions = new Hashtable<Integer, ArrayList<Integer>>();
 	    int sideWalkLane1 = -1;
@@ -326,7 +326,7 @@ public class RoadNetwork {
 	    	
 	    	//Check whether the lane is a sidewalk
 	    	Matcher m = Utility.NUM_REGEX.matcher(key);
-	    	Integer lineNumber = null;
+	    	int lineNumber = -1;
 	    	while(m.find()){
 	    		lineNumber = Integer.parseInt(m.group());		
 	    	}
@@ -350,10 +350,10 @@ public class RoadNetwork {
 	    		ScaledPoint startNode = new ScaledPoint(pos.get(0), pos.get(1));
 	    		ScaledPoint endNode = new ScaledPoint(pos.get(2), pos.get(3));
 	    		
-	    		tempLineTable.put(lineNumber, new LaneMarking(startNode,endNode,false,lineNumber,parentKey));
+	    		tempLineTable.put(new Long(lineNumber), new LaneMarking(startNode,endNode,false,lineNumber,parentKey));
 	    
 	    		//Add lane number to the tracking list
-		    	if(lineNumber != null){
+		    	if(lineNumber != -1){
 		    		lineNumbers.add(lineNumber);
 		    	}
 		    		
@@ -394,7 +394,7 @@ public class RoadNetwork {
 	    		
 	    	Lane tempLane = new Lane(i,new Node(startMiddleX, startMiddleY,true, null),new Node(endMiddleX,endMiddleY,false,null));	    		
 	    	
-	    	tempLaneTable.put(i,tempLane);
+	    	tempLaneTable.put(new Long(i),tempLane);
 
 	    	if (!segmentToLanesTable.containsKey(parentKey)) {
 	    		segmentToLanesTable.put(parentKey, new Hashtable<Integer,Long>());
@@ -900,7 +900,7 @@ public class RoadNetwork {
 
 				for(Long currSegLaneID : currentSegLanes.values())
 				{
-					Hashtable<Integer,LaneMarking> currentSegLaneMarkTable = linaMarkings.get(currSegLaneID);
+					Hashtable<Long,LaneMarking> currentSegLaneMarkTable = linaMarkings.get(currSegLaneID);
 					for(LaneMarking currSegLaneMark : currentSegLaneMarkTable.values())
 					{
 						if(currSegLaneMark.isSideWalk()){
@@ -918,7 +918,7 @@ public class RoadNetwork {
 
 				for(Long nextSegLaneID : nextSegLanes.values())
 				{
-					Hashtable<Integer,LaneMarking> nextSegLaneMarkTable = linaMarkings.get(nextSegLaneID);
+					Hashtable<Long,LaneMarking> nextSegLaneMarkTable = linaMarkings.get(nextSegLaneID);
 					for(LaneMarking nextSegLaneMark : nextSegLaneMarkTable.values())
 					{
 						if(nextSegLaneMark.isSideWalk()){

@@ -103,6 +103,9 @@ public:
 	void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tcs);
     void SaveBusSchedule(std::vector<sim_mob::BusSchedule*>& busschedule);
 	map<int, Section> const & sections() const { return sections_; }
+	const map<int, vector<const sim_mob::BusStop*> >& getRoute_BusStops() const { return route_BusStops; }
+	const map<int, vector<const sim_mob::RoadSegment*> >& getRoute_RoadSegments() const { return route_RoadSegments; }
+	const map<int, vector<const sim_mob::BusStopInfo*> >& getRoute_BusStopInfos() const { return route_BusStopInfos; }
 
 private:
 	soci::session sql_;
@@ -122,6 +125,11 @@ private:
 
 	vector<sim_mob::BoundarySegment*> boundary_segments;
 
+	vector<TripChainItem> bustripchains_;
+	map<int, vector<const sim_mob::BusStop*> > route_BusStops;
+	map<int, vector<const sim_mob::RoadSegment*> > route_RoadSegments;
+	map<int, vector<const sim_mob::BusStopInfo*> > route_BusStopInfos;
+
 private:
 	void LoadNodes(const std::string& storedProc);
 	void LoadSections(const std::string& storedProc);
@@ -135,6 +143,7 @@ private:
 public:
 	//New-style Loader functions can simply load data directly into the result vectors.
 	void LoadBusSchedule(const std::string& storedProc, std::vector<sim_mob::BusSchedule*>& busschedule);
+	void LoadBusTripChain(const std::string& storedProc, std::vector<sim_mob::TripChainItem*>& bustripchains);
 
 private:
 	void LoadBusStop(const std::string& storedProc);
@@ -457,15 +466,15 @@ void DatabaseLoader::LoadBusStop(const std::string& storedProc)
 	}
 }
 
-void DatabaseLoader::LoadBusSchedule(const std::string& storedProcedure, std::vector<sim_mob::BusSchedule*>& busschedule)
+void DatabaseLoader::LoadBusSchedule(const std::string& storedProc, std::vector<sim_mob::BusSchedule*>& busschedule)
 {
-    if (storedProcedure.empty())
+    if (storedProc.empty())
     {
         std::cout << "WARNING: An empty 'bus_schedule' stored-procedure was specified in the config file; "
                   << "will not lookup the database to create any signal found in there" << std::endl;
         return;
     }
-    soci::rowset<sim_mob::BusSchedule> rows = (sql_.prepare <<"select * from " + storedProcedure);
+    soci::rowset<sim_mob::BusSchedule> rows = (sql_.prepare <<"select * from " + storedProc);
     for (soci::rowset<sim_mob::BusSchedule>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
     {
     	busschedule.push_back(new sim_mob::BusSchedule(*iter));
@@ -815,6 +824,37 @@ sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
 	return tripToSave;
 }
 
+sim_mob::BusTrip* MakeBusTrip(const TripChainItem& tcItem, const std::map<int, std::vector<const sim_mob::BusStop*> >& route_BusStops,
+	const std::map<int, std::vector<const sim_mob::RoadSegment*> >& route_RoadSegments, const std::map<int, std::vector<const sim_mob::BusStopInfo*> >& route_BusStopInfos) {
+	//sim_mob::BusTrip* BusTripToSave = new sim_mob::BusTrip(tcItem.entityID,tcItem.sequenceNumber,tcItem.startTime,tcItem.endTime,tcItem.tripID);   //need Database Table connections(BusTripChainItem and BusTrip)
+	sim_mob::BusTrip* BusTripToSave = nullptr;
+
+	// MakeRoute
+	unsigned int route_id = 0;
+	sim_mob::BusRouteInfo* busRouteInfo = new sim_mob::BusRouteInfo(route_id);
+
+	const std::vector<const sim_mob::BusStop*>& busStop_vecTemp = route_BusStops.find(route_id)->second; // route_BusStops is a map loaded from database
+	for(std::vector<const sim_mob::BusStop*>::const_iterator it = busStop_vecTemp.begin();it != busStop_vecTemp.end(); it++)
+	{
+		busRouteInfo->addBusStop(*it);
+	}
+
+	const std::vector<const sim_mob::RoadSegment*>& roadsegment_vecTemp = route_RoadSegments.find(route_id)->second; // route_RoadSegments is a map loaded from database
+	for(std::vector<const sim_mob::RoadSegment*>::const_iterator it1 = roadsegment_vecTemp.begin();it1 != roadsegment_vecTemp.end(); it1++)
+	{
+		busRouteInfo->addRoadSegment(*it1);
+	}
+
+	const std::vector<const sim_mob::BusStopInfo*>& busStopInfo_vecTemp = route_BusStopInfos.find(route_id)->second; // route_BusStopInfos is a map loaded from database
+	for(std::vector<const sim_mob::BusStopInfo*>::const_iterator iter = busStopInfo_vecTemp.begin();iter != busStopInfo_vecTemp.end(); iter++)
+	{
+		busRouteInfo->addBusStopInfo(*iter);
+	}
+
+	return BusTripToSave;
+
+}
+
 sim_mob::SubTrip MakeSubTrip(const TripChainItem& tcItem) {
 	sim_mob::SubTrip aSubTripInTrip;
 	aSubTripInTrip.personID = tcItem.personID;
@@ -840,7 +880,53 @@ void AddSubTrip(sim_mob::Trip* parent, const sim_mob::SubTrip& subTrip) {
 	parent->addSubTrip(subTrip);
 }
 
+void DatabaseLoader::LoadBusTripChain(const std::string& storedProc, std::vector<sim_mob::TripChainItem*>& bustripchains)
+{
+    if (storedProc.empty())
+    {
+        std::cout << "WARNING: An empty 'bus_tripchains' stored-procedure was specified in the config file; " << std::endl;
+        return;
+    }
 
+    std::string sql_str = "select * from " + storedProc;
+	//Retrieve a rowset for this set of trip chains.
+    bustripchains_.clear();
+	soci::rowset<TripChainItem> rs = (sql_.prepare << sql_str);
+
+//	//Execute as a rowset to avoid repeatedly building the query.
+//	for (soci::rowset<TripChainItem>::const_iterator it=rs.begin(); it!=rs.end(); ++it)  {
+//		//The following are set regardless.
+//		it->startTime = sim_mob::DailyTime(it->tmp_startTime);
+//
+//		//The following are only set for Trips or Activities respectively
+//		if(it->itemType == sim_mob::TripChainItem::IT_TRIP) {
+//			//check nodes
+//			if(nodes_.count(it->tmp_fromLocationNodeID)==0) {
+//				throw std::runtime_error("Invalid trip chain fromNode reference.");
+//			}
+//			if(nodes_.count(it->tmp_toLocationNodeID)==0) {
+//				throw std::runtime_error("Invalid trip chain toNode reference.");
+//			}
+//
+//			//Note: Make sure not to resize the Node map after referencing its elements.
+//			it->fromLocation = &nodes_[it->tmp_fromLocationNodeID];
+//			it->toLocation = &nodes_[it->tmp_toLocationNodeID];
+//		} else if(it->itemType == sim_mob::TripChainItem::IT_ACTIVITY) {
+//			//Set end time and location.
+//			it->endTime = sim_mob::DailyTime(it->tmp_endTime);
+//			it->location = &nodes_[it->tmp_locationID];
+//		} else {
+//			throw std::runtime_error("Unexpected trip chain type.");
+//		}
+//
+//		//Finally, save it to our intermediate list of TripChainItems.
+//		tripchains_.push_back(*it);
+//	}
+
+    // MakeBusTrip
+    // follow the structure of load tripchain in the SaveSimmobilityNetwork
+    // fill the bustripchains
+}
 
 void DatabaseLoader::DecorateAndTranslateObjects()
 {

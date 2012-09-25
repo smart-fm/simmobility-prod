@@ -34,6 +34,7 @@
 #include "geospatial/RoadNetwork.hpp"
 
 #include "entities/misc/TripChain.hpp"
+#include "entities/misc/BusTrip.hpp"
 #include "entities/roles/RoleFactory.hpp"
 #include "util/ReactionTimeDistributions.hpp"
 
@@ -215,6 +216,10 @@ public:
 	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& getTripChains() { return tripchains; }
 	std::vector<sim_mob::BusSchedule*>& getBusSchedule() { return busschedule;}
 
+	std::vector<sim_mob::TripChainItem*>& getBusTripChains() { return bustripchains; }
+	//	std::map<int, std::vector<int> >& getBusStopIDs_Map() { return routeID_busStopIDs;}
+	//	std::map<int, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_Map() { return routeID_roadSegments;}
+	//	std::map<int, std::vector<const sim_mob::BusStopInfo*> >& getBusStopInfos_Map() { return tripID_BusStopInfos;}
 
 private:
 	ConfigParams() : reactDist1(nullptr), reactDist2(nullptr), mutexStategy(MtxStrat_Buffered), dynamicDispatchDisabled(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false) { }
@@ -225,6 +230,11 @@ private:
 //	std::vector<sim_mob::TripChainItem*> tripchains;
 	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > tripchains; //map<personID,tripchains>
 	std::vector<sim_mob::BusSchedule*> busschedule;
+
+	std::vector<sim_mob::TripChainItem*> bustripchains;
+	//	std::map<int, std::vector<int> > routeID_busStopIDs; // map<routeID, vector<busStopID>>
+	//	std::map<int, std::vector<const sim_mob::RoadSegment*> > routeID_roadSegments; // map<routeID, vector<RoadSegment*>>
+	//	std::map<int, std::vector<const sim_mob::BusStopInfo*> > tripID_BusStopInfos; // map<tripID, vector<BusStopInfo*>>
 	bool sealedNetwork;
 };
 

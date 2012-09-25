@@ -259,44 +259,6 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 }
 
 
-
-// Temporary Test function ---Yao Jin
-//TODO: Please delete this if you don't need it. ~Seth
-/*void generateAgentsFromBusSchedule(std::vector<Entity*>& active_agents, AgentConstraints& constraints)
-{
-	//Some handy references
-	ConfigParams& config = ConfigParams::GetInstance();
-	const vector<BusSchedule*>& busschedule = config.getBusSchedule();
-	const map<unsigned int, vector<TripChainItem*> >& tcs = config.getTripChains();
-
-	//Create a single entity for each bus schedule in the database.
-	for (vector<BusSchedule*>::const_iterator it=busschedule.begin(); it!=busschedule.end(); it++) {
-		//Create a new Person for this bus; use an auto-generated ID
-		Person* agent = new Person("BusSchedule", config.mutexStategy);
-
-		//Copy this bus's trip from an existing Trip
-		Trip* toLoad = dynamic_cast<Trip*>(tcs[7]);
-		if (!toLoad) { throw std::runtime_error("Trip chain item does not represent trip."); }
-
-		//Save it
-		vector<const TripChainItem*> tripChain;
-		tripChain.push_back(toLoad);
-		agent->setTripChain(tripChain);
-
-		//Some properties need to be set:
-		agent->originNode = toLoad->fromLocation;
-		agent->destNode = toLoad->toLocation;
-		agent->setStartTime(toLoad->startTime.offsetMS_From(config.simStartTime));
-
-		//Either start or save it, depending on the start time.
-		if(!BusController::all_busctrllers_.empty())
-		{
-			BusController::all_busctrllers_[0]->addOrStashBuses(agent, active_agents);
-		}
-	}
-}*/
-
-
 //Helper output function
 void runXmlChecks(const std::vector<Link*>& links)
 {

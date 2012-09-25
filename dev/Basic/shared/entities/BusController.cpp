@@ -49,6 +49,46 @@ void sim_mob::BusController::remBus(Bus* bus)
 	}
 }
 
+bool sim_mob::BusController::SetRouteforBusTrip(unsigned int busRoute_id)
+{
+	sim_mob::BusRouteInfo* busRouteInfo = new sim_mob::BusRouteInfo(busRoute_id);
+
+	// find (route_id) 	return busStop_vecTemp; // vector<BusStop*>;
+	// find (route_id)  return roadsegment_vecTemp; // vector<RoadSegment*>;
+	// find (route_id)  return busStopInfo_vecTemp; // vector<BusStopInfo*>;   (there is already BusStopID matched BusStop)
+
+	// const vector<BusStop*>& busStop_vecTemp = route_BusStops.find(route_id)->second; // route_BusStops is a map loaded from database
+//	for(vector<BusStop*>::const_iterator it = busStop_vecTemp.begin();it != busStop_vecTemp.end(); it++)
+//	{
+//		busRouteInfo.addRoadSegment(*it);
+//	}
+
+	// const vector<RoadSegment*>& roadsegment_vecTemp = route_RoadSegments.find(route_id)->second; // route_RoadSegments is a map loaded from database
+//	for(vector<RoadSegment*>::const_iterator it1 = roadsegment_vecTemp.begin();it1 != roadsegment_vecTemp.end(); it1++)
+//	{
+//		busRouteInfo.addRoadSegment(*it1);
+//	}
+
+	// const vector<BusStopInfo*>& busStopInfo_vecTemp = route_BusStopInfos.find(route_id)->second; // route_BusStopInfos is a map loaded from database
+//	for(vector<BusStopInfo*>::const_iterator iter = BusStopInfo_vecTemp.begin();iter != BusStopInfo_vecTemp.end(); iter++)
+//	{
+//		busRouteInfo.addRoadSegment(*iter);
+//	}
+
+	return true;
+}
+
+sim_mob::BusTrip* sim_mob::BusController::MakeBusTrip(const TripChainItem& tcItem)
+{
+	//sim_mob::BusTrip* BusTripToSave = new sim_mob::BusTrip(tcItem.entityID,tcItem.sequenceNumber,tcItem.startTime,tcItem.endTime,tcItem.tripID);   //need Database Table connections(BusTripChainItem and BusTrip)
+	//SetRouteforBusTrip
+}
+
+void sim_mob::BusController::assignBusTripChainWithPerson()
+{
+
+}
+
 void sim_mob::BusController::updateBusInformation(DPoint pt) {
 	posBus = pt;
 	std::cout<<"Report Given Bus position: --->("<<posBus.x<<","<<posBus.y<<")"<<std::endl;

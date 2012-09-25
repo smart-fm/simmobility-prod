@@ -15,6 +15,7 @@
 
 #include "buffering/Shared.hpp"
 #include "entities/UpdateParams.hpp"
+#include "misc/BusTrip.hpp"
 #include "vehicle/Bus.hpp"
 #include "util/DynamicVector.hpp"
 #include "workers/Worker.hpp"
@@ -59,6 +60,9 @@ public:
 	// Manage Buses
 	void addBus(Bus* bus);
 	void remBus(Bus* bus);
+	bool SetRouteforBusTrip(unsigned int busRoute_id);
+	sim_mob::BusTrip* MakeBusTrip(const TripChainItem& tcItem);
+	void assignBusTripChainWithPerson();
 
 private:
 	explicit BusController(int id=-1, const MutexStrategy& mtxStrat = sim_mob::MtxStrat_Buffered);
@@ -77,6 +81,9 @@ private:
 
 	//The current Link. Used by Jenny's code (except we don't currently use buses in the medium term)
     sim_mob::Link* currLink;
+
+    //std::map<int, std::vector<const sim_mob::RoadSegment*> > route_RoadSegments;
+    //std::map<int, std::vector<const sim_mob::BusStopInfo*> > route_BusStopInfos;
 
 #ifndef SIMMOB_DISABLE_MPI
 public:

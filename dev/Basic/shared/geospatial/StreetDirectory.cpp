@@ -681,8 +681,7 @@ private:
                                   boost::vecS,
                                   boost::directedS,
                                   VertexProperties,
-                                  EdgeProperties,
-                                  boost::no_property> Graph;
+                                  EdgeProperties> Graph;
     typedef Graph::vertex_descriptor Vertex;  // A vertex is an integer into the vertex array.
     typedef Graph::edge_descriptor Edge; // An edge is an integer into the edge array.
 
@@ -1603,20 +1602,44 @@ void StreetDirectory::ShortestPathImpl::printDrivingGraph()
 		<<"\"})"<<std::endl);
 
 	//Print each vertex
+	//NOTE: Vertices appear to just be integers in boost's adjacency lists.
+	//      Not sure if we can rely on this (we can use property maps if necessary).
+	{
     Graph::vertex_iterator iter, end;
     for (boost::tie(iter, end) = boost::vertices(graph); iter != end; ++iter) {
-    	const Node* n = boost::get(boost::vertex_name, graph, *iter);
+    	Vertex v = *iter;
+    	const Node* n = boost::get(boost::vertex_name, graph, v);
     	LogOutNotSync("(\"sd-vertex\""
     		<<","<<0
-    		<<","<<n
+    		<<","<<v
     		<<",{"
     		<<"\"parent\":\""<<&graph
-    		<<"\",\"yPos\":\""<<n->location.getX()
-    		<<"\",\"angle\":\""<<n->location.getY()
+    		<<"\",\"xPos\":\""<<n->location.getX()
+    		<<"\",\"yPos\":\""<<n->location.getY()
     		<<"\"})"<<std::endl);
     }
+	}
 
-    //Print each edge (todo)
+    //Print each edge
+	//NOTE: Edges are currently identified by their "from/to" nodes (as a pair), so we'll just make up a
+	//      suitable ID for them (it doesn't actually matter).
+    {
+    Graph::edge_iterator iter, end;
+    unsigned int id=0;
+    for (boost::tie(iter, end) = boost::edges(graph); iter != end; ++iter) {
+    	Edge ed = *iter;
+    	Vertex srcV = boost::source(ed, graph);
+    	Vertex destV = boost::target(ed, graph);
+    	LogOutNotSync("(\"sd-edge\""
+    		<<","<<0
+    		<<","<<id++
+    		<<",{"
+    		<<"\"parent\":\""<<&graph
+    		<<"\",\"fromVertex\":\""<<srcV
+    		<<"\",\"toVertex\":\""<<destV
+    		<<"\"})"<<std::endl);
+    }
+    }
 }
 
 

@@ -91,7 +91,7 @@ public class Utility {
 	
 	
 	//Parse an integer that might have an 0x in front.
-	public static int ParseIntOptionalHex(String input) {
+	public static long ParseLongOptionalHex(String input) {
 		int radix = 10;
 		if (input.startsWith("0x")) {
 			input = input.substring(2);
@@ -99,7 +99,7 @@ public class Utility {
 		}
 	
 		
-		return Integer.parseInt(input, radix);
+		return Long.parseLong(input, radix);
 	}
 	
 	
@@ -159,12 +159,12 @@ public class Utility {
 		return properties;
 	}
 	
-	public static ArrayList<Integer> ParseLinkPaths(String input){
-		ArrayList<Integer> pos = new ArrayList<Integer>();
+	public static ArrayList<Long> ParseLinkPaths(String input){
+		ArrayList<Long> pos = new ArrayList<Long>();
 		//System.out.println(input);
 		Matcher m = NUMH_REGEX.matcher(input);
 		while(m.find()){	
-			pos.add(ParseIntOptionalHex(m.group(1)));
+			pos.add(ParseLongOptionalHex(m.group(1)));
 		}
 
 		return pos;
@@ -235,7 +235,7 @@ public class Utility {
 	    //Retrieve known fields: type, id, rhs
 	    res.type = m.group(1);
 	    res.frame = Integer.parseInt(m.group(2));
-	    res.objID = Utility.ParseIntOptionalHex(m.group(3));
+	    res.objID = Utility.ParseLongOptionalHex(m.group(3));
 	    
 	    //Parse RHS
 	    res.properties = Utility.ParseLogRHS(m.group(4));

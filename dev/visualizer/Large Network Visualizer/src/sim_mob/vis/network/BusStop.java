@@ -56,8 +56,8 @@ public class BusStop implements DrawableItem {
 	private static Stroke BusStopStroke = new BasicStroke(2.0F);
 		
 	private boolean isUni;   //Rather than having multiple classes....
-	private Integer id;
-	public BusStop (ScaledPoint nearOne, ScaledPoint nearTwo, ScaledPoint farOne, ScaledPoint farTwo, Integer id) {
+	private Long id;
+	public BusStop (ScaledPoint nearOne, ScaledPoint nearTwo, ScaledPoint farOne, ScaledPoint farTwo, Long id) {
 
 	
 		this.id = id;
@@ -90,7 +90,7 @@ public class BusStop implements DrawableItem {
 	public boolean getIsUni() {
 		return isUni;
 	}
-	public Integer getID(){
+	public Long getID(){
 		return id;
 	}
 	

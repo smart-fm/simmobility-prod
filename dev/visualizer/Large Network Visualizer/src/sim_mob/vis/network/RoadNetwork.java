@@ -45,29 +45,30 @@ public class RoadNetwork {
 	//private DPoint cornerLR;
 	
 	private Hashtable<Long, Node> nodes;
+	private Hashtable<Long, Link> links;
+	private Hashtable<Long, Segment> segments;
+	private Hashtable<Long, Hashtable<Integer,Lane> > lanes;
+	private Hashtable<Long,Hashtable<Integer,LaneMarking>> linaMarkings;
 	private Hashtable<Long, BusStop> busstop;
+	
 	private ArrayList<Annotation> annot_aimsun;
 	private ArrayList<Annotation> annot_mitsim;
 
-	private Hashtable<Long, Link> links;
 	private Hashtable<String, LinkName> linkNames;
-	private Hashtable<Long, Segment> segments;
-	private Hashtable<Integer,Hashtable<Integer,LaneMarking>> linaMarkings;
-	private Hashtable<Long, Crossing> crossings;
-	private Hashtable<Long, LaneConnector> laneConnectors;
-	private Hashtable<Long, Hashtable<Integer,Lane> > lanes;
-	private Hashtable<Long, TrafficSignalLine> trafficSignalLines;
-	private Hashtable<Long, TrafficSignalCrossing> trafficSignalCrossings;
-	private Hashtable<Long, Intersection> intersections; 
-	private Hashtable<Long, CutLine> cutLines;
-	private Hashtable<Long, DriverTick> drivertick;
+	private Hashtable<Integer, Crossing> crossings;
+	private Hashtable<Integer, LaneConnector> laneConnectors;
+	private Hashtable<Integer, TrafficSignalLine> trafficSignalLines;
+	private Hashtable<Integer, TrafficSignalCrossing> trafficSignalCrossings;
+	private Hashtable<Integer, Intersection> intersections; 
+	private Hashtable<Integer, CutLine> cutLines;
+	private Hashtable<Integer, DriverTick> drivertick;
 
 	private Hashtable<String, Integer> fromToSegmentRefTable;
 	
 	private Hashtable<Integer,ArrayList<Integer>> segmentRefTable;
 	
 	//                segID              lane#   laneID
-	private Hashtable<Long,Hashtable<Integer,Integer>> segmentToLanesTable;
+	private Hashtable<Long,Hashtable<Integer,Long>> segmentToLanesTable;
 	
 	
 	//Testing on intersections
@@ -75,17 +76,19 @@ public class RoadNetwork {
 	
 	//public DPoint getTopLeft() { return cornerTL; }
 	//public DPoint getLowerRight() { return cornerLR; }
-	public Hashtable<Integer, Node> getNodes() { return nodes; }
-	public Hashtable<Integer, BusStop> getBusStop() { return busstop; }
+	public Hashtable<Long, Node> getNodes() { return nodes; }
+	public Hashtable<Long, Link> getLinks() { return links; }
+	public Hashtable<Long, Segment> getSegments() { return segments; }
+	public Hashtable<Long, Hashtable<Integer,Lane> > getLanes(){return lanes;}
+	public Hashtable<Long, Hashtable<Integer,LaneMarking>> getLaneMarkings(){ return linaMarkings; }
+	public Hashtable<Long, BusStop> getBusStop() { return busstop; }
+	
 	public ArrayList<Annotation> getAimsunAnnotations() { return annot_aimsun; }
 	public ArrayList<Annotation> getMitsimAnnotations() { return annot_mitsim; }
-	
-	public Hashtable<Integer, Link> getLinks() { return links; }
+
 	public Hashtable<String, LinkName> getLinkNames() { return linkNames; }
-	public Hashtable<Integer, Segment> getSegments() { return segments; }
-	public Hashtable<Integer, Hashtable<Integer,LaneMarking>> getLaneMarkings(){ return linaMarkings; }
 	public Hashtable<Integer, Crossing> getCrossings() { return crossings; }
-	public Hashtable<Integer, Hashtable<Integer,Lane> > getLanes(){return lanes;}
+	
 	public Hashtable<Integer, TrafficSignalLine> getTrafficSignalLine(){return trafficSignalLines;}
 	public Hashtable<Integer, TrafficSignalCrossing> getTrafficSignalCrossing() {return trafficSignalCrossings;}
 	public Hashtable<Integer, Intersection> getIntersection(){return intersections;}
@@ -99,18 +102,18 @@ public class RoadNetwork {
 	public void loadFileAndReport(BufferedReader inFile, long fileLength, NetworkPanel progressUpdate) throws IOException {
 		Main.NEW_SIGNAL = false;//default
 		System.out.println("System NEW_SIGNAL reset to false");
-		nodes = new Hashtable<Integer, Node>();
-		busstop = new Hashtable<Integer, BusStop>();
+		nodes = new Hashtable<Long, Node>();
+		busstop = new Hashtable<Long, BusStop>();
 		annot_aimsun = new ArrayList<Annotation>();
 		annot_mitsim = new ArrayList<Annotation>();
 		annot_aimsun = new ArrayList<Annotation>();
 		annot_mitsim = new ArrayList<Annotation>();
 	
-		links = new Hashtable<Integer, Link>();
+		links = new Hashtable<Long, Link>();
 		linkNames = new Hashtable<String, LinkName>();
-		segments = new Hashtable<Integer, Segment>();
-		linaMarkings = new Hashtable<Integer,Hashtable<Integer,LaneMarking>>();
-		lanes = new Hashtable<Integer, Hashtable<Integer,Lane>>();
+		segments = new Hashtable<Long, Segment>();
+		linaMarkings = new Hashtable<Long,Hashtable<Integer,LaneMarking>>();
+		lanes = new Hashtable<Long, Hashtable<Integer,Lane>>();
 		crossings = new Hashtable<Integer, Crossing>();
 		laneConnectors = new Hashtable<Integer, LaneConnector>();
 		trafficSignalLines = new Hashtable<Integer, TrafficSignalLine>(); 
@@ -121,7 +124,7 @@ public class RoadNetwork {
 
 		fromToSegmentRefTable =  new Hashtable<String, Integer>();
 		segmentRefTable = new  Hashtable<Integer , ArrayList<Integer>>(); 
-		segmentToLanesTable = new Hashtable<Integer,Hashtable<Integer,Integer>>();
+		segmentToLanesTable = new Hashtable<Long,Hashtable<Integer,Long>>();
 		
 		//temp
 		FastLineParser flp = new FastLineParser();
@@ -285,17 +288,17 @@ public class RoadNetwork {
 	    
 	    //Now save the relevant information
 	    String name = pRes.properties.get("road-name");
-	    int startNodeKEY = Utility.ParseIntOptionalHex(pRes.properties.get("start-node"));
-	    int endNodeKEY = Utility.ParseIntOptionalHex(pRes.properties.get("end-node"));
+	    long startNodeKEY = Utility.ParseLongOptionalHex(pRes.properties.get("start-node"));
+	    long endNodeKEY = Utility.ParseLongOptionalHex(pRes.properties.get("end-node"));
 	    Node startNode = nodes.get(startNodeKEY);
 	    Node endNode = nodes.get(endNodeKEY);
 	    
 	    //Ensure nodes exist
 	    if (startNode==null) {
-	    	throw new IOException("Unknown node id: " + Integer.toHexString(startNodeKEY));
+	    	throw new IOException("Unknown node id: " + Long.toHexString(startNodeKEY));
 	    }
 	    if (endNode==null) {
-	    	throw new IOException("Unknown node id: " + Integer.toHexString(endNodeKEY));
+	    	throw new IOException("Unknown node id: " + Long.toHexString(endNodeKEY));
 	    }
 	    
 	    //Create a new Link, save it
@@ -313,7 +316,7 @@ public class RoadNetwork {
 		}
 	    
 	    
-	    int parentKey = Utility.ParseIntOptionalHex(pRes.properties.get("parent-segment"));	   
+	    long parentKey = Utility.ParseLongOptionalHex(pRes.properties.get("parent-segment"));	   
 	    Hashtable<Integer,LaneMarking> tempLineTable = new Hashtable<Integer,LaneMarking>();
 	    Hashtable<Integer,Lane> tempLaneTable = new Hashtable<Integer,Lane>();
 	    ArrayList<Integer> lineNumbers = new ArrayList<Integer>();
@@ -397,7 +400,7 @@ public class RoadNetwork {
 	    		segmentToLanesTable.get(parentKey).put(i, pRes.objID);
 	    	}	
 	    	else{
-	    		Hashtable<Integer, Integer> lanesOnSegment = new Hashtable<Integer,Integer>();
+	    		Hashtable<Integer, Long> lanesOnSegment = new Hashtable<Integer,Long>();
 	    		lanesOnSegment.put(i, pRes.objID);
 	    		segmentToLanesTable.put(parentKey, lanesOnSegment);
 	    	}
@@ -418,22 +421,22 @@ public class RoadNetwork {
 		}
 	    
 	    //Now save the relevant information
-	    int parentLinkID = Utility.ParseIntOptionalHex(pRes.properties.get("parent-link"));
+	    long parentLinkID = Utility.ParseLongOptionalHex(pRes.properties.get("parent-link"));
 	    Link parent = links.get(parentLinkID);
-	    int fromNodeID = Utility.ParseIntOptionalHex(pRes.properties.get("from-node"));
-	    int toNodeID = Utility.ParseIntOptionalHex(pRes.properties.get("to-node"));
+	    long fromNodeID = Utility.ParseLongOptionalHex(pRes.properties.get("from-node"));
+	    long toNodeID = Utility.ParseLongOptionalHex(pRes.properties.get("to-node"));
 	    Node fromNode = nodes.get(fromNodeID);
 	    Node toNode = nodes.get(toNodeID);
 	    
 	    //Ensure nodes exist
 	    if (parent==null) {
-	    	throw new IOException("Unknown Link id: " + Integer.toHexString(parentLinkID));
+	    	throw new IOException("Unknown Link id: " + Long.toHexString(parentLinkID));
 	    }
 	    if (fromNode==null) {
-	    	throw new IOException("Unknown node id: " + Integer.toHexString(fromNodeID));
+	    	throw new IOException("Unknown node id: " + Long.toHexString(fromNodeID));
 	    }
 	    if (toNode==null) {
-	    	throw new IOException("Unknown node id: " + Integer.toHexString(toNodeID));
+	    	throw new IOException("Unknown node id: " + Long.toHexString(toNodeID));
 	    }
 	    
 	    //Create a new Link, save it

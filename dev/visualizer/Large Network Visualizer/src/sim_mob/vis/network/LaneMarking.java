@@ -20,7 +20,7 @@ public class LaneMarking implements DrawableItem{
 	//private static Color sideWalkColor = new Color(0x84, 0x70, 0xff);
 	//private static Stroke laneStroke = new BasicStroke(1.0F);
 	
-	private Integer parentSegment;
+	private Long parentSegment;
 	private Node start;
 	private Node end;
 	private ScaledPoint startPt;
@@ -37,7 +37,7 @@ public class LaneMarking implements DrawableItem{
 	}
 	
 
-	public LaneMarking(Node start, Node end, boolean isSideWalk, int lineNumber, Integer parentSegment) {
+	public LaneMarking(Node start, Node end, boolean isSideWalk, int lineNumber, Long parentSegment) {
 		
 		this.start = start;
 		this.end = end;
@@ -71,7 +71,7 @@ public class LaneMarking implements DrawableItem{
 	public Node getEnd() { return end; }
 	public boolean isSideWalk() { return isSideWalk; }
 	public int getLaneNumber()	{ return laneNumber; }
-	public Integer getParentSegment(){ return parentSegment; }
+	public Long getParentSegment(){ return parentSegment; }
 
 	public void setStartPt(ScaledPoint pt){ startPt = pt; }
 	public void setSecondPt(ScaledPoint pt){ secondPt = pt; }

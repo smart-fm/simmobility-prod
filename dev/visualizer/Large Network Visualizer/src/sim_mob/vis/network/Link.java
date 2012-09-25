@@ -25,19 +25,19 @@ public class Link implements DrawableItem {
 	private String name;
 	private Node start;
 	private Node end;
-	private int id;
-	private ArrayList<Integer> fwdPathSegmentIDs;
-	private ArrayList<Integer> revPathSegmentIDs;
+	private long id;
+	private ArrayList<Long> fwdPathSegmentIDs;
+	private ArrayList<Long> revPathSegmentIDs;
 	
 	
 	public int getZOrder() {
 		return DrawableItem.Z_ORDER_LINK;
 	}
 	
-	public int getId() { return id; }
+	public long getId() { return id; }
 	
 	
-	public Link(String name, Node start, Node end, int id) {
+	public Link(String name, Node start, Node end, long id) {
 		this.id = id;
 		this.name = name;
 		this.start = start;
@@ -82,10 +82,10 @@ public class Link implements DrawableItem {
 		return (smaller!=null?smaller.hashCode():"<null>") + ":" + (larger!=null?larger.hashCode():"<null>");
 	}
 	
-	public ArrayList<Integer> getFwdPathSegmentIDs() { return fwdPathSegmentIDs; }
-	public ArrayList<Integer> getRevPathSegmentIDs() { return revPathSegmentIDs; }
-	public void setFwdPathSegmentIDs(ArrayList<Integer> segIDs) { fwdPathSegmentIDs = segIDs; }
-	public void setRevPathSegmentIDs(ArrayList<Integer> segIDs) { revPathSegmentIDs = segIDs; }
+	public ArrayList<Long> getFwdPathSegmentIDs() { return fwdPathSegmentIDs; }
+	public ArrayList<Long> getRevPathSegmentIDs() { return revPathSegmentIDs; }
+	public void setFwdPathSegmentIDs(ArrayList<Long> segIDs) { fwdPathSegmentIDs = segIDs; }
+	public void setRevPathSegmentIDs(ArrayList<Long> segIDs) { revPathSegmentIDs = segIDs; }
 	
 	public void draw(Graphics2D g, DrawParams params) {
 		g.setColor(roadColor);

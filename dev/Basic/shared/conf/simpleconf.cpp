@@ -36,7 +36,7 @@
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
-#include "../short/xmlWriter/xmlWriter.hpp"
+//#include "../short/xmlWriter/xmlWriter.hpp"
 
 using std::cout;
 using std::endl;
@@ -1016,6 +1016,39 @@ void PrintDB_Network()
 #endif
 }
 
+struct MyLaneSorter {
+  bool operator() (sim_mob::Lane* a,sim_mob::Lane* b)
+  {
+	  return ((a->getRoadSegment()->getLink()->getLinkId() < b->getRoadSegment()->getLink()->getLinkId()) && (a->getRoadSegment()->getSegmentID() < b->getRoadSegment()->getSegmentID()) && (a->getLaneID() < b->getLaneID()));
+  }
+} myLaneSorter;
+
+struct MyLaneConectorSorter {
+  bool operator() ( const sim_mob::LaneConnector * c,  const sim_mob::LaneConnector * d) const
+  {
+	  if(!(c && d))
+	  {
+		  std::cout << "A lane connector is null\n";
+		  getchar();
+		  return false;
+	  }
+
+	  const sim_mob::Lane* a = /*const_cast<sim_mob::Lane*>*/(c->getLaneFrom());
+	  const sim_mob::Lane* b = /*const_cast<sim_mob::Lane*>*/(d->getLaneFrom());
+	  if(!(a && b))
+	  {
+		  std::cout << "A lane from is null\n";
+		  getchar();
+		  return false;
+	  }
+//	  std::cout << "MyLaneConectorSorter::Checking [" << a->getRoadSegment()->getLink()->getLinkId() << ":" << b->getRoadSegment()->getLink()->getLinkId() << "]\n";
+	  bool b1 = a->getRoadSegment()->getLink()->getLinkId() <= b->getRoadSegment()->getLink()->getLinkId();
+	  bool b2 = a->getRoadSegment()->getSegmentID() <= b->getRoadSegment()->getSegmentID();
+	  bool b3 = a->getLaneID() <= b->getLaneID();
+	  return ((b3) /*&& (b2) && (b3)*/);
+  }
+} myLaneConnectorSorter;
+
 void printRoadNetwork()
 {
 	int sum_segments = 0, sum_lane = 0, sum_lanes = 0;
@@ -1030,30 +1063,49 @@ void printRoadNetwork()
 	for(std::vector<Link*>::iterator it = links.begin(); it != links.end(); it++)
 	{
 		std::cout << "\n\n\nNumber of Segments in Link[" << (*it)->getLinkId() << "]=> " << (*it)->getUniqueSegments().size() << std::endl << std::endl;
+		sum_lane = 0;
 		std::cout << "Forward Segments:\n";
+
 		for(std::vector<sim_mob::RoadSegment*>::const_iterator it_seg = (*it)->getFwdSegments().begin(); it_seg != (*it)->getFwdSegments().end(); it_seg++)
 		{
 			std::cout << "SegmentId: " << (*it_seg)->getSegmentID() << " NOF polypoints: " << (*it_seg)->polyline.size() << std::endl;
-		}
-		std::cout << "\n\n\nBackward Segments:\n";
-		for(std::vector<sim_mob::RoadSegment*>::const_iterator it_seg = (*it)->getRevSegments().begin(); it_seg != (*it)->getRevSegments().end(); it_seg++)
-		{
-			std::cout << "SegmentId: " << (*it_seg)->getSegmentID() << " NOF polypoints: " << (*it_seg)->polyline.size() << std::endl;
-		}
-		std::cout << "\n\n\n\n";
-		sum_segments += (*it)->getUniqueSegments().size();
-		sum_lane = 0;
-		for(std::set<sim_mob::RoadSegment*>::iterator it_seg = (*it)->getUniqueSegments().begin(); it_seg != (*it)->getUniqueSegments().end(); it_seg++)
-		{
 			std::cout << "	Number of lanes in segment[" << (*it_seg)->getSegmentID() << "]=> " << (*it_seg)->getLanes().size() << ":" << std::endl;
-			for(std::vector<sim_mob::Lane*>::const_iterator lane_it = (*it_seg)->getLanes().begin() ;  lane_it != (*it_seg)->getLanes().end() ; lane_it++)
+			std::vector<sim_mob::Lane*>& tmpLanes = const_cast<std::vector<sim_mob::Lane*>&>((*it_seg)->getLanes());
+			std::sort(tmpLanes.begin(), tmpLanes.end(), myLaneSorter);
+			for(std::vector<sim_mob::Lane*>::const_iterator lane_it = tmpLanes.begin() ;  lane_it != tmpLanes.end() ; lane_it++)
 			{
 				std::cout << "		laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl;
 			}
 			sum_lane += (*it_seg)->getLanes().size();
 		}
+		std::cout << "\n\nBackward Segments:\n";
+		for(std::vector<sim_mob::RoadSegment*>::const_iterator it_seg = (*it)->getRevSegments().begin(); it_seg != (*it)->getRevSegments().end(); it_seg++)
+		{
+			std::cout << "SegmentId: " << (*it_seg)->getSegmentID() << " NOF polypoints: " << (*it_seg)->polyline.size() << std::endl;
+			std::cout << "	Number of lanes in segment[" << (*it_seg)->getSegmentID() << "]=> " << (*it_seg)->getLanes().size() << ":" << std::endl;
+			std::vector<sim_mob::Lane*>& tmpLanes = const_cast<std::vector<sim_mob::Lane*>&>((*it_seg)->getLanes());
+			std::sort(tmpLanes.begin(), tmpLanes.end(), myLaneSorter);
+			for(std::vector<sim_mob::Lane*>::const_iterator lane_it = tmpLanes.begin() ;  lane_it != tmpLanes.end() ; lane_it++)
+			{
+				std::cout << "		laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl;
+			}
+			sum_lane += (*it_seg)->getLanes().size();
+		}
+		std::cout << "\n\n\n\n";
+		sum_segments += (*it)->getUniqueSegments().size();
+
+//		for(std::set<sim_mob::RoadSegment*>::iterator it_seg = (*it)->getUniqueSegments().begin(); it_seg != (*it)->getUniqueSegments().end(); it_seg++)
+//		{
+//			std::cout << "	Number of lanes in segment[" << (*it_seg)->getSegmentID() << "]=> " << (*it_seg)->getLanes().size() << ":" << std::endl;
+//			for(std::vector<sim_mob::Lane*>::const_iterator lane_it = (*it_seg)->getLanes().begin() ;  lane_it != (*it_seg)->getLanes().end() ; lane_it++)
+//			{
+//				std::cout << "		laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl;
+//			}
+//			sum_lane += (*it_seg)->getLanes().size();
+//		}
 		std::cout << "Total Number of Lanes in this Link: " << sum_lane << std::endl << std::endl;
 		sum_lanes += sum_lane;
+		std::cout << "--------------------------------------------------------\n";
 	}
 
 
@@ -1065,7 +1117,13 @@ void printRoadNetwork()
 		for(std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::const_iterator it_cnn = (*it)->getConnectors().begin();it_cnn != (*it)->getConnectors().end() ;it_cnn++ )
 		{
 			std::cout << "     RoadSegment " << (*it_cnn).first->getSegmentID() << " has " << (*it_cnn).second.size() << " connectors:\n";
-			for(std::set<sim_mob::LaneConnector*>::iterator it_lc = (*it_cnn).second.begin(); it_lc != (*it_cnn).second.end(); it_lc++)
+			const std::set<sim_mob::LaneConnector*> & tempLC = /*const_cast<std::set<sim_mob::LaneConnector*>& >*/((*it_cnn).second);
+			std::set<sim_mob::LaneConnector *, MyLaneConectorSorter> s;//(tempLC.begin(), tempLC.end(),MyLaneConectorSorter());
+			for(std::set<sim_mob::LaneConnector*>::iterator it = tempLC.begin(); it != tempLC.end(); it++)
+			{
+				s.insert(*it);
+			}
+			for(std::set<sim_mob::LaneConnector*>::iterator it_lc = s.begin(); it_lc != s.end(); it_lc++)
 			{
 				std::cout << "       From [" << (*it_lc)->getLaneFrom()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneFrom()->getRoadSegment()->getSegmentID() << ":" << (*it_lc)->getLaneFrom()->getLaneID() << "]   to   [" << (*it_lc)->getLaneTo()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneTo()->getRoadSegment()->getSegmentID() << ":"  << (*it_lc)->getLaneTo()->getLaneID() << "]\n";
 			}
@@ -1385,7 +1443,7 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 	 *******************************
 	 */
 
-	WriteXMLInput(XML_OutPutFileName);
+	sim_mob::WriteXMLInput(XML_OutPutFileName);
 	std::cout << "XML input for SimMobility Created....\n";
 	return "XML input for SimMobility Created....\n";//shouldn't be empty :)
 #endif

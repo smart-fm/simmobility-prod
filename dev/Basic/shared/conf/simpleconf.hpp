@@ -24,7 +24,7 @@
 #include <sstream>
 
 #include "GenConfig.h"
-
+#include "geospatial/xmlWriter/xmlWriter.hpp"
 #include <boost/utility.hpp>
 
 #include "buffering/Shared.hpp"

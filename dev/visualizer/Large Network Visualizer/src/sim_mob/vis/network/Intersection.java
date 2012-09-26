@@ -152,10 +152,15 @@ public class Intersection {
 				 * to phase based design(still reusing the concept of
 				 * trafficSignalLine) and create
 				 */
-				TrafficSignalLine tempSignalLine = new TrafficSignalLine(fromLane, toLane,ph.name,-1);
-				tempPhaseTrafficSignalLine.add(tempSignalLine);
-				//and an additional book keeping for trafficsignalupdate
-				rs.generatedTrafficSignalLine = tempSignalLine;
+				try {
+					TrafficSignalLine tempSignalLine = new TrafficSignalLine(fromLane, toLane,ph.name,-1);
+					tempPhaseTrafficSignalLine.add(tempSignalLine);
+					//and an additional book keeping for trafficsignalupdate
+					rs.generatedTrafficSignalLine = tempSignalLine;
+				} catch (RuntimeException ex) {
+					//TODO: We shouldn't have to catch this, but Signals are glitchy at the moment.
+					System.out.println("Error: Traffic Signal couldn't be loaded; skipping.");
+				}
 
 			}
 			this.trafficSignalLines.put(ph.name, tempPhaseTrafficSignalLine);

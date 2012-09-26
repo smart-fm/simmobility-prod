@@ -83,7 +83,7 @@ public class TrafficSignalUpdate implements DrawableItem, GsonResObj {
 				long updatingSegmentTo = Utility.ParseLongOptionalHex(updatingSegment.getSegmentTo());
 				SignalHelper.Phase originalPhaseHelper = signalHelper.getPhase(updatingPhase.getName());
 				SignalHelper.Segment originalSegmentHelper = originalPhaseHelper.getSegmentPair(updatingSegmentFrom, updatingSegmentTo);
-				if(originalSegmentHelper !=null)
+				if(originalSegmentHelper !=null && originalSegmentHelper.generatedTrafficSignalLine!=null)
 				{
 					originalSegmentHelper.generatedTrafficSignalLine.setLightColor(updatingSegment.getCurrColor());//this were previously being done in the addTrafficLines() of NetworkVisualizer class !!!
 				}

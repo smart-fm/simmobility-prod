@@ -30,15 +30,16 @@ public class TrafficSignalLine implements DrawableItem{
 	private final int ARR_SIZE = 6; 
 	
 	
-	public TrafficSignalLine(Lane fromLane, Lane toLane,String temPhaseName_, int startingColor) {
+	public TrafficSignalLine(Lane fromLane, Lane toLane,String temPhaseName_, int startingColor) {		
 		if (fromLane==null || toLane==null) { 
 			throw new RuntimeException("Can't create a TrafficSignalLine with a null from/to lane."); 
 		}
 		
 		this.fromLane = fromLane;
 		this.toLane = toLane;
-		this.findNode();
 		this.temPhaseName = temPhaseName_;
+		
+		this.findNode();
 		setLightColor(startingColor);
 	}
 	

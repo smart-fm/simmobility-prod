@@ -1139,7 +1139,7 @@ void printRoadNetwork()
 			LogOutNotSync( "Polylines for SegmentId: " << (*it_seg)->getSegmentID() << " NOF polypoints: " << (*it_seg)->polyline.size() << "::" << std::endl);
 			for(std::vector<sim_mob::Point2D>::iterator it_poly = (*it_seg)->polyline.begin(); it_poly != (*it_seg)->polyline.end(); it_poly++)
 			{
-				LogOutNotSync( 	"[" << it_poly->getX() << ":" << it_poly->getY() << "]");
+				LogOutNotSync( 	"[" << it_poly->getX() << ":" << it_poly->getY() << "]\n");
 			}
 
 			std::vector<sim_mob::Lane*>& tmpLanes = const_cast<std::vector<sim_mob::Lane*>&>((*it_seg)->getLanes());
@@ -1150,10 +1150,11 @@ void printRoadNetwork()
 					LogOutNotSync( "Polylines for 		 laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl);
 				else
 					LogOutNotSync( "Polylines for Sidewalk laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl);
+				if((*lane_it)->polyline_.size() > 0)
 				for(std::vector<sim_mob::Point2D>::const_iterator it_poly = (*lane_it)->getPolyline().begin() ; it_poly != (*lane_it)->getPolyline().end(); it_poly++)
 				{
 
-					LogOutNotSync( 	"[" << it_poly->getX() << ":" << it_poly->getY() << "]");
+					LogOutNotSync( 	"[" << it_poly->getX() << ":" << it_poly->getY() << "]\n");
 				}
 
 			}
@@ -1173,9 +1174,10 @@ void printRoadNetwork()
 					LogOutNotSync( "Polylines for 		 laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl);
 				else
 					LogOutNotSync( "Polylines for Sidewalk laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl);
+				if((*lane_it)->polyline_.size() > 0)
 				for(std::vector<sim_mob::Point2D>::const_iterator it_poly = (*lane_it)->getPolyline().begin() ; it_poly != (*lane_it)->getPolyline().end(); it_poly++)
 				{
-					LogOutNotSync( 	"[" << it_poly->getX() << ":" << it_poly->getY() << "]");
+					LogOutNotSync( 	"[" << it_poly->getX() << ":" << it_poly->getY() << "]\n");
 				}
 			}
 			sum_lane += (*it_seg)->getLanes().size();

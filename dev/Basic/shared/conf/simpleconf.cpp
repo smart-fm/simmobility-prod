@@ -1191,7 +1191,8 @@ void printRoadNetwork()
 	}
 
 	////////////////////////////////////////////////////////////////////////
-
+	LogOutNotSync( "--------------------------------------------------------\n");
+	LogOutNotSync( "\n\nConnectors for multi nodes\n");
 	int temp_rs_cnt = 0;
 	for(std::vector<sim_mob::MultiNode*>::const_iterator it = ConfigParams::GetInstance().getNetwork().getNodes().begin() , it_end(ConfigParams::GetInstance().getNetwork().getNodes().end()); it != it_end; it++)
 	{
@@ -1208,7 +1209,10 @@ void printRoadNetwork()
 			}
 			for(std::set<sim_mob::LaneConnector*>::iterator it_lc = s.begin(); it_lc != s.end(); it_lc++)
 			{
-				LogOutNotSync( "       From [" << (*it_lc)->getLaneFrom()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneFrom()->getRoadSegment()->getSegmentID() << ":" << (*it_lc)->getLaneFrom()->getLaneID() << "]   to   [" << (*it_lc)->getLaneTo()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneTo()->getRoadSegment()->getSegmentID() << ":"  << (*it_lc)->getLaneTo()->getLaneID() << "]\n");
+				std::string from = (*it_lc)->getLaneFrom()->is_pedestrian_lane() ? "Sidewalk" : "";
+				std::string to = (*it_lc)->getLaneTo()->is_pedestrian_lane() ? "Sidewalk" : "";
+
+				LogOutNotSync( "       From [" << from << (*it_lc)->getLaneFrom()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneFrom()->getRoadSegment()->getSegmentID() << ":" << (*it_lc)->getLaneFrom()->getLaneID() << "]   to   [" << to << (*it_lc)->getLaneTo()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneTo()->getRoadSegment()->getSegmentID() << ":"  << (*it_lc)->getLaneTo()->getLaneID() << "]\n");
 			}
 			LogOutNotSync( "\n");
 		}

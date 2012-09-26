@@ -1866,6 +1866,31 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 	loader.PostProcessNetwork();
 	//Step Four: Save
 	loader.SaveSimMobilityNetwork(rn, tcs);
+		{//debug
+			std::cout <<  "Connectors..................\n";
+			for (vector<sim_mob::MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
+		const std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> > connectors = (*it)->connectors;
+		for(std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::const_iterator it_cnn = connectors.begin();it_cnn != connectors.end() ;it_cnn++ )
+		{
+			std::cout <<  "     RoadSegment " << (*it_cnn).first->getSegmentID() << " has " << (*it_cnn).second.size() << " connectors:\n";
+			const std::set<sim_mob::LaneConnector*> & tempLC = /*const_cast<std::set<sim_mob::LaneConnector*>& >*/((*it_cnn).second);
+			std::set<sim_mob::LaneConnector *, MyLaneConectorSorter> s;//(tempLC.begin(), tempLC.end(),MyLaneConectorSorter());
+			for(std::set<sim_mob::LaneConnector*>::iterator it = tempLC.begin(); it != tempLC.end(); it++)
+			{
+				s.insert(*it);
+			}
+			for(std::set<sim_mob::LaneConnector*>::iterator it_lc = s.begin(); it_lc != s.end(); it_lc++)
+			{
+				std::string from = (*it_lc)->getLaneFrom()->is_pedestrian_lane() ? "Sidewalk" : "";
+				std::string to = (*it_lc)->getLaneTo()->is_pedestrian_lane() ? "Sidewalk" : "";
+
+				std::cout <<  "       From [" << from << (*it_lc)->getLaneFrom()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneFrom()->getRoadSegment()->getSegmentID() << ":" << (*it_lc)->getLaneFrom()->getLaneID() << "]   to   [" << to << (*it_lc)->getLaneTo()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneTo()->getRoadSegment()->getSegmentID() << ":"  << (*it_lc)->getLaneTo()->getLaneID() << "]\n";
+			}
+			std::cout <<  "\n";
+		}
+			}
+		std::cout <<  "Connectors..................end\n";
+		}//debug
 
 	//Temporary workaround; Cut lanes short/extend them as reuquired.
 	for (map<int,Section>::const_iterator it=loader.sections().begin(); it!=loader.sections().end(); it++) {

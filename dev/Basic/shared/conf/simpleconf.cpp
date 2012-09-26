@@ -3,6 +3,8 @@
 #include "simpleconf.hpp"
 
 #include <tinyxml.h>
+#include <boost/tuple/tuple.hpp>
+#include <boost/tuple/tuple_comparison.hpp>
 
 #include <algorithm>
 #include <boost/lexical_cast.hpp>
@@ -1033,19 +1035,37 @@ struct MyLaneConectorSorter {
 		  return false;
 	  }
 
-	  const sim_mob::Lane* a = /*const_cast<sim_mob::Lane*>*/(c->getLaneFrom());
-	  const sim_mob::Lane* b = /*const_cast<sim_mob::Lane*>*/(d->getLaneFrom());
+	  const sim_mob::Lane* a = (c->getLaneFrom());
+	  auto const unsigned int  aa = a->getRoadSegment()->getLink()->getLinkId();
+	  auto const unsigned long  aaa = a->getRoadSegment()->getSegmentID();
+	  auto const unsigned int  aaaa = a->getLaneID() ;
+
+	  const sim_mob::Lane* b = (d->getLaneFrom());
+	  auto const unsigned int  bb = b->getRoadSegment()->getLink()->getLinkId();
+	  auto const unsigned long  bbb = b->getRoadSegment()->getSegmentID();
+	  auto const unsigned int  bbbb = b->getLaneID() ;
+	  ///////////////////////////////////////////////////////
+	  const sim_mob::Lane* a1 = (c->getLaneTo());
+	  auto const unsigned int  aa1 = a1->getRoadSegment()->getLink()->getLinkId();
+	  auto const unsigned long  aaa1 = a1->getRoadSegment()->getSegmentID();
+	  auto const unsigned int  aaaa1 = a1->getLaneID() ;
+
+	  const sim_mob::Lane* b1 = (d->getLaneTo());
+	  auto const unsigned int  bb1 = b1->getRoadSegment()->getLink()->getLinkId();
+	  auto const unsigned long  bbb1 = b1->getRoadSegment()->getSegmentID();
+	  auto const unsigned int  bbbb1 = b1->getLaneID() ;
+
 	  if(!(a && b))
 	  {
 		  std::cout << "A lane from is null\n";
 		  getchar();
 		  return false;
 	  }
-//	  std::cout << "MyLaneConectorSorter::Checking [" << a->getRoadSegment()->getLink()->getLinkId() << ":" << b->getRoadSegment()->getLink()->getLinkId() << "]\n";
-	  bool b1 = a->getRoadSegment()->getLink()->getLinkId() <= b->getRoadSegment()->getLink()->getLinkId();
-	  bool b2 = a->getRoadSegment()->getSegmentID() <= b->getRoadSegment()->getSegmentID();
-	  bool b3 = a->getLaneID() <= b->getLaneID();
-	  return ((b3) /*&& (b2) && (b3)*/);
+	  bool result = std::make_pair( aa, std::make_pair( aaa, std::make_pair(aaaa, std::make_pair( aa1, std::make_pair( aaa1, aaaa1 ) ))))
+	        <
+	        std::make_pair( bb, std::make_pair( bbb, std::make_pair(bbbb, std::make_pair( bb1, std::make_pair( bbb1, bbbb1 ) ))));
+
+		  return result;
   }
 } myLaneConnectorSorter;
 
@@ -1064,7 +1084,7 @@ void printRoadNetwork()
 	{
 		LogOutNotSync( "\n\n\nNumber of Segments in Link[" << (*it)->getLinkId() << "]=> " << (*it)->getUniqueSegments().size() << std::endl << std::endl);
 		sum_lane = 0;
-		std::cout << "Forward Segments:\n";
+		LogOutNotSync( "Forward Segments:\n");
 
 		for(std::vector<sim_mob::RoadSegment*>::const_iterator it_seg = (*it)->getFwdSegments().begin(); it_seg != (*it)->getFwdSegments().end(); it_seg++)
 		{
@@ -1074,7 +1094,10 @@ void printRoadNetwork()
 			std::sort(tmpLanes.begin(), tmpLanes.end(), myLaneSorter);
 			for(std::vector<sim_mob::Lane*>::const_iterator lane_it = tmpLanes.begin() ;  lane_it != tmpLanes.end() ; lane_it++)
 			{
-				LogOutNotSync( "		laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl);
+				if((*lane_it)->is_pedestrian_lane())
+					LogOutNotSync( "		 laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl);
+				else
+					LogOutNotSync( "Sidewalk laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl);
 			}
 			sum_lane += (*it_seg)->getLanes().size();
 		}
@@ -1087,7 +1110,10 @@ void printRoadNetwork()
 			std::sort(tmpLanes.begin(), tmpLanes.end(), myLaneSorter);
 			for(std::vector<sim_mob::Lane*>::const_iterator lane_it = tmpLanes.begin() ;  lane_it != tmpLanes.end() ; lane_it++)
 			{
-				LogOutNotSync( "		laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl);
+				if((*lane_it)->is_pedestrian_lane())
+					LogOutNotSync( "		 laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl);
+				else
+					LogOutNotSync( "Sidewalk laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl);
 			}
 			sum_lane += (*it_seg)->getLanes().size();
 		}
@@ -1112,11 +1138,11 @@ void printRoadNetwork()
 	int temp_rs_cnt = 0;
 	for(std::vector<sim_mob::MultiNode*>::const_iterator it = ConfigParams::GetInstance().getNetwork().getNodes().begin() , it_end(ConfigParams::GetInstance().getNetwork().getNodes().end()); it != it_end; it++)
 	{
-		std::cout << "\n\nConnectors for Node : " << (*it)->getID() << " has connectors for " << (*it)->getConnectors().size() << " segments: \n";
+		LogOutNotSync( "\n\nConnectors for Node : " << (*it)->getID() << " has connectors for " << (*it)->getConnectors().size() << " segments: \n");
 		temp_rs_cnt += (*it)->getConnectors().size();
 		for(std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::const_iterator it_cnn = (*it)->getConnectors().begin();it_cnn != (*it)->getConnectors().end() ;it_cnn++ )
 		{
-			std::cout << "     RoadSegment " << (*it_cnn).first->getSegmentID() << " has " << (*it_cnn).second.size() << " connectors:\n";
+			LogOutNotSync( "     RoadSegment " << (*it_cnn).first->getSegmentID() << " has " << (*it_cnn).second.size() << " connectors:\n");
 			const std::set<sim_mob::LaneConnector*> & tempLC = /*const_cast<std::set<sim_mob::LaneConnector*>& >*/((*it_cnn).second);
 			std::set<sim_mob::LaneConnector *, MyLaneConectorSorter> s;//(tempLC.begin(), tempLC.end(),MyLaneConectorSorter());
 			for(std::set<sim_mob::LaneConnector*>::iterator it = tempLC.begin(); it != tempLC.end(); it++)
@@ -1125,22 +1151,22 @@ void printRoadNetwork()
 			}
 			for(std::set<sim_mob::LaneConnector*>::iterator it_lc = s.begin(); it_lc != s.end(); it_lc++)
 			{
-				std::cout << "       From [" << (*it_lc)->getLaneFrom()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneFrom()->getRoadSegment()->getSegmentID() << ":" << (*it_lc)->getLaneFrom()->getLaneID() << "]   to   [" << (*it_lc)->getLaneTo()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneTo()->getRoadSegment()->getSegmentID() << ":"  << (*it_lc)->getLaneTo()->getLaneID() << "]\n";
+				LogOutNotSync( "       From [" << (*it_lc)->getLaneFrom()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneFrom()->getRoadSegment()->getSegmentID() << ":" << (*it_lc)->getLaneFrom()->getLaneID() << "]   to   [" << (*it_lc)->getLaneTo()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneTo()->getRoadSegment()->getSegmentID() << ":"  << (*it_lc)->getLaneTo()->getLaneID() << "]\n");
 			}
-			std::cout << "\n";
+			LogOutNotSync( "\n");
 		}
 	}
-	std::cout << "Total Number rs for mn connectors: " << temp_rs_cnt << std::endl << std::endl;
+	LogOutNotSync( "Total Number rs for mn connectors: " << temp_rs_cnt << std::endl << std::endl);
 
 
-	std::cout << "Total Number of Links: " << links.size() << std::endl;
-	std::cout << "Total Number of Segments : " << sum_segments << std::endl;
-	std::cout << "Total Number of Lanes : " << sum_lanes << std::endl;
-	std::cout << "\n\nTotal Number of Segment Nodes : " << const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getNodesRW().size() << std::endl;
-	std::cout << "Total Number of UniNodes : " << const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getUniNodesRW().size() << std::endl;
+	LogOutNotSync( "Total Number of Links: " << links.size() << std::endl);
+	LogOutNotSync( "Total Number of Segments : " << sum_segments << std::endl);
+	LogOutNotSync( "Total Number of Lanes : " << sum_lanes << std::endl);
+	LogOutNotSync( "\n\nTotal Number of Segment Nodes : " << const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getNodesRW().size() << std::endl);
+	LogOutNotSync( "Total Number of UniNodes : " << const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getUniNodesRW().size() << std::endl);
 
 
-	std::cout << "Testing Road Network Done\n";
+	LogOutNotSync( "Testing Road Network Done\n");
 //	getchar();
 }
 

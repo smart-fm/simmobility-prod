@@ -66,6 +66,8 @@ public class NetworkVisualizer {
 	
 	//Spatial indexes for our network items and our current agent tick.
 	private LazySpatialIndex<DrawableItem> networkItemsIndex;
+	private LazySpatialIndex<DrawableItem> drivingGraphItemsIndex;
+	private LazySpatialIndex<DrawableItem> walkingGraphItemsIndex;
 	private LazySpatialIndex<DrawableItem> agentTicksIndex;
 
 	
@@ -202,9 +204,19 @@ public class NetworkVisualizer {
 		for(Crossing crossing : net.getCrossings().values()){
 			res.addItem(crossing, crossing.getBounds());
 		}
-
-		//TODO:
-		//  1) "Names" are not items yet.
+	}
+	
+	private static void BuildGraphIndex(LazySpatialIndex<DrawableItem> res, Hashtable<Long, StDirVertex> vertices, Hashtable<Long, StDirEdge> edges) {
+		if (vertices!=null) {
+			for (StDirVertex v : vertices.values()) {
+				res.addItem(v, v.getBounds());
+			}
+		}
+		if (edges!=null) {
+			for (StDirEdge e : edges.values()) {
+				res.addItem(e, e.getBounds());
+			}
+		}
 	}
 	
 	
@@ -218,6 +230,10 @@ public class NetworkVisualizer {
 		//Rebuild the network spatial index.
 		networkItemsIndex = new LazySpatialIndex<DrawableItem>();
 		BuildNetworkIndex(networkItemsIndex, network);
+		drivingGraphItemsIndex = new LazySpatialIndex<DrawableItem>();
+		BuildGraphIndex(drivingGraphItemsIndex, network.getDrivingGraphVertices(), network.getDrivingGraphEdges());
+		walkingGraphItemsIndex = new LazySpatialIndex<DrawableItem>();
+		BuildGraphIndex(walkingGraphItemsIndex, network.getWalkingGraphVertices(), network.getWalkingGraphEdges());
 		
 		//Re-calc
 		Rectangle2D initialZoom = networkItemsIndex.getBounds();
@@ -363,6 +379,12 @@ public class NetworkVisualizer {
 		//Save all points to be drawn into a list, grouped by z-order:
 		DrawSorterAction act = new DrawSorterAction();
 		networkItemsIndex.forAllItemsInRange(currView, act, null);
+		if (showDrivingGraph) {
+			drivingGraphItemsIndex.forAllItemsInRange(currView, act, null);
+		}
+		if (showWalkingGraph) {
+			walkingGraphItemsIndex.forAllItemsInRange(currView, act, null);
+		}
 		agentTicksIndex.forAllItemsInRange(currView, act, null);
 		
 		//Draw parameters 

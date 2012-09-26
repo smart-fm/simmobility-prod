@@ -1715,7 +1715,49 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 }
 
 
+struct MyLaneConectorSorter {
+  bool operator() ( const sim_mob::LaneConnector * c,  const sim_mob::LaneConnector * d) const
+  {
+	  if(!(c && d))
+	  {
+		  std::cout << "A lane connector is null\n";
+		  getchar();
+		  return false;
+	  }
 
+	  const sim_mob::Lane* a = (c->getLaneFrom());
+	  auto const unsigned int  aa = a->getRoadSegment()->getLink()->getLinkId();
+	  auto const unsigned long  aaa = a->getRoadSegment()->getSegmentID();
+	  auto const unsigned int  aaaa = a->getLaneID() ;
+
+	  const sim_mob::Lane* b = (d->getLaneFrom());
+	  auto const unsigned int  bb = b->getRoadSegment()->getLink()->getLinkId();
+	  auto const unsigned long  bbb = b->getRoadSegment()->getSegmentID();
+	  auto const unsigned int  bbbb = b->getLaneID() ;
+	  ///////////////////////////////////////////////////////
+	  const sim_mob::Lane* a1 = (c->getLaneTo());
+	  auto const unsigned int  aa1 = a1->getRoadSegment()->getLink()->getLinkId();
+	  auto const unsigned long  aaa1 = a1->getRoadSegment()->getSegmentID();
+	  auto const unsigned int  aaaa1 = a1->getLaneID() ;
+
+	  const sim_mob::Lane* b1 = (d->getLaneTo());
+	  auto const unsigned int  bb1 = b1->getRoadSegment()->getLink()->getLinkId();
+	  auto const unsigned long  bbb1 = b1->getRoadSegment()->getSegmentID();
+	  auto const unsigned int  bbbb1 = b1->getLaneID() ;
+
+	  if(!(a && b))
+	  {
+		  std::cout << "A lane from is null\n";
+		  getchar();
+		  return false;
+	  }
+	  bool result = std::make_pair( aa, std::make_pair( aaa, std::make_pair(aaaa, std::make_pair( aa1, std::make_pair( aaa1, aaaa1 ) ))))
+	        <
+	        std::make_pair( bb, std::make_pair( bbb, std::make_pair(bbbb, std::make_pair( bb1, std::make_pair( bbb1, bbbb1 ) ))));
+
+		  return result;
+  }
+} myLaneConnectorSorter;
 
 void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning& src)
 {
@@ -1744,7 +1786,32 @@ void sim_mob::aimsun::Loader::ProcessTurning(sim_mob::RoadNetwork& res, Turning&
 			map<const RoadSegment*, set<LaneConnector*> >& connectors = dynamic_cast<MultiNode*>(src.fromSection->toNode->generatedNode)->connectors;
 			connectors[key].insert(lc);
 		}
+
+		{//debug
+			std::cout <<  "Connectors..................\n";
+		map<const RoadSegment*, set<LaneConnector*> >& connectors = dynamic_cast<MultiNode*>(src.fromSection->toNode->generatedNode)->connectors;
+		for(std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::iterator it_cnn = connectors.begin();it_cnn != connectors.end() ;it_cnn++ )
+		{
+			std::cout <<  "     RoadSegment " << (*it_cnn).first->getSegmentID() << " has " << (*it_cnn).second.size() << " connectors:\n";
+			const std::set<sim_mob::LaneConnector*> & tempLC = /*const_cast<std::set<sim_mob::LaneConnector*>& >*/((*it_cnn).second);
+			std::set<sim_mob::LaneConnector *, MyLaneConectorSorter> s;//(tempLC.begin(), tempLC.end(),MyLaneConectorSorter());
+			for(std::set<sim_mob::LaneConnector*>::iterator it = tempLC.begin(); it != tempLC.end(); it++)
+			{
+				s.insert(*it);
+			}
+			for(std::set<sim_mob::LaneConnector*>::iterator it_lc = s.begin(); it_lc != s.end(); it_lc++)
+			{
+				std::string from = (*it_lc)->getLaneFrom()->is_pedestrian_lane() ? "Sidewalk" : "";
+				std::string to = (*it_lc)->getLaneTo()->is_pedestrian_lane() ? "Sidewalk" : "";
+
+				std::cout <<  "       From [" << from << (*it_lc)->getLaneFrom()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneFrom()->getRoadSegment()->getSegmentID() << ":" << (*it_lc)->getLaneFrom()->getLaneID() << "]   to   [" << to << (*it_lc)->getLaneTo()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneTo()->getRoadSegment()->getSegmentID() << ":"  << (*it_lc)->getLaneTo()->getLaneID() << "]\n";
+			}
+			std::cout <<  "\n";
+		}
+		std::cout <<  "Connectors..................end\n";
+		}//debug
 	}
+
 }
 
 

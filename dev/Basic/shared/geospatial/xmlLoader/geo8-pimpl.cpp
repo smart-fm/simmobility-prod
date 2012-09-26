@@ -2367,7 +2367,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 	  std::cout << "Total Number of Road Segments = " << tmp_rs1 << std::endl;
 	  std::cout << "Total Number of multinode conectors = " << tmp_cnn_cnt << std::endl;
 	  std::cout << "Total Number of multinode conectors = " << tmp_cnn_cnt1 << std::endl;
-	  getchar();
+//	  getchar();
 	  //uni node connectors
 	  std::set<sim_mob::UniNode*>& uNodes = ConfigParams::GetInstance().getNetworkRW().getUniNodesRW();
 	  for(std::set<sim_mob::UniNode*>::iterator node_it = uNodes.begin(); node_it != uNodes.end(); node_it ++)

@@ -1052,6 +1052,101 @@ struct MyLaneConectorSorter {
 void printRoadNetwork()
 {
 	int sum_segments = 0, sum_lane = 0, sum_lanes = 0;
+	LogOutNotSync( "Testin Road Network :\n");
+
+	std::vector<Link*>  & links = const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getLinksRW();
+	LogOutNotSync( "\n\n\nList of Links\n");
+	for(std::vector<Link*>::iterator it = links.begin(); it != links.end(); it++)
+	{
+		LogOutNotSync( "LinkId: " << (*it)->getLinkId() << std::endl);
+	}
+	for(std::vector<Link*>::iterator it = links.begin(); it != links.end(); it++)
+	{
+		LogOutNotSync( "\n\n\nNumber of Segments in Link[" << (*it)->getLinkId() << "]=> " << (*it)->getUniqueSegments().size() << std::endl << std::endl);
+		sum_lane = 0;
+		std::cout << "Forward Segments:\n";
+
+		for(std::vector<sim_mob::RoadSegment*>::const_iterator it_seg = (*it)->getFwdSegments().begin(); it_seg != (*it)->getFwdSegments().end(); it_seg++)
+		{
+			LogOutNotSync( "SegmentId: " << (*it_seg)->getSegmentID() << " NOF polypoints: " << (*it_seg)->polyline.size() << std::endl);
+			LogOutNotSync( "	Number of lanes in segment[" << (*it_seg)->getSegmentID() << "]=> " << (*it_seg)->getLanes().size() << ":" << std::endl);
+			std::vector<sim_mob::Lane*>& tmpLanes = const_cast<std::vector<sim_mob::Lane*>&>((*it_seg)->getLanes());
+			std::sort(tmpLanes.begin(), tmpLanes.end(), myLaneSorter);
+			for(std::vector<sim_mob::Lane*>::const_iterator lane_it = tmpLanes.begin() ;  lane_it != tmpLanes.end() ; lane_it++)
+			{
+				LogOutNotSync( "		laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl);
+			}
+			sum_lane += (*it_seg)->getLanes().size();
+		}
+		LogOutNotSync( "\n\nBackward Segments:\n");
+		for(std::vector<sim_mob::RoadSegment*>::const_iterator it_seg = (*it)->getRevSegments().begin(); it_seg != (*it)->getRevSegments().end(); it_seg++)
+		{
+			LogOutNotSync( "SegmentId: " << (*it_seg)->getSegmentID() << " NOF polypoints: " << (*it_seg)->polyline.size() << std::endl);
+			LogOutNotSync( "	Number of lanes in segment[" << (*it_seg)->getSegmentID() << "]=> " << (*it_seg)->getLanes().size() << ":" << std::endl);
+			std::vector<sim_mob::Lane*>& tmpLanes = const_cast<std::vector<sim_mob::Lane*>&>((*it_seg)->getLanes());
+			std::sort(tmpLanes.begin(), tmpLanes.end(), myLaneSorter);
+			for(std::vector<sim_mob::Lane*>::const_iterator lane_it = tmpLanes.begin() ;  lane_it != tmpLanes.end() ; lane_it++)
+			{
+				LogOutNotSync( "		laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl);
+			}
+			sum_lane += (*it_seg)->getLanes().size();
+		}
+		LogOutNotSync( "\n\n\n\n");
+		sum_segments += (*it)->getUniqueSegments().size();
+
+//		for(std::set<sim_mob::RoadSegment*>::iterator it_seg = (*it)->getUniqueSegments().begin(); it_seg != (*it)->getUniqueSegments().end(); it_seg++)
+//		{
+//			std::cout << "	Number of lanes in segment[" << (*it_seg)->getSegmentID() << "]=> " << (*it_seg)->getLanes().size() << ":" << std::endl;
+//			for(std::vector<sim_mob::Lane*>::const_iterator lane_it = (*it_seg)->getLanes().begin() ;  lane_it != (*it_seg)->getLanes().end() ; lane_it++)
+//			{
+//				std::cout << "		laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl;
+//			}
+//			sum_lane += (*it_seg)->getLanes().size();
+//		}
+		LogOutNotSync( "Total Number of Lanes in this Link: " << sum_lane << std::endl << std::endl);
+		sum_lanes += sum_lane;
+		LogOutNotSync( "--------------------------------------------------------\n");
+	}
+
+
+	int temp_rs_cnt = 0;
+	for(std::vector<sim_mob::MultiNode*>::const_iterator it = ConfigParams::GetInstance().getNetwork().getNodes().begin() , it_end(ConfigParams::GetInstance().getNetwork().getNodes().end()); it != it_end; it++)
+	{
+		std::cout << "\n\nConnectors for Node : " << (*it)->getID() << " has connectors for " << (*it)->getConnectors().size() << " segments: \n";
+		temp_rs_cnt += (*it)->getConnectors().size();
+		for(std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::const_iterator it_cnn = (*it)->getConnectors().begin();it_cnn != (*it)->getConnectors().end() ;it_cnn++ )
+		{
+			std::cout << "     RoadSegment " << (*it_cnn).first->getSegmentID() << " has " << (*it_cnn).second.size() << " connectors:\n";
+			const std::set<sim_mob::LaneConnector*> & tempLC = /*const_cast<std::set<sim_mob::LaneConnector*>& >*/((*it_cnn).second);
+			std::set<sim_mob::LaneConnector *, MyLaneConectorSorter> s;//(tempLC.begin(), tempLC.end(),MyLaneConectorSorter());
+			for(std::set<sim_mob::LaneConnector*>::iterator it = tempLC.begin(); it != tempLC.end(); it++)
+			{
+				s.insert(*it);
+			}
+			for(std::set<sim_mob::LaneConnector*>::iterator it_lc = s.begin(); it_lc != s.end(); it_lc++)
+			{
+				std::cout << "       From [" << (*it_lc)->getLaneFrom()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneFrom()->getRoadSegment()->getSegmentID() << ":" << (*it_lc)->getLaneFrom()->getLaneID() << "]   to   [" << (*it_lc)->getLaneTo()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneTo()->getRoadSegment()->getSegmentID() << ":"  << (*it_lc)->getLaneTo()->getLaneID() << "]\n";
+			}
+			std::cout << "\n";
+		}
+	}
+	std::cout << "Total Number rs for mn connectors: " << temp_rs_cnt << std::endl << std::endl;
+
+
+	std::cout << "Total Number of Links: " << links.size() << std::endl;
+	std::cout << "Total Number of Segments : " << sum_segments << std::endl;
+	std::cout << "Total Number of Lanes : " << sum_lanes << std::endl;
+	std::cout << "\n\nTotal Number of Segment Nodes : " << const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getNodesRW().size() << std::endl;
+	std::cout << "Total Number of UniNodes : " << const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getUniNodesRW().size() << std::endl;
+
+
+	std::cout << "Testing Road Network Done\n";
+//	getchar();
+}
+
+void printRoadNetwork_console()
+{
+	int sum_segments = 0, sum_lane = 0, sum_lanes = 0;
 	std::cout << "Testin Road Network :\n";
 
 	std::vector<Link*>  & links = const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getLinksRW();
@@ -1141,7 +1236,7 @@ void printRoadNetwork()
 
 
 	std::cout << "Testing Road Network Done\n";
-	getchar();
+//	getchar();
 }
 
 //Returns the error message, or an empty string if no error.
@@ -1430,11 +1525,12 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
     std::cout << "Print Road Network After sd init\n";
     printRoadNetwork();
-	std::cout <<"Early Network details loaded from connection: " <<ConfigParams::GetInstance().connectionString <<"\n";
-	std::cout <<"------------------\n";
-	PrintDB_Network();
-	return "Early Network PrintDB_Network Done...\n";
-	std::cout <<"------------------\n";
+    return "Early Network PrintDB_Network Done...\n";
+//	std::cout <<"Early Network details loaded from connection: " <<ConfigParams::GetInstance().connectionString <<"\n";
+//	std::cout <<"------------------\n";
+//	PrintDB_Network();
+//	return "Early Network PrintDB_Network Done...\n";
+//	std::cout <<"------------------\n";
 
     std::cout << "Print Road Network before sd init\n";
     printRoadNetwork();

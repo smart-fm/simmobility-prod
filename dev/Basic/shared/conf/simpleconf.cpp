@@ -1072,7 +1072,7 @@ struct MyLaneConectorSorter {
 void printRoadNetwork()
 {
 	int sum_segments = 0, sum_lane = 0, sum_lanes = 0;
-	LogOutNotSync( "Testin Road Network :\n");
+	LogOutNotSync( "Road Network Information:\n");
 
 	std::vector<Link*>  & links = const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getLinksRW();
 	LogOutNotSync( "\n\n\nList of Links\n");
@@ -1080,6 +1080,7 @@ void printRoadNetwork()
 	{
 		LogOutNotSync( "LinkId: " << (*it)->getLinkId() << std::endl);
 	}
+	///////////////////////////////////////////////////
 	for(std::vector<Link*>::iterator it = links.begin(); it != links.end(); it++)
 	{
 		LogOutNotSync( "\n\n\nNumber of Segments in Link[" << (*it)->getLinkId() << "]=> " << (*it)->getUniqueSegments().size() << std::endl << std::endl);
@@ -1091,14 +1092,15 @@ void printRoadNetwork()
 			LogOutNotSync( "SegmentId: " << (*it_seg)->getSegmentID() << " NOF polypoints: " << (*it_seg)->polyline.size() << std::endl);
 			LogOutNotSync( "	Number of lanes in segment[" << (*it_seg)->getSegmentID() << "]=> " << (*it_seg)->getLanes().size() << ":" << std::endl);
 			std::vector<sim_mob::Lane*>& tmpLanes = const_cast<std::vector<sim_mob::Lane*>&>((*it_seg)->getLanes());
-			std::sort(tmpLanes.begin(), tmpLanes.end(), myLaneSorter);
+//			std::sort(tmpLanes.begin(), tmpLanes.end(), myLaneSorter);
 			for(std::vector<sim_mob::Lane*>::const_iterator lane_it = tmpLanes.begin() ;  lane_it != tmpLanes.end() ; lane_it++)
 			{
-				if((*lane_it)->is_pedestrian_lane())
+				if(!(*lane_it)->is_pedestrian_lane())
 					LogOutNotSync( "		 laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl);
 				else
 					LogOutNotSync( "Sidewalk laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl);
 			}
+			LogOutNotSync( "\n");
 			sum_lane += (*it_seg)->getLanes().size();
 		}
 		LogOutNotSync( "\n\nBackward Segments:\n");
@@ -1107,33 +1109,86 @@ void printRoadNetwork()
 			LogOutNotSync( "SegmentId: " << (*it_seg)->getSegmentID() << " NOF polypoints: " << (*it_seg)->polyline.size() << std::endl);
 			LogOutNotSync( "	Number of lanes in segment[" << (*it_seg)->getSegmentID() << "]=> " << (*it_seg)->getLanes().size() << ":" << std::endl);
 			std::vector<sim_mob::Lane*>& tmpLanes = const_cast<std::vector<sim_mob::Lane*>&>((*it_seg)->getLanes());
-			std::sort(tmpLanes.begin(), tmpLanes.end(), myLaneSorter);
+//			std::sort(tmpLanes.begin(), tmpLanes.end(), myLaneSorter);
 			for(std::vector<sim_mob::Lane*>::const_iterator lane_it = tmpLanes.begin() ;  lane_it != tmpLanes.end() ; lane_it++)
 			{
-				if((*lane_it)->is_pedestrian_lane())
+				if(!(*lane_it)->is_pedestrian_lane())
 					LogOutNotSync( "		 laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl);
 				else
 					LogOutNotSync( "Sidewalk laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl);
+			}
+			LogOutNotSync( "\n");
+			sum_lane += (*it_seg)->getLanes().size();
+		}
+		LogOutNotSync( "\n\n\n\n");
+		sum_segments += (*it)->getUniqueSegments().size();
+
+		LogOutNotSync( "Total Number of Lanes in this Link: " << sum_lane << std::endl << std::endl);
+		sum_lanes += sum_lane;
+		LogOutNotSync( "--------------------------------------------------------\n");
+	}
+//	//////////////////////////////////////////////////
+	for(std::vector<Link*>::iterator it = links.begin(); it != links.end(); it++)
+	{
+		LogOutNotSync( "\n\n\nLink[" << (*it)->getLinkId() << "]" << std::endl);
+		sum_lane = 0;
+		LogOutNotSync( "	Forward Segments:\n");
+
+		for(std::vector<sim_mob::RoadSegment*>::const_iterator it_seg = (*it)->getFwdSegments().begin(); it_seg != (*it)->getFwdSegments().end(); it_seg++)
+		{
+			LogOutNotSync( "Polylines for SegmentId: " << (*it_seg)->getSegmentID() << " NOF polypoints: " << (*it_seg)->polyline.size() << "::" << std::endl);
+			for(std::vector<sim_mob::Point2D>::iterator it_poly = (*it_seg)->polyline.begin(); it_poly != (*it_seg)->polyline.end(); it_poly++)
+			{
+				LogOutNotSync( 	"[" << it_poly->getX() << ":" << it_poly->getY() << "]");
+			}
+
+			std::vector<sim_mob::Lane*>& tmpLanes = const_cast<std::vector<sim_mob::Lane*>&>((*it_seg)->getLanes());
+			std::sort(tmpLanes.begin(), tmpLanes.end(), myLaneSorter);
+			for(std::vector<sim_mob::Lane*>::const_iterator lane_it = tmpLanes.begin() ;  lane_it != tmpLanes.end() ; lane_it++)
+			{
+				if(!(*lane_it)->is_pedestrian_lane())
+					LogOutNotSync( "Polylines for 		 laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl);
+				else
+					LogOutNotSync( "Polylines for Sidewalk laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl);
+				for(std::vector<sim_mob::Point2D>::const_iterator it_poly = (*lane_it)->getPolyline().begin() ; it_poly != (*lane_it)->getPolyline().end(); it_poly++)
+				{
+
+					LogOutNotSync( 	"[" << it_poly->getX() << ":" << it_poly->getY() << "]");
+				}
+
+			}
+			sum_lane += (*it_seg)->getLanes().size();
+		}
+		LogOutNotSync( "\n\n	Backward Segments:\n");
+		for(std::vector<sim_mob::RoadSegment*>::const_iterator it_seg = (*it)->getRevSegments().begin(); it_seg != (*it)->getRevSegments().end(); it_seg++)
+		{
+			LogOutNotSync( "SegmentId: " << (*it_seg)->getSegmentID() << " NOF polypoints: " << (*it_seg)->polyline.size() << std::endl);
+			LogOutNotSync( "	Number of lanes in segment[" << (*it_seg)->getSegmentID() << "]=> " << (*it_seg)->getLanes().size() << ":" << std::endl);
+			std::vector<sim_mob::Lane*>& tmpLanes = const_cast<std::vector<sim_mob::Lane*>&>((*it_seg)->getLanes());
+			std::sort(tmpLanes.begin(), tmpLanes.end(), myLaneSorter);
+			for(std::vector<sim_mob::Lane*>::const_iterator lane_it = tmpLanes.begin() ;  lane_it != tmpLanes.end() ; lane_it++)
+			{
+
+				if(!(*lane_it)->is_pedestrian_lane())
+					LogOutNotSync( "Polylines for 		 laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl);
+				else
+					LogOutNotSync( "Polylines for Sidewalk laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl);
+				for(std::vector<sim_mob::Point2D>::const_iterator it_poly = (*lane_it)->getPolyline().begin() ; it_poly != (*lane_it)->getPolyline().end(); it_poly++)
+				{
+					LogOutNotSync( 	"[" << it_poly->getX() << ":" << it_poly->getY() << "]");
+				}
 			}
 			sum_lane += (*it_seg)->getLanes().size();
 		}
 		LogOutNotSync( "\n\n\n\n");
 		sum_segments += (*it)->getUniqueSegments().size();
 
-//		for(std::set<sim_mob::RoadSegment*>::iterator it_seg = (*it)->getUniqueSegments().begin(); it_seg != (*it)->getUniqueSegments().end(); it_seg++)
-//		{
-//			std::cout << "	Number of lanes in segment[" << (*it_seg)->getSegmentID() << "]=> " << (*it_seg)->getLanes().size() << ":" << std::endl;
-//			for(std::vector<sim_mob::Lane*>::const_iterator lane_it = (*it_seg)->getLanes().begin() ;  lane_it != (*it_seg)->getLanes().end() ; lane_it++)
-//			{
-//				std::cout << "		laneId: " << 	(*lane_it)->getLaneID_str()  << " NOF polypoints: " << (*lane_it)->polyline_.size() << std::endl;
-//			}
-//			sum_lane += (*it_seg)->getLanes().size();
-//		}
 		LogOutNotSync( "Total Number of Lanes in this Link: " << sum_lane << std::endl << std::endl);
 		sum_lanes += sum_lane;
 		LogOutNotSync( "--------------------------------------------------------\n");
 	}
 
+	////////////////////////////////////////////////////////////////////////
 
 	int temp_rs_cnt = 0;
 	for(std::vector<sim_mob::MultiNode*>::const_iterator it = ConfigParams::GetInstance().getNetwork().getNodes().begin() , it_end(ConfigParams::GetInstance().getNetwork().getNodes().end()); it != it_end; it++)

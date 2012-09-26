@@ -1588,6 +1588,32 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
         	 *
         	 *************************************************/
     		sim_mob::xml::InitAndLoadXML(XML_OutPutFileName);
+    		{//debug
+    			std::cout <<  "after reader()  Connectors..................\n";
+    			sim_mob::RoadNetwork &rn = sim_mob::ConfigParams::GetInstance().getNetworkRW();
+    			for (vector<sim_mob::MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodesRW().end(); it++) {
+    		const std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> > connectors = (*it)->getConnectors();
+    		for(std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::const_iterator it_cnn = connectors.begin();it_cnn != connectors.end() ;it_cnn++ )
+    		{
+    			std::cout <<  "     RoadSegment " << (*it_cnn).first->getSegmentID() << " has " << (*it_cnn).second.size() << " connectors:\n";
+    			const std::set<sim_mob::LaneConnector*> & tempLC = /*const_cast<std::set<sim_mob::LaneConnector*>& >*/((*it_cnn).second);
+    			std::set<sim_mob::LaneConnector *, MyLaneConectorSorter> s;//(tempLC.begin(), tempLC.end(),MyLaneConectorSorter());
+    			for(std::set<sim_mob::LaneConnector*>::iterator it = tempLC.begin(); it != tempLC.end(); it++)
+    			{
+    				s.insert(*it);
+    			}
+    			for(std::set<sim_mob::LaneConnector*>::iterator it_lc = s.begin(); it_lc != s.end(); it_lc++)
+    			{
+    				std::string from = (*it_lc)->getLaneFrom()->is_pedestrian_lane() ? "Sidewalk" : "";
+    				std::string to = (*it_lc)->getLaneTo()->is_pedestrian_lane() ? "Sidewalk" : "";
+
+    				std::cout <<  "       From [" << from /*<< (*it_lc)->getLaneFrom()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneFrom()->getRoadSegment()->getSegmentID() << ":" */<< (*it_lc)->getLaneFrom()->getLaneID() << "]   to   [" << to << /*(*it_lc)->getLaneTo()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneTo()->getRoadSegment()->getSegmentID() << ":"  <<*/ (*it_lc)->getLaneTo()->getLaneID() << "]\n";
+    			}
+    			std::cout <<  "\n";
+    		}
+    			}
+    		std::cout <<  "after reader()  Connectors..................end\n";
+    		}//debug
 #endif
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -1612,6 +1638,32 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
     std::cout << "Print Road Network After sd init\n";
     printRoadNetwork();
+		{//debug
+			std::cout <<  "after printRoadNetwork()  Connectors..................\n";
+			const sim_mob::RoadNetwork &rn = sim_mob::ConfigParams::GetInstance().getNetwork();
+			for (vector<sim_mob::MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
+		const std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> > connectors = (*it)->getConnectors();
+		for(std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::const_iterator it_cnn = connectors.begin();it_cnn != connectors.end() ;it_cnn++ )
+		{
+			std::cout <<  "     RoadSegment " << (*it_cnn).first->getSegmentID() << " has " << (*it_cnn).second.size() << " connectors:\n";
+			const std::set<sim_mob::LaneConnector*> & tempLC = /*const_cast<std::set<sim_mob::LaneConnector*>& >*/((*it_cnn).second);
+			std::set<sim_mob::LaneConnector *, MyLaneConectorSorter> s;//(tempLC.begin(), tempLC.end(),MyLaneConectorSorter());
+			for(std::set<sim_mob::LaneConnector*>::iterator it = tempLC.begin(); it != tempLC.end(); it++)
+			{
+				s.insert(*it);
+			}
+			for(std::set<sim_mob::LaneConnector*>::iterator it_lc = s.begin(); it_lc != s.end(); it_lc++)
+			{
+				std::string from = (*it_lc)->getLaneFrom()->is_pedestrian_lane() ? "Sidewalk" : "";
+				std::string to = (*it_lc)->getLaneTo()->is_pedestrian_lane() ? "Sidewalk" : "";
+
+				std::cout <<  "       From [" << from /*<< (*it_lc)->getLaneFrom()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneFrom()->getRoadSegment()->getSegmentID() << ":" */<< (*it_lc)->getLaneFrom()->getLaneID() << "]   to   [" << to << /*(*it_lc)->getLaneTo()->getRoadSegment()->getLink()->getLinkId() << ":" << (*it_lc)->getLaneTo()->getRoadSegment()->getSegmentID() << ":"  <<*/ (*it_lc)->getLaneTo()->getLaneID() << "]\n";
+			}
+			std::cout <<  "\n";
+		}
+			}
+		std::cout <<  "after printRoadNetwork()  Connectors..................end\n";
+		}//debug
     return "Early Network PrintDB_Network Done...\n";
 //	std::cout <<"Early Network details loaded from connection: " <<ConfigParams::GetInstance().connectionString <<"\n";
 //	std::cout <<"------------------\n";

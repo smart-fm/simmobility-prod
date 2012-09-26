@@ -1867,7 +1867,7 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 	//Step Four: Save
 	loader.SaveSimMobilityNetwork(rn, tcs);
 		{//debug
-			std::cout <<  "Connectors..................\n";
+			std::cout <<  "aimsun::loader  Connectors..................\n";
 			for (vector<sim_mob::MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
 		const std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> > connectors = (*it)->connectors;
 		for(std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::const_iterator it_cnn = connectors.begin();it_cnn != connectors.end() ;it_cnn++ )
@@ -1889,7 +1889,7 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 			std::cout <<  "\n";
 		}
 			}
-		std::cout <<  "Connectors..................end\n";
+		std::cout <<  "aimsun::loader  Connectors..................end\n";
 		}//debug
 
 	//Temporary workaround; Cut lanes short/extend them as reuquired.

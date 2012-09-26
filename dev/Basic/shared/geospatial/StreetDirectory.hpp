@@ -288,6 +288,7 @@ public:
 
     //Print using the old output format.
     void printDrivingGraph();
+    void printWalkingGraph();
 
 private:
     StreetDirectory()

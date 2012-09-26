@@ -998,6 +998,7 @@ void PrintDB_Network()
 
 	//Print the StreetDirectory graphs.
 	StreetDirectory::instance().printDrivingGraph();
+	StreetDirectory::instance().printWalkingGraph();
 
 	//Temp: Print ordering of output Links
 	for (vector<MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {

@@ -660,9 +660,6 @@ public:
     void updateEdgeProperty();
     void GeneratePathChoiceSet();
 
-    //Print using the old output format.
-    void printDrivingGraph();
-
 private:
     // We attach a property to each vertex, its name.  We treat the name property as a mean
     // to identify the vertex.  However instead of a textual name, the actual value that we
@@ -684,6 +681,10 @@ private:
                                   EdgeProperties> Graph;
     typedef Graph::vertex_descriptor Vertex;  // A vertex is an integer into the vertex array.
     typedef Graph::edge_descriptor Edge; // An edge is an integer into the edge array.
+
+public:
+    //Print using the old output format.
+    void printGraph(const std::string& graphType, const Graph& graph);
 
 public:
     Graph drivingMap_; // A map for drivers, containing road-segments as edges.
@@ -1588,17 +1589,14 @@ void StreetDirectory::ShortestPathImpl::GeneratePathChoiceSet()
 	}
 }
 
-void StreetDirectory::ShortestPathImpl::printDrivingGraph()
+void StreetDirectory::ShortestPathImpl::printGraph(const std::string& graphType, const Graph& graph)
 {
-	//Avoid local modifications
-	const Graph& graph = drivingMap_;
-
 	//Print an identifier
 	LogOutNotSync("(\"sd-graph\""
 		<<","<<0
 		<<","<<&graph
 		<<",{"
-		<<"\"type\":\""<<"driving"
+		<<"\"type\":\""<<graphType
 		<<"\"})"<<std::endl);
 
 	//Print each vertex
@@ -1745,7 +1743,15 @@ void
 StreetDirectory::printDrivingGraph()
 {
 	if (spImpl_) {
-		spImpl_->printDrivingGraph();
+		spImpl_->printGraph("driving", spImpl_->drivingMap_);
+	}
+}
+
+void
+StreetDirectory::printWalkingGraph()
+{
+	if (spImpl_) {
+		spImpl_->printGraph("walking", spImpl_->walkingMap_);
 	}
 }
 

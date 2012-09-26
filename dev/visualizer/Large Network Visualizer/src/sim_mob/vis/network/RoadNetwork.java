@@ -56,6 +56,12 @@ public class RoadNetwork {
 	private Hashtable<Long, Intersection> intersections; 
 	private Hashtable<Long, CutLine> cutLines;
 	
+	//For our various street directory graphs. Indexed by graph ID, then by object ID
+	private Hashtable<Long, Hashtable<Long, StDirVertex>> sdVertices;
+	private Hashtable<Long, Hashtable<Long, StDirEdge>> sdEdges;
+	private Long sdDrivingGraphID;
+	private Long sdWalkingGraphID;
+	
 	private ArrayList<Annotation> annot_aimsun;
 	private ArrayList<Annotation> annot_mitsim;
 
@@ -113,7 +119,9 @@ public class RoadNetwork {
 		trafficSignalCrossings = new Hashtable<Long, TrafficSignalCrossing>();
 		intersections = new Hashtable<Long, Intersection>();
 		cutLines =  new Hashtable<Long, CutLine>();
-	//	drivertick =  new Hashtable<Integer, DriverTick>();
+		
+		sdVertices = new Hashtable<Long, Hashtable<Long, StDirVertex>>();
+		sdEdges = new Hashtable<Long, Hashtable<Long, StDirEdge>>();
 
 		fromToSegmentRefTable =  new Hashtable<String, Long>();
 		segmentRefTable = new  Hashtable<Long , ArrayList<Long>>(); 
@@ -261,7 +269,13 @@ public class RoadNetwork {
 			parseCutLine(pRes);
 		} else if(pRes.type.equals("busstop")){
 			parseBusStop(pRes);
-		} else if (pRes.frame>0) {
+		} else if (pRes.type.equals("sd-graph")) {
+			parseStDirGraph(pRes);
+		} else if (pRes.type.equals("sd-vertex")) {
+			parseStDirVertex(pRes);
+		} else if (pRes.type.equals("sd-edge")) {
+			parseStDirEdge(pRes);
+ 		} else if (pRes.frame>0) {
 			//We've started on runtime data.
 			return false;
 		}
@@ -270,6 +284,70 @@ public class RoadNetwork {
 
 		
 	}
+	
+	
+	//Parse the main graph element in a Street Directory
+	private void parseStDirGraph(Utility.ParseResults pRes) throws IOException {
+	    //Check and parse properties.
+		if (!pRes.confirmProps(new String[]{"type"})) {
+			throw new IOException("Missing required key in type: " + pRes.type);
+		}
+	    
+	    //Now save the relevant information
+	    String grType = pRes.properties.get("type").toLowerCase();
+	    if (grType.equals("driving")) {
+	    	sdDrivingGraphID = pRes.objID;
+	    } else if (grType.equals("walking")) {
+	    	sdWalkingGraphID = pRes.objID;
+	    } else {
+	    	throw new RuntimeException("Unknown graph type: " + grType);
+	    }
+	    
+	    //Initialize Arrays
+	    sdVertices.put(pRes.objID, new Hashtable<Long, StDirVertex>());
+	    sdEdges.put(pRes.objID, new Hashtable<Long, StDirEdge>());
+	}
+	
+	//Parse the vertex components of a Street Directory
+	private void parseStDirVertex(Utility.ParseResults pRes) throws IOException {
+	    //Check and parse properties.
+		if (!pRes.confirmProps(new String[]{"parent", "xPos", "yPos"})) {
+			throw new IOException("Missing required key in type: " + pRes.type);
+		}
+	    
+	    //Now save the relevant information
+	    long parentID = Utility.ParseLongOptionalHex(pRes.properties.get("parent"));
+	    if (!sdVertices.containsKey(parentID)) {
+	    	throw new RuntimeException("Unknown parent of vertex: " + parentID);
+	    }
+	    
+	    int xPos = Integer.parseInt(pRes.properties.get("xPos"));
+	    int yPos = Integer.parseInt(pRes.properties.get("yPos"));
+	    sdVertices.get(parentID).put(pRes.objID, new StDirVertex(pRes.objID, xPos, yPos));
+	}
+	
+	private void parseStDirEdge(Utility.ParseResults pRes) throws IOException {
+	    //Check and parse properties.
+		if (!pRes.confirmProps(new String[]{"parent", "fromVertex", "toVertex"})) {
+			throw new IOException("Missing required key in type: " + pRes.type);
+		}
+	    
+	    //Now save the relevant information
+	    long parentID = Utility.ParseLongOptionalHex(pRes.properties.get("parent"));
+	    if (!sdVertices.containsKey(parentID) || !sdEdges.containsKey(parentID)) {
+	    	throw new RuntimeException("Unknown parent of edge: " + parentID);
+	    }
+	    
+	    StDirVertex fromV = sdVertices.get(parentID).get(Utility.ParseLongOptionalHex(pRes.properties.get("fromVertex")));
+	    StDirVertex toV = sdVertices.get(parentID).get(Utility.ParseLongOptionalHex(pRes.properties.get("toVertex")));
+	    if (fromV==null || toV==null) {
+	    	throw new RuntimeException("Unknown vertex referencd by edge");
+	    }
+	    
+	    sdEdges.get(parentID).put(pRes.objID, new StDirEdge(pRes.objID, fromV, toV));
+	}
+	
+	
 		
 	private void parseLink(Utility.ParseResults pRes) throws IOException {
 

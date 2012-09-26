@@ -256,6 +256,16 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		repaint();
 	}
 	
+	public void setGraphVisible(boolean showDriving, boolean showWalking) {
+		if (showDriving && showWalking) { throw new RuntimeException("Error: Can't currently show driving AND walking graphs."); }
+		if(netViewCache == null) {
+			return; 
+		}
+		
+		netViewCache.setGraphVisible(showDriving, showWalking, getCurrFrameTick());
+		repaint();
+	}
+	
 	private void clickMap(Point pos) {
 		//Anything?
 		if (netViewCache==null) {

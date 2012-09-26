@@ -54,6 +54,10 @@ public class NetworkVisualizer {
 	private boolean showAimsunLabels = false;
 	private boolean showMitsimLabels = false;
 	
+	//Flags for showing/hiding the various graphs.
+	private boolean showDrivingGraph = false;
+	private boolean showWalkingGraph = false;
+	
 	//The current real-coordinate bounds of the view.
 	private Rectangle2D currView;
 	
@@ -121,6 +125,12 @@ public class NetworkVisualizer {
 	public void setAnnotationLevel(boolean showAimsun, boolean showMitsim, int frameTick) {
 		this.showAimsunLabels = showAimsun;
 		this.showMitsimLabels = showMitsim;
+		redrawFrame(frameTick);
+	}
+	
+	public void setGraphVisible(boolean showDriving, boolean showWalking, int frameTick) {
+		this.showDrivingGraph = showDriving;
+		this.showWalkingGraph = showWalking;
 		redrawFrame(frameTick);
 	}
 

@@ -76,6 +76,12 @@ public class MainFrame extends JFrame {
     private ImageIcon alvl_Mitsim;
     private ImageIcon alvl_Both;
     
+    private JButton graphToShow;
+    private int currGraphShown;
+    private ImageIcon graphVis_None;
+    private ImageIcon graphVis_Driver;
+    private ImageIcon graphVis_Ped;    
+    
 	
 	//Lower panel
 	private Timer animTimer;
@@ -200,6 +206,13 @@ public class MainFrame extends JFrame {
 	    annotationLevel = new JButton("No annotations");
 	    currAnnotLevel = 0;
 	    annotationLevel.setIcon(alvl_None);
+	    
+	    graphVis_None = new ImageIcon(Utility.LoadImgResource("res/icons/sdgraph_none.png"));
+	    graphVis_Driver = new ImageIcon(Utility.LoadImgResource("res/icons/sdgraph_driver.png"));
+	    graphVis_Ped = new ImageIcon(Utility.LoadImgResource("res/icons/sdgraph_pedestrian.png"));
+	    graphToShow = new JButton("Hide graphs");
+	    currGraphShown = 0;
+	    graphToShow.setIcon(graphVis_None);
 
 	    
 	    drawnPercent = new JProgressBar();
@@ -250,6 +263,7 @@ public class MainFrame extends JFrame {
 		jpLeft.add(renderVideo);
 		jpLeft.add(squareViewport);
 		jpLeft.add(annotationLevel);
+		jpLeft.add(graphToShow);
 		
 		//Bottom panel
 		JPanel jpLower = new JPanel(new BorderLayout());
@@ -486,6 +500,15 @@ public class MainFrame extends JFrame {
 				newViewPnl.setAnnotationLevel(showAimsun, showMitsim);
 				annotationLevel.setText((showAimsun&&showMitsim)?"Both annotations":showAimsun?"Aimsun annotations":showMitsim?"Mitsim annotations":"No annotations");
 				annotationLevel.setIcon((showAimsun&&showMitsim)?alvl_Both:showAimsun?alvl_Aimsun:showMitsim?alvl_Mitsim:alvl_None);
+			}
+		});
+		
+		graphToShow.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				currGraphShown = (currGraphShown+1)%3;
+				newViewPnl.setGraphVisible(currGraphShown==1, currGraphShown==2);
+				graphToShow.setText(currGraphShown==2?"Walking graph":currGraphShown==1?"Driving graph":"Hide graphs");
+				graphToShow.setIcon(currGraphShown==2?graphVis_Ped:currGraphShown==1?graphVis_Driver:graphVis_None);
 			}
 		});
 		

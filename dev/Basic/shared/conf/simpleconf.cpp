@@ -1406,8 +1406,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
         	 *
         	 *************************************************/
     		sim_mob::xml::InitAndLoadXML(XML_OutPutFileName);
-
-
 #endif
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -1429,6 +1427,15 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     //Seal the network; no more changes can be made after this.
     ConfigParams::GetInstance().sealNetwork();
     std::cout << "Network Sealed" << std::endl;
+
+    std::cout << "Print Road Network After sd init\n";
+    printRoadNetwork();
+	std::cout <<"Early Network details loaded from connection: " <<ConfigParams::GetInstance().connectionString <<"\n";
+	std::cout <<"------------------\n";
+	PrintDB_Network();
+	return "Early Network PrintDB_Network Done...\n";
+	std::cout <<"------------------\n";
+
     std::cout << "Print Road Network before sd init\n";
     printRoadNetwork();
 //    getchar();
@@ -1457,15 +1464,13 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 
     StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
     std::cout << "Street Directory initialized" << std::endl;
-    std::cout << "Print Road Network After sd init\n";
-    printRoadNetwork();
-//    getchar();
-	std::cout <<"Early Network details loaded from connection: " <<ConfigParams::GetInstance().connectionString <<"\n";
-	std::cout <<"------------------\n";
-	PrintDB_Network();
-	return "Early Network PrintDB_Network Done...\n";
-	getchar();
-	std::cout <<"------------------\n";
+//    std::cout << "Print Road Network After sd init\n";
+//    printRoadNetwork();
+//	std::cout <<"Early Network details loaded from connection: " <<ConfigParams::GetInstance().connectionString <<"\n";
+//	std::cout <<"------------------\n";
+//	PrintDB_Network();
+//	return "Early Network PrintDB_Network Done...\n";
+//	std::cout <<"------------------\n";
 
     //Maintain unique/non-colliding IDs.
     AgentConstraints constraints;

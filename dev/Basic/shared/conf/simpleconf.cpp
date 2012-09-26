@@ -568,7 +568,7 @@ bool loadXMLSignals(TiXmlDocument& document, std::vector<Signal*> all_signals, c
 	TiXmlElement* node = handle.FirstChild("config").FirstChild(signalKeyID+"s").FirstChild(signalKeyID).ToElement();
 	if (!node) {
 		//Signals are optional
-		std::cout << "oops! returning true!" << std::endl;
+		std::cout << "ooops! returning true!" << std::endl;
 		return true;
 	}
 
@@ -1460,6 +1460,12 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     std::cout << "Print Road Network After sd init\n";
     printRoadNetwork();
 //    getchar();
+	std::cout <<"Early Network details loaded from connection: " <<ConfigParams::GetInstance().connectionString <<"\n";
+	std::cout <<"------------------\n";
+	PrintDB_Network();
+	return "Early Network PrintDB_Network Done...\n";
+	getchar();
+	std::cout <<"------------------\n";
 
     //Maintain unique/non-colliding IDs.
     AgentConstraints constraints;
@@ -1537,6 +1543,8 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     	std::cout <<"Network details loaded from connection: " <<ConfigParams::GetInstance().connectionString <<"\n";
     	std::cout <<"------------------\n";
     	PrintDB_Network();
+    	return "PrintDB_Network Done...\n";
+    	getchar();
     	std::cout <<"------------------\n";
     }
     std::cout <<"  Agents Initialized: " <<Agent::all_agents.size() <<"\n";

@@ -113,6 +113,12 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 	//TEMP: For now, we just add the outer lane as a sidewalk. This won't quite work for bi-directional
 	//      segments or for one-way Links. But it should be sufficient for the demo.
 	Lane* swLane = new Lane(this, lanes.size());
+
+//	if((swLane->laneID_ == 1000029006)||(swLane->laneID_ == 1000029005))
+//	{
+//		std::cout << "Lane " <<  swLane->laneID_ << " were created in syncLanePolylines_1\n";
+//		getchar();
+//	}
 	swLane->is_pedestrian_lane(true);
 	swLane->width_ = lanes.back()->width_/2;
 	swLane->polyline_ = sim_mob::ShiftPolyline(lanes.back()->polyline_, lanes.back()->getWidth()/2+swLane->getWidth()/2);
@@ -134,9 +140,15 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 			for(size_t i = 0; i < lanes.size(); ++i)
 			{
 				lanes[i]->laneID_++;
+				lanes[i]->setLaneID_str(lanes[i]->laneID_);
 			}
 			//Add a sidewalk on the other side of the road segment
-			Lane* swLane2 = new Lane(this, lanes.size());
+			Lane* swLane2 = new Lane(this, lanes.size() + 1);//+1 coz we have incr
+//			if((swLane->laneID_ == 1000029006)||(swLane->laneID_ == 1000029005))
+//			{
+//				std::cout << "Lane " <<  swLane->laneID_ << " were created in syncLanePolylines_2\n";
+//				getchar();
+//			}
 			swLane2->is_pedestrian_lane(true);
 			swLane2->width_ = lanes.front()->width_/2;
 			swLane2->polyline_ = sim_mob::ShiftPolyline(lanes.front()->polyline_, lanes.front()->getWidth()/2+swLane2->getWidth()/2, false);

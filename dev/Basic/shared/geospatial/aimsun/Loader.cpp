@@ -1663,6 +1663,11 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 			rs->length = found->length;
 			for (int laneID=0; laneID < found->numLanes; laneID++) {
 				sim_mob::Lane * temp = new sim_mob::Lane(rs, laneID);
+				if((temp->laneID_ == 1000029006)||(temp->laneID_ == 1000029005))
+				{
+					std::cout << "Lanes 1000029006 and 1000029005 were created in normal place\n";
+					getchar();
+				}
 				rs->lanes.push_back(temp);
 
 			}

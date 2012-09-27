@@ -141,6 +141,7 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
 
 		double dt	=	p.elapsedSeconds;
 		double headway = CalcHeadway(p.space, speed, p.elapsedSeconds, maxAcceleration);
+//		std::cout<<"carFollowingRate: headway1: "<<headway<<std::endl;
 
 		//Emergency deceleration overrides the perceived distance; check for it.
 		{
@@ -154,9 +155,10 @@ double sim_mob::MITSIM_CF_Model::carFollowingRate(DriverUpdateParams& p, double 
 		}
 
 		p.space_star	=	p.space + p.v_lead * dt + 0.5 * p.a_lead * dt * dt;
-
+//		std::cout<<"carFollowingRate: headway2: "<<headway<<std::endl;
 		if(headway < hBufferLower) {
 			res = accOfEmergencyDecelerating(p);
+//			std::cout<<"carFollowingRate: EmergencyDecelerating: "<<res<<std::endl;
 		}
 		if(headway > hBufferUpper) {
 			res = accOfMixOfCFandFF(p, targetSpeed, maxLaneSpeed);

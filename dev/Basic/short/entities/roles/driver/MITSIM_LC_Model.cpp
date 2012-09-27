@@ -313,43 +313,44 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 		//Set the lateral velocity of the vehicle; move it.
 		int lcsSign = (currLaneChangeDir==LCS_RIGHT) ? -1 : 1;
 		return lcsSign*150;//p.laneChangingVelocity;
-	} else {
-		//If too close to node, don't do lane changing, distance should be larger than 3m
-//		if(p.nvFwd.distance <= 2000) {
-//			return 0;
-//		}
-
-		//Get a random number, use it to determine if we're making a discretionary or a mandatory lane change
-		boost::uniform_int<> zero_to_max(0, RAND_MAX);
-		double randNum = (double)(zero_to_max(p.gen)%1000)/1000;
-		double mandCheck = checkIfMandatory(p);
-		LANE_CHANGE_MODE changeMode;  //DLC or MLC
-
-		if(randNum<mandCheck){
-			changeMode = MLC;
-		} else {
-			changeMode = DLC;
-			p.dis2stop = 1000;//MAX_NUM;		//no crucial point ahead
-		}
-
-		//make decision depending on current lane changing mode
-		LANE_CHANGE_SIDE decision = LCS_SAME;
-		if(changeMode==DLC) {
-
-			decision = makeDiscretionaryLaneChangingDecision(p);
-		} else {
-
-			decision = makeMandatoryLaneChangingDecision(p);
-
-		}
-
-
-		//Finally, if we've decided to change lanes, set our intention.
-		if(decision!=LCS_SAME) {
-			const int lane_shift_velocity = 150;  //TODO: What is our lane changing velocity? Just entering this for now...
-
-			return decision==LCS_LEFT?lane_shift_velocity:-lane_shift_velocity;
-		}
 	}
+//		else {
+//		//If too close to node, don't do lane changing, distance should be larger than 3m
+////		if(p.nvFwd.distance <= 2000) {
+////			return 0;
+////		}
+//
+//		//Get a random number, use it to determine if we're making a discretionary or a mandatory lane change
+//		boost::uniform_int<> zero_to_max(0, RAND_MAX);
+//		double randNum = (double)(zero_to_max(p.gen)%1000)/1000;
+//		double mandCheck = checkIfMandatory(p);
+//		LANE_CHANGE_MODE changeMode;  //DLC or MLC
+//
+//		if(randNum<mandCheck){
+//			changeMode = MLC;
+//		} else {
+//			changeMode = DLC;
+//			p.dis2stop = 1000;//MAX_NUM;		//no crucial point ahead
+//		}
+//
+//		//make decision depending on current lane changing mode
+//		LANE_CHANGE_SIDE decision = LCS_SAME;
+//		if(changeMode==DLC) {
+//
+//			decision = makeDiscretionaryLaneChangingDecision(p);
+//		} else {
+//
+//			decision = makeMandatoryLaneChangingDecision(p);
+//
+//		}
+//
+//
+//		//Finally, if we've decided to change lanes, set our intention.
+//		if(decision!=LCS_SAME) {
+//			const int lane_shift_velocity = 150;  //TODO: What is our lane changing velocity? Just entering this for now...
+//
+//			return decision==LCS_LEFT?lane_shift_velocity:-lane_shift_velocity;
+//		}
+//	}
 	return 0;
 }

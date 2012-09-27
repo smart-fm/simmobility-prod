@@ -132,25 +132,42 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 	p.turningDirection = vehicle->getTurningDirection();
 
 	//hard code , need solution
-	p.space = 50;
+
 
 	//get nearest car, if not making lane changing, the nearest car should be the leading car in current lane.
 	//if making lane changing, adjacent car need to be taken into account.
 	NearestVehicle & nv = nearestVehicle(p);
-	if (nv.distance <= 0) {
-		//if (nv.driver->parent->getId() > this->parent->getId())
-		if (getDriverParent(nv.driver)->getId() > this->parent->getId()) {
-			nv = NearestVehicle();
-		}
-	}
+//	if (p.nvFwd.exists())
+//		p.space = p.nvFwd.distance;
+//	else
+//		p.space = 50;
+//	if (nv.distance <= 0) {
+//		//if (nv.driver->parent->getId() > this->parent->getId())
+//		if (getDriverParent(nv.driver)->getId() > this->parent->getId()) {
+//			nv = NearestVehicle();
+//		}
+//	}
 
+	//this function make the issue Ticket #86
 	perceivedDataProcess(nv, p);
 
 	//bus approaching bus stop reduce speed
 	//and if its left has lane, merge to left lane
-	if (isBusFarawayBusStop()) {
-		busAccelerating(p);
-	}
+	//if (isBusFarawayBusStop()) {
+	double acci = busAccelerating(p)*100;
+		vehicle->setAcceleration(acci);
+	//}
+
+//	//Retrieve a new acceleration value.
+//		double newFwdAcc = 0;
+//		//Convert back to m/s
+//		//TODO: Is this always m/s? We should rename the variable then...
+//		p.currSpeed = vehicle->getVelocity() / 100;
+//		//Call our model
+//		//Return the remaining amount (obtained by calling updatePositionOnLink)
+//		newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed);
+//		//Update our chosen acceleration; update our position on the link.
+//		vehicle->setAcceleration(newFwdAcc * 100);
 
 	//NOTE: Driver already has a lcModel; we should be able to just use this. ~Seth
 	LANE_CHANGE_SIDE lcs = LCS_SAME;
@@ -169,7 +186,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 //			  << p.currLaneIndex << " lat velo: " << newLatVel / 100.0 << "m/s"
 //			  << std::endl;
 	if (isBusApproachingBusStop()) {
-		busAccelerating(p);
+		double acc = busAccelerating(p)*100;
 
 		//move to most left lane
 		p.nextLaneIndex = vehicle->getCurrSegment()->getLanes().back()->getLaneID();
@@ -184,11 +201,18 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 //				  << p.currLaneIndex << std::endl;
 
 		// reduce speed
-		if (vehicle->getVelocity() / 100.0 > 10)
-			vehicle->setAcceleration(-500);
+		if (vehicle->getVelocity() / 100.0 > 2.0)
+		{
+			if (acc<-500.0)
+			{
+				vehicle->setAcceleration(acc);
+			} else
+				vehicle->setAcceleration(-500);
+		}
 
 		waitAtStopMS = 0;
 	}
+
 	if (isBusArriveBusStop() && waitAtStopMS >= 0 && waitAtStopMS
 			< BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
 //		std::cout
@@ -213,12 +237,11 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 		vehicle->setAcceleration(3000);
 	}
 
-	//TODO: Please check from here; the merge was not 100% clean. ~Seth
 	if (isBusLeavingBusStop() || waitAtStopMS >= BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
 		std::cout << "BusDriver::updatePositionOnLink: bus isBusLeavingBusStop" << std::endl;
 		waitAtStopMS = -1;
 
-		busAccelerating(p);
+		vehicle->setAcceleration(busAccelerating(p)*100);
 	}
 
 /*	std::cout<<"BusDriver::updatePositionOnLink:tick: "<<p.currTimeMS/1000.0<<std::endl;
@@ -229,8 +252,8 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 	std::cout<<"my bus distance moved in segment: "<<vehicle->getDistanceToSegmentStart()/100.0<<std::endl;
 	std::cout<<"but DistanceMovedInSegment"<<vehicle->getDistanceMovedInSegment()/100.0<<std::endl;
 	std::cout<<"current polyline length: "<<vehicle->getCurrPolylineLength()/100.0<<std::endl;*/
-	DynamicVector segmentlength(vehicle->getCurrSegment()->getStart()->location.getX(),vehicle->getCurrSegment()->getStart()->location.getY(),
-			vehicle->getCurrSegment()->getEnd()->location.getX(),vehicle->getCurrSegment()->getEnd()->location.getY());
+//	DynamicVector segmentlength(vehicle->getCurrSegment()->getStart()->location.getX(),vehicle->getCurrSegment()->getStart()->location.getY(),
+//			vehicle->getCurrSegment()->getEnd()->location.getX(),vehicle->getCurrSegment()->getEnd()->location.getY());
 //	std::cout<<"current segment length: "<<segmentlength.getMagnitude()/100.0<<std::endl;
 
 //	double fwdDistance = vehicle->getVelocity() * p.elapsedSeconds + 0.5 * vehicle->getAcceleration() * p.elapsedSeconds * p.elapsedSeconds;
@@ -242,8 +265,16 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 
 	//Increase the vehicle's velocity based on its acceleration.
 
-
-	//Return the remaining amount (obtained by calling updatePositionOnLink)
+//	//Retrieve a new acceleration value.
+//	double newFwdAcc = 0;
+//	//Convert back to m/s
+//	//TODO: Is this always m/s? We should rename the variable then...
+//	p.currSpeed = vehicle->getVelocity() / 100;
+//	//Call our model
+//	//Return the remaining amount (obtained by calling updatePositionOnLink)
+//	newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed);
+//	//Update our chosen acceleration; update our position on the link.
+//	vehicle->setAcceleration(newFwdAcc * 100);
 	return updatePositionOnLink(p);
 }
 
@@ -258,7 +289,7 @@ double sim_mob::BusDriver::getPositionY() const
 }
 
 
-void sim_mob::BusDriver::busAccelerating(DriverUpdateParams& p)
+double sim_mob::BusDriver::busAccelerating(DriverUpdateParams& p)
 {
 	//Retrieve a new acceleration value.
 	double newFwdAcc = 0;
@@ -270,8 +301,9 @@ void sim_mob::BusDriver::busAccelerating(DriverUpdateParams& p)
 	//Call our model
 	newFwdAcc = cfModel->makeAcceleratingDecision(p, targetSpeed, maxLaneSpeed);
 
+	return newFwdAcc;
 	//Update our chosen acceleration; update our position on the link.
-	vehicle->setAcceleration(newFwdAcc * 100);
+	//vehicle->setAcceleration(newFwdAcc * 100);
 }
 
 bool sim_mob::BusDriver::isBusFarawayBusStop() const

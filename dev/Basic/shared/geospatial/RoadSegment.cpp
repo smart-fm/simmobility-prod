@@ -32,6 +32,10 @@ sim_mob::RoadSegment::RoadSegment(Link* parent, unsigned long id) : Pavement(), 
 
 }
 
+void sim_mob::RoadSegment::setParentLink(Link* parent)
+{
+	this->parentLink = parent;
+}
 
 bool sim_mob::RoadSegment::isSingleDirectional()
 {

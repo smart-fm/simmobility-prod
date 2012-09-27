@@ -1,7 +1,6 @@
 package sim_mob.vis.network;
 
 import java.awt.Color;
-import java.awt.Graphics2D;
 import java.awt.Point;
 
 import java.io.*;
@@ -15,9 +14,7 @@ import sim_mob.vis.network.basic.DPoint;
 import sim_mob.vis.network.basic.FlippedScaledPoint;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.network.basic.Vect;
-import sim_mob.vis.simultion.DriverTick;
 import sim_mob.vis.simultion.GsonResObj;
-import sim_mob.vis.simultion.SimulationResults;
 import sim_mob.vis.util.FastLineParser;
 import sim_mob.vis.util.Mapping;
 import sim_mob.vis.util.Utility;
@@ -44,30 +41,34 @@ public class RoadNetwork {
 	//private DPoint cornerTL;
 	//private DPoint cornerLR;
 	
-	private Hashtable<Integer, Node> nodes;
-	private Hashtable<Integer, BusStop> busstop;
+	private Hashtable<Long, Node> nodes;
+	private Hashtable<Long, Link> links;
+	private Hashtable<Long, Segment> segments;
+	private Hashtable<Long, Hashtable<Long,Lane> > lanes;
+	private Hashtable<Long, Hashtable<Long,LaneMarking>> linaMarkings;
+	private Hashtable<Long, LaneConnector> laneConnectors;
+	private Hashtable<Long, BusStop> busstop;
+	
+	private Hashtable<Long, Crossing> crossings;
+	private Hashtable<Long, TrafficSignalCrossing> trafficSignalCrossings;
+	private Hashtable<Long, TrafficSignalLine> trafficSignalLines;
+	private Hashtable<Long, ArrayList<Long>> segmentRefTable;
+	private Hashtable<Long, Intersection> intersections; 
+	private Hashtable<Long, CutLine> cutLines;
+	
+	//For our various street directory graphs. Indexed by graph ID, then by object ID
+	private Hashtable<Long, Hashtable<Long, StDirVertex>> sdVertices;
+	private Hashtable<Long, Hashtable<Long, StDirEdge>> sdEdges;
+	private Long sdDrivingGraphID;
+	private Long sdWalkingGraphID;
+	
 	private ArrayList<Annotation> annot_aimsun;
 	private ArrayList<Annotation> annot_mitsim;
 
-	private Hashtable<Integer, Link> links;
 	private Hashtable<String, LinkName> linkNames;
-	private Hashtable<Integer, Segment> segments;
-	private Hashtable<Integer,Hashtable<Integer,LaneMarking>> linaMarkings;
-	private Hashtable<Integer, Crossing> crossings;
-	private Hashtable<Integer, LaneConnector> laneConnectors;
-	private Hashtable<Integer, Hashtable<Integer,Lane> > lanes;
-	private Hashtable<Integer, TrafficSignalLine> trafficSignalLines;
-	private Hashtable<Integer, TrafficSignalCrossing> trafficSignalCrossings;
-	private Hashtable<Integer, Intersection> intersections; 
-	private Hashtable<Integer, CutLine> cutLines;
-	private Hashtable<Integer, DriverTick> drivertick;
-
-	private Hashtable<String, Integer> fromToSegmentRefTable;
-	
-	private Hashtable<Integer,ArrayList<Integer>> segmentRefTable;
-	
+	private Hashtable<String, Long> fromToSegmentRefTable;
 	//                segID              lane#   laneID
-	private Hashtable<Integer,Hashtable<Integer,Integer>> segmentToLanesTable;
+	private Hashtable<Long,Hashtable<Integer,Long>> segmentToLanesTable;
 	
 	
 	//Testing on intersections
@@ -75,23 +76,27 @@ public class RoadNetwork {
 	
 	//public DPoint getTopLeft() { return cornerTL; }
 	//public DPoint getLowerRight() { return cornerLR; }
-	public Hashtable<Integer, Node> getNodes() { return nodes; }
-	public Hashtable<Integer, BusStop> getBusStop() { return busstop; }
+	public Hashtable<Long, Node> getNodes() { return nodes; }
+	public Hashtable<Long, Link> getLinks() { return links; }
+	public Hashtable<Long, Segment> getSegments() { return segments; }
+	public Hashtable<Long, Hashtable<Long,Lane> > getLanes(){return lanes;}
+	public Hashtable<Long, Hashtable<Long,LaneMarking>> getLaneMarkings(){ return linaMarkings; }
+	public Hashtable<Long, BusStop> getBusStop() { return busstop; }
+	
+	public Hashtable<Long, Crossing> getCrossings() { return crossings; }
+	public Hashtable<Long, TrafficSignalCrossing> getTrafficSignalCrossing() {return trafficSignalCrossings;}
+	public Hashtable<Long, TrafficSignalLine> getTrafficSignalLine(){return trafficSignalLines;}
+	public Hashtable<Long, Intersection> getIntersection(){return intersections;}
+	public Hashtable<Long, CutLine> getCutLine(){return cutLines;}
+	
 	public ArrayList<Annotation> getAimsunAnnotations() { return annot_aimsun; }
 	public ArrayList<Annotation> getMitsimAnnotations() { return annot_mitsim; }
-	
-	public Hashtable<Integer, Link> getLinks() { return links; }
 	public Hashtable<String, LinkName> getLinkNames() { return linkNames; }
-	public Hashtable<Integer, Segment> getSegments() { return segments; }
-	public Hashtable<Integer, Hashtable<Integer,LaneMarking>> getLaneMarkings(){ return linaMarkings; }
-	public Hashtable<Integer, Crossing> getCrossings() { return crossings; }
-	public Hashtable<Integer, Hashtable<Integer,Lane> > getLanes(){return lanes;}
-	public Hashtable<Integer, TrafficSignalLine> getTrafficSignalLine(){return trafficSignalLines;}
-	public Hashtable<Integer, TrafficSignalCrossing> getTrafficSignalCrossing() {return trafficSignalCrossings;}
-	public Hashtable<Integer, Intersection> getIntersection(){return intersections;}
-	public Hashtable<Integer, CutLine> getCutLine(){return cutLines;}
-	public Hashtable<Integer, DriverTick> getDriverTick(){return drivertick;}
-	
+
+	public Hashtable<Long, StDirVertex> getDrivingGraphVertices() { return sdVertices.get(sdDrivingGraphID); }
+	public Hashtable<Long, StDirEdge> getDrivingGraphEdges() { return sdEdges.get(sdDrivingGraphID); }
+	public Hashtable<Long, StDirVertex> getWalkingGraphVertices() { return sdWalkingGraphID==null? null : sdVertices.get(sdWalkingGraphID); }
+	public Hashtable<Long, StDirEdge> getWalkingGraphEdges() { return sdWalkingGraphID==null ? null : sdEdges.get(sdWalkingGraphID); }	
 
 	/**
 	 * Load the network from a filestream.
@@ -99,29 +104,31 @@ public class RoadNetwork {
 	public void loadFileAndReport(BufferedReader inFile, long fileLength, NetworkPanel progressUpdate) throws IOException {
 		Main.NEW_SIGNAL = false;//default
 		System.out.println("System NEW_SIGNAL reset to false");
-		nodes = new Hashtable<Integer, Node>();
-		busstop = new Hashtable<Integer, BusStop>();
+		nodes = new Hashtable<Long, Node>();
+		busstop = new Hashtable<Long, BusStop>();
 		annot_aimsun = new ArrayList<Annotation>();
 		annot_mitsim = new ArrayList<Annotation>();
 		annot_aimsun = new ArrayList<Annotation>();
 		annot_mitsim = new ArrayList<Annotation>();
 	
-		links = new Hashtable<Integer, Link>();
+		links = new Hashtable<Long, Link>();
 		linkNames = new Hashtable<String, LinkName>();
-		segments = new Hashtable<Integer, Segment>();
-		linaMarkings = new Hashtable<Integer,Hashtable<Integer,LaneMarking>>();
-		lanes = new Hashtable<Integer, Hashtable<Integer,Lane>>();
-		crossings = new Hashtable<Integer, Crossing>();
-		laneConnectors = new Hashtable<Integer, LaneConnector>();
-		trafficSignalLines = new Hashtable<Integer, TrafficSignalLine>(); 
-		trafficSignalCrossings = new Hashtable<Integer, TrafficSignalCrossing>();
-		intersections = new Hashtable<Integer, Intersection>();
-		cutLines =  new Hashtable<Integer, CutLine>();
-		drivertick =  new Hashtable<Integer, DriverTick>();
+		segments = new Hashtable<Long, Segment>();
+		linaMarkings = new Hashtable<Long,Hashtable<Long,LaneMarking>>();
+		lanes = new Hashtable<Long, Hashtable<Long,Lane>>();
+		crossings = new Hashtable<Long, Crossing>();
+		laneConnectors = new Hashtable<Long, LaneConnector>();
+		trafficSignalLines = new Hashtable<Long, TrafficSignalLine>(); 
+		trafficSignalCrossings = new Hashtable<Long, TrafficSignalCrossing>();
+		intersections = new Hashtable<Long, Intersection>();
+		cutLines =  new Hashtable<Long, CutLine>();
+		
+		sdVertices = new Hashtable<Long, Hashtable<Long, StDirVertex>>();
+		sdEdges = new Hashtable<Long, Hashtable<Long, StDirEdge>>();
 
-		fromToSegmentRefTable =  new Hashtable<String, Integer>();
-		segmentRefTable = new  Hashtable<Integer , ArrayList<Integer>>(); 
-		segmentToLanesTable = new Hashtable<Integer,Hashtable<Integer,Integer>>();
+		fromToSegmentRefTable =  new Hashtable<String, Long>();
+		segmentRefTable = new  Hashtable<Long , ArrayList<Long>>(); 
+		segmentToLanesTable = new Hashtable<Long,Hashtable<Integer,Long>>();
 		
 		//temp
 		FastLineParser flp = new FastLineParser();
@@ -265,7 +272,13 @@ public class RoadNetwork {
 			parseCutLine(pRes);
 		} else if(pRes.type.equals("busstop")){
 			parseBusStop(pRes);
-		} else if (pRes.frame>0) {
+		} else if (pRes.type.equals("sd-graph")) {
+			parseStDirGraph(pRes);
+		} else if (pRes.type.equals("sd-vertex")) {
+			parseStDirVertex(pRes);
+		} else if (pRes.type.equals("sd-edge")) {
+			parseStDirEdge(pRes);
+ 		} else if (pRes.frame>0) {
 			//We've started on runtime data.
 			return false;
 		}
@@ -274,6 +287,70 @@ public class RoadNetwork {
 
 		
 	}
+	
+	
+	//Parse the main graph element in a Street Directory
+	private void parseStDirGraph(Utility.ParseResults pRes) throws IOException {
+	    //Check and parse properties.
+		if (!pRes.confirmProps(new String[]{"type"})) {
+			throw new IOException("Missing required key in type: " + pRes.type);
+		}
+	    
+	    //Now save the relevant information
+	    String grType = pRes.properties.get("type").toLowerCase();
+	    if (grType.equals("driving")) {
+	    	sdDrivingGraphID = pRes.objID;
+	    } else if (grType.equals("walking")) {
+	    	sdWalkingGraphID = pRes.objID;
+	    } else {
+	    	throw new RuntimeException("Unknown graph type: " + grType);
+	    }
+	    
+	    //Initialize Arrays
+	    sdVertices.put(pRes.objID, new Hashtable<Long, StDirVertex>());
+	    sdEdges.put(pRes.objID, new Hashtable<Long, StDirEdge>());
+	}
+	
+	//Parse the vertex components of a Street Directory
+	private void parseStDirVertex(Utility.ParseResults pRes) throws IOException {
+	    //Check and parse properties.
+		if (!pRes.confirmProps(new String[]{"parent", "xPos", "yPos"})) {
+			throw new IOException("Missing required key in type: " + pRes.type);
+		}
+	    
+	    //Now save the relevant information
+	    long parentID = Utility.ParseLongOptionalHex(pRes.properties.get("parent"));
+	    if (!sdVertices.containsKey(parentID)) {
+	    	throw new RuntimeException("Unknown parent of vertex: " + parentID);
+	    }
+	    
+	    int xPos = Integer.parseInt(pRes.properties.get("xPos"));
+	    int yPos = Integer.parseInt(pRes.properties.get("yPos"));
+	    sdVertices.get(parentID).put(pRes.objID, new StDirVertex(pRes.objID, xPos, yPos));
+	}
+	
+	private void parseStDirEdge(Utility.ParseResults pRes) throws IOException {
+	    //Check and parse properties.
+		if (!pRes.confirmProps(new String[]{"parent", "fromVertex", "toVertex"})) {
+			throw new IOException("Missing required key in type: " + pRes.type);
+		}
+	    
+	    //Now save the relevant information
+	    long parentID = Utility.ParseLongOptionalHex(pRes.properties.get("parent"));
+	    if (!sdVertices.containsKey(parentID) || !sdEdges.containsKey(parentID)) {
+	    	throw new RuntimeException("Unknown parent of edge: " + parentID);
+	    }
+	    
+	    StDirVertex fromV = sdVertices.get(parentID).get(Utility.ParseLongOptionalHex(pRes.properties.get("fromVertex")));
+	    StDirVertex toV = sdVertices.get(parentID).get(Utility.ParseLongOptionalHex(pRes.properties.get("toVertex")));
+	    if (fromV==null || toV==null) {
+	    	throw new RuntimeException("Unknown vertex referencd by edge");
+	    }
+	    
+	    sdEdges.get(parentID).put(pRes.objID, new StDirEdge(pRes.objID, fromV, toV));
+	}
+	
+	
 		
 	private void parseLink(Utility.ParseResults pRes) throws IOException {
 
@@ -285,17 +362,17 @@ public class RoadNetwork {
 	    
 	    //Now save the relevant information
 	    String name = pRes.properties.get("road-name");
-	    int startNodeKEY = Utility.ParseIntOptionalHex(pRes.properties.get("start-node"));
-	    int endNodeKEY = Utility.ParseIntOptionalHex(pRes.properties.get("end-node"));
+	    long startNodeKEY = Utility.ParseLongOptionalHex(pRes.properties.get("start-node"));
+	    long endNodeKEY = Utility.ParseLongOptionalHex(pRes.properties.get("end-node"));
 	    Node startNode = nodes.get(startNodeKEY);
 	    Node endNode = nodes.get(endNodeKEY);
 	    
 	    //Ensure nodes exist
 	    if (startNode==null) {
-	    	throw new IOException("Unknown node id: " + Integer.toHexString(startNodeKEY));
+	    	throw new IOException("Unknown node id: " + Long.toHexString(startNodeKEY));
 	    }
 	    if (endNode==null) {
-	    	throw new IOException("Unknown node id: " + Integer.toHexString(endNodeKEY));
+	    	throw new IOException("Unknown node id: " + Long.toHexString(endNodeKEY));
 	    }
 	    
 	    //Create a new Link, save it
@@ -313,13 +390,13 @@ public class RoadNetwork {
 		}
 	    
 	    
-	    int parentKey = Utility.ParseIntOptionalHex(pRes.properties.get("parent-segment"));	   
-	    Hashtable<Integer,LaneMarking> tempLineTable = new Hashtable<Integer,LaneMarking>();
-	    Hashtable<Integer,Lane> tempLaneTable = new Hashtable<Integer,Lane>();
+	    long parentKey = Utility.ParseLongOptionalHex(pRes.properties.get("parent-segment"));	   
+	    Hashtable<Long,LaneMarking> tempLineTable = new Hashtable<Long,LaneMarking>();
+	    Hashtable<Long,Lane> tempLaneTable = new Hashtable<Long,Lane>();
 	    ArrayList<Integer> lineNumbers = new ArrayList<Integer>();
 	    Hashtable<Integer, ArrayList<Integer>> lineMarkingPositions = new Hashtable<Integer, ArrayList<Integer>>();
-	    int sideWalkLane1 = -1;
-	    int sideWalkLane2 = -1;
+	    long sideWalkLane1 = -1;
+	    long sideWalkLane2 = -1;
 	    for (String key : pRes.properties.keySet()) {
 	    	//Get Segment
 	    	if(key.contains("parent-segment")){
@@ -328,7 +405,7 @@ public class RoadNetwork {
 	    	
 	    	//Check whether the lane is a sidewalk
 	    	Matcher m = Utility.NUM_REGEX.matcher(key);
-	    	Integer lineNumber = null;
+	    	int lineNumber = -1;
 	    	while(m.find()){
 	    		lineNumber = Integer.parseInt(m.group());		
 	    	}
@@ -348,14 +425,16 @@ public class RoadNetwork {
 	    		
 	    	}else{
 	    		
-	    		ArrayList<Integer> pos = new ArrayList<Integer>();
-	    		pos = Utility.ParseLaneNodePos(pRes.properties.get(key));
-	    		Node startNode = new Node(pos.get(0), pos.get(1), false,null);
-	    		Node endNode = new Node(pos.get(2), pos.get(3), false,null);
-	    		tempLineTable.put(lineNumber, new LaneMarking(startNode,endNode,false,lineNumber,parentKey));
+	    		ArrayList<Integer> pos = Utility.ParseLaneNodePos(pRes.properties.get(key));
+	    		
+	    		//NOTE: We need Nodes here *at least once* because Nodes flip the Y-axis.
+	    		Node startNode = new Node(pos.get(0), pos.get(1), false, null);
+	    		Node endNode = new Node(pos.get(2), pos.get(3), false, null);
+	    		
+	    		tempLineTable.put(new Long(lineNumber), new LaneMarking(startNode.getPos(),endNode.getPos(),false,lineNumber,parentKey));
 	    
 	    		//Add lane number to the tracking list
-		    	if(lineNumber != null){
+		    	if(lineNumber != -1){
 		    		lineNumbers.add(lineNumber);
 		    	}
 		    		
@@ -388,25 +467,26 @@ public class RoadNetwork {
 	    		
 	    	int endMiddleX = (lineMarkingPositions.get(i).get(2) + lineMarkingPositions.get(j).get(2))/2;
 	    	int endMiddleY = (lineMarkingPositions.get(i).get(3) + lineMarkingPositions.get(j).get(3))/2;
+	    	
+    		/*System.out.println("Adding Lane from: (" + 
+    			startMiddleX + "," + startMiddleY + "), to: (" +
+				endMiddleX + "," + endMiddleY + ")"
+			);*/
 	    		
 	    	Lane tempLane = new Lane(i,new Node(startMiddleX, startMiddleY,true, null),new Node(endMiddleX,endMiddleY,false,null));	    		
 	    	
-	    	tempLaneTable.put(i,tempLane);
+	    	tempLaneTable.put(new Long(i),tempLane);
 
-	    	if(segmentToLanesTable.containsKey(parentKey)){
-	    		segmentToLanesTable.get(parentKey).put(i, pRes.objID);
-	    	}	
-	    	else{
-	    		Hashtable<Integer, Integer> lanesOnSegment = new Hashtable<Integer,Integer>();
-	    		lanesOnSegment.put(i, pRes.objID);
-	    		segmentToLanesTable.put(parentKey, lanesOnSegment);
+	    	if (!segmentToLanesTable.containsKey(parentKey)) {
+	    		segmentToLanesTable.put(parentKey, new Hashtable<Integer,Long>());
 	    	}
+	    	segmentToLanesTable.get(parentKey).put(i, pRes.objID);
 	    }
 	    lanes.put(parentKey, tempLaneTable);	 
 	    
 	    
 	    //Create a new Lane, save it
-	    linaMarkings.put(pRes.objID, tempLineTable);    
+	    linaMarkings.put(pRes.objID, tempLineTable);
 	}
 	
 	private void parseSegment(Utility.ParseResults pRes) throws IOException {
@@ -418,22 +498,22 @@ public class RoadNetwork {
 		}
 	    
 	    //Now save the relevant information
-	    int parentLinkID = Utility.ParseIntOptionalHex(pRes.properties.get("parent-link"));
+	    long parentLinkID = Utility.ParseLongOptionalHex(pRes.properties.get("parent-link"));
 	    Link parent = links.get(parentLinkID);
-	    int fromNodeID = Utility.ParseIntOptionalHex(pRes.properties.get("from-node"));
-	    int toNodeID = Utility.ParseIntOptionalHex(pRes.properties.get("to-node"));
+	    long fromNodeID = Utility.ParseLongOptionalHex(pRes.properties.get("from-node"));
+	    long toNodeID = Utility.ParseLongOptionalHex(pRes.properties.get("to-node"));
 	    Node fromNode = nodes.get(fromNodeID);
 	    Node toNode = nodes.get(toNodeID);
 	    
 	    //Ensure nodes exist
 	    if (parent==null) {
-	    	throw new IOException("Unknown Link id: " + Integer.toHexString(parentLinkID));
+	    	throw new IOException("Unknown Link id: " + Long.toHexString(parentLinkID));
 	    }
 	    if (fromNode==null) {
-	    	throw new IOException("Unknown node id: " + Integer.toHexString(fromNodeID));
+	    	throw new IOException("Unknown node id: " + Long.toHexString(fromNodeID));
 	    }
 	    if (toNode==null) {
-	    	throw new IOException("Unknown node id: " + Integer.toHexString(toNodeID));
+	    	throw new IOException("Unknown node id: " + Long.toHexString(toNodeID));
 	    }
 	    
 	    //Create a new Link, save it
@@ -544,19 +624,19 @@ public class RoadNetwork {
 
 	    
 	    //Now save the relevant information
-	    int fromSegmentKEY = Utility.ParseIntOptionalHex(pRes.properties.get("from-segment"));
-	    int toSegmentKEY = Utility.ParseIntOptionalHex(pRes.properties.get("to-segment"));
-	    int fromLane = Utility.ParseIntOptionalHex(pRes.properties.get("from-lane"));
-	    int toLane = Utility.ParseIntOptionalHex(pRes.properties.get("to-lane"));
+	    long fromSegmentKEY = Utility.ParseLongOptionalHex(pRes.properties.get("from-segment"));
+	    long toSegmentKEY = Utility.ParseLongOptionalHex(pRes.properties.get("to-segment"));
+	    long fromLane = Utility.ParseLongOptionalHex(pRes.properties.get("from-lane"));
+	    long toLane = Utility.ParseLongOptionalHex(pRes.properties.get("to-lane"));
 	    Segment fromSegment = segments.get(fromSegmentKEY);
 	    Segment toSegment = segments.get(toSegmentKEY);
 
 	    //Ensure segment exist
 	    if (fromSegment==null) {
-	    	throw new IOException("Unknown Segment id: " + Integer.toHexString(fromSegmentKEY));
+	    	throw new IOException("Unknown Segment id: " + Long.toHexString(fromSegmentKEY));
 	    }
 	    if (toSegment==null) {
-	    	throw new IOException("Unknown Segment id: " + Integer.toHexString(toSegmentKEY));
+	    	throw new IOException("Unknown Segment id: " + Long.toHexString(toSegmentKEY));
 	    }
 	    
 	    
@@ -566,7 +646,7 @@ public class RoadNetwork {
 	    collectSignalLineInfo(pRes.objID,tempLaneConnector);
 	    
 	    //Use from-segment and to-segment form a reference table, to check from-segment & to-segment pair against lane connector id
-	    String fromToSegmentKey = Integer.toHexString(fromSegmentKEY)+"&"+Integer.toHexString(toSegmentKEY);
+	    String fromToSegmentKey = Long.toHexString(fromSegmentKEY)+"&"+Long.toHexString(toSegmentKEY);
 	    fromToSegmentRefTable.put(fromToSegmentKey, pRes.objID);
 
 	    
@@ -580,7 +660,7 @@ public class RoadNetwork {
 	    	segmentRefTable.get(fromSegmentKEY).add(toSegmentKEY);
 	    
 	    } else{
-	    	ArrayList<Integer> toSegmentList = new ArrayList<Integer>();
+	    	ArrayList<Long> toSegmentList = new ArrayList<Long>();
 	    	toSegmentList.add(pRes.objID);
 	    	toSegmentList.add(toSegmentKEY);
 	    	segmentRefTable.put(fromSegmentKEY, toSegmentList);
@@ -598,20 +678,20 @@ public class RoadNetwork {
 		}
 
 	    //Now save the relevant information
-	    int intersectionNodeID = Utility.ParseIntOptionalHex(pRes.properties.get("node"));
-	    int linkVaID = Utility.ParseIntOptionalHex(pRes.properties.get("va"));
-	    int linkVbID = Utility.ParseIntOptionalHex(pRes.properties.get("vb"));
-	    int linkVcID = Utility.ParseIntOptionalHex(pRes.properties.get("vc"));
-	    int linkVdID = Utility.ParseIntOptionalHex(pRes.properties.get("vd"));
-	    int linkPaID = Utility.ParseIntOptionalHex(pRes.properties.get("pa"));
-	    int linkPbID = Utility.ParseIntOptionalHex(pRes.properties.get("pb"));
-	    int linkPcID = Utility.ParseIntOptionalHex(pRes.properties.get("pc"));
-	    int linkPdID = Utility.ParseIntOptionalHex(pRes.properties.get("pd"));
+	    long intersectionNodeID = Utility.ParseLongOptionalHex(pRes.properties.get("node"));
+	    long linkVaID = Utility.ParseLongOptionalHex(pRes.properties.get("va"));
+	    long linkVbID = Utility.ParseLongOptionalHex(pRes.properties.get("vb"));
+	    long linkVcID = Utility.ParseLongOptionalHex(pRes.properties.get("vc"));
+	    long linkVdID = Utility.ParseLongOptionalHex(pRes.properties.get("vd"));
+	    long linkPaID = Utility.ParseLongOptionalHex(pRes.properties.get("pa"));
+	    long linkPbID = Utility.ParseLongOptionalHex(pRes.properties.get("pb"));
+	    long linkPcID = Utility.ParseLongOptionalHex(pRes.properties.get("pc"));
+	    long linkPdID = Utility.ParseLongOptionalHex(pRes.properties.get("pd"));
 
-	    ArrayList <Integer>  tempLinkIDs = new ArrayList<Integer>(
+	    ArrayList <Long>  tempLinkIDs = new ArrayList<Long>(
 	    			Arrays.asList(linkVaID, linkVbID, linkVcID, linkVdID)); 
 	    
-	    ArrayList <Integer> tempCrossingIDs = new ArrayList<Integer>(
+	    ArrayList <Long> tempCrossingIDs = new ArrayList<Long>(
 	    			Arrays.asList(linkPaID,linkPbID,linkPcID,linkPdID));
 	    
 	    intersections.put(pRes.objID, new Intersection(intersectionNodeID,tempLinkIDs, tempCrossingIDs));		
@@ -637,11 +717,11 @@ public class RoadNetwork {
 		
 	}
 	
-	private void collectSignalLineInfo(int objID, LaneConnector laneConnector){				
+	private void collectSignalLineInfo(long objID, LaneConnector laneConnector){				
 		if(lanes.containsKey(laneConnector.getFromSegment()) && lanes.containsKey(laneConnector.getToSegment()) ){
 	
-			int fromLaneNo = laneConnector.getFromLane();
-			int toLaneNo = laneConnector.getToLane();
+			long fromLaneNo = laneConnector.getFromLane();
+			long toLaneNo = laneConnector.getToLane();
 			Lane fromLane = lanes.get(laneConnector.getFromSegment()).get(fromLaneNo);
 			Lane toLane = lanes.get(laneConnector.getToSegment()).get(toLaneNo);
 			TrafficSignalLine tempSignalLine;
@@ -667,27 +747,26 @@ public class RoadNetwork {
 
 		
 		for(Intersection intersection : intersections.values()){		
-			ArrayList <Integer> tempIntersectLinkIDs = intersection.getSigalLinkIDs();
-			Hashtable<Integer, Integer> intersectLinkSegmentIDTable = new Hashtable<Integer, Integer>();
+			ArrayList <Long> tempIntersectLinkIDs = intersection.getSigalLinkIDs();
+			Hashtable<Integer, Long> intersectLinkSegmentIDTable = new Hashtable<Integer, Long>();
 			
-			int[] fromSegmentList = new int[]{-1,-1,-1,-1};
-			int[] toSegmentList = new int[]{-1,-1,-1,-1};
+			long[] fromSegmentList = new long[]{-1,-1,-1,-1};
+			long[] toSegmentList = new long[]{-1,-1,-1,-1};
 			
-			int intersectionNodeID = intersection.getIntersectNodeID(); 
+			long intersectionNodeID = intersection.getIntersectNodeID(); 
 						
 			//Search all the Links
 			for(int i = 0; i<tempIntersectLinkIDs.size();i++ ){	
-				int tempLinkID = tempIntersectLinkIDs.get(i);
+				long tempLinkID = tempIntersectLinkIDs.get(i);
 				//ArrayList<Integer> tempSegmentIDs = roadNetworkItemsMapTable.findSegmentIDWithLinkID(tempLinkID);
-				ArrayList<Integer> tempSegmentIDs = new ArrayList<Integer>();
-				Enumeration<Integer> segmentKeys = segments.keys();
-							
+				ArrayList<Long> tempSegmentIDs = new ArrayList<Long>();
+				
+				Enumeration<Long> segmentKeys = segments.keys();
 				while(segmentKeys.hasMoreElements()){
 					
-					Object aKey = segmentKeys.nextElement();
-					Integer segmentID = (Integer) aKey;
-					Segment tempSegment = segments.get(aKey);
-					int parentLinkID = tempSegment.getParent().getId();
+					Long segmentID = segmentKeys.nextElement();
+					Segment tempSegment = segments.get(segmentID);
+					long parentLinkID = tempSegment.getParent().getId();
 				
 					if(tempLinkID == parentLinkID ){
 						tempSegmentIDs.add(segmentID);
@@ -741,7 +820,7 @@ public class RoadNetwork {
 							
 					} else {
 						
-						System.out.println("Error, no such segments in segment table "+Integer.toHexString(tempSegmentIDs.get(j))+" -- RoadNetwork,populateIntersection ");
+						System.out.println("Error, no such segments in segment table "+Long.toHexString(tempSegmentIDs.get(j))+" -- RoadNetwork,populateIntersection ");
 						
 					}
 					
@@ -777,12 +856,12 @@ public class RoadNetwork {
 			}
 			
 			//Fill crossing signals
-			ArrayList<Integer> crossingIDs = intersection.getSigalCrossingIDs();
+			ArrayList<Long> crossingIDs = intersection.getSigalCrossingIDs();
 			ArrayList<TrafficSignalCrossing> crossingSignals =  new ArrayList<TrafficSignalCrossing>();
-			int linkPaID = crossingIDs.get(0);	
-			int linkPbID = crossingIDs.get(1);
-			int linkPcID = crossingIDs.get(2);
-			int linkPdID = crossingIDs.get(3);
+			long linkPaID = crossingIDs.get(0);	
+			long linkPbID = crossingIDs.get(1);
+			long linkPcID = crossingIDs.get(2);
+			long linkPdID = crossingIDs.get(3);
 			
 			//System.out.println("Intersection ID: " + Integer.toHexString(intersection.getIntersectNodeID()));
 			//System.out.println("linkPaID: "+ linkPaID +" linkPbID: "+ linkPbID + " linkPcID: "+ linkPcID +" linkPdID: "+ linkPdID);
@@ -878,31 +957,31 @@ public class RoadNetwork {
 		}
 	}
 
-	private void smoothSegmentJoins(ArrayList<Integer> segmentIDs){
+	private void smoothSegmentJoins(ArrayList<Long> segmentIDs){
 		if(segmentIDs.size() < 2)
 			return;
 
-		Integer currentSegmentID = segmentIDs.get(0);
+		Long currentSegmentID = segmentIDs.get(0);
 
-		LaneMarking currSegSidewalkLane1 = new LaneMarking(null, null, false, 0, 0);
-		LaneMarking currSegSidewalkLane2 = new LaneMarking(null, null, false, 0, 0);
+		LaneMarking currSegSidewalkLane1 = new LaneMarking(null, null, false, 0, 0L);
+		LaneMarking currSegSidewalkLane2 = new LaneMarking(null, null, false, 0, 0L);
 
 
 		for(int i = 0; i<segmentIDs.size();i++){	
-			Integer nextSegmentID = segmentIDs.get(i);
+			Long nextSegmentID = segmentIDs.get(i);
 			if(segmentToLanesTable.containsKey(currentSegmentID) && segmentToLanesTable.containsKey(nextSegmentID))
 			{
-				Hashtable<Integer, Integer> currentSegLanes = segmentToLanesTable.get(currentSegmentID);
-				Hashtable<Integer, Integer> nextSegLanes = segmentToLanesTable.get(nextSegmentID);
+				Hashtable<Integer, Long> currentSegLanes = segmentToLanesTable.get(currentSegmentID);
+				Hashtable<Integer, Long> nextSegLanes = segmentToLanesTable.get(nextSegmentID);
 		
-				LaneMarking nextSegSidewalkLane1 = new LaneMarking(null, null, false, 0, 0);
-				LaneMarking nextSegSidewalkLane2 = new LaneMarking(null, null, false, 0, 0);
+				LaneMarking nextSegSidewalkLane1 = new LaneMarking(null, null, false, 0, 0L);
+				LaneMarking nextSegSidewalkLane2 = new LaneMarking(null, null, false, 0, 0L);
 
 				boolean bFound = false;
 
-				for(Integer currSegLaneID : currentSegLanes.values())
+				for(Long currSegLaneID : currentSegLanes.values())
 				{
-					Hashtable<Integer,LaneMarking> currentSegLaneMarkTable = linaMarkings.get(currSegLaneID);
+					Hashtable<Long,LaneMarking> currentSegLaneMarkTable = linaMarkings.get(currSegLaneID);
 					for(LaneMarking currSegLaneMark : currentSegLaneMarkTable.values())
 					{
 						if(currSegLaneMark.isSideWalk()){
@@ -918,9 +997,9 @@ public class RoadNetwork {
 
 				bFound = false;
 
-				for(Integer nextSegLaneID : nextSegLanes.values())
+				for(Long nextSegLaneID : nextSegLanes.values())
 				{
-					Hashtable<Integer,LaneMarking> nextSegLaneMarkTable = linaMarkings.get(nextSegLaneID);
+					Hashtable<Long,LaneMarking> nextSegLaneMarkTable = linaMarkings.get(nextSegLaneID);
 					for(LaneMarking nextSegLaneMark : nextSegLaneMarkTable.values())
 					{
 						if(nextSegLaneMark.isSideWalk()){
@@ -951,18 +1030,18 @@ public class RoadNetwork {
 
 				if(i != 0 && currSegSidewalkLane1.getStart()!=null && currSegSidewalkLane1.getEnd()!=null)
 				{
-					DPoint currSegStart1 = new DPoint(currSegSidewalkLane1.getStart().getPos().getUnscaledX(), currSegSidewalkLane1.getStart().getPos().getUnscaledY());
-					DPoint currSegEnd1 = new DPoint(currSegSidewalkLane1.getEnd().getPos().getUnscaledX(), currSegSidewalkLane1.getEnd().getPos().getUnscaledY());
-					DPoint currSegStart2 = new DPoint(currSegSidewalkLane2.getStart().getPos().getUnscaledX(), currSegSidewalkLane2.getStart().getPos().getUnscaledY());
-					DPoint currSegEnd2 = new DPoint(currSegSidewalkLane2.getEnd().getPos().getUnscaledX(), currSegSidewalkLane2.getEnd().getPos().getUnscaledY());
+					DPoint currSegStart1 = new DPoint(currSegSidewalkLane1.getStart().getUnscaledX(), currSegSidewalkLane1.getStart().getUnscaledY());
+					DPoint currSegEnd1 = new DPoint(currSegSidewalkLane1.getEnd().getUnscaledX(), currSegSidewalkLane1.getEnd().getUnscaledY());
+					DPoint currSegStart2 = new DPoint(currSegSidewalkLane2.getStart().getUnscaledX(), currSegSidewalkLane2.getStart().getUnscaledY());
+					DPoint currSegEnd2 = new DPoint(currSegSidewalkLane2.getEnd().getUnscaledX(), currSegSidewalkLane2.getEnd().getUnscaledY());
 			
 					Vect currSidewalk1 = new Vect(currSegStart1.x, currSegStart1.y, currSegEnd1.x, currSegEnd1.y);
 					Vect currSidewalk2 = new Vect(currSegStart2.x, currSegStart2.y, currSegEnd2.x, currSegEnd2.y);
 			
-					DPoint nextSegStart1 = new DPoint(nextSegSidewalkLane1.getStart().getPos().getUnscaledX(), nextSegSidewalkLane1.getStart().getPos().getUnscaledY());
-					DPoint nextSegEnd1 = new DPoint(nextSegSidewalkLane1.getEnd().getPos().getUnscaledX(), nextSegSidewalkLane1.getEnd().getPos().getUnscaledY());
-					DPoint nextSegStart2 = new DPoint(nextSegSidewalkLane2.getStart().getPos().getUnscaledX(), nextSegSidewalkLane2.getStart().getPos().getUnscaledY());
-					DPoint nextSegEnd2 = new DPoint(nextSegSidewalkLane2.getEnd().getPos().getUnscaledX(), nextSegSidewalkLane2.getEnd().getPos().getUnscaledY());
+					DPoint nextSegStart1 = new DPoint(nextSegSidewalkLane1.getStart().getUnscaledX(), nextSegSidewalkLane1.getStart().getUnscaledY());
+					DPoint nextSegEnd1 = new DPoint(nextSegSidewalkLane1.getEnd().getUnscaledX(), nextSegSidewalkLane1.getEnd().getUnscaledY());
+					DPoint nextSegStart2 = new DPoint(nextSegSidewalkLane2.getStart().getUnscaledX(), nextSegSidewalkLane2.getStart().getUnscaledY());
+					DPoint nextSegEnd2 = new DPoint(nextSegSidewalkLane2.getEnd().getUnscaledX(), nextSegSidewalkLane2.getEnd().getUnscaledY());
 					
 					Vect nextSidewalk1 = new Vect(nextSegStart1.x, nextSegStart1.y, nextSegEnd1.x, nextSegEnd1.y);
 					Vect nextSidewalk2 = new Vect(nextSegStart2.x, nextSegStart2.y, nextSegEnd2.x, nextSegEnd2.y);
@@ -997,7 +1076,7 @@ public class RoadNetwork {
 		}
 	}
 	
-	private Hashtable<Integer, ArrayList<ArrayList<TrafficSignalLine>>> helperAllocateDirection(int[] fromSegmentList, int [] toSegmentList){
+	private Hashtable<Integer, ArrayList<ArrayList<TrafficSignalLine>>> helperAllocateDirection(long[] fromSegmentList, long [] toSegmentList){
 		
 		Hashtable<Integer, ArrayList<ArrayList<TrafficSignalLine>>> list = new Hashtable<Integer,ArrayList<ArrayList<TrafficSignalLine>>>();
 		
@@ -1006,11 +1085,10 @@ public class RoadNetwork {
 			
 			ArrayList<ArrayList<TrafficSignalLine>> tempDirectionalSignalLines = new ArrayList<ArrayList<TrafficSignalLine>>();
 			
-			int fromSegmentKey = fromSegmentList[i]; 	
-			
+			long fromSegmentKey = fromSegmentList[i]; 	
 			if(segmentRefTable.containsKey(fromSegmentKey)){	
 			
-				ArrayList<Integer> tempToSegmentList = segmentRefTable.get(fromSegmentKey);
+				ArrayList<Long> tempToSegmentList = segmentRefTable.get(fromSegmentKey);
 
 				ArrayList<TrafficSignalLine> tempLeftTurn = new ArrayList<TrafficSignalLine>();
 				ArrayList<TrafficSignalLine> tempStraightTurn = new ArrayList<TrafficSignalLine>();

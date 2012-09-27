@@ -1,13 +1,5 @@
 package sim_mob.vis.simultion;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.geom.AffineTransform;
-
-import sim_mob.vis.controls.DrawableItem;
-import sim_mob.vis.network.basic.DPoint;
-
 /**
  * For now, Traffic Signals are simply added to the top-level container, and are all drawn in a row.
  * 

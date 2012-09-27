@@ -8,7 +8,6 @@ import java.awt.image.BufferedImage;
 import javax.swing.*;
 
 import sim_mob.vis.MainFrame;
-import sim_mob.vis.network.Node;
 import sim_mob.vis.util.*;
 
 
@@ -254,6 +253,16 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 			return; 
 		}
 		netViewCache.setAnnotationLevel(showAimsun, showMitsim, getCurrFrameTick());
+		repaint();
+	}
+	
+	public void setGraphVisible(boolean showDriving, boolean showWalking) {
+		if (showDriving && showWalking) { throw new RuntimeException("Error: Can't currently show driving AND walking graphs."); }
+		if(netViewCache == null) {
+			return; 
+		}
+		
+		netViewCache.setGraphVisible(showDriving, showWalking, getCurrFrameTick());
 		repaint();
 	}
 	

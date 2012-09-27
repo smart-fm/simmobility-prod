@@ -9,10 +9,14 @@
 
 using namespace sim_mob;
 
-sim_mob::BusStop_Times::BusStop_Times(std::string scheduled_ArrivalTime, std::string scheduled_DepartureTime,
-		std::string real_ArrivalTime, std::string real_DepartureTime)
-: scheduled_ArrivalTime(DailyTime(scheduled_ArrivalTime)), scheduled_DepartureTime(DailyTime(scheduled_DepartureTime)),
-  real_ArrivalTime(DailyTime(real_ArrivalTime)), real_DepartureTime(DailyTime(real_DepartureTime))
+sim_mob::BusStop_ScheduledTimes::BusStop_ScheduledTimes(std::string scheduled_ArrivalTime, std::string scheduled_DepartureTime)
+: scheduled_ArrivalTime(DailyTime(scheduled_ArrivalTime)), scheduled_DepartureTime(DailyTime(scheduled_DepartureTime))
+{
+
+}
+
+sim_mob::BusStop_RealTimes::BusStop_RealTimes(std::string real_ArrivalTime, std::string real_DepartureTime)
+: real_ArrivalTime(DailyTime(real_ArrivalTime)), real_DepartureTime(DailyTime(real_DepartureTime))
 {
 
 }
@@ -51,7 +55,37 @@ sim_mob::BusTrip::BusTrip(int entId, std::string type, unsigned int seqNumber,
 		unsigned int busRoute_id, Node* from, std::string fromLocType, Node* to,
 		std::string toLocType)
 : Trip(entId, type, seqNumber, start, end, busTrip_id,from, fromLocType, to, toLocType),
-busLine_id(busLine_id), vehicle_id(vehicle_id), bus_RouteInfo(&BusRouteInfo(busRoute_id))
+busLine_id(busLine_id), busTrip_id(busTrip_id), vehicle_id(vehicle_id), bus_RouteInfo(&BusRouteInfo(busRoute_id))
+{
+
+}
+
+sim_mob::Busline::Busline(int busline_id)
+{
+
+}
+
+sim_mob::Busline::~Busline()
+{
+
+}
+
+void sim_mob::Busline::addFwdBusTrip(const sim_mob::BusTrip& aFwdBusTrip)
+{
+	fwdbustrip_vec.push_back(aFwdBusTrip);
+}
+
+void sim_mob::Busline::addRevBusTrip(const sim_mob::BusTrip& aRevBusTrip)
+{
+	revbustrip_vec.push_back(aRevBusTrip);
+}
+
+sim_mob::PT_Schedule::PT_Schedule()
+{
+
+}
+
+sim_mob::PT_Schedule::~PT_Schedule()
 {
 
 }

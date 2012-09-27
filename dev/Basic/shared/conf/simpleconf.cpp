@@ -1647,15 +1647,11 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     }
     //Load Agents, Pedestrians, and Trip Chains as specified in loadAgentOrder
     for (vector<string>::iterator it=loadAgentOrder.begin(); it!=loadAgentOrder.end(); it++) {
-    	if ((*it) == "database") {
-    	    cout <<"Loaded Database Agents (from Trip Chains).placeholder" <<endl;
-    	}else
-    	if ((*it) == "xml-tripchains") {
-    		std::cout << "Number of Tripchains: " << ConfigParams::GetInstance().getTripChains().size() << std::endl;
-    	    //Create an agent for each Trip Chain in the database.
-    	    generateAgentsFromTripChain(active_agents, pending_agents, constraints);
-    	    cout <<"Loaded Database Agents (from Trip Chains)." <<endl;
-    	} else if ((*it) == "drivers") {
+    	if (((*it) == "database")||((*it) == "xml-tripchains")) {
+    	    	 //Create an agent for each Trip Chain in the database.
+    	    	    generateAgentsFromTripChain(active_agents, pending_agents, constraints);
+    	    	    cout <<"Loaded Database Agents (from Trip Chains)." <<endl;
+    	    	} else if ((*it) == "drivers") {
     	    if (!loadXMLAgents(document, active_agents, pending_agents, "driver", constraints)) {
     	    	return	 "Couldn't load drivers";
     	    }

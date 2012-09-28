@@ -31,7 +31,7 @@
 //Define this if you want to attempt to "fix" the broken DAG.
 //NOTE: Do *not* put this into the config file or CMake; once the DAG is fixed we'll remove the old code.
 //TODO: The new model leaks memory (all code that does this is marked). Change to value types once you're ready to remove this #define.
-//#define STDIR_FIX_BROKEN
+#define STDIR_FIX_BROKEN
 
 
 
@@ -705,6 +705,10 @@ private:
     struct VertexLookup {
     	const sim_mob::Node* origNode;
     	bool isUni;
+
+    	//Lookup information. This is interpreted in two different ways:
+    	//  1) UniNodes store the segment before/after this Node. This is inherent in the structure of the UniNode itself.
+    	//  2) MultiNodes store the segment before/after this Intersection. This is derived from the Lane Connectors.
     	std::vector<NodeDescriptor> vertices;
     };
 
@@ -963,13 +967,25 @@ void StreetDirectory::ShortestPathImpl::procAddNodes(Graph& graph, const std::ve
 			Node* vNode = new UniNode(newPos.getX(), newPos.getY());
 			boost::put(boost::vertex_name, const_cast<Graph &>(graph), nd.v, vNode);
 		} else {
-			//TEMP: For now, just add it:
-			NodeDescriptor nd;
+			//Each incoming and outgoing RoadSegment has exactly one Node at the Intersection. In this case, the unused before/after
+			//   RoadSegment is used to identify whether this is an incoming or outgoing Vertex.
 			nd.v = boost::add_vertex(const_cast<Graph &>(graph));
-			nd.before = nullptr;
-			nd.after = nullptr;
 			nodeLookup[origNode].vertices.push_back(nd);
-			boost::put(boost::vertex_name, const_cast<Graph &>(graph), nd.v, origNode);
+
+			//Our Node positions are actually the same compared to UniNodes; we may merge this code later.
+			Point2D newPos;
+			if (!nd.before && nd.after) {
+				newPos = const_cast<RoadSegment*>(nd.after)->getLaneEdgePolyline(1).front();
+			} else if (nd.before && !nd.after) {
+				newPos = const_cast<RoadSegment*>(nd.before)->getLaneEdgePolyline(1).back();
+			} else {
+				//This, however, is different.
+				throw std::runtime_error("MultiNode vertices can't have both \"before\" and \"after\" segments.");
+			}
+
+			//TODO: Leaks memory!
+			Node* vNode = new UniNode(newPos.getX(), newPos.getY());
+			boost::put(boost::vertex_name, const_cast<Graph &>(graph), nd.v, vNode);
 		}
 	}
 }
@@ -999,11 +1015,10 @@ void StreetDirectory::ShortestPathImpl::procAddLinks(Graph& graph, const std::ve
 		//For simply nodes, this will be sufficient.
 		Vertex fromVertex = from->second.vertices.front().v;
 		Vertex toVertex = to->second.vertices.front().v;
-		bool tempFixFlag1 = from->second.isUni;
-		bool tempFixFlag2 = to->second.isUni;
 
-		//If there are multiple options, just match our "before/after" tagged data. Note that before/after may be null.
-		if (tempFixFlag1 && from->second.vertices.size()>1) {
+		//If there are multiple options, search for the right one.
+		//To accomplish this, just match our "before/after" tagged data. Note that before/after may be null.
+		if (from->second.vertices.size()>1) {
 			bool error=true;
 			for (std::vector<NodeDescriptor>::const_iterator it=from->second.vertices.begin(); it!=from->second.vertices.end(); it++) {
 				if (rs == it->after) {
@@ -1013,7 +1028,7 @@ void StreetDirectory::ShortestPathImpl::procAddLinks(Graph& graph, const std::ve
 			}
 			if (error) { throw std::runtime_error("Unable to find Node with proper outgoing RoadSegment in \"from\" vertex map."); }
 		}
-		if (tempFixFlag2 && to->second.vertices.size()>1) {
+		if (to->second.vertices.size()>1) {
 			bool error=true;
 			for (std::vector<NodeDescriptor>::const_iterator it=to->second.vertices.begin(); it!=to->second.vertices.end(); it++) {
 				if (rs == it->before) {
@@ -1030,9 +1045,6 @@ void StreetDirectory::ShortestPathImpl::procAddLinks(Graph& graph, const std::ve
 	    boost::tie(edge, ok) = boost::add_edge(fromVertex, toVertex, graph);
 	    boost::put(boost::edge_name, drivingMap_, edge, WayPoint(rs));
 	    boost::put(boost::edge_weight, drivingMap_, edge, rs->length);
-
-
-
 	}
 
 }

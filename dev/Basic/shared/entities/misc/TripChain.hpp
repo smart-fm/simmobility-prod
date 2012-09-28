@@ -17,9 +17,8 @@
 #include "partitions/UnPackageUtils.hpp"
 #endif
 
-//namespace geo {
+namespace geo {
 //Forward Declaration
-
 class Trip_t_pimpl;
 class SubTrip_t;
 }

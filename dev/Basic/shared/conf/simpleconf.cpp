@@ -1388,7 +1388,6 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
     if(!BusController::all_busctrllers_.empty())
     {
     	active_agents.push_back(BusController::all_busctrllers_[0]);
-    	BusController::all_busctrllers_.clear();
     }
 
 #ifndef SIMMOB_NEW_SIGNAL

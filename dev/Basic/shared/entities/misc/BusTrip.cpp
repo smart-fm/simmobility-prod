@@ -60,7 +60,8 @@ busLine_id(busLine_id), busTrip_id(busTrip_id), vehicle_id(vehicle_id), bus_Rout
 
 }
 
-sim_mob::Busline::Busline(int busline_id)
+sim_mob::Busline::Busline(int busline_id, std::string controlType)
+: controlType(getControlTypeFromString(controlType))
 {
 
 }
@@ -68,6 +69,25 @@ sim_mob::Busline::Busline(int busline_id)
 sim_mob::Busline::~Busline()
 {
 
+}
+
+CONTROL_TYPE sim_mob::Busline::getControlTypeFromString(std::string ControlType)
+{
+	ControlType.erase(remove_if(ControlType.begin(), ControlType.end(), isspace),
+			ControlType.end());
+	if (ControlType == "no_control") {
+		return NO_CONTROL;
+	} else if (ControlType == "schedule_based") {
+		return SCHEDULE_BASED;
+	} else if (ControlType == "headway_based") {
+		return HEADWAY_BASED;
+	} else if (ControlType == "evenheadway_based") {
+		return EVENHEADWAY_BASED;
+	} else if (ControlType == "hybrid_based") {
+		return HYBRID_BASED;
+	} else {
+		throw std::runtime_error("Unexpected control type.");
+	}
 }
 
 void sim_mob::Busline::addFwdBusTrip(const sim_mob::BusTrip& aFwdBusTrip)
@@ -88,4 +108,9 @@ sim_mob::PT_Schedule::PT_Schedule()
 sim_mob::PT_Schedule::~PT_Schedule()
 {
 
+}
+
+void sim_mob::PT_Schedule::addBusLine(const sim_mob::Busline& aBusline)
+{
+	busline_vec.push_back(aBusline);
 }

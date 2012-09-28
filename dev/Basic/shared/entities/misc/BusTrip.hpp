@@ -60,6 +60,9 @@ public:
 	const vector<const sim_mob::BusStopInfo*>& getBusStopsInfo() const {
 		return busStopInfo_vec;
 	}
+	const vector<const sim_mob::BusStop*>& getBusStops() const {
+		return busStop_vec;
+	}
 	void addBusStop(const sim_mob::BusStop* aBusStop);
 	void addRoadSegment(const sim_mob::RoadSegment* aRoadSegment);
 	void addBusStopInfo(const sim_mob::BusStopInfo* aBusStopInfo);
@@ -70,7 +73,7 @@ private:
 	vector<const sim_mob::BusStop*> busStop_vec;
 };
 
-class BusTrip: public sim_mob::Trip {
+class BusTrip: public sim_mob::Trip {// Can be inside the TripChain generation or BusLine stored in BusController
 public:
 	BusTrip(int entId=0, std::string type="BusTrip", unsigned int seqNumber=0,
 			DailyTime start=DailyTime(), DailyTime end=DailyTime(), int busTrip_id=0,
@@ -85,21 +88,35 @@ public:
 	const int getBusLineID() const {
 		return busLine_id;
 	}
+	const bool getDirectionFlag() const {
+		return direction_flag;
+	}
 private:
 	int busLine_id;
 	int busTrip_id;
 	int vehicle_id;
-	bool direction_flag; // indicate the direction of this BusTrip( two directions only)
+	bool direction_flag; // indicate the direction of this BusTrip( two directions only: fwd or rev)
 	BusRouteInfo* bus_RouteInfo;// route inside this BusTrip
 };
 
 
+enum CONTROL_TYPE {
+	NO_CONTROL, SCHEDULE_BASED, HEADWAY_BASED, EVENHEADWAY_BASED, HYBRID_BASED
+};
 
 class Busline { // busSchedule later inside PT_Schedule
 public:
-	Busline(int busline_id=0);
+	Busline(int busline_id=0, std::string controlType="No_Control");
 	virtual ~Busline();
 
+	static CONTROL_TYPE getControlTypeFromString(std::string ControlType);
+	const CONTROL_TYPE getControlType() const
+	{
+		return controlType;
+	}
+	const int getBusLineID() const {
+		return busline_id;
+	}
 	void addFwdBusTrip(const sim_mob::BusTrip& aFwdBusTrip);
 	void addRevBusTrip(const sim_mob::BusTrip& aRevBusTrip);
 	const vector<sim_mob::BusTrip>& getFwdBusTrips() const {
@@ -110,6 +127,7 @@ public:
 	}
 private:
 	int busline_id;
+	CONTROL_TYPE controlType;
 	vector<sim_mob::BusTrip> fwdbustrip_vec;
 	vector<sim_mob::BusTrip> revbustrip_vec;
 };
@@ -119,6 +137,7 @@ public:
 	PT_Schedule();
 	virtual ~PT_Schedule();
 
+	void addBusLine(const sim_mob::Busline& aBusline);
 	const vector<sim_mob::Busline>& getBuslines() const {
 		return busline_vec;
 	}

@@ -195,7 +195,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 //				<< "BusDriver::updatePositionOnLink: bus isBusArriveBusStop velocity: "
 //				<< vehicle->getVelocity() / 100.0 << std::endl;
 		if(!BusController::all_busctrllers_.empty()) {
-			BusController::all_busctrllers_[0]->updateBusInformation(vehicle->getPosition());
+			BusController::all_busctrllers_[0]->receiveBusInformation(vehicle->getPosition());
 		}
 		if (vehicle->getVelocity() > 0)
 			vehicle->setAcceleration(-5000);

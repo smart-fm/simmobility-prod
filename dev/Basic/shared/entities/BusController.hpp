@@ -37,7 +37,8 @@ public:
 	~BusController();
 	virtual Entity::UpdateStatus update(frame_t frameNumber);
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
-	void updateBusInformation(DPoint pt);
+	void receiveBusInformation(DPoint pt);
+	DailyTime sendBusInformation();// depend on the control strategy
 	void addOrStashBuses(Agent* p, std::vector<Entity*>& active_agents);
 
 	//May implement later

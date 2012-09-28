@@ -89,9 +89,14 @@ void sim_mob::BusController::assignBusTripChainWithPerson()
 
 }
 
-void sim_mob::BusController::updateBusInformation(DPoint pt) {
+void sim_mob::BusController::receiveBusInformation(DPoint pt) {
 	posBus = pt;
 	std::cout<<"Report Given Bus position: --->("<<posBus.x<<","<<posBus.y<<")"<<std::endl;
+}
+
+DailyTime sim_mob::BusController::sendBusInformation()
+{
+
 }
 
 void sim_mob::BusController::addOrStashBuses(Agent* p, std::vector<Entity*>& active_agents)

@@ -27,6 +27,11 @@
 #include "ZebraCrossing.hpp"
 #include "UniNode.hpp"
 
+//Define this if you want to attempt to "fix" the broken DAG.
+//NOTE: Do *not* put this into the config file or CMake; once the DAG is fixed we'll remove the old code.
+#define STDIR_FIX_BROKEN
+
+
 namespace sim_mob
 {
 
@@ -693,6 +698,10 @@ public:
     std::vector<std::vector<std::vector<std::vector<WayPoint> > > > choiceSet;
 
 private:
+    //Initialize
+    void initNetworkOld(const std::vector<Link*>& links);
+    void initNetworkNew(const std::vector<Link*>& links);
+
     void process(std::vector<RoadSegment*> const & roads, bool isForward);
     void process(RoadSegment const * road, bool isForward);
     void linkCrossingToRoadSegment(RoadSegment *road, bool isForward);
@@ -880,15 +889,34 @@ StreetDirectory::ShortestPathImpl::process(std::vector<RoadSegment*> const & roa
 
 inline StreetDirectory::ShortestPathImpl::ShortestPathImpl(RoadNetwork const & network)
 {
-    std::vector<Link*> const & links = network.getLinks();
+#ifdef STDIR_FIX_BROKEN
+	initNetworkNew(network.getLinks());
+#else
+	initNetworkOld(network.getLinks());
+#endif
+//    GeneratePathChoiceSet();
+}
+
+void StreetDirectory::ShortestPathImpl::initNetworkOld(const std::vector<Link*>& links)
+{
     for (std::vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter)
     {
         Link const * link = *iter;
         process(link->getPath(true), true);
         process(link->getPath(false), false);
     }
-//    GeneratePathChoiceSet();
 }
+
+void StreetDirectory::ShortestPathImpl::initNetworkNew(const std::vector<Link*>& links)
+{
+    for (std::vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter)
+    {
+     //   process((*iter)->getPath(true), true);
+     //   process((*iter)->getPath(false), false);
+    }
+}
+
+
 void StreetDirectory::ShortestPathImpl::linkCrossingToRoadSegment(RoadSegment *road, bool isForward)
 {
 	centimeter_t offset = 0;
@@ -1642,6 +1670,9 @@ void StreetDirectory::ShortestPathImpl::printGraph(const std::string& graphType,
 
 
 /** \endcond ignoreStreetDirectoryInnards -- End of block to be ignored by doxygen.  */
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 // StreetDirectory

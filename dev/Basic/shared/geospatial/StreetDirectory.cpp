@@ -693,11 +693,19 @@ private:
     typedef Graph::vertex_descriptor Vertex;  // A vertex is an integer into the vertex array.
     typedef Graph::edge_descriptor Edge; // An edge is an integer into the edge array.
 
+    ///Helper class:identify a Node exactly. This requires the incoming/outgoing RoadSegment(s), and the generated Vertex.
+    struct NodeDescriptor {
+    	const RoadSegment* before;
+    	const RoadSegment* after;
+    	Vertex v;
+    };
+
     ///Helper class:represents a vertex in our graph as a "Node" in Sim Mobility. Maintains mappings to the
     ///   original node and, if applicable, to any offshoot (child) nodes.
     struct VertexLookup {
     	const sim_mob::Node* origNode;
-    	std::vector<Vertex> vertices;
+    	bool isUni;
+    	std::vector<NodeDescriptor> vertices;
     };
 
 public:
@@ -919,46 +927,45 @@ void StreetDirectory::ShortestPathImpl::procAddNodes(Graph& graph, const std::ve
 	//So, (null, X) is the first Node (before segment X), and (Y, null) is the last one. (W,Z) is the Node between segments W and Z.
 	for (size_t i=0; i<=roadway.size(); i++) {
 		//before/after/node/isUni forms a complete Node descriptor.
-		//TODO: re-enable const after fixing RoadNetwork's sidewalks.
-		RoadSegment* before = (i==0) ? nullptr : const_cast<RoadSegment*>(roadway.at(i-1));
-		RoadSegment* after  = (i>=roadway.size()) ? nullptr : const_cast<RoadSegment*>(roadway.at(i));
-		if (!before && !after) { throw std::runtime_error("before/after can't both be null."); }
-
-		const Node* nd = before ? before->getEnd() : after->getStart();
-		bool isUni = dynamic_cast<const UniNode*>(nd);
-		if (nodeLookup.count(nd)==0) {
-			nodeLookup[nd] = VertexLookup();
-			nodeLookup[nd].origNode = nd;
+		NodeDescriptor nd;
+		nd.before = (i==0) ? nullptr : const_cast<RoadSegment*>(roadway.at(i-1));
+		nd.after  = (i>=roadway.size()) ? nullptr : const_cast<RoadSegment*>(roadway.at(i));
+		const Node* origNode = nd.before ? nd.before->getEnd() : nd.after->getStart();
+		if (nodeLookup.count(origNode)==0) {
+			nodeLookup[origNode] = VertexLookup();
+			nodeLookup[origNode].origNode = origNode;
+			nodeLookup[origNode].isUni = dynamic_cast<const UniNode*>(origNode);
 		}
 
 		//Construction varies drastically depending on whether or not this is a UniNode
-		if (isUni) {
+		if (nodeLookup[origNode].isUni) {
 			//We currently don't allow U-turns at UniNodes, so for now each unique Node descriptor represents a unique path.
-			Vertex v = boost::add_vertex(const_cast<Graph &>(graph));
-			nodeLookup[nd].vertices.push_back(v);
+			nd.v = boost::add_vertex(const_cast<Graph &>(graph));
+			nodeLookup[origNode].vertices.push_back(nd);
 
 			//We'll create a fake Node for this location (so it'll be represented properly). Once we've fully switched to the
 			//  new algorithm, we'll have to switch this to a value-based type; using "new" will leak memory.
 			Point2D newPos;
-			if (!before && after) {
-				newPos = after->getLaneEdgePolyline(0).front();
-			} else if (before && !after) {
-				newPos = before->getLaneEdgePolyline(0).back();
+			//TODO: re-enable const after fixing RoadNetwork's sidewalks.
+			if (!nd.before && nd.after) {
+				newPos = const_cast<RoadSegment*>(nd.after)->getLaneEdgePolyline(0).front();
+			} else if (nd.before && !nd.after) {
+				newPos = const_cast<RoadSegment*>(nd.before)->getLaneEdgePolyline(0).back();
 			} else {
 				//Estimate
-				DynamicVector vec(before->getLaneEdgePolyline(0).back(), after->getLaneEdgePolyline(0).front());
+				DynamicVector vec(const_cast<RoadSegment*>(nd.before)->getLaneEdgePolyline(0).back(), const_cast<RoadSegment*>(nd.after)->getLaneEdgePolyline(0).front());
 				vec.scaleVectTo(vec.getMagnitude()/2.0);
 				newPos = Point2D(vec.getX(), vec.getY());
 			}
 
 			//TODO: Leaks memory!
 			Node* vNode = new UniNode(newPos.getX(), newPos.getY());
-			boost::put(boost::vertex_name, const_cast<Graph &>(graph), v, vNode);
+			boost::put(boost::vertex_name, const_cast<Graph &>(graph), nd.v, vNode);
 		} else {
 			//TEMP: For now, just add it:
 			Vertex v = boost::add_vertex(const_cast<Graph &>(graph));
-			nodeLookup[nd].vertices.push_back(v);
-			boost::put(boost::vertex_name, const_cast<Graph &>(graph), v, nd);
+			//nodeLookup[nd].vertices.push_back(v);
+			boost::put(boost::vertex_name, const_cast<Graph &>(graph), v, origNode);
 		}
 
 	}

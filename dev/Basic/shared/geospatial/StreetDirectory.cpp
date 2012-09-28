@@ -725,6 +725,7 @@ private:
 
     //New processing code
     void procAddNodes(Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup);
+    void procAddLinks(Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup);
 
     //Old processing code
     void process(std::vector<RoadSegment*> const & roads, bool isForward);
@@ -967,10 +968,71 @@ void StreetDirectory::ShortestPathImpl::procAddNodes(Graph& graph, const std::ve
 			//nodeLookup[nd].vertices.push_back(v);
 			boost::put(boost::vertex_name, const_cast<Graph &>(graph), v, origNode);
 		}
+	}
+}
+
+
+void StreetDirectory::ShortestPathImpl::procAddLinks(Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup)
+{
+	//Skip empty roadways
+	if (roadway.empty()) {
+		return;
+	}
+
+	//Here, we are simply assigning one Edge per RoadSegment in the Link. This is mildly complicated by the fact that a Node*
+	//  may be represented by multiple vertices; overall, though, it's a conceptually simple procedure.
+	for (std::vector<RoadSegment*>::const_iterator it=roadway.begin(); it!=roadway.end(); it++) {
+		const RoadSegment* rs = *it;
+		std::map<const Node*, VertexLookup>::const_iterator from = nodeLookup.find(rs->getStart());
+		std::map<const Node*, VertexLookup>::const_iterator to = nodeLookup.find(rs->getEnd());
+		if (from==nodeLookup.end() || to==nodeLookup.end()) {
+			throw std::runtime_error("Road Segment's nodes are unknown by the vertex map.");
+		}
+		if (from->second.vertices.empty() || to->second.vertices.empty()) {
+			std::cout <<"Warning: Road Segment's nodes have no known mapped vertices." <<std::endl;
+			continue;
+		}
+
+		//For simply nodes, this will be sufficient.
+		Vertex fromVertex = from->second.vertices.front().v;
+		Vertex toVertex = to->second.vertices.front().v;
+
+		//If there are multiple options, just match our "before/after" tagged data.
+		if (from->second.vertices.size()>1) {
+			bool error=true;
+			for (std::vector<NodeDescriptor>::const_iterator it=from->second.vertices.begin(); it!=from->second.vertices.end(); it++) {
+				if (it->after == rs) {
+					fromVertex = it->v;
+					error = false;
+				}
+			}
+			if (error) { throw std::runtime_error("Unable to find Node with proper outgoing RoadSegment in \"from\" vertex map."); }
+		}
+		if (to->second.vertices.size()>1) {
+			bool error=true;
+			for (std::vector<NodeDescriptor>::const_iterator it=to->second.vertices.begin(); it!=to->second.vertices.end(); it++) {
+				if (it->before == rs) {
+					toVertex = it->v;
+					error = false;
+				}
+			}
+			if (error) { throw std::runtime_error("Unable to find Node with proper outgoing RoadSegment in \"to\" vertex map."); }
+		}
+
+		//Create an edge.
+	    Edge edge;
+	    bool ok;
+	    boost::tie(edge, ok) = boost::add_edge(fromVertex, toVertex, graph);
+	    boost::put(boost::edge_name, drivingMap_, edge, WayPoint(rs));
+	    boost::put(boost::edge_weight, drivingMap_, edge, rs->length);
+
+
 
 	}
 
 }
+
+
 
 
 inline StreetDirectory::ShortestPathImpl::ShortestPathImpl(RoadNetwork const & network)
@@ -1006,8 +1068,8 @@ void StreetDirectory::ShortestPathImpl::initNetworkNew(const std::vector<Link*>&
 
     //Proceed through our Links, adding each RoadSegment path. Split vertices as required.
     for (std::vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-     //   process((*iter)->getPath(true), true);
-     //   process((*iter)->getPath(false), false);
+    	procAddLinks(drivingMap_, (*iter)->getPath(true), nodeLookup);
+    	procAddLinks(drivingMap_, (*iter)->getPath(false), nodeLookup);
     }
 }
 

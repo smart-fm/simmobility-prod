@@ -27,13 +27,14 @@ void sim_mob::RoadSegment::setLanes(std::vector<sim_mob::Lane*> lanes)
 	this->lanes = lanes;
 }
 
-//sim_mob::RoadSegment::RoadSegment(Link* parent, unsigned long id) : Pavement(), parentLink(parent),segmentID(id)
-//{
-//
-//}
 sim_mob::RoadSegment::RoadSegment(Link* parent, unsigned long id) : Pavement(), parentLink(parent),segmentID(/*parent->getLinkId()*100 +*/ id)/*100 segments per link*/
 {
 
+}
+
+void sim_mob::RoadSegment::setParentLink(Link* parent)
+{
+	this->parentLink = parent;
 }
 
 bool sim_mob::RoadSegment::isSingleDirectional()
@@ -113,12 +114,6 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 	//TEMP: For now, we just add the outer lane as a sidewalk. This won't quite work for bi-directional
 	//      segments or for one-way Links. But it should be sufficient for the demo.
 	Lane* swLane = new Lane(this, lanes.size());
-
-//	if((swLane->laneID_ == 1000029006)||(swLane->laneID_ == 1000029005))
-//	{
-//		std::cout << "Lane " <<  swLane->laneID_ << " were created in syncLanePolylines_1\n";
-//		getchar();
-//	}
 	swLane->is_pedestrian_lane(true);
 	swLane->width_ = lanes.back()->width_/2;
 	swLane->polyline_ = sim_mob::ShiftPolyline(lanes.back()->polyline_, lanes.back()->getWidth()/2+swLane->getWidth()/2);
@@ -139,16 +134,10 @@ void sim_mob::RoadSegment::syncLanePolylines() /*const*/
 		{
 			for(size_t i = 0; i < lanes.size(); ++i)
 			{
-				lanes[i]->laneID_++;
-				lanes[i]->setLaneID_str(lanes[i]->laneID_);
+				lanes[i]->setLaneID(lanes[i]->laneID_+ 1); //took two weeks to find the problem :), previous hack didn't take care of lane_str
 			}
 			//Add a sidewalk on the other side of the road segment
-			Lane* swLane2 = new Lane(this, lanes.size() + 1);//+1 coz we have incr
-//			if((swLane->laneID_ == 1000029006)||(swLane->laneID_ == 1000029005))
-//			{
-//				std::cout << "Lane " <<  swLane->laneID_ << " were created in syncLanePolylines_2\n";
-//				getchar();
-//			}
+			Lane* swLane2 = new Lane(this, 0);
 			swLane2->is_pedestrian_lane(true);
 			swLane2->width_ = lanes.front()->width_/2;
 			swLane2->polyline_ = sim_mob::ShiftPolyline(lanes.front()->polyline_, lanes.front()->getWidth()/2+swLane2->getWidth()/2, false);

@@ -2,7 +2,6 @@ package sim_mob.vis.network;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.Rectangle2D.Double;
 
 import sim_mob.vis.controls.DrawParams;
 import sim_mob.vis.controls.DrawableItem;

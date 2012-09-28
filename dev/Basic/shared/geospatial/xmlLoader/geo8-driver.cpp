@@ -11,7 +11,13 @@
 #include "geo8-pimpl.hpp"
 
 
-bool sim_mob::xml::InitAndLoadXML(std::string XML_OutPutFileName)
+//#ifdef SIMMOB_PARTIAL_XML_READER
+//    		sim_mob::xml::InitAndLoadXML(XML_OutPutFileName)
+//#else
+//    		geo::InitAndLoadXML(XML_OutPutFileName)
+//#endif
+geo::InitAndLoadXML(XML_OutPutFileName)
+//sim_mob::xml::InitAndLoadXML(XML_OutPutFileName)
 {
 	std::cout << "In InitAndLoadXML\n";
 

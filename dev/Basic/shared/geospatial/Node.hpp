@@ -11,12 +11,13 @@
 #include "util/LangHelpers.hpp"
 #include "util/OpaqueProperty.hpp"
 #include "Point2D.hpp"
-namespace geo
-{
+
+/*namespace geo{
 //Forward Declaration
 class Node_t_pimpl;
 class GeoSpatial_t_pimpl;
-}
+}*/
+
 namespace sim_mob
 {
 //Forward declarations
@@ -43,8 +44,11 @@ class UnPackageUtils;
  * more comprehensive functionality, and their sub-classes provide even more.
  */
 class Node {
-	friend class ::geo::Node_t_pimpl;
-	friend class ::geo::GeoSpatial_t_pimpl;
+
+//TODO: A lot of this should be private/protected, but the XML loaders need access (at the moment).
+//      Should be re-worked later; we really never create "base" Nodes. ~Seth
+
+public:
 	unsigned int nodeId;//read from DB
 public:
 	virtual ~Node() {} //A virtual destructor allows dynamic casting
@@ -64,9 +68,14 @@ public:
 	static Node* unpack(UnPackageUtils& unpackage);
 #endif
 
+
 protected:
     Node(int x, int y, unsigned int nodeId_=0) : location(x, y),nodeId(nodeId_) {}
 private:
+
+//protected:
+    Node(int x, int y) : location(x, y) {}
+//private:
     sim_mob::Link* linkLoc;
 
 public:

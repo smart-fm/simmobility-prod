@@ -8,12 +8,13 @@
 #include "util/OpaqueProperty.hpp"
 #include "Pavement.hpp"
 #include "Link.hpp"
-namespace geo
-{
+
+/*namespace geo {
 class segment_t_pimpl;
 class Segments_pimpl;
 class link_t_pimpl;
-}
+}*/
+
 namespace sim_mob
 {
 
@@ -48,10 +49,18 @@ class LaneLoader;
 class RoadSegment : public sim_mob::Pavement {
 public:
 	///Create a RoadSegment as part of a given Link.
-	RoadSegment(){}//needed by xml reader --vahid
-	explicit RoadSegment(sim_mob::Link* parent);
+	//explicit RoadSegment(sim_mob::Link* paren=nullptr);
+
+	//TODO: Some of these are only used by the geo* classes; need to re-think.
+	void setParentLink(sim_mob::Link* parent);
+	void setID(unsigned long id) { this->segmentID = id; }
+	//void setLanes(const std::vector<sim_mob::Lane*>& ln) { this->lanes = ln; }
+	void setStart(sim_mob::Node* st) { this->start = st; }
+	void setEnd(sim_mob::Node* en) { this->end = en; }
+
+public:
 	
-	explicit RoadSegment(sim_mob::Link* parent, unsigned long id);
+	explicit RoadSegment(sim_mob::Link* parent=nullptr, unsigned long id=-1);
 	const unsigned long  & getSegmentID()const ;
 
 	bool operator== (const RoadSegment* rhs) const
@@ -128,9 +137,6 @@ private:
 friend class sim_mob::aimsun::Loader;
 friend class sim_mob::aimsun::LaneLoader;
 friend class sim_mob::RoadNetworkPackageManager;
-friend class ::geo::segment_t_pimpl;
-friend class ::geo::Segments_pimpl;
-friend class ::geo::link_t_pimpl;
 
 };
 

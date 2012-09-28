@@ -7,15 +7,14 @@
 #include <cstdio>
 #include "Point2D.hpp"
 #include "RoadSegment.hpp"
-//#include "xmlLoader/geo8-pimpl.hpp"
 
 //using namespace geo;
-namespace geo
-{
+/*namespace geo {
 class lane_t_pimpl;
 class Lanes_pimpl;
 class segment_t_pimpl;
-}
+}*/
+
 namespace sim_mob
 {
 
@@ -114,8 +113,6 @@ class Loader;
  *   \endcode
  */
 class Lane {
-	friend class ::geo::lane_t_pimpl;
-	friend class ::geo::Lanes_pimpl;
 private:
     /**
      * Lane movement rules.
@@ -271,6 +268,45 @@ public:
 
 public:
 
+    ///////////
+    // TODO: These functions are used by the geo* classes, but we need to clean them up and only expose some of them. ~Seth
+    ///////////
+
+    //Lane() : parentSegment_(nullptr) {};//is needed by the xml reader
+
+    /** Create a Lane using the \c bit_pattern to initialize the lane's rules.  */
+    explicit Lane(sim_mob::RoadSegment* segment=nullptr, unsigned int laneID=0, const std::string& bit_pattern="") : parentSegment_(segment), rules_(bit_pattern), width_(0), laneID_(laneID) {
+    	setLaneID(laneID);
+    }
+
+    void setParentSegment(sim_mob::RoadSegment* segment) {
+    	parentSegment_ = segment;
+//    	setLaneID(laneID_);
+    }
+
+    void setLaneID(unsigned int laneID) {
+    	this->laneID_ = laneID;
+    	setLaneID_str(laneID);
+    	//Build a laneID string
+//    	std::ostringstream Id ;
+//    	if (parentSegment_) {
+//    		Id << parentSegment_->getSegmentID();
+//    	}
+//    	Id <<  laneID;
+//    	laneID_str = Id.str();
+    }
+
+    void setLaneWidth(unsigned int width) {
+    	this->width_ = width;
+    }
+
+    void setLanePolyline(const std::vector<Point2D>& polyline) {
+    	this->polyline_ = polyline;
+    }
+
+
+public:
+
 #ifndef SIMMOB_DISABLE_MPI
 	///The identification of Lane is packed using PackageUtils;
 	static void pack(sim_mob::PackageUtils& package, const Lane* one_lane);
@@ -308,7 +344,6 @@ private:
        	laneID_str = Id.str();
     }
     inline void setParentSegment(sim_mob::RoadSegment* segment){parentSegment_ = segment;}
-
     /** Set the lane's rules using the \c bit_pattern.  */
     void set(const std::string& bit_pattern) {
         std::istringstream stream(bit_pattern);
@@ -317,6 +352,10 @@ private:
 
    /** Return the lane's rules as a string containing a bit pattern of '0' and '1'.  */
     std::string to_string() const { return rules_.to_string(); }
+
+
+public:
+    //NOTE: I don't see any reason to make these private. ~Seth
 
     /** If \c value is true, vehicles can go straight on this lane.  */
     void can_go_straight(bool value) { rules_.set(CAN_GO_STRAIGHT, value); }

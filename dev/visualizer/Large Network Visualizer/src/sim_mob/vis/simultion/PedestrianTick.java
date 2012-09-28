@@ -3,17 +3,14 @@ package sim_mob.vis.simultion;
 import java.awt.BasicStroke;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Hashtable;
-import java.util.Random;
 
 import sim_mob.vect.SimpleVectorImage;
 import sim_mob.vis.MainFrame;
@@ -65,7 +62,7 @@ public class PedestrianTick extends AgentTick {
 	 *       When we re-scale, every car on every time tick has its position scaled. We should 
 	 *       limit this to the current frame, and then continue to scale frames as they arrive. 
 	 */
-	public PedestrianTick(int id, double posX, double posY) {
+	public PedestrianTick(long id, double posX, double posY) {
 		super(id);
 		
 		this.pos = new FlippedScaledPoint(posX, posY);
@@ -143,7 +140,7 @@ public class PedestrianTick extends AgentTick {
 	}
 
 	
-	private static Random r = new Random();
+	//private static Random r = new Random();
 	
 	public void draw(Graphics2D g, DrawParams params) {
 	//}
@@ -232,7 +229,7 @@ public class PedestrianTick extends AgentTick {
 		g.setFont(idFont);
 		g.setStroke(new BasicStroke(0.5F));
 		
-		String id = Integer.toString(getID());
+		String id = Long.toString(getID());
 		g.drawString(id, 0, 0);
 
 		//Restore AffineTransform matrix.

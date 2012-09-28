@@ -58,6 +58,9 @@ option(SIMMOB_XML_WRITER "Sim Mobility will print the network as an XML file." O
 #Option: USE XML file as SimMobility input
 option(SIMMOB_XML_READER "Load from XML, not the database" OFF)
 
+#Option: Our new (new) XML classes. This option will disappear as soon as possible.
+option(SIMMOB_PARTIAL_XML_READER "If XML_READER is on, use the slightly newer XML reader." OFF)
+
 #Option: strict error handling. Use the cmake gui to change this on a per-user basis.
 option (SIMMOB_STRICT_AGENT_ERRORS  "All unexpected and potentially dangerous behavior causes Agents to throw exceptions. If OFF, Agents will generally just remove themselves from the simulation in case of error." OFF)
 

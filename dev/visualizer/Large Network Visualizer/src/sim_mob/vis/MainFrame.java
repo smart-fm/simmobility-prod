@@ -24,6 +24,7 @@ import java.util.regex.*;
 
 import sim_mob.conf.CSS_Interface;
 import sim_mob.vis.controls.*;
+import sim_mob.vis.network.LaneMarking;
 import sim_mob.vis.network.RoadNetwork;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.simultion.SimulationResults;
@@ -74,6 +75,12 @@ public class MainFrame extends JFrame {
     private ImageIcon alvl_Aimsun;
     private ImageIcon alvl_Mitsim;
     private ImageIcon alvl_Both;
+    
+    private JButton graphToShow;
+    private int currGraphShown;
+    private ImageIcon graphVis_None;
+    private ImageIcon graphVis_Driver;
+    private ImageIcon graphVis_Ped;    
     
 	
 	//Lower panel
@@ -199,6 +206,13 @@ public class MainFrame extends JFrame {
 	    annotationLevel = new JButton("No annotations");
 	    currAnnotLevel = 0;
 	    annotationLevel.setIcon(alvl_None);
+	    
+	    graphVis_None = new ImageIcon(Utility.LoadImgResource("res/icons/sdgraph_none.png"));
+	    graphVis_Driver = new ImageIcon(Utility.LoadImgResource("res/icons/sdgraph_driver.png"));
+	    graphVis_Ped = new ImageIcon(Utility.LoadImgResource("res/icons/sdgraph_pedestrian.png"));
+	    graphToShow = new JButton("Hide graphs");
+	    currGraphShown = 0;
+	    graphToShow.setIcon(graphVis_None);
 
 	    
 	    drawnPercent = new JProgressBar();
@@ -249,6 +263,7 @@ public class MainFrame extends JFrame {
 		jpLeft.add(renderVideo);
 		jpLeft.add(squareViewport);
 		jpLeft.add(annotationLevel);
+		jpLeft.add(graphToShow);
 		
 		//Bottom panel
 		JPanel jpLower = new JPanel(new BorderLayout());
@@ -488,6 +503,15 @@ public class MainFrame extends JFrame {
 			}
 		});
 		
+		graphToShow.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				currGraphShown = (currGraphShown+1)%3;
+				newViewPnl.setGraphVisible(currGraphShown==1, currGraphShown==2);
+				graphToShow.setText(currGraphShown==2?"Walking graph":currGraphShown==1?"Driving graph":"Hide graphs");
+				graphToShow.setIcon(currGraphShown==2?graphVis_Ped:currGraphShown==1?graphVis_Driver:graphVis_None);
+			}
+		});
+		
 		renderVideo.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				//Nothing to render?
@@ -541,16 +565,16 @@ public class MainFrame extends JFrame {
 
 	}
 	
-	private void resetTrackAgentIDs(HashSet<Integer> allIds) {
+	private void resetTrackAgentIDs(HashSet<Long> allIds) {
 		trackAgentIDs.removeAllItems();
 		trackAgentIDs.addItem(new StringItem("Track no Agent", -1));
 		if (allIds!=null) {
 			//Sort
-			Integer[] ids_sorted = allIds.toArray(new Integer[]{});
+			Long[] ids_sorted = allIds.toArray(new Long[]{});
 			Arrays.sort(ids_sorted);
 			
 			//Add
-			for (Integer it : ids_sorted) {
+			for (Long it : ids_sorted) {
 				trackAgentIDs.addItem(new StringItem("Track Agent " + it.intValue(), it.intValue()));
 			}
 		}
@@ -600,13 +624,14 @@ public class MainFrame extends JFrame {
 				br.close();
 			} catch (IOException ex) {
 				throw new RuntimeException(ex);
-			}
+			}			
+			
 			console.setText("Input File Name: "+fileName);
 			
 			//Clear our global scaled points array.
 			ScaledPoint.updateScaleAndTranslate(null, null);
 			//Store all Agents returned by this.
-			HashSet<Integer> uniqueAgentIDs = new HashSet<Integer>();
+			HashSet<Long> uniqueAgentIDs = new HashSet<Long>();
 			//Load the simulation's results
 			try {
 				BufferedReader br = null;
@@ -640,6 +665,7 @@ public class MainFrame extends JFrame {
 			
 			//Update the map
 			newViewPnl.initMapCache(vis);
+			
 		}//run()
 	}//class Thread
 	

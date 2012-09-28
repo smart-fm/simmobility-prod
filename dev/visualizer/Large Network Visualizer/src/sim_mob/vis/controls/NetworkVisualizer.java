@@ -3,11 +3,8 @@ import java.awt.*;
 
 import java.awt.image.BufferedImage;
 import java.awt.geom.*;
-import java.awt.geom.Rectangle2D.Double;
 import java.util.*;
 import java.util.List;
-
-import javax.swing.UIDefaults.LazyValue;
 
 import sim_mob.index.LazySpatialIndex;
 import sim_mob.vis.Main;
@@ -57,6 +54,10 @@ public class NetworkVisualizer {
 	private boolean showAimsunLabels = false;
 	private boolean showMitsimLabels = false;
 	
+	//Flags for showing/hiding the various graphs.
+	private boolean showDrivingGraph = false;
+	private boolean showWalkingGraph = false;
+	
 	//The current real-coordinate bounds of the view.
 	private Rectangle2D currView;
 	
@@ -65,6 +66,8 @@ public class NetworkVisualizer {
 	
 	//Spatial indexes for our network items and our current agent tick.
 	private LazySpatialIndex<DrawableItem> networkItemsIndex;
+	private LazySpatialIndex<DrawableItem> drivingGraphItemsIndex;
+	private LazySpatialIndex<DrawableItem> walkingGraphItemsIndex;
 	private LazySpatialIndex<DrawableItem> agentTicksIndex;
 
 	
@@ -124,6 +127,12 @@ public class NetworkVisualizer {
 	public void setAnnotationLevel(boolean showAimsun, boolean showMitsim, int frameTick) {
 		this.showAimsunLabels = showAimsun;
 		this.showMitsimLabels = showMitsim;
+		redrawFrame(frameTick);
+	}
+	
+	public void setGraphVisible(boolean showDriving, boolean showWalking, int frameTick) {
+		this.showDrivingGraph = showDriving;
+		this.showWalkingGraph = showWalking;
 		redrawFrame(frameTick);
 	}
 
@@ -187,7 +196,7 @@ public class NetworkVisualizer {
 		for(CutLine ctl : net.getCutLine().values()){
 			res.addItem(ctl, ctl.getBounds());
 		}
-		for (Hashtable<Integer,LaneMarking> lineMarkingTable : net.getLaneMarkings().values()) {
+		for (Hashtable<Long,LaneMarking> lineMarkingTable : net.getLaneMarkings().values()) {
 			for(LaneMarking lineMarking : lineMarkingTable.values()){
 				res.addItem(lineMarking, lineMarking.getBounds());
 			}
@@ -195,9 +204,19 @@ public class NetworkVisualizer {
 		for(Crossing crossing : net.getCrossings().values()){
 			res.addItem(crossing, crossing.getBounds());
 		}
-
-		//TODO:
-		//  1) "Names" are not items yet.
+	}
+	
+	private static void BuildGraphIndex(LazySpatialIndex<DrawableItem> res, Hashtable<Long, StDirVertex> vertices, Hashtable<Long, StDirEdge> edges) {
+		if (vertices!=null) {
+			for (StDirVertex v : vertices.values()) {
+				res.addItem(v, v.getBounds());
+			}
+		}
+		if (edges!=null) {
+			for (StDirEdge e : edges.values()) {
+				res.addItem(e, e.getBounds());
+			}
+		}
 	}
 	
 	
@@ -211,9 +230,14 @@ public class NetworkVisualizer {
 		//Rebuild the network spatial index.
 		networkItemsIndex = new LazySpatialIndex<DrawableItem>();
 		BuildNetworkIndex(networkItemsIndex, network);
+		drivingGraphItemsIndex = new LazySpatialIndex<DrawableItem>();
+		BuildGraphIndex(drivingGraphItemsIndex, network.getDrivingGraphVertices(), network.getDrivingGraphEdges());
+		walkingGraphItemsIndex = new LazySpatialIndex<DrawableItem>();
+		BuildGraphIndex(walkingGraphItemsIndex, network.getWalkingGraphVertices(), network.getWalkingGraphEdges());
 		
 		//Re-calc
 		Rectangle2D initialZoom = networkItemsIndex.getBounds();
+		
 		redrawFrame(0, panelSize, initialZoom);
 	}
 	
@@ -305,6 +329,17 @@ public class NetworkVisualizer {
 			//Update
 			ScaledPoint.updateScaleAndTranslate(zoomLevel, upperLeftPoint/*, scaledHeight*/);
 			
+			///DEBUG
+			/*Hashtable<Long, Hashtable<Integer, LaneMarking>>  lm = network.getLaneMarkings();
+			for (Hashtable<Integer, LaneMarking> mks : lm.values()) {
+				for (LaneMarking l : mks.values()) {
+					ScaledPoint st = l.getStart().getPos();
+					System.out.println("StartY: " + (int)st.getY() + " => " + (int)st.getUnscaledY());
+				}
+			}*/
+			///DONE DEBUG
+			
+			
 			//Save the new zoom
 			currView = zoomRect;
 		}
@@ -344,6 +379,12 @@ public class NetworkVisualizer {
 		//Save all points to be drawn into a list, grouped by z-order:
 		DrawSorterAction act = new DrawSorterAction();
 		networkItemsIndex.forAllItemsInRange(currView, act, null);
+		if (showDrivingGraph) {
+			drivingGraphItemsIndex.forAllItemsInRange(currView, act, null);
+		}
+		if (showWalkingGraph) {
+			walkingGraphItemsIndex.forAllItemsInRange(currView, act, null);
+		}
 		agentTicksIndex.forAllItemsInRange(currView, act, null);
 		
 		//Draw parameters 
@@ -521,9 +562,9 @@ public class NetworkVisualizer {
 		if (simRes.ticks.isEmpty() && currFrame==0) { return; }
 		
 		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
-			Set<Integer> crossingIds = at.getCrossingID_Map().keySet();
+			Set<Long> crossingIds = at.getCrossingID_Map().keySet();
 //			System.out.println("\nFrame " + currFrame + " Analysing intersection " +at.getID() + " with " + at.getCrossingID_Map().keySet().size() +" crossing IDs");
-			for(Integer crossingId:crossingIds)
+			for(Long crossingId:crossingIds)
 			{
 				DrawParams p = new DrawParams();
 				p.PastCriticalZoom = pastCriticalZoom();
@@ -567,7 +608,7 @@ public class NetworkVisualizer {
 			//Get all lights and Crossings at this intersection (by id)
 			Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());
 			ArrayList<Integer> allPedestrainLights = at.getPedestrianLights();
-			ArrayList<Integer> crossingIDs = tempIntersection.getSigalCrossingIDs();
+			ArrayList<Long> crossingIDs = tempIntersection.getSigalCrossingIDs();
 
 			//Add all crossing lights to the spatial index.
 			for(int i=0; i<crossingIDs.size(); i++) {
@@ -632,9 +673,9 @@ public class NetworkVisualizer {
 		//double adjustedZoom = currPercentZoom * scaleMult;
 		
 		//Draw all agent ticks
-		Hashtable<Integer, AgentTick> agents = simRes.ticks.get(currFrame).agentTicks;
-		Hashtable<Integer, AgentTick> trackings = simRes.ticks.get(currFrame).trackingTicks;
-		for (Integer key : agents.keySet()) {
+		Hashtable<Long, AgentTick> agents = simRes.ticks.get(currFrame).agentTicks;
+		Hashtable<Long, AgentTick> trackings = simRes.ticks.get(currFrame).trackingTicks;
+		for (Long key : agents.keySet()) {
 			//Retrieve the agent
 			AgentTick at = agents.get(key);
 			

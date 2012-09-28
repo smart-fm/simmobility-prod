@@ -6,12 +6,11 @@
 
 #include "Lane.hpp"
 
-namespace geo
-{
-class connector_t_pimpl;
-class UniNode_t_pimpl;
-class GeoSpatial_t_pimpl;
-}
+//namespace geo {
+//class connector_t_pimpl;
+//class UniNode_t_pimpl;
+//class GeoSpatial_t_pimpl;
+//}
 
 namespace sim_mob
 {
@@ -34,7 +33,7 @@ class Loader;
  */
 class LaneConnector {
 public:
-	LaneConnector() : laneFrom(nullptr), laneTo(nullptr) {}
+	explicit LaneConnector(sim_mob::Lane* from=nullptr, sim_mob::Lane* to=nullptr) : laneFrom(from), laneTo(to) {}
 
 	const sim_mob::Lane* getLaneFrom() const {
 		return laneFrom;
@@ -51,9 +50,6 @@ private:
 
 
 friend class sim_mob::aimsun::Loader;
-friend class ::geo::connector_t_pimpl;
-friend class ::geo::UniNode_t_pimpl;
-friend class ::geo::GeoSpatial_t_pimpl;
 
 
 };

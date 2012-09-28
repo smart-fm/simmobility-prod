@@ -9,11 +9,12 @@
 #include "GenConfig.h"
 
 #include "Node.hpp"
-namespace geo
-{
-class UniNode_t_pimpl;
-class GeoSpatial_t_pimpl;
-}
+
+//namespace geo {
+//class UniNode_t_pimpl;
+//class GeoSpatial_t_pimpl;
+//}
+
 namespace sim_mob
 {
 
@@ -50,9 +51,6 @@ class Loader;
  *   is NOTE heading back to the same source node.
  */
 class UniNode : public sim_mob::Node {
-	friend class sim_mob::aimsun::Loader;
-	friend class ::geo::UniNode_t_pimpl;
-	friend class ::geo::GeoSpatial_t_pimpl;
 public:
 	UniNode(int x, int y) : Node(x, y) {}
 
@@ -68,6 +66,10 @@ public:
 
 	const std::vector<const sim_mob::RoadSegment*>& getRoadSegments() const;
 
+	//TODO: Temp:
+	void setConnectorAt(const sim_mob::Lane* key, sim_mob::Lane* value) { this->connectors[key] = value; }
+
+
 protected:
 	std::map<const sim_mob::Lane*, sim_mob::Lane* > connectors;
 
@@ -80,6 +82,7 @@ protected:
 	//Avoid iterating confusion
 	mutable std::vector<const sim_mob::RoadSegment*> cachedSegmentsList;
 
+	friend class sim_mob::aimsun::Loader;
 
 
 

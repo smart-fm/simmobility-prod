@@ -5,12 +5,7 @@
 #include "GenConfig.h"
 #include "util/LangHelpers.hpp"
 
-#ifdef SIMMOB_LATEST_STANDARD
-#include <unordered_map>
-#else
-#include <boost/unordered_map.hpp>
-#endif
-
+#include <map>
 #include <vector>
 
 #include <boost/utility.hpp>
@@ -291,6 +286,10 @@ public:
 
     void updateDrivingMap();
 
+    //Print using the old output format.
+    void printDrivingGraph();
+    void printWalkingGraph();
+
 private:
     StreetDirectory()
       : pimpl_(nullptr)
@@ -315,22 +314,8 @@ private:
     class Stats;
     Stats* stats_;
 
-    sm_trans::unordered_map<const Node *, Signal const *> signals_;
+    std::map<const Node *, Signal const *> signals_;
 };
 
-inline Signal const *
-StreetDirectory::signalAt(Node const & node)
-const
-{
-//	std::cout << "StreetDirectory: " << signals_.size() << std::endl;
-	sm_trans::unordered_map<const Node *, Signal const *>::const_iterator iter = signals_.find(&node);
-    if (signals_.end() == iter)
-    {
-//    	std::cout << " Signal Not found... ";
-        return 0;
-    }
-//    std::cout << " Signal found at node "  <<  std::endl;
-    return iter->second;
-}
 
 }

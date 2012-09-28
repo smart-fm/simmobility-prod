@@ -1,11 +1,9 @@
 package sim_mob.vis.simultion;
 
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Hashtable;
 
 import sim_mob.vis.controls.DrawParams;
 import sim_mob.vis.controls.DrawableItem;
@@ -14,9 +12,9 @@ import sim_mob.vis.network.RoadNetwork;
 import sim_mob.vis.network.SignalHelper;
 import sim_mob.vis.network.TrafficSignal;
 import sim_mob.vis.network.TrafficSignal.Phase;
-import sim_mob.vis.network.TrafficSignal.Segment;
 import sim_mob.vis.network.TrafficSignalLine;
 import sim_mob.vis.simultion.GsonResObj;
+import sim_mob.vis.util.Utility;
 
 
 
@@ -55,7 +53,8 @@ public class TrafficSignalUpdate implements DrawableItem, GsonResObj {
 		//1-updating current colours of the corresponding traffic signal in the corresponding intersection
 		//2-adding a singallinetick to ticks container in simulationresults class
 		
-		int id = SignalHelper.HexStringToInt(this.hex_id);
+		//long id = SignalHelper.HexStringToInt(this.hex_id);
+		long id = Utility.ParseLongOptionalHex(this.hex_id);
 		
 		//1.
 //		System.out.println("Looking for Intersection " + id + "  which must be equal to " + rdNet.getIntersections().get(id).getIntersectID());
@@ -63,11 +62,11 @@ public class TrafficSignalUpdate implements DrawableItem, GsonResObj {
 		Intersection tempIntersection = rdNet.getIntersection().get(id);
 		SignalHelper signalHelper = tempIntersection.getSignalHelper();
 		//since we dont have a mechanism like TrafficSignalLine for crossing, we build its signallinetick requirement right here
-		HashMap<Integer,Integer> CRSs= new HashMap<Integer,Integer>();//this initialization is useless. the actuall initialization is done inside the following for loop.this one is just to avoid the errors
+		HashMap<Long,Integer> CRSs= new HashMap<Long,Integer>();//this initialization is useless. the actuall initialization is done inside the following for loop.this one is just to avoid the errors
 //		System.out.println("This crossing has " + tempIntersection.getAllSignalCrossings().values().size() + " Crossings");
 //		System.out.println("");
-		for(ArrayList<Integer> origCrossings:tempIntersection.getAllSignalCrossings().values())
-			for(Integer origCrossing:origCrossings)
+		for(ArrayList<Long> origCrossings:tempIntersection.getAllSignalCrossings().values())
+			for(Long origCrossing:origCrossings)
 			{
 				CRSs.put(origCrossing, 1);
 //				if((frame == 230))
@@ -80,11 +79,11 @@ public class TrafficSignalUpdate implements DrawableItem, GsonResObj {
 			for(TrafficSignal.Segment updatingSegment:updatingPhase.getSegmens())
 			{
 			
-				int updatingSegmentFrom = signalHelper.HexStringToInt(updatingSegment.getSegmentFrom());
-				int updatingSegmentTo = signalHelper.HexStringToInt(updatingSegment.getSegmentTo());
+				long updatingSegmentFrom = Utility.ParseLongOptionalHex(updatingSegment.getSegmentFrom());
+				long updatingSegmentTo = Utility.ParseLongOptionalHex(updatingSegment.getSegmentTo());
 				SignalHelper.Phase originalPhaseHelper = signalHelper.getPhase(updatingPhase.getName());
 				SignalHelper.Segment originalSegmentHelper = originalPhaseHelper.getSegmentPair(updatingSegmentFrom, updatingSegmentTo);
-				if(originalSegmentHelper !=null)
+				if(originalSegmentHelper !=null && originalSegmentHelper.generatedTrafficSignalLine!=null)
 				{
 					originalSegmentHelper.generatedTrafficSignalLine.setLightColor(updatingSegment.getCurrColor());//this were previously being done in the addTrafficLines() of NetworkVisualizer class !!!
 				}
@@ -96,7 +95,7 @@ public class TrafficSignalUpdate implements DrawableItem, GsonResObj {
 							if(updatingCrossing.getId() != null){
 							if(updatingCrossing.getId().length() > 1)	
 							{
-								int updatingCrossingId = signalHelper.HexStringToInt(updatingCrossing.getId());
+								long updatingCrossingId = Utility.ParseLongOptionalHex(updatingCrossing.getId());
 								CRSs.put(updatingCrossingId,updatingCrossing.getCurrColor());
 							}
 							}

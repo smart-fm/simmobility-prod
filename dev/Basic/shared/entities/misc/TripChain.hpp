@@ -16,12 +16,17 @@
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 #endif
-namespace geo
-{
+
+//namespace geo {
 //Forward Declaration
+
 class Trip_t_pimpl;
 class SubTrip_t;
 }
+
+//class Trip_t_pimpl;
+//}
+
 namespace sim_mob {
 
 //Forward declarations
@@ -87,8 +92,10 @@ public:
  * \author Harish
  */
 class Trip: public sim_mob::TripChainItem {
+
 	friend class ::geo::Trip_t_pimpl;
 	friend class ::geo::SubTrip_t;
+
 public:
 	unsigned int tripID;
 	sim_mob::Node* fromLocation;
@@ -107,8 +114,12 @@ public:
 	const std::vector<SubTrip>& getSubTrips() const {
 		return subTrips;
 	}
+
 	std::vector<SubTrip>& getSubTripsRW() {
 		return subTrips;
+
+	void setSubTrips(const std::vector<SubTrip>& subTrips) {
+		this->subTrips = subTrips;
 	}
 
 private:

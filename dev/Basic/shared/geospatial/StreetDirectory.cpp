@@ -31,7 +31,7 @@
 //Define this if you want to attempt to "fix" the broken DAG.
 //NOTE: Do *not* put this into the config file or CMake; once the DAG is fixed we'll remove the old code.
 //TODO: The new model leaks memory (all code that does this is marked). Change to value types once you're ready to remove this #define.
-#define STDIR_FIX_BROKEN
+//#define STDIR_FIX_BROKEN
 
 
 

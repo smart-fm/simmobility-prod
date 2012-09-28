@@ -15,6 +15,7 @@
 #include "buffering/Vector2D.hpp"
 #include "util/OutputUtil.hpp"
 #include "geospatial/Point2D.hpp"
+#include "geospatial/LaneConnector.hpp"
 
 #ifdef SIMMOB_NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
@@ -31,7 +32,7 @@
 //Define this if you want to attempt to "fix" the broken DAG.
 //NOTE: Do *not* put this into the config file or CMake; once the DAG is fixed we'll remove the old code.
 //TODO: The new model leaks memory (all code that does this is marked). Change to value types once you're ready to remove this #define.
-#define STDIR_FIX_BROKEN
+//#define STDIR_FIX_BROKEN
 
 
 
@@ -730,6 +731,7 @@ private:
     //New processing code
     void procAddNodes(Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup);
     void procAddLinks(Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup);
+    void procAddLaneConnectors(Graph& graph, const MultiNode* node, const std::map<const Node*, VertexLookup>& nodeLookup);
 
     //Old processing code
     void process(std::vector<RoadSegment*> const & roads, bool isForward);
@@ -1046,6 +1048,69 @@ void StreetDirectory::ShortestPathImpl::procAddLinks(Graph& graph, const std::ve
 	    boost::put(boost::edge_name, drivingMap_, edge, WayPoint(rs));
 	    boost::put(boost::edge_weight, drivingMap_, edge, rs->length);
 	}
+}
+
+
+
+void StreetDirectory::ShortestPathImpl::procAddLaneConnectors(Graph& graph, const MultiNode* node, const std::map<const Node*, VertexLookup>& nodeLookup)
+{
+	//Skip nulled Nodes (may be UniNodes).
+	if (!node) {
+		return;
+	}
+
+	//We actually only care about RoadSegment->RoadSegment connections.
+	std::set< std::pair<RoadSegment*, RoadSegment*> > connectors;
+	for (std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::const_iterator conIt=node->getConnectors().begin(); conIt!=node->getConnectors().end(); conIt++) {
+		for (std::set<sim_mob::LaneConnector*>::const_iterator it=conIt->second.begin(); it!=conIt->second.end(); it++) {
+			connectors.insert(std::make_pair((*it)->getLaneFrom()->getRoadSegment(), (*it)->getLaneTo()->getRoadSegment()));
+		}
+	}
+
+	//Now, add each "RoadSegment" connector.
+	for (std::set< std::pair<RoadSegment*, RoadSegment*> >::iterator it=connectors.begin(); it!=connectors.end(); it++) {
+		//Sanity check:
+		if (it->first->getEnd()!=node || it->second->getStart()!=node) {
+			throw std::runtime_error("Node/Road Segment mismatch in Edge constructor.");
+		}
+
+		//Various bookkeeping requirements:
+		std::pair<Vertex, bool> fromVertex;
+		fromVertex.second = false;
+		std::pair<Vertex, bool> toVertex;
+		toVertex.second = false;
+		std::map<const Node*, VertexLookup>::const_iterator vertCandidates = nodeLookup.find(node);
+		if (vertCandidates==nodeLookup.end()) {
+			throw std::runtime_error("Intersection's Node is unknown by the vertex map.");
+		}
+
+		//Find the "from" and "to" segments' associated end vertices. Keep track of each.
+		for (std::vector<NodeDescriptor>::const_iterator ndIt=vertCandidates->second.vertices.begin(); ndIt!=vertCandidates->second.vertices.end(); ndIt++) {
+			if (it->first == ndIt->before) {
+				fromVertex.first = ndIt->v;
+				fromVertex.second = true;
+			}
+			if (it->second == ndIt->after) {
+				toVertex.first = ndIt->v;
+				toVertex.second = true;
+			}
+		}
+
+		//Ensure we have both
+		if (!fromVertex.second || !toVertex.second) {
+			throw std::runtime_error("Lane connector has no associated vertex.");
+		}
+
+		//Create an edge.
+	    Edge edge;
+	    bool ok;
+	    boost::tie(edge, ok) = boost::add_edge(fromVertex.first, toVertex.first, graph);
+
+	    //TODO: How to handle WayPoints and edge lengths?
+	    //boost::put(boost::edge_name, drivingMap_, edge, WayPoint(rs));
+	    //boost::put(boost::edge_weight, drivingMap_, edge, rs->length);
+	}
+
 
 }
 
@@ -1087,6 +1152,11 @@ void StreetDirectory::ShortestPathImpl::initNetworkNew(const std::vector<Link*>&
     for (std::vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
     	procAddLinks(drivingMap_, (*iter)->getPath(true), nodeLookup);
     	procAddLinks(drivingMap_, (*iter)->getPath(false), nodeLookup);
+    }
+
+    //Now add all Intersection edges (lane connectors)
+    for (std::map<const Node*, VertexLookup>::const_iterator it=nodeLookup.begin(); it!=nodeLookup.end(); it++) {
+    	procAddLaneConnectors(drivingMap_, dynamic_cast<const MultiNode*>(it->first), nodeLookup);
     }
 }
 

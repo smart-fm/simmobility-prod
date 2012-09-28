@@ -14,6 +14,7 @@
 #include "RoadNetwork.hpp"
 #include "buffering/Vector2D.hpp"
 #include "util/OutputUtil.hpp"
+#include "geospatial/Point2D.hpp"
 
 #ifdef SIMMOB_NEW_SIGNAL
 #include "entities/signal/Signal.hpp"
@@ -29,7 +30,10 @@
 
 //Define this if you want to attempt to "fix" the broken DAG.
 //NOTE: Do *not* put this into the config file or CMake; once the DAG is fixed we'll remove the old code.
+//TODO: The new model leaks memory (all code that does this is marked). Change to value types once you're ready to remove this #define.
 #define STDIR_FIX_BROKEN
+
+
 
 
 namespace sim_mob
@@ -671,6 +675,7 @@ private:
     // attach to the vertex's name is the pointer to the Node where the vertex is located.
     // When we search the graph for a vertex, we use the Node::location in the search.
     typedef boost::property<boost::vertex_name_t, Node const *> VertexProperties;
+
     // Each edge has a weight property cascaded with a name property.  Just like the vertex's
     // name property, the edge's name property is the pointer to WayPoint.  The weight property is
     // the length of the road-segment, side-walk or crossing that each edge represent.
@@ -678,6 +683,7 @@ private:
 //                boost::property<boost::edge_name_t, WayPoint> > EdgeProperties;
     typedef boost::property<boost::edge_weight_t, double,
     		boost::property<boost::edge_name_t, WayPoint> > EdgeProperties;
+
     // The graph contains arrays of integers for the vertices and edges and is a directed graph.
     typedef boost::adjacency_list<boost::vecS,
                                   boost::vecS,
@@ -686,6 +692,13 @@ private:
                                   EdgeProperties> Graph;
     typedef Graph::vertex_descriptor Vertex;  // A vertex is an integer into the vertex array.
     typedef Graph::edge_descriptor Edge; // An edge is an integer into the edge array.
+
+    ///Helper class:represents a vertex in our graph as a "Node" in Sim Mobility. Maintains mappings to the
+    ///   original node and, if applicable, to any offshoot (child) nodes.
+    struct VertexLookup {
+    	const sim_mob::Node* origNode;
+    	std::vector<Vertex> vertices;
+    };
 
 public:
     //Print using the old output format.
@@ -702,6 +715,10 @@ private:
     void initNetworkOld(const std::vector<Link*>& links);
     void initNetworkNew(const std::vector<Link*>& links);
 
+    //New processing code
+    void procAddNodes(Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup);
+
+    //Old processing code
     void process(std::vector<RoadSegment*> const & roads, bool isForward);
     void process(RoadSegment const * road, bool isForward);
     void linkCrossingToRoadSegment(RoadSegment *road, bool isForward);
@@ -746,6 +763,10 @@ private:
     extractShortestPath(Vertex const fromVertex, Vertex const toVertex,
     		std::vector<Vertex> const & parent, Graph const & graph, std::vector<Edge> & edges) const;
 };
+
+
+
+
 
 StreetDirectory::ShortestPathImpl::~ShortestPathImpl()
 {
@@ -887,6 +908,64 @@ StreetDirectory::ShortestPathImpl::process(std::vector<RoadSegment*> const & roa
 	}
 }
 
+void StreetDirectory::ShortestPathImpl::procAddNodes(Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup)
+{
+	//Skip empty roadways
+	if (roadway.empty()) {
+		return;
+	}
+
+	//Scan each pair of RoadSegments at each Node (the Node forms the joint between these two). This includes "null" options (for the first/last node).
+	//So, (null, X) is the first Node (before segment X), and (Y, null) is the last one. (W,Z) is the Node between segments W and Z.
+	for (size_t i=0; i<=roadway.size(); i++) {
+		//before/after/node/isUni forms a complete Node descriptor.
+		//TODO: re-enable const after fixing RoadNetwork's sidewalks.
+		RoadSegment* before = (i==0) ? nullptr : const_cast<RoadSegment*>(roadway.at(i-1));
+		RoadSegment* after  = (i>=roadway.size()) ? nullptr : const_cast<RoadSegment*>(roadway.at(i));
+		if (!before && !after) { throw std::runtime_error("before/after can't both be null."); }
+
+		const Node* nd = before ? before->getEnd() : after->getStart();
+		bool isUni = dynamic_cast<const UniNode*>(nd);
+		if (nodeLookup.count(nd)==0) {
+			nodeLookup[nd] = VertexLookup();
+			nodeLookup[nd].origNode = nd;
+		}
+
+		//Construction varies drastically depending on whether or not this is a UniNode
+		if (isUni) {
+			//We currently don't allow U-turns at UniNodes, so for now each unique Node descriptor represents a unique path.
+			Vertex v = boost::add_vertex(const_cast<Graph &>(graph));
+			nodeLookup[nd].vertices.push_back(v);
+
+			//We'll create a fake Node for this location (so it'll be represented properly). Once we've fully switched to the
+			//  new algorithm, we'll have to switch this to a value-based type; using "new" will leak memory.
+			Point2D newPos;
+			if (!before && after) {
+				newPos = after->getLaneEdgePolyline(0).front();
+			} else if (before && !after) {
+				newPos = before->getLaneEdgePolyline(0).back();
+			} else {
+				//Estimate
+				DynamicVector vec(before->getLaneEdgePolyline(0).back(), after->getLaneEdgePolyline(0).front());
+				vec.scaleVectTo(vec.getMagnitude()/2.0);
+				newPos = Point2D(vec.getX(), vec.getY());
+			}
+
+			//TODO: Leaks memory!
+			Node* vNode = new UniNode(newPos.getX(), newPos.getY());
+			boost::put(boost::vertex_name, const_cast<Graph &>(graph), v, vNode);
+		} else {
+			//TEMP: For now, just add it:
+			Vertex v = boost::add_vertex(const_cast<Graph &>(graph));
+			nodeLookup[nd].vertices.push_back(v);
+			boost::put(boost::vertex_name, const_cast<Graph &>(graph), v, nd);
+		}
+
+	}
+
+}
+
+
 inline StreetDirectory::ShortestPathImpl::ShortestPathImpl(RoadNetwork const & network)
 {
 #ifdef STDIR_FIX_BROKEN
@@ -909,8 +988,17 @@ void StreetDirectory::ShortestPathImpl::initNetworkOld(const std::vector<Link*>&
 
 void StreetDirectory::ShortestPathImpl::initNetworkNew(const std::vector<Link*>& links)
 {
-    for (std::vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter)
-    {
+	//Various lookup structures
+	std::map<const Node*, VertexLookup> nodeLookup;
+
+	//Add our initial set of vertices. Iterate through Links to ensure no un-used Node are added.
+    for (std::vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
+    	procAddNodes(drivingMap_, (*iter)->getPath(true), nodeLookup);
+    	procAddNodes(drivingMap_, (*iter)->getPath(false), nodeLookup);
+    }
+
+    //Proceed through our Links, adding each RoadSegment path. Split vertices as required.
+    for (std::vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
      //   process((*iter)->getPath(true), true);
      //   process((*iter)->getPath(false), false);
     }

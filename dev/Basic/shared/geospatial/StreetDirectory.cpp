@@ -949,12 +949,12 @@ void StreetDirectory::ShortestPathImpl::procAddNodes(Graph& graph, const std::ve
 			Point2D newPos;
 			//TODO: re-enable const after fixing RoadNetwork's sidewalks.
 			if (!nd.before && nd.after) {
-				newPos = const_cast<RoadSegment*>(nd.after)->getLaneEdgePolyline(0).front();
+				newPos = const_cast<RoadSegment*>(nd.after)->getLaneEdgePolyline(1).front();
 			} else if (nd.before && !nd.after) {
-				newPos = const_cast<RoadSegment*>(nd.before)->getLaneEdgePolyline(0).back();
+				newPos = const_cast<RoadSegment*>(nd.before)->getLaneEdgePolyline(1).back();
 			} else {
 				//Estimate
-				DynamicVector vec(const_cast<RoadSegment*>(nd.before)->getLaneEdgePolyline(0).back(), const_cast<RoadSegment*>(nd.after)->getLaneEdgePolyline(0).front());
+				DynamicVector vec(const_cast<RoadSegment*>(nd.before)->getLaneEdgePolyline(1).back(), const_cast<RoadSegment*>(nd.after)->getLaneEdgePolyline(1).front());
 				vec.scaleVectTo(vec.getMagnitude()/2.0);
 				newPos = Point2D(vec.getX(), vec.getY());
 			}
@@ -964,9 +964,12 @@ void StreetDirectory::ShortestPathImpl::procAddNodes(Graph& graph, const std::ve
 			boost::put(boost::vertex_name, const_cast<Graph &>(graph), nd.v, vNode);
 		} else {
 			//TEMP: For now, just add it:
-			Vertex v = boost::add_vertex(const_cast<Graph &>(graph));
-			//nodeLookup[nd].vertices.push_back(v);
-			boost::put(boost::vertex_name, const_cast<Graph &>(graph), v, origNode);
+			NodeDescriptor nd;
+			nd.v = boost::add_vertex(const_cast<Graph &>(graph));
+			nd.before = nullptr;
+			nd.after = nullptr;
+			nodeLookup[origNode].vertices.push_back(nd);
+			boost::put(boost::vertex_name, const_cast<Graph &>(graph), nd.v, origNode);
 		}
 	}
 }
@@ -996,22 +999,24 @@ void StreetDirectory::ShortestPathImpl::procAddLinks(Graph& graph, const std::ve
 		//For simply nodes, this will be sufficient.
 		Vertex fromVertex = from->second.vertices.front().v;
 		Vertex toVertex = to->second.vertices.front().v;
+		bool tempFixFlag1 = from->second.isUni;
+		bool tempFixFlag2 = to->second.isUni;
 
-		//If there are multiple options, just match our "before/after" tagged data.
-		if (from->second.vertices.size()>1) {
+		//If there are multiple options, just match our "before/after" tagged data. Note that before/after may be null.
+		if (tempFixFlag1 && from->second.vertices.size()>1) {
 			bool error=true;
 			for (std::vector<NodeDescriptor>::const_iterator it=from->second.vertices.begin(); it!=from->second.vertices.end(); it++) {
-				if (it->after == rs) {
+				if (rs == it->after) {
 					fromVertex = it->v;
 					error = false;
 				}
 			}
 			if (error) { throw std::runtime_error("Unable to find Node with proper outgoing RoadSegment in \"from\" vertex map."); }
 		}
-		if (to->second.vertices.size()>1) {
+		if (tempFixFlag2 && to->second.vertices.size()>1) {
 			bool error=true;
 			for (std::vector<NodeDescriptor>::const_iterator it=to->second.vertices.begin(); it!=to->second.vertices.end(); it++) {
-				if (it->before == rs) {
+				if (rs == it->before) {
 					toVertex = it->v;
 					error = false;
 				}

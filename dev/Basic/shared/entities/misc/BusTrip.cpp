@@ -9,13 +9,13 @@
 
 using namespace sim_mob;
 
-sim_mob::BusStop_ScheduledTimes::BusStop_ScheduledTimes(std::string scheduled_ArrivalTime, std::string scheduled_DepartureTime)
+sim_mob::BusStop_ScheduledTimes::BusStop_ScheduledTimes(string scheduled_ArrivalTime, string scheduled_DepartureTime)
 : scheduled_ArrivalTime(DailyTime(scheduled_ArrivalTime)), scheduled_DepartureTime(DailyTime(scheduled_DepartureTime))
 {
 
 }
 
-sim_mob::BusStop_RealTimes::BusStop_RealTimes(std::string real_ArrivalTime, std::string real_DepartureTime)
+sim_mob::BusStop_RealTimes::BusStop_RealTimes(string real_ArrivalTime, string real_DepartureTime)
 : real_ArrivalTime(DailyTime(real_ArrivalTime)), real_DepartureTime(DailyTime(real_DepartureTime))
 {
 
@@ -35,32 +35,32 @@ sim_mob::BusRouteInfo::BusRouteInfo(const BusRouteInfo& copyFrom)
 
 }
 
-void sim_mob::BusRouteInfo::addBusStop(const sim_mob::BusStop* aBusStop)
+void sim_mob::BusRouteInfo::addBusStop(const BusStop* aBusStop)
 {
 	busStop_vec.push_back(aBusStop);
 }
 
-void sim_mob::BusRouteInfo::addRoadSegment(const sim_mob::RoadSegment* aRoadSegment)
+void sim_mob::BusRouteInfo::addRoadSegment(const RoadSegment* aRoadSegment)
 {
 	roadSegment_vec.push_back(aRoadSegment);
 }
 
-void sim_mob::BusRouteInfo::addBusStopInfo(const sim_mob::BusStopInfo* aBusStopInfo)
+void sim_mob::BusRouteInfo::addBusStopInfo(const BusStopInfo* aBusStopInfo)
 {
 	busStopInfo_vec.push_back(aBusStopInfo);
 }
 
-sim_mob::BusTrip::BusTrip(int entId, std::string type, unsigned int seqNumber,
+sim_mob::BusTrip::BusTrip(int entId, string type, unsigned int seqNumber,
 		DailyTime start, DailyTime end, int busTrip_id, int busLine_id, int vehicle_id,
-		unsigned int busRoute_id, Node* from, std::string fromLocType, Node* to,
-		std::string toLocType)
+		unsigned int busRoute_id, Node* from, string fromLocType, Node* to,
+		string toLocType)
 : Trip(entId, type, seqNumber, start, end, busTrip_id,from, fromLocType, to, toLocType),
 busLine_id(busLine_id), busTrip_id(busTrip_id), vehicle_id(vehicle_id), bus_RouteInfo(&BusRouteInfo(busRoute_id))
 {
 
 }
 
-sim_mob::Busline::Busline(int busline_id, std::string controlType)
+sim_mob::Busline::Busline(int busline_id, string controlType)
 : controlType(getControlTypeFromString(controlType))
 {
 
@@ -71,7 +71,7 @@ sim_mob::Busline::~Busline()
 
 }
 
-CONTROL_TYPE sim_mob::Busline::getControlTypeFromString(std::string ControlType)
+CONTROL_TYPE sim_mob::Busline::getControlTypeFromString(string ControlType)
 {
 	ControlType.erase(remove_if(ControlType.begin(), ControlType.end(), isspace),
 			ControlType.end());
@@ -90,12 +90,12 @@ CONTROL_TYPE sim_mob::Busline::getControlTypeFromString(std::string ControlType)
 	}
 }
 
-void sim_mob::Busline::addFwdBusTrip(const sim_mob::BusTrip& aFwdBusTrip)
+void sim_mob::Busline::addFwdBusTrip(const BusTrip& aFwdBusTrip)
 {
 	fwdbustrip_vec.push_back(aFwdBusTrip);
 }
 
-void sim_mob::Busline::addRevBusTrip(const sim_mob::BusTrip& aRevBusTrip)
+void sim_mob::Busline::addRevBusTrip(const BusTrip& aRevBusTrip)
 {
 	revbustrip_vec.push_back(aRevBusTrip);
 }
@@ -110,7 +110,21 @@ sim_mob::PT_Schedule::~PT_Schedule()
 
 }
 
-void sim_mob::PT_Schedule::addBusLine(const sim_mob::Busline& aBusline)
+void sim_mob::PT_Schedule::registerBusLine(const int busline_id, const Busline* aBusline)
 {
-	busline_vec.push_back(aBusline);
+	if (buslineID_busline.count(busline_id)>0) {
+		throw std::runtime_error("Duplicate buslineid.");
+	}
+
+	buslineID_busline[busline_id] = aBusline;
+}
+
+const Busline* sim_mob::PT_Schedule::findBusline(int busline_id) const
+{
+	map<int ,const Busline*>::const_iterator it;
+	it = buslineID_busline.find(busline_id);
+	if (it!=buslineID_busline.end()) {
+		return it->second;
+	}
+	return nullptr;
 }

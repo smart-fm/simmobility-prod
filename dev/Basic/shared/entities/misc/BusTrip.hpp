@@ -26,6 +26,7 @@ using std::string;
 
 namespace sim_mob {
 
+// offsetMS_From(ConfigParams::GetInstance().simStartTime))???
 struct BusStop_ScheduledTimes{
 	explicit BusStop_ScheduledTimes(string scheduled_ArrivalTime, string scheduled_DepartureTime);
 	DailyTime scheduled_ArrivalTime;
@@ -97,7 +98,7 @@ private:
 	int busLine_id;
 	int busTrip_id;
 	int vehicle_id;
-	bool direction_flag; // indicate the direction of this BusTrip( two directions only: fwd or rev)
+	bool direction_flag; // indicate the direction of this BusTrip( two directions only: fwd-->1 or rev-->2)
 	BusRouteInfo* bus_RouteInfo;// route inside this BusTrip
 };
 
@@ -108,7 +109,7 @@ enum CONTROL_TYPE {
 
 class Busline { // busSchedule later inside PT_Schedule
 public:
-	Busline(int busline_id=0, string controlType="No_Control");
+	Busline(int busline_id=0, string controlType="No_Control"); // default no control(only follow the schedule given)
 	virtual ~Busline();
 
 	static CONTROL_TYPE getControlTypeFromString(string ControlType);
@@ -141,8 +142,10 @@ public:
 
 	void registerBusLine(const int busline_id, const Busline* aBusline);
 	const Busline* findBusline(int busline_id) const;
+	const CONTROL_TYPE findBuslineControlType(int busline_id) const;
 private:
 	map<int, const Busline*> buslineID_busline;// need new 2 times(one for particular trip, one for backup in BusController
+	map<int, const CONTROL_TYPE> buslineID_controlType;// busline--->controlType
 };
 
 }

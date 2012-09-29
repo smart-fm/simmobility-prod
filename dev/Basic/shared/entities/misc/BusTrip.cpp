@@ -128,3 +128,13 @@ const Busline* sim_mob::PT_Schedule::findBusline(int busline_id) const
 	}
 	return nullptr;
 }
+
+const CONTROL_TYPE sim_mob::PT_Schedule::findBuslineControlType(int busline_id) const
+{
+	map<int, const CONTROL_TYPE>::const_iterator it;
+	it = buslineID_controlType.find(busline_id);
+	if (it!=buslineID_controlType.end()) {
+		return it->second;
+	}
+	return NO_CONTROL;
+}

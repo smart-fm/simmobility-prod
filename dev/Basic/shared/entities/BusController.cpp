@@ -94,7 +94,56 @@ void sim_mob::BusController::receiveBusInformation(DPoint pt) {
 	std::cout<<"Report Given Bus position: --->("<<posBus.x<<","<<posBus.y<<")"<<std::endl;
 }
 
-DailyTime sim_mob::BusController::sendBusInformation()
+unsigned int sim_mob::BusController::decisionCalculation(int busline_id)
+{
+	CONTROL_TYPE controltype = pt_schedule.findBuslineControlType(busline_id);
+	unsigned int departure_time = 0;
+	switch(controltype) {
+	case SCHEDULE_BASED:
+		departure_time = scheduledDecision();
+		break;
+	case HEADWAY_BASED:
+		departure_time = headwayDecision();
+		break;
+	case EVENHEADWAY_BASED:
+		departure_time = evenheadwayDecision();
+		break;
+	case HYBRID_BASED:
+		departure_time = hybridDecision();
+		break;
+	default:
+		// may add default scheduled departure time here
+		std::cout<<"No Control Decision is used!!!"<<std::endl;
+	}
+	return departure_time;
+}
+
+unsigned int sim_mob::BusController::scheduledDecision()
+{
+
+}
+
+unsigned int sim_mob::BusController::headwayDecision()
+{
+
+}
+
+unsigned int sim_mob::BusController::evenheadwayDecision()
+{
+
+}
+
+unsigned int sim_mob::BusController::hybridDecision()
+{
+
+}
+
+unsigned int sim_mob::BusController::dwellTimeCalculation()
+{
+
+}
+
+unsigned int sim_mob::BusController::sendBusInformation()
 {
 
 }

@@ -37,8 +37,11 @@ public:
 	~BusController();
 	virtual Entity::UpdateStatus update(frame_t frameNumber);
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
+
 	void receiveBusInformation(DPoint pt);
-	DailyTime sendBusInformation();// depend on the control strategy
+	// offsetMS_From(ConfigParams::GetInstance().simStartTime))???
+	unsigned int decisionCalculation(int busline_id);// return Departure MS
+	unsigned int sendBusInformation();// depend on the control strategy
 	void addOrStashBuses(Agent* p, std::vector<Entity*>& active_agents);
 
 	//May implement later
@@ -71,6 +74,12 @@ private:
 	void dispatchFrameTick(frame_t frameTick);
 	void frame_init(frame_t frameNumber);
 	void frame_tick_output(frame_t frameNumber);
+
+	unsigned int scheduledDecision();// scheduled-based control
+	unsigned int headwayDecision(); // headway-based control
+	unsigned int evenheadwayDecision(); // evenheadway-based control
+	unsigned int hybridDecision(); // hybrid-based control(evenheadway while restricting the maximum holding time)
+	unsigned int dwellTimeCalculation(); // dwell time calculation module
 
 	frame_t frameNumberCheck;// check some frame number to do control
 	frame_t nextTimeTickToStage;// next timeTick to be checked

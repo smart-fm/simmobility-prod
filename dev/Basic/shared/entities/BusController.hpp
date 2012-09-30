@@ -40,7 +40,7 @@ public:
 
 	void receiveBusInformation(DPoint pt);
 	// offsetMS_From(ConfigParams::GetInstance().simStartTime))???
-	unsigned int decisionCalculation(int busline_id);// return Departure MS
+	unsigned int decisionCalculation(int busline_i, int trip_k, int busstopSequence_j, bool direction_flag);// return Departure MS from Aijk, DWijk etc
 	unsigned int sendBusInformation();// depend on the control strategy
 	void addOrStashBuses(Agent* p, std::vector<Entity*>& active_agents);
 
@@ -75,11 +75,11 @@ private:
 	void frame_init(frame_t frameNumber);
 	void frame_tick_output(frame_t frameNumber);
 
-	unsigned int scheduledDecision();// scheduled-based control
-	unsigned int headwayDecision(); // headway-based control
-	unsigned int evenheadwayDecision(); // evenheadway-based control
-	unsigned int hybridDecision(); // hybrid-based control(evenheadway while restricting the maximum holding time)
-	unsigned int dwellTimeCalculation(); // dwell time calculation module
+	unsigned int scheduledDecision(int busline_i, int trip_k, int busstopSequence_j, bool direction_flag);// scheduled-based control
+	unsigned int headwayDecision(int busline_i, int trip_k, int busstopSequence_j, bool direction_flag); // headway-based control
+	unsigned int evenheadwayDecision(int busline_i, int trip_k, int busstopSequence_j, bool direction_flag); // evenheadway-based control
+	unsigned int hybridDecision(int busline_i, int trip_k, int busstopSequence_j, bool direction_flag); // hybrid-based control(evenheadway while restricting the maximum holding time)
+	unsigned int dwellTimeCalculation(int busline_i, int trip_k, int busstopSequence_j, bool direction_flag); // dwell time calculation module
 
 	frame_t frameNumberCheck;// check some frame number to do control
 	frame_t nextTimeTickToStage;// next timeTick to be checked

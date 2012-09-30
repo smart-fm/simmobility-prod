@@ -94,22 +94,22 @@ void sim_mob::BusController::receiveBusInformation(DPoint pt) {
 	std::cout<<"Report Given Bus position: --->("<<posBus.x<<","<<posBus.y<<")"<<std::endl;
 }
 
-unsigned int sim_mob::BusController::decisionCalculation(int busline_id)
+unsigned int sim_mob::BusController::decisionCalculation(int busline_i, int trip_k, int busstopSequence_j, bool direction_flag)
 {
-	CONTROL_TYPE controltype = pt_schedule.findBuslineControlType(busline_id);
+	CONTROL_TYPE controltype = pt_schedule.findBuslineControlType(busline_i);
 	unsigned int departure_time = 0;
 	switch(controltype) {
 	case SCHEDULE_BASED:
-		departure_time = scheduledDecision();
+		departure_time = scheduledDecision(busline_i, trip_k, busstopSequence_j, direction_flag);
 		break;
 	case HEADWAY_BASED:
-		departure_time = headwayDecision();
+		departure_time = headwayDecision(busline_i, trip_k, busstopSequence_j, direction_flag);
 		break;
 	case EVENHEADWAY_BASED:
-		departure_time = evenheadwayDecision();
+		departure_time = evenheadwayDecision(busline_i, trip_k, busstopSequence_j, direction_flag);
 		break;
 	case HYBRID_BASED:
-		departure_time = hybridDecision();
+		departure_time = hybridDecision(busline_i, trip_k, busstopSequence_j, direction_flag);
 		break;
 	default:
 		// may add default scheduled departure time here
@@ -118,27 +118,61 @@ unsigned int sim_mob::BusController::decisionCalculation(int busline_id)
 	return departure_time;
 }
 
-unsigned int sim_mob::BusController::scheduledDecision()
+unsigned int sim_mob::BusController::scheduledDecision(int busline_i, int trip_k, int busstopSequence_j, bool direction_flag)
+{
+	const Busline* busline = pt_schedule.findBusline(busline_i);
+	unsigned int Fwd_DTijk = 0;
+	unsigned int Fwd_SETijk = 0;
+	unsigned int Fwd_ETijk = 0;
+	unsigned int Fwd_sij = 0;
+	unsigned int Fwd_ATijk = 0;
+
+	unsigned int Rev_DTijk = 0;
+	unsigned int Rev_SETijk = 0;
+	unsigned int Rev_ETijk = 0;
+	unsigned int Rev_sij = 0;
+	unsigned int Rev_ATijk = 0;
+	if(direction_flag) {
+		const vector<BusTrip>& fwdBusTrips = busline->getFwdBusTrips();
+		const BusRouteInfo* busRouteInfoFwd_tripK = fwdBusTrips[trip_k].getBusRouteInfo();
+		const vector<const BusStopInfo*>& busStopInfoFwd_tripK = busRouteInfoFwd_tripK->getBusStopsInfo();
+		Fwd_SETijk = busStopInfoFwd_tripK[busstopSequence_j]->busStop_ScheduledTimes.get().scheduled_DepartureTime;
+		Fwd_ATijk = busStopInfoFwd_tripK[busstopSequence_j]->busStop_realTimes.get().real_ArrivalTime;
+
+		Fwd_DTijk = dwellTimeCalculation(busline_i, trip_k, busstopSequence_j, direction_flag);
+		Fwd_ETijk = std::max(Fwd_SETijk - Fwd_sij, Fwd_ATijk + Fwd_DTijk);
+		return Fwd_ETijk;
+	} else {
+		//vector<BusTrip>& revBusTrips = busline->getRevBusTrips();
+		const vector<BusTrip>& revBusTrips = busline->getRevBusTrips();
+		const BusRouteInfo* busRouteInfoRev_tripK = revBusTrips[trip_k].getBusRouteInfo();
+		const vector<const BusStopInfo*>& busStopInfoRev_tripK = busRouteInfoRev_tripK->getBusStopsInfo();
+		Rev_SETijk = busStopInfoRev_tripK[busstopSequence_j]->busStop_ScheduledTimes.get().scheduled_DepartureTime;
+		Rev_ATijk = busStopInfoRev_tripK[busstopSequence_j]->busStop_realTimes.get().real_ArrivalTime;
+
+		Rev_DTijk = dwellTimeCalculation(busline_i, trip_k, busstopSequence_j, direction_flag);
+		Rev_ETijk = std::max(Rev_SETijk - Rev_sij, Rev_ATijk + Rev_DTijk);
+		return Rev_ETijk;
+	}
+
+}
+
+unsigned int sim_mob::BusController::headwayDecision(int busline_i, int trip_k, int busstopSequence_j, bool direction_flag)
 {
 
 }
 
-unsigned int sim_mob::BusController::headwayDecision()
+unsigned int sim_mob::BusController::evenheadwayDecision(int busline_i, int trip_k, int busstopSequence_j, bool direction_flag)
 {
 
 }
 
-unsigned int sim_mob::BusController::evenheadwayDecision()
+unsigned int sim_mob::BusController::hybridDecision(int busline_i, int trip_k, int busstopSequence_j, bool direction_flag)
 {
 
 }
 
-unsigned int sim_mob::BusController::hybridDecision()
-{
-
-}
-
-unsigned int sim_mob::BusController::dwellTimeCalculation()
+unsigned int sim_mob::BusController::dwellTimeCalculation(int busline_i, int trip_k, int busstopSequence_j, bool direction_flag)
 {
 
 }

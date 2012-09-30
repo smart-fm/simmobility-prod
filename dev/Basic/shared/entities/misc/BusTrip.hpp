@@ -14,6 +14,7 @@
 
 #include "TripChain.hpp"
 #include "geospatial/BusStop.hpp"
+#include "buffering/Shared.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 #include "partitions/PackageUtils.hpp"
@@ -28,27 +29,28 @@ namespace sim_mob {
 
 // offsetMS_From(ConfigParams::GetInstance().simStartTime))???
 struct BusStop_ScheduledTimes{
-	explicit BusStop_ScheduledTimes(string scheduled_ArrivalTime, string scheduled_DepartureTime);
-	DailyTime scheduled_ArrivalTime;
-	DailyTime scheduled_DepartureTime;
+	explicit BusStop_ScheduledTimes(unsigned int scheduled_ArrivalTime, unsigned int scheduled_DepartureTime);
+	unsigned int scheduled_ArrivalTime;
+	unsigned int scheduled_DepartureTime;
 };
 
 struct BusStop_RealTimes{
-	explicit BusStop_RealTimes(string real_ArrivalTime = "00:00:00", string real_DepartureTime = "00:00:00");
-	DailyTime real_ArrivalTime;// real Arrival Time
-	DailyTime real_DepartureTime;// real Departure Time
+	explicit BusStop_RealTimes(unsigned int real_ArrivalTime = 0, unsigned int real_DepartureTime = 0);
+	unsigned int real_ArrivalTime;// real Arrival Time
+	unsigned int real_DepartureTime;// real Departure Time
 };
 
 class BusStopInfo { // not clear
 public:
 	BusStopInfo();
 	virtual ~BusStopInfo() {}
+
+	Shared<BusStop_ScheduledTimes> busStop_ScheduledTimes;// for each particular BusTrip with this stop_id
+	Shared<BusStop_RealTimes> busStop_realTimes;
 private:
 	int stop_id;
 	string stop_name;
 	int roadsegment_id;
-	BusStop_ScheduledTimes busStop_ScheduledTimes;// for each particular BusTrip with this stop_id
-	BusStop_RealTimes busStop_realTimes;
 };
 
 class BusRouteInfo { // need copy constructor since BusTrip copy the BusRoute, or may need assign constructor
@@ -93,6 +95,9 @@ public:
 	}
 	const bool getDirectionFlag() const {
 		return direction_flag;
+	}
+	const BusRouteInfo* getBusRouteInfo() const {
+		return bus_RouteInfo;
 	}
 private:
 	int busLine_id;

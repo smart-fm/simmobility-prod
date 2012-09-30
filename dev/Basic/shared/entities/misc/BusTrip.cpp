@@ -9,14 +9,14 @@
 
 using namespace sim_mob;
 
-sim_mob::BusStop_ScheduledTimes::BusStop_ScheduledTimes(string scheduled_ArrivalTime, string scheduled_DepartureTime)
-: scheduled_ArrivalTime(DailyTime(scheduled_ArrivalTime)), scheduled_DepartureTime(DailyTime(scheduled_DepartureTime))
+sim_mob::BusStop_ScheduledTimes::BusStop_ScheduledTimes(unsigned int scheduled_ArrivalTime, unsigned int scheduled_DepartureTime)
+: scheduled_ArrivalTime(scheduled_ArrivalTime), scheduled_DepartureTime(scheduled_DepartureTime)
 {
 
 }
 
-sim_mob::BusStop_RealTimes::BusStop_RealTimes(string real_ArrivalTime, string real_DepartureTime)
-: real_ArrivalTime(DailyTime(real_ArrivalTime)), real_DepartureTime(DailyTime(real_DepartureTime))
+sim_mob::BusStop_RealTimes::BusStop_RealTimes(unsigned int real_ArrivalTime, unsigned int real_DepartureTime)
+: real_ArrivalTime(real_ArrivalTime), real_DepartureTime(real_DepartureTime)
 {
 
 }

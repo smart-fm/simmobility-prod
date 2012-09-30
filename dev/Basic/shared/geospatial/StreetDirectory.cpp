@@ -32,7 +32,7 @@
 //Define this if you want to attempt to "fix" the broken DAG.
 //NOTE: Do *not* put this into the config file or CMake; once the DAG is fixed we'll remove the old code.
 //TODO: The new model leaks memory (all code that does this is marked). Change to value types once you're ready to remove this #define.
-//#define STDIR_FIX_BROKEN
+#define STDIR_FIX_BROKEN
 
 
 
@@ -729,9 +729,9 @@ private:
     void initNetworkNew(const std::vector<Link*>& links);
 
     //New processing code
-    void procAddNodes(Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup);
-    void procAddLinks(Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup);
-    void procAddLaneConnectors(Graph& graph, const MultiNode* node, const std::map<const Node*, VertexLookup>& nodeLookup);
+    void procAddDrivingNodes(Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup);
+    void procAddDrivingLinks(Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup);
+    void procAddDrivingLaneConnectors(Graph& graph, const MultiNode* node, const std::map<const Node*, VertexLookup>& nodeLookup);
 
     //Old processing code
     void process(std::vector<RoadSegment*> const & roads, bool isForward);
@@ -923,7 +923,7 @@ StreetDirectory::ShortestPathImpl::process(std::vector<RoadSegment*> const & roa
 	}
 }
 
-void StreetDirectory::ShortestPathImpl::procAddNodes(Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup)
+void StreetDirectory::ShortestPathImpl::procAddDrivingNodes(Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup)
 {
 	//Skip empty roadways
 	if (roadway.empty()) {
@@ -993,7 +993,7 @@ void StreetDirectory::ShortestPathImpl::procAddNodes(Graph& graph, const std::ve
 }
 
 
-void StreetDirectory::ShortestPathImpl::procAddLinks(Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup)
+void StreetDirectory::ShortestPathImpl::procAddDrivingLinks(Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup)
 {
 	//Skip empty roadways
 	if (roadway.empty()) {
@@ -1052,7 +1052,7 @@ void StreetDirectory::ShortestPathImpl::procAddLinks(Graph& graph, const std::ve
 
 
 
-void StreetDirectory::ShortestPathImpl::procAddLaneConnectors(Graph& graph, const MultiNode* node, const std::map<const Node*, VertexLookup>& nodeLookup)
+void StreetDirectory::ShortestPathImpl::procAddDrivingLaneConnectors(Graph& graph, const MultiNode* node, const std::map<const Node*, VertexLookup>& nodeLookup)
 {
 	//Skip nulled Nodes (may be UniNodes).
 	if (!node) {
@@ -1106,9 +1106,10 @@ void StreetDirectory::ShortestPathImpl::procAddLaneConnectors(Graph& graph, cons
 	    bool ok;
 	    boost::tie(edge, ok) = boost::add_edge(fromVertex.first, toVertex.first, graph);
 
-	    //TODO: How to handle WayPoints and edge lengths?
-	    //boost::put(boost::edge_name, drivingMap_, edge, WayPoint(rs));
-	    //boost::put(boost::edge_weight, drivingMap_, edge, rs->length);
+	    //Calculate the edge length. Treat this as a Node WayPoint.
+	    DynamicVector lc(fromVertex.second, toVertex.second);
+	    boost::put(boost::edge_name, drivingMap_, edge, WayPoint(node));
+	    boost::put(boost::edge_weight, drivingMap_, edge, lc.getMagnitude());
 	}
 
 
@@ -1144,19 +1145,19 @@ void StreetDirectory::ShortestPathImpl::initNetworkNew(const std::vector<Link*>&
 
 	//Add our initial set of vertices. Iterate through Links to ensure no un-used Node are added.
     for (std::vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-    	procAddNodes(drivingMap_, (*iter)->getPath(true), nodeLookup);
-    	procAddNodes(drivingMap_, (*iter)->getPath(false), nodeLookup);
+    	procAddDrivingNodes(drivingMap_, (*iter)->getPath(true), nodeLookup);
+    	procAddDrivingNodes(drivingMap_, (*iter)->getPath(false), nodeLookup);
     }
 
     //Proceed through our Links, adding each RoadSegment path. Split vertices as required.
     for (std::vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-    	procAddLinks(drivingMap_, (*iter)->getPath(true), nodeLookup);
-    	procAddLinks(drivingMap_, (*iter)->getPath(false), nodeLookup);
+    	procAddDrivingLinks(drivingMap_, (*iter)->getPath(true), nodeLookup);
+    	procAddDrivingLinks(drivingMap_, (*iter)->getPath(false), nodeLookup);
     }
 
     //Now add all Intersection edges (lane connectors)
     for (std::map<const Node*, VertexLookup>::const_iterator it=nodeLookup.begin(); it!=nodeLookup.end(); it++) {
-    	procAddLaneConnectors(drivingMap_, dynamic_cast<const MultiNode*>(it->first), nodeLookup);
+    	procAddDrivingLaneConnectors(drivingMap_, dynamic_cast<const MultiNode*>(it->first), nodeLookup);
     }
 }
 

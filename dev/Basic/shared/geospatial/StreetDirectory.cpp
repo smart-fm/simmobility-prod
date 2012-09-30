@@ -32,7 +32,7 @@
 //Define this if you want to attempt to "fix" the broken DAG.
 //NOTE: Do *not* put this into the config file or CMake; once the DAG is fixed we'll remove the old code.
 //TODO: The new model leaks memory (all code that does this is marked). Change to value types once you're ready to remove this #define.
-#define STDIR_FIX_BROKEN
+//#define STDIR_FIX_BROKEN
 
 
 
@@ -698,6 +698,8 @@ private:
     struct NodeDescriptor {
     	const RoadSegment* before;
     	const RoadSegment* after;
+    	int beforeLaneID; //Only used by the Walking graph
+    	int afterLaneID;  //Only used by the Walking graph
     	Vertex v;
     };
 
@@ -726,12 +728,16 @@ public:
 private:
     //Initialize
     void initNetworkOld(const std::vector<Link*>& links);
-    void initNetworkNew(const std::vector<Link*>& links);
+    void initDrivingNetworkNew(const std::vector<Link*>& links);
+    void initWalkingNetworkNew(const std::vector<Link*>& links);
 
-    //New processing code
+    //New processing code: Driving path
     void procAddDrivingNodes(Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup);
     void procAddDrivingLinks(Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup);
     void procAddDrivingLaneConnectors(Graph& graph, const MultiNode* node, const std::map<const Node*, VertexLookup>& nodeLookup);
+
+    //New processing code: Walking path
+    void procAddWalkingNodes(Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup);
 
     //Old processing code
     void process(std::vector<RoadSegment*> const & roads, bool isForward);
@@ -1050,8 +1056,6 @@ void StreetDirectory::ShortestPathImpl::procAddDrivingLinks(Graph& graph, const 
 	}
 }
 
-
-
 void StreetDirectory::ShortestPathImpl::procAddDrivingLaneConnectors(Graph& graph, const MultiNode* node, const std::map<const Node*, VertexLookup>& nodeLookup)
 {
 	//Skip nulled Nodes (may be UniNodes).
@@ -1111,7 +1115,134 @@ void StreetDirectory::ShortestPathImpl::procAddDrivingLaneConnectors(Graph& grap
 	    boost::put(boost::edge_name, drivingMap_, edge, WayPoint(node));
 	    boost::put(boost::edge_weight, drivingMap_, edge, lc.getMagnitude());
 	}
+}
 
+
+
+void StreetDirectory::ShortestPathImpl::procAddWalkingNodes(Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup)
+{
+	//Skip empty roadways
+	if (roadway.empty()) {
+		return;
+	}
+
+	//Scan each pair of RoadSegments at each Node (the Node forms the joint between these two). This includes "null" options (for the first/last node).
+	//So, (null, X) is the first Node (before segment X), and (Y, null) is the last one. (W,Z) is the Node between segments W and Z.
+	for (size_t i=0; i<=roadway.size(); i++) {
+		//before/after/node/isUni forms a complete Node descriptor.
+		NodeDescriptor nd;
+		nd.before = (i==0) ? nullptr : const_cast<RoadSegment*>(roadway.at(i-1));
+		nd.after  = (i>=roadway.size()) ? nullptr : const_cast<RoadSegment*>(roadway.at(i));
+		const Node* origNode = nd.before ? nd.before->getEnd() : nd.after->getStart();
+		if (nodeLookup.count(origNode)==0) {
+			nodeLookup[origNode] = VertexLookup();
+			nodeLookup[origNode].origNode = origNode;
+			nodeLookup[origNode].isUni = dynamic_cast<const UniNode*>(origNode);
+		}
+
+		//Construction varies drastically depending on whether or not this is a UniNode
+		//if (nodeLookup[origNode].isUni) {
+		if (dynamic_cast<const UniNode*>(origNode)) { //isUni
+			//There may be several (currently 0, 1 or 2) Pedestrian lanes connecting at this Node. We'll need a Node for each,
+			//  since Pedestrians can't normally cross Driving lanes without jaywalking.
+
+			//////////////////////////////////////////////////////////////////////////////
+			// Begin hackish code: We can replace this with LaneConnector logic later.
+			//////////////////////////////////////////////////////////////////////////////
+
+			//TODO: Currently this only works for the outer-most and inner-most lanes. Inner sidewalk Lanes such as small sidewalks on
+			//      the median are not handled correctly at the moment.
+			std::vector< std::pair<int, int> > lanePairs; //(from,to) lane IDs
+
+			//Add the "outer" pair.
+			std::pair<int, int> currPair(-1, -1);
+			for (int i=int(nd.before->getLanes().size())-1; i>=0; i--) {
+				if (nd.before->getLanes().at(i)->is_pedestrian_lane()) {
+					currPair.first = i;
+					break;
+				}
+			}
+			for (int i=int(nd.after->getLanes().size())-1; i>=0; i--) {
+				if (nd.after->getLanes().at(i)->is_pedestrian_lane()) {
+					currPair.second = i;
+					break;
+				}
+			}
+			if (currPair.first>=0 && currPair.second>=0) {
+				//Add it, reset, find the "inner" pair.
+				lanePairs.push_back(currPair);
+				currPair = std::make_pair(-1, -1);
+				for (size_t i=0; i<lanePairs.front().first; i++) {
+					if (nd.before->getLanes().at(i)->is_pedestrian_lane()) {
+						currPair.first = i;
+						break;
+					}
+				}
+				for (size_t i=0; i<lanePairs.front().second; i++) {
+					if (nd.after->getLanes().at(i)->is_pedestrian_lane()) {
+						currPair.second = i;
+						break;
+					}
+				}
+				if (currPair.first>=0 && currPair.second>=0) {
+					lanePairs.push_back(currPair);
+				}
+			}
+
+			//////////////////////////////////////////////////////////////////////////////
+			// End hackish code
+			//////////////////////////////////////////////////////////////////////////////
+
+			//Add each potential lane Vertex
+			for (std::vector< std::pair<int, int> >::iterator it=lanePairs.begin(); it!=lanePairs.end(); it++) {
+				//Copy this node descriptor, modify it by adding in the from/to lanes.
+				NodeDescriptor newNd(nd);
+				newNd.beforeLaneID = it->first;
+				newNd.afterLaneID = it->second;
+				newNd.v = boost::add_vertex(const_cast<Graph &>(graph));
+				nodeLookup[origNode].vertices.push_back(newNd);
+
+				//We'll create a fake Node for this location (so it'll be represented properly). Once we've fully switched to the
+				//  new algorithm, we'll have to switch this to a value-based type; using "new" will leak memory.
+				Point2D newPos;
+				//TODO: re-enable const after fixing RoadNetwork's sidewalks.
+				if (!nd.before && nd.after) {
+					newPos = const_cast<RoadSegment*>(nd.after)->getLanes().at(it->second)->getPolyline().front();
+				} else if (nd.before && !nd.after) {
+					newPos = const_cast<RoadSegment*>(nd.before)->getLanes().at(it->first)->getPolyline().back();
+				} else {
+					//Estimate
+					DynamicVector vec(const_cast<RoadSegment*>(nd.before)->getLanes().at(it->first)->getPolyline().back(), const_cast<RoadSegment*>(nd.after)->getLanes().at(it->second)->getPolyline().front());
+					vec.scaleVectTo(vec.getMagnitude()/2.0);
+					newPos = Point2D(vec.getX(), vec.getY());
+				}
+
+				//TODO: Leaks memory!
+				Node* vNode = new UniNode(newPos.getX(), newPos.getY());
+				boost::put(boost::vertex_name, const_cast<Graph &>(graph), newNd.v, vNode);
+			}
+		} else {
+			//Each incoming and outgoing RoadSegment has exactly one Node at the Intersection. In this case, the unused before/after
+			//   RoadSegment is used to identify whether this is an incoming or outgoing Vertex.
+			/*nd.v = boost::add_vertex(const_cast<Graph &>(graph));
+			nodeLookup[origNode].vertices.push_back(nd);
+
+			//Our Node positions are actually the same compared to UniNodes; we may merge this code later.
+			Point2D newPos;
+			if (!nd.before && nd.after) {
+				newPos = const_cast<RoadSegment*>(nd.after)->getLaneEdgePolyline(1).front();
+			} else if (nd.before && !nd.after) {
+				newPos = const_cast<RoadSegment*>(nd.before)->getLaneEdgePolyline(1).back();
+			} else {
+				//This, however, is different.
+				throw std::runtime_error("MultiNode vertices can't have both \"before\" and \"after\" segments.");
+			}
+
+			//TODO: Leaks memory!
+			Node* vNode = new UniNode(newPos.getX(), newPos.getY());
+			boost::put(boost::vertex_name, const_cast<Graph &>(graph), nd.v, vNode);*/
+		}
+	}
 
 }
 
@@ -1121,7 +1252,8 @@ void StreetDirectory::ShortestPathImpl::procAddDrivingLaneConnectors(Graph& grap
 inline StreetDirectory::ShortestPathImpl::ShortestPathImpl(RoadNetwork const & network)
 {
 #ifdef STDIR_FIX_BROKEN
-	initNetworkNew(network.getLinks());
+	initDrivingNetworkNew(network.getLinks());
+	initWalkingNetworkNew(network.getLinks());
 #else
 	initNetworkOld(network.getLinks());
 #endif
@@ -1138,7 +1270,7 @@ void StreetDirectory::ShortestPathImpl::initNetworkOld(const std::vector<Link*>&
     }
 }
 
-void StreetDirectory::ShortestPathImpl::initNetworkNew(const std::vector<Link*>& links)
+void StreetDirectory::ShortestPathImpl::initDrivingNetworkNew(const std::vector<Link*>& links)
 {
 	//Various lookup structures
 	std::map<const Node*, VertexLookup> nodeLookup;
@@ -1159,6 +1291,29 @@ void StreetDirectory::ShortestPathImpl::initNetworkNew(const std::vector<Link*>&
     for (std::map<const Node*, VertexLookup>::const_iterator it=nodeLookup.begin(); it!=nodeLookup.end(); it++) {
     	procAddDrivingLaneConnectors(drivingMap_, dynamic_cast<const MultiNode*>(it->first), nodeLookup);
     }
+}
+
+void StreetDirectory::ShortestPathImpl::initWalkingNetworkNew(const std::vector<Link*>& links)
+{
+	//Various lookup structures
+	std::map<const Node*, VertexLookup> nodeLookup;
+
+	//Add our initial set of vertices. Iterate through Links to ensure no un-used Node are added.
+    for (std::vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
+    	procAddWalkingNodes(walkingMap_, (*iter)->getPath(true), nodeLookup);
+    	procAddWalkingNodes(walkingMap_, (*iter)->getPath(false), nodeLookup);
+    }
+
+    //Proceed through our Links, adding each RoadSegment path. Split vertices as required.
+    /*for (std::vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
+    	procAddDrivingLinks(walkingMap_, (*iter)->getPath(true), nodeLookup);
+    	procAddDrivingLinks(walkingMap_, (*iter)->getPath(false), nodeLookup);
+    }
+
+    //Now add all Intersection edges (lane connectors)
+    for (std::map<const Node*, VertexLookup>::const_iterator it=nodeLookup.begin(); it!=nodeLookup.end(); it++) {
+    	procAddDrivingLaneConnectors(walkingMap_, dynamic_cast<const MultiNode*>(it->first), nodeLookup);
+    }*/
 }
 
 

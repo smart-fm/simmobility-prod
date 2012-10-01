@@ -33,7 +33,7 @@
 //Define this if you want to attempt to "fix" the broken DAG.
 //NOTE: Do *not* put this into the config file or CMake; once the DAG is fixed we'll remove the old code.
 //TODO: The new model leaks memory (all code that does this is marked). Change to value types once you're ready to remove this #define.
-#define STDIR_FIX_BROKEN
+//#define STDIR_FIX_BROKEN
 
 
 
@@ -1299,6 +1299,17 @@ template <class T>
 bool VectorContains(const std::vector<T>& vec, const T& value) {
 	return std::find(vec.begin(), vec.end(), value) != vec.end();
 }
+
+//Helper: do these two segments start/end at the same pair of nodes?
+bool SegmentCompare(const RoadSegment* self, const RoadSegment* other) {
+	if ((self->getStart()==other->getStart()) && (self->getEnd()==other->getEnd())) {
+		return true;  //Exact same
+	}
+	if ((self->getStart()==other->getEnd()) && (self->getEnd()==other->getStart())) {
+		return true;  //Reversed, but same
+	}
+	return false; //Different.
+}
 } //End un-named namespace
 void StreetDirectory::ShortestPathImpl::procResolveWalkingMultiNodes(Graph& graph, const std::map<const Node*, VertexLookup>& unresolvedNodes, std::map<const Node*, VertexLookup>& nodeLookup)
 {
@@ -1343,6 +1354,15 @@ void StreetDirectory::ShortestPathImpl::procResolveWalkingMultiNodes(Graph& grap
 			newNd.after = it->second.second.before ? it->second.second.before : it->second.second.after;
 			newNd.beforeLaneID = it->second.first.before ? it->second.first.beforeLaneID : it->second.first.afterLaneID;
 			newNd.afterLaneID = it->second.second.before ? it->second.second.beforeLaneID : it->second.second.afterLaneID;
+
+			//Heuristical check: If the two segments in question start/end at the same pair of nodes, then don't add this
+			//  (we must use Crossings in this case).
+			//Note that this won't catch cases where additional Nodes are added, but it will also never cause any harm.
+			if (SegmentCompare(newNd.before, newNd.after)) {
+				continue;
+			}
+
+			//Add it to our boost::graph
 			newNd.v = boost::add_vertex(const_cast<Graph &>(graph));
 
 			//Put the actual point halfway between the two candidate points.

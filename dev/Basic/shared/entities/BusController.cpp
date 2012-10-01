@@ -180,7 +180,8 @@ unsigned int sim_mob::BusController::headwayDecision(int busline_i, int trip_k, 
 		const vector<const BusStopInfo*>& busStopInfoFwd_tripK = busRouteInfoFwd_tripK->getBusStopsInfo();
 		Fwd_ATijk_1 = busStopInfoFwd_tripK[busstopSequence_j]->busStop_realTimes.get().real_ArrivalTime;
 		Fwd_ATijk = busStopInfoFwd_tripK[busstopSequence_j]->busStop_realTimes.get().real_ArrivalTime;
-		// Fwd_Hi = ...
+		Fwd_Hi = fwdBusTrips[trip_k].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime)
+				- fwdBusTrips[trip_k - 1].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 		Fwd_DTijk = dwellTimeCalculation(busline_i, trip_k, busstopSequence_j, direction_flag);
 		Fwd_ETijk = std::max((unsigned int)(Fwd_ATijk_1 + Fwd_alpha*Fwd_Hi), Fwd_ATijk + Fwd_DTijk);
 		return Fwd_ETijk;
@@ -191,7 +192,8 @@ unsigned int sim_mob::BusController::headwayDecision(int busline_i, int trip_k, 
 		const vector<const BusStopInfo*>& busStopInfoRev_tripK = busRouteInfoRev_tripK->getBusStopsInfo();
 		Rev_ATijk_1 = busStopInfoRev_tripK[busstopSequence_j]->busStop_realTimes.get().real_ArrivalTime;
 		Rev_ATijk = busStopInfoRev_tripK[busstopSequence_j]->busStop_realTimes.get().real_ArrivalTime;
-		// Rev_Hi = ...
+		Rev_Hi = revBusTrips[trip_k].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime)
+				- revBusTrips[trip_k - 1].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 		Rev_DTijk = dwellTimeCalculation(busline_i, trip_k, busstopSequence_j, direction_flag);
 		Fwd_ETijk = std::max((unsigned int)(Rev_ATijk_1 + Rev_alpha*Rev_Hi), Rev_ATijk + Rev_DTijk);
 		return Rev_ETijk;

@@ -14,6 +14,7 @@
 #include "RoadNetwork.hpp"
 #include "buffering/Vector2D.hpp"
 #include "util/OutputUtil.hpp"
+#include "util/GeomHelpers.hpp"
 #include "geospatial/Point2D.hpp"
 #include "geospatial/LaneConnector.hpp"
 
@@ -32,7 +33,7 @@
 //Define this if you want to attempt to "fix" the broken DAG.
 //NOTE: Do *not* put this into the config file or CMake; once the DAG is fixed we'll remove the old code.
 //TODO: The new model leaks memory (all code that does this is marked). Change to value types once you're ready to remove this #define.
-//#define STDIR_FIX_BROKEN
+#define STDIR_FIX_BROKEN
 
 
 
@@ -700,7 +701,14 @@ private:
     	const RoadSegment* after;
     	int beforeLaneID; //Only used by the Walking graph
     	int afterLaneID;  //Only used by the Walking graph
+    	Point2D tempPos; //Only used by Walking graph UniNodes, temporarily.
     	Vertex v;
+
+    	//Equality comparison (be careful here!)
+    	bool operator== (const NodeDescriptor& other) const {
+    		return  (this->before==other.before) && (this->after==other.after) &&
+    				(this->beforeLaneID==other.beforeLaneID) && (this->afterLaneID==other.afterLaneID);
+    	}
     };
 
     ///Helper class:represents a vertex in our graph as a "Node" in Sim Mobility. Maintains mappings to the
@@ -737,7 +745,8 @@ private:
     void procAddDrivingLaneConnectors(Graph& graph, const MultiNode* node, const std::map<const Node*, VertexLookup>& nodeLookup);
 
     //New processing code: Walking path
-    void procAddWalkingNodes(Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup);
+    void procAddWalkingNodes(Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup, std::map<const Node*, VertexLookup>& tempNodes);
+    void procResolveWalkingMultiNodes(Graph& graph, const std::map<const Node*, VertexLookup>& unresolvedNodes, std::map<const Node*, VertexLookup>& nodeLookup);
 
     //Old processing code
     void process(std::vector<RoadSegment*> const & roads, bool isForward);
@@ -967,7 +976,7 @@ void StreetDirectory::ShortestPathImpl::procAddDrivingNodes(Graph& graph, const 
 			} else {
 				//Estimate
 				DynamicVector vec(const_cast<RoadSegment*>(nd.before)->getLaneEdgePolyline(1).back(), const_cast<RoadSegment*>(nd.after)->getLaneEdgePolyline(1).front());
-				vec.scaleVectTo(vec.getMagnitude()/2.0);
+				vec.scaleVectTo(vec.getMagnitude()/2.0).translateVect();
 				newPos = Point2D(vec.getX(), vec.getY());
 			}
 
@@ -1119,7 +1128,7 @@ void StreetDirectory::ShortestPathImpl::procAddDrivingLaneConnectors(Graph& grap
 
 
 
-void StreetDirectory::ShortestPathImpl::procAddWalkingNodes(Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup)
+void StreetDirectory::ShortestPathImpl::procAddWalkingNodes(Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup, std::map<const Node*, VertexLookup>& tempNodes)
 {
 	//Skip empty roadways
 	if (roadway.empty()) {
@@ -1141,8 +1150,7 @@ void StreetDirectory::ShortestPathImpl::procAddWalkingNodes(Graph& graph, const 
 		}
 
 		//Construction varies drastically depending on whether or not this is a UniNode
-		//if (nodeLookup[origNode].isUni) {
-		if (dynamic_cast<const UniNode*>(origNode)) { //isUni
+		if (nodeLookup[origNode].isUni) {
 			//There may be several (currently 0, 1 or 2) Pedestrian lanes connecting at this Node. We'll need a Node for each,
 			//  since Pedestrians can't normally cross Driving lanes without jaywalking.
 
@@ -1213,7 +1221,7 @@ void StreetDirectory::ShortestPathImpl::procAddWalkingNodes(Graph& graph, const 
 				} else {
 					//Estimate
 					DynamicVector vec(const_cast<RoadSegment*>(nd.before)->getLanes().at(it->first)->getPolyline().back(), const_cast<RoadSegment*>(nd.after)->getLanes().at(it->second)->getPolyline().front());
-					vec.scaleVectTo(vec.getMagnitude()/2.0);
+					vec.scaleVectTo(vec.getMagnitude()/2.0).translateVect();
 					newPos = Point2D(vec.getX(), vec.getY());
 				}
 
@@ -1222,29 +1230,149 @@ void StreetDirectory::ShortestPathImpl::procAddWalkingNodes(Graph& graph, const 
 				boost::put(boost::vertex_name, const_cast<Graph &>(graph), newNd.v, vNode);
 			}
 		} else {
-			//Each incoming and outgoing RoadSegment has exactly one Node at the Intersection. In this case, the unused before/after
-			//   RoadSegment is used to identify whether this is an incoming or outgoing Vertex.
-			/*nd.v = boost::add_vertex(const_cast<Graph &>(graph));
-			nodeLookup[origNode].vertices.push_back(nd);
+			//MultiNodes are much more complex. For now, we just collect all vertices into a "potential" list.
+			//Fortunately, we only have to scan one list this time.
+			std::vector<int> laneIDs;
 
-			//Our Node positions are actually the same compared to UniNodes; we may merge this code later.
-			Point2D newPos;
-			if (!nd.before && nd.after) {
-				newPos = const_cast<RoadSegment*>(nd.after)->getLaneEdgePolyline(1).front();
-			} else if (nd.before && !nd.after) {
-				newPos = const_cast<RoadSegment*>(nd.before)->getLaneEdgePolyline(1).back();
-			} else {
-				//This, however, is different.
-				throw std::runtime_error("MultiNode vertices can't have both \"before\" and \"after\" segments.");
+			//Make sure our temp lookup list has this.
+			if (tempNodes.count(origNode)==0) {
+				tempNodes[origNode] = VertexLookup();
+				tempNodes[origNode].origNode = origNode;
+				tempNodes[origNode].isUni = nodeLookup[origNode].isUni;
 			}
 
-			//TODO: Leaks memory!
-			Node* vNode = new UniNode(newPos.getX(), newPos.getY());
-			boost::put(boost::vertex_name, const_cast<Graph &>(graph), nd.v, vNode);*/
+
+			//////////////////////////////////////////////////////////////////////////////
+			// Begin hackish code: We can replace this with LaneConnector logic later.
+			//////////////////////////////////////////////////////////////////////////////
+
+			//Scan for the outer lane
+			const RoadSegment* currSeg = nd.before ? nd.before : nd.after;
+			for (int i=int(currSeg->getLanes().size())-1; i>=0; i--) {
+				if (currSeg->getLanes().at(i)->is_pedestrian_lane()) {
+					laneIDs.push_back(i);
+					break;
+				}
+			}
+			if (!laneIDs.empty()) {
+				for (size_t i=0; i<laneIDs.front(); i++) {
+					if (currSeg->getLanes().at(i)->is_pedestrian_lane()) {
+						laneIDs.push_back(i);
+						break;
+					}
+				}
+			}
+
+			//////////////////////////////////////////////////////////////////////////////
+			// End hackish code.
+			//////////////////////////////////////////////////////////////////////////////
+			for (std::vector<int>::iterator it=laneIDs.begin(); it!=laneIDs.end(); it++) {
+				//Copy this node descriptor, modify it by adding in the from/to lanes.
+				NodeDescriptor newNd(nd);
+				newNd.beforeLaneID = nd.before ? *it : -1;
+				newNd.afterLaneID = nd.after ? *it : -1;
+				//newNd.v = boost::add_vertex(const_cast<Graph &>(graph)); //Don't add it yet.
+
+				//Our Node positions are actually the same compared to UniNodes; we may merge this code later.
+				Point2D newPos;
+				//TODO: re-enable const after fixing RoadNetwork's sidewalks.
+				if (!nd.before && nd.after) {
+					newPos = const_cast<RoadSegment*>(nd.after)->getLanes().at(newNd.afterLaneID)->getPolyline().front();
+				} else if (nd.before && !nd.after) {
+					newPos = const_cast<RoadSegment*>(nd.before)->getLanes().at(newNd.beforeLaneID)->getPolyline().back();
+				} else {
+					//This, however, is different.
+					throw std::runtime_error("MultiNode vertices can't have both \"before\" and \"after\" segments.");
+				}
+
+				//Save in an alternate location for now, since we'll merge these later.
+				newNd.tempPos = newPos;
+				tempNodes[origNode].vertices.push_back(newNd); //Save in our temp list.
+			}
+		}
+	}
+}
+
+namespace {
+//Helper (we can't use std::set, so we use vector::find)
+template <class T>
+bool VectorContains(const std::vector<T>& vec, const T& value) {
+	return std::find(vec.begin(), vec.end(), value) != vec.end();
+}
+} //End un-named namespace
+void StreetDirectory::ShortestPathImpl::procResolveWalkingMultiNodes(Graph& graph, const std::map<const Node*, VertexLookup>& unresolvedNodes, std::map<const Node*, VertexLookup>& nodeLookup)
+{
+	//We need to merge the potential vertices at all unresolved MultiNodes. At the moment, this requires some geometric assumption (but for roundabouts, later, this will no longer be acceptible)
+	for (std::map<const Node*, VertexLookup>::const_iterator mnIt=unresolvedNodes.begin(); mnIt!=unresolvedNodes.end(); mnIt++) {
+		//First, we need to compute the distance between every pair of Vertices.
+		const Node* node = mnIt->first;
+		std::map<double, std::pair<NodeDescriptor, NodeDescriptor> > distLookup;
+		for (std::vector<NodeDescriptor>::const_iterator it1=mnIt->second.vertices.begin(); it1!=mnIt->second.vertices.end(); it1++) {
+			for (std::vector<NodeDescriptor>::const_iterator it2=it1+1; it2!=mnIt->second.vertices.end(); it2++) {
+				//No need to be exact here; if there are collisions, simply modify the result until it's unique.
+				double dist = sim_mob::dist(it1->tempPos, it2->tempPos);
+				while (distLookup.count(dist)>0) {
+					dist += 0.000001;
+				}
+
+				//Save it.
+				distLookup[dist] = std::make_pair(*it1, *it2);
+			}
+		}
+
+		//Iterate in order, pairing the two closest elements if their total distance is less than 1/2 of the maximum distance.
+		//Note that map::begin/end is essentially in order. (Also, we keep a list of what's been tagged already).
+		std::map<double, std::pair<NodeDescriptor, NodeDescriptor> >::const_iterator lastValue = distLookup.end();
+		lastValue--;
+		double maxDist = lastValue->first / 2.0;
+		std::vector<NodeDescriptor> alreadyMerged;
+		for (std::map<double, std::pair<NodeDescriptor, NodeDescriptor> >::const_iterator it=distLookup.begin(); it!=distLookup.end(); it++) {
+			//Find a Vertex we haven't merged yet.
+			if (VectorContains(alreadyMerged, it->second.first) || VectorContains(alreadyMerged, it->second.second)) {
+				continue;
+			}
+
+			//Now check the distance between our two candidate Vertices.
+			if (it->first > maxDist) {
+				break; //All distances after this will be greater, since the map is sorted.
+			}
+
+			//Create a new Node Descriptor for this merged Node. "before" and "after" are arbitrary, since Pedestrians can walk bidirectionally on their edges.
+			NodeDescriptor newNd;
+			newNd.before = it->second.first.before ? it->second.first.before : it->second.first.after;
+			newNd.after = it->second.second.before ? it->second.second.before : it->second.second.after;
+			newNd.beforeLaneID = it->second.first.before ? it->second.first.beforeLaneID : it->second.first.afterLaneID;
+			newNd.afterLaneID = it->second.second.before ? it->second.second.beforeLaneID : it->second.second.afterLaneID;
+			newNd.v = boost::add_vertex(const_cast<Graph &>(graph));
+
+			//Put the actual point halfway between the two candidate points.
+			DynamicVector vec(it->second.first.tempPos, it->second.second.tempPos);
+			vec.scaleVectTo(vec.getMagnitude()/2.0).translateVect();
+			Node* vNode = new UniNode(vec.getX(), vec.getY());   //TODO: Leaks memory!
+			boost::put(boost::vertex_name, const_cast<Graph &>(graph), newNd.v, vNode);
+
+			//Tag each unmerged Vertex so that we don't re-use them.
+			alreadyMerged.push_back(it->second.first);
+			alreadyMerged.push_back(it->second.second);
+		}
+
+		//Finally, some Nodes may not have been merged at all. Just add these as-is.
+		for (std::vector<NodeDescriptor>::const_iterator it=mnIt->second.vertices.begin(); it!=mnIt->second.vertices.end(); it++) {
+			if (VectorContains(alreadyMerged, *it)) {
+				continue;
+			}
+
+			//before/after should be set properly in this case.
+			NodeDescriptor newNd(*it);
+			newNd.v = boost::add_vertex(const_cast<Graph &>(graph));
+			Node* vNode = new UniNode(it->tempPos.getX(), it->tempPos.getY());   //TODO: Leaks memory!
+			boost::put(boost::vertex_name, const_cast<Graph &>(graph), newNd.v, vNode);
 		}
 	}
 
+
 }
+
 
 
 
@@ -1298,11 +1426,19 @@ void StreetDirectory::ShortestPathImpl::initWalkingNetworkNew(const std::vector<
 	//Various lookup structures
 	std::map<const Node*, VertexLookup> nodeLookup;
 
+	{
+	//Building MultiNodes requires one additional step.
+	std::map<const Node*, VertexLookup> unresolvedNodes;
+
 	//Add our initial set of vertices. Iterate through Links to ensure no un-used Node are added.
     for (std::vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-    	procAddWalkingNodes(walkingMap_, (*iter)->getPath(true), nodeLookup);
-    	procAddWalkingNodes(walkingMap_, (*iter)->getPath(false), nodeLookup);
+    	procAddWalkingNodes(walkingMap_, (*iter)->getPath(true), nodeLookup, unresolvedNodes);
+    	procAddWalkingNodes(walkingMap_, (*iter)->getPath(false), nodeLookup, unresolvedNodes);
     }
+
+    //Resolve MultiNodes here:
+    procResolveWalkingMultiNodes(walkingMap_, unresolvedNodes, nodeLookup);
+	}
 
     //Proceed through our Links, adding each RoadSegment path. Split vertices as required.
     /*for (std::vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {

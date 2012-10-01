@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <vector>
 #include <iostream>
+#include <limits>
 #include <boost/unordered_map.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
@@ -747,6 +748,7 @@ private:
     //New processing code: Walking path
     void procAddWalkingNodes(Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup, std::map<const Node*, VertexLookup>& tempNodes);
     void procResolveWalkingMultiNodes(Graph& graph, const std::map<const Node*, VertexLookup>& unresolvedNodes, std::map<const Node*, VertexLookup>& nodeLookup);
+    void procAddWalkingLinks(Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup);
 
     //Old processing code
     void process(std::vector<RoadSegment*> const & roads, bool isForward);
@@ -1127,7 +1129,70 @@ void StreetDirectory::ShortestPathImpl::procAddDrivingLaneConnectors(Graph& grap
 }
 
 
+namespace {
 
+//Helper function: Retrieve a set of sidewalk lane pairs (fromLane, toLane) given two RoadSegments.
+//If both inputs are non-null, then from/to *must* exist (e.g., UniNodes).
+//TODO: Right now, this function is quite hackish, and only checks the outer and inner lanes.
+//      We need to improve it to work for any number of sidewalk lanes (e.g., median sidewalks), but
+//      for now we don't even have the data.
+//TODO: The proper way to do this is with an improved version of UniNode lane connectors.
+std::vector< std::pair<int, int> > GetSidewalkLanePairs(const RoadSegment* before, const RoadSegment* after) {
+	//Error check: at least one segment must exist
+	if (!before && !after) { throw std::runtime_error("Can't GetSidewalkLanePairs on two null segments."); }
+
+	//Store two partial lists
+	std::vector<int> beforeLanes;
+	std::vector<int> afterLanes;
+	std::vector< std::pair<int, int> > res;
+
+	//Build up before
+	if (before) {
+		for (size_t i=0; i<before->getLanes().size(); i++) {
+			if (before->getLanes().at(i)->is_pedestrian_lane()) {
+				beforeLanes.push_back(i);
+			}
+		}
+	}
+
+	//Build up after
+	if (after) {
+		for (size_t i=0; i<after->getLanes().size(); i++) {
+			if (after->getLanes().at(i)->is_pedestrian_lane()) {
+				afterLanes.push_back(i);
+			}
+		}
+	}
+
+	//It's possible that we have no results
+	if ((before&&beforeLanes.empty()) || (after&&afterLanes.empty())) {
+		return res;
+	}
+
+	//If we have both before and after, only pairs can be added (no null values).
+	// We can manage this implicitly by either counting up or down, and stopping when we have no more values.
+	// For now, we just ensure they're equal or add NONE
+	if (before && after) {
+		if (beforeLanes.size()==afterLanes.size()) {
+			for (size_t i=0; i<beforeLanes.size(); i++) {
+				res.push_back(std::make_pair(beforeLanes.at(i), afterLanes.at(i)));
+			}
+		}
+		return res;
+	}
+
+	//Otherwise, just build a partial list
+	for (size_t i=0; i<beforeLanes.size() || i<afterLanes.size(); i++) {
+		if (before) {
+			res.push_back(std::make_pair(beforeLanes.at(i), -1));
+		} else {
+			res.push_back(std::make_pair(-1, afterLanes.at(i)));
+		}
+	}
+	return res;
+}
+
+} //End un-named namespace
 void StreetDirectory::ShortestPathImpl::procAddWalkingNodes(Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup, std::map<const Node*, VertexLookup>& tempNodes)
 {
 	//Skip empty roadways
@@ -1153,53 +1218,7 @@ void StreetDirectory::ShortestPathImpl::procAddWalkingNodes(Graph& graph, const 
 		if (nodeLookup[origNode].isUni) {
 			//There may be several (currently 0, 1 or 2) Pedestrian lanes connecting at this Node. We'll need a Node for each,
 			//  since Pedestrians can't normally cross Driving lanes without jaywalking.
-
-			//////////////////////////////////////////////////////////////////////////////
-			// Begin hackish code: We can replace this with LaneConnector logic later.
-			//////////////////////////////////////////////////////////////////////////////
-
-			//TODO: Currently this only works for the outer-most and inner-most lanes. Inner sidewalk Lanes such as small sidewalks on
-			//      the median are not handled correctly at the moment.
-			std::vector< std::pair<int, int> > lanePairs; //(from,to) lane IDs
-
-			//Add the "outer" pair.
-			std::pair<int, int> currPair(-1, -1);
-			for (int i=int(nd.before->getLanes().size())-1; i>=0; i--) {
-				if (nd.before->getLanes().at(i)->is_pedestrian_lane()) {
-					currPair.first = i;
-					break;
-				}
-			}
-			for (int i=int(nd.after->getLanes().size())-1; i>=0; i--) {
-				if (nd.after->getLanes().at(i)->is_pedestrian_lane()) {
-					currPair.second = i;
-					break;
-				}
-			}
-			if (currPair.first>=0 && currPair.second>=0) {
-				//Add it, reset, find the "inner" pair.
-				lanePairs.push_back(currPair);
-				currPair = std::make_pair(-1, -1);
-				for (size_t i=0; i<lanePairs.front().first; i++) {
-					if (nd.before->getLanes().at(i)->is_pedestrian_lane()) {
-						currPair.first = i;
-						break;
-					}
-				}
-				for (size_t i=0; i<lanePairs.front().second; i++) {
-					if (nd.after->getLanes().at(i)->is_pedestrian_lane()) {
-						currPair.second = i;
-						break;
-					}
-				}
-				if (currPair.first>=0 && currPair.second>=0) {
-					lanePairs.push_back(currPair);
-				}
-			}
-
-			//////////////////////////////////////////////////////////////////////////////
-			// End hackish code
-			//////////////////////////////////////////////////////////////////////////////
+			std::vector< std::pair<int, int> > lanePairs = GetSidewalkLanePairs(nd.before, nd.after);
 
 			//Add each potential lane Vertex
 			for (std::vector< std::pair<int, int> >::iterator it=lanePairs.begin(); it!=lanePairs.end(); it++) {
@@ -1232,7 +1251,7 @@ void StreetDirectory::ShortestPathImpl::procAddWalkingNodes(Graph& graph, const 
 		} else {
 			//MultiNodes are much more complex. For now, we just collect all vertices into a "potential" list.
 			//Fortunately, we only have to scan one list this time.
-			std::vector<int> laneIDs;
+			std::vector< std::pair<int, int> > lanePairs = GetSidewalkLanePairs(nd.before, nd.after);
 
 			//Make sure our temp lookup list has this.
 			if (tempNodes.count(origNode)==0) {
@@ -1241,36 +1260,11 @@ void StreetDirectory::ShortestPathImpl::procAddWalkingNodes(Graph& graph, const 
 				tempNodes[origNode].isUni = nodeLookup[origNode].isUni;
 			}
 
-
-			//////////////////////////////////////////////////////////////////////////////
-			// Begin hackish code: We can replace this with LaneConnector logic later.
-			//////////////////////////////////////////////////////////////////////////////
-
-			//Scan for the outer lane
-			const RoadSegment* currSeg = nd.before ? nd.before : nd.after;
-			for (int i=int(currSeg->getLanes().size())-1; i>=0; i--) {
-				if (currSeg->getLanes().at(i)->is_pedestrian_lane()) {
-					laneIDs.push_back(i);
-					break;
-				}
-			}
-			if (!laneIDs.empty()) {
-				for (size_t i=0; i<laneIDs.front(); i++) {
-					if (currSeg->getLanes().at(i)->is_pedestrian_lane()) {
-						laneIDs.push_back(i);
-						break;
-					}
-				}
-			}
-
-			//////////////////////////////////////////////////////////////////////////////
-			// End hackish code.
-			//////////////////////////////////////////////////////////////////////////////
-			for (std::vector<int>::iterator it=laneIDs.begin(); it!=laneIDs.end(); it++) {
+			for (std::vector< std::pair<int, int> >::iterator it=lanePairs.begin(); it!=lanePairs.end(); it++) {
 				//Copy this node descriptor, modify it by adding in the from/to lanes.
 				NodeDescriptor newNd(nd);
-				newNd.beforeLaneID = nd.before ? *it : -1;
-				newNd.afterLaneID = nd.after ? *it : -1;
+				newNd.beforeLaneID = nd.before ? it->first : -1;
+				newNd.afterLaneID = nd.after ? it->second : -1;
 				//newNd.v = boost::add_vertex(const_cast<Graph &>(graph)); //Don't add it yet.
 
 				//Our Node positions are actually the same compared to UniNodes; we may merge this code later.
@@ -1374,6 +1368,9 @@ void StreetDirectory::ShortestPathImpl::procResolveWalkingMultiNodes(Graph& grap
 			//Tag each unmerged Vertex so that we don't re-use them.
 			alreadyMerged.push_back(it->second.first);
 			alreadyMerged.push_back(it->second.second);
+
+			//Also add this to our list of known vertices, so that we can find it later.
+			nodeLookup[node].vertices.push_back(newNd);
 		}
 
 		//Finally, some Nodes may not have been merged at all. Just add these as-is.
@@ -1387,13 +1384,89 @@ void StreetDirectory::ShortestPathImpl::procResolveWalkingMultiNodes(Graph& grap
 			newNd.v = boost::add_vertex(const_cast<Graph &>(graph));
 			Node* vNode = new UniNode(it->tempPos.getX(), it->tempPos.getY());   //TODO: Leaks memory!
 			boost::put(boost::vertex_name, const_cast<Graph &>(graph), newNd.v, vNode);
+
+			//Save it for later.
+			nodeLookup[node].vertices.push_back(newNd);
 		}
 	}
-
-
 }
 
 
+
+void StreetDirectory::ShortestPathImpl::procAddWalkingLinks(Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup)
+{
+	//Skip empty roadways
+	if (roadway.empty()) {
+		return;
+	}
+
+	//Here, we are simply assigning one Edge per RoadSegment in the Link. This is mildly complicated by the fact that a Node*
+	//  may be represented by multiple vertices; overall, though, it's a conceptually simple procedure.
+	//Note that Walking edges are two-directional; for now, we accomplish this by adding 2 edges (we can change it to an undirected graph later).
+	for (std::vector<RoadSegment*>::const_iterator it=roadway.begin(); it!=roadway.end(); it++) {
+		const RoadSegment* rs = *it;
+		std::map<const Node*, VertexLookup>::const_iterator from = nodeLookup.find(rs->getStart());
+		std::map<const Node*, VertexLookup>::const_iterator to = nodeLookup.find(rs->getEnd());
+		if (from==nodeLookup.end() || to==nodeLookup.end()) {
+			throw std::runtime_error("Road Segment's nodes are unknown by the vertex map.");
+		}
+		if (from->second.vertices.empty() || to->second.vertices.empty()) {
+			std::cout <<"Warning: Road Segment's nodes have no known mapped vertices." <<std::endl;
+			continue;
+		}
+
+		//Of course, we still need to deal with Lanes
+		std::vector< std::pair<int, int> > lanePairs = GetSidewalkLanePairs(rs, nullptr);
+		for (std::vector< std::pair<int, int> >::iterator it=lanePairs.begin(); it!=lanePairs.end(); it++) {
+			int laneID = it->first;
+			//For simply nodes, this will be sufficient.
+			Vertex fromVertex = from->second.vertices.front().v;
+			Vertex toVertex = to->second.vertices.front().v;
+
+			//If there are multiple options, search for the right one.
+			//Note that for walking nodes, before OR after may match (due to the way we merge MultiNodes).
+			//Note that before/after may be null.
+			if (from->second.vertices.size()>1) {
+				bool error=true;
+				for (std::vector<NodeDescriptor>::const_iterator it=from->second.vertices.begin(); it!=from->second.vertices.end(); it++) {
+					if ((rs==it->after && laneID==it->afterLaneID) || (rs==it->before && laneID==it->beforeLaneID)) {
+						fromVertex = it->v;
+						error = false;
+					}
+				}
+				if (error) { throw std::runtime_error("Unable to find Node with proper outgoing RoadSegment in \"from\" vertex map."); }
+			}
+			if (to->second.vertices.size()>1) {
+				bool error=true;
+				for (std::vector<NodeDescriptor>::const_iterator it=to->second.vertices.begin(); it!=to->second.vertices.end(); it++) {
+					if ((rs==it->before && laneID==it->beforeLaneID) || (rs==it->after && laneID==it->afterLaneID)) {
+						toVertex = it->v;
+						error = false;
+					}
+				}
+				if (error) { throw std::runtime_error("Unable to find Node with proper outgoing RoadSegment in \"to\" vertex map."); }
+			}
+
+			//Create an edge.
+			{
+			Edge edge;
+			bool ok;
+			boost::tie(edge, ok) = boost::add_edge(fromVertex, toVertex, graph);
+			boost::put(boost::edge_name, drivingMap_, edge, WayPoint(rs));
+			boost::put(boost::edge_weight, drivingMap_, edge, rs->length);
+			}
+
+			//Create the reverse edge
+			{
+			Edge edge;
+			bool ok;
+			boost::tie(edge, ok) = boost::add_edge(toVertex, fromVertex, graph);
+			boost::put(boost::edge_name, drivingMap_, edge, WayPoint(rs));
+			boost::put(boost::edge_weight, drivingMap_, edge, rs->length);
+			}
+		}
+	}
+}
 
 
 
@@ -1461,13 +1534,13 @@ void StreetDirectory::ShortestPathImpl::initWalkingNetworkNew(const std::vector<
 	}
 
     //Proceed through our Links, adding each RoadSegment path. Split vertices as required.
-    /*for (std::vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
-    	procAddDrivingLinks(walkingMap_, (*iter)->getPath(true), nodeLookup);
-    	procAddDrivingLinks(walkingMap_, (*iter)->getPath(false), nodeLookup);
+    for (std::vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
+    	procAddWalkingLinks(walkingMap_, (*iter)->getPath(true), nodeLookup);
+    	procAddWalkingLinks(walkingMap_, (*iter)->getPath(false), nodeLookup);
     }
 
     //Now add all Intersection edges (lane connectors)
-    for (std::map<const Node*, VertexLookup>::const_iterator it=nodeLookup.begin(); it!=nodeLookup.end(); it++) {
+    /*for (std::map<const Node*, VertexLookup>::const_iterator it=nodeLookup.begin(); it!=nodeLookup.end(); it++) {
     	procAddDrivingLaneConnectors(walkingMap_, dynamic_cast<const MultiNode*>(it->first), nodeLookup);
     }*/
 }

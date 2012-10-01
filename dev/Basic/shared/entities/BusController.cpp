@@ -159,7 +159,43 @@ unsigned int sim_mob::BusController::scheduledDecision(int busline_i, int trip_k
 
 unsigned int sim_mob::BusController::headwayDecision(int busline_i, int trip_k, int busstopSequence_j, bool direction_flag)
 {
+	const Busline* busline = pt_schedule.findBusline(busline_i);
+	unsigned int Fwd_DTijk = 0;
+	unsigned int Fwd_ETijk = 0;
+	unsigned int Fwd_ATijk = 0;
+	unsigned int Fwd_ATijk_1 = 0;
+	unsigned int Fwd_Hi = 0;
+	double Fwd_alpha = 0.0;
 
+	unsigned int Rev_DTijk = 0;
+	unsigned int Rev_ETijk = 0;
+	unsigned int Rev_ATijk = 0;
+	unsigned int Rev_ATijk_1 = 0;
+	unsigned int Rev_Hi = 0;
+	double Rev_alpha = 0.0;
+	if(direction_flag) {
+		const vector<BusTrip>& fwdBusTrips = busline->getFwdBusTrips();
+		const BusRouteInfo* busRouteInfoFwd_tripK = fwdBusTrips[trip_k].getBusRouteInfo();
+		const BusRouteInfo* busRouteInfoFwd_tripK_1 = fwdBusTrips[trip_k - 1].getBusRouteInfo();
+		const vector<const BusStopInfo*>& busStopInfoFwd_tripK = busRouteInfoFwd_tripK->getBusStopsInfo();
+		Fwd_ATijk_1 = busStopInfoFwd_tripK[busstopSequence_j]->busStop_realTimes.get().real_ArrivalTime;
+		Fwd_ATijk = busStopInfoFwd_tripK[busstopSequence_j]->busStop_realTimes.get().real_ArrivalTime;
+		// Fwd_Hi = ...
+		Fwd_DTijk = dwellTimeCalculation(busline_i, trip_k, busstopSequence_j, direction_flag);
+		Fwd_ETijk = std::max((unsigned int)(Fwd_ATijk_1 + Fwd_alpha*Fwd_Hi), Fwd_ATijk + Fwd_DTijk);
+		return Fwd_ETijk;
+	} else {
+		const vector<BusTrip>& revBusTrips = busline->getRevBusTrips();
+		const BusRouteInfo* busRouteInfoRev_tripK = revBusTrips[trip_k].getBusRouteInfo();
+		const BusRouteInfo* busRouteInfoRev_tripK_1 = revBusTrips[trip_k - 1].getBusRouteInfo();
+		const vector<const BusStopInfo*>& busStopInfoRev_tripK = busRouteInfoRev_tripK->getBusStopsInfo();
+		Rev_ATijk_1 = busStopInfoRev_tripK[busstopSequence_j]->busStop_realTimes.get().real_ArrivalTime;
+		Rev_ATijk = busStopInfoRev_tripK[busstopSequence_j]->busStop_realTimes.get().real_ArrivalTime;
+		// Rev_Hi = ...
+		Rev_DTijk = dwellTimeCalculation(busline_i, trip_k, busstopSequence_j, direction_flag);
+		Fwd_ETijk = std::max((unsigned int)(Rev_ATijk_1 + Rev_alpha*Rev_Hi), Rev_ATijk + Rev_DTijk);
+		return Rev_ETijk;
+	}
 }
 
 unsigned int sim_mob::BusController::evenheadwayDecision(int busline_i, int trip_k, int busstopSequence_j, bool direction_flag)

@@ -45,6 +45,12 @@ public:
 	BusStopInfo();
 	virtual ~BusStopInfo() {}
 
+	const int getBusStopID() const {
+		return stop_id;
+	}
+	const int getRoadSegmentID() const {
+		return roadsegment_id;
+	}
 	Shared<BusStop_ScheduledTimes> busStop_ScheduledTimes;// for each particular BusTrip with this stop_id
 	Shared<BusStop_RealTimes> busStop_realTimes;
 private:

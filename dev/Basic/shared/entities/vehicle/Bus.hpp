@@ -31,6 +31,8 @@ public:
 //	BusRoute& getRoute() { return route; }
 	int getPassengerCount() const { return passengerCount; }
 	void setPassengerCount(int val) { passengerCount = val; }
+	void setBusNumber(int &n) { busNumber = n; }
+	int getBusNumber() { return busNumber; }
 	//bool isSendToBusController(BusController &busctrller);
 
 private:
@@ -38,6 +40,8 @@ private:
 	BusRoute route;
 	DPoint ptCheck;// Later connect to Stops, calculate the position to some stops
 	double DistThreshold;
+
+	int busNumber;
 
 	friend class BusController;
 	//Serialization-related friends

@@ -54,7 +54,6 @@ public:
 	double getPositionX() const;
 	double getPositionY() const;
 
-
 protected:
 	//Override the following behavior
 	virtual double linkDriving(DriverUpdateParams& p);

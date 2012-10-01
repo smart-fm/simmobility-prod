@@ -233,9 +233,10 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 				bus->setPassengerCount(pCount);
 			}
 		}
-	} else if (isBusArriveBusStop()) {
-		vehicle->setAcceleration(3000);
 	}
+//	else if (isBusArriveBusStop()) {
+//		vehicle->setAcceleration(3000);
+//	}
 
 	if (isBusLeavingBusStop() || waitAtStopMS >= BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
 		std::cout << "BusDriver::updatePositionOnLink: bus isBusLeavingBusStop" << std::endl;

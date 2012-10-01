@@ -40,12 +40,10 @@ struct DriverUpdateParams : public UpdateParams {
 
 	LaneGroup* currLaneGroup;
 
-	double currSpeed;
-
 	double currLaneOffset;
 	double currLaneLength;
 	double elapsedSeconds;
-	double timeSpent;
+	double timeThisTick;
 
 	DriverUpdateParams& operator=(DriverUpdateParams rhs)
 	{

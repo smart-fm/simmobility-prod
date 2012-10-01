@@ -107,5 +107,4 @@ namespace sim_mob {
 			} // end of for loop
 		} // end of if
 	}
-
 } // end of namespace sim_mob

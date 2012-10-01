@@ -369,8 +369,6 @@ private:
 
 	friend class RoadSegment;
 
-
-
 };
 
 

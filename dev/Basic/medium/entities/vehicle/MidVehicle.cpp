@@ -28,4 +28,11 @@ void sim_mob::medium::MidVehicle::setDistanceMovedInSegment(double distance) {
 	distMovedInCurrSegment += distance;
 }
 
+void sim_mob::medium::MidVehicle::setPosition(double distToEndSegment) {
+	posInRoadSeg = distToEndSegment;
+}
+
+double sim_mob::medium::MidVehicle::getPosition() const {
+	return posInRoadSeg;
+}
 

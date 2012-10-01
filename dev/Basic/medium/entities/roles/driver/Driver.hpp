@@ -80,18 +80,19 @@ public:
 
 	void intersectionVelocityUpdate();
 	//melani-for queuing
-	void advance(DriverUpdateParams& p);
-	void moveToNextSegment(double timeLeft);
+	bool advance(UpdateParams& p);
+	void moveToNextSegment(UpdateParams& p, double timeSpent);
 	void moveInQueue();
-	double getTimeSpentInTick(DriverUpdateParams& p);
 	double getPosition();
 	void moveInSegment(double distance);
 	void initLaneGroups(sim_mob::RoadSegment& parentRS);
-
-
+	void advanceQueuingVehicle(DriverUpdateParams& p2);
+	void advanceMovingVehicle(DriverUpdateParams& p2);
+	void advanceMovingVehicleWithInitialQ(DriverUpdateParams& p2);
+	void updateVelocity();
 private:
 	void chooseNextLaneForNextLink(DriverUpdateParams& p);
-	bool update_movement(DriverUpdateParams& params, frame_t frameNumber);       ///<Called to move vehicles forward.
+	//bool update_movement(DriverUpdateParams& params, frame_t frameNumber);       ///<Called to move vehicles forward.
 	bool update_post_movement(DriverUpdateParams& params, frame_t frameNumber);       ///<Called to deal with the consequences of moving forwards.
 	void intersectionDriving(DriverUpdateParams& p);
 	void justLeftIntersection(DriverUpdateParams& p);
@@ -108,7 +109,7 @@ private:
 	const sim_mob::Lane* getBestTargetLane();
 
 protected:
-	virtual double updatePositionOnLink(DriverUpdateParams& p);
+	//virtual double updatePositionOnLink(DriverUpdateParams& p);
 	MidVehicle* initializePath(bool allocateVehicle);
 	//Helper: for special strings
 	//void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);
@@ -121,8 +122,6 @@ public:
 	Shared<const Lane*> currLane_;
 	Shared<double> currLaneOffset_;
 	Shared<double> currLaneLength_;
-	Shared<bool> isInIntersection;
-	Shared<double> fwdVelocity;
 
 	/*
 	 * Making params public to expose information like justChangedToNewSegment,

@@ -14,6 +14,7 @@
 #include "entities/vehicle/Vehicle.hpp"
 #include "LaneChangeModel.hpp"
 #include "Driver.hpp"
+#include "../../../../shared/geospatial/LaneConnector.hpp"
 
 using std::numeric_limits;
 using namespace sim_mob;
@@ -178,11 +179,11 @@ LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(DriverUpdateParams& p, int type
 			if (j==0) {
 				double v      = p.perceivedFwdVelocity;
 				double dv     = otherSpeed[i].lead - v;
-				flags[i].lead = (otherDistance[i].lead > lcCriticalGap(p, j+type,p.dis2stop/100,v,dv));
+				flags[i].lead = (otherDistance[i].lead > lcCriticalGap(p, j+type,p.dis2stop,v,dv));
 			} else {
 				double v 	 = otherSpeed[i].lag;
 				double dv 	 = p.perceivedFwdVelocity - otherSpeed[i].lag;
-				flags[i].lag = (otherDistance[i].lag > lcCriticalGap(p, j+type,p.dis2stop/100,v,dv));
+				flags[i].lag = (otherDistance[i].lag > lcCriticalGap(p, j+type,p.dis2stop,v,dv));
 			}
 		}
 	}
@@ -296,7 +297,18 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeMandatoryLaneChangingDecision(Dri
 		return LCS_SAME;
 	}
 }
-
+//TODO:I think lane index should be a data member in the lane class
+size_t getLaneIndex(const Lane* l) {
+	if (l) {
+		const RoadSegment* r = l->getRoadSegment();
+		for (size_t i = 0; i < r->getLanes().size(); i++) {
+			if (r->getLanes().at(i) == l) {
+				return i;
+			}
+		}
+	}
+	return -1; //NOTE: This might not do what you expect! ~Seth
+}
 /*
  * In MITSIMLab, vehicle change lane in 1 time step.
  * While in sim mobility, vehicle approach the target lane in limited speed.
@@ -314,6 +326,8 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 		int lcsSign = (currLaneChangeDir==LCS_RIGHT) ? -1 : 1;
 		return lcsSign*150;//p.laneChangingVelocity;
 	}
+
+
 //		else {
 //		//If too close to node, don't do lane changing, distance should be larger than 3m
 ////		if(p.nvFwd.distance <= 2000) {

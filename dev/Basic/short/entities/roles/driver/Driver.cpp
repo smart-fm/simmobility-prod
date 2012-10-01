@@ -680,19 +680,22 @@ bool sim_mob::Driver::AvoidCrashWhenLaneChanging(DriverUpdateParams& p)
 double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 
 
-	if (!vehicle->hasNextSegment(true)) {
+	if (!vehicle->hasNextSegment(true)) // has seg in current link
+	{
 		p.dis2stop = vehicle->getAllRestRoadSegmentsLength() - vehicle->getDistanceMovedInSegment() - vehicle->length
 				/ 2 - 300;
 		if (p.nvFwd.distance < p.dis2stop)
 			p.dis2stop = p.nvFwd.distance;
 		p.dis2stop /= 100;
-	} else
+	}
+	else
 	{
 		p.nextLaneIndex = std::min<int>(p.currLaneIndex, vehicle->getNextSegment()->getLanes().size() - 1);
 		if(vehicle->getNextSegment()->getLanes().at(p.nextLaneIndex)->is_pedestrian_lane())
 		{
 			p.nextLaneIndex--;
 			p.dis2stop = vehicle->getCurrPolylineLength() - vehicle->getDistanceMovedInSegment() + 1000;
+			p.dis2stop /= 100;
 		}
 		else
 			p.dis2stop = 1000;//defalut 1000m
@@ -700,6 +703,50 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 //
 //	if (p.nextLaneIndex >= p.currLane->getRoadSegment()->getLanes().size())
 //		p.nextLaneIndex = p.currLaneIndex;
+
+	// check current lane has connector to next link
+	if(p.dis2stop<150) // <150m need check above, ready to change lane
+	{
+		std::cout<<"asdfas"<<std::endl;
+////		const RoadSegment* currentSegment = vehicle->getCurrSegment();
+		const RoadSegment* nextSegment = vehicle->getNextSegment(false);
+		const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (vehicle->getNodeMovingTowards());
+		if(currEndNode)
+		{
+			// get lane connector
+			const std::set<LaneConnector*>& lcs = currEndNode->getOutgoingLanes(*vehicle->getCurrSegment());
+
+			if (lcs.size()>0)
+			{
+				//
+				if(p.currLane->is_pedestrian_lane())
+					std::cout<<"asdfasf"<<std::endl;
+				bool currentLaneConnectToNextLink = false;
+				size_t targetLaneIndex=-1;
+				for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
+					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment && (*it)->getLaneFrom() == p.currLane) {
+						// current lane connect to next link
+						currentLaneConnectToNextLink = true;
+					}
+					//find target lane with same index, use this lane
+					if (targetLaneIndex == -1 && (*it)->getLaneTo()->getRoadSegment() == nextSegment)
+						targetLaneIndex = getLaneIndex((*it)->getLaneTo());
+				}
+				if( currentLaneConnectToNextLink == false ) // wow! we need change lane
+				{
+					//check target lane first
+					if(targetLaneIndex == -1) // no target lane?
+						std::cout<<"Driver::linkDriving: can't find target lane!"<<std::endl;
+					p.nextLaneIndex = targetLaneIndex;
+	//				if( targetLaneIndex > p.currLaneIndex )
+	//					return -150;
+	//				else
+	//					return 150;
+				}
+			} // end of if (!lcs)
+		}
+	}
+
 	//Check if we should change lanes.
 	double newLatVel;
 	newLatVel = lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length,
@@ -932,6 +979,7 @@ void sim_mob::Driver::chooseNextLaneForNextLink(DriverUpdateParams& p) {
 	//Retrieve the node we're on, and determine if this is in the forward direction.
 	const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (vehicle->getNodeMovingTowards());
 	const RoadSegment* nextSegment = vehicle->getNextSegment(false);
+	const RoadSegment* currentLinkNextSegment = vehicle->getNextSegment(true);
 
 	//Build up a list of target lanes.
 	nextLaneInNextLink = nullptr;

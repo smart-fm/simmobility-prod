@@ -52,7 +52,7 @@ public:
 		return roadsegment_id;
 	}
 	Shared<BusStop_ScheduledTimes> busStop_ScheduledTimes;// for each particular BusTrip with this stop_id
-	Shared<BusStop_RealTimes> busStop_realTimes;
+	mutable Shared<BusStop_RealTimes> busStop_realTimes;
 private:
 	int stop_id;
 	string stop_name;

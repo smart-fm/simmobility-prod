@@ -89,9 +89,8 @@ void sim_mob::BusController::assignBusTripChainWithPerson()
 
 }
 
-void sim_mob::BusController::receiveBusInformation(DPoint pt) {
-	posBus = pt;
-	std::cout<<"Report Given Bus position: --->("<<posBus.x<<","<<posBus.y<<")"<<std::endl;
+void sim_mob::BusController::receiveBusInformation(int busline_i, int trip_k, int busstopSequence_j, bool direction_flag, unsigned int ATijk) {
+	std::cout<<"Report Aijk: --->"<<ATijk<<std::endl;
 }
 
 unsigned int sim_mob::BusController::decisionCalculation(int busline_i, int trip_k, int busstopSequence_j, bool direction_flag)

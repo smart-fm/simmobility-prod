@@ -38,7 +38,7 @@ public:
 	virtual Entity::UpdateStatus update(frame_t frameNumber);
 	virtual void buildSubscriptionList(std::vector<BufferedBase*>& subsList);
 
-	void receiveBusInformation(DPoint pt);
+	void receiveBusInformation(int busline_i = 1, int trip_k = 0, int busstopSequence_j = 0, bool direction_flag = true, unsigned int ATijk = 0);
 	// offsetMS_From(ConfigParams::GetInstance().simStartTime))???
 	unsigned int decisionCalculation(int busline_i, int trip_k, int busstopSequence_j, bool direction_flag);// return Departure MS from Aijk, DWijk etc
 	unsigned int sendBusInformation();// depend on the control strategy

@@ -1548,7 +1548,7 @@ void StreetDirectory::ShortestPathImpl::procAddWalkingLinks(Graph& graph, const 
 			Edge edge;
 			bool ok;
 			boost::tie(edge, ok) = boost::add_edge(fromVertex, toVertex, graph);
-			boost::put(boost::edge_name, graph, edge, WayPoint(rs));
+			boost::put(boost::edge_name, graph, edge, WayPoint(rs->getLanes().at(laneID)));
 			boost::put(boost::edge_weight, graph, edge, rs->length);
 			}
 
@@ -1557,7 +1557,7 @@ void StreetDirectory::ShortestPathImpl::procAddWalkingLinks(Graph& graph, const 
 			Edge edge;
 			bool ok;
 			boost::tie(edge, ok) = boost::add_edge(toVertex, fromVertex, graph);
-			boost::put(boost::edge_name, graph, edge, WayPoint(rs));
+			boost::put(boost::edge_name, graph, edge, WayPoint(rs->getLanes().at(laneID)));
 			boost::put(boost::edge_weight, graph, edge, rs->length);
 			}
 		}

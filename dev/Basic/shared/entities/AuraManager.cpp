@@ -12,6 +12,7 @@
 #include "geospatial/RoadSegment.hpp"
 #include "buffering/Vector2D.hpp"
 #include "entities/Person.hpp"
+#include "util/SegmentVehicles.hpp"
 
 namespace sim_mob
 {
@@ -249,17 +250,15 @@ public:
     nearbyAgents(Point2D const & position, Lane const & lane,
                  centimeter_t distanceInFront, centimeter_t distanceBehind) const;
 
-
-
 private:
     R_tree tree_;
 
     /* First dirty version... Will change eventually.
      * This method is called from within the update of the AuraManager.
-     * This method increments the vehicle count for the road segment
-     * on which the Agent's vehicle is currently in.
+     * This method collects the moving and queuing agents on each road segment in the network
+     * and stores it in the corresponding list for moving and queuing agents.
      */
-    void updateDensity(const Agent* ag);
+    void mergeSegmentVehiclesFromWorkers();
 };
 
 void
@@ -283,15 +282,11 @@ AuraManager::Impl::update()
     	throw std::runtime_error("all_agents is somehow storing an entity.");
     }
 
-    sim_mob::AuraManager::instance().densityMap.clear(); //the following while loop counts again
     while (agents.size() > 1)
     {
         agents.erase(agent);
         tree_.insert(agent);
         agent = nearest_agent(agent, agents);
-
-        //This is required for the medium term; adds a minor overhead in short term.
-		updateDensity(agent);
     }
     tree_.insert(agent);    // insert the last agent into the tree.
     assert(tree_.GetSize() == Agent::all_agents.size());
@@ -365,13 +360,32 @@ const
     return agentsInRect(lowerLeft, upperRight);
 }
 
-void AuraManager::Impl::updateDensity(const Agent* ag) {
-	sim_mob::AuraManager &auraMgr = sim_mob::AuraManager::instance();
-	if(ag->getCurrLane()){
-		sim_mob::RoadSegment* rdSeg = ag->getCurrLane()->getRoadSegment();
+void AuraManager::Impl::mergeSegmentVehiclesFromWorkers() {
+	typedef boost::unordered_map<const RoadSegment*, sim_mob::SegmentVehicles*> segMap_t;
+	segMap_t temp_global;
+	for (std::vector<sim_mob::WorkGroup*>::const_iterator it = sim_mob::WorkGroup::getRegisteredWorkGroups().begin();
+			it != sim_mob::WorkGroup::getRegisteredWorkGroups().end(); it++) {
+		for(int i = 0; i < (*it)->size(); i++){
 
-		auraMgr.densityMap[rdSeg] = auraMgr.densityMap[rdSeg] + 1; // [] operator adds rdSeg to the map if it not already there.
-	}
+			sim_mob::Worker* worker = (*it)->getWorker(i);
+			segMap_t agentsFromWorker = worker->getAgentsOnSegments();
+
+			if(!agentsFromWorker.empty()){
+				for(segMap_t::iterator segIt = agentsFromWorker.begin();
+						segIt != agentsFromWorker.end(); segIt++){
+
+					const sim_mob::RoadSegment* rdSeg = (*segIt).first;
+					sim_mob::SegmentVehicles* segVehicleFromWorker = (*segIt).second;
+					sim_mob::SegmentVehicles* segVehicleFromTemp = temp_global[rdSeg];
+					segVehicleFromTemp->merge(segVehicleFromWorker);
+				} // for loop
+			} // if
+		} // for loop iterating workers
+	} // for loop for iterating RegisteredWorkGroups
+
+	// Assign the constructed vehicle lists and queues to aura manager
+	AuraManager::instance().agentsOnSegments_global = temp_global;
+
 }
 
 /** \endcond ignoreAuraManagerInnards -- End of block to be ignored by doxygen.  */
@@ -424,17 +438,32 @@ AuraManager::printStatistics() const
     }
 }
 
-double AuraManager::getDensity(const RoadSegment* rdSeg) {
-	if(densityMap.empty()){
-		throw std::runtime_error("densityMap is empty");
+std::map<const sim_mob::Lane*, unsigned short> AuraManager::getQueueLengthsOfLanes(const sim_mob::RoadSegment* rdSeg){
+	std::map<const sim_mob::Lane*, unsigned short> laneWiseQueueLengths;
+	sim_mob::SegmentVehicles* rdSegVehicles = agentsOnSegments_global[rdSeg];
+	for(std::vector<sim_mob::Lane*>::const_iterator i = rdSeg->getLanes().begin();
+			i != rdSeg->getLanes().end(); i++ ) {
+		laneWiseQueueLengths[*i] = rdSegVehicles->getAgentsOnQueuingVehicles(*i).size();
+
 	}
-	std::map<const RoadSegment*, unsigned short>::iterator densityMapIt = densityMap.find(rdSeg);
-	if(densityMapIt == densityMap.end()){
-		throw std::runtime_error("Requested road segment not found");
-	}
-	return (densityMapIt->second/(rdSeg->length / 100.0)); // return density as no. of vehicles per meter on the road segment.
-}
+	return laneWiseQueueLengths;
 }
 
+std::map<const sim_mob::Lane*, unsigned short> AuraManager::getMovingCountsOfLanes(const sim_mob::RoadSegment* rdSeg){
+	std::map<const sim_mob::Lane*, unsigned short> laneWiseMovingCounts;
+	sim_mob::SegmentVehicles* rdSegVehicles = agentsOnSegments_global[rdSeg];
+	for(std::vector<sim_mob::Lane*>::const_iterator i = rdSeg->getLanes().begin();
+			i != rdSeg->getLanes().end(); i++ ) {
+		laneWiseMovingCounts[*i] = rdSegVehicles->getAgentsOnMovingVehicles(*i).size();
+	}
+	return laneWiseMovingCounts;
+}
+
+void AuraManager::dequeue(const sim_mob::RoadSegment* rdSeg, const sim_mob::Lane* lane) {
+	agentsOnSegments_global[rdSeg]->dequeue(lane);
+}
+
+
+} // end of sim_mob
 
 

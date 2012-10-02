@@ -838,6 +838,24 @@ const RoadSegment* sim_mob::GeneralPathMover::getNextSegment(bool sameLink) cons
 
 	return *nextSegmentIt;
 }
+const RoadSegment* sim_mob::GeneralPathMover::getNextToNextSegment() const
+{
+	throwIf(!isPathSet(), "GeneralPathMover path not set.");
+	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
+
+	vector<const RoadSegment*>::iterator nextSegmentIt = currSegmentIt + 1;
+	if (nextSegmentIt == fullPath.end())
+	{
+		return nullptr;
+	}
+	nextSegmentIt++; // currSegmentIt + 2
+	if (nextSegmentIt == fullPath.end())
+	{
+		return nullptr;
+	}
+
+	return *nextSegmentIt;
+}
 const RoadSegment* sim_mob::GeneralPathMover::getPrevSegment(bool sameLink) const
 {
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");

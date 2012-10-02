@@ -9,11 +9,12 @@
 #include "Pavement.hpp"
 #include "Link.hpp"
 
-/*namespace geo {
+namespace geo {
 class segment_t_pimpl;
 class Segments_pimpl;
 class link_t_pimpl;
-}*/
+}
+
 
 namespace sim_mob
 {
@@ -21,6 +22,7 @@ namespace sim_mob
 
 //Forward declarations
 class Lane;
+class LaneGroup;
 class BusStop;
 class RoadNetworkPackageManager;
 
@@ -36,7 +38,24 @@ class Loader;
 class LaneLoader;
 } //End aimsun namespace
 
+/*
+ * SpeedDensityParams is the place holder for storing the parameters of the
+ * speed density function for this road segment.
+ * \author Harish
+ */
+struct SupplyParams {
+	double freeFlowSpeed; //Maximum speed of the road segment
+	double jamDensity; //density during traffic jam in vehicles / m
+	double minDensity; //minimum traffic density in vehicles / m
+	double minSpeed; //minimum speed in the segment
+	double capacity; //segment capacity in vehicles/second
+	double alpha; //Model parameter of speed density function
+	double beta; //Model parameter of speed density function
 
+
+	SupplyParams(double maxSpeed, double minSpeed, double maxDensity, double minDensity, double capacity, double a, double b)
+		: freeFlowSpeed(maxSpeed), jamDensity(maxDensity), minDensity(minDensity), minSpeed(minSpeed), capacity(capacity), alpha(a), beta(b){}
+};
 
 /**
  * Part of a Link with consistent lane numbering. RoadSegments may be bidirectional.
@@ -61,6 +80,10 @@ public:
 public:
 	
 	explicit RoadSegment(sim_mob::Link* parent=nullptr, unsigned long id=-1);
+
+	//to be used when we have the actual values for speed density parameters
+	explicit RoadSegment(sim_mob::Link* parent, const SupplyParams* sParams, unsigned long id=-1);
+
 	const unsigned long  & getSegmentID()const ;
 
 	bool operator== (const RoadSegment* rhs) const
@@ -77,6 +100,9 @@ public:
 		void end1();
 		return lanes; }
 
+	const std::vector<sim_mob::LaneGroup*>& getLaneGroups() const {
+		return lanegroups;
+	}
 
 	sim_mob :: BusStop* getBusStop() {
 			return busstop; }
@@ -112,31 +138,54 @@ public:
 	///TODO This should be made private again.
 	mutable std::vector< std::vector<sim_mob::Point2D> > laneEdgePolylines_cached;
 	void setLanes(std::vector<sim_mob::Lane*>);
+	void setLaneGroups(std::vector<sim_mob::LaneGroup*>) const;
+
+	const sim_mob::SupplyParams* getSupplyParams() {
+		return supplyParams;
+	}
+
+	//author-melani
+	//for mid-term use
+	bool isValidLane(const sim_mob::Lane* chosenLane) const;
+	/*void initLaneGroups() const;
+	void groupLanes(std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt, const std::vector<sim_mob::RoadSegment*>& segments, sim_mob::Node* start, sim_mob::Node* end) const;
+	void matchLanes(std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS) const;*/
+
 private:
 	///Collection of lanes. All road segments must have at least one lane.
 	std::vector<sim_mob::Lane*> lanes;
+	mutable std::vector<sim_mob::LaneGroup*> lanegroups; //only for mid-term use
 	sim_mob::BusStop* busstop;
 	//int getBustStopID;
 	///Computed polylines are cached here.
 	///These run from 0 (for the median) to lanes.size()+1 (for the outer edge).
-	void specifyEdgePolylines(const std::vector< std::vector<sim_mob::Point2D> >& calcdPolylines);
-	void makeLanePolylineFromEdges(sim_mob::Lane* lane, const std::vector<sim_mob::Point2D>& inner, const std::vector<sim_mob::Point2D>& outer) const;
-	std::vector<sim_mob::Point2D> makeLaneEdgeFromPolyline(sim_mob::Lane* refLane, bool edgeIsRight) const;
-
+	void specifyEdgePolylines(
+			const std::vector<std::vector<sim_mob::Point2D> >& calcdPolylines);
+	void makeLanePolylineFromEdges(sim_mob::Lane* lane,
+			const std::vector<sim_mob::Point2D>& inner,
+			const std::vector<sim_mob::Point2D>& outer) const;
+	std::vector<sim_mob::Point2D> makeLaneEdgeFromPolyline(
+			sim_mob::Lane* refLane, bool edgeIsRight) const;
 	//mutable std::vector< std::vector<sim_mob::Point2D> > laneEdgePolylines_cached;
-
 	///Helps to identify road segments which are bi-directional.
 	///We count lanes from the LHS, so this doesn't change with drivingSide
 	unsigned int lanesLeftOfDivider;
 
 	///Which link this appears in
 	sim_mob::Link* parentLink;
-//	std::string segmentID;
+	//	std::string segmentID;
 	unsigned long segmentID;
 
-friend class sim_mob::aimsun::Loader;
-friend class sim_mob::aimsun::LaneLoader;
-friend class sim_mob::RoadNetworkPackageManager;
+
+	friend class sim_mob::aimsun::Loader;
+	friend class sim_mob::aimsun::LaneLoader;
+	friend class sim_mob::RoadNetworkPackageManager;
+
+	const sim_mob::SupplyParams* supplyParams;
+
+	friend class ::geo::segment_t_pimpl;
+	friend class ::geo::Segments_pimpl;
+	friend class ::geo::link_t_pimpl;
 
 };
 

@@ -4,16 +4,18 @@
 #pragma once
 
 #include <vector>
+#include <map>
 #include "entities/roles/Role.hpp"
 #include "geospatial/StreetDirectory.hpp"
 #include "GenConfig.h"
 
 #include "entities/roles/Role.hpp"
 #include "geospatial/StreetDirectory.hpp"
-#include "entities/vehicle/Vehicle.hpp"
+#include "entities/vehicle/MidVehicle.hpp"
 #include "util/DynamicVector.hpp"
 #include "../short/entities/roles/driver/IntersectionDrivingModel.hpp"
 #include "DriverUpdateParams.hpp"
+#include "entities/AuraManager.hpp"
 
 #ifndef SIMMOB_DISABLE_MPI
 class PackageUtils;
@@ -32,14 +34,16 @@ class Node;
 class MultiNode;
 class DPoint;
 class UpdateParams;
+class LaneGroup;
 
 namespace medium
 {
 
-
 /**
  * A medium-term Driver.
  * \author Seth N. Hetu
+ * \author Melani Jayasuriya
+ * \author Harish Loganathan
  */
 class Driver : public sim_mob::Role {
 private:
@@ -52,10 +56,11 @@ private:
 	};
 
 public:
+	std::stringstream ss;
 	int remainingTimeToComplete;
 
 	//Driver(Agent* parent);
-	Driver(Person* parent, MutexStrategy mtxStrat);
+	Driver(Agent* parent, MutexStrategy mtxStrat);
 	virtual ~Driver();
 
 	virtual sim_mob::Role* clone(sim_mob::Person* parent) const;
@@ -71,9 +76,18 @@ public:
 	void setParentBufferedData();			///<set next data to parent buffer data
 
 	//TODO: This may be risky, as it exposes non-buffered properties to other vehicles.
-	const Vehicle* getVehicle() const {return vehicle;}
+	const sim_mob::medium::MidVehicle* getVehicle() const {return vehicle;}
 
 	void intersectionVelocityUpdate();
+	//melani-for queuing
+	void advance(DriverUpdateParams& p);
+	void moveToNextSegment(double timeLeft);
+	void moveInQueue();
+	double getTimeSpentInTick(DriverUpdateParams& p);
+	double getPosition();
+	void moveInSegment(double distance);
+	void initLaneGroups(sim_mob::RoadSegment& parentRS);
+
 
 private:
 	void chooseNextLaneForNextLink(DriverUpdateParams& p);
@@ -83,14 +97,22 @@ private:
 	void justLeftIntersection(DriverUpdateParams& p);
 	void syncCurrLaneCachedInfo(DriverUpdateParams& p);
 	void calculateIntersectionTrajectory(DPoint movingFrom, double overflow);
-	double speed_density_function(double density); ///<Called to compute the required speed of the driver from the density of the current road segment's traffic density
+	double speed_density_function(std::map<const sim_mob::Lane*, unsigned short> laneWiseMovingVehicleCounts); ///<Called to compute the required speed of the driver from the density of the current road segment's traffic density
+
+	void addToQueue();
+	void addToMovingList();
+	void removeFromQueue();
+	void removeFromMovingList();
+	void matchLanes(sim_mob::RoadSegment& parentRS, std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS);
+	sim_mob::LaneGroup* getBestTargetLaneGroup();
+	const sim_mob::Lane* getBestTargetLane();
 
 protected:
 	virtual double updatePositionOnLink(DriverUpdateParams& p);
-	sim_mob::Vehicle* initializePath(bool allocateVehicle);
+	MidVehicle* initializePath(bool allocateVehicle);
 	//Helper: for special strings
-	void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);
-	void initTripChainSpecialString(const std::string& value);
+	//void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);
+	//void initTripChainSpecialString(const std::string& value);
 
 	void setOrigin(DriverUpdateParams& p);
 
@@ -130,7 +152,7 @@ private:
 	NodePoint goal;
 
 protected:
-	Vehicle* vehicle;
+	sim_mob::medium::MidVehicle* vehicle;
 	IntersectionDrivingModel* intModel;
 
 };

@@ -76,6 +76,7 @@ public:
 	//More stuff; some might be optional.
 	const sim_mob::RoadSegment* getCurrSegment() const;
 	const sim_mob::RoadSegment* getNextSegment(bool inSameLink=true) const;
+	const sim_mob::RoadSegment* getSecondSegmentAhead();
 	const sim_mob::RoadSegment* getPrevSegment() const;
 	const sim_mob::RoadSegment* hasNextSegment(bool inSameLink) const;
 	sim_mob::DynamicVector getCurrPolylineVector() const;

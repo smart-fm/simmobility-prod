@@ -76,6 +76,8 @@ public:
     LaneAndIndexPair
     getLane(Point2D const & position) const;
 
+    const MultiNode* GetCrossingNode(const Crossing* cross) const;
+
     std::vector<RoadSegmentAndIndexPair>
     closestRoadSegments(Point2D const & point, centimeter_t halfWidth, centimeter_t halfHeight) const;
 
@@ -102,6 +104,10 @@ private:
     // rectangular grid of gridWidth_ and gridHeight_.
     bool
     checkGrid(int m, int n, Point2D const & p1, Point2D const & p2, centimeter_t halfWidth) const;
+
+    // Called once for each unique RoadSegment
+    void buildLookups(const std::vector<RoadSegment*>& roadway, std::set<const Crossing*> completed);
+
 
 private:
     centimeter_t gridWidth_;
@@ -132,6 +138,9 @@ private:
             return p1.getX() == p2.getX() && p1.getY() == p2.getY();
         }
     };
+
+    //Map of Crossings->MultiNode. May not contain all crossings.
+    std::map<const Crossing*, const MultiNode*> crossings_to_multinodes;
 
     // map< key, vector<value> > is used for GridType instead of multimap<key, value>.
     typedef std::vector<RoadSegmentAndIndexPair> RoadSegmentSet;
@@ -268,6 +277,13 @@ StreetDirectory::Impl::Impl(RoadNetwork const & network,
   , gridHeight_(gridHeight)
 {
     partition(network);
+
+    //Build additional lookups
+    std::set<const Crossing*> completedCrossings;
+    for (std::vector<Link*>::const_iterator iter = network.getLinks().begin(); iter != network.getLinks().end(); ++iter) {
+    	buildLookups((*iter)->getPath(true), completedCrossings);
+    	buildLookups((*iter)->getPath(false), completedCrossings);
+    }
 }
 
 inline bool
@@ -277,6 +293,66 @@ StreetDirectory::Impl::checkGrid(int m, int n, Point2D const & p1, Point2D const
     AABB grid(Point2D(m * gridWidth_, n * gridHeight_), gridWidth_, gridHeight_);
     return didRoadIntersectAABB(p1, p2, halfWidth, grid);
 }
+
+namespace {
+
+//Helper: Find the point closest to the origin.
+double GetShortestDistance(const Point2D& origin, const Point2D& p1, const Point2D& p2, const Point2D& p3, const Point2D& p4) {
+	double res = sim_mob::dist(origin, p1);
+	res = std::min(res, sim_mob::dist(origin, p2));
+	res = std::min(res, sim_mob::dist(origin, p3));
+	res = std::min(res, sim_mob::dist(origin, p4));
+	return res;
+}
+
+//Helper: find the nearest MultiNode to this Segment.
+const MultiNode* FindNearestMultiNode(const RoadSegment* seg, const Crossing* cr) {
+	//Error case:
+	const MultiNode* start = dynamic_cast<const MultiNode*>(seg->getStart());
+	const MultiNode* end   = dynamic_cast<const MultiNode*>(seg->getEnd());
+	if (!start && !end) {
+		return nullptr;
+	}
+
+	//Easy case
+	if (start && !end) {
+		return start;
+	}
+	if (end && !start) {
+		return end;
+	}
+
+	//Slightly harder case: compare distances.
+	double dStart = GetShortestDistance(start->getLocation(), cr->nearLine.first, cr->nearLine.second, cr->farLine.first, cr->farLine.second);
+	double dEnd   = GetShortestDistance(end->getLocation(),   cr->nearLine.first, cr->nearLine.second, cr->farLine.first, cr->farLine.second);
+	return dStart < dEnd ? start : end;
+}
+
+} //End un-named namespace
+
+void StreetDirectory::Impl::buildLookups(const std::vector<RoadSegment*>& roadway, std::set<const Crossing*> completed)
+{
+	//Scan for each crossing (note: this copies the ShortestPathImpl_ somewhat, may want to consolidate later).
+	for (std::vector<RoadSegment*>::const_iterator segIt=roadway.begin(); segIt!=roadway.end(); segIt++) {
+		for (std::map<centimeter_t, const RoadItem*>::const_iterator riIt=(*segIt)->obstacles.begin(); riIt!=(*segIt)->obstacles.end(); riIt++) {
+			//Check if it's a crossing; check if we've already processed it; tag it.
+			const Crossing* cr = dynamic_cast<const Crossing*>(riIt->second);
+			if (!cr || completed.find(cr)!=completed.end()) {
+				continue;
+			}
+			completed.insert(cr);
+
+			//Find whatever MultiNode is closest.
+			const MultiNode* atNode = FindNearestMultiNode(*segIt, cr);
+			if (atNode) {
+				//Tag it.
+				crossings_to_multinodes[cr] = atNode;
+			}
+		}
+	}
+}
+
+
 
 void
 StreetDirectory::Impl::partition(RoadSegment const & segment, bool isForward)
@@ -371,6 +447,19 @@ StreetDirectory::Impl::getLane(Point2D const & point) const
 
     return LaneAndIndexPair();
 }
+
+
+
+const MultiNode* StreetDirectory::Impl::GetCrossingNode(const Crossing* cross) const
+{
+	std::map<const Crossing*, const MultiNode*>::const_iterator res = crossings_to_multinodes.find(cross);
+	if (res!=crossings_to_multinodes.end()) {
+		return res->second;
+	}
+	return nullptr;
+}
+
+
 
 std::vector<StreetDirectory::RoadSegmentAndIndexPair>
 StreetDirectory::Impl::closestRoadSegments(Point2D const & point,
@@ -1475,41 +1564,7 @@ void StreetDirectory::ShortestPathImpl::procAddWalkingLinks(Graph& graph, const 
 	}
 }
 
-namespace {
 
-//Helper: Find the point closest to the origin.
-double GetShortestDistance(const Point2D& origin, const Point2D& p1, const Point2D& p2, const Point2D& p3, const Point2D& p4) {
-	double res = sim_mob::dist(origin, p1);
-	res = std::min(res, sim_mob::dist(origin, p2));
-	res = std::min(res, sim_mob::dist(origin, p3));
-	res = std::min(res, sim_mob::dist(origin, p4));
-	return res;
-}
-
-//Helper: find the nearest MultiNode to this Segment.
-const MultiNode* FindNearestMultiNode(const RoadSegment* seg, const Crossing* cr) {
-	//Error case:
-	const MultiNode* start = dynamic_cast<const MultiNode*>(seg->getStart());
-	const MultiNode* end   = dynamic_cast<const MultiNode*>(seg->getEnd());
-	if (!start && !end) {
-		return nullptr;
-	}
-
-	//Easy case
-	if (start && !end) {
-		return start;
-	}
-	if (end && !start) {
-		return end;
-	}
-
-	//Slightly harder case: compare distances.
-	double dStart = GetShortestDistance(start->getLocation(), cr->nearLine.first, cr->nearLine.second, cr->farLine.first, cr->farLine.second);
-	double dEnd   = GetShortestDistance(end->getLocation(),   cr->nearLine.first, cr->nearLine.second, cr->farLine.first, cr->farLine.second);
-	return dStart < dEnd ? start : end;
-}
-
-} //End un-named namespace.
 void StreetDirectory::ShortestPathImpl::procAddWalkingCrossings(Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup, std::set<const Crossing*>& completed)
 {
 	//Skip empty paths
@@ -2518,6 +2573,11 @@ StreetDirectory::closestRoadSegments(Point2D const & point,
 {
     return pimpl_ ? pimpl_->closestRoadSegments(point, halfWidth, halfHeight)
                   : std::vector<RoadSegmentAndIndexPair>();
+}
+
+const MultiNode* StreetDirectory::GetCrossingNode(const Crossing* cross) const
+{
+	return pimpl_ ? pimpl_->GetCrossingNode(cross) : nullptr;
 }
 
 Signal const *

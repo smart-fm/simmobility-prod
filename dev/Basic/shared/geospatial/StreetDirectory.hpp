@@ -22,6 +22,7 @@ class Point2D;
 class RoadNetwork;
 class RoadSegment;
 class Node;
+class MultiNode;
 class BusStop;
 class Crossing;
 
@@ -204,6 +205,11 @@ public:
      */
     LaneAndIndexPair
     getLane(Point2D const & point) const;
+
+    /**
+     * Return the MultiNode closest to this Crossing (may be null).
+     */
+    const MultiNode* GetCrossingNode(const Crossing* cross) const;
 
     /**
      * Return the RoadSegments within a rectangle centered around a point;

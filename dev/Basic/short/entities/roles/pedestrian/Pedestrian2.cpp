@@ -233,7 +233,12 @@ void sim_mob::Pedestrian2::setSubPath() {
 }
 
 void sim_mob::Pedestrian2::updatePedestrianSignal() {
-	const RoadSegment *rs = pedMovement.getCurrentWaypoint()->crossing_->getRoadSegment();
+	const MultiNode* node = StreetDirectory::instance().GetCrossingNode(pedMovement.getCurrentWaypoint()->crossing_);
+	if (!node) {
+		throw std::runtime_error("Coulding find Pedestrian Sginal for crossing.");
+	}
+
+/*	const RoadSegment *rs = pedMovement.getCurrentWaypoint()->crossing_->getRoadSegment();
 
 	// find intersection's multi node,compare the distance to start ,end nodes of segment,any other way?
 	Point2D currentSegmentStartLocation(rs->getStart()->location);
@@ -252,7 +257,7 @@ void sim_mob::Pedestrian2::updatePedestrianSignal() {
 
 	// we have multi node ,so get signal
 	if(rs)
-		node = ConfigParams::GetInstance().getNetwork().locateNode(location, true);
+		node = ConfigParams::GetInstance().getNetwork().locateNode(location, true);*/
 	if (node)
 		trafficSignal = StreetDirectory::instance().signalAt(*node);
 	else

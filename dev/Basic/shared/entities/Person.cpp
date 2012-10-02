@@ -353,7 +353,6 @@ UpdateStatus sim_mob::Person::update(frame_t frameNumber) {
 #ifndef SIMMOB_STRICT_AGENT_ERRORS
 	try {
 #endif
-
 		//Update functionality
 		update_time(frameNumber, currTimeMS, retVal);
 

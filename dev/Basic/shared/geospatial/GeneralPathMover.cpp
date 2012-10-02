@@ -61,16 +61,14 @@ sim_mob::GeneralPathMover::GeneralPathMover(const GeneralPathMover& copyFrom) :
 
 void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, int startLaneID)
 {
-	if (Debug::Paths)
-	{
+	if (Debug::Paths) {
 		DebugStream << "New Path of length " << path.size() << endl;
 		DebugStream << "Starting in Lane: " << startLaneID << endl;
 	}
 
 	//Determine whether or not the first one is fwd.
 	bool isFwd;
-	if (path.empty())
-	{
+	if (path.empty()) {
 		throw std::runtime_error("Attempting to set a path with 0 road segments");
 	}
 

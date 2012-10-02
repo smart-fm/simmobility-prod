@@ -843,31 +843,28 @@ private:
     void procAddWalkingCrossings(Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup, std::set<const Crossing*>& completed);
 
     //Old processing code
+#ifndef STDIR_FIX_BROKEN
     void process(std::vector<RoadSegment*> const & roads, bool isForward);
     void process(RoadSegment const * road, bool isForward);
-#ifndef STDIR_FIX_BROKEN
     void linkCrossingToRoadSegment(RoadSegment *road, bool isForward);
 #endif
     void clearChoiceSet();
 
     bool checkIfExist(std::vector<std::vector<WayPoint> > & paths, std::vector<WayPoint> & path);
+
+#ifndef STDIR_FIX_BROKEN
     // Oh wow!  Overloaded functions with different return types.
     Node const * findVertex(Graph const & graph, Point2D const & point, centimeter_t distance) const;
     Vertex findVertex(Graph const & graph, Node const * node) const;
     Vertex findVertex(Point2D const & point);
-
     Node const * findNode(Point2D const & point);
-
     void addRoadEdge(Node const * node1, Node const * node2,
                      WayPoint const & wp, centimeter_t length);
-
     void addRoadEdgeWithTravelTime(Node const * node1, Node const * node2,
     		         WayPoint const & wp, double travelTime);
-
-
-
     void addSideWalk(Lane const * sideWalk, centimeter_t length);
     void addCrossing(Crossing const * crossing, centimeter_t length);
+#endif
 
     void getVertices(Vertex & fromVertex, Vertex & toVertex,
                      Node const & fromNode, Node const & toNode) const;
@@ -960,6 +957,7 @@ namespace
 
 // Search the graph for a vertex located at a Node that is within <distance> from <point>
 // and return that Node, if any; otherwise return 0.
+#ifndef STDIR_FIX_BROKEN
 Node const *
 StreetDirectory::ShortestPathImpl::findVertex(Graph const & graph, Point2D const & point,
                                               centimeter_t distance)
@@ -975,6 +973,7 @@ const
     }
     return nullptr;
 }
+#endif
 
 // If there is a Node in the drivingMap_ that is within 0.5 meter from <point>, return it;
 // otherwise return a new "internal" node located at <point>.  "Internal" means the node exists
@@ -984,6 +983,7 @@ const
 // yet the lanes polylines are not "connected".  That is, the last point of the lane's polyline
 // in one road-segment is not the first point of the lane's polyline in the next road-segment.
 // I think the gap is small, hopefully it is less than 0.5 meter.
+#ifndef STDIR_FIX_BROKEN
 Node const *
 StreetDirectory::ShortestPathImpl::findNode(Point2D const & point)
 {
@@ -995,6 +995,7 @@ StreetDirectory::ShortestPathImpl::findNode(Point2D const & point)
     nodes_.push_back(n);
     return n;
 }
+#endif
 
 // Build up the drivingMap_ and walkingMap_ graphs.
 //
@@ -1793,7 +1794,6 @@ void StreetDirectory::ShortestPathImpl::linkCrossingToRoadSegment(RoadSegment *r
 		offset = pair.offset + 1;
 	}
 }
-#endif
 
 
 void
@@ -1921,10 +1921,12 @@ const
     boost::put(boost::vertex_name, const_cast<Graph &>(graph), v, node);
     return v;
 }
+#endif
 
 // Insert a directed edge into the drivingMap_ graph from <node1> to <node2>, which represent
 // vertices in the graph.  <wp> is attached to the edge as its name property and <length> as
 // its weight property.
+#ifndef STDIR_FIX_BROKEN
 void
 StreetDirectory::ShortestPathImpl::addRoadEdge(Node const * node1, Node const * node2,
                                                WayPoint const & wp, centimeter_t length)
@@ -1984,6 +1986,7 @@ StreetDirectory::ShortestPathImpl::addRoadEdgeWithTravelTime(Node const * node1,
     		"This sometimes happens with certain versions of boost, gcc, and optimization level 2.");
     }
 }
+#endif
 
 
 void
@@ -2021,6 +2024,7 @@ StreetDirectory::ShortestPathImpl::updateEdgeProperty()
 // be ok if there really is a crossing at the end of sidewalk (or vice versa, a side-walk at the
 // end of the crossing).  But it may be too large that the function incorrectly returns a vertex
 // that is on the opposite of a narrow road-segment.
+#ifndef STDIR_FIX_BROKEN
 StreetDirectory::ShortestPathImpl::Vertex
 StreetDirectory::ShortestPathImpl::findVertex(Point2D const & point)
 {
@@ -2087,13 +2091,15 @@ StreetDirectory::ShortestPathImpl::addCrossing(Crossing const * crossing, centim
     boost::put(boost::edge_name, walkingMap_, edge, wp);
     boost::put(boost::edge_weight, walkingMap_, edge, length);
 }
+#endif
 
 std::vector<WayPoint>
 StreetDirectory::ShortestPathImpl::shortestDrivingPath(Node const & fromNode, Node const & toNode)
 const
 {
-    if (&fromNode == &toNode)
+    if (&fromNode == &toNode) {
         return std::vector<WayPoint>();
+    }
 
     // Convert the fromNode and toNode (positions in 2D geometry) to vertices in the drivingMap_
     // graph.  It is possible that fromNode and toNode are not represented by any vertex in the

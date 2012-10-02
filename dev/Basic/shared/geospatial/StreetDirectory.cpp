@@ -34,7 +34,7 @@
 //Define this if you want to attempt to "fix" the broken DAG.
 //NOTE: Do *not* put this into the config file or CMake; once the DAG is fixed we'll remove the old code.
 //TODO: The new model leaks memory (all code that does this is marked). Change to value types once you're ready to remove this #define.
-//#define STDIR_FIX_BROKEN
+#define STDIR_FIX_BROKEN
 
 
 
@@ -749,6 +749,7 @@ private:
     void procAddWalkingNodes(Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup, std::map<const Node*, VertexLookup>& tempNodes);
     void procResolveWalkingMultiNodes(Graph& graph, const std::map<const Node*, VertexLookup>& unresolvedNodes, std::map<const Node*, VertexLookup>& nodeLookup);
     void procAddWalkingLinks(Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup);
+    void procAddWalkingCrossings(Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup, std::set<const Crossing*>& completed);
 
     //Old processing code
     void process(std::vector<RoadSegment*> const & roads, bool isForward);
@@ -1468,6 +1469,158 @@ void StreetDirectory::ShortestPathImpl::procAddWalkingLinks(Graph& graph, const 
 	}
 }
 
+namespace {
+
+//Helper: Find the point closest to the origin.
+double GetShortestDistance(const Point2D& origin, const Point2D& p1, const Point2D& p2, const Point2D& p3, const Point2D& p4) {
+	double res = sim_mob::dist(origin, p1);
+	res = std::min(res, sim_mob::dist(origin, p2));
+	res = std::min(res, sim_mob::dist(origin, p3));
+	res = std::min(res, sim_mob::dist(origin, p4));
+	return res;
+}
+
+//Helper: find the nearest MultiNode to this Segment.
+const MultiNode* FindNearestMultiNode(const RoadSegment* seg, const Crossing* cr) {
+	//Error case:
+	const MultiNode* start = dynamic_cast<const MultiNode*>(seg->getStart());
+	const MultiNode* end   = dynamic_cast<const MultiNode*>(seg->getEnd());
+	if (!start && !end) {
+		//TODO: We have a UniNode with a crossing; we should really add this later.
+		std::cout <<"Warning: Road Segment has a Crossing, but neither a start nor end MultiNode. Skipping for now." <<std::endl;
+		return nullptr;
+	}
+
+	//Easy case
+	if (start && !end) {
+		return start;
+	}
+	if (end && !start) {
+		return end;
+	}
+
+	//Slightly harder case: compare distances.
+	double dStart = GetShortestDistance(start->getLocation(), cr->nearLine.first, cr->nearLine.second, cr->farLine.first, cr->farLine.second);
+	double dEnd   = GetShortestDistance(end->getLocation(),   cr->nearLine.first, cr->nearLine.second, cr->farLine.first, cr->farLine.second);
+	return dStart < dEnd ? start : end;
+}
+
+} //End un-named namespace.
+void StreetDirectory::ShortestPathImpl::procAddWalkingCrossings(Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup, std::set<const Crossing*>& completed)
+{
+	//Skip empty paths
+	if (roadway.empty()) {
+		return;
+	}
+
+	//We need to scan each RoadSegment in our roadway for any possible Crossings. The "nextObstacle" function can do this.
+	for (std::vector<RoadSegment*>::const_iterator segIt=roadway.begin(); segIt!=roadway.end(); segIt++) {
+		//NOTE: For now, it's just easier to scan the obstacles list manually.
+		for (std::map<centimeter_t, const RoadItem*>::const_iterator riIt=(*segIt)->obstacles.begin(); riIt!=(*segIt)->obstacles.end(); riIt++) {
+			//Check if it's a crossing; check if we've already processed it; tag it.
+			const Crossing* cr = dynamic_cast<const Crossing*>(riIt->second);
+			if (!cr || completed.find(cr)!=completed.end()) {
+				continue;
+			}
+			completed.insert(cr);
+
+			//At least one of the Segment's endpoints must be a MultiNode. Pick the closest one.
+			//TODO: Currently we can only handle Crossings at the ends of RoadSegments.
+			//      Zebra crossings require either a UniNode or a different approach entirely.
+			const MultiNode* atNode = FindNearestMultiNode(*segIt, cr);
+			if (!atNode) {
+				continue;
+			}
+
+			//Crossings must from one Lane to another Lane in order to be useful.
+			//Therefore, we need to find the "reverse" road segment to this one.
+			//This can technically be the same segment, if it's a one-way street (it'll have a different laneID).
+			//We will still use the same "from/to" syntax to keep things simple.
+			const RoadSegment* fromSeg = *segIt;
+			int fromLane = -1;
+			for (size_t i=0; i<fromSeg->getLanes().size(); i++) {
+				if (fromSeg->getLanes().at(i)->is_pedestrian_lane()) {
+					fromLane = i;
+					break;
+				}
+			}
+			if (fromLane==-1) { throw std::runtime_error("Sanity check failed: Crossing should not be generated with no sidewalk lane."); }
+
+			//Now find the "to" lane. This is optional.
+			//TODO: This all needs to be stored at a higher level later; a Crossing doesn't always have to cross Segments with
+			//      the same start/end Nodes.
+			const RoadSegment* toSeg = nullptr;
+			int toLane = -1;
+			for (std::set<RoadSegment*>::const_iterator it=atNode->getRoadSegments().begin(); toLane==-1 && it!=atNode->getRoadSegments().end(); it++) {
+				//Light matching criteria
+				toSeg = *it;
+				if ((toSeg->getStart()==fromSeg->getStart() && toSeg->getEnd()==fromSeg->getEnd()) ||
+					(toSeg->getStart()==fromSeg->getEnd() && toSeg->getEnd()==fromSeg->getStart())) {
+					//Scan lanes until we find an empty one (this covers the case where fromSeg and toSeg are the same).
+					for (size_t i=0; i<toSeg->getLanes().size(); i++) {
+						if (toSeg->getLanes().at(i)->is_pedestrian_lane()) {
+							toLane = i;
+							break;
+						}
+					}
+				}
+			}
+
+			//If we have something, add this crossing as a pair of edges.
+			if (toLane!=-1) {
+				//First, retrieve the fromVertex and toVertex
+				std::pair<Vertex, bool> fromVertex;
+				fromVertex.second = false;
+				std::pair<Vertex, bool> toVertex;
+				toVertex.second = false;
+				std::map<const Node*, VertexLookup>::const_iterator vertCandidates = nodeLookup.find(atNode);
+				if (vertCandidates==nodeLookup.end()) {
+					throw std::runtime_error("Intersection's Node is unknown by the vertex map.");
+				}
+
+				//Find the "from" and "to" segments' associated end vertices.
+				//In this case, we only need a weak guarantee (e.g., that ONE of the before/after pair matches our segment).
+				//(But we also need the strong guarantee of Lane IDs).
+				for (std::vector<NodeDescriptor>::const_iterator ndIt=vertCandidates->second.vertices.begin(); ndIt!=vertCandidates->second.vertices.end(); ndIt++) {
+					if ((fromSeg==ndIt->before && fromLane==ndIt->beforeLaneID) || (fromSeg==ndIt->after && fromLane==ndIt->afterLaneID)) {
+						fromVertex.first = ndIt->v;
+						fromVertex.second = true;
+					}
+					if ((toSeg==ndIt->before && toLane==ndIt->beforeLaneID) || (toSeg==ndIt->after && toLane==ndIt->afterLaneID)) {
+						toVertex.first = ndIt->v;
+						toVertex.second = true;
+					}
+				}
+
+				//Ensure we have both
+				if (!fromVertex.second || !toVertex.second) {
+					throw std::runtime_error("Crossing has no associated vertex.");
+				}
+
+				//Estimate the length of the crossing.
+				double length = sim_mob::dist(cr->nearLine.first, cr->nearLine.second);
+
+				//Create an edge.
+				{
+				Edge edge;
+				bool ok;
+				boost::tie(edge, ok) = boost::add_edge(fromVertex.first, toVertex.first, graph);
+				boost::put(boost::edge_name, drivingMap_, edge, WayPoint(cr));
+				boost::put(boost::edge_weight, drivingMap_, edge, length);
+				}
+
+				//Create the reverse edge
+				{
+				Edge edge;
+				bool ok;
+				boost::tie(edge, ok) = boost::add_edge(toVertex.first, fromVertex.first, graph);
+				boost::put(boost::edge_name, drivingMap_, edge, WayPoint(cr));
+				boost::put(boost::edge_weight, drivingMap_, edge, length);
+				}
+			}
+		}
+	}
+}
 
 
 inline StreetDirectory::ShortestPathImpl::ShortestPathImpl(RoadNetwork const & network)
@@ -1539,10 +1692,14 @@ void StreetDirectory::ShortestPathImpl::initWalkingNetworkNew(const std::vector<
     	procAddWalkingLinks(walkingMap_, (*iter)->getPath(false), nodeLookup);
     }
 
-    //Now add all Intersection edges (lane connectors)
-    /*for (std::map<const Node*, VertexLookup>::const_iterator it=nodeLookup.begin(); it!=nodeLookup.end(); it++) {
-    	procAddDrivingLaneConnectors(walkingMap_, dynamic_cast<const MultiNode*>(it->first), nodeLookup);
-    }*/
+    //Now add all Crossings
+    {
+    std::set<const Crossing*> completedCrossings;
+    for (std::vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter) {
+    	procAddWalkingCrossings(walkingMap_, (*iter)->getPath(true), nodeLookup, completedCrossings);
+    	procAddWalkingCrossings(walkingMap_, (*iter)->getPath(false), nodeLookup, completedCrossings);
+    }
+    }
 }
 
 

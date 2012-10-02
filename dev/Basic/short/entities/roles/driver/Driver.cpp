@@ -720,7 +720,7 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 			{
 				//
 				if(p.currLane->is_pedestrian_lane())
-					std::cout<<"asdfasf"<<std::endl;
+					std::cout<<"drive on pedestrian lane"<<std::endl;
 				bool currentLaneConnectToNextLink = false;
 				size_t targetLaneIndex=-1;
 				for (std::set<LaneConnector*>::const_iterator it = lcs.begin(); it != lcs.end(); it++) {
@@ -729,8 +729,10 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 						currentLaneConnectToNextLink = true;
 					}
 					//find target lane with same index, use this lane
-					if (targetLaneIndex == -1 && (*it)->getLaneTo()->getRoadSegment() == nextSegment)
-						targetLaneIndex = getLaneIndex((*it)->getLaneTo());
+					if ((*it)->getLaneTo()->getRoadSegment() == nextSegment)
+					{
+						targetLaneIndex = getLaneIndex((*it)->getLaneFrom());
+					}
 				}
 				if( currentLaneConnectToNextLink == false ) // wow! we need change lane
 				{
@@ -738,10 +740,16 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 					if(targetLaneIndex == -1) // no target lane?
 						std::cout<<"Driver::linkDriving: can't find target lane!"<<std::endl;
 					p.nextLaneIndex = targetLaneIndex;
-	//				if( targetLaneIndex > p.currLaneIndex )
-	//					return -150;
-	//				else
-	//					return 150;
+					//NOTE: Driver already has a lcModel; we should be able to just use this. ~Seth
+					MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
+					if (mitsim_lc_model) {
+						LANE_CHANGE_SIDE lcs = LCS_SAME;
+//						lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
+						lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
+						vehicle->setTurningDirection(lcs);
+					} else {
+						throw std::runtime_error("TODO: BusDrivers currently require the MITSIM lc model.");
+					}
 				}
 			} // end of if (!lcs)
 		}

@@ -204,36 +204,29 @@ void sim_mob::Pedestrian2::frame_tick_output_mpi(frame_t frameNumber)
 
 void sim_mob::Pedestrian2::setSubPath() {
 
-	vector<WayPoint> wp_path = StreetDirectory::instance().shortestWalkingPath(parent->originNode->location,
-			parent->destNode->location);
+	vector<WayPoint> wp_path = StreetDirectory::instance().shortestWalkingPath(parent->originNode->location, parent->destNode->location);
 
 	//For debug ---------------------------------------
-	std::cout<<"Size: "<< wp_path.size()<<std::endl;
+	/*std::cout<<"Size: "<< wp_path.size()<<std::endl;
 	for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++){
 		if (it->type_ == WayPoint::SIDE_WALK){
 			std::cout<<"Side_walk start node "<<it->lane_->getRoadSegment()->getStart()->getID()<<"("<<it->lane_->getRoadSegment()->getStart()->location.getX()<<","<<it->lane_->getRoadSegment()->getStart()->location.getY()<<") end node "<<it->lane_->getRoadSegment()->getEnd()->getID()<<"("<<it->lane_->getRoadSegment()->getEnd()->location.getX()<<","<<it->lane_->getRoadSegment()->getEnd()->location.getY()<<")"<<std::endl;
-//				const Lane* side_walk = it->lane_;
-//				const std::vector<Point2D> polyline = side_walk->getPolyline();
-//				std::cout << "side-walk start=" << polyline[0] << " end=" << polyline[polyline.size() - 1] << std::endl;
-
 		}
 		else if (it->type_ == WayPoint::ROAD_SEGMENT)
 			std::cout<<"Road_segment"<<std::endl;
 		else if (it->type_ == WayPoint::BUS_STOP)
 			std::cout<<"Bus_stop"<<std::endl;
 		else if (it->type_ == WayPoint::CROSSING){
-//				std::cout<<"Crossing"<<std::endl;
 			std::cout << "crossing near-line start=" << it->crossing_->nearLine.first << " end=" << it->crossing_->nearLine.second << std::endl;
 		}
 		else if (it->type_ == WayPoint::NODE){
-//				std::cout<<"Node at xPos "<<it->node_->location.getX()<<" ,yPos "<<it->node_->location.getY()<<std::endl;
 			std::cout << "node location=" << it->node_->location << std::endl;
 		}
 		else if (it->type_ == WayPoint::INVALID)
 			std::cout<<"Invalid"<<std::endl;
 		else
 			std::cout<<"No_match"<<std::endl;
-	}
+	}*/
 
 	pedMovement.setPath(wp_path);
 

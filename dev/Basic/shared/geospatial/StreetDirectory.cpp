@@ -8,7 +8,10 @@
 #include <limits>
 #include <boost/unordered_map.hpp>
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/dijkstra_shortest_paths.hpp>
+
+//#include <boost/graph/dijkstra_shortest_paths.hpp>
+#include <boost/graph/astar_search.hpp>
+
 #include <math.h>
 
 #include "Lane.hpp"
@@ -759,7 +762,10 @@ public:
     shortestWalkingPath(Point2D const & fromPoint, Point2D const & toPoint) const;
 
     void updateEdgeProperty();
+
+#ifndef STDIR_FIX_BROKEN
     void GeneratePathChoiceSet();
+#endif
 
 private:
     // We attach a property to each vertex, its name.  We treat the name property as a mean
@@ -821,7 +827,10 @@ public:
     Graph drivingMap_; // A map for drivers, containing road-segments as edges.
     Graph walkingMap_; // A map for pedestrians, containing side-walks and crossings as edges.
     std::vector<Node *> nodes_; // "Internal" uni-nodes that are created when building the maps.
+
+#ifndef STDIR_FIX_BROKEN
     std::vector<std::vector<std::vector<std::vector<WayPoint> > > > choiceSet;
+#endif
 
     //Lookup the master Node for each Node-related vertex.
     std::map<const Node*, Vertex> drivingNodeLookup_;
@@ -854,8 +863,8 @@ private:
     void process(std::vector<RoadSegment*> const & roads, bool isForward);
     void process(RoadSegment const * road, bool isForward);
     void linkCrossingToRoadSegment(RoadSegment *road, bool isForward);
-#endif
     void clearChoiceSet();
+#endif
 
     bool checkIfExist(std::vector<std::vector<WayPoint> > & paths, std::vector<WayPoint> & path);
 
@@ -885,15 +894,16 @@ private:
     searchVertex(const std::map<const Node*, Vertex>& srcNodes, const Point2D& point) const;
 
     std::vector<WayPoint>
+    searchShortestPath(const Graph& graph, const Vertex& fromVertex, const Vertex& toVertex) const;
+
+    /*std::vector<WayPoint>
     extractShortestPath(Vertex const fromVertex, Vertex const toVertex,
                         std::vector<Vertex> const & parent, Graph const & graph) const;
-
     std::vector<WayPoint>
     shortestPath(Vertex const fromVertex, Vertex const toVertex, Graph const & graph) const;
-
     std::vector<WayPoint>
     extractShortestPath(Vertex const fromVertex, Vertex const toVertex,
-    		std::vector<Vertex> const & parent, Graph const & graph, std::vector<Edge> & edges) const;
+    		std::vector<Vertex> const & parent, Graph const & graph, std::vector<Edge> & edges) const;*/
 };
 
 
@@ -2155,7 +2165,7 @@ const
     	return std::vector<WayPoint>();
     }
 
-    return shortestPath(fromVertex->second, toVertex->second, drivingMap_);
+    return searchShortestPath(drivingMap_, fromVertex->second, toVertex->second);
 }
 
 std::vector<WayPoint>
@@ -2179,8 +2189,11 @@ const
     	return std::vector<WayPoint>();
     }
 
-    //std::cout<<"size of choice set "<<choiceSet[fromVertex][toVertex].size()<<std::endl;
-    return choiceSet[fromVertex->second][toVertex->second][0];
+    //NOTE: choiceSet[] is an interesting optimization, but we don't need to save cycles (and we definitely need to save memory).
+    //      The within-day choice set model should have this kind of optimization; for us, we will simply search each time.
+    //TODO: Perhaps caching the most recent X searches might be a good idea, though. ~Seth.
+    return searchShortestPath(drivingMap_, fromVertex->second, toVertex->second);
+    //return choiceSet[fromVertex->second][toVertex->second][0];
 }
 
 
@@ -2280,7 +2293,6 @@ const
     //Nothing wrong here.
     return true;
 }
-#endif
 
 // Computes the shortest path from <fromVertex> to <toVertex> in the graph.  If <toVertex> is not
 // reachable from <fromVertex>, then return an empty array.
@@ -2292,10 +2304,10 @@ const
     // The code here is based on the example in the book "The Boost Graph Library" by
     // Jeremy Siek, et al.
     std::vector<Vertex> parent(boost::num_vertices(graph));
-    for (Graph::vertices_size_type i = 0; i < boost::num_vertices(graph); ++i)
-    {
+    for (Graph::vertices_size_type i = 0; i < boost::num_vertices(graph); ++i) {
         parent[i] = i;
     }
+
     // If I have counted them correctly, dijkstra_shortest_paths() function has 12 parameters,
     // 10 of which have default values.  The Boost Graph Library has a facility (called named
     // parameter) that resembles python keyword argument.  You can pass an argument to one of
@@ -2331,16 +2343,19 @@ const
         Edge e;
         bool exists;
         boost::tie(e, exists) = boost::edge(u, v, graph);
+
         // Stop the loop if there is no path from u to v.
-        if (!exists)
+        if (!exists) {
             break;
+        }
         WayPoint wp = boost::get(boost::edge_name, graph, e);
         result.push_back(wp);
         v = u;
         u = parent[v];
     }
-    if (u != fromVertex)
+    if (u != fromVertex) {
         return std::vector<WayPoint>();
+    }
 
     // result contains the waypoints in the reverse order.  We return them in the correct order.
     return std::vector<WayPoint>(result.rbegin(), result.rend());
@@ -2387,6 +2402,7 @@ const
     // result contains the waypoints in the reverse order.  We return them in the correct order.
     return std::vector<WayPoint>(result.rbegin(), result.rend());
 }
+#endif
 
 
 // Get the vertices in the walkingMap_ graph that are closest to <fromPoint> and <toPoint>
@@ -2460,9 +2476,10 @@ const
     	return std::vector<WayPoint>();
     }
 
-    std::vector<WayPoint> path = shortestPath(fromVertex->second, toVertex->second, walkingMap_);
-    if (path.empty())
+    std::vector<WayPoint> path = searchShortestPath(walkingMap_, fromVertex->second, toVertex->second);
+    if (path.empty()) {
         return path;
+    }
 
     // If the fromPoint is not exactly located at fromVertex, then we need to insert a Waypoint
     // that directs the pedestrian to move from fromPoint to fromVertex by some undefined mean.
@@ -2502,6 +2519,8 @@ bool StreetDirectory::ShortestPathImpl::checkIfExist(std::vector<std::vector<Way
 	return false;
 }
 
+
+#ifndef STDIR_FIX_BROKEN
 void StreetDirectory::ShortestPathImpl::clearChoiceSet()
 {
 	choiceSet.clear();
@@ -2549,6 +2568,7 @@ void StreetDirectory::ShortestPathImpl::GeneratePathChoiceSet()
 		choiceSet.push_back(paths_from_v);
 	}
 }
+#endif
 
 void StreetDirectory::ShortestPathImpl::printGraph(const std::string& graphType, const Graph& graph)
 {
@@ -2627,7 +2647,9 @@ StreetDirectory::updateDrivingMap()
 {
 	if(spImpl_) {
 		spImpl_->updateEdgeProperty();
+#ifndef STDIR_FIX_BROKEN
 		spImpl_->GeneratePathChoiceSet();
+#endif
 	}
 }
 

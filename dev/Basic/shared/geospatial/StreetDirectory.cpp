@@ -833,8 +833,9 @@ public:
 #endif
 
     //Lookup the master Node for each Node-related vertex.
-    std::map<const Node*, Vertex> drivingNodeLookup_;
-    std::map<const Node*, Vertex> walkingNodeLookup_;
+    //Note: The first item is the "source" vertex, used to search *from* that Node. The second item is the "sink" vertex, used to search *to* that Node.
+    std::map<const Node*, std::pair<Vertex,Vertex> > drivingNodeLookup_;
+    std::map<const Node*, std::pair<Vertex,Vertex> > walkingNodeLookup_;
 
 private:
     //Initialize
@@ -856,7 +857,7 @@ private:
     void procAddWalkingCrossings(Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup, std::set<const Crossing*>& completed);
 
     //New processing code: Shared
-    void procAddStartNodesAndEdges(Graph& graph, const std::map<const Node*, VertexLookup>& allNodes, std::map<const Node*, Vertex>& resLookup);
+    void procAddStartNodesAndEdges(Graph& graph, const std::map<const Node*, VertexLookup>& allNodes, std::map<const Node*, std::pair<Vertex, Vertex> >& resLookup);
 
     //Old processing code
 #ifndef STDIR_FIX_BROKEN
@@ -889,8 +890,8 @@ private:
 #endif
 
     //TODO: Replace with a space partition later.
-    std::map<const Node*, Vertex>::const_iterator
-    searchVertex(const std::map<const Node*, Vertex>& srcNodes, const Point2D& point) const;
+    std::map<const Node*, std::pair<Vertex,Vertex> >::const_iterator
+    searchVertex(const std::map<const Node*, std::pair<Vertex,Vertex> >& srcNodes, const Point2D& point) const;
 
     std::vector<WayPoint>
     searchShortestPath(const Graph& graph, const Vertex& fromVertex, const Vertex& toVertex) const;
@@ -1836,24 +1837,36 @@ void StreetDirectory::ShortestPathImpl::initWalkingNetworkNew(const std::vector<
 }
 
 
-void StreetDirectory::ShortestPathImpl::procAddStartNodesAndEdges(Graph& graph, const std::map<const Node*, VertexLookup>& allNodes, std::map<const Node*, Vertex>& resLookup)
+void StreetDirectory::ShortestPathImpl::procAddStartNodesAndEdges(Graph& graph, const std::map<const Node*, VertexLookup>& allNodes, std::map<const Node*, std::pair<Vertex, Vertex> >& resLookup)
 {
 	//This one's easy: Add a single Vertex to represent the "center" of each Node, and add outgoing edges (one-way only) to each Vertex that Node knows about.
 	//Such "master" vertices are used for path finding; e.g., "go from Node X to node Y".
 	for (std::map<const Node*, VertexLookup>::const_iterator it=allNodes.begin(); it!=allNodes.end(); it++) {
-		//Add the master vertex.
-		Vertex master = boost::add_vertex(const_cast<Graph &>(graph));
-		resLookup[it->first] = master;
-		boost::put(boost::vertex_name, graph, master, it->first);
+		//Add the master vertices.
+		Vertex source = boost::add_vertex(const_cast<Graph &>(graph));
+		Vertex sink = boost::add_vertex(const_cast<Graph &>(graph));
+		resLookup[it->first] = std::make_pair(source, sink);
+		boost::put(boost::vertex_name, graph, source, it->first);
+		boost::put(boost::vertex_name, graph, sink, it->first);
 
-		//Link to each child vertex
+		//Link to each child vertex. Assume a trivial distance.
 		for (std::vector<NodeDescriptor>::const_iterator it2=it->second.vertices.begin(); it2!=it->second.vertices.end(); it2++) {
-			//Assume a trivial distance.
+			{
+			//From source to "other"
 			Edge edge;
 			bool ok;
-			boost::tie(edge, ok) = boost::add_edge(master, it2->v, graph);
+			boost::tie(edge, ok) = boost::add_edge(source, it2->v, graph);
 			boost::put(boost::edge_name, graph, edge, WayPoint(it->first));
 			boost::put(boost::edge_weight, graph, edge, 1);
+			}
+			{
+			//From "other" to sink
+			Edge edge;
+			bool ok;
+			boost::tie(edge, ok) = boost::add_edge(it2->v, sink, graph);
+			boost::put(boost::edge_name, graph, edge, WayPoint(it->first));
+			boost::put(boost::edge_weight, graph, edge, 1);
+			}
 		}
 	}
 }
@@ -2192,18 +2205,18 @@ const
     // Convert the fromNode and toNode (positions in 2D geometry) to vertices in the drivingMap_
     // graph.  It is possible that fromNode and toNode are not represented by any vertex in the
     // graph.
-    std::map<const Node*, Vertex>::const_iterator fromVertex = drivingNodeLookup_.find(&fromNode);
-    std::map<const Node*, Vertex>::const_iterator toVertex = drivingNodeLookup_.find(&toNode);
+    std::map<const Node*, std::pair<Vertex, Vertex> >::const_iterator fromVertexIt = drivingNodeLookup_.find(&fromNode);
+    std::map<const Node*, std::pair<Vertex, Vertex> >::const_iterator toVertexIt = drivingNodeLookup_.find(&toNode);
 
     // If fromNode and toNode are not represented by any vertex in the graph, then throw an
     // error message.
-    if (fromVertex==drivingNodeLookup_.end() || toVertex==drivingNodeLookup_.end()) {
+    if (fromVertexIt==drivingNodeLookup_.end() || toVertexIt==drivingNodeLookup_.end()) {
     	//Fallback: If the RoadNetwork knows about the from/to node(s) but the Street Directory
     	//  does not, it is not an error (but it means no path can possibly be found).
     	return std::vector<WayPoint>();
     }
 
-    return searchShortestPath(drivingMap_, fromVertex->second, toVertex->second);
+    return searchShortestPath(drivingMap_, fromVertexIt->second.first, toVertexIt->second.second);
 }
 
 std::vector<WayPoint>
@@ -2216,12 +2229,12 @@ const
     // Convert the fromNode and toNode (positions in 2D geometry) to vertices in the drivingMap_
     // graph.  It is possible that fromNode and toNode are not represented by any vertex in the
     // graph.
-    std::map<const Node*, Vertex>::const_iterator fromVertex = drivingNodeLookup_.find(&fromNode);
-    std::map<const Node*, Vertex>::const_iterator toVertex = drivingNodeLookup_.find(&toNode);
+    std::map<const Node*, std::pair<Vertex, Vertex> >::const_iterator fromVertexIt = drivingNodeLookup_.find(&fromNode);
+    std::map<const Node*, std::pair<Vertex, Vertex> >::const_iterator toVertexIt = drivingNodeLookup_.find(&toNode);
 
     // If fromNode and toNode are not represented by any vertex in the graph, then throw an
     // error message.
-    if (fromVertex==drivingNodeLookup_.end() || toVertex==drivingNodeLookup_.end()) {
+    if (fromVertexIt==drivingNodeLookup_.end() || toVertexIt==drivingNodeLookup_.end()) {
     	//Fallback: If the RoadNetwork knows about the from/to node(s) but the Street Directory
     	//  does not, it is not an error (but it means no path can possibly be found).
     	return std::vector<WayPoint>();
@@ -2230,7 +2243,7 @@ const
     //NOTE: choiceSet[] is an interesting optimization, but we don't need to save cycles (and we definitely need to save memory).
     //      The within-day choice set model should have this kind of optimization; for us, we will simply search each time.
     //TODO: Perhaps caching the most recent X searches might be a good idea, though. ~Seth.
-    return searchShortestPath(drivingMap_, fromVertex->second, toVertex->second);
+    return searchShortestPath(drivingMap_, fromVertexIt->second.first, toVertexIt->second.second);
     //return choiceSet[fromVertex->second][toVertex->second][0];
 }
 
@@ -2242,10 +2255,6 @@ StreetDirectory::ShortestPathImpl::searchShortestPath(const Graph& graph, const 
 {
 	std::vector<WayPoint> res;
 	std::list<Vertex> partialRes;
-
-	//NOTE: The current approach doesn't work due to the way master Nodes are handled.
-	//      We actually need TWO master Node vertices: one "source" and one "sink".
-	//      We should also modify the visualizer to ignore Master node edges, since there's just so many of them.
 
 	//Use A* to search for a path
 	//Taken from: http://www.boost.org/doc/libs/1_38_0/libs/graph/example/astar-cities.cpp
@@ -2273,18 +2282,15 @@ StreetDirectory::ShortestPathImpl::searchShortestPath(const Graph& graph, const 
 		for (std::list<Vertex>::const_iterator it=partialRes.begin(); it!=partialRes.end(); it++) {
 			//Add this edge.
 			if (prev!=partialRes.end()) {
-				Edge e;
-				bool found;
-				boost::edge(*prev, *it, graph);
-
 				//This shouldn't fail.
-				if (!found) {
-					std::cout <<"ERROR: Boost can't find an edge that it should know about.\n";
+				std::pair<Edge, bool> edge = boost::edge(*prev, *it, graph);
+				if (!edge.second) {
+					LogOut("ERROR: Boost can't find an edge that it should know about." <<std::endl);
 					return std::vector<WayPoint>();
 				}
 
 				//Retrieve, add this edge's WayPoint.
-				WayPoint wp = boost::get(boost::edge_name, graph, e);
+				WayPoint wp = boost::get(boost::edge_name, graph, edge.first);
 				res.push_back(wp);
 			}
 
@@ -2292,6 +2298,7 @@ StreetDirectory::ShortestPathImpl::searchShortestPath(const Graph& graph, const 
 			prev = it;
 		}
 	}
+
 	return res;
 }
 
@@ -2539,10 +2546,10 @@ const
 #endif
 
 
-std::map<const Node*, StreetDirectory::ShortestPathImpl::Vertex>::const_iterator
-StreetDirectory::ShortestPathImpl::searchVertex(const std::map<const Node*, Vertex>& srcNodes, const Point2D& point) const
+std::map<const Node*, std::pair<StreetDirectory::ShortestPathImpl::Vertex,StreetDirectory::ShortestPathImpl::Vertex> >::const_iterator
+StreetDirectory::ShortestPathImpl::searchVertex(const std::map<const Node*, std::pair<Vertex,Vertex> >& srcNodes, const Point2D& point) const
 {
-	typedef  std::map<const Node*, Vertex>::const_iterator  NodeLookupIter;
+	typedef  std::map<const Node*, std::pair<Vertex,Vertex> >::const_iterator  NodeLookupIter;
 
 	double minDist = std::numeric_limits<double>::max();
 	NodeLookupIter minItem = srcNodes.end();
@@ -2569,15 +2576,20 @@ const
     // Convert the fromPoint and toPoint (positions in 2D geometry) to vertices in the walkingMap_
     // graph.  The fromVertex and toVertex corresponds to Node objects that are closest to the
     // fromPoint and toPoint positions in the graph.
-    std::map<const Node*, Vertex>::const_iterator fromVertex = searchVertex(walkingNodeLookup_, fromPoint);
-    std::map<const Node*, Vertex>::const_iterator toVertex = searchVertex(walkingNodeLookup_, toPoint);
+    std::map<const Node*, std::pair<Vertex, Vertex> >::const_iterator fromVertexIt = searchVertex(walkingNodeLookup_, fromPoint);
+    std::map<const Node*, std::pair<Vertex, Vertex> >::const_iterator toVertexIt = searchVertex(walkingNodeLookup_, toPoint);
 
     //Might not exist.
-    if (fromVertex==walkingNodeLookup_.end() || toVertex==walkingNodeLookup_.end()) {
+    if (fromVertexIt==walkingNodeLookup_.end() || toVertexIt==walkingNodeLookup_.end()) {
     	return std::vector<WayPoint>();
     }
 
-    std::vector<WayPoint> path = searchShortestPath(walkingMap_, fromVertex->second, toVertex->second);
+    //Shorthand; maintain our sanity
+    Vertex fromVertex = fromVertexIt->second.first;
+    Vertex toVertex = toVertexIt->second.second;
+
+    //Find the path between these.
+    std::vector<WayPoint> path = searchShortestPath(walkingMap_, fromVertex, toVertex);
     if (path.empty()) {
         return path;
     }
@@ -2587,11 +2599,11 @@ const
     // Similarly if toPoint is not located exactly at toVertex, then we append a WayPpint to
     // move from tiVertex to toPoint.
     std::vector<WayPoint> result;
-    Node const * node = boost::get(boost::vertex_name, walkingMap_, fromVertex->second);
+    Node const * node = boost::get(boost::vertex_name, walkingMap_, fromVertex);
     if (node->location != fromPoint)
         result.push_back(WayPoint(node));
     result.insert(result.end(), path.begin(), path.end());
-    node = boost::get(boost::vertex_name, walkingMap_, toVertex->second);
+    node = boost::get(boost::vertex_name, walkingMap_, toVertex);
     if (node->location != toPoint)
         result.push_back(WayPoint(node));
     return result;

@@ -1063,8 +1063,8 @@ void StreetDirectory::ShortestPathImpl::procAddDrivingLinks(Graph& graph, const 
 	    Edge edge;
 	    bool ok;
 	    boost::tie(edge, ok) = boost::add_edge(fromVertex, toVertex, graph);
-	    boost::put(boost::edge_name, drivingMap_, edge, WayPoint(rs));
-	    boost::put(boost::edge_weight, drivingMap_, edge, rs->length);
+	    boost::put(boost::edge_name, graph, edge, WayPoint(rs));
+	    boost::put(boost::edge_weight, graph, edge, rs->length);
 	}
 }
 
@@ -1124,8 +1124,8 @@ void StreetDirectory::ShortestPathImpl::procAddDrivingLaneConnectors(Graph& grap
 
 	    //Calculate the edge length. Treat this as a Node WayPoint.
 	    DynamicVector lc(fromVertex.second, toVertex.second);
-	    boost::put(boost::edge_name, drivingMap_, edge, WayPoint(node));
-	    boost::put(boost::edge_weight, drivingMap_, edge, lc.getMagnitude());
+	    boost::put(boost::edge_name, graph, edge, WayPoint(node));
+	    boost::put(boost::edge_weight, graph, edge, lc.getMagnitude());
 	}
 }
 
@@ -1453,8 +1453,8 @@ void StreetDirectory::ShortestPathImpl::procAddWalkingLinks(Graph& graph, const 
 			Edge edge;
 			bool ok;
 			boost::tie(edge, ok) = boost::add_edge(fromVertex, toVertex, graph);
-			boost::put(boost::edge_name, drivingMap_, edge, WayPoint(rs));
-			boost::put(boost::edge_weight, drivingMap_, edge, rs->length);
+			boost::put(boost::edge_name, graph, edge, WayPoint(rs));
+			boost::put(boost::edge_weight, graph, edge, rs->length);
 			}
 
 			//Create the reverse edge
@@ -1462,8 +1462,8 @@ void StreetDirectory::ShortestPathImpl::procAddWalkingLinks(Graph& graph, const 
 			Edge edge;
 			bool ok;
 			boost::tie(edge, ok) = boost::add_edge(toVertex, fromVertex, graph);
-			boost::put(boost::edge_name, drivingMap_, edge, WayPoint(rs));
-			boost::put(boost::edge_weight, drivingMap_, edge, rs->length);
+			boost::put(boost::edge_name, graph, edge, WayPoint(rs));
+			boost::put(boost::edge_weight, graph, edge, rs->length);
 			}
 		}
 	}
@@ -1486,8 +1486,6 @@ const MultiNode* FindNearestMultiNode(const RoadSegment* seg, const Crossing* cr
 	const MultiNode* start = dynamic_cast<const MultiNode*>(seg->getStart());
 	const MultiNode* end   = dynamic_cast<const MultiNode*>(seg->getEnd());
 	if (!start && !end) {
-		//TODO: We have a UniNode with a crossing; we should really add this later.
-		std::cout <<"Warning: Road Segment has a Crossing, but neither a start nor end MultiNode. Skipping for now." <<std::endl;
 		return nullptr;
 	}
 
@@ -1529,6 +1527,8 @@ void StreetDirectory::ShortestPathImpl::procAddWalkingCrossings(Graph& graph, co
 			//      Zebra crossings require either a UniNode or a different approach entirely.
 			const MultiNode* atNode = FindNearestMultiNode(*segIt, cr);
 			if (!atNode) {
+				//TODO: We have a UniNode with a crossing; we should really add this later.
+				std::cout <<"Warning: Road Segment has a Crossing, but neither a start nor end MultiNode. Skipping for now." <<std::endl;
 				continue;
 			}
 
@@ -1559,6 +1559,12 @@ void StreetDirectory::ShortestPathImpl::procAddWalkingCrossings(Graph& graph, co
 					//Scan lanes until we find an empty one (this covers the case where fromSeg and toSeg are the same).
 					for (size_t i=0; i<toSeg->getLanes().size(); i++) {
 						if (toSeg->getLanes().at(i)->is_pedestrian_lane()) {
+							//Avoid adding the exact same from/to pair:
+							if (fromSeg==toSeg && fromLane==i) {
+								continue;
+							}
+
+							//It's unique; add it.
 							toLane = i;
 							break;
 						}
@@ -1568,6 +1574,10 @@ void StreetDirectory::ShortestPathImpl::procAddWalkingCrossings(Graph& graph, co
 
 			//If we have something, add this crossing as a pair of edges.
 			if (toLane!=-1) {
+				std::cout <<"Adding Crossing: \n";
+				std::cout <<"  from: " <<fromSeg <<" lane: " <<fromLane <<std::endl;
+				std::cout <<"  to:   " <<toSeg <<" lane: " <<toLane <<std::endl;
+
 				//First, retrieve the fromVertex and toVertex
 				std::pair<Vertex, bool> fromVertex;
 				fromVertex.second = false;
@@ -1605,8 +1615,8 @@ void StreetDirectory::ShortestPathImpl::procAddWalkingCrossings(Graph& graph, co
 				Edge edge;
 				bool ok;
 				boost::tie(edge, ok) = boost::add_edge(fromVertex.first, toVertex.first, graph);
-				boost::put(boost::edge_name, drivingMap_, edge, WayPoint(cr));
-				boost::put(boost::edge_weight, drivingMap_, edge, length);
+				boost::put(boost::edge_name, graph, edge, WayPoint(cr));
+				boost::put(boost::edge_weight, graph, edge, length);
 				}
 
 				//Create the reverse edge
@@ -1614,8 +1624,8 @@ void StreetDirectory::ShortestPathImpl::procAddWalkingCrossings(Graph& graph, co
 				Edge edge;
 				bool ok;
 				boost::tie(edge, ok) = boost::add_edge(toVertex.first, fromVertex.first, graph);
-				boost::put(boost::edge_name, drivingMap_, edge, WayPoint(cr));
-				boost::put(boost::edge_weight, drivingMap_, edge, length);
+				boost::put(boost::edge_name, graph, edge, WayPoint(cr));
+				boost::put(boost::edge_weight, graph, edge, length);
 				}
 			}
 		}

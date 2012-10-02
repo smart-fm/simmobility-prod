@@ -1635,10 +1635,6 @@ void StreetDirectory::ShortestPathImpl::procAddWalkingCrossings(Graph& graph, co
 
 			//If we have something, add this crossing as a pair of edges.
 			if (toLane!=-1) {
-				std::cout <<"Adding Crossing: \n";
-				std::cout <<"  from: " <<fromSeg <<" lane: " <<fromLane <<std::endl;
-				std::cout <<"  to:   " <<toSeg <<" lane: " <<toLane <<std::endl;
-
 				//First, retrieve the fromVertex and toVertex
 				std::pair<Vertex, bool> fromVertex;
 				fromVertex.second = false;

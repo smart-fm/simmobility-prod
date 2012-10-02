@@ -736,7 +736,9 @@ public:
 
 private:
     //Initialize
+#ifndef STDIR_FIX_BROKEN
     void initNetworkOld(const std::vector<Link*>& links);
+#endif
     void initDrivingNetworkNew(const std::vector<Link*>& links);
     void initWalkingNetworkNew(const std::vector<Link*>& links);
 
@@ -754,7 +756,9 @@ private:
     //Old processing code
     void process(std::vector<RoadSegment*> const & roads, bool isForward);
     void process(RoadSegment const * road, bool isForward);
+#ifndef STDIR_FIX_BROKEN
     void linkCrossingToRoadSegment(RoadSegment *road, bool isForward);
+#endif
     void clearChoiceSet();
 
     bool checkIfExist(std::vector<std::vector<WayPoint> > & paths, std::vector<WayPoint> & path);
@@ -931,6 +935,7 @@ StreetDirectory::ShortestPathImpl::findNode(Point2D const & point)
 // TODO: Zebra crossings complicate this; we should never have the same segment twice in a row in
 //       a returned path. ~Seth
 
+#ifndef STDIR_FIX_BROKEN
 inline void
 StreetDirectory::ShortestPathImpl::process(std::vector<RoadSegment*> const & roads, bool isForward)
 {
@@ -940,6 +945,7 @@ StreetDirectory::ShortestPathImpl::process(std::vector<RoadSegment*> const & roa
 		process(roads[i], isForward);
 	}
 }
+#endif
 
 void StreetDirectory::ShortestPathImpl::procAddDrivingNodes(Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup)
 {
@@ -1644,6 +1650,7 @@ inline StreetDirectory::ShortestPathImpl::ShortestPathImpl(RoadNetwork const & n
 //    GeneratePathChoiceSet();
 }
 
+#ifndef STDIR_FIX_BROKEN
 void StreetDirectory::ShortestPathImpl::initNetworkOld(const std::vector<Link*>& links)
 {
     for (std::vector<Link*>::const_iterator iter = links.begin(); iter != links.end(); ++iter)
@@ -1653,6 +1660,7 @@ void StreetDirectory::ShortestPathImpl::initNetworkOld(const std::vector<Link*>&
         process(link->getPath(false), false);
     }
 }
+#endif
 
 void StreetDirectory::ShortestPathImpl::initDrivingNetworkNew(const std::vector<Link*>& links)
 {
@@ -1712,7 +1720,7 @@ void StreetDirectory::ShortestPathImpl::initWalkingNetworkNew(const std::vector<
     }
 }
 
-
+#ifndef STDIR_FIX_BROKEN
 void StreetDirectory::ShortestPathImpl::linkCrossingToRoadSegment(RoadSegment *road, bool isForward)
 {
 	centimeter_t offset = 0;
@@ -1734,6 +1742,9 @@ void StreetDirectory::ShortestPathImpl::linkCrossingToRoadSegment(RoadSegment *r
 		offset = pair.offset + 1;
 	}
 }
+#endif
+
+
 void
 StreetDirectory::ShortestPathImpl::process(RoadSegment const * road, bool isForward)
 {

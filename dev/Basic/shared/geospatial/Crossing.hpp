@@ -31,8 +31,8 @@ class Crossing : public RoadItem {
 public:
 	Crossing() : RoadItem(),roadSegment(NULL) {}
 
-	RoadSegment* getRoadSegment() const { return roadSegment; };
-	void setRoadSegment(RoadSegment *rs) { if(rs) roadSegment = rs; };
+//	RoadSegment* getRoadSegment() const { return roadSegment; };
+//	void setRoadSegment(RoadSegment *rs) { if(rs) roadSegment = rs; };
 //protected:
 	//The line (start/end points that make up the line) "near" the intersection
 	std::pair<sim_mob::Point2D, sim_mob::Point2D> nearLine;

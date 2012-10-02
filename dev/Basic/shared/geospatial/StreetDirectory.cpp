@@ -2243,6 +2243,10 @@ StreetDirectory::ShortestPathImpl::searchShortestPath(const Graph& graph, const 
 	std::vector<WayPoint> res;
 	std::list<Vertex> partialRes;
 
+	//NOTE: The current approach doesn't work due to the way master Nodes are handled.
+	//      We actually need TWO master Node vertices: one "source" and one "sink".
+	//      We should also modify the visualizer to ignore Master node edges, since there's just so many of them.
+
 	//Use A* to search for a path
 	//Taken from: http://www.boost.org/doc/libs/1_38_0/libs/graph/example/astar-cities.cpp
 	//...which is available under the terms of the Boost Software License, 1.0

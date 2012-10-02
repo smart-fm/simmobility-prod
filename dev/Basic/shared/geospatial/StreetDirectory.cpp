@@ -888,7 +888,6 @@ private:
                        Node const & fromNode, Node const & toNode) const;
 #endif
 
-
     //TODO: Replace with a space partition later.
     std::map<const Node*, Vertex>::const_iterator
     searchVertex(const std::map<const Node*, Vertex>& srcNodes, const Point2D& point) const;
@@ -904,6 +903,45 @@ private:
     std::vector<WayPoint>
     extractShortestPath(Vertex const fromVertex, Vertex const toVertex,
     		std::vector<Vertex> const & parent, Graph const & graph, std::vector<Edge> & edges) const;*/
+
+
+    //Distance heuristic for our A* search algorithm
+    //Taken from: http://www.boost.org/doc/libs/1_38_0/libs/graph/example/astar-cities.cpp
+    //...which is available under the terms of the Boost Software License, 1.0
+    template <class Graph, class CostType>
+    class distance_heuristic : public boost::astar_heuristic<Graph, CostType> {
+    public:
+      distance_heuristic(const Graph* graph, Vertex goal) : m_graph(graph), m_goal(goal) {}
+      CostType operator()(Vertex v) {
+    	  const Node* atPos = boost::get(boost::vertex_name, *m_graph, v);
+    	  const Node* goalPos = boost::get(boost::vertex_name, *m_graph, m_goal);
+
+    	  return sim_mob::dist(atPos->getLocation(), goalPos->getLocation());
+      }
+    private:
+      const Graph* m_graph;
+      Vertex m_goal;
+    };
+
+    //Used to terminate our search (todo: is there a better way?)
+    struct found_goal {};
+
+    //Goal visitor: terminates when a goal has been found.
+    //Taken from: http://www.boost.org/doc/libs/1_38_0/libs/graph/example/astar-cities.cpp
+    //...which is available under the terms of the Boost Software License, 1.0
+    template <class Vertex>
+    class astar_goal_visitor : public boost::default_astar_visitor {
+    public:
+      astar_goal_visitor(Vertex goal) : m_goal(goal) {}
+
+      template <class Graph>
+      void examine_vertex(Vertex u, Graph& g) {
+        if(u == m_goal)
+          throw found_goal();
+      }
+    private:
+      Vertex m_goal;
+    };
 };
 
 
@@ -2195,6 +2233,65 @@ const
     return searchShortestPath(drivingMap_, fromVertex->second, toVertex->second);
     //return choiceSet[fromVertex->second][toVertex->second][0];
 }
+
+
+
+//Perform an A* search of our graph
+std::vector<WayPoint>
+StreetDirectory::ShortestPathImpl::searchShortestPath(const Graph& graph, const Vertex& fromVertex, const Vertex& toVertex) const
+{
+	std::vector<WayPoint> res;
+	std::list<Vertex> partialRes;
+
+	//Use A* to search for a path
+	//Taken from: http://www.boost.org/doc/libs/1_38_0/libs/graph/example/astar-cities.cpp
+	//...which is available under the terms of the Boost Software License, 1.0
+	std::vector<Vertex> p(boost::num_vertices(graph));  //Output variable
+	std::vector<double> d(boost::num_vertices(graph));  //Output variable
+	try {
+		boost::astar_search(
+			graph,
+			fromVertex,
+			distance_heuristic<Graph, double>(&graph, toVertex),
+			boost::predecessor_map(&p[0]).distance_map(&d[0]).visitor(astar_goal_visitor<Vertex>(toVertex))
+		);
+	} catch (found_goal goal) {
+		//Build backwards.
+		for (Vertex v=toVertex;;v=p[v]) {
+			partialRes.push_front(v);
+		    if(p[v] == v) {
+		    	break;
+		    }
+		}
+
+		//Now build forwards.
+		std::list<Vertex>::const_iterator prev = partialRes.end();
+		for (std::list<Vertex>::const_iterator it=partialRes.begin(); it!=partialRes.end(); it++) {
+			//Add this edge.
+			if (prev!=partialRes.end()) {
+				Edge e;
+				bool found;
+				boost::edge(*prev, *it, graph);
+
+				//This shouldn't fail.
+				if (!found) {
+					std::cout <<"ERROR: Boost can't find an edge that it should know about.\n";
+					return std::vector<WayPoint>();
+				}
+
+				//Retrieve, add this edge's WayPoint.
+				WayPoint wp = boost::get(boost::edge_name, graph, e);
+				res.push_back(wp);
+			}
+
+			//Save for later.
+			prev = it;
+		}
+	}
+	return res;
+}
+
+
 
 
 // Find the vertices in the drivingMap_ graph that represent <fromNode> and <toNode> and return

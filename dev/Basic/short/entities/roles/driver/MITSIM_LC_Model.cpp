@@ -254,7 +254,16 @@ LANE_CHANGE_SIDE sim_mob::MITSIM_LC_Model::makeDiscretionaryLaneChangingDecision
 	}
 	return LCS_SAME;
 }
-
+int sim_mob::MITSIM_LC_Model::loadMLCKaziNosingModel(DriverUpdateParams &g)
+{
+//  int n = gv.nElements() ;
+//  if (n != 6) return error(gv.name());
+//  kaziNosingParams_ = new float[n] ; // changed from "(n)" to "[n]" by Angus
+//  for (int i = 0; i < n; i ++) {
+//	kaziNosingParams_[i] = gv.element(i) ;
+//  }
+  return 0 ;
+}
 double sim_mob::MITSIM_LC_Model::checkIfMandatory(DriverUpdateParams& p)
 {
 	if(p.nextLaneIndex == p.currLaneIndex)

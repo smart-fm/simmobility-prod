@@ -1151,7 +1151,7 @@ Vehicle* sim_mob::Driver::initializePath(bool allocateVehicle) {
 		}
 
 		//TODO: Start in lane 0?
-		int startlaneID = 0;
+		int startlaneID = 1;
 
 		// Bus should be at least 1200 to be displayed on Visualizer
 		const double length = dynamic_cast<BusDriver*>(this) ? 1200 : 400;

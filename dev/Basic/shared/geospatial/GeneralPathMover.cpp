@@ -444,7 +444,7 @@ void sim_mob::GeneralPathMover::generateNewPolylineArray(const RoadSegment* curr
 
 	//Set our lane zero polypoint-ers.
 //	vector<Point2D> tempLaneZero =(*currSegmentIt)->getLanes()[0]->getPolyline();
-	laneZeroPolypointsList = (*currSegmentIt)->getLanes()[0]->getPolyline();
+	laneZeroPolypointsList = (*currSegmentIt)->getLanes()[currLaneID]->getPolyline();
 	if (!isFwd) { //NOTE: I don't think this makes sense.
 		 std::reverse(laneZeroPolypointsList.begin(), laneZeroPolypointsList.end());
 	}

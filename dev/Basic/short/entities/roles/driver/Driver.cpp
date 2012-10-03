@@ -707,7 +707,6 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 	// check current lane has connector to next link
 	if(p.dis2stop<150) // <150m need check above, ready to change lane
 	{
-		std::cout<<"asdfas"<<std::endl;
 ////		const RoadSegment* currentSegment = vehicle->getCurrSegment();
 		const RoadSegment* nextSegment = vehicle->getNextSegment(false);
 		const MultiNode* currEndNode = dynamic_cast<const MultiNode*> (vehicle->getNodeMovingTowards());
@@ -756,6 +755,8 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 	}
 
 	//Check if we should change lanes.
+	if (p.currTimeMS/1000.0 > 41.6 && parent->getId() == 24)
+		std::cout<<"find vh"<<std::endl;
 	double newLatVel;
 	newLatVel = lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length,
 			vehicle->getTurningDirection());
@@ -800,7 +801,9 @@ double sim_mob::Driver::linkDriving(DriverUpdateParams& p) {
 
 	//Update our chosen acceleration; update our position on the link.
 	vehicle->setAcceleration(newFwdAcc * 100);
-
+	std::cout<<"linkDriving: "<<" id: "<<parent->getId()<<" velocity: "<<vehicle->getVelocity()/100.0<<
+			" acceleration: "<<vehicle->getAcceleration()/100.0<<
+			" moveinseg: "<<vehicle->getDistanceMovedInSegment()<<std::endl;
 	return updatePositionOnLink(p);
 }
 
@@ -1288,6 +1291,8 @@ double sim_mob::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 	double res = 0.0;
 	try {
 		res = vehicle->moveFwd(fwdDistance);
+		if(!vehicle->isInIntersection())
+			double d = vehicle->getDistanceMovedInSegment();
 	} catch (std::exception& ex) {
 		if (Debug::Drivers) {
 #ifndef SIMMOB_DISABLE_OUTPUT
@@ -1348,7 +1353,8 @@ void sim_mob::Driver::updateNearbyDriver(DriverUpdateParams& params, const Perso
 	//Only update if passed a valid pointer which is not a pointer back to you, and
 	//the driver is not actually in an intersection at the moment.
 
-
+	if (params.currTimeMS/1000.0 > 41.8 && parent->getId() == 25)
+			std::cout<<"find vh"<<std::endl;
 	if (!(other_driver && this != other_driver && !other_driver->isInIntersection.get())) {
 		return;
 	}

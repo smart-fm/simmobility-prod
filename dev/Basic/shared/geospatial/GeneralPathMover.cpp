@@ -910,7 +910,8 @@ double sim_mob::GeneralPathMover::getCurrDistAlongRoadSegment() const
 	double distRatio = std::min(distAlongPolyline, currPolylineLength()) / currPolylineLength();
 
 	//Add this to the distance moved so far.
-	return distMovedInCurrSegment + distRatio * totalPolyDist;
+	//return distMovedInCurrSegment + distRatio * totalPolyDist;
+	return distMovedInCurrSegment + distAlongPolyline;
 }
 
 double sim_mob::GeneralPathMover::getTotalRoadSegmentLength() const

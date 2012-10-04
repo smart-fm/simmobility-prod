@@ -33,6 +33,7 @@
 #include "geospatial/Crossing.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/BusStop.hpp"
+#include "geospatial/Conflux.hpp"
 
 #include "conf/simpleconf.hpp"
 
@@ -1074,10 +1075,9 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 	 * They will be replaced by more realistic value(and input feeders) as the project proceeeds
 	 */
 	createSignals();
-#ifdef SIMMOB_NEW_SIGNAL
-	//NOTE: I am disabling this for now; it seems to be done in createSignals() ~Seth
-	//createPlans();
-#endif
+
+	// construct confluxes.
+	sim_mob::aimsun::Loader::ProcessConfluxes(res);
 }
 #ifdef SIMMOB_NEW_SIGNAL
 void
@@ -1339,8 +1339,8 @@ DatabaseLoader::createSignals()
 	}
 }
 #endif
-
-} //End anon namespace
+}
+ //End anon namespace
 
 
 //Another temporary function
@@ -1810,5 +1810,44 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 
 	std::cout <<"AIMSUN Network successfully imported.\n";
 	return "";
+}
+
+/*
+ * iterates the multinodes and creates confluxes for all of them
+ */
+void sim_mob::aimsun::Loader::ProcessConfluxes(sim_mob::RoadNetwork& rdnw) {
+	for (vector<sim_mob::MultiNode*>::const_iterator i = rdnw.nodes.begin(); i != rdnw.nodes.end(); i++) {
+		// for each MultiNode, there will be a conflux
+		sim_mob::Conflux* conflux = new sim_mob::Conflux();
+		for ( vector< pair<sim_mob::RoadSegment*, bool> >::iterator segmt=(*i)->roadSegmentsCircular.begin();
+				segmt!=(*i)->roadSegmentsCircular.end();
+				segmt++ )
+		{
+			sim_mob::Link* lnk = (*segmt).first->getLink();
+			if ((*segmt).second) {
+				// This segment is upstream to the current MultiNode
+				if(lnk->getEnd() == (*i)) {
+					//The half-link we want is the forward segments of the link
+					conflux->upstreamLinkSegments[lnk] = lnk->getFwdSegments();
+				}
+				else if (lnk->getStart() == (*i)) {
+					//The half-link we want is the reverse segments of the link
+					conflux->upstreamLinkSegments[lnk] = lnk->getRevSegments();
+				}
+			}
+			else {
+				// This segment is downstream to the current MultiNode
+				if(lnk->getEnd() == (*i)) {
+					//The half-link we want is the reverse segments of the link
+					conflux->downstreamLinkSegments[lnk] = lnk->getRevSegments();
+				}
+				else if (lnk->getStart() == (*i)) {
+					//The half-link we want is the forward segments of the link
+					conflux->downstreamLinkSegments[lnk] = lnk->getFwdSegments();
+				}
+			}
+		}
+		rdnw.confluxes.insert(conflux);
+	}
 }
 

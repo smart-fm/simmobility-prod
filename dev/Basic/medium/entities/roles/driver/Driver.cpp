@@ -765,7 +765,7 @@ sim_mob::LaneGroup* sim_mob::medium::Driver::getBestTargetLaneGroup() {
 	std::vector<sim_mob::LaneGroup*> nextSegLnGrps = vehicle->getNextSegment()->getLaneGroups();
 	std::vector<sim_mob::LaneGroup*> candidateLnGrps;
 	if(nextSegLnGrps.size() == 0){
-		vehicle->getNextSegment()->initLaneGroups();
+//todo		vehicle->getNextSegment()->initLaneGroups();
 		nextSegLnGrps = vehicle->getNextSegment()->getLaneGroups();
 	}
 	std::vector<sim_mob::LaneGroup*>::iterator lnGrpIt = nextSegLnGrps.begin();

@@ -77,23 +77,14 @@ public:
 	const vector<const BusStop*>& getBusStops() const {
 		return busStop_vec;
 	}
-	const vector<const BusStop_ScheduledTimes*>& getBusStopScheduledTimes() const {
-		return busStopScheduledTimes_vec;
-	}
-	const vector <Shared<BusStop_RealTimes>* >& getBusStopRealTimes() const {
-		return busStopRealTimes_vec;
-	}
+
 	void addBusStop(const BusStop* aBusStop);
 	void addRoadSegment(const RoadSegment* aRoadSegment);
-	void addBusStopScheduledTimes(const BusStop_ScheduledTimes* aBusStopScheduledTime);
-	void addBusStopRealTimes(Shared<BusStop_RealTimes>* aBusStopRealTime);
-	void setBusStopRealTimes(int busstopSequence_j, BusStop_RealTimes& busStopRealTimes);
+
 private:
 	unsigned int busRoute_id;
 	vector<const RoadSegment*> roadSegment_vec;
 	vector<const BusStop*> busStop_vec;
-	vector<const BusStop_ScheduledTimes*> busStopScheduledTimes_vec;
-	vector <Shared<BusStop_RealTimes>* > busStopRealTimes_vec;
 };
 
 class BusTrip: public sim_mob::Trip {// Can be inside the TripChain generation or BusLine stored in BusController
@@ -111,17 +102,29 @@ public:
 	const int getBusLineID() const {
 		return busLine_id;
 	}
-	const BusRouteInfo* queryBusRouteInfo() const {
+	const BusRouteInfo* getBusRouteInfo() const {
 		return bus_RouteInfo;
 	}
-	BusRouteInfo* getBusRouteInfo() const {
-		return bus_RouteInfo;
+//	BusRouteInfo* getBusRouteInfo() const {
+//		return bus_RouteInfo;
+//	}
+	void addBusStopScheduledTimes(const BusStop_ScheduledTimes* aBusStopScheduledTime);
+	void addBusStopRealTimes(Shared<BusStop_RealTimes>* aBusStopRealTime);
+	void setBusStopRealTimes(int busstopSequence_j, BusStop_RealTimes& busStopRealTimes);
+	const vector<const BusStop_ScheduledTimes*>& getBusStopScheduledTimes() const {
+		return busStopScheduledTimes_vec;
+	}
+	const vector <Shared<BusStop_RealTimes>* >& getBusStopRealTimes() const {
+		return busStopRealTimes_vec;
 	}
 private:
 	int busLine_id;
 	int busTripRun_sequenceNum;
 	int vehicle_id;
-	BusRouteInfo* bus_RouteInfo;// route inside this BusTrip
+	BusRouteInfo* bus_RouteInfo;// route inside this BusTrip, just some roadSegments and BusStops
+
+	vector<const BusStop_ScheduledTimes*> busStopScheduledTimes_vec;// can be different for different pair<busLine_id,busTripRun_sequenceNum>
+	vector <Shared<BusStop_RealTimes>* > busStopRealTimes_vec;// can be different for different pair<busLine_id,busTripRun_sequenceNum>
 };
 
 
@@ -142,24 +145,15 @@ public:
 	const int getBusLineID() const {
 		return busline_id;
 	}
-//	void addFwdBusTrip(const BusTrip& aFwdBusTrip);
-//	void addRevBusTrip(const BusTrip& aRevBusTrip);
-//	const vector<BusTrip>& getFwdBusTrips() const {
-//		return fwdbustrip_vec;
-//	}
-//	const vector<BusTrip>& getRevBusTrips() const {
-//		return revbustrip_vec;
-//	}
-	void addBusTrip(const BusTrip& aBusTrip);
-	const vector<BusTrip>& getBusTrips() const {
+	void addBusTrip(const BusTrip* aBusTrip);
+	const vector<const BusTrip*>& queryBusTrips() const {
 		return busTrip_vec;
 	}
+	void resetBusTrip(int trip_k, int busstopSequence_j, BusStop_RealTimes& busStopRealTimes) const;// mainly for realTimes
 private:
 	int busline_id;
 	CONTROL_TYPE controlType;
-	vector<BusTrip> busTrip_vec;
-	//vector<BusTrip> fwdbustrip_vec;
-	//vector<BusTrip> revbustrip_vec;
+	vector<const BusTrip*> busTrip_vec;
 };
 
 class PT_Schedule { // stored in BusController, Schedule Time Points and Real Time Points should be put separatedly

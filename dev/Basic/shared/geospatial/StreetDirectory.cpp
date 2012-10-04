@@ -2268,7 +2268,7 @@ StreetDirectory::ShortestPathImpl::searchShortestPath(const Graph& graph, const 
 			distance_heuristic<Graph, double>(&graph, toVertex),
 			boost::predecessor_map(&p[0]).distance_map(&d[0]).visitor(astar_goal_visitor<Vertex>(toVertex))
 		);
-	} catch (found_goal goal) {
+	} catch (found_goal& goal) {
 		//Build backwards.
 		for (Vertex v=toVertex;;v=p[v]) {
 			partialRes.push_front(v);

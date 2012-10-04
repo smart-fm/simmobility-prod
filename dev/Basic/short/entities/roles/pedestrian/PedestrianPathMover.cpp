@@ -23,8 +23,8 @@ typedef POLYLINEPOINTS::const_reverse_iterator POLYLINEPOINTS_REVERSE_ITERATOR;
 
 typedef unordered_map<sim_mob::Point2D,WayPoint* > POLYLINEPOINTS_WAYPOINT_MAP;
 
-sim_mob::PedestrianPathMover::PedestrianPathMover():
-		distAlongPolyline(0.0),isDoneWithEntirePath(false),nextWaypoint(NULL) {
+sim_mob::PedestrianPathMover::PedestrianPathMover() :
+		distAlongPolyline(0.0),isDoneWithEntirePath(false), currentWaypoint(nullptr), nextWaypoint(nullptr) {
 	// TODO Auto-generated constructor stub
 
 }

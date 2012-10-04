@@ -75,8 +75,9 @@ Trip* MakePseudoTrip(const Person& ag, const std::string& mode)
 }  //End unnamed namespace
 
 
-sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, unsigned int id) :
-	Agent(mtxStrat, id), prevRole(nullptr), currRole(nullptr), agentSrc(src), currTripChainItem(nullptr), currSubTrip(nullptr), firstFrameTick(true)
+sim_mob::Person::Person(const std::string& src, const MutexStrategy& mtxStrat, unsigned int id) : Agent(mtxStrat, id),
+	prevRole(nullptr), currRole(nullptr), agentSrc(src), currTripChainSequenceNumber(0), currTripChainItem(nullptr),
+	currSubTrip(nullptr), firstFrameTick(true)
 
 {
 	//throw 1;

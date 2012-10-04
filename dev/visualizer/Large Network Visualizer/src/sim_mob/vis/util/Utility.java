@@ -14,11 +14,9 @@ import javax.imageio.ImageIO;
 import com.google.gson.Gson;
 
 import sim_mob.vis.Main;
-import sim_mob.vis.network.TrafficSignal;
 import sim_mob.vis.network.basic.FlippedScaledPoint;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.simultion.GsonResObj;
-import sim_mob.vis.simultion.TrafficSignalUpdate;
 
 /**
  * \author Seth N. Hetu
@@ -36,8 +34,8 @@ public class Utility {
 	private final class GsonWrapper {
 		//NOTE: These names are mildly confusing, but just follow the pattern for new fields
 		//      and everything will work.
-		TrafficSignal TrafficSignal;
-		TrafficSignalUpdate TrafficSignalUpdate;
+		//TrafficSignal TrafficSignal;
+		//TrafficSignalUpdate TrafficSignalUpdate;
 
 		GsonResObj getResult() {
 			ArrayList<GsonResObj> possible = new ArrayList<GsonResObj>();

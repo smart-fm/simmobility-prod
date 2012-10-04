@@ -43,7 +43,8 @@ class PartitionManager;
 
 //Helper struct
 struct PedestrianUpdateParams2 : public sim_mob::UpdateParams {
-	explicit PedestrianUpdateParams2(boost::mt19937& gen) : UpdateParams(gen) {}
+	explicit PedestrianUpdateParams2(boost::mt19937& gen) : UpdateParams(gen), skipThisFrame(false) {}
+	virtual ~PedestrianUpdateParams2() {}
 
 	virtual void reset(frame_t frameNumber, unsigned int currTimeMS)
 	{

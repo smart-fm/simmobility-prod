@@ -77,8 +77,9 @@ double Pedestrian2::collisionForce = 20;
 double Pedestrian2::agentRadius = 0.5; //Shoulder width of a person is about 0.5 meter
 
 
-sim_mob::Pedestrian2::Pedestrian2(Agent* parent) :
-	Role(parent), isUsingGenPathMover(true), params(parent->getGenerator()) {
+sim_mob::Pedestrian2::Pedestrian2(Agent* parent) : Role(parent),
+	trafficSignal(nullptr), currCrossing(nullptr),
+	isUsingGenPathMover(true), params(parent->getGenerator()) {
 	//Check non-null parent. Perhaps references may be of use here?
 
 	//Init

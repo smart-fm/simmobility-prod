@@ -24,7 +24,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	private static Font FrameFont = new Font("Arial", Font.PLAIN, 18);
 	
 	//Call backs to the parent
-	private StringSetter statusBarUpdate;
+	//private StringSetter statusBarUpdate;
 	
 	//For dragging
 	private Point mouseDown = new Point(0, 0);
@@ -74,7 +74,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 		this.addMouseMotionListener(this);
 		this.addMouseWheelListener(this);
 		
-		this.statusBarUpdate = statusBarUpdate;
+		//this.statusBarUpdate = statusBarUpdate;
 		
 		//Hack a little
 		this.setBackground(Color.darkGray);
@@ -161,7 +161,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 
 	
 	//Helper
-	private static int CenterAndBoundsCheck(int origValue, int srcValue, int destValue) {
+	/*private static int CenterAndBoundsCheck(int origValue, int srcValue, int destValue) {
 		if (srcValue<=destValue) {
 			//Center
 			origValue = destValue/2 - srcValue/2;
@@ -171,7 +171,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 			origValue = -Math.min(Math.max(0,origValue), srcValue-destValue);
 		}
 		return origValue;
-	}
+	}*/
 	
 	
 	public boolean jumpAnim(int toTick, JSlider slider) {
@@ -403,7 +403,7 @@ public class NetworkPanel extends JPanel implements ComponentListener, MouseList
 	
 	private void zoomView(int number) {
 		//Get the current view.
-		Rectangle2D view = netViewCache.getCurrentView();
+		//Rectangle2D view = netViewCache.getCurrentView();
 		
 		//Get the old width/height for comparison
 		// double oldW =  netViewCache.getImage().getWidth();

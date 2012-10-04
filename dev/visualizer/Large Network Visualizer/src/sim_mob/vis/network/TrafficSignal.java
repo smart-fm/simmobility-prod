@@ -73,7 +73,7 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 	}
 	private String hex_id;
 	private Integer frame;
-	private String simmob_id;
+//	private String simmob_id;
 	private String node;
 	private Phase[] phases;
 	

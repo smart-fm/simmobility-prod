@@ -891,11 +891,11 @@ public class RoadNetwork {
 		spaceNodeAnnotations(alreadySpaced, annot_aimsun);
 		spaceNodeAnnotations(alreadySpaced, annot_mitsim);
 	}
-	private void spaceBusStopAnnotations() {
+	/*private void spaceBusStopAnnotations() {
 		Hashtable<Point, Integer> alreadySpaced = new Hashtable<Point, Integer>(); //int = conflicts
 		spaceBusStopAnnotations(alreadySpaced, annot_aimsun);
 		spaceBusStopAnnotations(alreadySpaced, annot_mitsim);
-	}
+	}*/
 	
 	
 	//Attempt to place each annotation. Avoid overlapping any existing annotations.
@@ -925,7 +925,7 @@ public class RoadNetwork {
 	}
 	
 	//
-	private void spaceBusStopAnnotations(Hashtable<Point, Integer> alreadySpaced, ArrayList<Annotation> toSpace) {
+	/*private void spaceBusStopAnnotations(Hashtable<Point, Integer> alreadySpaced, ArrayList<Annotation> toSpace) {
 		Point amt = new Point(500, 800);
 		Point[] magnitudes = new Point[] {new Point(0,amt.y), new Point(amt.x,amt.y/2), new Point(amt.x,-amt.y/2), new Point(0,-amt.y) }; 
 		
@@ -946,7 +946,7 @@ public class RoadNetwork {
 			int times = (count / magnitudes.length)+1;
 			an.setOffset(new Point((int)an.getPos().getUnscaledX()+mag.x*times, (int)an.getPos().getUnscaledY()+mag.y*times));
 		}
-	}
+	}*/
 	//
 	
 	

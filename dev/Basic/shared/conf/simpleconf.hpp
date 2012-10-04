@@ -217,8 +217,8 @@ public:
 	std::vector<sim_mob::BusSchedule*>& getBusSchedule() { return busschedule;}
 
 	std::vector<sim_mob::TripChainItem*>& getBusTripChains() { return bustripchains; }
-	//	std::map<int, std::vector<int> >& getBusStopIDs_Map() { return routeID_busStopIDs;}
-	//	std::map<int, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_Map() { return routeID_roadSegments;}
+	std::map<int, std::vector<int> >& getBusStopIDs_Map() { return routeID_busStopIDs;}
+	std::map<int, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_Map() { return routeID_roadSegments;}
 	//	std::map<int, std::vector<const sim_mob::BusStopInfo*> >& getBusStopInfos_Map() { return tripID_BusStopInfos;}
 
 private:
@@ -232,8 +232,8 @@ private:
 	std::vector<sim_mob::BusSchedule*> busschedule;
 
 	std::vector<sim_mob::TripChainItem*> bustripchains;
-	//	std::map<int, std::vector<int> > routeID_busStopIDs; // map<routeID, vector<busStopID>>
-	//	std::map<int, std::vector<const sim_mob::RoadSegment*> > routeID_roadSegments; // map<routeID, vector<RoadSegment*>>
+	std::map<int, std::vector<int> > routeID_busStopIDs; // map<routeID, vector<busStopID>>
+	std::map<int, std::vector<const sim_mob::RoadSegment*> > routeID_roadSegments; // map<routeID, vector<RoadSegment*>>
 	//	std::map<int, std::vector<const sim_mob::BusStopInfo*> > tripID_BusStopInfos; // map<tripID, vector<BusStopInfo*>>
 	bool sealedNetwork;
 };

@@ -105,7 +105,7 @@ public:
 	map<int, Section> const & sections() const { return sections_; }
 	const map<int, vector<const sim_mob::BusStop*> >& getRoute_BusStops() const { return route_BusStops; }
 	const map<int, vector<const sim_mob::RoadSegment*> >& getRoute_RoadSegments() const { return route_RoadSegments; }
-	const map<int, vector<const sim_mob::BusStopInfo*> >& getRoute_BusStopInfos() const { return route_BusStopInfos; }
+	//const map<int, vector<const sim_mob::BusStopInfo*> >& getRoute_BusStopInfos() const { return route_BusStopInfos; }
 
 private:
 	soci::session sql_;
@@ -128,7 +128,7 @@ private:
 	vector<TripChainItem> bustripchains_;
 	map<int, vector<const sim_mob::BusStop*> > route_BusStops;
 	map<int, vector<const sim_mob::RoadSegment*> > route_RoadSegments;
-	map<int, vector<const sim_mob::BusStopInfo*> > route_BusStopInfos;
+	//map<int, vector<const sim_mob::BusStopInfo*> > route_BusStopInfos;
 
 private:
 	void LoadNodes(const std::string& storedProc);
@@ -825,7 +825,8 @@ sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
 }
 
 sim_mob::BusTrip* MakeBusTrip(const TripChainItem& tcItem, const std::map<int, std::vector<const sim_mob::BusStop*> >& route_BusStops,
-	const std::map<int, std::vector<const sim_mob::RoadSegment*> >& route_RoadSegments, const std::map<int, std::vector<const sim_mob::BusStopInfo*> >& route_BusStopInfos) {
+	const std::map<int, std::vector<const sim_mob::RoadSegment*> >& route_RoadSegments) {
+
 	//sim_mob::BusTrip* BusTripToSave = new sim_mob::BusTrip(tcItem.entityID,tcItem.sequenceNumber,tcItem.startTime,tcItem.endTime,tcItem.tripID);   //need Database Table connections(BusTripChainItem and BusTrip)
 	sim_mob::BusTrip* BusTripToSave = nullptr;
 
@@ -845,11 +846,12 @@ sim_mob::BusTrip* MakeBusTrip(const TripChainItem& tcItem, const std::map<int, s
 		busRouteInfo->addRoadSegment(*it1);
 	}
 
-	const std::vector<const sim_mob::BusStopInfo*>& busStopInfo_vecTemp = route_BusStopInfos.find(route_id)->second; // route_BusStopInfos is a map loaded from database
-	for(std::vector<const sim_mob::BusStopInfo*>::const_iterator iter = busStopInfo_vecTemp.begin();iter != busStopInfo_vecTemp.end(); iter++)
-	{
-		busRouteInfo->addBusStopInfo(*iter);
-	}
+
+//	const std::vector<const sim_mob::BusStopInfo*>& busStopInfo_vecTemp = route_BusStopInfos.find(route_id)->second; // route_busStopScheduledTimes is a map loaded from database
+//	for(std::vector<const sim_mob::BusStopInfo*>::const_iterator iter = busStopInfo_vecTemp.begin();iter != busStopInfo_vecTemp.end(); iter++)
+//	{
+//		busRouteInfo->addBusStopInfo(*iter);
+//	}
 
 	return BusTripToSave;
 

@@ -30,7 +30,9 @@ sim_mob::BusRouteInfo::BusRouteInfo(unsigned int busRoute_id)
 }
 
 sim_mob::BusRouteInfo::BusRouteInfo(const BusRouteInfo& copyFrom)
-: busRoute_id(copyFrom.busRoute_id), roadSegment_vec(copyFrom.roadSegment_vec), busStopInfo_vec(copyFrom.busStopInfo_vec)
+: busRoute_id(copyFrom.busRoute_id), roadSegment_vec(copyFrom.roadSegment_vec),
+  busStop_vec(copyFrom.busStop_vec), busStopScheduledTimes_vec(copyFrom.busStopScheduledTimes_vec),
+  busStopRealTimes_vec(copyFrom.busStopRealTimes_vec)
 {
 
 }
@@ -45,17 +47,27 @@ void sim_mob::BusRouteInfo::addRoadSegment(const RoadSegment* aRoadSegment)
 	roadSegment_vec.push_back(aRoadSegment);
 }
 
-void sim_mob::BusRouteInfo::addBusStopInfo(const BusStopInfo* aBusStopInfo)
+void sim_mob::BusRouteInfo::addBusStopScheduledTimes(const BusStop_ScheduledTimes* aBusStopScheduledTime)
 {
-	busStopInfo_vec.push_back(aBusStopInfo);
+	busStopScheduledTimes_vec.push_back(aBusStopScheduledTime);
+}
+
+void sim_mob::BusRouteInfo::addBusStopRealTimes(Shared<BusStop_RealTimes>* aBusStopRealTime)
+{
+	busStopRealTimes_vec.push_back(aBusStopRealTime);
+}
+
+void sim_mob::BusRouteInfo::setBusStopRealTimes(int busstopSequence_j, BusStop_RealTimes& busStopRealTimes)
+{
+	busStopRealTimes_vec[busstopSequence_j]->set(busStopRealTimes);
 }
 
 sim_mob::BusTrip::BusTrip(int entId, string type, unsigned int seqNumber,
-		DailyTime start, DailyTime end, int busTrip_id, int busLine_id, int vehicle_id,
+		DailyTime start, DailyTime end, int busTripRun_sequenceNum, int busLine_id, int vehicle_id,
 		unsigned int busRoute_id, Node* from, string fromLocType, Node* to,
 		string toLocType)
-: Trip(entId, type, seqNumber, start, end, busTrip_id,from, fromLocType, to, toLocType),
-busLine_id(busLine_id), busTrip_id(busTrip_id), vehicle_id(vehicle_id), bus_RouteInfo(&BusRouteInfo(busRoute_id))
+: Trip(entId, type, seqNumber, start, end, busTripRun_sequenceNum,from, fromLocType, to, toLocType),
+busLine_id(busLine_id), busTripRun_sequenceNum(busTripRun_sequenceNum), vehicle_id(vehicle_id), bus_RouteInfo(&BusRouteInfo(busRoute_id))
 {
 
 }
@@ -90,14 +102,19 @@ CONTROL_TYPE sim_mob::Busline::getControlTypeFromString(string ControlType)
 	}
 }
 
-void sim_mob::Busline::addFwdBusTrip(const BusTrip& aFwdBusTrip)
-{
-	fwdbustrip_vec.push_back(aFwdBusTrip);
-}
+//void sim_mob::Busline::addFwdBusTrip(const BusTrip& aFwdBusTrip)
+//{
+//	fwdbustrip_vec.push_back(aFwdBusTrip);
+//}
+//
+//void sim_mob::Busline::addRevBusTrip(const BusTrip& aRevBusTrip)
+//{
+//	revbustrip_vec.push_back(aRevBusTrip);
+//}
 
-void sim_mob::Busline::addRevBusTrip(const BusTrip& aRevBusTrip)
+void sim_mob::Busline::addBusTrip(const BusTrip& aBusTrip)
 {
-	revbustrip_vec.push_back(aRevBusTrip);
+	busTrip_vec.push_back(aBusTrip);
 }
 
 sim_mob::PT_Schedule::PT_Schedule()

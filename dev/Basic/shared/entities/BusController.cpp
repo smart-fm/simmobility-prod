@@ -134,6 +134,7 @@ unsigned int sim_mob::BusController::scheduledDecision(int busline_i, int trip_k
 	const vector<const BusStop_ScheduledTimes*>& busStopScheduledTime_tripK = BusTrips[trip_k]->getBusStopScheduledTimes();
 	//const vector<const BusStopInfo*>& busStopInfoFwd_tripK = busRouteInfoFwd_tripK->getBusStopsInfo();
 	SETijk = busStopScheduledTime_tripK[busstopSequence_j]->scheduled_DepartureTime;
+
 	DTijk = dwellTimeCalculation(busline_i, trip_k, busstopSequence_j);
 	ETijk = std::max(SETijk - sij, ATijk + DTijk);
 
@@ -158,6 +159,7 @@ unsigned int sim_mob::BusController::headwayDecision(int busline_i, int trip_k, 
 	ATijk_1 = busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime;
 	Hi = BusTrips[trip_k]->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime)
 			- BusTrips[trip_k - 1]->startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
+
 	DTijk = dwellTimeCalculation(busline_i, trip_k, busstopSequence_j);
 	ETijk = std::max((unsigned int)(ATijk_1 + alpha*Hi), ATijk + DTijk);
 
@@ -170,7 +172,26 @@ unsigned int sim_mob::BusController::headwayDecision(int busline_i, int trip_k, 
 
 unsigned int sim_mob::BusController::evenheadwayDecision(int busline_i, int trip_k, int busstopSequence_j,  unsigned int ATijk, int lastVisited_BusStopSeqNum)
 {
+	const Busline* busline = pt_schedule.findBusline(busline_i);
 	unsigned int DTijk = 0;
+	unsigned int ETijk = 0;
+	unsigned int ATijk_1 = 0;
+	unsigned int ATimk_plus1 = 0;
+	unsigned int SRTmj = 0;
+
+	const vector<const BusTrip*>& BusTrips = busline->queryBusTrips();
+	const vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripK_1 = BusTrips[trip_k - 1]->getBusStopRealTimes();
+	ATijk_1 = busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime;
+
+	const vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripKplus1 = BusTrips[trip_k + 1]->getBusStopRealTimes();
+	ATimk_plus1 = busStopRealTime_tripKplus1[lastVisited_BusStopSeqNum]->get().real_ArrivalTime;
+
+	const vector<const BusStop_ScheduledTimes*>& busStopScheduledTime_tripKplus1 = BusTrips[trip_k + 1]->getBusStopScheduledTimes();
+	SRTmj = busStopScheduledTime_tripKplus1[busstopSequence_j]->scheduled_ArrivalTime
+			- busStopScheduledTime_tripKplus1[lastVisited_BusStopSeqNum]->scheduled_DepartureTime;
+
+	DTijk = dwellTimeCalculation(busline_i, trip_k, busstopSequence_j);
+	ETijk = std::max((unsigned int)(ATijk_1 + (double)(ATimk_plus1 + SRTmj - ATijk_1)/2.0), ATijk + DTijk); // need some changes for precision
 	return DTijk;
 }
 

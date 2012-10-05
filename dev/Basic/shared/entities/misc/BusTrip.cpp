@@ -9,7 +9,7 @@
 
 using namespace sim_mob;
 
-sim_mob::BusStop_ScheduledTimes::BusStop_ScheduledTimes(unsigned int scheduled_ArrivalTime, unsigned int scheduled_DepartureTime)
+sim_mob::BusStop_ScheduledTimes::BusStop_ScheduledTimes(DailyTime scheduled_ArrivalTime, DailyTime scheduled_DepartureTime)
 : scheduled_ArrivalTime(scheduled_ArrivalTime), scheduled_DepartureTime(scheduled_DepartureTime)
 {
 

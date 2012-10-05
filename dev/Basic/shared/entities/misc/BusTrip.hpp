@@ -27,14 +27,14 @@ using std::string;
 
 namespace sim_mob {
 
-// offsetMS_From(ConfigParams::GetInstance().simStartTime))???
+// offsetMS_From(ConfigParams::GetInstance().simStartTime)???
 class BusStop_ScheduledTimes{
 public:
-	explicit BusStop_ScheduledTimes(unsigned int scheduled_ArrivalTime, unsigned int scheduled_DepartureTime);
+	explicit BusStop_ScheduledTimes(DailyTime scheduled_ArrivalTime, DailyTime scheduled_DepartureTime);
 	~BusStop_ScheduledTimes() {}
 	int stop_id;
-	unsigned int scheduled_ArrivalTime;
-	unsigned int scheduled_DepartureTime;
+	DailyTime scheduled_ArrivalTime;
+	DailyTime scheduled_DepartureTime;
 };
 
 class BusStop_RealTimes{

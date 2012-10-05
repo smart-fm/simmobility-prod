@@ -269,11 +269,6 @@ double sim_mob::Vehicle::moveFwd(double amt) {
 	return fwdMovement.advance(amt);
 }
 
-double sim_mob::Vehicle::moveFwd_med(double amt) {
-	throw_if_error();
-	return fwdMovement.advance_med(amt);
-}
-
 void sim_mob::Vehicle::moveLat(double amt) {
 	throw_if_error();
 	latMovement += amt;

@@ -623,8 +623,8 @@ bool sim_mob::medium::Driver::moveToNextSegment(DriverUpdateParams& p, unsigned 
 				removeFromMovingList();
 			}
 			//double res = vehicle->advanceToNextRoadSegment();
-			double res = vehicle->advanceToNextPolyline(true);
-			advance(p, currTimeMS);
+	//		double res = vehicle->advanceToNextPolyline(true);
+	//		advance(p, currTimeMS);
 		}
 	}
 	else{	//nextRdSeg is in a new link

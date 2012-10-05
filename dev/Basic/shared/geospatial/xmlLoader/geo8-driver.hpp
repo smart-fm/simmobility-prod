@@ -1,6 +1,6 @@
-//#pragma once
+#pragma once
 //<<<<<<< HEAD
-//#include<iostream>
+#include<iostream>
 //namespace sim_mob {
 //namespace xml {
 //=======

@@ -12,11 +12,14 @@
 #include "util/OpaqueProperty.hpp"
 #include "Point2D.hpp"
 
-/*namespace geo{
+
+
+
+namespace geo{
 //Forward Declaration
 class Node_t_pimpl;
 class GeoSpatial_t_pimpl;
-}*/
+}
 
 namespace sim_mob
 {
@@ -48,6 +51,9 @@ class Node {
 //TODO: A lot of this should be private/protected, but the XML loaders need access (at the moment).
 //      Should be re-worked later; we really never create "base" Nodes. ~Seth
 
+		//Exactly,But we need this for XML reader when base class information are communicated to children
+		//For Now, I will keep working in this way until we find a better solution-vahid
+friend class ::geo::Node_t_pimpl;
 public:
 	unsigned int nodeId;//read from DB
 public:
@@ -74,7 +80,7 @@ protected:
 private:
 
 //protected:
-    Node(int x, int y) : location(x, y) {}
+//    Node(int x, int y) : location(x, y) {}
 //private:
     sim_mob::Link* linkLoc;
 

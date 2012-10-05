@@ -31,15 +31,18 @@ namespace sim_mob
 {
 
 void WriteXMLInput_Location(TiXmlElement * parent,bool underLocation, unsigned int X, unsigned int Y);
+void WriteXMLInput_laneEdgePolylines_cached(std::vector<std::vector<sim_mob::Point2D> >& polylines,TiXmlElement * laneEdgePolylines_cached);
 void WriteXMLInput_PolyLine(const std::vector<sim_mob::Point2D>& polylines,TiXmlElement * PolyLine);
 void WriteXMLInput_Lane(sim_mob::Lane *LaneObj,TiXmlElement *Lanes);
 void WriteXMLInput_Crossing(sim_mob::Crossing * crossing , int offset, TiXmlElement *Obstacle);
+void WriteXMLInput_BusStop(sim_mob::BusStop * busStop , int offset, TiXmlElement *Obstacle);
 void WriteXMLInput_Obstacle(sim_mob::RoadItemAndOffsetPair res, TiXmlElement * Obstacle);
 void WriteXMLInput_Segment(sim_mob::RoadSegment* rs ,TiXmlElement * Segments);
 void WriteXMLInput_Segments(sim_mob::Link* LinkObj ,TiXmlElement * Link);
 void WriteXMLInput_Links(const std::vector<sim_mob::Link*>& link,TiXmlElement * RoadNetwork);
 void WriteXMLInput_UniNode_Connectors(sim_mob::UniNode* uninode,TiXmlElement * UniNode_);
 void WriteXMLInput_Node(sim_mob::Node *node, TiXmlElement * parent);
+void WriteXMLInput_UniNode_SegmentPair(TiXmlElement * UniNode, std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> thePair, bool firstPair);
 void WriteXMLInput_UniNodes(sim_mob::RoadNetwork & roadNetwork,TiXmlElement * Nodes);
 void WriteXMLInput_roadSegmentsAt(sim_mob::MultiNode * mn,TiXmlElement * Intersection);
 void WriteXMLInput_MultiNode_Connectors(sim_mob::MultiNode* mn,TiXmlElement * MultiNode);

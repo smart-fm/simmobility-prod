@@ -10,14 +10,14 @@
 #include <iostream>
 #include "geo8-pimpl.hpp"
 
-
+using namespace geo;
 //#ifdef SIMMOB_PARTIAL_XML_READER
-//    		sim_mob::xml::InitAndLoadXML(XML_OutPutFileName)
+//    		geo::InitAndLoadXML(XML_OutPutFileName)
 //#else
 //    		geo::InitAndLoadXML(XML_OutPutFileName)
 //#endif
-geo::InitAndLoadXML(XML_OutPutFileName)
-//sim_mob::xml::InitAndLoadXML(XML_OutPutFileName)
+bool geo::InitAndLoadXML(std::string XML_OutPutFileName)
+//geo::InitAndLoadXML(XML_OutPutFileName)
 {
 	std::cout << "In InitAndLoadXML\n";
 
@@ -34,6 +34,7 @@ geo::InitAndLoadXML(XML_OutPutFileName)
     ::geo::Point2D_t_pimpl Point2D_t_p;
     ::xml_schema::unsigned_long_pimpl unsigned_long_p;
     ::xml_schema::string_pimpl string_p;
+    ::geo::temp_Segmetair_t_pimpl temp_Segmetair_t_p;
     ::geo::connectors_t_pimpl connectors_t_p;
     ::geo::connector_t_pimpl connector_t_p;
     ::geo::Intersections_pimpl Intersections_p;
@@ -66,6 +67,8 @@ geo::InitAndLoadXML(XML_OutPutFileName)
     ::xml_schema::short_pimpl short_p;
     ::geo::PolyLine_t_pimpl PolyLine_t_p;
     ::geo::PolyPoint_t_pimpl PolyPoint_t_p;
+    ::geo::laneEdgePolylines_cached_t_pimpl laneEdgePolylines_cached_t_p;
+    ::geo::laneEdgePolyline_cached_t_pimpl laneEdgePolyline_cached_t_p;
     ::geo::Lanes_pimpl Lanes_p;
     ::geo::lane_t_pimpl lane_t_p;
     ::geo::RoadItems_t_pimpl RoadItems_t_p;
@@ -122,10 +125,15 @@ geo::InitAndLoadXML(XML_OutPutFileName)
                          Point2D_t_p,
                          unsigned_long_p,
                          string_p,
+                         temp_Segmetair_t_p,
+                         temp_Segmetair_t_p,
                          connectors_t_p);
 
     Point2D_t_p.parsers (unsigned_int_p,
                          unsigned_int_p);
+
+    temp_Segmetair_t_p.parsers (unsigned_long_p,
+                                unsigned_long_p);
 
     connectors_t_p.parsers (connector_t_p);
 
@@ -218,6 +226,7 @@ geo::InitAndLoadXML(XML_OutPutFileName)
                          unsigned_int_p,
                          string_p,
                          PolyLine_t_p,
+                         laneEdgePolylines_cached_t_p,
                          Lanes_p,
                          RoadItems_t_p,
                          PolyLine_t_p);
@@ -226,6 +235,11 @@ geo::InitAndLoadXML(XML_OutPutFileName)
 
     PolyPoint_t_p.parsers (string_p,
                            Point2D_t_p);
+
+    laneEdgePolylines_cached_t_p.parsers (laneEdgePolyline_cached_t_p);
+
+    laneEdgePolyline_cached_t_p.parsers (short_p,
+                                         PolyLine_t_p);
 
     Lanes_p.parsers (lane_t_p);
 

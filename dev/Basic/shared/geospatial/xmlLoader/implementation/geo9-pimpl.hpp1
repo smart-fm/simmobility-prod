@@ -13,8 +13,8 @@
 #include "conf/simpleconf.hpp"
 #include "geospatial/Point2D.hpp"
 
-namespace sim_mob {
-namespace xml {
+
+namespace geo {
 
 //Note: Do NOT write constructors for these classes, since we don't want to risk C++'s finnicky constructor
 // chaining mechanism. Instead, initialize all your private variables in the pre() function.
@@ -478,7 +478,7 @@ private:
   };
 
   class UniNode_t_pimpl: public virtual UniNode_t_pskel,
-    public ::sim_mob::xml::Node_t_pimpl
+    public ::geo::Node_t_pimpl
   {
 	  sim_mob::UniNode * uniNode;
 //	  Point2D location_;
@@ -497,7 +497,7 @@ private:
   };
 
   class roundabout_t_pimpl: public virtual roundabout_t_pskel,
-    public ::sim_mob::xml::Node_t_pimpl
+    public ::geo::Node_t_pimpl
   {
     public:
     virtual void
@@ -535,7 +535,7 @@ private:
   };
 
   class intersection_t_pimpl: public virtual intersection_t_pskel,
-    public ::sim_mob::xml::Node_t_pimpl
+    public ::geo::Node_t_pimpl
   {
 	  sim_mob::Intersection * intersection;
 	  std::map<unsigned long,std::set<std::pair<unsigned long,unsigned long> > > connectors_;
@@ -608,7 +608,7 @@ private:
   };
 
   class BusStop_t_pimpl: public virtual BusStop_t_pskel,
-    public ::sim_mob::xml::RoadItem_t_pimpl
+    public ::geo::RoadItem_t_pimpl
   {
     public:
     virtual void
@@ -637,7 +637,7 @@ private:
   };
 
   class ERP_Gantry_t_pimpl: public virtual ERP_Gantry_t_pskel,
-    public ::sim_mob::xml::RoadItem_t_pimpl
+    public ::geo::RoadItem_t_pimpl
   {
     public:
     virtual void
@@ -687,7 +687,7 @@ private:
   };
 
   class crossing_t_pimpl: public virtual crossing_t_pskel,
-    public ::sim_mob::xml::RoadItem_t_pimpl
+    public ::geo::RoadItem_t_pimpl
   {
 	  sim_mob::Crossing *crossing;
     public:
@@ -708,7 +708,7 @@ private:
   };
 
   class RoadBump_t_pimpl: public virtual RoadBump_t_pskel,
-    public ::sim_mob::xml::RoadItem_t_pimpl
+    public ::geo::RoadItem_t_pimpl
   {
     public:
     virtual void
@@ -868,7 +868,7 @@ private:
   };
 
   class Trip_t_pimpl: public virtual Trip_t_pskel,
-    public ::sim_mob::xml::TripChainItem_t_pimpl
+    public ::geo::TripChainItem_t_pimpl
   {
 	  sim_mob::Trip * trip;
     public:
@@ -898,7 +898,7 @@ private:
   };
 
   class Activity_t_pimpl: public virtual Activity_t_pskel,
-    public ::sim_mob::xml::TripChainItem_t_pimpl
+    public ::geo::TripChainItem_t_pimpl
   {
 	  sim_mob::Activity *activity;
     public:
@@ -1100,5 +1100,5 @@ private:
     post_roundabouts ();
   };
 
-}}
+}
 

@@ -20,8 +20,8 @@
 #include <boost/multi_index/mem_fun.hpp>
 using boost::multi_index::get;
 
-namespace sim_mob {
-namespace xml {
+
+namespace geo {
 
 struct geo_LinkLoc_mapping
 {
@@ -1857,7 +1857,7 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 //		  std::cout << " node2 " << it->node2 << std::endl;
 		  for(std::vector<sim_mob::Node*>::iterator node_it = link_it->node.begin(); node_it != link_it->node.end() ; node_it++)
 		  {
-			 (*node_it)->linkLoc = geo_Links_[link_it->linkID];
+			 (*node_it)->setLinkLoc(geo_Links_[link_it->linkID]);
 		  }
 //		  it->node1->linkLoc = it->node2->linkLoc = geo_Links_[it->linkID];
 	  }
@@ -2085,5 +2085,5 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 	  return roundabouts;
   }
 
-}}
+}
 

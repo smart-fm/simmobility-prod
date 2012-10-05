@@ -1696,6 +1696,7 @@ StreetDirectory::init(RoadNetwork const & network, bool keepStats /* = false */,
     }
     pimpl_ = new Impl(network, gridWidth, gridHeight);
     spImpl_ = new ShortestPathImpl(network);
+    printDrivingGraph();
     std::cout << "In StreetDirectory::init,  boost::num_vertices(rivingmap_) = " << boost::num_vertices(this->spImpl_->drivingMap_) << std::endl;
 //    getchar();
 }

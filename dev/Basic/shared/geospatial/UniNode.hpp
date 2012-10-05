@@ -10,10 +10,10 @@
 
 #include "Node.hpp"
 
-//namespace geo {
-//class UniNode_t_pimpl;
-//class GeoSpatial_t_pimpl;
-//}
+namespace geo {
+class UniNode_t_pimpl;
+class GeoSpatial_t_pimpl;
+}
 
 namespace sim_mob
 {
@@ -52,7 +52,7 @@ class Loader;
  */
 class UniNode : public sim_mob::Node {
 public:
-	UniNode(int x, int y) : Node(x, y) {}
+	UniNode(int x, int y) : Node(x, y) {firstPair.first = firstPair.second = secondPair.first = secondPair.second = 0;}
 
 	///Retrieve the outgoing Lane at this Node.
 	const sim_mob::Lane* getOutgoingLane(const sim_mob::Lane& from) const;
@@ -63,7 +63,7 @@ public:
 	///NOTE: The "from/to" laneID pairs will definitely be cleaned up later; for now I'm just trying
 	//       to get them to output something decent. At the moment they MUST correspond to "firstPair", "secondPair". ~Seth
 	static void buildConnectorsFromAlignedLanes(UniNode* node, std::pair<unsigned int, unsigned int> fromToLaneIDs1, std::pair<unsigned int, unsigned int> fromToLaneIDs2);
-
+	const std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*>& getRoadSegmentPair(bool first) const;
 	const std::vector<const sim_mob::RoadSegment*>& getRoadSegments() const;
 
 	//TODO: Temp:
@@ -83,6 +83,7 @@ protected:
 	mutable std::vector<const sim_mob::RoadSegment*> cachedSegmentsList;
 
 	friend class sim_mob::aimsun::Loader;
+	friend class ::geo::GeoSpatial_t_pimpl;
 
 
 

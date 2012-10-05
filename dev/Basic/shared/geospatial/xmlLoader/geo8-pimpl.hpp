@@ -222,6 +222,37 @@ namespace geo
     post_RoadSegmentsAt_t ();
   };
 
+  class laneEdgePolyline_cached_t_pimpl: public virtual laneEdgePolyline_cached_t_pskel
+  {
+	  std::pair<short,std::vector<sim_mob::Point2D> > thePair;
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    laneNumber (short);
+
+    virtual void
+    polyline (std::vector<sim_mob::Point2D>);
+
+    virtual std::pair<short,std::vector<sim_mob::Point2D> >
+    post_laneEdgePolyline_cached_t ();
+  };
+
+  class laneEdgePolylines_cached_t_pimpl: public virtual laneEdgePolylines_cached_t_pskel
+  {
+	  std::vector<std::vector<sim_mob::Point2D> > result;
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    laneEdgePolyline_cached (std::pair<short,std::vector<sim_mob::Point2D> >);
+
+    virtual std::vector<std::vector<sim_mob::Point2D> >
+    post_laneEdgePolylines_cached_t ();
+  };
+
   class segment_t_pimpl: public virtual segment_t_pskel
   {
 	  sim_mob::RoadSegment *rs;
@@ -252,6 +283,9 @@ namespace geo
 
     virtual void
     polyline (std::vector<sim_mob::Point2D>);
+
+    virtual void
+    laneEdgePolylines_cached (std::vector<std::vector<sim_mob::Point2D> >);
 
     virtual void
     Lanes (std::vector<sim_mob::Lane*>);
@@ -479,6 +513,23 @@ namespace geo
     post_Node_t ();
   };
 
+  class temp_Segmetair_t_pimpl: public virtual temp_Segmetair_t_pskel
+  {
+	  std::pair<unsigned long,unsigned long> segmentPair;
+    public:
+    virtual void
+    pre ();
+
+    virtual void
+    first (unsigned long long);
+
+    virtual void
+    second (unsigned long long);
+
+    virtual std::pair<unsigned long,unsigned long>
+    post_temp_Segmetair_t ();
+  };
+
   class UniNode_t_pimpl: public virtual UniNode_t_pskel,
     public ::geo::Node_t_pimpl
   {
@@ -487,9 +538,17 @@ namespace geo
 //	  std::string nodeId;
 //	  std::map<const sim_mob::Lane*, sim_mob::Lane* > connectors_;
 	  std::set<std::pair<unsigned long,unsigned long> > connectors_;
+	  std::pair<unsigned long,unsigned long> firstSegmentPair;
+	  std::pair<unsigned long,unsigned long> secondSegmentPair;
     public:
     virtual void
     pre ();
+
+    virtual void
+    firstPair (std::pair<unsigned long,unsigned long>);
+
+    virtual void
+    secondPair (std::pair<unsigned long,unsigned long>);
 
     virtual void
     Connectors (std::set<std::pair<unsigned long,unsigned long> >);

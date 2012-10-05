@@ -9,16 +9,16 @@
 #include "Pavement.hpp"
 #include "Link.hpp"
 
-/*namespace geo {
+
+
+
+namespace geo {
 class segment_t_pimpl;
 class Segments_pimpl;
 class link_t_pimpl;
-}*/
-
+}
 namespace sim_mob
 {
-
-
 //Forward declarations
 class Lane;
 class BusStop;
@@ -137,6 +137,7 @@ private:
 friend class sim_mob::aimsun::Loader;
 friend class sim_mob::aimsun::LaneLoader;
 friend class sim_mob::RoadNetworkPackageManager;
+friend class ::geo::segment_t_pimpl;
 
 };
 

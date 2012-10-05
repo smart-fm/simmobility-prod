@@ -16,16 +16,12 @@
 #include "partitions/PackageUtils.hpp"
 #include "partitions/UnPackageUtils.hpp"
 #endif
-
-namespace geo {
+namespace geo
+{
 //Forward Declaration
 class Trip_t_pimpl;
 class SubTrip_t;
 }
-
-//class Trip_t_pimpl;
-//}
-
 namespace sim_mob {
 
 //Forward declarations
@@ -110,19 +106,20 @@ public:
 
 	void addSubTrip(const sim_mob::SubTrip& aSubTrip);
 
-	const std::vector<SubTrip>& getSubTrips() const {
+	const std::vector<sim_mob::SubTrip>& getSubTrips() const {
 		return subTrips;
 	}
 
-	std::vector<SubTrip>& getSubTripsRW() {
+	std::vector<sim_mob::SubTrip>& getSubTripsRW() {
 		return subTrips;
+	}
 
-	void setSubTrips(const std::vector<SubTrip>& subTrips) {
+	void setSubTrips(const std::vector<sim_mob::SubTrip>& subTrips) {
 		this->subTrips = subTrips;
 	}
 
 private:
-	std::vector<SubTrip> subTrips;
+	std::vector<sim_mob::SubTrip> subTrips;
 };
 
 

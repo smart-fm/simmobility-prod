@@ -87,7 +87,6 @@ const std::vector<sim_mob::Point2D>& Lane::getPolyline(bool sync) const
 {
     //Recompute the polyline if needed
     if (polyline_.empty() && sync) {
-
     	parentSegment_->syncLanePolylines();
     }
     return polyline_;

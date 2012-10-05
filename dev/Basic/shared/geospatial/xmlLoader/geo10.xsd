@@ -91,7 +91,19 @@
       <xs:element name="segmentID" type="xs:unsignedLong" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
-
+  
+  <xs:complexType name="laneEdgePolyline_cached_t">
+    <xs:sequence>
+      <xs:element name="laneNumber" type="xs:short" minOccurs="1"/>
+      <xs:element name="polyline" type="geo:PolyLine_t" minOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="laneEdgePolylines_cached_t">
+    <xs:sequence>
+     <xs:element name="laneEdgePolyline_cached" type="geo:laneEdgePolyline_cached_t" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
   <xs:complexType name="segment_t">
     <xs:sequence>
       <xs:element name="segmentID" type="xs:unsignedLong" minOccurs="1" maxOccurs="1"/>
@@ -104,6 +116,7 @@
       <xs:element name="Width" type="xs:unsignedInt"/>
       <xs:element name="originalDB_ID" type="xs:string" minOccurs="1" maxOccurs="1"/>
       <xs:element name="polyline" type="geo:PolyLine_t"/>
+      <xs:element name="laneEdgePolylines_cached" type="geo:laneEdgePolylines_cached_t" minOccurs="0"/>
       <!--      <xs:element name="LanesLeftOfDivider" type="xs:unsignedInt"/>-->
       <xs:element name="Lanes" minOccurs="1">
         <xs:complexType>
@@ -212,10 +225,29 @@
     </xs:choice>
   </xs:complexType>
 
+ <!-- <xs:simpleType name="longint-or-empty">
+    <xs:union memberTypes="xs:unsignedLong" />
+  </xs:simpleType>
+  
+  <xs:simpleType name="empty-string">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="" />
+    </xs:restriction>
+  </xs:simpleType>-->
+  
+  <xs:complexType name="temp_Segmetair_t">
+    <xs:sequence>
+      <xs:element name="first" type="xs:unsignedLong" minOccurs="1" />
+      <xs:element name="second" type="xs:unsignedLong" minOccurs="1" />
+    </xs:sequence>
+  </xs:complexType>
+  
   <xs:complexType name="UniNode_t">
     <xs:complexContent>
       <xs:extension base="geo:Node_t">
         <xs:sequence>
+          <xs:element name="firstPair" type="geo:temp_Segmetair_t" minOccurs="0" />
+          <xs:element name="secondPair" type="geo:temp_Segmetair_t" minOccurs="0" />
           <xs:element name="Connectors" type="geo:connectors_t"/>
         </xs:sequence>
       </xs:extension>
@@ -262,6 +294,7 @@
 
   <xs:complexType name="RoadItem_t">
     <xs:sequence>
+      <xs:element name="id" type="xs:unsignedLong" minOccurs="1"/>
       <xs:element name="Offset" type="xs:unsignedShort"/>
       <xs:element name="start" type="geo:Point2D_t"/>
       <xs:element name="end" type="geo:Point2D_t"/>
@@ -272,7 +305,7 @@
     <xs:complexContent>
       <xs:extension base="geo:RoadItem_t">
         <xs:sequence>
-          <xs:element name="busStopID" type="xs:string"/>
+<!--          <xs:element name="busStopID" type="xs:string"/>-->
           <xs:element name="lane_location" type="xs:string"/>
           <xs:element name="is_Terminal" type="xs:boolean"/>
           <xs:element name="is_Bay" type="xs:boolean"/>
@@ -312,7 +345,7 @@
     <xs:complexContent>
       <xs:extension base="geo:RoadItem_t">
         <xs:choice minOccurs="0" maxOccurs="unbounded">
-          <xs:element name="crossingID" type="xs:string" minOccurs="1"/>
+<!--          <xs:element name="crossingID" type="xs:string" minOccurs="1"/>-->
           <!-- I guess either of start/end or near/far needs to be used -->
           <xs:element name="nearLine" type="geo:PointPair_t" minOccurs="1"/>
           <xs:element name="farLine" type="geo:PointPair_t" minOccurs="1"/>

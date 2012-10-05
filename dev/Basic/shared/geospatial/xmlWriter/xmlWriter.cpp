@@ -20,6 +20,26 @@ void sim_mob::WriteXMLInput_Location(TiXmlElement * parent,bool underLocation, u
 	yPos->LinkEndChild(new  TiXmlText(Id.str()));
 }
 
+void sim_mob::WriteXMLInput_laneEdgePolylines_cached(std::vector<std::vector<sim_mob::Point2D> >& polylines,TiXmlElement * laneEdgePolylines_cached)
+{
+	std::ostringstream Id;
+	int i = 0;
+	for(std::vector<std::vector<sim_mob::Point2D> >::iterator lane_it = polylines.begin(); lane_it != polylines.end(); lane_it++, i++)
+	{
+		//laneEdgePolyline_cached
+		TiXmlElement * laneEdgePolyline_cached = new TiXmlElement("laneEdgePolyline_cached"); laneEdgePolylines_cached->LinkEndChild(laneEdgePolyline_cached);
+		//laneNumber
+		TiXmlElement * laneNumber = new TiXmlElement("laneNumber"); laneEdgePolyline_cached->LinkEndChild(laneNumber);
+		Id.str("");
+		Id << i;
+		laneNumber->LinkEndChild(new  TiXmlText(Id.str()));
+
+		//polyline
+		const std::vector<sim_mob::Point2D>& polylines_ = polylines.at(i);
+		TiXmlElement * polyline = new TiXmlElement("polyline"); laneEdgePolyline_cached->LinkEndChild(polyline);
+		WriteXMLInput_PolyLine(polylines_,polyline);
+	}
+}
 void sim_mob::WriteXMLInput_PolyLine(const std::vector<sim_mob::Point2D>& polylines,TiXmlElement * PolyLine)
 {
 	int j = polylines.size();
@@ -107,6 +127,16 @@ void sim_mob::WriteXMLInput_Lane(sim_mob::Lane *LaneObj,TiXmlElement *Lanes)
 	/*update: I made an exception to getPolyline by adding a boolean argument to the function getPolyline()
 	 * which controls the act of creating polylines
 	 */
+//	if(LaneObj->getLaneID() == 1000001000)
+//	{
+//		std::vector<sim_mob::Point2D> PolyLine = LaneObj->polyline_;
+//
+//		  for(std::vector<sim_mob::Point2D>::iterator it = PolyLine.begin(); it != PolyLine.end(); it++)
+//		  {
+//			  std::cout << "xml-witer Lane 1000001000 polypoint " << it->getX() << "," << it->getY() << std::endl;
+//		  }
+//		  getchar();
+//	}
   if(LaneObj->getPolyline(false).size())
   {
 	  TiXmlElement * PolyLine = new TiXmlElement("PolyLine"); Lane->LinkEndChild(PolyLine);
@@ -114,12 +144,50 @@ void sim_mob::WriteXMLInput_Lane(sim_mob::Lane *LaneObj,TiXmlElement *Lanes)
   }
 
 }
+
+void sim_mob::WriteXMLInput_BusStop(sim_mob::BusStop * busStop , int offset, TiXmlElement *Obstacle)
+{
+	std::ostringstream output;
+	TiXmlElement * BusStop = new TiXmlElement("BusStop"); Obstacle->LinkEndChild(BusStop);
+	//offset
+	TiXmlElement * Offset = new TiXmlElement("Offset"); BusStop->LinkEndChild(Offset);
+	output.str("");
+	output << offset;
+	Offset->LinkEndChild(new  TiXmlText(output.str()));
+	//start
+	TiXmlElement * start = new TiXmlElement("start"); BusStop->LinkEndChild(start);
+	WriteXMLInput_Location(start,false,busStop->getStart().getX(),busStop->getStart().getY());
+	//end
+	TiXmlElement * end = new TiXmlElement("end"); BusStop->LinkEndChild(end);
+	WriteXMLInput_Location(end,false,busStop->getStart().getX(),busStop->getStart().getY());
+	//id
+	TiXmlElement * busStopID = new TiXmlElement("busStopID"); BusStop->LinkEndChild(busStopID);
+	output.str("");
+	output << busStop->getRoadItemID();
+	busStopID->LinkEndChild(new  TiXmlText(output.str()));
+//	{//nearLine
+//		TiXmlElement * nearLine = new TiXmlElement("nearLine"); Crossing->LinkEndChild(nearLine);
+//		TiXmlElement * first = new TiXmlElement("first"); nearLine->LinkEndChild(first);
+//		WriteXMLInput_Location(first,false,crossing->nearLine.first.getX(),crossing->nearLine.first.getY());
+//		TiXmlElement * second = new TiXmlElement("second"); nearLine->LinkEndChild(second);
+//		WriteXMLInput_Location(second,false,crossing->nearLine.second.getX(),crossing->nearLine.second.getY());
+//	}
+//	{//farLine
+//		TiXmlElement * farLine = new TiXmlElement("farLine"); Crossing->LinkEndChild(farLine);
+//		TiXmlElement * first = new TiXmlElement("first"); farLine->LinkEndChild(first);
+//		WriteXMLInput_Location(first,false,crossing->farLine.first.getX(),crossing->farLine.first.getY());
+//		TiXmlElement * second = new TiXmlElement("second"); farLine->LinkEndChild(second);
+//		WriteXMLInput_Location(second,false,crossing->farLine.second.getX(),crossing->farLine.second.getY());
+//	}
+}
+
 void sim_mob::WriteXMLInput_Crossing(sim_mob::Crossing * crossing , int offset, TiXmlElement *Obstacle)
 {
 	std::ostringstream output;
 	TiXmlElement * Crossing = new TiXmlElement("Crossing"); Obstacle->LinkEndChild(Crossing);
 	//offset
 	TiXmlElement * Offset = new TiXmlElement("Offset"); Crossing->LinkEndChild(Offset);
+	output.str("");
 	output << offset;
 	Offset->LinkEndChild(new  TiXmlText(output.str()));
 	//start
@@ -130,6 +198,8 @@ void sim_mob::WriteXMLInput_Crossing(sim_mob::Crossing * crossing , int offset, 
 	WriteXMLInput_Location(end,false,crossing->getStart().getX(),crossing->getStart().getY());
 	//id
 	TiXmlElement * crossingID = new TiXmlElement("crossingID"); Crossing->LinkEndChild(crossingID);
+
+	output.str("");
 	output << crossing->getCrossingID();
 	crossingID->LinkEndChild(new  TiXmlText(output.str()));
 	{//nearLine
@@ -149,10 +219,19 @@ void sim_mob::WriteXMLInput_Crossing(sim_mob::Crossing * crossing , int offset, 
 }
 void sim_mob::WriteXMLInput_Obstacle(sim_mob::RoadItemAndOffsetPair res, TiXmlElement * Obstacle)
 {
-	if(dynamic_cast<sim_mob::Crossing *>(const_cast<sim_mob::RoadItem *>(res.item)))
+	sim_mob::Crossing * crossing = dynamic_cast<sim_mob::Crossing *>(const_cast<sim_mob::RoadItem *>(res.item));
+	if(crossing)
 	{
-		WriteXMLInput_Crossing(dynamic_cast<sim_mob::Crossing *>(const_cast<sim_mob::RoadItem *>(res.item)), res.offset, Obstacle);
-	}else{}
+		sim_mob::RoadSegment * rs = crossing->getRoadSegment();
+		WriteXMLInput_Crossing(crossing, res.offset, Obstacle);
+	}else{
+		if(dynamic_cast<sim_mob::BusStop *>(const_cast<sim_mob::RoadItem *>(res.item)))
+		{
+			sim_mob::BusStop * bs = dynamic_cast<sim_mob::BusStop *>(const_cast<sim_mob::RoadItem *>(res.item));
+			sim_mob::RoadSegment * rs = crossing->getRoadSegment();
+			WriteXMLInput_Crossing(crossing, res.offset, Obstacle);
+		}
+	}
 }
 
 void sim_mob::WriteXMLInput_Segment(sim_mob::RoadSegment* rs ,TiXmlElement * Segments)
@@ -198,15 +277,17 @@ void sim_mob::WriteXMLInput_Segment(sim_mob::RoadSegment* rs ,TiXmlElement * Seg
 	//polyline
 	TiXmlElement * polyline = new TiXmlElement("polyline"); Segment->LinkEndChild(polyline);
 	WriteXMLInput_PolyLine(const_cast<std::vector<sim_mob::Point2D>& >(rs->polyline), polyline);
+	//laneEdgePolylines_cached
+	TiXmlElement * laneEdgePolylines_cached = new TiXmlElement("laneEdgePolylines_cached"); Segment->LinkEndChild(laneEdgePolylines_cached);
+	WriteXMLInput_laneEdgePolylines_cached(rs->laneEdgePolylines_cached,laneEdgePolylines_cached);
 	//Lanes
 	TiXmlElement * Lanes = new TiXmlElement("Lanes"); Segment->LinkEndChild(Lanes);
 	//Lane
 	int i = 0;
-	std::cout << "Link : " << rs->getLink()->getLinkId() << "  Number of lanes in segment " << rs->getSegmentID() << "[" << rs << "]  is : " << rs->getLanes().size() << std::endl;
+
 	for(std::vector<sim_mob::Lane*>::const_iterator LaneObj_it = rs->getLanes().begin(), it_end(rs->getLanes().end()); LaneObj_it != it_end ; LaneObj_it++)
 	{
 		sim_mob::Lane* temp = *LaneObj_it;
-		std::cout << "Evaluating Lane " <<  temp  << std::endl;
 		WriteXMLInput_Lane(*LaneObj_it,Lanes);
 		i++;
 	}
@@ -336,6 +417,34 @@ void sim_mob::WriteXMLInput_Node(sim_mob::Node *node, TiXmlElement * parent)
 	TiXmlElement * originalDB_ID = new TiXmlElement("originalDB_ID");  parent->LinkEndChild(originalDB_ID);
 	originalDB_ID->LinkEndChild( new TiXmlText(node->originalDB_ID.getLogItem()));
 }
+void sim_mob::WriteXMLInput_UniNode_SegmentPair(TiXmlElement * UniNode, std::pair<const sim_mob::RoadSegment*, const sim_mob::RoadSegment*> thePair, bool firstPair)
+{
+	std::ostringstream out;
+
+	std::string thePair_ = firstPair ? "firstPair" : "secondPair";
+	TiXmlElement * PairElement = 0;
+	if(((thePair.first) && (thePair.first->getSegmentID() > 0)) && ((thePair.second) && (thePair.second->getSegmentID() > 0)))
+	{
+		PairElement = new TiXmlElement(thePair_);
+		UniNode->LinkEndChild(PairElement);
+	}
+
+	if((thePair.first) && (thePair.first->getSegmentID() > 0))
+	{
+		out.str("");
+		TiXmlElement * first = new TiXmlElement("first"); PairElement->LinkEndChild(first);
+		out << thePair.first->getSegmentID();
+		first->LinkEndChild( new TiXmlText(out.str()));
+	}
+
+	if((thePair.second) && (thePair.second->getSegmentID() > 0))
+	{
+		out.str("");
+		TiXmlElement * second = new TiXmlElement("second"); PairElement->LinkEndChild(second);
+		out << thePair.second->getSegmentID();
+		second->LinkEndChild( new TiXmlText(out.str()));
+	}
+}
 void sim_mob::WriteXMLInput_UniNodes(sim_mob::RoadNetwork & roadNetwork,TiXmlElement * Nodes)
 {
 	TiXmlElement * UniNodes = new TiXmlElement("UniNodes"); Nodes->LinkEndChild(UniNodes);
@@ -343,6 +452,10 @@ void sim_mob::WriteXMLInput_UniNodes(sim_mob::RoadNetwork & roadNetwork,TiXmlEle
 	{
 		TiXmlElement * UniNode = new TiXmlElement("UniNode"); UniNodes->LinkEndChild(UniNode);
 		WriteXMLInput_Node(*it, UniNode);//basic node information
+		//firstPairSegment
+		WriteXMLInput_UniNode_SegmentPair(UniNode,(*it)->getRoadSegmentPair(true), true);//firstPair
+		//secondpair segment--repeatition :)
+		WriteXMLInput_UniNode_SegmentPair(UniNode,(*it)->getRoadSegmentPair(false), false);//secondPair
 		//connectors
 		WriteXMLInput_UniNode_Connectors(*it,UniNode);
 	}

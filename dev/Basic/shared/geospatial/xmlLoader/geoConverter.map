@@ -49,11 +49,14 @@ PolyLine_t std::vector<sim_mob::Point2D> std::vector<sim_mob::Point2D>;
 PolyPoint_t sim_mob::Point2D sim_mob::Point2D;
 Point2D_t sim_mob::Point2D sim_mob::Point2D;
 PointPair_t std::pair<sim_mob::Point2D,sim_mob::Point2D> std::pair<sim_mob::Point2D,sim_mob::Point2D>;
+laneEdgePolyline_cached_t "std::pair<short,std::vector<sim_mob::Point2D> >" "std::pair<short,std::vector<sim_mob::Point2D> >";
+laneEdgePolylines_cached_t "std::vector<std::vector<sim_mob::Point2D> >" "std::vector<std::vector<sim_mob::Point2D> >";
 
 Node_t sim_mob::Node* sim_mob::Node*;
 
 UniNodes std::set<sim_mob::UniNode*>& std::set<sim_mob::UniNode*>&;
 UniNode_t sim_mob::UniNode* sim_mob::UniNode*;
+temp_Segmetair_t "std::pair<unsigned long,unsigned long>" "std::pair<unsigned long,unsigned long>" ;
 
 Intersections std::vector<sim_mob::MultiNode*>& std::vector<sim_mob::MultiNode*>&;
 intersection_t sim_mob::MultiNode* sim_mob::MultiNode*;

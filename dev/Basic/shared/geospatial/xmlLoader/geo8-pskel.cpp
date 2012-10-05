@@ -448,6 +448,57 @@ namespace geo
   {
   }
 
+  // laneEdgePolyline_cached_t_pskel
+  //
+
+  void laneEdgePolyline_cached_t_pskel::
+  laneNumber_parser (::xml_schema::short_pskel& p)
+  {
+    this->laneNumber_parser_ = &p;
+  }
+
+  void laneEdgePolyline_cached_t_pskel::
+  polyline_parser (::geo::PolyLine_t_pskel& p)
+  {
+    this->polyline_parser_ = &p;
+  }
+
+  void laneEdgePolyline_cached_t_pskel::
+  parsers (::xml_schema::short_pskel& laneNumber,
+           ::geo::PolyLine_t_pskel& polyline)
+  {
+    this->laneNumber_parser_ = &laneNumber;
+    this->polyline_parser_ = &polyline;
+  }
+
+  laneEdgePolyline_cached_t_pskel::
+  laneEdgePolyline_cached_t_pskel ()
+  : laneNumber_parser_ (0),
+    polyline_parser_ (0)
+  {
+  }
+
+  // laneEdgePolylines_cached_t_pskel
+  //
+
+  void laneEdgePolylines_cached_t_pskel::
+  laneEdgePolyline_cached_parser (::geo::laneEdgePolyline_cached_t_pskel& p)
+  {
+    this->laneEdgePolyline_cached_parser_ = &p;
+  }
+
+  void laneEdgePolylines_cached_t_pskel::
+  parsers (::geo::laneEdgePolyline_cached_t_pskel& laneEdgePolyline_cached)
+  {
+    this->laneEdgePolyline_cached_parser_ = &laneEdgePolyline_cached;
+  }
+
+  laneEdgePolylines_cached_t_pskel::
+  laneEdgePolylines_cached_t_pskel ()
+  : laneEdgePolyline_cached_parser_ (0)
+  {
+  }
+
   // segment_t_pskel
   //
 
@@ -500,6 +551,12 @@ namespace geo
   }
 
   void segment_t_pskel::
+  laneEdgePolylines_cached_parser (::geo::laneEdgePolylines_cached_t_pskel& p)
+  {
+    this->laneEdgePolylines_cached_parser_ = &p;
+  }
+
+  void segment_t_pskel::
   Lanes_parser (::geo::Lanes_pskel& p)
   {
     this->Lanes_parser_ = &p;
@@ -526,6 +583,7 @@ namespace geo
            ::xml_schema::unsigned_int_pskel& Width,
            ::xml_schema::string_pskel& originalDB_ID,
            ::geo::PolyLine_t_pskel& polyline,
+           ::geo::laneEdgePolylines_cached_t_pskel& laneEdgePolylines_cached,
            ::geo::Lanes_pskel& Lanes,
            ::geo::RoadItems_t_pskel& Obstacles,
            ::geo::PolyLine_t_pskel& KurbLine)
@@ -538,6 +596,7 @@ namespace geo
     this->Width_parser_ = &Width;
     this->originalDB_ID_parser_ = &originalDB_ID;
     this->polyline_parser_ = &polyline;
+    this->laneEdgePolylines_cached_parser_ = &laneEdgePolylines_cached;
     this->Lanes_parser_ = &Lanes;
     this->Obstacles_parser_ = &Obstacles;
     this->KurbLine_parser_ = &KurbLine;
@@ -553,6 +612,7 @@ namespace geo
     Width_parser_ (0),
     originalDB_ID_parser_ (0),
     polyline_parser_ (0),
+    laneEdgePolylines_cached_parser_ (0),
     Lanes_parser_ (0),
     Obstacles_parser_ (0),
     KurbLine_parser_ (0)
@@ -940,8 +1000,50 @@ namespace geo
   {
   }
 
+  // temp_Segmetair_t_pskel
+  //
+
+  void temp_Segmetair_t_pskel::
+  first_parser (::xml_schema::unsigned_long_pskel& p)
+  {
+    this->first_parser_ = &p;
+  }
+
+  void temp_Segmetair_t_pskel::
+  second_parser (::xml_schema::unsigned_long_pskel& p)
+  {
+    this->second_parser_ = &p;
+  }
+
+  void temp_Segmetair_t_pskel::
+  parsers (::xml_schema::unsigned_long_pskel& first,
+           ::xml_schema::unsigned_long_pskel& second)
+  {
+    this->first_parser_ = &first;
+    this->second_parser_ = &second;
+  }
+
+  temp_Segmetair_t_pskel::
+  temp_Segmetair_t_pskel ()
+  : first_parser_ (0),
+    second_parser_ (0)
+  {
+  }
+
   // UniNode_t_pskel
   //
+
+  void UniNode_t_pskel::
+  firstPair_parser (::geo::temp_Segmetair_t_pskel& p)
+  {
+    this->firstPair_parser_ = &p;
+  }
+
+  void UniNode_t_pskel::
+  secondPair_parser (::geo::temp_Segmetair_t_pskel& p)
+  {
+    this->secondPair_parser_ = &p;
+  }
 
   void UniNode_t_pskel::
   Connectors_parser (::geo::connectors_t_pskel& p)
@@ -954,18 +1056,24 @@ namespace geo
            ::geo::Point2D_t_pskel& location,
            ::xml_schema::unsigned_long_pskel& linkLoc,
            ::xml_schema::string_pskel& originalDB_ID,
+           ::geo::temp_Segmetair_t_pskel& firstPair,
+           ::geo::temp_Segmetair_t_pskel& secondPair,
            ::geo::connectors_t_pskel& Connectors)
   {
     this->nodeID_parser_ = &nodeID;
     this->location_parser_ = &location;
     this->linkLoc_parser_ = &linkLoc;
     this->originalDB_ID_parser_ = &originalDB_ID;
+    this->firstPair_parser_ = &firstPair;
+    this->secondPair_parser_ = &secondPair;
     this->Connectors_parser_ = &Connectors;
   }
 
   UniNode_t_pskel::
   UniNode_t_pskel ()
-  : Connectors_parser_ (0)
+  : firstPair_parser_ (0),
+    secondPair_parser_ (0),
+    Connectors_parser_ (0)
   {
   }
 
@@ -3605,6 +3713,127 @@ namespace geo
     return false;
   }
 
+  // laneEdgePolyline_cached_t_pskel
+  //
+
+  void laneEdgePolyline_cached_t_pskel::
+  laneNumber (short)
+  {
+  }
+
+  void laneEdgePolyline_cached_t_pskel::
+  polyline (std::vector<sim_mob::Point2D>)
+  {
+  }
+
+  bool laneEdgePolyline_cached_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "laneNumber" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->laneNumber_parser_;
+
+      if (this->laneNumber_parser_)
+        this->laneNumber_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "polyline" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->polyline_parser_;
+
+      if (this->polyline_parser_)
+        this->polyline_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool laneEdgePolyline_cached_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "laneNumber" && ns.empty ())
+    {
+      if (this->laneNumber_parser_)
+        this->laneNumber (this->laneNumber_parser_->post_short ());
+
+      return true;
+    }
+
+    if (n == "polyline" && ns.empty ())
+    {
+      if (this->polyline_parser_)
+        this->polyline (this->polyline_parser_->post_PolyLine_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // laneEdgePolylines_cached_t_pskel
+  //
+
+  void laneEdgePolylines_cached_t_pskel::
+  laneEdgePolyline_cached (std::pair<short,std::vector<sim_mob::Point2D> >)
+  {
+  }
+
+  bool laneEdgePolylines_cached_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "laneEdgePolyline_cached" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->laneEdgePolyline_cached_parser_;
+
+      if (this->laneEdgePolyline_cached_parser_)
+        this->laneEdgePolyline_cached_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool laneEdgePolylines_cached_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "laneEdgePolyline_cached" && ns.empty ())
+    {
+      if (this->laneEdgePolyline_cached_parser_)
+        this->laneEdgePolyline_cached (this->laneEdgePolyline_cached_parser_->post_laneEdgePolyline_cached_t ());
+
+      return true;
+    }
+
+    return false;
+  }
+
   // segment_t_pskel
   //
 
@@ -3645,6 +3874,11 @@ namespace geo
 
   void segment_t_pskel::
   polyline (std::vector<sim_mob::Point2D>)
+  {
+  }
+
+  void segment_t_pskel::
+  laneEdgePolylines_cached (std::vector<std::vector<sim_mob::Point2D> >)
   {
   }
 
@@ -3753,6 +3987,16 @@ namespace geo
       return true;
     }
 
+    if (n == "laneEdgePolylines_cached" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->laneEdgePolylines_cached_parser_;
+
+      if (this->laneEdgePolylines_cached_parser_)
+        this->laneEdgePolylines_cached_parser_->pre ();
+
+      return true;
+    }
+
     if (n == "Lanes" && ns.empty ())
     {
       this->::xml_schema::complex_content::context_.top ().parser_ = this->Lanes_parser_;
@@ -3853,6 +4097,14 @@ namespace geo
     {
       if (this->polyline_parser_)
         this->polyline (this->polyline_parser_->post_PolyLine_t ());
+
+      return true;
+    }
+
+    if (n == "laneEdgePolylines_cached" && ns.empty ())
+    {
+      if (this->laneEdgePolylines_cached_parser_)
+        this->laneEdgePolylines_cached (this->laneEdgePolylines_cached_parser_->post_laneEdgePolylines_cached_t ());
 
       return true;
     }
@@ -4867,8 +5119,90 @@ namespace geo
     return false;
   }
 
+  // temp_Segmetair_t_pskel
+  //
+
+  void temp_Segmetair_t_pskel::
+  first (unsigned long long)
+  {
+  }
+
+  void temp_Segmetair_t_pskel::
+  second (unsigned long long)
+  {
+  }
+
+  bool temp_Segmetair_t_pskel::
+  _start_element_impl (const ::xml_schema::ro_string& ns,
+                       const ::xml_schema::ro_string& n,
+                       const ::xml_schema::ro_string* t)
+  {
+    XSD_UNUSED (t);
+
+    if (this->::xml_schema::complex_content::_start_element_impl (ns, n, t))
+      return true;
+
+    if (n == "first" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->first_parser_;
+
+      if (this->first_parser_)
+        this->first_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "second" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->second_parser_;
+
+      if (this->second_parser_)
+        this->second_parser_->pre ();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  bool temp_Segmetair_t_pskel::
+  _end_element_impl (const ::xml_schema::ro_string& ns,
+                     const ::xml_schema::ro_string& n)
+  {
+    if (this->::xml_schema::complex_content::_end_element_impl (ns, n))
+      return true;
+
+    if (n == "first" && ns.empty ())
+    {
+      if (this->first_parser_)
+        this->first (this->first_parser_->post_unsigned_long ());
+
+      return true;
+    }
+
+    if (n == "second" && ns.empty ())
+    {
+      if (this->second_parser_)
+        this->second (this->second_parser_->post_unsigned_long ());
+
+      return true;
+    }
+
+    return false;
+  }
+
   // UniNode_t_pskel
   //
+
+  void UniNode_t_pskel::
+  firstPair (std::pair<unsigned long,unsigned long>)
+  {
+  }
+
+  void UniNode_t_pskel::
+  secondPair (std::pair<unsigned long,unsigned long>)
+  {
+  }
 
   void UniNode_t_pskel::
   Connectors (std::set<std::pair<unsigned long,unsigned long> >)
@@ -4884,6 +5218,26 @@ namespace geo
 
     if (this->::geo::Node_t_pskel::_start_element_impl (ns, n, t))
       return true;
+
+    if (n == "firstPair" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->firstPair_parser_;
+
+      if (this->firstPair_parser_)
+        this->firstPair_parser_->pre ();
+
+      return true;
+    }
+
+    if (n == "secondPair" && ns.empty ())
+    {
+      this->::xml_schema::complex_content::context_.top ().parser_ = this->secondPair_parser_;
+
+      if (this->secondPair_parser_)
+        this->secondPair_parser_->pre ();
+
+      return true;
+    }
 
     if (n == "Connectors" && ns.empty ())
     {
@@ -4904,6 +5258,22 @@ namespace geo
   {
     if (this->::geo::Node_t_pskel::_end_element_impl (ns, n))
       return true;
+
+    if (n == "firstPair" && ns.empty ())
+    {
+      if (this->firstPair_parser_)
+        this->firstPair (this->firstPair_parser_->post_temp_Segmetair_t ());
+
+      return true;
+    }
+
+    if (n == "secondPair" && ns.empty ())
+    {
+      if (this->secondPair_parser_)
+        this->secondPair (this->secondPair_parser_->post_temp_Segmetair_t ());
+
+      return true;
+    }
 
     if (n == "Connectors" && ns.empty ())
     {

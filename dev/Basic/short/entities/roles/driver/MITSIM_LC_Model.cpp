@@ -85,36 +85,50 @@ double feet2Meter(double feet) { //Note: This function is now in two locations.
 } //End anon namespace
 
 
-
-double sim_mob::MITSIM_LC_Model::lcCriticalGap(DriverUpdateParams& p, int type,	double dis_, double spd_, double dv_)
+// Kazi's LC gap model (see Kazi's MS thesis)
+// from mitsim TS_Parameter.cc line 617
+double sim_mob::MITSIM_LC_Model::lcCriticalGap(DriverUpdateParams& p, int type,	double dis, double spd, double dv)
 {
-	double k=( type < 2 ) ? 1 : 5;
-	return k*-dv_ * p.elapsedSeconds;
+	/*
+	[Kazi LC Gap Models] = {
+	% scale alpha lambda  beta0  beta1  beta2  beta3  beta4  sigma
+	% Discretionary (Lead and Lag)
+	  1.00  0.0   0.000   0.508  0.000  0.000 -0.420  0.000  0.488
+	  1.00  0.0   0.000   2.020  0.000  0.000  0.153  0.188  0.526
+	% Mandatory (Lead and Lag)
+	  1.00  0.0   0.000   0.384  0.000  0.000  0.000  0.000  0.859
+	  1.00  0.0   0.000   0.587  0.000  0.000  0.048  0.356  1.073
+	}
+	*/
+//
+//	double k=( type < 2 ) ? 1 : 5;
+//	return k*-dv_ * p.elapsedSeconds;
 
-	//The code below is from MITSIMLab. While the calculation result not suit for current unit.
-	//So now, I just put them here.
-//	double dis = meter2Feet(dis_);
-//	double spd = meter2Feet(spd_);
-//	double dv  = meter2Feet(dv_);
-//	double rem_dist_impact = (type < 3) ?
-//		0.0 : (1.0 - 1.0 / (1 + exp(GA_parameters[type].lambda * dis)));
-//	double dvNegative = (dv < 0) ? dv : 0.0;
-//	double dvPositive = (dv > 0) ? dv : 0.0;
-//	double gap = GA_parameters[type].beta0 + GA_parameters[type].beta1 * rem_dist_impact +
-//			GA_parameters[type].beta2 * dv + GA_parameters[type].beta3 * dvNegative + GA_parameters[type].beta4 *  dvPositive;
-//	double u = gap + GA_parameters[type].stddev;
-//	double cri_gap ;
-//
-//	if (u < -4.0) {
-//		cri_gap = 0.0183 * GA_parameters[type].scale ;		// exp(-4)=0.0183
-//	}
-//	else if (u > 6.0) {
-//		cri_gap = 403.4 * GA_parameters[type].scale ;   	// exp(6)=403.4
-//	}
-//	else cri_gap = GA_parameters[type].scale * exp(u) ;
-//
-//	if (cri_gap < GA_parameters[type].alpha) return feet2Meter(GA_parameters[type].alpha) ;
-//	else return feet2Meter(cri_gap) ;
+	double lcGapModels_[][9] = {
+			{1.00 , 0.0 ,  0.000 ,  0.508 , 0.000 , 0.000, -0.420 , 0.000 , 0.488 },
+			{1.00 , 0.0 ,  0.000  , 2.020 , 0.000 , 0.000 , 0.153 , 0.188 , 0.526},
+			{1.00 , 0.0 ,  0.000 ,  0.384 , 0.000,  0.000  ,0.000,  0.000 , 0.859},
+			{1.00 , 0.0  , 0.000 ,  0.384 , 0.000 , 0.000  ,0.000  ,0.000 , 0.859}};
+
+	  double *a = lcGapModels_[type] ;
+	  double *b = lcGapModels_[type] + 3 ; //beta0
+	  double rem_dist_impact = (type < 3) ?
+		0.0 : (1.0 - 1.0 / (1 + exp(a[2] * dis)));
+	  double dvNegative = (dv < 0) ? dv : 0.0;
+	  double dvPositive = (dv > 0) ? dv : 0.0;
+	  double gap = b[0] + b[1] * rem_dist_impact +
+	              b[2] * dv + b[3] * dvNegative + b[4] *  dvPositive;
+
+
+	  double u = gap ;//+ theRandomizer->nrandom(0, b[5]);
+	  double cri_gap ;
+
+	  if (u < -4.0) cri_gap = 0.0183 * a[0] ;      // exp(-4)=0.0183
+	  else if (u > 6.0) cri_gap = 403.4 * a[0] ;   // exp(6)=403.4
+	  else cri_gap = a[0] * exp(u) ;
+
+	  if (cri_gap < a[1]) return a[1] ;
+	  else return cri_gap ;
 }
 
 
@@ -139,6 +153,7 @@ LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(DriverUpdateParams& p, int type
 				otherSpeed[i].lead = fwd->driver->fwdVelocity.get();
 				otherDistance[i].lead= fwd->distance;
 			}
+//check otherDistance[i].lead if <= 0 return
 
 			if(!back->exists()){//no vehicle behind
 				otherSpeed[i].lag=-5000;
@@ -163,11 +178,11 @@ LaneSide sim_mob::MITSIM_LC_Model::gapAcceptance(DriverUpdateParams& p, int type
 			if (j==0) {
 				double v      = p.perceivedFwdVelocity;
 				double dv     = otherSpeed[i].lead - v;
-				flags[i].lead = (otherDistance[i].lead > lcCriticalGap(p, j+type,p.dis2stop,v,dv));
+				flags[i].lead = (otherDistance[i].lead > lcCriticalGap(p, j+type,p.dis2stop/100,v,dv));
 			} else {
 				double v 	 = otherSpeed[i].lag;
 				double dv 	 = p.perceivedFwdVelocity - otherSpeed[i].lag;
-				flags[i].lag = (otherDistance[i].lag > lcCriticalGap(p, j+type,p.dis2stop,v,dv));
+				flags[i].lag = (otherDistance[i].lag > lcCriticalGap(p, j+type,p.dis2stop/100,v,dv));
 			}
 		}
 	}
@@ -298,43 +313,44 @@ double sim_mob::MITSIM_LC_Model::executeLaneChanging(DriverUpdateParams& p, doub
 		//Set the lateral velocity of the vehicle; move it.
 		int lcsSign = (currLaneChangeDir==LCS_RIGHT) ? -1 : 1;
 		return lcsSign*150;//p.laneChangingVelocity;
-	} else {
-		//If too close to node, don't do lane changing, distance should be larger than 3m
-//		if(p.nvFwd.distance <= 2000) {
-//			return 0;
-//		}
-
-		//Get a random number, use it to determine if we're making a discretionary or a mandatory lane change
-		boost::uniform_int<> zero_to_max(0, RAND_MAX);
-		double randNum = (double)(zero_to_max(p.gen)%1000)/1000;
-		double mandCheck = checkIfMandatory(p);
-		LANE_CHANGE_MODE changeMode;  //DLC or MLC
-
-		if(randNum<mandCheck){
-			changeMode = MLC;
-		} else {
-			changeMode = DLC;
-			p.dis2stop = 1000;//MAX_NUM;		//no crucial point ahead
-		}
-
-		//make decision depending on current lane changing mode
-		LANE_CHANGE_SIDE decision = LCS_SAME;
-		if(changeMode==DLC) {
-
-			decision = makeDiscretionaryLaneChangingDecision(p);
-		} else {
-
-			decision = makeMandatoryLaneChangingDecision(p);
-
-		}
-
-
-		//Finally, if we've decided to change lanes, set our intention.
-		if(decision!=LCS_SAME) {
-			const int lane_shift_velocity = 150;  //TODO: What is our lane changing velocity? Just entering this for now...
-
-			return decision==LCS_LEFT?lane_shift_velocity:-lane_shift_velocity;
-		}
 	}
+//		else {
+//		//If too close to node, don't do lane changing, distance should be larger than 3m
+////		if(p.nvFwd.distance <= 2000) {
+////			return 0;
+////		}
+//
+//		//Get a random number, use it to determine if we're making a discretionary or a mandatory lane change
+//		boost::uniform_int<> zero_to_max(0, RAND_MAX);
+//		double randNum = (double)(zero_to_max(p.gen)%1000)/1000;
+//		double mandCheck = checkIfMandatory(p);
+//		LANE_CHANGE_MODE changeMode;  //DLC or MLC
+//
+//		if(randNum<mandCheck){
+//			changeMode = MLC;
+//		} else {
+//			changeMode = DLC;
+//			p.dis2stop = 1000;//MAX_NUM;		//no crucial point ahead
+//		}
+//
+//		//make decision depending on current lane changing mode
+//		LANE_CHANGE_SIDE decision = LCS_SAME;
+//		if(changeMode==DLC) {
+//
+//			decision = makeDiscretionaryLaneChangingDecision(p);
+//		} else {
+//
+//			decision = makeMandatoryLaneChangingDecision(p);
+//
+//		}
+//
+//
+//		//Finally, if we've decided to change lanes, set our intention.
+//		if(decision!=LCS_SAME) {
+//			const int lane_shift_velocity = 150;  //TODO: What is our lane changing velocity? Just entering this for now...
+//
+//			return decision==LCS_LEFT?lane_shift_velocity:-lane_shift_velocity;
+//		}
+//	}
 	return 0;
 }

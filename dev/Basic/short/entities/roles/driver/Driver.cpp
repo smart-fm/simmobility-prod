@@ -198,6 +198,7 @@ sim_mob::Driver::Driver(Person* parent, MutexStrategy mtxStrat) :
 		ReactionTimeDist* r2 = ConfigParams::GetInstance().reactDist2;
 		if (r1 && r2) {
 			reacTime = r1->getReactionTime() + r2->getReactionTime();
+			reacTime = 0;
 		} else {
 			throw std::runtime_error("Reaction time distributions have not been initialized yet.");
 		}
@@ -1504,6 +1505,9 @@ void sim_mob::Driver::perceivedDataProcess(NearestVehicle & nv, DriverUpdatePara
 			params.perceivedFwdVelocityOfFwdCar = perceivedVelOfFwdCar->sense();
 			params.perceivedAccelerationOfFwdCar = perceivedAccOfFwdCar->sense();
 			params.perceivedDistToFwdCar = perceivedDistToFwdCar->sense();
+//			std::cout<<"perceivedDataProcess: perceivedFwdVelocityOfFwdCar: vel,acc,dis:"<<params.perceivedFwdVelocityOfFwdCar
+//					<<" "<<params.perceivedAccelerationOfFwdCar<<" "<<
+//					params.perceivedDistToFwdCar<<std::endl;
 		}
 		else
 		{
@@ -1522,24 +1526,37 @@ void sim_mob::Driver::perceivedDataProcess(NearestVehicle & nv, DriverUpdatePara
 
 NearestVehicle & sim_mob::Driver::nearestVehicle(DriverUpdateParams& p)
 {
-	double leftDis = p.nvLeftFwd.distance;
-	double rightDis = p.nvRightFwd.distance;
-	double currentDis = p.nvFwd.distance;
+	double leftDis = 5000;
+	double rightDis = 5000;
+	double currentDis = 5000;
+	if(p.nvLeftFwd.exists())
+	  leftDis = p.nvLeftFwd.distance;
+	if(p.nvRightFwd.exists())
+	  rightDis = p.nvRightFwd.distance;
+	if(p.nvFwd.exists())
+	  currentDis = p.nvFwd.distance;
 	if(leftDis<currentDis)
 	{
 		//the vehicle in the left lane is turning to right
 		//or subject vehicle is turning to left
 		if(p.nvLeftFwd.driver->turningDirection.get()==LCS_RIGHT ||
 				vehicle->getTurningDirection()==LCS_LEFT)
+		{
+//			std::cout<<"nearestVehicle: left forward"<<std::endl;
 			return p.nvLeftFwd;
+		}
 	}
 	else if(rightDis<currentDis)
 	{
 		if(p.nvRightFwd.driver->turningDirection.get()==LCS_LEFT ||
 				vehicle->getTurningDirection()==LCS_RIGHT)
+		{
+//			std::cout<<"nearestVehicle: right forward: rightDis,currentDis: "<<rightDis<<" "<<currentDis<<std::endl;
 			return p.nvRightFwd;
+		}
 	}
-
+//	if (p.nvFwd.exists())
+//		std::cout<<"nearestVehicle: forward"<<std::endl;
 	return p.nvFwd;
 }
 

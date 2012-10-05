@@ -95,26 +95,27 @@ void sim_mob::BusController::receiveBusInformation(int busline_i, int trip_k, in
 
 unsigned int sim_mob::BusController::decisionCalculation(int busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk)
 {
-//	CONTROL_TYPE controltype = pt_schedule.findBuslineControlType(busline_i);
-//	unsigned int departure_time = 0;
-//	switch(controltype) {
-//	case SCHEDULE_BASED:
-//		departure_time = scheduledDecision(busline_i, trip_k, busstopSequence_j, ATijk);
-//		break;
-//	case HEADWAY_BASED:
-//		departure_time = headwayDecision(busline_i, trip_k, busstopSequence_j, ATijk);
-//		break;
-//	case EVENHEADWAY_BASED:
-//		departure_time = evenheadwayDecision(busline_i, trip_k, busstopSequence_j, ATijk);
-//		break;
-//	case HYBRID_BASED:
-//		departure_time = hybridDecision(busline_i, trip_k, busstopSequence_j, ATijk);
-//		break;
-//	default:
-//		// may add default scheduled departure time here
-//		std::cout<<"No Control Decision is used!!!"<<std::endl;
-//	}
-//	return departure_time;
+	CONTROL_TYPE controltype = pt_schedule.findBuslineControlType(busline_i);
+	unsigned int departure_time = 0; // If we use Control, since the busstopSequence_j is in the middle, so should not be 0
+	switch(controltype) {
+	case SCHEDULE_BASED:
+		departure_time = scheduledDecision(busline_i, trip_k, busstopSequence_j, ATijk);
+		break;
+	case HEADWAY_BASED:
+		departure_time = headwayDecision(busline_i, trip_k, busstopSequence_j, ATijk);
+		break;
+	case EVENHEADWAY_BASED:
+		departure_time = evenheadwayDecision(busline_i, trip_k, busstopSequence_j, ATijk);
+		break;
+	case HYBRID_BASED:
+		departure_time = hybridDecision(busline_i, trip_k, busstopSequence_j, ATijk);
+		break;
+	default:
+		// may add default scheduled departure time here
+		std::cout<<"No Control Decision is used!!!"<<std::endl;
+		break;
+	}
+	return departure_time;
 }
 
 unsigned int sim_mob::BusController::scheduledDecision(int busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk)

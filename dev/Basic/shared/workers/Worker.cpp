@@ -347,5 +347,10 @@ boost::unordered_map<const RoadSegment*, sim_mob::SegmentVehicles*> sim_mob::Wor
 }
 
 sim_mob::SegmentVehicles* sim_mob::Worker::getSegmentVehicles(const sim_mob::RoadSegment* rdSeg) {
-	return agentsOnSegments[rdSeg];
+	boost::unordered_map<const RoadSegment*, sim_mob::SegmentVehicles*>::iterator it_map;
+	it_map = agentsOnSegments.find(rdSeg);
+	if (it_map != agentsOnSegments.end())
+		return agentsOnSegments[rdSeg];
+	else
+		return nullptr;
 }

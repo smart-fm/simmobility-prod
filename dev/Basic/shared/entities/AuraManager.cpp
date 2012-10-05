@@ -452,21 +452,35 @@ AuraManager::printStatistics() const
 }*/
 
 std::map<const sim_mob::Lane*, unsigned short> AuraManager::getQueueLengthsOfLanes(const sim_mob::RoadSegment* rdSeg){
+
 	std::map<const sim_mob::Lane*, unsigned short> laneWiseQueueLengths;
+	std::map<const sim_mob::Lane*, unsigned short>::iterator it_map;
 	sim_mob::SegmentVehicles* rdSegVehicles = agentsOnSegments_global[rdSeg];
+
 	for(std::vector<sim_mob::Lane*>::const_iterator i = rdSeg->getLanes().begin();
 			i != rdSeg->getLanes().end(); i++ ) {
-		laneWiseQueueLengths[*i] = rdSegVehicles->getAgentsOnQueuingVehicles(*i).size();
+		it_map = laneWiseQueueLengths.find((*i));
+		if(it_map != laneWiseQueueLengths.end())
+			laneWiseQueueLengths[*i] = rdSegVehicles->getAgentsOnQueuingVehicles(*i).size();
+		else
+			laneWiseQueueLengths[*i] = 0;
 	}
 	return laneWiseQueueLengths;
 }
 
 std::map<const sim_mob::Lane*, unsigned short> AuraManager::getMovingCountsOfLanes(const sim_mob::RoadSegment* rdSeg){
+
 	std::map<const sim_mob::Lane*, unsigned short> laneWiseMovingCounts;
+	std::map<const sim_mob::Lane*, unsigned short>::iterator it_map;
 	sim_mob::SegmentVehicles* rdSegVehicles = agentsOnSegments_global[rdSeg];
+
 	for(std::vector<sim_mob::Lane*>::const_iterator i = rdSeg->getLanes().begin();
 			i != rdSeg->getLanes().end(); i++ ) {
-		laneWiseMovingCounts[*i] = rdSegVehicles->getAgentsOnMovingVehicles(*i).size();
+		it_map = laneWiseMovingCounts.find(*i);
+		if (it_map != laneWiseMovingCounts.end())
+			laneWiseMovingCounts[*i] = rdSegVehicles->getAgentsOnMovingVehicles(*i).size();
+		else
+			laneWiseMovingCounts[*i] = 0;
 	}
 	return laneWiseMovingCounts;
 }

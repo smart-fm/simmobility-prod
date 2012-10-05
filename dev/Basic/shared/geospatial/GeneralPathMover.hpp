@@ -55,6 +55,7 @@ public:
 	///  road segment as applicable.
 	//Returns any "overflow" distance if we are in an intersection, 0 otherwise.
 	double advance(double fwdDistance);
+	double advance_med(double fwdDistance);
 	double advance(const RoadSegment* currSegment, std::vector<const RoadSegment*> path, std::vector<bool> areFwds, double fwdDistance);
 
 	///Are we completely done?

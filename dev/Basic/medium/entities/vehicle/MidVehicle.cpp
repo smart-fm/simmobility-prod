@@ -7,26 +7,18 @@ using namespace sim_mob::medium;
 using std::vector;
 
 sim_mob::medium::MidVehicle::MidVehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID)
-: Vehicle(wp_path, startLaneID), isQueuing(false), distMovedInCurrSegment(0)
+: Vehicle(wp_path, startLaneID), isQueuing(false)
 {
 
 }
 
 sim_mob::medium::MidVehicle::MidVehicle(std::vector<sim_mob::WayPoint> wp_path, int startLaneID, double length, double width)
-: Vehicle(wp_path, startLaneID, length, width), isQueuing(false), distMovedInCurrSegment(0)
+: Vehicle(wp_path, startLaneID, length, width), isQueuing(false)
 {
 
 }
 
 sim_mob::medium::MidVehicle::~MidVehicle(){}
-
-double sim_mob::medium::MidVehicle::getDistanceMovedInSegment() const {
-	return distMovedInCurrSegment;
-}
-
-void sim_mob::medium::MidVehicle::setDistanceMovedInSegment(double distance) {
-	distMovedInCurrSegment += distance;
-}
 
 void sim_mob::medium::MidVehicle::setPosition(double distToEndSegment) {
 	posInRoadSeg = distToEndSegment;
@@ -35,4 +27,3 @@ void sim_mob::medium::MidVehicle::setPosition(double distToEndSegment) {
 double sim_mob::medium::MidVehicle::getPosition() const {
 	return posInRoadSeg;
 }
-

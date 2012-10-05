@@ -23,7 +23,10 @@ namespace sim_mob {
 	}
 
 	void SegmentVehicles::removeMovingAgent(const sim_mob::Lane* lane, sim_mob::Agent* ag) {
-		movingAgents[lane].erase(ag);
+		std::map<const sim_mob::Lane*, std::set<sim_mob::Agent*> >::iterator it_map;
+		it_map = movingAgents.find(lane);
+		if ( it_map != movingAgents.end())
+			movingAgents[lane].erase(ag);
 	}
 
 	std::set<Agent*> SegmentVehicles::getAgentsOnMovingVehicles(const sim_mob::Lane* lane) {

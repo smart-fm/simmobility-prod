@@ -80,19 +80,20 @@ public:
 
 	void intersectionVelocityUpdate();
 	//melani-for queuing
-	bool advance(UpdateParams& p);
-	void moveToNextSegment(UpdateParams& p, double timeSpent);
+	bool advance(DriverUpdateParams& p, unsigned int currTimeMS);
+	bool moveToNextSegment(DriverUpdateParams& p, unsigned int currTimeMS, double timeSpent);
+	bool canGoToNextRdSeg(DriverUpdateParams& p, double time);
 	void moveInQueue();
 	double getPosition();
-	void moveInSegment(double distance);
+	double moveInSegment(DriverUpdateParams& p2, double distance);
 	void initLaneGroups(sim_mob::RoadSegment& parentRS);
-	void advanceQueuingVehicle(DriverUpdateParams& p2);
-	void advanceMovingVehicle(DriverUpdateParams& p2);
-	void advanceMovingVehicleWithInitialQ(DriverUpdateParams& p2);
+	void advanceQueuingVehicle(DriverUpdateParams& p, unsigned int currTimeMS);
+	void advanceMovingVehicle(DriverUpdateParams& p, unsigned int currTimeMS);
+	void advanceMovingVehicleWithInitialQ(DriverUpdateParams& p2, unsigned int currTimeMS);
 	void updateVelocity();
 private:
 	void chooseNextLaneForNextLink(DriverUpdateParams& p);
-	//bool update_movement(DriverUpdateParams& params, frame_t frameNumber);       ///<Called to move vehicles forward.
+	bool update_movement(DriverUpdateParams& params, frame_t frameNumber);       ///<Called to move vehicles forward.
 	bool update_post_movement(DriverUpdateParams& params, frame_t frameNumber);       ///<Called to deal with the consequences of moving forwards.
 	void intersectionDriving(DriverUpdateParams& p);
 	void justLeftIntersection(DriverUpdateParams& p);
@@ -105,11 +106,11 @@ private:
 	void removeFromQueue();
 	void removeFromMovingList();
 	void matchLanes(sim_mob::RoadSegment& parentRS, std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS);
-	sim_mob::LaneGroup* getBestTargetLaneGroup();
-	const sim_mob::Lane* getBestTargetLane();
+	//sim_mob::LaneGroup* getBestTargetLaneGroup();
+	const sim_mob::Lane* getBestTargetLane(const RoadSegment* nextRdSeg);
 
 protected:
-	//virtual double updatePositionOnLink(DriverUpdateParams& p);
+	virtual double updatePositionOnLink(DriverUpdateParams& p);
 	MidVehicle* initializePath(bool allocateVehicle);
 	//Helper: for special strings
 	//void initLoopSpecialString(std::vector<WayPoint>& path, const std::string& value);

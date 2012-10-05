@@ -38,7 +38,7 @@ struct DriverUpdateParams : public UpdateParams {
 	size_t currLaneIndex; //Cache of currLane's index.
 	size_t nextLaneIndex; //for lane changing model
 
-	LaneGroup* currLaneGroup;
+	//LaneGroup* currLaneGroup;
 
 	double currLaneOffset;
 	double currLaneLength;

@@ -1024,3 +1024,18 @@ DPoint sim_mob::GeneralPathMover::getPosition() const
 	return DPoint(movementVect.getX(), movementVect.getY());
 }
 
+double sim_mob::GeneralPathMover::advance_med(double fwdDistance)
+{
+	throwIf(!isPathSet(), "GeneralPathMover path not set.");
+
+	//Next, if we are truly at the end of the path, we should probably throw an error for trying to advance.
+	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
+
+	//Move down the current polyline. If this brings us to the end point, go to the next polyline
+	double res = 0.0;
+	distAlongPolyline += fwdDistance;
+	//distMovedInSegment += fwdDistance;
+	res = distAlongPolyline;
+	return res;
+}
+

@@ -170,12 +170,14 @@ unsigned int sim_mob::BusController::headwayDecision(int busline_i, int trip_k, 
 
 unsigned int sim_mob::BusController::evenheadwayDecision(int busline_i, int trip_k, int busstopSequence_j,  unsigned int ATijk, int lastVisited_BusStopSeqNum)
 {
-
+	unsigned int DTijk = 0;
+	return DTijk;
 }
 
 unsigned int sim_mob::BusController::hybridDecision(int busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk)
 {
-
+	unsigned int DTijk = 0;
+	return DTijk;
 }
 
 unsigned int sim_mob::BusController::dwellTimeCalculation(int busline_i, int trip_k, int busstopSequence_j)

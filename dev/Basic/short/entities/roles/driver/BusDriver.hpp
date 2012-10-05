@@ -55,7 +55,7 @@ public:
 	mutable double lastTickDistanceToBusStop;
 	Shared<BusStop*> lastVisited_BusStop; // can get some passenger count, passenger information and busStop information
 	Shared<int> lastVisited_BusStopSequenceNum; // last visited busStop sequence number m, reset by BusDriver, What Time???(needed for query the last Stop m -->realStop Times)
-	Shared<unsigned int> real_DepartureTime; // set by BusController, reset once stop at any busStop
+	Shared<unsigned int> real_DepartureTime; // set by BusController, reset once stop at only busStop j (j belong to the small set of BusStops)
 	Shared<unsigned int> real_ArrivalTime; // set by BusDriver, reset once stop at any busStop
 
 protected:

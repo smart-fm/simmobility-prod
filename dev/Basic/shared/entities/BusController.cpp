@@ -93,7 +93,7 @@ void sim_mob::BusController::receiveBusInformation(int busline_i, int trip_k, in
 	std::cout<<"Report Aijk: --->"<<ATijk<<std::endl;
 }
 
-unsigned int sim_mob::BusController::decisionCalculation(int busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk)
+unsigned int sim_mob::BusController::decisionCalculation(int busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, int lastVisited_BusStopSeqNum)
 {
 	CONTROL_TYPE controltype = pt_schedule.findBuslineControlType(busline_i);
 	unsigned int departure_time = 0; // If we use Control, since the busstopSequence_j is in the middle, so should not be 0
@@ -105,7 +105,7 @@ unsigned int sim_mob::BusController::decisionCalculation(int busline_i, int trip
 		departure_time = headwayDecision(busline_i, trip_k, busstopSequence_j, ATijk);
 		break;
 	case EVENHEADWAY_BASED:
-		departure_time = evenheadwayDecision(busline_i, trip_k, busstopSequence_j, ATijk);
+		departure_time = evenheadwayDecision(busline_i, trip_k, busstopSequence_j, ATijk, lastVisited_BusStopSeqNum);
 		break;
 	case HYBRID_BASED:
 		departure_time = hybridDecision(busline_i, trip_k, busstopSequence_j, ATijk);
@@ -168,7 +168,7 @@ unsigned int sim_mob::BusController::headwayDecision(int busline_i, int trip_k, 
 	return ETijk;
 }
 
-unsigned int sim_mob::BusController::evenheadwayDecision(int busline_i, int trip_k, int busstopSequence_j,  unsigned int ATijk)
+unsigned int sim_mob::BusController::evenheadwayDecision(int busline_i, int trip_k, int busstopSequence_j,  unsigned int ATijk, int lastVisited_BusStopSeqNum)
 {
 
 }
@@ -180,6 +180,18 @@ unsigned int sim_mob::BusController::hybridDecision(int busline_i, int trip_k, i
 
 unsigned int sim_mob::BusController::dwellTimeCalculation(int busline_i, int trip_k, int busstopSequence_j)
 {
+	double alpha1 = 0.0;
+	double alpha2 = 0.0;
+	double alpha3 = 0.0;
+	double alpha4 = 0.0;
+
+	double beta1 = 0.0;
+	double beta2 = 0.0;
+	double beta3 = 0.0;
+	int Pfront = 1;
+
+	double PTijk_front = 0.0;
+	double PTijk_rear = 0.0;
 	unsigned int DTijk = 0;
 	return DTijk;
 }

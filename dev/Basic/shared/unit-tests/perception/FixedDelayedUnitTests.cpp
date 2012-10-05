@@ -143,16 +143,27 @@ void unit_tests::FixedDelayedUnitTests::test_FixedDelayed_sanity_checks()
 
 namespace {
 struct DelStruct { //Sets flag to "true" if delete called.
-	explicit DelStruct(int& refCount) : refCount(refCount) {
-		refCount = 1;
+	//The default constructor is only used so that our list<> templates compile correctly (it's magic that it worked before this).
+	//  Actually, this should never be used.
+	DelStruct() : refCount(nullptr) {}
+
+	explicit DelStruct(int& rc) : refCount(&rc) {
+		(*refCount) = 1;
 	}
 	DelStruct(const DelStruct& copy) : refCount(copy.refCount) {
-		refCount++; //Needed for vector<> to not mess up our results.
+		if (refCount) {
+			(*refCount)++; //Needed for vector<> to not mess up our results.
+		}
 	}
 	~DelStruct() {
-		refCount--;
+		if (refCount) {
+			(*refCount)--;
+		}
 	}
-	int& refCount;
+
+private:
+	//Check the value externally.
+	int* refCount;
 };
 } //End anon namespace
 void unit_tests::FixedDelayedUnitTests::test_FixedDelayed_false_delete()

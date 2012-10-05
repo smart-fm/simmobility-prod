@@ -22,11 +22,11 @@ public class TrafficSignalCrossing implements DrawableItem{
 	private ScaledPoint nearTwo;
 	private ScaledPoint farOne;
 	private ScaledPoint farTwo;
-	private int id;
+	private long id;
 	
 	private Color currColor;
 	
-	public TrafficSignalCrossing(ScaledPoint nearOne, ScaledPoint nearTwo, ScaledPoint farOne, ScaledPoint farTwo,int id){
+	public TrafficSignalCrossing(ScaledPoint nearOne, ScaledPoint nearTwo, ScaledPoint farOne, ScaledPoint farTwo,long id){
 		this.nearOne = nearOne;
 		this.nearTwo = nearTwo;
 		this.farOne = farOne;
@@ -55,7 +55,7 @@ public class TrafficSignalCrossing implements DrawableItem{
 	public ScaledPoint getNearTwo() { return nearTwo; }
 	public ScaledPoint getFarOne() { return farOne; }
 	public ScaledPoint getFarTwo() { return farTwo; }
-	public int getId() { return id; }
+	public long getId() { return id; }
 
 	
 	public void setCurrColor(Integer color) {

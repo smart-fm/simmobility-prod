@@ -5,18 +5,17 @@
 // programs without any restrictions.
 //
 
-#include "geo8-pimpl.hpp"
+#include "geo8-driver.hpp"
 
 #include <iostream>
-#include "main1.hpp"
+#include "geo8-pimpl.hpp"
 
-int
-main1 (int argc, char* argv[])
+
+bool geo::InitAndLoadXML()
 {
-	std::cout << "In main1\n";
+	std::cout << "In InitAndLoadXML\n";
 
-  try
-  {
+  try {
     // Instantiate individual parsers.
     //
     ::geo::SimMobility_t_pimpl SimMobility_t_p;
@@ -302,23 +301,19 @@ main1 (int argc, char* argv[])
     ::xml_schema::document doc_p (SimMobility_t_p,"http://www.smart.mit.edu/geo","SimMobility");
     SimMobility_t_p.pre ();
     std::cout << "In main1 SimMobility_t_p.pre() done\n";
-    doc_p.parse ("/home/vahid/SIMMOBILITY/MASTER/simmobility/dev/Basic/data/XML_OutPut.xml");
-//  doc_p.parse ("/home/vahid/SIMMOBILITY/MASTER/simmobility/dev/Basic/shared/geospatial/xmlLoader/instance1.xml");
+    doc_p.parse ("data/XML_OutPut.xml");
     std::cout << "In main1 parse done\n";
     SimMobility_t_p.post_SimMobility_t ();
     std::cout << "In main1 post done\n";
-  }
-  catch (const ::xml_schema::exception& e)
-  {
+  } catch (const ::xml_schema::exception& e) {
 	  std::cout << "main1 failed\n";
-    std::cerr << e << std::endl;
-    return 1;
-  }
-  catch (const std::ios_base::failure&)
-  {
+	  std::cerr << e << std::endl;
+	  return false;
+  } catch (const std::ios_base::failure&) {
 	  std::cout << "main1 failed2\n";
-    std::cerr << ": error: io failure" << std::endl;
-    return 1;
+	  std::cerr << ": error: io failure" << std::endl;
+	  return false;
   }
+  return true;
 }
 

@@ -7,10 +7,10 @@ package sim_mob.vis.network;
  */
 public class LaneConnector{
 
-	private int fromSegment;
-	private int toSegment;
-	private int fromLane;
-	private int toLane;
+	private long fromSegment;
+	private long toSegment;
+	private long fromLane;
+	private long toLane;
 	
 	private Node fromNode;
 	private Node toNode;
@@ -18,13 +18,13 @@ public class LaneConnector{
 	public Node getFromNode(){return fromNode; }
 	public Node getToNode(){return toNode; }
 	
-	public int getFromSegment(){return fromSegment; }
-	public int getToSegment(){return toSegment;}
-	public int getFromLane(){return fromLane;}
-	public int getToLane(){return toLane;}
+	public long getFromSegment(){return fromSegment; }
+	public long getToSegment(){return toSegment;}
+	public long getFromLane(){return fromLane;}
+	public long getToLane(){return toLane;}
 	
 	
-	public LaneConnector(int fromSegment, int toSegment, int fromLane, int toLane){
+	public LaneConnector(long fromSegment, long toSegment, long fromLane, long toLane){
 		this.fromSegment = fromSegment;
 		this.toSegment = toSegment;
 		this.fromLane = fromLane;

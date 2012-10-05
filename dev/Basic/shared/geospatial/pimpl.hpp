@@ -1,4 +1,4 @@
-namespace geo
+/*namespace geo
 {
   class SegmentType_t_pimpl: public virtual SegmentType_t_pskel,
     public ::xml_schema::string_pimpl
@@ -839,4 +839,4 @@ namespace geo
   };
 }
 
-#endif // GEO5_PIMPL_HPP
+#endif // GEO5_PIMPL_HPP*/

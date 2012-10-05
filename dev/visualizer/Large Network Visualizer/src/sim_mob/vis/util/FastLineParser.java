@@ -84,13 +84,13 @@ public class FastLineParser {
 	}
 	
 	private boolean parseFrame(Utility.ParseResults res) {
-		res.frame = parseIntOrHexInt(res);
+		res.frame = (int)parseLongOrHex(res);
 		parseCharacter(res, ',');
 		return !res.isError();
 	}
 	
 	private boolean parseID(Utility.ParseResults res) {
-		res.objID = parseIntOrHexInt(res);
+		res.objID = parseLongOrHex(res);
 		parseCharacter(res, ',');
 		return !res.isError();
 	}
@@ -172,7 +172,7 @@ public class FastLineParser {
 		return sb.toString();
 	}
 	
-	private int parseIntOrHexInt(Utility.ParseResults res) {
+	private long parseLongOrHex(Utility.ParseResults res) {
 		int radix = 10;
 		StringBuffer sb = new StringBuffer();
 		
@@ -206,7 +206,7 @@ public class FastLineParser {
 			}			
 		}
 
-		return Integer.parseInt(sb.toString(), radix);
+		return Long.parseLong(sb.toString(), radix);
 	}
 
 }

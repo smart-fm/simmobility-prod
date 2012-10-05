@@ -101,12 +101,12 @@ public:
     static Signal_SCATS const & signalAt(Node const & node, const MutexStrategy& mtxStrat,bool *isNew=nullptr);//bool isNew : since this function will create and return new signal if already existing signals not found, a switch to indicate what happened in the function would be nice
 
 	//Note: You need a virtual destructor or else superclass destructors won't be called. ~Seth
-    //created virtual for the immediate parent.Although not needed
+    //created virtual for the immediate parent.
 	~Signal_SCATS() {}
 
     void addSignalSite(centimeter_t xpos, centimeter_t ypos,std::string const & typeCode, double bearing);
-    void findIncomingLanes();
-    void findSignalLinks();
+//    void findIncomingLanes();
+//    void findSignalLinks();
     void findSignalLinksAndCrossings();
     LinkAndCrossingByLink const & getLinkAndCrossingsByLink() const {return LinkAndCrossings_.get<2>();}
     LinkAndCrossingByCrossing const & getLinkAndCrossingsByCrossing() const {return LinkAndCrossings_.get<4>();}
@@ -122,7 +122,7 @@ public:
 	bool updateCurrCycleTimer();
 
 	/*--------Split Plan----------*/
-	void startSplitPlan();
+//	void startSplitPlan();
 //	void setnextSplitPlan(double DS[]);
 	int getcurrSplitPlanID();
 	int getnextSplitPlanID();
@@ -159,12 +159,13 @@ public:
     void outputTrafficLights(frame_t frameNumber,std::string newLine)const;
 
 private:
-    bool isIntersection_;
-    double updateInterval;
-    unsigned int TMP_SignalID;//todo change the name to withouth TMP
+    bool isIntersection_;//generated
+    //this is the interval on which the signal's update is called
+    double updateInterval;//generated
+    unsigned int signalID;//currently is equal to nodeId
 
     /* Fixed time or adaptive control */
-    int signalAlgorithm;
+    int signalAlgorithm;//0: fixed, 1: adaptive  //todo: change this old name to a more decent name with enum values
     /*-------------------------------------------------------------------------
      * -------------------Geo Spatial indicators--------------------------------
      * ------------------------------------------------------------------------*/
@@ -176,11 +177,11 @@ private:
      * (how much usful)
      * else, no need to store so many lane pointers unnecessarily
      */
-    std::vector<sim_mob::Lane const *>  IncomingLanes_;//The data for this vector is generated
+//    std::vector<sim_mob::Lane const *>  IncomingLanes_;//The data for this vector is generated
     //used (probabely in createloopdetectors()
 
     LinkAndCrossingC LinkAndCrossings_;
-    std::vector<sim_mob::Link const *>  SignalLinks;//The data for this vector is generated
+//    std::vector<sim_mob::Link const *>  SignalLinks;//The data for this vector is generated
 
     /*-------------------------------------------------------------------------
      * -------------------split plan Indicators--------------------------------
@@ -194,8 +195,8 @@ private:
     sim_mob::SplitPlan plan_;
 
 //	std::vector<double> currSplitPlan;//a chunk in "choiceSet" container,Don't think I will need it anymore coz job is distributed to a different class
-	int currSplitPlanID;//Don't think I will need it anymore
-	int phaseCounter;//Don't think I will need it anymore coz apparently currCycleTimer will replace it
+//	int currSplitPlanID;//Don't think I will need it anymore
+//	int phaseCounter;//Don't think I will need it anymore coz apparently currCycleTimer will replace it
 	double currCycleTimer;//The amount of time passed since the current cycle started.(in millisecond)
 
     /*-------------------------------------------------------------------------
@@ -213,9 +214,9 @@ private:
      * ------------------------------------------------------------------------*/
 
 	//previous,current and next cycle length
-	double currCL;
-	int currPhaseID;
-	sim_mob::Phase currPhase;
+//	double currCL;//don't think it is needed here any more. cycle shifted to another class
+	int currPhaseID;//the current phase of the current plan
+	sim_mob::Phase currPhase;//temporary plcae holder
 
 	bool isNewCycle; //indicates whether operations pertaining to a new cycle should be performed
 

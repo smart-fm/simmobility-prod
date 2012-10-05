@@ -32,7 +32,9 @@
 #include "geospatial/BusStop.hpp"
 #include "util/ReactionTimeDistributions.hpp"
 #include "util/OutputUtil.hpp"
-#include "main1.hpp"
+
+#include "geospatial/xmlLoader/geo8-driver.hpp"
+#include "geospatial/xmlLoader/geo9.hpp"
 
 //add by xuyan
 #include "partitions/PartitionManager.hpp"
@@ -191,22 +193,6 @@ void addOrStashEntity(Agent* p, std::vector<Entity*>& active_agents, StartTimePr
 
 
 
-
-/*namespace {
-  //Simple helper function
-  KNOWN_ENTITY_TYPES EntityTypeFromTripChainString(const std::string& str) {
-		//Decode the mode.
-		if (str == "Car") {
-			return ENTITY_DRIVER;
-		}
-		if (str == "Walk") {
-			return ENTITY_PEDESTRIAN;
-		}
-		throw std::runtime_error("Unknown agent mode");
-  }
-
-}*/ //End anon namespace
-
 //NOTE: "constraints" are not used here, but they could be (for manual ID specification).
 void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, AgentConstraints& constraints)
 {
@@ -272,26 +258,6 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 	}//outer for loop(map)
 }
 
-/*namespace {
-  //Simple helper function
-  KNOWN_ENTITY_TYPES EntityTypeFromConfigString(const std::string& str) {
-		//Decode the mode.
-		if (str == "driver") {
-			return ENTITY_DRIVER;
-		}
-		if (str == "pedestrian") {
-			return ENTITY_PEDESTRIAN;
-		}
-		if (str == "bus") {
-			return ENTITY_BUSDRIVER;
-		}
-		if (str == "buscontroller") {
-			return ENTITY_BUSCONTROLLER;
-		}
-		throw std::runtime_error("Unknown agent mode");
-  }
-
-}*/ //End anon namespace
 
 
 // Temporary Test function ---Yao Jin
@@ -329,6 +295,79 @@ void generateAgentsFromTripChain(std::vector<Entity*>& active_agents, StartTimeP
 		}
 	}
 }*/
+
+
+//Helper output function
+void runXmlChecks(const std::vector<Link*>& links)
+{
+	//testing purpose only
+	std::cout << "Testin Road Network :\n";
+	std::cout << "Number of Links: " << links.size() << std::endl;
+
+	std::cout << "Number of segments: " << links[0]->getPath(true).size() << " " << links[0]->getPath(false).size() << std::endl;
+	const std::vector<sim_mob::MultiNode*>& mnodes = ConfigParams::GetInstance().getNetwork().getNodes();
+	const std::set<sim_mob::UniNode*>& unodes = ConfigParams::GetInstance().getNetwork().getUniNodes();
+	std::cout << "Number of UniNodes: " << unodes.size() << std::endl;
+	std::cout << "Number of MultiNodes: " << mnodes.size() << std::endl;
+
+	for(std::vector<Link*>::const_iterator links_it = links.begin(); links_it != links.end(); links_it++)
+	{
+		//link
+		std::cout << "Checking Link " << (*links_it)->getId() << std::endl;
+//    			//Starting node,ending node,originalDB_ID
+//    			std::cout << "checking Starting node " <<  (*links_it)->getStart()->getID() << std::endl;
+//    			if((*links_it)->getStart()->originalDB_ID.isSet())
+//    				std::cout << "checking Starting node originalD_ID " <<  (*links_it)->getStart()->originalDB_ID.getLogItem() << std::endl;
+//    			else
+//    				std::cout << "checking Starting node originalD_ID is EMPTY\n";
+//    			std::cout << "checking ending node " <<  (*links_it)->getEnd()->getID() << std::endl;
+//    			if((*links_it)->getEnd()->originalDB_ID.isSet())
+//    				std::cout << "checking ending node originalD_ID " <<  (*links_it)->getEnd()->originalDB_ID.getLogItem() << std::endl;
+//    			else
+//    				std::cout << "checking Starting node originalD_ID is EMPTY\n";
+		//segment
+		for(std::set<sim_mob::RoadSegment*>::const_iterator segmentnodes_it = (*links_it)->getUniqueSegments().begin(), it_end((*links_it)->getUniqueSegments().end()); segmentnodes_it != it_end; segmentnodes_it++)
+		{
+			//starting node, endong node
+			if(!((*segmentnodes_it)->getStart()&&(*segmentnodes_it)->getEnd()))
+			{
+				std::cout << "segment starting node, endong node failed\n";
+				getchar();
+			}
+			else
+			{
+				sim_mob::RoadSegment *rs = (*segmentnodes_it);
+				std::cout << "segment[segmentid,start,end]: " << rs << "[" << (rs)->getSegmentID() << "," << (rs)->getStart()->getID() << "," << (rs)->getEnd()->getID()<< "]" << std::endl;
+			}
+		}
+
+	}
+
+//    		//check rn.nodes
+//    		for(std::set<sim_mob::UniNode*>::const_iterator unode_it = unodes.begin(); unode_it != unodes.end() ; unode_it++)
+//    		{
+//    			if((*unode_it)->getLinkLoc() ==0)
+//    			{
+//    				std::cout << "Unode " << (*unode_it)->getID() << "Has NULL link loc\n";
+////    				getchar();
+//    			}
+//    			else
+//    				std::cout << "Unode " << (*unode_it)->getID() << "Has  link loc\n";
+//    		}
+//    		for(std::vector<sim_mob::MultiNode*>::const_iterator mnode_it = mnodes.begin(); mnode_it != mnodes.end() ; mnode_it++)
+//    		{
+//    			if((*mnode_it)->getLinkLoc() ==0)
+//    			{
+//    				std::cout << "Mnode " << (*mnode_it)->getID() << "Has NULL link loc\n";
+////    				getchar();
+//    			}
+//    			else
+//    				std::cout << "Mnode " << (*mnode_it)->getID() << "Has  link loc\n";
+//    		}
+	std::cout << "Checking done\n";
+}
+
+
 
 
 bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents, StartTimePriorityQueue& pending_agents, const std::string& agentType, AgentConstraints& constraints)
@@ -444,6 +483,8 @@ bool loadXMLAgents(TiXmlDocument& document, std::vector<Entity*>& active_agents,
 		//TODO: We should just be able to save "driver" and "pedestrian", but we are
 		//      using different vocabulary for modes and roles. We need to change this.
 		props["#mode"] = (agentType=="driver"?"Car":(agentType=="pedestrian"?"Walk":"Unknown"));
+		if (agentType == "busdriver")
+			props["#mode"] = "Bus";
 
 		//Create the Person agent with that given ID (or an auto-generated one)
 		Person* agent = new Person("XML_Def", config.mutexStategy, manualID);
@@ -733,7 +774,6 @@ void PrintDB_Network()
 	LogOutNotSync("\"frame-time-ms\":\"" <<ConfigParams::GetInstance().baseGranMS <<"\",");
 	LogOutNotSync("})" <<endl);
 
-	;
 
 #ifdef SIMMOB_NEW_SIGNAL
 	sim_mob::Signal::all_signals_const_Iterator it;
@@ -841,24 +881,14 @@ void PrintDB_Network()
 			LogOutNotSync("})" <<endl);
 		}
 
-
 		const std::map<centimeter_t, const RoadItem*>& mapBusStops = (*it)->obstacles;
-				for(std::map<centimeter_t, const RoadItem*>::const_iterator itBusStops = mapBusStops.begin(); itBusStops != mapBusStops.end(); ++itBusStops)
-				{
-					std::cout<<"inside itBusStops loop...";
-					const RoadItem* ri = itBusStops->second;
-					const BusStop* resBS = dynamic_cast<const BusStop*>(ri);
-						if (resBS) {
-							std::cout<<"inserting busstop";
-						cachedBusStops.insert(resBS);
-					} else {
-						std::cout<<"this is not a busstop";
-//						std::cout <<"NOTE: Unknown obstacle!\n";
-					}
-						std::cout<< std::endl;
-				}
-				std::cout<<"itBusStops size : " <<  cachedBusStops.size() << std::endl;
-
+		for (std::map<centimeter_t, const RoadItem*>::const_iterator itBusStops = mapBusStops.begin(); itBusStops != mapBusStops.end(); ++itBusStops) {
+			const RoadItem* ri = itBusStops->second;
+			const BusStop* resBS = dynamic_cast<const BusStop*>(ri);
+			if (resBS) {
+				cachedBusStops.insert(resBS);
+			}
+		}
 
 		//Save crossing info for later
 		const std::map<centimeter_t, const RoadItem*>& mapCrossings = (*it)->obstacles;
@@ -866,10 +896,8 @@ void PrintDB_Network()
 		{
 			const RoadItem* ri = itCrossings->second;
 			const Crossing* resC = dynamic_cast<const Crossing*>(ri);
-				if (resC) {
+			if (resC) {
 				cachedCrossings.insert(resC);
-			} else {
-				std::cout <<"NOTE: Unknown obstacle!\n";
 			}
 		}
 
@@ -955,6 +983,10 @@ void PrintDB_Network()
 		LogOutNotSync("\"to-lane\":\"" <<toLane <<"\",");
 		LogOutNotSync("})" <<endl);
 	}
+
+	//Print the StreetDirectory graphs.
+	StreetDirectory::instance().printDrivingGraph();
+	StreetDirectory::instance().printWalkingGraph();
 
 	//Temp: Print ordering of output Links
 	for (vector<MultiNode*>::const_iterator it=rn.getNodes().begin(); it!=rn.getNodes().end(); it++) {
@@ -1236,73 +1268,13 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
        		 * ****************  XML-READER *******************
         	 *
         	 *************************************************/
-    		main1(0,0);
-    		//testing purpose only
-    		std::cout << "Testin Road Network :\n";
-    		std::vector<Link*>  & links = const_cast<sim_mob::RoadNetwork &>(ConfigParams::GetInstance().getNetwork()).getLinksRW();
-    		std::cout << "Number of Links: " << links.size() << std::endl;
-
-    		std::cout << "Number of segments: " << links[0]->getPath(true).size() << " " << links[0]->getPath(false).size() << std::endl;
-    		const std::vector<sim_mob::MultiNode*>& mnodes = ConfigParams::GetInstance().getNetwork().getNodes();
-    		const std::set<sim_mob::UniNode*>& unodes = ConfigParams::GetInstance().getNetwork().getUniNodes();
-    		std::cout << "Number of UniNodes: " << unodes.size() << std::endl;
-    		std::cout << "Number of MultiNodes: " << mnodes.size() << std::endl;
-
-    		for(std::vector<Link*>::iterator links_it = links.begin(); links_it != links.end(); links_it++)
-    		{
-    			//link
-    			std::cout << "Checking Link " << (*links_it)->getId() << std::endl;
-//    			//Starting node,ending node,originalDB_ID
-//    			std::cout << "checking Starting node " <<  (*links_it)->getStart()->getID() << std::endl;
-//    			if((*links_it)->getStart()->originalDB_ID.isSet())
-//    				std::cout << "checking Starting node originalD_ID " <<  (*links_it)->getStart()->originalDB_ID.getLogItem() << std::endl;
-//    			else
-//    				std::cout << "checking Starting node originalD_ID is EMPTY\n";
-//    			std::cout << "checking ending node " <<  (*links_it)->getEnd()->getID() << std::endl;
-//    			if((*links_it)->getEnd()->originalDB_ID.isSet())
-//    				std::cout << "checking ending node originalD_ID " <<  (*links_it)->getEnd()->originalDB_ID.getLogItem() << std::endl;
-//    			else
-//    				std::cout << "checking Starting node originalD_ID is EMPTY\n";
-    			//segment
-    			for(std::set<sim_mob::RoadSegment*>::iterator segmentnodes_it = (*links_it)->getUniqueSegments().begin(), it_end((*links_it)->getUniqueSegments().end()); segmentnodes_it != it_end; segmentnodes_it++)
-    			{
-    				//starting node, endong node
-    				if(!((*segmentnodes_it)->getStart()&&(*segmentnodes_it)->getEnd()))
-    				{
-    					std::cout << "segment starting node, endong node failed\n";
-    					getchar();
-    				}
-    				else
-    				{
-    					sim_mob::RoadSegment *rs = (*segmentnodes_it);
-    					std::cout << "segment[segmentid,start,end]: " << rs << "[" << (rs)->getSegmentID() << "," << (rs)->getStart()->getID() << "," << (rs)->getEnd()->getID()<< "]" << std::endl;
-    				}
-    			}
-
-    		}
-
-//    		//check rn.nodes
-//    		for(std::set<sim_mob::UniNode*>::const_iterator unode_it = unodes.begin(); unode_it != unodes.end() ; unode_it++)
-//    		{
-//    			if((*unode_it)->getLinkLoc() ==0)
-//    			{
-//    				std::cout << "Unode " << (*unode_it)->getID() << "Has NULL link loc\n";
-////    				getchar();
-//    			}
-//    			else
-//    				std::cout << "Unode " << (*unode_it)->getID() << "Has  link loc\n";
-//    		}
-//    		for(std::vector<sim_mob::MultiNode*>::const_iterator mnode_it = mnodes.begin(); mnode_it != mnodes.end() ; mnode_it++)
-//    		{
-//    			if((*mnode_it)->getLinkLoc() ==0)
-//    			{
-//    				std::cout << "Mnode " << (*mnode_it)->getID() << "Has NULL link loc\n";
-////    				getchar();
-//    			}
-//    			else
-//    				std::cout << "Mnode " << (*mnode_it)->getID() << "Has  link loc\n";
-//    		}
-    		std::cout << "Checking done\n";
+#ifdef SIMMOB_PARTIAL_XML_READER
+    		sim_mob::xml::InitAndLoadXML();
+#else
+    		geo::InitAndLoadXML();
+#endif
+    		//Re-enable if you need diagnostic information. ~Seth
+    		//runXmlChecks(ConfigParams::GetInstance().getNetwork().getLinks());
 #endif
 //////////////////////////////////////////////////////////////////////////////////
     		//Finally, mask the password
@@ -1405,13 +1377,13 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
 			std::cout <<"    Crossing[" <<it->first <<"] = (" <<it->second.getX() <<"," <<it->second.getY() <<")\n";
 		}
     }
-    if (!ConfigParams::GetInstance().connectionString.empty()) {
+    //if (!ConfigParams::GetInstance().connectionString.empty()) {
     	//Output AIMSUN data
     	std::cout <<"Network details loaded from connection: " <<ConfigParams::GetInstance().connectionString <<"\n";
     	std::cout <<"------------------\n";
     	PrintDB_Network();
     	std::cout <<"------------------\n";
-    }
+   // }
     std::cout <<"  Agents Initialized: " <<Agent::all_agents.size() <<"\n";
     /*for (size_t i=0; i<active_agents.size(); i++) {
     	//std::cout <<"    Agent(" <<agents[i]->getId() <<") = " <<agents[i]->xPos.get() <<"," <<agents[i]->yPos.get() <<"\n";

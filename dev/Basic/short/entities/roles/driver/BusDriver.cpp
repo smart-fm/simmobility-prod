@@ -89,8 +89,19 @@ vector<const BusStop*> sim_mob::BusDriver::findBusStopInPath(const vector<const 
 		std::map<centimeter_t, const RoadItem*>::const_iterator ob_it;
 		for(ob_it = obstacles.begin(); ob_it != obstacles.end(); ++ob_it)
 		{
-			const BusStop *bs = dynamic_cast<const BusStop*>(ob_it->second);
+			RoadItem* ri = const_cast<RoadItem*>(ob_it->second);
+			BusStop *bs = dynamic_cast<BusStop*>(ri);
 			if(bs) {
+				// calculate bus stops point
+				//NOTE: This is already calculated in the offset (RoadSegment obstacles list) ~Seth
+				/*DynamicVector SegmentLength(rs->getEnd()->location.getX(),rs->getEnd()->location.getY(),rs->getStart()->location.getX(),rs->getStart()->location.getY());
+				DynamicVector BusStopDistfromStart(bs->xPos,bs->yPos,rs->getStart()->location.getX(),rs->getStart()->location.getY());
+				DynamicVector BusStopDistfromEnd(rs->getEnd()->location.getX(),rs->getEnd()->location.getY(),bs->xPos,bs->yPos);
+				double a = BusStopDistfromStart.getMagnitude();
+				double b = BusStopDistfromEnd.getMagnitude();
+				double c = SegmentLength.getMagnitude();
+				bs->stopPoint = (-b*b + a*a + c*c)/(2.0*c);*/
+				//std::cout<<"stopPoint: "<<bs->stopPoint/100.0<<std::endl;
 				res.push_back(bs);
 			}
 		}
@@ -141,11 +152,6 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 		busAccelerating(p);
 	}
 
-	//set lateral velocity
-	//NOTE: myDriverUpdateParams simply copies p, so we should just be able to use p. ~Seth
-	//p.nextLaneIndex = myDriverUpdateParams->nextLaneIndex;
-	//p.nextLaneIndex = p.nextLaneIndex;
-
 	//NOTE: Driver already has a lcModel; we should be able to just use this. ~Seth
 	LANE_CHANGE_SIDE lcs = LCS_SAME;
 	MITSIM_LC_Model* mitsim_lc_model = dynamic_cast<MITSIM_LC_Model*> (lcModel);
@@ -159,16 +165,23 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 	double newLatVel;
 	newLatVel = lcModel->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length, vehicle->getTurningDirection());
 	vehicle->setLatVelocity(newLatVel * 10);
-	std::cout << "BusDriver::updatePositionOnLink:current lane: "
-			  << p.currLaneIndex << " lat velo: " << newLatVel / 100.0 << "m/s"
-			  << std::endl;
+//	std::cout << "BusDriver::updatePositionOnLink:current lane: "
+//			  << p.currLaneIndex << " lat velo: " << newLatVel / 100.0 << "m/s"
+//			  << std::endl;
 	if (isBusApproachingBusStop()) {
 		busAccelerating(p);
 
 		//move to most left lane
 		p.nextLaneIndex = vehicle->getCurrSegment()->getLanes().back()->getLaneID();
-		std::cout << "BusDriver::updatePositionOnLink: bus approaching current lane: "
-				  << p.currLaneIndex << std::endl;
+		LANE_CHANGE_SIDE lcs = mitsim_lc_model->makeMandatoryLaneChangingDecision(p);
+		vehicle->setTurningDirection(lcs);
+		double newLatVel;
+		newLatVel = mitsim_lc_model->executeLaneChanging(p, vehicle->getAllRestRoadSegmentsLength(), vehicle->length, vehicle->getTurningDirection());
+		vehicle->setLatVelocity(newLatVel*5);
+
+
+//		std::cout << "BusDriver::updatePositionOnLink: bus approaching current lane: "
+//				  << p.currLaneIndex << std::endl;
 
 		// reduce speed
 		if (vehicle->getVelocity() / 100.0 > 10)
@@ -178,20 +191,20 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 	}
 	if (isBusArriveBusStop() && waitAtStopMS >= 0 && waitAtStopMS
 			< BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
-		std::cout
-				<< "BusDriver::updatePositionOnLink: bus isBusArriveBusStop velocity: "
-				<< vehicle->getVelocity() / 100.0 << std::endl;
+//		std::cout
+//				<< "BusDriver::updatePositionOnLink: bus isBusArriveBusStop velocity: "
+//				<< vehicle->getVelocity() / 100.0 << std::endl;
 
 		if (vehicle->getVelocity() > 0)
 			vehicle->setAcceleration(-5000);
 		if (vehicle->getVelocity() < 0.1 && waitAtStopMS < BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
 			waitAtStopMS = waitAtStopMS + p.elapsedSeconds;
-			std::cout << "BusDriver::updatePositionOnLink: waitAtStopMS: " << waitAtStopMS << " p.elapsedSeconds: " << p.elapsedSeconds << std::endl;
+//			std::cout << "BusDriver::updatePositionOnLink: waitAtStopMS: " << waitAtStopMS << " p.elapsedSeconds: " << p.elapsedSeconds << std::endl;
 
 			//Pick up a semi-random number of passengers
 			Bus* bus = dynamic_cast<Bus*>(vehicle);
 			if ((waitAtStopMS == p.elapsedSeconds) && bus) {
-				std::cout << "BusDriver::updatePositionOnLink: pich up passengers" << std::endl;
+//				std::cout << "BusDriver::updatePositionOnLink: pich up passengers" << std::endl;
 				int pCount = reinterpret_cast<intptr_t> (vehicle) % 50;
 				bus->setPassengerCount(pCount);
 			}
@@ -204,17 +217,31 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 	if (isBusLeavingBusStop() || waitAtStopMS >= BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
 		std::cout << "BusDriver::updatePositionOnLink: bus isBusLeavingBusStop" << std::endl;
 		waitAtStopMS = -1;
+
+		busAccelerating(p);
 	}
 
-	double fwdDistance = vehicle->getVelocity() * p.elapsedSeconds + 0.5 * vehicle->getAcceleration() * p.elapsedSeconds * p.elapsedSeconds;
-	if (fwdDistance < 0)
-		fwdDistance = 0;
+/*	std::cout<<"BusDriver::updatePositionOnLink:tick: "<<p.currTimeMS/1000.0<<std::endl;
+	std::cout<<"BusDriver::updatePositionOnLink:busvelocity: "<<vehicle->getVelocity()/100.0<<std::endl;
+	std::cout<<"BusDriver::updatePositionOnLink:busacceleration: "<<vehicle->getAcceleration()/100.0<<std::endl;
+	std::cout<<"BusDriver::updatePositionOnLink:buslateralvelocity: "<<vehicle->getLatVelocity()/100.0<<std::endl;
+	std::cout<<"BusDriver::updatePositionOnLink:busstopdistance: "<<distanceToNextBusStop()<<std::endl;
+	std::cout<<"my bus distance moved in segment: "<<vehicle->getDistanceToSegmentStart()/100.0<<std::endl;
+	std::cout<<"but DistanceMovedInSegment"<<vehicle->getDistanceMovedInSegment()/100.0<<std::endl;
+	std::cout<<"current polyline length: "<<vehicle->getCurrPolylineLength()/100.0<<std::endl;*/
+	DynamicVector segmentlength(vehicle->getCurrSegment()->getStart()->location.getX(),vehicle->getCurrSegment()->getStart()->location.getY(),
+			vehicle->getCurrSegment()->getEnd()->location.getX(),vehicle->getCurrSegment()->getEnd()->location.getY());
+//	std::cout<<"current segment length: "<<segmentlength.getMagnitude()/100.0<<std::endl;
+
+//	double fwdDistance = vehicle->getVelocity() * p.elapsedSeconds + 0.5 * vehicle->getAcceleration() * p.elapsedSeconds * p.elapsedSeconds;
+//	if (fwdDistance < 0)
+//		fwdDistance = 0;
 
 	//double fwdDistance = vehicle->getVelocity()*p.elapsedSeconds;
-	double latDistance = vehicle->getLatVelocity() * p.elapsedSeconds;
+//	double latDistance = vehicle->getLatVelocity() * p.elapsedSeconds;
 
 	//Increase the vehicle's velocity based on its acceleration.
-	busAccelerating(p);
+
 
 	//Return the remaining amount (obtained by calling updatePositionOnLink)
 	return updatePositionOnLink(p);
@@ -296,7 +323,9 @@ bool sim_mob::BusDriver::isBusLeavingBusStop() const
 double sim_mob::BusDriver::distanceToNextBusStop() const
 {
 	double distanceToCurrentSegmentBusStop = getDistanceToBusStopOfSegment(vehicle->getCurrSegment());
-	double distanceToNextSegmentBusStop = getDistanceToBusStopOfSegment(vehicle->getNextSegment(true));
+	double distanceToNextSegmentBusStop;
+	if (vehicle->hasNextSegment(true))
+		distanceToNextSegmentBusStop = getDistanceToBusStopOfSegment(vehicle->getNextSegment(true));
 
 	if (distanceToCurrentSegmentBusStop >= 0 && distanceToNextSegmentBusStop >= 0) {
 		return ((distanceToCurrentSegmentBusStop<=distanceToNextSegmentBusStop) ? distanceToCurrentSegmentBusStop: distanceToNextSegmentBusStop);
@@ -307,22 +336,94 @@ double sim_mob::BusDriver::distanceToNextBusStop() const
 	return distanceToNextSegmentBusStop;
 }
 
-double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment* roadSegment) const
+double sim_mob::BusDriver::getDistanceToBusStopOfSegment(const RoadSegment* rs) const
 {
-	typedef std::map<centimeter_t, const RoadItem*>::const_iterator RoadObstIt;
-	if (!roadSegment) { return -1; }
 
-	//The obstacle offset now correctly returns the BusStop's distance down the segment.
-	for(RoadObstIt o_it = roadSegment->obstacles.begin(); o_it!=roadSegment->obstacles.end(); o_it++) {
-		const BusStop *bs = dynamic_cast<const BusStop *>(o_it->second);
-		if (bs) {
-			DynamicVector BusDistfromStart(getPositionX(), getPositionY(),roadSegment->getStart()->location.getX(),roadSegment->getStart()->location.getY());
-			std::cout<<"BusDriver::DistanceToNextBusStop: bus move in segment: "<<BusDistfromStart.getMagnitude()<<std::endl;
-			return  (o_it->first - BusDistfromStart.getMagnitude()) / 100.0;
+	double distance = -100;
+	double currentX = vehicle->getX();
+	double currentY = vehicle->getY();
+//	bus->getRoute().getCurrentStop();
+
+	std::cout.precision(10);
+//		std::cout<<"BusDriver::DistanceToNextBusStop : current bus position: "<<currentX<<"  "<<currentY<<std::endl;
+//		std::cout<<"BusDriver::DistanceToNextBusStop : seg start: "<<rs->getStart()->location.getX()<<"  "
+//		        		<<rs->getStart()->location.getY()<<" rs end: "<<rs->getEnd()->location.getX()<<"  "
+//		        		<<rs->getEnd()->location.getY()<<std::endl;
+		const std::map<centimeter_t, const RoadItem*> & obstacles = rs->obstacles;
+//		int i = 1;
+		for(std::map<centimeter_t, const RoadItem*>::const_iterator o_it = obstacles.begin(); o_it != obstacles.end() ; o_it++)
+		{
+		   RoadItem* ri = const_cast<RoadItem*>(o_it->second);
+		   BusStop *bs = dynamic_cast<BusStop *>(ri);
+		   int stopPoint = o_it->first;
+
+		   if(bs)
+		   {
+			   if (rs == vehicle->getCurrSegment())
+			   {
+
+				   if (stopPoint < 0)
+				   {
+					   throw std::runtime_error("BusDriver offset in obstacles list should never be <0");
+					   /*std::cout<<"BusDriver::DistanceToNextBusStop :stopPoint < 0"<<std::endl;
+					   DynamicVector SegmentLength(rs->getEnd()->location.getX(),rs->getEnd()->location.getY(),rs->getStart()->location.getX(),rs->getStart()->location.getY());
+					   DynamicVector BusStopDistfromStart(bs->xPos,bs->yPos,rs->getStart()->location.getX(),rs->getStart()->location.getY());
+					   DynamicVector BusStopDistfromEnd(rs->getEnd()->location.getX(),rs->getEnd()->location.getY(),bs->xPos,bs->yPos);
+					   double a = BusStopDistfromStart.getMagnitude();
+					   double b = BusStopDistfromEnd.getMagnitude();
+					   double c = SegmentLength.getMagnitude();
+					   bs->stopPoint = (-b*b + a*a + c*c)/(2.0*c);*/
+				   }
+
+				   if (stopPoint >= 0)
+				   {
+						DynamicVector BusDistfromStart(vehicle->getX(),vehicle->getY(),rs->getStart()->location.getX(),rs->getStart()->location.getY());
+						//std::cout<<"BusDriver::DistanceToNextBusStop: bus move in segment: "<<BusDistfromStart.getMagnitude()<<std::endl;
+						//distance = bs->stopPoint - BusDistfromStart.getMagnitude();
+						distance = stopPoint - vehicle->getDistanceMovedInSegment();
+						//std::cout<<"BusDriver::DistanceToNextBusStop :distance: "<<distance<<std::endl;
+					}
+			   }
+			   else
+			   {
+				   DynamicVector busToSegmentStartDistance(currentX,currentY,
+						   rs->getStart()->location.getX(),rs->getStart()->location.getY());
+//				   DynamicVector busToSegmentEndDistance(currentX,currentY,
+//				   						   rs->getEnd()->location.getX(),rs->getEnd()->location.getY());
+				   //distance = busToSegmentStartDistance.getMagnitude() + bs->stopPoint;
+				   distance = vehicle->getCurrentSegmentLength() - vehicle->getDistanceMovedInSegment() + stopPoint;
+/*				   std::cout<<"BusDriver::DistanceToNextBusStop :not current segment distance:stopPoint "<<bs->stopPoint<<std::endl;
+				   std::cout<<"BusDriver::DistanceToNextBusStop :not current segment distance:busToSegmentStartDistance: "<<busToSegmentStartDistance.getMagnitude()<<std::endl;
+				   std::cout<<"BusDriver::DistanceToNextBusStop :not current segment distance: "<<distance<<std::endl;*/
+			   }
+
+////			   std::cout<<"BusDriver::DistanceToNextBusStop: find bus stop <"<<i<<"> in segment"<<std::endl;
+//			   double busStopX = bs->xPos;
+//			   double busStopY = bs->yPos;
+////				std::cout<<"BusDriver::DistanceToNextBusStop : bus stop position: "<<busStopX<<"  "<<busStopY<<std::endl;
+//			   double dis = sqrt((currentX-busStopX)*(currentX-busStopX) + (currentY-busStopY)*(currentY-busStopY));
+//			   if (distance < 0 || dis < distance) // in case more than one stop at the segment
+//				   distance = dis;
+////				std::cout<<"BusDriver::DistanceToNextBusStop : distance: "<<distance/100.0<<std::endl;
+//			   i++;
+		   }
 		}
-	}
 
-	return -1;
+		return distance/100.0;
+//	typedef std::map<centimeter_t, const RoadItem*>::const_iterator RoadObstIt;
+//	if (!roadSegment) { return -1; }
+//
+//	//The obstacle offset now correctly returns the BusStop's distance down the segment.
+//	for(RoadObstIt o_it = roadSegment->obstacles.begin(); o_it!=roadSegment->obstacles.end(); o_it++) {
+//		const BusStop *bs = dynamic_cast<const BusStop *>(o_it->second);
+//		if (bs) {
+//			DynamicVector BusDistfromStart(getPositionX(), getPositionY(),roadSegment->getStart()->location.getX(),roadSegment->getStart()->location.getY());
+//			std::cout<<"BusDriver::DistanceToNextBusStop: bus move in segment: "<<BusDistfromStart.getMagnitude()<<std::endl;
+//			return  (o_it->first - BusDistfromStart.getMagnitude()) / 100.0;
+//		}
+//	}
+//
+//	return -1;
 }
 
 //Main update functionality

@@ -9,11 +9,11 @@
 #include "GenConfig.h"
 
 #include "Node.hpp"
-namespace geo
-{
+/*namespace geo {
 class intersection_t_pimpl;
 class GeoSpatial_t_pimpl;
-}
+}*/
+
 namespace sim_mob
 {
 
@@ -42,7 +42,6 @@ class Loader;
  * \author LIM Fung Chai
  */
 class MultiNode : public sim_mob::Node {
-	friend class ::geo::intersection_t_pimpl;
 public:
 	MultiNode(int x, int y) : Node(x, y) {}
 
@@ -67,7 +66,11 @@ public:
 
 	//Helper: Build it
 	static void BuildClockwiseLinks(const sim_mob::RoadNetwork& rn, sim_mob::MultiNode* node);
-	const std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> > & getConnectors()  {return connectors;}
+	const std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> > & getConnectors() const {return connectors;}
+
+	//TEMP: Added for XML loading.
+	void setConnectorAt(const sim_mob::RoadSegment* key, std::set<sim_mob::LaneConnector*>& val) { this->connectors[key] = val; }
+	void addRoadSegmentAt(sim_mob::RoadSegment* rs) { roadSegmentsAt.insert(rs); }
 protected:
 	///Mapping from RoadSegment* -> set<LaneConnector*> representing lane connectors.
 	///Currently allows one to make quick requests upon arriving at a Node of which
@@ -89,7 +92,6 @@ public: //TEMP
 
 
 friend class sim_mob::aimsun::Loader;
-friend class ::geo::GeoSpatial_t_pimpl;
 
 };
 

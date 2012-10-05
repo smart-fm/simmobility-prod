@@ -3,6 +3,8 @@ package sim_mob.vis.network;
 import java.awt.Color;
 import java.util.ArrayList;
 
+import sim_mob.vis.util.Utility;
+
 //This class is used to store the int representation of the parent class's public members
 //since all these information has be sent to intersection, they are bundled in a helpre class called SignalHelper
 //so SignalHelper has a member variable in intersection+get/set functions
@@ -30,17 +32,19 @@ public class SignalHelper {
 //		public Segment() {
 //		};
 
-		public Segment(int segment_from_, int segment_to_) {
+		public Segment(long segment_from_, long segment_to_) {
 			segment_from = segment_from_;
 			segment_to = segment_to_;
 		}
 		public Segment(String segment_from_, String segment_to_) {
-			segment_from =  HexStringToInt(segment_from_);
-			segment_to =  HexStringToInt(segment_to_);
+			//segment_from =  HexStringToInt(segment_from_);
+			//segment_to =  HexStringToInt(segment_to_);
+			segment_from =  Utility.ParseLongOptionalHex(segment_from_);
+			segment_to =  Utility.ParseLongOptionalHex(segment_to_);
 		}
 
-		public int segment_from;
-		public int segment_to;
+		public long segment_from;
+		public long segment_to;
 		
 		public TrafficSignalLine generatedTrafficSignalLine;
 	}
@@ -49,11 +53,11 @@ public class SignalHelper {
 		public Crossing() {
 		};
 
-		public Crossing(int id_) {
+		public Crossing(long id_) {
 			id = id_;
 		}
 
-		public int id;
+		public long id;
 		// public Integer current_color;
 	}
 
@@ -70,7 +74,7 @@ public class SignalHelper {
 		public ArrayList<Segment> segments;
 		public ArrayList<Crossing> crossings;
 		
-		public Segment getSegmentPair(int segFrom, int segTo)
+		public Segment getSegmentPair(long segFrom, long segTo)
 		{
 			for(Segment segment:segments)
 				if((segment.segment_from == segFrom)&&(segment.segment_to == segTo))
@@ -80,8 +84,8 @@ public class SignalHelper {
 		
 	}
 
-	public int hex_id;
-	public int node;
+	public long hex_id;
+	public long node;
 	public ArrayList<Phase> phases;
 	public int STempVal;
 	
@@ -99,7 +103,7 @@ public class SignalHelper {
 	//we need a function to convert id from hex(string) representation to integer
 	//I couldn't find any place better than signalhelper to put this function
 	//I put it there and declared it as static to be accessible without instantiation
-	public static Integer HexStringToInt(String res)
+	/*public static Integer HexStringToInt(String res)
 	{
 		int i = 2;
 		StringBuffer sb = new StringBuffer();
@@ -108,7 +112,7 @@ public class SignalHelper {
 			sb.append(res.charAt(i));
 		}
 		return Integer.parseInt(sb.toString(), 16);
-	}
+	}*/
 	
 	public Color getColorObject(Integer color) {
 		switch(color)

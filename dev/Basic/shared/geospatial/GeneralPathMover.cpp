@@ -61,16 +61,14 @@ sim_mob::GeneralPathMover::GeneralPathMover(const GeneralPathMover& copyFrom) :
 
 void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, int startLaneID)
 {
-	if (Debug::Paths)
-	{
+	if (Debug::Paths) {
 		DebugStream << "New Path of length " << path.size() << endl;
 		DebugStream << "Starting in Lane: " << startLaneID << endl;
 	}
 
 	//Determine whether or not the first one is fwd.
 	bool isFwd;
-	if (path.empty())
-	{
+	if (path.empty()) {
 		throw std::runtime_error("Attempting to set a path with 0 road segments");
 	}
 
@@ -443,12 +441,13 @@ void sim_mob::GeneralPathMover::generateNewPolylineArray(const RoadSegment* curr
 	//currPolylineLength = sim_mob::dist(&(*currPolypoint), &(*nextPolypoint));
 
 	//Set our lane zero polypoint-ers.
-	vector<Point2D> tempLaneZero =(*currSegmentIt)->getLanes()[0]->getPolyline();
+//	vector<Point2D> tempLaneZero =(*currSegmentIt)->getLanes()[0]->getPolyline();
+	laneZeroPolypointsList = (*currSegmentIt)->getLanes()[0]->getPolyline();
 	if (!isFwd) { //NOTE: I don't think this makes sense.
-		 std::reverse(tempLaneZero.begin(), tempLaneZero.end());
+		 std::reverse(laneZeroPolypointsList.begin(), laneZeroPolypointsList.end());
 	}
-	currLaneZeroPolypoint = tempLaneZero.begin();
-	nextLaneZeroPolypoint = tempLaneZero.begin() + 1;
+	currLaneZeroPolypoint = laneZeroPolypointsList.begin();
+	nextLaneZeroPolypoint = laneZeroPolypointsList.begin() + 1;
 
 	//Debug output
 	if (Debug::Paths)
@@ -951,6 +950,22 @@ double sim_mob::GeneralPathMover::getCurrPolylineTotalDist() const
 	throwIf(!isPathSet(), "GeneralPathMover path not set.");
 	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
 	return currPolylineLength();
+}
+double sim_mob::GeneralPathMover::getCurrentSegmentLength()
+{
+	double dis=0;
+	std::vector<sim_mob::Point2D>::iterator ite;
+	for ( std::vector<sim_mob::Point2D>::iterator it =  polypointsList.begin(); it != polypointsList.end(); ++it )
+	{
+		ite = it+1;
+		if ( ite != polypointsList.end() )
+		{
+			DynamicVector temp(it->getX(), it->getY(),ite->getX(), ite->getY());
+			dis += temp.getMagnitude();
+		}
+	}
+
+	return dis;
 }
 
 void sim_mob::GeneralPathMover::shiftToNewPolyline(bool moveLeft)

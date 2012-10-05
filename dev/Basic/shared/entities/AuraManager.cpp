@@ -438,19 +438,6 @@ AuraManager::printStatistics() const
     }
 }
 
-//TODO: Delete this commented method
-/*sim_mob::VehicleCounter* AuraManager::getDensity(const RoadSegment* rdSeg) {
-	if(!vehicleCounts.empty()){
-		boost::unordered_map<const RoadSegment*, VehicleCounter*>::iterator vehCountsIt = vehicleCounts.find(rdSeg);
-		if(vehCountsIt != vehicleCounts.end()){
-			return vehCountsIt->second;
-		}
-	}
-	return (new sim_mob::VehicleCounter(rdSeg));
-
-	//return (densityMapIt->second/(rdSeg->length / 100.0)); // return density as no. of vehicles per meter on the road segment.
-}*/
-
 std::map<const sim_mob::Lane*, unsigned short> AuraManager::getQueueLengthsOfLanes(const sim_mob::RoadSegment* rdSeg){
 
 	std::map<const sim_mob::Lane*, unsigned short> laneWiseQueueLengths;

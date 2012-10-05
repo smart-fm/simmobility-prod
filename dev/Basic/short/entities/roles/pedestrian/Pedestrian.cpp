@@ -134,8 +134,10 @@ double Pedestrian::collisionForce = 20;
 double Pedestrian::agentRadius = 0.5; //Shoulder width of a person is about 0.5 meter
 
 
-sim_mob::Pedestrian::Pedestrian(Agent* parent) :
-	Role(parent), prevSeg(nullptr), isUsingGenPathMover(true), params(parent->getGenerator()) {
+sim_mob::Pedestrian::Pedestrian(Agent* parent) : Role(parent),
+	trafficSignal(nullptr), currCrossing(nullptr), cStartX(0), cStartY(0), cEndX(0), cEndY(0),
+	prevSeg(nullptr), isUsingGenPathMover(true), params(parent->getGenerator())
+{
 	//NOTE: Be aware that a null parent is certainly possible; what if we want to make a "generic" Pedestrian?
 	//      The RoleManger in particular relies on this. ~Seth
 

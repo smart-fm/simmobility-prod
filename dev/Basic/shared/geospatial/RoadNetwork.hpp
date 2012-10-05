@@ -6,7 +6,7 @@
 #include <vector>
 #include <set>
 
-namespace geo {
+/*namespace geo {
 class Links_pimpl;
 class RoadNetwork_t_pimpl;
 class Nodes_pimpl;
@@ -14,7 +14,7 @@ class Intersections_pimpl;
 class roundabouts_pimpl;
 class UniNodes_pimpl;
 class GeoSpatial_t_pimpl;
-}
+}*/
 
 namespace sim_mob
 {
@@ -59,14 +59,7 @@ enum DRIVING_SIDE {
 /*Added  by vahid*/
 
 class RoadNetwork {
-
 	friend class sim_mob::aimsun::Loader;
-	friend class ::geo::RoadNetwork_t_pimpl;
-	friend class ::geo::Intersections_pimpl;
-	friend class ::geo::roundabouts_pimpl;
-	friend class ::geo::UniNodes_pimpl;
-	friend class ::geo::Nodes_pimpl;
-	friend class ::geo::GeoSpatial_t_pimpl;
 public:
 	RoadNetwork() { drivingSide=DRIVES_ON_LEFT; } //TEMP
 
@@ -86,6 +79,13 @@ public:
 	///If no node is found within maxDistCM, the match fails and nullptr is returned.
 	sim_mob::Node* locateNode(const sim_mob::Point2D& position, bool includeUniNodes=false, int maxDistCM=100) const;
 	sim_mob::Node* locateNode(double xPos, double yPos, bool includeUniNodes=false, int maxDistCM=100) const;
+
+	//Temporary; added for the XML loader
+	void setLinks(const std::vector<sim_mob::Link*>& lnks) { this->links = lnks; }
+	void setSegmentNodes(const std::set<sim_mob::UniNode*>& sn) { this->segmentnodes = sn; }
+	void addNodes(const std::vector<sim_mob::MultiNode*>& vals) {
+		nodes.insert(nodes.begin(),vals.begin(),vals.end());
+	}
 
 private:
 	//Temporary: Geometry will eventually make specifying nodes and links easier.

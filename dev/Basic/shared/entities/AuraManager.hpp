@@ -1,8 +1,8 @@
 /* Copyright Singapore-MIT Alliance for Research and Technology */
 
 #pragma once
-//#include <map>
-#include <boost/unordered_map.hpp>
+
+#include <map>
 #include <boost/utility.hpp>
 #include "metrics/Length.hpp"
 #include "metrics/Frame.hpp"
@@ -118,8 +118,7 @@ private:
     {
     }
 
-    /*Map to store the density of each road segment. */
-    //boost::unordered_map<const RoadSegment*, sim_mob::VehicleCounter*> vehicleCounts;
+    /*Map to store the vehicle counts of each road segment. */
     boost::unordered_map<const RoadSegment*, sim_mob::SegmentVehicles*> agentsOnSegments_global;
 
     // No need to define the dtor.

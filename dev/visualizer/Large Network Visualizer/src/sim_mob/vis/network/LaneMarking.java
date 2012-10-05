@@ -20,9 +20,9 @@ public class LaneMarking implements DrawableItem{
 	//private static Color sideWalkColor = new Color(0x84, 0x70, 0xff);
 	//private static Stroke laneStroke = new BasicStroke(1.0F);
 	
-	private Integer parentSegment;
-	private Node start;
-	private Node end;
+	private Long parentSegment;
+	private ScaledPoint start;
+	private ScaledPoint end;
 	private ScaledPoint startPt;
 	private ScaledPoint secondPt;
 	private ScaledPoint penultimatePt; //second to last
@@ -37,8 +37,7 @@ public class LaneMarking implements DrawableItem{
 	}
 	
 
-	public LaneMarking(Node start, Node end, boolean isSideWalk, int lineNumber, Integer parentSegment) {
-		
+	public LaneMarking(ScaledPoint start, ScaledPoint end, boolean isSideWalk, int lineNumber, Long parentSegment) {		
 		this.start = start;
 		this.end = end;
 		this.isSideWalk = isSideWalk;
@@ -47,31 +46,31 @@ public class LaneMarking implements DrawableItem{
 
 		if(start != null)
 		{
-			this.startPt = start.getPos();
-			this.secondPt = start.getPos();			
+			this.startPt = start;
+			this.secondPt = start;			
 		}
 		if(end != null)
 		{
-			this.penultimatePt = end.getPos();
-			this.lastPt = end.getPos();
+			this.penultimatePt = end;
+			this.lastPt = end;
 		}
 	}
 	
 	
 	public Rectangle2D getBounds() {
 		final double BUFFER_CM = 10*100; //1m
-		Rectangle2D res = new Rectangle2D.Double(start.getPos().getUnscaledX(), start.getPos().getUnscaledY(), 0, 0);
-		res.add(end.getPos().getUnscaledX(), end.getPos().getUnscaledY());
+		Rectangle2D res = new Rectangle2D.Double(start.getUnscaledX(), start.getUnscaledY(), 0, 0);
+		res.add(end.getUnscaledX(), end.getUnscaledY());
 		Utility.resizeRectangle(res, res.getWidth()+BUFFER_CM, res.getHeight()+BUFFER_CM);
 		return res;
 	}
 	
 
-	public Node getStart() { return start; }
-	public Node getEnd() { return end; }
+	public ScaledPoint getStart() { return start; }
+	public ScaledPoint getEnd() { return end; }
 	public boolean isSideWalk() { return isSideWalk; }
 	public int getLaneNumber()	{ return laneNumber; }
-	public Integer getParentSegment(){ return parentSegment; }
+	public Long getParentSegment(){ return parentSegment; }
 
 	public void setStartPt(ScaledPoint pt){ startPt = pt; }
 	public void setSecondPt(ScaledPoint pt){ secondPt = pt; }
@@ -99,6 +98,11 @@ public class LaneMarking implements DrawableItem{
 		//Draw it.
 		g.setColor(clr);
 		g.setStroke(strk);
+				
+		//NOTE: All of these are somewhat wrong; we need to see exactly how startPt/lastPt etc. are being set.
+		//   startPt, secondPt seem wrong.
+		//   penultimatePt, lastPt are correct
+		//Compare their access patterns!
 		g.drawLine((int)startPt.getX(),(int)startPt.getY(),(int)secondPt.getX(),(int)secondPt.getY());
 		g.drawLine((int)secondPt.getX(),(int)secondPt.getY(),(int)penultimatePt.getX(),(int)penultimatePt.getY());
 		g.drawLine((int)penultimatePt.getX(),(int)penultimatePt.getY(), (int)lastPt.getX(),(int)lastPt.getY());

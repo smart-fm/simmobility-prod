@@ -12,16 +12,11 @@ import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
 
 import sim_mob.vis.Main;
-import sim_mob.vis.network.Node;
-import sim_mob.vis.network.TrafficSignal;
 import sim_mob.vis.network.basic.FlippedScaledPoint;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.simultion.GsonResObj;
-import sim_mob.vis.simultion.TrafficSignalUpdate;
 
 /**
  * \author Seth N. Hetu
@@ -39,8 +34,8 @@ public class Utility {
 	private final class GsonWrapper {
 		//NOTE: These names are mildly confusing, but just follow the pattern for new fields
 		//      and everything will work.
-		TrafficSignal TrafficSignal;
-		TrafficSignalUpdate TrafficSignalUpdate;
+		//TrafficSignal TrafficSignal;
+		//TrafficSignalUpdate TrafficSignalUpdate;
 
 		GsonResObj getResult() {
 			ArrayList<GsonResObj> possible = new ArrayList<GsonResObj>();
@@ -94,7 +89,7 @@ public class Utility {
 	
 	
 	//Parse an integer that might have an 0x in front.
-	public static int ParseIntOptionalHex(String input) {
+	public static long ParseLongOptionalHex(String input) {
 		int radix = 10;
 		if (input.startsWith("0x")) {
 			input = input.substring(2);
@@ -102,7 +97,7 @@ public class Utility {
 		}
 	
 		
-		return Integer.parseInt(input, radix);
+		return Long.parseLong(input, radix);
 	}
 	
 	
@@ -113,7 +108,6 @@ public class Utility {
 	
 	public static ArrayList<Integer> ParseLaneNodePos(String input){
 		ArrayList<Integer> pos = new ArrayList<Integer>();
-		//System.out.println(input);
 		Matcher m = NUM_REGEX.matcher(input);
 		while(m.find()){	
 			pos.add(Integer.parseInt(m.group(1)));
@@ -122,6 +116,9 @@ public class Utility {
 		if(pos.size()!=4){
 			System.out.println("Unexpected number of lane coordinates, should be 4 " + "now is  " + pos.size());
 		}
+		
+		//System.out.println(" [(" + pos.get(0) + "," + pos.get(1) + "),(" + pos.get(2) + "," + pos.get(3) + "),]");
+		
 		return pos;
 	}
 	public static ScaledPoint ParseCrossingNodePos(String input)throws IOException{
@@ -162,12 +159,12 @@ public class Utility {
 		return properties;
 	}
 	
-	public static ArrayList<Integer> ParseLinkPaths(String input){
-		ArrayList<Integer> pos = new ArrayList<Integer>();
+	public static ArrayList<Long> ParseLinkPaths(String input){
+		ArrayList<Long> pos = new ArrayList<Long>();
 		//System.out.println(input);
 		Matcher m = NUMH_REGEX.matcher(input);
 		while(m.find()){	
-			pos.add(ParseIntOptionalHex(m.group(1)));
+			pos.add(ParseLongOptionalHex(m.group(1)));
 		}
 
 		return pos;
@@ -201,7 +198,7 @@ public class Utility {
 	public static class ParseResults {
 		public String type;
 		public int frame;
-		public int objID;
+		public long objID;
 		public Hashtable<String, String> properties = new Hashtable<String, String>();
 		
 		//Confirm
@@ -238,7 +235,7 @@ public class Utility {
 	    //Retrieve known fields: type, id, rhs
 	    res.type = m.group(1);
 	    res.frame = Integer.parseInt(m.group(2));
-	    res.objID = Utility.ParseIntOptionalHex(m.group(3));
+	    res.objID = Utility.ParseLongOptionalHex(m.group(3));
 	    
 	    //Parse RHS
 	    res.properties = Utility.ParseLogRHS(m.group(4));
@@ -250,7 +247,7 @@ public class Utility {
 	
 	
 	
-	public static ParseResults ParseLogLine(FastLineParser flp, String line) {
+	public static ParseResults ParseLogLine(FastLineParser flp, String line) {		
 		if (USE_NEW_PARSER) {
 			return flp.getResults(line);
 		} else {

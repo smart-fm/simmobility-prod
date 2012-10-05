@@ -23,7 +23,7 @@ public class Crossing implements DrawableItem{
 	private ScaledPoint nearTwo;
 	private ScaledPoint farOne;
 	private ScaledPoint farTwo;
-	private int id;
+	private long id;
 	
 	
 	public int getZOrder() {
@@ -31,7 +31,7 @@ public class Crossing implements DrawableItem{
 	}
 	
 	
-	public Crossing(ScaledPoint nearOne, ScaledPoint nearTwo, ScaledPoint farOne, ScaledPoint farTwo,int id) {
+	public Crossing(ScaledPoint nearOne, ScaledPoint nearTwo, ScaledPoint farOne, ScaledPoint farTwo, long id) {
 		this.nearOne = nearOne;
 		this.nearTwo = nearTwo;
 		this.farOne = farOne;
@@ -56,7 +56,7 @@ public class Crossing implements DrawableItem{
 	public ScaledPoint getNearTwo() { return nearTwo; }
 	public ScaledPoint getFarOne() { return farOne; }
 	public ScaledPoint getFarTwo() { return farTwo; }
-	public int getId() { return id; }
+	public long getId() { return id; }
 	
 	
 	

@@ -3,14 +3,11 @@ package sim_mob.vis.network;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.Rectangle2D.Double;
 
 import sim_mob.vis.MainFrame;
 import sim_mob.vis.controls.DrawParams;
 import sim_mob.vis.controls.DrawableItem;
-import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.network.basic.Vect;
-import sim_mob.vis.util.Utility;
 
 /**
  * Segments join Nodes together
@@ -21,7 +18,7 @@ import sim_mob.vis.util.Utility;
 public class LinkName implements DrawableItem {
 	//Constants/Resources
 	private static Font roadNameFont = new Font("Arial", Font.PLAIN, 16);
-	private static Color roadNameColor = new Color(0x33, 0x33, 0x33);
+	//private static Color roadNameColor = new Color(0x33, 0x33, 0x33);
 	
 	//private Link parent;
 	//private int parentLinkID;

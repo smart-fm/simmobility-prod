@@ -37,10 +37,15 @@ sim_mob::RoadSegment::RoadSegment(Link* parent, unsigned long id)
 
 }
 
-sim_mob::RoadSegment::RoadSegment(Link* parent, unsigned long id, const SupplyParams* sParams)
+sim_mob::RoadSegment::RoadSegment(Link* parent, const SupplyParams* sParams, unsigned long id)
 	: Pavement(), parentLink(parent),segmentID(id), supplyParams(sParams)
 {
 
+}
+
+void sim_mob::RoadSegment::setParentLink(Link* parent)
+{
+	this->parentLink = parent;
 }
 
 void sim_mob::RoadSegment::setLaneGroups(std::vector<sim_mob::LaneGroup*> lanegroups) const
@@ -249,7 +254,7 @@ const vector<Point2D>& sim_mob::RoadSegment::getLaneEdgePolyline(unsigned int la
 	}
 	return laneEdgePolylines_cached[laneID];
 }
-
+/*
 void sim_mob::RoadSegment::initLaneGroups() const
 {
 	//1.a) get all the lanes within the current segment (only used in uni-node case)
@@ -422,4 +427,4 @@ bool sim_mob::RoadSegment::isValidLane(const sim_mob::Lane* chosenLane) const {
 
 	return (itv != lanes.end());
 }
-
+*/

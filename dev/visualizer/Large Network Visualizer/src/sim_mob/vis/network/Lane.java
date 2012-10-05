@@ -1,8 +1,5 @@
 package sim_mob.vis.network;
 
-import java.awt.Graphics2D;
-import sim_mob.vis.controls.DrawableItem;
-
 /**
  * \author Zhang Shuai
  * \author Seth N. Hetu
@@ -17,7 +14,11 @@ public class Lane /*implements DrawableItem*/ {
 	public Node getStartMiddleNode(){return startMiddleNode;}
 	public Node getEndMiddleNode(){return endMiddleNode;}
 	
-	public Lane(int laneNumber, Node startMiddleNode, Node endMiddleNode){
+	public Lane(int laneNumber, Node startMiddleNode, Node endMiddleNode) {
+		if (startMiddleNode==null || endMiddleNode==null) {
+			throw new RuntimeException("Can't create a Lane with a null start/end middle node.");
+		}
+		
 		this.laneNumber = laneNumber;
 		this.startMiddleNode = startMiddleNode;
 		this.endMiddleNode = endMiddleNode;

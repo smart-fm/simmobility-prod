@@ -63,7 +63,8 @@ inline void operator++(PedestrianStage& rhs) {
 
 //Helper struct
 struct PedestrianUpdateParams : public sim_mob::UpdateParams {
-	explicit PedestrianUpdateParams(boost::mt19937& gen) : UpdateParams(gen) {}
+	explicit PedestrianUpdateParams(boost::mt19937& gen) : UpdateParams(gen), skipThisFrame(false) {}
+	virtual ~PedestrianUpdateParams() {}
 
 	virtual void reset(frame_t frameNumber, unsigned int currTimeMS)
 	{

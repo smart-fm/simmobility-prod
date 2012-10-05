@@ -30,5 +30,6 @@
 #cmakedefine SIMMOB_XML_WRITER
 #cmakedefine SIMMOB_USE_TEST_GUI
 #cmakedefine SIMMOB_XML_READER
+#cmakedefine SIMMOB_PARTIAL_XML_READER
 
 

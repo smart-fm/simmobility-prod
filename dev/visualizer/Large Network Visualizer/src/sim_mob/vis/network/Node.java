@@ -2,12 +2,10 @@ package sim_mob.vis.network;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.Rectangle2D.Double;
 
 import sim_mob.vis.MainFrame;
 import sim_mob.vis.controls.DrawParams;
 import sim_mob.vis.controls.DrawableItem;
-import sim_mob.vis.network.basic.FlippedScaledPoint;
 import sim_mob.vis.network.basic.ScaledPoint;
 
 /**
@@ -22,8 +20,8 @@ public class Node implements DrawableItem {
 	
 	private ScaledPoint pos;
 	private boolean isUni;   //Rather than having multiple classes....
-	private Integer id;
-	public Node(double x, double y, boolean isUni, Integer id) {
+	private Long id;
+	public Node(double x, double y, boolean isUni, Long id) {
 		pos = new ScaledPoint(x, -y);
 		this.isUni = isUni;
 		this.id = id;
@@ -54,7 +52,7 @@ public class Node implements DrawableItem {
 	public boolean getIsUni() {
 		return isUni;
 	}
-	public Integer getID(){
+	public Long getID(){
 		return id;
 	}
 	

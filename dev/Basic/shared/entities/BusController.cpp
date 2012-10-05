@@ -137,7 +137,7 @@ unsigned int sim_mob::BusController::scheduledDecision(int busline_i, int trip_k
 	ETijk = std::max(SETijk - sij, ATijk + DTijk);
 
 	BusStop_RealTimes busStop_RealTimes(ATijk, ETijk);
-	busline->resetBusTrip(trip_k, busstopSequence_j, busStop_RealTimes);// set this value for next step
+	busline->resetBusTrip_StopRealTimes(trip_k, busstopSequence_j, busStop_RealTimes);// set this value for next step
 
 	return ETijk;
 }
@@ -161,7 +161,7 @@ unsigned int sim_mob::BusController::headwayDecision(int busline_i, int trip_k, 
 	ETijk = std::max((unsigned int)(ATijk_1 + alpha*Hi), ATijk + DTijk);
 
 	BusStop_RealTimes busStop_RealTimes(ATijk, ETijk);
-	busline->resetBusTrip(trip_k, busstopSequence_j, busStop_RealTimes);// set this value for next step
+	busline->resetBusTrip_StopRealTimes(trip_k, busstopSequence_j, busStop_RealTimes);// set this value for next step
 	//busRouteInfo_tripK->setBusStopRealTimes(busstopSequence_j, busStop_RealTimes);// set this value for next step
 
 	return ETijk;

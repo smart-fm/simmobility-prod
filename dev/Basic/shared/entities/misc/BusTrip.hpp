@@ -149,7 +149,7 @@ public:
 	const vector<const BusTrip*>& queryBusTrips() const {
 		return busTrip_vec;
 	}
-	void resetBusTrip(int trip_k, int busstopSequence_j, BusStop_RealTimes& busStopRealTimes) const;// mainly for realTimes
+	void resetBusTrip_StopRealTimes(int trip_k, int busstopSequence_j, BusStop_RealTimes& busStopRealTimes) const;// mainly for realTimes
 private:
 	int busline_id;
 	CONTROL_TYPE controlType;

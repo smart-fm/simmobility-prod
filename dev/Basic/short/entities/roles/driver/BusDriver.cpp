@@ -27,6 +27,8 @@ const int BUS_STOP_WAIT_PASSENGER_TIME_SEC = 2;
 
 sim_mob::BusDriver::BusDriver(Person* parent, MutexStrategy mtxStrat)
 	: Driver(parent, mtxStrat), nextStop(nullptr), waitAtStopMS(-1) , lastTickDistanceToBusStop(-1)
+, lastVisited_BusStop(mtxStrat,nullptr), lastVisited_BusStopSequenceNum(mtxStrat,0), real_DepartureTime(mtxStrat,0)
+, real_ArrivalTime(mtxStrat,0)
 {
 }
 

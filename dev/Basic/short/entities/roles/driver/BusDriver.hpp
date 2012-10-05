@@ -47,13 +47,16 @@ public:
 	bool isBusArriveBusStop() const;
 	bool isBusLeavingBusStop() const;
 	void busAccelerating(DriverUpdateParams& p);
-	mutable double lastTickDistanceToBusStop;
-
 	std::vector<const sim_mob::BusStop*> findBusStopInPath(const std::vector<const sim_mob::RoadSegment*>& path) const;
 
 	double getPositionX() const;
 	double getPositionY() const;
 
+	mutable double lastTickDistanceToBusStop;
+	Shared<BusStop*> lastVisited_BusStop; // can get some passenger count, passenger information and busStop information
+	Shared<int> lastVisited_BusStopSequenceNum; // last visited busStop sequence number m, reset by BusDriver, What Time???(needed for query the last Stop m -->realStop Times)
+	Shared<unsigned int> real_DepartureTime; // set by BusController, reset once stop at any busStop
+	Shared<unsigned int> real_ArrivalTime; // set by BusDriver, reset once stop at any busStop
 
 protected:
 	//Override the following behavior

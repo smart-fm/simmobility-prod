@@ -106,7 +106,7 @@ void sim_mob::Busline::addBusTrip(const BusTrip* aBusTrip)
 	busTrip_vec.push_back(aBusTrip);
 }
 
-void sim_mob::Busline::resetBusTrip(int trip_k, int busstopSequence_j, BusStop_RealTimes& busStopRealTimes) const
+void sim_mob::Busline::resetBusTrip_StopRealTimes(int trip_k, int busstopSequence_j, BusStop_RealTimes& busStopRealTimes) const
 {
 	if(!busTrip_vec.empty()) {
 		BusTrip* busTripK = const_cast<BusTrip*>(busTrip_vec[trip_k]);

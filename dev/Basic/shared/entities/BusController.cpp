@@ -192,7 +192,10 @@ unsigned int sim_mob::BusController::evenheadwayDecision(int busline_i, int trip
 
 	DTijk = dwellTimeCalculation(busline_i, trip_k, busstopSequence_j);
 	ETijk = std::max((unsigned int)(ATijk_1 + (double)(ATimk_plus1 + SRTmj - ATijk_1)/2.0), ATijk + DTijk); // need some changes for precision
-	return DTijk;
+
+	BusStop_RealTimes busStop_RealTimes(ATijk, ETijk);
+	busline->resetBusTrip_StopRealTimes(trip_k, busstopSequence_j, busStop_RealTimes);// set this value for next step
+	return ETijk;
 }
 
 unsigned int sim_mob::BusController::hybridDecision(int busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk)

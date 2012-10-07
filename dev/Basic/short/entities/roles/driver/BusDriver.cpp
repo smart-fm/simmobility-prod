@@ -196,8 +196,11 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 //		std::cout
 //				<< "BusDriver::updatePositionOnLink: bus isBusArriveBusStop velocity: "
 //				<< vehicle->getVelocity() / 100.0 << std::endl;
+		real_ArrivalTime.set(p.currTimeMS);// BusDriver set RealArrival Time
 		if(!BusController::all_busctrllers_.empty()) {
 			BusController::all_busctrllers_[0]->receiveBusInformation(1, 0, 0, p.currTimeMS);
+			unsigned int departureTime = BusController::all_busctrllers_[0]->decisionCalculation(1, 0, 0, p.currTimeMS,lastVisited_BusStopSequenceNum.get());
+			real_DepartureTime.set(departureTime);// BusDriver set RealDeparture Time
 		}
 		if (vehicle->getVelocity() > 0)
 			vehicle->setAcceleration(-5000);

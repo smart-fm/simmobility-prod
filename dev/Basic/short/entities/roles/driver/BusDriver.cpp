@@ -196,12 +196,12 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 //		std::cout
 //				<< "BusDriver::updatePositionOnLink: bus isBusArriveBusStop velocity: "
 //				<< vehicle->getVelocity() / 100.0 << std::endl;
-		real_ArrivalTime.set(p.currTimeMS);// BusDriver set RealArrival Time
-		if(!BusController::all_busctrllers_.empty()) {
-			BusController::all_busctrllers_[0]->receiveBusInformation(1, 0, 0, p.currTimeMS);
-			unsigned int departureTime = BusController::all_busctrllers_[0]->decisionCalculation(1, 0, 0, p.currTimeMS,lastVisited_BusStopSequenceNum.get());
-			real_DepartureTime.set(departureTime);// BusDriver set RealDeparture Time
-		}
+//		real_ArrivalTime.set(p.currTimeMS);// BusDriver set RealArrival Time, set once(the first time comes in)
+//		if(!BusController::all_busctrllers_.empty()) {
+//			BusController::all_busctrllers_[0]->receiveBusInformation(1, 0, 0, p.currTimeMS);
+//			unsigned int departureTime = BusController::all_busctrllers_[0]->decisionCalculation(1, 0, 0, p.currTimeMS,lastVisited_BusStopSequenceNum.get());// need to be changed, only calculate once(no need every time calculation)
+//			real_DepartureTime.set(departureTime);// BusDriver set RealDeparture Time
+//		}
 		if (vehicle->getVelocity() > 0)
 			vehicle->setAcceleration(-5000);
 		if (vehicle->getVelocity() < 0.1 && waitAtStopMS < BUS_STOP_WAIT_PASSENGER_TIME_SEC) {
@@ -212,8 +212,16 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 			Bus* bus = dynamic_cast<Bus*>(vehicle);
 			if ((waitAtStopMS == p.elapsedSeconds) && bus) {
 //				std::cout << "BusDriver::updatePositionOnLink: pich up passengers" << std::endl;
+				real_ArrivalTime.set(p.currTimeMS);// BusDriver set RealArrival Time, set once(the first time comes in)
+
 				int pCount = reinterpret_cast<intptr_t> (vehicle) % 50;
 				bus->setPassengerCount(pCount);
+
+				if(!BusController::all_busctrllers_.empty()) {
+					BusController::all_busctrllers_[0]->receiveBusInformation(1, 0, 0, p.currTimeMS);
+					unsigned int departureTime = BusController::all_busctrllers_[0]->decisionCalculation(1, 0, 0, p.currTimeMS,lastVisited_BusStopSequenceNum.get());// need to be changed, only calculate once(no need every time calculation)
+					real_DepartureTime.set(departureTime);// BusDriver set RealDeparture Time
+				}
 			}
 		}
 	} else if (isBusArriveBusStop()) {

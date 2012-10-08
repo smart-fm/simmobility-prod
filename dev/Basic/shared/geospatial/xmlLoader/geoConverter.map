@@ -22,8 +22,9 @@ fwdBckSegments_t std::vector<sim_mob::RoadSegment*> std::vector<sim_mob::RoadSeg
 segment_t sim_mob::RoadSegment* sim_mob::RoadSegment*;
 SegmentType_t std::string std::string;
 
-RoadItem_t  "std::pair<unsigned int,sim_mob::RoadItem*>"  "std::pair<unsigned long,sim_mob::RoadItem*>"; 
-crossing_t  "std::pair<unsigned int,sim_mob::Crossing*>"  "std::pair<unsigned int,sim_mob::Crossing*>";  
+RoadItem_t  "std::pair<unsigned long,sim_mob::RoadItem*>"  "std::pair<unsigned long,sim_mob::RoadItem*>"; 
+crossing_t  "std::pair<unsigned long,sim_mob::Crossing*>"  "std::pair<unsigned long,sim_mob::Crossing*>";  
+BusStop_t  "std::pair<unsigned long,sim_mob::BusStop*>"  "std::pair<unsigned long,sim_mob::BusStop*>";  
 RoadItems_t  "std::map<sim_mob::centimeter_t,const RoadItem*>"  "std::map<sim_mob::centimeter_t,const RoadItem*>"; 
 
 #double-check and then remove it

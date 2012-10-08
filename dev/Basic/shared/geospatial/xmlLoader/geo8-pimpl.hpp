@@ -643,6 +643,9 @@ namespace geo
     pre ();
 
     virtual void
+    id (unsigned long long);
+
+    virtual void
     Offset (unsigned short);
 
     virtual void
@@ -651,7 +654,7 @@ namespace geo
     virtual void
     end (sim_mob::Point2D);
 
-    virtual std::pair<unsigned int,sim_mob::RoadItem*>
+    virtual std::pair<unsigned long,sim_mob::RoadItem*>
     post_RoadItem_t ();
   };
 
@@ -659,22 +662,25 @@ namespace geo
     public ::geo::RoadItem_t_pimpl
   {
 	  sim_mob::BusStop *bs;
-	  BusStopInfo bs_info();
+
     public:
     virtual void
     pre ();
 
     virtual void
-    busStopID (const ::std::string&);
+    xPos (double);
 
     virtual void
-    lane_location (const ::std::string&);
+    yPos (double);
 
     virtual void
-    is_Terminal (bool);
+    lane_location (unsigned long long);
 
     virtual void
-    is_Bay (bool);
+    is_terminal (bool);
+
+    virtual void
+    is_bay (bool);
 
     virtual void
     has_shelter (bool);
@@ -683,6 +689,9 @@ namespace geo
     busCapacityAsLength (unsigned int);
 
     virtual void
+    busstopno (const ::std::string&);
+
+    virtual std::pair<unsigned long,sim_mob::BusStop*>
     post_BusStop_t ();
   };
 
@@ -745,15 +754,12 @@ namespace geo
     pre ();
 
     virtual void
-    crossingID (const ::std::string&);
-
-    virtual void
     nearLine (std::pair<sim_mob::Point2D,sim_mob::Point2D>);
 
     virtual void
     farLine (std::pair<sim_mob::Point2D,sim_mob::Point2D>);
 
-    virtual std::pair<unsigned int,sim_mob::Crossing*>
+    virtual std::pair<unsigned long,sim_mob::Crossing*>
     post_crossing_t ();
   };
 
@@ -800,35 +806,19 @@ namespace geo
     pre ();
 
     virtual void
-    BusStop ();
+    BusStop (std::pair<unsigned long,sim_mob::BusStop*>);
 
     virtual void
     ERP_Gantry ();
 
     virtual void
-    Crossing (std::pair<unsigned int,sim_mob::Crossing*>);
+    Crossing (std::pair<unsigned long,sim_mob::Crossing*>);
 
     virtual void
     RoadBump ();
 
     virtual std::map<sim_mob::centimeter_t,const RoadItem*>
     post_RoadItems_t ();
-  };
-
-  class DailyTime_t_pimpl: public virtual DailyTime_t_pskel
-  {
-    public:
-    virtual void
-    pre ();
-
-    virtual void
-    timeValue (unsigned int);
-
-    virtual void
-    base (unsigned int);
-
-    virtual sim_mob::DailyTime
-    post_DailyTime_t ();
   };
 
   class TripchainItemType_pimpl: public virtual TripchainItemType_pskel,

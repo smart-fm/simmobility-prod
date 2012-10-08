@@ -1,4 +1,5 @@
 #include "xmlWriter.hpp"
+#include <iomanip>
 void sim_mob::WriteXMLInput_Location(TiXmlElement * parent,bool underLocation, unsigned int X, unsigned int Y)
 {
 	std::ostringstream Id;
@@ -148,6 +149,8 @@ void sim_mob::WriteXMLInput_Lane(sim_mob::Lane *LaneObj,TiXmlElement *Lanes)
 void sim_mob::WriteXMLInput_BusStop(sim_mob::BusStop * busStop , int offset, TiXmlElement *Obstacle)
 {
 	std::ostringstream output;
+	output.setf(std::ios::fixed);
+	std::cout.setf(std::ios::fixed);
 	TiXmlElement * BusStop = new TiXmlElement("BusStop"); Obstacle->LinkEndChild(BusStop);
 	//id
 	TiXmlElement * id = new TiXmlElement("id"); BusStop->LinkEndChild(id);
@@ -168,38 +171,48 @@ void sim_mob::WriteXMLInput_BusStop(sim_mob::BusStop * busStop , int offset, TiX
 	//xPos
 	TiXmlElement * xPos = new TiXmlElement("xPos"); BusStop->LinkEndChild(xPos);
 	output.str("");
-	output << busStop->xPos;
+	output << std::setprecision(4) <<  busStop->xPos;
 	xPos->LinkEndChild(new  TiXmlText(output.str()));
 	//yPos
 	TiXmlElement * yPos = new TiXmlElement("yPos"); BusStop->LinkEndChild(yPos);
 	output.str("");
-	output << busStop->yPos;
+	output << std::setprecision(4) << busStop->yPos;
 	yPos->LinkEndChild(new  TiXmlText(output.str()));
 	//lane_location
-	TiXmlElement * lane_location = new TiXmlElement("lane_location"); BusStop->LinkEndChild(lane_location);
-	output.str("");
-	output << busStop->getLaneLocation->getLaneID();
-	lane_location->LinkEndChild(new  TiXmlText(output.str()));
+	if(busStop->getLaneLocation())
+	{
+		const sim_mob::Lane *lane =  busStop->getLaneLocation();
+		TiXmlElement * lane_location = new TiXmlElement("lane_location"); BusStop->LinkEndChild(lane_location);
+		output.str("");
+		output << lane->getLaneID();
+		lane_location->LinkEndChild(new  TiXmlText(output.str()));
+	}
+
 	//is_terminal
 	TiXmlElement * is_terminal = new TiXmlElement("is_terminal"); BusStop->LinkEndChild(is_terminal);
 	output.str("");
-	output << busStop->isTerminal ? "true" : "false";
+	output << (busStop->isTerminal() ? "true" : "false");
 	is_terminal->LinkEndChild(new  TiXmlText(output.str()));
 	//is_bay
 	TiXmlElement * is_bay = new TiXmlElement("is_bay"); BusStop->LinkEndChild(is_bay);
 	output.str("");
-	output << busStop->isBay() ? "true" : "false";
+	output << (busStop->isBay() ? "true" : "false");
 	is_bay->LinkEndChild(new  TiXmlText(output.str()));
 	//has_shelter
 	TiXmlElement * has_shelter = new TiXmlElement("has_shelter"); BusStop->LinkEndChild(has_shelter);
 	output.str("");
-	output << busStop->hasShelter() ? "true" : "false";
+	output << (busStop->hasShelter() ? "true" : "false");
 	has_shelter->LinkEndChild(new  TiXmlText(output.str()));
 	//busCapacityAsLength
 	TiXmlElement * busCapacityAsLength = new TiXmlElement("busCapacityAsLength"); BusStop->LinkEndChild(busCapacityAsLength);
 	output.str("");
 	output << busStop->getBusCapacityAsLength();
 	busCapacityAsLength->LinkEndChild(new  TiXmlText(output.str()));
+	//busstopno
+	TiXmlElement * busstopno = new TiXmlElement("busstopno"); BusStop->LinkEndChild(busstopno);
+	output.str("");
+	output << busStop->getBusstopno_();
+	busstopno->LinkEndChild(new  TiXmlText(output.str()));
 }
 
 void sim_mob::WriteXMLInput_Crossing(sim_mob::Crossing * crossing , int offset, TiXmlElement *Obstacle)
@@ -242,14 +255,14 @@ void sim_mob::WriteXMLInput_Obstacle(sim_mob::RoadItemAndOffsetPair res, TiXmlEl
 	sim_mob::Crossing * crossing = dynamic_cast<sim_mob::Crossing *>(const_cast<sim_mob::RoadItem *>(res.item));
 	if(crossing)
 	{
-		sim_mob::RoadSegment * rs = crossing->getRoadSegment();
+//		sim_mob::RoadSegment * rs = crossing->getRoadSegment();
 		WriteXMLInput_Crossing(crossing, res.offset, Obstacle);
 	}else{
 		if(dynamic_cast<sim_mob::BusStop *>(const_cast<sim_mob::RoadItem *>(res.item)))
 		{
 			sim_mob::BusStop * bs = dynamic_cast<sim_mob::BusStop *>(const_cast<sim_mob::RoadItem *>(res.item));
-			sim_mob::RoadSegment * rs = crossing->getRoadSegment();
-			WriteXMLInput_Crossing(crossing, res.offset, Obstacle);
+//			sim_mob::RoadSegment * rs = bs->getRoadSegment();
+			WriteXMLInput_BusStop(bs, res.offset, Obstacle);
 		}
 	}
 }

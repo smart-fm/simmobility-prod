@@ -73,6 +73,7 @@ bool geo::InitAndLoadXML(std::string XML_OutPutFileName)
     ::geo::lane_t_pimpl lane_t_p;
     ::geo::RoadItems_t_pimpl RoadItems_t_p;
     ::geo::BusStop_t_pimpl BusStop_t_p;
+    ::xml_schema::double_pimpl double_p;
     ::geo::ERP_Gantry_t_pimpl ERP_Gantry_t_p;
     ::geo::crossing_t_pimpl crossing_t_p;
     ::geo::PointPair_t_pimpl PointPair_t_p;
@@ -95,7 +96,6 @@ bool geo::InitAndLoadXML(std::string XML_OutPutFileName)
     ::geo::SplitPlan_t_pimpl SplitPlan_t_p;
     ::geo::Plans_t_pimpl Plans_t_p;
     ::geo::Plan_t_pimpl Plan_t_p;
-    ::xml_schema::double_pimpl double_p;
     ::geo::Phases_t_pimpl Phases_t_p;
     ::geo::Phase_t_pimpl Phase_t_p;
     ::geo::links_maps_t_pimpl links_maps_t_p;
@@ -272,13 +272,14 @@ bool geo::InitAndLoadXML(std::string XML_OutPutFileName)
                          unsigned_short_p,
                          Point2D_t_p,
                          Point2D_t_p,
-                         unsigned_long_p,
-                         unsigned_long_p,
+                         double_p,
+                         double_p,
                          unsigned_long_p,
                          boolean_p,
                          boolean_p,
                          boolean_p,
-                         unsigned_int_p);
+                         unsigned_int_p,
+                         string_p);
 
     ERP_Gantry_t_p.parsers (unsigned_long_p,
                             unsigned_short_p,

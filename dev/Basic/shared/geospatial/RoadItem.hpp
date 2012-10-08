@@ -8,6 +8,7 @@
 namespace geo
 {
 class crossing_t_pimpl;
+class RoadItem_t_pimpl;
 }
 
 namespace sim_mob
@@ -32,6 +33,7 @@ namespace sim_mob
  */
 class RoadItem {
 	friend class ::geo::crossing_t_pimpl;
+	friend class ::geo::RoadItem_t_pimpl;
 public:
 	virtual ~RoadItem() {} //A virtual destructor allows this type to be polymorphic
 	virtual void setParentSegment(sim_mob::RoadSegment*) {};

@@ -965,6 +965,10 @@ struct Sorter {
   {
 	  return ((a->getRoadSegment()->getLink()->getLinkId() < b->getRoadSegment()->getLink()->getLinkId()) && (a->getRoadSegment()->getSegmentID() < b->getRoadSegment()->getSegmentID()) && (a->getLaneID() < b->getLaneID()));
   }
+  bool operator() (const sim_mob::BusStop* a,const sim_mob::BusStop* b)
+  {
+	  return (a->getRoadItemID() < b->getRoadItemID());
+  }
   bool operator() ( const sim_mob::LaneConnector * c,  const sim_mob::LaneConnector * d) const
   {
 	  if(!(c && d))
@@ -1097,7 +1101,7 @@ void PrintDB_Network_idBased()
 
 	//Now print all Segments
 	std::set<const Crossing*,Sorter> cachedCrossings;
-	std::set<const BusStop*> cachedBusStops;
+	std::set<const BusStop*,Sorter> cachedBusStops;
 	int i = 0;
 
 	for (std::set<const RoadSegment*>::const_iterator it=cachedSegments.begin(); it!=cachedSegments.end(); it++) {

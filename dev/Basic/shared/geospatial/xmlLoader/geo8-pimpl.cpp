@@ -72,16 +72,16 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
 
 struct BusStopInfo
 {
-	sim_mob::BusStop busStop;;
+	sim_mob::BusStop *busStop;
 	unsigned long lane_location;
 	BusStopInfo()
 	{
-		busStop = nullptr;
+		busStop = 0;
 		lane_location = -1;
 	}
-};
+} bs_info;
 
-std::map<unsigned long,sim_mob::BusStopInfo> geo_BusStop_;
+std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
 
 // Point2D_t_pimpl
   //
@@ -1281,7 +1281,7 @@ std::map<unsigned long,sim_mob::BusStopInfo> geo_BusStop_;
 	  end_ = end;
   }
 
-  std::pair<unsigned int,sim_mob::RoadItem*> RoadItem_t_pimpl::
+  std::pair<unsigned long,sim_mob::RoadItem*> RoadItem_t_pimpl::
   post_RoadItem_t ()
   {
 	  std::cout << "in RoadItem_t_pimpl::post_RoadItem_t\n";
@@ -1302,19 +1302,19 @@ std::map<unsigned long,sim_mob::BusStopInfo> geo_BusStop_;
   {
 	    std::cout << "in BusStop_t_pimpl::pre ()\n";
 	    bs = new sim_mob::BusStop();
-	    bs_info();
+	    bs_info = BusStopInfo();
 	    bs_info.busStop = bs;
   }
 
   void BusStop_t_pimpl::
-  xPos (unsigned long long xPos)
+  xPos (double xPos)
   {
     std::cout << "xPos: " << xPos << std::endl;
     bs->xPos = xPos;
   }
 
   void BusStop_t_pimpl::
-  yPos (unsigned long long yPos)
+  yPos (double yPos)
   {
     std::cout << "yPos: " << yPos << std::endl;
     bs->yPos = yPos;
@@ -1328,17 +1328,17 @@ std::map<unsigned long,sim_mob::BusStopInfo> geo_BusStop_;
   }
 
   void BusStop_t_pimpl::
-  is_Terminal (bool is_Terminal)
+  is_terminal (bool is_terminal)
   {
-    std::cout << "is_Terminal: " << is_Terminal << std::endl;
-    bs->is_Terminal = is_Terminal;
+    std::cout << "is_Terminal: " << is_terminal << std::endl;
+    bs->is_terminal = is_terminal;
   }
 
   void BusStop_t_pimpl::
-  is_Bay (bool is_Bay)
+  is_bay (bool is_bay)
   {
-    std::cout << "is_Bay: " << is_Bay << std::endl;
-    bs->is_Bay = is_Bay;
+    std::cout << "is_Bay: " << is_bay << std::endl;
+    bs->is_bay = is_bay;
   }
 
   void BusStop_t_pimpl::
@@ -1356,11 +1356,21 @@ std::map<unsigned long,sim_mob::BusStopInfo> geo_BusStop_;
   }
 
   void BusStop_t_pimpl::
+  busstopno (const ::std::string& busstopno)
+  {
+    std::cout << "busstopno: " << busstopno << std::endl;
+    bs->busstopno_ = busstopno;
+  }
+
+  std::pair<unsigned long,sim_mob::BusStop*> BusStop_t_pimpl::
   post_BusStop_t ()
   {
     std::pair<unsigned long,sim_mob::RoadItem*> v (post_RoadItem_t ());
-    bs->id = v.second.id;
-    bs->start = v.second.start;
+    bs->id = v.second->getRoadItemID();
+    bs->start = v.second->getStart();
+    bs->end = v.second->getEnd();
+    delete v.second; //cleanup
+    return std::make_pair(v.first, bs);
 
     // TODO
     //
@@ -1471,13 +1481,13 @@ std::map<unsigned long,sim_mob::BusStopInfo> geo_BusStop_;
 	  crossing->farLine.second = farLine.second;
   }
 
-  std::pair<unsigned int,sim_mob::Crossing*> crossing_t_pimpl::
+  std::pair<unsigned long,sim_mob::Crossing*> crossing_t_pimpl::
   post_crossing_t ()
   {
     std::pair<unsigned long,sim_mob::RoadItem*> v (post_RoadItem_t ());
     
 //    sim_mob::Crossing* crossing = new sim_mob::Crossing();
-	crossing->setCrossingID(v.id);
+	crossing->id = v.second->getRoadItemID();
     crossing->start = v.second->getStart();
     crossing->end   = v.second->getEnd();
     delete v.second; //cleanup
@@ -1555,8 +1565,9 @@ std::map<unsigned long,sim_mob::BusStopInfo> geo_BusStop_;
   }
 
   void RoadItems_t_pimpl::
-  BusStop ()
+  BusStop (std::pair<unsigned long,sim_mob::BusStop*> BusStop)
   {
+	  RoadItems[BusStop.first] = BusStop.second;
   }
 
   void RoadItems_t_pimpl::
@@ -1565,7 +1576,7 @@ std::map<unsigned long,sim_mob::BusStopInfo> geo_BusStop_;
   }
 
   void RoadItems_t_pimpl::
-  Crossing (std::pair<unsigned int,sim_mob::Crossing*> Crossing)
+  Crossing (std::pair<unsigned long,sim_mob::Crossing*> Crossing)
   {
 	  std::cout << "in RoadItems_t_pimpl::Crossing () " << std::endl;
 	  RoadItems[Crossing.first] = Crossing.second;

@@ -215,6 +215,7 @@ public:
 	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& getTripChains() { return tripchains; }
 	std::vector<sim_mob::BusSchedule*>& getBusSchedule() { return busschedule;}
 
+	std::set<sim_mob::Conflux*>& getConfluxes() { return confluxes; }
 
 private:
 	ConfigParams() : reactDist1(nullptr), reactDist2(nullptr), mutexStategy(MtxStrat_Buffered), dynamicDispatchDisabled(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false) { }
@@ -226,6 +227,9 @@ private:
 	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > tripchains; //map<personID,tripchains>
 	std::vector<sim_mob::BusSchedule*> busschedule;
 	bool sealedNetwork;
+
+	//Confluxes in this network
+	std::set<sim_mob::Conflux*> confluxes;
 };
 
 }

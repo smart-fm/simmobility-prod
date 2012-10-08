@@ -8,6 +8,7 @@
 #include "util/OpaqueProperty.hpp"
 #include "Pavement.hpp"
 #include "Link.hpp"
+#include "Conflux.hpp"
 
 namespace geo {
 class segment_t_pimpl;
@@ -122,21 +123,16 @@ public:
 
 	//RoadSegments may have hidden properties useful only in for the visualizer.
 	OpaqueProperty<int> originalDB_ID;
-
-#ifndef SIMMOB_DISABLE_MPI
 	///The identification of RoadSegment is packed using PackageUtils;
 	static void pack(PackageUtils& package, const RoadSegment* one_segment);
-
 	///UnPackageUtils use the identification of RoadSegment to find the RoadSegment Object
 	static const RoadSegment* unpack(UnPackageUtils& unpackage);
-#endif
 
 public:
 	///Maximum speed of this road segment.
 	unsigned int maxSpeed;
-
 	///TODO This should be made private again.
-	mutable std::vector< std::vector<sim_mob::Point2D> > laneEdgePolylines_cached;
+	mutable std::vector<std::vector<sim_mob::Point2D> > laneEdgePolylines_cached;
 	void setLanes(std::vector<sim_mob::Lane*>);
 	void setLaneGroups(std::vector<sim_mob::LaneGroup*>) const;
 
@@ -147,10 +143,18 @@ public:
 	//author-melani
 	//for mid-term use
 	bool isValidLane(const sim_mob::Lane* chosenLane) const;
-	/*void initLaneGroups() const;
-	void groupLanes(std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt, const std::vector<sim_mob::RoadSegment*>& segments, sim_mob::Node* start, sim_mob::Node* end) const;
-	void matchLanes(std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS) const;*/
 
+	sim_mob::Conflux* getParentConflux() const {
+		return parentConflux;
+	}
+
+	void setParentConflux(sim_mob::Conflux* parentConflux) {
+		this->parentConflux = parentConflux;
+	}
+
+	/*void initLaneGroups() const;
+	 void groupLanes(std::vector<sim_mob::RoadSegment*>::const_iterator rdSegIt, const std::vector<sim_mob::RoadSegment*>& segments, sim_mob::Node* start, sim_mob::Node* end) const;
+	 void matchLanes(std::map<const sim_mob::Lane*, std::vector<RoadSegment*> >& mapRS) const;*/
 private:
 	///Collection of lanes. All road segments must have at least one lane.
 	std::vector<sim_mob::Lane*> lanes;
@@ -170,22 +174,19 @@ private:
 	///Helps to identify road segments which are bi-directional.
 	///We count lanes from the LHS, so this doesn't change with drivingSide
 	unsigned int lanesLeftOfDivider;
-
 	///Which link this appears in
 	sim_mob::Link* parentLink;
+	/// Conflux to which this segment belongs to
+	sim_mob::Conflux* parentConflux;
 	//	std::string segmentID;
 	unsigned long segmentID;
-
-
 	friend class sim_mob::aimsun::Loader;
 	friend class sim_mob::aimsun::LaneLoader;
 	friend class sim_mob::RoadNetworkPackageManager;
-
 	const sim_mob::SupplyParams* supplyParams;
-
-	friend class ::geo::segment_t_pimpl;
-	friend class ::geo::Segments_pimpl;
-	friend class ::geo::link_t_pimpl;
+	friend class geo::segment_t_pimpl;
+	friend class geo::Segments_pimpl;
+	friend class geo::link_t_pimpl;
 
 };
 

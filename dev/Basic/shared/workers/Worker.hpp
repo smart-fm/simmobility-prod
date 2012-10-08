@@ -22,6 +22,7 @@
 #include <iostream>
 
 #include <vector>
+#include <set>
 #include <boost/thread.hpp>
 #include <boost/function.hpp>
 #include <boost/unordered_map.hpp>
@@ -42,7 +43,7 @@ namespace sim_mob
 {
 
 class WorkGroup;
-
+class Conflux;
 
 class Worker : public BufferedDataManager {
 public:
@@ -143,6 +144,7 @@ private:
 	std::vector<Entity*> managedEntities;
 	std::vector<Link*> managedLinks;
 
+	std::set<Conflux*> managedConfluxes;
 	/**
 	 * For all agents on this worker, agentsOnSegments hash map keeps track of which RoadSegment
 	 * the agent is currently in, whether he's moving or queuing and if he's queuing,
@@ -153,6 +155,7 @@ private:
 	 * Workers update agents sequentially. The updates from each agent is thus decentralized.
 	 *
 	 * ~ harish
+	 * TODO: Revisit this. This will probably not be required with the confluxes in place.
 	 */
 	boost::unordered_map<const RoadSegment*, sim_mob::SegmentVehicles*> agentsOnSegments;
 

@@ -443,7 +443,7 @@ void sim_mob::RoadSegment::matchLanes(std::map<const sim_mob::Lane*, std::vector
 	} //end of outer while
 
 	setLaneGroups(lanegroups);
-} */
+}
 
 bool sim_mob::RoadSegment::isValidLane(const sim_mob::Lane* chosenLane) const {
 	//consistency check with lanes in current segment
@@ -459,5 +459,5 @@ bool sim_mob::RoadSegment::isValidLane(const sim_mob::Lane* chosenLane) const {
 	}
 
 	return (itv != lanes.end());
-}
+}*/
 

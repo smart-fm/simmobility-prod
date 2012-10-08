@@ -1813,11 +1813,12 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 }
 
 /*
- * iterates the multinodes and creates confluxes for all of them
+ * iterates multinodes and creates confluxes for all of them
  */
 void sim_mob::aimsun::Loader::ProcessConfluxes(sim_mob::RoadNetwork& rdnw) {
+	std::set<sim_mob::Conflux*> confluxes = ConfigParams::GetInstance().getConfluxes();
 	for (vector<sim_mob::MultiNode*>::const_iterator i = rdnw.nodes.begin(); i != rdnw.nodes.end(); i++) {
-		// for each MultiNode, there will be a conflux
+		// we create a conflux for each multinode
 		sim_mob::Conflux* conflux = new sim_mob::Conflux();
 		for ( vector< pair<sim_mob::RoadSegment*, bool> >::iterator segmt=(*i)->roadSegmentsCircular.begin();
 				segmt!=(*i)->roadSegmentsCircular.end();
@@ -1826,28 +1827,40 @@ void sim_mob::aimsun::Loader::ProcessConfluxes(sim_mob::RoadNetwork& rdnw) {
 			sim_mob::Link* lnk = (*segmt).first->getLink();
 			if ((*segmt).second) {
 				// This segment is upstream to the current MultiNode
+				std::vector<sim_mob::RoadSegment*> upSegs;
 				if(lnk->getEnd() == (*i)) {
 					//The half-link we want is the forward segments of the link
-					conflux->upstreamLinkSegments[lnk] = lnk->getFwdSegments();
+					upSegs = lnk->getFwdSegments();
+					conflux->upstreamSegments.insert(lnk->fwdSegments.begin(), lnk->fwdSegments.end());
 				}
 				else if (lnk->getStart() == (*i)) {
 					//The half-link we want is the reverse segments of the link
-					conflux->upstreamLinkSegments[lnk] = lnk->getRevSegments();
+					upSegs = lnk->getRevSegments();
+					conflux->upstreamSegments.insert(lnk->revSegments.begin(), lnk->revSegments.end());
+				}
+
+				// set conflux pointer to the segments
+				for(std::vector<sim_mob::RoadSegment*>::iterator segIt = upSegs.begin();
+						segIt != upSegs.end(); segIt++) {
+					(*segIt)->parentConflux = conflux;
 				}
 			}
 			else {
 				// This segment is downstream to the current MultiNode
+				std::vector<sim_mob::RoadSegment*> downSegs;
 				if(lnk->getEnd() == (*i)) {
 					//The half-link we want is the reverse segments of the link
-					conflux->downstreamLinkSegments[lnk] = lnk->getRevSegments();
+					downSegs = lnk->getRevSegments();
+					conflux->upstreamSegments.insert(lnk->revSegments.begin(), lnk->revSegments.end());
 				}
 				else if (lnk->getStart() == (*i)) {
 					//The half-link we want is the forward segments of the link
-					conflux->downstreamLinkSegments[lnk] = lnk->getFwdSegments();
+					downSegs = lnk->getFwdSegments();
+					conflux->downstreamSegments.insert(lnk->fwdSegments.begin(), lnk->fwdSegments.end());
 				}
-			}
-		}
-		rdnw.confluxes.insert(conflux);
+			} // else
+		} // for
+		confluxes.insert(conflux);
 	}
 }
 

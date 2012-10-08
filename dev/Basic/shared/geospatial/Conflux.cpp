@@ -6,14 +6,13 @@
  */
 #include<map>
 #include "Conflux.hpp"
+#include "RoadSegment.hpp"
 
-namespace sim_mob {
-
-Conflux::Conflux() {
+void sim_mob::Conflux::addAgent(sim_mob::Agent* ag) {
+	throw std::runtime_error("Conflux::addAgent() not implemented");
 }
 
-Conflux::~Conflux() {
-	// TODO Auto-generated destructor stub
+void sim_mob::Conflux::prepareAgentForHandover(sim_mob::Agent* ag) {
+	throw std::runtime_error("Conflux::prepareAgentForHandover() not implemented");
 }
-
-} /* namespace sim_mob */
+ /* namespace sim_mob */

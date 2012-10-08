@@ -14,9 +14,11 @@
 #include "entities/LoopDetectorEntity.hpp"
 #include "entities/AuraManager.hpp"
 #include "partitions/PartitionManager.hpp"
+#include "geospatial/Conflux.hpp"
 
 using std::map;
 using std::vector;
+using std::set;
 using boost::barrier;
 using boost::function;
 
@@ -187,7 +189,6 @@ sim_mob::WorkGroup::~WorkGroup()  //Be aware that this will hang if Workers are 
 	//TODO: Find a way to statically delete the other barriers too (low priority; minor amount of memory leakage).
 	safe_delete_item(macro_tick_barr);
 }
-
 
 void sim_mob::WorkGroup::initializeBarriers(FlexiBarrier* frame_tick, FlexiBarrier* buff_flip, FlexiBarrier* aura_mgr)
 {
@@ -512,6 +513,83 @@ void sim_mob::WorkGroup::interrupt()
 const std::vector<sim_mob::WorkGroup*> sim_mob::WorkGroup::getRegisteredWorkGroups() {
 	return sim_mob::WorkGroup::RegisteredWorkGroups;
 }
+
+/*
+ * This method takes a conflux and assigns it to a worker and additionally tries to assign all the adjacent
+ * confluxes to the same worker.
+ *
+ * Future work:
+ * If this assignment performs badly, we might want to think of a heuristics based, optimization algorithm
+ * which improves this assignment. We can indeed model this problem as a graph partitioning problem. Each
+ * worker is a graph partition; the Confluxes are modeled as the nodes of the graph; and the edges represent
+ * the flow of vehicles between Confluxes. Our objective is to minimize the (expected) flow of agents (modeled
+ * as cut-size) from one partition to the other. We can try to fit the Kernighan-Lin algorithm or Fiduccia-Mattheyses
+ * algorithm for this partitioning, if it works. This is a little more complex than that because of variable
+ * flow rates of vehicles (edge weights) and might require more thinking and research.
+ *
+ * TODO: We must see if this assignment is acceptable and try to optimize if necessary.
+ * ~ Harish
+ */
+void sim_mob::WorkGroup::assignConfluxToWorkers() {
+	std::set<sim_mob::Conflux*> confluxes = ConfigParams::GetInstance().getConfluxes();
+	int numConfluxesPerWorker;
+	for(std::vector<Worker*>::iterator i = workers.begin(); i != workers.end(); i++) {
+		numConfluxesPerWorker = (int)(confluxes.size() / workers.size());
+		if(numConfluxesPerWorker > 0){
+			assignConfluxToWorkerRecursive((*confluxes.begin()), (*i), numConfluxesPerWorker);
+		}
+	}
+}
+
+void sim_mob::WorkGroup::putAgentOnConfluxWorker(Entity* ag) {
+}
+
+bool sim_mob::WorkGroup::assignConfluxToWorkerRecursive(
+		sim_mob::Conflux* conflux, sim_mob::Worker* worker,
+		int numConfluxesToAddInWorker)
+{
+	std::set<sim_mob::Conflux*> confluxes = ConfigParams::GetInstance().getConfluxes();
+	bool workerFilled = false;
+	if(numConfluxesToAddInWorker > 0)
+	{
+		worker->managedConfluxes.insert(conflux);
+		confluxes.erase(conflux);
+
+		std::set<sim_mob::RoadSegment*> downStreamSegs = conflux->getDownstreamSegments();
+
+		// assign the confluxes of the downstream MultiNodes to the same worker if possible
+		for(std::set<sim_mob::RoadSegment*>::const_iterator i = downStreamSegs.begin();
+				i != downStreamSegs.end() && numConfluxesToAddInWorker > 0 && confluxes.size() > 0;
+				i++)
+		{
+			// the set container for managedConfluxes takes care of eliminating duplicates
+			std::pair<std::set<Conflux*>::iterator, bool> insertResult = worker->managedConfluxes.insert((*i)->getParentConflux());
+
+			if (insertResult.second)
+			{
+				// One conflux was added by the insert. So...
+				confluxes.erase((*i)->getParentConflux());
+				numConfluxesToAddInWorker--;
+
+				// set the worker pointer in the Conflux
+				(*i)->getParentConflux()->setParentWorker(worker);
+			}
+		}
+
+		// after inserting all confluxes of the downstream segments
+		if(numConfluxesToAddInWorker > 0 && confluxes.size() > 0)
+		{
+			// recusive call
+			assignConfluxToWorkerRecursive((*confluxes.begin()), worker, numConfluxesToAddInWorker);
+		}
+		else
+		{
+			workerFilled = true;
+		}
+	}
+	return workerFilled;
+}
+
 
 
 

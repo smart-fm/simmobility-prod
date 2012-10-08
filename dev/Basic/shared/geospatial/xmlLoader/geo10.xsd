@@ -100,7 +100,7 @@
   
   <xs:complexType name="laneEdgePolylines_cached_t">
     <xs:sequence>
-     <xs:element name="laneEdgePolyline_cached" type="geo:laneEdgePolyline_cached_t" minOccurs="0"/>
+     <xs:element name="laneEdgePolyline_cached" type="geo:laneEdgePolyline_cached_t" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
   <xs:complexType name="segment_t">
@@ -305,13 +305,14 @@
       <xs:extension base="geo:RoadItem_t">
         <xs:sequence>
 <!--          <xs:element name="busStopID" type="xs:string"/>-->
-          <xs:element name="xPos" type="xs:unsignedLong"/>
-          <xs:element name="yPos" type="xs:unsignedLong"/>
-          <xs:element name="lane_location" type="xs:unsignedLong"/>
+          <xs:element name="xPos" type="xs:double"/>
+          <xs:element name="yPos" type="xs:double"/>
+          <xs:element name="lane_location" type="xs:unsignedLong" minOccurs="0"/>
           <xs:element name="is_terminal" type="xs:boolean"/>
           <xs:element name="is_bay" type="xs:boolean"/>
           <xs:element name="has_shelter" type="xs:boolean"/>
           <xs:element name="busCapacityAsLength" type="xs:unsignedInt"/>
+          <xs:element name="busstopno" type="xs:string"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>

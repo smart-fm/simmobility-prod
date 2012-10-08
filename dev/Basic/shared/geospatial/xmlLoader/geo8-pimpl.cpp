@@ -70,6 +70,18 @@ typedef std::map<unsigned long, geo_UniNode_Connectors_type > geo_MultiNode_Conn
 geo_MultiNode_Connectors_type geo_MultiNode_Connectors;
 std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;//map <nodeId,geo_MultiNode_Connectors_type> or map <nodeId,map<roadsegment,set<pair<lanefrom,laneto>> > >
 
+struct BusStopInfo
+{
+	sim_mob::BusStop busStop;;
+	unsigned long lane_location;
+	BusStopInfo()
+	{
+		busStop = nullptr;
+		lane_location = -1;
+	}
+};
+
+std::map<unsigned long,sim_mob::BusStopInfo> geo_BusStop_;
 
 // Point2D_t_pimpl
   //
@@ -1242,6 +1254,13 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   }
 
   void RoadItem_t_pimpl::
+  id (unsigned long long id)
+  {
+    std::cout << "id: " << id << std::endl;
+    id_ = id;
+  }
+  
+  void RoadItem_t_pimpl::
   Offset (unsigned short Offset)
   {
     std::cout << "in RoadItem_t_pimpl::Offset: " << Offset << std::endl;
@@ -1266,7 +1285,11 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   post_RoadItem_t ()
   {
 	  std::cout << "in RoadItem_t_pimpl::post_RoadItem_t\n";
+
 	  sim_mob::RoadItem *ri = new sim_mob::RoadItem;
+	  ri->id = id_;
+	  ri->start = start_;
+	  ri->end = end_;
 
 	  return std::make_pair(Offset_,ri);
   }
@@ -1278,49 +1301,66 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   pre ()
   {
 	    std::cout << "in BusStop_t_pimpl::pre ()\n";
+	    bs = new sim_mob::BusStop();
+	    bs_info();
+	    bs_info.busStop = bs;
   }
 
   void BusStop_t_pimpl::
-  busStopID (const ::std::string& busStopID)
+  xPos (unsigned long long xPos)
   {
-    std::cout << "busStopID: " << busStopID << std::endl;
-
+    std::cout << "xPos: " << xPos << std::endl;
+    bs->xPos = xPos;
   }
 
   void BusStop_t_pimpl::
-  lane_location (const ::std::string& lane_location)
+  yPos (unsigned long long yPos)
+  {
+    std::cout << "yPos: " << yPos << std::endl;
+    bs->yPos = yPos;
+  }
+
+  void BusStop_t_pimpl::
+  lane_location (unsigned long long lane_location)
   {
     std::cout << "lane_location: " << lane_location << std::endl;
+    bs_info.lane_location = lane_location;
   }
 
   void BusStop_t_pimpl::
   is_Terminal (bool is_Terminal)
   {
     std::cout << "is_Terminal: " << is_Terminal << std::endl;
+    bs->is_Terminal = is_Terminal;
   }
 
   void BusStop_t_pimpl::
   is_Bay (bool is_Bay)
   {
     std::cout << "is_Bay: " << is_Bay << std::endl;
+    bs->is_Bay = is_Bay;
   }
 
   void BusStop_t_pimpl::
   has_shelter (bool has_shelter)
   {
     std::cout << "has_shelter: " << has_shelter << std::endl;
+    bs->has_shelter = has_shelter;
   }
 
   void BusStop_t_pimpl::
   busCapacityAsLength (unsigned int busCapacityAsLength)
   {
     std::cout << "busCapacityAsLength: " << busCapacityAsLength << std::endl;
+    bs->busCapacityAsLength = busCapacityAsLength;
   }
 
   void BusStop_t_pimpl::
   post_BusStop_t ()
   {
     std::pair<unsigned long,sim_mob::RoadItem*> v (post_RoadItem_t ());
+    bs->id = v.second.id;
+    bs->start = v.second.start;
 
     // TODO
     //
@@ -1414,16 +1454,8 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   {
 
 	  std::cout << "in crossing_t_pimpl::pre () " << std::endl;
-
-  }
-
-  void crossing_t_pimpl::
-  crossingID (const ::std::string& crossingID)//todo vahid !why don't you read it as a decent data type so that you don't need to make conversions -vahid :)
-  {
-	  std::cout << "in crossing_t_pimpl::crossingID: " << crossingID << std::endl;
-	  crossing = new sim_mob::Crossing();
-    this->crossing->setCrossingID(atoi(crossingID.c_str()));
-  }
+	    crossing = new sim_mob::Crossing();
+      }
 
   void crossing_t_pimpl::
   nearLine (std::pair<sim_mob::Point2D,sim_mob::Point2D> nearLine)
@@ -1443,7 +1475,9 @@ std::map<unsigned int,geo_MultiNode_Connectors_type> geo_MultiNodeConnectorsMap;
   post_crossing_t ()
   {
     std::pair<unsigned long,sim_mob::RoadItem*> v (post_RoadItem_t ());
+    
 //    sim_mob::Crossing* crossing = new sim_mob::Crossing();
+	crossing->setCrossingID(v.id);
     crossing->start = v.second->getStart();
     crossing->end   = v.second->getEnd();
     delete v.second; //cleanup

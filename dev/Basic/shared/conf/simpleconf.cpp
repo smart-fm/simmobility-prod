@@ -889,12 +889,12 @@ void PrintDB_Network()
 			// LogOutNotSync("\"xPos\":\"" <<(*it)->xPos<<"\",");
 		//	LogOutNotSync("\"yPos\":\"" <<(*it)->yPos<<"\",");
 		double x = (*it)->xPos;
-			double y = (*it)->yPos;
-			int angle = 40;
+		double y = (*it)->yPos;
+		int angle = 40;
 			                                double length = 400;
 							        		double width = 250;
 							        		double theta = atan(width/length);
-							        		double phi = M_PI*angle/180;
+							        		double phi = M_PI * angle / 180;
 							                double diagonal_half = (sqrt(length*length + width*width))/2;
 
 							        		double x1d = x + diagonal_half*cos(phi+theta);
@@ -905,6 +905,7 @@ void PrintDB_Network()
 							        		double y3d = y + diagonal_half*sin(M_PI+phi+theta);
 							        		double x4d = x + diagonal_half*cos(phi-theta);
 							        		double y4d = y + diagonal_half*sin(phi-theta);
+
 			LogOutNotSync("\"near-1\":\""<<std::setprecision(8)<<x<<","<<y<<"\",");
 			LogOutNotSync("\"near-2\":\""<<x2d<<","<<y2d<<"\",");
 			LogOutNotSync("\"far-1\":\""<<x3d<<","<<y3d<<"\",");
@@ -1006,55 +1007,6 @@ struct Sorter {
   }
 } sorter_;
 
-//struct MyLaneSorter {
-//  bool operator() (sim_mob::Lane* a,sim_mob::Lane* b)
-//  {
-//	  return ((a->getRoadSegment()->getLink()->getLinkId() < b->getRoadSegment()->getLink()->getLinkId()) && (a->getRoadSegment()->getSegmentID() < b->getRoadSegment()->getSegmentID()) && (a->getLaneID() < b->getLaneID()));
-//  }
-//} sorter_;
-//
-//struct MyLaneConectorSorter {
-//  bool operator() ( const sim_mob::LaneConnector * c,  const sim_mob::LaneConnector * d) const
-//  {
-//	  if(!(c && d))
-//	  {
-//		  std::cout << "A lane connector is null\n";
-//		  getchar();
-//		  return false;
-//	  }
-//
-//	  const sim_mob::Lane* a = (c->getLaneFrom());
-//	  auto const unsigned int  aa = a->getRoadSegment()->getLink()->getLinkId();
-//	  auto const unsigned long  aaa = a->getRoadSegment()->getSegmentID();
-//	  auto const unsigned int  aaaa = a->getLaneID() ;
-//
-//	  const sim_mob::Lane* b = (d->getLaneFrom());
-//	  auto const unsigned int  bb = b->getRoadSegment()->getLink()->getLinkId();
-//	  auto const unsigned long  bbb = b->getRoadSegment()->getSegmentID();
-//	  auto const unsigned int  bbbb = b->getLaneID() ;
-//	  ///////////////////////////////////////////////////////
-//	  const sim_mob::Lane* a1 = (c->getLaneTo());
-//	  auto const unsigned int  aa1 = a1->getRoadSegment()->getLink()->getLinkId();
-//	  auto const unsigned long  aaa1 = a1->getRoadSegment()->getSegmentID();
-//	  auto const unsigned int  aaaa1 = a1->getLaneID() ;
-//
-//	  const sim_mob::Lane* b1 = (d->getLaneTo());
-//	  auto const unsigned int  bb1 = b1->getRoadSegment()->getLink()->getLinkId();
-//	  auto const unsigned long  bbb1 = b1->getRoadSegment()->getSegmentID();
-//	  auto const unsigned int  bbbb1 = b1->getLaneID() ;
-//
-//	  if(!(a && b))
-//	  {
-//		  std::cout << "A lane from is null\n";
-//		  return false;
-//	  }
-//	  bool result = std::make_pair( aa, std::make_pair( aaa, std::make_pair(aaaa, std::make_pair( aa1, std::make_pair( aaa1, aaaa1 ) ))))
-//	        <
-//	        std::make_pair( bb, std::make_pair( bbb, std::make_pair(bbbb, std::make_pair( bb1, std::make_pair( bbb1, bbbb1 ) ))));
-//
-//		  return result;
-//  }
-//} myLaneConnectorSorter;
 
 //NOTE: We guarantee that the log file contains data in the order it will be needed. So, Nodes are listed
 //      first because Links need Nodes. Otherwise, the output will be in no guaranteed order.
@@ -1146,7 +1098,6 @@ void PrintDB_Network_idBased()
 	//Now print all Segments
 	std::set<const Crossing*,Sorter> cachedCrossings;
 	std::set<const BusStop*> cachedBusStops;
-//	std::cout << "cachedSegments.size() = " << cachedSegments.size() << std::endl;
 	int i = 0;
 
 	for (std::set<const RoadSegment*>::const_iterator it=cachedSegments.begin(); it!=cachedSegments.end(); it++) {
@@ -1247,8 +1198,8 @@ void PrintDB_Network_idBased()
 			// LogOutNotSync("\"xPos\":\"" <<(*it)->xPos<<"\",");
 		//	LogOutNotSync("\"yPos\":\"" <<(*it)->yPos<<"\",");
 		double x = (*it)->xPos;
-			double y = (*it)->yPos;
-			int angle = 40;
+		double y = (*it)->yPos;
+		int angle = 40;
 			                                double length = 400;
 							        		double width = 250;
 							        		double theta = atan(width/length);

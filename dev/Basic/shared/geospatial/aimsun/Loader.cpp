@@ -1059,7 +1059,7 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 		//Create the bus stop
 		sim_mob::BusStop *busstop = new sim_mob::BusStop();
 		busstop->parentSegment_ = sections_[it->second.TMP_AtSectionID].generatedSegment;
-		busstop->setRoadItemID(busstop->generateRoadItemID(busstop->parentSegment_));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
+		busstop->setRoadItemID(sim_mob::BusStop::generateRoadItemID(*(busstop->parentSegment_)));//sorry this shouldn't be soooo explicitly set/specified, but what to do, we don't have parent segment when we were creating the busstop. perhaps a constructor argument!?  :) vahid
 		busstop->busstopno_ = it->second.bus_stop_no;
 		busstop->xPos = it->second.xPos;
 		busstop->yPos = it->second.yPos;

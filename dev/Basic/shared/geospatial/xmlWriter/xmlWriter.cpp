@@ -149,6 +149,11 @@ void sim_mob::WriteXMLInput_BusStop(sim_mob::BusStop * busStop , int offset, TiX
 {
 	std::ostringstream output;
 	TiXmlElement * BusStop = new TiXmlElement("BusStop"); Obstacle->LinkEndChild(BusStop);
+	//id
+	TiXmlElement * id = new TiXmlElement("id"); BusStop->LinkEndChild(id);
+	output.str("");
+	output << busStop->getRoadItemID();
+	id->LinkEndChild(new  TiXmlText(output.str()));
 	//offset
 	TiXmlElement * Offset = new TiXmlElement("Offset"); BusStop->LinkEndChild(Offset);
 	output.str("");
@@ -160,31 +165,52 @@ void sim_mob::WriteXMLInput_BusStop(sim_mob::BusStop * busStop , int offset, TiX
 	//end
 	TiXmlElement * end = new TiXmlElement("end"); BusStop->LinkEndChild(end);
 	WriteXMLInput_Location(end,false,busStop->getStart().getX(),busStop->getStart().getY());
-	//id
-	TiXmlElement * busStopID = new TiXmlElement("busStopID"); BusStop->LinkEndChild(busStopID);
+	//xPos
+	TiXmlElement * xPos = new TiXmlElement("xPos"); BusStop->LinkEndChild(xPos);
 	output.str("");
-	output << busStop->getRoadItemID();
-	busStopID->LinkEndChild(new  TiXmlText(output.str()));
-//	{//nearLine
-//		TiXmlElement * nearLine = new TiXmlElement("nearLine"); Crossing->LinkEndChild(nearLine);
-//		TiXmlElement * first = new TiXmlElement("first"); nearLine->LinkEndChild(first);
-//		WriteXMLInput_Location(first,false,crossing->nearLine.first.getX(),crossing->nearLine.first.getY());
-//		TiXmlElement * second = new TiXmlElement("second"); nearLine->LinkEndChild(second);
-//		WriteXMLInput_Location(second,false,crossing->nearLine.second.getX(),crossing->nearLine.second.getY());
-//	}
-//	{//farLine
-//		TiXmlElement * farLine = new TiXmlElement("farLine"); Crossing->LinkEndChild(farLine);
-//		TiXmlElement * first = new TiXmlElement("first"); farLine->LinkEndChild(first);
-//		WriteXMLInput_Location(first,false,crossing->farLine.first.getX(),crossing->farLine.first.getY());
-//		TiXmlElement * second = new TiXmlElement("second"); farLine->LinkEndChild(second);
-//		WriteXMLInput_Location(second,false,crossing->farLine.second.getX(),crossing->farLine.second.getY());
-//	}
+	output << busStop->xPos;
+	xPos->LinkEndChild(new  TiXmlText(output.str()));
+	//yPos
+	TiXmlElement * yPos = new TiXmlElement("yPos"); BusStop->LinkEndChild(yPos);
+	output.str("");
+	output << busStop->yPos;
+	yPos->LinkEndChild(new  TiXmlText(output.str()));
+	//lane_location
+	TiXmlElement * lane_location = new TiXmlElement("lane_location"); BusStop->LinkEndChild(lane_location);
+	output.str("");
+	output << busStop->getLaneLocation->getLaneID();
+	lane_location->LinkEndChild(new  TiXmlText(output.str()));
+	//is_terminal
+	TiXmlElement * is_terminal = new TiXmlElement("is_terminal"); BusStop->LinkEndChild(is_terminal);
+	output.str("");
+	output << busStop->isTerminal ? "true" : "false";
+	is_terminal->LinkEndChild(new  TiXmlText(output.str()));
+	//is_bay
+	TiXmlElement * is_bay = new TiXmlElement("is_bay"); BusStop->LinkEndChild(is_bay);
+	output.str("");
+	output << busStop->isBay() ? "true" : "false";
+	is_bay->LinkEndChild(new  TiXmlText(output.str()));
+	//has_shelter
+	TiXmlElement * has_shelter = new TiXmlElement("has_shelter"); BusStop->LinkEndChild(has_shelter);
+	output.str("");
+	output << busStop->hasShelter() ? "true" : "false";
+	has_shelter->LinkEndChild(new  TiXmlText(output.str()));
+	//busCapacityAsLength
+	TiXmlElement * busCapacityAsLength = new TiXmlElement("busCapacityAsLength"); BusStop->LinkEndChild(busCapacityAsLength);
+	output.str("");
+	output << busStop->getBusCapacityAsLength();
+	busCapacityAsLength->LinkEndChild(new  TiXmlText(output.str()));
 }
 
 void sim_mob::WriteXMLInput_Crossing(sim_mob::Crossing * crossing , int offset, TiXmlElement *Obstacle)
 {
 	std::ostringstream output;
 	TiXmlElement * Crossing = new TiXmlElement("Crossing"); Obstacle->LinkEndChild(Crossing);
+	//id
+	TiXmlElement * id = new TiXmlElement("id"); Crossing->LinkEndChild(id);
+	output.str("");
+	output << crossing->getCrossingID();
+	id->LinkEndChild(new  TiXmlText(output.str()));
 	//offset
 	TiXmlElement * Offset = new TiXmlElement("Offset"); Crossing->LinkEndChild(Offset);
 	output.str("");
@@ -196,12 +222,6 @@ void sim_mob::WriteXMLInput_Crossing(sim_mob::Crossing * crossing , int offset, 
 	//end
 	TiXmlElement * end = new TiXmlElement("end"); Crossing->LinkEndChild(end);
 	WriteXMLInput_Location(end,false,crossing->getStart().getX(),crossing->getStart().getY());
-	//id
-	TiXmlElement * crossingID = new TiXmlElement("crossingID"); Crossing->LinkEndChild(crossingID);
-
-	output.str("");
-	output << crossing->getCrossingID();
-	crossingID->LinkEndChild(new  TiXmlText(output.str()));
 	{//nearLine
 		TiXmlElement * nearLine = new TiXmlElement("nearLine"); Crossing->LinkEndChild(nearLine);
 		TiXmlElement * first = new TiXmlElement("first"); nearLine->LinkEndChild(first);

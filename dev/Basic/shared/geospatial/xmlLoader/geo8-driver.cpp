@@ -268,32 +268,36 @@ bool geo::InitAndLoadXML(std::string XML_OutPutFileName)
                            crossing_t_p,
                            RoadBump_t_p);
 
-    BusStop_t_p.parsers (unsigned_short_p,
+    BusStop_t_p.parsers (unsigned_long_p,
+                         unsigned_short_p,
                          Point2D_t_p,
                          Point2D_t_p,
-                         string_p,
-                         string_p,
+                         unsigned_long_p,
+                         unsigned_long_p,
+                         unsigned_long_p,
                          boolean_p,
                          boolean_p,
                          boolean_p,
                          unsigned_int_p);
 
-    ERP_Gantry_t_p.parsers (unsigned_short_p,
+    ERP_Gantry_t_p.parsers (unsigned_long_p,
+                            unsigned_short_p,
                             Point2D_t_p,
                             Point2D_t_p,
                             string_p);
 
-    crossing_t_p.parsers (unsigned_short_p,
+    crossing_t_p.parsers (unsigned_long_p,
+                          unsigned_short_p,
                           Point2D_t_p,
                           Point2D_t_p,
-                          string_p,
                           PointPair_t_p,
                           PointPair_t_p);
 
     PointPair_t_p.parsers (Point2D_t_p,
                            Point2D_t_p);
 
-    RoadBump_t_p.parsers (unsigned_short_p,
+    RoadBump_t_p.parsers (unsigned_long_p,
+                          unsigned_short_p,
                           Point2D_t_p,
                           Point2D_t_p,
                           string_p,

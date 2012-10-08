@@ -635,6 +635,7 @@ namespace geo
 
   class RoadItem_t_pimpl: public virtual RoadItem_t_pskel
   {
+	  unsigned long id_;
 	  unsigned short Offset_;
 	  sim_mob::Point2D start_,end_;
     public:
@@ -657,6 +658,8 @@ namespace geo
   class BusStop_t_pimpl: public virtual BusStop_t_pskel,
     public ::geo::RoadItem_t_pimpl
   {
+	  sim_mob::BusStop *bs;
+	  BusStopInfo bs_info();
     public:
     virtual void
     pre ();

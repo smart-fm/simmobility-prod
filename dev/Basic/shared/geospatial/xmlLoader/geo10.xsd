@@ -44,8 +44,7 @@
       <xs:element name="is_vehicle_lane" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
       <xs:element name="is_standard_bus_lane" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
       <xs:element name="is_whole_day_bus_lane" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
-      <xs:element name="is_high_occupancy_vehicle_lane" type="xs:boolean" minOccurs="0"
-        maxOccurs="1"/>
+      <xs:element name="is_high_occupancy_vehicle_lane" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
       <xs:element name="can_freely_park_here" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
       <xs:element name="can_stop_here" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
       <xs:element name="is_u_turn_allowed" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
@@ -306,9 +305,11 @@
       <xs:extension base="geo:RoadItem_t">
         <xs:sequence>
 <!--          <xs:element name="busStopID" type="xs:string"/>-->
-          <xs:element name="lane_location" type="xs:string"/>
-          <xs:element name="is_Terminal" type="xs:boolean"/>
-          <xs:element name="is_Bay" type="xs:boolean"/>
+          <xs:element name="xPos" type="xs:unsignedLong"/>
+          <xs:element name="yPos" type="xs:unsignedLong"/>
+          <xs:element name="lane_location" type="xs:unsignedLong"/>
+          <xs:element name="is_terminal" type="xs:boolean"/>
+          <xs:element name="is_bay" type="xs:boolean"/>
           <xs:element name="has_shelter" type="xs:boolean"/>
           <xs:element name="busCapacityAsLength" type="xs:unsignedInt"/>
         </xs:sequence>

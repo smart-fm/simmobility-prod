@@ -59,6 +59,12 @@ public:
 	//The position bus shall stop in segment from start node
 	//NOTE: This is now correctly stored in the RoadSegment's obstacle list.
 	//const double stopPoint;
+	//what if some one decides to make them public later?-vahid
+	const inline bool hasShelter()const  { return has_shelter; }
+	const inline bool isTerminal() const { return is_terminal; }
+	const inline bool isBay() const { return is_bay; }
+	const inline Lane* getLaneLocation() const { return lane_location; }
+	const inline unsigned int getBusCapacityAsLength() const { return busCapacityAsLength; }
 
 
 public:

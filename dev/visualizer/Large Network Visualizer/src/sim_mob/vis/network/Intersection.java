@@ -133,10 +133,17 @@ public class Intersection {
 				 * so, why not limit generating of trafficsignalline object right here at the beginning?
 				 * this is only because I am willing to reuse trafficsignalline class
 				 */
-				Lane fromLane = rn.getLanes().get(rs.segment_from).get(0);
-				Lane toLane = rn.getLanes().get(rs.segment_to).get(0);
-//				System.out.println("Creatinf a trafficSignalLine with lanes " + fromLane.getStartMiddleNode().getPos().getX() + "  TO  " + toLane.getLaneNumber() );
-
+				Lane fromLane = rn.getLanes().get(rs.segment_from).get(0L);
+				Lane toLane = rn.getLanes().get(rs.segment_to).get(0L);
+				if (fromLane==null || toLane==null) {
+					Hashtable<Long, Lane> fromHash = rn.getLanes().get(rs.segment_from);
+					Hashtable<Long, Lane> toHash = rn.getLanes().get(rs.segment_to);
+					throw new RuntimeException("Couldn't locate lane 0 in from/to RoadSegments. From segment: " 
+							+ rs.segment_from + "(" + (fromHash==null?"null":fromHash.containsKey(0L)) + "),  "
+							+ rs.segment_to   + "(" + (toHash==null?"null":toHash.containsKey(0L)) + ")"
+							);
+				}
+				
 				/*
 				 * there is this container "trafficSignalLines" in thetrafficSignalLines
 				 * roadnetwork which is used in helperAllocateDirection

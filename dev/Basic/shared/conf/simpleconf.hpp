@@ -215,6 +215,7 @@ public:
 //	std::vector<sim_mob::TripChainItem*>& getTripChains() { return tripchains; }
 	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& getTripChains() { return tripchains; }
 	std::vector<sim_mob::BusSchedule*>& getBusSchedule() { return busschedule;}
+	std::map<int, sim_mob::RoadSegment*>& getSectionID_RoadSegments() { return sectionID_roadSegments;}
 
 	std::vector<sim_mob::TripChainItem*>& getBusTripChains() { return bustripchains; }
 	std::map<int, std::vector<int> >& getBusStopIDs_Map() { return routeID_busStopIDs;}
@@ -228,6 +229,7 @@ private:
 	sim_mob::RoadNetwork network;
 	sim_mob::RoleFactory roleFact;
 //	std::vector<sim_mob::TripChainItem*> tripchains;
+	std::map<int, sim_mob::RoadSegment*> sectionID_roadSegments;
 	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > tripchains; //map<personID,tripchains>
 	std::vector<sim_mob::BusSchedule*> busschedule;
 

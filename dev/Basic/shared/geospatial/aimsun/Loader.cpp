@@ -1662,6 +1662,8 @@ void sim_mob::aimsun::Loader::ProcessSection(sim_mob::RoadNetwork& res, Section&
 	Section* currSect = &src;
 	sim_mob::Link* ln = new sim_mob::Link(1000001 + res.links.size());
 	src.generatedSegment = new sim_mob::RoadSegment(ln,1000001 + linkSegments.size());
+	(ConfigParams::GetInstance().getSectionID_RoadSegments())[src.id] = src.generatedSegment;
+
 	ln->roadName = currSect->roadName;
 	ln->start = currSect->fromNode->generatedNode;
 	//added by Jenny to tag node to one link

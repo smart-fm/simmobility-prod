@@ -1292,7 +1292,10 @@ double sim_mob::Driver::updatePositionOnLink(DriverUpdateParams& p) {
 	try {
 		res = vehicle->moveFwd(fwdDistance);
 		if(!vehicle->isInIntersection())
+		{
 			double d = vehicle->getDistanceMovedInSegment();
+			double c=0;
+		}
 	} catch (std::exception& ex) {
 		if (Debug::Drivers) {
 #ifndef SIMMOB_DISABLE_OUTPUT

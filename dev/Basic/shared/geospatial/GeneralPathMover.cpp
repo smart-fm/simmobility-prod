@@ -52,11 +52,14 @@ sim_mob::GeneralPathMover::GeneralPathMover(const GeneralPathMover& copyFrom) :
 	currPolypoint = polypointsList.begin() + (copyFrom.currPolypoint - copyFrom.polypointsList.begin());
 	nextPolypoint = polypointsList.begin() + (copyFrom.nextPolypoint - copyFrom.polypointsList.begin());
 
-	//Lane-zero iterators are a little trickier
-	const vector<Point2D>& myLaneZero = const_cast<RoadSegment*> (*currSegmentIt)->getLanes()[0]->getPolyline();
-	const vector<Point2D>& otherLaneZero = const_cast<RoadSegment*> (*copyFrom.currSegmentIt)->getLanes()[0]->getPolyline();
+//	//Lane-zero iterators are a little trickier
+	const vector<Point2D>& myLaneZero = const_cast<RoadSegment*> (*currSegmentIt)->getLanes()[currLaneID]->getPolyline();
+	const vector<Point2D>& otherLaneZero = const_cast<RoadSegment*> (*copyFrom.currSegmentIt)->getLanes()[currLaneID]->getPolyline();
 	currLaneZeroPolypoint = myLaneZero.begin() + (copyFrom.currLaneZeroPolypoint - otherLaneZero.begin());
 	nextLaneZeroPolypoint = myLaneZero.begin() + (copyFrom.nextLaneZeroPolypoint - otherLaneZero.begin());
+//	const vector<Point2D>& otherLane = const_cast<RoadSegment*> (*copyFrom.currSegmentIt)->getLanes()[currLaneID]->getPolyline();
+//	currLaneZeroPolypoint = otherLane.begin();
+//	nextLaneZeroPolypoint = currLaneZeroPolypoint+1;
 }
 
 void sim_mob::GeneralPathMover::setPath(const vector<const RoadSegment*>& path, int startLaneID)
@@ -330,7 +333,8 @@ void sim_mob::GeneralPathMover::resetPath(const vector<const RoadSegment*>& path
 
 void sim_mob::GeneralPathMover::calcNewLaneDistances()
 {
-	DynamicVector zeroPoly(currLaneZeroPolypoint->getX(), currLaneZeroPolypoint->getY(), nextLaneZeroPolypoint->getX(), nextLaneZeroPolypoint->getY());
+//	DynamicVector zeroPoly(currLaneZeroPolypoint->getX(), currLaneZeroPolypoint->getY(), nextLaneZeroPolypoint->getX(), nextLaneZeroPolypoint->getY());
+	DynamicVector zeroPoly(currPolypoint->getX(), currPolypoint->getY(), nextPolypoint->getX(), nextPolypoint->getY());
 	distMovedInCurrSegment += zeroPoly.getMagnitude();
 }
 

@@ -145,15 +145,15 @@ public:
 	const int getBusLineID() const {
 		return busline_id;
 	}
-	void addBusTrip(BusTrip* aBusTrip);
-	const vector<BusTrip*>& queryBusTrips() const {
+	void addBusTrip(BusTrip& aBusTrip);
+	const vector<BusTrip>& queryBusTrips() const {
 		return busTrip_vec;
 	}
-	void resetBusTrip_StopRealTimes(int trip_k, int busstopSequence_j, BusStop_RealTimes& busStopRealTimes) const;// mainly for realTimes
+	void resetBusTrip_StopRealTimes(int trip_k, int busstopSequence_j, BusStop_RealTimes& busStopRealTimes);// mainly for realTimes
 private:
 	int busline_id;
 	CONTROL_TYPE controlType;
-	vector<BusTrip*> busTrip_vec;
+	vector<BusTrip> busTrip_vec;
 };
 
 class PT_Schedule { // stored in BusController, Schedule Time Points and Real Time Points should be put separatedly
@@ -161,11 +161,11 @@ public:
 	PT_Schedule();
 	virtual ~PT_Schedule();
 
-	void registerBusLine(const int busline_id, const Busline* aBusline);
-	const Busline* findBusline(int busline_id) const;
+	void registerBusLine(const int busline_id, Busline* aBusline);
+	Busline* findBusline(int busline_id);
 	const CONTROL_TYPE findBuslineControlType(int busline_id) const;
 private:
-	map<int, const Busline*> buslineID_busline;// need new 2 times(one for particular trip, one for backup in BusController
+	map<int, Busline*> buslineID_busline;// need new 2 times(one for particular trip, one for backup in BusController
 	map<int, const CONTROL_TYPE> buslineID_controlType;// busline--->controlType
 };
 

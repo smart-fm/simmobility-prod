@@ -101,16 +101,16 @@ CONTROL_TYPE sim_mob::Busline::getControlTypeFromString(string ControlType)
 	}
 }
 
-void sim_mob::Busline::addBusTrip(BusTrip* aBusTrip)
+void sim_mob::Busline::addBusTrip(BusTrip& aBusTrip)
 {
 	busTrip_vec.push_back(aBusTrip);
 }
 
-void sim_mob::Busline::resetBusTrip_StopRealTimes(int trip_k, int busstopSequence_j, BusStop_RealTimes& busStopRealTimes) const
+void sim_mob::Busline::resetBusTrip_StopRealTimes(int trip_k, int busstopSequence_j, BusStop_RealTimes& busStopRealTimes)
 {
 	if(!busTrip_vec.empty()) {
-		BusTrip* busTripK = busTrip_vec[trip_k];
-		busTripK->setBusStopRealTimes(busstopSequence_j, busStopRealTimes);
+		//BusTrip& busTripK = busTrip_vec[trip_k];
+		busTrip_vec[trip_k].setBusStopRealTimes(busstopSequence_j, busStopRealTimes);
 	}
 }
 
@@ -124,7 +124,7 @@ sim_mob::PT_Schedule::~PT_Schedule()
 
 }
 
-void sim_mob::PT_Schedule::registerBusLine(const int busline_id, const Busline* aBusline)
+void sim_mob::PT_Schedule::registerBusLine(const int busline_id, Busline* aBusline)
 {
 	if (buslineID_busline.count(busline_id)>0) {
 		throw std::runtime_error("Duplicate buslineid.");
@@ -133,9 +133,9 @@ void sim_mob::PT_Schedule::registerBusLine(const int busline_id, const Busline* 
 	buslineID_busline[busline_id] = aBusline;
 }
 
-const Busline* sim_mob::PT_Schedule::findBusline(int busline_id) const
+Busline* sim_mob::PT_Schedule::findBusline(int busline_id)
 {
-	map<int ,const Busline*>::const_iterator it;
+	map<int ,Busline*>::const_iterator it;
 	it = buslineID_busline.find(busline_id);
 	if (it!=buslineID_busline.end()) {
 		return it->second;

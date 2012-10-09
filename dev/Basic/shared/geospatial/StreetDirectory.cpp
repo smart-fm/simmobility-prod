@@ -834,13 +834,13 @@ StreetDirectory::ShortestPathImpl::findNode(Point2D const & point)
     Node const * node = findVertex(drivingMap_, point, 50);
     if (node)
     {
-        std::cout << "  No need of Creating a new Node at" << "[" << point.getX() << ":" << point.getY() << "]";
+//        std::cout << "  No need of Creating a new Node at" << "[" << point.getX() << ":" << point.getY() << "]";
         return node;
     }
 
 
     Node * n = new UniNode(point.getX(), point.getY());
-    std::cout << "  Creating a new Node at"<< "[" << point.getX() << ":" << point.getY() << "]";
+//    std::cout << "  Creating a new Node at"<< "[" << point.getX() << ":" << point.getY() << "]";
     nodes_.push_back(n);
     return n;
 }
@@ -921,7 +921,7 @@ void StreetDirectory::ShortestPathImpl::linkCrossingToRoadSegment(RoadSegment *r
 void
 StreetDirectory::ShortestPathImpl::process(RoadSegment const * road, bool isForward)
 {
-	std::cout << "******************* linkId:segmentid[" << road->getLink()->getLinkId() << road->getSegmentID() << "]  **********************************\n";
+//	std::cout << "******************* linkId:segmentid[" << road->getLink()->getLinkId() << road->getSegmentID() << "]  **********************************\n";
 //	std::cout << "rs[" << road->getStart()->getID() << "(" << road->getStart()->getLocation().getX() << ":" << road->getStart()->getLocation().getY() << ") , " << road->getEnd()->getID() << "(" << road->getEnd()->getLocation().getX() << ":" << road->getEnd()->getLocation().getY() << ") ] =>";
 	double avgSpeed;
 	std::map<const RoadSegment*, double>::iterator avgSpeedRSMapIt;
@@ -946,9 +946,9 @@ StreetDirectory::ShortestPathImpl::process(RoadSegment const * road, bool isForw
         // we choose a point in one of the lane's polyline.
         std::vector<Point2D> const & polyline = road->getLanes()[0]->getPolyline();
         Point2D point = polyline[0];
-        std::cout << "Checking uninode1: " << node1->getID() << " for point[" << point.getX() << ":" << point.getY() << "] in segmentid:laneId[" << road->getSegmentID() << ":" << road->getLanes()[0]->getLaneID_str() << "]";
+//        std::cout << "Checking uninode1: " << node1->getID() << " for point[" << point.getX() << ":" << point.getY() << "] in segmentid:laneId[" << road->getSegmentID() << ":" << road->getLanes()[0]->getLaneID_str() << "]";
         node1 = findNode(point);
-        std::cout << "\n";
+//        std::cout << "\n";
     }
 
     //roadItems
@@ -1019,9 +1019,9 @@ StreetDirectory::ShortestPathImpl::process(RoadSegment const * road, bool isForw
         // See comment above about the road-segment's start-node.
     	std::vector<Point2D> const & polyline = road->getLanes()[0]->getPolyline();
         Point2D point = polyline[polyline.size() - 1];
-        std::cout << "Checking uninode2: " << node2->getID() << " for point[" << point.getX() << ":" << point.getY() << "] in segmentid:laneId[" << road->getSegmentID() << ":" << road->getLanes()[0]->getLaneID_str() << "]";
+//        std::cout << "Checking uninode2: " << node2->getID() << " for point[" << point.getX() << ":" << point.getY() << "] in segmentid:laneId[" << road->getSegmentID() << ":" << road->getLanes()[0]->getLaneID_str() << "]";
         node2 = findNode(point);
-        std::cout << "\n";
+//        std::cout << "\n";
     }
 
 
@@ -1030,13 +1030,13 @@ StreetDirectory::ShortestPathImpl::process(RoadSegment const * road, bool isForw
     	avgSpeed = 10;
 
 //    std::cout<<"node1 "<<node1->location.getX()<<" to node2 "<<node2->location.getX()<<" is "<<offset/(100*road->maxSpeed/3.6)<<std::endl;
-	std::cout << "requesting to add edges[" ;
-	std::cout << node1->getID() << "(" << node1->getLocation().getX() << ":" << node1->getLocation().getY() << ") , " << node2->getID() << "(" << node2->getLocation().getX() << ":" << node2->getLocation().getY() << ")]" << std::endl;
+//	std::cout << "requesting to add edges[" ;
+//	std::cout << node1->getID() << "(" << node1->getLocation().getX() << ":" << node1->getLocation().getY() << ") , " << node2->getID() << "(" << node2->getLocation().getX() << ":" << node2->getLocation().getY() << ")]" << std::endl;
 
 //    std::cout << "Adding edges between nodes " << node1->getID() << "  and " << node2->getID() << std::endl;
     addRoadEdge(node1, node2, WayPoint(road), offset);
 //    addRoadEdgeWithTravelTime(node1, node2, WayPoint(road), offset/avgSpeed);
-    std::cout << "===========================================================================================\n\n";
+//    std::cout << "===========================================================================================\n\n";
 }
 
 // Search for <node> in <graph>.  If any vertex in <graph> has <node> attached to it, return it;
@@ -1056,8 +1056,8 @@ const
         Node const * n = boost::get(boost::vertex_name, graph, v);
         if (node == n)
         {
-        	if(out)
-        	std::cout << "In StreetDirectory::ShortestPathImpl::findVertex, Found vertex for node(" << node->getID() << ")\n";
+//        	if(out)
+//        	std::cout << "In StreetDirectory::ShortestPathImpl::findVertex, Found vertex for node(" << node->getID() << ")\n";
         	//getchar();
             return v;
         }
@@ -1065,8 +1065,8 @@ const
 
     Vertex v = boost::add_vertex(const_cast<Graph &>(graph));
     boost::put(boost::vertex_name, const_cast<Graph &>(graph), v, node);
-	if(out)
-    std::cout << "In StreetDirectory::ShortestPathImpl::findVertex, added new vertice for node(" << node->getID() << ") num_vertices = " << boost::num_vertices(graph) << std::endl;
+//	if(out)
+//    std::cout << "In StreetDirectory::ShortestPathImpl::findVertex, added new vertice for node(" << node->getID() << ") num_vertices = " << boost::num_vertices(graph) << std::endl;
     //getchar();
     return v;
 }
@@ -1078,7 +1078,7 @@ void
 StreetDirectory::ShortestPathImpl::addRoadEdge(Node const * node1, Node const * node2,
                                                WayPoint const & wp, centimeter_t length)
 {
-	std::cout << "addRoadEdge\n";
+//	std::cout << "addRoadEdge\n";
     Vertex u = findVertex(drivingMap_, node1,true);
     Vertex v = findVertex(drivingMap_, node2,true);
 
@@ -1697,7 +1697,7 @@ StreetDirectory::init(RoadNetwork const & network, bool keepStats /* = false */,
     pimpl_ = new Impl(network, gridWidth, gridHeight);
     spImpl_ = new ShortestPathImpl(network);
     printDrivingGraph();
-    std::cout << "In StreetDirectory::init,  boost::num_vertices(rivingmap_) = " << boost::num_vertices(this->spImpl_->drivingMap_) << std::endl;
+//    std::cout << "In StreetDirectory::init,  boost::num_vertices(rivingmap_) = " << boost::num_vertices(this->spImpl_->drivingMap_) << std::endl;
 //    getchar();
 }
 

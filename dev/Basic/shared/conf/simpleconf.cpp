@@ -854,6 +854,8 @@ void PrintDB_Network()
 		std::stringstream laneBuffer; //Put it in its own buffer since getLanePolyline() can throw.
 		laneBuffer <<"(\"lane\", 0, " <<&((*it)->getLanes()) <<", {";
 		laneBuffer <<"\"parent-segment\":\"" <<*it <<"\",";
+//		std::cout << "Segment " << (*it)->getSegmentID() << "    getLanes().size() = " << (*it)->getLanes().size() << " Before...";
+//		getchar();
 		for (size_t laneID=0; laneID<=(*it)->getLanes().size(); laneID++) {
 			const vector<Point2D>& points = const_cast<RoadSegment*>(*it)->getLaneEdgePolyline(laneID);
 			laneBuffer <<"\"line-" <<laneID <<"\":\"[";
@@ -867,6 +869,9 @@ void PrintDB_Network()
 			}
 
 		}
+//		std::cout << "Segment " << (*it)->getSegmentID() << "    getLanes().size() = " << (*it)->getLanes().size() << " After...";
+//		getchar();
+
 		laneBuffer <<"})" <<endl;
 		LogOutNotSync(laneBuffer.str());
 	}
@@ -1173,10 +1178,13 @@ void PrintDB_Network_ptrBased()
 		std::stringstream laneBuffer; //Put it in its own buffer since getLanePolyline() can throw.
 		laneBuffer <<"(\"lane\", 0, " <<&((*it)->getLanes()) <<", {";
 		laneBuffer <<"\"parent-segment\":\"" <<*it <<"\",";
-		for (size_t laneID=0; laneID < (*it)->getLanes().size(); laneID++) {
-			std::cout << "Handling lane index " << laneID << " laneid: " << (*it)->getLanes()[laneID]->getLaneID() << "  for segment " << (*it)->getSegmentID() << std::endl;
-			const vector<Point2D>& points =(*it)->getLanes()[laneID]->getPolyline(false);
-			std::cout << "Polyline size = " << points.size() << std::endl;
+//		std::cout << "Segment " << (*it)->getSegmentID() << "    getLanes().size() = " << (*it)->getLanes().size() << "  getLaneEdgePolyline.size=" << (*it)->laneEdgePolylines_cached.size() <<" Before...";
+//		getchar();
+		for (size_t laneID=0; laneID <= (*it)->getLanes().size(); laneID++) {
+//			std::cout << "Handling lane index " << laneID << " laneid: " << (*it)->getLanes()[laneID]->getLaneID() << "  for segment " << (*it)->getSegmentID() << std::endl;
+//			const vector<Point2D>& points =(*it)->getLanes()[laneID]->getPolyline(false);
+			const vector<Point2D>& points =(*it)->laneEdgePolylines_cached[laneID];
+//			std::cout << "Polyline size = " << points.size() << std::endl;
 			laneBuffer <<"\"lane-" <<laneID <<"\":\"[";
 			for (vector<Point2D>::const_iterator ptIt=points.begin(); ptIt!=points.end(); ptIt++) {
 				laneBuffer <<"(" <<ptIt->getX() <<"," <<ptIt->getY() <<"),";
@@ -1188,6 +1196,10 @@ void PrintDB_Network_ptrBased()
 			}
 
 		}
+
+//		std::cout << "Segment " << (*it)->getSegmentID() << "    getLanes().size() = " << (*it)->getLanes().size() << " getLaneEdgePolyline.size=" << (*it)->laneEdgePolylines_cached.size() <<" After...";
+//		getchar();
+
 		laneBuffer <<"})" <<endl;
 		LogOutNotSync(laneBuffer.str());
 	}
@@ -1549,9 +1561,15 @@ for (set<UniNode*>::const_iterator it=rn.getUniNodes().begin(); it!=rn.getUniNod
 		}
 	}
 		for (std::set<const RoadSegment*>::const_iterator it=cachedSegments.begin(); it!=cachedSegments.end(); it++) {
-					for (size_t laneID = 0; laneID != (*it)->getLanes().size(); laneID++) {
+//			std::cout << "Segment " << (*it)->getSegmentID() << "    getLanes().size() = " << (*it)->getLanes().size() << "getLaneEdgePolyline.size=" << (*it)->laneEdgePolylines_cached.size() <<" Before...\n";
+//			getchar();
+					for (size_t laneID = 0; laneID <= (*it)->getLanes().size(); laneID++) {
 						const vector<Point2D>& points = const_cast<RoadSegment*>(*it)->getLaneEdgePolyline(laneID);
+						std::cout << "getLaneEdgePolyline(" << laneID << ").size = " << points.size();
 					}
+//					std::cout << "Segment " << (*it)->getSegmentID() << "    getLanes().size() = " << (*it)->getLanes().size() << "getLaneEdgePolyline.size=" << (*it)->laneEdgePolylines_cached.size() << " After...\n";
+//					std::cout << ".............................\n";
+					//					getchar();
 		}
 
 }
@@ -1961,33 +1979,15 @@ std::string loadXMLConf(TiXmlDocument& document, std::vector<Entity*>& active_ag
  	std::cout << "XML input for SimMobility Created....\n";
  	return "XML input for SimMobility Created....\n";//shouldn't be empty :)
  #endif
-// 	std::cout << "PrintDB_Network_idBased started\n";
-//    PrintDB_Network_idBased();
-//    std::cout << "PrintDB_Network_idBased-1 Done\n";
     patchRoadNetworkwithLaneEdgePolyline();//apparently, must be called before StreetDirectory.init
-//    std::cout << "patchRoadNetworkwithLaneEdgePolyline Done\n";
-//    PrintDB_Network_idBased();
-//    std::cout << "PrintDB_Network_idBased-2 Done\n";
-////    PrintDB_Network();
-//    return "Early temporary returning\n";
 
-    //todo remove te following clause and put it back in performMain() if the results are not promising.
-
-
-    //Now that the network has been loaded, initialize our street directory (so that lookup succeeds).
-	//todo: check why street directory makes changes in the roadnetwork AFTER network is sealed
-	//example:
-	//1-update roadSegment member variable in crossing
-	//2-I saw a function called addsidewalk() in streetdirectory.
-	//These can mess with the simMobility input XML generation process. Therefore I moved the xml writer to the above so that it writes the XML before street directory is initialized!-Vahid
-
-    StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
     std::cout << "\n\n\n\n\n\nStreet Directory initialized" << std::endl;
+//    getchar();
     PrintDB_Network_ptrBased();
-       std::cout << "PrintDB_Network_idBased-3 (After StreetDirectory.init)  Done\n";
 //    PrintDB_Network();
-//        return "Early temporary returning\n";
 
+       StreetDirectory::instance().init(ConfigParams::GetInstance().getNetwork(), true);
+       return "returning \n";
     //Maintain unique/non-colliding IDs.
     AgentConstraints constraints;
     constraints.startingAutoAgentID = startingAutoAgentID;

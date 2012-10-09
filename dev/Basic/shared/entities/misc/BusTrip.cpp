@@ -51,12 +51,12 @@ sim_mob::BusTrip::BusTrip(int entId, string type, unsigned int seqNumber,
 		unsigned int busRoute_id, Node* from, string fromLocType, Node* to,
 		string toLocType)
 : Trip(entId, type, seqNumber, start, end, busTripRun_sequenceNum,from, fromLocType, to, toLocType),
-busLine_id(busLine_id), busTripRun_sequenceNum(busTripRun_sequenceNum), vehicle_id(vehicle_id), bus_RouteInfo(&BusRouteInfo(busRoute_id))
+busLine_id(busLine_id), busTripRun_sequenceNum(busTripRun_sequenceNum), vehicle_id(vehicle_id), bus_RouteInfo(BusRouteInfo(busRoute_id))
 {
 
 }
 
-void sim_mob::BusTrip::addBusStopScheduledTimes(const BusStop_ScheduledTimes* aBusStopScheduledTime)
+void sim_mob::BusTrip::addBusStopScheduledTimes(const BusStop_ScheduledTimes& aBusStopScheduledTime)
 {
 	busStopScheduledTimes_vec.push_back(aBusStopScheduledTime);
 }

@@ -135,9 +135,9 @@ unsigned int sim_mob::BusController::scheduledDecision(int busline_i, int trip_k
 	//BusRouteInfo* busRouteInfo_tripK = BusTrips[trip_k].getBusRouteInfo();
 
 	//StopInformation(Times)
-	const vector<const BusStop_ScheduledTimes*>& busStopScheduledTime_tripK = BusTrips[trip_k].getBusStopScheduledTimes();
+	const vector<BusStop_ScheduledTimes>& busStopScheduledTime_tripK = BusTrips[trip_k].getBusStopScheduledTimes();
 	//const vector<const BusStopInfo*>& busStopInfoFwd_tripK = busRouteInfoFwd_tripK->getBusStopsInfo();
-	SETijk = busStopScheduledTime_tripK[busstopSequence_j]->scheduled_DepartureTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
+	SETijk = busStopScheduledTime_tripK[busstopSequence_j].scheduled_DepartureTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 
 	DTijk = dwellTimeCalculation(busline_i, trip_k, busstopSequence_j);
 	ETijk = std::max(SETijk - sij, ATijk + DTijk);
@@ -198,9 +198,9 @@ unsigned int sim_mob::BusController::evenheadwayDecision(int busline_i, int trip
 	const vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripKplus1 = BusTrips[trip_k + 1].getBusStopRealTimes();
 	ATimk_plus1 = busStopRealTime_tripKplus1[lastVisited_BusStopSeqNum]->get().real_ArrivalTime;
 
-	const vector<const BusStop_ScheduledTimes*>& busStopScheduledTime_tripKplus1 = BusTrips[trip_k + 1].getBusStopScheduledTimes();
-	SRTmj = busStopScheduledTime_tripKplus1[busstopSequence_j]->scheduled_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime)
-			- busStopScheduledTime_tripKplus1[lastVisited_BusStopSeqNum]->scheduled_DepartureTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
+	const vector<BusStop_ScheduledTimes>& busStopScheduledTime_tripKplus1 = BusTrips[trip_k + 1].getBusStopScheduledTimes();
+	SRTmj = busStopScheduledTime_tripKplus1[busstopSequence_j].scheduled_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime)
+			- busStopScheduledTime_tripKplus1[lastVisited_BusStopSeqNum].scheduled_DepartureTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 
 	DTijk = dwellTimeCalculation(busline_i, trip_k, busstopSequence_j);
 	ETijk = std::max((unsigned int)(ATijk_1 + (double)(ATimk_plus1 + SRTmj - ATijk_1)/2.0), ATijk + DTijk); // need some changes for precision

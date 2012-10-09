@@ -102,16 +102,16 @@ public:
 	const int getBusLineID() const {
 		return busLine_id;
 	}
-	const BusRouteInfo* getBusRouteInfo() const {
+	const BusRouteInfo& getBusRouteInfo() const {
 		return bus_RouteInfo;
 	}
 //	BusRouteInfo* getBusRouteInfo() const {
 //		return bus_RouteInfo;
 //	}
-	void addBusStopScheduledTimes(const BusStop_ScheduledTimes* aBusStopScheduledTime);
+	void addBusStopScheduledTimes(const BusStop_ScheduledTimes& aBusStopScheduledTime);
 	void addBusStopRealTimes(Shared<BusStop_RealTimes>* aBusStopRealTime);
 	void setBusStopRealTimes(int busstopSequence_j, BusStop_RealTimes& busStopRealTimes);
-	const vector<const BusStop_ScheduledTimes*>& getBusStopScheduledTimes() const {
+	const vector<BusStop_ScheduledTimes>& getBusStopScheduledTimes() const {
 		return busStopScheduledTimes_vec;
 	}
 	const vector <Shared<BusStop_RealTimes>* >& getBusStopRealTimes() const {
@@ -121,9 +121,9 @@ private:
 	int busLine_id;
 	int busTripRun_sequenceNum;
 	int vehicle_id;
-	BusRouteInfo* bus_RouteInfo;// route inside this BusTrip, just some roadSegments and BusStops
+	BusRouteInfo bus_RouteInfo;// route inside this BusTrip, just some roadSegments and BusStops
 
-	vector<const BusStop_ScheduledTimes*> busStopScheduledTimes_vec;// can be different for different pair<busLine_id,busTripRun_sequenceNum>
+	vector<BusStop_ScheduledTimes> busStopScheduledTimes_vec;// can be different for different pair<busLine_id,busTripRun_sequenceNum>
 	vector <Shared<BusStop_RealTimes>* > busStopRealTimes_vec;// can be different for different pair<busLine_id,busTripRun_sequenceNum>
 };
 

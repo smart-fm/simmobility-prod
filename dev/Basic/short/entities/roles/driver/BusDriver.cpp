@@ -244,7 +244,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 
 		vehicle->setAcceleration(busAccelerating(p)*100);
 	}
-
+/*
 	std::cout<<"BusDriver::updatePositionOnLink:tick: "<<p.currTimeMS/1000.0<<std::endl;
 	std::cout<<"BusDriver::updatePositionOnLink:busvelocity: "<<vehicle->getVelocity()/100.0<<std::endl;
 	std::cout<<"BusDriver::updatePositionOnLink:busacceleration: "<<vehicle->getAcceleration()/100.0<<std::endl;
@@ -252,7 +252,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 	std::cout<<"BusDriver::updatePositionOnLink:busstopdistance: "<<distanceToNextBusStop()<<std::endl;
 	std::cout<<"my bus distance moved in segment: "<<vehicle->getDistanceToSegmentStart()/100.0<<std::endl;
 	std::cout<<"but DistanceMovedInSegment"<<vehicle->getDistanceMovedInSegment()/100.0<<std::endl;
-	std::cout<<"current polyline length: "<<vehicle->getCurrPolylineLength()/100.0<<std::endl;
+	std::cout<<"current polyline length: "<<vehicle->getCurrPolylineLength()/100.0<<std::endl;*/
 //	DynamicVector segmentlength(vehicle->getCurrSegment()->getStart()->location.getX(),vehicle->getCurrSegment()->getStart()->location.getY(),
 //			vehicle->getCurrSegment()->getEnd()->location.getX(),vehicle->getCurrSegment()->getEnd()->location.getY());
 //	std::cout<<"current segment length: "<<segmentlength.getMagnitude()/100.0<<std::endl;

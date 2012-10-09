@@ -1065,7 +1065,7 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 
 		//Add the bus stop to its parent segment's obstacle list at an estimated offset.
 		double distOrigin = sim_mob::BusStop::EstimateStopPoint(busstop->xPos, busstop->yPos, sections_[it->second.TMP_AtSectionID].generatedSegment);
-		busstop->parentSegment_->obstacles[distOrigin] = busstop;
+		busstop->parentSegment_->addObstacle(distOrigin, busstop);
 	}
 
 	/*vahid:

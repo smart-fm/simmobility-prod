@@ -69,7 +69,7 @@ public:
 #endif
 
 //protected:
-    Node(int x, int y) : location(x, y) {}
+    Node(int x, int y) : nodeId(0), location(x, y), linkLoc(nullptr) {}
 //private:
     sim_mob::Link* linkLoc;
 
@@ -79,7 +79,7 @@ public:
     void setLinkLoc(sim_mob::Link* link);
 
     sim_mob::Link* getLinkLoc() const;
-  const Point2D getLocation(){ return location;}
+  const Point2D getLocation() const { return location;}
 };
 
 

@@ -881,24 +881,14 @@ void PrintDB_Network()
 			LogOutNotSync("})" <<endl);
 		}
 
-
 		const std::map<centimeter_t, const RoadItem*>& mapBusStops = (*it)->obstacles;
-				for(std::map<centimeter_t, const RoadItem*>::const_iterator itBusStops = mapBusStops.begin(); itBusStops != mapBusStops.end(); ++itBusStops)
-				{
-					std::cout<<"inside itBusStops loop...";
-					const RoadItem* ri = itBusStops->second;
-					const BusStop* resBS = dynamic_cast<const BusStop*>(ri);
-						if (resBS) {
-							std::cout<<"inserting busstop";
-						cachedBusStops.insert(resBS);
-					} else {
-						std::cout<<"this is not a busstop";
-//						std::cout <<"NOTE: Unknown obstacle!\n";
-					}
-						std::cout<< std::endl;
-				}
-				std::cout<<"itBusStops size : " <<  cachedBusStops.size() << std::endl;
-
+		for (std::map<centimeter_t, const RoadItem*>::const_iterator itBusStops = mapBusStops.begin(); itBusStops != mapBusStops.end(); ++itBusStops) {
+			const RoadItem* ri = itBusStops->second;
+			const BusStop* resBS = dynamic_cast<const BusStop*>(ri);
+			if (resBS) {
+				cachedBusStops.insert(resBS);
+			}
+		}
 
 		//Save crossing info for later
 		const std::map<centimeter_t, const RoadItem*>& mapCrossings = (*it)->obstacles;
@@ -906,10 +896,8 @@ void PrintDB_Network()
 		{
 			const RoadItem* ri = itCrossings->second;
 			const Crossing* resC = dynamic_cast<const Crossing*>(ri);
-				if (resC) {
+			if (resC) {
 				cachedCrossings.insert(resC);
-			} else {
-				std::cout <<"NOTE: Unknown obstacle!\n";
 			}
 		}
 

@@ -22,6 +22,7 @@ class Point2D;
 class RoadNetwork;
 class RoadSegment;
 class Node;
+class MultiNode;
 class BusStop;
 class Crossing;
 
@@ -105,7 +106,7 @@ struct WayPoint
 
     /** \cond ignoreStreetDirectoryInnards -- Start of block to be ignored by doxygen.  */
     // Used only by the StreetDirectory.  No need to expose them in the doxygen pages.
-    WayPoint() : type_(INVALID) {}
+    WayPoint() : type_(INVALID), directionReverse(false) {}
     explicit WayPoint(Lane const * lane) : type_(SIDE_WALK), lane_(lane),directionReverse(false) {}
     explicit WayPoint(RoadSegment const * road) : type_(ROAD_SEGMENT), roadSegment_(road),directionReverse(false) {}
     explicit WayPoint(BusStop const * stop) : type_(BUS_STOP), busStop_(stop),directionReverse(false) {}
@@ -204,6 +205,11 @@ public:
      */
     LaneAndIndexPair
     getLane(Point2D const & point) const;
+
+    /**
+     * Return the MultiNode closest to this Crossing (may be null).
+     */
+    const MultiNode* GetCrossingNode(const Crossing* cross) const;
 
     /**
      * Return the RoadSegments within a rectangle centered around a point;

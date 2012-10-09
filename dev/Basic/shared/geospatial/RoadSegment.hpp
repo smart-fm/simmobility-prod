@@ -60,7 +60,11 @@ public:
 
 public:
 	
-	explicit RoadSegment(sim_mob::Link* parent=nullptr, unsigned long id=-1);
+	explicit RoadSegment(sim_mob::Link* parent=nullptr, unsigned long id=-1) :
+		Pavement(),
+		maxSpeed(0), busstop(nullptr), lanesLeftOfDivider(0), parentLink(parent),segmentID(id)
+	{}
+
 	const unsigned long  & getSegmentID()const ;
 
 	bool operator== (const RoadSegment* rhs) const

@@ -8,6 +8,8 @@
 #include <boost/thread.hpp>
 #include "util/OutputUtil.hpp"
 
+#include "geospatial/Point2D.hpp"
+
 #ifndef SIMMOB_DISABLE_MPI
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/binary_iarchive.hpp>
@@ -93,6 +95,10 @@ public:
 	DynamicVector(double fromX=0.0, double fromY=0.0, double toX=0.0, double toY=0.0)
 		: pos(fromX, fromY), mag(toX-fromX, toY-fromY) {
 		isZero = toX==fromX && toY==fromY; //In this case, there's not much we can do.
+	}
+	DynamicVector(const Point2D& from, const Point2D& to)
+		: pos(from.getX(), from.getY()), mag(to.getX()-from.getX(), to.getY()-from.getY()) {
+		isZero = to.getX()==from.getX() && to.getY()==from.getY(); //In this case, there's not much we can do.
 	}
 	DynamicVector(const DynamicVector& copyFrom)
 		: pos(copyFrom.pos.x, copyFrom.pos.y), mag(copyFrom.mag.x, copyFrom.mag.y), isZero(copyFrom.isZero) {}

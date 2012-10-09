@@ -28,8 +28,8 @@ public class SimulationResults {
 	
 	public ArrayList<TimeTick> ticks;
 	
-	private static double[] xBounds;
-	private static double[] yBounds;
+	//private static double[] xBounds;
+	//private static double[] yBounds;
 	
 	public int frame_length_ms;
 	
@@ -59,8 +59,8 @@ public class SimulationResults {
 		}
 		
 		//TEMP: Hack for agents which are out of bounds
-		xBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
-		yBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
+	//	xBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
+	//	yBounds = new double[]{Double.MAX_VALUE, Double.MIN_VALUE};
 		
 		//Read
 		String line;	

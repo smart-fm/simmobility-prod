@@ -37,7 +37,7 @@ public class TrafficSignalUpdate implements DrawableItem, GsonResObj {
 	 * (non-Javadoc)
 	 * @see sim_mob.vis.simultion.GsonResObj#addSelfToSimulation(sim_mob.vis.network.RoadNetwork, sim_mob.vis.simultion.SimulationResults)
 	 * here we have phases with current color, we just update the colors of the current phase(we may need
-	 * to reconsider tis and update evrey phase .Let's ope not)
+	 * to reconsider this and update every phase .Let's hope not)
 	 * Anyway, This method creates a new SignalLineTick, 
 	 * for this SignalLineTick, finds the proper intersection,
 	 * find the corresponding trafficsignallines associated with this intersection(only for the current phase)
@@ -45,69 +45,57 @@ public class TrafficSignalUpdate implements DrawableItem, GsonResObj {
 	 * adds this tempSignalLineTick to ticks' signalLineTicks sub-collection
 	 * 
 	 */
-	public void addSelfToSimulation(RoadNetwork rdNet, SimulationResults simRes) {
-		//TODO: Here is where you'd add this traffic signal to the road network.
-//		System.out.println("Inside TSU.trafficsignalupdate");
-		
+	public void addSelfToSimulation(RoadNetwork rdNet, SimulationResults simRes) {		
 		//This id will be used for 2 purposes:
 		//1-updating current colours of the corresponding traffic signal in the corresponding intersection
 		//2-adding a singallinetick to ticks container in simulationresults class
 		
 		//long id = SignalHelper.HexStringToInt(this.hex_id);
 		long id = Utility.ParseLongOptionalHex(this.hex_id);
+		Intersection tempIntersection = rdNet.getIntersections().get(id);
 		
-		//1.
-//		System.out.println("Looking for Intersection " + id + "  which must be equal to " + rdNet.getIntersections().get(id).getIntersectID());
-		
-		Intersection tempIntersection = rdNet.getIntersection().get(id);
-		SignalHelper signalHelper = tempIntersection.getSignalHelper();
-		//since we dont have a mechanism like TrafficSignalLine for crossing, we build its signallinetick requirement right here
-		HashMap<Long,Integer> CRSs= new HashMap<Long,Integer>();//this initialization is useless. the actuall initialization is done inside the following for loop.this one is just to avoid the errors
-//		System.out.println("This crossing has " + tempIntersection.getAllSignalCrossings().values().size() + " Crossings");
-//		System.out.println("");
-		for(ArrayList<Long> origCrossings:tempIntersection.getAllSignalCrossings().values())
-			for(Long origCrossing:origCrossings)
-			{
-				CRSs.put(origCrossing, 1);
-//				if((frame == 230))
-//					System.out.println("crossing " + origCrossing + " initialized to red");
+		//since we don't have a mechanism like TrafficSignalLine for crossing, we build its signallinetick requirement right here
+		HashMap<Long,Integer> crossingsToColorID = new HashMap<Long,Integer>();
+		for(ArrayList<Long> origCrossings : tempIntersection.getAllSignalCrossings().values()) {
+			for(Long origCrossing : origCrossings) {
+				crossingsToColorID.put(origCrossing, 1);
 			}
-//		System.out.println("Total of " +CRSs.size()+ " Was set to red" );
-		for(TrafficSignal.Phase updatingPhase:phases)
-		{
+		}
+		
+		
+		SignalHelper signalHelper = tempIntersection.getSignalHelper();
+		for(TrafficSignal.Phase updatingPhase:phases) {
 			//segment part
-			for(TrafficSignal.Segment updatingSegment:updatingPhase.getSegmens())
-			{
-			
+			for(TrafficSignal.Segment updatingSegment:updatingPhase.getSegmens()) {
 				long updatingSegmentFrom = Utility.ParseLongOptionalHex(updatingSegment.getSegmentFrom());
 				long updatingSegmentTo = Utility.ParseLongOptionalHex(updatingSegment.getSegmentTo());
 				SignalHelper.Phase originalPhaseHelper = signalHelper.getPhase(updatingPhase.getName());
 				SignalHelper.Segment originalSegmentHelper = originalPhaseHelper.getSegmentPair(updatingSegmentFrom, updatingSegmentTo);
-				if(originalSegmentHelper !=null && originalSegmentHelper.generatedTrafficSignalLine!=null)
-				{
-					originalSegmentHelper.generatedTrafficSignalLine.setLightColor(updatingSegment.getCurrColor());//this were previously being done in the addTrafficLines() of NetworkVisualizer class !!!
+				if(originalSegmentHelper!=null && originalSegmentHelper.generatedTrafficSignalLine!=null) {
+					//this was previously being done in the addTrafficLines() of NetworkVisualizer class.
+					originalSegmentHelper.generatedTrafficSignalLine.setLightColor(updatingSegment.getCurrColor());
 				}
 			}
-				if(updatingPhase.getName().equals(currPhase))
-				{
-					for (TrafficSignal.Crossing updatingCrossing : updatingPhase.getCrossings()) {
-						if(updatingCrossing != null){
-							if(updatingCrossing.getId() != null){
-							if(updatingCrossing.getId().length() > 1)	
-							{
-								long updatingCrossingId = Utility.ParseLongOptionalHex(updatingCrossing.getId());
-								CRSs.put(updatingCrossingId,updatingCrossing.getCurrColor());
-							}
-							}
+			if(updatingPhase.getName().equals(currPhase)){
+				for (TrafficSignal.Crossing updatingCrossing : updatingPhase.getCrossings()) {
+					if(updatingCrossing != null){
+						if(updatingCrossing.getId() != null){
+						if(updatingCrossing.getId().length() > 1) {
+							long updatingCrossingId = Utility.ParseLongOptionalHex(updatingCrossing.getId());
+							crossingsToColorID.put(updatingCrossingId,updatingCrossing.getCurrColor());
+						}
 						}
 					}
 				}
+			}
 		}
-		//2.
-		ArrayList<TrafficSignalLine> TSLs ;//  allocate memory and create a copy in the SignalLineTick constructor = new Hashtable<String, ArrayList<TrafficSignalLine>>();
 		
-		TSLs = tempIntersection.getPhaseTrafficSignalLines(currPhase);//we now give a reference of intersection's trafficsignallines with updated colors to the to-be-created SignalLineTick
-		SignalLineTick tempSignalLineTick = new SignalLineTick(id,TSLs,CRSs,this.getTimeTick(),currPhase);
+		//2.
+		//  allocate memory and create a copy in the SignalLineTick constructor = new Hashtable<String, ArrayList<TrafficSignalLine>>();
+		//we now give a reference of intersection's trafficsignallines with updated colors to the to-be-created SignalLineTick
+		ArrayList<TrafficSignalLine> TSLs = tempIntersection.getPhaseTrafficSignalLines(currPhase);
+		SignalLineTick tempSignalLineTick = new SignalLineTick(id,TSLs,crossingsToColorID,this.getTimeTick(),currPhase);
+		
 		//Now add it to the place holder as it used to add in SimResLineParser.end(). 
 		simRes.reserveTimeTick(this.getTimeTick());
 		simRes.ticks.get(this.getTimeTick()).signalLineTicks.put(tempSignalLineTick.getID(), tempSignalLineTick);

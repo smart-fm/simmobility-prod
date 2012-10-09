@@ -14,11 +14,10 @@ import javax.imageio.ImageIO;
 import com.google.gson.Gson;
 
 import sim_mob.vis.Main;
-import sim_mob.vis.network.TrafficSignal;
 import sim_mob.vis.network.basic.FlippedScaledPoint;
 import sim_mob.vis.network.basic.ScaledPoint;
-import sim_mob.vis.simultion.GsonResObj;
-import sim_mob.vis.simultion.TrafficSignalUpdate;
+import sim_mob.vis.simultion.*;
+import sim_mob.vis.network.*;
 
 /**
  * \author Seth N. Hetu
@@ -33,9 +32,10 @@ public class Utility {
 	//      for each object you want to be able to parse with the Gson parser. 
 	//      Do NOT add any extra fields to this class; we use reflection to scan all fields
 	//      and return ONLY the one which is valid.
+	@SuppressWarnings("unused") //We need this to avoid throwing out our parameters.
 	private final class GsonWrapper {
 		//NOTE: These names are mildly confusing, but just follow the pattern for new fields
-		//      and everything will work.
+		//      and everything will work.		
 		TrafficSignal TrafficSignal;
 		TrafficSignalUpdate TrafficSignalUpdate;
 

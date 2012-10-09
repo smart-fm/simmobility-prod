@@ -136,8 +136,9 @@ vector<WayPoint> LoadSpecialPath(const Node* origin, char pathLetter) {
 
 //Initialize
 sim_mob::medium::Driver::Driver(Person* parent, MutexStrategy mtxStrat) :
-	Role(parent), currLane_(mtxStrat, nullptr), currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0), isInIntersection(mtxStrat, false),
-	fwdVelocity(mtxStrat,0), vehicle(nullptr), params(parent->getGenerator())
+	Role(parent), remainingTimeToComplete(0), currLane_(mtxStrat, nullptr),
+	currLaneOffset_(mtxStrat, 0), currLaneLength_(mtxStrat, 0), isInIntersection(mtxStrat, false),
+	fwdVelocity(mtxStrat,0), targetLaneIndex(0), vehicle(nullptr), params(parent->getGenerator())
 {
 
 //	if (Debug::Drivers) {

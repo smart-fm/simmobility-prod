@@ -34,7 +34,8 @@ public:
 	double yPos;
 	bool isIntersection;
 
-	Node() : Base(), generatedNode(nullptr) {}
+	Node() : Base(),
+		xPos(0), yPos(0), isIntersection(false), candidateForSegmentNode(false), generatedNode(nullptr) {}
 
 	int getXPosAsInt() {
 		return round(xPos);

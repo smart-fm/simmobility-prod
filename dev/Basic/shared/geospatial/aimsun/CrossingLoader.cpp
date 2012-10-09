@@ -205,7 +205,7 @@ void sim_mob::aimsun::CrossingLoader::GenerateACrossing(sim_mob::RoadNetwork& re
 			}
 
 			//Add it. Note that it is perfectly ok (and expected) for multiple Segments to reference the same Crossing.
-			(*it)->generatedSegment->obstacles[distOrigin] = res;
+			(*it)->generatedSegment->addObstacle(distOrigin,res);
 		}
 	}
 }

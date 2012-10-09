@@ -24,7 +24,6 @@ import java.util.regex.*;
 
 import sim_mob.conf.CSS_Interface;
 import sim_mob.vis.controls.*;
-import sim_mob.vis.network.LaneMarking;
 import sim_mob.vis.network.RoadNetwork;
 import sim_mob.vis.network.basic.ScaledPoint;
 import sim_mob.vis.simultion.SimulationResults;

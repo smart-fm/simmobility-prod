@@ -18,7 +18,7 @@ import sim_mob.vis.network.basic.Vect;
 public class LinkName implements DrawableItem {
 	//Constants/Resources
 	private static Font roadNameFont = new Font("Arial", Font.PLAIN, 16);
-	private static Color roadNameColor = new Color(0x33, 0x33, 0x33);
+	//private static Color roadNameColor = new Color(0x33, 0x33, 0x33);
 	
 	//private Link parent;
 	//private int parentLinkID;

@@ -29,7 +29,7 @@ class UnPackageUtils;
  */
 class Crossing : public RoadItem {
 public:
-	Crossing() : RoadItem(),roadSegment(NULL) {}
+	Crossing() : RoadItem(), crossingID(0), roadSegment(NULL) {}
 
 //	RoadSegment* getRoadSegment() const { return roadSegment; };
 //	void setRoadSegment(RoadSegment *rs) { if(rs) roadSegment = rs; };

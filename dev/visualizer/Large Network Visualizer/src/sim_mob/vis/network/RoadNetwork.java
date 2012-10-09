@@ -86,7 +86,7 @@ public class RoadNetwork {
 	public Hashtable<Long, Crossing> getCrossings() { return crossings; }
 	public Hashtable<Long, TrafficSignalCrossing> getTrafficSignalCrossing() {return trafficSignalCrossings;}
 	public Hashtable<Long, TrafficSignalLine> getTrafficSignalLine(){return trafficSignalLines;}
-	public Hashtable<Long, Intersection> getIntersection(){return intersections;}
+	public Hashtable<Long, Intersection> getIntersections(){return intersections;}
 	public Hashtable<Long, CutLine> getCutLine(){return cutLines;}
 	
 	public ArrayList<Annotation> getAimsunAnnotations() { return annot_aimsun; }
@@ -103,7 +103,8 @@ public class RoadNetwork {
 	 */
 	public void loadFileAndReport(BufferedReader inFile, long fileLength, NetworkPanel progressUpdate) throws IOException {
 		Main.NEW_SIGNAL = false;//default
-		System.out.println("System NEW_SIGNAL reset to false");
+		System.out.println("System NEW_SIGNAL initialized to false");
+		
 		nodes = new Hashtable<Long, Node>();
 		busstop = new Hashtable<Long, BusStop>();
 		annot_aimsun = new ArrayList<Annotation>();
@@ -891,11 +892,11 @@ public class RoadNetwork {
 		spaceNodeAnnotations(alreadySpaced, annot_aimsun);
 		spaceNodeAnnotations(alreadySpaced, annot_mitsim);
 	}
-	private void spaceBusStopAnnotations() {
+	/*private void spaceBusStopAnnotations() {
 		Hashtable<Point, Integer> alreadySpaced = new Hashtable<Point, Integer>(); //int = conflicts
 		spaceBusStopAnnotations(alreadySpaced, annot_aimsun);
 		spaceBusStopAnnotations(alreadySpaced, annot_mitsim);
-	}
+	}*/
 	
 	
 	//Attempt to place each annotation. Avoid overlapping any existing annotations.
@@ -925,7 +926,7 @@ public class RoadNetwork {
 	}
 	
 	//
-	private void spaceBusStopAnnotations(Hashtable<Point, Integer> alreadySpaced, ArrayList<Annotation> toSpace) {
+	/*private void spaceBusStopAnnotations(Hashtable<Point, Integer> alreadySpaced, ArrayList<Annotation> toSpace) {
 		Point amt = new Point(500, 800);
 		Point[] magnitudes = new Point[] {new Point(0,amt.y), new Point(amt.x,amt.y/2), new Point(amt.x,-amt.y/2), new Point(0,-amt.y) }; 
 		
@@ -946,7 +947,7 @@ public class RoadNetwork {
 			int times = (count / magnitudes.length)+1;
 			an.setOffset(new Point((int)an.getPos().getUnscaledX()+mag.x*times, (int)an.getPos().getUnscaledY()+mag.y*times));
 		}
-	}
+	}*/
 	//
 	
 	

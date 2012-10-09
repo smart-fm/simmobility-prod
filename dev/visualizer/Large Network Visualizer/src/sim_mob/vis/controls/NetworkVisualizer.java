@@ -28,10 +28,10 @@ public class NetworkVisualizer {
 	//      compare the effective zoom of a single, scaled meter. Currently, if you load in
 	//      a very small and a very large network, they will not reach 'critical' zoom at the 
 	//      same visible zoom level.  ~Seth
-	private static final double  ZOOM_IN_CRITICAL = 1.6;
+//	private static final double  ZOOM_IN_CRITICAL = 1.6;
 	
 	//temp
-	private static int count;
+	//private static int count;
 	
 	//The distance (pixels) threshold used for calculating "clicks" on a given object. 
 	//If the distance from the mouse to a given object is less than this value, it is 
@@ -491,7 +491,7 @@ public class NetworkVisualizer {
 		}
 	}
 
-	private DrawParams p = new DrawParams();
+	//private DrawParams p = new DrawParams();
 	/*private void drawAllBusStop(Graphics2D g, boolean ShowBusStop) {
 		for (BusStop n : network.getBusStop().values()) {
 			if (ShowBusStop || !n.getIsUni()) {
@@ -606,7 +606,7 @@ public class NetworkVisualizer {
 		
 		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
 			//Get all lights and Crossings at this intersection (by id)
-			Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());
+			Intersection tempIntersection = network.getIntersections().get(at.getIntersectionID());
 			ArrayList<Integer> allPedestrainLights = at.getPedestrianLights();
 			ArrayList<Long> crossingIDs = tempIntersection.getSigalCrossingIDs();
 
@@ -634,7 +634,7 @@ public class NetworkVisualizer {
 		
 		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
 			//Get Intersection ID and color
-			Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());
+			Intersection tempIntersection = network.getIntersections().get(at.getIntersectionID());
 			ArrayList<ArrayList<Integer>> allVehicleLights =  at.getVehicleLights();
 
 			//Draw Vehicle Lights
@@ -681,7 +681,7 @@ public class NetworkVisualizer {
 			
 			//Highlight?
 			//TODO: This currently isn't hooked up anywhere; need to re-enable it.
-			boolean highlight = this.debugOn || currHighlightIDs.contains(key.intValue());
+		//	boolean highlight = this.debugOn || currHighlightIDs.contains(key.intValue());
 			
 			//Add this agent
 			index.addItem(at, at.getBounds());

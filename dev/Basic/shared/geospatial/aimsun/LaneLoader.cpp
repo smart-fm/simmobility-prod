@@ -85,8 +85,8 @@ void SortLaneLine(vector<Lane*>& laneLine, std::pair<Node*, Node*> nodes)
 //Helpers for Lane construction
 struct LaneSingleLine { //Used to represent a set of Lanes by id.
 	vector<Lane*> points;
-	LaneSingleLine() {}
-	LaneSingleLine(const vector<Lane*>& mypoints) {
+	LaneSingleLine() : angle(0), minDist(0) {}
+	LaneSingleLine(const vector<Lane*>& mypoints) : angle(0), minDist(0) {
 		points.insert(points.begin(), mypoints.begin(), mypoints.end());
 	}
 

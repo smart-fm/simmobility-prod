@@ -101,7 +101,7 @@ CONTROL_TYPE sim_mob::Busline::getControlTypeFromString(string ControlType)
 	}
 }
 
-void sim_mob::Busline::addBusTrip(const BusTrip* aBusTrip)
+void sim_mob::Busline::addBusTrip(BusTrip* aBusTrip)
 {
 	busTrip_vec.push_back(aBusTrip);
 }
@@ -109,7 +109,7 @@ void sim_mob::Busline::addBusTrip(const BusTrip* aBusTrip)
 void sim_mob::Busline::resetBusTrip_StopRealTimes(int trip_k, int busstopSequence_j, BusStop_RealTimes& busStopRealTimes) const
 {
 	if(!busTrip_vec.empty()) {
-		BusTrip* busTripK = const_cast<BusTrip*>(busTrip_vec[trip_k]);
+		BusTrip* busTripK = busTrip_vec[trip_k];
 		busTripK->setBusStopRealTimes(busstopSequence_j, busStopRealTimes);
 	}
 }

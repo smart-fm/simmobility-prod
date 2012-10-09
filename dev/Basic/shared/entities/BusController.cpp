@@ -127,7 +127,7 @@ unsigned int sim_mob::BusController::scheduledDecision(int busline_i, int trip_k
 	unsigned int sij = 0;// slack size(should be zero)
 
 	//Fwd_ATijk = ATijk;// assign value
-	const vector<const BusTrip*>& BusTrips = busline->queryBusTrips();
+	const vector<BusTrip*>& BusTrips = busline->queryBusTrips();
 	//BusRouteInfo* busRouteInfo_tripK = BusTrips[trip_k].getBusRouteInfo();
 
 	//StopInformation(Times)
@@ -153,7 +153,7 @@ unsigned int sim_mob::BusController::headwayDecision(int busline_i, int trip_k, 
 	unsigned int Hi = 0;
 	double alpha = 0.6;// range from 0.6 to 0.8
 
-	const vector<const BusTrip*>& BusTrips = busline->queryBusTrips();
+	const vector<BusTrip*>& BusTrips = busline->queryBusTrips();
 	const vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripK_1 = BusTrips[trip_k - 1]->getBusStopRealTimes();
 	//const vector<const BusStopInfo*>& busStopInfo_tripK = busRouteInfo_tripK->getBusStopsInfo();
 	ATijk_1 = busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime;
@@ -179,7 +179,7 @@ unsigned int sim_mob::BusController::evenheadwayDecision(int busline_i, int trip
 	unsigned int ATimk_plus1 = 0;
 	unsigned int SRTmj = 0;
 
-	const vector<const BusTrip*>& BusTrips = busline->queryBusTrips();
+	const vector<BusTrip*>& BusTrips = busline->queryBusTrips();
 	const vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripK_1 = BusTrips[trip_k - 1]->getBusStopRealTimes();
 	ATijk_1 = busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime;
 

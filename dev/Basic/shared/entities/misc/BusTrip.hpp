@@ -32,7 +32,7 @@ class BusStop_ScheduledTimes{
 public:
 	explicit BusStop_ScheduledTimes(DailyTime scheduled_ArrivalTime, DailyTime scheduled_DepartureTime);
 	~BusStop_ScheduledTimes() {}
-	int stop_id;
+	BusStop* Scheduled_busStop;
 	DailyTime scheduled_ArrivalTime;
 	DailyTime scheduled_DepartureTime;
 };
@@ -41,7 +41,7 @@ class BusStop_RealTimes{
 public:
 	explicit BusStop_RealTimes(unsigned int real_ArrivalTime = 0, unsigned int real_DepartureTime = 0);
 	~BusStop_RealTimes() {}
-	int stop_id;
+	BusStop* Real_busStop;
 	unsigned int real_ArrivalTime;// real Arrival Time
 	unsigned int real_DepartureTime;// real Departure Time
 };
@@ -145,15 +145,15 @@ public:
 	const int getBusLineID() const {
 		return busline_id;
 	}
-	void addBusTrip(const BusTrip* aBusTrip);
-	const vector<const BusTrip*>& queryBusTrips() const {
+	void addBusTrip(BusTrip* aBusTrip);
+	const vector<BusTrip*>& queryBusTrips() const {
 		return busTrip_vec;
 	}
 	void resetBusTrip_StopRealTimes(int trip_k, int busstopSequence_j, BusStop_RealTimes& busStopRealTimes) const;// mainly for realTimes
 private:
 	int busline_id;
 	CONTROL_TYPE controlType;
-	vector<const BusTrip*> busTrip_vec;
+	vector<BusTrip*> busTrip_vec;
 };
 
 class PT_Schedule { // stored in BusController, Schedule Time Points and Real Time Points should be put separatedly

@@ -46,10 +46,10 @@ void sim_mob::BusRouteInfo::addRoadSegment(const RoadSegment* aRoadSegment)
 	roadSegment_vec.push_back(aRoadSegment);
 }
 
-sim_mob::BusTrip::BusTrip(int entId, string type, unsigned int seqNumber,
+sim_mob::BusTrip::BusTrip(int entId, std::string type, unsigned int seqNumber,
 		DailyTime start, DailyTime end, int busTripRun_sequenceNum, int busLine_id, int vehicle_id,
-		unsigned int busRoute_id, Node* from, string fromLocType, Node* to,
-		string toLocType)
+		unsigned int busRoute_id, Node* from, std::string fromLocType, Node* to,
+		std::string toLocType)
 : Trip(entId, type, seqNumber, start, end, busTripRun_sequenceNum,from, fromLocType, to, toLocType),
 busLine_id(busLine_id), busTripRun_sequenceNum(busTripRun_sequenceNum), vehicle_id(vehicle_id), bus_RouteInfo(BusRouteInfo(busRoute_id))
 {
@@ -71,7 +71,7 @@ void sim_mob::BusTrip::setBusStopRealTimes(int busstopSequence_j, BusStop_RealTi
 	busStopRealTimes_vec[busstopSequence_j]->set(busStopRealTimes);
 }
 
-sim_mob::Busline::Busline(int busline_id, string controlType)
+sim_mob::Busline::Busline(int busline_id, std::string controlType)
 : controlType(getControlTypeFromString(controlType))
 {
 
@@ -82,7 +82,7 @@ sim_mob::Busline::~Busline()
 
 }
 
-CONTROL_TYPE sim_mob::Busline::getControlTypeFromString(string ControlType)
+CONTROL_TYPE sim_mob::Busline::getControlTypeFromString(std::string ControlType)
 {
 	ControlType.erase(remove_if(ControlType.begin(), ControlType.end(), isspace),
 			ControlType.end());
@@ -135,7 +135,7 @@ void sim_mob::PT_Schedule::registerBusLine(const int busline_id, Busline* aBusli
 
 Busline* sim_mob::PT_Schedule::findBusline(int busline_id)
 {
-	map<int ,Busline*>::const_iterator it;
+	std::map<int ,Busline*>::const_iterator it;
 	it = buslineID_busline.find(busline_id);
 	if (it!=buslineID_busline.end()) {
 		return it->second;
@@ -145,7 +145,7 @@ Busline* sim_mob::PT_Schedule::findBusline(int busline_id)
 
 const CONTROL_TYPE sim_mob::PT_Schedule::findBuslineControlType(int busline_id) const
 {
-	map<int, const CONTROL_TYPE>::const_iterator it;
+	std::map<int, const CONTROL_TYPE>::const_iterator it;
 	it = buslineID_controlType.find(busline_id);
 	if (it!=buslineID_controlType.end()) {
 		return it->second;

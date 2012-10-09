@@ -58,6 +58,17 @@ class BusSchedule;
  * Temporary configuration pConfigParamsarser. Operates as a singleton. Contains all basic
  * configuation parameters.
  */
+
+enum DAY_OF_WEEK {
+	MONDAY,
+	TUESDAY,
+	WEDNESDAY,
+	THURSDAY,
+	FRIDAY,
+	SATURDAY,
+	SUNDAY
+};
+
 class ConfigParams : private boost::noncopyable {
 public:
 	unsigned int baseGranMS;          ///<Base system granularity, in milliseconds. Each "tick" is this long.
@@ -71,6 +82,8 @@ public:
 
 	unsigned int agentWorkGroupSize;   ///<Number of workers handling Agents.
 	unsigned int signalWorkGroupSize;  ///<Number of workers handling Signals.
+
+	DAY_OF_WEEK day_of_week;
 
 	//The role factory used for generating roles.
 	const sim_mob::RoleFactory& getRoleFactory() { return roleFact; }
@@ -225,7 +238,7 @@ public:
 	std::map<int, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_Map() { return routeID_roadSegments;}
 
 private:
-	ConfigParams() : reactDist1(nullptr), reactDist2(nullptr), mutexStategy(MtxStrat_Buffered), dynamicDispatchDisabled(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false) { }
+	ConfigParams() : reactDist1(nullptr), reactDist2(nullptr), mutexStategy(MtxStrat_Buffered), dynamicDispatchDisabled(false), TEMP_ManualFixDemoIntersection(false), sealedNetwork(false), day_of_week(MONDAY) { }
 	static ConfigParams instance;
 
 	sim_mob::RoadNetwork network;

@@ -505,6 +505,7 @@ std::map<unsigned long,BusStopInfo> geo_BusStop_; // map<busstopid,BusStopInfo>
 	  std::cout << "In segment_t_pimpl:: pre ()\n";
 	  rs = NULL;
 	  rs = new sim_mob::RoadSegment();
+	  rs->lanesLeftOfDivider = 0;
   }
 
   void segment_t_pimpl::
@@ -2468,7 +2469,7 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
   {
 	  std::cout << "In GeoSpatial_t_pimpl.RoadNetwork ()\n";
 //	  Now Take care of items like lane 'connectors' , 'road segments at' multinodes etc
-	  //multinodes
+	  //multinodes RoadSegmentAt
 	  std::vector<sim_mob::MultiNode*>& mNodes = ConfigParams::GetInstance().getNetworkRW().getNodesRW();
 	  for(std::vector<sim_mob::MultiNode*>::iterator node_it = mNodes.begin(); node_it != mNodes.end(); node_it ++)
 	  {
@@ -2503,13 +2504,15 @@ sim_mob::TripChainItem::LocationType  getLocationType(std::string LocationType)
 			  (*node_it)->setConnectorAt(rs, connectors);
 		  }
 	  }
-//	  std::cout << "Total Number of Road Segments = " << tmp_rs << std::endl;
-//	  std::cout << "Total Number of Road Segments = " << tmp_rs1 << std::endl;
-//	  std::cout << "Total Number of multinode conectors = " << tmp_cnn_cnt << std::endl;
-//	  std::cout << "Total Number of multinode conectors = " << tmp_cnn_cnt1 << std::endl;
+//	  //will not be needed in the new version of road network graphs
+//	  //multinodes roadSegmentsCircular
+//	  sim_mob::RoadNetwork& rn = ConfigParams::GetInstance().getNetworkRW();
+//	  for(std::vector<sim_mob::MultiNode*>::iterator node_it = mNodes.begin(); node_it != mNodes.end(); node_it ++)
+//	  {
+//		  sim_mob::MultiNode::BuildClockwiseLinks(rn, *node_it);
+//	  }
 
 	  //uni nodes
-
 	  //uninode segmentpairs
 	  //uni node connectors
 	  std::set<sim_mob::UniNode*>& uNodes = ConfigParams::GetInstance().getNetworkRW().getUniNodesRW();

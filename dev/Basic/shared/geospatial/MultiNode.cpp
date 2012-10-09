@@ -78,31 +78,33 @@ bool sim_mob::MultiNode::hasOutgoingLanes(const RoadSegment * from) const
 const set<LaneConnector*>& sim_mob::MultiNode::getOutgoingLanes(const RoadSegment * from) const
 {
 	if (!hasOutgoingLanes(from)) {
-			  if(this->getID() == 45666)
-			  {
-//				  const std::set<sim_mob::RoadSegment*>& getRoadSegments() const { return roadSegmentsAt; }
-				  std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::const_iterator it = this->getConnectors().begin();
-				  for(; it != this->getConnectors().end(); it++)
-				  {
-					  std::cout << "(45666 : " << this << ") -->connectors[link-seg(" << from << "):" << (*it).first->getLink()->getLinkId() << ":" << (*it).first->getSegmentID() << "] size  is : " << (*it).second.size() << std::endl;
-				  }
-			  }
-			  getchar();
-			  std::vector<sim_mob::MultiNode*> mNodes = sim_mob::ConfigParams::GetInstance().getNetwork().getNodes();
-			  for(std::vector<sim_mob::MultiNode*>::iterator node_it = mNodes.begin(); node_it != mNodes.end(); node_it ++)
-			  {
-				  std::cout << "- ";
-				  if((*node_it)->getID() == 45666)
-				  {
-					  for(std::set<sim_mob::RoadSegment*>::const_iterator rs_it =  (*node_it)->getRoadSegments().begin(); rs_it != (*node_it)->getRoadSegments().end(); rs_it++)
-					  {
-						  sim_mob::RoadSegment * temp = (*rs_it);
-						  std::cout << "\n=>(45666 : " << (*node_it) << ") -->connectors[link-seg(" << temp << ") :" << (*rs_it)->getLink()->getLinkId() << ":" << (*rs_it)->getSegmentID() << "] size  is : " << (*node_it)->connectors[(*rs_it)].size() << std::endl;
+//			  if(this->getID() == 45666)
+//			  {
+////				  const std::set<sim_mob::RoadSegment*>& getRoadSegments() const { return roadSegmentsAt; }
+//				  std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> >::const_iterator it = this->getConnectors().begin();
+//				  for(; it != this->getConnectors().end(); it++)
+//				  {
+//					  std::cout << "(45666 : " << this << ") -->connectors[link-seg(" << from << "):" << (*it).first->getLink()->getLinkId() << ":" << (*it).first->getSegmentID() << "] size  is : " << (*it).second.size() << std::endl;
+//				  }
+//			  }
+//			  getchar();
+//			  std::vector<sim_mob::MultiNode*> mNodes = sim_mob::ConfigParams::GetInstance().getNetwork().getNodes();
+//			  for(std::vector<sim_mob::MultiNode*>::iterator node_it = mNodes.begin(); node_it != mNodes.end(); node_it ++)
+//			  {
+//				  std::cout << "- ";
+//				  if((*node_it)->getID() == 45666)
+//				  {
+//					  for(std::set<sim_mob::RoadSegment*>::const_iterator rs_it =  (*node_it)->getRoadSegments().begin(); rs_it != (*node_it)->getRoadSegments().end(); rs_it++)
+//					  {
+//						  sim_mob::RoadSegment * temp = (*rs_it);
+//						  std::cout << "\n=>(45666 : " << (*node_it) << ") -->connectors[link-seg(" << temp << ") :" << (*rs_it)->getLink()->getLinkId() << ":" << (*rs_it)->getSegmentID() << "] size  is : " << (*node_it)->connectors[(*rs_it)].size() << std::endl;
+//
+//					  }
+//				  }
+//			  }
+//			  getchar();
 
-					  }
-				  }
-			  }
-			  getchar();
+
 		//TODO: How are we handling logical errors?
 		std::stringstream msg;
 		msg <<"No outgoing Lane for Road Segments(" <<  from->getSegmentID() << ")  at node(" << this << "): " <<originalDB_ID.getLogItem();
@@ -118,62 +120,104 @@ const set<LaneConnector*>& sim_mob::MultiNode::getOutgoingLanes(const RoadSegmen
 }
 
 
-void sim_mob::MultiNode::BuildClockwiseLinks(const RoadNetwork& rn, MultiNode* node)
-{
-	//Reset
-	node->roadSegmentsCircular.clear();
+//struct Sorter
+//	{
+//		bool operator()(RoadSegment* a,RoadSegment* b)
+//		{
+//			return (a->getSegmentID() < b->getSegmentID());
+//		}
+//	};
 
-	//Insert links one-by-one
-	for (set<RoadSegment*>::const_iterator it=node->roadSegmentsAt.begin(); it!=node->roadSegmentsAt.end(); it++) {
-		bool found = false;
-		if (!node->roadSegmentsCircular.empty()) {
-
-			//Simple case 1: Is there already a RoadSegment with opposing start/end Nodes? If so, put it
-			//               before/after this Node.
-			for (vector< pair<RoadSegment*, bool> >::iterator checkIt=node->roadSegmentsCircular.begin(); checkIt!=node->roadSegmentsCircular.end(); checkIt++) {
-				if (checkIt->first->getStart()==(*it)->getEnd() && checkIt->first->getEnd()==(*it)->getStart()) {
-					//If the existing road is going "fwd" (towards), then this segment goes before. Otherwise it goes after.
-					// Of course, this is all driving-side dependent, but since this array is always searched in two directions,
-					// then "clockwise" doesn't matter much.
-					if (checkIt->second) {
-						InsertIntoVector(node->roadSegmentsCircular, checkIt, *it, node);
-						//node->roadSegmentsCircular.insert(checkIt, std::make_pair(*it, !checkIt->second));
-					} else {
-						InsertIntoVector(node->roadSegmentsCircular, checkIt+1, *it, node);
-						//node->roadSegmentsCircular.insert(checkIt+1, std::make_pair(*it, !checkIt->second));
-					}
-
-					found = true;
-					break;
-				}
-			}
-
-			//Slightly more complex case: Search clockwise (counterclockwise on RHS roads) for the next available free slot.
-			//Note that we specifically check for angle 0 to avoid potentially unexpected behavior.
-			if (!found) {
-				const Node* firstSegNode = (node->roadSegmentsCircular.begin()->first->getStart()!=node) ? node->roadSegmentsCircular.begin()->first->getStart() : node->roadSegmentsCircular.begin()->first->getEnd();
-				double newSegAngle = AngleBetween(node, firstSegNode, ((*it)->getStart()!=node?(*it)->getStart():(*it)->getEnd()), rn.drivingSide==DRIVES_ON_LEFT);
-				if (newSegAngle!=0.0) {
-					for (vector< pair<RoadSegment*, bool> >::iterator checkIt=node->roadSegmentsCircular.begin()+1; checkIt!=node->roadSegmentsCircular.end(); checkIt++) {
-						//Compute the angle between the first iterator and this iterator. If that angle is bigger than the angle of the Segment we're searching for, add it.
-						double oldSegAngle = AngleBetween(node, firstSegNode, (checkIt->first->getStart()!=node?checkIt->first->getStart():checkIt->first->getEnd()), rn.drivingSide==DRIVES_ON_LEFT);
-						if (oldSegAngle!=0.0 && oldSegAngle>newSegAngle) {
-							InsertIntoVector(node->roadSegmentsCircular, checkIt, *it, node);
-							//node->roadSegmentsCircular.insert(checkIt, std::make_pair(*it, (*it)->getEnd()==node));
-							found = true;
-							break;
-						}
-					}
-				}
-			}
-		}
-
-		//If nothing worked (or if the array is empty), just add it to the back of the array.
-		if (!found) {
-			InsertIntoVector(node->roadSegmentsCircular, node->roadSegmentsCircular.end(), *it, node);
-		}
-	}
-}
+//seth suggested its removal for good reasons-vahid
+//void sim_mob::MultiNode::BuildClockwiseLinks(const sim_mob::RoadNetwork& rn, sim_mob::MultiNode* node)
+//{
+//
+//	std::ostringstream out;
+//	out << "BuildClockwiseLinks for node   " << node->getID() <<
+//			"\n  initially has " << node->roadSegmentsCircular.size() << " roadSegmentsCircular \n"
+//			"and " << node->roadSegmentsAt.size() << " sedmentsAt "
+//			<< std::endl;
+//	node->roadSegmentsCircular.clear();
+//
+//	//Insert links one-by-one
+//	for (set<RoadSegment*>::const_iterator it=node->roadSegmentsAt.begin(); it!=node->roadSegmentsAt.end(); it++) {
+//		out << "Road Segment : " << (*it)->getSegmentID() << " And getLanesLeftOfDivider = " << (*it)->getLanesLeftOfDivider() << std::endl;
+//		bool found = false;
+//		if (!node->roadSegmentsCircular.empty()) {
+//			out << "node  roadSegmentsCircular size = " << node->roadSegmentsCircular.size()   << std::endl;
+//			//Simple case 1: Is there already a RoadSegment with opposing start/end Nodes? If so, put it
+//			//               before/after this Node.
+//			for (vector< pair<RoadSegment*, bool> >::iterator checkIt=node->roadSegmentsCircular.begin(); checkIt!=node->roadSegmentsCircular.end(); checkIt++) {
+//				if (checkIt->first->getStart()==(*it)->getEnd() && checkIt->first->getEnd()==(*it)->getStart()) {
+//					//If the existing road is going "fwd" (towards), then this segment goes before. Otherwise it goes after.
+//					// Of course, this is all driving-side dependent, but since this array is always searched in two directions,
+//					// then "clockwise" doesn't matter much.
+//					if (checkIt->second) {
+//						out << "Insertion point 1\n";
+//						InsertIntoVector(node->roadSegmentsCircular, checkIt, *it, node);
+//						out << "node  roadSegmentsCircular size = " << node->roadSegmentsCircular.size()  << std::endl;
+//						//node->roadSegmentsCircular.insert(checkIt, std::make_pair(*it, !checkIt->second));
+//					} else {
+//						out << "Insertion point 2\n";
+//						InsertIntoVector(node->roadSegmentsCircular, checkIt+1, *it, node);
+//						out << "node  roadSegmentsCircular size = " << node->roadSegmentsCircular.size()  << std::endl;
+//						//node->roadSegmentsCircular.insert(checkIt+1, std::make_pair(*it, !checkIt->second));
+//					}
+//
+//					found = true;
+//					out << "found in the for loop\n";
+//					break;
+//				}
+//			}
+//
+//			//Slightly more complex case: Search clockwise (counterclockwise on RHS roads) for the next available free slot.
+//			//Note that we specifically check for angle 0 to avoid potentially unexpected behavior.
+//			if (!found) {
+//				const Node* firstSegNode = (node->roadSegmentsCircular.begin()->first->getStart()!=node) ? node->roadSegmentsCircular.begin()->first->getStart() : node->roadSegmentsCircular.begin()->first->getEnd();
+//				double newSegAngle = AngleBetween(node, firstSegNode, ((*it)->getStart()!=node?(*it)->getStart():(*it)->getEnd()), rn.drivingSide==DRIVES_ON_LEFT);
+//				if (newSegAngle!=0.0) {
+//					for (vector< pair<RoadSegment*, bool> >::iterator checkIt=node->roadSegmentsCircular.begin()+1; checkIt!=node->roadSegmentsCircular.end(); checkIt++) {
+//						//Compute the angle between the first iterator and this iterator. If that angle is bigger than the angle of the Segment we're searching for, add it.
+//						double oldSegAngle = AngleBetween(node, firstSegNode, (checkIt->first->getStart()!=node?checkIt->first->getStart():checkIt->first->getEnd()), rn.drivingSide==DRIVES_ON_LEFT);
+//						if (oldSegAngle!=0.0 && oldSegAngle>newSegAngle) {
+//							out << "Insertion point 3\n";
+//							InsertIntoVector(node->roadSegmentsCircular, checkIt, *it, node);
+//							out << "node  roadSegmentsCircular size = " << node->roadSegmentsCircular.size()  << std::endl;
+//							//node->roadSegmentsCircular.insert(checkIt, std::make_pair(*it, (*it)->getEnd()==node));
+//							found = true;
+//							out << "found in the if (!found)\n";
+//							break;
+//						}
+//					}
+//				}
+//			}
+//		}
+//
+//
+//		//If nothing worked (or if the array is empty), just add it to the back of the array.
+//		if (!found) {
+//			out << "NOT found  Insertion point 4\n";
+//			InsertIntoVector(node->roadSegmentsCircular, node->roadSegmentsCircular.end(), *it, node);
+//			out << "node  roadSegmentsCircular size = " << node->roadSegmentsCircular.size()  << std::endl;
+//		}
+//	}
+//
+//	out << "Leaving BuildClockwiseLinks for node   " << node->getID() <<
+//			"  Now has " << node->roadSegmentsCircular.size() << " roadSegmentsCircular \n"
+//			"and " << node->roadSegmentsAt.size() << " sedmentsAt "
+//			<< std::endl << std::endl;
+//
+//	std::vector< std::pair<RoadSegment*, bool> >& vec = (node)->roadSegmentsCircular;
+//	for (std::vector< std::pair<RoadSegment*, bool> >::iterator it2=vec.begin(); it2!=vec.end(); it2++) {
+//		out << ((*it2).second ? "TRUE" : "FALSE") << " , " << (*it2).first->getSegmentID() << std::endl;
+//	}
+//
+//	out << ".............................................\n";
+//
+//	if(node->getID() == 75780)
+//		std::cout << out.str();
+//
+//}
 
 
 pair< vector< pair<RoadSegment*, bool> >, vector< pair<RoadSegment*, bool> > >

@@ -993,10 +993,13 @@ void DatabaseLoader::SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<
 	for (map<int,Section>::iterator it=sections_.begin(); it!=sections_.end(); it++) {
 		sim_mob::aimsun::Loader::ProcessSectionPolylines(res, it->second);
 	}
-	//Finalize our MultiNodes' circular arrays
-	for (vector<sim_mob::MultiNode*>::const_iterator it=res.getNodes().begin(); it!=res.getNodes().end(); it++) {
-		sim_mob::MultiNode::BuildClockwiseLinks(res, *it);
-	}
+
+	//seth suggested its removal for good reasons-vahid
+//	//Finalize our MultiNodes' circular arrays
+//	for (vector<sim_mob::MultiNode*>::const_iterator it=res.getNodes().begin(); it!=res.getNodes().end(); it++) {
+//		sim_mob::MultiNode::BuildClockwiseLinks(res, *it);
+//	}
+
 	//Prune Crossings and convert to the "near" and "far" syntax of Sim Mobility. Also give it a "position", defined
 	//   as halfway between the midpoints of the near/far lines, and then assign it as an Obstacle to both the incoming and
 	//   outgoing RoadSegment that it crosses.

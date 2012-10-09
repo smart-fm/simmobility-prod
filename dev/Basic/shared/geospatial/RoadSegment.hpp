@@ -59,7 +59,7 @@ public:
 	void setEnd(sim_mob::Node* en) { this->end = en; }
 
 public:
-	
+	const unsigned int getLanesLeftOfDivider() const { return lanesLeftOfDivider; }
 	explicit RoadSegment(sim_mob::Link* parent=nullptr, unsigned long id=-1);
 	const unsigned long  & getSegmentID()const ;
 

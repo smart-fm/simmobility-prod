@@ -7,7 +7,7 @@
 #include <set>
 
 #include "GenConfig.h"
-
+#include "geospatial/RoadSegment.hpp"
 #include "Node.hpp"
 /*namespace geo {
 class intersection_t_pimpl;
@@ -41,6 +41,13 @@ class Loader;
  * \author Seth N. Hetu
  * \author LIM Fung Chai
  */
+struct Sorter
+{
+	bool operator()(sim_mob::RoadSegment *a , sim_mob::RoadSegment *b)
+	{
+		return (a->getSegmentID() < b->getSegmentID());
+	}
+};
 class MultiNode : public sim_mob::Node {
 public:
 	MultiNode(int x, int y) : Node(x, y) {}
@@ -65,7 +72,8 @@ public:
 		getPedestrianPaths(const sim_mob::Node* const nodeBefore, const sim_mob::Node* const nodeAfter) const;
 
 	//Helper: Build it
-	static void BuildClockwiseLinks(const sim_mob::RoadNetwork& rn, sim_mob::MultiNode* node);
+	//seth suggested its removal for good reasons-vahid
+//	static void BuildClockwiseLinks(const sim_mob::RoadNetwork& rn, sim_mob::MultiNode* node);
 	const std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> > & getConnectors() const {return connectors;}
 	const std::map<const sim_mob::RoadSegment*, std::set<sim_mob::LaneConnector*> > & getConnectors()  {return connectors;}
 

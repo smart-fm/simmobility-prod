@@ -181,6 +181,14 @@ DPoint sim_mob::Vehicle::getPosition() const {
 	return origPos;
 }
 
+double sim_mob::Vehicle::getPositionInSegment(){
+	return fwdMovement.getPositionInSegment();
+}
+
+void sim_mob::Vehicle::setPositionInSegment(double newDist2end){
+	fwdMovement.setPositionInSegment(newDist2end);
+}
+
 void sim_mob::Vehicle::shiftToNewLanePolyline(bool moveLeft) {
 	fwdMovement.shiftToNewPolyline(moveLeft);
 }
@@ -274,6 +282,12 @@ double sim_mob::Vehicle::moveFwd(double amt) {
 	return fwdMovement.advance(amt);
 }
 
+
+double sim_mob::Vehicle::advanceToNextRoadSegment() {
+	throw_if_error();
+	return fwdMovement.advanceToNextRoadSegment();
+}
+
 void sim_mob::Vehicle::moveLat(double amt) {
 	throw_if_error();
 	latMovement += amt;
@@ -309,6 +323,10 @@ const Lane* sim_mob::Vehicle::moveToNextSegmentAfterIntersection() {
 bool sim_mob::Vehicle::isDone() const {
 	throw_if_error();
 	return fwdMovement.isDoneWithEntireRoute();
+}
+
+double sim_mob::Vehicle::getNextSegmentLength(){
+	return fwdMovement.getNextSegmentLength();
 }
 
 #ifndef SIMMOB_DISABLE_MPI

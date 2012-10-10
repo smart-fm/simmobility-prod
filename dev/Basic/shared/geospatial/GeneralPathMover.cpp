@@ -1038,3 +1038,21 @@ DPoint sim_mob::GeneralPathMover::getPosition() const
 	movementVect.scaleVectTo(getCurrDistAlongPolyline()).translateVect();
 	return DPoint(movementVect.getX(), movementVect.getY());
 }
+
+double sim_mob::GeneralPathMover::getPositionInSegment()
+{
+	return distToEndSegment;
+}
+
+void sim_mob::GeneralPathMover::setPositionInSegment(double newDist2end)
+{
+	distToEndSegment = newDist2end;
+}
+
+double sim_mob::GeneralPathMover::getNextSegmentLength()
+{
+	throwIf(!isPathSet(), "GeneralPathMover path not set.");
+	throwIf(isDoneWithEntireRoute(), "Entire path is already done.");
+
+	return CalcSegmentLaneZeroDist( (currSegmentIt+1), fullPath.end());
+}

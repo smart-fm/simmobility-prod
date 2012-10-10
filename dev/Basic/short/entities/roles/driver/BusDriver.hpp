@@ -46,14 +46,13 @@ public:
 	bool isBusApproachingBusStop() const;
 	bool isBusArriveBusStop() const;
 	bool isBusLeavingBusStop() const;
-	void busAccelerating(DriverUpdateParams& p);
+	double busAccelerating(DriverUpdateParams& p);
 	mutable double lastTickDistanceToBusStop;
 
 	std::vector<const sim_mob::BusStop*> findBusStopInPath(const std::vector<const sim_mob::RoadSegment*>& path) const;
 
 	double getPositionX() const;
 	double getPositionY() const;
-
 
 protected:
 	//Override the following behavior

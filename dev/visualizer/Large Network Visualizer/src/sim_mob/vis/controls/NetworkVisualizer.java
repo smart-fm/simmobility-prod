@@ -606,7 +606,7 @@ public class NetworkVisualizer {
 		
 		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
 			//Get all lights and Crossings at this intersection (by id)
-			Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());
+			Intersection tempIntersection = network.getIntersections().get(at.getIntersectionID());
 			ArrayList<Integer> allPedestrainLights = at.getPedestrianLights();
 			ArrayList<Long> crossingIDs = tempIntersection.getSigalCrossingIDs();
 
@@ -634,7 +634,7 @@ public class NetworkVisualizer {
 		
 		for(SignalLineTick at: simRes.ticks.get(currFrame).signalLineTicks.values()){
 			//Get Intersection ID and color
-			Intersection tempIntersection = network.getIntersection().get(at.getIntersectionID());
+			Intersection tempIntersection = network.getIntersections().get(at.getIntersectionID());
 			ArrayList<ArrayList<Integer>> allVehicleLights =  at.getVehicleLights();
 
 			//Draw Vehicle Lights

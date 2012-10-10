@@ -79,8 +79,11 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 	
 	
 	public void addSelfToSimulation(RoadNetwork rdNet, SimulationResults simRes) {
-		Main.NEW_SIGNAL = true;
-		System.out.println("System NEW_SIGNAL reset to true");
+		if (!Main.NEW_SIGNAL) {
+			Main.NEW_SIGNAL = true;
+			System.out.println("System NEW_SIGNAL reset to true");
+		}
+		
 //		System.out.println("Inside TS.addSelfToSimulation");
 		SignalHelper signalHelper = new SignalHelper();
 		signalHelper.phases = new ArrayList<SignalHelper.Phase>();
@@ -119,7 +122,7 @@ public class TrafficSignal implements DrawableItem, GsonResObj {
 		}
 		//Something like this?....
 //		System.out.println("Adding intersection "+ signalHelper.hex_id + " to road network");
-		rdNet.getIntersection().put(signalHelper.hex_id, new Intersection(signalHelper));
+		rdNet.getIntersections().put(signalHelper.hex_id, new Intersection(signalHelper));
 	}
 	
 	public void draw(Graphics2D g, DrawParams params) {

@@ -86,7 +86,7 @@ public class RoadNetwork {
 	public Hashtable<Long, Crossing> getCrossings() { return crossings; }
 	public Hashtable<Long, TrafficSignalCrossing> getTrafficSignalCrossing() {return trafficSignalCrossings;}
 	public Hashtable<Long, TrafficSignalLine> getTrafficSignalLine(){return trafficSignalLines;}
-	public Hashtable<Long, Intersection> getIntersection(){return intersections;}
+	public Hashtable<Long, Intersection> getIntersections(){return intersections;}
 	public Hashtable<Long, CutLine> getCutLine(){return cutLines;}
 	
 	public ArrayList<Annotation> getAimsunAnnotations() { return annot_aimsun; }
@@ -103,7 +103,8 @@ public class RoadNetwork {
 	 */
 	public void loadFileAndReport(BufferedReader inFile, long fileLength, NetworkPanel progressUpdate) throws IOException {
 		Main.NEW_SIGNAL = false;//default
-		System.out.println("System NEW_SIGNAL reset to false");
+		System.out.println("System NEW_SIGNAL initialized to false");
+		
 		nodes = new Hashtable<Long, Node>();
 		busstop = new Hashtable<Long, BusStop>();
 		annot_aimsun = new ArrayList<Annotation>();

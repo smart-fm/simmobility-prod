@@ -85,6 +85,9 @@ public:
 	//TODO: well, instead of using map, you could have used a multimap and save people a risk of running into problems --vahid
 	std::map<centimeter_t, const RoadItem*> obstacles;
 
+	///Safe way of adding obstacles to this RoadSegment. Allows "fixing" obstacles which are too far.
+	void addObstacle(centimeter_t offset, const RoadItem* item, bool fixErrors=true);
+
 	///Return the next obstacle from a given point on this Pavement.
 	sim_mob::RoadItemAndOffsetPair nextObstacle(const sim_mob::Point2D& pos, bool isForward) const;
 

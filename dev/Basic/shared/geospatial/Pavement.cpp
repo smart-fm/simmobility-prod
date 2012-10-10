@@ -3,8 +3,36 @@
 #include "Pavement.hpp"
 
 #include <stdexcept>
+#include "util/OutputUtil.hpp"
 
 using namespace sim_mob;
+
+
+void sim_mob::Pavement::addObstacle(centimeter_t offset, const RoadItem* item, bool fixErrors)
+{
+	//Too small?
+	if (offset<0) {
+		if (!fixErrors) { throw std::runtime_error("Can't add obstacle; offset is less than zero."); }
+		LogOut("Fixing RoadItem offset: " <<offset <<" to: " <<0 <<std::endl);
+		offset = 0;
+	}
+	//Too big?
+	if (offset>length) {
+		if (!fixErrors) { throw std::runtime_error("Can't add obstacle; offset is greater than the segment length."); }
+		if (length==0) { throw std::runtime_error("Can't fix Road Segment obstacle; length has not been set."); }
+		LogOut("Fixing RoadItem offset: " <<offset <<" to: " <<length <<std::endl);
+		offset = length;
+	}
+	//Already something there?
+	if (obstacles.count(offset)>0) {
+		//For now we can't fix it.
+		//TODO: There's multiple fixes; just pick one.
+		throw std::runtime_error("Can't add obstacle; something is already at that offset.");
+	}
+
+	//Add it.
+	obstacles[offset] = item;
+}
 
 
 RoadItemAndOffsetPair sim_mob::Pavement::nextObstacle(const Point2D& pos, bool isForward) const

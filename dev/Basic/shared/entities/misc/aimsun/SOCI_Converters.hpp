@@ -87,5 +87,32 @@ struct type_conversion<sim_mob::BusSchedule>
     }
 };
 
+template<>
+struct type_conversion<sim_mob::PT_trip>
+{
+    typedef values base_type;
+
+    static void
+    from_base(soci::values const & values, soci::indicator & indicator, sim_mob::PT_trip& pt_trip)
+    {
+    	pt_trip.trip_id = values.get<std::string>("trip_id", "");
+    	pt_trip.service_id = values.get<std::string>("service_id", "");
+    	pt_trip.route_id = values.get<std::string>("route_id", "");
+    	pt_trip.start_time = sim_mob::DailyTime(values.get<std::string>("start_time", ""));
+    	pt_trip.end_time = sim_mob::DailyTime(values.get<std::string>("end_time", ""));
+    }
+
+    static void
+    to_base(sim_mob::PT_trip const & pt_trip, soci::values & values, soci::indicator & indicator)
+    {
+        values.set("trip_id", pt_trip.trip_id);
+        values.set("service_id", pt_trip.service_id);
+        values.set("route_id", pt_trip.route_id);
+        values.set("start_time", pt_trip.start_time.toString());
+        values.set("end_time", pt_trip.end_time.toString());
+        indicator = i_ok;
+    }
+};
+
 
 }

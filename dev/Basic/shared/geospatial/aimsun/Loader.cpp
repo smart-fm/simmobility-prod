@@ -57,6 +57,7 @@
 // $topdir/database/ and rename the aimsun namespace to "database".
 #include "entities/misc/TripChain.hpp"
 #include "entities/misc/BusSchedule.hpp"
+#include "entities/misc/PublicTransit.hpp"
 #include "entities/misc/aimsun/TripChain.hpp"
 #include "entities/misc/aimsun/SOCI_Converters.hpp"
 #include "entities/profile/ProfileBuilder.hpp"
@@ -139,10 +140,10 @@ private:
 	void LoadPolylines(const std::string& storedProc);
 	void LoadTripchains(const std::string& storedProc);
 	void LoadTrafficSignals(const std::string& storedProc);
-	void LoadPTBusTrip(const std::string& storedProc);
 
 public:
 	//New-style Loader functions can simply load data directly into the result vectors.
+	void LoadPTBusTrip(const std::string& storedProc, std::vector<sim_mob::PT_trip*>& pt_trip);
 	void LoadBusSchedule(const std::string& storedProc, std::vector<sim_mob::BusSchedule*>& busschedule);
 	void LoadBusTripChain(const std::string& storedProc, std::vector<sim_mob::TripChainItem*>& bustripchains);
 
@@ -466,9 +467,18 @@ void DatabaseLoader::LoadBusStop(const std::string& storedProc)
 	}
 }
 
-void DatabaseLoader::LoadPTBusTrip(const std::string& storedProc)
+void DatabaseLoader::LoadPTBusTrip(const std::string& storedProc, std::vector<sim_mob::PT_trip*>& pt_trip)
 {
-
+    if (storedProc.empty())
+    {
+        std::cout << "WARNING: An empty 'PT_BusTrip' stored-procedure was specified in the config file; " << std::endl;
+        return;
+    }
+    soci::rowset<sim_mob::PT_trip> rows = (sql_.prepare <<"select * from " + storedProc);
+    for (soci::rowset<sim_mob::PT_trip>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
+    {
+    	pt_trip.push_back(new sim_mob::PT_trip(*iter));
+    }
 }
 
 void DatabaseLoader::LoadBusSchedule(const std::string& storedProc, std::vector<sim_mob::BusSchedule*>& busschedule)

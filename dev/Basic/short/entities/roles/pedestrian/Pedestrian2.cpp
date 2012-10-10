@@ -208,7 +208,7 @@ void sim_mob::Pedestrian2::setSubPath() {
 	vector<WayPoint> wp_path = StreetDirectory::instance().shortestWalkingPath(parent->originNode->location, parent->destNode->location);
 
 	//Used to debug pedestrian walking paths.
-	LogOut("Pedestrian requested path from: " <<parent->originNode->originalDB_ID.getLogItem() <<" => " <<parent->destNode->originalDB_ID.getLogItem() <<"  {" <<std::endl);
+	/*LogOut("Pedestrian requested path from: " <<parent->originNode->originalDB_ID.getLogItem() <<" => " <<parent->destNode->originalDB_ID.getLogItem() <<"  {" <<std::endl);
 	for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
 		if (it->type_ == WayPoint::SIDE_WALK) {
 			const Node* start = !it->directionReverse ? it->lane_->getRoadSegment()->getStart() : it->lane_->getRoadSegment()->getEnd();
@@ -228,7 +228,7 @@ void sim_mob::Pedestrian2::setSubPath() {
 			LogOut("  Unknown type."<<std::endl);
 		}
 	}
-	LogOut("}" <<std::endl);
+	LogOut("}" <<std::endl);*/
 
 	pedMovement.setPath(wp_path);
 

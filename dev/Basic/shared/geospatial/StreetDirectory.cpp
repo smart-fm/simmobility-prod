@@ -1277,8 +1277,10 @@ void StreetDirectory::ShortestPathImpl::procAddDrivingLaneConnectors(Graph& grap
 	    boost::tie(edge, ok) = boost::add_edge(fromVertex.first, toVertex.first, graph);
 
 	    //Calculate the edge length. Treat this as a Node WayPoint.
+	    WayPoint revWP(node);
+	    revWP.directionReverse = true;
 	    DynamicVector lc(fromVertex.second, toVertex.second);
-	    boost::put(boost::edge_name, graph, edge, WayPoint(node));
+	    boost::put(boost::edge_name, graph, edge, revWP);
 	    boost::put(boost::edge_weight, graph, edge, lc.getMagnitude());
 	}
 }
@@ -1615,8 +1617,10 @@ void StreetDirectory::ShortestPathImpl::procAddWalkingLinks(Graph& graph, const 
 			{
 			Edge edge;
 			bool ok;
+			WayPoint revWP(rs->getLanes().at(laneID));
+			revWP.directionReverse = true;
 			boost::tie(edge, ok) = boost::add_edge(toVertex, fromVertex, graph);
-			boost::put(boost::edge_name, graph, edge, WayPoint(rs->getLanes().at(laneID)));
+			boost::put(boost::edge_name, graph, edge, revWP);
 			boost::put(boost::edge_weight, graph, edge, rs->length);
 			}
 		}
@@ -1739,8 +1743,10 @@ void StreetDirectory::ShortestPathImpl::procAddWalkingCrossings(Graph& graph, co
 				{
 				Edge edge;
 				bool ok;
+				WayPoint revWP(cr);
+				revWP.directionReverse = true;
 				boost::tie(edge, ok) = boost::add_edge(toVertex.first, fromVertex.first, graph);
-				boost::put(boost::edge_name, graph, edge, WayPoint(cr));
+				boost::put(boost::edge_name, graph, edge, revWP);
 				boost::put(boost::edge_weight, graph, edge, length);
 				}
 			}
@@ -1863,8 +1869,10 @@ void StreetDirectory::ShortestPathImpl::procAddStartNodesAndEdges(Graph& graph, 
 			//From "other" to sink
 			Edge edge;
 			bool ok;
+			WayPoint revWP(it->first);
+			revWP.directionReverse = true;
 			boost::tie(edge, ok) = boost::add_edge(it2->v, sink, graph);
-			boost::put(boost::edge_name, graph, edge, WayPoint(it->first));
+			boost::put(boost::edge_name, graph, edge, revWP);
 			boost::put(boost::edge_weight, graph, edge, 1);
 			}
 		}

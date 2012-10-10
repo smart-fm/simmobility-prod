@@ -341,12 +341,12 @@ void sim_mob::Pedestrian::setSubPath() {
 		vector<WayPoint> wp_path = StreetDirectory::instance().shortestWalkingPath(parent->originNode->location, parent->destNode->location);
 
 		//Used to debug pedestrian walking paths.
-		LogOut("Pedestrian requested path from: " <<parent->originNode->originalDB_ID.getLogItem() <<" => " <<parent->destNode->originalDB_ID.getLogItem() <<"  {" <<std::endl);
+		/*LogOut("Pedestrian requested path from: " <<parent->originNode->originalDB_ID.getLogItem() <<" => " <<parent->destNode->originalDB_ID.getLogItem() <<"  {" <<std::endl);
 		for (vector<WayPoint>::iterator it = wp_path.begin(); it != wp_path.end(); it++) {
 			if (it->type_ == WayPoint::SIDE_WALK) {
 				const Node* start = !it->directionReverse ? it->lane_->getRoadSegment()->getStart() : it->lane_->getRoadSegment()->getEnd();
 				const Node* end = !it->directionReverse ? it->lane_->getRoadSegment()->getEnd() : it->lane_->getRoadSegment()->getStart();
-				LogOut("  Side-walk: " <<start->originalDB_ID.getLogItem() <<" => " <<end->originalDB_ID.getLogItem() <<std::endl);
+				LogOut("  Side-walk: " <<start->originalDB_ID.getLogItem() <<" => " <<end->originalDB_ID.getLogItem() <<"   (Reversed: " <<it->directionReverse <<")" <<std::endl);
 			} else if (it->type_ == WayPoint::ROAD_SEGMENT) {
 				LogOut("  Road Segment: (not supported)" <<std::endl);
 			} else if (it->type_ == WayPoint::BUS_STOP) {
@@ -361,7 +361,7 @@ void sim_mob::Pedestrian::setSubPath() {
 				LogOut("  Unknown type."<<std::endl);
 			}
 		}
-		LogOut("}" <<std::endl);
+		LogOut("}" <<std::endl);*/
 
 		//----------------------------------------------------
 		const Lane* nextSideWalk = nullptr; //For the old code

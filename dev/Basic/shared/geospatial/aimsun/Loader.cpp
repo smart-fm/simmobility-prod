@@ -139,6 +139,7 @@ private:
 	void LoadPolylines(const std::string& storedProc);
 	void LoadTripchains(const std::string& storedProc);
 	void LoadTrafficSignals(const std::string& storedProc);
+	void LoadPTBusTrip(const std::string& storedProc);
 
 public:
 	//New-style Loader functions can simply load data directly into the result vectors.
@@ -364,7 +365,6 @@ void DatabaseLoader::LoadPolylines(const std::string& storedProc)
 	}
 }
 
-
 void DatabaseLoader::LoadTripchains(const std::string& storedProc)
 {
 	//Our SQL statement
@@ -464,6 +464,11 @@ void DatabaseLoader::LoadBusStop(const std::string& storedProc)
 		        //it->atSection = &sections_[it->TMP_AtSectionID];
 		        	//	busstop_.push_back(*it);
 	}
+}
+
+void DatabaseLoader::LoadPTBusTrip(const std::string& storedProc)
+{
+
 }
 
 void DatabaseLoader::LoadBusSchedule(const std::string& storedProc, std::vector<sim_mob::BusSchedule*>& busschedule)

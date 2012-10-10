@@ -752,8 +752,7 @@ public:
     explicit ShortestPathImpl(RoadNetwork const & network);
     ~ShortestPathImpl();
 
-    std::vector<WayPoint>
-    shortestDrivingPath(Node const & fromNode, Node const & toNode) const;
+   // std::vector<WayPoint> shortestDrivingPath(Node const & fromNode, Node const & toNode) const;
 
     std::vector<WayPoint>
     GetShortestDrivingPath(Node const & fromNode, Node const & toNode) const;
@@ -2202,7 +2201,7 @@ StreetDirectory::ShortestPathImpl::addCrossing(Crossing const * crossing, centim
 }
 #endif
 
-std::vector<WayPoint>
+/*std::vector<WayPoint>
 StreetDirectory::ShortestPathImpl::shortestDrivingPath(Node const & fromNode, Node const & toNode)
 const
 {
@@ -2225,7 +2224,7 @@ const
     }
 
     return searchShortestPath(drivingMap_, fromVertexIt->second.first, toVertexIt->second.second);
-}
+}*/
 
 std::vector<WayPoint>
 StreetDirectory::ShortestPathImpl::GetShortestDrivingPath(Node const & fromNode, Node const & toNode)
@@ -2805,12 +2804,12 @@ StreetDirectory::signalAt(Node const & node) const
     return iter->second;
 }
 
-std::vector<WayPoint>
+/*std::vector<WayPoint>
 StreetDirectory::shortestDrivingPath(Node const & fromNode, Node const & toNode) const
 {
     return spImpl_ ? spImpl_->shortestDrivingPath(fromNode, toNode)
                    : std::vector<WayPoint>();
-}
+}*/
 
 std::vector<WayPoint>
 StreetDirectory::GetShortestDrivingPath(Node const & fromNode, Node const & toNode) const

@@ -26,6 +26,7 @@ class MultiNode;
 class BusStop;
 class Crossing;
 
+
 /**
  * A point in the shortest path returned by StreetDirectory::shortestDrivingPath() and StreetDirectory::shortestWalkingPath().
  *
@@ -65,43 +66,51 @@ class Crossing;
  *   ...
  *   \endcode
  *
- * A WayPoint is a point and the BUS_STOP and NODE types reflect that notion.  For the other types,
- * the WayPoint is an "abbreviation" of 2 points -- from the start point of the road-segment,
- * side-walk, or crossing to their end point.
+ * Previously, a WayPoint represented an actual "Point". Now, however, a WayPoint actually represents a portion of a path.
+ * In particular, the types SIDE_WALK and ROAD_SEGMENT represent direct, observable edges; that is, they represent
+ * SideWalk lanes and RoadSegments respectively. Similarly, the CROSSING type represents a Pedestrian crossing (from/to a
+ * given RoadSegment, in an arbitrary order). The BUS_STOP type, although not used at the moment, would represent
+ * an invisible link from a RoadSegment or Node to the actual BusStop's location. The NODE type usually represents
+ * movement within "parts" of a Node. Consider, for example, that a UniNode may actually have two vertices in the graph:
+ * the roadway moving in one direciton, and the roadway moving reverse to that direction. In this case, a NODE WayPoint would
+ * be used to move from the UniNode itself to one of these two vertices (if the vehicle starts on that Node exactly). In addition,
+ * the NODE type is also currently used to store LaneConnectors.
  *
- * The shortest path may include a BUS_STOP WayPoint.  This would be useful for buses; such
- * WayPoints mark out the points they need to stop for passengers to board and alight.  Car
- * drivers can skip these way-points.  Similarly pedestrians may skip BUS_STOP way-points unless
- * the way-point is their destination.  The WayPoint before and after the BUS_STOP WayPoint in the
- * shortest path may refer to the same road-segment (for vehicles) or side-walk (for pedestrians).
+ * Agents should skip any type which does not matter to them. For example, Drivers in the medium term can safely skip all NODE
+ * types, since medium-term Drivers perform no intersection-level driving.
  *
  * Refer to StreetDirectory::shortestWalkingPath() for a description of the NODE type.
  *
- * Future extensions would include underpasses and overhead bridges types.
+ * \todo
+ * This class is beginning to stretch the limits of our union-in-a-struct abstraction. In particular, it is far too easy to
+ * take a SIDE_WALK WayPoint and attempt to access its roadSegment_ data member. Perhaps we can start with getters/setters
+ * and make the unionized type private? That way we can throw an exception if the wrong access pattern is used.  ~Seth
  *
  * \sa StreetDirectory::shortestDrivingPath()
  * \sa StreetDirectory::shortestWalkingPath()
  */
 struct WayPoint
 {
-    enum
-    {
-        SIDE_WALK, //!< waypoint is a side walk; lane_ points to a (side-walk) Lane object.
-        ROAD_SEGMENT, //!< waypoint is a road-segment; roadSegment_ points to a RoadSegment object.
-        BUS_STOP, //!< waypoint is a bus-stop; busStop_ points to a BusStop object.
-        CROSSING, //!< waypoint is a crossing; crossing_ points to a Crossing object.
-        NODE, //!< waypoint is node; node_ points to a Node object.
-        INVALID  //!< waypoint is invalid, none of the pointers are valid.
+    enum {
+        SIDE_WALK,    //!< WayPoint is a side walk; lane_ points to a (side-walk) Lane object.
+        ROAD_SEGMENT, //!< WayPoint is a road-segment; roadSegment_ points to a RoadSegment object.
+        BUS_STOP,     //!< WayPoint is a bus-stop; busStop_ points to a BusStop object.
+        CROSSING,     //!< WayPoint is a crossing; crossing_ points to a Crossing object.
+        NODE,         //!< WayPoint is node; node_ points to a Node object.
+        INVALID       //!< WayPoint is invalid, none of the pointers are valid.
     } type_;
-    union
-    {
-        Lane const * lane_;
-        RoadSegment const * roadSegment_;
-        BusStop const * busStop_;
-        Crossing const * crossing_;
-        Node const * node_;
+
+    union {
+        const Lane* lane_;
+        const RoadSegment* roadSegment_;
+        const BusStop* busStop_;
+        const Crossing* crossing_;
+        const Node* node_;
     };
 
+    ///If true, this indicates the the current WayPoint represents a reverse traversal of the given type.
+    ///  This usually means that a RoadSegment should be traversed in reverse. Note that this only has meaning
+    ///   in the walking graph.
     bool directionReverse;
 
     /** \cond ignoreStreetDirectoryInnards -- Start of block to be ignored by doxygen.  */
@@ -115,10 +124,12 @@ struct WayPoint
     /** \endcond ignoreStreetDirectoryInnards -- End of block to be ignored by doxygen.  */
 };
 
+
+
 /**
  * A singleton that provides street-directory information.
  *
- * Any agent (usually a driver agent or vehicle entity) can call the getLane() method to find
+ * Any agent (usually a Driver or Pedestrian) can call the getLane() method to find
  * which lane it is currently located.
  *   \code
  *   StreetDirectory::LaneAndIndexPair pair = StreetDirectory::instance().getLane(myPosition);
@@ -153,9 +164,8 @@ struct WayPoint
 class StreetDirectory : private boost::noncopyable
 {
 public:
-    static StreetDirectory&
-    instance()
-    {
+	///Retrieve the current StreetDirectory instance. There can only be one StreetDirectory at any given time.
+    static StreetDirectory& instance() {
         return instance_;
     }
 
@@ -165,17 +175,16 @@ public:
      * \c startIndex_ and \c endIndex_ are indices into the RoadSegment::polyline array.
      * If \c lane_ is not \c 0, then the area of interest is that stretch of the road segment.
      */
-    struct LaneAndIndexPair
-    {
-        Lane const * lane_;
+    struct LaneAndIndexPair {
+        const Lane* lane_;
         size_t startIndex_;
         size_t endIndex_;
 
-        LaneAndIndexPair(Lane const * lane = 0, size_t startIndex = 0, size_t endIndex = 0)
-          : lane_(lane), startIndex_(startIndex), endIndex_(endIndex)
-        {
-        }
+        explicit LaneAndIndexPair(const Lane* lane=nullptr, size_t startIndex=0, size_t endIndex=0)
+        	: lane_(lane), startIndex_(startIndex), endIndex_(endIndex)
+        {}
     };
+
 
     /**
      * Data structure returned by closestRoadSegments().
@@ -186,38 +195,36 @@ public:
      * the same road segment several times.  They are different stretches of the road segment
      * as reflected by different \c startIndex and \c endIndex values.
      */
-    struct RoadSegmentAndIndexPair
-    {
-        RoadSegment const * segment_;
+    struct RoadSegmentAndIndexPair {
+        const RoadSegment* segment_;
         size_t startIndex_;
         size_t endIndex_;
 
-        RoadSegmentAndIndexPair(RoadSegment const * segment, size_t startIndex, size_t endIndex)
-          : segment_(segment), startIndex_(startIndex), endIndex_(endIndex)
-        {
-        }
+        RoadSegmentAndIndexPair(const RoadSegment* segment, size_t startIndex, size_t endIndex)
+        	: segment_(segment), startIndex_(startIndex), endIndex_(endIndex)
+        {}
     };
+
 
     /**
      * Return the lane that contains the specified \c point; 0 if the point is outside the
      * road network.
-     *
      */
-    LaneAndIndexPair
-    getLane(Point2D const & point) const;
+    LaneAndIndexPair getLane(const Point2D& point) const;
+
 
     /**
      * Return the MultiNode closest to this Crossing (may be null).
      */
     const MultiNode* GetCrossingNode(const Crossing* cross) const;
 
+
     /**
      * Return the RoadSegments within a rectangle centered around a point;
      * possibly empty list if rectangle is too small.
-     *
      */
-    std::vector<RoadSegmentAndIndexPair>
-    closestRoadSegments(Point2D const & point, centimeter_t halfWidth, centimeter_t halfHeight) const;
+    std::vector<RoadSegmentAndIndexPair> closestRoadSegments(const Point2D & point, centimeter_t halfWidth, centimeter_t halfHeight) const;
+
 
     /**
      * Return the Signal object, possibly none, located at the specified node.
@@ -225,22 +232,26 @@ public:
      * It is possible that the intersection, specified by \c node, is an unsignalized junction.
      * All road users must observe the highway code.
      */
-    Signal const *
-    signalAt(Node const & node) const;
+    const Signal* signalAt(const Node& node) const;
+
 
     /**
      * Return the distance-based shortest path to drive from one node to another.
      *
-     * The fucntion may return an empty array if \c toNode is not reachable from \c fromNode via
+     * The function may return an empty array if \c toNode is not reachable from \c fromNode via
      * road-segments allocated for vehicle traffic.
      *
-     * The array contains only ROAD_SEGMENT and BUS_STOP WayPoint types.
+     * The resulting array contains only ROAD_SEGMENT and NODE WayPoint types. NODES at the beginning or end
+     *  of the array can be ignored; NODES in the middle represent LaneConnectors.
+     *
+     * \todo
+     * Although A* is pretty fast, we might want to cache the X most recent from/to pairs, since we're likely to have
+     *   a lot of drivers asking for the same path information. This is trickier than one might think, since the
+     *   StreetDirectory is used in parallel, so a shared structure will need to be designed carefully. ~Seth
      */
-    std::vector<WayPoint>
-    shortestDrivingPath(Node const & fromNode, Node const & toNode) const;
+  //  std::vector<WayPoint> shortestDrivingPath(const Node& fromNode, const Node& toNode) const;
+    std::vector<WayPoint> GetShortestDrivingPath(const Node& fromNode, const Node& toNode) const;
 
-    std::vector<WayPoint>
-    GetShortestDrivingPath(Node const & fromNode, Node const & toNode) const;
 
     /**
      * Return the distance-based shortest path to walk from one point to another.

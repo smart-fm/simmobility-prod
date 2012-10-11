@@ -21,10 +21,6 @@
 #include "partitions/UnPackageUtils.hpp"
 #endif
 
-//using std::vector;
-//using std::map;
-//using std::string;
-
 namespace sim_mob {
 
 // offsetMS_From(ConfigParams::GetInstance().simStartTime)???
@@ -39,11 +35,11 @@ public:
 
 class BusStop_RealTimes{
 public:
-	explicit BusStop_RealTimes(unsigned int real_ArrivalTime = 0, unsigned int real_DepartureTime = 0);
+	explicit BusStop_RealTimes(DailyTime real_ArrivalTime = DailyTime("00:00:00"), DailyTime real_DepartureTime = DailyTime("00:00:00"));
 	~BusStop_RealTimes() {}
 	BusStop* Real_busStop;
-	unsigned int real_ArrivalTime;// real Arrival Time
-	unsigned int real_DepartureTime;// real Departure Time
+	DailyTime real_ArrivalTime;// real Arrival Time
+	DailyTime real_DepartureTime;// real Departure Time
 };
 
 //class BusStopInfo { // not clear

@@ -15,7 +15,7 @@ sim_mob::BusStop_ScheduledTimes::BusStop_ScheduledTimes(DailyTime scheduled_Arri
 
 }
 
-sim_mob::BusStop_RealTimes::BusStop_RealTimes(unsigned int real_ArrivalTime, unsigned int real_DepartureTime)
+sim_mob::BusStop_RealTimes::BusStop_RealTimes(DailyTime real_ArrivalTime, DailyTime real_DepartureTime)
 : real_ArrivalTime(real_ArrivalTime), real_DepartureTime(real_DepartureTime)
 {
 

@@ -16,7 +16,7 @@
 
 //add by xuyan
 #include "geospatial/RoadNetwork.hpp"
-#include "geospatial/StreetDirectory.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 #include "conf/simpleconf.hpp"
 #include "geospatial/Node.hpp"
 #include "geospatial/UniNode.hpp"

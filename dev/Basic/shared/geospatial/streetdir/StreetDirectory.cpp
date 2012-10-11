@@ -34,10 +34,8 @@
 #endif
 
 #include "entities/TrafficWatch.hpp"
-
-
-
-
+#include "A_StarShortestPathImpl.hpp"
+#include "GridStreetDirectoryImpl.hpp"
 
 
 using std::map;
@@ -49,36 +47,16 @@ using namespace sim_mob;
 StreetDirectory sim_mob::StreetDirectory::instance_;
 
 
-namespace sim_mob
-{
-
-
-
-
-
-
-/** \endcond ignoreStreetDirectoryInnards -- End of block to be ignored by doxygen.  */
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////
-// StreetDirectory
-////////////////////////////////////////////////////////////////////////////////////////////
-
-void
-StreetDirectory::init(RoadNetwork const & network, bool keepStats /* = false */,
-                      centimeter_t gridWidth, centimeter_t gridHeight)
+void sim_mob::StreetDirectory::init(const RoadNetwork& network, bool keepStats, centimeter_t gridWidth, centimeter_t gridHeight)
 {
     if (keepStats) {
         stats_ = new Stats;
     }
-    pimpl_ = new Impl(network, gridWidth, gridHeight);
-    spImpl_ = new ShortestPathImpl(network);
+    pimpl_ = new GridStreetDirectoryImpl(network, gridWidth, gridHeight);
+    spImpl_ = new A_StarShortestPathImpl(network);
 }
 
-void
-StreetDirectory::updateDrivingMap()
+void sim_mob::StreetDirectory::updateDrivingMap()
 {
 	if(spImpl_) {
 		spImpl_->updateEdgeProperty();
@@ -88,52 +66,39 @@ StreetDirectory::updateDrivingMap()
 	}
 }
 
-StreetDirectory::LaneAndIndexPair
-StreetDirectory::getLane(Point2D const & point) const
+StreetDirectory::LaneAndIndexPair sim_mob::StreetDirectory::getLane(const Point2D& point) const
 {
-    return pimpl_ ? pimpl_->getLane(point)
-                  : LaneAndIndexPair();
+    return pimpl_ ? pimpl_->getLane(point) : LaneAndIndexPair();
 }
 
-std::vector<StreetDirectory::RoadSegmentAndIndexPair>
-StreetDirectory::closestRoadSegments(Point2D const & point,
-                                     centimeter_t halfWidth, centimeter_t halfHeight) const
+std::vector<StreetDirectory::RoadSegmentAndIndexPair> sim_mob::StreetDirectory::closestRoadSegments(const Point2D& point, centimeter_t halfWidth, centimeter_t halfHeight) const
 {
-    return pimpl_ ? pimpl_->closestRoadSegments(point, halfWidth, halfHeight)
-                  : std::vector<RoadSegmentAndIndexPair>();
+    return pimpl_ ? pimpl_->closestRoadSegments(point, halfWidth, halfHeight) : std::vector<RoadSegmentAndIndexPair>();
 }
 
-const MultiNode* StreetDirectory::GetCrossingNode(const Crossing* cross) const
+const MultiNode* sim_mob::StreetDirectory::GetCrossingNode(const Crossing* cross) const
 {
 	return pimpl_ ? pimpl_->GetCrossingNode(cross) : nullptr;
 }
 
-Signal const *
-StreetDirectory::signalAt(Node const & node) const
+const Signal* sim_mob::StreetDirectory::signalAt(Node const & node) const
 {
-//	std::cout << "StreetDirectory: " << signals_.size() << std::endl;
-	std::map<const Node *, Signal const *>::const_iterator iter = signals_.find(&node);
+	map<const Node *, Signal const *>::const_iterator iter = signals_.find(&node);
     if (signals_.end() == iter) {
         return nullptr;
     }
     return iter->second;
 }
 
-/*std::vector<WayPoint>
-StreetDirectory::shortestDrivingPath(Node const & fromNode, Node const & toNode) const
-{
-    return spImpl_ ? spImpl_->shortestDrivingPath(fromNode, toNode)
-                   : std::vector<WayPoint>();
-}*/
 
-vector<WayPoint> StreetDirectory::SearchShortestDrivingPath(const Node& fromNode, const Node& toNode) const
+vector<WayPoint> sim_mob::StreetDirectory::SearchShortestDrivingPath(const Node& fromNode, const Node& toNode) const
 {
 	if (!spImpl_) { return vector<WayPoint>(); }
 
 	return spImpl_->GetShortestDrivingPath(fromNode, toNode);
 }
 
-vector<WayPoint> StreetDirectory::SearchShortestWalkingPath(Point2D const & fromPoint, Point2D const & toPoint) const
+vector<WayPoint> sim_mob::StreetDirectory::SearchShortestWalkingPath(Point2D const & fromPoint, Point2D const & toPoint) const
 {
 	if (!spImpl_) { return vector<WayPoint>(); }
 
@@ -141,46 +106,34 @@ vector<WayPoint> StreetDirectory::SearchShortestWalkingPath(Point2D const & from
 }
 
 
-void
-StreetDirectory::printStatistics() const
+void sim_mob::StreetDirectory::printStatistics() const
 {
-    if (stats_)
-    {
+    if (stats_) {
         stats_->printStatistics();
-    }
-    else
-    {
+    } else {
         std::cout << "No statistics was collected by the StreetDirectory singleton." << std::endl;
     }
 }
 
-void
-StreetDirectory::registerSignal(Signal const & signal)
+void sim_mob::StreetDirectory::registerSignal(const Signal& signal)
 {
-    Node const * node = &(signal.getNode());
+    const Node* node = &(signal.getNode());
 
-    if (signals_.count(node) == 0)
-    {
+    if (signals_.count(node) == 0) {
         signals_.insert(std::make_pair(node, &signal));
     }
 }
 
-void
-StreetDirectory::printDrivingGraph()
+void sim_mob::StreetDirectory::printDrivingGraph()
 {
 	if (spImpl_) {
-		spImpl_->printGraph("driving", spImpl_->drivingMap_);
+		spImpl_->printDrivingGraph();
 	}
 }
 
-void
-StreetDirectory::printWalkingGraph()
+void sim_mob::StreetDirectory::printWalkingGraph()
 {
 	if (spImpl_) {
-		spImpl_->printGraph("walking", spImpl_->walkingMap_);
+		spImpl_->printWalkingGraph();
 	}
-}
-
-
-
 }

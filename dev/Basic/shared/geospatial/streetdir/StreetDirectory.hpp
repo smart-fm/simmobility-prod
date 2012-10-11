@@ -292,7 +292,8 @@ public:
 
         virtual void updateEdgeProperty() = 0;
 
-        virtual void printGraph(const std::string& graphType, const Graph& graph) = 0;
+        virtual void printDrivingGraph() const = 0;
+        virtual void printWalkingGraph() const = 0;
 
         //TODO: Does this work the way I want it to?
         friend class StreetDirectory;

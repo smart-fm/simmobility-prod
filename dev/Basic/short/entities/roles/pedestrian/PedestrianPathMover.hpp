@@ -9,7 +9,7 @@
 
 #include "util/DynamicVector.hpp"
 #include "geospatial/Lane.hpp"
-#include "geospatial/StreetDirectory.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/Crossing.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include <vector>

@@ -9,6 +9,7 @@
 
 #include <map>
 #include <vector>
+#include <string>
 
 #include <boost/unordered_map.hpp>
 #include <boost/utility.hpp>
@@ -30,8 +31,9 @@ protected:
 
     virtual void updateEdgeProperty();
 
-    virtual void printGraph(const std::string& graphType, const Graph& graph);
+    virtual void printDrivingGraph() const;
 
+    virtual void printWalkingGraph() const;
 
 private:
     ///Helper class:identify a Node exactly. This requires the incoming/outgoing RoadSegment(s), and the generated Vertex.
@@ -41,7 +43,7 @@ private:
     	int beforeLaneID; //Only used by the Walking graph
     	int afterLaneID;  //Only used by the Walking graph
     	Point2D tempPos; //Only used by Walking graph UniNodes, temporarily.
-    	Vertex v;
+    	StreetDirectory::Vertex v;
 
     	//Equality comparison (be careful here!)
     	bool operator== (const NodeDescriptor& other) const {
@@ -69,8 +71,8 @@ private:
 
     //Lookup the master Node for each Node-related vertex.
     //Note: The first item is the "source" vertex, used to search *from* that Node. The second item is the "sink" vertex, used to search *to* that Node.
-    std::map<const Node*, std::pair<Vertex,Vertex> > drivingNodeLookup_;
-    std::map<const Node*, std::pair<Vertex,Vertex> > walkingNodeLookup_;
+    std::map<const Node*, std::pair<StreetDirectory::Vertex,StreetDirectory::Vertex> > drivingNodeLookup_;
+    std::map<const Node*, std::pair<StreetDirectory::Vertex,StreetDirectory::Vertex> > walkingNodeLookup_;
 
 private:
     //Initialize
@@ -78,26 +80,28 @@ private:
     void initWalkingNetworkNew(const std::vector<Link*>& links);
 
     //New processing code: Driving path
-    void procAddDrivingNodes(Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup);
-    void procAddDrivingLinks(Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup);
-    void procAddDrivingLaneConnectors(Graph& graph, const MultiNode* node, const std::map<const Node*, VertexLookup>& nodeLookup);
+    void procAddDrivingNodes(StreetDirectory::Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup);
+    void procAddDrivingLinks(StreetDirectory::Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup);
+    void procAddDrivingLaneConnectors(StreetDirectory::Graph& graph, const MultiNode* node, const std::map<const Node*, VertexLookup>& nodeLookup);
 
     //New processing code: Walking path
-    void procAddWalkingNodes(Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup, std::map<const Node*, VertexLookup>& tempNodes);
-    void procResolveWalkingMultiNodes(Graph& graph, const std::map<const Node*, VertexLookup>& unresolvedNodes, std::map<const Node*, VertexLookup>& nodeLookup);
-    void procAddWalkingLinks(Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup);
-    void procAddWalkingCrossings(Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup, std::set<const Crossing*>& completed);
+    void procAddWalkingNodes(StreetDirectory::Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup, std::map<const Node*, VertexLookup>& tempNodes);
+    void procResolveWalkingMultiNodes(StreetDirectory::Graph& graph, const std::map<const Node*, VertexLookup>& unresolvedNodes, std::map<const Node*, VertexLookup>& nodeLookup);
+    void procAddWalkingLinks(StreetDirectory::Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup);
+    void procAddWalkingCrossings(StreetDirectory::Graph& graph, const std::vector<RoadSegment*>& roadway, const std::map<const Node*, VertexLookup>& nodeLookup, std::set<const Crossing*>& completed);
 
     //New processing code: Shared
-    void procAddStartNodesAndEdges(Graph& graph, const std::map<const Node*, VertexLookup>& allNodes, std::map<const Node*, std::pair<Vertex, Vertex> >& resLookup);
+    void procAddStartNodesAndEdges(StreetDirectory::Graph& graph, const std::map<const Node*, VertexLookup>& allNodes, std::map<const Node*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> >& resLookup);
     bool checkIfExist(std::vector<std::vector<WayPoint> > & paths, std::vector<WayPoint> & path);
 
-    //TODO: Replace with a space partition later.
-    std::map<const Node*, std::pair<Vertex,Vertex> >::const_iterator
-    searchVertex(const std::map<const Node*, std::pair<Vertex,Vertex> >& srcNodes, const Point2D& point) const;
+    //Internal printing code.
+    void printGraph(const std::string& graphType, const StreetDirectory::Graph& graph) const;
 
-    std::vector<WayPoint>
-    searchShortestPath(const Graph& graph, const Vertex& fromVertex, const Vertex& toVertex) const;
+    //TODO: Replace with a space partition later.
+    std::map<const Node*, std::pair<StreetDirectory::Vertex,StreetDirectory::Vertex> >::const_iterator
+    searchVertex(const std::map<const Node*, std::pair<StreetDirectory::Vertex,StreetDirectory::Vertex> >& srcNodes, const Point2D& point) const;
+
+    std::vector<WayPoint> searchShortestPath(const StreetDirectory::Graph& graph, const StreetDirectory::Vertex& fromVertex, const StreetDirectory::Vertex& toVertex) const;
 
     //Distance heuristic for our A* search algorithm
     //Taken from: http://www.boost.org/doc/libs/1_38_0/libs/graph/example/astar-cities.cpp
@@ -105,8 +109,8 @@ private:
     template <class Graph, class CostType>
     class distance_heuristic : public boost::astar_heuristic<Graph, CostType> {
     public:
-      distance_heuristic(const Graph* graph, Vertex goal) : m_graph(graph), m_goal(goal) {}
-      CostType operator()(Vertex v) {
+      distance_heuristic(const Graph* graph, StreetDirectory::Vertex goal) : m_graph(graph), m_goal(goal) {}
+      CostType operator()(StreetDirectory::Vertex v) {
     	  const Node* atPos = boost::get(boost::vertex_name, *m_graph, v);
     	  const Node* goalPos = boost::get(boost::vertex_name, *m_graph, m_goal);
 
@@ -114,7 +118,7 @@ private:
       }
     private:
       const Graph* m_graph;
-      Vertex m_goal;
+      StreetDirectory::Vertex m_goal;
     };
 
     //Used to terminate our search (todo: is there a better way?)

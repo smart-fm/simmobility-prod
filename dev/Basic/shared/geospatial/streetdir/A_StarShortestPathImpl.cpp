@@ -1060,7 +1060,20 @@ bool sim_mob::A_StarShortestPathImpl::checkIfExist(std::vector<std::vector<WayPo
 }
 
 
-void sim_mob::A_StarShortestPathImpl::printGraph(const std::string& graphType, const StreetDirectory::Graph& graph)
+
+void sim_mob::A_StarShortestPathImpl::printDrivingGraph() const
+{
+	printGraph("driving", drivingMap_);
+}
+
+void sim_mob::A_StarShortestPathImpl::printWalkingGraph() const
+{
+	printGraph("walking", walkingMap_);
+}
+
+
+
+void sim_mob::A_StarShortestPathImpl::printGraph(const std::string& graphType, const StreetDirectory::Graph& graph) const
 {
 	//Print an identifier
 	LogOutNotSync("(\"sd-graph\""

@@ -56,6 +56,32 @@ public:
 	//Accessors
 	std::string toString() const;
 
+	inline DailyTime(const DailyTime& dailytime) : time_(dailytime.getValue()), repr_(dailytime.getRepr_()){}
+	inline uint32_t getValue() const {
+		return time_;
+	}
+	inline std::string getRepr_() const {
+		return repr_;
+	}
+    inline const DailyTime& operator+=(const DailyTime& dailytime)
+    {
+			time_ += dailytime.getValue();
+            return *this;
+    }
+    inline const DailyTime& operator-=(const DailyTime& dailytime)
+    {
+			time_ -= dailytime.getValue();
+            return *this;
+    }
+    friend const DailyTime operator+(DailyTime lhs, const DailyTime& rhs)
+    {
+        return lhs += rhs;
+    }
+    friend const DailyTime operator-(DailyTime lhs, const DailyTime& rhs)
+    {
+        return lhs -= rhs;
+    }
+
 private:
 	///Helper method: create a string representation from a given time value in miliseconds.
 	///

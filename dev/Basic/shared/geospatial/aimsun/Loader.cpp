@@ -469,16 +469,16 @@ void DatabaseLoader::LoadBusStop(const std::string& storedProc)
 
 void DatabaseLoader::LoadPTBusTrip(const std::string& storedProc, std::vector<sim_mob::PT_trip*>& pt_trip)
 {
-    if (storedProc.empty())
-    {
-        std::cout << "WARNING: An empty 'PT_BusTrip' stored-procedure was specified in the config file; " << std::endl;
-        return;
-    }
-    soci::rowset<sim_mob::PT_trip> rows = (sql_.prepare <<"select * from " + storedProc);
-    for (soci::rowset<sim_mob::PT_trip>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
-    {
-    	pt_trip.push_back(new sim_mob::PT_trip(*iter));
-    }
+//    if (storedProc.empty())
+//    {
+//        std::cout << "WARNING: An empty 'PT_BusTrip' stored-procedure was specified in the config file; " << std::endl;
+//        return;
+//    }
+//    soci::rowset<sim_mob::PT_trip> rows = (sql_.prepare <<"select * from " + storedProc);
+//    for (soci::rowset<sim_mob::PT_trip>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
+//    {
+//    	pt_trip.push_back(new sim_mob::PT_trip(*iter));
+//    }
 }
 
 void DatabaseLoader::LoadBusSchedule(const std::string& storedProc, std::vector<sim_mob::BusSchedule*>& busschedule)
@@ -1882,6 +1882,7 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 
 	//Step 1.1: Load "new style" objects, which don't require any post-processing.
 	loader.LoadBusSchedule(getStoredProcedure(storedProcs, "bus_schedule", false), ConfigParams::GetInstance().getBusSchedule());
+	loader.LoadPTBusTrip(getStoredProcedure(storedProcs, "pt_bustrip", false), ConfigParams::GetInstance().getPT_trip());
 
 
 	if (prof) { prof->logGenericEnd("Database", "main-prof"); }

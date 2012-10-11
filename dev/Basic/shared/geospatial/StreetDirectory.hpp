@@ -236,7 +236,8 @@ public:
 
 
     /**
-     * Return the distance-based shortest path to drive from one node to another.
+     * Return the distance-based shortest path to drive from one node to another. Performs a search (currently using
+     *  the A* algorithm) from "fromNode" to "toNode".
      *
      * The function may return an empty array if \c toNode is not reachable from \c fromNode via
      * road-segments allocated for vehicle traffic.
@@ -249,8 +250,7 @@ public:
      *   a lot of drivers asking for the same path information. This is trickier than one might think, since the
      *   StreetDirectory is used in parallel, so a shared structure will need to be designed carefully. ~Seth
      */
-  //  std::vector<WayPoint> shortestDrivingPath(const Node& fromNode, const Node& toNode) const;
-    std::vector<WayPoint> GetShortestDrivingPath(const Node& fromNode, const Node& toNode) const;
+    std::vector<WayPoint> SearchShortestDrivingPath(const Node& fromNode, const Node& toNode) const;
 
 
     /**

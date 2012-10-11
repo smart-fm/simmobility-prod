@@ -2812,7 +2812,7 @@ StreetDirectory::shortestDrivingPath(Node const & fromNode, Node const & toNode)
 }*/
 
 std::vector<WayPoint>
-StreetDirectory::GetShortestDrivingPath(Node const & fromNode, Node const & toNode) const
+StreetDirectory::SearchShortestDrivingPath(Node const & fromNode, Node const & toNode) const
 {
     return spImpl_ ? spImpl_->GetShortestDrivingPath(fromNode, toNode)
                    : std::vector<WayPoint>();

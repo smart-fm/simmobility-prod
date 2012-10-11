@@ -28,7 +28,6 @@ namespace sim_mob
  *   \li Times must be of the format HH:MM:SS  --the colon is not optional.
  *   \li Only the seconds component may have a fractional component: HH:MM:SS.ffff..fff
  *   \li Hours and minutes are mandatory. Seconds (and second fractions) are optional.
- *   \li The hour 24 cannot be used.
  *
  * \note
  * Many of these constraints are not enforced, but may be in the future. ~Seth

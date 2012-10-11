@@ -34,10 +34,26 @@
 #include "ZebraCrossing.hpp"
 #include "UniNode.hpp"
 
-//Define this if you want to attempt to "fix" the broken DAG.
-//NOTE: Do *not* put this into the config file or CMake; once the DAG is fixed we'll remove the old code.
-//TODO: The new model leaks memory (all code that does this is marked). Change to value types once you're ready to remove this #define.
+
+
+/**
+ * This flag "fixes" the broken DAG that was giving route-choice errors.
+ *
+ * \note
+ * Do *not* put this into the config file or CMake; once the DAG works properly we will delete this flag and the old code.
+ *
+ * \note
+ * Currently, the state of the code is such that commenting out this #define will likely cause a compilation/runtime error.
+ * In other words, the new DAG works, mostly.
+ *
+ * \todo
+ * This implementation currently leaks memory.
+ */
 #define STDIR_FIX_BROKEN
+
+
+using std::map;
+using std::vector;
 
 
 
@@ -2811,18 +2827,18 @@ StreetDirectory::shortestDrivingPath(Node const & fromNode, Node const & toNode)
                    : std::vector<WayPoint>();
 }*/
 
-std::vector<WayPoint>
-StreetDirectory::SearchShortestDrivingPath(Node const & fromNode, Node const & toNode) const
+vector<WayPoint> StreetDirectory::SearchShortestDrivingPath(const Node& fromNode, const Node& toNode) const
 {
-    return spImpl_ ? spImpl_->GetShortestDrivingPath(fromNode, toNode)
-                   : std::vector<WayPoint>();
+	if (!spImpl_) { return vector<WayPoint>(); }
+
+	return spImpl_->GetShortestDrivingPath(fromNode, toNode);
 }
 
-std::vector<WayPoint>
-StreetDirectory::shortestWalkingPath(Point2D const & fromPoint, Point2D const & toPoint) const
+vector<WayPoint> StreetDirectory::SearchShortestWalkingPath(Point2D const & fromPoint, Point2D const & toPoint) const
 {
-    return spImpl_ ? spImpl_->shortestWalkingPath(fromPoint, toPoint)
-                   : std::vector<WayPoint>();
+	if (!spImpl_) { return vector<WayPoint>(); }
+
+	return spImpl_->shortestWalkingPath(fromPoint, toPoint);
 }
 
 

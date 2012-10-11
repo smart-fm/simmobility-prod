@@ -259,16 +259,19 @@ public:
      * The function may return an empty array if \c toPoint is not reachable from \c fromPoint
      * via side-walks and crossings.
      *
-     * The array contains only SIDE_WALK, BUS_STOP, CROSSING and NODE WayPoint types.
+     * The array contains only SIDE_WALK, CROSSING and NODE WayPoint types.
      *
      * It is possible that \c fromPoint or \c toPoint are off the road network (for example,
      * inside a building).  In that case, the first (last) wayPoint in the array would be a NODE
      * type if \c fromPoint (\c toPoint) is not within the road network; the NODE way-point would
      * be located in the road network.  The pedestrian is required to move from \c fromPoint to the
      * way-point (or from the way-point to \c toPoint) by some undefined mean.
+     *
+     * \todo
+     * Adding of ad-hoc points is untested at the moment.
      */
-    std::vector<WayPoint>
-    shortestWalkingPath(Point2D const & fromPoint, Point2D const & toPoint) const;
+    std::vector<WayPoint> SearchShortestWalkingPath(const Point2D& fromPoint, const Point2D& toPoint) const;
+
 
     /**
      * Initialize the StreetDirectory object (to be invoked by the simulator kernel).
@@ -283,55 +286,51 @@ public:
      * singleton will load the road network on demand during calls to getLane() and
      * closestRoadSegments().
      */
-    void
-    init(RoadNetwork const & network, bool keepStats = false,
-         centimeter_t gridWidth = 100000, centimeter_t gridHeight = 80000);
+    void init(const RoadNetwork& network, bool keepStats=false, centimeter_t gridWidth=100000, centimeter_t gridHeight=80000);
+
 
     /**
      * Register the Signal object with the StreetDirectory (to be invoked by the simulator kernel).
      */
-    void
-    registerSignal(Signal const & signal);
+    void registerSignal(const Signal& signal);
+
 
     /**
-     * Print statistics collected on internal operationss.
+     * Print statistics collected on internal operations.
      *
      * Useful only if \c keepStats is \c true when \c init() was called.
      */
-    void
-    printStatistics() const;
+    void printStatistics() const;
+
 
     void updateDrivingMap();
 
-    //Print using the old output format.
+
+    ///Print the Driving graph to LogOut(), in the old output format (out.txt)
     void printDrivingGraph();
+
+    ///Print the Walking graph to LogOut(), in the old output format (out.txt)
     void printWalkingGraph();
 
 private:
-    StreetDirectory()
-      : pimpl_(nullptr)
-      , spImpl_(nullptr)
-      , stats_(nullptr)
-    {
-    }
-
-    // No need to define the dtor.
+    StreetDirectory() : pimpl_(nullptr), spImpl_(nullptr), stats_(nullptr)
+    {}
 
     static StreetDirectory instance_;
 
     // Using the pimple design pattern.  Impl is defined in the source file.
     class Impl;
     Impl* pimpl_;
-    friend class Impl;  // allow access to stats_.
+    friend class Impl;  //allow access to stats_.
 
-    // A private class to calculate distance-based shortest paths for drivers and pedestrians.
+    //A private class to calculate distance-based shortest paths for drivers and pedestrians.
     class ShortestPathImpl;
     ShortestPathImpl* spImpl_;
 
     class Stats;
     Stats* stats_;
 
-    std::map<const Node *, Signal const *> signals_;
+    std::map<const Node*, Signal const*> signals_;
 };
 
 

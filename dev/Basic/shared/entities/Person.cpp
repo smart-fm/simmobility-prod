@@ -167,7 +167,7 @@ void sim_mob::Person::load(const map<string, string>& configProps)
 		if (agentType=="pedestrian") {
 			//For now, pedestrians can't have invalid routes.
 			//skip = true;
-			//vector<WayPoint> path = sd.shortestWalkingPath(agent->originNode->location, agent->destNode->location);
+			//vector<WayPoint> path = sd.SearchShortestWalkingPath(agent->originNode->location, agent->destNode->location);
 			//for (vector<WayPoint>::iterator it=path.begin(); it!=path.end(); it++) {
 			//	if (it->type_ == WayPoint::SIDE_WALK) {
 			//		skip = false;

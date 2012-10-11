@@ -338,7 +338,7 @@ void sim_mob::Pedestrian::frame_tick_output_mpi(frame_t frameNumber)
 
 void sim_mob::Pedestrian::setSubPath() {
 	if(atSidewalk){
-		vector<WayPoint> wp_path = StreetDirectory::instance().shortestWalkingPath(parent->originNode->location, parent->destNode->location);
+		vector<WayPoint> wp_path = StreetDirectory::instance().SearchShortestWalkingPath(parent->originNode->location, parent->destNode->location);
 
 		//Used to debug pedestrian walking paths.
 		/*LogOut("Pedestrian requested path from: " <<parent->originNode->originalDB_ID.getLogItem() <<" => " <<parent->destNode->originalDB_ID.getLogItem() <<"  {" <<std::endl);
@@ -376,7 +376,7 @@ void sim_mob::Pedestrian::setSubPath() {
 					}
 
 					//If we're changing Links, stop. Thus, "path" contains only the Segments needed to reach the Intersection, and no more.
-					//NOTE: Later, you can send the ENTIRE shortestWalkingPath to fwdMovement and just handle "isInIntersection()"
+					//NOTE: Later, you can send the ENTIRE SearchShortestWalkingPath to fwdMovement and just handle "isInIntersection()"
 					RoadSegment* rs = it->lane_->getRoadSegment();
 					isPassedSeg=false;
 					if(!currPath.empty()){
@@ -450,7 +450,7 @@ void sim_mob::Pedestrian::setSubPath() {
 
 		//LogOut("noteForDebug setSubPath run atCrossing"<<std::endl);
 
-		vector<WayPoint> wp_path = StreetDirectory::instance().shortestWalkingPath(parent->originNode->location,
+		vector<WayPoint> wp_path = StreetDirectory::instance().SearchShortestWalkingPath(parent->originNode->location,
 				parent->destNode->location);
 		bool isPassedCrossing=false;
 		vector<const Crossing*> newCrossings;

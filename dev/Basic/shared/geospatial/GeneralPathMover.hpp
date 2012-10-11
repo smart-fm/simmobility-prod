@@ -7,7 +7,7 @@
 
 #include "util/DynamicVector.hpp"
 #include "geospatial/Point2D.hpp"
-#include "geospatial/StreetDirectory.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 
 
 namespace sim_mob

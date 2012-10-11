@@ -15,7 +15,7 @@
 #include "geospatial/Crossing.hpp"
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/RoadSegment.hpp"
-#include "geospatial/StreetDirectory.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 #include "util/OutputUtil.hpp"
 #include "conf/simpleconf.hpp"
 

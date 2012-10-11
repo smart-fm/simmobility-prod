@@ -7,8 +7,11 @@
 
 #include <map>
 #include <vector>
+#include <stdexcept>
 
+#include <boost/graph/adjacency_list.hpp>
 #include <boost/utility.hpp>
+
 #include "metrics/Length.hpp"
 
 //Pull in our typedefs
@@ -207,6 +210,106 @@ public:
 
 
     /**
+     * Internal typedef to StreetDirectory representing:
+     *   key:    The "vertex_name" property.
+     *   value:  The Node* at that vertex.
+     * This is just a handy way of retrieving data "stored" at a given vertex.
+     */
+    typedef boost::property<boost::vertex_name_t, const Node*> VertexProperties;
+
+
+    /**
+     * Internal typedef to StreetDirectory representing:
+     *   keys:   The "edge_weight" and "edge_name" properties.
+     *   values: The Euclidean distance of this edge, and the WayPoint which represents this edge's traversal.
+     * The distance is needed for our A* search, and the WayPoint is used when returning the actual results.
+     */
+    typedef boost::property<boost::edge_weight_t, double,
+    		boost::property<boost::edge_name_t, WayPoint> > EdgeProperties;
+
+
+    /**
+     * Internal typedef to StreetDirectory representing:
+     *   The actual graph, bound to its VertexProperties and EdgeProperties (see those comments for details on what they store).
+     * You can use StreetDirectory::Graph to mean "a graph" in all contexts.
+     */
+    typedef boost::adjacency_list<boost::vecS,
+                                  boost::vecS,
+                                  boost::directedS,
+                                  VertexProperties,
+                                  EdgeProperties> Graph;
+
+    /**
+     * Internal typedef to StreetDirectory representing:
+     *   A Vertex within our graph. Internally, these are defined as some kind of integer, but you should
+     *   simply treat this as an identifying handle.
+     * You can use StreetDirectory::Vertex to mean "a vertex" in all contexts.
+     */
+    typedef Graph::vertex_descriptor Vertex;
+
+    /**
+     * Internal typedef to StreetDirectory representing:
+     *   An Edge within our graph. Internally, these are defined as pairs of integers (fromVertex, toVertex),
+     *   but you should simply treat this as an identifying handle.
+     * You can use StreetDirectory::Edge to mean "an edge" in all contexts.
+     */
+    typedef Graph::edge_descriptor Edge;
+
+
+    /**
+     * Provides an implementation of the main StreetDirectory functionality. We define this as a public class
+     *   to allow the testing of different implementations, rather than restricting ourselves to cpp-defined functionality.
+     *
+     * All methods in this class are protected, so that only the StreetDirectory can use them. Any sub-classes should define
+     *   a public constructor, and leave the remainder of the fields as-is. This (should) allow proper hiding of internal details.
+     */
+    class Impl {
+    protected:
+        //Impl();  //Abstract?
+
+        virtual LaneAndIndexPair getLane(const Point2D& position) const = 0;
+
+        virtual const MultiNode* GetCrossingNode(const Crossing* cross) const = 0;
+
+        virtual std::vector<RoadSegmentAndIndexPair> closestRoadSegments(const Point2D& point, centimeter_t halfWidth, centimeter_t halfHeight) const = 0;
+
+        //TODO: Does this work the way I want it to?
+        friend class StreetDirectory;
+    };
+
+
+    /**
+     * Provides an implementation of the StreetDirectory's shortest-path lookup functionality. See Impl's description for
+     *  the general idea with these classes.
+     */
+    class ShortestPathImpl {
+    protected:
+    	//ShortestPathImpl();   //Abstract?
+
+        virtual std::vector<WayPoint> GetShortestDrivingPath(const Node& fromNode, const Node& toNode) const = 0;
+
+        virtual std::vector<WayPoint> shortestWalkingPath(const Point2D& fromPoint, const Point2D& toPoint) const = 0;
+
+        virtual void updateEdgeProperty() = 0;
+
+        virtual void printGraph(const std::string& graphType, const Graph& graph) = 0;
+
+        //TODO: Does this work the way I want it to?
+        friend class StreetDirectory;
+    };
+
+
+    /**
+     * Shared statistics class. Doesn't seem to do much, so I'm moving it into the header file. ~Seth
+     */
+    struct Stats : private boost::noncopyable {
+        void printStatistics() const {
+        	throw std::runtime_error("StreetDirectory::Stats not implemented yet");
+        }
+    };
+
+
+    /**
      * Return the lane that contains the specified \c point; 0 if the point is outside the
      * road network.
      */
@@ -312,14 +415,30 @@ public:
     ///Print the Walking graph to LogOut(), in the old output format (out.txt)
     void printWalkingGraph();
 
+
 private:
     StreetDirectory() : pimpl_(nullptr), spImpl_(nullptr), stats_(nullptr)
     {}
 
     static StreetDirectory instance_;
 
+
+private:
+    ///Our current implementation of StreetDirectory functionality.
+    Impl* pimpl_;
+
+    ///Our current implementation of the shortest path searcher.
+    ShortestPathImpl* spImpl_;
+
+    ///The current set of StreetDirectoryStats
+    Stats* stats_;
+
+    ///A lookup of all Signals in the RoadNetwork
+    std::map<const Node*, Signal const*> signals_;
+
+
     // Using the pimple design pattern.  Impl is defined in the source file.
-    class Impl;
+    /*class Impl;
     Impl* pimpl_;
     friend class Impl;  //allow access to stats_.
 
@@ -328,9 +447,9 @@ private:
     ShortestPathImpl* spImpl_;
 
     class Stats;
-    Stats* stats_;
+    Stats* stats_;*/
 
-    std::map<const Node*, Signal const*> signals_;
+
 };
 
 

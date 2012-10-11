@@ -28,7 +28,7 @@
 #include "geospatial/Crossing.hpp"
 #include "geospatial/RoadSegment.hpp"
 #include "geospatial/LaneConnector.hpp"
-#include "geospatial/StreetDirectory.hpp"
+#include "geospatial/streetdir/StreetDirectory.hpp"
 #include "geospatial/BusStop.hpp"
 #include "util/ReactionTimeDistributions.hpp"
 #include "util/OutputUtil.hpp"

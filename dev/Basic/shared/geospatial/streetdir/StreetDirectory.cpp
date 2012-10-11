@@ -9,9 +9,6 @@
 #include <boost/unordered_map.hpp>
 #include <boost/graph/adjacency_list.hpp>
 
-//#include <boost/graph/dijkstra_shortest_paths.hpp>
-#include <boost/graph/astar_search.hpp>
-
 #include <cmath>
 
 //TODO: Prune this include list later; it should be mostly moved out into the various Impl classes.
@@ -137,3 +134,36 @@ void sim_mob::StreetDirectory::printWalkingGraph()
 		spImpl_->printWalkingGraph();
 	}
 }
+
+double sim_mob::StreetDirectory::GetShortestDistance(const Point2D& origin, const Point2D& p1, const Point2D& p2, const Point2D& p3, const Point2D& p4)
+{
+	double res = sim_mob::dist(origin, p1);
+	res = std::min(res, sim_mob::dist(origin, p2));
+	res = std::min(res, sim_mob::dist(origin, p3));
+	res = std::min(res, sim_mob::dist(origin, p4));
+	return res;
+}
+
+const MultiNode* sim_mob::StreetDirectory::FindNearestMultiNode(const RoadSegment* seg, const Crossing* cr)
+{
+	//Error case:
+	const MultiNode* start = dynamic_cast<const MultiNode*>(seg->getStart());
+	const MultiNode* end   = dynamic_cast<const MultiNode*>(seg->getEnd());
+	if (!start && !end) {
+		return nullptr;
+	}
+
+	//Easy case
+	if (start && !end) {
+		return start;
+	}
+	if (end && !start) {
+		return end;
+	}
+
+	//Slightly harder case: compare distances.
+	double dStart = GetShortestDistance(start->getLocation(), cr->nearLine.first, cr->nearLine.second, cr->farLine.first, cr->farLine.second);
+	double dEnd   = GetShortestDistance(end->getLocation(),   cr->nearLine.first, cr->nearLine.second, cr->farLine.first, cr->farLine.second);
+	return dStart < dEnd ? start : end;
+}
+

@@ -6,6 +6,7 @@
 
 //TODO: Prune this include list later; it was copied directly from StreetDirectory.cpp
 #include "buffering/Vector2D.hpp"
+#include "entities/TrafficWatch.hpp"
 #include "geospatial/Lane.hpp"
 #include "geospatial/RoadNetwork.hpp"
 #include "geospatial/Point2D.hpp"
@@ -16,7 +17,6 @@
 #include "geospatial/MultiNode.hpp"
 #include "geospatial/UniNode.hpp"
 #include "util/OutputUtil.hpp"
-#include "util/GeomHelpers.hpp"
 
 using std::map;
 using std::set;
@@ -72,7 +72,7 @@ Point2D GetBusStopPosition(const RoadSegment* road, centimeter_t offset) {
 	while (i < polyline.size() - 1) {
 		p1 = polyline[i];
 		p2 = polyline[i + 1];
-		len = sqrt(hypot(p1, p2));
+		len = sqrt(sim_mob::dist(p1, p2));
 		if (offset - len < 0) {
 			//Walking to <p2> would be a bit too far.
 			break;
@@ -190,7 +190,7 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingNodes(StreetDirectory::Graph
 		//Construction varies drastically depending on whether or not this is a UniNode
 		if (nodeLookup[origNode].isUni) {
 			//We currently don't allow U-turns at UniNodes, so for now each unique Node descriptor represents a unique path.
-			nd.v = boost::add_vertex(const_cast<Graph &>(graph));
+			nd.v = boost::add_vertex(const_cast<StreetDirectory::Graph &>(graph));
 			nodeLookup[origNode].vertices.push_back(nd);
 
 			//We'll create a fake Node for this location (so it'll be represented properly). Once we've fully switched to the
@@ -210,11 +210,11 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingNodes(StreetDirectory::Graph
 
 			//TODO: Leaks memory!
 			Node* vNode = new UniNode(newPos.getX(), newPos.getY());
-			boost::put(boost::vertex_name, const_cast<Graph &>(graph), nd.v, vNode);
+			boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), nd.v, vNode);
 		} else {
 			//Each incoming and outgoing RoadSegment has exactly one Node at the Intersection. In this case, the unused before/after
 			//   RoadSegment is used to identify whether this is an incoming or outgoing Vertex.
-			nd.v = boost::add_vertex(const_cast<Graph &>(graph));
+			nd.v = boost::add_vertex(const_cast<StreetDirectory::Graph &>(graph));
 			nodeLookup[origNode].vertices.push_back(nd);
 
 			//Our Node positions are actually the same compared to UniNodes; we may merge this code later.
@@ -230,7 +230,7 @@ void sim_mob::A_StarShortestPathImpl::procAddDrivingNodes(StreetDirectory::Graph
 
 			//TODO: Leaks memory!
 			Node* vNode = new UniNode(newPos.getX(), newPos.getY());
-			boost::put(boost::vertex_name, const_cast<Graph &>(graph), nd.v, vNode);
+			boost::put(boost::vertex_name, const_cast<StreetDirectory::Graph &>(graph), nd.v, vNode);
 		}
 	}
 }
@@ -723,7 +723,7 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingCrossings(StreetDirectory::G
 			//At least one of the Segment's endpoints must be a MultiNode. Pick the closest one.
 			//TODO: Currently we can only handle Crossings at the ends of RoadSegments.
 			//      Zebra crossings require either a UniNode or a different approach entirely.
-			const MultiNode* atNode = FindNearestMultiNode(*segIt, cr);
+			const MultiNode* atNode = StreetDirectory::FindNearestMultiNode(*segIt, cr);
 			if (!atNode) {
 				//TODO: We have a UniNode with a crossing; we should really add this later.
 				std::cout <<"Warning: Road Segment has a Crossing, but neither a start nor end MultiNode. Skipping for now." <<std::endl;
@@ -829,7 +829,7 @@ void sim_mob::A_StarShortestPathImpl::procAddWalkingCrossings(StreetDirectory::G
 }
 
 
-void sim_mob::A_StarShortestPathImpl::procAddStartNodesAndEdges(StreetDirectory::Graph& graph, const map<const Node*, VertexLookup>& allNodes, map<const Node*, std::pair<Vertex, Vertex> >& resLookup)
+void sim_mob::A_StarShortestPathImpl::procAddStartNodesAndEdges(StreetDirectory::Graph& graph, const map<const Node*, VertexLookup>& allNodes, map<const Node*, std::pair<StreetDirectory::Vertex, StreetDirectory::Vertex> >& resLookup)
 {
 	//This one's easy: Add a single Vertex to represent the "center" of each Node, and add outgoing edges (one-way only) to each Vertex that Node knows about.
 	//Such "master" vertices are used for path finding; e.g., "go from Node X to node Y".

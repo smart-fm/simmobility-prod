@@ -6,11 +6,14 @@
 #include "util/LangHelpers.hpp"
 #include "metrics/Length.hpp"
 #include "geospatial/Point2D.hpp"
+#include "geospatial/Node.hpp"
+#include "util/GeomHelpers.hpp"
 
 #include <map>
 #include <vector>
 #include <string>
 
+#include <boost/graph/astar_search.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/utility.hpp>
 
@@ -18,6 +21,9 @@
 
 
 namespace sim_mob {
+
+class Link;
+
 
 class A_StarShortestPathImpl : public StreetDirectory::ShortestPathImpl {
 public:
@@ -76,8 +82,8 @@ private:
 
 private:
     //Initialize
-    void initDrivingNetworkNew(const std::vector<Link*>& links);
-    void initWalkingNetworkNew(const std::vector<Link*>& links);
+    void initDrivingNetworkNew(const std::vector<sim_mob::Link*>& links);
+    void initWalkingNetworkNew(const std::vector<sim_mob::Link*>& links);
 
     //New processing code: Driving path
     void procAddDrivingNodes(StreetDirectory::Graph& graph, const std::vector<RoadSegment*>& roadway, std::map<const Node*, VertexLookup>& nodeLookup);

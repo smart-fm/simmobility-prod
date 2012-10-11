@@ -416,6 +416,13 @@ public:
     ///Print the Walking graph to LogOut(), in the old output format (out.txt)
     void printWalkingGraph();
 
+    ///Helper: find the nearest MultiNode to this Segment.
+    static const MultiNode* FindNearestMultiNode(const RoadSegment* seg, const Crossing* cr);
+
+private:
+    //Helper: Find the point closest to the origin.
+    static double GetShortestDistance(const Point2D& origin, const Point2D& p1, const Point2D& p2, const Point2D& p3, const Point2D& p4);
+
 
 private:
     StreetDirectory() : pimpl_(nullptr), spImpl_(nullptr), stats_(nullptr)

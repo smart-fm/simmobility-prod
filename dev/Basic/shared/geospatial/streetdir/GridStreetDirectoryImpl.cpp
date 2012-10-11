@@ -131,7 +131,64 @@ struct AABB {
     // The stretch is specified by <p1>, <p2>, and <halfWidth>; the line from <p1> to <p2>
     // traces the middle of the stretch.
     bool didRoadIntersectAABB(const Point2D& p1, const Point2D& p2, centimeter_t halfWidth, const AABB& aabb);
+
+    const Lane* getTheLane(const RoadSegment& segment, const Point2D& p1, const Point2D& p2, const Point2D& point)
+    {
+        centimeter_t dist = distanceOfPointFromLine(point, p1, p2);
+        if (dist < 0)
+            return 0;
+
+        centimeter_t halfWidth = getWidth(segment) / 2;
+        if (dist > halfWidth)
+        {
+            // although <point> is between the start and end points, it is outside of
+            // the road segment
+            return 0;
+        }
+
+        Vector2D<float> a(p1.getX(), p1.getY());
+        Vector2D<float> b(p2.getX(), p2.getY());
+        Vector2D<float> c(point.getX(), point.getY());
+        Vector2D<float> line = b - a; // the road segment polyline
+        Vector2D<float> vec = c - a; // the vector from <point> to the start <p1> of polyline
+
+        // We now know that <point> is inside the road segment.  But is it on the left side or
+        // right side of the polyline?
+        // The vector perpendicular to a vector (x,y) is (-y, x), the perpendicular pointing to
+        // the left of the vector.
+        // <point> will be on the left of the polyline if and only if <vec> and <linePerp> are
+        // pointing in the same direction.  That is, when the dot product of <vec> and <linePerp>
+        // is negative.
+        Vector2D<float> linePerp(-line.getY(), line.getX());
+        bool isLeft = ((linePerp * vec) < 0);
+
+        // Now we calculate the distance of <point> from the left side of the road segment.
+        if (isLeft) {
+            dist = halfWidth - dist;
+        } else {
+            dist = dist + halfWidth;
+        }
+
+        centimeter_t d = 0;
+        // We can now determine which lane <point> is in.
+        std::vector<Lane*> const & lanes = segment.getLanes();
+        for (size_t i = 0; i < lanes.size(); ++i)
+        {
+            Lane const * lane = lanes[i];
+            if (d + static_cast<centimeter_t>(lane->getWidth()) > dist)
+                return lane;
+            d += lane->getWidth();
+        }
+
+        assert(false); // We shouldn't reach here.
+        return 0;
+    }
+
 } //End un-named namespace
+
+
+
+
 
 bool sim_mob::GridStreetDirectoryImpl::checkGrid(int m, int n, const Point2D& p1, const Point2D& p2, centimeter_t halfWidth) const
 {
@@ -139,40 +196,7 @@ bool sim_mob::GridStreetDirectoryImpl::checkGrid(int m, int n, const Point2D& p1
     return didRoadIntersectAABB(p1, p2, halfWidth, grid);
 }
 
-namespace {
-//Helper: Find the point closest to the origin.
-double GetShortestDistance(const Point2D& origin, const Point2D& p1, const Point2D& p2, const Point2D& p3, const Point2D& p4) {
-	double res = sim_mob::dist(origin, p1);
-	res = std::min(res, sim_mob::dist(origin, p2));
-	res = std::min(res, sim_mob::dist(origin, p3));
-	res = std::min(res, sim_mob::dist(origin, p4));
-	return res;
-}
 
-//Helper: find the nearest MultiNode to this Segment.
-const MultiNode* FindNearestMultiNode(const RoadSegment* seg, const Crossing* cr) {
-	//Error case:
-	const MultiNode* start = dynamic_cast<const MultiNode*>(seg->getStart());
-	const MultiNode* end   = dynamic_cast<const MultiNode*>(seg->getEnd());
-	if (!start && !end) {
-		return nullptr;
-	}
-
-	//Easy case
-	if (start && !end) {
-		return start;
-	}
-	if (end && !start) {
-		return end;
-	}
-
-	//Slightly harder case: compare distances.
-	double dStart = GetShortestDistance(start->getLocation(), cr->nearLine.first, cr->nearLine.second, cr->farLine.first, cr->farLine.second);
-	double dEnd   = GetShortestDistance(end->getLocation(),   cr->nearLine.first, cr->nearLine.second, cr->farLine.first, cr->farLine.second);
-	return dStart < dEnd ? start : end;
-}
-
-} //End un-named namespace
 
 void sim_mob::GridStreetDirectoryImpl::buildLookups(const vector<RoadSegment*>& roadway, set<const Crossing*>& completed)
 {
@@ -187,7 +211,7 @@ void sim_mob::GridStreetDirectoryImpl::buildLookups(const vector<RoadSegment*>& 
 			completed.insert(cr);
 
 			//Find whatever MultiNode is closest.
-			const MultiNode* atNode = FindNearestMultiNode(*segIt, cr);
+			const MultiNode* atNode = StreetDirectory::FindNearestMultiNode(*segIt, cr);
 			if (atNode) {
 				//Tag it.
 				crossings_to_multinodes[cr] = atNode;
@@ -261,16 +285,15 @@ StreetDirectory::LaneAndIndexPair sim_mob::GridStreetDirectoryImpl::getLane(cons
 
     // We only need to check the road segments in this grid cell.
     const RoadSegmentSet& segments = iter->second;
-    for (size_t i = 0; i < segments.size(); ++i)
-    {
+    for (size_t i = 0; i < segments.size(); ++i) {
         StreetDirectory::RoadSegmentAndIndexPair const & pair = segments[i];
         RoadSegment const * segment = pair.segment_;
         size_t start = pair.startIndex_;
         size_t end = pair.endIndex_;
 
         centimeter_t halfWidth = getWidth(*segment) / 2;
-        Point2D const & p1 = segment->polyline[start];
-        Point2D const & p2 = segment->polyline[end];
+        const Point2D& p1 = segment->polyline[start];
+        const Point2D& p2 = segment->polyline[end];
         AABB aabb = getBoundingBox(p1, p2, halfWidth);
 
         // The outer test is inexpensive.  We quickly skip road segments that are too far

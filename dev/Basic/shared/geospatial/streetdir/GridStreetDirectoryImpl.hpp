@@ -24,11 +24,11 @@ public:
 	virtual ~GridStreetDirectoryImpl() {}
 
 protected:
-	StreetDirectory::LaneAndIndexPair getLane(const Point2D& position) const;
+	virtual StreetDirectory::LaneAndIndexPair getLane(const Point2D& position) const;
 
-    const MultiNode* GetCrossingNode(const Crossing* cross) const;
+    virtual const MultiNode* GetCrossingNode(const Crossing* cross) const;
 
-    std::vector<StreetDirectory::RoadSegmentAndIndexPair> closestRoadSegments(const Point2D& point, centimeter_t halfWidth, centimeter_t halfHeight) const;
+    virtual std::vector<StreetDirectory::RoadSegmentAndIndexPair> closestRoadSegments(const Point2D& point, centimeter_t halfWidth, centimeter_t halfHeight) const;
 
 private:
     // Partition the road network into a rectangular grid.

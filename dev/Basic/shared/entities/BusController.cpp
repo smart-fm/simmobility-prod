@@ -125,6 +125,8 @@ unsigned int sim_mob::BusController::scheduledDecision(int busline_i, int trip_k
 		std::cout << "wrong busline assigned:" << std::endl;
 		return -1;
 	}
+	std::map<unsigned int, int> ms_headway = busline->queryMS_headway();// query different headways for different times
+
 	unsigned int DTijk = 0;
 	unsigned int SETijk = 0;
 	unsigned int ETijk = 0;
@@ -155,6 +157,8 @@ unsigned int sim_mob::BusController::headwayDecision(int busline_i, int trip_k, 
 		std::cout << "wrong busline assigned:" << std::endl;
 		return -1;
 	}
+	std::map<unsigned int, int> ms_headway = busline->queryMS_headway();// query different headways for different times
+
 	unsigned int DTijk = 0;
 	unsigned int ETijk = 0;
 	unsigned int ATijk_1 = 0;
@@ -184,6 +188,8 @@ unsigned int sim_mob::BusController::evenheadwayDecision(int busline_i, int trip
 		std::cout << "wrong busline assigned:" << std::endl;
 		return -1;
 	}
+	std::map<unsigned int, int> ms_headway = busline->queryMS_headway();// query different headways for different times
+
 	unsigned int DTijk = 0;
 	unsigned int ETijk = 0;
 	unsigned int ATijk_1 = 0;

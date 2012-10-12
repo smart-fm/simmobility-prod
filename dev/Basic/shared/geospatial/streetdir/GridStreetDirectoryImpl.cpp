@@ -26,6 +26,46 @@ using std::string;
 using namespace sim_mob;
 
 
+namespace {
+
+
+// Return the distance between <point> and the closest point on the line from <p1> to <p2>;
+// return -1 if the closest point is one of the end points.
+//
+// The closest point is the projection of <point> onto the line from <p1> to <p2>.  If the
+// projection falls outside of the line, then the closest point is one of the end points.
+// In that case the function returns -1.
+centimeter_t
+distanceOfPointFromLine(Point2D const & point, Point2D const & p1, Point2D const & p2)
+{
+    // The Vector2D<T> class provides the dot product function.  We have to use T=float
+    // because the multiplication in the dot product function may overflow on a 32-bit
+    // platform.
+    Vector2D<float> a(p1.getX(), p1.getY());
+    Vector2D<float> b(p2.getX(), p2.getY());
+    Vector2D<float> c(point.getX(), point.getY());
+    Vector2D<float> line = b - a; // the road segment polyline
+    Vector2D<float> vec = c - a; // the vector from <point> to the start <p1> of polyline
+
+    float dot = line * vec;  // the dot product of <line> and <vec>.
+    if (dot < 0.0)
+    {
+        // <point> is outside of the road segment, before the start point <p1>
+        return -1;
+    }
+
+    float lineLength = line * line;
+    if (dot > lineLength)
+    {
+        // <point> is outside of the road segment, after the end point <p2>
+        return -1;
+    }
+
+    return sqrtf(vec * vec - dot / lineLength);
+}
+} //End un-named namespace
+
+
 sim_mob::GridStreetDirectoryImpl::GridStreetDirectoryImpl(const RoadNetwork& network, centimeter_t gridWidth, centimeter_t gridHeight)
   : gridWidth_(gridWidth), gridHeight_(gridHeight)
 {
@@ -89,10 +129,8 @@ struct AABB {
     };
 
 
-    // Calculate the AABB that would contain a stretch of a road segment.
-    // The stretch is specified by <p1>, <p2>, and <halfWidth>; the line from <p1> to <p2>
-    // traces the middle of the stretch.  The line may not be aligned to the X- and Y- axes.
-    AABB getBoundingBox(const Point2D& p1, const Point2D& p2, centimeter_t halfWidth);
+
+  //  AABB getBoundingBox(const Point2D& p1, const Point2D& p2, centimeter_t halfWidth);
 
 
     // Return true if <point> is inside the rectangle <aabb>.
@@ -182,6 +220,122 @@ struct AABB {
 
         assert(false); // We shouldn't reach here.
         return 0;
+    }
+
+    // Return true if 0.0 <= <num> / <denom> <= 1.0
+    bool isInBetween(centimeter_t num, centimeter_t denom)
+    {
+        if (num > 0) {
+            if (denom > 0 && num < denom)
+                return true;
+        } else {
+            if (denom < 0 && num > denom)
+                return true;
+        }
+        return false;
+    }
+
+    // Return true if the line from <p1> to <p2> intersects or lies within the rectangle <aabb>.
+    bool didLineIntersectAABB(const Point2D& p1, const Point2D& p2, const AABB& aabb)
+    {
+        // If either end of the line is inside the rectangle, then the line must either
+        // intersects or lies within the rectangle.
+        if (isPointInsideAABB(p1, aabb) || isPointInsideAABB(p2, aabb))
+            return true;
+
+        // Consider the parameterized equation R(t) = p1 + t * (p2 - p1).  This equation
+        // represents the ray passing through <p1> and <p2>, the line is just part of the ray
+        // for 0.0 <= t <= 1.0.  Therefore We check if the line intersects one of the 4 sides
+        // of <aabb> by checking if 0.0 <= t <= 1.0 for t = (R(t) - p1) / (p2 - p1).
+        centimeter_t xDiff = p2.getX() - p1.getX();
+        centimeter_t yDiff = p2.getY() - p1.getY();
+        if (isInBetween(aabb.left() - p1.getX(), xDiff))
+            return true;
+        if (isInBetween(aabb.right() - p1.getX(), xDiff))
+            return true;
+        if (isInBetween(aabb.bottom() - p1.getY(), yDiff))
+            return true;
+        if (isInBetween(aabb.top() - p1.getY(), yDiff))
+            return true;
+        return false;
+    }
+
+
+    // Calculate the AABB that would contain a stretch of a road segment.
+    // The stretch is specified by <p1>, <p2>, and <halfWidth>; the line from <p1> to <p2>
+    // traces the middle of the stretch.  The line may not be aligned to the X- and Y- axes.
+    AABB getBoundingBox(const Point2D& p1, const Point2D& p2, centimeter_t halfWidth) {
+         centimeter_t left = 0;
+         centimeter_t right = 0;
+         centimeter_t top = 0;
+         centimeter_t bottom = 0;
+
+         if (p1.getX() > p2.getX()) {
+             left = p2.getX();
+             right = p1.getX();
+         } else {
+             left = p1.getX();
+             right = p2.getX();
+         }
+
+         if (p1.getY() > p2.getY()) {
+             top = p1.getY();
+             bottom = p2.getY();
+         } else {
+             top = p2.getY();
+             bottom = p1.getY();
+         }
+
+         // If we have the four corners of the stretch of road segment, we can quickly calculate
+         // the smallest AABB that contains the stretch.  However, we only have the middle line.
+         // We could calculate the 4 corners, but that is expensive.  Instead we return a slightly
+         // larger AABB.
+         left -= halfWidth;
+         right += halfWidth;
+         top += halfWidth;
+         bottom -= halfWidth;
+
+         return AABB(left, right, bottom, top);
+     }
+
+    bool didRoadIntersectAABB(const Point2D& p1, const Point2D& p2, centimeter_t halfWidth, const AABB& aabb)
+    {
+        if (didLineIntersectAABB(p1, p2, aabb)) {
+            return true;
+        }
+
+        // The line from <p1> to <p2> only trace the middle of the stretch of road segment.
+        // This line may not have intersected <aabb>, but the stretch may still intersect <aabb>.
+
+        // When the line is vertical, check if the middle line comes within <halfWidth> of the
+        // left or right side of <aabb>.
+        if (p1.getX() == p2.getX())
+        {
+            if (((aabb.left() - p1.getX()) < halfWidth) || ((p1.getX() - aabb.right()) < halfWidth))
+                return true;
+            return false;
+        }
+        // When the line is horizontal, check if the middle line comes within <halfWidth> of the
+        // top or bottom side of <aabb>.
+        if (p1.getY() == p2.getY())
+        {
+            if (((aabb.bottom() - p1.getY()) < halfWidth) || ((p1.getY() - aabb.top()) < halfWidth))
+                return true;
+            return false;
+        }
+
+        // We still need to check if the middle line comes within <halfWidth> of one of the
+        // 4 corners of <aabb>.
+        if (distanceOfPointFromLine(aabb.lowerLeft_, p1, p2) < halfWidth)
+            return true;
+        if (distanceOfPointFromLine(aabb.upperRight_, p1, p2) < halfWidth)
+            return true;
+        if (distanceOfPointFromLine(Point2D(aabb.left(), aabb.top()), p1, p2) < halfWidth)
+            return true;
+        if (distanceOfPointFromLine(Point2D(aabb.right(), aabb.bottom()), p1, p2) < halfWidth)
+            return true;
+
+        return false;
     }
 
 } //End un-named namespace

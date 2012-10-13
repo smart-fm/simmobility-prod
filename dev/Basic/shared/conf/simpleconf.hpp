@@ -53,6 +53,8 @@ class EventTimePriorityQueue;
 class ProfileBuilder;
 class BusSchedule;
 class PT_trip;
+class PT_bus_dispatch_freq;
+class PT_bus_routes;
 
 
 /**
@@ -230,11 +232,12 @@ public:
 	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& getTripChains() { return tripchains; }
 	std::vector<sim_mob::BusSchedule*>& getBusSchedule() { return busschedule;}
 	std::vector<sim_mob::PT_trip*>& getPT_trip() { return pt_trip; }
+	std::vector<sim_mob::PT_bus_dispatch_freq*>& getPT_bus_dispatch_freq() { return pt_busdispatch_freq; }
+	std::vector<sim_mob::PT_bus_routes*>& getPT_bus_routes() { return pt_bus_routes; }
+
+
 	std::map<int, sim_mob::RoadSegment*>& getSectionID_RoadSegments() { return sectionID_roadSegments; }
 	std::map<std::string, sim_mob::BusStop*>& getBusStopNo_BusStops() { return busStopNo_busStops; }
-
-
-
 	std::vector<sim_mob::TripChainItem*>& getBusTripChains() { return bustripchains; }
 	std::map<int, std::vector<int> >& getBusStopIDs_Map() { return routeID_busStopIDs;}
 	std::map<int, std::vector<const sim_mob::RoadSegment*> >& getRoadSegments_Map() { return routeID_roadSegments;}
@@ -250,10 +253,12 @@ private:
 	std::map<std::string, sim_mob::BusStop*> busStopNo_busStops;
 	std::map<unsigned int, std::vector<sim_mob::TripChainItem*> > tripchains; //map<personID,tripchains>
 
-	// Temporary
+	// Temporary: Yao Jin
 	std::vector<sim_mob::BusSchedule*> busschedule; // Temporary
 	std::vector<sim_mob::PT_trip*> pt_trip;
-	// Temporary
+	std::vector<sim_mob::PT_bus_dispatch_freq*> pt_busdispatch_freq;
+	std::vector<sim_mob::PT_bus_routes*> pt_bus_routes;
+	// Temporary: Yao Jin
 
 
 

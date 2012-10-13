@@ -128,6 +128,13 @@ enum CONTROL_TYPE {
 	NO_CONTROL, SCHEDULE_BASED, HEADWAY_BASED, EVENHEADWAY_BASED, HYBRID_BASED
 };
 
+class Frequency_Busline {
+public:
+	unsigned int start_Time;// MS offset from simulation start time
+	unsigned int end_Time;// MS offset from simulation start time
+	int headway;// sec
+};
+
 class Busline { // busSchedule later inside PT_Schedule
 public:
 	Busline(int busline_id=0, std::string controlType="No_Control"); // default no control(only follow the schedule given)
@@ -145,14 +152,14 @@ public:
 	const std::vector<BusTrip>& queryBusTrips() const {
 		return busTrip_vec;
 	}
-	const std::map<unsigned int, int>& queryMS_headway() const {
-		return msoffset_Headway;
+	const std::vector<Frequency_Busline>& query_Frequency_Busline() const {
+		return frequency_busline;
 	}
 	void resetBusTrip_StopRealTimes(int trip_k, int busstopSequence_j, BusStop_RealTimes& busStopRealTimes);// mainly for realTimes
 private:
 	int busline_id;
 	CONTROL_TYPE controlType;
-	std::map<unsigned int, int> msoffset_Headway;// provide MS offset map to different headways(SECONDS) support, based on this, fill the vector<BusTrip>
+	std::vector<Frequency_Busline> frequency_busline; // provide different headways according to the offset from simulation for each busline
 	std::vector<BusTrip> busTrip_vec;// constructed based on MSOffset_headway
 };
 

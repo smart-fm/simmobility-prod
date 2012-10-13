@@ -23,7 +23,7 @@ sim_mob::BusStop_RealTimes::BusStop_RealTimes(DailyTime real_ArrivalTime, DailyT
 
 //BusStop
 //BusRoute
-sim_mob::BusRouteInfo::BusRouteInfo(unsigned int busRoute_id)
+sim_mob::BusRouteInfo::BusRouteInfo(std::string busRoute_id)
 : busRoute_id(busRoute_id)
 {
 
@@ -47,8 +47,8 @@ void sim_mob::BusRouteInfo::addRoadSegment(const RoadSegment* aRoadSegment)
 }
 
 sim_mob::BusTrip::BusTrip(int entId, std::string type, unsigned int seqNumber,
-		DailyTime start, DailyTime end, int busTripRun_sequenceNum, int busLine_id, int vehicle_id,
-		unsigned int busRoute_id, Node* from, std::string fromLocType, Node* to,
+		DailyTime start, DailyTime end, int busTripRun_sequenceNum, std::string busLine_id, int vehicle_id,
+		std::string busRoute_id, Node* from, std::string fromLocType, Node* to,
 		std::string toLocType)
 : Trip(entId, type, seqNumber, start, end, busTripRun_sequenceNum,from, fromLocType, to, toLocType),
 busLine_id(busLine_id), busTripRun_sequenceNum(busTripRun_sequenceNum), vehicle_id(vehicle_id), bus_RouteInfo(BusRouteInfo(busRoute_id))

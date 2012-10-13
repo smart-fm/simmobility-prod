@@ -63,7 +63,7 @@ public:
 
 class BusRouteInfo { // need copy constructor since BusTrip copy the BusRoute, or may need assign constructor
 public:
-	BusRouteInfo(unsigned int busRoute_id=0);
+	BusRouteInfo(std::string busRoute_id="");
 	BusRouteInfo(const BusRouteInfo& copyFrom); ///<Copy constructor
 	virtual ~BusRouteInfo() {}
 
@@ -78,7 +78,7 @@ public:
 	void addRoadSegment(const RoadSegment* aRoadSegment);
 
 private:
-	unsigned int busRoute_id;
+	std::string busRoute_id;
 	std::vector<const RoadSegment*> roadSegment_vec;
 	std::vector<const BusStop*> busStop_vec;
 };
@@ -87,7 +87,7 @@ class BusTrip: public sim_mob::Trip {// Can be inside the TripChain generation o
 public:
 	BusTrip(int entId=0, std::string type="BusTrip", unsigned int seqNumber=0,
 			DailyTime start=DailyTime(), DailyTime end=DailyTime(), int busTripRun_sequenceNum=0,
-			int busLine_id=0, int vehicle_id=0, unsigned int busRoute_id=0,
+			std::string busLine_id="", int vehicle_id=0, std::string busRoute_id="",
 			Node* from=nullptr, std::string fromLocType="node", Node* to=nullptr,
 			std::string toLocType="node");
 	virtual ~BusTrip() {}
@@ -95,7 +95,7 @@ public:
 	const int getBusTripRun_SequenceNum() const {
 		return busTripRun_sequenceNum;
 	}
-	const int getBusLineID() const {
+	const std::string& getBusLineID() const {
 		return busLine_id;
 	}
 	const BusRouteInfo& getBusRouteInfo() const {
@@ -114,7 +114,7 @@ public:
 		return busStopRealTimes_vec;
 	}
 private:
-	int busLine_id;
+	std::string busLine_id;
 	int busTripRun_sequenceNum;
 	int vehicle_id;
 	BusRouteInfo bus_RouteInfo;// route inside this BusTrip, just some roadSegments and BusStops

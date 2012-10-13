@@ -16,6 +16,7 @@
 #include "buffering/Shared.hpp"
 #include "entities/UpdateParams.hpp"
 #include "misc/BusTrip.hpp"
+#include "misc/PublicTransit.hpp"
 #include "vehicle/Bus.hpp"
 #include "util/DynamicVector.hpp"
 #include "workers/Worker.hpp"
@@ -64,7 +65,7 @@ public:
 	// Manage Buses
 	void addBus(Bus* bus);
 	void remBus(Bus* bus);
-	bool SetRouteforBusTrip(unsigned int busRoute_id);
+	//bool SetRouteforBusTrip(std::string busRoute_id);
 	sim_mob::BusTrip* MakeBusTrip(const TripChainItem& tcItem);
 	void assignBusTripChainWithPerson();
 	void setPTSchedule();

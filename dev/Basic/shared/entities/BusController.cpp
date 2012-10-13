@@ -49,34 +49,34 @@ void sim_mob::BusController::remBus(Bus* bus)
 	}
 }
 
-bool sim_mob::BusController::SetRouteforBusTrip(unsigned int busRoute_id)
-{
-	sim_mob::BusRouteInfo* busRouteInfo = new sim_mob::BusRouteInfo(busRoute_id);
-
-	// find (route_id) 	return busStop_vecTemp; // vector<BusStop*>;
-	// find (route_id)  return roadsegment_vecTemp; // vector<RoadSegment*>;
-	// find (route_id)  return busStopInfo_vecTemp; // vector<BusStopInfo*>;   (there is already BusStopID matched BusStop)
-
-	// const vector<BusStop*>& busStop_vecTemp = route_BusStops.find(route_id)->second; // route_BusStops is a map loaded from database
-//	for(vector<BusStop*>::const_iterator it = busStop_vecTemp.begin();it != busStop_vecTemp.end(); it++)
-//	{
-//		busRouteInfo.addRoadSegment(*it);
-//	}
-
-	// const vector<RoadSegment*>& roadsegment_vecTemp = route_RoadSegments.find(route_id)->second; // route_RoadSegments is a map loaded from database
-//	for(vector<RoadSegment*>::const_iterator it1 = roadsegment_vecTemp.begin();it1 != roadsegment_vecTemp.end(); it1++)
-//	{
-//		busRouteInfo.addRoadSegment(*it1);
-//	}
-
-	// const vector<BusStopInfo*>& busStopInfo_vecTemp = route_BusStopInfos.find(route_id)->second; // route_BusStopInfos is a map loaded from database
-//	for(vector<BusStopInfo*>::const_iterator iter = BusStopInfo_vecTemp.begin();iter != BusStopInfo_vecTemp.end(); iter++)
-//	{
-//		busRouteInfo.addRoadSegment(*iter);
-//	}
-
-	return true;
-}
+//bool sim_mob::BusController::SetRouteforBusTrip(std::string busRoute_id)
+//{
+//	//sim_mob::BusRouteInfo* busRouteInfo = new sim_mob::BusRouteInfo(busRoute_id);
+//
+//	// find (route_id) 	return busStop_vecTemp; // vector<BusStop*>;
+//	// find (route_id)  return roadsegment_vecTemp; // vector<RoadSegment*>;
+//	// find (route_id)  return busStopInfo_vecTemp; // vector<BusStopInfo*>;   (there is already BusStopID matched BusStop)
+//
+//	// const vector<BusStop*>& busStop_vecTemp = route_BusStops.find(route_id)->second; // route_BusStops is a map loaded from database
+////	for(vector<BusStop*>::const_iterator it = busStop_vecTemp.begin();it != busStop_vecTemp.end(); it++)
+////	{
+////		busRouteInfo.addRoadSegment(*it);
+////	}
+//
+//	// const vector<RoadSegment*>& roadsegment_vecTemp = route_RoadSegments.find(route_id)->second; // route_RoadSegments is a map loaded from database
+////	for(vector<RoadSegment*>::const_iterator it1 = roadsegment_vecTemp.begin();it1 != roadsegment_vecTemp.end(); it1++)
+////	{
+////		busRouteInfo.addRoadSegment(*it1);
+////	}
+//
+//	// const vector<BusStopInfo*>& busStopInfo_vecTemp = route_BusStopInfos.find(route_id)->second; // route_BusStopInfos is a map loaded from database
+////	for(vector<BusStopInfo*>::const_iterator iter = BusStopInfo_vecTemp.begin();iter != BusStopInfo_vecTemp.end(); iter++)
+////	{
+////		busRouteInfo.addRoadSegment(*iter);
+////	}
+//
+//	return true;
+//}
 
 sim_mob::BusTrip* sim_mob::BusController::MakeBusTrip(const TripChainItem& tcItem)
 {
@@ -91,8 +91,29 @@ void sim_mob::BusController::assignBusTripChainWithPerson()
 
 void sim_mob::BusController::setPTSchedule()
 {
-	std::vector<sim_mob::PT_bus_dispatch_freq*>& busdispatch_freq = ConfigParams::GetInstance().getPT_bus_dispatch_freq();
-	std::vector<sim_mob::PT_bus_routes*>& bus_routes = ConfigParams::GetInstance().getPT_bus_routes();
+	ConfigParams& config = ConfigParams::GetInstance();
+	std::vector<sim_mob::PT_bus_dispatch_freq*>& busdispatch_freq = config.getPT_bus_dispatch_freq();
+	std::vector<sim_mob::PT_bus_routes*>& bus_routes = config.getPT_bus_routes();
+
+	for (vector<sim_mob::PT_bus_dispatch_freq*>::const_iterator it=busdispatch_freq.begin(); it!=busdispatch_freq.end(); it++) {
+		vector<sim_mob::PT_bus_dispatch_freq*>::const_iterator curr = it;
+		vector<sim_mob::PT_bus_dispatch_freq*>::const_iterator next = it+1;
+
+		bool done = true;
+		if(next!= busdispatch_freq.end() && (*next)->frequency_id == (*curr)->frequency_id) {
+			done = false;
+		}
+		//If done, new a BusLine with busline id
+		if (done) {
+			// current only the first one Trip is generated, not considering multiple bustrips with headways
+			Busline* busline = new Busline((*it)->route_id);
+			Person* ag = new Person("DB_TripChain", config.mutexStategy, 555);// 555 for test
+			BusTrip bustrip(ag->getId(), "BusTrip", 0, (*it)->start_time, DailyTime(), 0, (*it)->route_id, 0, (*it)->route_id);
+
+			pt_schedule.registerBusLine((*it)->route_id, busline);
+		}
+	}
+
 }
 
 void sim_mob::BusController::receiveBusInformation(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk) {

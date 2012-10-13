@@ -104,8 +104,8 @@ public:
 	void SaveSimMobilityNetwork(sim_mob::RoadNetwork& res, std::map<unsigned int, std::vector<sim_mob::TripChainItem*> >& tcs);
     void SaveBusSchedule(std::vector<sim_mob::BusSchedule*>& busschedule);
 	map<int, Section> const & sections() const { return sections_; }
-	const map<int, vector<const sim_mob::BusStop*> >& getRoute_BusStops() const { return route_BusStops; }
-	const map<int, vector<const sim_mob::RoadSegment*> >& getRoute_RoadSegments() const { return route_RoadSegments; }
+	const map<std::string, vector<const sim_mob::BusStop*> >& getRoute_BusStops() const { return route_BusStops; }
+	const map<std::string, vector<const sim_mob::RoadSegment*> >& getRoute_RoadSegments() const { return route_RoadSegments; }
 	//const map<int, vector<const sim_mob::BusStopInfo*> >& getRoute_BusStopInfos() const { return route_BusStopInfos; }
 
 private:
@@ -127,8 +127,8 @@ private:
 	vector<sim_mob::BoundarySegment*> boundary_segments;
 
 	vector<TripChainItem> bustripchains_;
-	map<int, vector<const sim_mob::BusStop*> > route_BusStops;
-	map<int, vector<const sim_mob::RoadSegment*> > route_RoadSegments;
+	map<std::string, vector<const sim_mob::BusStop*> > route_BusStops;
+	map<std::string, vector<const sim_mob::RoadSegment*> > route_RoadSegments;
 	//map<int, vector<const sim_mob::BusStopInfo*> > route_BusStopInfos;
 
 private:
@@ -871,14 +871,14 @@ sim_mob::Trip* MakeTrip(const TripChainItem& tcItem) {
 	return tripToSave;
 }
 
-sim_mob::BusTrip* MakeBusTrip(const TripChainItem& tcItem, const std::map<int, std::vector<const sim_mob::BusStop*> >& route_BusStops,
-	const std::map<int, std::vector<const sim_mob::RoadSegment*> >& route_RoadSegments) {
+sim_mob::BusTrip* MakeBusTrip(const TripChainItem& tcItem, const std::map<std::string, std::vector<const sim_mob::BusStop*> >& route_BusStops,
+	const std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& route_RoadSegments) {
 
 	//sim_mob::BusTrip* BusTripToSave = new sim_mob::BusTrip(tcItem.entityID,tcItem.sequenceNumber,tcItem.startTime,tcItem.endTime,tcItem.tripID);   //need Database Table connections(BusTripChainItem and BusTrip)
 	sim_mob::BusTrip* BusTripToSave = nullptr;
 
 	// MakeRoute
-	unsigned int route_id = 0;
+	std::string route_id = "";
 	sim_mob::BusRouteInfo* busRouteInfo = new sim_mob::BusRouteInfo(route_id);
 
 	const std::vector<const sim_mob::BusStop*>& busStop_vecTemp = route_BusStops.find(route_id)->second; // route_BusStops is a map loaded from database

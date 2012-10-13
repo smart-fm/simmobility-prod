@@ -490,6 +490,12 @@ void DatabaseLoader::LoadPTBusDispatchFreq(const std::string& storedProc, std::v
 		std::cout << "WARNING: An empty 'PT_bus_dispatch_freq' stored-procedure was specified in the config file; " << std::endl;
 		return;
 	}
+	soci::rowset<sim_mob::PT_bus_dispatch_freq> rows = (sql_.prepare <<"select * from " + storedProc);
+	for (soci::rowset<sim_mob::PT_bus_dispatch_freq>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
+	{
+		pt_bus_dispatch_freq.push_back(new sim_mob::PT_bus_dispatch_freq(*iter));
+		std::cout << iter->frequency_id << " " << iter->route_id << " " << iter->headway_sec << std::endl;
+	}
 }
 
 void DatabaseLoader::LoadPTBusRoutes(const std::string& storedProc, std::vector<sim_mob::PT_bus_routes*>& pt_bus_routes)
@@ -498,6 +504,12 @@ void DatabaseLoader::LoadPTBusRoutes(const std::string& storedProc, std::vector<
 	{
 		std::cout << "WARNING: An empty 'PT_bus_routes' stored-procedure was specified in the config file; " << std::endl;
 		return;
+	}
+	soci::rowset<sim_mob::PT_bus_routes> rows = (sql_.prepare <<"select * from " + storedProc);
+	for (soci::rowset<sim_mob::PT_bus_routes>::const_iterator iter = rows.begin(); iter != rows.end(); ++iter)
+	{
+		pt_bus_routes.push_back(new sim_mob::PT_bus_routes(*iter));
+		std::cout << iter->route_id << " " << iter->link_id << " " << iter->link_sequence_no << std::endl;
 	}
 }
 
@@ -1903,6 +1915,9 @@ string sim_mob::aimsun::Loader::LoadNetwork(const string& connectionStr, const m
 	//Step 1.1: Load "new style" objects, which don't require any post-processing.
 	loader.LoadBusSchedule(getStoredProcedure(storedProcs, "bus_schedule", false), ConfigParams::GetInstance().getBusSchedule());
 	//loader.LoadPTBusTrip(getStoredProcedure(storedProcs, "pt_bustrip", false), ConfigParams::GetInstance().getPT_trip());
+	loader.LoadPTBusDispatchFreq(getStoredProcedure(storedProcs, "pt_bus_dispatch_freq", false), ConfigParams::GetInstance().getPT_bus_dispatch_freq());
+	loader.LoadPTBusRoutes(getStoredProcedure(storedProcs, "pt_bus_routes", false), ConfigParams::GetInstance().getPT_bus_routes());
+
 
 
 	if (prof) { prof->logGenericEnd("Database", "main-prof"); }

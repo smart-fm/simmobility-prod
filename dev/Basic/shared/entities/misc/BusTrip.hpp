@@ -137,7 +137,7 @@ public:
 
 class Busline { // busSchedule later inside PT_Schedule
 public:
-	Busline(int busline_id=0, std::string controlType="No_Control"); // default no control(only follow the schedule given)
+	Busline(std::string busline_id="", std::string controlType="No_Control"); // default no control(only follow the schedule given)
 	virtual ~Busline();
 
 	static CONTROL_TYPE getControlTypeFromString(std::string ControlType);
@@ -145,7 +145,7 @@ public:
 	{
 		return controlType;
 	}
-	const int getBusLineID() const {
+	const std::string& getBusLineID() const {
 		return busline_id;
 	}
 	void addBusTrip(BusTrip& aBusTrip);
@@ -157,7 +157,7 @@ public:
 	}
 	void resetBusTrip_StopRealTimes(int trip_k, int busstopSequence_j, BusStop_RealTimes& busStopRealTimes);// mainly for realTimes
 private:
-	int busline_id;
+	std::string busline_id;
 	CONTROL_TYPE controlType;
 	std::vector<Frequency_Busline> frequency_busline; // provide different headways according to the offset from simulation for each busline
 	std::vector<BusTrip> busTrip_vec;// constructed based on MSOffset_headway
@@ -168,12 +168,12 @@ public:
 	PT_Schedule();
 	virtual ~PT_Schedule();
 
-	void registerBusLine(const int busline_id, Busline* aBusline);
-	Busline* findBusline(int busline_id);
-	const CONTROL_TYPE findBuslineControlType(int busline_id) const;
+	void registerBusLine(const std::string busline_id, Busline* aBusline);
+	Busline* findBusline(const std::string& busline_id);
+	const CONTROL_TYPE findBuslineControlType(const std::string& busline_id) const;
 private:
-	std::map<int, Busline*> buslineID_busline;// need new 2 times(one for particular trip, one for backup in BusController
-	std::map<int, const CONTROL_TYPE> buslineID_controlType;// busline--->controlType
+	std::map<std::string, Busline*> buslineID_busline;// need new 2 times(one for particular trip, one for backup in BusController
+	std::map<std::string, const CONTROL_TYPE> buslineID_controlType;// busline--->controlType
 };
 
 }

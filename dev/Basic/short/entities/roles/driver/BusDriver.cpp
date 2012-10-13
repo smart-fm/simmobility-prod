@@ -218,7 +218,7 @@ double sim_mob::BusDriver::linkDriving(DriverUpdateParams& p) {
 				bus->setPassengerCount(pCount);
 
 				if(!BusController::all_busctrllers_.empty()) {
-					BusController::all_busctrllers_[0]->receiveBusInformation(1, 0, 0, p.currTimeMS);
+					BusController::all_busctrllers_[0]->receiveBusInformation("", 0, 0, p.currTimeMS);
 					//unsigned int departureTime = BusController::all_busctrllers_[0]->decisionCalculation(1, 0, 0, p.currTimeMS,lastVisited_BusStopSequenceNum.get());// need to be changed, only calculate once(no need every time calculation)
 					//real_DepartureTime.set(departureTime);// BusDriver set RealDeparture Time
 				}

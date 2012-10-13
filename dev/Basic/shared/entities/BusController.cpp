@@ -89,11 +89,17 @@ void sim_mob::BusController::assignBusTripChainWithPerson()
 
 }
 
-void sim_mob::BusController::receiveBusInformation(int busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk) {
+void sim_mob::BusController::setPTSchedule()
+{
+	std::vector<sim_mob::PT_bus_dispatch_freq*>& busdispatch_freq = ConfigParams::GetInstance().getPT_bus_dispatch_freq();
+	std::vector<sim_mob::PT_bus_routes*>& bus_routes = ConfigParams::GetInstance().getPT_bus_routes();
+}
+
+void sim_mob::BusController::receiveBusInformation(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk) {
 	std::cout<<"Report Aijk: --->"<<ATijk<<std::endl;
 }
 
-unsigned int sim_mob::BusController::decisionCalculation(int busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, int lastVisited_BusStopSeqNum)
+unsigned int sim_mob::BusController::decisionCalculation(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk, int lastVisited_BusStopSeqNum)
 {
 	CONTROL_TYPE controltype = pt_schedule.findBuslineControlType(busline_i);
 	unsigned int departure_time = 0; // If we use Control, since the busstopSequence_j is in the middle, so should not be 0
@@ -118,14 +124,14 @@ unsigned int sim_mob::BusController::decisionCalculation(int busline_i, int trip
 	return departure_time;
 }
 
-unsigned int sim_mob::BusController::scheduledDecision(int busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk)
+unsigned int sim_mob::BusController::scheduledDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk)
 {
 	Busline* busline = pt_schedule.findBusline(busline_i);
 	if(!busline) {
 		std::cout << "wrong busline assigned:" << std::endl;
 		return -1;
 	}
-	std::vector<Frequency_Busline> freq_busline = busline->query_Frequency_Busline();// query different headways for different times
+	const std::vector<Frequency_Busline>& freq_busline = busline->query_Frequency_Busline();// query different headways for different times
 
 	unsigned int DTijk = 0;
 	unsigned int SETijk = 0;
@@ -150,14 +156,14 @@ unsigned int sim_mob::BusController::scheduledDecision(int busline_i, int trip_k
 	return ETijk;
 }
 
-unsigned int sim_mob::BusController::headwayDecision(int busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk)
+unsigned int sim_mob::BusController::headwayDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk)
 {
 	Busline* busline = pt_schedule.findBusline(busline_i);
 	if(!busline) {
 		std::cout << "wrong busline assigned:" << std::endl;
 		return -1;
 	}
-	std::vector<Frequency_Busline> freq_busline = busline->query_Frequency_Busline();// query different headways for different times
+	const std::vector<Frequency_Busline>& freq_busline = busline->query_Frequency_Busline();// query different headways for different times
 
 	unsigned int DTijk = 0;
 	unsigned int ETijk = 0;
@@ -181,14 +187,14 @@ unsigned int sim_mob::BusController::headwayDecision(int busline_i, int trip_k, 
 	return ETijk;
 }
 
-unsigned int sim_mob::BusController::evenheadwayDecision(int busline_i, int trip_k, int busstopSequence_j,  unsigned int ATijk, int lastVisited_BusStopSeqNum)
+unsigned int sim_mob::BusController::evenheadwayDecision(const std::string& busline_i, int trip_k, int busstopSequence_j,  unsigned int ATijk, int lastVisited_BusStopSeqNum)
 {
 	Busline* busline = pt_schedule.findBusline(busline_i);
 	if(!busline) {
 		std::cout << "wrong busline assigned:" << std::endl;
 		return -1;
 	}
-	std::vector<Frequency_Busline> freq_busline = busline->query_Frequency_Busline();// query different headways for different times
+	const std::vector<Frequency_Busline>& freq_busline = busline->query_Frequency_Busline();// query different headways for different times
 
 	unsigned int DTijk = 0;
 	unsigned int ETijk = 0;
@@ -215,13 +221,13 @@ unsigned int sim_mob::BusController::evenheadwayDecision(int busline_i, int trip
 	return ETijk;
 }
 
-unsigned int sim_mob::BusController::hybridDecision(int busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk)
+unsigned int sim_mob::BusController::hybridDecision(const std::string& busline_i, int trip_k, int busstopSequence_j, unsigned int ATijk)
 {
 	unsigned int DTijk = 0;
 	return DTijk;
 }
 
-unsigned int sim_mob::BusController::dwellTimeCalculation(int busline_i, int trip_k, int busstopSequence_j)
+unsigned int sim_mob::BusController::dwellTimeCalculation(const std::string& busline_i, int trip_k, int busstopSequence_j)
 {
 	double alpha1 = 0.0;
 	double alpha2 = 0.0;

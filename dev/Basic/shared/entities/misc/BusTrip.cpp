@@ -71,6 +71,18 @@ void sim_mob::BusTrip::setBusStopRealTimes(int busstopSequence_j, BusStop_RealTi
 	busStopRealTimes_vec[busstopSequence_j]->set(busStopRealTimes);
 }
 
+void sim_mob::BusTrip::setBusRouteInfo(std::vector<const RoadSegment*>& roadSegment_vec)
+{
+	if(roadSegment_vec.empty()) {
+		std::cout << "Error: no roadSegments!!!" << std::endl;
+		return;
+	}
+	for(int i = 0; i < roadSegment_vec.size(); i++) {
+		bus_RouteInfo.addRoadSegment(roadSegment_vec[i]);
+	}
+	// later add argument std::vector<const BusStop*>& busStop_vec
+}
+
 sim_mob::Busline::Busline(std::string busline_id, std::string controlType)
 : busline_id(busline_id), controlType(getControlTypeFromString(controlType))
 {

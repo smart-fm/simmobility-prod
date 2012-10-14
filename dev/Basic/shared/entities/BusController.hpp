@@ -67,7 +67,7 @@ public:
 	void remBus(Bus* bus);
 	//bool SetRouteforBusTrip(std::string busRoute_id);
 	sim_mob::BusTrip* MakeBusTrip(const TripChainItem& tcItem);
-	void assignBusTripChainWithPerson();
+	void assignBusTripChainWithPerson(std::vector<Entity*>& active_agents);
 	void setPTSchedule();
 
 private:

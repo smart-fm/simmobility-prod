@@ -101,9 +101,7 @@ public:
 	const BusRouteInfo& getBusRouteInfo() const {
 		return bus_RouteInfo;
 	}
-//	BusRouteInfo* getBusRouteInfo() const {
-//		return bus_RouteInfo;
-//	}
+	void setBusRouteInfo(std::vector<const RoadSegment*>& roadSegment_vec);
 	void addBusStopScheduledTimes(const BusStop_ScheduledTimes& aBusStopScheduledTime);
 	void addBusStopRealTimes(Shared<BusStop_RealTimes>* aBusStopRealTime);
 	void setBusStopRealTimes(int busstopSequence_j, BusStop_RealTimes& busStopRealTimes);
@@ -171,6 +169,7 @@ public:
 	void registerBusLine(const std::string busline_id, Busline* aBusline);
 	Busline* findBusline(const std::string& busline_id);
 	const CONTROL_TYPE findBuslineControlType(const std::string& busline_id) const;
+	std::map<std::string, Busline*>& get_busLines() { return buslineID_busline; }
 private:
 	std::map<std::string, Busline*> buslineID_busline;// need new 2 times(one for particular trip, one for backup in BusController
 	std::map<std::string, const CONTROL_TYPE> buslineID_controlType;// busline--->controlType

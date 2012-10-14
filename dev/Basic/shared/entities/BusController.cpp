@@ -84,20 +84,46 @@ sim_mob::BusTrip* sim_mob::BusController::MakeBusTrip(const TripChainItem& tcIte
 	//SetRouteforBusTrip
 }
 
-void sim_mob::BusController::assignBusTripChainWithPerson()
+void sim_mob::BusController::assignBusTripChainWithPerson(std::vector<Entity*>& active_agents)
 {
+	ConfigParams& config = ConfigParams::GetInstance();
+	std::map<std::string, Busline*>& buslines = pt_schedule.get_busLines();
+	if(0 == buslines.size()) {
+		std::cout << "Error: No busline in the PT_Schedule, please check the setPTSchedule!!!! " << std::endl;
+		return;
+	}
+	Person* currAg = nullptr;
+	std::vector<const TripChainItem*> currAgTripChain;
+	for(std::map<std::string, Busline*>::const_iterator buslinesIt = buslines.begin();buslinesIt!=buslines.end();buslinesIt++) {
+		Busline* busline = buslinesIt->second;
+		const std::vector<BusTrip>& busTrip_vec = busline->queryBusTrips();
+		for(int i = 0; i < busTrip_vec.size(); i++) {
+			currAg = new Person("DB_TripChain", config.mutexStategy, busTrip_vec[i].personID);
+			currAg->setStartTime(busTrip_vec[i].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime));
+			currAgTripChain.clear();
 
+			currAgTripChain.push_back(&busTrip_vec[i]);// one person for one busTrip, currently not considering Activity for BusDriver
+			currAg->setTripChain(currAgTripChain);
+
+			// scheduled for dispatch
+			addOrStashBuses(currAg, active_agents);
+			//Reset for the next (possible) Agent
+			currAg = nullptr;
+		}
+	}
 }
 
 void sim_mob::BusController::setPTSchedule()
 {
 	ConfigParams& config = ConfigParams::GetInstance();
 	std::vector<sim_mob::PT_bus_dispatch_freq*>& busdispatch_freq = config.getPT_bus_dispatch_freq();
-	std::vector<sim_mob::PT_bus_routes*>& bus_routes = config.getPT_bus_routes();
+	//std::vector<sim_mob::PT_bus_routes*>& bus_routes = config.getPT_bus_routes();
+	std::map<std::string, std::vector<const sim_mob::RoadSegment*> >& routeID_roadSegments = config.getRoadSegments_Map();
 
-	for (vector<sim_mob::PT_bus_dispatch_freq*>::const_iterator it=busdispatch_freq.begin(); it!=busdispatch_freq.end(); it++) {
-		vector<sim_mob::PT_bus_dispatch_freq*>::const_iterator curr = it;
-		vector<sim_mob::PT_bus_dispatch_freq*>::const_iterator next = it+1;
+
+	for (std::vector<sim_mob::PT_bus_dispatch_freq*>::const_iterator it=busdispatch_freq.begin(); it!=busdispatch_freq.end(); it++) {
+		std::vector<sim_mob::PT_bus_dispatch_freq*>::const_iterator curr = it;
+		std::vector<sim_mob::PT_bus_dispatch_freq*>::const_iterator next = it+1;
 
 		bool done = true;
 		if(next!= busdispatch_freq.end() && (*next)->frequency_id == (*curr)->frequency_id) {
@@ -107,9 +133,10 @@ void sim_mob::BusController::setPTSchedule()
 		if (done) {
 			// current only the first one Trip is generated, not considering multiple bustrips with headways
 			Busline* busline = new Busline((*it)->route_id);
-			Person* ag = new Person("DB_TripChain", config.mutexStategy, 555);// 555 for test
-			BusTrip bustrip(ag->getId(), "BusTrip", 0, (*it)->start_time, DailyTime(), 0, (*it)->route_id, 0, (*it)->route_id);
-
+			//Person* ag = new Person("DB_TripChain", config.mutexStategy, 555);// 555 for test
+			BusTrip bustrip(555, "BusTrip", 0, (*it)->start_time, DailyTime(), 0, (*it)->route_id, 0, (*it)->route_id);// 555 for test
+			bustrip.setBusRouteInfo(routeID_roadSegments[(*it)->route_id]);
+			busline->addBusTrip(bustrip);
 			pt_schedule.registerBusLine((*it)->route_id, busline);
 		}
 	}
@@ -160,11 +187,11 @@ unsigned int sim_mob::BusController::scheduledDecision(const std::string& buslin
 	unsigned int sij = 0;// slack size(should be zero)
 
 	//Fwd_ATijk = ATijk;// assign value
-	const vector<BusTrip>& BusTrips = busline->queryBusTrips();
+	const std::vector<BusTrip>& BusTrips = busline->queryBusTrips();
 	//BusRouteInfo* busRouteInfo_tripK = BusTrips[trip_k].getBusRouteInfo();
 
 	//StopInformation(Times)
-	const vector<BusStop_ScheduledTimes>& busStopScheduledTime_tripK = BusTrips[trip_k].getBusStopScheduledTimes();
+	const std::vector<BusStop_ScheduledTimes>& busStopScheduledTime_tripK = BusTrips[trip_k].getBusStopScheduledTimes();
 	//const vector<const BusStopInfo*>& busStopInfoFwd_tripK = busRouteInfoFwd_tripK->getBusStopsInfo();
 	SETijk = busStopScheduledTime_tripK[busstopSequence_j].scheduled_DepartureTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 
@@ -192,8 +219,8 @@ unsigned int sim_mob::BusController::headwayDecision(const std::string& busline_
 	unsigned int Hi = 0;
 	double alpha = 0.6;// range from 0.6 to 0.8
 
-	const vector<BusTrip>& BusTrips = busline->queryBusTrips();
-	const vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripK_1 = BusTrips[trip_k - 1].getBusStopRealTimes();
+	const std::vector<BusTrip>& BusTrips = busline->queryBusTrips();
+	const std::vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripK_1 = BusTrips[trip_k - 1].getBusStopRealTimes();
 	//const vector<const BusStopInfo*>& busStopInfo_tripK = busRouteInfo_tripK->getBusStopsInfo();
 	ATijk_1 = busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 	Hi = BusTrips[trip_k].startTime.offsetMS_From(ConfigParams::GetInstance().simStartTime)
@@ -223,14 +250,14 @@ unsigned int sim_mob::BusController::evenheadwayDecision(const std::string& busl
 	unsigned int ATimk_plus1 = 0;
 	unsigned int SRTmj = 0;
 
-	const vector<BusTrip>& BusTrips = busline->queryBusTrips();
-	const vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripK_1 = BusTrips[trip_k - 1].getBusStopRealTimes();
+	const std::vector<BusTrip>& BusTrips = busline->queryBusTrips();
+	const std::vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripK_1 = BusTrips[trip_k - 1].getBusStopRealTimes();
 	ATijk_1 = busStopRealTime_tripK_1[busstopSequence_j]->get().real_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 
-	const vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripKplus1 = BusTrips[trip_k + 1].getBusStopRealTimes();
+	const std::vector <Shared<BusStop_RealTimes>* >& busStopRealTime_tripKplus1 = BusTrips[trip_k + 1].getBusStopRealTimes();
 	ATimk_plus1 = busStopRealTime_tripKplus1[lastVisited_BusStopSeqNum]->get().real_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 
-	const vector<BusStop_ScheduledTimes>& busStopScheduledTime_tripKplus1 = BusTrips[trip_k + 1].getBusStopScheduledTimes();
+	const std::vector<BusStop_ScheduledTimes>& busStopScheduledTime_tripKplus1 = BusTrips[trip_k + 1].getBusStopScheduledTimes();
 	SRTmj = busStopScheduledTime_tripKplus1[busstopSequence_j].scheduled_ArrivalTime.offsetMS_From(ConfigParams::GetInstance().simStartTime)
 			- busStopScheduledTime_tripKplus1[lastVisited_BusStopSeqNum].scheduled_DepartureTime.offsetMS_From(ConfigParams::GetInstance().simStartTime);
 
